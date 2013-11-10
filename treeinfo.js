@@ -145,11 +145,11 @@ function isTreeStyle(x) {
 
 function makeBasicTreeStyle() {
     var beginTree = function(tree, navdata, s) {
-	s.add('<li class="flist showlines">');
+	s.add('<ul class="flist showlines">');
     };
 
     var endTree = function(tree, navdata, s) {
-	s.add('</li>');
+	s.add('</ul>');
     };
 
     var beginInnerNode = function(offset, tree, navdata, s) {
