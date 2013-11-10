@@ -10,6 +10,32 @@ function repeatChar(c, count) {
     return s;
 }
 
+function MutableString() {
+    this.data = '';
+}
+
+MutableString.prototype.add = function(s) {
+    this.data = this.data + s;
+};
+
+MutableString.prototype.get = function() {
+    return this.data;
+};
+
+function isMutableString(x) {
+    return isDefined(x.data);
+}
+
+
+function isNumber(x) {
+    return typeof(x) == "number";
+}
+
+function isArray(x) {
+    return (x instanceof Array);
+}
+
+
 function isFunction(x) {
     return typeof(x) === "function";
 }

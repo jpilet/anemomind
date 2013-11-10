@@ -1,14 +1,3 @@
-function MutableString() {
-    this.data = '';
-}
-
-MutableString.prototype.add = function(s) {
-    this.data = this.data + s;
-};
-
-MutableString.prototype.get = function() {
-    return this.data;
-};
 
 
 function TreeInfo(stateCount, labels) {
@@ -18,13 +7,14 @@ function TreeInfo(stateCount, labels) {
 
 TreeInfo.prototype.renderTreeAsTextSub = function(at, depth, tree, maxDepth, navdata, accstring) {
     assert(isSailData(navdata), 'renderTreeAsTextSub: not saildata');
+    assert(tree.length >= 2, "A tree is an array where the first element is the type and the second element the number of states that it holds.");
     var type = tree[0];
-    var args = tree.slice(1, tree.length);
+    var size = tree[1];
+    var args = tree.slice(2, tree.length);
     var indent = repeatChar('       ', depth);
     var output = depth <= maxDepth;
-    if (type < this.stateCount) { // Terminal
-	var count = args[0];
-	var next = at + count;
+    if (args.length == 0) { // Terminal
+	var next = at + size;
 	if (output) {
 	    
 	    var timedata = '';
@@ -45,7 +35,6 @@ TreeInfo.prototype.renderTreeAsTextSub = function(at, depth, tree, maxDepth, nav
 // + '  [' + at + ', ' + next + '[');
 			     
 	}
-	return count;
     }
     else {
 	var deeper = depth + 1;
@@ -74,9 +63,8 @@ TreeInfo.prototype.renderTreeAsTextSub = function(at, depth, tree, maxDepth, nav
 	    //document.writeln(indent + timedata);
 	    accstring.add(indent + timedata + '\n');
 	}
-
-	return count;
     }
+    return size;
 };
 
 
@@ -139,12 +127,12 @@ TreeInfo.prototype.render = function(tree, maxDepth, navdata) {
 
 
 
-function TreeStyle(beginTree, endTree, beginInnerNode, endInnerNode, leaf) {
+function TreeStyle(beginTree, endTree, beginInnerNode, endInnerNode, makeLeaf) {
     this.beginTree = beginTree;
     this.endTree = endTree;
     this.beginInnerNode = beginInnerNode;
     this.endInnerNode = endInnerNode;
-    this.leaf = leaf;
+    this.makeLeaf = makeLeaf;
 }
 
 function isTreeStyle(x) {
@@ -152,34 +140,62 @@ function isTreeStyle(x) {
 	isDefined(x.endTree) &&
 	isDefined(x.beginInnerNode) &&
 	isDefined(x.endInnerNode) &&
-	isDefined(x.leaf);
+	isDefined(x.makeLeaf);
 };
 
 function makeBasicTreeStyle() {
-    var beginTree = function(s) {
+    var beginTree = function(tree, navdata, s) {
 	s.add('<li class="flist showlines">');
     };
 
-    var endTree = function(s) {
+    var endTree = function(tree, navdata, s) {
 	s.add('</li>');
     };
 
-    var beginInnerNode = function(s) {
+    var beginInnerNode = function(offset, tree, navdata, s) {
 	s.add('<li><a href="#">Inner node</a><ul>');
     };
 
-    var endInnerNode = function(s) {
+    var endInnerNode = function(offset, tree, navdata, s) {
 	s.add('</ul></li>');
     };
 
-    var leaf = function(s) {
+    var makeLeaf = function(offset, tree, navdata, s) {
 	s.add('<li><a href="#">Leaf</a></li>');
     };
 
-    return new TreeStyle(beginTree, endTree, beginInnerNode, endInnerNode, leaf);
+    return new TreeStyle(beginTree, endTree, beginInnerNode, endInnerNode, makeLeaf);
 }
 
 
-TreeInfo.prototype.renderExpandable = function(tree, navdata) {
-    
+
+TreeStyle.prototype.renderExpandableSub = function(offset, tree, navdata, s) {
+    assert(isArray(tree));
+    assert(isMutableString(s));
+    assert(isSailData(navdata));
+    var size = tree[1];
+    var args = tree.slice(2, tree.length);
+    if (args.length == 0) {
+	this.makeLeaf(offset, tree, navdata, s);
+    }
+    else {
+	this.beginInnerNode(offset, tree, navdata, s);
+	var ioffs = offset;
+	for (var i = 0; i < args.length; i++) {
+	    ioffs += this.renderExpandableSub(ioffs, args[i], navdata, s);
+	}
+	this.endInnerNode(offset, tree, navdata, s);
+    }
+    return size;
+};
+
+
+TreeStyle.prototype.renderExpandable = function(tree, navdata) {
+    var s = new MutableString();
+
+    this.beginTree(tree, navdata, s);
+    this.renderExpandableSub(0, tree, navdata, s);
+    this.endTree(tree, navdata, s);
+
+    return s.get();
 };

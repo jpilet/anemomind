@@ -14,8 +14,12 @@ var ti = makeTreeInfo002(sm);
 //sm.disp();
 //sm.connectivity.disp();
 
-$('#treecontainer').html(JSON.stringify(tree));
+//$('#treecontainer').html(JSON.stringify(tree));
+var ts = makeBasicTreeStyle();
+
+var accstring = ts.renderExpandable(tree, allnavs);
+$('#treecontainer').html(accstring);
 
 
 //var accstring = ti.renderExpandable(tree, allnavs);
-//$('#treecontainer').html(accstring);
+
