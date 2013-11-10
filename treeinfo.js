@@ -153,7 +153,8 @@ function makeBasicTreeStyle() {
     };
 
     var beginInnerNode = function(offset, tree, navdata, s) {
-	s.add('<li><a href="#">Inner node</a><ul>');
+	s.add('<li><a href="#">Inner node of type ' + tree[0] + ' of size ' + tree[1]
+	      + '</a><ul>');
     };
 
     var endInnerNode = function(offset, tree, navdata, s) {
@@ -161,7 +162,8 @@ function makeBasicTreeStyle() {
     };
 
     var makeLeaf = function(offset, tree, navdata, s) {
-	s.add('<li><a href="#">Leaf</a></li>');
+	s.add('<li><a href="#">Leaf node of type ' + tree[0] + ' of size ' + tree[1] + '</a></li>');
+	
     };
 
     return new TreeStyle(beginTree, endTree, beginInnerNode, endInnerNode, makeLeaf);
