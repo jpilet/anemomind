@@ -155,7 +155,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(25); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(25); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -185,7 +185,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(26); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(26); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -215,7 +215,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(27); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(27); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -245,7 +245,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(28); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(28); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -281,7 +281,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(29); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(29); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -317,7 +317,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(30); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(30); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -347,7 +347,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(31); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(31); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -383,7 +383,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(32); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(32); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -419,7 +419,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(33); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(33); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -449,7 +449,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(34); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(34); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -479,7 +479,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(35); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(35); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -515,7 +515,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(36); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(36); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -551,7 +551,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(37); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(37); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -581,7 +581,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(38); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(38); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -617,7 +617,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(39); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(39); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;
@@ -653,7 +653,7 @@ parser002 = (function(){
           result0 = null;
         }
         if (result0 !== null) {
-          result0 = (function(offset, acc) {acc.unshift(40); return acc;})(pos0, result0);
+          result0 = (function(offset, acc) {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(40); return acc;})(pos0, result0);
         }
         if (result0 === null) {
           pos = pos0;

@@ -45,7 +45,7 @@ function makeAlternatives(inds) {
 function groupStates(index, inds) {
     var name = makeNamedInt(index);
     writebr(name + ' = acc:' + makeAlternatives(inds) +
-	    '+ {acc.unshift(' + index + '); return acc;}');
+	    '+ {var nodesize = 0; for (var i = 0; i < acc.length; i++) {nodesize += acc[i][1];} acc.unshift(nodesize); acc.unshift(' + index + '); return acc;}');
 }
 
 //writebr(indsToString([0, 1, 2, 3, 4]));

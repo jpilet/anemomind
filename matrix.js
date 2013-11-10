@@ -134,7 +134,7 @@ Matrix.prototype.getMin = function() {
 	    }
 	}
     }
-    return [bestI, bestJ, x];
+    return [bestI, bestJ, best];
 };
 
 
@@ -152,5 +152,5 @@ Matrix.prototype.getMax = function() {
 	    }
 	}
     }
-    return [bestI, bestJ, x];
+    return [bestI, bestJ, best];
 };

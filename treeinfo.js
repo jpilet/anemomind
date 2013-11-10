@@ -100,3 +100,86 @@ TreeInfo.prototype.render = function(tree, maxDepth, navdata) {
     this.renderTreeAsText(tree, maxDepth, navdata, accstring); 
     return accstring.get();
 };
+
+// function withSubtreeSizeSub(tree, offset) {
+//     var type = tree[0];
+//     var args = tree.slice(1, tree.length);
+//     var argc = args.length;
+    
+//     var isLeaf = false;
+//     if (argc == 1) {
+// 	if (is
+//     }
+
+//     if (isLeaf) {
+// 	return [type [s offset 1]]
+//     }
+//     else {
+//     }
+
+//     var newArgs = new Array(argc + 1);
+
+    
+
+//     for (var i = 0; i < argc; i++) {
+// 	var subnode
+//     }
+// }
+
+
+
+
+// // Extends the tree to contain the intervals
+// function withSubtreeSize(tree) {
+//     return withSubtreeSizeSub(0, tree);    
+// }
+
+
+
+
+
+
+function TreeStyle(beginTree, endTree, beginInnerNode, endInnerNode, leaf) {
+    this.beginTree = beginTree;
+    this.endTree = endTree;
+    this.beginInnerNode = beginInnerNode;
+    this.endInnerNode = endInnerNode;
+    this.leaf = leaf;
+}
+
+function isTreeStyle(x) {
+    return isDefined(x.beginTree) &&
+	isDefined(x.endTree) &&
+	isDefined(x.beginInnerNode) &&
+	isDefined(x.endInnerNode) &&
+	isDefined(x.leaf);
+};
+
+function makeBasicTreeStyle() {
+    var beginTree = function(s) {
+	s.add('<li class="flist showlines">');
+    };
+
+    var endTree = function(s) {
+	s.add('</li>');
+    };
+
+    var beginInnerNode = function(s) {
+	s.add('<li><a href="#">Inner node</a><ul>');
+    };
+
+    var endInnerNode = function(s) {
+	s.add('</ul></li>');
+    };
+
+    var leaf = function(s) {
+	s.add('<li><a href="#">Leaf</a></li>');
+    };
+
+    return new TreeStyle(beginTree, endTree, beginInnerNode, endInnerNode, leaf);
+}
+
+
+TreeInfo.prototype.renderExpandable = function(tree, navdata) {
+    
+};
