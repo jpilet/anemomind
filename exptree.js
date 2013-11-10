@@ -4,7 +4,6 @@
 // between page loads.
 (function ($, window, undefined) {
 
-    alert('LOADED EXPTREE');
 
     var _, win, elements;
 

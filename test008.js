@@ -15,6 +15,7 @@ var ti = makeTreeInfo002(sm);
 //sm.connectivity.disp();
 
 //$('#treecontainer').html(JSON.stringify(tree));
+//var ts = makeRawTreeStyle();
 var ts = makeBasicTreeStyle();
 
 var accstring = ts.renderExpandable(tree, allnavs);

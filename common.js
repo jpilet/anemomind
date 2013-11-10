@@ -10,6 +10,19 @@ function repeatChar(c, count) {
     return s;
 }
 
+function makeFWR(width, s, fillchar) {
+    if (!isDefined(fillchar)) {
+	fillchar = '0';
+    }
+    if (isNumber(s)) {
+	s = '' + s;
+    }
+    
+    assert((s.length <= width), "The string '" + s
+	   + "' of length " + s.length + " exceeds the fixed width " + width);
+    return repeatChar(fillchar, width - s.length) + s;
+}
+
 function MutableString() {
     this.data = '';
 }

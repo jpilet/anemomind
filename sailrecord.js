@@ -29,7 +29,14 @@ function isSailData(x) {
 
 // get methods
 function getYear(sr) {
-    return sr[0];
+    var offset = 0;
+    var year = sr[0];
+
+    if (year < 1900) {
+    	offset = 2000;
+    }
+    
+    return offset + year;
 }
 
 function getMonth(sr) {
@@ -53,9 +60,27 @@ function getSecond(sr) {
 }
 
 function getTimeString(sr) {
+    //assert(false, "Obsolete, just for testing");
     return '' + getYear(sr) + '-' + getMonth(sr) +
 	'-' + getDayOfMonth(sr) + ' ' + getHour(sr) + ':' +
 	getMinute(sr) + ':' + getSecond(sr);
+}
+
+// See https://github.com/phstc/jquery-dateFormat
+function getStandardJavaTimeString(sr) {
+        return makeFWR(4, getYear(sr)) + '-' + makeFWR(2, getMonth(sr)) +
+	'-' + makeFWR(2, getDayOfMonth(sr)) + ' ' + makeFWR(2, getHour(sr)) + ':' +
+	makeFWR(2, getMinute(sr)) + ':' + makeFWR(2, getSecond(sr)) + ".000";
+}
+
+function getIso8601TimeString(sr) {
+    return makeFWR(4, getYear(sr)) + '-' + makeFWR(2, getMonth(sr)) +
+	'-' + makeFWR(2, getDayOfMonth(sr)) + ' ' + makeFWR(2, getHour(sr)) + ':' +
+	makeFWR(2, getMinute(sr)) + ':' + makeFWR(2, getSecond(sr));
+}
+
+function getDuration(fromSR, toSR) {
+    return getSeconds(toSR) - getSeconds(fromSR);
 }
 
 
