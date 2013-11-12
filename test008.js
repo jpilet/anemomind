@@ -1,4 +1,4 @@
-var sm = new SailModel002(allnavs.slice(0, 300));
+var sm = new SailModel002(allnavs.slice(0, 3000));
 
 var stateCount = sm.getStateCount();
 var length = sm.getLength();
@@ -16,7 +16,8 @@ var ti = makeTreeInfo002(sm);
 
 //$('#treecontainer').html(JSON.stringify(tree));
 //var ts = makeRawTreeStyle();
-var ts = makeBasicTreeStyle();
+
+var ts = makeBasicTreeStyle(ti.labels);
 
 var accstring = ts.renderExpandable(tree, allnavs);
 $('#treecontainer').html(accstring);

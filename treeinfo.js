@@ -169,8 +169,8 @@ function makeRawTreeStyle() {
     return new TreeStyle(beginTree, endTree, beginInnerNode, endInnerNode, makeLeaf);
 }
 
-function makeBasicTreeStyle() {
-        var beginTree = function(tree, navdata, s) {
+function makeBasicTreeStyle(labels) {
+    var beginTree = function(tree, navdata, s) {
 	s.add('<ul class="flist showlines">');
     };
 
@@ -181,7 +181,7 @@ function makeBasicTreeStyle() {
     var beginInnerNode = function(offset, tree, navdata, s) {
 	var at = '' + getIso8601TimeString(allnavs[offset]);
 	var dur = '' + getDuration(allnavs[offset], allnavs[offset + tree[1]]);
-	s.add('<li><a href="#">Inner node of type ' + tree[0] + ' at ' + at + ' for ' + dur +
+	s.add('<li><a href="#">' + labels[tree[0]] + ' at ' + at + ' for ' + Math.floor(dur) +
 	      ' seconds</a><ul>');
     };
 
@@ -190,7 +190,8 @@ function makeBasicTreeStyle() {
     };
 
     var makeLeaf = function(offset, tree, navdata, s) {
-	s.add('<li><a href="#">Leaf node of type ' + tree[0] + ' of size ' + tree[1] + '</a></li>');
+		var dur = '' + getDuration(allnavs[offset], allnavs[offset + tree[1]]);
+	s.add('<li><a href="#">' + labels[tree[0]] + ' for ' + Math.floor(dur) + ' seconds</a></li>');
 	
     };
 
