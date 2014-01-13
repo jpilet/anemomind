@@ -7,8 +7,8 @@ How to get started
 1. Pull the source code
 2. View index.html from within a web browser
 
-File summary
-------------
+Prototype File summary
+----------------------
 
     allnavs.js       Recorded measurements over several years in JSON format
     common.js        Common functions used everywhere.
