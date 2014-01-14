@@ -1,0 +1,172 @@
+* Navigreat
+Explanation: Navigate + Great
+	whois navigreat.com
+	   Domain Name: NAVIGREAT.COM
+	   Registrar: TURNCOMMERCE, INC. DBA NAMEBRIGHT.COM
+	   Whois Server: whois.namebright.com
+	   Referral URL: http://www.namebright.com
+	   Name Server: NSG1.NAMEBRIGHTDNS.COM
+	   Name Server: NSG2.NAMEBRIGHTDNS.COM
+	   Status: clientTransferProhibited
+	   Updated Date: 26-may-2013
+	   Creation Date: 25-may-2011
+	   Expiration Date: 25-may-2014
+
+
+* Navigain
+Explanation: Navigate + Gain
+	whois navigain.com
+	   Domain Name: NAVIGAIN.COM
+	   Registrar: HAVEANAME LLC
+	   Whois Server: whois.haveaname.com
+	   Referral URL: http://www.haveaname.com
+	   Name Server: NS1.DOMAINRECOVER.COM
+	   Name Server: NS2.DOMAINRECOVER.COM
+	   Status: clientDeleteProhibited
+	   Status: clientTransferProhibited
+	   Status: clientUpdateProhibited
+	   Updated Date: 27-jan-2013
+	   Creation Date: 26-jan-2012
+	   Expiration Date: 26-jan-2014
+
+	
+
+
+
+* Navantage
+Explanation: Navigate + Advantage
+	whois navantage.com
+	   Domain Name: NAVANTAGE.COM
+	   Registrar: GODADDY.COM, LLC
+	   Whois Server: whois.godaddy.com
+	   Referral URL: http://registrar.godaddy.com
+	   Name Server: NS61.DOMAINCONTROL.COM
+	   Name Server: NS62.DOMAINCONTROL.COM
+	   Status: clientDeleteProhibited
+	   Status: clientRenewProhibited
+	   Status: clientTransferProhibited
+	   Status: clientUpdateProhibited
+	   Updated Date: 30-dec-2013
+	   Creation Date: 29-dec-2008
+	   Expiration Date: 29-dec-2014
+
+
+* Sailingua / Sailinguist / Sailinguistics
+Explanation: Sailing + Lingua (Lets you understand the language of sailing)
+	whois sailingua.com
+	   Domain Name: SAILINGUA.COM
+	   Registrar: CSL COMPUTER SERVICE LANGENBACH GMBH D/B/A JOKER.COM
+	   Whois Server: whois.joker.com
+	   Referral URL: http://www.joker.com
+	   Name Server: NS1.UKRAINE.COM.UA
+	   Name Server: NS2.UKRAINE.COM.UA
+	   Status: ok
+	   Updated Date: 19-jun-2013
+	   Creation Date: 02-jun-2008
+	   Expiration Date: 02-jun-2014
+
+	whois sailinguist.com
+	No match for "SAILINGUIST.COM".
+
+	whois sailinguistics.com
+	No match for "SAILINGUISTICS.COM".
+
+* Nautomat / Nautomaton / Nautomation 
+Explanation: Nautical + Automat/Automaton (A self-operating machine)
+(Nautomatic is the name of a life jacket)
+
+	whois nautomat.com
+	No match for "NAUTOMAT.COM".
+
+	whois nautomaton.com
+	No match for "NAUTOMATON.COM".
+
+	whois nautomation.com
+	   Domain Name: NAUTOMATION.COM
+	   Registrar: NAME.COM, INC.
+	   Whois Server: whois.name.com
+	   Referral URL: http://www.name.com
+	   Name Server: NS1KPV.NAME.COM
+	   Name Server: NS2JQZ.NAME.COM
+	   Name Server: NS3GHW.NAME.COM
+	   Name Server: NS4LNY.NAME.COM
+	   Status: clientTransferProhibited
+	   Updated Date: 06-mar-2013
+	   Creation Date: 08-mar-2006
+	   Expiration Date: 08-mar-2014
+
+* Nautier
+Explanation: More nautical, More naughty (than your opponents in a sail race. Also rhymes
+		with the name Gautier in French)
+	whois nautier.com
+	No match for "NAUTIER.COM".
+
+* NautiTactics
+Explanation: Nautical + Tactics (Lets sailors analyze their tactics, be they nautical or naughty :-D )
+	whois nautitactics.com
+	No match for "NAUTITACTICS.COM".
+
+* Nautactics
+Explanation: as above
+	whois nautactics.com	
+	No match for "NAUTACTICS.COM".
+
+* Nautorious
+Explanation: Nautical + Notorious (any sailor using our system will become notorious among other sailors)
+	whois nautorious.com
+	   Domain Name: NAUTORIOUS.COM
+	   Registrar: MELBOURNE IT, LTD. D/B/A INTERNET NAMES WORLDWIDE
+	   Whois Server: whois.melbourneit.com
+	   Referral URL: http://www.melbourneit.com
+	   Name Server: DNS21.NAME-SERVICES.COM
+	   Name Server: DNS22.NAME-SERVICES.COM
+	   Status: redemptionPeriod
+	   Updated Date: 27-dec-2013
+	   Creation Date: 15-nov-2002
+	   Expiration Date: 15-nov-2013
+
+* Navimizer / Nautomizer / Nautimizer
+Explanation: Navigate/Naval/Nautical + Optimizer
+	whois navimizer.com
+	No match for "NAVIMIZER.COM".
+
+	whois nautomizer.com
+	No match for "NAUTOMIZER.COM".
+
+	whois nautimizer	
+	No match for "NAUTIMIZER.COM".
+	
+
+* Helmsman
+Explanation: The person who steers the boat
+   whois helmsman.com
+
+   Domain Name: HELMSMAN.COM
+   Registrar: WILD WEST DOMAINS, LLC
+   Whois Server: whois.wildwestdomains.com
+   Referral URL: http://www.wildwestdomains.com
+   Name Server: NS1.SEDOPARKING.COM
+   Name Server: NS2.SEDOPARKING.COM
+   Status: clientDeleteProhibited
+   Status: clientRenewProhibited
+   Status: clientTransferProhibited
+   Status: clientUpdateProhibited
+   Updated Date: 17-apr-2013
+   Creation Date: 18-apr-1998
+
+
+* Helmhelper / Helmhelp
+Explanation: Helm Helper (helps the helmsman to do his job)
+	whois helmhelper.com
+	No match for "HELMHELPER.COM".
+
+* Miner Marine
+Explanation: Marine data mining
+
+	whois minermarine.com
+	No match for "MINERMARINE.COM".
+
+* sailsmart
+Explanation: Temporary name while searching for a better name
+
+
