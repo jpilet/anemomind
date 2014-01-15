@@ -3,6 +3,24 @@ Explanation: Nautical + Graph (Graphical rendering of nautical data)
 	whois nautograph.com
 	   No match for "NAUTOGRAPH.COM".
 
+* Nautigraph
+Explanation: See above
+	whois nautigraph.com (Some outdated website for a café/restaurant)
+	   Domain Name: NAUTIGRAPH.COM
+	   Registrar: GODADDY.COM, LLC
+	   Whois Server: whois.godaddy.com
+	   Referral URL: http://registrar.godaddy.com
+	   Name Server: NS37.DOMAINCONTROL.COM
+	   Name Server: NS38.DOMAINCONTROL.COM
+	   Status: clientDeleteProhibited
+	   Status: clientRenewProhibited
+	   Status: clientTransferProhibited
+	   Status: clientUpdateProhibited
+	   Updated Date: 01-apr-2013
+	   Creation Date: 31-may-2007
+	   Expiration Date: 31-may-2014
+
+
 * Navigreat
 Explanation: Navigate + Great
 	whois navigreat.com
@@ -16,6 +34,23 @@ Explanation: Navigate + Great
 	   Updated Date: 26-may-2013
 	   Creation Date: 25-may-2011
 	   Expiration Date: 25-may-2014
+
+* Navigraph
+Explanation: Navigate + graph
+	http://www.navigraph.com/About.aspx : A company in the field of flight simulation/aviation
+	whois navigraph.com
+	   Domain Name: NAVIGRAPH.COM
+	   Registrar: DOMAININFO AB D/B/A DOMAININFO.COM
+	   Whois Server: whois.domaininfo.com
+	   Referral URL: http://www.domaininfo.com
+	   Name Server: NS.BAHNHOF.SE
+	   Name Server: NS2.BAHNHOF.NET
+	   Status: clientDeleteProhibited
+	   Status: clientTransferProhibited
+	   Status: clientUpdateProhibited
+	   Updated Date: 28-jun-2013
+	   Creation Date: 21-aug-2003
+	   Expiration Date: 21-aug-2016
 
 
 * Navigain
