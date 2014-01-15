@@ -1,3 +1,8 @@
+* Nautograph
+Explanation: Nautical + Graph (Graphical rendering of nautical data)
+	whois nautograph.com
+	   No match for "NAUTOGRAPH.COM".
+
 * Navigreat
 Explanation: Navigate + Great
 	whois navigreat.com
