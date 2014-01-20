@@ -59,6 +59,8 @@ void GridFitter::add(GridFit *gf)
 void GridFitter::solve(Arrayd &X)
 {
 	assert(X.size() == getNLParamCount());
+
+
 }
 
 int GridFitter::getNLParamCount()
