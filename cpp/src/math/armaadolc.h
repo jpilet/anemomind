@@ -94,8 +94,6 @@ namespace sail
 {
 
 
-
-
 typedef Array<adouble> Arrayad;
 
 Array<double> getGradient(short int tapeIndex, Array<double> X);

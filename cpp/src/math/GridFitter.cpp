@@ -8,6 +8,8 @@
 #include "GridFitter.h"
 #include "../common/Uniform.h"
 #include "ADFunction.h"
+#include "mathutils.h"
+#include "../common/math.h"
 
 namespace sail
 {
@@ -94,6 +96,23 @@ Array<Arrayb> makeRandomSplits(int numSplits, int size)
 		dst[i] = makeRandomSplit(size);
 	}
 	return dst;
+}
+
+arma::mat makeLsqDataToParamMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights)
+{
+	int count = A.size();
+	assert(count == weights.size());
+	arma::sp_mat PtP = P.t()*P;
+	arma::mat K = MAKEDENSE(PtP);
+	for (int i = 0; i < count; i++)
+	{
+		arma::sp_mat a = A[i];
+		K += sqr(weights[i])*(a.t()*a);
+	}
+	arma::sp_mat spPt = P.t();
+	arma::mat Pt = MAKEDENSE(spPt);
+	arma::mat result = arma::solve(K, Pt);
+	return result;
 }
 
 } /* namespace sail */

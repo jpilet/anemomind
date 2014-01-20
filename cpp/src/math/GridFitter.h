@@ -65,6 +65,8 @@ private:
 Arrayb makeRandomSplit(int size);
 Array<Arrayb> makeRandomSplits(int numSplits, int size);
 
+arma::mat makeLsqDataToParamMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
+
 
 } /* namespace sail */
 
