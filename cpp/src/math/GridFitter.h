@@ -33,6 +33,21 @@ public:
 
 	int getNLParamCount();
 
+	// Selects and slices a subset of the rows of _P
+	arma::sp_mat makePsel(Arrayb sel);
+
+
+	// Returns a matrix that, when multiplied by a data vector,
+	// gives the least squares fit of the grid vertices to that data vector.
+	// Optionally also takes a boolean array that select which elements of
+	// the data vector to be used for the fit.
+	arma::mat makeDataToParamMat(Arrayb sel = Arrayb());
+
+	// Takes the above matrix and multiplies it with the various cost matrices inside
+	// If D is the datavector and this function returns a matrix A,
+	// then we want to minimize |A*D| w.r.t. D
+	arma::mat makeDataToResidualsMat(Arrayb sel = Arrayb());
+
 	virtual ~GridFit() {}
 private:
 	arma::sp_mat _P;
@@ -52,8 +67,8 @@ public:
 	GridFitter();
 	virtual ~GridFitter();
 
-	void add(GridFitPtr gf);
-	void add(GridFit *gf);
+	GridFit &add(GridFitPtr gf);
+	GridFit &add(GridFit *gf);
 
 	void solve(Arrayd &X);
 
@@ -65,6 +80,7 @@ private:
 Arrayb makeRandomSplit(int size);
 Array<Arrayb> makeRandomSplits(int numSplits, int size);
 
+arma::mat makeDataResidualMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
 arma::mat makeLsqDataToParamMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
 
 

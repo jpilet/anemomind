@@ -34,6 +34,31 @@ int GridFit::getNLParamCount()
 	return _data->inDims();
 }
 
+arma::sp_mat GridFit::makePsel(Arrayb sel)
+{
+	if (sel.hasData())
+	{
+		return makeSpSel(sel)*_P;
+	}
+	else
+	{
+		return _P;
+	}
+}
+
+
+arma::mat GridFit::makeDataToParamMat(Arrayb sel)
+{
+	arma::sp_mat Psel = makePsel(sel);
+	return makeLsqDataToParamMat(Psel, _regMatrices, _regWeights);
+}
+
+arma::mat GridFit::makeDataToResidualsMat(Arrayb sel)
+{
+	arma::sp_mat Psel = makePsel(sel);
+	return makeDataResidualMat(Psel, _regMatrices, _regWeights);
+}
+
 GridFitter::GridFitter()
 {
 	// TODO Auto-generated constructor stub
@@ -47,15 +72,16 @@ GridFitter::~GridFitter()
 	// TODO Auto-generated destructor stub
 }
 
-void GridFitter::add(GridFitPtr gf)
+GridFit &GridFitter::add(GridFitPtr gf)
 {
 	_terms.push_back(gf);
 	assert(gf->getNLParamCount() == getNLParamCount());
+	return *gf;
 }
 
-void GridFitter::add(GridFit *gf)
+GridFit &GridFitter::add(GridFit *gf)
 {
-	add(GridFitPtr(gf));
+	return add(GridFitPtr(gf));
 }
 
 void GridFitter::solve(Arrayd &X)
@@ -96,6 +122,44 @@ Array<Arrayb> makeRandomSplits(int numSplits, int size)
 		dst[i] = makeRandomSplit(size);
 	}
 	return dst;
+}
+
+int countRows(Array<arma::sp_mat> A)
+{
+	int counter = 0;
+	for (int i = 0; i < A.size(); i++)
+	{
+		counter += A[i].n_rows;
+	}
+	return counter;
+}
+
+arma::mat makeDataResidualMat(arma::mat F, arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights)
+{
+	assert(A.size() == weights.size());
+	int indims = F.n_cols;
+	arma::mat residuesData = P*F - arma::eye(indims, indims);
+
+	int rowcount = residuesData.n_rows + countRows(A);
+	arma::mat dst(rowcount, indims);
+	dst.fill(-1);
+	int offset = residuesData.n_rows;
+	dst.rows(0, offset-1) = residuesData;
+	for (int i = 0; i < A.size(); i++)
+	{
+		int next = offset + A[i].n_rows;
+		arma::mat temp = weights[i]*A[i]*F;
+		dst.rows(offset, next-1) = temp;
+
+		offset = next;
+	}
+	assert(offset == rowcount);
+	return dst;
+}
+
+arma::mat makeDataResidualMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights)
+{
+	return makeDataResidualMat(makeLsqDataToParamMat(P, A, weights), P, A, weights);
 }
 
 arma::mat makeLsqDataToParamMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights)

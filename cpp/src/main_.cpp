@@ -5,7 +5,7 @@ using namespace sail;
 int main()
 {
 	//runTests();
-	example008();
+	example012();
 
 	return 0;
 }
