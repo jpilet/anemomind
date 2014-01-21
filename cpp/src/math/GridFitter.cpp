@@ -128,25 +128,18 @@ GridFitter::GridFitter()
 
 GridFitter::~GridFitter()
 {
-	int count = _terms.size();
-	for (int i = 0; i < count; i++)
-	{
-		delete _terms[i];
-	}
 }
 
 GridFit *GridFitter::add(const GridFit &gf)
 {
 	GridFit *gfptr = new GridFit(gf);
-	_terms.push_back(gfptr);
+	_terms.push_back(std::unique_ptr<GridFit>(gfptr));
 	return gfptr;
 }
 
 void GridFitter::solve(Arrayd &X)
 {
 	assert(X.size() == getNLParamCount());
-
-
 }
 
 int GridFitter::getNLParamCount()

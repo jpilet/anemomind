@@ -61,8 +61,6 @@ private:
 	Arrayd _regWeights;
 };
 
-typedef std::shared_ptr<GridFit> GridFitPtr;
-
 class GridFitter
 {
 public:
@@ -77,7 +75,7 @@ public:
 
 	int getNLParamCount();
 private:
-	std::vector<GridFit*> _terms;
+	std::vector<std::unique_ptr<GridFit> > _terms;
 };
 
 Arrayb makeRandomSplit(int size);
