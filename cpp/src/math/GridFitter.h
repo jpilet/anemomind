@@ -52,7 +52,6 @@ private:
 	static arma::mat makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
 	static arma::mat makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
 
-
 	arma::sp_mat _P;
 	ADFunction *_data;
 	Array<arma::sp_mat> _regMatrices;
@@ -70,7 +69,9 @@ public:
 	GridFitter();
 	virtual ~GridFitter();
 
-	void add(GridFit *gf);
+	// GridFitter will allocate a copy of gf on the heap,
+	// acquire ownership of this copy and return a pointer to it.
+	GridFit *add(const GridFit &gf);
 
 	void solve(Arrayd &X);
 
@@ -81,8 +82,6 @@ private:
 
 Arrayb makeRandomSplit(int size);
 Array<Arrayb> makeRandomSplits(int numSplits, int size);
-
-
 
 } /* namespace sail */
 
