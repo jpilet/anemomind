@@ -1,10 +1,3 @@
-/*
- * armaadolc.cpp
- *
- *  Created on: 15 maj 2013
- *      Author: jonas
- */
-
 #include "armaadolc.h"
 #include "../common/common.h"
 #include <adolc/taping.h>
@@ -87,7 +80,6 @@ void adolcOutput(admat &src, double *dst)
 }
 
 
-
 void getRowPtrs(double *src, int m, int n, DoublePtr *dst)
 {
 	for (int i = 0; i < m; i++)
@@ -95,7 +87,6 @@ void getRowPtrs(double *src, int m, int n, DoublePtr *dst)
 		dst[i] = src + i*n;
 	}
 }
-
 
 
 mat getJacobianTranspose(short int tag, const mat &X)
@@ -123,41 +114,13 @@ mat getJacobian(short int tag, const mat &X)
 }
 
 
-
-
-
-
-
-
 vec3 getValue(advec3 x)
 {
 	double data[3] = {x(0).getValue(), x(1).getValue(), x(2).getValue()};
 	return vec3(data);
 }
 
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 namespace sail

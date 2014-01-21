@@ -1,3 +1,12 @@
+/*
+ * ADFunction.h
+ *
+ *  Created on: 20 janv. 2014
+ *      Author: jonas
+ *
+ *  Type traits and helper functions to use the
+ *  ADOL-C adouble type together with the Armadillo data types.
+ */
 #ifndef ARMAADOLC_H_
 #define ARMAADOLC_H_
 

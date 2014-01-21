@@ -61,7 +61,6 @@ arma::mat GridFit::makeDataToResidualsMat(Arrayb sel)
 
 GridFitter::GridFitter()
 {
-	// TODO Auto-generated constructor stub
 
 }
 
@@ -69,19 +68,16 @@ GridFitter::GridFitter()
 
 GridFitter::~GridFitter()
 {
-	// TODO Auto-generated destructor stub
+	int count = _terms.size();
+	for (int i = 0; i < count; i++)
+	{
+		delete _terms[i];
+	}
 }
 
-GridFit &GridFitter::add(GridFitPtr gf)
+void GridFitter::add(GridFit *gf)
 {
-	_terms.push_back(gf);
-	assert(gf->getNLParamCount() == getNLParamCount());
-	return *gf;
-}
-
-GridFit &GridFitter::add(GridFit *gf)
-{
-	return add(GridFitPtr(gf));
+	return add(gf);
 }
 
 void GridFitter::solve(Arrayd &X)
@@ -124,17 +120,22 @@ Array<Arrayb> makeRandomSplits(int numSplits, int size)
 	return dst;
 }
 
-int countRows(Array<arma::sp_mat> A)
+namespace
 {
-	int counter = 0;
-	for (int i = 0; i < A.size(); i++)
+	int countRows(Array<arma::sp_mat> A)
 	{
-		counter += A[i].n_rows;
+		int counter = 0;
+		for (int i = 0; i < A.size(); i++)
+		{
+			counter += A[i].n_rows;
+		}
+		return counter;
 	}
-	return counter;
 }
 
-arma::mat makeDataResidualMat(arma::mat F, arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights)
+
+arma::mat makeDataResidualMat(const arma::mat &F,
+		const arma::sp_mat &P, Array<arma::sp_mat> A, Arrayd weights)
 {
 	assert(A.size() == weights.size());
 	int indims = F.n_cols;
@@ -148,8 +149,7 @@ arma::mat makeDataResidualMat(arma::mat F, arma::sp_mat P, Array<arma::sp_mat> A
 	for (int i = 0; i < A.size(); i++)
 	{
 		int next = offset + A[i].n_rows;
-		arma::mat temp = weights[i]*A[i]*F;
-		dst.rows(offset, next-1) = temp;
+		dst.rows(offset, next-1) = weights[i]*A[i]*F;
 
 		offset = next;
 	}

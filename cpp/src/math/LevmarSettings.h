@@ -15,23 +15,29 @@
 namespace sail
 {
 
-typedef std::function<void(double*)> LevmarDrawf;
 
 class LevmarSettings
 {
 public:
 	LevmarSettings();
 	int maxiter;
+
+	// Please see
+	// A Brief Description of the Levenberg-Marquardt Algorithm
+	//   by Manolis I. A. Lourakis
+	// http://users.ics.forth.gr/~lourakis/levmar/levmar.pdf
+	// 'e1', 'e2' and 'e3' stand for epsilon
 	double e1;
 	double e2;
 	double e3;
 	double tau;
-	int verbosity;
-	void vis(Arrayd X);
-	void setDrawf(int inDims, std::function<void(Arrayd)> fun);
-	LevmarDrawf drawf;
 
-	virtual ~LevmarSettings() {}
+	int verbosity;
+	void draw(Arrayd X);
+
+	void setDrawf(int inDims, std::function<void(Arrayd)> fun);
+	// Optional function to visualize the result.
+	std::function<void(double*)> drawf;
 };
 
 } /* namespace sail */

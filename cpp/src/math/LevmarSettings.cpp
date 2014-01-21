@@ -20,7 +20,7 @@ LevmarSettings::LevmarSettings()
 	verbosity = 0;
 }
 
-void LevmarSettings::vis(Arrayd X)
+void LevmarSettings::draw(Arrayd X)
 {
 	if (bool(drawf))
 	{

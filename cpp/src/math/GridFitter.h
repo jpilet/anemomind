@@ -67,14 +67,13 @@ public:
 	GridFitter();
 	virtual ~GridFitter();
 
-	GridFit &add(GridFitPtr gf);
-	GridFit &add(GridFit *gf);
+	void add(GridFit *gf);
 
 	void solve(Arrayd &X);
 
 	int getNLParamCount();
 private:
-	std::vector<GridFitPtr> _terms;
+	std::vector<GridFit*> _terms;
 };
 
 Arrayb makeRandomSplit(int size);
