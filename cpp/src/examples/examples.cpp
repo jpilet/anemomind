@@ -333,6 +333,7 @@ void example012()
 	params[0] = 30.0;
 	gridFitter.solve(params);
 	DOUT(params);
+	std::cout << "Done" << std::endl;
 }
 
 

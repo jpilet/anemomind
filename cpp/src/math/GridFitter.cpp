@@ -14,6 +14,66 @@
 namespace sail
 {
 
+namespace
+{
+	int countRows(Array<arma::sp_mat> A)
+	{
+		int counter = 0;
+		for (int i = 0; i < A.size(); i++)
+		{
+			counter += A[i].n_rows;
+		}
+		return counter;
+	}
+}
+
+
+arma::mat makeDataResidualMat(const arma::mat &F,
+		const arma::sp_mat &P, Array<arma::sp_mat> A, Arrayd weights)
+{
+	assert(A.size() == weights.size());
+	int indims = F.n_cols;
+	arma::mat residuesData = P*F - arma::eye(indims, indims);
+
+	int rowcount = residuesData.n_rows + countRows(A);
+	arma::mat dst(rowcount, indims);
+	dst.fill(-1);
+	int offset = residuesData.n_rows;
+	dst.rows(0, offset-1) = residuesData;
+	for (int i = 0; i < A.size(); i++)
+	{
+		int next = offset + A[i].n_rows;
+		dst.rows(offset, next-1) = weights[i]*A[i]*F;
+
+		offset = next;
+	}
+	assert(offset == rowcount);
+	return dst;
+}
+
+arma::mat GridFit::makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights)
+{
+	return makeDataResidualMat(makeLsqDataToParamMatSub(P, A, weights), P, A, weights);
+}
+
+arma::mat GridFit::makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights)
+{
+	int count = A.size();
+	assert(count == weights.size());
+	arma::sp_mat PtP = P.t()*P;
+	arma::mat K = MAKEDENSE(PtP);
+	for (int i = 0; i < count; i++)
+	{
+		arma::sp_mat a = A[i];
+		K += sqr(weights[i])*(a.t()*a);
+	}
+	arma::sp_mat spPt = P.t();
+	arma::mat Pt = MAKEDENSE(spPt);
+	arma::mat result = arma::solve(K, Pt);
+	return result;
+}
+
+
 
 GridFit::GridFit() : _weight(0.0), _data(nullptr)
 {
@@ -50,13 +110,13 @@ arma::sp_mat GridFit::makePsel(Arrayb sel)
 arma::mat GridFit::makeDataToParamMat(Arrayb sel)
 {
 	arma::sp_mat Psel = makePsel(sel);
-	return makeLsqDataToParamMat(Psel, _regMatrices, _regWeights);
+	return makeLsqDataToParamMatSub(Psel, _regMatrices, _regWeights);
 }
 
 arma::mat GridFit::makeDataToResidualsMat(Arrayb sel)
 {
 	arma::sp_mat Psel = makePsel(sel);
-	return makeDataResidualMat(Psel, _regMatrices, _regWeights);
+	return makeDataResidualMatSub(Psel, _regMatrices, _regWeights);
 }
 
 GridFitter::GridFitter()
@@ -77,7 +137,7 @@ GridFitter::~GridFitter()
 
 void GridFitter::add(GridFit *gf)
 {
-	return add(gf);
+	_terms.push_back(gf);
 }
 
 void GridFitter::solve(Arrayd &X)
@@ -120,63 +180,6 @@ Array<Arrayb> makeRandomSplits(int numSplits, int size)
 	return dst;
 }
 
-namespace
-{
-	int countRows(Array<arma::sp_mat> A)
-	{
-		int counter = 0;
-		for (int i = 0; i < A.size(); i++)
-		{
-			counter += A[i].n_rows;
-		}
-		return counter;
-	}
-}
 
-
-arma::mat makeDataResidualMat(const arma::mat &F,
-		const arma::sp_mat &P, Array<arma::sp_mat> A, Arrayd weights)
-{
-	assert(A.size() == weights.size());
-	int indims = F.n_cols;
-	arma::mat residuesData = P*F - arma::eye(indims, indims);
-
-	int rowcount = residuesData.n_rows + countRows(A);
-	arma::mat dst(rowcount, indims);
-	dst.fill(-1);
-	int offset = residuesData.n_rows;
-	dst.rows(0, offset-1) = residuesData;
-	for (int i = 0; i < A.size(); i++)
-	{
-		int next = offset + A[i].n_rows;
-		dst.rows(offset, next-1) = weights[i]*A[i]*F;
-
-		offset = next;
-	}
-	assert(offset == rowcount);
-	return dst;
-}
-
-arma::mat makeDataResidualMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights)
-{
-	return makeDataResidualMat(makeLsqDataToParamMat(P, A, weights), P, A, weights);
-}
-
-arma::mat makeLsqDataToParamMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights)
-{
-	int count = A.size();
-	assert(count == weights.size());
-	arma::sp_mat PtP = P.t()*P;
-	arma::mat K = MAKEDENSE(PtP);
-	for (int i = 0; i < count; i++)
-	{
-		arma::sp_mat a = A[i];
-		K += sqr(weights[i])*(a.t()*a);
-	}
-	arma::sp_mat spPt = P.t();
-	arma::mat Pt = MAKEDENSE(spPt);
-	arma::mat result = arma::solve(K, Pt);
-	return result;
-}
 
 } /* namespace sail */

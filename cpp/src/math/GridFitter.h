@@ -50,6 +50,10 @@ public:
 
 	virtual ~GridFit() {}
 private:
+	static arma::mat makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
+	static arma::mat makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
+
+
 	arma::sp_mat _P;
 	ADFunction *_data;
 	Array<arma::sp_mat> _regMatrices;
@@ -79,8 +83,6 @@ private:
 Arrayb makeRandomSplit(int size);
 Array<Arrayb> makeRandomSplits(int numSplits, int size);
 
-arma::mat makeDataResidualMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
-arma::mat makeLsqDataToParamMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
 
 
 } /* namespace sail */
