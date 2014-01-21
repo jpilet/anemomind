@@ -135,9 +135,11 @@ GridFitter::~GridFitter()
 	}
 }
 
-void GridFitter::add(GridFit *gf)
+GridFit *GridFitter::add(const GridFit &gf)
 {
-	_terms.push_back(gf);
+	GridFit *gfptr = new GridFit(gf);
+	_terms.push_back(gfptr);
+	return gfptr;
 }
 
 void GridFitter::solve(Arrayd &X)
