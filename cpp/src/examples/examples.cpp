@@ -261,7 +261,7 @@ public:
 
 	int inDims();
 	int outDims();
-	void eval(adouble *Xin, adouble *Fout);
+	void evalAD(adouble *Xin, adouble *Fout);
 private:
 	Arrayd _X, _Y;
 };
@@ -281,7 +281,7 @@ int Ex012Function::outDims()
 	return _X.size();
 }
 
-void Ex012Function::eval(adouble *Xin, adouble *Fout)
+void Ex012Function::evalAD(adouble *Xin, adouble *Fout)
 {
 	adouble &x = Xin[0];
 	for (int i = 0; i < _X.size(); i++)
@@ -321,14 +321,20 @@ void example012()
 
 	Ex012Function data(X, Ynoisy);
 
-	GridFitter gf;
-	gf.add(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits));
+	GridFitter gridFitter;
+
+	GridFit *gf = gridFitter.add(GridFit(P, &data, Array<arma::sp_mat>::args(A), splits));
+
+	arma::mat resmat = gf->makeDataToResidualsMat();
+	DOUT(resmat);
 
 	Arrayd params(1);
 	params[0] = 30.0;
-	gf.solve(params);
+	gridFitter.solve(params);
 	DOUT(params);
+	std::cout << "Done" << std::endl;
 }
+
 
 
 } /* namespace sail */

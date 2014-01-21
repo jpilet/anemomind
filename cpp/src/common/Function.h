@@ -16,13 +16,13 @@ class Function
 public:
 	Function() {}
 
-	// A function
+	// TO BE OVERRIDDEN:
 	virtual int inDims() = 0;
 	virtual int outDims() = 0;
 	virtual void eval(double *Xin, double *Fout, double *Jout = nullptr) = 0;
 
 	void evalJNum(double *Xin, double *JNumOut, double h = 1.0e-6);
-
+	double calcSquaredNorm(double *X, double *Fscratch);
 	virtual ~Function() {}
 };
 

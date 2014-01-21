@@ -8,6 +8,8 @@
 #ifndef MATH_H_
 #define MATH_H_
 
+#include <cmath>
+
 namespace sail
 {
 
@@ -61,6 +63,25 @@ T norm2(T *x)
 	}
 	return result;
 }
+
+template <typename T>
+T norm2(int dims, T *x)
+{
+	T result = 0;
+	for (int i = 0; i < dims; i++)
+	{
+		result += sqr(x[i]);
+	}
+	return result;
+}
+
+template <typename T>
+T norm(int dims, T *x)
+{
+	return sqrt(norm2<T>(dims, x));
+}
+
+
 
 template <typename T, int dims>
 T norm2dif(T *a, T *b)
