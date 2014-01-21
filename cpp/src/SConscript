@@ -1,7 +1,6 @@
 Import('env')
 
-objs = [env.Object(Glob('*.cpp')),
-        SConscript('common/SConscript'),
+objs = [SConscript('common/SConscript'),
         SConscript('math/SConscript'),
         SConscript('plot/SConscript'),
         SConscript('examples/SConscript')]
