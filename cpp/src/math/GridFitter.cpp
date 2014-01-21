@@ -140,6 +140,12 @@ GridFit *GridFitter::add(const GridFit &gf)
 void GridFitter::solve(Arrayd &X)
 {
 	assert(X.size() == getNLParamCount());
+
+	double v = 2;
+	arma::mat F();
+	arma::mat J();
+	arma::mat JtJ, JtF;
+	double mu = 0.0;
 }
 
 int GridFitter::getNLParamCount()

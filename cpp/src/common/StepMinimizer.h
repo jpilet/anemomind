@@ -45,9 +45,14 @@ public:
 
 	StepMinimizerState takeStep(StepMinimizerState state, std::function<double(double)> fun);
 	StepMinimizerState minimize(StepMinimizerState state, std::function<double(double)> fun);
+
+	// The acceptor function lets us incorporate additional criteria in order for a solution to be accepted.
+	void setAcceptor(std::function<bool(double, double)> acceptor);
 private:
 	double _leftLimit, _rightLimit;
 	int _maxIter;
+
+	std::function<bool(double, double)> _acceptor;
 };
 
 

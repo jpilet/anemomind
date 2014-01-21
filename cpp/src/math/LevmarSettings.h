@@ -36,8 +36,16 @@ public:
 	void draw(Arrayd X);
 
 	void setDrawf(int inDims, std::function<void(Arrayd)> fun);
+
 	// Optional function to visualize the result.
 	std::function<void(double*)> drawf;
+
+	// Function used to perform an additional test whether to accept a step,
+	// in addition to the requirement that 'X' has to yield a 'value' less than
+	// previous value. By default, this function is not set and ignored.
+	// The acceptor function is useful if we have additional criteria on the solution,
+	//   for instance that it should be pareto efficient.
+	std::function<bool(double *X, double value)> acceptor;
 };
 
 } /* namespace sail */
