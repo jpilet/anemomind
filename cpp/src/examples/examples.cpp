@@ -399,7 +399,7 @@ void example013()
 	GridFitter gridFitter;
 
 
-	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits, Arrayd::args(1000.0)));
+	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits, Arrayd::args(0.001)));
 	gridFitter.add(gf);
 
 	arma::mat params(1, 1);

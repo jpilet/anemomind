@@ -485,7 +485,7 @@ void GridFitter::solve(arma::mat &X)
 
 	ParetoFrontier frontier;
 
-	const int iters = 120;
+	const int iters = 30;
 	for (int i = 0; i < iters; i++)
 	{
 		writeStatus(i, X, frontier.size());
