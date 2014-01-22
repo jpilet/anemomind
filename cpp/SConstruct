@@ -45,7 +45,7 @@ if with_test:
 	gtestlibpath = ['/usr/lib/gtest']    # a link to gtest-1.7.0/lib/.libs
 	env.AppendUnique(LIBS = gtestlibs)
 	env.AppendUnique(LIBPATH = gtestlibpath)
-	test = env.Program('build/test', ['src/test_.cpp', objs])	
+	test = env.Program('build/test', [objs])	
 	if with_runtest:
 		runtest = env.Command(target = "build/testlog.txt",
 							  source = "build/test",
