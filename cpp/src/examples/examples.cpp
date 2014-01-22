@@ -321,13 +321,20 @@ void example012()
 
 	Ex012Function data(X, Ynoisy);
 
-	GridFitter gf;
-	gf.add(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits));
+	GridFitter gridFitter;
+
+
+	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits));
+	gridFitter.add(gf);
+
+	arma::mat resmat = gf->makeDataToResidualsMat();
+	DOUT(resmat);
 
 	Arrayd params(1);
 	params[0] = 30.0;
-	gf.solve(params);
+	gridFitter.solve(params);
 	DOUT(params);
+	std::cout << "Done" << std::endl;
 }
 
 

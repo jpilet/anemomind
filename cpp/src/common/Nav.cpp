@@ -99,8 +99,8 @@ Nav::Nav(MDArray2d row)
 	else
 	{
 		struct tm time;
-		time.tm_gmtoff = 0; // Greenwich Mean Time???
-		time.tm_isdst = 1; // daylight saving. What to put here???
+		time.tm_gmtoff = 0;
+		time.tm_isdst = 0; // daylight saving. What to put here???
 		time.tm_sec = int(_second);
 		time.tm_min = _minute;
 		time.tm_hour = _hour;

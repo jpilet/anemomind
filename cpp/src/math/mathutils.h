@@ -40,6 +40,9 @@ MDArray2d toRows(Array<arma::vec::fixed<dims> > vecs)
 
 #define MAKEDENSE(X) ((X) + arma::zeros((X).n_rows, (X.n_cols)))
 
+// Makes a sparse matrix to select elements from a vector.
+arma::sp_mat makeSpSel(Arrayb sel);
+
 }
 
 #endif /* MATHUTILS_H_ */
