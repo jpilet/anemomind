@@ -130,17 +130,13 @@ GridFitter::~GridFitter()
 {
 }
 
-GridFit &GridFitter::add(const GridFit &gf)
+void GridFitter::add(std::shared_ptr<GridFit> gf)
 {
-	//GridFit *gfptr = new GridFit(gf);
-	//_terms.push_back(gfptr);
-	//return gfptr;
 	if (!_terms.empty())
 	{
-		assert(gf.getNLParamCount() == _terms.front().getNLParamCount());
+		assert(gf->getNLParamCount() == getNLParamCount());
 	}
 	_terms.push_back(gf);
-	return _terms.front();
 }
 
 void GridFitter::solve(Arrayd &X)
@@ -158,7 +154,7 @@ int GridFitter::getNLParamCount()
 	}
 	else
 	{
-		return _terms.front().getNLParamCount();
+		return _terms.front()->getNLParamCount();
 	}
 }
 

@@ -63,8 +63,6 @@ private:
 	Arrayd _regWeights;
 };
 
-typedef std::shared_ptr<GridFit> GridFitPtr;
-
 class GridFitter
 {
 public:
@@ -73,14 +71,14 @@ public:
 
 	// GridFitter will allocate a copy of gf on the heap,
 	// acquire ownership of this copy and return a pointer to it.
-	GridFit &add(const GridFit &gf);
+	void add(std::shared_ptr<GridFit> gf);
 
 	void solve(Arrayd &X);
 
 	int getNLParamCount();
 private:
 	//std::vector<GridFit*> _terms;
-	std::list<GridFit> _terms;
+	std::vector<std::shared_ptr<GridFit> > _terms;
 };
 
 Arrayb makeRandomSplit(int size);
