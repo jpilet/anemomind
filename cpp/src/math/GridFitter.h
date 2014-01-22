@@ -25,7 +25,9 @@ class GridFit
 {
 public:
 	GridFit();
-	GridFit(arma::sp_mat P, ADFunction *data, Array<arma::sp_mat> regMatrices, Array<Arrayb> splits,
+	GridFit(arma::sp_mat P, ADFunction *data, Array<arma::sp_mat> regMatrices,
+			Array<Arrayb> splits,
+			Arrayd regWeights,
 			double weight = 1);
 
 
@@ -48,9 +50,32 @@ public:
 	// then we want to minimize |A*D| w.r.t. D
 	arma::mat makeDataToResidualsMat(Arrayb sel = Arrayb());
 
+	// For the current weights, return a matrix M such that
+	// |M*D|^2 is the cross validation cost, D being the data vector.
+	arma::mat makeCrossValidationFitnessMat();
+
+
+
+	// Evaluates how well the grid fits to a datavector D
+	// given the current regularization weights.
+	// The result of this function should be the same as
+	// SQNORM(makeDataToResidualMat()*D) but is computed differently
+	double evalObjfForDataVector(arma::mat D);
+
+	// Evaluates the cross-validation score for this datavector D
+	// and the weights.
+	double evalCrossValidationFitness(arma::mat D);
+
+	int getRegCount() {return _regWeights.size();}
+
+	void setRegWeight(int index, double value) {_regWeights[index] = value;}
+	double getRegWeight(int index) {return _regWeights[index];}
+
 	virtual ~GridFit() {}
 private:
+	static arma::mat fitGridParamsForDataVectorAndWeights(arma::mat D, Arrayd weights, arma::sp_mat P, Array<arma::sp_mat> A);
 	static arma::mat makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
+	static arma::mat makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
 	static arma::mat makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
 
 	arma::sp_mat _P;
@@ -75,11 +100,14 @@ public:
 	// acquire ownership of this copy and return a pointer to it.
 	void add(std::shared_ptr<GridFit> gf);
 
-	void solve(Arrayd &X);
+	void solve(arma::mat &X);
+	void solveFixedReg(arma::mat &X);
 
 	int getNLParamCount();
 private:
 	std::vector<std::shared_ptr<GridFit> > _terms;
+
+	Arrayi getRegCounts();
 };
 
 Arrayb makeRandomSplit(int size);

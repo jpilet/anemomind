@@ -64,6 +64,8 @@ MDArray2d toRows(Array<arma::vec::fixed<dims> > vecs)
 // Makes a sparse matrix to select elements from a vector.
 arma::sp_mat makeSpSel(Arrayb sel);
 
+#define SQNORM(X) (arma::dot((X), (X))) // <-- Look for a better solution than this.
+
 
 }
 

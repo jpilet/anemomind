@@ -11,6 +11,8 @@ env.AppendUnique(LIBPATH = ['/usr/local/lib'])
 env.AppendUnique(CPPPATH = ['/usr/include'])
 env.AppendUnique(LIBPATH = ['/usr/lib'])
 
+env.AppendUnique(CPPFLAGS = ['-g3', '-O0'])
+
 # http://arma.sourceforge.net/
 env.AppendUnique(LIBS = ['armadillo', 'lapack_atlas'])
 
