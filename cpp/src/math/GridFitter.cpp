@@ -84,7 +84,9 @@ GridFit::GridFit(arma::sp_mat P, ADFunction *data, Array<arma::sp_mat> regMatric
 {
 	_regWeights.create(regMatrices.size());
 	_regWeights.setTo(1.0);
+	assert(splits.hasData());
 	assert(_data->outDims() == P.n_rows);
+	assert(_data->outDims() == splits[0].size());
 }
 
 
@@ -141,11 +143,6 @@ void GridFitter::solve(Arrayd &X)
 {
 	assert(X.size() == getNLParamCount());
 
-	double v = 2;
-	arma::mat F();
-	arma::mat J();
-	arma::mat JtJ, JtF;
-	double mu = 0.0;
 }
 
 int GridFitter::getNLParamCount()

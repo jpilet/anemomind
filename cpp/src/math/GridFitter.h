@@ -56,9 +56,11 @@ private:
 	ADFunction *_data;
 	Array<arma::sp_mat> _regMatrices;
 	Array<Arrayb> _splits;
-	double _weight;
 
 	Arrayd _regWeights;
+
+	// How much THE WHOLE function is weighted
+	double _weight;
 };
 
 class GridFitter
