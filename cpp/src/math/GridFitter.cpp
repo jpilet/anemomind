@@ -88,7 +88,7 @@ GridFit::GridFit(arma::sp_mat P, ADFunction *data, Array<arma::sp_mat> regMatric
 }
 
 
-int GridFit::getNLParamCount()
+int GridFit::getNLParamCount() const
 {
 	assert(_data != nullptr);
 	return _data->inDims();
@@ -128,15 +128,14 @@ GridFitter::GridFitter()
 
 GridFitter::~GridFitter()
 {
-	int count = _terms.size();
-	for (int i = 0; i < count; i++)
-	{
-		delete _terms[i];
-	}
 }
 
-void GridFitter::add(GridFit *gf)
+void GridFitter::add(std::shared_ptr<GridFit> gf)
 {
+	if (!_terms.empty())
+	{
+		assert(gf->getNLParamCount() == getNLParamCount());
+	}
 	_terms.push_back(gf);
 }
 
@@ -155,7 +154,7 @@ int GridFitter::getNLParamCount()
 	}
 	else
 	{
-		return _terms[0]->getNLParamCount();
+		return _terms.front()->getNLParamCount();
 	}
 }
 
