@@ -17,7 +17,6 @@
 namespace sail
 {
 
-
 // This class holds one nonlinearly parameterized datavector to which we want to fit a grid and tune
 // regularization parameters.
 
