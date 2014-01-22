@@ -403,7 +403,7 @@ void example013()
 	gridFitter.add(gf);
 
 	arma::mat params(1, 1);
-	params[0] = 300.0;
+	params[0] = 3000.0;
 	gridFitter.solve(params);
 
 

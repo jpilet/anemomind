@@ -111,8 +111,8 @@ public:
 	void solve(arma::mat &X);
 	void solveFixedReg(arma::mat &X);
 
-	int getNLParamCount();
 private:
+	int getNLParamCount();
 	std::vector<std::shared_ptr<GridFit> > _terms;
 
 	Arrayi getRegCounts();
