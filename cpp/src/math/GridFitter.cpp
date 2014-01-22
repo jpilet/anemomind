@@ -17,6 +17,7 @@
 #include "pareto.h"
 #include "../common/common.h"
 #include "../common/StepMinimizer.h"
+#include "../common/text.h"
 
 namespace sail
 {
@@ -96,11 +97,14 @@ GridFit::GridFit() : _weight(0.0), _data(nullptr)
 
 GridFit::GridFit(arma::sp_mat P, ADFunction *data, Array<arma::sp_mat> regMatrices, Array<Arrayb> splits,
 		Arrayd regWeights,
+		Array<std::string> regWeightLabels,
 		double weight) : _P(P), _data(data), _regMatrices(regMatrices), _splits(splits),
 		_regWeights(regWeights),
+		_labels(regWeightLabels),
 		_weight(weight)
 {
 	assert(splits.hasData());
+	assert(_labels.empty() || _labels.size() == _regWeights.size());
 	assert(_regWeights.size() == _regMatrices.size());
 	assert(_data->outDims() == P.n_rows);
 	assert(_data->outDims() == splits[0].size());
@@ -136,6 +140,16 @@ arma::mat GridFit::makeDataToResidualsMat(Arrayb sel)
 {
 	arma::sp_mat Psel = makePsel(sel);
 	return _weight*makeDataResidualMatSub(Psel, _regMatrices, _regWeights);
+}
+
+void GridFit::setExpRegWeight(int index, double logX)
+{
+	setRegWeight(index, exp(logX));
+}
+
+std::string GridFit::getRegLabel(int index)
+{
+	return (_labels.empty()? stringFormat("regw(%d/%d)", index+1, _regWeights.size()) : _labels[index]);
 }
 
 arma::mat GridFit::makeCrossValidationFitnessMat()
@@ -375,18 +389,22 @@ void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes)
 	GridFit &f = *(_fits[index]);
 	for (int i = 0; i < f.getRegCount(); i++)
 	{
-		double initReg = f.getRegWeight(i);
+		// It is best to do this search in the logarithmic domain,
+		// because this way, the weight stays positive.
+		double initReg = log(f.getRegWeight(i));
+
+
 		double initStep = stepSizes[i];
-		auto objf = [&] (double x) {f.setRegWeight(i, x);
+		auto objf = [&] (double x) {f.setExpRegWeight(i, x);
 			return f.evalCrossValidationFitness(_D[i]);};
-		auto acceptor = [&] (double x, double val) {f.setRegWeight(i, x);
+		auto acceptor = [&] (double x, double val) {f.setExpRegWeight(i, x);
 			return _frontier.insert(makeParetoElementVector());};
 		StepMinimizerState initState(initReg, initStep, objf(initReg));
 		StepMinimizer minimizer;
 		minimizer.setAcceptor(acceptor);
 		StepMinimizerState finalState = minimizer.takeStep(initState, objf);
 		stepSizes[i] = finalState.getStep();
-		f.setRegWeight(i, finalState.getX());
+		f.setExpRegWeight(i, finalState.getX());
 	}
 }
 
@@ -418,6 +436,43 @@ Array<Arrayd> initStepSizes(Arrayi regCounts, double initStepSize)
 	return regCounts.map<Arrayd>([=] (int n) {Arrayd dst(n); dst.setTo(initStepSize); return dst;});
 }
 
+void GridFitter::writeStatus(int i, arma::mat X, int fsize)
+{ // Status output for this iteration
+	if (i == 0)
+	{
+		cout << "################################################ GRIDFITTER BEGIN SOLVE" << endl;
+	}
+
+
+	if (i == -1)
+	{
+		cout << "######################## DONE SOLVING IT" << endl;
+	}
+	else
+	{
+		std::cout << "\n\n\n### GRIDFITTER ITERATION " << i+1 << std::endl;
+	}
+
+	std::cout << "   X = " << X.t() << endl;
+	int gfCount = _terms.size();
+	for (int i = 0; i < gfCount; i++)
+	{
+		std::shared_ptr<GridFit> gf = _terms[i];
+		std::string l = gf->getLabel();
+		std::cout << "   " << (l.empty()? stringFormat("GridFit(%d/%d)", i+1, gfCount) : l) << std::endl;
+		int rCount = gf->getRegCount();
+		for (int j = 0; j < rCount; j++)
+		{
+			std::cout << "     " << gf->getRegLabel(j) << " = " << gf->getRegWeight(j) << std::endl;
+		}
+	}
+	std::cout << "   Frontier size: " << fsize << endl;
+	if (i == -1)
+	{
+		cout << "########################################################################################" << endl;
+	}
+}
+
 void GridFitter::solve(arma::mat &X)
 {
 	assert(X.size() == getNLParamCount());
@@ -425,7 +480,7 @@ void GridFitter::solve(arma::mat &X)
 	LevmarSettings settings;
 	settings.verbosity = 0;
 
-	const double initStepSize = 1000.0;
+	const double initStepSize = 0.1;
 	Array<Arrayd> stepSizes = initStepSizes(getRegCounts(), initStepSize);
 
 	ParetoFrontier frontier;
@@ -433,6 +488,8 @@ void GridFitter::solve(arma::mat &X)
 	const int iters = 120;
 	for (int i = 0; i < iters; i++)
 	{
+		writeStatus(i, X, frontier.size());
+
 		// Part 1: Optimize Player 1 (the objective function)
 		{
 			GridFitPlayer1 objf(frontier, _terms);
@@ -448,7 +505,7 @@ void GridFitter::solve(arma::mat &X)
 			other.optimize(stepSizes);
 		}
 	}
-	DOUT(frontier.size());
+	writeStatus(-1, X, frontier.size());
 }
 
 void GridFitter::solveFixedReg(arma::mat &X)

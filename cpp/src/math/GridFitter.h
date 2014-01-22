@@ -28,6 +28,7 @@ public:
 	GridFit(arma::sp_mat P, ADFunction *data, Array<arma::sp_mat> regMatrices,
 			Array<Arrayb> splits,
 			Arrayd regWeights,
+			Array<std::string> regWeightLabels = Array<std::string>(),
 			double weight = 1);
 
 
@@ -66,13 +67,18 @@ public:
 	// and the weights.
 	double evalCrossValidationFitness(arma::mat D);
 
+	void setExpRegWeight(int index, double logX);
 	int getRegCount() {return _regWeights.size();}
 
-	void setRegWeight(int index, double value) {_regWeights[index] = value;}
 	double getRegWeight(int index) {return _regWeights[index];}
+
+	std::string getRegLabel(int index);
+	std::string getLabel() {return _label;}
+	void setLabel(std::string label) {_label = label;}
 
 	virtual ~GridFit() {}
 private:
+	void setRegWeight(int index, double value) {_regWeights[index] = value;}
 	static arma::mat fitGridParamsForDataVectorAndWeights(arma::mat D, Arrayd weights, arma::sp_mat P, Array<arma::sp_mat> A);
 	static arma::mat makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
 	static arma::mat makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
@@ -85,6 +91,8 @@ private:
 
 	Arrayd _regWeights;
 
+	std::string _label;
+	Array<std::string> _labels;
 
 	// How much THE WHOLE function is weighted
 	double _weight;
@@ -108,6 +116,7 @@ private:
 	std::vector<std::shared_ptr<GridFit> > _terms;
 
 	Arrayi getRegCounts();
+	void writeStatus(int i, arma::mat X, int fsize);
 };
 
 Arrayb makeRandomSplit(int size);

@@ -333,7 +333,7 @@ void example012()
 	GridFitter gridFitter;
 
 
-	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits, Arrayd::args(1.0)));
+	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits, Arrayd::args(10.0)));
 	gridFitter.add(gf);
 
 	arma::mat resmat = gf->makeDataToResidualsMat();
@@ -392,26 +392,25 @@ void example013()
 		assert(arma::norm(P*Vmat - Xmat, 2) <= 1.0e-6);
 	}
 
-	Array<Arrayb> splits = makeRandomSplits(3, X.size());
+	Array<Arrayb> splits = makeRandomSplits(9, X.size());
 
 	Ex012Function data(X, Ynoisy);
 
 	GridFitter gridFitter;
 
 
-	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits, Arrayd::args(1.0)));
+	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits, Arrayd::args(1000.0)));
 	gridFitter.add(gf);
 
-	arma::mat resmat = gf->makeDataToResidualsMat();
+	arma::mat params(1, 1);
+	params[0] = 300.0;
+	gridFitter.solve(params);
 
+
+	arma::mat resmat = gf->makeDataToResidualsMat();
 	arma::mat Pinv = gf->makeDataToParamMat();
 	arma::mat cvfit = gf->makeCrossValidationFitnessMat();
 
-	arma::mat params(1, 1);
-	params[0] = 30.0;
-	gridFitter.solve(params);
-	DOUT(params);
-	std::cout << "Done" << std::endl;
 
 	Arrayd Yfitted(sampleCount);
 	data.eval(params.memptr(), Yfitted.getData());
