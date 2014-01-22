@@ -12,6 +12,7 @@
 #include <memory>
 #include <vector>
 #include <armadillo>
+#include <list>
 
 namespace sail
 {
@@ -31,7 +32,7 @@ public:
 
 	ADFunction &getData() {return *_data;}
 
-	int getNLParamCount();
+	int getNLParamCount() const;
 
 	// Selects and slices a subset of the rows of _P
 	arma::sp_mat makePsel(Arrayb sel);
@@ -72,13 +73,14 @@ public:
 
 	// GridFitter will allocate a copy of gf on the heap,
 	// acquire ownership of this copy and return a pointer to it.
-	GridFit *add(const GridFit &gf);
+	GridFit &add(const GridFit &gf);
 
 	void solve(Arrayd &X);
 
 	int getNLParamCount();
 private:
-	std::vector<GridFit*> _terms;
+	//std::vector<GridFit*> _terms;
+	std::list<GridFit> _terms;
 };
 
 Arrayb makeRandomSplit(int size);
