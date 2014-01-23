@@ -462,7 +462,6 @@ void example014()
 	arma::mat Pinv = gf->makeDataToParamMat();
 	arma::mat cvfit = gf->makeCrossValidationFitnessMat();
 
-
 	Arrayd Yfitted(sampleCount);
 	data.eval(params.memptr(), Yfitted.getData());
 	arma::mat D(Yfitted.getData(), Yfitted.size(), 1, false, true);
@@ -470,12 +469,13 @@ void example014()
 
 	GnuplotExtra plot;
 	plot.set_style("lines");
-	plot.plot_xy(X, Ynoisy, "Noisy input");
-	plot.plot_xy(X, Yfitted, "Non-linear transformation of noisy signal");
+	plot.plot_xy(X, Ynoisy, "Ground-truth noisy data vector (with correct calibration)");
+	plot.plot_xy(X, Yfitted, "Data vector with estimated calibration");
 	plot.set_style("linespoints");
-	plot.plot_xy(grid.getGridVertexCoords().getStorage(), Arrayd(vertices.n_elem, vertices.memptr()), "Fitted grid");
+	plot.plot_xy(grid.getGridVertexCoords().getStorage(), Arrayd(vertices.n_elem, vertices.memptr()), "Fitted model grid");
 	plot.show();
 }
+
 
 
 

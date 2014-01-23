@@ -14,6 +14,7 @@
 #include "../common/MDArray.h"
 #include "../common/math.h"
 #include "../common/common.h"
+#include <armadillo>
 
 namespace sail
 {
@@ -195,7 +196,6 @@ public:
 		return arma::sp_mat(IJ, X, rows, cols);
 	}
 
-
 	// Computes a sparse matrix P such that P*X = ptsAsRows, X being the grid vertices.
 	arma::sp_mat makeP(MDArray2d ptsAsRows)
 	{
@@ -229,6 +229,8 @@ public:
 	}
 
 	int getVertexCount() {return _inds.numel();}
+
+	const MDInds<N> &getInds() const {return _inds;}
 private:
 	MDInds<N> _inds;      // Holds the size of every
 	LineKM _ind2Coord[N]; // Maps indices along a dimension to coordinates
@@ -257,6 +259,9 @@ std::ostream &operator<<(std::ostream &s, Grid<N> grid)
 typedef Grid<1> Grid1d;
 typedef Grid<2> Grid2d;
 typedef Grid<3> Grid3d;
+
+arma::sp_mat makeIncompressReg(Grid3d grid);
+arma::sp_mat makeIncompressReg(Grid2d grid);
 
 } /* namespace sail */
 
