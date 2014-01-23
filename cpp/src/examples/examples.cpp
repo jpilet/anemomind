@@ -399,7 +399,7 @@ void example013()
 	GridFitter gridFitter;
 
 
-	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits, Arrayd::args(0.001)));
+	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits, Arrayd::args(1.0)));
 	gridFitter.add(gf);
 
 	arma::mat params(1, 1);
@@ -417,6 +417,56 @@ void example013()
 	arma::mat D(Yfitted.getData(), Yfitted.size(), 1, false, true);
 	arma::mat vertices = Pinv*D;
 	DOUT(gf->getRegWeight(0));
+
+	GnuplotExtra plot;
+	plot.set_style("lines");
+	plot.plot_xy(X, Ynoisy, "Noisy input");
+	plot.plot_xy(X, Yfitted, "Non-linear transformation of noisy signal");
+	plot.set_style("linespoints");
+	plot.plot_xy(grid.getGridVertexCoords().getStorage(), Arrayd(vertices.n_elem, vertices.memptr()), "Fitted grid");
+	plot.show();
+}
+
+
+void example014()
+{
+	BBox1d bbox(Span(-1.0, 1.0));
+	double spacing[1] = {0.03};
+	Grid1d grid(bbox, spacing);
+
+	arma::sp_mat A1 = grid.makeFirstOrderReg(0);
+	arma::sp_mat A2 = grid.makeSecondOrderReg(0);
+
+	//arma::mat Adense = MAKEDENSE(A);
+	//DOUT(Adense);
+
+	int sampleCount = 30;
+	Arrayd X, Ygt, Ynoisy;
+	makeEx012NoisySignal(sampleCount, X, Ygt, Ynoisy);
+
+	arma::sp_mat P = grid.makeP(MDArray2d(X));
+
+	Array<Arrayb> splits = makeRandomSplits(9, X.size());
+
+	double initReg = 0.01;
+	Ex012Function data(X, Ynoisy);
+	GridFitter gridFitter;
+	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A1, A2), splits, Arrayd::args(initReg, initReg)));
+	gridFitter.add(gf);
+
+	arma::mat params(1, 1);
+	params[0] = 3000.0;
+	gridFitter.solve(params);
+
+	arma::mat resmat = gf->makeDataToResidualsMat();
+	arma::mat Pinv = gf->makeDataToParamMat();
+	arma::mat cvfit = gf->makeCrossValidationFitnessMat();
+
+
+	Arrayd Yfitted(sampleCount);
+	data.eval(params.memptr(), Yfitted.getData());
+	arma::mat D(Yfitted.getData(), Yfitted.size(), 1, false, true);
+	arma::mat vertices = Pinv*D;
 
 	GnuplotExtra plot;
 	plot.set_style("lines");

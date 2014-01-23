@@ -18,6 +18,7 @@
 #include "../common/common.h"
 #include "../common/StepMinimizer.h"
 #include "../common/text.h"
+#include "../common/ArrayIO.h"
 
 namespace sail
 {
@@ -387,16 +388,16 @@ void GridFitOtherPlayers::optimize(Array<Arrayd> stepSizes)
 void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes)
 {
 	GridFit &f = *(_fits[index]);
+	arma::mat &dataVector = _D[index];
 	for (int i = 0; i < f.getRegCount(); i++)
 	{
 		// It is best to do this search in the logarithmic domain,
 		// because this way, the weight stays positive.
 		double initReg = log(f.getRegWeight(i));
 
-
 		double initStep = stepSizes[i];
 		auto objf = [&] (double x) {f.setExpRegWeight(i, x);
-			return f.evalCrossValidationFitness(_D[i]);};
+			return f.evalCrossValidationFitness(dataVector);};
 		auto acceptor = [&] (double x, double val) {f.setExpRegWeight(i, x);
 			return _frontier.insert(makeParetoElementVector());};
 		StepMinimizerState initState(initReg, initStep, objf(initReg));
