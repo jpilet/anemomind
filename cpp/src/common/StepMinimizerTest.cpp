@@ -36,9 +36,7 @@ TEST(StepMinimizerTest, MinimizeConvex)
 			StepMinimizerState initialState(initX, initStep, fun(initX));
 
 			StepMinimizerState finalState = minimizer.minimize(initialState, fun);
-			double dif = finalState.getX() - Xopt;
-			double err = std::abs(dif);
-			EXPECT_LE(err, 1.0e-6);
+			EXPECT_NEAR(Xopt, finalState.getX(), 1.0e-6);
 		}
 	}
 }
@@ -70,8 +68,7 @@ TEST(StepMinimizerTest, MinimizeConvexStepByStep)
 			{
 				state = minimizer.takeStep(state, fun);
 			}
-			double err = std::abs(state.getX() - Xopt);
-			EXPECT_LE(err, 1.0e-6);
+			EXPECT_NEAR(state.getX(), Xopt, 1.0e-6);
 		}
 	}
 }
