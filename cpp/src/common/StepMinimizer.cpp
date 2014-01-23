@@ -6,6 +6,7 @@
  */
 
 #include "StepMinimizer.h"
+#include <iostream>
 
 namespace sail
 {
@@ -18,24 +19,25 @@ namespace
 	bool attemptStep(double candX,
 					double valueAtCandX,
 
-			double limitInput, double &limitOutput,
+			double &newLimitOutput,
+			double &newOppositeLimitOutput,
 			const StepMinimizerState &bestStateInput, StepMinimizerState &bestStateOutput)
 	{
 		if (valueAtCandX < bestStateInput.getValue())
 		{
+			newOppositeLimitOutput = bestStateInput.getX();
 			bestStateOutput = bestStateInput.make(candX, valueAtCandX);
-			limitOutput = limitInput;
 			return true;
 		}
 		else
 		{
 			bestStateOutput = bestStateInput;
-			limitOutput = candX; // don't go beyond this point anymore
+			newLimitOutput = candX;
 			return false;
 		}
 	}
 
-
+	#define STEPSTATUS(LABEL, X, LEFT, RIGHT) (std::cout << (LABEL) << ": " << #X << " = " << (X) << "  " << #LEFT << " = " << (LEFT) << "  " << #RIGHT << " = " << (RIGHT) << std::endl)
 
 	bool iterateWithCurrentStepSize(StepMinimizerState &state,
 			double &leftLimit, double &rightLimit, std::function<double(double)> fun)
@@ -51,7 +53,7 @@ namespace
 			if (rightX < rightLimit)
 			{
 				reduced |= attemptStep(rightX, fun(rightX),
-										rightLimit, rightLimit,
+										rightLimit, leftLimit,
 										state, state);
 			}
 
@@ -59,7 +61,7 @@ namespace
 			if (leftLimit < leftX)
 			{
 				reduced |= attemptStep(leftX, fun(leftX),
-										leftLimit, leftLimit,
+										leftLimit, rightLimit,
 										state, state);
 			}
 			atLeastOneReduction |= reduced;
