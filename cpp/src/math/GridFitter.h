@@ -76,7 +76,6 @@ public:
 
 	int getNLParamCount();
 private:
-	//std::vector<GridFit*> _terms;
 	std::vector<std::shared_ptr<GridFit> > _terms;
 };
 

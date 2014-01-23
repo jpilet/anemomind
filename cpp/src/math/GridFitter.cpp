@@ -142,8 +142,6 @@ void GridFitter::add(std::shared_ptr<GridFit> gf)
 void GridFitter::solve(Arrayd &X)
 {
 	assert(X.size() == getNLParamCount());
-
-
 }
 
 int GridFitter::getNLParamCount()
