@@ -1,19 +1,16 @@
+/*
+ * StepMinimizerTest.cpp
+
+ *
+ *  Created on: 22 janv. 2014
+ *      Author: jonas
+ */
 #include "gtest/gtest.h"
-#include "common/ContinuousRange.h"
+#include "StepMinimizer.h"
 #include <cmath>
-#include "common/StepMinimizer.h"
-#include "common/common.h"
 
 using namespace sail;
 
-TEST(ContinuousRangeTest, TestIntersects)
-{
-	EXPECT_TRUE(ContinuousRange(Arrayd::args(1, 2), false).intersects(ContinuousRange(Arrayd::args(1.5, 3), false)));
-	EXPECT_FALSE(ContinuousRange(Arrayd::args(1, 2), false).intersects(ContinuousRange(Arrayd::args(3, 4), false)));
-	EXPECT_TRUE(ContinuousRange(Arrayd::args(0.0, 0.3), true).intersects(ContinuousRange(Arrayd::args(0.1 + 4.0*M_PI, 0.3), true)));
-	EXPECT_FALSE(ContinuousRange(Arrayd::args(0.0, 0.3), true).intersects(ContinuousRange(Arrayd::args(0.4 + 4.0*M_PI, 0.31), true)));
-	EXPECT_TRUE(ContinuousRange(Arrayd::args(0.0, 0.3), true).intersects(ContinuousRange(Arrayd::args(0.0, 0.3), true)));
-}
 
 TEST(StepMinimizerTest, MinimizeConvex)
 {
@@ -39,8 +36,7 @@ TEST(StepMinimizerTest, MinimizeConvex)
 			StepMinimizerState initialState(initX, initStep, fun(initX));
 
 			StepMinimizerState finalState = minimizer.minimize(initialState, fun);
-			double err = std::abs(finalState.getX() - Xopt);
-			EXPECT_LE(err, 1.0e-6);
+			EXPECT_NEAR(Xopt, finalState.getX(), 1.0e-6);
 		}
 	}
 }
@@ -72,8 +68,7 @@ TEST(StepMinimizerTest, MinimizeConvexStepByStep)
 			{
 				state = minimizer.takeStep(state, fun);
 			}
-			double err = std::abs(state.getX() - Xopt);
-			EXPECT_LE(err, 1.0e-6);
+			EXPECT_NEAR(state.getX(), Xopt, 1.0e-6);
 		}
 	}
 }
