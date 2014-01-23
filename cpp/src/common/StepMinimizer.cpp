@@ -13,18 +13,24 @@ namespace sail
 
 namespace
 {
-	bool attemptStep(double candX, double &limit, double value,
+	// Attempts a candidate value for X and if it yields an improvement, accepts it as the best state.
+	// Returns true being equivalent to an improvement.
+	bool attemptStep(double candX,
+					double valueAtCandX,
+
+			double limitInput, double &limitOutput,
 			const StepMinimizerState &bestStateInput, StepMinimizerState &bestStateOutput)
 	{
-		if (value < bestStateInput.getValue())
+		if (valueAtCandX < bestStateInput.getValue())
 		{
-			bestStateOutput = bestStateInput.make(candX, value);
+			bestStateOutput = bestStateInput.make(candX, valueAtCandX);
+			limitOutput = limitInput;
 			return true;
 		}
 		else
 		{
 			bestStateOutput = bestStateInput;
-			limit = candX; // don't go beyond this point anymore
+			limitOutput = candX; // don't go beyond this point anymore
 			return false;
 		}
 	}
@@ -44,13 +50,17 @@ namespace
 			double rightX = state.getRight();
 			if (rightX < rightLimit)
 			{
-				reduced |= attemptStep(rightX, rightLimit, fun(rightX), state, state);
+				reduced |= attemptStep(rightX, fun(rightX),
+										rightLimit, rightLimit,
+										state, state);
 			}
 
 			double leftX = state.getLeft();
 			if (leftLimit < leftX)
 			{
-				reduced |= attemptStep(leftX, leftLimit, fun(leftX), state, state);
+				reduced |= attemptStep(leftX, fun(leftX),
+										leftLimit, leftLimit,
+										state, state);
 			}
 			atLeastOneReduction |= reduced;
 		}
