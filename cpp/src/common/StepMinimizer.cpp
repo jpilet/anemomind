@@ -21,17 +21,16 @@ namespace
 
 			double &newLimitOutput,
 			double &newOppositeLimitOutput,
-			const StepMinimizerState &bestStateInput, StepMinimizerState &bestStateOutput)
+			StepMinimizerState &bestStateInOut)
 	{
-		if (valueAtCandX < bestStateInput.getValue())
+		if (valueAtCandX < bestStateInOut.getValue())
 		{
-			newOppositeLimitOutput = bestStateInput.getX();
-			bestStateOutput = bestStateInput.make(candX, valueAtCandX);
+			newOppositeLimitOutput = bestStateInOut.getX();
+			bestStateInOut = bestStateInOut.make(candX, valueAtCandX);
 			return true;
 		}
 		else
 		{
-			bestStateOutput = bestStateInput;
 			newLimitOutput = candX;
 			return false;
 		}
@@ -54,7 +53,7 @@ namespace
 			{
 				reduced |= attemptStep(rightX, fun(rightX),
 										rightLimit, leftLimit,
-										state, state);
+										state);
 			}
 
 			double leftX = state.getLeft();
@@ -62,7 +61,7 @@ namespace
 			{
 				reduced |= attemptStep(leftX, fun(leftX),
 										leftLimit, rightLimit,
-										state, state);
+										state);
 			}
 			atLeastOneReduction |= reduced;
 		}
