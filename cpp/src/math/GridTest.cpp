@@ -37,7 +37,7 @@ TEST(GridTest, IncompressTest3d)
 	EXPECT_NEAR(arma::norm(A*X, 2), 0.0, 1.0e-6);
 }
 
-// The the imcompressability for a 2d Grid
+// The the imcompressability for a 2d Grid, only X and Y but no time.
 TEST(GridTest, IncompressTest2d)
 {
 	double spacing[2] = {1.0, 1.0};
@@ -55,10 +55,7 @@ TEST(GridTest, IncompressTest2d)
 	EXPECT_TRUE(A.n_cols == Xdim);
 	// This vector represents a homogenous flow over space and time of [1 1] at every vertex.
 	arma::mat X = arma::ones(Xdim, 1);
-	DOUT(MAKEDENSE(A));
-	PFL;
 	EXPECT_NEAR(arma::norm(A*X, 2), 0.0, 1.0e-6);
-	PFL;
 }
 
 

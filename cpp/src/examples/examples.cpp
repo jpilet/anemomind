@@ -342,7 +342,6 @@ void example012()
 	arma::mat cvfit = gf->makeCrossValidationFitnessMat();
 
 	//DOUT(resmat);
-	DOUT(cvfit);
 
 
 	arma::mat params(1, 1);

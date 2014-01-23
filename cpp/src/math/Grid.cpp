@@ -11,6 +11,14 @@
 namespace sail
 {
 
+void setSpElement(arma::umat *IJOut, arma::vec *XOut, int index, int i, int j, double x)
+{
+	(*IJOut)(0, index) = i;
+	(*IJOut)(1, index) = j;
+	(*XOut)[index] = x;
+}
+
+
 // Output the four elements representing the imcompressability of a single cell in the grid
 template <int N>
 void outputIncompressEquation(int row, const MDInds<N> &inds, int *indexArray,
@@ -28,16 +36,13 @@ void outputIncompressEquation(int row, const MDInds<N> &inds, int *indexArray,
 		for (int j = 0; j < 2; j++)
 		{
 			int xsgn = 1 - 2*j;
-			indexArray[1] = ioffs + j;
+			indexArray[1] = joffs + j;
+			assert(inds.valid(indexArray));
 			int vertexIndex = inds.calcIndex(indexArray);
 			int coloffs = 2*vertexIndex;
 
-			(*IJOut)(0, at + 0) = row;
-			(*IJOut)(1, at + 0) = coloffs + 0;
-			(*XOut)[at] = xsgn;
-			(*IJOut)(0, at + 1) = row;
-			(*IJOut)(1, at + 1) = coloffs + 1;
-			(*XOut)[at] = ysgn;
+			setSpElement(IJOut, XOut, at, row, coloffs, xsgn);
+			setSpElement(IJOut, XOut, at + 1, row, coloffs + 1, ysgn);
 
 			at += 2; // for x and y components
 		}
