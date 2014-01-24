@@ -1,3 +1,25 @@
+* Navalytics.com
+Explanation: Naval + Analytics
+	whois navalytics.com
+
+	Whois Server Version 2.0
+
+	Domain names in the .com and .net domains can now be registered
+	with many different competing registrars. Go to http://www.internic.net
+	for detailed information.
+
+	Domain Name: NAVALYTICS.COM
+	Registrar: NETWORK SOLUTIONS, LLC.
+	Whois Server: whois.networksolutions.com
+	Referral URL: http://www.networksolutions.com/en_US/
+	Name Server: AUTH1.DNS.COGENTCO.COM
+	Name Server: AUTH2.DNS.COGENTCO.COM
+	Status: clientTransferProhibited
+	Updated Date: 08-jan-2014
+	Creation Date: 23-apr-2009
+	Expiration Date: 23-apr-2015
+
+
 * Nautograph
 Explanation: Nautical + Graph (Graphical rendering of nautical data)
 	whois nautograph.com

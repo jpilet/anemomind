@@ -323,7 +323,9 @@ void example012()
 
 	GridFitter gridFitter;
 
-	GridFit *gf = gridFitter.add(GridFit(P, &data, Array<arma::sp_mat>::args(A), splits));
+
+	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits));
+	gridFitter.add(gf);
 
 	arma::mat resmat = gf->makeDataToResidualsMat();
 	DOUT(resmat);

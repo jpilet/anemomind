@@ -23,17 +23,17 @@ class StepMinimizerState
 public:
 	StepMinimizerState(double x, double step, double value) : _x(x), _step(step), _value(value) {}
 
-	double getX() {return _x;}
-	double getStep() {return _step;}
-	double getValue() {return _value;}
+	double getX() const {return _x;}
+	double getStep() const {return _step;}
+	double getValue() const {return _value;}
 
 	void reduceStep() {_step *= 0.5;}
 	void increaseStep() {_step *= 2.0;}
 
-	double getLeft() {return _x - _step;}
-	double getRight() {return _x + _step;}
+	double getLeft() const {return _x - _step;}
+	double getRight() const {return _x + _step;}
 
-	StepMinimizerState make(double x, double value) {return StepMinimizerState(x, _step, value);}
+	StepMinimizerState make(double x, double value) const {return StepMinimizerState(x, _step, value);}
 private:
 	double _x, _step, _value;
 };
