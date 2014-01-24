@@ -1,14 +1,10 @@
-#include "examples/examples.h"
+#include "examples/calibexamples.h"
 
 using namespace sail;
 
 int main()
 {
-	//runTests();
-	example012();
-
+	calibexample001();
 	return 0;
 }
-
-
 
