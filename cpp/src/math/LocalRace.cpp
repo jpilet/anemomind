@@ -17,6 +17,7 @@ LocalRace::LocalRace()
 {
 	// TODO Auto-generated constructor stub
 	_timeOffset = 0;
+	_magDeclRadians = 0.0;
 }
 
 LocalRace::~LocalRace()
@@ -134,6 +135,11 @@ Grid3d &LocalRace::getWindGrid()
 Grid3d &LocalRace::getCurrentGrid()
 {
 	return _current;
+}
+
+void LocalRace::setMagDecl(double magDeclRadians)
+{
+	_magDeclRadians = magDeclRadians;
 }
 
 

@@ -6,12 +6,24 @@
  */
 
 #include "calibexamples.h"
+#include "Env.h"
+#include "../common/Nav.h"
+#include "../common/Duration.h"
+#include "../math/LocalRace.h"
 
 namespace sail
 {
 
 void calibexample001()
 {
+	SysEnv env;
+	Array<Nav> allNavs = loadNavsFromText(env.dataset.cat("allnavs.txt").str(), false);
+	Array<Array<Nav> > splitNavs = splitNavsByDuration(allNavs, Duration::minutes(10).getDurationSeconds());
+	Array<Nav> navs = splitNavs.first();
+
+	double spaceStep = 500; // metres
+	double timeStep = Duration::minutes(10).getDurationSeconds();
+	LocalRace race(navs, spaceStep, timeStep);
 }
 
 } /* namespace sail */
