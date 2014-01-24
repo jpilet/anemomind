@@ -84,7 +84,7 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun)
 		double normX = norm(_X.n_elem, _X.memptr());
 		double rho = -1;
 
-		double norm2F = norm(_Fscratch.n_elem, _Fscratch.memptr());
+		double norm2F = norm2(_Fscratch.n_elem, _Fscratch.memptr());
 
 		while (!(_stop || rho > 0))
 		{

@@ -41,7 +41,7 @@ void Function::evalJNum(double *Xin, double *JNumOut, double h)
 double Function::calcSquaredNorm(double *X, double *Fscratch)
 {
 	eval(X, Fscratch, nullptr);
-	return norm<double>(outDims(), Fscratch);
+	return norm2<double>(outDims(), Fscratch);
 }
 
 } /* namespace sail */
