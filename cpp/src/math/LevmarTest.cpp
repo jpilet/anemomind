@@ -45,7 +45,8 @@ TEST(OptimizationTest, CircleFit)
 
 	double tol = 1.0e-6;
 	double *x = state.getX().memptr();
-	EXPECT_TRUE((std::abs(x[0]) < tol && std::abs(x[1] - 1.0) < tol) ||
+
+	EXPECT_TRUE((std::abs(x[0]) < tol && std::abs(x[1] - 1.0) < tol) || // <-- Could we use EXPECT_NEAR here somehow?
 				(std::abs(x[1]) < tol && std::abs(x[0] - 1.0) < tol));
 }
 
@@ -63,12 +64,11 @@ TEST(OptimizationTest, NumericJacobian)
 	objf.evalJNum(Xinit.memptr(), Jnum.memptr());
 	objf.eval(Xinit.memptr(), F.memptr(), J.memptr());
 
-	arma::mat dif = Jnum - J;
 	for (int i = 0; i < objf.outDims(); i++)
 	{
 		for (int j = 0; j < objf.inDims(); j++)
 		{
-			EXPECT_LE(std::abs(dif(i, j)), 1.0e-3);
+			EXPECT_NEAR(Jnum(i, j), J(i, j), 1.0e-5);
 		}
 	}
 }
