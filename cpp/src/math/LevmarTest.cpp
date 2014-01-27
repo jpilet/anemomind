@@ -14,20 +14,22 @@
 
 using namespace sail;
 
-
-class LMTestFun : public ADFunction
+namespace
 {
-public:
-	int inDims() {return 2;}
-	int outDims() {return 2;}
-	void evalAD(adouble *Xin, adouble *Fout);
-private:
-};
+	class LMTestFun : public ADFunction
+	{
+	public:
+		int inDims() {return 2;}
+		int outDims() {return 2;}
+		void evalAD(adouble *Xin, adouble *Fout);
+	private:
+	};
 
-void LMTestFun::evalAD(adouble *Xin, adouble *Fout)
-{
-	Fout[0] = sqrt(sqr(Xin[0]) + sqr(Xin[1])) - 1.0;
-	Fout[1] = sqrt(sqr(Xin[0] - 1.0) + sqr(Xin[1] - 1.0)) - 1.0;
+	void LMTestFun::evalAD(adouble *Xin, adouble *Fout)
+	{
+		Fout[0] = sqrt(sqr(Xin[0]) + sqr(Xin[1])) - 1.0;
+		Fout[1] = sqrt(sqr(Xin[0] - 1.0) + sqr(Xin[1] - 1.0)) - 1.0;
+	}
 }
 
 // Compute one of the two intersections between two circles with radi 1.0,
@@ -63,13 +65,55 @@ TEST(OptimizationTest, CircleFit)
 	}
 }
 
-TEST(OptimizationTest, NumericJacobian)
+TEST(OptimizationTest, NumericJacobianCircleFit)
 {
 	arma::mat Xinit(2, 1);
 	Xinit(0, 0) = 3.0;
 	Xinit(1, 0) = 1.0;
 
 	LMTestFun objf;
+	arma::mat F(objf.outDims(), 1);
+	arma::mat J(objf.outDims(), objf.inDims());
+	arma::mat Jnum(objf.outDims(), objf.inDims());
+
+	objf.evalNumericJacobian(Xinit.memptr(), Jnum.memptr());
+	objf.eval(Xinit.memptr(), F.memptr(), J.memptr());
+
+	for (int i = 0; i < objf.outDims(); i++)
+	{
+		for (int j = 0; j < objf.inDims(); j++)
+		{
+			EXPECT_NEAR(Jnum(i, j), J(i, j), 1.0e-5);
+		}
+	}
+}
+
+namespace
+{
+	class Function3x2 : public ADFunction
+	{
+	public:
+		void evalAD(adouble *Xin, adouble *Fout);
+		int inDims() {return 2;}
+		int outDims() {return 3;}
+	};
+
+	void Function3x2::evalAD(adouble *Xin, adouble *Fout)
+	{
+		Fout[0] = 2*Xin[0] + 3*exp(Xin[1]);
+		Fout[1] = sqrt(Xin[0]) + 4.0*sin(Xin[1]);
+		Fout[2] = Xin[0]*Xin[1] + Xin[1]*Xin[1];
+	}
+}
+
+
+TEST(OptimizationTest, NumericJacobian3x2)
+{
+	arma::mat Xinit(2, 1);
+	Xinit(0, 0) = 3.0;
+	Xinit(1, 0) = 1.0;
+
+	Function3x2 objf;
 	arma::mat F(objf.outDims(), 1);
 	arma::mat J(objf.outDims(), objf.inDims());
 	arma::mat Jnum(objf.outDims(), objf.inDims());
