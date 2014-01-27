@@ -14,8 +14,6 @@
 namespace sail
 {
 
-#define LMWRITE(level, mes) if (settings.verbosity >= (level)) {std::cout << mes << "\n";}
-
 class LevmarSettings;
 class LevmarState
 {

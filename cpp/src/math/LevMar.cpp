@@ -9,6 +9,7 @@
 #include "mathutils.h"
 #include "LevmarSettings.h"
 #include "../common/math.h"
+#include "../common/defs.h"
 
 namespace sail
 {
@@ -70,7 +71,7 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun)
 
 	if (maxAbsElement(JtF) < settings.e1 || norm2(_Fscratch.n_elem, _Fscratch.memptr()) <= settings.e3)
 	{
-		LMWRITE(1, "  Stop because optimum reached.");
+		OPTWRITE(1, "  Stop because optimum reached.");
 		_stop = true;
 	}
 	else
@@ -92,7 +93,7 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun)
 			arma::mat dX = -arma::solve(JtJ + _mu*arma::eye(JtJ.n_rows, JtJ.n_cols), JtF);
 			if (arma::norm(dX, 2) < settings.e2*normX)
 			{
-				LMWRITE(1, "  Stop because step size is minimum.");
+				OPTWRITE(1, "  Stop because step size is minimum.");
 				_stop = true;
 			}
 			else
@@ -106,7 +107,7 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun)
 				if (rho > 0 && // Improvement over previous estimate
 						(bool(settings.acceptor)? settings.acceptor(Xnew.memptr(), norm2Fnew) : true))
 				{
-					LMWRITE(2, "  Improvement with this step size.");
+					OPTWRITE(2, "  Improvement with this step size.");
 					_X = Xnew;
 
 					_mu = _mu*std::max(1.0/3, 1 - std::pow(2*rho - 1, 3));
@@ -115,7 +116,7 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun)
 				}
 				else // Increase damping
 				{
-					LMWRITE(2, "  Increase damping.");
+					OPTWRITE(2, "  Increase damping.");
 					_mu = _mu*_v;
 					assert(!std::isnan(_mu));
 					_v = 2*_v;
