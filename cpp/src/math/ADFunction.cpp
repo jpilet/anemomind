@@ -17,7 +17,7 @@ void ADFunction::eval(double *Xin, double *Fout, double *Jout)
 	int indims = inDims();
 	int outdims = outDims();
 
-	short int tag = getTapeIndex();
+	short int tag = getTapeTag();
 	trace_on(tag);
 		Arrayad adX(indims);
 		adolcInput(indims, adX.getData(), Xin);

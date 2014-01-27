@@ -13,7 +13,7 @@
 namespace sail
 {
 
-void Function::evalJNum(double *Xin, double *JNumOut, double h)
+void Function::evalNumericJacobian(double *Xin, double *JNumOut, double h)
 {
 	int M = outDims();
 	int N = inDims();
@@ -31,7 +31,7 @@ void Function::evalJNum(double *Xin, double *JNumOut, double h)
 		Xin[j] = bak;
 
 		int offs = j*M;
-		for (int i = 0; i < N; i++)
+		for (int i = 0; i < M; i++)
 		{
 			JNumOut[offs + i] = oneOver2h*(Fplus[i] - Fminus[i]);
 		}

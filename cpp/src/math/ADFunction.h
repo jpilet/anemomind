@@ -15,6 +15,8 @@ namespace sail
 {
 
 // Represents an automatically differentiated function.
+// See manual for details about the underlying library used:
+//      https://projects.coin-or.org/ADOL-C/browser/stable/2.1/ADOL-C/doc/adolc-manual.pdf
 class ADFunction : public Function
 {
 public:
@@ -29,8 +31,11 @@ public:
 	//	virtual int outDims() = 0;
 
 
-	// Can optionally be overridden to provide a custom tape index.
-	virtual short int getTapeIndex() {return 0;}
+
+
+	// SEE MANUAL https://projects.coin-or.org/ADOL-C/browser/stable/2.1/ADOL-C/doc/adolc-manual.pdf
+	//   on page 5 where it says: "unless several tapes need to be kept, tag = 0 may be used throughout"
+	virtual short int getTapeTag() {return 0;}
 
 
 

@@ -61,7 +61,7 @@ TEST(OptimizationTest, NumericJacobian)
 	arma::mat J(objf.outDims(), objf.inDims());
 	arma::mat Jnum(objf.outDims(), objf.inDims());
 
-	objf.evalJNum(Xinit.memptr(), Jnum.memptr());
+	objf.evalNumericJacobian(Xinit.memptr(), Jnum.memptr());
 	objf.eval(Xinit.memptr(), F.memptr(), J.memptr());
 
 	for (int i = 0; i < objf.outDims(); i++)
