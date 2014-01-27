@@ -14,6 +14,12 @@
 namespace sail
 {
 
+int main()
+{
+	calibexample001();
+	return 0;
+}
+
 void calibexample001()
 {
 	SysEnv env;
