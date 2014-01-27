@@ -30,6 +30,8 @@ void calibexample001()
 	double spaceStep = 500; // metres
 	double timeStep = Duration::minutes(10).getDurationSeconds();
 	LocalRace race(navs, spaceStep, timeStep);
+
+	// More to be added here but not yet...
 }
 
 } /* namespace sail */
