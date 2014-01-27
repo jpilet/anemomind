@@ -33,21 +33,20 @@ void StateAssign::accumulateCosts(MDArray2d *costsOut, MDArray2i *ptrsOut)
 	MDArray2i ptrs(stateCount, length);
 	costs.setAll(0.0);
 	ptrs.setAll(-1);
-	for (int i = 0; i < stateCount; i++)
+	for (int state = 0; state < stateCount; state++)
 	{
-		costs(i, 0) = getStateCost(i, 0);
+		costs(state, 0) = getStateCost(state, 0);
 	}
 
-	Arrayi temp(stateCount);
-	for (int j = 1; j < length; j++) // For every time index >= 1
+	for (int time = 1; time < length; time++) // For every time index >= 1
 	{
-		for (int i = 0; i < stateCount; i++) // For every state at that time index
+		for (int state = 0; state < stateCount; state++) // For every state at that time index
 		{
 			int bestPredIndex = -1;
-			Arrayi preds = getPrecedingStates(i, j);
-			costs(i, j) = getStateCost(i, j) + calcBestPred(costs.sliceCol(j-1), preds, i, j-1, &bestPredIndex);
+			Arrayi preds = getPrecedingStates(state, time);
+			costs(state, time) = getStateCost(state, time) + calcBestPred(costs, preds, state, time-1, &bestPredIndex);
 			assert(bestPredIndex != -1);
-			ptrs(i, j) = bestPredIndex;
+			ptrs(state, time) = bestPredIndex;
 		}
 	}
 
@@ -59,7 +58,7 @@ void StateAssign::accumulateCosts(MDArray2d *costsOut, MDArray2i *ptrsOut)
 double StateAssign::calcBestPred(MDArray2d costs, Arrayi preds, int toState, int fromTime,
 		int *bestPredIndexOut)
 {
-	assert(costs.cols() == 1); // Because it should be a slice of the preceding costs.
+	//assert(costs.cols() == 1); // Because it should be a slice of the preceding costs.
 	if (preds.empty())
 	{
 		*bestPredIndexOut = -1;
@@ -68,16 +67,16 @@ double StateAssign::calcBestPred(MDArray2d costs, Arrayi preds, int toState, int
 	else
 	{
 		int bestIndex = preds[0];
-		double bestCost = costs(bestIndex, 0);
+		double bestCost = costs(bestIndex, fromTime);
 		int count = preds.size();
-		for (int i = 1; i < count; i++)
+		for (int state = 1; state < count; state++)
 		{
-			int index = preds[i];
-			double cost = costs(index, 0) + getTransitionCost(index, toState, fromTime);
+			int stateIndex = preds[state];
+			double cost = costs(stateIndex, fromTime) + getTransitionCost(stateIndex, toState, fromTime);
 			if (cost < bestCost)
 			{
 				bestCost = cost;
-				bestIndex = index;
+				bestIndex = stateIndex;
 			}
 		}
 		*bestPredIndexOut = bestIndex;
@@ -93,12 +92,12 @@ namespace
 		int count = costs.rows();
 		int bestIndex = 0;
 		double bestCost = costs(0, last);
-		for (int i = 1; i < count; i++)
+		for (int state = 1; state < count; state++)
 		{
-			double cost = costs(i, last);
+			double cost = costs(state, last);
 			if (cost < bestCost)
 			{
-				bestIndex = i;
+				bestIndex = state;
 			}
 		}
 		return bestIndex;
@@ -117,13 +116,13 @@ Arrayi StateAssign::unwind(MDArray2d costs, MDArray2i ptrs)
 	states.setTo(-1);
 	int last = length - 1;
 	states[last] = getLastBestState(costs);
-	for (int i = last-1; i >= 0; i--)
+	for (int time = last-1; time >= 0; time--)
 	{
-		int next = i + 1;
+		int next = time + 1;
 		int nextState = states[next];
 		int index = ptrs(nextState, next);
 		assert(index != -1);
-		states[i] = index;
+		states[time] = index;
 	}
 	return states;
 }
