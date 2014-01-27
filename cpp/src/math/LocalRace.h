@@ -39,7 +39,7 @@ public:
 	Grid3d &getCurrentGrid();
 
 	void setMagDecl(double magDeclRadians);
-	double getMagDecl() {return _magDeclRadians;}
+	double getMagDecl() const {return _magDeclRadians;}
 private:
 	void initialize(Array<Nav> navs, double spaceStep, double timeStep);
 

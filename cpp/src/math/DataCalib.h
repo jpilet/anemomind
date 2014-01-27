@@ -37,13 +37,13 @@ public:
 	const static int ParamCount = 4;
 
 	BoatData(LocalRace *race, Array<Nav> navs);
-	int getParamCount() {return ParamCount;}
+	int getParamCount() const {return ParamCount;}
 
-	int getDataCount() {return _navs.size();}
+	int getDataCount() const {return _navs.size();}
 
 	// These are the vectors in the local coordinate frame
-	int getWindResidualCount() {return 2*getDataCount();}
-	int getCurrentResidualCount() {return 2*getDataCount();}
+	int getWindResidualCount() const {return 2*getDataCount();}
+	int getCurrentResidualCount() const {return 2*getDataCount();}
 
 	// Output 'getWindResidualCount()' residuals to Fout, starting at index 0,
 	// computed from the vector Xin
@@ -63,8 +63,9 @@ private:
 };
 
 /*
- *  Specifies data for the
- *
+ *  Holds information for the optimization problem
+ *  of fitting wind and current grids to the data
+ *  collected from the sail boats.
  *
  */
 class DataCalib
