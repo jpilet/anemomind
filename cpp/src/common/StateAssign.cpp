@@ -58,7 +58,6 @@ void StateAssign::accumulateCosts(MDArray2d *costsOut, MDArray2i *ptrsOut)
 double StateAssign::calcBestPred(MDArray2d costs, Arrayi preds, int toState, int fromTime,
 		int *bestPredIndexOut)
 {
-	//assert(costs.cols() == 1); // Because it should be a slice of the preceding costs.
 	if (preds.empty())
 	{
 		*bestPredIndexOut = -1;
