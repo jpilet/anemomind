@@ -34,20 +34,33 @@ void LMTestFun::evalAD(adouble *Xin, adouble *Fout)
 // located at (0, 0) and (1, 1)
 TEST(OptimizationTest, CircleFit)
 {
-	arma::mat Xinit(2, 1);
-	Xinit(0, 0) = 3.0;
-	Xinit(1, 0) = 1.0;
+	const int startCount = 5;
 
-	LMTestFun objf;
-	LevmarState state(Xinit);
-	LevmarSettings settings;
-	state.minimize(settings, objf);
+	double I[startCount] = {3.0, 4.0, 17.0, 1.5, -10};
+	double J[startCount] = {1.0, 2.0, 0.5, 4.9, -12};
 
-	double tol = 1.0e-6;
-	double *x = state.getX().memptr();
+	for (int i = 0; i < startCount; i++)
+	{
+		for (int j = 0; j < startCount; j++)
+		{
+			arma::mat Xinit(2, 1);
+			Xinit(0, 0) = I[i];
+			Xinit(1, 0) = J[j];
 
-	EXPECT_TRUE((std::abs(x[0]) < tol && std::abs(x[1] - 1.0) < tol) || // <-- Could we use EXPECT_NEAR here somehow?
-				(std::abs(x[1]) < tol && std::abs(x[0] - 1.0) < tol));
+			LMTestFun objf;
+			LevmarState state(Xinit);
+			LevmarSettings settings;
+			state.minimize(settings, objf);
+
+			double tol = 1.0e-6;
+			double *x = state.getX().memptr();
+
+			double xmin = std::min(x[0], x[1]);
+			double xmax = std::max(x[0], x[1]);
+			EXPECT_NEAR(0, xmin, tol);
+			EXPECT_NEAR(1, xmax, tol);
+		}
+	}
 }
 
 TEST(OptimizationTest, NumericJacobian)

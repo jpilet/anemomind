@@ -59,16 +59,16 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun)
 	arma::createMat(_Jscratch, fun.outDims(), fun.inDims());
 	arma::createMat(_Fscratch, fun.outDims(), 1);
 	fun.eval(_X.memptr(), _Fscratch.memptr(), _Jscratch.memptr());
-	_JtJ = _Jscratch.t()*_Jscratch;
-	_JtF = _Jscratch.t()*_Fscratch;
+	JtJ = _Jscratch.t()*_Jscratch;
+	JtF = _Jscratch.t()*_Fscratch;
 
 	// Initialize _mu, if not already done
 	if (_mu < 0)
 	{
-		_mu = settings.tau*maxDiagElement(_JtJ);
+		_mu = settings.tau*maxDiagElement(JtJ);
 	}
 
-	if (maxAbsElement(_JtF) < settings.e1 || norm2(_Fscratch.n_elem, _Fscratch.memptr()) <= settings.e3)
+	if (maxAbsElement(JtF) < settings.e1 || norm2(_Fscratch.n_elem, _Fscratch.memptr()) <= settings.e3)
 	{
 		LMWRITE(1, "  Stop because optimum reached.");
 		_stop = true;
@@ -89,7 +89,7 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun)
 		while (!(_stop || rho > 0))
 		{
 			assert(!std::isnan(_mu));
-			arma::mat dX = -arma::solve(_JtJ + _mu*arma::eye(_JtJ.n_rows, _JtJ.n_cols), _JtF);
+			arma::mat dX = -arma::solve(JtJ + _mu*arma::eye(JtJ.n_rows, JtJ.n_cols), JtF);
 			if (arma::norm(dX, 2) < settings.e2*normX)
 			{
 				LMWRITE(1, "  Stop because step size is minimum.");
@@ -101,7 +101,7 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun)
 				double norm2Fnew = fun.calcSquaredNorm(Xnew.memptr(), _Fscratch.memptr());
 
 
-				arma::mat denom = (dX.t()*(_mu*dX - _JtF));
+				arma::mat denom = (dX.t()*(_mu*dX - JtF));
 				rho = (norm2F - norm2Fnew)/denom(0, 0);
 				if (rho > 0 && // Improvement over previous estimate
 						(bool(settings.acceptor)? settings.acceptor(Xnew.memptr(), norm2Fnew) : true))
@@ -128,13 +128,9 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun)
 
 void LevmarState::minimize(const LevmarSettings &settings, Function &fun)
 {
-	for (int i = 0; i < settings.maxiter; i++)
+	for (int i = 0; (i < settings.maxiter) && !_stop; i++)
 	{
 		step(settings, fun);
-		if (_stop)
-		{
-			break;
-		}
 	}
 }
 

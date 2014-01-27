@@ -31,7 +31,7 @@ public:
 private:
 	arma::mat _X;
 	double _v, _mu;
-	arma::mat _JtJ, _JtF;
+	arma::mat JtJ, JtF;
 	bool _stop;
 
 	arma::mat _Fscratch, _Jscratch;
