@@ -40,10 +40,6 @@ public:
 	// SEE MANUAL https://projects.coin-or.org/ADOL-C/browser/stable/2.1/ADOL-C/doc/adolc-manual.pdf
 	//   on page 5 where it says: "unless several tapes need to be kept, tag = 0 may be used throughout"
 	virtual short int getTapeTag() {return 0;}
-
-
-
-	virtual ~AutoDiffFunction() {}
 };
 
 } /* namespace sail */
