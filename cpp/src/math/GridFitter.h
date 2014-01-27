@@ -20,16 +20,16 @@ namespace sail
 // This class holds one nonlinearly parameterized datavector to which we want to fit a grid and tune
 // regularization parameters.
 
-class ADFunction;
+class AutoDiffFunction;
 class GridFit
 {
 public:
 	GridFit();
-	GridFit(arma::sp_mat P, ADFunction *data, Array<arma::sp_mat> regMatrices, Array<Arrayb> splits,
+	GridFit(arma::sp_mat P, AutoDiffFunction *data, Array<arma::sp_mat> regMatrices, Array<Arrayb> splits,
 			double weight = 1);
 
 
-	ADFunction &getData() {return *_data;}
+	AutoDiffFunction &getData() {return *_data;}
 
 	int getNLParamCount() const;
 
@@ -54,7 +54,7 @@ private:
 	static arma::mat makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
 
 	arma::sp_mat _P;
-	ADFunction *_data;
+	AutoDiffFunction *_data;
 	Array<arma::sp_mat> _regMatrices;
 	Array<Arrayb> _splits;
 	double _weight;

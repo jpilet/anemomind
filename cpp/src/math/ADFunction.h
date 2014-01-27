@@ -3,6 +3,10 @@
  *
  *  Created on: 20 janv. 2014
  *      Author: jonas
+ *
+ *
+ * This code is not thread safe.
+ *
  */
 
 #ifndef ADFUNCTION_H_
@@ -17,10 +21,10 @@ namespace sail
 // Represents an automatically differentiated function.
 // See manual for details about the underlying library used:
 //      https://projects.coin-or.org/ADOL-C/browser/stable/2.1/ADOL-C/doc/adolc-manual.pdf
-class ADFunction : public Function
+class AutoDiffFunction : public Function
 {
 public:
-	ADFunction() {}
+	AutoDiffFunction() {}
 
 	// Overrides eval-method of Function
 	void eval(double *Xin, double *Fout, double *Jout = nullptr);
@@ -39,7 +43,7 @@ public:
 
 
 
-	virtual ~ADFunction() {}
+	virtual ~AutoDiffFunction() {}
 };
 
 } /* namespace sail */

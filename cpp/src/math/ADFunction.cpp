@@ -12,13 +12,17 @@
 namespace sail
 {
 
-void ADFunction::eval(double *Xin, double *Fout, double *Jout)
+void AutoDiffFunction::eval(double *Xin, double *Fout, double *Jout)
 {
 	int indims = inDims();
 	int outdims = outDims();
+	bool outputJ = Jout != nullptr;
 
 	short int tag = getTapeTag();
-	trace_on(tag);
+
+	if (outputJ) { trace_on(tag); }
+
+
 		Arrayad adX(indims);
 		adolcInput(indims, adX.getData(), Xin);
 
@@ -26,9 +30,11 @@ void ADFunction::eval(double *Xin, double *Fout, double *Jout)
 		evalAD(adX.getData(), adF.getData());
 
 		adolcOutput(outdims, adF.getData(), Fout);
-	trace_off();
-	if (Jout != nullptr)
+
+
+	if (outputJ)
 	{
+		trace_off();
 		outputJacobianColMajor(tag, Xin, Jout);
 	}
 }

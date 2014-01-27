@@ -16,7 +16,7 @@ using namespace sail;
 
 namespace
 {
-	class LMTestFun : public ADFunction
+	class LMTestFun : public AutoDiffFunction
 	{
 	public:
 		int inDims() {return 2;}
@@ -90,7 +90,7 @@ TEST(OptimizationTest, NumericJacobianCircleFit)
 
 namespace
 {
-	class Function3x2 : public ADFunction
+	class Function3x2 : public AutoDiffFunction
 	{
 	public:
 		void evalAD(adouble *Xin, adouble *Fout);

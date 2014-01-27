@@ -254,7 +254,7 @@ void makeEx012NoisySignal(int sampleCount, Arrayd &X, Arrayd &Ygt, Arrayd &Ynois
 }
 
 
-class Ex012Function : public ADFunction
+class Ex012Function : public AutoDiffFunction
 {
 public:
 	Ex012Function(Arrayd X, Arrayd Y);
