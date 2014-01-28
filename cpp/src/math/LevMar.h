@@ -14,8 +14,6 @@
 namespace sail
 {
 
-#define LMWRITE(level, mes) if (settings.verbosity >= (level)) {std::cout << mes << "\n";}
-
 class LevmarSettings;
 class LevmarState
 {
@@ -31,7 +29,7 @@ public:
 private:
 	arma::mat _X;
 	double _v, _mu;
-	arma::mat _JtJ, _JtF;
+	arma::mat JtJ, JtF;
 	bool _stop;
 
 	arma::mat _Fscratch, _Jscratch;

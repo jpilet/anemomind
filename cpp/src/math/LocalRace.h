@@ -37,6 +37,9 @@ public:
 	void makeSpatioTemporalPlot(Array<Nav> navs);
 	Grid3d &getWindGrid();
 	Grid3d &getCurrentGrid();
+
+	void setMagDecl(double magDeclRadians);
+	double getMagDecl() const {return _magDeclRadians;}
 private:
 	void initialize(Array<Nav> navs, double spaceStep, double timeStep);
 
@@ -45,6 +48,7 @@ private:
 	double _timeOffset;
 	arma::mat23 _axes; // Axes of local coordinate system, stored as rows
 
+	double _magDeclRadians;
 	Grid3d _wind, _current;
 
 	BBox3d calcBBoxXYTimeWithoutOffsetDuringInitialization(Array<Nav> navs);

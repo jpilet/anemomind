@@ -1,14 +1,16 @@
 /*
  * StepMinimizerTest.cpp
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
  *
  *  Created on: 22 janv. 2014
  *      Author: jonas
  */
-
 #include "gtest/gtest.h"
 #include "StepMinimizer.h"
 #include <cmath>
-
 using namespace sail;
 
 TEST(StepMinimizerTest, MinimizeConvex)
@@ -35,8 +37,7 @@ TEST(StepMinimizerTest, MinimizeConvex)
 			StepMinimizerState initialState(initX, initStep, fun(initX));
 
 			StepMinimizerState finalState = minimizer.minimize(initialState, fun);
-			double err = std::abs(finalState.getX() - Xopt);
-			EXPECT_LE(err, 1.0e-6);
+			EXPECT_NEAR(Xopt, finalState.getX(), 1.0e-6);
 		}
 	}
 }
@@ -68,11 +69,7 @@ TEST(StepMinimizerTest, MinimizeConvexStepByStep)
 			{
 				state = minimizer.takeStep(state, fun);
 			}
-			double err = std::abs(state.getX() - Xopt);
-			EXPECT_LE(err, 1.0e-6);
+			EXPECT_NEAR(state.getX(), Xopt, 1.0e-6);
 		}
 	}
 }
-
-
-

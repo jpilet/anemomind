@@ -33,7 +33,7 @@ VariantDir('build', 'src', duplicate = 0)
 
 
 ##################### MAIN PROGRAM #######################
-main = env.Program('build/main', SConscript('build/SConscriptMain'))
+main = env.Program('build/main', ['src/examples/calibexamples_.cpp', SConscript('build/SConscript')])
 
 ##################### TESTING ############################
 with_test    = 1		# Flag to build test
@@ -45,7 +45,6 @@ if with_test:
 	env.AppendUnique(LIBS = gtestlibs)
 	env.AppendUnique(LIBPATH = gtestlibpath)
 	test = env.Program('build/test', SConscript('build/SConscriptTest'))	
-
 	if with_runtest:
 		runtest = env.Command(target = "build/testlog.txt",
 							  source = "build/test",

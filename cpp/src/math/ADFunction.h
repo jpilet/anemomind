@@ -1,6 +1,9 @@
 /*
  *  Created on: 2014-01-20
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
+ *
+ * This code is not thread safe.
+ *
  */
 
 #ifndef ADFUNCTION_H_
@@ -9,14 +12,17 @@
 #include <adolc/adouble.h>
 #include "../common/Function.h"
 
+
 namespace sail
 {
 
 // Represents an automatically differentiated function.
-class ADFunction : public Function
+// See manual for details about the underlying library used:
+//      https://projects.coin-or.org/ADOL-C/browser/stable/2.1/ADOL-C/doc/adolc-manual.pdf
+class AutoDiffFunction : public Function
 {
 public:
-	ADFunction() {}
+	AutoDiffFunction() : _tapeTag(getNewTapeTag()) { }
 
 	// Overrides eval-method of Function
 	void eval(double *Xin, double *Fout, double *Jout = nullptr);
@@ -27,12 +33,15 @@ public:
 	//	virtual int outDims() = 0;
 
 
-	// Can optionally be overridden to provide a custom tape index.
-	virtual short int getTapeIndex() {return 0;}
 
 
-
-	virtual ~ADFunction() {}
+protected:
+	// SEE MANUAL https://projects.coin-or.org/ADOL-C/browser/stable/2.1/ADOL-C/doc/adolc-manual.pdf
+	//   on page 5 where it says: "unless several tapes need to be kept, tag = 0 may be used throughout"
+	int getTapeTag()  const { return _tapeTag; }
+private:
+	static int getNewTapeTag() { static short tag = 0; return tag++; }
+	short _tapeTag;
 };
 
 } /* namespace sail */

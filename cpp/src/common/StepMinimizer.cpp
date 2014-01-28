@@ -6,6 +6,7 @@
  */
 
 #include "StepMinimizer.h"
+#include <iostream>
 
 namespace sail
 {
@@ -13,25 +14,36 @@ namespace sail
 
 namespace
 {
-	void attemptStep(double candX, double &limit, StepMinimizerState &bestState, double value, bool &reduced,
-		std::function<bool(double, double)> acceptor)
+	// Attempts a candidate value for X and if it yields an improvement, accepts it as the best state.
+	// Returns true being equivalent to an improvement.
+	bool attemptStep(double candX,
+					double valueAtCandX,
+
+			double *newLimitOutput,
+			double *newOppositeLimitOutput,
+			StepMinimizerState *bestStateInOut,
+			std::function<bool(double,double)> acceptor)
 	{
-		if (value < bestState.getValue() && (bool(acceptor)? acceptor(candX, value) : true))
+		if (valueAtCandX < bestStateInOut->getValue() &&
+				(bool(acceptor)? acceptor(candX, valueAtCandX) : true))
 		{
-			bestState = bestState.make(candX, value);
-			reduced = true;
+			*newOppositeLimitOutput = bestStateInOut->getX();
+			*bestStateInOut = bestStateInOut->make(candX, valueAtCandX);
+			return true;
 		}
 		else
 		{
-			limit = candX; // don't go beyond this point anymore
+			*newLimitOutput = candX;
+			return false;
 		}
 	}
 
+	#define STEPSTATUS(LABEL, X, LEFT, RIGHT) (std::cout << (LABEL) << ": " << #X << " = " << (X) << "  " << #LEFT << " = " << (LEFT) << "  " << #RIGHT << " = " << (RIGHT) << std::endl)
 
 
-	bool iterateWithCurrentStepSize(StepMinimizerState &state,
-			double &leftLimit, double &rightLimit, std::function<double(double)> fun,
-			std::function<bool(double, double)> acceptor)
+	bool iterateWithCurrentStepSize(StepMinimizerState *stateInOut,
+			double *leftLimitInOut, double *rightLimitInOut, std::function<double(double)> fun,
+				std::function<bool(double,double)> acceptor)
 	{
 		bool atLeastOneReduction = false;
 
@@ -40,16 +52,22 @@ namespace
 		do
 		{
 			reduced = false; // Reset this flag for every iteration.
-			double rightX = state.getRight();
-			if (rightX < rightLimit)
+			double rightX = stateInOut->getRight();
+			if (rightX < *rightLimitInOut)
 			{
-				attemptStep(rightX, rightLimit, state, fun(rightX), reduced, acceptor);
+				reduced |= attemptStep(rightX, fun(rightX),
+										rightLimitInOut, leftLimitInOut,
+										stateInOut,
+										acceptor);
 			}
 
-			double leftX = state.getLeft();
-			if (leftLimit < leftX)
+			double leftX = stateInOut->getLeft();
+			if (*leftLimitInOut < leftX)
 			{
-				attemptStep(leftX, leftLimit, state, fun(leftX), reduced, acceptor);
+				reduced |= attemptStep(leftX, fun(leftX),
+										leftLimitInOut, rightLimitInOut,
+										stateInOut,
+										acceptor);
 			}
 			atLeastOneReduction |= reduced;
 		}
@@ -80,7 +98,7 @@ StepMinimizerState StepMinimizer::takeStep(StepMinimizerState state, std::functi
 	for (int i = 0; i < _maxIter; i++)
 	{
 		// If we are able to reduce the objective function, we say this step is done.
-		if (iterateWithCurrentStepSize(state, leftLimit, rightLimit, fun, _acceptor))
+		if (iterateWithCurrentStepSize(&state, &leftLimit, &rightLimit, fun, _acceptor))
 		{
 			break;
 		}
@@ -98,7 +116,7 @@ StepMinimizerState StepMinimizer::minimize(StepMinimizerState state, std::functi
 
 	for (int i = 0; i < _maxIter; i++)
 	{
-		iterateWithCurrentStepSize(state, leftLimit, rightLimit, fun, _acceptor);
+		iterateWithCurrentStepSize(&state, &leftLimit, &rightLimit, fun, _acceptor);
 		state.reduceStep();
 	}
 	return state;

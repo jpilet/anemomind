@@ -14,12 +14,6 @@
 namespace arma
 {
 
-//template <typename T>
-//bool sameSizeAs(const T &Amat, const T &Bmat)
-//{
-//	return Amat.n_rows == Bmat.n_rows && Amat.n_cols == Bmat.n_cols;
-//}
-
 template <typename T>
 bool hasSize(T mat, int rows, int cols)
 {

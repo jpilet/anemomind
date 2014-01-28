@@ -1,12 +1,7 @@
 #include "gtest/gtest.h"
 #include "ContinuousRange.h"
 #include <cmath>
-
 #include "common.h"
-#include "../math/ADFunction.h"
-#include "../math/LevMar.h"
-#include "../math/LevmarSettings.h"
-#include "../common/math.h"
 
 using namespace sail;
 
@@ -18,4 +13,3 @@ TEST(ContinuousRangeTest, TestIntersects)
 	EXPECT_FALSE(ContinuousRange(Arrayd::args(0.0, 0.3), true).intersects(ContinuousRange(Arrayd::args(0.4 + 4.0*M_PI, 0.31), true)));
 	EXPECT_TRUE(ContinuousRange(Arrayd::args(0.0, 0.3), true).intersects(ContinuousRange(Arrayd::args(0.0, 0.3), true)));
 }
-

@@ -96,7 +96,7 @@ GridFit::GridFit() : _weight(0.0), _data(nullptr)
 {
 }
 
-GridFit::GridFit(arma::sp_mat P, ADFunction *data, Array<arma::sp_mat> regMatrices, Array<Arrayb> splits,
+GridFit::GridFit(arma::sp_mat P, AutoDiffFunction *data, Array<arma::sp_mat> regMatrices, Array<Arrayb> splits,
 		Arrayd regWeights,
 		Array<std::string> regWeightLabels,
 		double weight) : _P(P), _data(data), _regMatrices(regMatrices), _splits(splits),
@@ -252,7 +252,7 @@ void GridFitter::add(std::shared_ptr<GridFit> gf)
 // nonlinear parameter vector. Regularization weights
 // are assumed to remain constant throughout the lifetime of
 // this object.
-class GridFitPlayer1 : public ADFunction
+class GridFitPlayer1 : public AutoDiffFunction
 {
 public:
 	GridFitPlayer1(ParetoFrontier &frontier, std::vector<std::shared_ptr<GridFit> > &fits);
@@ -310,7 +310,7 @@ void GridFitPlayer1::evalAD(adouble *Xin, adouble *Fout)
 		arma::mat &R = _Rmats[i];
 		adouble *Fouti = Fout + offset;
 		arma::admat dst(Fouti, R.n_rows, 1, false, true);
-		ADFunction &data = _fits[i]->getData();
+		AutoDiffFunction &data = _fits[i]->getData();
 		arma::admat D(temp.getData(), data.outDims(), 1, false, true);
 		data.evalAD(Xin, temp.getData());
 		dst = R*D;
