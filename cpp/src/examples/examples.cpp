@@ -398,7 +398,10 @@ void example013()
 	GridFitter gridFitter;
 
 
-	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits, Arrayd::args(1.0)));
+	double initReg = 1.0; // works
+	//double initReg = 1000.0;
+
+	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits, Arrayd::args(initReg)));
 	gridFitter.add(gf);
 
 	arma::mat params(1, 1);
@@ -447,7 +450,11 @@ void example014()
 
 	Array<Arrayb> splits = makeRandomSplits(9, X.size());
 
-	double initReg = 0.01;
+	//double initReg = 0.01; // works
+	//double initReg = 1; // works
+	double initReg = 0.1;
+
+
 	Ex012Function data(X, Ynoisy);
 	GridFitter gridFitter;
 	std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A1, A2), splits, Arrayd::args(initReg, initReg)));
