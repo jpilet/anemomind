@@ -1,5 +1,5 @@
 Import('env')
 
-objs = env.Object(Glob('*.cpp'))
+objs = env.Object(Glob('*[!_].cpp'))
 
 Return('objs')
