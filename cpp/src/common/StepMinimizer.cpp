@@ -21,9 +21,11 @@ namespace
 
 			double *newLimitOutput,
 			double *newOppositeLimitOutput,
-			StepMinimizerState *bestStateInOut)
+			StepMinimizerState *bestStateInOut,
+			std::function<bool(double,double)> acceptor)
 	{
-		if (valueAtCandX < bestStateInOut->getValue())
+		if (valueAtCandX < bestStateInOut->getValue() &&
+				(bool(acceptor)? acceptor(candX, valueAtCandX) : true))
 		{
 			*newOppositeLimitOutput = bestStateInOut->getX();
 			*bestStateInOut = bestStateInOut->make(candX, valueAtCandX);
@@ -38,8 +40,10 @@ namespace
 
 	#define STEPSTATUS(LABEL, X, LEFT, RIGHT) (std::cout << (LABEL) << ": " << #X << " = " << (X) << "  " << #LEFT << " = " << (LEFT) << "  " << #RIGHT << " = " << (RIGHT) << std::endl)
 
+
 	bool iterateWithCurrentStepSize(StepMinimizerState *stateInOut,
-			double *leftLimitInOut, double *rightLimitInOut, std::function<double(double)> fun)
+			double *leftLimitInOut, double *rightLimitInOut, std::function<double(double)> fun,
+				std::function<bool(double,double)> acceptor)
 	{
 		bool atLeastOneReduction = false;
 
@@ -53,7 +57,8 @@ namespace
 			{
 				reduced |= attemptStep(rightX, fun(rightX),
 										rightLimitInOut, leftLimitInOut,
-										stateInOut);
+										stateInOut,
+										acceptor);
 			}
 
 			double leftX = stateInOut->getLeft();
@@ -61,7 +66,8 @@ namespace
 			{
 				reduced |= attemptStep(leftX, fun(leftX),
 										leftLimitInOut, rightLimitInOut,
-										stateInOut);
+										stateInOut,
+										acceptor);
 			}
 			atLeastOneReduction |= reduced;
 		}
@@ -92,7 +98,7 @@ StepMinimizerState StepMinimizer::takeStep(StepMinimizerState state, std::functi
 	for (int i = 0; i < _maxIter; i++)
 	{
 		// If we are able to reduce the objective function, we say this step is done.
-		if (iterateWithCurrentStepSize(&state, &leftLimit, &rightLimit, fun))
+		if (iterateWithCurrentStepSize(&state, &leftLimit, &rightLimit, fun, _acceptor))
 		{
 			break;
 		}
@@ -110,10 +116,15 @@ StepMinimizerState StepMinimizer::minimize(StepMinimizerState state, std::functi
 
 	for (int i = 0; i < _maxIter; i++)
 	{
-		iterateWithCurrentStepSize(&state, &leftLimit, &rightLimit, fun);
+		iterateWithCurrentStepSize(&state, &leftLimit, &rightLimit, fun, _acceptor);
 		state.reduceStep();
 	}
 	return state;
+}
+
+void StepMinimizer::setAcceptor(std::function<bool(double, double)> acceptor)
+{
+	_acceptor = acceptor;
 }
 
 

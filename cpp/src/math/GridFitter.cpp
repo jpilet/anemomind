@@ -79,7 +79,7 @@ GridFit::GridFit() : _weight(0.0), _data(nullptr)
 {
 }
 
-GridFit::GridFit(arma::sp_mat P, ADFunction *data, Array<arma::sp_mat> regMatrices, Array<Arrayb> splits,
+GridFit::GridFit(arma::sp_mat P, AutoDiffFunction *data, Array<arma::sp_mat> regMatrices, Array<Arrayb> splits,
 		double weight) : _P(P), _data(data), _regMatrices(regMatrices), _splits(splits), _weight(weight)
 {
 	_regWeights.create(regMatrices.size());
@@ -142,6 +142,12 @@ void GridFitter::add(std::shared_ptr<GridFit> gf)
 void GridFitter::solve(Arrayd &X)
 {
 	assert(X.size() == getNLParamCount());
+
+	double v = 2;
+	arma::mat F();
+	arma::mat J();
+	arma::mat JtJ, JtF;
+	double mu = 0.0;
 }
 
 int GridFitter::getNLParamCount()

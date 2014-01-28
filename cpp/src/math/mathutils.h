@@ -14,6 +14,21 @@
 namespace arma
 {
 
+template <typename T>
+bool hasSize(T mat, int rows, int cols)
+{
+	return mat.n_rows == rows && mat.n_cols == cols;
+}
+
+template <typename T>
+void createMat(T &mat, int rows, int cols)
+{
+	if (!hasSize(mat, rows, cols))
+	{
+		mat = T(rows, cols);
+	}
+}
+
 typedef arma::Mat<double>::fixed<2, 3> mat23;
 typedef arma::Mat<double>::fixed<3, 2> mat32;
 
@@ -42,6 +57,7 @@ MDArray2d toRows(Array<arma::vec::fixed<dims> > vecs)
 
 // Makes a sparse matrix to select elements from a vector.
 arma::sp_mat makeSpSel(Arrayb sel);
+
 
 }
 

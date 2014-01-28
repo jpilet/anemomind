@@ -254,14 +254,14 @@ void makeEx012NoisySignal(int sampleCount, Arrayd &X, Arrayd &Ygt, Arrayd &Ynois
 }
 
 
-class Ex012Function : public ADFunction
+class Ex012Function : public AutoDiffFunction
 {
 public:
 	Ex012Function(Arrayd X, Arrayd Y);
 
 	int inDims();
 	int outDims();
-	void eval(adouble *Xin, adouble *Fout);
+	void evalAD(adouble *Xin, adouble *Fout);
 private:
 	Arrayd _X, _Y;
 };
@@ -281,7 +281,7 @@ int Ex012Function::outDims()
 	return _X.size();
 }
 
-void Ex012Function::eval(adouble *Xin, adouble *Fout)
+void Ex012Function::evalAD(adouble *Xin, adouble *Fout)
 {
 	adouble &x = Xin[0];
 	for (int i = 0; i < _X.size(); i++)

@@ -1,11 +1,14 @@
 #ifndef DEFS_H_
 #define DEFS_H_
 
+
 namespace sail
 
 {
 
 #define PASSED std::cout << "PASSED: " << __FUNCTION__ << std::endl;
+#define OPTWRITE(level, mes) if (settings.verbosity >= (level)) {std::cout << mes << "\n";}
+
 
 #define VBWRITELN(level, message) if ((level) <= settings.verbosity) {std::cout << message << std::endl;}
 

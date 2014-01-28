@@ -8,8 +8,8 @@
 #include "gtest/gtest.h"
 #include "StepMinimizer.h"
 #include <cmath>
-
 using namespace sail;
+
 
 
 TEST(StepMinimizerTest, MinimizeConvex)
@@ -72,3 +72,5 @@ TEST(StepMinimizerTest, MinimizeConvexStepByStep)
 		}
 	}
 }
+
+
