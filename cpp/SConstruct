@@ -27,23 +27,22 @@ env.AppendUnique(CPPPATH = [adolcbase + 'include'])
 env.AppendUnique(LIBPATH = [adolcbase + 'lib64'])
 env.AppendUnique(LIBS = ['adolc'])
 
+env.AppendUnique(LIBS = ['gtest', 'gtest_main'])
+env.AppendUnique(LIBPATH = ['/usr/lib/gtest']) # a link to gtest-1.7.0/lib/.libs
+
 # Put the object code in a different location than the source code.
 # http://www.scons.org/doc/2.0.1/HTML/scons-user/x3444.html
 VariantDir('build', 'src', duplicate = 0)
 
 
 ##################### MAIN PROGRAM #######################
-main = env.Program('build/main', ['src/examples/calibexamples_.cpp', SConscript('build/SConscript')])
+main = env.Program('build/main', ['src/examples/examples_.cpp', SConscript('build/SConscript')])
 
 ##################### TESTING ############################
 with_test    = 1		# Flag to build test
 with_runtest = 1		# Flag to run tests
 
 if with_test:
-	gtestlibs = ['gtest', 'gtest_main']
-	gtestlibpath = ['/usr/lib/gtest']    # a link to gtest-1.7.0/lib/.libs
-	env.AppendUnique(LIBS = gtestlibs)
-	env.AppendUnique(LIBPATH = gtestlibpath)
 	test = env.Program('build/test', SConscript('build/SConscriptTest'))	
 	if with_runtest:
 		runtest = env.Command(target = "build/testlog.txt",
