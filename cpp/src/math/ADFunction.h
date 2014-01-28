@@ -24,7 +24,7 @@ namespace sail
 class AutoDiffFunction : public Function
 {
 public:
-	AutoDiffFunction() {}
+	AutoDiffFunction() : _tapeTag(getNewTapeTag()) { }
 
 	// Overrides eval-method of Function
 	void eval(double *Xin, double *Fout, double *Jout = nullptr);
@@ -37,9 +37,13 @@ public:
 
 
 
+protected:
 	// SEE MANUAL https://projects.coin-or.org/ADOL-C/browser/stable/2.1/ADOL-C/doc/adolc-manual.pdf
 	//   on page 5 where it says: "unless several tapes need to be kept, tag = 0 may be used throughout"
-	virtual short int getTapeTag() {return 0;}
+	int getTapeTag()  const { return _tapeTag; }
+private:
+	static int getNewTapeTag() { static short tag = 0; return tag++; }
+	short _tapeTag;
 };
 
 } /* namespace sail */
