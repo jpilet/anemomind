@@ -1,7 +1,6 @@
 Import('env')
 
-objs = ['build/main_.cpp',
-		SConscript('common/SConscript'),
+objs = [SConscript('common/SConscript'),
         SConscript('math/SConscript'),
         SConscript('plot/SConscript'),
         SConscript('examples/SConscript')]
