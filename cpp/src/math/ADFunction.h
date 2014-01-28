@@ -15,6 +15,7 @@
 #include <adolc/adouble.h>
 #include "../common/Function.h"
 
+
 namespace sail
 {
 
