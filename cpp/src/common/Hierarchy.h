@@ -60,8 +60,11 @@ class HTree {
     // Should return the left endpoint of this node in the parsed input.
     virtual int left() const = 0;
 
-    // Should return the number of symbols captured by this node
-    virtual int count() const = 0;
+    // Returns the rightmost endpoint.
+    virtual int right() const = 0;
+
+    // Return the number of symbols captured by this node.
+    virtual int count() const {return right() - left();}
 
     // Returns the index of the node.
     virtual int index() const = 0;
@@ -74,8 +77,6 @@ class HTree {
 
     virtual std::shared_ptr<HTree> lastChild();
 
-    // Returns the rightmost endpoint. Not to be overridden.
-    int right() const {return left() + count();}
     virtual ~HTree() {}
 
     virtual void disp(std::ostream *out, Array<std::string> labels = Array<std::string>(), int indent = 0) const = 0;
@@ -96,6 +97,7 @@ class HLeaves : public HTree {
   public:
     HLeaves(int left, int index, int count = 1) : _left(left), _index(index), _count(count) {assert(index != -1);}
     int left() const {return _left;}
+    int right() const {return _left + _count;}
     int count() const {return _count;}
     int index() const {return _index;}
 
@@ -112,7 +114,7 @@ class HInner : public HTree {
   public:
     HInner(int index, std::shared_ptr<HTree> firstChild);
     int left() const;
-    int count() const;
+    int right() const;
     int index() const {return _index;}
     void add(std::shared_ptr<HTree> child);
     std::shared_ptr<HTree> lastChild();

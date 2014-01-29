@@ -171,13 +171,8 @@ int HInner::left() const {
   return _children.front()->left();
 }
 
-int HInner::count() const {
-  int counter = 0;
-  int childCount = _children.size();
-  for (int i = 0; i < childCount; i++) {
-    counter += _children[i]->count();
-  }
-  return counter;
+int HInner::right() const {
+  return _children.back()->right();
 }
 
 void HInner::add(std::shared_ptr<HTree> child) {
