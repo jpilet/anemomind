@@ -129,61 +129,61 @@ class HInner : public HTree {
 
 // Models a hierarchy to define a grammar to parse a string.
 class Hierarchy {
-public:
-  // Creates a hierarchy from a set of nodes to define a grammar.
-  // A node with index 'i' should be at position 'i' in the array to
-  // allow for quick lookup. This is checked inside the constructor.
-  // Every node except for the root node has a parent node.
-  Hierarchy(Array<HNode> nodes);
+  public:
+    // Creates a hierarchy from a set of nodes to define a grammar.
+    // A node with index 'i' should be at position 'i' in the array to
+    // allow for quick lookup. This is checked inside the constructor.
+    // Every node except for the root node has a parent node.
+    Hierarchy(Array<HNode> nodes);
 
-  // This method takes an array of terminals (integers for which 'isTerminal' returns true)
-  // returns a parse tree as specified by this grammar.
-  // 'inputString' could for instance be the output of 'StateAssign::solve'.
-  std::shared_ptr<HTree> parse(Arrayi inputTerminalString) const;
-
-
+    // This method takes an array of terminals (integers for which 'isTerminal' returns true)
+    // returns a parse tree as specified by this grammar.
+    // 'inputTerminalString' could for instance be the output of 'StateAssign::solve'.
+    std::shared_ptr<HTree> parse(Arrayi inputTerminalString) const;
 
 
 
-////////////////////////////////////////////////////////
-// THE METHODS HERE ARE PUBLIC TO FACILITATE TESTING
-// BUT LESS INTERESTING TO THE USER.
 
-  // Returns the level of a node in a rooted tree
-  int level(int nodeIndex) const {return _levelPerNode[nodeIndex];}
 
-  // Returns index of the root node
-  int rootNode() const {return _rootNode;}
+  ////////////////////////////////////////////////////////
+  // THE METHODS HERE ARE PUBLIC TO FACILITATE TESTING
+  // BUT LESS INTERESTING TO THE USER.
 
-  // Returns whether a node is a terminal, that is, it has no children.
-  bool isTerminal(int nodeIndex) const {return _isTerminal[nodeIndex];}
+    // Returns the level of a node in a rooted tree
+    int level(int nodeIndex) const {return _levelPerNode[nodeIndex];}
 
-	virtual ~Hierarchy();
+    // Returns index of the root node
+    int rootNode() const {return _rootNode;}
 
-	Array<std::string> labels() const {return _labels;}
-private:
-	// Creates an ancestor at 'level' for a node of type 'nodeIndex'
-	std::shared_ptr<HTree> wrap(int left, int level, int nodeIndex) const;
-	void addTerminal(int left, std::shared_ptr<HTree> tree, int nodeIndex) const;
-	bool addTerminalSub(std::shared_ptr<HTree> tree, int nodeIndex) const;
+    // Returns whether a node is a terminal, that is, it has no children.
+    bool isTerminal(int nodeIndex) const {return _isTerminal[nodeIndex];}
 
-	// All the nodes of the grammar stored here
-	Array<HNode> _nodes;
+    virtual ~Hierarchy();
 
-	// Index of the root-node, the top-level node of the hierarchy.
-	int _rootNode;
+    Array<std::string> labels() const {return _labels;}
+  private:
+    // Creates an ancestor at 'level' for a node of type 'nodeIndex'
+    std::shared_ptr<HTree> wrap(int left, int level, int nodeIndex) const;
+    void addTerminal(int left, std::shared_ptr<HTree> tree, int nodeIndex) const;
+    bool addTerminalSub(std::shared_ptr<HTree> tree, int nodeIndex) const;
 
-	// The corresponding level in a rooted tree for every node. The root has level 0.
-	Array<int> _levelPerNode;
+    // All the nodes of the grammar stored here
+    Array<HNode> _nodes;
 
-	// Boolean array where true means the corresponding node is a terminal
-	Arrayb _isTerminal;
+    // Index of the root-node, the top-level node of the hierarchy.
+    int _rootNode;
 
-	// A 2d array where element _ancestors(i, j) is the index for the ancestor of node 'i' at level 'j' in the hierarchy.
-	MDArray2i _ancestors;
+    // The corresponding level in a rooted tree for every node. The root has level 0.
+    Array<int> _levelPerNode;
 
-	// Labels of all nodes. Mostly used for debugging.
-	Array<std::string> _labels;
+    // Boolean array where true means the corresponding node is a terminal
+    Arrayb _isTerminal;
+
+    // A 2d array where element _ancestors(i, j) is the index for the ancestor of node 'i' at level 'j' in the hierarchy.
+    MDArray2i _ancestors;
+
+    // Labels of all nodes. Mostly used for debugging.
+    Array<std::string> _labels;
 };
 
 } /* namespace sail */
