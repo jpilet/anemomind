@@ -16,6 +16,8 @@ typedef unsigned char Byte;
 #define NP_MAX_DATA_LEN 80
 #define NP_MAX_ARGS 16
 
+// Represents an accurate angle in fixed point.
+// The angle is stored in degrees, minutes and 1/1000 minutes fraction.
 class AccAngle {
   public:
 
@@ -23,6 +25,7 @@ class AccAngle {
     AccAngle(double angle) { set(angle); }
     AccAngle(Word deg, Word min, Word mc) : deg_(deg), min_(min), mc_(mc) { }
 
+    // Returns the angle in degrees.
     double toDouble() const;
 
     void set(double a);
@@ -52,7 +55,7 @@ class GeoPos {
 class GeoRef;
 class ProjectedPos {
   public:
-    ProjectedPos() { }
+    ProjectedPos() { xy_[0] = 0; xy_[1] = 0; }
     ProjectedPos(const GeoRef &ref, const GeoPos &pos);
 
     double dist(const ProjectedPos &p) const;
@@ -66,7 +69,6 @@ class ProjectedPos {
 
 class GeoRef {
   public:
-    GeoRef() { }
     GeoRef(const GeoPos &pos, double altitude) { set(pos, altitude); }
     void set(const GeoPos &pos, double altitude);
 
@@ -100,6 +102,10 @@ class NmeaParser {
     const GeoPos &pos() const { return pos_; }
 
     void setXTE(float dist, bool left);
+
+    static const short INVALID_DATA_SHORT = 0x8000;
+    static const char INVALID_DATA_CHAR = 0x80;
+    static const long INVALID_DATA_LONG = 0x800000;
 
     // GPS data
     Word gpsSpeed() const { return gpsSpeed_; } // 1/256 knots

@@ -100,6 +100,24 @@ NmeaParser::NmeaParser() {
     numSentences_ = 0;
     state_ = NP_STATE_SOM;
     ignoreWrongChecksum_ = false;
+    argc_ = 0;
+    data_[0] = 0;
+
+    gpsSpeed_ = INVALID_DATA_SHORT;
+    gpsBearing_ = INVALID_DATA_SHORT;
+    hour_ = INVALID_DATA_CHAR;
+    min_ = INVALID_DATA_CHAR;
+    sec_ = INVALID_DATA_CHAR;
+    day_ = month_ = year_ = INVALID_DATA_CHAR;
+
+    awa_ = INVALID_DATA_SHORT;
+    twa_ = INVALID_DATA_SHORT;
+    aws_ = INVALID_DATA_SHORT;
+    tws_ = INVALID_DATA_SHORT;
+    magHdg_ = INVALID_DATA_SHORT;
+    watSpeed_ = INVALID_DATA_SHORT;
+    cwd_ = INVALID_DATA_LONG;
+    wd_ = INVALID_DATA_LONG;
 }
 
 NmeaParser::NmeaSentence NmeaParser::processByte(Byte input) {
@@ -331,14 +349,14 @@ NmeaParser::NmeaSentence NmeaParser::processVLW() {
 
 
 double AccAngle::toDouble() const {
-    double subdeg = (double)min_/60.0 + (double)mc_/60000.0;
+    double subdeg = ((double)min_ + (double)mc_/1000.0) / 60.0;
     return (double)deg_ + (deg_ < 0 ? -subdeg : subdeg);
 }
 
 AccAngle::AccAngle() {
-    deg_ = 0;
-    min_ = 0;
-    mc_ = 0;
+    deg_ = NmeaParser::INVALID_DATA_SHORT;
+    min_ = NmeaParser::INVALID_DATA_SHORT;
+    mc_ = NmeaParser::INVALID_DATA_SHORT;
 }
 
 void AccAngle::set(double dbl) {
@@ -352,15 +370,15 @@ void AccAngle::set(double dbl) {
 }
 
 
-static void wgs84ToXYZ(double lon, double lat, double altitude,
+static void wgs84ToXYZ(double lonDeg, double latDeg, double altitude,
                        double *xyz, double *dlon, double *dlat)
 {
     const double k2_PI = 6.283185307179586476925286766559005768394338798750211641949889184615;
     const double kDeg2Grad = (k2_PI/360.0);
     const double a = 6378137; // semi-major axis of ellipsoid
     const double f = 1.0/298.257223563; // flatening of ellipsoid
-    const double latRad = lat * kDeg2Grad;
-    const double lonRad = lon * kDeg2Grad;
+    const double latRad = latDeg * kDeg2Grad;
+    const double lonRad = lonDeg * kDeg2Grad;
     const double sinlat = sin(latRad);
     const double coslat = cos(latRad);
     const double sinlon = sin(lonRad);
