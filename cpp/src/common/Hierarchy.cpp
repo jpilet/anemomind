@@ -261,10 +261,12 @@ bool Hierarchy::addTerminalSub(std::shared_ptr<HTree> tree, int nodeIndex) const
     int treeIndex = tree->index();
     assert(treeIndex != -1);
     int treeLevel = _levelPerNode[treeIndex];
-    if (_ancestors(nodeIndex, treeLevel) == tree->index()) { // if this node can be an ancestor of nodeIndex
+    if (_ancestors(nodeIndex, treeLevel) == treeIndex) { // if this node can be an ancestor of nodeIndex
       std::shared_ptr<HTree> lastChild = tree->lastChild();
       if (!addTerminalSub(lastChild, nodeIndex)) {
-        tree->add(wrap(tree->right(), treeLevel+1, nodeIndex));
+        std::shared_ptr<HTree> child = wrap(tree->right(), treeLevel+1, nodeIndex);
+        assert(_nodes[child->index()].parent() == treeIndex);
+        tree->add(child);
       }
       return true;
     } else {
