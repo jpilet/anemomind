@@ -1,8 +1,6 @@
 /*
- * Hierarchy.cpp
- *
- *  Created on: 29 janv. 2014
- *      Author: jonas
+ *  Created on: 2014-01-29
+ *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
 #include "Hierarchy.h"
