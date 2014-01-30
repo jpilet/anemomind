@@ -384,25 +384,25 @@ void GridFitOtherPlayers::optimize(Array<Arrayd> stepSizes)
 
 void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes)
 {
-	GridFit &f = *(_fits[index]);
+	GridFit *f = _fits[index].get();
 	const arma::mat &dataVector = _D[index];
-	for (int i = 0; i < f.getRegCount(); i++)
+	for (int i = 0; i < f->getRegCount(); i++)
 	{
 		// It is best to do this search in the logarithmic domain,
 		// because this way, the weight stays positive.
-		double initReg = log(f.getRegWeight(i));
+		double initReg = log(f->getRegWeight(i));
 
 		double initStep = stepSizes[i];
-		auto objf = [&] (double x) {f.setExpRegWeight(i, x);
-			return f.evalCrossValidationFitness(dataVector);};
-		auto acceptor = [&] (double x, double val) {f.setExpRegWeight(i, x);
+		auto objf = [&] (double x) {f->setExpRegWeight(i, x);
+			return f->evalCrossValidationFitness(dataVector);};
+		auto acceptor = [&] (double x, double val) {f->setExpRegWeight(i, x);
 			return _frontier.insert(makeParetoElementVector());};
 		StepMinimizerState initState(initReg, initStep, objf(initReg));
 		StepMinimizer minimizer;
 		minimizer.setAcceptor(acceptor);
 		StepMinimizerState finalState = minimizer.takeStep(initState, objf);
 		stepSizes[i] = finalState.getStep();
-		f.setExpRegWeight(i, finalState.getX());
+		f->setExpRegWeight(i, finalState.getX());
 	}
 }
 
