@@ -353,7 +353,7 @@ void example012()
 
 	arma::mat params(1, 1);
 	params[0] = 30.0;
-	gridFitter.solveFixedReg(params);
+	gridFitter.solveFixedReg(&params);
 	DOUT(params);
 	std::cout << "Done" << std::endl;
 
@@ -413,7 +413,7 @@ void example013()
 
 	arma::mat params(1, 1);
 	params[0] = 3000.0;
-	gridFitter.solve(params);
+	gridFitter.solve(&params);
 
 
 	arma::mat resmat = gf->makeDataToResidualsMat();
@@ -469,7 +469,7 @@ void example014()
 
 	arma::mat params(1, 1);
 	params[0] = 3000.0;
-	gridFitter.solve(params);
+	gridFitter.solve(&params);
 
 	arma::mat resmat = gf->makeDataToResidualsMat();
 	arma::mat Pinv = gf->makeDataToParamMat();

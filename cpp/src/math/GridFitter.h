@@ -108,8 +108,11 @@ public:
 	// acquire ownership of this copy and return a pointer to it.
 	void add(std::shared_ptr<GridFit> gf);
 
-	void solve(arma::mat &X);
-	void solveFixedReg(arma::mat &X);
+	// Provide these methods with a vector of initial calibration coefficients
+	// and they will optimize it in-place. The vector should be a column of
+	// getNLParamCount() elements.
+	void solve(arma::mat *XInOut);
+	void solveFixedReg(arma::mat *XInOut);
 
 private:
 	int getNLParamCount();

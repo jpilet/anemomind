@@ -11,61 +11,64 @@
 namespace sail
 {
 
-void setSpElement(arma::umat *IJOut, arma::vec *XOut, int index, int i, int j, double x)
+namespace
 {
-	(*IJOut)(0, index) = i;
-	(*IJOut)(1, index) = j;
-	(*XOut)[index] = x;
-}
+  void setSpElement(arma::umat *IJOut, arma::vec *XOut, int index, int i, int j, double x)
+  {
+    (*IJOut)(0, index) = i;
+    (*IJOut)(1, index) = j;
+    (*XOut)[index] = x;
+  }
 
 
-// Output the four elements representing the imcompressability of a single cell in the grid
-template <int N>
-void outputIncompressEquation(int row, const MDInds<N> &inds, int *indexArray,
-		arma::umat *IJOut, arma::vec *XOut)
-{
-	int ioffs = indexArray[0];
-	int joffs = indexArray[1];
+  // Output the four elements representing the imcompressability of a single cell in the grid
+  template <int N>
+  void outputIncompressEquation(int row, const MDInds<N> &inds, int *indexArray,
+      arma::umat *IJOut, arma::vec *XOut)
+  {
+    int ioffs = indexArray[0];
+    int joffs = indexArray[1];
 
-	// Loop over the four corners of this cell
-	int at = 8*row;
-	for (int i = 0; i < 2; i++)
-	{
-		indexArray[0] = ioffs + i;
-		int ysgn = 2*i - 1;
-		for (int j = 0; j < 2; j++)
-		{
-			int xsgn = 1 - 2*j;
-			indexArray[1] = joffs + j;
-			assert(inds.valid(indexArray));
-			int vertexIndex = inds.calcIndex(indexArray);
-			int coloffs = 2*vertexIndex;
+    // Loop over the four corners of this cell
+    int at = 8*row;
+    for (int i = 0; i < 2; i++)
+    {
+      indexArray[0] = ioffs + i;
+      int ysgn = 2*i - 1;
+      for (int j = 0; j < 2; j++)
+      {
+        int xsgn = 1 - 2*j;
+        indexArray[1] = joffs + j;
+        assert(inds.valid(indexArray));
+        int vertexIndex = inds.calcIndex(indexArray);
+        int coloffs = 2*vertexIndex;
 
-			setSpElement(IJOut, XOut, at, row, coloffs, xsgn);
-			setSpElement(IJOut, XOut, at + 1, row, coloffs + 1, ysgn);
+        setSpElement(IJOut, XOut, at, row, coloffs, xsgn);
+        setSpElement(IJOut, XOut, at + 1, row, coloffs + 1, ysgn);
 
-			at += 2; // for x and y components
-		}
-	}
-}
+        at += 2; // for x and y components
+      }
+    }
+  }
 
-template <int N>
-void makeIncompressRegSub(int rowoffset, const MDInds<N> &inds, int *indexArray, arma::umat *IJOut, arma::vec *XOut)
-{
-	const int W = inds.get(0) - 1;
-	const int H = inds.get(1) - 1;
-	int counter = 0;
-	for (int i = 0; i < W; i++)
-	{
-		for (int j = 0; j < H; j++)
-		{
-			indexArray[0] = i;
-			indexArray[1] = j;
-			outputIncompressEquation<N>(rowoffset + counter, inds, indexArray, IJOut, XOut);
-			counter += 1;
-		}
-	}
-	assert(counter == W*H);
+  template <int N>
+  void makeIncompressRegSub(int rowoffset, const MDInds<N> &inds, int *indexArray, arma::umat *IJOut, arma::vec *XOut)
+  {
+    const int W = inds.get(0) - 1;
+    const int H = inds.get(1) - 1;
+    int counter = 0;
+    for (int i = 0; i < W; i++)
+    {
+      for (int j = 0; j < H; j++)
+      {
+        indexArray[0] = i;
+        indexArray[1] = j;
+        outputIncompressEquation<N>(rowoffset + counter, inds, indexArray, IJOut, XOut);
+        counter += 1;
+      }
+    }
+    assert(counter == W*H);
+  }
 }
 
 arma::sp_mat makeIncompressReg(Grid3d grid)

@@ -211,13 +211,7 @@ double GridFit::evalObjfForDataVector(arma::mat D)
 		cost += SQNORM(R);
 	}
 
-	double weightedCost = sqr(_weight)*cost;
-
-	//assert(std::abs(weightedCost - SQNORM(makeDataToResidualsMat()*D)) < 1.0e-6); PFLMESSAGE("This function seems correct");
-
-
-
-	return weightedCost;
+	return sqr(_weight)*cost;
 }
 
 double GridFit::evalCrossValidationFitness(arma::mat D)
@@ -247,7 +241,9 @@ void GridFitter::add(std::shared_ptr<GridFit> gf)
 
 
 
-
+// This class just adds some abstraction to the inner workings
+// of GridFitter::solve. It is not intended to be used by anyone else.
+//
 // Evaluates the objective function given the
 // nonlinear parameter vector. Regularization weights
 // are assumed to remain constant throughout the lifetime of
@@ -290,13 +286,13 @@ GridFitPlayer1::GridFitPlayer1(ParetoFrontier &frontier, std::vector<std::shared
 	_maxDataLen = 0;
 	for (int i = 0; i < count; i++)
 	{
-		GridFit &fit = *(fits[i]);
-		assert(fit.getData().inDims() == _inDims);
-		arma::mat R = fit.makeDataToResidualsMat();
+		GridFit *fit = fits[i].get();
+		assert(fit->getData().inDims() == _inDims);
+		arma::mat R = fit->makeDataToResidualsMat();
 		_Rmats[i] = R;
-		_cvmats[i] = fit.makeCrossValidationFitnessMat();
+		_cvmats[i] = fit->makeCrossValidationFitnessMat();
 		_outDims += R.n_rows;
-		_maxDataLen = std::max(_maxDataLen, fit.getData().outDims());
+		_maxDataLen = std::max(_maxDataLen, fit->getData().outDims());
 	}
 }
 
@@ -307,7 +303,7 @@ void GridFitPlayer1::evalAD(adouble *Xin, adouble *Fout)
 	Array<adouble> temp(_maxDataLen);
 	for (int i = 0; i < count; i++)
 	{
-		arma::mat &R = _Rmats[i];
+		const arma::mat &R = _Rmats[i];
 		adouble *Fouti = Fout + offset;
 		arma::admat dst(Fouti, R.n_rows, 1, false, true);
 		AutoDiffFunction &data = _fits[i]->getData();
@@ -347,7 +343,8 @@ void GridFitPlayer1::evalCrossValidations(double *Xin, double *cvOut)
 
 
 
-
+// This class adds abstraction to the inner workings of GridFitter::solve
+// It should not be used by anyone else.
 class GridFitOtherPlayers
 {
 public:
@@ -388,7 +385,7 @@ void GridFitOtherPlayers::optimize(Array<Arrayd> stepSizes)
 void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes)
 {
 	GridFit &f = *(_fits[index]);
-	arma::mat &dataVector = _D[index];
+	const arma::mat &dataVector = _D[index];
 	for (int i = 0; i < f.getRegCount(); i++)
 	{
 		// It is best to do this search in the logarithmic domain,
@@ -474,8 +471,9 @@ void GridFitter::writeStatus(int i, arma::mat X, int fsize)
 	}
 }
 
-void GridFitter::solve(arma::mat &X)
+void GridFitter::solve(arma::mat *XInOut)
 {
+  arma::mat &X = *(XInOut);
 	assert(X.size() == getNLParamCount());
 
 	LevmarSettings settings;
@@ -509,8 +507,9 @@ void GridFitter::solve(arma::mat &X)
 	writeStatus(-1, X, frontier.size());
 }
 
-void GridFitter::solveFixedReg(arma::mat &X)
+void GridFitter::solveFixedReg(arma::mat *XInOut)
 {
+  arma::mat &X = *XInOut;
 	LevmarState lmState(X);
 	ParetoFrontier frontier;
 	GridFitPlayer1 objf(frontier, _terms);

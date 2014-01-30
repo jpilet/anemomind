@@ -37,7 +37,7 @@ TEST(GridTest, IncompressTest3d)
 	EXPECT_NEAR(arma::norm(A*X, 2), 0.0, 1.0e-6);
 }
 
-// The the imcompressability for a 2d Grid, only X and Y but no time.
+// The imcompressability for a 2d Grid, only X and Y but no time.
 TEST(GridTest, IncompressTest2d)
 {
 	double spacing[2] = {1.0, 1.0};
