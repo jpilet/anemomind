@@ -240,198 +240,200 @@ void GridFitter::add(std::shared_ptr<GridFit> gf)
 }
 
 
-
-// This class just adds some abstraction to the inner workings
-// of GridFitter::solve. It is not intended to be used by anyone else.
-//
-// Evaluates the objective function given the
-// nonlinear parameter vector. Regularization weights
-// are assumed to remain constant throughout the lifetime of
-// this object.
-class GridFitPlayer1 : public AutoDiffFunction
+namespace
 {
-public:
-	GridFitPlayer1(ParetoFrontier &frontier, std::vector<std::shared_ptr<GridFit> > &fits);
+  // This class just adds some abstraction to the inner workings
+  // of GridFitter::solve. It is not intended to be used by anyone else.
+  //
+  // Evaluates the objective function given the
+  // nonlinear parameter vector. Regularization weights
+  // are assumed to remain constant throughout the lifetime of
+  // this object.
+  class GridFitPlayer1 : public AutoDiffFunction
+  {
+  public:
+    GridFitPlayer1(ParetoFrontier &frontier, std::vector<std::shared_ptr<GridFit> > &fits);
 
-	int inDims() {return _inDims;}
-	int outDims() {return _outDims;}
-	void evalAD(adouble *Xin, adouble *Fout);
+    int inDims() {return _inDims;}
+    int outDims() {return _outDims;}
+    void evalAD(adouble *Xin, adouble *Fout);
 
-	bool acceptor(double *Xin, double objfVal);
-private:
-	ParetoFrontier &_frontier;
+    bool acceptor(double *Xin, double objfVal);
+  private:
+    ParetoFrontier &_frontier;
 
-	std::vector<std::shared_ptr<GridFit> > &_fits; // The GridFit's
+    std::vector<std::shared_ptr<GridFit> > &_fits; // The GridFit's
 
-	// Matrices used to evaluate the main objective function (used by evalAD)
-	Array<arma::mat> _Rmats;
+    // Matrices used to evaluate the main objective function (used by evalAD)
+    Array<arma::mat> _Rmats;
 
-	// Matrices used to compute cross validation.
-	Array<arma::mat> _cvmats;
+    // Matrices used to compute cross validation.
+    Array<arma::mat> _cvmats;
 
-	int _outDims, _inDims, _maxDataLen;
+    int _outDims, _inDims, _maxDataLen;
 
-	// Evaluates the cross validation score for every GridFit given the nonlinear parameter vector
-	void evalCrossValidations(double *Xin, double *cvOut);
-};
+    // Evaluates the cross validation score for every GridFit given the nonlinear parameter vector
+    void evalCrossValidations(double *Xin, double *cvOut);
+  };
 
-GridFitPlayer1::GridFitPlayer1(ParetoFrontier &frontier, std::vector<std::shared_ptr<GridFit> > &fits) :
-		_frontier(frontier), _fits(fits)
-{
-	int count = fits.size();
-	_Rmats.create(count);
-	_cvmats.create(count);
-	_inDims = fits[0]->getData().inDims();
-	_outDims = 0;
-	_maxDataLen = 0;
-	for (int i = 0; i < count; i++)
-	{
-		GridFit *fit = fits[i].get();
-		assert(fit->getData().inDims() == _inDims);
-		arma::mat R = fit->makeDataToResidualsMat();
-		_Rmats[i] = R;
-		_cvmats[i] = fit->makeCrossValidationFitnessMat();
-		_outDims += R.n_rows;
-		_maxDataLen = std::max(_maxDataLen, fit->getData().outDims());
-	}
-}
+  GridFitPlayer1::GridFitPlayer1(ParetoFrontier &frontier, std::vector<std::shared_ptr<GridFit> > &fits) :
+      _frontier(frontier), _fits(fits)
+  {
+    int count = fits.size();
+    _Rmats.create(count);
+    _cvmats.create(count);
+    _inDims = fits[0]->getData().inDims();
+    _outDims = 0;
+    _maxDataLen = 0;
+    for (int i = 0; i < count; i++)
+    {
+      GridFit *fit = fits[i].get();
+      assert(fit->getData().inDims() == _inDims);
+      arma::mat R = fit->makeDataToResidualsMat();
+      _Rmats[i] = R;
+      _cvmats[i] = fit->makeCrossValidationFitnessMat();
+      _outDims += R.n_rows;
+      _maxDataLen = std::max(_maxDataLen, fit->getData().outDims());
+    }
+  }
 
-void GridFitPlayer1::evalAD(adouble *Xin, adouble *Fout)
-{
-	int count = _fits.size();
-	int offset = 0;
-	Array<adouble> temp(_maxDataLen);
-	for (int i = 0; i < count; i++)
-	{
-		const arma::mat &R = _Rmats[i];
-		adouble *Fouti = Fout + offset;
-		arma::admat dst(Fouti, R.n_rows, 1, false, true);
-		AutoDiffFunction &data = _fits[i]->getData();
-		arma::admat D(temp.getData(), data.outDims(), 1, false, true);
-		data.evalAD(Xin, temp.getData());
-		dst = R*D;
-		offset += R.n_rows;
-	}
-	assert(offset == _outDims);
-}
+  void GridFitPlayer1::evalAD(adouble *Xin, adouble *Fout)
+  {
+    int count = _fits.size();
+    int offset = 0;
+    Array<adouble> temp(_maxDataLen);
+    for (int i = 0; i < count; i++)
+    {
+      const arma::mat &R = _Rmats[i];
+      adouble *Fouti = Fout + offset;
+      arma::admat dst(Fouti, R.n_rows, 1, false, true);
+      AutoDiffFunction &data = _fits[i]->getData();
+      arma::admat D(temp.getData(), data.outDims(), 1, false, true);
+      data.evalAD(Xin, temp.getData());
+      dst = R*D;
+      offset += R.n_rows;
+    }
+    assert(offset == _outDims);
+  }
 
-bool GridFitPlayer1::acceptor(double *Xin, double objfVal)
-{
-	int count = _fits.size();
-	Arrayd costs(1 + count);
-	evalCrossValidations(Xin, costs.ptr(1));
-	return _frontier.insert(ParetoElement(costs));
-}
+  bool GridFitPlayer1::acceptor(double *Xin, double objfVal)
+  {
+    int count = _fits.size();
+    Arrayd costs(1 + count);
+    evalCrossValidations(Xin, costs.ptr(1));
+    return _frontier.insert(ParetoElement(costs));
+  }
 
-void GridFitPlayer1::evalCrossValidations(double *Xin, double *cvOut)
-{
-	int count = _fits.size();
-	arma::mat X(Xin, inDims(), 1, false, true);
+  void GridFitPlayer1::evalCrossValidations(double *Xin, double *cvOut)
+  {
+    int count = _fits.size();
+    arma::mat X(Xin, inDims(), 1, false, true);
 
-	Arrayd temp(_maxDataLen);
-	for (int i = 0; i < count; i++)
-	{
-		Function &fun = _fits[i]->getData();
-		arma::mat D(temp.getData(), fun.outDims(), 1, false, true);
-		fun.eval(Xin, temp.getData());
-		cvOut[i] = SQNORM(_cvmats[i]*D);
-	}
-}
-
-
+    Arrayd temp(_maxDataLen);
+    for (int i = 0; i < count; i++)
+    {
+      Function &fun = _fits[i]->getData();
+      arma::mat D(temp.getData(), fun.outDims(), 1, false, true);
+      fun.eval(Xin, temp.getData());
+      cvOut[i] = SQNORM(_cvmats[i]*D);
+    }
+  }
 
 
 
 
-// This class adds abstraction to the inner workings of GridFitter::solve
-// It should not be used by anyone else.
-class GridFitOtherPlayers
-{
-public:
-	GridFitOtherPlayers(ParetoFrontier &frontier, std::vector<std::shared_ptr<GridFit> > &fits, arma::mat X);
-	void optimize(Array<Arrayd> stepSizes);
-private:
-	ParetoFrontier &_frontier;
-	Array<arma::mat> _D;
-	std::vector<std::shared_ptr<GridFit> > &_fits;
 
-	void optimizeForGridFit(int index, Arrayd stepSizes);
-	double evalObjf();
-	ParetoElement makeParetoElementVector();
-};
 
-GridFitOtherPlayers::GridFitOtherPlayers(ParetoFrontier &frontier,
-		std::vector<std::shared_ptr<GridFit> > &fits, arma::mat X) : _frontier(frontier), _fits(fits)
-{
-	int count = _fits.size();
-	_D.create(count);
-	for (int i = 0; i < count; i++)
-	{
-		Function &fun = _fits[i]->getData();
-		_D[i] = arma::mat(fun.outDims(), 1);
-		fun.eval(X.memptr(), _D[i].memptr());
-	}
-}
+  // This class adds abstraction to the inner workings of GridFitter::solve
+  // It should not be used by anyone else.
+  class GridFitOtherPlayers
+  {
+  public:
+    GridFitOtherPlayers(ParetoFrontier &frontier, std::vector<std::shared_ptr<GridFit> > &fits, arma::mat X);
+    void optimize(Array<Arrayd> stepSizes);
+  private:
+    ParetoFrontier &_frontier;
+    Array<arma::mat> _D;
+    std::vector<std::shared_ptr<GridFit> > &_fits;
 
-void GridFitOtherPlayers::optimize(Array<Arrayd> stepSizes)
-{
-	int count = _fits.size();
-	for (int i = 0; i < count; i++)
-	{
-		optimizeForGridFit(i, stepSizes[i]);
-	}
-}
+    void optimizeForGridFit(int index, Arrayd stepSizes);
+    double evalObjf();
+    ParetoElement makeParetoElementVector();
+  };
 
-void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes)
-{
-	GridFit *f = _fits[index].get();
-	const arma::mat &dataVector = _D[index];
-	for (int i = 0; i < f->getRegCount(); i++)
-	{
-		// It is best to do this search in the logarithmic domain,
-		// because this way, the weight stays positive.
-		double initReg = log(f->getRegWeight(i));
+  GridFitOtherPlayers::GridFitOtherPlayers(ParetoFrontier &frontier,
+      std::vector<std::shared_ptr<GridFit> > &fits, arma::mat X) : _frontier(frontier), _fits(fits)
+  {
+    int count = _fits.size();
+    _D.create(count);
+    for (int i = 0; i < count; i++)
+    {
+      Function &fun = _fits[i]->getData();
+      _D[i] = arma::mat(fun.outDims(), 1);
+      fun.eval(X.memptr(), _D[i].memptr());
+    }
+  }
 
-		double initStep = stepSizes[i];
-		auto objf = [&] (double x) {f->setExpRegWeight(i, x);
-			return f->evalCrossValidationFitness(dataVector);};
-		auto acceptor = [&] (double x, double val) {f->setExpRegWeight(i, x);
-			return _frontier.insert(makeParetoElementVector());};
-		StepMinimizerState initState(initReg, initStep, objf(initReg));
-		StepMinimizer minimizer;
-		minimizer.setAcceptor(acceptor);
-		StepMinimizerState finalState = minimizer.takeStep(initState, objf);
-		stepSizes[i] = finalState.getStep();
-		f->setExpRegWeight(i, finalState.getX());
-	}
-}
+  void GridFitOtherPlayers::optimize(Array<Arrayd> stepSizes)
+  {
+    int count = _fits.size();
+    for (int i = 0; i < count; i++)
+    {
+      optimizeForGridFit(i, stepSizes[i]);
+    }
+  }
 
-double GridFitOtherPlayers::evalObjf()
-{
-	int count = _fits.size();
-	double value = 0.0;
-	for (int i = 0; i < count; i++)
-	{
-		value += _fits[i]->evalObjfForDataVector(_D[i]);
-	}
-	return value;
-}
+  void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes)
+  {
+    GridFit *f = _fits[index].get();
+    const arma::mat &dataVector = _D[index];
+    for (int i = 0; i < f->getRegCount(); i++)
+    {
+      // It is best to do this search in the logarithmic domain,
+      // because this way, the weight stays positive.
+      double initReg = log(f->getRegWeight(i));
 
-ParetoElement GridFitOtherPlayers::makeParetoElementVector()
-{
-	int count = _fits.size();
-	Arrayd values(1 + count);
-	values[0] = evalObjf();
-	for (int i = 0; i < count; i++)
-	{
-		values[1 + i] = _fits[i]->evalCrossValidationFitness(_D[i]);
-	}
-	return ParetoElement(values);
-}
+      double initStep = stepSizes[i];
+      auto objf = [&] (double x) {f->setExpRegWeight(i, x);
+        return f->evalCrossValidationFitness(dataVector);};
+      auto acceptor = [&] (double x, double val) {f->setExpRegWeight(i, x);
+        return _frontier.insert(makeParetoElementVector());};
+      StepMinimizerState initState(initReg, initStep, objf(initReg));
+      StepMinimizer minimizer;
+      minimizer.setAcceptor(acceptor);
+      StepMinimizerState finalState = minimizer.takeStep(initState, objf);
+      stepSizes[i] = finalState.getStep();
+      f->setExpRegWeight(i, finalState.getX());
+    }
+  }
 
-Array<Arrayd> initStepSizes(Arrayi regCounts, double initStepSize)
-{
-	return regCounts.map<Arrayd>([=] (int n) {Arrayd dst(n); dst.setTo(initStepSize); return dst;});
+  double GridFitOtherPlayers::evalObjf()
+  {
+    int count = _fits.size();
+    double value = 0.0;
+    for (int i = 0; i < count; i++)
+    {
+      value += _fits[i]->evalObjfForDataVector(_D[i]);
+    }
+    return value;
+  }
+
+  ParetoElement GridFitOtherPlayers::makeParetoElementVector()
+  {
+    int count = _fits.size();
+    Arrayd values(1 + count);
+    values[0] = evalObjf();
+    for (int i = 0; i < count; i++)
+    {
+      values[1 + i] = _fits[i]->evalCrossValidationFitness(_D[i]);
+    }
+    return ParetoElement(values);
+  }
+
+  Array<Arrayd> initStepSizes(Arrayi regCounts, double initStepSize)
+  {
+    return regCounts.map<Arrayd>([=] (int n) {Arrayd dst(n); dst.setTo(initStepSize); return dst;});
+  }
 }
 
 void GridFitter::writeStatus(int i, arma::mat X, int fsize)
