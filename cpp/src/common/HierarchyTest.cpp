@@ -64,6 +64,7 @@ TEST(HierarchyTest, ParseTestBinary) {
   EXPECT_TRUE(tree->child(1)->equals(p1));
   EXPECT_TRUE(tree->child(2)->equals(p2));
   EXPECT_TRUE(p4->equals(tree));
+  EXPECT_FALSE(p4->equals(p0));
 }
 
 Hierarchy makeMiniSailGrammar() {
