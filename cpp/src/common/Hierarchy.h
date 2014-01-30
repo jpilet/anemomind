@@ -39,8 +39,8 @@ class HNode {
 
     bool defined() const {return _index != -1;}
     bool undefined() const {return !defined();}
-    bool hasParent() {return _parent != -1;}
-    bool isRoot() {return !hasParent();}
+    bool hasParent() const {return _parent != -1;}
+    bool isRoot() const {return !hasParent();}
     const std::string &label() const {return _label;}
     int index() const {return _index;}
     int parent() const {return _parent;}
