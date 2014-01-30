@@ -88,7 +88,15 @@ Hierarchy makeMiniSailGrammar() {
 
 TEST(HierarchyTest, SailTest) {
   const int len = 18;
+
+
+  // Graphical explanation of the parsing
+  // Depth 0:        [-------------------------8--------------------------]
+  // Depth 1:        [----------6--------][--------7-------][------6------]
+  // Depth 2:        [-0--][--1-][---2---][-3--][--4-][-5--][------0------]
   int toParse[len] = {0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5, 0, 0, 0, 0, 0};
+
+
   Hierarchy h = makeMiniSailGrammar();
   std::shared_ptr<HTree> tree = h.parse(Arrayi(len, toParse));
 
@@ -98,6 +106,7 @@ TEST(HierarchyTest, SailTest) {
   EXPECT_EQ(c->left(), 7);
   EXPECT_EQ(c->right(), 13);
   //tree->disp(&std::cout, h.labels());
+
 }
 
 } /* namespace sail */
