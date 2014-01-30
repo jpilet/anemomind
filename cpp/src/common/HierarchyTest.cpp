@@ -106,7 +106,39 @@ TEST(HierarchyTest, SailTest) {
   EXPECT_EQ(c->left(), 7);
   EXPECT_EQ(c->right(), 13);
   //tree->disp(&std::cout, h.labels());
-
 }
+
+Hierarchy makeMiniSailGrammar2() {
+  Array<HNode> nodes(5);
+  // Terminals: 0, 1, 2
+  nodes[0] = HNode(0, 4, "In irons");
+  nodes[1] = HNode(1, 3, "Starboard tack");
+  nodes[2] = HNode(2, 3, "Port tack");
+
+  // Grouping: 3, 4
+  nodes[3] = HNode(3, 4, "Sailing");
+  nodes[4] = HNode::makeRoot(4, "On the sea");
+  return Hierarchy(nodes);
+}
+
+// A grammar with terminals at different depths
+TEST(HierarchyTest, SailTestMultiDepth) {
+  const int len = 11;
+
+  // Graphical explanation
+  // Depth 0:        [--------------4----------------]
+  // Depth 1:        [--3-][---0---][-------3--------]
+  // Depth 2:        [--1-]         [---2---][---1---]
+
+  int toParse[len] = {1, 1, 0, 0, 0, 2, 2, 2, 1, 1, 1};
+  Hierarchy h = makeMiniSailGrammar2();
+  std::shared_ptr<HTree> t = h.parse(Arrayi(len, toParse));
+  EXPECT_EQ(t->childCount(), 3);
+  EXPECT_EQ(t->child(1)->index(), 0);
+  EXPECT_EQ(t->child(1)->childCount(), 0);
+  EXPECT_EQ(t->child(0)->childCount(), 1);
+  EXPECT_EQ(t->child(0)->child(0)->index(), 1);
+}
+
 
 } /* namespace sail */
