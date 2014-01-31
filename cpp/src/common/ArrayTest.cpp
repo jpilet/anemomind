@@ -81,3 +81,22 @@ TEST(ArrayTest, SliceTestReplace) {
   }
   EXPECT_EQ(MemoryTestObj::InstanceCounter, 0);
 }
+
+TEST(ArrayTest, CreateTest) {
+  {
+    TestArray A(30);
+    EXPECT_EQ(MemoryTestObj::InstanceCounter, 30);
+    A.create(3);
+    EXPECT_EQ(MemoryTestObj::InstanceCounter, 3);
+  }
+  EXPECT_EQ(MemoryTestObj::InstanceCounter, 0);
+}
+
+TEST(ArrayTest, MakeEmptyTest) {
+  TestArray A(30);
+  EXPECT_EQ(MemoryTestObj::InstanceCounter, 30);
+  A = TestArray();
+  EXPECT_EQ(MemoryTestObj::InstanceCounter, 0);
+}
+
+
