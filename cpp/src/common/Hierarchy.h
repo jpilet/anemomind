@@ -131,10 +131,8 @@ class HInner : public HTree {
 class Hierarchy {
   public:
     // Creates a hierarchy from a set of nodes to define a grammar.
-    // A node with index 'i' should be at position 'i' in the array to
-    // allow for quick lookup. This is checked inside the constructor.
     // Every node except for the root node has a parent node.
-    Hierarchy(Array<HNode> nodes);
+    Hierarchy(Array<HNode> unorderedNodes);
 
     // This method takes an array of terminals (integers for which 'isTerminal' returns true)
     // returns a parse tree as specified by this grammar.

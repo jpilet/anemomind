@@ -67,6 +67,41 @@ TEST(HierarchyTest, ParseTestBinary) {
   EXPECT_FALSE(p4->equals(p0));
 }
 
+namespace {
+  Array<HNode> reorder3(Array<HNode> nodes) {
+    const int count = 3;
+    int newPos[count] = {2, 0, 1};
+    Array<HNode> dst(count);
+    for (int i = 0; i < count; i++) {
+      dst[newPos[i]] = nodes[i];
+    }
+    return dst;
+  }
+}
+
+TEST(HierarchyTest, ParseTestBinaryReordered) {
+  const int len = 8;
+  int stringToParse[len] = {0, 0, 0, 0, 1, 1, 1, 0};
+  Hierarchy h(reorder3(makeBinaryTestNodes()));
+  std::shared_ptr<HTree> tree = h.parse(Arrayi(len, stringToParse));
+  EXPECT_EQ(tree->left(), 0);
+  EXPECT_EQ(tree->right(), len);
+  EXPECT_EQ(tree->childCount(), 3);
+
+  //tree->disp(&std::cout);
+  std::shared_ptr<HTree> p0(new HLeaves(0, 0, 4));
+  std::shared_ptr<HTree> p1(new HLeaves(4, 1, 3));
+  std::shared_ptr<HTree> p2(new HLeaves(7, 0, 1));
+  std::shared_ptr<HTree> p4(new HInner(2, p0));
+  p4->add(p1);
+  p4->add(p2);
+  EXPECT_TRUE(tree->child(0)->equals(p0));
+  EXPECT_TRUE(tree->child(1)->equals(p1));
+  EXPECT_TRUE(tree->child(2)->equals(p2));
+  EXPECT_TRUE(p4->equals(tree));
+  EXPECT_FALSE(p4->equals(p0));
+}
+
 Hierarchy makeMiniSailGrammar() {
   Array<HNode> nodes(9);
 

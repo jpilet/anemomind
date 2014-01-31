@@ -23,17 +23,28 @@ HNode HNode::makeRoot(int index, std::string label) {
 
 namespace {
   // Checks that
-  //  (i)  the index of every node corresponds to its location in the array
-  //  (ii) if a node has a parent, that parent is defined.
-  void checkHNodeArray(Array<HNode> nodes) {
+  // if a node has a parent, that parent is defined.
+  void checkHNodeValidParents(Array<HNode> nodes) {
     int count = nodes.size();
     for (int i = 0; i < count; i++) {
       HNode &node = nodes[i];
-      assert(node.index() == i  || node.undefined());
       if (node.hasParent()) {
         assert(nodes[node.parent()].defined());
       }
     }
+  }
+
+  // Returns a new array where an HNode with index 'i' is located at position 'i'.
+  // Also makes sure that two nodes don't have the same index.
+  Array<HNode> arrangeHNodes(Array<HNode> nodes) {
+    int count = nodes.size();
+    Array<HNode> dst(count);
+    for (int i = 0; i < count; i++) {
+      HNode &node = nodes[i];
+      assert(dst[node.index()].undefined());
+      dst[node.index()] = node;
+    }
+    return dst;
   }
 
   // Returns true iff all nodes that are defined have a parent
@@ -236,15 +247,15 @@ bool HLeaves::equals(std::shared_ptr<HTree> other) const {
 }
 
 
-Hierarchy::Hierarchy(Array<HNode> nodes) : _nodes(nodes) {
-  checkHNodeArray(nodes);
-  _rootNode = getHRootNode(nodes);
+Hierarchy::Hierarchy(Array<HNode> unorderedNodes) : _nodes(arrangeHNodes(unorderedNodes)) {
+  checkHNodeValidParents(_nodes);
+  _rootNode = getHRootNode(_nodes);
   assert(_rootNode != -1);
-  Array<std::vector<int> > children = listChildren(nodes);
+  Array<std::vector<int> > children = listChildren(_nodes);
   _isTerminal = calcTerminals(children);
   _levelPerNode = calcLevelPerNode(_rootNode, children);
-  _ancestors = makeAncestors(nodes, _levelPerNode);
-  _labels = listLabels(nodes);
+  _ancestors = makeAncestors(_nodes, _levelPerNode);
+  _labels = listLabels(_nodes);
 }
 
 void Hierarchy::addTerminal(int left, std::shared_ptr<HTree> tree, int nodeIndex) const {
