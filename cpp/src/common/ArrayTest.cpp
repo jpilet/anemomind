@@ -122,3 +122,28 @@ TEST(ArrayTest, OverwriteTest) {
   B = TestArray();
   EXPECT_EQ(MemoryTestObj::InstanceCounter, 0);
 }
+
+TEST(ArrayTest, Slice2Test) {
+  {
+    TestArray A(30);
+    EXPECT_EQ(MemoryTestObj::InstanceCounter, 30);
+    TestArray B = A.sliceTo(9);
+    TestArray C = A.sliceTo(9);
+    A = TestArray();
+    B = C;
+    EXPECT_EQ(MemoryTestObj::InstanceCounter, 30);
+  }
+  EXPECT_EQ(MemoryTestObj::InstanceCounter, 0);
+}
+
+TEST(ArrayTest, SliceSwapTest) {
+  {
+    TestArray A(30);
+    EXPECT_EQ(MemoryTestObj::InstanceCounter, 30);
+    TestArray B = A.sliceTo(9);
+    TestArray C = A.slice(11, 27);
+    std::swap<TestArray>(B, C);
+    EXPECT_EQ(MemoryTestObj::InstanceCounter, 30);
+  }
+  EXPECT_EQ(MemoryTestObj::InstanceCounter, 0);
+}
