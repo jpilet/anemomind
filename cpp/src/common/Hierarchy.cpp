@@ -89,9 +89,9 @@ namespace {
   // Sub-routine to calcLevelPerNode.
   void traverseChildrenAndOutputLevel(int level, int currentNode, Array<std::vector<int> > childrenPerNode, Arrayi *levelPerNodeInOut) {
     assert(levelPerNodeInOut != nullptr);
-    Arrayi &lpn = *levelPerNodeInOut;
-    assert(lpn[currentNode] == -1);
-    lpn[currentNode] = level;
+    assert((*levelPerNodeInOut)[currentNode] == -1);
+    (*levelPerNodeInOut)[currentNode] = level;
+
     int nextLevel = level + 1;
     std::vector<int> &children = childrenPerNode[currentNode];
     int childCount = children.size();
