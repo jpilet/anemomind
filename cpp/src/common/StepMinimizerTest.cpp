@@ -1,16 +1,11 @@
 /*
- * StepMinimizerTest.cpp
-
- *
- *  Created on: 22 janv. 2014
- *      Author: jonas
+ *  Created on: 2014-01-22
+ *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 #include "gtest/gtest.h"
 #include "StepMinimizer.h"
 #include <cmath>
 using namespace sail;
-
-
 
 TEST(StepMinimizerTest, MinimizeConvex)
 {
@@ -72,5 +67,3 @@ TEST(StepMinimizerTest, MinimizeConvexStepByStep)
 		}
 	}
 }
-
-

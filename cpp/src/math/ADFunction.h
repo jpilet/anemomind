@@ -1,9 +1,6 @@
 /*
- * ADFunction.h
- *
- *  Created on: 20 janv. 2014
- *      Author: jonas
- *
+ *  Created on: 2014-01-20
+ *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  *
  * This code is not thread safe.
  *
