@@ -25,6 +25,7 @@ namespace {
         if (!(_dummyInt == 119 || _dummyInt == 120)) {
           throw std::runtime_error("You are probably trying to deallocate memory that was never allocated and initialized");
         }
+        _dummyInt = 0;
         InstanceCounter--;
       }
 
