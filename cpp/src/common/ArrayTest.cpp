@@ -147,3 +147,20 @@ TEST(ArrayTest, SliceSwapTest) {
   }
   EXPECT_EQ(MemoryTestObj::InstanceCounter, 0);
 }
+
+namespace {
+  int countElements(TestArray arr) {
+    if (arr.empty()) {
+      return 0;
+    } else {
+      return 1 + countElements(arr.sliceFrom(1));
+    }
+  }
+}
+
+TEST(ArrayTest, ElemCountTest) {
+  int n = 34;
+
+  EXPECT_EQ(countElements(TestArray(n)), n);
+  EXPECT_EQ(MemoryTestObj::InstanceCounter, 0);
+}
