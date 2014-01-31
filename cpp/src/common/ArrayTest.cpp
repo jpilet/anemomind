@@ -17,17 +17,20 @@ namespace {
       static int InstanceCounter;
 
       MemoryTestObj() {
-        _dummyInt = InstanceCounter;
+        _dummyInt = 119 + (InstanceCounter % 2); // Make it a bit non-trivial
         InstanceCounter++;
       }
 
       ~MemoryTestObj() {
+        if (!(_dummyInt == 119 || _dummyInt == 120)) {
+          throw std::runtime_error("You are probably trying to deallocate memory that was never allocated and initialized");
+        }
         InstanceCounter--;
       }
 
       int dummyInt() {return _dummyInt;}
     private:
-      int _dummyInt; // Just here to make this object non-trivial.
+      int _dummyInt;
   };
 
   int MemoryTestObj::InstanceCounter = 0;
@@ -68,7 +71,6 @@ TEST(ArrayTest, SliceTestReplace) {
     TestArray C = A.sliceFrom(15);
     EXPECT_EQ(MemoryTestObj::InstanceCounter, 30);
     EXPECT_EQ(C.size(), 15);
-    EXPECT_EQ(MemoryTestObj::InstanceCounter, 30);
     B = TestArray();
     EXPECT_EQ(B.size(), 0);
     EXPECT_EQ(MemoryTestObj::InstanceCounter, 30);
