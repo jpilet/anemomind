@@ -260,7 +260,8 @@ Hierarchy::Hierarchy(Array<HNode> unorderedNodes) : _nodes(arrangeHNodes(unorder
 void Hierarchy::addTerminal(int left, std::shared_ptr<HTree> tree, int nodeIndex) const {
   assert(left == tree->right());
   assert(_isTerminal[nodeIndex]);
-  assert(addTerminalSub(tree, nodeIndex));
+  bool wasAdded = addTerminalSub(tree, nodeIndex);
+  assert(wasAdded);
 }
 
 bool Hierarchy::addTerminalSub(std::shared_ptr<HTree> tree, int nodeIndex) const {
