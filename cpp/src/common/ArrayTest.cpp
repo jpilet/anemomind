@@ -18,9 +18,15 @@ namespace {
       static int InstanceCounter;
 
       MemoryTestObj() {
-        _dummyInt = 119 + (InstanceCounter % 2); // Make it a bit non-trivial
-        InstanceCounter++;
+        newInstance();
       }
+
+      // Explicit copy constructor required here to increase the counter
+      MemoryTestObj(const MemoryTestObj &src) {
+        newInstance();
+      }
+
+      // Overriding assignment operator probably not required, since no new object is created.
 
       ~MemoryTestObj() {
         if (!(_dummyInt == 119 || _dummyInt == 120)) {
@@ -33,6 +39,10 @@ namespace {
       int dummyInt() {return _dummyInt;}
     private:
       int _dummyInt;
+      void newInstance() {
+        _dummyInt = 119 + (InstanceCounter % 2); // Make it a bit non-trivial
+        InstanceCounter++;
+      }
   };
 
   int MemoryTestObj::InstanceCounter = 0;
