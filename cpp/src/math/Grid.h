@@ -14,6 +14,7 @@
 #include "../common/MDArray.h"
 #include "../common/math.h"
 #include "../common/common.h"
+#include <armadillo>
 
 namespace sail
 {
@@ -155,6 +156,45 @@ public:
 		return arma::sp_mat(IJ, X, rows, cols);
 	}
 
+	// Constructs a sparse regularization matrix
+	arma::sp_mat makeSecondOrderReg(int dim)
+	{
+		assert(0 <= dim);
+		assert(dim < N);
+		MDInds<N> temp = _inds;
+		temp.set(dim, temp.get(dim) - 2);
+		int rows = temp.numel();
+		const int blksize = 3;
+		int elemCount = blksize*rows;
+		int cols = _inds.numel();
+
+		arma::umat IJ(2, elemCount); // Element locations in the matrix
+		arma::vec X(elemCount);	 // Element values in the matrix
+		for (int i = 0; i < rows; i++)
+		{
+			int offset = blksize*i;
+			int at[N];
+			temp.calcInv(i, at);
+
+			int I = _inds.calcIndex(at);
+			at[dim]++;
+			int J = _inds.calcIndex(at);
+			at[dim]++;
+			int K = _inds.calcIndex(at);
+			IJ(0, offset + 0) = i; // row
+			IJ(1, offset + 0) = I; // col
+			X[offset + 0] = 1.0;   // value
+
+			IJ(0, offset + 1) = i; // row
+			IJ(1, offset + 1) = J; // col
+			X[offset + 1] = -2.0;  // value
+
+			IJ(0, offset + 2) = i; // row
+			IJ(1, offset + 2) = K; // col
+			X[offset + 2] = 1.0;  // value
+		}
+		return arma::sp_mat(IJ, X, rows, cols);
+	}
 
 	// Computes a sparse matrix P such that P*X = ptsAsRows, X being the grid vertices.
 	arma::sp_mat makeP(MDArray2d ptsAsRows)
@@ -189,6 +229,8 @@ public:
 	}
 
 	int getVertexCount() {return _inds.numel();}
+
+	const MDInds<N> &getInds() const {return _inds;}
 private:
 	MDInds<N> _inds;      // Holds the size of every
 	LineKM _ind2Coord[N]; // Maps indices along a dimension to coordinates
@@ -217,6 +259,9 @@ std::ostream &operator<<(std::ostream &s, Grid<N> grid)
 typedef Grid<1> Grid1d;
 typedef Grid<2> Grid2d;
 typedef Grid<3> Grid3d;
+
+arma::sp_mat makeIncompressReg(Grid3d grid);
+arma::sp_mat makeIncompressReg(Grid2d grid);
 
 } /* namespace sail */
 

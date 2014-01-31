@@ -24,7 +24,9 @@ void example008(); // Initialize a local race
 void example009(); // Pareto frontier test
 void example010(); // Grid vertex weight calculation
 void example011(); // Make regularization matrices and validate
-void example012(); // Noisy signal toy example.
+void example012(); // Noisy signal toy example. Constant regularization.
+void example013(); // Noisy signal toy example. Variable regularization.
+void example014(); // Noisy signal toy example. Variable regularization. First and Second order.
 
 } /* namespace sail */
 

@@ -25,7 +25,10 @@ class GridFit
 {
 public:
 	GridFit();
-	GridFit(arma::sp_mat P, AutoDiffFunction *data, Array<arma::sp_mat> regMatrices, Array<Arrayb> splits,
+	GridFit(arma::sp_mat P, AutoDiffFunction *data, Array<arma::sp_mat> regMatrices,
+			Array<Arrayb> splits,
+			Arrayd regWeights,
+			Array<std::string> regWeightLabels = Array<std::string>(),
 			double weight = 1);
 
 
@@ -48,18 +51,51 @@ public:
 	// then we want to minimize |A*D| w.r.t. D
 	arma::mat makeDataToResidualsMat(Arrayb sel = Arrayb());
 
+	// For the current weights, return a matrix M such that
+	// |M*D|^2 is the cross validation cost, D being the data vector.
+	arma::mat makeCrossValidationFitnessMat();
+
+
+
+	// Evaluates how well the grid fits to a datavector D
+	// given the current regularization weights.
+	// The result of this function should be the same as
+	// SQNORM(makeDataToResidualMat()*D) but is computed differently
+	double evalObjfForDataVector(arma::mat D);
+
+	// Evaluates the cross-validation score for this datavector D
+	// and the weights.
+	double evalCrossValidationFitness(arma::mat D);
+
+	void setExpRegWeight(int index, double logX);
+	int getRegCount() {return _regWeights.size();}
+
+	double getRegWeight(int index) {return _regWeights[index];}
+
+	std::string getRegLabel(int index);
+	std::string getLabel() {return _label;}
+	void setLabel(std::string label) {_label = label;}
+
 	virtual ~GridFit() {}
 private:
+	void setRegWeight(int index, double value) {_regWeights[index] = value;}
+	static arma::mat fitGridParamsForDataVectorAndWeights(arma::mat D, Arrayd weights, arma::sp_mat P, Array<arma::sp_mat> A);
 	static arma::mat makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
+	static arma::mat makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
 	static arma::mat makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
 
 	arma::sp_mat _P;
 	AutoDiffFunction *_data;
 	Array<arma::sp_mat> _regMatrices;
 	Array<Arrayb> _splits;
-	double _weight;
 
 	Arrayd _regWeights;
+
+	std::string _label;
+	Array<std::string> _labels;
+
+	// How much THE WHOLE function is weighted
+	double _weight;
 };
 
 class GridFitter
@@ -72,11 +108,18 @@ public:
 	// acquire ownership of this copy and return a pointer to it.
 	void add(std::shared_ptr<GridFit> gf);
 
-	void solve(Arrayd &X);
+	// Provide these methods with a vector of initial calibration coefficients
+	// and they will optimize it in-place. The vector should be a column of
+	// getNLParamCount() elements.
+	void solve(arma::mat *XInOut);
+	void solveFixedReg(arma::mat *XInOut);
 
-	int getNLParamCount();
 private:
+	int getNLParamCount();
 	std::vector<std::shared_ptr<GridFit> > _terms;
+
+	Arrayi getRegCounts();
+	void writeStatus(int i, arma::mat X, int fsize);
 };
 
 Arrayb makeRandomSplit(int size);
