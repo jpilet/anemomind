@@ -31,15 +31,6 @@ void CustomLogHandler(LogLevel level, const char* filename, int line,
   delete[] str;
 }
 
-namespace {
-  bool signalCaught = false;
-
-  void handleAbortSignal(int x) {
-    signalCaught = true;
-  }
-}
-
-
 TEST(LoggingTest, MainTest) {
     LOG(INFO) << "Default Logging test.";
 
