@@ -129,13 +129,12 @@ namespace {
     MDArray2i anc(count, maxLevel+1);
     anc.setAll(-1);
     for (int i = 0; i < count; i++) {
-      int lastNode = i;
       int level = levelPerNode[i];
-      while (nodes[lastNode].hasParent()) {
-        int p = nodes[lastNode].parent();
+      int p = -1;
+      for (int lastNode = i; nodes[lastNode].hasParent(); lastNode = p) {
+        p = nodes[lastNode].parent();
         level--;
         anc(i, level) = p;
-        lastNode = p;
       }
     }
     return anc;
