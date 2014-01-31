@@ -116,7 +116,6 @@ TEST(ArrayTest, OverwriteTest) {
   TestArray B(7);
   EXPECT_EQ(MemoryTestObj::InstanceCounter, 37);
   A = B;
-  DOUT(MemoryTestObj::InstanceCounter);
   EXPECT_EQ(MemoryTestObj::InstanceCounter, 7);
   A = TestArray();
   EXPECT_EQ(MemoryTestObj::InstanceCounter, 7);
