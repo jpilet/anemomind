@@ -19,6 +19,7 @@ namespace {
   }
 }
 
+
 // Check that the root of the hierarchy is correct
 TEST(HierarchyTest, RootTest) {
   Array<HNode> nodes = makeBinaryTestNodes();
