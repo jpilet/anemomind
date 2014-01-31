@@ -68,7 +68,7 @@ class LogMessage {
 // Thrown by  LogMessage::Finish() if level_ is LOGLEVEL_FATAL
 class LogMessageException {
   public:
-    LogMessageException(LogLevel l, const char* filename, int line, const std::string &message);
+    LogMessageException(LogLevel level, const char* filename, int line, const std::string &message);
   private:
     LogLevel level_;
     const char* filename_;

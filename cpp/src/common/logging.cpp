@@ -132,8 +132,8 @@ void LogMessage::Finish() {
   }
 }
 
-LogMessageException::LogMessageException(LogLevel l, const char* filename, int line, const std::string &message) :
-    level_(l), filename_(filename), line_(line), message_(message) {}
+LogMessageException::LogMessageException(LogLevel level, const char* filename, int line, const std::string &message) :
+    level_(level), filename_(filename), line_(line), message_(message) {}
 
 void LogFinisher::operator=(LogMessage& other) {
   other.Finish();
