@@ -58,9 +58,10 @@ TEST(HierarchyTest, ParseTestBinary) {
   std::shared_ptr<HTree> p0(new HLeaves(0, 0, 4));
   std::shared_ptr<HTree> p1(new HLeaves(4, 1, 3));
   std::shared_ptr<HTree> p2(new HLeaves(7, 0, 1));
-  std::shared_ptr<HTree> p4(new HInner(2, p0));
-  p4->add(p1);
-  p4->add(p2);
+  HInner *i4 = new HInner(2, p0);
+  std::shared_ptr<HTree> p4(i4);
+  i4->add(p1);
+  i4->add(p2);
   EXPECT_TRUE(tree->child(0)->equals(p0));
   EXPECT_TRUE(tree->child(1)->equals(p1));
   EXPECT_TRUE(tree->child(2)->equals(p2));
@@ -93,9 +94,10 @@ TEST(HierarchyTest, ParseTestBinaryReordered) {
   std::shared_ptr<HTree> p0(new HLeaves(0, 0, 4));
   std::shared_ptr<HTree> p1(new HLeaves(4, 1, 3));
   std::shared_ptr<HTree> p2(new HLeaves(7, 0, 1));
-  std::shared_ptr<HTree> p4(new HInner(2, p0));
-  p4->add(p1);
-  p4->add(p2);
+  HInner *i4 = new HInner(2, p0);
+  std::shared_ptr<HTree> p4(i4);
+  i4->add(p1);
+  i4->add(p2);
   EXPECT_TRUE(tree->child(0)->equals(p0));
   EXPECT_TRUE(tree->child(1)->equals(p1));
   EXPECT_TRUE(tree->child(2)->equals(p2));
