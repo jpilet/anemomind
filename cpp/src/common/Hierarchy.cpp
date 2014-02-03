@@ -145,14 +145,6 @@ namespace {
   }
 }
 
-void HTree::add(int nodeIndex) {
-  throw std::runtime_error("This method is not defined for this object");
-}
-
-void HTree::add(std::shared_ptr<HTree> child) {
-  throw std::runtime_error("This method is not defined for this object");
-}
-
 std::shared_ptr<HTree> HTree::lastChild() {
   throw std::runtime_error("lastChild not defined for this object");
   return std::shared_ptr<HTree>();
@@ -266,7 +258,9 @@ void Hierarchy::addTerminal(int left, std::shared_ptr<HTree> tree, int nodeIndex
 
 bool Hierarchy::addTerminalSub(std::shared_ptr<HTree> tree, int nodeIndex) const {
   if (tree->index() == nodeIndex) {
-    tree->add(nodeIndex);
+    HLeaves *leaves = dynamic_cast<HLeaves*>(tree.get());
+    assert(leaves != nullptr);
+    leaves->add(nodeIndex);
     return true;
   } else {
     int treeIndex = tree->index();
@@ -277,7 +271,9 @@ bool Hierarchy::addTerminalSub(std::shared_ptr<HTree> tree, int nodeIndex) const
       if (!addTerminalSub(lastChild, nodeIndex)) {
         std::shared_ptr<HTree> child = wrap(tree->right(), treeLevel+1, nodeIndex);
         assert(_nodes[child->index()].parent() == treeIndex);
-        tree->add(child);
+        HInner *inner = dynamic_cast<HInner*>(tree.get());
+        assert(inner != nullptr);
+        inner->add(child);
       }
       return true;
     } else {

@@ -69,12 +69,6 @@ class HTree {
     // Returns the index of the node.
     virtual int index() const = 0;
 
-    // Only applicable to HLeaves
-    virtual void add(int nodeIndex);
-
-    // Only applicable to HInner
-    virtual void add(std::shared_ptr<HTree> child);
-
     virtual std::shared_ptr<HTree> lastChild();
 
     virtual ~HTree() {}
