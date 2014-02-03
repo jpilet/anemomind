@@ -14,7 +14,10 @@ env.AppendUnique(LIBPATH = ['/usr/lib'])
 env.AppendUnique(CPPFLAGS = ['-g3', '-O0'])
 
 # http://arma.sourceforge.net/
-env.AppendUnique(LIBS = ['armadillo', 'lapack_atlas'])
+if os.environ['HOME'].find('leto'):
+    env.AppendUnique(LIBS = ['armadillo', 'lapack'])
+else:
+    env.AppendUnique(LIBS = ['armadillo', 'lapack_atlas'])
 
 # http://code.google.com/p/ceres-solver/
 # env.AppendUnique(LIBS = ['ceres'])
@@ -29,6 +32,15 @@ env.AppendUnique(LIBS = ['adolc'])
 
 env.AppendUnique(LIBS = ['gtest', 'gtest_main'])
 env.AppendUnique(LIBPATH = ['/usr/lib/gtest']) # a link to gtest-1.7.0/lib/.libs
+env.AppendUnique(LIBPATH = ['/Users/leto/Documents/sailing_projects/sailsmart/cpp/build/gtest'])
+
+# For Julien's laptop
+env.AppendUnique(CPPPATH = ['build/gtest/include'])
+env.AppendUnique(CPPPATH = ['/Users/leto/Documents/sailing_projects/sailsmart/cpp/build/gtest/include'])
+env.AppendUnique(CPPPATH = ['/opt/local/include'])
+env.AppendUnique(LIBPATH = ['/opt/local/lib'])
+env.AppendUnique(CPPPATH = ['/Users/leto/Documents/sailing_projects/sailsmart/cpp/build/adolc/include'])
+env.AppendUnique(LIBPATH = ['/Users/leto/Documents/sailing_projects/sailsmart/cpp/build/adolc/lib64'])
 
 # Put the object code in a different location than the source code.
 # http://www.scons.org/doc/2.0.1/HTML/scons-user/x3444.html

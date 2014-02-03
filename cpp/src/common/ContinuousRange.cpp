@@ -6,8 +6,9 @@
  */
 
 #include "ContinuousRange.h"
-#include <cmath>
+#include <algorithm>  // for std::min/max
 #include <assert.h>
+#include <cmath>
 
 namespace sail
 {
