@@ -22,6 +22,7 @@ char intToHexDigit(char val) {
     }
 }
 
+#ifndef NOT_ON_MICROCONTROLLER
 int strcmp(const char *str1, const char *str2) {
     while (*str1 && *str1 == *str2) {
         ++str1;
@@ -37,6 +38,7 @@ int strlen(const char *str) {
     }
     return l;
 }
+#endif
 
 char parse2c(char *ab) {
 	return (ab[0]-'0')*10 + ab[1]-'0';
@@ -454,3 +456,61 @@ void GeoRef::project(const GeoPos &pos, double xy[2]) const {
     xy[0] = dlon * (pos.lon.toDouble() - reflon);
     xy[1] = dlat * (pos.lat.toDouble() - reflat);
 }
+
+#ifdef NOT_ON_MICROCONTROLLER
+#include <sstream>
+using std::string;
+using std::stringstream;
+
+namespace {
+
+template <typename T>
+string toString(T a) {
+    stringstream r;
+    r << a;
+    return r.str();
+}
+
+}  // namespace
+
+string NmeaParser::awaAsString() const {
+    return toString(awa());
+}
+
+string NmeaParser::gpsSpeedAsString() const {
+    return toString(gpsSpeed() / 256.0);
+}
+
+string NmeaParser::awsAsString() const {
+    return toString(aws() / 256.0);
+}
+
+string NmeaParser::twaAsString() const {
+    return toString(twa());
+}
+
+string NmeaParser::twsAsString() const { 
+    return toString(tws() / 256.0);
+}
+
+string NmeaParser::magHdgAsString() const {
+    return toString(magHdg());
+}
+
+string NmeaParser::watSpeedAsString() const {
+    return toString(watSpeed() / 256.0);
+}
+
+string NmeaParser::gpsBearingAsString() const {
+    return toString(gpsBearing());
+}
+
+string NmeaParser::cwdAsString() const {
+    return toString(cwd());
+}
+
+string NmeaParser::wdAsString() const {
+    return toString(wd() / 10.0);
+}
+
+#endif
