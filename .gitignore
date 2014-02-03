@@ -1,0 +1,4 @@
+*.sconsign.dblite
+*.o
+cpp/build
+src/device/Arduino/libraries/IreneTargetSpeed/test/test
