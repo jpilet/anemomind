@@ -2,42 +2,36 @@
 
 #include <stdio.h>
 
-#define CHECK_EQ(a, b) checkEq(a, b, #a, #b)
-#define CHECK_NEAR(a, b, delta) checkNear(a, b, delta, #a, #b, #delta)
+#define CHECK_NEAR(a, b, delta) test.checkNear(a, b, delta, #a, #b, #delta)
+
+namespace {
 
 double fabs(double a) {
     return (a< 0 ? -a : a);
 }
 
-bool success = true;
-const char *currentTest = "";
-void checkEq(int a, int b, const char *stra, const char *strb) {
-    if (a != b) {
-        success = false;
-        printf("%s (%d) != %s (%d)\n", stra, a, strb, b);
+class TestPrinter {
+  public:
+    TestPrinter(const char *testName) : _success(true), _testName(testName) { }
+    ~TestPrinter() {
+        printf("Test: %s: %s\n", _testName, (_success ? "passed" : "failed"));
     }
-}
-void checkNear(double a, double b, double delta,
-               const char *stra, const char *strb, const char *strdelta) {
-    if (fabs(b - a) > delta) {
-        success = false;
-        printf("|%s (%f) - %s (%f)| > %s(%f)\n",
-               stra, a, strb, b, strdelta, delta);
+
+    void checkNear(double a, double b, double delta,
+                   const char *stra, const char *strb, const char *strdelta) {
+        if (fabs(b - a) > delta) {
+            _success = false;
+            printf("|%s (%f) - %s (%f)| > %s(%f)\n",
+                   stra, a, strb, b, strdelta, delta);
+        }
     }
-}
+  private:
+    bool _success;
+    const char *_testName;
+};
 
-void startTest(const char *s) {
-    success = true;
-    currentTest = s;
-}
-
-bool endTest() {
-    printf("Test: %s: %s\n", currentTest, (success ? "passed" : "failed"));
-    return success;
-}
-
-bool TestInterpolate() {
-    startTest("Interpolate");
+void TestInterpolate() {
+    TestPrinter test("Interpolate");
 
     const float counts[3] = { 0, 1, 2 };
     const float epsilon = .0001f;
@@ -54,21 +48,19 @@ bool TestInterpolate() {
     for (float f = 0; f < 4; f += .1) {
 	CHECK_NEAR( f * 2, interpolate(doubles, sizeof(doubles) / sizeof(doubles[0]), f), epsilon);
     }
-
-    return endTest();
 }
 
-bool TestUpWind() {
-    startTest("UpWind");
+void TestUpWind() {
+    TestPrinter test("UpWind");
     CHECK_NEAR(1.0, getSpeedRatio(45, 10, 5.5), .2);
-    return endTest();
 }
 
-bool TestDownWind() {
-    startTest("DownWind");
+void TestDownWind() {
+    TestPrinter test("DownWind");
     CHECK_NEAR(1.0, getSpeedRatio(160, 10, 5.8), .2);
-    return endTest();
 }
+
+}  // namespace
 
 int main() {
     TestInterpolate();
