@@ -307,6 +307,14 @@ public:
 		return _data[_index.calcIndex(inds)];
 	}
 
+  const T &operator() (int *inds) const
+  {
+    #if SAFEARRAY
+      assert(_size.valid(inds));
+    #endif
+    return _data[_index.calcIndex(inds)];
+  }
+
 	int calcIndex(int *inds)
 	{
 		return _index.calcIndex(inds);
@@ -338,12 +346,19 @@ public:
 		return get(inds);
 	}
 
-	T &operator() (int i, int j)
-	{
-		static_assert(dims == 2, "Array should be 2d");
-		int inds[2] = {i, j};
-		return operator()(inds);
-	}
+  T &operator() (int i, int j)
+  {
+    static_assert(dims == 2, "Array should be 2d");
+    int inds[2] = {i, j};
+    return operator()(inds);
+  }
+
+  const T &operator() (int i, int j) const
+  {
+    static_assert(dims == 2, "Array should be 2d");
+    int inds[2] = {i, j};
+    return operator()(inds);
+  }
 
 	void set(int i, const T &value)
 	{
