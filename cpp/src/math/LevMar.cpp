@@ -131,6 +131,7 @@ void LevmarState::minimize(const LevmarSettings &settings, Function &fun)
 {
 	for (int i = 0; (i < settings.maxiter) && !_stop; i++)
 	{
+		OPTWRITE(1, "Levenberg-Marquardt iteration " << i);
 		step(settings, fun);
 	}
 }

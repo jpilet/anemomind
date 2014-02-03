@@ -65,13 +65,14 @@ TEST(OptimizationTest, CircleFit)
 	}
 }
 
-TEST(OptimizationTest, NumericJacobianCircleFit)
+TEST(OptimizationTest, NumericJacobian)
 {
 	arma::mat Xinit(2, 1);
 	Xinit(0, 0) = 3.0;
 	Xinit(1, 0) = 1.0;
 
 	LMTestFun objf;
+
 	arma::mat F(objf.outDims(), 1);
 	arma::mat J(objf.outDims(), objf.inDims());
 	arma::mat Jnum(objf.outDims(), objf.inDims());

@@ -58,6 +58,13 @@ MDArray2d toRows(Array<arma::vec::fixed<dims> > vecs)
 // Makes a sparse matrix to select elements from a vector.
 arma::sp_mat makeSpSel(Arrayb sel);
 
+template <typename T>
+auto SQNORM(const T &X) -> decltype(arma::dot(X, X)) {
+  // X can for instance be arma::mat and then arma::dot(X, X) will be double.
+  // decltype is the easiest way to infer the return type.
+  return arma::dot(X, X);
+}
+
 
 }
 
