@@ -9,6 +9,10 @@
 #ifndef NMEAPARSER_H
 #define NMEAPARSER_H
 
+#ifdef NOT_ON_MICROCONTROLLER
+#include <string>
+#endif
+
 typedef long DWord;
 typedef short Word;
 typedef unsigned char Byte;
@@ -133,6 +137,19 @@ class NmeaParser {
 
     bool ignoreWrongChecksum() const { return ignoreWrongChecksum_; }
     void setIgnoreWrongChecksum(bool val) { ignoreWrongChecksum_ = val; }
+
+#ifdef NOT_ON_MICROCONTROLLER
+    std::string awaAsString() const;
+    std::string gpsSpeedAsString() const;
+    std::string awsAsString() const;
+    std::string twaAsString() const;
+    std::string twsAsString() const;
+    std::string magHdgAsString() const;
+    std::string watSpeedAsString() const;
+    std::string gpsBearingAsString() const;
+    std::string cwdAsString() const;
+    std::string wdAsString() const;
+#endif
   private:
     enum NPState {
         NP_STATE_SOM, 	        // Search for start of message

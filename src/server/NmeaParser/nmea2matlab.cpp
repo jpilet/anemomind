@@ -1,23 +1,27 @@
+#include <iostream>
 #include <stdio.h>
 #include <NmeaParser/NmeaParser.h>
 #include <IreneTargetSpeed/IreneTargetSpeed.h>
 
+using std::cout;
+
 void printRow(const NmeaParser &p) {
-    printf("%d %d %d %d %d %d", p.year(), p.month(), p.day(), p.hour(), p.min(), p.sec());
-    printf(" %f", p.gpsSpeed() / 256.0f); 	// 7
-    printf(" %d", p.awa()); 			// 8
-    printf(" %f", p.aws()/256.0f);		// 9
-    printf(" %d", p.twa());			// 10
-    printf(" %f", p.tws()/256.0f);		// 11
-    printf(" %d", p.magHdg());	// 12
-    printf(" %f", p.watSpeed()/256.0f);	// 13
-    printf(" %d", p.gpsBearing());	// 14
-    printf(" %d %d %d", p.pos().lat.deg(), p.pos().lat.min(), p.pos().lat.mc());
-    printf(" %d %d %d", p.pos().lon.deg(), p.pos().lon.min(), p.pos().lon.mc());
-    printf(" %ld", p.cwd());
-    printf(" %f", p.wd()/10.0f);
-    printf(" %f", getSpeedRatio(p.twa(), p.tws(), p.gpsSpeed()));
-    printf("\n");
+    cout << p.year() << " " << p.month() << " " << p.day()
+        << " " << p.hour() << " " << p.min() << " " << p.sec();
+    cout << " " << p.gpsSpeedAsString();  // 7
+    cout << " " << p.awaAsString();       // 8
+    cout << " " << p.awsAsString();       // 9
+    cout << " " << p.twaAsString();       // 10
+    cout << " " << p.twsAsString();       // 11
+    cout << " " << p.magHdgAsString();    // 12
+    cout << " " << p.watSpeedAsString();  // 13
+    cout << " " << p.gpsBearingAsString();// 14
+    cout << " " << p.pos().lat.deg() << " " << p.pos().lat.min() << " " << p.pos().lat.mc();
+    cout << " " << p.pos().lon.deg() << " " << p.pos().lon.min() << " " << p.pos().lon.mc();
+    cout << " " << p.cwdAsString();
+    cout << " " << p.wdAsString();
+    cout << " " << getSpeedRatio(p.twa(), p.tws(), p.gpsSpeed());
+    cout << "\n";
 }
 
 int main(int argc, char *argv[]) {
