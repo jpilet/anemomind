@@ -59,23 +59,6 @@ TEST(LoggingTest, MainTest) {
 	<< d << ", "
 	<< s << ".";
 
-    {
-      bool exceptionThrown = false;
-      try {
-        int *ptr(CHECK_NOTNULL(&a));
-      } catch (internal::LogMessageException &e){
-        exceptionThrown = true;
-      }
-      EXPECT_FALSE(exceptionThrown);
-    }
-
-    {
-      bool exceptionThrown = false;
-      try {
-        int *ptr2 = CHECK_NOTNULL(nullptr);
-      } catch (internal::LogMessageException &e) {
-        exceptionThrown = true;
-      }
-      EXPECT_TRUE(exceptionThrown);
-    }
+  EXPECT_NO_THROW(int *ptr = CHECK_NOTNULL(&a));
+  EXPECT_THROW(int *ptr2 = CHECK_NOTNULL(nullptr), internal::LogMessageException);
 }
