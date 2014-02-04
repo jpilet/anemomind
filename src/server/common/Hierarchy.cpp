@@ -7,7 +7,6 @@
 #include <assert.h>
 #include <vector>
 #include "ArrayIO.h"
-#include "common.h"
 #include  <sstream>
 
 namespace sail

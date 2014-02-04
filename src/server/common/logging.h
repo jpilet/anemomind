@@ -86,7 +86,7 @@ class LogFinisher {
 
 template <class T>
 T CheckNotNull(T x, const char *expr, const char* file, int line) {
-    if (x != 0) return x;
+    if (x != nullptr) return x;
     internal::LogFinisher() = internal::LogMessage(LOGLEVEL_FATAL, file, line)
 	<< expr << " is NULL, which is unexpected.";
     return x;

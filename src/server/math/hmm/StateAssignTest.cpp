@@ -5,8 +5,8 @@
  *      Author: jonas
  */
 
-#include "gtest/gtest.h"
 #include "StateAssign.h"
+#include <gtest/gtest.h>
 
 using namespace sail;
 

@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include "ContinuousRange.h"
 #include <cmath>
-#include "common.h"
 
 using namespace sail;
 

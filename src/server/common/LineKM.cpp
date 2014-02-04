@@ -6,11 +6,15 @@
  */
 
 #include "LineKM.h"
-#include "common.h"
+#include <iostream>
 
 namespace sail
 {
 
+void calcLineKM(double x0, double x1, double y0, double y1, double &k, double &m) {
+    k = (y1 - y0)/(x1 - x0);
+    m = y0 - k*x0;
+}
 
 LineKM::LineKM(double x0, double x1, double y0, double y1)
 {

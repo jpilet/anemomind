@@ -6,7 +6,6 @@
  */
 
 #include "Duration.h"
-#include "common.h"
 #include <cmath>
 #include <sstream>
 
@@ -15,7 +14,7 @@ namespace sail
 
 Duration::Duration(double seconds)
 {
-	_seconds = floatMod(seconds, 60.0);
+	_seconds = fmod(seconds, 60.0);
 	int minutes = int(floor(seconds/60.0));
 	_minutes = minutes % 60;
 	int hours = minutes / 60;

@@ -8,8 +8,8 @@
 #ifndef STATEASSIGN_H_
 #define STATEASSIGN_H_
 
-#include "Array.h"
-#include "MDArray.h"
+#include <server/common/Array.h>
+#include <server/common/MDArray.h>
 
 namespace sail
 {

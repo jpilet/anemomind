@@ -5,7 +5,6 @@
 
 #include "Hierarchy.h"
 #include "gtest/gtest.h"
-#include "common.h"
 
 namespace sail {
 

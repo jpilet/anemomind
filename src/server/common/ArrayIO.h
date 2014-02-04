@@ -8,8 +8,6 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
-#include "common.h"
-#include "text.h"
 #include <sstream>
 
 namespace sail

@@ -1,9 +1,8 @@
 #include "armaadolc.h"
-#include "../common/common.h"
 #include <adolc/taping.h>
 #include <adolc/drivers/drivers.h>
 #include <adolc/sparse/sparsedrivers.h>
-#include "../common/MDArray.h"
+#include <server/common/MDArray.h>
 #include <adolc/taping.h>
 
 namespace arma
@@ -80,7 +79,7 @@ void adolcOutput(admat &src, double *dst)
 }
 
 
-void getRowPtrs(double *src, int m, int n, DoublePtr *dst)
+void getRowPtrs(double *src, int m, int n,  double **dst)
 {
 	for (int i = 0; i < m; i++)
 	{
@@ -100,7 +99,7 @@ mat getJacobianTranspose(short int tag, const mat &X)
 
 	arma::mat Jt(n, m);
 
-	DoublePtr *dst = new DoublePtr[m];
+	 double **dst = new  double*[m];
 	getRowPtrs(Jt.memptr(), m, n, dst);
 	jacobian(tag, m, n, X.memptr(), dst);
 	delete[] dst;
@@ -243,7 +242,7 @@ void outputJacobianColMajor(short int tag, double *X, double *J, int step)
 	{
 		Jrow[i] = 0.0;
 	}
-	DoublePtr *dst = new DoublePtr[m];
+	 double **dst = new  double*[m];
 
 	getRowPtrs(Jrow, m, n, dst);
 	assert(dst[0] == Jrow);
@@ -280,7 +279,7 @@ void outputJacobianRowMajor(short int tag, double *X, double *Jrow)
 	{
 		Jrow[i] = 0.0;
 	}
-	DoublePtr *dst = new DoublePtr[m];
+	 double **dst = new double*[m];
 
 	getRowPtrs(Jrow, m, n, dst);
 	assert(dst[0] == Jrow);
