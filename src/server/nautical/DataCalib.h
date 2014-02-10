@@ -8,8 +8,8 @@
 #ifndef DATACALIB_H_
 #define DATACALIB_H_
 
-#include "../common/Array.h"
-#include "../common/Nav.h"
+#include <server/common/Array.h>
+#include <server/nautical/Nav.h>
 #include <memory>
 #include <vector>
 #include <adolc/adouble.h>
