@@ -6,9 +6,8 @@
  */
 
 #include "LocalRace.h"
-#include "../common/common.h"
-#include "../common/ArrayIO.h"
-#include "../plot/extra.h"
+#include <server/common/ArrayIO.h>
+#include <server/plot/extra.h>
 
 namespace sail
 {
