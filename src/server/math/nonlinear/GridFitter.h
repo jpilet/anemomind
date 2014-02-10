@@ -8,11 +8,11 @@
 #ifndef GRIDFITTER_H_
 #define GRIDFITTER_H_
 
-#include "../common/Array.h"
-#include <memory>
-#include <vector>
 #include <armadillo>
 #include <list>
+#include <memory>
+#include <server/common/Array.h>
+#include <vector>
 
 namespace sail
 {

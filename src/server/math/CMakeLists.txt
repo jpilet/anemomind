@@ -26,5 +26,30 @@ target_link_libraries(math_ADFunction
                      )
 target_depends_on_adolc(math_ADFunction)
 
+add_library(math_pareto
+            pareto.cpp
+            pareto.h
+           )
+target_link_libraries(math_pareto
+                      common_Array
+                     )
+
+add_library(math_Grid
+            Grid.cpp
+            Grid.h
+           )
+target_link_libraries(math_Grid
+                      common_Array
+                      common_BBox
+                      common_LineKM
+                     )
+target_depends_on_armadillo(math_Grid)
+
+cxx_test(math_GridTest
+         GridTest.cpp
+         math_Grid
+         gtest_main
+        )
+
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)

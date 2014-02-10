@@ -8,13 +8,12 @@
 #ifndef GRID_H_
 #define GRID_H_
 
-#include "../common/MDInds.h"
-#include "../common/BBox.h"
-#include "../common/LineKM.h"
-#include "../common/MDArray.h"
-#include "../common/math.h"
-#include "../common/common.h"
 #include <armadillo>
+#include <server/common/BBox.h>
+#include <server/common/LineKM.h>
+#include <server/common/MDArray.h>
+#include <server/common/MDInds.h>
+#include <server/common/math.h>
 
 namespace sail
 {

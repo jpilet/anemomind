@@ -8,7 +8,7 @@
 #ifndef PARETO_H_
 #define PARETO_H_
 
-#include "../common/Array.h"
+#include <server/common/Array.h>
 #include <vector>
 
 namespace sail

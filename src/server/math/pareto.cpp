@@ -7,7 +7,6 @@
 
 #include "pareto.h"
 #include <assert.h>
-#include "../common/common.h"
 
 namespace sail
 {

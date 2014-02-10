@@ -6,19 +6,17 @@
  */
 
 #include "GridFitter.h"
-#include "../common/Uniform.h"
-#include "ADFunction.h"
-#include "mathutils.h"
-#include "../common/math.h"
-#include "mathutils.h"
-#include "armaadolc.h"
-#include "LevMar.h"
-#include "LevmarSettings.h"
-#include "pareto.h"
-#include "../common/common.h"
-#include "../common/StepMinimizer.h"
-#include "../common/text.h"
-#include "../common/ArrayIO.h"
+#include <server/common/ArrayIO.h>
+#include <server/common/Uniform.h>
+#include <server/common/math.h>
+#include <server/common/string.h>
+#include <server/math/ADFunction.h>
+#include <server/math/armaadolc.h>
+#include <server/math/mathutils.h>
+#include <server/math/nonlinear/Levmar.h>
+#include <server/math/nonlinear/LevmarSettings.h>
+#include <server/math/nonlinear/StepMinimizer.h>
+#include <server/math/pareto.h>
 
 namespace sail
 {

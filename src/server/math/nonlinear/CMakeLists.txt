@@ -28,3 +28,20 @@ cxx_test(math_nonlinear_LevmarTest
          math_nonlinear_Levmar
          gtest_main
         )
+
+add_library(math_nonlinear_GridFitter
+            GridFitter.cpp
+            GridFitter.h
+           )
+target_link_libraries(math_nonlinear_GridFitter
+                      common_Array
+                      common_Uniform
+                      common_string
+                      math_ADFunction
+                      math_armaadolc
+                      math_mathutils
+                      math_nonlinear_Levmar
+                      math_nonlinear_StepMinimizer
+                      math_pareto
+                     )
+target_depends_on_armadillo(math_nonlinear_GridFitter)
