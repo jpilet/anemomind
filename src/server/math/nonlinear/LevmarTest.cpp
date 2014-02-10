@@ -4,7 +4,7 @@
  *  Created on: 24 janv. 2014
  *      Author: jonas
  */
-#include "LevMar.h"
+#include "Levmar.h"
 #include "LevmarSettings.h"
 #include <gtest/gtest.h>
 #include <server/common/math.h>
