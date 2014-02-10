@@ -5,7 +5,7 @@
  *      Author: jonas
  */
 
-#include "LevMar.h"
+#include "Levmar.h"
 #include <server/common/logging.h>
 #include <server/common/math.h>
 #include <server/math/mathutils.h>
