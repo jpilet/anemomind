@@ -6,8 +6,9 @@
  */
 
 #include "extra.h"
-#include "../common/common.h"
-#include "../common/text.h"
+#include <server/common/string.h>
+#include <chrono>
+#include <thread>
 
 namespace sail
 {

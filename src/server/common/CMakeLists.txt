@@ -1,3 +1,8 @@
+add_library(common_string
+  string.h
+  string.cpp)
+
+
 add_library(common_logging
             logging.h
             logging.cpp)
