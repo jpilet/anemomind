@@ -9,7 +9,7 @@
 #define NAVBBOX_H_
 
 #include "Nav.h"
-#include "ContinuousRange.h"
+#include <server/common/ContinuousRange.h>
 
 namespace sail
 {

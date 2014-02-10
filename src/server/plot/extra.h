@@ -26,6 +26,8 @@ private:
 	//std::string _rgbString;
 };
 
+void sleepForever();
+
 } /* namespace sail */
 
 #endif /* EXTRA_H_ */

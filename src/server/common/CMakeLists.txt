@@ -1,3 +1,8 @@
+add_library(common_string
+  string.h
+  string.cpp)
+
+
 add_library(common_logging
             logging.h
             logging.cpp)
@@ -9,6 +14,7 @@ add_library(common_Array
             Array.h
             MDArray.h
             MDInds.h
+            ArrayIO.h
             )
 cxx_test(common_ArrayTest ArrayTest.cpp
          common_Array gtest_main)

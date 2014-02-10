@@ -9,7 +9,7 @@
 #define NAV_H_
 
 #include <string>
-#include "MDArray.h"
+#include <server/common/MDArray.h>
 
 namespace sail
 {
