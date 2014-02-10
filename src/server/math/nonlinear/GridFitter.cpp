@@ -6,7 +6,6 @@
  */
 
 #include "GridFitter.h"
-#include "../common/Uniform.h"
 #include "ADFunction.h"
 #include "mathutils.h"
 #include "../common/math.h"
@@ -15,7 +14,7 @@
 #include "LevMar.h"
 #include "LevmarSettings.h"
 #include "pareto.h"
-#include "../common/common.h"
+#include "../common/Uniform.h"
 #include "../common/StepMinimizer.h"
 #include "../common/text.h"
 #include "../common/ArrayIO.h"
