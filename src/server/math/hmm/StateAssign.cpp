@@ -6,8 +6,7 @@
  */
 
 #include "StateAssign.h"
-#include "common.h"
-#include "ArrayIO.h"
+#include <server/common/ArrayIO.h>
 
 namespace sail
 {

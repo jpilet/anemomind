@@ -1,8 +1,7 @@
 #include "Uniform.h"
 #include <cstdlib>
 #include <ctime>
-
-#include "common.h"
+#include <server/common/LineKM.h>
 
 namespace sail
 {

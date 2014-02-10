@@ -30,6 +30,8 @@ private:
 
 std::ostream &operator<<(std::ostream &s, LineKM line);
 
+void calcLineKM(double x0, double x1, double y0, double y1, double &k, double &m);
+
 } /* namespace sail */
 
 #endif /* LINEKM_H_ */

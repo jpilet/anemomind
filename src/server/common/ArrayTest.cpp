@@ -5,7 +5,6 @@
 
 #include "Array.h"
 #include "gtest/gtest.h"
-#include "common.h"
 
 
 using namespace sail;

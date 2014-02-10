@@ -5,8 +5,8 @@
  *      Author: jonas
  */
 
-#ifndef MATH_H_
-#define MATH_H_
+#ifndef COMMON_MATH_H_
+#define COMMON_MATH_H_
 
 #include <cmath>
 
@@ -96,4 +96,4 @@ T norm2dif(T *a, T *b)
 
 } /* namespace sail */
 
-#endif /* MATH_H_ */
+#endif /* COMMON_MATH_H_ */
