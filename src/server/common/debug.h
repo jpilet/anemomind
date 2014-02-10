@@ -2,10 +2,7 @@
 #ifndef DEBUG_H_
 #define DEBUG_H_
 
-#include <iostream>
-#include <string>
-#include <thread>
-#include <chrono>
+#include <iosfwd>
 
 namespace sail
 {
