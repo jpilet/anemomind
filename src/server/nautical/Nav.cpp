@@ -6,14 +6,13 @@
  */
 
 #include "Nav.h"
-#include "ArrayIO.h"
+#include <server/common/ArrayIO.h>
 #include <algorithm>
-#include "../plot/gnuplot_i.hpp"
-#include "LineKM.h"
-#include "Duration.h"
-#include "common.h"
-#include "../plot/extra.h"
-#include "../math/Ecef.h"
+#include <server/plot/gnuplot_i.hpp>
+#include <server/common/LineKM.h>
+#include <server/common/Duration.h>
+#include <server/plot/extra.h>
+#include <server/nautical/Ecef.h>
 #include <ctime>
 
 namespace sail

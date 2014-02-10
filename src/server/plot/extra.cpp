@@ -6,8 +6,9 @@
  */
 
 #include "extra.h"
-#include "../common/common.h"
-#include "../common/text.h"
+#include <server/common/string.h>
+#include <chrono>
+#include <thread>
 
 namespace sail
 {
@@ -48,5 +49,10 @@ void GnuplotExtra::show()
 	sleepForever();
 }
 
+void sleepForever()
+{
+	std::this_thread::sleep_for(std::chrono::seconds(30000));
+}
+        
 
 } /* namespace sail */

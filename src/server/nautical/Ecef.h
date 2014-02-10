@@ -8,7 +8,7 @@
 #ifndef ECEF_H_
 #define ECEF_H_
 
-#include "../common/math.h"
+#include <server/common/math.h>
 
 namespace sail
 {
