@@ -10,7 +10,7 @@
 #define ADFUNCTION_H_
 
 #include <adolc/adouble.h>
-#include "../common/Function.h"
+#include <server/common/Function.h>
 
 
 namespace sail

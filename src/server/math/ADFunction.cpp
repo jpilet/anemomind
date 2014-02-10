@@ -6,7 +6,7 @@
  */
 
 #include "ADFunction.h"
-#include "armaadolc.h"
+#include <server/math/armaadolc.h>
 #include <adolc/taping.h>
 
 namespace sail

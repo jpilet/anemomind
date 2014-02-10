@@ -17,6 +17,8 @@ link_directories("${CMAKE_BINARY_DIR}/third-party/adolc-install/lib64")
 
 set_property(TARGET adolc_ext PROPERTY INCLUDE_DIRECTORIES "${CMAKE_BINARY_DIR}/third-party/adolc-install/include")
 
+include_directories("${CMAKE_BINARY_DIR}/third-party/adolc-install/include")
+
 function(target_depends_on_adolc target)
     add_dependencies(${target} adolc_ext)
     target_link_libraries(${target} adolc)
