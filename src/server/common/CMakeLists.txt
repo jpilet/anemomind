@@ -9,6 +9,7 @@ add_library(common_Array
             Array.h
             MDArray.h
             MDInds.h
+            ArrayIO.h
             )
 cxx_test(common_ArrayTest ArrayTest.cpp
          common_Array gtest_main)

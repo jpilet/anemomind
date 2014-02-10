@@ -48,5 +48,10 @@ void GnuplotExtra::show()
 	sleepForever();
 }
 
+void sleepForever()
+{
+	std::this_thread::sleep_for(std::chrono::seconds(30000));
+}
+        
 
 } /* namespace sail */
