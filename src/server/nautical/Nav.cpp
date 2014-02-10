@@ -11,7 +11,6 @@
 #include <server/plot/gnuplot_i.hpp>
 #include <server/common/LineKM.h>
 #include <server/common/Duration.h>
-//#include "common.h"
 #include <server/plot/extra.h>
 #include <server/nautical/Ecef.h>
 #include <ctime>
