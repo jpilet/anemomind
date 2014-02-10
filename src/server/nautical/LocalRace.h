@@ -8,11 +8,11 @@
 #ifndef LOCALRACE_H_
 #define LOCALRACE_H_
 
-#include "mathutils.h"
-#include "../common/Array.h"
-#include "../common/Nav.h"
-#include "../common/BBox.h"
-#include "Grid.h"
+#include <server/math/mathutils.h>
+#include <server/common/Array.h>
+#include <server/nautical/Nav.h>
+#include <server/common/BBox.h>
+#include <server/math/Grid.h>
 
 namespace sail
 {

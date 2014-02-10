@@ -27,3 +27,10 @@ add_library(nautical_DataCalib
             DataCalib.cpp)
 
 target_link_libraries(nautical_DataCalib common_Array)
+
+
+add_library(nautical_LocalRace
+            LocalRace.h
+            LocalRace.cpp)
+
+target_link_libraries(nautical_LocalRace nautical_nav common_Array plot_gnuplot math_Grid)
