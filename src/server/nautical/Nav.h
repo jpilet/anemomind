@@ -14,6 +14,11 @@
 namespace sail
 {
 
+// Relative path from sailsmart/build/src/server/examples
+// to sailsmart/datasets. This is just a temporary solution
+// until CMake can generate appropriate paths.        
+#define ALLNAVSPATH "../../../../datasets/allnavs.txt"
+        
 // Represents a single recording of data from the devices onboard.
 class Nav
 {

@@ -53,10 +53,10 @@ cxx_test(common_HierarchyTest
 add_library(common_Function
             Function.cpp
             Function.h
-            math.h
            )
 target_link_libraries(common_Function
                       common_Array
+                      common_math
                      )
 
 add_library(common_BBox
@@ -80,3 +80,7 @@ target_link_libraries(common_Uniform
                       common_LineKM
                      )
 
+
+add_library(common_math
+  math.h
+  math.cpp)

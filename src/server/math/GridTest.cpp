@@ -12,6 +12,37 @@
 
 using namespace sail;
 
+TEST(GridTest, LinearCombinationTest)
+{
+  double lower[2] = {-0.1, -0.1};
+  double upper[2] = {1.2, 1.2};
+
+  double x[2] = {0.6, 0.6};
+  double spacing[2] = {1.0, 1.0};
+
+  BBox2d box;
+  box.extend(lower);
+  box.extend(upper);
+
+  Grid2d grid(box, spacing);
+
+  const int vdim = grid.WVL;
+  int inds[vdim];
+  double weights[vdim];
+  grid.makeVertexLinearCombination(x, inds, weights);
+
+  double wsum = 0.0;
+  for (int i = 0; i < vdim; i++)
+  {
+    wsum += weights[i];
+  }
+  assert(std::abs(wsum - 1) <= 1.0e-6);
+
+  double y[2];
+  grid.evalVertexLinearCombination(inds, weights, y);
+  assert((norm2dif<double, 2>(x, y) <= 1.0e-6));
+}
+
 // Test the correctness of the imcompressability regularization with dimensions
 //   X, Y, time
 TEST(GridTest, IncompressTest3d)
