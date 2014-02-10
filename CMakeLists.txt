@@ -9,8 +9,14 @@ find_package(Armadillo REQUIRED)
 
 function(target_depends_on_armadillo target)
     target_link_libraries(${target} ${ARMADILLO_LIBRARY})
-    set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES ${ARMADILLO_INCLUDE_DIR})
 endfunction()
+
+# this include dir should be set per-target.
+# However, cmake does not propagate this property to dependents. As a hack,
+# the armadillo include dir will be accessible to all files.
+# In the future, a variation of the following line might be useful:
+# set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES ${ARMADILLO_INCLUDE_DIR})
+include_directories(${ARMADILLO_INCLUDE_DIR})
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 

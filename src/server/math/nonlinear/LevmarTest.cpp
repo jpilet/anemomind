@@ -4,13 +4,12 @@
  *  Created on: 24 janv. 2014
  *      Author: jonas
  */
-#include "gtest/gtest.h"
-#include "../common/StepMinimizer.h"
-#include "../common/common.h"
-#include "ADFunction.h"
-#include "LevMar.h"
+#include "Levmar.h"
 #include "LevmarSettings.h"
-#include "../common/math.h"
+#include <gtest/gtest.h>
+#include <server/common/math.h>
+#include <server/math/ADFunction.h>
+#include <server/math/nonlinear/StepMinimizer.h>
 
 using namespace sail;
 

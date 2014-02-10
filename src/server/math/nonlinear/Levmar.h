@@ -8,7 +8,7 @@
 #ifndef LEVMAR_H_
 #define LEVMAR_H_
 
-#include "../common/Function.h"
+#include <server/common/Function.h>
 #include <armadillo>
 
 namespace sail

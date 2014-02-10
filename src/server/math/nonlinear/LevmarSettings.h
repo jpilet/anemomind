@@ -9,7 +9,7 @@
 #define LEVMARSETTINGS_H_
 
 #include <functional>
-#include "../common/Array.h"
+#include <server/common/Array.h>
 #include <armadillo>
 
 namespace sail
