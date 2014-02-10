@@ -13,7 +13,7 @@
 #include <server/math/ADFunction.h>
 #include <server/math/armaadolc.h>
 #include <server/math/mathutils.h>
-#include <server/math/nonlinear/LevMar.h>
+#include <server/math/nonlinear/Levmar.h>
 #include <server/math/nonlinear/LevmarSettings.h>
 #include <server/math/nonlinear/StepMinimizer.h>
 #include <server/math/pareto.h>
