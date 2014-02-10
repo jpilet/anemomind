@@ -34,10 +34,14 @@ add_library(math_nonlinear_GridFitter
             GridFitter.h
            )
 target_link_libraries(math_nonlinear_GridFitter
-                      math_ADFunction
-                      math_mathutils
-                      math_armaadolc
-                      math_nonlinear_Levmar
-                      math_pareto
                       common_Array
                       common_Uniform
+                      common_string
+                      math_ADFunction
+                      math_armaadolc
+                      math_mathutils
+                      math_nonlinear_Levmar
+                      math_nonlinear_StepMinimizer
+                      math_pareto
+                     )
+target_depends_on_armadillo(math_nonlinear_GridFitter)
