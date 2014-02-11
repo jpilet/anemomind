@@ -18,12 +18,106 @@ class Wgs84 {
  public:
   constexpr static double k2_PI = 6.283185307179586476925286766559005768394338798750211641949889184615;
   constexpr static double angleUnit2Radians = (useDegrees? (k2_PI/360.0) : 1.0);
-  constexpr static double a = 6378137; // semi-major axis of ellipsoid
-  constexpr static double f = 1.0/298.257223563; // flatening of ellipsoid
-
   constexpr static double ECEFA = 6378137;
   constexpr static double ECEFE = 8.1819190842622e-2;
 
+
+  // Maps lon lat and altitude to an XYZ position in an ECEF coordinate system.
+  static void toXYZ(T lon, T lat, T altitude,
+                         T *xyz3) {
+    toXYZWithJ(lon, lat, altitude, xyz3, nullptr);
+  }
+
+  // Maps (lon, lat, altitude) to 3d position xyz3 and optionally
+  // outputs the Jacobian matrix
+  static void toXYZWithJ(T lon, T lat, T altitude,
+                         T *xyz3, T *J3x3ColMajorOut) {
+    T theta = lat*angleUnit2Radians;
+    T phi = lon*angleUnit2Radians;
+    T E2 = sqr(ECEFE);
+    T Ndenom = sqrt(1 - E2*sqr(sin(theta)));
+    T N = ECEFA/Ndenom;
+    T cosTheta = cos(theta);
+    T cosPhi = cos(phi);
+    T sinPhi = sin(phi);
+    T sinTheta = sin(theta);
+
+    T Nh = N + altitude;
+
+    xyz3[0] = Nh*cosTheta*cosPhi;
+    xyz3[1] = Nh*cosTheta*sinPhi;
+    T oneMinusE2 = (1 - sqr(ECEFE));
+    xyz3[2] = (oneMinusE2*N + altitude)*sinTheta;
+
+    if (J3x3ColMajorOut != nullptr) {
+      T dNDTheta = ECEFA*E2*sinTheta*cosTheta/(Ndenom*sqrt(Ndenom));
+
+      // dPhi
+      T dXdPhi = -Nh*cosTheta*sinPhi;
+      T dYdPhi = Nh*cosTheta*cosPhi;
+      T dZdPhi = 0.0;
+
+      // dTheta
+      T dXdTheta = dNDTheta*cosTheta*cosPhi - Nh*sinTheta*cosPhi;
+      T dYdTheta = dNDTheta*cosTheta*sinPhi - Nh*sinTheta*sinPhi;
+      T dZdTheta = oneMinusE2*dNDTheta*sinTheta + (oneMinusE2*N + altitude)*cosTheta;
+
+      // dH
+      T dXdH = cosTheta*cosPhi;
+      T dYdH = cosTheta*sinPhi;
+      T dZdH = sinTheta;
+
+      // Col 1
+      J3x3ColMajorOut[0] = dXdPhi*angleUnit2Radians;
+      J3x3ColMajorOut[1] = dYdPhi*angleUnit2Radians;
+      J3x3ColMajorOut[2] = dZdPhi*angleUnit2Radians;
+
+      // Col 2
+      J3x3ColMajorOut[3] = dXdTheta*angleUnit2Radians;
+      J3x3ColMajorOut[4] = dYdTheta*angleUnit2Radians;
+      J3x3ColMajorOut[5] = dZdTheta*angleUnit2Radians;
+
+      // Col 3
+      J3x3ColMajorOut[6] = dXdH;
+      J3x3ColMajorOut[7] = dYdH;
+      J3x3ColMajorOut[8] = dZdH;
+    }
+
+  }
+
+  static void posAndDirToXYZ(T lon, T lat, T altitude, T dir, T *xyzPosOut, T *xyzDirUnitVectorOut) {
+    T J[9];
+    toXYZWithJ(lon, lat, altitude, xyzPosOut, J);
+    T *dlon = J + 0;
+    T *dlat = J + 3;
+    T dNorth = cos(angleUnit2Radians*dir);
+    T dEast = sin(angleUnit2Radians*dir);
+    T len2 = 0.0;
+    for (int i = 0; i < 3; i++) {
+      T elem = dNorth*dlat[i] + dEast*dlon[i];
+      xyzDirUnitVectorOut[i] = elem;
+      len2 += elem*elem;
+    }
+
+
+    T oneOverL = 1.0/sqrt(len2);
+    for (int i = 0; i < 3; i++) {
+      xyzDirUnitVectorOut[i] *= oneOverL;
+    }
+  }
+
+
+  /*************************************************************
+   * Code adopted from the NmeaParser library
+   * The testcases illustrate that this code maps to the same position
+   * as the code above. In other words, the xyz3 output of this method
+   * is the same as the xyz3 output of the toXYZWithJ method.
+   *
+   * The main difference is that this code outputs scalars dlon1 and dlat1 whereas
+   * the toXYZWithJ method outputs a full Jacobian matrix.
+   */
+  constexpr static double a = 6378137; // semi-major axis of ellipsoid
+  constexpr static double f = 1.0/298.257223563; // flatening of ellipsoid
   // Maps (lon, lat, altitude) to a 3D position xyz3.
   // Optionally outputs two scalars, dlon1 and dlat1, that are the derivatives of
   // the norm of the xyz position w.r.t. lon and lat.
@@ -73,90 +167,6 @@ class Wgs84 {
       xyz3[2] = t36*sinlat;
     }
   }
-
-  static void toXYZ(T lon, T lat, T h,
-                         T *xyz3) {
-    toXYZWithJ(lon, lat, h, xyz3, nullptr);
-  }
-
-  // Maps (lon, lat, altitude) to 3d position xyz3 and optionally
-  // outputs the derivative vectors w.r.t. lon and lat.
-  static void toXYZWithJ(T lon, T lat, T h,
-                         T *xyz3, T *J3x3ColMajorOut) {
-    T theta = lat*angleUnit2Radians;
-    T phi = lon*angleUnit2Radians;
-    T E2 = sqr(ECEFE);
-    T Ndenom = sqrt(1 - E2*sqr(sin(theta)));
-    T N = ECEFA/Ndenom;
-    T cosTheta = cos(theta);
-    T cosPhi = cos(phi);
-    T sinPhi = sin(phi);
-    T sinTheta = sin(theta);
-
-    T Nh = N + h;
-
-    xyz3[0] = Nh*cosTheta*cosPhi;
-    xyz3[1] = Nh*cosTheta*sinPhi;
-    T oneMinusE2 = (1 - sqr(ECEFE));
-    xyz3[2] = (oneMinusE2*N + h)*sinTheta;
-
-    if (J3x3ColMajorOut != nullptr) {
-      T dNDTheta = ECEFA*E2*sinTheta*cosTheta/(Ndenom*sqrt(Ndenom));
-
-      // dPhi
-      T dXdPhi = -Nh*cosTheta*sinPhi;
-      T dYdPhi = Nh*cosTheta*cosPhi;
-      T dZdPhi = 0.0;
-
-      // dTheta
-      T dXdTheta = dNDTheta*cosTheta*cosPhi - Nh*sinTheta*cosPhi;
-      T dYdTheta = dNDTheta*cosTheta*sinPhi - Nh*sinTheta*sinPhi;
-      T dZdTheta = oneMinusE2*dNDTheta*sinTheta + (oneMinusE2*N + h)*cosTheta;
-
-      // dH
-      T dXdH = cosTheta*cosPhi;
-      T dYdH = cosTheta*sinPhi;
-      T dZdH = sinTheta;
-
-      // Col 1
-      J3x3ColMajorOut[0] = dXdPhi*angleUnit2Radians;
-      J3x3ColMajorOut[1] = dYdPhi*angleUnit2Radians;
-      J3x3ColMajorOut[2] = dZdPhi*angleUnit2Radians;
-
-      // Col 2
-      J3x3ColMajorOut[3] = dXdTheta*angleUnit2Radians;
-      J3x3ColMajorOut[4] = dYdTheta*angleUnit2Radians;
-      J3x3ColMajorOut[5] = dZdTheta*angleUnit2Radians;
-
-      // Col 3
-      J3x3ColMajorOut[6] = dXdH;
-      J3x3ColMajorOut[7] = dYdH;
-      J3x3ColMajorOut[8] = dZdH;
-    }
-
-  }
-
-  static void posAndDirToXYZ(T lon, T lat, T altitude, T dir, T *xyzPosOut, T *xyzDirUnitVectorOut) {
-    T J[9];
-    toXYZWithJ(lon, lat, altitude, xyzPosOut, J);
-    T *dlon = J + 0;
-    T *dlat = J + 3;
-    T dNorth = cos(angleUnit2Radians*dir);
-    T dEast = sin(angleUnit2Radians*dir);
-    T len2 = 0.0;
-    for (int i = 0; i < 3; i++) {
-      T elem = dNorth*dlat[i] + dEast*dlon[i];
-      xyzDirUnitVectorOut[i] = elem;
-      len2 += elem*elem;
-    }
-
-
-    T oneOverL = 1.0/sqrt(len2);
-    for (int i = 0; i < 3; i++) {
-      xyzDirUnitVectorOut[i] *= oneOverL;
-    }
-  }
-
 };
 
 
