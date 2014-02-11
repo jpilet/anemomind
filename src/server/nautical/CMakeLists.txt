@@ -99,8 +99,8 @@ cxx_test(nautical_LocalRaceTest
 
 cxx_test(nautical_NavTest NavTest.cpp nautical_nav gtest_main)
 
-cxx_test(nautical_wgs84Test
-            wgs84Test.cpp
+cxx_test(nautical_WGS84Test
+            WGS84Test.cpp
             nautical_Ecef
             
             gtest_main)
