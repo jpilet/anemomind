@@ -15,7 +15,7 @@ std::string objectToString(const T &x) {
   return ss.str();
 }
 
-#define EXPR_AND_VAL_AS_STRING(X) std::string(#X " = \n") + objectToString(X)
+#define EXPR_AND_VAL_AS_STRING(X) (std::string(#X " = \n") + objectToString(X))
 
 bool notIsBlank(char c);
 bool isBlank(char c);
