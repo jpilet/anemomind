@@ -89,7 +89,7 @@ TEST(wgs84Test, JacobianTest) {
         fun.eval(X, F, J);
         fun.evalNumericJacobian(X, JNum);
         for (int i = 0; i < 9; i++) {
-          double reldif = (J[i] - JNum[i])/(JNum[i] + 1.0e-5);
+          double reldif = (J[i] - JNum[i])/(JNum[i] + 1.0e-6);
           EXPECT_NEAR(reldif, 0, 1.0e-3);
         }
       }
