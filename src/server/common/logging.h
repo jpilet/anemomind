@@ -7,8 +7,16 @@
 #define _LOGGING_H
 
 #include <string>
+#include <sstream>
 
-#define EXPRESSION_AND_VALUE(X) (#X) << " = \n" << (X)
+template <typename T>
+std::string objectToString(const T &x) {
+  std::stringstream ss;
+  ss << x;
+  return ss.str();
+}
+
+#define EXPRESSION_AND_VALUE(X) std::string(#X) + " = \n" + objectToString(X)
 
 //! Defines the severity of log messages.
 enum LogLevel {

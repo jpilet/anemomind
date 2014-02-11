@@ -51,8 +51,8 @@ void sfitexFixedReg()
   arma::mat params(1, 1);
   params[0] = 30.0;
   gridFitter.solveFixedReg(&params);
-  std::cout << EXPRESSION_AND_VALUE(params) << std::endl;
-  std::cout << "Done" << std::endl;
+  LOG(INFO) << EXPRESSION_AND_VALUE(params);
+  LOG(INFO) << "Done";
 
   Arrayd Yfitted(sampleCount);
   data.eval(params.memptr(), Yfitted.getData());
@@ -116,7 +116,8 @@ void sfitexAutoRegFirstOrder()
   data.eval(params.memptr(), Yfitted.getData());
   arma::mat D(Yfitted.getData(), Yfitted.size(), 1, false, true);
   arma::mat vertices = Pinv*D;
-  std::cout << EXPRESSION_AND_VALUE(gf->getRegWeight(0)) << std::endl;
+  LOG(INFO) << EXPRESSION_AND_VALUE(gf->getRegWeight(0));
+  LOG(INFO) << "Done";
 
   GnuplotExtra plot;
   plot.set_style("lines");
@@ -125,6 +126,7 @@ void sfitexAutoRegFirstOrder()
   plot.set_style("linespoints");
   plot.plot_xy(grid.getGridVertexCoords().getStorage(), Arrayd(vertices.n_elem, vertices.memptr()), "Fitted grid");
   plot.show();
+
 }
 
 
