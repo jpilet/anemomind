@@ -9,13 +9,13 @@
 namespace sail {
 
 namespace {
-  Array<HNode> makeBinaryTestNodes() {
-    Array<HNode> nodes(3);
-    nodes[0] = HNode(0, 2, "Zero");
-    nodes[1] = HNode(1, 2, "One");
-    nodes[2] = HNode::makeRoot(2, "BinaryDigits");
-    return nodes;
-  }
+Array<HNode> makeBinaryTestNodes() {
+  Array<HNode> nodes(3);
+  nodes[0] = HNode(0, 2, "Zero");
+  nodes[1] = HNode(1, 2, "One");
+  nodes[2] = HNode::makeRoot(2, "BinaryDigits");
+  return nodes;
+}
 }
 
 
@@ -69,15 +69,15 @@ TEST(HierarchyTest, ParseTestBinary) {
 }
 
 namespace {
-  Array<HNode> reorder3(Array<HNode> nodes) {
-    const int count = 3;
-    int newPos[count] = {2, 0, 1};
-    Array<HNode> dst(count);
-    for (int i = 0; i < count; i++) {
-      dst[newPos[i]] = nodes[i];
-    }
-    return dst;
+Array<HNode> reorder3(Array<HNode> nodes) {
+  const int count = 3;
+  int newPos[count] = {2, 0, 1};
+  Array<HNode> dst(count);
+  for (int i = 0; i < count; i++) {
+    dst[newPos[i]] = nodes[i];
   }
+  return dst;
+}
 }
 
 TEST(HierarchyTest, ParseTestBinaryReordered) {
@@ -108,19 +108,19 @@ Hierarchy makeMiniSailGrammar() {
   Array<HNode> nodes(9);
 
   // TERMINAL SYMBOLS
-    // Port tack
-      nodes[0] = HNode(0, 6, "Port tack / Close hauled");
-      nodes[1] = HNode(1, 6, "Port tack / Beam reach");
-      nodes[2] = HNode(2, 6, "Port tack / Broad reach");
-    // Starboard tack
-      nodes[3] = HNode(3, 7, "Starboard tack / Broad reach");
-      nodes[4] = HNode(4, 7, "Starboard tack / Beam reach");
-      nodes[5] = HNode(5, 7, "Starboard tack / Close hauled");
+  // Port tack
+  nodes[0] = HNode(0, 6, "Port tack / Close hauled");
+  nodes[1] = HNode(1, 6, "Port tack / Beam reach");
+  nodes[2] = HNode(2, 6, "Port tack / Broad reach");
+  // Starboard tack
+  nodes[3] = HNode(3, 7, "Starboard tack / Broad reach");
+  nodes[4] = HNode(4, 7, "Starboard tack / Beam reach");
+  nodes[5] = HNode(5, 7, "Starboard tack / Close hauled");
 
   // GROUPING SYMBOLS
-      nodes[6] = HNode(6, 8, "Port tack");
-      nodes[7] = HNode(7, 8, "Starboard tack");
-      nodes[8] = HNode::makeRoot(8, "Sailing");
+  nodes[6] = HNode(6, 8, "Port tack");
+  nodes[7] = HNode(7, 8, "Starboard tack");
+  nodes[8] = HNode::makeRoot(8, "Sailing");
   return Hierarchy(nodes);
 }
 

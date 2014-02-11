@@ -10,43 +10,45 @@
 using namespace sail;
 
 namespace {
-  // Keeps track of how many instances are allocated in order
-  // to detect memory leaks without valgrind.
-  class MemoryTestObj {
-    public:
-      static int InstanceCounter;
+// Keeps track of how many instances are allocated in order
+// to detect memory leaks without valgrind.
+class MemoryTestObj {
+ public:
+  static int InstanceCounter;
 
-      MemoryTestObj() {
-        newInstance();
-      }
+  MemoryTestObj() {
+    newInstance();
+  }
 
-      // Explicit copy constructor required here to increase the counter
-      MemoryTestObj(const MemoryTestObj &src) {
-        newInstance();
-      }
+  // Explicit copy constructor required here to increase the counter
+  MemoryTestObj(const MemoryTestObj &src) {
+    newInstance();
+  }
 
-      // Overriding assignment operator probably not required, since no new object is created.
+  // Overriding assignment operator probably not required, since no new object is created.
 
-      ~MemoryTestObj() {
-        if (!(_dummyInt == 119 || _dummyInt == 120)) {
-          throw std::runtime_error("You are probably trying to deallocate memory that was never allocated and initialized");
-        }
-        _dummyInt = 0;
-        InstanceCounter--;
-      }
+  ~MemoryTestObj() {
+    if (!(_dummyInt == 119 || _dummyInt == 120)) {
+      throw std::runtime_error("You are probably trying to deallocate memory that was never allocated and initialized");
+    }
+    _dummyInt = 0;
+    InstanceCounter--;
+  }
 
-      int dummyInt() {return _dummyInt;}
-    private:
-      int _dummyInt;
-      void newInstance() {
-        _dummyInt = 119 + (InstanceCounter % 2); // Make it a bit non-trivial
-        InstanceCounter++;
-      }
-  };
+  int dummyInt() {
+    return _dummyInt;
+  }
+ private:
+  int _dummyInt;
+  void newInstance() {
+    _dummyInt = 119 + (InstanceCounter % 2); // Make it a bit non-trivial
+    InstanceCounter++;
+  }
+};
 
-  int MemoryTestObj::InstanceCounter = 0;
+int MemoryTestObj::InstanceCounter = 0;
 
-  typedef Array<MemoryTestObj> TestArray;
+typedef Array<MemoryTestObj> TestArray;
 }
 
 
@@ -148,13 +150,13 @@ TEST(ArrayTest, SliceSwapTest) {
 }
 
 namespace {
-  int countElements(TestArray arr) {
-    if (arr.empty()) {
-      return 0;
-    } else {
-      return 1 + countElements(arr.sliceFrom(1));
-    }
+int countElements(TestArray arr) {
+  if (arr.empty()) {
+    return 0;
+  } else {
+    return 1 + countElements(arr.sliceFrom(1));
   }
+}
 }
 
 TEST(ArrayTest, ElemCountTest) {

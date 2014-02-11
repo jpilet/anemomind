@@ -14,8 +14,7 @@
 #include <vector>
 #include <adolc/adouble.h>
 
-namespace sail
-{
+namespace sail {
 
 
 /*
@@ -31,35 +30,42 @@ namespace sail
  * These parameters are read, starting from _paramOffset in the vector being optimized.
  */
 class LocalRace;
-class BoatData
-{
-public:
-	const static int ParamCount = 4;
+class BoatData {
+ public:
+  const static int ParamCount = 4;
 
-	BoatData(LocalRace *race, Array<Nav> navs);
-	int getParamCount() const {return ParamCount;}
+  BoatData(LocalRace *race, Array<Nav> navs);
+  int getParamCount() const {
+    return ParamCount;
+  }
 
-	int getDataCount() const {return _navs.size();}
+  int getDataCount() const {
+    return _navs.size();
+  }
 
-	// These are the vectors in the local coordinate frame
-	int getWindResidualCount() const {return 2*getDataCount();}
-	int getCurrentResidualCount() const {return 2*getDataCount();}
+  // These are the vectors in the local coordinate frame
+  int getWindResidualCount() const {
+    return 2*getDataCount();
+  }
+  int getCurrentResidualCount() const {
+    return 2*getDataCount();
+  }
 
-	// Output 'getWindResidualCount()' residuals to Fout, starting at index 0,
-	// computed from the vector Xin
-	void outputWindResiduals(adouble *Xin, adouble *Fout);
+  // Output 'getWindResidualCount()' residuals to Fout, starting at index 0,
+  // computed from the vector Xin
+  void outputWindResiduals(adouble *Xin, adouble *Fout);
 
-	// Output 'getCurrentResidualCount()' residuals to Fout, starting at index 0,
-	// computed from the vector Xin
-	void outputCurrentResiduals(adouble *Xin, adouble *Fout);
+  // Output 'getCurrentResidualCount()' residuals to Fout, starting at index 0,
+  // computed from the vector Xin
+  void outputCurrentResiduals(adouble *Xin, adouble *Fout);
 
 
 
-	void setParamOffset(int offset);
-private:
-	LocalRace *_race;
-	int _paramOffset;
-	Array<Nav> _navs;
+  void setParamOffset(int offset);
+ private:
+  LocalRace *_race;
+  int _paramOffset;
+  Array<Nav> _navs;
 };
 
 /*
@@ -68,17 +74,16 @@ private:
  *  collected from the sail boats.
  *
  */
-class DataCalib
-{
-public:
-	// http://en.wikipedia.org/wiki/Magnetic_declination
-	DataCalib();
+class DataCalib {
+ public:
+  // http://en.wikipedia.org/wiki/Magnetic_declination
+  DataCalib();
 
-	void addBoatData(std::shared_ptr<BoatData> boatData);
-	virtual ~DataCalib();
-private:
-	int _paramCount;
-	std::vector<std::shared_ptr<BoatData> > _boats;
+  void addBoatData(std::shared_ptr<BoatData> boatData);
+  virtual ~DataCalib();
+ private:
+  int _paramCount;
+  std::vector<std::shared_ptr<BoatData> > _boats;
 };
 
 } /* namespace sail */

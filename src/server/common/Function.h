@@ -8,27 +8,25 @@
 #ifndef FUNCTION_H_
 #define FUNCTION_H_
 
-namespace sail
-{
+namespace sail {
 
-class Function
-{
-public:
-	Function() {}
+class Function {
+ public:
+  Function() {}
 
-	// TO BE OVERRIDDEN:
-	virtual int inDims() = 0;
-	virtual int outDims() = 0;
-	virtual void eval(double *Xin, double *Fout, double *Jout = nullptr) = 0;
+  // TO BE OVERRIDDEN:
+  virtual int inDims() = 0;
+  virtual int outDims() = 0;
+  virtual void eval(double *Xin, double *Fout, double *Jout = nullptr) = 0;
 
-	// This function outputs the numeric Jacobian to JNumOut through
-	// numerical differentiation of 'eval'. The output matrix is stored
-	// in column major format, that is an element at (i, j) has index
-	// i + j*outDims().
-	void evalNumericJacobian(double *Xin, double *JNumOut, double h = 1.0e-6);
+  // This function outputs the numeric Jacobian to JNumOut through
+  // numerical differentiation of 'eval'. The output matrix is stored
+  // in column major format, that is an element at (i, j) has index
+  // i + j*outDims().
+  void evalNumericJacobian(double *Xin, double *JNumOut, double h = 1.0e-6);
 
-	double calcSquaredNorm(double *X, double *Fscratch);
-	virtual ~Function() {}
+  double calcSquaredNorm(double *X, double *Fscratch);
+  virtual ~Function() {}
 };
 
 } /* namespace sail */

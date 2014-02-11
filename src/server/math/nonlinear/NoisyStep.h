@@ -11,15 +11,14 @@
 
 namespace sail {
 
-class NoisyStep : public AutoDiffFunction
-{
-public:
+class NoisyStep : public AutoDiffFunction {
+ public:
   NoisyStep(Arrayd X, Arrayd Y);
 
   int inDims();
   int outDims();
   void evalAD(adouble *Xin, adouble *Fout);
-private:
+ private:
   Arrayd _X, _Y;
 };
 

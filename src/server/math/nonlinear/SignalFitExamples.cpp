@@ -12,8 +12,7 @@ namespace sail {
 
 
 
-void sfitexFixedReg()
-{
+void sfitexFixedReg() {
   BBox1d bbox(Span(-1.0, 1.0));
   double spacing[1] = {0.03};
   Grid1d grid(bbox, spacing);
@@ -26,7 +25,8 @@ void sfitexFixedReg()
 
   arma::sp_mat P = grid.makeP(MDArray2d(X));
 
-  { // Validate P
+  {
+    // Validate P
     MDArray2d V = grid.getGridVertexCoords();
     arma::mat Vmat(V.getData(), V.rows(), V.cols(), false, true);
     arma::mat Xmat(X.getData(), X.size(), 1, false, true);
@@ -70,8 +70,7 @@ void sfitexFixedReg()
 
 
 
-void sfitexAutoRegFirstOrder()
-{
+void sfitexAutoRegFirstOrder() {
   BBox1d bbox(Span(-1.0, 1.0));
   double spacing[1] = {0.03};
   Grid1d grid(bbox, spacing);
@@ -83,7 +82,8 @@ void sfitexAutoRegFirstOrder()
   makeNoisySignalData(sampleCount, X, Ygt, Ynoisy);
   arma::sp_mat P = grid.makeP(MDArray2d(X));
 
-  { // Validate P
+  {
+    // Validate P
     MDArray2d V = grid.getGridVertexCoords();
     arma::mat Vmat(V.getData(), V.rows(), V.cols(), false, true);
     arma::mat Xmat(X.getData(), X.size(), 1, false, true);
@@ -131,8 +131,7 @@ void sfitexAutoRegFirstOrder()
 }
 
 
-void sfitexAutoReg1st2ndOrder()
-{
+void sfitexAutoReg1st2ndOrder() {
   BBox1d bbox(Span(-1.0, 1.0));
   double spacing[1] = {0.03};
   Grid1d grid(bbox, spacing);
@@ -177,7 +176,7 @@ void sfitexAutoReg1st2ndOrder()
   plot.plot_xy(X, Yfitted, "Data vector with estimated calibration");
   plot.set_style("linespoints");
   plot.plot_xy(grid.getGridVertexCoords().getStorage(),
-                     Arrayd(vertices.n_elem, vertices.memptr()), "Fitted model grid");
+               Arrayd(vertices.n_elem, vertices.memptr()), "Fitted model grid");
   plot.show();
 }
 

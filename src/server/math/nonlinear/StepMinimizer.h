@@ -15,44 +15,57 @@
 
 #include <functional>
 
-namespace sail
-{
+namespace sail {
 
-class StepMinimizerState
-{
-public:
-	StepMinimizerState(double x, double step, double value) : _x(x), _step(step), _value(value) {}
+class StepMinimizerState {
+ public:
+  StepMinimizerState(double x, double step, double value) : _x(x), _step(step), _value(value) {}
 
-	double getX() const {return _x;}
-	double getStep() const {return _step;}
-	double getValue() const {return _value;}
+  double getX() const {
+    return _x;
+  }
+  double getStep() const {
+    return _step;
+  }
+  double getValue() const {
+    return _value;
+  }
 
-	void reduceStep() {_step *= 0.5;}
-	void increaseStep() {_step *= 2.0;}
+  void reduceStep() {
+    _step *= 0.5;
+  }
+  void increaseStep() {
+    _step *= 2.0;
+  }
 
-	double getLeft() const {return _x - _step;}
-	double getRight() const {return _x + _step;}
+  double getLeft() const {
+    return _x - _step;
+  }
+  double getRight() const {
+    return _x + _step;
+  }
 
-	StepMinimizerState make(double x, double value) const {return StepMinimizerState(x, _step, value);}
-private:
-	double _x, _step, _value;
+  StepMinimizerState make(double x, double value) const {
+    return StepMinimizerState(x, _step, value);
+  }
+ private:
+  double _x, _step, _value;
 };
 
-class StepMinimizer
-{
-public:
-	StepMinimizer();
+class StepMinimizer {
+ public:
+  StepMinimizer();
 
-	StepMinimizerState takeStep(StepMinimizerState state, std::function<double(double)> fun);
-	StepMinimizerState minimize(StepMinimizerState state, std::function<double(double)> fun);
+  StepMinimizerState takeStep(StepMinimizerState state, std::function<double(double)> fun);
+  StepMinimizerState minimize(StepMinimizerState state, std::function<double(double)> fun);
 
-	// The acceptor function lets us incorporate additional criteria in order for a solution to be accepted.
-	void setAcceptor(std::function<bool(double, double)> acceptor);
-private:
-	double _leftLimit, _rightLimit;
-	int _maxIter;
+  // The acceptor function lets us incorporate additional criteria in order for a solution to be accepted.
+  void setAcceptor(std::function<bool(double, double)> acceptor);
+ private:
+  double _leftLimit, _rightLimit;
+  int _maxIter;
 
-	std::function<bool(double, double)> _acceptor;
+  std::function<bool(double, double)> _acceptor;
 };
 
 

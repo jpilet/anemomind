@@ -94,12 +94,12 @@ void DefaultLogHandler(LogLevel level, const char* filename, int line,
   int length = strlen(filename) + message.size() + 256;
   char* str = new char[length];
   snprintf(str, length, "[%s %s:%d] %s\n",
-          level_names[level], filename, line, message.c_str());
+           level_names[level], filename, line, message.c_str());
   str[length - 1] = 0;
-  
+
   OutputDebugString(str);
   if ( (level == LOGLEVEL_ERROR) || (level == LOGLEVEL_FATAL) )
-        MessageBox(NULL, str, level_names[level], MB_OK);
+    MessageBox(NULL, str, level_names[level], MB_OK);
   delete[] str;
 }
 #else
@@ -115,7 +115,7 @@ void DefaultLogHandler(LogLevel level, const char* filename, int line,
 #endif
 
 void (*LogHandler)(LogLevel level, const char* filename, int line,
-                       const std::string& message) = DefaultLogHandler;
+                   const std::string& message) = DefaultLogHandler;
 
 
 
@@ -133,7 +133,7 @@ void LogMessage::Finish() {
 }
 
 LogMessageException::LogMessageException(LogLevel level, const char* filename, int line, const std::string &message) :
-    level_(level), filename_(filename), line_(line), message_(message) {}
+  level_(level), filename_(filename), line_(line), message_(message) {}
 
 void LogFinisher::operator=(LogMessage& other) {
   other.Finish();
@@ -141,6 +141,6 @@ void LogFinisher::operator=(LogMessage& other) {
 }  // namespace internal
 
 void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int line,
-                   const std::string& message)) {
-                       internal::LogHandler = log_handler;
+                                       const std::string& message)) {
+  internal::LogHandler = log_handler;
 }

@@ -10,22 +10,20 @@
 
 #include <iosfwd>
 
-namespace sail
-{
+namespace sail {
 
 // function on the form f(x) = _k*x + _m
-class LineKM
-{
-public:
-	LineKM(double x0, double x1, double y0, double y1);
-	LineKM();
-	double operator() (double x) const;
-	double inv(double x) const;
-	double getK() const;
-	double getM() const;
-	virtual ~LineKM();
-private:
-	double _k, _m;
+class LineKM {
+ public:
+  LineKM(double x0, double x1, double y0, double y1);
+  LineKM();
+  double operator() (double x) const;
+  double inv(double x) const;
+  double getK() const;
+  double getM() const;
+  virtual ~LineKM();
+ private:
+  double _k, _m;
 };
 
 std::ostream &operator<<(std::ostream &s, LineKM line);

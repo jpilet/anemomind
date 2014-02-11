@@ -9,8 +9,7 @@
 #include "ArrayIO.h"
 #include  <sstream>
 
-namespace sail
-{
+namespace sail {
 
 HNode::HNode(int index, int parent, std::string label) : _index(index), _parent(parent), _label(label) {
 }
@@ -21,127 +20,131 @@ HNode HNode::makeRoot(int index, std::string label) {
 
 
 namespace {
-  // Checks that
-  // if a node has a parent, that parent is defined.
-  void checkHNodeValidParents(Array<HNode> nodes) {
-    int count = nodes.size();
-    for (int i = 0; i < count; i++) {
-      HNode &node = nodes[i];
-      if (node.hasParent()) {
-        assert(nodes[node.parent()].defined());
-      }
+// Checks that
+// if a node has a parent, that parent is defined.
+void checkHNodeValidParents(Array<HNode> nodes) {
+  int count = nodes.size();
+  for (int i = 0; i < count; i++) {
+    HNode &node = nodes[i];
+    if (node.hasParent()) {
+      assert(nodes[node.parent()].defined());
     }
   }
+}
 
-  // Returns a new array where an HNode with index 'i' is located at position 'i'.
-  // Also makes sure that two nodes don't have the same index.
-  Array<HNode> arrangeHNodes(Array<HNode> nodes) {
-    int count = nodes.size();
-    Array<HNode> dst(count);
-    for (int i = 0; i < count; i++) {
-      HNode &node = nodes[i];
-      assert(dst[node.index()].undefined());
-      dst[node.index()] = node;
-    }
-    return dst;
+// Returns a new array where an HNode with index 'i' is located at position 'i'.
+// Also makes sure that two nodes don't have the same index.
+Array<HNode> arrangeHNodes(Array<HNode> nodes) {
+  int count = nodes.size();
+  Array<HNode> dst(count);
+  for (int i = 0; i < count; i++) {
+    HNode &node = nodes[i];
+    assert(dst[node.index()].undefined());
+    dst[node.index()] = node;
   }
+  return dst;
+}
 
-  // Returns true iff all nodes that are defined have a parent
-  bool haveParents(Array<HNode> nodes) {
-    int count = nodes.size();
-    for (int i = 0; i < count; i++) {
-      HNode &node = nodes[i];
-      if (node.defined() && !node.hasParent()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // Returns the root node of the hierarchy. There can only be one.
-  int getHRootNode(Array<HNode> nodes) {
-    int count = nodes.size();
-    for (int i = 0; i < count; i++) {
-      HNode &node = nodes[i];
-      if (node.defined() && node.isRoot()) {
-        assert(haveParents(nodes.sliceFrom(i+1)));
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  // Builds a table that for every node lists the nodes for whom it is the parent.
-  Array<std::vector<int> > listChildren(Array<HNode> nodes) {
-    int count = nodes.size();
-    Array<std::vector<int> > children(count);
-    for (int i = 0; i < count; i++) {
-      HNode &node = nodes[i];
-      assert(node.index() == i);
-      if (node.defined() && node.hasParent()) {
-        children[node.parent()].push_back(node.index());
-      }
-    }
-    return children;
-  }
-
-  // Sub-routine to calcLevelPerNode.
-  void traverseChildrenAndOutputLevel(int level, int currentNode, Array<std::vector<int> > childrenPerNode, Arrayi *levelPerNodeInOut) {
-    assert(levelPerNodeInOut != nullptr);
-    assert((*levelPerNodeInOut)[currentNode] == -1);
-    (*levelPerNodeInOut)[currentNode] = level;
-
-    int nextLevel = level + 1;
-    std::vector<int> &children = childrenPerNode[currentNode];
-    int childCount = children.size();
-    for (int i = 0; i < childCount; i++) {
-      traverseChildrenAndOutputLevel(nextLevel, children[i], childrenPerNode, levelPerNodeInOut);
+// Returns true iff all nodes that are defined have a parent
+bool haveParents(Array<HNode> nodes) {
+  int count = nodes.size();
+  for (int i = 0; i < count; i++) {
+    HNode &node = nodes[i];
+    if (node.defined() && !node.hasParent()) {
+      return false;
     }
   }
+  return true;
+}
 
-  // Computes the level for each node in a routed tree.
-  Arrayi calcLevelPerNode(int rootNode, Array<std::vector<int> > children) {
-    int count = children.size();
-    Arrayi levelPerNode(count);
-    levelPerNode.setTo(-1);
-    traverseChildrenAndOutputLevel(0, rootNode, children, &levelPerNode);
-    return levelPerNode;
-  }
-
-  Arrayb calcTerminals(Array<std::vector<int> > children) {
-    return children.map<bool>([&] (const std::vector<int> &c) {return c.empty();});
-  }
-
-  int getMaxLevel(Arrayi levels) {
-    int maxl = 0;
-    int count = levels.size();
-    for (int i = 0; i < count; i++) {
-      maxl = std::max(maxl, levels[i]);
+// Returns the root node of the hierarchy. There can only be one.
+int getHRootNode(Array<HNode> nodes) {
+  int count = nodes.size();
+  for (int i = 0; i < count; i++) {
+    HNode &node = nodes[i];
+    if (node.defined() && node.isRoot()) {
+      assert(haveParents(nodes.sliceFrom(i+1)));
+      return i;
     }
-    return maxl;
   }
+  return -1;
+}
 
-  MDArray2i makeAncestors(Array<HNode> nodes, Arrayi levelPerNode) {
-    int maxLevel = getMaxLevel(levelPerNode);
-    int count = nodes.size();
-    assert(count == levelPerNode.size());
-    MDArray2i anc(count, maxLevel+1);
-    anc.setAll(-1);
-    for (int i = 0; i < count; i++) {
-      int level = levelPerNode[i];
-      int p = -1;
-      for (int lastNode = i; nodes[lastNode].hasParent(); lastNode = p) {
-        p = nodes[lastNode].parent();
-        level--;
-        anc(i, level) = p;
-      }
+// Builds a table that for every node lists the nodes for whom it is the parent.
+Array<std::vector<int> > listChildren(Array<HNode> nodes) {
+  int count = nodes.size();
+  Array<std::vector<int> > children(count);
+  for (int i = 0; i < count; i++) {
+    HNode &node = nodes[i];
+    assert(node.index() == i);
+    if (node.defined() && node.hasParent()) {
+      children[node.parent()].push_back(node.index());
     }
-    return anc;
   }
+  return children;
+}
 
-  Array<std::string> listLabels(Array<HNode> nodes) {
-    return nodes.map<std::string>([&] (const HNode &node) {return node.label();});
+// Sub-routine to calcLevelPerNode.
+void traverseChildrenAndOutputLevel(int level, int currentNode, Array<std::vector<int> > childrenPerNode, Arrayi *levelPerNodeInOut) {
+  assert(levelPerNodeInOut != nullptr);
+  assert((*levelPerNodeInOut)[currentNode] == -1);
+  (*levelPerNodeInOut)[currentNode] = level;
+
+  int nextLevel = level + 1;
+  std::vector<int> &children = childrenPerNode[currentNode];
+  int childCount = children.size();
+  for (int i = 0; i < childCount; i++) {
+    traverseChildrenAndOutputLevel(nextLevel, children[i], childrenPerNode, levelPerNodeInOut);
   }
+}
+
+// Computes the level for each node in a routed tree.
+Arrayi calcLevelPerNode(int rootNode, Array<std::vector<int> > children) {
+  int count = children.size();
+  Arrayi levelPerNode(count);
+  levelPerNode.setTo(-1);
+  traverseChildrenAndOutputLevel(0, rootNode, children, &levelPerNode);
+  return levelPerNode;
+}
+
+Arrayb calcTerminals(Array<std::vector<int> > children) {
+  return children.map<bool>([&] (const std::vector<int> &c) {
+    return c.empty();
+  });
+}
+
+int getMaxLevel(Arrayi levels) {
+  int maxl = 0;
+  int count = levels.size();
+  for (int i = 0; i < count; i++) {
+    maxl = std::max(maxl, levels[i]);
+  }
+  return maxl;
+}
+
+MDArray2i makeAncestors(Array<HNode> nodes, Arrayi levelPerNode) {
+  int maxLevel = getMaxLevel(levelPerNode);
+  int count = nodes.size();
+  assert(count == levelPerNode.size());
+  MDArray2i anc(count, maxLevel+1);
+  anc.setAll(-1);
+  for (int i = 0; i < count; i++) {
+    int level = levelPerNode[i];
+    int p = -1;
+    for (int lastNode = i; nodes[lastNode].hasParent(); lastNode = p) {
+      p = nodes[lastNode].parent();
+      level--;
+      anc(i, level) = p;
+    }
+  }
+  return anc;
+}
+
+Array<std::string> listLabels(Array<HNode> nodes) {
+  return nodes.map<std::string>([&] (const HNode &node) {
+    return node.label();
+  });
+}
 }
 
 std::shared_ptr<HTree> HTree::lastChild() {
@@ -199,22 +202,22 @@ bool HInner::equals(std::shared_ptr<HTree> other) const {
 
 
 namespace {
-  void insertIndent(std::ostream *out, int count, int size = 2) {
-    int len = count*size;
-    for (int i = 0; i < len; i++) {
-      *out << " ";
-    }
+void insertIndent(std::ostream *out, int count, int size = 2) {
+  int len = count*size;
+  for (int i = 0; i < len; i++) {
+    *out << " ";
   }
+}
 
-  std::string getLabel(int index, Array<std::string> labels) {
-    if (labels.empty()) {
-      std::stringstream ss;
-      ss << index;
-      return ss.str();
-    } else {
-      return labels[index];
-    }
+std::string getLabel(int index, Array<std::string> labels) {
+  if (labels.empty()) {
+    std::stringstream ss;
+    ss << index;
+    return ss.str();
+  } else {
+    return labels[index];
   }
+}
 }
 
 void HInner::disp(std::ostream *out, Array<std::string> labels, int indent) const {

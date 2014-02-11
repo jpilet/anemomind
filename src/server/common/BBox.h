@@ -11,49 +11,43 @@
 #include "Span.h"
 #include  <iosfwd>
 
-namespace sail
-{
+namespace sail {
 
 // A bounding box of N dimensions.
 template <int N>
-class BBox
-{
-public:
-	typedef BBox<N> ThisType;
+class BBox {
+ public:
+  typedef BBox<N> ThisType;
 
-	BBox() {}
-	BBox(double *vecN)
-	{
-		extend(vecN);
-	}
+  BBox() {}
+  BBox(double *vecN) {
+    extend(vecN);
+  }
 
-	BBox(Span x)
-	{
-		static_assert(N == 1, "This constructor is only applicable to 1-D bounding boxes.");
-		_span[0] = x;
-	}
+  BBox(Span x) {
+    static_assert(N == 1, "This constructor is only applicable to 1-D bounding boxes.");
+    _span[0] = x;
+  }
 
-	void extend(double *vecN)
-	{
-		for (int i = 0; i < N; i++)
-		{
-			_span[i].extend(vecN[i]);
-		}
-	}
+  void extend(double *vecN) {
+    for (int i = 0; i < N; i++) {
+      _span[i].extend(vecN[i]);
+    }
+  }
 
-	void extend(const ThisType &other)
-	{
-		for (int i = 0; i < N; i++)
-		{
-			_span[i].extend(other._span[i]);
-		}
-	}
+  void extend(const ThisType &other) {
+    for (int i = 0; i < N; i++) {
+      _span[i].extend(other._span[i]);
+    }
+  }
 
-	Span &getSpan(int index) {return _span[index];}
+  Span &getSpan(int index) {
+    return _span[index];
+  }
 
-	virtual ~BBox() {}
-private:
-	Span _span[N];
+  virtual ~BBox() {}
+ private:
+  Span _span[N];
 };
 
 typedef BBox<1> BBox1d;

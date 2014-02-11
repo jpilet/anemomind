@@ -5,8 +5,7 @@
 #include <sstream>
 
 
-namespace sail
-{
+namespace sail {
 
 template <typename T>
 std::string objectToString(const T &x) {
@@ -31,7 +30,7 @@ std::string formatInt(std::string fstr, int value);
 std::string stringFormat(const std::string fmt, ...);
 void toLowerInPlace(std::string &data);
 void splitFilenamePrefixSuffix(std::string filename,
-		std::string &prefix, std::string &suffix);
+                               std::string &prefix, std::string &suffix);
 
 } /* namespace sail */
 #endif /* TEXT_H_ */
