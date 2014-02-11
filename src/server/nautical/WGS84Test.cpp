@@ -56,7 +56,8 @@ TEST(wgs84Test, CompareToECEFTest) {
         Wgs84<double, false>::toXYZ(lon, lat, altitudeMetres, xyz2);
         EXPECT_NEAR(ex, xyz2[0], 1.0e-5);
         EXPECT_NEAR(ey, xyz2[1], 1.0e-5);
-        EXPECT_NEAR(ez, xyz2[2], 1.0e-5);      }
+        EXPECT_NEAR(ez, xyz2[2], 1.0e-5);
+      }
     }
   }
 }
@@ -98,8 +99,13 @@ TEST(wgs84Test, JacobianRadDegTest) {
           fun->eval(X, F, J);
           fun->evalNumericJacobian(X, JNum);
           for (int i = 0; i < 9; i++) {
+            const bool verbose = false;
+            if (verbose) {
+              std::cout << "\n\n" << EAVAS(i) << std::endl;
+              std::cout << EAVAS(JNum[i]) << "\n" << EAVAS(J[i]) << std::endl;
+            }
             double reldif = (J[i] - JNum[i])/(std::abs(0.5*(JNum[i] + J[i])) + 1.0e-6);
-            EXPECT_NEAR(reldif, 0, 2.0e-3);
+            EXPECT_NEAR(reldif, 0, 2.0e-3); // <-- Be quite tolerant here because numeric differentiation is dirty.
           }
         }
       }
