@@ -46,7 +46,7 @@ class Wgs84 {
 
     xyz3[0] = Nh*cosTheta*cosPhi;
     xyz3[1] = Nh*cosTheta*sinPhi;
-    T oneMinusE2 = (1 - sqr(ECEFE));
+    T oneMinusE2 = (1 - E2);
     xyz3[2] = (oneMinusE2*N + altitude)*sinTheta;
 
     if (J3x3ColMajorOut != nullptr) {
