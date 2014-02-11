@@ -1,3 +1,10 @@
+add_library(nautical_Ecef
+            Ecef.h
+            Ecef.cpp)
+
+target_link_libraries(nautical_Ecef common_math)
+
+
 add_library(nautical_nav
             Nav.h
             Nav.cpp
@@ -14,11 +21,6 @@ target_link_libraries(nautical_nav
 
 
           
-add_library(nautical_ecef
-            Ecef.h
-            Ecef.cpp)
-
-target_link_libraries(nautical_ecef common_math)
 
 
 
@@ -32,5 +34,41 @@ target_link_libraries(nautical_DataCalib common_Array)
 add_library(nautical_LocalRace
             LocalRace.h
             LocalRace.cpp)
+            
+            
+            
+#################################################################
+### PlotTrajectoryExamples
+#################################################################
+add_library(examples_PlotTrajectoryExamples
+  PlotTrajectoryExamples.h
+  PlotTrajectoryExamples.cpp)  
+target_link_libraries(examples_PlotTrajectoryExamples
+  plot_gnuplot
+  common_Duration
+  nautical_LocalRace)  
 
-target_link_libraries(nautical_LocalRace nautical_nav common_Array plot_gnuplot math_Grid)
+add_executable(examples_PlotTrajectoryExampleLastRace
+  PlotTrajectoryExampleLastRace.cpp)
+target_link_libraries(examples_PlotTrajectoryExampleLastRace
+  examples_PlotTrajectoryExamples)  
+  
+add_executable(examples_PlotTrajectoryExampleLocalRace
+  PlotTrajectoryExampleLocalRace.cpp)
+target_link_libraries(examples_PlotTrajectoryExampleLocalRace
+  examples_PlotTrajectoryExamples)             
+
+target_link_libraries(nautical_LocalRace
+  nautical_nav
+  common_Array
+  plot_gnuplot
+  math_Grid)
+
+cxx_test(nautical_LocalRaceTest
+            LocalRaceTest.cpp
+            common_Duration
+            nautical_LocalRace
+            gtest_main)
+
+
+cxx_test(nautical_NavTest NavTest.cpp nautical_nav gtest_main)

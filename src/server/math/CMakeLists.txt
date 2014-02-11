@@ -34,6 +34,12 @@ target_link_libraries(math_pareto
                       common_Array
                      )
 
+cxx_test(math_paretoTest
+         paretoTest.cpp
+         math_pareto
+         gtest_main
+        )                   
+
 add_library(math_Grid
             Grid.cpp
             Grid.h

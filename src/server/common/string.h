@@ -2,10 +2,20 @@
 #define TEXT_H_
 
 #include <string>
+#include <sstream>
 
 
 namespace sail
 {
+
+template <typename T>
+std::string objectToString(const T &x) {
+  std::stringstream ss;
+  ss << x;
+  return ss.str();
+}
+
+#define EXPR_AND_VAL_AS_STRING(X) (std::string(#X " = \n") + objectToString(X))
 
 bool notIsBlank(char c);
 bool isBlank(char c);

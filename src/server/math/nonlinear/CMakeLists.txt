@@ -45,3 +45,43 @@ target_link_libraries(math_nonlinear_GridFitter
                       math_pareto
                      )
 target_depends_on_armadillo(math_nonlinear_GridFitter)
+
+
+
+add_library(math_nonlinear_NoisyStep
+  NoisyStep.cpp
+  NoisyStep.h)
+target_link_libraries(math_nonlinear_NoisyStep
+  math_ADFunction
+  common_Uniform)
+  
+
+
+#################################################################
+### SignalFitExamples
+#################################################################
+add_library(examples_SignalFitExamples
+  SignalFitExamples.h
+  SignalFitExamples.cpp)
+target_link_libraries(examples_SignalFitExamples
+  math_nonlinear_NoisyStep
+  plot_gnuplot
+  math_Grid
+  math_nonlinear_GridFitter
+  common_logging
+  common_Uniform)
+  
+add_executable(examples_SignalFitExampleFixedReg
+  SignalFitExampleFixedReg.cpp)
+target_link_libraries(examples_SignalFitExampleFixedReg
+  examples_SignalFitExamples)
+  
+add_executable(examples_SignalFitExampleAutoRegFirstOrder
+  SignalFitExampleAutoRegFirstOrder.cpp)
+target_link_libraries(examples_SignalFitExampleAutoRegFirstOrder
+  examples_SignalFitExamples)    
+  
+add_executable(examples_SignalFitExampleAutoReg1st2ndOrder
+  SignalFitExampleAutoReg1st2ndOrder.cpp)
+target_link_libraries(examples_SignalFitExampleAutoReg1st2ndOrder
+  examples_SignalFitExamples)  
