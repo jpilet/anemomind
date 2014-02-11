@@ -90,6 +90,11 @@ T norm2dif(T *a, T *b) {
   return norm2<T, dims>(res);
 }
 
+template <typename T, int dims>
+T normdif(T *a, T *b) {
+  return sqrt(norm2dif<T, dims>(a, b));
+}
+
 double rad2deg(double rad);
 double deg2rad(double deg);
 

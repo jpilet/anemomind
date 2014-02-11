@@ -149,3 +149,34 @@ TEST(wgs84Test, DirTest002) { // Check that the direction is correct close to th
   }
 }
 
+// Illustrate the meaning of dlon and dlat of toXYZLocal
+// Shows how it is connected to toXYZWithJ
+TEST(wgs84Test, MeaningOfDlonDlatTest) {
+  const int counts = 4;
+  LineKM lons(0, counts-1, -3.3, 4);
+  LineKM lats(0, counts-1, -2, 4.4);
+  LineKM alts(0, counts-1, 0.0, 3000);
+  for (int i = 0; i < counts; i++) {
+    double lon = lons(i);
+    for (int j = 0; j < counts; j++) {
+      double lat = lats(j);
+      for (int k = 0; k < counts; k++) {
+        double alt = alts(k);
+
+        double xyz[3], J[9];
+        Wgs84<double, false>::toXYZWithJ(lon, lat, alt, xyz, J);
+
+        double xyz2[3], dlon, dlat;
+        Wgs84<double, false>::toXYZLocal(lon, lat, alt, xyz2, &dlon, &dlat);
+
+        // Relative errors
+        EXPECT_NEAR(1.0, norm<double>(3, J + 0)/dlon, 1.0e-4);
+        EXPECT_NEAR(1.0, norm<double>(3, J + 3)/dlat, 1.0e-4);
+
+        // ..and an extra test here just to check that xyz and xyz2 are the same (we tested this before too)
+        EXPECT_NEAR((normdif<double, 3>(xyz, xyz2)), 0.0, 1.0e-4);
+      }
+    }
+  }
+}
+
