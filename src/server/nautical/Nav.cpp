@@ -143,6 +143,8 @@ void Nav::getEcef3dPos(double &xOut, double &yOut, double &zOut) const
 	lla2ecef(getLonRadians(), getLatRadians(), 0.0, xOut, yOut, zOut);
 }
 
+const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
+
 // From load_data.m
 //year = 1;
 //month = 2;
