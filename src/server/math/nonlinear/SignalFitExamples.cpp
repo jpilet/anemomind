@@ -4,69 +4,10 @@
 #include <server/math/Grid.h>
 #include <server/math/ADFunction.h>
 #include <server/common/logging.h>
+#include "NoisyStep.h"
 
 namespace sail {
 
-void makeEx012NoisySignal(int sampleCount, Arrayd &X, Arrayd &Ygt, Arrayd &Ynoisy)
-{
-  Uniform rng(-1.0, 1.0);
-  X.create(sampleCount);
-  Ygt.create(sampleCount);
-  Ynoisy.create(sampleCount);
-  Uniform noise(-0.2, 0.2);
-
-  std::vector<double> Xsorted(sampleCount);
-  for (int i = 0; i < sampleCount; i++)
-  {
-    Xsorted[i] = rng.gen();
-  }
-  std::sort(Xsorted.begin(), Xsorted.end());
-
-
-  for (int i = 0; i < sampleCount; i++)
-  {
-    X[i] = Xsorted[i];
-    Ygt[i] = (X[i] < 0? -1.0 : 1.0);
-    Ynoisy[i] = Ygt[i] + noise.gen();
-  }
-}
-
-
-class Ex012Function : public AutoDiffFunction
-{
-public:
-  Ex012Function(Arrayd X, Arrayd Y);
-
-  int inDims();
-  int outDims();
-  void evalAD(adouble *Xin, adouble *Fout);
-private:
-  Arrayd _X, _Y;
-};
-
-Ex012Function::Ex012Function(Arrayd X, Arrayd Y) : _X(X), _Y(Y)
-{
-  assert(X.size() == Y.size());
-}
-
-int Ex012Function::inDims()
-{
-  return 1;
-}
-
-int Ex012Function::outDims()
-{
-  return _X.size();
-}
-
-void Ex012Function::evalAD(adouble *Xin, adouble *Fout)
-{
-  adouble &x = Xin[0];
-  for (int i = 0; i < _X.size(); i++)
-  {
-    Fout[i] = _Y[i] + x*pow(_X[i], 3);
-  }
-}
 
 
 
@@ -80,7 +21,7 @@ void sfitexFixedReg()
 
   int sampleCount = 30;
   Arrayd X, Ygt, Ynoisy;
-  makeEx012NoisySignal(sampleCount, X, Ygt, Ynoisy);
+  makeNoisySignalData(sampleCount, X, Ygt, Ynoisy);
 
   arma::sp_mat P = grid.makeP(MDArray2d(X));
 
@@ -93,7 +34,7 @@ void sfitexFixedReg()
 
   Array<Arrayb> splits = makeRandomSplits(3, X.size());
 
-  Ex012Function data(X, Ynoisy);
+  NoisyStep data(X, Ynoisy);
 
   GridFitter gridFitter;
 
@@ -138,7 +79,7 @@ void sfitexAutoRegFirstOrder()
 
   int sampleCount = 30;
   Arrayd X, Ygt, Ynoisy;
-  makeEx012NoisySignal(sampleCount, X, Ygt, Ynoisy);
+  makeNoisySignalData(sampleCount, X, Ygt, Ynoisy);
   arma::sp_mat P = grid.makeP(MDArray2d(X));
 
   { // Validate P
@@ -150,7 +91,7 @@ void sfitexAutoRegFirstOrder()
 
   Array<Arrayb> splits = makeRandomSplits(9, X.size());
 
-  Ex012Function data(X, Ynoisy);
+  NoisyStep data(X, Ynoisy);
 
   GridFitter gridFitter;
 
@@ -198,7 +139,7 @@ void sfitexAutoReg1st2ndOrder()
 
   int sampleCount = 30;
   Arrayd X, Ygt, Ynoisy;
-  makeEx012NoisySignal(sampleCount, X, Ygt, Ynoisy);
+  makeNoisySignalData(sampleCount, X, Ygt, Ynoisy);
 
   arma::sp_mat P = grid.makeP(MDArray2d(X));
 
@@ -209,7 +150,7 @@ void sfitexAutoReg1st2ndOrder()
   double initReg = 0.1;
 
 
-  Ex012Function data(X, Ynoisy);
+  NoisyStep data(X, Ynoisy);
   GridFitter gridFitter;
   std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A1, A2), splits, Arrayd::args(initReg, initReg)));
   gridFitter.add(gf);
