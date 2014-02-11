@@ -20,10 +20,6 @@ target_link_libraries(nautical_nav
   common_ContinuousRange)
 
 
-          
-
-
-
 add_library(nautical_DataCalib
             DataCalib.h
             DataCalib.cpp)
@@ -76,17 +72,6 @@ add_executable(nautical_CalibrationExample
   CalibrationExample.cpp)
 target_link_libraries(nautical_CalibrationExample
   nautical_CalibrationExamples)
-
-
-
-
-
-
-
-
-
-
-
 
 
 
