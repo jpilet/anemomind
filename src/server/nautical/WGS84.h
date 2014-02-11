@@ -117,7 +117,7 @@ class Wgs84 {
   // Maps (lon, lat, altitude) to a 3D position xyz3.
   // Optionally outputs two scalars, dlon1 and dlat1, that are the derivatives of
   // the norm of the xyz position w.r.t. lon and lat.
-  static void toXYZCopiedFromNmeaParserLib(T lon, T lat, T altitude,
+  static void toXYZLocal(T lon, T lat, T altitude,
                          T *xyz3, T *dlon1, T *dlat1) {
     T latRad = lat * angleUnit2Radians;
     T lonRad = lon * angleUnit2Radians;

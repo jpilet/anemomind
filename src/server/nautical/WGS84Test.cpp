@@ -44,7 +44,7 @@ TEST(wgs84Test, CompareToECEFTest) {
       for (int k = 0; k < 3; k++) {
         double altitudeMetres = altitudes[k];
         double xyz[3];
-        Wgs84<double, false>::toXYZCopiedFromNmeaParserLib(lon, lat, altitudeMetres, xyz, nullptr, nullptr);
+        Wgs84<double, false>::toXYZLocal(lon, lat, altitudeMetres, xyz, nullptr, nullptr);
 
         double ex, ey, ez;
         lla2ecef(lon, lat, altitudeMetres, ex, ey, ez);
