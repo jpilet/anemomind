@@ -70,7 +70,7 @@ void Ex012Function::evalAD(adouble *Xin, adouble *Fout)
 
 
 
-void sfitex001()
+void sfitexFixedReg()
 {
   BBox1d bbox(Span(-1.0, 1.0));
   double spacing[1] = {0.03};
@@ -128,7 +128,7 @@ void sfitex001()
 
 
 
-void sfitex002()
+void sfitexAutoRegFirstOrder()
 {
   BBox1d bbox(Span(-1.0, 1.0));
   double spacing[1] = {0.03};
@@ -187,7 +187,7 @@ void sfitex002()
 }
 
 
-void sfitex003()
+void sfitexAutoReg1st2ndOrder()
 {
   BBox1d bbox(Span(-1.0, 1.0));
   double spacing[1] = {0.03};

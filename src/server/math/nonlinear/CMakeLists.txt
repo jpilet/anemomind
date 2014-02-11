@@ -61,17 +61,17 @@ target_link_libraries(examples_SignalFitExamples
   common_logging
   common_Uniform)
   
-add_executable(examples_SignalFitExample001
-  SignalFitExample001.cpp)
-target_link_libraries(examples_SignalFitExample001
+add_executable(examples_SignalFitExampleFixedReg
+  SignalFitExampleFixedReg.cpp)
+target_link_libraries(examples_SignalFitExampleFixedReg
   examples_SignalFitExamples)
   
-add_executable(examples_SignalFitExample002
-  SignalFitExample002.cpp)
-target_link_libraries(examples_SignalFitExample002
+add_executable(examples_SignalFitExampleAutoRegFirstOrder
+  SignalFitExampleAutoRegFirstOrder.cpp)
+target_link_libraries(examples_SignalFitExampleAutoRegFirstOrder
   examples_SignalFitExamples)    
   
-add_executable(examples_SignalFitExample003
-  SignalFitExample003.cpp)
-target_link_libraries(examples_SignalFitExample003
+add_executable(examples_SignalFitExampleAutoReg1st2ndOrder
+  SignalFitExampleAutoReg1st2ndOrder.cpp)
+target_link_libraries(examples_SignalFitExampleAutoReg1st2ndOrder
   examples_SignalFitExamples)  

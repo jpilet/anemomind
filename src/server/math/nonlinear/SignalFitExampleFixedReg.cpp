@@ -8,5 +8,7 @@
 using namespace sail;
 
 int main() {
-  sfitex003();
+  sfitexFixedReg();
 }
+
+

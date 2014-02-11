@@ -8,5 +8,5 @@
 using namespace sail;
 
 int main() {
-  sfitex002();
+  sfitexAutoRegFirstOrder();
 }
