@@ -8,6 +8,8 @@
 
 #include <string>
 
+#define EXPRESSION_AND_VALUE(X) #X << (X)
+
 //! Defines the severity of log messages.
 enum LogLevel {
     //! The message provides information about a normal case.

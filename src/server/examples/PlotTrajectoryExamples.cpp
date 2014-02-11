@@ -1,5 +1,4 @@
 #include <server/nautical/Nav.h>
-#include "ExSwitch.h"
 #include <server/common/Duration.h>
 #include <server/nautical/LocalRace.h>
 #include "PlotTrajectoryExamples.h"

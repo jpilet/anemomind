@@ -39,6 +39,7 @@ target_link_libraries(examples_SignalFitExamples
   plot_gnuplot
   math_Grid
   math_nonlinear_GridFitter
+  common_logging
   common_Uniform)
   
 add_executable(examples_SignalFitExample001

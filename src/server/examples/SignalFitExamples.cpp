@@ -3,8 +3,7 @@
 #include <server/math/nonlinear/GridFitter.h>
 #include <server/math/Grid.h>
 #include <server/math/ADFunction.h>
-#include <server/common/debug.h>
-#include "ExSwitch.h"
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -78,15 +77,10 @@ void sfitex001()
   Grid1d grid(bbox, spacing);
 
   arma::sp_mat A = grid.makeFirstOrderReg(0);
-  //arma::mat Adense = MAKEDENSE(A);
-  //DOUT(Adense);
 
   int sampleCount = 30;
   Arrayd X, Ygt, Ynoisy;
   makeEx012NoisySignal(sampleCount, X, Ygt, Ynoisy);
-//  GnuplotExtra plot;
-//  plot.plot_xy(X, Ynoisy);
-//  plot.show();
 
   arma::sp_mat P = grid.makeP(MDArray2d(X));
 
@@ -112,13 +106,11 @@ void sfitex001()
   arma::mat Pinv = gf->makeDataToParamMat();
   arma::mat cvfit = gf->makeCrossValidationFitnessMat();
 
-  //DOUT(resmat);
-
 
   arma::mat params(1, 1);
   params[0] = 30.0;
   gridFitter.solveFixedReg(&params);
-  DOUT(params);
+  std::cout << EXPRESSION_AND_VALUE(params) << std::endl;
   std::cout << "Done" << std::endl;
 
   Arrayd Yfitted(sampleCount);
@@ -143,16 +135,10 @@ void sfitex002()
   Grid1d grid(bbox, spacing);
 
   arma::sp_mat A = grid.makeFirstOrderReg(0);
-  //arma::mat Adense = MAKEDENSE(A);
-  //DOUT(Adense);
 
   int sampleCount = 30;
   Arrayd X, Ygt, Ynoisy;
   makeEx012NoisySignal(sampleCount, X, Ygt, Ynoisy);
-//  GnuplotExtra plot;
-//  plot.plot_xy(X, Ynoisy);
-//  plot.show();
-
   arma::sp_mat P = grid.makeP(MDArray2d(X));
 
   { // Validate P
@@ -189,7 +175,7 @@ void sfitex002()
   data.eval(params.memptr(), Yfitted.getData());
   arma::mat D(Yfitted.getData(), Yfitted.size(), 1, false, true);
   arma::mat vertices = Pinv*D;
-  DOUT(gf->getRegWeight(0));
+  std::cout << EXPRESSION_AND_VALUE(gf->getRegWeight(0)) << std::endl;
 
   GnuplotExtra plot;
   plot.set_style("lines");
@@ -209,9 +195,6 @@ void sfitex003()
 
   arma::sp_mat A1 = grid.makeFirstOrderReg(0);
   arma::sp_mat A2 = grid.makeSecondOrderReg(0);
-
-  //arma::mat Adense = MAKEDENSE(A);
-  //DOUT(Adense);
 
   int sampleCount = 30;
   Arrayd X, Ygt, Ynoisy;
