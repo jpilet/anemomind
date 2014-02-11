@@ -61,22 +61,28 @@ TEST(wgs84Test, CompareToECEFTest) {
   }
 }
 
+template <bool useDegrees>
 class Wgs84TestFun : public Function {
  public:
   int inDims() {return 3;}
   int outDims() {return 3;}
-  void eval(double *Xin, double *Fout, double *Jout);
- private:
+  void eval(double *Xin, double *Fout, double *Jout) {
+    typedef Wgs84<double, useDegrees> Mapper;
+    Mapper::toXYZWithJ(Xin[0], Xin[1], Xin[2], Fout, Jout);
+  } private:
 };
 
-void Wgs84TestFun::eval(double *Xin, double *Fout, double *Jout) {
-  typedef Wgs84<double, false> Mapper;
-  Mapper::toXYZWithJ(Xin[0], Xin[1], Xin[2], Fout, Jout);
-}
 
-TEST(wgs84Test, JacobianTest) {
+// Validate the Jacobian, both for radians and degrees
+TEST(wgs84Test, JacobianRadDegTest) {
   double lonsAndLats[3] = {-0.2, 0.2, 0.5};
   double altitudes[3] = {0, 12, 144};
+
+  Wgs84TestFun<false> funRad;
+  Wgs84TestFun<true> funDeg;
+
+  typedef Function *FunctionPtr;
+  FunctionPtr funs[2] = {&funRad, &funDeg};
 
   for (int i = 0; i < 3; i++) {
     double lon = lonsAndLats[i]*M_PI;
@@ -86,12 +92,15 @@ TEST(wgs84Test, JacobianTest) {
         double altitudeMetres = altitudes[k];
         double X[3] = {lon, lat, altitudeMetres};
         double J[9], JNum[9], F[3];
-        Wgs84TestFun fun;
-        fun.eval(X, F, J);
-        fun.evalNumericJacobian(X, JNum);
-        for (int i = 0; i < 9; i++) {
-          double reldif = (J[i] - JNum[i])/(JNum[i] + 1.0e-6);
-          EXPECT_NEAR(reldif, 0, 1.0e-3);
+
+        for (int K = 0; K < 2; K++) {
+          FunctionPtr fun = funs[K];
+          fun->eval(X, F, J);
+          fun->evalNumericJacobian(X, JNum);
+          for (int i = 0; i < 9; i++) {
+            double reldif = (J[i] - JNum[i])/(std::abs(0.5*(JNum[i] + J[i])) + 1.0e-6);
+            EXPECT_NEAR(reldif, 0, 2.0e-3);
+          }
         }
       }
     }
