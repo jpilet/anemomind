@@ -15,6 +15,7 @@ std::string objectToString(const T &x) {
 }
 
 #define EXPR_AND_VAL_AS_STRING(X) (std::string(#X " = \n") + objectToString(X))
+#define EAVAS EXPR_AND_VAL_AS_STRING
 
 bool notIsBlank(char c);
 bool isBlank(char c);
