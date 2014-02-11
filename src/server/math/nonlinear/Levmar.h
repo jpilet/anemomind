@@ -11,28 +11,28 @@
 #include <server/common/Function.h>
 #include <armadillo>
 
-namespace sail
-{
+namespace sail {
 
 class LevmarSettings;
-class LevmarState
-{
-public:
-	LevmarState(arma::mat X);
+class LevmarState {
+ public:
+  LevmarState(arma::mat X);
 
-	// Take a single step
-	void step(const LevmarSettings &settings, Function &fun);
+  // Take a single step
+  void step(const LevmarSettings &settings, Function &fun);
 
-	void minimize(const LevmarSettings &settings, Function &fun);
+  void minimize(const LevmarSettings &settings, Function &fun);
 
-	arma::mat &getX() {return _X;}
-private:
-	arma::mat _X;
-	double _v, _mu;
-	arma::mat JtJ, JtF;
-	bool _stop;
+  arma::mat &getX() {
+    return _X;
+  }
+ private:
+  arma::mat _X;
+  double _v, _mu;
+  arma::mat JtJ, JtF;
+  bool _stop;
 
-	arma::mat _Fscratch, _Jscratch;
+  arma::mat _Fscratch, _Jscratch;
 };
 
 } /* namespace sail */

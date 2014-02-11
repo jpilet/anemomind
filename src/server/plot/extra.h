@@ -12,18 +12,16 @@
 #include "../common/MDArray.h"
 #include "gnuplot_i.hpp"
 
-namespace sail
-{
+namespace sail {
 
-class GnuplotExtra : public Gnuplot
-{
-public:
-	GnuplotExtra();
-	//void setHue(double hue);
-	void plot(MDArray2d data);
-	void show();
-private:
-	//std::string _rgbString;
+class GnuplotExtra : public Gnuplot {
+ public:
+  GnuplotExtra();
+  //void setHue(double hue);
+  void plot(MDArray2d data);
+  void show();
+ private:
+  //std::string _rgbString;
 };
 
 void sleepForever();

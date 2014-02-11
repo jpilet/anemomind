@@ -14,112 +14,121 @@
 #include <server/common/Array.h>
 #include <vector>
 
-namespace sail
-{
+namespace sail {
 
 // This class holds one nonlinearly parameterized datavector to which we want to fit a grid and tune
 // regularization parameters.
 
 class AutoDiffFunction;
-class GridFit
-{
-public:
-	GridFit();
-	GridFit(arma::sp_mat P, AutoDiffFunction *data, Array<arma::sp_mat> regMatrices,
-			Array<Arrayb> splits,
-			Arrayd regWeights,
-			Array<std::string> regWeightLabels = Array<std::string>(),
-			double weight = 1);
+class GridFit {
+ public:
+  GridFit();
+  GridFit(arma::sp_mat P, AutoDiffFunction *data, Array<arma::sp_mat> regMatrices,
+          Array<Arrayb> splits,
+          Arrayd regWeights,
+          Array<std::string> regWeightLabels = Array<std::string>(),
+          double weight = 1);
 
 
-	AutoDiffFunction &getData() {return *_data;}
+  AutoDiffFunction &getData() {
+    return *_data;
+  }
 
-	int getNLParamCount() const;
+  int getNLParamCount() const;
 
-	// Selects and slices a subset of the rows of _P
-	arma::sp_mat makePsel(Arrayb sel);
-
-
-	// Returns a matrix that, when multiplied by a data vector,
-	// gives the least squares fit of the grid vertices to that data vector.
-	// Optionally also takes a boolean array that select which elements of
-	// the data vector to be used for the fit.
-	arma::mat makeDataToParamMat(Arrayb sel = Arrayb());
-
-	// Takes the above matrix and multiplies it with the various cost matrices inside
-	// If D is the datavector and this function returns a matrix A,
-	// then we want to minimize |A*D| w.r.t. D
-	arma::mat makeDataToResidualsMat(Arrayb sel = Arrayb());
-
-	// For the current weights, return a matrix M such that
-	// |M*D|^2 is the cross validation cost, D being the data vector.
-	arma::mat makeCrossValidationFitnessMat();
+  // Selects and slices a subset of the rows of _P
+  arma::sp_mat makePsel(Arrayb sel);
 
 
+  // Returns a matrix that, when multiplied by a data vector,
+  // gives the least squares fit of the grid vertices to that data vector.
+  // Optionally also takes a boolean array that select which elements of
+  // the data vector to be used for the fit.
+  arma::mat makeDataToParamMat(Arrayb sel = Arrayb());
 
-	// Evaluates how well the grid fits to a datavector D
-	// given the current regularization weights.
-	// The result of this function should be the same as
-	// SQNORM(makeDataToResidualMat()*D) but is computed differently
-	double evalObjfForDataVector(arma::mat D);
+  // Takes the above matrix and multiplies it with the various cost matrices inside
+  // If D is the datavector and this function returns a matrix A,
+  // then we want to minimize |A*D| w.r.t. D
+  arma::mat makeDataToResidualsMat(Arrayb sel = Arrayb());
 
-	// Evaluates the cross-validation score for this datavector D
-	// and the weights.
-	double evalCrossValidationFitness(arma::mat D);
+  // For the current weights, return a matrix M such that
+  // |M*D|^2 is the cross validation cost, D being the data vector.
+  arma::mat makeCrossValidationFitnessMat();
 
-	void setExpRegWeight(int index, double logX);
-	int getRegCount() {return _regWeights.size();}
 
-	double getRegWeight(int index) {return _regWeights[index];}
 
-	std::string getRegLabel(int index);
-	std::string getLabel() {return _label;}
-	void setLabel(std::string label) {_label = label;}
+  // Evaluates how well the grid fits to a datavector D
+  // given the current regularization weights.
+  // The result of this function should be the same as
+  // SQNORM(makeDataToResidualMat()*D) but is computed differently
+  double evalObjfForDataVector(arma::mat D);
 
-	virtual ~GridFit() {}
-private:
-	void setRegWeight(int index, double value) {_regWeights[index] = value;}
-	static arma::mat fitGridParamsForDataVectorAndWeights(arma::mat D, Arrayd weights, arma::sp_mat P, Array<arma::sp_mat> A);
-	static arma::mat makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
-	static arma::mat makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
-	static arma::mat makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
+  // Evaluates the cross-validation score for this datavector D
+  // and the weights.
+  double evalCrossValidationFitness(arma::mat D);
 
-	arma::sp_mat _P;
-	AutoDiffFunction *_data;
-	Array<arma::sp_mat> _regMatrices;
-	Array<Arrayb> _splits;
+  void setExpRegWeight(int index, double logX);
+  int getRegCount() {
+    return _regWeights.size();
+  }
 
-	Arrayd _regWeights;
+  double getRegWeight(int index) {
+    return _regWeights[index];
+  }
 
-	std::string _label;
-	Array<std::string> _labels;
+  std::string getRegLabel(int index);
+  std::string getLabel() {
+    return _label;
+  }
+  void setLabel(std::string label) {
+    _label = label;
+  }
 
-	// How much THE WHOLE function is weighted
-	double _weight;
+  virtual ~GridFit() {}
+ private:
+  void setRegWeight(int index, double value) {
+    _regWeights[index] = value;
+  }
+  static arma::mat fitGridParamsForDataVectorAndWeights(arma::mat D, Arrayd weights, arma::sp_mat P, Array<arma::sp_mat> A);
+  static arma::mat makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
+  static arma::mat makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
+  static arma::mat makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
+
+  arma::sp_mat _P;
+  AutoDiffFunction *_data;
+  Array<arma::sp_mat> _regMatrices;
+  Array<Arrayb> _splits;
+
+  Arrayd _regWeights;
+
+  std::string _label;
+  Array<std::string> _labels;
+
+  // How much THE WHOLE function is weighted
+  double _weight;
 };
 
-class GridFitter
-{
-public:
-	GridFitter();
-	virtual ~GridFitter();
+class GridFitter {
+ public:
+  GridFitter();
+  virtual ~GridFitter();
 
-	// GridFitter will allocate a copy of gf on the heap,
-	// acquire ownership of this copy and return a pointer to it.
-	void add(std::shared_ptr<GridFit> gf);
+  // GridFitter will allocate a copy of gf on the heap,
+  // acquire ownership of this copy and return a pointer to it.
+  void add(std::shared_ptr<GridFit> gf);
 
-	// Provide these methods with a vector of initial calibration coefficients
-	// and they will optimize it in-place. The vector should be a column of
-	// getNLParamCount() elements.
-	void solve(arma::mat *XInOut);
-	void solveFixedReg(arma::mat *XInOut);
+  // Provide these methods with a vector of initial calibration coefficients
+  // and they will optimize it in-place. The vector should be a column of
+  // getNLParamCount() elements.
+  void solve(arma::mat *XInOut);
+  void solveFixedReg(arma::mat *XInOut);
 
-private:
-	int getNLParamCount();
-	std::vector<std::shared_ptr<GridFit> > _terms;
+ private:
+  int getNLParamCount();
+  std::vector<std::shared_ptr<GridFit> > _terms;
 
-	Arrayi getRegCounts();
-	void writeStatus(int i, arma::mat X, int fsize);
+  Arrayi getRegCounts();
+  void writeStatus(int i, arma::mat X, int fsize);
 };
 
 Arrayb makeRandomSplit(int size);

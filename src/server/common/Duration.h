@@ -10,30 +10,28 @@
 
 #include <string>
 
-namespace sail
-{
+namespace sail {
 
 // Conveniency class for displaying durations
 // and converting seconds back and forth.
-class Duration
-{
-public:
-	Duration(double seconds);
-	Duration();
-	Duration(unsigned int weeks, unsigned int days, unsigned int hours,
-			unsigned int minutes, double seconds);
+class Duration {
+ public:
+  Duration(double seconds);
+  Duration();
+  Duration(unsigned int weeks, unsigned int days, unsigned int hours,
+           unsigned int minutes, double seconds);
 
-	static Duration minutes(unsigned int minutes);
+  static Duration minutes(unsigned int minutes);
 
 
-	virtual ~Duration();
+  virtual ~Duration();
 
-	std::string str();
+  std::string str();
 
-	double getDurationSeconds();
-private:
-	double _seconds;
-	unsigned int _minutes, _hours, _days, _weeks;
+  double getDurationSeconds();
+ private:
+  double _seconds;
+  unsigned int _minutes, _hours, _days, _weeks;
 };
 
 } /* namespace sail */

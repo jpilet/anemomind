@@ -7,34 +7,28 @@
 
 #include "DataCalib.h"
 
-namespace sail
-{
+namespace sail {
 
-DataCalib::DataCalib()
-{
-	_paramCount = 0;
+DataCalib::DataCalib() {
+  _paramCount = 0;
 }
 
-DataCalib::~DataCalib()
-{
+DataCalib::~DataCalib() {
 
 }
 
-BoatData::BoatData(LocalRace *race, Array<Nav> navs) : _race(race), _navs(navs), _paramOffset(0)
-{
+BoatData::BoatData(LocalRace *race, Array<Nav> navs) : _race(race), _navs(navs), _paramOffset(0) {
 }
 
-void BoatData::setParamOffset(int offset)
-{
-	_paramOffset = offset;
+void BoatData::setParamOffset(int offset) {
+  _paramOffset = offset;
 }
 
 
-void DataCalib::addBoatData(std::shared_ptr<BoatData> boatData)
-{
-	boatData->setParamOffset(_paramCount);
-	_boats.push_back(boatData);
-	_paramCount += boatData->getParamCount();
+void DataCalib::addBoatData(std::shared_ptr<BoatData> boatData) {
+  boatData->setParamOffset(_paramCount);
+  _boats.push_back(boatData);
+  _paramCount += boatData->getParamCount();
 }
 
 } /* namespace sail */

@@ -14,21 +14,22 @@
 #include <armadillo>
 #include "../common/MDArray.h"
 
-namespace arma
-{
+namespace arma {
 
 
 template<>
-struct is_real<adouble>
-  { static const bool value = true; };
-
-template <>
-struct is_supported_elem_type<adouble>
-{
-	static const bool value = true;
+struct is_real<adouble> {
+  static const bool value = true;
 };
 
-template<> struct is_non_integral<adouble> { static const bool value = true; };
+template <>
+struct is_supported_elem_type<adouble> {
+  static const bool value = true;
+};
+
+template<> struct is_non_integral<adouble> {
+  static const bool value = true;
+};
 
 typedef Col<adouble> advec;
 typedef advec::fixed<2> advec2;
@@ -40,8 +41,12 @@ typedef advec::fixed<7> advec7;
 typedef advec::fixed<8> advec8;
 typedef advec::fixed<9> advec9;
 
-template<> struct is_promotable<adouble, double> : public is_promotable_ok { typedef adouble result; };
-template<> struct is_promotable<double, adouble> : public is_promotable_ok { typedef adouble result; };
+template<> struct is_promotable<adouble, double> : public is_promotable_ok {
+  typedef adouble result;
+};
+template<> struct is_promotable<double, adouble> : public is_promotable_ok {
+  typedef adouble result;
+};
 //template<> struct arma_real_or_cx_only< adouble >               { typedef adouble               result; };
 
 typedef Mat<adouble> admat_;
@@ -49,10 +54,18 @@ typedef Mat<adouble> admat_;
 typedef admat_ admat;
 
 // restrictors.hpp
-template<> struct arma_scalar_only<adouble> { typedef adouble result; };
-template<> struct arma_signed_only<adouble> { typedef adouble result; };
-template<> struct arma_real_only<adouble> { typedef adouble result; };
-template<> struct arma_real_or_cx_only< adouble >               { typedef adouble               result; };
+template<> struct arma_scalar_only<adouble> {
+  typedef adouble result;
+};
+template<> struct arma_signed_only<adouble> {
+  typedef adouble result;
+};
+template<> struct arma_real_only<adouble> {
+  typedef adouble result;
+};
+template<> struct arma_real_or_cx_only< adouble >               {
+  typedef adouble               result;
+};
 
 typedef admat_::fixed<2, 2> admat22;
 typedef admat_::fixed<2, 3> admat23;
@@ -75,32 +88,30 @@ void adolcOutput(admat &src, double *dst);
 
 mat getJacobian(short int tag, const mat &X);
 mat getJacobianTranspose(short int tag, const mat &X);
-inline void adolcOutput(adouble &src, double &dst) {src >>= dst;}
+inline void adolcOutput(adouble &src, double &dst) {
+  src >>= dst;
+}
 
 
 
-inline arma::mat toDoubleMat(const arma::mat &src)
-{
-	return src;
+inline arma::mat toDoubleMat(const arma::mat &src) {
+  return src;
 }
 
 template <typename S, typename D>
-void adolcOutputArray(sail::Array<S> src, sail::Array<D> &dst)
-{
-	//return src.mapElements<D>([=] (S x) {return adolcOutput(x);});
-	int count = src.size();
-	dst = sail::Array<D>(count);
-	for (int i = 0; i < count; i++)
-	{
-		adolcOutput(src[i], dst[i]);
-	}
+void adolcOutputArray(sail::Array<S> src, sail::Array<D> &dst) {
+  //return src.mapElements<D>([=] (S x) {return adolcOutput(x);});
+  int count = src.size();
+  dst = sail::Array<D>(count);
+  for (int i = 0; i < count; i++) {
+    adolcOutput(src[i], dst[i]);
+  }
 }
 
 
 }
 
-namespace sail
-{
+namespace sail {
 
 
 typedef Array<adouble> Arrayad;
@@ -128,17 +139,22 @@ bool hasNaN(Array<adouble> X);
 Array<int> getNanEntries(Array<double> X);
 Array<int> getNanEntries(Array<adouble> X);
 
-inline double getDouble(double x) {return x;}
-inline double getDouble(adouble x) {return x.getValue();}
+inline double getDouble(double x) {
+  return x;
+}
+inline double getDouble(adouble x) {
+  return x.getValue();
+}
 
 arma::admat adMatMul(arma::admat A, arma::admat B);
 
 //
 }
 
-namespace std
-{
-inline bool isnan(adouble x) {return std::isnan(x.getValue());}
+namespace std {
+inline bool isnan(adouble x) {
+  return std::isnan(x.getValue());
+}
 }
 
 #endif /* ARMAADOLC_H_ */

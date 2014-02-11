@@ -10,8 +10,7 @@
 #include <chrono>
 #include <thread>
 
-namespace sail
-{
+namespace sail {
 
 //void GnuplotExtra::setHue(double hue)
 //{
@@ -20,39 +19,30 @@ namespace sail
 //
 //}
 
-GnuplotExtra::GnuplotExtra()
-{
-	//_rgbString = "";
+GnuplotExtra::GnuplotExtra() {
+  //_rgbString = "";
 }
 
-void GnuplotExtra::plot(MDArray2d data)
-{
-	int rows = data.rows();
-	if (data.cols() == 2)
-	{
-		plot_xy(data.sliceCol(0).getStorage().sliceTo(rows), data.sliceCol(1).getStorage().sliceTo(rows));
-	}
-	else if (data.cols() == 3)
-	{
-		plot_xyz(data.sliceCol(0).getStorage().sliceTo(rows), data.sliceCol(1).getStorage().sliceTo(rows), data.sliceCol(2).getStorage().sliceTo(rows));
-	}
-	else
-	{
-		cerr << "BAD NUMBER OF COLUMNS" << endl;
-		throw std::exception();
-	}
+void GnuplotExtra::plot(MDArray2d data) {
+  int rows = data.rows();
+  if (data.cols() == 2) {
+    plot_xy(data.sliceCol(0).getStorage().sliceTo(rows), data.sliceCol(1).getStorage().sliceTo(rows));
+  } else if (data.cols() == 3) {
+    plot_xyz(data.sliceCol(0).getStorage().sliceTo(rows), data.sliceCol(1).getStorage().sliceTo(rows), data.sliceCol(2).getStorage().sliceTo(rows));
+  } else {
+    cerr << "BAD NUMBER OF COLUMNS" << endl;
+    throw std::exception();
+  }
 }
 
-void GnuplotExtra::show()
-{
-	showonscreen();
-	sleepForever();
+void GnuplotExtra::show() {
+  showonscreen();
+  sleepForever();
 }
 
-void sleepForever()
-{
-	std::this_thread::sleep_for(std::chrono::seconds(30000));
+void sleepForever() {
+  std::this_thread::sleep_for(std::chrono::seconds(30000));
 }
-        
+
 
 } /* namespace sail */

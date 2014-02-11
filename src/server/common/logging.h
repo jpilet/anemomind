@@ -10,27 +10,27 @@
 
 //! Defines the severity of log messages.
 enum LogLevel {
-    //! The message provides information about a normal case.
-    LOGLEVEL_INFO,
+  //! The message provides information about a normal case.
+  LOGLEVEL_INFO,
 
-    //! Warns about issues that, although not technically a
-    //  problem now, could cause problems in the future.
-    LOGLEVEL_WARNING,
+  //! Warns about issues that, although not technically a
+  //  problem now, could cause problems in the future.
+  LOGLEVEL_WARNING,
 
-    //! An error occurred which should never happen during normal use.
-    LOGLEVEL_ERROR,
+  //! An error occurred which should never happen during normal use.
+  LOGLEVEL_ERROR,
 
-    //! An error occurred from which the caller cannot
-    // recover. This usually indicates a programming error.
-    LOGLEVEL_FATAL,
+  //! An error occurred from which the caller cannot
+  // recover. This usually indicates a programming error.
+  LOGLEVEL_FATAL,
 
-    //! A DFATAL error is considered fatal when the code is compiled in debug
-    // mode. In release mode, it is considered as ERROR.
-    LOGLEVEL_DFATAL =
+  //! A DFATAL error is considered fatal when the code is compiled in debug
+  // mode. In release mode, it is considered as ERROR.
+  LOGLEVEL_DFATAL =
 #ifdef NDEBUG
-	LOGLEVEL_ERROR
+    LOGLEVEL_ERROR
 #else
-	LOGLEVEL_FATAL
+    LOGLEVEL_FATAL
 #endif
 };
 
@@ -40,56 +40,56 @@ class LogFinisher;
 
 // Provides stream-like API for message logging.
 class LogMessage {
-  public:
-    LogMessage(LogLevel level, const char* filename, int line);
-    ~LogMessage();
+ public:
+  LogMessage(LogLevel level, const char* filename, int line);
+  ~LogMessage();
 
-    LogMessage& operator<<(const std::string& value);
-    LogMessage& operator<<(const char* value);
-    LogMessage& operator<<(char value);
-    LogMessage& operator<<(int value);
-    LogMessage& operator<<(unsigned int value);
-    LogMessage& operator<<(long value);
-    LogMessage& operator<<(unsigned long value);
-    LogMessage& operator<<(double value);
-    LogMessage& operator<<(long long value);
+  LogMessage& operator<<(const std::string& value);
+  LogMessage& operator<<(const char* value);
+  LogMessage& operator<<(char value);
+  LogMessage& operator<<(int value);
+  LogMessage& operator<<(unsigned int value);
+  LogMessage& operator<<(long value);
+  LogMessage& operator<<(unsigned long value);
+  LogMessage& operator<<(double value);
+  LogMessage& operator<<(long long value);
 
-  private:
-    friend class LogFinisher;
-    void Finish();
+ private:
+  friend class LogFinisher;
+  void Finish();
 
-    LogLevel level_;
-    const char* filename_;
-    int line_;
+  LogLevel level_;
+  const char* filename_;
+  int line_;
 
-    std::string message_;
+  std::string message_;
 };
 
 // Thrown by  LogMessage::Finish() if level_ is LOGLEVEL_FATAL
 class LogMessageException {
-  public:
-    LogMessageException(LogLevel level, const char* filename, int line, const std::string &message);
-  private:
-    LogLevel level_;
-    const char* filename_;
-    int line_;
-    std::string message_;
+ public:
+  LogMessageException(LogLevel level, const char* filename, int line, const std::string &message);
+ private:
+  LogLevel level_;
+  const char* filename_;
+  int line_;
+  std::string message_;
 };
 
 
 // Used to make the entire "LOG(BLAH) << etc." expression have a void return
 // type and print a newline after each message.
 class LogFinisher {
-  public:
-    void operator=(LogMessage& other);
+ public:
+  void operator=(LogMessage& other);
 };
 
 template <class T>
 T CheckNotNull(T x, const char *expr, const char* file, int line) {
-    if (x != nullptr) return x;
-    internal::LogFinisher() = internal::LogMessage(LOGLEVEL_FATAL, file, line)
-	<< expr << " is NULL, which is unexpected.";
-    return x;
+  if (x != nullptr) return x;
+  internal::LogFinisher() = internal::LogMessage(LOGLEVEL_FATAL, file, line)
+                            << expr << " is NULL, which is unexpected.";
+  return x;
 }
 
 }  // namespace internal
@@ -124,6 +124,6 @@ T CheckNotNull(T x, const char *expr, const char* file, int line) {
     internal::CheckNotNull((EXPRESSION), #EXPRESSION, __FILE__, __LINE__)
 
 void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int line,
-                       const std::string& message));
+                                       const std::string& message));
 
 #endif  // _LOGGING_H

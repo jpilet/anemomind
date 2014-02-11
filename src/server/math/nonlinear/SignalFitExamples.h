@@ -7,9 +7,9 @@
 #define SIGNALFITEXAMPLES_H_
 
 namespace sail {
-  void sfitexFixedReg();
-  void sfitexAutoRegFirstOrder();
-  void sfitexAutoReg1st2ndOrder();
+void sfitexFixedReg();
+void sfitexAutoRegFirstOrder();
+void sfitexAutoReg1st2ndOrder();
 }
 
 

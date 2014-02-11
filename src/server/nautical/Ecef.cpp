@@ -7,8 +7,7 @@
 
 #include "Ecef.h"
 
-namespace sail
-{
+namespace sail {
 
 
 
