@@ -88,4 +88,5 @@ cxx_test(nautical_WGS84Test
             WGS84Test.cpp
             nautical_Ecef
             common_Function
+            common_LineKM
             gtest_main)

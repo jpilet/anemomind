@@ -9,6 +9,7 @@
 #include "Ecef.h"
 #include <gtest/gtest.h>
 #include <server/common/string.h>
+#include <server/common/LineKM.h>
 #include <server/common/Function.h>
 
 using namespace sail;
@@ -98,29 +99,53 @@ TEST(wgs84Test, JacobianTest) {
 }
 
 
-// Check that the direction is correct
-TEST(wgs84Test, DirTest) {
-  double lon = 0.3*M_PI;
-  double lat = 0.4*M_PI;
-  double altitudeMetres = 30.0;
+// Check that the direction is correct at the equator
+TEST(wgs84Test, DirTest001) {
+  double lat = 0.0*M_PI;
+  const int sign[4] = {1, -1, -1, 1};
+  const int courseCount = 7;
+  LineKM courses(0, courseCount-1, -323, 1044);
 
-  // If we move in direction of 45 degrees, our course is north-east
-  double dir = deg2rad(45);
+  for (int K = 0; K < 4; K++) {
+    bool even = (K % 2 == 0);
+    double lon = 0.5*M_PI*K;
+    double altitudeMetres = 0.0;
 
-  double xyz[3], dirXyz[3];
-  Wgs84<double, false>::posAndDirToXYZ(lon, lat, altitudeMetres, dir, xyz, dirXyz);
 
-  double xyzh[3];
-  double h = 1.0e-9;
-  lon += h;
-  lat += h;
-  Wgs84<double, false>::toXYZ(lon, lat, altitudeMetres, xyzh);
-  double displacement[3];
-  sub<double, 3>(xyzh, xyz, displacement);
-  normalizeInPlace<double>(3, displacement);
-  for (int i = 0; i < 3; i++) {
-    double dif = std::abs(displacement[i] - dirXyz[i]);
-    EXPECT_NEAR(displacement[i], dirXyz[i], 1.0e-5);
+    for (int i = 0; i < courseCount; i++) {
+      double course = deg2rad(courses(i));
+
+      double xyz[3], dirXyz[3];
+      Wgs84<double, false>::posAndDirToXYZ(lon, lat, altitudeMetres, course, xyz, dirXyz);
+
+      double sinc = sign[K]*sin(course);
+
+      EXPECT_NEAR(dirXyz[0], (even? 0.0 : sinc), 1.0e-5);
+      EXPECT_NEAR(dirXyz[1], (even? sinc : 0.0), 1.0e-5);
+      EXPECT_NEAR(dirXyz[2], cos(course), 1.0e-5);
+    }
+  }
+}
+
+TEST(wgs84Test, DirTest002) { // Check that the direction is correct close to the poles.
+  double lon = 0.0*M_PI;
+
+  double d = 1.0e-6;
+  double a = 0.5*M_PI - d;
+  LineKM lat(0.0, 1.0, -a, a);
+  const int courseCount = 7;
+  LineKM courses(0, courseCount-1, -323, 1044);
+
+  for (int K = 0; K < 4; K++) {
+    bool even = (K % 2 == 0);
+    for (int i = 0; i < courseCount; i++) {
+      double course = deg2rad(courses(i));
+      for (int i = 0; i < 2; i++) {
+        double xyz[3], dirXyz[3];
+        Wgs84<double, false>::posAndDirToXYZ(lon, lat(i), 0.0, course, xyz, dirXyz);
+        EXPECT_NEAR(dirXyz[2], 0.0, 1.0e-5);
+      }
+    }
   }
 }
 

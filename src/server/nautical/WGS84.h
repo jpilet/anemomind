@@ -43,10 +43,10 @@ class Wgs84 {
     T sinTheta = sin(theta);
 
     T Nh = N + altitude;
+    T oneMinusE2 = (1 - E2);
 
     xyz3[0] = Nh*cosTheta*cosPhi;
     xyz3[1] = Nh*cosTheta*sinPhi;
-    T oneMinusE2 = (1 - E2);
     xyz3[2] = (oneMinusE2*N + altitude)*sinTheta;
 
     if (J3x3ColMajorOut != nullptr) {
@@ -88,21 +88,17 @@ class Wgs84 {
   static void posAndDirToXYZ(T lon, T lat, T altitude, T dir, T *xyzPosOut, T *xyzDirUnitVectorOut) {
     T J[9];
     toXYZWithJ(lon, lat, altitude, xyzPosOut, J);
-    T *dlon = J + 0;
-    T *dlat = J + 3;
-    T dNorth = cos(angleUnit2Radians*dir);
-    T dEast = sin(angleUnit2Radians*dir);
+    T *eastAxis = J + 0;
+    T *northAxis = J + 3;
+    normalizeInPlace<double>(3, eastAxis);
+    normalizeInPlace<double>(3, northAxis);
+
+    T northCoef = cos(angleUnit2Radians*dir);
+    T eastCoef = sin(angleUnit2Radians*dir);
+
     T len2 = 0.0;
     for (int i = 0; i < 3; i++) {
-      T elem = dNorth*dlat[i] + dEast*dlon[i];
-      xyzDirUnitVectorOut[i] = elem;
-      len2 += elem*elem;
-    }
-
-
-    T oneOverL = 1.0/sqrt(len2);
-    for (int i = 0; i < 3; i++) {
-      xyzDirUnitVectorOut[i] *= oneOverL;
+      xyzDirUnitVectorOut[i] = northCoef*northAxis[i] + eastCoef*eastAxis[i];
     }
   }
 
