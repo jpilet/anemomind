@@ -34,6 +34,29 @@ target_link_libraries(nautical_DataCalib common_Array)
 add_library(nautical_LocalRace
             LocalRace.h
             LocalRace.cpp)
+            
+            
+            
+#################################################################
+### PlotTrajectoryExamples
+#################################################################
+add_library(examples_PlotTrajectoryExamples
+  PlotTrajectoryExamples.h
+  PlotTrajectoryExamples.cpp)  
+target_link_libraries(examples_PlotTrajectoryExamples
+  plot_gnuplot
+  common_Duration
+  nautical_LocalRace)  
+
+add_executable(examples_PlotTrajectoryExample001
+  PlotTrajectoryExample001.cpp)
+target_link_libraries(examples_PlotTrajectoryExample001
+  examples_PlotTrajectoryExamples)  
+  
+add_executable(examples_PlotTrajectoryExample002
+  PlotTrajectoryExample002.cpp)
+target_link_libraries(examples_PlotTrajectoryExample002
+  examples_PlotTrajectoryExamples)             
 
 target_link_libraries(nautical_LocalRace
   nautical_nav

@@ -10,8 +10,3 @@ using namespace sail;
 int main() {
   sfitex002();
 }
-
-
-
-
-

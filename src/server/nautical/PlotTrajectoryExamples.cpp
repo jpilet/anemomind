@@ -24,5 +24,3 @@ namespace sail {
     race.makeSpatioTemporalPlot(navs);
   }
 }
-
-
