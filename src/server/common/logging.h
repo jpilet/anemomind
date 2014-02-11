@@ -8,7 +8,7 @@
 
 #include <string>
 
-#define EXPRESSION_AND_VALUE(X) #X << (X)
+#define EXPRESSION_AND_VALUE(X) (#X) << " = \n" << (X)
 
 //! Defines the severity of log messages.
 enum LogLevel {
