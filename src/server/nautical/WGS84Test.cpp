@@ -130,8 +130,6 @@ TEST(wgs84Test, DirTest001) {
 // Check that the direction is correct close to the poles.
 // Here the direction in Z should be close to 0.
 TEST(wgs84Test, DirTest002) {
-  double lon = 0.0*M_PI;
-
   // Exactly at the pole, the dir vector may be undefined, resulting in
   // division by 0 => nan. Therefore, choose a point close to the pole.
   const double d = 1.0e-6;
@@ -141,8 +139,11 @@ TEST(wgs84Test, DirTest002) {
   const int courseCount = 7;
   LineKM courses(0, courseCount-1, -323, 1044);
 
-  for (int K = 0; K < 4; K++) {
-    bool even = (K % 2 == 0);
+  const int lonCount = 7;
+  LineKM lons(0.0, lonCount-1, -3.4, 4.9);
+
+  for (int j = 0; j < lonCount; j++) {
+    double lon = lons(j);
     for (int i = 0; i < courseCount; i++) {
       double course = deg2rad(courses(i));
       for (int i = 0; i < 2; i++) {
