@@ -8,7 +8,7 @@
 using namespace sail;
 
 int main() {
-  ptex002();
+  ptexLocalRace();
   return 0;
 }
 

@@ -8,6 +8,6 @@
 using namespace sail;
 
 int main() {
-  ptex001();
+  ptexLastRace();
   return 0;
 }

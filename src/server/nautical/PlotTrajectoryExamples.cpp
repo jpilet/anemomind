@@ -4,7 +4,7 @@
 #include "PlotTrajectoryExamples.h"
 
 namespace sail {
-  void ptex001() // Plot a single trajectory
+  void ptexLastRace() // Plot a single trajectory
   {
     Array<Nav> navs = loadNavsFromText(Nav::AllNavsPath, false);
     Array<Array<Nav> > splitNavs = splitNavsByDuration(navs, Duration::minutes(10).getDurationSeconds());
@@ -12,7 +12,7 @@ namespace sail {
     plotNavsEcefTrajectory(splitNavs.last());
   }
 
-  void ptex002()
+  void ptexLocalRace()
   {
     Array<Nav> allNavs = loadNavsFromText(Nav::AllNavsPath, false);
     Array<Array<Nav> > splitNavs = splitNavsByDuration(allNavs,

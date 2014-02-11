@@ -7,8 +7,8 @@
 #define PLOTTRAJECTORYEXAMPLE_H_
 
 namespace sail {
-  void ptex001();
-  void ptex002();
+  void ptexLastRace();
+  void ptexLocalRace();
 }
 
 

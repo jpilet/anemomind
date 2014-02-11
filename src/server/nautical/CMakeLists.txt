@@ -48,14 +48,14 @@ target_link_libraries(examples_PlotTrajectoryExamples
   common_Duration
   nautical_LocalRace)  
 
-add_executable(examples_PlotTrajectoryExample001
-  PlotTrajectoryExample001.cpp)
-target_link_libraries(examples_PlotTrajectoryExample001
+add_executable(examples_PlotTrajectoryExampleLastRace
+  PlotTrajectoryExampleLastRace.cpp)
+target_link_libraries(examples_PlotTrajectoryExampleLastRace
   examples_PlotTrajectoryExamples)  
   
-add_executable(examples_PlotTrajectoryExample002
-  PlotTrajectoryExample002.cpp)
-target_link_libraries(examples_PlotTrajectoryExample002
+add_executable(examples_PlotTrajectoryExampleLocalRace
+  PlotTrajectoryExampleLocalRace.cpp)
+target_link_libraries(examples_PlotTrajectoryExampleLocalRace
   examples_PlotTrajectoryExamples)             
 
 target_link_libraries(nautical_LocalRace
