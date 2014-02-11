@@ -36,11 +36,11 @@ TEST(GridTest, LinearCombinationTest)
   {
     wsum += weights[i];
   }
-  assert(std::abs(wsum - 1) <= 1.0e-6);
+  EXPECT_NEAR(wsum, 1.0, 1.0e-6);
 
   double y[2];
   grid.evalVertexLinearCombination(inds, weights, y);
-  assert((norm2dif<double, 2>(x, y) <= 1.0e-6));
+  EXPECT_NEAR((norm2dif<double, 2>(x, y)), 0.0, 1.0e-6);
 }
 
 // Test the correctness of the imcompressability regularization with dimensions
