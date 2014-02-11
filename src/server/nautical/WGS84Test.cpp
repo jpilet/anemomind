@@ -70,7 +70,7 @@ class Wgs84TestFun : public Function {
   void eval(double *Xin, double *Fout, double *Jout) {
     typedef Wgs84<double, useDegrees> Mapper;
     Mapper::toXYZWithJ(Xin[0], Xin[1], Xin[2], Fout, Jout);
-  } private:
+  }
 };
 
 
