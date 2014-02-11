@@ -5,6 +5,7 @@
 #include <server/math/ADFunction.h>
 #include <server/common/logging.h>
 #include "NoisyStep.h"
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -51,7 +52,7 @@ void sfitexFixedReg()
   arma::mat params(1, 1);
   params[0] = 30.0;
   gridFitter.solveFixedReg(&params);
-  LOG(INFO) << EXPRESSION_AND_VALUE(params);
+  LOG(INFO) << EXPR_AND_VAL_AS_STRING(params);
   LOG(INFO) << "Done";
 
   Arrayd Yfitted(sampleCount);
@@ -116,7 +117,7 @@ void sfitexAutoRegFirstOrder()
   data.eval(params.memptr(), Yfitted.getData());
   arma::mat D(Yfitted.getData(), Yfitted.size(), 1, false, true);
   arma::mat vertices = Pinv*D;
-  LOG(INFO) << EXPRESSION_AND_VALUE(gf->getRegWeight(0));
+  LOG(INFO) << EXPR_AND_VAL_AS_STRING(gf->getRegWeight(0));
   LOG(INFO) << "Done";
 
   GnuplotExtra plot;
