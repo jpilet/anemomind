@@ -73,6 +73,16 @@ arma::mat DataCalib::makeInitialParameters() {
 BoatData::BoatData(LocalRace *race, Array<Nav> navs) : _race(race), _navs(navs), _paramOffset(0) {
 }
 
+void BoatData::evalWindData(adouble *Xin, adouble *Fout) {
+  int navCount = _navs.size();
+  for (int i = 0; i < navCount; i++) {
+    adouble *fout = Fout + 2*i;
+    Nav &nav = _navs[i];
+
+  }
+}
+
+
 void BoatData::fillPData(int navOffset, Grid3d grid, arma::umat *IJOut, arma::vec *XOut) {
   int count = _navs.size();
   const int PerNav = 8;

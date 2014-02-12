@@ -55,7 +55,7 @@ class BoatData {
 
   // Output 'getWindDataCount()' residuals to Fout, starting at index 0,
   // computed from the vector Xin
-  void evalWindData(adouble *Xin, adouble *Fout) {}
+  void evalWindData(adouble *Xin, adouble *Fout);
 
   // Output 'getCurrentDataCount()' residuals to Fout, starting at index 0,
   // computed from the vector Xin
