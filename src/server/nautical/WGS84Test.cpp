@@ -45,7 +45,8 @@ TEST(wgs84Test, CompareToECEFTest) {
       for (int k = 0; k < 3; k++) {
         double altitudeMetres = altitudes[k];
         double xyz[3];
-        WGS84<double>::toXYZLocal(lon, lat, altitudeMetres, xyz, nullptr, nullptr);
+        WGS84<double>::toXYZLocal(lon, lat,
+            altitudeMetres, xyz, nullptr, nullptr);
 
         double ex, ey, ez;
         lla2ecef(lon, lat, altitudeMetres, ex, ey, ez);
@@ -127,7 +128,8 @@ TEST(wgs84Test, DirTest001) {
       double course = deg2rad(courses(i));
 
       double xyz[3], dirXyz[3];
-      WGS84<double>::posAndDirToXYZ(lon, lat, altitudeMetres, course, xyz, dirXyz);
+      WGS84<double>::posAndDirToXYZ(lon, lat,
+          altitudeMetres, course, xyz, dirXyz);
 
       double sinc = sign[K]*sin(course);
 
@@ -159,7 +161,8 @@ TEST(wgs84Test, DirTest002) {
       double course = deg2rad(courses(i));
       for (int i = 0; i < 2; i++) {
         double xyz[3], dirXyz[3];
-        WGS84<double>::posAndDirToXYZ(lon, lat(i), 0.0, course, xyz, dirXyz);
+        WGS84<double>::posAndDirToXYZ(lon, lat(i),
+            0.0, course, xyz, dirXyz);
         EXPECT_NEAR(dirXyz[2], 0.0, 1.0e-5);
       }
     }
@@ -184,13 +187,15 @@ TEST(wgs84Test, MeaningOfDlonDlatTest) {
         WGS84<double>::toXYZWithJ(lon, lat, alt, xyz, J);
 
         double xyz2[3], dlon, dlat;
-        WGS84<double>::toXYZLocal(lon, lat, alt, xyz2, &dlon, &dlat);
+        WGS84<double>::toXYZLocal(lon, lat, alt,
+            xyz2, &dlon, &dlat);
 
         // Relative errors
         EXPECT_NEAR(1.0, norm<double>(3, J + 0)/dlon, 1.0e-4);
         EXPECT_NEAR(1.0, norm<double>(3, J + 3)/dlat, 1.0e-4);
 
-        // ..and an extra test here just to check that xyz and xyz2 are the same (we tested this before too)
+        // ..and an extra test here just to check that xyz
+        // and xyz2 are the same (we tested this before too)
         EXPECT_NEAR((normdif<double, 3>(xyz, xyz2)), 0.0, 1.0e-4);
       }
     }
