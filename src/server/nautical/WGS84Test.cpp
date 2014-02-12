@@ -11,6 +11,7 @@
 #include <server/common/string.h>
 #include <server/common/LineKM.h>
 #include <server/common/Function.h>
+#include <server/common/logging.h>
 
 using namespace sail;
 
@@ -93,9 +94,9 @@ TEST(wgs84Test, JacobianRadDegTest) {
         for (int i = 0; i < 9; i++) {
           const bool verbose = false;
           if (verbose) {
-            std::cout << "\n\n" << EXPR_AND_VAL_AS_STRING(i) << std::endl;
-            std::cout << EXPR_AND_VAL_AS_STRING(JNum[i])
-                << "\n" << EXPR_AND_VAL_AS_STRING(J[i]) << std::endl;
+            LOG(INFO) << "\n\n" << EXPR_AND_VAL_AS_STRING(i) << '\n';
+            LOG(INFO) << EXPR_AND_VAL_AS_STRING(JNum[i])
+                << "\n" << EXPR_AND_VAL_AS_STRING(J[i]) << '\n';
           }
           double reldif =
               (J[i] - JNum[i])/(std::abs(0.5*(JNum[i] + J[i])) + 1.0e-6);
