@@ -36,7 +36,8 @@ class Nav {
   double getLonRadians() const;
   double getLatRadians() const;
 
-  void getEcef3dPos(double &xOut, double &yOut, double &zOut) const;
+  void get3dPos(double *xyzOut) const;
+  void get3dPos(double *xOut, double *yOut, double *zOut) const;
 
   // This is just temporary. We should
   // replace it with CMake-generated paths in the future.

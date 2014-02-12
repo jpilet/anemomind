@@ -14,6 +14,7 @@
 #include <server/plot/extra.h>
 #include <server/nautical/Ecef.h>
 #include <ctime>
+#include <server/nautical/WGS84.h>
 
 namespace sail {
 
@@ -128,8 +129,16 @@ double Nav::getLatRadians() const {
   return degMinMc2Radians(_posLatDeg, _posLatMin, _posLatMc);
 }
 
-void Nav::getEcef3dPos(double &xOut, double &yOut, double &zOut) const {
-  lla2ecef(getLonRadians(), getLatRadians(), 0.0, xOut, yOut, zOut);
+void Nav::get3dPos(double *xyzOut) const {
+  Wgs84<double, false>::toXYZ(getLonRadians(), getLatRadians(), 0.0, xyzOut);
+}
+
+void Nav::get3dPos(double *xOut, double *yOut, double *zOut) const {
+  double xyz[3];
+  Wgs84<double, false>::toXYZ(getLonRadians(), getLatRadians(), 0.0, xyz);
+  *xOut = xyz[0];
+  *yOut = xyz[1];
+  *zOut = xyz[2];
 }
 
 const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
@@ -277,7 +286,11 @@ MDArray2d calcNavsEcefTrajectory(Array<Nav> navs) {
   MDArray2d data(count, 3);
   for (int i = 0; i < count; i++) {
     Nav &nav = navs[i];
-    lla2ecef(nav.getLonRadians(), nav.getLatRadians(), 0.0, data(i, 0), data(i, 1), data(i, 2));
+    double xyz[3];
+    Wgs84<double, false>::toXYZ(nav.getLonRadians(), nav.getLatRadians(), 0.0, xyz);
+    for (int j = 0; j < 3; j++) {
+      data(i, i) = xyz[j];
+    }
   }
   return data;
 }

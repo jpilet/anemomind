@@ -47,7 +47,7 @@ TEST(wgs84Test, CompareToECEFTest) {
         Wgs84<double, false>::toXYZLocal(lon, lat, altitudeMetres, xyz, nullptr, nullptr);
 
         double ex, ey, ez;
-        lla2ecef(lon, lat, altitudeMetres, ex, ey, ez);
+        lla2ecefJustForReference(lon, lat, altitudeMetres, ex, ey, ez);
         EXPECT_NEAR(ex, xyz[0], 1.0e-5);
         EXPECT_NEAR(ey, xyz[1], 1.0e-5);
         EXPECT_NEAR(ez, xyz[2], 1.0e-5);

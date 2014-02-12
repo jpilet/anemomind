@@ -31,7 +31,7 @@ LocalRace::LocalRace(Array<Nav> navs, double spaceStep, double timeStep) {
 
 arma::vec2 LocalRace::calcNavLocalPos(Nav nav) {
   arma::vec3 pos3d;
-  nav.getEcef3dPos(pos3d[0], pos3d[1], pos3d[2]);
+  nav.get3dPos(pos3d.memptr());
   return _axes*(pos3d - _cog);
 }
 
@@ -69,7 +69,7 @@ arma::mat getAllNav3dPos(Array<Nav> navs) {
   int count = navs.size();
   arma::mat pos(count, 3);
   for (int i = 0; i < count; i++) {
-    navs[i].getEcef3dPos(pos(i, 0), pos(i, 1), pos(i, 2));
+    navs[i].get3dPos(&(pos(i, 0)), &(pos(i, 1)), &(pos(i, 2)));
   }
   return pos;
 }
