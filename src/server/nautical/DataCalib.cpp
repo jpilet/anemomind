@@ -59,6 +59,15 @@ arma::sp_mat DataCalib::makeP(Grid3d grid) {
   return arma::sp_mat(IJ, X, _navCount, grid.getVertexCount());
 }
 
+arma::mat DataCalib::makeInitialParameters() {
+  int count = _boats.size();
+  int paramCount = count*BoatData::ParamCount;
+  arma::mat X(paramCount, 1);
+  for (int i = 0; i < count; i++) {
+    _boats[i]->initializeParameters(X.memptr());
+  }
+  return X;
+}
 
 
 BoatData::BoatData(LocalRace *race, Array<Nav> navs) : _race(race), _navs(navs), _paramOffset(0) {
@@ -86,6 +95,13 @@ void BoatData::fillPData(int navOffset, Grid3d grid, arma::umat *IJOut, arma::ve
 
 void BoatData::setParamOffset(int offset) {
   _paramOffset = offset;
+}
+
+void BoatData::initializeParameters(double *XOut) {
+  magneticCompassOffset(XOut) = 0.0;
+  windDirectionOffset(XOut) = 0.0;
+  waterSpeedCoef(XOut) = 1.0;
+  windSpeedCoef(XOut) = 1.0;
 }
 
 

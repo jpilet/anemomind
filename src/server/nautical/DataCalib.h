@@ -65,10 +65,19 @@ class BoatData {
   void fillPData(int offset, Grid3d grid, arma::umat *IJOut, arma::vec *XOut);
 
   void setParamOffset(int offset);
+
+  // Outputs the initial calibration values for this boat to XOut
+  void initializeParameters(double *XOut);
  private:
   LocalRace *_race;
   int _paramOffset;
   Array<Nav> _navs;
+
+  // READ/WRITE access to elements of a parameter vector
+  template <typename T> T &magneticCompassOffset(T *x) {return x[_paramOffset + 0];}
+  template <typename T> T &windDirectionOffset(T *x) {return x[_paramOffset + 1];}
+  template <typename T> T &waterSpeedCoef(T *x) {return x[_paramOffset + 2];}
+  template <typename T> T &windSpeedCoef(T *x) {return x[_paramOffset + 3];}
 };
 
 /*
@@ -91,6 +100,7 @@ class DataCalib {
   void evalCurrentData(adouble *Xin, adouble *Fout);
 
   arma::sp_mat makeP(Grid3d grid);
+  arma::mat makeInitialParameters();
  private:
   int _paramCount, _windDataCount, _currentDataCount, _navCount;
   std::vector<std::shared_ptr<BoatData> > _boats;

@@ -27,24 +27,27 @@ void calibEx001() {
   Grid3d wgrid = race.getWindGrid();
   Grid3d cgrid = race.getCurrentGrid();
 
-  // The data part of the objective function
   DataCalib calib;
   calib.addBoatData(std::shared_ptr<BoatData>(new BoatData(&race, navs)));
 
   WindData windData(calib);
   CurrentData currentData(calib);
 
+  arma::sp_mat Pwind = calib.makeP(wgrid);
   arma::sp_mat windRegSpace = kronWithSpEye(vcat(wgrid.makeFirstOrderReg(0),
                                    wgrid.makeFirstOrderReg(1)), 2);
   arma::sp_mat windRegTime = kronWithSpEye(wgrid.makeFirstOrderReg(2), 2);
+
+  arma::sp_mat Pcurrent = calib.makeP(cgrid);
   arma::sp_mat currentRegSpace = kronWithSpEye(vcat(cgrid.makeFirstOrderReg(0),
                                    cgrid.makeFirstOrderReg(1)), 2);
   arma::sp_mat currentRegTime = kronWithSpEye(cgrid.makeFirstOrderReg(2), 2);
 
+  arma::mat X = calib.makeInitialParameters();
 
+  std::cout << "Initial parameters: " << X << endl;
 
-
-  //GridFitter gf;
+  GridFitter gf;
   //gf.add(std::shared_ptr<GridFit>(new GridFit()));
 }
 
