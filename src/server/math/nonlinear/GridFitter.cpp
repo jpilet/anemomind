@@ -190,7 +190,7 @@ double GridFit::evalCrossValidationFitness(arma::mat D) {
 }
 
 GridFitter::GridFitter() {
-
+  settings.verbosity = 0;
 }
 
 
