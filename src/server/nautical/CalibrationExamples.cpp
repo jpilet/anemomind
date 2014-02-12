@@ -34,9 +34,21 @@ void calibEx001() {
   WindData windData(calib);
   CurrentData currentData(calib);
 
-  arma::sp_mat windRegSpace = vcat(wgrid.makeFirstOrderReg(0),
-                                   wgrid.makeFirstOrderReg(1));
+  std::cout << __LINE__ << std::endl;
+  arma::sp_mat windRegSpace = kronWithSpEye(vcat(wgrid.makeFirstOrderReg(0),
+                                   wgrid.makeFirstOrderReg(1)), 2);
+  std::cout << __LINE__ << std::endl;
+  arma::sp_mat windRegTime = kronWithSpEye(wgrid.makeFirstOrderReg(2), 2);
+  std::cout << __LINE__ << std::endl;
+  arma::sp_mat currentRegSpace = kronWithSpEye(vcat(cgrid.makeFirstOrderReg(0),
+                                   cgrid.makeFirstOrderReg(1)), 2);
+  std::cout << __LINE__ << std::endl;
+  arma::sp_mat currentRegTime = kronWithSpEye(cgrid.makeFirstOrderReg(2), 2);
+  std::cout << __LINE__ << std::endl;
+
   //arma::sp_mat windRegSpace2 = arma::kron(windRegSpace, arma::speye(2, 2));
+
+
 
   //GridFitter gf;
   //gf.add(std::shared_ptr<GridFit>(new GridFit()));

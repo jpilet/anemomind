@@ -51,7 +51,7 @@ arma::sp_mat dcat(arma::sp_mat A, arma::sp_mat B) {
 }
 
 arma::sp_mat makePermutationMat(Arrayi ordering) {
-  assert(false); // "Not tested yet");
+  assert(false); // "Not tested yet"
   int n = ordering.size();
   arma::umat IJ(2, n);
   arma::vec X(n);
@@ -64,10 +64,32 @@ arma::sp_mat makePermutationMat(Arrayi ordering) {
 }
 
 arma::sp_mat kronWithSpEye(arma::sp_mat M, int eyeDim) {
-  for (int col = 0; col < M.n_cols; col++) {
-    //int colptr = M.col_ptrs;
-
+  int dstElemCount = eyeDim*M.n_nonzero;
+  arma::umat IJ(2, dstElemCount);
+  arma::vec X(dstElemCount);
+  int counter = 0;
+  for (int srcCol = 0; srcCol < M.n_cols; srcCol++) { // For every column
+    arma::uword colptr = M.col_ptrs[srcCol];
+    const arma::uword *rowIndicesInCol = M.row_indices + colptr;
+    const double *xInCol = M.values + colptr;
+    arma::uword countInCol = M.col_ptrs[srcCol+1] - M.col_ptrs[srcCol];
+    for (int k = 0; k < countInCol; k++) { // For every element of this column
+      int srcRow = rowIndicesInCol[k];
+      int x = xInCol[k];
+      int dstOffset = eyeDim*counter;
+      int dstRowOffset = eyeDim*srcRow;
+      int dstColOffset = eyeDim*srcCol;
+      for (int i = 0; i < eyeDim; i++) {
+        int at = dstOffset + i;
+        IJ(0, at) = dstRowOffset + i;
+        IJ(1, at) = dstColOffset + i;
+        X[at] = x;
+      }
+      counter++;
+    }
   }
+  assert(counter == M.n_nonzero);
+  return arma::sp_mat(IJ, X, eyeDim*M.n_rows, eyeDim*M.n_cols);
 }
 
 } /* namespace sail */
