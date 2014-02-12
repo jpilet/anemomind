@@ -7,9 +7,8 @@
 #define WGS84TOXYZ_H_
 
 #include <server/common/math.h>
+// Make sure functions exist for T by including <cmath> or <adolc/adouble.h>
 
-// -- If you use file with double, include <cmath> before this file is included --
-// -- If you use file with adouble, include <adolc/adouble.h> before this file is included --
 
 namespace sail {
 
