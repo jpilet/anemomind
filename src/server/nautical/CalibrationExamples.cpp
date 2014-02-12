@@ -10,6 +10,7 @@
 #include <server/nautical/LocalRace.h>
 #include <server/math/nonlinear/GridFitter.h>
 #include <armadillo>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -27,28 +28,56 @@ void calibEx001() {
   Grid3d wgrid = race.getWindGrid();
   Grid3d cgrid = race.getCurrentGrid();
 
+  std::shared_ptr<BoatData> boatData(new BoatData(&race, navs));
+
   DataCalib calib;
-  calib.addBoatData(std::shared_ptr<BoatData>(new BoatData(&race, navs)));
+  calib.addBoatData(boatData);
 
   WindData windData(calib);
   CurrentData currentData(calib);
 
-  arma::sp_mat Pwind = calib.makeP(wgrid);
+  arma::sp_mat Pwind = kronWithSpEye(calib.makeP(wgrid), 2);
   arma::sp_mat windRegSpace = kronWithSpEye(vcat(wgrid.makeFirstOrderReg(0),
                                    wgrid.makeFirstOrderReg(1)), 2);
   arma::sp_mat windRegTime = kronWithSpEye(wgrid.makeFirstOrderReg(2), 2);
 
-  arma::sp_mat Pcurrent = calib.makeP(cgrid);
+  arma::sp_mat Pcurrent = kronWithSpEye(calib.makeP(cgrid), 2);
   arma::sp_mat currentRegSpace = kronWithSpEye(vcat(cgrid.makeFirstOrderReg(0),
                                    cgrid.makeFirstOrderReg(1)), 2);
   arma::sp_mat currentRegTime = kronWithSpEye(cgrid.makeFirstOrderReg(2), 2);
 
+
+  const double initialRegWeight = 0.1;
+
+  const int splitCount = 4;
+  Array<Arrayb> windSplits = makeRandomSplits(4, calib.windDataCount());
+  Array<Arrayb> currentSplits = makeRandomSplits(4, calib.currentDataCount());
+
+  double windCurrentBalance = 0.5;
+  std::shared_ptr<GridFit> windTerm(new GridFit(Pwind, &windData,
+      Array<arma::sp_mat>::args(windRegSpace, windRegTime), windSplits,
+      Arrayd::args(initialRegWeight, initialRegWeight),
+      Array<std::string>::args("Wind-space", "Wind-time"),
+      windCurrentBalance));
+  std::shared_ptr<GridFit> currentTerm(new GridFit(Pcurrent, &currentData,
+      Array<arma::sp_mat>::args(currentRegSpace, currentRegTime), currentSplits,
+      Arrayd::args(initialRegWeight, initialRegWeight),
+      Array<std::string>::args("Current-space", "Current-time"),
+      1.0 - windCurrentBalance));
+
   arma::mat X = calib.makeInitialParameters();
 
-  std::cout << "Initial parameters: " << X << endl;
-
   GridFitter gf;
-  //gf.add(std::shared_ptr<GridFit>(new GridFit()));
+  gf.add(windTerm);
+  gf.add(currentTerm);
+  gf.solve(&X);
+
+  double *x = X.memptr();
+  std::cout << "Final calibration: " << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(boatData->magneticCompassOffset(x)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(boatData->windDirectionOffset(x)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(boatData->waterSpeedCoef(x)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(boatData->windSpeedCoef(x)) << std::endl;
 }
 
 } /* namespace sail */
