@@ -101,8 +101,8 @@ TEST(wgs84Test, JacobianRadDegTest) {
           for (int i = 0; i < 9; i++) {
             const bool verbose = false;
             if (verbose) {
-              std::cout << "\n\n" << EAVAS(i) << std::endl;
-              std::cout << EAVAS(JNum[i]) << "\n" << EAVAS(J[i]) << std::endl;
+              std::cout << "\n\n" << EXPR_AND_VAL_AS_STRING(i) << std::endl;
+              std::cout << EXPR_AND_VAL_AS_STRING(JNum[i]) << "\n" << EXPR_AND_VAL_AS_STRING(J[i]) << std::endl;
             }
             double reldif = (J[i] - JNum[i])/(std::abs(0.5*(JNum[i] + J[i])) + 1.0e-6);
             EXPECT_NEAR(reldif, 0, 2.0e-3); // <-- Be quite tolerant here because numeric differentiation is dirty.
