@@ -8,11 +8,13 @@
 #ifndef LOCALRACE_H_
 #define LOCALRACE_H_
 
+#include <server/math/armaadolc.h>
 #include <server/math/mathutils.h>
 #include <server/common/Array.h>
 #include <server/nautical/Nav.h>
 #include <server/common/BBox.h>
 #include <server/math/Grid.h>
+#include <adolc/adouble.h>
 
 namespace sail {
 
@@ -29,6 +31,10 @@ class LocalRace {
 
   arma::vec2 calcNavLocalPos(Nav nav);
   arma::vec3 calcNavLocalPosAndTime(Nav nav);
+
+
+  arma::Col<adouble>::fixed<2> calcNavLocalDir(Nav nav, adouble dirRadians);
+
   MDArray2d calcNavsLocalPosAndTime(Array<Nav> navs);
   double calcNavLocalTime(const Nav &nav);
   Array<arma::vec2> calcNavsLocalPos(Array<Nav> navs);

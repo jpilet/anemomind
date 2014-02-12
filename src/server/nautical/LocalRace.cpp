@@ -8,6 +8,7 @@
 #include "LocalRace.h"
 #include <server/common/ArrayIO.h>
 #include <server/plot/extra.h>
+#include <server/nautical/WGS84.h>
 
 namespace sail {
 
@@ -43,6 +44,20 @@ arma::vec3 LocalRace::calcNavLocalPosAndTime(Nav nav) {
   arma::vec2 xy = calcNavLocalPos(nav);
   double data[3] = {xy[0], xy[1], calcNavLocalTime(nav)};
   return arma::vec3(data);
+}
+
+arma::Col<adouble>::fixed<2> LocalRace::calcNavLocalDir(Nav nav, adouble dirRadians) {
+  adouble xyz[3], xyzDir[3];
+  WGS84<adouble>::posAndDirToXYZ(nav.getLonRadians(), nav.getLatRadians(), 0.0, dirRadians, xyz, xyzDir);
+  arma::Col<adouble>::fixed<2> dst;
+  dst[0] = 0;
+  dst[1] = 0;
+  for (int i = 0; i < 3; i++) {
+    dst[0] += _axes(0, i)*xyzDir[i];
+    dst[1] += _axes(1, i)*xyzDir[i];
+  }
+  normalizeInPlace<adouble>(2, dst.memptr());
+  return dst;
 }
 
 MDArray2d LocalRace::calcNavsLocalPosAndTime(Array<Nav> navs) {

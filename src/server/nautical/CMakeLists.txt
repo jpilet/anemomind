@@ -30,7 +30,8 @@ target_link_libraries(nautical_DataCalib common_Array)
 add_library(nautical_LocalRace
             LocalRace.h
             LocalRace.cpp)
-            
+target_link_libraries(nautical_LocalRace
+  math_armaadolc)            
             
             
 #################################################################

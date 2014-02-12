@@ -7,8 +7,21 @@
 
 #include "DataCalib.h"
 #include <server/nautical/LocalRace.h>
+#include <server/common/math.h>
 
 namespace sail {
+
+adouble preliminaryCourseErrorDueToDrift(adouble awaRadians) {
+  const double maxAngle = deg2rad(5.0);
+  adouble cosa = cos(awaRadians);
+  if (cosa < 0) {
+    return 0;
+  } else {
+    int sign = (sin(awaRadians) > 0? -1 : 1); // <-- is this correct?
+    return sign*cosa;
+  }
+}
+
 
 DataCalib::DataCalib() {
   _paramCount = 0;
@@ -78,7 +91,8 @@ void BoatData::evalWindData(adouble *Xin, adouble *Fout) {
   for (int i = 0; i < navCount; i++) {
     adouble *fout = Fout + 2*i;
     Nav &nav = _navs[i];
-
+    adouble awaRadians = nav.awaRadians();
+    adouble awsMPS = nav.awsMPS();
   }
 }
 

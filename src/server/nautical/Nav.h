@@ -10,6 +10,7 @@
 
 #include <string>
 #include <server/common/MDArray.h>
+#include <server/common/math.h>
 
 namespace sail {
 
@@ -38,6 +39,8 @@ class Nav {
 
   void get3dPos(double *xyzOut) const;
   void get3dPos(double *xOut, double *yOut, double *zOut) const;
+  double awaRadians() {return deg2rad(_awa);}
+  double awsMPS() {return 1852.0*_aws/3600.0;}
 
   // This is just temporary. We should
   // replace it with CMake-generated paths in the future.

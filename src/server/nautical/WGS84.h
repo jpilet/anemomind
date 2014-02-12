@@ -88,8 +88,8 @@ class WGS84 {
     toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, J);
     T *eastAxis = J + 0;
     T *northAxis = J + 3;
-    normalizeInPlace<double>(3, eastAxis);
-    normalizeInPlace<double>(3, northAxis);
+    normalizeInPlace<T>(3, eastAxis);
+    normalizeInPlace<T>(3, northAxis);
 
     T northCoef = cos(angleUnit2Radians*dirRad);
     T eastCoef = sin(angleUnit2Radians*dirRad);

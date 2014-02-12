@@ -23,6 +23,7 @@ add_library(math_ADFunction
            )
 target_link_libraries(math_ADFunction
                       common_Function
+                      math_armaadolc
                      )
 target_depends_on_adolc(math_ADFunction)
 
