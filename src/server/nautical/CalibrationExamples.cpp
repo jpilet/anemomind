@@ -8,6 +8,7 @@
 #include <server/common/Duration.h>
 #include <server/nautical/DataCalib.h>
 #include <server/nautical/LocalRace.h>
+#include <server/math/nonlinear/GridFitter.h>
 
 namespace sail {
 
@@ -23,8 +24,12 @@ void calibEx001() {
 
   LocalRace localRace(navs, spaceStep, timeStep);
 
+  // The data part of the objective function
   DataCalib calib;
   calib.addBoatData(std::shared_ptr<BoatData>(new BoatData(&localRace, navs)));
+
+  //GridFitter gf;
+  //gf.add(std::shared_ptr<GridFit>(new GridFit()));
 }
 
 } /* namespace sail */
