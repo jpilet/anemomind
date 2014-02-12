@@ -427,9 +427,6 @@ void GridFitter::solve(arma::mat *XInOut) {
   arma::mat &X = *(XInOut);
   assert(X.size() == getNLParamCount());
 
-  LevmarSettings settings;
-  settings.verbosity = 0;
-
   const double initStepSize = 0.1;
   Array<Arrayd> stepSizes = initStepSizes(getRegCounts(), initStepSize);
 
@@ -441,6 +438,7 @@ void GridFitter::solve(arma::mat *XInOut) {
 
     // Part 1: Optimize Player 1 (the objective function)
     {
+      std::cout << "    PART 1: Adjusting calibration parameters..." << std::endl;
       GridFitPlayer1 objf(frontier, _terms);
       settings.acceptor = [&] (double *Xd, double val) {
         return objf.acceptor(Xd, val);
@@ -452,6 +450,7 @@ void GridFitter::solve(arma::mat *XInOut) {
 
     // Part 2: Adjust the regularization weights of every grid fit.
     {
+      std::cout << "    PART 2: Adjusting regularization weights..." << std::endl;
       GridFitOtherPlayers other(frontier, _terms, X);
       other.optimize(stepSizes);
     }
@@ -464,8 +463,6 @@ void GridFitter::solveFixedReg(arma::mat *XInOut) {
   LevmarState lmState(X);
   ParetoFrontier frontier;
   GridFitPlayer1 objf(frontier, _terms);
-  LevmarSettings settings;
-  settings.verbosity = 3;
   lmState.minimize(settings, objf);
 
   X = lmState.getX();

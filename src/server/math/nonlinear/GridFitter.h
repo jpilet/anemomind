@@ -13,6 +13,7 @@
 #include <memory>
 #include <server/common/Array.h>
 #include <vector>
+#include <server/math/nonlinear/LevmarSettings.h>
 
 namespace sail {
 
@@ -123,6 +124,7 @@ class GridFitter {
   void solve(arma::mat *XInOut);
   void solveFixedReg(arma::mat *XInOut);
 
+  LevmarSettings settings;
  private:
   int getNLParamCount();
   std::vector<std::shared_ptr<GridFit> > _terms;

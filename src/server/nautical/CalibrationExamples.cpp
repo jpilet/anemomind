@@ -21,7 +21,7 @@ void calibEx001() {
   Array<Array<Nav> > splitNavs = splitNavsByDuration(allNavs,
                                  Duration::minutes(10).getDurationSeconds());
   Array<Nav> navs = splitNavs.first();
-  double spaceStep = 500; // metres
+  double spaceStep = 1000; // metres
   double timeStep = Duration::minutes(10).getDurationSeconds();
 
   LocalRace race(navs, spaceStep, timeStep);
@@ -68,8 +68,15 @@ void calibEx001() {
   arma::mat X = calib.makeInitialParameters();
 
   GridFitter gf;
+  gf.settings.verbosity = 3;
   gf.add(windTerm);
   gf.add(currentTerm);
+
+  std::cout << "Solving for " << wgrid.getVertexCount() << " wind grid 2d vertices and \n";
+  std::cout << "  for " << cgrid.getVertexCount() << " current grid 2d vertices.\n";
+  std::cout << "Number of calibration parameters: " << X.n_elem << "\n";
+
+
   gf.solve(&X);
 
   double *x = X.memptr();
