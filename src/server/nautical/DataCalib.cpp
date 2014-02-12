@@ -86,13 +86,61 @@ arma::mat DataCalib::makeInitialParameters() {
 BoatData::BoatData(LocalRace *race, Array<Nav> navs) : _race(race), _navs(navs), _paramOffset(0) {
 }
 
+void BoatData::evalCurrentData(adouble *Xin, adouble *Fout) {
+  int navCount = _navs.size();
+  for (int i = 0; i < navCount; i++) {
+    adouble *waterWrtEarth = Fout + 2*i;
+    Nav &nav = _navs[i];
+    adouble awaRadians = calcAwaRadians(nav, Xin);
+    adouble beta = estimateHeadingRadians(nav, awaRadians, Xin);
+    adouble apparentWaterSpeed = calcWaterSpeedMPS(nav, Xin);
+    arma::advec2 boatWrtWater = apparentWaterSpeed*_race->calcNavLocalDir(nav, beta);
+    arma::advec2 boatWrtEarth = calcBoatWrtEarth(nav);
+    for (int j = 0; j < 2; j++) {
+      // boatWrtWater + waterWrtEarth = boatWrtEarth
+      waterWrtEarth[j] = boatWrtEarth[j] - boatWrtWater[j];
+    }
+  }
+}
+
+adouble BoatData::estimateHeadingRadians(const Nav &nav, adouble awaRadians, adouble *Xin) {
+  return preliminaryCourseErrorDueToDrift(awaRadians) +
+        magneticCompassOffset(Xin) +
+        _race->getMagDecl() +
+        nav.magHdgRadians();
+}
+
+arma::advec2 BoatData::calcBoatWrtEarth(const Nav &nav) {
+  return nav.gpsSpeedMPS()*_race->calcNavLocalDir(nav, nav.gpsBearingRadians());
+}
+
+
+adouble BoatData::calcAwaRadians(const Nav &nav, adouble *Xin) {
+  return nav.awaRadians() + windDirectionOffset(Xin);
+}
+
+adouble BoatData::calcAwsMPS(const Nav &nav, adouble *Xin) {
+  return nav.awsMPS()*windSpeedCoef(Xin);
+}
+
+adouble BoatData::calcWaterSpeedMPS(const Nav &nav, adouble *Xin) {
+  return waterSpeedCoef(Xin)*nav.watSpeedMPS();
+}
+
+
+
 void BoatData::evalWindData(adouble *Xin, adouble *Fout) {
   int navCount = _navs.size();
   for (int i = 0; i < navCount; i++) {
-    adouble *fout = Fout + 2*i;
+    adouble *windWrtEarth = Fout + 2*i;
     Nav &nav = _navs[i];
-    adouble awaRadians = nav.awaRadians();
-    adouble awsMPS = nav.awsMPS();
+    adouble awsMPS = windSpeedCoef(Xin)*nav.awsMPS();
+    adouble awaRadians = calcAwaRadians(nav, Xin);
+    arma::advec2 windWrtBoat = awsMPS*_race->calcNavLocalDir(nav, awaRadians);
+    arma::advec2 boatWrtEarth = calcBoatWrtEarth(nav);
+    for (int j = 0; j < 2; j++) {
+      windWrtEarth[j] = boatWrtEarth[j] - windWrtBoat[j];
+    }
   }
 }
 

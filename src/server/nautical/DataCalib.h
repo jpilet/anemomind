@@ -8,6 +8,7 @@
 #ifndef DATACALIB_H_
 #define DATACALIB_H_
 
+#include <server/math/armaadolc.h>
 #include <server/common/Array.h>
 #include <server/nautical/Nav.h>
 #include <memory>
@@ -16,6 +17,7 @@
 #include <server/math/ADFunction.h>
 #include <armadillo>
 #include <server/math/Grid.h>
+
 
 namespace sail {
 
@@ -59,7 +61,7 @@ class BoatData {
 
   // Output 'getCurrentDataCount()' residuals to Fout, starting at index 0,
   // computed from the vector Xin
-  void evalCurrentData(adouble *Xin, adouble *Fout) {}
+  void evalCurrentData(adouble *Xin, adouble *Fout);
 
 
   void fillPData(int offset, Grid3d grid, arma::umat *IJOut, arma::vec *XOut);
@@ -78,6 +80,12 @@ class BoatData {
   template <typename T> T &windDirectionOffset(T *x) {return x[_paramOffset + 1];}
   template <typename T> T &waterSpeedCoef(T *x) {return x[_paramOffset + 2];}
   template <typename T> T &windSpeedCoef(T *x) {return x[_paramOffset + 3];}
+
+  arma::advec2 calcBoatWrtEarth(const Nav &nav);
+  adouble calcAwaRadians(const Nav &nav, adouble *Xin);
+  adouble calcAwsMPS(const Nav &nav, adouble *Xin);
+  adouble estimateHeadingRadians(const Nav &nav, adouble awaRadians, adouble *Xin);
+  adouble calcWaterSpeedMPS(const Nav &nav, adouble *Xin);
 };
 
 /*

@@ -97,6 +97,7 @@ T normdif(T *a, T *b) {
 
 double rad2deg(double rad);
 double deg2rad(double deg);
+double knots2MPS(double knots);
 
 } /* namespace sail */
 

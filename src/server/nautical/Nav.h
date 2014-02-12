@@ -39,8 +39,13 @@ class Nav {
 
   void get3dPos(double *xyzOut) const;
   void get3dPos(double *xOut, double *yOut, double *zOut) const;
-  double awaRadians() {return deg2rad(_awa);}
-  double awsMPS() {return 1852.0*_aws/3600.0;}
+
+  double awaRadians() const {return deg2rad(_awa);}
+  double awsMPS() const {return knots2MPS(_aws);}
+  double magHdgRadians() const {return deg2rad(_magHdg);}
+  double gpsBearingRadians() const {return deg2rad(_gpsBearing);}
+  double gpsSpeedMPS() const {return knots2MPS(_gpsSpeed);}
+  double watSpeedMPS() const {return knots2MPS(_watSpeed);}
 
   // This is just temporary. We should
   // replace it with CMake-generated paths in the future.
