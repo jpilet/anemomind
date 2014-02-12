@@ -16,25 +16,24 @@ namespace sail {
 template <typename T>
 class WGS84 {
  public:
-  constexpr static bool useDegrees = false;
   constexpr static double k2_PI = 6.283185307179586476925286766559005768394338798750211641949889184615;
-  constexpr static double angleUnit2Radians = (useDegrees? (k2_PI/360.0) : 1.0);
+  constexpr static double angleUnit2Radians = 1.0;
   constexpr static double ECEFA = 6378137;
   constexpr static double ECEFE = 8.1819190842622e-2;
 
 
   // Maps lon lat and altitude to an XYZ position in an ECEF coordinate system.
-  static void toXYZ(T lon, T lat, T altitude,
-                         T *xyz3) {
-    toXYZWithJ(lon, lat, altitude, xyz3, nullptr);
+  static void toXYZ(T lonRad, T latRad, T altitudeMetres,
+                         T *xyz3MetresOut) {
+    toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, nullptr);
   }
 
   // Maps (lon, lat, altitude) to 3d position xyz3 and optionally
   // outputs the Jacobian matrix
-  static void toXYZWithJ(T lon, T lat, T altitude,
-                         T *xyz3, T *J3x3ColMajorOut) {
-    T theta = lat*angleUnit2Radians;
-    T phi = lon*angleUnit2Radians;
+  static void toXYZWithJ(T lonRad, T latRad, T altitudeMetres,
+                         T *xyz3MetresOut, T *J3x3ColMajorOut) {
+    T theta = latRad*angleUnit2Radians;
+    T phi = lonRad*angleUnit2Radians;
     T E2 = sqr(ECEFE);
     T Ndenom = sqrt(1 - E2*sqr(sin(theta)));
     T N = ECEFA/Ndenom;
@@ -43,12 +42,12 @@ class WGS84 {
     T sinPhi = sin(phi);
     T sinTheta = sin(theta);
 
-    T Nh = N + altitude;
+    T Nh = N + altitudeMetres;
     T oneMinusE2 = (1 - E2);
 
-    xyz3[0] = Nh*cosTheta*cosPhi;
-    xyz3[1] = Nh*cosTheta*sinPhi;
-    xyz3[2] = (oneMinusE2*N + altitude)*sinTheta;
+    xyz3MetresOut[0] = Nh*cosTheta*cosPhi;
+    xyz3MetresOut[1] = Nh*cosTheta*sinPhi;
+    xyz3MetresOut[2] = (oneMinusE2*N + altitudeMetres)*sinTheta;
 
     if (J3x3ColMajorOut != nullptr) {
       T dNDTheta = ECEFA*E2*sinTheta*cosTheta/(Ndenom*sqrt(Ndenom));
@@ -61,7 +60,7 @@ class WGS84 {
       // dTheta
       T dXdTheta = dNDTheta*cosTheta*cosPhi - Nh*sinTheta*cosPhi;
       T dYdTheta = dNDTheta*cosTheta*sinPhi - Nh*sinTheta*sinPhi;
-      T dZdTheta = oneMinusE2*dNDTheta*sinTheta + (oneMinusE2*N + altitude)*cosTheta;
+      T dZdTheta = oneMinusE2*dNDTheta*sinTheta + (oneMinusE2*N + altitudeMetres)*cosTheta;
 
       // dH
       T dXdH = cosTheta*cosPhi;
@@ -86,16 +85,16 @@ class WGS84 {
 
   }
 
-  static void posAndDirToXYZ(T lon, T lat, T altitude, T dir, T *xyzPosOut, T *xyzDirUnitVectorOut) {
+  static void posAndDirToXYZ(T lonRad, T latRad, T altitudeMetres, T dirRad, T *xyz3MetresOut, T *xyzDirUnitVectorOut) {
     T J[9];
-    toXYZWithJ(lon, lat, altitude, xyzPosOut, J);
+    toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, J);
     T *eastAxis = J + 0;
     T *northAxis = J + 3;
     normalizeInPlace<double>(3, eastAxis);
     normalizeInPlace<double>(3, northAxis);
 
-    T northCoef = cos(angleUnit2Radians*dir);
-    T eastCoef = sin(angleUnit2Radians*dir);
+    T northCoef = cos(angleUnit2Radians*dirRad);
+    T eastCoef = sin(angleUnit2Radians*dirRad);
 
     T len2 = 0.0;
     for (int i = 0; i < 3; i++) {
@@ -118,10 +117,10 @@ class WGS84 {
   // Maps (lon, lat, altitude) to a 3D position xyz3.
   // Optionally outputs two scalars, dlon1 and dlat1, that are the derivatives of
   // the norm of the xyz position w.r.t. lon and lat.
-  static void toXYZLocal(T lon, T lat, T altitude,
-                         T *xyz3, T *dlon1, T *dlat1) {
-    T latRad = lat * angleUnit2Radians;
-    T lonRad = lon * angleUnit2Radians;
+  static void toXYZLocal(T lonRadians, T latRadians, T altitudeMetres,
+                         T *xyz3MetresOut, T *dlon1, T *dlat1) {
+    T latRad = latRadians * angleUnit2Radians;
+    T lonRad = lonRadians * angleUnit2Radians;
     T sinlat = sin(latRad);
     T coslat = cos(latRad);
     T sinlon = sin(lonRad);
@@ -134,7 +133,7 @@ class WGS84 {
     t5 = 1.0-t4;
     t6 = sqrt(t5);
     t8 = a/t6;
-    t9 = t8+altitude;
+    t9 = t8+altitudeMetres;
     t11 = t9*coslat;
     t13 = t11*sinlon;
     t16 = a/t6/t5;
@@ -144,7 +143,7 @@ class WGS84 {
     t23 = t9*sinlat;
     t26 = t11*coslon;
     t31 = 1.0-e2;
-    t36 = t8*t31+altitude;
+    t36 = t8*t31+altitudeMetres;
     t37 = t17*t19;
 
     if (dlon1) {
@@ -158,10 +157,10 @@ class WGS84 {
       *dlat1 = sqrt(u*u + v*v + w*w)*angleUnit2Radians;
     }
 
-    if (xyz3) {
-      xyz3[0] = t26;
-      xyz3[1] = t13;
-      xyz3[2] = t36*sinlat;
+    if (xyz3MetresOut) {
+      xyz3MetresOut[0] = t26;
+      xyz3MetresOut[1] = t13;
+      xyz3MetresOut[2] = t36*sinlat;
     }
   }
 };
