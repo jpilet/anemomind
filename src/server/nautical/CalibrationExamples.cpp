@@ -9,6 +9,7 @@
 #include <server/nautical/DataCalib.h>
 #include <server/nautical/LocalRace.h>
 #include <server/math/nonlinear/GridFitter.h>
+#include <armadillo>
 
 namespace sail {
 
@@ -22,11 +23,20 @@ void calibEx001() {
   double spaceStep = 500; // metres
   double timeStep = Duration::minutes(10).getDurationSeconds();
 
-  LocalRace localRace(navs, spaceStep, timeStep);
+  LocalRace race(navs, spaceStep, timeStep);
+  Grid3d wgrid = race.getWindGrid();
+  Grid3d cgrid = race.getCurrentGrid();
 
   // The data part of the objective function
   DataCalib calib;
-  calib.addBoatData(std::shared_ptr<BoatData>(new BoatData(&localRace, navs)));
+  calib.addBoatData(std::shared_ptr<BoatData>(new BoatData(&race, navs)));
+
+  WindData windData(calib);
+  CurrentData currentData(calib);
+
+  arma::sp_mat windRegSpace = vcat(wgrid.makeFirstOrderReg(0),
+                                   wgrid.makeFirstOrderReg(1));
+  //arma::sp_mat windRegSpace2 = arma::kron(windRegSpace, arma::speye(2, 2));
 
   //GridFitter gf;
   //gf.add(std::shared_ptr<GridFit>(new GridFit()));
