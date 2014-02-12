@@ -14,6 +14,8 @@
 #include <vector>
 #include <adolc/adouble.h>
 #include <server/math/ADFunction.h>
+#include <armadillo>
+#include <server/math/Grid.h>
 
 namespace sail {
 
@@ -60,6 +62,7 @@ class BoatData {
   void evalCurrentData(adouble *Xin, adouble *Fout) {}
 
 
+  void fillPData(int offset, Grid3d grid, arma::umat *IJOut, arma::vec *XOut);
 
   void setParamOffset(int offset);
  private:
@@ -86,8 +89,10 @@ class DataCalib {
   int currentDataCount() const {return _currentDataCount;}
   void evalWindData(adouble *Xin, adouble *Fout);
   void evalCurrentData(adouble *Xin, adouble *Fout);
+
+  arma::sp_mat makeP(Grid3d grid);
  private:
-  int _paramCount, _windDataCount, _currentDataCount;
+  int _paramCount, _windDataCount, _currentDataCount, _navCount;
   std::vector<std::shared_ptr<BoatData> > _boats;
 };
 
