@@ -67,6 +67,11 @@ target_link_libraries(nautical_LocalRace
 add_library(nautical_CalibrationExamples
   CalibrationExamples.h
   CalibrationExamples.cpp)
+target_link_libraries(nautical_CalibrationExamples
+  nautical_LocalRace
+  nautical_DataCalib
+  common_Duration)
+
 
 add_executable(nautical_CalibrationExample
   CalibrationExample.cpp)

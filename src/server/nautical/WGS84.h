@@ -82,7 +82,6 @@ class WGS84 {
       J3x3ColMajorOut[7] = dYdH;
       J3x3ColMajorOut[8] = dZdH;
     }
-
   }
 
   static void posAndDirToXYZ(T lon, T lat, T altitude, T dir, T *xyzPosOut, T *xyzDirUnitVectorOut) {

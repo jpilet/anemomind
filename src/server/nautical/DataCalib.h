@@ -76,7 +76,6 @@ class BoatData {
  */
 class DataCalib {
  public:
-  // http://en.wikipedia.org/wiki/Magnetic_declination
   DataCalib();
 
   void addBoatData(std::shared_ptr<BoatData> boatData);
