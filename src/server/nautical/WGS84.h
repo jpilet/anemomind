@@ -14,7 +14,7 @@
 namespace sail {
 
 template <typename T, bool useDegrees>
-class Wgs84 {
+class WGS84 {
  public:
   constexpr static double k2_PI = 6.283185307179586476925286766559005768394338798750211641949889184615;
   constexpr static double angleUnit2Radians = (useDegrees? (k2_PI/360.0) : 1.0);

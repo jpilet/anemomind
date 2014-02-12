@@ -24,7 +24,7 @@ TEST(wgs84Test, CheckItIsReasonableTest) {
   double radius = circumferenceEarthMetres/(2.0*M_PI);
 
   double xyz[3];
-  Wgs84<double, false>::toXYZ(lon, lat, altitudeMetres, xyz);
+  WGS84<double, false>::toXYZ(lon, lat, altitudeMetres, xyz);
   double distFromCog = norm(3, xyz);
   double tol = 0.1;
   EXPECT_LE((1.0 - tol)*radius, distFromCog);
@@ -44,7 +44,7 @@ TEST(wgs84Test, CompareToECEFTest) {
       for (int k = 0; k < 3; k++) {
         double altitudeMetres = altitudes[k];
         double xyz[3];
-        Wgs84<double, false>::toXYZLocal(lon, lat, altitudeMetres, xyz, nullptr, nullptr);
+        WGS84<double, false>::toXYZLocal(lon, lat, altitudeMetres, xyz, nullptr, nullptr);
 
         double ex, ey, ez;
         lla2ecefJustForReference(lon, lat, altitudeMetres, ex, ey, ez);
@@ -53,7 +53,7 @@ TEST(wgs84Test, CompareToECEFTest) {
         EXPECT_NEAR(ez, xyz[2], 1.0e-5);
 
         double xyz2[3];
-        Wgs84<double, false>::toXYZ(lon, lat, altitudeMetres, xyz2);
+        WGS84<double, false>::toXYZ(lon, lat, altitudeMetres, xyz2);
         EXPECT_NEAR(ex, xyz2[0], 1.0e-5);
         EXPECT_NEAR(ey, xyz2[1], 1.0e-5);
         EXPECT_NEAR(ez, xyz2[2], 1.0e-5);
@@ -68,7 +68,7 @@ class Wgs84TestFun : public Function {
   int inDims() {return 3;}
   int outDims() {return 3;}
   void eval(double *Xin, double *Fout, double *Jout) {
-    typedef Wgs84<double, useDegrees> Mapper;
+    typedef WGS84<double, useDegrees> Mapper;
     Mapper::toXYZWithJ(Xin[0], Xin[1], Xin[2], Fout, Jout);
   }
 };
@@ -131,7 +131,7 @@ TEST(wgs84Test, DirTest001) {
       double course = deg2rad(courses(i));
 
       double xyz[3], dirXyz[3];
-      Wgs84<double, false>::posAndDirToXYZ(lon, lat, altitudeMetres, course, xyz, dirXyz);
+      WGS84<double, false>::posAndDirToXYZ(lon, lat, altitudeMetres, course, xyz, dirXyz);
 
       double sinc = sign[K]*sin(course);
 
@@ -163,7 +163,7 @@ TEST(wgs84Test, DirTest002) {
       double course = deg2rad(courses(i));
       for (int i = 0; i < 2; i++) {
         double xyz[3], dirXyz[3];
-        Wgs84<double, false>::posAndDirToXYZ(lon, lat(i), 0.0, course, xyz, dirXyz);
+        WGS84<double, false>::posAndDirToXYZ(lon, lat(i), 0.0, course, xyz, dirXyz);
         EXPECT_NEAR(dirXyz[2], 0.0, 1.0e-5);
       }
     }
@@ -185,10 +185,10 @@ TEST(wgs84Test, MeaningOfDlonDlatTest) {
         double alt = alts(k);
 
         double xyz[3], J[9];
-        Wgs84<double, false>::toXYZWithJ(lon, lat, alt, xyz, J);
+        WGS84<double, false>::toXYZWithJ(lon, lat, alt, xyz, J);
 
         double xyz2[3], dlon, dlat;
-        Wgs84<double, false>::toXYZLocal(lon, lat, alt, xyz2, &dlon, &dlat);
+        WGS84<double, false>::toXYZLocal(lon, lat, alt, xyz2, &dlon, &dlat);
 
         // Relative errors
         EXPECT_NEAR(1.0, norm<double>(3, J + 0)/dlon, 1.0e-4);
