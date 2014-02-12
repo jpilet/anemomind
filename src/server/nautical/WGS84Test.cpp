@@ -11,6 +11,7 @@
 #include <server/common/string.h>
 #include <server/common/LineKM.h>
 #include <server/common/Function.h>
+#include <server/common/logging.h>
 
 using namespace sail;
 
@@ -24,7 +25,7 @@ TEST(wgs84Test, CheckItIsReasonableTest) {
   double radius = circumferenceEarthMetres/(2.0*M_PI);
 
   double xyz[3];
-  WGS84<double, false>::toXYZ(lon, lat, altitudeMetres, xyz);
+  WGS84<double>::toXYZ(lon, lat, altitudeMetres, xyz);
   double distFromCog = norm(3, xyz);
   double tol = 0.1;
   EXPECT_LE((1.0 - tol)*radius, distFromCog);
@@ -44,7 +45,8 @@ TEST(wgs84Test, CompareToECEFTest) {
       for (int k = 0; k < 3; k++) {
         double altitudeMetres = altitudes[k];
         double xyz[3];
-        WGS84<double, false>::toXYZLocal(lon, lat, altitudeMetres, xyz, nullptr, nullptr);
+        WGS84<double>::toXYZLocal(lon, lat,
+            altitudeMetres, xyz, nullptr, nullptr);
 
         double ex, ey, ez;
         lla2ecefJustForReference(lon, lat, altitudeMetres, ex, ey, ez);
@@ -53,7 +55,7 @@ TEST(wgs84Test, CompareToECEFTest) {
         EXPECT_NEAR(ez, xyz[2], 1.0e-5);
 
         double xyz2[3];
-        WGS84<double, false>::toXYZ(lon, lat, altitudeMetres, xyz2);
+        WGS84<double>::toXYZ(lon, lat, altitudeMetres, xyz2);
         EXPECT_NEAR(ex, xyz2[0], 1.0e-5);
         EXPECT_NEAR(ey, xyz2[1], 1.0e-5);
         EXPECT_NEAR(ez, xyz2[2], 1.0e-5);
@@ -62,13 +64,12 @@ TEST(wgs84Test, CompareToECEFTest) {
   }
 }
 
-template <bool useDegrees>
-class Wgs84TestFun : public Function {
+class WGS84TestFun : public Function {
  public:
   int inDims() {return 3;}
   int outDims() {return 3;}
   void eval(double *Xin, double *Fout, double *Jout) {
-    typedef WGS84<double, useDegrees> Mapper;
+    typedef WGS84<double> Mapper;
     Mapper::toXYZWithJ(Xin[0], Xin[1], Xin[2], Fout, Jout);
   }
 };
@@ -79,12 +80,7 @@ TEST(wgs84Test, JacobianRadDegTest) {
   double lonsAndLats[3] = {-0.2, 0.2, 0.5};
   double altitudes[3] = {0, 12, 144};
 
-  Wgs84TestFun<false> funRad;
-  Wgs84TestFun<true> funDeg;
-
-  typedef Function *FunctionPtr;
-  FunctionPtr funs[2] = {&funRad, &funDeg};
-
+  WGS84TestFun fun;
   for (int i = 0; i < 3; i++) {
     double lon = lonsAndLats[i]*M_PI;
     for (int j = 0; j < 3; j++) {
@@ -94,19 +90,20 @@ TEST(wgs84Test, JacobianRadDegTest) {
         double X[3] = {lon, lat, altitudeMetres};
         double J[9], JNum[9], F[3];
 
-        for (int K = 0; K < 2; K++) {
-          FunctionPtr fun = funs[K];
-          fun->eval(X, F, J);
-          fun->evalNumericJacobian(X, JNum);
-          for (int i = 0; i < 9; i++) {
-            const bool verbose = false;
-            if (verbose) {
-              std::cout << "\n\n" << EXPR_AND_VAL_AS_STRING(i) << std::endl;
-              std::cout << EXPR_AND_VAL_AS_STRING(JNum[i]) << "\n" << EXPR_AND_VAL_AS_STRING(J[i]) << std::endl;
-            }
-            double reldif = (J[i] - JNum[i])/(std::abs(0.5*(JNum[i] + J[i])) + 1.0e-6);
-            EXPECT_NEAR(reldif, 0, 2.0e-3); // <-- Be quite tolerant here because numeric differentiation is dirty.
+        fun.eval(X, F, J);
+        fun.evalNumericJacobian(X, JNum);
+        for (int i = 0; i < 9; i++) {
+          const bool verbose = false;
+          if (verbose) {
+            LOG(INFO) << "\n\n" << EXPR_AND_VAL_AS_STRING(i) << '\n';
+            LOG(INFO) << EXPR_AND_VAL_AS_STRING(JNum[i])
+                << "\n" << EXPR_AND_VAL_AS_STRING(J[i]) << '\n';
           }
+          double reldif =
+              (J[i] - JNum[i])/(std::abs(0.5*(JNum[i] + J[i])) + 1.0e-6);
+
+          // Be quite tolerant here because numeric differentiation is dirty:
+          EXPECT_NEAR(reldif, 0, 2.0e-3);
         }
       }
     }
@@ -131,7 +128,8 @@ TEST(wgs84Test, DirTest001) {
       double course = deg2rad(courses(i));
 
       double xyz[3], dirXyz[3];
-      WGS84<double, false>::posAndDirToXYZ(lon, lat, altitudeMetres, course, xyz, dirXyz);
+      WGS84<double>::posAndDirToXYZ(lon, lat,
+          altitudeMetres, course, xyz, dirXyz);
 
       double sinc = sign[K]*sin(course);
 
@@ -163,7 +161,8 @@ TEST(wgs84Test, DirTest002) {
       double course = deg2rad(courses(i));
       for (int i = 0; i < 2; i++) {
         double xyz[3], dirXyz[3];
-        WGS84<double, false>::posAndDirToXYZ(lon, lat(i), 0.0, course, xyz, dirXyz);
+        WGS84<double>::posAndDirToXYZ(lon, lat(i),
+            0.0, course, xyz, dirXyz);
         EXPECT_NEAR(dirXyz[2], 0.0, 1.0e-5);
       }
     }
@@ -185,16 +184,18 @@ TEST(wgs84Test, MeaningOfDlonDlatTest) {
         double alt = alts(k);
 
         double xyz[3], J[9];
-        WGS84<double, false>::toXYZWithJ(lon, lat, alt, xyz, J);
+        WGS84<double>::toXYZWithJ(lon, lat, alt, xyz, J);
 
         double xyz2[3], dlon, dlat;
-        WGS84<double, false>::toXYZLocal(lon, lat, alt, xyz2, &dlon, &dlat);
+        WGS84<double>::toXYZLocal(lon, lat, alt,
+            xyz2, &dlon, &dlat);
 
         // Relative errors
         EXPECT_NEAR(1.0, norm<double>(3, J + 0)/dlon, 1.0e-4);
         EXPECT_NEAR(1.0, norm<double>(3, J + 3)/dlat, 1.0e-4);
 
-        // ..and an extra test here just to check that xyz and xyz2 are the same (we tested this before too)
+        // ..and an extra test here just to check that xyz
+        // and xyz2 are the same (we tested this before too)
         EXPECT_NEAR((normdif<double, 3>(xyz, xyz2)), 0.0, 1.0e-4);
       }
     }

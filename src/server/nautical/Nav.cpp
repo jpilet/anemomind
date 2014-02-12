@@ -130,12 +130,12 @@ double Nav::getLatRadians() const {
 }
 
 void Nav::get3dPos(double *xyzOut) const {
-  WGS84<double, false>::toXYZ(getLonRadians(), getLatRadians(), 0.0, xyzOut);
+  WGS84<double>::toXYZ(getLonRadians(), getLatRadians(), 0.0, xyzOut);
 }
 
 void Nav::get3dPos(double *xOut, double *yOut, double *zOut) const {
   double xyz[3];
-  WGS84<double, false>::toXYZ(getLonRadians(), getLatRadians(), 0.0, xyz);
+  WGS84<double>::toXYZ(getLonRadians(), getLatRadians(), 0.0, xyz);
   *xOut = xyz[0];
   *yOut = xyz[1];
   *zOut = xyz[2];
@@ -287,7 +287,7 @@ MDArray2d calcNavsEcefTrajectory(Array<Nav> navs) {
   for (int i = 0; i < count; i++) {
     Nav &nav = navs[i];
     double xyz[3];
-    WGS84<double, false>::toXYZ(nav.getLonRadians(), nav.getLatRadians(), 0.0, xyz);
+    WGS84<double>::toXYZ(nav.getLonRadians(), nav.getLatRadians(), 0.0, xyz);
     for (int j = 0; j < 3; j++) {
       data(i, i) = xyz[j];
     }
