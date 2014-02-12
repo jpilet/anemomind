@@ -22,7 +22,7 @@ void calibEx001() {
                                  Duration::minutes(10).getDurationSeconds());
   Array<Nav> navs = splitNavs.first();
   double spaceStep = 1000; // metres
-  double timeStep = Duration::minutes(10).getDurationSeconds();
+  double timeStep = Duration::minutes(20).getDurationSeconds();
 
   LocalRace race(navs, spaceStep, timeStep);
   Grid3d wgrid = race.getWindGrid();
@@ -75,6 +75,8 @@ void calibEx001() {
   std::cout << "Solving for " << wgrid.getVertexCount() << " wind grid 2d vertices and \n";
   std::cout << "  for " << cgrid.getVertexCount() << " current grid 2d vertices.\n";
   std::cout << "Number of calibration parameters: " << X.n_elem << "\n";
+  std::cout << "Number of wind obs: " << windTerm->getData().outDims() << "\n";
+  std::cout << "Number of current obs: " << currentTerm->getData().outDims() << "\n";
 
 
   gf.solve(&X);

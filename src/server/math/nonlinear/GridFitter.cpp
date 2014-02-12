@@ -17,6 +17,7 @@
 #include <server/math/nonlinear/LevmarSettings.h>
 #include <server/math/nonlinear/StepMinimizer.h>
 #include <server/math/pareto.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -34,15 +35,19 @@ int countRows(Array<arma::sp_mat> A) {
 
 arma::mat makeDataResidualMat(const arma::mat &F,
                               const arma::sp_mat &P, Array<arma::sp_mat> A, Arrayd weights) {
+  LOG(INFO) << "Here";
   assert(A.size() == weights.size());
   int indims = F.n_cols;
+  LOG(INFO) << std::string("Mul PF. F = ") + objectToString(F.n_rows) + "x" + objectToString(F.n_cols) + "    P has " + objectToString(P.n_elem) + " elements and " + objectToString(P.n_nonzero) + " nonzeros";
   arma::mat residuesData = P*F - arma::eye(indims, indims);
+  LOG(INFO) << "Done";
 
   int rowcount = residuesData.n_rows + countRows(A);
   arma::mat dst(rowcount, indims);
   dst.fill(-1);
   int offset = residuesData.n_rows;
   dst.rows(0, offset-1) = residuesData;
+  LOG(INFO) << "Here";
   for (int i = 0; i < A.size(); i++) {
     int next = offset + A[i].n_rows;
     dst.rows(offset, next-1) = weights[i]*A[i]*F;
@@ -50,15 +55,18 @@ arma::mat makeDataResidualMat(const arma::mat &F,
     offset = next;
   }
   assert(offset == rowcount);
+  LOG(INFO) << "Here";
   return dst;
 }
 
 arma::mat GridFit::makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights) {
+  LOGFUN;
   return makeDataResidualMat(makeLsqDataToParamMatSub(P, A, weights), P, A, weights);
 }
 
 
 arma::mat GridFit::makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights) {
+  LOGFUN;
   int count = A.size();
   assert(count == weights.size());
   arma::sp_mat PtP = P.t()*P;
@@ -67,14 +75,21 @@ arma::mat GridFit::makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd w
     arma::sp_mat a = A[i];
     K += sqr(weights[i])*(a.t()*a);
   }
+  LOGFUN;
   return K;
 }
 
 arma::mat GridFit::makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights) {
+  LOGFUN;
+  LOG(INFO) << "Here";
   arma::mat K = makeNormalMat(P, A, weights);
+  LOG(INFO) << "Here";
   arma::sp_mat spPt = P.t();
+  LOG(INFO) << "Here";
   arma::mat Pt = MAKEDENSE(spPt);
+  LOG(INFO) << std::string("Here, solve ") + objectToString(K.n_rows) + "x" + objectToString(K.n_cols);
   arma::mat result = arma::solve(K, Pt);
+  LOG(INFO) << "Done solving it";
   return result;
 }
 
@@ -114,11 +129,13 @@ arma::sp_mat GridFit::makePsel(Arrayb sel) {
 
 arma::mat GridFit::makeDataToParamMat(Arrayb sel) {
   arma::sp_mat Psel = makePsel(sel);
+  LOGFUN;
   return makeLsqDataToParamMatSub(Psel, _regMatrices, _regWeights);
 }
 
 arma::mat GridFit::makeDataToResidualsMat(Arrayb sel) {
   arma::sp_mat Psel = makePsel(sel);
+  LOGFUN;
   return _weight*makeDataResidualMatSub(Psel, _regMatrices, _regWeights);
 }
 
@@ -149,6 +166,7 @@ arma::mat GridFit::makeCrossValidationFitnessMat() {
     arma::sp_mat selTrain = makeSpSel(train);
     arma::sp_mat Ptrain = selTrain*_P;
 
+    LOGFUN;
     arma::mat fit = makeLsqDataToParamMatSub(Ptrain, _regMatrices, _regWeights);
 
     arma::sp_mat selTest = makeSpSel(test);
@@ -255,7 +273,9 @@ GridFitPlayer1::GridFitPlayer1(ParetoFrontier &frontier, std::vector<std::shared
   for (int i = 0; i < count; i++) {
     GridFit *fit = fits[i].get();
     assert(fit->getData().inDims() == _inDims);
+    LOG(INFO) << "Make data to residuals mat R";
     arma::mat R = fit->makeDataToResidualsMat();
+    LOG(INFO) << "Done R.";
     _Rmats[i] = R;
     _cvmats[i] = fit->makeCrossValidationFitnessMat();
     _outDims += R.n_rows;
@@ -264,6 +284,7 @@ GridFitPlayer1::GridFitPlayer1(ParetoFrontier &frontier, std::vector<std::shared
 }
 
 void GridFitPlayer1::evalAD(adouble *Xin, adouble *Fout) {
+  LOG(FATAL) << "USE FORWARD MODE DIFFERENTIATION HERE. OTHERWISE IT IS WAY TOO SLOW.";
   int count = _fits.size();
   int offset = 0;
   Array<adouble> temp(_maxDataLen);
@@ -438,13 +459,17 @@ void GridFitter::solve(arma::mat *XInOut) {
 
     // Part 1: Optimize Player 1 (the objective function)
     {
-      std::cout << "    PART 1: Adjusting calibration parameters..." << std::endl;
+      LOG(INFO) << "    PART 1: Adjusting calibration parameters...";
+      LOG(INFO) << "    Instantiate player 1";
       GridFitPlayer1 objf(frontier, _terms);
+      LOG(INFO) << "    Instantiated.";
       settings.acceptor = [&] (double *Xd, double val) {
         return objf.acceptor(Xd, val);
       };
       LevmarState lmState(X);
+      LOG(INFO) << "    Take a step";
       lmState.step(settings, objf);
+      LOG(INFO) << "    Done taking a step";
       X = lmState.getX();
     }
 
