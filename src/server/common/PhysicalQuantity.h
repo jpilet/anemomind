@@ -34,7 +34,7 @@ class Init {
 #define MAKE_PHYSQUANT_TO_UNIT_CONVERTER(name, factor) T name() const {return (factor)*_x;}
 #define MAKE_PHYSQUANT_FROM_UNIT_CONVERTER(name, factor) static ThisType name(T x) {return ThisType((factor)*x);}
 #define MAKE_PHYSQUANT_UNIT_CONVERTERS(toName, fromName, fromFactor) MAKE_PHYSQUANT_TO_UNIT_CONVERTER(toName, 1.0/(fromFactor)) MAKE_PHYSQUANT_FROM_UNIT_CONVERTER(fromName, (fromFactor))
-#define INJECT_COMMON_PHYSQUANT_CODE(ClassName) private: T _x; ClassName(T x) : _x(x) {} public: T &raw() {return _x;} typedef ClassName<T> ThisType; // ClassName() : _x(Init<T>::value) {}
+#define INJECT_COMMON_PHYSQUANT_CODE(ClassName) private: T _x; ClassName(T x) : _x(x) {} public: T &raw() {return _x;} typedef ClassName<T> ThisType; ClassName() : _x(Init<T>::value) {}
 
 
 template <typename T>
