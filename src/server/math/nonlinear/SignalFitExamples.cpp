@@ -43,10 +43,7 @@ void sfitexFixedReg() {
   std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), splits, Arrayd::args(10.0)));
   gridFitter.add(gf);
 
-  arma::mat resmat = gf->makeDataToResidualsMat();
-
-  arma::mat Pinv = gf->makeDataToParamMat();
-  arma::mat cvfit = gf->makeCrossValidationFitnessMat();
+  std::shared_ptr<MatExpr> Pinv = gf->makeDataToParamMat();
 
 
   arma::mat params(1, 1);
@@ -57,7 +54,7 @@ void sfitexFixedReg() {
 
   Arrayd Yfitted(sampleCount);
   data.eval(params.memptr(), Yfitted.getData());
-  arma::mat vertices = Pinv*arma::mat(Yfitted.getData(), Yfitted.size(), 1, false, true);
+  arma::mat vertices = Pinv->mulWithDense(arma::mat(Yfitted.getData(), Yfitted.size(), 1, false, true));
 
   GnuplotExtra plot;
   plot.set_style("lines");
@@ -108,15 +105,13 @@ void sfitexAutoRegFirstOrder() {
   gridFitter.solve(&params);
 
 
-  arma::mat resmat = gf->makeDataToResidualsMat();
-  arma::mat Pinv = gf->makeDataToParamMat();
-  arma::mat cvfit = gf->makeCrossValidationFitnessMat();
+  std::shared_ptr<MatExpr> Pinv = gf->makeDataToParamMat();
 
 
   Arrayd Yfitted(sampleCount);
   data.eval(params.memptr(), Yfitted.getData());
   arma::mat D(Yfitted.getData(), Yfitted.size(), 1, false, true);
-  arma::mat vertices = Pinv*D;
+  arma::mat vertices = Pinv->mulWithDense(D);
   LOG(INFO) << EXPR_AND_VAL_AS_STRING(gf->getRegWeight(0));
   LOG(INFO) << "Done";
 
@@ -161,14 +156,12 @@ void sfitexAutoReg1st2ndOrder() {
   params[0] = 3000.0;
   gridFitter.solve(&params);
 
-  arma::mat resmat = gf->makeDataToResidualsMat();
-  arma::mat Pinv = gf->makeDataToParamMat();
-  arma::mat cvfit = gf->makeCrossValidationFitnessMat();
+  std::shared_ptr<MatExpr> Pinv = gf->makeDataToParamMat();
 
   Arrayd Yfitted(sampleCount);
   data.eval(params.memptr(), Yfitted.getData());
   arma::mat D(Yfitted.getData(), Yfitted.size(), 1, false, true);
-  arma::mat vertices = Pinv*D;
+  arma::mat vertices = Pinv->mulWithDense(D);
 
   GnuplotExtra plot;
   plot.set_style("lines");

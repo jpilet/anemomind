@@ -68,7 +68,8 @@ arma::sp_mat makePermutationMat(Arrayi ordering);
 // Replaces the operation arma::kron(M, arma::sp_eye(eyeDim, eyeDim))
 // which is not yet implemented in Armadillo
 arma::sp_mat kronWithSpEye(arma::sp_mat M, int eyeDim);
-
+arma::vec invElements(arma::vec v);
+arma::sp_mat spDiag(arma::vec v);
 }
 
 #endif /* MATHUTILS_H_ */

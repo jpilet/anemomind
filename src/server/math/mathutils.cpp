@@ -92,4 +92,23 @@ arma::sp_mat kronWithSpEye(arma::sp_mat M, int eyeDim) {
   return arma::sp_mat(IJ, X, eyeDim*M.n_rows, eyeDim*M.n_cols);
 }
 
+arma::vec invElements(arma::vec src) {
+  int n = src.n_elem;
+  arma::vec dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = 1.0/src[i];
+  }
+  return dst;
+}
+
+arma::sp_mat spDiag(arma::vec v) {
+  int n = v.n_elem;
+  arma::umat IJ(2, n);
+  for (int i = 0; i < n; i++) {
+    IJ(0, i) = i;
+    IJ(1, i) = i;
+  }
+  return arma::sp_mat(IJ, v, n, n);
+}
+
 } /* namespace sail */
