@@ -7,13 +7,5 @@
 
 namespace sail {
 
-MatExpr::MatExpr() {
-  // TODO Auto-generated constructor stub
-
-}
-
-MatExpr::~MatExpr() {
-  // TODO Auto-generated destructor stub
-}
 
 } /* namespace sail */
