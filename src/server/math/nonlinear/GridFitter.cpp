@@ -76,7 +76,7 @@ arma::sp_mat GridFit::makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Array
 
 // returns inv(A)*B
 // Uses the eigendecomposition of Armadillo for sparse matrices to achieve this.
-std::shared_ptr<MatExpr> solveSparseSparseEigs(arma::sp_mat A, std::shared_ptr<MatExpr> B) {
+std::shared_ptr<MatExpr> solveSparseSparseEigsOLD(arma::sp_mat A, std::shared_ptr<MatExpr> B) {
   arma::mat vecs;
   arma::vec vals;
   arma::eigs_sym(vals, vecs, A, A.n_cols);
@@ -92,6 +92,11 @@ std::shared_ptr<MatExpr> solveSparseSparseEigs(arma::sp_mat A, std::shared_ptr<M
   builder.mul();
   assert(builder.single());
   return builder.top();
+}
+
+std::shared_ptr<MatExpr> solveSparseSparseEigs(arma::sp_mat A, std::shared_ptr<MatExpr> B) {
+  arma::mat Adense = arma::inv(MAKEDENSE(A));
+  return std::shared_ptr<MatExpr>(new MatExprProduct(std::shared_ptr<MatExpr>(new MatExprDense(Adense)), B));
 }
 
 std::shared_ptr<MatExpr> GridFit::makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights) {
@@ -333,7 +338,7 @@ void GridFitPlayer1::eval(double *Xin, double *Fout, double *Jout) {
 
     dst = R->mulWithDense(D);
     if (outputJ) {
-      Jdst.rows(offset, offset + od - 1) = R->mulWithDense(JD);
+      Jdst.rows(offset, offset + R->rows() - 1) = R->mulWithDense(JD);
     }
 
     offset += R->rows();

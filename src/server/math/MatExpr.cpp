@@ -15,6 +15,10 @@ arma::mat MatExprDense::mulWithDense(arma::mat X) {
   return _M*X;
 }
 
+MatExprProduct::MatExprProduct(std::shared_ptr<MatExpr> A, std::shared_ptr<MatExpr> B) : _A(A), _B(B) {
+  assert(A->cols() == B->rows());
+}
+
 arma::mat MatExprProduct::mulWithDense(arma::mat X) {
   return _A->mulWithDense(_B->mulWithDense(X));
 }
@@ -48,10 +52,10 @@ MatExprVCat::MatExprVCat(std::shared_ptr<MatExpr> A, std::shared_ptr<MatExpr> B)
 
 arma::mat MatExprVCat::mulWithDense(arma::mat X) {
   int m = rows();
-  int n = cols();
+  int n = X.n_cols;
   arma::mat Y = arma::zeros(m, n);
-  Y.rows(0, _A->rows()-1) += _A->mulWithDense(X);
-  Y.rows(_A->rows(), m) += _B->mulWithDense(X);
+  Y.rows(0, _A->rows()-1) = _A->mulWithDense(X);
+  Y.rows(_A->rows(), m-1) = _B->mulWithDense(X);
   return Y;
 }
 

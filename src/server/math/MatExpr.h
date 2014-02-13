@@ -53,7 +53,7 @@ class MatExprDense : public MatExpr {
 
 class MatExprProduct : public MatExpr {
  public:
-  MatExprProduct(std::shared_ptr<MatExpr> A, std::shared_ptr<MatExpr> B) : _A(A), _B(B) {}
+  MatExprProduct(std::shared_ptr<MatExpr> A, std::shared_ptr<MatExpr> B);
   arma::mat mulWithDense(arma::mat X);
   int rows() const {return _A->rows();}
   int cols() const {return _B->cols();}
