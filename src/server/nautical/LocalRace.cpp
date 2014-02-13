@@ -126,6 +126,28 @@ void LocalRace::makeSpatioTemporalPlot(Array<Nav> navs) {
   plot.show();
 }
 
+void LocalRace::plotTrajectoryVectors(Array<Nav> navs, Arrayd vectors2d, double scale) {
+  int count = navs.size();
+  assert(2*count == vectors2d.size());
+  MDArray2d localPos3d = calcNavsLocalPosAndTime(navs);
+  MDArray2d vertices = _wind.getGridVertexCoords();
+
+  GnuplotExtra plot;
+  plot.set_style("points");
+  plot.plot(vertices);
+  plot.set_style("lines");
+  plot.plot(calcNavsLocalPosAndTime(navs));
+  for (int i = 0; i < count; i++) {
+    double *v = vectors2d.blockPtr(i, 2);
+    double from[3] = {localPos3d(i, 0), localPos3d(i, 1), localPos3d(i, 2)};
+    double   to[3] = {from[0] + scale*v[0], from[1] + scale*v[1], from[2]};
+    plot.plot(3, from, to);
+  }
+
+  plot.show();
+
+}
+
 Grid3d &LocalRace::getWindGrid() {
   return _wind;
 }

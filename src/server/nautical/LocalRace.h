@@ -46,6 +46,8 @@ class LocalRace {
   double getMagDecl() const {
     return _magDeclRadians;
   }
+
+  void plotTrajectoryVectors(Array<Nav> navs, Arrayd vectors2d, double scale);
  private:
   void initialize(Array<Nav> navs, double spaceStep, double timeStep);
 

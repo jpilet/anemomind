@@ -55,8 +55,8 @@ namespace {
     boatData = std::shared_ptr<BoatData>(new BoatData(&race, navs));
 
     calib.addBoatData(boatData);
-    Array<Arrayb> windSplits = makeRandomSplits(4, calib.windDataCount());
-    Array<Arrayb> currentSplits = makeRandomSplits(4, calib.currentDataCount());
+    windSplits = makeRandomSplits(4, calib.windDataCount());
+    currentSplits = makeRandomSplits(4, calib.currentDataCount());
 
     Pwind = kronWithSpEye(calib.makeP(wgrid), 2);
     windRegSpace = kronWithSpEye(vcat(wgrid.makeFirstOrderReg(0),
@@ -72,6 +72,27 @@ namespace {
 
 
 void calibEx001() {
+  CalibSetup s;
+  WindData windData(s.calib);
+  CurrentData currentData(s.calib);
+
+  arma::mat X = s.calib.makeInitialParameters();
+
+  Arrayd W(windData.outDims());
+  windData.eval(X.memptr(), W.getData());
+
+  Arrayd C(currentData.outDims());
+  currentData.eval(X.memptr(), C.getData());
+
+
+  Arrayd toPlot = C;
+  Arrayi subset = makeSparseInds(s.navs.size(), 55);
+  s.race.plotTrajectoryVectors(s.navs.slice(subset), toPlot.sliceBlocks(2, subset), 10.0);
+}
+
+
+
+void calibEx002() { // Try to optimize it
   CalibSetup s;
   WindData windData(s.calib);
   CurrentData currentData(s.calib);

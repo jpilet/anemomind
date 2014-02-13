@@ -1,4 +1,5 @@
 #include "Array.h"
+#include <cmath>
 
 namespace sail {
 
@@ -102,6 +103,19 @@ bool any(Arrayb X) {
     }
   }
   return false;
+}
+
+Arrayi makeSparseInds(int arraySize, int sampleCount) {
+  double x0 = 0;
+  double x1 = sampleCount-1;
+  int y0 = 0;
+  int y1 = arraySize-1;
+  double k = (y1 - y0)/(x1 - x0);
+  Arrayi dst(sampleCount);
+  for (int i = 0; i < sampleCount; i++) {
+    dst[i] = round(i*k);
+  }
+  return dst;
 }
 
 

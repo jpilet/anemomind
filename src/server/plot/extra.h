@@ -19,6 +19,7 @@ class GnuplotExtra : public Gnuplot {
   GnuplotExtra();
   //void setHue(double hue);
   void plot(MDArray2d data);
+  void plot(int dim, double *from, double *to);
   void show();
  private:
   //std::string _rgbString;
