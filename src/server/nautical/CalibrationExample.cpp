@@ -8,7 +8,7 @@
 using namespace sail;
 
 int main() {
-  calibEx002();
+  calibEx001();
   return 0;
 }
 
