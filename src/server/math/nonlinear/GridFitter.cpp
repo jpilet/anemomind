@@ -204,6 +204,7 @@ double GridFit::evalObjfForDataVector(arma::mat D) {
 }
 
 double GridFit::evalCrossValidationFitness(arma::mat D) {
+  LOGFUN;
   return SQNORM(makeCrossValidationFitnessMat()*D); // We may want to do something more efficient here, in future.
 }
 
@@ -277,7 +278,9 @@ GridFitPlayer1::GridFitPlayer1(ParetoFrontier &frontier, std::vector<std::shared
     arma::mat R = fit->makeDataToResidualsMat();
     LOG(INFO) << "Done R.";
     _Rmats[i] = R;
+    LOGFUN;
     _cvmats[i] = fit->makeCrossValidationFitnessMat();
+    LOGFUN;
     _outDims += R.n_rows;
     _maxDataLen = std::max(_maxDataLen, fit->getData().outDims());
   }
