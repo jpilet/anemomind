@@ -7,6 +7,7 @@
 #define WGS84TOXYZ_H_
 
 #include <server/common/math.h>
+#include <server/nautical/GeographicPosition.h>
 // Make sure functions exist for T by including <cmath> or <adolc/adouble.h>
 
 
@@ -16,7 +17,6 @@ template <typename T>
 class WGS84 {
  public:
   constexpr static double k2_PI = 6.283185307179586476925286766559005768394338798750211641949889184615;
-  constexpr static double angleUnit2Radians = 1.0;
   constexpr static double ECEFA = 6378137;
   constexpr static double ECEFE = 8.1819190842622e-2;
 
@@ -27,12 +27,22 @@ class WGS84 {
     toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, nullptr);
   }
 
+
+  static void toXYZ(const GeographicPosition<T> &pos, Length<T> *xyzOut) {
+    T xyzMetres[3];
+    toXYZ(pos.lon().toRadians(), pos.lat().toRadians(), pos.alt().toMetres(),
+      xyzMetres);
+    for (int i = 0; i < 3; i++) {
+      xyzOut[i] = Length<double>::fromMetres(xyzMetres[i]);
+    }
+  }
+
   // Maps (lon, lat, altitude) to 3d position xyz3 and optionally
   // outputs the Jacobian matrix
   static void toXYZWithJ(T lonRad, T latRad, T altitudeMetres,
                          T *xyz3MetresOut, T *J3x3ColMajorOut) {
-    T theta = latRad*angleUnit2Radians;
-    T phi = lonRad*angleUnit2Radians;
+    T theta = latRad;
+    T phi = lonRad;
     T E2 = sqr(ECEFE);
     T Ndenom = sqrt(1 - E2*sqr(sin(theta)));
     T N = ECEFA/Ndenom;
@@ -67,14 +77,14 @@ class WGS84 {
       T dZdH = sinTheta;
 
       // Col 1
-      J3x3ColMajorOut[0] = dXdPhi*angleUnit2Radians;
-      J3x3ColMajorOut[1] = dYdPhi*angleUnit2Radians;
-      J3x3ColMajorOut[2] = dZdPhi*angleUnit2Radians;
+      J3x3ColMajorOut[0] = dXdPhi;
+      J3x3ColMajorOut[1] = dYdPhi;
+      J3x3ColMajorOut[2] = dZdPhi;
 
       // Col 2
-      J3x3ColMajorOut[3] = dXdTheta*angleUnit2Radians;
-      J3x3ColMajorOut[4] = dYdTheta*angleUnit2Radians;
-      J3x3ColMajorOut[5] = dZdTheta*angleUnit2Radians;
+      J3x3ColMajorOut[3] = dXdTheta;
+      J3x3ColMajorOut[4] = dYdTheta;
+      J3x3ColMajorOut[5] = dZdTheta;
 
       // Col 3
       J3x3ColMajorOut[6] = dXdH;
@@ -92,8 +102,8 @@ class WGS84 {
     normalizeInPlace<double>(3, eastAxis);
     normalizeInPlace<double>(3, northAxis);
 
-    T northCoef = cos(angleUnit2Radians*dirRad);
-    T eastCoef = sin(angleUnit2Radians*dirRad);
+    T northCoef = cos(dirRad);
+    T eastCoef = sin(dirRad);
 
     T len2 = 0.0;
     for (int i = 0; i < 3; i++) {
@@ -118,8 +128,8 @@ class WGS84 {
   // the norm of the xyz position w.r.t. lon and lat.
   static void toXYZLocal(T lonRadians, T latRadians, T altitudeMetres,
                          T *xyz3MetresOut, T *dlon1, T *dlat1) {
-    T latRad = latRadians * angleUnit2Radians;
-    T lonRad = lonRadians * angleUnit2Radians;
+    T latRad = latRadians;
+    T lonRad = lonRadians;
     T sinlat = sin(latRad);
     T coslat = cos(latRad);
     T sinlon = sin(lonRad);
@@ -146,14 +156,14 @@ class WGS84 {
     t37 = t17*t19;
 
     if (dlon1) {
-      *dlon1 = sqrt(t13*t13 + t26*t26)*angleUnit2Radians;
+      *dlon1 = sqrt(t13*t13 + t26*t26);
     }
 
     if (dlat1) {
       T u = (t37*coslon-t23*coslon);
       T v = (t37*sinlon-t23*sinlon);
       T w = (t16*t31*t4*coslat+t36*coslat);
-      *dlat1 = sqrt(u*u + v*v + w*w)*angleUnit2Radians;
+      *dlat1 = sqrt(u*u + v*v + w*w);
     }
 
     if (xyz3MetresOut) {

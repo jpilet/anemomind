@@ -3,9 +3,11 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <cmath>
 #include "PhysicalQuantity.h"
-
 #include <gtest/gtest.h>
+
+using namespace sail;
 
 TEST(PhysQuantTest, CircumferenceTest) {
   Length<double> circumference = Length<double>::fromMetres(4.0e7);
