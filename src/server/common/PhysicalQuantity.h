@@ -32,7 +32,7 @@ class Init {
 #define MAKE_TO_UNIT_CONVERTER(name, factor) T name() const {return (factor)*_x;}
 #define MAKE_FROM_UNIT_CONVERTER(name, factor) static ThisType name(T x) {return ThisType((factor)*x);}
 #define MAKE_UNIT_CONVERTERS(toName, fromName, fromFactor) MAKE_TO_UNIT_CONVERTER(toName, 1.0/(fromFactor)) MAKE_FROM_UNIT_CONVERTER(fromName, (fromFactor))
-#define INJECT_COMMON_PHYSQUANT_CODE(ClassName) private: T _x; ClassName(T x) : _x(x) {} public: typedef ClassName<T> ThisType;
+#define INJECT_COMMON_PHYSQUANT_CODE(ClassName) private: T _x; ClassName(T x) : _x(x) {} public: T &raw() {return _x;} typedef ClassName<T> ThisType;
 
 
 template <typename T>
