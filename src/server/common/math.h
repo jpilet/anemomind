@@ -73,6 +73,14 @@ T norm(int dims, T *x) {
   return sqrt(norm2<T>(dims, x));
 }
 
+template <typename T>
+void normalizeInPlace(int dims, T *x) {
+  T f = 1.0/norm<T>(dims, x);
+  for (int i = 0; i < dims; i++) {
+    x[i] *= f;
+  }
+}
+
 
 
 template <typename T, int dims>
@@ -80,6 +88,11 @@ T norm2dif(T *a, T *b) {
   T res[dims];
   sub<T, dims>(a, b, res);
   return norm2<T, dims>(res);
+}
+
+template <typename T, int dims>
+T normdif(T *a, T *b) {
+  return sqrt(norm2dif<T, dims>(a, b));
 }
 
 double rad2deg(double rad);

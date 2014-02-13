@@ -20,10 +20,6 @@ target_link_libraries(nautical_nav
   common_ContinuousRange)
 
 
-          
-
-
-
 add_library(nautical_DataCalib
             DataCalib.h
             DataCalib.cpp)
@@ -64,11 +60,33 @@ target_link_libraries(nautical_LocalRace
   plot_gnuplot
   math_Grid)
 
+
+#################################################################
+### CalibrationExamples
+#################################################################
+add_library(nautical_CalibrationExamples
+  CalibrationExamples.h
+  CalibrationExamples.cpp)
+
+add_executable(nautical_CalibrationExample
+  CalibrationExample.cpp)
+target_link_libraries(nautical_CalibrationExample
+  nautical_CalibrationExamples)
+
+
+
+
 cxx_test(nautical_LocalRaceTest
             LocalRaceTest.cpp
             common_Duration
             nautical_LocalRace
             gtest_main)
 
-
 cxx_test(nautical_NavTest NavTest.cpp nautical_nav gtest_main)
+
+cxx_test(nautical_WGS84Test
+            WGS84Test.cpp
+            nautical_Ecef
+            common_Function
+            common_LineKM
+            gtest_main)
