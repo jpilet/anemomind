@@ -1,7 +1,7 @@
 /*
  * GridFitter.h
  *
- *  Created on: 20 janv. 2014
+ *  Created on: 2014-02-20
  *      Author: jonas
  */
 
