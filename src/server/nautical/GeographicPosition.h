@@ -24,7 +24,7 @@ public:
     _alt(Length<T>::fromMetres(0.0)) {}
 
   Angle<T> lon() const {return _lon;}
-  Angle<T> lat() const {return _lon;}
+  Angle<T> lat() const {return _lat;}
   Length<T> alt() const {return _alt;}
 private:
   Angle<T> _lon, _lat;

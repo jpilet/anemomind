@@ -14,7 +14,8 @@ TEST(GeoPosTest, ConstructAndAccessTest) {
   Length<double> alt = Length<double>::fromMetres(300);
   GeographicPosition<double> pos(lon, lat, alt);
   EXPECT_NEAR(pos.lon().toRadians(), lon.toRadians(), 1.0e-6);
-
+  EXPECT_NEAR(pos.lat().toRadians(), lat.toRadians(), 1.0e-6);
+  EXPECT_NEAR(pos.alt().toMetres(), alt.toMetres(), 1.0e-6);
 }
 
 
