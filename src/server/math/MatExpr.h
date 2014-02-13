@@ -16,7 +16,8 @@ namespace sail {
  * Suppose we want to precompute a matrix A*B and then multiply it with a column vector X.
  *
  * If A is n*1 and B is 1*n and X is n*1, precomputing (A*B) and then multiplying (A*B)*X is O(n²)
- * whereas A*(B*X) is O(n). With this class A*B is not evaluated explicitly.
+ * whereas A*(B*X) is O(n). With this class A*B is not evaluated explicitly which lets us evaluate
+ * A*(B*X) internally.
  */
 class MatExpr {
 public:
