@@ -17,6 +17,12 @@ target_link_libraries(math_armaadolc
 target_depends_on_armadillo(math_armaadolc)
 target_depends_on_adolc(math_armaadolc)
 
+add_library(math_MatExpr
+            MatExpr.h
+            MatExpr.cpp
+            )
+target_depends_on_armadillo(math_MatExpr)
+
 add_library(math_ADFunction
             ADFunction.cpp
             ADFunction.h

@@ -6,6 +6,9 @@
 #ifndef MATEXPR_H_
 #define MATEXPR_H_
 
+#include <armadillo>
+#include <memory>
+
 namespace sail {
 
 
@@ -21,9 +24,40 @@ namespace sail {
  */
 class MatExpr {
 public:
-  MatExpr() {}
-  arma::mat mulWithDense(arma::mat X) = 0;
+  virtual arma::mat mulWithDense(arma::mat X) = 0;
   virtual ~MatExpr() {}
+};
+
+class MatExprSparse : public MatExpr {
+ public:
+  MatExprSparse(arma::sp_mat M) : _M(M) {}
+  arma::mat mulWithDense(arma::mat X);
+ private:
+  arma::sp_mat _M;
+};
+
+class MatExprDense : public MatExpr {
+ public:
+  MatExprDense(arma::mat M) : _M(M) {}
+  arma::mat mulWithDense(arma::mat X);
+ private:
+  arma::mat _M;
+};
+
+class MatExprProduct : public MatExpr {
+ public:
+  MatExprProduct(std::shared_ptr<MatExpr> A, std::shared_ptr<MatExpr> B) : _A(A), _B(B) {}
+  arma::mat mulWithDense(arma::mat X);
+ private:
+  std::shared_ptr<MatExpr> _A, _B;
+};
+
+class MatExprSum : public MatExpr {
+ public:
+  MatExprSum(std::shared_ptr<MatExpr> A, std::shared_ptr<MatExpr> B) : _A(A), _B(B) {}
+  arma::mat mulWithDense(arma::mat X);
+ private:
+  std::shared_ptr<MatExpr> _A, _B;
 };
 
 } /* namespace sail */
