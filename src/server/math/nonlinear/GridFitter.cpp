@@ -242,6 +242,7 @@ double GridFit::evalCrossValidationFitness(arma::mat D) {
 
 GridFitter::GridFitter() {
   settings.verbosity = 0;
+  _pretuneWeightsIters = 0;
 }
 
 
@@ -503,7 +504,7 @@ void GridFitter::solve(arma::mat *XInOut) {
     writeStatus(i, X, frontier.size());
 
     // Part 1: Optimize Player 1 (the objective function)
-    {
+    if (_pretuneWeightsIters <= i) {
       LOG(INFO) << "    PART 1: Adjusting calibration parameters...";
       LOG(INFO) << "    Instantiate player 1";
       GridFitPlayer1 objf(frontier, _terms);
@@ -516,6 +517,8 @@ void GridFitter::solve(arma::mat *XInOut) {
       lmState.step(settings, objf);
       LOG(INFO) << "    Done taking a step";
       X = lmState.getX();
+    } else {
+      LOG(INFO) << "    PART 1: Skipped, pretuning weights.";
     }
 
     // Part 2: Adjust the regularization weights of every grid fit.

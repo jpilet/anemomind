@@ -68,6 +68,7 @@ void calibEx001() {
   arma::mat X = calib.makeInitialParameters();
 
   GridFitter gf;
+  gf.setPretuneWeightsIters(3);
   gf.settings.verbosity = 3;
   gf.add(windTerm);
   gf.add(currentTerm);

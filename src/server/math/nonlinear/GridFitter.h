@@ -126,7 +126,10 @@ class GridFitter {
   void solveFixedReg(arma::mat *XInOut);
 
   LevmarSettings settings;
+
+  void setPretuneWeightsIters(int i) {_pretuneWeightsIters = i;}
  private:
+  int _pretuneWeightsIters;
   int getNLParamCount();
   std::vector<std::shared_ptr<GridFit> > _terms;
 
