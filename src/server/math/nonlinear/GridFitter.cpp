@@ -187,6 +187,9 @@ std::shared_ptr<MatExpr> GridFit::makeCrossValidationFitnessMat() {
     Arrayb train = neg(test);
     arma::sp_mat selTrain = makeSpSel(train);
     arma::sp_mat Ptrain = selTrain*_P;
+    std::cout << EXPR_AND_VAL_AS_STRING(_P) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(train) << std::endl;
+    assert(_P.n_nonzero > 0);
     assert(Ptrain.n_nonzero > 0);
     std::shared_ptr<MatExpr> fit = makeLsqDataToParamMatSub(Ptrain, _regMatrices, _regWeights);
 
@@ -576,9 +579,9 @@ Arrayb makeRandomSplit(int count) {
                                               //     gular matrices. Therefore, find a
                                               //     new split.
 
-    return makeRandomSplit(count); // Infinite recursion will not happen: The probability that
-                                   // we will have found a valid split after N tries tends
-                                   // to 1 as N tends towards infinity.
+    return makeRandomSplit(count); // <-- Infinite recursion will not happen: The probability that
+                                   //     we will have found a valid split after N tries tends
+                                   //     to 1 as N tends towards infinity. However, we require count >= 2.
   }
   return split;
 }
