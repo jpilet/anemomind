@@ -88,25 +88,9 @@ class PhysicalQuantity {
   Value _x;
 };
 
-// Type-traits stub. Not sure if this is a good idea...
-template <typename T>
-class IsDimensionless {
- public:
-  const static bool value = true;
-};
-
-//template <>
-//class IsDimensionless<PhysicalQuantity<> > {
-// public:
-//  const static bool value = false;
-//};
-
-
-template <typename DimensionlessType, typename Quantity>
-Quantity operator*(DimensionlessType s,
+template <typename Quantity>
+Quantity operator*(typename Quantity::ValueType s,
     PhysicalQuantity<Quantity, typename Quantity::ValueType> x) {
-  static_assert(IsDimensionless<DimensionlessType>::value,
-      "This function is only for dimensionless types");
   return x*s; // <-- call the operator* method of x.
 }
 
