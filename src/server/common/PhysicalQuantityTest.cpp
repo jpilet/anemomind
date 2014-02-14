@@ -57,3 +57,36 @@ TEST(PhysQuantTest, AngleTest) {
   EXPECT_NEAR(sin(a)*sin(a) + cos(a)*cos(a), 1.0, 1.0e-6);
   EXPECT_NEAR(cos(a2)*cos(b2) - sin(a2)*sin(b2), cos(a.toRadians() + b.toRadians()), 1.0e-5);
 }
+
+
+/*
+ * Test of how the Curiously Recurring Template pattern
+ * can make the code somewhat cleaner.
+ */
+namespace {
+template <typename Quantity, typename ValueType>
+class PQ {
+ public:
+  typedef Quantity QuantType;
+  typedef PQ<Quantity, ValueType> ParentType;
+  void set(ValueType x) {_x = x;}
+ protected:
+  ValueType _x;
+};
+
+#define MAKE_PQ_CONSTRUCTORS(ClassName) private: ClassName(T x) : PQ(x) {} public: ClassName() {}
+
+template <typename T>
+class Mass : public PQ<Mass<T>, T> {
+
+ private: Mass(T x) {this->set(x);}
+ public: Mass() {this->set(0);}
+
+};
+
+#undef MAKE_PQ_CONSTRUCTORS
+}
+
+TEST(PhysQuantTest, NewPQTest) {
+    Mass<double> m;
+}
