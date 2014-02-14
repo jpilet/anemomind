@@ -13,7 +13,7 @@
  */
 
 
-#ifndef DIMENSIONS_H_
+#ifndef PHYSICALQUANTITY_H_
 #define PHYSICALQUANTITY_H_
 
 #include <cmath>
@@ -151,4 +151,4 @@ T sin(sail::Angle<T> x) {return sin(x.toRadians());}
 #undef INJECT_COMMON_PHYSQUANT_CODE
 
 
-#endif /* DIMENSIONS_H_ */
+#endif /* PHYSICALQUANTITY_H_ */
