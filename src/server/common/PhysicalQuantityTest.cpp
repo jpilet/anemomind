@@ -66,13 +66,16 @@ TEST(PhysQuantTest, AngleTest) {
 namespace {
 template <typename Quantity, typename ValueType>
 class PQ {
+ public:
+  // Inherited operator
+  Quantity operator+(Quantity other) const {return Quantity(_x + other._x);}
  protected:
   void set(ValueType x) {_x = x;}
   ValueType _x;
 };
 
 #define MAKE_PQ_CONSTRUCTORS(ClassName) \
-  private: Mass(T x) {this->set(x);} \
+  public: Mass(T x) {this->set(x);} \
   public: Mass() {this->set(0);} \
     typedef ClassName<T> ThisType;
 
@@ -92,5 +95,19 @@ class Mass : public PQ<Mass<T>, T> {
 }
 
 TEST(PhysQuantTest, NewPQTest) {
+  Mass<double> a = Mass<double>::kilograms(30.0);
+  Mass<double> b = Mass<double>::kilograms(34.0);
 
+  // The + operator is inherited
+  Mass<double> c = a + b;
+
+  EXPECT_NEAR(c.toKilograms(), 64.0, 1.0e-6);
+}
+
+TEST(PhysQuantTest, NewPQTest2) {
+  Mass<double> sum = Mass<double>::lispund(0.0);
+  for (int i = 0; i < 20; i++) {
+    sum = sum + Mass<double>::lispund(1.0);
+  }
+  EXPECT_NEAR(sum.toSkeppund(), 1.0, 1.0e-6);
 }
