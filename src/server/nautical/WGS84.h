@@ -33,7 +33,7 @@ class WGS84 {
     toXYZ(pos.lon().toRadians(), pos.lat().toRadians(), pos.alt().toMetres(),
       xyzMetres);
     for (int i = 0; i < 3; i++) {
-      xyzOut[i] = Length<double>::fromMetres(xyzMetres[i]);
+      xyzOut[i] = Length<double>::meters(xyzMetres[i]);
     }
   }
 

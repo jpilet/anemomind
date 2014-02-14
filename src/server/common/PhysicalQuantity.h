@@ -40,36 +40,36 @@ class Init {
 template <typename T>
 class Angle {
   INJECT_COMMON_PHYSQUANT_CODE(Angle)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toRadians, fromRadians, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toDegrees, fromDegrees, M_PI/180.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toRadians, radians, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toDegrees, degrees, M_PI/180.0);
 };
 
 
 template <typename T>
 class Length {
   INJECT_COMMON_PHYSQUANT_CODE(Length)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toMetres, fromMetres, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toKilometres, fromKilometres, 1000.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toNauticalMiles, fromNauticalMiles, 1852.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toMeters, meters, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toKilometers, kilometers, 1000.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toNauticalMiles, nauticalMiles, 1852.0);
 };
 
 template <typename T>
 class Velocity {
   INJECT_COMMON_PHYSQUANT_CODE(Velocity)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toMetresPerSecond, fromMetresPerSecond, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toKnots, fromKnots, 1852/3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toKilometresPerHour, fromKilometresPerHour, 1.0/3.6);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toMilesPerHour, fromMilesPerHour, 0.44704);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toMetersPerSecond, metersPerSecond, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toKnots, knots, 1852/3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toKilometersPerHour, kilometersPerHour, 1.0/3.6);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toMilesPerHour, milesPerHour, 0.44704);
 };
 
 template <typename T>
 class Time {
   INJECT_COMMON_PHYSQUANT_CODE(Time)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toSeconds, fromSeconds, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toMinutes, fromMinutes, 60.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toHours, fromHours, 3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toDays, fromDays, 24*3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toWeeks, fromWeeks, 7*24*3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toSeconds, seconds, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toMinutes, minutes, 60.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toHours, hours, 3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toDays, days, 24*3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toWeeks, weeks, 7*24*3600.0);
 };
 }
 
