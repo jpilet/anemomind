@@ -72,10 +72,6 @@ arma::sp_mat DataCalib::makeP(Grid3d grid) {
     offset += _boats[i]->getDataCount();
   }
   assert(offset == _navCount);
-
-  std::cout << EXPR_AND_VAL_AS_STRING(IJ) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
-
   return arma::sp_mat(IJ, X, _navCount, grid.getVertexCount());
 }
 
