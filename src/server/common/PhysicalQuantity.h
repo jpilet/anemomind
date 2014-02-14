@@ -31,9 +31,13 @@ class Init {
  * coding style guide but they reduce code duplication effort
  * and make the code much more readable than it otherwise would be.
  */
-#define MAKE_PHYSQUANT_TO_UNIT_CONVERTER(name, factor) T name() const {return (factor)*(this->_x);}
-#define MAKE_PHYSQUANT_FROM_UNIT_CONVERTER(name, factor) static ThisType name(T x) {return ThisType((factor)*x);}
-#define MAKE_PHYSQUANT_UNIT_CONVERTERS(toName, fromName, fromFactor) MAKE_PHYSQUANT_TO_UNIT_CONVERTER(toName, 1.0/(fromFactor)) MAKE_PHYSQUANT_FROM_UNIT_CONVERTER(fromName, (fromFactor))
+#define MAKE_PHYSQUANT_TO_UNIT_CONVERTER(name, factor) \
+  T name() const {return (factor)*(this->_x);}
+#define MAKE_PHYSQUANT_FROM_UNIT_CONVERTER(name, factor) \
+  static ThisType name(T x) {return ThisType((factor)*x);}
+#define MAKE_PHYSQUANT_UNIT_CONVERTERS(toName, fromName, fromFactor) \
+  MAKE_PHYSQUANT_TO_UNIT_CONVERTER(toName, 1.0/(fromFactor)) \
+  MAKE_PHYSQUANT_FROM_UNIT_CONVERTER(fromName, (fromFactor))
 
 #define INJECT_COMMON_PHYSQUANT_CODE(ClassName) \
   private: \
