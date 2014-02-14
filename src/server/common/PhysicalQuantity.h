@@ -63,8 +63,8 @@ class PhysicalQuantity {
   Quantity operator*(Value x) const {return Quantity::makeFromX(x*_x);}
 
   // Comparison --> bool
-  bool operator < (Quantity other) const {return _x < other._x;}
-  bool operator > (Quantity other) const {return _x > other._x;}
+  bool operator < (Quantity other) const {return _x < other.get();}
+  bool operator > (Quantity other) const {return _x > other.get();}
 
   // Multiplication with dimensionless quantity -1 --> Quantity
   Quantity operator - () const {return Quantity::makeFromX(-_x);}
@@ -73,7 +73,7 @@ class PhysicalQuantity {
   Quantity operator/ (Value x) const {return Quantity::makeFromX(_x/x);}
 
   // Division with another quantity --> Value
-  Value operator/ (Quantity other) const {return _x/other._x;}
+  Value operator/ (Quantity other) const {return _x/other.get();}
  protected:
   PhysicalQuantity(Value x) : _x(x) {}
   PhysicalQuantity() : _x(Init<Value>::value) {}
