@@ -95,9 +95,14 @@ T normdif(T *a, T *b) {
   return sqrt(norm2dif<T, dims>(a, b));
 }
 
-double rad2deg(double rad);
-double deg2rad(double deg);
-double knots2MPS(double knots);
+/*
+ * Please see PhysicalQuantity.h
+ * These functions may soon be deprecated.
+ */
+#define MAKE_UNIT2OTHERUNIT_CONVERTER(fwdName, invName, factor) template <typename T> T fwdName(T x) {return (factor)*x;} template <typename T> T invName(T x) {return (1.0/(factor))*x;}
+MAKE_UNIT2OTHERUNIT_CONVERTER(deg2rad, rad2deg, M_PI/180.0);
+MAKE_UNIT2OTHERUNIT_CONVERTER(nm2m, m2nm, 1852.0);
+MAKE_UNIT2OTHERUNIT_CONVERTER(knots2MPS, MPS2knots, 1852.0/3600.0);
 
 } /* namespace sail */
 

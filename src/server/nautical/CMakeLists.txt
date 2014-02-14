@@ -62,6 +62,12 @@ target_link_libraries(nautical_LocalRace
   math_Grid)
 
 
+cxx_test(nautical_GeographicPositionTest
+  GeographicPositionTest.cpp
+  gtest_main)
+
+
+
 #################################################################
 ### CalibrationExamples
 #################################################################
