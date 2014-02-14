@@ -126,28 +126,34 @@ T CheckNotNull(T x, const char *expr, const char* file, int line) {
 void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int line,
                                        const std::string& message));
 
-// TODO: Integrate this with the rest of the code
-//       of this file and make it consistent.
 class ScopedLog {
  public:
-  ScopedLog(const char* filename, int line, LogLevel level, std::string message);
+  ScopedLog(const char* filename, int line, std::string message);
   ~ScopedLog();
   static void setDepthLimit(int l);
+  void disp(const char *file, int line, LogLevel level, std::string s);
  private:
   const char *_filename;
   int _line;
-  LogLevel _level;
   std::string _message;
   static int _depth;      // <-- How much indentation there should be
   static int _depthLimit; // <-- Upper non-inclusive limit beyond which nothing will be displayed.
   void dispScopeLimit(const char *label);
   static std::string makeIndentation();
   static void indent();
+  bool _finalScope;
 };
 
 // This macro is flawed in the sense that the
 // name of the resulting object is not auto-generated
 // to be unique. Be careful.
-#define SCOPEDLOG(LEVEL, MESSAGE) ScopedLog _slog(__FILE__, __LINE__, LOGLEVEL_##LEVEL, MESSAGE);
+#define SCOPEDLOG(MESSAGE) ScopedLog _slog(__FILE__, __LINE__, MESSAGE)
+
+// TODO: Provide stream-like syntax, so that we have
+//    LOG(INFO) << ...
+//  and
+//    SCOPED(INFO) << ...
+#define SCOPEDMESSAGE(LEVEL, MESSAGE) _slog.disp(__FILE__, __LINE__, LOGLEVEL_##LEVEL, MESSAGE)
+#define SCOPEDINFO(MESSAGE) SCOPEDMESSAGE(INFO, MESSAGE)
 
 #endif  // _LOGGING_H

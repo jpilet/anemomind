@@ -11,6 +11,7 @@
 #include <server/math/nonlinear/GridFitter.h>
 #include <armadillo>
 #include <server/common/string.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -18,7 +19,7 @@ namespace sail {
 namespace {
   class CalibSetup { // temp class with all the test data we need
    public:
-    CalibSetup();
+    CalibSetup(int sampleCount);
     Array<Nav> navs;
     LocalRace race;
     Grid3d wgrid;
@@ -40,11 +41,12 @@ namespace {
     arma::sp_mat currentRegTime;
   };
 
-  CalibSetup::CalibSetup() {
+  CalibSetup::CalibSetup(int sampleCount) {
     Array<Nav> allNavs = loadNavsFromText(Nav::AllNavsPath, false);
     Array<Array<Nav> > splitNavs = splitNavsByDuration(allNavs,
                                    Duration::minutes(10).getDurationSeconds());
-    navs = splitNavs.first(); //.sliceTo(3);
+    Array<Nav> navs_ = splitNavs.first();
+    navs = navs_.slice(makeSparseInds(navs_.size(), sampleCount));
     double spaceStep = 1000; // metres
     double timeStep = Duration::minutes(20).getDurationSeconds();
 
@@ -71,7 +73,7 @@ namespace {
 
 
 void calibEx001() {
-  CalibSetup s;
+  CalibSetup s(55);
   WindData windData(s.calib);
   CurrentData currentData(s.calib);
 
@@ -85,16 +87,17 @@ void calibEx001() {
 
 
   Arrayd toPlot = C;
-  Arrayi subset = makeSparseInds(s.navs.size(), 55);
-  s.race.plotTrajectoryVectors(s.navs.slice(subset), toPlot.sliceBlocks(2, subset), 10.0);
+  s.race.plotTrajectoryVectors(s.navs, toPlot, 10.0);
 }
 
 
 
 void calibEx002() { // Try to optimize it
-  CalibSetup s;
+  CalibSetup s(60);
   WindData windData(s.calib);
   CurrentData currentData(s.calib);
+
+  ScopedLog::setDepthLimit(3);
 
   const double initialRegWeight = 0.1;
   const int splitCount = 2;

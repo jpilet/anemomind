@@ -169,7 +169,7 @@ std::string GridFit::getRegLabel(int index) {
 }
 
 std::shared_ptr<MatExpr> GridFit::makeCrossValidationFitnessMat() {
-  SCOPEDLOG(INFO, "Build crossvalidation matrix");
+  SCOPEDLOG("Build crossvalidation matrix");
   // true  <=> test
   // false <=> train
 
@@ -183,7 +183,7 @@ std::shared_ptr<MatExpr> GridFit::makeCrossValidationFitnessMat() {
 
   int offset = 0;
   for (int i = 0; i < splitCount; i++) {
-    SCOPEDLOG(INFO, stringFormat("Split %d/%d", i+1, splitCount));
+    SCOPEDINFO(stringFormat("Split %d/%d", i+1, splitCount));
     Arrayb test = _splits[i];
     Arrayb train = neg(test);
     arma::sp_mat selTrain = makeSpSel(train);
@@ -402,7 +402,7 @@ GridFitOtherPlayers::GridFitOtherPlayers(ParetoFrontier &frontier,
 void GridFitOtherPlayers::optimize(Array<Arrayd> stepSizes) {
   int count = _fits.size();
   for (int i = 0; i < count; i++) {
-    SCOPEDLOG(INFO, stringFormat("Tuning reg weights for gridfit %d/%d (%s)",
+    SCOPEDLOG(stringFormat("Tuning reg weights for gridfit %d/%d (%s)",
         i+1, count, _fits[i]->getLabel().c_str()));
     optimizeForGridFit(i, stepSizes[i]);
   }
@@ -413,7 +413,7 @@ void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes) {
   const arma::mat &dataVector = _D[index];
   int rc = f->getRegCount();
   for (int i = 0; i < rc; i++) {
-    SCOPEDLOG(INFO, stringFormat("Tuning reg weight %d/%d (%s)",
+    SCOPEDLOG(stringFormat("Tuning reg weight %d/%d (%s)",
         i+1, rc, f->getRegLabel(i).c_str()));
     // It is best to do this search in the logarithmic domain,
     // because this way, the weight stays positive.
@@ -421,7 +421,7 @@ void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes) {
 
     double initStep = stepSizes[i];
     auto objf = [&] (double x) {
-      SCOPEDLOG(INFO, stringFormat("Evaluate cross-validation fitness at %.3g", exp(x)));
+      SCOPEDLOG(stringFormat("Evaluate cross-validation fitness at %.3g", exp(x)));
       f->setExpRegWeight(i, x);
       double fitness = f->evalCrossValidationFitness(dataVector);
       return fitness;
@@ -498,6 +498,7 @@ void GridFitter::writeStatus(int i, arma::mat X, int fsize) {
 }
 
 void GridFitter::solve(arma::mat *XInOut) {
+  SCOPEDLOG("GridFitter::solve");
   arma::mat &X = *(XInOut);
   assert(X.size() == getNLParamCount());
 
@@ -512,25 +513,24 @@ void GridFitter::solve(arma::mat *XInOut) {
 
     // Part 1: Optimize Player 1 (the objective function)
     if (_pretuneWeightsIters <= i) {
-      LOG(INFO) << "    PART 1: Adjusting calibration parameters...";
-      LOG(INFO) << "    Instantiate player 1";
+      SCOPEDLOG("PART 1: Adjusting calibration parameters");
       GridFitPlayer1 objf(frontier, _terms);
-      LOG(INFO) << "    Instantiated.";
       settings.acceptor = [&] (double *Xd, double val) {
         return objf.acceptor(Xd, val);
       };
       LevmarState lmState(X);
-      LOG(INFO) << "    Take a step";
-      lmState.step(settings, objf);
-      LOG(INFO) << "    Done taking a step.";
+      {
+        SCOPEDLOG("Step");
+        lmState.step(settings, objf);
+      }
       X = lmState.getX();
     } else {
-      LOG(INFO) << "    PART 1: Skipped, pretuning weights.";
+      SCOPEDINFO("PART 1: Skipped, pretuning weights.");
     }
 
     // Part 2: Adjust the regularization weights of every grid fit.
     {
-      LOG(INFO) << "    PART 2: Adjusting regularization weights...";
+      SCOPEDLOG("PART 2: Adjusting regularization weights");
       GridFitOtherPlayers other(frontier, _terms, X);
       other.optimize(stepSizes);
     }

@@ -145,18 +145,25 @@ void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int
   internal::LogHandler = log_handler;
 }
 
-ScopedLog::ScopedLog(const char* filename, int line, LogLevel level, std::string message) :
+ScopedLog::ScopedLog(const char* filename, int line, std::string message) :
     _filename(filename),
     _line(line),
-    _level(level),
     _message(message) {
-  dispScopeLimit("BEGIN: ");
+  _finalScope = _depth == _depthLimit-1;
+
+  if (_finalScope) {
+    disp(_filename, _line, LOGLEVEL_INFO, _message);
+  } else {
+    dispScopeLimit("BEGIN: ");
+  }
   _depth++;
 }
 
 ScopedLog::~ScopedLog() {
   _depth--;
-  dispScopeLimit("END:   ");
+  if (!_finalScope) {
+    dispScopeLimit("END:   ");
+  }
 }
 
 void ScopedLog::setDepthLimit(int l) {
@@ -164,21 +171,18 @@ void ScopedLog::setDepthLimit(int l) {
 }
 
 void ScopedLog::dispScopeLimit(const char *label) {
+  disp(_filename, _line, LOGLEVEL_INFO, std::string(label) + _message);
+}
+
+void ScopedLog::disp(const char *filename, int line, LogLevel level, std::string s) {
   if (_depth < _depthLimit) {
-
-//    internal::LogFinisher() = internal::LogMessage(                 \
-//          LOGLEVEL_##LEVEL, __FILE__, __LINE__)
-
-
-    static const char* level_names[] = { "INFO", "WARNING", "ERROR", "FATAL" };
-    fprintf(stderr, "[%s %s:%d]", level_names[_level], _filename, _line);
-    indent();
-    fprintf(stderr, "%s%s\n", label, _message.c_str());
+    std::string data = makeIndentation() + s;
+    internal::LogFinisher() = internal::LogMessage(level, filename, line) << data;
   }
 }
 
 std::string ScopedLog::makeIndentation() {
-  return std::string(_depth, ' ');
+  return std::string(2*_depth, ' ');
 }
 
 int ScopedLog::_depth = 0;
