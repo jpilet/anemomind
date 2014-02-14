@@ -126,6 +126,8 @@ T CheckNotNull(T x, const char *expr, const char* file, int line) {
 void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int line,
                                        const std::string& message));
 
+// Construct this object on the stack in the beginning of a new scope.
+// It helps you follow the program flow.
 class ScopedLog {
  public:
   ScopedLog(const char* filename, int line, std::string message);
