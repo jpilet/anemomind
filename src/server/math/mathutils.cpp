@@ -6,6 +6,7 @@
  */
 
 #include "mathutils.h"
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -75,7 +76,7 @@ arma::sp_mat kronWithSpEye(arma::sp_mat M, int eyeDim) {
     arma::uword countInCol = M.col_ptrs[srcCol+1] - M.col_ptrs[srcCol];
     for (int k = 0; k < countInCol; k++) { // For every element of this column
       int srcRow = rowIndicesInCol[k];
-      int x = xInCol[k];
+      double x = xInCol[k];
       int dstOffset = eyeDim*counter;
       int dstRowOffset = eyeDim*srcRow;
       int dstColOffset = eyeDim*srcCol;

@@ -58,7 +58,12 @@ namespace {
     windSplits = makeRandomSplits(4, calib.windDataCount());
     currentSplits = makeRandomSplits(4, calib.currentDataCount());
 
-    Pwind = kronWithSpEye(calib.makeP(wgrid), 2);
+    arma::sp_mat Pwind1 = calib.makeP(wgrid);
+    Pwind = kronWithSpEye(Pwind1, 2);
+
+    std::cout << EXPR_AND_VAL_AS_STRING(Pwind1) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(Pwind) << std::endl;
+
     windRegSpace = kronWithSpEye(vcat(wgrid.makeFirstOrderReg(0),
         wgrid.makeFirstOrderReg(1)), 2);
     windRegTime = kronWithSpEye(wgrid.makeFirstOrderReg(2), 2);
@@ -98,9 +103,7 @@ void calibEx002() { // Try to optimize it
   CurrentData currentData(s.calib);
 
 
-
   const double initialRegWeight = 0.1;
-
   const int splitCount = 2;
 
   double windCurrentBalance = 0.5;

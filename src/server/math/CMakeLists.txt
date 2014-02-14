@@ -47,6 +47,13 @@ cxx_test(math_paretoTest
          gtest_main
         )                   
 
+cxx_test(math_mathutilsTest
+         mathutilsTest.cpp
+         math_mathutils
+         gtest_main
+        )                   
+
+
 add_library(math_Grid
             Grid.cpp
             Grid.h
