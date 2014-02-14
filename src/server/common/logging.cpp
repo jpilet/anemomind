@@ -159,6 +159,16 @@ ScopedLog::ScopedLog(const char* filename, int line, std::string message) :
   _depth++;
 }
 
+ScopedLog::ScopedLog(const ScopedLog &x) : _filename(nullptr), _line(-1), _finalScope(false) {
+  LOG(FATAL) << "This object is not meant to be relocated.";
+}
+
+void ScopedLog::operator= (const ScopedLog &x) {
+  LOG(FATAL) << "This object is not meant to be relocated.";
+
+}
+
+
 ScopedLog::~ScopedLog() {
   _depth--;
   if (!_finalScope) {

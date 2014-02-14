@@ -129,6 +129,8 @@ void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int
 class ScopedLog {
  public:
   ScopedLog(const char* filename, int line, std::string message);
+  ScopedLog(const ScopedLog &x);
+  void operator= (const ScopedLog &x);
   ~ScopedLog();
   static void setDepthLimit(int l);
   void disp(const char *file, int line, LogLevel level, std::string s);
