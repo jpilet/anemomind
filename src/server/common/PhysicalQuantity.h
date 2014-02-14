@@ -46,11 +46,16 @@ template <typename Quantity, typename Value>
 class PhysicalQuantity {
  public:
   typedef Quantity QuantityType;
+  typedef Value ValueType;
+
   Value &raw() {return _x;}
 
   // Additon/subtraction --> Quantity
   Quantity operator+(Quantity other) const {return Quantity(_x + other._x);}
   Quantity operator-(Quantity other) const {return Quantity(_x - other._x);}
+
+  // Scaling by a dimensionless unit --> Quantity
+  Quantity operator*(Value x) const {return Quantity(x*_x);}
 
   // Comparison --> bool
   bool operator < (Quantity other) const {return _x < other._x;}
@@ -70,10 +75,12 @@ class PhysicalQuantity {
   Value _x;
 };
 
-//template <typename DimensionlessType, typename Quantity>
-//Quantity operator*(DimensionlessType s, PhysicalQuantity<Quantity, Quantity::> x) {
-//  return Quan
-//}
+// Will the compiler understand this :-D ?
+// I constrain the right-hand type to be a PhysicalQuantity
+template <typename DimensionlessType, typename Quantity>
+Quantity operator*(DimensionlessType s, PhysicalQuantity<Quantity, typename Quantity::ValueType> x) {
+  return x*s; // <-- call the operator* method of x.
+}
 
 template <typename T>
 class Angle : public PhysicalQuantity<Angle<T>, T> {
