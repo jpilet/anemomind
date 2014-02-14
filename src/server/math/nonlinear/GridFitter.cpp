@@ -75,6 +75,26 @@ arma::sp_mat GridFit::makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Array
 }
 
 
+
+std::shared_ptr<MatExpr> solveSparseSparseEigsOLD(arma::sp_mat A, std::shared_ptr<MatExpr> B) {
+  arma::mat vecs;
+  arma::vec vals;
+  arma::eigs_sym(vals, vecs, A, A.n_cols);
+  arma::sp_mat Dinv = spDiag(invElements(vals)); // A sparse diagonla matrix
+
+  MatExprBuilder builder;
+  builder.push(vecs);
+  builder.push(Dinv);
+  builder.mul();
+  builder.push(vecs.t());
+  builder.push(B);
+  builder.mul();
+  builder.mul();
+  assert(builder.single());
+  return builder.top();
+}
+
+
 // http://www.quora.com/Whats-the-best-tool-to-solve-a-sparse-linear-system-and-how-efficiently-can-it-be-done
 /*
  *Here are a few well-known solvers for sparse systems.
@@ -94,27 +114,18 @@ http://graal.ens-lyon.fr/MUMPS/
 https://researcher.ibm.com/resea...
 I have no experience with this one, but I include it for completeness:
   *
+  *
+  *
+  *
+  * CXSparse
+  * https://www.cise.ufl.edu/research/sparse/CXSparse/
+  * http://www.cise.ufl.edu/research/sparse/CSparse/
+  *
+  * PETSc
+  * http://www.mcs.anl.gov/petsc/
  */
 // returns inv(A)*B
 // Uses the eigendecomposition of Armadillo for sparse matrices to achieve this.
-std::shared_ptr<MatExpr> solveSparseSparseEigsOLD(arma::sp_mat A, std::shared_ptr<MatExpr> B) {
-  arma::mat vecs;
-  arma::vec vals;
-  arma::eigs_sym(vals, vecs, A, A.n_cols);
-  arma::sp_mat Dinv = spDiag(invElements(vals)); // A sparse diagonla matrix
-
-  MatExprBuilder builder;
-  builder.push(vecs);
-  builder.push(Dinv);
-  builder.mul();
-  builder.push(vecs.t());
-  builder.push(B);
-  builder.mul();
-  builder.mul();
-  assert(builder.single());
-  return builder.top();
-}
-
 std::shared_ptr<MatExpr> solveSparseSparseEigs(arma::sp_mat A, std::shared_ptr<MatExpr> B) {
   arma::mat Adense = arma::inv(MAKEDENSE(A));
   return std::shared_ptr<MatExpr>(new MatExprProduct(std::shared_ptr<MatExpr>(new MatExprDense(Adense)), B));
