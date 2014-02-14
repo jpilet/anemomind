@@ -400,6 +400,8 @@ GridFitOtherPlayers::GridFitOtherPlayers(ParetoFrontier &frontier,
 void GridFitOtherPlayers::optimize(Array<Arrayd> stepSizes) {
   int count = _fits.size();
   for (int i = 0; i < count; i++) {
+    LOG(INFO) << stringFormat("      Tuning reg weights for gridfit %d/%d (%s)",
+        i+1, count, _fits[i]->getLabel().c_str());
     optimizeForGridFit(i, stepSizes[i]);
   }
 }
@@ -407,7 +409,10 @@ void GridFitOtherPlayers::optimize(Array<Arrayd> stepSizes) {
 void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes) {
   GridFit *f = _fits[index].get();
   const arma::mat &dataVector = _D[index];
-  for (int i = 0; i < f->getRegCount(); i++) {
+  int rc = f->getRegCount();
+  for (int i = 0; i < rc; i++) {
+    LOG(INFO) << stringFormat("         Tuning reg weight %d/%d (%s)",
+        i+1, rc, f->getRegLabel(i).c_str());
     // It is best to do this search in the logarithmic domain,
     // because this way, the weight stays positive.
     double initReg = log(f->getRegWeight(i));
@@ -415,7 +420,10 @@ void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes) {
     double initStep = stepSizes[i];
     auto objf = [&] (double x) {
       f->setExpRegWeight(i, x);
-      return f->evalCrossValidationFitness(dataVector);
+      LOG(INFO) << "                 Evaluating crossvalidation fitness...";
+      double fitness = f->evalCrossValidationFitness(dataVector);
+      LOG(INFO) << stringFormat("                 Evaluated crossvalidation fitness at %.3g to %.3g", exp(x), fitness);
+      return fitness;
     };
     auto acceptor = [&] (double x, double val) {
       f->setExpRegWeight(i, x);
@@ -521,7 +529,7 @@ void GridFitter::solve(arma::mat *XInOut) {
 
     // Part 2: Adjust the regularization weights of every grid fit.
     {
-      std::cout << "    PART 2: Adjusting regularization weights..." << std::endl;
+      LOG(INFO) << "    PART 2: Adjusting regularization weights...";
       GridFitOtherPlayers other(frontier, _terms, X);
       other.optimize(stepSizes);
     }

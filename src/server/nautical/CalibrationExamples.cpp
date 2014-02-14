@@ -44,7 +44,7 @@ namespace {
     Array<Nav> allNavs = loadNavsFromText(Nav::AllNavsPath, false);
     Array<Array<Nav> > splitNavs = splitNavsByDuration(allNavs,
                                    Duration::minutes(10).getDurationSeconds());
-    navs = splitNavs.first().sliceTo(3);
+    navs = splitNavs.first(); //.sliceTo(3);
     double spaceStep = 1000; // metres
     double timeStep = Duration::minutes(20).getDurationSeconds();
 
@@ -57,13 +57,7 @@ namespace {
     calib.addBoatData(boatData);
     windSplits = makeRandomSplits(4, calib.windDataCount());
     currentSplits = makeRandomSplits(4, calib.currentDataCount());
-
-    arma::sp_mat Pwind1 = calib.makeP(wgrid);
-    Pwind = kronWithSpEye(Pwind1, 2);
-
-    std::cout << EXPR_AND_VAL_AS_STRING(Pwind1) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(Pwind) << std::endl;
-
+    Pwind = kronWithSpEye(calib.makeP(wgrid), 2);
     windRegSpace = kronWithSpEye(vcat(wgrid.makeFirstOrderReg(0),
         wgrid.makeFirstOrderReg(1)), 2);
     windRegTime = kronWithSpEye(wgrid.makeFirstOrderReg(2), 2);
@@ -101,7 +95,6 @@ void calibEx002() { // Try to optimize it
   CalibSetup s;
   WindData windData(s.calib);
   CurrentData currentData(s.calib);
-
 
   const double initialRegWeight = 0.1;
   const int splitCount = 2;
