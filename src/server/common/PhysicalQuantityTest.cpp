@@ -59,41 +59,6 @@ TEST(PhysQuantTest, AngleTest) {
 }
 
 
-/*
- * Test of how the Curiously Recurring Template pattern
- * can make the code somewhat cleaner.
- */
-namespace {
-template <typename Quantity, typename ValueType>
-class PQ {
- public:
-  // Inherited operator
-  Quantity operator+(Quantity other) const {return Quantity(_x + other._x);}
- protected:
-  void set(ValueType x) {_x = x;}
-  ValueType _x;
-};
-
-#define MAKE_PQ_CONSTRUCTORS(ClassName) \
-  public: Mass(T x) {this->set(x);} \
-  public: Mass() {this->set(0);} \
-    typedef ClassName<T> ThisType;
-
-#define MAKE_PQ_CONVERTERS(fromName, toName, fromFactor) \
-  static ThisType fromName(T x) {return ThisType((fromFactor)*x);} \
-  T toName() const {return (1.0/(fromFactor))*(this->_x);}
-
-template <typename T>
-class Mass : public PQ<Mass<T>, T> {
-  MAKE_PQ_CONSTRUCTORS(Mass)
-  MAKE_PQ_CONVERTERS(kilograms, toKilograms, 1.0);
-  MAKE_PQ_CONVERTERS(skeppund, toSkeppund, 170.0);
-  MAKE_PQ_CONVERTERS(lispund, toLispund, 170.0/20.0);
-};
-
-#undef MAKE_PQ_CONSTRUCTORS
-}
-
 TEST(PhysQuantTest, NewPQTest) {
   Mass<double> a = Mass<double>::kilograms(30.0);
   Mass<double> b = Mass<double>::kilograms(34.0);

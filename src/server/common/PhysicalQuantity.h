@@ -44,7 +44,8 @@ class Init {
     ClassName(T x) : PhysicalQuantity<ClassName<T>, T>(x) {} \
   public: \
     typedef ClassName<T> ThisType; \
-    ClassName() : PhysicalQuantity<ClassName<T>, T>() {} //{this->set(Init<T>::value);}
+    ClassName() : PhysicalQuantity<ClassName<T>, T>() {} \
+    static ThisType makeFromX(T x) {return ThisType(x);}
 
 template <typename Quantity, typename Value>
 class PhysicalQuantity {
@@ -52,24 +53,24 @@ class PhysicalQuantity {
   typedef Quantity QuantityType;
   typedef Value ValueType;
 
-  Value &raw() {return _x;}
+  Value get() const {return _x;}
 
   // Additon/subtraction --> Quantity
-  Quantity operator+(Quantity other) const {return Quantity(_x + other._x);}
-  Quantity operator-(Quantity other) const {return Quantity(_x - other._x);}
+  Quantity operator+(Quantity other) const {return Quantity::makeFromX(_x + other.get());}
+  Quantity operator-(Quantity other) const {return Quantity::makeFromX(_x - other.get());}
 
   // Scaling by a dimensionless unit --> Quantity
-  Quantity operator*(Value x) const {return Quantity(x*_x);}
+  Quantity operator*(Value x) const {return Quantity::makeFromX(x*_x);}
 
   // Comparison --> bool
   bool operator < (Quantity other) const {return _x < other._x;}
   bool operator > (Quantity other) const {return _x > other._x;}
 
   // Multiplication with dimensionless quantity -1 --> Quantity
-  Quantity operator - () const {return Quantity(-_x);}
+  Quantity operator - () const {return Quantity::makeFromX(-_x);}
 
   // Division with a dimensionless quantity --> Quantity
-  Quantity operator/ (Value x) const {return Quantity(_x/x);}
+  Quantity operator/ (Value x) const {return Quantity::makeFromX(_x/x);}
 
   // Division with another quantity --> Value
   Value operator/ (Quantity other) const {return _x/other._x;}
@@ -120,13 +121,22 @@ class Time : public PhysicalQuantity<Time<T>, T> {
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toDays, days, 24*3600.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toWeeks, weeks, 7*24*3600.0);
 };
+
+template <typename T>
+class Mass : public PhysicalQuantity<Mass<T>, T> {
+  INJECT_COMMON_PHYSQUANT_CODE(Mass)
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toKilograms, kilograms, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toSkeppund, skeppund, 170.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(toLispund, lispund, 170.0/20.0);
+};
+
 }
 
 template <typename T>
-T cos(sail::Angle<T> x) {return cos(x.raw());}
+T cos(sail::Angle<T> x) {return cos(x.get());}
 
 template <typename T>
-T sin(sail::Angle<T> x) {return sin(x.raw());}
+T sin(sail::Angle<T> x) {return sin(x.get());}
 
 
 
