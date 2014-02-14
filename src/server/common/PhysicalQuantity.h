@@ -56,11 +56,18 @@ class PhysicalQuantity {
   Value get() const {return _x;}
 
   // Additon/subtraction --> Quantity
-  Quantity operator+(Quantity other) const {return Quantity::makeFromX(_x + other.get());}
-  Quantity operator-(Quantity other) const {return Quantity::makeFromX(_x - other.get());}
+  Quantity operator+(Quantity other) const {
+    return Quantity::makeFromX(_x + other.get());
+  }
+
+  Quantity operator-(Quantity other) const {
+    return Quantity::makeFromX(_x - other.get());
+  }
 
   // Scaling by a dimensionless unit --> Quantity
-  Quantity operator*(Value x) const {return Quantity::makeFromX(x*_x);}
+  Quantity operator*(Value x) const {
+    return Quantity::makeFromX(x*_x);
+  }
 
   // Comparison --> bool
   bool operator < (Quantity other) const {return _x < other.get();}
@@ -95,8 +102,10 @@ class IsDimensionless {
 
 
 template <typename DimensionlessType, typename Quantity>
-Quantity operator*(DimensionlessType s, PhysicalQuantity<Quantity, typename Quantity::ValueType> x) {
-  static_assert(IsDimensionless<DimensionlessType>::value, "This function is only for dimensionless types");
+Quantity operator*(DimensionlessType s,
+    PhysicalQuantity<Quantity, typename Quantity::ValueType> x) {
+  static_assert(IsDimensionless<DimensionlessType>::value,
+      "This function is only for dimensionless types");
   return x*s; // <-- call the operator* method of x.
 }
 
