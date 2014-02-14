@@ -50,17 +50,17 @@ class Init {
 template <typename Quantity, typename Value>
 class PhysicalQuantity {
  public:
+  typedef PhysicalQuantity<Quantity, Value> ThisQuantity;
   typedef Quantity QuantityType;
   typedef Value ValueType;
 
-  Value get() const {return _x;}
 
   // Additon/subtraction --> Quantity
-  Quantity operator+(Quantity other) const {
+  Quantity operator+(ThisQuantity other) const {
     return Quantity::makeFromX(_x + other.get());
   }
 
-  Quantity operator-(Quantity other) const {
+  Quantity operator-(ThisQuantity other) const {
     return Quantity::makeFromX(_x - other.get());
   }
 
@@ -70,8 +70,8 @@ class PhysicalQuantity {
   }
 
   // Comparison --> bool
-  bool operator < (Quantity other) const {return _x < other.get();}
-  bool operator > (Quantity other) const {return _x > other.get();}
+  bool operator < (ThisQuantity other) const {return _x < other.get();}
+  bool operator > (ThisQuantity other) const {return _x > other.get();}
 
   // Multiplication with dimensionless quantity -1 --> Quantity
   Quantity operator - () const {return Quantity::makeFromX(-_x);}
@@ -80,8 +80,9 @@ class PhysicalQuantity {
   Quantity operator/ (Value x) const {return Quantity::makeFromX(_x/x);}
 
   // Division with another quantity --> Value
-  Value operator/ (Quantity other) const {return _x/other.get();}
+  Value operator/ (ThisQuantity other) const {return _x/other.get();}
  protected:
+  Value get() const {return _x;}
   PhysicalQuantity(Value x) : _x(x) {}
   PhysicalQuantity() : _x(Init<Value>::value) {}
   Value _x;
@@ -155,10 +156,10 @@ class Mass : public PhysicalQuantity<Mass<T>, T> {
 }
 
 template <typename T>
-T cos(sail::Angle<T> x) {return cos(x.get());}
+T cos(sail::Angle<T> x) {return cos(x.toRadians());}
 
 template <typename T>
-T sin(sail::Angle<T> x) {return sin(x.get());}
+T sin(sail::Angle<T> x) {return sin(x.toRadians());}
 
 #undef MAKE_PHYSQUANT_TO_UNIT_CONVERTER
 #undef MAKE_PHYSQUANT_FROM_UNIT_CONVERTER
