@@ -505,6 +505,7 @@ void GridFitter::solve(arma::mat *XInOut) {
 
     // Part 1: Optimize Player 1 (the objective function)
     if (_pretuneWeightsIters <= i) {
+      assert(false);
       LOG(INFO) << "    PART 1: Adjusting calibration parameters...";
       LOG(INFO) << "    Instantiate player 1";
       GridFitPlayer1 objf(frontier, _terms);

@@ -44,7 +44,7 @@ namespace {
     Array<Nav> allNavs = loadNavsFromText(Nav::AllNavsPath, false);
     Array<Array<Nav> > splitNavs = splitNavsByDuration(allNavs,
                                    Duration::minutes(10).getDurationSeconds());
-    navs = splitNavs.first();
+    navs = splitNavs.first().sliceTo(3);
     double spaceStep = 1000; // metres
     double timeStep = Duration::minutes(20).getDurationSeconds();
 
