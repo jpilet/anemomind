@@ -31,14 +31,52 @@ class Init {
  * coding style guide but they reduce code duplication effort
  * and make the code much more readable than it otherwise would be.
  */
-#define MAKE_PHYSQUANT_TO_UNIT_CONVERTER(name, factor) T name() const {return (factor)*_x;}
+#define MAKE_PHYSQUANT_TO_UNIT_CONVERTER(name, factor) T name() const {return (factor)*(this->_x);}
 #define MAKE_PHYSQUANT_FROM_UNIT_CONVERTER(name, factor) static ThisType name(T x) {return ThisType((factor)*x);}
 #define MAKE_PHYSQUANT_UNIT_CONVERTERS(toName, fromName, fromFactor) MAKE_PHYSQUANT_TO_UNIT_CONVERTER(toName, 1.0/(fromFactor)) MAKE_PHYSQUANT_FROM_UNIT_CONVERTER(fromName, (fromFactor))
-#define INJECT_COMMON_PHYSQUANT_CODE(ClassName) private: T _x; ClassName(T x) : _x(x) {} public: T &raw() {return _x;} typedef ClassName<T> ThisType; ClassName() : _x(Init<T>::value) {}
 
+#define INJECT_COMMON_PHYSQUANT_CODE(ClassName) \
+  private: \
+    ClassName(T x) : PhysicalQuantity<ClassName<T>, T>(x) {} \
+  public: \
+    typedef ClassName<T> ThisType; \
+    ClassName() : PhysicalQuantity<ClassName<T>, T>() {} //{this->set(Init<T>::value);}
+
+template <typename Quantity, typename Value>
+class PhysicalQuantity {
+ public:
+  typedef Quantity QuantityType;
+  Value &raw() {return _x;}
+
+  // Additon/subtraction --> Quantity
+  Quantity operator+(Quantity other) const {return Quantity(_x + other._x);}
+  Quantity operator-(Quantity other) const {return Quantity(_x - other._x);}
+
+  // Comparison --> bool
+  bool operator < (Quantity other) const {return _x < other._x;}
+  bool operator > (Quantity other) const {return _x > other._x;}
+
+  // Multiplication with dimensionless quantity -1 --> Quantity
+  Quantity operator - () const {return Quantity(-_x);}
+
+  // Division with a dimensionless quantity --> Quantity
+  Quantity operator/ (Value x) const {return Quantity(_x/x);}
+
+  // Division with another quantity --> Value
+  Value operator/ (Quantity other) const {return _x/other._x;}
+ protected:
+  PhysicalQuantity(Value x) : _x(x) {}
+  PhysicalQuantity() : _x(Init<Value>::value) {}
+  Value _x;
+};
+
+//template <typename DimensionlessType, typename Quantity>
+//Quantity operator*(DimensionlessType s, PhysicalQuantity<Quantity, Quantity::> x) {
+//  return Quan
+//}
 
 template <typename T>
-class Angle {
+class Angle : public PhysicalQuantity<Angle<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Angle)
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toRadians, radians, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toDegrees, degrees, M_PI/180.0);
@@ -46,7 +84,7 @@ class Angle {
 
 
 template <typename T>
-class Length {
+class Length : public PhysicalQuantity<Length<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Length)
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toMeters, meters, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toKilometers, kilometers, 1000.0);
@@ -54,7 +92,7 @@ class Length {
 };
 
 template <typename T>
-class Velocity {
+class Velocity : public PhysicalQuantity<Velocity<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Velocity)
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toMetersPerSecond, metersPerSecond, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toKnots, knots, 1852/3600.0);
@@ -63,7 +101,7 @@ class Velocity {
 };
 
 template <typename T>
-class Time {
+class Time : public PhysicalQuantity<Time<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Time)
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toSeconds, seconds, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toMinutes, minutes, 60.0);
