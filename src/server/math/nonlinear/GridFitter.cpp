@@ -99,16 +99,16 @@ std::shared_ptr<MatExpr> solveSparseSparseEigs(arma::sp_mat A, std::shared_ptr<M
   return std::shared_ptr<MatExpr>(new MatExprProduct(std::shared_ptr<MatExpr>(new MatExprDense(Adense)), B));
 }
 
+/*
+ * What this function does:
+ * Precomputes a Z such that Z*D, D being the nonlinearly parameterized data
+ * vector, is the optimal grid fit parameters, given, P
+ */
 std::shared_ptr<MatExpr> GridFit::makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights) {
-  LOGFUN;
-  LOG(INFO) << "Here";
+  assert(P.n_nonzero > 0); // otherwise singular
   arma::sp_mat K = makeNormalMat(P, A, weights);
-  LOG(INFO) << "Here";
   arma::sp_mat Pt = P.t();
-  LOG(INFO) << "Here";
-  LOG(INFO) << std::string("Here, solve ") + objectToString(K.n_rows) + "x" + objectToString(K.n_cols);
   std::shared_ptr<MatExpr> result = solveSparseSparseEigs(K, std::shared_ptr<MatExpr>(new MatExprSparse(Pt)));
-  LOG(INFO) << "Done solving it";
   return result;
 }
 
@@ -124,6 +124,7 @@ GridFit::GridFit(arma::sp_mat P, AutoDiffFunction *data, Array<arma::sp_mat> reg
   _regWeights(regWeights),
   _labels(regWeightLabels),
   _weight(weight) {
+  assert(P.n_nonzero > 0);
   assert(splits.hasData());
   assert(_labels.empty() || _labels.size() == _regWeights.size());
   assert(_regWeights.size() == _regMatrices.size());
@@ -186,6 +187,7 @@ std::shared_ptr<MatExpr> GridFit::makeCrossValidationFitnessMat() {
     Arrayb train = neg(test);
     arma::sp_mat selTrain = makeSpSel(train);
     arma::sp_mat Ptrain = selTrain*_P;
+    assert(Ptrain.n_nonzero > 0);
     std::shared_ptr<MatExpr> fit = makeLsqDataToParamMatSub(Ptrain, _regMatrices, _regWeights);
 
     arma::sp_mat selTest = makeSpSel(test);
@@ -560,10 +562,23 @@ Arrayi GridFitter::getRegCounts() {
 }
 
 Arrayb makeRandomSplit(int count) {
+  assert(count >= 2);
   Uniform rng(0.0, 1.0);
   Arrayb split(count);
+  int trueCount = 0;
   for (int i = 0; i < count; i++) {
-    split[i] = rng.gen() > 0.5;
+    bool incl = rng.gen() > 0.5;
+    split[i] = incl;
+    trueCount += (incl? 1 : 0);
+  }
+  if (trueCount == 0 || trueCount == count) { // <-- If this condition is satisfied, the
+                                              //     resulting split could result in sin-
+                                              //     gular matrices. Therefore, find a
+                                              //     new split.
+
+    return makeRandomSplit(count); // Infinite recursion will not happen: The probability that
+                                   // we will have found a valid split after N tries tends
+                                   // to 1 as N tends towards infinity.
   }
   return split;
 }

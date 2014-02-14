@@ -101,7 +101,7 @@ void calibEx002() { // Try to optimize it
 
   const double initialRegWeight = 0.1;
 
-  const int splitCount = 4;
+  const int splitCount = 2;
 
   double windCurrentBalance = 0.5;
   std::shared_ptr<GridFit> windTerm(new GridFit(s.Pwind, &windData,
@@ -116,6 +116,8 @@ void calibEx002() { // Try to optimize it
       1.0 - windCurrentBalance));
 
   arma::mat X = s.calib.makeInitialParameters();
+  int gridVertexCount = s.race.getWindGrid().getVertexCount();
+
 
   GridFitter gf;
   gf.setPretuneWeightsIters(3);

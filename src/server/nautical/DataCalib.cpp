@@ -8,6 +8,7 @@
 #include "DataCalib.h"
 #include <server/nautical/LocalRace.h>
 #include <server/common/math.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -60,6 +61,8 @@ arma::sp_mat DataCalib::makeP(Grid3d grid) {
   int count = _boats.size();
   const int elemsPerNav = 8; // 2^3, a linear combination of the 8 vertices of a cube
   int elemCount = _navCount*elemsPerNav;
+  assert(count > 0);
+  assert(elemCount > 0);
 
   arma::umat IJ(2, elemCount);
   arma::vec X(elemCount);
@@ -69,6 +72,10 @@ arma::sp_mat DataCalib::makeP(Grid3d grid) {
     offset += _boats[i]->getDataCount();
   }
   assert(offset == _navCount);
+
+  std::cout << EXPR_AND_VAL_AS_STRING(IJ) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
+
   return arma::sp_mat(IJ, X, _navCount, grid.getVertexCount());
 }
 
