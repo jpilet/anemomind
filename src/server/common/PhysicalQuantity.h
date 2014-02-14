@@ -160,7 +160,10 @@ T cos(sail::Angle<T> x) {return cos(x.get());}
 template <typename T>
 T sin(sail::Angle<T> x) {return sin(x.get());}
 
-
+#undef MAKE_PHYSQUANT_TO_UNIT_CONVERTER
+#undef MAKE_PHYSQUANT_FROM_UNIT_CONVERTER
+#undef MAKE_PHYSQUANT_UNIT_CONVERTERS
+#undef INJECT_COMMON_PHYSQUANT_CODE
 
 
 #endif /* DIMENSIONS_H_ */
