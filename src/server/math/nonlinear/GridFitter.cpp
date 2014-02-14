@@ -74,6 +74,27 @@ arma::sp_mat GridFit::makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Array
   return K;
 }
 
+
+// http://www.quora.com/Whats-the-best-tool-to-solve-a-sparse-linear-system-and-how-efficiently-can-it-be-done
+/*
+ *Here are a few well-known solvers for sparse systems.
+
+1) The Harwell subroutines can solve many kinds of linear systems (see linear algebra section):
+http://www.hsl.rl.ac.uk/catalogue/
+I have used Harwell solvers (MA27, MA57 for symmetric systems) and they are excellent for small (thousands of rows) to medium sized system (10000--70000 rows).
+
+2) If your matrix is really, really large (over 100,000 rows), consider looking into PARDISO:
+http://www.pardiso-project.org/
+I'm told that Intel's MKL libraries include a version of PARDISO.
+
+3) MUMPS (this is free, but in my experience the Harwell routines outperform it)
+http://graal.ens-lyon.fr/MUMPS/
+
+4) IBM WSMP
+https://researcher.ibm.com/resea...
+I have no experience with this one, but I include it for completeness:
+  *
+ */
 // returns inv(A)*B
 // Uses the eigendecomposition of Armadillo for sparse matrices to achieve this.
 std::shared_ptr<MatExpr> solveSparseSparseEigsOLD(arma::sp_mat A, std::shared_ptr<MatExpr> B) {
