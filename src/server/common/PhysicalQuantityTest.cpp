@@ -58,8 +58,8 @@ TEST(PhysQuantTest, AngleTest) {
   EXPECT_NEAR(cos(a2)*cos(b2) - sin(a2)*sin(b2), cos(a.toRadians() + b.toRadians()), 1.0e-5);
 }
 
-
-TEST(PhysQuantTest, NewPQTest) {
+// Try the operators
+TEST(PhysQuantTest, OperatorTest) {
   Mass<double> a = Mass<double>::kilograms(30.0);
   Mass<double> b = Mass<double>::kilograms(34.0);
 
@@ -69,10 +69,38 @@ TEST(PhysQuantTest, NewPQTest) {
   EXPECT_NEAR(c.toKilograms(), 64.0, 1.0e-6);
 }
 
-TEST(PhysQuantTest, NewPQTest2) {
+TEST(PhysQuantTest, OperatorTest2) {
   Mass<double> sum = Mass<double>::lispund(0.0);
   for (int i = 0; i < 20; i++) {
     sum = sum + Mass<double>::lispund(1.0);
   }
   EXPECT_NEAR(sum.toSkeppund(), 1.0, 1.0e-6);
+}
+
+TEST(PhysQuantTest, OperatorTest3) {
+  Mass<double> a = Mass<double>::skeppund(1.0);
+  Mass<double> b = Mass<double>::lispund(20.0);
+  Mass<double> c = Mass<double>::kilograms(170);
+  EXPECT_NEAR(a/b, 1.0, 1.0e-6);
+  EXPECT_NEAR(a/c, 1.0, 1.0e-6);
+}
+
+TEST(PhysQuantTest, OperatorTest4) {
+  Mass<double> a = Mass<double>::lispund(1.0);
+  Mass<double> b = 20*a;
+  Mass<double> c = a*20;
+  EXPECT_NEAR(Mass<double>::skeppund(1.0).toKilograms(), b.toKilograms(), 1.0e-6);
+  EXPECT_NEAR(c.toKilograms(), 170.0, 1.0e-6);
+}
+
+TEST(PhysQuantTest, OperatorTest5) {
+  Mass<double> a = Mass<double>::lispund(1.0);
+  Mass<double> b = -a;
+  EXPECT_NEAR((a + b).toKilograms(), 0.0, 1.0e-6);
+}
+
+TEST(PhysQuantTest, OperatorTest6) {
+  Mass<double> a = Mass<double>::lispund(1.0);
+  Mass<double> b = a;
+  EXPECT_NEAR((a - b).toKilograms(), 0.0, 1.0e-6);
 }
