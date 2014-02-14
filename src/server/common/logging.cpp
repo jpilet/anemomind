@@ -144,3 +144,49 @@ void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int
                                        const std::string& message)) {
   internal::LogHandler = log_handler;
 }
+
+ScopedLog::ScopedLog(const char* filename, int line, LogLevel level, std::string message) :
+    _filename(filename),
+    _line(line),
+    _level(level),
+    _message(message) {
+  dispScopeLimit("BEGIN: ");
+  _depth++;
+}
+
+ScopedLog::~ScopedLog() {
+  _depth--;
+  dispScopeLimit("END:   ");
+}
+
+void ScopedLog::setDepthLimit(int l) {
+  _depthLimit = l;
+}
+
+void ScopedLog::dispScopeLimit(const char *label) {
+  if (_depth < _depthLimit) {
+
+//    internal::LogFinisher() = internal::LogMessage(                 \
+//          LOGLEVEL_##LEVEL, __FILE__, __LINE__)
+
+
+    static const char* level_names[] = { "INFO", "WARNING", "ERROR", "FATAL" };
+    fprintf(stderr, "[%s %s:%d]", level_names[_level], _filename, _line);
+    indent();
+    fprintf(stderr, "%s%s\n", label, _message.c_str());
+  }
+}
+
+std::string ScopedLog::makeIndentation() {
+  return std::string(_depth, ' ');
+}
+
+int ScopedLog::_depth = 0;
+int ScopedLog::_depthLimit = 3000;
+
+void ScopedLog::indent() {
+  for (int i = 0; i < _depth; i++) {
+    fprintf(stderr, "  ");
+  }
+}
+

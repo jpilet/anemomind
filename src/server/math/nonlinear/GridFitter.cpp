@@ -169,6 +169,7 @@ std::string GridFit::getRegLabel(int index) {
 }
 
 std::shared_ptr<MatExpr> GridFit::makeCrossValidationFitnessMat() {
+  SCOPEDLOG(INFO, "Build crossvalidation matrix");
   // true  <=> test
   // false <=> train
 
@@ -182,6 +183,7 @@ std::shared_ptr<MatExpr> GridFit::makeCrossValidationFitnessMat() {
 
   int offset = 0;
   for (int i = 0; i < splitCount; i++) {
+    SCOPEDLOG(INFO, stringFormat("Split %d/%d", i+1, splitCount));
     Arrayb test = _splits[i];
     Arrayb train = neg(test);
     arma::sp_mat selTrain = makeSpSel(train);
@@ -400,8 +402,8 @@ GridFitOtherPlayers::GridFitOtherPlayers(ParetoFrontier &frontier,
 void GridFitOtherPlayers::optimize(Array<Arrayd> stepSizes) {
   int count = _fits.size();
   for (int i = 0; i < count; i++) {
-    LOG(INFO) << stringFormat("      Tuning reg weights for gridfit %d/%d (%s)",
-        i+1, count, _fits[i]->getLabel().c_str());
+    SCOPEDLOG(INFO, stringFormat("Tuning reg weights for gridfit %d/%d (%s)",
+        i+1, count, _fits[i]->getLabel().c_str()));
     optimizeForGridFit(i, stepSizes[i]);
   }
 }
@@ -411,18 +413,17 @@ void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes) {
   const arma::mat &dataVector = _D[index];
   int rc = f->getRegCount();
   for (int i = 0; i < rc; i++) {
-    LOG(INFO) << stringFormat("         Tuning reg weight %d/%d (%s)",
-        i+1, rc, f->getRegLabel(i).c_str());
+    SCOPEDLOG(INFO, stringFormat("Tuning reg weight %d/%d (%s)",
+        i+1, rc, f->getRegLabel(i).c_str()));
     // It is best to do this search in the logarithmic domain,
     // because this way, the weight stays positive.
     double initReg = log(f->getRegWeight(i));
 
     double initStep = stepSizes[i];
     auto objf = [&] (double x) {
+      SCOPEDLOG(INFO, stringFormat("Evaluate cross-validation fitness at %.3g", exp(x)));
       f->setExpRegWeight(i, x);
-      LOG(INFO) << "                 Evaluating crossvalidation fitness...";
       double fitness = f->evalCrossValidationFitness(dataVector);
-      LOG(INFO) << stringFormat("                 Evaluated crossvalidation fitness at %.3g to %.3g", exp(x), fitness);
       return fitness;
     };
     auto acceptor = [&] (double x, double val) {

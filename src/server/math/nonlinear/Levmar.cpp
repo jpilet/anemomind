@@ -47,15 +47,11 @@ double maxAbsElement(const arma::mat X) {
 }
 
 void LevmarState::step(const LevmarSettings &settings, Function &fun) {
-  LOGFUN;
   arma::createMat(_Jscratch, fun.outDims(), fun.inDims());
   arma::createMat(_Fscratch, fun.outDims(), 1);
-  LOGFUN;
   fun.eval(_X.memptr(), _Fscratch.memptr(), _Jscratch.memptr());
-  LOGFUN;
   JtJ = _Jscratch.t()*_Jscratch;
   JtF = _Jscratch.t()*_Fscratch;
-  LOGFUN;
 
   // Initialize _mu, if not already done
   if (_mu < 0) {
