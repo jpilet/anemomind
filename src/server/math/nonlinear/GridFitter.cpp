@@ -149,7 +149,6 @@ arma::sp_mat GridFit::makePsel(Arrayb sel) {
 
 std::shared_ptr<MatExpr> GridFit::makeDataToParamMat(Arrayb sel) {
   arma::sp_mat Psel = makePsel(sel);
-  LOGFUN;
   return makeLsqDataToParamMatSub(Psel, _regMatrices, _regWeights);
 }
 
@@ -187,8 +186,6 @@ std::shared_ptr<MatExpr> GridFit::makeCrossValidationFitnessMat() {
     Arrayb train = neg(test);
     arma::sp_mat selTrain = makeSpSel(train);
     arma::sp_mat Ptrain = selTrain*_P;
-    std::cout << EXPR_AND_VAL_AS_STRING(_P) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(train) << std::endl;
     assert(_P.n_nonzero > 0);
     assert(Ptrain.n_nonzero > 0);
     std::shared_ptr<MatExpr> fit = makeLsqDataToParamMatSub(Ptrain, _regMatrices, _regWeights);
@@ -312,13 +309,9 @@ GridFitPlayer1::GridFitPlayer1(ParetoFrontier &frontier, std::vector<std::shared
   for (int i = 0; i < count; i++) {
     GridFit *fit = fits[i].get();
     assert(fit->getData().inDims() == _inDims);
-    LOG(INFO) << "Make data to residuals mat R";
     std::shared_ptr<MatExpr> R = fit->makeDataToResidualsMat();
-    LOG(INFO) << "Done R.";
     _Rmats[i] = R;
-    LOGFUN;
     _cvmats[i] = fit->makeCrossValidationFitnessMat();
-    LOGFUN;
     _outDims += R->rows();
     _maxDataLen = std::max(_maxDataLen, fit->getData().outDims());
   }
@@ -520,7 +513,7 @@ void GridFitter::solve(arma::mat *XInOut) {
       LevmarState lmState(X);
       LOG(INFO) << "    Take a step";
       lmState.step(settings, objf);
-      LOG(INFO) << "    Done taking a step";
+      LOG(INFO) << "    Done taking a step.";
       X = lmState.getX();
     } else {
       LOG(INFO) << "    PART 1: Skipped, pretuning weights.";
