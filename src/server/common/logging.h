@@ -157,7 +157,7 @@ class ScopedLog {
 // This macro is flawed in the sense that the
 // name of the resulting object is not auto-generated
 // to be unique. Be careful.
-#define SCOPEDLOG(SCOPENAME) ScopedLog _slog(__FILE__, __LINE__, SCOPENAME)
+#define ENTERSCOPE(SCOPENAME) ScopedLog _slog(__FILE__, __LINE__, SCOPENAME)
 
 // TODO: Provide stream-like syntax, so that we have
 //    LOG(INFO) << ...

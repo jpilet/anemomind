@@ -201,7 +201,7 @@ std::string GridFit::getRegLabel(int index) {
 }
 
 std::shared_ptr<MatExpr> GridFit::makeCrossValidationFitnessMat() {
-  SCOPEDLOG("Build crossvalidation matrix");
+  ENTERSCOPE("Build crossvalidation matrix");
   // true  <=> test
   // false <=> train
 
@@ -434,7 +434,7 @@ GridFitOtherPlayers::GridFitOtherPlayers(ParetoFrontier &frontier,
 void GridFitOtherPlayers::optimize(Array<Arrayd> stepSizes) {
   int count = _fits.size();
   for (int i = 0; i < count; i++) {
-    SCOPEDLOG(stringFormat("Tuning reg weights for gridfit %d/%d (%s)",
+    ENTERSCOPE(stringFormat("Tuning reg weights for gridfit %d/%d (%s)",
         i+1, count, _fits[i]->getLabel().c_str()));
     optimizeForGridFit(i, stepSizes[i]);
   }
@@ -445,7 +445,7 @@ void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes) {
   const arma::mat &dataVector = _D[index];
   int rc = f->getRegCount();
   for (int i = 0; i < rc; i++) {
-    SCOPEDLOG(stringFormat("Tuning reg weight %d/%d (%s)",
+    ENTERSCOPE(stringFormat("Tuning reg weight %d/%d (%s)",
         i+1, rc, f->getRegLabel(i).c_str()));
     // It is best to do this search in the logarithmic domain,
     // because this way, the weight stays positive.
@@ -453,7 +453,7 @@ void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes) {
 
     double initStep = stepSizes[i];
     auto objf = [&] (double x) {
-      SCOPEDLOG(stringFormat("Evaluate cross-validation fitness at %.3g", exp(x)));
+      ENTERSCOPE(stringFormat("Evaluate cross-validation fitness at %.3g", exp(x)));
       f->setExpRegWeight(i, x);
       double fitness = f->evalCrossValidationFitness(dataVector);
       return fitness;
@@ -530,7 +530,7 @@ void GridFitter::writeStatus(int i, arma::mat X, int fsize) {
 }
 
 void GridFitter::solve(arma::mat *XInOut) {
-  SCOPEDLOG("GridFitter::solve");
+  ENTERSCOPE("GridFitter::solve");
   arma::mat &X = *(XInOut);
   assert(X.size() == getNLParamCount());
 
@@ -545,14 +545,14 @@ void GridFitter::solve(arma::mat *XInOut) {
 
     // Part 1: Optimize Player 1 (the objective function)
     if (_pretuneWeightsIters <= i) {
-      SCOPEDLOG("PART 1: Adjusting calibration parameters");
+      ENTERSCOPE("PART 1: Adjusting calibration parameters");
       GridFitPlayer1 objf(frontier, _terms);
       settings.acceptor = [&] (double *Xd, double val) {
         return objf.acceptor(Xd, val);
       };
       LevmarState lmState(X);
       {
-        SCOPEDLOG("Step");
+        ENTERSCOPE("Step");
         lmState.step(settings, objf);
       }
       X = lmState.getX();
@@ -562,7 +562,7 @@ void GridFitter::solve(arma::mat *XInOut) {
 
     // Part 2: Adjust the regularization weights of every grid fit.
     {
-      SCOPEDLOG("PART 2: Adjusting regularization weights");
+      ENTERSCOPE("PART 2: Adjusting regularization weights");
       GridFitOtherPlayers other(frontier, _terms, X);
       other.optimize(stepSizes);
     }
