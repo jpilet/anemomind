@@ -87,8 +87,8 @@ TEST(PhysQuantTest, OperatorTest3) {
 
 TEST(PhysQuantTest, OperatorTest4) {
   Mass<double> a = Mass<double>::lispund(1.0);
-  Mass<double> b = 20*a;
-  Mass<double> c = a*20;
+  Mass<double> b = Factor<double>(20)*a;
+  Mass<double> c = a*Factor<double>(20);
   EXPECT_NEAR(Mass<double>::skeppund(1.0).kilograms(), b.kilograms(), 1.0e-6);
   EXPECT_NEAR(c.kilograms(), 170.0, 1.0e-6);
 }

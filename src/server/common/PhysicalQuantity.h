@@ -44,6 +44,16 @@ namespace sail {
     ClassName() : PhysicalQuantity<ClassName<T>, T>() {} \
     ClassName(const PhysicalQuantity<ClassName<T>, T> &x) : PhysicalQuantity<ClassName<T>, T>(x) {}
 
+template <typename T>
+class Factor {
+ public:
+  Factor(T x) : _x(x) {}
+  Factor() : _x(NAN) {}
+  T value() {return _x;}
+ private:
+  T _x;
+};
+
 template <typename Quantity, typename Value>
 class PhysicalQuantity {
  public:
@@ -62,8 +72,8 @@ class PhysicalQuantity {
   }
 
   // Scaling by a dimensionless unit --> Quantity
-  Quantity operator*(Value x) const {
-    return Quantity::makeFromX(x*_x);
+  Quantity operator*(Factor<Value> x) const {
+    return Quantity::makeFromX(x.value()*_x);
   }
 
   // Comparison --> bool
@@ -74,7 +84,7 @@ class PhysicalQuantity {
   Quantity operator - () const {return Quantity::makeFromX(-_x);}
 
   // Division with a dimensionless quantity --> Quantity
-  Quantity operator/ (Value x) const {return Quantity::makeFromX(_x/x);}
+  Quantity operator/ (Factor<Value> x) const {return Quantity::makeFromX(_x/x.value());}
 
   // Division with another quantity --> Value
   Value operator/ (ThisQuantity other) const {return _x/other.get();}
@@ -88,7 +98,7 @@ class PhysicalQuantity {
 };
 
 template <typename Quantity>
-Quantity operator*(typename Quantity::ValueType s,
+Quantity operator*(Factor<typename Quantity::ValueType> s,
     PhysicalQuantity<Quantity, typename Quantity::ValueType> x) {
   return x*s; // <-- call the operator* method of x.
 }
