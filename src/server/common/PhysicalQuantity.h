@@ -32,6 +32,8 @@ namespace sail {
 #define MAKE_PHYSQUANT_UNIT_CONVERTERS(toName, fromName, fromFactor) \
   MAKE_PHYSQUANT_TO_UNIT_CONVERTER(toName, 1.0/(fromFactor)) \
   MAKE_PHYSQUANT_FROM_UNIT_CONVERTER(fromName, (fromFactor))
+#define MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(name, factor) \
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(name, name, factor)
 
 #define INJECT_COMMON_PHYSQUANT_CODE(ClassName, DefaultValue) \
   private: \
@@ -94,44 +96,44 @@ Quantity operator*(typename Quantity::ValueType s,
 template <typename T>
 class Angle : public PhysicalQuantity<Angle<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Angle, NAN)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(radians, radians, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(degrees, degrees, M_PI/180.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(radians, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(degrees, M_PI/180.0);
 };
 
 
 template <typename T>
 class Length : public PhysicalQuantity<Length<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Length, NAN)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(meters, meters, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(kilometers, kilometers, 1000.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(nauticalMiles, nauticalMiles, 1852.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(meters, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(kilometers, 1000.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(nauticalMiles, 1852.0);
 };
 
 template <typename T>
 class Velocity : public PhysicalQuantity<Velocity<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Velocity, NAN)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(metersPerSecond, metersPerSecond, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(knots, knots, 1852/3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(kilometersPerHour, kilometersPerHour, 1.0/3.6);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(milesPerHour, milesPerHour, 0.44704);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(metersPerSecond, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(knots, 1852/3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(kilometersPerHour, 1.0/3.6);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(milesPerHour, 0.44704);
 };
 
 template <typename T>
 class Time : public PhysicalQuantity<Time<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Time, NAN)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(seconds, seconds, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(minutes, minutes, 60.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(hours, hours, 3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(days, days, 24*3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(weeks, weeks, 7*24*3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(seconds, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(minutes, 60.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(hours, 3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(days, 24*3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(weeks, 7*24*3600.0);
 };
 
 template <typename T>
 class Mass : public PhysicalQuantity<Mass<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Mass, NAN)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(kilograms, kilograms, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(skeppund, skeppund, 170.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(lispund, lispund, 170.0/20.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(kilograms, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(skeppund, 170.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS_SAME(lispund, 170.0/20.0);
 };
 
 }
