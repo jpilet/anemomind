@@ -192,7 +192,7 @@ void ScopedLog::dispScopeLimit(const char *label) {
 }
 
 void ScopedLog::disp(const char *filename, int line, LogLevel level, std::string s) {
-  if (_depth < _depthLimit) {
+  if ((_depth < _depthLimit) || (level != LOGLEVEL_INFO)) {
     std::string data = makeIndentation() + s;
     internal::LogFinisher() = internal::LogMessage(level, filename, line) << data;
   }
