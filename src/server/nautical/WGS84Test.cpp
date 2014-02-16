@@ -134,9 +134,11 @@ TEST(wgs84Test, DirTest001) {
     for (int i = 0; i < courseCount; i++) {
       double course = Angle<double>::degrees(courses(i)).radians();
 
-      double xyz[3], dirXyz[3];
-      WGS84<double>::posAndDirToXYZ(lon, lat,
-          altitudeMetres, course, xyz, dirXyz);
+      Length<double> xyz[3];
+      double dirXyz[3];
+      WGS84<double>::posAndDirToXYZ(GeographicPosition<double>(Angle<double>::radians(lon),
+          Angle<double>::radians(lat),
+          Length<double>::meters(altitudeMetres)), Angle<double>::radians(course), xyz, dirXyz);
 
       double sinc = sign[K]*sin(course);
 
@@ -167,9 +169,11 @@ TEST(wgs84Test, DirTest002) {
     for (int i = 0; i < courseCount; i++) {
       double course = Angle<double>::degrees(courses(i)).radians();
       for (int i = 0; i < 2; i++) {
-        double xyz[3], dirXyz[3];
-        WGS84<double>::posAndDirToXYZ(lon, lat(i),
-            0.0, course, xyz, dirXyz);
+        double dirXyz[3];
+        Length<double> xyz[3];
+        WGS84<double>::posAndDirToXYZ(GeographicPosition<double>(Angle<double>::radians(lon),
+            Angle<double>::radians(lat(i)),
+            Length<double>::meters(0.0)), Angle<double>::radians(course), xyz, dirXyz);
         EXPECT_NEAR(dirXyz[2], 0.0, 1.0e-5);
       }
     }

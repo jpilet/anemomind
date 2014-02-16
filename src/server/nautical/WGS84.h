@@ -30,6 +30,16 @@ class WGS84 {
     }
   }
 
+  static void posAndDirToXYZ(const GeographicPosition<T> pos, Angle<T> dir,
+      Length<T> *xyz3, T *xyzDirUnitVectorOut) {
+      double xyz3Metres[3];
+      posAndDirToXYZ(pos.lon().radians(), pos.lat().radians(), pos.alt().meters(),
+        dir.radians(), xyz3Metres, xyzDirUnitVectorOut);
+      for (int i = 0; i < 3; i++) {
+        xyz3[i] = Length<double>::meters(xyz3Metres[i]);
+      }
+  }
+
   // Maps (lon, lat, altitude) to 3d position xyz3 and optionally
   // outputs the Jacobian matrix
   static void toXYZWithJ(T lonRad, T latRad, T altitudeMetres,
@@ -87,22 +97,7 @@ class WGS84 {
 
   }
 
-  static void posAndDirToXYZ(T lonRad, T latRad, T altitudeMetres, T dirRad, T *xyz3MetresOut, T *xyzDirUnitVectorOut) {
-    T J[9];
-    toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, J);
-    T *eastAxis = J + 0;
-    T *northAxis = J + 3;
-    normalizeInPlace<double>(3, eastAxis);
-    normalizeInPlace<double>(3, northAxis);
 
-    T northCoef = cos(dirRad);
-    T eastCoef = sin(dirRad);
-
-    T len2 = 0.0;
-    for (int i = 0; i < 3; i++) {
-      xyzDirUnitVectorOut[i] = northCoef*northAxis[i] + eastCoef*eastAxis[i];
-    }
-  }
 
 
   /*************************************************************
@@ -170,6 +165,23 @@ private:
   static void toXYZ(T lonRad, T latRad, T altitudeMetres,
                          T *xyz3MetresOut) {
     toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, nullptr);
+  }
+
+  static void posAndDirToXYZ(T lonRad, T latRad, T altitudeMetres, T dirRad, T *xyz3MetresOut, T *xyzDirUnitVectorOut) {
+    T J[9];
+    toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, J);
+    T *eastAxis = J + 0;
+    T *northAxis = J + 3;
+    normalizeInPlace<double>(3, eastAxis);
+    normalizeInPlace<double>(3, northAxis);
+
+    T northCoef = cos(dirRad);
+    T eastCoef = sin(dirRad);
+
+    T len2 = 0.0;
+    for (int i = 0; i < 3; i++) {
+      xyzDirUnitVectorOut[i] = northCoef*northAxis[i] + eastCoef*eastAxis[i];
+    }
   }
 
 };
