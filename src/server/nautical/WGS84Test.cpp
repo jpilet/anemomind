@@ -12,6 +12,7 @@
 #include <server/common/LineKM.h>
 #include <server/common/Function.h>
 #include <server/common/logging.h>
+#include <server/common/PhysicalQuantity.h>
 
 using namespace sail;
 
@@ -125,7 +126,7 @@ TEST(wgs84Test, DirTest001) {
 
 
     for (int i = 0; i < courseCount; i++) {
-      double course = deg2rad(courses(i));
+      double course = Angle<double>::degrees(courses(i)).toRadians();
 
       double xyz[3], dirXyz[3];
       WGS84<double>::posAndDirToXYZ(lon, lat,
@@ -158,7 +159,7 @@ TEST(wgs84Test, DirTest002) {
   for (int j = 0; j < lonCount; j++) {
     double lon = lons(j);
     for (int i = 0; i < courseCount; i++) {
-      double course = deg2rad(courses(i));
+      double course = Angle<double>::degrees(courses(i)).toRadians();
       for (int i = 0; i < 2; i++) {
         double xyz[3], dirXyz[3];
         WGS84<double>::posAndDirToXYZ(lon, lat(i),

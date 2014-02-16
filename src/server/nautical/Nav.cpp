@@ -11,6 +11,7 @@
 #include <server/plot/gnuplot_i.hpp>
 #include <server/common/LineKM.h>
 #include <server/common/Duration.h>
+#include <server/common/PhysicalQuantity.h>
 #include <server/plot/extra.h>
 #include <server/nautical/Ecef.h>
 #include <ctime>
@@ -117,7 +118,7 @@ Nav::~Nav() {
 }
 
 double degMinMc2Radians(double deg, double min, double mc) {
-  return deg2rad(deg + (1.0/60)*(min + 0.001*mc));
+  return Angle<double>::degrees(deg + (1.0/60)*(min + 0.001*mc)).toRadians();
 }
 
 double Nav::getLonRadians() const {
