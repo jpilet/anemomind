@@ -12,15 +12,15 @@ using namespace sail;
 TEST(PhysQuantTest, CircumferenceTest) {
   Length<double> circumference = Length<double>::meters(4.0e7);
   double minutes = 60.0*Angle<double>::radians(2.0*M_PI).degrees();
-  double oneNauticalMileMeters = circumference.toMeters()/minutes;
-  EXPECT_NEAR(oneNauticalMileMeters, Length<double>::nauticalMiles(1.0).toMeters(), 30.0);
-  EXPECT_NEAR(circumference.toNauticalMiles(), minutes, 40);
+  double oneNauticalMileMeters = circumference.meters()/minutes;
+  EXPECT_NEAR(oneNauticalMileMeters, Length<double>::nauticalMiles(1.0).meters(), 30.0);
+  EXPECT_NEAR(circumference.nauticalMiles(), minutes, 40);
 }
 
 TEST(PhysQuantTest, TimeTest) {
   double n = 34.0;
-  EXPECT_NEAR(Time<double>::seconds(n).toSeconds(), n, 1.0e-9);
-  EXPECT_NEAR(Time<double>::seconds(60).toMinutes(), 1.0, 1.0e-9);
+  EXPECT_NEAR(Time<double>::seconds(n).seconds(), n, 1.0e-9);
+  EXPECT_NEAR(Time<double>::seconds(60).minutes(), 1.0, 1.0e-9);
 }
 
 TEST(PhysQuantTest, HydroptereTest) {
@@ -28,8 +28,8 @@ TEST(PhysQuantTest, HydroptereTest) {
   Velocity<double> va = Velocity<double>::knots(52.86);
   Velocity<double> vb = Velocity<double>::kilometersPerHour(97.90);
   Velocity<double> vc = Velocity<double>::milesPerHour(60.83);
-  EXPECT_NEAR(va.toMetersPerSecond(), vb.toMetersPerSecond(), 0.1);
-  EXPECT_NEAR(va.toMetersPerSecond(), vc.toMetersPerSecond(), 0.1);
+  EXPECT_NEAR(va.metersPerSecond(), vb.metersPerSecond(), 0.1);
+  EXPECT_NEAR(va.metersPerSecond(), vc.metersPerSecond(), 0.1);
 }
 
 TEST(PhysQuantTest, WalkTest) {
@@ -39,10 +39,10 @@ TEST(PhysQuantTest, WalkTest) {
   Time<double> time = Time<double>::minutes(10);
 
   // Then my speed is
-  Velocity<double> velA = Velocity<double>::kilometersPerHour(length.toKilometers()/time.toHours());
-  Velocity<double> velB = Velocity<double>::metersPerSecond(length.toMeters()/time.toSeconds());
+  Velocity<double> velA = Velocity<double>::kilometersPerHour(length.kilometers()/time.hours());
+  Velocity<double> velB = Velocity<double>::metersPerSecond(length.meters()/time.seconds());
 
-  EXPECT_NEAR(velA.toKnots(), velB.toKnots(), 1.0e-5);
+  EXPECT_NEAR(velA.knots(), velB.knots(), 1.0e-5);
 }
 
 TEST(PhysQuantTest, AngleTest) {
@@ -66,7 +66,7 @@ TEST(PhysQuantTest, OperatorTest) {
   // The + operator is inherited
   Mass<double> c = a + b;
 
-  EXPECT_NEAR(c.toKilograms(), 64.0, 1.0e-6);
+  EXPECT_NEAR(c.kilograms(), 64.0, 1.0e-6);
 }
 
 TEST(PhysQuantTest, OperatorTest2) {
@@ -74,7 +74,7 @@ TEST(PhysQuantTest, OperatorTest2) {
   for (int i = 0; i < 20; i++) {
     sum = sum + Mass<double>::lispund(1.0);
   }
-  EXPECT_NEAR(sum.toSkeppund(), 1.0, 1.0e-6);
+  EXPECT_NEAR(sum.skeppund(), 1.0, 1.0e-6);
 }
 
 TEST(PhysQuantTest, OperatorTest3) {
@@ -89,18 +89,18 @@ TEST(PhysQuantTest, OperatorTest4) {
   Mass<double> a = Mass<double>::lispund(1.0);
   Mass<double> b = 20*a;
   Mass<double> c = a*20;
-  EXPECT_NEAR(Mass<double>::skeppund(1.0).toKilograms(), b.toKilograms(), 1.0e-6);
-  EXPECT_NEAR(c.toKilograms(), 170.0, 1.0e-6);
+  EXPECT_NEAR(Mass<double>::skeppund(1.0).kilograms(), b.kilograms(), 1.0e-6);
+  EXPECT_NEAR(c.kilograms(), 170.0, 1.0e-6);
 }
 
 TEST(PhysQuantTest, OperatorTest5) {
   Mass<double> a = Mass<double>::lispund(1.0);
   Mass<double> b = -a;
-  EXPECT_NEAR((a + b).toKilograms(), 0.0, 1.0e-6);
+  EXPECT_NEAR((a + b).kilograms(), 0.0, 1.0e-6);
 }
 
 TEST(PhysQuantTest, OperatorTest6) {
   Mass<double> a = Mass<double>::lispund(1.0);
   Mass<double> b = a;
-  EXPECT_NEAR((a - b).toKilograms(), 0.0, 1.0e-6);
+  EXPECT_NEAR((a - b).kilograms(), 0.0, 1.0e-6);
 }

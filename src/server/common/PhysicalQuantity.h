@@ -102,36 +102,36 @@ class Angle : public PhysicalQuantity<Angle<T>, T> {
 template <typename T>
 class Length : public PhysicalQuantity<Length<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Length, NAN)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toMeters, meters, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toKilometers, kilometers, 1000.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toNauticalMiles, nauticalMiles, 1852.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(meters, meters, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(kilometers, kilometers, 1000.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(nauticalMiles, nauticalMiles, 1852.0);
 };
 
 template <typename T>
 class Velocity : public PhysicalQuantity<Velocity<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Velocity, NAN)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toMetersPerSecond, metersPerSecond, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toKnots, knots, 1852/3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toKilometersPerHour, kilometersPerHour, 1.0/3.6);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toMilesPerHour, milesPerHour, 0.44704);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(metersPerSecond, metersPerSecond, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(knots, knots, 1852/3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(kilometersPerHour, kilometersPerHour, 1.0/3.6);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(milesPerHour, milesPerHour, 0.44704);
 };
 
 template <typename T>
 class Time : public PhysicalQuantity<Time<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Time, NAN)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toSeconds, seconds, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toMinutes, minutes, 60.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toHours, hours, 3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toDays, days, 24*3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toWeeks, weeks, 7*24*3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(seconds, seconds, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(minutes, minutes, 60.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(hours, hours, 3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(days, days, 24*3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(weeks, weeks, 7*24*3600.0);
 };
 
 template <typename T>
 class Mass : public PhysicalQuantity<Mass<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Mass, NAN)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toKilograms, kilograms, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toSkeppund, skeppund, 170.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toLispund, lispund, 170.0/20.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(kilograms, kilograms, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(skeppund, skeppund, 170.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(lispund, lispund, 170.0/20.0);
 };
 
 }
