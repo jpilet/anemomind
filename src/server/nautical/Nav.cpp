@@ -118,7 +118,7 @@ Nav::~Nav() {
 }
 
 double degMinMc2Radians(double deg, double min, double mc) {
-  return Angle<double>::degrees(deg + (1.0/60)*(min + 0.001*mc)).toRadians();
+  return Angle<double>::degrees(deg + (1.0/60)*(min + 0.001*mc)).radians();
 }
 
 double Nav::getLonRadians() const {

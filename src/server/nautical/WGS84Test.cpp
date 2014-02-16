@@ -126,7 +126,7 @@ TEST(wgs84Test, DirTest001) {
 
 
     for (int i = 0; i < courseCount; i++) {
-      double course = Angle<double>::degrees(courses(i)).toRadians();
+      double course = Angle<double>::degrees(courses(i)).radians();
 
       double xyz[3], dirXyz[3];
       WGS84<double>::posAndDirToXYZ(lon, lat,
@@ -159,7 +159,7 @@ TEST(wgs84Test, DirTest002) {
   for (int j = 0; j < lonCount; j++) {
     double lon = lons(j);
     for (int i = 0; i < courseCount; i++) {
-      double course = Angle<double>::degrees(courses(i)).toRadians();
+      double course = Angle<double>::degrees(courses(i)).radians();
       for (int i = 0; i < 2; i++) {
         double xyz[3], dirXyz[3];
         WGS84<double>::posAndDirToXYZ(lon, lat(i),

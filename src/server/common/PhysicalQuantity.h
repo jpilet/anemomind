@@ -94,8 +94,8 @@ Quantity operator*(typename Quantity::ValueType s,
 template <typename T>
 class Angle : public PhysicalQuantity<Angle<T>, T> {
   INJECT_COMMON_PHYSQUANT_CODE(Angle, NAN)
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toRadians, radians, 1.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(toDegrees, degrees, M_PI/180.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(radians, radians, 1.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(degrees, degrees, M_PI/180.0);
 };
 
 
@@ -137,10 +137,10 @@ class Mass : public PhysicalQuantity<Mass<T>, T> {
 }
 
 template <typename T>
-T cos(sail::Angle<T> x) {return cos(x.toRadians());}
+T cos(sail::Angle<T> x) {return cos(x.radians());}
 
 template <typename T>
-T sin(sail::Angle<T> x) {return sin(x.toRadians());}
+T sin(sail::Angle<T> x) {return sin(x.radians());}
 
 #undef MAKE_PHYSQUANT_TO_UNIT_CONVERTER
 #undef MAKE_PHYSQUANT_FROM_UNIT_CONVERTER

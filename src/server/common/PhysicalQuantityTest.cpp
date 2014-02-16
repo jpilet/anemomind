@@ -11,7 +11,7 @@ using namespace sail;
 
 TEST(PhysQuantTest, CircumferenceTest) {
   Length<double> circumference = Length<double>::meters(4.0e7);
-  double minutes = 60.0*Angle<double>::radians(2.0*M_PI).toDegrees();
+  double minutes = 60.0*Angle<double>::radians(2.0*M_PI).degrees();
   double oneNauticalMileMeters = circumference.toMeters()/minutes;
   EXPECT_NEAR(oneNauticalMileMeters, Length<double>::nauticalMiles(1.0).toMeters(), 30.0);
   EXPECT_NEAR(circumference.toNauticalMiles(), minutes, 40);
@@ -50,12 +50,12 @@ TEST(PhysQuantTest, AngleTest) {
   Angle<double> b = Angle<double>::degrees(60);
   Angle<double> a2 = Angle<double>::radians(M_PI/6.0);
   Angle<double> b2 = Angle<double>::radians(M_PI/3.0);
-  EXPECT_NEAR(a.toDegrees(), a2.toDegrees(), 1.0e-5);
-  EXPECT_NEAR(b.toDegrees(), b2.toDegrees(), 1.0e-5);
+  EXPECT_NEAR(a.degrees(), a2.degrees(), 1.0e-5);
+  EXPECT_NEAR(b.degrees(), b2.degrees(), 1.0e-5);
   EXPECT_NEAR(sin(a), 1.0/2.0, 1.0e-6);
   EXPECT_NEAR(sin(b), sqrt(3)/2.0, 1.0e-6);
   EXPECT_NEAR(sin(a)*sin(a) + cos(a)*cos(a), 1.0, 1.0e-6);
-  EXPECT_NEAR(cos(a2)*cos(b2) - sin(a2)*sin(b2), cos(a.toRadians() + b.toRadians()), 1.0e-5);
+  EXPECT_NEAR(cos(a2)*cos(b2) - sin(a2)*sin(b2), cos(a.radians() + b.radians()), 1.0e-5);
 }
 
 // Try the operators
