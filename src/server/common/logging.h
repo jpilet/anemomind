@@ -127,12 +127,14 @@ void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int
                                        const std::string& message));
 
 
-typedef std::string ThreadId;
+
 
 // Construct this object on the stack in the beginning of a new scope.
 // It helps you follow the program flow.
 class ScopedLog {
  public:
+  typedef std::string ThreadId;
+
   ScopedLog(const char* filename, int line, std::string message);
   ~ScopedLog();
   static void setDepthLimit(int l);

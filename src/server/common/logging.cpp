@@ -207,7 +207,7 @@ int ScopedLog::_depthLimit = 3000;
 
 
 namespace {
-  ThreadId getThreadId() {
+  ScopedLog::ThreadId getThreadId() {
     std::stringstream ss;
     ss << std::this_thread::get_id();
     return ss.str();
@@ -220,7 +220,7 @@ void ScopedLog::verifyThread() {
   }
 }
 
-ThreadId ScopedLog::_commonThreadId = getThreadId();
+ScopedLog::ThreadId ScopedLog::_commonThreadId = getThreadId();
 
 
 
