@@ -126,6 +126,9 @@ T CheckNotNull(T x, const char *expr, const char* file, int line) {
 void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int line,
                                        const std::string& message));
 
+
+typedef std::string ThreadId;
+
 // Construct this object on the stack in the beginning of a new scope.
 // It helps you follow the program flow.
 class ScopedLog {
@@ -145,6 +148,10 @@ class ScopedLog {
   void dispScopeLimit(const char *label);
   static std::string makeIndentation();
   bool _finalScope;
+
+
+  static ThreadId _commonThreadId;
+  static void verifyThread();
 };
 
 // This macro is flawed in the sense that the

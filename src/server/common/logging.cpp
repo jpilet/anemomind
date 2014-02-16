@@ -48,6 +48,12 @@
 #include <stdlib.h>
 #include <string>
 
+// To verify that ScopedLog is only used in a single thread.
+#include <thread>
+#include <sstream>
+
+
+
 using std::string;
 
 namespace internal {
@@ -149,6 +155,7 @@ ScopedLog::ScopedLog(const char* filename, int line, std::string message) :
     _filename(filename),
     _line(line),
     _message(message) {
+  verifyThread();
   _finalScope = _depth == _depthLimit-1;
 
   if (_finalScope) {
@@ -197,4 +204,24 @@ std::string ScopedLog::makeIndentation() {
 
 int ScopedLog::_depth = 0;
 int ScopedLog::_depthLimit = 3000;
+
+
+namespace {
+  ThreadId getThreadId() {
+    std::stringstream ss;
+    ss << std::this_thread::get_id();
+    return ss.str();
+  }
+}
+
+void ScopedLog::verifyThread() {
+  if (!(getThreadId() == _commonThreadId)) {
+    LOG(FATAL) << "Only use the ScopedLog class within a single thread.";
+  }
+}
+
+ThreadId ScopedLog::_commonThreadId = getThreadId();
+
+
+
 
