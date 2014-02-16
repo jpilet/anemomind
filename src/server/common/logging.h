@@ -157,6 +157,5 @@ class ScopedLog {
 //  and
 //    SCOPED(INFO) << ...
 #define SCOPEDMESSAGE(LEVEL, MESSAGE) _slog.disp(__FILE__, __LINE__, LOGLEVEL_##LEVEL, MESSAGE)
-#define SCOPEDINFO(MESSAGE) SCOPEDMESSAGE(INFO, MESSAGE)
 
 #endif  // _LOGGING_H

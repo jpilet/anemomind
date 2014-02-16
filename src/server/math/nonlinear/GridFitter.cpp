@@ -215,7 +215,7 @@ std::shared_ptr<MatExpr> GridFit::makeCrossValidationFitnessMat() {
 
   int offset = 0;
   for (int i = 0; i < splitCount; i++) {
-    SCOPEDINFO(stringFormat("Split %d/%d", i+1, splitCount));
+    SCOPEDMESSAGE(INFO, stringFormat("Split %d/%d", i+1, splitCount));
     Arrayb test = _splits[i];
     Arrayb train = neg(test);
     arma::sp_mat selTrain = makeSpSel(train);
@@ -557,7 +557,7 @@ void GridFitter::solve(arma::mat *XInOut) {
       }
       X = lmState.getX();
     } else {
-      SCOPEDINFO("PART 1: Skipped, pretuning weights.");
+      SCOPEDMESSAGE(INFO, "PART 1: Skipped, pretuning weights.");
     }
 
     // Part 2: Adjust the regularization weights of every grid fit.
