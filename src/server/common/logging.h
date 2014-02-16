@@ -144,7 +144,6 @@ class ScopedLog {
   static int _depthLimit; // <-- Upper non-inclusive limit beyond which nothing will be displayed.
   void dispScopeLimit(const char *label);
   static std::string makeIndentation();
-  static void indent();
   bool _finalScope;
 };
 

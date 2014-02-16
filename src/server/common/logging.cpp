@@ -198,9 +198,3 @@ std::string ScopedLog::makeIndentation() {
 int ScopedLog::_depth = 0;
 int ScopedLog::_depthLimit = 3000;
 
-void ScopedLog::indent() {
-  for (int i = 0; i < _depth; i++) {
-    fprintf(stderr, "  ");
-  }
-}
-
