@@ -18,15 +18,19 @@ using namespace sail;
 
 // Check that the output XYZ position of this function is reasonable
 TEST(wgs84Test, CheckItIsReasonableTest) {
-  double lon = 0.3*M_PI;
-  double lat = 0.4*M_PI;
-  double altitudeMetres = 0.0;
+  Angle<double> lon = Angle<double>::radians(0.3*M_PI);
+  Angle<double> lat = Angle<double>::radians(0.4*M_PI);
+  Length<double> altitude = Length<double>::meters(0.0);
 
   double circumferenceEarthMetres = 40*1.0e6; // 40 000 km
   double radius = circumferenceEarthMetres/(2.0*M_PI);
 
+  Length<double> xyzl[3];
+  WGS84<double>::toXYZ(GeographicPosition<double>(lon, lat, altitude), xyzl);
   double xyz[3];
-  WGS84<double>::toXYZ(lon, lat, altitudeMetres, xyz);
+  for (int i = 0; i < 3; i++) {
+    xyz[i] = xyzl[i].meters();
+  }
   double distFromCog = norm(3, xyz);
   double tol = 0.1;
   EXPECT_LE((1.0 - tol)*radius, distFromCog);
@@ -55,11 +59,13 @@ TEST(wgs84Test, CompareToECEFTest) {
         EXPECT_NEAR(ey, xyz[1], 1.0e-5);
         EXPECT_NEAR(ez, xyz[2], 1.0e-5);
 
-        double xyz2[3];
-        WGS84<double>::toXYZ(lon, lat, altitudeMetres, xyz2);
-        EXPECT_NEAR(ex, xyz2[0], 1.0e-5);
-        EXPECT_NEAR(ey, xyz2[1], 1.0e-5);
-        EXPECT_NEAR(ez, xyz2[2], 1.0e-5);
+        Length<double> xyz2[3];
+        WGS84<double>::toXYZ(GeographicPosition<double>(Angle<double>::radians(lon),
+                             Angle<double>::radians(lat),
+                             Length<double>::meters(altitudeMetres)), xyz2);
+        EXPECT_NEAR(ex, xyz2[0].meters(), 1.0e-5);
+        EXPECT_NEAR(ey, xyz2[1].meters(), 1.0e-5);
+        EXPECT_NEAR(ez, xyz2[2].meters(), 1.0e-5);
       }
     }
   }

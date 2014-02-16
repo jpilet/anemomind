@@ -21,16 +21,9 @@ class WGS84 {
   constexpr static double ECEFE = 8.1819190842622e-2;
 
 
-  // Maps lon lat and altitude to an XYZ position in an ECEF coordinate system.
-  static void toXYZ(T lonRad, T latRad, T altitudeMetres,
-                         T *xyz3MetresOut) {
-    toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, nullptr);
-  }
-
-
   static void toXYZ(const GeographicPosition<T> &pos, Length<T> *xyzOut) {
     T xyzMetres[3];
-    toXYZ(pos.lon().toRadians(), pos.lat().toRadians(), pos.alt().toMetres(),
+    toXYZ(pos.lon().radians(), pos.lat().radians(), pos.alt().meters(),
       xyzMetres);
     for (int i = 0; i < 3; i++) {
       xyzOut[i] = Length<double>::meters(xyzMetres[i]);
@@ -172,6 +165,13 @@ class WGS84 {
       xyz3MetresOut[2] = t36*sinlat;
     }
   }
+private:
+  // Maps lon lat and altitude to an XYZ position in an ECEF coordinate system.
+  static void toXYZ(T lonRad, T latRad, T altitudeMetres,
+                         T *xyz3MetresOut) {
+    toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, nullptr);
+  }
+
 };
 
 
