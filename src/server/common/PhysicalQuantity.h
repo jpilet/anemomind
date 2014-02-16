@@ -40,7 +40,7 @@ namespace sail {
     constexpr static T defaultValue = (DefaultValue); \
     typedef ClassName<T> ThisType; \
     ClassName() : PhysicalQuantity<ClassName<T>, T>() {} \
-    static ThisType makeFromX(T x) {return ThisType(x);}
+    ClassName(const PhysicalQuantity<ClassName<T>, T> &x) : PhysicalQuantity<ClassName<T>, T>(x) {}
 
 template <typename Quantity, typename Value>
 class PhysicalQuantity {
@@ -81,6 +81,8 @@ class PhysicalQuantity {
   PhysicalQuantity(Value x) : _x(x) {}
   PhysicalQuantity() : _x(Quantity::defaultValue) {}
   Value _x;
+ private:
+  static Quantity makeFromX(Value X) { return Quantity(PhysicalQuantity<Quantity, Value>(X)); }
 };
 
 template <typename Quantity>
