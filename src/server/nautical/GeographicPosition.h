@@ -13,15 +13,10 @@ namespace sail {
 template <typename T>
 class GeographicPosition {
 public:
-  GeographicPosition(Angle<T> longitude, Angle<T> latitude, Length<T> altitude) :
+  GeographicPosition(Angle<T> longitude, Angle<T> latitude, Length<T> altitude = Length<T>::meters(0)) :
     _lon(longitude),
     _lat(latitude),
     _alt(altitude) {}
-
-  GeographicPosition(Angle<T> longitude, Angle<T> latitude) : // At sea level.
-    _lon(longitude),
-    _lat(latitude),
-    _alt(Length<T>::fromMetres(0.0)) {}
 
   Angle<T> lon() const {return _lon;}
   Angle<T> lat() const {return _lat;}
