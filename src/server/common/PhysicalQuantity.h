@@ -20,12 +20,6 @@
 
 namespace sail {
 
-template <typename T>
-class Init {
- public:
-  static const T value = NAN;
-};
-
 /*
  * These macros may not be in conformity with the
  * coding style guide but they reduce code duplication effort
@@ -39,10 +33,11 @@ class Init {
   MAKE_PHYSQUANT_TO_UNIT_CONVERTER(toName, 1.0/(fromFactor)) \
   MAKE_PHYSQUANT_FROM_UNIT_CONVERTER(fromName, (fromFactor))
 
-#define INJECT_COMMON_PHYSQUANT_CODE(ClassName) \
+#define INJECT_COMMON_PHYSQUANT_CODE(ClassName, DefaultValue) \
   private: \
     ClassName(T x) : PhysicalQuantity<ClassName<T>, T>(x) {} \
   public: \
+    constexpr static T defaultValue = (DefaultValue); \
     typedef ClassName<T> ThisType; \
     ClassName() : PhysicalQuantity<ClassName<T>, T>() {} \
     static ThisType makeFromX(T x) {return ThisType(x);}
@@ -84,7 +79,7 @@ class PhysicalQuantity {
  protected:
   Value get() const {return _x;}
   PhysicalQuantity(Value x) : _x(x) {}
-  PhysicalQuantity() : _x(Init<Value>::value) {}
+  PhysicalQuantity() : _x(Quantity::defaultValue) {}
   Value _x;
 };
 
@@ -96,7 +91,7 @@ Quantity operator*(typename Quantity::ValueType s,
 
 template <typename T>
 class Angle : public PhysicalQuantity<Angle<T>, T> {
-  INJECT_COMMON_PHYSQUANT_CODE(Angle)
+  INJECT_COMMON_PHYSQUANT_CODE(Angle, NAN)
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toRadians, radians, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toDegrees, degrees, M_PI/180.0);
 };
@@ -104,7 +99,7 @@ class Angle : public PhysicalQuantity<Angle<T>, T> {
 
 template <typename T>
 class Length : public PhysicalQuantity<Length<T>, T> {
-  INJECT_COMMON_PHYSQUANT_CODE(Length)
+  INJECT_COMMON_PHYSQUANT_CODE(Length, NAN)
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toMeters, meters, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toKilometers, kilometers, 1000.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toNauticalMiles, nauticalMiles, 1852.0);
@@ -112,7 +107,7 @@ class Length : public PhysicalQuantity<Length<T>, T> {
 
 template <typename T>
 class Velocity : public PhysicalQuantity<Velocity<T>, T> {
-  INJECT_COMMON_PHYSQUANT_CODE(Velocity)
+  INJECT_COMMON_PHYSQUANT_CODE(Velocity, NAN)
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toMetersPerSecond, metersPerSecond, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toKnots, knots, 1852/3600.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toKilometersPerHour, kilometersPerHour, 1.0/3.6);
@@ -121,7 +116,7 @@ class Velocity : public PhysicalQuantity<Velocity<T>, T> {
 
 template <typename T>
 class Time : public PhysicalQuantity<Time<T>, T> {
-  INJECT_COMMON_PHYSQUANT_CODE(Time)
+  INJECT_COMMON_PHYSQUANT_CODE(Time, NAN)
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toSeconds, seconds, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toMinutes, minutes, 60.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toHours, hours, 3600.0);
@@ -131,7 +126,7 @@ class Time : public PhysicalQuantity<Time<T>, T> {
 
 template <typename T>
 class Mass : public PhysicalQuantity<Mass<T>, T> {
-  INJECT_COMMON_PHYSQUANT_CODE(Mass)
+  INJECT_COMMON_PHYSQUANT_CODE(Mass, NAN)
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toKilograms, kilograms, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toSkeppund, skeppund, 170.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(toLispund, lispund, 170.0/20.0);
