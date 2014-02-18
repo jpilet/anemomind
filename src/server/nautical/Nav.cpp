@@ -240,7 +240,7 @@ void dispNavTimeIntervals(Array<Nav> navs) {
     bins[index]++;
   }
   for (int i = 0; i < binCount; i++) {
-    cout << "Bin " << i+1 << "/" << binCount << ": " << bins[i] << " intervals longer than the previous but shorter than " << DecomposedDuration(exp(line.inv(i+1))).str() << endl;
+    cout << "Bin " << i+1 << "/" << binCount << ": " << bins[i] << " intervals longer than the previous but shorter than " << Duration(exp(line.inv(i+1))).str() << endl;
   }
 }
 
