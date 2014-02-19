@@ -31,11 +31,11 @@ namespace sail {
   T name() const {return (1.0 / (fromFactor))*(this->_x);} \
   static ThisType name(T x) {return ThisType((fromFactor)*x);}
 
-#define DECLARE_PHYSQUANT_CONSTRUCTORS(ClassName, DefaultValue) \
+#define DECLARE_PHYSQUANT_CONSTRUCTORS(ClassName) \
   private: \
     ClassName(T x) : PhysicalQuantity<ClassName<T>, T>(x) {} \
   public: \
-    constexpr static T defaultValue = (DefaultValue); \
+    constexpr static T defaultValue = T(std::numeric_limits<double>::signaling_NaN()); \
     typedef ClassName<T> ThisType; \
     ClassName() : PhysicalQuantity<ClassName<T>, T>(defaultValue) { } \
     ClassName(const PhysicalQuantity<ClassName<T>, T> &x) : PhysicalQuantity<ClassName<T>, T>(x) {}
@@ -83,25 +83,28 @@ class PhysicalQuantity {
   static Quantity makeFromX(Value X) { return Quantity(PhysicalQuantity<Quantity, Value>(X)); }
 };
 
-template <typename T>
+template <typename T = double>
 class Angle : public PhysicalQuantity<Angle<T>, T> {
-  DECLARE_PHYSQUANT_CONSTRUCTORS(Angle, NAN)
+  DECLARE_PHYSQUANT_CONSTRUCTORS(Angle)
+ public:
   MAKE_PHYSQUANT_UNIT_CONVERTERS(radians, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(degrees, M_PI/180.0);
 };
 
 
-template <typename T>
+template <typename T = double>
 class Length : public PhysicalQuantity<Length<T>, T> {
-  DECLARE_PHYSQUANT_CONSTRUCTORS(Length, NAN)
+  DECLARE_PHYSQUANT_CONSTRUCTORS(Length)
+ public:
   MAKE_PHYSQUANT_UNIT_CONVERTERS(meters, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(kilometers, 1000.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(nauticalMiles, 1852.0);
 };
 
-template <typename T>
+template <typename T = double>
 class Velocity : public PhysicalQuantity<Velocity<T>, T> {
-  DECLARE_PHYSQUANT_CONSTRUCTORS(Velocity, NAN)
+  DECLARE_PHYSQUANT_CONSTRUCTORS(Velocity)
+ public:
   MAKE_PHYSQUANT_UNIT_CONVERTERS(metersPerSecond, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(knots, 1852/3600.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(kilometersPerHour, 1.0/3.6);
@@ -110,7 +113,7 @@ class Velocity : public PhysicalQuantity<Velocity<T>, T> {
 
 template <typename T = double>
 class Duration : public PhysicalQuantity<Duration<T>, T> {
-  DECLARE_PHYSQUANT_CONSTRUCTORS(Duration, NAN)
+  DECLARE_PHYSQUANT_CONSTRUCTORS(Duration)
  public:
   MAKE_PHYSQUANT_UNIT_CONVERTERS(seconds, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(minutes, 60.0);
@@ -137,9 +140,10 @@ class Duration : public PhysicalQuantity<Duration<T>, T> {
   }
 };
 
-template <typename T>
+template <typename T = double>
 class Mass : public PhysicalQuantity<Mass<T>, T> {
-  DECLARE_PHYSQUANT_CONSTRUCTORS(Mass, NAN)
+  DECLARE_PHYSQUANT_CONSTRUCTORS(Mass)
+ public:
   MAKE_PHYSQUANT_UNIT_CONVERTERS(kilograms, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(skeppund, 170.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(lispund, 170.0/20.0);
