@@ -36,11 +36,6 @@ add_library(common_Span
             Span.cpp
             )
 
-add_library(common_Duration
-            Duration.h
-            Duration.cpp
-            )
-
 add_library(common_Hierarchy
             Hierarchy.cpp
             Hierarchy.h

@@ -14,7 +14,6 @@ add_library(nautical_nav
 target_link_libraries(nautical_nav
   common_Array
   common_LineKM
-  common_Duration
   plot_gnuplot
   nautical_Ecef
   common_ContinuousRange)
@@ -41,7 +40,6 @@ add_library(examples_PlotTrajectoryExamples
   PlotTrajectoryExamples.cpp)  
 target_link_libraries(examples_PlotTrajectoryExamples
   plot_gnuplot
-  common_Duration
   nautical_LocalRace)  
 
 add_executable(examples_PlotTrajectoryExampleLastRace
@@ -84,7 +82,6 @@ target_link_libraries(nautical_CalibrationExample
 
 cxx_test(nautical_LocalRaceTest
             LocalRaceTest.cpp
-            common_Duration
             nautical_LocalRace
             gtest_main)
 
