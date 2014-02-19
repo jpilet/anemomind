@@ -17,10 +17,10 @@ TEST(PhysQuantTest, CircumferenceTest) {
   EXPECT_NEAR(circumference.nauticalMiles(), minutes, 40);
 }
 
-TEST(PhysQuantTest, TimeTest) {
+TEST(PhysQuantTest, DurationTest) {
   double n = 34.0;
-  EXPECT_NEAR(Time<double>::seconds(n).seconds(), n, 1.0e-9);
-  EXPECT_NEAR(Time<double>::seconds(60).minutes(), 1.0, 1.0e-9);
+  EXPECT_NEAR(Duration<double>::seconds(n).seconds(), n, 1.0e-9);
+  EXPECT_NEAR(Duration<double>::seconds(60).minutes(), 1.0, 1.0e-9);
 }
 
 TEST(PhysQuantTest, HydroptereTest) {
@@ -36,7 +36,7 @@ TEST(PhysQuantTest, WalkTest) {
   // When I am in a hurry, I walk
   Length<double> length = Length<double>::kilometers(1.0);
   // in
-  Time<double> time = Time<double>::minutes(10);
+  Duration<double> time = Duration<double>::minutes(10);
 
   // Then my speed is
   Velocity<double> velA = Velocity<double>::kilometersPerHour(length.kilometers()/time.hours());
@@ -77,30 +77,18 @@ TEST(PhysQuantTest, OperatorTest2) {
   EXPECT_NEAR(sum.skeppund(), 1.0, 1.0e-6);
 }
 
-TEST(PhysQuantTest, OperatorTest3) {
-  Mass<double> a = Mass<double>::skeppund(1.0);
-  Mass<double> b = Mass<double>::lispund(20.0);
-  Mass<double> c = Mass<double>::kilograms(170);
-  EXPECT_NEAR(a/b, 1.0, 1.0e-6);
-  EXPECT_NEAR(a/c, 1.0, 1.0e-6);
-}
-
-TEST(PhysQuantTest, OperatorTest4) {
-  Mass<double> a = Mass<double>::lispund(1.0);
-  Mass<double> b = Factor<double>(20)*a;
-  Mass<double> c = a*Factor<double>(20);
-  EXPECT_NEAR(Mass<double>::skeppund(1.0).kilograms(), b.kilograms(), 1.0e-6);
-  EXPECT_NEAR(c.kilograms(), 170.0, 1.0e-6);
-}
-
-TEST(PhysQuantTest, OperatorTest5) {
-  Mass<double> a = Mass<double>::lispund(1.0);
-  Mass<double> b = -a;
-  EXPECT_NEAR((a + b).kilograms(), 0.0, 1.0e-6);
-}
-
 TEST(PhysQuantTest, OperatorTest6) {
   Mass<double> a = Mass<double>::lispund(1.0);
   Mass<double> b = a;
   EXPECT_NEAR((a - b).kilograms(), 0.0, 1.0e-6);
+}
+
+TEST(PhysQuantTest, DurationStr) {
+  Duration<> d(
+      Duration<>::weeks(3)
+      + Duration<>::days(2)
+      + Duration<>::hours(7)
+      + Duration<>::minutes(3)
+      + Duration<>::seconds(5));
+  EXPECT_EQ("3 weeks, 2 days, 7 hours, 3 minutes, 5 seconds", d.str());
 }
