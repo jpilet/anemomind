@@ -6,7 +6,7 @@
 namespace sail {
 void ptexLastRace() { // Plot a single trajectory
   Array<Nav> navs = loadNavsFromText(Nav::AllNavsPath, false);
-  Array<Array<Nav> > splitNavs = splitNavsByDuration(navs, Duration::minutes(10).getDurationSeconds());
+  Array<Array<Nav> > splitNavs = splitNavsByDuration(navs, DecomposedDuration::minutes(10).getDurationSeconds());
 
   plotNavsEcefTrajectory(splitNavs.last());
 }
@@ -14,10 +14,10 @@ void ptexLastRace() { // Plot a single trajectory
 void ptexLocalRace() {
   Array<Nav> allNavs = loadNavsFromText(Nav::AllNavsPath, false);
   Array<Array<Nav> > splitNavs = splitNavsByDuration(allNavs,
-                                 Duration::minutes(10).getDurationSeconds());
+                                 DecomposedDuration::minutes(10).getDurationSeconds());
   Array<Nav> navs = splitNavs.first();
   double spaceStep = 500; // metres
-  double timeStep = Duration::minutes(10).getDurationSeconds();
+  double timeStep = DecomposedDuration::minutes(10).getDurationSeconds();
   LocalRace race(navs, spaceStep, timeStep);
   race.makeSpatioTemporalPlot(navs);
 }

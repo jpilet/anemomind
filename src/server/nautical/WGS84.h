@@ -21,20 +21,23 @@ class WGS84 {
   constexpr static double ECEFE = 8.1819190842622e-2;
 
 
-  // Maps lon lat and altitude to an XYZ position in an ECEF coordinate system.
-  static void toXYZ(T lonRad, T latRad, T altitudeMetres,
-                         T *xyz3MetresOut) {
-    toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, nullptr);
-  }
-
-
   static void toXYZ(const GeographicPosition<T> &pos, Length<T> *xyzOut) {
     T xyzMetres[3];
-    toXYZ(pos.lon().toRadians(), pos.lat().toRadians(), pos.alt().toMetres(),
+    toXYZ(pos.lon().radians(), pos.lat().radians(), pos.alt().meters(),
       xyzMetres);
     for (int i = 0; i < 3; i++) {
       xyzOut[i] = Length<double>::meters(xyzMetres[i]);
     }
+  }
+
+  static void posAndDirToXYZ(const GeographicPosition<T> pos, Angle<T> dir,
+      Length<T> *xyz3, T *xyzDirUnitVectorOut) {
+      double xyz3Metres[3];
+      posAndDirToXYZ(pos.lon().radians(), pos.lat().radians(), pos.alt().meters(),
+        dir.radians(), xyz3Metres, xyzDirUnitVectorOut);
+      for (int i = 0; i < 3; i++) {
+        xyz3[i] = Length<double>::meters(xyz3Metres[i]);
+      }
   }
 
   // Maps (lon, lat, altitude) to 3d position xyz3 and optionally
@@ -92,24 +95,6 @@ class WGS84 {
       J3x3ColMajorOut[8] = dZdH;
     }
   }
-
-  static void posAndDirToXYZ(T lonRad, T latRad, T altitudeMetres, T dirRad, T *xyz3MetresOut, T *xyzDirUnitVectorOut) {
-    T J[9];
-    toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, J);
-    T *eastAxis = J + 0;
-    T *northAxis = J + 3;
-    normalizeInPlace<T>(3, eastAxis);
-    normalizeInPlace<T>(3, northAxis);
-
-    T northCoef = cos(dirRad);
-    T eastCoef = sin(dirRad);
-
-    T len2 = 0.0;
-    for (int i = 0; i < 3; i++) {
-      xyzDirUnitVectorOut[i] = northCoef*northAxis[i] + eastCoef*eastAxis[i];
-    }
-  }
-
 
   /*************************************************************
    * Code adopted from the NmeaParser library
@@ -171,6 +156,30 @@ class WGS84 {
       xyz3MetresOut[2] = t36*sinlat;
     }
   }
+private:
+  // Maps lon lat and altitude to an XYZ position in an ECEF coordinate system.
+  static void toXYZ(T lonRad, T latRad, T altitudeMetres,
+                         T *xyz3MetresOut) {
+    toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, nullptr);
+  }
+
+  static void posAndDirToXYZ(T lonRad, T latRad, T altitudeMetres, T dirRad, T *xyz3MetresOut, T *xyzDirUnitVectorOut) {
+    T J[9];
+    toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, J);
+    T *eastAxis = J + 0;
+    T *northAxis = J + 3;
+    normalizeInPlace<double>(3, eastAxis);
+    normalizeInPlace<double>(3, northAxis);
+
+    T northCoef = cos(dirRad);
+    T eastCoef = sin(dirRad);
+
+    T len2 = 0.0;
+    for (int i = 0; i < 3; i++) {
+      xyzDirUnitVectorOut[i] = northCoef*northAxis[i] + eastCoef*eastAxis[i];
+    }
+  }
+
 };
 
 

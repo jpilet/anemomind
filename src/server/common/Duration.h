@@ -14,17 +14,17 @@ namespace sail {
 
 // Conveniency class for displaying durations
 // and converting seconds back and forth.
-class Duration {
+class DecomposedDuration {
  public:
-  Duration(double seconds);
-  Duration();
-  Duration(unsigned int weeks, unsigned int days, unsigned int hours,
+  DecomposedDuration(double seconds);
+  DecomposedDuration();
+  DecomposedDuration(unsigned int weeks, unsigned int days, unsigned int hours,
            unsigned int minutes, double seconds);
 
-  static Duration minutes(unsigned int minutes);
+  static DecomposedDuration minutes(unsigned int minutes);
 
 
-  virtual ~Duration();
+  virtual ~DecomposedDuration();
 
   std::string str();
 
