@@ -11,7 +11,7 @@
 
 namespace sail {
 
-Duration::Duration(double seconds) {
+DecomposedDuration::DecomposedDuration(double seconds) {
   _seconds = fmod(seconds, 60.0);
   int minutes = int(floor(seconds/60.0));
   _minutes = minutes % 60;
@@ -22,7 +22,7 @@ Duration::Duration(double seconds) {
   _weeks = days / 7;
 }
 
-Duration::Duration() {
+DecomposedDuration::DecomposedDuration() {
   _weeks = 0;
   _days = 0;
   _hours = 0;
@@ -31,7 +31,7 @@ Duration::Duration() {
 }
 
 
-Duration::Duration(unsigned int weeks, unsigned int days, unsigned int hours,
+DecomposedDuration::DecomposedDuration(unsigned int weeks, unsigned int days, unsigned int hours,
                    unsigned int minutes, double seconds) {
   _weeks = weeks;
   _days = days;
@@ -41,17 +41,17 @@ Duration::Duration(unsigned int weeks, unsigned int days, unsigned int hours,
 }
 
 
-Duration::~Duration() {
+DecomposedDuration::~DecomposedDuration() {
   // TODO Auto-generated destructor stub
 }
 
-Duration Duration::minutes(unsigned int minutes) {
-  return Duration(0, 0, 0, minutes, 0.0);
+DecomposedDuration DecomposedDuration::minutes(unsigned int minutes) {
+  return DecomposedDuration(0, 0, 0, minutes, 0.0);
 }
 
 #define DISPDUR(label, val) if ((val) > 0) { if (flag) {ss << ", ";} ss << val << " " << (label); flag = true;}
 
-std::string Duration::str() {
+std::string DecomposedDuration::str() {
   std::stringstream ss;
   bool flag = false;
   DISPDUR("weeks", _weeks);
@@ -62,7 +62,7 @@ std::string Duration::str() {
   return ss.str();
 }
 
-double Duration::getDurationSeconds() {
+double DecomposedDuration::getDurationSeconds() {
   return _seconds + 60*(_minutes + 60*(_hours + 24*(_days + 7*_weeks)));
 }
 

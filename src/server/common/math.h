@@ -95,8 +95,6 @@ T normdif(T *a, T *b) {
   return sqrt(norm2dif<T, dims>(a, b));
 }
 
-double rad2deg(double rad);
-double deg2rad(double deg);
 
 } /* namespace sail */
 

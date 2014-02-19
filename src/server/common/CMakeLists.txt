@@ -9,6 +9,10 @@ add_library(common_logging
 
 cxx_test(common_logging_test logging_test.cpp common_logging gtest_main)
 
+cxx_test(common_PhysicalQuantityTest
+  PhysicalQuantityTest.cpp
+  gtest_main)
+
 add_library(common_Array
             Array.cpp
             Array.h

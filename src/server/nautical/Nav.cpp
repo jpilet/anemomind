@@ -11,6 +11,7 @@
 #include <server/plot/gnuplot_i.hpp>
 #include <server/common/LineKM.h>
 #include <server/common/Duration.h>
+#include <server/common/PhysicalQuantity.h>
 #include <server/plot/extra.h>
 #include <server/nautical/Ecef.h>
 #include <ctime>
@@ -117,7 +118,7 @@ Nav::~Nav() {
 }
 
 double degMinMc2Radians(double deg, double min, double mc) {
-  return deg2rad(deg + (1.0/60)*(min + 0.001*mc));
+  return Angle<double>::degrees(deg + (1.0/60)*(min + 0.001*mc)).radians();
 }
 
 double Nav::getLonRadians() const {
@@ -239,7 +240,7 @@ void dispNavTimeIntervals(Array<Nav> navs) {
     bins[index]++;
   }
   for (int i = 0; i < binCount; i++) {
-    cout << "Bin " << i+1 << "/" << binCount << ": " << bins[i] << " intervals longer than the previous but shorter than " << Duration(exp(line.inv(i+1))).str() << endl;
+    cout << "Bin " << i+1 << "/" << binCount << ": " << bins[i] << " intervals longer than the previous but shorter than " << DecomposedDuration(exp(line.inv(i+1))).str() << endl;
   }
 }
 
