@@ -23,6 +23,13 @@ add_library(math_MatExpr
             )
 target_depends_on_armadillo(math_MatExpr)
 
+cxx_test(math_MatExprTest
+         MatExprTest.cpp
+         math_MatExpr
+         gtest_main
+        )                   
+
+
 add_library(math_ADFunction
             ADFunction.cpp
             ADFunction.h
