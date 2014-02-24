@@ -14,7 +14,7 @@ namespace sail {
 
 
 /*
- * MatExpr class. To store matrix expressions implicitly.
+ * MatExpr class. To store matrix expressions at runtime.
  *
  * Why? :
  * Suppose we want to precompute a matrix A*B and then multiply it with a column vector X.
