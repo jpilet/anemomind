@@ -13,6 +13,7 @@ namespace sail {
 template <typename T>
 class GeographicPosition {
 public:
+  GeographicPosition() {}
   GeographicPosition(Angle<T> longitude, Angle<T> latitude, Length<T> altitude = Length<T>::meters(0)) :
     _lon(longitude),
     _lat(latitude),

@@ -19,6 +19,7 @@
 #include <server/math/pareto.h>
 #include <server/common/logging.h>
 #include <server/math/MatExpr.h>
+#include <server/common/ScopedLog.h>
 
 namespace sail {
 

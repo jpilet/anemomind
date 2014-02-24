@@ -35,6 +35,7 @@ add_library(math_nonlinear_GridFitter
            )
 target_link_libraries(math_nonlinear_GridFitter
                       common_Array
+                      common_ScopedLog
                       common_Uniform
                       common_string
                       math_ADFunction

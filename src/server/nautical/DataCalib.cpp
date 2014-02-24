@@ -110,24 +110,24 @@ adouble BoatData::estimateHeadingRadians(const Nav &nav, adouble awaRadians, ado
   return preliminaryCourseErrorDueToDrift(awaRadians) +
         magneticCompassOffset(Xin) +
         _race->getMagDecl() +
-        nav.magHdgRadians();
+        nav.magHdg().radians();
 }
 
 arma::advec2 BoatData::calcBoatWrtEarth(const Nav &nav) {
-  return nav.gpsSpeedMPS()*_race->calcNavLocalDir(nav, nav.gpsBearingRadians());
+  return nav.gpsSpeed().metersPerSecond()*_race->calcNavLocalDir(nav, nav.gpsBearing().radians());
 }
 
 
 adouble BoatData::calcAwaRadians(const Nav &nav, adouble *Xin) {
-  return nav.awaRadians() + windDirectionOffset(Xin);
+  return nav.awa().radians() + windDirectionOffset(Xin);
 }
 
 adouble BoatData::calcAwsMPS(const Nav &nav, adouble *Xin) {
-  return nav.awsMPS()*windSpeedCoef(Xin);
+  return nav.aws().metersPerSecond()*windSpeedCoef(Xin);
 }
 
 adouble BoatData::calcWaterSpeedMPS(const Nav &nav, adouble *Xin) {
-  return waterSpeedCoef(Xin)*nav.watSpeedMPS();
+  return waterSpeedCoef(Xin)*nav.watSpeed().metersPerSecond();
 }
 
 
@@ -137,7 +137,7 @@ void BoatData::evalWindData(adouble *Xin, adouble *Fout) {
   for (int i = 0; i < navCount; i++) {
     adouble *windWrtEarth = Fout + 2*i;
     Nav &nav = _navs[i];
-    adouble awsMPS = windSpeedCoef(Xin)*nav.awsMPS();
+    adouble awsMPS = windSpeedCoef(Xin)*nav.aws().metersPerSecond();
     adouble awaRadians = calcAwaRadians(nav, Xin);
     arma::advec2 windWrtBoat = awsMPS*_race->calcNavLocalDir(nav, awaRadians);
     arma::advec2 boatWrtEarth = calcBoatWrtEarth(nav);

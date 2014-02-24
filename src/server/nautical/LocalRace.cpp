@@ -32,12 +32,18 @@ LocalRace::LocalRace(Array<Nav> navs, double spaceStep, double timeStep) {
 
 arma::vec2 LocalRace::calcNavLocalPos(Nav nav) {
   arma::vec3 pos3d;
-  nav.get3dPos(pos3d.memptr());
+  //nav.get3dPos(pos3d.memptr());
+  Length<double> xyz3[3];
+  double xyz3m[3];
+  WGS84<double>::toXYZ(nav.geographicPosition(), xyz3);
+  for (int i = 0; i < 3; i++) {
+    xyz3m[i] = xyz3[i].meters();
+  }
   return _axes*(pos3d - _cog);
 }
 
 double LocalRace::calcNavLocalTime(const Nav &nav) {
-  return nav.getTimeSeconds() - _timeOffset;
+  return nav.time().seconds() - _timeOffset;
 }
 
 arma::vec3 LocalRace::calcNavLocalPosAndTime(Nav nav) {
@@ -47,8 +53,11 @@ arma::vec3 LocalRace::calcNavLocalPosAndTime(Nav nav) {
 }
 
 arma::Col<adouble>::fixed<2> LocalRace::calcNavLocalDir(Nav nav, adouble dirRadians) {
-  adouble xyz[3], xyzDir[3];
-  WGS84<adouble>::posAndDirToXYZ(nav.getLonRadians(), nav.getLatRadians(), 0.0, dirRadians, xyz, xyzDir);
+  adouble xyzDir[3];
+  GeographicPosition<double> pos = nav.geographicPosition();
+  Length<adouble> xyz[3];
+  WGS84<adouble>::posAndDirToXYZ(pos, Angle<adouble>::radians(dirRadians),
+      xyz, xyzDir);
   arma::Col<adouble>::fixed<2> dst;
   dst[0] = 0;
   dst[1] = 0;
@@ -84,7 +93,13 @@ arma::mat getAllNav3dPos(Array<Nav> navs) {
   int count = navs.size();
   arma::mat pos(count, 3);
   for (int i = 0; i < count; i++) {
-    navs[i].get3dPos(&(pos(i, 0)), &(pos(i, 1)), &(pos(i, 2)));
+    //navs[i].get3dPos(&(pos(i, 0)), &(pos(i, 1)), &(pos(i, 2)));
+    const GeographicPosition<double> &gpos = navs[i].geographicPosition();
+    Length<double> xyz[3];
+    WGS84<double>::toXYZ(pos, xyz);
+    for (int j = 0; j < 3; j++) {
+      pos(i, j) = xyz[j].meters();
+    }
   }
   return pos;
 }
