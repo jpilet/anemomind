@@ -76,7 +76,7 @@ target_link_libraries(nautical_CalibrationExamples
   nautical_LocalRace
   nautical_DataCalib
   math_nonlinear_GridFitter
-  common_Duration)
+  )
 
 
 add_executable(nautical_CalibrationExample

@@ -12,6 +12,7 @@
 #include <armadillo>
 #include <server/common/string.h>
 #include <server/common/logging.h>
+#include <server/common/ScopedLog.h>
 
 namespace sail {
 
@@ -44,11 +45,11 @@ namespace {
   CalibSetup::CalibSetup(int sampleCount) {
     Array<Nav> allNavs = loadNavsFromText(Nav::AllNavsPath, false);
     Array<Array<Nav> > splitNavs = splitNavsByDuration(allNavs,
-                                   Duration::minutes(10).getDurationSeconds());
+                                   Duration<double>::minutes(10).seconds());
     Array<Nav> navs_ = splitNavs.first();
     navs = navs_.slice(makeSparseInds(navs_.size(), sampleCount));
     double spaceStep = 1000; // metres
-    double timeStep = Duration::minutes(20).getDurationSeconds();
+    double timeStep = Duration<double>::minutes(20).seconds();
 
     race = LocalRace(navs, spaceStep, timeStep);
     wgrid = race.getWindGrid();

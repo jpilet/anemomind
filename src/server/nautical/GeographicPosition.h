@@ -22,6 +22,14 @@ public:
   Angle<T> lon() const {return _lon;}
   Angle<T> lat() const {return _lat;}
   Length<T> alt() const {return _alt;}
+
+  template <typename DstType>
+  operator GeographicPosition<DstType>() const {
+    return GeographicPosition<DstType>(
+        Angle<DstType>::radians(_lon.radians()),
+        Angle<DstType>::radians(_lat.radians()),
+        Length<DstType>::meters(_alt.meters()));
+  }
 private:
   Angle<T> _lon, _lat;
   Length<T> _alt; // E.g. 300 metres if we are sailing on Lac Léman

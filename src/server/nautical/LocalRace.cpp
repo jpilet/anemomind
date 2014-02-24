@@ -54,7 +54,7 @@ arma::vec3 LocalRace::calcNavLocalPosAndTime(Nav nav) {
 
 arma::Col<adouble>::fixed<2> LocalRace::calcNavLocalDir(Nav nav, adouble dirRadians) {
   adouble xyzDir[3];
-  GeographicPosition<double> pos = nav.geographicPosition();
+  GeographicPosition<adouble> pos = GeographicPosition<adouble>(nav.geographicPosition());
   Length<adouble> xyz[3];
   WGS84<adouble>::posAndDirToXYZ(pos, Angle<adouble>::radians(dirRadians),
       xyz, xyzDir);
@@ -96,7 +96,7 @@ arma::mat getAllNav3dPos(Array<Nav> navs) {
     //navs[i].get3dPos(&(pos(i, 0)), &(pos(i, 1)), &(pos(i, 2)));
     const GeographicPosition<double> &gpos = navs[i].geographicPosition();
     Length<double> xyz[3];
-    WGS84<double>::toXYZ(pos, xyz);
+    WGS84<double>::toXYZ(gpos, xyz);
     for (int j = 0; j < 3; j++) {
       pos(i, j) = xyz[j].meters();
     }
@@ -182,7 +182,7 @@ BBox3d LocalRace::calcBBoxXYTimeWithoutOffsetDuringInitialization(Array<Nav> nav
   for (int i = 0; i < count; i++) {
     Nav &nav = navs[i];
     arma::vec2 xy = calcNavLocalPos(nav);
-    double vec[3] = {xy[0], xy[1], nav.getTimeSeconds()};
+    double vec[3] = {xy[0], xy[1], nav.time().seconds()};
     result.extend(vec);
   }
   return result;

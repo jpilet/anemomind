@@ -32,7 +32,7 @@ class WGS84 {
 
   static void posAndDirToXYZ(const GeographicPosition<T> pos, Angle<T> dir,
       Length<T> *xyz3, T *xyzDirUnitVectorOut) {
-      double xyz3Metres[3];
+      T xyz3Metres[3];
       posAndDirToXYZ(pos.lon().radians(), pos.lat().radians(), pos.alt().meters(),
         dir.radians(), xyz3Metres, xyzDirUnitVectorOut);
       for (int i = 0; i < 3; i++) {
