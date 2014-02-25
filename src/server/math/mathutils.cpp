@@ -64,23 +64,26 @@ arma::sp_mat makePermutationMat(Arrayi ordering) {
   return arma::sp_mat(IJ, X, n, n);
 }
 
-bool areValidInds(int dstRows, int dstCols, arma::umat IJ) {
-  if (IJ.n_rows != 2) {
-    return false;
-  }
+namespace {
+  bool areValidInds(int dstRows, int dstCols, arma::umat IJ) {
+    if (IJ.n_rows != 2) {
+      return false;
+    }
 
-  for (int k = 0; k < IJ.n_cols; k++) {
-    int i = IJ(0, k);
-    int j = IJ(1, k);
-    if (!(0 <= i && i < dstRows)) {
-      return false;
+    for (int k = 0; k < IJ.n_cols; k++) {
+      int i = IJ(0, k);
+      int j = IJ(1, k);
+      if (!(0 <= i && i < dstRows)) {
+        return false;
+      }
+      if (!(0 <= j && i < dstCols)) {
+        return false;
+      }
     }
-    if (!(0 <= j && i < dstCols)) {
-      return false;
-    }
+    return true;
   }
-  return true;
 }
+
 
 arma::sp_mat kronWithSpEye(arma::sp_mat M, int eyeDim) {
   int dstElemCount = eyeDim*M.n_nonzero;
