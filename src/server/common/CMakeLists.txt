@@ -88,3 +88,7 @@ target_link_libraries(common_Uniform
 add_library(common_math
   math.h
   math.cpp)
+
+cxx_test(common_invalidate
+         invalidate_test.cpp
+         gtest_main)
