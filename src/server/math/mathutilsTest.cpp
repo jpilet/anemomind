@@ -14,7 +14,7 @@ TEST(mathutilsTest, kronWithSpEyeTest) {
     double val = vals[R];
     arma::umat IJ(2, 1);
     IJ(0, 0) = 0;
-    IJ(0, 0) = 0;
+    IJ(1, 0) = 0;
     arma::vec X(1);
     X[0] = val;
     arma::sp_mat K(IJ, X, 2, 2);

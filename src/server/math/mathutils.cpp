@@ -64,10 +64,33 @@ arma::sp_mat makePermutationMat(Arrayi ordering) {
   return arma::sp_mat(IJ, X, n, n);
 }
 
+namespace {
+  bool areValidInds(int dstRows, int dstCols, arma::umat IJ) {
+    if (IJ.n_rows != 2) {
+      return false;
+    }
+
+    for (int k = 0; k < IJ.n_cols; k++) {
+      int i = IJ(0, k);
+      int j = IJ(1, k);
+      if (!(0 <= i && i < dstRows)) {
+        return false;
+      }
+      if (!(0 <= j && j < dstCols)) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+
 arma::sp_mat kronWithSpEye(arma::sp_mat M, int eyeDim) {
   int dstElemCount = eyeDim*M.n_nonzero;
   arma::umat IJ(2, dstElemCount);
+  IJ.fill(1000000000);
   arma::vec X(dstElemCount);
+  X.fill(0);
   int counter = 0;
   for (int srcCol = 0; srcCol < M.n_cols; srcCol++) { // For every column
     arma::uword colptr = M.col_ptrs[srcCol];
@@ -90,7 +113,10 @@ arma::sp_mat kronWithSpEye(arma::sp_mat M, int eyeDim) {
     }
   }
   assert(counter == M.n_nonzero);
-  return arma::sp_mat(IJ, X, eyeDim*M.n_rows, eyeDim*M.n_cols);
+  int dstRows = eyeDim*M.n_rows;
+  int dstCols = eyeDim*M.n_cols;
+  assert(areValidInds(dstRows, dstCols, IJ));
+  return arma::sp_mat(IJ, X, dstRows, dstCols);
 }
 
 arma::vec invElements(arma::vec src) {
