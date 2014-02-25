@@ -26,17 +26,17 @@ class WGS84 {
     toXYZ(pos.lon().radians(), pos.lat().radians(), pos.alt().meters(),
       xyzMetres);
     for (int i = 0; i < 3; i++) {
-      xyzOut[i] = Length<double>::meters(xyzMetres[i]);
+      xyzOut[i] = Length<T>::meters(xyzMetres[i]);
     }
   }
 
   static void posAndDirToXYZ(const GeographicPosition<T> pos, Angle<T> dir,
       Length<T> *xyz3, T *xyzDirUnitVectorOut) {
-      double xyz3Metres[3];
+      T xyz3Metres[3];
       posAndDirToXYZ(pos.lon().radians(), pos.lat().radians(), pos.alt().meters(),
         dir.radians(), xyz3Metres, xyzDirUnitVectorOut);
       for (int i = 0; i < 3; i++) {
-        xyz3[i] = Length<double>::meters(xyz3Metres[i]);
+        xyz3[i] = Length<T>::meters(xyz3Metres[i]);
       }
   }
 
@@ -94,11 +94,7 @@ class WGS84 {
       J3x3ColMajorOut[7] = dYdH;
       J3x3ColMajorOut[8] = dZdH;
     }
-
   }
-
-
-
 
   /*************************************************************
    * Code adopted from the NmeaParser library
@@ -172,8 +168,8 @@ private:
     toXYZWithJ(lonRad, latRad, altitudeMetres, xyz3MetresOut, J);
     T *eastAxis = J + 0;
     T *northAxis = J + 3;
-    normalizeInPlace<double>(3, eastAxis);
-    normalizeInPlace<double>(3, northAxis);
+    normalizeInPlace<T>(3, eastAxis);
+    normalizeInPlace<T>(3, northAxis);
 
     T northCoef = cos(dirRad);
     T eastCoef = sin(dirRad);

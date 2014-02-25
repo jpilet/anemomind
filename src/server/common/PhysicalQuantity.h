@@ -36,14 +36,14 @@ namespace sail {
   private: \
     ClassName(T x) : PhysicalQuantity<ClassName<T>, T>(x) {} \
   public: \
-    constexpr static T defaultValue = T(std::numeric_limits<double>::signaling_NaN()); \
     typedef ClassName<T> ThisType; \
-    ClassName() : PhysicalQuantity<ClassName<T>, T>(defaultValue) { } \
+    ClassName() : PhysicalQuantity<ClassName<T>, T>() { } \
     ClassName(const PhysicalQuantity<ClassName<T>, T> &x) : PhysicalQuantity<ClassName<T>, T>(x) {}
 
 template <typename Quantity, typename Value>
 class PhysicalQuantity {
  public:
+  const static Value defaultValue;
   typedef PhysicalQuantity<Quantity, Value> ThisQuantity;
   typedef Quantity QuantityType;
   typedef Value ValueType;
@@ -83,6 +83,10 @@ class PhysicalQuantity {
  private:
   static Quantity makeFromX(Value X) { return Quantity(PhysicalQuantity<Quantity, Value>(X)); }
 };
+
+template <typename Quantity, typename Value>
+const Value PhysicalQuantity<Quantity, Value>::defaultValue =
+    Value(std::numeric_limits<double>::signaling_NaN());
 
 template <typename T = double>
 class Angle : public PhysicalQuantity<Angle<T>, T> {

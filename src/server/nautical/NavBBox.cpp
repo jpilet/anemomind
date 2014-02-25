@@ -19,9 +19,11 @@ NavBBox::NavBBox(Array<Nav> navs) {
   Arrayd lon(count), lat(count), time(count);
   for (int i = 0; i < count; i++) {
     Nav &nav = navs[i];
-    lon[i] = nav.getLonRadians();
-    lat[i] = nav.getLatRadians();
-    time[i] = nav.getTimeSeconds();
+    const GeographicPosition<double> &pos = nav.geographicPosition();
+
+    lon[i] = pos.lon().radians();
+    lat[i] = pos.lat().radians();
+    time[i] = nav.time().seconds();
   }
   _lon = CRange(lon, true);
   _lat = CRange(lat, false);

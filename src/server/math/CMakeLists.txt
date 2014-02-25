@@ -17,12 +17,26 @@ target_link_libraries(math_armaadolc
 target_depends_on_armadillo(math_armaadolc)
 target_depends_on_adolc(math_armaadolc)
 
+add_library(math_MatExpr
+            MatExpr.h
+            MatExpr.cpp
+            )
+target_depends_on_armadillo(math_MatExpr)
+
+cxx_test(math_MatExprTest
+         MatExprTest.cpp
+         math_MatExpr
+         gtest_main
+        )                   
+
+
 add_library(math_ADFunction
             ADFunction.cpp
             ADFunction.h
            )
 target_link_libraries(math_ADFunction
                       common_Function
+                      math_armaadolc
                      )
 target_depends_on_adolc(math_ADFunction)
 
@@ -39,6 +53,13 @@ cxx_test(math_paretoTest
          math_pareto
          gtest_main
         )                   
+
+cxx_test(math_mathutilsTest
+         mathutilsTest.cpp
+         math_mathutils
+         gtest_main
+        )                   
+
 
 add_library(math_Grid
             Grid.cpp

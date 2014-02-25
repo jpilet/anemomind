@@ -14,35 +14,13 @@
 #include <server/plot/extra.h>
 #include <server/nautical/Ecef.h>
 #include <ctime>
+#include <server/nautical/WGS84.h>
 
 namespace sail {
 
 Nav::Nav() {
-  _year = -1;
-  _month = -1;
-  _dayOfTheMonth = -1;
-  _hour = -1;
-  _minute = -1;
-  _second = -1;
-  _gpsSpeed = -1;
-  _awa = -1;
-  _aws = -1;
-
-  _twaFromFile = -1;
-  _twsFromFile = -1;
-
-  _magHdg = -1;
-  _watSpeed = -1;
-  _gpsBearing = -1;
-  _posLatDeg = -1;
-  _posLatMin = -1;
-  _posLatMc = -1;
-  _posLonDeg = -1;
-  _posLonMin = -1;
-  _posLonMc = -1;
   _cwd = -1;
   _wd = -1;
-  _timeDays = -1;
 }
 
 
@@ -56,58 +34,66 @@ Nav::Nav() {
 //tm_yday	int	days since January 1	0-365
 //tm_isdst	int	Daylight Saving Time flag
 
+Angle<double> fromDegMinMc(double deg, double min, double mc) {
+  return Angle<double>::degrees(deg + (1.0/60)*(min + 0.001*mc));
+}
+
 Nav::Nav(MDArray2d row) {
   assert(row.rows() == 1);
   assert(row.cols() == 23 || row.cols() == 22);
 
-  _year = row(0, 0);
-  _month = row(0, 1);
-  _dayOfTheMonth = row(0, 2);
-  _hour = row(0, 3);
-  _minute = row(0, 4);
-  _second = row(0, 5);
-  _gpsSpeed = row(0, 6);
-  _awa = row(0, 7);
-  _aws = row(0, 8);
+  _gpsSpeed = Velocity<double>::knots(row(0, 6));
+  _awa = Angle<double>::degrees(row(0, 7));
+  _aws = Velocity<double>::knots(row(0, 8));
 
-  _twaFromFile = row(0, 9);
-  _twsFromFile = row(0, 10);
+  _twaFromFile = Angle<double>::degrees(row(0, 9));
+  _twsFromFile = Velocity<double>::knots(row(0, 10));
 
-  _magHdg = row(0, 11);
-  _watSpeed = row(0, 12);
-  _gpsBearing = row(0, 13);
-  _posLatDeg = row(0, 14);
-  _posLatMin = row(0, 15);
-  _posLatMc = row(0, 16);
-  _posLonDeg = row(0, 17);
-  _posLonMin = row(0, 18);
-  _posLonMc = row(0, 19);
-  _cwd = row(0, 20);
+  _magHdg = Angle<double>::degrees(row(0, 11));
+  _watSpeed = Velocity<double>::knots(row(0, 12));
+  _gpsBearing = Angle<double>::degrees(row(0, 13));
+
+
+  Angle<double> lat = fromDegMinMc(row(0, 14), row(0, 15), row(0, 16));
+  Angle<double> lon = fromDegMinMc(row(0, 17), row(0, 18), row(0, 19));
+  _pos = GeographicPosition<double>(lon, lat);
+
+
+  // The time stamp is a positive duration from AD
+  // I think.
+  double year = row(0, 0);
+  double month = row(0, 1);
+  double dayOfTheMonth = row(0, 2);
+  double hour = row(0, 3);
+  double minute = row(0, 4);
+  double second = row(0, 5);
+  _cwd = row(0, 20); // week day
   _wd = row(0, 21);
 
   const bool timeFromFile = false;
 
   if (timeFromFile) {
     assert(row.cols() == 23);
-    _timeDays = row(0, 22);
+    _timeSince1970 = Duration<double>::days(row(0, 22));
   } else {
     struct tm time;
     time.tm_gmtoff = 0;
     time.tm_isdst = 0; // daylight saving. What to put here???
-    time.tm_sec = int(_second);
-    time.tm_min = _minute;
-    time.tm_hour = _hour;
-    time.tm_mon = _month - 1;
-    time.tm_year = (_year + 2000) - 1900;
-    time.tm_mday = _dayOfTheMonth;
+    time.tm_sec = int(second);
+    time.tm_min = minute;
+    time.tm_hour = hour;
+    time.tm_mon = month - 1;
+    time.tm_year = (year + 2000) - 1900;
+    time.tm_mday = dayOfTheMonth;
 
     // Ignored
     time.tm_yday = -1;
     time.tm_wday = -1;
 
+
+    // http://www.cplusplus.com/reference/ctime/time_t/
     time_t x = mktime(&time);
-    _timeDays = (1.0/(24*60*60))*x;
-    //_time = (2000 + _year);
+    _timeSince1970 = Duration<double>::seconds(x);//(1.0/(24*60*60))*x;
 
   }
 }
@@ -116,21 +102,7 @@ Nav::~Nav() {
   // TODO Auto-generated destructor stub
 }
 
-double degMinMc2Radians(double deg, double min, double mc) {
-  return Angle<double>::degrees(deg + (1.0/60)*(min + 0.001*mc)).radians();
-}
 
-double Nav::getLonRadians() const {
-  return degMinMc2Radians(_posLonDeg, _posLonMin, _posLonMc);
-}
-
-double Nav::getLatRadians() const {
-  return degMinMc2Radians(_posLatDeg, _posLatMin, _posLatMc);
-}
-
-void Nav::getEcef3dPos(double &xOut, double &yOut, double &zOut) const {
-  lla2ecef(getLonRadians(), getLatRadians(), 0.0, xOut, yOut, zOut);
-}
 
 const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
 
@@ -181,7 +153,7 @@ Array<Nav> loadNavsFromText(std::string filename, bool sort) {
 bool areSortedNavs(Array<Nav> navs) {
   int count = navs.size();
   for (int i = 0; i < count-1; i++) {
-    if (navs[i].getTimeDays() > navs[i+1].getTimeDays()) {
+    if (navs[i].time() > navs[i+1].time()) {
       return false;
     }
   }
@@ -195,7 +167,7 @@ void plotNavTimeVsIndex(Array<Nav> navs) {
   std::vector<double> X(count), Y(count);
   for (int i = 0; i < count; i++) {
     X[i] = i;
-    Y[i] = navs[i].getTimeDays();
+    Y[i] = navs[i].time().days();
   }
 
   plot.set_style("lines");
@@ -212,17 +184,17 @@ double getNavsMaxInterval(Array<Nav> navs) {
   int count = navs.size();
   double m = 0.0;
   for (int i = 0; i < count-1; i++) {
-    m = std::max(m, navs[i+1].getTimeSeconds() - navs[i].getTimeSeconds());
+    m = std::max(m, navs[i+1].time().seconds() - navs[i].time().seconds());
   }
   return m;
 }
 
 void dispNavTimeIntervals(Array<Nav> navs) {
-  double mintime = navs.reduce<double>(navs[0].getTimeDays(), [&] (double a, Nav b) {
-    return std::min(a, b.getTimeSeconds());
+  double mintime = navs.reduce<double>(navs[0].time().days(), [&] (double a, Nav b) {
+    return std::min(a, b.time().seconds());
   });
-  double maxtime = navs.reduce<double>(navs[0].getTimeDays(), [&] (double a, Nav b) {
-    return std::max(a, b.getTimeSeconds());
+  double maxtime = navs.reduce<double>(navs[0].time().days(), [&] (double a, Nav b) {
+    return std::max(a, b.time().seconds());
   });
   double m = getNavsMaxInterval(navs);
   std::cout << "Max interval (seconds): " << m << std::endl;
@@ -234,7 +206,7 @@ void dispNavTimeIntervals(Array<Nav> navs) {
   Arrayi bins(binCount);
   bins.setTo(0);
   for (int i = 0; i < navCount-1; i++) {
-    double span = navs[i+1].getTimeSeconds() - navs[i].getTimeSeconds();
+    double span = navs[i+1].time().seconds() - navs[i].time().seconds();
     int index = std::max(0, int(floor(line(log(span)))));
     bins[index]++;
   }
@@ -249,7 +221,7 @@ int countNavSplitsByDuration(Array<Nav> navs, double durSeconds) {
   int count = navs.size();
   int counter = 0;
   for (int i = 0; i < count-1; i++) {
-    if (navs[i+1].getTimeSeconds() - navs[i].getTimeSeconds() > durSeconds) {
+    if (navs[i+1].time().seconds() - navs[i].time().seconds() > durSeconds) {
       counter++;
     }
   }
@@ -263,7 +235,7 @@ Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds) {
   int from = 0;
   int counter = 0;
   for (int i = 0; i < navCount-1; i++) {
-    if (navs[i+1].getTimeSeconds() - navs[i].getTimeSeconds() > durSeconds) {
+    if (navs[i+1].time().seconds() - navs[i].time().seconds() > durSeconds) {
       dst[counter] = navs.slice(from, i+1);
       counter++;
       from = i+1;
@@ -279,7 +251,14 @@ MDArray2d calcNavsEcefTrajectory(Array<Nav> navs) {
   MDArray2d data(count, 3);
   for (int i = 0; i < count; i++) {
     Nav &nav = navs[i];
-    lla2ecef(nav.getLonRadians(), nav.getLatRadians(), 0.0, data(i, 0), data(i, 1), data(i, 2));
+
+    Length<double> xyz[3];
+    WGS84<double>::toXYZ(nav.geographicPosition(), xyz);
+
+
+    for (int j = 0; j < 3; j++) {
+      data(i, i) = xyz[j].meters();
+    }
   }
   return data;
 }

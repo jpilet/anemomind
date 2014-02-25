@@ -10,6 +10,9 @@
 
 #include <string>
 #include <server/common/MDArray.h>
+#include <server/common/math.h>
+#include <server/common/PhysicalQuantity.h>
+#include <server/nautical/GeographicPosition.h>
 
 namespace sail {
 
@@ -23,54 +26,48 @@ class Nav {
 
   // For sorting
   bool operator< (const Nav &other) const {
-    return _timeDays < other._timeDays;
+    return _timeSince1970 < other._timeSince1970;
   }
 
-  double getTimeDays() const {
-    return _timeDays;
-  }
-  double getTimeSeconds() const {
-    return 24*60*60*_timeDays;
-  }
+  Duration<double> time() const {return _timeSince1970;}
 
-  double getLonRadians() const;
-  double getLatRadians() const;
+  const GeographicPosition<double> &geographicPosition() const {return _pos;}
 
-  void getEcef3dPos(double &xOut, double &yOut, double &zOut) const;
+  Angle<double> awa() const {return _awa;}
+  Velocity<double> aws() const {return _aws;}
+  Angle<double> magHdg() const {return _magHdg;}
+  Angle<double> gpsBearing() const {return _gpsBearing;}
+  Velocity<double> gpsSpeed() const {return _gpsSpeed;}
+  Velocity<double> watSpeed() const {return _watSpeed;}
 
   // This is just temporary. We should
   // replace it with CMake-generated paths in the future.
   static const char AllNavsPath[];
  private:
-  double _year;
-  double _month;
-  double _dayOfTheMonth;
-  double _hour;
-  double _minute;
-  double _second;
-  double _gpsSpeed;
-  double _awa;
-  double _aws;
+
+  Velocity<double> _gpsSpeed;
+  Angle<double> _awa;
+  Velocity<double> _aws;
 
   // Can we trust these estimates of the true wind? Don't think so. We'd better reconstruct them
   // with a good model.
-  double _twaFromFile;
-  double _twsFromFile;
+  Angle<double> _twaFromFile;
+  Velocity<double> _twsFromFile;
 
-  double _magHdg;
-  double _watSpeed;
-  double _gpsBearing;
-  double _posLatDeg;
-  double _posLatMin;
-  double _posLatMc;
-  double _posLonDeg;
-  double _posLonMin;
-  double _posLonMc;
+  Angle<double> _magHdg;
+  Velocity<double> _watSpeed;
+  Angle<double> _gpsBearing;
+
+  GeographicPosition<double> _pos;
+
+  // What does cwd and wd stand for? I forgot...
   double _cwd;
   double _wd;
 
-  // Time in days
-  double _timeDays;
+
+
+  // TIME RELATED
+  Duration<double> _timeSince1970;
 };
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort = true);

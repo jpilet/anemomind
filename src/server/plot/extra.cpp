@@ -35,6 +35,17 @@ void GnuplotExtra::plot(MDArray2d data) {
   }
 }
 
+void GnuplotExtra::plot(int dim, double *from, double *to) {
+  double X[2] = {from[0], to[0]};
+  double Y[2] = {from[1], to[1]};
+  if (dim == 2) {
+    plot_xy(Arrayd(2, X), Arrayd(2, Y));
+  } else {
+    double Z[2] = {from[2], to[2]};
+    plot_xyz(Arrayd(2, X), Arrayd(2, Y), Arrayd(2, Z));
+  }
+}
+
 void GnuplotExtra::show() {
   showonscreen();
   sleepForever();

@@ -35,6 +35,7 @@ add_library(math_nonlinear_GridFitter
            )
 target_link_libraries(math_nonlinear_GridFitter
                       common_Array
+                      common_ScopedLog
                       common_Uniform
                       common_string
                       math_ADFunction
@@ -43,6 +44,7 @@ target_link_libraries(math_nonlinear_GridFitter
                       math_nonlinear_Levmar
                       math_nonlinear_StepMinimizer
                       math_pareto
+                      math_MatExpr
                      )
 target_depends_on_armadillo(math_nonlinear_GridFitter)
 

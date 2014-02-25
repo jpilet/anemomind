@@ -9,6 +9,7 @@
 namespace sail {
 
 void calibEx001();
+void calibEx002();
 
 } /* namespace sail */
 

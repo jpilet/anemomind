@@ -1,7 +1,7 @@
 /*
  * GridFitter.h
  *
- *  Created on: 20 janv. 2014
+ *  Created on: 2014-02-20
  *      Author: jonas
  */
 
@@ -13,6 +13,8 @@
 #include <memory>
 #include <server/common/Array.h>
 #include <vector>
+#include <server/math/nonlinear/LevmarSettings.h>
+#include <server/math/MatExpr.h>
 
 namespace sail {
 
@@ -44,16 +46,16 @@ class GridFit {
   // gives the least squares fit of the grid vertices to that data vector.
   // Optionally also takes a boolean array that select which elements of
   // the data vector to be used for the fit.
-  arma::mat makeDataToParamMat(Arrayb sel = Arrayb());
+  std::shared_ptr<MatExpr> makeDataToParamMat(Arrayb sel = Arrayb());
 
   // Takes the above matrix and multiplies it with the various cost matrices inside
   // If D is the datavector and this function returns a matrix A,
   // then we want to minimize |A*D| w.r.t. D
-  arma::mat makeDataToResidualsMat(Arrayb sel = Arrayb());
+  std::shared_ptr<MatExpr> makeDataToResidualsMat(Arrayb sel = Arrayb());
 
   // For the current weights, return a matrix M such that
   // |M*D|^2 is the cross validation cost, D being the data vector.
-  arma::mat makeCrossValidationFitnessMat();
+  std::shared_ptr<MatExpr> makeCrossValidationFitnessMat();
 
 
 
@@ -90,9 +92,9 @@ class GridFit {
     _regWeights[index] = value;
   }
   static arma::mat fitGridParamsForDataVectorAndWeights(arma::mat D, Arrayd weights, arma::sp_mat P, Array<arma::sp_mat> A);
-  static arma::mat makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
-  static arma::mat makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
-  static arma::mat makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
+  static std::shared_ptr<MatExpr> makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
+  static arma::sp_mat makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
+  static std::shared_ptr<MatExpr> makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights);
 
   arma::sp_mat _P;
   AutoDiffFunction *_data;
@@ -123,7 +125,11 @@ class GridFitter {
   void solve(arma::mat *XInOut);
   void solveFixedReg(arma::mat *XInOut);
 
+  LevmarSettings settings;
+
+  void setPretuneWeightsIters(int i) {_pretuneWeightsIters = i;}
  private:
+  int _pretuneWeightsIters;
   int getNLParamCount();
   std::vector<std::shared_ptr<GridFit> > _terms;
 

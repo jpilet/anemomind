@@ -126,4 +126,5 @@ T CheckNotNull(T x, const char *expr, const char* file, int line) {
 void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int line,
                                        const std::string& message));
 
+
 #endif  // _LOGGING_H

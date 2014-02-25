@@ -9,6 +9,11 @@ add_library(common_logging
 
 cxx_test(common_logging_test logging_test.cpp common_logging gtest_main)
 
+add_library(common_ScopedLog
+            ScopedLog.h
+            ScopedLog.cpp)
+target_link_libraries(common_ScopedLog common_logging)
+
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp
   gtest_main)

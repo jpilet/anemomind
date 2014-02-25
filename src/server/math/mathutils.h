@@ -57,7 +57,19 @@ auto SQNORM(const T &X) -> decltype(arma::dot(X, X)) {
   return arma::dot(X, X);
 }
 
+// Concatenation of sparse matrices.
+// No support for this yet in Armadillo.
+arma::sp_mat vcat(arma::sp_mat A, arma::sp_mat B); //vertical
+arma::sp_mat hcat(arma::sp_mat A, arma::sp_mat B); //horizontal
+arma::sp_mat dcat(arma::sp_mat A, arma::sp_mat B); //diagonal
 
+arma::sp_mat makePermutationMat(Arrayi ordering);
+
+// Replaces the operation arma::kron(M, arma::sp_eye(eyeDim, eyeDim))
+// which is not yet implemented in Armadillo
+arma::sp_mat kronWithSpEye(arma::sp_mat M, int eyeDim);
+arma::vec invElements(arma::vec v);
+arma::sp_mat spDiag(arma::vec v);
 }
 
 #endif /* MATHUTILS_H_ */

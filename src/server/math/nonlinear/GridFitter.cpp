@@ -17,6 +17,9 @@
 #include <server/math/nonlinear/LevmarSettings.h>
 #include <server/math/nonlinear/StepMinimizer.h>
 #include <server/math/pareto.h>
+#include <server/common/logging.h>
+#include <server/math/MatExpr.h>
+#include <server/common/ScopedLog.h>
 
 namespace sail {
 
@@ -32,49 +35,113 @@ int countRows(Array<arma::sp_mat> A) {
 }
 
 
-arma::mat makeDataResidualMat(const arma::mat &F,
+std::shared_ptr<MatExpr> makeDataResidualMat(std::shared_ptr<MatExpr> F,
                               const arma::sp_mat &P, Array<arma::sp_mat> A, Arrayd weights) {
   assert(A.size() == weights.size());
-  int indims = F.n_cols;
-  arma::mat residuesData = P*F - arma::eye(indims, indims);
+  int indims = F->cols();
 
-  int rowcount = residuesData.n_rows + countRows(A);
-  arma::mat dst(rowcount, indims);
-  dst.fill(-1);
-  int offset = residuesData.n_rows;
-  dst.rows(0, offset-1) = residuesData;
-  for (int i = 0; i < A.size(); i++) {
-    int next = offset + A[i].n_rows;
-    dst.rows(offset, next-1) = weights[i]*A[i]*F;
-
-    offset = next;
+  MatExprBuilder builder;
+  builder.push(P);
+  builder.push(F);
+  builder.mul();
+  builder.push(-arma::eye(indims, indims));
+  builder.add();
+  builder.push(arma::sp_mat(weights[0]*A[0]));
+  for (int i = 1; i < A.size(); i++) {
+    builder.push(arma::sp_mat(weights[i]*A[i]));
+    builder.vcat();
   }
-  assert(offset == rowcount);
-  return dst;
+  builder.push(F);
+  builder.mul();
+  builder.vcat();
+  assert(builder.single());
+  return builder.top();
 }
 
-arma::mat GridFit::makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights) {
+std::shared_ptr<MatExpr> GridFit::makeDataResidualMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights) {
   return makeDataResidualMat(makeLsqDataToParamMatSub(P, A, weights), P, A, weights);
 }
 
 
-arma::mat GridFit::makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights) {
+arma::sp_mat GridFit::makeNormalMat(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights) {
   int count = A.size();
   assert(count == weights.size());
   arma::sp_mat PtP = P.t()*P;
-  arma::mat K = MAKEDENSE(PtP);
+  arma::sp_mat K = PtP;
   for (int i = 0; i < count; i++) {
     arma::sp_mat a = A[i];
-    K += sqr(weights[i])*(a.t()*a);
+    K = K + sqr(weights[i])*(a.t()*a);
   }
   return K;
 }
 
-arma::mat GridFit::makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights) {
-  arma::mat K = makeNormalMat(P, A, weights);
-  arma::sp_mat spPt = P.t();
-  arma::mat Pt = MAKEDENSE(spPt);
-  arma::mat result = arma::solve(K, Pt);
+
+
+std::shared_ptr<MatExpr> solveSparseSparseEigsOLD(arma::sp_mat A, std::shared_ptr<MatExpr> B) {
+  arma::mat vecs;
+  arma::vec vals;
+  arma::eigs_sym(vals, vecs, A, A.n_cols);
+  arma::sp_mat Dinv = spDiag(invElements(vals)); // A sparse diagonla matrix
+
+  MatExprBuilder builder;
+  builder.push(vecs);
+  builder.push(Dinv);
+  builder.mul();
+  builder.push(vecs.t());
+  builder.push(B);
+  builder.mul();
+  builder.mul();
+  assert(builder.single());
+  return builder.top();
+}
+
+
+// http://www.quora.com/Whats-the-best-tool-to-solve-a-sparse-linear-system-and-how-efficiently-can-it-be-done
+/*
+ *Here are a few well-known solvers for sparse systems.
+
+1) The Harwell subroutines can solve many kinds of linear systems (see linear algebra section):
+http://www.hsl.rl.ac.uk/catalogue/
+I have used Harwell solvers (MA27, MA57 for symmetric systems) and they are excellent for small (thousands of rows) to medium sized system (10000--70000 rows).
+
+2) If your matrix is really, really large (over 100,000 rows), consider looking into PARDISO:
+http://www.pardiso-project.org/
+I'm told that Intel's MKL libraries include a version of PARDISO.
+
+3) MUMPS (this is free, but in my experience the Harwell routines outperform it)
+http://graal.ens-lyon.fr/MUMPS/
+
+4) IBM WSMP
+https://researcher.ibm.com/resea...
+I have no experience with this one, but I include it for completeness:
+  *
+  *
+  *
+  *
+  * CXSparse
+  * https://www.cise.ufl.edu/research/sparse/CXSparse/
+  * http://www.cise.ufl.edu/research/sparse/CSparse/
+  *
+  * PETSc
+  * http://www.mcs.anl.gov/petsc/
+ */
+// returns inv(A)*B
+// Uses the eigendecomposition of Armadillo for sparse matrices to achieve this.
+std::shared_ptr<MatExpr> solveSparseSparseEigs(arma::sp_mat A, std::shared_ptr<MatExpr> B) {
+  arma::mat Adense = arma::inv(MAKEDENSE(A));
+  return std::shared_ptr<MatExpr>(new MatExprProduct(std::shared_ptr<MatExpr>(new MatExprDense(Adense)), B));
+}
+
+/*
+ * What this function does:
+ * Precomputes a Z such that Z*D, D being the nonlinearly parameterized data
+ * vector, is the optimal grid fit parameters, given, P
+ */
+std::shared_ptr<MatExpr> GridFit::makeLsqDataToParamMatSub(arma::sp_mat P, Array<arma::sp_mat> A, Arrayd weights) {
+  assert(P.n_nonzero > 0); // otherwise singular
+  arma::sp_mat K = makeNormalMat(P, A, weights);
+  arma::sp_mat Pt = P.t();
+  std::shared_ptr<MatExpr> result = solveSparseSparseEigs(K, std::shared_ptr<MatExpr>(new MatExprSparse(Pt)));
   return result;
 }
 
@@ -90,6 +157,7 @@ GridFit::GridFit(arma::sp_mat P, AutoDiffFunction *data, Array<arma::sp_mat> reg
   _regWeights(regWeights),
   _labels(regWeightLabels),
   _weight(weight) {
+  assert(P.n_nonzero > 0);
   assert(splits.hasData());
   assert(_labels.empty() || _labels.size() == _regWeights.size());
   assert(_regWeights.size() == _regMatrices.size());
@@ -112,14 +180,17 @@ arma::sp_mat GridFit::makePsel(Arrayb sel) {
 }
 
 
-arma::mat GridFit::makeDataToParamMat(Arrayb sel) {
+std::shared_ptr<MatExpr> GridFit::makeDataToParamMat(Arrayb sel) {
   arma::sp_mat Psel = makePsel(sel);
   return makeLsqDataToParamMatSub(Psel, _regMatrices, _regWeights);
 }
 
-arma::mat GridFit::makeDataToResidualsMat(Arrayb sel) {
+std::shared_ptr<MatExpr> GridFit::makeDataToResidualsMat(Arrayb sel) {
   arma::sp_mat Psel = makePsel(sel);
-  return _weight*makeDataResidualMatSub(Psel, _regMatrices, _regWeights);
+  std::shared_ptr<MatExpr> R = makeDataResidualMatSub(Psel, _regMatrices, _regWeights);
+  int n = R->rows();
+  std::shared_ptr<MatExpr> W(new MatExprSparse(_weight*arma::speye(n, n)));
+  return std::shared_ptr<MatExpr>(new MatExprProduct(W, R));
 }
 
 void GridFit::setExpRegWeight(int index, double logX) {
@@ -130,7 +201,8 @@ std::string GridFit::getRegLabel(int index) {
   return (_labels.empty()? stringFormat("regw(%d/%d)", index+1, _regWeights.size()) : _labels[index]);
 }
 
-arma::mat GridFit::makeCrossValidationFitnessMat() {
+std::shared_ptr<MatExpr> GridFit::makeCrossValidationFitnessMat() {
+  ENTERSCOPE("Build crossvalidation matrix");
   // true  <=> test
   // false <=> train
 
@@ -140,34 +212,50 @@ arma::mat GridFit::makeCrossValidationFitnessMat() {
     testCount += countTrue(_splits[i]);
   }
 
-  arma::mat M(testCount, _data->outDims());
+  MatExprBuilder builder;
 
   int offset = 0;
   for (int i = 0; i < splitCount; i++) {
+    SCOPEDMESSAGE(INFO, stringFormat("Split %d/%d", i+1, splitCount));
     Arrayb test = _splits[i];
     Arrayb train = neg(test);
     arma::sp_mat selTrain = makeSpSel(train);
     arma::sp_mat Ptrain = selTrain*_P;
-
-    arma::mat fit = makeLsqDataToParamMatSub(Ptrain, _regMatrices, _regWeights);
+    assert(_P.n_nonzero > 0);
+    assert(Ptrain.n_nonzero > 0);
+    std::shared_ptr<MatExpr> fit = makeLsqDataToParamMatSub(Ptrain, _regMatrices, _regWeights);
 
     arma::sp_mat selTest = makeSpSel(test);
     arma::sp_mat Ptest = selTest*_P;
     int ptrows = Ptest.n_rows;
     int next = offset + ptrows;
-    arma::mat FS = fit*selTrain;
 
-    M.rows(offset, next-1) = selTest*(_P*FS - arma::eye(_P.n_rows, _P.n_rows));
-    offset = next;
+    //std::shared_ptr<MatExpr> FS(new MatExprProduct(fit, selTrain));
+    //M.rows(offset, next-1) = selTest*(_P*FS - arma::eye(_P.n_rows, _P.n_rows));
+      builder.push(selTest);
+      builder.push(_P);
+      builder.push(fit);
+      builder.push(selTrain);
+      builder.mul();
+      builder.mul();
+      builder.push(arma::sp_mat(-1.0*arma::speye(_P.n_rows, _P.n_rows)));
+      builder.add();
+      builder.mul();
+    if (i == 0) {
+      assert(builder.single());
+    } else {
+      assert(builder.size() == 2);
+      builder.vcat();
+    }
   }
-  assert(offset == testCount);
-
-  return M;
+  assert(builder.single());
+  return builder.top();
 }
 
 arma::mat GridFit::fitGridParamsForDataVectorAndWeights(arma::mat D, Arrayd weights, arma::sp_mat P, Array<arma::sp_mat> A) {
-  arma::mat K = arma::solve(GridFit::makeNormalMat(P, A, weights), P.t()*D);
-  return K;
+  std::shared_ptr<MatExpr> Pt(new MatExprSparse(P.t()));
+  std::shared_ptr<MatExpr> K = solveSparseSparseEigs(GridFit::makeNormalMat(P, A, weights), Pt);
+  return K->mulWithDense(D);
 }
 
 double GridFit::evalObjfForDataVector(arma::mat D) {
@@ -186,11 +274,12 @@ double GridFit::evalObjfForDataVector(arma::mat D) {
 }
 
 double GridFit::evalCrossValidationFitness(arma::mat D) {
-  return SQNORM(makeCrossValidationFitnessMat()*D); // We may want to do something more efficient here, in future.
+  return SQNORM(makeCrossValidationFitnessMat()->mulWithDense(D)); // We may want to do something more efficient here, in future.
 }
 
 GridFitter::GridFitter() {
-
+  settings.verbosity = 0;
+  _pretuneWeightsIters = 0;
 }
 
 
@@ -214,7 +303,7 @@ namespace {
 // nonlinear parameter vector. Regularization weights
 // are assumed to remain constant throughout the lifetime of
 // this object.
-class GridFitPlayer1 : public AutoDiffFunction {
+class GridFitPlayer1 : public Function {
  public:
   GridFitPlayer1(ParetoFrontier &frontier, std::vector<std::shared_ptr<GridFit> > &fits);
 
@@ -224,7 +313,7 @@ class GridFitPlayer1 : public AutoDiffFunction {
   int outDims() {
     return _outDims;
   }
-  void evalAD(adouble *Xin, adouble *Fout);
+  void eval(double *Xin, double *Fout, double *Jout);
 
   bool acceptor(double *Xin, double objfVal);
  private:
@@ -233,10 +322,10 @@ class GridFitPlayer1 : public AutoDiffFunction {
   std::vector<std::shared_ptr<GridFit> > &_fits; // The GridFit's
 
   // Matrices used to evaluate the main objective function (used by evalAD)
-  Array<arma::mat> _Rmats;
+  Array<std::shared_ptr<MatExpr> > _Rmats;
 
   // Matrices used to compute cross validation.
-  Array<arma::mat> _cvmats;
+  Array<std::shared_ptr<MatExpr> > _cvmats;
 
   int _outDims, _inDims, _maxDataLen;
 
@@ -255,27 +344,38 @@ GridFitPlayer1::GridFitPlayer1(ParetoFrontier &frontier, std::vector<std::shared
   for (int i = 0; i < count; i++) {
     GridFit *fit = fits[i].get();
     assert(fit->getData().inDims() == _inDims);
-    arma::mat R = fit->makeDataToResidualsMat();
+    std::shared_ptr<MatExpr> R = fit->makeDataToResidualsMat();
     _Rmats[i] = R;
     _cvmats[i] = fit->makeCrossValidationFitnessMat();
-    _outDims += R.n_rows;
+    _outDims += R->rows();
     _maxDataLen = std::max(_maxDataLen, fit->getData().outDims());
   }
 }
 
-void GridFitPlayer1::evalAD(adouble *Xin, adouble *Fout) {
+void GridFitPlayer1::eval(double *Xin, double *Fout, double *Jout) {
+  bool outputJ = Jout != nullptr;
   int count = _fits.size();
   int offset = 0;
-  Array<adouble> temp(_maxDataLen);
+  Array<double> tempF(_maxDataLen), tempJ(_maxDataLen*_fits[0]->getNLParamCount());
+  arma::mat Jdst(Jout, outDims(), inDims(), false, true);
   for (int i = 0; i < count; i++) {
-    const arma::mat &R = _Rmats[i];
-    adouble *Fouti = Fout + offset;
-    arma::admat dst(Fouti, R.n_rows, 1, false, true);
+    std::shared_ptr<MatExpr> R = _Rmats[i];
+    double *Fouti = Fout + offset;
+    arma::mat dst(Fouti, R->rows(), 1, false, true);
     AutoDiffFunction &data = _fits[i]->getData();
-    arma::admat D(temp.getData(), data.outDims(), 1, false, true);
-    data.evalAD(Xin, temp.getData());
-    dst = R*D;
-    offset += R.n_rows;
+
+    int od = data.outDims();
+    arma::mat D(tempF.getData(), od, 1, false, true);
+    arma::mat JD(tempJ.getData(), od, data.inDims(), false, true);
+
+    data.eval(Xin, tempF.getData(), (outputJ? tempJ.getData() : nullptr));
+
+    dst = R->mulWithDense(D);
+    if (outputJ) {
+      Jdst.rows(offset, offset + R->rows() - 1) = R->mulWithDense(JD);
+    }
+
+    offset += R->rows();
   }
   assert(offset == _outDims);
 }
@@ -296,7 +396,7 @@ void GridFitPlayer1::evalCrossValidations(double *Xin, double *cvOut) {
     Function &fun = _fits[i]->getData();
     arma::mat D(temp.getData(), fun.outDims(), 1, false, true);
     fun.eval(Xin, temp.getData());
-    cvOut[i] = SQNORM(_cvmats[i]*D);
+    cvOut[i] = SQNORM(_cvmats[i]->mulWithDense(D));
   }
 }
 
@@ -335,6 +435,8 @@ GridFitOtherPlayers::GridFitOtherPlayers(ParetoFrontier &frontier,
 void GridFitOtherPlayers::optimize(Array<Arrayd> stepSizes) {
   int count = _fits.size();
   for (int i = 0; i < count; i++) {
+    ENTERSCOPE(stringFormat("Tuning reg weights for gridfit %d/%d (%s)",
+        i+1, count, _fits[i]->getLabel().c_str()));
     optimizeForGridFit(i, stepSizes[i]);
   }
 }
@@ -342,15 +444,20 @@ void GridFitOtherPlayers::optimize(Array<Arrayd> stepSizes) {
 void GridFitOtherPlayers::optimizeForGridFit(int index, Arrayd stepSizes) {
   GridFit *f = _fits[index].get();
   const arma::mat &dataVector = _D[index];
-  for (int i = 0; i < f->getRegCount(); i++) {
+  int rc = f->getRegCount();
+  for (int i = 0; i < rc; i++) {
+    ENTERSCOPE(stringFormat("Tuning reg weight %d/%d (%s)",
+        i+1, rc, f->getRegLabel(i).c_str()));
     // It is best to do this search in the logarithmic domain,
     // because this way, the weight stays positive.
     double initReg = log(f->getRegWeight(i));
 
     double initStep = stepSizes[i];
     auto objf = [&] (double x) {
+      ENTERSCOPE(stringFormat("Evaluate cross-validation fitness at %.3g", exp(x)));
       f->setExpRegWeight(i, x);
-      return f->evalCrossValidationFitness(dataVector);
+      double fitness = f->evalCrossValidationFitness(dataVector);
+      return fitness;
     };
     auto acceptor = [&] (double x, double val) {
       f->setExpRegWeight(i, x);
@@ -424,11 +531,9 @@ void GridFitter::writeStatus(int i, arma::mat X, int fsize) {
 }
 
 void GridFitter::solve(arma::mat *XInOut) {
+  ENTERSCOPE("GridFitter::solve");
   arma::mat &X = *(XInOut);
   assert(X.size() == getNLParamCount());
-
-  LevmarSettings settings;
-  settings.verbosity = 0;
 
   const double initStepSize = 0.1;
   Array<Arrayd> stepSizes = initStepSizes(getRegCounts(), initStepSize);
@@ -440,18 +545,25 @@ void GridFitter::solve(arma::mat *XInOut) {
     writeStatus(i, X, frontier.size());
 
     // Part 1: Optimize Player 1 (the objective function)
-    {
+    if (_pretuneWeightsIters <= i) {
+      ENTERSCOPE("PART 1: Adjusting calibration parameters");
       GridFitPlayer1 objf(frontier, _terms);
       settings.acceptor = [&] (double *Xd, double val) {
         return objf.acceptor(Xd, val);
       };
       LevmarState lmState(X);
-      lmState.step(settings, objf);
+      {
+        ENTERSCOPE("Step");
+        lmState.step(settings, objf);
+      }
       X = lmState.getX();
+    } else {
+      SCOPEDMESSAGE(INFO, "PART 1: Skipped, pretuning weights.");
     }
 
     // Part 2: Adjust the regularization weights of every grid fit.
     {
+      ENTERSCOPE("PART 2: Adjusting regularization weights");
       GridFitOtherPlayers other(frontier, _terms, X);
       other.optimize(stepSizes);
     }
@@ -464,8 +576,6 @@ void GridFitter::solveFixedReg(arma::mat *XInOut) {
   LevmarState lmState(X);
   ParetoFrontier frontier;
   GridFitPlayer1 objf(frontier, _terms);
-  LevmarSettings settings;
-  settings.verbosity = 3;
   lmState.minimize(settings, objf);
 
   X = lmState.getX();
@@ -489,10 +599,23 @@ Arrayi GridFitter::getRegCounts() {
 }
 
 Arrayb makeRandomSplit(int count) {
+  assert(count >= 2);
   Uniform rng(0.0, 1.0);
   Arrayb split(count);
+  int trueCount = 0;
   for (int i = 0; i < count; i++) {
-    split[i] = rng.gen() > 0.5;
+    bool incl = rng.gen() > 0.5;
+    split[i] = incl;
+    trueCount += (incl? 1 : 0);
+  }
+  if (trueCount == 0 || trueCount == count) { // <-- If this condition is satisfied, the
+                                              //     resulting split could result in sin-
+                                              //     gular matrices. Therefore, find a
+                                              //     new split.
+
+    return makeRandomSplit(count); // <-- Infinite recursion will not happen: The probability that
+                                   //     we will have found a valid split after N tries tends
+                                   //     to 1 as N tends towards infinity. However, we require count >= 2.
   }
   return split;
 }

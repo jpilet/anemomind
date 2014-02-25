@@ -29,7 +29,8 @@ target_link_libraries(nautical_DataCalib common_Array)
 add_library(nautical_LocalRace
             LocalRace.h
             LocalRace.cpp)
-            
+target_link_libraries(nautical_LocalRace
+  math_armaadolc)            
             
             
 #################################################################
@@ -71,6 +72,12 @@ cxx_test(nautical_GeographicPositionTest
 add_library(nautical_CalibrationExamples
   CalibrationExamples.h
   CalibrationExamples.cpp)
+target_link_libraries(nautical_CalibrationExamples
+  nautical_LocalRace
+  nautical_DataCalib
+  math_nonlinear_GridFitter
+  )
+
 
 add_executable(nautical_CalibrationExample
   CalibrationExample.cpp)

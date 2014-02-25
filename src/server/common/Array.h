@@ -784,6 +784,7 @@ Arrayb ind2log(int len, Arrayi inds);
 Arrayb neg(Arrayb X);
 bool all(Arrayb X);
 bool any(Arrayb X);
+Arrayi makeSparseInds(int arraySize, int sampleCount);
 
 } /* namespace sail */
 #endif /* ARRAY_H_ */
