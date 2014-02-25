@@ -76,7 +76,7 @@ namespace {
       if (!(0 <= i && i < dstRows)) {
         return false;
       }
-      if (!(0 <= j && i < dstCols)) {
+      if (!(0 <= j && j < dstCols)) {
         return false;
       }
     }
