@@ -27,6 +27,7 @@ namespace {
 }
 
 GridFitterTestData::GridFitterTestData() {
+  ScopedLog::setDepthLimit(0);
   const int sampleCount_ = 30;
   double Xdata[sampleCount_] = {-0.967399, -0.782382, -0.740419, -0.725537, -0.716795, -0.686642, -0.604897, -0.563486, -0.514226, -0.444451, -0.329554, -0.270431, -0.211234, -0.198111, -0.0452059, 0.0268018, 0.10794, 0.213938, 0.257742, 0.271423, 0.434594, 0.536459, 0.566198, 0.59688, 0.608354, 0.680375, 0.823295, 0.83239, 0.904459, 0.997849};
   double Ygtdata[sampleCount_] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
@@ -107,8 +108,7 @@ TEST(GridFitterTest, TestFixedReg) {
 }
 
 
-TEST(GridFitterTest, TestAutoTuneFirstOrder) { // Based on the example: SignalFitExampleAutoRegFirstOrder.cpp
-  ScopedLog::setDepthLimit(0);
+TEST(GridFitterTest, TestAutoTuneFirstOrder) {
   BBox1d bbox(Span(-1.0, 1.0));
   double spacing[1] = {0.03};
   Grid1d grid(bbox, spacing);
@@ -155,8 +155,47 @@ TEST(GridFitterTest, TestAutoTuneFirstOrder) { // Based on the example: SignalFi
 
   Arrayd Yfitted(td.sampleCount);
   data.eval(params.memptr(), Yfitted.getData());
-  arma::mat D(Yfitted.getData(), Yfitted.size(), 1, false, true);
   for (int i = 0; i < td.sampleCount; i++) {
     EXPECT_NEAR(Yfitted[i], td.Ygt[i], 0.25); // Be quite tolerant here
   }
 }
+
+
+
+
+TEST(GridFitterTest, TestAutoTune1stAnd2ndOrder) {
+  BBox1d bbox(Span(-1.0, 1.0));
+  double spacing[1] = {0.03};
+  Grid1d grid(bbox, spacing);
+
+  arma::sp_mat A1 = grid.makeFirstOrderReg(0);
+  arma::sp_mat A2 = grid.makeSecondOrderReg(0);
+
+  GridFitterTestData td;
+
+  arma::sp_mat P = grid.makeP(MDArray2d(td.X));
+
+  //double initReg = 0.01; // works
+  //double initReg = 1; // works
+  double initReg = 0.1;
+
+
+  NoisyStep data(td.X, td.Ynoisy);
+  GridFitter gridFitter;
+  std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A1, A2), td.splits, Arrayd::args(initReg, initReg)));
+  gridFitter.add(gf);
+
+  arma::mat params(1, 1);
+  params[0] = 3000.0;
+  gridFitter.solve(&params);
+
+  std::shared_ptr<MatExpr> Pinv = gf->makeDataToParamMat();
+
+  Arrayd Yfitted(td.sampleCount);
+  data.eval(params.memptr(), Yfitted.getData());
+
+  for (int i = 0; i < td.sampleCount; i++) {
+    EXPECT_NEAR(Yfitted[i], td.Ygt[i], 0.25); // Be quite tolerant here
+  }
+}
+
