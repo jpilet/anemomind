@@ -383,6 +383,7 @@ void GridFitPlayer1::eval(double *Xin, double *Fout, double *Jout) {
 bool GridFitPlayer1::acceptor(double *Xin, double objfVal) {
   int count = _fits.size();
   Arrayd costs(1 + count);
+  costs[0] = objfVal;
   evalCrossValidations(Xin, costs.ptr(1));
   return _frontier.insert(ParetoElement(costs));
 }

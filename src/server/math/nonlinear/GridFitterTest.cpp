@@ -89,7 +89,6 @@ TEST(GridFitterTest, TestFixedReg) {
   std::shared_ptr<GridFit> gf(new GridFit(P, &data, Array<arma::sp_mat>::args(A), td.splits, Arrayd::args(100.0)));
   gridFitter.add(gf);
 
-  std::shared_ptr<MatExpr> Pinv = gf->makeDataToParamMat();
 
 
   arma::mat params(1, 1);
@@ -150,8 +149,6 @@ TEST(GridFitterTest, TestAutoTuneFirstOrder) {
   EXPECT_NEAR(params[0], 0.0, 0.1);
   EXPECT_NEAR(gf->getRegWeight(0), 1.6, 0.5);
 
-  std::shared_ptr<MatExpr> Pinv = gf->makeDataToParamMat();
-
 
   Arrayd Yfitted(td.sampleCount);
   data.eval(params.memptr(), Yfitted.getData());
@@ -189,7 +186,6 @@ TEST(GridFitterTest, TestAutoTune1stAnd2ndOrder) {
   params[0] = 3000.0;
   gridFitter.solve(&params);
 
-  std::shared_ptr<MatExpr> Pinv = gf->makeDataToParamMat();
 
   Arrayd Yfitted(td.sampleCount);
   data.eval(params.memptr(), Yfitted.getData());
