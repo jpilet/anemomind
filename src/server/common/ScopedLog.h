@@ -21,6 +21,8 @@ class ScopedLog {
   static void setDepthLimit(int l);
   void disp(const char *file, int line, LogLevel level, std::string s);
  private:
+  bool shouldBeDisplayed(LogLevel level);
+  void dispSub(const char *filename, int line, LogLevel level, std::string s);
   ScopedLog(const ScopedLog &x);
   void operator= (const ScopedLog &x);
   const char *_filename;
