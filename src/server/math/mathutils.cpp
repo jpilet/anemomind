@@ -20,17 +20,7 @@ arma::sp_mat makeSpSel(Arrayb sel) {
   arma::vec X(elemCount);
   X.fill(0.0);
 
-
-
   {
-    for (int i = 0; i < elemCount; i++) {
-      IJ(0, i) = i;
-      IJ(1, i) = i;
-      X[i] = 1.0;
-    }
-
-  }
-  /*{
     int counter = 0;
     for (int i = 0; i < count; i++) {
       if (sel[i]) {
@@ -41,16 +31,24 @@ arma::sp_mat makeSpSel(Arrayb sel) {
       }
     }
     assert(counter == elemCount);
-  }*/
+  }
 
   int rows = elemCount;
   int cols = count;
 
   assert(areValidSparseInds(rows, cols, IJ));
 
+  // Triggered when I run math_nonlinear_GridFitterTest with Valgrind:
+  // Valgrind says there is an invalid read here of size 4, I don't succeed in localizing the cause.
+  // Perhaps a problem with Armadillo.
+  //    memalign
+  //    posix_memalign
+  //    arma::memory::acquire (memory.hpp:69)
+  //    arma::SpMat<double>::init(unsigned int, usngined int) (SpMat_meat.hpp:4100)
+  //    ...
   return arma::sp_mat(IJ, X, rows, cols);
 
-  // THIS WORKS:
+  // THIS WORKS: Valgrind does not complain if I return this instead of the row above.
   // return arma::speye(rows, cols);
 }
 
