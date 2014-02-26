@@ -51,12 +51,7 @@ target_depends_on_armadillo(math_nonlinear_GridFitter)
 
 cxx_test(math_nonlinear_GridFitterTest
          GridFitterTest.cpp
-         math_nonlinear_NoisyStep
          examples_SignalFitExamples
-         plot_gnuplot
-         math_Grid
-         math_nonlinear_GridFitter
-         common_logging
          gtest_main
         )
   
