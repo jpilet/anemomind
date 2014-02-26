@@ -17,7 +17,8 @@ add_library(math_nonlinear_Levmar
            )
 target_link_libraries(math_nonlinear_Levmar
                       common_Array
-                      common_logging
+                      common_ScopedLog
+                      common_string
                       math_ADFunction
                       math_armaadolc
                       math_mathutils

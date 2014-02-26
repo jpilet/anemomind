@@ -501,32 +501,33 @@ Array<Arrayd> initStepSizes(Arrayi regCounts, double initStepSize) {
 }
 
 void GridFitter::writeStatus(int i, arma::mat X, int fsize) {
+  ENTERSCOPE(__FUNCTION__);
   // Status output for this iteration
   if (i == 0) {
-    cout << "################################################ GRIDFITTER BEGIN SOLVE" << endl;
+    SCOPEDMESSAGE(INFO, "################################################ GRIDFITTER BEGIN SOLVE");
   }
 
 
   if (i == -1) {
-    cout << "######################## DONE SOLVING IT" << endl;
+    SCOPEDMESSAGE(INFO, "######################## DONE SOLVING IT");
   } else {
-    std::cout << "\n\n\n### GRIDFITTER ITERATION " << i+1 << std::endl;
+    SCOPEDMESSAGE(INFO, stringFormat("\n\n\n### GRIDFITTER ITERATION %d", i+1));
   }
 
-  std::cout << "   X = " << X.t() << endl;
+  SCOPEDMESSAGE(INFO, EXPR_AND_VAL_AS_STRING(X));
   int gfCount = _terms.size();
   for (int i = 0; i < gfCount; i++) {
     std::shared_ptr<GridFit> gf = _terms[i];
     std::string l = gf->getLabel();
-    std::cout << "   " << (l.empty()? stringFormat("GridFit(%d/%d)", i+1, gfCount) : l) << std::endl;
+    ENTERSCOPE((l.empty()? stringFormat("GridFit(%d/%d)", i+1, gfCount) : l));
     int rCount = gf->getRegCount();
     for (int j = 0; j < rCount; j++) {
-      std::cout << "     " << gf->getRegLabel(j) << " = " << gf->getRegWeight(j) << std::endl;
+      SCOPEDMESSAGE(INFO, stringFormat("%s = %.3g", gf->getRegLabel(j).c_str(), gf->getRegWeight(j)));
     }
   }
-  std::cout << "   Frontier size: " << fsize << endl;
+  SCOPEDMESSAGE(INFO, stringFormat("Frontier size: %d", fsize));
   if (i == -1) {
-    cout << "########################################################################################" << endl;
+    SCOPEDMESSAGE(INFO, "########################################################################################");
   }
 }
 
