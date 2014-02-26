@@ -8,10 +8,13 @@
 #include <server/math/Grid.h>
 #include <server/math/nonlinear/NoisyStep.h>
 #include <server/math/nonlinear/GridFitter.h>
+#include <server/common/ArrayIO.h>
+#include <server/common/ScopedLog.h>
 
 using namespace sail;
 
 TEST(GridFitterTest, TestAutoTuneFirstOrder) { // Based on the example: SignalFitExampleAutoRegFirstOrder.cpp
+  ScopedLog::setDepthLimit(0);
   BBox1d bbox(Span(-1.0, 1.0));
   double spacing[1] = {0.03};
   Grid1d grid(bbox, spacing);
@@ -39,7 +42,28 @@ TEST(GridFitterTest, TestAutoTuneFirstOrder) { // Based on the example: SignalFi
     EXPECT_NEAR(arma::norm(P*Vmat - Xmat, 2), 0.0, 1.0e-6);
   }
 
-  Array<Arrayb> splits = makeRandomSplits(9, X.size());
+  bool splitdata0[sampleCount] = {1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
+  bool splitdata1[sampleCount] = {1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0};
+  bool splitdata2[sampleCount] = {0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1};
+  bool splitdata3[sampleCount] = {1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1};
+  bool splitdata4[sampleCount] = {0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1};
+  bool splitdata5[sampleCount] = {1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1};
+  bool splitdata6[sampleCount] = {0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0};
+  bool splitdata7[sampleCount] = {1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0};
+  bool splitdata8[sampleCount] = {1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0};
+
+  const int splitCount = 9;
+  Arrayb splitsdata[splitCount] = {Arrayb(sampleCount, splitdata0),
+      Arrayb(sampleCount, splitdata1),
+      Arrayb(sampleCount, splitdata2),
+      Arrayb(sampleCount, splitdata3),
+      Arrayb(sampleCount, splitdata4),
+      Arrayb(sampleCount, splitdata5),
+      Arrayb(sampleCount, splitdata6),
+      Arrayb(sampleCount, splitdata7),
+      Arrayb(sampleCount, splitdata8)};
+
+  Array<Arrayb> splits(splitCount, splitsdata);
 
   NoisyStep data(X, Ynoisy);
 
@@ -55,6 +79,12 @@ TEST(GridFitterTest, TestAutoTuneFirstOrder) { // Based on the example: SignalFi
   params[0] = 3000.0;
   gridFitter.solve(&params);
 
+  // Since we are dealing with randomized data
+  // and small tweaks to the optmizer could make us converge to
+  // a slightly different equilibrium point, don't require
+  // a too precise answer here.
+  EXPECT_NEAR(params[0], 0.0, 0.1);
+  EXPECT_NEAR(gf->getRegWeight(0), 1.6, 0.5);
 
   std::shared_ptr<MatExpr> Pinv = gf->makeDataToParamMat();
 
@@ -63,4 +93,7 @@ TEST(GridFitterTest, TestAutoTuneFirstOrder) { // Based on the example: SignalFi
   data.eval(params.memptr(), Yfitted.getData());
   arma::mat D(Yfitted.getData(), Yfitted.size(), 1, false, true);
   arma::mat vertices = Pinv->mulWithDense(D);
+  for (int i = 0; i < sampleCount; i++) {
+    EXPECT_NEAR(Yfitted[i], Ygt[i], 0.25); // Be quite tolerant here
+  }
 }
