@@ -93,14 +93,13 @@ void calibEx001() {
 
 
 
-void calibEx002() { // Try to optimize it
+void calibEx(bool autoTune, double initialRegWeight) { // Try to optimize it
   CalibSetup s(60);
   WindData windData(s.calib);
   CurrentData currentData(s.calib);
 
   ScopedLog::setDepthLimit(3);
 
-  const double initialRegWeight = 0.1;
   const int splitCount = 2;
 
   double windCurrentBalance = 0.5;
@@ -131,9 +130,11 @@ void calibEx002() { // Try to optimize it
   std::cout << "Number of wind obs: " << windTerm->getData().outDims() << "\n";
   std::cout << "Number of current obs: " << currentTerm->getData().outDims() << "\n";
 
-
-  gf.solve(&X); // <-- May crash because the automatic parameter tuning diverges. Needs more work / research effort.
-  //gf.solveFixedReg(&X);
+  if (autoTune) {
+    gf.solve(&X); // <-- May crash because the automatic parameter tuning diverges. Needs more work / research effort.
+  } else {
+    gf.solveFixedReg(&X);
+  }
 
   double *x = X.memptr();
   std::cout << "Final calibration: " << std::endl;
@@ -142,5 +143,12 @@ void calibEx002() { // Try to optimize it
   std::cout << EXPR_AND_VAL_AS_STRING(s.boatData->waterSpeedCoef(x)) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(s.boatData->windSpeedCoef(x)) << std::endl;
 }
+
+void calibEx002() {
+  //calibEx(true, 1.0e3);
+
+  calibEx(false, 1.0e3); // Quite a lot of regularization => assume homogeneous wind/current
+}
+
 
 } /* namespace sail */
