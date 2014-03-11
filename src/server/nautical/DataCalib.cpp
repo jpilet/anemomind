@@ -109,7 +109,7 @@ adouble BoatData::estimateHeadingRadians(const Nav &nav, adouble *Xin) {
         _race->getMagDecl() +
         nav.magHdg().radians();
 
-  return _driftModel->calcCourseError(this, nav, Xin) + magHdg;
+  return _driftModel->calcCorrectionAngle(this, nav, Xin) + magHdg;
 }
 
 arma::advec2 BoatData::calcBoatWrtEarth(const Nav &nav) {

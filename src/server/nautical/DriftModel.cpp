@@ -9,7 +9,7 @@
 namespace sail {
 
 
-adouble SinusDriftAngle::calcCourseError(BoatData *data, const Nav &nav, adouble *Xin) {
+adouble SinusDriftAngle::calcCorrectionAngle(BoatData *data, const Nav &nav, adouble *Xin) {
   adouble awaRadians = data->calcAwaRadians(nav, Xin);
   return preliminaryCourseErrorDueToDrift(awaRadians);
 }

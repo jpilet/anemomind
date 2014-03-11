@@ -56,8 +56,8 @@ namespace {
     wgrid = race->getWindGrid();
     cgrid = race->getCurrentGrid();
 
-    //driftModel = std::shared_ptr<DriftModel>(new SinusDriftAngle());
-    driftModel = std::shared_ptr<DriftModel>(new SimplestDriftModel());
+    driftModel = std::shared_ptr<DriftModel>(new SinusDriftAngle());
+    //driftModel = std::shared_ptr<DriftModel>(new SimplestDriftModel());
 
     boatData = std::shared_ptr<BoatData>(new BoatData(race.get(), navs, driftModel.get()));
 
@@ -149,9 +149,9 @@ void calibEx(bool autoTune, double initialRegWeight) { // Try to optimize it
 }
 
 void calibEx002() {
-  //calibEx(true, 1.0e3);
+  calibEx(false, 1.0e3);
 
-  calibEx(true, 1.0e3); // Quite a lot of regularization => assume homogeneous wind/current
+  //calibEx(true, 1.0e3); // Quite a lot of regularization => assume homogeneous wind/current
 }
 
 
