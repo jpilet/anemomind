@@ -132,8 +132,8 @@ void calibEx002() { // Try to optimize it
   std::cout << "Number of current obs: " << currentTerm->getData().outDims() << "\n";
 
 
-  //gf.solve(&X); // <-- May crash because the automatic parameter tuning diverges. Needs more work / research effort.
-  gf.solveFixedReg(&X);
+  gf.solve(&X); // <-- May crash because the automatic parameter tuning diverges. Needs more work / research effort.
+  //gf.solveFixedReg(&X);
 
   double *x = X.memptr();
   std::cout << "Final calibration: " << std::endl;
