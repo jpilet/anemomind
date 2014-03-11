@@ -107,10 +107,11 @@ void BoatData::evalCurrentData(adouble *Xin, adouble *Fout) {
 }
 
 adouble BoatData::estimateHeadingRadians(const Nav &nav, adouble awaRadians, adouble *Xin) {
-  return preliminaryCourseErrorDueToDrift(awaRadians) +
-        magneticCompassOffset(Xin) +
+  adouble magHdg = magneticCompassOffset(Xin) +
         _race->getMagDecl() +
         nav.magHdg().radians();
+
+  return preliminaryCourseErrorDueToDrift(awaRadians) + magHdg;
 }
 
 arma::advec2 BoatData::calcBoatWrtEarth(const Nav &nav) {
