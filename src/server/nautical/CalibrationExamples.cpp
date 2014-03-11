@@ -104,7 +104,7 @@ void calibEx(bool autoTune, double initialRegWeight) { // Try to optimize it
 
   ScopedLog::setDepthLimit(3);
 
-  const int splitCount = 2;
+  const int splitCount = 4;
 
   double windCurrentBalance = 0.5;
   std::shared_ptr<GridFit> windTerm(new GridFit(s.Pwind, &windData,
@@ -149,9 +149,9 @@ void calibEx(bool autoTune, double initialRegWeight) { // Try to optimize it
 }
 
 void calibEx002() {
-  calibEx(false, 1.0e3);
+  //calibEx(false, 1.0e3);
 
-  //calibEx(true, 1.0e3); // Quite a lot of regularization => assume homogeneous wind/current
+  calibEx(true, 1.0e3); // Quite a lot of regularization => assume homogeneous wind/current
 }
 
 

@@ -16,12 +16,15 @@ adouble SinusDriftAngle::calcCorrectionAngle(BoatData *data, const Nav &nav, ado
 
 adouble SinusDriftAngle::preliminaryCourseErrorDueToDrift(adouble awaRadians) {
   const double maxAngle = deg2rad(5.0);
+
+  const double k = 1.5395;
+
   adouble cosa = cos(awaRadians);
-  if (cosa < 0) {
-    return 0;
+  if (cosa.getValue() > 0) {
+    adouble w = (sin(3*awaRadians) + sin(awaRadians));
+    return (maxAngle/k)*w;
   } else {
-    int sign = (sin(awaRadians) > 0? -1 : 1); // <-- is this correct?
-    return sign*cosa;
+    return 0.0;
   }
 }
 
