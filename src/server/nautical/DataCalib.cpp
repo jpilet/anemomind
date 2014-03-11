@@ -72,7 +72,11 @@ arma::sp_mat DataCalib::makeP(Grid3d grid) {
 
 arma::mat DataCalib::makeInitialParameters() {
   int count = _boats.size();
-  int paramCount = count*BoatData::ParamCount;
+  int paramCount = 0;
+  for (int i = 0; i < count; i++) {
+    paramCount += _boats[i]->paramCount();
+  }
+
   arma::mat X(paramCount, 1);
   for (int i = 0; i < count; i++) {
     _boats[i]->initializeParameters(X.memptr());
@@ -172,6 +176,7 @@ void BoatData::initializeParameters(double *XOut) {
   windDirectionOffset(XOut) = 0.0;
   waterSpeedCoef(XOut) = 1.0;
   windSpeedCoef(XOut) = 1.0;
+  _driftModel->initializeParameters(XOut + driftModelParamOffset());
 }
 
 
@@ -183,7 +188,7 @@ void BoatData::initializeParameters(double *XOut) {
 void DataCalib::addBoatData(std::shared_ptr<BoatData> boatData) {
   boatData->setParamOffset(_paramCount);
   _boats.push_back(boatData);
-  _paramCount += boatData->getParamCount();
+  _paramCount += boatData->paramCount();
   _windDataCount += boatData->getWindDataCount();
   _currentDataCount += boatData->getCurrentDataCount();
   _navCount += boatData->getDataCount();

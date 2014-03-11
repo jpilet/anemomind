@@ -38,11 +38,9 @@ class LocalRace;
 class DriftModel;
 class BoatData {
  public:
-  const static int ParamCount = 4;
-
   BoatData(LocalRace *race, Array<Nav> navs, DriftModel *driftModel);
-  int getParamCount() const {
-    return ParamCount;
+  int paramCount() const {
+    return 4 + _driftModel->paramCount();
   }
 
   int getDataCount() const {
@@ -79,6 +77,8 @@ class BoatData {
   template <typename T> T &windDirectionOffset(T *x) {return x[_paramOffset + 1];}
   template <typename T> T &waterSpeedCoef(T *x) {return x[_paramOffset + 2];}
   template <typename T> T &windSpeedCoef(T *x) {return x[_paramOffset + 3];}
+  int driftModelParamOffset() {return _paramOffset + 4;}
+  template <typename T> T &driftParam(T *x, int index) {return x[driftModelParamOffset() + index];}
 
   adouble calcAwaRadians(const Nav &nav, adouble *Xin);
  private:
