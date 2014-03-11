@@ -100,8 +100,7 @@ void BoatData::evalCurrentData(adouble *Xin, adouble *Fout) {
     arma::advec2 boatWrtWater = apparentWaterSpeed*_race->calcNavLocalDir(nav, beta);
     arma::advec2 boatWrtEarth = calcBoatWrtEarth(nav);
     for (int j = 0; j < 2; j++) {
-      // boatWrtWater + waterWrtEarth = boatWrtEarth
-      waterWrtEarth[j] = boatWrtEarth[j] - boatWrtWater[j];
+      waterWrtEarth[j] = boatWrtEarth[j] - boatWrtWater[j]; // boatWrtWater + waterWrtEarth = boatWrtEarth
     }
   }
 }
