@@ -12,16 +12,11 @@
 
 namespace sail {
 
-adouble preliminaryCourseErrorDueToDrift(adouble awaRadians) {
-  const double maxAngle = deg2rad(5.0);
-  adouble cosa = cos(awaRadians);
-  if (cosa < 0) {
-    return 0;
-  } else {
-    int sign = (sin(awaRadians) > 0? -1 : 1); // <-- is this correct?
-    return sign*cosa;
-  }
-}
+
+
+
+
+
 
 
 DataCalib::DataCalib() {
@@ -86,7 +81,8 @@ arma::mat DataCalib::makeInitialParameters() {
 }
 
 
-BoatData::BoatData(LocalRace *race, Array<Nav> navs) : _race(race), _navs(navs), _paramOffset(0) {
+BoatData::BoatData(LocalRace *race, Array<Nav> navs, DriftModel *driftModel) :
+    _race(race), _navs(navs), _paramOffset(0), _driftModel(driftModel) {
 }
 
 void BoatData::evalCurrentData(adouble *Xin, adouble *Fout) {
@@ -94,8 +90,7 @@ void BoatData::evalCurrentData(adouble *Xin, adouble *Fout) {
   for (int i = 0; i < navCount; i++) {
     adouble *waterWrtEarth = Fout + 2*i;
     Nav &nav = _navs[i];
-    adouble awaRadians = calcAwaRadians(nav, Xin);
-    adouble beta = estimateHeadingRadians(nav, awaRadians, Xin);
+    adouble beta = estimateHeadingRadians(nav, Xin);
     adouble apparentWaterSpeed = calcWaterSpeedMPS(nav, Xin);
     arma::advec2 boatWrtWater = apparentWaterSpeed*_race->calcNavLocalDir(nav, beta);
     arma::advec2 boatWrtEarth = calcBoatWrtEarth(nav);
@@ -105,12 +100,12 @@ void BoatData::evalCurrentData(adouble *Xin, adouble *Fout) {
   }
 }
 
-adouble BoatData::estimateHeadingRadians(const Nav &nav, adouble awaRadians, adouble *Xin) {
+adouble BoatData::estimateHeadingRadians(const Nav &nav, adouble *Xin) {
   adouble magHdg = magneticCompassOffset(Xin) +
         _race->getMagDecl() +
         nav.magHdg().radians();
 
-  return preliminaryCourseErrorDueToDrift(awaRadians) + magHdg;
+  return _driftModel->calcCourseError(this, nav, Xin) + magHdg;
 }
 
 arma::advec2 BoatData::calcBoatWrtEarth(const Nav &nav) {
@@ -178,6 +173,11 @@ void BoatData::initializeParameters(double *XOut) {
   waterSpeedCoef(XOut) = 1.0;
   windSpeedCoef(XOut) = 1.0;
 }
+
+
+
+
+
 
 
 void DataCalib::addBoatData(std::shared_ptr<BoatData> boatData) {

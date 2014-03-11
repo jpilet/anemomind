@@ -23,7 +23,19 @@ add_library(nautical_DataCalib
             DataCalib.h
             DataCalib.cpp)
 
-target_link_libraries(nautical_DataCalib common_Array)
+target_link_libraries(nautical_DataCalib
+  common_Array
+  nautical_DriftModel)
+  
+add_library(nautical_DriftModel
+            DriftModel.h
+            DriftModel.cpp)
+
+target_link_libraries(nautical_DriftModel
+  nautical_nav
+  math_armaadolc
+  nautical_DataCalib)
+
 
 
 add_library(nautical_LocalRace

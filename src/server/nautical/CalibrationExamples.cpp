@@ -22,7 +22,7 @@ namespace {
    public:
     CalibSetup(int sampleCount);
     Array<Nav> navs;
-    LocalRace race;
+    std::shared_ptr<LocalRace> race;
     Grid3d wgrid;
     Grid3d cgrid;
 
@@ -40,6 +40,7 @@ namespace {
     arma::sp_mat Pcurrent;
     arma::sp_mat currentRegSpace;
     arma::sp_mat currentRegTime;
+    std::shared_ptr<DriftModel> driftModel;
   };
 
   CalibSetup::CalibSetup(int sampleCount) {
@@ -51,11 +52,12 @@ namespace {
     double spaceStep = 1000; // metres
     double timeStep = Duration<double>::minutes(20).seconds();
 
-    race = LocalRace(navs, spaceStep, timeStep);
-    wgrid = race.getWindGrid();
-    cgrid = race.getCurrentGrid();
+    race = std::shared_ptr<LocalRace>(new LocalRace(navs, spaceStep, timeStep));
+    wgrid = race->getWindGrid();
+    cgrid = race->getCurrentGrid();
 
-    boatData = std::shared_ptr<BoatData>(new BoatData(&race, navs));
+    driftModel = std::shared_ptr<DriftModel>(new SinusDriftAngle());
+    boatData = std::shared_ptr<BoatData>(new BoatData(race.get(), navs, driftModel.get()));
 
     calib.addBoatData(boatData);
     windSplits = makeRandomSplits(4, calib.windDataCount());
@@ -88,7 +90,7 @@ void calibEx001() {
 
 
   Arrayd toPlot = C;
-  s.race.plotTrajectoryVectors(s.navs, toPlot, 10.0);
+  s.race->plotTrajectoryVectors(s.navs, toPlot, 10.0);
 }
 
 
@@ -115,7 +117,7 @@ void calibEx(bool autoTune, double initialRegWeight) { // Try to optimize it
       1.0 - windCurrentBalance));
 
   arma::mat X = s.calib.makeInitialParameters();
-  int gridVertexCount = s.race.getWindGrid().getVertexCount();
+  int gridVertexCount = s.race->getWindGrid().getVertexCount();
 
 
   GridFitter gf;

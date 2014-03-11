@@ -17,6 +17,7 @@
 #include <server/math/ADFunction.h>
 #include <armadillo>
 #include <server/math/Grid.h>
+#include <server/nautical/DriftModel.h>
 
 
 namespace sail {
@@ -34,11 +35,12 @@ class LocalRace;
  *
  * These parameters are read, starting from _paramOffset in the vector being optimized.
  */
+class DriftModel;
 class BoatData {
  public:
   const static int ParamCount = 4;
 
-  BoatData(LocalRace *race, Array<Nav> navs);
+  BoatData(LocalRace *race, Array<Nav> navs, DriftModel *driftModel);
   int getParamCount() const {
     return ParamCount;
   }
@@ -77,15 +79,17 @@ class BoatData {
   template <typename T> T &windDirectionOffset(T *x) {return x[_paramOffset + 1];}
   template <typename T> T &waterSpeedCoef(T *x) {return x[_paramOffset + 2];}
   template <typename T> T &windSpeedCoef(T *x) {return x[_paramOffset + 3];}
+
+  adouble calcAwaRadians(const Nav &nav, adouble *Xin);
  private:
+  DriftModel *_driftModel;
   LocalRace *_race;
   int _paramOffset;
   Array<Nav> _navs;
 
   arma::advec2 calcBoatWrtEarth(const Nav &nav);
-  adouble calcAwaRadians(const Nav &nav, adouble *Xin);
   adouble calcAwsMPS(const Nav &nav, adouble *Xin);
-  adouble estimateHeadingRadians(const Nav &nav, adouble awaRadians, adouble *Xin);
+  adouble estimateHeadingRadians(const Nav &nav, adouble *Xin);
   adouble calcWaterSpeedMPS(const Nav &nav, adouble *Xin);
 };
 
