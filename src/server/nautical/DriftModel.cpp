@@ -8,16 +8,6 @@
 
 namespace sail {
 
-arma::advec2 DriftModel::calcDrift(BoatData *data, const Nav &nav, adouble *Xin) {
-  arma::advec2 x;
-  x[0] = 0.0;
-  x[1] = 0.0;
-  return x;
-}
-
-
-
-
 
 adouble SinusDriftAngle::calcCourseError(BoatData *data, const Nav &nav, adouble *Xin) {
   adouble awaRadians = data->calcAwaRadians(nav, Xin);

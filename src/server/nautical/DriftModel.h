@@ -21,9 +21,7 @@ class DriftModel {
   virtual int paramCount() = 0;
   virtual void initializeParameters(double *x) = 0;
 
-  // Override one or the other of these two methods
-  virtual adouble calcCourseError(BoatData *data, const Nav &nav, adouble *Xin) {return 0.0;}
-  virtual arma::advec2 calcDrift(BoatData *data, const Nav &nav, adouble *Xin);
+  virtual adouble calcCourseError(BoatData *data, const Nav &nav, adouble *Xin) = 0;
 
   virtual ~DriftModel() {}
 };
@@ -32,6 +30,7 @@ class SimplestDriftModel : public DriftModel {
  public:
   int paramCount() {return 0;}
   void initializeParameters(double *x) {}
+  adouble calcCourseError(BoatData *data, const Nav &nav, adouble *Xin) {return 0;}
 };
 
 // Assume there is a small error in the course when we sail close to the wind.
