@@ -1,5 +1,5 @@
 /*
- *  Created on: 11 mars 2014
+ *  Created on: 2014-03-11
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
@@ -21,7 +21,7 @@ adouble SinusDriftAngle::preliminaryCourseErrorDueToDrift(adouble awaRadians) {
 
   adouble cosa = cos(awaRadians);
   if (cosa.getValue() > 0) {
-    adouble w = (sin(3*awaRadians) + sin(awaRadians));
+    adouble w = -(sin(3*awaRadians) + sin(awaRadians));
     return (maxAngle/k)*w;
   } else {
     return 0.0;

@@ -149,9 +149,9 @@ void calibEx(bool autoTune, double initialRegWeight) { // Try to optimize it
 }
 
 void calibEx002() {
-  //calibEx(false, 1.0e3);
+  calibEx(false, 1.0e3);
 
-  calibEx(true, 1.0e3); // Quite a lot of regularization => assume homogeneous wind/current
+  //calibEx(true, 1.0e3); // Quite a lot of regularization => assume homogeneous wind/current
 }
 
 

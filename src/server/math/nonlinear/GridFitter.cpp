@@ -380,6 +380,7 @@ void GridFitPlayer1::eval(double *Xin, double *Fout, double *Jout) {
   assert(offset == _outDims);
 }
 
+
 bool GridFitPlayer1::acceptor(double *Xin, double objfVal) {
   int count = _fits.size();
   Arrayd costs(1 + count);
