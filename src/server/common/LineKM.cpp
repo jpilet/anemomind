@@ -44,6 +44,10 @@ double LineKM::getM() const {
 LineKM::~LineKM() {
 }
 
+bool LineKM::operator== (const LineKM &other)  const {
+  return _k == other._k && _m == other._m;
+}
+
 std::ostream &operator<<(std::ostream &s, LineKM line) {
   s << "Line y = " << line.getK() << "*x + " << line.getM();
   return s;

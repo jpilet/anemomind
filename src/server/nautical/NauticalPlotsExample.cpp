@@ -3,11 +3,13 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <iostream>
+#include "NauticalPlotsExamples.h"
 
+using namespace sail;
 
 int main() {
-  std::cout << "Nautical plot example" << std::endl;
+  npex001();
+  return 0;
 }
 
 
