@@ -6,7 +6,10 @@
 #ifndef SIGNALFIT_H_
 #define SIGNALFIT_H_
 
+#include <server/math/Grid.h>
+
 namespace sail {
+
 
 
 } /* namespace sail */

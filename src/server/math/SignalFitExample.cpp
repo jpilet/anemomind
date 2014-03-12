@@ -4,6 +4,7 @@
  */
 
 #include "SignalFit.h"
+#include <server/math/SignalFit.h>
 #include <iostream>
 
 int main() {

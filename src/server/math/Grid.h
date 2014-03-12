@@ -238,6 +238,7 @@ std::ostream &operator<<(std::ostream &s, Grid<N> grid) {
   return s;
 }
 
+typedef Grid<1> LineStrip;
 typedef Grid<1> Grid1d;
 typedef Grid<2> Grid2d;
 typedef Grid<3> Grid3d;
