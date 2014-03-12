@@ -48,6 +48,7 @@ class PeriodicHist {
   const PeriodicHistIndexer &indexer() const {return _indexer;}
   Arrayd data() const {return _sum;}
   bool allPositive() const;
+  int minBin() const;
  private:
   PeriodicHistIndexer _indexer;
   Arrayd _sum;

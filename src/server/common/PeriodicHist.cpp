@@ -97,6 +97,20 @@ bool PeriodicHist::allPositive() const {
   return true;
 }
 
+int PeriodicHist::minBin() const {
+  int count = _indexer.count();
+  int mini = 0;
+  double minv = _sum[mini];
+  for (int i = 1; i < count; i++) {
+    double v = _sum[i];
+    if (v < minv) {
+      minv = v;
+      mini = i;
+    }
+  }
+  return mini;
+}
+
 PeriodicHist operator/ (const PeriodicHist &a, const PeriodicHist &b) {
   assert(a.indexer() == b.indexer());
   Arrayd adata = a.data();

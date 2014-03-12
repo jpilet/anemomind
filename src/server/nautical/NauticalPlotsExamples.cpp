@@ -5,6 +5,7 @@
 
 #include "NauticalPlotsExamples.h"
 #include "NauticalPlots.h"
+#include <iostream>
 
 namespace sail {
 
@@ -22,40 +23,42 @@ void npex002() {
       allnavs, Duration<>::minutes(10).seconds());
 
 
+  int i = 2;
+
   int binCount = 60;
-  Array<Nav> navs = splitNavs[0];
+  Array<Nav> navs = splitNavs[i];
   navs = navs.slice(makeReliableNavMask(navs));
 
   PeriodicHist watSpeedSum = makeAWAWatSpeedSumHist(navs, binCount);
   PeriodicHist awsSum = makeAWAAWSSumHist(navs, binCount);
   PeriodicHist awa = makeAWAHist(navs, binCount);
 
+  //plotHist(awa);
   //plotHist(calcAverage(watSpeedSum, awa));
-  plotHist(awa);
-  //plotHist(calcAverage(awsSum, awa));
+  plotHist(calcAverage(awsSum, awa));
 
 }
 
-//void npex003() {
-//  Array<Nav> allnavs = loadNavsFromText(Nav::AllNavsPath, false);
-//  Array<Array<Nav> > splitNavs = splitNavsByDuration(
-//      allnavs, Duration<>::minutes(10).seconds());
-//
-//
-//  int binCount = 60;
-//
-//
-//  Array<Nav> navs = splitNavs[0];
-//  na
-//
-//  PeriodicHist watSpeedSum = makeAWAWatSpeedSumHist(navs, binCount);
-//  PeriodicHist awsSum = makeAWAAWSSumHist(navs, binCount);
-//  PeriodicHist awa = makeAWAHist(navs, binCount);
-//
-//  plotHist(calcAverage(watSpeedSum, awa));
-//  //plotHist(awa);
-//  //plotHist(calcAverage(awsSum, awa));
-//
-//}
+void npex003() {
+  Array<Nav> allnavs = loadNavsFromText(Nav::AllNavsPath, false);
+  Array<Array<Nav> > splitNavs = splitNavsByDuration(
+      allnavs, Duration<>::minutes(10).seconds());
+
+
+  int binCount = 60;
+
+  for (int i = 0; i < splitNavs.size(); i++) {
+    Array<Nav> navs = splitNavs[i];
+    navs = navs.slice(makeReliableNavMask(navs));
+
+    PeriodicHist watSpeedSum = makeAWAWatSpeedSumHist(navs, binCount);
+    PeriodicHist awsSum = makeAWAAWSSumHist(navs, binCount);
+    PeriodicHist awa = makeAWAHist(navs, binCount);
+
+    PeriodicHist avg = calcAverage(awsSum, awa);
+    int mini = avg.minBin();
+    std::cout << "Navs " << i << " Min bin with middle at " << avg.indexer().binMiddle(mini).degrees() << " degrees." << std::endl;
+  }
+}
 
 }

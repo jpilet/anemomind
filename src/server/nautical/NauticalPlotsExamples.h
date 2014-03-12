@@ -8,8 +8,9 @@
 
 namespace sail {
 
-void npex001();
-void npex002();
+void npex001(); // Make polar plots for all races of wat speed as function of AWA
+void npex002(); // Display a polar histograms for some race
+void npex003(); // Display the minimum bin
 
 }
 
