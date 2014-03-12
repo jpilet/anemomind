@@ -56,7 +56,7 @@ TEST(PeriodicHistTest, PHTestPlotData) {
 TEST(PeriodicHistTest, PHTestDiv) {
 
   const int bc = 3;
-  PeriodicHistIndexer indexer(3);
+  PeriodicHistIndexer indexer(bc);
   double adata[bc] = {1.0, 2.0, 2.0};
   double bdata[bc] = {0.5, 2.0, 4.0};
   double expectedCdata[bc] = {2.0, 1.0, 0.5};
