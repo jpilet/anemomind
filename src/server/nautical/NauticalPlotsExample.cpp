@@ -8,7 +8,7 @@
 using namespace sail;
 
 int main() {
-  npex001();
+  npex002();
   return 0;
 }
 

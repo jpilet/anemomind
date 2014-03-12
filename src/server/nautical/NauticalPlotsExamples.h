@@ -9,6 +9,7 @@
 namespace sail {
 
 void npex001();
+void npex002();
 
 }
 

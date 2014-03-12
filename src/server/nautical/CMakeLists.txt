@@ -41,6 +41,7 @@ add_library(nautical_NauticalPlots
 target_link_libraries(nautical_NauticalPlots
                       nautical_nav
                       plot_gnuplot
+                      common_PeriodicHist
                      )                       
 add_library(nautical_NauticalPlotsExamples
   NauticalPlotsExamples.h

@@ -84,6 +84,7 @@ target_link_libraries(common_PeriodicHist
                       common_LineKM
                       common_Array
                       common_math
+                      common_string
                      )           
 
 cxx_test(common_PeriodicHistTest

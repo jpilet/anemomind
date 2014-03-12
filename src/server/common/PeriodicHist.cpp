@@ -7,6 +7,8 @@
 #include <cmath>
 #include <assert.h>
 #include <server/common/math.h>
+#include <iostream>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -54,6 +56,13 @@ void PeriodicHist::add(Angle<double> angle, double val) {
   _sum[_indexer.toBin(angle)] += val;
 }
 
+void PeriodicHist::addToAll(double val) {
+  int count = _sum.size();
+  for (int i = 0; i < count; i++) {
+    _sum[i] += val;
+  }
+}
+
 double PeriodicHist::value(Angle<double> angle) {
   return _sum[_indexer.toBin(angle)];
 }
@@ -78,6 +87,16 @@ MDArray2d PeriodicHist::makePolarPlotData() {
   return data;
 }
 
+bool PeriodicHist::allPositive() const {
+  int count = _sum.size();
+  for (int i = 0; i < count; i++) {
+    if (_sum[i] <= 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
 PeriodicHist operator/ (const PeriodicHist &a, const PeriodicHist &b) {
   assert(a.indexer() == b.indexer());
   Arrayd adata = a.data();
@@ -91,5 +110,21 @@ PeriodicHist operator/ (const PeriodicHist &a, const PeriodicHist &b) {
   return PeriodicHist(a.indexer(), result);
 }
 
+PeriodicHist calcAverage(const PeriodicHist &a, const PeriodicHist &b) {
+  assert(b.allPositive());
+  return a/b;
+}
+
+std::ostream &operator<<(std::ostream &s, const PeriodicHist &h) {
+  Arrayd data = h.data();
+  PeriodicHistIndexer ind = h.indexer();
+  int count = ind.count();
+  s << "PeriodicHist with " << count << " bins:\n";
+  for (int i = 0; i < count; i++) {
+    s << stringFormat("  Bin %d/%d in span [%.3g deg, %.3g deg[: %.3g", i+1, count, ind.binLeft(i).degrees(),
+        ind.binRight(i).degrees(), h.valueInBin(i)) << std::endl;
+  }
+  return s;
+}
 
 }

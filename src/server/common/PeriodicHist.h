@@ -12,6 +12,7 @@
 #include <server/common/Array.h>
 #include <server/common/MDArray.h>
 #include <server/common/PhysicalQuantity.h>
+#include <iosfwd>
 
 namespace sail {
 
@@ -40,11 +41,13 @@ class PeriodicHist {
     _indexer(indexer), _sum(sum) {}
 
   void add(Angle<double> angle, double val);
+  void addToAll(double val);
   double value(Angle<double> angle);
-  double valueInBin(int binIndex) {return _sum[binIndex];}
+  double valueInBin(int binIndex) const {return _sum[binIndex];}
   MDArray2d makePolarPlotData();
   const PeriodicHistIndexer &indexer() const {return _indexer;}
   Arrayd data() const {return _sum;}
+  bool allPositive() const;
  private:
   PeriodicHistIndexer _indexer;
   Arrayd _sum;
@@ -52,6 +55,8 @@ class PeriodicHist {
 
 // Useful to compute averages
 PeriodicHist operator/ (const PeriodicHist &a, const PeriodicHist &b);
+PeriodicHist calcAverage(const PeriodicHist &a, const PeriodicHist &b);
+std::ostream &operator<<(std::ostream &s, const PeriodicHist &h);
 
 }
 

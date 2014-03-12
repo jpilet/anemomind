@@ -5,6 +5,8 @@
 
 #include "NauticalPlots.h"
 #include <server/plot/extra.h>
+#include <server/common/PeriodicHist.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -47,6 +49,48 @@ void plotPolarAWAAndWatSpeed(Array<Array<Nav> > allNavs) {
     plot.plot(getPolarAWAAndWatSpeedData(navs.slice(makeReliableNavMask(navs))));
   }
   plot.show();
+}
+
+PeriodicHist makeAWAHist(Array<Nav> navs, int binCount) {
+  PeriodicHist counter(binCount);
+  counter.addToAll(1.0e-9);
+  int count = navs.size();
+  for (int i = 0; i < count; i++) {
+    Nav &nav = navs[i];
+    Angle<double> angle = nav.awa();
+    counter.add(angle, 1.0);
+  }
+  return counter;
+}
+
+void plotHist(PeriodicHist hist) {
+  std::cout << EXPR_AND_VAL_AS_STRING(hist) << std::endl;
+  GnuplotExtra plot;
+  plot.set_style("lines");
+  plot.plot(hist.makePolarPlotData());
+  plot.show();
+}
+
+PeriodicHist makeAWAWatSpeedSumHist(Array<Nav> navs, int binCount) {
+  PeriodicHist sum(binCount);
+  int count = navs.size();
+  for (int i = 0; i < count; i++) {
+    Nav &nav = navs[i];
+    Angle<double> angle = nav.awa();
+    sum.add(angle, nav.watSpeed().metersPerSecond());
+  }
+  return sum;
+}
+
+PeriodicHist makeAWAAWSSumHist(Array<Nav> navs, int binCount) {
+  PeriodicHist sum(binCount);
+  int count = navs.size();
+  for (int i = 0; i < count; i++) {
+    Nav &nav = navs[i];
+    Angle<double> angle = nav.awa();
+    sum.add(angle, nav.aws().metersPerSecond());
+  }
+  return sum;
 }
 
 } /* namespace mmm */
