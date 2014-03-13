@@ -212,6 +212,7 @@ class Grid {
 
   int cellCount() {
     MDInds<N> cellInds = _inds - 1;
+    return cellInds.numel();
   }
 
   const MDInds<N> &getInds() const {
