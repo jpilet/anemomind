@@ -49,9 +49,19 @@ target_link_libraries(math_nonlinear_GridFitter
                      )
 target_depends_on_armadillo(math_nonlinear_GridFitter)
 
+add_library(math_nonlinear_GridFitterTestData
+            GridFitterTestData.cpp
+            GridFitterTestData.h
+           )
+target_link_libraries(math_nonlinear_GridFitterTestData
+                      common_Array
+                     )
+
+
 cxx_test(math_nonlinear_GridFitterTest
          GridFitterTest.cpp
          examples_SignalFitExamples
+         math_nonlinear_GridFitterTestData
          gtest_main
         )
   
