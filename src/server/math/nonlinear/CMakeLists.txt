@@ -17,7 +17,8 @@ add_library(math_nonlinear_Levmar
            )
 target_link_libraries(math_nonlinear_Levmar
                       common_Array
-                      common_logging
+                      common_ScopedLog
+                      common_string
                       math_ADFunction
                       math_armaadolc
                       math_mathutils
@@ -48,6 +49,12 @@ target_link_libraries(math_nonlinear_GridFitter
                      )
 target_depends_on_armadillo(math_nonlinear_GridFitter)
 
+cxx_test(math_nonlinear_GridFitterTest
+         GridFitterTest.cpp
+         examples_SignalFitExamples
+         gtest_main
+        )
+  
 
 
 add_library(math_nonlinear_NoisyStep

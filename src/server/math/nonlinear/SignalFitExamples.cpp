@@ -6,6 +6,7 @@
 #include <server/common/logging.h>
 #include "NoisyStep.h"
 #include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 

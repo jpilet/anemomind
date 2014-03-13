@@ -48,10 +48,18 @@ void ScopedLog::dispScopeLimit(const char *label) {
   disp(_filename, _line, LOGLEVEL_INFO, std::string(label) + _message);
 }
 
+bool ScopedLog::shouldBeDisplayed(LogLevel level) {
+  return (_depth < _depthLimit) || (level != LOGLEVEL_INFO);
+}
+
+void ScopedLog::dispSub(const char *filename, int line, LogLevel level, std::string s) {
+  std::string data = makeIndentation() + s;
+  internal::LogFinisher() = internal::LogMessage(level, filename, line) << data;
+}
+
 void ScopedLog::disp(const char *filename, int line, LogLevel level, std::string s) {
-  if ((_depth < _depthLimit) || (level != LOGLEVEL_INFO)) {
-    std::string data = makeIndentation() + s;
-    internal::LogFinisher() = internal::LogMessage(level, filename, line) << data;
+  if (shouldBeDisplayed(level)) {
+    dispSub(filename, line, level, s);
   }
 }
 
