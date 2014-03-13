@@ -46,4 +46,26 @@ TEST(BandMatTest, TestAssign) {
   }
 }
 
+TEST(BandMatTest, TestLU) {
+  double Adata[9] = {0.5377  ,  0.8622   ,      0 ,   1.8339  ,  0.3188  ,  0.3426  ,       0 ,  -1.3077  ,  3.5784};
+  BandMatd A(3, 3, 1, 1);
+  MDArray2d B(3, 1);
+  int counter = 0;
+  for (int i = 0; i < 3; i++) {
+    B(i, 0) = i+1;
+    for (int j = 0; j < 3; j++) {
+      double a = Adata[counter];
+      if (a != 0) {
+        A(i, j) = a;
+      }
+      counter++;
+    }
+  }
+  double expectedResult[3] = {0.7693 , 0.6801 ,   1.0869};
+  bandMatGaussElim(&A, &B, 1.0e-9);
+  for (int i = 0; i < 3; i++) {
+    EXPECT_NEAR(B(i, 0), expectedResult[i], 1.0e-2);
+  }
+}
+
 
