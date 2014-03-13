@@ -23,7 +23,7 @@ class BandMat {
 
   T get(int i, int j) const {
     int j0 = calcCol(i, j);
-    if (_data.valid(i, j0)) {
+    if (valid(i, j)) {
       return _data(i, j0);
     } else {
       return 0.0;
@@ -32,7 +32,7 @@ class BandMat {
 
   void set(int i, int j, T x) {
     int j0 = calcCol(i, j);
-    assert(_data.valid(i, j0));
+    assert(valid(i, j));
     _data(i, j) = x;
   }
 
@@ -45,10 +45,10 @@ class BandMat {
   int cols() const {return _cols;}
   int left() const {return _left;}
   int right() const {return _right;}
-  int leftColIndex(int row) {return std::max(0, row - _left);}
-  int rightColIndex(int row) {return std::min(_cols, row + _right + 1);}
-  int topRowIndex(int col) {return std::max(0, col - _right);}
-  int bottomRowIndex(int col) {return std::min(_rows, col + _left + 1);}
+  int leftColIndex(int row) const {return std::max(0, row - _left);}
+  int topRowIndex(int col) const {return std::max(0, col - _right);}
+  int rightColIndex(int row) const {return std::min(_cols, row + _right + 1);}
+  int bottomRowIndex(int col) const {return std::min(_rows, col + _left + 1);}
   MDArray<T, 2> toDense() {
     MDArray<T, 2> dst(_rows, _cols);
     dst.setAll(0.0);
@@ -59,8 +59,17 @@ class BandMat {
     }
     return dst;
   }
+
+  bool valid(int i, int j) const {
+    return leftColIndex(i) <= j && j < rightColIndex(i) &&
+        topRowIndex(j) <= i && i < bottomRowIndex(j);
+  }
+
+  void setAll(T x) {
+    _data.setAll(x);
+  }
  private:
-  int calcCol(int i, int j) const { return i + j - _left;}
+  int calcCol(int i, int j) const { return j - i + _left;}
 
   int _rows, _cols, _left, _right;
   MDArray<T, 2> _data;
@@ -76,6 +85,8 @@ class BandMat {
     }
   }
 };
+
+typedef BandMat<double> BandMatd;
 
 namespace BMGE {
   template <typename T>
@@ -98,7 +109,7 @@ namespace BMGE {
   template <typename T>
   void scaleRowsTo1(int index, BandMat<T> *Aio, MDArray<T, 2> *Bio, double tol) {
     T x = (*Aio)(index, index);
-    assert(fabs(x) > tol);
+    assert(tol < (x < 0? -x : x));
     T factor = 1.0/x;
     scaleRow(index, Aio, factor);
     scaleRow(index, Bio, factor);

@@ -29,6 +29,12 @@ cxx_test(math_MatExprTest
          gtest_main
         )                   
 
+cxx_test(math_BandMatTest
+         BandMatTest.cpp
+         gtest_main
+        )                   
+
+
 add_library(math_ADFunction
             ADFunction.cpp
             ADFunction.h
