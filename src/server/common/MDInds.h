@@ -155,7 +155,7 @@ class MDInds {
     Index<dims>::calcInv(index, _sizes, indsOut);
   }
 
-  int operator[] (int index) {
+  int operator[] (int index) const {
     return _sizes[index];
   }
 
@@ -179,6 +179,15 @@ class MDInds {
  private:
   int _sizes[dims];
 };
+
+template <int N>
+MDInds<N> operator-(const MDInds<N> &a, int b) {
+  int sizes[N];
+  for (int i = 0; i < N; i++) {
+    sizes[i] = a[i] - b;
+  }
+  return MDInds<N>(sizes);
+}
 
 
 

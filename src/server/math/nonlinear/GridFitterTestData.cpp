@@ -41,4 +41,8 @@ GridFitterTestData::GridFitterTestData() {
    splits = Array<Arrayb>(splitCount, splitsdata).dup();
 }
 
+double GridFitterTestData::minX() {return X.first();}
+double GridFitterTestData::maxX() {return X.last();}
+
+
 } /* namespace sail */

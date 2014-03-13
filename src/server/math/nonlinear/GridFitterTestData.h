@@ -13,6 +13,8 @@ namespace sail {
 class GridFitterTestData {
  public:
   GridFitterTestData();
+  double minX();
+  double maxX();
 
   int sampleCount;
   Arrayd X, Ygt, Ynoisy;

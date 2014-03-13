@@ -29,14 +29,6 @@ cxx_test(math_MatExprTest
          gtest_main
         )                   
 
-add_library(math_SignalFit
-            SignalFit.cpp
-            SignalFit.h
-           )
-target_link_libraries(math_SignalFit
-                      math_Grid
-                     )
-
 add_library(math_ADFunction
             ADFunction.cpp
             ADFunction.h

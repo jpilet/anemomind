@@ -26,16 +26,13 @@ class Grid {
 
   Grid() {}
   Grid(BBox<N> bbox, double *spacingN) {
-    int sizes[N];
-    for (int i = 0; i < N; i++) {
-      double &s = spacingN[i];
-      Span &span = bbox.getSpan(i);
-      int from = int(floor(span.getMinv()/s));
-      int to = int(ceil(span.getMaxv()/s)) + 1;
-      sizes[i] = to - from;
-      _ind2Coord[i] = LineKM(0.0, sizes[i], from*s, to*s);
-    }
-    _inds = MDInds<N>(sizes);
+    initialize(bbox, spacingN);
+  }
+
+  Grid(Span s, double spacing) {
+    static_assert(N == 1, "This constructor is only applicable to one dimensional grids.");
+    BBox<N> bbox(s);
+    initialize(bbox, &spacing);
   }
 
   virtual ~Grid() {}
@@ -213,6 +210,10 @@ class Grid {
     return _inds.numel();
   }
 
+  int cellCount() {
+    MDInds<N> cellInds = _inds - 1;
+  }
+
   const MDInds<N> &getInds() const {
     return _inds;
   }
@@ -220,6 +221,18 @@ class Grid {
   MDInds<N> _inds;      // Holds the size of every
   LineKM _ind2Coord[N]; // Maps indices along a dimension to coordinates
 
+  void initialize(BBox<N> bbox, double *spacingN) {
+    int sizes[N];
+    for (int i = 0; i < N; i++) {
+      double &s = spacingN[i];
+      Span &span = bbox.getSpan(i);
+      int from = int(floor(span.getMinv()/s));
+      int to = int(ceil(span.getMaxv()/s)) + 1;
+      sizes[i] = to - from;
+      _ind2Coord[i] = LineKM(0.0, sizes[i], from*s, to*s);
+    }
+    _inds = MDInds<N>(sizes);
+  }
 };
 
 template <int N>

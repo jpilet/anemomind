@@ -74,6 +74,13 @@ target_link_libraries(math_nonlinear_NoisyStep
   math_ADFunction
   common_Uniform)
   
+add_library(math_nonlinear_SignalFit
+            SignalFit.cpp
+            SignalFit.h
+           )
+target_link_libraries(math_nonlinear_SignalFit
+                      math_Grid
+                     )
 
 
 #################################################################
@@ -99,6 +106,7 @@ add_executable(math_nonlinear_SignalFitExampleDivideAndConquer
                SignalFitExampleDivideAndConquer.cpp
               )
 target_link_libraries(math_nonlinear_SignalFitExampleDivideAndConquer
+                      math_nonlinear_SignalFit
                       math_nonlinear_GridFitterTestData
                       plot_gnuplot
                      )    

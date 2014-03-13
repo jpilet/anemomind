@@ -3,6 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 #include <server/math/nonlinear/GridFitterTestData.h>
+#include <server/math/nonlinear/SignalFit.h>
 
 namespace sail {
 
@@ -10,6 +11,14 @@ namespace sail {
 
 void sfexDAC() {
   GridFitterTestData data;
+
+  double marg = 1.0;
+  LineStrip strip(Span(data.minX() - marg, data.maxX() + marg), 100);
+
+  double reg1 = 1.0;
+  double reg2 = 1.0;
+
+  Arrayd vertices = fitLineStrip(strip, reg1, reg2, data.X, data.Ynoisy);
 }
 
 
