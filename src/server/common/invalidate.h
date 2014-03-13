@@ -22,9 +22,15 @@
 
 #ifdef NDEBUG
 template <typename T> void InvalidateScalar(T *) { }
+template <typename T> void InvalidateScalars(int, T *) { }
 #else
 template <typename T> void InvalidateScalar(T *var) {
     *var = std::numeric_limits<T>::signaling_NaN();
+}
+template <typename T> void InvalidateScalars(int n, T *var) {
+  for (int i = 0; i < n; i++) {
+    InvalidateScalar<T>(var + i);
+  }
 }
 #endif
 

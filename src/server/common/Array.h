@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <functional>
+#include <server/common/invalidate.h>
 
 namespace sail {
 
@@ -19,6 +20,38 @@ class Deallocator {
   virtual void deallocate(int *refs, T *base) = 0;
   virtual ~Deallocator() {}
 };
+
+namespace ArrayAlloc {
+
+  template <typename T>
+  class InitArray {
+   public:
+    static void apply(int n, T *x) {}
+  };
+
+  #define INVALIDATE_DATA_FOR_TYPE(T) template <> class InitArray<T> {public: static void apply(int n, T *x) {InvalidateScalars<T>(n, x);}};
+  INVALIDATE_DATA_FOR_TYPE(double)
+  INVALIDATE_DATA_FOR_TYPE(float)
+  INVALIDATE_DATA_FOR_TYPE(int)
+  INVALIDATE_DATA_FOR_TYPE(unsigned int)
+  INVALIDATE_DATA_FOR_TYPE(char)
+  INVALIDATE_DATA_FOR_TYPE(unsigned char)
+  INVALIDATE_DATA_FOR_TYPE(long)
+  INVALIDATE_DATA_FOR_TYPE(unsigned long)
+  INVALIDATE_DATA_FOR_TYPE(short)
+  INVALIDATE_DATA_FOR_TYPE(unsigned short)
+  #undef INVALIDATE_DATA_FOR_TYPE
+
+
+
+  template <typename T>
+  T *make(int n) {
+    T *data = new T[n];
+    InitArray<T>::apply(n, data);
+    return data;
+  }
+}
+
 
 // Implements a reference counted ("garbage collected") and sliceable generic array type.
 template <typename T>
@@ -173,7 +206,7 @@ class Array {
     _size = size;
     _refs = new int;
     *_refs = 1;
-    _base = new T[size];
+    _base = ArrayAlloc::make<T>(size);
     _data = _base;
     _deallocator = nullptr;
   }
@@ -200,7 +233,7 @@ class Array {
     assert(0 <= size);
 #endif
     if (_size != size) {
-      assignOwnage(size, new T[size]);
+      assignOwnage(size, ArrayAlloc::make<T>(size));
     }
   }
 
@@ -224,7 +257,7 @@ class Array {
       while (newSize < s) {
         newSize *= 2;
       }
-      T *newData = new T[newSize];
+      T *newData = ArrayAlloc::make<T>(newSize);
       for (int i = 0; i < _size; i++) {
         newData[i] = _data[i];
       }
