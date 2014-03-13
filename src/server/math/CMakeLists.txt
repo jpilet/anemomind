@@ -36,12 +36,6 @@ add_library(math_SignalFit
 target_link_libraries(math_SignalFit
                       math_Grid
                      )
-add_executable(math_SignalFitExample
-               SignalFitExample.cpp
-              )
-target_link_libraries(math_SignalFitExample
-                      math_SignalFit
-                     )
 
 add_library(math_ADFunction
             ADFunction.cpp
