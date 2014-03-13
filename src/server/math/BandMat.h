@@ -40,10 +40,12 @@ class BandMat {
     _data(i, j) = x;
   }
 
-  T &operator() (int i, int j) {
+  T &at(int i, int j) {
     int j0 = calcCol(i, j);
     return _data(i, j0);
   }
+
+  T &operator() (int i, int j) {return at(i, j);}
 
   int rows() const {return _rows;}
   int cols() const {return _cols;}
@@ -72,6 +74,37 @@ class BandMat {
   void setAll(T x) {
     _data.setAll(x);
   }
+
+  void addReg(int dim, T *coefs) {
+    assert(_rows == _cols);
+    int n = _rows - dim + 1;
+    for (int offs = 0; offs < n; offs++) {
+      for (int i = 0; i < dim; i++) {
+        for (int j = 0; j < dim; j++) {
+          at(offs + i, offs + j) += coefs[i]*coefs[j];
+        }
+      }
+    }
+  }
+
+  void addFirstOrderReg(T w) {
+    T coefs[2] = {w, -w};
+    addReg(2, coefs);
+  }
+
+  void addSecondOrderReg(T w) {
+    T coefs[3] = {w, -2.0*w, w};
+    addReg(3, coefs);
+  }
+
+  void addNormalEq(int n, int *I, T *W) {
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+        at(I[i], I[j]) += W[i]*W[j];
+      }
+    }
+  }
+
  private:
   int calcCol(int i, int j) const { return j - i + _left;}
 
