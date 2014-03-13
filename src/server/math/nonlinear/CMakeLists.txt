@@ -99,7 +99,7 @@ add_executable(math_nonlinear_SignalFitExampleDivideAndConquer
                SignalFitExampleDivideAndConquer.cpp
               )
 target_link_libraries(math_nonlinear_SignalFitExampleDivideAndConquer
-                      math_nonlinear_NoisyStep
+                      math_nonlinear_GridFitterTestData
                       plot_gnuplot
                      )    
   
