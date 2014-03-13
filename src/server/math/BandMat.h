@@ -20,6 +20,10 @@ class BandMat {
     initStorage(data);
   }
 
+  BandMat<T> dup() {
+    return BandMat(_rows, _cols, _left, _right, _data.dup());
+  }
+
 
   T get(int i, int j) const {
     int j0 = calcCol(i, j);
@@ -172,12 +176,20 @@ namespace BMGE {
  * This is checked for with the tol parameter.
  */
 template <typename T>
-void bandMatGaussElim(BandMat<T> *Aio, MDArray<T, 2> *Bio, double tol = 1.0e-6) {
+void bandMatGaussElimDestructive(BandMat<T> *Aio, MDArray<T, 2> *Bio, double tol = 1.0e-6) {
   using namespace BMGE;
   BandMat<T> &A = *Aio;
   MDArray<T, 2> &B = *Bio;
   eliminateForward(Aio, Bio, tol);
   eliminateBackward(Aio, Bio);
+}
+
+template <typename T>
+MDArray<T, 2> bandMatGaussElim(BandMat<T> A, MDArray<T, 2> B, double tol = 1.0e-6) {
+  BandMat<T> Atemp = A.dup();
+  MDArray<T, 2> Bdst = B.dup();
+  bandMatGaussElimDestructive(&Atemp, &Bdst, tol);
+  return Bdst;
 }
 
 }

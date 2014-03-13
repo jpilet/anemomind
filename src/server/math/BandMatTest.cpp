@@ -62,9 +62,9 @@ TEST(BandMatTest, TestGaussElim) {
     }
   }
   double expectedResult[3] = {0.7693 , 0.6801 ,   1.0869};
-  bandMatGaussElim(&A, &B, 1.0e-9);
+  MDArray2d C = bandMatGaussElim(A, B, 1.0e-9);
   for (int i = 0; i < 3; i++) {
-    EXPECT_NEAR(B(i, 0), expectedResult[i], 1.0e-2);
+    EXPECT_NEAR(C(i, 0), expectedResult[i], 1.0e-2);
   }
 }
 
