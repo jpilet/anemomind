@@ -46,7 +46,7 @@ TEST(BandMatTest, TestAssign) {
   }
 }
 
-TEST(BandMatTest, TestLU) {
+TEST(BandMatTest, TestGaussElim) {
   double Adata[9] = {0.5377  ,  0.8622   ,      0 ,   1.8339  ,  0.3188  ,  0.3426  ,       0 ,  -1.3077  ,  3.5784};
   BandMatd A(3, 3, 1, 1);
   MDArray2d B(3, 1);
