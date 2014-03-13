@@ -148,7 +148,7 @@ namespace BMGE {
     int rows = A.rows();
     for (int i = rows-1; i >= 0; i--) {
       int from = A.topRowIndex(i);
-      for (int idst = from; idst > i; idst++) {
+      for (int idst = from; idst < i; idst++) {
         eliminateSub(i, idst, Aio, Bio);
       }
     }
