@@ -2,10 +2,14 @@
  *  Created on: 2014-03-13
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
-#include <iostream>
+#include <server/math/nonlinear/NoisyStep.h>
+
+void sfexDAC() {
+
+}
 
 int main() {
-  std::cout << "Divide-and-conquer" << std::endl;
+  sfexDAC();
   return 0;
 }
 
