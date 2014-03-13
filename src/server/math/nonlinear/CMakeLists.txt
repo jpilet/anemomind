@@ -78,6 +78,14 @@ add_executable(examples_SignalFitExampleFixedReg
 target_link_libraries(examples_SignalFitExampleFixedReg
   examples_SignalFitExamples)
   
+add_executable(math_nonlinear_SignalFitExampleDivideAndConquer  
+               SignalFitExampleDivideAndConquer.cpp
+              )
+target_link_libraries(math_nonlinear_SignalFitExampleDivideAndConquer
+                      math_nonlinear_NoisyStep
+                      plot_gnuplot
+                     )    
+  
 add_executable(examples_SignalFitExampleAutoRegFirstOrder
   SignalFitExampleAutoRegFirstOrder.cpp)
 target_link_libraries(examples_SignalFitExampleAutoRegFirstOrder
