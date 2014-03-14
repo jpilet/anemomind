@@ -8,6 +8,9 @@
 #include <server/common/ArrayIO.h>
 #include <server/common/string.h>
 #include <server/nautical/FilteredNavs.h>
+#include <server/math/nonlinear/SignalFit.h>
+#include <server/common/split.h>
+#include <server/math/nonlinear/LevmarSettings.h>
 
 using namespace sail;
 
@@ -48,11 +51,18 @@ void fnex002() {
   Arrayd Yd = Y.map<double>([&](Velocity<double> x) {return x.knots();});
   std::cout << EXPR_AND_VAL_AS_STRING((countTrue(rel))) << std::endl;
 
+  LineStrip strip(Span(X), 1.0);
+  Arrayd Xlines = strip.getGridVertexCoords1d();
+  LevmarSettings settings;
+  Arrayd Ylines = fitLineStripAutoTune(strip, makeRange(2, 1), X, Yd, makeRandomSplits(9, X.size()), settings).vertices;
+
   Arrayb unrel = neg(rel);
 
   GnuplotExtra plot;
   plot.plot_xy(X.slice(rel), Yd.slice(rel));
   plot.plot_xy(X.slice(unrel), Yd.slice(unrel));
+  plot.set_style("lines");
+  plot.plot_xy(Xlines, Ylines);
   plot.show();
 
 }

@@ -24,6 +24,8 @@ add_library(nautical_FilteredNavs
            )
 target_link_libraries(nautical_FilteredNavs
                       nautical_nav
+                      math_nonlinear_SignalFit
+                      common_split
                       math_Grid
                       math_hmm_StateAssign
                      )           

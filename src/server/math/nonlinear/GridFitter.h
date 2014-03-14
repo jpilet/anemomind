@@ -137,9 +137,6 @@ class GridFitter {
   void writeStatus(int i, arma::mat X, int fsize);
 };
 
-Arrayb makeRandomSplit(int size);
-Array<Arrayb> makeRandomSplits(int numSplits, int size);
-
 } /* namespace sail */
 
 #endif /* GRIDFITTER_H_ */

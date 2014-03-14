@@ -58,6 +58,10 @@ class Grid {
     return pts;
   }
 
+  Arrayd getGridVertexCoords1d() {
+    return getGridVertexCoords().getStorage();
+  }
+
 
 
   // Number of vertices in a linear combination

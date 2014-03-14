@@ -13,6 +13,7 @@
 #include <server/common/string.h>
 #include <server/common/logging.h>
 #include <server/common/ScopedLog.h>
+#include <server/common/split.h>
 
 namespace sail {
 

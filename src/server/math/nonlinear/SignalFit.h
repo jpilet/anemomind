@@ -12,6 +12,10 @@
 
 namespace sail {
 
+Arrayd fitLineStrip(LineStrip strip,
+    Arrayi orders, Arrayd regWeights,
+    Arrayd X, Arrayd Y);
+
 Arrayi makeDefaultRegOrders(int n);
 
 class SignalFitResults {

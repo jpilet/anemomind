@@ -46,6 +46,7 @@ target_link_libraries(math_nonlinear_GridFitter
                       math_nonlinear_StepMinimizer
                       math_pareto
                       math_MatExpr
+                      common_split
                      )
 target_depends_on_armadillo(math_nonlinear_GridFitter)
 

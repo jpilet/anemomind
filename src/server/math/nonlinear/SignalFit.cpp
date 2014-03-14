@@ -38,6 +38,12 @@ Array<T> fitLineStripT(LineStrip strip,
   return B.getStorage();
 }
 
+Arrayd fitLineStrip(LineStrip strip,
+    Arrayi orders, Arrayd regWeights,
+    Arrayd X, Arrayd Y) {
+    return fitLineStripT<double>(strip, orders, regWeights, X, Y);
+}
+
 Arrayi makeDefaultRegOrders(int n) {return makeRange(n, 1);}
 
 template <typename T>

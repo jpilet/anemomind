@@ -18,6 +18,15 @@ cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp
   gtest_main)
 
+add_library(common_split
+            split.cpp
+            split.h
+           )
+target_link_libraries(common_split
+                      common_Array
+                      common_Uniform
+                     )           
+
 add_library(common_Array
             Array.cpp
             Array.h
