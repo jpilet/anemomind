@@ -35,24 +35,26 @@ Array<T> fitLineStrip(LineStrip strip,
   return B.getStorage();
 }
 
+Arrayi makeDefaultRegOrders(int n) {return makeRange(n, 1);}
+
 template <typename T>
 Array<T> fitLineStrip(LineStrip strip,
     Array<T> regWeights,
     Arrayd X, Arrayd Y) {
-    return fitLineStrip<T>(strip, makeRange(regWeights.size(), 1),
+    return fitLineStrip<T>(strip, makeDefaultRegOrders(regWeights.size()),
         regWeights, X, Y);
 }
 
 namespace {
   class Objf : public AutoDiffFunction {
    public:
-    Objf(LineStrip strip, Arrayd X, Arrayd Y, Array<Arrayb> splits, int regCount);
+    Objf(LineStrip strip, Arrayd X, Arrayd Y, Array<Arrayb> splits, Arrayi orders);
     void evalAD(adouble *Xin, adouble *Fout);
-    int inDims() {return _regCount;}
+    int inDims() {return _orders.size();}
     int outDims() {return _splits.size()*obsCount();}
    private:
     int obsCount() {return _X.size();}
-    int _regCount;
+    Arrayi _orders;
     LineStrip _strip;
     Arrayd _X, _Y;
     Array<Arrayb> _splits;
@@ -61,12 +63,12 @@ namespace {
     int evalForSplitSub(adouble *Xin, adouble *Fout, Arrayb split, bool flip);
   };
 
-  Objf::Objf(LineStrip strip, Arrayd X, Arrayd Y, Array<Arrayb> splits, int regCount) :
+  Objf::Objf(LineStrip strip, Arrayd X, Arrayd Y, Array<Arrayb> splits, Arrayi orders) :
       _strip(strip),
       _X(X),
       _Y(Y),
       _splits(splits),
-      _regCount(regCount) {
+      _orders(orders) {
       assert(_X.size() == _Y.size());
   }
 
@@ -96,8 +98,8 @@ namespace {
     Arrayd Ytest = _Y.slice(test);
     assert(Xtrain.size() + Xtest.size() == _X.size());
 
-    Arrayad regs(_regCount, Xin);
-    Arrayad vertices = fitLineStrip(_strip, regs, Xtrain, Ytrain);
+    Arrayad regs(inDims(), Xin);
+    Arrayad vertices = fitLineStrip(_strip, _orders, regs, Xtrain, Ytrain);
     int counter = 0;
     int n = Xtest.size();
     for (int i = 0; i < n; i++) {
@@ -111,20 +113,28 @@ namespace {
   }
 }
 
-Arrayd fitLineStripTuneRegParams(LineStrip strip, Arrayd initRegs, Arrayd X, Arrayd Y,
+Arrayd fitLineStripTuneRegParams(LineStrip strip, Arrayi orders, Arrayd initRegs, Arrayd X, Arrayd Y,
     Array<Arrayb> splits,
     const LevmarSettings &settings) {
-  Objf objf(strip, X, Y, splits, initRegs.size());
+  Objf objf(strip, X, Y, splits, orders);
   LevmarState state(initRegs);
   state.minimize(settings, objf);
   return state.getXArray().dup();
 }
 
+Arrayd fitLineStripAutoTune(LineStrip strip, Arrayi orders, Arrayd initRegs, Arrayd X, Arrayd Y,
+    Array<Arrayb> splits,
+    const LevmarSettings &settings) {
+  Arrayd regs = fitLineStripTuneRegParams(strip, orders, initRegs, X, Y, splits, settings);
+  return fitLineStrip(strip, regs, X, Y);
+}
+
 Arrayd fitLineStripAutoTune(LineStrip strip, Arrayd initRegs, Arrayd X, Arrayd Y,
     Array<Arrayb> splits,
     const LevmarSettings &settings) {
-  Arrayd regs = fitLineStripTuneRegParams(strip, initRegs, X, Y, splits, settings);
-  return fitLineStrip(strip, regs, X, Y);
+  return fitLineStripAutoTune(strip, makeDefaultRegOrders(initRegs.size()), initRegs,
+      X, Y, splits, settings);
 }
+
 
 } /* namespace sail */
