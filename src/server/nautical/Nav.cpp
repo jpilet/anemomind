@@ -304,5 +304,29 @@ int countNavs(Array<Array<Nav> > navs) {
   return counter;
 }
 
+Array<Angle<double> > getAwa(Array<Nav> navs) {
+  return navs.map<Angle<double> >([&] (const Nav &nav) {return nav.awa();});
+}
+
+Array<Velocity<double> > getAws(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&] (const Nav &nav) {return nav.aws();});
+}
+Array<Angle<double> > getMagHdg(Array<Nav> navs) {
+  return navs.map<Angle<double> >([&] (const Nav &nav) {return nav.magHdg();});
+}
+
+Array<Angle<double> > getGpsBearing(Array<Nav> navs) {
+  return navs.map<Angle<double> >([&] (const Nav &nav) {return nav.gpsBearing();});
+}
+
+Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&] (const Nav &nav) {return nav.gpsSpeed();});
+}
+
+Array<Velocity<double> > getWatSpeed(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&] (const Nav &nav) {return nav.watSpeed();});
+}
+
+
 
 } /* namespace sail */
