@@ -12,8 +12,20 @@
 
 namespace sail {
 
+Arrayi makeDefaultRegOrders(int n);
+
+class SignalFitResults {
+ public:
+  SignalFitResults(Arrayd rw, Arrayd v) : regWeights(rw), vertices(v) {}
+
+  Arrayd regWeights, vertices;
+};
+
 class LevmarSettings;
-Arrayd fitLineStripAutoTune(LineStrip strip, Arrayd initRegs, Arrayd X, Arrayd Y,
+SignalFitResults fitLineStripAutoTune(LineStrip strip, Arrayd initRegs, Arrayd X, Arrayd Y,
+    Array<Arrayb> splits,
+    const LevmarSettings &settings);
+SignalFitResults fitLineStripAutoTune(LineStrip strip, Arrayi orders, Arrayd initRegs, Arrayd X, Arrayd Y,
     Array<Arrayb> splits,
     const LevmarSettings &settings);
 

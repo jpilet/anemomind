@@ -8,6 +8,7 @@
 #include <server/common/string.h>
 #include <server/math/nonlinear/LevmarSettings.h>
 #include <iostream>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 
@@ -42,23 +43,19 @@ void sfexDAC() {
   double marg = 0.1;
   LineStrip strip(Span(data.minX() - marg, data.maxX() + marg), 0.01);
 
-  double reg = 1.0;
-  double reg1 = reg;
-  double reg2 = reg;
-
-  reg2 = 0;
-
-  Arrayd regs(2);
-  regs[0] = reg1;
-  regs[1] = reg2;
+  Arrayd regs;
+  Arrayi orders = makeDefaultRegOrders(2);
 
   //Arrayd vertices = fitLineStrip(strip, regs, data.X, data.Ynoisy);
   LevmarSettings settings;
-  Arrayd vertices = fitLineStripAutoTune(strip, regs, data.X, data.Ynoisy, data.splits, settings);
+  SignalFitResults res = fitLineStripAutoTune(strip, orders, regs,
+      data.X, data.Ynoisy, data.splits, settings);
 
-  std::cout << EXPR_AND_VAL_AS_STRING(vertices.size()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(res.regWeights) << std::endl;
 
-  MDArray2d XY = makeXY(strip, vertices);
+  std::cout << EXPR_AND_VAL_AS_STRING(res.vertices.size()) << std::endl;
+
+  MDArray2d XY = makeXY(strip, res.vertices);
 
   GnuplotExtra plot;
     plot.set_style("lines");

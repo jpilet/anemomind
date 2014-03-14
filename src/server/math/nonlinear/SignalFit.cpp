@@ -14,6 +14,7 @@ template <typename T>
 Array<T> fitLineStrip(LineStrip strip,
     Arrayi orders, Array<T> regWeights,
     Arrayd X, Arrayd Y) {
+  assert(orders.size() == regWeights.size());
   int count = X.size();
   int n = strip.getVertexCount();
   BandMat<T> A(n, n, 2, 2);
@@ -122,14 +123,18 @@ Arrayd fitLineStripTuneRegParams(LineStrip strip, Arrayi orders, Arrayd initRegs
   return state.getXArray().dup();
 }
 
-Arrayd fitLineStripAutoTune(LineStrip strip, Arrayi orders, Arrayd initRegs, Arrayd X, Arrayd Y,
+SignalFitResults fitLineStripAutoTune(LineStrip strip, Arrayi orders, Arrayd initRegs, Arrayd X, Arrayd Y,
     Array<Arrayb> splits,
     const LevmarSettings &settings) {
+  if (initRegs.empty()) {
+    initRegs = Arrayd(orders.size());
+    initRegs.setTo(1.0);
+  }
   Arrayd regs = fitLineStripTuneRegParams(strip, orders, initRegs, X, Y, splits, settings);
-  return fitLineStrip(strip, regs, X, Y);
+  return SignalFitResults(regs, fitLineStrip(strip, regs, X, Y));
 }
 
-Arrayd fitLineStripAutoTune(LineStrip strip, Arrayd initRegs, Arrayd X, Arrayd Y,
+SignalFitResults fitLineStripAutoTune(LineStrip strip, Arrayd initRegs, Arrayd X, Arrayd Y,
     Array<Arrayb> splits,
     const LevmarSettings &settings) {
   return fitLineStripAutoTune(strip, makeDefaultRegOrders(initRegs.size()), initRegs,
