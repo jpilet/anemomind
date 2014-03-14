@@ -433,6 +433,18 @@ class Array {
     return Y.sliceTo(counter);
   }
 
+  ThisType slice(std::function<bool(int index)> fun) {
+    int counter = 0;
+    ThisType Y(_size);
+    for (int i = 0; i < _size; i++) {
+      if (fun(i)) {
+        Y[counter] = _data[i];
+        counter++;
+      }
+    }
+    return Y.sliceTo(counter);
+  }
+
   ThisType sliceBlocks(int blockSize, Array<bool> incl) {
     assert(blockSize*incl.size() == _size);
     int count = incl.size();

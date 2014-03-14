@@ -38,7 +38,10 @@ Array<T> fitLineStrip(LineStrip strip, Array<T> regWeights,
   return B.getStorage();
 }
 
-//Arrayd fitLineStripAutoTune(LineStrip strip, Arrayd initRegs, );
+class LevmarSettings;
+Arrayd fitLineStripAutoTune(LineStrip strip, Arrayd initRegs, Arrayd X, Arrayd Y,
+    Array<Arrayb> splits,
+    const LevmarSettings &settings);
 
 } /* namespace sail */
 

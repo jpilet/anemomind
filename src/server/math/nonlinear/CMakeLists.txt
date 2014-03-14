@@ -81,6 +81,7 @@ add_library(math_nonlinear_SignalFit
 target_link_libraries(math_nonlinear_SignalFit
                       math_Grid
                       math_BandMat
+                      math_nonlinear_Levmar
                      )
 
 

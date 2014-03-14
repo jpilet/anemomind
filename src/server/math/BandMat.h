@@ -77,7 +77,7 @@ class BandMat {
     _data.setAll(x);
   }
 
-  void addReg(Array<T> coefs, T w) {
+  void addReg(Arrayd coefs, T w) {
     T w2 = w*w;
     assert(_rows == _cols);
     int dim = coefs.size();
@@ -101,7 +101,7 @@ class BandMat {
     }
   }
 
-  void addNormalEq(int n, int *I, T *W) {
+  void addNormalEq(int n, int *I, double *W) {
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
         at(I[i], I[j]) += W[i]*W[j];

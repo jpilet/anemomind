@@ -6,6 +6,7 @@
 #include <server/math/nonlinear/SignalFit.h>
 #include <server/plot/extra.h>
 #include <server/common/string.h>
+#include <server/math/nonlinear/LevmarSettings.h>
 #include <iostream>
 
 namespace sail {
@@ -38,7 +39,10 @@ void sfexDAC() {
   Arrayd regs(2);
   regs[0] = reg1;
   regs[1] = reg2;
-  Arrayd vertices = fitLineStrip(strip, regs, data.X, data.Ynoisy);
+
+  //Arrayd vertices = fitLineStrip(strip, regs, data.X, data.Ynoisy);
+  LevmarSettings settings;
+  Arrayd vertices = fitLineStripAutoTune(strip, regs, data.X, data.Ynoisy, data.splits, settings);
 
   std::cout << EXPR_AND_VAL_AS_STRING(vertices.size()) << std::endl;
 

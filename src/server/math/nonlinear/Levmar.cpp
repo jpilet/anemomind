@@ -16,10 +16,19 @@
 namespace sail {
 
 LevmarState::LevmarState(arma::mat X) {
+  initialize(X);
+}
+
+void LevmarState::initialize(arma::mat X) {
   _X = X;
   _v = 2.0;
   _mu = -1; // Set to negative number to indicate it is not initialized.
   _stop = false;
+}
+
+LevmarState::LevmarState(Arrayd X) {
+  arma::mat Xmat(X.ptr(), X.size(), 1, true, true);
+  initialize(Xmat);
 }
 
 namespace {
