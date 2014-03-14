@@ -16,8 +16,10 @@ Arrayi makeDefaultRegOrders(int n);
 
 class SignalFitResults {
  public:
-  SignalFitResults(Arrayd rw, Arrayd v) : regWeights(rw), vertices(v) {}
+  SignalFitResults(Arrayi o, Arrayd rw, Arrayd v) :
+    orders(o), regWeights(rw), vertices(v) {}
 
+  Arrayi orders;
   Arrayd regWeights, vertices;
 };
 

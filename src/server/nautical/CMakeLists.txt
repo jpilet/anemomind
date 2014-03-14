@@ -25,6 +25,7 @@ add_library(nautical_FilteredNavs
 target_link_libraries(nautical_FilteredNavs
                       nautical_nav
                       math_Grid
+                      math_hmm_StateAssign
                      )           
 
 add_executable(nautical_FilteredNavsExample

@@ -22,4 +22,5 @@ void ptexLocalRace() {
   LocalRace race(navs, spaceStep, timeStep);
   race.makeSpatioTemporalPlot(navs);
 }
+
 }

@@ -14,6 +14,9 @@
 
 namespace sail {
 
+Arrayb identifyReliableValues(int stateCount, double transitionCost, Arrayd values, Span span = Span());
+Arrayb identifyReliableAws(Array<Velocity<double> > aws);
+
 class FilteredNavs {
  public:
   FilteredNavs();

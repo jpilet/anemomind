@@ -9,6 +9,7 @@
 #define SPAN_H_
 
 #include <iosfwd>
+#include "Array.h"
 
 namespace sail {
 
@@ -21,6 +22,13 @@ class Span {
 
   Span(double value) : _minv(value), _maxv(value) {}
   Span(double a, double b);
+
+  Span(Arrayd values) : _minv(1), _maxv(-1) {
+    int count = values.size();
+    for (int i = 0; i < count; i++) {
+      extend(values[i]);
+    }
+  }
 
 
   double getMinv() {

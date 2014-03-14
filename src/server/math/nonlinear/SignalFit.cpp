@@ -13,7 +13,7 @@
 namespace sail {
 
 template <typename T>
-Array<T> fitLineStrip(LineStrip strip,
+Array<T> fitLineStripT(LineStrip strip,
     Arrayi orders, Array<T> regWeights,
     Arrayd X, Arrayd Y) {
   assert(orders.size() == regWeights.size());
@@ -41,10 +41,10 @@ Array<T> fitLineStrip(LineStrip strip,
 Arrayi makeDefaultRegOrders(int n) {return makeRange(n, 1);}
 
 template <typename T>
-Array<T> fitLineStrip(LineStrip strip,
+Array<T> fitLineStripT(LineStrip strip,
     Array<T> regWeights,
     Arrayd X, Arrayd Y) {
-    return fitLineStrip<T>(strip, makeDefaultRegOrders(regWeights.size()),
+    return fitLineStripT<T>(strip, makeDefaultRegOrders(regWeights.size()),
         regWeights, X, Y);
 }
 
@@ -102,7 +102,7 @@ namespace {
     assert(Xtrain.size() + Xtest.size() == _X.size());
 
     Arrayad regs(inDims(), Xin);
-    Arrayad vertices = fitLineStrip(_strip, _orders, regs, Xtrain, Ytrain);
+    Arrayad vertices = fitLineStripT(_strip, _orders, regs, Xtrain, Ytrain);
     int counter = 0;
     int n = Xtest.size();
     for (int i = 0; i < n; i++) {
@@ -136,7 +136,7 @@ SignalFitResults fitLineStripAutoTune(LineStrip strip, Arrayi orders, Arrayd ini
     initRegs.setTo(1.0);
   }
   Arrayd regs = fitLineStripTuneRegParams(strip, orders, initRegs, X, Y, splits, settings);
-  return SignalFitResults(regs, fitLineStrip(strip, regs, X, Y));
+  return SignalFitResults(orders, regs, fitLineStripT(strip, regs, X, Y));
 }
 
 SignalFitResults fitLineStripAutoTune(LineStrip strip, Arrayd initRegs, Arrayd X, Arrayd Y,
