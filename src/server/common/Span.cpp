@@ -50,6 +50,11 @@ double Span::subtractMean() {
   return mean;
 }
 
+Span Span::expand(double x) {
+  assert(initialized());
+  return Span(_minv - x, _maxv + x);
+}
+
 std::ostream &operator<<(std::ostream &s, Span x) {
   s << "Span(" << x.getMinv() << ", " << x.getMaxv() << ")";
   return s;

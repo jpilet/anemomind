@@ -12,7 +12,7 @@ namespace sail {
 void npex001() {
   Array<Nav> navs = loadNavsFromText(Nav::AllNavsPath, false);
   Array<Array<Nav> > splitNavs = splitNavsByDuration(
-      navs, Duration<>::minutes(10).seconds());
+      navs, Duration<>::minutes(10));
 
   plotPolarAWAAndWatSpeed(splitNavs);
 }
@@ -20,7 +20,7 @@ void npex001() {
 void npex002() {
   Array<Nav> allnavs = loadNavsFromText(Nav::AllNavsPath, false);
   Array<Array<Nav> > splitNavs = splitNavsByDuration(
-      allnavs, Duration<>::minutes(10).seconds());
+      allnavs, Duration<>::minutes(10));
 
 
   int i = 2;
@@ -42,7 +42,7 @@ void npex002() {
 void npex003() {
   Array<Nav> allnavs = loadNavsFromText(Nav::AllNavsPath, false);
   Array<Array<Nav> > splitNavs = splitNavsByDuration(
-      allnavs, Duration<>::minutes(10).seconds());
+      allnavs, Duration<>::minutes(10));
 
 
   int binCount = 60;

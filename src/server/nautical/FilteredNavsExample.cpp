@@ -41,8 +41,8 @@ void fnex001() { // Various plots
   plot.show();
 }
 
-void fnex002() {
-  Array<Nav> navs = getTestNavs(0).slice(1000, 1500);
+void fnex002() { // Filter a signal
+  Array<Nav> navs = getTestNavs(0).sliceTo(1000); //.slice(1000, 1500);
 
   Arrayd X = getLocalTime(navs).map<double>([&](Duration<double> t) {return t.seconds();});
 
@@ -51,10 +51,10 @@ void fnex002() {
   Arrayd Yd = Y.map<double>([&](Velocity<double> x) {return x.knots();});
   std::cout << EXPR_AND_VAL_AS_STRING((countTrue(rel))) << std::endl;
 
-  LineStrip strip(Span(X), 1.0);
+  LineStrip strip(Span(X).expand(0.1), 1.0);
   Arrayd Xlines = strip.getGridVertexCoords1d();
   LevmarSettings settings;
-  Arrayd Ylines = fitLineStripAutoTune(strip, makeRange(2, 1), X, Yd, makeRandomSplits(9, X.size()), settings).vertices;
+  Arrayd Ylines = fitLineStripAutoTune(strip, makeRange(2, 1), X.slice(rel), Yd.slice(rel), makeRandomSplits(9, countTrue(rel)), settings).vertices;
 
   Arrayb unrel = neg(rel);
 
@@ -67,8 +67,29 @@ void fnex002() {
 
 }
 
+
+void fnex003() { // Plot true vel vs wat speed
+  Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
+
+  Arrayd Y = getGpsSpeed(navs).map<double>([&] (Velocity<double> x) {return x.metersPerSecond();});
+  Arrayd Y2 = getWatSpeed(navs).map<double>([&] (Velocity<double> x) {return x.metersPerSecond();});
+
+  GnuplotExtra plot;
+  plot.plot_xy(Y2, Y);
+  plot.show();
+}
+
+void fnex004() { // Filter AWA
+  Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
+  Arrayd X = getLocalTime(navs).map<double>([&](Duration<double> t) {return t.seconds();});
+  Arrayb rel = identifyReliableAwa(getAwa(navs));
+
+  std::cout << EXPR_AND_VAL_AS_STRING(countTrue(rel)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(rel.size()) << std::endl;
+}
+
 int main() {
-  fnex002();
+  fnex004();
 
   return -1;
 }

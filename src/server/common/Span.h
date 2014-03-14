@@ -47,6 +47,8 @@ class Span {
 
   virtual ~Span() {}
 
+  Span expand(double x);
+
   double subtractMean();
  private:
   double _minv, _maxv;

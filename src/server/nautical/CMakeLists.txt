@@ -28,6 +28,7 @@ target_link_libraries(nautical_FilteredNavs
                       common_split
                       math_Grid
                       math_hmm_StateAssign
+                      common_PeriodicHist
                      )           
 
 add_executable(nautical_FilteredNavsExample
