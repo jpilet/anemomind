@@ -105,6 +105,11 @@ MAKE_UNIT2OTHERUNIT_CONVERTER(nm2m, m2nm, 1852.0);
 MAKE_UNIT2OTHERUNIT_CONVERTER(knots2MPS, MPS2knots, 1852.0/3600.0);
 #undef MAKE_UNIT2OTHERUNIT_CONVERTER
 
+// Returns an integer in 0..(b-1)
+inline int posMod(int a, int b) {
+  return (a + b - (a/b)*b) % b;
+}
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */

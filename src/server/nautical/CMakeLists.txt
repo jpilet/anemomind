@@ -52,7 +52,28 @@ add_library(nautical_LocalRace
             LocalRace.cpp)
 target_link_libraries(nautical_LocalRace
   math_armaadolc)            
-            
+
+
+
+add_library(nautical_NauticalPlots
+            NauticalPlots.h
+            NauticalPlots.cpp
+           )
+target_link_libraries(nautical_NauticalPlots
+                      nautical_nav
+                      plot_gnuplot
+                      common_PeriodicHist
+                     )                       
+add_library(nautical_NauticalPlotsExamples
+  NauticalPlotsExamples.h
+  NauticalPlotsExamples.cpp)  
+target_link_libraries(nautical_NauticalPlotsExamples
+  nautical_NauticalPlots)  
+  
+add_executable(nautical_NauticalPlotsExample  
+  NauticalPlotsExample.cpp)
+target_link_libraries(nautical_NauticalPlotsExample
+  nautical_NauticalPlotsExamples)  
             
 #################################################################
 ### PlotTrajectoryExamples

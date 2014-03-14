@@ -22,6 +22,7 @@ class LineKM {
   double getK() const;
   double getM() const;
   virtual ~LineKM();
+  bool operator== (const LineKM &other) const;
  private:
   double _k, _m;
 };
