@@ -22,12 +22,22 @@ class SignalFitResults {
 };
 
 class LevmarSettings;
+
+// Orders and reg weights
 SignalFitResults fitLineStripAutoTune(LineStrip strip, Arrayd initRegs, Arrayd X, Arrayd Y,
     Array<Arrayb> splits,
     const LevmarSettings &settings);
+
+// Default orders and reg weights
 SignalFitResults fitLineStripAutoTune(LineStrip strip, Arrayi orders, Arrayd initRegs, Arrayd X, Arrayd Y,
     Array<Arrayb> splits,
     const LevmarSettings &settings);
+
+// Orders and default reg weights
+SignalFitResults fitLineStripAutoTune(LineStrip strip, Arrayi orders, Arrayd X, Arrayd Y,
+    Array<Arrayb> splits,
+    const LevmarSettings &settings);
+
 
 } /* namespace sail */
 

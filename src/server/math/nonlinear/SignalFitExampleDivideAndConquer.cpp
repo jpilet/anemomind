@@ -43,16 +43,13 @@ void sfexDAC() {
   double marg = 0.1;
   LineStrip strip(Span(data.minX() - marg, data.maxX() + marg), 0.01);
 
-  Arrayd regs;
   Arrayi orders = makeDefaultRegOrders(2);
 
-  //Arrayd vertices = fitLineStrip(strip, regs, data.X, data.Ynoisy);
   LevmarSettings settings;
-  SignalFitResults res = fitLineStripAutoTune(strip, orders, regs,
+  SignalFitResults res = fitLineStripAutoTune(strip, orders,
       data.X, data.Ynoisy, data.splits, settings);
 
   std::cout << EXPR_AND_VAL_AS_STRING(res.regWeights) << std::endl;
-
   std::cout << EXPR_AND_VAL_AS_STRING(res.vertices.size()) << std::endl;
 
   MDArray2d XY = makeXY(strip, res.vertices);

@@ -141,5 +141,13 @@ SignalFitResults fitLineStripAutoTune(LineStrip strip, Arrayd initRegs, Arrayd X
       X, Y, splits, settings);
 }
 
+SignalFitResults fitLineStripAutoTune(LineStrip strip, Arrayi orders, Arrayd X, Arrayd Y,
+    Array<Arrayb> splits,
+    const LevmarSettings &settings) {
+  return fitLineStripAutoTune(strip, orders, Arrayd(),
+      X, Y, splits, settings);
+
+}
+
 
 } /* namespace sail */
