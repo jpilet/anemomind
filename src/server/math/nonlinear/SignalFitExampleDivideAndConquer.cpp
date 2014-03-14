@@ -35,7 +35,10 @@ void sfexDAC() {
 
   reg2 = 0;
 
-  Arrayd vertices = fitLineStrip(strip, reg1, reg2, data.X, data.Ynoisy);
+  Arrayd regs(2);
+  regs[0] = reg1;
+  regs[1] = reg2;
+  Arrayd vertices = fitLineStrip(strip, regs, data.X, data.Ynoisy);
 
   std::cout << EXPR_AND_VAL_AS_STRING(vertices.size()) << std::endl;
 

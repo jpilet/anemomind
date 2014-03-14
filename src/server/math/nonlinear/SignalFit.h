@@ -15,14 +15,13 @@ namespace sail {
 
 
 template <typename T>
-Array<T> fitLineStrip(LineStrip strip, T reg1, T reg2,
+Array<T> fitLineStrip(LineStrip strip, Array<T> regWeights,
     Arrayd X, Arrayd Y) {
   int count = X.size();
   int n = strip.getVertexCount();
   BandMat<T> A(n, n, 2, 2);
   A.setAll(0.0);
-  A.addFirstOrderReg(reg1);
-  A.addSecondOrderReg(reg2);
+  A.addRegs(regWeights);
   MDArray<T, 2> B(n, 1);
   B.setAll(0.0);
   for (int i = 0; i < count; i++) {

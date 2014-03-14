@@ -29,8 +29,17 @@ cxx_test(math_MatExprTest
          gtest_main
         )                   
 
+add_library(math_BandMat
+            BandMat.h
+            BandMat.cpp
+           )
+target_link_libraries(math_BandMat
+                       common_Array
+                      )                                    
+
 cxx_test(math_BandMatTest
          BandMatTest.cpp
+         math_BandMat         
          gtest_main
         )                   
 

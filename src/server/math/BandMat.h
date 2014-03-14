@@ -10,6 +10,8 @@
 
 namespace sail {
 
+Arrayd makeNextCoefs(Arrayd coefs);
+
 template <typename T>
 class BandMat {
  public:
@@ -75,26 +77,28 @@ class BandMat {
     _data.setAll(x);
   }
 
-  void addReg(int dim, T *coefs) {
+  void addReg(Array<T> coefs, T w) {
+    T w2 = w*w;
     assert(_rows == _cols);
+    int dim = coefs.size();
     int n = _rows - dim + 1;
     for (int offs = 0; offs < n; offs++) {
       for (int i = 0; i < dim; i++) {
         for (int j = 0; j < dim; j++) {
-          at(offs + i, offs + j) += coefs[i]*coefs[j];
+          at(offs + i, offs + j) += w2*coefs[i]*coefs[j];
         }
       }
     }
   }
 
-  void addFirstOrderReg(T w) {
-    T coefs[2] = {w, -w};
-    addReg(2, coefs);
-  }
-
-  void addSecondOrderReg(T w) {
-    T coefs[3] = {w, -2.0*w, w};
-    addReg(3, coefs);
+  void addRegs(Array<T> regWeights) {
+    int count = regWeights.size();
+    Arrayd coefs(1);
+    coefs[0] = 1.0;
+    for (int i = 0; i < count; i++) {
+      coefs = makeNextCoefs(coefs);
+      addReg(coefs, regWeights[i]);
+    }
   }
 
   void addNormalEq(int n, int *I, T *W) {
