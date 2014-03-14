@@ -71,6 +71,14 @@ target_link_libraries(common_ConcatFunction
                       common_Function
                      )
 
+add_library(common_MeanStabilizer
+            MeanStabilizer.cpp                     
+            MeanStabilizer.h
+           )
+target_link_libraries(common_MeanStabilizer
+                      common_Function
+                     )           
+
 cxx_test(common_ConcatFunctionTest
          ConcatFunctionTest.cpp
          common_ConcatFunction

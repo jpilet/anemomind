@@ -7,6 +7,8 @@
 #include <server/math/ADFunction.h>
 #include <server/math/nonlinear/Levmar.h>
 #include <server/math/armaadolc.h>
+#include <server/common/ConcatFunction.h>
+#include <server/common/MeanStabilizer.h>
 
 namespace sail {
 
@@ -117,7 +119,10 @@ namespace {
 Arrayd fitLineStripTuneRegParams(LineStrip strip, Arrayi orders, Arrayd initRegs, Arrayd X, Arrayd Y,
     Array<Arrayb> splits,
     const LevmarSettings &settings) {
+
+
   Objf objf(strip, X, Y, splits, orders);
+
   LevmarState state(initRegs);
   state.minimize(settings, objf);
   return state.getXArray().dup();

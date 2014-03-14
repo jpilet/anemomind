@@ -82,6 +82,8 @@ target_link_libraries(math_nonlinear_SignalFit
                       math_Grid
                       math_BandMat
                       math_nonlinear_Levmar
+                      common_MeanStabilizer
+                      common_ConcatFunction
                      )
 
 
