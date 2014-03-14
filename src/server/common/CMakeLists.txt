@@ -63,6 +63,20 @@ target_link_libraries(common_Function
                       common_math
                      )
 
+add_library(common_ConcatFunction
+            ConcatFunction.h
+            ConcatFunction.cpp
+           )
+target_link_libraries(common_ConcatFunction
+                      common_Function
+                     )
+
+cxx_test(common_ConcatFunctionTest
+         ConcatFunctionTest.cpp
+         common_ConcatFunction
+         gtest_main
+        )
+
 add_library(common_BBox
             BBox.cpp
             BBox.h
