@@ -15,10 +15,22 @@ namespace {
   MDArray2d makeXY(LineStrip strip, Arrayd vertices) {
     int n = vertices.size();
     assert(n == strip.getVertexCount());
+    MDArray2d coords = strip.getGridVertexCoords();
     MDArray2d XY(n, 2);
     for (int i = 0; i < n; i++) {
-      XY(i, 0) = i;
+      XY(i, 0) = coords(i, 0);
       XY(i, 1) = vertices[i];
+    }
+    return XY;
+  }
+
+  MDArray2d makeXY(Arrayd X, Arrayd Y) {
+    int count = X.size();
+    assert(count == Y.size());
+    MDArray2d XY(count, 2);
+    for (int i = 0; i < count; i++) {
+      XY(i, 0) = X[i];
+      XY(i, 1) = Y[i];
     }
     return XY;
   }
@@ -27,8 +39,8 @@ namespace {
 void sfexDAC() {
   GridFitterTestData data;
 
-  double marg = 1.0;
-  LineStrip strip(Span(data.minX() - marg, data.maxX() + marg), 0.1);
+  double marg = 0.1;
+  LineStrip strip(Span(data.minX() - marg, data.maxX() + marg), 0.01);
 
   double reg = 1.0;
   double reg1 = reg;
@@ -51,6 +63,8 @@ void sfexDAC() {
   GnuplotExtra plot;
     plot.set_style("lines");
     plot.plot(XY);
+    plot.set_style("points");
+    plot.plot(makeXY(data.X, data.Ynoisy));
   plot.show();
 }
 
