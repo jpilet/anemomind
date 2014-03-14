@@ -91,13 +91,22 @@ class BandMat {
     }
   }
 
-  void addRegs(Array<T> regWeights) {
+  void addRegs(Arrayi orders, Array<T> regWeights) {
     int count = regWeights.size();
-    Arrayd coefs(1);
-    coefs[0] = 1.0;
+    int maxOrder = 0;
     for (int i = 0; i < count; i++) {
-      coefs = makeNextCoefs(coefs);
-      addReg(coefs, regWeights[i]);
+      maxOrder = std::max(maxOrder, orders[i]);
+    }
+
+    Array<Arrayd> coefs(maxOrder+1);
+    coefs[0] = Arrayd(1);
+    coefs[0][0] = 1.0;
+    for (int i = 0; i < maxOrder; i++) {
+      coefs[i+1] = makeNextCoefs(coefs[i]);
+    }
+
+    for (int i = 0; i < count; i++) {
+      addReg(coefs[orders[i]], regWeights[i]);
     }
   }
 
