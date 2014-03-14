@@ -39,7 +39,7 @@ template <typename T>
 Array<T> fitLineStrip(LineStrip strip,
     Array<T> regWeights,
     Arrayd X, Arrayd Y) {
-    return fitLineStrip<T>(strip, makeRange(regWeights.size() + 1).sliceFrom(1),
+    return fitLineStrip<T>(strip, makeRange(regWeights.size(), 1),
         regWeights, X, Y);
 }
 

@@ -823,7 +823,7 @@ int countSliceSize(int count, SliceFun fun);
 int countSlicedElements(Arrayi arr, SliceFun fun);
 Arrayi makeIndexMap(int oldCount, SliceFun fun);
 int indexOf(int index, Arrayi inds);
-Arrayi makeRange(int count);
+Arrayi makeRange(int count, int offset = 0);
 int countTrue(Arrayb array);
 Arrayb ind2log(int len, Arrayi inds);
 Arrayb neg(Arrayb X);

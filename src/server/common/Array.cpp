@@ -49,10 +49,10 @@ int indexOf(int index, Arrayi inds) {
   return -1;
 }
 
-Arrayi makeRange(int count) {
+Arrayi makeRange(int count, int offset) {
   Arrayi dst(count);
   for (int i = 0; i < count; i++) {
-    dst[i] = i;
+    dst[i] = i + offset;
   }
   return dst;
 }
