@@ -45,7 +45,7 @@ namespace {
   CalibSetup::CalibSetup(int sampleCount) {
     Array<Nav> allNavs = loadNavsFromText(Nav::AllNavsPath, false);
     Array<Array<Nav> > splitNavs = splitNavsByDuration(allNavs,
-                                   Duration<double>::minutes(10).seconds());
+                                   Duration<double>::minutes(10));
     Array<Nav> navs_ = splitNavs.first();
     navs = navs_.slice(makeSparseInds(navs_.size(), sampleCount));
     double spaceStep = 1000; // metres

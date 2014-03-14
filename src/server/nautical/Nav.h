@@ -74,12 +74,13 @@ Array<Nav> loadNavsFromText(std::string filename, bool sort = true);
 bool areSortedNavs(Array<Nav> navs);
 void plotNavTimeVsIndex(Array<Nav> navs);
 void dispNavTimeIntervals(Array<Nav> navs);
-Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds);
+Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, Duration<double> dur);
 MDArray2d calcNavsEcefTrajectory(Array<Nav> navs);
 Array<MDArray2d> calcNavsEcefTrajectories(Array<Array<Nav> > navs);
 void plotNavsEcefTrajectory(Array<Nav> navs);
 void plotNavsEcefTrajectories(Array<Array<Nav> > navs);
 int countNavs(Array<Array<Nav> > navs);
+Array<Nav> getTestNavs(int index);
 
 Array<Angle<double> > getAwa(Array<Nav> navs);
 Array<Velocity<double> > getAws(Array<Nav> navs);
@@ -87,6 +88,7 @@ Array<Angle<double> > getMagHdg(Array<Nav> navs);
 Array<Angle<double> > getGpsBearing(Array<Nav> navs);
 Array<Velocity<double> > getGpsSpeed(Array<Nav> navs);
 Array<Velocity<double> > getWatSpeed(Array<Nav> navs);
+Array<Duration<double> > getLocalTime(Array<Nav> navs);
 
 
 

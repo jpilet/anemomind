@@ -7,7 +7,7 @@ namespace sail {
 void ptexLastRace() { // Plot a single trajectory
   Array<Nav> navs = loadNavsFromText(Nav::AllNavsPath, false);
   Array<Array<Nav> > splitNavs = splitNavsByDuration(
-      navs, Duration<>::minutes(10).seconds());
+      navs, Duration<>::minutes(10));
 
   plotNavsEcefTrajectory(splitNavs.last());
 }
@@ -15,7 +15,7 @@ void ptexLastRace() { // Plot a single trajectory
 void ptexLocalRace() {
   Array<Nav> allNavs = loadNavsFromText(Nav::AllNavsPath, false);
   Array<Array<Nav> > splitNavs = splitNavsByDuration(
-      allNavs, Duration<>::minutes(10).seconds());
+      allNavs, Duration<>::minutes(10));
   Array<Nav> navs = splitNavs.first();
   double spaceStep = 500; // metres
   double timeStep = Duration<>::minutes(10).seconds();

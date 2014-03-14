@@ -217,25 +217,27 @@ void dispNavTimeIntervals(Array<Nav> navs) {
   }
 }
 
-int countNavSplitsByDuration(Array<Nav> navs, double durSeconds) {
-  int count = navs.size();
-  int counter = 0;
-  for (int i = 0; i < count-1; i++) {
-    if (navs[i+1].time().seconds() - navs[i].time().seconds() > durSeconds) {
-      counter++;
+namespace {
+  int countNavSplitsByDuration(Array<Nav> navs, Duration<double> dur) {
+    int count = navs.size();
+    int counter = 0;
+    for (int i = 0; i < count-1; i++) {
+      if (navs[i+1].time() - navs[i].time() > dur) {
+        counter++;
+      }
     }
+    return counter;
   }
-  return counter;
 }
 
-Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds) {
-  int count = 1 + countNavSplitsByDuration(navs, durSeconds);
+Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, Duration<double> dur) {
+  int count = 1 + countNavSplitsByDuration(navs, dur);
   Array<Array<Nav> > dst(count);
   int navCount = navs.size();
   int from = 0;
   int counter = 0;
   for (int i = 0; i < navCount-1; i++) {
-    if (navs[i+1].time().seconds() - navs[i].time().seconds() > durSeconds) {
+    if (navs[i+1].time() - navs[i].time() > dur) {
       dst[counter] = navs.slice(from, i+1);
       counter++;
       from = i+1;
@@ -304,6 +306,14 @@ int countNavs(Array<Array<Nav> > navs) {
   return counter;
 }
 
+Array<Nav> getTestNavs(int index) {
+  Array<Array<Nav> > allNavs = splitNavsByDuration(loadNavsFromText(Nav::AllNavsPath), Duration<double>::minutes(10));
+  return allNavs[index];
+}
+
+
+
+
 Array<Angle<double> > getAwa(Array<Nav> navs) {
   return navs.map<Angle<double> >([&] (const Nav &nav) {return nav.awa();});
 }
@@ -325,6 +335,11 @@ Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
 
 Array<Velocity<double> > getWatSpeed(Array<Nav> navs) {
   return navs.map<Velocity<double> >([&] (const Nav &nav) {return nav.watSpeed();});
+}
+
+Array<Duration<double> > getLocalTime(Array<Nav> navs) {
+  Duration<double> first = navs[0].time();
+  return navs.map<Duration<double> >([&] (const Nav &nav) {return nav.time() - first;});
 }
 
 
