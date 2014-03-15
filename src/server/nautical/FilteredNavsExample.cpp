@@ -157,8 +157,8 @@ void fnex007() { // Filter Aws
   GnuplotExtra plot;
   plot.plot_xy(X.slice(rel), Y.slice(rel));
   plot.plot_xy(X.slice(unrel), Y.slice(unrel));
-  //plot.set_style("lines");
-  //plot.plot_xy(X, Yfit);
+  plot.set_style("lines");
+  plot.plot_xy(strip.getGridVertexCoords1d(), Yfit);
   plot.show();
 }
 
