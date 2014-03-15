@@ -9,16 +9,18 @@
 #include <server/math/nonlinear/SignalFit.h>
 #include <server/plot/extra.h>
 #include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 
 namespace {
   class ValAssign : public StateAssign {
    public:
-    ValAssign(Arrayi rawStates, int stateCount, double transitionCost, bool cyclic = false) :
+    ValAssign(Arrayi rawStates, int stateCount, double transitionCost, bool cyclic, int maxStep) :
       _rawStates(rawStates),
       _stateCount(stateCount),
       _transitionCost(transitionCost),
+      _maxStep(maxStep),
       _cyclic(cyclic) {
           _allInds = listStateInds();
       }
@@ -35,7 +37,12 @@ namespace {
       } else {
         dist = std::abs(fromStateIndex - toStateIndex);
       }
-      return dist*_transitionCost;
+      if (dist > _maxStep && _maxStep > 0) {
+        return 1.0e6;
+      }
+      double cost = dist*_transitionCost;
+      assert(cost > 0 || toStateIndex == fromStateIndex);
+      return cost;
     }
 
     int getStateCount() {return _stateCount;}
@@ -46,6 +53,7 @@ namespace {
 
    private:
     bool _cyclic;
+    int _maxStep;
     Arrayi _rawStates, _allInds;
     int _stateCount;
     double _transitionCost;
@@ -63,14 +71,17 @@ Arrayb compareStates(Arrayi a, Arrayi b) {
 }
 
 
-Arrayb identifyReliableValues(int stateCount, double transitionCost, Arrayd values, Span span) {
+Arrayb identifyReliableValues(int stateCount, double transitionCost, Arrayd values, Span span, int maxStep = -1) {
   if (!span.initialized()) {
     span = Span(values);
   }
   LineKM smap(span.getMinv(), span.getMaxv(), 0.0, 0.999999*stateCount);
   Arrayi rawStates = values.map<int>([&] (double x) {return int(floor(smap(x)));});
-  ValAssign assign(rawStates, stateCount, transitionCost);
-  return compareStates(rawStates, assign.solve());
+  std::cout << EXPR_AND_VAL_AS_STRING(rawStates) << std::endl;
+  ValAssign assign(rawStates, stateCount, transitionCost, false, maxStep);
+  Arrayi assigned = assign.solve();
+  std::cout << EXPR_AND_VAL_AS_STRING(assigned) << std::endl;
+  return compareStates(rawStates, assigned);
 }
 
 Arrayb identifyReliableAws(Array<Velocity<double> > aws) {
@@ -79,7 +90,7 @@ Arrayb identifyReliableAws(Array<Velocity<double> > aws) {
   int stateCount = 60;
   double transitionCost = 2.0;
   Arrayb rel = identifyReliableValues(stateCount, transitionCost, aws.map<double>([&](Velocity<double> x) {return x.metersPerSecond();}),
-      span);
+      span, -1);
   for (int i = 0; i < rel.size(); i++) {
     if (aws[i].metersPerSecond() == 0) {
       rel[i] = false;
@@ -89,7 +100,7 @@ Arrayb identifyReliableAws(Array<Velocity<double> > aws) {
 }
 
 Arrayb identifyReliablePeriodicValues(int stateCount, double transitionCost, Arrayi rawStates) {
-  ValAssign assign(rawStates, stateCount, transitionCost, true);
+  ValAssign assign(rawStates, stateCount, transitionCost, true, -1);
   return compareStates(assign.solve(), rawStates);
 }
 
@@ -112,8 +123,26 @@ Arrayb identifyReliableAwa(Array<Angle<double> > awa) {
   return identifyReliableAngles(awa, 2.0);
 }
 
-Arrayb identifyReliableMagHdg(Array<Angle<double> > awa) {
-  return identifyReliableAngles(awa, 2.0);
+Arrayb identifyReliableMagHdg(Array<Angle<double> > mh) {
+  return identifyReliableAngles(mh, 2.0);
+}
+
+Arrayb identifyReliableGpsBearing(Array<Angle<double> > gb) {
+  return identifyReliableAngles(gb, 2.0);
+}
+
+Arrayb identifyReliableWatSpeed(Array<Velocity<double> > ws) {
+  Velocity<double> maxvel = Velocity<double>::knots(50.0);
+  Span span(0.0, maxvel.metersPerSecond());
+  int stateCount = 50;
+  double transitionCost = 2.0;
+  Arrayb rel = identifyReliableValues(stateCount, transitionCost, ws.map<double>([&](Velocity<double> x) {return x.knots();}),
+      span, 1);
+  return rel;
+}
+
+Arrayb identifyReliableGpsSpeed(Array<Velocity<double> > ws) {
+  return ws.map<bool>([&] (Velocity<double> x) {return x.metersPerSecond() > 0;});
 }
 
 
@@ -187,6 +216,17 @@ FilteredSignal filterMagHdg(LineStrip strip, Array<Duration<double> > T, Array<A
 
    Arrayd Y = fitLineStrip(strip, Arrayd(2, regs), timeToSeconds(T).slice(rel),
      anglesToRadians(makeContinuousAngles(maghdg.slice(rel))));
+   return FilteredSignal(strip, Y);
+}
+
+FilteredSignal filterGpsBearing(LineStrip strip, Array<Duration<double> > T, Array<Angle<double> > gb) {
+   Arrayb rel = identifyReliableGpsBearing(gb);
+
+   int orders[1] = {2};
+   double regs[1] = {1.33828};
+
+   Arrayd Y = fitLineStrip(strip, Arrayi(1, orders), Arrayd(1, regs), timeToSeconds(T).slice(rel),
+     anglesToRadians(makeContinuousAngles(gb.slice(rel))));
    return FilteredSignal(strip, Y);
 }
 

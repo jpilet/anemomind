@@ -7,6 +7,7 @@
 
 #include "StateAssign.h"
 #include <server/common/ArrayIO.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -36,7 +37,8 @@ void StateAssign::accumulateCosts(MDArray2d *costsOut, MDArray2i *ptrsOut) {
     for (int state = 0; state < stateCount; state++) { // For every state at that time index
       int bestPredIndex = -1;
       Arrayi preds = getPrecedingStates(state, time);
-      costs(state, time) = getStateCost(state, time) + calcBestPred(costs, preds, state, time-1, &bestPredIndex);
+      double stepcost = calcBestPred(costs, preds, state, time-1, &bestPredIndex);
+      costs(state, time) = getStateCost(state, time) + stepcost;
       assert(bestPredIndex != -1);
       ptrs(state, time) = bestPredIndex;
     }
@@ -54,9 +56,9 @@ double StateAssign::calcBestPred(MDArray2d costs, Arrayi preds, int toState, int
     return 1.0e9;
   } else {
     int bestIndex = preds[0];
-    double bestCost = costs(bestIndex, fromTime);
+    double bestCost = 1.0e9;
     int count = preds.size();
-    for (int state = 1; state < count; state++) {
+    for (int state = 0; state < count; state++) {
       int stateIndex = preds[state];
       double cost = costs(stateIndex, fromTime) + getTransitionCost(stateIndex, toState, fromTime);
       if (cost < bestCost) {

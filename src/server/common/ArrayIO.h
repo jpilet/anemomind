@@ -107,6 +107,8 @@ T dispMatrixLabeled(std::ostream &s, std::string label,
   return dispMatrix(s, mat, width, precision, indent);
 }
 
+#define DISPMAT(mat) dispMatrixLabeled(std::cout, #mat, mat)
+
 template <typename T>
 T dispMatrixMatlab(std::ostream &s, std::string label,
                    T mat, int width = 12, int precision = 8, int indent = 2) {

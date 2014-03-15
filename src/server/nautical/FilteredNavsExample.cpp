@@ -213,10 +213,89 @@ void fnex010() { // Filter mag hdg
   FilteredSignal sig = filterMagHdg(strip, T, maghdg);
   sig.plot();
 }
+
+void fnex011() { // Filter gps bearing
+  Array<Nav> navs = getTestNavs(0).slice(3000, 4000);
+  Array<Duration<double> > T = getLocalTime(navs);
+  Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
+
+  Array<Angle<double> > gpsbearing = getGpsBearing(navs);
+  Arrayb rel = identifyReliableMagHdg(gpsbearing);
+  Arrayd Y = makeContinuousAngles(gpsbearing.slice(rel)).map<double>([&] (Angle<double> x) {return x.radians();});
+  LineStrip strip = makeNavsLineStrip(T);
+
+  int ss = countTrue(rel);
+
+  Arrayb unrel = neg(rel);
+
+  LevmarSettings s;
+  SignalFitResults res = fitLineStripAutoTune(strip, makeRange(1, 2), X.slice(rel), Y, makeRandomSplits(9, ss), s);
+  //DOUT(res.regWeights);
+
+  std::cout << EXPR_AND_VAL_AS_STRING(res.regWeights) << std::endl;
+  // 1.33828
+
+  GnuplotExtra plot;
+  plot.plot_xy(X.slice(rel), Y);
+  plot.set_style("lines");
+  plot.plot_xy(strip.getGridVertexCoords1d(), res.vertices);
+  plot.show();
+}
+
+void fnex012() { // Filter mag hdg
+  Array<Nav> navs = getTestNavs(0).slice(3000, 4000);
+  Array<Duration<double> > T = getLocalTime(navs);
+  Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
+
+  Array<Angle<double> > gpsb = getGpsBearing(navs);
+
+  LineStrip strip = makeNavsLineStrip(T);
+
+  FilteredSignal sig = filterGpsBearing(strip, T, gpsb);
+  sig.plot();
+}
+
+void fnex013() { // Filter Aws
+  Array<Nav> navs = getTestNavs(0).sliceTo(20); //.slice(1000, 2000);
+
+  Array<Duration<double> > T = getLocalTime(navs);
+  Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
+
+  Array<Velocity<double> > ws = getWatSpeed(navs);
+  Arrayd Y = ws.map<double>([&](Velocity<double> t) {return t.metersPerSecond();});
+
+  std::cout << EXPR_AND_VAL_AS_STRING(Y) << std::endl;
+
+  Arrayb rel = identifyReliableWatSpeed(ws);
+
+
+  assert(false);
+  assert(rel[0]);
+
+  std::cout << EXPR_AND_VAL_AS_STRING(rel) << std::endl;
+
+  LineStrip strip = makeNavsLineStrip(T);
+
+  int ss = countTrue(rel);
+
+  LevmarSettings s;
+  SignalFitResults res = fitLineStripAutoTune(strip, makeRange(2, 1), X.slice(rel), Y.slice(rel), makeRandomSplits(9, ss), s);
+
+
+  Arrayb unrel = neg(rel);
+
+  GnuplotExtra plot;
+  plot.plot_xy(X.slice(rel), Y.slice(rel));
+  plot.plot_xy(X.slice(unrel), Y.slice(unrel));
+  plot.set_style("lines");
+  plot.plot_xy(strip.getGridVertexCoords1d(), res.vertices);
+  plot.show();
+}
+
 //Arrayd Y = getGpsBearing(navs).map<double>([&] (Angle<double> x) {return x.degrees();});
 
 int main() {
-  fnex010();
+  fnex013();
 
   return 0;
 }

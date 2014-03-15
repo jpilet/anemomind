@@ -18,6 +18,9 @@ Arrayb identifyReliableValues(int stateCount, double transitionCost, Arrayd valu
 Arrayb identifyReliableAws(Array<Velocity<double> > aws);
 Arrayb identifyReliableAwa(Array<Angle<double> > awa);
 Arrayb identifyReliableMagHdg(Array<Angle<double> > awa);
+Arrayb identifyReliableGpsBearing(Array<Angle<double> > gb);
+Arrayb identifyReliableWatSpeed(Array<Velocity<double> > ws);
+Arrayb identifyReliableGpsSpeed(Array<Velocity<double> > gs);
 
 Array<Angle<double> > makeContinuousAngles(Array<Angle<double> > X);
 
@@ -41,6 +44,7 @@ class FilteredSignal {
 FilteredSignal filterAws(LineStrip strip, Array<Duration<double> > time, Array<Velocity<double> > aws);
 FilteredSignal filterAwa(LineStrip strip, Array<Duration<double> > time, Array<Angle<double> > awa);
 FilteredSignal filterMagHdg(LineStrip strip, Array<Duration<double> > T, Array<Angle<double> > maghdg);
+FilteredSignal filterGpsBearing(LineStrip strip, Array<Duration<double> > T, Array<Angle<double> > gpsb);
 LineStrip makeNavsLineStrip(Array<Duration<double> > T);
 
 
