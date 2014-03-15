@@ -29,6 +29,7 @@ target_link_libraries(nautical_FilteredNavs
                       math_Grid
                       math_hmm_StateAssign
                       common_PeriodicHist
+                      plot_gnuplot
                      )           
 
 add_executable(nautical_FilteredNavsExample

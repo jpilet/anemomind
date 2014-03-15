@@ -18,6 +18,29 @@ Arrayb identifyReliableValues(int stateCount, double transitionCost, Arrayd valu
 Arrayb identifyReliableAws(Array<Velocity<double> > aws);
 Arrayb identifyReliableAwa(Array<Angle<double> > awa);
 
+Array<Angle<double> > makeContinuousAngles(Array<Angle<double> > X);
+
+
+class GnuplotExtra;
+class FilteredSignal {
+ public:
+  FilteredSignal(LineStrip strip, Arrayd v) :
+    _strip(strip), _values(v) {}
+  double value(double x);
+  double derivative(double x);
+  Arrayd Y() {return _values;}
+  Arrayd X() {return _strip.getGridVertexCoords1d();}
+  void plot(GnuplotExtra &plot);
+  void plot();
+ private:
+  LineStrip _strip;
+  Arrayd _values;
+};
+
+FilteredSignal filterAws(LineStrip strip, Array<Duration<double> > time, Array<Velocity<double> > aws);
+FilteredSignal filterAwa(Array<Angle<double> > awa);
+
+
 class FilteredNavs {
  public:
   FilteredNavs();

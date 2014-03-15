@@ -44,6 +44,12 @@ Arrayd fitLineStrip(LineStrip strip,
     return fitLineStripT<double>(strip, orders, regWeights, X, Y);
 }
 
+Arrayd fitLineStrip(LineStrip strip,
+    Arrayd regWeights,
+    Arrayd X, Arrayd Y) {
+    return fitLineStripT<double>(strip, makeRange(regWeights.size(), 1), regWeights, X, Y);
+}
+
 Arrayi makeDefaultRegOrders(int n) {return makeRange(n, 1);}
 
 template <typename T>

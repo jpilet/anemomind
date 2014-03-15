@@ -15,6 +15,8 @@ namespace sail {
 Arrayd fitLineStrip(LineStrip strip,
     Arrayi orders, Arrayd regWeights,
     Arrayd X, Arrayd Y);
+Arrayd fitLineStrip(LineStrip strip,
+    Arrayd regWeights, Arrayd X, Arrayd Y);
 
 Arrayi makeDefaultRegOrders(int n);
 

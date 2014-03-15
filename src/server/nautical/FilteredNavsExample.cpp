@@ -54,7 +54,15 @@ void fnex002() { // Filter a signal
   LineStrip strip(Span(X).expand(0.1), 1.0);
   Arrayd Xlines = strip.getGridVertexCoords1d();
   LevmarSettings settings;
-  Arrayd Ylines = fitLineStripAutoTune(strip, makeRange(2, 1), X.slice(rel), Yd.slice(rel), makeRandomSplits(9, countTrue(rel)), settings).vertices;
+  Arrayb rel2 = rel; //(rel.size());
+  rel2.setTo(true);
+  SignalFitResults res = fitLineStripAutoTune(strip, makeRange(2, 1), X.slice(rel2), Yd.slice(rel2),
+      makeRandomSplits(9, countTrue(rel2)), settings);
+
+  std::cout << EXPR_AND_VAL_AS_STRING(res.regWeights) << std::endl;
+  // 0.52749 1.69937
+
+  Arrayd Ylines = res.vertices;
 
   Arrayb unrel = neg(rel);
 
@@ -88,10 +96,76 @@ void fnex004() { // Filter AWA
   std::cout << EXPR_AND_VAL_AS_STRING(rel.size()) << std::endl;
 }
 
-int main() {
-  fnex004();
+void fnex005() { // Plot magnetic heading and gps bearing
+  Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
 
-  return -1;
+  Arrayd X = getLocalTime(navs).map<double>([&](Duration<double> t) {return t.seconds();});
+
+
+  //Arrayd Y = getAwa(navs).map<double>([&] (Angle<double> awa) {return awa.degrees();});
+  //Arrayd Y = getAws(navs).map<double>([&] (Velocity<double> x) {return x.metersPerSecond();});
+
+  // RELIABLE:
+  Arrayd Y = getMagHdg(navs).map<double>([&] (Angle<double> x) {return x.degrees();});
+  Arrayd Y2 = getGpsBearing(navs).map<double>([&] (Angle<double> x) {return x.degrees();});
+  GnuplotExtra plot;
+  plot.plot_xy(X, Y);
+  plot.plot_xy(X, Y2);
+  plot.show();
+}
+
+void fnex006() { // Filter Aws
+  Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
+
+  Array<Duration<double> > T = getLocalTime(navs);
+  Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
+
+  Array<Velocity<double> > aws = getAws(navs);
+  Arrayd Y = aws.map<double>([&](Velocity<double> t) {return t.metersPerSecond();});
+
+  LineStrip strip(Span(X).expand(0.1), 1.0);
+  FilteredSignal sig = filterAws(strip, T, aws);
+
+  GnuplotExtra plot;
+  plot.plot_xy(X, Y);
+  sig.plot(plot);
+  plot.show();
+}
+
+void fnex007() { // Filter Aws
+  Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
+
+  Array<Duration<double> > T = getLocalTime(navs);
+  Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
+
+  Array<Angle<double> > awa = getAwa(navs);
+
+  Arrayb rel = identifyReliableAwa(awa);
+
+
+  Arrayd Y = makeContinuousAngles(awa).map<double>([&](Angle<double> t) {return t.radians();});
+  LineStrip strip(Span(X).expand(0.1), 1.0);
+
+  LevmarSettings s;
+  SignalFitResults res = fitLineStripAutoTune(strip, makeRange(2, 1), X.slice(rel), Y.slice(rel),
+      makeRandomSplits(9, countTrue(rel)), s);
+
+  Arrayd Yfit = res.vertices;
+
+  Arrayb unrel = neg(rel);
+
+  GnuplotExtra plot;
+  plot.plot_xy(X.slice(rel), Y.slice(rel));
+  plot.plot_xy(X.slice(unrel), Y.slice(unrel));
+  //plot.set_style("lines");
+  //plot.plot_xy(X, Yfit);
+  plot.show();
+}
+
+int main() {
+  fnex007();
+
+  return 0;
 }
 
 

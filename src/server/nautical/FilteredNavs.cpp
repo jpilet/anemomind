@@ -6,6 +6,9 @@
 #include "FilteredNavs.h"
 #include <server/math/hmm/StateAssign.h>
 #include <server/common/PeriodicHist.h>
+#include <server/math/nonlinear/SignalFit.h>
+#include <server/plot/extra.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -75,8 +78,14 @@ Arrayb identifyReliableAws(Array<Velocity<double> > aws) {
   Span span(0.0, maxvel.metersPerSecond());
   int stateCount = 60;
   double transitionCost = 2.0;
-  return identifyReliableValues(stateCount, transitionCost, aws.map<double>([&](Velocity<double> x) {return x.metersPerSecond();}),
+  Arrayb rel = identifyReliableValues(stateCount, transitionCost, aws.map<double>([&](Velocity<double> x) {return x.metersPerSecond();}),
       span);
+  for (int i = 0; i < rel.size(); i++) {
+    if (aws[i].metersPerSecond() == 0) {
+      rel[i] = false;
+    }
+  }
+  return rel;
 }
 
 Arrayb identifyReliablePeriodicValues(int stateCount, double transitionCost, Arrayi rawStates) {
@@ -89,9 +98,86 @@ Arrayb identifyReliableAwa(Array<Angle<double> > awa) {
 
   PeriodicHistIndexer indexer(stateCount);
   double transitionCost = 2.0;
-  return identifyReliablePeriodicValues(stateCount, transitionCost,
+  Arrayb rel = identifyReliablePeriodicValues(stateCount, transitionCost,
       awa.map<int>([&](Angle<double> x) {return indexer.toBin(x);}));
+  for (int i = 0; i < rel.size(); i++) {
+    if (awa[i].radians() == 0) {
+      rel[i] = false;
+    }
+  }
+  return rel;
 }
+
+
+
+namespace {
+  double floatMod(double a, double b) {
+    if (a < 0) {
+      return floatMod(a - (floor(a/b) - 3)*b, b);
+    } else {
+      return a - floor(a/b)*b;
+    }
+  }
+
+  double pimod(double a) {
+    double x = floatMod(a + M_PI, 2.0*M_PI);
+    assert(0 <= x);
+    assert(x < 2.0*M_PI);
+    return x - M_PI;
+  }
+
+  Angle<double> makeContinuousAngle(Angle<double> a, Angle<double> b) {
+    double difrad = (b - a).radians();
+    return Angle<double>::radians(a.radians() + pimod(difrad));
+  }
+}
+
+Array<Angle<double> > makeContinuousAngles(Array<Angle<double> > X) {
+  int count = X.size();
+  Array<Angle<double> > Y(count);
+  Y[0] = X[0];
+  for (int i = 1; i < count; i++) {
+    Y[i] = makeContinuousAngle(Y[i-1], X[i]);
+    assert(std::abs((Y[i] - Y[i-1]).radians()) <= M_PI);
+  }
+  return Y;
+}
+
+FilteredSignal filterAws(LineStrip strip, Array<Duration<double> > time,
+    Array<Velocity<double> > aws) {
+  Arrayb rel = identifyReliableAws(aws);
+  double regs[2] = {0.52749, 1.69937};
+  Arrayd Y = fitLineStrip(strip, Arrayd(2, regs), time.map<double>([&] (Duration<double> t) {return t.seconds();}).slice(rel),
+      aws.map<double>([&] (Velocity<double> x) {return x.metersPerSecond();}).slice(rel));
+  return FilteredSignal(strip, Y);
+}
+
+
+double FilteredSignal::value(double x) {
+  int I[2];
+  double W[2];
+  _strip.makeVertexLinearCombination(&x, I, W);
+  return W[0]*_values[I[0]] + W[1]*_values[I[1]];
+}
+
+double FilteredSignal::derivative(double x) {
+  int I[2];
+  double W[2];
+  _strip.makeVertexLinearCombination(&x, I, W);
+  return (_values[I[1]] - _values[I[0]])/(_strip.getEq(0)(I[1]) - _strip.getEq(0)(I[0]));
+}
+
+void FilteredSignal::plot(GnuplotExtra &plot) {
+  plot.set_style("lines");
+  plot.plot_xy(X(), Y());
+}
+
+void FilteredSignal::plot() {
+  GnuplotExtra p;
+  plot(p);
+  p.show();
+}
+
 
 FilteredNavs::FilteredNavs() {
   // TODO Auto-generated constructor stub
