@@ -256,7 +256,7 @@ void fnex012() { // Filter mag hdg
 }
 
 void fnex013() { // Filter Aws
-  Array<Nav> navs = getTestNavs(0).sliceTo(20); //.slice(1000, 2000);
+  Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
 
   Array<Duration<double> > T = getLocalTime(navs);
   Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
@@ -264,15 +264,10 @@ void fnex013() { // Filter Aws
   Array<Velocity<double> > ws = getWatSpeed(navs);
   Arrayd Y = ws.map<double>([&](Velocity<double> t) {return t.metersPerSecond();});
 
-  std::cout << EXPR_AND_VAL_AS_STRING(Y) << std::endl;
 
   Arrayb rel = identifyReliableWatSpeed(ws);
 
 
-  assert(false);
-  assert(rel[0]);
-
-  std::cout << EXPR_AND_VAL_AS_STRING(rel) << std::endl;
 
   LineStrip strip = makeNavsLineStrip(T);
 
@@ -280,7 +275,9 @@ void fnex013() { // Filter Aws
 
   LevmarSettings s;
   SignalFitResults res = fitLineStripAutoTune(strip, makeRange(2, 1), X.slice(rel), Y.slice(rel), makeRandomSplits(9, ss), s);
+  // 0.530101 2.42038
 
+  std::cout << EXPR_AND_VAL_AS_STRING(res.regWeights) << std::endl;
 
   Arrayb unrel = neg(rel);
 

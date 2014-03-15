@@ -137,7 +137,7 @@ Arrayb identifyReliableWatSpeed(Array<Velocity<double> > ws) {
   int stateCount = 50;
   double transitionCost = 2.0;
   Arrayb rel = identifyReliableValues(stateCount, transitionCost, ws.map<double>([&](Velocity<double> x) {return x.knots();}),
-      span, 1);
+      span, -1);
   return rel;
 }
 
