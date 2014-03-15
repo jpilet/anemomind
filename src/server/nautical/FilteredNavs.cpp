@@ -143,12 +143,33 @@ Array<Angle<double> > makeContinuousAngles(Array<Angle<double> > X) {
   return Y;
 }
 
+namespace {
+  Arrayd timeToSeconds(Array<Duration<double> > time) {
+    return time.map<double>([&] (Duration<double> t) {return t.seconds();});
+  }
+
+  Arrayd anglesToRadians(Array<Angle<double> > angles) {
+    return angles.map<double>([&] (Angle<double> x) {return x.radians();});
+  }
+}
+
+
 FilteredSignal filterAws(LineStrip strip, Array<Duration<double> > time,
     Array<Velocity<double> > aws) {
   Arrayb rel = identifyReliableAws(aws);
   double regs[2] = {0.52749, 1.69937};
-  Arrayd Y = fitLineStrip(strip, Arrayd(2, regs), time.map<double>([&] (Duration<double> t) {return t.seconds();}).slice(rel),
+  Arrayd Y = fitLineStrip(strip, Arrayd(2, regs), timeToSeconds(time).slice(rel),
       aws.map<double>([&] (Velocity<double> x) {return x.metersPerSecond();}).slice(rel));
+  return FilteredSignal(strip, Y);
+}
+
+FilteredSignal filterAwa(LineStrip strip, Array<Duration<double> > time,
+    Array<Angle<double> > awa) {
+  Arrayb rel = identifyReliableAwa(awa);
+  double regs[2] = {0.258247, 1.98186};
+
+  Arrayd Y = fitLineStrip(strip, Arrayd(2, regs), timeToSeconds(time).slice(rel),
+    anglesToRadians(makeContinuousAngles(awa.slice(rel))));
   return FilteredSignal(strip, Y);
 }
 

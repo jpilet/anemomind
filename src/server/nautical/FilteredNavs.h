@@ -38,7 +38,7 @@ class FilteredSignal {
 };
 
 FilteredSignal filterAws(LineStrip strip, Array<Duration<double> > time, Array<Velocity<double> > aws);
-FilteredSignal filterAwa(Array<Angle<double> > awa);
+FilteredSignal filterAwa(LineStrip strip, Array<Duration<double> > time, Array<Angle<double> > awa);
 
 
 class FilteredNavs {

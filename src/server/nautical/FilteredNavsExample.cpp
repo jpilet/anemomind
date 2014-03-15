@@ -132,7 +132,7 @@ void fnex006() { // Filter Aws
   plot.show();
 }
 
-void fnex007() { // Filter Aws
+void fnex007() { // Filter Awa
   Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
 
   Array<Duration<double> > T = getLocalTime(navs);
@@ -151,6 +151,7 @@ void fnex007() { // Filter Aws
       makeRandomSplits(9, countTrue(rel)), s);
 
   Arrayd Yfit = res.vertices;
+  std::cout << EXPR_AND_VAL_AS_STRING(res.regWeights) << std::endl;
 
   Arrayb unrel = neg(rel);
 
@@ -162,8 +163,18 @@ void fnex007() { // Filter Aws
   plot.show();
 }
 
+void fnex008() { // Filter Awa
+  Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
+  Array<Duration<double> > T = getLocalTime(navs);
+  Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
+  Array<Angle<double> > awa = getAwa(navs);
+  LineStrip strip(Span(X).expand(0.1), 1.0);
+  FilteredSignal sig = filterAwa(strip, T, awa);
+  sig.plot();
+}
+
 int main() {
-  fnex007();
+  fnex008();
 
   return 0;
 }
