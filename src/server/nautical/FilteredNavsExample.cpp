@@ -168,13 +168,55 @@ void fnex008() { // Filter Awa
   Array<Duration<double> > T = getLocalTime(navs);
   Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
   Array<Angle<double> > awa = getAwa(navs);
-  LineStrip strip(Span(X).expand(0.1), 1.0);
+  LineStrip strip = makeNavsLineStrip(T);
   FilteredSignal sig = filterAwa(strip, T, awa);
   sig.plot();
 }
 
+void fnex009() { // Filter mag hdg
+  Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
+  Array<Duration<double> > T = getLocalTime(navs);
+  Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
+
+  Array<Angle<double> > maghdg = getMagHdg(navs);
+  Arrayb rel = identifyReliableMagHdg(maghdg);
+  Arrayd Y = makeContinuousAngles(maghdg.slice(rel)).map<double>([&] (Angle<double> x) {return x.radians();});
+  LineStrip strip = makeNavsLineStrip(T);
+
+  int ss = countTrue(rel);
+
+  Arrayb unrel = neg(rel);
+
+  LevmarSettings s;
+  SignalFitResults res = fitLineStripAutoTune(strip, makeRange(2, 1), X.slice(rel), Y, makeRandomSplits(9, ss), s);
+  //DOUT(res.regWeights);
+
+  std::cout << EXPR_AND_VAL_AS_STRING(res.regWeights) << std::endl;
+  // 1.85308e-06 2.2046
+
+  GnuplotExtra plot;
+  plot.plot_xy(X.slice(rel), Y);
+  plot.set_style("lines");
+  plot.plot_xy(strip.getGridVertexCoords1d(), res.vertices);
+  plot.show();
+}
+
+void fnex010() { // Filter mag hdg
+  Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
+  Array<Duration<double> > T = getLocalTime(navs);
+  Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
+
+  Array<Angle<double> > maghdg = getMagHdg(navs);
+
+  LineStrip strip = makeNavsLineStrip(T);
+
+  FilteredSignal sig = filterMagHdg(strip, T, maghdg);
+  sig.plot();
+}
+//Arrayd Y = getGpsBearing(navs).map<double>([&] (Angle<double> x) {return x.degrees();});
+
 int main() {
-  fnex008();
+  fnex010();
 
   return 0;
 }

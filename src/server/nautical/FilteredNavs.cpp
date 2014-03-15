@@ -93,11 +93,11 @@ Arrayb identifyReliablePeriodicValues(int stateCount, double transitionCost, Arr
   return compareStates(assign.solve(), rawStates);
 }
 
-Arrayb identifyReliableAwa(Array<Angle<double> > awa) {
+
   int stateCount = 12;
 
+Arrayb identifyReliableAngles(Array<Angle<double> > awa, double transitionCost) {
   PeriodicHistIndexer indexer(stateCount);
-  double transitionCost = 2.0;
   Arrayb rel = identifyReliablePeriodicValues(stateCount, transitionCost,
       awa.map<int>([&](Angle<double> x) {return indexer.toBin(x);}));
   for (int i = 0; i < rel.size(); i++) {
@@ -106,6 +106,14 @@ Arrayb identifyReliableAwa(Array<Angle<double> > awa) {
     }
   }
   return rel;
+}
+
+Arrayb identifyReliableAwa(Array<Angle<double> > awa) {
+  return identifyReliableAngles(awa, 2.0);
+}
+
+Arrayb identifyReliableMagHdg(Array<Angle<double> > awa) {
+  return identifyReliableAngles(awa, 2.0);
 }
 
 
@@ -172,6 +180,21 @@ FilteredSignal filterAwa(LineStrip strip, Array<Duration<double> > time,
     anglesToRadians(makeContinuousAngles(awa.slice(rel))));
   return FilteredSignal(strip, Y);
 }
+
+FilteredSignal filterMagHdg(LineStrip strip, Array<Duration<double> > T, Array<Angle<double> > maghdg) {
+   Arrayb rel = identifyReliableMagHdg(maghdg);
+   double regs[2] = {1.85308e-06, 2.2046};
+
+   Arrayd Y = fitLineStrip(strip, Arrayd(2, regs), timeToSeconds(T).slice(rel),
+     anglesToRadians(makeContinuousAngles(maghdg.slice(rel))));
+   return FilteredSignal(strip, Y);
+}
+
+LineStrip makeNavsLineStrip(Array<Duration<double> > T) {
+  Arrayd X = timeToSeconds(T);
+  return LineStrip(Span(X).expand(0.1), 1.0);
+}
+
 
 
 double FilteredSignal::value(double x) {
