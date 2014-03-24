@@ -64,7 +64,7 @@ GeographicPosition<double> toGeographicPosition(Length<double> *XYZ) {
   LevmarState state(params);
 
   {
-    WithScopedLogDepth wd(0);
+    WithScopedLogDepth wd(0); // <-- temporarily suppress trace print-out
     state.minimize(settings, objf);
   }
 
