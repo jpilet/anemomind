@@ -28,3 +28,22 @@ TEST(GeoCalcTest, MapAndInvert) {
     EXPECT_NEAR(XYZ[i].meters(), XYZ2[i].meters(), tol.meters());
   }
 }
+
+TEST(GeoCalcTest, Mean2) {
+  GeographicPosition<double> pos(Angle<double>::degrees(30),
+                                 Angle<double>::degrees(30),
+                                 Length<double>::meters(60));
+
+  Array<GeographicPosition<double> > positions(2);
+  positions[0] = pos;
+  positions[1] = pos;
+
+  GeographicPosition<double> meanPos = mean(positions);
+  Length<double> XYZ[3], XYZ2[3];
+  WGS84<double>::toXYZ(pos, XYZ);
+  WGS84<double>::toXYZ(pos, XYZ2);
+  Length<double> tol = Length<double>::meters(0.1);
+  for (int i = 0; i < 3; i++) {
+    EXPECT_NEAR(XYZ[i].meters(), XYZ2[i].meters(), tol.meters());
+  }
+}

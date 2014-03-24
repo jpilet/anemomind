@@ -68,4 +68,22 @@ GeographicPosition<double> toGeographicPosition(Length<double> *XYZ) {
                                     Length<double>::meters(final[2]));
 }
 
+GeographicPosition<double> mean(Array<GeographicPosition<double> > positions) {
+  double XYZmeters[3] = {0, 0, 0};
+  int count = positions.size();
+  double f = 1.0/count;
+  for (int i = 0; i < count; i++) {
+    Length<double> xyz[3];
+    WGS84<double>::toXYZ(positions[i], xyz);
+    for (int j = 0; j < 3; j++) {
+      XYZmeters[j] += f*xyz[j].meters();
+    }
+  }
+  Length<double> XYZ[3];
+  for (int i = 0; i < 3; i++) {
+    XYZ[i] = Length<double>::meters(XYZmeters[i]);
+  }
+  return toGeographicPosition(XYZ);
+}
+
 } /* namespace sail */
