@@ -70,3 +70,31 @@ TEST(GeoCalcTest, Mean2dif) {
     EXPECT_NEAR(XYZ[i].meters(), XYZ2[i].meters(), tol.meters());
   }
 }
+
+TEST(GeoCalcTest, RefTest) {
+  GeographicPosition<double> a(Angle<double>::degrees(30.0),
+                                 Angle<double>::degrees(30),
+                                 Length<double>::meters(60));
+  GeographicPosition<double> b(Angle<double>::degrees(30.01),
+                                 Angle<double>::degrees(30),
+                                 Length<double>::meters(60));
+
+  Length<double> xyzA[3], xyzB[3];
+  double xyzAm[3], xyzBm[3];
+
+  WGS84<double>::toXYZ(a, xyzA);
+  WGS84<double>::toXYZ(b, xyzB);
+  for (int i = 0; i < 3; i++) {
+    xyzAm[i] = xyzA[i].meters();
+    xyzBm[i] = xyzB[i].meters();
+  }
+
+  double dist = normdif<double, 3>(xyzAm, xyzBm);
+
+  GeographicReference ref(a);
+  Length<double> xy[2];
+  ref.project<double>(b, xy);
+  double dist2 = sqrt(sqr(xy[0].meters()) + sqr(xy[1].meters()));
+
+  EXPECT_NEAR((dist - dist2)/dist, 0.0, 1.0e-3);
+}

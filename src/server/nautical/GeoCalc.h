@@ -22,13 +22,22 @@ GeographicPosition<double> mean(Array<GeographicPosition<double> > positions);
 
 
 // Class based on the GeoRef class in <device/Arduino/libraries/NmeaParser/NmeaParser.h>
-// but making use of the new template class and with support for automatic differentiation.
+// but making use of the new template class and with template projection method.
 //
 // The reference position can be computed as the 'mean' of several positions
 class GeographicReference {
  public:
   GeographicReference(GeographicPosition<double> refpos);
 
+  template <typename T>
+  void project(GeographicPosition<T> pos, Length<T> *xy) {
+    Angle<double> londif = pos.lon() - _refpos.lon();
+    Angle<double> latdif = pos.lat() - _refpos.lat();
+    assert(fabs(londif.radians()) < M_PI);
+    assert(fabs(latdif.radians()) < M_PI);
+    xy[0] = Length<double>::meters(londif.radians()*_dlon);
+    xy[1] = Length<double>::meters(latdif.radians()*_dlat);
+  }
  private:
   GeographicPosition<double> _refpos;
   double _dlon, _dlat;

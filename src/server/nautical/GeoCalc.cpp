@@ -94,6 +94,11 @@ GeographicPosition<double> mean(Array<GeographicPosition<double> > positions) {
 
 GeographicReference::GeographicReference(GeographicPosition<double> refpos) :
   _refpos(refpos) {
+  double xyz3[3] = {0, 0, 0};
+  WGS84<double>::toXYZLocal(refpos.lon().radians(),
+                            refpos.lat().radians(),
+                            refpos.alt().meters(),
+                           xyz3, &_dlon, &_dlat);
 
 }
 
