@@ -47,3 +47,26 @@ TEST(GeoCalcTest, Mean2) {
     EXPECT_NEAR(XYZ[i].meters(), XYZ2[i].meters(), tol.meters());
   }
 }
+
+TEST(GeoCalcTest, Mean2dif) {
+  GeographicPosition<double> refMeanPos(Angle<double>::degrees(30.05),
+                                 Angle<double>::degrees(30),
+                                 Length<double>::meters(60));
+
+  Array<GeographicPosition<double> > positions(2);
+  positions[0] = GeographicPosition<double>(Angle<double>::degrees(30),
+      Angle<double>::degrees(30),
+      Length<double>::meters(60));
+  positions[1] = GeographicPosition<double>(Angle<double>::degrees(30.1),
+      Angle<double>::degrees(30),
+      Length<double>::meters(60));
+
+  GeographicPosition<double> meanPos = mean(positions);
+  Length<double> XYZ[3], XYZ2[3];
+  WGS84<double>::toXYZ(meanPos, XYZ);
+  WGS84<double>::toXYZ(refMeanPos, XYZ2);
+  Length<double> tol = Length<double>::meters(2.0);
+  for (int i = 0; i < 3; i++) {
+    EXPECT_NEAR(XYZ[i].meters(), XYZ2[i].meters(), tol.meters());
+  }
+}
