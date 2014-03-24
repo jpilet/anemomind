@@ -28,6 +28,7 @@ Array<Angle<double> > makeContinuousAngles(Array<Angle<double> > X);
 class GnuplotExtra;
 class FilteredSignal {
  public:
+  FilteredSignal() {}
   FilteredSignal(LineStrip strip, Arrayd v) :
     _strip(strip), _values(v) {}
   double value(double x);
@@ -45,17 +46,17 @@ FilteredSignal filterAws(LineStrip strip, Array<Duration<double> > time, Array<V
 FilteredSignal filterAwa(LineStrip strip, Array<Duration<double> > time, Array<Angle<double> > awa);
 FilteredSignal filterMagHdg(LineStrip strip, Array<Duration<double> > T, Array<Angle<double> > maghdg);
 FilteredSignal filterGpsBearing(LineStrip strip, Array<Duration<double> > T, Array<Angle<double> > gpsb);
+FilteredSignal filterWatSpeed(LineStrip strip, Array<Duration<double> > T, Array<Velocity<double> > ws);
+FilteredSignal filterGpsSpeed(LineStrip strip, Array<Duration<double> > T, Array<Velocity<double> > gs);
 LineStrip makeNavsLineStrip(Array<Duration<double> > T);
 
 
 class FilteredNavs {
  public:
-  FilteredNavs();
-  virtual ~FilteredNavs();
+  FilteredNavs(Array<Nav> navs);
 
- private:
-  LineStrip _strip;
-  Arrayd _cosAwa, _sinAwa;
+  Array<Duration<double> > time;
+  FilteredSignal aws, awa, magHdg, gpsBearing, watSpeed, gpsSpeed;
 };
 
 } /* namespace sail */

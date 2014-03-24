@@ -30,10 +30,13 @@ class LocalRace {
   LocalRace(Array<Nav> navs, double spaceStep, double timeStep);
 
   arma::vec2 calcNavLocalPos(Nav nav);
+  arma::vec2 calcGeoLocalPos(GeographicPosition<double> pos);
+
   arma::vec3 calcNavLocalPosAndTime(Nav nav);
 
 
   arma::Col<adouble>::fixed<2> calcNavLocalDir(Nav nav, adouble dirRadians);
+  arma::Col<adouble>::fixed<2> calcGeoPosLocalDir(GeographicPosition<adouble> pos, adouble dirRadians);
 
   MDArray2d calcNavsLocalPosAndTime(Array<Nav> navs);
   double calcNavLocalTime(const Nav &nav);

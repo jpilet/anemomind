@@ -31,11 +31,15 @@ LocalRace::LocalRace(Array<Nav> navs, double spaceStep, double timeStep) {
 }
 
 arma::vec2 LocalRace::calcNavLocalPos(Nav nav) {
+  return calcGeoLocalPos(nav.geographicPosition());
+}
+
+arma::vec2 LocalRace::calcGeoLocalPos(GeographicPosition<double> pos) {
   arma::vec3 pos3d;
   //nav.get3dPos(pos3d.memptr());
   Length<double> xyz3[3];
   double xyz3m[3];
-  WGS84<double>::toXYZ(nav.geographicPosition(), xyz3);
+  WGS84<double>::toXYZ(pos, xyz3);
   for (int i = 0; i < 3; i++) {
     xyz3m[i] = xyz3[i].meters();
   }
@@ -52,9 +56,8 @@ arma::vec3 LocalRace::calcNavLocalPosAndTime(Nav nav) {
   return arma::vec3(data);
 }
 
-arma::Col<adouble>::fixed<2> LocalRace::calcNavLocalDir(Nav nav, adouble dirRadians) {
+arma::Col<adouble>::fixed<2> LocalRace::calcGeoPosLocalDir(GeographicPosition<adouble> pos, adouble dirRadians) {
   adouble xyzDir[3];
-  GeographicPosition<adouble> pos = GeographicPosition<adouble>(nav.geographicPosition());
   Length<adouble> xyz[3];
   WGS84<adouble>::posAndDirToXYZ(pos, Angle<adouble>::radians(dirRadians),
       xyz, xyzDir);
@@ -67,6 +70,12 @@ arma::Col<adouble>::fixed<2> LocalRace::calcNavLocalDir(Nav nav, adouble dirRadi
   }
   normalizeInPlace<adouble>(2, dst.memptr());
   return dst;
+
+}
+
+arma::Col<adouble>::fixed<2> LocalRace::calcNavLocalDir(Nav nav, adouble dirRadians) {
+  GeographicPosition<adouble> pos = GeographicPosition<adouble>(nav.geographicPosition());
+  return calcGeoPosLocalDir(pos, dirRadians);
 }
 
 MDArray2d LocalRace::calcNavsLocalPosAndTime(Array<Nav> navs) {

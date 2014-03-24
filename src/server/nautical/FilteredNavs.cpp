@@ -77,10 +77,8 @@ Arrayb identifyReliableValues(int stateCount, double transitionCost, Arrayd valu
   }
   LineKM smap(span.getMinv(), span.getMaxv(), 0.0, 0.999999*stateCount);
   Arrayi rawStates = values.map<int>([&] (double x) {return int(floor(smap(x)));});
-  std::cout << EXPR_AND_VAL_AS_STRING(rawStates) << std::endl;
   ValAssign assign(rawStates, stateCount, transitionCost, false, maxStep);
   Arrayi assigned = assign.solve();
-  std::cout << EXPR_AND_VAL_AS_STRING(assigned) << std::endl;
   return compareStates(rawStates, assigned);
 }
 
@@ -142,7 +140,13 @@ Arrayb identifyReliableWatSpeed(Array<Velocity<double> > ws) {
 }
 
 Arrayb identifyReliableGpsSpeed(Array<Velocity<double> > ws) {
-  return ws.map<bool>([&] (Velocity<double> x) {return x.metersPerSecond() > 0;});
+  Velocity<double> maxvel = Velocity<double>::knots(50.0);
+  Span span(0.0, maxvel.metersPerSecond());
+  int stateCount = 50;
+  double transitionCost = 8.0;
+  Arrayb rel = identifyReliableValues(stateCount, transitionCost, ws.map<double>([&](Velocity<double> x) {return x.knots();}),
+      span, -1);
+  return rel;
 }
 
 
@@ -230,6 +234,23 @@ FilteredSignal filterGpsBearing(LineStrip strip, Array<Duration<double> > T, Arr
    return FilteredSignal(strip, Y);
 }
 
+FilteredSignal filterWatSpeed(LineStrip strip, Array<Duration<double> > T, Array<Velocity<double> > ws) {
+  Arrayb rel = identifyReliableWatSpeed(ws);
+  double regs[2] = {0.530101, 2.42038};
+  Arrayd Y = fitLineStrip(strip, Arrayd(2, regs), timeToSeconds(T).slice(rel),
+      ws.map<double>([&] (Velocity<double> x) {return x.metersPerSecond();}).slice(rel));
+  return FilteredSignal(strip, Y);
+}
+
+FilteredSignal filterGpsSpeed(LineStrip strip, Array<Duration<double> > T, Array<Velocity<double> > gs) {
+  Arrayb rel = identifyReliableGpsSpeed(gs);
+  double regs[2] = {0.530101, 2.42038};
+  Arrayd Y = fitLineStrip(strip, Arrayd(2, regs), timeToSeconds(T).slice(rel),
+      gs.map<double>([&] (Velocity<double> x) {return x.metersPerSecond();}).slice(rel));
+  return FilteredSignal(strip, Y);
+}
+
+
 LineStrip makeNavsLineStrip(Array<Duration<double> > T) {
   Arrayd X = timeToSeconds(T);
   return LineStrip(Span(X).expand(0.1), 1.0);
@@ -263,13 +284,16 @@ void FilteredSignal::plot() {
 }
 
 
-FilteredNavs::FilteredNavs() {
-  // TODO Auto-generated constructor stub
-
+FilteredNavs::FilteredNavs(Array<Nav> navs) {
+  time = getLocalTime(navs);
+  LineStrip strip = makeNavsLineStrip(time);
+  aws = filterAws(strip, time, getAws(navs));
+  awa = filterAwa(strip, time, getAwa(navs));
+  magHdg = filterMagHdg(strip, time, getMagHdg(navs));
+  gpsBearing = filterGpsBearing(strip, time, getGpsBearing(navs));
+  watSpeed = filterWatSpeed(strip, time, getWatSpeed(navs));
+  gpsSpeed = filterGpsSpeed(strip, time, getGpsSpeed(navs));
 }
 
-FilteredNavs::~FilteredNavs() {
-  // TODO Auto-generated destructor stub
-}
 
 } /* namespace sail */

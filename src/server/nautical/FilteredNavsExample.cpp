@@ -255,7 +255,7 @@ void fnex012() { // Filter mag hdg
   sig.plot();
 }
 
-void fnex013() { // Filter Aws
+void fnex013() { // Filter wat speed
   Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
 
   Array<Duration<double> > T = getLocalTime(navs);
@@ -289,10 +289,97 @@ void fnex013() { // Filter Aws
   plot.show();
 }
 
+void fnex014() { // Filter wat speed
+  Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
+
+  Array<Duration<double> > T = getLocalTime(navs);
+  Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
+
+  Array<Velocity<double> > ws = getWatSpeed(navs);
+  Arrayd Y = ws.map<double>([&](Velocity<double> t) {return t.metersPerSecond();});
+
+
+  LineStrip strip = makeNavsLineStrip(T);
+  FilteredSignal res = filterWatSpeed(strip, T, ws);
+
+  GnuplotExtra plot;
+  plot.plot_xy(X, Y);
+  res.plot(plot);
+  plot.show();
+}
+
+
+void fnex015() { // Filter wat speed
+  Array<Nav> navs = getTestNavs(0).slice(1000, 2000);
+
+  Array<Duration<double> > T = getLocalTime(navs);
+  Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
+
+  Array<Velocity<double> > gs = getGpsSpeed(navs);
+  Arrayd Y = gs.map<double>([&](Velocity<double> t) {return t.metersPerSecond();});
+
+
+  Arrayb rel = identifyReliableGpsSpeed(gs);
+
+
+
+  LineStrip strip = makeNavsLineStrip(T);
+
+  int ss = countTrue(rel);
+
+  LevmarSettings s;
+  SignalFitResults res = fitLineStripAutoTune(strip, makeRange(2, 1), X.slice(rel), Y.slice(rel), makeRandomSplits(9, ss), s);
+  std::cout << EXPR_AND_VAL_AS_STRING(res.regWeights) << std::endl;
+
+
+  Arrayb unrel = neg(rel);
+
+  GnuplotExtra plot;
+  plot.plot_xy(X.slice(rel), Y.slice(rel));
+  plot.plot_xy(X.slice(unrel), Y.slice(unrel));
+  plot.set_style("lines");
+  plot.plot_xy(strip.getGridVertexCoords1d(), res.vertices);
+  plot.show();
+}
+
+void fnex016() { // Filter wat speed
+  Array<Nav> navs = getTestNavs(0); //.slice(1000, 2000);
+
+  Array<Duration<double> > T = getLocalTime(navs);
+  Arrayd X = T.map<double>([&](Duration<double> t) {return t.seconds();});
+
+  Array<Velocity<double> > gs = getGpsSpeed(navs);
+  Arrayd Y = gs.map<double>([&](Velocity<double> t) {return t.metersPerSecond();});
+
+
+  LineStrip strip = makeNavsLineStrip(T);
+  FilteredSignal res = filterGpsSpeed(strip, T, gs);
+
+  GnuplotExtra plot;
+  plot.plot_xy(X, Y);
+  res.plot(plot);
+  plot.show();
+}
+
+void fnex017() { // Filter wat speed
+  Array<Nav> navs = getTestNavs(0); //.slice(1000, 2000);
+
+  Array<Duration<double> > T = getLocalTime(navs);
+  LineStrip strip = makeNavsLineStrip(T);
+
+  cout << "Filter it..." << endl;
+  FilteredNavs fnavs(navs);
+  cout << "Done." << endl;
+  std::cout << EXPR_AND_VAL_AS_STRING((fnavs.aws.X().size())) << std::endl;
+  //fnavs.aws.plot();
+  //fnavs.gpsSpeed.plot();
+  fnavs.magHdg.plot();
+}
+
 //Arrayd Y = getGpsBearing(navs).map<double>([&] (Angle<double> x) {return x.degrees();});
 
 int main() {
-  fnex013();
+  fnex017();
 
   return 0;
 }

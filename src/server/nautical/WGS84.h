@@ -110,6 +110,14 @@ class WGS84 {
   // Maps (lon, lat, altitude) to a 3D position xyz3.
   // Optionally outputs two scalars, dlon1 and dlat1, that are the derivatives of
   // the norm of the xyz position w.r.t. lon and lat.
+  /*
+   * See
+   * void GeoRef::project(const GeoPos &pos, double xy[2]) const {
+   *   xy[0] = dlon * (pos.lon.toDouble() - reflon);
+   *   xy[1] = dlat * (pos.lat.toDouble() - reflat);
+   * }
+   *
+   */
   static void toXYZLocal(T lonRadians, T latRadians, T altitudeMetres,
                          T *xyz3MetresOut, T *dlon1, T *dlat1) {
     T latRad = latRadians;

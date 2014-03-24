@@ -1,0 +1,30 @@
+/*
+ *  Created on: 24 mars 2014
+ *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
+ */
+
+#include <gtest/gtest.h>
+#include "GeoCalc.h"
+#include <server/nautical/WGS84.h>
+#include <server/common/string.h>
+
+using namespace sail;
+
+TEST(GeoCalcTest, MapAndInvert) {
+  GeographicPosition<double> pos(Angle<double>::degrees(30),
+                                 Angle<double>::degrees(30),
+                                 Length<double>::meters(60));
+  Length<double> XYZ[3];
+  WGS84<double>::toXYZ(pos, XYZ);
+
+  GeographicPosition<double> pos2 = toGeographicPosition(XYZ);
+
+  Length<double> XYZ2[3];
+  WGS84<double>::toXYZ(pos2, XYZ2);
+
+
+  Length<double> tol = Length<double>::meters(0.1);
+  for (int i = 0; i < 3; i++) {
+    EXPECT_NEAR(XYZ[i].meters(), XYZ2[i].meters(), tol.meters());
+  }
+}

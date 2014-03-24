@@ -17,6 +17,23 @@ target_link_libraries(nautical_nav
   plot_gnuplot
   nautical_Ecef
   common_ContinuousRange)
+  
+  
+  
+add_library(nautical_GeoCalc
+            GeoCalc.h
+            GeoCalc.cpp
+           )
+target_link_libraries(nautical_GeoCalc
+                      common_Array
+                      math_nonlinear_Levmar
+                      math_ADFunction
+                     )
+cxx_test(nautical_GeoCalcTest
+         GeoCalcTest.cpp
+         nautical_GeoCalc
+         gtest_main
+        )             
 
 add_library(nautical_FilteredNavs
             FilteredNavs.cpp
@@ -137,6 +154,10 @@ cxx_test(nautical_LocalRaceTest
             gtest_main)
 
 cxx_test(nautical_NavTest NavTest.cpp nautical_nav gtest_main)
+
+
+
+
 
 cxx_test(nautical_WGS84Test
             WGS84Test.cpp
