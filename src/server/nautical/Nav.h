@@ -82,6 +82,7 @@ void plotNavsEcefTrajectories(Array<Array<Nav> > navs);
 int countNavs(Array<Array<Nav> > navs);
 Array<Nav> getTestNavs(int index);
 
+Array<GeographicPosition<double> > getGeoPos(Array<Nav> navs);
 Array<Angle<double> > getAwa(Array<Nav> navs);
 Array<Velocity<double> > getAws(Array<Nav> navs);
 Array<Angle<double> > getMagHdg(Array<Nav> navs);

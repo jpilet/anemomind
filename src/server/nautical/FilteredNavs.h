@@ -55,7 +55,9 @@ class FilteredNavs {
  public:
   FilteredNavs(Array<Nav> navs);
 
-  Array<Duration<double> > time;
+
+  Array<Duration<double> > times;
+  LineStrip time;
   FilteredSignal aws, awa, magHdg, gpsBearing, watSpeed, gpsSpeed;
 };
 

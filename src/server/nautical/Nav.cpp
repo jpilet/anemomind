@@ -314,6 +314,10 @@ Array<Nav> getTestNavs(int index) {
 
 
 
+Array<GeographicPosition<double> > getGeoPos(Array<Nav> navs) {
+  return navs.map<GeographicPosition<double> >([&] (const Nav &nav) {return nav.geographicPosition();});
+}
+
 Array<Angle<double> > getAwa(Array<Nav> navs) {
   return navs.map<Angle<double> >([&] (const Nav &nav) {return nav.awa();});
 }

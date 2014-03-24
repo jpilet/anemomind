@@ -278,14 +278,14 @@ void FilteredSignal::plot() {
 
 
 FilteredNavs::FilteredNavs(Array<Nav> navs) {
-  time = getLocalTime(navs);
-  LineStrip strip = makeNavsLineStrip(time);
-  aws = filterAws(strip, time, getAws(navs));
-  awa = filterAwa(strip, time, getAwa(navs));
-  magHdg = filterMagHdg(strip, time, getMagHdg(navs));
-  gpsBearing = filterGpsBearing(strip, time, getGpsBearing(navs));
-  watSpeed = filterWatSpeed(strip, time, getWatSpeed(navs));
-  gpsSpeed = filterGpsSpeed(strip, time, getGpsSpeed(navs));
+  times = getLocalTime(navs);
+  time = makeNavsLineStrip(times);
+  aws = filterAws(time, times, getAws(navs));
+  awa = filterAwa(time, times, getAwa(navs));
+  magHdg = filterMagHdg(time, times, getMagHdg(navs));
+  gpsBearing = filterGpsBearing(time, times, getGpsBearing(navs));
+  watSpeed = filterWatSpeed(time, times, getWatSpeed(navs));
+  gpsSpeed = filterGpsSpeed(time, times, getGpsSpeed(navs));
 }
 
 

@@ -108,4 +108,8 @@ GeographicPosition<double> GeographicReference::localize(GeographicPosition<doub
       x.alt());
 }
 
+Array<GeographicPosition<double> > GeographicReference::localize(Array<GeographicPosition<double> > x) {
+  return x.map<GeographicPosition<double> >([&](GeographicPosition<double> x) {return localize(x);});
+}
+
 } /* namespace sail */

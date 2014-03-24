@@ -58,6 +58,19 @@ class Grid {
     return pts;
   }
 
+  void getCellCoords(int *cellInds, double *coordsOut) {
+    for (int i = 0; i < N; i++) {
+      coordsOut[i] = _ind2Coord[i](cellInds[i] + 0.5);
+    }
+  }
+
+  double getCellCoord1d(int cellIndex) {
+    static_assert(N == 1, "Only for 1-d grids (line strips)");
+    double x;
+    getCellCoords(&cellIndex, &x);
+    return x;
+  }
+
   Arrayd getGridVertexCoords1d() {
     return getGridVertexCoords().getStorage();
   }

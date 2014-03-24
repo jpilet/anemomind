@@ -62,6 +62,16 @@ target_link_libraries(nautical_FilteredNavsExample
                       plot_gnuplot
                       common_string
                      )
+
+add_executable(nautical_WaterCalibExample
+               WaterCalibExample.cpp
+              )              
+target_link_libraries(nautical_WaterCalibExample               
+                      nautical_FilteredNavs
+                      nautical_GeoCalc
+                      common_string
+                     )              
+              
                       
 
 add_library(nautical_DataCalib

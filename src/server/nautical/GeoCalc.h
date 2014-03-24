@@ -46,6 +46,7 @@ class GeographicReference {
   }
 
   GeographicPosition<double> localize(GeographicPosition<double> x);
+  Array<GeographicPosition<double> > localize(Array<GeographicPosition<double> > x);
  private:
   GeographicPosition<double> _refpos;
   double _dlon, _dlat;
