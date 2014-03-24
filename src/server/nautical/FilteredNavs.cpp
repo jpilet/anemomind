@@ -152,13 +152,6 @@ Arrayb identifyReliableGpsSpeed(Array<Velocity<double> > ws) {
 
 
 namespace {
-  double floatMod(double a, double b) {
-    if (a < 0) {
-      return floatMod(a - (floor(a/b) - 3)*b, b);
-    } else {
-      return a - floor(a/b)*b;
-    }
-  }
 
   double pimod(double a) {
     double x = floatMod(a + M_PI, 2.0*M_PI);

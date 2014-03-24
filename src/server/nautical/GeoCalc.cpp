@@ -92,4 +92,9 @@ GeographicPosition<double> mean(Array<GeographicPosition<double> > positions) {
   return toGeographicPosition(XYZ);
 }
 
+GeographicReference::GeographicReference(GeographicPosition<double> refpos) :
+  _refpos(refpos) {
+
+}
+
 } /* namespace sail */

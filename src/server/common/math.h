@@ -105,10 +105,13 @@ MAKE_UNIT2OTHERUNIT_CONVERTER(nm2m, m2nm, 1852.0);
 MAKE_UNIT2OTHERUNIT_CONVERTER(knots2MPS, MPS2knots, 1852.0/3600.0);
 #undef MAKE_UNIT2OTHERUNIT_CONVERTER
 
-// Returns an integer in 0..(b-1)
+// Returns an integer in 0..(b-1): this is not the case with the built in modulo.
 inline int posMod(int a, int b) {
   return (a + b - (a/b)*b) % b;
 }
+
+// Returns a number in [0, b[: this is not the case with fmod.
+double floatMod(double a, double b);
 
 } /* namespace sail */
 
