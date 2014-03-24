@@ -11,6 +11,7 @@
 #include <server/nautical/SpeedCalib.h>
 #include <server/math/nonlinear/Levmar.h>
 #include <server/math/nonlinear/LevmarSettings.h>
+#include <server/plot/extra.h>
 
 
 namespace sail {
@@ -32,7 +33,19 @@ class WaterObjf : public AutoDiffFunction {
   template <typename T> T &c(T *x) {return x[3];}
   template <typename T> T &alpha(T *x) {return x[4];}
 
+  template <typename T>
+  SpeedCalib<T> makeSpeedCalib(T *Xin) {
+    return SpeedCalib<T>(k(Xin), m(Xin), c(Xin), alpha(Xin));
+  }
+
+  template <typename T>
+  SpeedCalib<T> makeSpeedCalib(Array<T> Xin) {
+    return makeSpeedCalib<T>(Xin.ptr());
+  }
+
+
   void disp(Arrayd params);
+  MDArray2d makeWaterSpeedCalibPlotData(Arrayd params);
  private:
   Arrayi _inds;
 
@@ -73,14 +86,15 @@ double calcDySig(FilteredSignal mag, FilteredSignal angle, double t) {
 }
 
 
+
 void WaterObjf::evalAD(adouble *Xin, adouble *Fout) {
   int count = _inds.size();
+  SpeedCalib<adouble> calib = makeSpeedCalib(Xin);
   for (int I = 0; I < count; I++) {
     int i = _inds[I];
 
     double t = _fnavs.times[i].seconds();
     adouble *f = Fout + 2*I;
-    SpeedCalib<adouble> calib(k(Xin), m(Xin), c(Xin), alpha(Xin));
 
     adouble measuredWatSpeed = _fnavs.watSpeed.value(t);
 
@@ -105,9 +119,12 @@ void WaterObjf::evalAD(adouble *Xin, adouble *Fout) {
 
 Arrayd WaterObjf::makeInitialParams() {
   Arrayd X(5);
-  X.setTo(0.1);
+  X.setTo(0.01);
   assert(X.size() == inDims());
   k(X.ptr()) = 1.0;
+
+  magOffset(X.ptr()) = 0.5*M_PI;
+
   return X;
 }
 
@@ -115,11 +132,29 @@ void WaterObjf::disp(Arrayd params) {
   assert(params.size() == inDims());
   double *x = params.ptr();
 
+  cout << "Number of measurements: " << _inds.size() << endl;
   cout << "Magnetic offset: " << Angle<double>::radians(magOffset(x)).degrees() << " degrees." << endl;
   cout << "k:               " << k(x) << endl;
   cout << "m:               " << m(x) << endl;
   cout << "c:               " << c(x) << endl;
   cout << "alpha:           " << alpha(x) << endl;
+}
+
+MDArray2d WaterObjf::makeWaterSpeedCalibPlotData(Arrayd params) {
+  assert(params.size() == inDims());
+  double *x = params.ptr();
+
+  SpeedCalib<double> calib = makeSpeedCalib(params);
+
+  int count = 1000;
+  MDArray2d data(count, 2);
+  Velocity<double> maxvel = Velocity<double>::knots(20.0);
+  LineKM velmap(0, count-1, 0.001, maxvel.metersPerSecond());
+  for (int i = 0; i < count; i++) {
+    data(i, 0) = Velocity<double>::metersPerSecond(velmap(i)).knots();
+    data(i, 1) = Velocity<double>::metersPerSecond(calib.eval(velmap(i))).knots();
+  }
+  return data;
 }
 
 WaterObjf::WaterObjf(GeographicReference ref,
@@ -154,6 +189,7 @@ WaterObjf::WaterObjf(GeographicReference ref,
 
 void wce001() {
   Array<Nav> navs = getTestNavs(0);
+  navs = navs.sliceFrom(navs.middle());
 
   Array<Duration<double> > T = getLocalTime(navs);
   LineStrip strip = makeNavsLineStrip(T);
@@ -175,6 +211,15 @@ void wce001() {
   Arrayd Xopt = state.getXArray();
 
   objf.disp(Xopt);
+
+  MDArray2d pdata = objf.makeWaterSpeedCalibPlotData(Xopt);
+  Arrayd mes = pdata.sliceCol(0).getStorage().sliceTo(pdata.rows());
+
+  GnuplotExtra plot;
+  plot.set_style("lines");
+  plot.plot(pdata);
+  plot.plot_xy(mes, mes);
+  plot.show();
 }
 
 
