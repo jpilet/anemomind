@@ -114,7 +114,7 @@ inline int posMod(int a, int b) {
 double floatMod(double a, double b);
 
 // Adds/subtracts 2*pi to an angle a until it is in [b-pi, b+pi[
-double angleAtRadians(double a, double b);
+double localizeAngleRadians(double a, double b);
 
 } /* namespace sail */
 

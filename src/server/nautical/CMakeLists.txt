@@ -19,6 +19,11 @@ target_link_libraries(nautical_nav
   common_ContinuousRange)
   
   
+cxx_test(nautical_SpeedCalibTest
+         SpeedCalibTest.cpp
+         gtest_main
+        )
+  
   
 add_library(nautical_GeoCalc
             GeoCalc.h

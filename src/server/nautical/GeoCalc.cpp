@@ -99,7 +99,13 @@ GeographicReference::GeographicReference(GeographicPosition<double> refpos) :
                             refpos.lat().radians(),
                             refpos.alt().meters(),
                            xyz3, &_dlon, &_dlat);
+}
 
+GeographicPosition<double> GeographicReference::localize(GeographicPosition<double> x) {
+  double lon = localizeAngleRadians(x.lon().radians(), _refpos.lon().radians());
+  double lat = localizeAngleRadians(x.lat().radians(), _refpos.lat().radians());
+  return GeographicPosition<double>(Angle<double>::radians(lon), Angle<double>::radians(lat),
+      x.alt());
 }
 
 } /* namespace sail */

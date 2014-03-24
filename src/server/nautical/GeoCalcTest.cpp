@@ -97,4 +97,11 @@ TEST(GeoCalcTest, RefTest) {
   double dist2 = sqrt(sqr(xy[0].meters()) + sqr(xy[1].meters()));
 
   EXPECT_NEAR((dist - dist2)/dist, 0.0, 1.0e-3);
+
+
+  Length<double> xyref[2];
+  ref.project(a, xyref);
+  EXPECT_NEAR(xyref[0].meters(), 0.0, 1.0e-6);
+  EXPECT_NEAR(xyref[1].meters(), 0.0, 1.0e-6);
+
 }

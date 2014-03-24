@@ -20,6 +20,12 @@ GeographicPosition<double> toGeographicPosition(Length<double> *XYZ);
 // latitudes and longitudes in terms of angles may be unstable due to periodicity.
 GeographicPosition<double> mean(Array<GeographicPosition<double> > positions);
 
+template <typename T>
+void geoAngleToDir(Angle<T> a, T *xy) {
+  xy[0] = sin(a);
+  xy[1] = cos(a);
+}
+
 
 // Class based on the GeoRef class in <device/Arduino/libraries/NmeaParser/NmeaParser.h>
 // but making use of the new template class and with template projection method.
@@ -38,6 +44,8 @@ class GeographicReference {
     xy[0] = Length<double>::meters(londif.radians()*_dlon);
     xy[1] = Length<double>::meters(latdif.radians()*_dlat);
   }
+
+  GeographicPosition<double> localize(GeographicPosition<double> x);
  private:
   GeographicPosition<double> _refpos;
   double _dlon, _dlat;
