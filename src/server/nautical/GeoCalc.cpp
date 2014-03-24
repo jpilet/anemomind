@@ -11,6 +11,7 @@
 #include <server/nautical/WGS84.h>
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/ScopedLog.h>
 
 
 namespace sail {
@@ -61,7 +62,12 @@ GeographicPosition<double> toGeographicPosition(Length<double> *XYZ) {
   LevmarSettings settings;
   settings.maxiter = 30;
   LevmarState state(params);
-  state.minimize(settings, objf);
+
+  {
+    WithScopedLogDepth wd(0);
+    state.minimize(settings, objf);
+  }
+
   Arrayd final = state.getXArray();
   return GeographicPosition<double>(Angle<double>::radians(final[0]),
                                     Angle<double>::radians(final[1]),

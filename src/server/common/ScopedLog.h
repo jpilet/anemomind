@@ -19,6 +19,7 @@ class ScopedLog {
   ScopedLog(const char* filename, int line, std::string message);
   ~ScopedLog();
   static void setDepthLimit(int l);
+  static int depthLimit();
   void disp(const char *file, int line, LogLevel level, std::string s);
 
   // These methods are public so that they can be called by the SCOPEDMESSAGE macro
@@ -62,6 +63,16 @@ class ScopedLog {
   if (_slog.shouldBeDisplayed(LOGLEVEL_##LEVEL)) \
   {_slog.dispSub(__FILE__, __LINE__, LOGLEVEL_##LEVEL, MESSAGE);}
 
-} /* namespace mmm */
+// Used to set a new depth limit for this scope.
+class WithScopedLogDepth {
+ public:
+  WithScopedLogDepth(int d);
+  ~WithScopedLogDepth();
+ private:
+  int _saved;
+};
+
+
+}
 
 #endif /* SCOPEDLOG_H_ */

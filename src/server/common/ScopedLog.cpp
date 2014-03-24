@@ -44,6 +44,10 @@ void ScopedLog::setDepthLimit(int l) {
   _depthLimit = l;
 }
 
+int ScopedLog::depthLimit() {
+  return _depthLimit;
+}
+
 void ScopedLog::dispScopeLimit(const char *label) {
   disp(_filename, _line, LOGLEVEL_INFO, std::string(label) + _message);
 }
@@ -84,6 +88,16 @@ void ScopedLog::verifyThread() {
     LOG(FATAL) << "Only use the ScopedLog class within a single thread.";
   }
 }
+
+WithScopedLogDepth::WithScopedLogDepth(int d) {
+  _saved = ScopedLog::depthLimit();
+  ScopedLog::setDepthLimit(d);
+}
+
+WithScopedLogDepth::~WithScopedLogDepth() {
+  ScopedLog::setDepthLimit(_saved);
+}
+
 
 ScopedLog::ThreadId ScopedLog::_commonThreadId = getThreadId();
 
