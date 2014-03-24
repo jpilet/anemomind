@@ -10,5 +10,14 @@ double floatMod(double a, double b) {
   }
 }
 
+double angleAtRadians(double a, double b) {
+  double a2 = floatMod(a, 2.0*M_PI);
+  if (a2 >= b + M_PI) {
+    return a2 - 2.0*M_PI;
+  } else {
+    return a2;
+  }
+}
+
 
 }

@@ -9,6 +9,12 @@ add_library(common_logging
 
 cxx_test(common_logging_test logging_test.cpp common_logging gtest_main)
 
+cxx_test(common_mathTest
+         mathTest.cpp
+         common_math
+         gtest_main
+        )
+
 add_library(common_ScopedLog
             ScopedLog.h
             ScopedLog.cpp)

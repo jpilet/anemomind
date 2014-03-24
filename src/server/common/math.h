@@ -113,6 +113,9 @@ inline int posMod(int a, int b) {
 // Returns a number in [0, b[: this is not the case with fmod.
 double floatMod(double a, double b);
 
+// Adds/subtracts 2*pi to an angle a until it is in [b-pi, b+pi[
+double angleAtRadians(double a, double b);
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */
