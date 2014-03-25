@@ -23,7 +23,7 @@ namespace sail {
 class WaterObjf : public AutoDiffFunction {
  public:
   WaterObjf(GeographicReference ref, Array<Nav> navs,
-      FilteredNavs fnavs);
+      FilteredNavs fnavs, bool withCurrent);
 
   // [Magnetic offset] + [SpeedCalib]
   int inDims() {return 1 + 4;}
@@ -65,6 +65,7 @@ class WaterObjf : public AutoDiffFunction {
   MDArray2d optimize2Fold(int initCount, LevmarSettings s);
   MDArray2d optimizeNFold(int N, int initCount, LevmarSettings s);
  private:
+  bool _withCurrent;
   Arrayi _inds;
 
   GeographicReference _geoRef;
@@ -172,8 +173,7 @@ void WaterObjf::evalADAbs(adouble *Xin, adouble *Fout) {
 
 
 Arrayd WaterObjf::makeInitialDefaultParams() {
-  Arrayd X(5);
-  assert(X.size() == inDims());
+  Arrayd X(inDims());
   X.setTo(0.01);
   magOffset(X.ptr()) = 0.5*M_PI;
   k(X.ptr()) = SpeedCalib<double>::initK();
@@ -269,10 +269,12 @@ MDArray2d WaterObjf::makeWaterSpeedCalibPlotData(Arrayd params) {
 
 WaterObjf::WaterObjf(GeographicReference ref,
     Array<Nav> navs,
-    FilteredNavs fnavs) :
+    FilteredNavs fnavs,
+    bool withCurrent) :
   _navs(navs),
   _fnavs(fnavs),
-  _geoRef(ref) {
+  _geoRef(ref),
+  _withCurrent(withCurrent) {
   int count = fnavs.times.size();
   assert(count == navs.size());
 
@@ -309,7 +311,7 @@ void wce001() {
   GeographicReference ref(meanPos);
 
   FilteredNavs fnavs(navs);
-  WaterObjf objf(ref, navs, fnavs);
+  WaterObjf objf(ref, navs, fnavs, false);
 
   Arrayd X = objf.makeInitialDefaultParams();
 
@@ -347,7 +349,7 @@ void wce002() {
   GeographicReference ref(meanPos);
 
   FilteredNavs fnavs(navs);
-  WaterObjf objf(ref, navs, fnavs);
+  WaterObjf objf(ref, navs, fnavs, false);
 
   LevmarSettings settings;
 
@@ -377,7 +379,7 @@ void wce003() {
   GeographicReference ref(meanPos);
 
   FilteredNavs fnavs(navs);
-  WaterObjf objf(ref, navs, fnavs);
+  WaterObjf objf(ref, navs, fnavs, true);
 
   LevmarSettings settings;
 
