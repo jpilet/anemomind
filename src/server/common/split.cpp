@@ -47,4 +47,33 @@ Arrayb makeFoldSplit(int size, int numberOfPieces, int index, bool train) {
   return incl;
 }
 
+Arrayb makeRandomlySlidedFold(int size) {
+  Uniform g(0.0, 1.0);
+  bool k = g.gen() > 0.5;
+  Arrayb split(size);
+  split.setTo(k);
+
+  Uniform gen(size);
+  int a = gen.genInt();
+  int b = (a + size/2) % size;
+  int minv = std::min(a, b);
+  int maxv = std::max(a, b);
+
+  split.slice(minv, maxv).setTo(!k);
+  return split;
+}
+
+Array<Arrayb> makeRandomlySlidedFolds(int count, int size, bool flip) {
+  int step = (flip? 2 : 1);
+  Array<Arrayb> splits(step*count);
+  for (int i = 0; i < count; i++) {
+    int offs = step*i;
+    splits[offs + 0] = makeRandomlySlidedFold(size);
+    if (flip) {
+      splits[offs + 1] = neg(splits[offs + 0]);
+    }
+  }
+  return splits;
+}
+
 } /* namespace sail */

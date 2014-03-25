@@ -351,7 +351,7 @@ void wce001() {
 /*
  * Estimate parameters using all measurements and random initialization.
  */
-void wce002() {
+void wce002() { // WORKS WELL
   Array<Nav> navs = getTestNavs(0);
 
   Array<Duration<double> > T = getLocalTime(navs);
@@ -381,7 +381,7 @@ void wce002() {
   plot.show();
 }
 
-void wce003() {
+void wce003() { // A different result
   Array<Nav> navs = getTestNavs(0);
 
   Array<Duration<double> > T = getLocalTime(navs);
@@ -411,13 +411,16 @@ void wce003() {
   plot.show();
 }
 
-
+void wce004() {
+  Array<Arrayb> X = makeRandomlySlidedFolds(3, 30);
+  std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
+}
 
 } /* namespace sail */
 int main() {
   using namespace sail;
 
-  wce003();
+  wce004();
 
 
 
