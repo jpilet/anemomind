@@ -177,6 +177,7 @@ Arrayd WaterObjf::makeInitialDefaultParams() {
   X.setTo(0.01);
   magOffset(X.ptr()) = 0.5*M_PI;
   k(X.ptr()) = SpeedCalib<double>::initK();
+  alpha(X.ptr()) = 1.0;
   return X;
 }
 
