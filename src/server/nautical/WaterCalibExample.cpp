@@ -539,7 +539,7 @@ void wce005() { // With cross validation: Randomly slided 2-folds
 int main() {
   using namespace sail;
 
-  wce005();
+  wce002();
 
   std::cout << "DONE" << std::endl;
   return 0;

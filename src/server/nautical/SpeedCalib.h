@@ -35,9 +35,20 @@ class SpeedCalib {
   static constexpr double minK = 0.5;
   static constexpr bool withExp = true;
 
+  // These functions can be used to map a variable in R
+  // to a subset.
+  static T lowerBound(T x, T lb = 0) {
+    return x*x + lb;
+  }
+
+  static T lowerUpperBound(T x, T lb, T ub) {
+    return lb + ub/(1.0 + exp(-x));
+  }
+
+
 
   SpeedCalib(T k, T m, T c, T alpha) :
-    _k2(k*k), _m2(m*m), _c2(c*c), _r2(alpha*alpha) {}
+    _k2(lowerBound(k, minK)), _m2(lowerBound(m)), _c2(lowerBound(c)), _r2(lowerBound(alpha)) {}
 
   T eval(T x) {
     assert(x > 0);
@@ -57,7 +68,7 @@ class SpeedCalib {
     return y;
   }
 
-  T scaleCoef() {return minK + _k2;}
+  T scaleCoef() {return _k2;}
 
   /*
    * Require that f(0) >= 0
