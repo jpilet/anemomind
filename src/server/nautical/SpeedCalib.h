@@ -58,7 +58,12 @@ class SpeedCalib {
   }
 
   T scaleCoef() {return minK + _k2;}
-  T offsetCoef() {return _m2;}
+
+  /*
+   * Require that f(0) >= 0
+   */
+  T offsetCoef() {return _m2 - _c2;}
+
   T nonlinCoef() {return (withExp? _c2 : 0.0);}
 
   // This complicated way of computing the decayCoef ensures
