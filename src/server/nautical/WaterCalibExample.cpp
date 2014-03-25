@@ -26,7 +26,7 @@ class WaterObjf : public AutoDiffFunction {
       FilteredNavs fnavs, bool withCurrent);
 
   // [Magnetic offset] + [SpeedCalib]
-  int inDims() {return 1 + 4;}
+  int inDims() {return 1 + 4 + (_withCurrent? 2 : 0);}
   int outDims() {return 1 + 2*_inds.size();}
 
   void evalAD(adouble *Xin, adouble *Fout);
@@ -40,6 +40,9 @@ class WaterObjf : public AutoDiffFunction {
   template <typename T> T &m(T *x) {return x[2];}
   template <typename T> T &c(T *x) {return x[3];}
   template <typename T> T &alpha(T *x) {return x[4];}
+  template <typename T> T &currentX(T *x) {assert(_withCurrent); return x[5];}
+  template <typename T> T &currentY(T *x) {assert(_withCurrent); return x[6];}
+
 
   template <typename T>
   SpeedCalib<T> makeSpeedCalib(T *Xin) {
@@ -164,6 +167,11 @@ void WaterObjf::evalADAbs(adouble *Xin, adouble *Fout) {
     double vx = v*sin(b);
     double vy = v*cos(b);
 
+    if (_withCurrent) {
+      rx += currentX(Xin);
+      ry += currentY(Xin);
+    }
+
     f[0] = vx - rx;
     f[1] = vy - ry;
   }
@@ -248,6 +256,11 @@ void WaterObjf::disp(Arrayd params) {
   std::cout << EXPR_AND_VAL_AS_STRING(calib.offsetCoef()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(calib.nonlinCoef()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(calib.decayCoef()) << std::endl;
+
+  if (_withCurrent) {
+    std::cout << EXPR_AND_VAL_AS_STRING(currentX(x)) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(currentY(x)) << std::endl;
+  }
 }
 
 MDArray2d WaterObjf::makeWaterSpeedCalibPlotData(Arrayd params) {
@@ -404,7 +417,7 @@ void wce003() {
 int main() {
   using namespace sail;
 
-  wce002();
+  wce003();
 
 
 
