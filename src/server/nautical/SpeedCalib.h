@@ -43,7 +43,7 @@ class SpeedCalib {
     assert(x > 0);
     T y =  scaleCoef()*x + offsetCoef();
     if (withExp) {
-      y += nonlinCoef()*(1.0 - exp(-decayCoef()*x));
+      y += nonlinCoef()*exp(-decayCoef()*x);
     }
     return y;
 
@@ -52,7 +52,7 @@ class SpeedCalib {
     assert(x > 0);
     T y = scaleCoef();
     if (withExp) {
-      y += nonlinCoef()*decayCoef()*exp(-decayCoef()*x);
+      y += -nonlinCoef()*decayCoef()*exp(-decayCoef()*x);
     }
     return y;
   }
