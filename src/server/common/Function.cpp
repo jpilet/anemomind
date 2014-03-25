@@ -34,6 +34,11 @@ void Function::evalNumericJacobian(double *Xin, double *JNumOut, double h) {
   }
 }
 
+double Function::calcSquaredNorm(double *X) {
+  Arrayd Fscratch(outDims());
+  return calcSquaredNorm(X, Fscratch.ptr());
+}
+
 double Function::calcSquaredNorm(double *X, double *Fscratch) {
   eval(X, Fscratch, nullptr);
   return norm2<double>(outDims(), Fscratch);

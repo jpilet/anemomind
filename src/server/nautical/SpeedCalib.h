@@ -32,19 +32,45 @@ namespace sail {
 template <typename T>
 class SpeedCalib {
  public:
+  static constexpr double minK = 0.5;
+  static constexpr bool withExp = true;
+
+
   SpeedCalib(T k, T m, T c, T alpha) :
-    _k(k), _m2(m*m), _c2(c*c), _alpha2(alpha*alpha) {}
+    _k2(k*k), _m2(m*m), _c2(c*c), _alpha2(alpha*alpha) {}
 
   T eval(T x) {
     assert(x > 0);
-    return _k*x + _m2 + _c2*(1.0 - exp(-_alpha2*x));
+    T y =  scaleCoef()*x + offsetCoef();
+    if (withExp) {
+      y += nonlinCoef()*(1.0 - exp(-decayCoef()*x));
+    }
+    return y;
+
   }
   T evalDeriv(T x) {
     assert(x > 0);
-    return _k + _c2*_alpha2*exp(-_alpha2*x);
+    T y = scaleCoef();
+    if (withExp) {
+      y += nonlinCoef()*decayCoef()*exp(-decayCoef()*x);
+    }
+    return y;
+  }
+
+  T scaleCoef() {return minK + _k2;}
+  T offsetCoef() {return _m2;}
+  T nonlinCoef() {return (withExp? _c2 : 0.0);}
+  T decayCoef() {return (withExp? _alpha2 : 0.0);}
+
+  static T initK() {return sqrt(1.0 - minK);}
+
+  // This value can be added to the objective function in order to
+  // push the nonlinCoef to zero if decayCoef is close to 0.
+  T ambiguityPenalty() {
+    return (1.0e-8)*(nonlinCoef()/(1.0e-12 + decayCoef()));
   }
  private:
-  T _k, _m2, _c2, _alpha2;
+  T _k2, _m2, _c2, _alpha2;
 };
 
 } /* namespace sail */

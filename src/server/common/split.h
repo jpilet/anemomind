@@ -12,6 +12,8 @@ namespace sail {
 
 Arrayb makeRandomSplit(int size);
 Array<Arrayb> makeRandomSplits(int numSplits, int size);
+Arrayb makeFoldSplit(int size, int numberOfPieces, int index, bool train = true);
+Arrayb makeRandomlySlided2Fold(int size);
 
 } /* namespace sail */
 

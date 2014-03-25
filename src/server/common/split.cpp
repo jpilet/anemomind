@@ -5,6 +5,7 @@
 
 #include "split.h"
 #include <server/common/Uniform.h>
+#include <server/common/LineKM.h>
 
 namespace sail {
 
@@ -36,6 +37,14 @@ Array<Arrayb> makeRandomSplits(int numSplits, int size) {
     dst[i] = makeRandomSplit(size);
   }
   return dst;
+}
+
+Arrayb makeFoldSplit(int size, int numberOfPieces, int index, bool train) {
+  LineKM indexGen(0, numberOfPieces, 0, size-1 + 0.001);
+  Arrayb incl(size);
+  incl.setTo(train);
+  incl.slice(int(indexGen(index)), int(indexGen(index+1))).setTo(!train);
+  return incl;
 }
 
 } /* namespace sail */

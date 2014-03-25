@@ -25,6 +25,7 @@ class Function {
   // i + j*outDims().
   void evalNumericJacobian(double *Xin, double *JNumOut, double h = 1.0e-6);
 
+  double calcSquaredNorm(double *X);
   double calcSquaredNorm(double *X, double *Fscratch);
   virtual ~Function() {}
 };

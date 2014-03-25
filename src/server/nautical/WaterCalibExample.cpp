@@ -12,7 +12,11 @@
 #include <server/math/nonlinear/Levmar.h>
 #include <server/math/nonlinear/LevmarSettings.h>
 #include <server/plot/extra.h>
-
+#include <server/common/OptimResults.h>
+#include <server/common/Uniform.h>
+#include <server/common/ScopedLog.h>
+#include <server/common/split.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 
@@ -23,13 +27,14 @@ class WaterObjf : public AutoDiffFunction {
 
   // [Magnetic offset] + [SpeedCalib]
   int inDims() {return 1 + 4;}
-  int outDims() {return 2*_inds.size();}
+  int outDims() {return 1 + 2*_inds.size();}
 
-  void evalAD(adouble *Xin, adouble *Fout) {evalADAbs(Xin, Fout);}
+  void evalAD(adouble *Xin, adouble *Fout);
   void evalADDeriv(adouble *Xin, adouble *Fout);
   void evalADAbs(adouble *Xin, adouble *Fout);
 
   Arrayd makeInitialDefaultParams();
+  Arrayd makeRandomParams();
   template <typename T> T &magOffset(T *x) {return x[0];}
   template <typename T> T &k(T *x) {return x[1];}
   template <typename T> T &m(T *x) {return x[2];}
@@ -49,6 +54,16 @@ class WaterObjf : public AutoDiffFunction {
 
   void disp(Arrayd params);
   MDArray2d makeWaterSpeedCalibPlotData(Arrayd params);
+
+  MinimizationResults minimizeRandomInits(int initCount, LevmarSettings s);
+  MinimizationResults minimizeWithInit(Arrayd X, LevmarSettings settings);
+
+  Arrayi inds() {return _inds;}
+  void setInds(Arrayi I) {_inds = I;}
+
+  MDArray2d optimizeForSplits(Array<Arrayb> includePerSplit, int initCount, LevmarSettings s);
+  MDArray2d optimize2Fold(int initCount, LevmarSettings s);
+  MDArray2d optimizeNFold(int N, int initCount, LevmarSettings s);
  private:
   Arrayi _inds;
 
@@ -57,6 +72,12 @@ class WaterObjf : public AutoDiffFunction {
   FilteredNavs _fnavs;
 
 };
+
+void WaterObjf::evalAD(adouble *Xin, adouble *Fout) {
+  evalADAbs(Xin, Fout);
+  SpeedCalib<adouble> calib = makeSpeedCalib(Xin);
+  Fout[outDims()-1] = calib.ambiguityPenalty();
+}
 
 
 template <typename T>
@@ -153,10 +174,62 @@ void WaterObjf::evalADAbs(adouble *Xin, adouble *Fout) {
 Arrayd WaterObjf::makeInitialDefaultParams() {
   Arrayd X(5);
   assert(X.size() == inDims());
-  X.setTo(0.1);
+  X.setTo(0.01);
   magOffset(X.ptr()) = 0.5*M_PI;
-  k(X.ptr()) = 1.0;
+  k(X.ptr()) = SpeedCalib<double>::initK();
   return X;
+}
+
+Arrayd WaterObjf::makeRandomParams() {
+  Arrayd X(inDims());
+  Uniform rng(0.001, 2.0);
+  for (int i = 0; i < X.size(); i++) {
+    X[i] = rng.gen();
+  }
+  return X;
+}
+
+MinimizationResults WaterObjf::minimizeRandomInits(int initCount, LevmarSettings s) {
+  MinimizationResults x = minimizeWithInit(makeInitialDefaultParams(), s);
+  for (int i = 0; i < initCount; i++) {
+    ENTERSCOPE(stringFormat("Minimize for random parameters %d/%d", i+1, initCount));
+    x = std::min(x, minimizeWithInit(makeRandomParams(), s));
+  }
+  return x;
+}
+
+MinimizationResults WaterObjf::minimizeWithInit(Arrayd X, LevmarSettings settings) {
+  LevmarState state(X);
+  state.minimize(settings, *this);
+  Arrayd Xopt = state.getXArray();
+  return MinimizationResults(this->calcSquaredNorm(Xopt.ptr()), Xopt);
+}
+
+MDArray2d WaterObjf::optimizeForSplits(Array<Arrayb> includePerSplit, int initCount, LevmarSettings s) {
+  Arrayi allInds = inds();
+  int splitCount = includePerSplit.size();
+  MDArray2d results(inDims(), splitCount);
+  for (int i = 0; i < splitCount; i++) {
+    ENTERSCOPE(stringFormat("Optimize for split %d/%d", i+1, splitCount));
+    setInds(allInds.slice(includePerSplit[i]));
+    MinimizationResults opt = minimizeRandomInits(initCount, s);
+    MDArray2d(opt.X()).copyToSafe(results.sliceCol(i));
+  }
+  setInds(allInds);
+  return results;
+}
+
+MDArray2d WaterObjf::optimize2Fold(int initCount, LevmarSettings s) {
+  return optimizeNFold(2, initCount, s);
+}
+
+
+MDArray2d WaterObjf::optimizeNFold(int N, int initCount, LevmarSettings s) {
+  Array<Arrayb> folds(N);
+  for (int i = 0; i < N; i++) {
+    folds[i] = makeFoldSplit(_inds.size(), N, i);
+  }
+  return optimizeForSplits(folds, initCount, s);
 }
 
 void WaterObjf::disp(Arrayd params) {
@@ -165,10 +238,12 @@ void WaterObjf::disp(Arrayd params) {
 
   cout << "Number of measurements: " << _inds.size() << endl;
   cout << "Magnetic offset: " << Angle<double>::radians(magOffset(x)).degrees() << " degrees." << endl;
-  cout << "k:               " << k(x) << endl;
-  cout << "m:               " << m(x) << endl;
-  cout << "c:               " << c(x) << endl;
-  cout << "alpha:           " << alpha(x) << endl;
+
+  SpeedCalib<double> calib = makeSpeedCalib(params.ptr());
+  std::cout << EXPR_AND_VAL_AS_STRING(calib.scaleCoef()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(calib.offsetCoef()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(calib.nonlinCoef()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(calib.decayCoef()) << std::endl;
 }
 
 MDArray2d WaterObjf::makeWaterSpeedCalibPlotData(Arrayd params) {
@@ -254,6 +329,68 @@ void wce001() {
 }
 
 
+/*
+ * Estimate parameters using all measurements and random initialization.
+ */
+void wce002() {
+  Array<Nav> navs = getTestNavs(0);
+
+  Array<Duration<double> > T = getLocalTime(navs);
+  LineStrip strip = makeNavsLineStrip(T);
+
+  Array<GeographicPosition<double> > pos = getGeoPos(navs);
+  GeographicPosition<double> meanPos = mean(pos);
+  GeographicReference ref(meanPos);
+
+  FilteredNavs fnavs(navs);
+  WaterObjf objf(ref, navs, fnavs);
+
+  LevmarSettings settings;
+
+  MinimizationResults results = objf.minimizeRandomInits(30, settings);
+
+  Arrayd Xopt = results.X();
+  objf.disp(Xopt);
+
+  MDArray2d pdata = objf.makeWaterSpeedCalibPlotData(Xopt);
+  Arrayd mes = pdata.sliceCol(0).getStorage().sliceTo(pdata.rows());
+
+  GnuplotExtra plot;
+  plot.set_style("lines");
+  plot.plot(pdata);
+  plot.plot_xy(mes, mes);
+  plot.show();
+}
+
+void wce003() {
+  Array<Nav> navs = getTestNavs(0);
+
+  Array<Duration<double> > T = getLocalTime(navs);
+  LineStrip strip = makeNavsLineStrip(T);
+
+  Array<GeographicPosition<double> > pos = getGeoPos(navs);
+  GeographicPosition<double> meanPos = mean(pos);
+  GeographicReference ref(meanPos);
+
+  FilteredNavs fnavs(navs);
+  WaterObjf objf(ref, navs, fnavs);
+
+  LevmarSettings settings;
+
+  MinimizationResults results = objf.minimizeRandomInits(30, settings);
+
+  Arrayd Xopt = results.X();
+  objf.disp(Xopt);
+
+  MDArray2d pdata = objf.makeWaterSpeedCalibPlotData(Xopt);
+  Arrayd mes = pdata.sliceCol(0).getStorage().sliceTo(pdata.rows());
+
+  GnuplotExtra plot;
+  plot.set_style("lines");
+  plot.plot(pdata);
+  plot.plot_xy(mes, mes);
+  plot.show();
+}
 
 
 
@@ -261,7 +398,7 @@ void wce001() {
 int main() {
   using namespace sail;
 
-  wce001();
+  wce002();
 
 
 
