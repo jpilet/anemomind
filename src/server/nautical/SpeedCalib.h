@@ -37,7 +37,7 @@ class SpeedCalib {
 
 
   SpeedCalib(T k, T m, T c, T alpha) :
-    _k2(k*k), _m2(m*m), _c2(c*c), _alpha2(alpha*alpha) {}
+    _k2(k*k), _m2(m*m), _c2(c*c), _r2(alpha*alpha) {}
 
   T eval(T x) {
     assert(x > 0);
@@ -60,7 +60,21 @@ class SpeedCalib {
   T scaleCoef() {return minK + _k2;}
   T offsetCoef() {return _m2;}
   T nonlinCoef() {return (withExp? _c2 : 0.0);}
-  T decayCoef() {return (withExp? _alpha2 : 0.0);}
+
+  // This complicated way of computing the decayCoef ensures
+  // that f'(0) >= 0:
+  /*
+   *    f'(0) = scaleCoef() - decayCoef()*nonlinCoef() >= 0
+   *
+   * Set f'(0) = _r2 >= 0. This yields
+   *
+   *   _r2 = scaleCoef() - decayCoef()*nonlinCoef() <=> decayCoef() = (scaleCoef() - _r2)/nonlinCoef()
+   *
+   */
+  T decayCoef() {
+    static_assert(minK > 0, "minK should be greater than 0 in order to avoid division by zero.");
+    return (withExp? (scaleCoef() - _r2)/(nonlinCoef()) : T(0.0));
+  }
 
   static T initK() {return sqrt(1.0 - minK);}
 
@@ -70,7 +84,7 @@ class SpeedCalib {
     return (1.0e-8)*(nonlinCoef()/(1.0e-12 + decayCoef()));
   }
  private:
-  T _k2, _m2, _c2, _alpha2;
+  T _k2, _m2, _c2, _r2;
 };
 
 } /* namespace sail */

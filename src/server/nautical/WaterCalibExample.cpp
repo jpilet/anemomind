@@ -200,7 +200,10 @@ MinimizationResults WaterObjf::minimizeRandomInits(int initCount, LevmarSettings
 
 MinimizationResults WaterObjf::minimizeWithInit(Arrayd X, LevmarSettings settings) {
   LevmarState state(X);
-  state.minimize(settings, *this);
+  {
+    WithScopedLogDepth wd(0);
+    state.minimize(settings, *this);
+  }
   Arrayd Xopt = state.getXArray();
   return MinimizationResults(this->calcSquaredNorm(Xopt.ptr()), Xopt);
 }
