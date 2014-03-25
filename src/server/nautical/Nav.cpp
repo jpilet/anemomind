@@ -306,8 +306,12 @@ int countNavs(Array<Array<Nav> > navs) {
   return counter;
 }
 
+Array<Array<Nav> > getAllTestNavs() {
+  return splitNavsByDuration(loadNavsFromText(Nav::AllNavsPath), Duration<double>::minutes(10));
+}
+
 Array<Nav> getTestNavs(int index) {
-  Array<Array<Nav> > allNavs = splitNavsByDuration(loadNavsFromText(Nav::AllNavsPath), Duration<double>::minutes(10));
+  Array<Array<Nav> > allNavs = getAllTestNavs();
   return allNavs[index];
 }
 

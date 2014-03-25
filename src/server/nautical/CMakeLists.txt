@@ -69,6 +69,7 @@ add_executable(nautical_WaterCalibExample
 target_link_libraries(nautical_WaterCalibExample               
                       nautical_FilteredNavs
                       nautical_GeoCalc
+                      common_Statistics
                       common_string
                      )              
               

@@ -80,6 +80,7 @@ Array<MDArray2d> calcNavsEcefTrajectories(Array<Array<Nav> > navs);
 void plotNavsEcefTrajectory(Array<Nav> navs);
 void plotNavsEcefTrajectories(Array<Array<Nav> > navs);
 int countNavs(Array<Array<Nav> > navs);
+Array<Array<Nav> > getAllTestNavs();
 Array<Nav> getTestNavs(int index);
 
 Array<GeographicPosition<double> > getGeoPos(Array<Nav> navs);

@@ -111,7 +111,10 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun) {
           _mu = _mu*_v;
           assert(!std::isnan(_mu));
           _v = 2*_v;
-          assert(!std::isinf(_v));
+          if (std::isinf(_v)) {
+            SCOPEDMESSAGE(INFO, "Stop, because v is inf");
+            _stop = true;
+          }
         }
       }
     }

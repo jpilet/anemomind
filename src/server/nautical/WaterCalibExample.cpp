@@ -17,13 +17,14 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/split.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/Statistics.h>
 
 namespace sail {
 
 class WaterObjf : public AutoDiffFunction {
  public:
   WaterObjf(GeographicReference ref, Array<Nav> navs,
-      FilteredNavs fnavs, bool withCurrent);
+      FilteredNavs fnavs, bool withCurrent_);
 
   // [Magnetic offset] + [SpeedCalib]
   int inDims() {return 1 + 4 + (_withCurrent? 2 : 0);}
@@ -67,6 +68,10 @@ class WaterObjf : public AutoDiffFunction {
   MDArray2d optimizeForSplits(Array<Arrayb> includePerSplit, int initCount, LevmarSettings s);
   MDArray2d optimize2Fold(int initCount, LevmarSettings s);
   MDArray2d optimizeNFold(int N, int initCount, LevmarSettings s);
+
+  Array<Velocity<double> > getWatSpeeds();
+
+  bool withCurrent() const {return _withCurrent;}
  private:
   bool _withCurrent;
   Arrayi _inds;
@@ -223,6 +228,8 @@ MDArray2d WaterObjf::optimizeForSplits(Array<Arrayb> includePerSplit, int initCo
   MDArray2d results(inDims(), splitCount);
   for (int i = 0; i < splitCount; i++) {
     ENTERSCOPE(stringFormat("Optimize for split %d/%d", i+1, splitCount));
+
+    WithScopedLogDepth wd(0);
     setInds(allInds.slice(includePerSplit[i]));
     MinimizationResults opt = minimizeRandomInits(initCount, s);
     MDArray2d(opt.X()).copyToSafe(results.sliceCol(i));
@@ -242,6 +249,17 @@ MDArray2d WaterObjf::optimizeNFold(int N, int initCount, LevmarSettings s) {
     folds[i] = makeFoldSplit(_inds.size(), N, i);
   }
   return optimizeForSplits(folds, initCount, s);
+}
+
+Array<Velocity<double> > WaterObjf::getWatSpeeds() {
+  int count = _inds.size();
+  Array<Velocity<double> > ws(count);
+  for (int I = 0; I < count; I++) {
+    int i = _inds[I];
+    double t = _fnavs.times[i].seconds();
+    ws[I] = Velocity<double>::metersPerSecond(_fnavs.watSpeed.value(t));
+  }
+  return ws;
 }
 
 void WaterObjf::disp(Arrayd params) {
@@ -283,11 +301,11 @@ MDArray2d WaterObjf::makeWaterSpeedCalibPlotData(Arrayd params) {
 WaterObjf::WaterObjf(GeographicReference ref,
     Array<Nav> navs,
     FilteredNavs fnavs,
-    bool withCurrent) :
+    bool withCurrent_) :
   _navs(navs),
   _fnavs(fnavs),
   _geoRef(ref),
-  _withCurrent(withCurrent) {
+  _withCurrent(withCurrent_) {
   int count = fnavs.times.size();
   assert(count == navs.size());
 
@@ -310,6 +328,19 @@ WaterObjf::WaterObjf(GeographicReference ref,
   }
   assert(counter > 5);
   _inds = makeRange(count).slice(keep);
+}
+
+
+namespace {
+  MDArray2d makeKnotPlot(Array<Velocity<double> > ws) {
+    int count = ws.size();
+    MDArray2d XY(count, 2);
+    XY.setAll(0.0);
+    for (int i = 0; i < count; i++) {
+      XY(i, 0) = ws[i].knots();
+    }
+    return XY;
+  }
 }
 
 void wce001() {
@@ -374,10 +405,19 @@ void wce002() { // WORKS WELL
   MDArray2d pdata = objf.makeWaterSpeedCalibPlotData(Xopt);
   Arrayd mes = pdata.sliceCol(0).getStorage().sliceTo(pdata.rows());
 
+  Array<Velocity<double> > ws = objf.getWatSpeeds();
+  Statistics wsstats;
+  for (int i = 0; i < ws.size(); i++) {
+    wsstats.add(ws[i].knots());
+  }
+  std::cout << EXPR_AND_VAL_AS_STRING(wsstats) << std::endl;
+
   GnuplotExtra plot;
   plot.set_style("lines");
   plot.plot(pdata);
   plot.plot_xy(mes, mes);
+  plot.set_style("points");
+  plot.plot(makeKnotPlot(ws));
   plot.show();
 }
 
@@ -411,18 +451,95 @@ void wce003() { // A different result
   plot.show();
 }
 
-void wce004() {
+void wce004() { // Display random splits
   Array<Arrayb> X = makeRandomlySlidedFolds(3, 30);
   std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
 }
+
+
+
+
+
+void wce005() { // With cross validation: Randomly slided 2-folds
+  bool compute = false;
+  int navIndex = 0;
+
+  Array<Array<Nav> > allNavs = getAllTestNavs();
+  for (int navIndex = 0; navIndex < allNavs.size(); navIndex++) {
+    ENTERSCOPE(stringFormat("===== Processing navs %d/%d", navIndex+1, allNavs.size()));
+
+    Array<Nav> navs = allNavs[navIndex];
+
+    Array<Duration<double> > T = getLocalTime(navs);
+    LineStrip strip = makeNavsLineStrip(T);
+
+    Array<GeographicPosition<double> > pos = getGeoPos(navs);
+    GeographicPosition<double> meanPos = mean(pos);
+    GeographicReference ref(meanPos);
+
+    FilteredNavs fnavs(navs);
+    WaterObjf objf(ref, navs, fnavs, false);
+
+    LevmarSettings settings;
+
+
+    std::string filename = stringFormat("wce005_navindex%02d_withexp%d_withcurrent%d",
+        navIndex,
+        SpeedCalib<double>::withExp,
+        objf.withCurrent());
+
+    if (compute) {
+      Array<Arrayb> splits = makeRandomlySlidedFolds(6, objf.inds().size());
+      MDArray2d params = objf.optimizeForSplits(splits, 30, settings);
+      std::cout << EXPR_AND_VAL_AS_STRING(params) << std::endl;
+      saveMatrix(filename, params);
+    } else {
+      MDArray2d data = loadMatrixText<double>(filename);
+
+      // Magnetic heading
+      Statistics maghdg;
+      for (int i = 0; i < data.cols(); i++) {
+        maghdg.add(Angle<double>::radians(data(0, i)).degrees());
+      }
+      std::cout << EXPR_AND_VAL_AS_STRING(maghdg) << std::endl;
+
+      // Speed calibration
+      const int knotSampleCount = 6;
+      LineKM knotMap(0, knotSampleCount-1, 1, 6);
+      Statistics perKnot[knotSampleCount];
+      for (int i = 0; i < data.cols(); i++) {
+        SpeedCalib<double> calib = objf.makeSpeedCalib(data.sliceCol(i).ptr());
+        for (int j = 0; j < knotSampleCount; j++) {
+          Velocity<double> measVel = Velocity<double>::knots(knotMap(j));
+          Velocity<double> trueVel = Velocity<double>::metersPerSecond(calib.eval(measVel.metersPerSecond()));
+          perKnot[j].add(trueVel.knots());
+        }
+      }
+      for (int i = 0; i < knotSampleCount; i++) {
+        cout << knotMap(i) << " knots map to " << perKnot[i] << " knots" << endl;
+      }
+
+      // Current
+      if (objf.withCurrent()) {
+        Statistics curX, curY;
+        for (int i = 0; i < data.cols(); i++) {
+          double *x = data.sliceCol(i).ptr();
+          curX.add(objf.currentX(x));
+          curY.add(objf.currentY(x));
+        }
+        std::cout << EXPR_AND_VAL_AS_STRING(curX) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(curY) << std::endl;
+      }
+    }
+  }
+}
+
 
 } /* namespace sail */
 int main() {
   using namespace sail;
 
-  wce004();
-
-
+  wce005();
 
   std::cout << "DONE" << std::endl;
   return 0;

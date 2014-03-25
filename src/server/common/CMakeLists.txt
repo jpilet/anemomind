@@ -7,6 +7,10 @@ add_library(common_logging
             logging.h
             logging.cpp)
 
+add_library(common_Statistics
+            Statistics.cpp
+           )            
+
 cxx_test(common_logging_test logging_test.cpp common_logging gtest_main)
 
 cxx_test(common_mathTest
