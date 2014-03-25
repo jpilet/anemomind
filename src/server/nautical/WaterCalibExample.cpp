@@ -24,9 +24,12 @@ class WaterObjf : public AutoDiffFunction {
   // [Magnetic offset] + [SpeedCalib]
   int inDims() {return 1 + 4;}
   int outDims() {return 2*_inds.size();}
-  void evalAD(adouble *Xin, adouble *Fout);
 
-  Arrayd makeInitialParams();
+  void evalAD(adouble *Xin, adouble *Fout) {evalADAbs(Xin, Fout);}
+  void evalADDeriv(adouble *Xin, adouble *Fout);
+  void evalADAbs(adouble *Xin, adouble *Fout);
+
+  Arrayd makeInitialDefaultParams();
   template <typename T> T &magOffset(T *x) {return x[0];}
   template <typename T> T &k(T *x) {return x[1];}
   template <typename T> T &m(T *x) {return x[2];}
@@ -87,7 +90,7 @@ double calcDySig(FilteredSignal mag, FilteredSignal angle, double t) {
 
 
 
-void WaterObjf::evalAD(adouble *Xin, adouble *Fout) {
+void WaterObjf::evalADDeriv(adouble *Xin, adouble *Fout) {
   int count = _inds.size();
   SpeedCalib<adouble> calib = makeSpeedCalib(Xin);
   for (int I = 0; I < count; I++) {
@@ -117,14 +120,42 @@ void WaterObjf::evalAD(adouble *Xin, adouble *Fout) {
   }
 }
 
-Arrayd WaterObjf::makeInitialParams() {
+void WaterObjf::evalADAbs(adouble *Xin, adouble *Fout) {
+  int count = _inds.size();
+  SpeedCalib<adouble> calib = makeSpeedCalib(Xin);
+  for (int I = 0; I < count; I++) {
+    int i = _inds[I];
+
+    double t = _fnavs.times[i].seconds();
+    adouble *f = Fout + 2*I;
+
+    adouble measuredWatSpeed = _fnavs.watSpeed.value(t);
+
+    adouble r = calib.eval(measuredWatSpeed);
+    adouble av = _fnavs.magHdg.value(t) + magOffset(Xin);
+    adouble rx = r*sin(av);
+    adouble ry = r*cos(av);
+
+    // Derivatives of gps speed. Constant w.r.t. parameters
+    double b = _fnavs.gpsBearing.value(t);
+    double v = _fnavs.gpsSpeed.value(t);
+    double vx = v*sin(b);
+    double vy = v*cos(b);
+
+    f[0] = vx - rx;
+    f[1] = vy - ry;
+  }
+}
+
+
+
+
+Arrayd WaterObjf::makeInitialDefaultParams() {
   Arrayd X(5);
-  X.setTo(0.01);
   assert(X.size() == inDims());
-  k(X.ptr()) = 1.0;
-
+  X.setTo(0.1);
   magOffset(X.ptr()) = 0.5*M_PI;
-
+  k(X.ptr()) = 1.0;
   return X;
 }
 
@@ -189,7 +220,7 @@ WaterObjf::WaterObjf(GeographicReference ref,
 
 void wce001() {
   Array<Nav> navs = getTestNavs(0);
-  navs = navs.sliceFrom(navs.middle());
+  navs = navs.sliceTo(navs.middle());
 
   Array<Duration<double> > T = getLocalTime(navs);
   LineStrip strip = makeNavsLineStrip(T);
@@ -201,7 +232,7 @@ void wce001() {
   FilteredNavs fnavs(navs);
   WaterObjf objf(ref, navs, fnavs);
 
-  Arrayd X = objf.makeInitialParams();
+  Arrayd X = objf.makeInitialDefaultParams();
 
   LevmarSettings settings;
 
