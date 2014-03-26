@@ -40,6 +40,15 @@ class Nav {
   Velocity<double> gpsSpeed() const {return _gpsSpeed;}
   Velocity<double> watSpeed() const {return _watSpeed;}
 
+  void setAwa(Angle<double> awa_) {_awa = awa_;}
+  void setAws(Velocity<double> aws_) {_aws = aws_;}
+  void setMagHdg(Angle<double> magHdg_) {_magHdg = magHdg_;}
+  void setGpsBearing(Angle<double> gpsBearing_) {_gpsBearing = gpsBearing_;}
+  void setGpsSpeed(Velocity<double> gpsSpeed_) {_gpsSpeed = gpsSpeed_;}
+  void setWatSpeed(Velocity<double> watSpeed_) {_watSpeed = watSpeed_;}
+  void setTime(Duration<double> t) {_timeSince1970 = t;}
+  void getGeographicPosition(GeographicPosition<double> pos) {_pos = pos;}
+
   // This is just temporary. We should
   // replace it with CMake-generated paths in the future.
   static const char AllNavsPath[];

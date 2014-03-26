@@ -13,26 +13,50 @@
 namespace sail {
 
 namespace {
-const char *getNmeaSentenceLabel(NmeaParser::NmeaSentence s) {
-  typedef const char *Str;
-  Str labels[] = {"0", //"NMEA_NONE",
-      "NMEA_UNKNOWN",
-      "NMEA_TIME_POS",
-      "NMEA_AW",
-      "NMEA_TW",
-      "NMEA_WAT_SP_HDG",
-      "NMEA_VLW"};
-  return labels[s];
-}
+  const char *getNmeaSentenceLabel(NmeaParser::NmeaSentence s) {
+    typedef const char *Str;
+    Str labels[] = {"0", //"NMEA_NONE",
+        "NMEA_UNKNOWN",
+        "NMEA_TIME_POS",
+        "NMEA_AW",
+        "NMEA_TW",
+        "NMEA_WAT_SP_HDG",
+        "NMEA_VLW"};
+    return labels[s];
+  }
 
-  void processNmeaLine(NmeaParser *parser, std::vector<Nav> *navAcc,
-      std::string line) {
+
+  NmeaParser::NmeaSentence processNmeaLineSub(NmeaParser *parser,
+          std::string line) {
     int len = line.size();
     const char *cstr = line.c_str();
+    NmeaParser::NmeaSentence retval = NmeaParser::NMEA_NONE;
     for (int i = 0; i < len; i++) {
-      std::cout << getNmeaSentenceLabel(parser->processByte(cstr[i])) << " ";
+      char c = cstr[i];
+      retval = parser->processByte(c);
     }
-    std::cout << "\n";
+
+    if (retval == NmeaParser::NMEA_NONE) {
+      retval = parser->processByte('\n');
+      assert(retval != NmeaParser::NMEA_NONE);
+    }
+    return retval;
+  }
+
+
+
+  void processNmeaLine(NmeaParser *parser, Nav *nav,
+        std::string line, std::vector<Nav> *navs) {
+    NmeaParser::NmeaSentence s = processNmeaLineSub(parser, line);
+
+    // Whenever new time data is received allocate a new record.
+    if (s == NmeaParser::NMEA_TIME_POS) {
+      navs->push_back(*nav);
+      *nav = Nav();
+    }
+
+    assert(false); // TODO
+
   }
 
 }
@@ -41,10 +65,13 @@ const char *getNmeaSentenceLabel(NmeaParser::NmeaSentence s) {
 Array<Nav> loadNavsFromNmea(std::istream &file) {
   std::vector<Nav> navAcc;
   NmeaParser parser;
+  parser.setIgnoreWrongChecksum(true);
   std::string line;
+  int lineCounter = 0;
+  Nav nav;
   while (std::getline(file, line)) {
-    cout << "PARSE A LINE: " << line << endl;
-    processNmeaLine(&parser, &navAcc, line);
+    processNmeaLine(&parser, &nav, line, &navAcc);
+    lineCounter++;
   }
   return Array<Nav>::referToVector(navAcc).dup();
 }

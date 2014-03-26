@@ -208,6 +208,7 @@ class NmeaParser {
     ignoreWrongChecksum_ = val;
   }
 
+  int internalState() {return int(state_);}
 #ifdef NOT_ON_MICROCONTROLLER
   std::string awaAsString() const;
   std::string gpsSpeedAsString() const;
