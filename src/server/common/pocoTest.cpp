@@ -17,10 +17,12 @@ TEST(PocoTest, PocoJsonStackoverflow) {
   // array of objects
   std::string jsondata = "[ {\"test\" : 0}, { \"test1\" : [1, 2, 3], \"test2\" : 4 } ]";
   Parser parser;
-  ParseHandler handler;
-  parser.setHandler(&handler);
+  Poco::SharedPtr<ParseHandler> handler(new ParseHandler());
+
+  parser.setHandler(handler);
+
   parser.parse(jsondata);
-  Poco::Dynamic::Var result = handler.asVar();
+  Poco::Dynamic::Var result = handler->asVar();
   EXPECT_TRUE(result.isArray());
   Array::Ptr arr = result.extract<Array::Ptr>();
   Object::Ptr object = arr->getObject(0);//
