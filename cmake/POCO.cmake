@@ -25,3 +25,12 @@ function(target_depends_on_poco_json target)
                  "${CMAKE_BINARY_DIR}/third-party/poco-install/lib")
 endfunction()
 
+function(target_depends_on_poco_foundation target)
+    add_dependencies(${target} poco_ext)
+    target_link_libraries(${target} PocoFoundation)
+    set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES 
+                 "${CMAKE_BINARY_DIR}/third-party/poco-install/include")
+    set_property(TARGET ${target} APPEND PROPERTY LINK_DIRECTORIES 
+                 "${CMAKE_BINARY_DIR}/third-party/poco-install/lib")
+endfunction()
+
