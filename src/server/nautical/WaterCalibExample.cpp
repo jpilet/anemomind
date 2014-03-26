@@ -57,7 +57,7 @@ class WaterObjf : public AutoDiffFunction {
 
 
   void disp(Arrayd params);
-  MDArray2d makeWaterSpeedCalibPlotData(Arrayd params);
+  MDArray2d makeWaterSpeedCalibPlotData(Arrayd params, Velocity<double> maxvel = Velocity<double>::knots(6.0));
 
   MinimizationResults minimizeRandomInits(int initCount, LevmarSettings s);
   MinimizationResults minimizeWithInit(Arrayd X, LevmarSettings settings);
@@ -281,7 +281,7 @@ void WaterObjf::disp(Arrayd params) {
   }
 }
 
-MDArray2d WaterObjf::makeWaterSpeedCalibPlotData(Arrayd params) {
+MDArray2d WaterObjf::makeWaterSpeedCalibPlotData(Arrayd params, Velocity<double> maxvel) {
   assert(params.size() == inDims());
   double *x = params.ptr();
 
@@ -289,7 +289,7 @@ MDArray2d WaterObjf::makeWaterSpeedCalibPlotData(Arrayd params) {
 
   int count = 1000;
   MDArray2d data(count, 2);
-  Velocity<double> maxvel = Velocity<double>::knots(20.0);
+
   LineKM velmap(0, count-1, 0.001, maxvel.metersPerSecond());
   for (int i = 0; i < count; i++) {
     data(i, 0) = Velocity<double>::metersPerSecond(velmap(i)).knots();
@@ -413,6 +413,8 @@ void wce002() { // WORKS WELL
   std::cout << EXPR_AND_VAL_AS_STRING(wsstats) << std::endl;
 
   GnuplotExtra plot;
+  plot.set_xlabel("Measured water speed (knots)");
+  plot.set_ylabel("Calibrated true water speed (knots)");
   plot.set_style("lines");
   plot.plot(pdata);
   plot.plot_xy(mes, mes);
@@ -465,7 +467,7 @@ void wce005() { // With cross validation: Randomly slided 2-folds
   int navIndex = 0;
 
   Array<Array<Nav> > allNavs = getAllTestNavs();
-  for (int navIndex = 0; navIndex < allNavs.size(); navIndex++) {
+  for (int navIndex = 0; navIndex < /*allNavs.size()*/1; navIndex++) {
     ENTERSCOPE(stringFormat("===== Processing navs %d/%d", navIndex+1, allNavs.size()));
 
     Array<Nav> navs = allNavs[navIndex];
@@ -495,13 +497,17 @@ void wce005() { // With cross validation: Randomly slided 2-folds
       saveMatrix(filename, params);
     } else {
       MDArray2d data = loadMatrixText<double>(filename);
+      cout << "There are " << objf.inds().size() << " measurements used to perform calibration." << endl;
+      cout << "There are " << data.cols() << " splits used for cross-validation" << endl;
+      cout << "There are " << data.rows() << " parameters estimated." << endl;
 
       // Magnetic heading
       Statistics maghdg;
       for (int i = 0; i < data.cols(); i++) {
         maghdg.add(Angle<double>::radians(data(0, i)).degrees());
       }
-      std::cout << EXPR_AND_VAL_AS_STRING(maghdg) << std::endl;
+
+      std::cout << "The offset error of the magnetic heading is estimated to " << maghdg << " degrees." << endl;
 
       // Speed calibration
       const int knotSampleCount = 6;
@@ -515,8 +521,9 @@ void wce005() { // With cross validation: Randomly slided 2-folds
           perKnot[j].add(trueVel.knots());
         }
       }
+      std::cout << "Here are some mappings from measured to calibrated water speed:" << endl;
       for (int i = 0; i < knotSampleCount; i++) {
-        cout << knotMap(i) << " knots map to " << perKnot[i] << " knots" << endl;
+        cout << "  " << knotMap(i) << " knots map to " << perKnot[i] << " knots" << endl;
       }
 
       // Current
@@ -539,7 +546,7 @@ void wce005() { // With cross validation: Randomly slided 2-folds
 int main() {
   using namespace sail;
 
-  wce002();
+  wce005();
 
   std::cout << "DONE" << std::endl;
   return 0;

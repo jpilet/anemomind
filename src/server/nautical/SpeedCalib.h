@@ -42,7 +42,7 @@ class SpeedCalib {
   }
 
   static T lowerUpperBound(T x, T lb, T ub) {
-    return lb + ub/(1.0 + exp(-x));
+    return lb + (ub - lb)/(1.0 + exp(-x));
   }
 
 
@@ -89,7 +89,7 @@ class SpeedCalib {
    */
   T decayCoef() {
     static_assert(minK > 0, "minK should be greater than 0 in order to avoid division by zero.");
-    return (withExp? (scaleCoef() - _r2)/(nonlinCoef()) : T(0.0));
+    return (withExp? (scaleCoef() - _r2)/(nonlinCoef() + 1.0e-12) : T(0.0));
   }
 
   static T initK() {return sqrt(1.0 - minK);}
