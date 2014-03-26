@@ -24,6 +24,7 @@ add_library(nautical_NavNmea
            )
 target_link_libraries(nautical_NavNmea
                       nautical_nav
+                      device_NmeaParser
                      )
 target_depends_on_poco_foundation(nautical_NavNmea)              
 

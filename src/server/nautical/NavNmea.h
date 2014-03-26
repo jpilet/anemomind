@@ -12,6 +12,7 @@
 
 namespace sail {
 
+Array<Nav> loadNavsFromNmea(std::istream &file);
 Array<Nav> loadNavsFromNmea(std::string filename);
 
 } /* namespace sail */

@@ -1,4 +1,4 @@
-add_library(NmeaParser_NmeaParser
+add_library(device_NmeaParser
             NmeaParser.h
             NmeaParser.cpp
            )
