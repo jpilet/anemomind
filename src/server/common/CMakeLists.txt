@@ -92,3 +92,9 @@ add_library(common_math
 cxx_test(common_invalidate
          invalidate_test.cpp
          gtest_main)
+
+cxx_test(common_pocoTest
+         pocoTest.cpp
+         gtest_main
+        )
+target_depends_on_poco(pocoTest)                 
