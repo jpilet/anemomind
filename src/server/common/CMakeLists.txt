@@ -97,4 +97,4 @@ cxx_test(common_pocoTest
          pocoTest.cpp
          gtest_main
         )
-target_depends_on_poco(pocoTest)                 
+target_depends_on_poco_json(common_pocoTest)                 
