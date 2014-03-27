@@ -63,6 +63,14 @@ add_executable(examples_PlotTrajectoryExampleLastRace
   PlotTrajectoryExampleLastRace.cpp)
 target_link_libraries(examples_PlotTrajectoryExampleLastRace
   examples_PlotTrajectoryExamples)  
+
+add_executable(nautical_ScanNmeaExample
+               ScanNmeaExample.cpp
+              )
+target_link_libraries(nautical_ScanNmeaExample
+                       common_TestEnv
+                       nautical_NavNmea
+                      )
   
 add_executable(examples_PlotTrajectoryExampleLocalRace
   PlotTrajectoryExampleLocalRace.cpp)
