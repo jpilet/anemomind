@@ -33,4 +33,3 @@ function(target_depends_on_poco_foundation target)
     set_property(TARGET ${target} APPEND PROPERTY LINK_DIRECTORIES 
                  "${CMAKE_BINARY_DIR}/third-party/poco-install/lib")
 endfunction()
-
