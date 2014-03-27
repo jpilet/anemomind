@@ -1,0 +1,18 @@
+html { 
+  background: url('../images/bg.jpg') no-repeat center center fixed; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+body{
+  background-color: '';
+}
+
+/* start CSS for upload */
+
+.my-drop-zone { border: dotted 3px lightgray; }
+.ng-file-over { border: dotted 3px red; } /* Default class applied to drop zones on over */
+.another-file-over-class { border: dotted 3px green; }
+
+/* end CSS for upload */
