@@ -15,7 +15,7 @@ namespace {
 }
 
 TEST(NavNmeaTest, Test1) {
-  NavNmeaData(testfile);
+  ParsedNavs navs = loadNavsFromNmea(testfile);
 }
 
 

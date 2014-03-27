@@ -16,6 +16,12 @@
 
 namespace sail {
 
+// Helper functions to convert from the format of
+// NmeaParser
+namespace NavDataConversion {
+  Angle<double> fromDegMinMc(double deg, double min, double mc);
+  Duration<double> makeTimeFromYMDhms(double year, double month, double day, double hour, double minute, double second);
+}
 
 // Represents a single recording of data from the devices onboard.
 class Nav {
@@ -30,9 +36,7 @@ class Nav {
   }
 
   Duration<double> time() const {return _timeSince1970;}
-
   const GeographicPosition<double> &geographicPosition() const {return _pos;}
-
   Angle<double> awa() const {return _awa;}
   Velocity<double> aws() const {return _aws;}
   Angle<double> magHdg() const {return _magHdg;}
@@ -47,7 +51,7 @@ class Nav {
   void setGpsSpeed(Velocity<double> gpsSpeed_) {_gpsSpeed = gpsSpeed_;}
   void setWatSpeed(Velocity<double> watSpeed_) {_watSpeed = watSpeed_;}
   void setTime(Duration<double> t) {_timeSince1970 = t;}
-  void getGeographicPosition(GeographicPosition<double> pos) {_pos = pos;}
+  void setGeographicPosition(GeographicPosition<double> pos) {_pos = pos;}
 
   // This is just temporary. We should
   // replace it with CMake-generated paths in the future.

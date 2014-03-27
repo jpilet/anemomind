@@ -9,24 +9,43 @@
 #define NAVNMEA_H_
 
 #include <server/nautical/Nav.h>
-#include <device/Arduino/libraries/NmeaParser/NmeaParser.h>
+#include <bitset>
+
 
 namespace sail {
 
-// Class to hold the results of a parsed Nmea file.
-class NavNmeaData {
+
+// Class to hold the results when reading Navs from a file
+class ParsedNavs {
  public:
-  NavNmeaData() {}
-  NavNmeaData(Array<Nav> n, Arrayb f) : _navs(n), _sentencesReceived(f) {}
-  NavNmeaData(std::istream &file);
-  NavNmeaData(std::string filename);
+  static const int FIELD_COUNT = 8;
+  enum FieldId {TIME = 0, POS, AWA, AWS, MAG_HDG, GPS_BEARING, GPS_SPEED, WAT_SPEED};
+  typedef std::bitset<FIELD_COUNT> FieldMask;
+
+  // To let us write, for instance, field(AWA) | field(AWS) to construct a mask
+  // where the fields AWA and AWS are set.
+  static FieldMask field(FieldId f) {
+    FieldMask mask;
+    mask.set(f, true);
+    return mask;
+  }
+
+  ParsedNavs() {}
+  ParsedNavs(Array<Nav> navs, FieldMask fields) : _navs(navs), _fields(fields) {}
 
   Array<Nav> navs() {return _navs;}
- private:
+
+  bool hasFields(FieldMask mask);
+  bool complete() {return _fields.all();}
+ protected:
   Array<Nav> _navs;
-  Arrayb _sentencesReceived;
-  void init(std::istream &file);
+  FieldMask _fields;
 };
+
+ParsedNavs loadNavsFromNmea(std::istream &file);
+ParsedNavs loadNavsFromNmea(std::string filename);
+
+
 
 } /* namespace sail */
 

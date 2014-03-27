@@ -34,9 +34,35 @@ Nav::Nav() {
 //tm_yday	int	days since January 1	0-365
 //tm_isdst	int	Daylight Saving Time flag
 
-Angle<double> fromDegMinMc(double deg, double min, double mc) {
-  return Angle<double>::degrees(deg + (1.0/60)*(min + 0.001*mc));
+
+namespace NavDataConversion {
+  Angle<double> fromDegMinMc(double deg, double min, double mc) {
+    return Angle<double>::degrees(deg + (1.0/60)*(min + 0.001*mc));
+  }
+
+  Duration<double> makeTimeFromYMDhms(double year, double month, double day, double hour, double minute, double second) {
+    struct tm time;
+    time.tm_gmtoff = 0;
+    time.tm_isdst = 0; // daylight saving. What to put here???
+    time.tm_sec = int(second);
+    time.tm_min = minute;
+    time.tm_hour = hour;
+    time.tm_mon = month - 1;
+    time.tm_year = (year + 2000) - 1900;
+    time.tm_mday = day;
+
+    // Ignored
+    time.tm_yday = -1;
+    time.tm_wday = -1;
+
+
+    // http://www.cplusplus.com/reference/ctime/time_t/
+    time_t x = mktime(&time);
+    return Duration<double>::seconds(x);//(1.0/(24*60*60))*x;
+  }
 }
+
+
 
 Nav::Nav(MDArray2d row) {
   assert(row.rows() == 1);
@@ -54,19 +80,13 @@ Nav::Nav(MDArray2d row) {
   _gpsBearing = Angle<double>::degrees(row(0, 13));
 
 
-  Angle<double> lat = fromDegMinMc(row(0, 14), row(0, 15), row(0, 16));
-  Angle<double> lon = fromDegMinMc(row(0, 17), row(0, 18), row(0, 19));
+  Angle<double> lat = NavDataConversion::fromDegMinMc(row(0, 14), row(0, 15), row(0, 16));
+  Angle<double> lon = NavDataConversion::fromDegMinMc(row(0, 17), row(0, 18), row(0, 19));
   _pos = GeographicPosition<double>(lon, lat);
 
 
   // The time stamp is a positive duration from AD
   // I think.
-  double year = row(0, 0);
-  double month = row(0, 1);
-  double dayOfTheMonth = row(0, 2);
-  double hour = row(0, 3);
-  double minute = row(0, 4);
-  double second = row(0, 5);
   _cwd = row(0, 20); // week day
   _wd = row(0, 21);
 
@@ -76,25 +96,13 @@ Nav::Nav(MDArray2d row) {
     assert(row.cols() == 23);
     _timeSince1970 = Duration<double>::days(row(0, 22));
   } else {
-    struct tm time;
-    time.tm_gmtoff = 0;
-    time.tm_isdst = 0; // daylight saving. What to put here???
-    time.tm_sec = int(second);
-    time.tm_min = minute;
-    time.tm_hour = hour;
-    time.tm_mon = month - 1;
-    time.tm_year = (year + 2000) - 1900;
-    time.tm_mday = dayOfTheMonth;
-
-    // Ignored
-    time.tm_yday = -1;
-    time.tm_wday = -1;
-
-
-    // http://www.cplusplus.com/reference/ctime/time_t/
-    time_t x = mktime(&time);
-    _timeSince1970 = Duration<double>::seconds(x);//(1.0/(24*60*60))*x;
-
+    double year = row(0, 0);
+    double month = row(0, 1);
+    double dayOfTheMonth = row(0, 2);
+    double hour = row(0, 3);
+    double minute = row(0, 4);
+    double second = row(0, 5);
+    _timeSince1970 = NavDataConversion::makeTimeFromYMDhms(year, month, dayOfTheMonth, hour, minute, second);
   }
 }
 
