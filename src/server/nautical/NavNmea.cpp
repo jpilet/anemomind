@@ -41,7 +41,9 @@ namespace {
 
     if (retval == NmeaParser::NMEA_NONE) {
       retval = parser->processByte('\n');
-      assert(retval != NmeaParser::NMEA_NONE);
+      if (retval == NmeaParser::NMEA_NONE) {
+        LOG(WARNING) << stringFormat("Return value was NMEA_NONE when parsing string '%s'", line.c_str());
+      }
     }
     return retval;
   }
@@ -134,7 +136,6 @@ namespace {
 
   void readNmeaData(NmeaParser::NmeaSentence s,
       const NmeaParser &parser, Nav *dstNav, ParsedNavs::FieldMask *mask) {
-    assert(s != NmeaParser::NMEA_NONE);
     switch (s) {
      case NmeaParser::NMEA_TIME_POS:
        readNmeaTimePos(parser, dstNav, mask);

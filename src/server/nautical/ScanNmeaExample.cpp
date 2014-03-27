@@ -19,6 +19,9 @@ namespace {
     std::cout << EXPR_AND_VAL_AS_STRING(files.size()) << std::endl;
     Array<ParsedNavs> parsedNavs = files.map<ParsedNavs>([&] (Poco::Path p) {return loadNavsFromNmea(p.toString());});
     std::cout << EXPR_AND_VAL_AS_STRING(parsedNavs) << std::endl;
+
+    Array<Nav> navs = flattenAndSort(parsedNavs, ParsedNavs::makeCompleteMask());
+    std::cout << EXPR_AND_VAL_AS_STRING(navs.size()) << std::endl;
   }
 
 
