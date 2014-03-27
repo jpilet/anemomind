@@ -12,6 +12,7 @@ The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
     libssl-dev, unixodbc-dev, libmysqlclient-dev, libkrb5-dev
   * Armadillo
   * gnuplot (only necessary if you want to plot)
+
 ## Dependencies that are fetched automatically:
   * gtest
   * ADOL-C
