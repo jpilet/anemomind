@@ -161,15 +161,11 @@ namespace {
   void processNmeaLine(NmeaParser *parser, Nav *dstNav,
         std::string line, std::vector<Nav> *navs, ParsedNavs::FieldMask *mask) {
     NmeaParser::NmeaSentence s = processNmeaLineSub(parser, line);
-
-    // Whenever new time data is received allocate a new record.
-    // TODO: ...or should we put this 'if'-statement after the call to readNmeaData?
+    readNmeaData(s, *parser, dstNav, mask);
     if (s == NmeaParser::NMEA_TIME_POS) {
       navs->push_back(*dstNav);
       *dstNav = Nav();
     }
-
-    readNmeaData(s, *parser, dstNav, mask);
   }
 }
 
