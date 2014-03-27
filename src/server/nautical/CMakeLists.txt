@@ -27,7 +27,6 @@ target_link_libraries(nautical_NavNmea
                       device_NmeaParser
                       common_ScopedLog
                      )
-target_depends_on_poco_foundation(nautical_NavNmea)              
 
 cxx_test(nautical_NavNmeaTest
          NavNmeaTest.cpp
