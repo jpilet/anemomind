@@ -20,7 +20,7 @@ namespace sail {
 // NmeaParser
 namespace NavDataConversion {
   Angle<double> fromDegMinMc(double deg, double min, double mc);
-  Duration<double> makeTimeFromYMDhms(double year, double month, double day, double hour, double minute, double second);
+  Duration<time_t> makeTimeFromYMDhms(double year, double month, double day, double hour, double minute, double second);
 }
 
 // Represents a single recording of data from the devices onboard.
@@ -35,7 +35,10 @@ class Nav {
     return _timeSince1970 < other._timeSince1970;
   }
 
-  Duration<double> time() const {return _timeSince1970;}
+  Duration<double> time() const { // Convert to double for compatibility with previous code
+    return Duration<double>::seconds(_timeSince1970.seconds());
+  }
+
   const GeographicPosition<double> &geographicPosition() const {return _pos;}
   Angle<double> awa() const {return _awa;}
   Velocity<double> aws() const {return _aws;}
@@ -50,7 +53,7 @@ class Nav {
   void setGpsBearing(Angle<double> gpsBearing_) {_gpsBearing = gpsBearing_;}
   void setGpsSpeed(Velocity<double> gpsSpeed_) {_gpsSpeed = gpsSpeed_;}
   void setWatSpeed(Velocity<double> watSpeed_) {_watSpeed = watSpeed_;}
-  void setTime(Duration<double> t) {_timeSince1970 = t;}
+  void setTime(Duration<time_t> t) {_timeSince1970 = t;}
   void setGeographicPosition(GeographicPosition<double> pos) {_pos = pos;}
 
   // This is just temporary. We should
@@ -80,7 +83,7 @@ class Nav {
 
 
   // TIME RELATED
-  Duration<double> _timeSince1970;
+  Duration<time_t> _timeSince1970;
 };
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort = true);

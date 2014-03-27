@@ -46,7 +46,7 @@ namespace {
   }
 
 
-  Duration<double> getTime(const NmeaParser &parser) {
+  Duration<time_t> getTime(const NmeaParser &parser) {
     return NavDataConversion::makeTimeFromYMDhms(parser.year(), parser.month(), parser.day(),
                                                  parser.hour(), parser.min(), parser.sec());
   }

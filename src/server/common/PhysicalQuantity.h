@@ -38,7 +38,7 @@ namespace sail {
   public: \
     typedef ClassName<T> ThisType; \
     ClassName() : PhysicalQuantity<ClassName<T>, T>() { } \
-    ClassName(const PhysicalQuantity<ClassName<T>, T> &x) : PhysicalQuantity<ClassName<T>, T>(x) {}
+    ClassName(const PhysicalQuantity<ClassName<T>, T> &x) : PhysicalQuantity<ClassName<T>, T>(x) {} \
 
 template <typename Quantity, typename Value>
 class PhysicalQuantity {

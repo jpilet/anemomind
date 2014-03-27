@@ -40,7 +40,7 @@ namespace NavDataConversion {
     return Angle<double>::degrees(deg + (1.0/60)*(min + 0.001*mc));
   }
 
-  Duration<double> makeTimeFromYMDhms(double year, double month, double day, double hour, double minute, double second) {
+  Duration<time_t> makeTimeFromYMDhms(double year, double month, double day, double hour, double minute, double second) {
     struct tm time;
     time.tm_gmtoff = 0;
     time.tm_isdst = 0; // daylight saving. What to put here???
@@ -58,7 +58,7 @@ namespace NavDataConversion {
 
     // http://www.cplusplus.com/reference/ctime/time_t/
     time_t x = mktime(&time);
-    return Duration<double>::seconds(x);//(1.0/(24*60*60))*x;
+    return Duration<time_t>::seconds(x);//(1.0/(24*60*60))*x;
   }
 }
 
@@ -94,7 +94,7 @@ Nav::Nav(MDArray2d row) {
 
   if (timeFromFile) {
     assert(row.cols() == 23);
-    _timeSince1970 = Duration<double>::days(row(0, 22));
+    _timeSince1970 = Duration<time_t>::days(row(0, 22));
   } else {
     double year = row(0, 0);
     double month = row(0, 1);
