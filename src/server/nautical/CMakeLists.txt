@@ -70,6 +70,7 @@ add_executable(nautical_ScanNmeaExample
 target_link_libraries(nautical_ScanNmeaExample
                        common_TestEnv
                        nautical_NavNmea
+                       common_filesystem
                       )
   
 add_executable(examples_PlotTrajectoryExampleLocalRace

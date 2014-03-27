@@ -123,6 +123,13 @@ void toLowerInPlace(std::string &data) {
   std::transform(data.begin(), data.end(), data.begin(), ::tolower);
 }
 
+std::string toLower(std::string src) {
+  std::string dst = src;
+  toLowerInPlace(dst);
+  return dst;
+}
+
+
 
 void splitFilenamePrefixSuffix(std::string filename,
                                std::string &prefix, std::string &suffix) {

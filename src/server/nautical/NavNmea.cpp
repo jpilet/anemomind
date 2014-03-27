@@ -10,6 +10,7 @@
 #include <iostream>
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
+#include <algorithm>
 
 
 namespace sail {
@@ -180,6 +181,12 @@ bool ParsedNavs::hasFields(FieldMask mask) {
   return (~mask | _fields).all();
 }
 
+ParsedNavs::FieldMask ParsedNavs::makeCompleteMask() {
+  FieldMask m;
+  m.set();
+  return m;
+}
+
 ParsedNavs loadNavsFromNmea(std::istream &file) {
   ParsedNavs::FieldMask fields;
   std::vector<Nav> navAcc;
@@ -198,6 +205,58 @@ ParsedNavs loadNavsFromNmea(std::istream &file) {
 ParsedNavs loadNavsFromNmea(std::string filename) {
   std::ifstream file(filename);
   return loadNavsFromNmea(file);
+}
+
+namespace {
+  std::string getFieldLabel(ParsedNavs::FieldId id) {
+    typedef const char *Str;
+    static Str labels[ParsedNavs::FIELD_COUNT] = {"TIME", "POS", "AWA", "AWS", "MAG_HDG", "GPS_BEARING", "GPS_SPEED", "WAT_SPEED"};
+    return labels[id];
+  }
+}
+
+std::ostream &operator<<(std::ostream &s, ParsedNavs x) {
+  s << "ParsedNavs: " << x.navs().size() << std::endl;
+  for (int i = 0; i < ParsedNavs::FIELD_COUNT; i++) {
+    ParsedNavs::FieldId id = ParsedNavs::FieldId(i);
+    s << "   " << getFieldLabel(id) << ": " << x.hasFields(ParsedNavs::field(id)) << std::endl;
+  }
+  return s;
+}
+
+namespace {
+  int countNavsToInclude(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
+    int counter = 0;
+    for (int i = 0; i < allNavs.size(); i++) {
+      if (allNavs[i].hasFields(mask)) {
+        counter += allNavs[i].navs().size();
+      }
+    }
+    return counter;
+  }
+
+  void fillNavVec(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask, std::vector<Nav> *navVec) {
+    Array<Nav> dst = Array<Nav>::referToVector(*navVec);
+    int counter = 0;
+    for (int i = 0; i < allNavs.size(); i++) {
+      ParsedNavs &n = allNavs[i];
+      if (n.hasFields(mask)) {
+        int next = counter + n.navs().size();
+        n.navs().copyToSafe(dst.slice(counter, next));
+        counter = next;
+      }
+    }
+    assert(counter == dst.size());
+  }
+}
+
+Array<Nav> flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
+  int len = countNavsToInclude(allNavs, mask);
+  std::vector<Nav> navs;
+  navs.resize(len);
+  fillNavVec(allNavs, mask, &navs);
+  std::sort(navs.begin(), navs.end());
+  return Array<Nav>::referToVector(navs).dup();
 }
 
 

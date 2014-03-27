@@ -29,6 +29,7 @@ std::string bytesToHex(size_t n, uint8_t *bytes);
 std::string formatInt(std::string fstr, int value);
 std::string stringFormat(const std::string fmt, ...);
 void toLowerInPlace(std::string &data);
+std::string toLower(std::string src);
 void splitFilenamePrefixSuffix(std::string filename,
                                std::string &prefix, std::string &suffix);
 
