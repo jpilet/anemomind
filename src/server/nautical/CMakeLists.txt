@@ -17,6 +17,22 @@ target_link_libraries(nautical_nav
   plot_gnuplot
   nautical_Ecef
   common_ContinuousRange)
+  
+add_library(nautical_NavNmea
+            NavNmea.h  
+            NavNmea.cpp
+           )
+target_link_libraries(nautical_NavNmea
+                      nautical_nav
+                      device_NmeaParser
+                      common_ScopedLog
+                     )
+
+cxx_test(nautical_NavNmeaTest
+         NavNmeaTest.cpp
+         nautical_NavNmea
+         gtest_main
+        )
 
 
 add_library(nautical_DataCalib
