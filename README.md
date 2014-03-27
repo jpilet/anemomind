@@ -10,11 +10,11 @@
 - Clone this repo
 - Install client-side dependencies:
 
-	bower install
+		bower install
 
 - Install server-side dependencies:
 
-	npm install
+		npm install
 
 - That's it !
 
