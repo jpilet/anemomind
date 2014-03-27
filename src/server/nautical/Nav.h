@@ -30,9 +30,7 @@ class Nav {
   }
 
   Duration<double> time() const {return _timeSince1970;}
-
   const GeographicPosition<double> &geographicPosition() const {return _pos;}
-
   Angle<double> awa() const {return _awa;}
   Velocity<double> aws() const {return _aws;}
   Angle<double> magHdg() const {return _magHdg;}

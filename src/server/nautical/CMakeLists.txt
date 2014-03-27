@@ -64,6 +64,15 @@ cxx_test(nautical_GeographicPositionTest
   GeographicPositionTest.cpp
   gtest_main)
 
+add_library(nautical_NavJson
+            NavJson.cpp
+            NavJson.h
+           )
+target_depends_on_poco_json(nautical_NavJson)
+
+target_link_libraries(nautical_NavJson
+                            nautical_nav
+                           )
 
 
 #################################################################
