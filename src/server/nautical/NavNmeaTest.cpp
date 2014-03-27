@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <sstream>
 #include <server/nautical/NavNmea.h>
+#include <server/common/string.h>
 
 using namespace sail;
 
@@ -16,6 +17,11 @@ namespace {
 
 TEST(NavNmeaTest, Test1) {
   ParsedNavs navs = loadNavsFromNmea(testfile);
+  EXPECT_TRUE(navs.complete());
+  EXPECT_TRUE(navs.navs().hasData());
+  EXPECT_EQ(navs.navs().size(), 27); // Number of times RMC occurs in the string to be parsed
 }
+
+
 
 

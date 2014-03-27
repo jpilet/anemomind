@@ -152,7 +152,7 @@ namespace {
        break;
      default:
        {
-         LOG(INFO) << stringFormat("Sentence not supported: %s", getNmeaSentenceLabel(s));
+         //LOG(INFO) << stringFormat("Sentence not supported: %s", getNmeaSentenceLabel(s));
        }
        break;
     };
