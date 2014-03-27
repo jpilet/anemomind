@@ -6,13 +6,5 @@ html {
   background-size: cover;
 }
 body{
-  background-color: '';
+  background-color: transparent;
 }
-
-/* start CSS for upload */
-
-.my-drop-zone { border: dotted 3px lightgray; }
-.ng-file-over { border: dotted 3px red; } /* Default class applied to drop zones on over */
-.another-file-over-class { border: dotted 3px green; }
-
-/* end CSS for upload */
