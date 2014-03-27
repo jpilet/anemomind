@@ -15,7 +15,7 @@ namespace {
 }
 
 TEST(NavNmeaTest, Test1) {
-  Array<Nav> navs = loadNavsFromNmea(testfile);
+  NavNmeaData(testfile);
 }
 
 

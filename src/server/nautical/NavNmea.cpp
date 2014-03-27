@@ -46,7 +46,7 @@ namespace {
 
 
   void processNmeaLine(NmeaParser *parser, Nav *nav,
-        std::string line, std::vector<Nav> *navs) {
+        std::string line, std::vector<Nav> *navs, Arrayb *fieldsRead) {
     NmeaParser::NmeaSentence s = processNmeaLineSub(parser, line);
 
     // Whenever new time data is received allocate a new record.
@@ -55,14 +55,23 @@ namespace {
       *nav = Nav();
     }
 
-    assert(false); // TODO
-
+    (*fieldsRead)[s] = true;
   }
-
 }
 
+NavNmeaData::NavNmeaData(std::string filename) {
+  std::ifstream file(filename);
+  init(file);
+}
 
-Array<Nav> loadNavsFromNmea(std::istream &file) {
+NavNmeaData::NavNmeaData(std::istream &file) {
+  init(file);
+}
+
+void NavNmeaData::init(std::istream &file) {
+  _sentencesReceived = Arrayb(7);
+  _sentencesReceived.setTo(false);
+
   std::vector<Nav> navAcc;
   NmeaParser parser;
   parser.setIgnoreWrongChecksum(true);
@@ -70,15 +79,10 @@ Array<Nav> loadNavsFromNmea(std::istream &file) {
   int lineCounter = 0;
   Nav nav;
   while (std::getline(file, line)) {
-    processNmeaLine(&parser, &nav, line, &navAcc);
+    processNmeaLine(&parser, &nav, line, &navAcc, &_sentencesReceived);
     lineCounter++;
   }
-  return Array<Nav>::referToVector(navAcc).dup();
-}
-
-Array<Nav> loadNavsFromNmea(std::string filename) {
-  std::ifstream file(filename);
-  return loadNavsFromNmea(file);
+  _navs = Array<Nav>::referToVector(navAcc).dup();
 }
 
 } /* namespace sail */
