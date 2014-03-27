@@ -15,7 +15,7 @@
 namespace sail {
 
 
-// Class to hold the results when reading Navs from a file
+// Class to hold the results when reading Navs from a file.
 class ParsedNavs {
  public:
   static const int FIELD_COUNT = 8;
@@ -37,8 +37,13 @@ class ParsedNavs {
 
   bool hasFields(FieldMask mask);
   bool complete() {return _fields.all();}
- protected:
+ private:
   Array<Nav> _navs;
+
+  // Which fields of the Navs for which we read data. For instance,
+  // if the magnetic compass was not connected, then we would expect
+  // that _fields.test(MAG_HDG) to return false. This lets us discard
+  // files with insufficient data.
   FieldMask _fields;
 };
 

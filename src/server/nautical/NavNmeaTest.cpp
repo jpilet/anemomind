@@ -27,10 +27,23 @@ namespace {
   std::stringstream testfile002(data002);
 }
 
-TEST(NavNmeaTest, Test2) {
+TEST(NavNmeaTest, TestComplete2) {
   ParsedNavs navs = loadNavsFromNmea(testfile002);
+  EXPECT_TRUE(navs.complete());
   EXPECT_EQ(navs.navs().size(), 7);
 }
+
+namespace {
+  const char data003[] = "$IIMWV,248,T,05.8,N,A*16\n$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
+  std::stringstream testfile003(data003);
+}
+
+TEST(NavNmeaTest, TestIncomplete) {
+  ParsedNavs navs = loadNavsFromNmea(testfile003);
+  EXPECT_FALSE(navs.complete());
+  EXPECT_EQ(navs.navs().size(), 1);
+}
+
 
 
 

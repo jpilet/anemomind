@@ -162,6 +162,8 @@ namespace {
         std::string line, std::vector<Nav> *navs, ParsedNavs::FieldMask *mask) {
     NmeaParser::NmeaSentence s = processNmeaLineSub(parser, line);
     readNmeaData(s, *parser, dstNav, mask);
+
+    // Once a time stamp has been received, save this Nav and start to fill a new one.
     if (s == NmeaParser::NMEA_TIME_POS) {
       navs->push_back(*dstNav);
       *dstNav = Nav();
