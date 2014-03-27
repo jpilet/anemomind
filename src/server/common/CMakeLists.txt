@@ -14,6 +14,19 @@ add_library(common_ScopedLog
             ScopedLog.cpp)
 target_link_libraries(common_ScopedLog common_logging)
 
+add_library(common_TestEnv
+            TestEnv.h
+            TestEnv.cpp
+           )
+target_depends_on_poco_foundation(common_TestEnv)
+
+cxx_test(common_TestEnvTest
+         TestEnvTest.cpp
+         common_TestEnv
+         gtest_main
+        )
+                    
+
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp
   gtest_main)
