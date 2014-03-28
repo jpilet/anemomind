@@ -149,23 +149,25 @@ bool ParsedNavs::hasFields(FieldMask mask) {
   return (~mask | _fields).all();
 }
 
-bool parseNmeaChar(std::istream &file,
-    NmeaParser *parser, Nav *dstNav, std::vector<Nav> *navAcc, ParsedNavs::FieldMask *fields) {
-  if (file.good()) {
-    char c;
-    file.get(c);
-    NmeaParser::NmeaSentence s = parser->processByte(c);
-    if (s != NmeaParser::NMEA_NONE) {
-      readNmeaData(s, *parser, dstNav, fields);
-      // Once a time stamp has been received, save this Nav and start to fill a new one.
-      if (s == NmeaParser::NMEA_TIME_POS) {
-        navAcc->push_back(*dstNav);
-        *dstNav = Nav();
+namespace {
+  bool parseNmeaChar(std::istream &file,
+      NmeaParser *parser, Nav *dstNav, std::vector<Nav> *navAcc, ParsedNavs::FieldMask *fields) {
+    if (file.good()) {
+      char c;
+      file.get(c);
+      NmeaParser::NmeaSentence s = parser->processByte(c);
+      if (s != NmeaParser::NMEA_NONE) {
+        readNmeaData(s, *parser, dstNav, fields);
+        // Once a time stamp has been received, save this Nav and start to fill a new one.
+        if (s == NmeaParser::NMEA_TIME_POS) {
+          navAcc->push_back(*dstNav);
+          *dstNav = Nav();
+        }
       }
+      return true;
     }
-    return true;
+    return false;
   }
-  return false;
 }
 
 ParsedNavs loadNavsFromNmea(std::istream &file) {
