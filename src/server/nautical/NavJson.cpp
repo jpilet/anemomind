@@ -23,6 +23,8 @@ Poco::JSON::Object::Ptr encode(const Nav &nav) {
   writeField(x, "watspeed", nav.watSpeed());
   writeField(x, "gpsspeed", nav.gpsSpeed());
   writeField(x, "gpsbearing", nav.gpsSpeed());
+  writeField(x, "aws", nav.aws());
+  writeField(x, "awa", nav.awa());
   return x;
 }
 

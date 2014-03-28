@@ -27,21 +27,35 @@ TEST(NavJsonTest, ConvertToJson) {
   EXPECT_EQ(s, expected);
 }
 
-//Nav nav;
-//nav.setTime(TimeStamp::now());
-//nav.setAwa(Angle<double>::degrees(30));
-//nav.setAws(Velocity<double>::metersPerSecond(6));
-//nav.setWatSpeed(Velocity<double>::knots(5));
-//nav.setMagHdg(Angle<double>::radians(0.5*M_PI));
-//nav.setGpsBearing(Angle<double>::radians(0.97*M_PI));
-//nav.setGpsSpeed(Velocity<double>::knots(4.9));
-//GeographicPosition<double> pos(Angle<double>::degrees(48), Angle<double>::degrees(39), Length<double>::meters(0.4));
-//nav.setGeographicPosition(pos);
+TEST(NavJsonTest, ConvertToJson2) {
+  Nav nav;
+  nav.setTime(TimeStamp::now());
+  nav.setAwa(Angle<double>::degrees(30));
+  nav.setAws(Velocity<double>::metersPerSecond(6));
+  nav.setWatSpeed(Velocity<double>::knots(5));
+  nav.setMagHdg(Angle<double>::radians(0.5*M_PI));
+  nav.setGpsBearing(Angle<double>::radians(0.97*M_PI));
+  nav.setGpsSpeed(Velocity<double>::knots(4.9));
+  GeographicPosition<double> pos(Angle<double>::degrees(48), Angle<double>::degrees(39), Length<double>::meters(0.4));
+  nav.setGeographicPosition(pos);
+  Array<Nav> navs(1, &nav);
+
+  Poco::JSON::Array data = json::encode(navs);
+  stringstream ss;
+  data.stringify(ss, 0, 0);
+  std::string s = ss.str();
+  int len = s.length();
+  EXPECT_GE(len, 0);
+  EXPECT_EQ(s[0], '[');
+  EXPECT_EQ(s[len-1], ']');
+  const char expected[] = "[{\"alt-m\":0.4,\"awa-rad\":0.5235987755982988,\"aws-mps\":6,\"gpsbearing-mps\":2.520777777777778,\"gpsspeed-mps\":2.520777777777778,\"lat-rad\":0.6806784082777885,\"lon-rad\":0.8377580409572782,\"maghdg-rad\":1.5707963267948966,\"time-int64\":1396029893000,\"watspeed-mps\":2.5722222222222224}]";
+  EXPECT_EQ(s, expected);
+}
+
 
 
 TEST(NavJsonTest, ConvertFromJson) {
-  const char dataToDecode[] = "[{\"alt-m\":0.4,\"gpsbearing-mps\":2.520777777777778,\"gpsspeed-mps\":2.520777777777778,\"lat-rad\":0.6806784082777885,\"lon-rad\":0.8377580409572782,\"maghdg-rad\":1.5707963267948966,\"time-int64\":1396027871000,\"watspeed-mps\":2.5722222222222224}]";
-
+  const char dataToDecode[] = "[{\"alt-m\":0.4,\"awa-rad\":0.5235987755982988,\"aws-mps\":6,\"gpsbearing-mps\":2.520777777777778,\"gpsspeed-mps\":2.520777777777778,\"lat-rad\":0.6806784082777885,\"lon-rad\":0.8377580409572782,\"maghdg-rad\":1.5707963267948966,\"time-int64\":1396029819000,\"watspeed-mps\":2.5722222222222224}]";
 
   Poco::JSON::Parser parser;
   Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
