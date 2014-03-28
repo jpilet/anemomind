@@ -26,6 +26,7 @@ class TimeStamp {
   TimeStamp(const TimeStamp &) = default;
 
   static TimeStamp now();
+  static TimeStamp makeUndefined();
 
 
   bool operator<(const TimeStamp &x) const;

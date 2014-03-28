@@ -79,6 +79,10 @@ TimeStamp TimeStamp::now() {
   return TimeStamp(*timeinfo);
 }
 
+TimeStamp TimeStamp::makeUndefined() {
+  return TimeStamp(UndefinedTime);
+}
+
 
 bool TimeStamp::operator<(const TimeStamp &x) const {
   assert(defined());
@@ -87,6 +91,8 @@ bool TimeStamp::operator<(const TimeStamp &x) const {
 }
 
 double TimeStamp::difSeconds(const TimeStamp &a, const TimeStamp &b) {
+  assert(a.defined());
+  assert(b.defined());
   return (1.0/TimeRes)*double(a._time - b._time);
 }
 
@@ -99,6 +105,8 @@ TimeStamp operator-(const TimeStamp &a, const Duration<double> &b) {
 }
 
 TimeStamp operator+(const TimeStamp &a, const Duration<double> &b) {
+  assert(a.defined());
+  assert(!std::isnan(b.seconds()));
   return TimeStamp(a._time + int64_t(TimeRes*b.seconds()));
 }
 
