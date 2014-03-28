@@ -12,11 +12,11 @@ namespace sail {
 
 namespace {
   // Special value reserved for signalling undefined time.
-  const TimeStamp::IntType UndefinedTime = std::numeric_limits<TimeStamp::IntType>::max();
+  const int64_t UndefinedTime = std::numeric_limits<int64_t>::max();
   const int TimeRes = 1000; // How precisely we store the time.
 }
 
-TimeStamp::TimeStamp(IntType is) : _time(is) {
+TimeStamp::TimeStamp(int64_t is) : _time(is) {
   assert(is != UndefinedTime);
 }
 
@@ -65,7 +65,7 @@ void TimeStamp::init(struct tm &time, double fracSeconds) {
   time_t x = mktime(&time);
 
   assert(x != -1);
-  _time = TimeRes*x + IntType(TimeRes*fracSeconds);
+  _time = TimeRes*x + int64_t(TimeRes*fracSeconds);
 }
 
 TimeStamp::TimeStamp(struct tm time) {
@@ -99,7 +99,7 @@ TimeStamp operator-(const TimeStamp &a, const Duration<double> &b) {
 }
 
 TimeStamp operator+(const TimeStamp &a, const Duration<double> &b) {
-  return TimeStamp(a._time + TimeStamp::IntType(TimeRes*b.seconds()));
+  return TimeStamp(a._time + int64_t(TimeRes*b.seconds()));
 }
 
 TimeStamp operator+(const Duration<double> &a, const TimeStamp &b) {

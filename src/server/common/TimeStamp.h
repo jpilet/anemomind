@@ -7,6 +7,7 @@
 #define TIMESTAMP_H_
 
 #include <ctime>
+#include <cinttypes>
 
 #include "PhysicalQuantity.h"
 
@@ -15,7 +16,6 @@ namespace sail {
 // A more accurate and safe type than time_t in <ctime>
 class TimeStamp {
  public:
-  typedef long long int IntType;
 
   TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
             unsigned int hour, unsigned int minute, double seconds,
@@ -36,13 +36,13 @@ class TimeStamp {
   bool defined() const;
  private:
   void init(struct tm &time, double fracSeconds);
-  TimeStamp(IntType is);
+  TimeStamp(int64_t is);
   static double difSeconds(const TimeStamp &a, const TimeStamp &b);
 
   friend Duration<double> operator-(const TimeStamp &a, const TimeStamp &b);
   friend TimeStamp operator+(const TimeStamp &a, const Duration<double> &b);
 
-  IntType _time;
+  int64_t _time;
 };
 
 Duration<double> operator-(const TimeStamp &a, const TimeStamp &b);
