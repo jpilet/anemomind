@@ -58,6 +58,10 @@ void TimeStamp::init(struct tm &time, double fracSeconds) {
   _fracSeconds = fracSeconds;
 }
 
+TimeStamp::TimeStamp(struct tm time) {
+  init(time, 0.0);
+}
+
 
 
 bool TimeStamp::operator<(const TimeStamp &x) const {
