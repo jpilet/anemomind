@@ -26,6 +26,7 @@ class TimeStamp {
   TimeStamp(const TimeStamp &) = default;
 
   static TimeStamp now();
+  static TimeStamp makeUndefined();
 
 
   bool operator<(const TimeStamp &x) const;
@@ -34,7 +35,9 @@ class TimeStamp {
   bool operator>=(const TimeStamp &x) const {return !((*this) < x);}
 
   TimeStamp(); // Default contructor of an object with defined() returning false.
+
   bool defined() const;
+  bool undefined() const {return !defined();}
  private:
   void init(struct tm &time, double fracSeconds);
   TimeStamp(int64_t is);
