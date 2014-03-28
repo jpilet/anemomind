@@ -6,6 +6,8 @@
 #ifndef TIMESTAMP_H_
 #define TIMESTAMP_H_
 
+#include <ctime>
+
 #include "PhysicalQuantity.h"
 
 namespace sail {
@@ -21,6 +23,8 @@ class TimeStamp {
             int gmtoff=0, int isdst=0);
 
   TimeStamp(struct tm time);
+
+  static TimeStamp now();
 
   // Initialize TimeStamp to a state for which defined() is false.
   TimeStamp();

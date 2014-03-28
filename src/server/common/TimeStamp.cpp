@@ -62,6 +62,12 @@ TimeStamp::TimeStamp(struct tm time) {
   init(time, 0.0);
 }
 
+TimeStamp TimeStamp::now() {
+  time_t rawtime;
+  time(&rawtime);
+  struct tm *timeinfo = localtime(&rawtime);
+  return TimeStamp(*timeinfo);
+}
 
 
 bool TimeStamp::operator<(const TimeStamp &x) const {
