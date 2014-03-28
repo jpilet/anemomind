@@ -12,7 +12,7 @@
 
 namespace sail {
 
-// A more accurate and safe type that time_t in <ctime>
+// A more accurate and safe type than time_t in <ctime>
 class TimeStamp {
  public:
   typedef long long int IntType;
@@ -42,10 +42,7 @@ class TimeStamp {
   friend Duration<double> operator-(const TimeStamp &a, const TimeStamp &b);
   friend TimeStamp operator+(const TimeStamp &a, const Duration<double> &b);
 
-  // _intSeconds + _fracSeconds is the total number of seconds since 1970
-
-  // Integral part of seconds since 1970
-  IntType _milliSeconds;
+  IntType _time;
 };
 
 Duration<double> operator-(const TimeStamp &a, const TimeStamp &b);

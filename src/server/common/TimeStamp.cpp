@@ -13,9 +13,10 @@ namespace sail {
 namespace {
   // Special value reserved for signalling undefined time.
   const TimeStamp::IntType UndefinedTime = std::numeric_limits<TimeStamp::IntType>::max();
+  const int TimeRes = 1000; // How precisely we store the time.
 }
 
-TimeStamp::TimeStamp(IntType is) : _milliSeconds(is) {
+TimeStamp::TimeStamp(IntType is) : _time(is) {
   assert(is != UndefinedTime);
 }
 
@@ -26,11 +27,11 @@ namespace {
   }
 }
 
-TimeStamp::TimeStamp() : _milliSeconds(UndefinedTime) {
+TimeStamp::TimeStamp() : _time(UndefinedTime) {
 }
 
 bool TimeStamp::defined() const {
-  return _milliSeconds != UndefinedTime;
+  return _time != UndefinedTime;
 }
 
 
@@ -64,7 +65,7 @@ void TimeStamp::init(struct tm &time, double fracSeconds) {
   time_t x = mktime(&time);
 
   assert(x != -1);
-  _milliSeconds = 1000*x + IntType(1000*fracSeconds);
+  _time = TimeRes*x + IntType(TimeRes*fracSeconds);
 }
 
 TimeStamp::TimeStamp(struct tm time) {
@@ -82,11 +83,11 @@ TimeStamp TimeStamp::now() {
 bool TimeStamp::operator<(const TimeStamp &x) const {
   assert(defined());
   assert(x.defined());
-  return _milliSeconds < x._milliSeconds;
+  return _time < x._time;
 }
 
 double TimeStamp::difSeconds(const TimeStamp &a, const TimeStamp &b) {
-  return 0.001*double(a._milliSeconds - b._milliSeconds);
+  return (1.0/TimeRes)*double(a._time - b._time);
 }
 
 Duration<double> operator-(const TimeStamp &a, const TimeStamp &b) {
@@ -98,7 +99,7 @@ TimeStamp operator-(const TimeStamp &a, const Duration<double> &b) {
 }
 
 TimeStamp operator+(const TimeStamp &a, const Duration<double> &b) {
-  return TimeStamp(a._milliSeconds + TimeStamp::IntType(1000.0*b.seconds()));
+  return TimeStamp(a._time + TimeStamp::IntType(TimeRes*b.seconds()));
 }
 
 TimeStamp operator+(const Duration<double> &a, const TimeStamp &b) {
