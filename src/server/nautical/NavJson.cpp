@@ -9,6 +9,21 @@
 
 namespace sail {
 
+/*
+ * A class that inherits from NavJasonInterface
+ * specifies how a Nav is represented. The idea
+ * is to represent a Nav as a Json array of numbers
+ * (returned by the method 'toJson')
+ * and provide a seperate array that specifies the
+ * meaning of these numbers ('makeFormatSpec'). The reason
+ * for this separation is to save bandwidth when transmitting many
+ * Json records.
+ *
+ * In addition, the method getFormatVersion returns
+ * an integer to uniquely identify the Json format,
+ * and this integer should correspond to the first element
+ * of the array returned by toJson.
+ */
 class NavJsonInterface {
  public:
   Poco::JSON::Object::Ptr toJsonObject(Array<Nav> navs);
@@ -28,6 +43,11 @@ class NavJsonInterface {
  private:
   Poco::JSON::Array toJsonDataArray(Array<Nav> navs, int expectedLen);
 };
+
+
+
+
+
 
 Poco::JSON::Object::Ptr NavJsonInterface::toJsonObject(Array<Nav> navs) {
   Poco::JSON::Object::Ptr dst(new Poco::JSON::Object());
