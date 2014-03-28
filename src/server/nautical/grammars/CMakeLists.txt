@@ -1,0 +1,9 @@
+add_library(nautical_grammars_Grammar
+            Grammar.h
+            Grammar.cpp
+           )
+cxx_test(nautical_grammars_GrammarTest
+         GrammarTest.cpp
+         nautical_grammars_Grammar
+         gtest_main
+        )

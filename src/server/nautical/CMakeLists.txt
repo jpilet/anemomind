@@ -1,3 +1,5 @@
+add_subdirectory("grammars")
+
 add_library(nautical_Ecef
             Ecef.h
             Ecef.cpp)
