@@ -21,6 +21,8 @@ class TimeStamp {
             int gmtoff=0, int isdst=0);
 
   TimeStamp(struct tm time);
+
+  // Initialize TimeStamp to a state for which defined() is false.
   TimeStamp();
 
   bool operator<(const TimeStamp &x) const;
