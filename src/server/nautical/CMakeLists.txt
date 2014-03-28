@@ -48,6 +48,15 @@ add_library(nautical_LocalRace
 target_link_libraries(nautical_LocalRace
   math_armaadolc)            
             
+
+add_library(nautical_NavNmeaScan            
+            NavNmeaScan.h
+            NavNmeaScan.cpp
+           )
+target_link_libraries(nautical_NavNmeaScan
+                      nautical_NavNmea
+                      common_filesystem
+                     )            
             
 #################################################################
 ### PlotTrajectoryExamples
@@ -69,8 +78,7 @@ add_executable(nautical_ScanNmeaExample
               )
 target_link_libraries(nautical_ScanNmeaExample
                        common_TestEnv
-                       nautical_NavNmea
-                       common_filesystem
+                       nautical_NavNmeaScan
                       )
   
 add_executable(examples_PlotTrajectoryExampleLocalRace
