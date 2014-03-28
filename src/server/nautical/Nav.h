@@ -19,7 +19,6 @@ namespace sail {
 // Helper functions to convert from the format of
 // NmeaParser
 namespace NavDataConversion {
-  Angle<double> fromDegMinMc(double deg, double min, double mc);
   Duration<time_t> makeTimeFromYMDhms(double year, double month, double day, double hour, double minute, double second);
 }
 

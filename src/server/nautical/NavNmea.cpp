@@ -60,7 +60,7 @@ namespace {
   }
 
   Angle<double> getAngle(const AccAngle &x) {
-    return NavDataConversion::fromDegMinMc(x.deg(), x.min(), x.mc());
+    return Angle<double>::degMinMc(x.deg(), x.min(), x.mc());
   }
 
   Angle<double> getLon(const NmeaParser &parser) {

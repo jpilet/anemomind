@@ -36,10 +36,6 @@ Nav::Nav() {
 
 
 namespace NavDataConversion {
-  Angle<double> fromDegMinMc(double deg, double min, double mc) {
-    return Angle<double>::degrees(deg + (1.0/60)*(min + 0.001*mc));
-  }
-
   Duration<time_t> makeTimeFromYMDhms(double year, double month, double day, double hour, double minute, double second) {
     struct tm time;
     time.tm_gmtoff = 0;
@@ -80,8 +76,8 @@ Nav::Nav(MDArray2d row) {
   _gpsBearing = Angle<double>::degrees(row(0, 13));
 
 
-  Angle<double> lat = NavDataConversion::fromDegMinMc(row(0, 14), row(0, 15), row(0, 16));
-  Angle<double> lon = NavDataConversion::fromDegMinMc(row(0, 17), row(0, 18), row(0, 19));
+  Angle<double> lat = Angle<double>::degMinMc(row(0, 14), row(0, 15), row(0, 16));
+  Angle<double> lon = Angle<double>::degMinMc(row(0, 17), row(0, 18), row(0, 19));
   _pos = GeographicPosition<double>(lon, lat);
 
 
