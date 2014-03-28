@@ -74,6 +74,11 @@ target_link_libraries(nautical_NavJson
                             nautical_nav
                            )
 
+cxx_test(nautical_NavJsonTest
+         NavJsonTest.cpp
+         nautical_NavJson
+         gtest_main
+        )
 
 #################################################################
 ### CalibrationExamples
