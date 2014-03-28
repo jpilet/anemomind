@@ -38,7 +38,7 @@ add_library(common_PeriodicSpan
             PeriodicSpan.cpp
            )
 target_link_libraries(common_PeriodicSpan common_Array)
-cxx_test(common_ContinousRangeTest ContinuousRangeTest.cpp
+cxx_test(common_PeriodicSpanTest PeriodicSpanTest.cpp
          common_PeriodicSpan gtest_main)
 
 add_library(common_Span
