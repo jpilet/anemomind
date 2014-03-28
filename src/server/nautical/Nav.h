@@ -13,13 +13,14 @@
 #include <server/common/math.h>
 #include <server/common/PhysicalQuantity.h>
 #include <server/nautical/GeographicPosition.h>
+#include <server/common/TimeStamp.h>
 
 namespace sail {
 
 // Helper functions to convert from the format of
 // NmeaParser
 namespace NavDataConversion {
-  Duration<time_t> makeTimeFromYMDhms(double year, double month, double day, double hour, double minute, double second);
+  TimeStamp makeTimeNmeaFromYMDhms(double yearSince2000, double month, double day, double hour, double minute, double second);
 }
 
 // Represents a single recording of data from the devices onboard.
@@ -31,11 +32,11 @@ class Nav {
 
   // For sorting
   bool operator< (const Nav &other) const {
-    return _timeSince1970 < other._timeSince1970;
+    return _time < other._time;
   }
 
-  Duration<double> time() const { // Convert to double for compatibility with previous code
-    return Duration<double>::seconds(_timeSince1970.seconds());
+  TimeStamp time() const {
+    return _time;
   }
 
   const GeographicPosition<double> &geographicPosition() const {return _pos;}
@@ -52,7 +53,7 @@ class Nav {
   void setGpsBearing(Angle<double> gpsBearing_) {_gpsBearing = gpsBearing_;}
   void setGpsSpeed(Velocity<double> gpsSpeed_) {_gpsSpeed = gpsSpeed_;}
   void setWatSpeed(Velocity<double> watSpeed_) {_watSpeed = watSpeed_;}
-  void setTime(Duration<time_t> t) {_timeSince1970 = t;}
+  void setTime(const TimeStamp &t) {_time = t;}
   void setGeographicPosition(GeographicPosition<double> pos) {_pos = pos;}
 
   // This is just temporary. We should
@@ -82,7 +83,7 @@ class Nav {
 
 
   // TIME RELATED
-  Duration<time_t> _timeSince1970;
+  TimeStamp _time;
 };
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort = true);

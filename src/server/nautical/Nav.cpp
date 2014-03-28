@@ -36,25 +36,9 @@ Nav::Nav() {
 
 
 namespace NavDataConversion {
-  Duration<time_t> makeTimeFromYMDhms(double year, double month, double day, double hour, double minute, double second) {
-    struct tm time;
-    time.tm_gmtoff = 0;
-    time.tm_isdst = 0; // daylight saving. What to put here???
-    time.tm_sec = int(second);
-    time.tm_min = minute;
-    time.tm_hour = hour;
-    time.tm_mon = month - 1;
-    time.tm_year = (year + 2000) - 1900;
-    time.tm_mday = day;
-
-    // Ignored
-    time.tm_yday = -1;
-    time.tm_wday = -1;
-
-
-    // http://www.cplusplus.com/reference/ctime/time_t/
-    time_t x = mktime(&time);
-    return Duration<time_t>::seconds(x);//(1.0/(24*60*60))*x;
+  TimeStamp makeTimeNmeaFromYMDhms(double yearSince2000, double month, double day, double hour, double minute, double second) {
+    return TimeStamp(int(yearSince2000 + 2000), int(month), int(day),
+              int(hour), int(minute), second, 0, 0);
   }
 }
 
@@ -98,7 +82,7 @@ Nav::Nav(MDArray2d row) {
     double hour = row(0, 3);
     double minute = row(0, 4);
     double second = row(0, 5);
-    _timeSince1970 = NavDataConversion::makeTimeFromYMDhms(year, month, dayOfTheMonth, hour, minute, second);
+    _timeSince1970 = NavDataConversion::makeTimeNmeaFromYMDhms(year, month, dayOfTheMonth, hour, minute, second);
   }
 }
 

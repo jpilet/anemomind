@@ -14,6 +14,14 @@ add_library(common_ScopedLog
             ScopedLog.cpp)
 target_link_libraries(common_ScopedLog common_logging)
 
+add_library(common_TimeStamp
+            TimeStamp.h
+            TimeStamp.cpp
+           )
+target_link_libraries(common_TimeStamp
+                      common_PhysicalQuantity
+                     )
+
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp
   gtest_main)
