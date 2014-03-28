@@ -23,6 +23,7 @@ class TimeStamp {
 
   TimeStamp(struct tm time);
 
+  TimeStamp(const TimeStamp &) = default;
 
   static TimeStamp now();
 
