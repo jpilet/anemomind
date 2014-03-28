@@ -28,5 +28,11 @@ TEST(TimeStampTest, Arithmetics) {
   EXPECT_TRUE(a >= a);
 }
 
+TEST(TimeStampTest, Undef) {
+  EXPECT_TRUE(TimeStamp::makeUndefined().undefined());
+}
 
+TEST(TimeStampTest, Def) {
+  EXPECT_TRUE(TimeStamp::now().defined());
+}
 

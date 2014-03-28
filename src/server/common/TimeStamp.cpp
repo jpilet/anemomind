@@ -17,7 +17,6 @@ namespace {
 }
 
 TimeStamp::TimeStamp(int64_t is) : _time(is) {
-  assert(is != UndefinedTime);
 }
 
 
@@ -107,7 +106,9 @@ TimeStamp operator-(const TimeStamp &a, const Duration<double> &b) {
 TimeStamp operator+(const TimeStamp &a, const Duration<double> &b) {
   assert(a.defined());
   assert(!std::isnan(b.seconds()));
-  return TimeStamp(a._time + int64_t(TimeRes*b.seconds()));
+  int64_t res = a._time + int64_t(TimeRes*b.seconds());
+  assert(res != UndefinedTime);
+  return TimeStamp(res);
 }
 
 TimeStamp operator+(const Duration<double> &a, const TimeStamp &b) {
