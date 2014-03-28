@@ -6,6 +6,9 @@
 #include <gtest/gtest.h>
 #include <server/nautical/NavJson.h>
 #include <server/common/string.h>
+#include <Poco/JSON/Array.h>
+#include <Poco/JSON/Parser.h>
+#include <Poco/JSON/ParseHandler.h>
 
 using namespace sail;
 
@@ -20,6 +23,64 @@ TEST(NavJsonTest, ConvertToJson) {
   EXPECT_GE(len, 0);
   EXPECT_EQ(s[0], '[');
   EXPECT_EQ(s[len-1], ']');
-  const char expected[] = "[{\"alt-m\":nan,\"awa-rad\":nan,\"aws-mps\":nan,\"gps-bearing-rad\":nan,\"gps-speed-mps\":nan,\"lat-rad\":nan,\"lon-rad\":nan,\"maghdg-rad\":nan,\"time-since-1970-s\":nan,\"wat-speed-mps\":nan}]";
+  const char expected[] = "[{\"time-int64\":9223372036854775807}]";
   EXPECT_EQ(s, expected);
+}
+
+//Nav nav;
+//nav.setTime(TimeStamp::now());
+//nav.setAwa(Angle<double>::degrees(30));
+//nav.setAws(Velocity<double>::metersPerSecond(6));
+//nav.setWatSpeed(Velocity<double>::knots(5));
+//nav.setMagHdg(Angle<double>::radians(0.5*M_PI));
+//nav.setGpsBearing(Angle<double>::radians(0.97*M_PI));
+//nav.setGpsSpeed(Velocity<double>::knots(4.9));
+//GeographicPosition<double> pos(Angle<double>::degrees(48), Angle<double>::degrees(39), Length<double>::meters(0.4));
+//nav.setGeographicPosition(pos);
+
+
+TEST(NavJsonTest, ConvertFromJson) {
+  const char dataToDecode[] = "[{\"alt-m\":0.4,\"gpsbearing-mps\":2.520777777777778,\"gpsspeed-mps\":2.520777777777778,\"lat-rad\":0.6806784082777885,\"lon-rad\":0.8377580409572782,\"maghdg-rad\":1.5707963267948966,\"time-int64\":1396027871000,\"watspeed-mps\":2.5722222222222224}]";
+
+
+  Poco::JSON::Parser parser;
+  Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
+
+  parser.setHandler(handler);
+
+  parser.parse(dataToDecode);
+  Poco::Dynamic::Var result = handler->asVar();
+  EXPECT_TRUE(result.isArray());
+  Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
+
+  sail::Array<Nav> navs;
+  json::decode(*arr, &navs);
+  EXPECT_EQ(navs.size(), 1);
+
+  std::stringstream ss;
+  json::encode(navs).stringify(ss, 0, 0);
+  EXPECT_EQ(ss.str(), dataToDecode);
+}
+
+TEST(NavJsonTest, ConvertFromJsonUndef) {
+  const char dataToDecode[] = "[{\"time-int64\":9223372036854775807}]";
+
+
+  Poco::JSON::Parser parser;
+  Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
+
+  parser.setHandler(handler);
+
+  parser.parse(dataToDecode);
+  Poco::Dynamic::Var result = handler->asVar();
+  EXPECT_TRUE(result.isArray());
+  Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
+
+  sail::Array<Nav> navs;
+  json::decode(*arr, &navs);
+  EXPECT_EQ(navs.size(), 1);
+
+  std::stringstream ss;
+  json::encode(navs).stringify(ss, 0, 0);
+  EXPECT_EQ(ss.str(), dataToDecode);
 }

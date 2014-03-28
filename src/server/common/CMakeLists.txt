@@ -22,7 +22,19 @@ cxx_test(common_TimeStampTest
          TimeStampTest.cpp
          common_TimeStamp 
          gtest_main
-        ) 
+        )
+        
+add_library(common_TimeStampJson
+            TimeStampJson.cpp
+            TimeStampJson.h
+           )
+target_depends_on_poco_foundation(common_TimeStampJson)
+
+add_library(common_PhysicalQuantityJson
+            PhysicalQuantityJson.cpp           
+            PhysicalQuantityJson.h
+           )
+target_depends_on_poco_foundation(common_TimeStampJson)           
 
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp

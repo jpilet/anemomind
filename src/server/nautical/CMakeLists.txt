@@ -89,8 +89,12 @@ add_library(nautical_NavJson
            )
 target_depends_on_poco_json(nautical_NavJson)
 
+
+
 target_link_libraries(nautical_NavJson
                             nautical_nav
+                            common_PhysicalQuantityJson
+                            common_TimeStampJson
                            )
 
 cxx_test(nautical_NavJsonTest

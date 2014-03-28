@@ -14,8 +14,13 @@
 namespace sail {
 namespace json {
 
-Poco::JSON::Array encode(Array<Nav> nav);
+
+
 Poco::JSON::Object::Ptr encode(const Nav &nav);
+void decode(Poco::JSON::Object::Ptr x, Nav *out);
+
+Poco::JSON::Array encode(Array<Nav> nav);
+void decode(Poco::JSON::Array src, Array<Nav> *dst);
 
 // TODO: decode
 

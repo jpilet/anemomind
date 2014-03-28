@@ -38,6 +38,10 @@ class TimeStamp {
 
   bool defined() const;
   bool undefined() const {return !defined();}
+
+  // Used by the Json interface
+  static TimeStamp fromInteger(int64_t x) {return TimeStamp(x);}
+  int64_t toInteger() const {return _time;}
  private:
   void init(struct tm &time, double fracSeconds);
   TimeStamp(int64_t is);
