@@ -7,13 +7,5 @@
 
 namespace sail {
 
-Grammar::Grammar() {
-  // TODO Auto-generated constructor stub
-
-}
-
-Grammar::~Grammar() {
-  // TODO Auto-generated destructor stub
-}
 
 } /* namespace sail */
