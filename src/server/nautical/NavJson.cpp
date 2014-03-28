@@ -82,9 +82,7 @@ Poco::JSON::Array NavJsonVersion001::makeFormatSpec() {
 
 Poco::JSON::Array NavJsonVersion001::toJson(const Nav &nav) {
   Poco::JSON::Array dst;
-
   dst.add(getFormatVersion()); // Version of this format.
-
   dst.add(nav.time().seconds());
   GeographicPosition<double> pos = nav.geographicPosition();
   dst.add(pos.lon().radians());
