@@ -18,7 +18,7 @@
 
 namespace sail {
 
-Nav::Nav() {
+Nav::Nav() : _time(TimeStamp::makeUndefined()) {
   _cwd = -1;
   _wd = -1;
 }
