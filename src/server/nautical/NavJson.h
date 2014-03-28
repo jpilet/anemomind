@@ -12,9 +12,14 @@
 #include <server/nautical/Nav.h>
 
 namespace sail {
+namespace Json {
 
-Poco::JSON::Object::Ptr convertToJson(Array<Nav> navs);
+Poco::JSON::Array encode(Array<Nav> nav);
+Poco::JSON::Object::Ptr encode(const Nav &nav);
 
+// TODO: decode
+
+}
 } /* namespace sail */
 
 #endif /* NAVJSON_H_ */
