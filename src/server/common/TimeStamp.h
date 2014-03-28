@@ -16,7 +16,6 @@ namespace sail {
 class TimeStamp {
  public:
   typedef long long int IntType;
-  typedef double FracType;
 
   TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
             unsigned int hour, unsigned int minute, double seconds,
