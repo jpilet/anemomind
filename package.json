@@ -11,7 +11,8 @@
     "ejs": "~0.8.4",
     "mailchimp": "*",
     "jwt-simple": "*",
-    "formidable": "1.0.14"
+    "formidable": "1.0.14",
+    "async": "*"
   },
   "devDependencies": {
     "grunt": "~0.4.1",

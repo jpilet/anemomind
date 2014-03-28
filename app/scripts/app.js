@@ -3,7 +3,8 @@
 angular.module('anemomindApp', [
   'ngCookies',
   'ngResource',
-  'ngRoute'
+  'ngRoute',
+  'angularFileUpload'
 ])
   .config(function ($routeProvider, $locationProvider, $httpProvider) {
     $routeProvider

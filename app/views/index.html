@@ -46,18 +46,19 @@
     <script src="bower_components/json3/lib/json3.min.js"></script>
     <![endif]-->
 
-    <!-- build:js(app) scripts/vendor.js -->
-    <!-- bower:js -->
+    <!-- shim is needed to support upload progress/abort for HTML5 and non-HTML5 FormData browsers.-->
+    <!-- use html5-shim.js instead if you just support HTML5 browsers and you need progress event-->
+    <!-- Note: shim.js MUST BE PLACED BEFORE angular.js and angular-file-upload.js AFTER angular.js-->
+
     <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/ng-file-upload/angular-file-upload-shim.js"></script> 
     <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/ng-file-upload/angular-file-upload.js"></script> 
     <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
     <script src="bower_components/angular-resource/angular-resource.js"></script>
     <script src="bower_components/angular-cookies/angular-cookies.js"></script>
     <script src="bower_components/angular-route/angular-route.js"></script>
-    <!-- endbower -->
-    <!-- endbuild -->
 
-    <!-- build:js({.tmp,app}) scripts/scripts.js -->
     <script src="scripts/app.js"></script>
     <script src="scripts/controllers/main.js"></script>
     <script src="scripts/controllers/navbar.js"></script>
@@ -69,6 +70,5 @@
     <script src="scripts/services/session.js"></script>
     <script src="scripts/services/user.js"></script>
     <script src="scripts/directives/mongooseError.js"></script>
-    <!-- endbuild -->
 </body>
 </html>
