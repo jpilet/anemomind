@@ -37,7 +37,7 @@ class TimeStamp {
   friend Duration<double> operator-(const TimeStamp &a, const TimeStamp &b);
   friend TimeStamp operator+(const TimeStamp &a, const Duration<double> &b);
 
-  // _intSeconds + _fracSeconds is the total number of seconds since
+  // _intSeconds + _fracSeconds is the total number of seconds since 1970
 
   // Integral part of seconds since 1970
   IntType _intSeconds;
