@@ -12,7 +12,7 @@ using namespace sail;
 TEST(NavJsonTest, ConvertToJson) {
   Nav nav;
   Array<Nav> navs(1, &nav);
-  Poco::JSON::Array data = Json::encode(navs);
+  Poco::JSON::Array data = json::encode(navs);
   stringstream ss;
   data.stringify(ss, 0, 0);
   std::string s = ss.str();

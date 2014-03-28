@@ -9,7 +9,8 @@
 #define NAVBBOX_H_
 
 #include "Nav.h"
-#include <server/common/ContinuousRange.h>
+#include <server/common/PeriodicSpan.h>
+#include <server/common/Span.h>
 
 namespace sail {
 
@@ -22,7 +23,8 @@ class NavBBox {
 
   bool intersects(const NavBBox &other) const;
  private:
-  ContinuousRange _lon, _lat, _time;
+  PeriodicSpan _lon, _lat;
+  Span<TimeStamp> _time;
 };
 
 Array<NavBBox> calcNavBBoxes(Array<Array<Nav> > navs);

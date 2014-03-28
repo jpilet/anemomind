@@ -29,9 +29,9 @@ class Grid {
     int sizes[N];
     for (int i = 0; i < N; i++) {
       double &s = spacingN[i];
-      Span &span = bbox.getSpan(i);
-      int from = int(floor(span.getMinv()/s));
-      int to = int(ceil(span.getMaxv()/s)) + 1;
+      Spand &span = bbox.getSpan(i);
+      int from = int(floor(span.minv()/s));
+      int to = int(ceil(span.maxv()/s)) + 1;
       sizes[i] = to - from;
       _ind2Coord[i] = LineKM(0.0, sizes[i], from*s, to*s);
     }
