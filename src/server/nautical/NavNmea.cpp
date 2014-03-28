@@ -89,10 +89,6 @@ namespace {
     mask->set(ParsedNavs::AWS, true);
   }
 
-  void readNmeaTW(const NmeaParser &parser, Nav *dstNav, ParsedNavs::FieldMask *mask) {
-    // Ignore the true wind. We will calculate it ourselves.
-  }
-
   Velocity<double> getWatSpeed(const NmeaParser &parser) {
     return Velocity<double>::knots(parser.watSpeed());
   }
@@ -123,7 +119,7 @@ namespace {
        readNmeaAW(parser, dstNav, mask);
        break;
      case NmeaParser::NMEA_TW:
-       readNmeaTW(parser, dstNav, mask);
+       // Ignore the true wind. We will calculate it ourselves.
        break;
      case NmeaParser::NMEA_WAT_SP_HDG:
        readNmeaWatSpHdg(parser, dstNav, mask);
@@ -132,9 +128,6 @@ namespace {
        readNmeaVLW(parser, dstNav, mask);
        break;
      default:
-       {
-         //LOG(INFO) << stringFormat("Sentence not supported: %s", getNmeaSentenceLabel(s));
-       }
        break;
     };
   }
