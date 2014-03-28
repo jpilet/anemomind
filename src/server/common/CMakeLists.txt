@@ -1,3 +1,15 @@
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/TestEnv.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/TestEnv.cpp" @ONLY)
+ADD_CUSTOM_COMMAND(
+   OUTPUT TestEnv.cpp
+   COMMAND configure_file ${CMAKE_CURRENT_SOURCE_DIR}/TestEnv.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/TestEnv.cpp
+   DEPENDS TestEnv.cpp ${CMAKE_CURRENT_SOURCE_DIR}/TestEnv.cpp.in
+  )
+
+add_library(common_TestEnv
+            TestEnv.cpp
+            TestEnv.h
+           )
+
 add_library(common_string
   string.h
   string.cpp)
@@ -14,18 +26,13 @@ add_library(common_ScopedLog
             ScopedLog.cpp)
 target_link_libraries(common_ScopedLog common_logging)
 
-add_library(common_TestEnv
-            TestEnv.h
-            TestEnv.cpp
-           )
-target_depends_on_poco_foundation(common_TestEnv)
 
 cxx_test(common_TestEnvTest
          TestEnvTest.cpp
          common_TestEnv
          gtest_main
         )
-                    
+target_depends_on_poco_foundation(common_TestEnvTest)                    
 
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp

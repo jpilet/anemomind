@@ -1,0 +1,14 @@
+/*
+ *  Created on: 2014-03-24
+ *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
+ */
+
+namespace sail {
+namespace TestEnv {
+
+const char SOURCE_DIR[] = "@CMAKE_SOURCE_DIR@";
+const char BUILD_DIR[] = "@CMAKE_BUILD_DIR@";
+
+}
+
+} /* namespace sail */

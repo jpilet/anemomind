@@ -5,19 +5,15 @@
 
 #include <gtest/gtest.h>
 #include <server/common/TestEnv.h>
+#include <Poco/Path.h>
 
 using namespace sail;
 
 TEST(TestEnvTest, TestThisPath) {
   Poco::Path thisPath(__FILE__);
 
-  TestEnv env;
 
-  EXPECT_TRUE(env.root().isDirectory());
-  EXPECT_TRUE(env.datasets().isDirectory());
-
-  Poco::Path b = env.root();
-  b.pushDirectory("src");
+  Poco::Path b(TestEnv::SOURCE_DIR);
   b.pushDirectory("server");
   b.pushDirectory("common");
   b.setFileName("TestEnvTest.cpp");
