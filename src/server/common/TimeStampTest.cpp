@@ -30,6 +30,8 @@ TEST(TimeStampTest, Arithmetics) {
 
 TEST(TimeStampTest, Undef) {
   EXPECT_TRUE(TimeStamp::makeUndefined().undefined());
+  EXPECT_TRUE(TimeStamp().undefined());
+  EXPECT_FALSE(TimeStamp().defined());
 }
 
 TEST(TimeStampTest, Def) {
