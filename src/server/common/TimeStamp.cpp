@@ -91,10 +91,12 @@ TimeStamp operator+(const TimeStamp &a, const Duration<double> &b) {
   if (cf >= 1) {
     ci++;
     cf -= 1.0;
-  } else if (cf <= -1) {
+  } else if (cf < 0) {
     ci--;
     cf += 1.0;
   }
+  assert(cf >= 0);
+  assert(cf < 1);
   return TimeStamp(ci, cf);
 }
 

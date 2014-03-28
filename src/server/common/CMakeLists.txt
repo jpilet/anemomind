@@ -18,6 +18,11 @@ add_library(common_TimeStamp
             TimeStamp.h
             TimeStamp.cpp
            )
+cxx_test(common_TimeStampTest
+         TimeStampTest.cpp
+         common_TimeStamp 
+         gtest_main
+        ) 
 
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp
