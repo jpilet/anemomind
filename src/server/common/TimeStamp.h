@@ -24,20 +24,20 @@ class TimeStamp {
 
   TimeStamp(struct tm time);
 
+
   static TimeStamp now();
 
-  // Initialize TimeStamp to a state for which defined() is false.
-  TimeStamp();
 
   bool operator<(const TimeStamp &x) const;
   bool operator>(const TimeStamp &x) const {return x < (*this);}
   bool operator<=(const TimeStamp &x) const {return !(x < (*this));}
   bool operator>=(const TimeStamp &x) const {return !((*this) < x);}
 
-  bool defined() const {return !std::isnan(_fracSeconds);}
+  TimeStamp(); // Default contructor of an object with defined() returning false.
+  bool defined() const;
  private:
   void init(struct tm &time, double fracSeconds);
-  TimeStamp(IntType is, FracType fs);
+  TimeStamp(IntType is);
   static double difSeconds(const TimeStamp &a, const TimeStamp &b);
 
   friend Duration<double> operator-(const TimeStamp &a, const TimeStamp &b);
@@ -46,10 +46,7 @@ class TimeStamp {
   // _intSeconds + _fracSeconds is the total number of seconds since 1970
 
   // Integral part of seconds since 1970
-  IntType _intSeconds;
-
-  // Fractional part of seconds since 1970. In range [0, 1[
-  FracType _fracSeconds;
+  IntType _milliSeconds;
 };
 
 Duration<double> operator-(const TimeStamp &a, const TimeStamp &b);

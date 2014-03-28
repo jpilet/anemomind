@@ -9,10 +9,16 @@
 
 namespace sail {
 
-TimeStamp::TimeStamp(IntType is, FracType fs) : _intSeconds(is), _fracSeconds(fs) {
-  assert(0 <= fs);
-  assert(fs < 1);
+
+namespace {
+  // Special value reserved for signalling undefined time.
+  const TimeStamp::IntType UndefinedTime = std::numeric_limits<TimeStamp::IntType>::max();
 }
+
+TimeStamp::TimeStamp(IntType is) : _milliSeconds(is) {
+  assert(is != UndefinedTime);
+}
+
 
 namespace {
   bool inRange(int x, int a, int b) {
@@ -20,8 +26,13 @@ namespace {
   }
 }
 
-TimeStamp::TimeStamp() : _intSeconds(0), _fracSeconds(std::numeric_limits<double>::signaling_NaN()) {
+TimeStamp::TimeStamp() : _milliSeconds(UndefinedTime) {
 }
+
+bool TimeStamp::defined() const {
+  return _milliSeconds != UndefinedTime;
+}
+
 
 TimeStamp::TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
           unsigned int hour, unsigned int minute, double seconds, int gmtoff, int isdst) {
@@ -53,9 +64,7 @@ void TimeStamp::init(struct tm &time, double fracSeconds) {
   time_t x = mktime(&time);
 
   assert(x != -1);
-
-  _intSeconds = x;
-  _fracSeconds = fracSeconds;
+  _milliSeconds = 1000*x + IntType(1000*fracSeconds);
 }
 
 TimeStamp::TimeStamp(struct tm time) {
@@ -73,17 +82,11 @@ TimeStamp TimeStamp::now() {
 bool TimeStamp::operator<(const TimeStamp &x) const {
   assert(defined());
   assert(x.defined());
-  if (_intSeconds < x._intSeconds) {
-    return true;
-  } else if (_intSeconds > x._intSeconds) {
-    return false;
-  } else {
-    return _fracSeconds < x._fracSeconds;
-  }
+  return _milliSeconds < x._milliSeconds;
 }
 
 double TimeStamp::difSeconds(const TimeStamp &a, const TimeStamp &b) {
-  return double(a._intSeconds - b._intSeconds) + (a._fracSeconds - b._fracSeconds);
+  return 0.001*double(a._milliSeconds - b._milliSeconds);
 }
 
 Duration<double> operator-(const TimeStamp &a, const TimeStamp &b) {
@@ -95,19 +98,7 @@ TimeStamp operator-(const TimeStamp &a, const Duration<double> &b) {
 }
 
 TimeStamp operator+(const TimeStamp &a, const Duration<double> &b) {
-  TimeStamp::IntType bi = TimeStamp::IntType(b.seconds());
-  TimeStamp::IntType ci = a._intSeconds + bi;
-  TimeStamp::FracType cf = a._fracSeconds + (b.seconds() - bi);
-  if (cf >= 1) {
-    ci++;
-    cf -= 1.0;
-  } else if (cf < 0) {
-    ci--;
-    cf += 1.0;
-  }
-  assert(cf >= 0);
-  assert(cf < 1);
-  return TimeStamp(ci, cf);
+  return TimeStamp(a._milliSeconds + TimeStamp::IntType(1000.0*b.seconds()));
 }
 
 TimeStamp operator+(const Duration<double> &a, const TimeStamp &b) {
