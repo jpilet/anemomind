@@ -18,7 +18,7 @@ target_link_libraries(nautical_nav
                       common_TimeStamp
                       plot_gnuplot
                       nautical_Ecef
-                      common_ContinuousRange
+                      common_PeriodicSpan
                      )
   
 add_library(nautical_NavNmea

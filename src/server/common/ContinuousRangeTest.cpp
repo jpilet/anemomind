@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "ContinuousRange.h"
+#include "PeriodicSpan.h"
 #include <cmath>
 
 using namespace sail;

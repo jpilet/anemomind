@@ -5,7 +5,7 @@
  *      Author: jonas
  */
 
-#include "ContinuousRange.h"
+#include "PeriodicSpan.h"
 #include <algorithm>  // for std::min/max
 #include <assert.h>
 #include <cmath>

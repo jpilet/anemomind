@@ -9,7 +9,7 @@
 #define NAVBBOX_H_
 
 #include "Nav.h"
-#include <server/common/ContinuousRange.h>
+#include <server/common/PeriodicSpan.h>
 #include <server/common/Span.h>
 
 namespace sail {

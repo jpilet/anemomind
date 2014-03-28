@@ -33,13 +33,13 @@ add_library(common_Array
 cxx_test(common_ArrayTest ArrayTest.cpp
          common_Array gtest_main)
 
-add_library(common_ContinuousRange
-            ContinuousRange.h
-            ContinuousRange.cpp
-            )
-target_link_libraries(common_ContinuousRange common_Array)
+add_library(common_PeriodicSpan
+            PeriodicSpan.h
+            PeriodicSpan.cpp
+           )
+target_link_libraries(common_PeriodicSpan common_Array)
 cxx_test(common_ContinousRangeTest ContinuousRangeTest.cpp
-         common_ContinuousRange gtest_main)
+         common_PeriodicSpan gtest_main)
 
 add_library(common_Span
             Span.h
