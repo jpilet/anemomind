@@ -80,4 +80,26 @@ Duration<double> operator-(const TimeStamp &a, const TimeStamp &b) {
   return Duration<double>::seconds(TimeStamp::difSeconds(a, b));
 }
 
+TimeStamp operator-(const TimeStamp &a, const Duration<double> &b) {
+  return a + (-b);
+}
+
+TimeStamp operator+(const TimeStamp &a, const Duration<double> &b) {
+  TimeStamp::IntType bi = TimeStamp::IntType(b.seconds());
+  TimeStamp::IntType ci = a._intSeconds + bi;
+  TimeStamp::FracType cf = a._fracSeconds + (b.seconds() - bi);
+  if (cf >= 1) {
+    ci++;
+    cf -= 1.0;
+  } else if (cf <= -1) {
+    ci--;
+    cf += 1.0;
+  }
+  return TimeStamp(ci, cf);
+}
+
+TimeStamp operator+(const Duration<double> &a, const TimeStamp &b) {
+  return b + a;
+}
+
 } /* namespace sail */

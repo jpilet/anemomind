@@ -24,7 +24,7 @@ class BBox {
     extend(vecN);
   }
 
-  BBox(Span x) {
+  BBox(Spand x) {
     static_assert(N == 1, "This constructor is only applicable to 1-D bounding boxes.");
     _span[0] = x;
   }
@@ -41,13 +41,13 @@ class BBox {
     }
   }
 
-  Span &getSpan(int index) {
+  Spand &getSpan(int index) {
     return _span[index];
   }
 
   virtual ~BBox() {}
  private:
-  Span _span[N];
+  Spand _span[N];
 };
 
 typedef BBox<1> BBox1d;

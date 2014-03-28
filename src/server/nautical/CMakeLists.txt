@@ -9,14 +9,17 @@ add_library(nautical_nav
             Nav.h
             Nav.cpp
             NavBBox.h
-            NavBBox.cpp)
+            NavBBox.cpp
+           )
         
 target_link_libraries(nautical_nav
-  common_Array
-  common_LineKM
-  plot_gnuplot
-  nautical_Ecef
-  common_ContinuousRange)
+                      common_Array
+                      common_LineKM
+                      common_TimeStamp
+                      plot_gnuplot
+                      nautical_Ecef
+                      common_ContinuousRange
+                     )
   
 add_library(nautical_NavNmea
             NavNmea.h  

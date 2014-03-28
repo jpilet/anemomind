@@ -10,6 +10,7 @@
 
 namespace sail {
 
+// A more accurate and safe type that time_t in <ctime>
 class TimeStamp {
  public:
   typedef long long int IntType;
@@ -23,6 +24,9 @@ class TimeStamp {
   TimeStamp();
 
   bool operator<(const TimeStamp &x) const;
+  bool operator>(const TimeStamp &x) const {return x < (*this);}
+  bool operator<=(const TimeStamp &x) const {return !(x < (*this));}
+  bool operator>=(const TimeStamp &x) const {return !((*this) < x);}
 
   bool defined() const {return !std::isnan(_fracSeconds);}
  private:
@@ -31,6 +35,7 @@ class TimeStamp {
   static double difSeconds(const TimeStamp &a, const TimeStamp &b);
 
   friend Duration<double> operator-(const TimeStamp &a, const TimeStamp &b);
+  friend TimeStamp operator+(const TimeStamp &a, const Duration<double> &b);
 
   // _intSeconds + _fracSeconds is the total number of seconds since
 
@@ -42,6 +47,9 @@ class TimeStamp {
 };
 
 Duration<double> operator-(const TimeStamp &a, const TimeStamp &b);
+TimeStamp operator-(const TimeStamp &a, const Duration<double> &b);
+TimeStamp operator+(const TimeStamp &a, const Duration<double> &b);
+TimeStamp operator+(const Duration<double> &a, const TimeStamp &b);
 
 } /* namespace sail */
 

@@ -64,26 +64,16 @@ Nav::Nav(MDArray2d row) {
   Angle<double> lon = Angle<double>::degMinMc(row(0, 17), row(0, 18), row(0, 19));
   _pos = GeographicPosition<double>(lon, lat);
 
-
-  // The time stamp is a positive duration from AD
-  // I think.
   _cwd = row(0, 20); // week day
   _wd = row(0, 21);
 
-  const bool timeFromFile = false;
-
-  if (timeFromFile) {
-    assert(row.cols() == 23);
-    _timeSince1970 = Duration<time_t>::days(row(0, 22));
-  } else {
-    double year = row(0, 0);
-    double month = row(0, 1);
-    double dayOfTheMonth = row(0, 2);
-    double hour = row(0, 3);
-    double minute = row(0, 4);
-    double second = row(0, 5);
-    _timeSince1970 = NavDataConversion::makeTimeNmeaFromYMDhms(year, month, dayOfTheMonth, hour, minute, second);
-  }
+  double year = row(0, 0);
+  double month = row(0, 1);
+  double dayOfTheMonth = row(0, 2);
+  double hour = row(0, 3);
+  double minute = row(0, 4);
+  double second = row(0, 5);
+  _time = NavDataConversion::makeTimeNmeaFromYMDhms(year, month, dayOfTheMonth, hour, minute, second);
 }
 
 Nav::~Nav() {
@@ -153,9 +143,10 @@ void plotNavTimeVsIndex(Array<Nav> navs) {
   int count = navs.size();
 
   std::vector<double> X(count), Y(count);
+  TimeStamp start = navs[0].time();
   for (int i = 0; i < count; i++) {
     X[i] = i;
-    Y[i] = navs[i].time().days();
+    Y[i] = (navs[i].time() - start).days();
   }
 
   plot.set_style("lines");
@@ -172,18 +163,16 @@ double getNavsMaxInterval(Array<Nav> navs) {
   int count = navs.size();
   double m = 0.0;
   for (int i = 0; i < count-1; i++) {
-    m = std::max(m, navs[i+1].time().seconds() - navs[i].time().seconds());
+    m = std::max(m, (navs[i+1].time() - navs[i].time()).seconds());
   }
   return m;
 }
 
 void dispNavTimeIntervals(Array<Nav> navs) {
-  double mintime = navs.reduce<double>(navs[0].time().days(), [&] (double a, Nav b) {
-    return std::min(a, b.time().seconds());
-  });
-  double maxtime = navs.reduce<double>(navs[0].time().days(), [&] (double a, Nav b) {
-    return std::max(a, b.time().seconds());
-  });
+  assert(areSortedNavs(navs));
+  double mintime = 0.0;
+  double maxtime = (navs[navs.size()-1].time() - navs[0].time()).seconds();
+
   double m = getNavsMaxInterval(navs);
   std::cout << "Max interval (seconds): " << m << std::endl;
   std::cout << "Span (seconds): " << maxtime - mintime << std::endl;
@@ -194,7 +183,7 @@ void dispNavTimeIntervals(Array<Nav> navs) {
   Arrayi bins(binCount);
   bins.setTo(0);
   for (int i = 0; i < navCount-1; i++) {
-    double span = navs[i+1].time().seconds() - navs[i].time().seconds();
+    double span = (navs[i+1].time() - navs[i].time()).seconds();
     int index = std::max(0, int(floor(line(log(span)))));
     bins[index]++;
   }
@@ -209,7 +198,7 @@ int countNavSplitsByDuration(Array<Nav> navs, double durSeconds) {
   int count = navs.size();
   int counter = 0;
   for (int i = 0; i < count-1; i++) {
-    if (navs[i+1].time().seconds() - navs[i].time().seconds() > durSeconds) {
+    if ((navs[i+1].time() - navs[i].time()).seconds() > durSeconds) {
       counter++;
     }
   }
@@ -223,7 +212,7 @@ Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds) {
   int from = 0;
   int counter = 0;
   for (int i = 0; i < navCount-1; i++) {
-    if (navs[i+1].time().seconds() - navs[i].time().seconds() > durSeconds) {
+    if ((navs[i+1].time() - navs[i].time()).seconds() > durSeconds) {
       dst[counter] = navs.slice(from, i+1);
       counter++;
       from = i+1;

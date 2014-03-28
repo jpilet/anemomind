@@ -18,9 +18,6 @@ add_library(common_TimeStamp
             TimeStamp.h
             TimeStamp.cpp
            )
-target_link_libraries(common_TimeStamp
-                      common_PhysicalQuantity
-                     )
 
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp

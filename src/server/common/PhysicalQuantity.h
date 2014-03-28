@@ -63,6 +63,10 @@ class PhysicalQuantity {
     return Quantity::makeFromX(_x - other.get());
   }
 
+  Quantity operator-() const {
+    return Quantity::makeFromX(-_x);
+  }
+
   ThisQuantity &operator -= (ThisQuantity other) {
     _x -= other.get();
     return *this;
