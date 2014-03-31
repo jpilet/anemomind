@@ -12,7 +12,8 @@
     "mailchimp": "*",
     "jwt-simple": "*",
     "formidable": "1.0.14",
-    "async": "*"
+    "async": "*",
+    "winston": "^0.7.3"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
