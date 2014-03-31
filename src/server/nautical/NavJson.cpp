@@ -15,7 +15,7 @@ namespace json {
 
 Poco::JSON::Object::Ptr encode(const Nav &nav) {
   Poco::JSON::Object::Ptr x(new Poco::JSON::Object());
-  deserializeField(x, "time", nav.time());
+  serializeField(x, "time", nav.time());
   serializeField(x, "lon", nav.geographicPosition().lon());
   serializeField(x, "lat", nav.geographicPosition().lat());
   serializeField(x, "alt", nav.geographicPosition().alt());
@@ -34,7 +34,7 @@ void decode(Poco::JSON::Object::Ptr x, Nav *out) {
   Length<double> alt;
   Velocity<double> gpss, wats, aws;
 
-  serializeField(x, "time", &time);
+  deserializeField(x, "time", &time);
   deserializeField(x, "lon", &lon);
   deserializeField(x, "lat", &lat);
   deserializeField(x, "awa", &awa);
