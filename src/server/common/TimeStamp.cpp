@@ -6,6 +6,7 @@
 #include "TimeStamp.h"
 #include <assert.h>
 #include <limits>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -84,14 +85,14 @@ TimeStamp TimeStamp::makeUndefined() {
 
 
 bool TimeStamp::operator<(const TimeStamp &x) const {
-  assert(defined());
-  assert(x.defined());
+  CHECK(defined());
+  CHECK(x.defined());
   return _time < x._time;
 }
 
 double TimeStamp::difSeconds(const TimeStamp &a, const TimeStamp &b) {
-  assert(a.defined());
-  assert(b.defined());
+  CHECK(a.defined());
+  CHECK(b.defined());
   return (1.0/TimeRes)*double(a._time - b._time);
 }
 
@@ -104,10 +105,10 @@ TimeStamp operator-(const TimeStamp &a, const Duration<double> &b) {
 }
 
 TimeStamp operator+(const TimeStamp &a, const Duration<double> &b) {
-  assert(a.defined());
-  assert(!std::isnan(b.seconds()));
+  CHECK(a.defined());
+  CHECK(!std::isnan(b.seconds()));
   int64_t res = a._time + int64_t(TimeRes*b.seconds());
-  assert(res != UndefinedTime);
+  CHECK(res != UndefinedTime);
   return TimeStamp(res);
 }
 
