@@ -26,7 +26,7 @@ bool deserializeField(Poco::JSON::Object::Ptr obj, std::string prefix, TimeStamp
 }
 
 void serializeField(Poco::JSON::Object::Ptr obj, std::string prefix, const TimeStamp &x) {
-  obj->set(makeFname(prefix), x.toMilliSecondsSince1970());
+  obj->set(makeFname(prefix), static_cast<Poco::Int64>(x.toMilliSecondsSince1970()));
 }
 
 }  // namespace json
