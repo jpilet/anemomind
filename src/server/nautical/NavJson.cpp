@@ -15,16 +15,16 @@ namespace json {
 
 Poco::JSON::Object::Ptr encode(const Nav &nav) {
   Poco::JSON::Object::Ptr x(new Poco::JSON::Object());
-  writeField(x, "time", nav.time());
-  writeField(x, "lon", nav.geographicPosition().lon());
-  writeField(x, "lat", nav.geographicPosition().lat());
-  writeField(x, "alt", nav.geographicPosition().alt());
-  writeField(x, "maghdg", nav.magHdg());
-  writeField(x, "watspeed", nav.watSpeed());
-  writeField(x, "gpsspeed", nav.gpsSpeed());
-  writeField(x, "gpsbearing", nav.gpsSpeed());
-  writeField(x, "aws", nav.aws());
-  writeField(x, "awa", nav.awa());
+  deserializeField(x, "time", nav.time());
+  serializeField(x, "lon", nav.geographicPosition().lon());
+  serializeField(x, "lat", nav.geographicPosition().lat());
+  serializeField(x, "alt", nav.geographicPosition().alt());
+  serializeField(x, "maghdg", nav.magHdg());
+  serializeField(x, "watspeed", nav.watSpeed());
+  serializeField(x, "gpsspeed", nav.gpsSpeed());
+  serializeField(x, "gpsbearing", nav.gpsSpeed());
+  serializeField(x, "aws", nav.aws());
+  serializeField(x, "awa", nav.awa());
   return x;
 }
 
@@ -34,16 +34,16 @@ void decode(Poco::JSON::Object::Ptr x, Nav *out) {
   Length<double> alt;
   Velocity<double> gpss, wats, aws;
 
-  readField(x, "time", &time);
-  readField(x, "lon", &lon);
-  readField(x, "lat", &lat);
-  readField(x, "awa", &awa);
-  readField(x, "aws", &aws);
-  readField(x, "alt", &alt);
-  readField(x, "maghdg", &maghdg);
-  readField(x, "watspeed", &wats);
-  readField(x, "gpsspeed", &gpss);
-  readField(x, "gpsbearing", &gpsb);
+  serializeField(x, "time", &time);
+  deserializeField(x, "lon", &lon);
+  deserializeField(x, "lat", &lat);
+  deserializeField(x, "awa", &awa);
+  deserializeField(x, "aws", &aws);
+  deserializeField(x, "alt", &alt);
+  deserializeField(x, "maghdg", &maghdg);
+  deserializeField(x, "watspeed", &wats);
+  deserializeField(x, "gpsspeed", &gpss);
+  deserializeField(x, "gpsbearing", &gpsb);
 
   *out = Nav();
   out->setTime(time);

@@ -14,8 +14,8 @@ class TimeStamp;
 
 namespace json {
 
-bool readField(Poco::JSON::Object::Ptr obj, std::string prefix, TimeStamp *out);
-void writeField(Poco::JSON::Object::Ptr obj, std::string prefix, const TimeStamp &x);
+bool serializeField(Poco::JSON::Object::Ptr obj, std::string prefix, TimeStamp *out);
+void deserializeField(Poco::JSON::Object::Ptr obj, std::string prefix, const TimeStamp &x);
 
 }
 } /* namespace sail */
