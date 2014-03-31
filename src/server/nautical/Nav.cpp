@@ -80,6 +80,17 @@ Nav::~Nav() {
   // TODO Auto-generated destructor stub
 }
 
+bool Nav::operator== (const Nav &other) const {
+  return _gpsSpeed.eqWithNan(other._gpsSpeed) &&
+      _awa.eqWithNan(other._awa) &&
+      _aws.eqWithNan(other._aws) &&
+      _twaFromFile.eqWithNan(other._twaFromFile) &&
+      _twsFromFile.eqWithNan(other._twsFromFile) &&
+      _magHdg.eqWithNan(other._magHdg) &&
+      _watSpeed.eqWithNan(other._watSpeed) &&
+      _gpsBearing.eqWithNan(other._gpsBearing) &&
+      _pos == other._pos && (strictEquality(_cwd, other._cwd)) && (strictEquality(_wd, other._wd));
+}
 
 
 const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";

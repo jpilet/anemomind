@@ -59,6 +59,8 @@ class Nav {
   // This is just temporary. We should
   // replace it with CMake-generated paths in the future.
   static const char AllNavsPath[];
+
+  bool operator== (const Nav &other) const;
  private:
 
   Velocity<double> _gpsSpeed;
@@ -77,6 +79,7 @@ class Nav {
   GeographicPosition<double> _pos;
 
   // What does cwd and wd stand for? I forgot...
+  // See NmeaParser: "Cumulative Water Distance" and "Water Distance"
   double _cwd;
   double _wd;
 
