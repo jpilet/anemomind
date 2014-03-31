@@ -40,7 +40,7 @@ template <typename Value>
 struct JsonQuantityTraits<Angle<Value>, Value> {
     static double serialize(const Angle<Value>& a) { return a.radians(); }
     static Angle<Value> deserialize(double v) { return Angle<Value>::radians(v); }
-    static const char* suffix() { return "-mps"; };
+    static const char* suffix() { return "-rad"; };
 };
 
 template <typename Value>
