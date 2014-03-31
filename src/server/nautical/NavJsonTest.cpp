@@ -23,7 +23,7 @@ TEST(NavJsonTest, ConvertToJson) {
   EXPECT_GE(len, 0);
   EXPECT_EQ(s[0], '[');
   EXPECT_EQ(s[len-1], ']');
-  const char expected[] = "[{\"time-int64\":9223372036854775807}]";
+  const char expected[] = "[{\"time-milliseconds-since-1970\":9223372036854775807}]";
   EXPECT_EQ(s, expected);
 }
 
@@ -31,7 +31,7 @@ TEST(NavJsonTest, ConvertToJson) {
 
 
 TEST(NavJsonTest, ConvertFromJson) {
-  const char dataToDecode[] = "[{\"alt-m\":0.4,\"awa-rad\":0.5235987755982988,\"aws-mps\":6,\"gpsbearing-mps\":2.520777777777778,\"gpsspeed-mps\":2.520777777777778,\"lat-rad\":0.6806784082777885,\"lon-rad\":0.8377580409572782,\"maghdg-rad\":1.5707963267948966,\"time-int64\":1396029819000,\"watspeed-mps\":2.5722222222222224}]";
+  const char dataToDecode[] = "[{\"alt-m\":0.4,\"awa-rad\":0.5235987755982988,\"aws-mps\":6,\"gpsbearing-mps\":2.520777777777778,\"gpsspeed-mps\":2.520777777777778,\"lat-rad\":0.6806784082777885,\"lon-rad\":0.8377580409572782,\"maghdg-rad\":1.5707963267948966,\"time-milliseconds-since-1970\":1396029819000,\"watspeed-mps\":2.5722222222222224}]";
 
   Poco::JSON::Parser parser;
   Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
@@ -53,7 +53,7 @@ TEST(NavJsonTest, ConvertFromJson) {
 }
 
 TEST(NavJsonTest, ConvertFromJsonUndef) {
-  const char dataToDecode[] = "[{\"time-int64\":9223372036854775807}]";
+  const char dataToDecode[] = "[{\"time-milliseconds-since-1970\":9223372036854775807}]";
 
 
   Poco::JSON::Parser parser;
