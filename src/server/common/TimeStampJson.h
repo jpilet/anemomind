@@ -14,7 +14,7 @@ class TimeStamp;
 
 namespace json {
 
-void readField(Poco::JSON::Object::Ptr obj, std::string prefix, TimeStamp *out, bool require);
+bool readField(Poco::JSON::Object::Ptr obj, std::string prefix, TimeStamp *out);
 void writeField(Poco::JSON::Object::Ptr obj, std::string prefix, const TimeStamp &x);
 
 }

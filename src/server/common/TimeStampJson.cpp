@@ -15,15 +15,14 @@ namespace {
   }
 }
 
-void readField(Poco::JSON::Object::Ptr obj, std::string prefix, TimeStamp *out, bool require = true) {
+bool readField(Poco::JSON::Object::Ptr obj, std::string prefix, TimeStamp *out) {
   std::string fname = makeFname(prefix);
   if (obj->has(fname)) {
     *out = TimeStamp::fromMilliSecondsSince1970(obj->getValue<Poco::Int64>(fname));
-  } else if (require) {
-    throw MissingFieldException(obj, fname);
-  } else {
-    *out = TimeStamp::makeUndefined();
+    return true;
   }
+  *out = TimeStamp::makeUndefined();
+  return false;
 }
 
 void writeField(Poco::JSON::Object::Ptr obj, std::string prefix, const TimeStamp &x) {

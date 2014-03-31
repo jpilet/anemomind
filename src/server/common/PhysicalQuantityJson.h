@@ -54,18 +54,15 @@ struct JsonQuantityTraits<Length<Value>, Value> {
 
 template<class Quantity>
 bool readField(Poco::JSON::Object::Ptr obj, std::string fieldPrefix,
-               Quantity *out, bool require) {
+               Quantity *out) {
     std::string fname = fieldPrefix + JsonQuantityTraits<Quantity, typename Quantity::ValueType>::suffix();
     bool is = obj->has(fname);
     if (is) {
         *out = JsonQuantityTraits<Quantity, typename Quantity::ValueType>::deserialize(
             obj->getValue<double>(fname));
         return true;
-    } else if (require) {
-        throw MissingFieldException(obj, fname);
-    } else {
-        *out = Quantity();
     }
+    *out = Quantity();
     return false;
 }
 

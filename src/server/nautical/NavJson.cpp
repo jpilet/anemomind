@@ -34,16 +34,16 @@ void decode(Poco::JSON::Object::Ptr x, Nav *out) {
   Length<double> alt;
   Velocity<double> gpss, wats, aws;
 
-  readField(x, "time", &time, false);
-  readField(x, "lon", &lon, false);
-  readField(x, "lat", &lat, false);
-  readField(x, "awa", &awa, false);
-  readField(x, "aws", &aws, false);
-  readField(x, "alt", &alt, false);
-  readField(x, "maghdg", &maghdg, false);
-  readField(x, "watspeed", &wats, false);
-  readField(x, "gpsspeed", &gpss, false);
-  readField(x, "gpsbearing", &gpsb, false);
+  readField(x, "time", &time);
+  readField(x, "lon", &lon);
+  readField(x, "lat", &lat);
+  readField(x, "awa", &awa);
+  readField(x, "aws", &aws);
+  readField(x, "alt", &alt);
+  readField(x, "maghdg", &maghdg);
+  readField(x, "watspeed", &wats);
+  readField(x, "gpsspeed", &gpss);
+  readField(x, "gpsbearing", &gpsb);
 
   *out = Nav();
   out->setTime(time);
