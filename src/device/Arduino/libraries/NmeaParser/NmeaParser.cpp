@@ -1,4 +1,4 @@
-#include "nmeaparser.h"
+#include "NmeaParser.h"
 
 #include <stdio.h>
 #include <math.h>

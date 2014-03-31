@@ -14,6 +14,16 @@ add_library(common_ScopedLog
             ScopedLog.cpp)
 target_link_libraries(common_ScopedLog common_logging)
 
+add_library(common_TimeStamp
+            TimeStamp.h
+            TimeStamp.cpp
+           )
+cxx_test(common_TimeStampTest
+         TimeStampTest.cpp
+         common_TimeStamp 
+         gtest_main
+        ) 
+
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp
   gtest_main)
@@ -28,13 +38,13 @@ add_library(common_Array
 cxx_test(common_ArrayTest ArrayTest.cpp
          common_Array gtest_main)
 
-add_library(common_ContinuousRange
-            ContinuousRange.h
-            ContinuousRange.cpp
-            )
-target_link_libraries(common_ContinuousRange common_Array)
-cxx_test(common_ContinousRangeTest ContinuousRangeTest.cpp
-         common_ContinuousRange gtest_main)
+add_library(common_PeriodicSpan
+            PeriodicSpan.h
+            PeriodicSpan.cpp
+           )
+target_link_libraries(common_PeriodicSpan common_Array)
+cxx_test(common_PeriodicSpanTest PeriodicSpanTest.cpp
+         common_PeriodicSpan gtest_main)
 
 add_library(common_Span
             Span.h
