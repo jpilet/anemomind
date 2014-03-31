@@ -30,47 +30,52 @@ TEST(NavJsonTest, ConvertToJson) {
 
 
 
-TEST(NavJsonTest, ConvertFromJson) {
-  const char dataToDecode[] = "[{\"alt-m\":0.4,\"awa-rad\":0.5235987755982988,\"aws-mps\":6,\"gpsbearing-mps\":2.520777777777778,\"gpsspeed-mps\":2.520777777777778,\"lat-rad\":0.6806784082777885,\"lon-rad\":0.8377580409572782,\"maghdg-rad\":1.5707963267948966,\"time-milliseconds-since-1970\":1396029819000,\"watspeed-mps\":2.5722222222222224}]";
 
-  Poco::JSON::Parser parser;
-  Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
+void runJsonEncDecTest(const char *dataToDecode) {
 
-  parser.setHandler(handler);
+  sail::Array<Nav> navs1;
+  {
+    Poco::JSON::Parser parser;
+    Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
 
-  parser.parse(dataToDecode);
-  Poco::Dynamic::Var result = handler->asVar();
-  EXPECT_TRUE(result.isArray());
-  Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
+    parser.setHandler(handler);
+    parser.parse(dataToDecode);
+    Poco::Dynamic::Var result = handler->asVar();
+    EXPECT_TRUE(result.isArray());
+    Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
 
-  sail::Array<Nav> navs;
-  json::decode(*arr, &navs);
-  EXPECT_EQ(navs.size(), 1);
+    json::decode(*arr, &navs1);
+    EXPECT_EQ(navs1.size(), 1);
+  }
 
   std::stringstream ss;
-  json::encode(navs).stringify(ss, 0, 0);
-  EXPECT_EQ(ss.str(), dataToDecode);
+  json::encode(navs1).stringify(ss, 0, 0);
+  std::string dataToDecode2 = ss.str();
+
+  {
+     Poco::JSON::Parser parser;
+     Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
+
+     parser.setHandler(handler);
+     parser.parse(dataToDecode2);
+     Poco::Dynamic::Var result = handler->asVar();
+     EXPECT_TRUE(result.isArray());
+     Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
+
+     Array<Nav> navs2;
+     json::decode(*arr, &navs2);
+     EXPECT_EQ(navs2.size(), 1);
+     EXPECT_EQ(navs1[0], navs2[0]);
+  }
 }
 
-TEST(NavJsonTest, ConvertFromJsonUndef) {
-  const char dataToDecode[] = "[{\"time-milliseconds-since-1970\":9223372036854775807}]";
-
-
-  Poco::JSON::Parser parser;
-  Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
-
-  parser.setHandler(handler);
-
-  parser.parse(dataToDecode);
-  Poco::Dynamic::Var result = handler->asVar();
-  EXPECT_TRUE(result.isArray());
-  Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
-
-  sail::Array<Nav> navs;
-  json::decode(*arr, &navs);
-  EXPECT_EQ(navs.size(), 1);
-
-  std::stringstream ss;
-  json::encode(navs).stringify(ss, 0, 0);
-  EXPECT_EQ(ss.str(), dataToDecode);
+TEST(NavJsonTest, EncDecTest) {
+  {
+    const char dataToDecode[] = "[{\"time-milliseconds-since-1970\":9223372036854775807}]";
+    runJsonEncDecTest(dataToDecode);
+  }
+  {
+    const char dataToDecode[] = "[{\"alt-m\":0.4,\"awa-rad\":0.5235987755982988,\"aws-mps\":6,\"gpsbearing-mps\":2.520777777777778,\"gpsspeed-mps\":2.520777777777778,\"lat-rad\":0.6806784082777885,\"lon-rad\":0.8377580409572782,\"maghdg-rad\":1.5707963267948966,\"time-milliseconds-since-1970\":1396029819000,\"watspeed-mps\":2.5722222222222224}]";
+    runJsonEncDecTest(dataToDecode);
+  }
 }
