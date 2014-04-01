@@ -16,7 +16,7 @@ using namespace sail;
 TEST(NavJsonTest, ConvertToJson) {
   Nav nav;
   Array<Nav> navs(1, &nav);
-  Poco::JSON::Array data = json::encode(navs);
+  Poco::JSON::Array data = json::serialize(navs);
   stringstream ss;
   data.stringify(ss, 0, 0);
   std::string s = ss.str();
@@ -46,7 +46,7 @@ Array<Nav> deserializeNavs(const char *dataToDecode) {
   EXPECT_TRUE(result.isArray());
   Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
 
-  json::decode(*arr, &navs);
+  json::deserialize(*arr, &navs);
   return navs;
 }
 
@@ -55,7 +55,7 @@ void runJsonEncDecTest(const char *dataToDecode) {
   EXPECT_EQ(navs.size(), 1);
 
   std::stringstream ss;
-  json::encode(navs).stringify(ss, 0, 0);
+  json::serialize(navs).stringify(ss, 0, 0);
 
   Array<Nav> navs2 = deserializeNavs(ss.str().c_str());
   EXPECT_EQ(navs2.size(), 1);

@@ -13,7 +13,7 @@
 namespace sail {
 namespace json {
 
-Poco::JSON::Object::Ptr encode(const Nav &nav) {
+Poco::JSON::Object::Ptr serialize(const Nav &nav) {
   Poco::JSON::Object::Ptr x(new Poco::JSON::Object());
   serializeField(x, "time", nav.time());
   serializeField(x, "lon", nav.geographicPosition().lon());
@@ -28,7 +28,7 @@ Poco::JSON::Object::Ptr encode(const Nav &nav) {
   return x;
 }
 
-void decode(Poco::JSON::Object::Ptr x, Nav *out) {
+void deserialize(Poco::JSON::Object::Ptr x, Nav *out) {
   TimeStamp time;
   Angle<double> lon, lat, maghdg, gpsb, awa;
   Length<double> alt;
@@ -56,20 +56,20 @@ void decode(Poco::JSON::Object::Ptr x, Nav *out) {
   out->setWatSpeed(wats);
 }
 
-Poco::JSON::Array encode(Array<Nav> navs) { // Perhaps write a template encodeArray<T> with T = Nav in this case...
+Poco::JSON::Array serialize(Array<Nav> navs) { // Perhaps write a template encodeArray<T> with T = Nav in this case...
   Poco::JSON::Array arr;
   int count = navs.size();
   for (int i = 0; i < count; i++) {
-    arr.add(encode(navs[i]));
+    arr.add(serialize(navs[i]));
   }
   return arr;
 }
 
-void decode(Poco::JSON::Array src, Array<Nav> *dst) {
+void deserialize(Poco::JSON::Array src, Array<Nav> *dst) {
   int count = src.size();
   *dst = Array<Nav>(count);
   for (int i = 0; i < count; i++) {
-    decode(src.getObject(i), dst->ptr(i));
+    deserialize(src.getObject(i), dst->ptr(i));
   }
 }
 

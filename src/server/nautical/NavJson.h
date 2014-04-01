@@ -16,11 +16,11 @@ namespace json {
 
 
 
-Poco::JSON::Object::Ptr encode(const Nav &nav);
-void decode(Poco::JSON::Object::Ptr x, Nav *out);
+Poco::JSON::Object::Ptr serialize(const Nav &nav);
+void deserialize(Poco::JSON::Object::Ptr x, Nav *out);
 
-Poco::JSON::Array encode(Array<Nav> nav);
-void decode(Poco::JSON::Array src, Array<Nav> *dst);
+Poco::JSON::Array serialize(Array<Nav> nav);
+void deserialize(Poco::JSON::Array src, Array<Nav> *dst);
 
 // TODO: decode
 
