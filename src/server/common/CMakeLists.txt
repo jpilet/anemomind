@@ -25,7 +25,15 @@ cxx_test(common_TimeStampTest
          TimeStampTest.cpp
          common_TimeStamp 
          gtest_main
-        ) 
+        )
+        
+add_library(common_TimeStampJson
+            TimeStampJson.cpp
+            TimeStampJson.h
+           )
+target_depends_on_poco_foundation(common_TimeStampJson)
+
+target_depends_on_poco_foundation(common_TimeStampJson)           
 
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp
@@ -101,6 +109,11 @@ target_link_libraries(common_Uniform
 add_library(common_math
   math.h
   math.cpp)
+cxx_test(common_mathTest
+         mathTest.cpp
+         common_math
+         gtest_main
+        )  
 
 cxx_test(common_invalidate
          invalidate_test.cpp

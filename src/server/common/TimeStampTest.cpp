@@ -38,3 +38,10 @@ TEST(TimeStampTest, Def) {
   EXPECT_TRUE(TimeStamp::now().defined());
 }
 
+TEST(TimeStampTest, MilliSeconds) {
+  const int64_t ms = 516456302000;
+  TimeStamp a(1986, 5, 14, 13, 5, 2.0, 0, 0);
+  EXPECT_EQ(a.toMilliSecondsSince1970(), ms);
+  EXPECT_EQ(TimeStamp::fromMilliSecondsSince1970(ms).toMilliSecondsSince1970(), ms);
+}
+

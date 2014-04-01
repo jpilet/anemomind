@@ -13,6 +13,8 @@ namespace sail {
 template <typename T>
 class GeographicPosition {
 public:
+  typedef GeographicPosition<T> ThisType;
+
   GeographicPosition() {}
   GeographicPosition(Angle<T> longitude, Angle<T> latitude, Length<T> altitude = Length<T>::meters(0)) :
     _lon(longitude),
@@ -29,6 +31,12 @@ public:
         Angle<DstType>::radians(_lon.radians()),
         Angle<DstType>::radians(_lat.radians()),
         Length<DstType>::meters(_alt.meters()));
+  }
+
+  bool operator== (const ThisType &other) const {
+    return _lon.eqWithNan(other._lon) &&
+        _lat.eqWithNan(other._lat) &&
+        _alt.eqWithNan(other._alt);
   }
 private:
   Angle<T> _lon, _lat;

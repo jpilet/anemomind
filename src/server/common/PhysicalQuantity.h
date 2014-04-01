@@ -78,7 +78,12 @@ class PhysicalQuantity {
   bool operator <= (ThisQuantity other) const {return _x <= other.get();}
   bool operator > (ThisQuantity other) const {return _x > other.get();}
   bool operator >= (ThisQuantity other) const {return _x >= other.get();}
+  bool operator == (ThisQuantity other) const {return _x == other.get();}
 
+  // Special method returning true for the comparison nan == nan.
+  bool eqWithNan(ThisQuantity other) const {
+    return strictEquality(_x, other.get());
+  }
  protected:
   Value get() const {return _x;}
   PhysicalQuantity(Value x) : _x(x) {}
