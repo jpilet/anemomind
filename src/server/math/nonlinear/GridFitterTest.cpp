@@ -39,7 +39,7 @@ TEST(GridFitterTest, TestFixedReg) {
     MDArray2d V = grid.getGridVertexCoords();
     arma::mat Vmat(V.getData(), V.rows(), V.cols(), false, true);
     arma::mat Xmat(td.X.getData(), td.X.size(), 1, false, true);
-    assert(arma::norm(P*Vmat - Xmat, 2) <= 1.0e-6);
+    EXPECT_LE(arma::norm(P*Vmat - Xmat, 2), 1.0e-6);
   }
 
   NoisyStep data(td.X, td.Ynoisy);
