@@ -34,8 +34,8 @@ Poco::JSON::Object::Ptr serialize(const TimeStamp &src) {
   return toJsonObjectWithField<TimeStamp>("time", src);
 }
 
-void deserialize(Poco::JSON::Object::Ptr src, TimeStamp *dst) {
-  deserializeField(src, "time", dst);
+bool deserialize(Poco::JSON::Object::Ptr src, TimeStamp *dst) {
+  return deserializeField(src, "time", dst);
 }
 
 

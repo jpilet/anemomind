@@ -19,7 +19,7 @@ bool deserializeField(Poco::JSON::Object::Ptr obj, std::string prefix, TimeStamp
 void serializeField(Poco::JSON::Object::Ptr obj, std::string prefix, const TimeStamp &x);
 
 Poco::JSON::Object::Ptr serialize(const TimeStamp &src);
-void deserialize(Poco::JSON::Object::Ptr src, TimeStamp *dst);
+bool deserialize(Poco::JSON::Object::Ptr src, TimeStamp *dst);
 
 }
 } /* namespace sail */
