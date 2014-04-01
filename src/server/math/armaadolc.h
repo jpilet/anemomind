@@ -115,6 +115,7 @@ namespace sail {
 
 
 typedef Array<adouble> Arrayad;
+typedef MDArray<adouble, 2> MDArray2ad;
 
 Array<double> getGradient(short int tapeIndex, Array<double> X);
 void outputGradient(short int tapeIndex, Array<double> X, double *grad);
@@ -144,6 +145,11 @@ inline double getDouble(double x) {
 }
 inline double getDouble(adouble x) {
   return x.getValue();
+}
+
+template <typename T>
+MDArray<T, 2> toMDArray(arma::Mat<T> &x) {
+  return MDArray<T, 2>(x.n_rows, x.n_cols, x.memptr());
 }
 
 arma::admat adMatMul(arma::admat A, arma::admat B);

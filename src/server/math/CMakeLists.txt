@@ -39,6 +39,25 @@ target_link_libraries(math_ADFunction
                      )
 target_depends_on_adolc(math_ADFunction)
 
+add_library(math_LUImpl
+            LUImpl.h
+            LUImpl.cpp
+           )
+add_library(math_LU
+            LU.h
+            LU.cpp
+           )
+target_link_libraries(math_LU
+                      math_armaadolc
+                      math_LUImpl
+                     )
+cxx_test(math_LUTest
+         LUTest.cpp
+         math_LU
+         math_ADFunction
+         gtest_main
+        )                           
+
 add_library(math_pareto
             pareto.cpp
             pareto.h
