@@ -20,6 +20,18 @@ std::ostream &operator << (std::ostream &s, Array<T> arr) {
   return s;
 }
 
+template <typename T>
+void outputAsCArrayInitializer(std::string name, Array<T> arr, std::ostream *out) {
+  *out << name << "[" << arr.size() << "] = {";
+  int lastIndex = arr.size()-1;
+  for (int i = 0; i < lastIndex; i++) {
+    *out << arr[i] << ", ";
+  }
+  *out << arr[lastIndex] << "};\n";
+}
+
+#define OUTPUT_AS_C_ARRAY_INITIALIZER(stream, arr) outputAsCArrayInitializer(#arr, (arr), &(stream))
+
 template <typename T, int dims>
 std::ostream &operator << (std::ostream &s, MDArray<T, dims> arr) {
   int count = arr.numel();

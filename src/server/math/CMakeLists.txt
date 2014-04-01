@@ -29,7 +29,6 @@ cxx_test(math_MatExprTest
          gtest_main
         )                   
 
-
 add_library(math_ADFunction
             ADFunction.cpp
             ADFunction.h
