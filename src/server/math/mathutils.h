@@ -65,6 +65,9 @@ arma::sp_mat dcat(arma::sp_mat A, arma::sp_mat B); //diagonal
 
 arma::sp_mat makePermutationMat(Arrayi ordering);
 
+// For debugging sparse matrices.
+bool areValidSparseInds(int dstRows, int dstCols, arma::umat IJ);
+
 // Replaces the operation arma::kron(M, arma::sp_eye(eyeDim, eyeDim))
 // which is not yet implemented in Armadillo
 arma::sp_mat kronWithSpEye(arma::sp_mat M, int eyeDim);
