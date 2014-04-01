@@ -1,41 +1,30 @@
-sailsmart
-=========
+# anemomind optimization code
+This repository holds the code to perform numerical calculations
+on nautical recordings. The majority of the code is written in C++.
 
-How to get started
-------------------
+## Reference platform
+The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
 
-1. Pull the source code
-2. View index.html from within a web browser
+## Required dependencies:
+  * C++ compiler, such as GCC or LLVM/Clang
+  * CMake build system
+  * The following packages, used by POCO:
+    libssl-dev, unixodbc-dev, libmysqlclient-dev, libkrb5-dev
+  * Armadillo
+  * gnuplot (only necessary if you want to plot)
 
-Prototype File summary
-----------------------
+## Dependencies that are fetched automatically:
+  * gtest
+  * ADOL-C
+  * POCO
 
-    allnavs.js       Recorded measurements over several years in JSON format
-    common.js        Common functions used everywhere.
-    index.html       The main file.
-    jquery.min.js    JQuery library
-    makeparser.js    Include this file inside the index.html to generate production rules
-                     that can be pasted into http://pegjs.majda.cz/ to generate a parser
-                     for a context free grammar.
-    matrix.js        A matrix class
-    parser002.js     Output from a parser generator
-    parserutils.js   Used by makeparser.js
-    parsetree.js     Saved output from the parser.
-    sailmodel002.m   Defines the statemachine (costs, transitons, etc.)
-    sailrecord.js    Routines to parse the data in allnavs.js
-    statemachine.js  Solves the HMM using dynamic programming
-    test%03d.js      Short scripts to include inside index.html to test/illustrate features.
-    treeinfo.js      Code to display the parse tree.
-    treeinfo002.js   Code to display the specific parse tree that we define for sailmodel002.
-
-How to
-------
-
-... tweak the costs of the HMM:
-See SailModel002Settings inside sailmodel002.js
-
-... modify the HMM:
-See sailmodel002.m
-
-... modify the context free grammar:
-See makeparser.js and treeinfo002.js
+## Summary of steps to get started:
+  1. Install dependencies
+  2. Clone this repository
+  3. From the root directory,
+     mkdir build
+  4. cd build
+  5. cmake ../
+  6. make -j N
+     where N is the number of cores, e.g. 8
+  7. make test

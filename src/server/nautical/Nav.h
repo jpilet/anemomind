@@ -13,9 +13,15 @@
 #include <server/common/math.h>
 #include <server/common/PhysicalQuantity.h>
 #include <server/nautical/GeographicPosition.h>
+#include <server/common/TimeStamp.h>
 
 namespace sail {
 
+// Helper functions to convert from the format of
+// NmeaParser
+namespace NavDataConversion {
+  TimeStamp makeTimeNmeaFromYMDhms(double yearSince2000, double month, double day, double hour, double minute, double second);
+}
 
 // Represents a single recording of data from the devices onboard.
 class Nav {
@@ -26,19 +32,29 @@ class Nav {
 
   // For sorting
   bool operator< (const Nav &other) const {
-    return _timeSince1970 < other._timeSince1970;
+    return _time < other._time;
   }
 
-  Duration<double> time() const {return _timeSince1970;}
+  TimeStamp time() const {
+    return _time;
+  }
 
   const GeographicPosition<double> &geographicPosition() const {return _pos;}
-
   Angle<double> awa() const {return _awa;}
   Velocity<double> aws() const {return _aws;}
   Angle<double> magHdg() const {return _magHdg;}
   Angle<double> gpsBearing() const {return _gpsBearing;}
   Velocity<double> gpsSpeed() const {return _gpsSpeed;}
   Velocity<double> watSpeed() const {return _watSpeed;}
+
+  void setAwa(Angle<double> awa_) {_awa = awa_;}
+  void setAws(Velocity<double> aws_) {_aws = aws_;}
+  void setMagHdg(Angle<double> magHdg_) {_magHdg = magHdg_;}
+  void setGpsBearing(Angle<double> gpsBearing_) {_gpsBearing = gpsBearing_;}
+  void setGpsSpeed(Velocity<double> gpsSpeed_) {_gpsSpeed = gpsSpeed_;}
+  void setWatSpeed(Velocity<double> watSpeed_) {_watSpeed = watSpeed_;}
+  void setTime(const TimeStamp &t) {_time = t;}
+  void setGeographicPosition(GeographicPosition<double> pos) {_pos = pos;}
 
   // This is just temporary. We should
   // replace it with CMake-generated paths in the future.
@@ -67,7 +83,7 @@ class Nav {
 
 
   // TIME RELATED
-  Duration<double> _timeSince1970;
+  TimeStamp _time;
 };
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort = true);
