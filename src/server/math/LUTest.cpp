@@ -40,6 +40,11 @@ TEST(LUTest, ManyColRightHandSide) {
 
   arma::mat X2 = solveLU(A, B);
   EXPECT_NEAR(arma::norm(A*X2 - B, 2), 0.0, 1.0e-6);
+  for (int i = 0; i < X.n_rows; i++) {
+    for (int j = 0; j < X.n_cols; j++) {
+      EXPECT_NEAR(X(i, j), X2(i, j), 1.0e-6);
+    }
+  }
 }
 
 class LUFun : public AutoDiffFunction {
