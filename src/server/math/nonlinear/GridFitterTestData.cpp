@@ -17,28 +17,28 @@ GridFitterTestData::GridFitterTestData() {
   Ynoisy = Arrayd(sampleCount_, Ynoisydata);
   sampleCount = sampleCount_;
 
-  bool splitdata0[sampleCount_] = {1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
-  bool splitdata1[sampleCount_] = {1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0};
-  bool splitdata2[sampleCount_] = {0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1};
-  bool splitdata3[sampleCount_] = {1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1};
-  bool splitdata4[sampleCount_] = {0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1};
-  bool splitdata5[sampleCount_] = {1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1};
-  bool splitdata6[sampleCount_] = {0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0};
-  bool splitdata7[sampleCount_] = {1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0};
-  bool splitdata8[sampleCount_] = {1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0};
+  const bool splitdata0[sampleCount_] = {1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
+  const bool splitdata1[sampleCount_] = {1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0};
+  const bool splitdata2[sampleCount_] = {0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1};
+  const bool splitdata3[sampleCount_] = {1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1};
+  const bool splitdata4[sampleCount_] = {0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1};
+  const bool splitdata5[sampleCount_] = {1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1};
+  const bool splitdata6[sampleCount_] = {0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0};
+  const bool splitdata7[sampleCount_] = {1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0};
+  const bool splitdata8[sampleCount_] = {1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0};
 
   const int splitCount = 9;
-  Arrayb splitsdata[splitCount] = {
-      Arrayb(sampleCount_, splitdata0).dup(),
-      Arrayb(sampleCount_, splitdata1).dup(),
-      Arrayb(sampleCount_, splitdata2).dup(),
-      Arrayb(sampleCount_, splitdata3).dup(),
-      Arrayb(sampleCount_, splitdata4).dup(),
-      Arrayb(sampleCount_, splitdata5).dup(),
-      Arrayb(sampleCount_, splitdata6).dup(),
-      Arrayb(sampleCount_, splitdata7).dup(),
-      Arrayb(sampleCount_, splitdata8).dup()};
-   splits = Array<Arrayb>(splitCount, splitsdata).dup();
+  const Arrayb splitsdata[splitCount] = {
+      Arrayb(sampleCount_, splitdata0),
+      Arrayb(sampleCount_, splitdata1),
+      Arrayb(sampleCount_, splitdata2),
+      Arrayb(sampleCount_, splitdata3),
+      Arrayb(sampleCount_, splitdata4),
+      Arrayb(sampleCount_, splitdata5),
+      Arrayb(sampleCount_, splitdata6),
+      Arrayb(sampleCount_, splitdata7),
+      Arrayb(sampleCount_, splitdata8)};
+   splits = Array<Arrayb>(splitCount, splitsdata);
 }
 
 } /* namespace sail */
