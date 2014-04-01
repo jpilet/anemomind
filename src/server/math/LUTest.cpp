@@ -32,7 +32,7 @@ TEST(LUTest, ManyColRightHandSide) {
 
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 2; j++) {
-      X(i, 0) = i + j;
+      X(i, j) = i + j;
     }
   }
 
