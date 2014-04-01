@@ -33,9 +33,6 @@ add_library(common_TimeStampJson
            )
 target_depends_on_poco_foundation(common_TimeStampJson)
 
-add_library(common_PhysicalQuantityJson
-            PhysicalQuantityJson.h
-           )
 target_depends_on_poco_foundation(common_TimeStampJson)           
 
 cxx_test(common_PhysicalQuantityTest

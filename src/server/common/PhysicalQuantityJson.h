@@ -11,7 +11,6 @@
 
 #include <Poco/JSON/Object.h>
 #include <server/common/PhysicalQuantity.h>
-#include <server/common/Json.h>
 
 namespace sail {
 namespace json {
