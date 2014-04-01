@@ -33,6 +33,7 @@ TEST(NavJsonTest, ConvertToJson) {
 
 void runJsonEncDecTest(const char *dataToDecode) {
 
+
   sail::Array<Nav> navs1;
   {
     Poco::JSON::Parser parser;
