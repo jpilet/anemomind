@@ -22,7 +22,7 @@ Poco::JSON::Object::Ptr encode(const Nav &nav) {
   serializeField(x, "maghdg", nav.magHdg());
   serializeField(x, "watspeed", nav.watSpeed());
   serializeField(x, "gpsspeed", nav.gpsSpeed());
-  serializeField(x, "gpsbearing", nav.gpsSpeed());
+  serializeField(x, "gpsbearing", nav.gpsBearing());
   serializeField(x, "aws", nav.aws());
   serializeField(x, "awa", nav.awa());
   return x;

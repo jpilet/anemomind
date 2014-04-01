@@ -3,12 +3,13 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <gtest/gtest.h>
-#include <server/nautical/NavJson.h>
-#include <server/common/string.h>
 #include <Poco/JSON/Array.h>
-#include <Poco/JSON/Parser.h>
 #include <Poco/JSON/ParseHandler.h>
+#include <Poco/JSON/Parser.h>
+#include <gtest/gtest.h>
+#include <server/common/logging.h>
+#include <server/common/string.h>
+#include <server/nautical/NavJson.h>
 
 using namespace sail;
 
@@ -28,55 +29,85 @@ TEST(NavJsonTest, ConvertToJson) {
 }
 
 
+namespace {
 
+Array<Nav> deserializeNavs(const char *dataToDecode) {
+  sail::Array<Nav> navs;
+  Poco::JSON::Parser parser;
+  Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
 
-
-void runJsonEncDecTest(const char *dataToDecode) {
-
-
-  sail::Array<Nav> navs1;
-  {
-    Poco::JSON::Parser parser;
-    Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
-
-    parser.setHandler(handler);
+  parser.setHandler(handler);
+  try {
     parser.parse(dataToDecode);
-    Poco::Dynamic::Var result = handler->asVar();
-    EXPECT_TRUE(result.isArray());
-    Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
-
-    json::decode(*arr, &navs1);
-    EXPECT_EQ(navs1.size(), 1);
+  } catch (Poco::Exception e) {
+    LOG(FATAL) << e.displayText() << "\nFor JSON: " << dataToDecode;
   }
+  Poco::Dynamic::Var result = handler->asVar();
+  EXPECT_TRUE(result.isArray());
+  Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
 
-  std::stringstream ss;
-  json::encode(navs1).stringify(ss, 0, 0);
-  std::string dataToDecode2 = ss.str();
-
-  {
-     Poco::JSON::Parser parser;
-     Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
-
-     parser.setHandler(handler);
-     parser.parse(dataToDecode2);
-     Poco::Dynamic::Var result = handler->asVar();
-     EXPECT_TRUE(result.isArray());
-     Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
-
-     Array<Nav> navs2;
-     json::decode(*arr, &navs2);
-     EXPECT_EQ(navs2.size(), 1);
-     EXPECT_EQ(navs1[0], navs2[0]);
-  }
+  json::decode(*arr, &navs);
+  return navs;
 }
 
+void runJsonEncDecTest(const char *dataToDecode) {
+  sail::Array<Nav> navs = deserializeNavs(dataToDecode);
+  EXPECT_EQ(navs.size(), 1);
+
+  std::stringstream ss;
+  json::encode(navs).stringify(ss, 0, 0);
+
+  Array<Nav> navs2 = deserializeNavs(ss.str().c_str());
+  EXPECT_EQ(navs2.size(), 1);
+  EXPECT_EQ(navs[0], navs2[0]);
+}
+
+}  // namespace
+
 TEST(NavJsonTest, EncDecTest) {
-  {
-    const char dataToDecode[] = "[{\"time-milliseconds-since-1970\":9223372036854775807}]";
-    runJsonEncDecTest(dataToDecode);
-  }
-  {
-    const char dataToDecode[] = "[{\"alt-m\":0.4,\"awa-rad\":0.5235987755982988,\"aws-mps\":6,\"gpsbearing-mps\":2.520777777777778,\"gpsspeed-mps\":2.520777777777778,\"lat-rad\":0.6806784082777885,\"lon-rad\":0.8377580409572782,\"maghdg-rad\":1.5707963267948966,\"time-milliseconds-since-1970\":1396029819000,\"watspeed-mps\":2.5722222222222224}]";
-    runJsonEncDecTest(dataToDecode);
-  }
+  runJsonEncDecTest(
+      "[{\"time-milliseconds-since-1970\":9223372036854775807}]");
+  runJsonEncDecTest(
+    "[{\"alt-m\":0.4,"
+    "\"awa-rad\":0.5235987755982988,"
+    "\"aws-mps\":6,"
+    "\"gpsbearing-rad\":-0.3,"
+    "\"gpsspeed-mps\":1.1,"
+    "\"lat-rad\":0.6806784082777885,"
+    "\"lon-rad\":0.8377580409572782,"
+    "\"maghdg-rad\":-0.301,"
+    "\"time-milliseconds-since-1970\":1396029819000,"
+    "\"watspeed-mps\":0.03}]");
+}
+
+TEST(NavJsonTest, BackwardCompatibilityTest) {
+  // Make sure the following format can be correctly de-serialized.
+  const char dataToDecode[] =
+    "[{\"alt-m\":0.4,"
+    "\"awa-rad\":0.5235987755982988,"
+    "\"aws-mps\":6,"
+    "\"gpsbearing-rad\":-0.3,"
+    "\"gpsspeed-mps\":1.1,"
+    "\"lat-rad\":0.6806784082777885,"
+    "\"lon-rad\":0.8377580409572782,"
+    "\"maghdg-rad\":-0.301,"
+    "\"time-milliseconds-since-1970\":1396029819000,"
+    "\"watspeed-mps\":0.03}]";
+  Nav base;
+  base.setGeographicPosition(
+      GeographicPosition<double>(
+          Angle<>::radians(0.8377580409572782),
+          Angle<>::radians(0.6806784082777885),
+          Length<>::meters(0.4)));
+  base.setAwa(Angle<>::radians(0.5235987755982988));
+  base.setAws(Velocity<>::metersPerSecond(6));
+  base.setGpsBearing(Angle<>::radians(-.3));
+  base.setGpsSpeed(Velocity<>::metersPerSecond(1.1));
+  base.setMagHdg(Angle<>::radians(-.301));
+  base.setTime(TimeStamp::fromMilliSecondsSince1970(1396029819000));
+  base.setWatSpeed(Velocity<>::metersPerSecond(.03));
+
+  // Both objects should be the same.
+  Array<Nav> deserialized = deserializeNavs(dataToDecode);
+  EXPECT_EQ(deserialized[0], base);
 }
