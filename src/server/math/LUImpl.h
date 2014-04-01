@@ -16,20 +16,10 @@
 #define LUIMPL_H_
 
 #include <server/common/MDArray.h>
+#include <server/common/ToDouble.h>
 #include <algorithm> // <-- to get std::swap
 
 namespace sail { namespace LUImpl {
-
-// Specialize this template for various Auto Diff types
-// to avoid non-differentiability.
-template <typename T>
-double ToDouble(T x) {return double(x);}
-
-// Optional support for ADOL-C
-#ifdef ADOLC_ADOUBLE_H
-template <>
-double ToDouble<adouble>(adouble x) {return x.getValue();}
-#endif
 
 void initP(int n, Array<int> *Pout);
 
