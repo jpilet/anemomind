@@ -6,6 +6,7 @@
 #include "TimeStampJson.h"
 #include <server/common/TimeStamp.h>
 #include <server/common/logging.h>
+#include <server/common/Json.h>
 
 namespace sail {
 namespace json {
@@ -30,15 +31,11 @@ bool deserializeField(Poco::JSON::Object::Ptr obj, std::string prefix, TimeStamp
 
 
 Poco::JSON::Object::Ptr serialize(const TimeStamp &src) {
-  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
-  obj->set("time-value", src.toMilliSecondsSince1970());
-  obj->set("time-label", "milliseconds-since-1970");
-  return obj;
+  return toJsonObjectWithField<TimeStamp>("time", src);
 }
 
 void deserialize(Poco::JSON::Object::Ptr src, TimeStamp *dst) {
-  CHECK(src->get("time-label").convert<std::string>() == TimeLabel);
-  *dst = TimeStamp::fromMilliSecondsSince1970(src->getValue<int64_t>("time-value"));
+  deserializeField(src, "time", dst);
 }
 
 
