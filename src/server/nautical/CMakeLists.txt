@@ -102,6 +102,12 @@ cxx_test(nautical_NavJsonTest
          nautical_NavJson
          gtest_main
         )
+        
+        
+cxx_test(nautical_SpeedCalibTest
+         SpeedCalibTest.cpp
+         gtest_main
+        )        
 
 #################################################################
 ### CalibrationExamples
