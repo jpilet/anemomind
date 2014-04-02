@@ -132,3 +132,9 @@ add_library(common_ConcatFunction
 target_link_libraries(common_ConcatFunction
                       common_Function
                      )                
+cxx_test(common_ConcatFunctionTest
+         ConcatFunctionTest.cpp
+         common_ConcatFunction
+         gtest_main
+        )
+                     

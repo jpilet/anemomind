@@ -12,6 +12,13 @@ namespace sail {
 
 class Function {
  public:
+  // Provide an instance of this object as extra parameter when creating
+  // a shared_ptr referring to an object on the stack.
+  class EmptyDeleter {
+   public:
+    void operator() (Function *x) {/*Do nothing: don't deallocate the object*/}
+  };
+
   Function() {}
 
   // TO BE OVERRIDDEN:
