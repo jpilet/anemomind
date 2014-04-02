@@ -51,7 +51,7 @@ void fnex002() { // Filter a signal
   Arrayd Yd = Y.map<double>([&](Velocity<double> x) {return x.knots();});
   std::cout << EXPR_AND_VAL_AS_STRING((countTrue(rel))) << std::endl;
 
-  LineStrip strip(Span(X).expand(0.1), 1.0);
+  LineStrip strip(Spand(X).expand(0.1), 1.0);
   Arrayd Xlines = strip.getGridVertexCoords1d();
   LevmarSettings settings;
   Arrayb rel2 = rel; //(rel.size());
@@ -123,7 +123,7 @@ void fnex006() { // Filter Aws
   Array<Velocity<double> > aws = getAws(navs);
   Arrayd Y = aws.map<double>([&](Velocity<double> t) {return t.metersPerSecond();});
 
-  LineStrip strip(Span(X).expand(0.1), 1.0);
+  LineStrip strip(Spand(X).expand(0.1), 1.0);
   FilteredSignal sig = filterAws(strip, T, aws);
 
   GnuplotExtra plot;
@@ -144,7 +144,7 @@ void fnex007() { // Filter Awa
 
 
   Arrayd Y = makeContinuousAngles(awa).map<double>([&](Angle<double> t) {return t.radians();});
-  LineStrip strip(Span(X).expand(0.1), 1.0);
+  LineStrip strip(Spand(X).expand(0.1), 1.0);
 
   LevmarSettings s;
   SignalFitResults res = fitLineStripAutoTune(strip, makeRange(2, 1), X.slice(rel), Y.slice(rel),

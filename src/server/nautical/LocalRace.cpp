@@ -14,7 +14,6 @@ namespace sail {
 
 LocalRace::LocalRace() {
   // TODO Auto-generated constructor stub
-  _timeOffset = 0;
   _magDeclRadians = 0.0;
 }
 
@@ -47,7 +46,7 @@ arma::vec2 LocalRace::calcGeoLocalPos(GeographicPosition<double> pos) {
 }
 
 double LocalRace::calcNavLocalTime(const Nav &nav) {
-  return nav.time().seconds() - _timeOffset;
+  return (nav.time() - _timeOffset).seconds();
 }
 
 arma::vec3 LocalRace::calcNavLocalPosAndTime(Nav nav) {
@@ -133,8 +132,11 @@ void LocalRace::initialize(Array<Nav> navs, double spaceStep, double timeStep) {
   arma::mat pos = getAllNav3dPos(navs);
   initializeLocalRaceCoord(pos, _cog, _axes);
 
+  _timeOffset = navs[0].time();
   BBox3d bbox = calcBBoxXYTimeWithoutOffsetDuringInitialization(navs);
-  _timeOffset = bbox.getSpan(2).subtractMean();
+
+
+
   double gridSpacing[3] = {spaceStep, spaceStep, timeStep};
   _wind = Grid3d(bbox, gridSpacing);
   _current = Grid3d(bbox, gridSpacing);
@@ -191,7 +193,7 @@ BBox3d LocalRace::calcBBoxXYTimeWithoutOffsetDuringInitialization(Array<Nav> nav
   for (int i = 0; i < count; i++) {
     Nav &nav = navs[i];
     arma::vec2 xy = calcNavLocalPos(nav);
-    double vec[3] = {xy[0], xy[1], nav.time().seconds()};
+    double vec[3] = {xy[0], xy[1], (nav.time() - _timeOffset).seconds()};
     result.extend(vec);
   }
   return result;

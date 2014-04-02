@@ -14,6 +14,7 @@
 #include <server/common/MDArray.h>
 #include <server/common/MDInds.h>
 #include <server/common/math.h>
+#include <server/common/Span.h>
 
 namespace sail {
 
@@ -25,15 +26,17 @@ class Grid {
 
 
   Grid() {}
-  Grid(BBox<N> bbox, double *spacingN) {
-    initialize(bbox, spacingN);
-  }
 
-  Grid(Span s, double spacing) {
+  Grid(Spand s, double spacing) {
     static_assert(N == 1, "This constructor is only applicable to one dimensional grids.");
     BBox<N> bbox(s);
     initialize(bbox, &spacing);
   }
+
+Grid(BBox<N> bbox, double *spacingN) {
+    initialize(bbox, spacingN);
+  }
+
 
   virtual ~Grid() {}
 
@@ -243,9 +246,9 @@ class Grid {
     int sizes[N];
     for (int i = 0; i < N; i++) {
       double &s = spacingN[i];
-      Span &span = bbox.getSpan(i);
-      int from = int(floor(span.getMinv()/s));
-      int to = int(ceil(span.getMaxv()/s)) + 1;
+      Spand &span = bbox.getSpan(i);
+      int from = int(floor(span.minv()/s));
+      int to = int(ceil(span.maxv()/s)) + 1;
       sizes[i] = to - from;
       _ind2Coord[i] = LineKM(0.0, sizes[i], from*s, to*s);
     }

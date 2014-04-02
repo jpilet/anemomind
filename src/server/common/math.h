@@ -95,6 +95,22 @@ T normdif(T *a, T *b) {
   return sqrt(norm2dif<T, dims>(a, b));
 }
 
+// returns (a has the same value as b) , even if that value is nan or inf.
+// Otherwise, nan == nan will evaluate to false.
+template <typename T>
+bool strictEquality(T a, T b) {
+  if (std::isnan(a)) {
+    return std::isnan(b);
+  } else if (std::isinf(a)) {
+    if (std::isinf(b)) {
+      return (a > 0) == (b > 0);
+    }
+    return false;
+  } else {
+    return a == b;
+  }
+}
+
 /*
  * Please see PhysicalQuantity.h
  * These functions may soon be deprecated.

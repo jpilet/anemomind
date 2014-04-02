@@ -14,7 +14,7 @@
 
 namespace sail {
 
-Arrayb identifyReliableValues(int stateCount, double transitionCost, Arrayd values, Span span = Span());
+Arrayb identifyReliableValues(int stateCount, double transitionCost, Arrayd values, Spand span = Spand());
 Arrayb identifyReliableAws(Array<Velocity<double> > aws);
 Arrayb identifyReliableAwa(Array<Angle<double> > awa);
 Arrayb identifyReliableMagHdg(Array<Angle<double> > awa);

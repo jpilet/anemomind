@@ -9,14 +9,17 @@ add_library(nautical_nav
             Nav.h
             Nav.cpp
             NavBBox.h
-            NavBBox.cpp)
+            NavBBox.cpp
+           )
         
 target_link_libraries(nautical_nav
-  common_Array
-  common_LineKM
-  plot_gnuplot
-  nautical_Ecef
-  common_ContinuousRange)
+                      common_Array
+                      common_LineKM
+                      common_TimeStamp
+                      plot_gnuplot
+                      nautical_Ecef
+                      common_PeriodicSpan
+                     )
   
   
 cxx_test(nautical_SpeedCalibTest
@@ -72,8 +75,22 @@ target_link_libraries(nautical_WaterCalibExample
                       common_Statistics
                       common_string
                      )              
-              
-                      
+
+add_library(nautical_NavNmea
+            NavNmea.h  
+            NavNmea.cpp
+           )
+target_link_libraries(nautical_NavNmea
+                      nautical_nav
+                      device_NmeaParser
+                      common_ScopedLog
+                     )
+
+cxx_test(nautical_NavNmeaTest
+         NavNmeaTest.cpp
+         nautical_NavNmea
+         gtest_main
+        )
 
 add_library(nautical_DataCalib
             DataCalib.h
@@ -141,7 +158,25 @@ cxx_test(nautical_GeographicPositionTest
   GeographicPositionTest.cpp
   gtest_main)
 
+add_library(nautical_NavJson
+            NavJson.cpp
+            NavJson.h
+           )
+target_depends_on_poco_json(nautical_NavJson)
 
+
+
+target_link_libraries(nautical_NavJson
+                            nautical_nav
+                            common_TimeStampJson
+                           )
+
+cxx_test(nautical_NavJsonTest
+         NavJsonTest.cpp
+         common_logging
+         nautical_NavJson
+         gtest_main
+        )
 
 #################################################################
 ### CalibrationExamples

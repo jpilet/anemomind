@@ -41,7 +41,7 @@ void sfexDAC() {
   GridFitterTestData data;
 
   double marg = 0.1;
-  LineStrip strip(Span(data.minX() - marg, data.maxX() + marg), 0.01);
+  LineStrip strip(Spand(data.minX() - marg, data.maxX() + marg), 0.01);
 
   Arrayi orders = makeDefaultRegOrders(2);
 

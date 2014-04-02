@@ -71,11 +71,11 @@ Arrayb compareStates(Arrayi a, Arrayi b) {
 }
 
 
-Arrayb identifyReliableValues(int stateCount, double transitionCost, Arrayd values, Span span, int maxStep = -1) {
+Arrayb identifyReliableValues(int stateCount, double transitionCost, Arrayd values, Spand span, int maxStep = -1) {
   if (!span.initialized()) {
-    span = Span(values);
+    span = Spand(values);
   }
-  LineKM smap(span.getMinv(), span.getMaxv(), 0.0, 0.999999*stateCount);
+  LineKM smap(span.minv(), span.maxv(), 0.0, 0.999999*stateCount);
   Arrayi rawStates = values.map<int>([&] (double x) {return int(floor(smap(x)));});
   ValAssign assign(rawStates, stateCount, transitionCost, false, maxStep);
   Arrayi assigned = assign.solve();
@@ -84,7 +84,7 @@ Arrayb identifyReliableValues(int stateCount, double transitionCost, Arrayd valu
 
 Arrayb identifyReliableAws(Array<Velocity<double> > aws) {
   Velocity<double> maxvel = Velocity<double>::metersPerSecond(30.0);
-  Span span(0.0, maxvel.metersPerSecond());
+  Spand span(0.0, maxvel.metersPerSecond());
   int stateCount = 60;
   double transitionCost = 2.0;
   Arrayb rel = identifyReliableValues(stateCount, transitionCost, aws.map<double>([&](Velocity<double> x) {return x.metersPerSecond();}),
@@ -131,7 +131,7 @@ Arrayb identifyReliableGpsBearing(Array<Angle<double> > gb) {
 
 Arrayb identifyReliableWatSpeed(Array<Velocity<double> > ws) {
   Velocity<double> maxvel = Velocity<double>::knots(50.0);
-  Span span(0.0, maxvel.metersPerSecond());
+  Spand span(0.0, maxvel.metersPerSecond());
   int stateCount = 50;
   double transitionCost = 2.0;
   Arrayb rel = identifyReliableValues(stateCount, transitionCost, ws.map<double>([&](Velocity<double> x) {return x.knots();}),
@@ -141,7 +141,7 @@ Arrayb identifyReliableWatSpeed(Array<Velocity<double> > ws) {
 
 Arrayb identifyReliableGpsSpeed(Array<Velocity<double> > ws) {
   Velocity<double> maxvel = Velocity<double>::knots(50.0);
-  Span span(0.0, maxvel.metersPerSecond());
+  Spand span(0.0, maxvel.metersPerSecond());
   int stateCount = 50;
   double transitionCost = 8.0;
   Arrayb rel = identifyReliableValues(stateCount, transitionCost, ws.map<double>([&](Velocity<double> x) {return x.knots();}),
@@ -246,7 +246,7 @@ FilteredSignal filterGpsSpeed(LineStrip strip, Array<Duration<double> > T, Array
 
 LineStrip makeNavsLineStrip(Array<Duration<double> > T) {
   Arrayd X = timeToSeconds(T);
-  return LineStrip(Span(X).expand(0.1), 1.0);
+  return LineStrip(Spand(X).expand(0.1), 1.0);
 }
 
 

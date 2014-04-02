@@ -7,7 +7,7 @@
 
 #include "StateAssign.h"
 #include <server/common/ArrayIO.h>
-#include <server/common/string.h>
+#include <limits>
 
 namespace sail {
 
@@ -56,7 +56,7 @@ double StateAssign::calcBestPred(MDArray2d costs, Arrayi preds, int toState, int
     return 1.0e9;
   } else {
     int bestIndex = preds[0];
-    double bestCost = 1.0e9;
+    double bestCost = std::numeric_limits<double>::infinity();
     int count = preds.size();
     for (int state = 0; state < count; state++) {
       int stateIndex = preds[state];

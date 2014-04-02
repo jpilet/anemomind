@@ -200,15 +200,15 @@ class Array {
 
   // Create a new array of specified size
   Array(int size) {
-#if SAFEARRAY
-    assert(0 <= size);
-#endif
-    _size = size;
-    _refs = new int;
-    *_refs = 1;
-    _base = ArrayAlloc::make<T>(size);
-    _data = _base;
-    _deallocator = nullptr;
+    initialize(size);
+  }
+
+  Array(int size, const T *srcData) {
+    initialize(size);
+    assert(srcData != nullptr);
+    for (int i = 0; i < size; i++) {
+      _data[i] = srcData[i];
+    }
   }
 
   void copyToSafe(Array<T> dst) {
@@ -793,6 +793,18 @@ class Array {
         _data = nullptr;
       }
     }
+  }
+
+  void initialize(int size) {
+  #if SAFEARRAY
+    assert(0 <= size);
+  #endif
+    _size = size;
+    _refs = new int;
+    *_refs = 1;
+    _base = new T[size];
+    _data = _base;
+    _deallocator = nullptr;
   }
 
   Deallocator<T> *_deallocator;

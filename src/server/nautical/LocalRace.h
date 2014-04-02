@@ -56,7 +56,7 @@ class LocalRace {
 
   // See calcNavLocalPos to see how these are used to map to the local coordinate system.
   arma::vec3 _cog;   // Origin 3d coordinates
-  double _timeOffset;
+  TimeStamp _timeOffset;
   arma::mat23 _axes; // Axes of local coordinate system, stored as rows
 
   double _magDeclRadians;

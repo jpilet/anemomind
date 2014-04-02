@@ -16,18 +16,19 @@ NavBBox::NavBBox() {
 
 NavBBox::NavBBox(Array<Nav> navs) {
   int count = navs.size();
-  Arrayd lon(count), lat(count), time(count);
+  Arrayd lon(count), lat(count);
+  Array<TimeStamp> time(count);
   for (int i = 0; i < count; i++) {
     Nav &nav = navs[i];
     const GeographicPosition<double> &pos = nav.geographicPosition();
 
     lon[i] = pos.lon().radians();
     lat[i] = pos.lat().radians();
-    time[i] = nav.time().seconds();
+    time[i] = nav.time();
   }
-  _lon = CRange(lon, true);
-  _lat = CRange(lat, false);
-  _time = CRange(time, false);
+  _lon = PSpan(lon);
+  _lat = PSpan(lat);
+  _time = Span<TimeStamp>(time);
 }
 
 bool NavBBox::intersects(const NavBBox &other) const {

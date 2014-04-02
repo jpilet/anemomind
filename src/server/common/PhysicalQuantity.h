@@ -62,6 +62,10 @@ class PhysicalQuantity {
     return Quantity::makeFromX(_x - other.get());
   }
 
+  Quantity operator-() const {
+    return Quantity::makeFromX(-_x);
+  }
+
   ThisQuantity &operator -= (ThisQuantity other) {
     _x -= other.get();
     return *this;
@@ -73,7 +77,12 @@ class PhysicalQuantity {
   bool operator <= (ThisQuantity other) const {return _x <= other.get();}
   bool operator > (ThisQuantity other) const {return _x > other.get();}
   bool operator >= (ThisQuantity other) const {return _x >= other.get();}
+  bool operator == (ThisQuantity other) const {return _x == other.get();}
 
+  // Special method returning true for the comparison nan == nan.
+  bool eqWithNan(ThisQuantity other) const {
+    return strictEquality(_x, other.get());
+  }
  protected:
   Value get() const {return _x;}
   PhysicalQuantity(Value x) : _x(x) {}
@@ -93,8 +102,11 @@ class Angle : public PhysicalQuantity<Angle<T>, T> {
  public:
   MAKE_PHYSQUANT_UNIT_CONVERTERS(radians, 1.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(degrees, M_PI/180.0);
-};
 
+  static Angle<T> degMinMc(T deg, T min, T mc) {
+      return Angle<T>::degrees(deg + (1.0/60)*(min + 0.001*mc));
+  }
+};
 
 template <typename T = double>
 class Length : public PhysicalQuantity<Length<T>, T> {
