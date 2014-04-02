@@ -10,7 +10,16 @@
 
 namespace sail {
 
-Arrayd makeNextCoefs(Arrayd coefs);
+namespace BandMatInternal {
+  // Used to produce regularization terms (used by addRegs)
+  // It maps a vector I to [I 0] - [0 I].
+  //
+  // For instance, it maps [1] to [1 -1]
+  //               it maps [1 -1] to [1 -2 1]
+  //               it maps [1 -2 1] to [1 -3 3 -1] etc.
+  Arrayd makeNextCoefs(Arrayd coefs);
+}
+
 
 template <typename T>
 class BandMat {
@@ -28,8 +37,8 @@ class BandMat {
 
 
   T get(int i, int j) const {
-    int j0 = calcCol(i, j);
     if (valid(i, j)) {
+      int j0 = calcCol(i, j);
       return _data(i, j0);
     } else {
       return 0.0;
@@ -102,7 +111,7 @@ class BandMat {
     coefs[0] = Arrayd(1);
     coefs[0][0] = 1.0;
     for (int i = 0; i < maxOrder; i++) {
-      coefs[i+1] = makeNextCoefs(coefs[i]);
+      coefs[i+1] = BandMatInternal::makeNextCoefs(coefs[i]);
     }
 
     for (int i = 0; i < count; i++) {
@@ -119,6 +128,8 @@ class BandMat {
   }
 
  private:
+  // Map (i, j) col index a col index of the underlying storage.
+  // (The row index is the same)
   int calcCol(int i, int j) const { return j - i + _left;}
 
   int _rows, _cols, _left, _right;

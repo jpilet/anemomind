@@ -6,6 +6,7 @@
 #include "BandMat.h"
 
 namespace sail {
+namespace BandMatInternal {
 
 Arrayd makeNextCoefs(Arrayd coefs) {
   int n = coefs.size();
@@ -18,7 +19,7 @@ Arrayd makeNextCoefs(Arrayd coefs) {
   return next;
 }
 
-
+}
 }
 
 
