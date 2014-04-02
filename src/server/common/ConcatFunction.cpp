@@ -47,9 +47,9 @@ namespace {
 }
 
 void ConcatFunction::initialize(Array<std::shared_ptr<Function> > funs) {
-  _Jtemp.create(maxOutDims(funs)*inDims());
-  _functions = funs;
   _inDims = funs[0]->inDims();
+  _Jtemp.create(maxOutDims(funs)*_inDims);
+  _functions = funs;
   _outDims = 0;
   int count = funs.size();
   for (int i = 0; i < count; i++) {
