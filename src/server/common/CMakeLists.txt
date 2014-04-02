@@ -123,4 +123,12 @@ cxx_test(common_pocoTest
          pocoTest.cpp
          gtest_main
         )
-target_depends_on_poco_json(common_pocoTest)                 
+target_depends_on_poco_json(common_pocoTest) 
+
+add_library(common_ConcatFunction
+            ConcatFunction.h
+            ConcatFunction.cpp
+           )
+target_link_libraries(common_ConcatFunction
+                      common_Function
+                     )                
