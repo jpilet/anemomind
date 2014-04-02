@@ -74,7 +74,9 @@ class BandMat {
     MDArray<T, 2> dst(_rows, _cols);
     dst.setAll(0.0);
     for (int i = 0; i < _rows; i++) {
-      for (int j = 0; j < _cols; j++) {
+      int lc = leftColIndex(i);
+      int rc = rightColIndex(i);
+      for (int j = lc; j < rc; j++) {
         dst(i, j) = get(i, j);
       }
     }
