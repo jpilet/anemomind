@@ -105,7 +105,8 @@ target_link_libraries(math_BandMat
                       )                                    
 cxx_test(math_BandMatTest
          BandMatTest.cpp
-         math_BandMat         
+         math_BandMat
+         common_LineKM         
          gtest_main
         )
 

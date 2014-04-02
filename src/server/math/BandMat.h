@@ -38,23 +38,27 @@ class BandMat {
 
   T get(int i, int j) const {
     if (valid(i, j)) {
-      int j0 = calcCol(i, j);
-      return _data(i, j0);
+      return at(i, j);
     } else {
       return 0.0;
     }
   }
 
   void set(int i, int j, T x) {
-    int j0 = calcCol(i, j);
-    assert(valid(i, j));
-    _data(i, j) = x;
+    at(i, j) = x;
   }
 
   T &at(int i, int j) {
+    assert(valid(i, j));
     int j0 = calcCol(i, j);
     return _data(i, j0);
   }
+  const T &at(int i, int j) const {
+    assert(valid(i, j));
+    int j0 = calcCol(i, j);
+    return _data(i, j0);
+  }
+
 
   T &operator() (int i, int j) {return at(i, j);}
 
@@ -127,6 +131,7 @@ class BandMat {
     }
   }
 
+  MDArray<T, 2> getDataForDebug() {return _data;}
  private:
   // Map (i, j) col index a col index of the underlying storage.
   // (The row index is the same)
