@@ -102,6 +102,7 @@ add_library(math_BandMat
            )
 target_link_libraries(math_BandMat
                        common_Array
+                       common_logging
                       )                                    
 cxx_test(math_BandMatTest
          BandMatTest.cpp

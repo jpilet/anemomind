@@ -7,6 +7,7 @@
 #define BANDMAT_H_
 
 #include <server/common/MDArray.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -177,7 +178,7 @@ namespace BMGE {
   template <typename T>
   void scaleRowsTo1(int index, BandMat<T> *Aio, MDArray<T, 2> *Bio, double tol) {
     T x = (*Aio)(index, index);
-    assert(tol < (x < 0? -x : x));
+    CHECK(tol < (x < 0? -x : x));
     T factor = 1.0/x;
     scaleRow(index, Aio, factor);
     scaleRow(index, Bio, factor);
