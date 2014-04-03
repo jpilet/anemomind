@@ -108,4 +108,24 @@ TEST(BandMatTest, TestSetAndGet) {
 
 }
 
+TEST(BandMatTest, SmallDiagElem) {
+  BandMatd A(3, 3, 1, 1);
+  MDArray2d B(3, 1);
+  int counter = 0;
+  for (int i = 0; i < 3; i++) {
+    B(i, 0) = i+1;
+    for (int j = 0; j < 3; j++) {
+      if (A.valid(i, j)) {
+        if (i == j) {
+          A.set(i, j, 1.0e-30); // small element on the diagonal
+        } else {
+          A.set(i, j, i*j + j + 1.34);
+        }
+      }
+    }
+  }
+  MDArray2d result = bandMatGaussElim(A, B, 1.0e-9);
+  EXPECT_TRUE(result.empty());
+}
+
 
