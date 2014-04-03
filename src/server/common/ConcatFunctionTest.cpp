@@ -47,7 +47,7 @@ namespace {
 TEST(ConcatFunctionTest, Test1) {
   FunA A;
   FunB B;
-  ConcatFunction C(sharedRef(A), sharedRef(B));
+  ConcatFunction C(makeSharedPtrToStack(A), makeSharedPtrToStack(B));
   EXPECT_EQ(C.inDims(), 2);
   EXPECT_EQ(C.outDims(), 3);
 

@@ -12,6 +12,13 @@
 
 namespace sail {
 
+template <typename T>
+class NonDeletingDeleter {
+ public:
+  void operator() (T *x) {}
+};
+
+
 /*
  * Construct a shared pointer from a reference to an existing
  * object. This pointer will not attempt to deallocate
@@ -19,12 +26,8 @@ namespace sail {
  * is useful for objects that are allocated on the stack.
  */
 template <typename T>
-std::shared_ptr<T> sharedRef(T &x) {
-  class DeleteT {
-   public:
-    void operator() (T *x) {}
-  };
-  return std::shared_ptr<T>(&x, DeleteT());
+std::shared_ptr<T> makeSharedPtrToStack(T &x) {
+  return std::shared_ptr<T>(&x, NonDeletingDeleter<T>());
 }
 
 }
