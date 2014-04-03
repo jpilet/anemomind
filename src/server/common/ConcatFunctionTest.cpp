@@ -46,7 +46,8 @@ namespace {
 TEST(ConcatFunctionTest, Test1) {
   FunA A;
   FunB B;
-  ConcatFunction C(&A, &B);
+  ConcatFunction C(std::shared_ptr<Function>(&A, Function::EmptyDeleter()),
+                  std::shared_ptr<Function>(&B, Function::EmptyDeleter()));
   EXPECT_EQ(C.inDims(), 2);
   EXPECT_EQ(C.outDims(), 3);
 

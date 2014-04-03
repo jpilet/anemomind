@@ -9,12 +9,6 @@
 namespace sail {
 
 
-ConcatFunction::ConcatFunction(Function *a, Function *b) {
-  Array<std::shared_ptr<Function> > funs(2);
-  funs[0] = std::shared_ptr<Function>(a, Function::EmptyDeleter());
-  funs[1] = std::shared_ptr<Function>(b, Function::EmptyDeleter());
-  initialize(funs);
-}
 
 ConcatFunction::ConcatFunction(std::shared_ptr<Function> a,
     std::shared_ptr<Function> b) {
@@ -28,11 +22,6 @@ ConcatFunction::ConcatFunction(Array<std::shared_ptr<Function> > funs) {
   initialize(funs);
 }
 
-ConcatFunction::ConcatFunction(Array<Function*> funs) {
-  initialize(funs.map<std::shared_ptr<Function> >([&] (Function *f)
-      {return std::shared_ptr<Function>(f,
-    Function::EmptyDeleter());}));
-}
 
 
 namespace {

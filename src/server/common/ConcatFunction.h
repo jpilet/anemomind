@@ -14,12 +14,6 @@ namespace sail {
 
 class ConcatFunction : public Function {
  public:
-  // Create an instance from raw pointer to Functions,
-  // for instance functions allocated on the stack.
-  // This function doesn't take ownership.
-  ConcatFunction(Function *a, Function *b);
-  ConcatFunction(Array<Function*> funs);
-
   // Concatenate functions pointed to by shared pointers
   ConcatFunction(std::shared_ptr<Function> a, std::shared_ptr<Function> b);
   ConcatFunction(Array<std::shared_ptr<Function> > funs);
