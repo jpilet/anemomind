@@ -5,7 +5,7 @@
 
 #include "ConcatFunction.h"
 #include <gtest/gtest.h>
-#include <server/common/shared.h>
+#include <server/common/SharedPtrUtils.h>
 
 using namespace sail;
 
