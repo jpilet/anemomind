@@ -20,6 +20,10 @@ class ScopedLog {
   ~ScopedLog();
   static void setDepthLimit(int l);
   void disp(const char *file, int line, LogLevel level, std::string s);
+
+  // These methods are public so that they can be called by the SCOPEDMESSAGE macro
+  bool shouldBeDisplayed(LogLevel level);
+  void dispSub(const char *filename, int line, LogLevel level, std::string s);
  private:
   ScopedLog(const ScopedLog &x);
   void operator= (const ScopedLog &x);
@@ -46,7 +50,17 @@ class ScopedLog {
 //    LOG(INFO) << ...
 //  and
 //    SCOPED(INFO) << ...
-#define SCOPEDMESSAGE(LEVEL, MESSAGE) _slog.disp(__FILE__, __LINE__, LOGLEVEL_##LEVEL, MESSAGE)
+
+// Rather than directly calling
+//
+//   _slog.dispSub(__FILE__, __LINE__, LOGLEVEL_##LEVEL, MESSAGE);
+//
+// we first call _slog.shouldBeDisplayed. This way,
+// MESSAGE is only evaluated if it is needed. MESSAGE
+// could for instance be a call to the stringFormat function...
+#define SCOPEDMESSAGE(LEVEL, MESSAGE) \
+  if (_slog.shouldBeDisplayed(LOGLEVEL_##LEVEL)) \
+  {_slog.dispSub(__FILE__, __LINE__, LOGLEVEL_##LEVEL, MESSAGE);}
 
 } /* namespace mmm */
 

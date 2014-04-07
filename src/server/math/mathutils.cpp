@@ -13,20 +13,43 @@ namespace sail {
 arma::sp_mat makeSpSel(Arrayb sel) {
   int elemCount = countTrue(sel);
   int count = sel.size();
-  arma::umat IJ(2, elemCount);
-  arma::vec X(elemCount);
 
-  int counter = 0;
-  for (int i = 0; i < count; i++) {
-    if (sel[i]) {
-      IJ(0, counter) = counter;
-      IJ(1, counter) = i;
-      X[counter] = 1.0;
-      counter++;
+
+  arma::umat IJ(2, elemCount);
+  IJ.fill(0);
+  arma::vec X(elemCount);
+  X.fill(0.0);
+
+  {
+    int counter = 0;
+    for (int i = 0; i < count; i++) {
+      if (sel[i]) {
+        IJ(0, counter) = counter;
+        IJ(1, counter) = i;
+        X[counter] = 1.0;
+        counter++;
+      }
     }
+    assert(counter == elemCount);
   }
-  assert(counter == elemCount);
-  return arma::sp_mat(IJ, X, elemCount, count);
+
+  int rows = elemCount;
+  int cols = count;
+
+  assert(areValidSparseInds(rows, cols, IJ));
+
+  // Triggered when I run math_nonlinear_GridFitterTest with Valgrind:
+  // Valgrind says there is an invalid read here of size 4, I don't succeed in localizing the cause.
+  // Perhaps a problem with Armadillo.
+  //    memalign
+  //    posix_memalign
+  //    arma::memory::acquire (memory.hpp:69)
+  //    arma::SpMat<double>::init(unsigned int, usngined int) (SpMat_meat.hpp:4100)
+  //    ...
+  return arma::sp_mat(IJ, X, rows, cols);
+
+  // THIS WORKS: Valgrind does not complain if I return this instead of the row above.
+  // return arma::speye(rows, cols);
 }
 
 
@@ -64,8 +87,7 @@ arma::sp_mat makePermutationMat(Arrayi ordering) {
   return arma::sp_mat(IJ, X, n, n);
 }
 
-namespace {
-  bool areValidInds(int dstRows, int dstCols, arma::umat IJ) {
+bool areValidSparseInds(int dstRows, int dstCols, arma::umat IJ) {
     if (IJ.n_rows != 2) {
       return false;
     }
@@ -82,7 +104,7 @@ namespace {
     }
     return true;
   }
-}
+
 
 
 arma::sp_mat kronWithSpEye(arma::sp_mat M, int eyeDim) {
@@ -115,7 +137,7 @@ arma::sp_mat kronWithSpEye(arma::sp_mat M, int eyeDim) {
   assert(counter == M.n_nonzero);
   int dstRows = eyeDim*M.n_rows;
   int dstCols = eyeDim*M.n_cols;
-  assert(areValidInds(dstRows, dstCols, IJ));
+  assert(areValidSparseInds(dstRows, dstCols, IJ));
   return arma::sp_mat(IJ, X, dstRows, dstCols);
 }
 

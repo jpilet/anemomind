@@ -1,13 +1,8 @@
 ADD_CUSTOM_COMMAND(
-   OUTPUT TestEnv.cpp
-   COMMAND configure_file ${CMAKE_CURRENT_SOURCE_DIR}/TestEnv.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/TestEnv.cpp
-   DEPENDS TestEnv.cpp ${CMAKE_CURRENT_SOURCE_DIR}/TestEnv.cpp.in
+   OUTPUT Env.h
+   COMMAND configure_file ${CMAKE_CURRENT_SOURCE_DIR}/TestEnv.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/Env.h
+   DEPENDS Env.h ${CMAKE_CURRENT_SOURCE_DIR}/Env.h.in
   )
-
-add_library(common_TestEnv
-            TestEnv.cpp
-            TestEnv.h
-           )
 
 add_library(common_string
   string.h
@@ -25,13 +20,26 @@ add_library(common_ScopedLog
             ScopedLog.cpp)
 target_link_libraries(common_ScopedLog common_logging)
 
-
-cxx_test(common_TestEnvTest
-         TestEnvTest.cpp
-         common_TestEnv
+add_library(common_TimeStamp
+            TimeStamp.h
+            TimeStamp.cpp
+           )
+target_link_libraries(common_TimeStamp
+                      common_logging
+                     )           
+cxx_test(common_TimeStampTest
+         TimeStampTest.cpp
+         common_TimeStamp 
          gtest_main
         )
-target_depends_on_poco_foundation(common_TestEnvTest)                    
+        
+add_library(common_TimeStampJson
+            TimeStampJson.cpp
+            TimeStampJson.h
+           )
+target_depends_on_poco_foundation(common_TimeStampJson)
+
+target_depends_on_poco_foundation(common_TimeStampJson)           
 
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp
@@ -47,13 +55,13 @@ add_library(common_Array
 cxx_test(common_ArrayTest ArrayTest.cpp
          common_Array gtest_main)
 
-add_library(common_ContinuousRange
-            ContinuousRange.h
-            ContinuousRange.cpp
-            )
-target_link_libraries(common_ContinuousRange common_Array)
-cxx_test(common_ContinousRangeTest ContinuousRangeTest.cpp
-         common_ContinuousRange gtest_main)
+add_library(common_PeriodicSpan
+            PeriodicSpan.h
+            PeriodicSpan.cpp
+           )
+target_link_libraries(common_PeriodicSpan common_Array)
+cxx_test(common_PeriodicSpanTest PeriodicSpanTest.cpp
+         common_PeriodicSpan gtest_main)
 
 add_library(common_Span
             Span.h
@@ -107,6 +115,11 @@ target_link_libraries(common_Uniform
 add_library(common_math
   math.h
   math.cpp)
+cxx_test(common_mathTest
+         mathTest.cpp
+         common_math
+         gtest_main
+        )  
 
 cxx_test(common_invalidate
          invalidate_test.cpp
