@@ -3,8 +3,8 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <algorithm>
 #include "ConcatFunction.h"
+#include <algorithm>
 #include <assert.h>
 
 namespace sail {
