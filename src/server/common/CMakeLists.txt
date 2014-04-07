@@ -1,4 +1,3 @@
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/TestEnv.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/TestEnv.cpp" @ONLY)
 ADD_CUSTOM_COMMAND(
    OUTPUT TestEnv.cpp
    COMMAND configure_file ${CMAKE_CURRENT_SOURCE_DIR}/TestEnv.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/TestEnv.cpp
