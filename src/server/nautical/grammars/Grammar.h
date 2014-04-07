@@ -6,11 +6,11 @@
 #ifndef GRAMMAR_H_
 #define GRAMMAR_H_
 
-namespace sail {
-
 #include <server/common/Hierarchy.h>
 #include <server/nautical/Nav.h>
 #include <memory>
+
+namespace sail {
 
 /*
  * Every HTree node has an index.

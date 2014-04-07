@@ -5,5 +5,6 @@
 
 #include <gtest/gtest.h>
 
+#include <server/nautical/grammars/Grammar.h>
 
-
+using namespace sail;

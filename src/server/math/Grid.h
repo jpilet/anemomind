@@ -29,9 +29,9 @@ class Grid {
     int sizes[N];
     for (int i = 0; i < N; i++) {
       double &s = spacingN[i];
-      Span &span = bbox.getSpan(i);
-      int from = int(floor(span.getMinv()/s));
-      int to = int(ceil(span.getMaxv()/s)) + 1;
+      Spand &span = bbox.getSpan(i);
+      int from = int(floor(span.minv()/s));
+      int to = int(ceil(span.maxv()/s)) + 1;
       sizes[i] = to - from;
       _ind2Coord[i] = LineKM(0.0, sizes[i], from*s, to*s);
     }
@@ -238,6 +238,7 @@ std::ostream &operator<<(std::ostream &s, Grid<N> grid) {
   return s;
 }
 
+typedef Grid<1> LineStrip;
 typedef Grid<1> Grid1d;
 typedef Grid<2> Grid2d;
 typedef Grid<3> Grid3d;

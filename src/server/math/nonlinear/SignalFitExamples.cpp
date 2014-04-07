@@ -6,6 +6,7 @@
 #include <server/common/logging.h>
 #include "NoisyStep.h"
 #include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 
@@ -13,7 +14,7 @@ namespace sail {
 
 
 void sfitexFixedReg() {
-  BBox1d bbox(Span(-1.0, 1.0));
+  BBox1d bbox(Spand(-1.0, 1.0));
   double spacing[1] = {0.03};
   Grid1d grid(bbox, spacing);
 
@@ -68,7 +69,7 @@ void sfitexFixedReg() {
 
 
 void sfitexAutoRegFirstOrder() {
-  BBox1d bbox(Span(-1.0, 1.0));
+  BBox1d bbox(Spand(-1.0, 1.0));
   double spacing[1] = {0.03};
   Grid1d grid(bbox, spacing);
 
@@ -127,7 +128,7 @@ void sfitexAutoRegFirstOrder() {
 
 
 void sfitexAutoReg1st2ndOrder() {
-  BBox1d bbox(Span(-1.0, 1.0));
+  BBox1d bbox(Spand(-1.0, 1.0));
   double spacing[1] = {0.03};
   Grid1d grid(bbox, spacing);
 

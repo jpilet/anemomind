@@ -17,7 +17,8 @@ add_library(math_nonlinear_Levmar
            )
 target_link_libraries(math_nonlinear_Levmar
                       common_Array
-                      common_logging
+                      common_ScopedLog
+                      common_string
                       math_ADFunction
                       math_armaadolc
                       math_mathutils
@@ -48,6 +49,22 @@ target_link_libraries(math_nonlinear_GridFitter
                      )
 target_depends_on_armadillo(math_nonlinear_GridFitter)
 
+add_library(math_nonlinear_GridFitterTestData
+            GridFitterTestData.cpp
+            GridFitterTestData.h
+           )
+target_link_libraries(math_nonlinear_GridFitterTestData
+                      common_Array
+                     )
+
+
+cxx_test(math_nonlinear_GridFitterTest
+         GridFitterTest.cpp
+         examples_SignalFitExamples
+         math_nonlinear_GridFitterTestData
+         gtest_main
+        )
+  
 
 
 add_library(math_nonlinear_NoisyStep
@@ -77,6 +94,14 @@ add_executable(examples_SignalFitExampleFixedReg
   SignalFitExampleFixedReg.cpp)
 target_link_libraries(examples_SignalFitExampleFixedReg
   examples_SignalFitExamples)
+  
+add_executable(math_nonlinear_SignalFitExampleDivideAndConquer  
+               SignalFitExampleDivideAndConquer.cpp
+              )
+target_link_libraries(math_nonlinear_SignalFitExampleDivideAndConquer
+                      math_nonlinear_NoisyStep
+                      plot_gnuplot
+                     )    
   
 add_executable(examples_SignalFitExampleAutoRegFirstOrder
   SignalFitExampleAutoRegFirstOrder.cpp)

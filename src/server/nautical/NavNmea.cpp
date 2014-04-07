@@ -29,28 +29,8 @@ namespace {
   }
 
 
-  NmeaParser::NmeaSentence processNmeaLineSub(NmeaParser *parser,
-          std::string line) {
-    int len = line.size();
-    const char *cstr = line.c_str();
-    NmeaParser::NmeaSentence retval = NmeaParser::NMEA_NONE;
-    for (int i = 0; i < len; i++) {
-      char c = cstr[i];
-      retval = parser->processByte(c);
-    }
-
-    if (retval == NmeaParser::NMEA_NONE) {
-      retval = parser->processByte('\n');
-      if (retval == NmeaParser::NMEA_NONE) {
-        LOG(WARNING) << stringFormat("Return value was NMEA_NONE when parsing string '%s'", line.c_str());
-      }
-    }
-    return retval;
-  }
-
-
-  Duration<time_t> getTime(const NmeaParser &parser) {
-    return NavDataConversion::makeTimeFromYMDhms(parser.year(), parser.month(), parser.day(),
+  TimeStamp getTime(const NmeaParser &parser) {
+    return NavDataConversion::makeTimeNmeaFromYMDhms(parser.year(), parser.month(), parser.day(),
                                                  parser.hour(), parser.min(), parser.sec());
   }
 
@@ -63,7 +43,7 @@ namespace {
   }
 
   Angle<double> getAngle(const AccAngle &x) {
-    return NavDataConversion::fromDegMinMc(x.deg(), x.min(), x.mc());
+    return Angle<double>::degMinMc(x.deg(), x.min(), x.mc());
   }
 
   Angle<double> getLon(const NmeaParser &parser) {
@@ -110,10 +90,6 @@ namespace {
     mask->set(ParsedNavs::AWS, true);
   }
 
-  void readNmeaTW(const NmeaParser &parser, Nav *dstNav, ParsedNavs::FieldMask *mask) {
-    // Ignore the true wind. We will calculate it ourselves.
-  }
-
   Velocity<double> getWatSpeed(const NmeaParser &parser) {
     return Velocity<double>::knots(parser.watSpeed());
   }
@@ -135,7 +111,7 @@ namespace {
   }
 
   void readNmeaData(NmeaParser::NmeaSentence s,
-      const NmeaParser &parser, Nav *dstNav, ParsedNavs::FieldMask *mask) {
+        const NmeaParser &parser, Nav *dstNav, ParsedNavs::FieldMask *mask) {
     switch (s) {
      case NmeaParser::NMEA_TIME_POS:
        readNmeaTimePos(parser, dstNav, mask);
@@ -144,7 +120,7 @@ namespace {
        readNmeaAW(parser, dstNav, mask);
        break;
      case NmeaParser::NMEA_TW:
-       readNmeaTW(parser, dstNav, mask);
+       // Ignore the true wind. We will calculate it ourselves.
        break;
      case NmeaParser::NMEA_WAT_SP_HDG:
        readNmeaWatSpHdg(parser, dstNav, mask);
@@ -153,23 +129,8 @@ namespace {
        readNmeaVLW(parser, dstNav, mask);
        break;
      default:
-       {
-         //LOG(INFO) << stringFormat("Sentence not supported: %s", getNmeaSentenceLabel(s));
-       }
        break;
     };
-  }
-
-  void processNmeaLine(NmeaParser *parser, Nav *dstNav,
-        std::string line, std::vector<Nav> *navs, ParsedNavs::FieldMask *mask) {
-    NmeaParser::NmeaSentence s = processNmeaLineSub(parser, line);
-    readNmeaData(s, *parser, dstNav, mask);
-
-    // Once a time stamp has been received, save this Nav and start to fill a new one.
-    if (s == NmeaParser::NMEA_TIME_POS) {
-      navs->push_back(*dstNav);
-      *dstNav = Nav();
-    }
   }
 }
 
@@ -182,10 +143,20 @@ bool ParsedNavs::hasFields(FieldMask mask) {
   return (~mask | _fields).all();
 }
 
-ParsedNavs::FieldMask ParsedNavs::makeCompleteMask() {
-  FieldMask m;
-  m.set();
-  return m;
+
+namespace {
+  void parseNmeaChar(char c,
+    NmeaParser *parser, Nav *dstNav, std::vector<Nav> *navAcc, ParsedNavs::FieldMask *fields) {
+    NmeaParser::NmeaSentence s = parser->processByte(c);
+    if (s != NmeaParser::NMEA_NONE) {
+      readNmeaData(s, *parser, dstNav, fields);
+      // Once a time stamp has been received, save this Nav and start to fill a new one.
+      if (s == NmeaParser::NMEA_TIME_POS) {
+        navAcc->push_back(*dstNav);
+        *dstNav = Nav();
+      }
+    }
+  }
 }
 
 ParsedNavs loadNavsFromNmea(std::istream &file) {
@@ -196,9 +167,10 @@ ParsedNavs loadNavsFromNmea(std::istream &file) {
   std::string line;
   int lineCounter = 0;
   Nav nav;
-  while (std::getline(file, line)) {
-    processNmeaLine(&parser, &nav, line, &navAcc, &fields);
-    lineCounter++;
+  while (file.good()) {
+    char c;
+    file.get(c);
+    parseNmeaChar(c, &parser, &nav, &navAcc, &fields);
   }
   return ParsedNavs(Array<Nav>::referToVector(navAcc).dup(), fields);
 }
