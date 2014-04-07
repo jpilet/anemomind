@@ -195,6 +195,8 @@ class Hierarchy {
   Array<std::string> labels() const {
     return _labels;
   }
+
+  HNode node(int index) const {return _nodes[index];}
  private:
   // Creates an ancestor at 'level' for a node of type 'nodeIndex'
   std::shared_ptr<HTree> wrap(int left, int level, int nodeIndex) const;

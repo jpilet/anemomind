@@ -68,8 +68,12 @@ add_executable(nautical_ParseExample
               )
 target_link_libraries(nautical_ParseExample
                       common_Env
+                      nautical_NavNmeaScan
+                      nautical_grammars_Grammar
+                      math_hmm_StateAssign
                      )
 target_depends_on_poco_foundation(nautical_ParseExample)                                                                    
+               
             
 #################################################################
 ### PlotTrajectoryExamples

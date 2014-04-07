@@ -38,7 +38,7 @@ class GrammarNodeInfo {
  * parse an array of Navs and return a parse tree.
  */
 class Grammar {
-public:
+ public:
   /*
    * Should parse 'navs' using the underlying grammar
    * and return a parse tree for the result.
