@@ -3,7 +3,6 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 #include <server/common/filesystem.h>
-#include <server/common/TestEnv.h>
 #include <server/nautical/NavNmea.h>
 #include <server/common/ArrayIO.h>
 #include <server/common/string.h>
