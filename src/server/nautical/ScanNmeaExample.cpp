@@ -20,9 +20,16 @@ namespace {
     p.pushDirectory("regates");
     std::cout << EXPR_AND_VAL_AS_STRING(p.toString()) << std::endl;
 
-    Array<Nav> navs = scanNmeaFolder(p);
+    Array<Nav> allnavs = scanNmeaFolder(p);
+
+    //plotNavTimeVsIndex(allnavs);
+
+    std::cout << EXPR_AND_VAL_AS_STRING(allnavs.size()) << std::endl;
+
+    Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10).seconds());
 
     std::cout << EXPR_AND_VAL_AS_STRING(navs.size()) << std::endl;
+    dispNavTimeIntervals(allnavs);
   }
 
 
