@@ -14,7 +14,5 @@ TEST(EnvTest, TestNonEmpty) {
   // Testing that the source dir is really correct is hard to do in a cross platform fashion.
   std::cout << "The source dir is " << x << std::endl;
 
-  EXPECT_GE(x.length(), 0);
+  EXPECT_GT(x.length(), 0);
 }
-
-
