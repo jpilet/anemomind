@@ -1,8 +1,5 @@
-ADD_CUSTOM_COMMAND(
-   OUTPUT Env.h
-   COMMAND configure_file ${CMAKE_CURRENT_SOURCE_DIR}/TestEnv.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/Env.h
-   DEPENDS Env.h ${CMAKE_CURRENT_SOURCE_DIR}/Env.h.in
-  )
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Env.h.in" "${CMAKE_CURRENT_SOURCE_DIR}/Env.h" @ONLY)
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/Env.h.in" Env.h)
 
 add_library(common_string
   string.h
