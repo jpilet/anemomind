@@ -9,6 +9,8 @@
 namespace sail {
 
 #include <server/common/Hierarchy.h>
+#include <server/nautical/Nav.h>
+#include <memory>
 
 /*
  * Every HTree node has an index.
@@ -44,7 +46,8 @@ public:
   virtual std::shared_ptr<HTree> parse(Array<Nav> navs) = 0;
 
   /*
-   * Returns an array of
+   * Returns an array of objects, where an index in the array
+   * maps to a node type.
    */
   virtual Array<GrammarNodeInfo> nodeInfo() = 0;
 
