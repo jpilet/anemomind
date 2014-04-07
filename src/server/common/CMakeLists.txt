@@ -1,9 +1,8 @@
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/SourceDir.h.in" "${CMAKE_CURRENT_SOURCE_DIR}/SourceDir.h" @ONLY)
-list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/SourceDir.h.in" SourceDir.h)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Env.cpp.in" "${CMAKE_CURRENT_SOURCE_DIR}/Env.cpp" @ONLY)
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/Env.cpp.in" Env.cpp)
 add_library(common_Env
-            Env.cpp
+            "${CMAKE_CURRENT_BINARY_DIR}/Env.cpp"
             Env.h
-            SourceDir.h
            )
 
 add_library(common_string
