@@ -3,6 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <algorithm>
 #include "ConcatFunction.h"
 #include <assert.h>
 

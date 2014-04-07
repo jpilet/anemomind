@@ -6,6 +6,7 @@
 #ifndef BANDMAT_H_
 #define BANDMAT_H_
 
+#include <algorithm>
 #include <server/common/MDArray.h>
 #include <server/common/invalidate.h>
 
