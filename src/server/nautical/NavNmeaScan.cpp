@@ -11,7 +11,11 @@ namespace sail {
 
 Array<Nav> scanNmeaFolder(Poco::Path p) {
   Array<Poco::Path> files = listFilesRecursively(p, &isNmeaFilePath);
-  Array<ParsedNavs> parsedNavs = files.map<ParsedNavs>([&] (Poco::Path p) {return loadNavsFromNmea(p.toString());});
+  int count = files.size();
+  Array<ParsedNavs> parsedNavs(count);
+  for (int i = 0; i < count; i++) {
+    parsedNavs[i] = loadNavsFromNmea(files[i].toString());
+  }
   return flattenAndSort(parsedNavs, ParsedNavs::makeCompleteMask());
 }
 

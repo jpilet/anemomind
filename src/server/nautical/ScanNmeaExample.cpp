@@ -14,9 +14,12 @@ using namespace sail;
 
 namespace {
   void ex001() {
-    Poco::Path p = Env::SOURCE_DIR;
+    Poco::Path p(Env::SOURCE_DIR);
+    p.makeDirectory();
     p.pushDirectory("datasets");
     p.pushDirectory("regates");
+    std::cout << EXPR_AND_VAL_AS_STRING(p.toString()) << std::endl;
+
     Array<Nav> navs = scanNmeaFolder(p);
 
     std::cout << EXPR_AND_VAL_AS_STRING(navs.size()) << std::endl;
