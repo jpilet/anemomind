@@ -143,6 +143,11 @@ bool ParsedNavs::hasFields(FieldMask mask) {
   return (~mask | _fields).all();
 }
 
+ParsedNavs::FieldMask ParsedNavs::makeCompleteMask() {
+  FieldMask fm;
+  fm.flip();
+  return fm;
+}
 
 namespace {
   void parseNmeaChar(char c,

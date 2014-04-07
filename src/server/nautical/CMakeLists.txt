@@ -61,7 +61,15 @@ add_library(nautical_NavNmeaScan
 target_link_libraries(nautical_NavNmeaScan
                       nautical_NavNmea
                       common_filesystem
-                     )            
+                     )
+                     
+add_executable(nautical_ParseExample
+               ParseExample.cpp
+              )
+target_link_libraries(nautical_ParseExample
+                      common_Env
+                     )
+target_depends_on_poco_foundation(nautical_ParseExample)                                                                    
             
 #################################################################
 ### PlotTrajectoryExamples
@@ -82,7 +90,7 @@ add_executable(nautical_ScanNmeaExample
                ScanNmeaExample.cpp
               )
 target_link_libraries(nautical_ScanNmeaExample
-                       common_TestEnv
+                       common_Env
                        nautical_NavNmeaScan
                       )
   

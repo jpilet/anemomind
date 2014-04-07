@@ -27,7 +27,10 @@ add_library(common_filesystem
             filesystem.h
             filesystem.cpp
            )
-target_depends_on_poco_foundation(common_filesystem)           
+target_depends_on_poco_foundation(common_filesystem)
+target_link_libraries(common_filesystem
+                      common_string
+                     )           
 
 add_library(common_ScopedLog
             ScopedLog.h

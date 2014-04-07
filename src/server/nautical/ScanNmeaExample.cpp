@@ -7,13 +7,15 @@
 #include <server/common/ArrayIO.h>
 #include <server/common/string.h>
 #include <server/nautical/NavNmeaScan.h>
+#include <server/common/Env.h>
 #include <iostream>
 
 using namespace sail;
 
 namespace {
   void ex001() {
-    Poco::Path p = TestEnv().datasets();
+    Poco::Path p = Env::SOURCE_DIR;
+    p.pushDirectory("datasets");
     p.pushDirectory("regates");
     Array<Nav> navs = scanNmeaFolder(p);
 

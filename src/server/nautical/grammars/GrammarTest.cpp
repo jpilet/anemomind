@@ -8,3 +8,7 @@
 #include <server/nautical/grammars/Grammar.h>
 
 using namespace sail;
+
+TEST(GrammarTest, LoadTest) {
+
+}
