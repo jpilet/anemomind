@@ -285,15 +285,6 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
 
 std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs) {
   G001SA sa(_settings, navs);
-
-  MDArray2d costs = sa.makeCostMatrix().sliceColsTo(30);
-  for (int i = 0; i < costs.cols(); i++) {
-    costs(0, i) = mapToRawMinorState(navs[i]);
-  }
-  dispMat(std::cout, costs);
-  dispMat(std::cout, sa.makeRefMatrix().sliceColsTo(30));
-  std::cout << EXPR_AND_VAL_AS_STRING(sa.getStateCost(1, 19)) << std::endl;
-
   Arrayi states = sa.solve();
   return _hierarchy.parse(states);
 }
