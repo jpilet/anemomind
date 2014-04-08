@@ -155,7 +155,7 @@ namespace {
       }
       double f = 1.0/s;
       for (int j = 0; j < minor; j++) {
-        factors[offs + j] = f*expectedData[offs + j];
+        factors[offs + j] = 1.0 - f*expectedData[offs + j];
       }
     }
     assert(std::abs(factors[count-1] - 1.0/6) < 1.0e-9);
@@ -194,7 +194,9 @@ double G001SA::getStateCost(int stateIndex, int timeIndex) {
   } else {
     int i0 = getMinorState(stateIndex);
     int i1 = mapToRawMinorState(n);
-    return _factors[stateIndex]*(i0 == i1? 0 : 1);
+    double reward = _factors[stateIndex]*(i0 == i1? 1 : 0.0);
+    assert(reward >= 0);
+    return -reward; // A cost that is negative is a reward.
   }
 }
 
