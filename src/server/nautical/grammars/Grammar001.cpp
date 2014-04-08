@@ -14,9 +14,9 @@ namespace sail {
 
 Grammar001Settings::Grammar001Settings() {
   _perSecondCost = 0.01;
-  _majorTransitionCost = 8.0;
+  _majorTransitionCost = 50.0;
   _minorTransitionCost = 1.0;
-  _offCost = 8;
+  _onOffCost = 8;
 }
 
 
@@ -125,7 +125,7 @@ namespace {
   double getG001StateTransitionCost(const Grammar001Settings &s,
       int from, int to, int at, Array<Nav> navs) {
     if (isOff(from) || isOff(to)) {
-      return s.majorTransitionCost()*majorStateTransitionCost(from, to);
+      return s.onOffCost()*majorStateTransitionCost(from, to);
     } else {
       Duration<double> dur = navs[at+1].time() - navs[at].time();
       double seconds = dur.seconds();
@@ -205,9 +205,9 @@ class G001SA : public StateAssign {
 double G001SA::getStateCost(int stateIndex, int timeIndex) {
   Nav &n = _navs[timeIndex];
   if (isOff(stateIndex)) {
-    return _settings.offCost();
+    return 1.0;
   } else if (std::isnan(n.awa().degrees())) {
-    return 0;
+    return 1.0;
   } else {
     int i0 = getMinorState(stateIndex);
     int i1 = mapToRawMinorState(n);
