@@ -18,13 +18,13 @@ class Grammar001Settings {
   double perSecondCost() const {return _perSecondCost;}
   double majorTransitionCost() const {return _majorTransitionCost;}
   double minorTransitionCost() const {return _minorTransitionCost;}
-  double onOffCost() const {return _onOffCost;}
+  double offCost() const {return _offCost;}
  private:
   double _majorTransitionCost, // Cost to move between major states.
     _minorTransitionCost, // Cost to move between minor states
     _perSecondCost, // Cost paid per second when device is turned on. This will encourage the device to
                     //  be turned off when there is a lot of time between measurements
-    _onOffCost; // Cost for turning on/off the device
+    _offCost; // cost for being in the off-state
 };
 
 class Grammar001 : public Grammar {

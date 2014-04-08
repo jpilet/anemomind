@@ -16,8 +16,7 @@ Grammar001Settings::Grammar001Settings() {
   _perSecondCost = 0.01;
   _majorTransitionCost = 20.0;
   _minorTransitionCost = 1.0;
-  _onOffCost = 32.0;
-
+  _offCost = 30;
 }
 
 
@@ -126,7 +125,7 @@ namespace {
   double getG001StateTransitionCost(const Grammar001Settings &s,
       int from, int to, int at, Array<Nav> navs) {
     if (isOff(from) || isOff(to)) {
-      return s.onOffCost()*majorStateTransitionCost(from, to);
+      return s.majorTransitionCost()*majorStateTransitionCost(from, to);
     } else {
       Duration<double> dur = navs[at+1].time() - navs[at].time();
       double seconds = dur.seconds();
@@ -142,16 +141,15 @@ namespace {
     const int major = 4;
     const int minor = 6;
     const int count = major*minor;
-    const double expectedData[] = {0, 1, 0, 0, 1, 0, // before race
+    const double expectedData[] = {1, 0, 1, 1, 0, 1, // before race
 
-                                1, 0.5, 0, 0, 0.5, 1, // upwind leg
+                                0, 0.5, 1, 1, 0.5, 0, // upwind leg
 
-                                0, 0.5, 1, 1, 0.5, 0, // downwind leg
+                                1, 0.5, 0, 0, 0.5, 1, // downwind leg
 
                                 1, 1, 1, 1, 1, 1}; // idle
 
 
-    constexpr bool withIdleReward = true;
     Arrayd factors(count);
     for (int i = 0; i < major; i++) {
       int offs = i*minor;
@@ -163,9 +161,6 @@ namespace {
       for (int j = 0; j < minor; j++) {
         int index = offs + j;
         factors[index] = f*expectedData[index];
-        if (i == 3 && !withIdleReward) {
-          factors[index] = 0.0;
-        }
       }
     }
     return factors;
@@ -205,14 +200,14 @@ class G001SA : public StateAssign {
 
 double G001SA::getStateCost(int stateIndex, int timeIndex) {
   Nav &n = _navs[timeIndex];
-  if (isOff(stateIndex) || std::isnan(n.awa().degrees())) {
+  if (isOff(stateIndex)) {
+    return _settings.offCost();
+  } else if (std::isnan(n.awa().degrees())) {
     return 0;
   } else {
     int i0 = getMinorState(stateIndex);
     int i1 = mapToRawMinorState(n);
-    double reward = _factors[stateIndex]*(i0 == i1? 1 : 0.0);
-    assert(reward >= 0);
-    return -reward; // A cost that is negative is a reward.
+    return _factors[stateIndex]*(i0 == i1? 0 : 1);
   }
 }
 
