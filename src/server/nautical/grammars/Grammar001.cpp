@@ -11,7 +11,7 @@
 namespace sail {
 
 Grammar001Settings::Grammar001Settings() {
-  _perSecondCost = 1.0;
+  _perSecondCost = 0.01;
   _majorTransitionCost = 2.0;
   _minorTransitionCost = 2.0;
   _onOffCost = 4.0;
@@ -139,11 +139,11 @@ namespace {
     const int major = 4;
     const int minor = 6;
     const int count = major*minor;
-    const double expectedData[] = {1, 0, 1, 1, 0, 1, // before race
+    const double expectedData[] = {0, 1, 0, 0, 1, 0, // before race
 
-                                0, 0.5, 1, 1, 0.5, 0, // upwind leg
+                                1, 0.5, 0, 0, 0.5, 1, // upwind leg
 
-                                1, 0.5, 0, 0, 0.5, 1, // downwind leg
+                                0, 0.5, 1, 1, 0.5, 0, // downwind leg
 
                                 1, 1, 1, 1, 1, 1}; // idle
     Arrayd factors(count);
@@ -155,7 +155,7 @@ namespace {
       }
       double f = 1.0/s;
       for (int j = 0; j < minor; j++) {
-        factors[offs + j] = 1.0 - f*expectedData[offs + j];
+        factors[offs + j] = f*expectedData[offs + j];
       }
     }
     assert(std::abs(factors[count-1] - 1.0/6) < 1.0e-9);
@@ -225,6 +225,7 @@ namespace {
 
   MDArray2b makeConnections() {
     MDArray2b con(stateCount, stateCount);
+    con.setAll(false);
     for (int i = 0; i < 5; i++) {
       connectMajorStates(con, i, i);
     }

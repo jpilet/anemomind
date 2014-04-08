@@ -94,6 +94,10 @@ DWord parseSpeed(char *speed, char *unit) {
 }  // namespace
 
 NmeaParser::NmeaParser() {
+  allow_implicit_eos_ = true;
+  checksum_ = 0;
+  index_ = 0;
+
   receivedChecksum_ = 0;
   numBytes_ = 0;
   numErr_ = 0;

@@ -231,7 +231,7 @@ void HInner::disp(std::ostream *out, Array<HNode> labels, int depth, int maxDept
     int count = _children.size();
     int nextIndent = depth + 1;
     for (int i = 0; i < count; i++) {
-      _children[i]->disp(out, labels, nextIndent);
+      _children[i]->disp(out, labels, nextIndent, maxDepth);
     }
   }
 }
