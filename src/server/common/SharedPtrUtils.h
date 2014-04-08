@@ -12,6 +12,13 @@
 
 namespace sail {
 
+/*
+ *  WARNING - Improper use of NonDeletingDeleter or makeSharedPtrToStack can
+ *  lead to memory corruption.
+ *
+ *  Do NOT use these unless you are 100% sure of what you are doing !
+ */
+
 template <typename T>
 class NonDeletingDeleter {
  public:
@@ -31,8 +38,5 @@ std::shared_ptr<T> makeSharedPtrToStack(T &x) {
 }
 
 }
-
-
-
 
 #endif /* SHARED_H_ */
