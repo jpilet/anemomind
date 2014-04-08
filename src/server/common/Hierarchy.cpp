@@ -32,9 +32,17 @@ void checkHNodeValidParents(Array<HNode> nodes) {
   }
 }
 
+void checkMaxNodeInds(Array<HNode> nodes) {
+  int count = nodes.size();
+  for (int i = 0; i < count; i++) {
+    assert(nodes[i].index() < count);
+  }
+}
+
 // Returns a new array where an HNode with index 'i' is located at position 'i'.
 // Also makes sure that two nodes don't have the same index.
 Array<HNode> arrangeHNodes(Array<HNode> nodes) {
+  checkMaxNodeInds(nodes);
   int count = nodes.size();
   Array<HNode> dst(count);
   for (int i = 0; i < count; i++) {

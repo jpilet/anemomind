@@ -10,8 +10,10 @@
 
 using namespace sail;
 
-TEST(GrammarTest, Inst001) {
+TEST(GrammarTest, Grammar001Info) {
   Grammar001 g; //Grammar001Settings());
-  Array<GrammarNodeInfo> info = g.nodeInfo();
-  EXPECT_EQ(info[36].description(), "Off");
+  Array<HNode> info = g.nodeInfo();
+  EXPECT_EQ(info[24].label(), "Off");
+  EXPECT_EQ(info.size(), 41);
+  EXPECT_EQ(info[29].index(), 29);
 }

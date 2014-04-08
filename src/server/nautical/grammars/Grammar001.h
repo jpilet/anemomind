@@ -25,7 +25,7 @@ class Grammar001 : public Grammar {
  public:
   Grammar001(); //Grammar001Settings s);
   std::shared_ptr<HTree> parse(Array<Nav> navs) ;
-  Array<GrammarNodeInfo> nodeInfo();
+  Array<HNode> nodeInfo() {return _hierarchy.nodes();}
   virtual ~Grammar001() {}
  private:
   Hierarchy _hierarchy;

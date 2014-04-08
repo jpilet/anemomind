@@ -5,6 +5,7 @@
 
 #include <server/nautical/grammars/Grammar001.h>
 #include <server/common/string.h>
+#include <iostream>
 
 namespace sail {
 
@@ -59,43 +60,39 @@ namespace {
   Hierarchy makeHierarchy() {
     std::vector<HNode> nodes;
 
-    // 0..35
-    // 37,38 39,40 41,42 43,44
-    // 45    46    47    48
-    // 49    50    50    49
-    //          51
+    // 0..24
+    // 25,26 27,28 29,30 31,32
+    // 33    34    35    36
+    // 37    38    38    37
+    //
 
-    const int majorParents[4] = {49, 50, 50, 49};
+    int mcounter = 0;
+    const int majorParents[4] = {37, 38, 38, 37};
     for (int i = 0; i < 4; i++) {// every major state
-      int majorIndex = 45 + i;
+      int majorIndex = 33 + i;
       nodes.push_back(HNode(majorIndex, majorParents[i], majorStates[i]));
       for (int j = 0; j < 2; j++) { // Starboard/Port?
-        int sideIndex = 37+j + 2*i;
+        int sideIndex = 25+j + 2*i;
         nodes.push_back(HNode(sideIndex, majorIndex, sides[j]));
         for (int k = 0; k < 3; k++) { // type, close-hauled, beam reach or broad reach?
           int minorIndex = 3*j + k;
           int stateIndex = 6*i + minorIndex;
           nodes.push_back(HNode(stateIndex, sideIndex, getType(minorIndex)));
+          mcounter++;
         }
       }
     }
-    nodes.push_back(HNode(49, 51, "Not in race"));
-    nodes.push_back(HNode(50, 51, "In race"));
-    nodes.push_back(HNode(51, 52, "Sailing"));
-    nodes.push_back(HNode(36, 52, "Off"));
-    nodes.push_back(HNode::makeRoot(52, "Top"));
+    nodes.push_back(HNode(37, 39, "Not in race"));
+    nodes.push_back(HNode(38, 39, "In race"));
+    nodes.push_back(HNode(39, 40, "Sailing"));
+    nodes.push_back(HNode(24, 40, "Off"));
+    nodes.push_back(HNode::makeRoot(40, "Top"));
     return Hierarchy(Array<HNode>::referToVector(nodes).dup());
   }
 }
 
 std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs) {
   return std::shared_ptr<HTree>();
-}
-
-Array<GrammarNodeInfo> Grammar001::nodeInfo() {
-  return Array<GrammarNodeInfo>::fill(stateCount, [&] (int index) {
-    return GrammarNodeInfo(makeNodeCode(index), _hierarchy.node(index).label());
-  });
 }
 
 Grammar001::Grammar001(/*Grammar001Settings s*/) : /*_settings(s), */_hierarchy(makeHierarchy()) {}
