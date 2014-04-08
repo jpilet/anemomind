@@ -34,7 +34,7 @@ var passport = require('./lib/config/passport');
 
 var app = express();
 
-app.use(express.bodyParser({uploadDir:'/Users/xa4/Work/dev/anemomind/uploads'}));
+app.use(express.bodyParser({uploadDir:__dirname + '/uploads'}));
 
 // Express settings
 require('./lib/config/express')(app);
