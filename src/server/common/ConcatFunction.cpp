@@ -4,6 +4,7 @@
  */
 
 #include "ConcatFunction.h"
+#include <algorithm>
 #include <assert.h>
 
 namespace sail {
