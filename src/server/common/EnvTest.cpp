@@ -15,11 +15,8 @@ TEST(EnvTest, TestNonEmpty) {
 
   EXPECT_GT(x.length(), 0);
 
-  Poco::Path p(x);
-  p.makeDirectory();
-  p.pushDirectory("src");
-  p.pushDirectory("server");
-  p.pushDirectory("common");
-  p.setFileName("EnvTest.cpp");
-  EXPECT_TRUE(Poco::File(p).exists());
+  Poco::Path envTestPath =
+      Poco::Path("src/server/common/EnvTest.cpp").absolute(
+          Poco::Path(sail::Env::SOURCE_DIR));
+  EXPECT_TRUE(Poco::File(envTestPath).exists());
 }
