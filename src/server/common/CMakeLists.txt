@@ -11,6 +11,8 @@ cxx_test(common_EnvTest
          common_Env
          gtest_main
         )           
+target_depends_on_poco_foundation(common_EnvTest)
+                              
 
 add_library(common_string
   string.h
