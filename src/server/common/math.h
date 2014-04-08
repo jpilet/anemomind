@@ -129,7 +129,9 @@ T positiveMod(T a, T b) {
   if (a >= 0) {
     return a - aOverB*b;
   } else {
-    return positiveMod(a - (a/b - 1)*b, b);
+    T a2 = a - (a/b - 1)*b;
+    assert(a2 >= 0);
+    return a2 - (a2/b)*b;
   }
 }
 

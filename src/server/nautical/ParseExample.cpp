@@ -24,6 +24,6 @@ int main() {
   Grammar001 g(settings);
 
   std::shared_ptr<HTree> tree = g.parse(allnavs);
-
+  cout << "Done" << endl;
   return 0;
 }

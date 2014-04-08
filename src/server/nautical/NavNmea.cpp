@@ -6,7 +6,7 @@
 #include "NavNmea.h"
 #include <device/Arduino/libraries/NmeaParser/NmeaParser.h>
 #include <fstream>
-#include <vector>
+#include <server/common/ArrayBuilder.h>
 #include <iostream>
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
@@ -151,13 +151,13 @@ ParsedNavs::FieldMask ParsedNavs::makeCompleteMask() {
 
 namespace {
   void parseNmeaChar(char c,
-    NmeaParser *parser, Nav *dstNav, std::vector<Nav> *navAcc, ParsedNavs::FieldMask *fields) {
+    NmeaParser *parser, Nav *dstNav, ArrayBuilder<Nav> *navAcc, ParsedNavs::FieldMask *fields) {
     NmeaParser::NmeaSentence s = parser->processByte(c);
     if (s != NmeaParser::NMEA_NONE) {
       readNmeaData(s, *parser, dstNav, fields);
       // Once a time stamp has been received, save this Nav and start to fill a new one.
       if (s == NmeaParser::NMEA_TIME_POS) {
-        navAcc->push_back(*dstNav);
+        navAcc->add(*dstNav);
         *dstNav = Nav();
       }
     }
@@ -166,7 +166,7 @@ namespace {
 
 ParsedNavs loadNavsFromNmea(std::istream &file) {
   ParsedNavs::FieldMask fields;
-  std::vector<Nav> navAcc;
+  ArrayBuilder<Nav> navAcc;
   NmeaParser parser;
   parser.setIgnoreWrongChecksum(true);
   std::string line;
@@ -177,7 +177,7 @@ ParsedNavs loadNavsFromNmea(std::istream &file) {
     file.get(c);
     parseNmeaChar(c, &parser, &nav, &navAcc, &fields);
   }
-  return ParsedNavs(Array<Nav>::referToVector(navAcc).dup(), fields);
+  return ParsedNavs(navAcc.get(), fields);
 }
 
 ParsedNavs loadNavsFromNmea(std::string filename) {
