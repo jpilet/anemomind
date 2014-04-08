@@ -20,8 +20,10 @@ int main() {
   Array<Nav> allnavs = scanNmeaFolder(p);
   Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10).seconds());
 
-  Grammar001 g(/*Grammar001Settings()*/);
-  cout << "Instantiated." << endl;
+  Grammar001Settings settings;
+  Grammar001 g(settings);
+
+  std::shared_ptr<HTree> tree = g.parse(allnavs);
 
   return 0;
 }
