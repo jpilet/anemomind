@@ -32,18 +32,19 @@ namespace {
     p.makeDirectory();
     p.pushDirectory("datasets");
     p.pushDirectory("regates");
+
     Array<Nav> allnavs = scanNmeaFolder(p);
-    Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10).seconds());
 
     Grammar001Settings settings;
     Grammar001 g(settings);
 
     std::shared_ptr<HTree> tree = g.parse(allnavs);
     tree->disp(&(std::cout), g.nodeInfo(), 0, 2);
-    std::cout << EXPR_AND_VAL_AS_STRING(tree->count()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(tree->childCount()/2) << std::endl;
     cout << "Done" << endl;
   }
 }
+
 
 
 int main() {
