@@ -98,6 +98,8 @@ class HTree {
   }
 
   virtual std::shared_ptr<HTree> child(int index);
+
+  Array<std::shared_ptr<HTree> > children();
  protected:
   bool topEquals(std::shared_ptr<HTree> other) const;
 };

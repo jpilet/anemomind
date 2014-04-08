@@ -154,6 +154,15 @@ std::shared_ptr<HTree> HTree::lastChild() {
   return std::shared_ptr<HTree>();
 }
 
+Array<std::shared_ptr<HTree> > HTree::children() {
+  int count = childCount();
+  Array<std::shared_ptr<HTree> > dst(count);
+  for (int i = 0; i < count; i++) {
+    dst[i] = child(i);
+  }
+  return dst;
+}
+
 std::shared_ptr<HTree> HTree::child(int index) {
   throw std::runtime_error("child not defined for this object");
   return std::shared_ptr<HTree>();
