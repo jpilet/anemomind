@@ -38,18 +38,28 @@ Poco::JSON::Object::Ptr serialize(std::shared_ptr<HTree> x) {
   obj->set("index", x->index());
   obj->set("left", x->left());
   obj->set("right", x->right());
-  obj->set("children", serialize(x->children()));
+  Array<std::shared_ptr<HTree> > ch = x->children();
+  if (ch.hasData()) {
+    Poco::JSON::Array::Ptr arr(new Poco::JSON::Array(serialize(ch)));
+    obj->set("children", arr);
+
+    assert(obj->isArray("children"));
+    assert(!obj->getArray("children").isNull());
+  }
   return obj;
 }
 
 void deserialize(Poco::JSON::Object::Ptr src, std::shared_ptr<HTree> *dst) {
+  assert(!src.isNull());
   int index = src->getValue<int>("index");
   int left = src->getValue<int>("left");
   int right = src->getValue<int>("right");
   assert(left < right);
   Array<std::shared_ptr<HTree> > children;
   Poco::JSON::Array::Ptr ch = src->getArray("children");
-  deserialize(*ch, &children);
+  if (!ch.isNull()) {
+    deserialize(*ch, &children);
+  }
   if (children.empty()) {
     *dst = std::shared_ptr<HTree>(new HLeaves(left, index, right - left));
   } else {
