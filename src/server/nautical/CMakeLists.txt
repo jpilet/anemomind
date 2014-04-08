@@ -70,6 +70,8 @@ target_link_libraries(nautical_ParseExample
                       common_Env
                       nautical_NavNmeaScan
                       nautical_grammars_Grammar001
+                      nautical_NavJson
+                      common_HierarchyJson
                       math_hmm_StateAssign
                      )
 target_depends_on_poco_foundation(nautical_ParseExample)                                                                    
