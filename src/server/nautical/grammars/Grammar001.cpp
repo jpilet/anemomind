@@ -17,6 +17,7 @@ Grammar001Settings::Grammar001Settings() {
   _majorTransitionCost = 20.0;
   _minorTransitionCost = 1.0;
   _onOffCost = 32.0;
+
 }
 
 
@@ -148,6 +149,9 @@ namespace {
                                 0, 0.5, 1, 1, 0.5, 0, // downwind leg
 
                                 1, 1, 1, 1, 1, 1}; // idle
+
+
+    constexpr bool withIdleReward = true;
     Arrayd factors(count);
     for (int i = 0; i < major; i++) {
       int offs = i*minor;
@@ -157,10 +161,13 @@ namespace {
       }
       double f = 1.0/s;
       for (int j = 0; j < minor; j++) {
-        factors[offs + j] = f*expectedData[offs + j];
+        int index = offs + j;
+        factors[index] = f*expectedData[index];
+        if (i == 3 && !withIdleReward) {
+          factors[index] = 0.0;
+        }
       }
     }
-    assert(std::abs(factors[count-1] - 1.0/6) < 1.0e-9);
     return factors;
   }
 
