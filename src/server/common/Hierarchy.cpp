@@ -147,12 +147,6 @@ MDArray2i makeAncestors(Array<HNode> nodes, Arrayi levelPerNode) {
   }
   return anc;
 }
-
-Array<std::string> listLabels(Array<HNode> nodes) {
-  return nodes.map<std::string>([&] (const HNode &node) {
-    return node.label();
-  });
-}
 }
 
 std::shared_ptr<HTree> HTree::lastChild() {
@@ -217,18 +211,20 @@ void insertIndent(std::ostream *out, int count, int size = 2) {
   }
 }
 
-std::string getLabel(int index, Array<std::string> labels) {
+std::string getLabel(int index, Array<HNode> labels) {
   if (labels.empty()) {
     std::stringstream ss;
     ss << index;
     return ss.str();
   } else {
-    return labels[index];
+    HNode &h = labels[index];
+    assert(h.index() == index); // Should be ordered.
+    return h.label();
   }
 }
 }
 
-void HInner::disp(std::ostream *out, Array<std::string> labels, int depth, int maxDepth) const {
+void HInner::disp(std::ostream *out, Array<HNode> labels, int depth, int maxDepth) const {
   if (depth < maxDepth) {
     insertIndent(out, depth);
     *out << "HGeneral(" << getLabel(_index, labels) << ") in [" << left() << ", " << right() << "[" << std::endl;
@@ -240,7 +236,7 @@ void HInner::disp(std::ostream *out, Array<std::string> labels, int depth, int m
   }
 }
 
-void HLeaves::disp(std::ostream *out, Array<std::string> labels, int depth, int maxDepth) const {
+void HLeaves::disp(std::ostream *out, Array<HNode> labels, int depth, int maxDepth) const {
   if (depth < maxDepth) {
     insertIndent(out, depth);
     *out << "HTerminals(" << getLabel(_index, labels) << ") in [" << left() << ", " << right() << "[" << std::endl;
@@ -260,7 +256,6 @@ Hierarchy::Hierarchy(Array<HNode> unorderedNodes) : _nodes(arrangeHNodes(unorder
   _isTerminal = calcTerminals(children);
   _levelPerNode = calcLevelPerNode(_rootNode, children);
   _ancestors = makeAncestors(_nodes, _levelPerNode);
-  _labels = listLabels(_nodes);
 }
 
 void Hierarchy::addTerminal(int left, std::shared_ptr<HTree> tree, int nodeIndex) const {

@@ -89,7 +89,7 @@ class HTree {
 
   virtual ~HTree() {}
 
-  virtual void disp(std::ostream *out, Array<std::string> labels = Array<std::string>(), int depth = 0, int maxDepth = 30) const = 0;
+  virtual void disp(std::ostream *out, Array<HNode> labels = Array<HNode>(), int depth = 0, int maxDepth = 30) const = 0;
 
   virtual bool equals(std::shared_ptr<HTree> other) const = 0;
 
@@ -125,7 +125,7 @@ class HLeaves : public HTree {
 
   // nodeIndex should be _index. This is merely a redundant safety-feature.
   void add(int nodeIndex);
-  void disp(std::ostream *out, Array<std::string> labels, int depth, int maxDepth) const;
+  void disp(std::ostream *out, Array<HNode> labels, int depth, int maxDepth) const;
   bool equals(std::shared_ptr<HTree> other) const;
  private:
   int _index, _left, _count;
@@ -142,7 +142,7 @@ class HInner : public HTree {
   }
   void add(std::shared_ptr<HTree> child);
   std::shared_ptr<HTree> lastChild();
-  void disp(std::ostream *out, Array<std::string> labels, int depth, int maxDepth) const;
+  void disp(std::ostream *out, Array<HNode> labels, int depth, int maxDepth) const;
   int childCount() const {
     return _children.size();
   }
@@ -192,10 +192,6 @@ class Hierarchy {
 
   virtual ~Hierarchy();
 
-  Array<std::string> labels() const {
-    return _labels;
-  }
-
   HNode node(int index) const {return _nodes[index];}
   Array<HNode> nodes() {return _nodes;}
  private:
@@ -218,9 +214,6 @@ class Hierarchy {
 
   // A 2d array where element _ancestors(i, j) is the index for the ancestor of node 'i' at level 'j' in the hierarchy.
   MDArray2i _ancestors;
-
-  // Labels of all nodes. Mostly used for debugging.
-  Array<std::string> _labels;
 };
 
 } /* namespace sail */
