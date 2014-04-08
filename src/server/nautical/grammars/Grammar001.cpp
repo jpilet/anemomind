@@ -16,7 +16,8 @@ Grammar001Settings::Grammar001Settings() {
   _perSecondCost = 0.01;
   _majorTransitionCost = 8.0;
   _minorTransitionCost = 1.0;
-  _onOffCost = 8;
+  _onOffCost = 2*_majorTransitionCost;
+  _majorStateCost = 1.0;
 }
 
 
@@ -143,9 +144,9 @@ namespace {
     const int count = major*minor;
     const double expectedData[] = {1, 0, 1, 1, 0, 1, // before race
 
-                                0, 0.5, 1, 1, 0.5, 0, // upwind leg
+                                0, 1.0, 1, 1, 1.0, 0, // upwind leg
 
-                                1, 0.5, 0, 0, 0.5, 1, // downwind leg
+                                1, 1.0, 0, 0, 1.0, 1, // downwind leg
 
                                 1, 1, 1, 1, 1, 1}; // idle
 
@@ -199,20 +200,25 @@ class G001SA : public StateAssign {
   Array<Arrayi> _preds;
   Grammar001Settings _settings;
   Array<Nav> _navs;
-  Arrayd _minorStateCosts;
+  Arrayd _minorStateCostFactors;
 };
 
 double G001SA::getStateCost(int stateIndex, int timeIndex) {
   Nav &n = _navs[timeIndex];
   if (isOff(stateIndex)) {
-    return 1.0;
+    return _settings.majorStateCost();
   } else if (std::isnan(n.awa().degrees())) {
-    return 1.0;
+    return _settings.majorStateCost();
   } else {
     int i0 = getMinorState(stateIndex);
     int i1 = mapToRawMinorState(n);
-    double stateCost = _minorStateCosts[stateIndex];
+
+    // Constant cost for being in this state
+    double stateCost = _settings.majorStateCost()*_minorStateCostFactors[stateIndex];
+
+    // Penalty for this minor state index not matching the input
     double matchCost = (i0 == i1? 0 : 1);
+
     return stateCost + matchCost;
   }
 }
@@ -275,7 +281,7 @@ namespace {
 }
 
 G001SA::G001SA(Grammar001Settings s, Array<Nav> navs) :
-    _settings(s), _navs(navs), _minorStateCosts(makeCostFactors()),
+    _settings(s), _navs(navs), _minorStateCostFactors(makeCostFactors()),
     _preds(makePredecessorsPerState(makeConnections())) {
 }
 
