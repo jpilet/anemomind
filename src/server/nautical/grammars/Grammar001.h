@@ -15,10 +15,16 @@ namespace sail {
 class Grammar001Settings {
  public:
   Grammar001Settings();
-  double majorTransitionCost() {return _majorTransitionCost;}
-  double minorTransitionCost() {return _minorTransitionCost;}
+  double perSecondCost() const {return _perSecondCost;}
+  double majorTransitionCost() const {return _majorTransitionCost;}
+  double minorTransitionCost() const {return _minorTransitionCost;}
+  double onOffCost() const {return _onOffCost;}
  private:
-  double _majorTransitionCost, _minorTransitionCost;
+  double _majorTransitionCost, // Cost to move between major states.
+    _minorTransitionCost, // Cost to move between minor states
+    _perSecondCost, // Cost paid per second when device is turned on. This will encourage the device to
+                    //  be turned off when there is a lot of time between measurements
+    _onOffCost; // Cost for turning on/off the device
 };
 
 class Grammar001 : public Grammar {

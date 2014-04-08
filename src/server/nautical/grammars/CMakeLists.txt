@@ -15,5 +15,6 @@ add_library(nautical_grammars_Grammar001
 target_link_libraries(nautical_grammars_Grammar001
                       nautical_grammars_Grammar
                       common_Hierarchy
+                      nautical_nav
                       common_string
                      )        

@@ -6,12 +6,15 @@
 #include <server/nautical/grammars/Grammar001.h>
 #include <server/common/string.h>
 #include <iostream>
+#include <server/math/hmm/StateAssign.h>
 
 namespace sail {
 
 Grammar001Settings::Grammar001Settings() {
+  _perSecondCost = 1.0;
   _majorTransitionCost = 2.0;
   _minorTransitionCost = 2.0;
+  _onOffCost = 4.0;
 }
 
 
@@ -104,25 +107,105 @@ namespace {
   const int offState = 24;
   bool isOff(int stateIndex) {return stateIndex == offState;}
 
-  int minorStateTransitionCost(int from, int to) {
+  double minorStateTransitionCost(int from, int to) {
+    int i = getMinorState(from);
+    int j = getMinorState(to);
+    return std::min(positiveMod(i - j, 6), positiveMod(j - i, 6));
+  }
 
+  double majorStateTransitionCost(int from, int to) {
+    int i = getMajorState(from);
+    int j = getMajorState(to);
+    return (i == j? 0.0 : 1.0);
   }
 
 
-
-  double stateTransitionCost(int from, int to, int at, Array<Nav> navs) {
-    if (isOff(from)) {
-
-    } else if (isOff(to)) {
-
+  double getG001StateTransitionCost(const Grammar001Settings &s,
+      int from, int to, int at, Array<Nav> navs) {
+    if (isOff(from) || isOff(to)) {
+      return s.onOffCost()*majorStateTransitionCost(from, to);
     } else {
-
+      Duration<double> dur = navs[at+1].time() - navs[at].time();
+      double seconds = dur.seconds();
+      assert(seconds >= 0.0);
+      return s.minorTransitionCost()*minorStateTransitionCost(from, to) +
+              s.majorTransitionCost()*majorStateTransitionCost(from, to) +
+              seconds*s.perSecondCost();
     }
   }
+
+
+  Arrayd makeCostFactors() {
+    const int major = 4;
+    const int minor = 6;
+    const int count = major*minor;
+    const double expectedData[] = {1, 0, 1, 1, 0, 1, // before race
+
+                                0, 0.5, 1, 1, 0.5, 0, // upwind leg
+
+                                1, 0.5, 0, 0, 0.5, 1, // downwind leg
+
+                                1, 1, 1, 1, 1, 1}; // idle
+    Arrayd factors(count);
+    for (int i = 0; i < major; i++) {
+      int offs = i*minor;
+      double s = 0.0;
+      for (int j = 0; j < minor; j++) {
+        s += expectedData[offs + j];
+      }
+      double f = 1.0/s;
+      for (int j = 0; j < minor; j++) {
+        factors[offs + j] = f*expectedData[offs + j];
+      }
+    }
+    assert(std::abs(factors[count-1] - 1.0/6) < 1.0e-9);
+    return factors;
+  }
+
+  int mapToRawMinorState(const Nav &nav) {
+    return int(positiveMod(nav.awa().degrees(), 360.0)/60);
+  }
+
 }
 
 std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs) {
   return std::shared_ptr<HTree>();
+}
+
+class G001SA : public StateAssign {
+ public:
+  G001SA(Grammar001Settings s, Array<Nav> navs);
+
+  double getStateCost(int stateIndex, int timeIndex);
+
+  double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex);
+  int getStateCount() {return stateCount;}
+  int getLength() {return _navs.size();}
+
+  Arrayi getPrecedingStates(int stateIndex, int timeIndex);
+ private:
+  Array<Arrayi> preds;
+  Grammar001Settings _settings;
+  Array<Nav> _navs;
+  Arrayd _factors;
+};
+
+double G001SA::getStateCost(int stateIndex, int timeIndex) {
+  Nav &n = _navs[timeIndex];
+  if (isOff(stateIndex)) {
+    return 0;
+  } else {
+    int i0 = getMinorState(stateIndex);
+    int i1 = mapToRawMinorState(n);
+    return _factors[stateIndex]*(i0 == i1? 0 : 1);
+  }
+}
+
+G001SA::G001SA(Grammar001Settings s, Array<Nav> navs) :
+    _settings(s), _navs(navs), _factors(makeCostFactors()) {}
+
+double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
+  return getG001StateTransitionCost(_settings, fromStateIndex, toStateIndex, fromTimeIndex, _navs);
 }
 
 //Grammar001::Grammar001(/*Grammar001Settings s*/) : /*_settings(s), */_hierarchy(makeHierarchy()) {}
