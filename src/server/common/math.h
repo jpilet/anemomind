@@ -125,13 +125,13 @@ MAKE_UNIT2OTHERUNIT_CONVERTER(knots2MPS, MPS2knots, 1852.0/3600.0);
 template <typename T>
 T positiveMod(T a, T b) {
   assert(b > 0);
-  T aOverB = a/b;
+  int aOverB = int(a/b);
   if (a >= 0) {
     return a - aOverB*b;
   } else {
-    T a2 = a - (a/b - 1)*b;
+    T a2 = a - (aOverB - 1)*b;
     assert(a2 >= 0);
-    return a2 - (a2/b)*b;
+    return a2 - int(a2/b)*b;
   }
 }
 

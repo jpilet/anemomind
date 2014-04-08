@@ -31,5 +31,9 @@ TEST(MathTest, PositiveModTest) {
   EXPECT_EQ(positiveMod(0, 6), 0);
 }
 
+TEST(MathTest, PosModFloatingPoint) {
+  EXPECT_EQ(positiveMod(71.5, 360.0), 71.5);
+  EXPECT_EQ(positiveMod(-3.4, 360.0), 360.0 - 3.4);
+}
 
 

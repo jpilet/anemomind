@@ -7,13 +7,15 @@
 #include <server/common/string.h>
 #include <iostream>
 #include <server/math/hmm/StateAssign.h>
+#include <server/common/ArrayIO.h>
+
 
 namespace sail {
 
 Grammar001Settings::Grammar001Settings() {
   _perSecondCost = 0.01;
-  _majorTransitionCost = 2.0;
-  _minorTransitionCost = 2.0;
+  _majorTransitionCost = 1.0;
+  _minorTransitionCost = 1.0;
   _onOffCost = 4.0;
 }
 
@@ -162,8 +164,18 @@ namespace {
     return factors;
   }
 
+
+
+  int mapToRawMinorState(double awaDegs) {
+    double atMost360 = positiveMod(awaDegs, 360.0);
+    std::cout << EXPR_AND_VAL_AS_STRING(awaDegs) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(atMost360) << std::endl;
+    return int(atMost360/60);
+  }
+
   int mapToRawMinorState(const Nav &nav) {
-    return int(positiveMod(nav.awa().degrees(), 360.0)/60);
+    assert(mapToRawMinorState(70) == 1);
+    return mapToRawMinorState(nav.awa().degrees());
   }
 
 }
@@ -237,16 +249,61 @@ namespace {
     connectMajorStates(con, 2, 3);
     connectMajorStates(con, 3, 0);
 
+    // The device can be switched on/off while
+    // boat is idle.
     connectMajorStates(con, 3, 4);
       assert(isOff(24) && getMajorState(24) == 4);
     connectMajorStates(con, 4, 3);
+
+    constexpr bool switchOnOffDuringRace = true;
+    if (switchOnOffDuringRace) {
+      for (int i = 0; i < 4; i++) {
+        connectMajorStates(con, i, 4);
+        connectMajorStates(con, 4, i);
+      }
+    }
+
+    //dispMat(std::cout, con);
 
     return con;
   }
 }
 
 G001SA::G001SA(Grammar001Settings s, Array<Nav> navs) :
-    _settings(s), _navs(navs), _factors(makeCostFactors()), _preds(makePredecessorsPerState(makeConnections())) {}
+    _settings(s), _navs(navs), _factors(makeCostFactors()),
+    _preds(makePredecessorsPerState(makeConnections())) {
+
+
+    std::cout << EXPR_AND_VAL_AS_STRING(_preds) << std::endl;
+
+    MDArray2d fcosts(stateCount, stateCount);
+    for (int i = 0; i < stateCount; i++) {
+      for (int j = 0; j < stateCount; j++) {
+        fcosts(i, j) = getTransitionCost(i, j, 0);
+      }
+    }
+    dispMat(std::cout, fcosts);
+
+    MDArray2d costs(stateCount, 30);
+    for (int i = 0; i < stateCount; i++) {
+      for (int j = 0; j < 30; /*_navs.size();*/ j++) {
+        costs(i, j) = getStateCost(i, j);
+      }
+    }
+    dispMat(std::cout, costs);
+
+    for (int i = 0; i < 300; i++) {
+      double awa = _navs[i].awa().degrees();
+      int minorState = -1;
+      if (!std::isnan(awa)) {
+        minorState = mapToRawMinorState(_navs[i]);
+      }
+
+      std::cout << EXPR_AND_VAL_AS_STRING(minorState) << std::endl;
+      std::cout << EXPR_AND_VAL_AS_STRING(awa) << std::endl;
+    }
+
+}
 
 double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
   return getG001StateTransitionCost(_settings, fromStateIndex, toStateIndex, fromTimeIndex, _navs);
