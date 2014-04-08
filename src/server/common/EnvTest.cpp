@@ -6,13 +6,20 @@
 #include <server/common/Env.h>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <Poco/Path.h>
+#include <Poco/File.h>
 
 
 TEST(EnvTest, TestNonEmpty) {
   std::string x(sail::Env::SOURCE_DIR);
 
-  // Testing that the source dir is really correct is hard to do in a cross platform fashion.
-  std::cout << "The source dir is " << x << std::endl;
-
   EXPECT_GT(x.length(), 0);
+
+  Poco::Path p(x);
+  p.makeDirectory();
+  p.pushDirectory("src");
+  p.pushDirectory("server");
+  p.pushDirectory("common");
+  p.setFileName("EnvTest.cpp");
+  EXPECT_TRUE(Poco::File(p).exists());
 }
