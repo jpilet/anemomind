@@ -19,4 +19,18 @@ TEST(HierarchyJsonTest, TestSimple) {
   EXPECT_EQ(x.label(), y.label());
 }
 
+TEST(HierarchyJsonTest, TestSimpleArray) {
+  HNode x(1, 2, "testnode");
+  Array<HNode> X = Array<HNode>::args(x);
+  Poco::JSON::Array obj = json::serialize(X);
+  Array<HNode> Y;
+  json::deserialize(obj, &Y);
+
+  HNode y = Y.first();
+
+  EXPECT_EQ(x.index(), y.index());
+  EXPECT_EQ(x.parent(), y.parent());
+  EXPECT_EQ(x.label(), y.label());
+}
+
 
