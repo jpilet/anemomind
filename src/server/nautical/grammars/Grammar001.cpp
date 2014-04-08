@@ -184,7 +184,7 @@ class G001SA : public StateAssign {
 
   Arrayi getPrecedingStates(int stateIndex, int timeIndex);
  private:
-  Array<Arrayi> preds;
+  Array<Arrayi> _preds;
   Grammar001Settings _settings;
   Array<Nav> _navs;
   Arrayd _factors;
@@ -201,8 +201,52 @@ double G001SA::getStateCost(int stateIndex, int timeIndex) {
   }
 }
 
+namespace {
+  const int minorPerMajor[5] = {6, 6, 6, 6, 1};
+
+  Arrayi makeOffsets() {
+    Arrayi offsets(5);
+    int offs = 0;
+    for (int i = 0; i < 5; i++) {
+      offsets[i] = offs;
+      offs += minorPerMajor[i];
+    }
+    return offsets;
+  }
+
+  Arrayi offsets = makeOffsets();
+
+  void connectMajorStates(MDArray2b con, int I, int J) {
+    for (int i = 0; i < minorPerMajor[I]; i++) {
+      for (int j = 0; j < minorPerMajor[J]; j++) {
+        con(i + offsets[I], j + offsets[J]) = true;
+      }
+    }
+  }
+
+  MDArray2b makeConnections() {
+    MDArray2b con(stateCount, stateCount);
+    for (int i = 0; i < 5; i++) {
+      connectMajorStates(con, i, i);
+    }
+    connectMajorStates(con, 0, 1);
+    connectMajorStates(con, 0, 2);
+    connectMajorStates(con, 1, 2);
+    connectMajorStates(con, 2, 1);
+    connectMajorStates(con, 1, 3);
+    connectMajorStates(con, 2, 3);
+    connectMajorStates(con, 3, 0);
+
+    connectMajorStates(con, 3, 4);
+      assert(isOff(24) && getMajorState(24) == 4);
+    connectMajorStates(con, 4, 3);
+
+    return con;
+  }
+}
+
 G001SA::G001SA(Grammar001Settings s, Array<Nav> navs) :
-    _settings(s), _navs(navs), _factors(makeCostFactors()) {}
+    _settings(s), _navs(navs), _factors(makeCostFactors()), _preds(makePredecessorsPerState(makeConnections())) {}
 
 double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
   return getG001StateTransitionCost(_settings, fromStateIndex, toStateIndex, fromTimeIndex, _navs);

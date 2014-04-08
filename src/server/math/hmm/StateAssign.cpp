@@ -7,6 +7,7 @@
 
 #include "StateAssign.h"
 #include <server/common/ArrayIO.h>
+#include <server/common/ArrayBuilder.h>
 #include <limits>
 
 namespace sail {
@@ -105,6 +106,22 @@ Arrayi StateAssign::unwind(MDArray2d costs, MDArray2i ptrs) {
     states[time] = index;
   }
   return states;
+}
+
+Array<Arrayi> StateAssign::makePredecessorsPerState(MDArray2b con) {
+  int n = con.rows();
+  assert(con.isSquare());
+  Array<Arrayi> preds(n);
+  for (int j = 0; j < n; j++) {
+    ArrayBuilder<int> builder(n);
+    for (int i = 0; i < n; i++) {
+      if (con(i, j)) {
+        builder.add(i);
+      }
+    }
+    preds[j] = builder.get();
+  }
+  return preds;
 }
 
 } /* namespace sail */

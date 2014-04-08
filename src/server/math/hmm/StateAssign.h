@@ -50,6 +50,8 @@ class StateAssign {
   // Lists all state indices, 0..(getStateCount() - 1). This list is suitable to return from
   // the method getPrecedingStates.
   Arrayi listStateInds();
+
+  static Array<Arrayi> makePredecessorsPerState(MDArray2b con);
  private:
   void accumulateCosts(MDArray2d *costsOut, MDArray2i *ptrsOut);
   double calcBestPred(MDArray2d costs, Arrayi preds, int toState, int fromTime,
