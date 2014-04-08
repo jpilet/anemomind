@@ -189,7 +189,7 @@ class G001SA : public StateAssign {
 
 double G001SA::getStateCost(int stateIndex, int timeIndex) {
   Nav &n = _navs[timeIndex];
-  if (isOff(stateIndex)) {
+  if (isOff(stateIndex) || std::isnan(n.awa().degrees())) {
     return 0;
   } else {
     int i0 = getMinorState(stateIndex);
