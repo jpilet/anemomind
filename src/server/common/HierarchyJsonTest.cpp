@@ -6,6 +6,7 @@
 
 #include <server/common/HierarchyJson.h>
 #include <gtest/gtest.h>
+#include <sstream>
 
 using namespace sail;
 
@@ -31,6 +32,58 @@ TEST(HierarchyJsonTest, TestSimpleArray) {
   EXPECT_EQ(x.index(), y.index());
   EXPECT_EQ(x.parent(), y.parent());
   EXPECT_EQ(x.label(), y.label());
+}
+
+
+
+
+namespace {
+
+Hierarchy makeMiniSailGrammar() {
+  Array<HNode> nodes(9);
+
+  // TERMINAL SYMBOLS
+  // Port tack
+  nodes[0] = HNode(0, 6, "Port tack / Close hauled");
+  nodes[1] = HNode(1, 6, "Port tack / Beam reach");
+  nodes[2] = HNode(2, 6, "Port tack / Broad reach");
+  // Starboard tack
+  nodes[3] = HNode(3, 7, "Starboard tack / Broad reach");
+  nodes[4] = HNode(4, 7, "Starboard tack / Beam reach");
+  nodes[5] = HNode(5, 7, "Starboard tack / Close hauled");
+
+  // GROUPING SYMBOLS
+  nodes[6] = HNode(6, 8, "Port tack");
+  nodes[7] = HNode(7, 8, "Starboard tack");
+  nodes[8] = HNode::makeRoot(8, "Sailing");
+  return Hierarchy(nodes);
+}
+
+}
+
+TEST(HierarchyJsonTest, HTreeJson) {
+  const int len = 18;
+
+
+  // Graphical explanation of the parsing
+  // Depth 0:        [-------------------------8--------------------------]
+  // Depth 1:        [----------6--------][--------7-------][------6------]
+  // Depth 2:        [-0--][--1-][---2---][-3--][--4-][-5--][------0------]
+  int toParse[len] = {0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5, 0, 0, 0, 0, 0};
+
+
+  Hierarchy h = makeMiniSailGrammar();
+  std::shared_ptr<HTree> X = h.parse(Arrayi(len, toParse));
+
+  Poco::JSON::Object::Ptr obj = json::serialize(X);
+
+  std::shared_ptr<HTree> Y;
+  json::deserialize(obj, &Y);
+
+  std::stringstream ssX, ssY;
+  X->disp(&ssX);
+  Y->disp(&ssY);
+  EXPECT_EQ(ssX.str(), ssY.str());
 }
 
 
