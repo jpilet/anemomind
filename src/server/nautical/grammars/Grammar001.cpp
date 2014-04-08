@@ -14,7 +14,7 @@ namespace sail {
 
 Grammar001Settings::Grammar001Settings() {
   _perSecondCost = 0.01;
-  _majorTransitionCost = 20.0;
+  _majorTransitionCost = 4.0;
   _minorTransitionCost = 1.0;
   _offCost = 30;
 }
