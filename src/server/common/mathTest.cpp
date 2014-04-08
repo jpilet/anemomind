@@ -21,6 +21,15 @@ TEST(MathTest, NanBehavesAsExpected) {
   EXPECT_TRUE(strictEquality(c, c));
 }
 
+TEST(MathTest, PositiveModTest) {
+  EXPECT_EQ(5 % 6, 5);
+  EXPECT_EQ(11 % 6, 5);
+  EXPECT_EQ(positiveMod(5, 6), 5);
+  EXPECT_EQ(positiveMod(11, 6), 5);
+  EXPECT_NE(-1 % 6, 5);
+  EXPECT_EQ(positiveMod(-1, 6), 5);
+  EXPECT_EQ(positiveMod(0, 6), 0);
+}
 
 
 

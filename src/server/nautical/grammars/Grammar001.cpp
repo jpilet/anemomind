@@ -20,7 +20,7 @@ namespace {
   typedef const char *Str;
 
   // This is the number of __states__
-  const int stateCount = 36 + 1;
+  const int stateCount = 4*6 + 1;
 
   bool isValidState(int stateIndex) {
     return 0 <= stateIndex && stateIndex < stateCount;
@@ -91,11 +91,39 @@ namespace {
   }
 }
 
+
+
+Grammar001::Grammar001(Grammar001Settings s) : _settings(s), _hierarchy(makeHierarchy()) {}
+
+
+
+
+namespace {
+  int getMajorState(int stateIndex) {return stateIndex/6;}
+  int getMinorState(int stateIndex) {return stateIndex % 6;}
+  const int offState = 24;
+  bool isOff(int stateIndex) {return stateIndex == offState;}
+
+  int minorStateTransitionCost(int from, int to) {
+
+  }
+
+
+
+  double stateTransitionCost(int from, int to, int at, Array<Nav> navs) {
+    if (isOff(from)) {
+
+    } else if (isOff(to)) {
+
+    } else {
+
+    }
+  }
+}
+
 std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs) {
   return std::shared_ptr<HTree>();
 }
-
-Grammar001::Grammar001(Grammar001Settings s) : _settings(s), _hierarchy(makeHierarchy()) {}
 
 //Grammar001::Grammar001(/*Grammar001Settings s*/) : /*_settings(s), */_hierarchy(makeHierarchy()) {}
 

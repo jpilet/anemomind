@@ -121,6 +121,20 @@ MAKE_UNIT2OTHERUNIT_CONVERTER(nm2m, m2nm, 1852.0);
 MAKE_UNIT2OTHERUNIT_CONVERTER(knots2MPS, MPS2knots, 1852.0/3600.0);
 #undef MAKE_UNIT2OTHERUNIT_CONVERTER
 
+// Always returns a number in [0, b[
+template <typename T>
+T positiveMod(T a, T b) {
+  assert(b > 0);
+  T aOverB = a/b;
+  if (a >= 0) {
+    return a - aOverB*b;
+  } else {
+    return positiveMod(a - (a/b - 1)*b, b);
+  }
+}
+
+
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */
