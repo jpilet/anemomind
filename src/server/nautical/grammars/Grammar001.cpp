@@ -95,6 +95,8 @@ std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs) {
   return std::shared_ptr<HTree>();
 }
 
-Grammar001::Grammar001(/*Grammar001Settings s*/) : /*_settings(s), */_hierarchy(makeHierarchy()) {}
+Grammar001::Grammar001(Grammar001Settings s) : _settings(s), _hierarchy(makeHierarchy()) {}
+
+//Grammar001::Grammar001(/*Grammar001Settings s*/) : /*_settings(s), */_hierarchy(makeHierarchy()) {}
 
 } /* namespace sail */

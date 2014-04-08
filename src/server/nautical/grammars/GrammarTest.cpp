@@ -11,7 +11,12 @@
 using namespace sail;
 
 TEST(GrammarTest, Grammar001Info) {
-  Grammar001 g; //Grammar001Settings());
+
+
+  Grammar001Settings settings;
+
+  Grammar001 g(settings);
+
   Array<HNode> info = g.nodeInfo();
   EXPECT_EQ(info[24].label(), "Off");
   EXPECT_EQ(info.size(), 41);
