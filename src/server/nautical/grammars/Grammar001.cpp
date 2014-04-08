@@ -168,9 +168,6 @@ namespace {
 
 }
 
-std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs) {
-  return std::shared_ptr<HTree>();
-}
 
 class G001SA : public StateAssign {
  public:
@@ -251,6 +248,13 @@ G001SA::G001SA(Grammar001Settings s, Array<Nav> navs) :
 double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
   return getG001StateTransitionCost(_settings, fromStateIndex, toStateIndex, fromTimeIndex, _navs);
 }
+
+std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs) {
+  G001SA sa(_settings, navs);
+  Arrayi states = sa.solve();
+  return _hierarchy.parse(states);
+}
+
 
 //Grammar001::Grammar001(/*Grammar001Settings s*/) : /*_settings(s), */_hierarchy(makeHierarchy()) {}
 
