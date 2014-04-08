@@ -29,7 +29,7 @@ class Grammar001 : public Grammar {
   virtual ~Grammar001() {}
  private:
   Hierarchy _hierarchy;
-  //Grammar001Settings _settings;
+  Grammar001Settings _settings;
 };
 
 } /* namespace sail */
