@@ -89,7 +89,7 @@ class HTree {
 
   virtual ~HTree() {}
 
-  virtual void disp(std::ostream *out, Array<std::string> labels = Array<std::string>(), int indent = 0) const = 0;
+  virtual void disp(std::ostream *out, Array<std::string> labels = Array<std::string>(), int depth = 0, int maxDepth = 30) const = 0;
 
   virtual bool equals(std::shared_ptr<HTree> other) const = 0;
 
@@ -125,7 +125,7 @@ class HLeaves : public HTree {
 
   // nodeIndex should be _index. This is merely a redundant safety-feature.
   void add(int nodeIndex);
-  void disp(std::ostream *out, Array<std::string> labels, int indent) const;
+  void disp(std::ostream *out, Array<std::string> labels, int depth, int maxDepth) const;
   bool equals(std::shared_ptr<HTree> other) const;
  private:
   int _index, _left, _count;
@@ -142,7 +142,7 @@ class HInner : public HTree {
   }
   void add(std::shared_ptr<HTree> child);
   std::shared_ptr<HTree> lastChild();
-  void disp(std::ostream *out, Array<std::string> labels, int indent) const;
+  void disp(std::ostream *out, Array<std::string> labels, int depth, int maxDepth) const;
   int childCount() const {
     return _children.size();
   }

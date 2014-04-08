@@ -228,19 +228,23 @@ std::string getLabel(int index, Array<std::string> labels) {
 }
 }
 
-void HInner::disp(std::ostream *out, Array<std::string> labels, int indent) const {
-  insertIndent(out, indent);
-  *out << "HGeneral(" << getLabel(_index, labels) << ") in [" << left() << ", " << right() << "[" << std::endl;
-  int count = _children.size();
-  int nextIndent = indent + 1;
-  for (int i = 0; i < count; i++) {
-    _children[i]->disp(out, labels, nextIndent);
+void HInner::disp(std::ostream *out, Array<std::string> labels, int depth, int maxDepth) const {
+  if (depth < maxDepth) {
+    insertIndent(out, depth);
+    *out << "HGeneral(" << getLabel(_index, labels) << ") in [" << left() << ", " << right() << "[" << std::endl;
+    int count = _children.size();
+    int nextIndent = depth + 1;
+    for (int i = 0; i < count; i++) {
+      _children[i]->disp(out, labels, nextIndent);
+    }
   }
 }
 
-void HLeaves::disp(std::ostream *out, Array<std::string> labels, int indent) const {
-  insertIndent(out, indent);
-  *out << "HTerminals(" << getLabel(_index, labels) << ") in [" << left() << ", " << right() << "[" << std::endl;
+void HLeaves::disp(std::ostream *out, Array<std::string> labels, int depth, int maxDepth) const {
+  if (depth < maxDepth) {
+    insertIndent(out, depth);
+    *out << "HTerminals(" << getLabel(_index, labels) << ") in [" << left() << ", " << right() << "[" << std::endl;
+  }
 }
 
 bool HLeaves::equals(std::shared_ptr<HTree> other) const {
