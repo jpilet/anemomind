@@ -18,7 +18,7 @@ class ArrayBuilder {
  public:
   ArrayBuilder(int expectedMaxCount = 1) :
     _counter(0), _dst(Array<T>(expectedMaxCount)) {
-    assert(expectedMaxCount >= 1);
+    assert(expectedMaxCount >= 1); // If not, newSize = 2*old.size() = 0, that is, the array will not be able to grow.
   }
 
   void add(const T &x) {

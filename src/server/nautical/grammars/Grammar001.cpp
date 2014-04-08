@@ -182,7 +182,7 @@ class G001SA : public StateAssign {
   int getStateCount() {return stateCount;}
   int getLength() {return _navs.size();}
 
-  Arrayi getPrecedingStates(int stateIndex, int timeIndex);
+  Arrayi getPrecedingStates(int stateIndex, int timeIndex) {return _preds[stateIndex];}
  private:
   Array<Arrayi> _preds;
   Grammar001Settings _settings;

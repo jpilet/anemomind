@@ -51,6 +51,8 @@ class StateAssign {
   // the method getPrecedingStates.
   Arrayi listStateInds();
 
+  // Precompute an array of arrays that can be returned by the method
+  // 'getPrecedingStates', from a connectivity matrix.
   static Array<Arrayi> makePredecessorsPerState(MDArray2b con);
  private:
   void accumulateCosts(MDArray2d *costsOut, MDArray2i *ptrsOut);

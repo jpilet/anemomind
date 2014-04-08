@@ -17,4 +17,5 @@ target_link_libraries(nautical_grammars_Grammar001
                       common_Hierarchy
                       nautical_nav
                       common_string
+                      math_hmm_StateAssign
                      )        
