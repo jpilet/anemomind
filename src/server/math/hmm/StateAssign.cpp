@@ -19,6 +19,21 @@ Arrayi StateAssign::solve() {
   return unwind(costs, ptrs);
 }
 
+MDArray2d StateAssign::makeCostMatrix() {
+  MDArray2d costs;
+  MDArray2i ptrs;
+  accumulateCosts(&costs, &ptrs);
+  return costs;
+}
+
+MDArray2i StateAssign::makeRefMatrix() {
+  MDArray2d costs;
+  MDArray2i ptrs;
+  accumulateCosts(&costs, &ptrs);
+  return ptrs;
+}
+
+
 Arrayi StateAssign::listStateInds() {
   return makeRange(getStateCount());
 }

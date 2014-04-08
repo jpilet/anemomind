@@ -54,6 +54,10 @@ class StateAssign {
   // Precompute an array of arrays that can be returned by the method
   // 'getPrecedingStates', from a connectivity matrix.
   static Array<Arrayi> makePredecessorsPerState(MDArray2b con);
+
+  // Mostly for debugging
+  MDArray2d makeCostMatrix();
+  MDArray2i makeRefMatrix();
  private:
   void accumulateCosts(MDArray2d *costsOut, MDArray2i *ptrsOut);
   double calcBestPred(MDArray2d costs, Arrayi preds, int toState, int fromTime,

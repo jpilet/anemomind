@@ -38,8 +38,9 @@ namespace {
     Grammar001Settings settings;
     Grammar001 g(settings);
 
-    std::shared_ptr<HTree> tree = g.parse(allnavs);
-    tree->disp(&(std::cout), g.nodeInfo(), 0, 4);
+
+    std::shared_ptr<HTree> tree = g.parse(allnavs.sliceTo(2000));
+    tree->disp(&(std::cout), g.nodeInfo(), 0, 6);
     std::cout << EXPR_AND_VAL_AS_STRING(tree->childCount()/2) << std::endl;
     cout << "Done" << endl;
   }

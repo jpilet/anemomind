@@ -14,9 +14,9 @@ namespace sail {
 
 Grammar001Settings::Grammar001Settings() {
   _perSecondCost = 0.01;
-  _majorTransitionCost = 4.0;
+  _majorTransitionCost = 8.0;
   _minorTransitionCost = 1.0;
-  _offCost = 30;
+  _offCost = 8;
 }
 
 
@@ -163,12 +163,16 @@ namespace {
         factors[index] = f*expectedData[index];
       }
     }
+    std::cout << EXPR_AND_VAL_AS_STRING(factors) << std::endl;
     return factors;
   }
 
 
 
   int mapToRawMinorState(double awaDegs) {
+    if (std::isnan(awaDegs)) {
+      return -1;
+    }
     double atMost360 = positiveMod(awaDegs, 360.0);
     return int(atMost360/60);
   }
@@ -195,7 +199,7 @@ class G001SA : public StateAssign {
   Array<Arrayi> _preds;
   Grammar001Settings _settings;
   Array<Nav> _navs;
-  Arrayd _factors;
+  Arrayd _minorStateCosts;
 };
 
 double G001SA::getStateCost(int stateIndex, int timeIndex) {
@@ -207,7 +211,9 @@ double G001SA::getStateCost(int stateIndex, int timeIndex) {
   } else {
     int i0 = getMinorState(stateIndex);
     int i1 = mapToRawMinorState(n);
-    return _factors[stateIndex]*(i0 == i1? 0 : 1);
+    double stateCost = _minorStateCosts[stateIndex];
+    double matchCost = (i0 == i1? 0 : 1);
+    return stateCost + matchCost;
   }
 }
 
@@ -269,21 +275,8 @@ namespace {
 }
 
 G001SA::G001SA(Grammar001Settings s, Array<Nav> navs) :
-    _settings(s), _navs(navs), _factors(makeCostFactors()),
+    _settings(s), _navs(navs), _minorStateCosts(makeCostFactors()),
     _preds(makePredecessorsPerState(makeConnections())) {
-
-
-    for (int i = 0; i < 300; i++) {
-      double awa = _navs[i].awa().degrees();
-      int minorState = -1;
-      if (!std::isnan(awa)) {
-        minorState = mapToRawMinorState(_navs[i]);
-      }
-
-      std::cout << EXPR_AND_VAL_AS_STRING(minorState) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(awa) << std::endl;
-    }
-
 }
 
 double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
@@ -292,6 +285,15 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
 
 std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs) {
   G001SA sa(_settings, navs);
+
+  MDArray2d costs = sa.makeCostMatrix().sliceColsTo(30);
+  for (int i = 0; i < costs.cols(); i++) {
+    costs(0, i) = mapToRawMinorState(navs[i]);
+  }
+  dispMat(std::cout, costs);
+  dispMat(std::cout, sa.makeRefMatrix().sliceColsTo(30));
+  std::cout << EXPR_AND_VAL_AS_STRING(sa.getStateCost(1, 19)) << std::endl;
+
   Arrayi states = sa.solve();
   return _hierarchy.parse(states);
 }
