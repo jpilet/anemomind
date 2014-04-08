@@ -13,8 +13,13 @@
 namespace sail {
 
 Grammar001Settings::Grammar001Settings() {
+/*
+ * Default parameters chosen by hand.
+ * We should devise a strategy to choose them.
+ *
+ */
   _perSecondCost = 0.01;
-  _majorTransitionCost = 8.0;
+  _majorTransitionCost = 16.0;
   _minorTransitionCost = 1.0;
   _onOffCost = 2*_majorTransitionCost;
   _majorStateCost = 1.0;

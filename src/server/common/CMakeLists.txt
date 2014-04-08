@@ -100,6 +100,21 @@ cxx_test(common_HierarchyTest
          gtest_main
         )
 
+add_library(common_HierarchyJson
+            HierarchyJson.cpp        
+            HierarchyJson.h
+           )
+target_link_libraries(common_HierarchyJson
+                      common_Hierarchy
+                     )
+target_depends_on_poco_json(common_HierarchyJson)
+
+cxx_test(common_HierarchyJsonTest
+         HierarchyJsonTest.cpp
+         common_HierarchyJson
+         gtest_main
+        )                                
+
 add_library(common_Function
             Function.cpp
             Function.h
