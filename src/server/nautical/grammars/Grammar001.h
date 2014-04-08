@@ -12,14 +12,14 @@
 
 namespace sail {
 
-//class Grammar001Settings {
-// public:
-//  Grammar001Settings();
-//  double majorTransitionCost() {return _majorTransitionCost;}
-//  double minorTransitionCost() {return _minorTransitionCost;}
-// private:
-//  double _majorTransitionCost, _minorTransitionCost;
-//};
+class Grammar001Settings {
+ public:
+  Grammar001Settings();
+  double majorTransitionCost() {return _majorTransitionCost;}
+  double minorTransitionCost() {return _minorTransitionCost;}
+ private:
+  double _majorTransitionCost, _minorTransitionCost;
+};
 
 class Grammar001 : public Grammar {
  public:

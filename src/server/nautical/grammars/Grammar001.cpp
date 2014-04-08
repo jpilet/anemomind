@@ -9,10 +9,10 @@
 
 namespace sail {
 
-//Grammar001Settings::Grammar001Settings() {
-//  _majorTransitionCost = 2.0;
-//  _minorTransitionCost = 2.0;
-//}
+Grammar001Settings::Grammar001Settings() {
+  _majorTransitionCost = 2.0;
+  _minorTransitionCost = 2.0;
+}
 
 
 
