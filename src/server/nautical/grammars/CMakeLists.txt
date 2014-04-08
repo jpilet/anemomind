@@ -4,7 +4,7 @@ add_library(nautical_grammars_Grammar
            )
 cxx_test(nautical_grammars_GrammarTest
          GrammarTest.cpp
-         nautical_grammars_Grammar
+         nautical_grammars_Grammar001
          gtest_main
         )
         
@@ -14,4 +14,6 @@ add_library(nautical_grammars_Grammar001
            )            
 target_link_libraries(nautical_grammars_Grammar001
                       nautical_grammars_Grammar
+                      common_Hierarchy
+                      common_string
                      )        

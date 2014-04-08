@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include "Grammar001.h"
+#include <server/nautical/grammars/Grammar001.h>
 #include <server/common/string.h>
 
 namespace sail {
@@ -86,6 +86,10 @@ namespace {
     nodes.push_back(HNode::makeRoot(52, "Top"));
     return Hierarchy(Array<HNode>::referToVector(nodes).dup());
   }
+}
+
+std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs) {
+  return std::shared_ptr<HTree>();
 }
 
 Array<GrammarNodeInfo> Grammar001::nodeInfo() {
