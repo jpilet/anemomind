@@ -23,8 +23,8 @@ class NavIndexer {
   Nav make(const Nav &src);
   virtual ~NavIndexer() {}
  protected:
-  virtual std::string makeId(const Nav &src) = 0;
-  virtual std::string boatId() = 0;
+  virtual Nav::Id makeId(const Nav &src) = 0;
+  virtual Nav::Id boatId() = 0;
 };
 
 
@@ -36,18 +36,18 @@ class NavIndexer {
  */
 class BoatTimeNavIndexer : public NavIndexer {
  public:
-  static std::string debuggingBoatId() {return "FFFFFFFF";}
-  BoatTimeNavIndexer(std::string boatId8hexDigits,     // <-- A key in the boat database
-                     std::string highestId24hexDigits); // <-- Highest id among all id's in the Nav database
+  static Nav::Id debuggingBoatId() {return "FFFFFFFF";}
+  BoatTimeNavIndexer(Nav::Id boatId8hexDigits,     // <-- A key in the boat database
+                     Nav::Id highestId24hexDigits); // <-- Highest id among all id's in the Nav database
 
   // For testing purposes:
   static BoatTimeNavIndexer makeTestIndexer();
  protected:
-  virtual std::string makeId(const Nav &src);
-  virtual std::string boatId() {return _boatId;}
+  virtual Nav::Id makeId(const Nav &src);
+  virtual Nav::Id boatId() {return _boatId;}
  private:
-  std::string makeIdSub(int64_t time);
-  std::string _boatId, _highestId;
+  Nav::Id makeIdSub(int64_t time);
+  Nav::Id _boatId, _highestId;
 };
 
 
