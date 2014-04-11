@@ -21,6 +21,16 @@ target_link_libraries(nautical_nav
                       common_PeriodicSpan
                      )
   
+add_library(nautical_NavIndexer
+            NavIndexer.cpp
+            NavIndexer.h
+           )
+           
+target_link_libraries(nautical_NavIndexer
+                      nautical_nav
+                      common_string
+                     )  
+  
 add_library(nautical_NavNmea
             NavNmea.h  
             NavNmea.cpp
