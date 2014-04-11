@@ -93,7 +93,8 @@ bool Nav::operator== (const Nav &other) const {
 }
 
 
-const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
+//const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
+const char Nav::AllNavsPath[] = "/home/jonas/programmering/sailsmart/datasets/allnavs.txt";
 
 // From load_data.m
 //year = 1;
@@ -293,7 +294,9 @@ int countNavs(Array<Array<Nav> > navs) {
 }
 
 Array<Array<Nav> > getAllTestNavs() {
-  return splitNavsByDuration(loadNavsFromText(Nav::AllNavsPath), Duration<double>::minutes(10));
+  Array<Nav> allnavs = loadNavsFromText(Nav::AllNavsPath);
+  assert(allnavs.hasData());
+  return splitNavsByDuration(allnavs, Duration<double>::minutes(10));
 }
 
 Array<Nav> getTestNavs(int index) {

@@ -19,7 +19,6 @@ Arrayd makeNextCoefs(Arrayd coefs) {
   return next;
 }
 
-
 }
 }
 

@@ -5,7 +5,6 @@
 
 #include <server/math/BandMat.h>
 #include <gtest/gtest.h>
-
 #include <server/common/LineKM.h>
 #include <cmath>
 
@@ -128,5 +127,3 @@ TEST(BandMatTest, SmallDiagElem) {
   MDArray2d result = bandMatGaussElim(A, B, 1.0e-9);
   EXPECT_TRUE(result.empty());
 }
-
-

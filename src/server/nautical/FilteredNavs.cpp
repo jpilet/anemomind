@@ -217,6 +217,11 @@ FilteredSignal filterMagHdg(LineStrip strip, Array<Duration<double> > T, Array<A
 }
 
 FilteredSignal filterGpsBearing(LineStrip strip, Array<Duration<double> > T, Array<Angle<double> > gb) {
+  {
+    Arrayd allCoords = strip.getGridVertexCoords1d();
+    assert(allCoords.first() <= T.first().seconds());
+    assert(T.last().seconds() <= allCoords.last());
+  }
    Arrayb rel = identifyReliableGpsBearing(gb);
 
    int orders[1] = {2};
@@ -246,7 +251,11 @@ FilteredSignal filterGpsSpeed(LineStrip strip, Array<Duration<double> > T, Array
 
 LineStrip makeNavsLineStrip(Array<Duration<double> > T) {
   Arrayd X = timeToSeconds(T);
-  return LineStrip(Spand(X).expand(0.1), 1.0);
+  Spand exp = Spand(X).expand(0.1);
+  std::cout << EXPR_AND_VAL_AS_STRING(exp) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(T.first().seconds()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(X.first()) << std::endl;
+  return LineStrip(exp, 1.0);
 }
 
 
@@ -280,6 +289,12 @@ void FilteredSignal::plot() {
 FilteredNavs::FilteredNavs(Array<Nav> navs) {
   times = getLocalTime(navs);
   time = makeNavsLineStrip(times);
+  {
+    Arrayd allCoords = time.getGridVertexCoords1d();
+    assert(allCoords.first() <= times.first().seconds());
+    assert(times.last().seconds() <= allCoords.last());
+  }
+
   aws = filterAws(time, times, getAws(navs));
   awa = filterAwa(time, times, getAwa(navs));
   magHdg = filterMagHdg(time, times, getMagHdg(navs));

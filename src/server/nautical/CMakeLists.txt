@@ -60,15 +60,36 @@ target_link_libraries(nautical_FilteredNavsExample
                       common_string
                      )
 
-add_executable(nautical_WaterCalibExample
-               WaterCalibExample.cpp
-              )              
+add_library(nautical_WaterCalibExample
+            WaterCalibExample.cpp
+           )              
 target_link_libraries(nautical_WaterCalibExample               
                       nautical_FilteredNavs
                       nautical_GeoCalc
                       common_Statistics
                       common_string
                      )              
+
+add_executable(nautical_WaterCalibPlotExample
+               WaterCalibPlotExample.cpp
+              )
+target_link_libraries(nautical_WaterCalibPlotExample
+                      nautical_WaterCalibExample
+                     )
+
+add_executable(nautical_WaterCalibComputeExample
+               WaterCalibComputeExample.cpp
+              )
+target_link_libraries(nautical_WaterCalibComputeExample
+                      nautical_WaterCalibExample
+                     )
+                     
+add_executable(nautical_WaterCalibDisplayExample
+               WaterCalibDisplayExample.cpp
+              )
+target_link_libraries(nautical_WaterCalibDisplayExample
+                      nautical_WaterCalibExample
+                     )
 
 add_library(nautical_NavNmea
             NavNmea.h  

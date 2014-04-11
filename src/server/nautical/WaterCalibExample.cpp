@@ -423,7 +423,7 @@ void wce002() { // WORKS WELL
   plot.show();
 }
 
-void wce003() { // A different result
+void wce003() { // Optimize and display a calibration graph
   Array<Nav> navs = getTestNavs(0);
 
   Array<Duration<double> > T = getLocalTime(navs);
@@ -462,12 +462,9 @@ void wce004() { // Display random splits
 
 
 
-void wce005() { // With cross validation: Randomly slided 2-folds
-  bool compute = false;
-  int navIndex = 0;
-
+void wce005(bool compute) { // Loop over all navs and optimize, with cross validation: Randomly slided 2-folds
   Array<Array<Nav> > allNavs = getAllTestNavs();
-  for (int navIndex = 0; navIndex < /*allNavs.size()*/1; navIndex++) {
+  for (int navIndex = 0; navIndex < allNavs.size(); navIndex++) {
     ENTERSCOPE(stringFormat("===== Processing navs %d/%d", navIndex+1, allNavs.size()));
 
     Array<Nav> navs = allNavs[navIndex];
@@ -543,11 +540,3 @@ void wce005() { // With cross validation: Randomly slided 2-folds
 
 
 } /* namespace sail */
-int main() {
-  using namespace sail;
-
-  wce005();
-
-  std::cout << "DONE" << std::endl;
-  return 0;
-}

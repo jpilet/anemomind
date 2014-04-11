@@ -39,7 +39,6 @@ class BandMat {
 
 
   T get(int i, int j) const {
-
     if (valid(i, j)) {
       return at(i, j);
     } else {
@@ -48,7 +47,6 @@ class BandMat {
   }
 
   void set(int i, int j, T x) {
-
     at(i, j) = x;
   }
 
