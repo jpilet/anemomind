@@ -44,6 +44,7 @@ target_link_libraries(nautical_NavNmea
 cxx_test(nautical_NavNmeaTest
          NavNmeaTest.cpp
          nautical_NavNmea
+         nautical_NavIndexer
          gtest_main
         )
 
@@ -104,6 +105,7 @@ target_depends_on_poco_json(nautical_NavJson)
 target_link_libraries(nautical_NavJson
                             nautical_nav
                             common_TimeStampJson
+                            common_Json
                            )
 
 cxx_test(nautical_NavJsonTest

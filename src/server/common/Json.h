@@ -6,6 +6,9 @@
 #ifndef JSON_H_
 #define JSON_H_
 
+#include <server/common/Array.h>
+#include <Poco/JSON/Object.h>
+
 namespace sail {
 namespace json {
 
@@ -17,6 +20,30 @@ Poco::JSON::Object::Ptr toJsonObjectWithField(std::string typeName, const T &x) 
   serializeField(obj, typeName, x);
   return obj;
 }
+
+template <typename T>
+Poco::JSON::Array serializeArray(Array<T> src) {
+  Poco::JSON::Array arr;
+  int count = src.size();
+  for (int i = 0; i < count; i++) {
+    arr.add(serialize(src[i]));
+  }
+  return arr;
+}
+
+template <typename T>
+void deserializeArray(Poco::JSON::Array src, Array<T> *dst) {
+  int count = src.size();
+  *dst = Array<T>(count);
+  for (int i = 0; i < count; i++) {
+    deserialize(src.getObject(i), dst->ptr(i));
+  }
+}
+
+
+// string
+void serializeField(Poco::JSON::Object::Ptr obj, std::string fieldName, const std::string &value);
+void deserializeField(Poco::JSON::Object::Ptr obj, std::string fieldName, std::string *valueOut);
 
 }
 }
