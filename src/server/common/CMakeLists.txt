@@ -1,3 +1,19 @@
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Env.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/Env.cpp" @ONLY)
+list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/Env.cpp.in" Env.cpp)
+
+add_library(common_Env
+            "${CMAKE_CURRENT_BINARY_DIR}/Env.cpp"
+            Env.h
+           )
+           
+cxx_test(common_EnvTest
+         EnvTest.cpp
+         common_Env
+         gtest_main
+        )           
+target_depends_on_poco_foundation(common_EnvTest)
+                              
+
 add_library(common_string
   string.h
   string.cpp)
@@ -98,13 +114,6 @@ target_link_libraries(common_Function
                       common_math
                      )
 
-add_library(common_ConcatFunction
-            ConcatFunction.h
-            ConcatFunction.cpp
-           )
-target_link_libraries(common_ConcatFunction
-                      common_Function
-                     )
 
 add_library(common_MeanStabilizer
             MeanStabilizer.cpp                     
@@ -114,11 +123,6 @@ target_link_libraries(common_MeanStabilizer
                       common_Function
                      )           
 
-cxx_test(common_ConcatFunctionTest
-         ConcatFunctionTest.cpp
-         common_ConcatFunction
-         gtest_main
-        )
 
 add_library(common_BBox
             BBox.cpp
@@ -178,4 +182,18 @@ cxx_test(common_pocoTest
          pocoTest.cpp
          gtest_main
         )
-target_depends_on_poco_json(common_pocoTest)                 
+target_depends_on_poco_json(common_pocoTest) 
+
+add_library(common_ConcatFunction
+            ConcatFunction.h
+            ConcatFunction.cpp
+           )
+target_link_libraries(common_ConcatFunction
+                      common_Function
+                     )                
+cxx_test(common_ConcatFunctionTest
+         ConcatFunctionTest.cpp
+         common_ConcatFunction
+         gtest_main
+        )
+                     

@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
  *  Created on: 14 mars 2014
+=======
+ *  Created on: 2014-03-14
+>>>>>>> master
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
@@ -8,21 +12,25 @@
 
 #include <server/common/Function.h>
 #include <server/common/MDArray.h>
+#include <memory>
 
 namespace sail {
 
 class ConcatFunction : public Function {
  public:
-  ConcatFunction(Function &a, Function &b);
-  int inDims() {return _a.inDims();}
-  int outDims() {return _a.outDims() + _b.outDims();}
+  // Concatenate functions pointed to by shared pointers
+  ConcatFunction(std::shared_ptr<Function> a, std::shared_ptr<Function> b);
+  ConcatFunction(Array<std::shared_ptr<Function> > funs);
+
+  int inDims() {return _inDims;}
+  int outDims() {return _outDims;}
   void eval(double *Xin, double *Fout, double *Jout);
  private:
-  Function &_a, &_b;
-  Arrayd _Jtemp;
+  void initialize(Array<std::shared_ptr<Function> > funs);
+  int _outDims, _inDims;
+  Array<std::shared_ptr<Function> > _functions;
 
-  MDArray2d Atemp();
-  MDArray2d Btemp();
+  Arrayd _Jtemp;
   double *tempPtr(double *Jout) {return (Jout == nullptr? nullptr : _Jtemp.ptr());}
 };
 

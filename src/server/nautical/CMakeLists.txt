@@ -22,12 +22,6 @@ target_link_libraries(nautical_nav
                      )
   
   
-cxx_test(nautical_SpeedCalibTest
-         SpeedCalibTest.cpp
-         gtest_main
-        )
-  
-  
 add_library(nautical_GeoCalc
             GeoCalc.h
             GeoCalc.cpp
@@ -177,6 +171,12 @@ cxx_test(nautical_NavJsonTest
          nautical_NavJson
          gtest_main
         )
+        
+        
+cxx_test(nautical_SpeedCalibTest
+         SpeedCalibTest.cpp
+         gtest_main
+        )        
 
 #################################################################
 ### CalibrationExamples

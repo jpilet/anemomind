@@ -6,6 +6,9 @@
 #include <server/math/BandMat.h>
 #include <gtest/gtest.h>
 
+#include <server/common/LineKM.h>
+#include <cmath>
+
 using namespace sail;
 
 TEST(BandMatTest, TestAssign) {
@@ -66,6 +69,64 @@ TEST(BandMatTest, TestGaussElim) {
   for (int i = 0; i < 3; i++) {
     EXPECT_NEAR(C(i, 0), expectedResult[i], 1.0e-2);
   }
+}
+
+TEST(BandMatTest, ValidTest) {
+  bool v[25] = {0, 0, 0, 0, 0,
+                0, 1, 1, 0, 0,
+                0, 1, 1, 1, 0,
+                0, 0, 1, 1, 0,
+                0, 0, 0, 0, 0};
+
+  BandMatd A(3, 3, 1, 1);
+  int counter = 0;
+  for (int i = -1; i < 4; i++) {
+    for (int j = -1; j < 4; j++) {
+      EXPECT_EQ(A.valid(i, j), v[counter]);
+      counter++;
+    }
+  }
+  EXPECT_EQ(counter, 25);
+}
+
+TEST(BandMatTest, TestSetAndGet) {
+  BandMatd A(3, 3, 1, 1);
+  const int ec = 7;
+  int I[ec] = {0, 0,  1, 1, 1,  2, 2};
+  int J[ec] = {0, 1,  0, 1, 2,  1, 2};
+
+  LineKM map(0, ec-1, 1.34, 34.8);
+
+  for (int K = 0; K < ec; K++) {
+    A.set(I[K], J[K], map(K));
+    for (int L = 0; L <= K; L++) {
+      EXPECT_EQ(A.get(I[L], J[L]), map(L));
+    }
+  }
+  for (int K = 0; K < ec; K++) {
+    EXPECT_EQ(A.get(I[K], J[K]), map(K));
+  }
+
+}
+
+TEST(BandMatTest, SmallDiagElem) {
+  BandMatd A(3, 3, 1, 1);
+  MDArray2d B(3, 1);
+  int counter = 0;
+  for (int i = 0; i < 3; i++) {
+    B(i, 0) = i+1;
+    for (int j = 0; j < 3; j++) {
+      if (A.valid(i, j)) {
+        if (i == j) {
+          A.set(i, j, 1.0e-30); // small element on the diagonal
+        } else {
+          A.set(i, j, i*j + j + 1.34);
+        }
+      }
+    }
+  }
+  MDArray2d result = bandMatGaussElim(A, B, 1.0e-9);
+  EXPECT_TRUE(result.empty());
 }
 
 

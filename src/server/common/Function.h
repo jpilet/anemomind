@@ -12,8 +12,6 @@ namespace sail {
 
 class Function {
  public:
-  Function() {}
-
   // TO BE OVERRIDDEN:
   virtual int inDims() = 0;
   virtual int outDims() = 0;

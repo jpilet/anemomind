@@ -29,19 +29,6 @@ cxx_test(math_MatExprTest
          gtest_main
         )                   
 
-add_library(math_BandMat
-            BandMat.h
-            BandMat.cpp
-           )
-target_link_libraries(math_BandMat
-                       common_Array
-                      )                                    
-
-cxx_test(math_BandMatTest
-         BandMatTest.cpp
-         math_BandMat         
-         gtest_main
-        )                   
 
 add_library(math_ADFunction
             ADFunction.cpp
@@ -107,6 +94,20 @@ target_depends_on_armadillo(math_Grid)
 cxx_test(math_GridTest
          GridTest.cpp
          math_Grid
+         gtest_main
+        )
+
+add_library(math_BandMat
+            BandMat.h
+            BandMat.cpp
+           )
+target_link_libraries(math_BandMat
+                       common_Array
+                      )                                    
+cxx_test(math_BandMatTest
+         BandMatTest.cpp
+         math_BandMat
+         common_LineKM         
          gtest_main
         )
 

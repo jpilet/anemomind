@@ -1,10 +1,15 @@
 /*
+<<<<<<< HEAD
  *  Created on: 14 mars 2014
+=======
+ *  Created on: 2014-03-14
+>>>>>>> master
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
 #include "ConcatFunction.h"
 #include <gtest/gtest.h>
+#include <server/common/SharedPtrUtils.h>
 
 using namespace sail;
 
@@ -46,7 +51,7 @@ namespace {
 TEST(ConcatFunctionTest, Test1) {
   FunA A;
   FunB B;
-  ConcatFunction C(A, B);
+  ConcatFunction C(makeSharedPtrToStack(A), makeSharedPtrToStack(B));
   EXPECT_EQ(C.inDims(), 2);
   EXPECT_EQ(C.outDims(), 3);
 

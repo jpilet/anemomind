@@ -1,25 +1,59 @@
 /*
+<<<<<<< HEAD
  *  Created on: 14 mars 2014
+=======
+ *  Created on: 2014-03-14
+>>>>>>> master
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
 #include "ConcatFunction.h"
+#include <algorithm>
 #include <assert.h>
 
 namespace sail {
 
 
-ConcatFunction::ConcatFunction(Function &a, Function &b) : _a(a), _b(b) {
-  assert(_a.inDims() == _b.inDims());
-  _Jtemp.create(std::max(_a.outDims(), _b.outDims())*inDims());
+
+ConcatFunction::ConcatFunction(std::shared_ptr<Function> a,
+    std::shared_ptr<Function> b) {
+  Array<std::shared_ptr<Function> > funs(2);
+  funs[0] = a;
+  funs[1] = b;
+  initialize(funs);
 }
 
-MDArray2d ConcatFunction::Atemp() {
-  return MDArray2d(_a.outDims(), _a.inDims(), _Jtemp.ptr());
+ConcatFunction::ConcatFunction(Array<std::shared_ptr<Function> > funs) {
+  initialize(funs);
 }
-MDArray2d ConcatFunction::Btemp() {
-  return MDArray2d(_b.outDims(), _b.inDims(), _Jtemp.ptr());
+
+
+
+namespace {
+  int maxOutDims(Array<std::shared_ptr<Function> > funs) {
+    int count = funs.size();
+    int maxv = 0;
+    for (int i = 0; i < count; i++) {
+      maxv = std::max(maxv, funs[i]->outDims());
+    }
+    return maxv;
+  }
 }
+
+void ConcatFunction::initialize(Array<std::shared_ptr<Function> > funs) {
+  _inDims = funs[0]->inDims();
+  _Jtemp.create(maxOutDims(funs)*_inDims);
+  _functions = funs;
+  _outDims = 0;
+  int count = funs.size();
+  for (int i = 0; i < count; i++) {
+    assert(_inDims == funs[i]->inDims());
+    _outDims += funs[i]->outDims();
+  }
+}
+
+
+
 
 
 void ConcatFunction::eval(double *Xin, double *Fout, double *Jout) {
@@ -30,15 +64,20 @@ void ConcatFunction::eval(double *Xin, double *Fout, double *Jout) {
     Jdst = MDArray2d(outDims(), inDims(), Jout);
   }
 
-  _a.eval(Xin, Fout, tempPtr(Jout));
-  if (outputJ) {
-    Atemp().copyToSafe(Jdst.sliceRowsTo(_a.outDims()));
-  }
+  int count = _functions.size();
+  int offset = 0;
+  for (int i = 0; i < count; i++) {
+    std::shared_ptr<Function> &f = _functions[i];
+    int next = offset + f->outDims();
+    f->eval(Xin, Fout + offset, tempPtr(Jout));
 
-  _b.eval(Xin, Fout + _a.outDims(), tempPtr(Jout));
-  if (outputJ) {
-    Btemp().copyToSafe(Jdst.sliceRowsFrom(_a.outDims()));
+    if (outputJ) {
+      MDArray2d Jtemp(f->outDims(), f->inDims(), _Jtemp);
+      Jtemp.copyToSafe(Jdst.sliceRows(offset, next));
+    }
+    offset = next;
   }
+  assert(offset == _outDims);
 }
 
 } /* namespace sail */

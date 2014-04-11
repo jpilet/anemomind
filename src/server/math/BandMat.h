@@ -6,11 +6,22 @@
 #ifndef BANDMAT_H_
 #define BANDMAT_H_
 
+#include <algorithm>
 #include <server/common/MDArray.h>
+#include <server/common/invalidate.h>
 
 namespace sail {
 
-Arrayd makeNextCoefs(Arrayd coefs);
+namespace BandMatInternal {
+  // Used to produce regularization terms (used by addRegs)
+  // It maps a vector I to [I 0] - [0 I].
+  //
+  // For instance, it maps [1] to [1 -1]
+  //               it maps [1 -1] to [1 -2 1]
+  //               it maps [1 -2 1] to [1 -3 3 -1] etc.
+  Arrayd makeNextCoefs(Arrayd coefs);
+}
+
 
 template <typename T>
 class BandMat {
@@ -28,24 +39,30 @@ class BandMat {
 
 
   T get(int i, int j) const {
-    int j0 = calcCol(i, j);
+
     if (valid(i, j)) {
-      return _data(i, j0);
+      return at(i, j);
     } else {
       return 0.0;
     }
   }
 
   void set(int i, int j, T x) {
-    int j0 = calcCol(i, j);
-    assert(valid(i, j));
-    _data(i, j) = x;
+
+    at(i, j) = x;
   }
 
   T &at(int i, int j) {
+    assert(valid(i, j));
     int j0 = calcCol(i, j);
     return _data(i, j0);
   }
+  const T &at(int i, int j) const {
+    assert(valid(i, j));
+    int j0 = calcCol(i, j);
+    return _data(i, j0);
+  }
+
 
   T &operator() (int i, int j) {return at(i, j);}
 
@@ -61,7 +78,9 @@ class BandMat {
     MDArray<T, 2> dst(_rows, _cols);
     dst.setAll(0.0);
     for (int i = 0; i < _rows; i++) {
-      for (int j = 0; j < _cols; j++) {
+      int lc = leftColIndex(i);
+      int rc = rightColIndex(i);
+      for (int j = lc; j < rc; j++) {
         dst(i, j) = get(i, j);
       }
     }
@@ -102,7 +121,7 @@ class BandMat {
     coefs[0] = Arrayd(1);
     coefs[0][0] = 1.0;
     for (int i = 0; i < maxOrder; i++) {
-      coefs[i+1] = makeNextCoefs(coefs[i]);
+      coefs[i+1] = BandMatInternal::makeNextCoefs(coefs[i]);
     }
 
     for (int i = 0; i < count; i++) {
@@ -118,7 +137,10 @@ class BandMat {
     }
   }
 
+  MDArray<T, 2> getDataForDebug() {return _data;}
  private:
+  // Map (i, j) col index a col index of the underlying storage.
+  // (The row index is the same)
   int calcCol(int i, int j) const { return j - i + _left;}
 
   int _rows, _cols, _left, _right;
@@ -157,12 +179,16 @@ namespace BMGE {
   }
 
   template <typename T>
-  void scaleRowsTo1(int index, BandMat<T> *Aio, MDArray<T, 2> *Bio, double tol) {
+
+  bool scaleRowsTo1(int index, BandMat<T> *Aio, MDArray<T, 2> *Bio, double tol) {
     T x = (*Aio)(index, index);
-    assert(tol < (x < 0? -x : x));
+    if (!(tol < (x < 0? -x : x))) {
+      return false;
+    }
     T factor = 1.0/x;
     scaleRow(index, Aio, factor);
     scaleRow(index, Bio, factor);
+    return true;
   }
 
   template <typename T>
@@ -190,16 +216,19 @@ namespace BMGE {
   }
 
   template <typename T>
-  void eliminateForward(BandMat<T> *Aio, MDArray<T, 2> *Bio, double tol) {
+  bool eliminateForward(BandMat<T> *Aio, MDArray<T, 2> *Bio, double tol) {
     BandMat<T> &A = *Aio;
     MDArray<T, 2> &B = *Bio;
     for (int i = 0; i < A.rows(); i++) {
-      scaleRowsTo1(i, Aio, Bio, tol);
+      if (!scaleRowsTo1(i, Aio, Bio, tol)) {
+        return false;
+      }
       int to = A.bottomRowIndex(i);
       for (int idst = i+1; idst < to; idst++) {
         eliminateSub(i, idst, Aio, Bio);
       }
     }
+    return true;
   }
 
   template <typename T>
@@ -222,19 +251,26 @@ namespace BMGE {
  * This is checked for with the tol parameter.
  */
 template <typename T>
-void bandMatGaussElimDestructive(BandMat<T> *Aio, MDArray<T, 2> *Bio, double tol = 1.0e-6) {
+bool bandMatGaussElimDestructive(BandMat<T> *Aio, MDArray<T, 2> *Bio, double tol = 1.0e-6) {
   using namespace BMGE;
   BandMat<T> &A = *Aio;
   MDArray<T, 2> &B = *Bio;
-  eliminateForward(Aio, Bio, tol);
+  if (!eliminateForward(Aio, Bio, tol)) {
+    *Aio = BandMat<T>();
+    *Bio = MDArray<T, 2>();
+    return false;
+  }
   eliminateBackward(Aio, Bio);
+  return true;
 }
 
 template <typename T>
 MDArray<T, 2> bandMatGaussElim(BandMat<T> A, MDArray<T, 2> B, double tol = 1.0e-6) {
   BandMat<T> Atemp = A.dup();
   MDArray<T, 2> Bdst = B.dup();
-  bandMatGaussElimDestructive(&Atemp, &Bdst, tol);
+  if (!bandMatGaussElimDestructive(&Atemp, &Bdst, tol)) {
+    return MDArray<T, 2>();
+  }
   return Bdst;
 }
 
