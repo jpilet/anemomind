@@ -49,18 +49,23 @@ namespace {
     Grammar001 g(settings);
 
 
-    std::shared_ptr<HTree> tree = g.parse(allnavs); //allnavs.sliceTo(2000));
-    tree->disp(&(std::cout), g.nodeInfo(), 0, 2);
-    std::cout << EXPR_AND_VAL_AS_STRING(tree->childCount()/2) << std::endl;
+    std::shared_ptr<HTree> fulltree = g.parse(allnavs); //allnavs.sliceTo(2000));
+    fulltree->disp(&(std::cout), g.nodeInfo(), 0, 2);
+    std::cout << EXPR_AND_VAL_AS_STRING(fulltree->childCount()/2) << std::endl;
 
     std::string prefix = "/home/jonas/data/workspace/cpp/anemomind";
 
+    // Create a smaller tree with fewer children.
+    std::shared_ptr<HTree> tree(new HInner(fulltree->index(), fulltree->child(0)));
+
+    Array<Nav> navs = allnavs.slice(tree->left(), tree->right());
+
     {
       ofstream file(prefix + "_tree.js");
-      json::serializeMapped(tree, allnavs, g.nodeInfo())->stringify(file, 0, 0);
+      json::serializeMapped(tree, navs, g.nodeInfo())->stringify(file, 0, 0);
     }{
       ofstream file(prefix + "_navs.js");
-      json::serialize(allnavs).stringify(file, 0, 0);
+      json::serialize(navs).stringify(file, 0, 0);
     }{
       ofstream file(prefix + "_tree_node_info.js");
       json::serialize(g.nodeInfo()).stringify(file, 0, 0);
