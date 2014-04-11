@@ -84,6 +84,7 @@ add_library(common_Hierarchy
            )
 target_link_libraries(common_Hierarchy
                       common_Array
+                      common_string
                      )
 cxx_test(common_HierarchyTest
          HierarchyTest.cpp
@@ -99,6 +100,12 @@ target_link_libraries(common_HierarchyJson
                       common_Hierarchy
                      )
 target_depends_on_poco_json(common_HierarchyJson)
+
+add_library(common_Json
+            Json.h
+            Json.cpp
+           )
+target_depends_on_poco_json(common_Json)
 
 cxx_test(common_HierarchyJsonTest
          HierarchyJsonTest.cpp
