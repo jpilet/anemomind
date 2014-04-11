@@ -13,7 +13,8 @@ Poco::JSON::Object::Ptr serialize(const HNode &x) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   obj->set("index", x.index());
   obj->set("parent", x.parent());
-  obj->set("label", x.description());
+  obj->set("description", x.description());
+  obj->set("code", x.code());
   return obj;
 }
 
@@ -21,8 +22,9 @@ Poco::JSON::Object::Ptr serialize(const HNode &x) {
 void deserialize(Poco::JSON::Object::Ptr src, HNode *dst) {
   int index = src->getValue<int>("index");
   int parent = src->getValue<int>("parent");
-  std::string label = src->getValue<std::string>("label");
-  *dst = HNode(index, parent, label);
+  std::string description = src->getValue<std::string>("description");
+  std::string code = src->getValue<std::string>("code");
+  *dst = HNode(index, parent, code, description);
 }
 
 Poco::JSON::Array serialize(Array<HNode> src) {

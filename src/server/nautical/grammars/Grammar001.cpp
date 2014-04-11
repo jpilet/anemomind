@@ -76,28 +76,29 @@ namespace {
     // 33    34    35    36
     // 37    38    38    37
     //
+    HNodeFamily fam("Grammar001");
 
     int mcounter = 0;
     const int majorParents[4] = {37, 38, 38, 37};
     for (int i = 0; i < 4; i++) {// every major state
       int majorIndex = 33 + i;
-      nodes.push_back(HNode(majorIndex, majorParents[i], majorStates[i]));
+      nodes.push_back(fam.make(majorIndex, majorParents[i], majorStates[i]));
       for (int j = 0; j < 2; j++) { // Starboard/Port?
         int sideIndex = 25+j + 2*i;
-        nodes.push_back(HNode(sideIndex, majorIndex, sides[j]));
+        nodes.push_back(fam.make(sideIndex, majorIndex, sides[j]));
         for (int k = 0; k < 3; k++) { // type, close-hauled, beam reach or broad reach?
           int minorIndex = 3*j + k;
           int stateIndex = 6*i + minorIndex;
-          nodes.push_back(HNode(stateIndex, sideIndex, getType(minorIndex)));
+          nodes.push_back(fam.make(stateIndex, sideIndex, getType(minorIndex)));
           mcounter++;
         }
       }
     }
-    nodes.push_back(HNode(37, 39, "Not in race"));
-    nodes.push_back(HNode(38, 39, "In race"));
-    nodes.push_back(HNode(39, 40, "Sailing"));
-    nodes.push_back(HNode(24, 40, "Off"));
-    nodes.push_back(HNode::makeRoot(40, "Top"));
+    nodes.push_back(fam.make(37, 39, "Not in race"));
+    nodes.push_back(fam.make(38, 39, "In race"));
+    nodes.push_back(fam.make(39, 40, "Sailing"));
+    nodes.push_back(fam.make(24, 40, "Off"));
+    nodes.push_back(fam.makeRoot(40, "Top"));
     return Hierarchy(Array<HNode>::referToVector(nodes).dup());
   }
 }

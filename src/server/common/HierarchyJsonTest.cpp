@@ -11,7 +11,7 @@
 using namespace sail;
 
 TEST(HierarchyJsonTest, TestSimple) {
-  HNode x(1, 2, "testnode");
+  HNode x(1, 2, "m", "testnode");
   Poco::JSON::Object::Ptr obj = json::serialize(x);
   HNode y;
   json::deserialize(obj, &y);
@@ -21,7 +21,7 @@ TEST(HierarchyJsonTest, TestSimple) {
 }
 
 TEST(HierarchyJsonTest, TestSimpleArray) {
-  HNode x(1, 2, "testnode");
+  HNode x(1, 2, "m", "testnode");
   Array<HNode> X = Array<HNode>::args(x);
   Poco::JSON::Array obj = json::serialize(X);
   Array<HNode> Y;
@@ -44,18 +44,19 @@ Hierarchy makeMiniSailGrammar() {
 
   // TERMINAL SYMBOLS
   // Port tack
-  nodes[0] = HNode(0, 6, "Port tack / Close hauled");
-  nodes[1] = HNode(1, 6, "Port tack / Beam reach");
-  nodes[2] = HNode(2, 6, "Port tack / Broad reach");
+  HNodeFamily fam("mja");
+  nodes[0] = fam.make(0, 6, "Port tack / Close hauled");
+  nodes[1] = fam.make(1, 6, "Port tack / Beam reach");
+  nodes[2] = fam.make(2, 6, "Port tack / Broad reach");
   // Starboard tack
-  nodes[3] = HNode(3, 7, "Starboard tack / Broad reach");
-  nodes[4] = HNode(4, 7, "Starboard tack / Beam reach");
-  nodes[5] = HNode(5, 7, "Starboard tack / Close hauled");
+  nodes[3] = fam.make(3, 7, "Starboard tack / Broad reach");
+  nodes[4] = fam.make(4, 7, "Starboard tack / Beam reach");
+  nodes[5] = fam.make(5, 7, "Starboard tack / Close hauled");
 
   // GROUPING SYMBOLS
-  nodes[6] = HNode(6, 8, "Port tack");
-  nodes[7] = HNode(7, 8, "Starboard tack");
-  nodes[8] = HNode::makeRoot(8, "Sailing");
+  nodes[6] = fam.make(6, 8, "Port tack");
+  nodes[7] = fam.make(7, 8, "Starboard tack");
+  nodes[8] = fam.makeRoot(8, "Sailing");
   return Hierarchy(nodes);
 }
 

@@ -100,6 +100,7 @@ add_library(common_Hierarchy
            )
 target_link_libraries(common_Hierarchy
                       common_Array
+                      common_string
                      )
 cxx_test(common_HierarchyTest
          HierarchyTest.cpp

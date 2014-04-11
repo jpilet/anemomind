@@ -33,9 +33,7 @@ namespace sail {
 class HNode {
  public:
   HNode() : _index(-1), _parent(-1) {}
-  HNode(int index, int parent, std::string description);
-
-  static HNode makeRoot(int index, std::string description);
+  HNode(int index, int parent, std::string code, std::string description);
 
   bool defined() const {
     return _index != -1;
@@ -52,6 +50,9 @@ class HNode {
   const std::string &description() const {
     return _description;
   }
+  const std::string &code() const {
+    return _code;
+  }
   int index() const {
     return _index;
   }
@@ -60,7 +61,16 @@ class HNode {
   }
  private:
   int _index, _parent;
-  std::string _description;
+  std::string _description, _code;
+};
+
+class HNodeFamily {
+ public:
+  HNodeFamily(std::string familyName);
+  HNode make(int index, int parent, std::string description);
+  HNode makeRoot(int index, std::string description);
+ private:
+  std::string _familyName;
 };
 
 

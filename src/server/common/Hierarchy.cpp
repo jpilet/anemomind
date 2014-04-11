@@ -8,14 +8,20 @@
 #include <vector>
 #include "ArrayIO.h"
 #include  <sstream>
+#include <server/common/string.h>
 
 namespace sail {
 
-HNode::HNode(int index, int parent, std::string label) : _index(index), _parent(parent), _description(label) {
+HNode::HNode(int index, int parent, std::string code, std::string label) : _index(index), _parent(parent), _code(code), _description(label) {
 }
 
-HNode HNode::makeRoot(int index, std::string label) {
-  return HNode(index, -1, label);
+HNodeFamily::HNodeFamily(std::string familyName) : _familyName(familyName) {}
+
+HNode HNodeFamily::make(int index, int parent, std::string description) {
+  return HNode(index, parent, stringFormat("%s-%03d", _familyName.c_str(), index), description);
+}
+HNode HNodeFamily::makeRoot(int index, std::string description) {
+  return HNode(index, -1, stringFormat("%s-%03d", _familyName.c_str(), index), description);
 }
 
 
