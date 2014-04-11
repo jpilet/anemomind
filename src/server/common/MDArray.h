@@ -100,6 +100,11 @@ class MDArray {
     }
   }
 
+  bool isSquare() const {
+    static_assert(dims == 2, "Only applicable to matrices.");
+    return rows() == cols();
+  }
+
   void create(int *sizes) {
     allocate(sizes);
   }

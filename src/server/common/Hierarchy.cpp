@@ -8,14 +8,20 @@
 #include <vector>
 #include "ArrayIO.h"
 #include  <sstream>
+#include <server/common/string.h>
 
 namespace sail {
 
-HNode::HNode(int index, int parent, std::string label) : _index(index), _parent(parent), _label(label) {
+HNode::HNode(int index, int parent, std::string code, std::string label) : _index(index), _parent(parent), _code(code), _description(label) {
 }
 
-HNode HNode::makeRoot(int index, std::string label) {
-  return HNode(index, -1, label);
+HNodeFamily::HNodeFamily(std::string familyName) : _familyName(familyName) {}
+
+HNode HNodeFamily::make(int index, int parent, std::string description) {
+  return HNode(index, parent, stringFormat("%s-%03d", _familyName.c_str(), index), description);
+}
+HNode HNodeFamily::makeRoot(int index, std::string description) {
+  return HNode(index, -1, stringFormat("%s-%03d", _familyName.c_str(), index), description);
 }
 
 
@@ -32,9 +38,17 @@ void checkHNodeValidParents(Array<HNode> nodes) {
   }
 }
 
+void checkMaxNodeInds(Array<HNode> nodes) {
+  int count = nodes.size();
+  for (int i = 0; i < count; i++) {
+    assert(nodes[i].index() < count);
+  }
+}
+
 // Returns a new array where an HNode with index 'i' is located at position 'i'.
 // Also makes sure that two nodes don't have the same index.
 Array<HNode> arrangeHNodes(Array<HNode> nodes) {
+  checkMaxNodeInds(nodes);
   int count = nodes.size();
   Array<HNode> dst(count);
   for (int i = 0; i < count; i++) {
@@ -139,17 +153,20 @@ MDArray2i makeAncestors(Array<HNode> nodes, Arrayi levelPerNode) {
   }
   return anc;
 }
-
-Array<std::string> listLabels(Array<HNode> nodes) {
-  return nodes.map<std::string>([&] (const HNode &node) {
-    return node.label();
-  });
-}
 }
 
 std::shared_ptr<HTree> HTree::lastChild() {
   throw std::runtime_error("lastChild not defined for this object");
   return std::shared_ptr<HTree>();
+}
+
+Array<std::shared_ptr<HTree> > HTree::children() {
+  int count = childCount();
+  Array<std::shared_ptr<HTree> > dst(count);
+  for (int i = 0; i < count; i++) {
+    dst[i] = child(i);
+  }
+  return dst;
 }
 
 std::shared_ptr<HTree> HTree::child(int index) {
@@ -209,30 +226,36 @@ void insertIndent(std::ostream *out, int count, int size = 2) {
   }
 }
 
-std::string getLabel(int index, Array<std::string> labels) {
+std::string getLabel(int index, Array<HNode> labels) {
   if (labels.empty()) {
     std::stringstream ss;
     ss << index;
     return ss.str();
   } else {
-    return labels[index];
+    HNode &h = labels[index];
+    assert(h.index() == index); // Should be ordered.
+    return h.description();
   }
 }
 }
 
-void HInner::disp(std::ostream *out, Array<std::string> labels, int indent) const {
-  insertIndent(out, indent);
-  *out << "HGeneral(" << getLabel(_index, labels) << ") in [" << left() << ", " << right() << "[" << std::endl;
-  int count = _children.size();
-  int nextIndent = indent + 1;
-  for (int i = 0; i < count; i++) {
-    _children[i]->disp(out, labels, nextIndent);
+void HInner::disp(std::ostream *out, Array<HNode> labels, int depth, int maxDepth) const {
+  if (depth < maxDepth) {
+    insertIndent(out, depth);
+    *out << "HGeneral(" << getLabel(_index, labels) << ") in [" << left() << ", " << right() << "[" << std::endl;
+    int count = _children.size();
+    int nextIndent = depth + 1;
+    for (int i = 0; i < count; i++) {
+      _children[i]->disp(out, labels, nextIndent, maxDepth);
+    }
   }
 }
 
-void HLeaves::disp(std::ostream *out, Array<std::string> labels, int indent) const {
-  insertIndent(out, indent);
-  *out << "HTerminals(" << getLabel(_index, labels) << ") in [" << left() << ", " << right() << "[" << std::endl;
+void HLeaves::disp(std::ostream *out, Array<HNode> labels, int depth, int maxDepth) const {
+  if (depth < maxDepth) {
+    insertIndent(out, depth);
+    *out << "HTerminals(" << getLabel(_index, labels) << ") in [" << left() << ", " << right() << "[" << std::endl;
+  }
 }
 
 bool HLeaves::equals(std::shared_ptr<HTree> other) const {
@@ -248,7 +271,6 @@ Hierarchy::Hierarchy(Array<HNode> unorderedNodes) : _nodes(arrangeHNodes(unorder
   _isTerminal = calcTerminals(children);
   _levelPerNode = calcLevelPerNode(_rootNode, children);
   _ancestors = makeAncestors(_nodes, _levelPerNode);
-  _labels = listLabels(_nodes);
 }
 
 void Hierarchy::addTerminal(int left, std::shared_ptr<HTree> tree, int nodeIndex) const {

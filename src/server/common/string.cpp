@@ -73,6 +73,38 @@ char toHexDigit(int value) {
   return digits[value];
 }
 
+unsigned char decodeHexDigit(char c) {
+  if ('A' <= c && c <= 'F') {
+    return c - 'A';
+  } else if ('a' <= c && c <= 'f') {
+    return c - 'a';
+  } else if ('0' <= c && c <= '9') {
+    return c - '0';
+  } else {
+    return 255;
+  }
+}
+
+bool isHexDigit(char c) {
+  return decodeHexDigit(c) != 255;
+}
+
+bool areHexDigits(int count, const char *c) {
+  for (int i = 0; i < count; i++) {
+    if (!isHexDigit(c[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool isHexString(std::string s, int expectedLength) {
+  if (expectedLength == -1 || s.length() == expectedLength) {
+    return areHexDigits(s.length(), s.c_str());
+  }
+  return false;
+}
+
 std::string bytesToHex(size_t n, uint8_t *bytes) {
   std::string dst(2*n, '0');
 
@@ -122,6 +154,13 @@ std::string stringFormat(const std::string fmt, ...) {
 void toLowerInPlace(std::string &data) {
   std::transform(data.begin(), data.end(), data.begin(), ::tolower);
 }
+
+std::string toLower(std::string src) {
+  std::string dst = src;
+  toLowerInPlace(dst);
+  return dst;
+}
+
 
 
 void splitFilenamePrefixSuffix(std::string filename,

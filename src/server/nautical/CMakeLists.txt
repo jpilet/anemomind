@@ -1,3 +1,5 @@
+add_subdirectory("grammars")
+
 add_library(nautical_Ecef
             Ecef.h
             Ecef.cpp)
@@ -34,6 +36,7 @@ target_link_libraries(nautical_NavNmea
 cxx_test(nautical_NavNmeaTest
          NavNmeaTest.cpp
          nautical_NavNmea
+         nautical_NavIndexer
          gtest_main
         )
 
@@ -51,6 +54,41 @@ add_library(nautical_LocalRace
 target_link_libraries(nautical_LocalRace
   math_armaadolc)            
             
+
+add_library(nautical_NavNmeaScan            
+            NavNmeaScan.h
+            NavNmeaScan.cpp
+           )
+target_link_libraries(nautical_NavNmeaScan
+                      nautical_NavNmea
+                      common_filesystem
+                     )
+
+add_library(nautical_HTreeJson
+            HTreeJson.h                     
+            HTreeJson.cpp
+           )
+target_link_libraries(nautical_HTreeJson
+                      nautical_nav
+                      common_Hierarchy
+                     )
+target_depends_on_poco_foundation(nautical_HTreeJson)                                
+                     
+add_executable(nautical_ParseExample
+               ParseExample.cpp
+              )
+target_link_libraries(nautical_ParseExample
+                      common_Env
+                      nautical_NavNmeaScan
+                      nautical_grammars_Grammar001
+                      nautical_NavJson
+                      nautical_NavIndexer
+                      nautical_HTreeJson
+                      common_HierarchyJson
+                      math_hmm_StateAssign
+                     )
+target_depends_on_poco_foundation(nautical_ParseExample)                                                                    
+               
             
 #################################################################
 ### PlotTrajectoryExamples
@@ -66,6 +104,15 @@ add_executable(examples_PlotTrajectoryExampleLastRace
   PlotTrajectoryExampleLastRace.cpp)
 target_link_libraries(examples_PlotTrajectoryExampleLastRace
   examples_PlotTrajectoryExamples)  
+
+add_executable(nautical_ScanNmeaExample
+               ScanNmeaExample.cpp
+              )
+target_link_libraries(nautical_ScanNmeaExample
+                       common_Env
+                       nautical_NavNmeaScan
+                       nautical_NavIndexer
+                      )
   
 add_executable(examples_PlotTrajectoryExampleLocalRace
   PlotTrajectoryExampleLocalRace.cpp)
@@ -93,6 +140,7 @@ target_depends_on_poco_json(nautical_NavJson)
 
 target_link_libraries(nautical_NavJson
                             nautical_nav
+                            common_Json
                             common_TimeStampJson
                            )
 
@@ -109,6 +157,15 @@ cxx_test(nautical_SpeedCalibTest
          gtest_main
         )        
 
+add_library(nautical_NavIndexer
+            NavIndexer.cpp
+            NavIndexer.h
+           )
+           
+target_link_libraries(nautical_NavIndexer
+                      nautical_nav
+                      common_string
+                     )
 #################################################################
 ### CalibrationExamples
 #################################################################

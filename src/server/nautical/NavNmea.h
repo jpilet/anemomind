@@ -37,6 +37,8 @@ class ParsedNavs {
 
   bool hasFields(FieldMask mask);
   bool complete() {return _fields.all();}
+
+  static FieldMask makeCompleteMask();
  private:
   Array<Nav> _navs;
 
@@ -47,9 +49,13 @@ class ParsedNavs {
   FieldMask _fields;
 };
 
-ParsedNavs loadNavsFromNmea(std::istream &file);
-ParsedNavs loadNavsFromNmea(std::string filename);
+class NavIndexer;
+ParsedNavs loadNavsFromNmea(std::istream &file, NavIndexer &indexer);
+ParsedNavs loadNavsFromNmea(std::string filename, NavIndexer &indexer);
+std::ostream &operator<<(std::ostream &s, ParsedNavs x);
 
+// Useful function when reading Nav's from several files.
+Array<Nav> flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask);
 
 
 } /* namespace sail */
