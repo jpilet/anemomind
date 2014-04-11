@@ -49,7 +49,13 @@ add_library(common_TimeStampJson
            )
 target_depends_on_poco_foundation(common_TimeStampJson)
 
-target_depends_on_poco_foundation(common_TimeStampJson)           
+                              
+
+add_library(common_filesystem
+            filesystem.h
+            filesystem.cpp
+           )
+target_depends_on_poco_foundation(common_filesystem)  
 
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp
