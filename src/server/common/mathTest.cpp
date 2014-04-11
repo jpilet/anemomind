@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
- *  Created on: 24 mars 2014
-=======
  *  Created on: 2014-03-31
->>>>>>> master
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
