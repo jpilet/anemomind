@@ -71,6 +71,7 @@ class Nav {
   bool isIndexed() const {return hasId() && hasBoatId();}
 
   const std::string &id() const {return _id;}
+  const std::string &boatId() const {return _boatId;}
  private:
   std::string _id, _boatId;
 
