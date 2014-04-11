@@ -28,9 +28,16 @@ namespace {
   Poco::JSON::Object::Ptr serialize(HTreeWithData h) {
     std::shared_ptr<HTree> x = h.tree();
     Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+    assert(x->left() < x->right());
     obj->set("index", h.info()[x->index()].code());
     obj->set("left", h.navs()[x->left()].id());
-    obj->set("right", h.navs()[x->right()].id());
+
+    // Important: SUBTRACT ONE SO THAT WE INDEX A VALID ELEMENT.
+    // In other words, indexing a subrange is like Matlab with both
+    // endpoints included in the range.
+    obj->set("right", h.navs()[x->right() - 1].id());
+
+
     Array<std::shared_ptr<HTree> > ch = x->children();
     if (ch.hasData()) {
       Poco::JSON::Array::Ptr arr(new Poco::JSON::Array(serializeMapped(ch, h.navs(), h.info())));

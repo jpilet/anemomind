@@ -5,6 +5,8 @@
 
 #include "NavIndexer.h"
 #include <server/common/string.h>
+#include <iostream>
+#include <server/common/endianess.h>
 
 namespace sail {
 
@@ -18,42 +20,61 @@ Nav NavIndexer::make(const Nav &src) {
 }
 
 
-BoatTimeNavIndexer::BoatTimeNavIndexer(Nav::Id boatId8hexDigits,
-    Nav::Id highestId16hexDigits) :
-  _boatId(boatId8hexDigits),
-  _highestId(highestId16hexDigits) {
+BoatTimeNavIndexer::BoatTimeNavIndexer(Nav::Id boatId8hexDigits) :
+  _boatId(boatId8hexDigits) {
   assert(isHexString(_boatId, 8));
-
-  if (!highestId16hexDigits.empty()) {
-    assert(isHexString(_highestId, 16));
-    assert(_boatId == _highestId.substr(0, 8));
-  }
 }
 
 BoatTimeNavIndexer BoatTimeNavIndexer::makeTestIndexer() {
-  return BoatTimeNavIndexer(debuggingBoatId(), "");
+  return BoatTimeNavIndexer(debuggingBoatId());
 }
 
 Nav::Id BoatTimeNavIndexer::makeId(const Nav &src) {
   int64_t time = src.time().toMilliSecondsSince1970();
   assert(sizeof(time) == 8); // 8 bytes => 2*8 = 16 hex digits
-
-  Nav::Id s = makeIdSub(time);
-  if (!_highestId.empty()) {
-    while (_highestId >= s) { // <-- Ensure that we generate a unique id.
-      time++;
-      s = makeIdSub(time);
-    }
-  }
-
-  _highestId = s;
-
+  std::string s = makeIdSub(time);
   assert(s.length() == 24);
   return s;
 }
 
+namespace {
+
+  int64_t reverse(int64_t x) {
+    int64_t y;
+    uint8_t *xb = (uint8_t *)(&x);
+    uint8_t *yb = (uint8_t *)(&y);
+    constexpr int count = sizeof(x);
+    for (int i = 0; i < count; i++) {
+      yb[i] = xb[count-1-i];
+    }
+    return y;
+  }
+
+  std::string int64ToHexLittleEndian(int64_t x) {
+    return bytesToHex(sizeof(x), (uint8_t *)(&x));
+  }
+
+  std::string int64ToHex(int64_t x) {
+    if (isBigEndian()) {
+      return int64ToHexLittleEndian(x);
+    }
+    return int64ToHexLittleEndian(reverse(x));
+  }
+}
+
+std::string BoatTimeNavIndexer::TimeGen::make(int64_t x) {
+  if (x == _lastTime) {
+    _counter++;
+  } else {
+    _lastTime = x;
+    _counter = 0;
+  }
+  // Add a few milliseconds to make the id unique. I know it's a bit hacky but this was the format we decided...
+  return int64ToHex(x + _counter);
+}
+
 Nav::Id BoatTimeNavIndexer::makeIdSub(int64_t time) {
-  return _boatId + bytesToHex(sizeof(time), (uint8_t *)(&time));
+  return _boatId + _tgen.make(time);
 }
 
 

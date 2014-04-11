@@ -40,7 +40,10 @@ namespace {
     p.pushDirectory("regates");
 
     BoatTimeNavIndexer ind = BoatTimeNavIndexer::makeTestIndexer();
+
+    cout << "Load navs" << endl;
     Array<Nav> allnavs = scanNmeaFolder(p, ind);
+    cout << "loaded" << endl;
 
     Grammar001Settings settings;
     Grammar001 g(settings);

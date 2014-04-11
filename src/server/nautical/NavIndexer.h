@@ -28,6 +28,7 @@ class NavIndexer {
 };
 
 
+
 /*
  * This is an indexer using the format that we discussed
  * over Skype on 2014-04-10: 8 hexadecimal digits for the boat id and
@@ -37,8 +38,7 @@ class NavIndexer {
 class BoatTimeNavIndexer : public NavIndexer {
  public:
   static Nav::Id debuggingBoatId() {return "FFFFFFFF";}
-  BoatTimeNavIndexer(Nav::Id boatId8hexDigits,     // <-- A key in the boat database
-                     Nav::Id highestId24hexDigits); // <-- Highest id among all id's in the Nav database
+  BoatTimeNavIndexer(Nav::Id boatId8hexDigits);
 
   // For testing purposes:
   static BoatTimeNavIndexer makeTestIndexer();
@@ -47,7 +47,18 @@ class BoatTimeNavIndexer : public NavIndexer {
   virtual Nav::Id boatId() {return _boatId;}
  private:
   Nav::Id makeIdSub(int64_t time);
-  Nav::Id _boatId, _highestId;
+  Nav::Id _boatId;
+
+  class TimeGen {
+   public:
+    TimeGen() : _lastTime(std::numeric_limits<int64_t>::min()), _counter(0) {}
+    std::string make(int64_t x);
+   private:
+    int64_t _lastTime;
+    int _counter;
+  };
+
+  TimeGen _tgen;
 };
 
 
