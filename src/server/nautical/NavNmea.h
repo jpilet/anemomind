@@ -49,8 +49,9 @@ class ParsedNavs {
   FieldMask _fields;
 };
 
-ParsedNavs loadNavsFromNmea(std::istream &file);
-ParsedNavs loadNavsFromNmea(std::string filename);
+class NavIndexer;
+ParsedNavs loadNavsFromNmea(std::istream &file, NavIndexer &indexer);
+ParsedNavs loadNavsFromNmea(std::string filename, NavIndexer &indexer);
 std::ostream &operator<<(std::ostream &s, ParsedNavs x);
 
 // Useful function when reading Nav's from several files.

@@ -11,6 +11,7 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
 #include <algorithm>
+#include <server/nautical/NavIndexer.h>
 
 
 namespace sail {
@@ -151,20 +152,20 @@ ParsedNavs::FieldMask ParsedNavs::makeCompleteMask() {
 
 namespace {
   void parseNmeaChar(char c,
-    NmeaParser *parser, Nav *dstNav, ArrayBuilder<Nav> *navAcc, ParsedNavs::FieldMask *fields) {
+    NmeaParser *parser, Nav *dstNav, ArrayBuilder<Nav> *navAcc, ParsedNavs::FieldMask *fields, NavIndexer &indexer) {
     NmeaParser::NmeaSentence s = parser->processByte(c);
     if (s != NmeaParser::NMEA_NONE) {
       readNmeaData(s, *parser, dstNav, fields);
       // Once a time stamp has been received, save this Nav and start to fill a new one.
       if (s == NmeaParser::NMEA_TIME_POS) {
-        navAcc->add(*dstNav);
+        navAcc->add(indexer.make(*dstNav));
         *dstNav = Nav();
       }
     }
   }
 }
 
-ParsedNavs loadNavsFromNmea(std::istream &file) {
+ParsedNavs loadNavsFromNmea(std::istream &file, NavIndexer &indexer) {
   ParsedNavs::FieldMask fields;
   ArrayBuilder<Nav> navAcc;
   NmeaParser parser;
@@ -175,14 +176,14 @@ ParsedNavs loadNavsFromNmea(std::istream &file) {
   while (file.good()) {
     char c;
     file.get(c);
-    parseNmeaChar(c, &parser, &nav, &navAcc, &fields);
+    parseNmeaChar(c, &parser, &nav, &navAcc, &fields, indexer);
   }
   return ParsedNavs(navAcc.get(), fields);
 }
 
-ParsedNavs loadNavsFromNmea(std::string filename) {
+ParsedNavs loadNavsFromNmea(std::string filename, NavIndexer &indexer) {
   std::ifstream file(filename);
-  return loadNavsFromNmea(file);
+  return loadNavsFromNmea(file, indexer);
 }
 
 namespace {

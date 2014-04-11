@@ -9,6 +9,7 @@
 #include <server/nautical/NavNmeaScan.h>
 #include <server/common/Env.h>
 #include <iostream>
+#include <server/nautical/NavIndexer.h>
 
 using namespace sail;
 
@@ -20,7 +21,8 @@ namespace {
     p.pushDirectory("regates");
     std::cout << EXPR_AND_VAL_AS_STRING(p.toString()) << std::endl;
 
-    Array<Nav> allnavs = scanNmeaFolder(p);
+    BoatTimeNavIndexer indexer = BoatTimeNavIndexer::makeTestIndexer();
+    Array<Nav> allnavs = scanNmeaFolder(p, indexer);
 
     //plotNavTimeVsIndex(allnavs);
 

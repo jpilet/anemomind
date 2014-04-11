@@ -84,6 +84,7 @@ bool Nav::operator== (const Nav &other) const {
   return _gpsSpeed.eqWithNan(other._gpsSpeed) &&
       _awa.eqWithNan(other._awa) &&
       _aws.eqWithNan(other._aws) &&
+      _id == other._id &&
       _twaFromFile.eqWithNan(other._twaFromFile) &&
       _twsFromFile.eqWithNan(other._twsFromFile) &&
       _magHdg.eqWithNan(other._magHdg) &&

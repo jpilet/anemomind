@@ -25,6 +25,7 @@ Poco::JSON::Object::Ptr serialize(const Nav &nav) {
   serializeField(x, "gpsbearing", nav.gpsBearing());
   serializeField(x, "aws", nav.aws());
   serializeField(x, "awa", nav.awa());
+  x->set("id", nav.id());
   return x;
 }
 
@@ -45,6 +46,8 @@ void deserialize(Poco::JSON::Object::Ptr x, Nav *out) {
   deserializeField(x, "gpsspeed", &gpss);
   deserializeField(x, "gpsbearing", &gpsb);
 
+  std::string id = x->getValue<std::string>("id");
+
   *out = Nav();
   out->setTime(time);
   out->setGeographicPosition(GeographicPosition<double>(lon, lat, alt));
@@ -54,6 +57,7 @@ void deserialize(Poco::JSON::Object::Ptr x, Nav *out) {
   out->setGpsBearing(gpsb);
   out->setMagHdg(maghdg);
   out->setWatSpeed(wats);
+  out->setId(id);
 }
 
 Poco::JSON::Array serialize(Array<Nav> navs) { // Perhaps write a template encodeArray<T> with T = Nav in this case...
