@@ -13,7 +13,11 @@ void serializeField(Poco::JSON::Object::Ptr obj, std::string fieldName, const st
 }
 
 void deserializeField(Poco::JSON::Object::Ptr obj, std::string fieldName, std::string *valueOut) {
-  *valueOut = obj->getValue<std::string>(fieldName);
+  if (obj->has(fieldName)) {
+    *valueOut = obj->getValue<std::string>(fieldName);
+  } else {
+    *valueOut = "";
+  }
 }
 
 

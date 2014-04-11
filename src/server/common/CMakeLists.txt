@@ -52,6 +52,13 @@ cxx_test(common_TimeStampTest
          gtest_main
         )
         
+add_library(common_Json
+            Json.h
+            Json.cpp
+           )
+target_depends_on_poco_json(common_Json)
+                   
+        
 add_library(common_TimeStampJson
             TimeStampJson.cpp
             TimeStampJson.h

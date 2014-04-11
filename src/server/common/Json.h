@@ -7,6 +7,7 @@
 #define JSON_H_
 
 #include <server/common/Array.h>
+#include <Poco/JSON/Object.h>
 
 namespace sail {
 namespace json {
