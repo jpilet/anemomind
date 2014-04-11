@@ -11,7 +11,7 @@
 
 namespace sail {
 
-HNode::HNode(int index, int parent, std::string label) : _index(index), _parent(parent), _label(label) {
+HNode::HNode(int index, int parent, std::string label) : _index(index), _parent(parent), _description(label) {
 }
 
 HNode HNode::makeRoot(int index, std::string label) {
@@ -228,7 +228,7 @@ std::string getLabel(int index, Array<HNode> labels) {
   } else {
     HNode &h = labels[index];
     assert(h.index() == index); // Should be ordered.
-    return h.label();
+    return h.description();
   }
 }
 }

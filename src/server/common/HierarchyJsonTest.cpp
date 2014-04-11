@@ -17,7 +17,7 @@ TEST(HierarchyJsonTest, TestSimple) {
   json::deserialize(obj, &y);
   EXPECT_EQ(x.index(), y.index());
   EXPECT_EQ(x.parent(), y.parent());
-  EXPECT_EQ(x.label(), y.label());
+  EXPECT_EQ(x.description(), y.description());
 }
 
 TEST(HierarchyJsonTest, TestSimpleArray) {
@@ -31,7 +31,7 @@ TEST(HierarchyJsonTest, TestSimpleArray) {
 
   EXPECT_EQ(x.index(), y.index());
   EXPECT_EQ(x.parent(), y.parent());
-  EXPECT_EQ(x.label(), y.label());
+  EXPECT_EQ(x.description(), y.description());
 }
 
 

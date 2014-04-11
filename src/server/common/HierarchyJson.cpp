@@ -13,7 +13,7 @@ Poco::JSON::Object::Ptr serialize(const HNode &x) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   obj->set("index", x.index());
   obj->set("parent", x.parent());
-  obj->set("label", x.label());
+  obj->set("label", x.description());
   return obj;
 }
 

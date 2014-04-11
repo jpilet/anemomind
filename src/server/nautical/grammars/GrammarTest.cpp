@@ -18,7 +18,7 @@ TEST(GrammarTest, Grammar001Info) {
   Grammar001 g(settings);
 
   Array<HNode> info = g.nodeInfo();
-  EXPECT_EQ(info[24].label(), "Off");
+  EXPECT_EQ(info[24].description(), "Off");
   EXPECT_EQ(info.size(), 41);
   EXPECT_EQ(info[29].index(), 29);
 }
