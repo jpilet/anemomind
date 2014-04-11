@@ -85,6 +85,7 @@ bool Nav::operator== (const Nav &other) const {
       _awa.eqWithNan(other._awa) &&
       _aws.eqWithNan(other._aws) &&
       _id == other._id &&
+      _boatId == other._boatId &&
       _twaFromFile.eqWithNan(other._twaFromFile) &&
       _twsFromFile.eqWithNan(other._twsFromFile) &&
       _magHdg.eqWithNan(other._magHdg) &&
