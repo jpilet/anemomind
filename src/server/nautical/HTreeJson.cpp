@@ -13,6 +13,7 @@ namespace json {
 namespace {
   class HTreeWithData {
    public:
+    HTreeWithData() {}
     HTreeWithData(std::shared_ptr<HTree> t, Array<Nav> n, Array<HNode> nodeInfo) :
       _tree(t), _navs(n), _info(nodeInfo) {}
     const Array<Nav> &navs() const {return _navs;}

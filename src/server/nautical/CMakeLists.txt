@@ -63,6 +63,16 @@ target_link_libraries(nautical_NavNmeaScan
                       nautical_NavNmea
                       common_filesystem
                      )
+
+add_library(nautical_HTreeJson
+            HTreeJson.h                     
+            HTreeJson.cpp
+           )
+target_link_libraries(nautical_HTreeJson
+                      nautical_nav
+                      common_Hierarchy
+                     )
+target_depends_on_poco_foundation(nautical_HTreeJson)                                
                      
 add_executable(nautical_ParseExample
                ParseExample.cpp
@@ -73,6 +83,7 @@ target_link_libraries(nautical_ParseExample
                       nautical_grammars_Grammar001
                       nautical_NavJson
                       nautical_NavIndexer
+                      nautical_HTreeJson
                       common_HierarchyJson
                       math_hmm_StateAssign
                      )

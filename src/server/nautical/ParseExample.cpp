@@ -14,6 +14,7 @@
 #include <server/nautical/grammars/Grammar001.h>
 #include <iostream>
 #include <server/nautical/NavIndexer.h>
+#include <server/nautical/HTreeJson.h>
 
 using namespace sail;
 
@@ -53,7 +54,7 @@ namespace {
 
     {
       ofstream file(prefix + "_tree.js");
-      json::serialize(tree)->stringify(file, 0, 0);
+      json::serializeMapped(tree, allnavs, g.nodeInfo())->stringify(file, 0, 0);
     }{
       ofstream file(prefix + "_navs.js");
       json::serialize(allnavs).stringify(file, 0, 0);
