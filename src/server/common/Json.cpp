@@ -9,7 +9,9 @@ namespace sail {
 namespace json {
 
 void serializeField(Poco::JSON::Object::Ptr obj, std::string fieldName, const std::string &value) {
-  obj->set(fieldName, value);
+  if (!value.empty()) {
+    obj->set(fieldName, value);
+  }
 }
 
 void deserializeField(Poco::JSON::Object::Ptr obj, std::string fieldName, std::string *valueOut) {
