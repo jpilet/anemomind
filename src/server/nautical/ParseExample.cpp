@@ -53,6 +53,7 @@ namespace {
     fulltree->disp(&(std::cout), g.nodeInfo(), 0, 2);
     std::cout << EXPR_AND_VAL_AS_STRING(fulltree->childCount()/2) << std::endl;
 
+    std::cout << "PARSED" << std::endl;
     std::string prefix = "/home/jonas/data/workspace/cpp/anemomind";
 
     // Create a smaller tree with fewer children.

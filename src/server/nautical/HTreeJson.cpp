@@ -29,7 +29,7 @@ namespace {
     std::shared_ptr<HTree> x = h.tree();
     Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
     assert(x->left() < x->right());
-    obj->set("index", h.info()[x->index()].code());
+    obj->set("code", h.info()[x->index()].code());
     obj->set("left", h.navs()[x->left()].id());
 
     // Important: SUBTRACT ONE SO THAT WE INDEX A VALID ELEMENT.
