@@ -6,10 +6,12 @@
 #include "NavNmea.h"
 #include <device/Arduino/libraries/NmeaParser/NmeaParser.h>
 #include <fstream>
-#include <vector>
+#include <server/common/ArrayBuilder.h>
 #include <iostream>
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
+#include <algorithm>
+#include <server/nautical/NavIndexer.h>
 
 
 namespace sail {
@@ -142,24 +144,30 @@ bool ParsedNavs::hasFields(FieldMask mask) {
   return (~mask | _fields).all();
 }
 
+ParsedNavs::FieldMask ParsedNavs::makeCompleteMask() {
+  FieldMask fm;
+  fm.flip();
+  return fm;
+}
+
 namespace {
   void parseNmeaChar(char c,
-    NmeaParser *parser, Nav *dstNav, std::vector<Nav> *navAcc, ParsedNavs::FieldMask *fields) {
+    NmeaParser *parser, Nav *dstNav, ArrayBuilder<Nav> *navAcc, ParsedNavs::FieldMask *fields, NavIndexer &indexer) {
     NmeaParser::NmeaSentence s = parser->processByte(c);
     if (s != NmeaParser::NMEA_NONE) {
       readNmeaData(s, *parser, dstNav, fields);
       // Once a time stamp has been received, save this Nav and start to fill a new one.
       if (s == NmeaParser::NMEA_TIME_POS) {
-        navAcc->push_back(*dstNav);
+        navAcc->add(indexer.make(*dstNav));
         *dstNav = Nav();
       }
     }
   }
 }
 
-ParsedNavs loadNavsFromNmea(std::istream &file) {
+ParsedNavs loadNavsFromNmea(std::istream &file, NavIndexer &indexer) {
   ParsedNavs::FieldMask fields;
-  std::vector<Nav> navAcc;
+  ArrayBuilder<Nav> navAcc;
   NmeaParser parser;
   parser.setIgnoreWrongChecksum(true);
   std::string line;
@@ -168,14 +176,66 @@ ParsedNavs loadNavsFromNmea(std::istream &file) {
   while (file.good()) {
     char c;
     file.get(c);
-    parseNmeaChar(c, &parser, &nav, &navAcc, &fields);
+    parseNmeaChar(c, &parser, &nav, &navAcc, &fields, indexer);
   }
-  return ParsedNavs(Array<Nav>::referToVector(navAcc).dup(), fields);
+  return ParsedNavs(navAcc.get(), fields);
 }
 
-ParsedNavs loadNavsFromNmea(std::string filename) {
+ParsedNavs loadNavsFromNmea(std::string filename, NavIndexer &indexer) {
   std::ifstream file(filename);
-  return loadNavsFromNmea(file);
+  return loadNavsFromNmea(file, indexer);
+}
+
+namespace {
+  std::string getFieldLabel(ParsedNavs::FieldId id) {
+    typedef const char *Str;
+    static Str labels[ParsedNavs::FIELD_COUNT] = {"TIME", "POS", "AWA", "AWS", "MAG_HDG", "GPS_BEARING", "GPS_SPEED", "WAT_SPEED"};
+    return labels[id];
+  }
+}
+
+std::ostream &operator<<(std::ostream &s, ParsedNavs x) {
+  s << "ParsedNavs: " << x.navs().size() << std::endl;
+  for (int i = 0; i < ParsedNavs::FIELD_COUNT; i++) {
+    ParsedNavs::FieldId id = ParsedNavs::FieldId(i);
+    s << "   " << getFieldLabel(id) << ": " << x.hasFields(ParsedNavs::field(id)) << std::endl;
+  }
+  return s;
+}
+
+namespace {
+  int countNavsToInclude(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
+    int counter = 0;
+    for (int i = 0; i < allNavs.size(); i++) {
+      if (allNavs[i].hasFields(mask)) {
+        counter += allNavs[i].navs().size();
+      }
+    }
+    return counter;
+  }
+
+  void fillNavVec(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask, std::vector<Nav> *navVec) {
+    Array<Nav> dst = Array<Nav>::referToVector(*navVec);
+    int counter = 0;
+    for (int i = 0; i < allNavs.size(); i++) {
+      ParsedNavs &n = allNavs[i];
+      if (n.hasFields(mask)) {
+        int next = counter + n.navs().size();
+        n.navs().copyToSafe(dst.slice(counter, next));
+        counter = next;
+      }
+    }
+    assert(counter == dst.size());
+  }
+}
+
+Array<Nav> flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
+  int len = countNavsToInclude(allNavs, mask);
+  std::vector<Nav> navs;
+  navs.resize(len);
+  fillNavVec(allNavs, mask, &navs);
+  std::sort(navs.begin(), navs.end());
+  return Array<Nav>::referToVector(navs).dup();
 }
 
 
