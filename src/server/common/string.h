@@ -25,8 +25,11 @@ bool tryParseDouble(std::string s, double &out);
 bool isEscaped(char c);
 unsigned char decodeHexDigit(char c);
 bool isHexDigit(char c);
+
+// 0x-prefix not supported
 bool areHexDigits(int count, const char *c);
 bool isHexString(const std::string &s, int expectedLength = -1);
+
 std::string getEscapeString(char c);
 char toHexDigit(int value);
 std::string bytesToHex(size_t n, uint8_t *bytes);
