@@ -17,7 +17,13 @@ cxx_test(common_EnvTest
          gtest_main
         )           
 target_depends_on_poco_foundation(common_EnvTest)
-                              
+         
+
+cxx_test(common_stringTest
+         stringTest.cpp
+         common_string
+         gtest_main
+        )
 
 add_library(common_string
   string.h
@@ -62,7 +68,13 @@ add_library(common_TimeStampJson
            )
 target_depends_on_poco_foundation(common_TimeStampJson)
 
-target_depends_on_poco_foundation(common_TimeStampJson)           
+                              
+
+add_library(common_filesystem
+            filesystem.h
+            filesystem.cpp
+           )
+target_depends_on_poco_foundation(common_filesystem)  
 
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp
