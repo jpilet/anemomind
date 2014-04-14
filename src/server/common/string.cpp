@@ -163,31 +163,6 @@ std::string toLower(const std::string &src) {
 }
 
 
-namespace {
-
-  int64_t reverse(int64_t x) {
-    int64_t y;
-    uint8_t *xb = (uint8_t *)(&x);
-    uint8_t *yb = (uint8_t *)(&y);
-    constexpr int count = sizeof(x);
-    for (int i = 0; i < count; i++) {
-      yb[i] = xb[count-1-i];
-    }
-    return y;
-  }
-
-  std::string int64ToHexLittleEndian(int64_t x) {
-    return bytesToHex(sizeof(x), (uint8_t *)(&x));
-  }
-}
-
-//std::string int64ToHex(int64_t x) {
-//  if (isBigEndian()) {
-//    return int64ToHexLittleEndian(x);
-//  }
-//  return int64ToHexLittleEndian(reverse(x));
-//}
-
 std::string int64ToHex(int64_t x) {
   constexpr int len = 2*sizeof(x);
   std::string result(len, '0');
