@@ -42,8 +42,8 @@ void deserializeArray(Poco::JSON::Array src, Array<T> *dst) {
 
 
 // string
-void serializeField(Poco::JSON::Object::Ptr obj, std::string fieldName, const std::string &value);
-void deserializeField(Poco::JSON::Object::Ptr obj, std::string fieldName, std::string *valueOut);
+void serializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, const std::string &value);
+void deserializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, std::string *valueOut);
 
 }
 }
