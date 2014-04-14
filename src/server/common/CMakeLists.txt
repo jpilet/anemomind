@@ -1,6 +1,11 @@
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Env.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/Env.cpp" @ONLY)
 list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/Env.cpp.in" Env.cpp)
 
+cxx_test(common_ArrayBuilderTest
+         ArrayBuilderTest.cpp
+         gtest_main
+        )
+
 add_library(common_Env
             "${CMAKE_CURRENT_BINARY_DIR}/Env.cpp"
             Env.h
