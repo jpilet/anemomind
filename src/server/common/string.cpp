@@ -13,7 +13,7 @@ bool notIsBlank(char c) {
   return !isBlank(c);
 }
 
-bool tryParseInt(std::string s, int &out) {
+bool tryParseInt(const std::string &s, int &out) {
   try {
     out = std::stoi(s);
     return true;
@@ -22,7 +22,7 @@ bool tryParseInt(std::string s, int &out) {
   }
 }
 
-bool tryParseDouble(std::string s, double &out) {
+bool tryParseDouble(const std::string &s, double &out) {
   try {
     out = std::stod(s);
     return true;
@@ -73,6 +73,38 @@ char toHexDigit(int value) {
   return digits[value];
 }
 
+unsigned char decodeHexDigit(char c) {
+  if ('A' <= c && c <= 'F') {
+    return (c - 'A') + 10;
+  } else if ('a' <= c && c <= 'f') {
+    return (c - 'a') + 10;
+  } else if ('0' <= c && c <= '9') {
+    return c - '0';
+  } else {
+    return 255;
+  }
+}
+
+bool isHexDigit(char c) {
+  return decodeHexDigit(c) != 255;
+}
+
+bool areHexDigits(int count, const char *c) {
+  for (int i = 0; i < count; i++) {
+    if (!isHexDigit(c[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool isHexString(const std::string &s, int expectedLength) {
+  if (expectedLength == -1 || s.length() == expectedLength) {
+    return areHexDigits(s.length(), s.c_str());
+  }
+  return false;
+}
+
 std::string bytesToHex(size_t n, uint8_t *bytes) {
   std::string dst(2*n, '0');
 
@@ -86,7 +118,7 @@ std::string bytesToHex(size_t n, uint8_t *bytes) {
   return dst;
 }
 
-std::string formatInt(std::string fstr, int value) {
+std::string formatInt(const std::string &fstr, int value) {
   char dst[255];
   if (sprintf(dst, fstr.c_str(), value) >= 0) {
     return std::string(dst);
@@ -95,7 +127,7 @@ std::string formatInt(std::string fstr, int value) {
   }
 }
 
-std::string stringFormat(const std::string fmt, ...) {
+std::string stringFormat(const std::string &fmt, ...) {
   // http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
   int size = 100;
   std::string str;
@@ -123,8 +155,15 @@ void toLowerInPlace(std::string &data) {
   std::transform(data.begin(), data.end(), data.begin(), ::tolower);
 }
 
+std::string toLower(const std::string &src) {
+  std::string dst = src;
+  toLowerInPlace(dst);
+  return dst;
+}
 
-void splitFilenamePrefixSuffix(std::string filename,
+
+
+void splitFilenamePrefixSuffix(const std::string &filename,
                                std::string &prefix, std::string &suffix) {
   int index = filename.find_last_of('.');
   if (index < filename.length()) {
