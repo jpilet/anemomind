@@ -13,7 +13,7 @@ bool notIsBlank(char c) {
   return !isBlank(c);
 }
 
-bool tryParseInt(std::string s, int &out) {
+bool tryParseInt(const std::string &s, int &out) {
   try {
     out = std::stoi(s);
     return true;
@@ -22,7 +22,7 @@ bool tryParseInt(std::string s, int &out) {
   }
 }
 
-bool tryParseDouble(std::string s, double &out) {
+bool tryParseDouble(const std::string &s, double &out) {
   try {
     out = std::stod(s);
     return true;
@@ -118,7 +118,7 @@ std::string bytesToHex(size_t n, uint8_t *bytes) {
   return dst;
 }
 
-std::string formatInt(std::string fstr, int value) {
+std::string formatInt(const std::string &fstr, int value) {
   char dst[255];
   if (sprintf(dst, fstr.c_str(), value) >= 0) {
     return std::string(dst);
@@ -127,7 +127,7 @@ std::string formatInt(std::string fstr, int value) {
   }
 }
 
-std::string stringFormat(const std::string fmt, ...) {
+std::string stringFormat(const std::string &fmt, ...) {
   // http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
   int size = 100;
   std::string str;
@@ -163,7 +163,7 @@ std::string toLower(const std::string &src) {
 
 
 
-void splitFilenamePrefixSuffix(std::string filename,
+void splitFilenamePrefixSuffix(const std::string &filename,
                                std::string &prefix, std::string &suffix) {
   int index = filename.find_last_of('.');
   if (index < filename.length()) {
