@@ -75,9 +75,9 @@ char toHexDigit(int value) {
 
 unsigned char decodeHexDigit(char c) {
   if ('A' <= c && c <= 'F') {
-    return c - 'A';
+    return (c - 'A') + 10;
   } else if ('a' <= c && c <= 'f') {
-    return c - 'a';
+    return (c - 'a') + 10;
   } else if ('0' <= c && c <= '9') {
     return c - '0';
   } else {
@@ -155,7 +155,7 @@ void toLowerInPlace(std::string &data) {
   std::transform(data.begin(), data.end(), data.begin(), ::tolower);
 }
 
-std::string toLower(std::string src) {
+std::string toLower(const std::string &src) {
   std::string dst = src;
   toLowerInPlace(dst);
   return dst;

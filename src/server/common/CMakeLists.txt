@@ -14,6 +14,12 @@ cxx_test(common_EnvTest
 target_depends_on_poco_foundation(common_EnvTest)
                               
 
+cxx_test(common_stringTest
+         stringTest.cpp
+         common_string
+         gtest_main
+        )
+
 add_library(common_string
   string.h
   string.cpp)
