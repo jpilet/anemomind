@@ -26,6 +26,8 @@ class ArrayBuilder {
   }
 
   Array<T> get() {return Array<T>::referToVector(_data).dup();}
+  T &last() {return _data.back();}
+  bool empty() {return _data.empty();}
  private:
   std::vector<T> _data;
 };

@@ -151,6 +151,13 @@ ParsedNavs::FieldMask ParsedNavs::makeCompleteMask() {
 }
 
 namespace {
+  bool hasGreaterTimeStamp(ArrayBuilder<Nav> *navAcc, Nav *nav) {
+    if (navAcc->empty()) {
+      return true;
+    }
+    return navAcc->last().time() < nav->time();
+  }
+
   void parseNmeaChar(char c,
     NmeaParser *parser, Nav *dstNav, ArrayBuilder<Nav> *navAcc, ParsedNavs::FieldMask *fields, NavIndexer &indexer) {
     NmeaParser::NmeaSentence s = parser->processByte(c);
@@ -158,8 +165,10 @@ namespace {
       readNmeaData(s, *parser, dstNav, fields);
       // Once a time stamp has been received, save this Nav and start to fill a new one.
       if (s == NmeaParser::NMEA_TIME_POS) {
-        navAcc->add(indexer.make(*dstNav));
-        *dstNav = Nav();
+        if (hasGreaterTimeStamp(navAcc, dstNav)) { // Drop measurements that don't have unique time stamps.
+          navAcc->add(indexer.make(*dstNav));
+          *dstNav = Nav();
+        }
       }
     }
   }
