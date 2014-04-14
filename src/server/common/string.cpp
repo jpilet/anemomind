@@ -98,7 +98,7 @@ bool areHexDigits(int count, const char *c) {
   return true;
 }
 
-bool isHexString(std::string s, int expectedLength) {
+bool isHexString(const std::string &s, int expectedLength) {
   if (expectedLength == -1 || s.length() == expectedLength) {
     return areHexDigits(s.length(), s.c_str());
   }
