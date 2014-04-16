@@ -1,0 +1,13 @@
+<div ng-include="'partials/navbar.html'"></div>
+
+<div class="row">
+  <div class="col-sm-12">
+    <a ng-repeat="race in races" ng-click="loadRace(race._id)"><span class="label label-default races">
+      file {{$index+1}}
+    </span></a>
+  </div>
+  <div class="col-sm-12">
+    {{data}}
+    </div>
+  </div>
+</div>
