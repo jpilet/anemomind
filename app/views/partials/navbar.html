@@ -10,6 +10,7 @@
   <div class="navbar-collapse collapse navbar-inverse-collapse">
     <ul class="nav navbar-nav">
       <li ng-class="{active: isActive('/')}"><a href="/">Home</a></li>
+      <li ng-show="currentUser" ng-class="{active: isActive('/race')}"><a href="/race">My races</a></li>
       <li ng-show="currentUser" ng-class="{active: isActive('/upload')}"><a href="/upload">Upload</a></li>
     </ul>
     <ul class="nav navbar-nav navbar-right">

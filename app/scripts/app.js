@@ -30,6 +30,11 @@ angular.module('anemomindApp', [
         controller: 'UploadCtrl',
         authenticate: true
       })
+      .when('/race', {
+        templateUrl: 'partials/race',
+        controller: 'RaceCtrl',
+        authenticate: true
+      })
       .otherwise({
         redirectTo: '/'
       });
