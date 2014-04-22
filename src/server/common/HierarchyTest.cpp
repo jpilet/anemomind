@@ -157,7 +157,7 @@ TEST(HierarchyTest, SailTest) {
     Hierarchy h = hs[i];
     std::shared_ptr<HTree> tree = h.parse(Arrayi(len, toParse));
 
-    //EXPECT_EQ(tree->index(), 8);
+    EXPECT_EQ(tree->index(), 8);
     EXPECT_EQ(tree->childCount(), 3);
     std::shared_ptr<HTree> c = tree->child(1);
     EXPECT_EQ(c->left(), 7);
