@@ -732,11 +732,11 @@ class Array {
     return -1;
   }
 
-  T *begin() {
+  T *beginPtr() {
     return _data;
   }
 
-  T *end() {
+  T *endPtr() {
     return _data + _size;
   }
  private:

@@ -251,7 +251,7 @@ namespace {
 
 Array<Nav> flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
   Array<Nav> flattened = flatten(allNavs, mask);
-  std::sort(flattened.begin(), flattened.end());
+  std::sort(flattened.beginPtr(), flattened.endPtr());
   return flattened;
 }
 
