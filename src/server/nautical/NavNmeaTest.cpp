@@ -44,6 +44,28 @@ TEST(NavNmeaTest, TestIncomplete) {
   EXPECT_EQ(navs.navs().size(), 0); // Because measurements preceding the first time stamp should be dropped: They could potentially be arbitrarily old.
 }
 
+namespace {
+  const char data004[] = "$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E$IIRMC,114104,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
+  std::stringstream testfile004(data004);
+}
+
+TEST(NavNmeaTest, TestSkipDueToLongThreshold) {
+  ParsedNavs navs = loadNavsFromNmea(testfile004, Nav::debuggingBoatId());
+  EXPECT_FALSE(navs.complete());
+  EXPECT_EQ(navs.navs().size(), 1);
+}
+
+namespace {
+  const char data005[] = "$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E$IIRMC,113904,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
+  std::stringstream testfile005(data005);
+}
+
+TEST(NavNmeaTest, TestIncludeLastTwo) {
+  ParsedNavs navs = loadNavsFromNmea(testfile005, Nav::debuggingBoatId());
+  EXPECT_FALSE(navs.complete());
+  EXPECT_EQ(navs.navs().size(), 2);
+}
+
 
 
 
