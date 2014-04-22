@@ -35,7 +35,7 @@ CheckedHNodeFamily::CheckedHNodeFamily(std::string familyName) :
 }
 
 HNode CheckedHNodeFamily::make(int index, const HNode &parent, std::string description) {
-  assert(registred(parent));
+  CHECK(registred(parent));
   return registerNew(_raw.make(index, parent.index(), description));
 }
 
