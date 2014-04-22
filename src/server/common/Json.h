@@ -15,7 +15,7 @@ namespace json {
 // If serializeField, deserializeField are already defined for type T,
 // use this templates to build a serialize function.
 template <typename T>
-Poco::JSON::Object::Ptr toJsonObjectWithField(std::string typeName, const T &x) {
+Poco::JSON::Object::Ptr toJsonObjectWithField(const std::string &typeName, const T &x) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   serializeField(obj, typeName, x);
   return obj;

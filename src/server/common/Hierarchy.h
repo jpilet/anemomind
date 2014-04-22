@@ -25,6 +25,7 @@
 #include <vector>
 #include <memory>
 #include <iosfwd>
+#include <map>
 
 namespace sail {
 
@@ -33,9 +34,7 @@ namespace sail {
 class HNode {
  public:
   HNode() : _index(-1), _parent(-1) {}
-  HNode(int index, int parent, std::string label);
-
-  static HNode makeRoot(int index, std::string label);
+  HNode(int index, int parent, std::string code, std::string description);
 
   bool defined() const {
     return _index != -1;
@@ -49,8 +48,11 @@ class HNode {
   bool isRoot() const {
     return !hasParent();
   }
-  const std::string &label() const {
-    return _label;
+  const std::string &description() const {
+    return _description;
+  }
+  const std::string &code() const {
+    return _code;
   }
   int index() const {
     return _index;
@@ -60,7 +62,29 @@ class HNode {
   }
  private:
   int _index, _parent;
-  std::string _label;
+  std::string _description, _code;
+};
+
+class HNodeFamily {
+ public:
+  HNodeFamily(std::string familyName);
+  HNode make(int index, int parent, std::string description);
+  HNode makeRoot(int index, std::string description);
+ private:
+  std::string _familyName;
+};
+
+class CheckedHNodeFamily {
+ public:
+  CheckedHNodeFamily(std::string familyName);
+  HNode make(int index, const HNode &parent, std::string description);
+  HNode makeRoot(int index, std::string description);
+  Array<HNode> getNodes();
+ private:
+  bool registred(const HNode &node);
+  const HNode &registerNew(const HNode &node);
+  std::map<int, HNode> _nodes;
+  HNodeFamily _raw;
 };
 
 
@@ -89,7 +113,7 @@ class HTree {
 
   virtual ~HTree() {}
 
-  virtual void disp(std::ostream *out, Array<std::string> labels = Array<std::string>(), int indent = 0) const = 0;
+  virtual void disp(std::ostream *out, Array<HNode> labels = Array<HNode>(), int depth = 0, int maxDepth = 30) const = 0;
 
   virtual bool equals(std::shared_ptr<HTree> other) const = 0;
 
@@ -98,6 +122,8 @@ class HTree {
   }
 
   virtual std::shared_ptr<HTree> child(int index);
+
+  Array<std::shared_ptr<HTree> > children();
  protected:
   bool topEquals(std::shared_ptr<HTree> other) const;
 };
@@ -125,7 +151,7 @@ class HLeaves : public HTree {
 
   // nodeIndex should be _index. This is merely a redundant safety-feature.
   void add(int nodeIndex);
-  void disp(std::ostream *out, Array<std::string> labels, int indent) const;
+  void disp(std::ostream *out, Array<HNode> labels, int depth, int maxDepth) const;
   bool equals(std::shared_ptr<HTree> other) const;
  private:
   int _index, _left, _count;
@@ -142,7 +168,7 @@ class HInner : public HTree {
   }
   void add(std::shared_ptr<HTree> child);
   std::shared_ptr<HTree> lastChild();
-  void disp(std::ostream *out, Array<std::string> labels, int indent) const;
+  void disp(std::ostream *out, Array<HNode> labels, int depth, int maxDepth) const;
   int childCount() const {
     return _children.size();
   }
@@ -192,9 +218,8 @@ class Hierarchy {
 
   virtual ~Hierarchy();
 
-  Array<std::string> labels() const {
-    return _labels;
-  }
+  HNode node(int index) const {return _nodes[index];}
+  Array<HNode> nodes() {return _nodes;}
  private:
   // Creates an ancestor at 'level' for a node of type 'nodeIndex'
   std::shared_ptr<HTree> wrap(int left, int level, int nodeIndex) const;
@@ -215,9 +240,6 @@ class Hierarchy {
 
   // A 2d array where element _ancestors(i, j) is the index for the ancestor of node 'i' at level 'j' in the hierarchy.
   MDArray2i _ancestors;
-
-  // Labels of all nodes. Mostly used for debugging.
-  Array<std::string> _labels;
 };
 
 } /* namespace sail */
