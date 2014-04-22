@@ -27,6 +27,49 @@ HNode HNodeFamily::makeRoot(int index, std::string description) {
 
 
 namespace {
+  const int rootIndex = 0;
+}
+
+CheckedHNodeFamily::CheckedHNodeFamily(std::string familyName) :
+  _raw(familyName) {
+}
+
+HNode CheckedHNodeFamily::make(int index, const HNode &parent, std::string description) {
+  assert(registred(parent));
+  return registerNew(_raw.make(index, parent.index(), description));
+}
+
+HNode CheckedHNodeFamily::makeRoot(int index, std::string description) {
+  return registerNew(_raw.makeRoot(index, description));
+}
+
+bool CheckedHNodeFamily::registred(const HNode &node) {
+  return _nodes.find(node.index()) != _nodes.end();
+}
+
+const HNode &CheckedHNodeFamily::registerNew(const HNode &node) {
+  CHECK(!registred(node));
+  _nodes[node.index()] = node;
+  return node;
+}
+
+Array<HNode> CheckedHNodeFamily::getNodes() {
+  int count = _nodes.size();
+  Array<HNode> dst(count);
+  typedef std::map<int, HNode>::iterator Iter;
+  int counter = 0;
+  for (Iter i = _nodes.begin(); i != _nodes.end(); i++) {
+    dst[counter] = i->second;
+    counter++;
+  }
+  return dst;
+}
+
+
+
+
+
+namespace {
 // Checks that
 // if a node has a parent, that parent is defined.
 void checkHNodeValidParents(Array<HNode> nodes) {

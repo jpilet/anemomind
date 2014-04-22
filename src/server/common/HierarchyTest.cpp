@@ -126,6 +126,21 @@ Hierarchy makeMiniSailGrammar() {
   return Hierarchy(nodes);
 }
 
+Hierarchy makeMiniSailGrammarCounted() {
+  CheckedHNodeFamily fam("mja");
+  HNode sailing = fam.makeRoot(8, "Sailing");
+  HNode portTack = fam.make(6, sailing, "Port tack");
+  HNode starboardTack = fam.make(7, sailing, "Starboard tack");
+  fam.make(0, portTack, "Port tack / Close hauled");
+  fam.make(1, portTack, "Port tack / Beam reach");
+  fam.make(2, portTack, "Port tack / Broad reach");
+  fam.make(3, starboardTack, "Starboard tack / Close hauled");
+  fam.make(4, starboardTack, "Starboard tack / Beam reach");
+  fam.make(5, starboardTack, "Starboard tack / Broad reach");
+  return Hierarchy(fam.getNodes());
+}
+
+
 TEST(HierarchyTest, SailTest) {
   const int len = 18;
 
@@ -137,15 +152,17 @@ TEST(HierarchyTest, SailTest) {
   int toParse[len] = {0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5, 0, 0, 0, 0, 0};
 
 
-  Hierarchy h = makeMiniSailGrammar();
-  std::shared_ptr<HTree> tree = h.parse(Arrayi(len, toParse));
+  Hierarchy hs[2] = {makeMiniSailGrammar(), makeMiniSailGrammarCounted()};
+  for (int i = 0; i < 2; i++) {
+    Hierarchy h = hs[i];
+    std::shared_ptr<HTree> tree = h.parse(Arrayi(len, toParse));
 
-  EXPECT_EQ(tree->index(), 8);
-  EXPECT_EQ(tree->childCount(), 3);
-  std::shared_ptr<HTree> c = tree->child(1);
-  EXPECT_EQ(c->left(), 7);
-  EXPECT_EQ(c->right(), 13);
-  //tree->disp(&std::cout, h.labels());
+    //EXPECT_EQ(tree->index(), 8);
+    EXPECT_EQ(tree->childCount(), 3);
+    std::shared_ptr<HTree> c = tree->child(1);
+    EXPECT_EQ(c->left(), 7);
+    EXPECT_EQ(c->right(), 13);
+  }
 }
 
 Hierarchy makeMiniSailGrammar2() {
