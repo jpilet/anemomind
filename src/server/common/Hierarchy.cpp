@@ -59,6 +59,7 @@ Array<HNode> CheckedHNodeFamily::getNodes() {
   typedef std::map<int, HNode>::iterator Iter;
   int counter = 0;
   for (Iter i = _nodes.begin(); i != _nodes.end(); i++) {
+    CHECK_LT(i->first, count);
     dst[counter] = i->second;
     counter++;
   }
