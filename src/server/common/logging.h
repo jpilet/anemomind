@@ -119,20 +119,24 @@ T CheckNotNull(T x, const char *expr, const char* file, int line) {
 
 namespace internal {
   template <typename T>
-  void checkLTFailure(T A, T B, const char *Astr, const char *Bstr) {
+  void checkCmpFailure(const char *op, T A, T B, const char *Astr, const char *Bstr) {
     std::stringstream ss;
-    ss << "The expression \n\n  " << Astr << " < " << Bstr << "\n\nshould be true but is false, with values\n  "
+    ss << "The expression \n\n  " << Astr << " " << op << " " << Bstr << "\n\nshould be true but is false, with values\n  "
         << Astr << " = " << A << " and \n  "
         << Bstr << " = " << B << "\n";
     LOG(FATAL) << ss.str();
   }
 }
 
+
+#define CHECK_CMP(A, B, CMP) if (!((A) CMP (B))) {internal::checkCmpFailure(#CMP, A, B, #A, #B);}
+
 /*!
  If not A < B, then output a debug message, similar to CHECK, but
  also printing the values of A and B.
  */
-#define CHECK_LT(A, B) if (!(A < B)) {internal::checkLTFailure(A, B, #A, #B);}
+#define CHECK_LT(A, B) CHECK_CMP(A, B, <)
+#define CHECK_LE(A, B) CHECK_CMP(A, B, <=)
 
 /*! CHECK_NOTNULL(EXPRESSION) checks that EXPRESSION does not evaluate to 0. The
  macro can be used as an inplace replacement for EXPRESSION. For example:
