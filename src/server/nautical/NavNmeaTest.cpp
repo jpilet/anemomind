@@ -7,7 +7,6 @@
 #include <sstream>
 #include <server/nautical/NavNmea.h>
 #include <server/common/string.h>
-#include <server/nautical/NavIndexer.h>
 
 using namespace sail;
 
@@ -17,8 +16,7 @@ namespace {
 }
 
 TEST(NavNmeaTest, TestComplete) {
-  BoatTimeNavIndexer indexer = BoatTimeNavIndexer::makeTestIndexer();
-  ParsedNavs navs = loadNavsFromNmea(testfile001, indexer);
+  ParsedNavs navs = loadNavsFromNmea(testfile001, Nav::debuggingBoatId());
   EXPECT_TRUE(navs.complete());
   EXPECT_TRUE(navs.navs().hasData());
   EXPECT_GE(navs.navs().size(), 0); // Number of times RMC occurs in the string to be parsed
@@ -30,8 +28,7 @@ namespace {
 }
 
 TEST(NavNmeaTest, TestComplete2) {
-  BoatTimeNavIndexer ind = BoatTimeNavIndexer::makeTestIndexer();
-  ParsedNavs navs = loadNavsFromNmea(testfile002, ind);
+  ParsedNavs navs = loadNavsFromNmea(testfile002, Nav::debuggingBoatId());
   EXPECT_TRUE(navs.complete());
   EXPECT_GE(navs.navs().size(), 0);
 }
@@ -42,8 +39,7 @@ namespace {
 }
 
 TEST(NavNmeaTest, TestIncomplete) {
-  BoatTimeNavIndexer ind = BoatTimeNavIndexer::makeTestIndexer();
-  ParsedNavs navs = loadNavsFromNmea(testfile003, ind);
+  ParsedNavs navs = loadNavsFromNmea(testfile003, Nav::debuggingBoatId());
   EXPECT_FALSE(navs.complete());
   EXPECT_EQ(navs.navs().size(), 1);
 }

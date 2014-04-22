@@ -28,6 +28,9 @@ class Nav {
  public:
   typedef std::string Id; // We may want to replace this typedef by a special type for Id's
 
+  static Nav::Id debuggingBoatId() {return "FFFFFFFF";}
+
+
   Nav();
   Nav(MDArray2d row);
   virtual ~Nav();
@@ -64,18 +67,17 @@ class Nav {
 
   bool operator== (const Nav &other) const;
 
-  void setId(const Id &i) {_id = i;}
   void setBoatId(const Id &bi) {_boatId = bi;}
-  bool hasId() const {return !_id.empty();}
   bool hasBoatId() const {return !_boatId.empty();}
 
   // TODO: Require this method to return true before a Nav is inserted to a database.
   bool isIndexed() const {return hasId() && hasBoatId();}
 
-  const Id &id() const {return _id;}
+  Id id() const;
+  bool hasId() const;
   const Id &boatId() const {return _boatId;}
  private:
-  Id _id, _boatId;
+  Id _boatId;
 
   Velocity<double> _gpsSpeed;
   Angle<double> _awa;

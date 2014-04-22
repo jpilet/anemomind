@@ -50,7 +50,6 @@ void deserialize(Poco::JSON::Object::Ptr x, Nav *out) {
   deserializeField(x, "watspeed", &wats);
   deserializeField(x, "gpsspeed", &gpss);
   deserializeField(x, "gpsbearing", &gpsb);
-  deserializeField(x, "id", &id);
   deserializeField(x, "boat-id", &boatId);
 
   *out = Nav();
@@ -62,7 +61,6 @@ void deserialize(Poco::JSON::Object::Ptr x, Nav *out) {
   out->setGpsBearing(gpsb);
   out->setMagHdg(maghdg);
   out->setWatSpeed(wats);
-  out->setId(id);
   out->setBoatId(boatId);
 }
 

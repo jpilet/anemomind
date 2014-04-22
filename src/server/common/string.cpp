@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <algorithm>
-#include <server/common/endianess.h>
 
 namespace sail {
 
