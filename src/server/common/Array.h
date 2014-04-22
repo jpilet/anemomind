@@ -731,6 +731,31 @@ class Array {
     }
     return -1;
   }
+
+  class Iter {
+   public:
+    Iter(const Array<T> *arr, int pos) :
+      _arr(arr), _pos(pos) {}
+    bool operator!=(const Iter &other) {
+      return _pos != other._pos;
+    }
+
+    T &operator*() {
+      return (*_arr)[_pos];
+    }
+
+    const T &operator*() const {
+      return (*_arr)[_pos];
+    }
+
+    const Iter &operator++() {
+      ++_pos;
+      return *this;
+    }
+   private:
+    const Array<T> *_arr;
+    int _pos;
+  };
  private:
 
   void decRef() {

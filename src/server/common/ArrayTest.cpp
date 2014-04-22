@@ -165,3 +165,16 @@ TEST(ArrayTest, ElemCountTest) {
   EXPECT_EQ(countElements(TestArray(n)), n);
   EXPECT_EQ(MemoryTestObj::InstanceCounter, 0);
 }
+
+TEST(ArrayTest, RangeDemo) {
+  int count = 12;
+  Array<int> numbers(count);
+  for (auto i : numbers) {
+    *i = i;
+  }
+  int sum = 0;
+  for (auto i : numbers) {
+    sum += *i;
+  }
+  EXPECT_EQ(2*sum, count*(count + 1));
+}
