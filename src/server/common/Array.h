@@ -757,11 +757,42 @@ class Array {
     int _pos;
   };
 
+  class CstIter {
+   public:
+    CstIter(const Array<T> *arr, int pos) :
+      _arr(arr), _pos(pos) {}
+    bool operator!=(const Iter &other) {
+      return _pos != other._pos;
+    }
+
+    const T &operator*() const {
+      return (*_arr)[_pos];
+    }
+
+    const Iter &operator++() {
+      ++_pos;
+      return *this;
+    }
+   private:
+    const Array<T> *_arr;
+    int _pos;
+  };
+
+
+
   Iter begin() {
     return Iter(this, 0);
   }
 
   Iter end() {
+    return Iter(this, _size);
+  }
+
+  CstIter begin() const {
+    return Iter(this, 0);
+  }
+
+  CstIter end() const {
     return Iter(this, _size);
   }
  private:
