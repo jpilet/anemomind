@@ -41,8 +41,9 @@ namespace {
 TEST(NavNmeaTest, TestIncomplete) {
   ParsedNavs navs = loadNavsFromNmea(testfile003, Nav::debuggingBoatId());
   EXPECT_FALSE(navs.complete());
-  EXPECT_EQ(navs.navs().size(), 1);
+  EXPECT_EQ(navs.navs().size(), 0); // Because measurements preceding the first time stamp should be dropped: They could potentially be arbitrarily old.
 }
+
 
 
 
