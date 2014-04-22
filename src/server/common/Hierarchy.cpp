@@ -9,6 +9,7 @@
 #include "ArrayIO.h"
 #include  <sstream>
 #include <server/common/string.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -41,7 +42,7 @@ void checkHNodeValidParents(Array<HNode> nodes) {
 void checkMaxNodeInds(Array<HNode> nodes) {
   int count = nodes.size();
   for (int i = 0; i < count; i++) {
-    assert(nodes[i].index() < count);
+    CHECK_LT(nodes[i].index(), count);
   }
 }
 

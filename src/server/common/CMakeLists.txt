@@ -97,6 +97,7 @@ add_library(common_Hierarchy
 target_link_libraries(common_Hierarchy
                       common_Array
                       common_string
+                      common_logging
                      )
 cxx_test(common_HierarchyTest
          HierarchyTest.cpp
