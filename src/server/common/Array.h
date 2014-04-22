@@ -734,7 +734,7 @@ class Array {
 
   class Iter {
    public:
-    Iter(const Array<T> *arr, int pos) :
+    Iter(Array<T> *arr, int pos) :
       _arr(arr), _pos(pos) {}
     bool operator!=(const Iter &other) {
       return _pos != other._pos;
@@ -744,20 +744,24 @@ class Array {
       return (*_arr)[_pos];
     }
 
+    T &operator*() {
+      return (*_arr)[_pos];
+    }
+
     const Iter &operator++() {
       ++_pos;
       return *this;
     }
    private:
-    const Array<T> *_arr;
+    Array<T> *_arr;
     int _pos;
   };
 
-  Iter begin() const {
+  Iter begin() {
     return Iter(this, 0);
   }
 
-  Iter end() const {
+  Iter end() {
     return Iter(this, _size);
   }
  private:
