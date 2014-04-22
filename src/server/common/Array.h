@@ -740,10 +740,6 @@ class Array {
       return _pos != other._pos;
     }
 
-    T &operator*() {
-      return (*_arr)[_pos];
-    }
-
     const T &operator*() const {
       return (*_arr)[_pos];
     }
@@ -756,6 +752,14 @@ class Array {
     const Array<T> *_arr;
     int _pos;
   };
+
+  Iter begin() const {
+    return Iter(this, 0);
+  }
+
+  Iter end() const {
+    return Iter(this, _size);
+  }
  private:
 
   void decRef() {
