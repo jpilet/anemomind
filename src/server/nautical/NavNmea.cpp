@@ -162,7 +162,8 @@ namespace {
     TimeStamp *last) {
     NmeaParser::NmeaSentence s = parser->processByte(c);
 
-    static const Duration<double> thresh = Duration<double>::minutes(2); // <-- TODO: Maybe soft-code this threshold in future...
+    static const Duration<double> maxDurationBetweenTimeMeasures
+      = Duration<double>::minutes(2); // <-- TODO: Maybe soft-code this threshold in future...
 
     if (s != NmeaParser::NMEA_NONE) {
       readNmeaData(s, *parser, dstNav, fields);
@@ -170,7 +171,7 @@ namespace {
       if (s == NmeaParser::NMEA_TIME_POS) {
         TimeStamp veryLast = dstNav->time();
         if (last->defined()) { // Don't accept measurements that could potentially be arbitrarily old...
-          if (veryLast - *last <= thresh) { // Only accept measurements that are guaranteed to be sufficiently fresh, e.g. no more than two minutes.
+          if (veryLast - *last <= maxDurationBetweenTimeMeasures) { // Only accept measurements that are guaranteed to be sufficiently fresh, e.g. no more than two minutes.
             dstNav->setBoatId(boatId);
             navAcc->add(*dstNav);
           }
