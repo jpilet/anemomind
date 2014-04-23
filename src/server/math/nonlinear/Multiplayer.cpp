@@ -1,5 +1,5 @@
 /*
- *  Created on: Apr 23, 2014
+ *  Created on: 2014-04-23
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
