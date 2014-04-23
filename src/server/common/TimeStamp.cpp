@@ -64,7 +64,8 @@ TimeStamp::TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to
 
 struct tm TimeStamp::makeGMTimeStruct() const {
   time_t rawtime = time_t(_time/TimeRes);
-  struct tm *gt = gmtime(&rawtime);
+  struct tm result;
+  struct tm *gt = gmtime_r(&rawtime, &result);
   struct tm time = *gt;
   return time;
 }
