@@ -37,7 +37,7 @@ bool TimeStamp::defined() const {
 }
 
 
-TimeStamp::TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
+TimeStamp TimeStamp::GMT(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
           unsigned int hour, unsigned int minute, double seconds, int isdst) {
   assert(inRange(month_1to12, 1, 12));
   assert(inRange(day_1to31, 1, 31));
@@ -60,7 +60,8 @@ TimeStamp::TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to
   time.tm_wday = -1;
 
 
-  init(time, seconds - time.tm_sec);
+  //init(time, seconds - time.tm_sec);
+  return TimeStamp(time, seconds - time.tm_sec);
 }
 
 struct tm TimeStamp::makeGMTimeStruct() const {
@@ -77,8 +78,8 @@ void TimeStamp::init(struct tm &time, double fracSeconds) {
   _time = TimeRes*x + int64_t(TimeRes*fracSeconds);
 }
 
-TimeStamp::TimeStamp(struct tm time) {
-  init(time, 0.0);
+TimeStamp::TimeStamp(struct tm time, double fracSeconds) {
+  init(time, fracSeconds);
 }
 
 TimeStamp TimeStamp::now() {
