@@ -46,6 +46,15 @@ TEST(NavNmeaTest, TestIncomplete) {
 
 
 TEST(NavNmeaTest, TestSkipDueToLongThreshold) {
+  /*
+   * Nmea data with 3 time-pos sentences.
+   *
+   * The first time-pos sentence should be dropped, because whatever
+   * data preceding it (none in this case) could be arbitrarily old.
+   *
+   * The last time-pos sentence occurs more than 2 minutes after the time-pos sentence before.
+   * Therefore, the time of the data collected in between cannot be assigned a sufficiently accurate time.
+   */
   const char dataWithALongGap[] = "$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                          "$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                          "$IIRMC,114104,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
@@ -57,6 +66,14 @@ TEST(NavNmeaTest, TestSkipDueToLongThreshold) {
 
 
 TEST(NavNmeaTest, TestIncludeLastTwo) {
+  /*
+   * Nmea with 3 time-pos sentences.
+   *
+   * The first sentence will be dropped, for the same reason as for 'dataWithALongGap'.
+   *
+   * The last time-pos sentence however occurs close in time to the sentence before and therefore,
+   * the data associated with and the resulting Nav will not be dropped.
+   */
   const char dataWithoutLongGap[] = "$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                                         "$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                                         "$IIRMC,113904,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
