@@ -61,6 +61,8 @@ class StepMinimizer {
 
   // The acceptor function lets us incorporate additional criteria in order for a solution to be accepted.
   void setAcceptor(std::function<bool(double, double)> acceptor);
+  double recommendedInitialStep() const {return _rightLimit - _leftLimit;}
+  int maxiter() const {return _maxIter;}
  private:
   double _leftLimit, _rightLimit;
   int _maxIter;
