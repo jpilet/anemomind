@@ -170,11 +170,16 @@ namespace {
       // Once a time stamp has been received, save this Nav and start to fill a new one.
       if (s == NmeaParser::NMEA_TIME_POS) {
         TimeStamp veryLast = dstNav->time();
-        if (last->defined()) { // Don't accept measurements that could potentially be arbitrarily old...
-          if (veryLast - *last <= maxDurationBetweenTimeMeasures) { // Only accept measurements that are guaranteed to be sufficiently fresh, e.g. no more than two minutes.
-            dstNav->setBoatId(boatId);
-            navAcc->add(*dstNav);
-          }
+
+        // Don't accept measurements that could potentially be arbitrarily old...
+        if (last->defined() &&
+
+          // Only accept measurements that are guaranteed to
+          // be sufficiently fresh, e.g. no more than two minutes.
+          veryLast - *last <= maxDurationBetweenTimeMeasures) {
+
+          dstNav->setBoatId(boatId);
+          navAcc->add(*dstNav);
         }
         *last = veryLast;
         *dstNav = Nav();
