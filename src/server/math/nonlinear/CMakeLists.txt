@@ -101,7 +101,13 @@ add_executable(math_nonlinear_SignalFitExampleDivideAndConquer
 target_link_libraries(math_nonlinear_SignalFitExampleDivideAndConquer
                       math_nonlinear_NoisyStep
                       plot_gnuplot
-                     )    
+                     )   
+add_library(math_nonlinear_Multiplayer
+            Multiplayer.h
+            Multiplayer.cpp
+           )
+target_link_libraries(math_nonlinear_Multiplayer
+                      )                                 
   
 add_executable(examples_SignalFitExampleAutoRegFirstOrder
   SignalFitExampleAutoRegFirstOrder.cpp)

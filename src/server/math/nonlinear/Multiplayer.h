@@ -8,12 +8,13 @@
 
 #include <functional>
 #include <server/common/Array.h>
+#include <server/common/Function.h>
 
 namespace sail {
 
 class StepMinimizer;
-Arrayd optimizeMultiplayer(StepMinimizer &minimizer,
-    Array<std::function<double(double)> > objfs, Arrayd X,
+Arrayd optimizeMultiplayer(const StepMinimizer &minimizer,
+    Array<std::shared_ptr<Function> > objfs, Arrayd X,
     Arrayd initStepSizes = Arrayd());
 
 } /* namespace sail */

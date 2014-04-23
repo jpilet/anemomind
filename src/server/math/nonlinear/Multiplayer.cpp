@@ -12,7 +12,7 @@ namespace sail {
 
 
 namespace {
-  Array<StepMinimizerState> makeInitialStates(Array<std::function<double(double)> >objfs,
+  Array<StepMinimizerState> makeInitialStates(Array<std::shared_ptr<Function> > objfs,
     Arrayd X, Arrayd steps) {
     int n = objfs.size();
     assert(n == X.size());
@@ -25,21 +25,40 @@ namespace {
     return states;
   }
 
-  ParetoElement evaluateAll(Array<std::function<double(double)> > objfs,
+  ParetoElement evaluateAll(Array<std::shared_ptr<Function> > objfs,
       Arrayd X) {
     int n = objfs.size();
     Arrayd vals(n);
     for (int i = 0; i < n; i++) {
-      vals[i] = objfs[i](X[i]);
+      vals[i] = objfs[i]->evaluateScalar(X);
     }
     return vals;
   }
 }
 
 
+
+namespace {
+  bool areNToScalarFunctions(int n, Array<std::shared_ptr<Function> > funs) {
+    assert(n == funs.size());
+    for (int i = 0; i < n; i++) {
+      if (funs[i]->inDims() != n) {
+        return false;
+      }
+      if (funs[i]->outDims() != 1) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
 void optimizeMultiplayerSub(StepMinimizer &minimizer,
-    Array<std::function<double(double)> > objfs,
-      Array<StepMinimizerState> states) {
+    Array<std::shared_ptr<Function> > objfs,
+    Array<StepMinimizerState> *statesIO) {
+  Array<StepMinimizerState> &states = *statesIO;
+
+  assert(areNToScalarFunctions(n, objfs));
   ParetoFrontier frontier;
   for (int i = 0; i < minimizer.maxiter(); i++) {
     for (int j = 0; j < n; j++) {
@@ -54,17 +73,22 @@ void optimizeMultiplayerSub(StepMinimizer &minimizer,
   }
 }
 
-Arrayd optimizeMultiplayer(StepMinimizer &minimizer,
-    Array<std::function<double(double)> > objfs, Arrayd X,
+
+Arrayd optimizeMultiplayer(const StepMinimizer &minimizerIn,
+    Array<std::shared_ptr<Function> > objfs, Arrayd X,
     Arrayd initStepSizes) {
-  int n = objfs.size();
-  assert(n == X.size());
+  StepMinimizer minimizer = minimizerIn;
+
+  int n = X.size();
+  assert(n == objfs.size());
+
+
 
   if (initStepSizes.empty()) {
     initStepSizes = Arrayd::fill(n, minimizer.recommendedInitialStep());
   }
   Array<StepMinimizerState> states = makeInitialStates(objfs, X, initStepSizes);
-  optimizeMultiplayerSub(minimizer, objfs, states);
+  optimizeMultiplayerSub(minimizer, objfs, &states);
   return states.map<double>([&](StepMinimizerState x) {return x.getX();});
 }
 
