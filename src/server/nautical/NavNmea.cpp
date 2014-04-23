@@ -158,7 +158,8 @@ namespace {
   }
 
   void parseNmeaChar(char c,
-    NmeaParser *parser, Nav *dstNav, ArrayBuilder<Nav> *navAcc, ParsedNavs::FieldMask *fields, Nav::Id boatId,
+    NmeaParser *parser, Nav *dstNav, ArrayBuilder<Nav> *navAcc,
+    ParsedNavs::FieldMask *fields, Nav::Id boatId,
     TimeStamp *last) {
     NmeaParser::NmeaSentence s = parser->processByte(c);
 
@@ -213,7 +214,8 @@ ParsedNavs loadNavsFromNmea(std::string filename, Nav::Id boatId) {
 namespace {
   std::string getFieldLabel(ParsedNavs::FieldId id) {
     typedef const char *Str;
-    static Str labels[ParsedNavs::FIELD_COUNT] = {"TIME", "POS", "AWA", "AWS", "MAG_HDG", "GPS_BEARING", "GPS_SPEED", "WAT_SPEED"};
+    static Str labels[ParsedNavs::FIELD_COUNT] =
+      {"TIME", "POS", "AWA", "AWS", "MAG_HDG", "GPS_BEARING", "GPS_SPEED", "WAT_SPEED"};
     return labels[id];
   }
 }
@@ -222,7 +224,8 @@ std::ostream &operator<<(std::ostream &s, ParsedNavs x) {
   s << "ParsedNavs: " << x.navs().size() << std::endl;
   for (int i = 0; i < ParsedNavs::FIELD_COUNT; i++) {
     ParsedNavs::FieldId id = ParsedNavs::FieldId(i);
-    s << "   " << getFieldLabel(id) << ": " << x.hasFields(ParsedNavs::field(id)) << std::endl;
+    s << "   " << getFieldLabel(id) << ": "
+        << x.hasFields(ParsedNavs::field(id)) << std::endl;
   }
   return s;
 }
