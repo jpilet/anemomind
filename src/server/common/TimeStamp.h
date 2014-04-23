@@ -20,7 +20,7 @@ class TimeStamp {
 
   TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
             unsigned int hour, unsigned int minute, double seconds,
-            int gmtoff=0, int isdst=0);
+            int isdst=0);
 
   TimeStamp(struct tm time);
 

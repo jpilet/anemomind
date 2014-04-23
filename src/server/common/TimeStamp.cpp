@@ -8,6 +8,7 @@
 #include <limits>
 #include <server/common/logging.h>
 #include <server/common/string.h>
+#include <server/common/mkgmtime.h>
 
 namespace sail {
 
@@ -37,7 +38,7 @@ bool TimeStamp::defined() const {
 
 
 TimeStamp::TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
-          unsigned int hour, unsigned int minute, double seconds, int gmtoff, int isdst) {
+          unsigned int hour, unsigned int minute, double seconds, int isdst) {
   assert(inRange(month_1to12, 1, 12));
   assert(inRange(day_1to31, 1, 31));
   assert(inRange(hour, 0, 23));
@@ -45,7 +46,7 @@ TimeStamp::TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to
   assert(seconds >= 0);
 
   struct tm time;
-  time.tm_gmtoff = gmtoff; //0;
+  time.tm_gmtoff = 0; //gmtoff; //0; offset. http://stackoverflow.com/a/530557
   time.tm_isdst = isdst; //0; // daylight saving. What to put here???
   time.tm_sec = int(seconds);
   time.tm_min = minute;
@@ -65,13 +66,12 @@ TimeStamp::TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to
 struct tm TimeStamp::makeGMTimeStruct() const {
   time_t rawtime = time_t(_time/TimeRes);
   struct tm result;
-  struct tm *gt = gmtime_r(&rawtime, &result);
-  struct tm time = *gt;
-  return time;
+  gmtime_r(&rawtime, &result);
+  return result;
 }
 
 void TimeStamp::init(struct tm &time, double fracSeconds) {
-  time_t x = mktime(&time);
+  time_t x = mkgmtime(&time);
 
   assert(x != -1);
   _time = TimeRes*x + int64_t(TimeRes*fracSeconds);
@@ -127,9 +127,11 @@ TimeStamp operator+(const Duration<double> &a, const TimeStamp &b) {
 
 std::ostream &operator<<(std::ostream &s, const TimeStamp &t) {
   struct tm time = t.makeGMTimeStruct();
-  const char isofmt[] = "%04d-%02d-%02dT%02d:%02d:%02d";
-  std::string str = stringFormat(isofmt, time.tm_year + 1900, time.tm_mon, time.tm_mday,
-                              time.tm_hour, time.tm_min, time.tm_sec);
+  const char isofmt[] = "%FT%T";
+  const int len = 255;
+  char str[len];
+  assert(time.tm_gmtoff == 0);
+  strftime(str, len, isofmt, &time);
   s << str;
   return s;
 }

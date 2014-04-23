@@ -5,6 +5,8 @@
 
 #include <gtest/gtest.h>
 #include "TimeStamp.h"
+#include <sstream>
+#include <server/common/string.h>
 
 using namespace sail;
 
@@ -39,9 +41,27 @@ TEST(TimeStampTest, Def) {
 }
 
 TEST(TimeStampTest, MilliSeconds) {
-  const int64_t ms = 516456302000;
-  TimeStamp a(1986, 5, 14, 13, 5, 2.0, 0, 0);
+  const int64_t ms = 516459902000;
+  TimeStamp a(1986, 5, 14, 13, 5, 2.0, 0);
   EXPECT_EQ(a.toMilliSecondsSince1970(), ms);
   EXPECT_EQ(TimeStamp::fromMilliSecondsSince1970(ms).toMilliSecondsSince1970(), ms);
+}
+
+TEST(TimeStampTest, ToStreamTest) {
+
+  int year = 2014;
+  int month = 04;
+  int day = 23;
+  int hour = 14;
+  int minute = 52;
+  int second = 23;
+  TimeStamp ts(year, month, day,
+      hour, minute, second);
+  std::string expected = stringFormat("%04d-%02d-%02dT%02d:%02d:%02d", year, month, day,
+      hour, minute, second);
+
+  std::stringstream ss;
+  ss << ts;
+  EXPECT_EQ(expected, ss.str());
 }
 
