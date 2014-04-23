@@ -732,68 +732,26 @@ class Array {
     return -1;
   }
 
-  class Iter {
-   public:
-    Iter(Array<T> *arr, int pos) :
-      _arr(arr), _pos(pos) {}
-    bool operator!=(const Iter &other) {
-      return _pos != other._pos;
-    }
-
-    const T &operator*() const {
-      return (*_arr)[_pos];
-    }
-
-    T &operator*() {
-      return (*_arr)[_pos];
-    }
-
-    const Iter &operator++() {
-      ++_pos;
-      return *this;
-    }
-   private:
-    Array<T> *_arr;
-    int _pos;
-  };
-
-  class CstIter {
-   public:
-    CstIter(const Array<T> *arr, int pos) :
-      _arr(arr), _pos(pos) {}
-    bool operator!=(const Iter &other) {
-      return _pos != other._pos;
-    }
-
-    const T &operator*() const {
-      return (*_arr)[_pos];
-    }
-
-    const Iter &operator++() {
-      ++_pos;
-      return *this;
-    }
-   private:
-    const Array<T> *_arr;
-    int _pos;
-  };
 
 
 
-  Iter begin() {
-    return Iter(this, 0);
+  typedef const T *ConstantIterator;
+  typedef T *Iterator;
+
+  Iterator begin() {
+    return Iterator(_data);
   }
 
-  Iter end() {
-    return Iter(this, _size);
+  Iterator end() {
+    return Iterator(_data + _size);
   }
 
-  CstIter begin() const {
-    return Iter(this, 0);
+  ConstantIterator begin() const {
+    return ConstantIterator(_data);
   }
 
-  CstIter end() const {
-    return Iter(this, _size);
+  ConstantIterator end() const {
+    return ConstantIterator(_data + _size);
   }
  private:
 
