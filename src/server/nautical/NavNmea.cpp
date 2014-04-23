@@ -176,7 +176,7 @@ namespace {
 
           // Only accept measurements that are guaranteed to
           // be sufficiently fresh, e.g. no more than two minutes.
-          veryLast - *last <= maxDurationBetweenTimeMeasures) {
+          ((veryLast - *last) <= maxDurationBetweenTimeMeasures)) {
 
           dstNav->setBoatId(boatId);
           navAcc->add(*dstNav);
