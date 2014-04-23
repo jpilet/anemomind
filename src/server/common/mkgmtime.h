@@ -52,7 +52,7 @@
 #endif
 #endif
 
-#include <time.h>
+#include <ctime>
 
 time_t mkgmtime P((struct tm * const tmp));
 
