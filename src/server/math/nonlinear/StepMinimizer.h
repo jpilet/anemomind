@@ -19,6 +19,7 @@ namespace sail {
 
 class StepMinimizerState {
  public:
+  StepMinimizerState();
   StepMinimizerState(double x, double step, double value) : _x(x), _step(step), _value(value) {}
 
   double getX() const {
@@ -48,6 +49,10 @@ class StepMinimizerState {
   StepMinimizerState make(double x, double value) const {
     return StepMinimizerState(x, _step, value);
   }
+
+  StepMinimizerState reevaluate(std::function<double(double)> fun) {
+    return StepMinimizerState(_x, _step, fun(_x));
+  }
  private:
   double _x, _step, _value;
 };
@@ -55,6 +60,10 @@ class StepMinimizerState {
 class StepMinimizer {
  public:
   StepMinimizer();
+  StepMinimizer(int maxIter);
+  StepMinimizer(double lm, double rm, int maxiter) :
+    _leftLimit(lm), _rightLimit(rm), _maxIter(maxiter) {}
+
 
   StepMinimizerState takeStep(StepMinimizerState state, std::function<double(double)> fun);
   StepMinimizerState minimize(StepMinimizerState state, std::function<double(double)> fun);

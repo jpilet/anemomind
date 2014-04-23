@@ -7,6 +7,8 @@
 #include <server/math/nonlinear/StepMinimizer.h>
 #include <server/math/pareto.h>
 #include <assert.h>
+#include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 
@@ -20,7 +22,7 @@ namespace {
     Array<StepMinimizerState> states(n);
     for (int i = 0; i < n; i++) {
       double x = X[i];
-      states[i] = StepMinimizerState(x, steps[i], objfs(x));
+      states[i] = StepMinimizerState(x, steps[i], objfs[i]->evalScalar(X.ptr()));
     }
     return states;
   }
@@ -30,7 +32,7 @@ namespace {
     int n = objfs.size();
     Arrayd vals(n);
     for (int i = 0; i < n; i++) {
-      vals[i] = objfs[i]->evaluateScalar(X);
+      vals[i] = objfs[i]->evalScalar(X.ptr());
     }
     return vals;
   }
@@ -58,6 +60,9 @@ void optimizeMultiplayerSub(StepMinimizer &minimizer,
     Array<StepMinimizerState> *statesIO) {
   Array<StepMinimizerState> &states = *statesIO;
 
+  int n = states.size();
+  assert(n == objfs.size());
+
   assert(areNToScalarFunctions(n, objfs));
   ParetoFrontier frontier;
   for (int i = 0; i < minimizer.maxiter(); i++) {
@@ -65,10 +70,15 @@ void optimizeMultiplayerSub(StepMinimizer &minimizer,
       Arrayd X = states.map<double>([&](StepMinimizerState x) {return x.getX();});
       std::function<bool(double, double)> acc = [&] (double x, double y) {
         X[j] = x;
-        return frontier.insert(evaluateAll(objfs, X));
+        return frontier.accepts(evaluateAll(objfs, X));
       };
       minimizer.setAcceptor(acc);
-      states[j] = minimizer.takeStep(states[j], objfs[j]);
+      std::function<double(double)> objf = [&] (double x) {
+        X[j] = x;
+        return objfs[j]->evalScalar(X.ptr());
+      };
+      states[j] = minimizer.takeStep(states[j].reevaluate(objf), objf);
+      frontier.insert(evaluateAll(objfs, X));
     }
   }
 }
@@ -79,13 +89,8 @@ Arrayd optimizeMultiplayer(const StepMinimizer &minimizerIn,
     Arrayd initStepSizes) {
   StepMinimizer minimizer = minimizerIn;
 
-  int n = X.size();
-  assert(n == objfs.size());
-
-
-
   if (initStepSizes.empty()) {
-    initStepSizes = Arrayd::fill(n, minimizer.recommendedInitialStep());
+    initStepSizes = Arrayd::fill(X.size(), minimizer.recommendedInitialStep());
   }
   Array<StepMinimizerState> states = makeInitialStates(objfs, X, initStepSizes);
   optimizeMultiplayerSub(minimizer, objfs, &states);

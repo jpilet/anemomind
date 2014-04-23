@@ -16,7 +16,7 @@ namespace sail {
 
 class ParetoElement {
  public:
-  constexpr int MAXPARETOLEN = 12;
+  static constexpr int MAXPARETOLEN = 12;
 
   ParetoElement();
   bool initialized() const {

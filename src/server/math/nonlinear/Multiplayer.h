@@ -9,6 +9,7 @@
 #include <functional>
 #include <server/common/Array.h>
 #include <server/common/Function.h>
+#include <memory>
 
 namespace sail {
 

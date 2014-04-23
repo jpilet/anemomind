@@ -7,9 +7,16 @@
 
 #include "StepMinimizer.h"
 #include <iostream>
+#include <server/common/invalidate.h>
 
 namespace sail {
 
+
+StepMinimizerState::StepMinimizerState() {
+  InvalidateScalar(&_x);
+  InvalidateScalar(&_step);
+  InvalidateScalar(&_value);
+}
 
 namespace {
 // Attempts a candidate value for X and if it yields an improvement, accepts it as the best state.
@@ -66,11 +73,19 @@ bool iterateWithCurrentStepSize(StepMinimizerState *stateInOut,
 }
 }
 
-StepMinimizer::StepMinimizer() {
+namespace {
   const double maxv = 1.0e30;
+}
+
+
+StepMinimizer::StepMinimizer() {
   _maxIter = 30;
   _leftLimit = -maxv;
   _rightLimit = maxv;
+}
+
+StepMinimizer::StepMinimizer(int maxIter) :
+  _maxIter(maxIter), _leftLimit(-maxv), _rightLimit(maxv) {
 }
 
 
