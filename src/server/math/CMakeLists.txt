@@ -86,7 +86,12 @@ target_link_libraries(math_GemanMcClure
                       common_Array
                       common_math
                       common_Function
-                     )           
+                     )
+cxx_test(math_GemanMcClureTest
+         GemanMcClureTest.cpp
+         math_GemanMcClure
+         gtest_main
+        )           
 
 add_library(math_Grid
             Grid.cpp
