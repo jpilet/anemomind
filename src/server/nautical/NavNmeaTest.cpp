@@ -7,7 +7,6 @@
 #include <sstream>
 #include <server/nautical/NavNmea.h>
 #include <server/common/string.h>
-#include <server/nautical/NavIndexer.h>
 
 using namespace sail;
 
@@ -17,12 +16,7 @@ namespace {
 }
 
 TEST(NavNmeaTest, TestComplete) {
-<<<<<<< HEAD
-  BoatTimeNavIndexer indexer = BoatTimeNavIndexer::makeTestIndexer();
-  ParsedNavs navs = loadNavsFromNmea(testfile001, indexer);
-=======
   ParsedNavs navs = loadNavsFromNmea(testfile001, Nav::debuggingBoatId());
->>>>>>> jo-nav-update
   EXPECT_TRUE(navs.complete());
   EXPECT_TRUE(navs.navs().hasData());
   EXPECT_GE(navs.navs().size(), 0); // Number of times RMC occurs in the string to be parsed
@@ -34,23 +28,13 @@ namespace {
 }
 
 TEST(NavNmeaTest, TestComplete2) {
-<<<<<<< HEAD
-  BoatTimeNavIndexer ind = BoatTimeNavIndexer::makeTestIndexer();
-  ParsedNavs navs = loadNavsFromNmea(testfile002, ind);
-=======
   ParsedNavs navs = loadNavsFromNmea(testfile002, Nav::debuggingBoatId());
->>>>>>> jo-nav-update
   EXPECT_TRUE(navs.complete());
   EXPECT_GE(navs.navs().size(), 0);
 }
 
 
 TEST(NavNmeaTest, TestIncomplete) {
-<<<<<<< HEAD
-  BoatTimeNavIndexer ind = BoatTimeNavIndexer::makeTestIndexer();
-  ParsedNavs navs = loadNavsFromNmea(testfile003, ind);
-=======
-
   const char dataOneTimeStamp[] = "$IIMWV,248,T,05.8,N,A*16\n$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileOneTimeStamp(dataOneTimeStamp);
 
@@ -75,7 +59,6 @@ TEST(NavNmeaTest, TestSkipDueToLongThreshold) {
                          "$IIRMC,114104,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileWithALongGap(dataWithALongGap);
   ParsedNavs navs = loadNavsFromNmea(testfileWithALongGap, Nav::debuggingBoatId());
->>>>>>> jo-nav-update
   EXPECT_FALSE(navs.complete());
   EXPECT_EQ(navs.navs().size(), 1);
 }

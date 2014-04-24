@@ -36,7 +36,6 @@ target_link_libraries(nautical_NavNmea
 cxx_test(nautical_NavNmeaTest
          NavNmeaTest.cpp
          nautical_NavNmea
-         nautical_NavIndexer
          gtest_main
         )
 
@@ -82,7 +81,6 @@ target_link_libraries(nautical_ParseExample
                       nautical_NavNmeaScan
                       nautical_grammars_Grammar001
                       nautical_NavJson
-                      nautical_NavIndexer
                       nautical_HTreeJson
                       common_HierarchyJson
                       math_hmm_StateAssign
@@ -111,7 +109,6 @@ add_executable(nautical_ScanNmeaExample
 target_link_libraries(nautical_ScanNmeaExample
                        common_Env
                        nautical_NavNmeaScan
-                       nautical_NavIndexer
                       )
   
 add_executable(examples_PlotTrajectoryExampleLocalRace
@@ -158,15 +155,6 @@ cxx_test(nautical_SpeedCalibTest
          gtest_main
         )        
 
-add_library(nautical_NavIndexer
-            NavIndexer.cpp
-            NavIndexer.h
-           )
-           
-target_link_libraries(nautical_NavIndexer
-                      nautical_nav
-                      common_string
-                     )
 #################################################################
 ### CalibrationExamples
 #################################################################

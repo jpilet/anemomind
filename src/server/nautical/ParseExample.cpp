@@ -13,7 +13,6 @@
 #include <Poco/Path.h>
 #include <server/nautical/grammars/Grammar001.h>
 #include <iostream>
-#include <server/nautical/NavIndexer.h>
 #include <server/nautical/HTreeJson.h>
 
 using namespace sail;
@@ -28,8 +27,7 @@ namespace {
     p.pushDirectory("datasets");
     p.pushDirectory("regates");
     p.pushDirectory("regate_1_dec_07");
-    BoatTimeNavIndexer ind = BoatTimeNavIndexer::makeTestIndexer();
-    Array<Nav> allnavs = scanNmeaFolder(p, ind);
+    Array<Nav> allnavs = scanNmeaFolder(p, Nav::debuggingBoatId());
     Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10).seconds());
   }
 
@@ -39,10 +37,8 @@ namespace {
     p.pushDirectory("datasets");
     p.pushDirectory("regates");
 
-    BoatTimeNavIndexer ind = BoatTimeNavIndexer::makeTestIndexer();
-
     cout << "Load navs" << endl;
-    Array<Nav> allnavs = scanNmeaFolder(p, ind);
+    Array<Nav> allnavs = scanNmeaFolder(p, Nav::debuggingBoatId());
     cout << "loaded" << endl;
 
     Grammar001Settings settings;
