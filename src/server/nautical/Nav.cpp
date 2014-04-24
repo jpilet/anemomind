@@ -15,6 +15,7 @@
 #include <server/nautical/Ecef.h>
 #include <ctime>
 #include <server/nautical/WGS84.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -36,9 +37,15 @@ Nav::Nav() : _time(TimeStamp::makeUndefined()) {
 
 
 namespace NavDataConversion {
-  TimeStamp makeTimeNmeaFromYMDhms(double yearSince2000, double month, double day, double hour, double minute, double second) {
-    return TimeStamp(int(yearSince2000 + 2000), int(month), int(day),
-              int(hour), int(minute), second, 0, 0);
+  TimeStamp makeTimeNmeaFromYMDhms(double yearSince2000, double
+      month, double day, double hour,
+      double minute, double second) {
+
+    // TODO: In which time zone are NMEA times reported? Is it always GMT
+    // with daylight saving time off?
+
+    return TimeStamp::GMT(int(yearSince2000 + 2000), int(month), int(day),
+              int(hour), int(minute), second, 0);
   }
 }
 
@@ -84,7 +91,6 @@ bool Nav::operator== (const Nav &other) const {
   return _gpsSpeed.eqWithNan(other._gpsSpeed) &&
       _awa.eqWithNan(other._awa) &&
       _aws.eqWithNan(other._aws) &&
-      _id == other._id &&
       _boatId == other._boatId &&
       _twaFromFile.eqWithNan(other._twaFromFile) &&
       _twsFromFile.eqWithNan(other._twsFromFile) &&
@@ -92,6 +98,20 @@ bool Nav::operator== (const Nav &other) const {
       _watSpeed.eqWithNan(other._watSpeed) &&
       _gpsBearing.eqWithNan(other._gpsBearing) &&
       _pos == other._pos && (strictEquality(_cwd, other._cwd)) && (strictEquality(_wd, other._wd));
+}
+
+Nav::Id Nav::id() const {
+  if (hasId()) {
+    int64_t time = _time.toMilliSecondsSince1970();
+    static_assert(sizeof(time) == 8, "The size of the time datatype seems to have changed.");
+    return _boatId + int64ToHex(time);
+  } else {
+    return "";
+  }
+}
+
+bool Nav::hasId() const {
+  return hasBoatId() && _time.defined();
 }
 
 

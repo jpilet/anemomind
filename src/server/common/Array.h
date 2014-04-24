@@ -731,6 +731,14 @@ class Array {
     }
     return -1;
   }
+
+  T *beginPtr() {
+    return _data;
+  }
+
+  T *endPtr() {
+    return _data + _size;
+  }
  private:
 
   void decRef() {

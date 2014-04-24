@@ -7,6 +7,8 @@
 #include <assert.h>
 #include <limits>
 #include <server/common/logging.h>
+#include <server/common/string.h>
+#include <server/common/mkgmtime.h>
 
 namespace sail {
 
@@ -35,8 +37,8 @@ bool TimeStamp::defined() const {
 }
 
 
-TimeStamp::TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
-          unsigned int hour, unsigned int minute, double seconds, int gmtoff, int isdst) {
+TimeStamp TimeStamp::GMT(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
+          unsigned int hour, unsigned int minute, double seconds, int isdst) {
   assert(inRange(month_1to12, 1, 12));
   assert(inRange(day_1to31, 1, 31));
   assert(inRange(hour, 0, 23));
@@ -44,7 +46,7 @@ TimeStamp::TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to
   assert(seconds >= 0);
 
   struct tm time;
-  time.tm_gmtoff = gmtoff; //0;
+  time.tm_gmtoff = 0; //gmtoff; //0; offset. http://stackoverflow.com/a/530557
   time.tm_isdst = isdst; //0; // daylight saving. What to put here???
   time.tm_sec = int(seconds);
   time.tm_min = minute;
@@ -58,18 +60,26 @@ TimeStamp::TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to
   time.tm_wday = -1;
 
 
-  init(time, seconds - time.tm_sec);
+  //init(time, seconds - time.tm_sec);
+  return TimeStamp(time, seconds - time.tm_sec);
+}
+
+struct tm TimeStamp::makeGMTimeStruct() const {
+  time_t rawtime = time_t(_time/TimeRes);
+  struct tm result;
+  gmtime_r(&rawtime, &result);
+  return result;
 }
 
 void TimeStamp::init(struct tm &time, double fracSeconds) {
-  time_t x = mktime(&time);
+  time_t x = mkgmtime(&time);
 
   assert(x != -1);
   _time = TimeRes*x + int64_t(TimeRes*fracSeconds);
 }
 
-TimeStamp::TimeStamp(struct tm time) {
-  init(time, 0.0);
+TimeStamp::TimeStamp(struct tm time, double fracSeconds) {
+  init(time, fracSeconds);
 }
 
 TimeStamp TimeStamp::now() {
@@ -114,6 +124,17 @@ TimeStamp operator+(const TimeStamp &a, const Duration<double> &b) {
 
 TimeStamp operator+(const Duration<double> &a, const TimeStamp &b) {
   return b + a;
+}
+
+std::ostream &operator<<(std::ostream &s, const TimeStamp &t) {
+  struct tm time = t.makeGMTimeStruct();
+  const char isofmt[] = "%FT%T";
+  const int len = 255;
+  char str[len];
+  assert(time.tm_gmtoff == 0);
+  strftime(str, len, isofmt, &time);
+  s << str;
+  return s;
 }
 
 } /* namespace sail */

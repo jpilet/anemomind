@@ -1,6 +1,11 @@
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/Env.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/Env.cpp" @ONLY)
 list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/Env.cpp.in" Env.cpp)
 
+cxx_test(common_ArrayBuilderTest
+         ArrayBuilderTest.cpp
+         gtest_main
+        )
+
 add_library(common_Env
             "${CMAKE_CURRENT_BINARY_DIR}/Env.cpp"
             Env.h
@@ -51,12 +56,18 @@ add_library(common_TimeStamp
            )
 target_link_libraries(common_TimeStamp
                       common_logging
+                      common_string
+                      common_mkgmtime
                      )           
 cxx_test(common_TimeStampTest
          TimeStampTest.cpp
-         common_TimeStamp 
+         common_TimeStamp
+         common_string 
          gtest_main
         )
+
+
+
         
 add_library(common_Json
             Json.h
@@ -190,4 +201,8 @@ cxx_test(common_ConcatFunctionTest
          common_ConcatFunction
          gtest_main
         )
-                     
+
+add_library(common_mkgmtime
+            mkgmtime.cpp
+            mkgmtime.h
+           )           

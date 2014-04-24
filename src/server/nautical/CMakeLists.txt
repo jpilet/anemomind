@@ -142,6 +142,7 @@ target_link_libraries(nautical_NavJson
                             nautical_nav
                             common_Json
                             common_TimeStampJson
+                            common_Json
                            )
 
 cxx_test(nautical_NavJsonTest

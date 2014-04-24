@@ -39,6 +39,7 @@ void toLowerInPlace(std::string &data);
 std::string toLower(const std::string &src);
 void splitFilenamePrefixSuffix(const std::string &filename,
                                std::string &prefix, std::string &suffix);
+std::string int64ToHex(int64_t x);
 
 } /* namespace sail */
 #endif /* TEXT_H_ */
