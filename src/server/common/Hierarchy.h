@@ -25,6 +25,7 @@
 #include <vector>
 #include <memory>
 #include <iosfwd>
+#include <map>
 
 namespace sail {
 
@@ -71,6 +72,19 @@ class HNodeFamily {
   HNode makeRoot(int index, std::string description);
  private:
   std::string _familyName;
+};
+
+class CheckedHNodeFamily {
+ public:
+  CheckedHNodeFamily(std::string familyName);
+  HNode make(int index, const HNode &parent, std::string description);
+  HNode makeRoot(int index, std::string description);
+  Array<HNode> getNodes();
+ private:
+  bool registred(const HNode &node);
+  const HNode &registerNew(const HNode &node);
+  std::map<int, HNode> _nodes;
+  HNodeFamily _raw;
 };
 
 

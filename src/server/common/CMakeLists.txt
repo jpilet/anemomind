@@ -12,7 +12,7 @@ cxx_test(common_EnvTest
          gtest_main
         )           
 target_depends_on_poco_foundation(common_EnvTest)
-                              
+         
 
 cxx_test(common_stringTest
          stringTest.cpp
@@ -105,6 +105,7 @@ add_library(common_Hierarchy
 target_link_libraries(common_Hierarchy
                       common_Array
                       common_string
+                      common_logging
                      )
 cxx_test(common_HierarchyTest
          HierarchyTest.cpp
