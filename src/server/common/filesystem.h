@@ -13,12 +13,12 @@
 
 namespace sail {
 
-bool hasExtension(Poco::Path p, Array<std::string> extensionsLowerCase);
-
-bool isNmeaFilePath(Poco::Path p);
+bool hasExtension(Poco::Path p, Array<std::string> extensions);
 
 // Recursively traverses a directory and lists all paths for which 'accept' returns true.
 Array<Poco::Path> listFilesRecursively(Poco::Path rootPath, std::function<bool(Poco::Path)> accept);
+
+Array<Poco::Path> listFilesRecursivelyByExtension(Poco::Path rootPath, Array<std::string> extensions);
 
 } /* namespace sail */
 

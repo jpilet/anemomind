@@ -22,16 +22,6 @@ bool hasExtension(Poco::Path p, Array<std::string> extensions) {
   return false;
 }
 
-bool isNmeaFilePath(Poco::Path p) {
-  const int extcount = 1;
-  std::string extensions[extcount] = {"txt"};
-  if (p.isFile()) {
-    return hasExtension(p, Array<std::string>(extcount, extensions));
-  } else {
-    return false;
-  }
-}
-
 namespace {
   void listFilesRecursivelySub(Poco::Path path, std::function<bool(Poco::Path it)> accept,
     std::vector<Poco::Path> *paths) {
@@ -53,6 +43,11 @@ Array<Poco::Path> listFilesRecursively(Poco::Path rootPath, std::function<bool(P
   std::vector<Poco::Path> dst;
   listFilesRecursivelySub(rootPath, accept, &dst);
   return Array<Poco::Path>::referToVector(dst).dup();
+}
+
+Array<Poco::Path> listFilesRecursivelyByExtension(Poco::Path rootPath, Array<std::string> extensions) {
+  Array<std::string> extensionsLowerCase = extensions.map<std::string>(&toLower);
+  return listFilesRecursively(rootPath, [&](Poco::Path p) {return hasExtension(p, extensionsLowerCase);});
 }
 
 } /* namespace sail */

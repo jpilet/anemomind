@@ -6,7 +6,6 @@
 #include "NavIndexer.h"
 #include <server/common/string.h>
 #include <iostream>
-#include <server/common/endianess.h>
 
 namespace sail {
 
