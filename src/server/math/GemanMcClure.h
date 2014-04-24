@@ -121,6 +121,7 @@ class GemanMcClureFunction : public Function {
   int inDims() {return _fun->inDims();}
   int outDims() {return _fun->outDims() + 1;} // One extra for the outlier residual.
   void eval(double *Xin, double *Fout, double *Jout);
+  GemanMcClure &gmc() {return _gmc;}
  private:
   bool _initialized;
   GemanMcClure _gmc;
