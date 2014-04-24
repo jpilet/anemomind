@@ -89,7 +89,10 @@ target_link_libraries(math_GemanMcClure
                      )
 cxx_test(math_GemanMcClureTest
          GemanMcClureTest.cpp
+         math_nonlinear_Levmar
          math_GemanMcClure
+         common_Uniform
+         math_ADFunction
          gtest_main
         )           
 
