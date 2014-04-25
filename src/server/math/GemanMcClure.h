@@ -76,13 +76,11 @@ class GemanMcClure {
     return calcCostFromSquared(sqr(residual));
   }
 
-  /*
-   * For least-squares problems, multiply the residuals
-   * and rows of the Jacobian with these weights.
-   */
-  double getWeight(int index) const {
-    return calcWeightFromSquared(avgSquareResidual(index));
+  double getResidualWeight(int index) const {
+    return getWeight(index/_dim);
   }
+
+
 
   double calcOutlierCost() const;
 
@@ -108,6 +106,20 @@ class GemanMcClure {
   Arrayd _R2sum;
 
   double getSquaredError(int index, Arrayd residuals) const;
+
+  /*
+   * For least-squares problems,
+   * provides a weight for each observation.
+   *
+   * See getResidualWeight for the weight multiply with the residuals.
+   *
+   * This method doesn't strictly have to be private,
+   * but I let it be private now, because most likely one wants
+   * to use getResidualWeight.
+   */
+  double getWeight(int index) const {
+    return calcWeightFromSquared(avgSquareResidual(index));
+  }
 };
 
 /*

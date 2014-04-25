@@ -69,7 +69,7 @@ void GemanMcClureFunction::evalNoJacobian(double *Xin, double *Fout) {
   _fun->eval(Xin, Fout, nullptr);
   int count = _fun->outDims();
   for (int i = 0; i < count; i++) {
-    Fout[i] *= _gmc.getWeight(i);
+    Fout[i] *= _gmc.getResidualWeight(i);
   }
   Fout[count] = _gmc.calcOutlierResidual();
 }
@@ -90,7 +90,7 @@ void GemanMcClureFunction::evalWithJacobian(double *Xin,
 
   // Apply the reweighting
   for (int i = 0; i < out; i++) {
-    double w = _gmc.getWeight(i);
+    double w = _gmc.getResidualWeight(i);
     Fout[i] *= w;
     for (int j = 0; j < in; j++) {
       Jdst(i, j) = w*Jfun(i, j);

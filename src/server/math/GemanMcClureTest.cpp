@@ -17,11 +17,11 @@ using namespace sail;
 
 TEST(GemanMcClureTest, WeightTest) {
   GemanMcClure gmc(10.0, 10.0, 1, 1);
-  EXPECT_NEAR(gmc.getWeight(0), 0.5, 1.0e-6);
+  EXPECT_NEAR(gmc.getResidualWeight(0), 0.5, 1.0e-6);
   gmc.addResiduals(Arrayd::args(10.0));
-  EXPECT_NEAR(gmc.getWeight(0), 0.5, 1.0e-6);
+  EXPECT_NEAR(gmc.getResidualWeight(0), 0.5, 1.0e-6);
   gmc.addResiduals(Arrayd::args(10000.1));
-  EXPECT_LE(gmc.getWeight(0), 0.4);
+  EXPECT_LE(gmc.getResidualWeight(0), 0.4);
 }
 
 TEST(GemanMcClureTest, OutlierCostTestHighInitial) {
@@ -37,10 +37,10 @@ TEST(GemanMcClureTest, OutlierCostTestLowInitial) {
 
 TEST(GemanMcClureTest, Change) {
   GemanMcClure gmc(10.0, 0.0, 1, 1);
-  double initW = gmc.getWeight(0);
+  double initW = gmc.getResidualWeight(0);
   double initOc = gmc.calcOutlierCost();
   gmc.addResiduals(Arrayd::args(1.0));
-  EXPECT_LE(gmc.getWeight(0), initW);
+  EXPECT_LE(gmc.getResidualWeight(0), initW);
   EXPECT_LE(initOc, gmc.calcOutlierCost());
 }
 
