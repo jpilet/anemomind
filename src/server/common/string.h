@@ -34,7 +34,7 @@ std::string getEscapeString(char c);
 char toHexDigit(int value);
 std::string bytesToHex(size_t n, uint8_t *bytes);
 std::string formatInt(const std::string &fstr, int value);
-std::string stringFormat(const std::string &fmt, ...);
+std::string stringFormat(const char *fmt, ...);
 void toLowerInPlace(std::string &data);
 std::string toLower(const std::string &src);
 void splitFilenamePrefixSuffix(const std::string &filename,
