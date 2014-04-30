@@ -5,53 +5,65 @@ angular.module('anemomindApp')
     $scope.races = Race.get();
 
     $scope.loadRace = function (id) {
-      d3.select("svg")
+      d3.select('svg')
        .remove();
 
       $http.get('/api/races/' + id)
        .then(function(res){
-          console.log('data loaded!');
-          display(res.data);
+          console.log('race ' + id + ' loaded.');
+
+          var xMin = d3.min(res.data, function(d) {return d.lon_rad;}),
+              xMax = d3.max(res.data, function(d) {return d.lon_rad;}),
+              yMin = d3.min(res.data, function(d) {return d.lat_rad;}),
+              yMax = d3.max(res.data, function(d) {return d.lat_rad;});
+
+          var low = xMin >= yMin ? yMin : xMin,
+              high = xMax <= yMax ? yMax : xMax;
+
+          var portrait = xMax - xMin <= yMax - yMin ? true : false;
+
+          if (portrait) {
+            var offset = high-xMax;
+            var x = d3.scale.linear()
+                    .domain([low-offset/2, xMax+offset/2])
+                    .range([0, 1200]);
+
+            var y = d3.scale.linear()
+                      .domain([low, high])
+                      .range([500, 0]);
+          } else {
+            var offset = high-yMax;
+            var x = d3.scale.linear()
+                      .domain([low, xMax])
+                      .range([0, 1200]);
+
+            var y = d3.scale.linear()
+                      .domain([low-offset/2, yMax+offset/2])
+                      .range([500, 0]);
+          }
+          
+
+          display(res.data, x, y, portrait);
         });
     };
 
-    function display(data){
+    function display(data, x, y, portrait){
 
-      console.log('displaying data');
 
-      var xMin = d3.min(data, function(d) {return d.lon_rad;});
-var xMax = d3.max(data, function(d) {return d.lon_rad;});
-var yMin = d3.min(data, function(d) {return d.lat_rad;});
-var yMax = d3.max(data, function(d) {return d.lat_rad;});
 
-var xScale = d3.scale.linear()
-                    .domain([xMin, xMax])
-                    .range([0, 600]);
-var yScale = d3.scale.linear()
-                    .domain([yMax, yMin])
-                    .range([0, 600]);
+
+
  
  //Path generator
  var lineFunction = d3.svg.line()
-                          .x(function(d) { return xScale(d.lon_rad); })
-                          .y(function(d) { return yScale(d.lat_rad); })
+                          .x(function(d) { return x(d.lon_rad); })
+                          .y(function(d) { return y(d.lat_rad); })
                           .interpolate("basis");
 
 //The SVG Container
 var svg = d3.select(".svgContainer").append("svg")
                            .attr("width", "100%")
-                           .attr("viewBox", "0 0 600 700")
-                           .attr("preserveAspectRatio", "xMidYMin")
-                           .attr("style", "overflow: hidden; position: relative")
-                           .attr("id", "adaptive-svg");
-
-//Some stupid text
-var text = svg.append("text")
-    .text('du texte...')
-    .attr("text-anchor", "middle")
-    .style("font-size",'15px')
-    .attr("dy",100)
-    .attr("dx",100);
+                           .attr("viewBox", "0 0 1200 500");
 
 //The path !
 var lineGraph = svg.append("path")
@@ -61,6 +73,7 @@ var lineGraph = svg.append("path")
                             .attr("stroke-width", 5)
                             .attr("fill", "none")
                             .attr("stroke-opacity", 0.3);
+
 
 // group = vis.append("svg:g");
 var pathNode = lineGraph.node();
@@ -88,5 +101,4 @@ circle.transition()
 });
 
     }
-
   });

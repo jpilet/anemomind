@@ -14,7 +14,7 @@ body{
   height:100%;
   position:absolute;
   left:0px;
-  top:70px;
+  top:0px;
   z-index:-1;
 }
 .container {
