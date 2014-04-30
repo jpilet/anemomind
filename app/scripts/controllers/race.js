@@ -10,12 +10,12 @@ angular.module('anemomindApp')
 
       $http.get('/api/races/' + id)
        .then(function(res){
-          console.log('race ' + id + ' loaded.');
+          console.log('race ' + id + ' loaded with origin: [' + res.data.origin.x + ',' + res.data.origin.y + '].' );
 
-          var xMin = d3.min(res.data, function(d) {return d.xInMeters;}),
-              xMax = d3.max(res.data, function(d) {return d.xInMeters;}),
-              yMin = d3.min(res.data, function(d) {return d.yInMeters;}),
-              yMax = d3.max(res.data, function(d) {return d.yInMeters;});
+          var xMin = d3.min(res.data.coords, function(d) {return d.xInMeters;}),
+              xMax = d3.max(res.data.coords, function(d) {return d.xInMeters;}),
+              yMin = d3.min(res.data.coords, function(d) {return d.yInMeters;}),
+              yMax = d3.max(res.data.coords, function(d) {return d.yInMeters;});
 
           var low = xMin >= yMin ? yMin : xMin,
               high = xMax <= yMax ? yMax : xMax;
@@ -43,7 +43,7 @@ angular.module('anemomindApp')
           }
           
 
-          display(res.data, x, y, portrait);
+          display(res.data.coords, x, y, portrait);
         });
     };
 
