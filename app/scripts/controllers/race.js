@@ -12,10 +12,10 @@ angular.module('anemomindApp')
        .then(function(res){
           console.log('race ' + id + ' loaded.');
 
-          var xMin = d3.min(res.data, function(d) {return d.lon_rad;}),
-              xMax = d3.max(res.data, function(d) {return d.lon_rad;}),
-              yMin = d3.min(res.data, function(d) {return d.lat_rad;}),
-              yMax = d3.max(res.data, function(d) {return d.lat_rad;});
+          var xMin = d3.min(res.data, function(d) {return d.xInMeters;}),
+              xMax = d3.max(res.data, function(d) {return d.xInMeters;}),
+              yMin = d3.min(res.data, function(d) {return d.yInMeters;}),
+              yMax = d3.max(res.data, function(d) {return d.yInMeters;});
 
           var low = xMin >= yMin ? yMin : xMin,
               high = xMax <= yMax ? yMax : xMax;
@@ -56,8 +56,8 @@ angular.module('anemomindApp')
  
  //Path generator
  var lineFunction = d3.svg.line()
-                          .x(function(d) { return x(d.lon_rad); })
-                          .y(function(d) { return y(d.lat_rad); })
+                          .x(function(d) { return x(d.xInMeters); })
+                          .y(function(d) { return y(d.yInMeters); })
                           .interpolate("basis");
 
 //The SVG Container
