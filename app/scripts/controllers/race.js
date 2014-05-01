@@ -23,20 +23,20 @@ angular.module('anemomindApp')
           var offset = high-xMax;
           var x = d3.scale.linear()
                     .domain([low-offset/2, xMax+offset/2])
-                    .range([0, 1200]);
+                    .range([0, 100]);
 
           var y = d3.scale.linear()
                     .domain([low, high])
-                    .range([500, 0]);
+                    .range([100, 0]);
         } else {
           var offset = high-yMax;
           var x = d3.scale.linear()
                     .domain([low, xMax])
-                    .range([0, 1200]);
+                    .range([0, 100]);
 
           var y = d3.scale.linear()
                     .domain([low-offset/2, yMax+offset/2])
-                    .range([500, 0]);
+                    .range([100, 0]);
         }
 
         display(res.data.coords, x, y, portrait);
@@ -54,14 +54,14 @@ angular.module('anemomindApp')
       //The SVG Container
       var svg = d3.select(".svgContainer").append("svg")
                                  .attr("width", "100%")
-                                 .attr("viewBox", "0 0 1200 500");
+                                 .attr("viewBox", "0 0 100 100");
 
       //The path !
       var lineGraph = svg.append("path")
                                   .attr("class", "route")
                                   .attr("d", lineFunction(data))
                                   .attr("stroke", "#00aaff")
-                                  .attr("stroke-width", 5)
+                                  .attr("stroke-width", 1)
                                   .attr("fill", "none")
                                   .attr("stroke-opacity", 0.3);
 
@@ -70,7 +70,7 @@ angular.module('anemomindApp')
       var len = pathNode.getTotalLength();
 
       var circle = svg.append("circle").attr({
-        r: 10,
+        r: 1,
         fill: '#f33',
         transform: function () {
           var p = pathNode.getPointAtLength(0)
