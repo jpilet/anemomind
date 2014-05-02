@@ -1,5 +1,30 @@
 include(ExternalProject)
 
+set(CERES_BUILD_STATUS "CERES_NOT_BUILT" 
+    CACHE STRING "Ceres build status.
+    Default: Auto dl, config, gener, build and install Ceres project"
+)
+set_property(CACHE CERES_BUILD_STATUS PROPERTY STRINGS
+             "CERES_NOT_BUILT"
+             "CERES_BUILT"
+)
+
+if (CERES_BUILD_STATUS MATCHES "CERES_BUILT")
+
+    set(Ceres_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-install/share/Ceres")
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_BINARY_DIR}/third-party/ceres-install/share/Ceres")
+    set(GLOG_CHECK_INCLUDE_DIRS "${CMAKE_BINARY_DIR}/third-party/ceres-install/include")
+    set(GLOG_CHECK_LIBRARY_DIRS "${CMAKE_BINARY_DIR}/third-party/ceres-install/lib")
+    find_package(Glog)
+    find_package(Ceres)
+
+    include_directories(${CERES_INCLUDE_DIRS})
+
+    function(target_depends_on_ceres target)
+        target_link_libraries(${target} ${CERES_LIBRARIES})
+    endfunction()
+
+else (CERES_BUILD_STATUS MATCHES "CERES_BUILT")
 
 ExternalProject_Add(gflags_ext
         GIT_REPOSITORY "https://github.com/schuhschuh/gflags.git"
@@ -28,21 +53,23 @@ ExternalProject_Add(ceres_ext
         "-DHAVE_LTO_SUPPORT=OFF"
         "-DCMAKE_CXX_FLAGS=-Wall"
         )
+    set_property(TARGET ceres_ext PROPERTY INCLUDE_DIRECTORIES "${CMAKE_BINARY_DIR}/third-party/ceres-install/include")
 
 add_dependencies(ceres_ext glog_ext gflags_ext)
 
-link_directories("${CMAKE_BINARY_DIR}/third-party/ceres-install/lib")
+## Re-run CMake at make time.
+## So the first pass of cmake->make with autoBuild_at_Make_Time option will install 3rdParty
+## and we launch the second pass of cmake->make with use_external_build witch auto find 3rdParty
+## and update the makeFiles for the superProject
+ExternalProject_Add_Step(ceres_ext after_install
+    COMMENT "--- ceres install finished. Start re-run CMake ---"
+    COMMAND cd "${CMAKE_BINARY_DIR}"
+    COMMAND "${CMAKE_COMMAND}" -DCERES_BUILD_STATUS=CERES_BUILT -DCeres_DIR="${CMAKE_BINARY_DIR}/third-party/ceres-install/share/Ceres" "${CMAKE_SOURCE_DIR}"
+    DEPENDEES install
+)
 
-set_property(TARGET ceres_ext PROPERTY INCLUDE_DIRECTORIES "${CMAKE_BINARY_DIR}/third-party/ceres-install/include")
-
-include_directories("${CMAKE_BINARY_DIR}/third-party/ceres-install/include")
-
-function(target_depends_on_ceres target)
-    add_dependencies(${target} ceres_ext)
-#target_link_libraries(${target} PocoJSON${POCO_SUFFIX} PocoFoundation${POCO_SUFFIX})
-#    set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES 
-#                 "${CMAKE_BINARY_DIR}/third-party/ceres-install/include")
-#    set_property(TARGET ${target} APPEND PROPERTY LINK_DIRECTORIES 
-#                 "${CMAKE_BINARY_DIR}/third-party/ceres-install/lib")
-endfunction()
+    function(target_depends_on_ceres target)
+        add_dependencies(${target} ceres_ext)
+    endfunction()
+endif (CERES_BUILD_STATUS MATCHES "CERES_BUILT")
 
