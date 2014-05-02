@@ -94,6 +94,7 @@ target_depends_on_poco_json(nautical_NavJson)
 target_link_libraries(nautical_NavJson
                             nautical_nav
                             common_TimeStampJson
+                            common_Json
                            )
 
 cxx_test(nautical_NavJsonTest

@@ -6,10 +6,11 @@
 #include "NavNmea.h"
 #include <device/Arduino/libraries/NmeaParser/NmeaParser.h>
 #include <fstream>
-#include <vector>
+#include <server/common/ArrayBuilder.h>
 #include <iostream>
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
+#include <algorithm>
 
 
 namespace sail {
@@ -142,40 +143,125 @@ bool ParsedNavs::hasFields(FieldMask mask) {
   return (~mask | _fields).all();
 }
 
+ParsedNavs::FieldMask ParsedNavs::makeCompleteMask() {
+  FieldMask fm;
+  fm.flip();
+  return fm;
+}
+
 namespace {
+  bool hasGreaterTimeStamp(ArrayBuilder<Nav> *navAcc, Nav *nav) {
+    if (navAcc->empty()) {
+      return true;
+    }
+    return navAcc->last().time() < nav->time();
+  }
+
   void parseNmeaChar(char c,
-    NmeaParser *parser, Nav *dstNav, std::vector<Nav> *navAcc, ParsedNavs::FieldMask *fields) {
+    NmeaParser *parser, Nav *dstNav, ArrayBuilder<Nav> *navAcc,
+    ParsedNavs::FieldMask *fields, Nav::Id boatId,
+    TimeStamp *last) {
     NmeaParser::NmeaSentence s = parser->processByte(c);
+
+    static const Duration<double> maxDurationBetweenTimeMeasures
+      = Duration<double>::minutes(2); // <-- TODO: Maybe soft-code this threshold in future...
+
     if (s != NmeaParser::NMEA_NONE) {
       readNmeaData(s, *parser, dstNav, fields);
       // Once a time stamp has been received, save this Nav and start to fill a new one.
       if (s == NmeaParser::NMEA_TIME_POS) {
-        navAcc->push_back(*dstNav);
+        TimeStamp veryLast = dstNav->time();
+
+        // Don't accept measurements that could potentially be arbitrarily old...
+        if (last->defined() &&
+
+          // Only accept measurements that are guaranteed to
+          // be sufficiently fresh, e.g. no more than two minutes.
+          ((veryLast - *last) <= maxDurationBetweenTimeMeasures)) {
+
+          dstNav->setBoatId(boatId);
+          navAcc->add(*dstNav);
+        }
+        *last = veryLast;
         *dstNav = Nav();
       }
     }
   }
 }
 
-ParsedNavs loadNavsFromNmea(std::istream &file) {
+ParsedNavs loadNavsFromNmea(std::istream &file, Nav::Id boatId) {
   ParsedNavs::FieldMask fields;
-  std::vector<Nav> navAcc;
+  ArrayBuilder<Nav> navAcc;
   NmeaParser parser;
   parser.setIgnoreWrongChecksum(true);
   std::string line;
   int lineCounter = 0;
   Nav nav;
+  TimeStamp last;
   while (file.good()) {
     char c;
     file.get(c);
-    parseNmeaChar(c, &parser, &nav, &navAcc, &fields);
+    parseNmeaChar(c, &parser, &nav, &navAcc, &fields, boatId, &last);
   }
-  return ParsedNavs(Array<Nav>::referToVector(navAcc).dup(), fields);
+  return ParsedNavs(navAcc.get(), fields);
 }
 
-ParsedNavs loadNavsFromNmea(std::string filename) {
+ParsedNavs loadNavsFromNmea(std::string filename, Nav::Id boatId) {
   std::ifstream file(filename);
-  return loadNavsFromNmea(file);
+  return loadNavsFromNmea(file, boatId);
+}
+
+namespace {
+  std::string getFieldLabel(ParsedNavs::FieldId id) {
+    typedef const char *Str;
+    static Str labels[ParsedNavs::FIELD_COUNT] =
+      {"TIME", "POS", "AWA", "AWS", "MAG_HDG", "GPS_BEARING", "GPS_SPEED", "WAT_SPEED"};
+    return labels[id];
+  }
+}
+
+std::ostream &operator<<(std::ostream &s, ParsedNavs x) {
+  s << "ParsedNavs: " << x.navs().size() << std::endl;
+  for (int i = 0; i < ParsedNavs::FIELD_COUNT; i++) {
+    ParsedNavs::FieldId id = ParsedNavs::FieldId(i);
+    s << "   " << getFieldLabel(id) << ": "
+        << x.hasFields(ParsedNavs::field(id)) << std::endl;
+  }
+  return s;
+}
+
+namespace {
+  int countNavsToInclude(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
+    int counter = 0;
+    for (int i = 0; i < allNavs.size(); i++) {
+      if (allNavs[i].hasFields(mask)) {
+        counter += allNavs[i].navs().size();
+      }
+    }
+    return counter;
+  }
+
+  Array<Nav> flatten(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
+    int len = countNavsToInclude(allNavs, mask);
+    Array<Nav> dst(len);
+    int counter = 0;
+    for (int i = 0; i < allNavs.size(); i++) {
+      ParsedNavs &n = allNavs[i];
+      if (n.hasFields(mask)) {
+        int next = counter + n.navs().size();
+        n.navs().copyToSafe(dst.slice(counter, next));
+        counter = next;
+      }
+    }
+    assert(counter == dst.size());
+    return dst;
+  }
+}
+
+Array<Nav> flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
+  Array<Nav> flattened = flatten(allNavs, mask);
+  std::sort(flattened.beginPtr(), flattened.endPtr());
+  return flattened;
 }
 
 

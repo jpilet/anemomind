@@ -15,6 +15,7 @@
 #include <server/nautical/Ecef.h>
 #include <ctime>
 #include <server/nautical/WGS84.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -84,12 +85,27 @@ bool Nav::operator== (const Nav &other) const {
   return _gpsSpeed.eqWithNan(other._gpsSpeed) &&
       _awa.eqWithNan(other._awa) &&
       _aws.eqWithNan(other._aws) &&
+      _boatId == other._boatId &&
       _twaFromFile.eqWithNan(other._twaFromFile) &&
       _twsFromFile.eqWithNan(other._twsFromFile) &&
       _magHdg.eqWithNan(other._magHdg) &&
       _watSpeed.eqWithNan(other._watSpeed) &&
       _gpsBearing.eqWithNan(other._gpsBearing) &&
       _pos == other._pos && (strictEquality(_cwd, other._cwd)) && (strictEquality(_wd, other._wd));
+}
+
+Nav::Id Nav::id() const {
+  if (hasId()) {
+    int64_t time = _time.toMilliSecondsSince1970();
+    static_assert(sizeof(time) == 8, "The size of the time datatype seems to have changed.");
+    return _boatId + int64ToHex(time);
+  } else {
+    return "";
+  }
+}
+
+bool Nav::hasId() const {
+  return hasBoatId() && _time.defined();
 }
 
 
