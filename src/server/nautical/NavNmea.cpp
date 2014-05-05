@@ -260,7 +260,7 @@ namespace {
 
 Array<Nav> flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
   Array<Nav> flattened = flatten(allNavs, mask);
-  std::sort(flattened.beginPtr(), flattened.endPtr());
+  std::sort(flattened.begin(), flattened.end());
   return flattened;
 }
 

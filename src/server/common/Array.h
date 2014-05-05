@@ -732,12 +732,26 @@ class Array {
     return -1;
   }
 
-  T *beginPtr() {
-    return _data;
+
+
+
+  typedef const T *ConstIterator;
+  typedef T *Iterator;
+
+  Iterator begin() {
+    return Iterator(_data);
   }
 
-  T *endPtr() {
-    return _data + _size;
+  Iterator end() {
+    return Iterator(_data + _size);
+  }
+
+  ConstIterator begin() const {
+    return ConstIterator(_data);
+  }
+
+  ConstIterator end() const {
+    return ConstIterator(_data + _size);
   }
  private:
 
