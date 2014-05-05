@@ -19,11 +19,11 @@ set_property(TARGET poco_ext PROPERTY INCLUDE_DIRECTORIES "${CMAKE_BINARY_DIR}/t
 
 include_directories("${CMAKE_BINARY_DIR}/third-party/poco-install/include")
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(POCO_SUFFIX "d")
-else (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+else ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(POCO_SUFFIX "")
-endif (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+endif ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 
 
 function(target_depends_on_poco_json target)

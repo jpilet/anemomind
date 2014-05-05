@@ -8,6 +8,7 @@
 
 #include <ctime>
 #include <cinttypes>
+#include <iosfwd>
 
 #include "PhysicalQuantity.h"
 
@@ -42,6 +43,7 @@ class TimeStamp {
   // Used by the Json interface
   static TimeStamp fromMilliSecondsSince1970(int64_t x) {return TimeStamp(x);}
   int64_t toMilliSecondsSince1970() const {return _time;}
+  struct tm makeGMTimeStruct() const;
  private:
   void init(struct tm &time, double fracSeconds);
   TimeStamp(int64_t is);
@@ -57,6 +59,8 @@ Duration<double> operator-(const TimeStamp &a, const TimeStamp &b);
 TimeStamp operator-(const TimeStamp &a, const Duration<double> &b);
 TimeStamp operator+(const TimeStamp &a, const Duration<double> &b);
 TimeStamp operator+(const Duration<double> &a, const TimeStamp &b);
+
+std::ostream &operator<<(std::ostream &s, const TimeStamp &t);
 
 } /* namespace sail */
 

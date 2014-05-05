@@ -26,6 +26,11 @@ namespace NavDataConversion {
 // Represents a single recording of data from the devices onboard.
 class Nav {
  public:
+  typedef std::string Id; // We may want to replace this typedef by a special type for Id's
+
+  static Nav::Id debuggingBoatId() {return "FFFFFFFF";}
+
+
   Nav();
   Nav(MDArray2d row);
   virtual ~Nav();
@@ -61,7 +66,18 @@ class Nav {
   static const char AllNavsPath[];
 
   bool operator== (const Nav &other) const;
+
+  void setBoatId(const Id &bi) {_boatId = bi;}
+  bool hasBoatId() const {return !_boatId.empty();}
+
+  // TODO: Require this method to return true before a Nav is inserted to a database.
+  bool isIndexed() const {return hasId() && hasBoatId();}
+
+  Id id() const;
+  bool hasId() const;
+  const Id &boatId() const {return _boatId;}
  private:
+  Id _boatId;
 
   Velocity<double> _gpsSpeed;
   Angle<double> _awa;
