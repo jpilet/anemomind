@@ -735,7 +735,7 @@ class Array {
 
 
 
-  typedef const T *ConstantIterator;
+  typedef const T *ConstIterator;
   typedef T *Iterator;
 
   Iterator begin() {
@@ -746,12 +746,12 @@ class Array {
     return Iterator(_data + _size);
   }
 
-  ConstantIterator begin() const {
-    return ConstantIterator(_data);
+  ConstIterator begin() const {
+    return ConstIterator(_data);
   }
 
-  ConstantIterator end() const {
-    return ConstantIterator(_data + _size);
+  ConstIterator end() const {
+    return ConstIterator(_data + _size);
   }
  private:
 
