@@ -55,6 +55,13 @@ namespace {
   }
 }
 
+namespace {
+  Arrayd mapStatesToX(Array<StepMinimizerState> states) {
+    return states.map<double>([&](StepMinimizerState x) {return x.getX();});
+  }
+}
+
+
 void optimizeMultiplayerSub(StepMinimizer &minimizer,
     Array<std::shared_ptr<Function> > objfs,
     Array<StepMinimizerState> *statesIO) {
@@ -67,7 +74,7 @@ void optimizeMultiplayerSub(StepMinimizer &minimizer,
   ParetoFrontier frontier;
   for (int i = 0; i < minimizer.maxiter(); i++) {
     for (int j = 0; j < n; j++) {
-      Arrayd X = states.map<double>([&](StepMinimizerState x) {return x.getX();});
+      Arrayd X = mapStatesToX(states);
       std::function<bool(double, double)> acc = [&] (double x, double y) {
         X[j] = x;
         return frontier.accepts(evaluateAll(objfs, X));
@@ -78,7 +85,7 @@ void optimizeMultiplayerSub(StepMinimizer &minimizer,
         return objfs[j]->evalScalar(X.ptr());
       };
       states[j] = minimizer.takeStep(states[j].reevaluate(objf), objf);
-      frontier.insert(evaluateAll(objfs, X));
+      frontier.insert(evaluateAll(objfs, mapStatesToX(states)));
     }
   }
 }
