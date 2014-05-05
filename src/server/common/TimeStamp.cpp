@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <limits>
 #include <server/common/logging.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -59,6 +60,13 @@ TimeStamp::TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to
 
 
   init(time, seconds - time.tm_sec);
+}
+
+struct tm TimeStamp::makeGMTimeStruct() const {
+  time_t rawtime = time_t(_time/TimeRes);
+  struct tm *gt = gmtime(&rawtime);
+  struct tm time = *gt;
+  return time;
 }
 
 void TimeStamp::init(struct tm &time, double fracSeconds) {
@@ -114,6 +122,15 @@ TimeStamp operator+(const TimeStamp &a, const Duration<double> &b) {
 
 TimeStamp operator+(const Duration<double> &a, const TimeStamp &b) {
   return b + a;
+}
+
+std::ostream &operator<<(std::ostream &s, const TimeStamp &t) {
+  struct tm time = t.makeGMTimeStruct();
+  const char isofmt[] = "%04d-%02d-%02dT%02d:%02d:%02d";
+  std::string str = stringFormat(isofmt, time.tm_year + 1900, time.tm_mon, time.tm_mday,
+                              time.tm_hour, time.tm_min, time.tm_sec);
+  s << str;
+  return s;
 }
 
 } /* namespace sail */

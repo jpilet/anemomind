@@ -9,6 +9,7 @@
 
 #include <server/common/PhysicalQuantityJson.h>
 #include <server/common/TimeStampJson.h>
+#include <server/common/Json.h>
 
 namespace sail {
 namespace json {
@@ -25,6 +26,9 @@ Poco::JSON::Object::Ptr serialize(const Nav &nav) {
   serializeField(x, "gpsbearing", nav.gpsBearing());
   serializeField(x, "aws", nav.aws());
   serializeField(x, "awa", nav.awa());
+  serializeField(x, "id", nav.id());
+  serializeField(x, "boat-id", nav.boatId());
+
   return x;
 }
 
@@ -33,6 +37,8 @@ void deserialize(Poco::JSON::Object::Ptr x, Nav *out) {
   Angle<double> lon, lat, maghdg, gpsb, awa;
   Length<double> alt;
   Velocity<double> gpss, wats, aws;
+
+  std::string id, boatId;
 
   deserializeField(x, "time", &time);
   deserializeField(x, "lon", &lon);
@@ -44,6 +50,7 @@ void deserialize(Poco::JSON::Object::Ptr x, Nav *out) {
   deserializeField(x, "watspeed", &wats);
   deserializeField(x, "gpsspeed", &gpss);
   deserializeField(x, "gpsbearing", &gpsb);
+  deserializeField(x, "boat-id", &boatId);
 
   *out = Nav();
   out->setTime(time);
@@ -54,6 +61,7 @@ void deserialize(Poco::JSON::Object::Ptr x, Nav *out) {
   out->setGpsBearing(gpsb);
   out->setMagHdg(maghdg);
   out->setWatSpeed(wats);
+  out->setBoatId(boatId);
 }
 
 Poco::JSON::Array serialize(Array<Nav> navs) { // Perhaps write a template encodeArray<T> with T = Nav in this case...
