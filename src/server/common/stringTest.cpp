@@ -27,3 +27,8 @@ TEST(StringTest, ToLower) {
   std::string dst = "anemomind";
   EXPECT_EQ(toLower(src), dst);
 }
+
+TEST(StringTest, FormatTest) {
+  std::string result = stringFormat("Nine is %d", 9);
+  EXPECT_EQ(result, "Nine is 9");
+}
