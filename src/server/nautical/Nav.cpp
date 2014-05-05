@@ -44,7 +44,7 @@ namespace NavDataConversion {
     // TODO: In which time zone are NMEA times reported? Is it always GMT
     // with daylight saving time off?
 
-    return TimeStamp::GMT(int(yearSince2000 + 2000), int(month), int(day),
+    return TimeStamp::UTC(int(yearSince2000 + 2000), int(month), int(day),
               int(hour), int(minute), second, 0);
   }
 }

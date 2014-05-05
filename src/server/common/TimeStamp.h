@@ -18,7 +18,7 @@ namespace sail {
 class TimeStamp {
  public:
 
-  static TimeStamp GMT(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
+  static TimeStamp UTC(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
             unsigned int hour, unsigned int minute, double seconds,
             int isdst=0);
 

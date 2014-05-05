@@ -11,9 +11,9 @@
 using namespace sail;
 
 TEST(TimeStampTest, Arithmetics) {
-  TimeStamp a = TimeStamp::GMT(1986, 5, 14, 13, 5, 2.0);
-  TimeStamp b = TimeStamp::GMT(1986, 5, 14, 13, 5, 2.25);
-  TimeStamp c = TimeStamp::GMT(1986, 5, 14, 13, 5, 3.0);
+  TimeStamp a = TimeStamp::UTC(1986, 5, 14, 13, 5, 2.0);
+  TimeStamp b = TimeStamp::UTC(1986, 5, 14, 13, 5, 2.25);
+  TimeStamp c = TimeStamp::UTC(1986, 5, 14, 13, 5, 3.0);
   EXPECT_NEAR((c - a).seconds(), 1.0, 1.0e-6);
   EXPECT_NEAR((b - a).seconds(), 0.25, 1.0e-6);
   EXPECT_NEAR((a - c).seconds(), -1.0, 1.0e-6);
@@ -42,7 +42,7 @@ TEST(TimeStampTest, Def) {
 
 TEST(TimeStampTest, MilliSeconds) {
   const int64_t ms = 516459902000;
-  TimeStamp a = TimeStamp::GMT(1986, 5, 14, 13, 5, 2.0, 0);
+  TimeStamp a = TimeStamp::UTC(1986, 5, 14, 13, 5, 2.0, 0);
   EXPECT_EQ(a.toMilliSecondsSince1970(), ms);
   EXPECT_EQ(TimeStamp::fromMilliSecondsSince1970(ms).toMilliSecondsSince1970(), ms);
 }
@@ -55,7 +55,7 @@ TEST(TimeStampTest, ToStreamTest) {
   int hour = 14;
   int minute = 52;
   int second = 23;
-  TimeStamp ts = TimeStamp::GMT(year, month, day,
+  TimeStamp ts = TimeStamp::UTC(year, month, day,
       hour, minute, second);
   std::string expected = stringFormat("%04d-%02d-%02dT%02d:%02d:%02d", year, month, day,
       hour, minute, second);

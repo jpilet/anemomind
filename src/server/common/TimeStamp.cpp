@@ -8,7 +8,8 @@
 #include <limits>
 #include <server/common/logging.h>
 #include <server/common/string.h>
-#include <server/common/mkgmtime.h>
+#include <Poco/Timestamp.h>
+#include <Poco/DateTime.h>
 
 namespace sail {
 
@@ -37,7 +38,7 @@ bool TimeStamp::defined() const {
 }
 
 
-TimeStamp TimeStamp::GMT(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
+TimeStamp TimeStamp::UTC(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
           unsigned int hour, unsigned int minute, double seconds, int isdst) {
   assert(inRange(month_1to12, 1, 12));
   assert(inRange(day_1to31, 1, 31));
@@ -72,7 +73,12 @@ struct tm TimeStamp::makeGMTimeStruct() const {
 }
 
 void TimeStamp::init(struct tm &time, double fracSeconds) {
-  time_t x = mkgmtime(&time);
+
+  Poco::DateTime dt(time.tm_year + 1900, time.tm_mon + 1, time.tm_mday,
+                    time.tm_hour, time.tm_min, time.tm_sec);
+  Poco::Timestamp::UtcTimeVal utcval = dt.utcTime();
+  Poco::Timestamp ts = Poco::Timestamp::fromUtcTime(utcval);
+  time_t x = ts.epochTime();
 
   assert(x != -1);
   _time = TimeRes*x + int64_t(TimeRes*fracSeconds);
