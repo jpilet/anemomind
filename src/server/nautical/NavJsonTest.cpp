@@ -39,7 +39,7 @@ Array<Nav> deserializeNavs(const char *dataToDecode) {
   parser.setHandler(handler);
   try {
     parser.parse(dataToDecode);
-  } catch (Poco::Exception e) {
+  } catch (Poco::Exception &e) {
     LOG(FATAL) << e.displayText() << "\nFor JSON: " << dataToDecode;
   }
   Poco::Dynamic::Var result = handler->asVar();
