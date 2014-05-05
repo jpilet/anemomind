@@ -3,10 +3,11 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include  <sstream>
-#include "ArrayIO.h"
 #include "Hierarchy.h"
+
+#include <sstream>
 #include <assert.h>
+#include <server/common/ArrayIO.h>
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <stdexcept>
