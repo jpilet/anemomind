@@ -45,6 +45,7 @@ TimeStamp TimeStamp::UTC(int year_ad, unsigned int month_1to12, unsigned int day
   assert(inRange(hour, 0, 23));
   assert(inRange(minute, 0, 59));
   assert(seconds >= 0);
+  assert(isdst == 0); // Seems like Poco completely ignores dst.
 
   struct tm time;
   time.tm_gmtoff = 0; //gmtoff; //0; offset. http://stackoverflow.com/a/530557
