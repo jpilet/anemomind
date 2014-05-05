@@ -28,6 +28,12 @@ TEST(StringTest, ToLower) {
   EXPECT_EQ(toLower(src), dst);
 }
 
+
+TEST(StringTest, FormatTest) {
+  std::string result = stringFormat("Nine is %d", 9);
+  EXPECT_EQ(result, "Nine is 9");
+}
+
 TEST(StringTest, Int64Test) {
   int64_t x = 254;
   constexpr int len = 2*sizeof(x);
