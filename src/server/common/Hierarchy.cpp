@@ -3,13 +3,14 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include  <sstream>
+#include "ArrayIO.h"
 #include "Hierarchy.h"
 #include <assert.h>
-#include <vector>
-#include "ArrayIO.h"
-#include  <sstream>
-#include <server/common/string.h>
 #include <server/common/logging.h>
+#include <server/common/string.h>
+#include <stdexcept>
+#include <vector>
 
 namespace sail {
 
