@@ -12,6 +12,10 @@
 
 #include "PhysicalQuantity.h"
 
+namespace Poco {
+  class DateTime;
+}
+
 namespace sail {
 
 // A more accurate and safe type than time_t in <ctime>
@@ -20,8 +24,6 @@ class TimeStamp {
 
   static TimeStamp UTC(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
             unsigned int hour, unsigned int minute, double seconds);
-
-  TimeStamp(struct tm time, double fracSeconds = 0.0);
 
   TimeStamp(const TimeStamp &) = default;
 
@@ -44,7 +46,11 @@ class TimeStamp {
   int64_t toMilliSecondsSince1970() const {return _time;}
   struct tm makeGMTimeStruct() const;
  private:
-  void init(struct tm &time, double fracSeconds);
+  TimeStamp(int year, int mon, int day, int hour, int min, int sec, double fracSeconds);
+
+  void init(const Poco::DateTime &dt);
+  TimeStamp(const Poco::DateTime &dt) {init(dt);}
+
   TimeStamp(int64_t is);
   static double difSeconds(const TimeStamp &a, const TimeStamp &b);
 

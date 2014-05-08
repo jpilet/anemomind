@@ -3,13 +3,13 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <Poco/DateTime.h>
 #include "TimeStamp.h"
 #include <assert.h>
 #include <limits>
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <Poco/Timestamp.h>
-#include <Poco/DateTime.h>
 
 namespace sail {
 
@@ -46,23 +46,11 @@ TimeStamp TimeStamp::UTC(int year_ad, unsigned int month_1to12, unsigned int day
   assert(inRange(minute, 0, 59));
   assert(seconds >= 0);
 
-  struct tm time;
-  time.tm_gmtoff = 0; //offset. http://stackoverflow.com/a/530557
-  time.tm_isdst = 0;
-  time.tm_sec = int(seconds);
-  time.tm_min = minute;
-  time.tm_hour = hour;
-  time.tm_mon = month_1to12 - 1;
-  time.tm_year = year_ad - 1900;
-  time.tm_mday = day_1to31;
+  unsigned int intSecs = int(seconds);
+  double fracSecs = seconds - intSecs;
 
-  // not used
-  time.tm_yday = -1;
-  time.tm_wday = -1;
-
-
-  //init(time, seconds - time.tm_sec);
-  return TimeStamp(time, seconds - time.tm_sec);
+  return TimeStamp(year_ad, month_1to12, day_1to31,
+                   hour, minute, intSecs, fracSecs);
 }
 
 struct tm TimeStamp::makeGMTimeStruct() const {
@@ -72,27 +60,33 @@ struct tm TimeStamp::makeGMTimeStruct() const {
   return result;
 }
 
-void TimeStamp::init(struct tm &time, double fracSeconds) {
+TimeStamp::TimeStamp(int year, int mon, int day,
+    int hour, int min, int sec, double fracSeconds) {
+  double fmillis = fracSeconds*1000;
+  int millis = int(fmillis);
+  int micros = int(1000*(fmillis - millis));
+  assert(inRange(millis, 0, 999));
+  assert(inRange(micros, 0, 999));
+  Poco::DateTime dt(year, mon, day,
+                    hour, min, sec, millis, micros);
+  init(dt);
+}
 
-  Poco::DateTime dt(time.tm_year + 1900, time.tm_mon + 1, time.tm_mday,
-                    time.tm_hour, time.tm_min, time.tm_sec);
+void TimeStamp::init(const Poco::DateTime &dt) {
   Poco::Timestamp::UtcTimeVal utcval = dt.utcTime();
   Poco::Timestamp ts = Poco::Timestamp::fromUtcTime(utcval);
   time_t x = ts.epochTime();
 
+  double frac = 1.0e-6*(ts.epochMicroseconds() - 1.0e6*x);
+
   assert(x != -1);
-  _time = TimeRes*x + int64_t(TimeRes*fracSeconds);
+  _time = TimeRes*x + int64_t(TimeRes*frac);
 }
 
-TimeStamp::TimeStamp(struct tm time, double fracSeconds) {
-  init(time, fracSeconds);
-}
 
 TimeStamp TimeStamp::now() {
-  time_t rawtime;
-  time(&rawtime);
-  struct tm *timeinfo = localtime(&rawtime);
-  return TimeStamp(*timeinfo);
+  Poco::DateTime dt;
+  return TimeStamp(dt);
 }
 
 TimeStamp TimeStamp::makeUndefined() {
