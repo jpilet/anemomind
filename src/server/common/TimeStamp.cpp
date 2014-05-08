@@ -1,13 +1,15 @@
 /*
- *  Created on: 28 mars 2014
+ *  Created on: 2014-03-28
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <Poco/DateTime.h>
 #include "TimeStamp.h"
 #include <assert.h>
 #include <limits>
 #include <server/common/logging.h>
 #include <server/common/string.h>
+#include <Poco/Timestamp.h>
 
 namespace sail {
 
@@ -36,55 +38,55 @@ bool TimeStamp::defined() const {
 }
 
 
-TimeStamp::TimeStamp(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
-          unsigned int hour, unsigned int minute, double seconds, int gmtoff, int isdst) {
+TimeStamp TimeStamp::UTC(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
+          unsigned int hour, unsigned int minute, double seconds) {
   assert(inRange(month_1to12, 1, 12));
   assert(inRange(day_1to31, 1, 31));
   assert(inRange(hour, 0, 23));
   assert(inRange(minute, 0, 59));
   assert(seconds >= 0);
 
-  struct tm time;
-  time.tm_gmtoff = gmtoff; //0;
-  time.tm_isdst = isdst; //0; // daylight saving. What to put here???
-  time.tm_sec = int(seconds);
-  time.tm_min = minute;
-  time.tm_hour = hour;
-  time.tm_mon = month_1to12 - 1;
-  time.tm_year = year_ad - 1900;
-  time.tm_mday = day_1to31;
+  unsigned int intSecs = int(seconds);
+  double fracSecs = seconds - intSecs;
 
-  // not used
-  time.tm_yday = -1;
-  time.tm_wday = -1;
-
-
-  init(time, seconds - time.tm_sec);
+  return TimeStamp(year_ad, month_1to12, day_1to31,
+                   hour, minute, intSecs, fracSecs);
 }
 
 struct tm TimeStamp::makeGMTimeStruct() const {
   time_t rawtime = time_t(_time/TimeRes);
-  struct tm *gt = gmtime(&rawtime);
-  struct tm time = *gt;
-  return time;
+  struct tm result;
+  gmtime_r(&rawtime, &result);
+  return result;
 }
 
-void TimeStamp::init(struct tm &time, double fracSeconds) {
-  time_t x = mktime(&time);
+TimeStamp::TimeStamp(int year, int mon, int day,
+    int hour, int min, int sec, double fracSeconds) {
+  double fmillis = fracSeconds*1000;
+  int millis = int(fmillis);
+  int micros = int(1000*(fmillis - millis));
+  assert(inRange(millis, 0, 999));
+  assert(inRange(micros, 0, 999));
+  Poco::DateTime dt(year, mon, day,
+                    hour, min, sec, millis, micros);
+  init(dt);
+}
+
+void TimeStamp::init(const Poco::DateTime &dt) {
+  Poco::Timestamp::UtcTimeVal utcval = dt.utcTime();
+  Poco::Timestamp ts = Poco::Timestamp::fromUtcTime(utcval);
+  time_t x = ts.epochTime();
+
+  double frac = 1.0e-6*(ts.epochMicroseconds() - 1.0e6*x);
 
   assert(x != -1);
-  _time = TimeRes*x + int64_t(TimeRes*fracSeconds);
+  _time = TimeRes*x + int64_t(TimeRes*frac);
 }
 
-TimeStamp::TimeStamp(struct tm time) {
-  init(time, 0.0);
-}
 
 TimeStamp TimeStamp::now() {
-  time_t rawtime;
-  time(&rawtime);
-  struct tm *timeinfo = localtime(&rawtime);
-  return TimeStamp(*timeinfo);
+  Poco::DateTime dt;
+  return TimeStamp(dt);
 }
 
 TimeStamp TimeStamp::makeUndefined() {
@@ -126,9 +128,11 @@ TimeStamp operator+(const Duration<double> &a, const TimeStamp &b) {
 
 std::ostream &operator<<(std::ostream &s, const TimeStamp &t) {
   struct tm time = t.makeGMTimeStruct();
-  const char isofmt[] = "%04d-%02d-%02dT%02d:%02d:%02d";
-  std::string str = stringFormat(isofmt, time.tm_year + 1900, time.tm_mon, time.tm_mday,
-                              time.tm_hour, time.tm_min, time.tm_sec);
+  const char isofmt[] = "%FT%T";
+  const int len = 255;
+  char str[len];
+  assert(time.tm_gmtoff == 0);
+  strftime(str, len, isofmt, &time);
   s << str;
   return s;
 }
