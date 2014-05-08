@@ -59,6 +59,6 @@ TEST(LoggingTest, MainTest) {
                << d << ", "
                << s << ".";
 
-  EXPECT_NO_THROW(int *ptr = CHECK_NOTNULL(&a));
-  EXPECT_THROW(int *ptr2 = CHECK_NOTNULL(nullptr), internal::LogMessageException);
+  EXPECT_NO_THROW(CHECK_NOTNULL(&a));
+  EXPECT_THROW(CHECK_NOTNULL(nullptr), internal::LogMessageException);
 }
