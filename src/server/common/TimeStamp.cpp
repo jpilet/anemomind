@@ -39,17 +39,16 @@ bool TimeStamp::defined() const {
 
 
 TimeStamp TimeStamp::UTC(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
-          unsigned int hour, unsigned int minute, double seconds, int isdst) {
+          unsigned int hour, unsigned int minute, double seconds) {
   assert(inRange(month_1to12, 1, 12));
   assert(inRange(day_1to31, 1, 31));
   assert(inRange(hour, 0, 23));
   assert(inRange(minute, 0, 59));
   assert(seconds >= 0);
-  assert(isdst == 0); // Seems like Poco completely ignores dst.
 
   struct tm time;
-  time.tm_gmtoff = 0; //gmtoff; //0; offset. http://stackoverflow.com/a/530557
-  time.tm_isdst = isdst; //0; // daylight saving. What to put here???
+  time.tm_gmtoff = 0; //offset. http://stackoverflow.com/a/530557
+  time.tm_isdst = 0;
   time.tm_sec = int(seconds);
   time.tm_min = minute;
   time.tm_hour = hour;
