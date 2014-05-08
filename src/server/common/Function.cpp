@@ -9,6 +9,7 @@
 #include  "MDArray.h"
 #include "math.h"
 #include <cmath>
+#include <server/common/invalidate.h>
 
 namespace sail {
 
@@ -32,6 +33,14 @@ void Function::evalNumericJacobian(double *Xin, double *JNumOut, double h) {
       JNumOut[offs + i] = oneOver2h*(Fplus[i] - Fminus[i]);
     }
   }
+}
+
+double Function::evalScalar(double *Xin) {
+  assert(outDims() == 1);
+  double f = 0.0;
+  InvalidateScalar(&f);
+  eval(Xin, &f, nullptr);
+  return f;
 }
 
 double Function::calcSquaredNorm(double *X, double *Fscratch) {
