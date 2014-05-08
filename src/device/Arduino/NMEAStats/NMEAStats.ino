@@ -10,7 +10,7 @@ unsigned long lastFlush = 0;
 bool echo = false;
 int flushFrequMs = 3000;
 
-int my_putc( char c, FILE *t) {
+int my_putc(char c, FILE *) {
   if (echo) {
     Serial.write( c );
   }
@@ -31,31 +31,8 @@ void openLogFile() {
 }
 
 void sendData(const NmeaParser& parser) {
-   echo = true;
    float speedRatio = getSpeedRatio(parser.twa(), parser.tws(), parser.gpsSpeed());
-
-   nmeaParser.setXTE(speedRatio, false);
-   logNmeaSentence();
-   echo = false;
-   
-   /*
-   char* data =
-  "$GPRMC,191122,A,4630.0884,N,00641.0583,E,0.0,240.8,210813,0.2,E,A*1E\n"
-"$GPRMB,A,0.00,R,,YVOIRE,4622.300,N,00619.430,E,16.866,242.5,,V,A*43\n"
-"$GPGGA,191122,4630.0884,N,00641.0583,E,1,06,2.2,378.0,M,48.2,M,,*46\n"
-"$GPGSA,A,3,01,03,,11,14,,,,22,32,,,3.3,2.2,1.8*3D\n"
-"$GPGSV,3,1,10,01,66,307,47,03,14,164,43,06,02,154,00,11,88,178,45*75\n"
-"$GPGSV,3,2,10,14,37,065,46,17,09,320,00,19,42,163,43,20,35,240,38*73\n"
-"$GPGSV,3,3,10,22,11,058,39,32,68,227,50*72\n"
-"$GPGLL,4630.0884,N,00641.0583,E,191122,A,A*47\n"
-"$GPBOD,242.5,T,242.3,M,YVOIRE,*5F\n"
-"$PGRME,8.0,M,9.8,M,12.7,M*13\n"
-"$PGRMZ,1064,f*37\n"
-"$HCHDG,,,,0.2,E*05\n"
-"$GPRTE,1,1,c,*37\n";
-  
- Serial.write(data);
- */
+   // TODO: display speedRatio on the LCD display.
 }
 
 
