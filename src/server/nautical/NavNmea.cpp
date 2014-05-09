@@ -39,7 +39,7 @@ namespace {
   }
 
   Velocity<double> getGpsSpeed(const NmeaParser &parser) {
-    return Velocity<double>::knots(parser.gpsSpeed());
+    return Velocity<double>::knots(parser.gpsSpeed() / 256.0);
   }
 
   Angle<double> getAngle(const AccAngle &x) {
@@ -78,7 +78,7 @@ namespace {
   }
 
   Velocity<double> getAws(const NmeaParser &parser) {
-    return Velocity<double>::knots(parser.aws());
+    return Velocity<double>::knots(parser.aws() / 256.0);
   }
 
 
@@ -91,7 +91,7 @@ namespace {
   }
 
   Velocity<double> getWatSpeed(const NmeaParser &parser) {
-    return Velocity<double>::knots(parser.watSpeed());
+    return Velocity<double>::knots(parser.watSpeed() / 256.0);
   }
 
   Angle<double> getMagHdg(const NmeaParser &parser) {
