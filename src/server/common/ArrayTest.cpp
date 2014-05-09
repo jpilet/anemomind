@@ -165,3 +165,29 @@ TEST(ArrayTest, ElemCountTest) {
   EXPECT_EQ(countElements(TestArray(n)), n);
   EXPECT_EQ(MemoryTestObj::InstanceCounter, 0);
 }
+
+TEST(ArrayTest, RangeDemo1) {
+  int count = 12;
+  Array<int> numbers(count);
+  for (int i = 0; i < count; i++) {
+    numbers[i] = i+1;
+  }
+
+  int sum = 0;
+  for (int i : numbers) {
+    sum += i;
+  }
+  EXPECT_EQ(2*sum, count*(count + 1));
+}
+
+TEST(ArrayTest, RangeDemo2) {
+  const char strdata[] = "anemomind";
+  Array<char> str(9, strdata);
+  int mCount = 0;
+  for (char c : str) {
+    if (c == 'm') {
+      mCount++;
+    }
+  }
+  EXPECT_EQ(mCount, 2);
+}
