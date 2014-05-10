@@ -170,8 +170,8 @@ std::string int64ToHex(int64_t x) {
   std::string result(len, '0');
   for (int i = 0; i < sizeof(x); ++i) {
     int offs = 2*i;
-    result[offs + 0] = toHexDigit((x >> (15 - i) * 8 + 4) & 0xf);
-    result[offs + 1] = toHexDigit((x >> (15 - i) * 8 ) & 0xf);
+    result[offs + 0] = toHexDigit((x >> ((15 - i) * 8 + 4)) & 0xf);
+    result[offs + 1] = toHexDigit((x >> ((15 - i) * 8)) & 0xf);
   }
   return result;
 }
