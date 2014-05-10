@@ -28,13 +28,15 @@ TEST(StringTest, ToLower) {
   EXPECT_EQ(toLower(src), dst);
 }
 
+
+TEST(StringTest, FormatTest) {
+  std::string result = stringFormat("Nine is %d", 9);
+  EXPECT_EQ(result, "Nine is 9");
+}
+
 TEST(StringTest, Int64Test) {
-  int64_t x = 254;
-  constexpr int len = 2*sizeof(x);
-  std::string expected(len, '0');
-  expected[len-2] = 'F';
-  expected[len-1] = 'E';
-  EXPECT_EQ(expected, int64ToHex(x));
+  int64_t x = 0x1234567890ABCDEF;
+  EXPECT_EQ("1234567890ABCDEF", int64ToHex(x));
 }
 
 TEST(StringTest, Int64TestOrdering) {

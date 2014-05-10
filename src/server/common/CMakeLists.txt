@@ -54,10 +54,10 @@ add_library(common_TimeStamp
             TimeStamp.h
             TimeStamp.cpp
            )
+target_depends_on_poco_foundation(common_TimeStamp)
 target_link_libraries(common_TimeStamp
                       common_logging
                       common_string
-                      common_mkgmtime
                      )           
 cxx_test(common_TimeStampTest
          TimeStampTest.cpp
@@ -65,7 +65,6 @@ cxx_test(common_TimeStampTest
          common_string 
          gtest_main
         )
-
 
 
         
@@ -202,7 +201,3 @@ cxx_test(common_ConcatFunctionTest
          gtest_main
         )
 
-add_library(common_mkgmtime
-            mkgmtime.cpp
-            mkgmtime.h
-           )           

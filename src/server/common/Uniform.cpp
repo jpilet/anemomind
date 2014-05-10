@@ -6,8 +6,19 @@
 namespace sail {
 
 void Uniform::randomize() {
-  srand(time(nullptr));
+  initialize(makeSeed());
 }
+
+void Uniform::initialize(time_t seed) {
+  srand(seed);
+}
+
+time_t Uniform::makeSeed() {
+  return time(nullptr);
+}
+
+
+
 
 Uniform::Uniform() {
   set(0.0, 1.0);

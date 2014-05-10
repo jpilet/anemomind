@@ -127,7 +127,10 @@ std::string formatInt(const std::string &fstr, int value) {
   }
 }
 
-std::string stringFormat(const std::string &fmt, ...) {
+// fmt is passed as a pointer instead of a const string reference because va_start
+// does not handle references as last parameter. See:
+// http://stackoverflow.com/questions/222195/are-there-gotchas-using-varargs-with-reference-parameters
+std::string stringFormat(const char *fmt, ...) {
   // http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
   int size = 100;
   std::string str;
@@ -135,7 +138,7 @@ std::string stringFormat(const std::string &fmt, ...) {
   while (1) {
     str.resize(size);
     va_start(ap, fmt);
-    int n = vsnprintf((char *)str.c_str(), size, fmt.c_str(), ap);
+    int n = vsnprintf((char *)str.c_str(), size, fmt, ap);
     va_end(ap);
     if (n > -1 && n < size) {
       str.resize(n);
@@ -167,8 +170,8 @@ std::string int64ToHex(int64_t x) {
   std::string result(len, '0');
   for (int i = 0; i < sizeof(x); ++i) {
     int offs = 2*i;
-    result[offs + 0] = toHexDigit((x >> (15 - i) * 8 + 4) & 0xf);
-    result[offs + 1] = toHexDigit((x >> (15 - i) * 8 ) & 0xf);
+    result[offs + 0] = toHexDigit((x >> ((15 - i) * 8 + 4)) & 0xf);
+    result[offs + 1] = toHexDigit((x >> ((15 - i) * 8)) & 0xf);
   }
   return result;
 }
