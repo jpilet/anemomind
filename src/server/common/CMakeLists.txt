@@ -10,6 +10,12 @@ add_library(common_Env
             "${CMAKE_CURRENT_BINARY_DIR}/Env.cpp"
             Env.h
            )
+
+add_library(common_PathBuilder
+            PathBuilder.h
+            PathBuilder.cpp
+           )
+target_depends_on_poco_foundation(common_PathBuilder)
            
 cxx_test(common_EnvTest
          EnvTest.cpp

@@ -14,6 +14,7 @@
 #include <server/nautical/grammars/Grammar001.h>
 #include <iostream>
 #include <server/nautical/HTreeJson.h>
+#include <server/common/PathBuilder.h>
 
 using namespace sail;
 
@@ -22,20 +23,20 @@ using namespace sail;
 
 namespace {
   void valgrindProvocation() {
-    Poco::Path p(Env::SOURCE_DIR);
-    p.makeDirectory();
-    p.pushDirectory("datasets");
-    p.pushDirectory("regates");
-    p.pushDirectory("regate_1_dec_07");
+    Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR).
+        pushDirectory("datasets").
+        pushDirectory("regates").
+        pushDirectory("regate_1_dec_07").get();
+
     Array<Nav> allnavs = scanNmeaFolder(p, Nav::debuggingBoatId());
     Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10).seconds());
   }
 
   void loadAndDispTree() {
-    Poco::Path p(Env::SOURCE_DIR);
-    p.makeDirectory();
-    p.pushDirectory("datasets");
-    p.pushDirectory("regates");
+    Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR).
+        pushDirectory("datasets").
+        pushDirectory("regates").
+        pushDirectory("regate_1_dec_07").get();
 
     cout << "Load navs" << endl;
     Array<Nav> allnavs = scanNmeaFolder(p, Nav::debuggingBoatId());
@@ -50,7 +51,7 @@ namespace {
     std::cout << EXPR_AND_VAL_AS_STRING(fulltree->childCount()/2) << std::endl;
 
     std::cout << "PARSED" << std::endl;
-    std::string prefix = "/home/jonas/data/workspace/cpp/anemomind";
+    std::string prefix(Env::BINARY_DIR);
 
     // Create a smaller tree with fewer children.
     std::shared_ptr<HTree> tree(new HInner(fulltree->index(), fulltree->child(0)));

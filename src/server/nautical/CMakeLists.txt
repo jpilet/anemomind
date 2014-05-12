@@ -78,6 +78,7 @@ add_executable(nautical_ParseExample
               )
 target_link_libraries(nautical_ParseExample
                       common_Env
+                      common_PathBuilder
                       nautical_NavNmeaScan
                       nautical_grammars_Grammar001
                       nautical_NavJson
