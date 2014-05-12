@@ -15,9 +15,12 @@ namespace sail {
  */
 class PathBuilder {
  public:
+  static PathBuilder makeDirectory(const char *base);
   static PathBuilder makeDirectory(std::string base);
+  static PathBuilder makeDirectory(Poco::Path base);
   PathBuilder pushDirectory(std::string dir);
   const Poco::Path &get() const {return _path;}
+  PathBuilder makeFile(std::string filename);
  private:
   PathBuilder(const Poco::Path &p) : _path(p) {}
 
