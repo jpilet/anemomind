@@ -4,12 +4,14 @@
  */
 
 #include "Hierarchy.h"
+
+#include <sstream>
 #include <assert.h>
-#include <vector>
-#include "ArrayIO.h"
-#include  <sstream>
-#include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 #include <server/common/logging.h>
+#include <server/common/string.h>
+#include <stdexcept>
+#include <vector>
 
 namespace sail {
 

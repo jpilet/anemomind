@@ -37,9 +37,12 @@ Nav::Nav() : _time(TimeStamp::makeUndefined()) {
 
 
 namespace NavDataConversion {
-  TimeStamp makeTimeNmeaFromYMDhms(double yearSince2000, double month, double day, double hour, double minute, double second) {
-    return TimeStamp(int(yearSince2000 + 2000), int(month), int(day),
-              int(hour), int(minute), second, 0, 0);
+  TimeStamp makeTimeNmeaFromYMDhms(double yearSince2000, double
+      month, double day, double hour,
+      double minute, double second) {
+
+    return TimeStamp::UTC(int(yearSince2000 + 2000), int(month), int(day),
+              int(hour), int(minute), second);
   }
 }
 
