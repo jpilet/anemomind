@@ -248,6 +248,17 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
             speed.scaled(cos(direction)));
     }
 
+    Velocity<T> norm() const {
+        T a = (*this)[0].metersPerSecond();
+        T b = (*this)[1].metersPerSecond();
+        return Velocity<T>::metersPerSecond(sqrt(a*a + b*b));
+    }
+    Angle<T> angle() const {
+        return Angle<T>::radians(atan2(
+                (*this)[0].metersPerSecond(),
+                (*this)[1].metersPerSecond()));
+    }
+
     // Define what the vector dimensions mean.
     enum {
         EAST_TO_WEST = 0,
