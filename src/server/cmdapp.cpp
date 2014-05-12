@@ -81,7 +81,7 @@ void processBoatData(Poco::Path dataPath) {
   ENTERSCOPE(__FUNCTION__);
 
   Nav::Id boatId = extractBoatId(dataPath);
-  Poco::Path dataBuildDir = PathBuilder::makeDirectory(dataPath).pushDirectory("build").makeFile("out").get();
+  Poco::Path dataBuildDir = PathBuilder::makeDirectory(dataPath).pushDirectory("build").get();
   processBoatData(boatId, dataPath, dataBuildDir);
 }
 

@@ -12,10 +12,10 @@ PathBuilder PathBuilder::makeDirectory(std::string base) {
 }
 
 PathBuilder PathBuilder::makeDirectory(const char *base) {
-  return PathBuilder(std::string(base));
+  return PathBuilder::makeDirectory(std::string(base));
 }
 
-PathBuilder PathBuilder::makeDirectory(Poco::Path base) {
+PathBuilder PathBuilder::makeDirectory(const Poco::Path &base) {
   Poco::Path p = base;
   p.makeDirectory();
   return PathBuilder(p);

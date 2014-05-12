@@ -110,6 +110,7 @@ add_executable(nautical_ScanNmeaExample
 target_link_libraries(nautical_ScanNmeaExample
                        common_Env
                        nautical_NavNmeaScan
+                       common_PathBuilder
                       )
   
 add_executable(examples_PlotTrajectoryExampleLocalRace

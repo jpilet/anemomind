@@ -8,21 +8,17 @@
 #include <server/common/string.h>
 #include <server/nautical/NavNmeaScan.h>
 #include <server/common/Env.h>
+#include <server/common/PathBuilder.h>
 #include <iostream>
 
 using namespace sail;
 
 namespace {
   void ex001() {
-    Poco::Path p(Env::SOURCE_DIR);
-    p.makeDirectory();
-    p.pushDirectory("datasets");
-    p.pushDirectory("regates");
+    Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR).pushDirectory("datasets").pushDirectory("regates").get();
     std::cout << EXPR_AND_VAL_AS_STRING(p.toString()) << std::endl;
 
     Array<Nav> allnavs = scanNmeaFolder(p, Nav::debuggingBoatId());
-
-    //plotNavTimeVsIndex(allnavs);
 
     std::cout << EXPR_AND_VAL_AS_STRING(allnavs.size()) << std::endl;
 
