@@ -210,14 +210,14 @@ class G001SA : public StateAssign {
 };
 
 double G001SA::getStateCost(int stateIndex, int timeIndex) {
-  Nav &n = _navs[timeIndex];
+  Nav &nav = _navs[timeIndex];
   if (isOff(stateIndex)) {
     return _settings.majorStateCost();
-  } else if (std::isnan(n.awa().degrees())) {
+  } else if (std::isnan(nav.awa().degrees())) {
     return _settings.majorStateCost();
   } else {
     int i0 = getMinorState(stateIndex);
-    int i1 = mapToRawMinorState(n);
+    int i1 = mapToRawMinorState(nav);
 
     // Constant cost for being in this state
     double stateCost = _settings.majorStateCost()*_minorStateCostFactors[stateIndex];
