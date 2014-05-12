@@ -33,6 +33,7 @@ ExternalProject_Add(gflags_ext
         INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-install"
         CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/third-party/ceres-install"
         "-DGFLAGS_NAMESPACE=google"
+        "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
         )
 
 ExternalProject_Add(glog_ext
@@ -51,6 +52,10 @@ ExternalProject_Add(ceres_ext
         INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-install"
         CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/third-party/ceres-install"
         "-DHAVE_LTO_SUPPORT=OFF"
+        "-DSUITESPARSE=ON"
+        "-DBUILD_EXAMPLES=OFF"
+        "-DBUILD_TESTING=OFF"
+        "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
         "-DCMAKE_CXX_FLAGS=-Wall"
         )
     set_property(TARGET ceres_ext PROPERTY INCLUDE_DIRECTORIES "${CMAKE_BINARY_DIR}/third-party/ceres-install/include")
