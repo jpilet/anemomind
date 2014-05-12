@@ -23,6 +23,7 @@ Grammar001Settings::Grammar001Settings() {
   _minorTransitionCost = 1.0;
   _onOffCost = 2*_majorTransitionCost;
   _majorStateCost = 1.0;
+  _switchOnOffDuringRace = true;
 }
 
 
@@ -252,7 +253,7 @@ namespace {
     }
   }
 
-  MDArray2b makeConnections() {
+  MDArray2b makeConnections(bool switchOnOffDuringRace) {
     MDArray2b con(stateCount, stateCount);
     con.setAll(false);
     for (int i = 0; i < 5; i++) {
@@ -272,7 +273,7 @@ namespace {
       assert(isOff(24) && getMajorState(24) == 4);
     connectMajorStates(con, 4, 3);
 
-    constexpr bool switchOnOffDuringRace = true;
+
     if (switchOnOffDuringRace) {
       for (int i = 0; i < 4; i++) {
         connectMajorStates(con, i, 4);
@@ -280,15 +281,13 @@ namespace {
       }
     }
 
-    //dispMat(std::cout, con);
-
     return con;
   }
 }
 
 G001SA::G001SA(Grammar001Settings s, Array<Nav> navs) :
     _settings(s), _navs(navs), _minorStateCostFactors(makeCostFactors()),
-    _preds(makePredecessorsPerState(makeConnections())) {
+    _preds(makePredecessorsPerState(makeConnections(s.switchOnOffDuringRace()))) {
 }
 
 double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
