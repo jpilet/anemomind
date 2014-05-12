@@ -18,12 +18,12 @@ Grammar001Settings::Grammar001Settings() {
  * We should devise a strategy to choose them.
  *
  */
-  _perSecondCost = 0.01;
-  _majorTransitionCost = 16.0;
-  _minorTransitionCost = 1.0;
-  _onOffCost = 2*_majorTransitionCost;
-  _majorStateCost = 1.0;
-  _switchOnOffDuringRace = true;
+  perSecondCost = 0.01;
+  majorTransitionCost = 16.0;
+  minorTransitionCost = 1.0;
+  onOffCost = 2*majorTransitionCost;
+  majorStateCost = 1.0;
+  switchOnOffDuringRace = true;
 }
 
 
@@ -133,14 +133,14 @@ namespace {
   double getG001StateTransitionCost(const Grammar001Settings &s,
       int from, int to, int at, Array<Nav> navs) {
     if (isOff(from) || isOff(to)) {
-      return s.onOffCost()*majorStateTransitionCost(from, to);
+      return s.onOffCost*majorStateTransitionCost(from, to);
     } else {
       Duration<double> dur = navs[at+1].time() - navs[at].time();
       double seconds = dur.seconds();
       assert(seconds >= 0.0);
-      return s.minorTransitionCost()*minorStateTransitionCost(from, to) +
-              s.majorTransitionCost()*majorStateTransitionCost(from, to) +
-              seconds*s.perSecondCost();
+      return s.minorTransitionCost*minorStateTransitionCost(from, to) +
+              s.majorTransitionCost*majorStateTransitionCost(from, to) +
+              seconds*s.perSecondCost;
     }
   }
 
@@ -213,15 +213,15 @@ class G001SA : public StateAssign {
 double G001SA::getStateCost(int stateIndex, int timeIndex) {
   Nav &nav = _navs[timeIndex];
   if (isOff(stateIndex)) {
-    return _settings.majorStateCost();
+    return _settings.majorStateCost;
   } else if (std::isnan(nav.awa().degrees())) {
-    return _settings.majorStateCost();
+    return _settings.majorStateCost;
   } else {
     int i0 = getMinorState(stateIndex);
     int i1 = mapToRawMinorState(nav);
 
     // Constant cost for being in this state
-    double stateCost = _settings.majorStateCost()*_minorStateCostFactors[stateIndex];
+    double stateCost = _settings.majorStateCost*_minorStateCostFactors[stateIndex];
 
     // Penalty for this minor state index not matching the input
     double matchCost = (i0 == i1? 0 : 1);
@@ -287,7 +287,7 @@ namespace {
 
 G001SA::G001SA(Grammar001Settings s, Array<Nav> navs) :
     _settings(s), _navs(navs), _minorStateCostFactors(makeCostFactors()),
-    _preds(makePredecessorsPerState(makeConnections(s.switchOnOffDuringRace()))) {
+    _preds(makePredecessorsPerState(makeConnections(s.switchOnOffDuringRace))) {
 }
 
 double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
