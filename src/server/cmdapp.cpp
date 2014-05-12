@@ -96,14 +96,15 @@ class CmdApp : public Application {
 
 void dispHelp() {
   std::cout << "Anemomind Backend\n"
-               "\n";
+               "\n"
                "This is a command line application for\n"
                "the Anemomind backend. It is called with\n"
                "a single argument:\n"
                "\n"
                "A path where the last directory should\n"
                "have the same name as the ID of the boat\n"
-               "whose data we want to optimize.\n";
+               "whose data we want to optimize.";
+               std::cout << std::endl;
 }
 
 int CmdApp::main(const std::vector<std::string>& args) {
