@@ -23,23 +23,23 @@ using namespace sail;
 
 namespace {
   void valgrindProvocation() {
-    Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR).
+    Poco::Path dataFolder = PathBuilder::makeDirectory(Env::SOURCE_DIR).
         pushDirectory("datasets").
         pushDirectory("regates").
         pushDirectory("regate_1_dec_07").get();
 
-    Array<Nav> allnavs = scanNmeaFolder(p, Nav::debuggingBoatId());
+    Array<Nav> allnavs = scanNmeaFolder(dataFolder, Nav::debuggingBoatId());
     Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10).seconds());
   }
 
   void loadAndDispTree() {
-    Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR).
+    Poco::Path dataFolder = PathBuilder::makeDirectory(Env::SOURCE_DIR).
         pushDirectory("datasets").
         pushDirectory("regates").
         pushDirectory("regate_1_dec_07").get();
 
     cout << "Load navs" << endl;
-    Array<Nav> allnavs = scanNmeaFolder(p, Nav::debuggingBoatId());
+    Array<Nav> allnavs = scanNmeaFolder(dataFolder, Nav::debuggingBoatId());
     cout << "loaded" << endl;
 
     Grammar001Settings settings;
