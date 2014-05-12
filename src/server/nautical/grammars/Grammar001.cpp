@@ -69,11 +69,13 @@ namespace {
   Hierarchy makeHierarchy() {
     std::vector<HNode> nodes;
 
-    // 0..24
-    // 25,26 27,28 29,30 31,32
-    // 33    34    35    36
-    // 37    38    38    37
-    //
+    // 0..24                     : Indices of all terminal symbols output from the dynamic programming optimization.
+    //                           :   24 is the 'off' state
+    // 25,26 27,28 29,30 31,32   : Starboard/Port tack for every race state
+    // 33    34    35    36      : Race states: before race, upwind leg, downwind leg, idle
+    // 37    38    38    37      : Not in race, In race
+    // 39                        : Sailing
+    // 40                        : Top
     HNodeFamily fam("Grammar001");
 
     int mcounter = 0;
