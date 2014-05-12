@@ -28,8 +28,6 @@ Grammar001Settings::Grammar001Settings() {
 
 
 namespace {
-  typedef const char *Str;
-
   // This is the number of __states__
   const int stateCount = 4*6 + 1;
 
@@ -38,9 +36,9 @@ namespace {
   }
 
 
-  Str majorStates[] = {"before-race", "upwind-leg", "downwind-leg", "idle", "off"};
-  Str sides[] = {"starboard-tack", "port-tack"};
-  Str types[] = {"close-hauled", "beam-reach", "broad-reach"};
+  const char *majorStates[] = {"before-race", "upwind-leg", "downwind-leg", "idle", "off"};
+  const char *sides[] = {"starboard-tack", "port-tack"};
+  const char *types[] = {"close-hauled", "beam-reach", "broad-reach"};
 
   const char *getType(int minorIndex) {
     const int typeMap[6] = {0, 1, 2, 2, 1, 0};
