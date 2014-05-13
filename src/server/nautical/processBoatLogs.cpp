@@ -78,18 +78,16 @@ void processBoatData(Nav::Id boatId, Poco::Path srcPath, Poco::Path dstPath) {
  * Processes the data related to a single boat.
  */
 void processBoatData(Poco::Path dataPath) {
-  ENTERSCOPE(__FUNCTION__);
-
   Nav::Id boatId = extractBoatId(dataPath);
   Poco::Path dataBuildDir = PathBuilder::makeDirectory(dataPath).pushDirectory("build").get();
   processBoatData(boatId, dataPath, dataBuildDir);
 }
 
 
-class CmdApp : public Application {
+class BoatLogProcessor : public Application {
  public:
-  CmdApp() : Application() {}
-  CmdApp(int argc, char **argv) : Application(argc, argv) {}
+  BoatLogProcessor() : Application() {}
+  BoatLogProcessor(int argc, char **argv) : Application(argc, argv) {}
   int main(const std::vector<std::string>& args);
  private:
 };
@@ -107,13 +105,15 @@ void dispHelp() {
                std::cout << std::endl;
 }
 
-int CmdApp::main(const std::vector<std::string>& args) {
+int BoatLogProcessor::main(const std::vector<std::string>& args) {
+  ENTERSCOPE("Anemomind boat log processor");
   if (args.empty()) {
     dispHelp();
     return Application::EXIT_NOINPUT;
   } else {
     if (args.size() == 1) {
       std::string pathstr = args[0];
+      ENTERSCOPE("Process boat logs in directory " + pathstr);
       Poco::Path path = PathBuilder::makeDirectory(pathstr).get();
       processBoatData(path);
     } else {
@@ -127,6 +127,6 @@ int CmdApp::main(const std::vector<std::string>& args) {
 }
 
 // Defines a main function
-POCO_APP_MAIN(CmdApp)
+POCO_APP_MAIN(BoatLogProcessor)
 
 
