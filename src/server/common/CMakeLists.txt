@@ -10,6 +10,12 @@ add_library(common_Env
             "${CMAKE_CURRENT_BINARY_DIR}/Env.cpp"
             Env.h
            )
+
+add_library(common_PathBuilder
+            PathBuilder.h
+            PathBuilder.cpp
+           )
+target_depends_on_poco_foundation(common_PathBuilder)
            
 cxx_test(common_EnvTest
          EnvTest.cpp
@@ -36,6 +42,15 @@ add_library(common_logging
 
 cxx_test(common_logging_test logging_test.cpp common_logging gtest_main)
 
+add_library(common_filesystem
+            filesystem.h
+            filesystem.cpp
+           )
+target_depends_on_poco_foundation(common_filesystem)
+target_link_libraries(common_filesystem
+                      common_string
+                     )           
+
 add_library(common_ScopedLog
             ScopedLog.h
             ScopedLog.cpp)
@@ -59,19 +74,18 @@ cxx_test(common_TimeStampTest
 
 
         
+add_library(common_Json
+            Json.h
+            Json.cpp
+           )
+target_depends_on_poco_json(common_Json)
+                   
+        
 add_library(common_TimeStampJson
             TimeStampJson.cpp
             TimeStampJson.h
            )
 target_depends_on_poco_foundation(common_TimeStampJson)
-
-                              
-
-add_library(common_filesystem
-            filesystem.h
-            filesystem.cpp
-           )
-target_depends_on_poco_foundation(common_filesystem)  
 
 cxx_test(common_PhysicalQuantityTest
   PhysicalQuantityTest.cpp
@@ -114,7 +128,7 @@ cxx_test(common_HierarchyTest
          common_Hierarchy
          gtest_main
         )
-        
+
 add_library(common_HierarchyJson
             HierarchyJson.cpp        
             HierarchyJson.h
@@ -124,17 +138,11 @@ target_link_libraries(common_HierarchyJson
                      )
 target_depends_on_poco_json(common_HierarchyJson)
 
-add_library(common_Json
-            Json.h
-            Json.cpp
-           )
-target_depends_on_poco_json(common_Json)
-
 cxx_test(common_HierarchyJsonTest
          HierarchyJsonTest.cpp
          common_HierarchyJson
          gtest_main
-        )               
+        )                                
 
 add_library(common_Function
             Function.cpp

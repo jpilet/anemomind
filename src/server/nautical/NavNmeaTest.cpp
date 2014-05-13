@@ -35,7 +35,6 @@ TEST(NavNmeaTest, TestComplete2) {
 
 
 TEST(NavNmeaTest, TestIncomplete) {
-
   const char dataOneTimeStamp[] = "$IIMWV,248,T,05.8,N,A*16\n$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileOneTimeStamp(dataOneTimeStamp);
 
