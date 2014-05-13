@@ -21,6 +21,19 @@ TEST(MathTest, NanBehavesAsExpected) {
   EXPECT_TRUE(strictEquality(c, c));
 }
 
+TEST(MathTest, PositiveModTest) {
+  EXPECT_EQ(5 % 6, 5);
+  EXPECT_EQ(11 % 6, 5);
+  EXPECT_EQ(positiveMod(5, 6), 5);
+  EXPECT_EQ(positiveMod(11, 6), 5);
+  EXPECT_NE(-1 % 6, 5);
+  EXPECT_EQ(positiveMod(-1, 6), 5);
+  EXPECT_EQ(positiveMod(0, 6), 0);
+}
 
+TEST(MathTest, PosModFloatingPoint) {
+  EXPECT_EQ(positiveMod(71.5, 360.0), 71.5);
+  EXPECT_EQ(positiveMod(-3.4, 360.0), 360.0 - 3.4);
+}
 
 

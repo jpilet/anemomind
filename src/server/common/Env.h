@@ -10,7 +10,10 @@ namespace sail {
 
 class Env {
  public:
+
+  // X_DIR below maps to a corresponding CMAKE_X_DIR variable.
   static const char *SOURCE_DIR;
+  static const char *BINARY_DIR;
  };
 
 } /* namespace sail */

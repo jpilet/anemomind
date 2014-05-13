@@ -43,3 +43,12 @@ function(target_depends_on_poco_foundation target)
     set_property(TARGET ${target} APPEND PROPERTY LINK_DIRECTORIES 
                  "${CMAKE_BINARY_DIR}/third-party/poco-install/lib")
 endfunction()
+
+function(target_depends_on_poco_util target)
+    add_dependencies(${target} poco_ext)
+    target_link_libraries(${target} PocoUtil${POCO_SUFFIX})
+    set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES 
+                 "${CMAKE_BINARY_DIR}/third-party/poco-install/include")
+    set_property(TARGET ${target} APPEND PROPERTY LINK_DIRECTORIES 
+                 "${CMAKE_BINARY_DIR}/third-party/poco-install/lib")
+endfunction()
