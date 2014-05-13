@@ -110,25 +110,12 @@ void dispHelp() {
 int CmdApp::main(const std::vector<std::string>& args) {
   if (args.empty()) {
     dispHelp();
-    return Application::EXIT_OK;
+    return Application::EXIT_NOINPUT;
   } else {
     if (args.size() == 1) {
       std::string pathstr = args[0];
       Poco::Path path = PathBuilder::makeDirectory(pathstr).get();
-      Poco::File file(path);
-      if (file.exists()) {
-        if (file.isDirectory()) {
-          processBoatData(path);
-        } else {
-          std::stringstream ss;
-          ss << "'" << pathstr << "' exists but is not a directory." << std::endl;
-          LOG(FATAL) << pathstr;
-        }
-      } else {
-        std::stringstream ss;
-        ss << "The directory " << ss.str() << " does not exist.";
-        LOG(FATAL) << ss.str();
-      }
+      processBoatData(path);
     } else {
       dispHelp();
       LOG(FATAL) << "Wrong number of arguments";
@@ -137,15 +124,7 @@ int CmdApp::main(const std::vector<std::string>& args) {
   }
 }
 
-
-
-
-
-
 }
-
-
-
 
 // Defines a main function
 POCO_APP_MAIN(CmdApp)

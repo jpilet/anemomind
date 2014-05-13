@@ -191,3 +191,22 @@ cxx_test(nautical_WGS84Test
             common_Function
             common_LineKM
             gtest_main)
+
+            
+add_executable(nautical_processBoatLogs
+               processBoatLogs.cpp
+              )
+
+target_link_libraries(nautical_processBoatLogs
+                      common_logging
+                      common_PathBuilder
+                      nautical_NavNmeaScan
+                      nautical_grammars_Grammar001
+                      nautical_NavJson
+                      nautical_HTreeJson
+                      common_HierarchyJson
+                      math_hmm_StateAssign
+                     )              
+
+target_depends_on_poco_util(nautical_processBoatLogs)
+target_depends_on_poco_foundation(nautical_processBoatLogs)
