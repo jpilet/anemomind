@@ -40,6 +40,13 @@ cxx_test(nautical_NavNmeaTest
         )
 
 
+cxx_test(nautical_BoatLogProcessorTest
+         BoatLogProcessorTest.cpp
+         nautical_BoatLogProcessor
+         common_Env
+         gtest_main
+        )
+
 add_library(nautical_DataCalib
             DataCalib.h
             DataCalib.cpp)
@@ -217,3 +224,4 @@ add_library(nautical_processBoatLogs
 target_link_libraries(nautical_processBoatLogs
                       nautical_BoatLogProcessor
                      )              
+
