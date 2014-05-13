@@ -132,3 +132,12 @@ TEST(PhysQuantTest, HorizontalMotionPolarTest) {
     EXPECT_NEAR(toSouthA[1].metersPerSecond(), toSouthB[1].metersPerSecond(), 1e-8);
 }
 
+TEST(PhysQuantTest, HorizontalMotionAngleNormTest) {
+    for (double angle = -180; angle<=180; angle += 15) {
+        auto motion = HorizontalMotion<double>::polar(
+                Velocity<double>::knots(10),
+                Angle<double>::degrees(angle));
+        EXPECT_NEAR(angle, motion.angle().degrees(), 1e-5);
+        EXPECT_NEAR(10, motion.norm().knots(), 1e-5);
+    }
+}
