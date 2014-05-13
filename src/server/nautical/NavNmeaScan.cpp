@@ -6,10 +6,26 @@
 #include "NavNmeaScan.h"
 #include "NavNmea.h"
 #include <server/common/filesystem.h>
+#include <Poco/File.h>
 
 namespace sail {
 
 Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId) {
+  { // Initial checks.
+    Poco::File file(p);
+    if (!file.exists()) {
+      return Array<Nav>();
+    }
+
+    if (!file.isDirectory()) {
+      return Array<Nav>();
+    }
+
+    if (boatId.empty()) {
+      return Array<Nav>();
+    }
+  }
+
   Array<std::string> nmeaExtensions = Array<std::string>::args("txt");
   Array<Poco::Path> files = listFilesRecursivelyByExtension(p, nmeaExtensions);
   int count = files.size();

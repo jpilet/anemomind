@@ -11,7 +11,6 @@
 
 namespace sail {
 
-class NavIndexer;
 Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId);
 
 } /* namespace sail */
