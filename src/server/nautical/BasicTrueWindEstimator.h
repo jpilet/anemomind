@@ -3,6 +3,7 @@
 #ifndef NAUTICAL_BOAT_MODEL_H
 #define NAUTICAL_BOAT_MODEL_H
 
+#include <server/common/logging.h>
 #include <server/common/PhysicalQuantity.h>
 #include <server/nautical/Nav.h>
 
@@ -26,6 +27,9 @@ class BasicTrueWindEstimator {
 template <class T>
 HorizontalMotion<T> BasicTrueWindEstimator::computeTrueWind(
         const T* params, Array<Nav> past) {
+    // We could filter past measurements here.
+    // However, for the sake of simplicity, we just take the last measurement.
+    CHECK_LT(0, past.size());
     const Nav& measures = past.last();
 
     HorizontalMotion<T> boatMotion = HorizontalMotion<T>::polar(
