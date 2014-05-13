@@ -193,11 +193,12 @@ cxx_test(nautical_WGS84Test
             gtest_main)
 
             
-add_executable(nautical_processBoatLogs
-               processBoatLogs.cpp
-              )
 
-target_link_libraries(nautical_processBoatLogs
+add_library(nautical_BoatLogProcessor
+            BoatLogProcessor.cpp
+            BoatLogProcessor.h
+           )
+target_link_libraries(nautical_BoatLogProcessor
                       common_logging
                       common_PathBuilder
                       nautical_NavNmeaScan
@@ -207,6 +208,12 @@ target_link_libraries(nautical_processBoatLogs
                       common_HierarchyJson
                       math_hmm_StateAssign
                      )              
+target_depends_on_poco_util(nautical_BoatLogProcessor)
+target_depends_on_poco_foundation(nautical_BoatLogProcessor)
 
-target_depends_on_poco_util(nautical_processBoatLogs)
-target_depends_on_poco_foundation(nautical_processBoatLogs)
+add_library(nautical_processBoatLogs
+               processBoatLogs.cpp
+              )
+target_link_libraries(nautical_processBoatLogs
+                      nautical_BoatLogProcessor
+                     )              
