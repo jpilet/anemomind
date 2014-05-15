@@ -41,6 +41,8 @@ class TimeStamp {
   bool defined() const;
   bool undefined() const {return !defined();}
 
+  std::string toString() const;
+
   // Used by the Json interface
   static TimeStamp fromMilliSecondsSince1970(int64_t x) {return TimeStamp(x);}
   int64_t toMilliSecondsSince1970() const {return _time;}
