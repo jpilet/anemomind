@@ -233,3 +233,19 @@ target_link_libraries(nautical_processBoatLogs
                      )              
 
 
+add_library(nautical_Calibrator
+            Calibrator.h
+            Calibrator.cpp
+           )
+target_link_libraries(nautical_Calibrator
+                      nautical_grammars_Grammar001
+                      nautical_NavNmeaScan
+                     )
+target_depends_on_ceres(nautical_Calibrator)
+
+add_executable(nautical_BasicCalibrate
+               BasicCalibrate.cpp)
+target_link_libraries(nautical_BasicCalibrate
+                      common_logging
+                      nautical_Calibrator)
+

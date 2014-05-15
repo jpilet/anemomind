@@ -33,11 +33,12 @@ HorizontalMotion<T> BasicTrueWindEstimator::computeTrueWind(
     const Nav& measures = past.last();
 
     HorizontalMotion<T> boatMotion = HorizontalMotion<T>::polar(
-        measures.gpsSpeed(), measures.gpsBearing());
+        measures.gpsSpeed().cast<T>(), measures.gpsBearing().cast<T>());
 
+    // We assume no drift and no current.
     HorizontalMotion<T> appWindMotion = HorizontalMotion<T>::polar(
-        measures.aws().scaled(params[PARAM_AWS_BIAS]),
-        measures.gpsBearing() + measures.awa() // We assume no drift and no current.
+        measures.aws().cast<T>().scaled(params[PARAM_AWS_BIAS]),
+        (measures.gpsBearing() + measures.awa()).cast<T>()
             + Angle<T>::degrees(params[PARAM_AWA_OFFSET]));
 
     // True wind - boat motion = apparent wind.
