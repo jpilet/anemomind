@@ -31,7 +31,7 @@ angular.module('anemomindApp')
         } else {
           var offset = high-yMax;
           var x = d3.scale.linear()
-                    .domain([low, xMax])
+                    .domain([low, high])
                     .range([0, 100]);
 
           var y = d3.scale.linear()
