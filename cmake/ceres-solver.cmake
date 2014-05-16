@@ -1,5 +1,4 @@
 include(ExternalProject)
-
 set(CERES_BUILD_STATUS "CERES_NOT_BUILT" 
     CACHE STRING "Ceres build status.
     Default: Auto dl, config, gener, build and install Ceres project"
@@ -10,18 +9,18 @@ set_property(CACHE CERES_BUILD_STATUS PROPERTY STRINGS
 )
 
 if (CERES_BUILD_STATUS MATCHES "CERES_BUILT")
-
     set(Ceres_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-install/share/Ceres")
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_BINARY_DIR}/third-party/ceres-install/share/Ceres")
     set(GLOG_CHECK_INCLUDE_DIRS "${CMAKE_BINARY_DIR}/third-party/ceres-install/include")
     set(GLOG_CHECK_LIBRARY_DIRS "${CMAKE_BINARY_DIR}/third-party/ceres-install/lib")
     find_package(Glog)
     find_package(Ceres)
+    find_package(Threads)
 
     include_directories(${CERES_INCLUDE_DIRS})
 
     function(target_depends_on_ceres target)
-        target_link_libraries(${target} ${CERES_LIBRARIES})
+        target_link_libraries(${target} ${CERES_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
     endfunction()
 
 else (CERES_BUILD_STATUS MATCHES "CERES_BUILT")
