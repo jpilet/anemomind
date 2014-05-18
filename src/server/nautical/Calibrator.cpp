@@ -12,6 +12,7 @@
 #include <ceres/ceres.h>
 #include <string>
 #include <iostream>
+#include <server/common/string.h>
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
@@ -21,6 +22,16 @@ using ceres::Solve;
 using std::string;
 
 namespace sail {
+
+namespace {
+string showWind(const HorizontalMotion<double>& wind) {
+  double degrees = wind.angle().degrees();
+  return stringFormat("%3.0f/%4.1fkn",
+                      (degrees < 0 ? degrees + 360 : degrees),
+                      wind.norm().knots());
+}
+
+}  // namespace
 
 class TackCost {
   public:
@@ -43,11 +54,11 @@ class TackCost {
         BasicTrueWindEstimator::computeTrueWind<double>(params, _before);
       HorizontalMotion<double> windAfter =
         BasicTrueWindEstimator::computeTrueWind<double>(params, _after);
-      std::cout << "Angles: " << windBefore.angle().degrees() << " = "
-        << windAfter.angle().degrees()
+      std::cout << "Wind: " << showWind(windBefore) << " and "
+        << showWind(windAfter)
         << " at " << _before[_before.size() - 1].time().toString()
         << " and " << _after[_after.size() - 1].time().toString()
-        << "\n";
+        << " w=" << _weight << "\n";
     }
 
   private:
@@ -57,8 +68,8 @@ class TackCost {
 };
 
 void Calibrator::addTack(int pos, double weight) {
-  const int length = 2;
-  const int delta = 10;
+  const int length = 5;
+  const int delta = 20;
   if ((pos < length + delta) || (pos > _allnavs.size() - length - delta)) {
     LOG(WARNING) << "Ignoring maneuver too close to beginning or end of recording";
     return;
@@ -66,6 +77,12 @@ void Calibrator::addTack(int pos, double weight) {
 
   Array<Nav> before = _allnavs.slice(pos - length - delta, pos - delta);
   Array<Nav> after = _allnavs.slice(pos + delta, pos + delta + length);
+
+  Duration<double> deltaTime = after.first().time() - before.last().time();
+  if (deltaTime > Duration<>::minutes(3)) {
+    LOG(WARNING) << "Ignoring maneuver with a long time gap.";
+    return;
+  }
 
   TackCost *cost = new TackCost(before, after, weight);
   _maneuvers.push_back(cost);
@@ -75,7 +92,7 @@ void Calibrator::addTack(int pos, double weight) {
           2, //residuals
           BasicTrueWindEstimator::NUM_PARAMS // unknowns
         >(cost);
-  _problem.AddResidualBlock(cost_function, NULL, _calibrationValues);
+  _problem.AddResidualBlock(cost_function, new ceres::CauchyLoss(1), _calibrationValues);
 }
 
 void Calibrator::addBuoyTurn(std::shared_ptr<HTree> tree) {
@@ -84,10 +101,13 @@ void Calibrator::addBuoyTurn(std::shared_ptr<HTree> tree) {
       auto after = tree->child(i + 1);
       std::string beforeDescr = description(before);
       std::string afterDescr = description(after);
-      if ((beforeDescr == "downind-leg" && afterDescr == "upwindLeg")
-          ||(beforeDescr == "upwind-leg" && afterDescr == "downwindLeg")) {
+      if ((beforeDescr == "downwind-leg" && afterDescr == "upwind-leg")
+          ||(beforeDescr == "upwind-leg" && afterDescr == "downwind-leg")) {
         addTack(before->right(), 10.0);
       }
+    }
+    for (auto child : tree->children()) {
+      addBuoyTurn(child);
     }
 }
 
@@ -112,8 +132,10 @@ void Calibrator::addAllTack(std::shared_ptr<HTree> tree) {
         std::string childBeforeDescr = description(before->child(before->childCount() - 1));
         std::string childAfterDescr = description(after->child(0));
 
-        if (childBeforeDescr == childAfterDescr &&
-            (childBeforeDescr == "close-hauled" || childBeforeDescr == "broad-reach")) {
+        if (childBeforeDescr == childAfterDescr
+            && (childBeforeDescr == "close-hauled" || childBeforeDescr == "broad-reach")
+            && (before->child(before->childCount() - 1)->count() > 20)
+            && (after->child(0)->count() > 20)) {
           addTack(before->right(), 1.0);
         }
       }
