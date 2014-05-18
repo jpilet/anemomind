@@ -127,5 +127,10 @@ cxx_test(math_BandMatTest
          gtest_main
         )
 
+add_executable(math_ceres_helloworld
+               ceres_helloworld.cpp
+              )
+target_depends_on_ceres(math_ceres_helloworld)
+
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
