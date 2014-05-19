@@ -1,5 +1,6 @@
 #!/bin/sh
 # usage: crunch folderName filename.ext
+set -e
 
 src="./uploads/$1/$2";
 dst="./data/$1/$2"
