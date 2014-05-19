@@ -21,10 +21,14 @@ class BoatLogProcessor : public Poco::Util::Application {
  private:
 };
 
-void processBoatData(Poco::Path dataPath);
+void processBoatDataFullFolder(Poco::Path dataPath);
+
+// Implements this:
+// https://github.com/jpilet/anemomind-web/pull/9#discussion_r12632698
+void processBoatDataSingleLogFile(Poco::Path dataPath, std::string logFilename);
 
 // This function does the processing.
-void processBoatData(Nav::Id boatId, Poco::Path srcPath, Poco::Path dstPath);
+void processBoatDataFullFolder(Nav::Id boatId, Poco::Path srcPath, Poco::Path dstPath);
 
 } /* namespace sail */
 

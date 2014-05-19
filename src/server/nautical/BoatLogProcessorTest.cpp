@@ -34,11 +34,11 @@ TEST(BoatLogProcessor, ProcessingTest) {
   Poco::Path srcpath = getTempDataPath();
   EXPECT_TRUE(Poco::File(srcpath).exists());
   EXPECT_TRUE(Poco::File(srcpath).isDirectory());
-  processBoatData(srcpath);
-  PathBuilder output = PathBuilder::makeDirectory(srcpath).pushDirectory("build");
+  processBoatDataFullFolder(srcpath);
+  PathBuilder output = PathBuilder::makeDirectory(srcpath).pushDirectory("processed");
 
   const int fileCount = 4;
-  std::string files[fileCount] = {"output_navs.js", "output_tree_node_info.js", "output_tree.js", "some_other_file.js"};
+  std::string files[fileCount] = {"all_navs.js", "all_tree_node_info.js", "all_tree.js", "some_other_file.js"};
   bool shouldExist[fileCount] = {true, true, true, false};
 
   for (int i = 0; i < fileCount; i++) {
