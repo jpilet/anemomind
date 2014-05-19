@@ -39,22 +39,44 @@ Nav::Id extractBoatId(Poco::Path path) {
 
 
 
+void exampleUsage1Arg() {
+  std::cout << "     == Example usage one argument ==\n"
+               "     Arg 1: testlogs/\n"
+               "     \n"
+      "     The program will recursively scan for all files in\n"
+      "     the directory testlogs/ ending with .txt and try to\n"
+      "     load NMEA data. It will then output the processed \n"
+      "     data to files in the directory testlogs/processed/\n"
+      "     on the format all_*.js\n\n";
+}
 
+void exampleUsage2Args() {
+  std::cout << "     == Example usage two arguments ==\n"
+      "     Arg 1: testlogs/\n"
+      "     Arg 2: IreneLog.txt\n"
+               "\n"
+      "     The program will load NMEA data from the file IreneLog.txt\n"
+      "     the directory testlogs/. It will then output the processed \n"
+      "     data to files in the directory testlogs/processed/\n"
+      "     on the format IreneLog_*.js\n\n";
+}
 
 void dispHelp() {
-  std::cout << "Anemomind Backend\n"
+  std::cout << "=== Anemomind Backend ===\n"
                "\n"
-               "This is a command line application for\n"
-               "the Anemomind backend.:\n"
-               "\n"
+               "  This is a command line application for\n"
+               "  the Anemomind backend.:\n"
+               "  \n"
                "First argument:\n"
-               "A path where the last directory should\n"
-               "have the same name as the ID of the boat\n"
-               "whose data we want to optimize.\n"
+               "  A path where the last directory should\n"
+               "  have the same name as the ID of the boat\n"
+               "  whose data we want to optimize.\n"
                "\n"
                "Second argument (optional):\n"
-               "Name of log file to process. If omitted, all log files in the directory will be processed.";
+               "  Name of log file to process. If omitted, all log files in the directory will be processed.\n";
                std::cout << std::endl;
+   exampleUsage1Arg();
+   exampleUsage2Args();
 }
 
 }
