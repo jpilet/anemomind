@@ -8,11 +8,12 @@
 
 #include "Calibrator.h"
 
-#include <server/nautical/NavNmeaScan.h>
 #include <ceres/ceres.h>
-#include <string>
 #include <iostream>
+#include <server/common/math.h>
 #include <server/common/string.h>
+#include <server/nautical/NavNmeaScan.h>
+#include <string>
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
@@ -27,7 +28,7 @@ namespace {
 string showWind(const HorizontalMotion<double>& wind) {
   double degrees = wind.angle().degrees();
   return stringFormat("%3.0f/%4.1fkn",
-                      (degrees < 0 ? degrees + 360 : degrees),
+                      positiveMod(degrees, 360.0),
                       wind.norm().knots());
 }
 
