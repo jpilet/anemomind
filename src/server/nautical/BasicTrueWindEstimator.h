@@ -3,7 +3,7 @@
 #ifndef NAUTICAL_BOAT_MODEL_H
 #define NAUTICAL_BOAT_MODEL_H
 
-#include <math.h>
+#include <cmath>
 #include <server/common/logging.h>
 #include <server/common/PhysicalQuantity.h>
 #include <server/nautical/Nav.h>
@@ -33,10 +33,10 @@ HorizontalMotion<T> BasicTrueWindEstimator::computeTrueWind(
     CHECK_LT(0, past.size());
     const Nav& measures = past.last();
 
-    assert(!isnan(measures.gpsSpeed().metersPerSecond()));
-    assert(!isnan(measures.gpsBearing().radians()));
-    assert(!isnan(measures.awa().radians()));
-    assert(!isnan(measures.aws().metersPerSecond()));
+    assert(!std::isnan(measures.gpsSpeed().metersPerSecond()));
+    assert(!std::isnan(measures.gpsBearing().radians()));
+    assert(!std::isnan(measures.awa().radians()));
+    assert(!std::isnan(measures.aws().metersPerSecond()));
 
     HorizontalMotion<T> boatMotion = HorizontalMotion<T>::polar(
         measures.gpsSpeed().cast<T>(), measures.gpsBearing().cast<T>());
