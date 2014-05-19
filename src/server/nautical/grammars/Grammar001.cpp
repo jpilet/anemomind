@@ -171,7 +171,6 @@ namespace {
         factors[index] = f*expectedData[index];
       }
     }
-    std::cout << EXPR_AND_VAL_AS_STRING(factors) << std::endl;
     return factors;
   }
 

@@ -117,6 +117,9 @@ int BoatLogProcessor::main(const std::vector<std::string>& args) {
 
 void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::string filenamePrefix) {
   ENTERSCOPE("processBoatData");
+  SCOPEDMESSAGE(INFO, stringFormat("Process %d navs ranging from %s to %s",
+      navs.size(), navs.first().time().toString().c_str(),
+      navs.last().time().toString().c_str()));
   Grammar001Settings settings;
   Grammar001 g(settings);
 
@@ -177,6 +180,7 @@ void processBoatDataSingleLogFile(Nav::Id boatId, Poco::Path srcPath, std::strin
   Array<Nav> navs = loadNavsFromNmea(srcfile.toString(),
       boatId).navs();
   SCOPEDMESSAGE(INFO, "done.");
+  std::sort(navs.begin(), navs.end());
   processBoatData(boatId, navs, dstPath, srcfile.getBaseName());
 }
 
