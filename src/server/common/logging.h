@@ -149,4 +149,4 @@ void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int
                                        const std::string& message));
 
 
-#endif  // _LOGGING_H
+#endif  // _SERVER_COMMON_LOGGING_H
