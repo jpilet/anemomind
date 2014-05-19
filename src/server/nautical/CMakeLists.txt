@@ -225,7 +225,7 @@ target_link_libraries(nautical_BoatLogProcessor
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)
 
-add_library(nautical_processBoatLogs
+add_executable(nautical_processBoatLogs
                processBoatLogs.cpp
               )
 target_link_libraries(nautical_processBoatLogs
