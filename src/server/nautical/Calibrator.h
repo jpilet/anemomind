@@ -14,11 +14,16 @@ class TackCost;
 
 class Calibrator  {
   public:
-    Calibrator() : _grammar(_settings) { }
+    Calibrator() : _grammar(_settings) { clear(); }
 
+    //! Attempt to load data and run the minimizer. Clears previous results.
     bool calibrate(Poco::Path dataPath, Nav::Id boatId);
 
+    //! Print last calibration results.
     void print();
+
+    //! Forget last calibration results.
+    void clear();
 
   private:
     std::string description(std::shared_ptr<HTree> tree);
@@ -32,6 +37,8 @@ class Calibrator  {
     std::shared_ptr<HTree> _tree;
     ceres::Problem _problem;
     double _calibrationValues[BasicTrueWindEstimator::NUM_PARAMS];
+
+    // The pointers stored in this vector are owned by "_problem".
     vector<TackCost*> _maneuvers;
 };
 

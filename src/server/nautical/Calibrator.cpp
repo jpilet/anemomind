@@ -152,6 +152,8 @@ string Calibrator::description(std::shared_ptr<HTree> tree) {
 }
 
 bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
+  clear();
+
   // Load data.
   _allnavs = scanNmeaFolder(dataPath, boatId);
   if (_allnavs.size() == 0) {
@@ -159,8 +161,6 @@ bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
   }
 
   _tree = _grammar.parse(_allnavs);
-
-  BasicTrueWindEstimator::initializeParameters(_calibrationValues);
 
   addAllTack(_tree);
   addBuoyTurn(_tree);
@@ -186,6 +186,15 @@ void Calibrator::print() {
   for (auto maneuver : _maneuvers) {
     maneuver->printCost(_calibrationValues);
   }
+}
+
+void Calibrator::clear() {
+  _allnavs.clear();
+  _tree.reset();
+
+  BasicTrueWindEstimator::initializeParameters(_calibrationValues);
+
+  _maneuvers.clear();
 }
 
 }  // namespace sail
