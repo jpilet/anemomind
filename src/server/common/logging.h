@@ -3,8 +3,8 @@
 \date 2012
 */
 
-#ifndef _SERVER_COMMON_LOGGING_H
-#define _SERVER_COMMON_LOGGING_H
+#ifndef _LOGGING_H
+#define _LOGGING_H
 
 #include <string>
 #include <sstream>
