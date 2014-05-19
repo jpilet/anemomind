@@ -106,6 +106,15 @@ double TimeStamp::difSeconds(const TimeStamp &a, const TimeStamp &b) {
   return (1.0/TimeRes)*double(a._time - b._time);
 }
 
+std::string TimeStamp::toString() const {
+  struct tm time = makeGMTimeStruct();
+  const char isofmt[] = "%FT%T";
+  const int len = 255;
+  char str[len];
+  assert(time.tm_gmtoff == 0);
+  strftime(str, len, isofmt, &time);
+  return std::string(str);
+}
 Duration<double> operator-(const TimeStamp &a, const TimeStamp &b) {
   return Duration<double>::seconds(TimeStamp::difSeconds(a, b));
 }
@@ -127,14 +136,7 @@ TimeStamp operator+(const Duration<double> &a, const TimeStamp &b) {
 }
 
 std::ostream &operator<<(std::ostream &s, const TimeStamp &t) {
-  struct tm time = t.makeGMTimeStruct();
-  const char isofmt[] = "%FT%T";
-  const int len = 255;
-  char str[len];
-  assert(time.tm_gmtoff == 0);
-  strftime(str, len, isofmt, &time);
-  s << str;
-  return s;
+  return s << t.toString();
 }
 
 } /* namespace sail */
