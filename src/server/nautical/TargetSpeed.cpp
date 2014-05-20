@@ -115,6 +115,12 @@ Array<Velocity<double> > getDownwindVmg(Array<Nav> navs) {
   return getVmg(navs, false);
 }
 
+Arrayb guessUpwindNavs(Array<Nav> navs) {
+  return navs.map<bool>([&](const Nav &x) {
+    return cos(x.estimateRawTwa()) > 0;
+  });
+}
+
 namespace {
   Arrayb markValidBins(Array<Arrayd> medianValues) {
     return medianValues.map<bool>([&](const Arrayd &x) {
@@ -152,6 +158,7 @@ void TargetSpeedData::plot() {
   }
   plot.set_xlabel("Wind Speed (m/s)");
   plot.set_xlabel("VMG (m/s)");
+  plot.show();
 }
 
 

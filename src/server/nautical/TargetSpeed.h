@@ -33,6 +33,9 @@ class TargetSpeedData {
       HistogramMap map,
       Arrayd quantiles);
 
+  // All velocities are internally stored as meters per second
+  // Such a convention is reasonable, since HistogramMap only
+  // works with doubles.
   Arrayd _quantiles;
   HistogramMap _hist;
   Array<Arrayd> _medianValues;
@@ -46,6 +49,10 @@ Array<Velocity<double> > getUpwindVmg(Array<Nav> navs);
 
 // All navs are collected from downwind legs
 Array<Velocity<double> > getDownwindVmg(Array<Nav> navs);
+
+// Guess what measurements correspond to upwind
+// legs by looking if cos(twa) > 0.
+Arrayb guessUpwindNavs(Array<Nav> navs);
 
 
 } /* namespace sail */
