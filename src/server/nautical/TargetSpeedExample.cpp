@@ -40,19 +40,6 @@ namespace {
     TargetSpeedData tgt(tws, vmg, HistogramMap(25,
         minvel.metersPerSecond(), maxvel.metersPerSecond()));
 
-    const bool dispHist = false;
-    if (dispHist) {
-      const HistogramMap &hist = tgt.hist();
-      GnuplotExtra plot;
-      plot.set_style("lines");
-      //plot.plot(hist.makePlotData(hist.countPerBin(twsd)));
-      //plot.plot(hist.makePlotData(hist.countPerBin(vmgd)));
-      plot.plot(hist.makePlotData(hist.countPerBin(gssd)));
-      plot.show();
-    }
-
-
-
     tgt.plot();
   }
 }
