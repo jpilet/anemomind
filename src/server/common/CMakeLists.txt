@@ -207,3 +207,18 @@ cxx_test(common_ConcatFunctionTest
          gtest_main
         )
 
+add_library(common_Histogram
+            Histogram.cpp
+            Histogram.h
+           )
+
+target_link_libraries(common_Histogram
+                      common_Array
+                      common_LineKM
+                     )                   
+
+cxx_test(common_HistogramTest
+         HistogramTest.cpp
+         common_Histogram
+         gtest_main
+        )
