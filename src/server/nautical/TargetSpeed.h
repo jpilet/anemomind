@@ -34,7 +34,7 @@ class TargetSpeedData {
       HistogramMap map,
       Arrayd quantiles);
 
-  // All velocities are internally stored as meters per second
+  // All velocities are internally stored as [meters per second]
   // Such a convention is reasonable, since HistogramMap only
   // works with doubles.
   Arrayd _quantiles;
