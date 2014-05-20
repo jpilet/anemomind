@@ -9,6 +9,7 @@
 #include "Calibrator.h"
 
 #include <ceres/ceres.h>
+#include <cmath>
 #include <iostream>
 #include <server/common/math.h>
 #include <server/common/string.h>
@@ -32,6 +33,11 @@ string showWind(const HorizontalMotion<double>& wind) {
                       wind.norm().knots());
 }
 
+template <typename T, int N>
+bool isnan(const ceres::Jet<T, N>& f) { return ceres::IsNaN(f); }
+
+using std::isnan;
+
 }  // namespace
 
 class TackCost {
@@ -45,8 +51,20 @@ class TackCost {
         BasicTrueWindEstimator::computeTrueWind<T>(x, _before);
       HorizontalMotion<T> windAfter =
         BasicTrueWindEstimator::computeTrueWind<T>(x, _after);
-      residual[0] = T(_weight) * (windBefore[0] - windAfter[0]).knots();
-      residual[1] = T(_weight) * (windBefore[1] - windAfter[1]).knots();
+
+      residual[0] = T(_weight) * (windAfter.angle().directionDifference(
+              windBefore.angle()).degrees());
+
+      T strengthBefore = windBefore.norm().metersPerSecond();
+      T strengthAfter = windAfter.norm().metersPerSecond();
+
+      // The strength has to be normalized. Otherwise, the optimizer will
+      // be rewarded for underestimating the wind.
+      residual[1] = T(_weight * 360.0 * 2.0) * (
+          (strengthAfter - strengthBefore) / (strengthAfter));
+
+      assert(!isnan(residual[0]));
+      assert(!isnan(residual[1]));
       return true;
     }
 
@@ -57,9 +75,31 @@ class TackCost {
         BasicTrueWindEstimator::computeTrueWind<double>(params, _after);
       std::cout << "Wind: " << showWind(windBefore) << " and "
         << showWind(windAfter)
-        << " at " << _before[_before.size() - 1].time().toString()
-        << " and " << _after[_after.size() - 1].time().toString()
+        << " at " << _before.last().time().toString()
+        << " and " << _after.last().time().toString()
         << " w=" << _weight << "\n";
+    }
+
+    static Angle<double> externalTrueWindDirection(Array<Nav> nav) {
+      return nav.last().externalTwa() + nav.last().magHdg();
+    }
+
+    void sumAngularError(const double *params,
+                         double *sumDegrees, double *sumKnots,
+                         double *sumExternalDegrees, double *sumExternalKnots) {
+      HorizontalMotion<double> windBefore =
+        BasicTrueWindEstimator::computeTrueWind<double>(params, _before);
+      HorizontalMotion<double> windAfter =
+        BasicTrueWindEstimator::computeTrueWind<double>(params, _after);
+      *sumDegrees += std::fabs(windAfter.angle().directionDifference(
+              windBefore.angle()).degrees());
+      *sumKnots += std::fabs((windAfter.norm() - windBefore.norm()).knots());
+      
+      *sumExternalDegrees += std::fabs(
+          externalTrueWindDirection(_before).directionDifference(
+              externalTrueWindDirection(_after)).degrees());
+      *sumExternalKnots += std::fabs(
+          (_before.last().externalTws() - _after.last().externalTws()).knots());
     }
 
   private:
@@ -82,6 +122,13 @@ void Calibrator::addTack(int pos, double weight) {
   Duration<double> deltaTime = after.first().time() - before.last().time();
   if (deltaTime > Duration<>::minutes(3)) {
     LOG(WARNING) << "Ignoring maneuver with a long time gap.";
+    return;
+  }
+
+  const Velocity<double> minWindSpeed = Velocity<double>::knots(2.0);
+  if (after.last().aws() < minWindSpeed ||
+      before.last().aws() < minWindSpeed) {
+    // less than 2 knots of wind is not a useful measure.
     return;
   }
 
@@ -184,9 +231,27 @@ bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
 }
 
 void Calibrator::print() {
+  double angleError = 0;
+  double normAngle = 0;
+  double externalAngleError = 0;
+  double externalNormAngle = 0;
   for (auto maneuver : _maneuvers) {
-    maneuver->printCost(_calibrationValues);
+    if (_maneuvers.size() < 30) {  // Avoid flooding.
+      maneuver->printCost(_calibrationValues);
+    }
+    maneuver->sumAngularError(_calibrationValues,
+                              &angleError, &normAngle,
+                              &externalAngleError, &externalNormAngle);
   }
+  angleError /= _maneuvers.size();
+  normAngle /= _maneuvers.size();
+  externalAngleError /= _maneuvers.size();
+  externalNormAngle /= _maneuvers.size();
+
+  LOG(INFO) << "\n * Average angle error: " << angleError << " degrees"
+    << " (external: " << externalAngleError << ")\n"
+    << " * Average speed error: " << normAngle << " knots"
+    << " (external: " << externalNormAngle << ")";
 }
 
 void Calibrator::clear() {

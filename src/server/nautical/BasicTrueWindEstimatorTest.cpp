@@ -39,7 +39,6 @@ TEST(BasicTrueWindEstimatorTest, ManuallyCheckedDataTest) {
   std::stringstream stream(nmeaData);
   ParsedNavs navs = loadNavsFromNmea(stream, Nav::debuggingBoatId());
 
-  EXPECT_TRUE(navs.complete());
   EXPECT_TRUE(navs.navs().hasData());
   EXPECT_EQ(1, navs.navs().size());
 
