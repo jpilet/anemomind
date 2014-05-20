@@ -30,6 +30,8 @@ class HistogramMap {
   double toCenter(int binIndex) const;
   Arrayi countPerBin(Arrayd values) const;
   Arrayi assignBins(Arrayd values) const;
+  bool defined() const {return _binCount > 0;}
+  bool undefined() const {return !defined();}
 
   bool validIndex(int index) const {
     return 0 <= index && index < _binCount;

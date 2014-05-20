@@ -250,3 +250,11 @@ target_link_libraries(nautical_BasicCalibrate
                       common_logging
                       nautical_Calibrator)
 
+add_library(nautical_TargetSpeed
+            TargetSpeed.h
+            TargetSpeed.cpp
+           )
+target_link_libraries(nautical_TargetSpeed
+                      nautical_Nav
+                      common_Histogram
+                     )           
