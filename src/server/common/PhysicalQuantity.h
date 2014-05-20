@@ -113,15 +113,8 @@ class Angle : public PhysicalQuantity<Angle<T>, T> {
   MAKE_PHYSQUANT_UNIT_CONVERTERS(degrees, M_PI/180.0);
 
   Angle directionDifference(const Angle<T>& other) const {
-    T diff = this->get() - other.get();
-    // Unfortunately, positiveMod can't be instanciated with a ceres::Jet.
-    // Let's fake positiveMod with comparisons and additions.
-    if (diff < T(-M_PI)) {
-      diff += T(2.0 * M_PI);
-    } else if (diff > T(M_PI)) {
-      diff -= T(2.0 *M_PI);
-    }
-    return radians(diff);
+    return radians(normalizeAngleBetweenMinusPiAndPi(
+            this->get() - other.get()));
   }
 
   static Angle<T> degMinMc(T deg, T min, T mc) {

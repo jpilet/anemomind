@@ -135,6 +135,19 @@ T positiveMod(T a, T b) {
   }
 }
 
+template <typename T>
+T normalizeAngleBetweenMinusPiAndPi(T a) {
+  // Unfortunately, positiveMod can't be instanciated with a ceres::Jet.
+  // Let's fake positiveMod with comparisons and additions.
+  T result(a);
+  while (result < T(-M_PI)) {
+    result += T(2.0 * M_PI);
+  }
+  while (result > T(M_PI)) {
+    result -= T(2.0 *M_PI);
+  }
+  return result;
+}
 
 
 } /* namespace sail */
