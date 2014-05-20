@@ -19,7 +19,7 @@ PeriodicHistIndexer::PeriodicHistIndexer(int binCount, double shift) :
 int PeriodicHistIndexer::toBin(Angle<double> angle) const {
   assert(initialized());
   int index0 = int(floor(_binMap.inv(angle.radians())));
-  int index = posMod(index0, _binCount);
+  int index = positiveMod(index0, _binCount);
   assert(isValidBinIndex(index));
   return index;
 }

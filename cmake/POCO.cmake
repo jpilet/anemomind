@@ -19,11 +19,11 @@ set_property(TARGET poco_ext PROPERTY INCLUDE_DIRECTORIES "${CMAKE_BINARY_DIR}/t
 
 include_directories("${CMAKE_BINARY_DIR}/third-party/poco-install/include")
 
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(POCO_SUFFIX "d")
-else (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+else ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(POCO_SUFFIX "")
-endif (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+endif ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 
 
 function(target_depends_on_poco_json target)
@@ -38,6 +38,15 @@ endfunction()
 function(target_depends_on_poco_foundation target)
     add_dependencies(${target} poco_ext)
     target_link_libraries(${target} PocoFoundation${POCO_SUFFIX})
+    set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES 
+                 "${CMAKE_BINARY_DIR}/third-party/poco-install/include")
+    set_property(TARGET ${target} APPEND PROPERTY LINK_DIRECTORIES 
+                 "${CMAKE_BINARY_DIR}/third-party/poco-install/lib")
+endfunction()
+
+function(target_depends_on_poco_util target)
+    add_dependencies(${target} poco_ext)
+    target_link_libraries(${target} PocoUtil${POCO_SUFFIX})
     set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES 
                  "${CMAKE_BINARY_DIR}/third-party/poco-install/include")
     set_property(TARGET ${target} APPEND PROPERTY LINK_DIRECTORIES 

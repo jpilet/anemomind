@@ -29,7 +29,9 @@ class LevmarState {
     return _X;
   }
 
-  Arrayd getXArray() {return Arrayd(_X.n_elem, _X.memptr());}
+  Arrayd getXArray() const {
+    return Arrayd(_X.n_elem, _X.memptr());
+  }
  private:
   void initialize(arma::mat X);
   arma::mat _X;
@@ -38,6 +40,7 @@ class LevmarState {
   bool _stop;
 
   arma::mat _Fscratch, _Jscratch;
+  void initializeParams();
 };
 
 } /* namespace sail */

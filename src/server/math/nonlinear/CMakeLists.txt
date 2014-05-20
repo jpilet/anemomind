@@ -114,7 +114,24 @@ target_link_libraries(math_nonlinear_SignalFitExampleDivideAndConquer
                       math_nonlinear_SignalFit
                       math_nonlinear_GridFitterTestData
                       plot_gnuplot
-                     )    
+                     )   
+add_library(math_nonlinear_Multiplayer
+            Multiplayer.h
+            Multiplayer.cpp
+           )
+target_link_libraries(math_nonlinear_Multiplayer
+                      math_nonlinear_StepMinimizer
+                      common_Function
+                      math_pareto
+                      )                                 
+
+cxx_test(math_nonlinear_MultiplayerTest
+          MultiplayerTest.cpp
+          math_nonlinear_Multiplayer
+          gtest_main
+         )
+
+target_depends_on_armadillo(math_nonlinear_MultiplayerTest)  
   
 add_executable(examples_SignalFitExampleAutoRegFirstOrder
   SignalFitExampleAutoRegFirstOrder.cpp)

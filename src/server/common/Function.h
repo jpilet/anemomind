@@ -22,6 +22,7 @@ class Function {
   // in column major format, that is an element at (i, j) has index
   // i + j*outDims().
   void evalNumericJacobian(double *Xin, double *JNumOut, double h = 1.0e-6);
+  double evalScalar(double *Xin);
 
   double calcSquaredNorm(double *X);
   double calcSquaredNorm(double *X, double *Fscratch);

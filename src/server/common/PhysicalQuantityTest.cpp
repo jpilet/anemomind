@@ -92,3 +92,52 @@ TEST(PhysQuantTest, DurationStr) {
       + Duration<>::seconds(5));
   EXPECT_EQ("3 weeks, 2 days, 7 hours, 3 minutes, 5 seconds", d.str());
 }
+
+TEST(PhysQuantTest, CastTest) {
+    Mass<float> flt = Mass<float>::kilograms(3.0f);
+    Mass<double> dbl = flt.cast<double>();
+    EXPECT_EQ(Mass<double>::kilograms(3.0), dbl);
+}
+
+TEST(PhysQuantTest, HorizontalMotionTest) {
+    HorizontalMotion<double> a(
+        Velocity<double>::metersPerSecond(3),
+        Velocity<double>::metersPerSecond(2));
+    auto b(a);
+    HorizontalMotion<double> twice(
+        Velocity<double>::metersPerSecond(6),
+        Velocity<double>::metersPerSecond(4));
+    EXPECT_EQ(a, b);
+    EXPECT_EQ(twice, a + b);
+    EXPECT_EQ(a, a + HorizontalMotion<double>::zero());
+}
+
+TEST(PhysQuantTest, HorizontalMotionPolarTest) {
+    HorizontalMotion<double>toWestA(
+        Velocity<double>::metersPerSecond(-1),
+        Velocity<double>::metersPerSecond(0));
+    auto toWestB = HorizontalMotion<double>::polar(
+            Velocity<double>::metersPerSecond(1),
+            Angle<double>::degrees(270));
+    EXPECT_NEAR(toWestA[0].metersPerSecond(), toWestB[0].metersPerSecond(), 1e-8);
+    EXPECT_NEAR(toWestA[1].metersPerSecond(), toWestB[1].metersPerSecond(), 1e-8);
+
+    HorizontalMotion<double>toSouthA(
+        Velocity<double>::metersPerSecond(0),
+        Velocity<double>::metersPerSecond(-1));
+    auto toSouthB = HorizontalMotion<double>::polar(
+            Velocity<double>::metersPerSecond(1),
+            Angle<double>::degrees(180));
+    EXPECT_NEAR(toSouthA[0].metersPerSecond(), toSouthB[0].metersPerSecond(), 1e-8);
+    EXPECT_NEAR(toSouthA[1].metersPerSecond(), toSouthB[1].metersPerSecond(), 1e-8);
+}
+
+TEST(PhysQuantTest, HorizontalMotionAngleNormTest) {
+    for (double angle = -180; angle<=180; angle += 15) {
+        auto motion = HorizontalMotion<double>::polar(
+                Velocity<double>::knots(10),
+                Angle<double>::degrees(angle));
+        EXPECT_NEAR(angle, motion.angle().degrees(), 1e-5);
+        EXPECT_NEAR(10, motion.norm().knots(), 1e-5);
+    }
+}

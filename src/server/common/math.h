@@ -9,6 +9,7 @@
 #define COMMON_MATH_H_
 
 #include <cmath>
+#include <assert.h>
 
 namespace sail {
 
@@ -121,16 +122,25 @@ MAKE_UNIT2OTHERUNIT_CONVERTER(nm2m, m2nm, 1852.0);
 MAKE_UNIT2OTHERUNIT_CONVERTER(knots2MPS, MPS2knots, 1852.0/3600.0);
 #undef MAKE_UNIT2OTHERUNIT_CONVERTER
 
-// Returns an integer in 0..(b-1): this is not the case with the built in modulo.
-inline int posMod(int a, int b) {
-  return (a + b - (a/b)*b) % b;
-}
-
-// Returns a number in [0, b[: this is not the case with fmod.
-double floatMod(double a, double b);
 
 // Adds/subtracts 2*pi to an angle a until it is in [b-pi, b+pi[
 double localizeAngleRadians(double a, double b);
+
+// Always returns a number in [0, b[
+template <typename T>
+T positiveMod(T a, T b) {
+  assert(b > 0);
+  int aOverB = int(a/b);
+  if (a >= 0) {
+    return a - aOverB*b;
+  } else {
+    T a2 = a - (aOverB - 1)*b;
+    assert(a2 >= 0);
+    return a2 - int(a2/b)*b;
+  }
+}
+
+
 
 } /* namespace sail */
 

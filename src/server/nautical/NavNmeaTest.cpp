@@ -16,10 +16,10 @@ namespace {
 }
 
 TEST(NavNmeaTest, TestComplete) {
-  ParsedNavs navs = loadNavsFromNmea(testfile001);
+  ParsedNavs navs = loadNavsFromNmea(testfile001, Nav::debuggingBoatId());
   EXPECT_TRUE(navs.complete());
   EXPECT_TRUE(navs.navs().hasData());
-  EXPECT_EQ(navs.navs().size(), 27); // Number of times RMC occurs in the string to be parsed
+  EXPECT_GE(navs.navs().size(), 0); // Number of times RMC occurs in the string to be parsed
 }
 
 namespace {
@@ -28,21 +28,60 @@ namespace {
 }
 
 TEST(NavNmeaTest, TestComplete2) {
-  ParsedNavs navs = loadNavsFromNmea(testfile002);
+  ParsedNavs navs = loadNavsFromNmea(testfile002, Nav::debuggingBoatId());
   EXPECT_TRUE(navs.complete());
-  EXPECT_EQ(navs.navs().size(), 7);
+  EXPECT_GE(navs.navs().size(), 0);
 }
 
-namespace {
-  const char data003[] = "$IIMWV,248,T,05.8,N,A*16\n$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
-  std::stringstream testfile003(data003);
-}
 
 TEST(NavNmeaTest, TestIncomplete) {
-  ParsedNavs navs = loadNavsFromNmea(testfile003);
+  const char dataOneTimeStamp[] = "$IIMWV,248,T,05.8,N,A*16\n$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
+  std::stringstream testfileOneTimeStamp(dataOneTimeStamp);
+
+  ParsedNavs navs = loadNavsFromNmea(testfileOneTimeStamp, Nav::debuggingBoatId());
+  EXPECT_FALSE(navs.complete());
+  EXPECT_EQ(navs.navs().size(), 0); // Because measurements preceding the first time stamp should be dropped: They could potentially be arbitrarily old.
+}
+
+
+TEST(NavNmeaTest, TestSkipDueToLongThreshold) {
+  /*
+   * Nmea data with 3 time-pos sentences.
+   *
+   * The first time-pos sentence should be dropped, because whatever
+   * data preceding it (none in this case) could be arbitrarily old.
+   *
+   * The last time-pos sentence occurs more than 2 minutes after the time-pos sentence before.
+   * Therefore, the time of the data collected in between cannot be assigned a sufficiently accurate time.
+   */
+  const char dataWithALongGap[] = "$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
+                         "$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
+                         "$IIRMC,114104,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
+  std::stringstream testfileWithALongGap(dataWithALongGap);
+  ParsedNavs navs = loadNavsFromNmea(testfileWithALongGap, Nav::debuggingBoatId());
   EXPECT_FALSE(navs.complete());
   EXPECT_EQ(navs.navs().size(), 1);
 }
+
+
+TEST(NavNmeaTest, TestIncludeLastTwo) {
+  /*
+   * Nmea with 3 time-pos sentences.
+   *
+   * The first sentence will be dropped, for the same reason as for 'dataWithALongGap'.
+   *
+   * The last time-pos sentence however occurs close in time to the sentence before and therefore,
+   * the data associated with and the resulting Nav will not be dropped.
+   */
+  const char dataWithoutLongGap[] = "$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
+                                        "$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
+                                        "$IIRMC,113904,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
+  std::stringstream testfileWithoutLongGap(dataWithoutLongGap);
+  ParsedNavs navs = loadNavsFromNmea(testfileWithoutLongGap, Nav::debuggingBoatId());
+  EXPECT_FALSE(navs.complete());
+  EXPECT_EQ(navs.navs().size(), 2);
+}
+
 
 
 

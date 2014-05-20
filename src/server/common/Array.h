@@ -776,6 +776,28 @@ class Array {
     }
     return -1;
   }
+
+
+
+
+  typedef const T *ConstIterator;
+  typedef T *Iterator;
+
+  Iterator begin() {
+    return Iterator(_data);
+  }
+
+  Iterator end() {
+    return Iterator(_data + _size);
+  }
+
+  ConstIterator begin() const {
+    return ConstIterator(_data);
+  }
+
+  ConstIterator end() const {
+    return ConstIterator(_data + _size);
+  }
  private:
 
   void decRef() {
