@@ -82,8 +82,9 @@ Array<Arrayd> HistogramMap::groupValuesByBin(Arrayd X, Arrayd Y) const {
   assert(n == Y.size());
   for (int i = 0; i < n; i++) {
     int index = toBin(X[i]);
-    groups[index][counters[index]] = Y[i];
-    counters[index]++;
+    int &counter = counters[index];
+    groups[index][counter] = Y[i];
+    counter++;
   }
   return groups;
 }
