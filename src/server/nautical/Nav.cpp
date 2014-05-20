@@ -171,7 +171,7 @@ const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
 
 
 //Array<Velocity<double> > getTws(Array<Nav> navs);
-MAKE_ARRAY_MAPPER(getTws, Nav, Velocity<double>, x.estimateRawTws());
+VECTORIZE_ACCESSOR(estimateRawTws, Nav, Velocity<double>);
 
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort) {
