@@ -67,26 +67,5 @@ void HistogramMap::init(int count, double leftBd, double rightBd) {
   _index2left = LineKM(0, count, leftBd, rightBd);
 }
 
-namespace {
-  Array<Arrayd> allocateGroups(Arrayi cpb) {
-    return cpb.map<Arrayd>([&](int i) {return Arrayd(i);});
-  }
-}
-
-Array<Arrayd> HistogramMap::groupValuesByBin(Arrayd X, Arrayd Y) const {
-  Arrayi cpb = countPerBin(X);
-  Array<Arrayd> groups = allocateGroups(cpb);
-  assert(groups.size() == _binCount);
-  Arrayi counters = Arrayi::fill(_binCount, 0);
-  int n = X.size();
-  assert(n == Y.size());
-  for (int i = 0; i < n; i++) {
-    int index = toBin(X[i]);
-    int &counter = counters[index];
-    groups[index][counter] = Y[i];
-    counter++;
-  }
-  return groups;
-}
 
 } /* namespace sail */
