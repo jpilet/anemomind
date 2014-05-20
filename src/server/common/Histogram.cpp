@@ -52,9 +52,8 @@ double HistogramMap::toCenter(int binIndex) const {
 Arrayi HistogramMap::countPerBin(Arrayd values) const {
   Arrayi hist(_binCount);
   hist.setTo(0);
-  int count = values.size();
-  for (int i = 0; i < count; i++) {
-    hist[toBin(values[i])]++;
+  for (auto value: values) {
+    hist[toBin(value)]++;
   }
   return hist;
 }
