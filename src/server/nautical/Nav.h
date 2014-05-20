@@ -52,6 +52,14 @@ class Nav {
   Velocity<double> gpsSpeed() const {return _gpsSpeed;}
   Velocity<double> watSpeed() const {return _watSpeed;}
 
+  // Provide a raw estimate of the true wind,
+  // based on simple vector addition, assuming
+  // all instruments are perfectly calibrated.
+  HorizontalMotion<double> estimateRawTrueWind() const;
+
+  HorizontalMotion<double> apparentWind() const;
+  HorizontalMotion<double> gpsVelocity() const;
+
   void setAwa(Angle<double> awa_) {_awa = awa_;}
   void setAws(Velocity<double> aws_) {_aws = aws_;}
   void setMagHdg(Angle<double> magHdg_) {_magHdg = magHdg_;}

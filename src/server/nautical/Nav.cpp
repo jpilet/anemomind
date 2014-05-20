@@ -97,6 +97,17 @@ bool Nav::operator== (const Nav &other) const {
       _pos == other._pos && (strictEquality(_cwd, other._cwd)) && (strictEquality(_wd, other._wd));
 }
 
+HorizontalMotion<double> Nav::apparentWind() const {
+  return HorizontalMotion<double>::polar(aws(), awa());
+}
+HorizontalMotion<double> Nav::gpsVelocity() const {
+  return HorizontalMotion<double>::polar(gpsSpeed(), gpsBearing());
+}
+
+HorizontalMotion<double> Nav::estimateRawTrueWind() const {
+  return apparentWind() + gpsVelocity();
+}
+
 Nav::Id Nav::id() const {
   if (hasId()) {
     int64_t time = _time.toMilliSecondsSince1970();
