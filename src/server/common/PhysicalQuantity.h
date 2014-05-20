@@ -53,6 +53,7 @@ class PhysicalQuantity {
   typedef Quantity QuantityType;
   typedef Value ValueType;
 
+
   // Additon/subtraction --> Quantity
   Quantity operator+(ThisQuantity other) const {
     return Quantity::makeFromX(_x + other.get());
