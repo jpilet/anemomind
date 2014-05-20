@@ -42,17 +42,17 @@ class TargetSpeedData {
 };
 
 // Function used by getUpwindVmg and getDownwindVmg.
-Array<Velocity<double> > getVmg(Array<Nav> navs, bool isUpwind);
+Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind);
 
 // All navs are collected from upwind legs
-Array<Velocity<double> > getUpwindVmg(Array<Nav> navs);
+Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs);
 
 // All navs are collected from downwind legs
-Array<Velocity<double> > getDownwindVmg(Array<Nav> navs);
+Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs);
 
 // Guess what measurements correspond to upwind
 // legs by looking if cos(twa) > 0.
-Arrayb guessUpwindNavs(Array<Nav> navs);
+Arrayb guessUpwindNavsByTwa(Array<Nav> navs);
 
 
 } /* namespace sail */

@@ -64,6 +64,9 @@ class Nav {
   // Estimate the true wind angle relative to the boat.
   Angle<double> estimateRawTwa() const;
 
+  // Estimate the true wind speed
+  Velocity<double> estimateRawTws() const;
+
   void setAwa(Angle<double> awa_) {_awa = awa_;}
   void setAws(Velocity<double> aws_) {_aws = aws_;}
   void setMagHdg(Angle<double> magHdg_) {_magHdg = magHdg_;}
@@ -120,6 +123,8 @@ class Nav {
   // TIME RELATED
   TimeStamp _time;
 };
+
+Array<Velocity<double> > getTws(Array<Nav> navs);
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort = true);
 bool areSortedNavs(Array<Nav> navs);

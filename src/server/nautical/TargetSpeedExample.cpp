@@ -6,6 +6,7 @@
 #include <server/nautical/TargetSpeed.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
+#include <server/nautical/NavNmeaScan.h>
 
 using namespace sail;
 
@@ -14,9 +15,10 @@ namespace {
     Poco::Path srcpath = PathBuilder::makeDirectory(Env::SOURCE_DIR).
         pushDirectory("datasets").
         pushDirectory("regates").get();
-    Array<Nav> navs = scanNmeaFolder(srcpath, Nav::debuggingBoatId());
-    Arrayb upwind = guessUpwindNavs(navs);
-    Arrayb downwind = neg(upwind);
+    Array<Nav> allnavs = scanNmeaFolder(srcpath, Nav::debuggingBoatId());
+    Arrayb upwind = guessUpwindNavsByTwa(allnavs);
+    Array<Nav> upwindNavs = allnavs.slice(upwind);
+    Array<Velocity<double> > vmg = calcUpwindVmg(upwindNavs);
   }
 }
 

@@ -99,7 +99,7 @@ TargetSpeedData::TargetSpeedData(Array<Velocity<double> > windSpeeds,
       toMPS(windSpeeds)), quantiles);
 }
 
-Array<Velocity<double> > getVmg(Array<Nav> navs, bool isUpwind) {
+Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
   int sign = (isUpwind? 1 : -1);
   return navs.map<Velocity<double> >([&](const Nav &n) {
     double factor = sign*cos(n.estimateRawTwa());
@@ -107,15 +107,15 @@ Array<Velocity<double> > getVmg(Array<Nav> navs, bool isUpwind) {
   });
 }
 
-Array<Velocity<double> > getUpwindVmg(Array<Nav> navs) {
-  return getVmg(navs, true);
+Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs) {
+  return calcVmg(navs, true);
 }
 
-Array<Velocity<double> > getDownwindVmg(Array<Nav> navs) {
-  return getVmg(navs, false);
+Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs) {
+  return calcVmg(navs, false);
 }
 
-Arrayb guessUpwindNavs(Array<Nav> navs) {
+Arrayb guessUpwindNavsByTwa(Array<Nav> navs) {
   return navs.map<bool>([&](const Nav &x) {
     return cos(x.estimateRawTwa()) > 0;
   });

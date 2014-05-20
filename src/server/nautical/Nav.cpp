@@ -16,6 +16,7 @@
 #include <ctime>
 #include <server/nautical/WGS84.h>
 #include <server/common/string.h>
+#include <server/common/ArrayMapper.h>
 
 namespace sail {
 
@@ -110,6 +111,10 @@ Angle<double> Nav::estimateRawTwa() const {
   return estimateRawTrueWind().angle() - gpsBearing();
 }
 
+Velocity<double> Nav::estimateRawTws() const {
+  return estimateRawTrueWind().norm();
+}
+
 HorizontalMotion<double> Nav::estimateRawTrueWind() const {
   // Apparent = True - BoatVel <=> True = Apparent + BoatVel
   // E.g. if we are sailing downwind, the apparent wind will be close to zero and
@@ -162,6 +167,11 @@ const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
 //days = 23;
 //days_data = datenum(unsorted_data(:,year) + 2000, unsorted_data(:,month), unsorted_data(:, dayOfTheMonth), unsorted_data(:,hour), unsorted_data(:,minute), unsorted_data(:,second));
 
+
+
+
+//Array<Velocity<double> > getTws(Array<Nav> navs);
+MAKE_ARRAY_MAPPER(getTws, Nav, Velocity<double>, x.estimateRawTws());
 
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort) {
