@@ -51,6 +51,8 @@ class Nav {
   Angle<double> gpsBearing() const {return _gpsBearing;}
   Velocity<double> gpsSpeed() const {return _gpsSpeed;}
   Velocity<double> watSpeed() const {return _watSpeed;}
+  Angle<double> externalTwa() const {return _twaFromFile;}
+  Velocity<double> externalTws() const {return _twsFromFile;}
 
   // Provide a raw estimate of the true wind,
   // based on simple vector addition, assuming
@@ -70,6 +72,10 @@ class Nav {
   void setWatSpeed(Velocity<double> watSpeed_) {_watSpeed = watSpeed_;}
   void setTime(const TimeStamp &t) {_time = t;}
   void setGeographicPosition(GeographicPosition<double> pos) {_pos = pos;}
+
+  void setExternalTwa(Angle<double> twa_) {_twaFromFile = twa_;}
+  void setExternalTws(Velocity<double> tws_) {_twsFromFile = tws_;}
+
 
   // This is just temporary. We should
   // replace it with CMake-generated paths in the future.
