@@ -125,8 +125,9 @@ void Calibrator::addTack(int pos, double weight) {
     return;
   }
 
-  if (after.last().aws() < Velocity<>::knots(2.0) ||
-      before.last().aws() < Velocity<>::knots(2.0)) {
+  const Velocity<double> minWindSpeed = Velocity<double>::knots(2.0);
+  if (after.last().aws() < minWindSpeed ||
+      before.last().aws() < minWindSpeed) {
     // less than 2 knots of wind is not a useful measure.
     return;
   }
