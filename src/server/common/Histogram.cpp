@@ -5,6 +5,7 @@
 
 #include "Histogram.h"
 #include  <assert.h>
+#include <server/common/Span.h>
 
 namespace sail {
 
@@ -14,16 +15,9 @@ HistogramMap::HistogramMap(int count, double leftBd, double rightBd) {
 
 
 HistogramMap::HistogramMap(int count, Arrayd values) {
-  double minv = values[0];
-  double maxv = minv;
-  int n = values.size();
-  for (int i = 1; i < n; i++) {
-    double x = values[i];
-    minv = std::min(minv, x);
-    maxv = std::max(maxv, x);
-  }
+  Spand span(values);
   const double marg = 1.0e-9;
-  init(count, minv - marg, maxv + marg);
+  init(count, span.minv() - marg, span.maxv() + marg);
 }
 
 

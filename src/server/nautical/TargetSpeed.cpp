@@ -73,7 +73,7 @@ void TargetSpeedData::init(Array<Velocity<double> > windSpeeds,
   int count = windSpeeds.size();
   assert(vmg.size() == count);
   Array<Array<Velocity<double> > > groupedVmg =
-      _hist.groupValuesByBin(X, windSpeeds);
+      _hist.groupValuesByBin(X, vmg);
   for (auto &group : groupedVmg) {
     std::sort(group.begin(), group.end());
   }

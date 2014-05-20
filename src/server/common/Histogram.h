@@ -48,8 +48,10 @@ class HistogramMap {
     assert(n == Y.size());
     for (int i = 0; i < n; i++) {
       int index = toBin(X[i]);
-      groups[index][counters[index]] = Y[i];
-      counters[index]++;
+      if (validIndex(index)) {
+        groups[index][counters[index]] = Y[i];
+        counters[index]++;
+      }
     }
     return groups;
   }
