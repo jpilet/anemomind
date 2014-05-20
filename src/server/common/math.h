@@ -124,14 +124,14 @@ MAKE_UNIT2OTHERUNIT_CONVERTER(knots2MPS, MPS2knots, 1852.0/3600.0);
 // Always returns a number in [0, b[
 template <typename T>
 T positiveMod(T a, T b) {
-  assert(b > 0);
-  int aOverB = int(a/b);
-  if (a >= 0) {
+  assert(b > T(0));
+  T aOverB = std::floor(a/b);
+  if (a >= T(0)) {
     return a - aOverB*b;
   } else {
     T a2 = a - (aOverB - 1)*b;
-    assert(a2 >= 0);
-    return a2 - int(a2/b)*b;
+    assert(a2 >= T(0));
+    return a2 - std::floor(a2/b)*b;
   }
 }
 

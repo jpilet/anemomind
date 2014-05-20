@@ -18,8 +18,19 @@ namespace sail {
 // Class to hold the results when reading Navs from a file.
 class ParsedNavs {
  public:
-  static const int FIELD_COUNT = 8;
-  enum FieldId {TIME = 0, POS, AWA, AWS, MAG_HDG, GPS_BEARING, GPS_SPEED, WAT_SPEED};
+  enum FieldId {
+    TIME = 0,
+    POS,
+    AWA,
+    AWS,
+    MAG_HDG,
+    GPS_BEARING,
+    GPS_SPEED,
+    WAT_SPEED,
+    TWA_EXTERNAL,
+    TWS_EXTERNAL,
+    FIELD_COUNT
+  };
   typedef std::bitset<FIELD_COUNT> FieldMask;
 
   // To let us write, for instance, field(AWA) | field(AWS) to construct a mask

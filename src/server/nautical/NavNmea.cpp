@@ -90,6 +90,13 @@ namespace {
     mask->set(ParsedNavs::AWS, true);
   }
 
+  void readNmeaTW(const NmeaParser &parser, Nav *dstNav, ParsedNavs::FieldMask *mask) {
+    dstNav->setExternalTwa(Angle<double>::degrees(parser.twa()));
+    mask->set(ParsedNavs::TWA_EXTERNAL, true);
+    dstNav->setExternalTws(Velocity<double>::knots(parser.tws() / 256.0));
+    mask->set(ParsedNavs::TWS_EXTERNAL, true);
+  }
+
   Velocity<double> getWatSpeed(const NmeaParser &parser) {
     return Velocity<double>::knots(parser.watSpeed() / 256.0);
   }
@@ -120,7 +127,7 @@ namespace {
        readNmeaAW(parser, dstNav, mask);
        break;
      case NmeaParser::NMEA_TW:
-       // Ignore the true wind. We will calculate it ourselves.
+       readNmeaTW(parser, dstNav, mask);
        break;
      case NmeaParser::NMEA_WAT_SP_HDG:
        readNmeaWatSpHdg(parser, dstNav, mask);
@@ -181,9 +188,14 @@ namespace {
 
           dstNav->setBoatId(boatId);
           navAcc->add(*dstNav);
+        } else {
+          // Note that we reset dstNav only if there was a time gap.
+          // This propagates fresh values to the next Nav. 
+          // It makes sense, since NMEA is a stream of data combining
+          // instruments working at different frequencies.
+          *dstNav = Nav();
         }
         *last = veryLast;
-        *dstNav = Nav();
       }
     }
   }

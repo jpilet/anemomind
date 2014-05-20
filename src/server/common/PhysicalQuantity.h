@@ -18,9 +18,10 @@
 
 #include <array>
 #include <cmath>
-#include <string>
-#include <sstream>
 #include <limits>
+#include <server/common/math.h>
+#include <sstream>
+#include <string>
 
 namespace sail {
 
@@ -110,6 +111,18 @@ class Angle : public PhysicalQuantity<Angle<T>, T> {
   DECLARE_PHYSQUANT_CONSTRUCTORS(Angle, radians)
  public:
   MAKE_PHYSQUANT_UNIT_CONVERTERS(degrees, M_PI/180.0);
+
+  Angle directionDifference(const Angle<T>& other) const {
+    T diff = this->get() - other.get();
+    // Unfortunately, positiveMod can't be instanciated with a ceres::Jet.
+    // Let's fake positiveMod with comparisons and additions.
+    if (diff < T(-M_PI)) {
+      diff += T(2.0 * M_PI);
+    } else if (diff > T(M_PI)) {
+      diff -= T(2.0 *M_PI);
+    }
+    return radians(diff);
+  }
 
   static Angle<T> degMinMc(T deg, T min, T mc) {
       return Angle<T>::degrees(deg + (1.0/60)*(min + 0.001*mc));
