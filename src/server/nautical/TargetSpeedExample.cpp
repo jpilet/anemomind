@@ -36,7 +36,8 @@ namespace {
     std::cout << "VMG-span (m/s): " << Spand(vmgd) << std::endl;
     TargetSpeedData tgt(tws, vmg, binCount);
 
-    {
+    const bool dispHist = false;
+    if (dispHist) {
       const HistogramMap &hist = tgt.hist();
       GnuplotExtra plot;
       plot.set_style("lines");
