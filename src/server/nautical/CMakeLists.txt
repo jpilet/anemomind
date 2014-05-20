@@ -258,3 +258,11 @@ target_link_libraries(nautical_TargetSpeed
                       nautical_Nav
                       common_Histogram
                      )           
+add_executable(nautical_TargetSpeedExample
+               TargetSpeedExample.cpp
+              )                     
+target_link_libraries(nautical_TargetSpeedExample
+                      nautical_TargetSpeed
+                      common_PathBuilder
+                      common_Env
+                     )              
