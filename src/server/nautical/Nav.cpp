@@ -98,13 +98,24 @@ bool Nav::operator== (const Nav &other) const {
 }
 
 HorizontalMotion<double> Nav::apparentWind() const {
-  return HorizontalMotion<double>::polar(aws(), awa());
+/* Important note: awa() is the angle w.r.t. the cource of the boat!
+ * So awa() = 0 always means the boat is in irons */
+  return HorizontalMotion<double>::polar(aws(), awa() + gpsBearing());
 }
 HorizontalMotion<double> Nav::gpsVelocity() const {
   return HorizontalMotion<double>::polar(gpsSpeed(), gpsBearing());
 }
 
+Angle<double> Nav::estimateRawTwa() const {
+  return estimateRawTrueWind().angle() - gpsBearing();
+}
+
 HorizontalMotion<double> Nav::estimateRawTrueWind() const {
+  // Apparent = True - BoatVel <=> True = Apparent + BoatVel
+  // E.g. if we are sailing downwind, the apparent wind will be close to zero and
+  // the true wind will be nearly the same as the boat velocity.
+  // If we are sailing upwind, the true wind and boat vel will point in opposite directions and we will have a strong
+  // apparent wind.
   return apparentWind() + gpsVelocity();
 }
 
