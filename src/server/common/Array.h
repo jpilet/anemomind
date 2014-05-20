@@ -157,11 +157,11 @@ class Array {
     return ThisType(x.size(), x.data());
   }
 
-  bool empty() {
+  bool empty() const {
     return _size == 0;
   }
 
-  bool hasData() {
+  bool hasData() const {
     return not empty();
   }
 

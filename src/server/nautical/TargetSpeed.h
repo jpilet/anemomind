@@ -26,15 +26,16 @@ class TargetSpeedData {
       Array<Velocity<double> > vmg,
       int binCount,
       Arrayd quantiles = makeDefaultQuantiles());
-
+  void plot();
  private:
   void init(Array<Velocity<double> > windSpeeds,
       Array<Velocity<double> > vmg,
       HistogramMap map,
       Arrayd quantiles);
 
+  Arrayd _quantiles;
   HistogramMap _hist;
-  Array<Array<Velocity<double> > > _medianValues;
+  Array<Arrayd> _medianValues;
 };
 
 // Function used by getUpwindVmg and getDownwindVmg.
