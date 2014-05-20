@@ -34,7 +34,11 @@ namespace {
     std::cout << "GPS-span (m/s): " << Spand(gssd) << std::endl;
     std::cout << "TWS-span (m/s): " << Spand(twsd) << std::endl;
     std::cout << "VMG-span (m/s): " << Spand(vmgd) << std::endl;
-    TargetSpeedData tgt(tws, vmg, binCount);
+
+    Velocity<double> minvel = Velocity<double>::metersPerSecond(4.0);
+    Velocity<double> maxvel = Velocity<double>::metersPerSecond(4.0);
+    TargetSpeedData tgt(tws, vmg, HistogramMap(25,
+        minvel.metersPerSecond(), maxvel.metersPerSecond()));
 
     const bool dispHist = false;
     if (dispHist) {
@@ -49,7 +53,7 @@ namespace {
 
 
 
-    tgt.plot();
+    //tgt.plot();
   }
 }
 
