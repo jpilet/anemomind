@@ -62,6 +62,9 @@ Arrayi HistogramMap::assignBins(Arrayd values) const {
 
 
 void HistogramMap::init(int count, double leftBd, double rightBd) {
+  assert(leftBd < rightBd);
+  assert(count > 0);
+
   _binCount = count;
   _index2left = LineKM(0, count, leftBd, rightBd);
 }
