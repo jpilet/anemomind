@@ -125,6 +125,7 @@ class Nav {
 };
 
 Array<Velocity<double> > estimateRawTws(Array<Nav> navs);
+Array<Velocity<double> > gpsSpeed(Array<Nav> navs);
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort = true);
 bool areSortedNavs(Array<Nav> navs);

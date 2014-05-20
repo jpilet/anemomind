@@ -8,6 +8,7 @@
 
 #include <server/common/Array.h>
 #include <server/common/LineKM.h>
+#include <server/common/MDArray.h>
 
 namespace sail {
 
@@ -53,7 +54,7 @@ class HistogramMap {
     return groups;
   }
 
-
+  MDArray2d makePlotData(Arrayi counts) const;
  private:
   void init(int binCount, double leftBd, double rightBd);
   int _binCount;

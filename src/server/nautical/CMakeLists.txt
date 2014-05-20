@@ -266,4 +266,5 @@ target_link_libraries(nautical_TargetSpeedExample
                       common_PathBuilder
                       common_Env
                       nautical_NavNmeaScan
+                      common_Span
                      )              

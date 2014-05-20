@@ -27,6 +27,7 @@ class TargetSpeedData {
       int binCount,
       Arrayd quantiles = makeDefaultQuantiles());
   void plot();
+  const HistogramMap &hist() const {return _hist;}
  private:
   void init(Array<Velocity<double> > windSpeeds,
       Array<Velocity<double> > vmg,

@@ -149,11 +149,13 @@ void TargetSpeedData::plot() {
   Arrayd X = makeBinCenters(_hist, sel);
   Array<Arrayd> mvalues = _medianValues.slice(sel);
   GnuplotExtra plot;
+  plot.set_style("lines");
   int qcount = _quantiles.size();
   for (int i = 0; i < qcount; i++) {
     Arrayd Y = mvalues.map<double>([&](const Array<double> &x) {
       return x[i];
     });
+    assert(X.size() == Y.size());
     plot.plot_xy(X, Y, stringFormat("Quantile at %.3g", _quantiles[i]));
   }
   plot.set_xlabel("Wind Speed (m/s)");

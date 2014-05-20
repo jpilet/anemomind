@@ -7,6 +7,9 @@
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
 #include <server/nautical/NavNmeaScan.h>
+#include <server/common/Span.h>
+#include <iostream>
+#include <server/plot/extra.h>
 
 using namespace sail;
 
@@ -18,7 +21,34 @@ namespace {
     Array<Nav> allnavs = scanNmeaFolder(srcpath, Nav::debuggingBoatId());
     Arrayb upwind = guessUpwindNavsByTwa(allnavs);
     Array<Nav> upwindNavs = allnavs.slice(upwind);
+
+    const int binCount = 25;
+    Array<Velocity<double> > tws = estimateRawTws(upwindNavs);
     Array<Velocity<double> > vmg = calcUpwindVmg(upwindNavs);
+    Array<Velocity<double> > gss = gpsSpeed(upwindNavs);
+
+    Arrayd gssd = gss.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
+    Arrayd twsd = tws.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
+    Arrayd vmgd = vmg.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
+
+    std::cout << "GPS-span (m/s): " << Spand(gssd) << std::endl;
+    std::cout << "TWS-span (m/s): " << Spand(twsd) << std::endl;
+    std::cout << "VMG-span (m/s): " << Spand(vmgd) << std::endl;
+    TargetSpeedData tgt(tws, vmg, binCount);
+
+    {
+      const HistogramMap &hist = tgt.hist();
+      GnuplotExtra plot;
+      plot.set_style("lines");
+      //plot.plot(hist.makePlotData(hist.countPerBin(twsd)));
+      //plot.plot(hist.makePlotData(hist.countPerBin(vmgd)));
+      plot.plot(hist.makePlotData(hist.countPerBin(gssd)));
+      plot.show();
+    }
+
+
+
+    tgt.plot();
   }
 }
 
