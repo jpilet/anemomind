@@ -36,7 +36,7 @@ namespace {
     std::cout << "VMG-span (m/s): " << Spand(vmgd) << std::endl;
 
     Velocity<double> minvel = Velocity<double>::metersPerSecond(4.0);
-    Velocity<double> maxvel = Velocity<double>::metersPerSecond(4.0);
+    Velocity<double> maxvel = Velocity<double>::metersPerSecond(17.0);
     TargetSpeedData tgt(tws, vmg, HistogramMap(25,
         minvel.metersPerSecond(), maxvel.metersPerSecond()));
 
