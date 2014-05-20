@@ -53,7 +53,7 @@ namespace {
 
 
 
-    //tgt.plot();
+    tgt.plot();
   }
 }
 
