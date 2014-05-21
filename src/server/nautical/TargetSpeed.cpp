@@ -166,8 +166,8 @@ void TargetSpeedData::plot() {
     assert(X.size() == Y.size());
     plot.plot_xy(X, Y, stringFormat("Quantile at %.3g", _quantiles[i]));
   }
-  plot.set_xlabel("Wind Speed (m/s)");
-  plot.set_ylabel("VMG (m/s)");
+  plot.set_xlabel("Wind Speed (knots)");
+  plot.set_ylabel("VMG (knots)");
   plot.show();
 }
 
