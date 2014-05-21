@@ -15,6 +15,13 @@ namespace sail {
 namespace ArrayStorageInternal {
   /*
    * Hack used to bypass the specialization for std::vector<bool>
+   *
+   * See http://www.cplusplus.com/reference/vector/vector-bool/
+   *
+   * While this space optimization in the C++ library may seem like a good idea, it is not practical
+   * when ArrayStorage<T> is used together with Array<T> that holds a pointer T *_data
+   * (with T=bool) to memory that is either from the stack or from ArrayStorage<T>. Therefore,
+   * we have to bypass this specialization somehow if we want to use std::vector.
    */
   template <typename T>
   class ElementType {

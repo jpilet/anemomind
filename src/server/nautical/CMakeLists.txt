@@ -190,7 +190,11 @@ cxx_test(nautical_LocalRaceTest
             nautical_LocalRace
             gtest_main)
 
-cxx_test(nautical_NavTest NavTest.cpp nautical_nav gtest_main)
+cxx_test(nautical_NavTest
+          NavTest.cpp
+          common_Env
+          common_PathBuilder
+          nautical_nav gtest_main)
 
 cxx_test(nautical_WGS84Test
             WGS84Test.cpp

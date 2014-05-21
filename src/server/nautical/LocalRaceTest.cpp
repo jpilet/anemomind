@@ -4,6 +4,7 @@
 
 using namespace sail;
 
+#undef TIMECONSUMING_TESTS
 #ifdef TIMECONSUMING_TESTS
 
 TEST(LocalRaceTest, InstationAndRegTest) {
