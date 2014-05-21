@@ -45,7 +45,7 @@ Arrayd TargetSpeedData::makeDefaultQuantiles() {
 namespace {
   Arrayd extractQuantiles(
       Array<Velocity<double> > velocities,
-      Arrayd quantiles) {
+      Arrayd quantiles, std::function<double(Velocity<double>)> unwrapper) {
 
       if (velocities.empty()) {
         return Arrayd();
@@ -59,14 +59,8 @@ namespace {
 
 
       return quantiles.map<double>([&](double x) {
-        return velocities[int(round(qmap(x)))].metersPerSecond();
+        return unwrapper(velocities[int(round(qmap(x)))]);
       });
-  }
-
-  Arrayd toMPS(Array<Velocity<double> > speeds) {
-    return speeds.map<double>([&](Velocity<double> x) {
-          return x.metersPerSecond();
-        });
   }
 
   bool validQuantiles(Arrayd Q) {
@@ -86,7 +80,7 @@ void TargetSpeedData::init(Array<Velocity<double> > windSpeeds,
                                  Arrayd quantiles) {
   assert(!quantiles.empty());
   assert(validQuantiles(quantiles));
-  Arrayd X = toMPS(windSpeeds);
+  Arrayd X = windSpeeds.map<double>(makeUnwrapper());
   if (map.undefined()) {
     map = HistogramMap(10, X);
   }
@@ -100,7 +94,7 @@ void TargetSpeedData::init(Array<Velocity<double> > windSpeeds,
   }
   _medianValues = groupedVmg.map<Arrayd>(
       [&](const Array<Velocity<double> > &vmg) {
-    return extractQuantiles(vmg, quantiles);
+    return extractQuantiles(vmg, quantiles, makeUnwrapper());
   });
   _quantiles = quantiles;
 }
@@ -111,7 +105,7 @@ TargetSpeedData::TargetSpeedData(Array<Velocity<double> > windSpeeds,
     int binCount, Velocity<double> minTws, Velocity<double> maxTws,
     Arrayd quantiles) {
   init(windSpeeds, vmg, HistogramMap(binCount,
-      minTws.metersPerSecond(), maxTws.metersPerSecond()), quantiles);
+      unwrap(minTws), unwrap(maxTws)), quantiles);
 }
 
 Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
