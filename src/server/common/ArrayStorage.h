@@ -35,10 +35,11 @@ namespace ArrayStorageInternal {
 template <typename T>
 class ArrayStorage {
  private:
-  typedef std::vector<typename ArrayStorageInternal::ElementType<T>::InternalType> Vector;
-  typedef std::shared_ptr<Vector> VectorPtr;
   typedef ArrayStorage<T> ThisType;
  public:
+  typedef std::vector<typename ArrayStorageInternal::ElementType<T>::InternalType> Vector;
+  typedef std::shared_ptr<Vector> VectorPtr;
+
   ArrayStorage() {}
 
   ArrayStorage(int s) : _data(new Vector(s)) {}

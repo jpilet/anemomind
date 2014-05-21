@@ -16,20 +16,30 @@ namespace sail {
 
 template <typename T>
 class ArrayBuilder {
+ private:
+  typedef typename ArrayStorage<T>::Vector Vector;
+  typedef typename ArrayStorage<T>::VectorPtr VectorPtr;
  public:
   ArrayBuilder(int expectedMaxCount = 1) {
-    _data.reserve(expectedMaxCount);
+    _data = VectorPtr(new Vector());
+    _data->reserve(expectedMaxCount);
+    assert(bool(_data));
   }
 
   void add(const T &x) {
-    _data.push_back(x);
+    assert(bool(_data));
+    _data->push_back(x);
   }
 
-  Array<T> get() {return Array<T>::referToVector(_data).dup();}
-  T &last() {return _data.back();}
-  bool empty() {return _data.empty();}
+  Array<T> get() {
+    Array<T> dst(_data);
+    _data = VectorPtr(new Vector(*_data));
+    return dst;
+  }
+  T &last() {return _data->back();}
+  bool empty() {return _data->empty();}
  private:
-  std::vector<T> _data;
+   VectorPtr _data;
 };
 
 }
