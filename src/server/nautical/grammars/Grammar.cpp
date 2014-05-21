@@ -54,7 +54,7 @@ Arrayb markNavsByDesc(std::shared_ptr<HTree> tree,
     }
 
     int count = allnavs.size();
-    Arrayb dst(count);
+    Arrayb dst = Arrayb::fill(count, false);
     markNodesRecursively(tree, inds, allnavs, dst);
     return dst;
 }
