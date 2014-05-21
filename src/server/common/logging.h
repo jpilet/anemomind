@@ -3,8 +3,8 @@
 \date 2012
 */
 
-#ifndef _LOGGING_H
-#define _LOGGING_H
+#ifndef _SERVER_COMMON_LOGGING_H
+#define _SERVER_COMMON_LOGGING_H
 
 #include <string>
 #include <sstream>
@@ -149,4 +149,4 @@ void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int
                                        const std::string& message));
 
 
-#endif  // _LOGGING_H
+#endif  // _SERVER_COMMON_LOGGING_H

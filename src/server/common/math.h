@@ -121,6 +121,35 @@ MAKE_UNIT2OTHERUNIT_CONVERTER(nm2m, m2nm, 1852.0);
 MAKE_UNIT2OTHERUNIT_CONVERTER(knots2MPS, MPS2knots, 1852.0/3600.0);
 #undef MAKE_UNIT2OTHERUNIT_CONVERTER
 
+// Always returns a number in [0, b[
+template <typename T>
+T positiveMod(T a, T b) {
+  assert(b > T(0));
+  T aOverB = std::floor(a/b);
+  if (a >= T(0)) {
+    return a - aOverB*b;
+  } else {
+    T a2 = a - (aOverB - 1)*b;
+    assert(a2 >= T(0));
+    return a2 - std::floor(a2/b)*b;
+  }
+}
+
+template <typename T>
+T normalizeAngleBetweenMinusPiAndPi(T a) {
+  // Unfortunately, positiveMod can't be instanciated with a ceres::Jet.
+  // Let's fake positiveMod with comparisons and additions.
+  T result(a);
+  while (result < T(-M_PI)) {
+    result += T(2.0 * M_PI);
+  }
+  while (result > T(M_PI)) {
+    result -= T(2.0 *M_PI);
+  }
+  return result;
+}
+
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */

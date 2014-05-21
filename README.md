@@ -10,6 +10,7 @@ The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
   * CMake build system
   * The following packages, used by POCO:
     libssl-dev, ~~unixodbc-dev, libmysqlclient-dev,~~ libkrb5-dev
+  * The following pacakges, used by Ceres: libeigen3-dev libsuitesparse-dev libcsparse2.2.3 libcxsparse2.2.3
   * Used by Armadillo: liblapack-dev, libblas-dev, libatlas3-base. See this page for help setting it up:
     http://danielnouri.org/notes/2012/12/19/libblas-and-liblapack-issues-and-speed,-with-scipy-and-ubuntu/
   * Armadillo

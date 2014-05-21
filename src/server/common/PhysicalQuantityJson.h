@@ -26,7 +26,7 @@ template <typename Value>
 struct JsonQuantityTraits<Duration<Value>, Value> {
     static double serialize(const Duration<Value>& duration) { return duration.seconds(); }
     static Duration<Value> deserialize(double v) { return Duration<Value>::seconds(v); }
-    static const char* suffix() { return  "-s"; };
+    static const char* suffix() { return  "_s"; };
     static const char* quantityName() {return "Duration";}
 };
 
@@ -34,7 +34,7 @@ template <typename Value>
 struct JsonQuantityTraits<Velocity<Value>, Value> {
     static double serialize(const Velocity<Value>& a) { return a.metersPerSecond(); }
     static Velocity<Value> deserialize(double v) { return Velocity<Value>::metersPerSecond(v); }
-    static const char* suffix() { return "-mps"; };
+    static const char* suffix() { return "_mps"; };
     static const char* quantityName() {return "Velocity";}
 };
 
@@ -42,7 +42,7 @@ template <typename Value>
 struct JsonQuantityTraits<Angle<Value>, Value> {
     static double serialize(const Angle<Value>& a) { return a.radians(); }
     static Angle<Value> deserialize(double v) { return Angle<Value>::radians(v); }
-    static const char* suffix() { return "-rad"; };
+    static const char* suffix() { return "_rad"; };
     static const char* quantityName() {return "Angle";}
 };
 
@@ -50,7 +50,7 @@ template <typename Value>
 struct JsonQuantityTraits<Length<Value>, Value> {
     static double serialize(const Length<Value>& a) { return a.meters(); }
     static Length<Value> deserialize(double v) { return Length<Value>::meters(v); }
-    static const char* suffix() { return "-m"; };
+    static const char* suffix() { return "_m"; };
     static const char* quantityName() {return "Length";}
 };
 

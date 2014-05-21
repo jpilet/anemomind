@@ -1,3 +1,5 @@
+add_subdirectory("grammars")
+
 add_library(nautical_Ecef
             Ecef.h
             Ecef.cpp)
@@ -38,6 +40,13 @@ cxx_test(nautical_NavNmeaTest
         )
 
 
+cxx_test(nautical_BoatLogProcessorTest
+         BoatLogProcessorTest.cpp
+         nautical_BoatLogProcessor
+         common_Env
+         gtest_main
+        )
+
 add_library(nautical_DataCalib
             DataCalib.h
             DataCalib.cpp)
@@ -51,6 +60,41 @@ add_library(nautical_LocalRace
 target_link_libraries(nautical_LocalRace
   math_armaadolc)            
             
+
+add_library(nautical_NavNmeaScan            
+            NavNmeaScan.h
+            NavNmeaScan.cpp
+           )
+target_link_libraries(nautical_NavNmeaScan
+                      nautical_NavNmea
+                      common_filesystem
+                     )
+
+add_library(nautical_HTreeJson
+            HTreeJson.h                     
+            HTreeJson.cpp
+           )
+target_link_libraries(nautical_HTreeJson
+                      nautical_nav
+                      common_Hierarchy
+                     )
+target_depends_on_poco_foundation(nautical_HTreeJson)                                
+                     
+add_executable(nautical_ParseExample
+               ParseExample.cpp
+              )
+target_link_libraries(nautical_ParseExample
+                      common_Env
+                      common_PathBuilder
+                      nautical_NavNmeaScan
+                      nautical_grammars_Grammar001
+                      nautical_NavJson
+                      nautical_HTreeJson
+                      common_HierarchyJson
+                      math_hmm_StateAssign
+                     )
+target_depends_on_poco_foundation(nautical_ParseExample)                                                                    
+               
             
 #################################################################
 ### PlotTrajectoryExamples
@@ -66,6 +110,15 @@ add_executable(examples_PlotTrajectoryExampleLastRace
   PlotTrajectoryExampleLastRace.cpp)
 target_link_libraries(examples_PlotTrajectoryExampleLastRace
   examples_PlotTrajectoryExamples)  
+
+add_executable(nautical_ScanNmeaExample
+               ScanNmeaExample.cpp
+              )
+target_link_libraries(nautical_ScanNmeaExample
+                       common_Env
+                       nautical_NavNmeaScan
+                       common_PathBuilder
+                      )
   
 add_executable(examples_PlotTrajectoryExampleLocalRace
   PlotTrajectoryExampleLocalRace.cpp)
@@ -93,6 +146,7 @@ target_depends_on_poco_json(nautical_NavJson)
 
 target_link_libraries(nautical_NavJson
                             nautical_nav
+                            common_Json
                             common_TimeStampJson
                             common_Json
                            )
@@ -144,3 +198,55 @@ cxx_test(nautical_WGS84Test
             common_Function
             common_LineKM
             gtest_main)
+
+cxx_test(nautical_BasicTrueWindEstimatorTest
+         BasicTrueWindEstimatorTest.cpp
+         common_Env
+         common_logging
+         nautical_nav
+         nautical_NavNmea
+         gtest_main)
+            
+
+add_library(nautical_BoatLogProcessor
+            BoatLogProcessor.cpp
+            BoatLogProcessor.h
+           )
+target_link_libraries(nautical_BoatLogProcessor
+                      common_logging
+                      common_PathBuilder
+                      nautical_NavNmeaScan
+                      nautical_grammars_Grammar001
+                      nautical_NavJson
+                      nautical_HTreeJson
+                      common_HierarchyJson
+                      math_hmm_StateAssign
+                     )              
+target_depends_on_poco_util(nautical_BoatLogProcessor)
+target_depends_on_poco_foundation(nautical_BoatLogProcessor)
+
+add_executable(nautical_processBoatLogs
+               processBoatLogs.cpp
+              )
+target_link_libraries(nautical_processBoatLogs
+                      nautical_BoatLogProcessor
+                     )              
+
+
+add_library(nautical_Calibrator
+            Calibrator.h
+            Calibrator.cpp
+           )
+target_link_libraries(nautical_Calibrator
+                      nautical_grammars_Grammar001
+                      nautical_NavNmeaScan
+                      common_math
+                     )
+target_depends_on_ceres(nautical_Calibrator)
+
+add_executable(nautical_BasicCalibrate
+               BasicCalibrate.cpp)
+target_link_libraries(nautical_BasicCalibrate
+                      common_logging
+                      nautical_Calibrator)
+
