@@ -602,9 +602,9 @@ class Array {
     return _data[0];
   }
 
-//  bool identicTo(const Array<T> &other) {
-//    return _size == other._size  && _data == other._data && _storage.;
-//  }
+  bool identicTo(const Array<T> &other) {
+    return _size == other._size  && _data == other._data && _storage == other._storage;
+  }
 
   ThisType cat(ThisType other) {
     ThisType dst(_size + other.size());
