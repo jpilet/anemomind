@@ -36,7 +36,7 @@ class TargetSpeedData {
   double unwrap(Velocity<double> x) {return x.knots();}
   std::function<double(Velocity<double>)> makeUnwrapper() {return [=](Velocity<double> x) {return unwrap(x);};}
 
-  // All velocities are internally stored as [meters per second]
+  // All velocities are internally stored as [knots]
   // Such a convention is reasonable, since HistogramMap only
   // works with doubles.
   Arrayd _quantiles;
