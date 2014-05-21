@@ -49,7 +49,7 @@ Arrayb markNavsByDesc(std::shared_ptr<HTree> tree,
     std::string label) {
 
     Arrayi inds = listNodeIndicesOfInterest(nodeInfo, label);
-    if (inds.empty()) { // Probably a bug
+    if (inds.empty()) { // Probably a bug if inds are empty.
       return Arrayb();
     }
 
