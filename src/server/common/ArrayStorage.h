@@ -65,6 +65,10 @@ class ArrayStorage {
     assert(allocated());
     return *_data;
   }
+
+  bool operator== (const ThisType &other) const {
+    return _data == other._data;
+  }
  private:
   VectorPtr _data;
 };
