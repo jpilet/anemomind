@@ -2,27 +2,33 @@
 #include <server/common/Duration.h>
 #include "Nav.h"
 #include "NavBBox.h"
+#include <server/common/Env.h>
+#include <server/common/PathBuilder.h>
+
 
 using namespace sail;
 
-// These tests read lots data from disk, which
-// is a bit slow, even with SSD disk ;-)
-// We may not want to run them every time.
-#ifdef TIMECONSUMING_TESTS
+namespace {
+  Poco::Path getAllNavsPath() {
+    return PathBuilder::makeDirectory(Env::SOURCE_DIR).
+        pushDirectory("datasets").makeFile("allnavs.txt").get();
+  }
+}
+
 
 TEST(NavTest, SortedTest) {
-  Array<Nav> navs = loadNavsFromText(ALLNAVSPATH);
+  Array<Nav> navs = loadNavsFromText(getAllNavsPath().toString());
   EXPECT_TRUE(navs.size() > 3);
 
   EXPECT_TRUE(areSortedNavs(navs));
 }
 
 TEST(NavTest, NavBBoxTest) {
-  Array<Nav> navs = loadNavsFromText(ALLNAVSPATH, true);
+  Array<Nav> navs = loadNavsFromText(getAllNavsPath().toString(), true);
   EXPECT_TRUE(navs.size() > 3);
 
   Array<Array<Nav> > splitNavs = splitNavsByDuration(navs,
-                                 Duration::minutes(10).getDurationSeconds());
+                                 Duration<double>::minutes(10).seconds());
   Array<NavBBox> boxes = calcNavBBoxes(splitNavs);
 
   int count = boxes.size();
@@ -33,4 +39,3 @@ TEST(NavTest, NavBBoxTest) {
   }
 }
 
-#endif
