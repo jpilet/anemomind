@@ -10,7 +10,6 @@
 #define ARRAYBUILDER_H_
 
 #include <server/common/Array.h>
-#include <vector>
 
 namespace sail {
 
