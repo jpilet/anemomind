@@ -23,8 +23,15 @@ HistogramMap::HistogramMap(int count, Arrayd values) {
 
 
 int HistogramMap::toBin(double value) const {
-  int index = int(_index2left.inv(value));
+
+  // Floor, to ensure that -0.1 maps to -1
+  int index = int(floor(_index2left.inv(value)));
+
   if (validIndex(index)) {
+    double lb = toLeftBound(index);
+    double rb = toRightBound(index);
+    assert(lb <= value);
+    assert(value < rb);
     return index;
   } else {
     return -1;
