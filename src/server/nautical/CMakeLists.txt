@@ -258,21 +258,6 @@ target_link_libraries(nautical_BasicCalibrate
                       common_logging
                       nautical_Calibrator)
 
-add_library(nautical_SynthTestData
-            SynthTestData.cpp
-            SynthTestData.h
-           )
-target_link_libraries(nautical_SynthTestData
-                      plot_gnuplot
-                     )           
-
-add_executable(nautical_SynthTestDataExamples
-               SynthTestDataExamples.cpp
-              )
-target_link_libraries(nautical_SynthTestDataExamples
-                      nautical_SynthTestData
-                     )
-                     
 add_library(nautical_GeographicReference
             GeographicReference.h
             GeographicReference.cpp
