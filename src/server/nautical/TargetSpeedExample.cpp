@@ -21,12 +21,15 @@ namespace {
         pushDirectory("regates").get();
     Array<Nav> allnavs = scanNmeaFolder(srcpath, Nav::debuggingBoatId());
 
-    Grammar001 g(Grammar001Settings());
+    Grammar001Settings settings;
+    Grammar001 g(settings);
 
 
     std::shared_ptr<HTree> tree = g.parse(allnavs);
 
-    Arrayb upwind = markNavsByDesc(tree, nodeInfo, allnavs, "upwind-leg");
+    Arrayb upwind = markNavsByDesc(tree, g.nodeInfo(), allnavs, "upwind-leg");
+    assert(!upwind.empty());
+    assert(countTrue(upwind) > 0);
 
 
     Array<Nav> upwindNavs = allnavs.slice(upwind);

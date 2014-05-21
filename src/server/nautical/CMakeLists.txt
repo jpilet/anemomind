@@ -275,4 +275,5 @@ target_link_libraries(nautical_TargetSpeedExample
                       common_Env
                       nautical_NavNmeaScan
                       common_Span
+                      nautical_grammars_Grammar001
                      )              
