@@ -5,6 +5,7 @@
 
 #include "Histogram.h"
 #include  <assert.h>
+#include <algorithm>
 
 namespace sail {
 
