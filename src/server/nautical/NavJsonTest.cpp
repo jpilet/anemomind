@@ -24,7 +24,7 @@ TEST(NavJsonTest, ConvertToJson) {
   EXPECT_GE(len, 0);
   EXPECT_EQ(s[0], '[');
   EXPECT_EQ(s[len-1], ']');
-  const char expected[] = "[{\"time-milliseconds-since-1970\":9223372036854775807}]";
+  const char expected[] = "[{\"time_ms_1970\":9223372036854775807}]";
   EXPECT_EQ(s, expected);
 }
 
@@ -66,33 +66,33 @@ void runJsonEncDecTest(const char *dataToDecode) {
 
 TEST(NavJsonTest, EncDecTest) {
   runJsonEncDecTest(
-      "[{\"time-milliseconds-since-1970\":9223372036854775807}]");
+      "[{\"time_ms_1970\":9223372036854775807}]");
   runJsonEncDecTest(
-    "[{\"alt-m\":0.4,"
-    "\"awa-rad\":0.5235987755982988,"
-    "\"aws-mps\":6,"
-    "\"gpsbearing-rad\":-0.3,"
-    "\"gpsspeed-mps\":1.1,"
-    "\"lat-rad\":0.6806784082777885,"
-    "\"lon-rad\":0.8377580409572782,"
-    "\"maghdg-rad\":-0.301,"
-    "\"time-milliseconds-since-1970\":1396029819000,"
-    "\"watspeed-mps\":0.03}]");
+    "[{\"alt_m\":0.4,"
+    "\"awa_rad\":0.5235987755982988,"
+    "\"aws_mps\":6,"
+    "\"gpsbearing_rad\":-0.3,"
+    "\"gpsspeed_mps\":1.1,"
+    "\"lat_rad\":0.6806784082777885,"
+    "\"lon_rad\":0.8377580409572782,"
+    "\"maghdg_rad\":-0.301,"
+    "\"time_ms_1970\":1396029819000,"
+    "\"watspeed_mps\":0.03}]");
 }
 
 TEST(NavJsonTest, BackwardCompatibilityTest) {
   // Make sure the following format can be correctly de-serialized.
   const char dataToDecode[] =
-    "[{\"alt-m\":0.4,"
-    "\"awa-rad\":0.5235987755982988,"
-    "\"aws-mps\":6,"
-    "\"gpsbearing-rad\":-0.3,"
-    "\"gpsspeed-mps\":1.1,"
-    "\"lat-rad\":0.6806784082777885,"
-    "\"lon-rad\":0.8377580409572782,"
-    "\"maghdg-rad\":-0.301,"
-    "\"time-milliseconds-since-1970\":1396029819000,"
-    "\"watspeed-mps\":0.03}]";
+    "[{\"alt_m\":0.4,"
+    "\"awa_rad\":0.5235987755982988,"
+    "\"aws_mps\":6,"
+    "\"gpsbearing_rad\":-0.3,"
+    "\"gpsspeed_mps\":1.1,"
+    "\"lat_rad\":0.6806784082777885,"
+    "\"lon_rad\":0.8377580409572782,"
+    "\"maghdg_rad\":-0.301,"
+    "\"time_ms_1970\":1396029819000,"
+    "\"watspeed_mps\":0.03}]";
   Nav base;
   base.setGeographicPosition(
       GeographicPosition<double>(

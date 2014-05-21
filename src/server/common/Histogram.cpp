@@ -6,6 +6,7 @@
 #include "Histogram.h"
 #include  <assert.h>
 #include <server/common/Span.h>
+#include <algorithm>
 
 namespace sail {
 

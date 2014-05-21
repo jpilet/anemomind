@@ -12,10 +12,10 @@ namespace sail {
 namespace json {
 
 namespace {
-  const char TimeLabel[] = "milliseconds-since-1970";
+  const char TimeLabel[] = "ms_1970";
 
   std::string makeFname(std::string prefix) {
-    return prefix + "-" + TimeLabel;
+    return prefix + "_" + TimeLabel;
   }
 }
 
