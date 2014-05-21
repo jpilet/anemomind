@@ -35,9 +35,9 @@ namespace {
     Array<Nav> upwindNavs = allnavs.slice(upwind);
 
     const int binCount = 25;
-    Array<Velocity<double> > tws = estimateRawTws(upwindNavs);
+    Array<Velocity<double> > tws = getExternalTws(upwindNavs);
     Array<Velocity<double> > vmg = calcUpwindVmg(upwindNavs);
-    Array<Velocity<double> > gss = gpsSpeed(upwindNavs);
+    Array<Velocity<double> > gss = getGpsSpeed(upwindNavs);
 
     Arrayd gssd = gss.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
     Arrayd twsd = tws.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});

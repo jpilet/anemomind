@@ -124,8 +124,10 @@ class Nav {
   TimeStamp _time;
 };
 
-Array<Velocity<double> > estimateRawTws(Array<Nav> navs);
-Array<Velocity<double> > gpsSpeed(Array<Nav> navs);
+Array<Velocity<double> > getExternalTws(Array<Nav> navs);
+Array<Angle<double> > getExternalTwa(Array<Nav> navs);
+Array<Velocity<double> > getGpsSpeed(Array<Nav> navs);
+
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort = true);
 bool areSortedNavs(Array<Nav> navs);

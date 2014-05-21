@@ -16,7 +16,6 @@
 #include <ctime>
 #include <server/nautical/WGS84.h>
 #include <server/common/string.h>
-#include <server/common/ArrayMapper.h>
 
 namespace sail {
 
@@ -170,8 +169,20 @@ const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
 
 
 
-VECTORIZE_ACCESSOR(estimateRawTws, Nav, Velocity<double>);
-VECTORIZE_ACCESSOR(gpsSpeed, Nav, Velocity<double>);
+
+Array<Velocity<double> > getExternalTws(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&](const Nav &n) {return n.externalTws();});
+}
+
+Array<Angle<double> > getExternalTwa(Array<Nav> navs) {
+  return navs.map<Angle<double> >([&](const Nav &n) {return n.externalTwa();});
+}
+
+Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&](const Nav &n) {return n.gpsSpeed();});
+}
+
+
 
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort) {
