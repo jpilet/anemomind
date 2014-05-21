@@ -105,19 +105,13 @@ void TargetSpeedData::init(Array<Velocity<double> > windSpeeds,
   _quantiles = quantiles;
 }
 
-TargetSpeedData::TargetSpeedData(Array<Velocity<double> > windSpeeds,
-    Array<Velocity<double> > vmg,
-    HistogramMap map,
-    Arrayd quantiles) {
-    init(windSpeeds, vmg, map, quantiles);
-}
 
 TargetSpeedData::TargetSpeedData(Array<Velocity<double> > windSpeeds,
     Array<Velocity<double> > vmg,
-    int binCount,
+    int binCount, Velocity<double> minTws, Velocity<double> maxTws,
     Arrayd quantiles) {
   init(windSpeeds, vmg, HistogramMap(binCount,
-      toMPS(windSpeeds)), quantiles);
+      minTws.metersPerSecond(), maxTws.metersPerSecond()), quantiles);
 }
 
 Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {

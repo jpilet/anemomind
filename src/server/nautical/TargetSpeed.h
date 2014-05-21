@@ -22,11 +22,7 @@ class TargetSpeedData {
   TargetSpeedData() {}
   TargetSpeedData(Array<Velocity<double> > windSpeeds,
       Array<Velocity<double> > vmg,
-      HistogramMap map = HistogramMap(),
-      Arrayd quantiles = makeDefaultQuantiles());
-  TargetSpeedData(Array<Velocity<double> > windSpeeds,
-      Array<Velocity<double> > vmg,
-      int binCount,
+      int binCount, Velocity<double> minTws, Velocity<double> maxTws,
       Arrayd quantiles = makeDefaultQuantiles());
   void plot();
   const HistogramMap &hist() const {return _hist;}
