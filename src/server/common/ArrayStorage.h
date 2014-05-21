@@ -12,10 +12,30 @@
 
 namespace sail {
 
+namespace ArrayStorageInternal {
+  /*
+   * Hack used to bypass the specialization for std::vector<bool>
+   */
+  template <typename T>
+  class ElementType {
+   public:
+    typedef T InternalType;
+  };
+
+  template <>
+  class ElementType<bool> {
+   public:
+    typedef unsigned char InternalType;
+    static_assert(sizeof(InternalType) == sizeof(bool), "Bad size");
+  };
+}
+
+
+
 template <typename T>
 class ArrayStorage {
  private:
-  typedef std::vector<T> Vector;
+  typedef std::vector<typename ArrayStorageInternal::ElementType<T>::InternalType> Vector;
   typedef std::shared_ptr<Vector> VectorPtr;
   typedef ArrayStorage<T> ThisType;
  public:
@@ -37,7 +57,7 @@ class ArrayStorage {
   T *ptr() {
     assert(allocated());
     Vector &v = *_data;
-    return &(v[0]);
+    return (T *)(&(v[0]));
   }
 
   const Vector &vector() const {
