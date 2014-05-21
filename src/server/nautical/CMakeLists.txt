@@ -272,3 +272,11 @@ add_executable(nautical_SynthTestDataExamples
 target_link_libraries(nautical_SynthTestDataExamples
                       nautical_SynthTestData
                      )
+                     
+add_library(nautical_GeographicReference
+            GeographicReference.h
+            GeographicReference.cpp
+           )
+target_link_libraries(nautical_GeographicReference
+                                 
+            
