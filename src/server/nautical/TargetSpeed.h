@@ -14,6 +14,8 @@
 
 namespace sail {
 
+
+
 class TargetSpeedData {
  public:
   static Arrayd makeDefaultQuantiles();
@@ -50,6 +52,9 @@ Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs);
 
 // All navs are collected from downwind legs
 Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs);
+
+// Tws
+Array<Velocity<double> > estimateTws(Array<Nav> navs);
 
 
 

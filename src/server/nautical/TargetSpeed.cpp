@@ -11,6 +11,27 @@
 
 namespace sail {
 
+namespace {
+  HorizontalMotion<double> estimateRawTrueWind(const Nav &nav) {
+    // Apparent = True - BoatVel <=> True = Apparent + BoatVel
+    // E.g. if we are sailing downwind, the apparent wind will be close to zero and
+    // the true wind will be nearly the same as the boat velocity.
+    // If we are sailing upwind, the true wind and boat vel will point in opposite directions and we will have a strong
+    // apparent wind.
+    return nav.apparentWind() + nav.gpsVelocity();
+  }
+
+  Angle<double> estimateRawTwa(const Nav &n) {
+    return estimateRawTrueWind(n).angle() - n.gpsBearing();
+  }
+
+  Velocity<double> estimateRawTws(const Nav &n) {
+    return estimateRawTrueWind(n).norm();
+  }
+}
+
+
+
 Arrayd TargetSpeedData::makeDefaultQuantiles() {
   const int count = 5;
 
@@ -102,7 +123,7 @@ TargetSpeedData::TargetSpeedData(Array<Velocity<double> > windSpeeds,
 Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
   int sign = (isUpwind? 1 : -1);
   return navs.map<Velocity<double> >([&](const Nav &n) {
-    double factor = sign*cos(n.estimateRawTwa());
+    double factor = sign*cos(estimateRawTwa(n));
     return n.gpsSpeed().scaled(factor);
   });
 }
@@ -113,6 +134,10 @@ Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs) {
 
 Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs) {
   return calcVmg(navs, false);
+}
+
+Array<Velocity<double> > estimateTws(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&](const Nav &n) {return estimateRawTws(n);});
 }
 
 

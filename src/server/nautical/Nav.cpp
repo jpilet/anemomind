@@ -106,22 +106,6 @@ HorizontalMotion<double> Nav::gpsVelocity() const {
   return HorizontalMotion<double>::polar(gpsSpeed(), gpsBearing());
 }
 
-Angle<double> Nav::estimateRawTwa() const {
-  return estimateRawTrueWind().angle() - gpsBearing();
-}
-
-Velocity<double> Nav::estimateRawTws() const {
-  return estimateRawTrueWind().norm();
-}
-
-HorizontalMotion<double> Nav::estimateRawTrueWind() const {
-  // Apparent = True - BoatVel <=> True = Apparent + BoatVel
-  // E.g. if we are sailing downwind, the apparent wind will be close to zero and
-  // the true wind will be nearly the same as the boat velocity.
-  // If we are sailing upwind, the true wind and boat vel will point in opposite directions and we will have a strong
-  // apparent wind.
-  return apparentWind() + gpsVelocity();
-}
 
 Nav::Id Nav::id() const {
   if (hasId()) {
@@ -136,6 +120,7 @@ Nav::Id Nav::id() const {
 bool Nav::hasId() const {
   return hasBoatId() && _time.defined();
 }
+
 
 
 const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";

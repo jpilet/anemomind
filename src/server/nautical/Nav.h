@@ -54,18 +54,9 @@ class Nav {
   Angle<double> externalTwa() const {return _twaFromFile;}
   Velocity<double> externalTws() const {return _twsFromFile;}
 
-  // Provide a raw estimate of the true wind,
-  // based on simple vector addition, assuming
-  // all instruments are perfectly calibrated.
-  HorizontalMotion<double> estimateRawTrueWind() const;
   HorizontalMotion<double> apparentWind() const;
   HorizontalMotion<double> gpsVelocity() const;
 
-  // Estimate the true wind angle relative to the boat.
-  Angle<double> estimateRawTwa() const;
-
-  // Estimate the true wind speed
-  Velocity<double> estimateRawTws() const;
 
   void setAwa(Angle<double> awa_) {_awa = awa_;}
   void setAws(Velocity<double> aws_) {_aws = aws_;}
