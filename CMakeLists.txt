@@ -13,6 +13,11 @@ function(target_depends_on_armadillo target)
     target_link_libraries(${target} ${ARMADILLO_LIBRARY})
 endfunction()
 
+set(RUN_TIME_CONSUMING_TESTS ON CACHE BOOL "Disable to accelerate testing")
+if (${RUN_TIME_CONSUMING_TESTS})
+    add_definitions(-DTIMECONSUMING_TESTS)
+endif (${RUN_TIME_CONSUMING_TESTS})
+
 # this include dir should be set per-target.
 # However, cmake does not propagate this property to dependents. As a hack,
 # the armadillo include dir will be accessible to all files.
