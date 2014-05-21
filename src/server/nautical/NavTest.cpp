@@ -8,9 +8,6 @@
 
 using namespace sail;
 
-#define TIMECONSUMING_TESTS
-#ifdef TIMECONSUMING_TESTS
-
 namespace {
   Poco::Path getAllNavsPath() {
     return PathBuilder::makeDirectory(Env::SOURCE_DIR).
@@ -42,4 +39,3 @@ TEST(NavTest, NavBBoxTest) {
   }
 }
 
-#endif

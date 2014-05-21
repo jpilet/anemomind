@@ -188,7 +188,11 @@ target_link_libraries(nautical_CalibrationExample
 cxx_test(nautical_LocalRaceTest
             LocalRaceTest.cpp
             nautical_LocalRace
-            gtest_main)
+            common_PathBuilder
+            common_Env
+            nautical_NavNmea
+            gtest_main
+           )
 
 cxx_test(nautical_NavTest
           NavTest.cpp

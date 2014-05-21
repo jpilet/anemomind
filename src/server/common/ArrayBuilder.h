@@ -31,9 +31,7 @@ class ArrayBuilder {
   }
 
   Array<T> get() {
-    Array<T> dst(_data);
-    _data = VectorPtr(new Vector(*_data));
-    return dst;
+    return Array<T>(ArrayStorage<T>(VectorPtr(new Vector(*_data))));
   }
   T &last() {return _data->back();}
   bool empty() {return _data->empty();}
