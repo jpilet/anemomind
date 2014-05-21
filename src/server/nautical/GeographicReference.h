@@ -9,6 +9,8 @@
 #ifndef GEOGRAPHICREFERENCE_H_
 #define GEOGRAPHICREFERENCE_H_
 
+#include <server/nautical/GeographicPosition.h>
+
 namespace sail {
 
 class GeographicReference {
@@ -16,7 +18,7 @@ class GeographicReference {
   GeographicReference();
   GeographicReference(const GeographicPosition<double> &pos);
   void map(GeographicPosition<double> src, Length<double> *xyzOut);
-  void unmap(Length<double> *xyzIn, GeographicPosition<double> *posOut);
+  GeographicPosition<double> unmap(Length<double> *xyzIn);
  private:
   double _dlon, _dlat;
   GeographicPosition<double> _pos;

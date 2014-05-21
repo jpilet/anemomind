@@ -26,10 +26,11 @@ void GeographicReference::map(GeographicPosition<double> src, Length<double> *xy
   xyzOut[2] = src.alt() - _pos.alt();
 }
 
-void GeographicReference::unmap(Length<double> *xyzIn, GeographicPosition<double> *posOut) {
+GeographicPosition<double> GeographicReference::unmap(Length<double> *xyzIn) {
   Angle<double> lon = Angle<double>::radians(xyzIn[0].meters()/_dlon) + _pos.lon();
   Angle<double> lat = Angle<double>::radians(xyzIn[1].meters()/_dlat) + _pos.lat();
   Length<double> alt = xyzIn[2] + _pos.alt();
+  return GeographicPosition<double>(lon, lat, alt);
 }
 
 

@@ -278,5 +278,11 @@ add_library(nautical_GeographicReference
             GeographicReference.cpp
            )
 target_link_libraries(nautical_GeographicReference
+                     )
+cxx_test(nautical_GeographicReferenceTest
+         GeographicReferenceTest.cpp
+         nautical_GeographicReference
+         gtest_main
+        )
                                  
             
