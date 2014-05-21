@@ -51,9 +51,6 @@ Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs);
 // All navs are collected from downwind legs
 Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs);
 
-// Guess what measurements correspond to upwind
-// legs by looking if cos(twa) > 0.
-Arrayb guessUpwindNavsByTwa(Array<Nav> navs);
 
 
 } /* namespace sail */

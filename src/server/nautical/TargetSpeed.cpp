@@ -115,11 +115,6 @@ Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs) {
   return calcVmg(navs, false);
 }
 
-Arrayb guessUpwindNavsByTwa(Array<Nav> navs) {
-  return navs.map<bool>([&](const Nav &x) {
-    return cos(x.estimateRawTwa()) > 0;
-  });
-}
 
 namespace {
   Arrayb markValidBins(Array<Arrayd> medianValues) {

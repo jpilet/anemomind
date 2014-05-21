@@ -10,6 +10,7 @@
 #include <server/common/Span.h>
 #include <iostream>
 #include <server/plot/extra.h>
+#include <server/nautical/grammars/Grammar001.h>
 
 using namespace sail;
 
@@ -19,7 +20,15 @@ namespace {
         pushDirectory("datasets").
         pushDirectory("regates").get();
     Array<Nav> allnavs = scanNmeaFolder(srcpath, Nav::debuggingBoatId());
-    Arrayb upwind = guessUpwindNavsByTwa(allnavs);
+
+    Grammar001 g(Grammar001Settings());
+
+
+    std::shared_ptr<HTree> tree = g.parse(allnavs);
+
+    Arrayb upwind = markNavsByDesc(tree, nodeInfo, allnavs, "upwind-leg");
+
+
     Array<Nav> upwindNavs = allnavs.slice(upwind);
 
     const int binCount = 25;
