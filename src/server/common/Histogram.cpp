@@ -25,6 +25,8 @@ HistogramMap::HistogramMap(int count, Arrayd values) {
 int HistogramMap::toBin(double value) const {
   int index = int(_index2left.inv(value));
   if (validIndex(index)) {
+    assert(toLeftBound(index) <= value);
+    assert(value < toRightBound(index));
     return index;
   } else {
     return -1;
