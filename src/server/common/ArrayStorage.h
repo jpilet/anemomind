@@ -46,7 +46,7 @@ class ArrayStorage {
 
   ArrayStorage(const VectorPtr &ptr) : _data(ptr) {}
 
-  ThisType dup() const {return ThisType(_data);}
+  ThisType dup() const {return ThisType(_data(new Vector(vector())));}
 
   bool allocated() const {return bool(_data);}
 
