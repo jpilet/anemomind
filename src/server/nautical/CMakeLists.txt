@@ -258,3 +258,7 @@ target_link_libraries(nautical_BasicCalibrate
                       common_logging
                       nautical_Calibrator)
 
+add_library(nautical_FlowField
+            FlowField.cpp
+            FlowField.h
+           )
