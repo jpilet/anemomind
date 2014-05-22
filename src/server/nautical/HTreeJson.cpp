@@ -40,8 +40,8 @@ namespace {
 
     Array<std::shared_ptr<HTree> > ch = x->children();
     if (ch.hasData()) {
-      Poco::JSON::Array::Ptr arr(new Poco::JSON::Array(serializeMapped(ch, h.navs(), h.info())));
-      obj->set("children", arr);
+      CommonJson::Ptr arr = serializeMapped(ch, h.navs(), h.info());
+      arr->setObjectField(obj, "children");
       assert(obj->isArray("children"));
       assert(!obj->getArray("children").isNull());
     }

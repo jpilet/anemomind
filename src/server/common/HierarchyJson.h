@@ -6,10 +6,10 @@
 #ifndef HIERARCHYJSON_H_
 #define HIERARCHYJSON_H_
 
+#include <server/common/Json.h>
 #include <server/common/Hierarchy.h>
 #include <Poco/JSON/Array.h>
 #include <Poco/JSON/Object.h>
-#include <server/common/Json.h>
 
 namespace sail {
 namespace json {

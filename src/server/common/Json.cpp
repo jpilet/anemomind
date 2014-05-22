@@ -20,6 +20,20 @@ CommonJson::Ptr CommonJson::getObjectField(Poco::JSON::Object::Ptr src,
     }
 }
 
+CommonJson::Ptr CommonJson::getArrayElement(Poco::JSON::Array &src, int index) {
+  if (src.isArray(index)) {
+    return CommonJson::Ptr(new CommonJsonArray(src.getArray(index)));
+  } else if (src.isObject(index)) {
+    return CommonJson::Ptr(new CommonJsonObject(src.getObject(index)));
+  } else {
+    return CommonJson::Ptr(new CommonJsonVar(src.get(index)));
+  }
+}
+
+CommonJson::Ptr CommonJson::getArrayElement(Poco::JSON::Array::Ptr src, int index) {
+  return getArrayElement(*(src), index);
+}
+
 void CommonJson::invalid() {
   LOG(FATAL) << "Invalid CommonJson operation";
 }

@@ -38,11 +38,20 @@ class CommonJson {
   virtual CommonJsonVar *toVar() {invalid(); return nullptr;}
   virtual CommonJsonArray *toArray() {invalid(); return nullptr;}
   virtual CommonJsonObject *toObject() {invalid(); return nullptr;}
+
+
+
   virtual void addToArray(Poco::JSON::Array *dst) = 0;
+
   virtual void setObjectField(Poco::JSON::Object::Ptr dst,
       std::string fieldName) = 0;
+
   static CommonJson::Ptr getObjectField(Poco::JSON::Object::Ptr src,
       std::string fieldName);
+
+  static CommonJson::Ptr getArrayElement(Poco::JSON::Array &src, int index);
+  static CommonJson::Ptr getArrayElement(Poco::JSON::Array::Ptr src, int index);
+
   virtual ~CommonJson() {}
  private:
   void invalid();
@@ -137,20 +146,16 @@ CommonJson::Ptr serialize(Array<T> src) {
 template <typename T>
 void deserialize(CommonJson::Ptr csrc, Array<T> *dst) {
   assert(csrc->isArray());
-  Poco::JSON::Array &src = csrc->toArray()->get();
-  int count = src.size();
+  Poco::JSON::Array::Ptr src = csrc->toArray()->get();
+  int count = src->size();
   *dst = Array<T>(count);
   for (int i = 0; i < count; i++) {
-    if (src.isObject(i)) {
-      deserialize(src.getObject(i), dst->ptr(i));
-    } else {
-      JsonPrimitive<T>::readArrayElement(src, i, dst->ptr(i));
-    }
+    deserialize(CommonJson::getArrayElement(src, i), dst->ptr(i));
   }
 }
 
 // string
-void serializeField(CommonJson::Ptr obj, const std::string &fieldName, const std::string &value);
+void serializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, const std::string &value);
 void deserializeField(CommonJson::Ptr obj, const std::string &fieldName, std::string *valueOut);
 
 }

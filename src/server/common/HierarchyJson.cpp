@@ -3,8 +3,8 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include "HierarchyJson.h"
 #include <server/common/Json.h>
+#include "HierarchyJson.h"
 
 namespace sail {
 namespace json {
@@ -43,7 +43,6 @@ CommonJson::Ptr serialize(std::shared_ptr<HTree> x) {
   obj->set("right", x->right());
   Array<std::shared_ptr<HTree> > ch = x->children();
   if (ch.hasData()) {
-    obj->set("children", serialize(ch));
     serialize(ch)->setObjectField(obj, "children");
 
     assert(obj->isArray("children"));
@@ -61,8 +60,9 @@ void deserialize(Poco::JSON::Object::Ptr src, std::shared_ptr<HTree> *dst) {
   Array<std::shared_ptr<HTree> > children;
   CommonJson::Ptr ch = CommonJson::getObjectField(src, "children");
   assert(ch->isArray());
-  if (!ch->toArray()->get()->isNull()) {
-    deserialize(*ch, &children);
+  Poco::JSON::Array::Ptr arrptr = ch->toArray()->get();
+  if (!arrptr.isNull()) {
+    deserialize(ch, &children);
   }
   if (children.empty()) {
     *dst = std::shared_ptr<HTree>(new HLeaves(left, index, right - left));
