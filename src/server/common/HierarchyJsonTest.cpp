@@ -6,6 +6,7 @@
 
 #include <server/common/HierarchyJson.h>
 #include <gtest/gtest.h>
+#include <server/common/Json.h>
 #include <sstream>
 
 using namespace sail;
@@ -23,7 +24,7 @@ TEST(HierarchyJsonTest, TestSimple) {
 TEST(HierarchyJsonTest, TestSimpleArray) {
   HNode x(1, 2, "m", "testnode");
   Array<HNode> X = Array<HNode>::args(x);
-  Poco::JSON::Array obj = json::serialize(X);
+  CommonJson::Ptr obj = json::serialize(X);
   Array<HNode> Y;
   json::deserialize(obj, &Y);
 

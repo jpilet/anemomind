@@ -95,13 +95,17 @@ bool deserialize(Poco::JSON::Object::Ptr src, Quantity *x) {
 }
 
 template <typename T, int N>
-Poco::JSON::Object::Ptr serialize(const Vectorize<T, N> &x) {
-  return serializeArray<T>(Array<T>(N, x.data()));
+CommonJson::Ptr serialize(const Vectorize<T, N> &x) {
+  return serialize(Array<T>(N, x.data()));
 }
 
 template <typename T, int N>
-bool deserialize(Poco::JSON::Array src, Vectorize<T, N> *x) {
-  deserializeArray(src, x);
+bool deserialize(CommonJson::Ptr src, Vectorize<T, N> *x) {
+  Array<T> arr;
+  deserialize(src, &arr);
+  assert(arr.size() == N);
+  *x = Vectorize<T, N>(arr.ptr());
+  return true;
 }
 
 

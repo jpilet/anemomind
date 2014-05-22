@@ -25,7 +25,7 @@ namespace {
     Array<HNode> _info;
   };
 
-  Poco::JSON::Object::Ptr serialize(HTreeWithData h) {
+  CommonJson::Ptr serialize(HTreeWithData h) {
     std::shared_ptr<HTree> x = h.tree();
     Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
     assert(x->left() < x->right());
@@ -45,16 +45,16 @@ namespace {
       assert(obj->isArray("children"));
       assert(!obj->getArray("children").isNull());
     }
-    return obj;
+    return CommonJson::Ptr(new CommonJsonObject(obj));
   }
 }
 
-Poco::JSON::Object::Ptr serializeMapped(std::shared_ptr<HTree> x, Array<Nav> navs, Array<HNode> nodeInfo) {
+CommonJson::Ptr serializeMapped(std::shared_ptr<HTree> x, Array<Nav> navs, Array<HNode> nodeInfo) {
   return serialize(HTreeWithData(x, navs, nodeInfo));
 }
 
-Poco::JSON::Array serializeMapped(Array<std::shared_ptr<HTree> > x, Array<Nav> navs, Array<HNode> nodeInfo) {
-  return serializeArray(x.map<HTreeWithData>([&](std::shared_ptr<HTree> h) {return HTreeWithData(h, navs, nodeInfo);}));
+CommonJson::Ptr serializeMapped(Array<std::shared_ptr<HTree> > x, Array<Nav> navs, Array<HNode> nodeInfo) {
+  return serialize(x.map<HTreeWithData>([&](std::shared_ptr<HTree> h) {return HTreeWithData(h, navs, nodeInfo);}));
 }
 
 }

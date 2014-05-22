@@ -4,17 +4,59 @@
  */
 
 #include "Json.h"
+#include <server/common/logging.h>
 
 namespace sail {
 namespace json {
 
-void serializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, const std::string &value) {
+CommonJson::Ptr CommonJson::getObjectField(Poco::JSON::Object::Ptr src,
+    std::string fieldName) {
+    if (src->isArray(fieldName)) {
+      return CommonJson::Ptr(new CommonJsonArray(src->getArray(fieldName)));
+    } else if (src->isObject(fieldName)) {
+      return CommonJson::Ptr(new CommonJsonObject(src->getObject(fieldName)));
+    } else {
+      return CommonJson::Ptr(new CommonJsonVar(src->get(fieldName)));
+    }
+}
+
+void CommonJson::invalid() {
+  LOG(FATAL) << "Invalid CommonJson operation";
+}
+
+void CommonJsonVar::addToArray(Poco::JSON::Array *dst) {
+  dst->add(_x);
+}
+
+void CommonJsonArray::addToArray(Poco::JSON::Array *dst) {
+  dst->add(_x);
+}
+
+void CommonJsonObject::addToArray(Poco::JSON::Array *dst) {
+  dst->add(_x);
+}
+
+void CommonJsonVar::setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName) {
+  dst->set(fieldName, _x);
+}
+
+void CommonJsonObject::setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName) {
+  dst->set(fieldName, _x);
+}
+
+void CommonJsonArray::setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName) {
+  dst->set(fieldName, _x);
+}
+
+void serializeField(CommonJson::Ptr cobj, const std::string &fieldName, const std::string &value) {
+  Poco::JSON::Object::Ptr &obj = cobj->toObject()->get();
   if (!value.empty()) {
     obj->set(fieldName, value);
   }
 }
 
-void deserializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, std::string *valueOut) {
+void deserializeField(CommonJson::Ptr cobj, const std::string &fieldName, std::string *valueOut) {
+  Poco::JSON::Object::Ptr &obj = cobj->toObject()->get();
   if (obj->has(fieldName)) {
     *valueOut = obj->getValue<std::string>(fieldName);
   } else {

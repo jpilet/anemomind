@@ -19,7 +19,8 @@ namespace {
   }
 }
 
-bool deserializeField(Poco::JSON::Object::Ptr obj, const std::string &prefix, TimeStamp *out) {
+bool deserializeField(CommonJson::Ptr cobj, const std::string &prefix, TimeStamp *out) {
+  Poco::JSON::Object::Ptr obj = cobj->toObject()->get();
   std::string fname = makeFname(prefix);
   if (obj->has(fname)) {
     *out = TimeStamp::fromMilliSecondsSince1970(obj->getValue<Poco::Int64>(fname));
@@ -30,11 +31,11 @@ bool deserializeField(Poco::JSON::Object::Ptr obj, const std::string &prefix, Ti
 }
 
 
-Poco::JSON::Object::Ptr serialize(const TimeStamp &src) {
+CommonJson::Ptr serialize(const TimeStamp &src) {
   return toJsonObjectWithField<TimeStamp>("time", src);
 }
 
-bool deserialize(Poco::JSON::Object::Ptr src, TimeStamp *dst) {
+bool deserialize(CommonJson::Ptr src, TimeStamp *dst) {
   return deserializeField(src, "time", dst);
 }
 

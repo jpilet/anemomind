@@ -186,6 +186,12 @@ class Vectorize : public std::array<T, N> {
         }
     }
 
+    Vectorize<T, N>(const T *x) {
+      for (int i = 0; i < N; i++) {
+        (*this)[i] = x[i];
+      }
+    }
+
     static Vectorize<T, N> all(T value) {
         Vectorize<T, N> result;
         for (int i = 0; i < N; ++i) {

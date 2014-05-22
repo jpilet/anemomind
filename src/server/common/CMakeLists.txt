@@ -79,6 +79,9 @@ add_library(common_Json
             Json.cpp
            )
 target_depends_on_poco_json(common_Json)
+target_link_libraries(common_Json
+                      common_logging
+                     )
                    
         
 add_library(common_TimeStampJson

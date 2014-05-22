@@ -32,38 +32,57 @@ class CommonJson {
   virtual bool isDynamicVar() const {return false;}
   virtual bool isArray() const {return false;}
   virtual bool isObject() const {return false;}
-  virtual CommonJsonVar *toVar() {return nullptr;}
-  virtual CommonJsonArray *toArray() {return nullptr;}
-  virtual CommonJsonObject *toObject() {return nullptr;}
+
+  // Please first check with isX() before any of these methods is called
+  // if you want to avoid an error.
+  virtual CommonJsonVar *toVar() {invalid(); return nullptr;}
+  virtual CommonJsonArray *toArray() {invalid(); return nullptr;}
+  virtual CommonJsonObject *toObject() {invalid(); return nullptr;}
+  virtual void addToArray(Poco::JSON::Array *dst) = 0;
+  virtual void setObjectField(Poco::JSON::Object::Ptr dst,
+      std::string fieldName) = 0;
+  static CommonJson::Ptr getObjectField(Poco::JSON::Object::Ptr src,
+      std::string fieldName);
   virtual ~CommonJson() {}
+ private:
+  void invalid();
 };
 
-class CommonJsonVar {
+class CommonJsonVar : public CommonJson {
  public:
   CommonJsonVar(Poco::Dynamic::Var x) : _x(x) {}
   Poco::Dynamic::Var &get() {return _x;}
   bool isDynamicVar() {return true;}
   CommonJsonVar *toVar() {return this;}
+  void addToArray(Poco::JSON::Array *dst);
+  void setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
  private:
   Poco::Dynamic::Var _x;
 };
 
-class CommonJsonArray {
+class CommonJsonArray : public CommonJson {
  public:
-  CommonJsonArray(Poco::JSON::Array x) : _x(x) {}
-  Poco::JSON::Array &get() {return _x;}
+  CommonJsonArray(Poco::JSON::Array x) : _x(new Poco::JSON::Array(x)) {}
+  CommonJsonArray(Poco::JSON::Array::Ptr x) : _x(x) {}
+
+  Poco::JSON::Array::Ptr &get() {return _x;}
   bool isArray() {return true;}
   CommonJsonArray *toArray() {return this;}
+  void addToArray(Poco::JSON::Array *dst);
+  void setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
  private:
-  Poco::JSON::Array _x;
+  // TODO: Unsure of what is best: Poco::JSON::Array::Ptr or simply Poco::JSON::Array?
+  Poco::JSON::Array::Ptr _x;
 };
 
-class CommonJsonObject {
+class CommonJsonObject : public CommonJson {
  public:
   CommonJsonObject(Poco::JSON::Object::Ptr x) : _x(x) {}
   Poco::JSON::Object::Ptr &get() {return _x;}
   bool isObject() {return true;}
   CommonJsonObject *toObject() {return this;}
+  void addToArray(Poco::JSON::Array *dst);
+  void setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
  private:
   Poco::JSON::Object::Ptr _x;
 };
@@ -93,24 +112,32 @@ DECLARE_JSON_PRIMITIVE(double);
 // If serializeField, deserializeField are already defined for type T,
 // use this templates to build a serialize function.
 template <typename T>
-Poco::JSON::Object::Ptr toJsonObjectWithField(const std::string &typeName, const T &x) {
+CommonJson::Ptr toJsonObjectWithField(const std::string &typeName, const T &x) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
-  serializeField(obj, typeName, x);
-  return obj;
+  CommonJson::Ptr cobj(new CommonJsonObject(obj));
+  serializeField(cobj, typeName, x);
+  return cobj;
 }
 
 template <typename T>
-Poco::JSON::Array serializeArray(Array<T> src) {
-  Poco::JSON::Array arr;
+CommonJson::Ptr serializeArray(Array<T> src) {
+  Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
   int count = src.size();
   for (int i = 0; i < count; i++) {
-    arr.add(serialize(src[i]));
+    serialize(src[i])->addToArray(arr.get());
   }
-  return arr;
+  return CommonJson::Ptr(new CommonJsonArray(arr));
 }
 
 template <typename T>
-void deserializeArray(Poco::JSON::Array src, Array<T> *dst) {
+CommonJson::Ptr serialize(Array<T> src) {
+  return serializeArray(src);
+}
+
+template <typename T>
+void deserialize(CommonJson::Ptr csrc, Array<T> *dst) {
+  assert(csrc->isArray());
+  Poco::JSON::Array &src = csrc->toArray()->get();
   int count = src.size();
   *dst = Array<T>(count);
   for (int i = 0; i < count; i++) {
@@ -122,14 +149,9 @@ void deserializeArray(Poco::JSON::Array src, Array<T> *dst) {
   }
 }
 
-template <typename T>
-void deserializeArray(Poco::JSON::Array::Ptr src, Array<T> *dst) {
-  deserializeArray(*src, dst);
-}
-
 // string
-void serializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, const std::string &value);
-void deserializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, std::string *valueOut);
+void serializeField(CommonJson::Ptr obj, const std::string &fieldName, const std::string &value);
+void deserializeField(CommonJson::Ptr obj, const std::string &fieldName, std::string *valueOut);
 
 }
 }
