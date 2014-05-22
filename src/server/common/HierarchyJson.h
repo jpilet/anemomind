@@ -6,7 +6,7 @@
 #ifndef HIERARCHYJSON_H_
 #define HIERARCHYJSON_H_
 
-#include <server/common/Json.h>
+#include <server/common/CommonJson.h>
 #include <server/common/Hierarchy.h>
 #include <Poco/JSON/Array.h>
 #include <Poco/JSON/Object.h>

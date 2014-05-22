@@ -3,13 +3,13 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/common/Json.h>
 #include "HierarchyJson.h"
+#include <server/common/Json.h>
 
 namespace sail {
 namespace json {
 
-namespace {
+/*namespace {
   CommonJson::Ptr serializeCh(Array<std::shared_ptr<HTree> > ch) {
     Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
     for (auto c : ch) {
@@ -17,7 +17,7 @@ namespace {
     }
     return CommonJson::Ptr(new CommonJsonArray(arr));
   }
-}
+}*/
 
 CommonJson::Ptr serialize(std::shared_ptr<HTree> &x) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
@@ -27,7 +27,7 @@ CommonJson::Ptr serialize(std::shared_ptr<HTree> &x) {
   Array<std::shared_ptr<HTree> > ch = x->children();
   if (ch.hasData()) {
     //serialize(ch)->setObjectField(obj, "children"); // RECURSIVE CALL TO Array-version based on this function.
-    serializeCh(ch)->setObjectField(obj, "children");
+    serialize(ch)->setObjectField(obj, "children");
 
     assert(obj->isArray("children"));
     assert(!obj->getArray("children").isNull());
