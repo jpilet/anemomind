@@ -22,6 +22,9 @@ namespace sail {
  * of the race area. This class is convenient to use together with
  * the GeographicReference class that maps between GeographicPosition:s and
  * local x/y-positions in a race area.
+ *
+ * Main application: To generate synthetic wind/current fields
+ *   for use in test cases.
  */
 class FlowField {
  public:
@@ -39,7 +42,7 @@ class FlowField {
                             Span<Duration<double> > timeSpan,
                             Length<double> spaceRes,
                             Duration<double> timeRes,
-                            Vectorize<Velocity<double>, 2> meanFlow,
+                            FlowVector meanFlow,
                             Velocity<double> maxDif,
                             int spaceSmoothinIters, int timeSmoothingIters);
 

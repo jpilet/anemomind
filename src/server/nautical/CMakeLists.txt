@@ -262,3 +262,11 @@ add_library(nautical_FlowField
             FlowField.cpp
             FlowField.h
            )
+target_link_libraries(nautical_FlowField
+                      common_Uniform
+                     )           
+cxx_test(nautical_FlowFieldTest
+         FlowFieldTest.cpp
+         nautical_FlowField
+         gtest_main
+        )           
