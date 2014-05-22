@@ -63,10 +63,10 @@ namespace {
       json::serializeMapped(tree, navs, g.nodeInfo())->stringify(file, 0, 0);
     }{
       ofstream file(prefix + "_navs.js");
-      json::serialize(navs).stringify(file, 0, 0);
+      json::serialize(navs)->stringify(file, 0, 0);
     }{
       ofstream file(prefix + "_tree_node_info.js");
-      json::serialize(g.nodeInfo()).stringify(file, 0, 0);
+      json::serialize(g.nodeInfo())->stringify(file, 0, 0);
     }
 
     cout << "Done" << endl;

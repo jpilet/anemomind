@@ -61,7 +61,8 @@ void deserialize(Poco::JSON::Array src, Array<HNode> *dst) {
   deserializeArray(src, dst);
 }*/
 
-void deserialize(Poco::JSON::Object::Ptr src, std::shared_ptr<HTree> *dst) {
+void deserialize(CommonJson::Ptr csrc, std::shared_ptr<HTree> *dst) {
+  Poco::JSON::Object::Ptr src = csrc->toObject()->get();
   assert(!src.isNull());
   int index = src->getValue<int>("index");
   int left = src->getValue<int>("left");

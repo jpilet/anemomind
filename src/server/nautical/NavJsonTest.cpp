@@ -3,6 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <server/common/CommonJson.h>
 #include <Poco/JSON/Array.h>
 #include <Poco/JSON/ParseHandler.h>
 #include <Poco/JSON/Parser.h>
@@ -10,6 +11,7 @@
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <server/nautical/NavJson.h>
+#include <server/common/Json.h>
 
 using namespace sail;
 
@@ -46,7 +48,7 @@ Array<Nav> deserializeNavs(const char *dataToDecode) {
   EXPECT_TRUE(result.isArray());
   Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
 
-  json::deserialize(*arr, &navs);
+  json::deserialize(json::CommonJson::Ptr(new json::CommonJsonArray(arr)), &navs);
   return navs;
 }
 
@@ -55,7 +57,7 @@ void runJsonEncDecTest(const char *dataToDecode) {
   EXPECT_EQ(navs.size(), 1);
 
   std::stringstream ss;
-  json::serialize(navs).stringify(ss, 0, 0);
+  json::serialize(navs)->stringify(ss, 0, 0);
 
   Array<Nav> navs2 = deserializeNavs(ss.str().c_str());
   EXPECT_EQ(navs2.size(), 1);

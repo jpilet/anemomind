@@ -10,7 +10,7 @@
 
 #include <Poco/JSON/Object.h>
 #include <server/nautical/Nav.h>
-#include <server/common/Json.h>
+#include <server/common/CommonJson.h>
 
 namespace sail {
 namespace json {

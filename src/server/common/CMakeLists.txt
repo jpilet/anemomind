@@ -80,7 +80,7 @@ add_library(common_CommonJson
            )
 target_depends_on_poco_json(common_CommonJson)
 target_link_libraries(common_CommonJson
-                      common_Commonlogging
+                      common_logging
                      )
 add_library(common_Json
             Json.h
@@ -145,6 +145,7 @@ add_library(common_HierarchyJson
            )
 target_link_libraries(common_HierarchyJson
                       common_Hierarchy
+                      common_Json
                      )
 target_depends_on_poco_json(common_HierarchyJson)
 
