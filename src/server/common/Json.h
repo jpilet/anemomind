@@ -51,11 +51,21 @@ class CommonJsonVar {
 class CommonJsonArray {
  public:
   CommonJsonArray(Poco::JSON::Array x) : _x(x) {}
-  Poco::Dynamic::Var &get() {return _x;}
+  Poco::JSON::Array &get() {return _x;}
   bool isArray() {return true;}
   CommonJsonArray *toArray() {return this;}
  private:
-  Poco::Dynamic::Var _x;
+  Poco::JSON::Array _x;
+};
+
+class CommonJsonObject {
+ public:
+  CommonJsonObject(Poco::JSON::Object::Ptr x) : _x(x) {}
+  Poco::JSON::Object::Ptr &get() {return _x;}
+  bool isObject() {return true;}
+  CommonJsonObject *toObject() {return this;}
+ private:
+  Poco::JSON::Object::Ptr _x;
 };
 
 
