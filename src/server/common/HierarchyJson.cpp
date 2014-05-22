@@ -3,7 +3,6 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/common/Json.h>
 #include "HierarchyJson.h"
 
 namespace sail {
