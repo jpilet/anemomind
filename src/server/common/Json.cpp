@@ -62,8 +62,7 @@ void CommonJsonArray::setObjectField(Poco::JSON::Object::Ptr dst, std::string fi
   dst->set(fieldName, _x);
 }
 
-void serializeField(CommonJson::Ptr cobj, const std::string &fieldName, const std::string &value) {
-  Poco::JSON::Object::Ptr &obj = cobj->toObject()->get();
+void serializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, const std::string &value) {
   if (!value.empty()) {
     obj->set(fieldName, value);
   }

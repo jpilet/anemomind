@@ -14,7 +14,7 @@
 namespace sail {
 namespace json {
 
-Poco::JSON::Object::Ptr serialize(const Nav &nav) {
+CommonJson::Ptr serialize(const Nav &nav) {
   Poco::JSON::Object::Ptr x(new Poco::JSON::Object());
   serializeField(x, "time", nav.time());
   serializeField(x, "lon", nav.geographicPosition().lon());
@@ -29,7 +29,7 @@ Poco::JSON::Object::Ptr serialize(const Nav &nav) {
   serializeField(x, "id", nav.id());
   serializeField(x, "boat-id", nav.boatId());
 
-  return x;
+  return CommonJson::Ptr(new CommonJsonObject(x));
 }
 
 void deserialize(CommonJson::Ptr x, Nav *out) {
@@ -64,22 +64,6 @@ void deserialize(CommonJson::Ptr x, Nav *out) {
   out->setBoatId(boatId);
 }
 
-Poco::JSON::Array serialize(Array<Nav> navs) { // Perhaps write a template encodeArray<T> with T = Nav in this case...
-  Poco::JSON::Array arr;
-  int count = navs.size();
-  for (int i = 0; i < count; i++) {
-    arr.add(serialize(navs[i]));
-  }
-  return arr;
-}
-
-void deserialize(Poco::JSON::Array src, Array<Nav> *dst) {
-  int count = src.size();
-  *dst = Array<Nav>(count);
-  for (int i = 0; i < count; i++) {
-    deserialize(src.getObject(i), dst->ptr(i));
-  }
-}
 
 }
 } /* namespace sail */

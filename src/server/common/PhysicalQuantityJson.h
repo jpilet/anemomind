@@ -59,7 +59,7 @@ struct JsonQuantityTraits<Length<Value>, Value> {
 template<class Quantity>
 bool deserializeField(CommonJson::Ptr cobj, std::string fieldPrefix,
                Quantity *out) {
-  Poco::JSON::Object::Ptr obj = cobj->toObject();
+  Poco::JSON::Object::Ptr obj = cobj->toObject()->get();
     std::string fname = fieldPrefix + JsonQuantityTraits<Quantity, typename Quantity::ValueType>::suffix();
     bool is = obj->has(fname);
     if (is) {

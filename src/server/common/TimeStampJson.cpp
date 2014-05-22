@@ -35,7 +35,10 @@ void serializeField(Poco::JSON::Object::Ptr obj, const std::string &prefix, cons
 }
 
 CommonJson::Ptr serialize(const TimeStamp &src) {
-  return toJsonObjectWithField<TimeStamp>("time", src);
+  //return toJsonObjectWithField<TimeStamp>("time", src);
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object()); // Workaround for the line above which won't compile for some reason.
+  obj->set("time", src);
+  return CommonJson::Ptr(new CommonJsonObject(obj));
 }
 
 bool deserialize(CommonJson::Ptr src, TimeStamp *dst) {

@@ -3,10 +3,37 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <server/common/Json.h>
 #include "HierarchyJson.h"
 
 namespace sail {
 namespace json {
+
+namespace {
+  CommonJson::Ptr serializeCh(Array<std::shared_ptr<HTree> > ch) {
+    Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
+    for (auto c : ch) {
+      serialize(c)->addToArray(arr.get());
+    }
+    return CommonJson::Ptr(new CommonJsonArray(arr));
+  }
+}
+
+CommonJson::Ptr serialize(std::shared_ptr<HTree> &x) {
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  obj->set("index", x->index());
+  obj->set("left", x->left());
+  obj->set("right", x->right());
+  Array<std::shared_ptr<HTree> > ch = x->children();
+  if (ch.hasData()) {
+    //serialize(ch)->setObjectField(obj, "children"); // RECURSIVE CALL TO Array-version based on this function.
+    serializeCh(ch)->setObjectField(obj, "children");
+
+    assert(obj->isArray("children"));
+    assert(!obj->getArray("children").isNull());
+  }
+  return CommonJson::Ptr(new CommonJsonObject(obj));
+}
 
 CommonJson::Ptr serialize(const HNode &x) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
@@ -33,22 +60,6 @@ void deserialize(CommonJson::Ptr csrc, HNode *dst) {
 void deserialize(Poco::JSON::Array src, Array<HNode> *dst) {
   deserializeArray(src, dst);
 }*/
-
-
-CommonJson::Ptr serialize(std::shared_ptr<HTree> &x) {
-  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
-  obj->set("index", x->index());
-  obj->set("left", x->left());
-  obj->set("right", x->right());
-  Array<std::shared_ptr<HTree> > ch = x->children();
-  if (ch.hasData()) {
-    serialize(ch)->setObjectField(obj, "children");
-
-    assert(obj->isArray("children"));
-    assert(!obj->getArray("children").isNull());
-  }
-  return CommonJson::Ptr(new CommonJsonObject(obj));
-}
 
 void deserialize(Poco::JSON::Object::Ptr src, std::shared_ptr<HTree> *dst) {
   assert(!src.isNull());
