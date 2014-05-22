@@ -62,6 +62,18 @@ void CommonJsonArray::setObjectField(Poco::JSON::Object::Ptr dst, std::string fi
   dst->set(fieldName, _x);
 }
 
+void CommonJsonVar::stringify(std::ostream& out, unsigned int indent , int step ) const {
+  LOG(FATAL) << "Cannot stringify a var";
+}
+
+void CommonJsonArray::stringify(std::ostream& out, unsigned int indent , int step ) const {
+  _x->stringify(out, indent, step);
+}
+
+void CommonJsonObject::stringify(std::ostream& out, unsigned int indent , int step ) const {
+  _x->stringify(out, indent, step);
+}
+
 
 }
 } /* namespace sail */

@@ -51,9 +51,7 @@ class CommonJson {
   static CommonJson::Ptr getArrayElement(Poco::JSON::Array &src, int index);
   static CommonJson::Ptr getArrayElement(Poco::JSON::Array::Ptr src, int index);
 
-  virtual void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const {
-    invalid();
-  }
+  virtual void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const = 0;
 
   virtual ~CommonJson() {}
  private:
@@ -68,6 +66,7 @@ class CommonJsonVar : public CommonJson {
   CommonJsonVar *toVar() {return this;}
   void addToArray(Poco::JSON::Array *dst);
   void setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
+  void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const;
  private:
   Poco::Dynamic::Var _x;
 };
@@ -82,6 +81,7 @@ class CommonJsonArray : public CommonJson {
   CommonJsonArray *toArray() {return this;}
   void addToArray(Poco::JSON::Array *dst);
   void setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
+  void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const;
  private:
   // TODO: Unsure of what is best: Poco::JSON::Array::Ptr or simply Poco::JSON::Array?
   Poco::JSON::Array::Ptr _x;
@@ -95,6 +95,7 @@ class CommonJsonObject : public CommonJson {
   CommonJsonObject *toObject() {return this;}
   void addToArray(Poco::JSON::Array *dst);
   void setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
+  void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const;
  private:
   Poco::JSON::Object::Ptr _x;
 };
