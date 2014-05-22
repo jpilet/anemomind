@@ -16,6 +16,7 @@ namespace sail {
 class LineKM {
  public:
   LineKM(double x0, double x1, double y0, double y1);
+  LineKM(double k, double m) : _k(k), _m(m) {}
   LineKM();
   double operator() (double x) const;
   double inv(double x) const;

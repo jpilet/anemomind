@@ -1,9 +1,10 @@
 /*
- *  Created on: May 22, 2014
+ *  Created on: 2014-05-22
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
 #include "LineKMJson.h"
+#include <server/common/LineKM.h>
 
 namespace sail {
 namespace json {

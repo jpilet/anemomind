@@ -6,9 +6,11 @@
 #ifndef LINEKMJSON_H_
 #define LINEKMJSON_H_
 
-namespace sail {
-namespace json {
+#include <Poco/JSON/Object.h>
 
+namespace sail {
+class LineKM;
+namespace json {
 Poco::JSON::Object::Ptr serialize(const LineKM &x);
 void deserialize(Poco::JSON::Object::Ptr src, LineKM *dst);
 
