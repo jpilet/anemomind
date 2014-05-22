@@ -216,6 +216,46 @@ class Grid {
   const MDInds<N> &getInds() const {
     return _inds;
   }
+
+  /*
+   * Applies a centred filter of length 3 to
+   * the array. Gaussian filtering can be achieved
+   * by repeatedly applying this filter, e.g. a simple box filter.
+   *
+   * Can also be used to implement the 3x3 Sobel filter.
+   */
+  template <typename S>
+  void filter3(Array<S> src, Array<S> dst, int dim, double *coefs3 = nullptr, bool normalize = true) {
+    assert(0 <= dim);
+    assert(dim < N);
+    int count = _inds.numel();
+    assert(count == src.size());
+    assert(count == dst.size());
+    double defaultCoefs[3] = {1.0, 1.0, 1.0};
+    if (coefs3 == nullptr) {
+      coefs3 = defaultCoefs;
+    }
+    if (normalize) {
+      double absSum = std::abs(coefs3[0]) + std::abs(coefs3[0]) + std::abs(coefs3[0]);
+      double factor = 1.0/absSum;
+      for (int i = 0; i < 3; i++) {
+        coefs3[i] *= factor;
+      }
+    }
+    for (int i = 0; i < count; i++) {
+      int inds[N];
+      _inds.calcInv(i, inds);
+      int middle = _inds.calcIndex(inds);
+      int init = inds[dim];
+      inds[dim] = init - 1;
+      int before = _inds.calcIndexMirrored(inds);
+      inds[dim] = init + 1;
+      int after = _inds.calcIndexMirrored(inds);
+      dst[middle] = coefs3[0]*src[before]
+                  + coefs3[1]*src[middle]
+                  + coefs3[2]*src[after];
+    }
+  }
  private:
   MDInds<N> _inds;      // Holds the size of every
   LineKM _ind2Coord[N]; // Maps indices along a dimension to coordinates
