@@ -12,14 +12,26 @@
 namespace sail {
 namespace json {
 
-// Useful when serializing an array of primitives, such as int or double.
-inline Poco::Dynamic::Var serialize(int x) {
-  return Poco::Dynamic::Var(x);
-}
+template <typename T>
+class JsonPrimitive {
+ public:
+  static const bool IsPrimitive = false;
+  static void readArrayElement(const Poco::JSON::Array &src, int index, T *dst) {}
+};
 
-inline Poco::Dynamic::Var serialize(double x) {
-  return Poco::Dynamic::Var(x);
-}
+#define DECLARE_JSON_PRIMITIVE(type) \
+    inline Poco::Dynamic::Var serialize(type x) {return Poco::Dynamic::Var(x);} \
+    template <> \
+    class JsonPrimitive<type> { \
+     public: \
+      static const bool IsPrimitive = true; \
+      static void readArrayElement(const Poco::JSON::Array &src, int index, type *dst) { \
+        *dst = src.getElement<type>(index); \
+      } \
+    }
+DECLARE_JSON_PRIMITIVE(int);
+DECLARE_JSON_PRIMITIVE(double);
+#undef DECLARE_JSON_PRIMITIVE
 
 // If serializeField, deserializeField are already defined for type T,
 // use this templates to build a serialize function.
@@ -45,10 +57,18 @@ void deserializeArray(Poco::JSON::Array src, Array<T> *dst) {
   int count = src.size();
   *dst = Array<T>(count);
   for (int i = 0; i < count; i++) {
-    deserialize(src.getObject(i), dst->ptr(i));
+    if (src.isObject(i)) {
+      deserialize(src.getObject(i), dst->ptr(i));
+    } else {
+      JsonPrimitive<T>::readArrayElement(src, i, dst->ptr(i));
+    }
   }
 }
 
+template <typename T>
+void deserializeArray(Poco::JSON::Array::Ptr src, Array<T> *dst) {
+  deserializeArray(*src, dst);
+}
 
 // string
 void serializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, const std::string &value);

@@ -38,6 +38,13 @@ class Grid {
     _inds = MDInds<N>(sizes);
   }
 
+  Grid(MDInds<N> inds, const LineKM *ind2Coord) {
+    _inds = inds;
+    for (int i = 0; i < N; i++) {
+      _ind2Coord[i] = ind2Coord[i];
+    }
+  }
+
   virtual ~Grid() {}
 
   LineKM &getEq(int dim) {
@@ -274,6 +281,10 @@ class Grid {
       }
     }
     return true;
+  }
+
+  LineKM *ind2Coord() {
+    return _ind2Coord;
   }
  private:
   MDInds<N> _inds;      // Holds the size of every
