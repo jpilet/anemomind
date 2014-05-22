@@ -28,10 +28,8 @@ int HistogramMap::toBin(double value) const {
   int index = int(floor(_index2left.inv(value)));
 
   if (validIndex(index)) {
-    double lb = toLeftBound(index);
-    double rb = toRightBound(index);
-    assert(lb <= value);
-    assert(value < rb);
+    assert(toLeftBound(index) <= value);
+    assert(value < toRightBound(index));
     return index;
   } else {
     return -1;

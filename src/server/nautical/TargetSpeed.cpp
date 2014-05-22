@@ -12,13 +12,19 @@
 namespace sail {
 
 namespace {
+  HorizontalMotion<double> apparentWind(const Nav &nav) {
+  /* Important note: awa() is the angle w.r.t. the cource of the boat!
+   * So awa() = 0 always means the boat is in irons */
+    return HorizontalMotion<double>::polar(nav.aws(), nav.awa() + nav.gpsBearing());
+  }
+
   HorizontalMotion<double> estimateRawTrueWind(const Nav &nav) {
     // Apparent = True - BoatVel <=> True = Apparent + BoatVel
     // E.g. if we are sailing downwind, the apparent wind will be close to zero and
     // the true wind will be nearly the same as the boat velocity.
     // If we are sailing upwind, the true wind and boat vel will point in opposite directions and we will have a strong
     // apparent wind.
-    return nav.apparentWind() + nav.gpsVelocity();
+    return apparentWind(nav) + nav.gpsVelocity();
   }
 
   Angle<double> estimateRawTwa(const Nav &n) {

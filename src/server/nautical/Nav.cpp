@@ -97,11 +97,7 @@ bool Nav::operator== (const Nav &other) const {
       _pos == other._pos && (strictEquality(_cwd, other._cwd)) && (strictEquality(_wd, other._wd));
 }
 
-HorizontalMotion<double> Nav::apparentWind() const {
-/* Important note: awa() is the angle w.r.t. the cource of the boat!
- * So awa() = 0 always means the boat is in irons */
-  return HorizontalMotion<double>::polar(aws(), awa() + gpsBearing());
-}
+
 HorizontalMotion<double> Nav::gpsVelocity() const {
   return HorizontalMotion<double>::polar(gpsSpeed(), gpsBearing());
 }

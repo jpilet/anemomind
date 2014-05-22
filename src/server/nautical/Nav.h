@@ -54,7 +54,6 @@ class Nav {
   Angle<double> externalTwa() const {return _twaFromFile;}
   Velocity<double> externalTws() const {return _twsFromFile;}
 
-  HorizontalMotion<double> apparentWind() const;
   HorizontalMotion<double> gpsVelocity() const;
 
 
