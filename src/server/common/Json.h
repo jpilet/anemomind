@@ -97,35 +97,34 @@ class CommonJsonObject : public CommonJson {
 };
 
 
-template <typename T>
-class JsonPrimitive {
- public:
-  static const bool IsPrimitive = false;
-  static void readArrayElement(const Poco::JSON::Array &src, int index, T *dst) {}
-};
-
-#define DECLARE_JSON_PRIMITIVE(type) \
-    inline Poco::Dynamic::Var serialize(type x) {return Poco::Dynamic::Var(x);} \
-    template <> \
-    class JsonPrimitive<type> { \
-     public: \
-      static const bool IsPrimitive = true; \
-      static void readArrayElement(const Poco::JSON::Array &src, int index, type *dst) { \
-        *dst = src.getElement<type>(index); \
-      } \
-    }
-DECLARE_JSON_PRIMITIVE(int);
-DECLARE_JSON_PRIMITIVE(double);
-#undef DECLARE_JSON_PRIMITIVE
+//template <typename T>
+//class JsonPrimitive {
+// public:
+//  static const bool IsPrimitive = false;
+//  static void readArrayElement(const Poco::JSON::Array &src, int index, T *dst) {}
+//};
+//
+//#define DECLARE_JSON_PRIMITIVE(type) \
+//    inline Poco::Dynamic::Var serialize(type x) {return Poco::Dynamic::Var(x);} \
+//    template <> \
+//    class JsonPrimitive<type> { \
+//     public: \
+//      static const bool IsPrimitive = true; \
+//      static void readArrayElement(const Poco::JSON::Array &src, int index, type *dst) { \
+//        *dst = src.getElement<type>(index); \
+//      } \
+//    }
+//DECLARE_JSON_PRIMITIVE(int);
+//DECLARE_JSON_PRIMITIVE(double);
+//#undef DECLARE_JSON_PRIMITIVE
 
 // If serializeField, deserializeField are already defined for type T,
 // use this templates to build a serialize function.
 template <typename T>
 CommonJson::Ptr toJsonObjectWithField(const std::string &typeName, const T &x) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
-  CommonJson::Ptr cobj(new CommonJsonObject(obj));
-  serializeField(cobj, typeName, x);
-  return cobj;
+  serializeField(obj, typeName, x);
+  return CommonJson::Ptr(new CommonJsonObject(obj));
 }
 
 template <typename T>

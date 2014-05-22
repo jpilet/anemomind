@@ -6,9 +6,10 @@
 #ifndef TIMESTAMPJSON_H_
 #define TIMESTAMPJSON_H_
 
+#include <server/common/Json.h>
 #include <string>
 #include <Poco/JSON/Object.h>
-#include <server/common/Json.h>
+
 
 namespace sail {
 

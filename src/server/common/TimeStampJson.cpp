@@ -30,6 +30,9 @@ bool deserializeField(CommonJson::Ptr cobj, const std::string &prefix, TimeStamp
   return false;
 }
 
+void serializeField(Poco::JSON::Object::Ptr obj, const std::string &prefix, const TimeStamp &x) {
+  obj->set(makeFname(prefix), static_cast<Poco::Int64>(x.toMilliSecondsSince1970()));
+}
 
 CommonJson::Ptr serialize(const TimeStamp &src) {
   return toJsonObjectWithField<TimeStamp>("time", src);
@@ -44,9 +47,6 @@ bool deserialize(CommonJson::Ptr src, TimeStamp *dst) {
 
 
 
-void serializeField(Poco::JSON::Object::Ptr obj, const std::string &prefix, const TimeStamp &x) {
-  obj->set(makeFname(prefix), static_cast<Poco::Int64>(x.toMilliSecondsSince1970()));
-}
 
 }  // namespace json
 }  // namespace sail
