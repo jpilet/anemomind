@@ -264,6 +264,17 @@ class Grid {
     return dst;
   }
 
+  bool operator== (const ThisType &other) const {
+    if (!(_inds == other._inds)) {
+      return false;
+    }
+    for (int i = 0; i < N; i++) {
+      if (!(_ind2Coord[i] == other._ind2Coord[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
  private:
   MDInds<N> _inds;      // Holds the size of every
   LineKM _ind2Coord[N]; // Maps indices along a dimension to coordinates
