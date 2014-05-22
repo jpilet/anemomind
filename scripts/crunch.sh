@@ -3,6 +3,7 @@
 set -e
 src="${PWD}/uploads/$1/$2";
 dst="${PWD}/data/$1/$2"
+mkdir -p ${PWD}/data/$1
 echo "copying $src to $dst...";
 #sleep 5
 cp $src $dst;
