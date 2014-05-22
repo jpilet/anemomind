@@ -32,7 +32,7 @@ Poco::JSON::Object::Ptr serialize(const Nav &nav) {
   return x;
 }
 
-void deserialize(Poco::JSON::Object::Ptr x, Nav *out) {
+void deserialize(CommonJson::Ptr x, Nav *out) {
   TimeStamp time;
   Angle<double> lon, lat, maghdg, gpsb, awa;
   Length<double> alt;

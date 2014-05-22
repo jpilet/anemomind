@@ -24,7 +24,7 @@ void deserialize(CommonJson::Ptr src, HNode *dst);
 
 
 // HTree
-CommonJson::Ptr serialize(std::shared_ptr<HTree> x);
+CommonJson::Ptr serialize(std::shared_ptr<HTree> &x);
 void deserialize(CommonJson::Ptr src, std::shared_ptr<HTree> *dst);
 
 //Poco::JSON::Array serialize(Array<std::shared_ptr<HTree> > x);

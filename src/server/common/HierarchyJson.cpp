@@ -35,7 +35,7 @@ void deserialize(Poco::JSON::Array src, Array<HNode> *dst) {
 }*/
 
 
-CommonJson::Ptr serialize(std::shared_ptr<HTree> x) {
+CommonJson::Ptr serialize(std::shared_ptr<HTree> &x) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   obj->set("index", x->index());
   obj->set("left", x->left());
