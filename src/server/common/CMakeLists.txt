@@ -74,13 +74,20 @@ cxx_test(common_TimeStampTest
 
 
         
+add_library(common_CommonJson
+            CommonJson.h
+            CommonJson.cpp
+           )
+target_depends_on_poco_json(common_CommonJson)
+target_link_libraries(common_CommonJson
+                      common_Commonlogging
+                     )
 add_library(common_Json
             Json.h
             Json.cpp
            )
-target_depends_on_poco_json(common_Json)
 target_link_libraries(common_Json
-                      common_logging
+                      common_CommonJson
                      )
                    
         
