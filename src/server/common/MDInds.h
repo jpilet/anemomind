@@ -32,7 +32,7 @@ class Index {
     return mirrorIndex(inds[0], sizes[0]) + sizes[0]*Index<dims-1>::calcMirrored(inds + 1, sizes + 1);
   }
 
-  static int numel(int *sizes) {
+  static int numel(const int *sizes) {
     return sizes[0]*Index<dims-1>::numel(sizes+1);
   }
 
@@ -94,7 +94,7 @@ class Index<0> {
   static void calcInv(int index, int *sizes, int *indsOut) {
   }
 
-  static int numel(int *sizes) {
+  static int numel(const int *sizes) {
     return 1;
   }
 };
@@ -177,7 +177,7 @@ class MDInds {
     return calcIndex(inds);
   }
 
-  int numel() {
+  int numel() const {
     return Index<dims>::numel(_sizes);
   }
 

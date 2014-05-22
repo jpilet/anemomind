@@ -211,7 +211,7 @@ class Vectorize : public std::array<T, N> {
     }
 
     template <class Multiplier>
-    Vectorize<T, N> operator * (Multiplier x) {
+    Vectorize<T, N> operator * (Multiplier x) const {
         Vectorize result;
         for (int i = 0; i < N; ++i) {
             result[i] = (*this)[i] * x;
@@ -228,9 +228,14 @@ class Vectorize : public std::array<T, N> {
         return result;
     }
 
-  private:
     Vectorize() { }
+  private:
 };
+
+template <typename FactorType, typename ElemType, int N>
+Vectorize<ElemType, N> operator*(FactorType x, const Vectorize<ElemType, N> &v) {
+  return v*x;
+}
 
 }  // namespace sail
 

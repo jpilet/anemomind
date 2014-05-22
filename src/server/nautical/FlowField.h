@@ -27,20 +27,43 @@ class FlowField {
  public:
   typedef Vectorize<Velocity<double>, 2> FlowVector;
 
-  FlowField(Span<Length<double> > xSpan,
-            Span<Length<double> > ySpan,
-            Span<Duration<double> > timeSpan);
+  FlowField() {}
+
+  /*
+   * Generate a random vector field by first assigning
+   * a random flow at every vertex and then repeatedly smoothing
+   * in space in time with a box filter (converges to Gaussian smoothing)
+   */
+  static FlowField generate(Span<Length<double> > xSpan,
+                            Span<Length<double> > ySpan,
+                            Span<Duration<double> > timeSpan,
+                            Length<double> spaceRes,
+                            Duration<double> timeRes,
+                            Vectorize<Velocity<double>, 2> meanFlow,
+                            Velocity<double> maxDif,
+                            int spaceSmoothinIters, int timeSmoothingIters);
 
   // Look up
-  FlowVector map(Length<double> x, Length<double> y, Duration<double> time);
+  FlowVector map(Length<double> x, Length<double> y, Duration<double> time) const;
+
+  void plotTimeSlice(Duration<double> time) const;
  private:
-  void init(Grid3d grid, Array<FlowVector> flowVecs);
+  // Use raw doubles for the internal representation to facilitate
+  // the math ops.
+  typedef Vectorize<double, 2> InternalFlowVector;
+
+  FlowVector makeFlowVector(const InternalFlowVector &x) const {
+    return FlowVector{Velocity<double>::metersPerSecond(x[0]),
+                      Velocity<double>::metersPerSecond(x[1])};
+  }
+
+  FlowField(Grid3d grid, Array<InternalFlowVector> flow) : _grid(grid), _flow(flow) {}
 
   // The grid, defining the field
   Grid3d _grid;
 
   // Sampled flows at the grid vertices
-  Array<FlowVector> _flow;
+  Array<InternalFlowVector> _flow;
 };
 
 } /* namespace sail */

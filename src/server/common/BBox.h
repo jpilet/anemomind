@@ -24,6 +24,12 @@ class BBox {
     extend(vecN);
   }
 
+  BBox(Spand *spans) {
+    for (int i = 0; i < N; i++) {
+      _span[i] = spans[i];
+    }
+  }
+
   BBox(Spand x) {
     static_assert(N == 1, "This constructor is only applicable to 1-D bounding boxes.");
     _span[0] = x;

@@ -67,7 +67,7 @@ class Grid {
   static const int WVL = StaticPower<2, N>::result;
 
   // Expresses a point as a linear combination of the grid vertices
-  void makeVertexLinearCombination(double *vecN, int *indsOut, double *weightsOut) {
+  void makeVertexLinearCombination(double *vecN, int *indsOut, double *weightsOut) const {
     int indsFloor[N];
     double lambda[N];
     int tmpSize[N];
@@ -209,7 +209,7 @@ class Grid {
     return arma::sp_mat(IJ, X, rows, cols);
   }
 
-  int getVertexCount() {
+  int getVertexCount() const {
     return _inds.numel();
   }
 
@@ -256,6 +256,14 @@ class Grid {
                   + coefs3[2]*src[after];
     }
   }
+
+  template <typename S>
+  Array<S> filter3Easy(Array<S> src, int dim, double *coefs3 = nullptr, bool normalize = true) {
+    Array<S> dst(getVertexCount());
+    filter3(src, dst, dim, coefs3, normalize);
+    return dst;
+  }
+
  private:
   MDInds<N> _inds;      // Holds the size of every
   LineKM _ind2Coord[N]; // Maps indices along a dimension to coordinates
