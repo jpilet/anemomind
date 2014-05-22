@@ -51,9 +51,13 @@ class CommonJson {
   static CommonJson::Ptr getArrayElement(Poco::JSON::Array &src, int index);
   static CommonJson::Ptr getArrayElement(Poco::JSON::Array::Ptr src, int index);
 
+  virtual void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const {
+    invalid();
+  }
+
   virtual ~CommonJson() {}
  private:
-  void invalid();
+  void invalid() const;
 };
 
 class CommonJsonVar : public CommonJson {

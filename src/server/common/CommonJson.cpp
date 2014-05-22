@@ -34,7 +34,7 @@ CommonJson::Ptr CommonJson::getArrayElement(Poco::JSON::Array::Ptr src, int inde
   return getArrayElement(*(src), index);
 }
 
-void CommonJson::invalid() {
+void CommonJson::invalid() const {
   LOG(FATAL) << "Invalid CommonJson operation";
 }
 

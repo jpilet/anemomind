@@ -16,9 +16,9 @@ using namespace sail;
 TEST(NavJsonTest, ConvertToJson) {
   Nav nav;
   Array<Nav> navs(1, &nav);
-  Poco::JSON::Array data = json::serialize(navs);
+  json::CommonJson::Ptr data = json::serialize(navs);
   stringstream ss;
-  data.stringify(ss, 0, 0);
+  data->stringify(ss, 0, 0);
   std::string s = ss.str();
   int len = s.length();
   EXPECT_GE(len, 0);
