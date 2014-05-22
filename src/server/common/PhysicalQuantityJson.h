@@ -94,6 +94,17 @@ bool deserialize(Poco::JSON::Object::Ptr src, Quantity *x) {
   return deserializeField(src, std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
 }
 
+template <typename T, int N>
+Poco::JSON::Object::Ptr serialize(const Vectorize<T, N> &x) {
+  return serializeArray<T>(Array<T>(N, x.data()));
+}
+
+template <typename T, int N>
+bool deserialize(Poco::JSON::Array src, Vectorize<T, N> *x) {
+  deserializeArray(src, x);
+}
+
+
 }
 } /* namespace sail */
 

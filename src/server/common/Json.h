@@ -12,6 +12,53 @@
 namespace sail {
 namespace json {
 
+
+/*
+ * The following classes are intended to simplify
+ * writing Json serialization routines.
+ *
+ * The problem
+ * with the Poco json library is that fields in
+ * objects and arrays can be either Array, Object or Var.
+ * These classes wrap all these objects into a
+ * CommonJson object.
+ */
+class CommonJsonVar;
+class CommonJsonArray;
+class CommonJsonObject;
+class CommonJson {
+ public:
+  typedef std::shared_ptr<CommonJson> Ptr;
+  virtual bool isDynamicVar() const {return false;}
+  virtual bool isArray() const {return false;}
+  virtual bool isObject() const {return false;}
+  virtual CommonJsonVar *toVar() {return nullptr;}
+  virtual CommonJsonArray *toArray() {return nullptr;}
+  virtual CommonJsonObject *toObject() {return nullptr;}
+  virtual ~CommonJson() {}
+};
+
+class CommonJsonVar {
+ public:
+  CommonJsonVar(Poco::Dynamic::Var x) : _x(x) {}
+  Poco::Dynamic::Var &get() {return _x;}
+  bool isDynamicVar() {return true;}
+  CommonJsonVar *toVar() {return this;}
+ private:
+  Poco::Dynamic::Var _x;
+};
+
+class CommonJsonArray {
+ public:
+  CommonJsonArray(Poco::JSON::Array x) : _x(x) {}
+  Poco::Dynamic::Var &get() {return _x;}
+  bool isArray() {return true;}
+  CommonJsonArray *toArray() {return this;}
+ private:
+  Poco::Dynamic::Var _x;
+};
+
+
 template <typename T>
 class JsonPrimitive {
  public:
