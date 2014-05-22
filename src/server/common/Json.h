@@ -12,6 +12,15 @@
 namespace sail {
 namespace json {
 
+// Useful when serializing an array of primitives, such as int or double.
+inline Poco::Dynamic::Var serialize(int x) {
+  return Poco::Dynamic::Var(x);
+}
+
+inline Poco::Dynamic::Var serialize(double x) {
+  return Poco::Dynamic::Var(x);
+}
+
 // If serializeField, deserializeField are already defined for type T,
 // use this templates to build a serialize function.
 template <typename T>
