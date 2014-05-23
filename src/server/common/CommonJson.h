@@ -28,6 +28,8 @@ class CommonJsonObject;
 class CommonJson {
  public:
   typedef std::shared_ptr<CommonJson> Ptr;
+  enum SubType {Var, Array, Object};
+
   virtual bool isDynamicVar() const {return false;}
   virtual bool isArray() const {return false;}
   virtual bool isObject() const {return false;}
@@ -62,7 +64,7 @@ class CommonJsonVar : public CommonJson {
  public:
   CommonJsonVar(Poco::Dynamic::Var x) : _x(x) {}
   Poco::Dynamic::Var &get() {return _x;}
-  bool isDynamicVar() {return true;}
+  bool isDynamicVar() const {return true;}
   CommonJsonVar *toVar() {return this;}
   void addToArray(Poco::JSON::Array *dst);
   void setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
@@ -77,7 +79,7 @@ class CommonJsonArray : public CommonJson {
   CommonJsonArray(Poco::JSON::Array::Ptr x) : _x(x) {}
 
   Poco::JSON::Array::Ptr &get() {return _x;}
-  bool isArray() {return true;}
+  bool isArray() const {return true;}
   CommonJsonArray *toArray() {return this;}
   void addToArray(Poco::JSON::Array *dst);
   void setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
@@ -91,7 +93,7 @@ class CommonJsonObject : public CommonJson {
  public:
   CommonJsonObject(Poco::JSON::Object::Ptr x) : _x(x) {}
   Poco::JSON::Object::Ptr &get() {return _x;}
-  bool isObject() {return true;}
+  bool isObject() const {return true;}
   CommonJsonObject *toObject() {return this;}
   void addToArray(Poco::JSON::Array *dst);
   void setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);

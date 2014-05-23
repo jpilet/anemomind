@@ -8,6 +8,7 @@
 
 #include <server/common/Array.h>
 #include <server/common/CommonJson.h>
+#include <server/common/string.h>
 
 namespace sail {
 namespace json {
