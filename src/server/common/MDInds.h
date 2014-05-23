@@ -3,6 +3,24 @@
 
 namespace sail {
 
+
+// mirrorIndex: clean treatment at the boundaries when filtering images.
+// E.g. mirrorIndex(-1, 3) -> 0
+//      mirrorIndex( 0, 3) -> 0
+//      mirrorIndex( 1, 3) -> 1
+//      mirrorIndex( 2, 3) -> 2
+//      mirrorIndex( 3, 3) -> 2
+
+inline int mirrorIndex(int index, int size) {
+  if (index < 0) {
+    return mirrorIndex(-index - 1, size);
+  } else if (index >= size) {
+    return size - 1 - mirrorIndex(index - size, size);
+  }
+  return index;
+}
+
+
 template <int dims>
 class Index {
  public:
@@ -10,7 +28,11 @@ class Index {
     return inds[0] + sizes[0]*Index<dims-1>::calc(inds + 1, sizes + 1);
   }
 
-  static int numel(int *sizes) {
+  static int calcMirrored(const int *inds, const int *sizes) {
+    return mirrorIndex(inds[0], sizes[0]) + sizes[0]*Index<dims-1>::calcMirrored(inds + 1, sizes + 1);
+  }
+
+  static int numel(const int *sizes) {
     return sizes[0]*Index<dims-1>::numel(sizes+1);
   }
 
@@ -53,6 +75,10 @@ class Index<0> {
     return 0;
   }
 
+  static int calcMirrored(const int *inds, const int *sizes) {
+    return 0;
+  }
+
   static bool valid(const int *inds, const int *sizes) {
     return true;
   }
@@ -68,7 +94,7 @@ class Index<0> {
   static void calcInv(int index, int *sizes, int *indsOut) {
   }
 
-  static int numel(int *sizes) {
+  static int numel(const int *sizes) {
     return 1;
   }
 };
@@ -118,6 +144,10 @@ class MDInds {
     return Index<dims>::calc(inds, _sizes);
   }
 
+  int calcIndexMirrored(const int *inds) const {
+    return Index<dims>::calcMirrored(inds, _sizes);
+  }
+
   bool step(int *inds, int step) {
     return Index<dims>::step(inds, _sizes, step);
   }
@@ -147,7 +177,7 @@ class MDInds {
     return calcIndex(inds);
   }
 
-  int numel() {
+  int numel() const {
     return Index<dims>::numel(_sizes);
   }
 
@@ -169,7 +199,7 @@ class MDInds {
 
   virtual ~MDInds() {}
 
-  bool operator==(const ThisType &other) {
+  bool operator==(const ThisType &other) const {
     return Index<dims>::equals(_sizes, other._sizes);
   }
 

@@ -9,17 +9,44 @@
 namespace sail {
 namespace json {
 
-Poco::JSON::Object::Ptr serialize(const HNode &x) {
+/*namespace {
+  CommonJson::Ptr serializeCh(Array<std::shared_ptr<HTree> > ch) {
+    Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
+    for (auto c : ch) {
+      serialize(c)->addToArray(arr.get());
+    }
+    return CommonJson::Ptr(new CommonJsonArray(arr));
+  }
+}*/
+
+CommonJson::Ptr serialize(std::shared_ptr<HTree> &x) {
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  obj->set("index", x->index());
+  obj->set("left", x->left());
+  obj->set("right", x->right());
+  Array<std::shared_ptr<HTree> > ch = x->children();
+  if (ch.hasData()) {
+    //serialize(ch)->setObjectField(obj, "children"); // RECURSIVE CALL TO Array-version based on this function.
+    serialize(ch)->setOtherObjectField(obj, "children");
+
+    assert(obj->isArray("children"));
+    assert(!obj->getArray("children").isNull());
+  }
+  return CommonJson::Ptr(new CommonJsonObject(obj));
+}
+
+CommonJson::Ptr serialize(const HNode &x) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   obj->set("index", x.index());
   obj->set("parent", x.parent());
   obj->set("description", x.description());
   obj->set("code", x.code());
-  return obj;
+  return CommonJson::Ptr(new CommonJsonObject(obj));
 }
 
 
-void deserialize(Poco::JSON::Object::Ptr src, HNode *dst) {
+void deserialize(CommonJson::Ptr csrc, HNode *dst) {
+  Poco::JSON::Object::Ptr src = csrc->toObject()->get();
   int index = src->getValue<int>("index");
   int parent = src->getValue<int>("parent");
   std::string description = src->getValue<std::string>("description");
@@ -27,41 +54,30 @@ void deserialize(Poco::JSON::Object::Ptr src, HNode *dst) {
   *dst = HNode(index, parent, code, description);
 }
 
-Poco::JSON::Array serialize(Array<HNode> src) {
-  return serializeArray(src);
+/*Poco::JSON::Array serialize(Array<HNode> src) {
+  return serialize(src);
 }
 void deserialize(Poco::JSON::Array src, Array<HNode> *dst) {
   deserializeArray(src, dst);
-}
+}*/
 
-
-Poco::JSON::Object::Ptr serialize(std::shared_ptr<HTree> x) {
-  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
-  obj->set("index", x->index());
-  obj->set("left", x->left());
-  obj->set("right", x->right());
-  Array<std::shared_ptr<HTree> > ch = x->children();
-  if (ch.hasData()) {
-    Poco::JSON::Array::Ptr arr(new Poco::JSON::Array(serialize(ch)));
-    obj->set("children", arr);
-
-    assert(obj->isArray("children"));
-    assert(!obj->getArray("children").isNull());
-  }
-  return obj;
-}
-
-void deserialize(Poco::JSON::Object::Ptr src, std::shared_ptr<HTree> *dst) {
+void deserialize(CommonJson::Ptr csrc, std::shared_ptr<HTree> *dst) {
+  Poco::JSON::Object::Ptr src = csrc->toObject()->get();
   assert(!src.isNull());
   int index = src->getValue<int>("index");
   int left = src->getValue<int>("left");
   int right = src->getValue<int>("right");
   assert(left < right);
   Array<std::shared_ptr<HTree> > children;
-  Poco::JSON::Array::Ptr ch = src->getArray("children");
-  if (!ch.isNull()) {
-    deserialize(*ch, &children);
+  CommonJson::Ptr ch = CommonJson::getOtherObjectField(src, "children");
+
+  if (bool(ch)) {
+    Poco::JSON::Array::Ptr arrptr = ch->toArray()->get();
+    if (!arrptr.isNull()) {
+      deserialize(ch, &children);
+    }
   }
+
   if (children.empty()) {
     *dst = std::shared_ptr<HTree>(new HLeaves(left, index, right - left));
   } else {
@@ -72,19 +88,16 @@ void deserialize(Poco::JSON::Object::Ptr src, std::shared_ptr<HTree> *dst) {
       hi->add(children[i]);
     }
   }
-  assert(left == (*dst)->left());
-  assert(right == (*dst)->right());
-  assert(index == (*dst)->index());
   assert(children.size() == (*dst)->childCount());
 }
 
-Poco::JSON::Array serialize(Array<std::shared_ptr<HTree> > x) {
+/*Poco::JSON::Array serialize(Array<std::shared_ptr<HTree> > x) {
   return serializeArray(x);
 }
 
 void deserialize(Poco::JSON::Array src, Array<std::shared_ptr<HTree> > *dst) {
   deserializeArray(src, dst);
-}
+}*/
 
 
 

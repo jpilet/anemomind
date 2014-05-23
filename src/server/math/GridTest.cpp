@@ -85,6 +85,27 @@ TEST(GridTest, IncompressTest2d) {
   EXPECT_NEAR(arma::norm(A*X, 2), 0.0, 1.0e-6);
 }
 
+TEST(GridTest, Filter3Test) {
+  double spacing[1] = {1.0};
+  double minv = 0.0;
+  double maxv = 30.0;
+  Grid1d grid(BBox1d(Spand(minv, maxv)), spacing);
+  int n = grid.getVertexCount();
+  EXPECT_LE(5, n);
+  Arrayd src = Arrayd::fill(n, 0.0);
+  Arrayd dst = Arrayd::fill(n, 119.0);
+  src[1] = 1.0;
+  double coefs[3] = {1, 1, 1};
+  grid.filter3(src, dst, 0, coefs, true);
+  const double marg = 1.0e-3;
+  EXPECT_NEAR(dst[0], 1.0/3, marg);
+  EXPECT_NEAR(dst[1], 1.0/3, marg);
+  EXPECT_NEAR(dst[2], 1.0/3, marg);
+  EXPECT_NEAR(dst[3], 0.0,   marg);
+  EXPECT_NEAR(dst[n-1], 0.0, marg);
+}
+
+
 
 
 

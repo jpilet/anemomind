@@ -10,19 +10,15 @@
 
 #include <Poco/JSON/Object.h>
 #include <server/nautical/Nav.h>
+#include <server/common/CommonJson.h>
 
 namespace sail {
 namespace json {
 
 
 
-Poco::JSON::Object::Ptr serialize(const Nav &nav);
-void deserialize(Poco::JSON::Object::Ptr x, Nav *out);
-
-Poco::JSON::Array serialize(Array<Nav> nav);
-void deserialize(Poco::JSON::Array src, Array<Nav> *dst);
-
-// TODO: decode
+CommonJson::Ptr serialize(const Nav &nav);
+void deserialize(CommonJson::Ptr x, Nav *out);
 
 }
 } /* namespace sail */
