@@ -215,6 +215,7 @@ add_library(common_Histogram
 target_link_libraries(common_Histogram
                       common_Array
                       common_LineKM
+                      common_Span
                      )                   
 
 cxx_test(common_HistogramTest

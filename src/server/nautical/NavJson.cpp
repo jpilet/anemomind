@@ -28,7 +28,6 @@ Poco::JSON::Object::Ptr serialize(const Nav &nav) {
   serializeField(x, "awa", nav.awa());
   serializeField(x, "id", nav.id());
   serializeField(x, "boat-id", nav.boatId());
-
   return x;
 }
 

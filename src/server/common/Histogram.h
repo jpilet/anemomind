@@ -8,6 +8,7 @@
 
 #include <server/common/Array.h>
 #include <server/common/LineKM.h>
+#include <server/common/MDArray.h>
 
 namespace sail {
 
@@ -30,6 +31,8 @@ class HistogramMap {
   double toCenter(int binIndex) const;
   Arrayi countPerBin(Arrayd values) const;
   Arrayi assignBins(Arrayd values) const;
+  bool defined() const {return _binCount > 0;}
+  bool undefined() const {return !defined();}
 
   bool validIndex(int index) const {
     return 0 <= index && index < _binCount;
@@ -45,13 +48,15 @@ class HistogramMap {
     assert(n == Y.size());
     for (int i = 0; i < n; i++) {
       int index = toBin(X[i]);
-      groups[index][counters[index]] = Y[i];
-      counters[index]++;
+      if (validIndex(index)) {
+        groups[index][counters[index]] = Y[i];
+        counters[index]++;
+      }
     }
     return groups;
   }
 
-
+  MDArray2d makePlotData(Arrayi counts) const;
  private:
   void init(int binCount, double leftBd, double rightBd);
   int _binCount;
