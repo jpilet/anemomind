@@ -4,9 +4,11 @@
  */
 
 #include "Histogram.h"
-#include  <assert.h>
-#include <server/common/Span.h>
+
+#include <assert.h>
 #include <algorithm>
+#include <cmath>
+#include <server/common/Span.h>
 
 namespace sail {
 
@@ -25,7 +27,7 @@ HistogramMap::HistogramMap(int count, Arrayd values) {
 int HistogramMap::toBin(double value) const {
 
   // Floor, to ensure that -0.1 maps to -1
-  int index = int(floor(_index2left.inv(value)));
+  int index = int(std::floor(_index2left.inv(value)));
 
   if (validIndex(index)) {
     assert(toLeftBound(index) <= value);
