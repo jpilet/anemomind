@@ -59,6 +59,16 @@ CommonJson::Ptr serializeArray(Array<T> src) {
 }
 
 template <typename T>
+CommonJson::Ptr serialize(Array<T> src, std::function<CommonJson::Ptr(T)> customSerializer) {
+  Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
+  int count = src.size();
+  for (int i = 0; i < count; i++) {
+    customSerializer(src[i])->addToOtherArray(arr.get());
+  }
+  return CommonJson::Ptr(new CommonJsonArray(arr));
+}
+
+template <typename T>
 CommonJson::Ptr serialize(Array<T> src) {
   return serializeArray(src);
 }
