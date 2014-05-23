@@ -258,6 +258,20 @@ target_link_libraries(nautical_BasicCalibrate
                       common_logging
                       nautical_Calibrator)
 
+
+add_library(nautical_GeographicReference
+            GeographicReference.h
+            GeographicReference.cpp
+           )
+target_link_libraries(nautical_GeographicReference
+                     )
+cxx_test(nautical_GeographicReferenceTest
+         GeographicReferenceTest.cpp
+         nautical_GeographicReference
+         gtest_main
+        )
+                                 
+            
 add_library(nautical_TargetSpeed
             TargetSpeed.h
             TargetSpeed.cpp
@@ -265,10 +279,12 @@ add_library(nautical_TargetSpeed
 target_link_libraries(nautical_TargetSpeed
                       nautical_nav
                       common_Histogram
-                     )           
+                     )  
+
 add_executable(nautical_TargetSpeedExample
                TargetSpeedExample.cpp
-              )                     
+              )
+
 target_link_libraries(nautical_TargetSpeedExample
                       nautical_TargetSpeed
                       common_PathBuilder
@@ -276,4 +292,4 @@ target_link_libraries(nautical_TargetSpeedExample
                       nautical_NavNmeaScan
                       common_Span
                       nautical_grammars_Grammar001
-                     )              
+                     )
