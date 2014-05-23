@@ -35,7 +35,6 @@ class CommonJsonObject;
 class CommonJson {
  public:
   typedef std::shared_ptr<CommonJson> Ptr;
-  enum SubType {Var, Array, Object};
 
   virtual bool isDynamicVar() const {return false;}
   virtual bool isArray() const {return false;}
