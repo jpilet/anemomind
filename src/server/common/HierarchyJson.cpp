@@ -27,7 +27,7 @@ CommonJson::Ptr serialize(std::shared_ptr<HTree> &x) {
   Array<std::shared_ptr<HTree> > ch = x->children();
   if (ch.hasData()) {
     //serialize(ch)->setObjectField(obj, "children"); // RECURSIVE CALL TO Array-version based on this function.
-    serialize(ch)->setObjectField(obj, "children");
+    serialize(ch)->setOtherObjectField(obj, "children");
 
     assert(obj->isArray("children"));
     assert(!obj->getArray("children").isNull());
@@ -69,7 +69,7 @@ void deserialize(CommonJson::Ptr csrc, std::shared_ptr<HTree> *dst) {
   int right = src->getValue<int>("right");
   assert(left < right);
   Array<std::shared_ptr<HTree> > children;
-  CommonJson::Ptr ch = CommonJson::getObjectField(src, "children");
+  CommonJson::Ptr ch = CommonJson::getOtherObjectField(src, "children");
 
   if (bool(ch)) {
     Poco::JSON::Array::Ptr arrptr = ch->toArray()->get();

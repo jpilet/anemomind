@@ -41,7 +41,7 @@ namespace {
     Array<std::shared_ptr<HTree> > ch = x->children();
     if (ch.hasData()) {
       CommonJson::Ptr arr = serializeMapped(ch, h.navs(), h.info());
-      arr->setObjectField(obj, "children");
+      arr->setOtherObjectField(obj, "children");
       assert(obj->isArray("children"));
       assert(!obj->getArray("children").isNull());
     }

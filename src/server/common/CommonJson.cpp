@@ -9,7 +9,7 @@
 namespace sail {
 namespace json {
 
-CommonJson::Ptr CommonJson::getObjectField(Poco::JSON::Object::Ptr src,
+CommonJson::Ptr CommonJson::getOtherObjectField(Poco::JSON::Object::Ptr src,
     std::string fieldName) {
   if (!src->has(fieldName)) {
     return CommonJson::Ptr();
@@ -49,19 +49,23 @@ void CommonJsonArray::addToArray(Poco::JSON::Array *dst) {
   dst->add(_x);
 }
 
+CommonJson::Ptr CommonJsonObject::make() {
+  return CommonJson::Ptr(new CommonJsonObject(Poco::JSON::Object::Ptr(new Poco::JSON::Object())));
+}
+
 void CommonJsonObject::addToArray(Poco::JSON::Array *dst) {
   dst->add(_x);
 }
 
-void CommonJsonVar::setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName) {
+void CommonJsonVar::setOtherObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName) {
   dst->set(fieldName, _x);
 }
 
-void CommonJsonObject::setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName) {
+void CommonJsonObject::setOtherObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName) {
   dst->set(fieldName, _x);
 }
 
-void CommonJsonArray::setObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName) {
+void CommonJsonArray::setOtherObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName) {
   dst->set(fieldName, _x);
 }
 
@@ -76,6 +80,15 @@ void CommonJsonArray::stringify(std::ostream& out, unsigned int indent , int ste
 void CommonJsonObject::stringify(std::ostream& out, unsigned int indent , int step ) const {
   _x->stringify(out, indent, step);
 }
+
+CommonJson::Ptr CommonJsonObject::get(const std::string &key) const {
+  return CommonJson::getOtherObjectField(_x, key);
+}
+
+void CommonJsonObject::set(const std::string &key, CommonJson::Ptr obj) {
+  obj->setOtherObjectField(_x, key);
+}
+
 
 
 }
