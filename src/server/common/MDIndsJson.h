@@ -6,24 +6,24 @@
 #ifndef MDINDSJSON_H_
 #define MDINDSJSON_H_
 
-#include <server/common/Json.h>
+#include <server/common/CommonJson.h>
 #include <server/common/MDInds.h>
-#include <server/common/Array.h>
+#include <server/common/Json.h>
 
 namespace sail {
 namespace json {
 
 template <int N>
-Poco::JSON::Array serialize(const MDInds<N> &inds) {
-  return serializeArray(Arrayi(N, inds.getData()));
+CommonJson::Ptr serialize(const MDInds<N> &inds) {
+  return serialize(Arrayi(N, inds.getData()));
 }
 
 template <int N>
-void deserialize(Poco::JSON::Array src, MDInds<N> *dst) {
-  Arrayi dstdata;
-  deserializeArray(src, &dstdata);
-  assert(dstdata.size() == N);
-  *dst = MDInds<N>(dstdata.ptr());
+void deserialize(CommonJson::Ptr obj, MDInds<N> *dst) {
+  Arrayi inds;
+  deserialize(obj, &inds);
+  assert(inds.size() == N);
+  *dst = MDInds<N>(inds.ptr());
 }
 
 }

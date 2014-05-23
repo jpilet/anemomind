@@ -28,6 +28,16 @@ namespace sail {
  */
 class FlowField {
  public:
+
+  // PRIVATE: (only public because the Json interface needs them)
+        // Use raw doubles for the internal representation to facilitate
+        // the math ops.
+        typedef Vectorize<double, 2> InternalFlowVector;
+        FlowField(Grid3d grid_, Array<InternalFlowVector> flow_) : _grid(grid_), _flow(flow_) {}
+
+
+
+
   typedef Vectorize<Velocity<double>, 2> FlowVector;
 
   FlowField() {}
@@ -50,17 +60,16 @@ class FlowField {
   FlowVector map(Length<double> x, Length<double> y, Duration<double> time) const;
 
   void plotTimeSlice(Duration<double> time) const;
+
+  // Accessors used by the Json interface
+  const Grid3d &grid() const {return _grid;}
+  const Array<InternalFlowVector> &flow() const {return _flow;}
  private:
-  // Use raw doubles for the internal representation to facilitate
-  // the math ops.
-  typedef Vectorize<double, 2> InternalFlowVector;
 
   FlowVector makeFlowVector(const InternalFlowVector &x) const {
     return FlowVector{Velocity<double>::metersPerSecond(x[0]),
                       Velocity<double>::metersPerSecond(x[1])};
   }
-
-  FlowField(Grid3d grid, Array<InternalFlowVector> flow) : _grid(grid), _flow(flow) {}
 
   // The grid, defining the field
   Grid3d _grid;

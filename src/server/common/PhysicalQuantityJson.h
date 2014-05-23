@@ -85,7 +85,7 @@ void serializeField(Poco::JSON::Object::Ptr obj, std::string fieldPrefix,
 }
 
 template <class Quantity>
-Poco::JSON::Object::Ptr serialize(const Quantity &x) {
+CommonJson::Ptr serialize(const Quantity &x) {
   return toJsonObjectWithField<Quantity>(std::string(x.quantityName()) + x.suffix(),
       x);
 }

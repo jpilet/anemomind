@@ -266,9 +266,17 @@ add_library(nautical_FlowField
 target_link_libraries(nautical_FlowField
                       common_Uniform
                      )           
+add_library(nautical_FlowFieldJson
+            FlowFieldJson.cpp
+            FlowFieldJson.h
+           )
+target_link_libraries(nautical_FlowFieldJson
+                      common_Json
+                     )                      
 cxx_test(nautical_FlowFieldTest
          FlowFieldTest.cpp
          nautical_FlowField
+         nautical_FlowFieldJson
          gtest_main
         )           
 
