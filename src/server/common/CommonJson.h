@@ -55,11 +55,11 @@ class CommonJson {
 
   // Approximately what the method below does: dst.setField(fieldName, this)
   virtual void setOtherObjectField(Poco::JSON::Object::Ptr dst,
-      std::string fieldName) = 0;
+      const std::string &fieldName) = 0;
 
   // Approximately what the static method below does: return src.getField(fieldName)
   static CommonJson::Ptr getOtherObjectField(Poco::JSON::Object::Ptr src,
-      std::string fieldName);
+      const std::string &fieldName);
 
  private:
   void invalid() const;
@@ -72,7 +72,7 @@ class CommonJsonVar : public CommonJson {
   bool isDynamicVar() const {return true;}
   CommonJsonVar *toVar() {return this;}
   void addToOtherArray(Poco::JSON::Array *dst);
-  void setOtherObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
+  void setOtherObjectField(Poco::JSON::Object::Ptr dst, const std::string &fieldName);
   void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const;
  private:
   Poco::Dynamic::Var _x;
@@ -89,7 +89,7 @@ class CommonJsonArray : public CommonJson {
   bool isArray() const {return true;}
   CommonJsonArray *toArray() {return this;}
   void addToOtherArray(Poco::JSON::Array *dst);
-  void setOtherObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
+  void setOtherObjectField(Poco::JSON::Object::Ptr dst, const std::string &fieldName);
   void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const;
 
   CommonJson::Ptr get(int index) const;
@@ -107,7 +107,7 @@ class CommonJsonObject : public CommonJson {
   bool isObject() const {return true;}
   CommonJsonObject *toObject() {return this;}
   void addToOtherArray(Poco::JSON::Array *dst);
-  void setOtherObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
+  void setOtherObjectField(Poco::JSON::Object::Ptr dst, const std::string &fieldName);
   void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const;
 
   CommonJson::Ptr get(const std::string &key) const;
