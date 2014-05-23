@@ -17,9 +17,20 @@ class GeographicReference {
  public:
   GeographicReference();
   GeographicReference(const GeographicPosition<double> &pos);
-  void map(GeographicPosition<double> src, Length<double> *xyzOut);
-  GeographicPosition<double> unmap(Length<double> *xyzIn);
+
+  typedef Vectorize<Length<double>, 2> ProjectedPosition;
+
+  ProjectedPosition map(const GeographicPosition<double> &src) const;
+
+  void mapToArray(GeographicPosition<double> src, Length<double> *xyzOut) const;
+  GeographicPosition<double> unmapFromArray(Length<double> *xyzIn) const;
  private:
+  Length<double> mapXLon(Angle<double> lon);
+  Length<double> mapYLat(Angle<double> lat);
+  Angle<double> unmapXLon(Length<double> x);
+  Angle<double> unmapYLat(Length<double> y);
+  Length<double> unmapZAlt(Length<double> z);
+
   double _dlon, _dlat;
   GeographicPosition<double> _pos;
 };
