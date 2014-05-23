@@ -23,7 +23,7 @@ CommonJson::Ptr CommonJson::getOtherObjectField(Poco::JSON::Object::Ptr src,
   }
 }
 
-CommonJson::Ptr CommonJson::getArrayElement(Poco::JSON::Array &src, int index) {
+CommonJson::Ptr CommonJson::getOtherArrayElement(Poco::JSON::Array &src, int index) {
   if (src.isArray(index)) {
     return CommonJson::Ptr(new CommonJsonArray(src.getArray(index)));
   } else if (src.isObject(index)) {
@@ -33,19 +33,19 @@ CommonJson::Ptr CommonJson::getArrayElement(Poco::JSON::Array &src, int index) {
   }
 }
 
-CommonJson::Ptr CommonJson::getArrayElement(Poco::JSON::Array::Ptr src, int index) {
-  return getArrayElement(*(src), index);
+CommonJson::Ptr CommonJson::getOtherArrayElement(Poco::JSON::Array::Ptr src, int index) {
+  return getOtherArrayElement(*(src), index);
 }
 
 void CommonJson::invalid() const {
   LOG(FATAL) << "Invalid CommonJson operation";
 }
 
-void CommonJsonVar::addToArray(Poco::JSON::Array *dst) {
+void CommonJsonVar::addToOtherArray(Poco::JSON::Array *dst) {
   dst->add(_x);
 }
 
-void CommonJsonArray::addToArray(Poco::JSON::Array *dst) {
+void CommonJsonArray::addToOtherArray(Poco::JSON::Array *dst) {
   dst->add(_x);
 }
 
@@ -53,7 +53,7 @@ CommonJson::Ptr CommonJsonObject::make() {
   return CommonJson::Ptr(new CommonJsonObject(Poco::JSON::Object::Ptr(new Poco::JSON::Object())));
 }
 
-void CommonJsonObject::addToArray(Poco::JSON::Array *dst) {
+void CommonJsonObject::addToOtherArray(Poco::JSON::Array *dst) {
   dst->add(_x);
 }
 
@@ -76,6 +76,15 @@ void CommonJsonVar::stringify(std::ostream& out, unsigned int indent , int step 
 void CommonJsonArray::stringify(std::ostream& out, unsigned int indent , int step ) const {
   _x->stringify(out, indent, step);
 }
+
+CommonJson::Ptr CommonJsonArray::get(int index) const {
+  return CommonJson::getOtherArrayElement(_x, index);
+}
+
+void CommonJsonArray::add(CommonJson::Ptr obj) {
+  obj->addToOtherArray(_x.get());
+}
+
 
 void CommonJsonObject::stringify(std::ostream& out, unsigned int indent , int step ) const {
   _x->stringify(out, indent, step);

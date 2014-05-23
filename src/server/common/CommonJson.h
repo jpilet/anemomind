@@ -42,11 +42,11 @@ class CommonJson {
 
 
 
-  virtual void addToArray(Poco::JSON::Array *dst) = 0;
+  virtual void addToOtherArray(Poco::JSON::Array *dst) = 0;
 
 
-  static CommonJson::Ptr getArrayElement(Poco::JSON::Array &src, int index);
-  static CommonJson::Ptr getArrayElement(Poco::JSON::Array::Ptr src, int index);
+  static CommonJson::Ptr getOtherArrayElement(Poco::JSON::Array &src, int index);
+  static CommonJson::Ptr getOtherArrayElement(Poco::JSON::Array::Ptr src, int index);
 
   virtual void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const = 0;
 
@@ -71,7 +71,7 @@ class CommonJsonVar : public CommonJson {
   Poco::Dynamic::Var &get() {return _x;}
   bool isDynamicVar() const {return true;}
   CommonJsonVar *toVar() {return this;}
-  void addToArray(Poco::JSON::Array *dst);
+  void addToOtherArray(Poco::JSON::Array *dst);
   void setOtherObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
   void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const;
  private:
@@ -86,11 +86,13 @@ class CommonJsonArray : public CommonJson {
   Poco::JSON::Array::Ptr &get() {return _x;}
   bool isArray() const {return true;}
   CommonJsonArray *toArray() {return this;}
-  void addToArray(Poco::JSON::Array *dst);
+  void addToOtherArray(Poco::JSON::Array *dst);
   void setOtherObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
   void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const;
+
+  CommonJson::Ptr get(int index) const;
+  void add(CommonJson::Ptr obj);
  private:
-  // TODO: Unsure of what is best: Poco::JSON::Array::Ptr or simply Poco::JSON::Array?
   Poco::JSON::Array::Ptr _x;
 };
 
@@ -101,7 +103,7 @@ class CommonJsonObject : public CommonJson {
   Poco::JSON::Object::Ptr &get() {return _x;}
   bool isObject() const {return true;}
   CommonJsonObject *toObject() {return this;}
-  void addToArray(Poco::JSON::Array *dst);
+  void addToOtherArray(Poco::JSON::Array *dst);
   void setOtherObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName);
   void stringify(std::ostream& out, unsigned int indent = 0, int step = -1) const;
 

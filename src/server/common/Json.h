@@ -53,7 +53,7 @@ CommonJson::Ptr serializeArray(Array<T> src) {
   Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
   int count = src.size();
   for (int i = 0; i < count; i++) {
-    serialize(src[i])->addToArray(arr.get());
+    serialize(src[i])->addToOtherArray(arr.get());
   }
   return CommonJson::Ptr(new CommonJsonArray(arr));
 }
@@ -70,7 +70,7 @@ void deserialize(CommonJson::Ptr csrc, Array<T> *dst) {
   int count = src->size();
   *dst = Array<T>(count);
   for (int i = 0; i < count; i++) {
-    deserialize(CommonJson::getArrayElement(src, i), dst->ptr(i));
+    deserialize(CommonJson::getOtherArrayElement(src, i), dst->ptr(i));
   }
 }
 
