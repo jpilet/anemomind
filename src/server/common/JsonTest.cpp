@@ -39,5 +39,6 @@ namespace {
 
 PRIMITIVE_ARRAY_TEST(IntArray, int)
 PRIMITIVE_ARRAY_TEST(DoubleArray, double)
+PRIMITIVE_ARRAY_TEST(FloatArray, float)
 
 
