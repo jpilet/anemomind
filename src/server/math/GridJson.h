@@ -28,9 +28,9 @@ void deserialize(CommonJson::Ptr cobj, Grid<N> *dst) {
   MDInds<N> inds;
   deserialize(obj->get("inds"), &inds);
   Array<LineKM> ind2Coord(N);
-  deserializeArray(obj->get("ind2Coord"), &ind2Coord);
+  deserialize(obj->get("ind2Coord"), &ind2Coord);
   assert(ind2Coord.size() == N);
-  *dst = Grid(inds, ind2Coord.ptr());
+  *dst = Grid<N>(inds, ind2Coord.ptr());
 }
 
 }

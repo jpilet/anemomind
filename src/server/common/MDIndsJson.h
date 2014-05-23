@@ -14,7 +14,7 @@ namespace sail {
 namespace json {
 
 template <int N>
-CommonJson::Ptr serialize(const MDInds<N> &inds) {
+CommonJson::Ptr serialize(MDInds<N> inds) {
   return serialize(Arrayi(N, inds.getData()));
 }
 
