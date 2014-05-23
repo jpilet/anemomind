@@ -61,21 +61,70 @@ FlowField FlowField::generate(Span<Length<double> > xSpan,
   return FlowField(grid, A);
 }
 
-void FlowField::plotTimeSlice(Duration<double> time) const {
-  GnuplotExtra plot;
+
+MDArray2d FlowField::sampleTimeSliceVectors(Duration<double> t) const {
   const MDInds<3> &inds = _grid.getInds();
 
   double marg = 1.0e-5;
   LineKM xshrink(0, inds.get(0), marg, inds.get(0) - marg);
   LineKM yshrink(0, inds.get(1), marg, inds.get(1) - marg);
 
+  int count = inds.get(0)*inds.get(1);
+
+  MDArray2d dst(count, 4);
+  int counter = 0;
   for (int xi = 0; xi < inds.get(0); xi++) {
     double x = (_grid.getEq(0))(xshrink(xi));
     for (int yi = 0; yi < inds.get(1); yi++) {
       double y = (_grid.getEq(1))(yshrink(yi));
+      FlowField::FlowVector vec = map(Length<double>::meters(x),
+                                      Length<double>::meters(y),
+                                      t);
+      dst(counter, 0) = x;
+      dst(counter, 1) = y;
+      dst(counter, 2) = vec[0].metersPerSecond();
+      dst(counter, 3) = vec[1].metersPerSecond();
+      counter++;
     }
   }
+  assert(counter == count);
+  return dst;
+}
 
+namespace {
+  Spand calcVelocityNormSpan(MDArray2d samples) {
+    Spand dst;
+    int count = samples.rows();
+    for (int i = 0; i < count; i++) {
+      int len = sqrt(sqr(samples(i, 2)) + sqr(samples(i, 3)));
+      dst.extend(len);
+    }
+    return dst;
+  }
+
+}
+
+void FlowField::plotTimeSlice(Duration<double> time) const {
+  MDArray2d samples = sampleTimeSliceVectors(time);
+
+  Spand normSpan = calcVelocityNormSpan(samples);
+  double reflen = 0.9*std::min(_grid.getEq(0).getK(), _grid.getEq(1).getK());
+  LineKM velscale(0.0, normSpan.maxv(), 0.0, reflen);
+
+
+  int count = samples.rows();
+  GnuplotExtra plot;
+    plot.set_style("dots");
+    plot.set_pointsize(12);
+    plot.plot(samples.sliceColsTo(2));
+    plot.set_style("lines");
+    for (int i = 0; i < count; i++) {
+      double xxyy[4] = {samples(i, 0), samples(i, 0) + velscale(samples(i, 2)),
+                        samples(i, 1), samples(i, 1) + velscale(samples(i, 3))};
+      MDArray2d toPlot(2, 2, xxyy);
+      plot.plot(toPlot);
+    }
+  plot.show();
 }
 
 

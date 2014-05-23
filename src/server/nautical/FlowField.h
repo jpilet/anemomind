@@ -66,6 +66,8 @@ class FlowField {
   void plotTimeSlice(Duration<double> time) const; // TODO.
 
  private:
+  MDArray2d sampleTimeSliceVectors(Duration<double> t) const;
+
 
   FlowVector makeFlowVector(const InternalFlowVector &x) const {
     return FlowVector{Velocity<double>::metersPerSecond(x[0]),
