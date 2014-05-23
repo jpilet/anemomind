@@ -24,8 +24,10 @@ namespace json {
  *
  * The idea is to provide a unified json interface for all types of interest on the form
  *
- * CommonJson::Ptr sail::json::serialize(const type &x);
- * void sail::json::deserialize(CommonJson::Ptr src, type *dst);
+ *    CommonJson::Ptr sail::json::serialize(const type &x);
+ *    void sail::json::deserialize(CommonJson::Ptr src, type *dst);
+ *
+ * facilitating writing generic code.
  */
 class CommonJsonVar;
 class CommonJsonArray;
