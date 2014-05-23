@@ -35,6 +35,10 @@ class FlowField {
         typedef Vectorize<double, 2> InternalFlowVector;
         FlowField(Grid3d grid_, Array<InternalFlowVector> flow_) : _grid(grid_), _flow(flow_) {}
 
+        // Accessors used by the Json interface
+        const Grid3d &grid() const {return _grid;}
+        const Array<InternalFlowVector> &flow() const {return _flow;}
+
 
 
 
@@ -59,11 +63,8 @@ class FlowField {
   // Look up
   FlowVector map(Length<double> x, Length<double> y, Duration<double> time) const;
 
-  void plotTimeSlice(Duration<double> time) const;
+  void plotTimeSlice(Duration<double> time) const; // TODO.
 
-  // Accessors used by the Json interface
-  const Grid3d &grid() const {return _grid;}
-  const Array<InternalFlowVector> &flow() const {return _flow;}
  private:
 
   FlowVector makeFlowVector(const InternalFlowVector &x) const {
