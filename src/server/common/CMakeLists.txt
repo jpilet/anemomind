@@ -223,3 +223,8 @@ cxx_test(common_HistogramTest
          common_Histogram
          gtest_main
         )
+
+add_executable(common_JsonDynVarExperiment
+               JsonDynVarExperiment.cpp
+              )
+target_depends_on_poco_json(common_JsonDynVarExperiment)
