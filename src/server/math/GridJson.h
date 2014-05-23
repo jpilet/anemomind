@@ -6,23 +6,25 @@
 #ifndef GRIDJSON_H_
 #define GRIDJSON_H_
 
+#include <server/common/CommonJson.h>
 #include <server/math/Grid.h>
 #include <server/common/MDIndsJson.h>
+
 
 namespace sail {
 namespace json {
 
 template <int N>
-CommonJson::Ptr serialize(const Grid<N> &grid) {
+CommonJson::Ptr serialize(Grid<N> grid) {
   CommonJson::Ptr obj = CommonJsonObject::make();
   obj->toObject()->set("inds", serialize(grid.getInds()));
-  obj->toObject()->set("ind2Coord", serializeArray(Array<LineKM>(N, grid.ind2Coord())));
+  obj->toObject()->set("ind2Coord", serialize(Array<LineKM>(N, grid.ind2Coord())));
   return obj;
 }
 
 template <int N>
 void deserialize(CommonJson::Ptr cobj, Grid<N> *dst) {
-  CommonJsonObject obj = cobj->toObject();
+  CommonJsonObject *obj = cobj->toObject();
   MDInds<N> inds;
   deserialize(obj->get("inds"), &inds);
   Array<LineKM> ind2Coord(N);

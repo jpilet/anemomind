@@ -4,6 +4,8 @@
  */
 
 #include "FlowFieldJson.h"
+#include <server/common/PhysicalQuantityJson.h>
+#include <server/math/GridJson.h>
 
 namespace sail {
 namespace json {
