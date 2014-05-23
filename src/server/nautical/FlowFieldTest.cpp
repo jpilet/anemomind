@@ -5,6 +5,7 @@
 
 #include <gtest/gtest.h>
 #include <server/nautical/FlowField.h>
+#include <server/nautical/FlowFieldJson.h>
 #include <server/common/Uniform.h>
 
 using namespace sail;
@@ -41,4 +42,14 @@ TEST(FlowField, Generate) {
   FlowField::FlowVector ref = makeMeanFlow();
   EXPECT_NEAR(fvec[0].metersPerSecond(), ref[0].metersPerSecond(), 1.0e-6);
   EXPECT_NEAR(fvec[1].metersPerSecond(), ref[1].metersPerSecond(), 1.0e-6);
+}
+
+
+TEST(FlowField, Json) {
+  Uniform::initialize(1400755291);
+  FlowField ff = generateBasicFlowField();
+  FlowField ff2;
+  json::deserialize(json::serialize(ff), &ff2);
+  EXPECT_EQ(ff.grid(), ff2.grid());
+  EXPECT_EQ(ff.flow(), ff2.flow());
 }

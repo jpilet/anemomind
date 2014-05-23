@@ -272,6 +272,8 @@ add_library(nautical_FlowFieldJson
            )
 target_link_libraries(nautical_FlowFieldJson
                       common_Json
+                      nautical_FlowField
+                      common_LineKMJson
                      )                      
 cxx_test(nautical_FlowFieldTest
          FlowFieldTest.cpp

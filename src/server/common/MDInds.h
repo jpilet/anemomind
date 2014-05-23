@@ -199,7 +199,7 @@ class MDInds {
 
   virtual ~MDInds() {}
 
-  bool operator==(const ThisType &other) {
+  bool operator==(const ThisType &other) const {
     return Index<dims>::equals(_sizes, other._sizes);
   }
 
