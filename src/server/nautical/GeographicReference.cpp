@@ -14,10 +14,6 @@ GeographicReference::GeographicReference() {
   InvalidateScalar(&_dlat);
 }
 
-GeographicReference::ProjectedPosition
-  GeographicReference::map(const GeographicPosition<double> &src) const {
-  return ProjectedPosition{mapX(src.lon()), mapY(src.lat())};
-}
 
 
 GeographicReference::GeographicReference(const GeographicPosition<double> &pos) : _pos(pos) {
@@ -26,38 +22,42 @@ GeographicReference::GeographicReference(const GeographicPosition<double> &pos) 
       xyz3, &_dlon, &_dlat);
 }
 
-void GeographicReference::mapToArray(GeographicPosition<double> src, Length<double> *xyzOut) const {
-  xyzOut[0] = ;
-  xyzOut[1] = Length<double>::meters(_dlat*src.lat().directionDifference(_pos.lat()).radians());
-  xyzOut[2] = src.alt() - _pos.alt();
+GeographicReference::ProjectedPosition
+  GeographicReference::map(const GeographicPosition<double> &src) const {
+    return ProjectedPosition{mapXLon(src.lon()), mapYLat(src.lat())};
 }
 
-GeographicPosition<double> GeographicReference::unmapFromArray(Length<double> *xyzIn) const {
-  Angle<double> lon = Angle<double>::radians(xyzIn[0].meters()/_dlon) + _pos.lon();
-  Angle<double> lat = Angle<double>::radians(xyzIn[1].meters()/_dlat) + _pos.lat();
-
-  return GeographicPosition<double>(lon, lat, alt);
+GeographicPosition<double> GeographicReference::unmap(const ProjectedPosition &src) const {
+  return GeographicPosition<double>(unmapXLon(src[0]),
+      unmapYLat(src[1]),
+      Length<double>::meters(0));
 }
 
-Length<double> GeographicReference::mapXLon(Angle<double> lon) {
+
+Length<double> GeographicReference::mapXLon(Angle<double> lon) const {
   return Length<double>::meters(_dlon*lon.directionDifference(_pos.lon()).radians());
 }
 
-Length<double> GeographicReference::mapYLat(Angle<double> lat) {
+Length<double> GeographicReference::mapYLat(Angle<double> lat) const {
   return Length<double>::meters(_dlat*lat.directionDifference(_pos.lat()).radians());
 }
 
-Angle<double> GeographicReference::unmapXLon(Length<double> x) {
+Angle<double> GeographicReference::unmapXLon(Length<double> x) const {
   return Angle<double>::radians(x.meters()/_dlon) + _pos.lon();
 }
 
-Angle<double> GeographicReference::unmapYLat(Length<double> y) {
+Angle<double> GeographicReference::unmapYLat(Length<double> y) const {
   return Angle<double>::radians(y.meters()/_dlat) + _pos.lat();
 }
 
-Length<double> GeographicReferece::unmapZAlt(Length<double> z) {
+Length<double> GeographicReference::unmapZAlt(Length<double> z) const {
   return z + _pos.alt();
 }
+
+Length<double> GeographicReference::mapZAlt(Length<double> alt) const {
+  return alt - _pos.alt();
+}
+
 
 
 

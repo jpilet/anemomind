@@ -21,15 +21,14 @@ class GeographicReference {
   typedef Vectorize<Length<double>, 2> ProjectedPosition;
 
   ProjectedPosition map(const GeographicPosition<double> &src) const;
-
-  void mapToArray(GeographicPosition<double> src, Length<double> *xyzOut) const;
-  GeographicPosition<double> unmapFromArray(Length<double> *xyzIn) const;
+  GeographicPosition<double> unmap(const ProjectedPosition &src) const;
  private:
-  Length<double> mapXLon(Angle<double> lon);
-  Length<double> mapYLat(Angle<double> lat);
-  Angle<double> unmapXLon(Length<double> x);
-  Angle<double> unmapYLat(Length<double> y);
-  Length<double> unmapZAlt(Length<double> z);
+  Length<double> mapXLon(Angle<double> lon) const;
+  Length<double> mapYLat(Angle<double> lat) const;
+  Angle<double> unmapXLon(Length<double> x) const;
+  Angle<double> unmapYLat(Length<double> y) const;
+  Length<double> mapZAlt(Length<double> alt) const;
+  Length<double> unmapZAlt(Length<double> z) const;
 
   double _dlon, _dlat;
   GeographicPosition<double> _pos;
