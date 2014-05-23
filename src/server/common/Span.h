@@ -31,6 +31,7 @@ class Span {
     if (arr.empty()) {
       _initialized = false;
     } else {
+      _initialized = false;
       int count = arr.size();
       _minv = arr[0];
       _maxv = _minv;

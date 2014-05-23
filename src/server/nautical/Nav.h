@@ -54,6 +54,9 @@ class Nav {
   Angle<double> externalTwa() const {return _twaFromFile;}
   Velocity<double> externalTws() const {return _twsFromFile;}
 
+  HorizontalMotion<double> gpsVelocity() const;
+
+
   void setAwa(Angle<double> awa_) {_awa = awa_;}
   void setAws(Velocity<double> aws_) {_aws = aws_;}
   void setMagHdg(Angle<double> magHdg_) {_magHdg = magHdg_;}
@@ -110,6 +113,11 @@ class Nav {
   // TIME RELATED
   TimeStamp _time;
 };
+
+Array<Velocity<double> > getExternalTws(Array<Nav> navs);
+Array<Angle<double> > getExternalTwa(Array<Nav> navs);
+Array<Velocity<double> > getGpsSpeed(Array<Nav> navs);
+
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort = true);
 bool areSortedNavs(Array<Nav> navs);

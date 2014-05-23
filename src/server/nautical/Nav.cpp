@@ -97,6 +97,12 @@ bool Nav::operator== (const Nav &other) const {
       _pos == other._pos && (strictEquality(_cwd, other._cwd)) && (strictEquality(_wd, other._wd));
 }
 
+
+HorizontalMotion<double> Nav::gpsVelocity() const {
+  return HorizontalMotion<double>::polar(gpsSpeed(), gpsBearing());
+}
+
+
 Nav::Id Nav::id() const {
   if (hasId()) {
     int64_t time = _time.toMilliSecondsSince1970();
@@ -110,6 +116,7 @@ Nav::Id Nav::id() const {
 bool Nav::hasId() const {
   return hasBoatId() && _time.defined();
 }
+
 
 
 const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
@@ -139,6 +146,23 @@ const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
 //wd = 22;
 //days = 23;
 //days_data = datenum(unsorted_data(:,year) + 2000, unsorted_data(:,month), unsorted_data(:, dayOfTheMonth), unsorted_data(:,hour), unsorted_data(:,minute), unsorted_data(:,second));
+
+
+
+
+
+Array<Velocity<double> > getExternalTws(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&](const Nav &n) {return n.externalTws();});
+}
+
+Array<Angle<double> > getExternalTwa(Array<Nav> navs) {
+  return navs.map<Angle<double> >([&](const Nav &n) {return n.externalTwa();});
+}
+
+Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&](const Nav &n) {return n.gpsSpeed();});
+}
+
 
 
 
