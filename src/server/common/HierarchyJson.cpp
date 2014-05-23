@@ -70,11 +70,14 @@ void deserialize(CommonJson::Ptr csrc, std::shared_ptr<HTree> *dst) {
   assert(left < right);
   Array<std::shared_ptr<HTree> > children;
   CommonJson::Ptr ch = CommonJson::getObjectField(src, "children");
-  assert(ch->isArray());
-  Poco::JSON::Array::Ptr arrptr = ch->toArray()->get();
-  if (!arrptr.isNull()) {
-    deserialize(ch, &children);
+
+  if (bool(ch)) {
+    Poco::JSON::Array::Ptr arrptr = ch->toArray()->get();
+    if (!arrptr.isNull()) {
+      deserialize(ch, &children);
+    }
   }
+
   if (children.empty()) {
     *dst = std::shared_ptr<HTree>(new HLeaves(left, index, right - left));
   } else {
@@ -85,9 +88,6 @@ void deserialize(CommonJson::Ptr csrc, std::shared_ptr<HTree> *dst) {
       hi->add(children[i]);
     }
   }
-  assert(left == (*dst)->left());
-  assert(right == (*dst)->right());
-  assert(index == (*dst)->index());
   assert(children.size() == (*dst)->childCount());
 }
 

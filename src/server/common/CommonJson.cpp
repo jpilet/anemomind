@@ -11,13 +11,16 @@ namespace json {
 
 CommonJson::Ptr CommonJson::getObjectField(Poco::JSON::Object::Ptr src,
     std::string fieldName) {
-    if (src->isArray(fieldName)) {
-      return CommonJson::Ptr(new CommonJsonArray(src->getArray(fieldName)));
-    } else if (src->isObject(fieldName)) {
-      return CommonJson::Ptr(new CommonJsonObject(src->getObject(fieldName)));
-    } else {
-      return CommonJson::Ptr(new CommonJsonVar(src->get(fieldName)));
-    }
+  if (!src->has(fieldName)) {
+    return CommonJson::Ptr();
+  }
+  if (src->isArray(fieldName)) {
+    return CommonJson::Ptr(new CommonJsonArray(src->getArray(fieldName)));
+  } else if (src->isObject(fieldName)) {
+    return CommonJson::Ptr(new CommonJsonObject(src->getObject(fieldName)));
+  } else {
+    return CommonJson::Ptr(new CommonJsonVar(src->get(fieldName)));
+  }
 }
 
 CommonJson::Ptr CommonJson::getArrayElement(Poco::JSON::Array &src, int index) {
