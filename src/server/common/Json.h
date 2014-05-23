@@ -33,6 +33,13 @@ void deserializePrimitive(CommonJson::Ptr obj, T *x) {*x = obj->toVar()->get().c
       DECLARE_JSON_PRIMITIVE(bool)
       DECLARE_JSON_PRIMITIVE(unsigned char)
       DECLARE_JSON_PRIMITIVE(char)
+      DECLARE_JSON_PRIMITIVE(unsigned long int)
+      DECLARE_JSON_PRIMITIVE(long int)
+      //DECLARE_JSON_PRIMITIVE(unsigned long long int)
+      //DECLARE_JSON_PRIMITIVE(long long int)
+      //DECLARE_JSON_PRIMITIVE(unsigned short int)
+      //DECLARE_JSON_PRIMITIVE(short int)
+
 #undef DECLARE_JSON_PRIMITIVE
 
 // If serializeField, deserializeField are already defined for type T,

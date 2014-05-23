@@ -44,5 +44,10 @@ PRIMITIVE_ARRAY_TEST(FloatArray, float)
 PRIMITIVE_ARRAY_TEST(BoolArray, bool)
 PRIMITIVE_ARRAY_TEST(UCharArray, unsigned char)
 PRIMITIVE_ARRAY_TEST(CharArray, char)
+PRIMITIVE_ARRAY_TEST(ULongArray, unsigned long int)
+PRIMITIVE_ARRAY_TEST(LongArray, long int)
+//PRIMITIVE_ARRAY_TEST(ULongLongArray, unsigned long long int)
+//PRIMITIVE_ARRAY_TEST(LongLongArray, long long int)
+
 
 
