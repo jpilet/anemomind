@@ -82,6 +82,8 @@ class CommonJsonArray : public CommonJson {
  public:
   CommonJsonArray(Poco::JSON::Array x) : _x(new Poco::JSON::Array(x)) {}
   CommonJsonArray(Poco::JSON::Array::Ptr x) : _x(x) {}
+  CommonJsonArray();
+  static CommonJson::Ptr make();
 
   Poco::JSON::Array::Ptr &get() {return _x;}
   bool isArray() const {return true;}
@@ -99,6 +101,7 @@ class CommonJsonArray : public CommonJson {
 class CommonJsonObject : public CommonJson {
  public:
   static CommonJson::Ptr make();
+  CommonJsonObject();
   CommonJsonObject(Poco::JSON::Object::Ptr x) : _x(x) {}
   Poco::JSON::Object::Ptr &get() {return _x;}
   bool isObject() const {return true;}

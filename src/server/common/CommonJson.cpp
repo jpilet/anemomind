@@ -50,8 +50,10 @@ void CommonJsonArray::addToOtherArray(Poco::JSON::Array *dst) {
 }
 
 CommonJson::Ptr CommonJsonObject::make() {
-  return CommonJson::Ptr(new CommonJsonObject(Poco::JSON::Object::Ptr(new Poco::JSON::Object())));
+  return CommonJson::Ptr(new CommonJsonObject());
 }
+
+CommonJsonObject::CommonJsonObject() : _x(new Poco::JSON::Object()) {}
 
 void CommonJsonObject::addToOtherArray(Poco::JSON::Array *dst) {
   dst->add(_x);
@@ -67,6 +69,14 @@ void CommonJsonObject::setOtherObjectField(Poco::JSON::Object::Ptr dst, std::str
 
 void CommonJsonArray::setOtherObjectField(Poco::JSON::Object::Ptr dst, std::string fieldName) {
   dst->set(fieldName, _x);
+}
+
+CommonJsonArray::CommonJsonArray() {
+  _x = Poco::JSON::Array::Ptr(new Poco::JSON::Array());
+}
+
+CommonJson::Ptr CommonJsonArray::make() {
+  return CommonJson::Ptr(new CommonJsonArray());
 }
 
 void CommonJsonVar::stringify(std::ostream& out, unsigned int indent , int step ) const {
