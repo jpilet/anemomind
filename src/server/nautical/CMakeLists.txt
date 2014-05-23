@@ -259,30 +259,6 @@ target_link_libraries(nautical_BasicCalibrate
                       nautical_Calibrator)
 
 
-add_library(nautical_FlowField
-            FlowField.cpp
-            FlowField.h
-           )
-target_link_libraries(nautical_FlowField
-                      common_Uniform
-                     )           
-add_library(nautical_FlowFieldJson
-            FlowFieldJson.cpp
-            FlowFieldJson.h
-           )
-target_link_libraries(nautical_FlowFieldJson
-                      common_Json
-                      nautical_FlowField
-                      common_LineKMJson
-                     )                      
-cxx_test(nautical_FlowFieldTest
-         FlowFieldTest.cpp
-         nautical_FlowField
-         nautical_FlowFieldJson
-         gtest_main
-        )           
-
-
 add_library(nautical_GeographicReference
             GeographicReference.h
             GeographicReference.cpp
