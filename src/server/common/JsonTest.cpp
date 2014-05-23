@@ -37,6 +37,7 @@ namespace {
 
 #define PRIMITIVE_ARRAY_TEST(name, type) TEST(JsonTest, name) {primitiveArrayTest<type>();}
 
+PRIMITIVE_ARRAY_TEST(UIntArray, unsigned int)
 PRIMITIVE_ARRAY_TEST(IntArray, int)
 PRIMITIVE_ARRAY_TEST(DoubleArray, double)
 PRIMITIVE_ARRAY_TEST(FloatArray, float)
