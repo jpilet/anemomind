@@ -4,11 +4,16 @@
  */
 
 #include "FlowFieldJson.h"
-#include <server/common/PhysicalQuantityJson.h>
 #include <server/math/GridJson.h>
+#include <server/common/PhysicalQuantityJson.h>
 
 namespace sail {
 namespace json {
+
+
+CommonJson::Ptr serialize(const Vectorize<double, 2> &x) {
+  return serialize(Arrayd(2, x.data()));
+}
 
 CommonJson::Ptr serialize(const FlowField &x) {
   CommonJson::Ptr obj = CommonJsonObject::make();

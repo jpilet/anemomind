@@ -95,10 +95,22 @@ bool deserialize(Poco::JSON::Object::Ptr src, Quantity *x) {
   return deserializeField(src, std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
 }
 
+template <class Quantity>
+bool deserialize(CommonJson::Ptr src, Quantity *x) {
+  return deserializeField(src->toObject()->get(), std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
+}
+
+
 template <typename T, int N>
-CommonJson::Ptr serialize(const Vectorize<T, N> &x) {
+CommonJson::Ptr serializeVectorize(const Vectorize<T, N> &x) {
   return serialize(Array<T>(N, x.data()));
 }
+
+template <typename T, int N>
+CommonJson::Ptr serialize(const Vectorize<T, N> &x) {
+  return serializeVectorize<T, N>(x);
+}
+
 
 template <typename T, int N>
 bool deserialize(CommonJson::Ptr src, Vectorize<T, N> *x) {

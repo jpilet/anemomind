@@ -6,13 +6,15 @@
 #ifndef GRIDJSON_H_
 #define GRIDJSON_H_
 
-#include <server/common/CommonJson.h>
-#include <server/math/Grid.h>
+#include <server/common/LineKMJson.h>
 #include <server/common/MDIndsJson.h>
 
 
 namespace sail {
 namespace json {
+
+
+CommonJson::Ptr serialize(const LineKM &x);
 
 template <int N>
 CommonJson::Ptr serialize(Grid<N> grid) {

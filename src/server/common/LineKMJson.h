@@ -7,6 +7,7 @@
 #define LINEKMJSON_H_
 
 #include <server/common/CommonJson.h>
+#include <server/common/LineKM.h>
 
 namespace sail {
 class LineKM;
