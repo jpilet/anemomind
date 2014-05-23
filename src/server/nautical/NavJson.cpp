@@ -28,7 +28,6 @@ CommonJson::Ptr serialize(const Nav &nav) {
   serializeField(x, "awa", nav.awa());
   serializeField(x, "id", nav.id());
   serializeField(x, "boat-id", nav.boatId());
-
   return CommonJson::Ptr(new CommonJsonObject(x));
 }
 
