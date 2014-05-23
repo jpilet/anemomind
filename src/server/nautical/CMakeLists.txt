@@ -265,6 +265,7 @@ add_library(nautical_FlowField
            )
 target_link_libraries(nautical_FlowField
                       common_Uniform
+                      plot_gnuplot
                      )           
 add_library(nautical_FlowFieldJson
             FlowFieldJson.cpp
@@ -281,7 +282,12 @@ cxx_test(nautical_FlowFieldTest
          nautical_FlowFieldJson
          gtest_main
         )           
-
+add_executable(nautical_FlowFieldExample
+               FlowFieldExample.cpp
+              )
+target_link_libraries(nautical_FlowFieldExample
+                      nautical_FlowField
+                     )
 
 add_library(nautical_GeographicReference
             GeographicReference.h

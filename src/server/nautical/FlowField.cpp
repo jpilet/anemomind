@@ -5,6 +5,7 @@
 
 #include "FlowField.h"
 #include <server/common/Uniform.h>
+#include <server/plot/extra.h>
 
 namespace sail {
 
@@ -58,6 +59,23 @@ FlowField FlowField::generate(Span<Length<double> > xSpan,
     A = grid.filter3Easy(A, 2, coefs, true);
   }
   return FlowField(grid, A);
+}
+
+void FlowField::plotTimeSlice(Duration<double> time) const {
+  GnuplotExtra plot;
+  const MDInds<3> &inds = _grid.getInds();
+
+  double marg = 1.0e-5;
+  LineKM xshrink(0, inds.get(0), marg, inds.get(0) - marg);
+  LineKM yshrink(0, inds.get(1), marg, inds.get(1) - marg);
+
+  for (int xi = 0; xi < inds.get(0); xi++) {
+    double x = (_grid.getEq(0))(xshrink(xi));
+    for (int yi = 0; yi < inds.get(1); yi++) {
+      double y = (_grid.getEq(1))(yshrink(yi));
+    }
+  }
+
 }
 
 

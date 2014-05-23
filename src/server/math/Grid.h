@@ -47,10 +47,10 @@ class Grid {
 
   virtual ~Grid() {}
 
-  LineKM &getEq(int dim) {
+  const LineKM &getEq(int dim) const {
     return _ind2Coord[dim];
   }
-  int getSize(int dim) {
+  int getSize(int dim) const {
     return _inds.get(dim);
   }
 
