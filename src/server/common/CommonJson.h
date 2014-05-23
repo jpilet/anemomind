@@ -21,6 +21,11 @@ namespace json {
  * objects and arrays can be either Array, Object or Var.
  * These classes wrap all these objects into a
  * CommonJson object.
+ *
+ * The idea is to provide a unified json interface for all types of interest on the form
+ *
+ * CommonJson::Ptr sail::json::serialize(const type &x);
+ * void sail::json::deserialize(CommonJson::Ptr src, type *dst);
  */
 class CommonJsonVar;
 class CommonJsonArray;
