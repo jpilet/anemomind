@@ -41,5 +41,8 @@ PRIMITIVE_ARRAY_TEST(UIntArray, unsigned int)
 PRIMITIVE_ARRAY_TEST(IntArray, int)
 PRIMITIVE_ARRAY_TEST(DoubleArray, double)
 PRIMITIVE_ARRAY_TEST(FloatArray, float)
+PRIMITIVE_ARRAY_TEST(BoolArray, bool)
+PRIMITIVE_ARRAY_TEST(UCharArray, unsigned char)
+PRIMITIVE_ARRAY_TEST(CharArray, char)
 
 
