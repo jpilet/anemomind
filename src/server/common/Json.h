@@ -17,26 +17,34 @@ namespace json {
 
 
 
-//template <typename T>
-//class JsonPrimitive {
-// public:
-//  static const bool IsPrimitive = false;
-//  static void readArrayElement(const Poco::JSON::Array &src, int index, T *dst) {}
-//};
+template <typename T>
+CommonJson::Ptr serializePrimitive(T x) {return CommonJson::Ptr(new CommonJsonVar(Poco::Dynamic::Var(x)));}
+
+template <typename T>
+void deserializePrimitive(CommonJson::Ptr obj, T *x) {*x = obj->toVar()->get().convert<T>();}
+
+#define DECLARE_JSON_PRIMITIVE(type) \
+  inline CommonJson::Ptr serialize(type x) {return serializePrimitive(x);} \
+  inline void deserialize(CommonJson::Ptr obj, type *x) {deserializePrimitive(obj, x);}
+//      DECLARE_JSON_PRIMITIVE(char)
+//      DECLARE_JSON_PRIMITIVE(unsigned char)
 //
-//#define DECLARE_JSON_PRIMITIVE(type) \
-//    inline Poco::Dynamic::Var serialize(type x) {return Poco::Dynamic::Var(x);} \
-//    template <> \
-//    class JsonPrimitive<type> { \
-//     public: \
-//      static const bool IsPrimitive = true; \
-//      static void readArrayElement(const Poco::JSON::Array &src, int index, type *dst) { \
-//        *dst = src.getElement<type>(index); \
-//      } \
-//    }
-//DECLARE_JSON_PRIMITIVE(int);
-//DECLARE_JSON_PRIMITIVE(double);
-//#undef DECLARE_JSON_PRIMITIVE
+//      DECLARE_JSON_PRIMITIVE(short)
+//      DECLARE_JSON_PRIMITIVE(unsigned short)
+
+      DECLARE_JSON_PRIMITIVE(int)
+//      DECLARE_JSON_PRIMITIVE(unsigned int)
+
+//      DECLARE_JSON_PRIMITIVE(long int)
+//      DECLARE_JSON_PRIMITIVE(unsigned long int)
+//
+//      DECLARE_JSON_PRIMITIVE(long long int)
+//      DECLARE_JSON_PRIMITIVE(unsigned long long int)
+
+      DECLARE_JSON_PRIMITIVE(double)
+//      DECLARE_JSON_PRIMITIVE(float)
+      //DECLARE_JSON_PRIMITIVE(bool)
+#undef DECLARE_JSON_PRIMITIVE
 
 // If serializeField, deserializeField are already defined for type T,
 // use this templates to build a serialize function.

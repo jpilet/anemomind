@@ -89,6 +89,11 @@ add_library(common_Json
 target_link_libraries(common_Json
                       common_CommonJson
                      )
+cxx_test(common_JsonTest
+         JsonTest.cpp
+         common_Json
+         gtest_main
+        )                     
                    
         
 add_library(common_TimeStampJson
