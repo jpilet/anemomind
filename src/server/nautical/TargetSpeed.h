@@ -11,6 +11,7 @@
 
 #include <server/nautical/Nav.h>
 #include <server/common/Histogram.h>
+#include <iosfwd>
 
 namespace sail {
 
@@ -26,7 +27,9 @@ class TargetSpeedData {
       Arrayd quantiles = makeDefaultQuantiles());
   void plot();
   const HistogramMap &hist() const {return _hist;}
+  void outputTable(std::string filename);
  private:
+  void outputTable(std::ostream *dst);
   void init(Array<Velocity<double> > windSpeeds,
       Array<Velocity<double> > vmg,
       HistogramMap map,

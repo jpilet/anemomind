@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <server/plot/extra.h>
 #include <server/common/string.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -103,6 +104,15 @@ void TargetSpeedData::init(Array<Velocity<double> > windSpeeds,
     return extractQuantiles(vmg, quantiles, makeUnwrapper());
   });
   _quantiles = quantiles;
+}
+
+void TargetSpeedData::outputTable(std::string filename) {
+  std::ofstream file(filename);
+  outputTable(&file);
+}
+
+void TargetSpeedData::outputTable(std::ostream *dst) {
+  LOG(FATAL) << "Please complete this function.";
 }
 
 
