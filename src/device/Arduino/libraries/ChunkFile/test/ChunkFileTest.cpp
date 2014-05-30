@@ -1,10 +1,9 @@
-#include "../ChunkFile.h"
+#include <device/Arduino/libraries/ChunkFile/ChunkFile.h>
 
+#include <gtest/gtest.h>
 #include <assert.h>
 #include <stdint.h>
-#include <string>
 #include <sstream>
-#include <iostream>
 
 #pragma pack(1)
 struct TestStructA {
@@ -37,7 +36,7 @@ struct IgnoredStruct {
   char data[16];
 };
 
-int main() {
+TEST(ChunkFileTest, SerializationTest) {
   TestStructA dataA;
   dataA.a = 23957;
   dataA.b = 2.456e-7;
@@ -63,18 +62,18 @@ int main() {
     makeChunkTarget(&loadedB),
     makeChunkTarget(&loadedC),
   };
+  EXPECT_FALSE(targets[0].success);
+  EXPECT_FALSE(targets[1].success);
+
   ChunkLoader loader(targets, 3);
 
   std::string str = stream.str();
   loader.addBytes(str.c_str(), str.size());
 
-  assert(dataA.a == loadedA.a);
-  assert(dataA.b == loadedA.b);
-  assert(dataB.a == loadedB.a);
-  assert(dataC.a == loadedC.a);
-  assert(targets[0].success);
-  assert(targets[1].success);
-
-  std::cout << "OK.\n";
-  return 0;
+  EXPECT_EQ(dataA.a, loadedA.a);
+  EXPECT_EQ(dataA.b, loadedA.b);
+  EXPECT_EQ(dataB.a, loadedB.a);
+  EXPECT_EQ(dataC.a, loadedC.a);
+  EXPECT_TRUE(targets[0].success);
+  EXPECT_TRUE(targets[1].success);
 }
