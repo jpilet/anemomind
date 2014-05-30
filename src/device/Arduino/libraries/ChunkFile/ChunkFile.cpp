@@ -29,12 +29,14 @@ void ChunkLoader::addByte(char x) {
         _bytesToSkip = size;
 
         for (int i = 0; i < _numTargets; ++i) {
-          if (id == _targets[i].identifier
+          if (!_targets[i].success
+              &&id == _targets[i].identifier
               && version == _targets[i].version
               && size == _targets[i].size) {
             _currentTarget = _targets + i;
             _state = READ_CHUNK;
             _writePosition = 0;
+            break;
           }
         }
       }
