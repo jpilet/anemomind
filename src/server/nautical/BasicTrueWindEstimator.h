@@ -10,6 +10,55 @@
 
 namespace sail {
 
+namespace {
+
+Nav averageNavs(Array<Nav> past, Duration<> duration) {
+  CHECK_LT(0, past.size());
+
+  HorizontalMotion<double> boatMotion(
+      Velocity<double>::metersPerSecond(0),
+      Velocity<double>::metersPerSecond(0));
+
+  HorizontalMotion<double> apparentWind(
+      Velocity<double>::metersPerSecond(0),
+      Velocity<double>::metersPerSecond(0));
+
+  HorizontalMotion<double> waterMotion(boatMotion);
+
+  int n = 0;
+  for (int i = past.size() - 1; i >= 0; --i) {
+    const Nav& entry = past[i];
+    if ((past.last().time() - entry.time()) < duration) {
+      boatMotion = boatMotion + HorizontalMotion<double>::polar(
+          entry.gpsSpeed(), entry.gpsBearing());
+
+      apparentWind = apparentWind + HorizontalMotion<double>::polar(
+          entry.aws(), entry.awa());
+
+      waterMotion = waterMotion +  HorizontalMotion<double>::polar(
+          entry.watSpeed(), entry.magHdg());
+      ++n;
+    }
+  }
+
+  for (int i = 0; i < 2; ++i) { 
+    boatMotion[i] = boatMotion[i].scaled(1.0 / n);
+    apparentWind[i] = apparentWind[i].scaled(1.0 / n);
+    waterMotion[i] = waterMotion[i].scaled(1.0 / n);
+  }
+
+  Nav result;
+  result.setAwa(apparentWind.angle());
+  result.setAws(apparentWind.norm());
+  result.setGpsSpeed(boatMotion.norm());
+  result.setGpsBearing(boatMotion.angle());
+  result.setMagHdg(waterMotion.angle());
+  result.setWatSpeed(waterMotion.norm());
+  return result;
+}
+
+}  // namespace
+
 class BasicTrueWindEstimator {
   public:
     template <class T>
@@ -20,7 +69,11 @@ class BasicTrueWindEstimator {
 
     enum {
         PARAM_AWA_OFFSET,
-        PARAM_AWS_BIAS,
+        PARAM_UPWIND0,
+        PARAM_DOWNWIND0,
+        PARAM_DOWNWIND1,
+        PARAM_DOWNWIND2,
+        PARAM_DOWNWIND3,
         NUM_PARAMS
     };
 };
@@ -31,21 +84,42 @@ HorizontalMotion<T> BasicTrueWindEstimator::computeTrueWind(
     // We could filter past measurements here.
     // However, for the sake of simplicity, we just take the last measurement.
     CHECK_LT(0, past.size());
-    const Nav& measures = past.last();
+
+    Nav measures = averageNavs(past, Duration<>::seconds(20));
 
     assert(!std::isnan(measures.gpsSpeed().metersPerSecond()));
     assert(!std::isnan(measures.gpsBearing().radians()));
     assert(!std::isnan(measures.awa().radians()));
     assert(!std::isnan(measures.aws().metersPerSecond()));
 
+    double awa = normalizeAngleBetweenMinusPiAndPi(measures.awa().radians());
+
+    bool upwind = (awa > (- M_PI / 2.0)) && (awa < (M_PI / 2.0));
+    bool starboard = awa > 0;
+    T aws(measures.aws().knots()); 
+
+    T awa_offset(params[PARAM_AWA_OFFSET]);
+    T aws_bias(1.0);
+    T aws_offset(0);
+
+    T sideFactor(starboard ? 1 : -1);
+    if (upwind) {
+      awa_offset += sideFactor * ((aws * aws) * params[PARAM_UPWIND0]);
+    } else {
+      aws_offset = params[PARAM_DOWNWIND0];
+      aws_bias += params[PARAM_DOWNWIND1] * aws;
+      awa_offset += sideFactor * ((aws * aws) * params[PARAM_DOWNWIND2]
+                                  +params[PARAM_DOWNWIND3]);
+    }
+
     HorizontalMotion<T> boatMotion = HorizontalMotion<T>::polar(
         measures.gpsSpeed().cast<T>(), measures.gpsBearing().cast<T>());
 
     // We assume no drift and no current.
     HorizontalMotion<T> appWindMotion = HorizontalMotion<T>::polar(
-        measures.aws().cast<T>().scaled(params[PARAM_AWS_BIAS]),
+        Velocity<T>::knots(aws_offset) + measures.aws().cast<T>().scaled(aws_bias),
         (measures.gpsBearing() + measures.awa()).cast<T>()
-            + Angle<T>::degrees(params[PARAM_AWA_OFFSET]));
+            + Angle<T>::degrees(awa_offset));
 
     // True wind - boat motion = apparent wind.
     return appWindMotion - boatMotion;
@@ -53,8 +127,9 @@ HorizontalMotion<T> BasicTrueWindEstimator::computeTrueWind(
 
 template<class T>
 void BasicTrueWindEstimator::initializeParameters(T* params) {
-    params[PARAM_AWA_OFFSET] = T(0);
-    params[PARAM_AWS_BIAS] = T(1);
+  for (int i = 0; i < NUM_PARAMS; ++i) {
+    params[i] = T(0);
+  }
 }
 
 }  // namespace sail

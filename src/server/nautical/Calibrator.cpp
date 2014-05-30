@@ -15,6 +15,9 @@
 #include <server/common/string.h>
 #include <server/nautical/NavNmeaScan.h>
 #include <string>
+#include <server/plot/extra.h>
+#include <server/common/Histogram.h>
+#include <server/common/ArrayBuilder.h>
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
@@ -26,11 +29,16 @@ using std::string;
 namespace sail {
 
 namespace {
+
 string showWind(const HorizontalMotion<double>& wind) {
   double degrees = wind.angle().degrees();
   return stringFormat("%3.0f/%4.1fkn",
                       positiveMod(degrees, 360.0),
                       wind.norm().knots());
+}
+
+Angle<double> externalTrueWindDirection(Array<Nav> nav) {
+  return nav.last().externalTwa() + nav.last().magHdg();
 }
 
 template <typename T, int N>
@@ -52,17 +60,22 @@ class TackCost {
       HorizontalMotion<T> windAfter =
         BasicTrueWindEstimator::computeTrueWind<T>(x, _after);
 
-      residual[0] = T(_weight) * (windAfter.angle().directionDifference(
-              windBefore.angle()).degrees());
+      if (1) {
+        HorizontalMotion<T> difference = windAfter - windBefore;
+        residual[0] = T(_weight) * difference[0].knots();
+        residual[1] = T(_weight) * difference[1].knots();
+      } else {
+        residual[0] = T(_weight) * (windAfter.angle().directionDifference(
+                windBefore.angle()).degrees());
 
-      T strengthBefore = windBefore.norm().metersPerSecond();
-      T strengthAfter = windAfter.norm().metersPerSecond();
+        T strengthBefore = windBefore.norm().metersPerSecond();
+        T strengthAfter = windAfter.norm().metersPerSecond();
 
-      // The strength has to be normalized. Otherwise, the optimizer will
-      // be rewarded for underestimating the wind.
-      residual[1] = T(_weight * 360.0 * 2.0) * (
-          (strengthAfter - strengthBefore) / (strengthAfter));
-
+        // The strength has to be normalized. Otherwise, the optimizer will
+        // be rewarded for underestimating the wind.
+        residual[1] = T(_weight * 360.0 * 2.0) * (
+            (strengthAfter - strengthBefore) / (strengthAfter));
+      }
       assert(!isnan(residual[0]));
       assert(!isnan(residual[1]));
       return true;
@@ -80,25 +93,21 @@ class TackCost {
         << " w=" << _weight << "\n";
     }
 
-    static Angle<double> externalTrueWindDirection(Array<Nav> nav) {
-      return nav.last().externalTwa() + nav.last().magHdg();
-    }
-
-    void sumAngularError(const double *params,
+    void angularError(const double *params,
                          double *sumDegrees, double *sumKnots,
                          double *sumExternalDegrees, double *sumExternalKnots) {
       HorizontalMotion<double> windBefore =
         BasicTrueWindEstimator::computeTrueWind<double>(params, _before);
       HorizontalMotion<double> windAfter =
         BasicTrueWindEstimator::computeTrueWind<double>(params, _after);
-      *sumDegrees += std::fabs(windAfter.angle().directionDifference(
+      *sumDegrees = std::fabs(windAfter.angle().directionDifference(
               windBefore.angle()).degrees());
-      *sumKnots += std::fabs((windAfter.norm() - windBefore.norm()).knots());
+      *sumKnots = std::fabs((windAfter.norm() - windBefore.norm()).knots());
       
-      *sumExternalDegrees += std::fabs(
+      *sumExternalDegrees = std::fabs(
           externalTrueWindDirection(_before).directionDifference(
               externalTrueWindDirection(_after)).degrees());
-      *sumExternalKnots += std::fabs(
+      *sumExternalKnots = std::fabs(
           (_before.last().externalTws() - _after.last().externalTws()).knots());
     }
 
@@ -131,6 +140,12 @@ void Calibrator::addTack(int pos, double weight) {
     // less than 2 knots of wind is not a useful measure.
     return;
   }
+  
+  if (fabs(externalTrueWindDirection(before).directionDifference(
+          externalTrueWindDirection(after)).degrees()) > 30.0) {
+    // Tacktick is off by more than 30 degrees: something funny is going on.
+    return;
+  }
 
   TackCost *cost = new TackCost(before, after, weight);
   _maneuvers.push_back(cost);
@@ -140,7 +155,10 @@ void Calibrator::addTack(int pos, double weight) {
           2, //residuals
           BasicTrueWindEstimator::NUM_PARAMS // unknowns
         >(cost);
-  _problem.AddResidualBlock(cost_function, new ceres::CauchyLoss(1), _calibrationValues);
+  _problem.AddResidualBlock(cost_function,
+                            //nullptr,
+                            new ceres::CauchyLoss(1),
+                            _calibrationValues);
 }
 
 void Calibrator::addBuoyTurn(std::shared_ptr<HTree> tree) {
@@ -170,6 +188,7 @@ void Calibrator::addAllTack(std::shared_ptr<HTree> tree) {
       if ((beforeDescr == "starboard-tack" && afterDescr == "port-tack")
           || (beforeDescr == "port-tack" && afterDescr == "starboard-tack")) {
         // We have a maneuver.
+        /*
         LOG(INFO) << "Tack: " << before->right() << " - "
           << after->left() << ": "
           << description(before->child(before->childCount() - 1))
@@ -177,6 +196,7 @@ void Calibrator::addAllTack(std::shared_ptr<HTree> tree) {
           << " -> "
           << description(after->child(0))
           << "(" << after->child(0)->count() << ")";
+          */
         std::string childBeforeDescr = description(before->child(before->childCount() - 1));
         std::string childAfterDescr = description(after->child(0));
 
@@ -215,43 +235,97 @@ bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
 
   print();
 
+  GnuplotExtra gnuplot;
+  gnuplot.set_style("lines");
+  gnuplot.set_xlabel("error [degrees]");
+  gnuplot.set_ylabel("count");
+  plot(&gnuplot, "before");
+
   // Run the solver!
   Solver::Options options;
   options.minimizer_progress_to_stdout = true;
+  options.max_num_iterations = 500;
+  options.function_tolerance = 1e-7;
   Solver::Summary summary;
   Solve(options, &_problem, &summary);
   std::cout << summary.BriefReport() << "\n";
 
-  LOG(INFO) << "AWA_OFFSET: " << _calibrationValues[BasicTrueWindEstimator::PARAM_AWA_OFFSET];
-  LOG(INFO) << "AWS_BIAS: " << _calibrationValues[BasicTrueWindEstimator::PARAM_AWS_BIAS];
+  for (int i = 0; i < BasicTrueWindEstimator::NUM_PARAMS; ++i) {
+  LOG(INFO) << "param: "
+    << _calibrationValues[i];
+  }
 
   print();
+  plot(&gnuplot, "after");
 
   return true;
 }
 
 void Calibrator::print() {
-  double angleError = 0;
-  double normAngle = 0;
-  double externalAngleError = 0;
-  double externalNormAngle = 0;
+  double sumAngleError = 0;
+  double sumNormAngle = 0;
+  double sumExternalAngleError = 0;
+  double sumExternalNormAngle = 0;
+  ArrayBuilder<double> allAngleError; 
+
   for (auto maneuver : _maneuvers) {
     if (_maneuvers.size() < 30) {  // Avoid flooding.
       maneuver->printCost(_calibrationValues);
     }
-    maneuver->sumAngularError(_calibrationValues,
+    double angleError = 0;
+    double normAngle = 0;
+    double externalAngleError = 0;
+    double externalNormAngle = 0;
+    maneuver->angularError(_calibrationValues,
                               &angleError, &normAngle,
                               &externalAngleError, &externalNormAngle);
-  }
-  angleError /= _maneuvers.size();
-  normAngle /= _maneuvers.size();
-  externalAngleError /= _maneuvers.size();
-  externalNormAngle /= _maneuvers.size();
 
-  LOG(INFO) << "\n * Average angle error: " << angleError << " degrees"
-    << " (external: " << externalAngleError << ")\n"
-    << " * Average speed error: " << normAngle << " knots"
-    << " (external: " << externalNormAngle << ")";
+    allAngleError.add(angleError);
+    sumAngleError += angleError;
+    sumNormAngle += normAngle;
+    sumExternalAngleError += externalAngleError;
+    sumExternalNormAngle += externalNormAngle;
+
+  }
+
+  sumAngleError /= _maneuvers.size();
+  sumNormAngle /= _maneuvers.size();
+  sumExternalAngleError /= _maneuvers.size();
+  sumExternalNormAngle /= _maneuvers.size();
+
+  LOG(INFO) << "\n * Average angle error: " << sumAngleError << " degrees"
+    << " (external: " << sumExternalAngleError << ")\n"
+    << " * Average speed error: " << sumNormAngle << " knots"
+    << " (external: " << sumExternalNormAngle << ")";
+}
+
+void Calibrator::plot(GnuplotExtra *gnuplot, const std::string &title) {
+  ArrayBuilder<double> allAngleError; 
+  ArrayBuilder<double> allNormAngle;
+  ArrayBuilder<double> allExternalAngleError;
+  ArrayBuilder<double> allExternalNormAngle;
+
+  for (auto maneuver : _maneuvers) {
+    double angleError = 0;
+    double normAngle = 0;
+    double externalAngleError = 0;
+    double externalNormAngle = 0;
+    maneuver->angularError(_calibrationValues,
+                              &angleError, &normAngle,
+                              &externalAngleError, &externalNormAngle);
+    allAngleError.add(angleError);
+    allAngleError.add(angleError);
+    allNormAngle.add(normAngle);
+    allExternalAngleError.add(externalAngleError);
+    allExternalNormAngle.add(externalNormAngle);
+  }
+  const int count = 16;
+  HistogramMap angleErrorHist(count, 0, 64);
+  gnuplot->plot(
+      angleErrorHist.makePlotData(
+          angleErrorHist.countPerBin(allAngleError.get())),
+      title
+      );
 }
 
 void Calibrator::clear() {
