@@ -345,7 +345,6 @@ class Array {
 #if SAFEARRAY
     assert(_size == src.size());
 #endif
-    int count = _size;
     for (int i = 0; i < _size; i++) {
       _data[i] = src.get(i);
     }
