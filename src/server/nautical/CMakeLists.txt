@@ -214,7 +214,6 @@ cxx_test(nautical_BasicTrueWindEstimatorTest
          nautical_nav
          nautical_NavNmea
          gtest_main)
-            
 
 add_library(nautical_BoatLogProcessor
             BoatLogProcessor.cpp

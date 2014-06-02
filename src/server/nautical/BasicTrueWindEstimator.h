@@ -4,8 +4,8 @@
 #define NAUTICAL_BOAT_MODEL_H
 
 #include <cmath>
-#include <server/common/logging.h>
 #include <server/common/PhysicalQuantity.h>
+#include <server/common/logging.h>
 #include <server/nautical/Nav.h>
 
 namespace sail {
@@ -81,8 +81,6 @@ class BasicTrueWindEstimator {
 template <class T>
 HorizontalMotion<T> BasicTrueWindEstimator::computeTrueWind(
         const T* params, Array<Nav> past) {
-    // We could filter past measurements here.
-    // However, for the sake of simplicity, we just take the last measurement.
     CHECK_LT(0, past.size());
 
     Nav measures = averageNavs(past, Duration<>::seconds(20));
