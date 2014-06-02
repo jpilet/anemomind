@@ -41,11 +41,9 @@ Nav averageNavs(Array<Nav> past, Duration<> duration) {
     }
   }
 
-  for (int i = 0; i < 2; ++i) { 
-    boatMotion[i] = boatMotion[i].scaled(1.0 / n);
-    apparentWind[i] = apparentWind[i].scaled(1.0 / n);
-    waterMotion[i] = waterMotion[i].scaled(1.0 / n);
-  }
+  boatMotion = boatMotion.scaled(1.0 / n);
+  apparentWind = apparentWind.scaled(1.0 / n);
+  waterMotion = waterMotion.scaled(1.0 / n);
 
   Nav result;
   result.setAwa(apparentWind.angle());
