@@ -14,6 +14,7 @@
 namespace sail {
 
 namespace {
+
   HorizontalMotion<double> apparentWind(const Nav &nav) {
   /* Important note: awa() is the angle w.r.t. the cource of the boat!
    * So awa() = 0 always means the boat is in irons */
@@ -36,6 +37,11 @@ namespace {
   Velocity<double> estimateRawTws(const Nav &n) {
     return estimateRawTrueWind(n).norm();
   }
+
+  double max(const Arrayd &array, double additionalValue) {
+    return array.reduce<double>(additionalValue, [] (double a, double b) { return std::max(a, b); });
+  }
+
 }
 
 
@@ -185,10 +191,6 @@ Arrayd TargetSpeedData::targetVmgForWindSpeed(Velocity<double> windSpeed) const 
   return _medianValues[bin];
 }
 
-double max(const Arrayd &array) {
-  return array.reduce<double>(0.0, [] (double a, double b) { return std::max(a, b); });
-}
-
 void saveTargetSpeedTableChunk(
     ostream *stream,
     const TargetSpeedData& upwind,
@@ -196,8 +198,8 @@ void saveTargetSpeedTableChunk(
   TargetSpeedTable table;
   for (int knots = 0; knots < TargetSpeedTable::NUM_ENTRIES; ++knots) {
     Velocity<double> binCenter = Velocity<double>::knots(double(knots) + .5);
-    table._upwind[knots] = FP8_8(max(upwind.targetVmgForWindSpeed(binCenter)));
-    table._downwind[knots] = FP8_8(max(downwind.targetVmgForWindSpeed(binCenter)));
+    table._upwind[knots] = FP8_8(max(upwind.targetVmgForWindSpeed(binCenter), -1.0));
+    table._downwind[knots] = FP8_8(max(downwind.targetVmgForWindSpeed(binCenter), -1.0));
   }
   writeChunk(*stream, &table);
 }
