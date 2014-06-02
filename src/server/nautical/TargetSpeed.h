@@ -9,6 +9,7 @@
 #ifndef TARGETSPEED_H_
 #define TARGETSPEED_H_
 
+#include <ostream>
 #include <server/nautical/Nav.h>
 #include <server/common/Histogram.h>
 
@@ -26,6 +27,8 @@ class TargetSpeedData {
       Arrayd quantiles = makeDefaultQuantiles());
   void plot();
   const HistogramMap &hist() const {return _hist;}
+
+  Arrayd targetVmgForWindSpeed(Velocity<double> windSpeed) const;
  private:
   void init(Array<Velocity<double> > windSpeeds,
       Array<Velocity<double> > vmg,
@@ -57,6 +60,12 @@ Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs);
 Array<Velocity<double> > estimateTws(Array<Nav> navs);
 
 
+// Pack "upwind" and "downwind" tables into a TargetSpeedTable and
+// save it to the given ostream, in binary/chunk format.
+void saveTargetSpeedTableChunk(
+    ostream *stream,
+    const TargetSpeedData& upwind,
+    const TargetSpeedData& downwind);
 
 } /* namespace sail */
 
