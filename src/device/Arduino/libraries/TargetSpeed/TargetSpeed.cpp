@@ -6,7 +6,7 @@
 
 namespace {
 
-float degToGrad(float deg) {
+float degToRad(float deg) {
   return float(deg * (M_PI / 180.0));
 }
 
@@ -37,7 +37,7 @@ float getSpeedDownWind(const TargetSpeedTable& table, FP8_8 tws) {
 
 float getVmgSpeedRatio(const TargetSpeedTable& table,
                        float twa, float tws, float gpsSpeed) {
-  float vmgGps = cos(degToGrad(twa)) * gpsSpeed;
+  float vmgGps = cos(degToRad(twa)) * gpsSpeed;
   float refSpeed;
   if (vmgGps > 0) {
     refSpeed = getSpeedUpWind(table, tws);
