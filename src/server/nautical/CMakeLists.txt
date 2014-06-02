@@ -214,7 +214,6 @@ cxx_test(nautical_BasicTrueWindEstimatorTest
          nautical_nav
          nautical_NavNmea
          gtest_main)
-            
 
 add_library(nautical_BoatLogProcessor
             BoatLogProcessor.cpp
@@ -248,6 +247,8 @@ add_library(nautical_Calibrator
 target_link_libraries(nautical_Calibrator
                       nautical_grammars_Grammar001
                       nautical_NavNmeaScan
+                      common_Histogram
+                      plot_gnuplot
                       common_math
                      )
 target_depends_on_ceres(nautical_Calibrator)
