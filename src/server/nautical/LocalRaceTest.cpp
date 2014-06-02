@@ -8,10 +8,9 @@
 using namespace sail;
 
 TEST(LocalRaceTest, InstationAndRegTest) {
-  Poco::Path path = PathBuilder::makeDirectory(Env::SOURCE_DIR).
-      pushDirectory("datasets").
-      pushDirectory("regates").
-      pushDirectory("champ_suisse_10_juillet_08").makeFile("IreneLog.txt").get();
+  Poco::Path path = PathBuilder::makeDirectory(Env::SOURCE_DIR)
+    .pushDirectory("datasets/Irene/2008/champ_suisse_10_juillet_08")
+    .makeFile("IreneLog.txt").get();
   Array<Nav> allNavs = loadNavsFromNmea(path.toString(), Nav::debuggingBoatId()).navs();
   Array<Array<Nav> > splitNavs = splitNavsByDuration(allNavs,
                                  Duration<double>::minutes(10).seconds());

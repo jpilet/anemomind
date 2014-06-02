@@ -14,19 +14,19 @@ namespace sail {
 namespace json {
 
 
-CommonJson::Ptr serialize(const LineKM &x);
+Poco::Dynamic::Var serialize(const LineKM &x);
 
 template <int N>
-CommonJson::Ptr serialize(Grid<N> grid) {
-  CommonJson::Ptr obj = CommonJsonObject::make();
-  obj->toObject()->set("inds", serialize(grid.getInds()));
-  obj->toObject()->set("ind2Coord", serialize(Array<LineKM>(N, grid.ind2Coord())));
-  return obj;
+Poco::Dynamic::Var serialize(Grid<N> grid) {
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  obj->set("inds", serialize(grid.getInds()));
+  obj->set("ind2Coord", serialize(Array<LineKM>(N, grid.ind2Coord())));
+  return Poco::Dynamic::Var(obj);
 }
 
 template <int N>
-void deserialize(CommonJson::Ptr cobj, Grid<N> *dst) {
-  CommonJsonObject *obj = cobj->toObject();
+void deserialize(Poco::Dynamic::Var cobj, Grid<N> *dst) {
+  Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
   MDInds<N> inds;
   deserialize(obj->get("inds"), &inds);
   Array<LineKM> ind2Coord(N);

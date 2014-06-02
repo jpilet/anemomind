@@ -8,10 +8,13 @@
 #include <algorithm>
 #include <server/plot/extra.h>
 #include <server/common/string.h>
+#include <device/Arduino/libraries/ChunkFile/ChunkFile.h>
+#include <device/Arduino/libraries/TargetSpeed/TargetSpeed.h>
 
 namespace sail {
 
 namespace {
+
   HorizontalMotion<double> apparentWind(const Nav &nav) {
   /* Important note: awa() is the angle w.r.t. the cource of the boat!
    * So awa() = 0 always means the boat is in irons */
@@ -34,6 +37,11 @@ namespace {
   Velocity<double> estimateRawTws(const Nav &n) {
     return estimateRawTrueWind(n).norm();
   }
+
+  double max(const Arrayd &array, double additionalValue) {
+    return array.reduce<double>(additionalValue, [] (double a, double b) { return std::max(a, b); });
+  }
+
 }
 
 
@@ -177,5 +185,23 @@ void TargetSpeedData::plot() {
   plot.show();
 }
 
+Arrayd TargetSpeedData::targetVmgForWindSpeed(Velocity<double> windSpeed) const {
+  // This is "nearest" sampling. TODO: linear interpolation.
+  int bin = _hist.toBin(windSpeed.knots());
+  return _medianValues[bin];
+}
+
+void saveTargetSpeedTableChunk(
+    ostream *stream,
+    const TargetSpeedData& upwind,
+    const TargetSpeedData& downwind) {
+  TargetSpeedTable table;
+  for (int knots = 0; knots < TargetSpeedTable::NUM_ENTRIES; ++knots) {
+    Velocity<double> binCenter = Velocity<double>::knots(double(knots) + .5);
+    table._upwind[knots] = FP8_8(max(upwind.targetVmgForWindSpeed(binCenter), -1.0));
+    table._downwind[knots] = FP8_8(max(downwind.targetVmgForWindSpeed(binCenter), -1.0));
+  }
+  writeChunk(*stream, &table);
+}
 
 } /* namespace sail */

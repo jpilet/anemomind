@@ -345,7 +345,6 @@ class Array {
 #if SAFEARRAY
     assert(_size == src.size());
 #endif
-    int count = _size;
     for (int i = 0; i < _size; i++) {
       _data[i] = src.get(i);
     }
@@ -561,7 +560,7 @@ class Array {
   }
 
   template <typename S>
-  S reduce(S init, std::function<S(S, T)> red) {
+  S reduce(S init, std::function<S(S, T)> red) const {
     assert(_size >= 2);
     S x = init;
     for (int i = 0; i < _size; i++) {
@@ -571,7 +570,7 @@ class Array {
   }
 
   template <typename S>
-  Array<S> map(std::function<S(T)> mapper) {
+  Array<S> map(std::function<S(T)> mapper) const {
     Array<S> dst(_size);
     for (int i = 0; i < _size; i++) {
       dst[i] = mapper(_data[i]);

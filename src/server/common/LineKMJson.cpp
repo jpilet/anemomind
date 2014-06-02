@@ -10,16 +10,17 @@
 namespace sail {
 namespace json {
 
-CommonJson::Ptr serialize(const LineKM &x) {
-  CommonJson::Ptr obj = CommonJsonObject::make();
-  obj->toObject()->set("k", serialize(x.getK()));
-  obj->toObject()->set("m", serialize(x.getM()));
-  return obj;
+Poco::Dynamic::Var serialize(const LineKM &x) {
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  obj->set("k", serialize(x.getK()));
+  obj->set("m", serialize(x.getM()));
+  return Poco::Dynamic::Var(obj);
 }
-void deserialize(CommonJson::Ptr src, LineKM *dst) {
+void deserialize(Poco::Dynamic::Var src, LineKM *dst) {
   double k = 0, m = 0;
-  deserialize(src->toObject()->get("k"), &k);
-  deserialize(src->toObject()->get("m"), &m);
+  Poco::JSON::Object::Ptr obj = src.extract<Poco::JSON::Object::Ptr>();
+  deserialize(obj->get("k"), &k);
+  deserialize(obj->get("m"), &m);
   *dst = LineKM(k, m);
 }
 

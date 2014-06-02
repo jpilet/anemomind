@@ -3,7 +3,6 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/common/CommonJson.h>
 #include "BoatLogProcessor.h"
 #include <iostream>
 #include <Poco/Util/Application.h>
@@ -140,15 +139,15 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   {
     ENTERSCOPE("Output tree");
    ofstream file(prefix + "_tree.js");
-   json::serializeMapped(fulltree, navs, g.nodeInfo())->stringify(file, 0, 0);
+   json::stringify(json::serializeMapped(fulltree, navs, g.nodeInfo()), &file, 0, 0);
   }{
     ENTERSCOPE("Output navs");
    ofstream file(prefix + "_navs.js");
-   json::serialize(navs)->stringify(file, 0, 0);
+   json::stringify(json::serialize(navs), &file, 0, 0);
   }{
     ENTERSCOPE("Output tree node info");
    ofstream file(prefix + "_tree_node_info.js");
-   json::serialize(g.nodeInfo())->stringify(file, 0, 0);
+   json::stringify(json::serialize(g.nodeInfo()), &file, 0, 0);
   }
 }
 

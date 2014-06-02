@@ -14,15 +14,11 @@ using namespace sail;
 namespace {
   Poco::Path getTempDataPath() {
     Poco::Path srcpath = PathBuilder::makeDirectory(Env::SOURCE_DIR).
-                            pushDirectory("datasets").
-                            pushDirectory("regates").
-                            pushDirectory("regate_28_mai_08").get();
+      pushDirectory("datasets/Irene/2008/regate_28_mai_08").get();
+
     PathBuilder tmppath = PathBuilder::makeDirectory(Env::BINARY_DIR).
-                            pushDirectory("temp");
-    {
-      Poco::File tmpdir(tmppath.get());
-      tmpdir.createDirectory();
-    }
+      pushDirectory("temp");
+    Poco::File(tmppath.get()).createDirectory();
 
     Poco::Path logpath = tmppath.pushDirectory(Nav::debuggingBoatId()).get();
     Poco::File(srcpath).copyTo(logpath.toString());

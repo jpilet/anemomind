@@ -25,7 +25,7 @@ namespace {
     Array<HNode> _info;
   };
 
-  CommonJson::Ptr serialize(HTreeWithData h) {
+  Poco::Dynamic::Var serialize(HTreeWithData h) {
     std::shared_ptr<HTree> x = h.tree();
     Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
     assert(x->left() < x->right());
@@ -40,20 +40,20 @@ namespace {
 
     Array<std::shared_ptr<HTree> > ch = x->children();
     if (ch.hasData()) {
-      CommonJson::Ptr arr = serializeMapped(ch, h.navs(), h.info());
-      arr->setOtherObjectField(obj, "children");
+      Poco::Dynamic::Var arr = serializeMapped(ch, h.navs(), h.info());
+      obj->set("children", arr);
       assert(obj->isArray("children"));
       assert(!obj->getArray("children").isNull());
     }
-    return CommonJson::Ptr(new CommonJsonObject(obj));
+    return Poco::Dynamic::Var(obj);
   }
 }
 
-CommonJson::Ptr serializeMapped(std::shared_ptr<HTree> x, Array<Nav> navs, Array<HNode> nodeInfo) {
+Poco::Dynamic::Var serializeMapped(std::shared_ptr<HTree> x, Array<Nav> navs, Array<HNode> nodeInfo) {
   return serialize(HTreeWithData(x, navs, nodeInfo));
 }
 
-CommonJson::Ptr serializeMapped(Array<std::shared_ptr<HTree> > x, Array<Nav> navs, Array<HNode> nodeInfo) {
+Poco::Dynamic::Var serializeMapped(Array<std::shared_ptr<HTree> > x, Array<Nav> navs, Array<HNode> nodeInfo) {
   return serialize(x.map<HTreeWithData>([&](std::shared_ptr<HTree> h) {return HTreeWithData(h, navs, nodeInfo);}));
 }
 

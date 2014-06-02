@@ -14,7 +14,7 @@
 namespace sail {
 namespace json {
 
-CommonJson::Ptr serialize(const Nav &nav) {
+Poco::Dynamic::Var serialize(const Nav &nav) {
   Poco::JSON::Object::Ptr x(new Poco::JSON::Object());
   serializeField(x, "time", nav.time());
   serializeField(x, "lon", nav.geographicPosition().lon());
@@ -28,10 +28,10 @@ CommonJson::Ptr serialize(const Nav &nav) {
   serializeField(x, "awa", nav.awa());
   serializeField(x, "id", nav.id());
   serializeField(x, "boat-id", nav.boatId());
-  return CommonJson::Ptr(new CommonJsonObject(x));
+  return Poco::Dynamic::Var(x);
 }
 
-void deserialize(CommonJson::Ptr x, Nav *out) {
+void deserialize(Poco::Dynamic::Var x, Nav *out) {
   TimeStamp time;
   Angle<double> lon, lat, maghdg, gpsb, awa;
   Length<double> alt;

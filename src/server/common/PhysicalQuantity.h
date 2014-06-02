@@ -216,11 +216,10 @@ class Vectorize : public std::array<T, N> {
         return result;
     }
 
-    template <class Multiplier>
-    Vectorize<T, N> operator * (Multiplier x) const {
+    Vectorize<T, N> scaled(double factor) {
         Vectorize result;
         for (int i = 0; i < N; ++i) {
-            result[i] = (*this)[i] * x;
+            result[i] = (*this)[i].scaled(factor);
         }
         return result;
     }

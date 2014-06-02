@@ -57,9 +57,9 @@ struct JsonQuantityTraits<Length<Value>, Value> {
 }  // namespace
 
 template<class Quantity>
-bool deserializeField(CommonJson::Ptr cobj, std::string fieldPrefix,
+bool deserializeField(Poco::Dynamic::Var cobj, std::string fieldPrefix,
                Quantity *out) {
-  Poco::JSON::Object::Ptr obj = cobj->toObject()->get();
+  Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
     std::string fname = fieldPrefix + JsonQuantityTraits<Quantity, typename Quantity::ValueType>::suffix();
     bool is = obj->has(fname);
     if (is) {
@@ -85,7 +85,7 @@ void serializeField(Poco::JSON::Object::Ptr obj, std::string fieldPrefix,
 }
 
 template <class Quantity>
-CommonJson::Ptr serialize(const Quantity &x) {
+Poco::Dynamic::Var serialize(const Quantity &x) {
   return toJsonObjectWithField<Quantity>(std::string(x.quantityName()) + x.suffix(),
       x);
 }
@@ -96,24 +96,24 @@ bool deserialize(Poco::JSON::Object::Ptr src, Quantity *x) {
 }
 
 template <class Quantity>
-bool deserialize(CommonJson::Ptr src, Quantity *x) {
-  return deserializeField(src->toObject()->get(), std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
+bool deserialize(Poco::Dynamic::Var src, Quantity *x) {
+  return deserializeField(src, std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
 }
 
 
 template <typename T, int N>
-CommonJson::Ptr serializeVectorize(const Vectorize<T, N> &x) {
+Poco::Dynamic::Var serializeVectorize(const Vectorize<T, N> &x) {
   return serialize(Array<T>(N, x.data()));
 }
 
 template <typename T, int N>
-CommonJson::Ptr serialize(const Vectorize<T, N> &x) {
+Poco::Dynamic::Var serialize(const Vectorize<T, N> &x) {
   return serializeVectorize<T, N>(x);
 }
 
 
 template <typename T, int N>
-bool deserialize(CommonJson::Ptr src, Vectorize<T, N> *x) {
+bool deserialize(Poco::Dynamic::Var src, Vectorize<T, N> *x) {
   Array<T> arr;
   deserialize(src, &arr);
   assert(arr.size() == N);
