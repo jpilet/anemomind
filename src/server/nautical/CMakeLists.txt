@@ -279,6 +279,7 @@ add_library(nautical_TargetSpeed
 target_link_libraries(nautical_TargetSpeed
                       nautical_nav
                       common_Histogram
+                      device_ChunkFile
                      )  
 
 add_executable(nautical_TargetSpeedExample
