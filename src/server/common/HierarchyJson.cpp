@@ -71,7 +71,7 @@ void deserialize(Poco::Dynamic::Var csrc, std::shared_ptr<HTree> *dst) {
   Array<std::shared_ptr<HTree> > children;
   Poco::Dynamic::Var ch = src->get("children");
 
-  if (bool(ch)) {
+  if (ch.isArray()) {
     Poco::JSON::Array::Ptr arrptr = ch.extract<Poco::JSON::Array::Ptr>();
     if (!arrptr.isNull()) {
       deserialize(ch, &children);
