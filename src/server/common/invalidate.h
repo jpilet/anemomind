@@ -20,11 +20,15 @@
 
 #include <limits>
 
-#ifdef NDEBUG
-template <typename T> void InvalidateScalar(T *) { }
-#else
 template <typename T> void InvalidateScalar(T *var) {
     *var = std::numeric_limits<T>::signaling_NaN();
+}
+
+#ifdef NDEBUG
+template <typename T> void InvalidateScalarInDebug(T *) { }
+#else
+template <typename T> void InvalidateScalarInDebug(T *var) {
+    InvalidateScalar<T>(var);
 }
 #endif
 
