@@ -9,11 +9,18 @@ namespace release_mode {
 #endif
 #include "invalidate.h"
 
-TEST(InvalidateTest, ReleaseTest) {
+TEST(InvalidateTest, ReleaseTest1) {
     float var = 7;
-    InvalidateScalar(&var);
+    InvalidateScalarInDebug(&var);
     EXPECT_EQ(7, var);
 }
+
+TEST(InvalidateTest, ReleaseTest2) {
+    float var = 7;
+    InvalidateScalar(&var);
+    EXPECT_TRUE(std::isnan(var));
+}
+
 
 }  // namespace release_mode
 
@@ -25,9 +32,15 @@ namespace debug_mode {
 #undef COMMON_INVALIDATE_H
 #include "invalidate.h"
 
-TEST(InvalidateTest, ReleaseTest) {
+TEST(InvalidateTest, ReleaseTest1) {
     float var = 7;
     InvalidateScalar(&var);
+    EXPECT_TRUE(std::isnan(var));
+}
+
+TEST(InvalidateTest, ReleaseTest2) {
+    float var = 7;
+    InvalidateScalarInDebug(&var);
     EXPECT_TRUE(std::isnan(var));
 }
 
