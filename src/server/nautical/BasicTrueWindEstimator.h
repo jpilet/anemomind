@@ -87,7 +87,7 @@ class BasicTrueWindEstimator {
 
     // "Raw" in the sense that it assumes that the compass doesn't need to be calibrated.
     template <class T>
-    static HorizontalMotion<T> computeRawBoatMotion(const Nav &past);
+    static HorizontalMotion<T> computeRawBoatMotion(const Nav &nav);
 
   private:
 };
@@ -153,9 +153,9 @@ HorizontalMotion<T> BasicTrueWindEstimator::computeTrueWind(
 
 
 template <class T>
-HorizontalMotion<T> BasicTrueWindEstimator::computeRawBoatMotion(const Nav &past) {
+HorizontalMotion<T> BasicTrueWindEstimator::computeRawBoatMotion(const Nav &nav) {
   return HorizontalMotion<T>::polar(
-      past.gpsSpeed().cast<T>(), past.gpsBearing().cast<T>());
+      nav.gpsSpeed().cast<T>(), nav.gpsBearing().cast<T>());
 
 }
 
