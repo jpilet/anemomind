@@ -116,7 +116,42 @@ int BoatLogProcessor::main(const std::vector<std::string>& args) {
   }
 }
 
+namespace {
 
+  void outputTargetSpeedDataSub(Calibrator &c, Array<Nav> navs, std::string prefix) {
+//    assert(countTrue(upwind) > 0);
+//
+//    const int binCount = 25;
+//    Array<Velocity<double> > tws = estimateTws(navs);
+//    Array<Velocity<double> > vmg = calcUpwindVmg(navs);
+//    Array<Velocity<double> > gss = getGpsSpeed(navs);
+//
+//    { // For debugging, if needed.
+//      Arrayd gss_mps = gss.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
+//      Arrayd tws_mps = tws.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
+//      Arrayd vmg_mps = vmg.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
+//      LOG(INFO) << EXPR_AND_VAL_AS_STRING(gss_mps);
+//      LOG(INFO) << EXPR_AND_VAL_AS_STRING(tws_mps);
+//      LOG(INFO) << EXPR_AND_VAL_AS_STRING(vmg_mps);
+//    }
+//
+//    Velocity<double> minvel = Velocity<double>::metersPerSecond(4.0);
+//    Velocity<double> maxvel = Velocity<double>::metersPerSecond(17.0);
+//    TargetSpeedData tgt(tws, vmg, binCount,
+//        minvel, maxvel);
+//
+//    tgt.plot();
+  }
+
+  void outputTargetSpeedData(Calibrator &c, Array<Nav> navs, std::string prefix) {
+    Arrayb upwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
+        c.allnavs(), "upwind-leg");
+    Arrayb downwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
+            c.allnavs(), "downwind-leg");
+    outputTargetSpeedDataSub(c, navs.slice(upwind), prefix + "_upwind");
+    outputTargetSpeedDataSub(c, navs.slice(downwind), prefix + "_downwind");
+  }
+}
 
 void processBoatData(Nav::Id boatId, Array<Nav> navs,
     Poco::Path dstPath, std::string filenamePrefix) {
@@ -157,6 +192,7 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs,
    Poco::JSON::Stringifier::stringify(json::serialize(
        calibrator.grammar().nodeInfo()), file, 0, 0);
   }
+  outputTargetSpeedData(calibrator, navs, prefix);
 }
 
 void processBoatDataFullFolder(Nav::Id boatId,
