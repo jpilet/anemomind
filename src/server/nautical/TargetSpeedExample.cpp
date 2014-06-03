@@ -23,14 +23,27 @@ namespace {
 
     Calibrator c;
     c.calibrate(allnavs);
+    Calibrator::WindEstimator::initializeParameters(c.calibrationValues());
     c.print();
 
 
     TargetSpeedData uw, dw;
     computeTargetSpeedData(c, &uw, &dw);
 
-    TargetSpeedData which = uw;
-    which.plot();
+    int choice = 0;
+    do {
+      std::cout << "What do you want to do?\n"
+          " 0) quit\n"
+          " 1) Plot upwind target speed\n"
+          " 2) Plot downwind target speed\n" << std::endl;
+      std::cin >> choice;
+      if (choice == 1) {
+        uw.plot();
+      }
+      if (choice == 2) {
+        dw.plot();
+      }
+    } while (choice != 0);
   }
 }
 

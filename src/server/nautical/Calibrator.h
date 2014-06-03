@@ -54,6 +54,9 @@ class Calibrator  {
 
     //! Return pointer to calibration values.
     const double *calibrationValues() const {return _calibrationValues;}
+
+    // We should remove this method:
+    double *calibrationValues() {return _calibrationValues;}
   private:
     std::string description(std::shared_ptr<HTree> tree);
     void addAllTack(std::shared_ptr<HTree> tree);
