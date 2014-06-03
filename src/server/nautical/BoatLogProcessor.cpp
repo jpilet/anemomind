@@ -128,7 +128,7 @@ namespace {
 
   Angle<double> estimateRawTwa(Calibrator &c, const Nav &n) {
     return Calibrator::WindEstimator::computeTrueWind(c.calibrationValues(), n).angle() -
-        n.gpsBearing();
+        n.gpsBearing(); // <-- Should it be magHdg or gpsBearing here?
   }
 
 

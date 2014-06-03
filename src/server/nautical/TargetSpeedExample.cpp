@@ -23,12 +23,13 @@ namespace {
 
     Calibrator c;
     c.calibrate(allnavs);
+    c.print();
 
 
     TargetSpeedData uw, dw;
     computeTargetSpeedData(c, &uw, &dw);
 
-    TargetSpeedData which = dw;
+    TargetSpeedData which = uw;
     which.plot();
   }
 }

@@ -156,8 +156,12 @@ HorizontalMotion<T> BasicTrueWindEstimator::computeTrueWind(
 template <class T>
 HorizontalMotion<T> BasicTrueWindEstimator::computeTrueWind(
         const T* params, const Nav &nav) {
-    // True wind - boat motion = apparent wind.
-    return computeAppWindMotion<T>(params, nav) - computeRawBoatMotion<T>(nav);
+    // (true wind) - (boat motion) = (apparent wind) <=>
+    //  <=> (true wind) = (apparent wind) + (boat motion)
+    //
+    // For instance, if the true wind is close to the boat motion, then we are sailing
+    // downwind and the apparent wind can be expected to be small.
+    return computeAppWindMotion<T>(params, nav) + computeRawBoatMotion<T>(nav);
 }
 
 

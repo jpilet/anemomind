@@ -16,7 +16,7 @@ namespace sail {
 namespace {
 
   HorizontalMotion<double> apparentWind(const Nav &nav) {
-  /* Important note: awa() is the angle w.r.t. the cource of the boat!
+  /* Important note: awa() is the angle w.r.t. the course of the boat!
    * So awa() = 0 always means the boat is in irons */
     return HorizontalMotion<double>::polar(nav.aws(), nav.awa() + nav.gpsBearing());
   }
