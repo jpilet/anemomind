@@ -104,6 +104,13 @@ class BasicTrueWindEstimator {
 template <class T>
 void BasicTrueWindEstimator::computeAppWindValues(const T *params, const Nav &nav,
   Velocity<T> *outAws, Angle<T> *outAwa) {
+
+  /*{// ONLY WHILE DEBUGGING:
+    *outAws = nav.aws().cast<T>();
+    *outAwa = nav.awa().cast<T>();
+    return;
+  }*/
+
   assert(!std::isnan(nav.gpsSpeed().metersPerSecond()));
   assert(!std::isnan(nav.gpsBearing().radians()));
   assert(!std::isnan(nav.awa().radians()));
