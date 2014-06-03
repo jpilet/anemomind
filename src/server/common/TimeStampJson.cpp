@@ -20,14 +20,18 @@ namespace {
 }
 
 bool deserializeField(Poco::Dynamic::Var cobj, const std::string &prefix, TimeStamp *out) {
-  Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
-  std::string fname = makeFname(prefix);
-  if (obj->has(fname)) {
-    *out = TimeStamp::fromMilliSecondsSince1970(obj->getValue<Poco::Int64>(fname));
-    return true;
+  try {
+    Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
+    std::string fname = makeFname(prefix);
+    if (obj->has(fname)) {
+      *out = TimeStamp::fromMilliSecondsSince1970(obj->getValue<Poco::Int64>(fname));
+      return true;
+    }
+    *out = TimeStamp::makeUndefined();
+    return false;
+  } catch (Poco::Exception &e) {
+    return false;
   }
-  *out = TimeStamp::makeUndefined();
-  return false;
 }
 
 void serializeField(Poco::JSON::Object::Ptr obj, const std::string &prefix, const TimeStamp &x) {

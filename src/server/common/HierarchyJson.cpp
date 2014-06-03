@@ -52,7 +52,9 @@ bool deserialize(Poco::Dynamic::Var csrc, HNode *dst) {
 bool deserialize(Poco::Dynamic::Var csrc, std::shared_ptr<HTree> *dst) {
   try {
     Poco::JSON::Object::Ptr src = csrc.extract<Poco::JSON::Object::Ptr>();
-    assert(!src.isNull());
+    if (src.isNull()) {
+      return false;
+    }
     int index = src->getValue<int>("index");
     int left = src->getValue<int>("left");
     int right = src->getValue<int>("right");
