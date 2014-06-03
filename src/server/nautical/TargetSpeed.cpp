@@ -169,6 +169,8 @@ namespace {
 void TargetSpeedData::plot() {
   Arrayb sel = markValidBins(_medianValues);
   Arrayd X = makeBinCenters(_hist, sel);
+  std::cout << EXPR_AND_VAL_AS_STRING(_hist.toLeftBound(0)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(_hist.toRightBound(_hist.binCount()-1)) << std::endl;
   Array<Arrayd> mvalues = _medianValues.slice(sel);
   GnuplotExtra plot;
   plot.set_style("lines");

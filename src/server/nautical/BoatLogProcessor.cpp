@@ -23,6 +23,8 @@
 #include <server/nautical/Calibrator.h>
 #include <server/nautical/TargetSpeed.h>
 #include <server/common/Span.h>
+#include <server/plot/extra.h>
+#include <server/common/ArrayIO.h>
 
 
 namespace sail {
@@ -158,6 +160,16 @@ namespace {
       LOG(INFO) << EXPR_AND_VAL_AS_STRING(Spand(gss_mps));
       LOG(INFO) << EXPR_AND_VAL_AS_STRING(Spand(tws_mps));
       LOG(INFO) << EXPR_AND_VAL_AS_STRING(Spand(vmg_mps));
+      //GnuplotExtra plot;
+      //plot.plot_xy(tws_mps, vmg_mps);
+      //plot.show();
+      int count = tws.size();
+      MDArray2d data(count, 2);
+      for (int i = 0; i < count; i++) {
+        data(i, 0) = tws_mps[i];
+        data(i, 1) = gss_mps[i];
+      }
+      saveMatrix(stringFormat("/home/jonas/temp%d.txt", isUpwind), data);
     }
 
     // TODO: Choose these parameters carefully
@@ -189,12 +201,12 @@ Arrayb selectUpwind(Calibrator &c, Array<Nav> navs) {
   });
 }
 
-void computeTargetSpeedData(Calibrator &c, TargetSpeedData *uw, TargetSpeedData *dw) {
-  CHECK(!c.empty());
+void computeTargetSpeedData(Calibrator &c, Array<Nav> allnavs, TargetSpeedData *uw, TargetSpeedData *dw) {
+  CHECK(c.empty() || c.allnavs().size() == allnavs.size());
   auto v = [&](const Nav &n) {
       return Calibrator::WindEstimator::valid(n);
     };
-  Array<Nav> navs = c.allnavs().slice(v);
+  Array<Nav> navs = allnavs.slice(v);
   Arrayb upwind = selectUpwind(c, navs);
   Arrayb downwind = neg(upwind);
 //  Arrayb upwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
@@ -212,7 +224,7 @@ void computeTargetSpeedData(Calibrator &c, TargetSpeedData *uw, TargetSpeedData 
 namespace {
   void outputTargetSpeedData(Calibrator &c, std::string prefix) {
     TargetSpeedData uw, dw;
-    computeTargetSpeedData(c, &uw, &dw);
+    computeTargetSpeedData(c, c.allnavs(), &uw, &dw);
     std::ofstream file(prefix + "_target_speed.dat");
     saveTargetSpeedTableChunk(&file, uw, dw);
   }

@@ -14,7 +14,8 @@ namespace sail {
 
 class TargetSpeedData;
 class Calibrator;
-void computeTargetSpeedData(Calibrator &c, TargetSpeedData *uw, TargetSpeedData *dw);
+void computeTargetSpeedData(Calibrator &c, Array<Nav> allnavs,
+    TargetSpeedData *uw, TargetSpeedData *dw);
 
 // This class implements a command line interface.
 class BoatLogProcessor : public Poco::Util::Application {
