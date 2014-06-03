@@ -78,7 +78,6 @@ add_library(common_Json
             Json.h
             Json.cpp
            )
-target_link_libraries(common_Json)
 target_depends_on_poco_json(common_Json)                                                     
 cxx_test(common_JsonTest
          JsonTest.cpp

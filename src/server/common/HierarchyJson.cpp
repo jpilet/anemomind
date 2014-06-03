@@ -9,15 +9,6 @@
 namespace sail {
 namespace json {
 
-/*namespace {
-  CommonJson::Ptr serializeCh(Array<std::shared_ptr<HTree> > ch) {
-    Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
-    for (auto c : ch) {
-      serialize(c)->addToArray(arr.get());
-    }
-    return CommonJson::Ptr(new CommonJsonArray(arr));
-  }
-}*/
 
 Poco::Dynamic::Var serialize(std::shared_ptr<HTree> &x) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
@@ -26,7 +17,6 @@ Poco::Dynamic::Var serialize(std::shared_ptr<HTree> &x) {
   obj->set("right", x->right());
   Array<std::shared_ptr<HTree> > ch = x->children();
   if (ch.hasData()) {
-    //serialize(ch)->setObjectField(obj, "children"); // RECURSIVE CALL TO Array-version based on this function.
     obj->set("children", serialize(ch));
 
     assert(obj->isArray("children"));
@@ -54,12 +44,6 @@ void deserialize(Poco::Dynamic::Var csrc, HNode *dst) {
   *dst = HNode(index, parent, code, description);
 }
 
-/*Poco::JSON::Array serialize(Array<HNode> src) {
-  return serialize(src);
-}
-void deserialize(Poco::JSON::Array src, Array<HNode> *dst) {
-  deserializeArray(src, dst);
-}*/
 
 void deserialize(Poco::Dynamic::Var csrc, std::shared_ptr<HTree> *dst) {
   Poco::JSON::Object::Ptr src = csrc.extract<Poco::JSON::Object::Ptr>();
@@ -90,15 +74,6 @@ void deserialize(Poco::Dynamic::Var csrc, std::shared_ptr<HTree> *dst) {
   }
   assert(children.size() == (*dst)->childCount());
 }
-
-/*Poco::JSON::Array serialize(Array<std::shared_ptr<HTree> > x) {
-  return serializeArray(x);
-}
-
-void deserialize(Poco::JSON::Array src, Array<std::shared_ptr<HTree> > *dst) {
-  deserializeArray(src, dst);
-}*/
-
 
 
 
