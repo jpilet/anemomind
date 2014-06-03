@@ -224,15 +224,6 @@ class Vectorize : public std::array<T, N> {
         return result;
     }
 
-    template <class Multiplier>
-    Vectorize<T, N> scaled(Multiplier x) {
-        Vectorize result;
-        for (int i = 0; i < N; ++i) {
-            result[i] = (*this)[i].scaled(x);
-        }
-        return result;
-    }
-
     Vectorize() { }
   private:
 };
