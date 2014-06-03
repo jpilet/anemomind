@@ -21,6 +21,9 @@ class Calibrator  {
     //! Attempt to load data and run the minimizer. Clears previous results.
     bool calibrate(Poco::Path dataPath, Nav::Id boatId);
 
+    //! Attempt to run the minimizer. Clears previous results.
+    bool calibrate(Array<Nav> navs);
+
     //! Print last calibration results.
     void print();
 

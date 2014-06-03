@@ -219,14 +219,20 @@ string Calibrator::description(std::shared_ptr<HTree> tree) {
   return _grammar.nodeInfo()[tree->index()].description();
 }
 
+
 bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
+  return calibrate(scanNmeaFolder(dataPath, boatId));
+}
+
+bool Calibrator::calibrate(Array<Nav> navs) {
   clear();
 
-  // Load data.
-  _allnavs = scanNmeaFolder(dataPath, boatId);
-  if (_allnavs.size() == 0) {
+  if (navs.empty()) {
     return false;
   }
+
+  // Load data.
+  _allnavs = navs;
 
   _tree = _grammar.parse(_allnavs);
 
