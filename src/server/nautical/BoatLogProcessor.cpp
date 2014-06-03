@@ -20,6 +20,7 @@
 #include <server/nautical/HTreeJson.h>
 #include <server/nautical/NavNmea.h>
 #include <Poco/JSON/Stringifier.h>
+#include <server/nautical/Calibrator.h>
 
 
 namespace sail {
@@ -74,7 +75,8 @@ void dispHelp() {
                "  whose data we want to optimize.\n"
                "\n"
                "Second argument (optional):\n"
-               "  Name of log file to process. If omitted, all log files in the directory will be processed.\n";
+               "  Name of log file to process. If omitted, \n"
+               "  all log files in the directory will be processed.\n";
                std::cout << std::endl;
    exampleUsage1Arg();
    exampleUsage2Args();
@@ -116,16 +118,18 @@ int BoatLogProcessor::main(const std::vector<std::string>& args) {
 
 
 
-void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::string filenamePrefix) {
+void processBoatData(Nav::Id boatId, Array<Nav> navs,
+    Poco::Path dstPath, std::string filenamePrefix) {
   ENTERSCOPE("processBoatData");
   SCOPEDMESSAGE(INFO, stringFormat("Process %d navs ranging from %s to %s",
       navs.size(), navs.first().time().toString().c_str(),
       navs.last().time().toString().c_str()));
-  Grammar001Settings settings;
-  Grammar001 g(settings);
+
+  Calibrator calibrator;
+  calibrator.calibrate(navs);
 
   SCOPEDMESSAGE(INFO, "Parse data...");
-  std::shared_ptr<HTree> fulltree = g.parse(navs); //allnavs.sliceTo(2000));
+  std::shared_ptr<HTree> fulltree = calibrator.tree(); //allnavs.sliceTo(2000));
   SCOPEDMESSAGE(INFO, "done.");
 
   Poco::File buildDir(dstPath);
@@ -134,13 +138,15 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   // we are going to overwrite previous data.
   buildDir.createDirectory();
 
-  std::string prefix = PathBuilder::makeDirectory(dstPath).makeFile(filenamePrefix).get().toString();
+  std::string prefix = PathBuilder::makeDirectory(dstPath).
+      makeFile(filenamePrefix).get().toString();
 
 
   {
     ENTERSCOPE("Output tree");
    ofstream file(prefix + "_tree.js");
-   Poco::JSON::Stringifier::stringify(json::serializeMapped(fulltree, navs, g.nodeInfo()), file, 0, 0);
+   Poco::JSON::Stringifier::stringify(json::serializeMapped(fulltree,
+       navs, calibrator.grammar().nodeInfo()), file, 0, 0);
   }{
     ENTERSCOPE("Output navs");
    ofstream file(prefix + "_navs.js");
@@ -148,11 +154,13 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   }{
     ENTERSCOPE("Output tree node info");
    ofstream file(prefix + "_tree_node_info.js");
-   Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
+   Poco::JSON::Stringifier::stringify(json::serialize(
+       calibrator.grammar().nodeInfo()), file, 0, 0);
   }
 }
 
-void processBoatDataFullFolder(Nav::Id boatId, Poco::Path srcPath, Poco::Path dstPath) {
+void processBoatDataFullFolder(Nav::Id boatId,
+    Poco::Path srcPath, Poco::Path dstPath) {
   ENTERSCOPE("processBoatData complete folder");
   SCOPEDMESSAGE(INFO, std::string("Loading data from boat with id " + boatId));
   SCOPEDMESSAGE(INFO, "Scan folder for NMEA data...");
@@ -172,7 +180,8 @@ void processBoatDataFullFolder(Poco::Path dataPath) {
   processBoatDataFullFolder(boatId, dataPath, dataBuildDir);
 }
 
-void processBoatDataSingleLogFile(Nav::Id boatId, Poco::Path srcPath, std::string logFilename, Poco::Path dstPath) {
+void processBoatDataSingleLogFile(Nav::Id boatId,
+    Poco::Path srcPath, std::string logFilename, Poco::Path dstPath) {
   ENTERSCOPE("processBoatData single log file");
   SCOPEDMESSAGE(INFO, std::string("Loading data from boat with id " + boatId));
   //loadNavsFromNmea(files[i].toString(), boatId);

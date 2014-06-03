@@ -27,7 +27,7 @@ class Grammar {
   /*
    * Returns an array of HNode
    */
-  virtual Array<HNode> nodeInfo() = 0;
+  virtual Array<HNode> nodeInfo() const = 0;
 
   virtual ~Grammar() {}
 };

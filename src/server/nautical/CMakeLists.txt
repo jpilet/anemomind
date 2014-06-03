@@ -228,6 +228,7 @@ target_link_libraries(nautical_BoatLogProcessor
                       nautical_HTreeJson
                       common_HierarchyJson
                       math_hmm_StateAssign
+                      nautical_Calibrator
                      )              
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)

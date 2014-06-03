@@ -33,6 +33,14 @@ class Calibrator  {
     //! Forget last calibration results.
     void clear();
 
+    //! Return all navs.
+    Array<Nav> allnavs() const {return _allnavs;}
+
+    //! Return parse tree.
+    std::shared_ptr<HTree> tree() const {return _tree;}
+
+    //! Return the grammar
+    const Grammar001 &grammar() const {return _grammar;}
   private:
     std::string description(std::shared_ptr<HTree> tree);
     void addAllTack(std::shared_ptr<HTree> tree);
