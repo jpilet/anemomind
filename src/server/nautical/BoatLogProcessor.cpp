@@ -19,6 +19,7 @@
 #include <server/nautical/grammars/Grammar001.h>
 #include <server/nautical/HTreeJson.h>
 #include <server/nautical/NavNmea.h>
+#include <Poco/JSON/Stringifier.h>
 
 
 namespace sail {
@@ -139,15 +140,15 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   {
     ENTERSCOPE("Output tree");
    ofstream file(prefix + "_tree.js");
-   json::stringify(json::serializeMapped(fulltree, navs, g.nodeInfo()), &file, 0, 0);
+   Poco::JSON::Stringifier::stringify(json::serializeMapped(fulltree, navs, g.nodeInfo()), file, 0, 0);
   }{
     ENTERSCOPE("Output navs");
    ofstream file(prefix + "_navs.js");
-   json::stringify(json::serialize(navs), &file, 0, 0);
+   Poco::JSON::Stringifier::stringify(json::serialize(navs), file, 0, 0);
   }{
     ENTERSCOPE("Output tree node info");
    ofstream file(prefix + "_tree_node_info.js");
-   json::stringify(json::serialize(g.nodeInfo()), &file, 0, 0);
+   Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
   }
 }
 

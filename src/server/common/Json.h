@@ -79,7 +79,7 @@ void deserialize(Poco::Dynamic::Var csrc, Array<T> *dst) {
 void serializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, const std::string &value);
 void deserializeField(Poco::Dynamic::Var obj, const std::string &fieldName, std::string *valueOut);
 
-void stringify(Poco::Dynamic::Var x, std::ostream *out, unsigned int indent = 0, int step = -1);
+//void stringify(Poco::Dynamic::Var x, std::ostream *out, unsigned int indent = 0, int step = -1);
 
 }
 }
