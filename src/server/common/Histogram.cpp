@@ -23,11 +23,13 @@ HistogramMap::HistogramMap(int count, Arrayd values) {
   init(count, span.minv() - marg, span.maxv() + marg);
 }
 
+int HistogramMap::toRawBin(double value) const {
+  // Floor, to ensure that -0.1 maps to -1
+  return int(std::floor(_index2left.inv(value)));
+}
 
 int HistogramMap::toBin(double value) const {
-
-  // Floor, to ensure that -0.1 maps to -1
-  int index = int(std::floor(_index2left.inv(value)));
+  int index = toRawBin(value);
 
   if (validIndex(index)) {
     assert(toLeftBound(index) <= value);
@@ -36,6 +38,16 @@ int HistogramMap::toBin(double value) const {
   } else {
     return -1;
   }
+}
+
+int HistogramMap::toClosestBin(double value) const {
+  int index = toRawBin(value);
+  if (index < 0) {
+    return 0;
+  } else if (index >= _binCount) {
+    return _binCount - 1;
+  }
+  return index;
 }
 
 double HistogramMap::toLeftBound(int binIndex) const {

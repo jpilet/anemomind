@@ -26,6 +26,7 @@ class HistogramMap {
   HistogramMap(int count, Arrayd values);
   int binCount() const {return _binCount;}
   int toBin(double value) const;
+  int toClosestBin(double value) const;
   double toLeftBound(int binIndex) const;
   double toRightBound(int binIndex) const;
   double toCenter(int binIndex) const;
@@ -58,6 +59,7 @@ class HistogramMap {
 
   MDArray2d makePlotData(Arrayi counts) const;
  private:
+  int toRawBin(double value) const;
   void init(int binCount, double leftBd, double rightBd);
   int _binCount;
   LineKM _index2left;
