@@ -168,13 +168,16 @@ namespace {
 
 void computeTargetSpeedData(Calibrator &c, TargetSpeedData *uw, TargetSpeedData *dw) {
   CHECK(!c.empty());
+  auto v = [&](const Nav &n) {
+      return Calibrator::WindEstimator::valid(n);
+    };
   Array<Nav> navs = c.allnavs();
   Arrayb upwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
-      c.allnavs(), "upwind-leg");
+      navs, "upwind-leg");
   Arrayb downwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
-          c.allnavs(), "downwind-leg");
-  *uw = makeTargetSpeedData(true, c, navs.slice(upwind));
-  *dw = makeTargetSpeedData(false, c, navs.slice(downwind));
+          navs, "downwind-leg");
+  *uw = makeTargetSpeedData(true, c, navs.slice(upwind).slice(v));
+  *dw = makeTargetSpeedData(false, c, navs.slice(downwind).slice(v));
 }
 
 namespace {

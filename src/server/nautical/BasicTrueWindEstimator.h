@@ -41,6 +41,7 @@ Nav averageNavs(Array<Nav> past, Duration<> duration) {
     }
   }
 
+  assert(n > 0);
   boatMotion = boatMotion.scaled(1.0 / n);
   apparentWind = apparentWind.scaled(1.0 / n);
   waterMotion = waterMotion.scaled(1.0 / n);
@@ -88,6 +89,14 @@ class BasicTrueWindEstimator {
     // "Raw" in the sense that it assumes that the compass doesn't need to be calibrated.
     template <class T>
     static HorizontalMotion<T> computeRawBoatMotion(const Nav &nav);
+
+    // Returns true iff 'nav' is a valid input to computeAppWindValues
+    static bool valid(const Nav &nav) {
+      return !std::isnan(nav.gpsSpeed().metersPerSecond())
+             && !std::isnan(nav.gpsBearing().radians())
+             && !std::isnan(nav.awa().radians())
+             && !std::isnan(nav.aws().metersPerSecond());
+    }
 
   private:
 };

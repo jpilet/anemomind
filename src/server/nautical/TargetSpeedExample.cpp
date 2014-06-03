@@ -17,15 +17,18 @@ namespace {
   void targetSpeedPlot() {
     Poco::Path srcpath = PathBuilder::makeDirectory(Env::SOURCE_DIR).
         pushDirectory("datasets").
-        pushDirectory("regates").get();
+        pushDirectory("Irene").get();
     Array<Nav> allnavs = scanNmeaFolder(srcpath, Nav::debuggingBoatId());
+    assert(!allnavs.empty());
 
     Calibrator c;
     c.calibrate(allnavs);
+
+
     TargetSpeedData uw, dw;
     computeTargetSpeedData(c, &uw, &dw);
 
-    TargetSpeedData which = uw;
+    TargetSpeedData which = dw;
     which.plot();
   }
 }
