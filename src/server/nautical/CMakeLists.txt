@@ -296,4 +296,5 @@ target_link_libraries(nautical_TargetSpeedExample
                       nautical_NavNmeaScan
                       common_Span
                       nautical_grammars_Grammar001
+                      nautical_BoatLogProcessor
                      )
