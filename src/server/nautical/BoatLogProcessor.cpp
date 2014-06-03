@@ -174,6 +174,7 @@ namespace {
         count++;
       }
     }
+    std::cout << "Upwind fraction: " << double(count)/navs.size() << std::endl;
     return 2*count > navs.size();
   }
 }
