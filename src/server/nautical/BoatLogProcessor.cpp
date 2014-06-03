@@ -135,12 +135,16 @@ namespace {
   Array<Velocity<double> > calcVmg(Calibrator &c, Array<Nav> navs, bool isUpwind) {
     int sign = (isUpwind? 1 : -1);
     return navs.map<Velocity<double> >([&](const Nav &n) {
-      double factor = sign*cos(estimateRawTwa(c, n));
+      Angle<double> twa = estimateRawTwa(c, n);
+      double factor = sign*cos(twa);
       return n.gpsSpeed().scaled(factor);
     });
   }
 
   TargetSpeedData makeTargetSpeedData(bool isUpwind, Calibrator &c, Array<Nav> navs) {
+//    Array<Velocity<double> > vmg = calcVmg(navs, isUpwind);
+//    Array<Velocity<double> > tws = estimateTws(navs);
+
     Array<Velocity<double> > tws = estimateTws(c, navs);
     Array<Velocity<double> > vmg = calcVmg(c, navs, isUpwind);
     Array<Velocity<double> > gss = getGpsSpeed(navs);
@@ -179,16 +183,24 @@ namespace {
   }
 }
 
+Arrayb selectUpwind(Calibrator &c, Array<Nav> navs) {
+  return navs.map<bool>([&](const Nav &n) {
+    return cos(estimateRawTwa(c, n)) > 0;
+  });
+}
+
 void computeTargetSpeedData(Calibrator &c, TargetSpeedData *uw, TargetSpeedData *dw) {
   CHECK(!c.empty());
   auto v = [&](const Nav &n) {
       return Calibrator::WindEstimator::valid(n);
     };
-  Array<Nav> navs = c.allnavs();
-  Arrayb upwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
-      navs, "upwind-leg");
-  Arrayb downwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
-          navs, "downwind-leg");
+  Array<Nav> navs = c.allnavs().slice(v);
+  Arrayb upwind = selectUpwind(c, navs);
+  Arrayb downwind = neg(upwind);
+//  Arrayb upwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
+//      navs, "upwind-leg");
+//  Arrayb downwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
+//          navs, "downwind-leg");
   Array<Nav> uwNavs = navs.slice(upwind).slice(v);
   Array<Nav> dwNavs = navs.slice(downwind).slice(v);
   assert(majorityIsUpwind(c, uwNavs));
