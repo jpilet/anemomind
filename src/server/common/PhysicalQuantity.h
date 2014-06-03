@@ -186,7 +186,7 @@ class Vectorize : public std::array<T, N> {
         }
     }
 
-    Vectorize<T, N>(const T *x) {
+    explicit Vectorize<T, N>(const T x[N]) {
       for (int i = 0; i < N; i++) {
         (*this)[i] = x[i];
       }
