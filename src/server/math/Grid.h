@@ -259,8 +259,11 @@ class Grid {
      if (coefs3 == nullptr) {
        coefs3 = defaultCoefs;
      }
-     if (normalize) {
-       double absSum = std::abs(coefs3[0]) + std::abs(coefs3[0]) + std::abs(coefs3[0]);
+     if (normalize) { // So that the signal content does not increase, I believe.
+       double absSum = 0.0;
+       for (int i = 0; i < 3; i++) {
+         absSum += std::abs(coefs3[i]);
+       }
        double factor = 1.0/absSum;
        for (int i = 0; i < 3; i++) {
          coefs3[i] *= factor;
