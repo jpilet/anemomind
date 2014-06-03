@@ -60,7 +60,13 @@ Nav averageNavs(Array<Nav> past, Duration<> duration) {
 class BasicTrueWindEstimator {
   public:
     template <class T>
+    static HorizontalMotion<T> computeAppWindMotion(const T *params, const Nav &nav);
+
+    template <class T>
     static HorizontalMotion<T> computeTrueWind(const T* params, Array<Nav> past);
+
+    template <class T>
+    static HorizontalMotion<T> computeTrueWind(const T* params, const Nav &nav);
 
     template <class T>
     static void initializeParameters(T* params);
@@ -74,51 +80,72 @@ class BasicTrueWindEstimator {
         PARAM_DOWNWIND3,
         NUM_PARAMS
     };
+
+    // "Raw" in the sense that it assumes that the compass doesn't need to be calibrated.
+    template <class T>
+    static HorizontalMotion<T> computeRawBoatMotion(const Nav &past);
+
+  private:
 };
+
+template <class T>
+HorizontalMotion<T> BasicTrueWindEstimator::computeAppWindMotion(const T *params, const Nav &measures) {
+  assert(!std::isnan(measures.gpsSpeed().metersPerSecond()));
+  assert(!std::isnan(measures.gpsBearing().radians()));
+  assert(!std::isnan(measures.awa().radians()));
+  assert(!std::isnan(measures.aws().metersPerSecond()));
+
+  double awa = normalizeAngleBetweenMinusPiAndPi(measures.awa().radians());
+
+  bool upwind = (awa > (- M_PI / 2.0)) && (awa < (M_PI / 2.0));
+  bool starboard = awa > 0;
+  T aws(measures.aws().knots());
+
+  T awa_offset(params[PARAM_AWA_OFFSET]);
+  T aws_bias(1.0);
+  T aws_offset(0);
+
+  T sideFactor(starboard ? 1 : -1);
+  if (upwind) {
+    awa_offset += sideFactor * ((aws * aws) * params[PARAM_UPWIND0]);
+  } else {
+    aws_offset = params[PARAM_DOWNWIND0];
+    aws_bias += params[PARAM_DOWNWIND1] * aws;
+    awa_offset += sideFactor * ((aws * aws) * params[PARAM_DOWNWIND2]
+                                +params[PARAM_DOWNWIND3]);
+  }
+
+  // We assume no drift and no current.
+  return HorizontalMotion<T>::polar(
+      Velocity<T>::knots(aws_offset) + measures.aws().cast<T>().scaled(aws_bias),
+      (measures.gpsBearing() + measures.awa()).cast<T>()
+          + Angle<T>::degrees(awa_offset));
+}
+
+
+
 
 template <class T>
 HorizontalMotion<T> BasicTrueWindEstimator::computeTrueWind(
         const T* params, Array<Nav> past) {
-    CHECK_LT(0, past.size());
+    CHECK(!past.empty());
+    return computeTrueWind(params,
+        averageNavs(past, Duration<>::seconds(20)));
+}
 
-    Nav measures = averageNavs(past, Duration<>::seconds(20));
-
-    assert(!std::isnan(measures.gpsSpeed().metersPerSecond()));
-    assert(!std::isnan(measures.gpsBearing().radians()));
-    assert(!std::isnan(measures.awa().radians()));
-    assert(!std::isnan(measures.aws().metersPerSecond()));
-
-    double awa = normalizeAngleBetweenMinusPiAndPi(measures.awa().radians());
-
-    bool upwind = (awa > (- M_PI / 2.0)) && (awa < (M_PI / 2.0));
-    bool starboard = awa > 0;
-    T aws(measures.aws().knots()); 
-
-    T awa_offset(params[PARAM_AWA_OFFSET]);
-    T aws_bias(1.0);
-    T aws_offset(0);
-
-    T sideFactor(starboard ? 1 : -1);
-    if (upwind) {
-      awa_offset += sideFactor * ((aws * aws) * params[PARAM_UPWIND0]);
-    } else {
-      aws_offset = params[PARAM_DOWNWIND0];
-      aws_bias += params[PARAM_DOWNWIND1] * aws;
-      awa_offset += sideFactor * ((aws * aws) * params[PARAM_DOWNWIND2]
-                                  +params[PARAM_DOWNWIND3]);
-    }
-
-    // We assume no drift and no current.
-    HorizontalMotion<T> appWindMotion = HorizontalMotion<T>::polar(
-        Velocity<T>::knots(aws_offset) + measures.aws().cast<T>().scaled(aws_bias),
-        (measures.gpsBearing() + measures.awa()).cast<T>()
-            + Angle<T>::degrees(awa_offset));
-
-    HorizontalMotion<T> boatMotion = HorizontalMotion<T>::polar(
-        measures.gpsSpeed().cast<T>(), measures.gpsBearing().cast<T>());
-
+template <class T>
+HorizontalMotion<T> BasicTrueWindEstimator::computeTrueWind(
+        const T* params, const Nav &nav) {
     // True wind - boat motion = apparent wind.
-    return appWindMotion - boatMotion;
+    return computeAppWindMotion<T>(params, nav) - computeRawBoatMotion<T>(nav);
+}
+
+
+template <class T>
+HorizontalMotion<T> BasicTrueWindEstimator::computeRawBoatMotion(const Nav &past) {
+  return HorizontalMotion<T>::polar(
+      past.gpsSpeed().cast<T>(), past.gpsBearing().cast<T>());
+
 }
 
 template<class T>
