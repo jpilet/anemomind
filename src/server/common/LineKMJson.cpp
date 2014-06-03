@@ -21,10 +21,7 @@ bool deserialize(Poco::Dynamic::Var src, LineKM *dst) {
   try {
     double k = 0, m = 0;
     Poco::JSON::Object::Ptr obj = src.extract<Poco::JSON::Object::Ptr>();
-    if (!deserialize(obj->get("k"), &k)) {
-      return false;
-    }
-    if (!deserialize(obj->get("m"), &m)) {
+    if (!deserialize(obj->get("k"), &k) || !deserialize(obj->get("m"), &m)) {
       return false;
     }
     *dst = LineKM(k, m);
