@@ -294,6 +294,9 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
 }
 
 std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs) {
+  if (navs.empty()) {
+    return std::shared_ptr<HTree>();
+  }
   G001SA sa(_settings, navs);
   Arrayi states = sa.solve();
   return _hierarchy.parse(states);

@@ -18,7 +18,7 @@ namespace {
   void targetSpeedPlot() {
     Poco::Path srcpath = PathBuilder::makeDirectory(Env::SOURCE_DIR).
         pushDirectory("datasets").
-        pushDirectory("regates").get();
+        pushDirectory("Irene").get();
     Array<Nav> allnavs = scanNmeaFolder(srcpath, Nav::debuggingBoatId());
 
     Grammar001Settings settings;
@@ -27,17 +27,20 @@ namespace {
 
     std::shared_ptr<HTree> tree = g.parse(allnavs);
 
-    Arrayb upwind = markNavsByDesc(tree, g.nodeInfo(), allnavs, "upwind-leg");
-    assert(!upwind.empty());
-    assert(countTrue(upwind) > 0);
+
+    bool upwind = false;
+
+    Arrayb sel = markNavsByDesc(tree, g.nodeInfo(), allnavs, (upwind? "upwind-leg" : "downwind-leg"));
+    assert(!sel.empty());
+    assert(countTrue(sel) > 0);
 
 
-    Array<Nav> upwindNavs = allnavs.slice(upwind);
+    Array<Nav> subNavs = allnavs.slice(sel);
 
     const int binCount = 25;
-    Array<Velocity<double> > tws = estimateTws(upwindNavs);
-    Array<Velocity<double> > vmg = calcUpwindVmg(upwindNavs);
-    Array<Velocity<double> > gss = getGpsSpeed(upwindNavs);
+    Array<Velocity<double> > tws = estimateTws(subNavs);
+    Array<Velocity<double> > vmg = calcVmg(subNavs, upwind);
+    Array<Velocity<double> > gss = getGpsSpeed(subNavs);
 
     Arrayd gssd = gss.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
     Arrayd twsd = tws.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
