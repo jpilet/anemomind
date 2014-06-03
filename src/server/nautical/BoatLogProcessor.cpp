@@ -22,6 +22,7 @@
 #include <Poco/JSON/Stringifier.h>
 #include <server/nautical/Calibrator.h>
 #include <server/nautical/TargetSpeed.h>
+#include <server/common/Span.h>
 
 
 namespace sail {
@@ -119,29 +120,47 @@ int BoatLogProcessor::main(const std::vector<std::string>& args) {
 
 namespace {
 
-  void outputTargetSpeedDataSub(Calibrator &c, Array<Nav> navs, std::string prefix) {
-//    assert(countTrue(upwind) > 0);
-//
-//    const int binCount = 25;
-//    Array<Velocity<double> > tws = estimateTws(navs);
-//    Array<Velocity<double> > vmg = calcUpwindVmg(navs);
-//    Array<Velocity<double> > gss = getGpsSpeed(navs);
-//
-//    { // For debugging, if needed.
-//      Arrayd gss_mps = gss.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
-//      Arrayd tws_mps = tws.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
-//      Arrayd vmg_mps = vmg.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
-//      LOG(INFO) << EXPR_AND_VAL_AS_STRING(gss_mps);
-//      LOG(INFO) << EXPR_AND_VAL_AS_STRING(tws_mps);
-//      LOG(INFO) << EXPR_AND_VAL_AS_STRING(vmg_mps);
-//    }
-//
-//    Velocity<double> minvel = Velocity<double>::metersPerSecond(4.0);
-//    Velocity<double> maxvel = Velocity<double>::metersPerSecond(17.0);
-//    TargetSpeedData tgt(tws, vmg, binCount,
-//        minvel, maxvel);
-//
-//    tgt.plot();
+  Array<Velocity<double> > estimateTws(Calibrator &c, Array<Nav> navs) {
+    return navs.map<Velocity<double> >([&] (const Nav &n) {
+      return Calibrator::WindEstimator::computeTrueWind(c.calibrationValues(), n).norm();
+    });
+  }
+
+  Angle<double> estimateRawTwa(Calibrator &c, const Nav &n) {
+    return Calibrator::WindEstimator::computeTrueWind(c.calibrationValues(), n).angle() -
+        n.gpsBearing();
+  }
+
+
+  Array<Velocity<double> > calcVmg(Calibrator &c, Array<Nav> navs, bool isUpwind) {
+    int sign = (isUpwind? 1 : -1);
+    return navs.map<Velocity<double> >([&](const Nav &n) {
+      double factor = sign*cos(estimateRawTwa(c, n));
+      return n.gpsSpeed().scaled(factor);
+    });
+  }
+
+  void outputTargetSpeedDataSub(bool isUpwind, Calibrator &c, Array<Nav> navs, std::string prefix) {
+    const int binCount = 25;
+    Array<Velocity<double> > tws = estimateTws(c, navs);
+    Array<Velocity<double> > vmg = calcVmg(c, navs, isUpwind);
+    Array<Velocity<double> > gss = getGpsSpeed(navs);
+
+    { // For debugging, if needed.
+      Arrayd gss_mps = gss.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
+      Arrayd tws_mps = tws.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
+      Arrayd vmg_mps = vmg.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
+      LOG(INFO) << EXPR_AND_VAL_AS_STRING(Spand(gss_mps));
+      LOG(INFO) << EXPR_AND_VAL_AS_STRING(Spand(tws_mps));
+      LOG(INFO) << EXPR_AND_VAL_AS_STRING(Spand(vmg_mps));
+    }
+
+    Velocity<double> minvel = Velocity<double>::metersPerSecond(4.0);
+    Velocity<double> maxvel = Velocity<double>::metersPerSecond(17.0);
+    TargetSpeedData tgt(tws, vmg, binCount,
+        minvel, maxvel);
+
+    tgt.plot();
   }
 
   void outputTargetSpeedData(Calibrator &c, Array<Nav> navs, std::string prefix) {
@@ -149,8 +168,8 @@ namespace {
         c.allnavs(), "upwind-leg");
     Arrayb downwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
             c.allnavs(), "downwind-leg");
-    outputTargetSpeedDataSub(c, navs.slice(upwind), prefix + "_upwind");
-    outputTargetSpeedDataSub(c, navs.slice(downwind), prefix + "_downwind");
+    outputTargetSpeedDataSub(true, c, navs.slice(upwind), prefix + "_upwind");
+    outputTargetSpeedDataSub(false, c, navs.slice(downwind), prefix + "_downwind");
   }
 }
 

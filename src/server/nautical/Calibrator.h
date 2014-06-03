@@ -16,6 +16,9 @@ class GnuplotExtra;
 
 class Calibrator  {
   public:
+    //! The wind estimation algorithm used by this calibrator
+    typedef BasicTrueWindEstimator WindEstimator;
+
     Calibrator() : _grammar(_settings) { clear(); }
 
     //! Attempt to load data and run the minimizer. Clears previous results.
