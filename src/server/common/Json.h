@@ -9,6 +9,7 @@
 #include <Poco/JSON/Object.h>
 #include <server/common/Array.h>
 #include <server/common/string.h>
+#include <server/common/logging.h>
 
 namespace sail {
 namespace json {
@@ -17,7 +18,15 @@ template <typename T>
 Poco::Dynamic::Var serialize(T x) {return Poco::Dynamic::Var(x);}
 
 template <typename T>
-void deserialize(Poco::Dynamic::Var obj, T *x) {*x = obj.convert<T>();}
+bool deserialize(Poco::Dynamic::Var obj, T *x) {
+  try {
+    *x = obj.convert<T>();
+    return true;
+  } catch (Poco::Exception &e) {
+    LOG(INFO) << std::string("Failed to deserialize primitive: ") + e.message();
+    return false;
+  }
+}
 
 
 

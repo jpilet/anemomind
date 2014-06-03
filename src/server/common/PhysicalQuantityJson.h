@@ -84,19 +84,19 @@ void serializeField(Poco::JSON::Object::Ptr obj, std::string fieldPrefix,
   }
 }
 
-template <class Quantity>
-Poco::Dynamic::Var serialize(const Quantity &x) {
+template <typename Quantity, typename Value>
+Poco::Dynamic::Var serialize(const PhysicalQuantity<Quantity, Value> &x) {
   return toJsonObjectWithField<Quantity>(std::string(x.quantityName()) + x.suffix(),
       x);
 }
 
-template <class Quantity>
-bool deserialize(Poco::JSON::Object::Ptr src, Quantity *x) {
+template <typename Quantity, typename Value>
+bool deserialize(Poco::JSON::Object::Ptr src, PhysicalQuantity<Quantity, Value> *x) {
   return deserializeField(src, std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
 }
 
-template <class Quantity>
-bool deserialize(Poco::Dynamic::Var src, Quantity *x) {
+template <typename Quantity, typename Value>
+bool deserialize(Poco::Dynamic::Var src, PhysicalQuantity<Quantity, Value> *x) {
   return deserializeField(src, std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
 }
 
