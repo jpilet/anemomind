@@ -38,6 +38,13 @@ class Grid {
     _inds = MDInds<N>(sizes);
   }
 
+  Grid(MDInds<N> inds, const LineKM *ind2Coord) {
+    _inds = inds;
+    for (int i = 0; i < N; i++) {
+      _ind2Coord[i] = ind2Coord[i];
+    }
+  }
+
   virtual ~Grid() {}
 
   LineKM &getEq(int dim) {
@@ -67,7 +74,7 @@ class Grid {
   static const int WVL = StaticPower<2, N>::result;
 
   // Expresses a point as a linear combination of the grid vertices
-  void makeVertexLinearCombination(double *vecN, int *indsOut, double *weightsOut) {
+  void makeVertexLinearCombination(double *vecN, int *indsOut, double *weightsOut) const {
     int indsFloor[N];
     double lambda[N];
     int tmpSize[N];
@@ -209,12 +216,29 @@ class Grid {
     return arma::sp_mat(IJ, X, rows, cols);
   }
 
-  int getVertexCount() {
+  int getVertexCount() const {
     return _inds.numel();
   }
 
   const MDInds<N> &getInds() const {
     return _inds;
+  }
+
+
+  bool operator== (const ThisType &other) const {
+    if (!(_inds == other._inds)) {
+      return false;
+    }
+    for (int i = 0; i < N; i++) {
+      if (!(_ind2Coord[i] == other._ind2Coord[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  LineKM *ind2Coord() {
+    return _ind2Coord;
   }
  private:
   MDInds<N> _inds;      // Holds the size of every

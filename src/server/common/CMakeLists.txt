@@ -78,7 +78,12 @@ add_library(common_Json
             Json.h
             Json.cpp
            )
-target_depends_on_poco_json(common_Json)
+target_depends_on_poco_json(common_Json)                                                     
+cxx_test(common_JsonTest
+         JsonTest.cpp
+         common_Json
+         gtest_main
+        )                     
                    
         
 add_library(common_TimeStampJson
@@ -135,6 +140,7 @@ add_library(common_HierarchyJson
            )
 target_link_libraries(common_HierarchyJson
                       common_Hierarchy
+                      common_Json
                      )
 target_depends_on_poco_json(common_HierarchyJson)
 
@@ -223,3 +229,12 @@ cxx_test(common_HistogramTest
          common_Histogram
          gtest_main
         )
+
+add_library(common_LineKMJson
+            LineKMJson.cpp
+            LineKMJson.h
+           )
+target_link_libraries(common_LineKMJson
+                      common_LineKM
+                     )
+target_depends_on_poco_json(common_LineKMJson)                                

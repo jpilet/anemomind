@@ -186,6 +186,12 @@ class Vectorize : public std::array<T, N> {
         }
     }
 
+    explicit Vectorize<T, N>(const T x[N]) {
+      for (int i = 0; i < N; i++) {
+        (*this)[i] = x[i];
+      }
+    }
+
     static Vectorize<T, N> all(T value) {
         Vectorize<T, N> result;
         for (int i = 0; i < N; ++i) {
@@ -218,9 +224,14 @@ class Vectorize : public std::array<T, N> {
         return result;
     }
 
-  private:
     Vectorize() { }
+  private:
 };
+
+template <typename FactorType, typename ElemType, int N>
+Vectorize<ElemType, N> operator*(FactorType x, const Vectorize<ElemType, N> &v) {
+  return v*x;
+}
 
 }  // namespace sail
 

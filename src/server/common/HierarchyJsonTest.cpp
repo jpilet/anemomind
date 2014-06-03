@@ -6,13 +6,14 @@
 
 #include <server/common/HierarchyJson.h>
 #include <gtest/gtest.h>
+#include <server/common/Json.h>
 #include <sstream>
 
 using namespace sail;
 
 TEST(HierarchyJsonTest, TestSimple) {
   HNode x(1, 2, "m", "testnode");
-  Poco::JSON::Object::Ptr obj = json::serialize(x);
+  Poco::Dynamic::Var obj = json::serialize(x);
   HNode y;
   json::deserialize(obj, &y);
   EXPECT_EQ(x.index(), y.index());
@@ -23,7 +24,7 @@ TEST(HierarchyJsonTest, TestSimple) {
 TEST(HierarchyJsonTest, TestSimpleArray) {
   HNode x(1, 2, "m", "testnode");
   Array<HNode> X = Array<HNode>::args(x);
-  Poco::JSON::Array obj = json::serialize(X);
+  Poco::Dynamic::Var obj = json::serialize(X);
   Array<HNode> Y;
   json::deserialize(obj, &Y);
 
@@ -76,7 +77,7 @@ TEST(HierarchyJsonTest, HTreeJson) {
   Hierarchy h = makeMiniSailGrammar();
   std::shared_ptr<HTree> X = h.parse(Arrayi(len, toParse));
 
-  Poco::JSON::Object::Ptr obj = json::serialize(X);
+  Poco::Dynamic::Var obj = json::serialize(X);
 
   std::shared_ptr<HTree> Y;
   json::deserialize(obj, &Y);

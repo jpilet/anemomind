@@ -57,8 +57,9 @@ struct JsonQuantityTraits<Length<Value>, Value> {
 }  // namespace
 
 template<class Quantity>
-bool deserializeField(Poco::JSON::Object::Ptr obj, std::string fieldPrefix,
+bool deserializeField(Poco::Dynamic::Var cobj, std::string fieldPrefix,
                Quantity *out) {
+  Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
     std::string fname = fieldPrefix + JsonQuantityTraits<Quantity, typename Quantity::ValueType>::suffix();
     bool is = obj->has(fname);
     if (is) {
@@ -83,16 +84,47 @@ void serializeField(Poco::JSON::Object::Ptr obj, std::string fieldPrefix,
   }
 }
 
-template <class Quantity>
-Poco::JSON::Object::Ptr serialize(const Quantity &x) {
+template <typename Quantity, typename Value>
+Poco::Dynamic::Var serialize(const PhysicalQuantity<Quantity, Value> &x) {
   return toJsonObjectWithField<Quantity>(std::string(x.quantityName()) + x.suffix(),
       x);
 }
 
-template <class Quantity>
-bool deserialize(Poco::JSON::Object::Ptr src, Quantity *x) {
+template <typename Quantity, typename Value>
+bool deserialize(Poco::JSON::Object::Ptr src, PhysicalQuantity<Quantity, Value> *x) {
   return deserializeField(src, std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
 }
+
+template <typename Quantity, typename Value>
+bool deserialize(Poco::Dynamic::Var src, PhysicalQuantity<Quantity, Value> *x) {
+  return deserializeField(src, std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
+}
+
+
+template <typename T, int N>
+Poco::Dynamic::Var serializeVectorize(const Vectorize<T, N> &x) {
+  return serialize(Array<T>(N, x.data()));
+}
+
+template <typename T, int N>
+Poco::Dynamic::Var serialize(const Vectorize<T, N> &x) {
+  return serializeVectorize<T, N>(x);
+}
+
+
+template <typename T, int N>
+bool deserialize(Poco::Dynamic::Var src, Vectorize<T, N> *x) {
+  Array<T> arr;
+  if (!deserialize(src, &arr)) {
+    return false;
+  }
+  if (arr.size() != N) {
+    return false;
+  }
+  *x = Vectorize<T, N>(arr.ptr());
+  return true;
+}
+
 
 }
 } /* namespace sail */

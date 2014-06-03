@@ -497,7 +497,7 @@ class Array {
   }
 
 
-  bool operator==(const ThisType &other) {
+  bool operator==(const ThisType &other) const {
     if (other.size() != _size) {
       return false;
     }

@@ -16,13 +16,8 @@ namespace json {
 
 
 
-Poco::JSON::Object::Ptr serialize(const Nav &nav);
-void deserialize(Poco::JSON::Object::Ptr x, Nav *out);
-
-Poco::JSON::Array serialize(Array<Nav> nav);
-void deserialize(Poco::JSON::Array src, Array<Nav> *dst);
-
-// TODO: decode
+Poco::Dynamic::Var serialize(const Nav &nav);
+bool deserialize(Poco::Dynamic::Var x, Nav *out);
 
 }
 } /* namespace sail */
