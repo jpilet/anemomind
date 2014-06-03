@@ -12,7 +12,7 @@ using namespace sail;
 
 namespace {
   template <typename T>
-  Array<T> makeTestArray(int len, unsigned long long limit) {
+  Array<T> makeTestArray(int len, int limit) {
     Array<T> dst(len);
     for (int i = 0; i < len; i++) {
       dst[i] = (7*i) % limit;
@@ -23,7 +23,7 @@ namespace {
   template <typename T>
   void primitiveArrayTest() {
     int len = 30;
-    Array<T> arr = makeTestArray<T>(len, std::numeric_limits<T>::max());
+    Array<T> arr = makeTestArray<T>(len, 256);
     Array<T> arr2;
 
     Poco::JSON::Array::Ptr testarr(new Poco::JSON::Array());
