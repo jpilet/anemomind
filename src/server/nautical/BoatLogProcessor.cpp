@@ -166,6 +166,18 @@ namespace {
   }
 }
 
+namespace {
+  bool majorityIsUpwind(Calibrator &c, Array<Nav> navs) {
+    int count = 0;
+    for (auto n : navs) {
+      if (cos(estimateRawTwa(c, n)) > 0) {
+        count++;
+      }
+    }
+    return 2*count > navs.size();
+  }
+}
+
 void computeTargetSpeedData(Calibrator &c, TargetSpeedData *uw, TargetSpeedData *dw) {
   CHECK(!c.empty());
   auto v = [&](const Nav &n) {
@@ -176,8 +188,12 @@ void computeTargetSpeedData(Calibrator &c, TargetSpeedData *uw, TargetSpeedData 
       navs, "upwind-leg");
   Arrayb downwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
           navs, "downwind-leg");
-  *uw = makeTargetSpeedData(true, c, navs.slice(upwind).slice(v));
-  *dw = makeTargetSpeedData(false, c, navs.slice(downwind).slice(v));
+  Array<Nav> uwNavs = navs.slice(upwind).slice(v);
+  Array<Nav> dwNavs = navs.slice(downwind).slice(v);
+  assert(majorityIsUpwind(c, uwNavs));
+  assert(!majorityIsUpwind(c, dwNavs));
+  *uw = makeTargetSpeedData(true,  c, uwNavs);
+  *dw = makeTargetSpeedData(false, c, dwNavs);
 }
 
 namespace {
