@@ -13,32 +13,13 @@
 namespace sail {
 namespace json {
 
-
-
-
+template <typename T>
+Poco::Dynamic::Var serialize(T x) {return Poco::Dynamic::Var(x);}
 
 template <typename T>
-Poco::Dynamic::Var serializePrimitive(T x) {return Poco::Dynamic::Var(x);}
-
-template <typename T>
-void deserializePrimitive(Poco::Dynamic::Var obj, T *x) {*x = obj.convert<T>();}
+void deserialize(Poco::Dynamic::Var obj, T *x) {*x = obj.convert<T>();}
 
 
-#define DECLARE_JSON_PRIMITIVE(type) \
-  inline Poco::Dynamic::Var serialize(type x) {return serializePrimitive(x);} \
-  inline void deserialize(Poco::Dynamic::Var obj, type *x) {deserializePrimitive(obj, x);}
-      DECLARE_JSON_PRIMITIVE(unsigned int)
-      DECLARE_JSON_PRIMITIVE(int)
-      DECLARE_JSON_PRIMITIVE(double)
-      DECLARE_JSON_PRIMITIVE(float)
-      DECLARE_JSON_PRIMITIVE(bool)
-      DECLARE_JSON_PRIMITIVE(unsigned char)
-      DECLARE_JSON_PRIMITIVE(char)
-      DECLARE_JSON_PRIMITIVE(unsigned long int)
-      DECLARE_JSON_PRIMITIVE(long int)
-      DECLARE_JSON_PRIMITIVE(unsigned short int)
-      DECLARE_JSON_PRIMITIVE(short int)
-#undef DECLARE_JSON_PRIMITIVE
 
 // If serializeField, deserializeField are already defined for type T,
 // use this templates to build a serialize function.
