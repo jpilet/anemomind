@@ -187,7 +187,7 @@ void TargetSpeedData::plot() {
 
 Arrayd TargetSpeedData::targetVmgForWindSpeed(Velocity<double> windSpeed) const {
   // This is "nearest" sampling. TODO: linear interpolation.
-  int bin = _hist.toBin(windSpeed.knots());
+  int bin = _hist.toBin(unwrap(windSpeed));
   return _medianValues[bin];
 }
 

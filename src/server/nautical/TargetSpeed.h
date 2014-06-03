@@ -35,8 +35,8 @@ class TargetSpeedData {
       HistogramMap map,
       Arrayd quantiles);
 
-  Velocity<double> wrap(double x) {return Velocity<double>::knots(x);}
-  double unwrap(Velocity<double> x) {return x.knots();}
+  Velocity<double> wrap(double x) const {return Velocity<double>::knots(x);}
+  double unwrap(Velocity<double> x) const {return x.knots();}
   std::function<double(Velocity<double>)> makeUnwrapper() {return [=](Velocity<double> x) {return unwrap(x);};}
 
   // All velocities are internally stored as [knots]
