@@ -16,6 +16,6 @@ struct TargetSpeedTable {
 };
 
 float getVmgSpeedRatio(const TargetSpeedTable& table,
-                       float twa, float tws, float gpsSpeed);
+                       short twa, FP8_8 tws, FP8_8 gpsSpeed);
 
 #endif // DEVICE_TARGET_SPEED_H

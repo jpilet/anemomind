@@ -2,7 +2,7 @@
 
 namespace {
 
-int16_t makeInt16(const char bytes[2]) {
+int16_t makeInt16(const unsigned char bytes[2]) {
   return int16_t(bytes[0]) + (int16_t(bytes[1]) << 8);
 }
 
