@@ -14,7 +14,7 @@ class LineKM;
 
 namespace json {
 Poco::Dynamic::Var serialize(const LineKM &x);
-void deserialize(Poco::Dynamic::Var src, LineKM *dst);
+bool deserialize(Poco::Dynamic::Var src, LineKM *dst);
 
 }
 } /* namespace sail */

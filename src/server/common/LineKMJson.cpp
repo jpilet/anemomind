@@ -16,12 +16,22 @@ Poco::Dynamic::Var serialize(const LineKM &x) {
   obj->set("m", serialize(x.getM()));
   return Poco::Dynamic::Var(obj);
 }
-void deserialize(Poco::Dynamic::Var src, LineKM *dst) {
-  double k = 0, m = 0;
-  Poco::JSON::Object::Ptr obj = src.extract<Poco::JSON::Object::Ptr>();
-  deserialize(obj->get("k"), &k);
-  deserialize(obj->get("m"), &m);
-  *dst = LineKM(k, m);
+
+bool deserialize(Poco::Dynamic::Var src, LineKM *dst) {
+  try {
+    double k = 0, m = 0;
+    Poco::JSON::Object::Ptr obj = src.extract<Poco::JSON::Object::Ptr>();
+    if (!deserialize(obj->get("k"), &k)) {
+      return false;
+    }
+    if (!deserialize(obj->get("m"), &m)) {
+      return false;
+    }
+    *dst = LineKM(k, m);
+    return true;
+  } catch (Poco::Exception &e) {
+    return false;
+  }
 }
 
 

@@ -25,14 +25,25 @@ Poco::Dynamic::Var serialize(Grid<N> grid) {
 }
 
 template <int N>
-void deserialize(Poco::Dynamic::Var cobj, Grid<N> *dst) {
-  Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
-  MDInds<N> inds;
-  deserialize(obj->get("inds"), &inds);
-  Array<LineKM> ind2Coord(N);
-  deserialize(obj->get("ind2Coord"), &ind2Coord);
-  assert(ind2Coord.size() == N);
-  *dst = Grid<N>(inds, ind2Coord.ptr());
+bool deserialize(Poco::Dynamic::Var cobj, Grid<N> *dst) {
+  try {
+    Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
+    MDInds<N> inds;
+    if (!deserialize(obj->get("inds"), &inds)) {
+      return false;
+    }
+    Array<LineKM> ind2Coord(N);
+    if (!deserialize(obj->get("ind2Coord"), &ind2Coord)) {
+      return false;
+    }
+    if (!(ind2Coord.size() == N)) {
+      return true;
+    }
+    *dst = Grid<N>(inds, ind2Coord.ptr());
+    return true;
+  } catch (Poco::Exception &e) {
+    return false;
+  }
 }
 
 }

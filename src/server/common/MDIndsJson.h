@@ -18,11 +18,16 @@ Poco::Dynamic::Var serialize(MDInds<N> inds) {
 }
 
 template <int N>
-void deserialize(Poco::Dynamic::Var obj, MDInds<N> *dst) {
+bool deserialize(Poco::Dynamic::Var obj, MDInds<N> *dst) {
   Arrayi inds;
-  deserialize(obj, &inds);
-  assert(inds.size() == N);
+  if (!deserialize(obj, &inds)) {
+    return false;
+  }
+  if (!(inds.size() == N)) {
+    return false;
+  }
   *dst = MDInds<N>(inds.ptr());
+  return true;
 }
 
 }
