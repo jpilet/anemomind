@@ -16,7 +16,7 @@ namespace json {
 
 // HNode
 Poco::Dynamic::Var serialize(const HNode &x);
-void deserialize(Poco::Dynamic::Var src, HNode *dst);
+bool deserialize(Poco::Dynamic::Var src, HNode *dst);
 
 //Poco::JSON::Array serialize(Array<HNode> src);
 //void deserialize(Poco::JSON::Array src, Array<HNode> *dst);
@@ -24,7 +24,7 @@ void deserialize(Poco::Dynamic::Var src, HNode *dst);
 
 // HTree
 Poco::Dynamic::Var serialize(std::shared_ptr<HTree> &x);
-void deserialize(Poco::Dynamic::Var src, std::shared_ptr<HTree> *dst);
+bool deserialize(Poco::Dynamic::Var src, std::shared_ptr<HTree> *dst);
 
 //Poco::JSON::Array serialize(Array<std::shared_ptr<HTree> > x);
 //void deserialize(Poco::JSON::Array src, Array<std::shared_ptr<HTree> > *dst);

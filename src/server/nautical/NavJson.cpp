@@ -31,36 +31,43 @@ Poco::Dynamic::Var serialize(const Nav &nav) {
   return Poco::Dynamic::Var(x);
 }
 
-void deserialize(Poco::Dynamic::Var x, Nav *out) {
-  TimeStamp time;
-  Angle<double> lon, lat, maghdg, gpsb, awa;
-  Length<double> alt;
-  Velocity<double> gpss, wats, aws;
+bool deserialize(Poco::Dynamic::Var x, Nav *out) {
+  try {
+    TimeStamp time;
+    Angle<double> lon, lat, maghdg, gpsb, awa;
+    Length<double> alt;
+    Velocity<double> gpss, wats, aws;
 
-  std::string id, boatId;
+    std::string id, boatId;
 
-  deserializeField(x, "time", &time);
-  deserializeField(x, "lon", &lon);
-  deserializeField(x, "lat", &lat);
-  deserializeField(x, "awa", &awa);
-  deserializeField(x, "aws", &aws);
-  deserializeField(x, "alt", &alt);
-  deserializeField(x, "maghdg", &maghdg);
-  deserializeField(x, "watspeed", &wats);
-  deserializeField(x, "gpsspeed", &gpss);
-  deserializeField(x, "gpsbearing", &gpsb);
-  deserializeField(x, "boat-id", &boatId);
+    // Some fields may be missing. Therefore,
+    // don't return false if deserializeField returns false.
+    deserializeField(x, "time", &time);
+    deserializeField(x, "lon", &lon);
+    deserializeField(x, "lat", &lat);
+    deserializeField(x, "awa", &awa);
+    deserializeField(x, "aws", &aws);
+    deserializeField(x, "alt", &alt);
+    deserializeField(x, "maghdg", &maghdg);
+    deserializeField(x, "watspeed", &wats);
+    deserializeField(x, "gpsspeed", &gpss);
+    deserializeField(x, "gpsbearing", &gpsb);
+    deserializeField(x, "boat-id", &boatId);
 
-  *out = Nav();
-  out->setTime(time);
-  out->setGeographicPosition(GeographicPosition<double>(lon, lat, alt));
-  out->setAwa(awa);
-  out->setAws(aws);
-  out->setGpsSpeed(gpss);
-  out->setGpsBearing(gpsb);
-  out->setMagHdg(maghdg);
-  out->setWatSpeed(wats);
-  out->setBoatId(boatId);
+    *out = Nav();
+    out->setTime(time);
+    out->setGeographicPosition(GeographicPosition<double>(lon, lat, alt));
+    out->setAwa(awa);
+    out->setAws(aws);
+    out->setGpsSpeed(gpss);
+    out->setGpsBearing(gpsb);
+    out->setMagHdg(maghdg);
+    out->setWatSpeed(wats);
+    out->setBoatId(boatId);
+    return true;
+  } catch (Poco::Exception &e) {
+    return false;
+  }
 }
 
 

@@ -9,7 +9,6 @@
 #include <Poco/JSON/Object.h>
 #include <server/common/Array.h>
 #include <server/common/string.h>
-#include <server/common/logging.h>
 
 namespace sail {
 namespace json {
@@ -23,7 +22,6 @@ bool deserialize(Poco::Dynamic::Var obj, T *x) {
     *x = obj.convert<T>();
     return true;
   } catch (Poco::Exception &e) {
-    LOG(INFO) << std::string("Failed to deserialize primitive: ") + e.message();
     return false;
   }
 }
@@ -65,19 +63,25 @@ Poco::Dynamic::Var serialize(Array<T> src) {
 }
 
 template <typename T>
-void deserialize(Poco::Dynamic::Var csrc, Array<T> *dst) {
-  assert(csrc.type() == typeid(Poco::JSON::Array::Ptr));
-  Poco::JSON::Array::Ptr src = csrc.extract<Poco::JSON::Array::Ptr>();
-  int count = src->size();
-  *dst = Array<T>(count);
-  for (int i = 0; i < count; i++) {
-    deserialize(src->get(i), dst->ptr(i));
+bool deserialize(Poco::Dynamic::Var csrc, Array<T> *dst) {
+  try {
+    Poco::JSON::Array::Ptr src = csrc.extract<Poco::JSON::Array::Ptr>();
+    int count = src->size();
+    *dst = Array<T>(count);
+    for (int i = 0; i < count; i++) {
+      if (!deserialize(src->get(i), dst->ptr(i))) {
+        return false;
+      }
+    }
+    return true;
+  } catch (Poco::Exception &e) {
+    return false;
   }
 }
 
 // string
 void serializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, const std::string &value);
-void deserializeField(Poco::Dynamic::Var obj, const std::string &fieldName, std::string *valueOut);
+bool deserializeField(Poco::Dynamic::Var obj, const std::string &fieldName, std::string *valueOut);
 
 //void stringify(Poco::Dynamic::Var x, std::ostream *out, unsigned int indent = 0, int step = -1);
 

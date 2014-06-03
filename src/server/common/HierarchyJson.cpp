@@ -18,7 +18,6 @@ Poco::Dynamic::Var serialize(std::shared_ptr<HTree> &x) {
   Array<std::shared_ptr<HTree> > ch = x->children();
   if (ch.hasData()) {
     obj->set("children", serialize(ch));
-
     assert(obj->isArray("children"));
     assert(!obj->getArray("children").isNull());
   }
@@ -35,44 +34,58 @@ Poco::Dynamic::Var serialize(const HNode &x) {
 }
 
 
-void deserialize(Poco::Dynamic::Var csrc, HNode *dst) {
-  Poco::JSON::Object::Ptr src = csrc.extract<Poco::JSON::Object::Ptr>();
-  int index = src->getValue<int>("index");
-  int parent = src->getValue<int>("parent");
-  std::string description = src->getValue<std::string>("description");
-  std::string code = src->getValue<std::string>("code");
-  *dst = HNode(index, parent, code, description);
+bool deserialize(Poco::Dynamic::Var csrc, HNode *dst) {
+  try {
+    Poco::JSON::Object::Ptr src = csrc.extract<Poco::JSON::Object::Ptr>();
+    int index = src->getValue<int>("index");
+    int parent = src->getValue<int>("parent");
+    std::string description = src->getValue<std::string>("description");
+    std::string code = src->getValue<std::string>("code");
+    *dst = HNode(index, parent, code, description);
+    return true;
+  } catch (Poco::Exception &e) {
+    return false;
+  }
 }
 
 
-void deserialize(Poco::Dynamic::Var csrc, std::shared_ptr<HTree> *dst) {
-  Poco::JSON::Object::Ptr src = csrc.extract<Poco::JSON::Object::Ptr>();
-  assert(!src.isNull());
-  int index = src->getValue<int>("index");
-  int left = src->getValue<int>("left");
-  int right = src->getValue<int>("right");
-  assert(left < right);
-  Array<std::shared_ptr<HTree> > children;
-  Poco::Dynamic::Var ch = src->get("children");
-
-  if (ch.isArray()) {
-    Poco::JSON::Array::Ptr arrptr = ch.extract<Poco::JSON::Array::Ptr>();
-    if (!arrptr.isNull()) {
-      deserialize(ch, &children);
+bool deserialize(Poco::Dynamic::Var csrc, std::shared_ptr<HTree> *dst) {
+  try {
+    Poco::JSON::Object::Ptr src = csrc.extract<Poco::JSON::Object::Ptr>();
+    assert(!src.isNull());
+    int index = src->getValue<int>("index");
+    int left = src->getValue<int>("left");
+    int right = src->getValue<int>("right");
+    if (!(left < right)) {
+      return false;
     }
-  }
+    Array<std::shared_ptr<HTree> > children;
+    Poco::Dynamic::Var ch = src->get("children");
 
-  if (children.empty()) {
-    *dst = std::shared_ptr<HTree>(new HLeaves(left, index, right - left));
-  } else {
-    HInner *hi = new HInner(index, children[0]);
-    *dst = std::shared_ptr<HTree>(hi);
-    int childCount = children.size();
-    for (int i = 1; i < childCount; i++) {
-      hi->add(children[i]);
+    if (ch.isArray()) {
+      Poco::JSON::Array::Ptr arrptr = ch.extract<Poco::JSON::Array::Ptr>();
+      if (!arrptr.isNull()) {
+        if (!deserialize(ch, &children)) {
+          return false;
+        }
+      }
     }
+
+    if (children.empty()) {
+      *dst = std::shared_ptr<HTree>(new HLeaves(left, index, right - left));
+    } else {
+      HInner *hi = new HInner(index, children[0]);
+      *dst = std::shared_ptr<HTree>(hi);
+      int childCount = children.size();
+      for (int i = 1; i < childCount; i++) {
+        hi->add(children[i]);
+      }
+    }
+    assert(children.size() == (*dst)->childCount());
+    return true;
+  } catch (Poco::Exception &e) {
+    return false;
   }
-  assert(children.size() == (*dst)->childCount());
 }
 
 

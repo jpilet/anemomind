@@ -17,7 +17,7 @@ namespace json {
 
 
 Poco::Dynamic::Var serialize(const Nav &nav);
-void deserialize(Poco::Dynamic::Var x, Nav *out);
+bool deserialize(Poco::Dynamic::Var x, Nav *out);
 
 }
 } /* namespace sail */
