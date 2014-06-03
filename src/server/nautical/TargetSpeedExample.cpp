@@ -10,8 +10,28 @@
 #include <iostream>
 #include <server/nautical/Calibrator.h>
 #include <server/nautical/BoatLogProcessor.h>
+#include <server/plot/extra.h>
 
 using namespace sail;
+
+void plotNavAwa(Array<Nav> navs) {
+  GnuplotExtra plot;
+
+  int count = navs.size();
+  MDArray2d XY(count, 2);
+  int counter = 0;
+  for (int i = 0; i < count; i++) {
+    double awa = navs[i].awa().radians();
+    if (!std::isnan(awa)) {
+      XY(i, 0) = cos(awa);
+      XY(i, 1) = sin(awa);
+      counter++;
+    }
+  }
+  plot.plot(XY.sliceRowsTo(counter));
+
+  plot.show();
+}
 
 namespace {
   void targetSpeedPlot() {
@@ -21,10 +41,15 @@ namespace {
     Array<Nav> allnavs = scanNmeaFolder(srcpath, Nav::debuggingBoatId());
     assert(!allnavs.empty());
 
+    plotNavAwa(allnavs);
+
+
     Calibrator c;
     //c.calibrate(allnavs);
     Calibrator::WindEstimator::initializeParameters(c.calibrationValues());
     c.print();
+
+
 
 
     TargetSpeedData uw, dw;

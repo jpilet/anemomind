@@ -207,12 +207,12 @@ void computeTargetSpeedData(Calibrator &c, Array<Nav> allnavs, TargetSpeedData *
       return Calibrator::WindEstimator::valid(n);
     };
   Array<Nav> navs = allnavs.slice(v);
-  Arrayb upwind = selectUpwind(c, navs);
-  Arrayb downwind = neg(upwind);
-//  Arrayb upwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
-//      navs, "upwind-leg");
-//  Arrayb downwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
-//          navs, "downwind-leg");
+  //Arrayb upwind = selectUpwind(c, navs);
+  //Arrayb downwind = neg(upwind);
+  Arrayb upwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
+      navs, "upwind-leg");
+  Arrayb downwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
+          navs, "downwind-leg");
   Array<Nav> uwNavs = navs.slice(upwind).slice(v);
   Array<Nav> dwNavs = navs.slice(downwind).slice(v);
   assert(majorityIsUpwind(c, uwNavs));
