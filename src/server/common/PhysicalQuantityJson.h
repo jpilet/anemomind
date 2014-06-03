@@ -115,8 +115,12 @@ Poco::Dynamic::Var serialize(const Vectorize<T, N> &x) {
 template <typename T, int N>
 bool deserialize(Poco::Dynamic::Var src, Vectorize<T, N> *x) {
   Array<T> arr;
-  deserialize(src, &arr);
-  assert(arr.size() == N);
+  if (!deserialize(src, &arr)) {
+    return false;
+  }
+  if (arr.size() != N) {
+    return false;
+  }
   *x = Vectorize<T, N>(arr.ptr());
   return true;
 }
