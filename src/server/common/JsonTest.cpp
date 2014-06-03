@@ -12,7 +12,7 @@ using namespace sail;
 
 namespace {
   template <typename T>
-  Array<T> makeTestArray(int len, int limit) {
+  Array<T> makeTestArray(int len, unsigned long long limit) {
     Array<T> dst(len);
     for (int i = 0; i < len; i++) {
       dst[i] = (7*i) % limit;
