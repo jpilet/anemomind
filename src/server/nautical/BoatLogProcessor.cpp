@@ -164,14 +164,23 @@ namespace {
     return TargetSpeedData(tws, vmg, binCount,
         minvel, maxvel);
   }
+}
 
-  void outputTargetSpeedData(Calibrator &c, Array<Nav> navs, std::string prefix) {
-    Arrayb upwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
-        c.allnavs(), "upwind-leg");
-    Arrayb downwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
-            c.allnavs(), "downwind-leg");
-    TargetSpeedData uw = makeTargetSpeedData(true, c, navs.slice(upwind));
-    TargetSpeedData dw = makeTargetSpeedData(false, c, navs.slice(downwind));
+void computeTargetSpeedData(Calibrator &c, TargetSpeedData *uw, TargetSpeedData *dw) {
+  CHECK(!c.empty());
+  Array<Nav> navs = c.allnavs();
+  Arrayb upwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
+      c.allnavs(), "upwind-leg");
+  Arrayb downwind = markNavsByDesc(c.tree(), c.grammar().nodeInfo(),
+          c.allnavs(), "downwind-leg");
+  *uw = makeTargetSpeedData(true, c, navs.slice(upwind));
+  *dw = makeTargetSpeedData(false, c, navs.slice(downwind));
+}
+
+namespace {
+  void outputTargetSpeedData(Calibrator &c, std::string prefix) {
+    TargetSpeedData uw, dw;
+    computeTargetSpeedData(c, &uw, &dw);
     std::ofstream file(prefix + "_target_speed.dat");
     saveTargetSpeedTableChunk(&file, uw, dw);
   }
@@ -216,7 +225,7 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs,
    Poco::JSON::Stringifier::stringify(json::serialize(
        calibrator.grammar().nodeInfo()), file, 0, 0);
   }
-  outputTargetSpeedData(calibrator, navs, prefix);
+  outputTargetSpeedData(calibrator, prefix);
 }
 
 void processBoatDataFullFolder(Nav::Id boatId,

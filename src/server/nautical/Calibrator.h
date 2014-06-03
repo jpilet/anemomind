@@ -36,6 +36,9 @@ class Calibrator  {
     //! Forget last calibration results.
     void clear();
 
+    //! Returns true if it is empty.
+    bool empty() const {return _allnavs.empty();}
+
 
     /*
      * Read accessors.
