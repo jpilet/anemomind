@@ -18,13 +18,13 @@ using namespace sail;
 
 
 namespace {
-  Arrayb getRawUpwindNavs(Array<Nav> navs) {
+  Arrayb getExternalUpwindNavs(Array<Nav> navs) {
     return navs.map<bool>([&](const Nav &x) {
-      return cos(estimateRawTwa(x)) > 0;
+      return cos(x.externalTwa()) > 0;
     });
   }
 
-  void targetSpeedPlot() {
+  void targetSpeedPlot(bool upwind) {
     Poco::Path srcpath = PathBuilder::makeDirectory(Env::SOURCE_DIR).
         pushDirectory("datasets").
         pushDirectory("Irene").get();
@@ -34,14 +34,10 @@ namespace {
     Grammar001 g(settings);
 
 
-
-
-    bool upwind = true;
-
     //std::shared_ptr<HTree> tree = g.parse(allnavs);
     //Arrayb sel = markNavsByDesc(tree, g.nodeInfo(), allnavs, (upwind? "upwind-leg" : "downwind-leg"));
 
-    Arrayb sel = getRawUpwindNavs(allnavs);
+    Arrayb sel = getExternalUpwindNavs(allnavs);
     if (!upwind) {
       sel = neg(sel);
     }
@@ -52,35 +48,27 @@ namespace {
     Array<Nav> subNavs = allnavs.slice(sel);
 
     const int binCount = 25;
-    Array<Velocity<double> > tws = estimateTws(subNavs);
-    Array<Velocity<double> > vmg = calcVmg(subNavs, upwind);
+    Array<Velocity<double> > tws = estimateExternalTws(subNavs);
+    Array<Velocity<double> > vmg = calcExternalVmg(subNavs, upwind);
     Array<Velocity<double> > gss = getGpsSpeed(subNavs);
-    Array<Velocity<double> > etws = getExternalTws(subNavs);
 
     Arrayd gssd = gss.map<double>([&](Velocity<double> x) {return x.knots();});
     Arrayd twsd = tws.map<double>([&](Velocity<double> x) {return x.knots();});
     Arrayd vmgd = vmg.map<double>([&](Velocity<double> x) {return x.knots();});
-    Arrayd etwsd = etws.map<double>([&](Velocity<double> x) {return x.knots();});
 
     std::cout << "GPS-span (m/s): " << Spand(gssd) << std::endl;
     std::cout << "TWS-span (m/s): " << Spand(twsd) << std::endl;
     std::cout << "VMG-span (m/s): " << Spand(vmgd) << std::endl;
-    std::cout << "ETWS-span (m/s): " << Spand(etwsd) << std::endl;
 
     { // RANDOM EXPERIMENTS
       double maxVmg = 0.0;
       double bestTws = 0.0;
-      double bestETws = 0.0;
       for (int i = 0; i < twsd.size(); i++) {
         if (vmgd[i] > maxVmg) {
           maxVmg = vmgd[i];
           bestTws = twsd[i];
-          bestETws = etwsd[i];
         }
       }
-      std::cout << EXPR_AND_VAL_AS_STRING(maxVmg) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(bestTws) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(bestETws) << std::endl;
     }
 
 
@@ -93,7 +81,24 @@ namespace {
   }
 }
 
-int main() {
-  targetSpeedPlot();
-  return 0;
+int main(int argc, char **argv) {
+  if (argc <= 1) {
+    std::cout << "Please provide an extra argument, u or d:\n"
+        "  u : display upwind target speed graph\n"
+        "  d : display downwind target speed graph\n";
+  } else if (argc == 2) {
+    std::string x(argv[1]);
+    if (x == "u") {
+      targetSpeedPlot(true);
+      return 0;
+    } else if (x == "d") {
+      targetSpeedPlot(false);
+      return 0;
+    } else {
+      std::cout << "Illegal argument: " << x << std::endl;
+    }
+  } else {
+    std::cout << "Too many arguments" << std::endl;
+  }
+  return -1;
 }

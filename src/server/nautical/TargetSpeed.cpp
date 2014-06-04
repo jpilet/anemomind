@@ -13,7 +13,7 @@
 
 namespace sail {
 
-
+namespace {
   const Angle<double> fromAngle = Angle<double>::radians(M_PI);
 
   HorizontalMotion<double> apparentWind(const Nav &nav) {
@@ -44,7 +44,7 @@ namespace sail {
   double max(const Arrayd &array, double additionalValue) {
     return array.reduce<double>(additionalValue, [] (double a, double b) { return std::max(a, b); });
   }
-
+}
 
 
 
@@ -132,6 +132,14 @@ Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
   });
 }
 
+Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind) {
+  int sign = (isUpwind? 1 : -1);
+  return navs.map<Velocity<double> >([&](const Nav &n) {
+    double factor = sign*cos(n.externalTwa());
+    return n.gpsSpeed().scaled(factor);
+  });
+}
+
 Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs) {
   return calcVmg(navs, true);
 }
@@ -142,6 +150,10 @@ Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs) {
 
 Array<Velocity<double> > estimateTws(Array<Nav> navs) {
   return navs.map<Velocity<double> >([&](const Nav &n) {return estimateRawTws(n);});
+}
+
+Array<Velocity<double> > estimateExternalTws(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&](const Nav &n) {return n.externalTws();});
 }
 
 

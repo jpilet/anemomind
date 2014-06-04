@@ -16,14 +16,6 @@
 namespace sail {
 
 
-// These functions are just temporarily visible, to
-// facilitate debugging.
-HorizontalMotion<double> apparentWind(const Nav &nav);
-HorizontalMotion<double> estimateRawTrueWind(const Nav &nav);
-Angle<double> estimateRawTwa(const Nav &n);
-Velocity<double> estimateRawTws(const Nav &n);
-
-
 
 class TargetSpeedData {
  public:
@@ -58,6 +50,9 @@ class TargetSpeedData {
 // Function used by getUpwindVmg and getDownwindVmg.
 Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind);
 
+// Using the TWA from file
+Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind);
+
 // All navs are collected from upwind legs
 Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs);
 
@@ -66,6 +61,9 @@ Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs);
 
 // Tws
 Array<Velocity<double> > estimateTws(Array<Nav> navs);
+
+// Tws from file, reliable.
+Array<Velocity<double> > estimateExternalTws(Array<Nav> navs);
 
 
 // Pack "upwind" and "downwind" tables into a TargetSpeedTable and
