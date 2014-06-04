@@ -56,3 +56,9 @@ float getVmgSpeedRatio(const TargetSpeedTable& table,
   return vmgGps / refSpeed;
 }
 
+void invalidateSpeedTable(TargetSpeedTable *table) {
+  for (int i = 0; i < TargetSpeedTable::NUM_ENTRIES; ++i) {
+    table->_upwind[i] = table->_downwind[i] = FP8_8(-1);
+  }
+}
+

@@ -84,18 +84,22 @@ TEST(ChunkFileTest, GenerateTargetSpeedTestFile) {
   TargetSpeedTable table;
   fillTestSpeedTable(&table);
 
-  std::ofstream file("boat.dat", std::ios::out | std::ios::binary);
-  writeChunk(file, &table);
-  file.close();
+  {
+    std::ofstream file("boat.dat", std::ios::out | std::ios::binary);
+    writeChunk(file, &table);
+    file.close();
+  }
 
   ChunkTarget targets[] = {
     makeChunkTarget(&table)
   };
-  ChunkLoader loader(targets, 1);
+  ChunkLoader loader(targets, sizeof(targets) / sizeof(targets[0]));
 
-  std::ifstream input("boat.dat", std::ios::in | std::ios::binary);
-  while (input.good()) {
-    loader.addByte(input.get());
+  {
+    std::ifstream input("boat.dat", std::ios::in | std::ios::binary);
+    while (input.good()) {
+      loader.addByte(input.get());
+    }
   }
   EXPECT_TRUE(targets[0].success);
 }
