@@ -55,26 +55,32 @@ namespace {
     Array<Velocity<double> > tws = estimateTws(subNavs);
     Array<Velocity<double> > vmg = calcVmg(subNavs, upwind);
     Array<Velocity<double> > gss = getGpsSpeed(subNavs);
+    Array<Velocity<double> > etws = getExternalTws(subNavs);
 
     Arrayd gssd = gss.map<double>([&](Velocity<double> x) {return x.knots();});
     Arrayd twsd = tws.map<double>([&](Velocity<double> x) {return x.knots();});
     Arrayd vmgd = vmg.map<double>([&](Velocity<double> x) {return x.knots();});
+    Arrayd etwsd = etws.map<double>([&](Velocity<double> x) {return x.knots();});
 
     std::cout << "GPS-span (m/s): " << Spand(gssd) << std::endl;
     std::cout << "TWS-span (m/s): " << Spand(twsd) << std::endl;
     std::cout << "VMG-span (m/s): " << Spand(vmgd) << std::endl;
+    std::cout << "ETWS-span (m/s): " << Spand(etwsd) << std::endl;
 
     { // RANDOM EXPERIMENTS
       double maxVmg = 0.0;
       double bestTws = 0.0;
+      double bestETws = 0.0;
       for (int i = 0; i < twsd.size(); i++) {
         if (vmgd[i] > maxVmg) {
           maxVmg = vmgd[i];
           bestTws = twsd[i];
+          bestETws = etwsd[i];
         }
       }
       std::cout << EXPR_AND_VAL_AS_STRING(maxVmg) << std::endl;
       std::cout << EXPR_AND_VAL_AS_STRING(bestTws) << std::endl;
+      std::cout << EXPR_AND_VAL_AS_STRING(bestETws) << std::endl;
     }
 
 
