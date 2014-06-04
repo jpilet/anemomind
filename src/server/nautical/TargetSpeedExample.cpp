@@ -33,10 +33,13 @@ namespace {
     Grammar001Settings settings;
     Grammar001 g(settings);
 
+    // In order to keep things simple and independent, don't use the grammar, in case there is a bug in the grammar.
+    // Simply partition all the navs into a downwind and an upwind set.
+      //////This is what we would do if we were sure the grammar is reliable:
+      //////std::shared_ptr<HTree> tree = g.parse(allnavs);
+      //////Arrayb sel = markNavsByDesc(tree, g.nodeInfo(), allnavs, (upwind? "upwind-leg" : "downwind-leg"));
 
-    //std::shared_ptr<HTree> tree = g.parse(allnavs);
-    //Arrayb sel = markNavsByDesc(tree, g.nodeInfo(), allnavs, (upwind? "upwind-leg" : "downwind-leg"));
-
+    // Simple partitioning of all the navs
     Arrayb sel = getExternalUpwindNavs(allnavs);
     if (!upwind) {
       sel = neg(sel);
