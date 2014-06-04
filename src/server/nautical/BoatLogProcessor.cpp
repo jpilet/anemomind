@@ -185,7 +185,6 @@ void processBoatDataSingleLogFile(Nav::Id boatId, Poco::Path srcPath, std::strin
   processBoatData(boatId, navs, dstPath, srcfile.getBaseName());
 }
 
-
 // See discussion: https://github.com/jpilet/anemomind-web/pull/9#discussion_r12632698
 void processBoatDataSingleLogFile(Poco::Path dataPath, std::string logFilename) {
   Nav::Id boatId = extractBoatId(dataPath);
