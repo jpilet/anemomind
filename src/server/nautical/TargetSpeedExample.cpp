@@ -63,18 +63,6 @@ namespace {
     std::cout << "TWS-span (m/s): " << Spand(twsd) << std::endl;
     std::cout << "VMG-span (m/s): " << Spand(vmgd) << std::endl;
 
-    { // RANDOM EXPERIMENTS
-      double maxVmg = 0.0;
-      double bestTws = 0.0;
-      for (int i = 0; i < twsd.size(); i++) {
-        if (vmgd[i] > maxVmg) {
-          maxVmg = vmgd[i];
-          bestTws = twsd[i];
-        }
-      }
-    }
-
-
     Velocity<double> minvel = Velocity<double>::metersPerSecond(4.0);
     Velocity<double> maxvel = Velocity<double>::metersPerSecond(17.0);
     TargetSpeedData tgt(tws, vmg, binCount,
