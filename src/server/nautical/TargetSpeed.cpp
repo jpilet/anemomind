@@ -15,6 +15,10 @@
 namespace sail {
 
 namespace {
+  // This angle is added/subtracted in some places due to the fact
+  // that sailors usually give the angle to the vector _from_ which
+  // the wind is blowing and not the angle of the vector _in_ which
+  // the wind is blowing.
   const Angle<double> fromAngle = Angle<double>::radians(M_PI);
 
   HorizontalMotion<double> apparentWind(const Nav &nav) {
