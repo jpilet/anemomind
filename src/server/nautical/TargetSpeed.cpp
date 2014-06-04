@@ -14,13 +14,14 @@
 namespace sail {
 
 
+  const Angle<double> fromAngle = Angle<double>::radians(M_PI);
 
   HorizontalMotion<double> apparentWind(const Nav &nav) {
   /* Important note: awa() is the angle w.r.t. the course of the boat!
    * So awa() = 0 always means the boat is in irons.
    * Therefore, to get the apparent wind motion w.r.t. earth, we also
    * have to add the course of the boat to that. */
-    return HorizontalMotion<double>::polar(nav.aws(), nav.awa() + nav.gpsBearing());
+    return HorizontalMotion<double>::polar(nav.aws(), nav.awa() + nav.gpsBearing() + fromAngle);
   }
 
   HorizontalMotion<double> estimateRawTrueWind(const Nav &nav) {
@@ -33,7 +34,7 @@ namespace sail {
   }
 
   Angle<double> estimateRawTwa(const Nav &n) {
-    return estimateRawTrueWind(n).angle() - n.gpsBearing();
+    return estimateRawTrueWind(n).angle() - n.gpsBearing() - fromAngle;
   }
 
   Velocity<double> estimateRawTws(const Nav &n) {
