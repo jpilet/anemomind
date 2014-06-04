@@ -46,21 +46,21 @@ void loadData() {
     makeChunkTarget(&targetSpeedTable)
   };
   
-  ChunkLoader loader(targets, 1);
+  ChunkLoader loader(targets, sizeof(targets) / sizeof(targets[0]));
   
-  File dataFile = SD.open("boat.dat");
-  
-  if (dataFile) {
-    while (dataFile.available()) {
-      loader.addByte(dataFile.read());
+  {
+    File dataFile = SD.open("boat.dat");
+
+    if (dataFile) {
+      while (dataFile.available()) {
+        loader.addByte(dataFile.read());
+      }
+      dataFile.close();
     }
-    dataFile.close();
   }
 
   if (!targets[0].success) {
-    for (int i = 0; i < TargetSpeedTable::NUM_ENTRIES; ++i) {
-      targetSpeedTable._upwind[i] = targetSpeedTable._downwind[i] = FP8_8(-1);
-    }
+    invalidateSpeedTable(&targetSpeedTable);
   }  
 }
 
