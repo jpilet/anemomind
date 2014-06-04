@@ -14,7 +14,15 @@
 
 using namespace sail;
 
+
+
 namespace {
+  Arrayb getRawUpwindNavs(Array<Nav> navs) {
+    return navs.map<bool>([&](const Nav &x) {
+      return cos(estimateRawTwa(x)) > 0;
+    });
+  }
+
   void targetSpeedPlot() {
     Poco::Path srcpath = PathBuilder::makeDirectory(Env::SOURCE_DIR).
         pushDirectory("datasets").
@@ -25,15 +33,20 @@ namespace {
     Grammar001 g(settings);
 
 
-    std::shared_ptr<HTree> tree = g.parse(allnavs);
 
 
-    bool upwind = true;
+    bool upwind = false;
 
-    Arrayb sel = markNavsByDesc(tree, g.nodeInfo(), allnavs, (upwind? "upwind-leg" : "downwind-leg"));
+    //std::shared_ptr<HTree> tree = g.parse(allnavs);
+    //Arrayb sel = markNavsByDesc(tree, g.nodeInfo(), allnavs, (upwind? "upwind-leg" : "downwind-leg"));
+
+    Arrayb sel = getRawUpwindNavs(allnavs);
+    if (!upwind) {
+      sel = neg(sel);
+    }
+
     assert(!sel.empty());
     assert(countTrue(sel) > 0);
-
 
     Array<Nav> subNavs = allnavs.slice(sel);
 

@@ -13,11 +13,13 @@
 
 namespace sail {
 
-namespace {
+
 
   HorizontalMotion<double> apparentWind(const Nav &nav) {
-  /* Important note: awa() is the angle w.r.t. the cource of the boat!
-   * So awa() = 0 always means the boat is in irons */
+  /* Important note: awa() is the angle w.r.t. the course of the boat!
+   * So awa() = 0 always means the boat is in irons.
+   * Therefore, to get the apparent wind motion w.r.t. earth, we also
+   * have to add the course of the boat to that. */
     return HorizontalMotion<double>::polar(nav.aws(), nav.awa() + nav.gpsBearing());
   }
 
@@ -42,7 +44,6 @@ namespace {
     return array.reduce<double>(additionalValue, [] (double a, double b) { return std::max(a, b); });
   }
 
-}
 
 
 

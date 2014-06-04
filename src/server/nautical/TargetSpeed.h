@@ -16,6 +16,14 @@
 namespace sail {
 
 
+// These functions are just temporarily visible, to
+// facilitate debugging.
+HorizontalMotion<double> apparentWind(const Nav &nav);
+HorizontalMotion<double> estimateRawTrueWind(const Nav &nav);
+Angle<double> estimateRawTwa(const Nav &n);
+Velocity<double> estimateRawTws(const Nav &n);
+
+
 
 class TargetSpeedData {
  public:
