@@ -11,6 +11,7 @@
 #include <iostream>
 #include <server/plot/extra.h>
 #include <server/nautical/grammars/Grammar001.h>
+#include <server/common/string.h>
 
 using namespace sail;
 
@@ -55,13 +56,27 @@ namespace {
     Array<Velocity<double> > vmg = calcVmg(subNavs, upwind);
     Array<Velocity<double> > gss = getGpsSpeed(subNavs);
 
-    Arrayd gssd = gss.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
-    Arrayd twsd = tws.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
-    Arrayd vmgd = vmg.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
+    Arrayd gssd = gss.map<double>([&](Velocity<double> x) {return x.knots();});
+    Arrayd twsd = tws.map<double>([&](Velocity<double> x) {return x.knots();});
+    Arrayd vmgd = vmg.map<double>([&](Velocity<double> x) {return x.knots();});
 
     std::cout << "GPS-span (m/s): " << Spand(gssd) << std::endl;
     std::cout << "TWS-span (m/s): " << Spand(twsd) << std::endl;
     std::cout << "VMG-span (m/s): " << Spand(vmgd) << std::endl;
+
+    { // RANDOM EXPERIMENTS
+      double maxVmg = 0.0;
+      double bestTws = 0.0;
+      for (int i = 0; i < twsd.size(); i++) {
+        if (vmgd[i] > maxVmg) {
+          maxVmg = vmgd[i];
+          bestTws = twsd[i];
+        }
+      }
+      std::cout << EXPR_AND_VAL_AS_STRING(maxVmg) << std::endl;
+      std::cout << EXPR_AND_VAL_AS_STRING(bestTws) << std::endl;
+    }
+
 
     Velocity<double> minvel = Velocity<double>::metersPerSecond(4.0);
     Velocity<double> maxvel = Velocity<double>::metersPerSecond(17.0);
