@@ -28,7 +28,7 @@ namespace {
     std::shared_ptr<HTree> tree = g.parse(allnavs);
 
 
-    bool upwind = false;
+    bool upwind = true;
 
     Arrayb sel = markNavsByDesc(tree, g.nodeInfo(), allnavs, (upwind? "upwind-leg" : "downwind-leg"));
     assert(!sel.empty());
