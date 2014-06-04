@@ -17,6 +17,11 @@ add_library(common_PathBuilder
            )
 target_depends_on_poco_foundation(common_PathBuilder)
            
+cxx_test(common_MDIndsTest
+         MDIndsTest.cpp
+         gtest_main
+        )           
+           
 cxx_test(common_EnvTest
          EnvTest.cpp
          common_Env

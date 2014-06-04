@@ -23,7 +23,7 @@ namespace {
   template <typename T>
   void primitiveArrayTest() {
     int len = 30;
-    Array<T> arr = makeTestArray<T>(len, std::numeric_limits<T>::max());
+    Array<T> arr = makeTestArray<T>(len, 256);
     Array<T> arr2;
 
     Poco::JSON::Array::Ptr testarr(new Poco::JSON::Array());
