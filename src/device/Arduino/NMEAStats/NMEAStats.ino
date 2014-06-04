@@ -1,6 +1,7 @@
 #include <NmeaParser.h>
-#include <IreneTargetSpeed.h>
+#include <TargetSpeed.h>
 #include <SD.h>
+#include <ChunkFile.h>
 
 char logFilePath[13];
 
@@ -9,6 +10,8 @@ NmeaParser nmeaParser;
 unsigned long lastFlush = 0;
 bool echo = false;
 int flushFrequMs = 3000;
+
+TargetSpeedTable targetSpeedTable;
 
 int my_putc(char c, FILE *) {
   if (echo) {
@@ -31,10 +34,35 @@ void openLogFile() {
 }
 
 void sendData(const NmeaParser& parser) {
-   float speedRatio = getSpeedRatio(parser.twa(), parser.tws(), parser.gpsSpeed());
+   float speedRatio = getVmgSpeedRatio(targetSpeedTable,
+       parser.twa(),
+       FP8_8(parser.tws()) / FP8_8(256),
+       FP8_8(parser.gpsSpeed()) / FP8_8(256));
    // TODO: display speedRatio on the LCD display.
 }
 
+void loadData() {
+  ChunkTarget targets[] = {
+    makeChunkTarget(&targetSpeedTable)
+  };
+  
+  ChunkLoader loader(targets, 1);
+  
+  File dataFile = SD.open("boat.dat");
+  
+  if (dataFile) {
+    while (dataFile.available()) {
+      loader.addByte(dataFile.read());
+    }
+    dataFile.close();
+  }
+
+  if (!targets[0].success) {
+    for (int i = 0; i < TargetSpeedTable::NUM_ENTRIES; ++i) {
+      targetSpeedTable._upwind[i] = targetSpeedTable._downwind[i] = FP8_8(-1);
+    }
+  }  
+}
 
 void setup()
 {
@@ -44,7 +72,7 @@ void setup()
     ; // wait for serial port to connect. Needed for Leonardo only
   }
   fdevopen( &my_putc, 0);
-  
+ 
   // SD Card initialization.
   // On the Ethernet Shield, CS is pin 4. It's set as an output by default.
   // Note that even if it's not used as the CS pin, the hardware SS pin 
@@ -54,7 +82,10 @@ void setup()
 
   if (SD.begin(10)) {
   }
+
   openLogFile();
+
+  loadData();
 }
 
 void loop()

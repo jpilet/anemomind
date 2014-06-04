@@ -22,6 +22,10 @@ FP8_8 interpolate(const FP8_8* array, FP8_8 x) {
     return array[lastIndex];
   }
 
+  if (array[x_lower] < FP8_8(0) || array[x_lower + 1] < FP8_8(0)) {
+    return -1;
+  }
+
   return array[x_lower] * (FP8_8(1) - remaining) + remaining * array[x_lower + 1];
 }
 
@@ -36,8 +40,8 @@ float getSpeedDownWind(const TargetSpeedTable& table, FP8_8 tws) {
 } // namespace
 
 float getVmgSpeedRatio(const TargetSpeedTable& table,
-                       float twa, float tws, float gpsSpeed) {
-  float vmgGps = cos(degToRad(twa)) * gpsSpeed;
+                       short twa, FP8_8 tws, FP8_8 gpsSpeed) {
+  float vmgGps = cos(degToRad(twa)) * static_cast<float>(gpsSpeed);
   float refSpeed;
   if (vmgGps > 0) {
     refSpeed = getSpeedUpWind(table, tws);
@@ -50,5 +54,11 @@ float getVmgSpeedRatio(const TargetSpeedTable& table,
     return 0.0f;
 
   return vmgGps / refSpeed;
+}
+
+void invalidateSpeedTable(TargetSpeedTable *table) {
+  for (int i = 0; i < TargetSpeedTable::NUM_ENTRIES; ++i) {
+    table->_upwind[i] = table->_downwind[i] = FP8_8(-1);
+  }
 }
 

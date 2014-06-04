@@ -1,9 +1,11 @@
 #include <device/Arduino/libraries/ChunkFile/ChunkFile.h>
+#include <device/Arduino/libraries/TargetSpeed/TargetSpeedTestData.h>
 
 #include <gtest/gtest.h>
 #include <assert.h>
 #include <stdint.h>
 #include <sstream>
+#include <fstream>
 
 #pragma pack(1)
 struct TestStructA {
@@ -77,3 +79,28 @@ TEST(ChunkFileTest, SerializationTest) {
   EXPECT_TRUE(targets[0].success);
   EXPECT_TRUE(targets[1].success);
 }
+
+TEST(ChunkFileTest, GenerateTargetSpeedTestFile) {
+  TargetSpeedTable table;
+  fillTestSpeedTable(&table);
+
+  {
+    std::ofstream file("boat.dat", std::ios::out | std::ios::binary);
+    writeChunk(file, &table);
+    file.close();
+  }
+
+  ChunkTarget targets[] = {
+    makeChunkTarget(&table)
+  };
+  ChunkLoader loader(targets, sizeof(targets) / sizeof(targets[0]));
+
+  {
+    std::ifstream input("boat.dat", std::ios::in | std::ios::binary);
+    while (input.good()) {
+      loader.addByte(input.get());
+    }
+  }
+  EXPECT_TRUE(targets[0].success);
+}
+
