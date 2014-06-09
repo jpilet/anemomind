@@ -22,6 +22,6 @@ int main() {
   Array<Nav> navs = scanNmeaFolder(p, Nav::debuggingBoatId());
   std::shared_ptr<HTree> tree = g.parse(navs.sliceTo(1000));
   assert(bool(tree));
-  viewTree(g.nodeInfo(), tree);
+  exploreTree(g.nodeInfo(), tree);
   return 0;
 }

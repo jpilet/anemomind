@@ -10,7 +10,7 @@
 
 namespace sail {
 
-void viewTree(Array<HNode> nodeinfo, std::shared_ptr<HTree> tree);
+void exploreTree(Array<HNode> nodeinfo, std::shared_ptr<HTree> tree);
 
 } /* namespace sail */
 

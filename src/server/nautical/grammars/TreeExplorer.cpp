@@ -20,7 +20,7 @@ namespace {
     std::cout << std::endl;
   }
 
-  void viewTreeSub(Array<HNode> nodeinfo, std::shared_ptr<HTree> tree, int depth, bool shallow,
+  void exploreTreeSub(Array<HNode> nodeinfo, std::shared_ptr<HTree> tree, int depth, bool shallow,
       const char *prefix = "") {
     if (!bool(tree)) {
       outputIndentedLine("Empty tree node\n", depth);
@@ -39,14 +39,14 @@ namespace {
         outputIndentedLine(stringFormat("spanning Nav indices in [%d, %d[ at depth %d:", tree->left(), tree->right(), depth), depth);
         for (int i = 0; i < chn; i++) {
           std::string prefi = stringFormat("%d. ", i+1);
-          viewTreeSub(nodeinfo, tree->child(i), depth+1, true, prefi.c_str());
+          exploreTreeSub(nodeinfo, tree->child(i), depth+1, true, prefi.c_str());
         }
         outputIndentedLine("0. Back to parent node", depth);
         outputIndentedLineNoBreak("Choice? ", depth);
         std::cin >> choice;
         if (1 <= choice && choice <= chn) {
           std::cout << "\n\n";
-          viewTreeSub(nodeinfo, tree->child(choice-1), depth+1, false);
+          exploreTreeSub(nodeinfo, tree->child(choice-1), depth+1, false);
           std::cout << "\n\n";
         }
       } while (choice != 0);
@@ -56,8 +56,8 @@ namespace {
 
 
 
-void viewTree(Array<HNode> nodeinfo, std::shared_ptr<HTree> tree) {
-  viewTreeSub(nodeinfo, tree, 0, false);
+void exploreTree(Array<HNode> nodeinfo, std::shared_ptr<HTree> tree) {
+  exploreTreeSub(nodeinfo, tree, 0, false);
 }
 
 } /* namespace sail */
