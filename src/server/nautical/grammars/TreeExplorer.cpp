@@ -45,7 +45,9 @@ namespace {
         outputIndentedLineNoBreak("Choice? ", depth);
         std::cin >> choice;
         if (1 <= choice && choice <= chn) {
+          std::cout << "\n\n";
           viewTreeSub(nodeinfo, tree->child(choice-1), depth+1, false);
+          std::cout << "\n\n";
         }
       } while (choice != 0);
     }
