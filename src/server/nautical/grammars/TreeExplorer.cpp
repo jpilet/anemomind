@@ -41,7 +41,7 @@ namespace {
           std::string prefi = stringFormat("%d. ", i+1);
           viewTreeSub(nodeinfo, tree->child(i), depth+1, true, prefi.c_str());
         }
-        outputIndentedLine("0. Back to level above", depth);
+        outputIndentedLine("0. Back to parent node", depth);
         outputIndentedLineNoBreak("Choice? ", depth);
         std::cin >> choice;
         if (1 <= choice && choice <= chn) {
