@@ -561,7 +561,6 @@ class Array {
 
   template <typename S>
   S reduce(S init, std::function<S(S, T)> red) const {
-    assert(_size >= 2);
     S x = init;
     for (int i = 0; i < _size; i++) {
       x = red(x, _data[i]);
