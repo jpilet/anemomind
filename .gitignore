@@ -8,3 +8,8 @@ src/device/Arduino/libraries/IreneTargetSpeed/test/test
 *.log
 *.orig
 tags
+
+.tmp
+www/app/bower_components
+www/node_modules
+www/uploads/*
