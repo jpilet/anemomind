@@ -42,8 +42,8 @@ void openLogFile() {
 void displaySpeedRatio(const NmeaParser& parser) {
    float speedRatio = getVmgSpeedRatio(targetSpeedTable,
        parser.twa(),
-       FP8_8(parser.tws()) / FP8_8(256),
-       FP8_8(parser.gpsSpeed()) / FP8_8(256));
+       FP8_8(parser.tws() / 256.0),
+       FP8_8(parser.gpsSpeed() / 256.0));
    
    // Display speedRatio on the LCD display.
    updateScreen(max(0,min(200, int(speedRatio * 100.0))));
@@ -69,7 +69,10 @@ void loadData() {
 
   if (!targets[0].success) {
     invalidateSpeedTable(&targetSpeedTable);
-  }  
+    updateScreen(-2);
+  } else {
+    updateScreen(-1);
+  }
 }
 
 void sendScreenData(String buf) {
@@ -155,7 +158,6 @@ void setup()
   updateScreen(6);
 
   loadData();
-  updateScreen(-1);
 }
 
 void loop()
