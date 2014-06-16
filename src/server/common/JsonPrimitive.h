@@ -25,21 +25,12 @@ bool deserializePrimitive(Poco::Dynamic::Var obj, T *x) {
   }
 }
 
-#define DEFINE_JSON_PRIMITIVE(type) \
-  inline Poco::Dynamic::Var serialize(type x) {return serializePrimitive(x);} \
-  inline bool deserialize(Poco::Dynamic::Var src, type *dst) {return deserializePrimitive(src, dst);}
-#define DEFINE_JSON_PRIMITIVE_INT(type) \
-    DEFINE_JSON_PRIMITIVE(type) \
-    DEFINE_JSON_PRIMITIVE(unsigned type)
+template <typename T>
+Poco::Dynamic::Var serialize(T x) {return serializePrimitive(x);} \
 
-DEFINE_JSON_PRIMITIVE_INT(char)
-DEFINE_JSON_PRIMITIVE_INT(short)
-DEFINE_JSON_PRIMITIVE_INT(int)
-DEFINE_JSON_PRIMITIVE_INT(long int)
-DEFINE_JSON_PRIMITIVE(bool)
-DEFINE_JSON_PRIMITIVE(float)
-DEFINE_JSON_PRIMITIVE(double)
-DEFINE_JSON_PRIMITIVE(std::string)
+template <typename T>
+bool deserialize(Poco::Dynamic::Var src, T *dst) {return deserializePrimitive(src, dst);}
+
 
 #undef DEFINE_JSON_PRIMITIVE_INT
 #undef DEFINE_JSON_PRIMITIVE
