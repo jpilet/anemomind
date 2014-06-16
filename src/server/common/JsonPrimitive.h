@@ -26,7 +26,7 @@ bool deserializePrimitive(Poco::Dynamic::Var obj, T *x) {
 }
 
 template <typename T>
-Poco::Dynamic::Var serialize(T x) {return serializePrimitive(x);} \
+Poco::Dynamic::Var serialize(T x) {return serializePrimitive(x);}
 
 template <typename T>
 bool deserialize(Poco::Dynamic::Var src, T *dst) {return deserializePrimitive(src, dst);}
