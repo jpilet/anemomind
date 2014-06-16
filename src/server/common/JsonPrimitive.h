@@ -6,6 +6,8 @@
 #ifndef JSONPRIMITIVE_H_
 #define JSONPRIMITIVE_H_
 
+#include <Poco/Dynamic/Var.h>
+
 namespace sail {
 namespace json {
 
