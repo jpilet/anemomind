@@ -17,7 +17,7 @@ FlowField::FlowVector FlowField::map(
   _grid.makeVertexLinearCombination(localPos, inds, weights);
   InternalFlowVector dst{0, 0};
   for (int i = 0; i < Grid3d::WVL; i++) {
-    dst = dst + _flow[inds[i]]*weights[i];
+    dst = dst + _flow[inds[i]].scaled(weights[i]);
   }
   return makeFlowVector(dst);
 }

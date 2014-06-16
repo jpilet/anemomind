@@ -276,14 +276,16 @@ add_library(nautical_FlowFieldJson
 target_link_libraries(nautical_FlowFieldJson
                       common_Json
                       nautical_FlowField
-                      common_LineKMJson
-                     )                      
-cxx_test(nautical_FlowFieldTest
-         FlowFieldTest.cpp
-         nautical_FlowField
-         nautical_FlowFieldJson
-         gtest_main
-        )           
+                      math_Grid
+                     )
+                                           
+#cxx_test(nautical_FlowFieldTest
+#         FlowFieldTest.cpp
+#         nautical_FlowField
+#         nautical_FlowFieldJson
+#         gtest_main
+#        )
+           
 add_executable(nautical_FlowFieldExample
                FlowFieldExample.cpp
               )
