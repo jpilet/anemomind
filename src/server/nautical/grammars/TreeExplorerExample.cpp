@@ -11,7 +11,7 @@
 
 using namespace sail;
 
-int main() {
+int main(int argc, char *argv[]) {
   Grammar001Settings s;
   Grammar001 g(s);
 
@@ -19,8 +19,13 @@ int main() {
       pushDirectory("datasets").
       pushDirectory("Irene").
       get();
+
+  if (argc > 1) {
+    p = argv[1];
+  }
+
   Array<Nav> navs = scanNmeaFolder(p, Nav::debuggingBoatId());
-  std::shared_ptr<HTree> tree = g.parse(navs.sliceTo(1000));
+  std::shared_ptr<HTree> tree = g.parse(navs);
   assert(bool(tree));
   exploreTree(g.nodeInfo(), tree);
   return 0;
