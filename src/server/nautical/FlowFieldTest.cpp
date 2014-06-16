@@ -54,17 +54,6 @@ TEST(FlowFieldTest, Json) {
   FlowField ff2;
 
   Poco::Dynamic::Var jsonobj = json::serialize(ff);
-
-  std::cout << "Stringify grid:" << std::endl;
-  Poco::JSON::Stringifier::stringify(json::serialize(ff.grid()), std::cout);
-  std::cout << "Stringify flowvec:" << std::endl;
-  Poco::JSON::Stringifier::stringify(json::serialize(ff.flow()[0]), std::cout);
-  std::cout << "Stringify flow:" << std::endl;
-  Poco::JSON::Stringifier::stringify(json::serialize(ff.flow()), std::cout);
-  std::cout << "Stringify full obj :" << std::endl;
-  Poco::JSON::Stringifier::stringify(jsonobj, std::cout);
-  std::cout << "done." << std::endl;
-
   json::deserialize(jsonobj, &ff2);
   EXPECT_EQ(ff.grid(), ff2.grid());
   EXPECT_EQ(ff.flow(), ff2.flow());
