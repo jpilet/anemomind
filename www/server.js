@@ -36,6 +36,9 @@ var app = express();
 
 app.use(express.bodyParser({uploadDir:__dirname + '/uploads'}));
 
+// Hack for psaros33
+app.use('/sui300', express.static(__dirname + '/sui300'));
+
 // Express settings
 require('./lib/config/express')(app);
 
