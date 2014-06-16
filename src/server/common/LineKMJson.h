@@ -6,15 +6,15 @@
 #ifndef LINEKMJSON_H_
 #define LINEKMJSON_H_
 
-#include <server/common/CommonJson.h>
 #include <server/common/LineKM.h>
+#include <Poco/Dynamic/Var.h>
 
 namespace sail {
 class LineKM;
 
 namespace json {
-CommonJson::Ptr serialize(const LineKM &x);
-void deserialize(CommonJson::Ptr src, LineKM *dst);
+Poco::Dynamic::Var serialize(const LineKM &x);
+bool deserialize(Poco::Dynamic::Var src, LineKM *dst);
 
 }
 } /* namespace sail */

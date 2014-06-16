@@ -17,8 +17,8 @@ typedef long DWord;
 typedef short Word;
 typedef unsigned char Byte;
 
-#define NP_MAX_DATA_LEN 80
-#define NP_MAX_ARGS 16
+#define NP_MAX_DATA_LEN 82
+#define NP_MAX_ARGS 20
 
 // Represents an accurate angle in fixed point.
 // The angle is stored in degrees, minutes and 1/1000 minutes fraction.

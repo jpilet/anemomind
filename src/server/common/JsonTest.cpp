@@ -23,7 +23,7 @@ namespace {
   template <typename T>
   void primitiveArrayTest() {
     int len = 30;
-    Array<T> arr = makeTestArray<T>(len, std::numeric_limits<T>::max());
+    Array<T> arr = makeTestArray<T>(len, 256);
     Array<T> arr2;
 
     Poco::JSON::Array::Ptr testarr(new Poco::JSON::Array());
@@ -35,19 +35,19 @@ namespace {
   }
 }
 
-#define PRIMITIVE_ARRAY_TEST(name, type) TEST(JsonTest, name) {primitiveArrayTest<type>();}
 
-PRIMITIVE_ARRAY_TEST(UIntArray, unsigned int)
-PRIMITIVE_ARRAY_TEST(IntArray, int)
-PRIMITIVE_ARRAY_TEST(DoubleArray, double)
-PRIMITIVE_ARRAY_TEST(FloatArray, float)
-PRIMITIVE_ARRAY_TEST(BoolArray, bool)
-PRIMITIVE_ARRAY_TEST(UCharArray, unsigned char)
-PRIMITIVE_ARRAY_TEST(CharArray, char)
-PRIMITIVE_ARRAY_TEST(ULongArray, unsigned long int)
-PRIMITIVE_ARRAY_TEST(LongArray, long int)
-PRIMITIVE_ARRAY_TEST(UShortArray, unsigned short int)
-PRIMITIVE_ARRAY_TEST(ShortArray, short int)
+TEST(JsonTest, UIntArray) {primitiveArrayTest<unsigned int>();}
+TEST(JsonTest, IntArray) {primitiveArrayTest<int>();}
+TEST(JsonTest, DoubleArray) {primitiveArrayTest<double>();}
+TEST(JsonTest, FloatArray) {primitiveArrayTest<float>();}
+TEST(JsonTest, BoolArray) {primitiveArrayTest<bool>();}
+TEST(JsonTest, UCharArray) {primitiveArrayTest<unsigned char>();}
+TEST(JsonTest, CharArray) {primitiveArrayTest<char>();}
+TEST(JsonTest, ULongArray) {primitiveArrayTest<unsigned long int>();}
+TEST(JsonTest, LongArray) {primitiveArrayTest<long int>();}
+TEST(JsonTest, UShortArray) {primitiveArrayTest<unsigned short int>();}
+TEST(JsonTest, ShortArray) {primitiveArrayTest<short int>();}
+
 
 
 

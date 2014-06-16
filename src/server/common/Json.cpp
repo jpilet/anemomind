@@ -16,12 +16,18 @@ void serializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, c
   }
 }
 
-void deserializeField(CommonJson::Ptr cobj, const std::string &fieldName, std::string *valueOut) {
-  Poco::JSON::Object::Ptr &obj = cobj->toObject()->get();
-  if (obj->has(fieldName)) {
-    *valueOut = obj->getValue<std::string>(fieldName);
-  } else {
-    *valueOut = "";
+bool deserializeField(Poco::Dynamic::Var cobj, const std::string &fieldName, std::string *valueOut) {
+  try {
+    Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
+    if (obj->has(fieldName)) {
+        *valueOut = obj->getValue<std::string>(fieldName);
+        return true;
+    } else {
+      *valueOut = "";
+      return false;
+    }
+  } catch (Poco::Exception &e) {
+    return false;
   }
 }
 

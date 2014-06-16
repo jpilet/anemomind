@@ -189,4 +189,10 @@ void splitFilenamePrefixSuffix(const std::string &filename,
   }
 }
 
+void indent(std::ostream *s, int count) {
+  for (int i = 0; i < count; i++) {
+    *s << " ";
+  }
+}
+
 } /* namespace sail */

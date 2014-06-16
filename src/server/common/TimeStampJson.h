@@ -17,10 +17,10 @@ class TimeStamp;
 
 namespace json {
 
-bool deserializeField(CommonJson::Ptr obj, const std::string &prefix, TimeStamp *out);
+bool deserializeField(Poco::Dynamic::Var obj, const std::string &prefix, TimeStamp *out);
 void serializeField(Poco::JSON::Object::Ptr obj, const std::string &prefix, const TimeStamp &x);
 
-CommonJson::Ptr serialize(const TimeStamp &src);
+Poco::Dynamic::Var serialize(const TimeStamp &src);
 bool deserialize(Poco::JSON::Object::Ptr src, TimeStamp *dst);
 
 }

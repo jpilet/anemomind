@@ -186,7 +186,7 @@ class Vectorize : public std::array<T, N> {
         }
     }
 
-    Vectorize<T, N>(const T *x) {
+    explicit Vectorize<T, N>(const T x[N]) {
       for (int i = 0; i < N; i++) {
         (*this)[i] = x[i];
       }
@@ -216,20 +216,10 @@ class Vectorize : public std::array<T, N> {
         return result;
     }
 
-    template <class Multiplier>
-    Vectorize<T, N> operator * (Multiplier x) const {
+    Vectorize<T, N> scaled(double factor) {
         Vectorize result;
         for (int i = 0; i < N; ++i) {
-            result[i] = (*this)[i] * x;
-        }
-        return result;
-    }
-
-    template <class Multiplier>
-    Vectorize<T, N> scaled(Multiplier x) {
-        Vectorize result;
-        for (int i = 0; i < N; ++i) {
-            result[i] = (*this)[i].scaled(x);
+            result[i] = (*this)[i].scaled(factor);
         }
         return result;
     }

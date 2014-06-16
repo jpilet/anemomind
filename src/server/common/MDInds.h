@@ -3,14 +3,12 @@
 
 namespace sail {
 
-
-// mirrorIndex: clean treatment at the boundaries when filtering images.
+// mirrorIndex: used for clean handling at the boundaries when filtering images.
 // E.g. mirrorIndex(-1, 3) -> 0
 //      mirrorIndex( 0, 3) -> 0
 //      mirrorIndex( 1, 3) -> 1
 //      mirrorIndex( 2, 3) -> 2
 //      mirrorIndex( 3, 3) -> 2
-
 inline int mirrorIndex(int index, int size) {
   if (index < 0) {
     return mirrorIndex(-index - 1, size);
@@ -19,7 +17,6 @@ inline int mirrorIndex(int index, int size) {
   }
   return index;
 }
-
 
 template <int dims>
 class Index {

@@ -17,6 +17,11 @@ add_library(common_PathBuilder
            )
 target_depends_on_poco_foundation(common_PathBuilder)
            
+cxx_test(common_MDIndsTest
+         MDIndsTest.cpp
+         gtest_main
+        )           
+           
 cxx_test(common_EnvTest
          EnvTest.cpp
          common_Env
@@ -74,21 +79,11 @@ cxx_test(common_TimeStampTest
 
 
         
-add_library(common_CommonJson
-            CommonJson.h
-            CommonJson.cpp
-           )
-target_depends_on_poco_json(common_CommonJson)
-target_link_libraries(common_CommonJson
-                      common_logging
-                     )
 add_library(common_Json
             Json.h
             Json.cpp
            )
-target_link_libraries(common_Json
-                      common_CommonJson
-                     )
+target_depends_on_poco_json(common_Json)                                                     
 cxx_test(common_JsonTest
          JsonTest.cpp
          common_Json

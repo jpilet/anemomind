@@ -14,25 +14,36 @@ namespace sail {
 namespace json {
 
 
-CommonJson::Ptr serialize(const LineKM &x);
+Poco::Dynamic::Var serialize(const LineKM &x);
 
 template <int N>
-CommonJson::Ptr serialize(Grid<N> grid) {
-  CommonJson::Ptr obj = CommonJsonObject::make();
-  obj->toObject()->set("inds", serialize(grid.getInds()));
-  obj->toObject()->set("ind2Coord", serialize(Array<LineKM>(N, grid.ind2Coord())));
-  return obj;
+Poco::Dynamic::Var serialize(Grid<N> grid) {
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  obj->set("inds", serialize(grid.getInds()));
+  obj->set("ind2Coord", serialize(Array<LineKM>(N, grid.ind2Coord())));
+  return Poco::Dynamic::Var(obj);
 }
 
 template <int N>
-void deserialize(CommonJson::Ptr cobj, Grid<N> *dst) {
-  CommonJsonObject *obj = cobj->toObject();
-  MDInds<N> inds;
-  deserialize(obj->get("inds"), &inds);
-  Array<LineKM> ind2Coord(N);
-  deserialize(obj->get("ind2Coord"), &ind2Coord);
-  assert(ind2Coord.size() == N);
-  *dst = Grid<N>(inds, ind2Coord.ptr());
+bool deserialize(Poco::Dynamic::Var cobj, Grid<N> *dst) {
+  try {
+    Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
+    MDInds<N> inds;
+    if (!deserialize(obj->get("inds"), &inds)) {
+      return false;
+    }
+    Array<LineKM> ind2Coord(N);
+    if (!deserialize(obj->get("ind2Coord"), &ind2Coord)) {
+      return false;
+    }
+    if (!(ind2Coord.size() == N)) {
+      return true;
+    }
+    *dst = Grid<N>(inds, ind2Coord.ptr());
+    return true;
+  } catch (Poco::Exception &e) {
+    return false;
+  }
 }
 
 }

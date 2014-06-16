@@ -19,29 +19,33 @@ namespace {
   }
 }
 
-bool deserializeField(CommonJson::Ptr cobj, const std::string &prefix, TimeStamp *out) {
-  Poco::JSON::Object::Ptr obj = cobj->toObject()->get();
-  std::string fname = makeFname(prefix);
-  if (obj->has(fname)) {
-    *out = TimeStamp::fromMilliSecondsSince1970(obj->getValue<Poco::Int64>(fname));
-    return true;
+bool deserializeField(Poco::Dynamic::Var cobj, const std::string &prefix, TimeStamp *out) {
+  try {
+    Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
+    std::string fname = makeFname(prefix);
+    if (obj->has(fname)) {
+      *out = TimeStamp::fromMilliSecondsSince1970(obj->getValue<Poco::Int64>(fname));
+      return true;
+    }
+    *out = TimeStamp::makeUndefined();
+    return false;
+  } catch (Poco::Exception &e) {
+    return false;
   }
-  *out = TimeStamp::makeUndefined();
-  return false;
 }
 
 void serializeField(Poco::JSON::Object::Ptr obj, const std::string &prefix, const TimeStamp &x) {
   obj->set(makeFname(prefix), static_cast<Poco::Int64>(x.toMilliSecondsSince1970()));
 }
 
-CommonJson::Ptr serialize(const TimeStamp &src) {
+Poco::Dynamic::Var serialize(const TimeStamp &src) {
   //return toJsonObjectWithField<TimeStamp>("time", src);
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object()); // Workaround for the line above which won't compile for some reason.
   obj->set("time", src);
-  return CommonJson::Ptr(new CommonJsonObject(obj));
+  return Poco::Dynamic::Var(obj);
 }
 
-bool deserialize(CommonJson::Ptr src, TimeStamp *dst) {
+bool deserialize(Poco::Dynamic::Var src, TimeStamp *dst) {
   return deserializeField(src, "time", dst);
 }
 

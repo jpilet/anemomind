@@ -6,87 +6,82 @@
 #ifndef JSON_H_
 #define JSON_H_
 
+#include <Poco/JSON/Object.h>
 #include <server/common/Array.h>
-#include <server/common/CommonJson.h>
 #include <server/common/string.h>
 
 namespace sail {
 namespace json {
 
-
-
-
+template <typename T>
+Poco::Dynamic::Var serialize(T x) {return Poco::Dynamic::Var(x);}
 
 template <typename T>
-CommonJson::Ptr serializePrimitive(T x) {return CommonJson::Ptr(new CommonJsonVar(Poco::Dynamic::Var(x)));}
+bool deserialize(Poco::Dynamic::Var obj, T *x) {
+  try {
+    *x = obj.convert<T>();
+    return true;
+  } catch (Poco::Exception &e) {
+    return false;
+  }
+}
 
-template <typename T>
-void deserializePrimitive(CommonJson::Ptr obj, T *x) {*x = obj->toVar()->get().convert<T>();}
 
-#define DECLARE_JSON_PRIMITIVE(type) \
-  inline CommonJson::Ptr serialize(type x) {return serializePrimitive(x);} \
-  inline void deserialize(CommonJson::Ptr obj, type *x) {deserializePrimitive(obj, x);}
-      DECLARE_JSON_PRIMITIVE(unsigned int)
-      DECLARE_JSON_PRIMITIVE(int)
-      DECLARE_JSON_PRIMITIVE(double)
-      DECLARE_JSON_PRIMITIVE(float)
-      DECLARE_JSON_PRIMITIVE(bool)
-      DECLARE_JSON_PRIMITIVE(unsigned char)
-      DECLARE_JSON_PRIMITIVE(char)
-      DECLARE_JSON_PRIMITIVE(unsigned long int)
-      DECLARE_JSON_PRIMITIVE(long int)
-      DECLARE_JSON_PRIMITIVE(unsigned short int)
-      DECLARE_JSON_PRIMITIVE(short int)
-#undef DECLARE_JSON_PRIMITIVE
 
 // If serializeField, deserializeField are already defined for type T,
 // use this templates to build a serialize function.
 template <typename T>
-CommonJson::Ptr toJsonObjectWithField(const std::string &typeName, const T &x) {
+Poco::Dynamic::Var toJsonObjectWithField(const std::string &typeName, const T &x) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   serializeField(obj, typeName, x);
-  return CommonJson::Ptr(new CommonJsonObject(obj));
+  return Poco::Dynamic::Var(obj);
 }
 
 template <typename T>
-CommonJson::Ptr serializeArray(Array<T> src) {
+Poco::Dynamic::Var serializeArray(Array<T> src) {
   Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
   int count = src.size();
   for (int i = 0; i < count; i++) {
-    serialize(src[i])->addToOtherArray(arr.get());
+    arr->add(serialize(src[i]));
   }
-  return CommonJson::Ptr(new CommonJsonArray(arr));
+  return Poco::Dynamic::Var(arr);
 }
 
 template <typename T>
-CommonJson::Ptr serialize(Array<T> src, std::function<CommonJson::Ptr(T)> customSerializer) {
+Poco::Dynamic::Var serialize(Array<T> src, std::function<Poco::Dynamic::Var(T)> customSerializer) {
   Poco::JSON::Array::Ptr arr(new Poco::JSON::Array());
   int count = src.size();
   for (int i = 0; i < count; i++) {
     customSerializer(src[i])->addToOtherArray(arr.get());
   }
-  return CommonJson::Ptr(new CommonJsonArray(arr));
+  return Poco::Dynamic::Var(arr);
 }
 
 template <typename T>
-CommonJson::Ptr serialize(Array<T> src) {
+Poco::Dynamic::Var serialize(Array<T> src) {
   return serializeArray(src);
 }
 
 template <typename T>
-void deserialize(CommonJson::Ptr csrc, Array<T> *dst) {
-  assert(csrc->isArray());
-  Poco::JSON::Array::Ptr src = csrc->toArray()->get();
-  int count = src->size();
-  *dst = Array<T>(count);
-  for (int i = 0; i < count; i++) {
-    deserialize(CommonJson::getOtherArrayElement(src, i), dst->ptr(i));
+bool deserialize(Poco::Dynamic::Var csrc, Array<T> *dst) {
+  try {
+    Poco::JSON::Array::Ptr src = csrc.extract<Poco::JSON::Array::Ptr>();
+    int count = src->size();
+    *dst = Array<T>(count);
+    for (int i = 0; i < count; i++) {
+      if (!deserialize(src->get(i), dst->ptr(i))) {
+        return false;
+      }
+    }
+    return true;
+  } catch (Poco::Exception &e) {
+    return false;
   }
 }
 
 // string
 void serializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, const std::string &value);
-void deserializeField(CommonJson::Ptr obj, const std::string &fieldName, std::string *valueOut);
+bool deserializeField(Poco::Dynamic::Var obj, const std::string &fieldName, std::string *valueOut);
 
 }
 }

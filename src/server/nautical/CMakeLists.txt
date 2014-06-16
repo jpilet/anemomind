@@ -214,7 +214,6 @@ cxx_test(nautical_BasicTrueWindEstimatorTest
          nautical_nav
          nautical_NavNmea
          gtest_main)
-            
 
 add_library(nautical_BoatLogProcessor
             BoatLogProcessor.cpp
@@ -229,6 +228,7 @@ target_link_libraries(nautical_BoatLogProcessor
                       nautical_HTreeJson
                       common_HierarchyJson
                       math_hmm_StateAssign
+                      nautical_TargetSpeed
                      )              
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)
@@ -248,6 +248,8 @@ add_library(nautical_Calibrator
 target_link_libraries(nautical_Calibrator
                       nautical_grammars_Grammar001
                       nautical_NavNmeaScan
+                      common_Histogram
+                      plot_gnuplot
                       common_math
                      )
 target_depends_on_ceres(nautical_Calibrator)
@@ -309,6 +311,7 @@ add_library(nautical_TargetSpeed
 target_link_libraries(nautical_TargetSpeed
                       nautical_nav
                       common_Histogram
+                      device_ChunkFile
                      )  
 
 add_executable(nautical_TargetSpeedExample

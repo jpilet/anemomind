@@ -8,9 +8,11 @@
 #include <server/nautical/grammars/Grammar001.h>
 #include <string>
 
+
 namespace sail {
 
 class TackCost;
+class GnuplotExtra;
 
 class Calibrator  {
   public:
@@ -21,6 +23,9 @@ class Calibrator  {
 
     //! Print last calibration results.
     void print();
+
+    //! Invokes gnuplot to show some error distribution.
+    void plot(GnuplotExtra *gnuplot, const std::string &title);
 
     //! Forget last calibration results.
     void clear();
