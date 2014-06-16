@@ -3,10 +3,10 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <server/common/PhysicalQuantityJson.h>
 #include <server/nautical/FlowField.h>
 #include <server/math/GridJson.h>
 #include <server/nautical/FlowFieldJson.h>
-#include <server/common/PhysicalQuantityJson.h>
 #include <server/common/LineKMJson.h>
 #include <server/common/Json.h>
 #include <server/common/string.h>
@@ -55,9 +55,13 @@ TEST(FlowFieldTest, Json) {
 
   Poco::Dynamic::Var jsonobj = json::serialize(ff);
 
-  std::cout << "Stringify:" << std::endl;
+  std::cout << "Stringify grid:" << std::endl;
   Poco::JSON::Stringifier::stringify(json::serialize(ff.grid()), std::cout);
+  std::cout << "Stringify flowvec:" << std::endl;
+  Poco::JSON::Stringifier::stringify(json::serialize(ff.flow()[0]), std::cout);
+  std::cout << "Stringify flow:" << std::endl;
   Poco::JSON::Stringifier::stringify(json::serialize(ff.flow()), std::cout);
+  std::cout << "Stringify full obj :" << std::endl;
   Poco::JSON::Stringifier::stringify(jsonobj, std::cout);
   std::cout << "done." << std::endl;
 

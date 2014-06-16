@@ -3,15 +3,14 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include "FlowFieldJson.h"
 #include <server/common/LineKMJson.h>
 #include <server/common/JsonPrimitive.h>
 #include <server/common/PhysicalQuantityJson.h>
-
-
-#include "FlowFieldJson.h"
-#include <Poco/JSON/Object.h>
 #include <server/nautical/FlowField.h>
 #include <server/math/GridJson.h>
+#include <Poco/JSON/Object.h>
+#include <server/common/Json.h>
 
 namespace sail {
 namespace json {
