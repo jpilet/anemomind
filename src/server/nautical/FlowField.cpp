@@ -111,12 +111,14 @@ void FlowField::plotTimeSlice(Duration<double> time) const {
   MDArray2d samples = sampleTimeSliceVectors(time);
 
   Spand normSpan = calcVelocityNormSpan(samples);
+  std::cout << EXPR_AND_VAL_AS_STRING(normSpan) << std::endl;
 
   double reflen = 0.9*std::min(_grid.getEq(0).getK(), _grid.getEq(1).getK());
   LineKM velscale(0.0, normSpan.maxv(), 0.0, reflen);
 
 
   int count = samples.rows();
+  Spand lensp;
   GnuplotExtra plot;
     plot.set_style("dots");
     plot.set_pointsize(12);
@@ -126,10 +128,14 @@ void FlowField::plotTimeSlice(Duration<double> time) const {
       // colmajor
       double xxyy[4] = {samples(i, 0), samples(i, 0) + velscale(samples(i, 2)),
                         samples(i, 1), samples(i, 1) + velscale(samples(i, 3))};
+      double len = sqrt(sqr(velscale(samples(i, 2))) + sqr(velscale(samples(i, 3))));
+      assert(len > 1.0e-6);
+      lensp.extend(len);
 
       MDArray2d toPlot(2, 2, xxyy);
       plot.plot(toPlot);
     }
+  std::cout << EXPR_AND_VAL_AS_STRING(lensp) << std::endl;
   plot.show();
 }
 

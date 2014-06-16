@@ -268,6 +268,7 @@ add_library(nautical_FlowField
 target_link_libraries(nautical_FlowField
                       common_Uniform
                       plot_gnuplot
+                      common_Span
                      )           
 add_library(nautical_FlowFieldJson
             FlowFieldJson.cpp
@@ -279,12 +280,12 @@ target_link_libraries(nautical_FlowFieldJson
                       math_Grid
                      )
                                            
-#cxx_test(nautical_FlowFieldTest
-#         FlowFieldTest.cpp
-#         nautical_FlowField
-#         nautical_FlowFieldJson
-#         gtest_main
-#        )
+cxx_test(nautical_FlowFieldTest
+         FlowFieldTest.cpp
+         nautical_FlowField
+         nautical_FlowFieldJson
+         gtest_main
+        )
            
 add_executable(nautical_FlowFieldExample
                FlowFieldExample.cpp
