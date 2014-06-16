@@ -6,6 +6,8 @@
 #include "FlowField.h"
 #include <server/common/Uniform.h>
 #include <server/plot/extra.h>
+#include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 
@@ -14,6 +16,7 @@ FlowField::FlowVector FlowField::map(
   double localPos[3] = {x.meters(), y.meters(), time.seconds()};
   int inds[Grid3d::WVL];
   double weights[Grid3d::WVL];
+  assert(_grid.valid(localPos));
   _grid.makeVertexLinearCombination(localPos, inds, weights);
   InternalFlowVector dst{0, 0};
   for (int i = 0; i < Grid3d::WVL; i++) {
@@ -96,7 +99,7 @@ namespace {
     Spand dst;
     int count = samples.rows();
     for (int i = 0; i < count; i++) {
-      int len = sqrt(sqr(samples(i, 2)) + sqr(samples(i, 3)));
+      double len = sqrt(sqr(samples(i, 2)) + sqr(samples(i, 3)));
       dst.extend(len);
     }
     return dst;
@@ -108,6 +111,7 @@ void FlowField::plotTimeSlice(Duration<double> time) const {
   MDArray2d samples = sampleTimeSliceVectors(time);
 
   Spand normSpan = calcVelocityNormSpan(samples);
+
   double reflen = 0.9*std::min(_grid.getEq(0).getK(), _grid.getEq(1).getK());
   LineKM velscale(0.0, normSpan.maxv(), 0.0, reflen);
 
@@ -119,8 +123,10 @@ void FlowField::plotTimeSlice(Duration<double> time) const {
     plot.plot(samples.sliceColsTo(2));
     plot.set_style("lines");
     for (int i = 0; i < count; i++) {
+      // colmajor
       double xxyy[4] = {samples(i, 0), samples(i, 0) + velscale(samples(i, 2)),
                         samples(i, 1), samples(i, 1) + velscale(samples(i, 3))};
+
       MDArray2d toPlot(2, 2, xxyy);
       plot.plot(toPlot);
     }

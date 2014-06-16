@@ -958,11 +958,12 @@ std::string Gnuplot::create_tmpfile(std::ofstream &tmp) {
   // check if maximum number of temporary files reached
   //
   if (Gnuplot::tmpfile_num == GP_MAX_TMP_FILES - 1) {
-    std::ostringstream except;
-    except << "Maximum number of temporary files reached ("
-           << GP_MAX_TMP_FILES << "): cannot open more files" << std::endl;
-
-    throw GnuplotException( except.str() );
+//    std::ostringstream except;
+//    except << "Maximum number of temporary files reached ("
+//           << GP_MAX_TMP_FILES << "): cannot open more files" << std::endl;
+//
+//    throw GnuplotException( except.str() );
+    Gnuplot::tmpfile_num = 0;
     return "";
   }
 

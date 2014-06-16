@@ -28,7 +28,7 @@ void makeAndDrawVectorField(FlowField::FlowVector meanFlow, Velocity<double> max
         spaceRes, timeRes, meanFlow,
         maxDif,
         spaceSmoothingIters, timeSmoothingIters);
-    Duration<double> time = Duration<double>::seconds(1.2);
+    Duration<double> time = Duration<double>::hours(1.2);
     ff.plotTimeSlice(time);
   }
 
