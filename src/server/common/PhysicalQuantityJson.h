@@ -12,7 +12,9 @@
 #include <server/common/Array.h>
 #include <Poco/JSON/Object.h>
 #include <server/common/PhysicalQuantity.h>
-#include <server/common/Json.h>
+#include <server/common/JsonPrimitive.h>
+#include <server/common/JsonFwd.h> // To avoid circular dependency between templates
+                                   // in case of a type Array<Vectorize<...> >
 
 namespace sail {
 namespace json {
