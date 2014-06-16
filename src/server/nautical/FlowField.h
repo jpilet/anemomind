@@ -65,6 +65,7 @@ class FlowField {
 
   void plotTimeSlice(Duration<double> time) const; // TODO.
 
+  bool operator== (const FlowField &ff) const;
  private:
   MDArray2d sampleTimeSliceVectors(Duration<double> t) const;
 

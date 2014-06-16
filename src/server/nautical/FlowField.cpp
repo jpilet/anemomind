@@ -65,6 +65,10 @@ FlowField FlowField::generate(Span<Length<double> > xSpan,
 }
 
 
+bool FlowField::operator== (const FlowField &ff) const {
+  return _grid == ff._grid && _flow == ff._flow;
+}
+
 MDArray2d FlowField::sampleTimeSliceVectors(Duration<double> t) const {
   const MDInds<3> &inds = _grid.getInds();
 

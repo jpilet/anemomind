@@ -4,7 +4,14 @@
  */
 
 #include <server/nautical/FlowField.h>
+#include <server/math/GridJson.h>
+#include <server/nautical/FlowFieldJson.h>
+#include <server/common/PhysicalQuantityJson.h>
+#include <server/common/LineKMJson.h>
+#include <server/common/Json.h>
+#include <server/common/string.h>
 #include <gtest/gtest.h>
+#include <Poco/JSON/Stringifier.h>
 
 using namespace sail;
 
@@ -30,7 +37,7 @@ namespace {
 
 }
 
-TEST(FlowFieldTest, InstantiationAndMapping) {
+TEST(FlowFieldTest, Mapping) {
   FlowField ff = makeTestFlowField();
 
   Length<double> x = Length<double>::nauticalMiles(0.0);
@@ -41,5 +48,24 @@ TEST(FlowFieldTest, InstantiationAndMapping) {
   EXPECT_NEAR(fv[0].knots(), 0.47, marg);
   EXPECT_NEAR(fv[1].knots(), 0.4, marg);
 }
+
+TEST(FlowFieldTest, Json) {
+  FlowField ff = makeTestFlowField();
+  FlowField ff2;
+
+  Poco::Dynamic::Var jsonobj = json::serialize(ff);
+
+  std::cout << "Stringify:" << std::endl;
+  Poco::JSON::Stringifier::stringify(json::serialize(ff.grid()), std::cout);
+  Poco::JSON::Stringifier::stringify(json::serialize(ff.flow()), std::cout);
+  Poco::JSON::Stringifier::stringify(jsonobj, std::cout);
+  std::cout << "done." << std::endl;
+
+  json::deserialize(jsonobj, &ff2);
+  EXPECT_EQ(ff.grid(), ff2.grid());
+  EXPECT_EQ(ff.flow(), ff2.flow());
+  EXPECT_EQ(ff, ff2);
+}
+
 
 
