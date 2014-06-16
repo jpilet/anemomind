@@ -31,10 +31,6 @@ Poco::Dynamic::Var serialize(T x) {return serializePrimitive(x);}
 template <typename T>
 bool deserialize(Poco::Dynamic::Var src, T *dst) {return deserializePrimitive(src, dst);}
 
-
-#undef DEFINE_JSON_PRIMITIVE_INT
-#undef DEFINE_JSON_PRIMITIVE
-
 }
 } /* namespace sail */
 
