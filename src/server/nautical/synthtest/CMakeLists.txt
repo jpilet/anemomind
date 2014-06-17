@@ -13,6 +13,13 @@ add_library(nautical_synthtest_TestDomainJson
             TestDomainJson.cpp
            )
 target_link_libraries(nautical_synthtest_TestDomainJson
+                      nautical_synthtest_TestDomain
                       nautical_GeographicReferenceJson
                       common_TimeStampJson
                      )
+                     
+cxx_test(nautical_synthtest_TestDomainTest
+         TestDomainTest.cpp
+         gtest_main
+         nautical_synthtest_TestDomainJson
+        )                     

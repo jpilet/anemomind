@@ -18,6 +18,8 @@ namespace sail {
 template <typename T>
 class Span {
  public:
+  typedef Span<T> ThisType;
+
   // This constructor does not initialize _minv and _maxv
   // but since they are of type T, it is hard to do this generically.
   Span() : _initialized(false) {}
@@ -98,6 +100,10 @@ class Span {
     assert(initialized());
     assert(other.initialized());
     return contains(other._minv) || contains(other._maxv);
+  }
+
+  bool operator== (const ThisType &other) const {
+    return _minv == other._minv && _maxv == other._maxv && _initialized == other._initialized;
   }
  private:
   bool _initialized;

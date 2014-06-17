@@ -339,7 +339,6 @@ add_library(nautical_GeographicPositionJson
            )
 target_link_libraries(nautical_GeographicPositionJson
                       common_JsonObjDeserializer
-                      common_PhysicalQuantityJson
                      )
 
 add_library(nautical_GeographicReferenceJson

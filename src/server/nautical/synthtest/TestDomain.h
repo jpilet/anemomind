@@ -46,6 +46,10 @@ class TestTimeDomain {
   // Accessors
   TimeStamp timeRef() const {return _timeRef;}
   const TimeSpan &timeSpan() const {return _timeSpan;}
+
+  bool operator== (const TestTimeDomain &td) const {
+    return _timeRef == td._timeRef && _timeSpan == td._timeSpan;
+  }
  private:
   // Time related
   TimeStamp _timeRef;
