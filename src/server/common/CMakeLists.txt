@@ -242,4 +242,11 @@ add_library(common_LineKMJson
 target_link_libraries(common_LineKMJson
                       common_LineKM
                      )
-target_depends_on_poco_json(common_LineKMJson)                                
+target_depends_on_poco_json(common_LineKMJson)
+
+
+add_library(common_JsonObjDeserializer
+            JsonObjDeserializer.h
+            JsonObjDeserializer.cpp
+           )
+target_depends_on_poco_json(common_JsonObjDeserializer)
