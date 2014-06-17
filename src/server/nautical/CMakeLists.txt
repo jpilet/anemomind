@@ -313,4 +313,6 @@ add_executable(nautical_PlotLeeway
               
 target_link_libraries(nautical_PlotLeeway
                       nautical_TestdataNavs
+                      nautical_grammars_Grammar001
+                      plot_gnuplot
                      )

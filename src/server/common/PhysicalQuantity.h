@@ -117,6 +117,10 @@ class Angle : public PhysicalQuantity<Angle<T>, T> {
             this->get() - other.get()));
   }
 
+  Angle normalizedAt0() const {
+    return radians(normalizeAngleBetweenMinusPiAndPi(this->get()));
+  }
+
   static Angle<T> degMinMc(T deg, T min, T mc) {
       return Angle<T>::degrees(deg + (1.0/60)*(min + 0.001*mc));
   }
