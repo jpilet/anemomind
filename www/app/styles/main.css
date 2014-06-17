@@ -85,3 +85,10 @@ body {
     border-bottom: 0;
   }
 }
+#slider {
+  width:98%;
+  margin-bottom:20px;
+  position:fixed;
+  bottom:0;
+  left:10px;
+}

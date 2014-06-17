@@ -52,41 +52,92 @@ angular.module('anemomindApp')
                                .interpolate("basis");
 
       //The SVG Container
-      var svg = d3.select(".svgContainer").append("svg")
-                                 .attr("width", "100%")
-                                 .attr("viewBox", "0 0 100 100");
+      var svg = d3.select('.svgContainer').append('svg')
+                                 .attr('width', '100%')
+                                 .attr('viewBox', '0 0 100 100');
 
       //The path !
-      var lineGraph = svg.append("path")
-                                  .attr("class", "route")
-                                  .attr("d", lineFunction(data))
-                                  .attr("stroke", "#00aaff")
-                                  .attr("stroke-width", 1)
-                                  .attr("fill", "none")
-                                  .attr("stroke-opacity", 0.3);
+      var lineGraph = svg.append('path')
+                                  .attr('class', 'route')
+                                  .attr('d', lineFunction(data))
+                                  .attr('stroke', '#00aaff')
+                                  .attr('stroke-width', 0.4)
+                                  .attr('fill', 'none')
+                                  .attr('stroke-opacity', 0.3);
 
-      // group = vis.append("svg:g");
+      // group = vis.append('svg:g');
       var pathNode = lineGraph.node();
       var len = pathNode.getTotalLength();
 
-      var circle = svg.append("circle").attr({
+      var circle = svg.append('circle').attr({
         r: 1,
         fill: '#f33',
         transform: function () {
-          var p = pathNode.getPointAtLength(0)
-          return "translate(" + [p.x, p.y] + ")";
+          var p = pathNode.getPointAtLength(0);
+          return 'translate(' + [p.x, p.y] + ')';
         }
       });
 
-      var duration = 10000;
-      circle.transition()
-            .duration(duration)
-            .ease("linear")
-            .attrTween("transform", function (d, i) {
-              return function (t) {
-                  var p = pathNode.getPointAtLength(len*t);
-                  return "translate(" + [p.x, p.y] + ")";
-              }
-            });
-    };
+      // Animation code
+      var orig = document.querySelector('path');
+
+      var obj = {length:0,
+                 pathLength:orig.getTotalLength()};
+
+      orig.style.stroke = '#f60';
+
+      var t = TweenMax.to(obj, 10, {length:obj.pathLength, onUpdate:drawLine, ease:Linear.easeNone})
+
+      function drawLine() {
+        var p = pathNode.getPointAtLength(obj.length);
+        //move red circle (the boat!)
+        circle.attr('transform', 'translate(' + [p.x, p.y] + ')');
+        //update sensor data to be displayed
+        $scope.$apply(function(){
+          $scope.sensorData = 'x: ' + p.x + ', y: ' + p.y;
+        });
+        // orig.style.strokeDasharray = [obj.length, obj.pathLength].join(' ');
+        updateSlider();
+      }
+
+
+      //A bunch of jQuery UI stuff
+
+      $('#slider').slider({
+        range: false,
+        min: 0,
+        max: 100,
+        step:0.1,
+        slide: function ( event, ui ) {
+          t.pause();
+          t.progress( ui.value/100);
+          }
+      }); 
+          
+      function updateSlider() {
+        $('#slider').slider('value', t.progress()*100);
+      }     
+
+      $('#play').click(function() {
+          t.play();
+          if(t.progress() === 1){
+            t.restart();
+          }
+      });
+          
+      $('#pause').click(function() {
+          t.pause();
+      });
+          
+      $('#reverse').click(function() {
+          t.reverse();
+      });
+          
+      $('#resume').click(function() {
+          t.resume(); 
+      });
+      //End of animation code
+
+
+    }
   });
