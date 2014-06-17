@@ -21,12 +21,12 @@ TEST(TestDomainTest, TestTimeDomain) {
 
   EXPECT_NEAR(td.fromLocal(td.toLocal(x)).toMilliSecondsSince1970(), x.toMilliSecondsSince1970(), 2);
 
-//  Poco::Dynamic::Var jsonobj = json::serialize(td);
-//  Poco::JSON::Stringifier::stringify(jsonobj, std::cout);
-//
-//  TestTimeDomain td2;
-//  json::deserialize(jsonobj, &td2);
-//  EXPECT_EQ(td, td2);
+  Poco::Dynamic::Var jsonobj = json::serialize(td);
+  Poco::JSON::Stringifier::stringify(jsonobj, std::cout);
+
+  TestTimeDomain td2;
+  json::deserialize(jsonobj, &td2);
+  EXPECT_EQ(td, td2);
 }
 
 
