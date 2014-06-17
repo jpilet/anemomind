@@ -23,10 +23,10 @@ namespace {
 
 template <class Quantity, typename Value>
 struct JsonQuantityTraits {
-  static double serialize(const Quantity& x) {return std::numeric_limits<double>::signaling_NaN();}
-  static Quantity deserialize(double v) { return Quantity(); }
-  static const char* suffix() { return  ""; };
-  static const char* quantityName() {return "";}
+//  static double serialize(const Quantity& x) {assert(false); return std::numeric_limits<double>::signaling_NaN();}
+//  static Quantity deserialize(double v) { return Quantity(); }
+//  static const char* suffix() { return  ""; };
+//  static const char* quantityName() {return "";}
 };
 
 template <typename Value>
