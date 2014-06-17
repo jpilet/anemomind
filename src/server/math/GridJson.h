@@ -14,7 +14,7 @@ namespace sail {
 namespace json {
 
 
-Poco::Dynamic::Var serialize(const LineKM &x);
+//Poco::Dynamic::Var serialize(const LineKM &x);
 
 template <int N>
 Poco::Dynamic::Var serialize(Grid<N> grid) {

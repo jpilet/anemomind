@@ -9,9 +9,12 @@
 #ifndef PHYSICALQUANTITYJSON_H_
 #define PHYSICALQUANTITYJSON_H_
 
+#include <server/common/Array.h>
 #include <Poco/JSON/Object.h>
 #include <server/common/PhysicalQuantity.h>
-#include <server/common/Json.h>
+#include <server/common/JsonPrimitive.h>
+#include <server/common/JsonFwd.h> // To avoid circular dependency between templates
+                                   // in case of a type Array<Vectorize<...> >
 
 namespace sail {
 namespace json {
@@ -99,7 +102,6 @@ template <typename Quantity, typename Value>
 bool deserialize(Poco::Dynamic::Var src, PhysicalQuantity<Quantity, Value> *x) {
   return deserializeField(src, std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
 }
-
 
 template <typename T, int N>
 Poco::Dynamic::Var serializeVectorize(const Vectorize<T, N> &x) {
