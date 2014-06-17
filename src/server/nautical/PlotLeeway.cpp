@@ -26,7 +26,7 @@ namespace {
     for (int i = 0; i < count; i++) {
       Nav &n = navs[i];
 
-      data(counter, 0) = unwrap(n.aws());
+      data(counter, 0) = unwrap(n.aws()); // What about putting the boat speed (gpsSpeed or watSpeed) here in some other experiment?
       data(counter, 1) = unwrap(n.awa().normalizedAt0());
       data(counter, 2) = unwrap((n.magHdg() - n.gpsBearing()).normalizedAt0());
 
