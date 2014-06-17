@@ -1,4 +1,5 @@
 add_subdirectory("grammars")
+add_subdirectory("synthtest")
 
 add_library(nautical_Ecef
             Ecef.h
