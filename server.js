@@ -37,8 +37,8 @@ var app = express();
 app.use(express.bodyParser({uploadDir:__dirname + '/uploads'}));
 
 //Log accesses to file
-var logFile = fs.createWriteStream('/var/log/nodejs_server.log', {flags: 'a'});
-app.use(express.logger({stream: logFile}));
+//var logFile = fs.createWriteStream('/var/log/nodejs_server.log', {flags: 'a'});
+//app.use(express.logger({stream: logFile}));
 
 // Hack for psaros33
 app.use('/sui300', express.static(__dirname + '/sui300'));
