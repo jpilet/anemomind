@@ -17,6 +17,7 @@ Poco::Dynamic::Var serialize(const Span<T> &x) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   obj->set("minv", serialize(x.minv()));
   obj->set("maxv", serialize(x.maxv()));
+  obj->set("initialized", serialize(x.initialized()));
   return Poco::Dynamic::Var(obj);
 }
 
@@ -29,6 +30,10 @@ bool deserialize(Poco::Dynamic::Var src, Span<T> *dst) {
       return false;
     }
     if (!deserialize(obj->get("maxv"), &maxv)) {
+      return false;
+    }
+    bool initialized;
+    if (!deserialize(obj->get("initialized"), &initialized)) {
       return false;
     }
     *dst = Span<T>(minv, maxv);
