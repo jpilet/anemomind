@@ -28,6 +28,20 @@ class Span {
     return _initialized;
   }
 
+  static ThisType centeredAt(T x, T marg) {
+    ThisType dst;
+    dst.extend(x - marg);
+    dst.extend(x + marg);
+    return dst;
+  }
+
+  static ThisType centeredAt0(T marg) {
+    ThisType dst;
+    dst.extend(-marg);
+    dst.extend(marg);
+    return dst;
+  }
+
   Span(T value) : _minv(value), _maxv(value), _initialized(true) {}
   Span(Array<T> arr) {
     if (arr.empty()) {

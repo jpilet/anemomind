@@ -6,7 +6,6 @@
 #include <gtest/gtest.h>
 #include <server/nautical/synthtest/TestDomain.h>
 #include <server/nautical/synthtest/TestDomainJson.h>
-#include <Poco/JSON/Stringifier.h>
 
 using namespace sail;
 
@@ -22,11 +21,24 @@ TEST(TestDomainTest, TestTimeDomain) {
   EXPECT_NEAR(td.fromLocal(td.toLocal(x)).toMilliSecondsSince1970(), x.toMilliSecondsSince1970(), 2);
 
   Poco::Dynamic::Var jsonobj = json::serialize(td);
-  Poco::JSON::Stringifier::stringify(jsonobj, std::cout);
-
   TestTimeDomain td2;
   json::deserialize(jsonobj, &td2);
   EXPECT_EQ(td, td2);
+}
+
+TEST(TestDomainTest, TestSpaceDomain) {
+  GeographicPosition<double> pos(Angle<double>::radians(0.5), Angle<double>::radians(0.5), Length<double>::meters(0.0));
+  GeographicReference ref(pos);
+  LengthSpan span = LengthSpan::centeredAt0(Length<double>::nauticalMiles(60*30));
+
+
+  TestSpaceDomain sd(pos, span, span);
+
+  GeographicPosition<double> x(Angle<double>::radians(0.57), Angle<double>::radians(0.589), Length<double>::meters(0.0));
+  GeographicPosition<double> y = sd.fromLocal(sd.toLocal(x));
+  EXPECT_NEAR(x.lon().radians(), y.lon().radians(), 0.001);
+  EXPECT_NEAR(x.lat().radians(), y.lat().radians(), 0.001);
+  EXPECT_NEAR(x.alt().meters(), y.alt().meters(), 0.001);
 }
 
 
