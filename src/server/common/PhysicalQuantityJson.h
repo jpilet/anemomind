@@ -95,8 +95,9 @@ void serializeField(Poco::JSON::Object::Ptr obj, std::string fieldPrefix,
 template <typename Quantity, typename Value>
 Poco::Dynamic::Var serialize(const PhysicalQuantity<Quantity, Value> &x) {
   typedef JsonQuantityTraits<Quantity, Value> TypeInfo;
-  return toJsonObjectWithField<Quantity>(std::string(TypeInfo::quantityName()) + TypeInfo::suffix(),
-      x);
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  obj->set(std::string(TypeInfo::quantityName()) + TypeInfo::suffix(), x);
+  return Poco::Dynamic::Var(obj);
 }
 
 template <typename Quantity, typename Value>

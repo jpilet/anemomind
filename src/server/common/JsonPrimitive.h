@@ -38,7 +38,7 @@ bool deserializePrimitive(Poco::Dynamic::Var obj, T *x) {
       inline bool deserialize(Poco::Dynamic::Var src, type *dst) {return deserializePrimitive(src, dst);}
   #define DEFINE_JSON_INT(type) \
       DEFINE_JSON_PRIMITIVE(unsigned type) \
-      DEFINE_JSON_PRIMITIVE(type) \
+      DEFINE_JSON_PRIMITIVE(type)
 
   DEFINE_JSON_INT(char)
   DEFINE_JSON_INT(short)
