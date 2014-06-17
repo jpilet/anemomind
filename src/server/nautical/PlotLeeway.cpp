@@ -51,7 +51,6 @@ int main(int argc, char **argv) {
       std::stringstream ss;
       ss << argv[1];
       ss >> index;
-      std::cout << "Using user chosen tree node " << index << std::endl;
     }
     if (argc >= 2) {
       std::stringstream ss;
@@ -59,6 +58,9 @@ int main(int argc, char **argv) {
       ss >> plot2d;
     }
   }
+  std::cout << "index  = " << index << std::endl;
+  std::cout << "plot2d = " << plot2d << std::endl;
+
 
   std::cout << "Loading test data..." << std::endl;
   Array<Nav> allnavs = getTestdataNavs();
