@@ -3,6 +3,9 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  *
  *  Helper object to properly deserialize json data.
+ *
+ *  NOTE: It may be a bad idea to use this object in header files, e.g.
+ *  together with templates, because it may cause some circular dependencies.
  */
 
 #ifndef JSONOBJDESERIALIZER_H_

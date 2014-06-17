@@ -6,9 +6,8 @@
 #ifndef SPANJSON_H_
 #define SPANJSON_H_
 
-#include <Poco/Dynamic/Var.h>
-#include <server/common/JsonObjDeserializer.h>
 #include <server/common/Span.h>
+#include <Poco/Dynamic/Var.h>
 
 namespace sail {
 namespace json {
@@ -23,15 +22,21 @@ Poco::Dynamic::Var serialize(const Span<T> &x) {
 
 template <typename T>
 bool deserialize(Poco::Dynamic::Var src, Span<T> *dst) {
-  ObjDeserializer deser(src);
-  T minv, maxv;
-  deser.get("minv", &minv);
-  deser.get("maxv", &maxv);
-  if (deser.success()) {
+  try {
+    Poco::JSON::Object::Ptr obj = src.extract<Poco::JSON::Object::Ptr>();
+    T minv, maxv;
+    if (!deserialize(obj->get("minv"), &minv)) {
+      return false;
+    }
+    if (!deserialize(obj->get("maxv"), &maxv)) {
+      return false;
+    }
     *dst = Span<T>(minv, maxv);
+    return obj;
     return true;
+  } catch (Poco::Exception &e) {
+    return false;
   }
-  return false;
 }
 
 

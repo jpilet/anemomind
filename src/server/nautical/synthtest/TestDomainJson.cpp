@@ -10,6 +10,8 @@
 #include <server/nautical/GeographicReferenceJson.h>
 #include <server/common/Json.h>
 #include <server/common/SpanJson.h>
+#include <server/common/JsonObjDeserializer.h>
+
 
 namespace sail {
 namespace json {
