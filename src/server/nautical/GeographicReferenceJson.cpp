@@ -4,6 +4,7 @@
  */
 
 #include "GeographicReferenceJson.h"
+#include <server/nautical/GeographicReference.h>
 #include <server/nautical/GeographicPositionJson.h>
 
 namespace sail {
