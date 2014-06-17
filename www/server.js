@@ -10,7 +10,7 @@ var express = require('express'),
  */
 
 // Set default node environment to development
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 
 // Application Config
 var config = require('./lib/config/config');
@@ -37,7 +37,7 @@ var app = express();
 app.use(express.bodyParser({uploadDir:__dirname + '/uploads'}));
 
 //Log accesses to file
-var logFile = fs.createWriteStream('./logFile.log', {flags: 'a'}); //use {flags: 'w'} to open in write mode
+var logFile = fs.createWriteStream('/var/log/nodejs_server.log', {flags: 'a'});
 app.use(express.logger({stream: logFile}));
 
 // Hack for psaros33
