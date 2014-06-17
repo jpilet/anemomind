@@ -20,7 +20,7 @@ class ObjDeserializer {
   ObjDeserializer(Poco::Dynamic::Var x);
 
   template <typename T>
-  void deserialize(const std::string &fieldName, T *dst) {
+  void get(const std::string &fieldName, T *dst) {
     if (_success) { // Successful so far, otherwise ignore this code
       try {
         _success = deserialize(_src->get(fieldName), dst);

@@ -1,12 +1,13 @@
 /*
- *  Created on: Jun 17, 2014
+ *  Created on: 2014-06-17
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include "GeographicPositionJson.h"
 #include <server/common/PhysicalQuantityJson.h>
+#include "GeographicPosition.h"
 #include <server/nautical/GeographicPosition.h>
 #include <server/common/JsonObjDeserializer.h>
+#include "GeographicPositionJson.h"
 
 namespace sail {
 namespace json {
@@ -23,9 +24,9 @@ bool deserialize(Poco::Dynamic::Var src, GeoPosd *dst) {
   ObjDeserializer deser(src);
   Angle<double> lon, lat;
   Length<double> alt;
-  deser.deserialize("lon", &lon);
-  deser.deserialize("lat", &lat);
-  deser.deserialize("alt", &alt);
+  deser.get("lon", &lon);
+  deser.get("lat", &lat);
+  deser.get("alt", &alt);
 
   if (deser.success()) {
     *dst = GeoPosd(lon, lat, alt);
