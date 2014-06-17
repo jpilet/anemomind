@@ -296,3 +296,13 @@ target_link_libraries(nautical_TargetSpeedExample
                       common_Span
                       nautical_grammars_Grammar001
                      )
+
+add_library(nautical_TestdataNavs
+            TestdataNavs.h
+            TestdataNavs.cpp
+           )
+target_link_libraries(nautical_TestdataNavs
+                      nautical_NavNmeaScan
+                      common_Env
+                      common_PathBuilder
+                     )
