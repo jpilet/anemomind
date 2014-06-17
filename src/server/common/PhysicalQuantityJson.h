@@ -23,6 +23,10 @@ namespace {
 
 template <class Quantity, typename Value>
 struct JsonQuantityTraits {
+  static double serialize(const Quantity& x) {return std::numeric_limits<double>::signaling_NaN();}
+  static Quantity deserialize(double v) { return Quantity(); }
+  static const char* suffix() { return  ""; };
+  static const char* quantityName() {return "";}
 };
 
 template <typename Value>
@@ -63,11 +67,12 @@ template<class Quantity>
 bool deserializeField(Poco::Dynamic::Var cobj, std::string fieldPrefix,
                Quantity *out) {
   Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
-    std::string fname = fieldPrefix + JsonQuantityTraits<Quantity, typename Quantity::ValueType>::suffix();
+  typedef struct JsonQuantityTraits<Quantity, typename Quantity::ValueType> TypeInfo;
+
+    std::string fname = fieldPrefix + TypeInfo::suffix();
     bool is = obj->has(fname);
     if (is) {
-        *out = JsonQuantityTraits<Quantity, typename Quantity::ValueType>::deserialize(
-            obj->getValue<double>(fname));
+        *out = TypeInfo::deserialize(obj->getValue<double>(fname));
         return true;
     }
     *out = Quantity();
@@ -89,18 +94,24 @@ void serializeField(Poco::JSON::Object::Ptr obj, std::string fieldPrefix,
 
 template <typename Quantity, typename Value>
 Poco::Dynamic::Var serialize(const PhysicalQuantity<Quantity, Value> &x) {
-  return toJsonObjectWithField<Quantity>(std::string(x.quantityName()) + x.suffix(),
+  typedef JsonQuantityTraits<Quantity, Value> TypeInfo;
+  return toJsonObjectWithField<Quantity>(std::string(TypeInfo::quantityName()) + TypeInfo::suffix(),
       x);
 }
 
 template <typename Quantity, typename Value>
 bool deserialize(Poco::JSON::Object::Ptr src, PhysicalQuantity<Quantity, Value> *x) {
-  return deserializeField(src, std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
+  return deserializeField(src, std::string(Quantity::quantityName()), x);
 }
 
 template <typename Quantity, typename Value>
 bool deserialize(Poco::Dynamic::Var src, PhysicalQuantity<Quantity, Value> *x) {
-  return deserializeField(src, std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
+  typedef JsonQuantityTraits<Quantity, Value> TypeInfo;
+  try {
+    return deserializeField(src.extract<Poco::JSON::Object::Ptr>(), std::string(TypeInfo::quantityName()), x);
+  } catch (Poco::Exception &e) {
+    return false;
+  }
 }
 
 template <typename T, int N>
