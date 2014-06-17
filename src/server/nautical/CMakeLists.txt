@@ -306,3 +306,11 @@ target_link_libraries(nautical_TestdataNavs
                       common_Env
                       common_PathBuilder
                      )
+
+add_executable(nautical_PlotLeeway
+               PlotLeeway.cpp
+              )
+              
+target_link_libraries(nautical_PlotLeeway
+                      nautical_TestdataNavs
+                     )
