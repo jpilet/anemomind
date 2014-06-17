@@ -39,6 +39,11 @@ TEST(TestDomainTest, TestSpaceDomain) {
   EXPECT_NEAR(x.lon().radians(), y.lon().radians(), 0.001);
   EXPECT_NEAR(x.lat().radians(), y.lat().radians(), 0.001);
   EXPECT_NEAR(x.alt().meters(), y.alt().meters(), 0.001);
+
+  TestSpaceDomain sd2;
+  json::deserialize(json::serialize(sd), &sd2);
+
+  EXPECT_EQ(sd, sd2);
 }
 
 

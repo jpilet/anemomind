@@ -33,6 +33,12 @@ GeographicPosition<double> GeographicReference::unmap(const ProjectedPosition &s
       Length<double>::meters(0));
 }
 
+bool GeographicReference::operator== (const GeographicReference &other) const {
+  return _pos == other._pos &&
+      _dlat == other._dlat &&
+      _dlon == other._dlon;
+}
+
 
 Length<double> GeographicReference::mapXLon(Angle<double> lon) const {
   return Length<double>::meters(_dlon*lon.directionDifference(_pos.lon()).radians());

@@ -30,6 +30,12 @@ class TestSpaceDomain {
   const GeographicReference &geoRef() const {return _geoRef;}
   const LengthSpan &xSpan() const {return _xSpan;}
   const LengthSpan &ySpan() const {return _ySpan;}
+
+  bool operator== (const TestSpaceDomain &x) const {
+    return _geoRef == x._geoRef &&
+        _xSpan == x._xSpan &&
+        _ySpan == x._ySpan;
+  }
  private:
    GeographicReference _geoRef;
    LengthSpan _xSpan, _ySpan;

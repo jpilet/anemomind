@@ -24,6 +24,8 @@ class GeographicReference {
   GeographicPosition<double> unmap(const ProjectedPosition &src) const;
 
   const GeographicPosition<double> &pos() const {return _pos;}
+
+  bool operator== (const GeographicReference &other) const;
  private:
   Length<double> mapXLon(Angle<double> lon) const;
   Length<double> mapYLat(Angle<double> lat) const;
