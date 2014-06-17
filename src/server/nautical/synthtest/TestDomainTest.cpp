@@ -46,4 +46,25 @@ TEST(TestDomainTest, TestSpaceDomain) {
   EXPECT_EQ(sd, sd2);
 }
 
+TEST(TestDomainTest, TestDomain) {
+  TimeSpan ts(Duration<double>::minutes(-90),
+              Duration<double>::minutes(90));
+  TimeStamp x = TimeStamp::UTC(2014, 06, 17,
+        11, 02, 0);
+
+  TestTimeDomain td(TimeStamp::UTC(2014, 06, 17,
+      11, 48, 0), ts);
+
+  GeographicPosition<double> pos(Angle<double>::radians(0.5), Angle<double>::radians(0.5), Length<double>::meters(0.0));
+  GeographicReference ref(pos);
+  LengthSpan span = LengthSpan::centeredAt0(Length<double>::nauticalMiles(60*30));
+
+  TestSpaceDomain sd(pos, span, span);
+
+  TestDomain d(sd, td);
+  TestDomain d2;
+  json::deserialize(json::serialize(d), &d2);
+  EXPECT_EQ(d, d2);
+}
+
 

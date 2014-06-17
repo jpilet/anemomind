@@ -37,5 +37,8 @@ TestDomain::TestDomain(const TestSpaceDomain &spaceDomain,
              _spaceDomain(spaceDomain),
              _timeDomain(timeDomain) {}
 
+bool TestDomain::operator== (const TestDomain &x) const {
+  return _spaceDomain == x._spaceDomain && _timeDomain == x._timeDomain;
+}
 
 } /* namespace sail */

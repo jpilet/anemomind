@@ -69,6 +69,7 @@ class TestDomain {
                const TestTimeDomain &timeDomain);
   const TestSpaceDomain &space() const {return _spaceDomain;}
   const TestTimeDomain &time() const {return _timeDomain;}
+  bool operator== (const TestDomain &x) const;
  private:
   TestSpaceDomain _spaceDomain;
   TestTimeDomain _timeDomain;
