@@ -16,12 +16,14 @@ namespace sail {
 class GeographicReference {
  public:
   GeographicReference();
-  GeographicReference(const GeographicPosition<double> &pos);
+  GeographicReference(const GeographicPosition<double> &pos_);
 
   typedef Vectorize<Length<double>, 2> ProjectedPosition;
 
   ProjectedPosition map(const GeographicPosition<double> &src) const;
   GeographicPosition<double> unmap(const ProjectedPosition &src) const;
+
+  const GeographicPosition<double> &pos() const {return _pos;}
  private:
   Length<double> mapXLon(Angle<double> lon) const;
   Length<double> mapYLat(Angle<double> lat) const;

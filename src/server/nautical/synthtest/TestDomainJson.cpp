@@ -5,6 +5,8 @@
 
 #include "TestDomainJson.h"
 #include <server/nautical/GeographicReferenceJson.h>
+#include <server/common/TimeStampJson.h>
+#include <server/common/SpanJson.h>
 
 namespace sail {
 namespace json {

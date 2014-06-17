@@ -16,9 +16,9 @@ GeographicReference::GeographicReference() {
 
 
 
-GeographicReference::GeographicReference(const GeographicPosition<double> &pos) : _pos(pos) {
+GeographicReference::GeographicReference(const GeographicPosition<double> &pos_) : _pos(pos_) {
   double xyz3[3];
-  WGS84<double>::toXYZLocal(pos.lon().radians(), pos.lat().radians(), pos.alt().meters(),
+  WGS84<double>::toXYZLocal(pos_.lon().radians(), pos_.lat().radians(), pos_.alt().meters(),
       xyz3, &_dlon, &_dlat);
 }
 
