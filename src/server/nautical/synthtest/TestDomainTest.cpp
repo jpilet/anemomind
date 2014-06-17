@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <server/nautical/synthtest/TestDomain.h>
 #include <server/nautical/synthtest/TestDomainJson.h>
+#include <Poco/JSON/Stringifier.h>
 
 using namespace sail;
 
@@ -20,9 +21,12 @@ TEST(TestDomainTest, TestTimeDomain) {
 
   EXPECT_NEAR(td.fromLocal(td.toLocal(x)).toMilliSecondsSince1970(), x.toMilliSecondsSince1970(), 2);
 
-  TestTimeDomain td2;
-  json::deserialize(json::serialize(td), &td2);
-  EXPECT_EQ(td, td2);
+//  Poco::Dynamic::Var jsonobj = json::serialize(td);
+//  Poco::JSON::Stringifier::stringify(jsonobj, std::cout);
+//
+//  TestTimeDomain td2;
+//  json::deserialize(jsonobj, &td2);
+//  EXPECT_EQ(td, td2);
 }
 
 

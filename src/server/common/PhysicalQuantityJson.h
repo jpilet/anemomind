@@ -96,13 +96,13 @@ template <typename Quantity, typename Value>
 Poco::Dynamic::Var serialize(const PhysicalQuantity<Quantity, Value> &x) {
   typedef JsonQuantityTraits<Quantity, Value> TypeInfo;
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
-  obj->set(std::string(TypeInfo::quantityName()) + TypeInfo::suffix(), x);
+  serializeField(obj, TypeInfo::quantityName(), x);
   return Poco::Dynamic::Var(obj);
 }
 
 template <typename Quantity, typename Value>
 bool deserialize(Poco::JSON::Object::Ptr src, PhysicalQuantity<Quantity, Value> *x) {
-  return deserializeField(src, std::string(Quantity::quantityName()), x);
+  return deserializeField(src, Quantity::quantityName(), x);
 }
 
 template <typename Quantity, typename Value>
