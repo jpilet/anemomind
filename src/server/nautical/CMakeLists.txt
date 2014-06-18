@@ -307,11 +307,11 @@ target_link_libraries(nautical_TestdataNavs
                       common_PathBuilder
                      )
 
-add_executable(nautical_PlotLeeway
-               PlotLeeway.cpp
+add_executable(nautical_PlotNavs
+               PlotNavs.cpp
               )
               
-target_link_libraries(nautical_PlotLeeway
+target_link_libraries(nautical_PlotNavs
                       nautical_TestdataNavs
                       nautical_grammars_Grammar001
                       nautical_grammars_TreeExplorer
