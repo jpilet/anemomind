@@ -11,37 +11,53 @@
 #include <iostream>
 #include <server/plot/extra.h>
 #include <server/nautical/grammars/Grammar001.h>
+#include <server/common/string.h>
 
 using namespace sail;
 
+
+
 namespace {
-  void targetSpeedPlot() {
+  Arrayb getExternalUpwindNavs(Array<Nav> navs) {
+    return navs.map<bool>([&](const Nav &x) {
+      return cos(x.externalTwa()) > 0;
+    });
+  }
+
+  void targetSpeedPlot(bool upwind) {
     Poco::Path srcpath = PathBuilder::makeDirectory(Env::SOURCE_DIR).
         pushDirectory("datasets").
-        pushDirectory("regates").get();
+        pushDirectory("Irene").get();
     Array<Nav> allnavs = scanNmeaFolder(srcpath, Nav::debuggingBoatId());
 
     Grammar001Settings settings;
     Grammar001 g(settings);
 
+    // In order to keep things simple and independent, don't use the grammar, in case there is a bug in the grammar.
+    // Simply partition all the navs into a downwind and an upwind set.
+      //////This is what we would do if we were sure the grammar is reliable:
+      //////std::shared_ptr<HTree> tree = g.parse(allnavs);
+      //////Arrayb sel = markNavsByDesc(tree, g.nodeInfo(), allnavs, (upwind? "upwind-leg" : "downwind-leg"));
 
-    std::shared_ptr<HTree> tree = g.parse(allnavs);
+    // Simple partitioning of all the navs
+    Arrayb sel = getExternalUpwindNavs(allnavs);
+    if (!upwind) {
+      sel = neg(sel);
+    }
 
-    Arrayb upwind = markNavsByDesc(tree, g.nodeInfo(), allnavs, "upwind-leg");
-    assert(!upwind.empty());
-    assert(countTrue(upwind) > 0);
+    assert(!sel.empty());
+    assert(countTrue(sel) > 0);
 
-
-    Array<Nav> upwindNavs = allnavs.slice(upwind);
+    Array<Nav> subNavs = allnavs.slice(sel);
 
     const int binCount = 25;
-    Array<Velocity<double> > tws = estimateTws(upwindNavs);
-    Array<Velocity<double> > vmg = calcUpwindVmg(upwindNavs);
-    Array<Velocity<double> > gss = getGpsSpeed(upwindNavs);
+    Array<Velocity<double> > tws = estimateExternalTws(subNavs);
+    Array<Velocity<double> > vmg = calcExternalVmg(subNavs, upwind);
+    Array<Velocity<double> > gss = getGpsSpeed(subNavs);
 
-    Arrayd gssd = gss.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
-    Arrayd twsd = tws.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
-    Arrayd vmgd = vmg.map<double>([&](Velocity<double> x) {return x.metersPerSecond();});
+    Arrayd gssd = gss.map<double>([&](Velocity<double> x) {return x.knots();});
+    Arrayd twsd = tws.map<double>([&](Velocity<double> x) {return x.knots();});
+    Arrayd vmgd = vmg.map<double>([&](Velocity<double> x) {return x.knots();});
 
     std::cout << "GPS-span (m/s): " << Spand(gssd) << std::endl;
     std::cout << "TWS-span (m/s): " << Spand(twsd) << std::endl;
@@ -56,7 +72,24 @@ namespace {
   }
 }
 
-int main() {
-  targetSpeedPlot();
-  return 0;
+int main(int argc, char **argv) {
+  if (argc <= 1) {
+    std::cout << "Please provide an extra argument, u or d:\n"
+        "  u : display upwind target speed graph\n"
+        "  d : display downwind target speed graph\n";
+  } else if (argc == 2) {
+    std::string x(argv[1]);
+    if (x == "u") {
+      targetSpeedPlot(true);
+      return 0;
+    } else if (x == "d") {
+      targetSpeedPlot(false);
+      return 0;
+    } else {
+      std::cout << "Illegal argument: " << x << std::endl;
+    }
+  } else {
+    std::cout << "Too many arguments" << std::endl;
+  }
+  return -1;
 }

@@ -151,20 +151,18 @@ NmeaParser::NmeaSentence NmeaParser::processByte(Byte input) {
   // Retrieve command (NMEA Address)
   case NP_STATE_CMD :
     if (input == ',') {
-      data_[index_++] = '\0';	// terminate command
-      argv_[argc_++] = data_ + index_;
-      checksum_ ^= input;
-      state_ = NP_STATE_CMD;		// goto get data state_
-
-      // Check for command overflow
-      if(index_ >= NP_MAX_DATA_LEN) {
+      if (argc_ >= NP_MAX_ARGS || (index_ + 1) >= NP_MAX_DATA_LEN) {
         state_ = NP_STATE_SOM;
         numErr_++;
+      } else {
+        data_[index_++] = '\0';	// terminate command
+        argv_[argc_++] = data_ + index_;
+        checksum_ ^= input;
+        state_ = NP_STATE_CMD;  // goto get data state_
       }
     } else if (input == '*') {
       data_[index_] = '\0';
       state_ = NP_STATE_CHECKSUM_1;
-
     } else if(input == '\r' || input == '\n') {
 
       // Check for end of sentence with no checksum

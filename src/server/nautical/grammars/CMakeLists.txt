@@ -24,4 +24,24 @@ add_library(nautical_grammars_Grammar001
 target_link_libraries(nautical_grammars_Grammar001
                       common_string
                       nautical_Grammar
-                     )        
+                     )
+                     
+add_library(nautical_grammars_TreeExplorer
+            TreeExplorer.h
+            TreeExplorer.cpp
+           )
+target_link_libraries(nautical_grammars_TreeExplorer
+                      common_Hierarchy
+                      common_string
+                     )           
+
+add_executable(nautical_grammars_TreeExplorerExample
+               TreeExplorerExample.cpp
+              )
+target_link_libraries(nautical_grammars_TreeExplorerExample
+                      nautical_grammars_TreeExplorer
+                      common_PathBuilder
+                      nautical_NavNmeaScan
+                      nautical_grammars_Grammar001
+                      common_Env
+                     )

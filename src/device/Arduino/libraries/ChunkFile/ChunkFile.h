@@ -37,7 +37,7 @@ class ChunkLoader {
   int _numTargets;
   ChunkTarget *_currentTarget;
 
-  char _chunkHeader[6]; // identifier, version, size. 2 bytes each.
+  unsigned char _chunkHeader[6]; // identifier, version, size. 2 bytes each.
   char _chunkHeaderPos;
 
   enum State {
@@ -50,7 +50,8 @@ class ChunkLoader {
 
 template <class Stream>
 void writeInt16(Stream& stream, int16_t x) {
-  stream << char(x & 0xFF) << char(x >> 8);
+  stream << static_cast<unsigned char>(x & 0xFF)
+    << static_cast<unsigned char>((x >> 8) & 0xFF);
 }
 
 template <class Struct, class Stream>

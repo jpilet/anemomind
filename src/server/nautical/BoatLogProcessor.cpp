@@ -20,6 +20,7 @@
 #include <server/nautical/HTreeJson.h>
 #include <server/nautical/NavNmea.h>
 #include <Poco/JSON/Stringifier.h>
+#include <server/nautical/TargetSpeed.h>
 
 
 namespace sail {
@@ -114,7 +115,39 @@ int BoatLogProcessor::main(const std::vector<std::string>& args) {
   }
 }
 
+namespace {
+  TargetSpeedData makeTargetSpeedTable(bool isUpwind,
+      std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
+      Array<Nav> allnavs,
+      std::string description) {
 
+    // TODO: How to best select upwind/downwind navs? Is the grammar reliable for this?
+    //   Maybe replace AWA by TWA in order to label states in Grammar001.
+    Arrayb sel = markNavsByDesc(tree, nodeinfo, allnavs, description);
+
+    Array<Nav> navs = allnavs.slice(sel);
+
+    Array<Velocity<double> > tws = estimateExternalTws(navs);
+    Array<Velocity<double> > vmg = calcExternalVmg(navs, isUpwind);
+    Array<Velocity<double> > gss = getGpsSpeed(navs);
+
+    // TODO: Carefully select these values:
+    const int binCount = 25;
+    Velocity<double> minvel = Velocity<double>::metersPerSecond(4.0);
+    Velocity<double> maxvel = Velocity<double>::metersPerSecond(17.0);
+
+    return TargetSpeedData(tws, vmg, binCount,
+       minvel, maxvel);
+  }
+
+  void outputTargetSpeedTable(std::shared_ptr<HTree> tree, Array<HNode> nodeinfo, Array<Nav> navs, std::string outFilename) {
+    TargetSpeedData uw = makeTargetSpeedTable(true, tree, nodeinfo, navs, "upwind-leg");
+    TargetSpeedData dw = makeTargetSpeedTable(false, tree, nodeinfo, navs, "downwind-leg");
+
+    std::ofstream file(outFilename);
+    saveTargetSpeedTableChunk(&file, uw, dw);
+  }
+}
 
 void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::string filenamePrefix) {
   ENTERSCOPE("processBoatData");
@@ -134,7 +167,8 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   // we are going to overwrite previous data.
   buildDir.createDirectory();
 
-  std::string prefix = PathBuilder::makeDirectory(dstPath).makeFile(filenamePrefix).get().toString();
+  PathBuilder outdir = PathBuilder::makeDirectory(dstPath);
+  std::string prefix = outdir.makeFile(filenamePrefix).get().toString();
 
 
   {
@@ -150,6 +184,8 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
    ofstream file(prefix + "_tree_node_info.js");
    Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
   }
+  outputTargetSpeedTable(fulltree, g.nodeInfo(), navs,
+      outdir.makeFile("boat.dat").get().toString());
 }
 
 void processBoatDataFullFolder(Nav::Id boatId, Poco::Path srcPath, Poco::Path dstPath) {
@@ -175,7 +211,6 @@ void processBoatDataFullFolder(Poco::Path dataPath) {
 void processBoatDataSingleLogFile(Nav::Id boatId, Poco::Path srcPath, std::string logFilename, Poco::Path dstPath) {
   ENTERSCOPE("processBoatData single log file");
   SCOPEDMESSAGE(INFO, std::string("Loading data from boat with id " + boatId));
-  //loadNavsFromNmea(files[i].toString(), boatId);
   Poco::Path srcfile = PathBuilder::makeDirectory(srcPath).
         makeFile(logFilename).get();
   Array<Nav> navs = loadNavsFromNmea(srcfile.toString(),
@@ -184,7 +219,6 @@ void processBoatDataSingleLogFile(Nav::Id boatId, Poco::Path srcPath, std::strin
   std::sort(navs.begin(), navs.end());
   processBoatData(boatId, navs, dstPath, srcfile.getBaseName());
 }
-
 
 // See discussion: https://github.com/jpilet/anemomind-web/pull/9#discussion_r12632698
 void processBoatDataSingleLogFile(Poco::Path dataPath, std::string logFilename) {
