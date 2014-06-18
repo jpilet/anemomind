@@ -243,3 +243,17 @@ target_link_libraries(common_LineKMJson
                       common_LineKM
                      )
 target_depends_on_poco_json(common_LineKMJson)                                
+
+add_library(common_SpanOverlap
+            SpanOverlap.h
+            SpanOverlap.cpp
+           )
+target_link_libraries(common_SpanOverlap
+                      common_Span
+                      common_Array
+                     )
+cxx_test(common_SpanOverlapTest
+         SpanOverlapTest.cpp
+         common_SpanOverlap
+         gtest_main
+        )                                
