@@ -84,37 +84,96 @@ namespace {
     }
   }
 
-  void transferValues(std::function<double(const Nav &)> f,
-      Array<Nav> navs,
-      MDArray2d dst) {
-    assert(dst.cols() == 1);
-    assert(dst.rows() == navs.size());
-    int count = navs.size();
-    for (int i = 0; i < count; i++) {
-      dst(i, 0) = f(navs[i]);
+
+  class VE {
+   public:
+    virtual const char *name() = 0;
+    virtual double extract(const Nav &x) = 0;
+    virtual ~VE() {}
+  };
+
+
+  class AwaVE : public VE {
+   public:
+    const char *name() {return "awa";}
+   double extract(const Nav &x) {return x.awa().normalizedAt0().degrees();}
+  };
+
+
+   class AwsVE : public VE {
+    public:
+     const char *name() {return "aws";}
+     double extract(const Nav &x) {return x.aws().knots();}
+   };
+
+    class LeewayVE : public VE {
+     public:
+      const char *name() {return "leeway";}
+      double extract(const Nav &x) {return (x.magHdg() - x.gpsBearing()).normalizedAt0().degrees();}
+    };
+
+    class TimeVE : public VE {
+     public:
+      TimeVE() : _reftime(TimeStamp::UTC(2014, 06, 18, 15, 8, 00)) {}
+      const char *name() {return "time";}
+      double extract(const Nav &x) {return (x.time() - _reftime).seconds();}
+     private:
+      TimeStamp _reftime;
+    };
+
+    class GpsSpeedVE : public VE {
+     public:
+      const char *name() {return "gps-speed";}
+      double extract(const Nav &x) {return x.gpsSpeed().knots();}
+    };
+
+    typedef std::map<std::string, VE*> VEMap;
+
+    void registerVE(VEMap *dst, VE *x) {
+      (*dst)[std::string(x->name())] = x;
     }
-  }
 
-  #define NAVEXPR(expr) [&] (const Nav &x) {return expr;}
-  #define TRANSFER(expr) transferValues(NAVEXPR(expr), navs, dst)
+   class WatSpeedVE : public VE {
+    public:
+     const char *name() {return "wat-speed";}
+     double extract(const Nav &x) {return x.watSpeed().knots();}
+   };
 
-  void extractValues(std::string tag, Array<Nav> navs, MDArray2d dst) {
-    if (tag == "awa") {
-      TRANSFER(x.awa().normalizedAt0().degrees());
-    } else if (tag == "aws") {
-      TRANSFER(x.aws().knots());
-    } else if (tag == "leeway") {
-      TRANSFER((x.magHdg() - x.gpsBearing()).normalizedAt0().degrees());
-    } else if (tag == "time") {
-      TimeStamp reftime = TimeStamp::UTC(2014, 06, 18, 15, 8, 00);
-      TRANSFER((x.time() - reftime).seconds());
-    } else if (tag == "gps-speed") {
-      TRANSFER(x.gpsSpeed().knots());
-    } else if (tag == "wat-speed") {
-      TRANSFER(x.watSpeed().knots());
-    } else {
+   VEMap makeVEMap() {
+     static AwaVE a;
+     static AwsVE b;
+     static LeewayVE c;
+     static TimeVE d;
+     static GpsSpeedVE e;
+     static WatSpeedVE f;
+     VEMap dst;
+     registerVE(&dst, &a);
+     registerVE(&dst, &b);
+     registerVE(&dst, &c);
+     registerVE(&dst, &d);
+     registerVE(&dst, &e);
+     registerVE(&dst, &f);
+     return dst;
+   }
+
+   void transferValues(VE *ve,
+       Array<Nav> navs,
+       MDArray2d dst) {
+     assert(dst.cols() == 1);
+     assert(dst.rows() == navs.size());
+     int count = navs.size();
+     for (int i = 0; i < count; i++) {
+       dst(i, 0) = ve->extract(navs[i]);
+     }
+   }
+
+   void extractValues(std::string tag, Array<Nav> navs, MDArray2d dst) {
+    static VEMap map = makeVEMap();
+    if (map.find(tag) == map.end()) {
       dst.setAll(0.0);
       std::cout << "Unknown tag: " << tag << std::endl;
+    } else {
+      transferValues(map[tag], navs, dst);
     }
   }
 
