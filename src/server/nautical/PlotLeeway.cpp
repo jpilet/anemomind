@@ -57,7 +57,7 @@ namespace {
     int count = plottables.size();
     Array<std::string> extracted(count);
     int counter = 0;
-    for (int i = 0; i < count; i++) {
+    for (int i = 1; i < argc; i++) {
       const char *arg = argv[i];
       if (isPlottable(arg, plottables)) {
         extracted[counter] = arg;
@@ -88,7 +88,7 @@ namespace {
 
   void getBounds(int argc, const char **argv, int *fromOut, int *toOut) {
     std::string tag = "--slice";
-    for (int i = 0; i < argc-2; i++) {
+    for (int i = 1; i < argc-2; i++) {
       if (tag == argv[i]) {
         *fromOut = atoi(argv[i+1]);
         *toOut = atoi(argv[i+2]);
