@@ -20,21 +20,6 @@ namespace {
     return x.knots();
   }
 
-  MDArray2d getDataToPlot(Array<Nav> navs) {
-    int counter = 0;
-    int count = navs.size();
-    MDArray2d data(count, 3);
-    for (int i = 0; i < count; i++) {
-      Nav &n = navs[i];
-
-      data(counter, 0) = unwrap(n.aws()); // What about putting the boat speed (gpsSpeed or watSpeed) here in some other experiment?
-      data(counter, 1) = unwrap(n.awa().normalizedAt0());
-      data(counter, 2) = unwrap((n.magHdg() - n.gpsBearing()).normalizedAt0());
-
-      counter++;
-    }
-    return data.sliceRowsTo(counter);
-  }
 
 
   Array<std::string> getPlottableValues() {
@@ -114,11 +99,11 @@ namespace {
 
   void extractValues(std::string tag, Array<Nav> navs, MDArray2d dst) {
     if (tag == "awa") {
-      TRANSFER(x.awa().degrees());
+      TRANSFER(x.awa().normalizedAt0().degrees());
     } else if (tag == "aws") {
       TRANSFER(x.aws().knots());
     } else if (tag == "leeway") {
-      TRANSFER((x.magHdg() - x.gpsBearing()).degrees());
+      TRANSFER((x.magHdg() - x.gpsBearing()).normalizedAt0().degrees());
     } else if (tag == "time") {
       TimeStamp reftime = TimeStamp::UTC(2014, 06, 18, 15, 8, 00);
       TRANSFER((x.time() - reftime).seconds());
@@ -152,6 +137,24 @@ namespace {
     }
     plot.show();
   }
+
+  void getBoundsByNode(int argc, const char **argv, Array<Nav> navs, int *fromOut, int *toOut) {
+    std::string tag("--select-node");
+    for (int i = 0; i < argc; i++) {
+      if (argv[i] == tag) {
+        Grammar001Settings settings;
+        Grammar001 g(settings);
+        std::shared_ptr<HTree> tree = g.parse(navs);
+
+        std::shared_ptr<HTree> sel = exploreTree(g.nodeInfo(), tree);
+
+        if (bool(sel)) {
+          *fromOut = sel->left();
+          *toOut = sel->right();
+        }
+      }
+    }
+  }
 }
 
 int main(int argc, const char **argv) {
@@ -165,6 +168,11 @@ int main(int argc, const char **argv) {
   int to = allnavs.size();
   getBounds(argc, argv, &from, &to);
 
+  // Override previously sliced portion
+  getBoundsByNode(argc, argv, navs, &from, &to);
+
+
+  std::cout << "Use navs from " << from << " to " << to << " of " << allnavs.size() << " navs to make the plot\n";
   makePlot(allnavs.slice(from, to), toPlot);
 
   return 0;
