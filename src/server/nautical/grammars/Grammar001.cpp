@@ -8,6 +8,8 @@
 #include <iostream>
 #include <server/math/hmm/StateAssign.h>
 #include <server/common/ArrayIO.h>
+#include <server/math/hmm/StateAssignOps.h>
+#include <server/common/SharedPtrUtils.h>
 
 
 namespace sail {
@@ -293,12 +295,13 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
   return getG001StateTransitionCost(_settings, fromStateIndex, toStateIndex, fromTimeIndex, _navs);
 }
 
-std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs) {
+std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs,
+    std::shared_ptr<StateAssign> hints) {
   if (navs.empty()) {
     return std::shared_ptr<HTree>();
   }
   G001SA sa(_settings, navs);
-  Arrayi states = sa.solve();
+  Arrayi states = (makeSharedPtrToStack(sa) + hints)->solve();
   return _hierarchy.parse(states);
 }
 

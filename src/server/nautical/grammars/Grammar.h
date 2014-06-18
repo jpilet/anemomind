@@ -9,6 +9,7 @@
 #include <server/common/Hierarchy.h>
 #include <server/nautical/Nav.h>
 #include <memory>
+#include <server/math/hmm/StateAssign.h>
 
 namespace sail {
 
@@ -22,7 +23,8 @@ class Grammar {
    * Should parse 'navs' using the underlying grammar
    * and return a parse tree for the result.
    */
-  virtual std::shared_ptr<HTree> parse(Array<Nav> navs) = 0;
+  virtual std::shared_ptr<HTree> parse(Array<Nav> navs,
+      std::shared_ptr<StateAssign> hints = std::shared_ptr<StateAssign>()) = 0;
 
   /*
    * Returns an array of HNode

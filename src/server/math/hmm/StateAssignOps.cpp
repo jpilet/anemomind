@@ -68,6 +68,15 @@ namespace {
 
 std::shared_ptr<StateAssign> operator+(std::shared_ptr<StateAssign> A,
                                        std::shared_ptr<StateAssign> B) {
+  // Adding an empty pointer is treated as if we added an object with all costs set to 0
+  // and amounts to returning the other smart pointer that is possibly non-empty.
+  if (!bool(A)) {
+    return B;
+  }
+  if (!bool(B)) {
+    return A;
+  }
+
   return std::shared_ptr<StateAssignSum>(new StateAssignSum(A, B));
 }
 
