@@ -139,7 +139,11 @@ void FlowField::plotTimeSlice(Duration<double> time) const {
       lensp.extend(len);
 
       MDArray2d toPlot(2, 2, xxyy);
-      plot.plot(toPlot);
+      try {
+        plot.plot(toPlot);
+      } catch (std::exception &e) {
+        std::cout << "Failed to plot line " << i+1 << " of " << count << std::endl;
+      }
     }
   std::cout << EXPR_AND_VAL_AS_STRING(lensp) << std::endl;
   plot.show();
