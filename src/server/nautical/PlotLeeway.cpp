@@ -7,6 +7,7 @@
 #include <server/nautical/grammars/Grammar001.h>
 #include <server/plot/extra.h>
 #include <server/common/string.h>
+#include <server/nautical/grammars/TreeExplorer.h>
 
 
 using namespace sail;
@@ -169,7 +170,7 @@ int main(int argc, const char **argv) {
   getBounds(argc, argv, &from, &to);
 
   // Override previously sliced portion
-  getBoundsByNode(argc, argv, navs, &from, &to);
+  getBoundsByNode(argc, argv, allnavs, &from, &to);
 
 
   std::cout << "Use navs from " << from << " to " << to << " of " << allnavs.size() << " navs to make the plot\n";
