@@ -156,9 +156,23 @@ namespace {
       }
     }
   }
+
+  void dispInfo() {
+    std::cout << "Nav plotter. Command line options:\n";
+                 "  awa : include apparent wind angle in the plot\n"
+                 "  aws : include apparent wind speed in the plot\n"
+    "  wat-speed : include water speed in the plot\n"
+    "  gps-speed : include gps speed in the plot\n"
+    "  leeway : include leeway angle in the plot\n"
+    "  time : include time in the plot\n"
+    "  --slice <from-index> <to-index> : select subrange of navs to plot\n"
+    "  --navpath <path> : select custom data path with nmea data to load\n"
+    "  --select-node : compute a parse tree and select a node in that parse tree for which to make the plot\n";
+  }
 }
 
 int main(int argc, const char **argv) {
+  dispInfo();
   Array<std::string> toPlot = extractPlottablesOrDefault(argc, argv);
 
   std::cout << "Loading test data..." << std::endl;
