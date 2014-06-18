@@ -33,6 +33,8 @@ TEST(HNodeDslTest, BasicDsl) {
 TEST(HNodeDslTest, BasicDslImplicit) {
   HNodeGroup g = HNodeGroup("top",
                   HNodeGroup("starboard-tack",
+                      // Still a good idea to give explicit indices to leaf nodes because
+                      // they are terminal symbols also used by the StateAssign object.
                       HNodeGroup(0, "close-hauled") +
                       HNodeGroup(1, "beam-reach") +
                       HNodeGroup(2, "broad-reach")
