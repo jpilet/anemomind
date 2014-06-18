@@ -34,6 +34,27 @@ namespace {
     }
     return data.sliceRowsTo(counter);
   }
+
+
+  Array<std::string> getPlottableValues() {
+    const int count = 4;
+    static std::string v[count] = {"awa", "aws", "leeway", "gps-speed"};
+    return Array<std::string>(count, v);
+  }
+
+  bool isPlottable(const char *arg, const Array<std::string> &plottables) {
+    for (auto p : plottables) {
+      if (arg == p) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Array<std::string> extractPlottables(int argc, const char **argv) {
+    Array<std::string> plottables = getPlottableValues();
+    Array<std::string> extracted(count);
+  }
 }
 
 int main(int argc, char **argv) {
