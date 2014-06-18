@@ -18,4 +18,15 @@ Array<Nav> getTestdataNavs() {
    return scanNmeaFolder(p, Nav::debuggingBoatId());
 }
 
+
+
+Array<Nav> getTestdataNavs(int argc, char **argv) {
+  const char pathPrefix[] = "--navpath";
+  for (int i = 1; i < argc-1; i++) {
+    if (std::string(argv[i]) == pathPrefix) {
+
+    }
+  }
+}
+
 } /* namespace sail */
