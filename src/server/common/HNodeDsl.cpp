@@ -1,11 +1,12 @@
 /*
- *  Created on: Jun 18, 2014
+ *  Created on: 2014-06-18
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
 #include "HNodeDsl.h"
 #include <server/common/logging.h>
 #include <server/common/string.h>
+#include <iostream>
 
 namespace sail {
 
@@ -24,7 +25,7 @@ int HNodeGroup::checkIndexedAndCountNodes(Arrayb marked) {
     marked[_index] = true;
   }
   for (auto c : _children) {
-    count += checkIndexedAndCountNodes(marked);
+    count += c.checkIndexedAndCountNodes(marked);
   }
   return count;
 }
@@ -39,7 +40,7 @@ int HNodeGroup::fillNodes(Array<HNode> nodes, int counter, int parent, const cha
       stringFormat(fmt, index), _desc);
 
   for (auto c : _children) {
-    counter = fillNodes(nodes, counter, index, fmt);
+    counter = c.fillNodes(nodes, counter, index, fmt);
   }
   return counter;
 }

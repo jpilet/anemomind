@@ -147,7 +147,11 @@ target_link_libraries(common_HNodeDsl
                       common_Hierarchy
                       common_string
                      )
-
+cxx_test(common_HNodeDslTest
+         HNodeDslTest.cpp
+         common_HNodeDsl
+         gtest_main
+        )
 
 add_library(common_HierarchyJson
             HierarchyJson.cpp        
