@@ -102,11 +102,6 @@ class PhysicalQuantity {
   static Quantity makeFromX(Value X) { return Quantity(PhysicalQuantity<Quantity, Value>(X)); }
 };
 
-//template <typename Quantity, typename Value>
-//PhysicalQuantity<Quantity, Value> operator*(double factor, PhysicalQuantity<Quantity, Value> x) {
-//  return x.scaled(factor);
-//}
-
 
 template <typename Quantity, typename Value>
 const Value PhysicalQuantity<Quantity, Value>::defaultValue =
