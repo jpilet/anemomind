@@ -51,7 +51,7 @@ TEST(HNodeDslTest, BasicDslImplicit) {
     EXPECT_EQ(nodes[i].index(), i);
   }
 
-  // Assuming a preorder traversal internally
+  // Assuming a preorder traversal internally.
   EXPECT_EQ(nodes[6].parent(), -1);
   EXPECT_EQ(nodes[6].description(), "top");
 }
