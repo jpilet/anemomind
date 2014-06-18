@@ -1,0 +1,16 @@
+*.sconsign.dblite
+*.o
+build*
+cpp/build
+src/device/Arduino/libraries/IreneTargetSpeed/test/test
+.*.swp
+.DS_Store
+*.log
+*.orig
+tags
+
+.tmp
+app/bower_components
+node_modules
+uploads/*
+db
