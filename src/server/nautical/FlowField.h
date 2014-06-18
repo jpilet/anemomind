@@ -30,9 +30,7 @@ class FlowField {
  public:
 
   // PRIVATE: (only public because the Json interface needs them)
-        // Use raw doubles for the internal representation to facilitate
-        // the math ops.
-        typedef Vectorize<double, 2> InternalFlowVector;
+        typedef Vectorize<Velocity<double>, 2> InternalFlowVector;
         FlowField(Grid3d grid_, Array<InternalFlowVector> flow_) : _grid(grid_), _flow(flow_) {}
 
         // Accessors used by the Json interface
