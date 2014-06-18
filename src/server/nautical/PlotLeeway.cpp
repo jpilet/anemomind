@@ -6,6 +6,7 @@
 #include <server/nautical/TestdataNavs.h>
 #include <server/nautical/grammars/Grammar001.h>
 #include <server/plot/extra.h>
+#include <server/common/string.h>
 
 
 using namespace sail;
@@ -53,38 +54,42 @@ namespace {
 
   Array<std::string> extractPlottables(int argc, const char **argv) {
     Array<std::string> plottables = getPlottableValues();
+    int count = plottables.size();
     Array<std::string> extracted(count);
+    int counter = 0;
+    for (int i = 0; i < count; i++) {
+      const char *arg = argv[i];
+      if (isPlottable(arg, plottables)) {
+        extracted[counter] = arg;
+        counter++;
+      }
+    }
+    return extracted.sliceTo(counter);
+  }
+
+  Array<std::string> extractPlottablesOrDefault(int argc, const char **argv) {
+    Array<std::string> extracted = extractPlottables(argc, argv);
+
+    const int ndef = 3;
+    static std::string def[ndef] = {"awa", "aws", "leeway"};
+    Array<std::string> defaultPlottables(ndef, def);
+
+    if (extracted.empty()) {
+      return defaultPlottables();
+    } else if (extracted.size() != 2 && extracted.size() != 3) {
+      std::cout << "Can only make a 2d or 3d scatter plot. Please provide 2 or 3 values to plot, not " << extracted.size() << ":\n";
+      std::cout << EXPR_AND_VAL_AS_STRING(extracted) << std::endl;
+      return defaultPlottables;
+    }
+    return extracted;
   }
 }
 
-int main(int argc, char **argv) {
-  std::cout << "A simple program that displays a plot of a\n"
-               "raw/course estimate of the leeway angle,\n"
-               "assuming no drift and perfectly calibrated\n"
-               "instruments\n";
-  "\n";
-  "Arg 1 (int)  : Index of race to plot (defaults to 0)\n";
-  "Arg 2 (bool) : True if we should make a 2d plot (defaults to false, that is a 3d plot)\n";
-  int index = 0;
-  bool plot2d = false;
-  if (argc >= 1) {
-    {
-      std::stringstream ss;
-      ss << argv[1];
-      ss >> index;
-    }
-    if (argc >= 2) {
-      std::stringstream ss;
-      ss << argv[2];
-      ss >> plot2d;
-    }
-  }
-  std::cout << "index  = " << index << std::endl;
-  std::cout << "plot2d = " << plot2d << std::endl;
-
+int main(int argc, const char **argv) {
+  Array<std::string> toPlot = extractPlottablesOrDefault(argc, argv);
 
   std::cout << "Loading test data..." << std::endl;
-  Array<Nav> allnavs = getTestdataNavs();
+  Array<Nav> allnavs = getTestdataNavs(argc, argv);
   std::cout << "Done loading " << allnavs.size() << " navs." << std::endl;
 
 
