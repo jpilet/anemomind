@@ -25,4 +25,16 @@ TEST(SpanOverlap, Partial) {
   EXPECT_EQ(overlaps[2], SpanOverlap(Spani(9, 28), Arrayi::args(1)));
 }
 
+TEST(SpanOverlap, Subset) {
+  Spani A(1, 28);
+  Spani B(4, 9);
+  Array<SpanOverlap> overlaps = computeSpanOverlaps(Array<Spani>::args(A, B));
+  EXPECT_EQ(overlaps.size(), 3);
+
+
+  EXPECT_EQ(overlaps[0], SpanOverlap(Spani(1, 4), Arrayi::args(0)));
+  EXPECT_EQ(overlaps[1], SpanOverlap(Spani(4, 9), Arrayi::args(0, 1)));
+  EXPECT_EQ(overlaps[2], SpanOverlap(Spani(9, 28), Arrayi::args(0)));
+}
+
 
