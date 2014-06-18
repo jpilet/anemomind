@@ -27,7 +27,7 @@ bool deserialize(Poco::Dynamic::Var csrc, FlowField *dst) {
   try {
       Poco::JSON::Object::Ptr src = csrc.extract<Poco::JSON::Object::Ptr>();
       Grid3d grid;
-      Array<FlowField::InternalFlowVector> flow;
+      Array<FlowField::FlowVector> flow;
       if (!deserialize(src->get("grid"), &grid)) {
         return false;
       }

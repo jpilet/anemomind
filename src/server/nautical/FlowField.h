@@ -28,19 +28,18 @@ namespace sail {
  */
 class FlowField {
  public:
+  typedef Vectorize<Velocity<double>, 2> FlowVector;
 
   // PRIVATE: (only public because the Json interface needs them)
-        typedef Vectorize<Velocity<double>, 2> InternalFlowVector;
-        FlowField(Grid3d grid_, Array<InternalFlowVector> flow_) : _grid(grid_), _flow(flow_) {}
+        FlowField(Grid3d grid_, Array<FlowVector> flow_) : _grid(grid_), _flow(flow_) {}
 
         // Accessors used by the Json interface
         const Grid3d &grid() const {return _grid;}
-        const Array<InternalFlowVector> &flow() const {return _flow;}
+        const Array<FlowVector> &flow() const {return _flow;}
 
 
 
 
-  typedef Vectorize<Velocity<double>, 2> FlowVector;
 
   FlowField() {}
 
@@ -68,16 +67,11 @@ class FlowField {
   MDArray2d sampleTimeSliceVectors(Duration<double> t) const;
 
 
-  FlowVector makeFlowVector(const InternalFlowVector &x) const {
-    return FlowVector{Velocity<double>::metersPerSecond(x[0]),
-                      Velocity<double>::metersPerSecond(x[1])};
-  }
-
   // The grid, defining the field
   Grid3d _grid;
 
   // Sampled flows at the grid vertices
-  Array<InternalFlowVector> _flow;
+  Array<FlowVector> _flow;
 };
 
 } /* namespace sail */

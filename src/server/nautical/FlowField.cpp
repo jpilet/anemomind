@@ -18,11 +18,12 @@ FlowField::FlowVector FlowField::map(
   double weights[Grid3d::WVL];
   assert(_grid.valid(localPos));
   _grid.makeVertexLinearCombination(localPos, inds, weights);
-  InternalFlowVector dst{0, 0};
+  FlowVector dst{Velocity<double>::metersPerSecond(0),
+                         Velocity<double>::metersPerSecond(0)};
   for (int i = 0; i < Grid3d::WVL; i++) {
     dst = dst + _flow[inds[i]].scaled(weights[i]);
   }
-  return makeFlowVector(dst);
+  return dst;
 }
 
 FlowField FlowField::generate(Span<Length<double> > xSpan,
@@ -41,7 +42,7 @@ FlowField FlowField::generate(Span<Length<double> > xSpan,
 
   int n = grid.getVertexCount();
 
-  Array<InternalFlowVector> A(n); {
+  Array<FlowVector> A(n); {
     double means[2] = {meanFlow[0].metersPerSecond(),
                        meanFlow[1].metersPerSecond()};
     double mdif = maxDif.metersPerSecond();
@@ -49,7 +50,8 @@ FlowField FlowField::generate(Span<Length<double> > xSpan,
                       Uniform(means[1] - mdif, means[1] + mdif)};
 
       for (int i = 0; i < n; i++) {
-      A[i] = InternalFlowVector{gen[0].gen(), gen[1].gen()};
+        A[i] = FlowVector{Velocity<double>::metersPerSecond(gen[0].gen()),
+                          Velocity<double>::metersPerSecond(gen[1].gen())};
     }
   }
 
