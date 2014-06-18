@@ -1,5 +1,5 @@
 /*
- *  Created on: Jun 18, 2014
+ *  Created on: 2014-06-18
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
@@ -54,14 +54,12 @@ Array<SpanOverlap> computeSpanOverlaps(Array<Spani> spans) {
   Array<SpanOverlap> overlaps(endpts.size());
   for (auto ep : endpts) {
     int newPos = ep.position();
-    if (newPos == currentPos) {
-      activeSpans[ep.spanIndex()] = ep.risingEdge();
-    } else {
+    if (newPos != currentPos) {
       overlaps[overlapCounter] = SpanOverlap(Spani(currentPos, newPos), allIndices.slice(activeSpans));
       overlapCounter++;
       currentPos = newPos;
-      activeSpans[ep.spanIndex()] = ep.risingEdge();
     }
+    activeSpans[ep.spanIndex()] = ep.risingEdge();
   }
   assert(currentPos == endpts.last().position());
   return overlaps.sliceTo(overlapCounter);
