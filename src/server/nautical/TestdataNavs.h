@@ -10,6 +10,9 @@
 
 namespace sail {
 
+/*
+ * Returns the navs from the Irene dataset.
+ */
 Array<Nav> getTestdataNavs();
 
 /*
@@ -18,8 +21,10 @@ Array<Nav> getTestdataNavs();
  * line with --navpath, e.g.
  *
  * --navpath /home/jonas/my-navs
+ *
+ * If now path is provided, a default set of Navs is returned.
  */
-Array<Nav> getTestdataNavs(int argc, char **argv);
+Array<Nav> getTestdataNavs(int argc, const char **argv);
 
 } /* namespace sail */
 

@@ -10,23 +10,38 @@
 
 namespace sail {
 
+namespace {
+  Array<Nav> getNavsFromPath(Poco::Path p) {
+    return scanNmeaFolder(p, Nav::debuggingBoatId());
+  }
+}
+
 Array<Nav> getTestdataNavs() {
   Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR).
        pushDirectory("datasets").
        pushDirectory("Irene").
        get();
-   return scanNmeaFolder(p, Nav::debuggingBoatId());
+  return getNavsFromPath(p);
 }
 
 
 
-Array<Nav> getTestdataNavs(int argc, char **argv) {
+Array<Nav> getTestdataNavs(int argc, const char **argv) {
   const char pathPrefix[] = "--navpath";
-  for (int i = 1; i < argc-1; i++) {
+  for (int i = 1; i < argc; i++) {
     if (std::string(argv[i]) == pathPrefix) {
-
+      if (i < argc-1) {
+        return getNavsFromPath(Poco::Path(argv[i+1]));
+      }
+      else { // Obviously, the user provided --navpath at the end of the command line.
+             // Maybe we should not return anything here.
+        return Array<Nav>();
+      }
     }
   }
+
+  // If the user did not provide anything, return the default test navs.
+  return getTestdataNavs();
 }
 
 } /* namespace sail */
