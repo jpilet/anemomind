@@ -21,5 +21,7 @@ target_link_libraries(math_hmm_StateAssignOps
 cxx_test(math_hmm_StateAssignOpsTest
          StateAssignOpsTest.cpp
          math_hmm_StateAssignOps
+         common_Uniform
+         common_logging
          gtest_main
         )
