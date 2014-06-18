@@ -17,3 +17,9 @@ add_library(math_hmm_StateAssignOps
 target_link_libraries(math_hmm_StateAssignOps
                       math_hmm_StateAssign
                      )
+
+cxx_test(math_hmm_StateAssignOpsTest
+         StateAssignOpsTest.cpp
+         math_hmm_StateAssignOps
+         gtest_main
+        )
