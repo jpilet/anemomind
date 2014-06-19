@@ -138,7 +138,6 @@ namespace {
                     HNodeGroup(28, sides[1],
                         terminal(9) + terminal(10) + terminal(11)
                     )
-
                 )
                 +
                 HNodeGroup(35, "downwind-leg", // 29, 30
