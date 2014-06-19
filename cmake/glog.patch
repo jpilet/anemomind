@@ -1,0 +1,127 @@
+diff -ru build3/third-party/glog-src/src/glog/stl_logging.h.in build/third-party/glog-src/src/glog/stl_logging.h.in
+--- build3/third-party/glog-src/src/glog/stl_logging.h.in	2013-01-09 14:57:36.000000000 +0100
++++ build/third-party/glog-src/src/glog/stl_logging.h.in	2014-06-19 14:03:49.000000000 +0200
+@@ -50,11 +50,6 @@
+ #include <utility>
+ #include <vector>
+ 
+-#ifdef __GNUC__
+-# include <ext/hash_set>
+-# include <ext/hash_map>
+-# include <ext/slist>
+-#endif
+ 
+ // Forward declare these two, and define them after all the container streams
+ // operators so that we can recurse from pair -> container -> container -> pair
+@@ -80,9 +75,6 @@
+ OUTPUT_TWO_ARG_CONTAINER(std::vector)
+ OUTPUT_TWO_ARG_CONTAINER(std::deque)
+ OUTPUT_TWO_ARG_CONTAINER(std::list)
+-#ifdef __GNUC__
+-OUTPUT_TWO_ARG_CONTAINER(__gnu_cxx::slist)
+-#endif
+ 
+ #undef OUTPUT_TWO_ARG_CONTAINER
+ 
+@@ -109,10 +101,6 @@
+ 
+ OUTPUT_FOUR_ARG_CONTAINER(std::map)
+ OUTPUT_FOUR_ARG_CONTAINER(std::multimap)
+-#ifdef __GNUC__
+-OUTPUT_FOUR_ARG_CONTAINER(__gnu_cxx::hash_set)
+-OUTPUT_FOUR_ARG_CONTAINER(__gnu_cxx::hash_multiset)
+-#endif
+ 
+ #undef OUTPUT_FOUR_ARG_CONTAINER
+ 
+@@ -124,10 +112,6 @@
+   return out; \
+ }
+ 
+-#ifdef __GNUC__
+-OUTPUT_FIVE_ARG_CONTAINER(__gnu_cxx::hash_map)
+-OUTPUT_FIVE_ARG_CONTAINER(__gnu_cxx::hash_multimap)
+-#endif
+ 
+ #undef OUTPUT_FIVE_ARG_CONTAINER
+ 
+diff -ru build3/third-party/glog-src/src/stl_logging_unittest.cc build/third-party/glog-src/src/stl_logging_unittest.cc
+--- build3/third-party/glog-src/src/stl_logging_unittest.cc	2013-01-09 14:59:57.000000000 +0100
++++ build/third-party/glog-src/src/stl_logging_unittest.cc	2014-05-12 13:18:03.000000000 +0200
+@@ -39,18 +39,11 @@
+ #include <string>
+ #include <vector>
+ 
+-#ifdef __GNUC__
+-# include <ext/hash_map>
+-# include <ext/hash_set>
+-#endif
+ 
+ #include "glog/logging.h"
+ #include "googletest.h"
+ 
+ using namespace std;
+-#ifdef __GNUC__
+-using namespace __gnu_cxx;
+-#endif
+ 
+ struct user_hash {
+   size_t operator()(int x) const { return x; }
+@@ -83,35 +76,6 @@
+     CHECK_EQ(m, copied_m);  // This must compile.
+   }
+ 
+-#ifdef __GNUC__
+-  {
+-    // Test a hashed simple associative container.
+-    hash_set<int> hs;
+-    hs.insert(10);
+-    hs.insert(20);
+-    hs.insert(30);
+-    ostringstream ss;
+-    ss << hs;
+-    EXPECT_EQ(ss.str(), "10 20 30");
+-    hash_set<int> copied_hs(hs);
+-    CHECK_EQ(hs, copied_hs);  // This must compile.
+-  }
+-#endif
+-
+-#ifdef __GNUC__
+-  {
+-    // Test a hashed pair associative container.
+-    hash_map<int, string> hm;
+-    hm[10] = "ten";
+-    hm[20] = "twenty";
+-    hm[30] = "thirty";
+-    ostringstream ss;
+-    ss << hm;
+-    EXPECT_EQ(ss.str(), "(10, ten) (20, twenty) (30, thirty)");
+-    hash_map<int, string> copied_hm(hm);
+-    CHECK_EQ(hm, copied_hm);  // this must compile
+-  }
+-#endif
+ 
+   {
+     // Test a long sequence.
+@@ -145,21 +109,6 @@
+     CHECK_EQ(m, copied_m);  // This must compile.
+   }
+ 
+-#ifdef __GNUC__
+-  {
+-    // Test a hashed simple associative container.
+-    // Use a user defined hash function.
+-    hash_set<int, user_hash> hs;
+-    hs.insert(10);
+-    hs.insert(20);
+-    hs.insert(30);
+-    ostringstream ss;
+-    ss << hs;
+-    EXPECT_EQ(ss.str(), "10 20 30");
+-    hash_set<int, user_hash> copied_hs(hs);
+-    CHECK_EQ(hs, copied_hs);  // This must compile.
+-  }
+-#endif
+ }
+ 
+ int main(int, char**) {

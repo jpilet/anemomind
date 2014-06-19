@@ -47,10 +47,10 @@ class Grid {
 
   virtual ~Grid() {}
 
-  LineKM &getEq(int dim) {
+  const LineKM &getEq(int dim) const {
     return _ind2Coord[dim];
   }
-  int getSize(int dim) {
+  int getSize(int dim) const {
     return _inds.get(dim);
   }
 
@@ -80,7 +80,7 @@ class Grid {
     int tmpSize[N];
     for (int i = 0; i < N; i++) {
       double x = _ind2Coord[i].inv(vecN[i]); // Compute a floating point position in the grids inner coordinate system
-      int I = int(x);
+      int I = int(floor(x));
       indsFloor[i] = I;
       tmpSize[i] = 2;
       lambda[i] = x - I;
@@ -98,6 +98,7 @@ class Grid {
         vertexInds[j] = indsFloor[j] + k;
       }
       weightsOut[i] = weight;
+      assert(_inds.valid(vertexInds));
       indsOut[i] = _inds.calcIndex(vertexInds);
     }
   }
@@ -290,8 +291,19 @@ class Grid {
      filter3(src, dst, dim, coefs3, normalize);
      return dst;
    }
+
+   bool valid(double *vec) const {
+     for (int i = 0; i < N; i++) {
+       double minv = _ind2Coord[i](0);
+       double maxv = _ind2Coord[i](_inds.get(i));
+       if (vec[i] < minv || maxv <= vec[i]) {
+         return false;
+       }
+     }
+     return true;
+   }
  private:
-  MDInds<N> _inds;      // Holds the size of every
+  MDInds<N> _inds;      // Holds the size of every dim
   LineKM _ind2Coord[N]; // Maps indices along a dimension to coordinates
 
 };
