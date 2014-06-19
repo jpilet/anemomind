@@ -78,10 +78,6 @@ class PhysicalQuantity {
     return *this;
   }
 
-  Quantity operator* (double factor) const {
-    return Quantity::makeFromX(_x*factor);
-  }
-
   Quantity scaled(Value s) const {
       return Quantity::makeFromX(_x * s);
   }
@@ -105,11 +101,6 @@ class PhysicalQuantity {
  private:
   static Quantity makeFromX(Value X) { return Quantity(PhysicalQuantity<Quantity, Value>(X)); }
 };
-
-template <typename Quantity, typename Value>
-PhysicalQuantity<Quantity, Value> operator*(double factor, PhysicalQuantity<Quantity, Value> x) {
-  return x*factor;
-}
 
 
 template <typename Quantity, typename Value>
@@ -229,7 +220,7 @@ class Vectorize : public std::array<T, N> {
     Vectorize<T, N> scaled(double factor) const {
         Vectorize result;
         for (int i = 0; i < N; ++i) {
-            result[i] = factor*((*this)[i]);
+            result[i] = ((*this)[i]).scaled(factor);
         }
         return result;
     }
