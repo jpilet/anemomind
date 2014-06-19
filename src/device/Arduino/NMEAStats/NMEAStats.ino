@@ -8,6 +8,8 @@
 #include <ChunkFile.h>
 #include <SoftwareSerial.h>
 
+#include <InstrumentFilter.h>
+
 const bool VERTICAL_SCREEN = false;
 
 char logFilePath[13];
@@ -19,6 +21,7 @@ bool echo = false;
 int flushFrequMs = 10000;
 
 TargetSpeedTable targetSpeedTable;
+InstrumentFilter<FP16_16> filter;
 
 SoftwareSerial mySerial(8, 9); // RX, TX
 
@@ -171,8 +174,19 @@ void loop()
     Serial.write(c);
     
     switch (nmeaParser.processByte(c)) {
+      case NmeaParser::NMEA_WAT_SP_HDG:
+        filter.setMagHdg(nmeaParser.magHdg_);
+        filter.setWatSpeed(nmeaParser.watSpeed_);
+        break;
+      case NmeaParser::NMEA_AW:
+        filter.setAwa(nmeaParser.awa_);
+        filter.setAws(nmeaParser.aws_);
+        break;
       case NmeaParser::NMEA_NONE: break;
       case NmeaParser::NMEA_TIME_POS:
+        filter.setGpsSpeed(nmeaParser.gpsSpeed_);
+        filter.setGpsBearing(nmeaParser.gpsBearing_);
+
         displaySpeedRatio(nmeaParser);      
       default:
         logNmeaSentence();
