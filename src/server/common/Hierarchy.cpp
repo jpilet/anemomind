@@ -23,17 +23,6 @@ bool HNode::operator== (const HNode &other) const {
 HNode::HNode(int index, int parent, std::string code, std::string label) : _index(index), _parent(parent), _code(code), _description(label) {
 }
 
-
-
-namespace {
-  const int rootIndex = 0;
-}
-
-
-
-
-
-
 namespace {
 // Checks that
 // if a node has a parent, that parent is defined.
