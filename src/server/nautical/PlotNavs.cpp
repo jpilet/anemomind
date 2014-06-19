@@ -8,6 +8,7 @@
 #include <server/plot/extra.h>
 #include <server/common/string.h>
 #include <server/nautical/grammars/TreeExplorer.h>
+#include <server/common/ArrayBuilder.h>
 
 
 using namespace sail;
@@ -22,13 +23,6 @@ namespace {
   }
 
 
-
-  Array<std::string> getPlottableValues() {
-    const int count = 6;
-    static std::string v[count] = {"awa", "aws", "leeway", "gps-speed", "time", "wat-speed"};
-    return Array<std::string>(count, v);
-  }
-
   bool isPlottable(const char *arg, const Array<std::string> &plottables) {
     for (auto p : plottables) {
       if (arg == p) {
@@ -38,39 +32,7 @@ namespace {
     return false;
   }
 
-  Array<std::string> extractPlottables(int argc, const char **argv) {
-    Array<std::string> plottables = getPlottableValues();
-    int count = plottables.size();
-    Array<std::string> extracted(count);
-    int counter = 0;
-    for (int i = 1; i < argc; i++) {
-      const char *arg = argv[i];
-      if (isPlottable(arg, plottables)) {
-        extracted[counter] = arg;
-        counter++;
-      }
-    }
-    return extracted.sliceTo(counter);
-  }
 
-  Array<std::string> extractPlottablesOrDefault(int argc, const char **argv) {
-    Array<std::string> extracted = extractPlottables(argc, argv);
-
-    const int ndef = 3;
-    static std::string def[ndef] = {"awa", "aws", "leeway"};
-    Array<std::string> defaultPlottables(ndef, def);
-
-    if (extracted.empty()) {
-      return defaultPlottables;
-    } else if (extracted.size() != 2 && extracted.size() != 3) {
-      std::cout << "Can only make a 2d or 3d scatter plot. Please provide 2 or 3 values to plot, not " << extracted.size() << ":\n";
-      for (auto e : extracted) {
-        std::cout << "  " << e << std::endl;
-      }
-      return defaultPlottables;
-    }
-    return extracted;
-  }
 
   void getBounds(int argc, const char **argv, int *fromOut, int *toOut) {
     std::string tag = "--slice";
@@ -165,6 +127,29 @@ namespace {
      for (int i = 0; i < count; i++) {
        dst(i, 0) = ve->extract(navs[i]);
      }
+   }
+
+   Array<std::string> extractPlottablesOrDefault(int argc, const char **argv) {
+     ValueExtractMap map = makeValueExtractMap();
+     ArrayBuilder<std::string> toPlot(3);
+     for (int i = 1; i < argc; i++) {
+       const char *s = argv[i];
+       if (map.find(s) != map.end()) {
+         if (toPlot.size() == 3) {
+           std::cout << "The plot can not display more than 3 dimensions. Omitting " << s << std::endl;
+         }
+       }
+     }
+     if (toPlot.size() < 2) {
+       if (toPlot.size() == 0) {
+         std::cout << "No values to plot provided. Plotting default values." << std::endl;
+       } else {
+         std::cout << "Too few values to plot. Plotting default values instead." << std::endl;
+       }
+       return Array<std::string>::args("awa", "aws", "leeway");
+     }
+
+     return toPlot.get();
    }
 
    void extractValues(std::string tag, Array<Nav> navs, MDArray2d dst) {
