@@ -11,7 +11,7 @@
 
 namespace sail {
 
-void exploreTree(Array<HNode> nodeinfo, std::shared_ptr<HTree> tree, std::ostream *out = nullptr);
+std::shared_ptr<HTree> exploreTree(Array<HNode> nodeinfo, std::shared_ptr<HTree> tree, std::ostream *out = nullptr);
 
 } /* namespace sail */
 
