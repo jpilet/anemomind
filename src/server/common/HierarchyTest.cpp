@@ -5,17 +5,15 @@
 
 #include "Hierarchy.h"
 #include "gtest/gtest.h"
+#include <server/common/HNodeGroup.h>
 
 namespace sail {
 
 namespace {
 Array<HNode> makeBinaryTestNodes() {
-  Array<HNode> nodes(3);
-  HNodeFamily fam("bin");
-  nodes[0] = fam.make(0, 2, "Zero");
-  nodes[1] = fam.make(1, 2, "One");
-  nodes[2] = fam.makeRoot(2, "BinaryDigits");
-  return nodes;
+  return HNodeGroup(2, "BinaryDigits",
+      HNodeGroup(0, "Zero") + HNodeGroup(1, "One")
+  ).compile("bin-%03d");
 }
 }
 

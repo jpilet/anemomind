@@ -136,6 +136,7 @@ target_link_libraries(common_Hierarchy
 cxx_test(common_HierarchyTest
          HierarchyTest.cpp
          common_Hierarchy
+         common_HNodeGroup
          gtest_main
         )
 
