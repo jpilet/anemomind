@@ -1,4 +1,5 @@
 add_subdirectory("grammars")
+add_subdirectory("synthtest")
 
 add_library(nautical_Ecef
             Ecef.h
@@ -330,3 +331,20 @@ target_link_libraries(nautical_TargetSpeedExample
                       common_Span
                       nautical_grammars_Grammar001
                      )
+
+
+add_library(nautical_GeographicPositionJson
+            GeographicPositionJson.h
+            GeographicPositionJson.cpp
+           )
+target_link_libraries(nautical_GeographicPositionJson
+                      common_JsonObjDeserializer
+                     )
+
+add_library(nautical_GeographicReferenceJson
+            GeographicReferenceJson.h
+            GeographicReferenceJson.cpp
+           )
+target_link_libraries(nautical_GeographicReferenceJson
+                    nautical_GeographicPositionJson
+                   )
