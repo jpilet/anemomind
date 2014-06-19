@@ -22,4 +22,14 @@ TEST(UserHintTest, UserHintRaceStart) {
   EXPECT_EQ(h.time(), t);
 }
 
+TEST(UserHintTest, UserHintJson) {
+  TimeStamp t = TimeStamp::UTC(2014, 06, 19, 15, 47, 0);
+  UserHint h(UserHint::RACE_START, t);
+  EXPECT_EQ(h.type(), UserHint::RACE_START);
+  EXPECT_EQ(h.typeAsString(), "race-start");
+  EXPECT_EQ(h.time(), t);
 
+  UserHint h2;
+  json::deserialize(json::serialize(h), &h2);
+  EXPECT_EQ(h, h2);
+}
