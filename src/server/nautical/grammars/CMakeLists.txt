@@ -47,3 +47,20 @@ target_link_libraries(nautical_grammars_TreeExplorerExample
                       nautical_grammars_Grammar001
                       common_Env
                      )
+                     
+add_library(nautical_grammars_UserHint
+            UserHint.h
+            UserHint.cpp
+           )
+target_link_libraries(nautical_grammars_UserHint
+                      common_TimeStamp
+                     )        
+                     
+add_library(nautical_grammars_UserHintJson
+            UserHintJson.h
+            UserHintJson.cpp
+           )         
+target_link_libraries(nautical_grammars_UserHintJson 
+                      nautical_grammars_UserHint
+                      common_TimeStampJson
+                     )             
