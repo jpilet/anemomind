@@ -136,6 +136,7 @@ target_link_libraries(common_Hierarchy
 cxx_test(common_HierarchyTest
          HierarchyTest.cpp
          common_Hierarchy
+         common_HNodeGroup
          gtest_main
         )
 
@@ -166,6 +167,7 @@ target_depends_on_poco_json(common_HierarchyJson)
 cxx_test(common_HierarchyJsonTest
          HierarchyJsonTest.cpp
          common_HierarchyJson
+         common_HNodeGroup
          gtest_main
         )                                
 

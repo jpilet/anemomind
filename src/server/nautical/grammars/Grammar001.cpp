@@ -64,42 +64,6 @@ namespace {
     }
   }
 
-  Hierarchy makeOldHierarchy() {
-    std::vector<HNode> nodes;
-
-    // 0..24                     : Indices of all terminal symbols output from the dynamic programming optimization.
-    //                           :   24 is the 'off' state
-    // 25,26 27,28 29,30 31,32   : Starboard/Port tack for every race state
-    // 33    34    35    36      : Race states: before race, upwind leg, downwind leg, idle
-    // 37    38    38    37      : Not in race, In race
-    // 39                        : Sailing
-    // 40                        : Top
-    HNodeFamily fam("Grammar001");
-
-    int mcounter = 0;
-    const int majorParents[4] = {37, 38, 38, 37};
-    for (int i = 0; i < 4; i++) {// every major state
-      int majorIndex = 33 + i;
-      nodes.push_back(fam.make(majorIndex, majorParents[i], majorStates[i]));
-      for (int j = 0; j < 2; j++) { // Starboard/Port?
-        int sideIndex = 25+j + 2*i;
-        nodes.push_back(fam.make(sideIndex, majorIndex, sides[j]));
-        for (int k = 0; k < 3; k++) { // type, close-hauled, beam reach or broad reach?
-          int minorIndex = 3*j + k;
-          int stateIndex = 6*i + minorIndex;
-          nodes.push_back(fam.make(stateIndex, sideIndex, getType(minorIndex)));
-          mcounter++;
-        }
-      }
-    }
-    nodes.push_back(fam.make(37, 39, "Not in race"));
-    nodes.push_back(fam.make(38, 39, "In race"));
-    nodes.push_back(fam.make(39, 40, "Sailing"));
-    nodes.push_back(fam.make(24, 40, "Off"));
-    nodes.push_back(fam.makeRoot(40, "Top"));
-    return Hierarchy(Array<HNode>::referToVector(nodes).dup());
-  }
-
   HNodeGroup terminal(int index) {
     return HNodeGroup(index, getType(index % 6));
   }
@@ -158,13 +122,10 @@ namespace {
   }
 }
 
-bool grammar001HierarchEquivalence() {
-  return makeHierarchy().nodes() == makeOldHierarchy().nodes();
-}
 
 
 
-Grammar001::Grammar001(Grammar001Settings s) : _settings(s), _hierarchy(makeOldHierarchy()) {}
+Grammar001::Grammar001(Grammar001Settings s) : _settings(s), _hierarchy(makeHierarchy()) {}
 
 
 
