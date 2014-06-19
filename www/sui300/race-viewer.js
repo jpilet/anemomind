@@ -54,7 +54,8 @@ RaceViewer.prototype.updateScale = function() {
 	var scale = this.scale * 
 	   Math.min(this.stage.attrs.width / (this.maxX - this.minX),
                 this.stage.attrs.height / (this.maxY - this.minY));
-    this.layer.setScale(scale, -scale);
+    this.layer.setScale({x: scale, y: -scale});
+    this.boatOverlay.setScale({x: 1.0 / scale, y: 1.0 / scale});
 }
 
 RaceViewer.prototype.screenToWorld = function(x, y) {
@@ -93,27 +94,27 @@ RaceViewer.prototype.centerOn = function(x, y, screenX, screenY) {
 }
 
 RaceViewer.prototype.resizeCanvas = function() {
-	var pageHeight = $('#mainPageContainer').height();
-	
-	if (pageHeight != 0) {
-      var delta = window.innerHeight - pageHeight;
-      var newSize = Math.max(200, this.stage.getHeight() + delta);
-      
-      var pos = this.screenToWorld(this.stage.getWidth() / 2, this.stage.getHeight() / 2);
+  var pageHeight = $('#mainPageContainer').height();
 
-      if (newSize != this.stage.getHeight()) {
-        this.stage.setHeight(newSize);
-      }
-      if (this.stage.getContainer().clientWidth != this.stage.getWidth()) {
-	    this.stage.setWidth(this.stage.getContainer().clientWidth);
-	  }
-	  this.updateScale();
-	  this.centerOn(pos.x, pos.y);
-   } else {
-   	 // Layout is not completed yet.
-   	 var viewer = this;
-   	 window.setTimeout(function() { viewer.refresh(); }, 100)
-   }
+  if (pageHeight != 0) {
+    var delta = window.innerHeight - pageHeight;
+    var newSize = Math.max(200, this.stage.getHeight() + delta);
+
+    var pos = this.screenToWorld(this.stage.getWidth() / 2, this.stage.getHeight() / 2);
+
+    if (newSize != this.stage.getHeight()) {
+      this.stage.setHeight(newSize);
+    }
+    if (this.stage.getContainer().clientWidth != this.stage.getWidth()) {
+      this.stage.setWidth(this.stage.getContainer().clientWidth);
+    }
+    this.updateScale();
+    this.centerOn(pos.x, pos.y);
+  } else {
+    // Layout is not completed yet.
+    var viewer = this;
+    window.setTimeout(function() { viewer.refresh(); }, 100)
+  }
 }
 
 RaceViewer.prototype.precalc = function() {
@@ -134,8 +135,8 @@ RaceViewer.prototype.precalc = function() {
 
 RaceViewer.prototype.initialize = function(containerId) {
 	this.stage =  new Kinetic.Stage({
-		      width: 200,
-		      height: 200,
+		      width: 800,
+		      height: 800,
 		      container: containerId,
 		});
 	this.layer = new Kinetic.Layer();
@@ -149,10 +150,50 @@ RaceViewer.prototype.initialize = function(containerId) {
 		fill: "#eef",
 	}));
 	this.addTrajectory();
-	this.addWind();
 	
-	this.boat = new Kinetic.Ellipse({radius: [40, 200], x: 0, y: 0, fill: "#FF33AA"});
-	this.layer.add(this.boat);
+        this.boatOverlay = new Kinetic.Group();
+	this.layer.add(this.boatOverlay);
+
+	this.boat = new Kinetic.Ellipse({
+            radius: {x: 5, y: 5},
+            x: 0,
+            y: 0,
+            fill: "#FF33AA"
+        });
+        this.boatOverlay.add(this.boat);
+
+        this.boatOverlay.add(new Kinetic.Arc({
+            innerRadius: 0,
+            outerRadius: 40,
+            fill: 'black',
+            x: 0,
+            y: 20,
+            angle: 8,
+            rotationDeg: -90 - 8 / 2,
+        }));
+
+        this.trueWindArrow = new Kinetic.Arc({
+            innerRadius: 40,
+            outerRadius: 80,
+            fill: 'red',
+            angle: 5,
+            rotationDeg: 87.5,
+            x: 0,
+            y: 0
+        });
+        this.boatOverlay.add(this.trueWindArrow);
+
+        this.apparentWindArrow = new Kinetic.Arc({
+            innerRadius: 35,
+            outerRadius: 75,
+            fill: 'orange',
+            angle: 5,
+            rotationDeg: 87.5,
+            x: 0,
+            y: 0
+        });
+        this.boatOverlay.add(this.apparentWindArrow);
+
 	this.layer.setDraggable(true);
 	
 	var currentFrameReal = 0;
@@ -166,7 +207,7 @@ RaceViewer.prototype.initialize = function(containerId) {
       	viewer.setCurrentPos(viewer.index + indexDelta);
       	currentFrameReal -= indexDelta;
       }
-    }, [this.layer, this.windLayer]);
+    }, [this.layer]);
     
     
     $('#timeSlider').bind('change', function(event, ui) {
@@ -185,48 +226,83 @@ RaceViewer.prototype.initialize = function(containerId) {
 
     window.addEventListener('resize', function() { viewer.refresh(); }, false);
     document.addEventListener("mousewheel", function(event) {
+    	event.preventDefault();
     	var pos = viewer.screenToWorld(event.offsetX, event.offsetY);
     	viewer.scale -= event.wheelDeltaY * .001;
     	viewer.updateScale();
     	viewer.centerOn(pos.x, pos.y, event.offsetX, event.offsetY);
     	viewer.refresh();
-    	event.preventDefault();
     }, true)
-    
+
+    this.stage.getContent().addEventListener('touchmove', function(evt) {
+        var touch1 = evt.touches[0];
+        var touch2 = evt.touches[1];
+
+        if(touch1 && touch2) {
+          var dist = getDistance({
+              x: touch1.clientX,
+              y: touch1.clientY
+            }, {
+              x: touch2.clientX,
+              y: touch2.clientY
+            });
+
+            if(!lastDist) {
+              lastDist = dist;
+            }
+
+            viewer.scale *= dist / lastDist;
+            var scale = stage.getScale().x * dist / lastDist;
+            viewer.updateScale();
+            viewer.centerOn(pos.x, pos.y, event.offsetX, event.offsetY);
+            viewer.refresh();
+
+            lastDist = dist;
+        }
+    }, false);
+
+    this.stage.getContent().addEventListener('touchend', function() {
+        lastDist = 0;
+    }, false); 
     this.setCurrentPos(0);
     viewer.refresh();
 }
 
 RaceViewer.prototype.setCurrentPos = function(index) {
-	index = Math.floor(index);
-	
-	if (index == this.index) {
-		return;
-	}
-	
-	if (index >= this.raceData.length) {
-		index = 0;
-	}
-	
-	if (index < 0) {
-		index = this.raceData.length - 1;
-	}
-	
-	this.current = this.raceData[index];
-	this.index = index;
-	
-	var format = {
-		time: function(t) { return '' + new Date(t * 1000); },
-		speedRatio: function(s) { return s.toFixed(0) + '%'; },
-	}
-	for (var k in this.current) {	
-	    $("#current" + k).html(
-	    	k in format ? format[k](this.current[k]) : (this.current[k]).toFixed(1));
+    index = Math.floor(index);
+    
+    if (index == this.index) {
+      return;
+    }
+
+    if (index >= this.raceData.length) {
+      index = 0;
+    }
+
+    if (index < 0) {
+      index = this.raceData.length - 1;
     }
     
-    this.boat.setRotation(-this.current.magHdg * Math.PI / 180.0);
-    this.boat.setX(this.current.x);
-    this.boat.setY(this.current.y);
+    this.current = this.raceData[index];
+    this.index = index;
+    
+    var format = {
+        time: function(t) { return '' + new Date(t * 1000); },
+        speedRatio: function(s) { return s.toFixed(0) + '%'; },
+        awa: function(a) { return (a > 180 ? a - 360 : a).toFixed(1); },
+        twa: function(a) { return (a > 180 ? a - 360 : a).toFixed(1); },
+    }
+    var data = this.current;
+    data['twdir'] = data['twa'] + data['magHdg'];
+    while (data.twdir > 360) data.twdir -= 360;
+
+    for (var k in this.current) {	
+      $("#current" + k).html(
+          k in format ? format[k](data[k]) : (data[k]).toFixed(1));
+    }
+    
+    this.boatOverlay.setRotation(-this.current.magHdg);
+    this.boatOverlay.position(this.current);
     
     if (this.autoCenter) {
       this.centerOn(this.current.x, this.current.y);
@@ -252,7 +328,6 @@ RaceViewer.prototype.playStop = function() {
 RaceViewer.prototype.refresh = function() {
 	this.resizeCanvas();
 	this.layer.draw();
-	this.windLayer.draw();
 }
 
 RaceViewer.prototype.faster = function() {
@@ -273,9 +348,8 @@ RaceViewer.prototype.addTrajectory = function() {
 		x: 0,
 		y: 0,
 		stroke: 'black',
-		strokeWidth: 10,
-		drawFunc: function(canvas) {
-			var context = canvas.getContext();
+		strokeWidth: 8,
+		drawFunc: function(context) {
 			var data = viewer.raceData;
 			context.lineWidth = 5;
 			context.beginPath();
@@ -283,54 +357,38 @@ RaceViewer.prototype.addTrajectory = function() {
 			for (var i = 0; i < data.length; ++i) {
 				context.lineTo(data[i].x, data[i].y);
 			}
-			context.stroke();
+			context.fillStrokeShape(this);
 		}
 	});
 	this.layer.add(trajectory);
 }
 
-RaceViewer.prototype.addWind = function() {
-	var viewer = this;
-	viewer.windLayer = new Kinetic.Layer();
-	viewer.stage.add(viewer.windLayer);
-	
-	this.wind = new Kinetic.Shape({
-		x: 0,
-		y: 0,
-		drawFunc: function(canvas) {
-			var context = canvas.getContext();
-			context.lineWidth = .5;
-			context.strokeStyle = "#77f";
-			context.beginPath();
-			for (var i = -30; i < 30; ++i) {
-				context.moveTo(-1000, i * 30);
-				context.lineTo(1000, i * 30);			
-			}
-			context.stroke();
-		}
-	});
-	
-	viewer.windLayer.add(this.wind);
-}
-
 RaceViewer.prototype.orientWind = function() {
-	var sumSin = 0;
-	var sumCos = 0;
+	var sumSinTwa = 0;
+	var sumCosTwa = 0;
+	var sumSinAwa = 0;
+	var sumCosAwa = 0;
 	var sumWeight = 0;
 	var weight = [ 1, .5, .2];
-	for (var i = -2; i <= 2; ++i) {
+	for (var i = -1; i <= 1; ++i) {
 		var index = Math.min(this.raceData.length - 1, Math.max(0, this.index + i));
 		var data = this.raceData[index];
-		var angle = (data.twa + data.magHdg) * Math.PI / 180.0;
+		var angle = (data.twa) * Math.PI / 180.0;
 		var w = weight[Math.abs(i)];
-		sumSin += Math.sin(angle) * w;
-		sumCos += Math.cos(angle) * w;
+		sumSinTwa += Math.sin(angle) * w;
+		sumCosTwa += Math.cos(angle) * w;
+
+                angle = data.awa * Math.PI / 180.0;
+		sumSinAwa += Math.sin(angle) * w;
+		sumCosAwa += Math.cos(angle) * w;
 		sumWeight += w;
 	}
-	var angle = Math.atan2(sumSin / w, sumCos / w);
-	
-	this.wind.setRotation(angle);
-	var pos = this.worldToScreen(this.current.x, this.current.y);
-	this.windLayer.setX(pos.x);
-	this.windLayer.setY(pos.y);
+	var twa = Math.atan2(sumSinTwa / w, sumCosTwa / w) * 180.0 / Math.PI;
+	var awa = Math.atan2(sumSinAwa / w, sumCosAwa / w) * 180.0 / Math.PI;
+
+
+        this.trueWindArrow.setRotationDeg(
+            -twa + 90 - this.trueWindArrow.angle());
+        this.apparentWindArrow.setRotationDeg(
+            -awa + 90 - this.apparentWindArrow.angle());
 }
