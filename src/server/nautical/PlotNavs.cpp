@@ -120,8 +120,6 @@ namespace {
          if (toPlot.size() == 3) {
            std::cout << "The plot can not display more than 3 dimensions. Omitting " << s << std::endl;
          }
-       } else {
-         std::cout << "Ignoring: " << s;
        }
      }
      if (toPlot.size() < 2) {
