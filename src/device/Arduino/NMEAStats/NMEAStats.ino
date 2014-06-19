@@ -45,8 +45,8 @@ void openLogFile() {
 void displaySpeedRatio(const NmeaParser& parser) {
    float speedRatio = getVmgSpeedRatio(targetSpeedTable,
        parser.twa(),
-       FP8_8(parser.tws() / 256.0),
-       FP8_8(parser.gpsSpeed() / 256.0));
+       FP8_8::rightShiftAndConstruct(parser.tws(), 8),
+       FP8_8::rightShiftAndConstruct(parser.gpsSpeed(), 8));
    
    // Display speedRatio on the LCD display.
    updateScreen(max(0,min(200, int(speedRatio * 100.0))));

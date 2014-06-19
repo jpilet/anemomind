@@ -18,6 +18,24 @@ class FixedPoint {
    FixedPoint(double x) { _value = StoreType(x * (1 << Shift)); }
    FixedPoint(const FixedPoint &a) : _value(a._value) { }
 
+   // Named constructors
+   static ThisType rightShiftAndConstruct(LongType x, int shift) {
+     LongType val = x;
+     if (shift > Shift) {
+       val >>= (shift - Shift);
+     }
+     if (Shift > shift) {
+       val <<= (Shift - shift);
+     }
+     return make(val);
+   }
+
+   // Convert any FixedPoint to our type.
+   template <typename FromStoreType, typename FromLongType, int FromShift>
+   static ThisType convert(FixedPoint<FromStoreType, FromLongType, FromShift> a) {
+     return rightShiftAndConstruct(a._value, FromShift);
+   }
+
    // Casts
    operator int() const { return int(LongType(_value) >> Shift); }
    operator float() const { return float(_value) / float(1 << Shift); }
