@@ -4,6 +4,7 @@
  */
 
 #include "SpanOverlap.h"
+#include <server/common/ArrayBuilder.h>
 #include <algorithm>
 
 namespace sail {
@@ -50,19 +51,17 @@ Array<SpanOverlap> SpanOverlap::compute(Array<Spani> spans) {
   Arrayi allIndices = makeRange(spanCount);
   Arrayb activeSpans = Arrayb::fill(spanCount, false);
   int currentPos = endpts.first().position();
-  int overlapCounter = 0;
-  Array<SpanOverlap> overlaps(endpts.size());
+  ArrayBuilder<SpanOverlap> overlaps(endpts.size());
   for (auto ep : endpts) {
     int newPos = ep.position();
     if (newPos != currentPos) {
-      overlaps[overlapCounter] = SpanOverlap(Spani(currentPos, newPos), allIndices.slice(activeSpans));
-      overlapCounter++;
+      overlaps.add(SpanOverlap(Spani(currentPos, newPos), allIndices.slice(activeSpans)));
       currentPos = newPos;
     }
     activeSpans[ep.spanIndex()] = ep.risingEdge();
   }
   assert(currentPos == endpts.last().position());
-  return overlaps.sliceTo(overlapCounter);
+  return overlaps.get();
 }
 
 } /* namespace sail */
