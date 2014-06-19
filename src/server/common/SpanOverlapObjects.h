@@ -15,6 +15,7 @@ class SpanOverlapObjects {
  public:
   typedef SpanOverlapObjects<T> ThisType;
 
+  SpanOverlapObjects() {}
   SpanOverlapObjects(Spani span_, Array<T> objs_) : _span(span_), _objs(objs_) {}
 
   static Array<ThisType> compute(Array<Spani> spans, Array<T> objs) {

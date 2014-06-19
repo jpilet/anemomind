@@ -5,6 +5,7 @@
 
 #include <gtest/gtest.h>
 #include <server/common/SpanOverlap.h>
+#include <server/common/SpanOverlapObjects.h>
 #include <server/common/ArrayIO.h>
 
 using namespace sail;
@@ -53,5 +54,17 @@ TEST(SpanOverlap, Complex) {
   EXPECT_EQ(overlaps[5], SpanOverlap(Spani(12, 28), Arrayi::args(0)));
 }
 
+TEST(SpanOverlap, SubsetObjs) {
+  Spani A(1, 28);
+  Spani B(4, 9);
+  Array<char> objs = Array<char>::args('A', 'B');
 
 
+  Array<SpanOverlapObjects<char> > overlaps =
+      SpanOverlapObjects<char>::compute(Array<Spani>::args(A, B), objs);
+
+  EXPECT_EQ(overlaps.size(), 3);
+  EXPECT_EQ(overlaps[0].objects(), Array<char>::args('A'));
+  EXPECT_EQ(overlaps[1].objects(), Array<char>::args('A', 'B'));
+  EXPECT_EQ(overlaps[2].objects(), Array<char>::args('A'));
+}
