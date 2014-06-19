@@ -118,6 +118,11 @@ namespace {
      return dst;
    }
 
+   ValueExtractMap &getTheValueExtractMap() {
+     static ValueExtractMap theMap = makeValueExtractMap();
+     return theMap;
+   }
+
    void transferValues(ValueExtract *ve,
        Array<Nav> navs,
        MDArray2d dst) {
@@ -130,7 +135,7 @@ namespace {
    }
 
    Array<std::string> extractPlottablesOrDefault(int argc, const char **argv) {
-     ValueExtractMap map = makeValueExtractMap();
+     ValueExtractMap &map = getTheValueExtractMap();
      ArrayBuilder<std::string> toPlot(3);
      for (int i = 1; i < argc; i++) {
        const char *s = argv[i];
@@ -153,7 +158,7 @@ namespace {
    }
 
    void extractValues(std::string tag, Array<Nav> navs, MDArray2d dst) {
-    static ValueExtractMap map = makeValueExtractMap();
+    ValueExtractMap &map = getTheValueExtractMap();
     if (map.find(tag) == map.end()) {
       dst.setAll(0.0);
       std::cout << "Unknown tag: " << tag << std::endl;
