@@ -167,6 +167,7 @@ target_depends_on_poco_json(common_HierarchyJson)
 cxx_test(common_HierarchyJsonTest
          HierarchyJsonTest.cpp
          common_HierarchyJson
+         common_HNodeGroup
          gtest_main
         )                                
 

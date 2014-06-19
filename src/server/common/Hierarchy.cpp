@@ -23,54 +23,12 @@ bool HNode::operator== (const HNode &other) const {
 HNode::HNode(int index, int parent, std::string code, std::string label) : _index(index), _parent(parent), _code(code), _description(label) {
 }
 
-HNodeFamily::HNodeFamily(std::string familyName) : _familyName(familyName) {}
-
-HNode HNodeFamily::make(int index, int parent, std::string description) {
-  return HNode(index, parent, stringFormat("%s-%03d", _familyName.c_str(), index), description);
-}
-HNode HNodeFamily::makeRoot(int index, std::string description) {
-  return HNode(index, -1, stringFormat("%s-%03d", _familyName.c_str(), index), description);
-}
 
 
 namespace {
   const int rootIndex = 0;
 }
 
-CheckedHNodeFamily::CheckedHNodeFamily(std::string familyName) :
-  _raw(familyName) {
-}
-
-HNode CheckedHNodeFamily::make(int index, const HNode &parent, std::string description) {
-  CHECK(registred(parent));
-  return registerNew(_raw.make(index, parent.index(), description));
-}
-
-HNode CheckedHNodeFamily::makeRoot(int index, std::string description) {
-  return registerNew(_raw.makeRoot(index, description));
-}
-
-bool CheckedHNodeFamily::registred(const HNode &node) {
-  return _nodes.find(node.index()) != _nodes.end();
-}
-
-const HNode &CheckedHNodeFamily::registerNew(const HNode &node) {
-  CHECK(!registred(node));
-  _nodes[node.index()] = node;
-  return node;
-}
-
-Array<HNode> CheckedHNodeFamily::getNodes() {
-  int count = _nodes.size();
-  Array<HNode> dst(count);
-  typedef std::map<int, HNode>::iterator Iter;
-  for (Iter i = _nodes.begin(); i != _nodes.end(); i++) {
-    CHECK_LE(0, i->first);
-    CHECK_LT(i->first, count);
-    dst[i->first] = i->second;
-  }
-  return dst;
-}
 
 
 
