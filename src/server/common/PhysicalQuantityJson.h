@@ -9,9 +9,12 @@
 #ifndef PHYSICALQUANTITYJSON_H_
 #define PHYSICALQUANTITYJSON_H_
 
+#include <server/common/Array.h>
 #include <Poco/JSON/Object.h>
 #include <server/common/PhysicalQuantity.h>
-#include <server/common/Json.h>
+#include <server/common/JsonPrimitive.h>
+#include <server/common/JsonFwd.h> // To avoid circular dependency between templates
+                                   // in case of a type Array<Vectorize<...> >
 
 namespace sail {
 namespace json {
@@ -60,11 +63,12 @@ template<class Quantity>
 bool deserializeField(Poco::Dynamic::Var cobj, std::string fieldPrefix,
                Quantity *out) {
   Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
-    std::string fname = fieldPrefix + JsonQuantityTraits<Quantity, typename Quantity::ValueType>::suffix();
+  typedef struct JsonQuantityTraits<Quantity, typename Quantity::ValueType> TypeInfo;
+
+    std::string fname = fieldPrefix + TypeInfo::suffix();
     bool is = obj->has(fname);
     if (is) {
-        *out = JsonQuantityTraits<Quantity, typename Quantity::ValueType>::deserialize(
-            obj->getValue<double>(fname));
+        *out = TypeInfo::deserialize(obj->getValue<double>(fname));
         return true;
     }
     *out = Quantity();
@@ -84,22 +88,32 @@ void serializeField(Poco::JSON::Object::Ptr obj, std::string fieldPrefix,
   }
 }
 
-template <typename Quantity, typename Value>
-Poco::Dynamic::Var serialize(const PhysicalQuantity<Quantity, Value> &x) {
-  return toJsonObjectWithField<Quantity>(std::string(x.quantityName()) + x.suffix(),
-      x);
+template <typename Quantity>
+Poco::Dynamic::Var serialize(const Quantity &x) {
+  typedef typename Quantity::ValueType Value;
+  typedef JsonQuantityTraits<Quantity, Value> TypeInfo;
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  serializeField(obj, TypeInfo::quantityName(), x);
+  return Poco::Dynamic::Var(obj);
 }
 
-template <typename Quantity, typename Value>
-bool deserialize(Poco::JSON::Object::Ptr src, PhysicalQuantity<Quantity, Value> *x) {
-  return deserializeField(src, std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
+template <typename Quantity>
+bool deserialize(Poco::JSON::Object::Ptr src, Quantity *x) {
+  typedef typename Quantity::ValueType Value;
+  typedef JsonQuantityTraits<Quantity, Value> TypeInfo;
+  return deserializeField(src, TypeInfo::quantityName(), x);
 }
 
-template <typename Quantity, typename Value>
-bool deserialize(Poco::Dynamic::Var src, PhysicalQuantity<Quantity, Value> *x) {
-  return deserializeField(src, std::string(Quantity::quantityName()) + Quantity::suffix(), *x);
+template <typename Quantity>
+bool deserialize(Poco::Dynamic::Var src, Quantity *x) {
+  typedef typename Quantity::ValueType Value;
+  typedef JsonQuantityTraits<Quantity, Value> TypeInfo;
+  try {
+    return deserializeField(src.extract<Poco::JSON::Object::Ptr>(), std::string(TypeInfo::quantityName()), x);
+  } catch (Poco::Exception &e) {
+    return false;
+  }
 }
-
 
 template <typename T, int N>
 Poco::Dynamic::Var serializeVectorize(const Vectorize<T, N> &x) {

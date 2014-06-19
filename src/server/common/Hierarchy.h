@@ -60,33 +60,12 @@ class HNode {
   int parent() const {
     return _parent;
   }
+
+  bool operator== (const HNode &other) const;
  private:
   int _index, _parent;
   std::string _description, _code;
 };
-
-class HNodeFamily {
- public:
-  HNodeFamily(std::string familyName);
-  HNode make(int index, int parent, std::string description);
-  HNode makeRoot(int index, std::string description);
- private:
-  std::string _familyName;
-};
-
-class CheckedHNodeFamily {
- public:
-  CheckedHNodeFamily(std::string familyName);
-  HNode make(int index, const HNode &parent, std::string description);
-  HNode makeRoot(int index, std::string description);
-  Array<HNode> getNodes();
- private:
-  bool registred(const HNode &node);
-  const HNode &registerNew(const HNode &node);
-  std::map<int, HNode> _nodes;
-  HNodeFamily _raw;
-};
-
 
 // The output of Hierarchy::parse is std::shared_ptr<HTree>
 //
