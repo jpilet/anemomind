@@ -22,11 +22,3 @@ TEST(GrammarTest, Grammar001Info) {
   EXPECT_EQ(info.size(), 41);
   EXPECT_EQ(info[29].index(), 29);
 }
-
-/*
- * Checks that the new way of defining the grammar
- * using HNodeGroup does not break anything.
- */
-TEST(GrammarTest, Grammar001HierarchyTransitionTest) {
-  EXPECT_TRUE(grammar001HierarchEquivalence());
-}

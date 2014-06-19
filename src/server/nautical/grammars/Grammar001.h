@@ -12,9 +12,6 @@
 
 namespace sail {
 
-// Just for testing when making the transition to a new grammar spec. Should soon be removed.
-bool grammar001HierarchEquivalence();
-
 
 struct Grammar001Settings {
   Grammar001Settings();
