@@ -105,55 +105,55 @@ namespace {
   }
 
   Hierarchy makeHierarchy() {
-    HNodeGroup g(40, "Top",
-        HNodeGroup(39, "Sailing",
-            HNodeGroup(37, "Not in race",
-                HNodeGroup(33, "before-race", // 25, 26
-                    HNodeGroup(25, sides[0],
-                        terminal(0) + terminal(1) + terminal(2)
-                    )
-                    +
-                    HNodeGroup(26, sides[1],
-                        terminal(3) + terminal(4) + terminal(5)
-                    )
-                )
-                +
-                HNodeGroup(36, "idle", // 31, 32
-                    HNodeGroup(31, sides[0],
-                        terminal(18) + terminal(19) + terminal(20)
-                    )
-                    +
-                    HNodeGroup(32, sides[1],
-                        terminal(21) + terminal(22) + terminal(23)
-                    )
-                )
-            )
-            +
-            HNodeGroup(38, "In race",
-                HNodeGroup(34, "upwind-leg", // 27, 28
-                    HNodeGroup(27, sides[0],
-                        terminal(6) + terminal(7) + terminal(8)
-                    )
-                    +
-                    HNodeGroup(28, sides[1],
-                        terminal(9) + terminal(10) + terminal(11)
-                    )
-                )
-                +
-                HNodeGroup(35, "downwind-leg", // 29, 30
-                    HNodeGroup(29, sides[0],
-                        terminal(12) + terminal(13) + terminal(14)
-                    )
-                    +
-                    HNodeGroup(30, sides[1],
-                        terminal(15) + terminal(16) + terminal(17)
-                    )
-                )
-            )
-        )
-        +
-        HNodeGroup(24, "Off")
-    );
+
+    HNodeGroup notInRace(37, "Not in race",
+                        HNodeGroup(33, "before-race", // 25, 26
+                            HNodeGroup(25, sides[0],
+                                terminal(0) + terminal(1) + terminal(2)
+                            )
+                            +
+                            HNodeGroup(26, sides[1],
+                                terminal(3) + terminal(4) + terminal(5)
+                            )
+                        )
+                        +
+                        HNodeGroup(36, "idle", // 31, 32
+                            HNodeGroup(31, sides[0],
+                                terminal(18) + terminal(19) + terminal(20)
+                            )
+                            +
+                            HNodeGroup(32, sides[1],
+                                terminal(21) + terminal(22) + terminal(23)
+                            )
+                        )
+                    );
+
+    HNodeGroup inRace(38, "In race",
+                        HNodeGroup(34, "upwind-leg", // 27, 28
+                            HNodeGroup(27, sides[0],
+                                terminal(6) + terminal(7) + terminal(8)
+                            )
+                            +
+                            HNodeGroup(28, sides[1],
+                                terminal(9) + terminal(10) + terminal(11)
+                            )
+                        )
+                        +
+                        HNodeGroup(35, "downwind-leg", // 29, 30
+                            HNodeGroup(29, sides[0],
+                                terminal(12) + terminal(13) + terminal(14)
+                            )
+                            +
+                            HNodeGroup(30, sides[1],
+                                terminal(15) + terminal(16) + terminal(17)
+                            )
+                        )
+                    );
+
+    HNodeGroup sailing(39, "Sailing", notInRace + inRace);
+
+    HNodeGroup g(40, "Top", sailing + HNodeGroup(24, "Off"));
+
     return g.compile("Grammar001-%03d");
   }
 }
