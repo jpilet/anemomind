@@ -6,6 +6,7 @@
 #include "LineKMJson.h"
 #include <server/common/LineKM.h>
 #include <server/common/Json.h>
+#include <server/common/JsonPrimitive.h>
 
 namespace sail {
 namespace json {

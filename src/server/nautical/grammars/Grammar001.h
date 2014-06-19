@@ -12,6 +12,7 @@
 
 namespace sail {
 
+
 struct Grammar001Settings {
   Grammar001Settings();
 

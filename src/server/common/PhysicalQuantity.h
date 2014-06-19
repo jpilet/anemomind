@@ -102,6 +102,7 @@ class PhysicalQuantity {
   static Quantity makeFromX(Value X) { return Quantity(PhysicalQuantity<Quantity, Value>(X)); }
 };
 
+
 template <typename Quantity, typename Value>
 const Value PhysicalQuantity<Quantity, Value>::defaultValue =
     Value(std::numeric_limits<double>::signaling_NaN());
@@ -204,7 +205,7 @@ class Vectorize : public std::array<T, N> {
         return result;
     }
 
-    Vectorize<T, N> operator + (const Vectorize<T, N>& other) {
+    Vectorize<T, N> operator + (const Vectorize<T, N>& other) const {
         Vectorize result;
         for (int i = 0; i < N; ++i) {
             result[i] = (*this)[i] + other[i];
@@ -212,7 +213,7 @@ class Vectorize : public std::array<T, N> {
         return result;
     }
 
-    Vectorize<T, N> operator - (const Vectorize<T, N>& other) {
+    Vectorize<T, N> operator - (const Vectorize<T, N>& other) const {
         Vectorize result;
         for (int i = 0; i < N; ++i) {
             result[i] = (*this)[i] - other[i];
@@ -220,10 +221,10 @@ class Vectorize : public std::array<T, N> {
         return result;
     }
 
-    Vectorize<T, N> scaled(double factor) {
+    Vectorize<T, N> scaled(double factor) const {
         Vectorize result;
         for (int i = 0; i < N; ++i) {
-            result[i] = (*this)[i].scaled(factor);
+            result[i] = ((*this)[i]).scaled(factor);
         }
         return result;
     }
@@ -234,7 +235,7 @@ class Vectorize : public std::array<T, N> {
 
 template <typename FactorType, typename ElemType, int N>
 Vectorize<ElemType, N> operator*(FactorType x, const Vectorize<ElemType, N> &v) {
-  return v*x;
+  return v.scaled(x);
 }
 
 }  // namespace sail

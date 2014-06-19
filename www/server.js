@@ -10,7 +10,7 @@ var express = require('express'),
  */
 
 // Set default node environment to development
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 
 // Application Config
 var config = require('./lib/config/config');
@@ -35,6 +35,17 @@ var passport = require('./lib/config/passport');
 var app = express();
 
 app.use(express.bodyParser({uploadDir:__dirname + '/uploads'}));
+
+// Log accesses to file
+var logFile = fs.createWriteStream(config.logfile, {flags: 'a'});
+logFile.on('error', function(err) {
+  console.log(config.logfile + ": " + err);
+  logFile.end();
+});
+logFile.once('open', function(fd) {
+  console.log('Logging to: ' + config.logfile);
+  app.use(express.logger({stream: logFile}));
+});
 
 // Hack for psaros33
 app.use('/sui300', express.static(__dirname + '/sui300'));
