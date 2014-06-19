@@ -10,6 +10,8 @@
 #include <server/common/ArrayIO.h>
 #include <server/math/hmm/StateAssignOps.h>
 #include <server/common/SharedPtrUtils.h>
+#include <server/common/HNodeGroup.h>
+
 
 
 namespace sail {
@@ -65,46 +67,64 @@ namespace {
     }
   }
 
-  std::string makeNodeCode(int nodeIndex) {
-    return stringFormat("grammar001-%03d", nodeIndex);
+  HNodeGroup terminal(int index) {
+    return HNodeGroup(index, getType(index % 6));
   }
 
   Hierarchy makeHierarchy() {
-    std::vector<HNode> nodes;
 
-    // 0..24                     : Indices of all terminal symbols output from the dynamic programming optimization.
-    //                           :   24 is the 'off' state
-    // 25,26 27,28 29,30 31,32   : Starboard/Port tack for every race state
-    // 33    34    35    36      : Race states: before race, upwind leg, downwind leg, idle
-    // 37    38    38    37      : Not in race, In race
-    // 39                        : Sailing
-    // 40                        : Top
-    HNodeFamily fam("Grammar001");
+    HNodeGroup notInRace(37, "Not in race",
+                        HNodeGroup(33, "before-race", // 25, 26
+                            HNodeGroup(25, sides[0],
+                                terminal(0) + terminal(1) + terminal(2)
+                            )
+                            +
+                            HNodeGroup(26, sides[1],
+                                terminal(3) + terminal(4) + terminal(5)
+                            )
+                        )
+                        +
+                        HNodeGroup(36, "idle", // 31, 32
+                            HNodeGroup(31, sides[0],
+                                terminal(18) + terminal(19) + terminal(20)
+                            )
+                            +
+                            HNodeGroup(32, sides[1],
+                                terminal(21) + terminal(22) + terminal(23)
+                            )
+                        )
+                    );
 
-    int mcounter = 0;
-    const int majorParents[4] = {37, 38, 38, 37};
-    for (int i = 0; i < 4; i++) {// every major state
-      int majorIndex = 33 + i;
-      nodes.push_back(fam.make(majorIndex, majorParents[i], majorStates[i]));
-      for (int j = 0; j < 2; j++) { // Starboard/Port?
-        int sideIndex = 25+j + 2*i;
-        nodes.push_back(fam.make(sideIndex, majorIndex, sides[j]));
-        for (int k = 0; k < 3; k++) { // type, close-hauled, beam reach or broad reach?
-          int minorIndex = 3*j + k;
-          int stateIndex = 6*i + minorIndex;
-          nodes.push_back(fam.make(stateIndex, sideIndex, getType(minorIndex)));
-          mcounter++;
-        }
-      }
-    }
-    nodes.push_back(fam.make(37, 39, "Not in race"));
-    nodes.push_back(fam.make(38, 39, "In race"));
-    nodes.push_back(fam.make(39, 40, "Sailing"));
-    nodes.push_back(fam.make(24, 40, "Off"));
-    nodes.push_back(fam.makeRoot(40, "Top"));
-    return Hierarchy(Array<HNode>::referToVector(nodes).dup());
+    HNodeGroup inRace(38, "In race",
+                        HNodeGroup(34, "upwind-leg", // 27, 28
+                            HNodeGroup(27, sides[0],
+                                terminal(6) + terminal(7) + terminal(8)
+                            )
+                            +
+                            HNodeGroup(28, sides[1],
+                                terminal(9) + terminal(10) + terminal(11)
+                            )
+                        )
+                        +
+                        HNodeGroup(35, "downwind-leg", // 29, 30
+                            HNodeGroup(29, sides[0],
+                                terminal(12) + terminal(13) + terminal(14)
+                            )
+                            +
+                            HNodeGroup(30, sides[1],
+                                terminal(15) + terminal(16) + terminal(17)
+                            )
+                        )
+                    );
+
+    HNodeGroup sailing(39, "Sailing", notInRace + inRace);
+
+    HNodeGroup g(40, "Top", sailing + HNodeGroup(24, "Off"));
+
+    return g.compile("Grammar001-%03d");
   }
 }
+
 
 
 

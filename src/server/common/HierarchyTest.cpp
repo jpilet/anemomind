@@ -5,17 +5,15 @@
 
 #include "Hierarchy.h"
 #include "gtest/gtest.h"
+#include <server/common/HNodeGroup.h>
 
 namespace sail {
 
 namespace {
 Array<HNode> makeBinaryTestNodes() {
-  Array<HNode> nodes(3);
-  HNodeFamily fam("bin");
-  nodes[0] = fam.make(0, 2, "Zero");
-  nodes[1] = fam.make(1, 2, "One");
-  nodes[2] = fam.makeRoot(2, "BinaryDigits");
-  return nodes;
+  return HNodeGroup(2, "BinaryDigits",
+      HNodeGroup(0, "Zero") + HNodeGroup(1, "One")
+  ).compile("bin-%03d");
 }
 }
 
@@ -106,38 +104,19 @@ TEST(HierarchyTest, ParseTestBinaryReordered) {
 }
 
 Hierarchy makeMiniSailGrammar() {
-  Array<HNode> nodes(9);
-
-  // TERMINAL SYMBOLS
-  // Port tack
-  HNodeFamily fam("test");
-  nodes[0] = fam.make(0, 6, "Port tack / Close hauled");
-  nodes[1] = fam.make(1, 6, "Port tack / Beam reach");
-  nodes[2] = fam.make(2, 6, "Port tack / Broad reach");
-  // Starboard tack
-  nodes[3] = fam.make(3, 7, "Starboard tack / Broad reach");
-  nodes[4] = fam.make(4, 7, "Starboard tack / Beam reach");
-  nodes[5] = fam.make(5, 7, "Starboard tack / Close hauled");
-
-  // GROUPING SYMBOLS
-  nodes[6] = fam.make(6, 8, "Port tack");
-  nodes[7] = fam.make(7, 8, "Starboard tack");
-  nodes[8] = fam.makeRoot(8, "Sailing");
-  return Hierarchy(nodes);
-}
-
-Hierarchy makeMiniSailGrammarCounted() {
-  CheckedHNodeFamily fam("mja");
-  HNode sailing = fam.makeRoot(8, "Sailing");
-  HNode portTack = fam.make(6, sailing, "Port tack");
-  HNode starboardTack = fam.make(7, sailing, "Starboard tack");
-  fam.make(0, portTack, "Port tack / Close hauled");
-  fam.make(1, portTack, "Port tack / Beam reach");
-  fam.make(2, portTack, "Port tack / Broad reach");
-  fam.make(3, starboardTack, "Starboard tack / Close hauled");
-  fam.make(4, starboardTack, "Starboard tack / Beam reach");
-  fam.make(5, starboardTack, "Starboard tack / Broad reach");
-  return Hierarchy(fam.getNodes());
+  return HNodeGroup(8, "Sailing",
+      HNodeGroup(6, "PortTack",
+          HNodeGroup(0, "Port tack / Close hauled") +
+          HNodeGroup(1, "Port tack / Beam reach") +
+          HNodeGroup(2, "Port tack / Broad reach")
+      )
+      +
+      HNodeGroup(7, "Starboard tack",
+          HNodeGroup(3, "Starboard tack / Broad reach") +
+          HNodeGroup(4, "Starboard tack / Beam reach") +
+          HNodeGroup(5, "Starboard tack / Close hauled")
+      )
+  ).compile("test-%03d");
 }
 
 
@@ -152,9 +131,7 @@ TEST(HierarchyTest, SailTest) {
   int toParse[len] = {0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5, 0, 0, 0, 0, 0};
 
 
-  Hierarchy hs[2] = {makeMiniSailGrammar(), makeMiniSailGrammarCounted()};
-  for (int i = 0; i < 2; i++) {
-    Hierarchy h = hs[i];
+    Hierarchy h = makeMiniSailGrammar();
     std::shared_ptr<HTree> tree = h.parse(Arrayi(len, toParse));
 
     EXPECT_EQ(tree->index(), 8);
@@ -162,22 +139,16 @@ TEST(HierarchyTest, SailTest) {
     std::shared_ptr<HTree> c = tree->child(1);
     EXPECT_EQ(c->left(), 7);
     EXPECT_EQ(c->right(), 13);
-  }
 }
 
 Hierarchy makeMiniSailGrammar2() {
-  HNodeFamily fam("test");
-
-  Array<HNode> nodes(5);
-  // Terminals: 0, 1, 2
-  nodes[0] = fam.make(0, 4, "In irons");
-  nodes[1] = fam.make(1, 3, "Starboard tack");
-  nodes[2] = fam.make(2, 3, "Port tack");
-
-  // Grouping: 3, 4
-  nodes[3] = fam.make(3, 4, "Sailing");
-  nodes[4] = fam.makeRoot(4, "On the sea");
-  return Hierarchy(nodes);
+  return HNodeGroup(4, "On the sea",
+      HNodeGroup(3, "Sailing",
+          HNodeGroup(1, "Starboard tack") + HNodeGroup(2, "Port tack")
+      )
+      +
+      HNodeGroup(0, "In irons")
+  ).compile("test-%03d");
 }
 
 // A grammar with terminals at different depths
