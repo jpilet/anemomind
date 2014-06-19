@@ -139,6 +139,20 @@ cxx_test(common_HierarchyTest
          gtest_main
         )
 
+add_library(common_HNodeGroup
+            HNodeGroup.h
+            HNodeGroup.cpp
+           )
+target_link_libraries(common_HNodeGroup
+                      common_Hierarchy
+                      common_string
+                     )
+cxx_test(common_HNodeGroupTest
+         HNodeGroupTest.cpp
+         common_HNodeGroup
+         gtest_main
+        )
+
 add_library(common_HierarchyJson
             HierarchyJson.cpp        
             HierarchyJson.h
