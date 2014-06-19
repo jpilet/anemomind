@@ -33,7 +33,7 @@ class FixedPoint {
    // Convert any FixedPoint to our type.
    template <typename FromStoreType, typename FromLongType, int FromShift>
    static ThisType convert(FixedPoint<FromStoreType, FromLongType, FromShift> a) {
-     return rightShiftAndConstruct(a._value, FromShift);
+     return rightShiftAndConstruct(a.rawFixedPoint(), FromShift);
    }
 
    // Casts
@@ -71,6 +71,8 @@ class FixedPoint {
      _value = StoreType((LongType(_value) << Shift) / LongType(other._value));
      return *this; 
    }
+
+   StoreType rawFixedPoint() const { return _value; }
 
  private:
    static ThisType make(StoreType value) {
