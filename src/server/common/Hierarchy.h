@@ -60,6 +60,8 @@ class HNode {
   int parent() const {
     return _parent;
   }
+
+  bool operator== (const HNode &other) const;
  private:
   int _index, _parent;
   std::string _description, _code;

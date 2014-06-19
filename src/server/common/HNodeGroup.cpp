@@ -21,7 +21,9 @@ HNodeGroup::HNodeGroup(int index, std::string desc) : _index(index), _desc(desc)
 int HNodeGroup::checkIndexedAndCountNodes(Arrayb marked) {
   int count = 1; // for this node
   if (_index != -1) {
-    CHECK(!marked[_index]);
+    if (marked[_index]) {
+      LOG(FATAL) << stringFormat("Index %d has already been marked", _index);
+    }
     marked[_index] = true;
   }
   for (auto c : _children) {

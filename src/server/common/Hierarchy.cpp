@@ -15,6 +15,11 @@
 
 namespace sail {
 
+bool HNode::operator== (const HNode &other) const {
+  return _index == other._index && _parent == other._parent
+      && _description == other._description && _code == other._code;
+}
+
 HNode::HNode(int index, int parent, std::string code, std::string label) : _index(index), _parent(parent), _code(code), _description(label) {
 }
 
