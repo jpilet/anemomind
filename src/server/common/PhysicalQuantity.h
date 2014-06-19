@@ -93,8 +93,8 @@ class PhysicalQuantity {
   bool eqWithNan(ThisQuantity other) const {
     return strictEquality(_x, other.get());
   }
-  PhysicalQuantity() : _x(Quantity::defaultValue) {}
  protected:
+  PhysicalQuantity() : _x(Quantity::defaultValue) {}
   Value get() const {return _x;}
   PhysicalQuantity(Value x) : _x(x) {}
   Value _x;
