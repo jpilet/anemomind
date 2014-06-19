@@ -11,7 +11,7 @@ namespace sail {
 class UserHint {
 public:
   UserHint();
-  virtual ~UserHint();
+  ~UserHint();
 };
 
 } /* namespace sail */
