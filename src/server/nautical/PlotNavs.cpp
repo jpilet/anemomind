@@ -23,17 +23,6 @@ namespace {
   }
 
 
-  bool isPlottable(const char *arg, const Array<std::string> &plottables) {
-    for (auto p : plottables) {
-      if (arg == p) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-
-
   void getBounds(int argc, const char **argv, int *fromOut, int *toOut) {
     std::string tag = "--slice";
     for (int i = 1; i < argc-2; i++) {
@@ -74,14 +63,6 @@ namespace {
       double extract(const Nav &x) {return (x.magHdg() - x.gpsBearing()).normalizedAt0().degrees();}
     };
 
-    class TimeValueExtract : public ValueExtract {
-     public:
-      TimeValueExtract() : _reftime(TimeStamp::UTC(2014, 06, 18, 15, 8, 00)) {}
-      const char *name() {return "time";}
-      double extract(const Nav &x) {return (x.time() - _reftime).seconds();}
-     private:
-      TimeStamp _reftime;
-    };
 
     class GpsSpeedValueExtract : public ValueExtract {
      public:
@@ -105,16 +86,14 @@ namespace {
      static AwaValueExtract a;
      static AwsValueExtract b;
      static LeewayValueExtract c;
-     static TimeValueExtract d;
-     static GpsSpeedValueExtract e;
-     static WatSpeedValueExtract f;
+     static GpsSpeedValueExtract d;
+     static WatSpeedValueExtract e;
      ValueExtractMap dst;
      registerValueExtract(&dst, &a);
      registerValueExtract(&dst, &b);
      registerValueExtract(&dst, &c);
      registerValueExtract(&dst, &d);
      registerValueExtract(&dst, &e);
-     registerValueExtract(&dst, &f);
      return dst;
    }
 
@@ -213,7 +192,6 @@ namespace {
     "  wat-speed : include water speed in the plot\n"
     "  gps-speed : include gps speed in the plot\n"
     "  leeway : include leeway angle in the plot\n"
-    "  time : include time in the plot\n"
     "  --slice <from-index> <to-index> : select subrange of navs to plot\n"
     "  --navpath <path> : select custom data path with nmea data to load\n"
     "  --select-node : compute a parse tree and select a node in that parse tree for which to make the plot\n";
