@@ -48,6 +48,20 @@ namespace {
      double extract(const Nav &x) {return x.aws().knots();}
    };
 
+   class ExternalTwsValueExtract : public ValueExtract {
+    public:
+     const char *name() {return "externalTws";}
+     double extract(const Nav &x) {return x.externalTws().knots();}
+   };
+
+   class ExternalTwaValueExtract : public ValueExtract {
+    public:
+     const char *name() {return "externalTwa";}
+     double extract(const Nav &x) {
+       return x.externalTwa().normalizedAt0().degrees();
+     }
+   };
+
     class LeewayValueExtract : public ValueExtract {
      public:
       const char *name() {return "leeway";}
@@ -91,6 +105,8 @@ namespace {
      registerValueExtract<GpsSpeedValueExtract>(&dst);
      registerValueExtract<WatSpeedValueExtract>(&dst);
      registerValueExtract<TimeValueExtract>(&dst);
+     registerValueExtract<ExternalTwsValueExtract>(&dst);
+     registerValueExtract<ExternalTwaValueExtract>(&dst);
      return dst;
    }
 
