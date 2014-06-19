@@ -63,4 +63,9 @@ add_library(nautical_grammars_UserHintJson
 target_link_libraries(nautical_grammars_UserHintJson 
                       nautical_grammars_UserHint
                       common_TimeStampJson
-                     )             
+                     )
+cxx_test(nautical_grammars_UserHintTest 
+                      UserHintTest.cpp
+                      nautical_grammars_UserHint
+                      gtest_main
+                     )                                  
