@@ -142,18 +142,13 @@ TEST(HierarchyTest, SailTest) {
 }
 
 Hierarchy makeMiniSailGrammar2() {
-  HNodeFamily fam("test");
-
-  Array<HNode> nodes(5);
-  // Terminals: 0, 1, 2
-  nodes[0] = fam.make(0, 4, "In irons");
-  nodes[1] = fam.make(1, 3, "Starboard tack");
-  nodes[2] = fam.make(2, 3, "Port tack");
-
-  // Grouping: 3, 4
-  nodes[3] = fam.make(3, 4, "Sailing");
-  nodes[4] = fam.makeRoot(4, "On the sea");
-  return Hierarchy(nodes);
+  return HNodeGroup(4, "On the sea",
+      HNodeGroup(3, "Sailing",
+          HNodeGroup(1, "Starboard tack") + HNodeGroup(2, "Port tack")
+      )
+      +
+      HNodeGroup(0, "In irons")
+  ).compile("test-%03d");
 }
 
 // A grammar with terminals at different depths
