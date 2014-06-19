@@ -39,9 +39,8 @@ void serializeField(Poco::JSON::Object::Ptr obj, const std::string &prefix, cons
 }
 
 Poco::Dynamic::Var serialize(const TimeStamp &src) {
-  //return toJsonObjectWithField<TimeStamp>("time", src);
-  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object()); // Workaround for the line above which won't compile for some reason.
-  obj->set("time", src);
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  serializeField(obj, "time", src);
   return Poco::Dynamic::Var(obj);
 }
 
