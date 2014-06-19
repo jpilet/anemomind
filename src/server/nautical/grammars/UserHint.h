@@ -29,6 +29,10 @@ class UserHint {
 
   UserHint(std::string type, TimeStamp time);
   std::string typeAsString() const;
+
+  bool operator== (const UserHint &other) const {
+    return _type == other._type && _time == other._time;
+  }
  private:
   HintType _type;
   TimeStamp _time;

@@ -6,8 +6,16 @@
 #ifndef USERHINTJSON_H_
 #define USERHINTJSON_H_
 
-namespace sail {
+#include <Poco/Dynamic/Var.h>
 
+namespace sail {
+class UserHint;
+namespace json {
+
+Poco::Dynamic::Var serialize(const UserHint &x);
+bool deserialize(Poco::Dynamic::Var src, UserHint *dst);
+
+}
 } /* namespace sail */
 
 #endif /* USERHINTJSON_H_ */
