@@ -41,7 +41,7 @@ namespace {
   }
 }
 
-Array<SpanOverlap> computeSpanOverlaps(Array<Spani> spans) {
+Array<SpanOverlap> SpanOverlap::compute(Array<Spani> spans) {
   Array<EndPoint> endpts = listSortedEndPts(spans);
   if (endpts.empty()) {
     return Array<SpanOverlap>();

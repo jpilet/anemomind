@@ -10,13 +10,13 @@
 using namespace sail;
 
 TEST(SpanOverlap, EmptyTest) {
-  EXPECT_TRUE(computeSpanOverlaps(Array<Spani>()).empty());
+  EXPECT_TRUE(SpanOverlap::compute(Array<Spani>()).empty());
 }
 
 TEST(SpanOverlap, Partial) {
   Spani A(1, 9);
   Spani B(4, 28);
-  Array<SpanOverlap> overlaps = computeSpanOverlaps(Array<Spani>::args(A, B));
+  Array<SpanOverlap> overlaps = SpanOverlap::compute(Array<Spani>::args(A, B));
   EXPECT_EQ(overlaps.size(), 3);
 
 
@@ -28,7 +28,7 @@ TEST(SpanOverlap, Partial) {
 TEST(SpanOverlap, Subset) {
   Spani A(1, 28);
   Spani B(4, 9);
-  Array<SpanOverlap> overlaps = computeSpanOverlaps(Array<Spani>::args(A, B));
+  Array<SpanOverlap> overlaps = SpanOverlap::compute(Array<Spani>::args(A, B));
   EXPECT_EQ(overlaps.size(), 3);
 
 
@@ -43,7 +43,7 @@ TEST(SpanOverlap, Complex) {
   Spani C(4, 12);
   Spani D(5, 11);
 
-  Array<SpanOverlap> overlaps = computeSpanOverlaps(Array<Spani>::args(A, B, C, D));
+  Array<SpanOverlap> overlaps = SpanOverlap::compute(Array<Spani>::args(A, B, C, D));
   EXPECT_EQ(overlaps.size(), 6);
   EXPECT_EQ(overlaps[0], SpanOverlap(Spani(1, 4), Arrayi::args(0)));
   EXPECT_EQ(overlaps[1], SpanOverlap(Spani(4, 5), Arrayi::args(0, 1, 2)));

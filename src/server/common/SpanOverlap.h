@@ -21,6 +21,9 @@ class SpanOverlap {
   bool operator== (const SpanOverlap &other) const {
     return _span.minv() == other._span.minv() && _span.maxv() == other._span.maxv() && _indices == other._indices;
   }
+
+
+  static Array<SpanOverlap> compute(Array<Spani> spans);
  private:
   // The span of this overlap
   Spani _span;
@@ -29,7 +32,6 @@ class SpanOverlap {
   Arrayi _indices;
 };
 
-Array<SpanOverlap> computeSpanOverlaps(Array<Spani> spans);
 
 } /* namespace sail */
 
