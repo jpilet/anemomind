@@ -24,6 +24,7 @@ add_library(nautical_grammars_Grammar001
 target_link_libraries(nautical_grammars_Grammar001
                       common_string
                       nautical_Grammar
+                      math_hmm_StateAssignOps
                       common_HNodeGroup
                      )
                      
