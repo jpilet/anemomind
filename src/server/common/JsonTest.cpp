@@ -1,8 +1,9 @@
 /*
- *  Created on: May 23, 2014
+ *  Created on: 2014-05-23
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <server/common/JsonPrimitive.h>
 #include <server/common/Json.h>
 #include <gtest/gtest.h>
 #include <limits>

@@ -7,6 +7,7 @@
 #define MDINDSJSON_H_
 
 #include <server/common/MDInds.h>
+#include <server/common/JsonPrimitive.h>
 #include <server/common/Json.h>
 
 namespace sail {

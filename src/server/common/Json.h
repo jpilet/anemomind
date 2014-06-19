@@ -13,21 +13,6 @@
 namespace sail {
 namespace json {
 
-template <typename T>
-Poco::Dynamic::Var serialize(T x) {return Poco::Dynamic::Var(x);}
-
-template <typename T>
-bool deserialize(Poco::Dynamic::Var obj, T *x) {
-  try {
-    *x = obj.convert<T>();
-    return true;
-  } catch (Poco::Exception &e) {
-    return false;
-  }
-}
-
-
-
 // If serializeField, deserializeField are already defined for type T,
 // use this templates to build a serialize function.
 template <typename T>
