@@ -3,12 +3,12 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/common/HNodeDsl.h>
+#include <server/common/HNodeGroup.h>
 #include <gtest/gtest.h>
 
 using namespace sail;
 
-TEST(HNodeDslTest, BasicDsl) {
+TEST(HNodeGroupTest, BasicDsl) {
   HNodeGroup g = HNodeGroup(8, "top",
                   HNodeGroup(6, "starboard-tack",
                       HNodeGroup(0, "close-hauled") +
@@ -30,7 +30,7 @@ TEST(HNodeDslTest, BasicDsl) {
   EXPECT_EQ(nodes[7].description(), "port-tack");
 }
 
-TEST(HNodeDslTest, BasicDslImplicit) {
+TEST(HNodeGroupTest, BasicDslImplicit) {
   HNodeGroup g = HNodeGroup("top",
                   HNodeGroup("starboard-tack",
                       // Still a good idea to give explicit indices to leaf nodes because

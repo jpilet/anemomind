@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include "HNodeDsl.h"
+#include "HNodeGroup.h"
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <iostream>
