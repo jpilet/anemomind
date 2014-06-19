@@ -9,6 +9,7 @@
 #include <server/math/hmm/StateAssign.h>
 #include <server/common/ArrayIO.h>
 #include <server/common/HNodeGroup.h>
+#include <server/common/logging.h>
 
 
 namespace sail {
@@ -312,7 +313,12 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
   return getG001StateTransitionCost(_settings, fromStateIndex, toStateIndex, fromTimeIndex, _navs);
 }
 
-std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs) {
+std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs,
+    Array<UserHint> hints) {
+  if (!hints.empty()) {
+    LOG(FATAL) << "You are providing hints but hints are not yet implemented for this class";
+  }
+
   if (navs.empty()) {
     return std::shared_ptr<HTree>();
   }
