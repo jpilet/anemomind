@@ -14,15 +14,6 @@
 using namespace sail;
 
 namespace {
-  double unwrap(Angle<double> x) {
-    return x.degrees();
-  }
-
-  double unwrap(Velocity<double> x) {
-    return x.knots();
-  }
-
-
   void getBounds(int argc, const char **argv, int *fromOut, int *toOut) {
     std::string tag = "--slice";
     for (int i = 1; i < argc-2; i++) {
@@ -63,37 +54,43 @@ namespace {
       double extract(const Nav &x) {return (x.magHdg() - x.gpsBearing()).normalizedAt0().degrees();}
     };
 
-
     class GpsSpeedValueExtract : public ValueExtract {
      public:
-      const char *name() {return "gps-speed";}
+      const char *name() {return "gpsSpeed";}
       double extract(const Nav &x) {return x.gpsSpeed().knots();}
+    };
+
+    class TimeValueExtract : public ValueExtract {
+     public:
+      const char *name() {return "time";}
+      double extract(const Nav &x) {
+        int64_t t = x.time().toMilliSecondsSince1970() / int64_t(1000);
+        return double(t);
+      }
     };
 
     typedef std::map<std::string, ValueExtract*> ValueExtractMap;
 
-    void registerValueExtract(ValueExtractMap *dst, ValueExtract *x) {
-      (*dst)[std::string(x->name())] = x;
+    template <class ValueExtractType>
+    void registerValueExtract(ValueExtractMap *dst) {
+      static ValueExtractType x;
+      (*dst)[std::string(x.name())] = &x;
     }
 
    class WatSpeedValueExtract : public ValueExtract {
     public:
-     const char *name() {return "wat-speed";}
+     const char *name() {return "watSpeed";}
      double extract(const Nav &x) {return x.watSpeed().knots();}
    };
 
    ValueExtractMap makeValueExtractMap() {
-     static AwaValueExtract a;
-     static AwsValueExtract b;
-     static LeewayValueExtract c;
-     static GpsSpeedValueExtract d;
-     static WatSpeedValueExtract e;
      ValueExtractMap dst;
-     registerValueExtract(&dst, &a);
-     registerValueExtract(&dst, &b);
-     registerValueExtract(&dst, &c);
-     registerValueExtract(&dst, &d);
-     registerValueExtract(&dst, &e);
+     registerValueExtract<AwaValueExtract>(&dst);
+     registerValueExtract<AwsValueExtract>(&dst);
+     registerValueExtract<LeewayValueExtract>(&dst);
+     registerValueExtract<GpsSpeedValueExtract>(&dst);
+     registerValueExtract<WatSpeedValueExtract>(&dst);
+     registerValueExtract<TimeValueExtract>(&dst);
      return dst;
    }
 
@@ -119,9 +116,12 @@ namespace {
      for (int i = 1; i < argc; i++) {
        const char *s = argv[i];
        if (map.find(s) != map.end()) {
+         toPlot.add(s);
          if (toPlot.size() == 3) {
            std::cout << "The plot can not display more than 3 dimensions. Omitting " << s << std::endl;
          }
+       } else {
+         std::cout << "Ignoring: " << s;
        }
      }
      if (toPlot.size() < 2) {
@@ -158,12 +158,22 @@ namespace {
     }
 
     GnuplotExtra plot;
-    plot.plot(plotData);
     plot.set_xlabel(labels[0]);
     plot.set_ylabel(labels[1]);
     if (toPlotCount >= 3) {
       plot.set_zlabel(labels[2]);
     }
+    char axis[] = { 'x', 'y', 'z' };
+    for (int i = 0; i < toPlotCount; ++i) {
+      if (labels[i] == "time") {
+        plot.cmd(stringFormat("set %cdata time\n", axis[i]));
+        plot.cmd("set timefmt \"%s\"\n");
+        plot.cmd(stringFormat("set format %c \"%s\"\n",
+                              axis[i], "%m/%d/%Y %H:%M:%S"));
+        plot.cmd("set xtics nomirror rotate by -45\n");
+      }
+    }
+    plot.plot(plotData);
     plot.show();
   }
 
@@ -186,15 +196,17 @@ namespace {
   }
 
   void dispInfo() {
-    std::cout << "Nav plotter. Command line options:\n";
-                 "  awa : include apparent wind angle in the plot\n"
-                 "  aws : include apparent wind speed in the plot\n"
-    "  wat-speed : include water speed in the plot\n"
-    "  gps-speed : include gps speed in the plot\n"
-    "  leeway : include leeway angle in the plot\n"
+    std::string whatToPlot;
+    for (pair<std::string, ValueExtract*> name : getTheValueExtractMap()) {
+      whatToPlot += " " + name.first;
+    }
+
+    std::cout << "Nav plotter. Command line options:\n"
     "  --slice <from-index> <to-index> : select subrange of navs to plot\n"
     "  --navpath <path> : select custom data path with nmea data to load\n"
-    "  --select-node : compute a parse tree and select a node in that parse tree for which to make the plot\n";
+    "  --select-node : compute a parse tree and select a node in that parse\n"
+    "  tree for which to make the plot\n" << whatToPlot << "\n";
+
   }
 }
 
@@ -212,7 +224,6 @@ int main(int argc, const char **argv) {
 
   // Override previously sliced portion
   getBoundsByNode(argc, argv, allnavs, &from, &to);
-
 
   std::cout << "Use navs from " << from << " to " << to << " of " << allnavs.size() << " navs to make the plot\n";
   makePlot(allnavs.slice(from, to), toPlot);

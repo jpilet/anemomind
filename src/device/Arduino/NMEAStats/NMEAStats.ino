@@ -1,3 +1,7 @@
+
+#define ANEMOMIND_DEVICE
+#include <PhysicalQuantity.h>
+
 #include <NmeaParser.h>
 #include <TargetSpeed.h>
 #include <SD.h>
@@ -17,7 +21,6 @@ int flushFrequMs = 10000;
 TargetSpeedTable targetSpeedTable;
 
 SoftwareSerial mySerial(8, 9); // RX, TX
-
 
 int my_putc(char c, FILE *) {
   if (echo) {
@@ -42,8 +45,8 @@ void openLogFile() {
 void displaySpeedRatio(const NmeaParser& parser) {
    float speedRatio = getVmgSpeedRatio(targetSpeedTable,
        parser.twa(),
-       FP8_8(parser.tws() / 256.0),
-       FP8_8(parser.gpsSpeed() / 256.0));
+       FP8_8::rightShiftAndConstruct(parser.tws(), 8),
+       FP8_8::rightShiftAndConstruct(parser.gpsSpeed(), 8));
    
    // Display speedRatio on the LCD display.
    updateScreen(max(0,min(200, int(speedRatio * 100.0))));
@@ -140,6 +143,7 @@ void setup()
   updateScreen(3);
 
   fdevopen( &my_putc, 0);
+ 
   updateScreen(4);
 
   // SD Card initialization.
