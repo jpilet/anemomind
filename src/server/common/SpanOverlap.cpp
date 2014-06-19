@@ -28,10 +28,9 @@ namespace {
   };
 
   Array<EndPoint> listSortedEndPts(Array<Spani> spans) {
-    int spanCount = spans.size();
-    int endptCount = 2*spanCount;
+    int endptCount = 2*spans.size();
     Array<EndPoint> endpts(endptCount);
-    for (int spanIndex = 0; spanIndex < spanCount; spanIndex++) {
+    for (int spanIndex = 0; spanIndex < spans.size(); spanIndex++) {
       int at = 2*spanIndex;
       Spani span = spans[spanIndex];
       endpts[at + 0] = EndPoint(spanIndex, span.minv(), true);
@@ -47,9 +46,8 @@ Array<SpanOverlap> SpanOverlap::compute(Array<Spani> spans) {
   if (endpts.empty()) {
     return Array<SpanOverlap>();
   }
-  int spanCount = spans.size();
-  Arrayi allIndices = makeRange(spanCount);
-  Arrayb activeSpans = Arrayb::fill(spanCount, false);
+  Arrayi allIndices = makeRange(spans.size());
+  Arrayb activeSpans = Arrayb::fill(spans.size(), false);
   int currentPos = endpts.first().position();
   ArrayBuilder<SpanOverlap> overlaps(endpts.size());
   for (auto ep : endpts) {
