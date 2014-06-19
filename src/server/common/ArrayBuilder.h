@@ -35,6 +35,9 @@ class ArrayBuilder {
   }
   T &last() {return _data->back();}
   bool empty() {return _data->empty();}
+  int size() const {
+    return _data->size();
+  }
  private:
    VectorPtr _data;
 };

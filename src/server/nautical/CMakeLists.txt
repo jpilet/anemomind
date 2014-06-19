@@ -332,6 +332,26 @@ target_link_libraries(nautical_TargetSpeedExample
                       nautical_grammars_Grammar001
                      )
 
+add_library(nautical_TestdataNavs
+            TestdataNavs.h
+            TestdataNavs.cpp
+           )
+target_link_libraries(nautical_TestdataNavs
+                      nautical_NavNmeaScan
+                      common_Env
+                      common_PathBuilder
+                     )
+
+add_executable(nautical_PlotNavs
+               PlotNavs.cpp
+              )
+              
+target_link_libraries(nautical_PlotNavs
+                      nautical_TestdataNavs
+                      nautical_grammars_Grammar001
+                      nautical_grammars_TreeExplorer
+                      plot_gnuplot
+                     )
 
 add_library(nautical_GeographicPositionJson
             GeographicPositionJson.h
