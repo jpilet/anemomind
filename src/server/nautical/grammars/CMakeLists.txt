@@ -54,6 +54,7 @@ add_library(nautical_grammars_UserHint
            )
 target_link_libraries(nautical_grammars_UserHint
                       common_TimeStamp
+                      common_Array
                      )        
                      
 add_library(nautical_grammars_UserHintJson
