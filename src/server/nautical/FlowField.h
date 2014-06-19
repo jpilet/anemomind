@@ -30,16 +30,11 @@ class FlowField {
  public:
   typedef Vectorize<Velocity<double>, 2> FlowVector;
 
-  // PRIVATE: (only public because the Json interface needs them)
-        FlowField(Grid3d grid_, Array<FlowVector> flow_) : _grid(grid_), _flow(flow_) {}
+  FlowField(Grid3d grid_, Array<FlowVector> flow_) : _grid(grid_), _flow(flow_) {}
 
-        // Accessors used by the Json interface
-        const Grid3d &grid() const {return _grid;}
-        const Array<FlowVector> &flow() const {return _flow;}
-
-
-
-
+  // Accessors used by the Json interface
+  const Grid3d &grid() const {return _grid;}
+  const Array<FlowVector> &flow() const {return _flow;}
 
   FlowField() {}
 
