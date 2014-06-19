@@ -94,9 +94,9 @@ class PhysicalQuantity {
     return strictEquality(_x, other.get());
   }
  protected:
+  PhysicalQuantity() : _x(Quantity::defaultValue) {}
   Value get() const {return _x;}
   PhysicalQuantity(Value x) : _x(x) {}
-  PhysicalQuantity() : _x(Quantity::defaultValue) {}
   Value _x;
  private:
   static Quantity makeFromX(Value X) { return Quantity(PhysicalQuantity<Quantity, Value>(X)); }

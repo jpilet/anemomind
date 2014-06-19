@@ -21,7 +21,7 @@ bool deserializeField(Poco::Dynamic::Var obj, const std::string &prefix, TimeSta
 void serializeField(Poco::JSON::Object::Ptr obj, const std::string &prefix, const TimeStamp &x);
 
 Poco::Dynamic::Var serialize(const TimeStamp &src);
-bool deserialize(Poco::JSON::Object::Ptr src, TimeStamp *dst);
+bool deserialize(Poco::Dynamic::Var src, TimeStamp *dst);
 
 }
 } /* namespace sail */
