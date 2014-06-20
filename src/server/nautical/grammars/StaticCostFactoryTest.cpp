@@ -50,6 +50,15 @@ TEST(StaticCostFactoryTest, Full) {
       }
     }
   }
+  f.connect(4, 4, [=](int i, int j) {return -1.0 + (i == j? 0.1 : -0.9);});
+  {
+    MDArray2d costs = f.staticTransitionCosts();
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        EXPECT_NEAR(costs(i, j), (i == j? 1.0 : 0.0), 1.0e-6);
+      }
+    }
+  }
 }
 
 
