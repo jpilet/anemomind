@@ -6,6 +6,8 @@
 #include "StaticCostFactory.h"
 #include <assert.h>
 #include <server/common/Hierarchy.h>
+#include <server/common/string.h>
+#include <iostream>
 
 namespace sail {
 
@@ -27,15 +29,17 @@ namespace {
 }
 
 StaticCostFactory::StaticCostFactory(const Hierarchy &h) {
-  int n = h.nodeCount();
+  int terminalCount = -1;
   {
+    int n = h.nodeCount();
     Arrayi allTerminals = Arrayi::fill(n, -1);
     _terminalsPerNode = Array<Arrayi>(n);
-    listTerminalsPerNode(h.rootNode(), h, 0, _terminalsPerNode, allTerminals);
+    terminalCount = listTerminalsPerNode(h.rootNode(), h, 0, _terminalsPerNode, allTerminals);
     assert(all(_terminalsPerNode.map<bool>([&](const Arrayi &x) {
       return x.hasData();
     })));
   }
+  int n = terminalCount;
   _stateCosts = Arrayd::fill(n, 0.0);
 
   _transitionCosts = MDArray2d(n, n);
@@ -55,7 +59,9 @@ void StaticCostFactory::connect(int i, int j, std::function<double(int,int)> f,
   for (auto src : I) {
     for (auto dst : J) {
       _con(src, dst) = true;
-      _transitionCosts(src, dst) += f(src, dst);
+      double cost = f(src, dst);
+      std::cout << EXPR_AND_VAL_AS_STRING(cost) << std::endl;
+      _transitionCosts(src, dst) += cost;
     }
   }
 }

@@ -33,7 +33,7 @@ TEST(StaticCostFactoryTest, Full) {
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         EXPECT_FALSE(con(i, j));
-        EXPECT_EQ(costs(i, j), 1.9);
+        EXPECT_EQ(costs(i, j), 0.0);
       }
     }
   }
