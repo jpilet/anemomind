@@ -90,6 +90,21 @@ TEST(StaticCostFactoryTest, AsymCon) {
   }
 }
 
+TEST(StaticCostFactoryTest, SymCon) {
+  StaticCostFactory f(makeMiniGrammar());
+  f.connect(3, 2, 0.0, true);
+  MDArray2b con = f.connections();
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      EXPECT_EQ(
+          ((j == 2) && (i == 0 || i == 1))
+            ||
+          ((i == 2) && (j == 0 || j == 1)),
+         con(i, j));
+    }
+  }
+}
+
 
 
 
