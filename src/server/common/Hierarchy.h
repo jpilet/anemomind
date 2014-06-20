@@ -112,7 +112,8 @@ class HTree {
 // This is less wasteful than allocating one HTree object of every single terminal.
 class HLeaves : public HTree {
  public:
-  HLeaves(int left, int index, int count = 1) : _left(left), _index(index), _count(count) {
+  HLeaves(int left, int index, int count = 1)
+    : _index(index), _left(left), _count(count) {
     assert(index != -1);
   }
   int left() const {
