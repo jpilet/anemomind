@@ -60,7 +60,6 @@ void StaticCostFactory::connect(int i, int j, std::function<double(int,int)> f,
     for (auto dst : J) {
       _con(src, dst) = true;
       double cost = f(src, dst);
-      std::cout << EXPR_AND_VAL_AS_STRING(cost) << std::endl;
       _transitionCosts(src, dst) += cost;
     }
   }
