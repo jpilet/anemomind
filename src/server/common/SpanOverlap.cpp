@@ -4,28 +4,10 @@
  */
 
 #include "SpanOverlap.h"
-#include <server/common/ArrayBuilder.h>
 #include <algorithm>
 
 namespace sail {
-
-namespace {
-  class EndPoint {
-   public:
-    EndPoint() : _spanIndex(-1), _position(-1), _risingEdge(false) {}
-    EndPoint(int spanIndex_, int position_, bool risingEdge_) :
-      _spanIndex(spanIndex_), _position(position_), _risingEdge(risingEdge_) {}
-    bool operator<(const EndPoint &other) const {
-      return _position < other._position;
-    }
-
-    bool risingEdge() const {return _risingEdge;}
-    int spanIndex() const {return _spanIndex;}
-    int position() const {return _position;}
-   private:
-    int _spanIndex, _position;
-    bool _risingEdge;
-  };
+namespace SpanOverlapImplementation {
 
   Array<EndPoint> listSortedEndPts(Array<Spani> spans) {
     int endptCount = 2*spans.size();
@@ -40,26 +22,4 @@ namespace {
     return endpts;
   }
 }
-
-Array<SpanOverlap> SpanOverlap::compute(Array<Spani> spans) {
-  Array<EndPoint> endpts = listSortedEndPts(spans);
-  if (endpts.empty()) {
-    return Array<SpanOverlap>();
-  }
-  Arrayi allIndices = makeRange(spans.size());
-  Arrayb activeSpans = Arrayb::fill(spans.size(), false);
-  int currentPos = endpts.first().position();
-  ArrayBuilder<SpanOverlap> overlaps(endpts.size());
-  for (auto ep : endpts) {
-    int newPos = ep.position();
-    if (newPos != currentPos) {
-      overlaps.add(SpanOverlap(Spani(currentPos, newPos), allIndices.slice(activeSpans)));
-      currentPos = newPos;
-    }
-    activeSpans[ep.spanIndex()] = ep.risingEdge();
-  }
-  assert(currentPos == endpts.last().position());
-  return overlaps.get();
-}
-
 } /* namespace sail */
