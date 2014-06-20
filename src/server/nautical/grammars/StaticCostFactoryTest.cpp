@@ -61,4 +61,22 @@ TEST(StaticCostFactoryTest, Full) {
   }
 }
 
+TEST(StaticCostFactoryTest, StateCosts) {
+  StaticCostFactory f(makeMiniGrammar());
+  f.addStateCost(4, [=](int i) {return i;});
+  {
+    Arrayd costs = f.staticStateCosts();
+    for (int i = 0; i < costs.size(); i++) {
+      EXPECT_NEAR(costs[i], i, 1.0e-6);
+    }
+  }
+  f.addStateCost(4, [=](int i) {return 2 - i;});
+  {
+    Arrayd costs = f.staticStateCosts();
+    for (int i = 0; i < costs.size(); i++) {
+      EXPECT_NEAR(costs[i], 2, 1.0e-6);
+    }
+  }
+}
+
 
