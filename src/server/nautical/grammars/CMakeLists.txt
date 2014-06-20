@@ -79,3 +79,9 @@ add_library(nautical_grammars_StaticCostFactory
 target_link_libraries(nautical_grammars_StaticCostFactory
                       common_Hierarchy
                      )
+cxx_test(nautical_grammars_StaticCostFactoryTest
+         StaticCostFactoryTest.cpp
+         nautical_grammars_StaticCostFactory
+         common_HNodeGroup
+         gtest_main
+        )

@@ -27,8 +27,8 @@ class StaticCostFactory {
 
 
   // Methods to define various costs and connections
-  void connect(int iSrc, int jDst, std::function<double(int,int)> f, bool symmetric);
-  void connect(int iSrc, int jDst, double cost, bool symmetric);
+  void connect(int iSrc, int jDst, std::function<double(int,int)> f, bool symmetric = false);
+  void connect(int iSrc, int jDst, double cost, bool symmetric = false);
 
   void addStateCost(int i, std::function<double(int)> f);
   void addStateCost(int i, double cost);
