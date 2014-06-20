@@ -10,7 +10,7 @@
 #include <server/common/Span.h>
 #include <iostream>
 #include <server/plot/extra.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/common/string.h>
 
 using namespace sail;
@@ -30,8 +30,8 @@ namespace {
         pushDirectory("Irene").get();
     Array<Nav> allnavs = scanNmeaFolder(srcpath, Nav::debuggingBoatId());
 
-    Grammar001Settings settings;
-    Grammar001 g(settings);
+    WindOrientedGrammarSettings settings;
+    WindOrientedGrammar g(settings);
 
     // In order to keep things simple and independent, don't use the grammar, in case there is a bug in the grammar.
     // Simply partition all the navs into a downwind and an upwind set.

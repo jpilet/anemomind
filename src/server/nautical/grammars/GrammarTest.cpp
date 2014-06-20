@@ -6,16 +6,16 @@
 #include <gtest/gtest.h>
 
 #include <server/nautical/grammars/Grammar.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 
 using namespace sail;
 
 TEST(GrammarTest, Grammar001Info) {
 
 
-  Grammar001Settings settings;
+  WindOrientedGrammarSettings settings;
 
-  Grammar001 g(settings);
+  WindOrientedGrammar g(settings);
 
   Array<HNode> info = g.nodeInfo();
   EXPECT_EQ(info[24].description(), "Off");
