@@ -43,8 +43,8 @@ namespace {
     Array<Nav> allnavs = scanNmeaFolder(dataFolder, Nav::debuggingBoatId());
     cout << "loaded" << endl;
 
-    Grammar001Settings settings;
-    Grammar001 g(settings);
+    WindOrientedGrammarSettings settings;
+    WindOrientedGrammar g(settings);
 
 
     std::shared_ptr<HTree> fulltree = g.parse(allnavs); //allnavs.sliceTo(2000));

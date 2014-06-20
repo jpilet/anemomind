@@ -154,8 +154,8 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   SCOPEDMESSAGE(INFO, stringFormat("Process %d navs ranging from %s to %s",
       navs.size(), navs.first().time().toString().c_str(),
       navs.last().time().toString().c_str()));
-  Grammar001Settings settings;
-  Grammar001 g(settings);
+  WindOrientedGrammarSettings settings;
+  WindOrientedGrammar g(settings);
 
   SCOPEDMESSAGE(INFO, "Parse data...");
   std::shared_ptr<HTree> fulltree = g.parse(navs); //allnavs.sliceTo(2000));

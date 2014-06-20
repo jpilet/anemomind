@@ -4,7 +4,7 @@
  */
 
 #ifndef GRAMMAR001_H_
-#define GRAMMAR001_H_
+#define WIND_ORIENTED_GRAMMAR_H_
 
 #include <server/common/Hierarchy.h>
 #include <server/nautical/grammars/Grammar.h>
@@ -13,8 +13,8 @@
 namespace sail {
 
 
-struct Grammar001Settings {
-  Grammar001Settings();
+struct WindOrientedGrammarSettings {
+  WindOrientedGrammarSettings();
 
   double majorTransitionCost; // Cost to move between major states.
   double minorTransitionCost; // Cost to move between minor states
@@ -25,15 +25,15 @@ struct Grammar001Settings {
   bool switchOnOffDuringRace;
 };
 
-class Grammar001 : public Grammar {
+class WindOrientedGrammar : public Grammar {
  public:
-  Grammar001(Grammar001Settings s);
+  WindOrientedGrammar(WindOrientedGrammarSettings s);
   std::shared_ptr<HTree> parse(Array<Nav> navs,
       Array<UserHint> hints = Array<UserHint>()) ;
   Array<HNode> nodeInfo() {return _hierarchy.nodes();}
  private:
   Hierarchy _hierarchy;
-  Grammar001Settings _settings;
+  WindOrientedGrammarSettings _settings;
 };
 
 } /* namespace sail */

@@ -37,8 +37,8 @@ class Calibrator  {
     void addBuoyTurn(std::shared_ptr<HTree> tree);
 
     Array<Nav> _allnavs;
-    Grammar001Settings _settings;
-    Grammar001 _grammar;
+    WindOrientedGrammarSettings _settings;
+    WindOrientedGrammar _grammar;
     std::shared_ptr<HTree> _tree;
     ceres::Problem _problem;
     double _calibrationValues[BasicTrueWindEstimator::NUM_PARAMS];
