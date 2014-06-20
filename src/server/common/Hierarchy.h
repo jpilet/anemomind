@@ -201,6 +201,8 @@ class Hierarchy {
   HNode node(int index) const {return _nodes[index];}
   Array<HNode> nodes() {return _nodes;}
   Array<Arrayi> childrenPerNode() const {return _childrenPerNode;}
+  Arrayi children(int nodeIndex) const {return _childrenPerNode[nodeIndex];}
+  int nodeCount() const {return _nodes.size();}
  private:
   // Creates an ancestor at 'level' for a node of type 'nodeIndex'
   std::shared_ptr<HTree> wrap(int left, int level, int nodeIndex) const;
