@@ -1,6 +1,6 @@
 // (c) 2014 Julien Pilet <julien.pilet@gmail.com>
 
-#include <device/Arduino/libraries/TargetSpeed/FixedPoint.h>
+#include <device/Arduino/libraries/FixedPoint/FixedPoint.h>
 
 #include <gtest/gtest.h>
 

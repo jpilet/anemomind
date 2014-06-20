@@ -22,4 +22,6 @@ include_directories(${ARMADILLO_INCLUDE_DIR})
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
+add_definitions("-DNOT_ON_MICROCONTROLLER")
+
 add_subdirectory(src)

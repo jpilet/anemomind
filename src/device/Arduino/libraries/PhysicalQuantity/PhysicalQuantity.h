@@ -16,7 +16,7 @@
 #ifndef PHYSICALQUANTITY_H_
 #define PHYSICALQUANTITY_H_
 
-#ifndef ANEMOMIND_DEVICE
+#ifdef NOT_ON_MICROCONTROLLER
 #include <cmath>
 #include <limits>
 #include <server/common/math.h>
@@ -47,12 +47,13 @@ namespace sail {
   T baseUnit() const { return this->_x; } \
   static ThisType baseUnit(T x) { return ThisType(x); } \
   template<class Other> \
-  ClassName<Other> cast() const { return ClassName<Other>::baseUnit(Other(this->baseUnit())); }
+  ClassName<Other> cast() const { return ClassName<Other>::baseUnit(static_cast<Other>(this->baseUnit())); } \
+  template<class Other> operator ClassName<Other>() const { return cast<Other>(); }
 
 template <typename Quantity, typename Value>
 class PhysicalQuantity {
  public:
-#ifndef ANEMOMIND_DEVICE
+#ifdef NOT_ON_MICROCONTROLLER
   const static Value defaultValue;
 #endif
   typedef PhysicalQuantity<Quantity, Value> ThisQuantity;
@@ -97,7 +98,7 @@ class PhysicalQuantity {
  protected:
   Value get() const {return _x;}
   PhysicalQuantity(Value x) : _x(x) {}
-#ifndef ANEMOMIND_DEVICE
+#ifdef NOT_ON_MICROCONTROLLER
   PhysicalQuantity() : _x(Quantity::defaultValue) {}
 #else
   PhysicalQuantity() { }
@@ -107,7 +108,7 @@ class PhysicalQuantity {
   static Quantity makeFromX(Value X) { return Quantity(PhysicalQuantity<Quantity, Value>(X)); }
 };
 
-#ifndef ANEMOMIND_DEVICE
+#ifdef NOT_ON_MICROCONTROLLER
 template <typename Quantity, typename Value>
 const Value PhysicalQuantity<Quantity, Value>::defaultValue =
     Value(std::numeric_limits<double>::signaling_NaN());
@@ -154,7 +155,7 @@ class Duration : public PhysicalQuantity<Duration<T>, T> {
   MAKE_PHYSQUANT_UNIT_CONVERTERS(hours, 3600.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(days, 24*3600.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(weeks, 7*24*3600.0);
-#ifndef ANEMOMIND_DEVICE
+#ifdef NOT_ON_MICROCONTROLLER
   std::string str() const {
     std::stringstream ss;
     Duration<T> remaining(*this);
@@ -188,7 +189,7 @@ class Mass : public PhysicalQuantity<Mass<T>, T> {
 template<typename T, int N>
 class FixedArray {
  public:
-  FixedArray();
+  FixedArray() { }
   FixedArray(const FixedArray& a) {
     for (int i = 0; i < N; ++i) {
       _data[i] = a._data[i];
@@ -205,7 +206,7 @@ class FixedArray {
 template <typename T, int N>
 class Vectorize : public FixedArray<T, N> {
   public:
-#ifndef ANEMOMIND_DEVICE
+#ifdef NOT_ON_MICROCONTROLLER
     Vectorize<T, N>(std::initializer_list<T> list) {
         int i=0;
         for (T element : list) {
@@ -252,6 +253,13 @@ class Vectorize : public FixedArray<T, N> {
         return result;
     }
 
+    bool operator == (const Vectorize<T, N>& other) const {
+        for (int i = 0; i < N; ++i) {
+          if (!((*this)[i] == other[i])) return false;
+        }
+        return true;
+    }
+      
     Vectorize() { }
   private:
 };

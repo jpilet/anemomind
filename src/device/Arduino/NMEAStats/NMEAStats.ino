@@ -10,6 +10,8 @@
 
 #include <InstrumentFilter.h>
 
+using namespace sail;
+
 const bool VERTICAL_SCREEN = false;
 
 char logFilePath[13];
@@ -47,9 +49,9 @@ void openLogFile() {
 
 void displaySpeedRatio(const NmeaParser& parser) {
    float speedRatio = getVmgSpeedRatio(targetSpeedTable,
-       parser.twa(),
-       FP8_8::rightShiftAndConstruct(parser.tws(), 8),
-       FP8_8::rightShiftAndConstruct(parser.gpsSpeed(), 8));
+       filter.twa().degrees(),
+       filter.tws().knots(),
+       filter.gpsSpeed().knots());
    
    // Display speedRatio on the LCD display.
    updateScreen(max(0,min(200, int(speedRatio * 100.0))));
@@ -174,18 +176,18 @@ void loop()
     Serial.write(c);
     
     switch (nmeaParser.processByte(c)) {
+      case NmeaParser::NMEA_NONE: break;
       case NmeaParser::NMEA_WAT_SP_HDG:
-        filter.setMagHdg(nmeaParser.magHdg_);
-        filter.setWatSpeed(nmeaParser.watSpeed_);
+        filter.setMagHdg(nmeaParser.magHdg());
+        filter.setWatSpeed(nmeaParser.watSpeed());
         break;
       case NmeaParser::NMEA_AW:
-        filter.setAwa(nmeaParser.awa_);
-        filter.setAws(nmeaParser.aws_);
+        filter.setAwa(nmeaParser.awa());
+        filter.setAws(nmeaParser.aws());
         break;
-      case NmeaParser::NMEA_NONE: break;
       case NmeaParser::NMEA_TIME_POS:
-        filter.setGpsSpeed(nmeaParser.gpsSpeed_);
-        filter.setGpsBearing(nmeaParser.gpsBearing_);
+        filter.setGpsSpeed(nmeaParser.gpsSpeed());
+        filter.setGpsBearing(nmeaParser.gpsBearing());
 
         displaySpeedRatio(nmeaParser);      
       default:

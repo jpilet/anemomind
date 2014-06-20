@@ -3,7 +3,7 @@
 #ifndef DEVICE_TARGET_SPEED_H
 #define DEVICE_TARGET_SPEED_H
 
-#include "FixedPoint.h"
+#include "../FixedPoint/FixedPoint.h"
 
 struct TargetSpeedTable {
   enum {

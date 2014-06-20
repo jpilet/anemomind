@@ -3,6 +3,8 @@
 
 #include <PhysicalQuantity.h>
 
+namespace sail {
+
 template <class T>
 class InstrumentFilter {
  public:
@@ -30,6 +32,8 @@ class InstrumentFilter {
   Velocity<T> _gpsSpeed;
   Angle<T> _gpsBearing;
 };
+
+}  // namespace sail
 
 #endif // DEVICE_INSTRUMENT_FILTER_H
 
