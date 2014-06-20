@@ -260,6 +260,10 @@ target_link_libraries(common_LineKMJson
                      )
 target_depends_on_poco_json(common_LineKMJson)                                
 
+cxx_test(common_SpanOverlapTest
+         SpanOverlapTest.cpp
+         gtest_main
+        )                                
 target_depends_on_poco_json(common_LineKMJson)
 
 
