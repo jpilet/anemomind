@@ -11,7 +11,7 @@
 #include <server/nautical/NavJson.h>
 #include <fstream>
 #include <Poco/Path.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <iostream>
 #include <server/nautical/HTreeJson.h>
 #include <server/common/PathBuilder.h>

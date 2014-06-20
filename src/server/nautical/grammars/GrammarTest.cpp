@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 
 #include <server/nautical/grammars/Grammar.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 
 using namespace sail;
 

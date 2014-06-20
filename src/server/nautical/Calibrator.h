@@ -5,7 +5,7 @@
 #include <ceres/ceres.h>
 #include <memory>
 #include <server/nautical/BasicTrueWindEstimator.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <string>
 
 

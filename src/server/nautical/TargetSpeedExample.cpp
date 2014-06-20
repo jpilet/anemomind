@@ -10,7 +10,7 @@
 #include <server/common/Span.h>
 #include <iostream>
 #include <server/plot/extra.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/common/string.h>
 
 using namespace sail;

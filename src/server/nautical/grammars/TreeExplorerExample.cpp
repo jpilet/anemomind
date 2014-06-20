@@ -7,7 +7,7 @@
 #include <server/nautical/NavNmeaScan.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 
 using namespace sail;
 

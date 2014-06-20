@@ -4,7 +4,7 @@
  */
 
 #include <server/nautical/TestdataNavs.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/plot/extra.h>
 #include <server/common/string.h>
 #include <server/nautical/grammars/TreeExplorer.h>

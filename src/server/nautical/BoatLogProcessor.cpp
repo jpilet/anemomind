@@ -16,7 +16,7 @@
 #include <server/common/HierarchyJson.h>
 #include <server/nautical/NavJson.h>
 #include <fstream>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/nautical/HTreeJson.h>
 #include <server/nautical/NavNmea.h>
 #include <Poco/JSON/Stringifier.h>
