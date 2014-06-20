@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include "StateConnector.h"
+#include "StaticCostFactory.h"
 #include <assert.h>
 #include <server/common/Hierarchy.h>
 
@@ -41,7 +41,7 @@ StaticCostFactory::StaticCostFactory(const Hierarchy &h) {
   _transitionCosts = MDArray2d(n, n);
   _transitionCosts.setAll(0);
 
-  _con = MDArray2d(n, n);
+  _con = MDArray2b(n, n);
   _con.setAll(false);
 }
 
