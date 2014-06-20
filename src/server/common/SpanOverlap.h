@@ -14,37 +14,54 @@
 namespace sail {
 namespace SpanOverlapImplementation {
 
+template <typename T>
 class EndPoint {
  public:
+  typedef EndPoint<T> ThisType;
   EndPoint() : _spanIndex(-1), _position(-1), _risingEdge(false) {}
-  EndPoint(int spanIndex_, int position_, bool risingEdge_) :
+  EndPoint(int spanIndex_, T position_, bool risingEdge_) :
     _spanIndex(spanIndex_), _position(position_), _risingEdge(risingEdge_) {}
-  bool operator<(const EndPoint &other) const {
+  bool operator<(const ThisType &other) const {
     return _position < other._position;
   }
 
   bool risingEdge() const {return _risingEdge;}
   int spanIndex() const {return _spanIndex;}
-  int position() const {return _position;}
+  T position() const {return _position;}
  private:
-  int _spanIndex, _position;
+  int _spanIndex;
+  T _position;
   bool _risingEdge;
 };
 
-Array<EndPoint> listSortedEndPts(Array<Spani> spans);
+template <typename T>
+Array<EndPoint<T> > listSortedEndPts(Array<Span<T> > spans) {
+    int endptCount = 2*spans.size();
+    Array<EndPoint<T> > endpts(endptCount);
+    for (int spanIndex = 0; spanIndex < spans.size(); spanIndex++) {
+      int at = 2*spanIndex;
+      Span<T> span = spans[spanIndex];
+      endpts[at + 0] = EndPoint<T>(spanIndex, span.minv(), true);
+      endpts[at + 1] = EndPoint<T>(spanIndex, span.maxv(), false);
+    }
+    std::sort(endpts.begin(), endpts.end());
+    return endpts;
+  }
 
 }
 
 
 
-template <typename T>
+template <typename T, typename EPType=int>
 class SpanOverlap {
+ private:
+  typedef Span<EPType> Sp;
  public:
   typedef SpanOverlap<T> ThisType;
 
   SpanOverlap() {}
-  SpanOverlap(Spani span_, Array<T> objects_) : _span(span_), _objects(objects_) {}
-  Spani span() const {return _span;}
+  SpanOverlap(Sp span_, Array<T> objects_) : _span(span_), _objects(objects_) {}
+  Sp span() const {return _span;}
   Array<T> objects() const {return _objects;}
 
   bool operator== (const ThisType &other) const {
@@ -52,20 +69,21 @@ class SpanOverlap {
   }
 
 
-  static Array<ThisType> compute(Array<Spani> spans, Array<T> objects) {
+  static Array<ThisType> compute(Array<Sp> spans, Array<T> objects) {
+    typedef SpanOverlapImplementation::EndPoint<EPType> EP;
     assert(spans.size() == objects.size());
     using namespace SpanOverlapImplementation;
-    Array<EndPoint> endpts = listSortedEndPts(spans);
+    Array<EP> endpts = listSortedEndPts(spans);
     if (endpts.empty()) {
       return Array<ThisType>();
     }
     Arrayb activeSpans = Arrayb::fill(spans.size(), false);
-    int currentPos = endpts.first().position();
+    EPType currentPos = endpts.first().position();
     ArrayBuilder<ThisType> overlaps(endpts.size());
     for (auto ep : endpts) {
-      int newPos = ep.position();
+      EPType newPos = ep.position();
       if (newPos != currentPos) {
-        overlaps.add(ThisType(Spani(currentPos, newPos), objects.slice(activeSpans)));
+        overlaps.add(ThisType(Sp(currentPos, newPos), objects.slice(activeSpans)));
         currentPos = newPos;
       }
       activeSpans[ep.spanIndex()] = ep.risingEdge();
@@ -76,7 +94,7 @@ class SpanOverlap {
 
  private:
   // The span of this overlap
-  Spani _span;
+  Sp _span;
 
   // Indices to the original spans that overlap here.
   Array<T> _objects;
