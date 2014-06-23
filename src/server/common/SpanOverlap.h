@@ -57,7 +57,7 @@ class SpanOverlap {
  private:
   typedef Span<EPType> Sp;
  public:
-  typedef SpanOverlap<T> ThisType;
+  typedef SpanOverlap<T, EPType> ThisType;
 
   SpanOverlap() {}
   SpanOverlap(Sp span_, Array<T> objects_) : _span(span_), _objects(objects_) {}
