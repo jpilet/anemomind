@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/common/string.h>
 #include <iostream>
 #include <server/math/hmm/StateAssign.h>
@@ -14,7 +14,7 @@
 
 namespace sail {
 
-Grammar001Settings::Grammar001Settings() {
+WindOrientedGrammarSettings::WindOrientedGrammarSettings() {
 /*
  * Default parameters chosen by hand.
  * We should devise a strategy to choose them.
@@ -126,7 +126,7 @@ namespace {
 
 
 
-Grammar001::Grammar001(Grammar001Settings s) : _settings(s), _hierarchy(makeHierarchy()) {}
+WindOrientedGrammar::WindOrientedGrammar(WindOrientedGrammarSettings s) : _settings(s), _hierarchy(makeHierarchy()) {}
 
 
 
@@ -150,7 +150,7 @@ namespace {
   }
 
 
-  double getG001StateTransitionCost(const Grammar001Settings &s,
+  double getG001StateTransitionCost(const WindOrientedGrammarSettings &s,
       int from, int to, int at, Array<Nav> navs) {
     if (isOff(from) || isOff(to)) {
       return s.onOffCost*majorStateTransitionCost(from, to);
@@ -213,7 +213,7 @@ namespace {
 
 class G001SA : public StateAssign {
  public:
-  G001SA(Grammar001Settings s, Array<Nav> navs);
+  G001SA(WindOrientedGrammarSettings s, Array<Nav> navs);
 
   double getStateCost(int stateIndex, int timeIndex);
 
@@ -224,7 +224,7 @@ class G001SA : public StateAssign {
   Arrayi getPrecedingStates(int stateIndex, int timeIndex) {return _preds[stateIndex];}
  private:
   Array<Arrayi> _preds;
-  Grammar001Settings _settings;
+  WindOrientedGrammarSettings _settings;
   Array<Nav> _navs;
   Arrayd _minorStateCostFactors;
 };
@@ -304,7 +304,7 @@ namespace {
   }
 }
 
-G001SA::G001SA(Grammar001Settings s, Array<Nav> navs) :
+G001SA::G001SA(WindOrientedGrammarSettings s, Array<Nav> navs) :
     _settings(s), _navs(navs), _minorStateCostFactors(makeCostFactors()),
     _preds(makePredecessorsPerState(makeConnections(s.switchOnOffDuringRace))) {
 }
@@ -313,7 +313,7 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
   return getG001StateTransitionCost(_settings, fromStateIndex, toStateIndex, fromTimeIndex, _navs);
 }
 
-std::shared_ptr<HTree> Grammar001::parse(Array<Nav> navs,
+std::shared_ptr<HTree> WindOrientedGrammar::parse(Array<Nav> navs,
     Array<UserHint> hints) {
   if (!hints.empty()) {
     LOG(FATAL) << "You are providing hints but hints are not yet implemented for this class";

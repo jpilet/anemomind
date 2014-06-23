@@ -1,6 +1,6 @@
 cxx_test(nautical_grammars_GrammarTest
          GrammarTest.cpp
-         nautical_grammars_Grammar001
+         nautical_grammars_WindOrientedGrammar
          gtest_main
         )
 
@@ -16,12 +16,12 @@ target_link_libraries(nautical_Grammar
                       math_hmm_StateAssign
                      )
                      
-add_library(nautical_grammars_Grammar001
-            Grammar001.cpp
-            Grammar001.h
+add_library(nautical_grammars_WindOrientedGrammar
+            WindOrientedGrammar.cpp
+            WindOrientedGrammar.h
            )            
            
-target_link_libraries(nautical_grammars_Grammar001
+target_link_libraries(nautical_grammars_WindOrientedGrammar
                       common_string
                       nautical_Grammar
                       common_HNodeGroup
@@ -43,7 +43,7 @@ target_link_libraries(nautical_grammars_TreeExplorerExample
                       nautical_grammars_TreeExplorer
                       common_PathBuilder
                       nautical_NavNmeaScan
-                      nautical_grammars_Grammar001
+                      nautical_grammars_WindOrientedGrammar
                       common_Env
                      )
                      
@@ -70,4 +70,18 @@ cxx_test(nautical_grammars_UserHintTest
                       nautical_grammars_UserHint
                       nautical_grammars_UserHintJson
                       gtest_main
-                     )                                  
+                     )     
+
+add_library(nautical_grammars_StaticCostFactory
+            StaticCostFactory.h            
+            StaticCostFactory.cpp
+           )
+target_link_libraries(nautical_grammars_StaticCostFactory
+                      common_Hierarchy
+                     )
+cxx_test(nautical_grammars_StaticCostFactoryTest
+         StaticCostFactoryTest.cpp
+         nautical_grammars_StaticCostFactory
+         common_HNodeGroup
+         gtest_main
+        )

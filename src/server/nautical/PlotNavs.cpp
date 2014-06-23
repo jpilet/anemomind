@@ -4,7 +4,7 @@
  */
 
 #include <server/nautical/TestdataNavs.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/plot/extra.h>
 #include <server/common/string.h>
 #include <server/nautical/grammars/TreeExplorer.h>
@@ -195,8 +195,8 @@ namespace {
     std::string tag("--select-node");
     for (int i = 0; i < argc; i++) {
       if (argv[i] == tag) {
-        Grammar001Settings settings;
-        Grammar001 g(settings);
+        WindOrientedGrammarSettings settings;
+        WindOrientedGrammar g(settings);
         std::shared_ptr<HTree> tree = g.parse(navs);
 
         std::shared_ptr<HTree> sel = exploreTree(g.nodeInfo(), tree);
