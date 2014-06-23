@@ -200,6 +200,9 @@ class Hierarchy {
 
   HNode node(int index) const {return _nodes[index];}
   Array<HNode> nodes() {return _nodes;}
+  Array<Arrayi> childrenPerNode() const {return _childrenPerNode;}
+  Arrayi children(int nodeIndex) const {return _childrenPerNode[nodeIndex];}
+  int nodeCount() const {return _nodes.size();}
  private:
   // Creates an ancestor at 'level' for a node of type 'nodeIndex'
   std::shared_ptr<HTree> wrap(int left, int level, int nodeIndex) const;
@@ -220,6 +223,9 @@ class Hierarchy {
 
   // A 2d array where element _ancestors(i, j) is the index for the ancestor of node 'i' at level 'j' in the hierarchy.
   MDArray2i _ancestors;
+
+  // Table that holds the child indices of every HNode
+  Array<Arrayi> _childrenPerNode;
 };
 
 } /* namespace sail */

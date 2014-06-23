@@ -70,4 +70,18 @@ cxx_test(nautical_grammars_UserHintTest
                       nautical_grammars_UserHint
                       nautical_grammars_UserHintJson
                       gtest_main
-                     )                                  
+                     )     
+
+add_library(nautical_grammars_StaticCostFactory
+            StaticCostFactory.h            
+            StaticCostFactory.cpp
+           )
+target_link_libraries(nautical_grammars_StaticCostFactory
+                      common_Hierarchy
+                     )
+cxx_test(nautical_grammars_StaticCostFactoryTest
+         StaticCostFactoryTest.cpp
+         nautical_grammars_StaticCostFactory
+         common_HNodeGroup
+         gtest_main
+        )

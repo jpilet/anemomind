@@ -12,6 +12,7 @@
 #include <server/common/string.h>
 #include <stdexcept>
 #include <vector>
+#include <server/common/ArrayBuilder.h>
 
 namespace sail {
 
@@ -83,27 +84,29 @@ int getHRootNode(Array<HNode> nodes) {
 }
 
 // Builds a table that for every node lists the nodes for whom it is the parent.
-Array<std::vector<int> > listChildren(Array<HNode> nodes) {
+Array<Arrayi> listChildren(Array<HNode> nodes) {
   int count = nodes.size();
-  Array<std::vector<int> > children(count);
+  Array<ArrayBuilder<int> > children(count);
   for (int i = 0; i < count; i++) {
     HNode &node = nodes[i];
     assert(node.index() == i);
     if (node.defined() && node.hasParent()) {
-      children[node.parent()].push_back(node.index());
+      children[node.parent()].add(node.index());
     }
   }
-  return children;
+  return children.map<Arrayi>([&](ArrayBuilder<int> builder) {
+    return builder.get();
+  });
 }
 
 // Sub-routine to calcLevelPerNode.
-void traverseChildrenAndOutputLevel(int level, int currentNode, Array<std::vector<int> > childrenPerNode, Arrayi *levelPerNodeInOut) {
+void traverseChildrenAndOutputLevel(int level, int currentNode, Array<Arrayi> childrenPerNode, Arrayi *levelPerNodeInOut) {
   assert(levelPerNodeInOut != nullptr);
   assert((*levelPerNodeInOut)[currentNode] == -1);
   (*levelPerNodeInOut)[currentNode] = level;
 
   int nextLevel = level + 1;
-  std::vector<int> &children = childrenPerNode[currentNode];
+  Arrayi &children = childrenPerNode[currentNode];
   int childCount = children.size();
   for (int i = 0; i < childCount; i++) {
     traverseChildrenAndOutputLevel(nextLevel, children[i], childrenPerNode, levelPerNodeInOut);
@@ -111,7 +114,7 @@ void traverseChildrenAndOutputLevel(int level, int currentNode, Array<std::vecto
 }
 
 // Computes the level for each node in a routed tree.
-Arrayi calcLevelPerNode(int rootNode, Array<std::vector<int> > children) {
+Arrayi calcLevelPerNode(int rootNode, Array<Arrayi> children) {
   int count = children.size();
   Arrayi levelPerNode(count);
   levelPerNode.setTo(-1);
@@ -119,8 +122,8 @@ Arrayi calcLevelPerNode(int rootNode, Array<std::vector<int> > children) {
   return levelPerNode;
 }
 
-Arrayb calcTerminals(Array<std::vector<int> > children) {
-  return children.map<bool>([&] (const std::vector<int> &c) {
+Arrayb calcTerminals(Array<Arrayi> children) {
+  return children.map<bool>([&] (const Arrayi &c) {
     return c.empty();
   });
 }
@@ -265,7 +268,8 @@ Hierarchy::Hierarchy(Array<HNode> unorderedNodes) : _nodes(arrangeHNodes(unorder
   checkHNodeValidParents(_nodes);
   _rootNode = getHRootNode(_nodes);
   assert(_rootNode != -1);
-  Array<std::vector<int> > children = listChildren(_nodes);
+  Array<Arrayi> children = listChildren(_nodes);
+  _childrenPerNode = children;
   _isTerminal = calcTerminals(children);
   _levelPerNode = calcLevelPerNode(_rootNode, children);
   _ancestors = makeAncestors(_nodes, _levelPerNode);
