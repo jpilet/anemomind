@@ -11,9 +11,12 @@ namespace sail {
 
 class TrueWindEstimator {
   public:
+
+    // InstrumentAbstraction is typically an InstrumentFilter. It could also be
+    // a Nav.
     template <class T, class InstrumentAbstraction>
-    static HorizontalMotion<T> computeTrueWind(const T* params,
-                                               const InstrumentAbstraction& measures);
+    static HorizontalMotion<T> computeTrueWind(
+        const T* params, const InstrumentAbstraction& measures);
 
     template <class T>
     static void initializeParameters(T* params);
