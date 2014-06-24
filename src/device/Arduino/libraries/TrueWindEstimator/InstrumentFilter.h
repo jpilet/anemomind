@@ -1,7 +1,11 @@
 #ifndef DEVICE_INSTRUMENT_FILTER_H
 #define DEVICE_INSTRUMENT_FILTER_H
 
-#include <PhysicalQuantity.h>
+#include "../PhysicalQuantity/PhysicalQuantity.h"
+
+#ifdef NOT_ON_MICROCONTROLLER
+#include <server/nautical/Nav.h>
+#endif
 
 namespace sail {
 
@@ -32,6 +36,24 @@ class InstrumentFilter {
   Velocity<T> _gpsSpeed;
   Angle<T> _gpsBearing;
 };
+
+#ifdef NOT_ON_MICROCONTROLLER
+namespace {
+InstrumentFilter<double> makeFilter(const Array<Nav>& navs) {
+  InstrumentFilter<double> filter;
+  for (const Nav& nav : navs) {
+    filter.setAwa(nav.awa());
+    filter.setAws(nav.aws());
+    filter.setMagHdg(nav.magHdg());
+    filter.setWatSpeed(nav.watSpeed());
+    filter.setGpsBearing(nav.gpsBearing());
+    filter.setGpsSpeed(nav.gpsSpeed());
+  }
+  return filter;
+}
+
+}  // namespace
+#endif
 
 }  // namespace sail
 

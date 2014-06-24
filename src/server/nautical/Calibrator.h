@@ -4,7 +4,7 @@
 #include <Poco/Path.h>
 #include <ceres/ceres.h>
 #include <memory>
-#include <server/nautical/BasicTrueWindEstimator.h>
+#include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <string>
 
@@ -41,7 +41,7 @@ class Calibrator  {
     WindOrientedGrammar _grammar;
     std::shared_ptr<HTree> _tree;
     ceres::Problem _problem;
-    double _calibrationValues[BasicTrueWindEstimator::NUM_PARAMS];
+    double _calibrationValues[TrueWindEstimator::NUM_PARAMS];
 
     // The pointers stored in this vector are owned by "_problem".
     vector<TackCost*> _maneuvers;

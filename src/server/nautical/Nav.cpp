@@ -6,11 +6,11 @@
  */
 
 #include "Nav.h"
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/ArrayIO.h>
 #include <algorithm>
 #include <server/plot/gnuplot_i.hpp>
 #include <server/common/LineKM.h>
-#include <server/common/PhysicalQuantity.h>
 #include <server/plot/extra.h>
 #include <server/nautical/Ecef.h>
 #include <ctime>

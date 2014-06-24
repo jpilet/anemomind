@@ -4,15 +4,16 @@
 #define NAUTICAL_BOAT_MODEL_H
 
 #include <cmath>
-#include <PhysicalQuantity.h>
+#include "../PhysicalQuantity/PhysicalQuantity.h"
 
 namespace sail {
 
 
 class TrueWindEstimator {
   public:
-    template <class T>
-    static HorizontalMotion<T> computeTrueWind(const T* params, Array<Nav> past);
+    template <class T, class InstrumentAbstraction>
+    static HorizontalMotion<T> computeTrueWind(const T* params,
+                                               const InstrumentAbstraction& measures);
 
     template <class T>
     static void initializeParameters(T* params);
@@ -30,7 +31,7 @@ class TrueWindEstimator {
 
 template <class T, class InstrumentAbstraction>
 HorizontalMotion<T> TrueWindEstimator::computeTrueWind(
-        const T* params, InstrumentAbstraction measures) {
+        const T* params, const InstrumentAbstraction& measures) {
     auto awa = normalizeAngleBetweenMinusPiAndPi(measures.awa().radians());
 
     bool upwind = (awa > (- M_PI / 2.0)) && (awa < (M_PI / 2.0));
@@ -52,12 +53,13 @@ HorizontalMotion<T> TrueWindEstimator::computeTrueWind(
     }
 
     HorizontalMotion<T> boatMotion = HorizontalMotion<T>::polar(
-        measures.gpsSpeed().cast<T>(), measures.gpsBearing().cast<T>());
+        static_cast<Velocity<T> >(measures.gpsSpeed()),
+        static_cast<Angle<T> >(measures.gpsBearing()));
 
     // We assume no drift and no current.
     HorizontalMotion<T> appWindMotion = HorizontalMotion<T>::polar(
-        Velocity<T>::knots(aws_offset) + measures.aws().cast<T>().scaled(aws_bias),
-        (measures.gpsBearing() + measures.awa()).cast<T>()
+        Velocity<T>::knots(aws_offset) + static_cast<Velocity<T> >(measures.aws()).scaled(aws_bias),
+        static_cast<Angle<T> >(measures.gpsBearing() + measures.awa())
             + Angle<T>::degrees(awa_offset));
 
     // True wind - boat motion = apparent wind.

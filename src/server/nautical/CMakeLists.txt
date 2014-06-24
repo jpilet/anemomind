@@ -208,14 +208,6 @@ cxx_test(nautical_WGS84Test
             common_LineKM
             gtest_main)
 
-cxx_test(nautical_BasicTrueWindEstimatorTest
-         BasicTrueWindEstimatorTest.cpp
-         common_Env
-         common_logging
-         nautical_nav
-         nautical_NavNmea
-         gtest_main)
-
 add_library(nautical_BoatLogProcessor
             BoatLogProcessor.cpp
             BoatLogProcessor.h

@@ -95,6 +95,12 @@ class PhysicalQuantity {
   bool operator >= (ThisQuantity other) const {return _x >= other.get();}
   bool operator == (ThisQuantity other) const {return _x == other.get();}
 
+#ifdef NOT_ON_MICROCONTROLLER
+  // Special method returning true for the comparison nan == nan.
+  bool eqWithNan(ThisQuantity other) const {
+    return strictEquality(_x, other.get());
+  }
+#endif
  protected:
   Value get() const {return _x;}
   PhysicalQuantity(Value x) : _x(x) {}
@@ -116,13 +122,17 @@ const Value PhysicalQuantity<Quantity, Value>::defaultValue =
 
 template <typename T = double>
 class Angle : public PhysicalQuantity<Angle<T>, T> {
-  DECLARE_PHYSQUANT_CONSTRUCTORS(Angle, radians)
+  DECLARE_PHYSQUANT_CONSTRUCTORS(Angle, degrees)
  public:
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(degrees, M_PI/180.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(radians, 180.0/M_PI);
 
   Angle directionDifference(const Angle<T>& other) const {
     return radians(normalizeAngleBetweenMinusPiAndPi(
-            this->get() - other.get()));
+            this->radians() - other.radians()));
+  }
+
+  Angle normalizedAt0() const {
+    return radians(normalizeAngleBetweenMinusPiAndPi(this->radians()));
   }
 
   static Angle<T> degMinMc(T deg, T min, T mc) {
@@ -140,11 +150,11 @@ class Length : public PhysicalQuantity<Length<T>, T> {
 
 template <typename T = double>
 class Velocity : public PhysicalQuantity<Velocity<T>, T> {
-  DECLARE_PHYSQUANT_CONSTRUCTORS(Velocity, metersPerSecond)
+  DECLARE_PHYSQUANT_CONSTRUCTORS(Velocity, knots)
  public:
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(knots, 1852/3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(kilometersPerHour, 1.0/3.6);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(milesPerHour, 0.44704);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(metersPerSecond, 3600.0/1852);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(kilometersPerHour, 1.0/1.852);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(milesPerHour, 0.868976242);
 };
 
 template <typename T = double>
@@ -199,6 +209,7 @@ class FixedArray {
   T& operator[](int i) { return _data[i]; }
   const T& operator[](int i) const { return _data[i]; }
 
+  const T* data() const { return _data; }
  private:
   T _data[N];
 };
@@ -229,7 +240,7 @@ class Vectorize : public FixedArray<T, N> {
         return result;
     }
 
-    Vectorize<T, N> operator + (const Vectorize<T, N>& other) {
+    Vectorize<T, N> operator + (const Vectorize<T, N>& other) const {
         Vectorize result;
         for (int i = 0; i < N; ++i) {
             result[i] = (*this)[i] + other[i];
@@ -237,7 +248,7 @@ class Vectorize : public FixedArray<T, N> {
         return result;
     }
 
-    Vectorize<T, N> operator - (const Vectorize<T, N>& other) {
+    Vectorize<T, N> operator - (const Vectorize<T, N>& other) const {
         Vectorize result;
         for (int i = 0; i < N; ++i) {
             result[i] = (*this)[i] - other[i];
@@ -245,7 +256,7 @@ class Vectorize : public FixedArray<T, N> {
         return result;
     }
 
-    Vectorize<T, N> scaled(double factor) {
+    Vectorize<T, N> scaled(double factor) const {
         Vectorize result;
         for (int i = 0; i < N; ++i) {
             result[i] = (*this)[i].scaled(factor);
@@ -266,7 +277,7 @@ class Vectorize : public FixedArray<T, N> {
 
 template <typename FactorType, typename ElemType, int N>
 Vectorize<ElemType, N> operator*(FactorType x, const Vectorize<ElemType, N> &v) {
-  return v*x;
+  return v.scaled(x);
 }
 
 }  // namespace sail

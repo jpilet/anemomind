@@ -19,7 +19,7 @@ TEST(GeographicReferenceTest, UnmapMap) {
 
   GeographicReference::ProjectedPosition xy2 = ref.map(pos);
   for (int i = 0; i < 2; i++) {
-    EXPECT_NEAR(xy[i].meters(), xy2[i].meters(), 1.0e-4);
+    EXPECT_NEAR(xy[i].meters(), xy2[i].meters(), 1.0e-4) << " for i=" << i;
   }
 }
 
