@@ -4,7 +4,9 @@ angular.module('anemomindApp', [
   'ngCookies',
   'ngResource',
   'ngRoute',
-  'angularFileUpload'
+  'angularFileUpload',
+  'anemomindApp.directives',
+  'ui.slider'
 ])
   .config(function ($routeProvider, $locationProvider, $httpProvider) {
     $routeProvider
@@ -66,3 +68,6 @@ angular.module('anemomindApp', [
       }
     });
   });
+
+// setup dependency injection
+angular.module('anemomindApp.directives', []);

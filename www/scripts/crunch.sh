@@ -13,10 +13,12 @@ cp $src $dst;
 # copying the executable to a directory that is on the path.
 #
 # On the anemolab server, the file is located here:
-# /home/jpilet/anemomind/build/src/server/nautical/nautical_processBoatLogs
-/home/jpilet/anemomind/build/src/server/nautical/nautical_processBoatLogs ${PWD}/data/$1 $2
+# ./build/src/server/nautical/nautical_processBoatLogs
+# After a git clone, the application must be compiled like so:
+# make nautical_processBoatLogs
+../build/src/server/nautical/nautical_processBoatLogs ${PWD}/data/$1 $2
 
 echo "done!"
 echo "running node script..."
-curl -i -H "Accept: application/json" -X POST -d "id=$1&filename=$2&polar=polar.txt" http://localhost/api/upload/store
+curl -i -H "Accept: application/json" -X POST -d "id=$1&filename=$2&polar=polar.txt" http://127.0.0.1:8080/api/upload/store
 echo "done!"
