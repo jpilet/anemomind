@@ -52,25 +52,25 @@ Array<EndPoint<T> > listSortedEndPts(Array<Span<T> > spans) {
 
 
 
-template <typename T, typename EPType=int>
+template <typename ObjectType, typename EndPointType=int>
 class SpanOverlap {
  private:
-  typedef Span<EPType> Sp;
+  typedef Span<EndPointType> Sp;
  public:
-  typedef SpanOverlap<T, EPType> ThisType;
+  typedef SpanOverlap<ObjectType, EndPointType> ThisType;
 
   SpanOverlap() {}
-  SpanOverlap(Sp span_, Array<T> objects_) : _span(span_), _objects(objects_) {}
+  SpanOverlap(Sp span_, Array<ObjectType> objects_) : _span(span_), _objects(objects_) {}
   Sp span() const {return _span;}
-  Array<T> objects() const {return _objects;}
+  Array<ObjectType> objects() const {return _objects;}
 
   bool operator== (const ThisType &other) const {
     return _span.minv() == other._span.minv() && _span.maxv() == other._span.maxv() && _objects == other._objects;
   }
 
 
-  static Array<ThisType> compute(Array<Sp> spans, Array<T> objects) {
-    typedef SpanOverlapImplementation::EndPoint<EPType> EP;
+  static Array<ThisType> compute(Array<Sp> spans, Array<ObjectType> objects) {
+    typedef SpanOverlapImplementation::EndPoint<EndPointType> EP;
     assert(spans.size() == objects.size());
     using namespace SpanOverlapImplementation;
     Array<EP> endpts = listSortedEndPts(spans);
@@ -78,10 +78,10 @@ class SpanOverlap {
       return Array<ThisType>();
     }
     Arrayb activeSpans = Arrayb::fill(spans.size(), false);
-    EPType currentPos = endpts.first().position();
+    EndPointType currentPos = endpts.first().position();
     ArrayBuilder<ThisType> overlaps(endpts.size());
     for (auto ep : endpts) {
-      EPType newPos = ep.position();
+      EndPointType newPos = ep.position();
       if (newPos != currentPos) {
         overlaps.add(ThisType(Sp(currentPos, newPos), objects.slice(activeSpans)));
         currentPos = newPos;
@@ -97,7 +97,7 @@ class SpanOverlap {
   Sp _span;
 
   // Indices to the original spans that overlap here.
-  Array<T> _objects;
+  Array<ObjectType> _objects;
 };
 
 typedef SpanOverlap<int> SpanOverlapi;
