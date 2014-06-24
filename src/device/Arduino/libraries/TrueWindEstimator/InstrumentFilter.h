@@ -9,6 +9,8 @@
 
 namespace sail {
 
+// This class is in charge of applying a temporal filter on measured data.
+// It also acts as a buffer between either a nmeaparser or a Array<Nav>.
 template <class T>
 class InstrumentFilter {
  public:
