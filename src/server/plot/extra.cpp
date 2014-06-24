@@ -53,7 +53,6 @@ void GnuplotExtra::plot(int dim, double *from, double *to, const std::string &ti
 
 void GnuplotExtra::show() {
   showonscreen();
-  sleepForever();
 }
 
 void sleepForever() {
