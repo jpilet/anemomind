@@ -47,10 +47,12 @@ void openLogFile() {
   }
 }
 
+#undef degrees
+
 void displaySpeedRatio(const NmeaParser& parser) {
    float speedRatio = getVmgSpeedRatio(targetSpeedTable,
-       filter.twa().degrees(),
-       filter.tws().knots(),
+       parser.twa().degrees(),
+       parser.tws().knots(),
        filter.gpsSpeed().knots());
    
    // Display speedRatio on the LCD display.
