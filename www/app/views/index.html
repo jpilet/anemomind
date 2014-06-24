@@ -14,6 +14,7 @@
     <!-- build:css(app) styles/vendor.css -->
     <!-- bower:css -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="bower_components/jquery-ui/themes/cupertino/jquery-ui.css" />
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css({.tmp,app}) styles/main.css -->
@@ -51,13 +52,15 @@
     <!-- Note: shim.js MUST BE PLACED BEFORE angular.js and angular-file-upload.js AFTER angular.js-->
 
     <script src="bower_components/jquery/dist/jquery.js"></script>
-    <script src="bower_components/ng-file-upload/angular-file-upload-shim.js"></script> 
+    <script src="bower_components/jquery-ui/ui/jquery-ui.js"></script>
+    <script src="bower_components/ng-file-upload/angular-file-upload-shim.js"></script>
     <script src="bower_components/angular/angular.js"></script>
     <script src="bower_components/ng-file-upload/angular-file-upload.js"></script> 
     <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
     <script src="bower_components/angular-resource/angular-resource.js"></script>
     <script src="bower_components/angular-cookies/angular-cookies.js"></script>
     <script src="bower_components/angular-route/angular-route.js"></script>
+    <script src="bower_components/angular-ui-slider/src/slider.js"></script>
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 
     <script src="scripts/app.js"></script>
@@ -72,7 +75,7 @@
     <script src="scripts/services/session.js"></script>
     <script src="scripts/services/user.js"></script>
     <script src="scripts/services/race.js"></script>
-    <script src="scripts/directives/mongooseError.js"></script>
+    <script src="scripts/directives/displayPath.js"></script>
 
   </body>
 </html>

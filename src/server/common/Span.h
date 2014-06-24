@@ -125,6 +125,7 @@ class Span {
 };
 
 typedef Span<double> Spand;
+typedef Span<int> Spani;
 
 std::ostream &operator<<(std::ostream &s, const Spand &x);
 

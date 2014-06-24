@@ -7,13 +7,13 @@
 #include <server/nautical/NavNmeaScan.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 
 using namespace sail;
 
 int main(int argc, char *argv[]) {
-  Grammar001Settings s;
-  Grammar001 g(s);
+  WindOrientedGrammarSettings s;
+  WindOrientedGrammar g(s);
 
   Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR).
       pushDirectory("datasets").

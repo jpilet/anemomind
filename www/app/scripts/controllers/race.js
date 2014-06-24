@@ -1,14 +1,18 @@
 'use strict';
 
 angular.module('anemomindApp')
-  .controller('RaceCtrl', function ($scope, Race, $http) {
+  .controller('RaceCtrl', function ($scope, Race, $http, $log) {
     $scope.races = Race.get();
 
     $scope.loadRace = function (id) {
+      $('#stopdiv').click();
       d3.select('svg').remove();
+      if (typeof timer_ret_val != 'undefined') {
+        timer_ret_val = true;
+      }
 
       $http.get('/api/races/' + id).then(function (res) {
-        console.log('race ' + id + ' loaded with origin: [' + res.data.origin.x + ',' + res.data.origin.y + '].' );
+        $log.info('race ' + id + ' loaded with origin: [' + res.data.origin.x + ',' + res.data.origin.y + '].' );
 
         var xMin = d3.min(res.data.coords, function(d) {return d["x_m"];});
         var xMax = d3.max(res.data.coords, function(d) {return d["x_m"];});
@@ -38,55 +42,36 @@ angular.module('anemomindApp')
                     .domain([low-offset/2, yMax+offset/2])
                     .range([100, 0]);
         }
-
-        display(res.data.coords, x, y, portrait);
+        $scope.data = res.data.coords;
+        $scope.x = x;
+        $scope.y = y;
+        $scope.raceIsLoaded = true;
       });
     };
 
-    function display(data, x, y, portrait){
+    // Slider options with event handlers
+    $scope.slider = {
+      'options': {
+        start: function (event, ui) { $scope.stopTimer(); }
+      }
+    };
 
-      //Path generator
-      var lineFunction = d3.svg.line()
-                               .x(function(d) { return x(d["x_m"]); })
-                               .y(function(d) { return y(d["y_m"]); })
-                               .interpolate("basis");
+    var ticks = 0;
+    var last = 0;
+    $scope.currentPos = 0;
 
-      //The SVG Container
-      var svg = d3.select(".svgContainer").append("svg")
-                                 .attr("width", "100%")
-                                 .attr("viewBox", "0 0 100 100");
-
-      //The path !
-      var lineGraph = svg.append("path")
-                                  .attr("class", "route")
-                                  .attr("d", lineFunction(data))
-                                  .attr("stroke", "#00aaff")
-                                  .attr("stroke-width", 1)
-                                  .attr("fill", "none")
-                                  .attr("stroke-opacity", 0.3);
-
-      // group = vis.append("svg:g");
-      var pathNode = lineGraph.node();
-      var len = pathNode.getTotalLength();
-
-      var circle = svg.append("circle").attr({
-        r: 1,
-        fill: '#f33',
-        transform: function () {
-          var p = pathNode.getPointAtLength(0)
-          return "translate(" + [p.x, p.y] + ")";
-        }
+    $scope.startTimer = function() {
+      $scope.timer_ret_val = false;
+      d3.timer(function(elapsed) {
+        ticks = (ticks + (elapsed - last) / 20000) % 1;
+        last = elapsed;
+        $scope.currentPos = Math.round(ticks*$scope.data.length);
+        $scope.$apply();
+        return $scope.timer_ret_val;
       });
+    };
 
-      var duration = 10000;
-      circle.transition()
-            .duration(duration)
-            .ease("linear")
-            .attrTween("transform", function (d, i) {
-              return function (t) {
-                  var p = pathNode.getPointAtLength(len*t);
-                  return "translate(" + [p.x, p.y] + ")";
-              }
-            });
+    $scope.stopTimer = function() {
+      $scope.timer_ret_val = true;
     };
   });

@@ -11,7 +11,7 @@
 #include <server/nautical/NavJson.h>
 #include <fstream>
 #include <Poco/Path.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <iostream>
 #include <server/nautical/HTreeJson.h>
 #include <server/common/PathBuilder.h>
@@ -43,8 +43,8 @@ namespace {
     Array<Nav> allnavs = scanNmeaFolder(dataFolder, Nav::debuggingBoatId());
     cout << "loaded" << endl;
 
-    Grammar001Settings settings;
-    Grammar001 g(settings);
+    WindOrientedGrammarSettings settings;
+    WindOrientedGrammar g(settings);
 
 
     std::shared_ptr<HTree> fulltree = g.parse(allnavs); //allnavs.sliceTo(2000));

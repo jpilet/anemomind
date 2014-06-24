@@ -88,7 +88,7 @@ target_link_libraries(nautical_ParseExample
                       common_Env
                       common_PathBuilder
                       nautical_NavNmeaScan
-                      nautical_grammars_Grammar001
+                      nautical_grammars_WindOrientedGrammar
                       nautical_NavJson
                       nautical_HTreeJson
                       common_HierarchyJson
@@ -224,7 +224,7 @@ target_link_libraries(nautical_BoatLogProcessor
                       common_logging
                       common_PathBuilder
                       nautical_NavNmeaScan
-                      nautical_grammars_Grammar001
+                      nautical_grammars_WindOrientedGrammar
                       nautical_NavJson
                       nautical_HTreeJson
                       common_HierarchyJson
@@ -247,7 +247,7 @@ add_library(nautical_Calibrator
             Calibrator.cpp
            )
 target_link_libraries(nautical_Calibrator
-                      nautical_grammars_Grammar001
+                      nautical_grammars_WindOrientedGrammar
                       nautical_NavNmeaScan
                       common_Histogram
                       plot_gnuplot
@@ -329,7 +329,7 @@ target_link_libraries(nautical_TargetSpeedExample
                       common_Env
                       nautical_NavNmeaScan
                       common_Span
-                      nautical_grammars_Grammar001
+                      nautical_grammars_WindOrientedGrammar
                      )
 
 add_library(nautical_TestdataNavs
@@ -348,7 +348,7 @@ add_executable(nautical_PlotNavs
               
 target_link_libraries(nautical_PlotNavs
                       nautical_TestdataNavs
-                      nautical_grammars_Grammar001
+                      nautical_grammars_WindOrientedGrammar
                       nautical_grammars_TreeExplorer
                       plot_gnuplot
                      )
