@@ -10,6 +10,7 @@
 
 #include <ceres/ceres.h>
 #include <cmath>
+#include <device/Arduino/libraries/TrueWindEstimator/InstrumentFilter.h>
 #include <iostream>
 #include <server/common/math.h>
 #include <server/common/string.h>
@@ -56,9 +57,11 @@ class TackCost {
     template<typename T>
     bool operator()(const T* const x, T* residual) const {
       HorizontalMotion<T> windBefore =
-        BasicTrueWindEstimator::computeTrueWind<T>(x, _before);
+        TrueWindEstimator::computeTrueWind<T, InstrumentFilter<double> >(
+            x, makeFilter(_before));
       HorizontalMotion<T> windAfter =
-        BasicTrueWindEstimator::computeTrueWind<T>(x, _after);
+        TrueWindEstimator::computeTrueWind<T, InstrumentFilter<double> >(
+            x, makeFilter(_after));
 
       if (1) {
         HorizontalMotion<T> difference = windAfter - windBefore;
@@ -83,9 +86,9 @@ class TackCost {
 
     void printCost(const double* params) {
       HorizontalMotion<double> windBefore =
-        BasicTrueWindEstimator::computeTrueWind<double>(params, _before);
+        TrueWindEstimator::computeTrueWind<double, InstrumentFilter<double> >(params, makeFilter(_before));
       HorizontalMotion<double> windAfter =
-        BasicTrueWindEstimator::computeTrueWind<double>(params, _after);
+        TrueWindEstimator::computeTrueWind<double, InstrumentFilter<double> >(params, makeFilter(_after));
       std::cout << "Wind: " << showWind(windBefore) << " and "
         << showWind(windAfter)
         << " at " << _before.last().time().toString()
@@ -97,9 +100,9 @@ class TackCost {
                          double *sumDegrees, double *sumKnots,
                          double *sumExternalDegrees, double *sumExternalKnots) {
       HorizontalMotion<double> windBefore =
-        BasicTrueWindEstimator::computeTrueWind<double>(params, _before);
+        TrueWindEstimator::computeTrueWind<double, InstrumentFilter<double> >(params, makeFilter(_before));
       HorizontalMotion<double> windAfter =
-        BasicTrueWindEstimator::computeTrueWind<double>(params, _after);
+        TrueWindEstimator::computeTrueWind<double, InstrumentFilter<double> >(params, makeFilter(_after));
       *sumDegrees = std::fabs(windAfter.angle().directionDifference(
               windBefore.angle()).degrees());
       *sumKnots = std::fabs((windAfter.norm() - windBefore.norm()).knots());
@@ -153,7 +156,7 @@ void Calibrator::addTack(int pos, double weight) {
       new AutoDiffCostFunction<
           TackCost,
           2, //residuals
-          BasicTrueWindEstimator::NUM_PARAMS // unknowns
+          TrueWindEstimator::NUM_PARAMS // unknowns
         >(cost);
   _problem.AddResidualBlock(cost_function,
                             //nullptr,
@@ -250,7 +253,7 @@ bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
   Solve(options, &_problem, &summary);
   std::cout << summary.BriefReport() << "\n";
 
-  for (int i = 0; i < BasicTrueWindEstimator::NUM_PARAMS; ++i) {
+  for (int i = 0; i < TrueWindEstimator::NUM_PARAMS; ++i) {
   LOG(INFO) << "param: "
     << _calibrationValues[i];
   }
@@ -332,7 +335,7 @@ void Calibrator::clear() {
   _allnavs.clear();
   _tree.reset();
 
-  BasicTrueWindEstimator::initializeParameters(_calibrationValues);
+  TrueWindEstimator::initializeParameters(_calibrationValues);
 
   _maneuvers.clear();
 }

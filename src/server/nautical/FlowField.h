@@ -7,7 +7,7 @@
  */
 
 #include <server/math/Grid.h>
-#include <server/common/PhysicalQuantity.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 #ifndef FLOWFIELD_H_
 #define FLOWFIELD_H_

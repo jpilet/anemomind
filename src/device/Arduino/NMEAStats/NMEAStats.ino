@@ -1,8 +1,16 @@
+
+#define ANEMOMIND_DEVICE
+#include <PhysicalQuantity.h>
+
 #include <NmeaParser.h>
 #include <TargetSpeed.h>
 #include <SD.h>
 #include <ChunkFile.h>
 #include <SoftwareSerial.h>
+
+#include <InstrumentFilter.h>
+
+using namespace sail;
 
 const bool VERTICAL_SCREEN = false;
 
@@ -15,9 +23,9 @@ bool echo = false;
 int flushFrequMs = 10000;
 
 TargetSpeedTable targetSpeedTable;
+InstrumentFilter<FP16_16> filter;
 
 SoftwareSerial mySerial(8, 9); // RX, TX
-
 
 int my_putc(char c, FILE *) {
   if (echo) {
@@ -39,11 +47,13 @@ void openLogFile() {
   }
 }
 
+#undef degrees
+
 void displaySpeedRatio(const NmeaParser& parser) {
    float speedRatio = getVmgSpeedRatio(targetSpeedTable,
-       parser.twa(),
-       FP8_8(parser.tws() / 256.0),
-       FP8_8(parser.gpsSpeed() / 256.0));
+       parser.twa().degrees(),
+       parser.tws().knots(),
+       filter.gpsSpeed().knots());
    
    // Display speedRatio on the LCD display.
    updateScreen(max(0,min(200, int(speedRatio * 100.0))));
@@ -140,6 +150,7 @@ void setup()
   updateScreen(3);
 
   fdevopen( &my_putc, 0);
+ 
   updateScreen(4);
 
   // SD Card initialization.
@@ -168,7 +179,18 @@ void loop()
     
     switch (nmeaParser.processByte(c)) {
       case NmeaParser::NMEA_NONE: break;
+      case NmeaParser::NMEA_WAT_SP_HDG:
+        filter.setMagHdg(nmeaParser.magHdg());
+        filter.setWatSpeed(nmeaParser.watSpeed());
+        break;
+      case NmeaParser::NMEA_AW:
+        filter.setAwa(nmeaParser.awa());
+        filter.setAws(nmeaParser.aws());
+        break;
       case NmeaParser::NMEA_TIME_POS:
+        filter.setGpsSpeed(nmeaParser.gpsSpeed());
+        filter.setGpsBearing(nmeaParser.gpsBearing());
+
         displaySpeedRatio(nmeaParser);      
       default:
         logNmeaSentence();

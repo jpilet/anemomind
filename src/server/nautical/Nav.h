@@ -8,10 +8,10 @@
 #ifndef NAV_H_
 #define NAV_H_
 
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <string>
 #include <server/common/MDArray.h>
 #include <server/common/math.h>
-#include <server/common/PhysicalQuantity.h>
 #include <server/nautical/GeographicPosition.h>
 #include <server/common/TimeStamp.h>
 

@@ -1,3 +1,6 @@
 add_subdirectory("ChunkFile")
+add_subdirectory("FixedPoint")
 add_subdirectory("NmeaParser")
+add_subdirectory("PhysicalQuantity")
 add_subdirectory("TargetSpeed")
+add_subdirectory("TrueWindEstimator")

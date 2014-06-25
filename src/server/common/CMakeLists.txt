@@ -97,10 +97,6 @@ add_library(common_TimeStampJson
            )
 target_depends_on_poco_foundation(common_TimeStampJson)
 
-cxx_test(common_PhysicalQuantityTest
-  PhysicalQuantityTest.cpp
-  gtest_main)
-
 add_library(common_Array
             Array.cpp
             Array.h

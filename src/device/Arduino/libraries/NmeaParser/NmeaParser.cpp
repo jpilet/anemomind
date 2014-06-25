@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include <math.h>
 
+#ifdef ON_SERVER
+#include <string.h>
+
+using namespace sail;
+#endif
+
 namespace {
 
 char HexDigitToInt(char data) {
@@ -22,7 +28,7 @@ char intToHexDigit(char val) {
   }
 }
 
-#ifndef NOT_ON_MICROCONTROLLER
+#ifndef ON_SERVER
 int strcmp(const char *str1, const char *str2) {
   while (*str1 && *str1 == *str2) {
     ++str1;
@@ -451,7 +457,7 @@ void GeoRef::project(const GeoPos &pos, double xy[2]) const {
   xy[1] = dlat * (pos.lat.toDouble() - reflat);
 }
 
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
 #include <sstream>
 using std::string;
 using std::stringstream;
@@ -465,6 +471,16 @@ string toString(T a) {
   return r.str();
 }
 
+template <>
+string toString(Velocity<FP8_8> a) {
+  return toString((double)a.knots()) + "[kn]";
+}
+
+template <>
+string toString(Angle<short> a) {
+  return toString(a.degrees()) + "[deg]";
+}
+
 }  // namespace
 
 string NmeaParser::awaAsString() const {
@@ -472,11 +488,11 @@ string NmeaParser::awaAsString() const {
 }
 
 string NmeaParser::gpsSpeedAsString() const {
-  return toString(gpsSpeed() / 256.0);
+  return toString(gpsSpeed());
 }
 
 string NmeaParser::awsAsString() const {
-  return toString(aws() / 256.0);
+  return toString(aws());
 }
 
 string NmeaParser::twaAsString() const {
@@ -484,7 +500,7 @@ string NmeaParser::twaAsString() const {
 }
 
 string NmeaParser::twsAsString() const {
-  return toString(tws() / 256.0);
+  return toString(tws());
 }
 
 string NmeaParser::magHdgAsString() const {
@@ -492,7 +508,7 @@ string NmeaParser::magHdgAsString() const {
 }
 
 string NmeaParser::watSpeedAsString() const {
-  return toString(watSpeed() / 256.0);
+  return toString(watSpeed());
 }
 
 string NmeaParser::gpsBearingAsString() const {

@@ -1,6 +1,6 @@
 // (c) 2014 Julien Pilet <julien.pilet@gmail.com>
 
-#include <device/Arduino/libraries/TargetSpeed/FixedPoint.h>
+#include <device/Arduino/libraries/FixedPoint/FixedPoint.h>
 
 #include <gtest/gtest.h>
 
@@ -52,3 +52,11 @@ TEST(FixedPointTest, InPlaceOperators) {
   da /= db;
   EXPECT_NEAR((double) a, da, 1/256.0);
 }
+
+TEST(FixedPointTest, FixedPointToFixedPointConversions) {
+  FP16_16 a(-3.2);
+  EXPECT_NEAR((double) a, (double) FP8_8::convert(a), 1/256.0);
+  FixedPoint<char, short, 2> b(-3.25);
+  EXPECT_NEAR((double) b, (double) FP8_8::convert(b), 1/256.0);
+}
+  

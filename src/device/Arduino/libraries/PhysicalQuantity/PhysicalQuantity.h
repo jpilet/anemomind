@@ -16,12 +16,15 @@
 #ifndef PHYSICALQUANTITY_H_
 #define PHYSICALQUANTITY_H_
 
-#include <array>
+#ifdef ON_SERVER
 #include <cmath>
 #include <limits>
 #include <server/common/math.h>
 #include <sstream>
 #include <string>
+#else
+#include <math.h>
+#endif
 
 namespace sail {
 
@@ -31,8 +34,8 @@ namespace sail {
  * and make the code much more readable than it otherwise would be.
  */
 #define MAKE_PHYSQUANT_UNIT_CONVERTERS(name, fromFactor) \
-  T name() const {return (1.0 / (fromFactor))*(this->_x);} \
-  static ThisType name(T x) {return ThisType((fromFactor)*x);}
+  T name() const {return (T(1.0) / T(fromFactor))*(this->_x);} \
+  static ThisType name(T x) {return ThisType(T(fromFactor)*x);}
 
 #define DECLARE_PHYSQUANT_CONSTRUCTORS(ClassName, baseUnit) \
   private: \
@@ -44,12 +47,15 @@ namespace sail {
   T baseUnit() const { return this->_x; } \
   static ThisType baseUnit(T x) { return ThisType(x); } \
   template<class Other> \
-  ClassName<Other> cast() const { return ClassName<Other>::baseUnit(Other(this->baseUnit())); }
+  ClassName<Other> cast() const { return ClassName<Other>::baseUnit(static_cast<Other>(this->baseUnit())); } \
+  template<class Other> operator ClassName<Other>() const { return cast<Other>(); }
 
 template <typename Quantity, typename Value>
 class PhysicalQuantity {
  public:
+#ifdef ON_SERVER
   const static Value defaultValue;
+#endif
   typedef PhysicalQuantity<Quantity, Value> ThisQuantity;
   typedef Quantity QuantityType;
   typedef Value ValueType;
@@ -89,37 +95,44 @@ class PhysicalQuantity {
   bool operator >= (ThisQuantity other) const {return _x >= other.get();}
   bool operator == (ThisQuantity other) const {return _x == other.get();}
 
+#ifdef ON_SERVER
   // Special method returning true for the comparison nan == nan.
   bool eqWithNan(ThisQuantity other) const {
     return strictEquality(_x, other.get());
   }
+#endif
  protected:
-  PhysicalQuantity() : _x(Quantity::defaultValue) {}
   Value get() const {return _x;}
   PhysicalQuantity(Value x) : _x(x) {}
+#ifdef ON_SERVER
+  PhysicalQuantity() : _x(Quantity::defaultValue) {}
+#else
+  PhysicalQuantity() { }
+#endif
   Value _x;
  private:
   static Quantity makeFromX(Value X) { return Quantity(PhysicalQuantity<Quantity, Value>(X)); }
 };
 
-
+#ifdef ON_SERVER
 template <typename Quantity, typename Value>
 const Value PhysicalQuantity<Quantity, Value>::defaultValue =
     Value(std::numeric_limits<double>::signaling_NaN());
+#endif
 
 template <typename T = double>
 class Angle : public PhysicalQuantity<Angle<T>, T> {
-  DECLARE_PHYSQUANT_CONSTRUCTORS(Angle, radians)
+  DECLARE_PHYSQUANT_CONSTRUCTORS(Angle, degrees)
  public:
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(degrees, M_PI/180.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(radians, 180.0/M_PI);
 
   Angle directionDifference(const Angle<T>& other) const {
     return radians(normalizeAngleBetweenMinusPiAndPi(
-            this->get() - other.get()));
+            this->radians() - other.radians()));
   }
 
   Angle normalizedAt0() const {
-    return radians(normalizeAngleBetweenMinusPiAndPi(this->get()));
+    return radians(normalizeAngleBetweenMinusPiAndPi(this->radians()));
   }
 
   static Angle<T> degMinMc(T deg, T min, T mc) {
@@ -137,11 +150,11 @@ class Length : public PhysicalQuantity<Length<T>, T> {
 
 template <typename T = double>
 class Velocity : public PhysicalQuantity<Velocity<T>, T> {
-  DECLARE_PHYSQUANT_CONSTRUCTORS(Velocity, metersPerSecond)
+  DECLARE_PHYSQUANT_CONSTRUCTORS(Velocity, knots)
  public:
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(knots, 1852/3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(kilometersPerHour, 1.0/3.6);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(milesPerHour, 0.44704);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(metersPerSecond, 3600.0/1852);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(kilometersPerHour, 1.0/1.852);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(milesPerHour, 0.868976242);
 };
 
 template <typename T = double>
@@ -152,6 +165,7 @@ class Duration : public PhysicalQuantity<Duration<T>, T> {
   MAKE_PHYSQUANT_UNIT_CONVERTERS(hours, 3600.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(days, 24*3600.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(weeks, 7*24*3600.0);
+#ifdef ON_SERVER
   std::string str() const {
     std::stringstream ss;
     Duration<T> remaining(*this);
@@ -170,6 +184,7 @@ class Duration : public PhysicalQuantity<Duration<T>, T> {
 #undef FORMAT_DURATION_UNIT
     return ss.str();
   }
+#endif
 };
 
 template <typename T = double>
@@ -181,15 +196,35 @@ class Mass : public PhysicalQuantity<Mass<T>, T> {
 
 };
 
+template<typename T, int N>
+class FixedArray {
+ public:
+  FixedArray() { }
+  FixedArray(const FixedArray& a) {
+    for (int i = 0; i < N; ++i) {
+      _data[i] = a._data[i];
+    }
+  }
+
+  T& operator[](int i) { return _data[i]; }
+  const T& operator[](int i) const { return _data[i]; }
+
+  const T* data() const { return _data; }
+ private:
+  T _data[N];
+};
+
 template <typename T, int N>
-class Vectorize : public std::array<T, N> {
+class Vectorize : public FixedArray<T, N> {
   public:
+#ifdef ON_SERVER
     Vectorize<T, N>(std::initializer_list<T> list) {
         int i=0;
         for (T element : list) {
             (*this)[i++] = element;
         }
     }
+#endif
 
     explicit Vectorize<T, N>(const T x[N]) {
       for (int i = 0; i < N; i++) {
@@ -224,11 +259,18 @@ class Vectorize : public std::array<T, N> {
     Vectorize<T, N> scaled(double factor) const {
         Vectorize result;
         for (int i = 0; i < N; ++i) {
-            result[i] = ((*this)[i]).scaled(factor);
+            result[i] = (*this)[i].scaled(factor);
         }
         return result;
     }
 
+    bool operator == (const Vectorize<T, N>& other) const {
+        for (int i = 0; i < N; ++i) {
+          if (!((*this)[i] == other[i])) return false;
+        }
+        return true;
+    }
+      
     Vectorize() { }
   private:
 };
@@ -255,8 +297,10 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
     typedef Velocity<T> InnerType;
     typedef Vectorize<Velocity<T>, 2> BaseType;
 
-    HorizontalMotion(InnerType eastWest, InnerType southNorth)
-        : BaseType({eastWest, southNorth}) { }
+    HorizontalMotion(InnerType eastWest, InnerType southNorth) {
+      (*this)[0] = eastWest;
+      (*this)[1] = southNorth;
+    }
 
     HorizontalMotion(const BaseType& base) : BaseType(base) { }
 

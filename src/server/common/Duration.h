@@ -5,4 +5,4 @@
  *      Author: jonas
  */
 
-#include <server/common/PhysicalQuantity.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>

@@ -1,5 +1,6 @@
-#include "BasicTrueWindEstimator.h"
+#include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 
+#include <device/Arduino/libraries/TrueWindEstimator/InstrumentFilter.h>
 #include <gtest/gtest.h>
 #include <server/common/Env.h>
 #include <server/common/logging.h>
@@ -10,22 +11,23 @@
 using std::string;
 using namespace sail;
 
-TEST(BasicTrueWindEstimatorTest, SmokeTest) {
+TEST(TrueWindEstimatorTest, SmokeTest) {
   Array<Nav> navs = loadNavsFromNmea(
       string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"),
       Nav::Id("B0A10000")).navs();
 
   CHECK_LT(0, navs.size());
 
-  double parameters[BasicTrueWindEstimator::NUM_PARAMS];
-  BasicTrueWindEstimator::initializeParameters(parameters);
+  double parameters[TrueWindEstimator::NUM_PARAMS];
+  TrueWindEstimator::initializeParameters(parameters);
 
-  auto trueWind = BasicTrueWindEstimator::computeTrueWind(parameters, navs);
+  auto trueWind = TrueWindEstimator::computeTrueWind
+    <double,InstrumentFilter<double> >(parameters, makeFilter(navs));
 
   LOG(INFO) << trueWind[0].knots() << ", " << trueWind[1].knots();
 }
 
-TEST(BasicTrueWindEstimatorTest, ManuallyCheckedDataTest) {
+TEST(TrueWindEstimatorTest, ManuallyCheckedDataTest) {
   // Sailing upwind. True wind: ~222, at about 16.2 knots.
   // Existing onboard instruments said:
   // "$IIMWV,024,T,16.2,N,A*16
@@ -42,11 +44,12 @@ TEST(BasicTrueWindEstimatorTest, ManuallyCheckedDataTest) {
   EXPECT_TRUE(navs.navs().hasData());
   EXPECT_EQ(1, navs.navs().size());
 
-  double parameters[BasicTrueWindEstimator::NUM_PARAMS];
-  BasicTrueWindEstimator::initializeParameters(parameters);
+  double parameters[TrueWindEstimator::NUM_PARAMS];
+  TrueWindEstimator::initializeParameters(parameters);
 
-  auto trueWind = BasicTrueWindEstimator::computeTrueWind(parameters,
-                                                          navs.navs());
+  auto trueWind = TrueWindEstimator::computeTrueWind
+    <double,InstrumentFilter<double> >(parameters, makeFilter(navs.navs()));
+
   EXPECT_NEAR(222, trueWind.angle().degrees() + 360, 5);
   EXPECT_NEAR(16, trueWind.norm().knots(), 1);
 }

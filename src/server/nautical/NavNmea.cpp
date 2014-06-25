@@ -35,11 +35,11 @@ namespace {
   }
 
   Angle<double> getGpsBearing(const NmeaParser &parser) {
-    return Angle<double>::degrees(parser.gpsBearing());
+    return Angle<double>(parser.gpsBearing());
   }
 
   Velocity<double> getGpsSpeed(const NmeaParser &parser) {
-    return Velocity<double>::knots(parser.gpsSpeed() / 256.0);
+    return Velocity<double>(parser.gpsSpeed());
   }
 
   Angle<double> getAngle(const AccAngle &x) {
@@ -74,11 +74,11 @@ namespace {
   }
 
   Angle<double> getAwa(const NmeaParser &parser) {
-    return Angle<double>::degrees(parser.awa());
+    return Angle<double>(parser.awa());
   }
 
   Velocity<double> getAws(const NmeaParser &parser) {
-    return Velocity<double>::knots(parser.aws() / 256.0);
+    return Velocity<double>(parser.aws());
   }
 
 
@@ -91,18 +91,18 @@ namespace {
   }
 
   void readNmeaTW(const NmeaParser &parser, Nav *dstNav, ParsedNavs::FieldMask *mask) {
-    dstNav->setExternalTwa(Angle<double>::degrees(parser.twa()));
+    dstNav->setExternalTwa(parser.twa());
     mask->set(ParsedNavs::TWA_EXTERNAL, true);
-    dstNav->setExternalTws(Velocity<double>::knots(parser.tws() / 256.0));
+    dstNav->setExternalTws(parser.tws());
     mask->set(ParsedNavs::TWS_EXTERNAL, true);
   }
 
   Velocity<double> getWatSpeed(const NmeaParser &parser) {
-    return Velocity<double>::knots(parser.watSpeed() / 256.0);
+    return Velocity<double>(parser.watSpeed());
   }
 
   Angle<double> getMagHdg(const NmeaParser &parser) {
-    return Angle<double>::degrees(parser.magHdg());
+    return Angle<double>(parser.magHdg());
   }
 
   void readNmeaWatSpHdg(const NmeaParser &parser, Nav *dstNav, ParsedNavs::FieldMask *mask) {

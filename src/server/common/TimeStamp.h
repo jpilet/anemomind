@@ -10,7 +10,7 @@
 #include <cinttypes>
 #include <iosfwd>
 
-#include "PhysicalQuantity.h"
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 namespace Poco {
   class DateTime;

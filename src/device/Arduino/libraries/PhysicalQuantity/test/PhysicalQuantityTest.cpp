@@ -4,7 +4,7 @@
  */
 
 #include <cmath>
-#include "PhysicalQuantity.h"
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <gtest/gtest.h>
 
 using namespace sail;
@@ -108,8 +108,9 @@ TEST(PhysQuantTest, HorizontalMotionTest) {
         Velocity<double>::metersPerSecond(6),
         Velocity<double>::metersPerSecond(4));
     EXPECT_EQ(a, b);
-    EXPECT_EQ(twice, a + b);
-    EXPECT_EQ(a, a + HorizontalMotion<double>::zero());
+    EXPECT_EQ(twice, HorizontalMotion<double>(a + b));
+    EXPECT_EQ(a, HorizontalMotion<double>(
+            a + HorizontalMotion<double>::zero()));
 }
 
 TEST(PhysQuantTest, HorizontalMotionPolarTest) {
