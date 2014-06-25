@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
 #include <string.h>
 
 using namespace sail;
@@ -28,7 +28,7 @@ char intToHexDigit(char val) {
   }
 }
 
-#ifndef NOT_ON_MICROCONTROLLER
+#ifndef ON_SERVER
 int strcmp(const char *str1, const char *str2) {
   while (*str1 && *str1 == *str2) {
     ++str1;
@@ -457,7 +457,7 @@ void GeoRef::project(const GeoPos &pos, double xy[2]) const {
   xy[1] = dlat * (pos.lat.toDouble() - reflat);
 }
 
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
 #include <sstream>
 using std::string;
 using std::stringstream;

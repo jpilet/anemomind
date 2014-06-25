@@ -3,7 +3,7 @@
 
 #include "../PhysicalQuantity/PhysicalQuantity.h"
 
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
 #include <server/nautical/Nav.h>
 #endif
 
@@ -39,7 +39,7 @@ class InstrumentFilter {
   Angle<T> _gpsBearing;
 };
 
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
 namespace {
 InstrumentFilter<double> makeFilter(const Array<Nav>& navs) {
   InstrumentFilter<double> filter;

@@ -9,7 +9,7 @@
 #ifndef NMEAPARSER_H
 #define NMEAPARSER_H
 
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
 #include <string>
 #endif
 
@@ -224,7 +224,7 @@ class NmeaParser {
     ignoreWrongChecksum_ = val;
   }
 
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
   std::string awaAsString() const;
   std::string gpsSpeedAsString() const;
   std::string awsAsString() const;

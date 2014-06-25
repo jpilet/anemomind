@@ -16,7 +16,7 @@
 #ifndef PHYSICALQUANTITY_H_
 #define PHYSICALQUANTITY_H_
 
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
 #include <cmath>
 #include <limits>
 #include <server/common/math.h>
@@ -53,7 +53,7 @@ namespace sail {
 template <typename Quantity, typename Value>
 class PhysicalQuantity {
  public:
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
   const static Value defaultValue;
 #endif
   typedef PhysicalQuantity<Quantity, Value> ThisQuantity;
@@ -95,7 +95,7 @@ class PhysicalQuantity {
   bool operator >= (ThisQuantity other) const {return _x >= other.get();}
   bool operator == (ThisQuantity other) const {return _x == other.get();}
 
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
   // Special method returning true for the comparison nan == nan.
   bool eqWithNan(ThisQuantity other) const {
     return strictEquality(_x, other.get());
@@ -104,7 +104,7 @@ class PhysicalQuantity {
  protected:
   Value get() const {return _x;}
   PhysicalQuantity(Value x) : _x(x) {}
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
   PhysicalQuantity() : _x(Quantity::defaultValue) {}
 #else
   PhysicalQuantity() { }
@@ -114,7 +114,7 @@ class PhysicalQuantity {
   static Quantity makeFromX(Value X) { return Quantity(PhysicalQuantity<Quantity, Value>(X)); }
 };
 
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
 template <typename Quantity, typename Value>
 const Value PhysicalQuantity<Quantity, Value>::defaultValue =
     Value(std::numeric_limits<double>::signaling_NaN());
@@ -165,7 +165,7 @@ class Duration : public PhysicalQuantity<Duration<T>, T> {
   MAKE_PHYSQUANT_UNIT_CONVERTERS(hours, 3600.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(days, 24*3600.0);
   MAKE_PHYSQUANT_UNIT_CONVERTERS(weeks, 7*24*3600.0);
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
   std::string str() const {
     std::stringstream ss;
     Duration<T> remaining(*this);
@@ -217,7 +217,7 @@ class FixedArray {
 template <typename T, int N>
 class Vectorize : public FixedArray<T, N> {
   public:
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
     Vectorize<T, N>(std::initializer_list<T> list) {
         int i=0;
         for (T element : list) {
