@@ -29,17 +29,15 @@ namespace {
   }
 
   Hierarchy makeTrzHierarchy() {
-    return HNodeGroup(9, "Top",
-              HNodeGroup(6, "MainData", // Matches the main contents of the line
-                  HNodeGroup(7, "Record", // Matches a common record, e.g. starting with $TANAV,...
-                      HNodeGroup(0, "Data") + HNodeGroup(1, "Separator")
-                  )
-                  +
-                  HNodeGroup(8, "Header", // Matches the first non-empty line of the file, starting with 'Trace'
-                      HNodeGroup(2, "Prefix") + HNodeGroup(3, "Separator") + HNodeGroup(4, "Data")
-                  )
-              )
-              +
+    return HNodeGroup(8, "Top",
+                HNodeGroup(6, "Record", // Matches a common record, e.g. starting with $TANAV,...
+                    HNodeGroup(0, "Data") + HNodeGroup(1, "Separator")
+                )
+                +
+                HNodeGroup(7, "Header", // Matches the first non-empty line of the file, starting with 'Trace'
+                    HNodeGroup(2, "Prefix") + HNodeGroup(3, "Separator") + HNodeGroup(4, "Data")
+                )
+                +
               HNodeGroup(5, "FinalWhiteSpace") // Matches any whitespace at the end of the line
           )
     .compile("Trz-%03d");
@@ -188,6 +186,7 @@ ParsedTrzLine TrzParser::parse(std::string line) {
   if (huge <= cost) {
     LOG(WARNING) << stringFormat("Failed to parse %s:", line.c_str());
     LOG(WARNING) << EXPR_AND_VAL_AS_STRING(parsed);
+    LOG(WARNING) << "Please make sure the file you are opening has been decompressed, e.g. by opening the original *.trz file in gedit and saving it in decompressed format.";
   }
   std::shared_ptr<HTree> tree = _h.parse(parsed);
   ParsedTrzLine x(tree, line);
