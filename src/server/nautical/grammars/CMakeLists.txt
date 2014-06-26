@@ -95,6 +95,7 @@ target_link_libraries(nautical_grammars_TrzParser
                       common_Hierarchy
                       common_string
                       common_HNodeGroup
+                      common_logging
                       nautical_grammars_StaticCostFactory
                      )
 add_executable(nautical_grammars_TrzParserExample

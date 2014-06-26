@@ -304,7 +304,11 @@ TrzParser::TrzParser() : _h(makeTrzHierarchy()) {
 
 ParsedTrzLine TrzParser::parse(std::string line) {
   TrzAutomaton p(line, _prec);
-  return ParsedTrzLine(_h.parse(p.solve()), line);
+  Arrayi parsed = p.solve();
+  if (p.calcCost(parsed) >= huge) {
+    LOG(WARNING) << stringFormat("Failed to parse %s", line.c_str());
+  }
+  return ParsedTrzLine(_h.parse(parsed), line);
 }
 
 Array<ParsedTrzLine> TrzParser::parseFile(std::istream &file) {

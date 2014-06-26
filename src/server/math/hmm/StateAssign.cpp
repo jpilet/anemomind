@@ -9,6 +9,7 @@
 #include <server/common/ArrayIO.h>
 #include <server/common/ArrayBuilder.h>
 #include <limits>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -33,6 +34,17 @@ MDArray2i StateAssign::makeRefMatrix() {
   return ptrs;
 }
 
+double StateAssign::calcCost(Arrayi stateSeq) {
+  CHECK_LE(stateSeq.size(), getLength());
+  const int len = stateSeq.size();
+  double cost = 0.0;
+  int last = len-1;
+  for (int i = 0; i < last; i++) {
+    cost += getStateCost(stateSeq[i], i);
+    cost += getTransitionCost(stateSeq[i], stateSeq[i+1], i);
+  }
+  return cost + getStateCost(stateSeq[last], last);
+}
 
 Arrayi StateAssign::listStateInds() {
   return makeRange(getStateCount());
