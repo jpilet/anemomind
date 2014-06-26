@@ -131,8 +131,15 @@ class Angle : public PhysicalQuantity<Angle<T>, T> {
             this->radians() - other.radians()));
   }
 
-  Angle normalizedAt0() const {
-    return radians(normalizeAngleBetweenMinusPiAndPi(this->radians()));
+  Angle<T> normalizedAt0() const {
+    Angle<T> result(*this);
+    while (result < Angle<T>::degrees(-180)) {
+      result += Angle<T>::degrees(360);
+    }
+    while (result > Angle<T>::degrees(180)) {
+      result -= Angle<T>::degrees(360);
+    }
+    return result;
   }
 
   static Angle<T> degMinMc(T deg, T min, T mc) {

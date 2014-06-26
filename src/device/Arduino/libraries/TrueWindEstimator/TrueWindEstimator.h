@@ -35,10 +35,11 @@ class TrueWindEstimator {
 template <class T, class InstrumentAbstraction>
 HorizontalMotion<T> TrueWindEstimator::computeTrueWind(
         const T* params, const InstrumentAbstraction& measures) {
-    auto awa = normalizeAngleBetweenMinusPiAndPi(measures.awa().radians());
+    typedef typename InstrumentAbstraction::type WorkType;
+    WorkType awa = measures.awa().normalizedAt0().degrees();
 
-    bool upwind = (awa > (- M_PI / 2.0)) && (awa < (M_PI / 2.0));
-    bool starboard = awa > 0;
+    bool upwind = (awa > WorkType(-90)) && (awa < WorkType(90));
+    bool starboard = awa > WorkType(0);
     T aws(measures.aws().knots()); 
 
     T awa_offset(params[PARAM_AWA_OFFSET]);
