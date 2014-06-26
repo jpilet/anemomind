@@ -33,7 +33,7 @@ class TrzParser {
   Array<ParsedTrzLine> parseFile(std::string filename);
   void disp(std::ostream *dst, const ParsedTrzLine &line);
  private:
-  void disp(std::ostream *dst, std::shared_ptr<HTree> tree, const std::string &s, int indent);
+  void disp(std::ostream *dst, std::shared_ptr<HTree> tree, const std::string &s, int depth);
   Hierarchy _h;
   Array<Arrayi> _prec;
 };

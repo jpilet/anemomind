@@ -130,9 +130,9 @@ Arrayi StateAssign::unwind(MDArray2d costs, MDArray2i ptrs) {
   int last = length - 1;
   states[last] = getLastBestState(costs);
 
-//  std::cout << EXPR_AND_VAL_AS_STRING(costs) << std::endl;
-//  std::cout << EXPR_AND_VAL_AS_STRING(ptrs) << std::endl;
-//  std::cout << EXPR_AND_VAL_AS_STRING(states[last]) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(costs) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(ptrs) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(states[last]) << std::endl;
 
   for (int time = last-1; time >= 0; time--) {
     int next = time + 1;

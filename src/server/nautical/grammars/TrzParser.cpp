@@ -178,7 +178,7 @@ namespace {
     return table[index];
   }
 
-  bool whiteSpaceCost(char c) {
+  double whiteSpaceCost(char c) {
     return charCost(c, ' ');//(isBlank(c)? 0 : huge);
   }
 
