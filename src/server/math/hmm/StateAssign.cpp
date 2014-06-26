@@ -10,6 +10,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <limits>
 #include <server/common/logging.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -109,6 +110,7 @@ int getLastBestState(MDArray2d costs) {
   for (int state = 1; state < count; state++) {
     double cost = costs(state, last);
     if (cost < bestCost) {
+      bestCost = cost; // <-- THE ABSENCE OF THIS LINE IS A SERIOUS BUG!!!
       bestIndex = state;
     }
   }
@@ -127,6 +129,11 @@ Arrayi StateAssign::unwind(MDArray2d costs, MDArray2i ptrs) {
   states.setTo(-1);
   int last = length - 1;
   states[last] = getLastBestState(costs);
+
+//  std::cout << EXPR_AND_VAL_AS_STRING(costs) << std::endl;
+//  std::cout << EXPR_AND_VAL_AS_STRING(ptrs) << std::endl;
+//  std::cout << EXPR_AND_VAL_AS_STRING(states[last]) << std::endl;
+
   for (int time = last-1; time >= 0; time--) {
     int next = time + 1;
     int nextState = states[next];

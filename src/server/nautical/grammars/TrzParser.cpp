@@ -12,6 +12,7 @@
 #include <server/nautical/grammars/StaticCostFactory.h>
 #include <cmath>
 #include <server/math/hmm/StateAssign.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 
@@ -137,6 +138,7 @@ namespace {
     Arrayb table = Arrayb::fill(terminalCount, false);
     table[0] = true;
     table[3] = true;
+    table[10] = true;
     return table;
   }
 
@@ -147,10 +149,12 @@ namespace {
 
   Arrayb makeValidEndStateTable() {
     Arrayb table = Arrayb::fill(terminalCount, false);
+    table[1] = true;
     table[3] = true;
     table[2] = true;
     table[4] = true;
     table[8] = true;
+    table[10] = true;
     table[12] = true;
     table[13] = true;
     table[11] = true;
@@ -303,12 +307,21 @@ TrzParser::TrzParser() : _h(makeTrzHierarchy()) {
 }
 
 ParsedTrzLine TrzParser::parse(std::string line) {
+  if (line.empty()) {
+    return ParsedTrzLine(std::shared_ptr<HTree>(), line);
+  }
+
   TrzAutomaton p(line, _prec);
   Arrayi parsed = p.solve();
-  if (p.calcCost(parsed) >= huge) {
+  if (huge <= p.calcCost(parsed)) {
     LOG(WARNING) << stringFormat("Failed to parse %s", line.c_str());
+    std::cout << EXPR_AND_VAL_AS_STRING(parsed) << std::endl;
   }
-  return ParsedTrzLine(_h.parse(parsed), line);
+
+  std::shared_ptr<HTree> tree = _h.parse(parsed);
+  tree->disp(&std::cout, _h.nodes());
+
+  return ParsedTrzLine(tree, line);
 }
 
 Array<ParsedTrzLine> TrzParser::parseFile(std::istream &file) {
@@ -317,8 +330,11 @@ Array<ParsedTrzLine> TrzParser::parseFile(std::istream &file) {
   int counter = 0;
   while (getline(file, line)) {
     counter++;
-    std::cout << "Parse trz line " << counter << std::endl;
+    std::cout << "Parse trz line " << counter << ": " << line << std::endl;
     parsed.add(parse(line));
+    if (counter == 5) {
+      break;
+    }
   }
   Array<ParsedTrzLine> result = parsed.get();
   LOG(INFO) << stringFormat("Parsed Trz file with %d lines.", result.size());
