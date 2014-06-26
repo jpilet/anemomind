@@ -54,7 +54,9 @@ void StateAssign::accumulateCosts(MDArray2d *costsOut, MDArray2i *ptrsOut) {
       int bestPredIndex = -1;
       Arrayi preds = getPrecedingStates(state, time);
       costs(state, time) = getStateCost(state, time) + calcBestPred(costs, preds, state, time-1, &bestPredIndex);
-      assert(bestPredIndex != -1);
+      if (bestPredIndex == -1) {
+        costs(state, time) = std::numeric_limits<double>::infinity();
+      }
       ptrs(state, time) = bestPredIndex;
     }
   }

@@ -169,7 +169,7 @@ namespace {
 
   class TrzAutomaton : public StateAssign {
    public:
-    TrzAutomaton(std::string s, Array<Arrayi> prec) : _s(s) {}
+    TrzAutomaton(std::string s, Array<Arrayi> prec) : _s(s), _prec(prec) {}
 
     double getStateCost(int stateIndex, int timeIndex);
 
