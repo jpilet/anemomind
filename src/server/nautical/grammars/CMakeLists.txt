@@ -93,6 +93,7 @@ add_library(nautical_grammars_TrzParser
 target_link_libraries(nautical_grammars_TrzParser
                       math_hmm_StateAssign
                       common_Hierarchy
+                      common_string
                      )
 add_executable(nautical_grammars_TrzParserExample
                TrzParserExample.cpp
