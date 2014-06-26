@@ -10,7 +10,7 @@ using namespace sail;
 
 
 int main(int argc, char **argv) {
-  std::string filename = "/home/jonas/data/datasets/trz/13_02_14_a_utf8.trz";
+  std::string filename = "/home/jonas/data/datasets/trz/14_02_14_a_utf8.trz";
   if (argc <= 1) {
     std::cout << "Loading trz data from default file " << filename << std::endl;
   } else {
