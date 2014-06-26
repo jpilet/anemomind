@@ -12,7 +12,14 @@ namespace sail {
 
 class ParsedTrzLine {
  public:
-  ParsedTrzLine(std::shared_ptr<HTree> tree, std::string input) : _input(input), _tree(tree) {}
+  ParsedTrzLine(std::shared_ptr<HTree> tree_, std::string input_) : _input(input_), _tree(tree_) {}
+  std::shared_ptr<HTree> tree() const {
+    return _tree;
+  }
+
+  std::string input() const {
+    return _input;
+  }
  private:
   std::shared_ptr<HTree> _tree;
   std::string _input;
@@ -24,7 +31,9 @@ class TrzParser {
   ParsedTrzLine parse(std::string line);
   Array<ParsedTrzLine> parseFile(std::istream &file);
   Array<ParsedTrzLine> parseFile(std::string filename);
+  void disp(std::ostream *dst, const ParsedTrzLine &line);
  private:
+  void disp(std::ostream *dst, std::shared_ptr<HTree> tree, const std::string &s, int indent);
   Hierarchy _h;
   Array<Arrayi> _prec;
 };

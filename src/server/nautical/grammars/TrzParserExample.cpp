@@ -17,7 +17,7 @@ namespace {
 void parseSub(std::string filename) {
   TrzParser parser;
 
-  parser.parse(header);
+  parser.parse(B);
 
   //Array<ParsedTrzLine> result = parser.parseFile(filename);
   //std::cout << "Successfully reached end." << std::endl;

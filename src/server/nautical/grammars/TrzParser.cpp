@@ -99,7 +99,7 @@ namespace {
             HNodeGroup(4, "Number")
             +
             HNodeGroup(22, "Time",
-                HNodeGroup(20, "TimeOfDay",
+                HNodeGroup(20, "Date",
                     HNodeGroup(5, "Value")
                     +
                     HNodeGroup(6, "Separator")
@@ -107,7 +107,7 @@ namespace {
                 +
                 HNodeGroup(7, "WhiteSpace")
                 +
-                HNodeGroup(21, "Date",
+                HNodeGroup(21, "TimeOfDay",
                     HNodeGroup(8, "Value")
                     +
                     HNodeGroup(9, "Separator")
@@ -286,7 +286,8 @@ TrzParser::TrzParser() : _h(makeTrzHierarchy()) {
   f.connectSelf(3);
   f.connectNoCost(2, 4, true);
   f.connectSelf(4);
-  f.connectNoCost(2, 5);
+  f.connectNoCost(2, 5, true);
+  f.connectNoCost(2, 8, true);
   f.connectSelf(5);
   f.connectNoCost(5, 6, true);
   f.connectNoCost(5, 7);
@@ -328,11 +329,10 @@ ParsedTrzLine TrzParser::parse(std::string line) {
     LOG(WARNING) << stringFormat("Failed to parse %s", line.c_str());
     std::cout << EXPR_AND_VAL_AS_STRING(parsed) << std::endl;
   }
-
   std::shared_ptr<HTree> tree = _h.parse(parsed);
-  tree->disp(&std::cout, _h.nodes());
-
-  return ParsedTrzLine(tree, line);
+  ParsedTrzLine x(tree, line);
+  disp(&std::cout, x);
+  return x;
 }
 
 Array<ParsedTrzLine> TrzParser::parseFile(std::istream &file) {
@@ -342,7 +342,8 @@ Array<ParsedTrzLine> TrzParser::parseFile(std::istream &file) {
   while (getline(file, line)) {
     counter++;
     std::cout << "Parse trz line " << counter << ": " << line << std::endl;
-    parsed.add(parse(line));
+    ParsedTrzLine x = parse(line);
+    parsed.add(x);
     if (counter == 5) {
       break;
     }
@@ -356,6 +357,24 @@ Array<ParsedTrzLine> TrzParser::parseFile(std::string filename) {
   std::ifstream file(filename);
   return parseFile(file);
 }
+
+void TrzParser::disp(std::ostream *dst, const ParsedTrzLine &line) {
+  disp(dst, line.tree(), line.input(), 0);
+}
+
+void TrzParser::disp(std::ostream *dst, std::shared_ptr<HTree> tree, const std::string &s, int depth) {
+  indent(dst, 3*depth);
+  *dst << _h.node(tree->index()).description() << " (" << tree->index() << ")";
+  if (tree->childCount() == 0) {
+    *dst << ": " << s.substr(tree->left(), tree->count());
+  }
+  *dst << std::endl;
+  auto ch = tree->children();
+  for (auto c : ch) {
+    disp(dst, c, s, depth+1);
+  }
+}
+
 
 
 
