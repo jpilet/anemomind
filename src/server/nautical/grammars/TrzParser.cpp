@@ -46,6 +46,17 @@ namespace {
     return symbolButCommaNoPenalty(c) + low;
   }
 
+  double symbolButSpaceNoPenalty(char c) {
+    if (isBlank(c)) {
+      return huge;
+    }
+    return 0;
+  }
+
+  double symbolButSpace(char c) {
+    return low + symbolButSpaceNoPenalty(c);
+  }
+
 
   bool isDecimalSeparator(char c) {
     return c == '.';
@@ -109,7 +120,7 @@ namespace {
             +
             HNodeGroup(11, "Separator")
             +
-            HNodeGroup(12, "SymbolButComma")
+            HNodeGroup(12, "SymbolButSpace")
             +
             HNodeGroup(13, "Number")
             +
@@ -237,9 +248,9 @@ namespace {
     case 10:
       return prefixWordCost(c, timeIndex, headerPrefix);
     case 11:
-      return commaCost(c);
+      return whiteSpaceCost(c);
     case 12:
-      return symbolButComma(c);
+      return symbolButSpace(c);
     case 13:
       return numericCost(c);
     case 14:
