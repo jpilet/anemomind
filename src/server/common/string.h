@@ -18,6 +18,7 @@ std::string objectToString(const T &x) {
 
 bool notIsBlank(char c);
 bool isBlank(char c);
+bool isDigit(char c);
 
 bool tryParseInt(const std::string &s, int &out);
 bool tryParseDouble(const std::string &s, double &out);

@@ -20,8 +20,13 @@ class ParsedTrzLine {
 
 class TrzParser {
  public:
+  TrzParser();
+  ParsedTrzLine parse(std::string line);
+  Array<ParsedTrzLine> parseFile(std::istream &file);
+  Array<ParsedTrzLine> parseFile(std::string filename);
  private:
-
+  Hierarchy _h;
+  Array<Arrayi> _prec;
 };
 
 }

@@ -9,6 +9,10 @@ bool isBlank(char c) {
   return c == ' ' || c == '\n';
 }
 
+bool isDigit(char c) {
+  return '0' <= c && c <= '9';
+}
+
 bool notIsBlank(char c) {
   return !isBlank(c);
 }
