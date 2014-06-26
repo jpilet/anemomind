@@ -33,6 +33,10 @@ class ParsedTrzLine {
   bool isLeaf() const {
     return childCount() == 0;
   }
+
+  bool empty() const {
+    return !bool(_tree);
+  }
  private:
   std::shared_ptr<HTree> _tree;
   std::string _input;

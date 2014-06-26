@@ -186,28 +186,20 @@ ParsedTrzLine TrzParser::parse(std::string line) {
   Arrayi parsed = p.solve();
   double cost = p.calcCost(parsed);
   if (huge <= cost) {
-    LOG(WARNING) << stringFormat("Failed to parse %s", line.c_str());
-    std::cout << EXPR_AND_VAL_AS_STRING(parsed) << std::endl;
+    LOG(WARNING) << stringFormat("Failed to parse %s:", line.c_str());
+    LOG(WARNING) << EXPR_AND_VAL_AS_STRING(parsed);
   }
   std::shared_ptr<HTree> tree = _h.parse(parsed);
   ParsedTrzLine x(tree, line);
-  disp(&std::cout, x);
-  std::cout << EXPR_AND_VAL_AS_STRING(cost) << std::endl;
   return x;
 }
 
 Array<ParsedTrzLine> TrzParser::parseFile(std::istream &file) {
   ArrayBuilder<ParsedTrzLine> parsed;
   std::string line;
-  int counter = 0;
   while (getline(file, line)) {
-    counter++;
-    std::cout << "Parse trz line " << counter << ": " << line << std::endl;
     ParsedTrzLine x = parse(line);
     parsed.add(x);
-    if (counter == 5) {
-      break;
-    }
   }
   Array<ParsedTrzLine> result = parsed.get();
   LOG(INFO) << stringFormat("Parsed Trz file with %d lines.", result.size());
@@ -222,13 +214,19 @@ Array<ParsedTrzLine> TrzParser::parseFile(std::string filename) {
 
 void TrzParser::disp(std::ostream *dst, const ParsedTrzLine &data, int depth) {
   indent(dst, 3*depth);
+  if (data.empty()) {
+    *dst << "Empty node" << std::endl;
+    return;
+  }
+
   *dst << _h.node(data.index()).description() << " (" << data.index() << ")";
   if (data.isLeaf()) {
-    *dst << ": " << "'" << data.data() << "'";
-  }
-  *dst << std::endl;
-  for (int i = 0; i < data.childCount(); i++) {
-    disp(dst, data.child(i), depth+1);
+    *dst << ": " << "'" << data.data() << "'" << std::endl;
+  } else {
+    *dst << " with " << data.childCount() << " children:" << std::endl;
+    for (int i = 0; i < data.childCount(); i++) {
+      disp(dst, data.child(i), depth+1);
+    }
   }
 }
 
