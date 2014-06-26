@@ -6,7 +6,7 @@
 namespace sail {
 
 bool isBlank(char c) {
-  return c == ' ' || c == '\n';
+  return c == ' ' || c == '\n' || c == '\t' || c == '\r';
 }
 
 bool isDigit(char c) {
