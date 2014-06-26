@@ -125,7 +125,7 @@ namespace {
             HNodeGroup(13, "Number")
             +
             HNodeGroup(26, "Time",
-                HNodeGroup(24, "TimeOfDay",
+                HNodeGroup(24, "Date",
                     HNodeGroup(14, "Value")
                     +
                     HNodeGroup(15, "Separator")
@@ -133,7 +133,7 @@ namespace {
                 +
                 HNodeGroup(16, "WhiteSpace")
                 +
-                HNodeGroup(25, "Date",
+                HNodeGroup(25, "TimeOfDay",
                     HNodeGroup(17, "Value")
                     +
                     HNodeGroup(18, "Separator")
@@ -179,7 +179,7 @@ namespace {
   }
 
   bool whiteSpaceCost(char c) {
-    return (isBlank(c)? 0 : huge);
+    return charCost(c, ' ');//(isBlank(c)? 0 : huge);
   }
 
   class TrzAutomaton : public StateAssign {
@@ -242,7 +242,7 @@ namespace {
     case 7:
       return whiteSpaceCost(c);
     case 8:
-      return integerCost(stateIndex);
+      return integerCost(c);
     case 9:
       return charCost(c, ':');
     case 10:
@@ -325,13 +325,15 @@ ParsedTrzLine TrzParser::parse(std::string line) {
 
   TrzAutomaton p(line, _prec);
   Arrayi parsed = p.solve();
-  if (huge <= p.calcCost(parsed)) {
+  double cost = p.calcCost(parsed);
+  if (huge <= cost) {
     LOG(WARNING) << stringFormat("Failed to parse %s", line.c_str());
     std::cout << EXPR_AND_VAL_AS_STRING(parsed) << std::endl;
   }
   std::shared_ptr<HTree> tree = _h.parse(parsed);
   ParsedTrzLine x(tree, line);
   disp(&std::cout, x);
+  std::cout << EXPR_AND_VAL_AS_STRING(cost) << std::endl;
   return x;
 }
 
@@ -366,7 +368,7 @@ void TrzParser::disp(std::ostream *dst, std::shared_ptr<HTree> tree, const std::
   indent(dst, 3*depth);
   *dst << _h.node(tree->index()).description() << " (" << tree->index() << ")";
   if (tree->childCount() == 0) {
-    *dst << ": " << s.substr(tree->left(), tree->count());
+    *dst << ": " << "'" << s.substr(tree->left(), tree->count()) << "'" << " (length " << tree->count() << ")";
   }
   *dst << std::endl;
   auto ch = tree->children();
