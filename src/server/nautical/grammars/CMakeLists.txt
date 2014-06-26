@@ -85,3 +85,8 @@ cxx_test(nautical_grammars_StaticCostFactoryTest
          common_HNodeGroup
          gtest_main
         )
+
+add_library(nautical_grammars_TrzParser
+            TrzParser.h
+            TrzParser.cpp
+           )        
