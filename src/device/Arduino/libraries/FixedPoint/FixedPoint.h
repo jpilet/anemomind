@@ -13,9 +13,9 @@ class FixedPoint {
 
    // Constructors
    FixedPoint() { }
-   FixedPoint(int x) { _value = x << Shift; }
-   FixedPoint(float x) { _value = StoreType(x * (1 << Shift)); }
-   FixedPoint(double x) { _value = StoreType(x * (1 << Shift)); }
+   FixedPoint(int x) { _value = StoreType(x) << Shift; }
+   FixedPoint(float x) { _value = StoreType(x * (StoreType(1) << Shift)); }
+   FixedPoint(double x) { _value = StoreType(x * (StoreType(1) << Shift)); }
    FixedPoint(const ThisType &a) : _value(a._value) { }
 
    template <typename OtherStoreType, typename OtherLongType, int OtherShift>
@@ -46,8 +46,8 @@ class FixedPoint {
    // Casts
    operator short() const { return short(round()); }
    operator int() const { return int(round()); }
-   operator float() const { return float(_value) / float(1 << Shift); }
-   operator double() const { return double(_value) / double(1 << Shift); }
+   operator float() const { return float(_value) / float(StoreType(1) << Shift); }
+   operator double() const { return double(_value) / double(StoreType(1) << Shift); }
 
    template <typename OtherStoreType, typename OtherLongType, int OtherShift>
    operator FixedPoint<OtherStoreType, OtherLongType, OtherShift>() const {
