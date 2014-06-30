@@ -6,14 +6,19 @@
 #ifndef ANGLECOST_H_
 #define ANGLECOST_H_
 
-#include <server/common/PhysicalQuantity.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <map>
 
 namespace sail {
 
 class AngleCost {
  public:
-  AngleCost();
-  virtual ~AngleCost();
+  // Adds a new angle to the set of angles
+  void add(int stateIndex, Angle<double> angle);
+
+  // Computes a part of the cost of being in a state with index 'stateIndex'
+  // with an angle of 'angle'
+  double calcCost(int stateIndex, Angle<double> angle) const;
  private:
   std::map<int, Angle<double> > _anglePerState;
 };

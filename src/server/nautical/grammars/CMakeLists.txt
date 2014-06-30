@@ -104,3 +104,12 @@ add_executable(nautical_grammars_TrzParserExample
 target_link_libraries(nautical_grammars_TrzParserExample
                       nautical_grammars_TrzParser
                      ) 
+add_library(nautical_grammars_AngleCost
+            AngleCost.h
+            AngleCost.cpp
+           )             
+cxx_test(nautical_grammars_AngleCostTest
+            AngleCostTest.cpp
+            gtest_main
+            nautical_grammars_AngleCost
+           )                   
