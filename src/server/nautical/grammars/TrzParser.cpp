@@ -13,6 +13,7 @@
 #include <cmath>
 #include <server/math/hmm/StateAssign.h>
 #include <server/common/ArrayIO.h>
+#include <cctype>
 
 namespace sail {
 
@@ -72,7 +73,7 @@ namespace {
   }
 
   double blankCost(char c) {
-    return (isBlank(c)? 0 : huge);
+    return (isblank(c)? 0 : huge);
   }
 
   double charCost(char a, char b) {
@@ -88,7 +89,7 @@ namespace {
   }
 
   double butBlankCost(char c) {
-    return (isBlank(c)? huge : 0);
+    return (isblank(c)? huge : 0);
   }
 
   class TrzAutomaton : public StateAssign {

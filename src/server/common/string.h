@@ -16,10 +16,6 @@ std::string objectToString(const T &x) {
 
 #define EXPR_AND_VAL_AS_STRING(X) (std::string(#X " = \n") + objectToString((X)))
 
-bool notIsBlank(char c);
-bool isBlank(char c);
-bool isDigit(char c);
-
 bool tryParseInt(const std::string &s, int &out);
 bool tryParseDouble(const std::string &s, double &out);
 
