@@ -29,6 +29,7 @@ namespace {
     return huge;
   }
 
+
   Hierarchy makeTrzHierarchy() {
     return HNodeGroup(8, "Top",
                 HNodeGroup(6, "Record", // Matches a common record, e.g. starting with $TANAV,...
@@ -230,6 +231,145 @@ void TrzParser::disp(std::ostream *dst, const ParsedTrzLine &data, int depth) {
   }
 }
 
+namespace {
+/*
+ *   Hierarchy makeTrzHierarchy() {
+    return HNodeGroup(8, "Top",
+                HNodeGroup(6, "Record", // Matches a common record, e.g. starting with $TANAV,...
+                    HNodeGroup(0, "Data") + HNodeGroup(1, "Separator")
+                )
+                +
+                HNodeGroup(7, "Header", // Matches the first non-empty line of the file, starting with 'Trace'
+                    HNodeGroup(2, "Prefix") + HNodeGroup(3, "Separator") + HNodeGroup(4, "Data")
+                )
+                +
+              HNodeGroup(5, "FinalWhiteSpace") // Matches any whitespace at the end of the line
+          )
+ * */
+  int countArgsRecord(const ParsedTrzLine &data) {
+    const int count = data.childCount();
+    int commaCounter = 0;
+    std::shared_ptr<HTree> tree = data.tree();
+    for (int i = 0; i < count; i++) {
+      std::shared_ptr<HTree> child = tree->child(i);
+      if (child->index() == 1) {
+        commaCounter += child->count();
+      }
+    }
+    return commaCounter + 1;
+  }
+
+  int countArgsHeader(const ParsedTrzLine &data) {
+    const int count = data.childCount();
+    int counter = 0;
+    std::shared_ptr<HTree> tree = data.tree();
+    for (int i = 0; i < count; i++) {
+      std::shared_ptr<HTree> child = tree->child(i);
+      if (child->index() != 3) {
+        counter++;
+      }
+    }
+    return counter;
+  }
+
+
+  int countArgs(const ParsedTrzLine &data) {
+    if (data.index() == 6) {
+      return countArgsRecord(data);
+    } else {
+      assert(data.index() == 7);
+      return countArgsHeader(data);
+    }
+  }
+
+  MDArray<std::string, 2> allocateArgMatrix(Array<ParsedTrzLine> data) {
+    int rows = 0;
+    int cols = 0;
+    for (auto x : data) {
+      if (!data.empty()) {
+        rows++;
+        cols = std::max(cols, countArgs(x));
+      }
+    }
+    return MDArray<std::string, 2>(rows, cols);
+  }
+
+  void fillRecordRow(const ParsedTrzLine &src, MDArray<std::string, 2> dst) {
+    int index = 0;
+    for (int i = 0; i < src.childCount(); i++) {
+      ParsedTrzLine ch = src.child(i);
+      if (ch.index() == 1) {
+        index += ch.dataLength();
+      } else {
+        dst(0, index) = ch.data();
+      }
+    }
+  }
+
+  void fillHeaderRow(const ParsedTrzLine &src, MDArray<std::string, 2> dst) {
+    int index = 0;
+    for (int i = 0; i < src.childCount(); i++) {
+      ParsedTrzLine ch = src.child(i);
+      if (ch.index() == 4) {
+        dst(0, index) = ch.data();
+        index++;
+      }
+    }
+  }
+
+  void fillArgRow(const ParsedTrzLine &src, MDArray<std::string, 2> dst) {
+    if (src.index() == 6) {
+      fillRecordRow(src, dst);
+    } else {
+      assert(src.index() == 7);
+      fillHeaderRow(src, dst);
+    }
+  }
+
+  MDArray<std::string, 2> makeArgMatrix(Array<ParsedTrzLine> data) {
+    MDArray<std::string, 2> dst = allocateArgMatrix(data);
+    int counter = 0;
+    for (auto x : data) {
+      if (fillArgRow(x, dst.sliceRow(counter))) {
+        counter++;
+      }
+    }
+    assert(counter == dst.rows());
+    return dst;
+  }
+
+  std::string toMatlabLiteral(std::string data) {
+    std::stringstream out;
+    try {
+      out << std::stoi(data);
+    } catch (std::exception &e) {
+      try {
+        out << std::stod(data);
+      } catch (std::exception &e) {
+        // TODO: Replace special chars by escape sequences.
+        out << "'" << data << "'";
+      }
+    }
+    return out.str();
+  }
+
+  void outputArgMatrix(const std::string &varName,
+      MDArray<std::string, 2> mat, std::ostream *file) {
+    *file << "  " << varName << " = cell(" << mat.rows() << ", " << mat.cols() << ");\n";
+    for (int i = 0; i < mat.rows(); i++) {
+      for (int j = 0; j < mat.cols(); j++) {
+        *file << "  " << varName << "{" << i+1 << ", " << j+1 << "} = " << toMatlabLiteral(mat(i, j)) << ";\n";
+      }
+    }
+  }
+}
+
+void exportToMatlab(std::string filename, std::string functionName, Array<ParsedTrzLine> data) {
+  std::ofstream file(filename);
+  file << "function out = " << functionName << "()";
+  outputArgMatrix("out", makeArgMatrix(data), &file);
+  file << "end";
+}
 
 
 
