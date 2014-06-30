@@ -52,7 +52,7 @@ namespace {
     const int preflen = headerprefix.length();
     if (line.substr(0, preflen) == headerprefix) {
       mapped.slice(0, preflen).setTo(2);
-      for (int i = 0; i < len; i++) {
+      for (int i = preflen; i < len; i++) {
         if (isblank(line[i])) {
           mapped[i] = 3;
         } else {
