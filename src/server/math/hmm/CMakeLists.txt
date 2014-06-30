@@ -4,6 +4,7 @@ add_library(math_hmm_StateAssign
            )
 target_link_libraries(math_hmm_StateAssign
                       common_Array
+                      common_logging
                      )
 cxx_test(math_hmm_StateAssignTest StateAssignTest.cpp
          math_hmm_StateAssign

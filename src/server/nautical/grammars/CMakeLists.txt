@@ -85,3 +85,22 @@ cxx_test(nautical_grammars_StaticCostFactoryTest
          common_HNodeGroup
          gtest_main
         )
+
+add_library(nautical_grammars_TrzParser
+            TrzParser.h
+            TrzParser.cpp
+           )
+target_link_libraries(nautical_grammars_TrzParser
+                      math_hmm_StateAssign
+                      common_Hierarchy
+                      common_string
+                      common_HNodeGroup
+                      common_logging
+                      nautical_grammars_StaticCostFactory
+                     )
+add_executable(nautical_grammars_TrzParserExample
+               TrzParserExample.cpp
+              )
+target_link_libraries(nautical_grammars_TrzParserExample
+                      nautical_grammars_TrzParser
+                     ) 

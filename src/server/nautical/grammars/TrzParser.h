@@ -1,0 +1,59 @@
+/*
+ *  Created on: 2014-06-26
+ *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
+ */
+
+#ifndef TRZPARSER_H_
+#define TRZPARSER_H_
+
+#include <server/common/Hierarchy.h>
+
+namespace sail {
+
+class ParsedTrzLine {
+ public:
+  ParsedTrzLine(std::shared_ptr<HTree> tree_, std::string input_) : _input(input_), _tree(tree_) {}
+
+  int childCount() const {
+    return _tree->childCount();
+  }
+
+  ParsedTrzLine child(int index) const {
+    return ParsedTrzLine(_tree->child(index), _input);
+  }
+
+  int index() const {
+    return _tree->index();
+  }
+
+  std::string data() const {
+    return _input.substr(_tree->left(), _tree->count());
+  }
+
+  bool isLeaf() const {
+    return childCount() == 0;
+  }
+
+  bool empty() const {
+    return !bool(_tree);
+  }
+ private:
+  std::shared_ptr<HTree> _tree;
+  std::string _input;
+};
+
+class TrzParser {
+ public:
+  TrzParser();
+  ParsedTrzLine parse(std::string line);
+  Array<ParsedTrzLine> parseFile(std::istream &file);
+  Array<ParsedTrzLine> parseFile(std::string filename);
+  void disp(std::ostream *dst, const ParsedTrzLine &line, int depth = 0);
+ private:
+  Hierarchy _h;
+  Array<Arrayi> _prec;
+};
+
+}
+
+#endif
