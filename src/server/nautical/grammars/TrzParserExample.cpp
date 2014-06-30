@@ -27,9 +27,17 @@ int main(int argc, char **argv) {
     int answer = 0;
     do {
       std::cout << "Which line (1.." << parsed.size() << ") do you want to inspect? Or do you want to quit (0)?" << std::endl;
+      std::cout << " Type -1 to output as Matlab cell array." << std::endl;
       cin >> answer;
       if (1 <= answer && answer <= parsed.size()) {
         parser.disp(&std::cout, parsed[answer-1]);
+      } else if (answer == -1) {
+        std::string outfile, funname;
+        std::cout << "Filename? " << std::endl;
+        std::cin >> outfile;
+        std::cout << "Function name?" << std::endl;
+        std::cin >> funname;
+        exportToMatlab(outfile, funname, parsed);
       }
     } while (answer != 0);
   }

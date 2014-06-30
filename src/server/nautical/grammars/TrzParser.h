@@ -37,6 +37,14 @@ class ParsedTrzLine {
   bool empty() const {
     return !bool(_tree);
   }
+
+  const std::shared_ptr<HTree> &tree() const {
+    return _tree;
+  }
+
+  const int dataLength() const {
+    return _tree->count();
+  }
  private:
   std::shared_ptr<HTree> _tree;
   std::string _input;
@@ -53,6 +61,8 @@ class TrzParser {
   Hierarchy _h;
   Array<Arrayi> _prec;
 };
+
+void exportToMatlab(std::string filename, std::string functionName, Array<ParsedTrzLine> data);
 
 }
 

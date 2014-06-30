@@ -317,13 +317,17 @@ namespace {
     }
   }
 
-  void fillArgRow(const ParsedTrzLine &src, MDArray<std::string, 2> dst) {
+  bool fillArgRow(const ParsedTrzLine &src, MDArray<std::string, 2> dst) {
+    if (src.empty()) {
+      return false;
+    }
     if (src.index() == 6) {
       fillRecordRow(src, dst);
     } else {
       assert(src.index() == 7);
       fillHeaderRow(src, dst);
     }
+    return true;
   }
 
   MDArray<std::string, 2> makeArgMatrix(Array<ParsedTrzLine> data) {
