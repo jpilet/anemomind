@@ -44,136 +44,35 @@ namespace {
     .compile("Trz-%03d");
   }
 
-  const int terminalCount = 6;
+  Arrayi parseTrzSub(std::string line) {
+    const int len = line.length();
+    Arrayi mapped(len);
 
-  Arrayb makeValidStartStateTable() {
-    Arrayb table = Arrayb::fill(terminalCount, false);
-    table[0] = true;
-    table[2] = true;
-    return table;
-  }
-
-  bool isValidStartState(int index) {
-    static Arrayb table = makeValidStartStateTable();
-    return table[index];
-  }
-
-  Arrayb makeValidEndStateTable() {
-    Arrayb table = Arrayb::fill(terminalCount, false);
-    table[0] = true;
-    table[1] = true;
-    table[4] = true;
-    table[5] = true;
-    return table;
-  }
-
-  bool isValidEndState(int index) {
-    static Arrayb table = makeValidEndStateTable();
-    return table[index];
-  }
-
-  double blankCost(char c) {
-    return (isblank(c)? 0 : huge);
-  }
-
-  double charCost(char a, char b) {
-    return (a == b? 0 : huge);
-  }
-
-  double commaCost(char c) {
-    return charCost(c, ',');
-  }
-
-  double butSymbolCost(char c, char symbol) {
-    return (c == symbol? huge : 0);
-  }
-
-  double butBlankCost(char c) {
-    return (isblank(c)? huge : 0);
-  }
-
-  class TrzAutomaton : public StateAssign {
-   public:
-    TrzAutomaton(std::string s, Array<Arrayi> prec) : _s(s), _prec(prec) {}
-
-    double getStateCost(int stateIndex, int timeIndex);
-
-     double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
-       return 0.0; // Handled by getPrecedingStates
-     }
-
-     int getStateCount() {
-       return terminalCount;
-     }
-     int getLength() {
-       return _s.length();
-     }
-
-     Arrayi getPrecedingStates(int stateIndex, int timeIndex) {
-       return _prec[stateIndex];
-     }
-
-   private:
-    std::string _s;
-    Array<Arrayi> _prec;
-  };
-
-  double TrzAutomaton::getStateCost(int stateIndex, int timeIndex) {
-    if (timeIndex == 0) {
-      if (!isValidStartState(stateIndex)) {
-        return huge;
+    static const std::string headerprefix("Trace");
+    const int preflen = headerprefix.length();
+    if (line.substr(0, preflen) == headerprefix) {
+      mapped.slice(0, preflen).setTo(2);
+      for (int i = 0; i < len; i++) {
+        if (isblank(line[i])) {
+          mapped[i] = 3;
+        } else {
+          mapped[i] = 4;
+        }
+      }
+    } else {
+      for (int i = 0; i < len; i++) {
+        if (line[i] == ',') {
+          mapped[i] = 1;
+        } else {
+          mapped[i]= 0;
+        }
       }
     }
-
-    if (timeIndex == getLength() - 1) {
-      if (!isValidEndState(stateIndex)) {
-        return huge;
-      }
-    }
-
-    static const std::string headerPrefix("Trace");
-    char c = _s[timeIndex];
-
-    switch (stateIndex) {
-    case 0:
-      return discourage + butSymbolCost(c, ',');
-    case 1:
-      return commaCost(c);
-    case 2:
-      return prefixWordCost(c, timeIndex, headerPrefix);
-    case 3:
-      return blankCost(c);
-    case 4:
-      return butBlankCost(c);
-    case 5:
-      return blankCost(c);
-    default:
-      LOG(FATAL) << "Invalid state index";
-      return NAN;
-    };
-    return NAN;
+    return mapped;
   }
-
 }
 
-
-
 TrzParser::TrzParser() : _h(makeTrzHierarchy()) {
-  StaticCostFactory f(_h);
-
-  for (int i = 0; i < terminalCount; i++) {
-    f.connectSelf(i);
-  }
-
-  f.connectNoCost(0, 1, true);
-  f.connectNoCost(0, 5);
-  f.connectNoCost(1, 5);
-
-  f.connectNoCost(2, 3);
-  f.connectNoCost(3, 4, true);
-  f.connectNoCost(4, 5);
-
-  _prec = StateAssign::makePredecessorsPerState(f.connections());
 }
 
 ParsedTrzLine TrzParser::parse(std::string line) {
@@ -181,14 +80,7 @@ ParsedTrzLine TrzParser::parse(std::string line) {
     return ParsedTrzLine(std::shared_ptr<HTree>(), line);
   }
 
-  TrzAutomaton p(line, _prec);
-  Arrayi parsed = p.solve();
-  double cost = p.calcCost(parsed);
-  if (huge <= cost) {
-    LOG(WARNING) << stringFormat("Failed to parse %s:", line.c_str());
-    LOG(WARNING) << EXPR_AND_VAL_AS_STRING(parsed);
-    LOG(WARNING) << "Please make sure the file you are opening has been decompressed, e.g. by opening the original *.trz file in gedit and saving it in decompressed format.";
-  }
+  Arrayi parsed = parseTrzSub(line);
   std::shared_ptr<HTree> tree = _h.parse(parsed);
   ParsedTrzLine x(tree, line);
   return x;

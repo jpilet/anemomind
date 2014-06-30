@@ -51,7 +51,6 @@ class TrzParser {
   void disp(std::ostream *dst, const ParsedTrzLine &line, int depth = 0);
  private:
   Hierarchy _h;
-  Array<Arrayi> _prec;
 };
 
 }
