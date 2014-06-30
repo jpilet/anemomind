@@ -18,6 +18,7 @@ TEST(AngleCost, BasicTest) {
   EXPECT_NEAR(cost.calcCost(0, b), 0.5, 1.0e-6);
   EXPECT_NEAR(cost.calcCost(0, -b), 0.5, 1.0e-6);
   EXPECT_NEAR(cost.calcCost(0, -b + Angle<double>::radians(4.0*M_PI)), 0.5, 1.0e-6);
+  EXPECT_NEAR(cost.calcCost(1, a), 0.5, 1.0e-6);
 }
 
 
