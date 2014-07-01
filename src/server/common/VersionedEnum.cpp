@@ -4,16 +4,14 @@
  */
 
 #include "VersionedEnum.h"
+#include <Poco/Checksum.h>
 
-namespace mmm {
+namespace sail {
 
-VersionedEnum::VersionedEnum() {
-  // TODO Auto-generated constructor stub
-
-}
-
-VersionedEnum::~VersionedEnum() {
-  // TODO Auto-generated destructor stub
+unsigned int calcChecksum(const char *data) {
+  Poco::Checksum cs;
+  cs.update(std::string(data));
+  return cs.checksum();
 }
 
 } /* namespace mmm */

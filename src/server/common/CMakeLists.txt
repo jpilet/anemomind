@@ -28,7 +28,17 @@ cxx_test(common_EnvTest
          gtest_main
         )           
 target_depends_on_poco_foundation(common_EnvTest)
-         
+
+add_library(common_VersionedEnum
+            VersionedEnum.cpp
+            VersionedEnum.h
+           )           
+target_depends_on_poco_foundation(common_VersionedEnum)
+cxx_test(common_VersionedEnumTest
+         VersionedEnumTest.cpp
+         gtest_main
+         common_VersionedEnum
+        )
 
 cxx_test(common_stringTest
          stringTest.cpp

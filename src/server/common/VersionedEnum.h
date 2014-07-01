@@ -6,14 +6,14 @@
 #ifndef VERSIONEDENUM_H_
 #define VERSIONEDENUM_H_
 
-namespace mmm {
+namespace sail {
 
 /*
  * To be declared in a class.
  */
-#define VERSIONED_ENUM(ENUMNAME, DATA) enum ENUMNAME {DATA}; static const char *ENUMNAME ## TextRepr = #DATA;
+#define VERSIONED_ENUM(ENUMNAME, ...) enum ENUMNAME {__VA_ARGS__}; static constexpr char *ENUMNAME ## TextRepr = #__VA_ARGS__
 
-unsigned long int calcChecksum(const char);
+unsigned int calcChecksum(const char *data);
 
 } /* namespace mmm */
 
