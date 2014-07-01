@@ -18,6 +18,7 @@ class AngleCost {
 
   // Computes a part of the cost of being in a state with index 'stateIndex'
   // with an angle of 'angle'
+  // Returns a cost between 0 for the exact state angle, and 1 for the opposite angle.
   double calcCost(int stateIndex, Angle<double> angle) const;
  private:
   std::map<int, Angle<double> > _anglePerState;
