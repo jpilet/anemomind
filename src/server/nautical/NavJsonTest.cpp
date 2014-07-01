@@ -13,6 +13,8 @@
 #include <server/common/Json.h>
 #include <Poco/JSON/Stringifier.h>
 
+#include <server/common/Json.impl.h>
+
 using namespace sail;
 
 TEST(NavJsonTest, ConvertToJson) {

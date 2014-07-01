@@ -11,6 +11,8 @@
 #include <server/common/TimeStampJson.h>
 #include <server/common/Json.h>
 
+#include <server/common/Json.impl.h>
+
 namespace sail {
 namespace json {
 
@@ -70,6 +72,5 @@ bool deserialize(Poco::Dynamic::Var x, Nav *out) {
   }
 }
 
-
-}
-} /* namespace sail */
+}  // namespace json
+}  // namespace sail
