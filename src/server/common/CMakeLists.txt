@@ -45,6 +45,17 @@ add_library(common_logging
             logging.h
             logging.cpp)
 
+add_library(common_VersionedEnum
+            VersionedEnum.cpp
+            VersionedEnum.h
+           )           
+target_depends_on_poco_foundation(common_VersionedEnum)
+cxx_test(common_VersionedEnumTest
+         VersionedEnumTest.cpp
+         gtest_main
+         common_VersionedEnum
+        )
+
 cxx_test(common_logging_test logging_test.cpp common_logging gtest_main)
 
 add_library(common_filesystem
