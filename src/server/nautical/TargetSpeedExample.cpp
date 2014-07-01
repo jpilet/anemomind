@@ -24,10 +24,7 @@ namespace {
     });
   }
 
-  void targetSpeedPlot(bool upwind) {
-    Poco::Path srcpath = PathBuilder::makeDirectory(Env::SOURCE_DIR).
-        pushDirectory("datasets").
-        pushDirectory("Irene").get();
+  void targetSpeedPlot(bool upwind, Poco::Path srcpath) {
     Array<Nav> allnavs = scanNmeaFolder(srcpath, Nav::debuggingBoatId());
 
     WindOrientedGrammarSettings settings;
@@ -50,7 +47,7 @@ namespace {
 
     Array<Nav> subNavs = allnavs.slice(sel);
 
-    const int binCount = 25;
+    const int binCount = 32;
     Array<Velocity<double> > tws = estimateExternalTws(subNavs);
     Array<Velocity<double> > vmg = calcExternalVmg(subNavs, upwind);
     Array<Velocity<double> > gss = getGpsSpeed(subNavs);
@@ -63,27 +60,36 @@ namespace {
     std::cout << "TWS-span (m/s): " << Spand(twsd) << std::endl;
     std::cout << "VMG-span (m/s): " << Spand(vmgd) << std::endl;
 
-    Velocity<double> minvel = Velocity<double>::metersPerSecond(4.0);
-    Velocity<double> maxvel = Velocity<double>::metersPerSecond(17.0);
-    TargetSpeedData tgt(tws, vmg, binCount,
-        minvel, maxvel);
+    Velocity<double> minvel = Velocity<double>::knots(0.0);
+    Velocity<double> maxvel = Velocity<double>::knots(32.0);
+    Arrayd quantiles = Arrayd::args(.8);
+    TargetSpeedData tgt(tws, vmg, binCount, minvel, maxvel, quantiles);
 
     tgt.plot();
   }
 }
 
 int main(int argc, char **argv) {
+
   if (argc <= 1) {
     std::cout << "Please provide an extra argument, u or d:\n"
         "  u : display upwind target speed graph\n"
         "  d : display downwind target speed graph\n";
-  } else if (argc == 2) {
+  } else if (argc >= 2) {
     std::string x(argv[1]);
+    Poco::Path srcpath = PathBuilder::makeDirectory(Env::SOURCE_DIR).
+        pushDirectory("datasets").
+        pushDirectory("Irene").get();
+
+    if (argc > 2) {
+      srcpath = argv[2];
+    }
+
     if (x == "u") {
-      targetSpeedPlot(true);
+      targetSpeedPlot(true, srcpath);
       return 0;
     } else if (x == "d") {
-      targetSpeedPlot(false);
+      targetSpeedPlot(false, srcpath);
       return 0;
     } else {
       std::cout << "Illegal argument: " << x << std::endl;

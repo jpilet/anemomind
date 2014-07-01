@@ -9,6 +9,8 @@
 #include <server/common/ArrayIO.h>
 #include <server/common/ArrayBuilder.h>
 #include <limits>
+#include <server/common/logging.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -33,6 +35,17 @@ MDArray2i StateAssign::makeRefMatrix() {
   return ptrs;
 }
 
+double StateAssign::calcCost(Arrayi stateSeq) {
+  CHECK_LE(stateSeq.size(), getLength());
+  const int len = stateSeq.size();
+  double cost = 0.0;
+  int last = len-1;
+  for (int i = 0; i < last; i++) {
+    cost += getStateCost(stateSeq[i], i);
+    cost += getTransitionCost(stateSeq[i], stateSeq[i+1], i);
+  }
+  return cost + getStateCost(stateSeq[last], last);
+}
 
 Arrayi StateAssign::listStateInds() {
   return makeRange(getStateCount());
@@ -54,7 +67,9 @@ void StateAssign::accumulateCosts(MDArray2d *costsOut, MDArray2i *ptrsOut) {
       int bestPredIndex = -1;
       Arrayi preds = getPrecedingStates(state, time);
       costs(state, time) = getStateCost(state, time) + calcBestPred(costs, preds, state, time-1, &bestPredIndex);
-      assert(bestPredIndex != -1);
+      if (bestPredIndex == -1) {
+        costs(state, time) = std::numeric_limits<double>::infinity();
+      }
       ptrs(state, time) = bestPredIndex;
     }
   }
@@ -95,6 +110,7 @@ int getLastBestState(MDArray2d costs) {
   for (int state = 1; state < count; state++) {
     double cost = costs(state, last);
     if (cost < bestCost) {
+      bestCost = cost; // <-- THE ABSENCE OF THIS LINE IS A SERIOUS BUG!!!
       bestIndex = state;
     }
   }
@@ -113,6 +129,7 @@ Arrayi StateAssign::unwind(MDArray2d costs, MDArray2i ptrs) {
   states.setTo(-1);
   int last = length - 1;
   states[last] = getLastBestState(costs);
+
   for (int time = last-1; time >= 0; time--) {
     int next = time + 1;
     int nextState = states[next];

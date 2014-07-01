@@ -58,6 +58,8 @@ class StateAssign {
   // Mostly for debugging
   MDArray2d makeCostMatrix();
   MDArray2i makeRefMatrix();
+
+  double calcCost(Arrayi stateSeq);
  private:
   void accumulateCosts(MDArray2d *costsOut, MDArray2i *ptrsOut);
   double calcBestPred(MDArray2d costs, Arrayi preds, int toState, int fromTime,

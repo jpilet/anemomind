@@ -5,13 +5,6 @@
 
 namespace sail {
 
-bool isBlank(char c) {
-  return c == ' ' || c == '\n';
-}
-
-bool notIsBlank(char c) {
-  return !isBlank(c);
-}
 
 bool tryParseInt(const std::string &s, int &out) {
   try {
