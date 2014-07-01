@@ -61,9 +61,23 @@ angular.module('anemomindApp')
     var ticks = 0;
     var last = 0;
     $scope.currentPos = 0;
+    $scope.toggleLabel = 'Pause';
 
-    $scope.startTimer = function() {
+    $scope.togglePlayPause = function(currentPos) {
+      if ($scope.toggleLabel === 'Pause') {
+        $scope.stopTimer();
+      } else {
+        $scope.startTimer(currentPos);
+      }
+    };
+
+    $scope.startTimer = function(currentPos) {
+      $scope.toggleLabel = 'Pause';
       $scope.timer_ret_val = false;
+      if (arguments.length === 1) {
+        last = 0;
+        ticks = currentPos/$scope.coords.length;
+      }
       d3.timer(function(elapsed) {
         ticks = (ticks + (elapsed - last) / 100000) % 1;
         last = elapsed;
@@ -74,6 +88,7 @@ angular.module('anemomindApp')
     };
 
     $scope.stopTimer = function() {
+      $scope.toggleLabel = 'Play';
       $scope.timer_ret_val = true;
     };
   });
