@@ -122,3 +122,8 @@ target_link_libraries(nautical_grammars_HintedStateAssign
                       common_logging
                       math_hmm_StateAssign
                      )
+cxx_test(nautical_grammars_HintedStateAssignTest
+         HintedStateAssignTest.cpp
+         nautical_grammars_HintedStateAssign
+         gtest_main
+        )

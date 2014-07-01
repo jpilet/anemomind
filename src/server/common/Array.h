@@ -325,6 +325,15 @@ class Array {
     return true;
   }
 
+  bool all(std::function<bool(T)> fun) const {
+    for (int i = 0; i < _size; i++) {
+      if (!fun(_data[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   static Array<T> own(int size, T *data) {
 #if SAFEARRAY
     assert(0 <= size);

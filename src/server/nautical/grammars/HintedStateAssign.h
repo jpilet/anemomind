@@ -15,10 +15,12 @@ namespace sail {
  * Represents a state assign for which the costs are only defined
  * for a span of time indices.
  * */
-class LocalStateAssign : public StateAssign {
+class LocalStateAssign {
  public:
   virtual int begin() const = 0;
   virtual int end() const = 0;
+
+  virtual int getStateCount() = 0;
 
   int beginStateIndex() const {
     return begin();
@@ -32,16 +34,20 @@ class LocalStateAssign : public StateAssign {
     return begin() <= index && index < end();
   }
 
+  virtual double getStateCost(int stateIndex, int timeIndex) = 0;
   double getSafeStateCost(int stateIndex, int timeIndex) {
     assert(validTimeIndex(timeIndex));
     return getStateCost(stateIndex, timeIndex);
   }
 
+  virtual double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) = 0;
   double getSafeTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
     assert(validTimeIndex(fromTimeIndex + 0));
     assert(validTimeIndex(fromTimeIndex + 1));
     return getTransitionCost(fromStateIndex, toStateIndex, fromTimeIndex);
   }
+
+  virtual ~LocalStateAssign() {}
 };
 
 class HintedStateAssign : public StateAssign {
@@ -62,7 +68,9 @@ class HintedStateAssign : public StateAssign {
   int getLength() {
     return _ref->getLength();
   }
-  Arrayi getPrecedingStates(int stateIndex, int timeIndex);
+  Arrayi getPrecedingStates(int stateIndex, int timeIndex) {
+    return _ref->getPrecedingStates(stateIndex, timeIndex);
+  }
  private:
   std::shared_ptr<StateAssign> _ref;
 
