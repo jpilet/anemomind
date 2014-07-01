@@ -49,10 +49,6 @@ HintedStateAssign::HintedStateAssign(std::shared_ptr<StateAssign> ref,
   computeOverlapsAndTable(calcTIndex(len), transitionSpans, hints, &_transitionOverlaps, &_transitionTable);
 }
 
-namespace {
-
-}
-
 double HintedStateAssign::getStateCost(int stateIndex, int timeIndex) {
   double cost = _ref->getStateCost(stateIndex, timeIndex);
   int i = _stateTable[timeIndex];
