@@ -10,6 +10,8 @@
 
 #include <ceres/ceres.h>
 #include <cmath>
+#include <device/Arduino/libraries/ChunkFile/ChunkFile.h>
+#include <device/Arduino/libraries/FixedPoint/FixedPoint.h>
 #include <device/Arduino/libraries/TrueWindEstimator/InstrumentFilter.h>
 #include <iostream>
 #include <server/common/math.h>
@@ -223,18 +225,31 @@ string Calibrator::description(std::shared_ptr<HTree> tree) {
 }
 
 bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
-  clear();
-
   // Load data.
-  _allnavs = scanNmeaFolder(dataPath, boatId);
-  if (_allnavs.size() == 0) {
+  Array<Nav> allnavs = scanNmeaFolder(dataPath, boatId);
+  if (allnavs.size() == 0) {
     return false;
   }
 
-  _tree = _grammar.parse(_allnavs);
+  std::shared_ptr<HTree> tree = _grammar.parse(allnavs);
 
+  return calibrate(allnavs, tree, boatId);
+}
+
+bool Calibrator::calibrate(const Array<Nav>& navs,
+                           std::shared_ptr<HTree> tree,
+                           Nav::Id boatId) {
+  clear();
+  _tree = tree;
+  _allnavs = navs;
   addAllTack(_tree);
   addBuoyTurn(_tree);
+
+  if (_maneuvers.size() < 30) {
+    // we do not have enough maneuvers.
+    clear();
+    return false;
+  }
 
   print();
 
@@ -262,6 +277,15 @@ bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
   plot(&gnuplot, "after");
 
   return true;
+}
+
+void Calibrator::saveCalibration(std::ofstream *file) {
+  TrueWindEstimator::Parameters<FP16_16> calibration;
+  for (int i = 0; i < TrueWindEstimator::NUM_PARAMS; ++i) {
+    // Convert to fixed point.
+    calibration.params[i] = _calibrationValues[i];
+  }
+  writeChunk(*file, &calibration);
 }
 
 void Calibrator::print() {

@@ -7,7 +7,7 @@
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <string>
-
+#include <iostream>
 
 namespace sail {
 
@@ -17,9 +17,17 @@ class GnuplotExtra;
 class Calibrator  {
   public:
     Calibrator() : _grammar(_settings) { clear(); }
+    Calibrator(const WindOrientedGrammar& grammar) : _grammar(grammar) { clear(); }
 
     //! Attempt to load data and run the minimizer. Clears previous results.
     bool calibrate(Poco::Path dataPath, Nav::Id boatId);
+
+    //! Run the minimizer on already loaded data. Clears previous results.
+    bool calibrate(const Array<Nav>& navs,
+                   std::shared_ptr<HTree> tree,
+                   Nav::Id boatId);
+
+    void saveCalibration(std::ofstream *file);
 
     //! Print last calibration results.
     void print();
