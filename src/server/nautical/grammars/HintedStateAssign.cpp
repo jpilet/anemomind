@@ -14,7 +14,7 @@ HintedStateAssign::HintedStateAssign(Array<LocalStateAssignPtr> hints) {
     return Spani(hint->begin(), hint->end());
   });
   _overlaps = Overlap::compute(spans, hints);
-  CHECK_EQ(_overlaps.first().span().minv(), 0);
+  CHECK(_overlaps.first().span().minv() == 0);
 }
 
 
