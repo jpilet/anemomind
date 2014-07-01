@@ -207,7 +207,6 @@ ParsedNavs loadNavsFromNmea(std::istream &file, Nav::Id boatId) {
   NmeaParser parser;
   parser.setIgnoreWrongChecksum(true);
   std::string line;
-  int lineCounter = 0;
   Nav nav;
   TimeStamp last;
   while (file.good()) {
