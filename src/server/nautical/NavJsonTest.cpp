@@ -6,30 +6,18 @@
 #include <Poco/JSON/Array.h>
 #include <Poco/JSON/ParseHandler.h>
 #include <Poco/JSON/Parser.h>
+#include <Poco/JSON/Stringifier.h>
 #include <gtest/gtest.h>
+#include <server/common/Env.h>
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <server/nautical/NavJson.h>
+#include <server/nautical/NavNmea.h>
+
+// For some reason, Json.h must be included after NavJson.h.
 #include <server/common/Json.h>
-#include <Poco/JSON/Stringifier.h>
 
 using namespace sail;
-
-TEST(NavJsonTest, ConvertToJson) {
-  Nav nav;
-  Array<Nav> navs(1, &nav);
-  Poco::Dynamic::Var data = json::serialize(navs);
-  stringstream ss;
-  Poco::JSON::Stringifier::stringify(data, ss, 0, 0);
-  std::string s = ss.str();
-  int len = s.length();
-  EXPECT_GE(len, 0);
-  EXPECT_EQ(s[0], '[');
-  EXPECT_EQ(s[len-1], ']');
-  const char expected[] = "[{\"time_ms_1970\":9223372036854775807}]";
-  EXPECT_EQ(s, expected);
-}
-
 
 namespace {
 
@@ -63,6 +51,21 @@ void runJsonEncDecTest(const char *dataToDecode) {
 }
 
 }  // namespace
+
+TEST(NavJsonTest, ConvertToJson) {
+  Nav nav;
+  Array<Nav> navs(1, &nav);
+  Poco::Dynamic::Var data = json::serialize(navs);
+  stringstream ss;
+  Poco::JSON::Stringifier::stringify(data, ss, 0, 0);
+  std::string s = ss.str();
+  int len = s.length();
+  EXPECT_GE(len, 0);
+  EXPECT_EQ(s[0], '[');
+  EXPECT_EQ(s[len-1], ']');
+  const char expected[] = "[{\"time_ms_1970\":9223372036854775807}]";
+  EXPECT_EQ(s, expected);
+}
 
 TEST(NavJsonTest, EncDecTest) {
   runJsonEncDecTest(
@@ -111,3 +114,19 @@ TEST(NavJsonTest, BackwardCompatibilityTest) {
   Array<Nav> deserialized = deserializeNavs(dataToDecode);
   EXPECT_EQ(deserialized[0], base);
 }
+
+TEST(NavJsonTest, RealNav) {
+  sail::Array<Nav> navs = loadNavsFromNmea(
+      string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"),
+      Nav::Id("B0A10000")).navs();
+
+  std::stringstream ss;
+  Poco::JSON::Stringifier::stringify(json::serialize(navs), ss, 0, 0);
+
+  Array<Nav> navs2 = deserializeNavs(ss.str().c_str());
+  EXPECT_EQ(navs2.size(), navs.size());
+  for (int i = 0; i < navs.size(); ++i) {
+    EXPECT_EQ(navs[i], navs2[i]) << "for nav[" << i << "]";
+  }
+}
+
