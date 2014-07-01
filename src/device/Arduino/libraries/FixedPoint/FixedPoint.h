@@ -41,8 +41,11 @@ class FixedPoint {
      return rightShiftAndConstruct(a.rawFixedPoint(), FromShift);
    }
 
+   StoreType round() const { return (_value + (1 << (Shift - 1))) >> Shift; }
+
    // Casts
-   operator int() const { return int(LongType(_value) >> Shift); }
+   operator short() const { return short(round()); }
+   operator int() const { return int(round()); }
    operator float() const { return float(_value) / float(1 << Shift); }
    operator double() const { return double(_value) / double(1 << Shift); }
 

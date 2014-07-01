@@ -60,3 +60,11 @@ TEST(FixedPointTest, FixedPointToFixedPointConversions) {
   EXPECT_NEAR((double) b, (double) FP8_8::convert(b), 1/256.0);
 }
   
+TEST(FixedPointTest, Rounding) {
+  EXPECT_EQ(4, FP16_16(3.8).round());
+  EXPECT_EQ(4, FP16_16(4.3).round());
+  EXPECT_EQ(4, FP16_16(4.49).round());
+  EXPECT_EQ(5, FP16_16(4.51).round());
+  EXPECT_EQ(-3, FP16_16(-2.7).round());
+  EXPECT_EQ(-2, FP16_16(-2.2).round());
+}
