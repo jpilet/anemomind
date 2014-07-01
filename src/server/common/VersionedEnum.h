@@ -8,12 +8,13 @@
 
 namespace sail {
 
+unsigned int calcChecksum(const char *data);
+
 /*
  * To be declared in a class.
  */
-#define VERSIONED_ENUM(ENUMNAME, ...) enum ENUMNAME {__VA_ARGS__}; static constexpr char *ENUMNAME ## TextRepr = #__VA_ARGS__
+#define VERSIONED_ENUM(ENUMNAME, ...) enum ENUMNAME {__VA_ARGS__}; static unsigned int ENUMNAME ## Version () {return calcChecksum(#__VA_ARGS__);}
 
-unsigned int calcChecksum(const char *data);
 
 } /* namespace mmm */
 

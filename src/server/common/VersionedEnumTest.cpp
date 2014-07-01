@@ -6,6 +6,8 @@
 #include <server/common/VersionedEnum.h>
 #include <gtest/gtest.h>
 
+using namespace sail;
+
 namespace {
   class Class1 {
    public:
@@ -19,10 +21,9 @@ namespace {
 
 }
 
-using namespace sail;
 
 TEST(VersionedEnumTest, ChecksumTest) {
-  EXPECT_NE(calcChecksum(Class1::ParametersTextRepr),
-            calcChecksum(Class1::ParametersTextRepr));
+  EXPECT_NE(Class1::ParametersVersion(),
+            Class2::ParametersVersion());
 }
 
