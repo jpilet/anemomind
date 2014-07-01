@@ -127,23 +127,22 @@ class Angle : public PhysicalQuantity<Angle<T>, T> {
   MAKE_PHYSQUANT_UNIT_CONVERTERS(radians, 180.0/M_PI);
 
   Angle directionDifference(const Angle<T>& other) const {
-    return radians(normalizeAngleBetweenMinusPiAndPi(
-            this->radians() - other.radians()));
+    return (*this - other).normalizedAt0();
   }
 
   Angle<T> normalizedAt0() const {
     Angle<T> result(*this);
-    while (result < Angle<T>::degrees(-180)) {
-      result += Angle<T>::degrees(360);
+    while (result < Angle<T>::degrees(T(-180))) {
+      result += Angle<T>::degrees(T(360));
     }
-    while (result > Angle<T>::degrees(180)) {
-      result -= Angle<T>::degrees(360);
+    while (result > Angle<T>::degrees(T(180))) {
+      result -= Angle<T>::degrees(T(360));
     }
     return result;
   }
 
   static Angle<T> degMinMc(T deg, T min, T mc) {
-      return Angle<T>::degrees(deg + (1.0/60)*(min + 0.001*mc));
+      return Angle<T>::degrees(T(deg + (1.0/60)*(min + 0.001*mc)));
   }
 };
 
