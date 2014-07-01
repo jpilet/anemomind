@@ -63,19 +63,56 @@ namespace {
       return 0.0;
     }
   };
+
+  class Hint2 : public LocalStateAssign {
+     public:
+      int getStateCount() {return 2;}
+
+      int begin() const { // Corresponds to 0 if it were covering the whole span
+        return 19;
+      }
+
+      int end() const { // Corresponds to getLength() if it were covering the whole span
+        return 21;
+      }
+
+      double getStateCost(int stateIndex, int timeIndex) {
+        return 0;
+      }
+
+      double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
+        if (fromTimeIndex == 19) {
+          if (fromStateIndex == 1 && toStateIndex == 0) {
+            return 0;
+          }
+          return 1.0e9;
+        }
+        return 0.0;
+      }
+    };
 }
 
 TEST(HintedStateAssignTest, HintTest) {
   Ref ref;
   Hint hint;
+  Hint2 hint2;
 
   EXPECT_TRUE(ref.solve().same<int>([=](int x) {return x;}));
 
-  HintedStateAssign hinted(makeSharedPtrToStack(ref),
-      Array<HintedStateAssign::LocalStateAssignPtr>::args(makeSharedPtrToStack(hint)));
-  Arrayi hintedResult = hinted.solve();
-  EXPECT_TRUE(hintedResult.sliceTo(16).all([=](int i) {return i == 0;}));
-  EXPECT_TRUE(hintedResult.sliceFrom(16).all([=](int i) {return i == 1;}));
+  {
+    HintedStateAssign hinted(makeSharedPtrToStack(ref),
+        Array<HintedStateAssign::LocalStateAssignPtr>::args(makeSharedPtrToStack(hint)));
+    Arrayi hintedResult = hinted.solve();
+    EXPECT_TRUE(hintedResult.sliceTo(16).all([=](int i) {return i == 0;}));
+    EXPECT_TRUE(hintedResult.sliceFrom(16).all([=](int i) {return i == 1;}));
+  }{
+    HintedStateAssign hinted(makeSharedPtrToStack(ref),
+        Array<HintedStateAssign::LocalStateAssignPtr>::args(makeSharedPtrToStack(hint), makeSharedPtrToStack(hint2)));
+    Arrayi hintedResult = hinted.solve();
+    EXPECT_TRUE(hintedResult.sliceTo(16).all([=](int i) {return i == 0;}));
+    EXPECT_TRUE(hintedResult.slice(16, 20).all([=](int i) {return i == 1;}));
+    EXPECT_TRUE(hintedResult.sliceFrom(20).all([=](int i) {return i == 0;}));
+  }
 }
 
 
