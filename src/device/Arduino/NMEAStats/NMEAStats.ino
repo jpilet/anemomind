@@ -1,6 +1,7 @@
 
 #define ANEMOMIND_DEVICE
 #include <PhysicalQuantity.h>
+#include <TrueWindEstimator.h>
 
 #include <NmeaParser.h>
 #include <TargetSpeed.h>
@@ -12,20 +13,26 @@
 
 using namespace sail;
 
+namespace {
 const bool VERTICAL_SCREEN = false;
+const bool echo = false;
+const int flushFrequMs = 10000;
 
 char logFilePath[13];
 
 File logFile;
 NmeaParser nmeaParser;
 unsigned long lastFlush = 0;
-bool echo = false;
-int flushFrequMs = 10000;
 
 TargetSpeedTable targetSpeedTable;
 InstrumentFilter<FP16_16> filter;
 
 SoftwareSerial mySerial(8, 9); // RX, TX
+
+FP16_16 calibration[TrueWindEstimator::NUM_PARAMS];
+bool calibrationLoaded = false;
+
+}  // namespace
 
 int my_putc(char c, FILE *) {
   if (echo) {
@@ -50,9 +57,23 @@ void openLogFile() {
 #undef degrees
 
 void displaySpeedRatio(const NmeaParser& parser) {
+  Angle<FP8_8> twa;
+  Velocity<FP8_8> tws;
+
+  if (calibrationLoaded) {
+    HorizontalMotion<FP16_16> wind =
+      TrueWindEstimator::computeTrueWind(calibration, filter);
+
+    twa = wind.angle();
+    tws = wind.norm();
+  } else {
+    twa = parser.twa();
+    tws = parser.tws();
+  }
+
    float speedRatio = getVmgSpeedRatio(targetSpeedTable,
-       parser.twa().degrees(),
-       parser.tws().knots(),
+       twa.degrees(),
+       tws.knots(),
        filter.gpsSpeed().knots());
    
    // Display speedRatio on the LCD display.
