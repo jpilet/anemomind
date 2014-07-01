@@ -19,11 +19,11 @@ namespace {
                  calcTIndex(x->endStateIndex()) + 1);
   }
 
-  void computeOverlapsAndTable(Array<Spani> spans, Array<HintedStateAssign::LocalStateAssignPtr> hints,
+  void computeOverlapsAndTable(Array<Spani> spans,
+      Array<HintedStateAssign::LocalStateAssignPtr> hints,
     Array<HintedStateAssign::Overlap> *overlaps, Arrayi *outTable) {
     typedef HintedStateAssign::Overlap Overlap;
     *overlaps = Overlap::compute(spans, hints);
-    assert(overlaps->first().span().minv() == 0);
     *outTable = Arrayi(overlaps->last().span().maxv());
     int n = overlaps->size();
     for (int i = 0; i < n; i++) {
@@ -33,7 +33,8 @@ namespace {
   }
 }
 
-HintedStateAssign::HintedStateAssign(Array<LocalStateAssignPtr> hints) {
+HintedStateAssign::HintedStateAssign(std::shared_ptr<StateAssign> ref,
+    Array<LocalStateAssignPtr> hints) {
   CHECK(hints.same<int>([&](const LocalStateAssignPtr &h) {return h->getStateCount();}));
   Array<Spani> stateSpans = hints.map<Spani>([=] (const LocalStateAssignPtr &hint) {
     return Spani(hint->begin(), hint->end());
@@ -45,15 +46,10 @@ HintedStateAssign::HintedStateAssign(Array<LocalStateAssignPtr> hints) {
 
   computeOverlapsAndTable(stateSpans, hints, &_stateOverlaps, &_stateTable);
   computeOverlapsAndTable(transitionSpans, hints, &_transitionOverlaps, &_transitionTable);
-
-  _ref = hints.first();
-  CHECK(_ref->begin() == 0);
-  CHECK(_ref->end() == _ref->getLength());
-  CHECK(_ref->getLength() == _stateOverlaps.last().span().maxv());
 }
 
 double HintedStateAssign::getStateCost(int stateIndex, int timeIndex) {
-  double cost = 0.0;
+  double cost = _ref->getStateCost(stateIndex, timeIndex);
   const Array<LocalStateAssignPtr> &X = _stateOverlaps[_stateTable[timeIndex]].objects();
   for (auto x : X) {
     cost += x->getSafeStateCost(stateIndex, timeIndex);
@@ -61,9 +57,11 @@ double HintedStateAssign::getStateCost(int stateIndex, int timeIndex) {
   return cost;
 }
 
-double HintedStateAssign::getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
-  double cost = 0.0;
-  const Array<LocalStateAssignPtr> &X = _transitionOverlaps[_transitionTable[calcTIndex(fromTimeIndex)]].objects();
+double HintedStateAssign::getTransitionCost(int fromStateIndex,
+    int toStateIndex, int fromTimeIndex) {
+  double cost = _ref->getTransitionCost(fromStateIndex, toStateIndex, fromTimeIndex);
+  const Array<LocalStateAssignPtr> &X =
+      _transitionOverlaps[_transitionTable[calcTIndex(fromTimeIndex)]].objects();
   for (auto x : X) {
     cost += x->getSafeTransitionCost(fromStateIndex, toStateIndex, fromTimeIndex);
   }
