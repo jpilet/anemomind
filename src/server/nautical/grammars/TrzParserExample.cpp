@@ -18,8 +18,10 @@ int main(int argc, char **argv) {
     std::cout << "Loading trz data from user supplied file " << filename << std::endl;
   }
 
+
   TrzParser parser;
   Array<ParsedTrzLine> parsed = parser.parseFile(filename);
+
   if (parsed.empty()) {
     std::cout << "No data in file" << std::endl;
   } else {
@@ -37,7 +39,7 @@ int main(int argc, char **argv) {
         std::cin >> outfile;
         std::cout << "Function name?" << std::endl;
         std::cin >> funname;
-        exportToMatlab(outfile, funname, parsed);
+        exportToMatlab(outfile, parsed);
       }
     } while (answer != 0);
   }

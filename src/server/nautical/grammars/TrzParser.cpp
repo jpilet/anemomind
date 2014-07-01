@@ -273,7 +273,13 @@ namespace {
   }
 
 
-  int countArgs(const ParsedTrzLine &data) {
+  int countArgs(const ParsedTrzLine &data0) {
+    if (data0.empty()) {
+      return 0;
+    }
+
+    ParsedTrzLine data = data0.child(0);
+
     if (data.index() == 6) {
       return countArgsRecord(data);
     } else {
@@ -286,7 +292,7 @@ namespace {
     int rows = 0;
     int cols = 0;
     for (auto x : data) {
-      if (!data.empty()) {
+      if (!x.empty()) {
         rows++;
         cols = std::max(cols, countArgs(x));
       }
@@ -317,10 +323,12 @@ namespace {
     }
   }
 
-  bool fillArgRow(const ParsedTrzLine &src, MDArray<std::string, 2> dst) {
-    if (src.empty()) {
+  bool fillArgRow(const ParsedTrzLine &src0, MDArray<std::string, 2> dst) {
+    if (src0.empty()) {
       return false;
     }
+
+    ParsedTrzLine src = src0.child(0);
     if (src.index() == 6) {
       fillRecordRow(src, dst);
     } else {
@@ -341,39 +349,24 @@ namespace {
     assert(counter == dst.rows());
     return dst;
   }
-
-  std::string toMatlabLiteral(std::string data) {
-    std::stringstream out;
-    try {
-      out << std::stoi(data);
-    } catch (std::exception &e) {
-      try {
-        out << std::stod(data);
-      } catch (std::exception &e) {
-        // TODO: Replace special chars by escape sequences.
-        out << "'" << data << "'";
-      }
-    }
-    return out.str();
-  }
-
-  void outputArgMatrix(const std::string &varName,
-      MDArray<std::string, 2> mat, std::ostream *file) {
-    *file << "  " << varName << " = cell(" << mat.rows() << ", " << mat.cols() << ");\n";
-    for (int i = 0; i < mat.rows(); i++) {
-      for (int j = 0; j < mat.cols(); j++) {
-        *file << "  " << varName << "{" << i+1 << ", " << j+1 << "} = " << toMatlabLiteral(mat(i, j)) << ";\n";
-      }
-    }
-  }
 }
 
-void exportToMatlab(std::string filename, std::string functionName, Array<ParsedTrzLine> data) {
+void exportToMatlab(std::string filename, Array<ParsedTrzLine> data) {
+  MDArray<std::string, 2> mat = makeArgMatrix(data);
   std::ofstream file(filename);
-  file << "function out = " << functionName << "()";
-  outputArgMatrix("out", makeArgMatrix(data), &file);
-  file << "end";
+  file << mat.rows() << "\n"; // First row in file: Number of matrix rows
+  file << mat.cols() << "\n"; // Second row in file: Number of matrix cols
+  // The every element of the matrix in rowmajor order:
+  for (int i = 0; i < mat.rows(); i++) {
+    for (int j = 0; j < mat.cols(); j++) {
+      file << mat(i, j) << "\n";
+    }
+  }
 }
+
+
+
+
 
 
 

@@ -62,7 +62,10 @@ class TrzParser {
   Array<Arrayi> _prec;
 };
 
-void exportToMatlab(std::string filename, std::string functionName, Array<ParsedTrzLine> data);
+/*
+ * Exports to a format that easy to parse from matlab
+ */
+void exportToMatlab(std::string filename, Array<ParsedTrzLine> data);
 
 }
 
