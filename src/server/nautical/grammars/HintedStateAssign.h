@@ -20,6 +20,14 @@ class LocalStateAssign : public StateAssign {
   virtual int begin() const = 0;
   virtual int end() const = 0;
 
+  int beginStateIndex() const {
+    return begin();
+  }
+
+  int endStateIndex() const {
+    return end() - 1;
+  }
+
   bool validTimeIndex(int index) const {
     return begin() <= index && index < end();
   }
@@ -42,10 +50,25 @@ class HintedStateAssign : public StateAssign {
   typedef SpanOverlap<LocalStateAssignPtr, int> Overlap;
 
   HintedStateAssign(Array<LocalStateAssignPtr> hints);
+
+  double getStateCost(int stateIndex, int timeIndex);
+  double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex);
+
+  int getStateCount() {
+    return _ref->getStateCount();
+  }
+
+  int getLength() {
+    return _ref->getLength();
+  }
+  Arrayi getPrecedingStates(int stateIndex, int timeIndex);
  private:
   void init(Array<LocalStateAssignPtr> all);
+  LocalStateAssignPtr _ref;
+
+
   Arrayi _stateTable, _transitionTable;
-  Array<Overlap> _overlaps;
+  Array<Overlap> _stateOverlaps, _transitionOverlaps;
 };
 
 }
