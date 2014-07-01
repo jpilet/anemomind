@@ -37,8 +37,6 @@ int main(int argc, char **argv) {
         std::string outfile, funname;
         std::cout << "Filename? " << std::endl;
         std::cin >> outfile;
-        std::cout << "Function name?" << std::endl;
-        std::cin >> funname;
         exportToMatlab(outfile, parsed);
       }
     } while (answer != 0);

@@ -124,20 +124,6 @@ void TrzParser::disp(std::ostream *dst, const ParsedTrzLine &data, int depth) {
 }
 
 namespace {
-/*
- *   Hierarchy makeTrzHierarchy() {
-    return HNodeGroup(8, "Top",
-                HNodeGroup(6, "Record", // Matches a common record, e.g. starting with $TANAV,...
-                    HNodeGroup(0, "Data") + HNodeGroup(1, "Separator")
-                )
-                +
-                HNodeGroup(7, "Header", // Matches the first non-empty line of the file, starting with 'Trace'
-                    HNodeGroup(2, "Prefix") + HNodeGroup(3, "Separator") + HNodeGroup(4, "Data")
-                )
-                +
-              HNodeGroup(5, "FinalWhiteSpace") // Matches any whitespace at the end of the line
-          )
- * */
   int countArgsRecord(const ParsedTrzLine &data) {
     const int count = data.childCount();
     int commaCounter = 0;
@@ -248,7 +234,6 @@ void exportToMatlab(std::string filename, Array<ParsedTrzLine> data) {
   std::ofstream file(filename);
   file << mat.rows() << "\n"; // First row in file: Number of matrix rows
   file << mat.cols() << "\n"; // Second row in file: Number of matrix cols
-  // The every element of the matrix in rowmajor order:
   for (int i = 0; i < mat.rows(); i++) {
     for (int j = 0; j < mat.cols(); j++) {
       file << mat(i, j) << "\n";
