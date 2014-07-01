@@ -49,7 +49,7 @@ class HintedStateAssign : public StateAssign {
   typedef std::shared_ptr<LocalStateAssign> LocalStateAssignPtr;
   typedef SpanOverlap<LocalStateAssignPtr, int> Overlap;
 
-  HintedStateAssign(Array<LocalStateAssignPtr> hints);
+  HintedStateAssign(Array<LocalStateAssignPtr> refAndHints);
 
   double getStateCost(int stateIndex, int timeIndex);
   double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex);
@@ -63,7 +63,6 @@ class HintedStateAssign : public StateAssign {
   }
   Arrayi getPrecedingStates(int stateIndex, int timeIndex);
  private:
-  void init(Array<LocalStateAssignPtr> all);
   LocalStateAssignPtr _ref;
 
 
