@@ -31,17 +31,23 @@ exports.raceDetail = function(req, res) {
 
     var formattedData = {
         origin: minAxis(race.items),
-        coords: []
+        coords: [],
+        data: []
       };
     var ref = new GeoRef(formattedData.origin.x, formattedData.origin.y, 0);
 
-    for (var i = race.items.length-1; i >= 0; i--) {
-      var projected = ref.project(race.items[i]['latRad'], race.items[i]['lonRad']);
-      var tmpCoords = {
-        x_m: projected.x,
-        y_m: projected.y,
-      };
-      formattedData.coords.push(tmpCoords);
+    for (var i = 0; i < race.items.length; i++) {
+      // take only 1 out of 10 coords
+      if (i % 10 === 0) {
+        var projected = ref.project(race.items[i]['latRad'], race.items[i]['lonRad']);
+        var tmpCoords = {
+          x_m: projected.x,
+          y_m: projected.y,
+        };
+        var tmpData = race.items[i];
+        formattedData.coords.push(tmpCoords);
+        formattedData.data.push(tmpData);
+      }
     }
     res.send(formattedData);
   });

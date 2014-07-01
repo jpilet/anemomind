@@ -7,7 +7,7 @@ angular.module('anemomindApp')
     $scope.loadRace = function (id) {
       $('#stopdiv').click();
       d3.select('svg').remove();
-      if (typeof timer_ret_val != 'undefined') {
+      if (typeof timer_ret_val !== 'undefined') {
         timer_ret_val = true;
       }
 
@@ -42,10 +42,12 @@ angular.module('anemomindApp')
                     .domain([low-offset/2, yMax+offset/2])
                     .range([100, 0]);
         }
-        $scope.data = res.data.coords;
+        $scope.coords = res.data.coords;
+        $scope.data = res.data.data;
         $scope.x = x;
         $scope.y = y;
         $scope.raceIsLoaded = true;
+        console.dir($scope.data[0]);
       });
     };
 
@@ -63,9 +65,9 @@ angular.module('anemomindApp')
     $scope.startTimer = function() {
       $scope.timer_ret_val = false;
       d3.timer(function(elapsed) {
-        ticks = (ticks + (elapsed - last) / 20000) % 1;
+        ticks = (ticks + (elapsed - last) / 100000) % 1;
         last = elapsed;
-        $scope.currentPos = Math.round(ticks*$scope.data.length);
+        $scope.currentPos = Math.round(ticks*$scope.coords.length);
         $scope.$apply();
         return $scope.timer_ret_val;
       });

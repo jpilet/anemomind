@@ -26,6 +26,8 @@ Poco::Dynamic::Var serialize(const Nav &nav) {
   serializeField(x, "gpsbearing", nav.gpsBearing());
   serializeField(x, "aws", nav.aws());
   serializeField(x, "awa", nav.awa());
+  serializeField(x, "tws", nav.externalTws());
+  serializeField(x, "twa", nav.externalTwa());
   serializeField(x, "id", nav.id());
   serializeField(x, "boat-id", nav.boatId());
   return Poco::Dynamic::Var(x);
