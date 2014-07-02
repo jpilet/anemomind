@@ -136,6 +136,13 @@ T positiveMod(T a, T b) {
 }
 
 template <typename T>
+T cyclicDif(T a, T b, T cycle) {
+  T dif = positiveMod(a - b, cycle);
+  T dif2 = cycle - dif;
+  return (dif < dif2? dif : dif2);
+}
+
+template <typename T>
 T normalizeAngleBetweenMinusPiAndPi(T a) {
   // Unfortunately, positiveMod can't be instanciated with a ceres::Jet.
   // Let's fake positiveMod with comparisons and additions.
@@ -148,7 +155,6 @@ T normalizeAngleBetweenMinusPiAndPi(T a) {
   }
   return result;
 }
-
 
 } /* namespace sail */
 

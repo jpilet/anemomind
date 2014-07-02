@@ -1,0 +1,63 @@
+/*
+ *  Created on: Jul 2, 2014
+ *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
+ */
+
+#ifndef COMMONRACEGRAMMAR_H_
+#define COMMONRACEGRAMMAR_H_
+
+#include <cmath>
+#include <cassert>
+#include <server/nautical/grammars/Grammar.h>
+#include <server/nautical/grammars/AngleCost.h>
+
+namespace sail {
+
+class OnOffCost {
+ public:
+  OnOffCost() : _offStateIndex(-1), _perSecondCost(NAN) {}
+  OnOffCost(Array<Nav> navs, int offStateIndex,
+      double perSecondCost) : _navs(navs),
+          _offStateIndex(offStateIndex),
+          _perSecondCost(perSecondCost) {}
+
+  double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex);
+ private:
+  Array<Nav> _navs;
+  int _offStateIndex;
+  double _perSecondCost;
+};
+
+class CommonRaceGrammarSettings {
+ public:
+  CommonRaceGrammarSettings();
+
+  double perSecondCost;   // To encourage the device to be turned off when it is.
+  double angleDifCost;    // Cost for angle deviation when racing
+  double onOffCost;       // Cost for switching on/off the device
+  double majorTransitionCost; // Cost for switching between major states
+  double minorTransitionCost; // Cost for switching between minor states
+  double idleCost;
+
+  bool switchOnOffDuringRace;
+};
+
+class CommonRaceGrammar : public Grammar {
+ public:
+  CommonRaceGrammar(CommonRaceGrammarSettings settings);
+
+  std::shared_ptr<HTree> parse(Array<Nav> navs,
+      Array<UserHint> hints = Array<UserHint>());
+  Array<HNode> nodeInfo();
+ private:
+  AngleCost _angleCost;
+  CommonRaceGrammarSettings _settings;
+  Hierarchy _h;
+  Array<Arrayi> _preds;
+  MDArray2d _staticTransitionCosts;
+  Arrayd _staticStateCosts;
+};
+
+}
+
+#endif /* COMMONRACEGRAMMAR_H_ */
