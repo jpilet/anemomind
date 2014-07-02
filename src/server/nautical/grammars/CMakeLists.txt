@@ -118,8 +118,16 @@ add_library(nautical_grammars_CommonRaceGrammar
             CommonRaceGrammar.h
            )
 target_link_libraries(nautical_grammars_CommonRaceGrammar
-                      nautical_grammars_Grammar
+                      nautical_Grammar
                       nautical_grammars_AngleCost
-                      nautical_grammars_StaticCostFactor
+                      nautical_grammars_StaticCostFactory
                       common_HNodeGroup
+                     )
+add_executable(nautical_grammars_CommonRaceGrammarExample
+               CommonRaceGrammarExample.cpp
+              )
+target_link_libraries(nautical_grammars_CommonRaceGrammarExample
+                      nautical_grammars_CommonRaceGrammar
+                      nautical_grammars_TreeExplorer
+                      nautical_TestdataNavs
                      )
