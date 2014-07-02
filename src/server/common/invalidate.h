@@ -3,11 +3,14 @@
 /*
  * The function InvalidateScalar is a way to declare that a variable will not
  * be read before it is written. In other words, its initial content does not
- * matter. In debug mode, InvalidateScalar will populate float values by NaN,
- * to make sure reading such a variable will get noticed.
- * 
- * In release mode, the function does nothing.
+ * matter. InvalidateScalar will populate float values by NaN in release and
+ * debug mode to make sure reading such a variable will get noticed.
  *
+ * If it is only desirable that the value is initialized to NaN in debug mode
+ * but left untouched in release mode, e.g. for performance reasons,
+ * InvalidateScalarInDebug can be called.
+ *
+ * 
  * Usage example:
  *
  * struct Example {
@@ -20,17 +23,15 @@
 
 #include <limits>
 
-#ifdef NDEBUG
-template <typename T> void InvalidateScalar(T *) { }
-template <typename T> void InvalidateScalars(int, T *) { }
-#else
 template <typename T> void InvalidateScalar(T *var) {
     *var = std::numeric_limits<T>::signaling_NaN();
 }
-template <typename T> void InvalidateScalars(int n, T *var) {
-  for (int i = 0; i < n; i++) {
-    InvalidateScalar<T>(var + i);
-  }
+
+#ifdef NDEBUG
+template <typename T> void InvalidateScalarInDebug(T *) { }
+#else
+template <typename T> void InvalidateScalarInDebug(T *var) {
+    InvalidateScalar<T>(var);
 }
 #endif
 

@@ -5,13 +5,6 @@
 
 namespace sail {
 
-bool isBlank(char c) {
-  return c == ' ' || c == '\n';
-}
-
-bool notIsBlank(char c) {
-  return !isBlank(c);
-}
 
 bool tryParseInt(const std::string &s, int &out) {
   try {
@@ -186,6 +179,12 @@ void splitFilenamePrefixSuffix(const std::string &filename,
   } else {
     prefix = filename;
     suffix = "";
+  }
+}
+
+void indent(std::ostream *s, int count) {
+  for (int i = 0; i < count; i++) {
+    *s << " ";
   }
 }
 

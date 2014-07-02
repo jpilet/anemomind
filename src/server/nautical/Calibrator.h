@@ -4,13 +4,15 @@
 #include <Poco/Path.h>
 #include <ceres/ceres.h>
 #include <memory>
-#include <server/nautical/BasicTrueWindEstimator.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <string>
+
 
 namespace sail {
 
 class TackCost;
+class GnuplotExtra;
 
 class Calibrator  {
   public:
@@ -22,6 +24,9 @@ class Calibrator  {
     //! Print last calibration results.
     void print();
 
+    //! Invokes gnuplot to show some error distribution.
+    void plot(GnuplotExtra *gnuplot, const std::string &title);
+
     //! Forget last calibration results.
     void clear();
 
@@ -32,11 +37,11 @@ class Calibrator  {
     void addBuoyTurn(std::shared_ptr<HTree> tree);
 
     Array<Nav> _allnavs;
-    Grammar001Settings _settings;
-    Grammar001 _grammar;
+    WindOrientedGrammarSettings _settings;
+    WindOrientedGrammar _grammar;
     std::shared_ptr<HTree> _tree;
     ceres::Problem _problem;
-    double _calibrationValues[BasicTrueWindEstimator::NUM_PARAMS];
+    double _calibrationValues[TrueWindEstimator::NUM_PARAMS];
 
     // The pointers stored in this vector are owned by "_problem".
     vector<TackCost*> _maneuvers;

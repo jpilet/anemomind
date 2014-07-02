@@ -41,10 +41,7 @@ double LineKM::getM() const {
 }
 
 
-LineKM::~LineKM() {
-}
-
-bool LineKM::operator== (const LineKM &other)  const {
+bool LineKM::operator==(const LineKM &other) const {
   return _k == other._k && _m == other._m;
 }
 

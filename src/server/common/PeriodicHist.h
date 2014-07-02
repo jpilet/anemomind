@@ -11,7 +11,7 @@
 #include <server/common/LineKM.h>
 #include <server/common/Array.h>
 #include <server/common/MDArray.h>
-#include <server/common/PhysicalQuantity.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <iosfwd>
 
 namespace sail {

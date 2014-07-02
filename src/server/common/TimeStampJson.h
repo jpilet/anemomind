@@ -8,6 +8,8 @@
 
 #include <string>
 #include <Poco/JSON/Object.h>
+#include <server/common/Json.h>
+
 
 namespace sail {
 
@@ -15,11 +17,11 @@ class TimeStamp;
 
 namespace json {
 
-bool deserializeField(Poco::JSON::Object::Ptr obj, const std::string &prefix, TimeStamp *out);
+bool deserializeField(Poco::Dynamic::Var obj, const std::string &prefix, TimeStamp *out);
 void serializeField(Poco::JSON::Object::Ptr obj, const std::string &prefix, const TimeStamp &x);
 
-Poco::JSON::Object::Ptr serialize(const TimeStamp &src);
-bool deserialize(Poco::JSON::Object::Ptr src, TimeStamp *dst);
+Poco::Dynamic::Var serialize(const TimeStamp &src);
+bool deserialize(Poco::Dynamic::Var src, TimeStamp *dst);
 
 }
 } /* namespace sail */

@@ -60,33 +60,12 @@ class HNode {
   int parent() const {
     return _parent;
   }
+
+  bool operator== (const HNode &other) const;
  private:
   int _index, _parent;
   std::string _description, _code;
 };
-
-class HNodeFamily {
- public:
-  HNodeFamily(std::string familyName);
-  HNode make(int index, int parent, std::string description);
-  HNode makeRoot(int index, std::string description);
- private:
-  std::string _familyName;
-};
-
-class CheckedHNodeFamily {
- public:
-  CheckedHNodeFamily(std::string familyName);
-  HNode make(int index, const HNode &parent, std::string description);
-  HNode makeRoot(int index, std::string description);
-  Array<HNode> getNodes();
- private:
-  bool registred(const HNode &node);
-  const HNode &registerNew(const HNode &node);
-  std::map<int, HNode> _nodes;
-  HNodeFamily _raw;
-};
-
 
 // The output of Hierarchy::parse is std::shared_ptr<HTree>
 //
@@ -133,7 +112,8 @@ class HTree {
 // This is less wasteful than allocating one HTree object of every single terminal.
 class HLeaves : public HTree {
  public:
-  HLeaves(int left, int index, int count = 1) : _left(left), _index(index), _count(count) {
+  HLeaves(int left, int index, int count = 1)
+    : _index(index), _left(left), _count(count) {
     assert(index != -1);
   }
   int left() const {
@@ -220,6 +200,9 @@ class Hierarchy {
 
   HNode node(int index) const {return _nodes[index];}
   Array<HNode> nodes() {return _nodes;}
+  Array<Arrayi> childrenPerNode() const {return _childrenPerNode;}
+  Arrayi children(int nodeIndex) const {return _childrenPerNode[nodeIndex];}
+  int nodeCount() const {return _nodes.size();}
  private:
   // Creates an ancestor at 'level' for a node of type 'nodeIndex'
   std::shared_ptr<HTree> wrap(int left, int level, int nodeIndex) const;
@@ -240,6 +223,9 @@ class Hierarchy {
 
   // A 2d array where element _ancestors(i, j) is the index for the ancestor of node 'i' at level 'j' in the hierarchy.
   MDArray2i _ancestors;
+
+  // Table that holds the child indices of every HNode
+  Array<Arrayi> _childrenPerNode;
 };
 
 } /* namespace sail */

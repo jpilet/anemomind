@@ -12,64 +12,17 @@
 #include <server/common/string.h>
 #include <stdexcept>
 #include <vector>
+#include <server/common/ArrayBuilder.h>
 
 namespace sail {
 
+bool HNode::operator== (const HNode &other) const {
+  return _index == other._index && _parent == other._parent
+      && _description == other._description && _code == other._code;
+}
+
 HNode::HNode(int index, int parent, std::string code, std::string label) : _index(index), _parent(parent), _code(code), _description(label) {
 }
-
-HNodeFamily::HNodeFamily(std::string familyName) : _familyName(familyName) {}
-
-HNode HNodeFamily::make(int index, int parent, std::string description) {
-  return HNode(index, parent, stringFormat("%s-%03d", _familyName.c_str(), index), description);
-}
-HNode HNodeFamily::makeRoot(int index, std::string description) {
-  return HNode(index, -1, stringFormat("%s-%03d", _familyName.c_str(), index), description);
-}
-
-
-namespace {
-  const int rootIndex = 0;
-}
-
-CheckedHNodeFamily::CheckedHNodeFamily(std::string familyName) :
-  _raw(familyName) {
-}
-
-HNode CheckedHNodeFamily::make(int index, const HNode &parent, std::string description) {
-  CHECK(registred(parent));
-  return registerNew(_raw.make(index, parent.index(), description));
-}
-
-HNode CheckedHNodeFamily::makeRoot(int index, std::string description) {
-  return registerNew(_raw.makeRoot(index, description));
-}
-
-bool CheckedHNodeFamily::registred(const HNode &node) {
-  return _nodes.find(node.index()) != _nodes.end();
-}
-
-const HNode &CheckedHNodeFamily::registerNew(const HNode &node) {
-  CHECK(!registred(node));
-  _nodes[node.index()] = node;
-  return node;
-}
-
-Array<HNode> CheckedHNodeFamily::getNodes() {
-  int count = _nodes.size();
-  Array<HNode> dst(count);
-  typedef std::map<int, HNode>::iterator Iter;
-  for (Iter i = _nodes.begin(); i != _nodes.end(); i++) {
-    CHECK_LE(0, i->first);
-    CHECK_LT(i->first, count);
-    dst[i->first] = i->second;
-  }
-  return dst;
-}
-
-
-
-
 
 namespace {
 // Checks that
@@ -131,27 +84,29 @@ int getHRootNode(Array<HNode> nodes) {
 }
 
 // Builds a table that for every node lists the nodes for whom it is the parent.
-Array<std::vector<int> > listChildren(Array<HNode> nodes) {
+Array<Arrayi> listChildren(Array<HNode> nodes) {
   int count = nodes.size();
-  Array<std::vector<int> > children(count);
+  Array<ArrayBuilder<int> > children(count);
   for (int i = 0; i < count; i++) {
     HNode &node = nodes[i];
     assert(node.index() == i);
     if (node.defined() && node.hasParent()) {
-      children[node.parent()].push_back(node.index());
+      children[node.parent()].add(node.index());
     }
   }
-  return children;
+  return children.map<Arrayi>([&](ArrayBuilder<int> builder) {
+    return builder.get();
+  });
 }
 
 // Sub-routine to calcLevelPerNode.
-void traverseChildrenAndOutputLevel(int level, int currentNode, Array<std::vector<int> > childrenPerNode, Arrayi *levelPerNodeInOut) {
+void traverseChildrenAndOutputLevel(int level, int currentNode, Array<Arrayi> childrenPerNode, Arrayi *levelPerNodeInOut) {
   assert(levelPerNodeInOut != nullptr);
   assert((*levelPerNodeInOut)[currentNode] == -1);
   (*levelPerNodeInOut)[currentNode] = level;
 
   int nextLevel = level + 1;
-  std::vector<int> &children = childrenPerNode[currentNode];
+  Arrayi &children = childrenPerNode[currentNode];
   int childCount = children.size();
   for (int i = 0; i < childCount; i++) {
     traverseChildrenAndOutputLevel(nextLevel, children[i], childrenPerNode, levelPerNodeInOut);
@@ -159,7 +114,7 @@ void traverseChildrenAndOutputLevel(int level, int currentNode, Array<std::vecto
 }
 
 // Computes the level for each node in a routed tree.
-Arrayi calcLevelPerNode(int rootNode, Array<std::vector<int> > children) {
+Arrayi calcLevelPerNode(int rootNode, Array<Arrayi> children) {
   int count = children.size();
   Arrayi levelPerNode(count);
   levelPerNode.setTo(-1);
@@ -167,8 +122,8 @@ Arrayi calcLevelPerNode(int rootNode, Array<std::vector<int> > children) {
   return levelPerNode;
 }
 
-Arrayb calcTerminals(Array<std::vector<int> > children) {
-  return children.map<bool>([&] (const std::vector<int> &c) {
+Arrayb calcTerminals(Array<Arrayi> children) {
+  return children.map<bool>([&] (const Arrayi &c) {
     return c.empty();
   });
 }
@@ -313,7 +268,8 @@ Hierarchy::Hierarchy(Array<HNode> unorderedNodes) : _nodes(arrangeHNodes(unorder
   checkHNodeValidParents(_nodes);
   _rootNode = getHRootNode(_nodes);
   assert(_rootNode != -1);
-  Array<std::vector<int> > children = listChildren(_nodes);
+  Array<Arrayi> children = listChildren(_nodes);
+  _childrenPerNode = children;
   _isTerminal = calcTerminals(children);
   _levelPerNode = calcLevelPerNode(_rootNode, children);
   _ancestors = makeAncestors(_nodes, _levelPerNode);

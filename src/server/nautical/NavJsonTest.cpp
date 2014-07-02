@@ -6,28 +6,18 @@
 #include <Poco/JSON/Array.h>
 #include <Poco/JSON/ParseHandler.h>
 #include <Poco/JSON/Parser.h>
+#include <Poco/JSON/Stringifier.h>
 #include <gtest/gtest.h>
+#include <server/common/Env.h>
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <server/nautical/NavJson.h>
+#include <server/nautical/NavNmea.h>
+
+// For some reason, Json.h must be included after NavJson.h.
+#include <server/common/Json.h>
 
 using namespace sail;
-
-TEST(NavJsonTest, ConvertToJson) {
-  Nav nav;
-  Array<Nav> navs(1, &nav);
-  Poco::JSON::Array data = json::serialize(navs);
-  stringstream ss;
-  data.stringify(ss, 0, 0);
-  std::string s = ss.str();
-  int len = s.length();
-  EXPECT_GE(len, 0);
-  EXPECT_EQ(s[0], '[');
-  EXPECT_EQ(s[len-1], ']');
-  const char expected[] = "[{\"time-milliseconds-since-1970\":9223372036854775807}]";
-  EXPECT_EQ(s, expected);
-}
-
 
 namespace {
 
@@ -44,9 +34,7 @@ Array<Nav> deserializeNavs(const char *dataToDecode) {
   }
   Poco::Dynamic::Var result = handler->asVar();
   EXPECT_TRUE(result.isArray());
-  Poco::JSON::Array::Ptr arr = result.extract<Poco::JSON::Array::Ptr>();
-
-  json::deserialize(*arr, &navs);
+  json::deserialize(result, &navs);
   return navs;
 }
 
@@ -55,7 +43,7 @@ void runJsonEncDecTest(const char *dataToDecode) {
   EXPECT_EQ(navs.size(), 1);
 
   std::stringstream ss;
-  json::serialize(navs).stringify(ss, 0, 0);
+  Poco::JSON::Stringifier::stringify(json::serialize(navs), ss, 0, 0);
 
   Array<Nav> navs2 = deserializeNavs(ss.str().c_str());
   EXPECT_EQ(navs2.size(), 1);
@@ -64,35 +52,50 @@ void runJsonEncDecTest(const char *dataToDecode) {
 
 }  // namespace
 
+TEST(NavJsonTest, ConvertToJson) {
+  Nav nav;
+  Array<Nav> navs(1, &nav);
+  Poco::Dynamic::Var data = json::serialize(navs);
+  stringstream ss;
+  Poco::JSON::Stringifier::stringify(data, ss, 0, 0);
+  std::string s = ss.str();
+  int len = s.length();
+  EXPECT_GE(len, 0);
+  EXPECT_EQ(s[0], '[');
+  EXPECT_EQ(s[len-1], ']');
+  const char expected[] = "[{\"time_ms_1970\":9223372036854775807}]";
+  EXPECT_EQ(s, expected);
+}
+
 TEST(NavJsonTest, EncDecTest) {
   runJsonEncDecTest(
-      "[{\"time-milliseconds-since-1970\":9223372036854775807}]");
+      "[{\"time_ms_1970\":9223372036854775807}]");
   runJsonEncDecTest(
-    "[{\"alt-m\":0.4,"
-    "\"awa-rad\":0.5235987755982988,"
-    "\"aws-mps\":6,"
-    "\"gpsbearing-rad\":-0.3,"
-    "\"gpsspeed-mps\":1.1,"
-    "\"lat-rad\":0.6806784082777885,"
-    "\"lon-rad\":0.8377580409572782,"
-    "\"maghdg-rad\":-0.301,"
-    "\"time-milliseconds-since-1970\":1396029819000,"
-    "\"watspeed-mps\":0.03}]");
+    "[{\"alt_m\":0.4,"
+    "\"awa_rad\":0.5235987755982988,"
+    "\"aws_mps\":6,"
+    "\"gpsbearing_rad\":-0.3,"
+    "\"gpsspeed_mps\":1.1,"
+    "\"lat_rad\":0.6806784082777885,"
+    "\"lon_rad\":0.8377580409572782,"
+    "\"maghdg_rad\":-0.301,"
+    "\"time_ms_1970\":1396029819000,"
+    "\"watspeed_mps\":0.03}]");
 }
 
 TEST(NavJsonTest, BackwardCompatibilityTest) {
   // Make sure the following format can be correctly de-serialized.
   const char dataToDecode[] =
-    "[{\"alt-m\":0.4,"
-    "\"awa-rad\":0.5235987755982988,"
-    "\"aws-mps\":6,"
-    "\"gpsbearing-rad\":-0.3,"
-    "\"gpsspeed-mps\":1.1,"
-    "\"lat-rad\":0.6806784082777885,"
-    "\"lon-rad\":0.8377580409572782,"
-    "\"maghdg-rad\":-0.301,"
-    "\"time-milliseconds-since-1970\":1396029819000,"
-    "\"watspeed-mps\":0.03}]";
+    "[{\"alt_m\":0.4,"
+    "\"awa_rad\":0.5235987755982988,"
+    "\"aws_mps\":6,"
+    "\"gpsbearing_rad\":-0.3,"
+    "\"gpsspeed_mps\":1.1,"
+    "\"lat_rad\":0.6806784082777885,"
+    "\"lon_rad\":0.8377580409572782,"
+    "\"maghdg_rad\":-0.301,"
+    "\"time_ms_1970\":1396029819000,"
+    "\"watspeed_mps\":0.03}]";
   Nav base;
   base.setGeographicPosition(
       GeographicPosition<double>(
@@ -111,3 +114,19 @@ TEST(NavJsonTest, BackwardCompatibilityTest) {
   Array<Nav> deserialized = deserializeNavs(dataToDecode);
   EXPECT_EQ(deserialized[0], base);
 }
+
+TEST(NavJsonTest, RealNav) {
+  sail::Array<Nav> navs = loadNavsFromNmea(
+      string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"),
+      Nav::Id("B0A10000")).navs();
+
+  std::stringstream ss;
+  Poco::JSON::Stringifier::stringify(json::serialize(navs), ss, 0, 0);
+
+  Array<Nav> navs2 = deserializeNavs(ss.str().c_str());
+  EXPECT_EQ(navs2.size(), navs.size());
+  for (int i = 0; i < navs.size(); ++i) {
+    EXPECT_EQ(navs[i], navs2[i]) << "for nav[" << i << "]";
+  }
+}
+

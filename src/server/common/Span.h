@@ -28,12 +28,27 @@ class Span {
     return _initialized;
   }
 
+  static ThisType centeredAt(T x, T marg) {
+    ThisType dst;
+    dst.extend(x - marg);
+    dst.extend(x + marg);
+    return dst;
+  }
+
+  static ThisType centeredAt0(T marg) {
+    ThisType dst;
+    dst.extend(-marg);
+    dst.extend(marg);
+    return dst;
+  }
+
   Span(T value) : _minv(value), _maxv(value), _initialized(true) {}
 
   Span(Array<T> arr) {
     if (arr.empty()) {
       _initialized = false;
     } else {
+      _initialized = false;
       int count = arr.size();
       _initialized = false;
       for (int i = 0; i < count; i++) {
@@ -100,8 +115,8 @@ class Span {
     return contains(other._minv) || contains(other._maxv);
   }
 
-  ThisType expand(T marg) {
-    return ThisType(_minv - marg, _maxv + marg);
+  bool operator== (const ThisType &other) const {
+    return _minv == other._minv && _maxv == other._maxv && _initialized == other._initialized;
   }
  private:
   bool _initialized;
@@ -109,8 +124,15 @@ class Span {
 };
 
 typedef Span<double> Spand;
+typedef Span<int> Spani;
 
 std::ostream &operator<<(std::ostream &s, const Spand &x);
+
+template <typename T> class Length;
+typedef Span<Length<double> > LengthSpan;
+
+template <typename T> class Duration;
+typedef Span<Duration<double> > TimeSpan;
 
 } /* namespace sail */
 

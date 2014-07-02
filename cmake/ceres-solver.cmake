@@ -40,6 +40,7 @@ ExternalProject_Add(glog_ext
         BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/glog-build"
         SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/glog-src"
         INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-install"
+        PATCH_COMMAND patch -p3 -t -N < "${CMAKE_SOURCE_DIR}/cmake/glog.patch"
         CONFIGURE_COMMAND "${CMAKE_BINARY_DIR}/third-party/glog-src/configure"
             "--prefix=${CMAKE_BINARY_DIR}/third-party/ceres-install"
         )
@@ -49,6 +50,7 @@ ExternalProject_Add(ceres_ext
         BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-build"
         SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-src"
         INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-install"
+        PATCH_COMMAND patch -p3 -t -N < "${CMAKE_SOURCE_DIR}/cmake/ceres.patch"
         CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/third-party/ceres-install"
         "-DHAVE_LTO_SUPPORT=OFF"
         "-DSUITESPARSE=ON"

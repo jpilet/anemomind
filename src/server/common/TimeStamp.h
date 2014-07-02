@@ -10,7 +10,7 @@
 #include <cinttypes>
 #include <iosfwd>
 
-#include "PhysicalQuantity.h"
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 namespace Poco {
   class DateTime;
@@ -47,6 +47,10 @@ class TimeStamp {
   static TimeStamp fromMilliSecondsSince1970(int64_t x) {return TimeStamp(x);}
   int64_t toMilliSecondsSince1970() const {return _time;}
   struct tm makeGMTimeStruct() const;
+
+  bool operator== (const TimeStamp &other) const {
+    return _time == other._time;
+  }
  private:
   TimeStamp(int year, int mon, int day, int hour, int min, int sec, double fracSeconds);
 

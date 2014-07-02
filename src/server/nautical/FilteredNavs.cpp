@@ -32,7 +32,7 @@ namespace {
     double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
       int dist = 0;
       if (_cyclic) {
-        int moddist = posMod(fromStateIndex - toStateIndex, _stateCount);
+        int moddist = positiveMod(fromStateIndex - toStateIndex, _stateCount);
         dist = std::min(moddist, _stateCount - moddist);
       } else {
         dist = std::abs(fromStateIndex - toStateIndex);
@@ -154,7 +154,7 @@ Arrayb identifyReliableGpsSpeed(Array<Velocity<double> > ws) {
 namespace {
 
   double pimod(double a) {
-    double x = floatMod(a + M_PI, 2.0*M_PI);
+    double x = positiveMod(a + M_PI, 2.0*M_PI);
     assert(0 <= x);
     assert(x < 2.0*M_PI);
     return x - M_PI;

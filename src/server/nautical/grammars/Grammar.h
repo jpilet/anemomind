@@ -8,6 +8,7 @@
 
 #include <server/common/Hierarchy.h>
 #include <server/nautical/Nav.h>
+#include <server/nautical/grammars/UserHint.h>
 #include <memory>
 
 namespace sail {
@@ -22,7 +23,8 @@ class Grammar {
    * Should parse 'navs' using the underlying grammar
    * and return a parse tree for the result.
    */
-  virtual std::shared_ptr<HTree> parse(Array<Nav> navs) = 0;
+  virtual std::shared_ptr<HTree> parse(Array<Nav> navs,
+      Array<UserHint> hints = Array<UserHint>()) = 0;
 
   /*
    * Returns an array of HNode
@@ -31,6 +33,11 @@ class Grammar {
 
   virtual ~Grammar() {}
 };
+
+
+Arrayb markNavsByDesc(std::shared_ptr<HTree> tree,
+    Array<HNode> nodeInfo, Array<Nav> allnavs,
+    std::string label);
 
 } /* namespace sail */
 

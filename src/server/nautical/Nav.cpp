@@ -6,11 +6,11 @@
  */
 
 #include "Nav.h"
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/ArrayIO.h>
 #include <algorithm>
 #include <server/plot/gnuplot_i.hpp>
 #include <server/common/LineKM.h>
-#include <server/common/PhysicalQuantity.h>
 #include <server/plot/extra.h>
 #include <server/nautical/Ecef.h>
 #include <ctime>
@@ -97,6 +97,12 @@ bool Nav::operator== (const Nav &other) const {
       _pos == other._pos && (strictEquality(_cwd, other._cwd)) && (strictEquality(_wd, other._wd));
 }
 
+
+HorizontalMotion<double> Nav::gpsVelocity() const {
+  return HorizontalMotion<double>::polar(gpsSpeed(), gpsBearing());
+}
+
+
 Nav::Id Nav::id() const {
   if (hasId()) {
     int64_t time = _time.toMilliSecondsSince1970();
@@ -112,8 +118,8 @@ bool Nav::hasId() const {
 }
 
 
-//const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
-const char Nav::AllNavsPath[] = "/home/jonas/programmering/sailsmart/datasets/allnavs.txt";
+
+const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
 
 // From load_data.m
 //year = 1;
@@ -140,6 +146,23 @@ const char Nav::AllNavsPath[] = "/home/jonas/programmering/sailsmart/datasets/al
 //wd = 22;
 //days = 23;
 //days_data = datenum(unsorted_data(:,year) + 2000, unsorted_data(:,month), unsorted_data(:, dayOfTheMonth), unsorted_data(:,hour), unsorted_data(:,minute), unsorted_data(:,second));
+
+
+
+
+
+Array<Velocity<double> > getExternalTws(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&](const Nav &n) {return n.externalTws();});
+}
+
+Array<Angle<double> > getExternalTwa(Array<Nav> navs) {
+  return navs.map<Angle<double> >([&](const Nav &n) {return n.externalTwa();});
+}
+
+Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&](const Nav &n) {return n.gpsSpeed();});
+}
+
 
 
 
@@ -343,10 +366,6 @@ Array<Angle<double> > getMagHdg(Array<Nav> navs) {
 
 Array<Angle<double> > getGpsBearing(Array<Nav> navs) {
   return navs.map<Angle<double> >([&] (const Nav &nav) {return nav.gpsBearing();});
-}
-
-Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
-  return navs.map<Velocity<double> >([&] (const Nav &nav) {return nav.gpsSpeed();});
 }
 
 Array<Velocity<double> > getWatSpeed(Array<Nav> navs) {

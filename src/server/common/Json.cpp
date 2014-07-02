@@ -4,9 +4,11 @@
  */
 
 #include "Json.h"
+#include <server/common/logging.h>
 
 namespace sail {
 namespace json {
+
 
 void serializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, const std::string &value) {
   if (!value.empty()) {
@@ -14,11 +16,18 @@ void serializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, c
   }
 }
 
-void deserializeField(Poco::JSON::Object::Ptr obj, const std::string &fieldName, std::string *valueOut) {
-  if (obj->has(fieldName)) {
-    *valueOut = obj->getValue<std::string>(fieldName);
-  } else {
-    *valueOut = "";
+bool deserializeField(Poco::Dynamic::Var cobj, const std::string &fieldName, std::string *valueOut) {
+  try {
+    Poco::JSON::Object::Ptr obj = cobj.extract<Poco::JSON::Object::Ptr>();
+    if (obj->has(fieldName)) {
+        *valueOut = obj->getValue<std::string>(fieldName);
+        return true;
+    } else {
+      *valueOut = "";
+      return false;
+    }
+  } catch (Poco::Exception &e) {
+    return false;
   }
 }
 

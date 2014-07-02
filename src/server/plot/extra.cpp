@@ -23,32 +23,36 @@ GnuplotExtra::GnuplotExtra() {
   //_rgbString = "";
 }
 
-void GnuplotExtra::plot(MDArray2d data) {
+void GnuplotExtra::plot(MDArray2d data, const std::string &title) {
   int rows = data.rows();
   if (data.cols() == 2) {
-    plot_xy(data.sliceCol(0).getStorage().sliceTo(rows), data.sliceCol(1).getStorage().sliceTo(rows));
+    plot_xy(data.sliceCol(0).getStorage().sliceTo(rows),
+            data.sliceCol(1).getStorage().sliceTo(rows),
+            title);
   } else if (data.cols() == 3) {
-    plot_xyz(data.sliceCol(0).getStorage().sliceTo(rows), data.sliceCol(1).getStorage().sliceTo(rows), data.sliceCol(2).getStorage().sliceTo(rows));
+    plot_xyz(data.sliceCol(0).getStorage().sliceTo(rows),
+             data.sliceCol(1).getStorage().sliceTo(rows),
+             data.sliceCol(2).getStorage().sliceTo(rows),
+             title);
   } else {
     cerr << "BAD NUMBER OF COLUMNS" << endl;
     throw std::exception();
   }
 }
 
-void GnuplotExtra::plot(int dim, double *from, double *to) {
+void GnuplotExtra::plot(int dim, double *from, double *to, const std::string &title) {
   double X[2] = {from[0], to[0]};
   double Y[2] = {from[1], to[1]};
   if (dim == 2) {
-    plot_xy(Arrayd(2, X), Arrayd(2, Y));
+    plot_xy(Arrayd(2, X), Arrayd(2, Y), title);
   } else {
     double Z[2] = {from[2], to[2]};
-    plot_xyz(Arrayd(2, X), Arrayd(2, Y), Arrayd(2, Z));
+    plot_xyz(Arrayd(2, X), Arrayd(2, Y), Arrayd(2, Z), title);
   }
 }
 
 void GnuplotExtra::show() {
   showonscreen();
-  sleepForever();
 }
 
 void sleepForever() {

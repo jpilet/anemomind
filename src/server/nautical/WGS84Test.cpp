@@ -3,16 +3,16 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <cmath>
-#include "WGS84.h"
-#include <server/common/math.h>
 #include "Ecef.h"
+#include "WGS84.h"
+#include <cmath>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <gtest/gtest.h>
-#include <server/common/string.h>
-#include <server/common/LineKM.h>
 #include <server/common/Function.h>
+#include <server/common/LineKM.h>
 #include <server/common/logging.h>
-#include <server/common/PhysicalQuantity.h>
+#include <server/common/math.h>
+#include <server/common/string.h>
 
 using namespace sail;
 

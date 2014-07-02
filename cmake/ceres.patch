@@ -1,0 +1,12 @@
+diff -ru build3/third-party/ceres-src/CMakeLists.txt build/third-party/ceres-src/CMakeLists.txt
+--- build3/third-party/ceres-src/CMakeLists.txt	2013-11-12 23:43:09.000000000 +0100
++++ build/third-party/ceres-src/CMakeLists.txt	2014-05-12 14:31:23.000000000 +0200
+@@ -566,7 +566,7 @@
+ IF (UNIX)
+   # GCC is not strict enough by default, so enable most of the warnings.
+   SET(CMAKE_CXX_FLAGS
+-    "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers")
++    "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-missing-field-initializers")
+ ENDIF (UNIX)
+ 
+ # Use a larger inlining threshold for Clang, since it hobbles Eigen,

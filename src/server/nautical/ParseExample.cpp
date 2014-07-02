@@ -11,10 +11,11 @@
 #include <server/nautical/NavJson.h>
 #include <fstream>
 #include <Poco/Path.h>
-#include <server/nautical/grammars/Grammar001.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <iostream>
 #include <server/nautical/HTreeJson.h>
 #include <server/common/PathBuilder.h>
+#include <Poco/JSON/Stringifier.h>
 
 using namespace sail;
 
@@ -42,8 +43,8 @@ namespace {
     Array<Nav> allnavs = scanNmeaFolder(dataFolder, Nav::debuggingBoatId());
     cout << "loaded" << endl;
 
-    Grammar001Settings settings;
-    Grammar001 g(settings);
+    WindOrientedGrammarSettings settings;
+    WindOrientedGrammar g(settings);
 
 
     std::shared_ptr<HTree> fulltree = g.parse(allnavs); //allnavs.sliceTo(2000));
@@ -60,13 +61,13 @@ namespace {
 
     {
       ofstream file(prefix + "_tree.js");
-      json::serializeMapped(tree, navs, g.nodeInfo())->stringify(file, 0, 0);
+      Poco::JSON::Stringifier::stringify(json::serializeMapped(tree, navs, g.nodeInfo()), file, 0, 0);
     }{
       ofstream file(prefix + "_navs.js");
-      json::serialize(navs).stringify(file, 0, 0);
+      Poco::JSON::Stringifier::stringify(json::serialize(navs), file, 0, 0);
     }{
       ofstream file(prefix + "_tree_node_info.js");
-      json::serialize(g.nodeInfo()).stringify(file, 0, 0);
+      Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
     }
 
     cout << "Done" << endl;

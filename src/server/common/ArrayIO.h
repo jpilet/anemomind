@@ -32,32 +32,6 @@ void outputAsCArrayInitializer(std::string name, Array<T> arr, std::ostream *out
 
 #define OUTPUT_AS_C_ARRAY_INITIALIZER(stream, arr) outputAsCArrayInitializer(#arr, (arr), &(stream))
 
-template <typename T, int dims>
-std::ostream &operator << (std::ostream &s, MDArray<T, dims> arr) {
-  int count = arr.numel();
-  s << "MDArray with " << count << " elements\n";
-  if (count > 0) {
-    // Initialize indices
-    int inds[dims];
-    for (int i = 0; i < dims; i++) {
-      inds[i] = 0;
-    }
-
-    // Iterate
-    for (int i = 0; i < count; i++) {
-      s << "Element (";
-      for (int j = 0; j < dims; j++) {
-        s << inds[j] << (j < dims-1? ", " : "");
-      }
-      s << ") = \n";
-      s << arr.get(inds) << "\n";
-      arr.step(inds, 1);
-    }
-  }
-  //s << "RETURN THE STREAM" << std::endl;
-  return s;
-}
-
 // Display an array assuming it stores a matrix
 template <typename T>
 void dispMat(std::ostream &s, MDArray<T, 2> mat, int width = 5, int precision = 3, int indent = 2) {
@@ -71,6 +45,36 @@ void dispMat(std::ostream &s, MDArray<T, 2> mat, int width = 5, int precision = 
       s << std::setw(width) << std::setprecision(precision) << mat.get(i, j) << " ";
     }
     s << "\n";
+  }
+}
+
+template <typename T, int dims>
+std::ostream &operator << (std::ostream &s, MDArray<T, dims> arr) {
+  if (dims == 2) {
+    dispMat(s, arr);
+  } else {
+    int count = arr.numel();
+    s << "MDArray with " << count << " elements\n";
+    if (count > 0) {
+      // Initialize indices
+      int inds[dims];
+      for (int i = 0; i < dims; i++) {
+        inds[i] = 0;
+      }
+
+      // Iterate
+      for (int i = 0; i < count; i++) {
+        s << "Element (";
+        for (int j = 0; j < dims; j++) {
+          s << inds[j] << (j < dims-1? ", " : "");
+        }
+        s << ") = \n";
+        s << arr.get(inds) << "\n";
+        arr.step(inds, 1);
+      }
+    }
+    //s << "RETURN THE STREAM" << std::endl;
+    return s;
   }
 }
 

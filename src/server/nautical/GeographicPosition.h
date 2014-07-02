@@ -6,7 +6,7 @@
 #ifndef GEOGRAPHICPOSITION_H_
 #define GEOGRAPHICPOSITION_H_
 
-#include <server/common/PhysicalQuantity.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 namespace sail {
 

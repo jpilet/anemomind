@@ -1,9 +1,8 @@
 #ifndef ARRAY_H_
 #define ARRAY_H_
 
-#include <assert.h>
 #include <functional>
-#include <server/common/invalidate.h>
+#include <server/common/ArrayStorage.h>
 
 namespace sail {
 
@@ -12,45 +11,6 @@ namespace sail {
 #endif
 
 typedef std::function<bool(int)> SliceFun;
-
-template <typename T>
-class Deallocator {
- public:
-  Deallocator() {}
-  virtual void deallocate(int *refs, T *base) = 0;
-  virtual ~Deallocator() {}
-};
-
-namespace ArrayAlloc {
-
-  template <typename T>
-  class InitArray {
-   public:
-    static void apply(int n, T *x) {}
-  };
-
-  #define INVALIDATE_DATA_FOR_TYPE(T) template <> class InitArray<T> {public: static void apply(int n, T *x) {InvalidateScalars<T>(n, x);}};
-  INVALIDATE_DATA_FOR_TYPE(double)
-  INVALIDATE_DATA_FOR_TYPE(float)
-  INVALIDATE_DATA_FOR_TYPE(int)
-  INVALIDATE_DATA_FOR_TYPE(unsigned int)
-  INVALIDATE_DATA_FOR_TYPE(char)
-  INVALIDATE_DATA_FOR_TYPE(unsigned char)
-  INVALIDATE_DATA_FOR_TYPE(long)
-  INVALIDATE_DATA_FOR_TYPE(unsigned long)
-  INVALIDATE_DATA_FOR_TYPE(short)
-  INVALIDATE_DATA_FOR_TYPE(unsigned short)
-  #undef INVALIDATE_DATA_FOR_TYPE
-
-
-
-  template <typename T>
-  T *make(int n) {
-    T *data = new T[n];
-    InitArray<T>::apply(n, data);
-    return data;
-  }
-}
 
 
 // Implements a reference counted ("garbage collected") and sliceable generic array type.
@@ -62,10 +22,7 @@ class Array {
 
   Array() {
     _size = 0;
-    _refs = nullptr;
     _data = nullptr;
-    _base = nullptr;
-    _deallocator = nullptr;
   }
 
   typedef std::function<T(int index)> ArrayFun;
@@ -190,11 +147,11 @@ class Array {
     return ThisType(x.size(), x.data());
   }
 
-  bool empty() {
+  bool empty() const {
     return _size == 0;
   }
 
-  bool hasData() {
+  bool hasData() const {
     return not empty();
   }
 
@@ -211,6 +168,23 @@ class Array {
     }
   }
 
+  Array(ArrayStorage<T> storage) {
+    _storage = storage;
+    if (storage.allocated()) {
+      _data = storage.ptr();
+      _size = storage.size();
+    } else {
+      _data = nullptr;
+      _size = 0;
+    }
+  }
+
+  Array(T *data, int size, ArrayStorage<T> storage) {
+    _data = data;
+    _size = size;
+    _storage = storage;
+  }
+
   void copyToSafe(Array<T> dst) {
     assert(dst.size() == _size);
     for (int i = 0; i < _size; i++) {
@@ -218,22 +192,9 @@ class Array {
     }
   }
 
-
-  void assignOwnage(int size, T *data) {
-    decRef();
-    _size = size;
-    _refs = new int;
-    *_refs = 1;
-    _base = data;
-    _data = _base;
-  }
-
   void create(int size) {
-#if SAFEARRAY
-    assert(0 <= size);
-#endif
     if (_size != size) {
-      assignOwnage(size, ArrayAlloc::make<T>(size));
+      initialize(size);
     }
   }
 
@@ -244,34 +205,6 @@ class Array {
   void reserve(int s) {
     if (size() < s) {
       create(s);
-    }
-  }
-
-  // Different from reserve in the sense that
-  //  * it doubles the storage until it is at least s
-  //  * it retains old data.
-  // This method is useful to manage a buffer that may grow
-  void expandIfNeeded(int s) {
-    if (_size < s) {
-      int newSize = 2*(_size == 0? 1 : _size);
-      while (newSize < s) {
-        newSize *= 2;
-      }
-      T *newData = ArrayAlloc::make<T>(newSize);
-      for (int i = 0; i < _size; i++) {
-        newData[i] = _data[i];
-      }
-      assignOwnage(newSize, newData);
-    }
-  }
-
-  void expandIfNeededAndFill(int s, const T &fillvalue) {
-    if (_size < s) {
-      int oldSize = _size;
-      expandIfNeeded(s);
-      for (int i = oldSize; i < _size; i++) {
-        _data[i] = fillvalue;
-      }
     }
   }
 
@@ -364,16 +297,13 @@ class Array {
 
 
   // Initialize an array to point at existing data
-  Array(int size, T *data, int *refs = nullptr, Deallocator<T> *deallo = nullptr) {
+  Array(int size, T *data) {
 #if SAFEARRAY
     assert(data != nullptr || size == 0);
     assert(0 <= size);
 #endif
     _size = size;
-    _base = data;
-    _refs = refs;
     _data = data;
-    _deallocator = deallo;
   }
 
   void setTo(const T &value) {
@@ -387,7 +317,6 @@ class Array {
 #if SAFEARRAY
     assert(_size == src.size());
 #endif
-    int count = _size;
     for (int i = 0; i < _size; i++) {
       _data[i] = src.get(i);
     }
@@ -396,14 +325,13 @@ class Array {
 
   // Get a slice of size to - from
   ThisType slice(int from, int to) {
-    incRef(); // Increase for the slice
 #if SAFEARRAY
     assert(from <= to);
     assert(0 <= from);
     assert(to <= _size);
     assert(_data != nullptr);
 #endif
-    return Array(_refs, _base, _data + from, to - from, _deallocator);
+    return Array(_data + from, to - from, _storage);
   }
 
   ThisType sliceBlock(int index, int blockSize) {
@@ -552,35 +480,13 @@ class Array {
     return _size/2;
   }
 
-  // Copy constructor
-  Array(const ThisType &other) {
-    _size = other._size;
-    _base = other._base;
-    _data = other._data;
-    _refs = other._refs;
-    _deallocator = other._deallocator;
-    incRef();
-  }
 
-  ThisType &operator=(const ThisType &other) {
-    if (_refs != other._refs) {
-      decRef();
-      _refs = other._refs;
-      incRef();
-    }
-    _size = other._size;
-    _base = other._base;
-    _data = other._data;
-    _deallocator = other._deallocator;
-    return *this;
-  }
-
-  bool operator==(const ThisType &other) {
+  bool operator==(const ThisType &other) const {
     if (other.size() != _size) {
       return false;
     }
     for (int i = 0; i < _size; i++) {
-      if (_data[i] != other._data[i]) {
+      if (!(_data[i] == other._data[i])) {
         return false;
       }
     }
@@ -590,18 +496,6 @@ class Array {
 
   bool byteEquals(const ThisType &other) {
     return cast<unsigned char>() == other.cast<unsigned char>();
-  }
-
-  ThisType &operator=(T *src) {
-    assert(src == nullptr);
-    decRef();
-    _refs = nullptr;
-    _base = src;
-    _data = src;
-    if (src == nullptr) {
-      _size = 0;
-    }
-    return *this;
   }
 
 
@@ -623,10 +517,6 @@ class Array {
 
   T *lastPtr() const {
     return _data + _size;
-  }
-
-  virtual ~Array() {
-    decRef();
   }
 
   ThisType append(const T &x) {
@@ -653,17 +543,8 @@ class Array {
     return dst;
   }
 
-  int getRefs() {
-    if (_refs == nullptr) {
-      return -1;
-    } else {
-      return *_refs;
-    }
-  }
-
   template <typename S>
-  S reduce(S init, std::function<S(S, T)> red) {
-    assert(_size >= 2);
+  S reduce(S init, std::function<S(S, T)> red) const {
     S x = init;
     for (int i = 0; i < _size; i++) {
       x = red(x, _data[i]);
@@ -672,7 +553,7 @@ class Array {
   }
 
   template <typename S>
-  Array<S> map(std::function<S(T)> mapper) {
+  Array<S> map(std::function<S(T)> mapper) const {
     Array<S> dst(_size);
     for (int i = 0; i < _size; i++) {
       dst[i] = mapper(_data[i]);
@@ -694,28 +575,6 @@ class Array {
     return map<S>(mapper);
   }
 
-  T* getBase() {
-    return _base;
-  }
-
-  int* getRefCounter() {
-    return _refs;
-  }
-
-  void incRef() {
-    if (_refs != nullptr) {
-      (*_refs)++;
-    }
-  }
-
-  // A constructor that gives full control to initialization of all the five fields
-  Array(int *refs, T *base, T *data, int size, Deallocator<T> *deallocator) {
-    _refs = refs;
-    _base = base;
-    _data = data;
-    _size = size;
-    _deallocator = deallocator;
-  }
 
   T &last() {
     return _data[_size - 1];
@@ -726,7 +585,7 @@ class Array {
   }
 
   bool identicTo(const Array<T> &other) {
-    return _size == other._size  && _data == other._data && _base == other._base && other._refs == _refs && other._deallocator == _deallocator;
+    return _size == other._size  && _data == other._data && _storage == other._storage;
   }
 
   ThisType cat(ThisType other) {
@@ -800,40 +659,23 @@ class Array {
   }
  private:
 
-  void decRef() {
-    if (_refs != nullptr) {
-      (*_refs)--;
-      if ((*_refs) == 0) {
-        if (_deallocator == nullptr) {
-          delete _refs;
-          delete[] _base;
-        } else {
-          _deallocator->deallocate(_refs, _base);
-        }
-        _refs = nullptr;
-        _base = nullptr;
-        _data = nullptr;
-      }
-    }
-  }
-
   void initialize(int size) {
   #if SAFEARRAY
     assert(0 <= size);
   #endif
     _size = size;
-    _refs = new int;
-    *_refs = 1;
-    _base = new T[size];
-    _data = _base;
-    _deallocator = nullptr;
+    _storage = ArrayStorage<T>(size);
+    _data = _storage.ptr();
   }
 
-  Deallocator<T> *_deallocator;
-  int *_refs; // A reference counter
-  T *_base;   // A pointer to the beginning of the allocated memory, to use for deallocation
-  T*_data;    // A pointer to the start of the data
-  int _size;  // The size of the array
+  // A pointer to the start of the data
+  T*_data;
+
+  // The size of the array
+  int _size;
+
+  // Wraps an array of dynamically allocated memory. Can be empty in case _data points to the stack.
+  ArrayStorage<T> _storage;
 };
 
 typedef Array<double> Arrayd;

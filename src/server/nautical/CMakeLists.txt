@@ -1,4 +1,5 @@
 add_subdirectory("grammars")
+add_subdirectory("synthtest")
 
 add_library(nautical_Ecef
             Ecef.h
@@ -178,7 +179,7 @@ target_link_libraries(nautical_ParseExample
                       common_Env
                       common_PathBuilder
                       nautical_NavNmeaScan
-                      nautical_grammars_Grammar001
+                      nautical_grammars_WindOrientedGrammar
                       nautical_NavJson
                       nautical_HTreeJson
                       common_HierarchyJson
@@ -245,8 +246,10 @@ target_link_libraries(nautical_NavJson
 
 cxx_test(nautical_NavJsonTest
          NavJsonTest.cpp
+         common_Env
          common_logging
          nautical_NavJson
+         nautical_NavNmea
          gtest_main
         )
         
@@ -280,9 +283,17 @@ target_link_libraries(nautical_CalibrationExample
 cxx_test(nautical_LocalRaceTest
             LocalRaceTest.cpp
             nautical_LocalRace
-            gtest_main)
+            common_PathBuilder
+            common_Env
+            nautical_NavNmea
+            gtest_main
+           )
 
-cxx_test(nautical_NavTest NavTest.cpp nautical_nav gtest_main)
+cxx_test(nautical_NavTest
+          NavTest.cpp
+          common_Env
+          common_PathBuilder
+          nautical_nav gtest_main)
 
 
 
@@ -295,15 +306,6 @@ cxx_test(nautical_WGS84Test
             common_LineKM
             gtest_main)
 
-cxx_test(nautical_BasicTrueWindEstimatorTest
-         BasicTrueWindEstimatorTest.cpp
-         common_Env
-         common_logging
-         nautical_nav
-         nautical_NavNmea
-         gtest_main)
-            
-
 add_library(nautical_BoatLogProcessor
             BoatLogProcessor.cpp
             BoatLogProcessor.h
@@ -312,11 +314,12 @@ target_link_libraries(nautical_BoatLogProcessor
                       common_logging
                       common_PathBuilder
                       nautical_NavNmeaScan
-                      nautical_grammars_Grammar001
+                      nautical_grammars_WindOrientedGrammar
                       nautical_NavJson
                       nautical_HTreeJson
                       common_HierarchyJson
                       math_hmm_StateAssign
+                      nautical_TargetSpeed
                      )              
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)
@@ -334,8 +337,10 @@ add_library(nautical_Calibrator
             Calibrator.cpp
            )
 target_link_libraries(nautical_Calibrator
-                      nautical_grammars_Grammar001
+                      nautical_grammars_WindOrientedGrammar
                       nautical_NavNmeaScan
+                      common_Histogram
+                      plot_gnuplot
                       common_math
                      )
 target_depends_on_ceres(nautical_Calibrator)
@@ -346,3 +351,110 @@ target_link_libraries(nautical_BasicCalibrate
                       common_logging
                       nautical_Calibrator)
 
+
+add_library(nautical_FlowField
+            FlowField.cpp
+            FlowField.h
+           )
+target_link_libraries(nautical_FlowField
+                      common_Uniform
+                      plot_gnuplot
+                      common_Span
+                     )           
+add_library(nautical_FlowFieldJson
+            FlowFieldJson.cpp
+            FlowFieldJson.h
+           )
+target_link_libraries(nautical_FlowFieldJson
+                      common_Json
+                      nautical_FlowField
+                      common_LineKMJson
+                      math_Grid
+                     )
+                                           
+cxx_test(nautical_FlowFieldTest
+         FlowFieldTest.cpp
+         nautical_FlowField
+         nautical_FlowFieldJson
+         gtest_main
+        )
+           
+add_executable(nautical_FlowFieldExample
+               FlowFieldExample.cpp
+              )
+target_link_libraries(nautical_FlowFieldExample
+                      nautical_FlowField
+                     )
+
+add_library(nautical_GeographicReference
+            GeographicReference.h
+            GeographicReference.cpp
+           )
+target_link_libraries(nautical_GeographicReference
+                     )
+cxx_test(nautical_GeographicReferenceTest
+         GeographicReferenceTest.cpp
+         nautical_GeographicReference
+         gtest_main
+        )
+                                 
+            
+add_library(nautical_TargetSpeed
+            TargetSpeed.h
+            TargetSpeed.cpp
+           )
+target_link_libraries(nautical_TargetSpeed
+                      nautical_nav
+                      common_Histogram
+                      device_ChunkFile
+                     )  
+
+add_executable(nautical_TargetSpeedExample
+               TargetSpeedExample.cpp
+              )
+
+target_link_libraries(nautical_TargetSpeedExample
+                      nautical_TargetSpeed
+                      common_PathBuilder
+                      common_Env
+                      nautical_NavNmeaScan
+                      common_Span
+                      nautical_grammars_WindOrientedGrammar
+                     )
+
+add_library(nautical_TestdataNavs
+            TestdataNavs.h
+            TestdataNavs.cpp
+           )
+target_link_libraries(nautical_TestdataNavs
+                      nautical_NavNmeaScan
+                      common_Env
+                      common_PathBuilder
+                     )
+
+add_executable(nautical_PlotNavs
+               PlotNavs.cpp
+              )
+              
+target_link_libraries(nautical_PlotNavs
+                      nautical_TestdataNavs
+                      nautical_grammars_WindOrientedGrammar
+                      nautical_grammars_TreeExplorer
+                      plot_gnuplot
+                     )
+
+add_library(nautical_GeographicPositionJson
+            GeographicPositionJson.h
+            GeographicPositionJson.cpp
+           )
+target_link_libraries(nautical_GeographicPositionJson
+                      common_JsonObjDeserializer
+                     )
+
+add_library(nautical_GeographicReferenceJson
+            GeographicReferenceJson.h
+            GeographicReferenceJson.cpp
+           )
+target_link_libraries(nautical_GeographicReferenceJson
+                    nautical_GeographicPositionJson
+                   )

@@ -17,13 +17,17 @@ add_library(common_PathBuilder
            )
 target_depends_on_poco_foundation(common_PathBuilder)
            
+cxx_test(common_MDIndsTest
+         MDIndsTest.cpp
+         gtest_main
+        )           
+           
 cxx_test(common_EnvTest
          EnvTest.cpp
          common_Env
          gtest_main
         )           
 target_depends_on_poco_foundation(common_EnvTest)
-         
 
 cxx_test(common_stringTest
          stringTest.cpp
@@ -82,7 +86,12 @@ add_library(common_Json
             Json.h
             Json.cpp
            )
-target_depends_on_poco_json(common_Json)
+target_depends_on_poco_json(common_Json)                                                     
+cxx_test(common_JsonTest
+         JsonTest.cpp
+         common_Json
+         gtest_main
+        )                     
                    
         
 add_library(common_TimeStampJson
@@ -90,10 +99,6 @@ add_library(common_TimeStampJson
             TimeStampJson.h
            )
 target_depends_on_poco_foundation(common_TimeStampJson)
-
-cxx_test(common_PhysicalQuantityTest
-  PhysicalQuantityTest.cpp
-  gtest_main)
 
 add_library(common_split
             split.cpp
@@ -139,6 +144,21 @@ target_link_libraries(common_Hierarchy
 cxx_test(common_HierarchyTest
          HierarchyTest.cpp
          common_Hierarchy
+         common_HNodeGroup
+         gtest_main
+        )
+
+add_library(common_HNodeGroup
+            HNodeGroup.h
+            HNodeGroup.cpp
+           )
+target_link_libraries(common_HNodeGroup
+                      common_Hierarchy
+                      common_string
+                     )
+cxx_test(common_HNodeGroupTest
+         HNodeGroupTest.cpp
+         common_HNodeGroup
          gtest_main
         )
 
@@ -148,12 +168,14 @@ add_library(common_HierarchyJson
            )
 target_link_libraries(common_HierarchyJson
                       common_Hierarchy
+                      common_Json
                      )
 target_depends_on_poco_json(common_HierarchyJson)
 
 cxx_test(common_HierarchyJsonTest
          HierarchyJsonTest.cpp
          common_HierarchyJson
+         common_HNodeGroup
          gtest_main
         )                                
 
@@ -249,3 +271,41 @@ cxx_test(common_ConcatFunctionTest
          gtest_main
         )
 
+add_library(common_Histogram
+            Histogram.cpp
+            Histogram.h
+           )
+
+target_link_libraries(common_Histogram
+                      common_Array
+                      common_LineKM
+                      common_Span
+                     )                   
+
+cxx_test(common_HistogramTest
+         HistogramTest.cpp
+         common_Histogram
+         gtest_main
+        )
+
+add_library(common_LineKMJson
+            LineKMJson.cpp
+            LineKMJson.h
+           )
+target_link_libraries(common_LineKMJson
+                      common_LineKM
+                     )
+target_depends_on_poco_json(common_LineKMJson)                                
+
+cxx_test(common_SpanOverlapTest
+         SpanOverlapTest.cpp
+         gtest_main
+        )                                
+target_depends_on_poco_json(common_LineKMJson)
+
+
+add_library(common_JsonObjDeserializer
+            JsonObjDeserializer.h
+            JsonObjDeserializer.cpp
+           )
+target_depends_on_poco_json(common_JsonObjDeserializer)

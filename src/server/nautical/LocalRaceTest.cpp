@@ -1,19 +1,23 @@
 #include "LocalRace.h"
 #include <gtest/gtest.h>
 #include <server/common/Duration.h>
+#include <server/common/Env.h>
+#include <server/common/PathBuilder.h>
+#include <server/nautical/NavNmea.h>
 
 using namespace sail;
 
-#ifdef TIMECONSUMING_TESTS
-
 TEST(LocalRaceTest, InstationAndRegTest) {
-  Array<Nav> allNavs = loadNavsFromText(ALLNAVSPATH, false);
+  Poco::Path path = PathBuilder::makeDirectory(Env::SOURCE_DIR)
+    .pushDirectory("datasets/Irene/2008/champ_suisse_10_juillet_08")
+    .makeFile("IreneLog.txt").get();
+  Array<Nav> allNavs = loadNavsFromNmea(path.toString(), Nav::debuggingBoatId()).navs();
   Array<Array<Nav> > splitNavs = splitNavsByDuration(allNavs,
-                                 Duration::minutes(10).getDurationSeconds());
+                                 Duration<double>::minutes(10).seconds());
   Array<Nav> navs = splitNavs.first();
 
   double spaceStep = 500; // metres
-  double timeStep = Duration::minutes(10).getDurationSeconds();
+  double timeStep = Duration<double>::minutes(10).seconds();
   LocalRace race(navs, spaceStep, timeStep);
   Grid3d wind = race.getWindGrid();
   for (int i = 0; i < 3; i++) {
@@ -25,4 +29,3 @@ TEST(LocalRaceTest, InstationAndRegTest) {
   }
 }
 
-#endif

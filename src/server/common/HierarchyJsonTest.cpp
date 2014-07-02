@@ -5,14 +5,16 @@
 
 
 #include <server/common/HierarchyJson.h>
+#include <server/common/HNodeGroup.h>
 #include <gtest/gtest.h>
+#include <server/common/Json.h>
 #include <sstream>
 
 using namespace sail;
 
 TEST(HierarchyJsonTest, TestSimple) {
   HNode x(1, 2, "m", "testnode");
-  Poco::JSON::Object::Ptr obj = json::serialize(x);
+  Poco::Dynamic::Var obj = json::serialize(x);
   HNode y;
   json::deserialize(obj, &y);
   EXPECT_EQ(x.index(), y.index());
@@ -23,7 +25,7 @@ TEST(HierarchyJsonTest, TestSimple) {
 TEST(HierarchyJsonTest, TestSimpleArray) {
   HNode x(1, 2, "m", "testnode");
   Array<HNode> X = Array<HNode>::args(x);
-  Poco::JSON::Array obj = json::serialize(X);
+  Poco::Dynamic::Var obj = json::serialize(X);
   Array<HNode> Y;
   json::deserialize(obj, &Y);
 
@@ -40,25 +42,21 @@ TEST(HierarchyJsonTest, TestSimpleArray) {
 namespace {
 
 Hierarchy makeMiniSailGrammar() {
-  Array<HNode> nodes(9);
-
-  // TERMINAL SYMBOLS
-  // Port tack
-  HNodeFamily fam("mja");
-  nodes[0] = fam.make(0, 6, "Port tack / Close hauled");
-  nodes[1] = fam.make(1, 6, "Port tack / Beam reach");
-  nodes[2] = fam.make(2, 6, "Port tack / Broad reach");
-  // Starboard tack
-  nodes[3] = fam.make(3, 7, "Starboard tack / Broad reach");
-  nodes[4] = fam.make(4, 7, "Starboard tack / Beam reach");
-  nodes[5] = fam.make(5, 7, "Starboard tack / Close hauled");
-
-  // GROUPING SYMBOLS
-  nodes[6] = fam.make(6, 8, "Port tack");
-  nodes[7] = fam.make(7, 8, "Starboard tack");
-  nodes[8] = fam.makeRoot(8, "Sailing");
-  return Hierarchy(nodes);
+  return HNodeGroup(8, "Sailing",
+      HNodeGroup(6, "PortTack",
+          HNodeGroup(0, "Port tack / Close hauled") +
+          HNodeGroup(1, "Port tack / Beam reach") +
+          HNodeGroup(2, "Port tack / Broad reach")
+      )
+      +
+      HNodeGroup(7, "Starboard tack",
+          HNodeGroup(3, "Starboard tack / Broad reach") +
+          HNodeGroup(4, "Starboard tack / Beam reach") +
+          HNodeGroup(5, "Starboard tack / Close hauled")
+      )
+  ).compile("mja-%03d");
 }
+
 
 }
 
@@ -76,7 +74,7 @@ TEST(HierarchyJsonTest, HTreeJson) {
   Hierarchy h = makeMiniSailGrammar();
   std::shared_ptr<HTree> X = h.parse(Arrayi(len, toParse));
 
-  Poco::JSON::Object::Ptr obj = json::serialize(X);
+  Poco::Dynamic::Var obj = json::serialize(X);
 
   std::shared_ptr<HTree> Y;
   json::deserialize(obj, &Y);

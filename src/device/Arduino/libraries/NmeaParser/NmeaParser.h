@@ -1,4 +1,4 @@
-/*
+  /*
  * A light NMEA library. Julien Pilet, 2008-2013.
  *
  * This library not only parses GPS sentences, but also other common marine
@@ -9,16 +9,21 @@
 #ifndef NMEAPARSER_H
 #define NMEAPARSER_H
 
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
 #include <string>
 #endif
 
-typedef long DWord;
-typedef short Word;
+#include "../PhysicalQuantity/PhysicalQuantity.h"
+#include "../FixedPoint/FixedPoint.h"
+
+#include <stdint.h>
+
+typedef int32_t DWord;
+typedef int16_t Word;
 typedef unsigned char Byte;
 
-#define NP_MAX_DATA_LEN 80
-#define NP_MAX_ARGS 16
+#define NP_MAX_DATA_LEN 82
+#define NP_MAX_ARGS 20
 
 // Represents an accurate angle in fixed point.
 // The angle is stored in degrees, minutes and 1/1000 minutes fraction.
@@ -140,11 +145,13 @@ class NmeaParser {
   static const long INVALID_DATA_LONG = 0x800000;
 
   // GPS data
-  Word gpsSpeed() const {
-    return gpsSpeed_;  // 1/256 knots
+  sail::Velocity<FP8_8> gpsSpeed() const {
+    return sail::Velocity<FP8_8>::knots(
+        // 1/256 knots
+        FP8_8::rightShiftAndConstruct(gpsSpeed_,8));
   }
-  short gpsBearing() const {
-    return gpsBearing_;  // degrees
+  sail::Angle<short> gpsBearing() const {
+    return sail::Angle<short>::degrees(gpsBearing_);  // degrees
   }
   char hour() const {
     return hour_;
@@ -166,23 +173,32 @@ class NmeaParser {
   }
 
   // Wind data
-  short awa() const {
-    return awa_;  // aparent wind angle [degrees]
+  sail::Angle<short> awa() const {
+    return sail::Angle<short>::degrees(awa_);  // aparent wind angle [degrees]
   }
-  short twa() const {
-    return twa_;  // true wind angle [degrees]
+  sail::Angle<short> twa() const {
+    return sail::Angle<short>::degrees(twa_);  // true wind angle [degrees]
   }
-  Word aws() const {
-    return aws_;  // apparent wind speed [1/256 knots]
+  sail::Velocity<FP8_8> aws() const {
+    // apparent wind speed [1/256 knots]
+    return sail::Velocity<FP8_8>::knots(
+        // 1/256 knots
+        FP8_8::rightShiftAndConstruct(aws_, 8));
   }
-  Word tws() const {
-    return tws_;  // true wind speed [1/256 knots]
+  sail::Velocity<FP8_8> tws() const {
+    // true wind speed [1/256 knots]
+    return sail::Velocity<FP8_8>::knots(
+        // 1/256 knots
+        FP8_8::rightShiftAndConstruct(tws_, 8));
   }
-  Word magHdg() const {
-    return magHdg_;  // magnetic heading [degrees]
+  sail::Angle<short> magHdg() const {
+    // magnetic heading [degrees]
+    return sail::Angle<short>::degrees(magHdg_);
   }
-  Word watSpeed() const {
-    return watSpeed_;  // water speed [1/256 knots]
+  sail::Velocity<FP8_8> watSpeed() const {
+    // water speed [1/256 knots]
+    return sail::Velocity<FP8_8>::knots(
+        FP8_8::rightShiftAndConstruct(watSpeed_, 8));
   }
   DWord cwd() const {
     return cwd_;  // cumulative water distance [nautical miles]
@@ -208,7 +224,7 @@ class NmeaParser {
     ignoreWrongChecksum_ = val;
   }
 
-#ifdef NOT_ON_MICROCONTROLLER
+#ifdef ON_SERVER
   std::string awaAsString() const;
   std::string gpsSpeedAsString() const;
   std::string awsAsString() const;
