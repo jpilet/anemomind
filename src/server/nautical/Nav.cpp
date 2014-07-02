@@ -85,7 +85,8 @@ Nav::~Nav() {
 }
 
 bool Nav::operator== (const Nav &other) const {
-  constexpr double marg = 1.0e-12;
+  constexpr double marg = 1.0e-12; // Set to 0 if we don't tolerate any deviation.
+
   return _gpsSpeed.nearWithNan(other._gpsSpeed, marg) &&
       _awa.nearWithNan(other._awa, marg) &&
       _aws.nearWithNan(other._aws, marg) &&
