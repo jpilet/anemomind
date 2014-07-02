@@ -25,7 +25,7 @@ CommonRaceGrammarSettings::CommonRaceGrammarSettings() {
   perSecondCost = 0.01;
   majorTransitionCost = 16.0;
   minorTransitionCost = 0.5;
-  onOffCost = 8*majorTransitionCost;
+  onOffCost = 16*majorTransitionCost;
   idleCost = 1.0;
   angleDifCost = 1.0;
   switchOnOffDuringRace = true;
@@ -64,6 +64,7 @@ CommonRaceGrammar::CommonRaceGrammar(CommonRaceGrammarSettings settings) :
   _h(makeH()) {
   double ooc = settings.onOffCost*settings.majorTransitionCost;
   StaticCostFactory f(_h);
+  f.connectSelf(1, 1);
   f.connect(1, 10, settings.majorTransitionCost, true);
   f.connect(0, 1, ooc, true);
   if (settings.switchOnOffDuringRace) {
