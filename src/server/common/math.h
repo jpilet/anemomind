@@ -149,6 +149,8 @@ T normalizeAngleBetweenMinusPiAndPi(T a) {
   return result;
 }
 
+bool near(double a, double b, double marg);
+bool nearWithNan(double a, double b, double marg);
 
 } /* namespace sail */
 
