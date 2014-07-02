@@ -26,6 +26,8 @@ Poco::Dynamic::Var serialize(const Nav &nav) {
   serializeField(x, "gpsbearing", nav.gpsBearing());
   serializeField(x, "aws", nav.aws());
   serializeField(x, "awa", nav.awa());
+  serializeField(x, "externalTws", nav.externalTws());
+  serializeField(x, "externalTwa", nav.externalTwa());
   serializeField(x, "id", nav.id());
   serializeField(x, "boat-id", nav.boatId());
   return Poco::Dynamic::Var(x);
@@ -34,9 +36,9 @@ Poco::Dynamic::Var serialize(const Nav &nav) {
 bool deserialize(Poco::Dynamic::Var x, Nav *out) {
   try {
     TimeStamp time;
-    Angle<double> lon, lat, maghdg, gpsb, awa;
+    Angle<double> lon, lat, maghdg, gpsb, awa, externalTwa;
     Length<double> alt;
-    Velocity<double> gpss, wats, aws;
+    Velocity<double> gpss, wats, aws, externalTws;
 
     std::string id, boatId;
 
@@ -53,6 +55,8 @@ bool deserialize(Poco::Dynamic::Var x, Nav *out) {
     deserializeField(x, "gpsspeed", &gpss);
     deserializeField(x, "gpsbearing", &gpsb);
     deserializeField(x, "boat-id", &boatId);
+    deserializeField(x, "externalTws", &externalTws);
+    deserializeField(x, "externalTwa", &externalTwa);
 
     *out = Nav();
     out->setTime(time);
@@ -64,6 +68,8 @@ bool deserialize(Poco::Dynamic::Var x, Nav *out) {
     out->setMagHdg(maghdg);
     out->setWatSpeed(wats);
     out->setBoatId(boatId);
+    out->setExternalTwa(externalTwa);
+    out->setExternalTws(externalTws);
     return true;
   } catch (Poco::Exception &e) {
     return false;
