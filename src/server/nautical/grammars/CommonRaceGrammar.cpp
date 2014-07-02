@@ -5,6 +5,8 @@
 
 #include "CommonRaceGrammar.h"
 #include <server/nautical/grammars/StaticCostFactory.h>
+#include <server/common/HNodeGroup.h>
+#include <server/math/hmm/StateAssign.h>
 
 namespace sail {
 
@@ -123,7 +125,8 @@ namespace {
 std::shared_ptr<HTree> CommonRaceGrammar::parse(Array<Nav> navs,
     Array<UserHint> hints) {
   OnOffCost onOffCost(navs, 0, _settings.perSecondCost);
-  SA sa(navs, _angleCost, _staticTransitionCosts, _staticStateCosts, _preds, onOffCost);
+  SA sa(navs, _angleCost, _staticTransitionCosts,
+      _staticStateCosts, _preds, onOffCost);
   return _h.parse(sa.solve());
 }
 

@@ -113,3 +113,13 @@ cxx_test(nautical_grammars_AngleCostTest
             gtest_main
             nautical_grammars_AngleCost
            )                   
+add_library(nautical_grammars_CommonRaceGrammar
+            CommonRaceGrammar.cpp
+            CommonRaceGrammar.h
+           )
+target_link_libraries(nautical_grammars_CommonRaceGrammar
+                      nautical_grammars_Grammar
+                      nautical_grammars_AngleCost
+                      nautical_grammars_StaticCostFactor
+                      common_HNodeGroup
+                     )
