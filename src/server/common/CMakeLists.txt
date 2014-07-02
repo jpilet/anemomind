@@ -267,3 +267,13 @@ add_library(common_JsonObjDeserializer
             JsonObjDeserializer.cpp
            )
 target_depends_on_poco_json(common_JsonObjDeserializer)
+
+add_library(common_Statistics
+            Statistics.h
+            Statistics.cpp
+           )
+cxx_test(common_StatisticsTest
+         StatisticsTest.cpp
+         common_Statistics
+         gtest_main
+        )
