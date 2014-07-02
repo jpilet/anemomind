@@ -24,8 +24,8 @@ double OnOffCost::getTransitionCost(int fromStateIndex, int toStateIndex, int fr
 CommonRaceGrammarSettings::CommonRaceGrammarSettings() {
   perSecondCost = 0.01;
   majorTransitionCost = 16.0;
-  minorTransitionCost = 1.0;
-  onOffCost = 2*majorTransitionCost;
+  minorTransitionCost = 0.5;
+  onOffCost = 8*majorTransitionCost;
   idleCost = 1.0;
   angleDifCost = 1.0;
   switchOnOffDuringRace = true;
