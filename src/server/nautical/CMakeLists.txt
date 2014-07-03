@@ -369,6 +369,7 @@ add_library(nautical_WaterCalib
            )
 target_link_libraries(nautical_WaterCalib
                       nautical_nav
+                      math_ADFunction
                      )
            
 add_executable(nautical_WaterCalibExample

@@ -8,13 +8,37 @@
 
 #include <server/common/Array.h>
 #include <server/nautical/Nav.h>
+#include <server/nautical/SpeedCalib.h>
+#include <server/nautical/HorizontalMotionParam.h>
 
 namespace sail {
 
+
 class WaterCalib {
  public:
-  WaterCalib();
-  ~WaterCalib();
+  WaterCalib(const HorizontalMotionParam &param);
+
+  void initialize(double *outParams) const;
+
+  int paramCount() const {
+    return 5 + _param.paramCount();
+  }
+
+  Arrayd optimize(Array<Nav> navs) const;
+
+  template <typename T>
+  SpeedCalib<T> makeSpeedCalib(T *X) const {
+    return SpeedCalib<T>(wcK(X), wcM(X), wcC(X), wcAlpha(X));
+  }
+ private:
+  const HorizontalMotionParam &_param;
+  template <typename T> T &wcK(T *x) const {return x[0];}
+  template <typename T> T &wcM(T *x) const {return x[1];}
+  template <typename T> T &wcC(T *x) const {return x[2];}
+  template <typename T> T &wcAlpha(T *x) const {return x[3];}
+  template <typename T> T &magOffset(T *x) const {return x[4];}
+
+  //SpeedCalib(T k, T m, T c, T alpha) :
 };
 
 }
