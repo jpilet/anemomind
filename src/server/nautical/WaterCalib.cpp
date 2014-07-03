@@ -189,7 +189,7 @@ namespace {
     std::stringstream ss;
 
     ss << "WaterCalib::Results(inlierFrac = " << double(r.inlierCount())/r.inliers.size()
-        << "objfValue = " << r.objfValue << " params = " << r.params  << ")";
+        << " objfValue = " << r.objfValue << " params = " << r.params  << ")";
     return ss.str();
   }
 }
