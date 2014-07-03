@@ -17,6 +17,8 @@
 #include <server/common/PathBuilder.h>
 #include <Poco/JSON/Stringifier.h>
 
+#include <server/common/Json.impl.h>
+
 using namespace sail;
 
 
