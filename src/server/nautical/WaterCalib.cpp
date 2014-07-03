@@ -41,8 +41,9 @@ void WaterCalib::initialize(double *outParams) const {
 }
 
 void WaterCalib::initializeRandom(double *outParams) const {
-  Uniform rng(0.001, 0.2);
-  for (int i = 0; i < 4; i++) {
+  outParams[0] = Uniform(-1, 1).gen();
+  Uniform rng(0.001, 2.0);
+  for (int i = 1; i < 4; i++) {
     outParams[i] = rng.gen();
   }
   outParams[4] = Uniform(-0.2*M_PI, 0.2*M_PI).gen();
