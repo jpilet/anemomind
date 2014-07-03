@@ -9,7 +9,6 @@
 #define COMMON_MATH_H_
 
 #include <cmath>
-#include <server/common/invalidate.h>
 
 namespace sail {
 
