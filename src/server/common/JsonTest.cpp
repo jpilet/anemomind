@@ -8,6 +8,8 @@
 #include <gtest/gtest.h>
 #include <limits>
 
+#include <server/common/Json.impl.h>
+
 
 using namespace sail;
 
