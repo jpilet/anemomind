@@ -9,6 +9,7 @@
 #define COMMON_MATH_H_
 
 #include <cmath>
+#include <server/common/invalidate.h>
 
 namespace sail {
 
@@ -163,6 +164,37 @@ bool nearWithNan(T a, T b, T marg) {
   return near(a, b, marg);
 }
 
+/*
+ * The sigmoid function (see http://en.wikipedia.org/wiki/Sigmoid_function)
+ * As x -> -infty, evalSigmoid -> 0
+ * As x ->  infty, evalSigmoid -> 1
+ */
+template <typename T>
+T evalSigmoid(T x) {
+  return 1.0/(1.0 + exp(-x));
+}
+
+/*
+ * This class is useful in optimization problems where we need to
+ * bound some value to an open interval ]_minv, _maxv[.
+ *
+ * Also, its derivative is always nonzero, making it less likely to get stuck.
+ *
+ * It is always true that 0 maps to the middle of the interval, making it
+ * reasonable to initialize optimization parameters to 0.
+ */
+class Sigmoid {
+ public:
+  Sigmoid() : _minv(0), _maxv(1.0) {}
+  Sigmoid(double minv, double maxv) : _minv(minv), _maxv(maxv) {}
+
+  template <typename T>
+  T eval(T x) {
+    return _minv + _maxv*evalSigmoid(x);
+  }
+ private:
+  double _minv, _maxv;
+};
 
 } /* namespace sail */
 

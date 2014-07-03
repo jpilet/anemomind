@@ -27,13 +27,19 @@
 #ifndef SPEEDCALIB_H_
 #define SPEEDCALIB_H_
 
+#include <server/common/math.h>
+
 namespace sail {
 
 template <typename T>
 class SpeedCalib {
  public:
-  static constexpr double minK = 0.5;
   static constexpr bool withExp = true;
+
+  static Sigmoid kSpan() {
+    double marg = 0.1;
+    return Sigmoid(1.0 - marg, 1.0 + marg);
+  }
 
   // These functions can be used to map a variable in R
   // to a subset.
@@ -48,7 +54,7 @@ class SpeedCalib {
 
 
   SpeedCalib(T k, T m, T c, T alpha) :
-    _k2(lowerBound(k, minK)), _m2(lowerBound(m)), _c2(lowerBound(c)), _r2(lowerBound(alpha)) {}
+    _k2(kSpan().eval(k)), _m2(lowerBound(m)), _c2(lowerBound(c)), _r2(lowerBound(alpha)) {}
 
   T eval(T x) {
     assert(x > 0);
@@ -88,13 +94,12 @@ class SpeedCalib {
    *
    */
   T decayCoef() {
-    static_assert(minK > 0, "minK should be greater than 0 in order to avoid division by zero.");
     return (withExp? (scaleCoef() - _r2)/(nonlinCoef() + 1.0e-12) : T(0.0));
   }
 
-  static T initK() {return sqrt(1.0 - minK);}
-  static T initM() {return 0.001;}
-  static T initC() {return 0.001;}
+  static T initK() {return 0;}
+  static T initM() {return 0.01;}
+  static T initC() {return 0.01;}
   static T initAlpha() {return 1.0;}
 
   // This value can be added to the objective function in order to
