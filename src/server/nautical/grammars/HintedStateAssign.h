@@ -50,6 +50,18 @@ class LocalStateAssign {
   virtual ~LocalStateAssign() {}
 };
 
+/*
+ * This class takes a standard StateAssign object 'ref'
+ * and augments it with hints of type LocalStateAssign.
+ *
+ * Every hint adds a local cost to the costs originally computed
+ * by 'ref'.
+ *
+ * This object is a StateAssign object itself and calling
+ * its method 'solve' will solve the problem specified by 'ref'
+ * together with the hints. If no hints are provided,
+ * its result is the same as that of calling solve() on 'ref'.
+ */
 class HintedStateAssign : public StateAssign {
  public:
   typedef std::shared_ptr<LocalStateAssign> LocalStateAssignPtr;

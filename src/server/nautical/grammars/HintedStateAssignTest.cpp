@@ -116,4 +116,39 @@ TEST(HintedStateAssignTest, HintTest) {
   }
 }
 
+namespace {
+class Ref2 : public StateAssign {
+ public:
+  Ref2() : _preds(listStateInds()) {}
+
+  double getStateCost(int stateIndex, int timeIndex) {
+    if (stateIndex == 0) {
+      return 1.0 + sin(234.989*timeIndex);
+    } else {
+      return 1.0 + sin(324.34449*timeIndex + 2988.39964);
+    }
+  }
+
+  double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
+    return std::abs(fromStateIndex - toStateIndex);
+  }
+
+  int getStateCount() {return 2;}
+
+  int getLength() {return 30;}
+
+  Arrayi getPrecedingStates(int stateIndex, int timeIndex) {
+    return _preds;
+  }
+ private:
+  Arrayi _preds;
+};
+}
+
+TEST(HintedStateAssignTest, NoHintsTest) {
+  Ref2 ref;
+  HintedStateAssign hinted(makeSharedPtrToStack(ref), Array<HintedStateAssign::LocalStateAssignPtr>());
+  EXPECT_EQ(ref.solve(), hinted.solve());
+}
+
 
