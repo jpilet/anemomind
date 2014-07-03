@@ -112,4 +112,18 @@ cxx_test(nautical_grammars_AngleCostTest
             AngleCostTest.cpp
             gtest_main
             nautical_grammars_AngleCost
-           )                   
+           )        
+
+add_library(nautical_grammars_HintedStateAssign
+            HintedStateAssign.h                      
+            HintedStateAssign.cpp
+           )
+target_link_libraries(nautical_grammars_HintedStateAssign
+                      common_logging
+                      math_hmm_StateAssign
+                     )
+cxx_test(nautical_grammars_HintedStateAssignTest
+         HintedStateAssignTest.cpp
+         nautical_grammars_HintedStateAssign
+         gtest_main
+        )
