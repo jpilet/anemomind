@@ -19,7 +19,8 @@ int main(int argc, const char **argv) {
 
   ZeroHorizontalMotionParam mparam;
   WaterCalib calib(mparam);
-  WaterCalib::Results results = calib.optimizeRandomInits(navs, 30);
+  //WaterCalib::Results results = calib.optimizeRandomInits(navs, 30);
+  WaterCalib::Results results = calib.optimize(navs);
   std::cout << EXPR_AND_VAL_AS_STRING(results.params) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(results.inlierCount()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(results.inliers.size()) << std::endl;

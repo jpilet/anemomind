@@ -33,9 +33,9 @@ WaterCalib::WaterCalib(const HorizontalMotionParam &param, Velocity<double> sigm
 
 void WaterCalib::initialize(double *outParams) const {
   wcK(outParams) = SpeedCalib<double>::initK();
-  wcM(outParams) = 0;
-  wcC(outParams) = 0;
-  wcAlpha(outParams) = 0;
+  wcM(outParams) = SpeedCalib<double>::initM();
+  wcC(outParams) = SpeedCalib<double>::initC();
+  wcAlpha(outParams) = SpeedCalib<double>::initAlpha();
   magOffset(outParams) = 0;
   _param.initialize(hmParams(outParams));
 }
@@ -83,6 +83,18 @@ namespace {
     }
     return dst;
   }
+
+  MDArray2d makeRefCurve(Span<Velocity<double> > span) {
+    int sampleCount = 10;
+    LineKM map(0, sampleCount-1, WaterCalib::unwrap(span.minv()), WaterCalib::unwrap(span.maxv()));
+    MDArray2d pts(sampleCount, 2);
+    for (int i = 0; i < sampleCount; i++) {
+      double x = map(i);
+      pts(i, 0) = x;
+      pts(i, 1) = x;
+    }
+    return pts;
+  }
 }
 
 void WaterCalib::makeWatSpeedCalibPlot(Arrayd params, Array<Nav> navs) const {
@@ -96,10 +108,15 @@ void WaterCalib::makeWatSpeedCalibPlot(Arrayd params, Array<Nav> navs) const {
 
   plot.set_style("lines");
   plot.plot(makeWatCalibCurve(sc, span), "Calibration curve");
+  plot.plot(makeRefCurve(span), "Reference");
 
   plot.set_xlabel("Raw water speed (m/s)");
   plot.set_ylabel("Calibrated water speed (m/s)");
 
+  for (int i = 1; i <= 6; i++) {
+    double x = i;
+    std::cout << x << "knots maps to " << sc.eval(x) << " knots" << std::endl;
+  }
 
   plot.show();
 }

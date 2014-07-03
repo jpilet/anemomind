@@ -93,6 +93,9 @@ class SpeedCalib {
   }
 
   static T initK() {return sqrt(1.0 - minK);}
+  static T initM() {return 0.001;}
+  static T initC() {return 0.001;}
+  static T initAlpha() {return 1.0;}
 
   // This value can be added to the objective function in order to
   // push the nonlinCoef to zero if decayCoef is close to 0.
