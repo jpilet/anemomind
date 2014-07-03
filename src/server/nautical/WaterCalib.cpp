@@ -47,12 +47,16 @@ namespace {
     const int sampleCount = 1000;
     LineKM map(0, sampleCount-1, WaterCalib::unwrap<double>(span.minv()), WaterCalib::unwrap<double>(span.maxv()));
     MDArray2d dst(sampleCount, 2);
+    int counter = 0;
     for (int i = 0; i < sampleCount; i++) {
       double x = map(i);
-      dst(i, 0) = x;
-      dst(i, 1) = sc.eval(x);
+      if (x > 0) {
+        dst(i, 0) = x;
+        dst(i, 1) = sc.eval(x);
+        counter++;
+      }
     }
-    return dst;
+    return dst.sliceRowsTo(counter);
   }
 
   MDArray2d makeWatCalibScatter(Array<Nav> navs) {
@@ -146,7 +150,7 @@ WaterCalib::Results WaterCalib::optimize(Array<Nav> allnavs) const {
   LevmarState state(makeInitialParams());
   state.minimize(settings, robustObjf);
   Arrayd X = state.getXArray();
-  return Results(robustObjf.inliers(X.ptr()), X, navs);
+  return Results(robustObjf.inliers(X.ptr()), X, navs, robustObjf.calcSquaredNorm(X.ptr()));
 }
 
 

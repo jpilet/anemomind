@@ -16,7 +16,7 @@ namespace sail {
 
 class WaterCalib {
  public:
-  static Velocity<double> defaultSigma() {return Velocity<double>::knots(0.2);}
+  static Velocity<double> defaultSigma() {return Velocity<double>::knots(0.5);}
   static Velocity<double> defaultInitR() {return Velocity<double>::knots(1.0);}
 
   WaterCalib(const HorizontalMotionParam &param,
@@ -29,15 +29,20 @@ class WaterCalib {
 
   class Results {
    public:
-    Results() {}
-    Results(Arrayb i, Arrayd p, Array<Nav> n) : inliers(i), params(p), navs(n) {assert(n.size() == i.size());}
+    Results() : objfValue(NAN) {}
+    Results(Arrayb i, Arrayd p, Array<Nav> n, double ov) : inliers(i), params(p), navs(n), objfValue(ov) {assert(n.size() == i.size());}
 
+    double objfValue;
     Arrayb inliers;
     Arrayd params;
     Array<Nav> navs;
 
     int inlierCount() const {
       return countTrue(inliers);
+    }
+
+    bool operator< (const Results &other) const {
+      return objfValue < other.objfValue;
     }
   };
 

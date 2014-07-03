@@ -44,6 +44,11 @@ double Function::evalScalar(double *Xin) {
 }
 
 double Function::calcSquaredNorm(double *X, double *Fscratch) {
+  Arrayd s;
+  if (Fscratch == nullptr) {
+    s.create(outDims());
+    Fscratch = s.ptr();
+  }
   eval(X, Fscratch, nullptr);
   return norm2<double>(outDims(), Fscratch);
 }
