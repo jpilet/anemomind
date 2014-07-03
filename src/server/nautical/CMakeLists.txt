@@ -362,3 +362,14 @@ add_library(nautical_GeographicReferenceJson
 target_link_libraries(nautical_GeographicReferenceJson
                     nautical_GeographicPositionJson
                    )
+
+add_library(nautical_WaterCalib
+            WaterCalib.h
+            WaterCalib.cpp
+           )
+add_executable(nautical_WaterCalibExample
+               WaterCalibExample.cpp
+              )
+target_link_libraries(nautical_WaterCalibExample
+                      nautical_WaterCalib
+                     )              
