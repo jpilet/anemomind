@@ -149,8 +149,20 @@ T normalizeAngleBetweenMinusPiAndPi(T a) {
   return result;
 }
 
-bool near(double a, double b, double marg);
-bool nearWithNan(double a, double b, double marg);
+template <typename T>
+bool near(T a, T b, T marg) {
+  T dif = std::abs(a - b);
+  return dif <= marg;
+}
+
+template <typename T>
+bool nearWithNan(T a, T b, T marg) {
+  if (std::isnan(a)) {
+    return std::isnan(b);
+  }
+  return near(a, b, marg);
+}
+
 
 } /* namespace sail */
 
