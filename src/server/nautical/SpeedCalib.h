@@ -55,7 +55,15 @@ class SpeedCalib {
 
   SpeedCalib(T kParam, T mParam, T cParam, T alphaParam) :
     _k(kSpan().eval(kParam)), _m(lowerBound(mParam)), _c(lowerBound(cParam)) {
-    _alpha = Sigmoid<T>(0, _k/(_c + 1.0e-9)).eval(alphaParam);
+
+    /*
+     * Fits alpha in an interval based on the following:
+     *
+     *    (i)  _alpha > 0 (so that the exponential curve decreases asymptotically towards zero)
+     *    (ii) slope of the curve at 0 should not be negative
+     */
+    _alpha = Sigmoid<T>(0, _k/(_c + 1.0e-9 /*_c > 0, so adding a small number to it eliminates
+      division by zero*/)).eval(alphaParam);
   }
 
   T eval(T x) {
