@@ -62,7 +62,7 @@ class SpanOverlap {
   SpanOverlap() {}
   SpanOverlap(Sp span_, Array<ObjectType> objects_) : _span(span_), _objects(objects_) {}
   Sp span() const {return _span;}
-  Array<ObjectType> objects() const {return _objects;}
+  const Array<ObjectType> &objects() const {return _objects;}
 
   bool operator== (const ThisType &other) const {
     return _span.minv() == other._span.minv() && _span.maxv() == other._span.maxv() && _objects == other._objects;
