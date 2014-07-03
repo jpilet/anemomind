@@ -43,14 +43,11 @@ class SpeedCalib {
 
   // These functions can be used to map a variable in R
   // to a subset.
+  //
+  // Caution: For x = 0, the derivative of lowerBound w.r.t. x is 0.
   static T lowerBound(T x, T lb = 0) {
     return x*x + lb;
   }
-
-  static T lowerUpperBound(T x, T lb, T ub) {
-    return lb + (ub - lb)/(1.0 + exp(-x));
-  }
-
 
 
   SpeedCalib(T kParam, T mParam, T cParam, T alphaParam) :
