@@ -115,7 +115,7 @@ void WaterCalib::makeWatSpeedCalibPlot(Arrayd params, Array<Nav> navs) const {
 
   for (int i = 1; i <= 6; i++) {
     double x = i;
-    std::cout << x << "knots maps to " << sc.eval(x) << " knots" << std::endl;
+    std::cout << x << " knots maps to " << sc.eval(x) << " knots" << std::endl;
   }
   std::cout << EXPR_AND_VAL_AS_STRING(sc.scaleCoef()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(sc.offsetCoef()) << std::endl;
