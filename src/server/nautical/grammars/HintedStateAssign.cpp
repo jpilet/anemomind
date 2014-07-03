@@ -35,7 +35,10 @@ namespace {
 
 HintedStateAssign::HintedStateAssign(std::shared_ptr<StateAssign> ref,
     Array<LocalStateAssignPtr> hints) : _ref(ref) {
-  CHECK(hints.same<int>([&](const LocalStateAssignPtr &h) {return h->getStateCount();}));
+  if (hints.hasData()) {
+    CHECK(hints.same<int>([&](const LocalStateAssignPtr &h) {return h->getStateCount();}));
+    CHECK(hints[0]->getStateCount() == _ref->getStateCount());
+  }
   Array<Spani> stateSpans = hints.map<Spani>([=] (const LocalStateAssignPtr &hint) {
     return Spani(hint->begin(), hint->end());
   });
