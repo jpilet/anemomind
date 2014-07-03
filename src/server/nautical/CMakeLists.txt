@@ -373,6 +373,7 @@ target_link_libraries(nautical_WaterCalib
                       math_GemanMcClure
                       common_ScopedLog
                       math_nonlinear_Levmar
+                      plot_gnuplot
                      )
            
 add_executable(nautical_WaterCalibExample

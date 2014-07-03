@@ -30,10 +30,11 @@ class WaterCalib {
   class Results {
    public:
     Results() {}
-    Results(Arrayb i, Arrayd p) : inliers(i), params(p) {}
+    Results(Arrayb i, Arrayd p, Array<Nav> n) : inliers(i), params(p), navs(n) {assert(n.size() == i.size());}
 
     Arrayb inliers;
     Arrayd params;
+    Array<Nav> navs;
 
     int inlierCount() const {
       return countTrue(inliers);
@@ -47,11 +48,11 @@ class WaterCalib {
     return SpeedCalib<T>(wcK(X), wcM(X), wcC(X), wcAlpha(X));
   }
 
-  template <typename T> T unwrap(Velocity<T> x) const {return x.metersPerSecond();}
-  template <typename T> Velocity<T> wrapVelocity(T x) const {return Velocity<T>::metersPerSecond(x);}
+  template <typename T> static T unwrap(Velocity<T> x) {return x.metersPerSecond();}
+  template <typename T> static Velocity<T> wrapVelocity(T x) {return Velocity<T>::metersPerSecond(x);}
 
-  template <typename T> T unwrap(Angle<T> x) const {return x.radians();}
-  template <typename T> Angle<T> wrapAngle(T x) const {return Angle<T>::radians(x);}
+  template <typename T> static T unwrap(Angle<T> x) {return x.radians();}
+  template <typename T> static Angle<T> wrapAngle(T x) {return Angle<T>::radians(x);}
 
   template <typename T>
   HorizontalMotion<T> calcBoatMotionRelativeToWater(const Nav &nav,
@@ -65,6 +66,8 @@ class WaterCalib {
   }
 
   template <typename T> T *hmotionParams(T *x) const {return x + 5;}
+
+  void makeWatSpeedCalibPlot(Arrayd params, Array<Nav> navs) const;
  private:
   Arrayd makeInitialParams() const;
   void initialize(double *outParams) const;

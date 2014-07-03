@@ -10,6 +10,9 @@
 #include <server/math/nonlinear/Levmar.h>
 #include <server/common/SharedPtrUtils.h>
 #include <server/math/nonlinear/LevmarSettings.h>
+#include <server/plot/extra.h>
+#include <server/common/Span.h>
+#include <server/common/LineKM.h>
 
 namespace sail {
 
@@ -37,6 +40,51 @@ Arrayd WaterCalib::makeInitialParams() const {
   Arrayd dst(paramCount());
   initialize(dst.ptr());
   return dst;
+}
+
+namespace {
+  MDArray2d makeWatCalibCurve(SpeedCalib<double> sc, Span<Velocity<double> > span) {
+    const int sampleCount = 1000;
+    LineKM map(0, sampleCount-1, WaterCalib::unwrap<double>(span.minv()), WaterCalib::unwrap<double>(span.maxv()));
+    MDArray2d dst(sampleCount, 2);
+    for (int i = 0; i < sampleCount; i++) {
+      double x = map(i);
+      dst(i, 0) = x;
+      dst(i, 1) = sc.eval(x);
+    }
+    return dst;
+  }
+
+  MDArray2d makeWatCalibScatter(Array<Nav> navs) {
+    int count = navs.size();
+    MDArray2d dst(count, 2);
+    for (int i = 0; i < count; i++) {
+      Nav &n = navs[i];
+      double x = WaterCalib::unwrap(n.watSpeed());
+      dst(i, 0) = x;
+      dst(i, 1) = 0;
+    }
+    return dst;
+  }
+}
+
+void WaterCalib::makeWatSpeedCalibPlot(Arrayd params, Array<Nav> navs) const {
+  GnuplotExtra plot;
+  SpeedCalib<double> sc = makeSpeedCalib(params.ptr());
+  Array<Velocity<double> > ws = getWatSpeed(navs);
+  Span<Velocity<double> > span = Span<Velocity<double> >(ws).makeWider(Velocity<double>::knots(1.0));
+
+
+  plot.plot(makeWatCalibScatter(navs), "Samples");
+
+  plot.set_style("lines");
+  plot.plot(makeWatCalibCurve(sc, span), "Calibration curve");
+
+  plot.set_xlabel("Raw water speed (m/s)");
+  plot.set_ylabel("Calibrated water speed (m/s)");
+
+
+  plot.show();
 }
 
 namespace {
@@ -98,7 +146,7 @@ WaterCalib::Results WaterCalib::optimize(Array<Nav> allnavs) const {
   LevmarState state(makeInitialParams());
   state.minimize(settings, robustObjf);
   Arrayd X = state.getXArray();
-  return Results(robustObjf.inliers(X.ptr()), X);
+  return Results(robustObjf.inliers(X.ptr()), X, navs);
 }
 
 

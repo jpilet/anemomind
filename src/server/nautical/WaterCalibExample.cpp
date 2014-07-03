@@ -23,6 +23,7 @@ int main(int argc, const char **argv) {
   std::cout << EXPR_AND_VAL_AS_STRING(results.params) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(results.inlierCount()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(results.inliers.size()) << std::endl;
+  calib.makeWatSpeedCalibPlot(results.params, results.navs.slice(results.inliers));
 
   return 0;
 }
