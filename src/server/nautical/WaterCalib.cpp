@@ -163,17 +163,17 @@ WaterCalib::Results WaterCalib::optimizeRandomInit(Array<Nav> navs) const {
 WaterCalib::Results WaterCalib::optimizeRandomInits(Array<Nav> navs, int iters) const {
   ENTERSCOPE("Optimize random initializations.");
   Results best = optimize(navs);
-  SCOPEDMESSAGE(INFO, stringFormat("Initial objf value: %.3g", best.objfValue));
+  SCOPEDMESSAGE(INFO, stringFormat("Initial objf value: %.8g", best.objfValue));
   for (int i = 1; i < iters; i++) {
     SCOPEDMESSAGE(INFO, stringFormat("Random iteration %d/%d...", i+1, iters));
     Results cand = optimizeRandomInit(navs);
-    SCOPEDMESSAGE(INFO, stringFormat("Candidate objf value: %.3g", cand.objfValue));
+    SCOPEDMESSAGE(INFO, stringFormat("Candidate objf value: %.8g", cand.objfValue));
     if (cand.objfValue < best.objfValue) {
-      SCOPEDMESSAGE(INFO, stringFormat("IMPROVED from %.3g to %.3g", best.objfValue, cand.objfValue));
+      SCOPEDMESSAGE(INFO, stringFormat("-----> IMPROVED from %.8g to %.8g <-----", best.objfValue, cand.objfValue));
       best = cand;
     }
   }
-  SCOPEDMESSAGE(INFO, stringFormat("Done. Best value is %.3g", best.objfValue));
+  SCOPEDMESSAGE(INFO, stringFormat("Done. Best value is %.8g", best.objfValue));
   return best;
 }
 

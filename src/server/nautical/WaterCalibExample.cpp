@@ -14,7 +14,7 @@
 using namespace sail;
 
 int main(int argc, const char **argv) {
-  ScopedLog::setDepthLimit(1);
+  ScopedLog::setDepthLimit(2);
   Array<Nav> navs = getTestdataNavs().sliceTo(5000);
 
   ZeroHorizontalMotionParam mparam;
