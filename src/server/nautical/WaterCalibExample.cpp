@@ -14,14 +14,15 @@
 using namespace sail;
 
 int main(int argc, const char **argv) {
-  ScopedLog::setDepthLimit(2);
+  ScopedLog::setDepthLimit(1);
   Array<Nav> navs = getTestdataNavs().sliceTo(5000);
 
   ZeroHorizontalMotionParam mparam;
   WaterCalib calib(mparam);
   WaterCalib::Results results = calib.optimize(navs);
   std::cout << EXPR_AND_VAL_AS_STRING(results.params) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(results.inliers) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(results.inlierCount()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(results.inliers.size()) << std::endl;
 
   return 0;
 }

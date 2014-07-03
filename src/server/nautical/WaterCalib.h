@@ -17,7 +17,7 @@ namespace sail {
 class WaterCalib {
  public:
   static Velocity<double> defaultSigma() {return Velocity<double>::knots(0.2);}
-  static Velocity<double> defaultInitR() {return Velocity<double>::knots(10.0);}
+  static Velocity<double> defaultInitR() {return Velocity<double>::knots(1.0);}
 
   WaterCalib(const HorizontalMotionParam &param,
     Velocity<double> sigma = defaultSigma(), Velocity<double> initR = defaultInitR());
@@ -34,6 +34,10 @@ class WaterCalib {
 
     Arrayb inliers;
     Arrayd params;
+
+    int inlierCount() const {
+      return countTrue(inliers);
+    }
   };
 
   Results optimize(Array<Nav> navs) const;
