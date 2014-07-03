@@ -14,6 +14,8 @@
 #include <server/common/Span.h>
 #include <server/common/LineKM.h>
 #include <server/common/Uniform.h>
+#include <server/common/ScopedLog.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -156,6 +158,23 @@ WaterCalib::Results WaterCalib::optimizeRandomInit(Array<Nav> navs) const {
   Arrayd p = makeInitialParams();
   initializeRandom(p.ptr());
   return optimize(navs, p);
+}
+
+WaterCalib::Results WaterCalib::optimizeRandomInits(Array<Nav> navs, int iters) const {
+  ENTERSCOPE("Optimize random initializations.");
+  Results best = optimize(navs);
+  SCOPEDMESSAGE(INFO, stringFormat("Initial objf value: %.3g", best.objfValue));
+  for (int i = 1; i < iters; i++) {
+    SCOPEDMESSAGE(INFO, stringFormat("Random iteration %d/%d...", i+1, iters));
+    Results cand = optimizeRandomInit(navs);
+    SCOPEDMESSAGE(INFO, stringFormat("Candidate objf value: %.3g", cand.objfValue));
+    if (cand.objfValue < best.objfValue) {
+      SCOPEDMESSAGE(INFO, stringFormat("IMPROVED from %.3g to %.3g", best.objfValue, cand.objfValue));
+      best = cand;
+    }
+  }
+  SCOPEDMESSAGE(INFO, stringFormat("Done. Best value is %.3g", best.objfValue));
+  return best;
 }
 
 WaterCalib::Results WaterCalib::optimize(Array<Nav> allnavs, Arrayd initParams) const {

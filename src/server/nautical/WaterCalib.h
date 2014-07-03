@@ -50,6 +50,7 @@ class WaterCalib {
   Results optimize(Array<Nav> navs) const;
   Results optimize(Array<Nav> navs, Arrayd initParams) const;
   Results optimizeRandomInit(Array<Nav> navs) const;
+  Results optimizeRandomInits(Array<Nav> navs, int iters) const;
 
   template <typename T>
   SpeedCalib<T> makeSpeedCalib(T *X) const {
