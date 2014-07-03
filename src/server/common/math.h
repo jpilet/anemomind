@@ -185,15 +185,15 @@ T evalSigmoid(T x) {
  */
 class Sigmoid {
  public:
-  Sigmoid() : _minv(0), _maxv(1.0) {}
-  Sigmoid(double minv, double maxv) : _minv(minv), _maxv(maxv) {}
+  Sigmoid() : _k(1), _m(0.0) {}
+  Sigmoid(double minv, double maxv) : _k(maxv - minv), _m(minv) {}
 
   template <typename T>
   T eval(T x) {
-    return _minv + _maxv*evalSigmoid(x);
+    return _k*evalSigmoid(x) + _m;
   }
  private:
-  double _minv, _maxv;
+  double _k, _m;
 };
 
 } /* namespace sail */
