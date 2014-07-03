@@ -16,6 +16,7 @@
 #include <server/common/Uniform.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 
@@ -40,7 +41,7 @@ void WaterCalib::initialize(double *outParams) const {
 }
 
 void WaterCalib::initializeRandom(double *outParams) const {
-  Uniform rng(0.001, 2.0);
+  Uniform rng(0.001, 0.2);
   for (int i = 0; i < 4; i++) {
     outParams[i] = rng.gen();
   }
@@ -160,6 +161,16 @@ WaterCalib::Results WaterCalib::optimizeRandomInit(Array<Nav> navs) const {
   return optimize(navs, p);
 }
 
+
+namespace {
+  std::string toStr(WaterCalib::Results r) {
+    std::stringstream ss;
+
+    ss << "WaterCalib::Results(inlierFrac = " << double(r.inlierCount())/r.inliers.size()
+        << "objfValue = " << r.objfValue << " params = " << r.params  << ")";
+    return ss.str();
+  }
+}
 WaterCalib::Results WaterCalib::optimizeRandomInits(Array<Nav> navs, int iters) const {
   ENTERSCOPE("Optimize random initializations.");
   Results best = optimize(navs);
@@ -171,6 +182,7 @@ WaterCalib::Results WaterCalib::optimizeRandomInits(Array<Nav> navs, int iters) 
     if (cand.objfValue < best.objfValue) {
       SCOPEDMESSAGE(INFO, stringFormat("-----> IMPROVED from %.8g to %.8g <-----", best.objfValue, cand.objfValue));
       best = cand;
+      SCOPEDMESSAGE(INFO, stringFormat("Best: %s", toStr(best).c_str()));
     }
   }
   SCOPEDMESSAGE(INFO, stringFormat("Done. Best value is %.8g", best.objfValue));
