@@ -6,6 +6,10 @@
 #include <server/nautical/TestdataNavs.h>
 #include <server/nautical/WaterCalib.h>
 #include <server/nautical/HorizontalMotionParam.h>
+#include <iostream>
+#include <server/common/ArrayIO.h>
+#include <server/common/string.h>
+#include <server/common/ScopedLog.h>
 
 using namespace sail;
 
@@ -13,6 +17,10 @@ int main(int argc, const char **argv) {
   Array<Nav> navs = getTestdataNavs().sliceTo(5000);
 
   ZeroHorizontalMotionParam mparam;
+  WaterCalib calib(mparam);
+  WaterCalib::Results results = calib.optimize(navs);
+  std::cout << EXPR_AND_VAL_AS_STRING(results.params) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(results.inliers) << std::endl;
 
   return 0;
 }
