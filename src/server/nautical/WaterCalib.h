@@ -16,9 +16,9 @@ namespace sail {
 
 class WaterCalib {
  public:
-  WaterCalib(const HorizontalMotionParam &param);
+  WaterCalib(const HorizontalMotionParam &param,
+    Velocity<double> sigma, Velocity<double> initR);
 
-  void initialize(double *outParams) const;
 
   int paramCount() const {
     return 5 + _param.paramCount();
@@ -30,7 +30,12 @@ class WaterCalib {
   SpeedCalib<T> makeSpeedCalib(T *X) const {
     return SpeedCalib<T>(wcK(X), wcM(X), wcC(X), wcAlpha(X));
   }
+
+  template <typename T> T unwrap(Velocity<T> x) const {return x.knots();}
  private:
+  Arrayd makeInitialParams() const;
+  void initialize(double *outParams) const;
+  Velocity<double> _sigma, _initR;
   const HorizontalMotionParam &_param;
   template <typename T> T &wcK(T *x) const {return x[0];}
   template <typename T> T &wcM(T *x) const {return x[1];}

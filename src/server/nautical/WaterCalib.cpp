@@ -6,6 +6,10 @@
 #include "WaterCalib.h"
 #include <server/math/armaadolc.h>
 #include <server/math/ADFunction.h>
+#include <server/math/GemanMcClure.h>
+#include <server/math/nonlinear/Levmar.h>
+#include <server/common/SharedPtrUtils.h>
+#include <server/math/nonlinear/LevmarSettings.h>
 
 namespace sail {
 
@@ -17,7 +21,8 @@ namespace {
   }
 }
 
-WaterCalib::WaterCalib(const HorizontalMotionParam &param) : _param(param) {}
+WaterCalib::WaterCalib(const HorizontalMotionParam &param, Velocity<double> sigma, Velocity<double> initR) :
+    _param(param), _sigma(sigma), _initR(initR) {}
 
 void WaterCalib::initialize(double *outParams) const {
   wcK(outParams) = SpeedCalib<double>::initK();
@@ -26,6 +31,12 @@ void WaterCalib::initialize(double *outParams) const {
   wcAlpha(outParams) = 0;
   magOffset(outParams) = 0;
   _param.initialize(outParams + 5);
+}
+
+Arrayd WaterCalib::makeInitialParams() const {
+  Arrayd dst(paramCount());
+  initialize(dst.ptr());
+  return dst;
 }
 
 namespace {
@@ -54,9 +65,16 @@ namespace {
 }
 
 Arrayd WaterCalib::optimize(Array<Nav> allnavs) const {
-  Arrayd X(paramCount());
   Array<Nav> navs = getDownwindNavs(allnavs);
-  WaterCalibObjf objf(*this, navs);
+
+  WaterCalibObjf rawObjf(*this, navs);
+  GemanMcClureFunction robustObjf(unwrap(_sigma), unwrap(_initR), 2,
+          makeSharedPtrToStack(rawObjf));
+
+  LevmarSettings settings;
+  LevmarState state(makeInitialParams());
+  state.minimize(settings, robustObjf);
+  return state.getXArray();
 }
 
 

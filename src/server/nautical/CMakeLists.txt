@@ -370,6 +370,7 @@ add_library(nautical_WaterCalib
 target_link_libraries(nautical_WaterCalib
                       nautical_nav
                       math_ADFunction
+                      math_GemanMcClure
                      )
            
 add_executable(nautical_WaterCalibExample
