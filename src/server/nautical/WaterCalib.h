@@ -17,12 +17,19 @@ namespace sail {
 class WaterCalib {
  public:
   static constexpr int thisParamCount = 5;
+
+  // Don't set this value too low. If it is too low, we will not get sufficiently many inliers
+  // to robustly determine the parameters. On the other hand, too high a value means an inaccurate
+  // result because significant noise will influence the values.
   static Velocity<double> defaultSigma() {return Velocity<double>::knots(1.0);}
+
+  // This parameter controls the convergence rate in the GemanMcClure robust cost function.
+  // Choosing a higher value means slower but more robust convergence.
   static Velocity<double> defaultInitR() {return Velocity<double>::knots(1.0);}
 
   WaterCalib(const HorizontalMotionParam &param,
-    Velocity<double> sigma = defaultSigma(), Velocity<double> initR = defaultInitR());
-
+    Velocity<double> sigma = defaultSigma(),
+    Velocity<double> initR = defaultInitR());
 
   int paramCount() const {
     return thisParamCount + _param.paramCount();
@@ -31,7 +38,15 @@ class WaterCalib {
   class Results {
    public:
     Results() : objfValue(std::numeric_limits<double>::infinity()) {}
-    Results(Arrayb i, Arrayd p, Array<Nav> n, double ov, Arrayd re) : inliers(i), params(p), navs(n), objfValue(ov), rawErrors(re) {assert(n.size() == i.size());}
+    Results(Arrayb i, Arrayd p, Array<Nav> n, double ov, Arrayd re) :
+      inliers(i),
+      params(p),
+      navs(n),
+      objfValue(ov),
+      rawErrors(re) {
+        assert(n.size() == i.size());
+        assert(re.size() == n.size());
+      }
 
     double objfValue;
     Arrayb inliers;
