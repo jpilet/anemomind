@@ -100,6 +100,8 @@ class GemanMcClure {
   bool isOutlier(int index, Arrayd residuals) const {
     return !isInlier(index, residuals);
   }
+
+  Arrayb inliers(Arrayd residuals) const;
  private:
   int _iters, _dim;
   double _sigma2;
@@ -134,6 +136,7 @@ class GemanMcClureFunction : public Function {
   int outDims() {return _fun->outDims() + 1;} // One extra for the outlier residual.
   void eval(double *Xin, double *Fout, double *Jout);
   const GemanMcClure &gmc() const {return _gmc;}
+  Arrayb inliers(double *Xin);
  private:
   bool _initialized;
   GemanMcClure _gmc;

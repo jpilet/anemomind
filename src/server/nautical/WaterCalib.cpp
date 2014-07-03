@@ -80,23 +80,25 @@ namespace {
       HorizontalMotion<adouble> current = _calib.horizontalMotionParam().get(nav,
           _calib.hmotionParams(Xin));
       HorizontalMotion<adouble> err = boatGps - current - boatWrtWater;
-      f[0] = _calib.unwrap(boatGps[0]);
-      f[1] = _calib.unwrap(boatGps[1]);
+      f[0] = _calib.unwrap(err[0]);
+      f[1] = _calib.unwrap(err[1]);
     }
   }
 }
 
-Arrayd WaterCalib::optimize(Array<Nav> allnavs) const {
+WaterCalib::Results WaterCalib::optimize(Array<Nav> allnavs) const {
   Array<Nav> navs = getDownwindNavs(allnavs);
 
   WaterCalibObjf rawObjf(*this, navs);
-  GemanMcClureFunction robustObjf(unwrap(_sigma), unwrap(_initR), 2,
-          makeSharedPtrToStack(rawObjf));
+  GemanMcClureFunction robustObjf(unwrap(_sigma),
+      unwrap(_initR), 2,
+      makeSharedPtrToStack(rawObjf));
 
   LevmarSettings settings;
   LevmarState state(makeInitialParams());
   state.minimize(settings, robustObjf);
-  return state.getXArray();
+  Arrayd X = state.getXArray();
+  return Results(robustObjf.inliers(X.ptr()), X);
 }
 
 

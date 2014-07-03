@@ -16,15 +16,27 @@ namespace sail {
 
 class WaterCalib {
  public:
+  static Velocity<double> defaultSigma() {return Velocity<double>::knots(0.2);}
+  static Velocity<double> defaultInitR() {return Velocity<double>::knots(10.0);}
+
   WaterCalib(const HorizontalMotionParam &param,
-    Velocity<double> sigma, Velocity<double> initR);
+    Velocity<double> sigma = defaultSigma(), Velocity<double> initR = defaultInitR());
 
 
   int paramCount() const {
     return 5 + _param.paramCount();
   }
 
-  Arrayd optimize(Array<Nav> navs) const;
+  class Results {
+   public:
+    Results() {}
+    Results(Arrayb i, Arrayd p) : inliers(i), params(p) {}
+
+    Arrayb inliers;
+    Arrayd params;
+  };
+
+  Results optimize(Array<Nav> navs) const;
 
   template <typename T>
   SpeedCalib<T> makeSpeedCalib(T *X) const {
