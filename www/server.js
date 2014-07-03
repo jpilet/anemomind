@@ -4,6 +4,7 @@ var express = require('express'),
     path = require('path'),
     fs = require('fs'),
     mongoose = require('mongoose');
+var morgan  = require('morgan');
 
 /**
  * Main application file
@@ -34,32 +35,39 @@ var passport = require('./lib/config/passport');
 
 var app = express();
 
-app.use(express.bodyParser({uploadDir:__dirname + '/uploads'}));
+function initAfterLog() {
+  // Hack for psaros33
+  app.use('/sui300', express.static(__dirname + '/sui300'));
+
+  app.use(express.bodyParser({uploadDir:__dirname + '/uploads'}));
+
+  // Express settings
+  require('./lib/config/express')(app);
+
+  // Routing
+  require('./lib/routes')(app);
+
+  // Start server
+  app.listen(config.port, function () {
+      console.log('Express server listening on port %d in %s mode', config.port, app.get('env'));
+  });
+}
 
 // Log accesses to file
 var logFile = fs.createWriteStream(config.logfile, {flags: 'a'});
 logFile.on('error', function(err) {
   console.log(config.logfile + ": " + err);
   logFile.end();
+  if (config.env == "development") {
+    initAfterLog();
+  }
 });
 logFile.once('open', function(fd) {
   console.log('Logging to: ' + config.logfile);
-  app.use(express.logger({stream: logFile}));
+  app.use(morgan({stream: logFile}));
+  initAfterLog();
 });
 
-// Hack for psaros33
-app.use('/sui300', express.static(__dirname + '/sui300'));
-
-// Express settings
-require('./lib/config/express')(app);
-
-// Routing
-require('./lib/routes')(app);
-
-// Start server
-app.listen(config.port, function () {
-  console.log('Express server listening on port %d in %s mode', config.port, app.get('env'));
-});
 
 // Expose app
 exports = module.exports = app;
