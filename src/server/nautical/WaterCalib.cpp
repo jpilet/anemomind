@@ -13,6 +13,7 @@
 #include <server/plot/extra.h>
 #include <server/common/Span.h>
 #include <server/common/LineKM.h>
+#include <server/common/Uniform.h>
 
 namespace sail {
 
@@ -33,7 +34,16 @@ void WaterCalib::initialize(double *outParams) const {
   wcC(outParams) = 0;
   wcAlpha(outParams) = 0;
   magOffset(outParams) = 0;
-  _param.initialize(outParams + 5);
+  _param.initialize(hmParams(outParams));
+}
+
+void WaterCalib::initializeRandom(double *outParams) const {
+  Uniform rng(0.001, 2.0);
+  for (int i = 0; i < 4; i++) {
+    outParams[i] = rng.gen();
+  }
+  outParams[4] = Uniform(-0.2*M_PI, 0.2*M_PI).gen();
+  _param.initializeRandom(hmParams(outParams));
 }
 
 Arrayd WaterCalib::makeInitialParams() const {
@@ -130,7 +140,7 @@ namespace {
             sc, Xin);
       HorizontalMotion<adouble> boatGps = nav.gpsVelocity().cast<adouble>();
       HorizontalMotion<adouble> current = _calib.horizontalMotionParam().get(nav,
-          _calib.hmotionParams(Xin));
+          _calib.hmParams(Xin));
       HorizontalMotion<adouble> err = boatGps - current - boatWrtWater;
       f[0] = _calib.unwrap(err[0]);
       f[1] = _calib.unwrap(err[1]);
@@ -143,7 +153,9 @@ WaterCalib::Results WaterCalib::optimize(Array<Nav> allnavs) const {
 }
 
 WaterCalib::Results WaterCalib::optimizeRandomInit(Array<Nav> navs) const {
-
+  Arrayd p = makeInitialParams();
+  initializeRandom(p.ptr());
+  return optimize(navs, p);
 }
 
 WaterCalib::Results WaterCalib::optimize(Array<Nav> allnavs, Arrayd initParams) const {

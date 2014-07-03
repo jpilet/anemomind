@@ -363,6 +363,13 @@ target_link_libraries(nautical_GeographicReferenceJson
                     nautical_GeographicPositionJson
                    )
 
+add_library(nautical_HorizontalMotionParam
+            HorizontalMotionParam.h
+            HorizontalMotionParam.cpp
+           )
+target_link_libraries(nautical_HorizontalMotionParam 
+                      common_Uniform
+                     )
 add_library(nautical_WaterCalib
             WaterCalib.h
             WaterCalib.cpp
@@ -374,6 +381,7 @@ target_link_libraries(nautical_WaterCalib
                       common_ScopedLog
                       math_nonlinear_Levmar
                       plot_gnuplot
+                      nautical_HorizontalMotionParam
                      )
            
 add_executable(nautical_WaterCalibExample

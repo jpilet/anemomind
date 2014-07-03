@@ -27,6 +27,9 @@ class HorizontalMotionParam {
   // Initializes the parameters used to parameterize the vector field
   virtual void initialize(double *outParams) const = 0;
 
+  // Initializes the parameters to reasonable random values.
+  virtual void initializeRandom(double *outParams) const = 0;
+
   // Returns the local Horizontal motion at a Nav
   virtual HorizontalMotion<adouble> get(const Nav &nav, adouble *params) const = 0;
   virtual ~HorizontalMotionParam() {}
@@ -41,6 +44,9 @@ class ConstantHorizontalMotionParam : public HorizontalMotionParam {
     outParams[1] = 0;
   }
 
+  void initializeRandom(double *outParams) const;
+
+
   HorizontalMotion<adouble> get(const Nav &nav, adouble *params) const {
     return HorizontalMotion<adouble>(Velocity<adouble>::metersPerSecond(params[0]),
                                      Velocity<adouble>::metersPerSecond(params[1]));
@@ -53,6 +59,8 @@ class ZeroHorizontalMotionParam : public HorizontalMotionParam {
   int paramCount() const {return 0;}
 
   void initialize(double *outParams) const {}
+
+  void initializeRandom(double *outParams) const {}
 
   HorizontalMotion<adouble> get(const Nav &nav, adouble *params) const {
     return HorizontalMotion<adouble>(Velocity<adouble>::metersPerSecond(0),

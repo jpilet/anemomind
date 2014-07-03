@@ -16,6 +16,7 @@ namespace sail {
 
 class WaterCalib {
  public:
+  static constexpr int thisParamCount = 5;
   static Velocity<double> defaultSigma() {return Velocity<double>::knots(0.5);}
   static Velocity<double> defaultInitR() {return Velocity<double>::knots(1.0);}
 
@@ -24,7 +25,7 @@ class WaterCalib {
 
 
   int paramCount() const {
-    return 5 + _param.paramCount();
+    return thisParamCount + _param.paramCount();
   }
 
   class Results {
@@ -72,12 +73,13 @@ class WaterCalib {
     return _param;
   }
 
-  template <typename T> T *hmotionParams(T *x) const {return x + 5;}
+  template <typename T> T *hmParams(T *x) const {return x + thisParamCount;}
 
   void makeWatSpeedCalibPlot(Arrayd params, Array<Nav> navs) const;
  private:
   Arrayd makeInitialParams() const;
   void initialize(double *outParams) const;
+  void initializeRandom(double *outParams) const;
   Velocity<double> _sigma, _initR;
   const HorizontalMotionParam &_param;
   template <typename T> T &wcK(T *x) const {return x[0];}
