@@ -85,9 +85,9 @@ CommonRaceGrammar::CommonRaceGrammar(CommonRaceGrammarSettings settings) :
 }
 
 namespace {
-  class SA : public StateAssign {
+  class CommonRaceStateAssign : public StateAssign {
    public:
-    SA(Array<Nav> navs, AngleCost &ac,
+    CommonRaceStateAssign(Array<Nav> navs, AngleCost &ac,
         MDArray2d staticTransitionCosts,
         Arrayd staticStateCosts, Array<Arrayi> preds, OnOffCost ooc) :
         _navs(navs), _angleCost(ac), _staticTransitionCosts(staticTransitionCosts),
@@ -126,7 +126,7 @@ namespace {
 std::shared_ptr<HTree> CommonRaceGrammar::parse(Array<Nav> navs,
     Array<UserHint> hints) {
   OnOffCost onOffCost(navs, 0, _settings.perSecondCost);
-  SA sa(navs, _angleCost, _staticTransitionCosts,
+  CommonRaceStateAssign sa(navs, _angleCost, _staticTransitionCosts,
       _staticStateCosts, _preds, onOffCost);
   return _h.parse(sa.solve());
 }
