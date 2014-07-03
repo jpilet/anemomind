@@ -42,7 +42,7 @@ void WaterCalib::initialize(double *outParams) const {
 
 void WaterCalib::initializeRandom(double *outParams) const {
   outParams[0] = Uniform(-1, 1).gen();
-  Uniform rng(0.001, 2.0);
+  Uniform rng(0.001, 1.0);
   for (int i = 1; i < 4; i++) {
     outParams[i] = rng.gen();
   }
@@ -59,14 +59,16 @@ Arrayd WaterCalib::makeInitialParams() const {
 namespace {
   MDArray2d makeWatCalibCurve(SpeedCalib<double> sc, Span<Velocity<double> > span) {
     const int sampleCount = 1000;
-    LineKM map(0, sampleCount-1, WaterCalib::unwrap<double>(span.minv()), WaterCalib::unwrap<double>(span.maxv()));
+    LineKM map(0, sampleCount-1,
+        WaterCalib::unwrap<double>(span.minv()),
+        WaterCalib::unwrap<double>(span.maxv()));
     MDArray2d dst(sampleCount, 2);
     int counter = 0;
     for (int i = 0; i < sampleCount; i++) {
       double x = map(i);
       if (x > 0) {
-        dst(i, 0) = x;
-        dst(i, 1) = sc.eval(x);
+        dst(i, 0) = WaterCalib::wrapVelocity(x).knots();
+        dst(i, 1) = WaterCalib::wrapVelocity(sc.eval(x)).knots();
         counter++;
       }
     }
@@ -115,8 +117,9 @@ void WaterCalib::makeWatSpeedCalibPlot(Arrayd params, Array<Nav> navs) const {
   plot.set_ylabel("Calibrated water speed (m/s)");
 
   for (int i = 1; i <= 6; i++) {
-    double x = i;
-    std::cout << x << " knots maps to " << sc.eval(x) << " knots" << std::endl;
+    Velocity<double> x = Velocity<double>::knots(i);
+    std::cout << x.knots() << " knots maps to " << WaterCalib::wrapVelocity(sc.eval(WaterCalib::unwrap(x))).knots()
+        << " knots" << std::endl;
   }
   std::cout << EXPR_AND_VAL_AS_STRING(sc.scaleCoef()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(sc.offsetCoef()) << std::endl;
@@ -212,6 +215,21 @@ WaterCalib::Results WaterCalib::optimizeRandomInits(Array<Nav> navs, int iters) 
   return best;
 }
 
+namespace {
+  Arrayd getRawErrors(Function &f, Arrayd params) {
+    Arrayd residues(f.outDims());
+    f.eval(params.ptr(), residues.ptr());
+    int count = f.outDims()/2;
+    assert(2*count == f.outDims());
+    Arrayd rawErrors(count);
+    for (int i = 0; i < count; i++) {
+      double *x = residues.ptr(2*i);
+      rawErrors[i] = sqrt(sqr(x[0]) + sqr(x[1]));
+    }
+    return rawErrors;
+  }
+}
+
 WaterCalib::Results WaterCalib::optimize(Array<Nav> allnavs, Arrayd initParams) const {
   Array<Nav> navs = getDownwindNavs(allnavs);
 
@@ -224,7 +242,7 @@ WaterCalib::Results WaterCalib::optimize(Array<Nav> allnavs, Arrayd initParams) 
   LevmarState state(initParams);
   state.minimize(settings, robustObjf);
   Arrayd X = state.getXArray();
-  return Results(robustObjf.inliers(X.ptr()), X, navs, robustObjf.calcSquaredNorm(X.ptr()));
+  return Results(robustObjf.inliers(X.ptr()), X, navs, robustObjf.calcSquaredNorm(X.ptr()), getRawErrors(rawObjf, X));
 }
 
 
