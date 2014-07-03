@@ -8,10 +8,11 @@
 
 namespace sail {
 
-
+// When modifying this class, it might be necessary to duplicate it and to
+// increase the MODEL_VERSION constant hereunder. Please read the
+// MODEL_VERSION comment.
 class TrueWindEstimator {
   public:
-
     // InstrumentAbstraction is typically an InstrumentFilter. It could also be
     // a Nav.
     template <class T, class InstrumentAbstraction>
@@ -28,8 +29,25 @@ class TrueWindEstimator {
         PARAM_DOWNWIND1,
         PARAM_DOWNWIND2,
         PARAM_DOWNWIND3,
-        NUM_PARAMS
+        NUM_PARAMS,
+
+        // Versionning is important. If the way parameters are used change,
+        // this version number should be increased, and a new class should be
+        // created, so that the server code can still generate calibration for
+        // previous versions. Many versions can be saved in boat.dat.
+        // The device will load only the version it has been compiled with.
+        MODEL_VERSION=1,
     };
+
+    template<typename T>
+    struct Parameters {
+      enum {
+        STRUCT_IDENTIFIER=0x3000 + TrueWindEstimator::NUM_PARAMS,
+        VERSION=0x1000 + TrueWindEstimator::MODEL_VERSION,
+      };
+      T params[TrueWindEstimator::NUM_PARAMS];
+    };
+
 };
 
 template <class T, class InstrumentAbstraction>

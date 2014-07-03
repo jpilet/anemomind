@@ -21,6 +21,7 @@
 #include <server/nautical/NavNmea.h>
 #include <Poco/JSON/Stringifier.h>
 #include <server/nautical/TargetSpeed.h>
+#include <server/common/Json.impl.h>
 
 
 namespace sail {

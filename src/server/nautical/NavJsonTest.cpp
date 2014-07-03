@@ -17,6 +17,8 @@
 // For some reason, Json.h must be included after NavJson.h.
 #include <server/common/Json.h>
 
+#include <server/common/Json.impl.h>
+
 using namespace sail;
 
 namespace {

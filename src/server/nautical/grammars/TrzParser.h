@@ -37,6 +37,14 @@ class ParsedTrzLine {
   bool empty() const {
     return !bool(_tree);
   }
+
+  const std::shared_ptr<HTree> &tree() const {
+    return _tree;
+  }
+
+  const int dataLength() const {
+    return _tree->count();
+  }
  private:
   std::shared_ptr<HTree> _tree;
   std::string _input;
@@ -52,6 +60,11 @@ class TrzParser {
  private:
   Hierarchy _h;
 };
+
+/*
+ * Exports to a format that easy to parse from matlab
+ */
+void exportToMatlab(std::string filename, Array<ParsedTrzLine> data);
 
 }
 
