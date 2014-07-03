@@ -5,6 +5,7 @@ var express = require('express'),
     fs = require('fs'),
     mongoose = require('mongoose');
 var morgan  = require('morgan');
+var compression = require('compression');
 
 /**
  * Main application file
@@ -36,6 +37,8 @@ var passport = require('./lib/config/passport');
 var app = express();
 
 function initAfterLog() {
+  app.use(compression());
+
   // Hack for psaros33
   app.use('/sui300', express.static(__dirname + '/sui300'));
 
