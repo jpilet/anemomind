@@ -154,8 +154,10 @@ target_link_libraries(nautical_NavJson
 
 cxx_test(nautical_NavJsonTest
          NavJsonTest.cpp
+         common_Env
          common_logging
          nautical_NavJson
+         nautical_NavNmea
          gtest_main
         )
         

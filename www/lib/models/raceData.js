@@ -11,7 +11,16 @@ var RaceDataSchema = new Schema({
   boatId: String,
   items: [{
     latRad : Number,
-    lonRad : Number
+    lonRad : Number,
+    awaRad: Number,
+    awsMps: Number,
+    twaRad: Number,
+    twsMps: Number,
+    gpsBearingRad: Number,
+    gpsSpeedMps: Number,
+    magHdgRad: Number,
+    timeMs: Number,
+    watSpeedMps: Number
   }]
 });
 

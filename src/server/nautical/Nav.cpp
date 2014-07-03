@@ -85,16 +85,21 @@ Nav::~Nav() {
 }
 
 bool Nav::operator== (const Nav &other) const {
-  return _gpsSpeed.eqWithNan(other._gpsSpeed) &&
-      _awa.eqWithNan(other._awa) &&
-      _aws.eqWithNan(other._aws) &&
+  constexpr double marg = 1.0e-12; // Set to 0 if we don't tolerate any deviation.
+
+  return _gpsSpeed.nearWithNan(other._gpsSpeed, marg) &&
+      _awa.nearWithNan(other._awa, marg) &&
+      _aws.nearWithNan(other._aws, marg) &&
       _boatId == other._boatId &&
-      _twaFromFile.eqWithNan(other._twaFromFile) &&
-      _twsFromFile.eqWithNan(other._twsFromFile) &&
-      _magHdg.eqWithNan(other._magHdg) &&
-      _watSpeed.eqWithNan(other._watSpeed) &&
-      _gpsBearing.eqWithNan(other._gpsBearing) &&
-      _pos == other._pos && (strictEquality(_cwd, other._cwd)) && (strictEquality(_wd, other._wd));
+      _twaFromFile.nearWithNan(other._twaFromFile, marg) &&
+      _twsFromFile.nearWithNan(other._twsFromFile, marg) &&
+      _magHdg.nearWithNan(other._magHdg, marg) &&
+      _watSpeed.nearWithNan(other._watSpeed, marg) &&
+      _gpsBearing.nearWithNan(other._gpsBearing, marg) &&
+      _pos.lon().nearWithNan(other._pos.lon(), marg) &&
+      _pos.lat().nearWithNan(other._pos.lat(), marg) &&
+      _pos.alt().nearWithNan(other._pos.alt(), marg) &&
+      (nearWithNan(_cwd, other._cwd, marg)) && (nearWithNan(_wd, other._wd, marg));
 }
 
 
