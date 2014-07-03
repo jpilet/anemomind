@@ -29,7 +29,7 @@ class WaterCalib {
 
   class Results {
    public:
-    Results() : objfValue(NAN) {}
+    Results() : objfValue(std::numeric_limits<double>::infinity()) {}
     Results(Arrayb i, Arrayd p, Array<Nav> n, double ov) : inliers(i), params(p), navs(n), objfValue(ov) {assert(n.size() == i.size());}
 
     double objfValue;
@@ -47,6 +47,8 @@ class WaterCalib {
   };
 
   Results optimize(Array<Nav> navs) const;
+  Results optimize(Array<Nav> navs, Arrayd initParams) const;
+  Results optimizeRandomInit(Array<Nav> navs) const;
 
   template <typename T>
   SpeedCalib<T> makeSpeedCalib(T *X) const {

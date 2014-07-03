@@ -139,6 +139,14 @@ namespace {
 }
 
 WaterCalib::Results WaterCalib::optimize(Array<Nav> allnavs) const {
+  return optimize(allnavs, makeInitialParams());
+}
+
+WaterCalib::Results WaterCalib::optimizeRandomInit(Array<Nav> navs) const {
+
+}
+
+WaterCalib::Results WaterCalib::optimize(Array<Nav> allnavs, Arrayd initParams) const {
   Array<Nav> navs = getDownwindNavs(allnavs);
 
   WaterCalibObjf rawObjf(*this, navs);
@@ -147,7 +155,7 @@ WaterCalib::Results WaterCalib::optimize(Array<Nav> allnavs) const {
       makeSharedPtrToStack(rawObjf));
 
   LevmarSettings settings;
-  LevmarState state(makeInitialParams());
+  LevmarState state(initParams);
   state.minimize(settings, robustObjf);
   Arrayd X = state.getXArray();
   return Results(robustObjf.inliers(X.ptr()), X, navs, robustObjf.calcSquaredNorm(X.ptr()));
