@@ -31,7 +31,24 @@ class WaterCalib {
     return SpeedCalib<T>(wcK(X), wcM(X), wcC(X), wcAlpha(X));
   }
 
-  template <typename T> T unwrap(Velocity<T> x) const {return x.knots();}
+  template <typename T> T unwrap(Velocity<T> x) const {return x.metersPerSecond();}
+  template <typename T> Velocity<T> wrapVelocity(T x) const {return Velocity<T>::metersPerSecond(x);}
+
+  template <typename T> T unwrap(Angle<T> x) const {return x.radians();}
+  template <typename T> Angle<T> wrapAngle(T x) const {return Angle<T>::radians(x);}
+
+  template <typename T>
+  HorizontalMotion<T> calcBoatMotionRelativeToWater(const Nav &nav,
+      const SpeedCalib<T> &sc, T *params) const {
+    return HorizontalMotion<T>::polar(nav.watSpeed().cast<T>(),
+        nav.magHdg().cast<T>() + wrapAngle(magOffset(params)));
+  }
+
+  const HorizontalMotionParam &horizontalMotionParam() const {
+    return _param;
+  }
+
+  template <typename T> T *hmotionParams(T *x) const {return x + 5;}
  private:
   Arrayd makeInitialParams() const;
   void initialize(double *outParams) const;

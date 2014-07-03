@@ -57,11 +57,33 @@ namespace {
     const WaterCalib &_calib;
   };
 
+  /*
+   * Assumtion:
+   *
+   * Boat-GPS-motion = Water-Current + Boat-Motion-through-water
+   *
+   *  <=>
+   *
+   * Boat-GPS-motion - Water-Current - Boat-Motion-through-water = 0   <-- This is how residuals are computed in the lsq problem.
+   *
+   */
   void WaterCalibObjf::evalAD(adouble *Xin, adouble *Fout) {
     //Arrayad X(inDims(), Xin);
     SpeedCalib<adouble> sc = _calib.makeSpeedCalib<adouble>(Xin);
+    int navCount = _navs.size();
+    for (int i = 0; i < navCount; i++) {
+      adouble *f = Fout + 2*i;
+      const Nav &nav = _navs[i];
+      HorizontalMotion<adouble> boatWrtWater = _calib.calcBoatMotionRelativeToWater(nav,
+            sc, Xin);
+      HorizontalMotion<adouble> boatGps = nav.gpsVelocity().cast<adouble>();
+      HorizontalMotion<adouble> current = _calib.horizontalMotionParam().get(nav,
+          _calib.hmotionParams(Xin));
+      HorizontalMotion<adouble> err = boatGps - current - boatWrtWater;
+      f[0] = _calib.unwrap(boatGps[0]);
+      f[1] = _calib.unwrap(boatGps[1]);
+    }
   }
-
 }
 
 Arrayd WaterCalib::optimize(Array<Nav> allnavs) const {
