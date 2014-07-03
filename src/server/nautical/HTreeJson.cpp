@@ -7,6 +7,8 @@
 #include <assert.h>
 #include <server/common/Json.h>
 
+#include <server/common/Json.impl.h>
+
 namespace sail {
 namespace json {
 

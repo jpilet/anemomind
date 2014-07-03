@@ -7,6 +7,7 @@
 #include <TargetSpeed.h>
 #include <SD.h>
 #include <ChunkFile.h>
+
 #include <SoftwareSerial.h>
 
 #include <InstrumentFilter.h>
@@ -20,6 +21,7 @@ const int flushFrequMs = 10000;
 
 char logFilePath[13];
 
+
 File logFile;
 NmeaParser nmeaParser;
 unsigned long lastFlush = 0;
@@ -29,7 +31,7 @@ InstrumentFilter<FP16_16> filter;
 
 SoftwareSerial mySerial(8, 9); // RX, TX
 
-FP16_16 calibration[TrueWindEstimator::NUM_PARAMS];
+TrueWindEstimator::Parameters<FP16_16> calibration;
 bool calibrationLoaded = false;
 
 }  // namespace
@@ -42,6 +44,7 @@ int my_putc(char c, FILE *) {
     // We assume buffered output.
     logFile.write(c);
   }
+  return 1;
 }
 
 void openLogFile() {
@@ -62,7 +65,7 @@ void displaySpeedRatio(const NmeaParser& parser) {
 
   if (calibrationLoaded) {
     HorizontalMotion<FP16_16> wind =
-      TrueWindEstimator::computeTrueWind(calibration, filter);
+      TrueWindEstimator::computeTrueWind(calibration.params, filter);
 
     twa = wind.angle();
     tws = wind.norm();
@@ -82,7 +85,8 @@ void displaySpeedRatio(const NmeaParser& parser) {
 
 void loadData() {
   ChunkTarget targets[] = {
-    makeChunkTarget(&targetSpeedTable)
+    makeChunkTarget(&targetSpeedTable),
+    makeChunkTarget(&calibration)
   };
   
   ChunkLoader loader(targets, sizeof(targets) / sizeof(targets[0]));
@@ -98,12 +102,13 @@ void loadData() {
     }
   }
 
+  calibrationLoaded = targets[1].success;
+  
   if (!targets[0].success) {
     invalidateSpeedTable(&targetSpeedTable);
-    updateScreen(-2);
-  } else {
-    updateScreen(-1);
   }
+  
+  updateScreen((targets[0].success ? -1:0) + (targets[1].success? -2:0));
 }
 
 void sendScreenData(String buf) {

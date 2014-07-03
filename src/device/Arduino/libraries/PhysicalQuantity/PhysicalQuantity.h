@@ -100,6 +100,10 @@ class PhysicalQuantity {
   bool eqWithNan(ThisQuantity other) const {
     return strictEquality(_x, other.get());
   }
+
+  bool nearWithNan(ThisQuantity other, double marg) const {
+    return sail::nearWithNan(_x, other.get(), marg);
+  }
 #endif
  protected:
   Value get() const {return _x;}

@@ -313,6 +313,27 @@ class Array {
     return dst;
   }
 
+  template <typename S>
+  bool same(std::function<S(T)> fun) const {
+    assert(hasData());
+    S ref = fun(_data[0]);
+    for (int i = 1; i < _size; i++) {
+      if (!(ref == fun(_data[i]))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool all(std::function<bool(T)> fun) const {
+    for (int i = 0; i < _size; i++) {
+      if (!fun(_data[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   static Array<T> own(int size, T *data) {
 #if SAFEARRAY
     assert(0 <= size);

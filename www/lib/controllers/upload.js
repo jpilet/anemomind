@@ -163,7 +163,16 @@ exports.storeData = function(req, res) {
           }
           var tmpItem = {
             latRad: results.navs[l]['lat_rad'],
-            lonRad: results.navs[l]['lon_rad']
+            lonRad: results.navs[l]['lon_rad'],
+            awaRad: results.navs[l]['awa_rad'],
+            awsMps: results.navs[l]['aws_mps'],
+            twaRad: results.navs[l]['externalTwa_rad'],
+            twsMps: results.navs[l]['externalTws_mps'],
+            gpsBearingRad: results.navs[l]['gpsbearing_rad'],
+            gpsSpeedMps: results.navs[l]['gpsspeed_mps'],
+            magHdgRad: results.navs[l]['maghdg_rad'],
+            timeMs: results.navs[l]['time_ms_1970'],
+            watSpeedMps: results.navs[l]['watspeed_mps']
           };
           sailingPeriods[k].items.push(tmpItem);
 

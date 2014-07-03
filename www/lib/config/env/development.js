@@ -2,8 +2,8 @@
 
 module.exports = {
   env: 'development',
-  port: process.env.PORT || 80,
-  logfile: 'nodejs_server.log',
+  port: process.env.PORT || 8080,
+  logfile: 'nodejs_server_dev.log',
   mongo: {
     uri: 'mongodb://localhost/fullstack-dev'
   }

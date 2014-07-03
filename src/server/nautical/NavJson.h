@@ -14,12 +14,10 @@
 namespace sail {
 namespace json {
 
-
-
 Poco::Dynamic::Var serialize(const Nav &nav);
 bool deserialize(Poco::Dynamic::Var x, Nav *out);
 
-}
-} /* namespace sail */
+}  // namespace json
+}  // namespace sail
 
 #endif /* NAVJSON_H_ */

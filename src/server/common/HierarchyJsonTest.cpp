@@ -10,6 +10,8 @@
 #include <server/common/Json.h>
 #include <sstream>
 
+#include <server/common/Json.impl.h>
+
 using namespace sail;
 
 TEST(HierarchyJsonTest, TestSimple) {
