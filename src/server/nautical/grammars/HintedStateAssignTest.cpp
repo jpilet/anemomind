@@ -148,7 +148,7 @@ class Ref2 : public StateAssign {
 TEST(HintedStateAssignTest, NoHintsTest) {
   Ref2 ref;
   HintedStateAssign hinted(makeSharedPtrToStack(ref), Array<HintedStateAssign::LocalStateAssignPtr>());
-  //EXPECT_EQ(ref.solve(), hinted.solve());
+  EXPECT_EQ(ref.solve(), hinted.solve());
 }
 
 
