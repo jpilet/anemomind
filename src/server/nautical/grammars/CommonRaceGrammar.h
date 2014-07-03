@@ -35,8 +35,8 @@ class CommonRaceGrammarSettings {
   double perSecondCost;   // To encourage the device to be turned off when it is.
   double angleDifCost;    // Cost for angle deviation when racing
   double onOffCost;       // Cost for switching on/off the device
-  double majorTransitionCost; // Cost for switching between major states
-  double minorTransitionCost; // Cost for switching between minor states
+  double raceStartOrFinishCost; // Cost for switching between major states
+  double sailPointTransitionCost; // Cost for switching between minor states
   double idleCost;
 
   bool switchOnOffDuringRace;

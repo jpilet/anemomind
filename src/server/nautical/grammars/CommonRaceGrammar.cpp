@@ -23,9 +23,9 @@ double OnOffCost::getTransitionCost(int fromStateIndex, int toStateIndex, int fr
 
 CommonRaceGrammarSettings::CommonRaceGrammarSettings() {
   perSecondCost = 0.01;
-  majorTransitionCost = 16.0;
-  minorTransitionCost = 0.5;
-  onOffCost = 16*majorTransitionCost;
+  raceStartOrFinishCost = 16.0;
+  sailPointTransitionCost = 0.5;
+  onOffCost = 16;
   idleCost = 1.0;
   angleDifCost = 1.0;
   switchOnOffDuringRace = true;
@@ -55,24 +55,24 @@ namespace {
 
   const int terminalCount = 8;
 
-  double minorTransitionCost(int i, int j) {
+  double sailPointTransitionCost(int i, int j) {
     return cyclicDif(i-2, j-2, 6);
   }
 }
 
 CommonRaceGrammar::CommonRaceGrammar(CommonRaceGrammarSettings settings) :
   _h(makeH()) {
-  double ooc = settings.onOffCost*settings.majorTransitionCost;
+  double ooc = settings.onOffCost;
   StaticCostFactory f(_h);
   f.connectSelf(1, 1);
-  f.connect(1, 10, settings.majorTransitionCost, true);
+  f.connect(1, 10, settings.raceStartOrFinishCost, true);
   f.connect(0, 1, ooc, true);
   if (settings.switchOnOffDuringRace) {
     f.connect(10, 0, ooc, true);
   }
   f.addStateCost(1, settings.idleCost);
   f.connect(10, 10, [=](int i, int j) {
-    return minorTransitionCost(i, j)*settings.minorTransitionCost;
+    return sailPointTransitionCost(i, j)*settings.sailPointTransitionCost;
   }, false);
 
   _staticTransitionCosts = f.staticTransitionCosts();
@@ -90,16 +90,16 @@ namespace {
     SA(Array<Nav> navs, AngleCost &ac,
         MDArray2d staticTransitionCosts,
         Arrayd staticStateCosts, Array<Arrayi> preds, OnOffCost ooc) :
-        _navs(navs), _ac(ac), _staticTransitionCosts(staticTransitionCosts),
-        _staticStateCosts(staticStateCosts), _preds(preds), _ooc(ooc) {}
+        _navs(navs), _angleCost(ac), _staticTransitionCosts(staticTransitionCosts),
+        _staticStateCosts(staticStateCosts), _predecessors(preds), _onOffCost(ooc) {}
 
     double getStateCost(int stateIndex, int timeIndex) {
-      return _staticStateCosts[stateIndex] + _ac.calcCost(stateIndex, _navs[timeIndex].externalTwa());
+      return _staticStateCosts[stateIndex] + _angleCost.calcCost(stateIndex, _navs[timeIndex].externalTwa());
     }
 
     double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
       return _staticTransitionCosts(fromStateIndex, toStateIndex) +
-      _ooc.getTransitionCost(fromStateIndex, toStateIndex, fromTimeIndex);
+      _onOffCost.getTransitionCost(fromStateIndex, toStateIndex, fromTimeIndex);
     }
 
     int getStateCount() {
@@ -111,15 +111,15 @@ namespace {
     }
 
     Arrayi getPrecedingStates(int stateIndex, int timeIndex) {
-      return _preds[stateIndex];
+      return _predecessors[stateIndex];
     }
    private:
     Array<Nav> _navs;
-    AngleCost _ac;
+    AngleCost _angleCost;
     MDArray2d _staticTransitionCosts;
     Arrayd _staticStateCosts;
-    Array<Arrayi> _preds;
-    OnOffCost _ooc;
+    Array<Arrayi> _predecessors;
+    OnOffCost _onOffCost;
   };
 }
 
