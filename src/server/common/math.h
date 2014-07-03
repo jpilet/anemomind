@@ -183,17 +183,17 @@ T evalSigmoid(T x) {
  * It is always true that 0 maps to the middle of the interval, making it
  * reasonable to initialize optimization parameters to 0.
  */
+template <typename T>
 class Sigmoid {
  public:
   Sigmoid() : _k(1), _m(0.0) {}
-  Sigmoid(double minv, double maxv) : _k(maxv - minv), _m(minv) {}
+  Sigmoid(T minv, T maxv) : _k(maxv - minv), _m(minv) {}
 
-  template <typename T>
   T eval(T x) {
     return _k*evalSigmoid(x) + _m;
   }
  private:
-  double _k, _m;
+  T _k, _m;
 };
 
 } /* namespace sail */

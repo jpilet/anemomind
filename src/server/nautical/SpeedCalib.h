@@ -36,9 +36,9 @@ class SpeedCalib {
  public:
   static constexpr bool withExp = true;
 
-  static Sigmoid kSpan() {
+  static Sigmoid<T> kSpan() {
     double marg = 0.1;
-    return Sigmoid(1.0 - marg, 1.0 + marg);
+    return Sigmoid<T>(1.0 - marg, 1.0 + marg);
   }
 
   // These functions can be used to map a variable in R
@@ -53,8 +53,10 @@ class SpeedCalib {
 
 
 
-  SpeedCalib(T k, T m, T c, T alpha) :
-    _k2(kSpan().eval(k)), _m2(lowerBound(m)), _c2(lowerBound(c)), _r2(lowerBound(alpha)) {}
+  SpeedCalib(T kParam, T mParam, T cParam, T alphaParam) :
+    _k(kSpan().eval(kParam)), _m(lowerBound(mParam)), _c(lowerBound(cParam)) {
+    _alpha = Sigmoid<T>(0, _k/(_c + 1.0e-9)).eval(alphaParam);
+  }
 
   T eval(T x) {
     assert(x > 0);
@@ -74,33 +76,23 @@ class SpeedCalib {
     return y;
   }
 
-  T scaleCoef() {return _k2;}
+  T scaleCoef() {return _k;}
 
   /*
    * Require that f(0) >= 0
    */
-  T offsetCoef() {return _m2 - _c2;}
+  T offsetCoef() {return _m - _c;}
 
-  T nonlinCoef() {return (withExp? _c2 : 0.0);}
+  T nonlinCoef() {return (withExp? _c : 0.0);}
 
-  // This complicated way of computing the decayCoef ensures
-  // that f'(0) >= 0:
-  /*
-   *    f'(0) = scaleCoef() - decayCoef()*nonlinCoef() >= 0
-   *
-   * Set f'(0) = _r2 >= 0. This yields
-   *
-   *   _r2 = scaleCoef() - decayCoef()*nonlinCoef() <=> decayCoef() = (scaleCoef() - _r2)/nonlinCoef()
-   *
-   */
   T decayCoef() {
-    return (withExp? (scaleCoef() - _r2)/(nonlinCoef() + 1.0e-12) : T(0.0));
+    return (withExp? _alpha : T(0.0));
   }
 
-  static T initK() {return 0;}
-  static T initM() {return 0.01;}
-  static T initC() {return 0.01;}
-  static T initAlpha() {return 1.0;}
+  static T initKParam() {return 0;}
+  static T initMParam() {return 0.01;}
+  static T initCParam() {return 0.01;}
+  static T initAlphaParam() {return 0.0;}
 
   // This value can be added to the objective function in order to
   // push the nonlinCoef to zero if decayCoef is close to 0.
@@ -108,7 +100,7 @@ class SpeedCalib {
     return (1.0e-8)*(nonlinCoef()/(1.0e-12 + decayCoef()));
   }
  private:
-  T _k2, _m2, _c2, _r2;
+  T _k, _m, _c, _alpha;
 };
 
 } /* namespace sail */

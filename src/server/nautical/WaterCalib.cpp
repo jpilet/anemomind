@@ -32,10 +32,10 @@ WaterCalib::WaterCalib(const HorizontalMotionParam &param, Velocity<double> sigm
     _param(param), _sigma(sigma), _initR(initR) {}
 
 void WaterCalib::initialize(double *outParams) const {
-  wcK(outParams) = SpeedCalib<double>::initK();
-  wcM(outParams) = SpeedCalib<double>::initM();
-  wcC(outParams) = SpeedCalib<double>::initC();
-  wcAlpha(outParams) = SpeedCalib<double>::initAlpha();
+  wcK(outParams) = SpeedCalib<double>::initKParam();
+  wcM(outParams) = SpeedCalib<double>::initMParam();
+  wcC(outParams) = SpeedCalib<double>::initCParam();
+  wcAlpha(outParams) = SpeedCalib<double>::initAlphaParam();
   magOffset(outParams) = 0;
   _param.initialize(hmParams(outParams));
 }
