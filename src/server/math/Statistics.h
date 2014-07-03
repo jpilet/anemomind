@@ -19,7 +19,9 @@ class Statistics {
   double stddev() const;
   double variance() const;
   bool defined() const;
+  int count() const {return _count;}
  private:
+  void reset();
   int _count;
   double _valueSum, _value2Sum;
 };

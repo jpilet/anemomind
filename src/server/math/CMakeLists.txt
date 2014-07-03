@@ -132,5 +132,15 @@ add_executable(math_ceres_helloworld
               )
 target_depends_on_ceres(math_ceres_helloworld)
 
+add_library(math_Statistics
+            Statistics.h
+            Statistics.cpp
+           )
+cxx_test(math_StatisticsTest
+         StatisticsTest.cpp
+         math_Statistics
+         gtest_main
+        )
+
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)

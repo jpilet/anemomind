@@ -10,8 +10,8 @@
 
 namespace sail {
 
-Statistics::Statistics() :
-  _count(0), _valueSum(0.0), _value2Sum(0.0) {
+Statistics::Statistics() {
+  reset();
 }
 
 void Statistics::add(double value) {
@@ -22,6 +22,12 @@ void Statistics::add(double value) {
 
 bool Statistics::defined() const {
   return _count > 0;
+}
+
+void Statistics::reset() {
+  _count = 0;
+  _valueSum = 0.0;
+  _value2Sum = 0.0;
 }
 
 double Statistics::mean() const {

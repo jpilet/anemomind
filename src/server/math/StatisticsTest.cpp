@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/common/Statistics.h>
+#include <server/math/Statistics.h>
 #include <gtest/gtest.h>
 
 using namespace sail;
@@ -22,6 +22,7 @@ TEST(StatisticsTest, BasicTest) {
   EXPECT_NEAR(s.mean(), 2.0, 1.0e-9);
   EXPECT_NEAR(s.mean(), 2.0, 1.0e-9);
   EXPECT_NEAR(s.variance(), 2.0, 1.0e-9); // (1² + 1² + 4²)/3 - 2² = 18/3 - 4 = 6 - 4 = 2
+  EXPECT_EQ(s.count(), 3);
 }
 
 
