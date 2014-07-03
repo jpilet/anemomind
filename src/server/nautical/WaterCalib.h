@@ -6,12 +6,15 @@
 #ifndef WATERCALIB_H_
 #define WATERCALIB_H_
 
+#include <server/common/Array.h>
+#include <server/nautical/Nav.h>
+
 namespace sail {
 
 class WaterCalib {
-public:
+ public:
   WaterCalib();
-  virtual ~WaterCalib();
+  ~WaterCalib();
 };
 
 }

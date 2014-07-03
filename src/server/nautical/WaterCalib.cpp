@@ -7,13 +7,20 @@
 
 namespace sail {
 
+namespace {
+  Array<Nav> getDownwindNavs(Array<Nav> navs) {
+    return navs.slice([&](const Nav &n) {
+      return cos(n.externalTwa()) < 0;
+    });
+  }
+}
+
 WaterCalib::WaterCalib() {
-  // TODO Auto-generated constructor stub
 
 }
 
 WaterCalib::~WaterCalib() {
-  // TODO Auto-generated destructor stub
+
 }
 
 } /* namespace mmm */
