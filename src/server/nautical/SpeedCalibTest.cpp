@@ -12,7 +12,7 @@
 using namespace sail;
 
 TEST(SpeedCalibTest, TestNoError) {
-  SpeedCalib<double> c(sqrt(0.5), 0.0, 0.0, 0.0);
+  SpeedCalib<double> c(0.0, 0.0, 0.0, 0.0);
   EXPECT_NEAR(c.eval(0.1), 0.1, 1.0e-6);
   EXPECT_NEAR(c.eval(1.0), 1.0, 1.0e-6);
   EXPECT_NEAR(c.evalDeriv(0.1), 1.0, 1.0e-6);
