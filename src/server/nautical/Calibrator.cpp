@@ -266,16 +266,17 @@ bool Calibrator::calibrate(const Array<Nav>& navs,
   options.minimizer_progress_to_stdout = true;
   options.max_num_iterations = 500;
   options.function_tolerance = 1e-7;
+  options.minimizer_progress_to_stdout = _verbose;
   Solver::Summary summary;
   Solve(options, &_problem, &summary);
-  std::cout << summary.BriefReport() << "\n";
-
-  for (int i = 0; i < TrueWindEstimator::NUM_PARAMS; ++i) {
-  LOG(INFO) << "param: "
-    << _calibrationValues[i];
-  }
 
   if (_verbose) {
+    std::cout << summary.BriefReport() << "\n";
+
+    for (int i = 0; i < TrueWindEstimator::NUM_PARAMS; ++i) {
+      LOG(INFO) << "param: " << _calibrationValues[i];
+    }
+
     print();
     plot(&gnuplot, "after");
   }
