@@ -8,14 +8,13 @@
 #include <SD.h>
 #include <ChunkFile.h>
 
-#include <SoftwareSerial.h>
+#include <Screen.h>
 
 #include <InstrumentFilter.h>
 
 using namespace sail;
 
 namespace {
-const bool VERTICAL_SCREEN = false;
 const bool echo = false;
 const int flushFrequMs = 10000;
 
@@ -28,8 +27,6 @@ unsigned long lastFlush = 0;
 
 TargetSpeedTable targetSpeedTable;
 InstrumentFilter<FP16_16> filter;
-
-SoftwareSerial mySerial(8, 9); // RX, TX
 
 TrueWindEstimator::Parameters<FP16_16> calibration;
 bool calibrationLoaded = false;
@@ -80,7 +77,11 @@ void displaySpeedRatio(const NmeaParser& parser) {
        filter.gpsSpeed().knots());
    
    // Display speedRatio on the LCD display.
-   updateScreen(max(0,min(200, int(speedRatio * 100.0))));
+   screenUpdate(
+     max(0,min(200, int(speedRatio * 100.0))),
+     twa.degrees(),
+     tws.knots()
+     );
 }
 
 void loadData() {
@@ -108,76 +109,22 @@ void loadData() {
     invalidateSpeedTable(&targetSpeedTable);
   }
   
-  updateScreen((targets[0].success ? -1:0) + (targets[1].success? -2:0));
+  screenUpdate((targets[0].success ? 0 : -1) + (targets[1].success? 0 : -2));
 }
 
-void sendScreenData(String buf) {
-  unsigned char i, bcc;
-  const int len = buf.length();
-  mySerial.write(0x11);
-  bcc = 0x11;
-  mySerial.write(len);
-  bcc = bcc + len;
-  for(i=0; i < len; i++) {
-    mySerial.write(buf[i]);
-    bcc = bcc + buf[i];
-  }
-  mySerial.write(bcc);
-  delay(2);
-}
-
-void initScreen() {
-  delay(3);
-
-  // Disable terminal mode
-  sendScreenData("#TA,");
-  
-  // Clear screen
-  sendScreenData("#DL,");
-  
-  // Turn backlight off
-  sendScreenData("#YL0,");
-  
-  if (VERTICAL_SCREEN) {
-    // text orientation horizontal
-    sendScreenData("#ZW1,");
-    // Font selection
-    sendScreenData("#ZF0,");
-    // zoom factor 4
-    sendScreenData("#ZZ4,4,");
-  } else {
-    // text orientation horizontal
-    sendScreenData("#ZW0,");
-    // Font selection
-    sendScreenData("#ZF7,");
-    // zoom factor 1
-    sendScreenData("#ZZ1,1,");
-  }
-}
-
-void updateScreen(int i) {
-  char str[16];
-  sprintf(str,
-          (VERTICAL_SCREEN ? "#ZL50,90,%02d\r" : "#ZC0,04,%03d\r"),
-          i);
-  sendScreenData(str);
-}
 
 void setup()
 {
-  mySerial.begin(115200);
-  initScreen();
-  updateScreen(1);
-  delay(1000);
-  updateScreen(2);
+  screenInit();
+  screenUpdate(1);
 
   // Open serial communications and wait for port to open:
   Serial.begin(4800);
-  updateScreen(3);
+  screenUpdate(2);
 
   fdevopen( &my_putc, 0);
  
-  updateScreen(4);
+  screenUpdate(3);
 
   // SD Card initialization.
   // On the Ethernet Shield, CS is pin 4. It's set as an output by default.
@@ -185,14 +132,14 @@ void setup()
   // (10 on most Arduino boards, 53 on the Mega) must be left as an output 
   // or the SD library functions will not work.
   pinMode(10, OUTPUT);
-  updateScreen(5);
+  screenUpdate(4);
 
-  if (SD.begin(10)) {
-  }
-  updateScreen(5);
+  SD.begin(10);
+  
+  screenUpdate(5);
 
   openLogFile();
-  updateScreen(6);
+  screenUpdate(6);
 
   loadData();
 }
