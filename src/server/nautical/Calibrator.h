@@ -16,7 +16,7 @@ class GnuplotExtra;
 
 class Calibrator  {
   public:
-    Calibrator() : _grammar(_settings) { clear(); }
+    Calibrator() : _grammar(_settings), _verbose(false) { clear(); }
     Calibrator(const WindOrientedGrammar& grammar) : _grammar(grammar) { clear(); }
 
     //! Attempt to load data and run the minimizer. Clears previous results.
@@ -38,6 +38,10 @@ class Calibrator  {
     //! Forget last calibration results.
     void clear();
 
+    //! If set, calibrate() will display detailed information about the
+    //  minimization. It will call gnuplot to display errors.
+    void setVerbose() { _verbose = true; }
+
   private:
     std::string description(std::shared_ptr<HTree> tree);
     void addAllTack(std::shared_ptr<HTree> tree);
@@ -53,6 +57,8 @@ class Calibrator  {
 
     // The pointers stored in this vector are owned by "_problem".
     vector<TackCost*> _maneuvers;
+
+    bool _verbose;
 };
 
 }  // namespace sail
