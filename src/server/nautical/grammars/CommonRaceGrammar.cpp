@@ -55,6 +55,7 @@ namespace {
 
   const int terminalCount = 8;
 
+  // States 2 to 7 represent sailing directions (broad-reach, beam-reach, close-hauled, on each side)
   double sailPointTransitionCost(int i, int j) {
     return cyclicDif(i-2, j-2, 6);
   }
