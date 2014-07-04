@@ -89,7 +89,6 @@ class WaterCalib {
   void makeWatSpeedCalibPlot(Arrayd params, Array<Nav> navs) const;
 
   template <typename T> static T unwrap(Velocity<T> x) {return x.metersPerSecond();}
-  template <typename T> static T unwrap(Angle<T> x) {return x.radians();}
  private:
 
   Arrayd makeInitialParams() const;
