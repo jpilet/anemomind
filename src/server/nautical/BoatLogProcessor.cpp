@@ -4,25 +4,28 @@
  */
 
 #include "BoatLogProcessor.h"
-#include <iostream>
-#include <Poco/Util/Application.h>
-#include <Poco/File.h>
-#include <server/common/PathBuilder.h>
-#include <server/common/logging.h>
-#include <server/common/ScopedLog.h>
-#include <server/nautical/NavNmeaScan.h>
-#include <server/common/Env.h>
-#include <server/common/string.h>
-#include <server/common/HierarchyJson.h>
-#include <server/nautical/NavJson.h>
-#include <fstream>
-#include <server/nautical/grammars/WindOrientedGrammar.h>
-#include <server/nautical/HTreeJson.h>
-#include <server/nautical/NavNmea.h>
-#include <Poco/JSON/Stringifier.h>
-#include <server/nautical/TargetSpeed.h>
-#include <server/common/Json.impl.h>
 
+#include <Poco/File.h>
+#include <Poco/JSON/Stringifier.h>
+#include <Poco/Util/Application.h>
+#include <fstream>
+#include <iostream>
+#include <server/common/Env.h>
+#include <server/common/HierarchyJson.h>
+#include <server/common/Json.h>
+#include <server/common/PathBuilder.h>
+#include <server/common/ScopedLog.h>
+#include <server/common/logging.h>
+#include <server/common/string.h>
+#include <server/nautical/Calibrator.h>
+#include <server/nautical/HTreeJson.h>
+#include <server/nautical/NavJson.h>
+#include <server/nautical/NavNmea.h>
+#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/TargetSpeed.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
+
+#include <server/common/Json.impl.h>
 
 namespace sail {
 
@@ -37,10 +40,6 @@ using namespace std;
 Nav::Id extractBoatId(Poco::Path path) {
   return path.directory(path.depth()-1);
 }
-
-
-
-
 
 void exampleUsage1Arg() {
   std::cout << "     == Example usage one argument ==\n"
@@ -141,12 +140,14 @@ namespace {
        minvel, maxvel);
   }
 
-  void outputTargetSpeedTable(std::shared_ptr<HTree> tree, Array<HNode> nodeinfo, Array<Nav> navs, std::string outFilename) {
+  void outputTargetSpeedTable(std::shared_ptr<HTree> tree,
+                              Array<HNode> nodeinfo,
+                              Array<Nav> navs,
+                              std::ofstream *file) {
     TargetSpeedData uw = makeTargetSpeedTable(true, tree, nodeinfo, navs, "upwind-leg");
     TargetSpeedData dw = makeTargetSpeedTable(false, tree, nodeinfo, navs, "downwind-leg");
 
-    std::ofstream file(outFilename);
-    saveTargetSpeedTableChunk(&file, uw, dw);
+    saveTargetSpeedTableChunk(file, uw, dw);
   }
 }
 
@@ -185,8 +186,14 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
    ofstream file(prefix + "_tree_node_info.js");
    Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
   }
-  outputTargetSpeedTable(fulltree, g.nodeInfo(), navs,
-      outdir.makeFile("boat.dat").get().toString());
+
+  std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
+  outputTargetSpeedTable(fulltree, g.nodeInfo(), navs, &boatDatFile);
+
+  Calibrator calibrator(g);
+  if (calibrator.calibrate(navs, fulltree, boatId)) {
+    calibrator.saveCalibration(&boatDatFile);
+  }
 }
 
 void processBoatDataFullFolder(Nav::Id boatId, Poco::Path srcPath, Poco::Path dstPath) {

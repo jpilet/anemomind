@@ -215,15 +215,17 @@ add_library(nautical_BoatLogProcessor
             BoatLogProcessor.h
            )
 target_link_libraries(nautical_BoatLogProcessor
-                      common_logging
-                      common_PathBuilder
-                      nautical_NavNmeaScan
-                      nautical_grammars_WindOrientedGrammar
-                      nautical_NavJson
-                      nautical_HTreeJson
                       common_HierarchyJson
+                      common_PathBuilder
+                      common_logging
+                      device_ChunkFile
                       math_hmm_StateAssign
+                      nautical_Calibrator
+                      nautical_HTreeJson
+                      nautical_NavJson
+                      nautical_NavNmeaScan
                       nautical_TargetSpeed
+                      nautical_grammars_WindOrientedGrammar
                      )              
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)

@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#ifndef GRAMMAR001_H_
+#ifndef WIND_ORIENTED_GRAMMAR_H_
 #define WIND_ORIENTED_GRAMMAR_H_
 
 #include <server/common/Hierarchy.h>
@@ -38,4 +38,4 @@ class WindOrientedGrammar : public Grammar {
 
 } /* namespace sail */
 
-#endif /* GRAMMAR001_H_ */
+#endif  // WIND_ORIENTED_GRAMMAR_H_
