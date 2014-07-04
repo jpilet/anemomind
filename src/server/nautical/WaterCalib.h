@@ -104,8 +104,6 @@ class WaterCalib {
   template <typename T> T &wcC(T *x) const {return x[2];}
   template <typename T> T &wcAlpha(T *x) const {return x[3];}
   template <typename T> T &magOffset(T *x) const {return x[4];}
-
-  //SpeedCalib(T k, T m, T c, T alpha) :
 };
 
 }
