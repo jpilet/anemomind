@@ -81,7 +81,7 @@ class WaterCalib {
 
   template <typename T>
   HorizontalMotion<T> calcBoatMotionRelativeToWater(const Nav &nav,
-      const SpeedCalib<T> &sc, T *params) const {
+      T *params) const {
     return HorizontalMotion<T>::polar(nav.watSpeed().cast<T>(),
         nav.magHdg().cast<T>() + wrapAngle(magOffset(params)));
   }

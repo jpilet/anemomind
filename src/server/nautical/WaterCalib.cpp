@@ -165,8 +165,8 @@ namespace {
     for (int i = 0; i < navCount; i++) {
       adouble *f = Fout + 2*i;
       const Nav &nav = _navs[i];
-      HorizontalMotion<adouble> boatWrtWater = _calib.calcBoatMotionRelativeToWater(nav,
-            sc, Xin);
+      HorizontalMotion<adouble> boatWrtWater =
+          _calib.calcBoatMotionRelativeToWater(nav, Xin);
       HorizontalMotion<adouble> boatGps = nav.gpsVelocity().cast<adouble>();
       HorizontalMotion<adouble> current = _calib.horizontalMotionParam().get(nav,
           _calib.hmParams(Xin));
