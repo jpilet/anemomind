@@ -336,8 +336,7 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
 
     template <typename Dst>
     HorizontalMotion<Dst> cast() const {
-      return HorizontalMotion<Dst>((*this)[0].cast<Dst>(),
-          (*this)[1].cast<Dst>());
+      return HorizontalMotion<Dst>((*this)[0], (*this)[1]);
     }
 
     // Define what the vector dimensions mean.
