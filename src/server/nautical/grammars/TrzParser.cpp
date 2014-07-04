@@ -29,6 +29,7 @@ namespace {
     return huge;
   }
 
+
   Hierarchy makeTrzHierarchy() {
     return HNodeGroup(8, "Top",
                 HNodeGroup(6, "Record", // Matches a common record, e.g. starting with $TANAV,...
@@ -121,6 +122,127 @@ void TrzParser::disp(std::ostream *dst, const ParsedTrzLine &data, int depth) {
     }
   }
 }
+
+namespace {
+  int countArgsRecord(const ParsedTrzLine &data) {
+    const int count = data.childCount();
+    int commaCounter = 0;
+    std::shared_ptr<HTree> tree = data.tree();
+    for (int i = 0; i < count; i++) {
+      std::shared_ptr<HTree> child = tree->child(i);
+      if (child->index() == 1) {
+        commaCounter += child->count();
+      }
+    }
+    return commaCounter + 1;
+  }
+
+  int countArgsHeader(const ParsedTrzLine &data) {
+    const int count = data.childCount();
+    int counter = 0;
+    std::shared_ptr<HTree> tree = data.tree();
+    for (int i = 0; i < count; i++) {
+      std::shared_ptr<HTree> child = tree->child(i);
+      if (child->index() != 3) {
+        counter++;
+      }
+    }
+    return counter;
+  }
+
+
+  int countArgs(const ParsedTrzLine &data0) {
+    if (data0.empty()) {
+      return 0;
+    }
+
+    ParsedTrzLine data = data0.child(0);
+
+    if (data.index() == 6) {
+      return countArgsRecord(data);
+    } else {
+      assert(data.index() == 7);
+      return countArgsHeader(data);
+    }
+  }
+
+  MDArray<std::string, 2> allocateArgMatrix(Array<ParsedTrzLine> data) {
+    int rows = 0;
+    int cols = 0;
+    for (auto x : data) {
+      if (!x.empty()) {
+        rows++;
+        cols = std::max(cols, countArgs(x));
+      }
+    }
+    return MDArray<std::string, 2>(rows, cols);
+  }
+
+  void fillRecordRow(const ParsedTrzLine &src, MDArray<std::string, 2> dst) {
+    int index = 0;
+    for (int i = 0; i < src.childCount(); i++) {
+      ParsedTrzLine ch = src.child(i);
+      if (ch.index() == 1) {
+        index += ch.dataLength();
+      } else {
+        dst(0, index) = ch.data();
+      }
+    }
+  }
+
+  void fillHeaderRow(const ParsedTrzLine &src, MDArray<std::string, 2> dst) {
+    int index = 0;
+    for (int i = 0; i < src.childCount(); i++) {
+      ParsedTrzLine ch = src.child(i);
+      if (ch.index() == 4) {
+        dst(0, index) = ch.data();
+        index++;
+      }
+    }
+  }
+
+  bool fillArgRow(const ParsedTrzLine &src0, MDArray<std::string, 2> dst) {
+    if (src0.empty()) {
+      return false;
+    }
+
+    ParsedTrzLine src = src0.child(0);
+    if (src.index() == 6) {
+      fillRecordRow(src, dst);
+    } else {
+      assert(src.index() == 7);
+      fillHeaderRow(src, dst);
+    }
+    return true;
+  }
+
+  MDArray<std::string, 2> makeArgMatrix(Array<ParsedTrzLine> data) {
+    MDArray<std::string, 2> dst = allocateArgMatrix(data);
+    int counter = 0;
+    for (auto x : data) {
+      if (fillArgRow(x, dst.sliceRow(counter))) {
+        counter++;
+      }
+    }
+    assert(counter == dst.rows());
+    return dst;
+  }
+}
+
+void exportToMatlab(std::string filename, Array<ParsedTrzLine> data) {
+  MDArray<std::string, 2> mat = makeArgMatrix(data);
+  std::ofstream file(filename);
+  file << mat.rows() << "\n"; // First row in file: Number of matrix rows
+  file << mat.cols() << "\n"; // Second row in file: Number of matrix cols
+  for (int i = 0; i < mat.rows(); i++) {
+    for (int j = 0; j < mat.cols(); j++) {
+      file << mat(i, j) << "\n";
+    }
+  }
+}
+
+
+
 
 
 

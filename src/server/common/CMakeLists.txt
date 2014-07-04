@@ -28,7 +28,6 @@ cxx_test(common_EnvTest
          gtest_main
         )           
 target_depends_on_poco_foundation(common_EnvTest)
-         
 
 cxx_test(common_stringTest
          stringTest.cpp

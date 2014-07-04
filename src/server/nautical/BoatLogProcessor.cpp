@@ -41,10 +41,6 @@ Nav::Id extractBoatId(Poco::Path path) {
   return path.directory(path.depth()-1);
 }
 
-
-
-
-
 void exampleUsage1Arg() {
   std::cout << "     == Example usage one argument ==\n"
                "     Arg 1: testlogs/\n"

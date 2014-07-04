@@ -15,7 +15,9 @@
     "async": "*",
     "winston": "^0.7.3",
     "mkdirp": "^0.5.0",
-    "traverse": "^0.6.6"
+    "traverse": "^0.6.6",
+    "morgan": "^1.1.1",
+    "compression": "^1.0.8"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
