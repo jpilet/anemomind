@@ -226,7 +226,7 @@ namespace sail {
   DECL_BINARY(Add, "+", (x + y))
   DECL_BINARY(Sub, "-", (x - y))
   DECL_BINARY(Mul, "mul", (x * y))
-  DECL_BINARY(Div, "div", (x * y))
+  DECL_BINARY(Div, "div", (x / y))
 
   void applyExtraction(const char *cmd, PlotEnv *dst, std::function<double(Nav)> extractor) {
     dst->stack().push_back(Plottable(cmd, dst->navs().map<double>(extractor)));
