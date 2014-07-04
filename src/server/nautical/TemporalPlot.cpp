@@ -42,7 +42,7 @@ namespace sail {
   };
 
   std::ostream &operator<<(std::ostream &s, Plottable x) {
-    s << "Plottable(s-expr = " << x.sExpr() << ", values = " << x.values() << ")";
+    s << "Plottable:\n s-expr = " << x.sExpr() << "\n values = " << x.values() << "\n )";
     return s;
   }
 
@@ -140,6 +140,31 @@ namespace sail {
     }
   };
 
+  MDArray2d makeXYData(Arrayd values) {
+    int count = values.size();
+    MDArray2d XY(count, 2);
+    for (int i = 0; i < count; i++) {
+      XY(i, 0) = i;
+      XY(i, 1) = values[i];
+    }
+    return XY;
+  }
+
+  class Plot : public PlotCmd {
+   public:
+    // String that triggers this command
+    const char *cmd() const {return "plot";}
+
+    // Should return a single string explaining how to use it
+    const char *help() const {return "plots the top stack element without popping it.";}
+
+
+    void apply(PlotEnv *dst) const {
+      Plottable x = top(dst->stack());
+      dst->plot().plot(makeXYData(x.values()), x.sExpr());
+    }
+  };
+
 
   Plottable pop(std::vector<Plottable> &stack) {
     Plottable x = top(stack);
@@ -199,6 +224,7 @@ namespace sail {
     registerCmd<Exp>(&builder);
     registerCmd<Abs>(&builder);
     registerCmd<Disp>(&builder);
+    registerCmd<Plot>(&builder);
     _commands = builder.get();
   }
 
