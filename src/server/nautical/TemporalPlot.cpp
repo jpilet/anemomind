@@ -8,6 +8,7 @@
 #include <server/plot/extra.h>
 #include <server/common/string.h>
 #include <server/common/ArrayBuilder.h>
+#include <server/common/ArrayIO.h>
 #include <sstream>
 
 namespace sail {
@@ -39,6 +40,11 @@ namespace sail {
     std::string _sExpr;
     Arrayd _values;
   };
+
+  std::ostream &operator<<(std::ostream &s, Plottable x) {
+    s << "Plottable(s-expr = " << x.sExpr() << ", values = " << x.values() << ")";
+    return s;
+  }
 
   int getCommonSize(Plottable a, Plottable b) {
     if (a.size() == 1) {
@@ -113,11 +119,30 @@ namespace sail {
     bool parsePlotCommand(const std::string &cmd);
   };
 
-  Plottable pop(std::vector<Plottable> &stack) {
+  Plottable top(const std::vector<Plottable> &stack) {
     if (stack.empty()) {
-      LOG(FATAL) << "Cannot pop from stack: it is empty";
+      LOG(FATAL) << "Cannot access top element of stack: it is empty";
     }
-    Plottable x = stack.back();
+    return stack.back();
+  }
+
+  class Disp : public PlotCmd {
+   public:
+    // String that triggers this command
+    const char *cmd() const {return "disp";}
+
+    // Should return a single string explaining how to use it
+    const char *help() const {return "display the top stack element without popping it.";}
+
+
+    void apply(PlotEnv *dst) const {
+      std::cout << dst->stack().back() << std::endl;
+    }
+  };
+
+
+  Plottable pop(std::vector<Plottable> &stack) {
+    Plottable x = top(stack);
     stack.pop_back();
     return x;
   }
@@ -141,6 +166,10 @@ namespace sail {
       void apply(PlotEnv *dst) const {applyUnaryOp(CmdString, dst, [=](double x) {return XExpr;});} \
     };
 
+  DECL_UNARY(Log, "log", std::log(x))
+  DECL_UNARY(Exp, "exp", std::exp(x))
+  DECL_UNARY(Abs, "abs", std::abs(x))
+
   #define DECL_BINARY(Classname, CmdString, XYExpr) \
     class Classname : public PlotCmd { \
      public: \
@@ -150,7 +179,9 @@ namespace sail {
     };
 
   DECL_BINARY(Add, "+", (x + y))
-
+  DECL_BINARY(Sub, "-", (x - y))
+  DECL_BINARY(Mul, "*", (x * y))
+  DECL_BINARY(Div, "/", (x * y))
 
   template <typename T>
   void registerCmd(ArrayBuilder<PlotCmd*> *dst) {
@@ -161,6 +192,13 @@ namespace sail {
   PlotEnv::PlotEnv(Array<Nav> navs_) : _navs(navs_) {
     ArrayBuilder<PlotCmd*> builder;
     registerCmd<Add>(&builder);
+    registerCmd<Sub>(&builder);
+    registerCmd<Mul>(&builder);
+    registerCmd<Div>(&builder);
+    registerCmd<Log>(&builder);
+    registerCmd<Exp>(&builder);
+    registerCmd<Abs>(&builder);
+    registerCmd<Disp>(&builder);
     _commands = builder.get();
   }
 
@@ -180,13 +218,19 @@ namespace sail {
   }
 
   bool PlotEnv::parsePlotCommand(const std::string &cmd) {
-    for (auto x : _commands) {
-      if (x->cmd() == cmd) {
-        x->apply(this);
-        return true;
+    try {
+      double x = std::stod(cmd);
+      _stack.push_back(Plottable(cmd, Arrayd::args(x)));
+      return true;
+    } catch (std::exception &e) {
+      for (auto x : _commands) {
+        if (x->cmd() == cmd) {
+          x->apply(this);
+          return true;
+        }
       }
+      return false;
     }
-    return false;
   }
 
   void PlotEnv::dispHelp() {
