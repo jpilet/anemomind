@@ -112,7 +112,25 @@ cxx_test(nautical_grammars_AngleCostTest
             AngleCostTest.cpp
             gtest_main
             nautical_grammars_AngleCost
-           )        
+           )                   
+add_library(nautical_grammars_CommonRaceGrammar
+            CommonRaceGrammar.cpp
+            CommonRaceGrammar.h
+           )
+target_link_libraries(nautical_grammars_CommonRaceGrammar
+                      nautical_Grammar
+                      nautical_grammars_AngleCost
+                      nautical_grammars_StaticCostFactory
+                      common_HNodeGroup
+                     )
+add_executable(nautical_grammars_CommonRaceGrammarExample
+               CommonRaceGrammarExample.cpp
+              )
+target_link_libraries(nautical_grammars_CommonRaceGrammarExample
+                      nautical_grammars_CommonRaceGrammar
+                      nautical_grammars_TreeExplorer
+                      nautical_TestdataNavs
+                     )
 
 add_library(nautical_grammars_HintedStateAssign
             HintedStateAssign.h                      
