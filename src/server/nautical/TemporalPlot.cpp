@@ -235,6 +235,13 @@ namespace sail {
     };
 
   DECL_EXTRACT(AwaDegrees, awa, degrees)
+  DECL_EXTRACT(AwsKnots, aws, knots)
+  DECL_EXTRACT(WatSpeedKnots, watSpeed, knots)
+  DECL_EXTRACT(GpsSpeedKnots, gpsSpeed, knots)
+  DECL_EXTRACT(GpsBearingDegrees, gpsBearing, degrees)
+  DECL_EXTRACT(MagHdgDegrees, magHdg, degrees)
+  DECL_EXTRACT(ExtTwaDegrees, externalTwa, degrees)
+  DECL_EXTRACT(ExtTwsKnots, externalTws, knots)
 
   template <typename T>
   void registerCmd(ArrayBuilder<PlotCmd*> *dst) {
@@ -256,6 +263,14 @@ namespace sail {
     registerCmd<Plot>(&builder);
     registerCmd<Show>(&builder);
     registerCmd<AwaDegrees>(&builder);
+    registerCmd<AwaDegrees>(&builder);
+    registerCmd<AwsKnots>(&builder);
+    registerCmd<WatSpeedKnots>(&builder);
+    registerCmd<GpsSpeedKnots>(&builder);
+    registerCmd<GpsBearingDegrees>(&builder);
+    registerCmd<MagHdgDegrees>(&builder);
+    registerCmd<ExtTwaDegrees>(&builder);
+    registerCmd<ExtTwsKnots>(&builder);
     _commands = builder.get();
   }
 
