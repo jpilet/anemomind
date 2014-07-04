@@ -334,6 +334,11 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
                 (*this)[1].metersPerSecond()));
     }
 
+    template <typename Dst>
+    HorizontalMotion<Dst> cast() const {
+      return HorizontalMotion<Dst>((*this)[0], (*this)[1]);
+    }
+
     // Define what the vector dimensions mean.
     enum {
         EAST_TO_WEST = 0,

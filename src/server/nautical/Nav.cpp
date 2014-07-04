@@ -168,6 +168,9 @@ Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
   return navs.map<Velocity<double> >([&](const Nav &n) {return n.gpsSpeed();});
 }
 
+Array<Velocity<double> > getWatSpeed(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&](const Nav &n) {return n.watSpeed();});
+}
 
 
 

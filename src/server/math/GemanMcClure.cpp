@@ -51,6 +51,16 @@ double GemanMcClure::getSquaredError(int index, Arrayd residuals) const {
   return s2;
 }
 
+Arrayb GemanMcClure::inliers(Arrayd residuals) const {
+  int count = _R2sum.size();
+  assert(_dim*count == residuals.size());
+  Arrayb dst(count);
+  for (int i = 0; i < count; i++) {
+    dst[i] = isInlier(i, residuals);
+  }
+  return dst;
+}
+
 namespace {
   int getCount(int funOutDims, int dim) {
     int count = funOutDims/dim;
@@ -110,6 +120,12 @@ void GemanMcClureFunction::eval(double *Xin, double *Fout, double *Jout) {
   } else {
     evalWithJacobian(Xin, Fout, Jout);
   }
+}
+
+Arrayb GemanMcClureFunction::inliers(double *Xin) {
+  Arrayd F(_fun->outDims());
+  _fun->eval(Xin, F.ptr());
+  return gmc().inliers(F);
 }
 
 } /* namespace sail */

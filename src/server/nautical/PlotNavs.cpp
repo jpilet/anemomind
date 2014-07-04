@@ -234,12 +234,8 @@ int main(int argc, const char **argv) {
 
   int from = 0;
   int to = allnavs.size();
-  getBounds(argc, argv, &from, &to);
-
-  // Override previously sliced portion
   getBoundsByNode(argc, argv, allnavs, &from, &to);
 
-  std::cout << "Use navs from " << from << " to " << to << " of " << allnavs.size() << " navs to make the plot\n";
   makePlot(allnavs.slice(from, to), toPlot);
 
   return 0;

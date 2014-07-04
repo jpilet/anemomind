@@ -170,6 +170,37 @@ bool nearWithNan(T a, T b, T marg) {
   return near(a, b, marg);
 }
 
+/*
+ * The sigmoid function (see http://en.wikipedia.org/wiki/Sigmoid_function)
+ * As x -> -infty, evalSigmoid -> 0
+ * As x ->  infty, evalSigmoid -> 1
+ */
+template <typename T>
+T evalSigmoid(T x) {
+  return 1.0/(1.0 + exp(-x));
+}
+
+/*
+ * This class is useful in optimization problems where we need to
+ * bound some value to an open interval ]_minv, _maxv[.
+ *
+ * Also, its derivative is always nonzero, making it less likely to get stuck.
+ *
+ * It is always true that 0 maps to the middle of the interval, making it
+ * reasonable to initialize optimization parameters to 0.
+ */
+template <typename T>
+class Sigmoid {
+ public:
+  Sigmoid() : _k(1), _m(0.0) {}
+  Sigmoid(T minv, T maxv) : _k(maxv - minv), _m(minv) {}
+
+  T eval(T x) {
+    return _k*evalSigmoid(x) + _m;
+  }
+ private:
+  T _k, _m;
+};
 
 } /* namespace sail */
 
