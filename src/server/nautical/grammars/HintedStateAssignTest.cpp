@@ -4,6 +4,9 @@
  */
 
 #include <server/nautical/grammars/HintedStateAssign.h>
+
+#include <algorithm>
+#include <cmath>
 #include <gtest/gtest.h>
 #include <server/common/SharedPtrUtils.h>
 

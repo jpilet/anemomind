@@ -8,6 +8,7 @@ int main(int argc, char **argv) {
   }
 
   sail::Calibrator calibrator;
+  calibrator.setVerbose();
   return calibrator.calibrate(Poco::Path(argv[1]), "00000000")
     ? 0 : 1;
 }
