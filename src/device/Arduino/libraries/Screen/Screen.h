@@ -11,7 +11,7 @@ void screenInit();
 
 // Display a line. Valid lines: 0-3.
 // the label is printed first, then the value.
-void screenLine(int line, char *label, int i);
+void screenLine(int line, const char *label, int i);
 
 // Display perf, twdir and tws.
 void screenUpdate(int perf, int twdir, int tws);

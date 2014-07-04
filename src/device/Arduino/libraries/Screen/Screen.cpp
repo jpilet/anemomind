@@ -4,7 +4,7 @@
 
 SoftwareSerial screenSerial(8, 9); // RX, TX
 
-void screenLine(int line, char *label, int i) {
+void screenLine(int line, const char *label, int i) {
   char str[32];
   sprintf(str,
           (VERTICAL_SCREEN ? "#ZC%d,90,%s%03d \r" : "#ZC0,%d,%s %3d  \r"),
