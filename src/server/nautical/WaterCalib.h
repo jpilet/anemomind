@@ -27,7 +27,7 @@ class WaterCalib {
   // Choosing a higher value means slower but more robust convergence.
   static Velocity<double> defaultInitR() {return Velocity<double>::knots(1.0);}
 
-  WaterCalib(const HorizontalMotionParam &param,
+  WaterCalib(const ParametricHorizontalMotion &param,
     Velocity<double> sigma = defaultSigma(),
     Velocity<double> initR = defaultInitR());
 
@@ -80,7 +80,7 @@ class WaterCalib {
         nav.magHdg().cast<T>() + Angle<T>::radians(magOffset(params)));
   }
 
-  const HorizontalMotionParam &horizontalMotionParam() const {
+  const ParametricHorizontalMotion &horizontalMotionParam() const {
     return _param;
   }
 
@@ -96,7 +96,7 @@ class WaterCalib {
   void initialize(double *outParams) const;
   void initializeRandom(double *outParams) const;
   Velocity<double> _sigma, _initR;
-  const HorizontalMotionParam &_param;
+  const ParametricHorizontalMotion &_param;
   template <typename T> T &wcK(T *x) const {return x[0];}
   template <typename T> T &wcM(T *x) const {return x[1];}
   template <typename T> T &wcC(T *x) const {return x[2];}

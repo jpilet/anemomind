@@ -16,7 +16,7 @@ using namespace sail;
 int main(int argc, const char **argv) {
   ScopedLog::setDepthLimit(2);
   Array<Nav> navs = getTestdataNavs(argc, argv);
-  ZeroHorizontalMotionParam mparam;
+  ZeroHorizontalMotion mparam;
   WaterCalib calib(mparam);
   WaterCalib::Results results = calib.optimizeRandomInits(navs, 30);
   //WaterCalib::Results results = calib.optimize(navs);

@@ -18,7 +18,7 @@
 namespace sail {
 
 class Nav;
-class HorizontalMotionParam {
+class ParametricHorizontalMotion {
  public:
   // Returns the number of parameters used to
   // parameterize the vector field
@@ -32,10 +32,10 @@ class HorizontalMotionParam {
 
   // Returns the local Horizontal motion at a Nav
   virtual HorizontalMotion<adouble> get(const Nav &nav, adouble *params) const = 0;
-  virtual ~HorizontalMotionParam() {}
+  virtual ~ParametricHorizontalMotion() {}
 };
 
-class ConstantHorizontalMotionParam : public HorizontalMotionParam {
+class ConstantHorizontalMotion : public ParametricHorizontalMotion {
  public:
   int paramCount() const {return 2;}
 
@@ -54,7 +54,7 @@ class ConstantHorizontalMotionParam : public HorizontalMotionParam {
  private:
 };
 
-class ZeroHorizontalMotionParam : public HorizontalMotionParam {
+class ZeroHorizontalMotion : public ParametricHorizontalMotion {
  public:
   int paramCount() const {return 0;}
 

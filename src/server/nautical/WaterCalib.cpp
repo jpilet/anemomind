@@ -28,7 +28,7 @@ namespace {
   }
 }
 
-WaterCalib::WaterCalib(const HorizontalMotionParam &param, Velocity<double> sigma, Velocity<double> initR) :
+WaterCalib::WaterCalib(const ParametricHorizontalMotion &param, Velocity<double> sigma, Velocity<double> initR) :
     _param(param), _sigma(sigma), _initR(initR) {}
 
 void WaterCalib::initialize(double *outParams) const {
