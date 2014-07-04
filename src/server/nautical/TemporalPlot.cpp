@@ -165,6 +165,20 @@ namespace sail {
     }
   };
 
+  class Show : public PlotCmd {
+   public:
+    // String that triggers this command
+    const char *cmd() const {return "show";}
+
+    // Should return a single string explaining how to use it
+    const char *help() const {return "shows the plot on screen.";}
+
+
+    void apply(PlotEnv *dst) const {
+      dst->plot().show();
+    }
+  };
+
 
   Plottable pop(std::vector<Plottable> &stack) {
     Plottable x = top(stack);
@@ -240,6 +254,7 @@ namespace sail {
     registerCmd<Abs>(&builder);
     registerCmd<Disp>(&builder);
     registerCmd<Plot>(&builder);
+    registerCmd<Show>(&builder);
     registerCmd<AwaDegrees>(&builder);
     _commands = builder.get();
   }
@@ -247,6 +262,7 @@ namespace sail {
   int PlotEnv::run(int argc, const char **argv) {
     int begin = findArg(argc, argv, "begin");
     if (begin == -1) {
+      std::cout << "------> ERROR <------" << std::endl;
       dispHelp();
       return -1;
     }
@@ -256,6 +272,7 @@ namespace sail {
         std::cout << "  No such command: " << cmd << std::endl;
       }
     }
+    std::cout << "Done plotting." << std::endl;
     return 0;
   }
 
