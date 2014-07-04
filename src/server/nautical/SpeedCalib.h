@@ -27,72 +27,71 @@
 #ifndef SPEEDCALIB_H_
 #define SPEEDCALIB_H_
 
+#include <server/common/math.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+
 namespace sail {
 
 template <typename T>
 class SpeedCalib {
  public:
-  static constexpr double minK = 0.5;
   static constexpr bool withExp = true;
+
+  static Sigmoid<T> kSpan() {
+    double marg = 0.1;
+    return Sigmoid<T>(1.0 - marg, 1.0 + marg);
+  }
 
   // These functions can be used to map a variable in R
   // to a subset.
+  //
+  // Caution: For x = 0, the derivative of lowerBound w.r.t. x is 0.
   static T lowerBound(T x, T lb = 0) {
     return x*x + lb;
   }
 
-  static T lowerUpperBound(T x, T lb, T ub) {
-    return lb + (ub - lb)/(1.0 + exp(-x));
+
+  SpeedCalib(T kParam, T mParam, T cParam, T alphaParam) :
+    _k(kSpan().eval(kParam)), _m(lowerBound(mParam)), _c(lowerBound(cParam)) {
+
+    /*
+     * Fits alpha in an interval based on the following:
+     *
+     *    (i)  _alpha > 0 (so that the exponential curve decreases asymptotically towards zero)
+     *    (ii) slope of the curve at 0 should not be negative
+     */
+    _alpha = Sigmoid<T>(0, _k/(_c + 1.0e-9 /*_c > 0, so adding a small number to it eliminates
+      division by zero*/)).eval(alphaParam);
   }
 
-
-
-  SpeedCalib(T k, T m, T c, T alpha) :
-    _k2(lowerBound(k, minK)), _m2(lowerBound(m)), _c2(lowerBound(c)), _r2(lowerBound(alpha)) {}
-
-  T eval(T x) {
+  Velocity<T> eval(Velocity<T> vx) {
+    T x = vx.metersPerSecond();
     assert(x > 0);
     T y =  scaleCoef()*x + offsetCoef();
     if (withExp) {
       y += nonlinCoef()*exp(-decayCoef()*x);
     }
-    return y;
+    return Velocity<T>::metersPerSecond(y);
 
   }
-  T evalDeriv(T x) {
-    assert(x > 0);
-    T y = scaleCoef();
-    if (withExp) {
-      y += -nonlinCoef()*decayCoef()*exp(-decayCoef()*x);
-    }
-    return y;
-  }
 
-  T scaleCoef() {return _k2;}
+  T scaleCoef() {return _k;}
 
   /*
    * Require that f(0) >= 0
    */
-  T offsetCoef() {return _m2 - _c2;}
+  T offsetCoef() {return _m - _c;}
 
-  T nonlinCoef() {return (withExp? _c2 : 0.0);}
+  T nonlinCoef() {return (withExp? _c : 0.0);}
 
-  // This complicated way of computing the decayCoef ensures
-  // that f'(0) >= 0:
-  /*
-   *    f'(0) = scaleCoef() - decayCoef()*nonlinCoef() >= 0
-   *
-   * Set f'(0) = _r2 >= 0. This yields
-   *
-   *   _r2 = scaleCoef() - decayCoef()*nonlinCoef() <=> decayCoef() = (scaleCoef() - _r2)/nonlinCoef()
-   *
-   */
   T decayCoef() {
-    static_assert(minK > 0, "minK should be greater than 0 in order to avoid division by zero.");
-    return (withExp? (scaleCoef() - _r2)/(nonlinCoef() + 1.0e-12) : T(0.0));
+    return (withExp? _alpha : T(0.0));
   }
 
-  static T initK() {return sqrt(1.0 - minK);}
+  static T initKParam() {return 0;}
+  static T initMParam() {return 0.01;}
+  static T initCParam() {return 0.01;}
+  static T initAlphaParam() {return 0.0;}
 
   // This value can be added to the objective function in order to
   // push the nonlinCoef to zero if decayCoef is close to 0.
@@ -100,7 +99,7 @@ class SpeedCalib {
     return (1.0e-8)*(nonlinCoef()/(1.0e-12 + decayCoef()));
   }
  private:
-  T _k2, _m2, _c2, _r2;
+  T _k, _m, _c, _alpha;
 };
 
 } /* namespace sail */

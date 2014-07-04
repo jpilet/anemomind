@@ -612,6 +612,18 @@ class Array {
     return map<S>(mapper);
   }
 
+  ThisType slice(std::function<bool(T)> fun) const {
+    ThisType dst(_size);
+    int counter = 0;
+    for (int i = 0; i < _size; i++) {
+      if (fun(_data[i])) {
+        dst[counter] = _data[i];
+        counter++;
+      }
+    }
+    return dst.sliceTo(counter);
+  }
+
 
   T &last() {
     return _data[_size - 1];
