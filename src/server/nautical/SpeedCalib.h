@@ -28,6 +28,7 @@
 #define SPEEDCALIB_H_
 
 #include <server/common/math.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 namespace sail {
 
@@ -63,22 +64,15 @@ class SpeedCalib {
       division by zero*/)).eval(alphaParam);
   }
 
-  T eval(T x) {
+  Velocity<T> eval(Velocity<T> vx) {
+    T x = vx.metersPerSecond();
     assert(x > 0);
     T y =  scaleCoef()*x + offsetCoef();
     if (withExp) {
       y += nonlinCoef()*exp(-decayCoef()*x);
     }
-    return y;
+    return Velocity<T>::metersPerSecond(y);
 
-  }
-  T evalDeriv(T x) {
-    assert(x > 0);
-    T y = scaleCoef();
-    if (withExp) {
-      y += -nonlinCoef()*decayCoef()*exp(-decayCoef()*x);
-    }
-    return y;
   }
 
   T scaleCoef() {return _k;}

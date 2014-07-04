@@ -60,15 +60,15 @@ namespace {
   MDArray2d makeWatCalibCurve(SpeedCalib<double> sc, Span<Velocity<double> > span) {
     const int sampleCount = 1000;
     LineKM map(0, sampleCount-1,
-        WaterCalib::unwrap<double>(span.minv()),
-        WaterCalib::unwrap<double>(span.maxv()));
+        span.minv().knots(),
+        span.maxv().knots());
     MDArray2d dst(sampleCount, 2);
     int counter = 0;
     for (int i = 0; i < sampleCount; i++) {
-      double x = map(i);
-      if (x > 0) {
-        dst(i, 0) = WaterCalib::wrapVelocity(x).knots();
-        dst(i, 1) = WaterCalib::wrapVelocity(sc.eval(x)).knots();
+      Velocity<double> x = Velocity<double>::knots(map(i));
+      if (x.knots() > 0) {
+        dst(i, 0) = x.knots();
+        dst(i, 1) = sc.eval(x).knots();
         counter++;
       }
     }
@@ -80,7 +80,7 @@ namespace {
     MDArray2d dst(count, 2);
     for (int i = 0; i < count; i++) {
       Nav &n = navs[i];
-      double x = WaterCalib::unwrap(n.watSpeed());
+      double x = n.watSpeed().knots();
       dst(i, 0) = x;
       dst(i, 1) = 0;
     }
@@ -89,7 +89,7 @@ namespace {
 
   MDArray2d makeRefCurve(Span<Velocity<double> > span) {
     int sampleCount = 10;
-    LineKM map(0, sampleCount-1, WaterCalib::unwrap(span.minv()), WaterCalib::unwrap(span.maxv()));
+    LineKM map(0, sampleCount-1, span.minv().knots(), span.maxv().knots());
     MDArray2d pts(sampleCount, 2);
     for (int i = 0; i < sampleCount; i++) {
       double x = map(i);
@@ -104,7 +104,7 @@ void WaterCalib::makeWatSpeedCalibPlot(Arrayd params, Array<Nav> navs) const {
   GnuplotExtra plot;
   SpeedCalib<double> sc = makeSpeedCalib(params.ptr());
   Array<Velocity<double> > ws = getWatSpeed(navs);
-  Span<Velocity<double> > span = Span<Velocity<double> >(ws).makeWider(Velocity<double>::knots(1.0));
+  Span<Velocity<double> > span = Span<Velocity<double> >(ws).getWider(Velocity<double>::knots(1.0));
 
 
   plot.plot(makeWatCalibScatter(navs), "Samples");
@@ -118,7 +118,7 @@ void WaterCalib::makeWatSpeedCalibPlot(Arrayd params, Array<Nav> navs) const {
 
   for (int i = 1; i <= 6; i++) {
     Velocity<double> x = Velocity<double>::knots(i);
-    std::cout << x.knots() << " knots maps to " << WaterCalib::wrapVelocity(sc.eval(WaterCalib::unwrap(x))).knots()
+    std::cout << x.knots() << " knots maps to " << sc.eval(x).knots()
         << " knots" << std::endl;
   }
   std::cout << EXPR_AND_VAL_AS_STRING(sc.scaleCoef()) << std::endl;

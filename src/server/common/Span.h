@@ -120,7 +120,7 @@ class Span {
     return _minv == other._minv && _maxv == other._maxv && _initialized == other._initialized;
   }
 
-  ThisType makeWider(T marg) const {
+  ThisType getWider(T marg) const {
     ThisType dst = *this;
     dst.extend(_minv - marg);
     dst.extend(_maxv + marg);

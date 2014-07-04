@@ -73,17 +73,11 @@ class WaterCalib {
     return SpeedCalib<T>(wcK(X), wcM(X), wcC(X), wcAlpha(X));
   }
 
-  template <typename T> static T unwrap(Velocity<T> x) {return x.metersPerSecond();}
-  template <typename T> static Velocity<T> wrapVelocity(T x) {return Velocity<T>::metersPerSecond(x);}
-
-  template <typename T> static T unwrap(Angle<T> x) {return x.radians();}
-  template <typename T> static Angle<T> wrapAngle(T x) {return Angle<T>::radians(x);}
-
   template <typename T>
   HorizontalMotion<T> calcBoatMotionRelativeToWater(const Nav &nav,
       T *params) const {
     return HorizontalMotion<T>::polar(nav.watSpeed().cast<T>(),
-        nav.magHdg().cast<T>() + wrapAngle(magOffset(params)));
+        nav.magHdg().cast<T>() + Angle<T>::radians(magOffset(params)));
   }
 
   const HorizontalMotionParam &horizontalMotionParam() const {
@@ -93,7 +87,11 @@ class WaterCalib {
   template <typename T> T *hmParams(T *x) const {return x + thisParamCount;}
 
   void makeWatSpeedCalibPlot(Arrayd params, Array<Nav> navs) const;
+
+  template <typename T> static T unwrap(Velocity<T> x) {return x.metersPerSecond();}
+  template <typename T> static T unwrap(Angle<T> x) {return x.radians();}
  private:
+
   Arrayd makeInitialParams() const;
   void initialize(double *outParams) const;
   void initializeRandom(double *outParams) const;
