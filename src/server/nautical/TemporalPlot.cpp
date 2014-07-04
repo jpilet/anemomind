@@ -208,6 +208,20 @@ namespace sail {
   DECL_BINARY(Mul, "*", (x * y))
   DECL_BINARY(Div, "/", (x * y))
 
+  void applyExtraction(const char *cmd, PlotEnv *dst, std::function<double(Nav)> extractor) {
+    dst->stack().push_back(Plottable(cmd, dst->navs().map<double>(extractor)));
+  }
+
+  #define DECL_EXTRACT(Classname, MethodName, Unit) \
+    class Classname : public PlotCmd { \
+     public: \
+      const char *cmd() const {return #MethodName "-" #Unit;} \
+      const char *help() const {return "Extracts " #MethodName " in unit " #Unit " from all navs.";} \
+      void apply(PlotEnv *dst) const {applyExtraction(cmd(), dst, [=](const Nav &n) {return n.MethodName().Unit();});} \
+    };
+
+  DECL_EXTRACT(AwaDegrees, awa, degrees)
+
   template <typename T>
   void registerCmd(ArrayBuilder<PlotCmd*> *dst) {
     static T instance;
@@ -215,6 +229,7 @@ namespace sail {
   }
 
   PlotEnv::PlotEnv(Array<Nav> navs_) : _navs(navs_) {
+    _plot.set_style("lines");
     ArrayBuilder<PlotCmd*> builder;
     registerCmd<Add>(&builder);
     registerCmd<Sub>(&builder);
@@ -225,6 +240,7 @@ namespace sail {
     registerCmd<Abs>(&builder);
     registerCmd<Disp>(&builder);
     registerCmd<Plot>(&builder);
+    registerCmd<AwaDegrees>(&builder);
     _commands = builder.get();
   }
 
