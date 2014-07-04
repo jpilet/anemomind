@@ -9,6 +9,7 @@
 #include <ChunkFile.h>
 
 #include <Screen.h>
+#include <SoftwareSerial.h>
 
 #include <InstrumentFilter.h>
 
