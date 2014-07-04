@@ -26,6 +26,9 @@ namespace {
       return cos(n.externalTwa()) < 0;
     });
   }
+
+  template <typename T> T unwrapWCVel(Velocity<T> x) {return x.metersPerSecond();}
+
 }
 
 WaterCalib::WaterCalib(const ParametricHorizontalMotion &param, Velocity<double> sigma, Velocity<double> initR) :
@@ -171,8 +174,8 @@ namespace {
       HorizontalMotion<adouble> current = _calib.horizontalMotionParam().get(nav,
           _calib.hmParams(Xin));
       HorizontalMotion<adouble> err = boatGps - current - boatWrtWater;
-      f[0] = _calib.unwrap(err[0]);
-      f[1] = _calib.unwrap(err[1]);
+      f[0] = unwrapWCVel(err[0]);
+      f[1] = unwrapWCVel(err[1]);
     }
   }
 }
@@ -234,8 +237,8 @@ WaterCalib::Results WaterCalib::optimize(Array<Nav> allnavs, Arrayd initParams) 
   Array<Nav> navs = getDownwindNavs(allnavs);
 
   WaterCalibObjf rawObjf(*this, navs);
-  GemanMcClureFunction robustObjf(unwrap(_sigma),
-      unwrap(_initR), 2,
+  GemanMcClureFunction robustObjf(unwrapWCVel(_sigma),
+      unwrapWCVel(_initR), 2,
       makeSharedPtrToStack(rawObjf));
 
   LevmarSettings settings;
