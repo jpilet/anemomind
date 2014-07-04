@@ -5,7 +5,7 @@
 
 #include <server/nautical/TestdataNavs.h>
 #include <server/nautical/WaterCalib.h>
-#include <server/nautical/HorizontalMotionParam.h>
+#include <server/nautical/ParametricHorizontalMotion.h>
 #include <iostream>
 #include <server/common/ArrayIO.h>
 #include <server/common/string.h>

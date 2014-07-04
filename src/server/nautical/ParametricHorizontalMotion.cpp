@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/HorizontalMotionParam.h>
+#include <server/nautical/ParametricHorizontalMotion.h>
 #include <server/common/Uniform.h>
 
 namespace sail {
