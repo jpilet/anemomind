@@ -86,7 +86,7 @@ namespace sail {
     virtual const char *help() const = 0;
 
 
-    virtual void apply(PlotEnv *dst) = 0;
+    virtual void apply(PlotEnv *dst) const = 0;
 
     virtual ~PlotCmd() {}
   };
@@ -134,20 +134,22 @@ namespace sail {
   }
 
   #define DECL_UNARY(Classname, CmdString, XExpr) \
-    class Classname { \
+    class Classname : public PlotCmd { \
      public: \
-      const char *cmd() {return CmdString;} \
+      const char *cmd() const {return CmdString;} \
       const char *help() const {return ("Unary op that computes " #XExpr) ;} \
-      void apply(PlotEnv *dst) {applyUnaryOp(CmdString, dst, [=](double x) {return XExpr;});} \
+      void apply(PlotEnv *dst) const {applyUnaryOp(CmdString, dst, [=](double x) {return XExpr;});} \
     };
 
   #define DECL_BINARY(Classname, CmdString, XYExpr) \
-    class Classname { \
+    class Classname : public PlotCmd { \
      public: \
-      const char *cmd() {return CmdString;} \
+      const char *cmd() const {return CmdString;} \
       const char *help() const {return ("Binary op that computes " #XYExpr) ;} \
-      void apply(PlotEnv *dst) {applyUBinaryOp(CmdString, dst, [=](double x, double y) {return XYExpr;});} \
+      void apply(PlotEnv *dst) const {applyBinaryOp(CmdString, dst, [=](double x, double y) {return XYExpr;});} \
     };
+
+  DECL_BINARY(Add, "+", (x + y))
 
 
   template <typename T>
@@ -158,7 +160,7 @@ namespace sail {
 
   PlotEnv::PlotEnv(Array<Nav> navs_) : _navs(navs_) {
     ArrayBuilder<PlotCmd*> builder;
-    //registerCmd<Add>(&builder);
+    registerCmd<Add>(&builder);
     _commands = builder.get();
   }
 
