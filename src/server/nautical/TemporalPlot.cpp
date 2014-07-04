@@ -208,6 +208,12 @@ namespace sail {
   DECL_UNARY(Log, "log", std::log(x))
   DECL_UNARY(Exp, "exp", std::exp(x))
   DECL_UNARY(Abs, "abs", std::abs(x))
+  DECL_UNARY(Cos, "cos", std::cos(x))
+  DECL_UNARY(Sin, "sin", std::sin(x))
+  DECL_UNARY(Rad2Deg, "rad2deg", Angle<double>::radians(x).degrees())
+  DECL_UNARY(Deg2Rad, "deg2rad", Angle<double>::degrees(x).radians())
+  DECL_UNARY(Sqrt, "sqrt", sqrt(x))
+
 
   #define DECL_BINARY(Classname, CmdString, XYExpr) \
     class Classname : public PlotCmd { \
@@ -219,8 +225,8 @@ namespace sail {
 
   DECL_BINARY(Add, "+", (x + y))
   DECL_BINARY(Sub, "-", (x - y))
-  DECL_BINARY(Mul, "*", (x * y))
-  DECL_BINARY(Div, "/", (x * y))
+  DECL_BINARY(Mul, "mul", (x * y))
+  DECL_BINARY(Div, "div", (x * y))
 
   void applyExtraction(const char *cmd, PlotEnv *dst, std::function<double(Nav)> extractor) {
     dst->stack().push_back(Plottable(cmd, dst->navs().map<double>(extractor)));
@@ -271,6 +277,11 @@ namespace sail {
     registerCmd<MagHdgDegrees>(&builder);
     registerCmd<ExtTwaDegrees>(&builder);
     registerCmd<ExtTwsKnots>(&builder);
+    registerCmd<Cos>(&builder);
+    registerCmd<Sin>(&builder);
+    registerCmd<Rad2Deg>(&builder);
+    registerCmd<Deg2Rad>(&builder);
+    registerCmd<Sqrt>(&builder);
     _commands = builder.get();
   }
 
@@ -294,7 +305,7 @@ namespace sail {
   bool PlotEnv::parsePlotCommand(const std::string &cmd) {
     try {
       double x = std::stod(cmd);
-      _stack.push_back(Plottable(cmd, Arrayd::args(x)));
+      _stack.push_back(Plottable(cmd, Arrayd::fill(_navs.size(), x)));
       return true;
     } catch (std::exception &e) {
       for (auto x : _commands) {
