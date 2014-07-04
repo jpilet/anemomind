@@ -38,6 +38,7 @@ void splitFilenamePrefixSuffix(const std::string &filename,
                                std::string &prefix, std::string &suffix);
 std::string int64ToHex(int64_t x);
 void indent(std::ostream *s, int count);
+int findArg(int argc, const char **argv, const std::string &arg);
 
 } /* namespace sail */
 #endif /* TEXT_H_ */
