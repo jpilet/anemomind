@@ -12,7 +12,8 @@ namespace sail {
 
 class ParsedTrzLine {
  public:
-  ParsedTrzLine(std::shared_ptr<HTree> tree_, std::string input_) : _input(input_), _tree(tree_) {}
+  ParsedTrzLine(std::shared_ptr<HTree> tree_, std::string input_) :
+    _tree(tree_), _input(input_) {}
 
   int childCount() const {
     return _tree->childCount();

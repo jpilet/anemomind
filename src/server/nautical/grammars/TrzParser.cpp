@@ -18,18 +18,6 @@
 namespace sail {
 
 namespace {
-  double huge = 1.0e5; // a huge, prohibitive cost.
-  double discourage = 1.0; // a low cost that does not probit a state, but discourages
-
-
-  double prefixWordCost(char c, int index, const std::string &word) {
-    if (index < word.length()) {
-      return (word[index] == c? 0 : huge);
-    }
-    return huge;
-  }
-
-
   Hierarchy makeTrzHierarchy() {
     return HNodeGroup(8, "Top",
                 HNodeGroup(6, "Record", // Matches a common record, e.g. starting with $TANAV,...
