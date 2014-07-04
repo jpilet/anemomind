@@ -393,3 +393,13 @@ target_link_libraries(nautical_WaterCalibExample
                       nautical_WaterCalib
                       nautical_TestdataNavs
                      )              
+
+add_executable(nautical_TemporalPlot
+               TemporalPlot.cpp
+              )
+target_link_libraries(nautical_TemporalPlot
+                      common_string
+                      plot_gnuplot
+                      common_logging
+                      nautical_TestdataNavs
+                     )
