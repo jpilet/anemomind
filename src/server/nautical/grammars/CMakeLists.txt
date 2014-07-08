@@ -165,4 +165,13 @@ add_library(nautical_grammars_HintedStateAssignFactory
            )
 target_link_libraries(nautical_grammars_HintedStateAssignFactory
                       nautical_grammars_TransitionHint
-                     )           
+                     )  
+                     
+cxx_test(nautical_grammars_WindOrientedGrammarTest
+         WindOrientedGrammarTest.cpp
+         gtest_main
+         nautical_grammars_WindOrientedGrammar
+         nautical_NavNmea
+         common_PathBuilder
+         common_Env
+        )                              
