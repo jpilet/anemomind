@@ -7,6 +7,8 @@
 #include <server/common/logging.h>
 #include <algorithm>
 #include <server/nautical/grammars/Grammar.h>
+#include <server/common/string.h>
+#include <iostream>
 
 namespace sail {
 
@@ -28,8 +30,9 @@ namespace {
       // Compute lower and upper bounds
       Array<Nav>::Iterator lower = std::lower_bound(navs.begin(), navs.end(), Nav(ts));
       Array<Nav>::Iterator upper = std::upper_bound(navs.begin(), navs.end(), Nav(ts));
-      if (upper - lower == 1) {
-        int timeIndex = lower - navs.begin();
+      int timeIndex = lower - navs.begin();
+      int dif = upper - lower;
+      if (dif >= 0) {
         return std::shared_ptr<LocalStateAssign>(new TransitionHint(table, timeIndex));
       }
     }

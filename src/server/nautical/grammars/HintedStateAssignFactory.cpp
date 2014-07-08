@@ -6,6 +6,7 @@
 #include "HintedStateAssignFactory.h"
 #include <server/nautical/grammars/TransitionHint.h>
 #include <server/common/logging.h>
+#include <sstream>
 
 namespace sail {
 
@@ -17,7 +18,9 @@ HintedStateAssign HintedStateAssignFactory::make(const Grammar &g, std::shared_p
     if (bool(t)) {
       hintsLSA.add(t);
     } else {
-      LOG(FATAL) << "Hint not supported.";
+      std::stringstream ss;
+      ss << "Hint not supported: " << int(h.type()) << " at time " << h.time().toString();
+      LOG(FATAL) << ss.str();
     }
   }
   return HintedStateAssign(ref, hintsLSA.get());

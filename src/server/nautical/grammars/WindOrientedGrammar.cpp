@@ -336,10 +336,6 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
 
 std::shared_ptr<HTree> WindOrientedGrammar::parse(Array<Nav> navs,
     Array<UserHint> hints) {
-  if (!hints.empty()) {
-    LOG(FATAL) << "You are providing hints but hints are not yet implemented for this class";
-  }
-
   if (navs.empty()) {
     return std::shared_ptr<HTree>();
   }
