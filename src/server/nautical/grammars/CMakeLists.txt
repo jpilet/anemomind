@@ -156,3 +156,11 @@ target_link_libraries(nautical_grammars_TransitionHint
                       nautical_grammars_Grammar
                       nautical_grammars_HintedStateAssign
                      )
+                     
+add_library(nautical_grammars_HintedStateAssignFactory                     
+            HintedStateAssignFactory.cpp
+            HintedStateAssignFactory.h
+           )
+target_link_libraries(nautical_grammars_HintedStateAssignFactory
+                      nautical_grammars_TransitionHint
+                     )           
