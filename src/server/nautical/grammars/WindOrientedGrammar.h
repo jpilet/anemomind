@@ -31,7 +31,10 @@ class WindOrientedGrammar : public Grammar {
   std::shared_ptr<HTree> parse(Array<Nav> navs,
       Array<UserHint> hints = Array<UserHint>()) ;
   Array<HNode> nodeInfo() {return _hierarchy.nodes();}
+  MDArray2b startOfRaceTransitions() const {return _sor;}
+  MDArray2b endOfRaceTransitions() const {return _eor;}
  private:
+  MDArray2b _sor, _eor;
   Hierarchy _hierarchy;
   WindOrientedGrammarSettings _settings;
 };

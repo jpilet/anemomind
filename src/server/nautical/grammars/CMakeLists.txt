@@ -25,6 +25,7 @@ target_link_libraries(nautical_grammars_WindOrientedGrammar
                       common_string
                       nautical_Grammar
                       common_HNodeGroup
+                      nautical_grammars_StaticCostFactory
                      )
                      
 add_library(nautical_grammars_TreeExplorer

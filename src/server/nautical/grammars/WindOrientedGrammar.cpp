@@ -10,6 +10,7 @@
 #include <server/common/ArrayIO.h>
 #include <server/common/HNodeGroup.h>
 #include <server/common/logging.h>
+#include <server/nautical/grammars/StaticCostFactory.h>
 
 
 namespace sail {
@@ -121,12 +122,30 @@ namespace {
 
     return g.compile("Grammar001-%03d");
   }
+
+  MDArray2b makeCon(const Hierarchy &h, int i, int j) {
+    StaticCostFactory f(h);
+    f.connectNoCost(i, j, false);
+    return f.connections();
+  }
+
+  MDArray2b makeSOR(const Hierarchy &h) {
+    return makeCon(h, 37, 38);
+  }
+
+  MDArray2b makeEOR(const Hierarchy &h) {
+    return makeCon(h, 38, 37);
+  }
 }
 
 
 
 
-WindOrientedGrammar::WindOrientedGrammar(WindOrientedGrammarSettings s) : _settings(s), _hierarchy(makeHierarchy()) {}
+WindOrientedGrammar::WindOrientedGrammar(WindOrientedGrammarSettings s) :
+    _settings(s), _hierarchy(makeHierarchy()) {
+    _sor = makeSOR(_hierarchy);
+    _eor = makeEOR(_hierarchy);
+}
 
 
 
@@ -326,6 +345,8 @@ std::shared_ptr<HTree> WindOrientedGrammar::parse(Array<Nav> navs,
   Arrayi states = sa.solve();
   return _hierarchy.parse(states);
 }
+
+
 
 
 //Grammar001::Grammar001(/*Grammar001Settings s*/) : /*_settings(s), */_hierarchy(makeHierarchy()) {}
