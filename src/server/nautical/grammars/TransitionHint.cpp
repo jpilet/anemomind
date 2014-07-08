@@ -5,6 +5,7 @@
 
 #include "TransitionHint.h"
 #include <server/common/logging.h>
+#include <algorithm>
 
 namespace sail {
 
@@ -21,7 +22,15 @@ double TransitionHint::getTransitionCost(int fromStateIndex,
 namespace {
   std::shared_ptr<LocalStateAssign> makeNonEmpty(TimeStamp ts, MDArray2b table, Array<Nav> navs) {
     if (!table.empty()) {
+      Array<Nav>::Iterator start = navs.begin();
 
+      // Compute lower and upper bounds
+      Array<Nav>::Iterator lower = std::lower_bound(navs.begin(), navs.end(), Nav(ts));
+      Array<Nav>::Iterator upper = std::upper_bound(navs.begin(), navs.end(), Nav(ts));
+      if (upper - lower == 1) {
+        int timeIndex = lower - navs.begin();
+        return std::shared_ptr<LocalStateAssign>(new TransitionHint(table, timeIndex));
+      }
     }
     return std::shared_ptr<LocalStateAssign>();
   }
@@ -29,11 +38,14 @@ namespace {
 
 std::shared_ptr<LocalStateAssign> TransitionHint::make(const UserHint &hint, Array<Nav> navs, const Grammar &dst) {
   switch (hint.type()) {
-  case RACE_START:
-  case RACE_END:
+  case UserHint::RACE_START:
+    return makeNonEmpty(hint.time(), dst.startOfRaceTransitions(), navs);
+  case UserHint::RACE_END:
+    return makeNonEmpty(hint.time(), dst.endOfRaceTransitions(), navs);
   default:
     return std::shared_ptr<LocalStateAssign>();
   };
+  return std::shared_ptr<LocalStateAssign>();
 }
 
 }
