@@ -9,6 +9,7 @@
 #include <server/nautical/grammars/Grammar.h>
 #include <server/common/string.h>
 #include <iostream>
+#include <cassert>
 
 namespace sail {
 
@@ -28,11 +29,12 @@ namespace {
       Array<Nav>::Iterator start = navs.begin();
 
       // Compute lower and upper bounds
-      Array<Nav>::Iterator lower = std::lower_bound(navs.begin(), navs.end(), Nav(ts));
-      Array<Nav>::Iterator upper = std::upper_bound(navs.begin(), navs.end(), Nav(ts));
-      int timeIndex = lower - navs.begin();
+      Nav x(ts);
+      Array<Nav>::Iterator lower = std::lower_bound(navs.begin(), navs.end(), x);
+      Array<Nav>::Iterator upper = std::upper_bound(navs.begin(), navs.end(), x);
+      int timeIndex = (lower - navs.begin()) - 1;
       int dif = upper - lower;
-      if (dif >= 0) {
+      if (dif >= 0 && timeIndex >= 0) {
         return std::shared_ptr<LocalStateAssign>(new TransitionHint(table, timeIndex));
       }
     }

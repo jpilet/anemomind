@@ -172,6 +172,7 @@ cxx_test(nautical_grammars_WindOrientedGrammarTest
          gtest_main
          nautical_grammars_WindOrientedGrammar
          nautical_NavNmea
+         nautical_grammars_TreeExplorer
          common_PathBuilder
          common_Env
         )                              
