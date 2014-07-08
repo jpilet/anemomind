@@ -59,10 +59,28 @@ namespace {
   double sailPointTransitionCost(int i, int j) {
     return cyclicDif(i-2, j-2, 6);
   }
+
+  MDArray2b makeCon(const Hierarchy &h, int i, int j) {
+    StaticCostFactory f(h);
+    f.connectNoCost(i, j, false);
+    return f.connections();
+  }
+
+  MDArray2b makeSOR(const Hierarchy &h) {
+    return makeCon(h, 1, 10);
+  }
+
+  MDArray2b makeEOR(const Hierarchy &h) {
+    return makeCon(h, 10, 1);
+  }
+
+
 }
 
 CommonRaceGrammar::CommonRaceGrammar(CommonRaceGrammarSettings settings) :
   _h(makeH()) {
+  _sor = makeSOR(makeH());
+  _eor = makeEOR(makeH());
   double ooc = settings.onOffCost;
   StaticCostFactory f(_h);
   f.connectSelf(1, 1);
