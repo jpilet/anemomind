@@ -11,6 +11,8 @@
 #include <server/common/HNodeGroup.h>
 #include <server/common/logging.h>
 #include <server/nautical/grammars/StaticCostFactory.h>
+#include <server/nautical/grammars/HintedStateAssignFactory.h>
+#include <server/common/SharedPtrUtils.h>
 
 
 namespace sail {
@@ -342,7 +344,7 @@ std::shared_ptr<HTree> WindOrientedGrammar::parse(Array<Nav> navs,
     return std::shared_ptr<HTree>();
   }
   G001SA sa(_settings, navs);
-  Arrayi states = sa.solve();
+  Arrayi states = HintedStateAssignFactory::make(*this, makeSharedPtrToStack(sa), hints, navs).solve();
   return _hierarchy.parse(states);
 }
 

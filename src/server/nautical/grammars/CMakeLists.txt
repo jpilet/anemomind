@@ -26,6 +26,7 @@ target_link_libraries(nautical_grammars_WindOrientedGrammar
                       nautical_Grammar
                       common_HNodeGroup
                       nautical_grammars_StaticCostFactory
+                      nautical_grammars_HintedStateAssignFactory
                      )
                      
 add_library(nautical_grammars_TreeExplorer
@@ -123,6 +124,7 @@ target_link_libraries(nautical_grammars_CommonRaceGrammar
                       nautical_grammars_AngleCost
                       nautical_grammars_StaticCostFactory
                       common_HNodeGroup
+                      nautical_grammars_HintedStateAssignFactory
                      )
 add_executable(nautical_grammars_CommonRaceGrammarExample
                CommonRaceGrammarExample.cpp
@@ -153,8 +155,8 @@ add_library(nautical_grammars_TransitionHint
             TransitionHint.h
            )
 target_link_libraries(nautical_grammars_TransitionHint
-                      nautical_grammars_Grammar
                       nautical_grammars_HintedStateAssign
+                      nautical_nav
                      )
                      
 add_library(nautical_grammars_HintedStateAssignFactory                     
