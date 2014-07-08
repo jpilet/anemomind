@@ -66,8 +66,6 @@ TEST(WindOrientedGrammarTest, Hinting) {
 
   int is = ds*navs.size();
   int ie = de*navs.size();
-  std::cout << EXPR_AND_VAL_AS_STRING(is) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(ie) << std::endl;
   UserHint hints[2] = {makeStartHint(navs, is), makeEndHint(navs, ie)};
 
   WindOrientedGrammarSettings settings;
@@ -78,10 +76,6 @@ TEST(WindOrientedGrammarTest, Hinting) {
   // 38     in race
   int s = is + 1;
   int e = ie + 1;
-  std::cout << EXPR_AND_VAL_AS_STRING(s) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(e) << std::endl;
-
-  exploreTree(g.nodeInfo(), tree);
 
   EXPECT_TRUE(hasNodeWithEnd(tree, 37, s));
   EXPECT_TRUE(hasNodeWithStart(tree, 38, s));
