@@ -7,6 +7,8 @@
 #include <server/nautical/grammars/StaticCostFactory.h>
 #include <server/common/HNodeGroup.h>
 #include <server/math/hmm/StateAssign.h>
+#include <server/common/SharedPtrUtils.h>
+#include <server/nautical/grammars/HintedStateAssignFactory.h>
 
 namespace sail {
 
@@ -147,7 +149,7 @@ std::shared_ptr<HTree> CommonRaceGrammar::parse(Array<Nav> navs,
   OnOffCost onOffCost(navs, 0, _settings.perSecondCost);
   CommonRaceStateAssign sa(navs, _angleCost, _staticTransitionCosts,
       _staticStateCosts, _preds, onOffCost);
-  return _h.parse(sa.solve());
+  return _h.parse(HintedStateAssignFactory::make(*this, makeSharedPtrToStack(sa), hints, navs).solve());
 }
 
 Array<HNode> CommonRaceGrammar::nodeInfo() {
