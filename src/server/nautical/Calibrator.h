@@ -33,7 +33,7 @@ class Calibrator  {
     void print();
 
     //! Invokes gnuplot to show some error distribution.
-    void plot(GnuplotExtra *gnuplot, const std::string &title);
+    void plot(GnuplotExtra *gnuplot, const std::string &title, bool external);
 
     //! Forget last calibration results.
     void clear();

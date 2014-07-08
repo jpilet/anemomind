@@ -22,7 +22,7 @@ TEST(TrueWindEstimatorTest, SmokeTest) {
   TrueWindEstimator::initializeParameters(parameters);
 
   auto trueWind = TrueWindEstimator::computeTrueWind
-    <double,InstrumentFilter<double> >(parameters, makeFilter(navs));
+    <double,ServerFilter>(parameters, makeFilter(navs));
 
   LOG(INFO) << trueWind[0].knots() << ", " << trueWind[1].knots();
 }
@@ -48,7 +48,7 @@ TEST(TrueWindEstimatorTest, ManuallyCheckedDataTest) {
   TrueWindEstimator::initializeParameters(parameters);
 
   auto trueWind = TrueWindEstimator::computeTrueWind
-    <double,InstrumentFilter<double> >(parameters, makeFilter(navs.navs()));
+    <double, ServerFilter>(parameters, makeFilter(navs.navs()));
 
   EXPECT_NEAR(222, trueWind.angle().degrees() + 360, 5);
   EXPECT_NEAR(16, trueWind.norm().knots(), 1);
