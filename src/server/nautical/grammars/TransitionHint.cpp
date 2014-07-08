@@ -6,6 +6,7 @@
 #include "TransitionHint.h"
 #include <server/common/logging.h>
 #include <algorithm>
+#include <server/nautical/grammars/Grammar.h>
 
 namespace sail {
 
@@ -34,6 +35,10 @@ namespace {
     }
     return std::shared_ptr<LocalStateAssign>();
   }
+
+  std::shared_ptr<LocalStateAssign> hintNotFound() {
+    return std::shared_ptr<LocalStateAssign>();
+  }
 }
 
 std::shared_ptr<LocalStateAssign> TransitionHint::make(const UserHint &hint, Array<Nav> navs, const Grammar &dst) {
@@ -43,9 +48,9 @@ std::shared_ptr<LocalStateAssign> TransitionHint::make(const UserHint &hint, Arr
   case UserHint::RACE_END:
     return makeNonEmpty(hint.time(), dst.endOfRaceTransitions(), navs);
   default:
-    return std::shared_ptr<LocalStateAssign>();
+    return hintNotFound();
   };
-  return std::shared_ptr<LocalStateAssign>();
+  return hintNotFound();
 }
 
 }

@@ -8,6 +8,7 @@
 
 #include <server/nautical/grammars/HintedStateAssign.h>
 #include <server/nautical/grammars/UserHint.h>
+#include <server/nautical/Nav.h>
 
 namespace sail {
 

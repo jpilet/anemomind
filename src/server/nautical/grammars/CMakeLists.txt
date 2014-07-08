@@ -145,3 +145,13 @@ cxx_test(nautical_grammars_HintedStateAssignTest
          nautical_grammars_HintedStateAssign
          gtest_main
         )
+
+        
+add_library(nautical_grammars_TransitionHint
+            TransitionHint.cpp
+            TransitionHint.h
+           )
+target_link_libraries(nautical_grammars_TransitionHint
+                      nautical_grammars_Grammar
+                      nautical_grammars_HintedStateAssign
+                     )
