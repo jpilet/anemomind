@@ -17,21 +17,21 @@ using namespace sail;
 
 class TimeStamp {
   public:
-  TimeStamp() : _time(0) { }
-  bool undefined() const { return _time == 0; }
+  TimeStamp() : _timeMilliseconds(0) { }
+  bool undefined() const { return _timeMilliseconds == 0; }
   
   Duration<long> operator - (TimeStamp other) const {
-    return Duration<long>::milliseconds(_time - other._time);
+    return Duration<long>::milliseconds(_timeMilliseconds - other._timeMilliseconds);
   }
   
   static TimeStamp now() {
     TimeStamp result;
-    result._time = millis();
+    result._timeMilliseconds = millis();
     return result;
   }
   
   private:
-    long _time;
+    unsigned long _timeMilliseconds;
 };
 
 namespace {

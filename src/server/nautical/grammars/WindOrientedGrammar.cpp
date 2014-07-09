@@ -10,6 +10,9 @@
 #include <server/common/ArrayIO.h>
 #include <server/common/HNodeGroup.h>
 #include <server/common/logging.h>
+#include <server/nautical/grammars/StaticCostFactory.h>
+#include <server/nautical/grammars/HintedStateAssignFactory.h>
+#include <server/common/SharedPtrUtils.h>
 
 
 namespace sail {
@@ -121,12 +124,30 @@ namespace {
 
     return g.compile("Grammar001-%03d");
   }
+
+  MDArray2b makeCon(const Hierarchy &h, int i, int j) {
+    StaticCostFactory f(h);
+    f.connectNoCost(i, j, false);
+    return f.connections();
+  }
+
+  MDArray2b makeSOR(const Hierarchy &h) {
+    return makeCon(h, h.getNodeByName("Not in race").index(), h.getNodeByName("In race").index());
+  }
+
+  MDArray2b makeEOR(const Hierarchy &h) {
+    return makeCon(h, h.getNodeByName("In race").index(), h.getNodeByName("Not in race").index());
+  }
 }
 
 
 
 
-WindOrientedGrammar::WindOrientedGrammar(WindOrientedGrammarSettings s) : _settings(s), _hierarchy(makeHierarchy()) {}
+WindOrientedGrammar::WindOrientedGrammar(WindOrientedGrammarSettings s) :
+    _settings(s), _hierarchy(makeHierarchy()) {
+    _startOfRaceTransitions = makeSOR(_hierarchy);
+    _endOfRaceTransitions = makeEOR(_hierarchy);
+}
 
 
 
@@ -315,17 +336,15 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
 
 std::shared_ptr<HTree> WindOrientedGrammar::parse(Array<Nav> navs,
     Array<UserHint> hints) {
-  if (!hints.empty()) {
-    LOG(FATAL) << "You are providing hints but hints are not yet implemented for this class";
-  }
-
   if (navs.empty()) {
     return std::shared_ptr<HTree>();
   }
   G001SA sa(_settings, navs);
-  Arrayi states = sa.solve();
+  Arrayi states = makeHintedStateAssign(*this, makeSharedPtrToStack(sa), hints, navs).solve();
   return _hierarchy.parse(states);
 }
+
+
 
 
 //Grammar001::Grammar001(/*Grammar001Settings s*/) : /*_settings(s), */_hierarchy(makeHierarchy()) {}
