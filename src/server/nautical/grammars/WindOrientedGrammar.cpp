@@ -132,11 +132,11 @@ namespace {
   }
 
   MDArray2b makeSOR(const Hierarchy &h) {
-    return makeCon(h, 37, 38);
+    return makeCon(h, h.getNodeByName("Not in race").index(), h.getNodeByName("In race").index());
   }
 
   MDArray2b makeEOR(const Hierarchy &h) {
-    return makeCon(h, 38, 37);
+    return makeCon(h, h.getNodeByName("In race").index(), h.getNodeByName("Not in race").index());
   }
 }
 
