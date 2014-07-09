@@ -52,8 +52,6 @@ std::shared_ptr<LocalStateAssign> TransitionHint::make(const UserHint &hint, Arr
     return makeNonEmpty(hint.time(), dst.startOfRaceTransitions(), navs);
   case UserHint::RACE_END:
     return makeNonEmpty(hint.time(), dst.endOfRaceTransitions(), navs);
-  default:
-    return hintNotFound();
   };
   return hintNotFound();
 }
