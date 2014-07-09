@@ -11,11 +11,9 @@
 
 namespace sail {
 
-class HintedStateAssignFactory {
- public:
-  static HintedStateAssign make(const Grammar &g, std::shared_ptr<StateAssign> ref,
+
+  HintedStateAssign makeHintedStateAssign(const Grammar &g, std::shared_ptr<StateAssign> ref,
       Array<UserHint> hints, Array<Nav> navs);
-};
 
 } /* namespace mmm */
 

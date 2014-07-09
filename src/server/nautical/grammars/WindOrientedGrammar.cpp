@@ -340,7 +340,7 @@ std::shared_ptr<HTree> WindOrientedGrammar::parse(Array<Nav> navs,
     return std::shared_ptr<HTree>();
   }
   G001SA sa(_settings, navs);
-  Arrayi states = HintedStateAssignFactory::make(*this, makeSharedPtrToStack(sa), hints, navs).solve();
+  Arrayi states = makeHintedStateAssign(*this, makeSharedPtrToStack(sa), hints, navs).solve();
   return _hierarchy.parse(states);
 }
 

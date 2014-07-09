@@ -10,7 +10,7 @@
 
 namespace sail {
 
-HintedStateAssign HintedStateAssignFactory::make(const Grammar &g, std::shared_ptr<StateAssign> ref,
+HintedStateAssign makeHintedStateAssign(const Grammar &g, std::shared_ptr<StateAssign> ref,
   Array<UserHint> hints, Array<Nav> navs) {
   ArrayBuilder<std::shared_ptr<LocalStateAssign> > hintsLSA;
   for (auto h : hints) {
