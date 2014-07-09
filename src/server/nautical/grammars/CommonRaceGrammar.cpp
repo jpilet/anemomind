@@ -69,11 +69,11 @@ namespace {
   }
 
   MDArray2b makeSOR(const Hierarchy &h) {
-    return makeCon(h, 1, 10);
+    return makeCon(h, h.getNodeByName("idle").index(), h.getNodeByName("in-race").index());
   }
 
   MDArray2b makeEOR(const Hierarchy &h) {
-    return makeCon(h, 10, 1);
+    return makeCon(h, h.getNodeByName("in-race").index(), h.getNodeByName("idle").index());
   }
 
 
