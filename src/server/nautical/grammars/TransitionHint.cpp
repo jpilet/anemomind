@@ -27,8 +27,6 @@ namespace {
   std::shared_ptr<LocalStateAssign> makeNonEmpty(TimeStamp ts, MDArray2b table, Array<Nav> navs) {
     if (!table.empty()) {
       Array<Nav>::Iterator start = navs.begin();
-
-      // Compute lower and upper bounds
       Nav x(ts);
       Array<Nav>::Iterator upper = std::upper_bound(start, navs.end(), x);
       int timeIndex = (upper - start) - 1;
