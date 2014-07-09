@@ -49,7 +49,10 @@ class CommonRaceGrammar : public Grammar {
   std::shared_ptr<HTree> parse(Array<Nav> navs,
       Array<UserHint> hints = Array<UserHint>());
   Array<HNode> nodeInfo();
+  MDArray2b startOfRaceTransitions() const {return _startOfRaceTransitions;}
+  MDArray2b endOfRaceTransitions() const {return _endOfRaceTransitions;}
  private:
+  MDArray2b _startOfRaceTransitions, _endOfRaceTransitions;
   AngleCost _angleCost;
   CommonRaceGrammarSettings _settings;
   Hierarchy _h;
