@@ -83,15 +83,19 @@ angular.module('anemomindApp.directives')
     scope.$watch('currentPos', function(currentPos) {
       if (currentPos !== 0) {
         var ellipse = d3.selectAll("ellipse");
-        var twa = d3.select("#twa");
-        var awa = d3.select("#awa");
+        var twaArrow = d3.select("#twa");
+        var awaArrow = d3.select("#awa");
             r = 90 + scope.data[currentPos].magHdgRad * 180.0 / Math.PI;
         // the wind angle seems visually ok, but needs to be verified..
-        var twaRad = scope.data[currentPos].twaRad * 180.0 / Math.PI - 90;
-        var awaRad = scope.data[currentPos].awaRad * 180.0 / Math.PI - 90;
+        var twa = scope.data[currentPos].externalTwaRad * 180.0 / Math.PI - 90;
+        var awa = scope.data[currentPos].awaRad * 180.0 / Math.PI - 90;
         boatGroup.attr("transform", function(d) {return "translate(" + scope.x(scope.coords[currentPos].x_m) + ","+ scope.y(scope.coords[currentPos].y_m)+"), rotate(" + r + ")";});
-        twa.attr("transform", function(d) {return "rotate(" + twaRad + ")";});
-        awa.attr("transform", function(d) {return "rotate(" + awaRad + ")";});
+        if (!isNaN(twa)) {
+          twaArrow.attr("transform", function(d) {return "rotate(" + twa + ")";});
+        }
+        if (!isNaN(awa)) {
+          awaArrow.attr("transform", function(d) {return "rotate(" + awa+ ")";});
+        }
       }
     });
   }
