@@ -133,8 +133,11 @@ void Calibrator::addTack(int pos, double weight) {
     return;
   }
 
-  Array<Nav> before = _allnavs.slice(max(0, pos - delta - 500), pos - delta);
-  Array<Nav> after = _allnavs.slice(max(0, pos + delta - 500), pos + delta + length);
+  const int largeMargin = 500;
+  Array<Nav> before = _allnavs.slice(max(0, pos - delta - largeMargin),
+                                     pos - delta);
+  Array<Nav> after = _allnavs.slice(max(0, pos + delta - largeMargin),
+                                    pos + delta + length);
 
   Duration<double> deltaTime = after.first().time() - before.last().time();
   if (deltaTime > Duration<>::minutes(3)) {
