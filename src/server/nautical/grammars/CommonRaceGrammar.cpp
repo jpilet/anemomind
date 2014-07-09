@@ -81,8 +81,8 @@ namespace {
 
 CommonRaceGrammar::CommonRaceGrammar(CommonRaceGrammarSettings settings) :
   _h(makeH()) {
-  _startOfRaceTransitions = makeSOR(makeH());
-  _endOfRaceTransitions = makeEOR(makeH());
+  _startOfRaceTransitions = makeSOR(_h);
+  _endOfRaceTransitions = makeEOR(_h);
   double ooc = settings.onOffCost;
   StaticCostFactory f(_h);
   f.connectSelf(1, 1);
