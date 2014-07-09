@@ -145,8 +145,8 @@ namespace {
 
 WindOrientedGrammar::WindOrientedGrammar(WindOrientedGrammarSettings s) :
     _settings(s), _hierarchy(makeHierarchy()) {
-    _sor = makeSOR(_hierarchy);
-    _eor = makeEOR(_hierarchy);
+    _startOfRaceTransitions = makeSOR(_hierarchy);
+    _endOfRaceTransitions = makeEOR(_hierarchy);
 }
 
 
