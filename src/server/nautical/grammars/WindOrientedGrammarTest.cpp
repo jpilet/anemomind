@@ -61,24 +61,27 @@ TEST(WindOrientedGrammarTest, Hinting) {
   Poco::Path path = PathBuilder::makeDirectory(Env::SOURCE_DIR).pushDirectory("datasets").pushDirectory("Irene").pushDirectory("2007").pushDirectory("regate_1_dec_07").makeFile("IreneLog.txt").get();
   Array<Nav> navs = loadNavsFromNmea(path.toString(), Nav::debuggingBoatId()).navs();
 
-  double ds = 0.3;
-  double de = 0.7;
+  // Refers to a position in the seq, assuming it is indexed continuously from 0 to 1.
+  double startFrac = 0.3;
+  double endFrac = 0.7;
 
-  int is = ds*navs.size();
-  int ie = de*navs.size();
-  UserHint hints[2] = {makeStartHint(navs, is), makeEndHint(navs, ie)};
+  // For instance, a state with index 'startIndex' should not be in race,
+  // and a state with index 'startIndex+1' should be in race.
+  int startIndex = startFrac*navs.size();
+  int endIndex = endFrac*navs.size();
+
+  UserHint hints[2] = {makeStartHint(navs, startIndex), makeEndHint(navs, endIndex)};
 
   WindOrientedGrammarSettings settings;
   WindOrientedGrammar g(settings);
   std::shared_ptr<HTree> tree = g.parse(navs, Array<UserHint>(2, hints));
 
-  // 37 not in race
-  // 38     in race
-  int s = is + 1;
-  int e = ie + 1;
+  // Indices to where the separation takes place.
+  int startBound = startIndex + 1;
+  int endBound = endIndex + 1;
 
-  EXPECT_TRUE(hasNodeWithEnd(tree, 37, s));
-  EXPECT_TRUE(hasNodeWithStart(tree, 38, s));
-  EXPECT_TRUE(hasNodeWithEnd(tree, 38, e));
-  EXPECT_TRUE(hasNodeWithStart(tree, 37, e));
+  EXPECT_TRUE(hasNodeWithEnd(tree, 37, startBound));
+  EXPECT_TRUE(hasNodeWithStart(tree, 38, startBound));
+  EXPECT_TRUE(hasNodeWithEnd(tree, 38, endBound));
+  EXPECT_TRUE(hasNodeWithStart(tree, 37, endBound));
 }
