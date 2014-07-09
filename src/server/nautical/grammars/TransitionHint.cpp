@@ -30,11 +30,9 @@ namespace {
 
       // Compute lower and upper bounds
       Nav x(ts);
-      Array<Nav>::Iterator lower = std::lower_bound(navs.begin(), navs.end(), x);
-      Array<Nav>::Iterator upper = std::upper_bound(navs.begin(), navs.end(), x);
-      int timeIndex = (lower - navs.begin()) - 1;
-      int dif = upper - lower;
-      if (dif >= 0 && timeIndex >= 0) {
+      Array<Nav>::Iterator upper = std::upper_bound(start, navs.end(), x);
+      int timeIndex = (upper - start) - 1;
+      if (upper != navs.end() && timeIndex >= 0) {
         return std::shared_ptr<LocalStateAssign>(new TransitionHint(table, timeIndex));
       }
     }
