@@ -13,9 +13,11 @@ class FixedPoint {
 
    // Constructors
    FixedPoint() { }
-   FixedPoint(int x) { _value = StoreType(x) << Shift; }
-   FixedPoint(float x) { _value = StoreType(x * (StoreType(1) << Shift)); }
-   FixedPoint(double x) { _value = StoreType(x * (StoreType(1) << Shift)); }
+   FixedPoint(short x) { _value = construct(x); }
+   FixedPoint(int x) { _value = construct(x); }
+   FixedPoint(long x) { _value = construct(x); }
+   FixedPoint(float x);
+   FixedPoint(double x);
    FixedPoint(const ThisType &a) : _value(a._value) { }
 
    template <typename OtherStoreType, typename OtherLongType, int OtherShift>
@@ -88,6 +90,7 @@ class FixedPoint {
    StoreType rawFixedPoint() const { return _value; }
 
  private:
+   static StoreType construct(StoreType x) { return x << Shift; }
    static ThisType make(StoreType value) {
      ThisType result;
      result._value = value;
@@ -99,5 +102,11 @@ class FixedPoint {
 
 typedef FixedPoint<int16_t, int32_t, 8> FP8_8;
 typedef FixedPoint<int32_t, int64_t, 16> FP16_16;
+
+template <typename StoreType, typename LongType, int Shift>
+FixedPoint<StoreType, LongType, Shift>::FixedPoint(float x) { _value = (x * (StoreType(1) << Shift)); }
+
+template <typename StoreType, typename LongType, int Shift>
+FixedPoint<StoreType, LongType, Shift>::FixedPoint(double x) { _value = (x * (StoreType(1) << Shift)); }
 
 #endif // DEVICE_FIXED_POINT_H

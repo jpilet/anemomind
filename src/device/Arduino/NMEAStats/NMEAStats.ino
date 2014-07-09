@@ -15,6 +15,25 @@
 
 using namespace sail;
 
+class TimeStamp {
+  public:
+  TimeStamp() : _timeMilliseconds(0) { }
+  bool undefined() const { return _timeMilliseconds == 0; }
+  
+  Duration<long> operator - (TimeStamp other) const {
+    return Duration<long>::milliseconds(_timeMilliseconds - other._timeMilliseconds);
+  }
+  
+  static TimeStamp now() {
+    TimeStamp result;
+    result._timeMilliseconds = millis();
+    return result;
+  }
+  
+  private:
+    unsigned long _timeMilliseconds;
+};
+
 namespace {
 const bool echo = false;
 const int flushFrequMs = 10000;
@@ -27,7 +46,7 @@ NmeaParser nmeaParser;
 unsigned long lastFlush = 0;
 
 TargetSpeedTable targetSpeedTable;
-InstrumentFilter<FP16_16> filter;
+InstrumentFilter<FP16_16, TimeStamp, Duration<long> > filter;
 
 TrueWindEstimator::Parameters<FP16_16> calibration;
 bool calibrationLoaded = false;
@@ -151,19 +170,23 @@ void loop()
     char c = Serial.read();
     Serial.write(c);
     
+    TimeStamp timestamp = TimeStamp::now();
     switch (nmeaParser.processByte(c)) {
       case NmeaParser::NMEA_NONE: break;
       case NmeaParser::NMEA_WAT_SP_HDG:
-        filter.setMagHdg(nmeaParser.magHdg());
-        filter.setWatSpeed(nmeaParser.watSpeed());
+        filter.setMagHdgWatSpeed(nmeaParser.magHdg().cast<FP16_16>(),
+                                 nmeaParser.watSpeed().cast<FP16_16>(),
+                                 timestamp);
         break;
       case NmeaParser::NMEA_AW:
-        filter.setAwa(nmeaParser.awa());
-        filter.setAws(nmeaParser.aws());
+        filter.setAw(nmeaParser.awa().cast<FP16_16>(),
+                     nmeaParser.aws().cast<FP16_16>(),
+                     timestamp);
         break;
       case NmeaParser::NMEA_TIME_POS:
-        filter.setGpsSpeed(nmeaParser.gpsSpeed());
-        filter.setGpsBearing(nmeaParser.gpsBearing());
+        filter.setGps(nmeaParser.gpsBearing().cast<FP16_16>(),
+                      nmeaParser.gpsSpeed().cast<FP16_16>(),
+                      timestamp);
 
         displaySpeedRatio(nmeaParser);      
       default:

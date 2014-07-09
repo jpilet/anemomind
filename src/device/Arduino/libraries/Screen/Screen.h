@@ -20,6 +20,6 @@ void screenUpdate(int perf, int twdir, int tws);
 void screenUpdate(int i);
 
 // Send raw command to the screen.
-void screenSendData(String buf);
+void screenSendData(const char *data);
 
 #endif  // DEVICE_SCREEN_H

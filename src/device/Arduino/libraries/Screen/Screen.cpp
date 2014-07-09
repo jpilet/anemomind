@@ -24,16 +24,16 @@ void screenUpdate(int i) {
   screenLine(1, "", i);
 }
 
-void screenSendData(String buf) {
+void screenSendData(const char *data) {
   unsigned char i, bcc;
-  const int len = buf.length();
   screenSerial.write(0x11);
   bcc = 0x11;
+  int len = strlen(data);
   screenSerial.write(len);
   bcc = bcc + len;
   for(i=0; i < len; i++) {
-    screenSerial.write(buf[i]);
-    bcc = bcc + buf[i];
+    screenSerial.write(data[i]);
+    bcc = bcc + data[i];
   }
   screenSerial.write(bcc);
   delay(2);
