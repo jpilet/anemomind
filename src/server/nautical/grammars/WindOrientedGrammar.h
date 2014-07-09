@@ -33,6 +33,7 @@ class WindOrientedGrammar : public Grammar {
   Array<HNode> nodeInfo() {return _hierarchy.nodes();}
   MDArray2b startOfRaceTransitions() const {return _startOfRaceTransitions;}
   MDArray2b endOfRaceTransitions() const {return _endOfRaceTransitions;}
+  const Hierarchy &hierarchy() const {return _hierarchy;}
  private:
   MDArray2b _startOfRaceTransitions, _endOfRaceTransitions;
   Hierarchy _hierarchy;

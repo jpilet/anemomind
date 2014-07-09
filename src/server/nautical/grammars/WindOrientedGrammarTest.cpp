@@ -80,8 +80,11 @@ TEST(WindOrientedGrammarTest, Hinting) {
   int startBound = startIndex + 1;
   int endBound = endIndex + 1;
 
-  EXPECT_TRUE(hasNodeWithEnd(tree, 37, startBound));
-  EXPECT_TRUE(hasNodeWithStart(tree, 38, startBound));
-  EXPECT_TRUE(hasNodeWithEnd(tree, 38, endBound));
-  EXPECT_TRUE(hasNodeWithStart(tree, 37, endBound));
+  int notInRace = g.hierarchy().getNodeByName("Not in race").index();
+  int inRace = g.hierarchy().getNodeByName("In race").index();
+
+  EXPECT_TRUE(hasNodeWithEnd(tree, notInRace, startBound));
+  EXPECT_TRUE(hasNodeWithStart(tree, inRace, startBound));
+  EXPECT_TRUE(hasNodeWithEnd(tree, inRace, endBound));
+  EXPECT_TRUE(hasNodeWithStart(tree, notInRace, endBound));
 }
