@@ -376,5 +376,17 @@ void Calibrator::clear() {
   _maneuvers.clear();
 }
 
+void Calibrator::simulate(Array<Nav> *navs) const {
+  ServerFilter filter;
+  for (Nav& nav : *navs) {
+    filter.setAw(nav.awa(), nav.aws(), nav.time());
+    filter.setMagHdgWatSpeed(nav.magHdg(), nav.watSpeed(), nav.time());
+    filter.setGps(nav.gpsBearing(), nav.gpsSpeed(), nav.time());
+
+    nav.setTrueWind(
+        TrueWindEstimator::computeTrueWind(_calibrationValues, filter));
+  }
+}
+
 }  // namespace sail
 

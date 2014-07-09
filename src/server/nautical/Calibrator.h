@@ -42,6 +42,9 @@ class Calibrator  {
     //  minimization. It will call gnuplot to display errors.
     void setVerbose() { _verbose = true; }
 
+    //! Use the calibration to compute true wind on the given navigation data.
+    void simulate(Array<Nav> *array) const;
+
   private:
     std::string description(std::shared_ptr<HTree> tree);
     void addAllTack(std::shared_ptr<HTree> tree);

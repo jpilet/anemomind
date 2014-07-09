@@ -170,7 +170,7 @@ namespace {
     TimeStamp *last) {
     NmeaParser::NmeaSentence s = parser->processByte(c);
 
-    static const Duration<double> maxDurationBetweenTimeMeasures
+    const Duration<double> maxDurationBetweenTimeMeasures
       = Duration<double>::minutes(2); // <-- TODO: Maybe soft-code this threshold in future...
 
     if (s != NmeaParser::NMEA_NONE) {
