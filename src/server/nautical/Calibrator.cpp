@@ -261,14 +261,15 @@ bool Calibrator::calibrate(const Array<Nav>& navs,
     return false;
   }
 
-  GnuplotExtra gnuplot;
+  GnuplotExtra* gnuplot = 0;
   if (_verbose) {
+    gnuplot = new GnuplotExtra();
     print();
-    gnuplot.set_style("lines");
-    gnuplot.set_xlabel("error [degrees]");
-    gnuplot.set_ylabel("count");
-    plot(&gnuplot, "external", true);
-    plot(&gnuplot, "before", false);
+    gnuplot->set_style("lines");
+    gnuplot->set_xlabel("error [degrees]");
+    gnuplot->set_ylabel("count");
+    plot(gnuplot, "external", true);
+    plot(gnuplot, "before", false);
   }
 
   // Run the solver!
@@ -288,7 +289,8 @@ bool Calibrator::calibrate(const Array<Nav>& navs,
     }
 
     print();
-    plot(&gnuplot, "after", false);
+    plot(gnuplot, "after", false);
+    delete gnuplot;
   }
 
   return true;
