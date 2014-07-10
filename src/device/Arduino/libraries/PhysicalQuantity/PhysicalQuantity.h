@@ -26,6 +26,10 @@
 #include <math.h>
 #endif
 
+#ifdef isnan
+#undef isnan
+#endif
+
 namespace sail {
 
 /*

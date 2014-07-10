@@ -3,7 +3,10 @@
 #ifndef NAUTICAL_BOAT_MODEL_H
 #define NAUTICAL_BOAT_MODEL_H
 
+#ifdef ON_SERVER
 #include <cmath>
+#endif
+
 #include "../PhysicalQuantity/PhysicalQuantity.h"
 
 namespace sail {

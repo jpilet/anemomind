@@ -1,5 +1,5 @@
 #include <Screen.h>
-#include <SoftwareSerial.h>
+//#include <SoftwareSerial.h>
 
 /*
  DIP128W-6LW

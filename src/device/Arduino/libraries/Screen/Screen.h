@@ -2,7 +2,10 @@
 #define DEVICE_SCREEN_H
 
 #include <Arduino.h>
+
+#ifdef ARDUINO_UNO
 #include <SoftwareSerial.h>
+#endif
 
 #define VERTICAL_SCREEN 0
 
