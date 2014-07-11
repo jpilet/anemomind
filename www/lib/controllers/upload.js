@@ -79,7 +79,7 @@ exports.storeData = function(req, res) {
   var filename = req.body.filename.slice(0, -4);
   console.log(filename);
   var targetPath = path.resolve('./data/' +
-        id + '/processed/' + filename);
+        id + '/processed/all');
 
   // read the 3 generated files in parallel
   async.parallel({

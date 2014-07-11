@@ -17,7 +17,7 @@ class GnuplotExtra;
 class Calibrator  {
   public:
     Calibrator() : _grammar(_settings), _verbose(false) { clear(); }
-    Calibrator(const WindOrientedGrammar& grammar) : _grammar(grammar) { clear(); }
+    Calibrator(const WindOrientedGrammar& grammar) : _grammar(grammar), _verbose(false) { clear(); }
 
     //! Attempt to load data and run the minimizer. Clears previous results.
     bool calibrate(Poco::Path dataPath, Nav::Id boatId);

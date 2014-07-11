@@ -145,6 +145,10 @@ namespace {
 
 void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::string filenamePrefix) {
   ENTERSCOPE("processBoatData");
+  if (navs.size() == 0) {
+    LOG(FATAL) << "No data to process.";
+    return;
+  }
   SCOPEDMESSAGE(INFO, stringFormat("Process %d navs ranging from %s to %s",
       navs.size(), navs.first().time().toString().c_str(),
       navs.last().time().toString().c_str()));
@@ -162,7 +166,7 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   buildDir.createDirectory();
 
   PathBuilder outdir = PathBuilder::makeDirectory(dstPath);
-  std::string prefix = outdir.makeFile(filenamePrefix).get().toString();
+  std::string prefix = "all";
 
   // Create the boat.dat file.
   std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
