@@ -51,7 +51,7 @@ angular.module('anemomindApp')
     };
 
     $scope.formatAngle = function(angleRad) {
-      if (angleRad === undefined) {
+      if (isNaN(angleRad)) {
         return "-";
       }
       var deg = angleRad * 180 / Math.PI;
@@ -62,7 +62,7 @@ angular.module('anemomindApp')
     }
 
     $scope.formatDirection = function(rad) {
-      if (!rad === undefined) {
+      if (isNaN(rad)) {
         return "-";
       }
       var deg = rad * 180 / Math.PI;
@@ -73,7 +73,7 @@ angular.module('anemomindApp')
     }
 
     $scope.formatSpeed = function(metersPerSecond) {
-      if (metersPerSecond === undefined) {
+      if (isNaN(metersPerSecond)) {
         return "-";
       }
 
