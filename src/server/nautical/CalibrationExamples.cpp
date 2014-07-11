@@ -4,15 +4,16 @@
  */
 
 #include "CalibrationExamples.h"
-#include <server/nautical/Nav.h>
+#include <armadillo>
 #include <server/common/Duration.h>
+#include <server/common/Env.h>
+#include <server/common/ScopedLog.h>
+#include <server/common/logging.h>
+#include <server/common/string.h>
+#include <server/math/nonlinear/GridFitter.h>
 #include <server/nautical/DataCalib.h>
 #include <server/nautical/LocalRace.h>
-#include <server/math/nonlinear/GridFitter.h>
-#include <armadillo>
-#include <server/common/string.h>
-#include <server/common/logging.h>
-#include <server/common/ScopedLog.h>
+#include <server/nautical/Nav.h>
 
 namespace sail {
 
@@ -43,7 +44,8 @@ namespace {
   };
 
   CalibSetup::CalibSetup(int sampleCount) {
-    Array<Nav> allNavs = loadNavsFromText(Nav::AllNavsPath, false);
+    Array<Nav> allNavs = loadNavsFromText(
+        std::string(Env::SOURCE_DIR) + "/datasets/allnavs.txt", false);
     Array<Array<Nav> > splitNavs = splitNavsByDuration(allNavs,
                                    Duration<double>::minutes(10).seconds());
     Array<Nav> navs_ = splitNavs.first();

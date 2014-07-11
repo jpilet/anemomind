@@ -30,6 +30,8 @@ Poco::Dynamic::Var serialize(const Nav &nav) {
   serializeField(x, "awa", nav.awa());
   serializeField(x, "externalTws", nav.externalTws());
   serializeField(x, "externalTwa", nav.externalTwa());
+  serializeField(x, "twdir", nav.trueWind().angle());
+  serializeField(x, "tws", nav.trueWind().norm());
   serializeField(x, "id", nav.id());
   serializeField(x, "boat-id", nav.boatId());
   return Poco::Dynamic::Var(x);
@@ -59,8 +61,15 @@ bool deserialize(Poco::Dynamic::Var x, Nav *out) {
     deserializeField(x, "boat-id", &boatId);
     deserializeField(x, "externalTws", &externalTws);
     deserializeField(x, "externalTwa", &externalTwa);
+    Angle<double> twdir;
+    Velocity<double> tws;
 
     *out = Nav();
+
+    if (deserializeField(x, "twdir", &twdir) && deserializeField(x, "tws", &tws)) {
+      out->setTrueWind(HorizontalMotion<double>::polar(tws, twdir));
+    }
+
     out->setTime(time);
     out->setGeographicPosition(GeographicPosition<double>(lon, lat, alt));
     out->setAwa(awa);

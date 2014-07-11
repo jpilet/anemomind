@@ -90,28 +90,20 @@ int BoatLogProcessor::main(const std::vector<std::string>& args) {
     dispHelp();
     return Application::EXIT_NOINPUT;
   } else {
-
-    if (args.size() == 0) {
-      dispHelp();
-      LOG(FATAL) << "Too few arguments";
+    std::string pathstr = args[0];
+    ENTERSCOPE("Process boat logs in directory " + pathstr);
+    Poco::Path path = PathBuilder::makeDirectory(pathstr).get();
+    if (args.size() == 1) {
+      processBoatDataFullFolder(path);
+      return Application::EXIT_OK;
+    } else if (args.size() == 2) {
+      std::string logFilename = args[1];
+      processBoatDataSingleLogFile(path, logFilename);
+      return Application::EXIT_OK;
     } else {
-      std::string pathstr = args[0];
-      ENTERSCOPE("Process boat logs in directory " + pathstr);
-      Poco::Path path = PathBuilder::makeDirectory(pathstr).get();
-      if (args.size() == 1) {
-        processBoatDataFullFolder(path);
-        return Application::EXIT_OK;
-      } else {
-        std::string logFilename = args[1];
-        if (args.size() == 2) {
-          processBoatDataSingleLogFile(path, logFilename);
-          return Application::EXIT_OK;
-        } else {
-          LOG(FATAL) << "Too many arguments";
-        }
-      }
+      LOG(FATAL) << "Too many arguments";
+      return Application::EXIT_IOERR;
     }
-    return Application::EXIT_IOERR;
   }
 }
 
@@ -156,11 +148,11 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   SCOPEDMESSAGE(INFO, stringFormat("Process %d navs ranging from %s to %s",
       navs.size(), navs.first().time().toString().c_str(),
       navs.last().time().toString().c_str()));
-  WindOrientedGrammarSettings settings;
-  WindOrientedGrammar g(settings);
 
   SCOPEDMESSAGE(INFO, "Parse data...");
-  std::shared_ptr<HTree> fulltree = g.parse(navs); //allnavs.sliceTo(2000));
+  WindOrientedGrammarSettings settings;
+  WindOrientedGrammar g(settings);
+  std::shared_ptr<HTree> fulltree = g.parse(navs);
   SCOPEDMESSAGE(INFO, "done.");
 
   Poco::File buildDir(dstPath);
@@ -172,6 +164,15 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   PathBuilder outdir = PathBuilder::makeDirectory(dstPath);
   std::string prefix = outdir.makeFile(filenamePrefix).get().toString();
 
+  // Create the boat.dat file.
+  std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
+
+  Calibrator calibrator(g);
+  if (calibrator.calibrate(navs, fulltree, boatId)) {
+    calibrator.saveCalibration(&boatDatFile);
+    calibrator.simulate(&navs);
+  }
+  outputTargetSpeedTable(fulltree, g.nodeInfo(), navs, &boatDatFile);
 
   {
     ENTERSCOPE("Output tree");
@@ -187,13 +188,6 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
    Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
   }
 
-  std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
-  outputTargetSpeedTable(fulltree, g.nodeInfo(), navs, &boatDatFile);
-
-  Calibrator calibrator(g);
-  if (calibrator.calibrate(navs, fulltree, boatId)) {
-    calibrator.saveCalibration(&boatDatFile);
-  }
 }
 
 void processBoatDataFullFolder(Nav::Id boatId, Poco::Path srcPath, Poco::Path dstPath) {

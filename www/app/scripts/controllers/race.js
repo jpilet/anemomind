@@ -50,6 +50,42 @@ angular.module('anemomindApp')
       });
     };
 
+    $scope.formatAngle = function(angleRad) {
+      if (isNaN(angleRad)) {
+        return "-";
+      }
+      var deg = angleRad * 180 / Math.PI;
+      if (deg > 180) {
+        deg -= 360;
+      }
+      return deg.toFixed(0);
+    }
+
+    $scope.formatDirection = function(rad) {
+      if (isNaN(rad)) {
+        return "-";
+      }
+      var deg = rad * 180 / Math.PI;
+      if (deg < 0) {
+        deg += 360;
+      }
+      return deg.toFixed(0);
+    }
+
+    $scope.formatSpeed = function(metersPerSecond) {
+      if (isNaN(metersPerSecond)) {
+        return "-";
+      }
+
+      var knots = metersPerSecond * (60 * 60 / 1852);
+      return knots.toFixed(1) + "kn";
+    }
+
+    $scope.formatTime = function(timestamp) {
+      var d = new Date(timestamp);
+      return d.toLocaleTimeString();
+    }
+
     // Slider options with event handlers
     $scope.slider = {
       'options': {
@@ -103,14 +139,7 @@ angular.module('anemomindApp')
           minutes: minutes < 10 ? '0' + minutes : minutes,
           seconds: seconds < 10 ? '0' + seconds : seconds
         };
-        $scope.current.awaRad = $scope.data[currentPos].awaRad.toFixed(2);
-        $scope.current.awsMps = $scope.data[currentPos].awsMps.toFixed(2);
-        $scope.current.twaRad = $scope.data[currentPos].twaRad.toFixed(2);
-        $scope.current.twsMps = $scope.data[currentPos].twsMps.toFixed(2);
-        $scope.current.watSpeedMps = $scope.data[currentPos].watSpeedMps.toFixed(2);
-        $scope.current.gpsSpeedMps = $scope.data[currentPos].gpsSpeedMps.toFixed(2);
-        $scope.current.magHdgRad = $scope.data[currentPos].magHdgRad.toFixed(2);
-        $scope.current.gpsBearingRad = $scope.data[currentPos].gpsBearingRad.toFixed(2);
+        $scope.current = $scope.data[currentPos];
       }
     });
   });
