@@ -22,11 +22,11 @@ module.exports = function (grunt) {
         command: 'mongod --dbpath db',
         options: {
           async: true,
-          stdout: false,
+          stdout: true,
           stderr: true,
           failOnError: true,
         }
-      }
+      },
     },
 
     // Project settings
@@ -42,7 +42,8 @@ module.exports = function (grunt) {
       dev: {
         options: {
           script: 'server.js',
-          debug: true
+          debug: true,
+          node_env: 'development'
         }
       },
       prod: {
@@ -185,7 +186,8 @@ module.exports = function (grunt) {
         options: {
           nodeArgs: ['--debug-brk'],
           env: {
-            PORT: process.env.PORT || 8080
+            PORT: process.env.PORT || 8080,
+            NODE_ENV: 'development'
           },
           callback: function (nodemon) {
             nodemon.on('log', function (event) {
@@ -218,7 +220,7 @@ module.exports = function (grunt) {
           src: [
             '<%= yeoman.dist %>/public/scripts/{,*/}*.js',
             '<%= yeoman.dist %>/public/styles/{,*/}*.css',
-            '<%= yeoman.dist %>/public/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}',
+            //'<%= yeoman.dist %>/public/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}',
             '<%= yeoman.dist %>/public/styles/fonts/*'
           ]
         }
@@ -317,7 +319,6 @@ module.exports = function (grunt) {
           src: [
             '*.{ico,png,txt}',
             '.htaccess',
-            'bower_components/**/*',
             'images/{,*/}*.{webp}',
             'fonts/**/*'
           ]
@@ -389,16 +390,10 @@ module.exports = function (grunt) {
       }
     },
     uglify: {
-      dist: {
-        files: {
-          '<%= yeoman.dist %>/scripts/scripts.js': [
-            '<%= yeoman.dist %>/scripts/scripts.js'
-          ]
-        }
-      }
+      dist: { }
     },
     concat: {
-      dist: {}
+      dist: { }
     },
 
     // Test settings
@@ -441,7 +436,7 @@ module.exports = function (grunt) {
 
   grunt.registerTask('serve', function (target) {
     if (target === 'dist') {
-      return grunt.task.run(['build', 'express:prod', 'open', 'express-keepalive']);
+      return grunt.task.run(['build', 'shell:mongo', 'express:prod', 'open', 'express-keepalive']);
     }
 
     if (target === 'debug') {
