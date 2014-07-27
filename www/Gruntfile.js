@@ -15,11 +15,21 @@ module.exports = function (grunt) {
   // Time how long tasks take. Can help when optimizing build times
   require('time-grunt')(grunt);
 
+  var fs = require('fs');
+  var mkdirIfNotExistsSync = function(path) {
+    if (!fs.existsSync(path)) {
+      fs.mkdirSync(path);
+    }
+  }
+  var dbPath = __dirname + '/db';
+  mkdirIfNotExistsSync(dbPath);
+  mkdirIfNotExistsSync(__dirname + '/uploads');
+
   // Define the configuration for all the tasks
   grunt.initConfig({
     shell: {
       mongo: {
-        command: 'mongod --dbpath db',
+        command: 'mongod --dbpath ' + dbPath,
         options: {
           async: true,
           stdout: true,
