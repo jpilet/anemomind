@@ -26,9 +26,9 @@ angular.module('anemomindApp.directives')
                         + "), rotate(" + boatRotation() + ")");
     }
 
-    scope.$watch('coords', function(coords) {
+    scope.$watch('raceIsLoaded', function(raceIsLoaded) {
 
-      if (typeof scope.x != 'undefined') {
+      if (raceIsLoaded) {
 
         var zoom = d3.behavior.zoom()
           .x(scope.x)
@@ -56,7 +56,7 @@ angular.module('anemomindApp.directives')
         //The path !
         lineGraph = svg.append("path")
                                     .attr("class", "route")
-                                    .attr("d", lineFunction(coords))
+                                    .attr("d", lineFunction(scope.coords))
                                     .attr("stroke", "#00aaff")
                                     .attr("stroke-width", 0.15)
                                     .attr("fill", "none")
