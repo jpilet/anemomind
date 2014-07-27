@@ -48,7 +48,7 @@ angular.module('anemomindApp.directives')
                                  .interpolate("basis");
 
         //The SVG Container
-        svg = d3.select(".svgContainer").append("svg")
+        svg = d3.select(element[0]).append("svg")
                                    .attr("width", "100%")
                                    .attr("viewBox", "0 0 100 100")
                                    .call(zoom);
