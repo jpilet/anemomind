@@ -146,6 +146,7 @@ exports.storeData = function(req, res) {
     });
 
     //collect coords for all sailing periods
+    var boatId = results.navs[0]['boat-id'];
     var sailingPeriods = [];
     for (var k = 0; k < left.length; k++) {
 
@@ -160,7 +161,7 @@ exports.storeData = function(req, res) {
             var title = date.getDate() + '/' + (date.getMonth()+1) + '/' + date.getFullYear();
             sailingPeriods[k] = {
               title: title,
-              boatId: results.navs[0]['boat-id'],
+              boatId: boatId,
               items: []
             };
           }
@@ -183,6 +184,13 @@ exports.storeData = function(req, res) {
         }
       }
     }
+
+    // Delete previously uploaded races, we are about to update them anyway.
+    RaceData.remove({boatId: boatId}, function(err) {
+        if (err) {
+          winston.error('failed to remove races from DB: ' + err);
+        }
+    });
 
     //store coords for all sailing periods in DB
     async.each(sailingPeriods, function( period, callback) {
