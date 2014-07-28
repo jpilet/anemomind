@@ -179,17 +179,20 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   outputTargetSpeedTable(fulltree, g.nodeInfo(), navs, &boatDatFile);
 
   {
-    ENTERSCOPE("Output tree");
-   ofstream file(prefix + "_tree.js");
-   Poco::JSON::Stringifier::stringify(json::serializeMapped(fulltree, navs, g.nodeInfo()), file, 0, 0);
+    std::string path = outdir.makeFile(prefix + "_tree.js").get().toString();
+    ENTERSCOPE("Output tree (" + path + ")");
+    ofstream file(path);
+    Poco::JSON::Stringifier::stringify(json::serializeMapped(fulltree, navs, g.nodeInfo()), file, 0, 0);
   }{
+    std::string path = outdir.makeFile(prefix + "_navs.js").get().toString();
     ENTERSCOPE("Output navs");
-   ofstream file(prefix + "_navs.js");
-   Poco::JSON::Stringifier::stringify(json::serialize(navs), file, 0, 0);
+    ofstream file(path);
+    Poco::JSON::Stringifier::stringify(json::serialize(navs), file, 0, 0);
   }{
+    std::string path = outdir.makeFile(prefix + "_tree_node_info.js").get().toString();
     ENTERSCOPE("Output tree node info");
-   ofstream file(prefix + "_tree_node_info.js");
-   Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
+    ofstream file(path);
+    Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
   }
 
 }
