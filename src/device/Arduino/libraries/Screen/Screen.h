@@ -3,6 +3,10 @@
 
 #include <Arduino.h>
 
+#ifdef __AVR__
+#define ARDUINO_UNO
+#endif
+
 #ifdef ARDUINO_UNO
 #include <SoftwareSerial.h>
 #endif

@@ -27,6 +27,12 @@
 #endif
 
 #ifdef isnan
+#pragma push_macro("isnan")
+#undef isnan
+template<typename T> bool isnan(T x) {
+#pragma push_pop("isnan")
+    return isnan(x);
+}
 #undef isnan
 #endif
 

@@ -125,7 +125,7 @@ class NmeaParser {
   NmeaParser();
   NmeaSentence processByte(Byte data);
   void printSentence();
-  void getSentenceString(int bufLen, char *buffer);
+  void putSentence(void (*_putc)(char));
 
   DWord cumulativeWaterDistance() const {
     return cwd_;
