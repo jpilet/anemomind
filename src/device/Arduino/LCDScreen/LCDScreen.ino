@@ -1,5 +1,7 @@
 #include <Screen.h>
-//#include <SoftwareSerial.h>
+#ifdef ARDUINO_UNO
+#include <SoftwareSerial.h>
+#endif
 
 /*
  DIP128W-6LW
