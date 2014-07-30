@@ -2,11 +2,6 @@
 
 <div class="row">
   <div class="col-sm-12">
-    <a ng-repeat="race in races" ng-click="loadRace(race._id)"><span class="label label-default races">
-      {{ race.title }}
-    </span></a>
-  </div>
-  <div class="col-sm-12">
       <div id="sliderWrapper" ng-show="raceIsLoaded">
         <div id="btns" ng-show="raceIsLoaded">
           <span class="label label-default races" ng-click="togglePlayPause(currentPos)">{{toggleLabel}}</span>
@@ -16,7 +11,7 @@
       </div>
     </div>
   </div>
-  <div ng-init="data=null">
+  <div>
     <display-path data="data"></display-path>
   </div>
 </div>

@@ -1,10 +1,12 @@
 'use strict';
 
 angular.module('anemomindApp')
-  .controller('RaceCtrl', function ($scope, Race, $http, $log) {
-    $scope.races = Race.get();
+  .controller('RaceCtrl', function ($scope, $routeParams,
+                                    $http, $log) {
+    $scope.raceId = $routeParams.raceId;
+    $scope.raceIsLoaded = false;
 
-    $scope.loadRace = function (id) {
+    var loadRace = function(id) {
       $('#stopdiv').click();
       d3.select('svg').remove();
       if (typeof timer_ret_val !== 'undefined') {
@@ -47,6 +49,9 @@ angular.module('anemomindApp')
         $scope.x = x;
         $scope.y = y;
         $scope.raceIsLoaded = true;
+        if(!$scope.$$phase) {
+          $scope.$apply();
+        }
       });
     };
 
@@ -142,4 +147,6 @@ angular.module('anemomindApp')
         $scope.current = $scope.data[currentPos];
       }
     });
+
+    loadRace($scope.raceId);
   });
