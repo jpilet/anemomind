@@ -145,6 +145,10 @@ namespace {
 
 void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::string filenamePrefix) {
   ENTERSCOPE("processBoatData");
+  if (navs.size() == 0) {
+    LOG(FATAL) << "No data to process.";
+    return;
+  }
   SCOPEDMESSAGE(INFO, stringFormat("Process %d navs ranging from %s to %s",
       navs.size(), navs.first().time().toString().c_str(),
       navs.last().time().toString().c_str()));
@@ -162,7 +166,7 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   buildDir.createDirectory();
 
   PathBuilder outdir = PathBuilder::makeDirectory(dstPath);
-  std::string prefix = outdir.makeFile(filenamePrefix).get().toString();
+  std::string prefix = "all";
 
   // Create the boat.dat file.
   std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
@@ -175,17 +179,20 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   outputTargetSpeedTable(fulltree, g.nodeInfo(), navs, &boatDatFile);
 
   {
-    ENTERSCOPE("Output tree");
-   ofstream file(prefix + "_tree.js");
-   Poco::JSON::Stringifier::stringify(json::serializeMapped(fulltree, navs, g.nodeInfo()), file, 0, 0);
+    std::string path = outdir.makeFile(prefix + "_tree.js").get().toString();
+    ENTERSCOPE("Output tree (" + path + ")");
+    ofstream file(path);
+    Poco::JSON::Stringifier::stringify(json::serializeMapped(fulltree, navs, g.nodeInfo()), file, 0, 0);
   }{
+    std::string path = outdir.makeFile(prefix + "_navs.js").get().toString();
     ENTERSCOPE("Output navs");
-   ofstream file(prefix + "_navs.js");
-   Poco::JSON::Stringifier::stringify(json::serialize(navs), file, 0, 0);
+    ofstream file(path);
+    Poco::JSON::Stringifier::stringify(json::serialize(navs), file, 0, 0);
   }{
+    std::string path = outdir.makeFile(prefix + "_tree_node_info.js").get().toString();
     ENTERSCOPE("Output tree node info");
-   ofstream file(prefix + "_tree_node_info.js");
-   Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
+    ofstream file(path);
+    Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
   }
 
 }
