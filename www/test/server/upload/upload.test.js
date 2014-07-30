@@ -1,8 +1,8 @@
 'use strict';
 
-var app = require('../../../server'),
-    supertest = require('supertest'),
-    request = supertest(app);
+var app = require(__dirname + '/../../../server');
+var supertest = require('supertest');
+var request = supertest(app);
 
 describe('POST /api/upload', function() {
   it('should refuse unauthorized uploads', function(done) {

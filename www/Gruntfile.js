@@ -474,6 +474,7 @@ module.exports = function (grunt) {
     if (target === 'server') {
       return grunt.task.run([
         'env:test',
+        'shell:mongo',
         'mochaTest'
       ]);
     }
@@ -488,6 +489,7 @@ module.exports = function (grunt) {
     }
 
     grunt.task.run([
+      'shell:mongo',
       'env:test',
       'mochaTest',
       'clean:server',
