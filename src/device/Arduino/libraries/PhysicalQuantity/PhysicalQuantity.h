@@ -30,7 +30,7 @@
 #pragma push_macro("isnan")
 #undef isnan
 template<typename T> bool isnan(T x) {
-#pragma push_pop("isnan")
+#pragma pop_macro("isnan")
     return isnan(x);
 }
 #undef isnan
@@ -99,7 +99,7 @@ class PhysicalQuantity {
   }
 
   Quantity fabs() const { return Quantity::makeFromX(::fabs(_x)); }
-  bool isnan() const { return ::isnan(_x); }
+  bool isNaN() const { return isnan(_x); }
 
   // Comparison --> bool
   bool operator < (ThisQuantity other) const {return _x < other.get();}
@@ -167,6 +167,7 @@ class Angle : public PhysicalQuantity<Angle<T>, T> {
     *cosAngle = cos(rad);
   }
 };
+template <typename T> bool isnan(Angle<T> x) { return x.isNaN(); }
 
 template <typename T = double>
 class Length : public PhysicalQuantity<Length<T>, T> {
@@ -215,6 +216,8 @@ class Duration : public PhysicalQuantity<Duration<T>, T> {
   }
 #endif
 };
+
+template <typename T> bool isnan(Velocity<T> x) { return x.isNaN(); }
 
 template <typename T = double>
 class Mass : public PhysicalQuantity<Mass<T>, T> {
@@ -381,7 +384,7 @@ Quantity fabs(sail::PhysicalQuantity<Quantity, Value> x) {
 
 template <typename Quantity, typename Value>
 bool isnan(sail::PhysicalQuantity<Quantity, Value> x) {
-  return x.isnan();
+  return x.isNaN();
 }
 
 #endif /* PHYSICALQUANTITY_H_ */

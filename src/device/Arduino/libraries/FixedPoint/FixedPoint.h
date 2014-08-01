@@ -109,4 +109,7 @@ FixedPoint<StoreType, LongType, Shift>::FixedPoint(float x) { _value = (x * (Sto
 template <typename StoreType, typename LongType, int Shift>
 FixedPoint<StoreType, LongType, Shift>::FixedPoint(double x) { _value = (x * (StoreType(1) << Shift)); }
 
+template <typename StoreType, typename LongType, int Shift>
+bool isnan(FixedPoint<StoreType, LongType, Shift>) { return false; }
+
 #endif // DEVICE_FIXED_POINT_H

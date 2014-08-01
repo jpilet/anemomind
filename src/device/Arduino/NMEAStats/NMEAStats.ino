@@ -96,7 +96,7 @@ void displaySpeedRatio(const NmeaParser& parser) {
    float speedRatio = getVmgSpeedRatio(targetSpeedTable,
        twa.degrees(),
        tws.knots(),
-       filter.gpsSpeed().knots());
+       (FP8_8) filter.gpsSpeed().knots());
    
    // Display speedRatio on the LCD display.
    screenUpdate(
@@ -162,6 +162,10 @@ void setup()
   loadData();
 }
 
+void logNmeaSentence() {
+  nmeaParser.putSentence(my_putc);
+}
+
 void loop()
 {
   while (Serial.available() > 0) {
@@ -206,10 +210,3 @@ void loop()
     }
   }
 }
-
-void logNmeaSentence() {
-  nmeaParser.putSentence(my_putc);
-}
-
-
-

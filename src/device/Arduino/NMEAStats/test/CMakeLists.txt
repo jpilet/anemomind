@@ -1,0 +1,24 @@
+# Faking an arduino requires a few hacks. In particular,
+# include directories have to be tweeked.
+include_directories(
+    "${CMAKE_SOURCE_DIR}/src/device/Arduino/NMEAStats/test/MockArduino"
+    "${CMAKE_SOURCE_DIR}/src/device/Arduino/libraries/ChunkFile"
+    "${CMAKE_SOURCE_DIR}/src/device/Arduino/libraries/FixedPoint"
+    "${CMAKE_SOURCE_DIR}/src/device/Arduino/libraries/NmeaParser"
+    "${CMAKE_SOURCE_DIR}/src/device/Arduino/libraries/PhysicalQuantity"
+    "${CMAKE_SOURCE_DIR}/src/device/Arduino/libraries/Screen"
+    "${CMAKE_SOURCE_DIR}/src/device/Arduino/libraries/TargetSpeed"
+    "${CMAKE_SOURCE_DIR}/src/device/Arduino/libraries/TrueWindEstimator"
+    )
+
+# Let's fake we're running on Arduino UNO
+add_definitions("-DON_DEVICE" "-DARDUINO_UNO")
+remove_definitions("-DON_SERVER")
+
+cxx_test(device_NmeaStatTest
+         NmeaStatsTest.cpp
+         device_ChunkFile
+         device_NmeaParser
+         device_TargetSpeed
+         gtest_main
+        )
