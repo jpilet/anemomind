@@ -76,7 +76,10 @@ void InstrumentFilter<T, TimeStamp, Duration>::update(
   } else {
     // The higher this constant, the more filtering will be applied.
     // This value has been manually tuned. TODO: compute it automatically.
-    //T factor = pow(T(.6), T(min(1.0, delta.seconds())));
+    //
+    // The following line seems to cause a bug. TODO: activate it again
+    // when a proper testing framework can check its validity.
+    // T factor = pow(T(.6), T(min(1.0, delta.seconds())));
     T factor(.7);
     dest->_motion = dest->_motion.scaled(factor) + motion.scaled(T(1) - factor);
   }
