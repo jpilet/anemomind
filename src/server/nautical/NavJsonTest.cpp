@@ -97,7 +97,8 @@ TEST(NavJsonTest, BackwardCompatibilityTest) {
     "\"lon_rad\":0.8377580409572782,"
     "\"maghdg_rad\":-0.301,"
     "\"time_ms_1970\":1396029819000,"
-    "\"watspeed_mps\":0.03}]";
+    "\"watspeed_mps\":0.03,"
+    "\"twdir_rad\":-0.2,\"tws_mps\":8}]";
   Nav base;
   base.setGeographicPosition(
       GeographicPosition<double>(
@@ -111,10 +112,15 @@ TEST(NavJsonTest, BackwardCompatibilityTest) {
   base.setMagHdg(Angle<>::radians(-.301));
   base.setTime(TimeStamp::fromMilliSecondsSince1970(1396029819000));
   base.setWatSpeed(Velocity<>::metersPerSecond(.03));
+  base.setTrueWind(HorizontalMotion<double>::polar(
+          Velocity<>::metersPerSecond(8), Angle<>::radians(-.2)));
+
+  std::stringstream ss;
+  Poco::JSON::Stringifier::stringify(json::serialize(base), ss, 0, 0);
 
   // Both objects should be the same.
   Array<Nav> deserialized = deserializeNavs(dataToDecode);
-  EXPECT_EQ(deserialized[0], base);
+  EXPECT_EQ(deserialized[0], base) << dataToDecode << "\ndoes not match:\n" << ss.str();
 }
 
 TEST(NavJsonTest, RealNav) {
