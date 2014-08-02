@@ -1,8 +1,10 @@
 #include "Screen.h"
 
-#include <SoftwareSerial.h>
-
+#ifdef ARDUINO_UNO
 SoftwareSerial screenSerial(8, 9); // RX, TX
+#else
+#define screenSerial Serial1
+#endif
 
 void screenLine(int line, const char *label, int i) {
   char str[32];

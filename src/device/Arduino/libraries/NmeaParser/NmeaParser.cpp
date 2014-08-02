@@ -231,29 +231,31 @@ char NmeaParser::computeChecksum() const {
   return checksum;
 }
 
-void NmeaParser::getSentenceString(int bufLen, char *buffer) {
+void NmeaParser::putSentence(void (*_putc)(char)) {
   int pos = 0;
-  buffer[pos++] = '$';
+  _putc('$');
   for (int i = 0; i < argc_; ++i) {
     if (i > 0) {
-      buffer[pos++] = ',';
+      _putc(',');
     }
     for (char *p = argv_[i]; *p; ++p) {
-      buffer[pos++] = *p;
+      _putc(*p);
     }
   }
-  buffer[pos++] = '*';
+  _putc('*');
   char checksum = computeChecksum();
-  buffer[pos++] = intToHexDigit(checksum >> 4);
-  buffer[pos++] = intToHexDigit(checksum & 0xF);
-  buffer[pos++] = '\n';
-  buffer[pos++] = 0;
+  _putc(intToHexDigit(checksum >> 4));
+  _putc(intToHexDigit(checksum & 0xF));
+  _putc('\n');
 }
 
+namespace {
+void myputchar(char c) {
+  putchar(c);
+}
+} // namespace
 void NmeaParser::printSentence() {
-  char buffer[82];
-  getSentenceString(82, buffer);
-  printf("%s", buffer);
+  putSentence(myputchar);
 }
 
 void NmeaParser::setXTE(float dist, bool left) {

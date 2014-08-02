@@ -9,7 +9,10 @@
 #include <ChunkFile.h>
 
 #include <Screen.h>
+#ifdef ARDUINO_UNO
 #include <SoftwareSerial.h>
+#include <SPI.h>
+#endif
 
 #include <InstrumentFilter.h>
 
@@ -53,7 +56,7 @@ bool calibrationLoaded = false;
 
 }  // namespace
 
-int my_putc(char c, FILE *) {
+void my_putc(char c) {
   if (echo) {
     Serial.write( c );
   }
@@ -61,7 +64,6 @@ int my_putc(char c, FILE *) {
     // We assume buffered output.
     logFile.write(c);
   }
-  return 1;
 }
 
 void openLogFile() {
@@ -142,24 +144,20 @@ void setup()
   Serial.begin(4800);
   screenUpdate(2);
 
-  fdevopen( &my_putc, 0);
- 
-  screenUpdate(3);
-
   // SD Card initialization.
   // On the Ethernet Shield, CS is pin 4. It's set as an output by default.
   // Note that even if it's not used as the CS pin, the hardware SS pin 
   // (10 on most Arduino boards, 53 on the Mega) must be left as an output 
   // or the SD library functions will not work.
   pinMode(10, OUTPUT);
-  screenUpdate(4);
+  screenUpdate(3);
 
   SD.begin(10);
   
-  screenUpdate(5);
+  screenUpdate(4);
 
   openLogFile();
-  screenUpdate(6);
+  screenUpdate(5);
 
   loadData();
 }
@@ -210,7 +208,7 @@ void loop()
 }
 
 void logNmeaSentence() {
-  nmeaParser.printSentence();
+  nmeaParser.putSentence(my_putc);
 }
 
 
