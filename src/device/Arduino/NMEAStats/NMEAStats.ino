@@ -49,6 +49,7 @@ NmeaParser nmeaParser;
 unsigned long lastFlush = 0;
 
 TargetSpeedTable targetSpeedTable;
+
 InstrumentFilter<FP16_16, TimeStamp, Duration<long> > filter;
 
 TrueWindEstimator::Parameters<FP16_16> calibration;
@@ -175,11 +176,13 @@ void loop()
         filter.setMagHdgWatSpeed(nmeaParser.magHdg().cast<FP16_16>(),
                                  nmeaParser.watSpeed().cast<FP16_16>(),
                                  timestamp);
+        logNmeaSentence();
         break;
       case NmeaParser::NMEA_AW:
         filter.setAw(nmeaParser.awa().cast<FP16_16>(),
                      nmeaParser.aws().cast<FP16_16>(),
                      timestamp);
+        logNmeaSentence();
         break;
       case NmeaParser::NMEA_TIME_POS:
         filter.setGps(nmeaParser.gpsBearing().cast<FP16_16>(),
@@ -187,6 +190,8 @@ void loop()
                       timestamp);
 
         displaySpeedRatio(nmeaParser);      
+        logNmeaSentence();
+        break;
       default:
         logNmeaSentence();
         break;
