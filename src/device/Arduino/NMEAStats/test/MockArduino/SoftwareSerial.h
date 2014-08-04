@@ -6,7 +6,7 @@
 class MockSerial {
   public:
     MockSerial() { _pos = _input.begin(); }
-    void setData(std::string data) {
+    void setData(const std::string& data) {
       _input = data;
       _pos = _input.begin();
     }
