@@ -30,15 +30,13 @@ LocalRace::LocalRace(Array<Nav> navs, double spaceStep, double timeStep) {
 }
 
 arma::vec2 LocalRace::calcNavLocalPos(Nav nav) {
-  arma::vec3 pos3d;
-  //nav.get3dPos(pos3d.memptr());
   Length<double> xyz3[3];
   double xyz3m[3];
   WGS84<double>::toXYZ(nav.geographicPosition(), xyz3);
   for (int i = 0; i < 3; i++) {
     xyz3m[i] = xyz3[i].meters();
   }
-  return _axes*(pos3d - _cog);
+  return _axes*(arma::vec3(xyz3m) - _cog);
 }
 
 double LocalRace::calcNavLocalTime(const Nav &nav) {
