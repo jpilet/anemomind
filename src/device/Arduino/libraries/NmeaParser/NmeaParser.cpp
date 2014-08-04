@@ -232,7 +232,6 @@ char NmeaParser::computeChecksum() const {
 }
 
 void NmeaParser::putSentence(void (*_putc)(char)) {
-  int pos = 0;
   _putc('$');
   for (int i = 0; i < argc_; ++i) {
     if (i > 0) {

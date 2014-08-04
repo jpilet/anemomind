@@ -90,28 +90,20 @@ int BoatLogProcessor::main(const std::vector<std::string>& args) {
     dispHelp();
     return Application::EXIT_NOINPUT;
   } else {
-
-    if (args.size() == 0) {
-      dispHelp();
-      LOG(FATAL) << "Too few arguments";
+    std::string pathstr = args[0];
+    ENTERSCOPE("Process boat logs in directory " + pathstr);
+    Poco::Path path = PathBuilder::makeDirectory(pathstr).get();
+    if (args.size() == 1) {
+      processBoatDataFullFolder(path);
+      return Application::EXIT_OK;
+    } else if (args.size() == 2) {
+      std::string logFilename = args[1];
+      processBoatDataSingleLogFile(path, logFilename);
+      return Application::EXIT_OK;
     } else {
-      std::string pathstr = args[0];
-      ENTERSCOPE("Process boat logs in directory " + pathstr);
-      Poco::Path path = PathBuilder::makeDirectory(pathstr).get();
-      if (args.size() == 1) {
-        processBoatDataFullFolder(path);
-        return Application::EXIT_OK;
-      } else {
-        std::string logFilename = args[1];
-        if (args.size() == 2) {
-          processBoatDataSingleLogFile(path, logFilename);
-          return Application::EXIT_OK;
-        } else {
-          LOG(FATAL) << "Too many arguments";
-        }
-      }
+      LOG(FATAL) << "Too many arguments";
+      return Application::EXIT_IOERR;
     }
-    return Application::EXIT_IOERR;
   }
 }
 
@@ -153,14 +145,18 @@ namespace {
 
 void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::string filenamePrefix) {
   ENTERSCOPE("processBoatData");
+  if (navs.size() == 0) {
+    LOG(FATAL) << "No data to process.";
+    return;
+  }
   SCOPEDMESSAGE(INFO, stringFormat("Process %d navs ranging from %s to %s",
       navs.size(), navs.first().time().toString().c_str(),
       navs.last().time().toString().c_str()));
-  WindOrientedGrammarSettings settings;
-  WindOrientedGrammar g(settings);
 
   SCOPEDMESSAGE(INFO, "Parse data...");
-  std::shared_ptr<HTree> fulltree = g.parse(navs); //allnavs.sliceTo(2000));
+  WindOrientedGrammarSettings settings;
+  WindOrientedGrammar g(settings);
+  std::shared_ptr<HTree> fulltree = g.parse(navs);
   SCOPEDMESSAGE(INFO, "done.");
 
   Poco::File buildDir(dstPath);
@@ -170,30 +166,35 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   buildDir.createDirectory();
 
   PathBuilder outdir = PathBuilder::makeDirectory(dstPath);
-  std::string prefix = outdir.makeFile(filenamePrefix).get().toString();
+  std::string prefix = "all";
 
-
-  {
-    ENTERSCOPE("Output tree");
-   ofstream file(prefix + "_tree.js");
-   Poco::JSON::Stringifier::stringify(json::serializeMapped(fulltree, navs, g.nodeInfo()), file, 0, 0);
-  }{
-    ENTERSCOPE("Output navs");
-   ofstream file(prefix + "_navs.js");
-   Poco::JSON::Stringifier::stringify(json::serialize(navs), file, 0, 0);
-  }{
-    ENTERSCOPE("Output tree node info");
-   ofstream file(prefix + "_tree_node_info.js");
-   Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
-  }
-
+  // Create the boat.dat file.
   std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
-  outputTargetSpeedTable(fulltree, g.nodeInfo(), navs, &boatDatFile);
 
   Calibrator calibrator(g);
   if (calibrator.calibrate(navs, fulltree, boatId)) {
     calibrator.saveCalibration(&boatDatFile);
+    calibrator.simulate(&navs);
   }
+  outputTargetSpeedTable(fulltree, g.nodeInfo(), navs, &boatDatFile);
+
+  {
+    std::string path = outdir.makeFile(prefix + "_tree.js").get().toString();
+    ENTERSCOPE("Output tree (" + path + ")");
+    ofstream file(path);
+    Poco::JSON::Stringifier::stringify(json::serializeMapped(fulltree, navs, g.nodeInfo()), file, 0, 0);
+  }{
+    std::string path = outdir.makeFile(prefix + "_navs.js").get().toString();
+    ENTERSCOPE("Output navs");
+    ofstream file(path);
+    Poco::JSON::Stringifier::stringify(json::serialize(navs), file, 0, 0);
+  }{
+    std::string path = outdir.makeFile(prefix + "_tree_node_info.js").get().toString();
+    ENTERSCOPE("Output tree node info");
+    ofstream file(path);
+    Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
+  }
+
 }
 
 void processBoatDataFullFolder(Nav::Id boatId, Poco::Path srcPath, Poco::Path dstPath) {

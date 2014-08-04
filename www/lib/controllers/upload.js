@@ -79,7 +79,7 @@ exports.storeData = function(req, res) {
   var filename = req.body.filename.slice(0, -4);
   console.log(filename);
   var targetPath = path.resolve('./data/' +
-        id + '/processed/' + filename);
+        id + '/processed/all');
 
   // read the 3 generated files in parallel
   async.parallel({
@@ -146,18 +146,22 @@ exports.storeData = function(req, res) {
     });
 
     //collect coords for all sailing periods
+    var boatId = results.navs[0]['boat-id'];
     var sailingPeriods = [];
     for (var k = 0; k < left.length; k++) {
 
       for(var l = 0; l < results.navs.length; l++) {
+        if (results.navs[l].id >= right[k]) {
+          console.log((l+1) + ' coords found for sailing period ' + (k+1));
+          break;
+        }
         if (results.navs[l].id >= left[k]) {
-
-          if (typeof title === 'undefined') {
+          if (!sailingPeriods[k]) {
             var date = new Date(results.navs[l]['time_ms_1970']);
             var title = date.getDate() + '/' + (date.getMonth()+1) + '/' + date.getFullYear();
             sailingPeriods[k] = {
               title: title,
-              boatId: results.navs[0]['boat-id'],
+              boatId: boatId,
               items: []
             };
           }
@@ -166,23 +170,27 @@ exports.storeData = function(req, res) {
             lonRad: results.navs[l]['lon_rad'],
             awaRad: results.navs[l]['awa_rad'],
             awsMps: results.navs[l]['aws_mps'],
-            twaRad: results.navs[l]['externalTwa_rad'],
-            twsMps: results.navs[l]['externalTws_mps'],
+            externalTwaRad: results.navs[l]['externalTwa_rad'],
+            externalTwsMps: results.navs[l]['externalTws_mps'],
             gpsBearingRad: results.navs[l]['gpsbearing_rad'],
             gpsSpeedMps: results.navs[l]['gpsspeed_mps'],
             magHdgRad: results.navs[l]['maghdg_rad'],
             timeMs: results.navs[l]['time_ms_1970'],
-            watSpeedMps: results.navs[l]['watspeed_mps']
+            watSpeedMps: results.navs[l]['watspeed_mps'],
+            twdirRad: results.navs[l]['twdir_rad'],
+            twsMps: results.navs[l]['tws_mps'],
           };
           sailingPeriods[k].items.push(tmpItem);
-
-          if (results.navs[l].id >= right[k]) {
-            console.log((l+1) + ' coords found for sailing period ' + (k+1));
-            break;
-          }
         }
       }
     }
+
+    // Delete previously uploaded races, we are about to update them anyway.
+    RaceData.remove({boatId: boatId}, function(err) {
+        if (err) {
+          winston.error('failed to remove races from DB: ' + err);
+        }
+    });
 
     //store coords for all sailing periods in DB
     async.each(sailingPeriods, function( period, callback) {

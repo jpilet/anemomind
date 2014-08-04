@@ -11,19 +11,34 @@ angular.module('anemomindApp.directives')
 
   function link(scope, element) {
 
-    var lineGraph, svg, ellipse, boatGroup, r;
+    var lineGraph, svg, ellipse, boatGroup;
 
-    scope.$watch('coords', function(coords) {
+    var boatRotation = function() {
+        return 90 + scope.data[scope.currentPos].magHdgRad * 180.0 / Math.PI;
+    }
 
-      if (typeof scope.x != 'undefined') {
+    var setBoatTransform = function() {
+      boatGroup.attr("transform", 
+                     "translate("
+                        + scope.x(scope.coords[scope.currentPos].x_m)
+                        + ","
+                        + scope.y(scope.coords[scope.currentPos].y_m)
+                        + "), rotate(" + boatRotation() + ")");
+    }
+
+    scope.$watch('raceIsLoaded', function(raceIsLoaded) {
+
+      if (raceIsLoaded) {
 
         var zoom = d3.behavior.zoom()
           .x(scope.x)
           .y(scope.y)
           .scaleExtent([1, 10])
           .on("zoom", function() {
-            lineGraph.attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")");
-            boatGroup.attr("transform", function(d) {return "translate(" + scope.x(scope.coords[scope.currentPos].x_m) + ","+ scope.y(scope.coords[scope.currentPos].y_m)+"), rotate(" + r + ")";});
+            lineGraph.attr("transform",
+                           "translate(" + d3.event.translate + ") "
+                           + "scale(" + d3.event.scale + ")");
+            setBoatTransform();
           });
 
         //Path generator
@@ -33,7 +48,7 @@ angular.module('anemomindApp.directives')
                                  .interpolate("basis");
 
         //The SVG Container
-        svg = d3.select(".svgContainer").append("svg")
+        svg = d3.select(element[0]).append("svg")
                                    .attr("width", "100%")
                                    .attr("viewBox", "0 0 100 100")
                                    .call(zoom);
@@ -41,7 +56,7 @@ angular.module('anemomindApp.directives')
         //The path !
         lineGraph = svg.append("path")
                                     .attr("class", "route")
-                                    .attr("d", lineFunction(coords))
+                                    .attr("d", lineFunction(scope.coords))
                                     .attr("stroke", "#00aaff")
                                     .attr("stroke-width", 0.15)
                                     .attr("fill", "none")
@@ -82,16 +97,19 @@ angular.module('anemomindApp.directives')
 
     scope.$watch('currentPos', function(currentPos) {
       if (currentPos !== 0) {
-        var ellipse = d3.selectAll("ellipse");
-        var twa = d3.select("#twa");
-        var awa = d3.select("#awa");
-            r = 90 + scope.data[currentPos].magHdgRad * 180.0 / Math.PI;
+        setBoatTransform();
+        var twaArrow = d3.select("#twa");
+        var awaArrow = d3.select("#awa");
         // the wind angle seems visually ok, but needs to be verified..
-        var twaRad = scope.data[currentPos].twaRad * 180.0 / Math.PI - 90;
-        var awaRad = scope.data[currentPos].awaRad * 180.0 / Math.PI - 90;
-        boatGroup.attr("transform", function(d) {return "translate(" + scope.x(scope.coords[currentPos].x_m) + ","+ scope.y(scope.coords[currentPos].y_m)+"), rotate(" + r + ")";});
-        twa.attr("transform", function(d) {return "rotate(" + twaRad + ")";});
-        awa.attr("transform", function(d) {return "rotate(" + awaRad + ")";});
+        var convertAngle = function(a) { return a * (180/Math.PI) - 90; }
+        var twa = convertAngle(scope.data[currentPos].externalTwaRad);
+        var awa = convertAngle(scope.data[currentPos].awaRad);
+        if (!isNaN(twa)) {
+          twaArrow.attr("transform", "rotate(" + twa + ")");
+        }
+        if (!isNaN(awa)) {
+          awaArrow.attr("transform", "rotate(" + awa+ ")");
+        }
       }
     });
   }

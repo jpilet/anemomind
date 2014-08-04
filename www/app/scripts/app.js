@@ -32,7 +32,12 @@ angular.module('anemomindApp', [
         controller: 'UploadCtrl',
         authenticate: true
       })
-      .when('/race', {
+      .when('/races', {
+        templateUrl: 'partials/raceList',
+        controller: 'RaceListCtrl',
+        authenticate: true
+      })
+      .when('/race/:raceId', {
         templateUrl: 'partials/race',
         controller: 'RaceCtrl',
         authenticate: true

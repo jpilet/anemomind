@@ -336,8 +336,11 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
 
     HorizontalMotion(const BaseType& base) : BaseType(base) { }
 
+    HorizontalMotion() { }
+
     static HorizontalMotion<T> zero() {
-        return HorizontalMotion(BaseType::all(InnerType::knots(0))); }
+        return HorizontalMotion(BaseType::all(InnerType::knots(0)));
+    }
     static HorizontalMotion<T> polar(Velocity<T> speed, Angle<T> direction) {
         // A direction of 0 points to north.
         T sinDir, cosDir;

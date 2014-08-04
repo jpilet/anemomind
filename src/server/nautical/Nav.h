@@ -52,11 +52,13 @@ class Nav {
   Angle<double> gpsBearing() const {return _gpsBearing;}
   Velocity<double> gpsSpeed() const {return _gpsSpeed;}
   Velocity<double> watSpeed() const {return _watSpeed;}
-  Angle<double> externalTwa() const {return _twaFromFile;}
-  Velocity<double> externalTws() const {return _twsFromFile;}
+  Angle<double> externalTwa() const {return _externalTwa;}
+  Velocity<double> externalTws() const {return _externalTws;}
 
   HorizontalMotion<double> gpsVelocity() const;
 
+  // As computed by the calibrated model. Not always available.
+  HorizontalMotion<double> trueWind() const { return _trueWind; }
 
   void setAwa(Angle<double> awa_) {_awa = awa_;}
   void setAws(Velocity<double> aws_) {_aws = aws_;}
@@ -67,13 +69,10 @@ class Nav {
   void setTime(const TimeStamp &t) {_time = t;}
   void setGeographicPosition(GeographicPosition<double> pos) {_pos = pos;}
 
-  void setExternalTwa(Angle<double> twa_) {_twaFromFile = twa_;}
-  void setExternalTws(Velocity<double> tws_) {_twsFromFile = tws_;}
+  void setExternalTwa(Angle<double> twa_) {_externalTwa = twa_;}
+  void setExternalTws(Velocity<double> tws_) {_externalTws = tws_;}
 
-
-  // This is just temporary. We should
-  // replace it with CMake-generated paths in the future.
-  static const char AllNavsPath[];
+  void setTrueWind(const HorizontalMotion<double>& trueWind) { _trueWind = trueWind; }
 
   bool operator== (const Nav &other) const;
 
@@ -93,10 +92,10 @@ class Nav {
   Angle<double> _awa;
   Velocity<double> _aws;
 
-  // Can we trust these estimates of the true wind? Don't think so. We'd better reconstruct them
-  // with a good model.
-  Angle<double> _twaFromFile;
-  Velocity<double> _twsFromFile;
+  // True wind angle and true wind speed as computed by thired-party onboard
+  // instruments.
+  Angle<double> _externalTwa;
+  Velocity<double> _externalTws;
 
   Angle<double> _magHdg;
   Velocity<double> _watSpeed;
@@ -109,10 +108,10 @@ class Nav {
   double _cwd;
   double _wd;
 
-
-
   // TIME RELATED
   TimeStamp _time;
+
+  HorizontalMotion<double> _trueWind;
 };
 
 Array<Velocity<double> > getExternalTws(Array<Nav> navs);

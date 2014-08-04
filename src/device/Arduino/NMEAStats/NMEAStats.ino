@@ -49,6 +49,7 @@ NmeaParser nmeaParser;
 unsigned long lastFlush = 0;
 
 TargetSpeedTable targetSpeedTable;
+
 InstrumentFilter<FP16_16, TimeStamp, Duration<long> > filter;
 
 TrueWindEstimator::Parameters<FP16_16> calibration;
@@ -192,6 +193,8 @@ void loop()
                       timestamp);
 
         displaySpeedRatio(nmeaParser);      
+        logNmeaSentence();
+        break;
       default:
         logNmeaSentence();
         break;

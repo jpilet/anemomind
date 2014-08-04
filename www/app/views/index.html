@@ -14,22 +14,22 @@
     <!-- build:css(app) styles/vendor.css -->
     <!-- bower:css -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
-    <link rel="stylesheet" href="bower_components/jquery-ui/themes/cupertino/jquery-ui.css" />
     <!-- endbower -->
+    <link rel="stylesheet" href="bower_components/jquery-ui/themes/cupertino/jquery-ui.css" />
+    <link rel="stylesheet" href="bower_components/bootswatch/simplex/bootstrap.css" />
     <!-- endbuild -->
     <!-- build:css({.tmp,app}) styles/main.css -->
-    <link rel="stylesheet" href="styles/bootstrap.css">
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/anemomind.css">
     <!-- endbuild -->
+    <link rel="stylesheet" href="bower_components/jquery-ui/themes/cupertino/jquery-ui.css" />
   </head>
   <body ng-app="anemomindApp">
     <!--[if lt IE 7]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
-    <div class="svgContainer"></div>
-    <div class="container" ng-view=""></div>
+    <div ng-view=""></div>
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
      <script>
@@ -51,6 +51,7 @@
     <!-- use html5-shim.js instead if you just support HTML5 browsers and you need progress event-->
     <!-- Note: shim.js MUST BE PLACED BEFORE angular.js and angular-file-upload.js AFTER angular.js-->
 
+    <!-- build:js(app) scripts/bower_components.js --> 
     <script src="bower_components/jquery/dist/jquery.js"></script>
     <script src="bower_components/jquery-ui/ui/jquery-ui.js"></script>
     <script src="bower_components/ng-file-upload/angular-file-upload-shim.js"></script>
@@ -61,8 +62,10 @@
     <script src="bower_components/angular-cookies/angular-cookies.js"></script>
     <script src="bower_components/angular-route/angular-route.js"></script>
     <script src="bower_components/angular-ui-slider/src/slider.js"></script>
-    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="bower_components/d3/d3.js"></script>
+    <!-- endbuild -->
 
+    <!-- build:js(app) scripts/scripts.js --> 
     <script src="scripts/app.js"></script>
     <script src="scripts/controllers/main.js"></script>
     <script src="scripts/controllers/navbar.js"></script>
@@ -71,12 +74,14 @@
     <script src="scripts/controllers/settings.js"></script>
     <script src="scripts/controllers/upload.js"></script>
     <script src="scripts/controllers/race.js"></script>
+    <script src="scripts/controllers/raceList.js"></script>
     <script src="scripts/services/auth.js"></script>
     <script src="scripts/services/session.js"></script>
     <script src="scripts/services/user.js"></script>
     <script src="scripts/services/race.js"></script>
     <script src="scripts/directives/displayPath.js"></script>
     <script src="scripts/directives/displayRaceData.js"></script>
+    <!-- endbuild -->
 
   </body>
 </html>
