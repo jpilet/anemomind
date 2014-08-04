@@ -124,8 +124,6 @@ void LocalRace::initialize(Array<Nav> navs, double spaceStep, double timeStep) {
   _timeOffset = navs[0].time();
   BBox3d bbox = calcBBoxXYTimeWithoutOffsetDuringInitialization(navs);
 
-
-
   double gridSpacing[3] = {spaceStep, spaceStep, timeStep};
   _wind = Grid3d(bbox, gridSpacing);
   _current = Grid3d(bbox, gridSpacing);
