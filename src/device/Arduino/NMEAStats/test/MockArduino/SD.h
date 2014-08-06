@@ -54,6 +54,9 @@ enum {
 
 class MockSD {
   public:
+    MockSD() = default;
+    MockSD(const MockSD& other) = delete;
+
     bool exists(const char *filename) {
       return _readFiles.find(filename) != _readFiles.end();
     }
