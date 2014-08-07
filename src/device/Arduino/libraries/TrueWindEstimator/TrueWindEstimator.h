@@ -3,7 +3,10 @@
 #ifndef NAUTICAL_BOAT_MODEL_H
 #define NAUTICAL_BOAT_MODEL_H
 
+#ifdef ON_SERVER
 #include <cmath>
+#endif
+
 #include "../PhysicalQuantity/PhysicalQuantity.h"
 
 namespace sail {
@@ -74,13 +77,14 @@ HorizontalMotion<T> TrueWindEstimator::computeTrueWind(
                                   +params[PARAM_DOWNWIND3]);
     }
 
-    HorizontalMotion<T> boatMotion = HorizontalMotion<T>::polar(
-        static_cast<Velocity<T> >(measures.gpsSpeed()),
-        static_cast<Angle<T> >(measures.gpsBearing()));
+    HorizontalMotion<T> boatMotion = measures.gpsMotion().template cast<T>();
 
     // We assume no drift and no current.
     HorizontalMotion<T> appWindMotion = HorizontalMotion<T>::polar(
-        Velocity<T>::knots(aws_offset) + static_cast<Velocity<T> >(measures.aws()).scaled(aws_bias),
+        // For some reason yet to be investigated, the following line
+        // produces a larger code than the line after.
+        // Velocity<T>::knots(aws_offset) + static_cast<Velocity<T> >(measures.aws()).scaled(aws_bias),
+        Velocity<T>::knots(aws_offset + measures.aws().knots() * aws_bias),
         static_cast<Angle<T> >(measures.gpsBearing() + measures.awa())
             + Angle<T>::degrees(awa_offset));
 

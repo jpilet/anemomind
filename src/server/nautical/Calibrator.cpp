@@ -54,16 +54,15 @@ using std::isnan;
 class TackCost {
   public:
     TackCost(Array<Nav> before, Array<Nav> after, double weight)
-      : _before(before), _after(after), _weight(weight) { }
+      : _before(makeFilter(before)), _after(makeFilter(after)),
+      _beforeNav(before), _afterNav(after), _weight(weight) { }
 
     template<typename T>
     bool operator()(const T* const x, T* residual) const {
       HorizontalMotion<T> windBefore =
-        TrueWindEstimator::computeTrueWind<T, InstrumentFilter<double> >(
-            x, makeFilter(_before));
+        TrueWindEstimator::computeTrueWind<T, ServerFilter>(x, _before);
       HorizontalMotion<T> windAfter =
-        TrueWindEstimator::computeTrueWind<T, InstrumentFilter<double> >(
-            x, makeFilter(_after));
+        TrueWindEstimator::computeTrueWind<T, ServerFilter>(x, _after);
 
       if (1) {
         HorizontalMotion<T> difference = windAfter - windBefore;
@@ -88,13 +87,13 @@ class TackCost {
 
     void printCost(const double* params) {
       HorizontalMotion<double> windBefore =
-        TrueWindEstimator::computeTrueWind<double, InstrumentFilter<double> >(params, makeFilter(_before));
+        TrueWindEstimator::computeTrueWind<double, ServerFilter>(params, _before);
       HorizontalMotion<double> windAfter =
-        TrueWindEstimator::computeTrueWind<double, InstrumentFilter<double> >(params, makeFilter(_after));
+        TrueWindEstimator::computeTrueWind<double, ServerFilter>(params, _after);
       std::cout << "Wind: " << showWind(windBefore) << " and "
         << showWind(windAfter)
-        << " at " << _before.last().time().toString()
-        << " and " << _after.last().time().toString()
+        << " at " << _before.oldestUpdate().toString()
+        << " and " << _after.oldestUpdate().toString()
         << " w=" << _weight << "\n";
     }
 
@@ -102,23 +101,27 @@ class TackCost {
                          double *sumDegrees, double *sumKnots,
                          double *sumExternalDegrees, double *sumExternalKnots) {
       HorizontalMotion<double> windBefore =
-        TrueWindEstimator::computeTrueWind<double, InstrumentFilter<double> >(params, makeFilter(_before));
+        TrueWindEstimator::computeTrueWind<double, ServerFilter>(params, _before);
       HorizontalMotion<double> windAfter =
-        TrueWindEstimator::computeTrueWind<double, InstrumentFilter<double> >(params, makeFilter(_after));
+        TrueWindEstimator::computeTrueWind<double, ServerFilter>(params, _after);
       *sumDegrees = std::fabs(windAfter.angle().directionDifference(
               windBefore.angle()).degrees());
       *sumKnots = std::fabs((windAfter.norm() - windBefore.norm()).knots());
       
       *sumExternalDegrees = std::fabs(
-          externalTrueWindDirection(_before).directionDifference(
-              externalTrueWindDirection(_after)).degrees());
+          externalTrueWindDirection(_beforeNav).directionDifference(
+              externalTrueWindDirection(_afterNav)).degrees());
       *sumExternalKnots = std::fabs(
-          (_before.last().externalTws() - _after.last().externalTws()).knots());
+          (_beforeNav.last().externalTws() - _afterNav.last().externalTws()).knots());
     }
 
   private:
-    Array<Nav> _before;
-    Array<Nav> _after;
+    ServerFilter _before;
+    ServerFilter _after;
+
+    // For debugging only.
+    Array<Nav> _beforeNav;
+    Array<Nav> _afterNav;
     double _weight;
 };
 
@@ -130,8 +133,11 @@ void Calibrator::addTack(int pos, double weight) {
     return;
   }
 
-  Array<Nav> before = _allnavs.slice(pos - length - delta, pos - delta);
-  Array<Nav> after = _allnavs.slice(pos + delta, pos + delta + length);
+  const int largeMargin = 500;
+  Array<Nav> before = _allnavs.slice(max(0, pos - delta - largeMargin),
+                                     pos - delta);
+  Array<Nav> after = _allnavs.slice(max(0, pos + delta - largeMargin),
+                                    pos + delta + length);
 
   Duration<double> deltaTime = after.first().time() - before.last().time();
   if (deltaTime > Duration<>::minutes(3)) {
@@ -247,18 +253,23 @@ bool Calibrator::calibrate(const Array<Nav>& navs,
 
   if (_maneuvers.size() < 30) {
     // we do not have enough maneuvers.
+    if (_verbose) {
+      LOG(INFO) << "only " << _maneuvers.size()
+        << " maneuvers, cancelling calibration.";
+    }
     clear();
     return false;
   }
 
-
-  GnuplotExtra gnuplot;
+  GnuplotExtra* gnuplot = 0;
   if (_verbose) {
+    gnuplot = new GnuplotExtra();
     print();
-    gnuplot.set_style("lines");
-    gnuplot.set_xlabel("error [degrees]");
-    gnuplot.set_ylabel("count");
-    plot(&gnuplot, "before");
+    gnuplot->set_style("lines");
+    gnuplot->set_xlabel("error [degrees]");
+    gnuplot->set_ylabel("count");
+    plot(gnuplot, "external", true);
+    plot(gnuplot, "before", false);
   }
 
   // Run the solver!
@@ -278,7 +289,8 @@ bool Calibrator::calibrate(const Array<Nav>& navs,
     }
 
     print();
-    plot(&gnuplot, "after");
+    plot(gnuplot, "after", false);
+    delete gnuplot;
   }
 
   return true;
@@ -331,7 +343,7 @@ void Calibrator::print() {
     << " (external: " << sumExternalNormAngle << ")";
 }
 
-void Calibrator::plot(GnuplotExtra *gnuplot, const std::string &title) {
+void Calibrator::plot(GnuplotExtra *gnuplot, const std::string &title, bool external) {
   ArrayBuilder<double> allAngleError; 
   ArrayBuilder<double> allNormAngle;
   ArrayBuilder<double> allExternalAngleError;
@@ -346,7 +358,6 @@ void Calibrator::plot(GnuplotExtra *gnuplot, const std::string &title) {
                               &angleError, &normAngle,
                               &externalAngleError, &externalNormAngle);
     allAngleError.add(angleError);
-    allAngleError.add(angleError);
     allNormAngle.add(normAngle);
     allExternalAngleError.add(externalAngleError);
     allExternalNormAngle.add(externalNormAngle);
@@ -355,7 +366,8 @@ void Calibrator::plot(GnuplotExtra *gnuplot, const std::string &title) {
   HistogramMap angleErrorHist(count, 0, 64);
   gnuplot->plot(
       angleErrorHist.makePlotData(
-          angleErrorHist.countPerBin(allAngleError.get())),
+          angleErrorHist.countPerBin(
+              (external ? allExternalAngleError : allAngleError).get())),
       title
       );
 }
@@ -367,6 +379,18 @@ void Calibrator::clear() {
   TrueWindEstimator::initializeParameters(_calibrationValues);
 
   _maneuvers.clear();
+}
+
+void Calibrator::simulate(Array<Nav> *navs) const {
+  ServerFilter filter;
+  for (Nav& nav : *navs) {
+    filter.setAw(nav.awa(), nav.aws(), nav.time());
+    filter.setMagHdgWatSpeed(nav.magHdg(), nav.watSpeed(), nav.time());
+    filter.setGps(nav.gpsBearing(), nav.gpsSpeed(), nav.time());
+
+    nav.setTrueWind(
+        TrueWindEstimator::computeTrueWind(_calibrationValues, filter));
+  }
 }
 
 }  // namespace sail

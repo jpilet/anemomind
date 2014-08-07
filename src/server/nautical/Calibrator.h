@@ -17,7 +17,7 @@ class GnuplotExtra;
 class Calibrator  {
   public:
     Calibrator() : _grammar(_settings), _verbose(false) { clear(); }
-    Calibrator(const WindOrientedGrammar& grammar) : _grammar(grammar) { clear(); }
+    Calibrator(const WindOrientedGrammar& grammar) : _grammar(grammar), _verbose(false) { clear(); }
 
     //! Attempt to load data and run the minimizer. Clears previous results.
     bool calibrate(Poco::Path dataPath, Nav::Id boatId);
@@ -33,7 +33,7 @@ class Calibrator  {
     void print();
 
     //! Invokes gnuplot to show some error distribution.
-    void plot(GnuplotExtra *gnuplot, const std::string &title);
+    void plot(GnuplotExtra *gnuplot, const std::string &title, bool external);
 
     //! Forget last calibration results.
     void clear();
@@ -41,6 +41,9 @@ class Calibrator  {
     //! If set, calibrate() will display detailed information about the
     //  minimization. It will call gnuplot to display errors.
     void setVerbose() { _verbose = true; }
+
+    //! Use the calibration to compute true wind on the given navigation data.
+    void simulate(Array<Nav> *array) const;
 
   private:
     std::string description(std::shared_ptr<HTree> tree);

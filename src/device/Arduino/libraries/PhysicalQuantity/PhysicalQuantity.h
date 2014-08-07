@@ -26,6 +26,16 @@
 #include <math.h>
 #endif
 
+#ifdef isnan
+#pragma push_macro("isnan")
+#undef isnan
+template<typename T> bool isnan(T x) {
+#pragma push_pop("isnan")
+    return isnan(x);
+}
+#undef isnan
+#endif
+
 namespace sail {
 
 /*
@@ -88,6 +98,9 @@ class PhysicalQuantity {
       return Quantity::makeFromX(_x * s);
   }
 
+  Quantity fabs() const { return Quantity::makeFromX(::fabs(_x)); }
+  bool isnan() const { return ::isnan(_x); }
+
   // Comparison --> bool
   bool operator < (ThisQuantity other) const {return _x < other.get();}
   bool operator <= (ThisQuantity other) const {return _x <= other.get();}
@@ -148,6 +161,11 @@ class Angle : public PhysicalQuantity<Angle<T>, T> {
   static Angle<T> degMinMc(T deg, T min, T mc) {
       return Angle<T>::degrees(T(deg + (1.0/60)*(min + 0.001*mc)));
   }
+  void sincos(T *sinAngle, T *cosAngle) const {
+    T rad = radians();
+    *sinAngle = sin(rad);
+    *cosAngle = cos(rad);
+  }
 };
 
 template <typename T = double>
@@ -169,12 +187,13 @@ class Velocity : public PhysicalQuantity<Velocity<T>, T> {
 
 template <typename T = double>
 class Duration : public PhysicalQuantity<Duration<T>, T> {
-  DECLARE_PHYSQUANT_CONSTRUCTORS(Duration, seconds)
+  DECLARE_PHYSQUANT_CONSTRUCTORS(Duration, milliseconds)
  public:
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(minutes, 60.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(hours, 3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(days, 24*3600.0);
-  MAKE_PHYSQUANT_UNIT_CONVERTERS(weeks, 7*24*3600.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(seconds, 1000);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(minutes, 60.0 * 1000.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(hours, 3600.0 * 1000.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(days, 24*3600.0 * 1000.0);
+  MAKE_PHYSQUANT_UNIT_CONVERTERS(weeks, 7*24*3600.0 * 1000.0);
 #ifdef ON_SERVER
   std::string str() const {
     std::stringstream ss;
@@ -314,24 +333,29 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
 
     HorizontalMotion(const BaseType& base) : BaseType(base) { }
 
+    HorizontalMotion() { }
+
     static HorizontalMotion<T> zero() {
-        return HorizontalMotion(BaseType::all(InnerType::metersPerSecond(0))); }
+        return HorizontalMotion(BaseType::all(InnerType::knots(0)));
+    }
     static HorizontalMotion<T> polar(Velocity<T> speed, Angle<T> direction) {
         // A direction of 0 points to north.
+        T sinDir, cosDir;
+        direction.sincos(&sinDir, &cosDir);
         return HorizontalMotion<T>(
-            speed.scaled(sin(direction)),
-            speed.scaled(cos(direction)));
+            speed.scaled(sinDir),
+            speed.scaled(cosDir));
     }
 
     Velocity<T> norm() const {
-        T a = (*this)[0].metersPerSecond();
-        T b = (*this)[1].metersPerSecond();
-        return Velocity<T>::metersPerSecond(sqrt(a*a + b*b));
+        T a = (*this)[0].knots();
+        T b = (*this)[1].knots();
+        return Velocity<T>::knots(sqrt(a*a + b*b));
     }
     Angle<T> angle() const {
         return Angle<T>::radians(atan2(
-                (*this)[0].metersPerSecond(),
-                (*this)[1].metersPerSecond()));
+                (*this)[0].knots(),
+                (*this)[1].knots()));
     }
 
     template <typename Dst>
@@ -346,12 +370,21 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
     };
 };
 
-}
+}  // namespace sail
 
 #undef MAKE_PHYSQUANT_TO_UNIT_CONVERTER
 #undef MAKE_PHYSQUANT_FROM_UNIT_CONVERTER
 #undef MAKE_PHYSQUANT_UNIT_CONVERTERS
 #undef DECLARE_PHYSQUANT_CONSTRUCTORS
 
+template <typename Quantity, typename Value>
+Quantity fabs(sail::PhysicalQuantity<Quantity, Value> x) {
+  return x.fabs();
+}
+
+template <typename Quantity, typename Value>
+bool isnan(sail::PhysicalQuantity<Quantity, Value> x) {
+  return x.isnan();
+}
 
 #endif /* PHYSICALQUANTITY_H_ */

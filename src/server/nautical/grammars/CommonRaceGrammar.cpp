@@ -7,6 +7,8 @@
 #include <server/nautical/grammars/StaticCostFactory.h>
 #include <server/common/HNodeGroup.h>
 #include <server/math/hmm/StateAssign.h>
+#include <server/common/SharedPtrUtils.h>
+#include <server/nautical/grammars/HintedStateAssignFactory.h>
 
 namespace sail {
 
@@ -59,10 +61,28 @@ namespace {
   double sailPointTransitionCost(int i, int j) {
     return cyclicDif(i-2, j-2, 6);
   }
+
+  MDArray2b makeCon(const Hierarchy &h, int i, int j) {
+    StaticCostFactory f(h);
+    f.connectNoCost(i, j, false);
+    return f.connections();
+  }
+
+  MDArray2b makeSOR(const Hierarchy &h) {
+    return makeCon(h, h.getNodeByName("idle").index(), h.getNodeByName("in-race").index());
+  }
+
+  MDArray2b makeEOR(const Hierarchy &h) {
+    return makeCon(h, h.getNodeByName("in-race").index(), h.getNodeByName("idle").index());
+  }
+
+
 }
 
 CommonRaceGrammar::CommonRaceGrammar(CommonRaceGrammarSettings settings) :
   _h(makeH()) {
+  _startOfRaceTransitions = makeSOR(_h);
+  _endOfRaceTransitions = makeEOR(_h);
   double ooc = settings.onOffCost;
   StaticCostFactory f(_h);
   f.connectSelf(1, 1);
@@ -129,7 +149,7 @@ std::shared_ptr<HTree> CommonRaceGrammar::parse(Array<Nav> navs,
   OnOffCost onOffCost(navs, 0, _settings.perSecondCost);
   CommonRaceStateAssign sa(navs, _angleCost, _staticTransitionCosts,
       _staticStateCosts, _preds, onOffCost);
-  return _h.parse(sa.solve());
+  return _h.parse(makeHintedStateAssign(*this, makeSharedPtrToStack(sa), hints, navs).solve());
 }
 
 Array<HNode> CommonRaceGrammar::nodeInfo() {

@@ -32,6 +32,9 @@ class Grammar {
   virtual Array<HNode> nodeInfo() = 0;
 
   virtual ~Grammar() {}
+
+  virtual MDArray2b startOfRaceTransitions() const {return MDArray2b();};
+  virtual MDArray2b endOfRaceTransitions() const {return MDArray2b();};
 };
 
 

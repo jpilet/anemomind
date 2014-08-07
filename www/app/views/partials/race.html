@@ -1,11 +1,11 @@
+<div class="svgContainer">
+<display-path data="data"></display-path>
+</div>
+
+<div class="container">
 <div ng-include="'partials/navbar.html'"></div>
 
 <div class="row">
-  <div class="col-sm-12">
-    <a ng-repeat="race in races" ng-click="loadRace(race._id)"><span class="label label-default races">
-      {{ race.title }}
-    </span></a>
-  </div>
   <div class="col-sm-12">
       <div id="sliderWrapper" ng-show="raceIsLoaded">
         <div id="btns" ng-show="raceIsLoaded">
@@ -16,7 +16,5 @@
       </div>
     </div>
   </div>
-  <div ng-init="data=null">
-    <display-path data="data"></display-path>
-  </div>
+</div>
 </div>

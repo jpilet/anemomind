@@ -15,8 +15,29 @@ module.exports = function (grunt) {
   // Time how long tasks take. Can help when optimizing build times
   require('time-grunt')(grunt);
 
+  var fs = require('fs');
+  var mkdirIfNotExistsSync = function(path) {
+    if (!fs.existsSync(path)) {
+      fs.mkdirSync(path);
+    }
+  }
+  var dbPath = __dirname + '/db';
+  mkdirIfNotExistsSync(dbPath);
+  mkdirIfNotExistsSync(__dirname + '/uploads');
+
   // Define the configuration for all the tasks
   grunt.initConfig({
+    shell: {
+      mongo: {
+        command: 'mongod --dbpath ' + dbPath,
+        options: {
+          async: true,
+          stdout: true,
+          stderr: true,
+          failOnError: true,
+        }
+      },
+    },
 
     // Project settings
     yeoman: {
@@ -26,12 +47,13 @@ module.exports = function (grunt) {
     },
     express: {
       options: {
-        port: process.env.PORT || 9000
+        port: process.env.PORT || 8080
       },
       dev: {
         options: {
           script: 'server.js',
-          debug: true
+          debug: true,
+          node_env: 'development'
         }
       },
       prod: {
@@ -174,7 +196,8 @@ module.exports = function (grunt) {
         options: {
           nodeArgs: ['--debug-brk'],
           env: {
-            PORT: process.env.PORT || 9000
+            PORT: process.env.PORT || 8080,
+            NODE_ENV: 'development'
           },
           callback: function (nodemon) {
             nodemon.on('log', function (event) {
@@ -306,7 +329,6 @@ module.exports = function (grunt) {
           src: [
             '*.{ico,png,txt}',
             '.htaccess',
-            'bower_components/**/*',
             'images/{,*/}*.{webp}',
             'fonts/**/*'
           ]
@@ -367,28 +389,15 @@ module.exports = function (grunt) {
     // By default, your `index.html`'s <!-- Usemin block --> will take care of
     // minification. These next options are pre-configured if you do not wish
     // to use the Usemin blocks.
-    // cssmin: {
-    //   dist: {
-    //     files: {
-    //       '<%= yeoman.dist %>/styles/main.css': [
-    //         '.tmp/styles/{,*/}*.css',
-    //         '<%= yeoman.app %>/styles/{,*/}*.css'
-    //       ]
-    //     }
-    //   }
-    // },
-    // uglify: {
-    //   dist: {
-    //     files: {
-    //       '<%= yeoman.dist %>/scripts/scripts.js': [
-    //         '<%= yeoman.dist %>/scripts/scripts.js'
-    //       ]
-    //     }
-    //   }
-    // },
-    // concat: {
-    //   dist: {}
-    // },
+    cssmin: {
+      dist: { }
+    },
+    uglify: {
+      dist: { }
+    },
+    concat: {
+      dist: { }
+    },
 
     // Test settings
     karma: {
@@ -430,11 +439,12 @@ module.exports = function (grunt) {
 
   grunt.registerTask('serve', function (target) {
     if (target === 'dist') {
-      return grunt.task.run(['build', 'express:prod', 'open', 'express-keepalive']);
+      return grunt.task.run(['build', 'shell:mongo', 'express:prod', 'open', 'express-keepalive']);
     }
 
     if (target === 'debug') {
       return grunt.task.run([
+        'shell:mongo',
         'clean:server',
         'bower-install',
         'concurrent:server',
@@ -444,6 +454,7 @@ module.exports = function (grunt) {
     }
 
     grunt.task.run([
+      'shell:mongo',
       'clean:server',
       'bower-install',
       'concurrent:server',
@@ -463,6 +474,7 @@ module.exports = function (grunt) {
     if (target === 'server') {
       return grunt.task.run([
         'env:test',
+        'shell:mongo',
         'mochaTest'
       ]);
     }
@@ -477,6 +489,7 @@ module.exports = function (grunt) {
     }
 
     grunt.task.run([
+      'shell:mongo',
       'env:test',
       'mochaTest',
       'clean:server',

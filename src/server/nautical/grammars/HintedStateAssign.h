@@ -17,11 +17,23 @@ namespace sail {
  * */
 class LocalStateAssign {
  public:
+  // Standard penalty for hard constraints. Maybe it makes
+  // more sense here to use a large number than infinity, in case
+  // it is impossible to satisfy all constraints...
+  static constexpr double HardPenalty = 1.0e9;
+
+  /*
+   * Methods to override
+   */
   virtual int begin() const = 0;
   virtual int end() const = 0;
-
   virtual int getStateCount() = 0;
+  virtual double getStateCost(int stateIndex, int timeIndex) = 0;
+  virtual double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) = 0;
 
+  /*
+   * Other methods
+   */
   int beginStateIndex() const {
     return begin();
   }
@@ -34,13 +46,12 @@ class LocalStateAssign {
     return begin() <= index && index < end();
   }
 
-  virtual double getStateCost(int stateIndex, int timeIndex) = 0;
+
   double getSafeStateCost(int stateIndex, int timeIndex) {
     assert(validTimeIndex(timeIndex));
     return getStateCost(stateIndex, timeIndex);
   }
 
-  virtual double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) = 0;
   double getSafeTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
     assert(validTimeIndex(fromTimeIndex + 0));
     assert(validTimeIndex(fromTimeIndex + 1));

@@ -56,8 +56,8 @@ Nav::Nav(MDArray2d row) {
   _awa = Angle<double>::degrees(row(0, 7));
   _aws = Velocity<double>::knots(row(0, 8));
 
-  _twaFromFile = Angle<double>::degrees(row(0, 9));
-  _twsFromFile = Velocity<double>::knots(row(0, 10));
+  _externalTwa = Angle<double>::degrees(row(0, 9));
+  _externalTws = Velocity<double>::knots(row(0, 10));
 
   _magHdg = Angle<double>::degrees(row(0, 11));
   _watSpeed = Velocity<double>::knots(row(0, 12));
@@ -91,22 +91,22 @@ bool Nav::operator== (const Nav &other) const {
       _awa.nearWithNan(other._awa, marg) &&
       _aws.nearWithNan(other._aws, marg) &&
       _boatId == other._boatId &&
-      _twaFromFile.nearWithNan(other._twaFromFile, marg) &&
-      _twsFromFile.nearWithNan(other._twsFromFile, marg) &&
+      _externalTwa.nearWithNan(other._externalTwa, marg) &&
+      _externalTws.nearWithNan(other._externalTws, marg) &&
       _magHdg.nearWithNan(other._magHdg, marg) &&
       _watSpeed.nearWithNan(other._watSpeed, marg) &&
       _gpsBearing.nearWithNan(other._gpsBearing, marg) &&
       _pos.lon().nearWithNan(other._pos.lon(), marg) &&
       _pos.lat().nearWithNan(other._pos.lat(), marg) &&
       _pos.alt().nearWithNan(other._pos.alt(), marg) &&
+      _trueWind[0].nearWithNan(other._trueWind[0], marg) &&
+      _trueWind[1].nearWithNan(other._trueWind[1], marg) &&
       (nearWithNan(_cwd, other._cwd, marg)) && (nearWithNan(_wd, other._wd, marg));
 }
-
 
 HorizontalMotion<double> Nav::gpsVelocity() const {
   return HorizontalMotion<double>::polar(gpsSpeed(), gpsBearing());
 }
-
 
 Nav::Id Nav::id() const {
   if (hasId()) {
@@ -121,10 +121,6 @@ Nav::Id Nav::id() const {
 bool Nav::hasId() const {
   return hasBoatId() && _time.defined();
 }
-
-
-
-const char Nav::AllNavsPath[] = "../../../../datasets/allnavs.txt";
 
 // From load_data.m
 //year = 1;

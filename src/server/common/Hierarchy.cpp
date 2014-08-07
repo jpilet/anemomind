@@ -320,6 +320,15 @@ std::shared_ptr<HTree> Hierarchy::parse(Arrayi inds) const {
   return tree;
 }
 
+HNode Hierarchy::getNodeByName(const std::string &name) const {
+  for (auto n : _nodes) {
+    if (n.description() == name) {
+      return n;
+    }
+  }
+  return HNode();
+}
+
 std::shared_ptr<HTree> Hierarchy::wrap(int left, int level, int nodeIndex) const {
   int dstLevel = _levelPerNode[nodeIndex];
   if (level == dstLevel) {

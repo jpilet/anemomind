@@ -1,12 +1,12 @@
 #!/bin/sh
 # usage: crunch folderName filename.ext
 set -e
-src="${PWD}/uploads/$1/$2";
-dst="${PWD}/data/$1/$2"
-mkdir -p ${PWD}/data/$1
-echo "copying $src to $dst...";
+srcdir="${PWD}/uploads/$1";
+dstdir="${PWD}/data/$1"
+mkdir -p "${PWD}/data/$1"
+echo "copying $srcdir/* to $dstdir...";
 #sleep 5
-cp $src $dst;
+cp "${srcdir}"/* "${dstdir}";
 
 # Please make sure that the crunching program is on the path
 # either by adding its directory to the path or by
@@ -16,7 +16,7 @@ cp $src $dst;
 # ./build/src/server/nautical/nautical_processBoatLogs
 # After a git clone, the application must be compiled like so:
 # make nautical_processBoatLogs
-../build/src/server/nautical/nautical_processBoatLogs ${PWD}/data/$1 $2
+../build/src/server/nautical/nautical_processBoatLogs "${PWD}/data/${1}"
 
 echo "done!"
 echo "running node script..."

@@ -11,5 +11,7 @@ tags
 
 .tmp
 www/app/bower_components
+www/data
+www/dist
 www/node_modules
 www/uploads/*
