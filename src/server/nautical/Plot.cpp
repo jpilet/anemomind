@@ -241,6 +241,15 @@ namespace sail {
     }
   };
 
+  class Pop : public PlotCmd {
+   public:
+    const char *cmd() const {return "pop";}
+    const char *help() const {return "pops the top element.";}
+    void apply(PlotEnv *env) const {
+      pop(env->stack());
+    }
+  };
+
   GeographicPosition<double> getFirstGeoPos(Array<Nav> navs) {
     return navs[0].geographicPosition();
   }
@@ -470,6 +479,7 @@ namespace sail {
     RegisterPlotStyle<styleCount>::exec(&builder);
     registerCmd<Dup>(&builder);
     registerCmd<MakeLocalXY>(&builder);
+    registerCmd<Pop>(&builder);
     _commands = builder.get();
   }
 
