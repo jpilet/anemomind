@@ -250,6 +250,23 @@ namespace sail {
     }
   };
 
+  class Fetch : public PlotCmd {
+   public:
+    const char *cmd() const {return "fetch";}
+    const char *help() const {return "fetches the nth element from the top after n has been popped.";}
+    void apply(PlotEnv *env) const {
+      std::vector<Plottable> &stack = env->stack();
+      int n = int(pop(stack).get(0));
+      int len = stack.size();
+      int at = len - n - 1;
+      Plottable nth = stack[at];
+      for (int i = 0; i < n; i++) {
+        stack[at + i] = stack[at + i + 1];
+      }
+      stack[len-1] = nth;
+    }
+  };
+
   GeographicPosition<double> getFirstGeoPos(Array<Nav> navs) {
     return navs[0].geographicPosition();
   }
@@ -480,6 +497,7 @@ namespace sail {
     registerCmd<Dup>(&builder);
     registerCmd<MakeLocalXY>(&builder);
     registerCmd<Pop>(&builder);
+    registerCmd<Fetch>(&builder);
     _commands = builder.get();
   }
 
