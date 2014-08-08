@@ -9,6 +9,7 @@
 #include <server/common/string.h>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/ArrayIO.h>
+#include <server/nautical/GeographicReference.h>
 #include <sstream>
 
 namespace sail {
@@ -226,9 +227,41 @@ namespace sail {
         x.applyAxisOp(dst->plot(), 0);
         y.applyAxisOp(dst->plot(), 1);
         z.applyAxisOp(dst->plot(), 2);
-        dst->plot().plot_xy(x.values(), y.values(), "x=" + x.sExpr() + " y=" + y.sExpr() + " z=" + z.sExpr());
+        dst->plot().plot_xyz(x.values(), y.values(), z.values(),
+            "x=" + x.sExpr() + " y=" + y.sExpr() + " z=" + z.sExpr());
       }
     };
+
+  class Dup : public PlotCmd {
+   public:
+    const char *cmd() const {return "dup";}
+    const char *help() const {return "duplicates the top element.";}
+    void apply(PlotEnv *env) const {
+      env->stack().push_back(top(env->stack()));
+    }
+  };
+
+  GeographicPosition<double> getFirstGeoPos(Array<Nav> navs) {
+    return navs[0].geographicPosition();
+  }
+
+  class MakeLocalXY : public PlotCmd {
+   public:
+    const char *cmd() const {return "make-local-xy";}
+    const char *help() const {return "computes an x- and a y-vector in a local 2d coordinate system from the geographic positions.";}
+    void apply(PlotEnv *env) const;
+   private:
+  };
+
+  void MakeLocalXY::apply(PlotEnv *env) const {
+     GeographicReference ref(getFirstGeoPos(env->navs()));
+     typedef GeographicReference::ProjectedPosition GRPP;
+     Array<GRPP> pos = env->navs().map<GRPP>([=] (const Nav &n) {return ref.map(n.geographicPosition());});
+     Arrayd X = pos.map<double>([=](const GRPP &pos) {return pos[0].nauticalMiles();});
+     Arrayd Y = pos.map<double>([=](const GRPP &pos) {return pos[1].nauticalMiles();});
+     env->stack().push_back(Plottable("local-x-nautical-miles", X));
+     env->stack().push_back(Plottable("local-y-nautical-miles", Y));
+  }
 
   class Show : public PlotCmd {
    public:
@@ -435,6 +468,8 @@ namespace sail {
     registerCmd<PlotXY>(&builder);
     registerCmd<PlotXYZ>(&builder);
     RegisterPlotStyle<styleCount>::exec(&builder);
+    registerCmd<Dup>(&builder);
+    registerCmd<MakeLocalXY>(&builder);
     _commands = builder.get();
   }
 
@@ -448,7 +483,7 @@ namespace sail {
     for (int i = begin+1; i < argc; i++) {
       std::string cmd(argv[i]);
       if (!parsePlotCommand(cmd)) {
-        std::cout << "  No such command: " << cmd << std::endl;
+        std::cout << "  ----------> ERROR: No such command: " << cmd << std::endl;
       }
     }
     std::cout << "Done plotting." << std::endl;

@@ -336,16 +336,6 @@ target_link_libraries(nautical_TestdataNavs
                       common_PathBuilder
                      )
 
-add_executable(nautical_PlotNavs
-               PlotNavs.cpp
-              )
-              
-target_link_libraries(nautical_PlotNavs
-                      nautical_TestdataNavs
-                      nautical_grammars_WindOrientedGrammar
-                      nautical_grammars_TreeExplorer
-                      plot_gnuplot
-                     )
 
 add_library(nautical_GeographicPositionJson
             GeographicPositionJson.h
@@ -400,4 +390,5 @@ target_link_libraries(nautical_TemporalPlot
                       plot_gnuplot
                       common_logging
                       nautical_TestdataNavs
+                      nautical_GeographicReference
                      )
