@@ -36,9 +36,19 @@ namespace sail {
     int size() const {
       return _values.size();
     }
+
+    typedef std::function<void(GnuplotExtra &plot, int axis)> AxisOp;
+
+    void setAxisOp(AxisOp op) {_op = op;}
+    void applyAxisOp(GnuplotExtra &extra, int i) const {
+      if (_op) {
+        _op(extra, i);
+      }
+    }
    private:
     std::string _sExpr;
     Arrayd _values;
+    AxisOp _op;
   };
 
   std::ostream &operator<<(std::ostream &s, Plottable x) {
@@ -156,21 +166,6 @@ namespace sail {
     return XY;
   }
 
-  class PlotSignal : public PlotCmd {
-   public:
-    // String that triggers this command
-    const char *cmd() const {return "plot-signal";}
-
-    // Should return a single string explaining how to use it
-    const char *help() const {return "plots the top stack element as a temporal signal.";}
-
-
-    void apply(PlotEnv *dst) const {
-      Plottable x = pop(dst->stack());
-      dst->plot().plot(makeXYData(x.values()), x.sExpr());
-    }
-  };
-
   class PlotXY : public PlotCmd {
      public:
       // String that triggers this command
@@ -183,9 +178,37 @@ namespace sail {
       void apply(PlotEnv *dst) const {
         Plottable y = pop(dst->stack());
         Plottable x = pop(dst->stack());
+        x.applyAxisOp(dst->plot(), 0);
+        y.applyAxisOp(dst->plot(), 1);
         dst->plot().plot_xy(x.values(), y.values(), "x=" + x.sExpr() + " y=" + y.sExpr());
       }
     };
+
+  const int styleCount = 11;
+  const char *styles[styleCount] = {"lines", "points",
+      "linespoints", "impulses", "dots", "steps", "fsteps", "histeps",
+      "boxes", "filledcurves", "histograms"};
+
+
+  template <int styleIndex>
+  class PlotStyle : public PlotCmd {
+   public:
+    const char *style() const {return styles[styleIndex];}
+
+    const char *cmd() const {
+      static std::string cmdstr = std::string("set-style-") + style();
+      return cmdstr.c_str();
+    }
+
+    const char *help() const {
+      static std::string helpstr = std::string("Sets the plot style to ") + style();
+      return helpstr.c_str();
+    }
+
+    void apply(PlotEnv *dst) const {
+      dst->plot().set_style(style());
+    }
+  };
 
   class PlotXYZ : public PlotCmd {
      public:
@@ -200,6 +223,9 @@ namespace sail {
         Plottable z = pop(dst->stack());
         Plottable y = pop(dst->stack());
         Plottable x = pop(dst->stack());
+        x.applyAxisOp(dst->plot(), 0);
+        y.applyAxisOp(dst->plot(), 1);
+        z.applyAxisOp(dst->plot(), 2);
         dst->plot().plot_xy(x.values(), y.values(), "x=" + x.sExpr() + " y=" + y.sExpr() + " z=" + z.sExpr());
       }
     };
@@ -296,11 +322,45 @@ namespace sail {
     void apply(PlotEnv *dst) const {applyExtraction(cmd(), dst, [=](const Nav &n) {return getRawLeeway(n).degrees();});}
   };
 
-  class TimeHours : public PlotCmd {
+
+  void setTimeFormatForAxis(GnuplotExtra &plot, int i) {
+    const char axis[3] = {'x', 'y', 'z'};
+    char sym = axis[i];
+    plot.cmd(stringFormat("set %cdata time\n", sym));
+    plot.cmd("set timefmt \"%s\"\n");
+    plot.cmd(stringFormat("set format %c \"%s\"\n",
+                          sym, "%m/%d/%Y %H:%M:%S"));
+
+    // What does this line do? I copied it from PlotNavs
+    plot.cmd("set xtics nomirror rotate by -45\n");
+  }
+
+  class TimeSeconds : public PlotCmd {
    public:
-    const char *cmd() const {return "time-hours";}
-    const char *help() const {return "Extracts time in unit hours from all navs.";}
-    void apply(PlotEnv *dst) const {applyExtraction(cmd(), dst, [=](const Nav &n) {return getRawTime(n).hours();});}
+    const char *cmd() const {return "time-seconds";}
+    const char *help() const {return "Extracts time in unit seconds from all navs.";}
+    void apply(PlotEnv *dst) const {
+      Plottable x(cmd(), dst->navs().map<double>([=](const Nav &n) {return getRawTime(n).seconds();}));
+      x.setAxisOp([=](GnuplotExtra &plot, int i) {setTimeFormatForAxis(plot, i);});
+      dst->stack().push_back(x);
+    }
+  };
+
+  class TimePlot : public PlotCmd {
+   public:
+    // String that triggers this command
+    const char *cmd() const {return "time-plot";}
+
+    // Should return a single string explaining how to use it
+    const char *help() const {return "plots the top stack element as a temporal signal.";}
+
+
+    void apply(PlotEnv *dst) const {
+      Plottable x = pop(dst->stack());
+      TimeSeconds().apply(dst);
+      dst->stack().push_back(x);
+      PlotXY().apply(dst);
+    }
   };
 
   DECL_EXTRACT(AwaDegrees, awa, degrees)
@@ -322,6 +382,23 @@ namespace sail {
     dst->add(&instance);
   }
 
+  template <int N>
+  class RegisterPlotStyle {
+   public:
+    static void exec(ArrayBuilder<PlotCmd*> *builder) {
+      registerCmd<PlotStyle<N-1> >(builder);
+      RegisterPlotStyle<N-1>::exec(builder);
+    }
+  };
+
+  template <>
+  class RegisterPlotStyle<0> {
+   public:
+    static void exec(ArrayBuilder<PlotCmd*> *builder) {}
+  };
+
+
+
   PlotEnv::PlotEnv(Array<Nav> navs_) : _navs(navs_) {
     _plot.set_style("lines");
     ArrayBuilder<PlotCmd*> builder;
@@ -333,7 +410,7 @@ namespace sail {
     registerCmd<Exp>(&builder);
     registerCmd<Abs>(&builder);
     registerCmd<Disp>(&builder);
-    registerCmd<PlotSignal>(&builder);
+    registerCmd<TimePlot>(&builder);
     registerCmd<Show>(&builder);
     registerCmd<AwaDegrees>(&builder);
     registerCmd<AwaRadians>(&builder);
@@ -354,9 +431,10 @@ namespace sail {
     registerCmd<Sqrt>(&builder);
     registerCmd<LeewayDegrees>(&builder);
     registerCmd<LeewayRadians>(&builder);
-    registerCmd<TimeHours>(&builder);
+    registerCmd<TimeSeconds>(&builder);
     registerCmd<PlotXY>(&builder);
     registerCmd<PlotXYZ>(&builder);
+    RegisterPlotStyle<styleCount>::exec(&builder);
     _commands = builder.get();
   }
 
