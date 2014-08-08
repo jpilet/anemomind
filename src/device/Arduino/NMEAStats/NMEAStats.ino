@@ -80,7 +80,7 @@ void openLogFile() {
 #undef degrees
 
 void displaySpeedRatio(const NmeaParser& parser) {
-  Angle<FP8_8> twa;
+  Angle<FP16_16> twa;
   Velocity<FP8_8> tws;
 
   if (calibrationLoaded) {
@@ -97,7 +97,7 @@ void displaySpeedRatio(const NmeaParser& parser) {
    float speedRatio = getVmgSpeedRatio(targetSpeedTable,
        twa.degrees(),
        tws.knots(),
-       filter.gpsSpeed().knots());
+       (FP8_8) (filter.gpsSpeed().knots()));
    
    // Display speedRatio on the LCD display.
    screenUpdate(
@@ -163,11 +163,14 @@ void setup()
   loadData();
 }
 
+void logNmeaSentence() {
+  nmeaParser.putSentence(my_putc);
+}
+
 void loop()
 {
   while (Serial.available() > 0) {
     char c = Serial.read();
-    Serial.write(c);
     
     TimeStamp timestamp = TimeStamp::now();
     switch (nmeaParser.processByte(c)) {
@@ -211,10 +214,3 @@ void loop()
     }
   }
 }
-
-void logNmeaSentence() {
-  nmeaParser.putSentence(my_putc);
-}
-
-
-

@@ -29,8 +29,14 @@
 #ifdef isnan
 #pragma push_macro("isnan")
 #undef isnan
-template<typename T> bool isnan(T x) {
-#pragma push_pop("isnan")
+bool isnan(float x) {
+#pragma pop_macro("isnan")
+    return isnan(x);
+}
+#pragma push_macro("isnan")
+#undef isnan
+bool isnan(double x) {
+#pragma pop_macro("isnan")
     return isnan(x);
 }
 #undef isnan
@@ -99,7 +105,7 @@ class PhysicalQuantity {
   }
 
   Quantity fabs() const { return Quantity::makeFromX(::fabs(_x)); }
-  bool isnan() const { return ::isnan(_x); }
+  bool isNaN() const { return isnan(_x); }
 
   // Comparison --> bool
   bool operator < (ThisQuantity other) const {return _x < other.get();}
@@ -383,8 +389,8 @@ Quantity fabs(sail::PhysicalQuantity<Quantity, Value> x) {
 }
 
 template <typename Quantity, typename Value>
-bool isnan(sail::PhysicalQuantity<Quantity, Value> x) {
-  return x.isnan();
+bool isnan(const sail::PhysicalQuantity<Quantity, Value>& x) {
+  return x.isNaN();
 }
 
 #endif /* PHYSICALQUANTITY_H_ */
