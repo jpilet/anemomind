@@ -503,7 +503,7 @@ namespace sail {
   bool PlotEnv::parsePlotCommand(const std::string &cmd) {
     try {
       double x = std::stod(cmd);
-      _stack.push_back(Plottable(cmd, Arrayd::fill(_navs.size(), x)));
+      _stack.push_back(Plottable(cmd, Arrayd::fill(1, x)));
       return true;
     } catch (std::exception &e) {
       for (auto x : _commands) {
