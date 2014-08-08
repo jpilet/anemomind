@@ -405,6 +405,20 @@ namespace sail {
     }
   };
 
+  class Inds : public PlotCmd {
+   public:
+    const char *cmd() const {return "inds";}
+    const char *help() const {return "Pushes indices from 0 up to the length of navs";}
+    void apply(PlotEnv *dst) const {
+      int n = dst->navs().size();
+      Arrayd inds(n);
+      for (int i = 0; i < n; i++) {
+        inds[i] = i;
+      }
+      dst->stack().push_back(Plottable("inds", inds));
+    }
+  };
+
   class TimePlot : public PlotCmd {
    public:
     // String that triggers this command
@@ -419,6 +433,24 @@ namespace sail {
       TimeSeconds().apply(dst);
       dst->stack().push_back(x);
       PlotXY().apply(dst);
+    }
+  };
+
+  class DifsPred : public PlotCmd {
+   public:
+    const char *cmd() const {return "difspred";}
+
+    const char *help() const {return "Compute the difference between every element and its predecessor in the top vector of the stack.";}
+
+    void apply(PlotEnv *dst) const {
+      Plottable x = pop(dst->stack());
+      int n = x.size();
+      Arrayd y(n);
+      y[0] = 0;
+      for (int i = 1; i < n; i++) {
+        y[i] = x.get(i) - x.get(i-1);
+      }
+      dst->stack().push_back(Plottable("(difspred " + x.sExpr(), y));
     }
   };
 
@@ -498,6 +530,8 @@ namespace sail {
     registerCmd<MakeLocalXY>(&builder);
     registerCmd<Pop>(&builder);
     registerCmd<Fetch>(&builder);
+    registerCmd<DifsPred>(&builder);
+    registerCmd<Inds>(&builder);
     _commands = builder.get();
   }
 
