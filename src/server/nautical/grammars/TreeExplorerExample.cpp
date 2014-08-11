@@ -9,6 +9,9 @@
 #include <server/common/PathBuilder.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 
+#include <server/common/string.h>
+#include <iostream>
+
 using namespace sail;
 
 int main(int argc, char *argv[]) {
@@ -27,6 +30,9 @@ int main(int argc, char *argv[]) {
   Array<Nav> navs = scanNmeaFolder(p, Nav::debuggingBoatId());
   std::shared_ptr<HTree> tree = g.parse(navs);
   assert(bool(tree));
-  exploreTree(g.nodeInfo(), tree);
+  auto infoFun = [&] (std::shared_ptr<HTree> tree) {
+      return stringFormat("%.3g seconds", (navs[tree->right()-1].time() - navs[tree->left()].time()).seconds());
+    };
+  exploreTree(g.nodeInfo(), tree, &std::cout, infoFun);
   return 0;
 }
