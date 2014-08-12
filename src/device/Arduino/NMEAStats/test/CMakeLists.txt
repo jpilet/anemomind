@@ -25,6 +25,7 @@ target_link_libraries(device_MockArduino
          device_ChunkFile
          device_NmeaParser
          device_TargetSpeed
+         nautical_NavNmea
          gmock
          )
 

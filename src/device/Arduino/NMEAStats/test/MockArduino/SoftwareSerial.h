@@ -16,6 +16,11 @@ class MockSerial {
     char read() { return *_pos++; }
 
     std::string output() const { return _output; }
+
+    void clear() {
+      setData("");
+      _output = "";
+    }
   private:
       std::string _input;
       std::string::const_iterator _pos;

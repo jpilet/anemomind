@@ -19,6 +19,8 @@ class MockArduino {
     MOCK_METHOD0(screenInit, void());
     MOCK_METHOD1(screenUpdate, void(int a));
     MOCK_METHOD3(screenUpdate, void(int a, int b, int c));
+
+    void setMillis(long ms) { _arduinoTimeMs = ms; }
   private:
     long _arduinoTimeMs;
 };
