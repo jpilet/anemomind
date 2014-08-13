@@ -80,29 +80,34 @@ void openLogFile() {
 #undef degrees
 
 void displaySpeedRatio(const NmeaParser& parser) {
-  Angle<FP16_16> twa;
+  Angle<FP16_16> twdir;
   Velocity<FP8_8> tws;
 
   if (calibrationLoaded) {
     HorizontalMotion<FP16_16> wind =
       TrueWindEstimator::computeTrueWind(calibration.params, filter);
 
-    twa = wind.angle();
+    twdir = wind.angle();
     tws = wind.norm();
+    // Todo: compute TWA with TrueWindEstimator.
   } else {
-    twa = parser.twa();
+    twdir = Angle<FP16_16>(parser.twa()) + Angle<FP16_16>(parser.magHdg());
     tws = parser.tws();
+  }
+  
+  if (twdir > Angle<FP16_16>::degrees(360)) {
+    twdir -=  Angle<FP16_16>::degrees(360);
   }
 
    float speedRatio = getVmgSpeedRatio(targetSpeedTable,
-       twa.degrees(),
+       parser.twa().degrees(),
        tws.knots(),
        (FP8_8) (filter.gpsSpeed().knots()));
    
    // Display speedRatio on the LCD display.
    screenUpdate(
      max(0,min(200, int(speedRatio * 100.0))),
-     twa.degrees(),
+     twdir.degrees(),
      tws.knots()
      );
 }
