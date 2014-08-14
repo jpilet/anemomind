@@ -29,13 +29,13 @@
 #ifdef isnan
 #pragma push_macro("isnan")
 #undef isnan
-bool isnan(float x) {
+static inline bool isnan(float x) {
 #pragma pop_macro("isnan")
     return isnan(x);
 }
 #pragma push_macro("isnan")
 #undef isnan
-bool isnan(double x) {
+static inline bool isnan(double x) {
 #pragma pop_macro("isnan")
     return isnan(x);
 }

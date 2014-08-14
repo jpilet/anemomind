@@ -38,7 +38,7 @@ TEST(DeviceTest, LogTest) {
 
   // The second call contains something meaningful.
   // The speed ratio is 0 because no target speed table has been loaded.
-  EXPECT_CALL(arduino, screenUpdate(0, 315, 5)).Times(1);
+  EXPECT_CALL(arduino, screenUpdate(0, (192 + 315) % 360, 5)).Times(1);
 
   sendDataToArduino(data);
 
