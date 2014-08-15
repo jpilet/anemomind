@@ -1,7 +1,8 @@
 #include "string.h"
-#include <assert.h>
-#include <stdarg.h>
 #include <algorithm>
+#include <assert.h>
+#include <fstream>
+#include <stdarg.h>
 
 namespace sail {
 
@@ -186,6 +187,20 @@ void indent(std::ostream *s, int count) {
   for (int i = 0; i < count; i++) {
     *s << " ";
   }
+}
+
+std::string readFileToString(const std::string& filename) {
+  std::string result;
+
+  std::ifstream file(filename);
+
+  file.seekg(0, std::ios::end);   
+  result.reserve(file.tellg());
+  file.seekg(0, std::ios::beg);
+
+  result.assign(std::istreambuf_iterator<char>(file),
+                std::istreambuf_iterator<char>());
+  return result;
 }
 
 } /* namespace sail */

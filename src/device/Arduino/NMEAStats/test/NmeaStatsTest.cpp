@@ -1,12 +1,18 @@
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
-#include <device/Arduino/NMEAStats/test/MockArduino.h>
-
-// Include Arduino code.
-#include "../NMEAStats.ino"
+#include <device/Arduino/NMEAStats/test/DeviceSimulator.h>
 
 #include <iostream>
 
+// Fakes an arduino for testing.
+class MockArduino : public DeviceSimulator {
+  public:
+    // Hook virtual methods with gmock.
+    MOCK_METHOD0(screenInit, void());
+    MOCK_METHOD1(screenUpdate, void(int a));
+    MOCK_METHOD3(screenUpdate, void(int a, int b, int c));
+};
 
 TEST(DeviceTest, LogTest) {
   const char data[] =
@@ -31,7 +37,7 @@ TEST(DeviceTest, LogTest) {
   EXPECT_CALL(arduino, screenUpdate(testing::_)).Times(testing::AtLeast(1));
   EXPECT_CALL(arduino, screenInit());
 
-  setup();
+  arduino.setup();
 
   // The first call contains only junk: no wind data has been sent yet.
   EXPECT_CALL(arduino, screenUpdate(testing::_, testing::_, testing::_)).Times(1);
@@ -40,8 +46,8 @@ TEST(DeviceTest, LogTest) {
   // The speed ratio is 0 because no target speed table has been loaded.
   EXPECT_CALL(arduino, screenUpdate(0, (192 + 315) % 360, 5)).Times(1);
 
-  sendDataToArduino(data);
+  arduino.sendData(data);
 
   // The code should log all input data.
-  EXPECT_EQ(std::string(data), SD.getWrittenFile("nmea0000.txt"));
+  EXPECT_EQ(std::string(data), arduino.SD()->getWrittenFile("nmea0000.txt"));
 }

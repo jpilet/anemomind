@@ -15,23 +15,21 @@ include_directories(
 add_definitions("-DON_DEVICE" "-DARDUINO_UNO")
 remove_definitions("-DON_SERVER")
 
-add_library(device_MockArduino
-            MockArduino.cpp
-            MockArduino.h
+add_library(device_DeviceSimulator
+            DeviceSimulator.cpp
+            DeviceSimulator.h
+            ../NMEAStats.ino
            )
-testing_library(device_MockArduino)
-target_link_libraries(device_MockArduino
+target_link_libraries(device_DeviceSimulator
          common_logging
          device_ChunkFile
          device_NmeaParser
          device_TargetSpeed
          nautical_NavNmea
-         gmock
          )
-
 
 cxx_test(device_NmeaStatTest
          NmeaStatsTest.cpp
-         device_MockArduino
+         device_DeviceSimulator
          gmock_main
         )
