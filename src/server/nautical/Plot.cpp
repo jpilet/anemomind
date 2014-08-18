@@ -361,13 +361,6 @@ namespace sail {
     dst->stack().push_back(Plottable(cmd, dst->navs().map<double>(extractor)));
   }
 
-  #define DECL_EXTRACT(Classname, MethodName, Unit) \
-    class Classname : public PlotCmd { \
-     public: \
-      const char *cmd() const {return #MethodName "-" #Unit;} \
-      const char *help() const {return "Extracts " #MethodName " in unit " #Unit " from all navs.";} \
-      void apply(PlotEnv *dst) const {applyExtraction(cmd(), dst, [=](const Nav &n) {return n.MethodName().Unit();});} \
-    };
 
   Angle<double> getRawLeeway(const Nav &x) {
     return (x.magHdg() - x.gpsBearing()).normalizedAt0();
@@ -458,6 +451,14 @@ namespace sail {
     }
   };
 
+  #define DECL_EXTRACT(Classname, MethodName, Unit) \
+  class Classname : public PlotCmd { \
+   public: \
+    const char *cmd() const {return #MethodName "-" #Unit;} \
+    const char *help() const {return "Extracts " #MethodName " in unit " #Unit " from all navs.";} \
+    void apply(PlotEnv *dst) const {applyExtraction(cmd(), dst, [=](const Nav &n) {return n.MethodName().Unit();});} \
+  };
+
   DECL_EXTRACT(AwaDegrees, awa, degrees)
   DECL_EXTRACT(AwsKnots, aws, knots)
   DECL_EXTRACT(WatSpeedKnots, watSpeed, knots)
@@ -466,6 +467,8 @@ namespace sail {
   DECL_EXTRACT(MagHdgDegrees, magHdg, degrees)
   DECL_EXTRACT(ExtTwaDegrees, externalTwa, degrees)
   DECL_EXTRACT(ExtTwsKnots, externalTws, knots)
+
+  #undef DECL_EXTRACT
 
   template <typename T>
   void registerCmd(ArrayBuilder<PlotCmd*> *dst) {
