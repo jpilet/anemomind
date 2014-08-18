@@ -109,7 +109,7 @@ namespace sail {
     virtual ~PlotCmd() {}
   };
 
-  typedef std::map<const char *, PlotCmd*> CmdMap;
+  typedef std::map<std::string, PlotCmd*> CmdMap;
 
   class PlotEnv {
    public:
@@ -499,7 +499,7 @@ namespace sail {
 
   PlotEnv::PlotEnv(Array<Nav> navs_) : _navs(navs_) {
     _plot.set_style("lines");
-    std::map<const char *, PlotCmd*> commands;
+    CmdMap commands;
     registerCmd<Add>(&commands);
     registerCmd<Sub>(&commands);
     registerCmd<Mul>(&commands);
@@ -572,6 +572,8 @@ namespace sail {
     std::cout << "Please begin your plot command sequence with 'begin'." << std::endl;
     std::cout << "After that, you can use any of the following commands:" << std::endl;
     dispCommands();
+    std::cout << "EXAMPLE USAGE:" << std::endl;
+    std::cout << "  ./nautical_Plot --slice 0 5000 begin set-style-points awa-degrees leeway-degrees plot-xy" << std::endl;
   }
 
   void PlotEnv::dispCommands() {
