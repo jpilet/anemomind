@@ -570,7 +570,7 @@ namespace sail {
 
   void PlotEnv::dispHelp() {
     std::cout << "Please begin your plot command sequence with 'begin'." << std::endl;
-    std::cout << "After that, you can use any of the following commands:" << std::endl;
+    std::cout << "After that, you can use any of the following commands: " << std::endl;
     dispCommands();
     std::cout << "EXAMPLE USAGE:" << std::endl;
     std::cout << "  ./nautical_Plot --slice 0 5000 begin set-style-points awa-degrees leeway-degrees plot-xy" << std::endl;
