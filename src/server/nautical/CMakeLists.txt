@@ -391,3 +391,10 @@ target_link_libraries(nautical_WaterCalibExample
                       nautical_WaterCalib
                       nautical_TestdataNavs
                      )              
+
+add_executable(nautical_SaveMatrix
+               SaveMatrix.cpp
+              )
+target_link_libraries(nautical_SaveMatrix
+                      nautical_TestdataNavs
+                     )

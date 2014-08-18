@@ -46,6 +46,7 @@ class TimeStamp {
   // Used by the Json interface
   static TimeStamp fromMilliSecondsSince1970(int64_t x) {return TimeStamp(x);}
   int64_t toMilliSecondsSince1970() const {return _time;}
+  int64_t toSecondsSince1970() const {return toMilliSecondsSince1970()/int64_t(1000);}
   struct tm makeGMTimeStruct() const;
 
   bool operator== (const TimeStamp &other) const {
