@@ -328,6 +328,7 @@ namespace sail {
       void apply(PlotEnv *dst) const {applyUnaryOp(CmdString, dst, [=](double x) {return XExpr;});} \
     };
 
+
   namespace {
     double deg2rad(double x) {
       return Angle<double>::degrees(x).radians();
