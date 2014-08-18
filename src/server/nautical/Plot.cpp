@@ -328,13 +328,17 @@ namespace sail {
       void apply(PlotEnv *dst) const {applyUnaryOp(CmdString, dst, [=](double x) {return XExpr;});} \
     };
 
+  namespace {
+    double deg2rad(double x) {
+      return Angle<double>::degrees(x).radians();
+    }
+  }
+
   DECL_UNARY(Log, "log", std::log(x))
   DECL_UNARY(Exp, "exp", std::exp(x))
   DECL_UNARY(Abs, "abs", std::abs(x))
-  DECL_UNARY(Cos, "cos", std::cos(x))
-  DECL_UNARY(Sin, "sin", std::sin(x))
-  DECL_UNARY(Rad2Deg, "rad2deg", Angle<double>::radians(x).degrees())
-  DECL_UNARY(Deg2Rad, "deg2rad", Angle<double>::degrees(x).radians())
+  DECL_UNARY(Cos, "cos", std::cos(deg2rad(x)))
+  DECL_UNARY(Sin, "sin", std::sin(deg2rad(x)))
   DECL_UNARY(Sqrt, "sqrt", sqrt(x))
 
 
@@ -371,12 +375,6 @@ namespace sail {
     return Duration<double>::seconds(double(n.time().toMilliSecondsSince1970()/int64_t(1000)));
   }
 
-  class LeewayRadians : public PlotCmd {
-   public:
-    const char *cmd() const {return "leeway-radians";}
-    const char *help() const {return "Extracts leeway in unit radians from all navs.";}
-    void apply(PlotEnv *dst) const {applyExtraction(cmd(), dst, [=](const Nav &n) {return getRawLeeway(n).radians();});}
-  };
 
   class LeewayDegrees : public PlotCmd {
    public:
@@ -459,16 +457,12 @@ namespace sail {
   };
 
   DECL_EXTRACT(AwaDegrees, awa, degrees)
-  DECL_EXTRACT(AwaRadians, awa, radians)
   DECL_EXTRACT(AwsKnots, aws, knots)
   DECL_EXTRACT(WatSpeedKnots, watSpeed, knots)
   DECL_EXTRACT(GpsSpeedKnots, gpsSpeed, knots)
   DECL_EXTRACT(GpsBearingDegrees, gpsBearing, degrees)
-  DECL_EXTRACT(GpsBearingRadians, gpsBearing, radians)
   DECL_EXTRACT(MagHdgDegrees, magHdg, degrees)
-  DECL_EXTRACT(MagHdgRadians, magHdg, radians)
   DECL_EXTRACT(ExtTwaDegrees, externalTwa, degrees)
-  DECL_EXTRACT(ExtTwaRadians, externalTwa, radians)
   DECL_EXTRACT(ExtTwsKnots, externalTws, knots)
 
   template <typename T>
@@ -508,24 +502,17 @@ namespace sail {
     registerCmd<TimePlot>(&builder);
     registerCmd<Show>(&builder);
     registerCmd<AwaDegrees>(&builder);
-    registerCmd<AwaRadians>(&builder);
     registerCmd<AwsKnots>(&builder);
     registerCmd<WatSpeedKnots>(&builder);
     registerCmd<GpsSpeedKnots>(&builder);
     registerCmd<GpsBearingDegrees>(&builder);
-    registerCmd<GpsBearingRadians>(&builder);
     registerCmd<MagHdgDegrees>(&builder);
-    registerCmd<MagHdgRadians>(&builder);
     registerCmd<ExtTwaDegrees>(&builder);
-    registerCmd<ExtTwaRadians>(&builder);
     registerCmd<ExtTwsKnots>(&builder);
     registerCmd<Cos>(&builder);
     registerCmd<Sin>(&builder);
-    registerCmd<Rad2Deg>(&builder);
-    registerCmd<Deg2Rad>(&builder);
     registerCmd<Sqrt>(&builder);
     registerCmd<LeewayDegrees>(&builder);
-    registerCmd<LeewayRadians>(&builder);
     registerCmd<TimeSeconds>(&builder);
     registerCmd<PlotXY>(&builder);
     registerCmd<PlotXYZ>(&builder);
