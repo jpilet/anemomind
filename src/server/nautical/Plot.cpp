@@ -3,15 +3,15 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/TestdataNavs.h>
-#include <server/common/logging.h>
-#include <server/plot/extra.h>
-#include <server/common/string.h>
+#include <map>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/logging.h>
+#include <server/common/string.h>
 #include <server/nautical/GeographicReference.h>
+#include <server/nautical/TestdataNavs.h>
+#include <server/plot/extra.h>
 #include <sstream>
-#include <map>
 
 namespace sail {
 
