@@ -274,7 +274,9 @@ namespace sail {
   class MakeLocalXY : public PlotCmd {
    public:
     const char *cmd() const {return "make-local-xy";}
-    const char *help() const {return "computes an x- and a y-vector in a local 2d coordinate system from the geographic positions.";}
+    const char *help() const {return "computes an x-"
+        "and a y-vector in a local 2d coordinate sys"
+        "tem from the geographic positions.";}
     void apply(PlotEnv *env) const;
    private:
   };
@@ -282,7 +284,9 @@ namespace sail {
   void MakeLocalXY::apply(PlotEnv *env) const {
      GeographicReference ref(getFirstGeoPos(env->navs()));
      typedef GeographicReference::ProjectedPosition GRPP;
-     Array<GRPP> pos = env->navs().map<GRPP>([=] (const Nav &n) {return ref.map(n.geographicPosition());});
+     Array<GRPP> pos = env->navs().map<GRPP>([=] (const Nav &n) {
+       return ref.map(n.geographicPosition());
+     });
      Arrayd X = pos.map<double>([=](const GRPP &pos) {return pos[0].nauticalMiles();});
      Arrayd Y = pos.map<double>([=](const GRPP &pos) {return pos[1].nauticalMiles();});
      env->stack().push_back(Plottable("local-x-nautical-miles", X));
