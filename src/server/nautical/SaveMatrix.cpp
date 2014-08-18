@@ -5,6 +5,7 @@
 
 #include <server/nautical/TestdataNavs.h>
 #include <server/common/ArrayBuilder.h>
+#include <iostream>
 #include <fstream>
 
 
@@ -90,7 +91,7 @@ namespace {
     file->precision(17);
     for (int i = 0; i < data.rows(); i++) {
       for (int j = 0; j < data.cols(); j++) {
-        *file << scientific << data(i, j) << " ";
+        *file << data(i, j) << " ";
       }
       *file << std::endl;
     }
@@ -108,8 +109,11 @@ namespace {
 }
 
 int main(int argc, const char **argv) {
+  std::cout << "Loading navs..." << std::endl;
   sail::Array<sail::Nav> data = sail::getTestdataNavs(argc, argv);
   std::string outname = getOutname(argc, argv);
+  std::cout << "Save matrix of " << data.size() << " navs to " << outname << "..." << std::endl;
   saveNavsToMatrix(data, outname);
+  std::cout << "Done." << std::endl;
   return 0;
 }
