@@ -21,7 +21,7 @@ namespace {
   }
 
   std::shared_ptr<HTree> exploreTreeSub(Array<HNode> nodeinfo, std::shared_ptr<HTree> tree, int depth, bool shallow,
-      const char *prefix, std::ostream *out) {
+      const char *prefix, std::ostream *out, std::function<std::string(std::shared_ptr<HTree>)> infoFun) {
     if (!bool(tree)) {
       outputIndentedLine("Empty tree node\n", depth, out);
     } else {
@@ -31,14 +31,22 @@ namespace {
 
       int choice = -1;
       do {
-        outputIndentedLine(stringFormat("%sNode of type %d (%s) with %d children", prefix, index, type.c_str(), chn), depth, out);
+        std::string infostr;
+        if (bool(infoFun)) {
+          infostr = " (" + infoFun(tree) + ")";
+        }
+        outputIndentedLine(stringFormat("%sNode of type %d (%s) with %d children%s",
+            prefix, index, type.c_str(), chn, infostr.c_str()),
+            depth, out);
         if (shallow) {
           return std::shared_ptr<HTree>();
         }
-        outputIndentedLine(stringFormat("spanning Nav indices in [%d, %d[ at depth %d:", tree->left(), tree->right(), depth), depth, out);
+        outputIndentedLine(stringFormat("spanning Nav indices in [%d, %d[ at depth %d:",
+            tree->left(), tree->right(), depth),
+            depth, out);
         for (int i = 0; i < chn; i++) {
           std::string prefi = stringFormat("%d. ", i+1);
-          exploreTreeSub(nodeinfo, tree->child(i), depth+1, true, prefi.c_str(), out);
+          exploreTreeSub(nodeinfo, tree->child(i), depth+1, true, prefi.c_str(), out, infoFun);
         }
         outputIndentedLine("0. Back to parent node", depth, out);
         outputIndentedLine("-1. Select this node to return", depth, out);
@@ -46,7 +54,8 @@ namespace {
         std::cin >> choice;
         if (1 <= choice && choice <= chn) {
           *out << "\n\n";
-          std::shared_ptr<HTree> ret = exploreTreeSub(nodeinfo, tree->child(choice-1), depth+1, false, "", out);
+          std::shared_ptr<HTree> ret = exploreTreeSub(nodeinfo,
+              tree->child(choice-1), depth+1, false, "", out, infoFun);
           *out << "\n\n";
           if (bool(ret)) {
             return ret;
@@ -63,11 +72,12 @@ namespace {
 
 
 
-std::shared_ptr<HTree> exploreTree(Array<HNode> nodeinfo, std::shared_ptr<HTree> tree, std::ostream *out) {
+std::shared_ptr<HTree> exploreTree(Array<HNode> nodeinfo, std::shared_ptr<HTree> tree, std::ostream *out,
+    std::function<std::string(std::shared_ptr<HTree>)> infoFun) {
   if (out == nullptr) {
     out = &(std::cout);
   }
-  return exploreTreeSub(nodeinfo, tree, 0, false, "", out);
+  return exploreTreeSub(nodeinfo, tree, 0, false, "", out, infoFun);
 }
 
 } /* namespace sail */

@@ -29,11 +29,6 @@ namespace {
   }
 
 
-  TimeStamp getTime(const NmeaParser &parser) {
-    return NavDataConversion::makeTimeNmeaFromYMDhms(parser.year(), parser.month(), parser.day(),
-                                                 parser.hour(), parser.min(), parser.sec());
-  }
-
   Angle<double> getGpsBearing(const NmeaParser &parser) {
     return Angle<double>(parser.gpsBearing());
   }
@@ -141,7 +136,11 @@ namespace {
   }
 }
 
-
+TimeStamp getTime(const NmeaParser &parser) {
+  return NavDataConversion::makeTimeNmeaFromYMDhms(
+      parser.year(), parser.month(), parser.day(),
+      parser.hour(), parser.min(), parser.sec());
+}
 
 bool ParsedNavs::hasFields(FieldMask mask) {
   // a implies b   <->  (not a) or b

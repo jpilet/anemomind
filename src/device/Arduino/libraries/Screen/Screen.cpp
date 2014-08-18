@@ -18,7 +18,7 @@ void screenLine(int line, const char *label, int i) {
 
 void screenUpdate(int perf, int twdir, int tws) {
   screenLine(0, (VERTICAL_SCREEN? "p" : "PERFMG"), perf);
-  screenLine(1, (VERTICAL_SCREEN? "d" : "TWDIR"), twdir);
+  screenLine(1, (VERTICAL_SCREEN? "d" : "TWDIR"), (twdir < 0 ? twdir + 360 : twdir));
   screenLine(2, (VERTICAL_SCREEN? "s" : "TWS"), tws);
 }
 
@@ -52,8 +52,10 @@ void screenInit() {
   // Clear screen
   screenSendData("#DL,");
   
-  // Turn backlight off
-  screenSendData("#YL0,");
+  if (0) {
+    // Turn backlight off
+    screenSendData("#YL0,");
+  }
   
   if (VERTICAL_SCREEN) {
     // text orientation vertical

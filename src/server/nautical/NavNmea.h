@@ -11,6 +11,7 @@
 #include <server/nautical/Nav.h>
 #include <bitset>
 
+class NmeaParser;
 
 namespace sail {
 
@@ -67,6 +68,7 @@ std::ostream &operator<<(std::ostream &s, ParsedNavs x);
 // Useful function when reading Nav's from several files.
 Array<Nav> flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask);
 
+TimeStamp getTime(const NmeaParser &parser);
 
 } /* namespace sail */
 

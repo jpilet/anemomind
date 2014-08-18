@@ -32,7 +32,7 @@ class Nav {
 
 
   Nav();
-  Nav(TimeStamp ts) : _time(ts), _wd(-1), _cwd(-1) {}
+  Nav(TimeStamp ts) : _cwd(-1), _wd(-1), _time(ts) { }
   Nav(MDArray2d row);
   virtual ~Nav();
 
