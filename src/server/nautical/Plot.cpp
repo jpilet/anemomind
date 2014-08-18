@@ -341,7 +341,7 @@ namespace sail {
   DECL_UNARY(Cos, "cos", std::cos(deg2rad(x)))
   DECL_UNARY(Sin, "sin", std::sin(deg2rad(x)))
   DECL_UNARY(Sqrt, "sqrt", sqrt(x))
-
+  #undef DECL_UNARY
 
   #define DECL_BINARY(Classname, CmdString, XYExpr) \
     class Classname : public PlotCmd { \
@@ -353,8 +353,9 @@ namespace sail {
 
   DECL_BINARY(Add, "+", (x + y))
   DECL_BINARY(Sub, "-", (x - y))
-  DECL_BINARY(Mul, "mul", (x * y))
-  DECL_BINARY(Div, "div", (x / y))
+  DECL_BINARY(Mul, "*", (x * y))
+  DECL_BINARY(Div, "/", (x / y))
+  #undef DECL_BINARY
 
   void applyExtraction(const char *cmd, PlotEnv *dst, std::function<double(Nav)> extractor) {
     dst->stack().push_back(Plottable(cmd, dst->navs().map<double>(extractor)));
