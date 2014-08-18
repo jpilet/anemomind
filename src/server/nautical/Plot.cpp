@@ -11,6 +11,7 @@
 #include <server/common/ArrayIO.h>
 #include <server/nautical/GeographicReference.h>
 #include <sstream>
+#include <map>
 
 namespace sail {
 
@@ -108,6 +109,8 @@ namespace sail {
     virtual ~PlotCmd() {}
   };
 
+  typedef std::map<const char *, PlotCmd*> CmdMap;
+
   class PlotEnv {
    public:
     PlotEnv(Array<Nav> navs_);
@@ -124,7 +127,7 @@ namespace sail {
     void dispCommands();
    private:
     Array<Nav> _navs;
-    Array<PlotCmd*> _commands;
+    CmdMap _commands;
     std::vector<Plottable> _stack;
     GnuplotExtra _plot;
     bool parsePlotCommand(const std::string &cmd);
@@ -470,16 +473,17 @@ namespace sail {
 
   #undef DECL_EXTRACT
 
+
   template <typename T>
-  void registerCmd(ArrayBuilder<PlotCmd*> *dst) {
+  void registerCmd(CmdMap *dst) {
     static T instance;
-    dst->add(&instance);
+    (*dst)[instance.cmd()] = &instance;
   }
 
   template <int N>
   class RegisterPlotStyle {
    public:
-    static void exec(ArrayBuilder<PlotCmd*> *builder) {
+    static void exec(CmdMap *builder) {
       registerCmd<PlotStyle<N-1> >(builder);
       RegisterPlotStyle<N-1>::exec(builder);
     }
@@ -488,14 +492,14 @@ namespace sail {
   template <>
   class RegisterPlotStyle<0> {
    public:
-    static void exec(ArrayBuilder<PlotCmd*> *builder) {}
+    static void exec(CmdMap *builder) {}
   };
 
 
 
   PlotEnv::PlotEnv(Array<Nav> navs_) : _navs(navs_) {
     _plot.set_style("lines");
-    ArrayBuilder<PlotCmd*> commands;
+    std::map<const char *, PlotCmd*> commands;
     registerCmd<Add>(&commands);
     registerCmd<Sub>(&commands);
     registerCmd<Mul>(&commands);
@@ -528,7 +532,7 @@ namespace sail {
     registerCmd<Fetch>(&commands);
     registerCmd<DifsPred>(&commands);
     registerCmd<Inds>(&commands);
-    _commands = commands.get();
+    _commands = commands;
   }
 
   int PlotEnv::run(int argc, const char **argv) {
@@ -554,13 +558,13 @@ namespace sail {
       _stack.push_back(Plottable(cmd, Arrayd::fill(1, x)));
       return true;
     } catch (std::exception &e) {
-      for (auto x : _commands) {
-        if (x->cmd() == cmd) {
-          x->apply(this);
-          return true;
-        }
+      CmdMap::iterator at = _commands.find(cmd.c_str());
+      if (at == _commands.end()) {
+        return false;
+      } else {
+        at->second->apply(this);
+        return true;
       }
-      return false;
     }
   }
 
@@ -572,7 +576,7 @@ namespace sail {
 
   void PlotEnv::dispCommands() {
     for (auto x : _commands) {
-      std::cout << "  " << x->cmd() << ": " << x->help() << std::endl;
+      std::cout << "  " << x.first << ": " << x.second->help() << std::endl;
     }
   }
 }
