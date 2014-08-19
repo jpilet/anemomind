@@ -103,14 +103,32 @@ namespace {
 
 
     std::ofstream file(filename);
-    outputExplanatoryLabels(extractors, &file);
-    outputMatrixData(data, &file);
+    if (file.good()) {
+      outputExplanatoryLabels(extractors, &file);
+      outputMatrixData(data, &file);
+    } else {
+      std::cout << "Failed to open output file " << filename << std::endl;
+    }
+  }
+
+  void help() {
+    std::cout << "Options: \n"
+        "  --navpath [path]                   Provide a"
+          "path for the NMEA files. Defaults to the datas"
+          "ets/Irene directory of the project.\n"
+        "  --slice [from-index] [to-index]    Select a s"
+         "ubset of the loaded navs. Defaults to the entire set.\n"
+        "  --out [filename]                   Provide"
+          "a filename for the file to output. Defaults to outnavs.txt\n";
   }
 }
 
 int main(int argc, const char **argv) {
   std::cout << "Loading navs..." << std::endl;
   sail::Array<sail::Nav> data = sail::getTestdataNavs(argc, argv);
+  if (data.empty()) {
+    help();
+  }
   std::string outname = getOutname(argc, argv);
   std::cout << "Save matrix of " << data.size() << " navs to " << outname << "..." << std::endl;
   saveNavsToMatrix(data, outname);
