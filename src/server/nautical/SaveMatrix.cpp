@@ -128,6 +128,7 @@ int main(int argc, const char **argv) {
   sail::Array<sail::Nav> data = sail::getTestdataNavs(argc, argv);
   if (data.empty()) {
     help();
+    return -1;
   }
   std::string outname = getOutname(argc, argv);
   std::cout << "Save matrix of " << data.size() << " navs to " << outname << "..." << std::endl;
