@@ -90,7 +90,7 @@ void InstrumentFilter<T, TimeStamp, Duration>::update(
 #ifdef ON_SERVER
 namespace {
 
-typedef InstrumentFilter<double, TimeStamp, Duration<double> > ServerFilter;
+typedef InstrumentFilter<double, sail::TimeStamp, Duration<double> > ServerFilter;
 
 ServerFilter makeFilter(
     const Array<Nav>& navs) {
