@@ -544,7 +544,8 @@ namespace sail {
     int begin = findArg(argc, argv, "begin");
     if (begin == -1) {
       std::cout << "------> ERROR <------" << std::endl;
-      dispHelp();
+      std::cout << "No 'begin' command found to indicate start of command sequence.\n";
+      std::cout << "Type 'help' to see how to use this tool." << std::endl;
       return -1;
     }
     for (int i = begin+1; i < argc; i++) {
@@ -575,7 +576,11 @@ namespace sail {
   }
 
   void PlotEnv::dispHelp() {
-    std::cout << "Please begin your plot command sequence with 'begin'." << std::endl;
+    std::cout << "First, specify navs:\n"
+                 "  --navpath [path]                  specifies a path where the NMEA data can be found. Defaults to the datasets/Irene subdirectory.\n"
+                 "  --slice [from-index] [to-index]   selects a subset of all loaded navs. Default is all navs.\n\n"
+                 "  help                              displays this help\n";
+    std::cout << "Then begin your plot command sequence with 'begin'." << std::endl;
     std::cout << "After that, you can use any of the following commands: " << std::endl;
     dispCommands();
     std::cout << "EXAMPLE USAGE:" << std::endl;
@@ -592,5 +597,9 @@ namespace sail {
 int main(int argc, const char **argv) {
   using namespace sail;
   PlotEnv env(getTestdataNavs(argc, argv));
+  int helpIndex = sail::findArg(argc, argv, "help");
+  if (helpIndex != -1) {
+    env.dispHelp();
+  }
   return env.run(argc, argv);
 }
