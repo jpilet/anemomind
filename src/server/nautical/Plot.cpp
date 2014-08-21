@@ -360,6 +360,7 @@ namespace sail {
     };
 
   DECL_BINARY(Add, "+", (x + y))
+  DECL_BINARY(Mod, "%", positiveMod(x, y))
   DECL_BINARY(Sub, "-", (x - y))
   DECL_BINARY(Mul, "*", (x * y))
   DECL_BINARY(Div, "/", (x / y))
