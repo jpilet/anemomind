@@ -1,3 +1,4 @@
+#include <cmath>
 #include <device/Arduino/NMEAStats/test/DeviceSimulator.h>
 
 #include <device/Arduino/NMEAStats/test/MockArduino/SD.h>
