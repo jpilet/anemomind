@@ -97,7 +97,7 @@ namespace {
     }
   }
 
-  void saveNavsToMatrix(Array<Nav> navs, std::string filename) {
+  int saveNavsToMatrix(Array<Nav> navs, std::string filename) {
     Array<ValueExtractor> extractors = makeExtractors();
     MDArray2d data = extractValues(extractors, navs);
 
@@ -106,8 +106,10 @@ namespace {
     if (file.good()) {
       outputExplanatoryLabels(extractors, &file);
       outputMatrixData(data, &file);
+      return 0;
     } else {
       std::cout << "Failed to open output file " << filename << std::endl;
+      return -1;
     }
   }
 
@@ -132,7 +134,5 @@ int main(int argc, const char **argv) {
   }
   std::string outname = getOutname(argc, argv);
   std::cout << "Save matrix of " << data.size() << " navs to " << outname << "..." << std::endl;
-  saveNavsToMatrix(data, outname);
-  std::cout << "Done." << std::endl;
-  return 0;
+  return saveNavsToMatrix(data, outname);
 }
