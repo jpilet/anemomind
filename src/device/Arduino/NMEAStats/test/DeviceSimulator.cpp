@@ -20,7 +20,7 @@ extern void setup();
 
 DeviceSimulator *fakeArduino = 0;
 
-DeviceSimulator::DeviceSimulator() : _arduinoTimeMs(1234) {
+DeviceSimulator::DeviceSimulator() : _arduinoTimeMs(1234), _referenceMillis(0) {
   CHECK(fakeArduino == 0);
   fakeArduino = this;
 }

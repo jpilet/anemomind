@@ -77,7 +77,7 @@ void help(const char *exe) {
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  const char* boatDatFilename = 0;
+  const char* boatDatFilename = nullptr;
   const char* outputFilename = "display.js";
   std::vector<std::string> inputFiles;
 
