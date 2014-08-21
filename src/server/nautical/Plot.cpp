@@ -538,6 +538,7 @@ namespace sail {
     registerCmd<Fetch>(&commands);
     registerCmd<DifsPred>(&commands);
     registerCmd<Inds>(&commands);
+    registerCmd<Mod>(&commands);
     _commands = commands;
   }
 
