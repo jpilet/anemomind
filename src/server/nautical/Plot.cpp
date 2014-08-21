@@ -546,6 +546,7 @@ namespace sail {
       std::string cmd(argv[i]);
       if (!parsePlotCommand(cmd)) {
         std::cout << "  ----------> ERROR: No such command: " << cmd << std::endl;
+        return -1;
       }
     }
     std::cout << "Done plotting." << std::endl;
