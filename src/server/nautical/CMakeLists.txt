@@ -392,3 +392,10 @@ target_link_libraries(nautical_Plot
                       nautical_TestdataNavs
                       nautical_GeographicReference
                      )
+add_executable(nautical_deviceOutput
+               deviceOutput.cpp
+              )
+target_link_libraries(nautical_deviceOutput
+                      common_string
+                      device_DeviceSimulator
+                     )

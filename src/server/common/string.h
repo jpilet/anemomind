@@ -40,5 +40,7 @@ std::string int64ToHex(int64_t x);
 void indent(std::ostream *s, int count);
 int findArg(int argc, const char **argv, const std::string &arg);
 
+std::string readFileToString(const std::string& filename);
+
 } /* namespace sail */
 #endif /* TEXT_H_ */

@@ -50,7 +50,7 @@ unsigned long lastFlush = 0;
 
 TargetSpeedTable targetSpeedTable;
 
-InstrumentFilter<FP16_16, TimeStamp, Duration<long> > filter;
+InstrumentFilter<FP16_16, ::TimeStamp, Duration<long> > filter;
 
 TrueWindEstimator::Parameters<FP16_16> calibration;
 bool calibrationLoaded = false;
@@ -177,7 +177,7 @@ void loop()
   while (Serial.available() > 0) {
     char c = Serial.read();
     
-    TimeStamp timestamp = TimeStamp::now();
+    ::TimeStamp timestamp = ::TimeStamp::now();
     switch (nmeaParser.processByte(c)) {
       case NmeaParser::NMEA_NONE: break;
       case NmeaParser::NMEA_WAT_SP_HDG:
