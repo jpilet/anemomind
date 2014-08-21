@@ -392,6 +392,12 @@ target_link_libraries(nautical_WaterCalibExample
                       nautical_TestdataNavs
                      )              
 
+add_executable(nautical_SaveMatrix
+               SaveMatrix.cpp
+              )
+target_link_libraries(nautical_SaveMatrix
+                      nautical_TestdataNavs
+                     )
 add_executable(nautical_deviceOutput
                deviceOutput.cpp
               )
