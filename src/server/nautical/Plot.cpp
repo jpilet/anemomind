@@ -43,6 +43,11 @@ namespace sail {
 
     void setAxisOp(AxisOp op) {_op = op;}
     void applyAxisOp(GnuplotExtra &extra, int i) const {
+      switch (i) {
+      case 0: extra.set_xlabel(_sExpr); return;
+      case 1: extra.set_ylabel(_sExpr); return;
+      case 2: extra.set_zlabel(_sExpr); return;
+      }
       if (_op) {
         _op(extra, i);
       }
