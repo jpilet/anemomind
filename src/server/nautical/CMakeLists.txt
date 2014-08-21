@@ -398,3 +398,10 @@ add_executable(nautical_SaveMatrix
 target_link_libraries(nautical_SaveMatrix
                       nautical_TestdataNavs
                      )
+add_executable(nautical_deviceOutput
+               deviceOutput.cpp
+              )
+target_link_libraries(nautical_deviceOutput
+                      common_string
+                      device_DeviceSimulator
+                     )
