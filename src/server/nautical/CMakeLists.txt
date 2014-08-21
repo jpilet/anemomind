@@ -392,6 +392,13 @@ target_link_libraries(nautical_Plot
                       nautical_TestdataNavs
                       nautical_GeographicReference
                      )
+                     
+add_executable(nautical_SaveMatrix
+               SaveMatrix.cpp
+              )
+target_link_libraries(nautical_SaveMatrix
+                      nautical_TestdataNavs
+                     )
 add_executable(nautical_deviceOutput
                deviceOutput.cpp
               )
