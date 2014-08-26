@@ -33,7 +33,7 @@ Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId) {
   for (int i = 0; i < count; i++) {
     parsedNavs[i] = loadNavsFromNmea(files[i].toString(), boatId);
   }
-  return flattenAndSort(parsedNavs, ParsedNavs::makeCompleteMask());
+  return flattenAndSort(parsedNavs, ParsedNavs::makeGpsWindMask());
 }
 
 } /* namespace sail */

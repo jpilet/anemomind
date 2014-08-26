@@ -48,9 +48,10 @@ class ParsedNavs {
   Array<Nav> navs() {return _navs;}
 
   bool hasFields(FieldMask mask);
-  bool complete() {return _fields.all();}
+  bool complete() { return _fields[TIME] && _fields[POS] && _fields[AWA]; }
 
   static FieldMask makeCompleteMask();
+  static FieldMask makeGpsWindMask();
  private:
   Array<Nav> _navs;
 

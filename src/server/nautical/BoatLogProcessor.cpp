@@ -8,6 +8,7 @@
 #include <Poco/File.h>
 #include <Poco/JSON/Stringifier.h>
 #include <Poco/Util/Application.h>
+#include <device/Arduino/libraries/TargetSpeed/TargetSpeed.h>
 #include <fstream>
 #include <iostream>
 #include <server/common/Env.h>
@@ -123,10 +124,10 @@ namespace {
     Array<Velocity<double> > vmg = calcExternalVmg(navs, isUpwind);
     Array<Velocity<double> > gss = getGpsSpeed(navs);
 
-    // TODO: Carefully select these values:
-    const int binCount = 25;
-    Velocity<double> minvel = Velocity<double>::metersPerSecond(4.0);
-    Velocity<double> maxvel = Velocity<double>::metersPerSecond(17.0);
+    // TODO: Adapt these values to the amount of recorded data.
+    const int binCount = TargetSpeedTable::NUM_ENTRIES;
+    Velocity<double> minvel = Velocity<double>::knots(0);
+    Velocity<double> maxvel = Velocity<double>::knots(TargetSpeedTable::NUM_ENTRIES);
 
     return TargetSpeedData(tws, vmg, binCount,
        minvel, maxvel);
