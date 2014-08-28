@@ -14,9 +14,7 @@ int main(int argc, const char **argv) {
   Poco::Path p = PathBuilder::makeDirectory("/home/jonas/programmering/matlab/irene_tgt_speed/allnavs.txt").get();
 
   MDArray<double, 2> data = loadMatrixText<double>(p.toString());
-
-  Array<Nav> navs = loadNavsFromText(p.toString());
-  assert(!navs.empty());
+  assert(!data.empty());
   return 0;
 }
 
