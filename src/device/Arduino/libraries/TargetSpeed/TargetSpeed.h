@@ -13,6 +13,10 @@ struct TargetSpeedTable {
   };
   FP8_8 _upwind[NUM_ENTRIES];
   FP8_8 _downwind[NUM_ENTRIES];
+
+  FP8_8 binLowerBound(int bin) const { return FP8_8(bin); }
+  FP8_8 binHightBound(int bin) const { return FP8_8(bin + 1); }
+  FP8_8 binCenter(int bin) const { return FP8_8(bin) + FP8_8(.5); }
 };
 
 float getVmgSpeedRatio(const TargetSpeedTable& table,

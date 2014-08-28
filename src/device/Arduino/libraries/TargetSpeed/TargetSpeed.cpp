@@ -81,7 +81,12 @@ bool loadTargetSpeedTable(const char *filename, TargetSpeedTable *table) {
   while (input.good()) {
     loader.addByte(input.get());
   }
-  return targets[0].success;
+  if (targets[0].success) {
+    return true;
+  } else {
+    invalidateSpeedTable(table);
+    return false;
+  }
 }
 
 void plotTargetSpeedTable(const TargetSpeedTable& table) {
@@ -92,14 +97,16 @@ void plotTargetSpeedTable(const TargetSpeedTable& table) {
   plot.set_ylabel("VMG (knots)");
 
   const int numEntries = TargetSpeedTable::NUM_ENTRIES;
-  Arrayd X = Arrayd::fill(numEntries, [](int i) { return double(i) + .5; });
+  Arrayd X = Arrayd::fill(
+      numEntries, [&](int i) { return double(table.binCenter(i)); });
   Arrayd upwind(numEntries);
   Arrayd downwind(numEntries);
 
   for (int i = 0; i < numEntries; ++i) {
     upwind[i] = table._upwind[i];
     downwind[i] = table._downwind[i];
-    std::cout << i << ", " << upwind[i] << ", " << downwind[i] << "\n";
+    std::cout << static_cast<double>(table.binCenter(i))
+      << ", " << upwind[i] << ", " << downwind[i] << "\n";
   }
    
   plot.plot_xy(X, upwind, "Upwind");
