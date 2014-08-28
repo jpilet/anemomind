@@ -11,9 +11,9 @@
 int main(int argc, const char **argv) {
   using namespace sail;
 
-  Poco::Path p = PathBuilder::makeDirectory("/home/jonas/programmering/matlab/irene_tgt_speed/allnavs.txt").get();
+  std::string filename = "/home/jonas/programmering/matlab/irene_tgt_speed/allnavs.txt";
 
-  MDArray<double, 2> data = loadMatrixText<double>(p.toString());
+  MDArray<double, 2> data = loadMatrixText<double>(filename);
   assert(!data.empty());
   return 0;
 }

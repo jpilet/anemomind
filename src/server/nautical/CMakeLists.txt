@@ -417,3 +417,11 @@ target_link_libraries(nautical_TgtSpeedDemo
                      )
 
 
+add_executable(nautical_plotTargetSpeed
+               plotTargetSpeed.cpp)
+target_link_libraries(nautical_plotTargetSpeed
+                      plot_gnuplot
+                      device_TargetSpeed
+                      device_ChunkFile
+                     )
+
