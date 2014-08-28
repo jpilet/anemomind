@@ -4,6 +4,15 @@
 
 #include <math.h>
 
+#ifdef ON_SERVER
+#include <device/Arduino/libraries/ChunkFile/ChunkFile.h>
+#include <fstream>
+#include <server/plot/extra.h>
+#include <sstream>
+
+using namespace sail;
+#endif
+
 namespace {
 
 float degToRad(float deg) {
@@ -62,3 +71,39 @@ void invalidateSpeedTable(TargetSpeedTable *table) {
   }
 }
 
+#ifdef ON_SERVER
+bool loadTargetSpeedTable(const char *filename, TargetSpeedTable *table) {
+  ChunkTarget targets[] = {
+    makeChunkTarget(table)
+  };
+  ChunkLoader loader(targets, sizeof(targets) / sizeof(targets[0]));
+  std::ifstream input(filename, std::ios::in | std::ios::binary);
+  while (input.good()) {
+    loader.addByte(input.get());
+  }
+  return targets[0].success;
+}
+
+void plotTargetSpeedTable(const TargetSpeedTable& table) {
+  GnuplotExtra plot;
+  plot.set_grid();
+  plot.set_style("lines");
+  plot.set_xlabel("Wind Speed (knots)");
+  plot.set_ylabel("VMG (knots)");
+
+  const int numEntries = TargetSpeedTable::NUM_ENTRIES;
+  Arrayd X = Arrayd::fill(numEntries, [](int i) { return double(i) + .5; });
+  Arrayd upwind(numEntries);
+  Arrayd downwind(numEntries);
+
+  for (int i = 0; i < numEntries; ++i) {
+    upwind[i] = table._upwind[i];
+    downwind[i] = table._downwind[i];
+    std::cout << i << ", " << upwind[i] << ", " << downwind[i] << "\n";
+  }
+   
+  plot.plot_xy(X, upwind, "Upwind");
+  plot.plot_xy(X, downwind, "Downwind");
+  plot.show();
+}
+#endif

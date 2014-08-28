@@ -20,4 +20,13 @@ float getVmgSpeedRatio(const TargetSpeedTable& table,
 
 void invalidateSpeedTable(TargetSpeedTable *table);
 
+#ifdef ON_SERVER
+//! Reads the 'boat.dat' file from disc, and fill the given TargetSpeedTable
+//  structure. Returns true on success, false on failure.
+bool loadTargetSpeedTable(const char *filename, TargetSpeedTable *table);
+
+//! Invokes gnuplot with the given speed table. 
+void plotTargetSpeedTable(const TargetSpeedTable& table);
+#endif
+
 #endif // DEVICE_TARGET_SPEED_H
