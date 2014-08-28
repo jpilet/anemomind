@@ -406,3 +406,14 @@ target_link_libraries(nautical_deviceOutput
                       common_string
                       device_DeviceSimulator
                      )
+
+                     
+add_executable(nautical_TgtSpeedDemo
+               TgtSpeedDemo.cpp
+              )
+target_link_libraries(nautical_TgtSpeedDemo
+                      nautical_nav
+                      common_PathBuilder
+                     )
+
+

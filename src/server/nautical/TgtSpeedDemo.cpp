@@ -5,13 +5,18 @@
 
 #include <server/nautical/TestdataNavs.h>
 #include <server/common/PathBuilder.h>
+#include <server/nautical/Nav.h>
+#include <server/common/ArrayIO.h>
 
-int main(int argc, const char *argv) {
+int main(int argc, const char **argv) {
   using namespace sail;
 
-  Array<Nav> data =  PathBuilder::makeDirectory("/home/jonas/programmering/matlab/irene_tgt_speed/allnavs.txt").get();
-  assert(!data.empty());
+  Poco::Path p = PathBuilder::makeDirectory("/home/jonas/programmering/matlab/irene_tgt_speed/allnavs.txt").get();
 
+  MDArray<double, 2> data = loadMatrixText<double>(p.toString());
+
+  Array<Nav> navs = loadNavsFromText(p.toString());
+  assert(!navs.empty());
   return 0;
 }
 
