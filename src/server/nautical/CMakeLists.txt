@@ -406,3 +406,12 @@ target_link_libraries(nautical_deviceOutput
                       common_string
                       device_DeviceSimulator
                      )
+
+add_executable(nautical_plotTargetSpeed
+               plotTargetSpeed.cpp)
+target_link_libraries(nautical_plotTargetSpeed
+                      plot_gnuplot
+                      device_TargetSpeed
+                      device_ChunkFile
+                     )
+

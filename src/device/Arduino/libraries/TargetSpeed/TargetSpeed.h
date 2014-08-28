@@ -13,11 +13,24 @@ struct TargetSpeedTable {
   };
   FP8_8 _upwind[NUM_ENTRIES];
   FP8_8 _downwind[NUM_ENTRIES];
+
+  FP8_8 binLowerBound(int bin) const { return FP8_8(bin); }
+  FP8_8 binHightBound(int bin) const { return FP8_8(bin + 1); }
+  FP8_8 binCenter(int bin) const { return FP8_8(bin) + FP8_8(.5); }
 };
 
 float getVmgSpeedRatio(const TargetSpeedTable& table,
                        short twa, FP8_8 tws, FP8_8 gpsSpeed);
 
 void invalidateSpeedTable(TargetSpeedTable *table);
+
+#ifdef ON_SERVER
+//! Reads the 'boat.dat' file from disc, and fill the given TargetSpeedTable
+//  structure. Returns true on success, false on failure.
+bool loadTargetSpeedTable(const char *filename, TargetSpeedTable *table);
+
+//! Invokes gnuplot with the given speed table. 
+void plotTargetSpeedTable(const TargetSpeedTable& table);
+#endif
 
 #endif // DEVICE_TARGET_SPEED_H
