@@ -62,16 +62,6 @@ Array<Velocity<double> > estimateTws(Array<Nav> navs);
 // Tws from file, reliable.
 Array<Velocity<double> > estimateExternalTws(Array<Nav> navs);
 
-
-// Pack "upwind" and "downwind" tables into a TargetSpeedTable and
-// save it to the given ostream, in binary/chunk format.
-class TargetSpeedData;
-void saveTargetSpeedTableChunk(
-    ostream *stream,
-    const TargetSpeedData& upwind,
-    const TargetSpeedData& downwind);
-
-
 void saveTargetSpeedTableChunk(
     ostream *stream,
     const RefImplTgtSpeed& upwind,

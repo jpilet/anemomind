@@ -223,69 +223,6 @@ namespace {
   }
 }
 
-class TargetSpeedData {
- public:
-  TargetSpeedData() {}
-  TargetSpeedData(Array<Velocity<double> > windSpeeds,
-      Array<Velocity<double> > vmg,
-      int binCount, Velocity<double> minTws, Velocity<double> maxTws,
-      Arrayd quantiles = RefImplTgtSpeed::makeDefaultQuantiles());
-  void plot(std::string title = "Untitled target speed");
-
-  Arrayd targetVmgForWindSpeed(Velocity<double> windSpeed) const;
- private:
-  void init(Array<Velocity<double> > windSpeeds,
-      Array<Velocity<double> > vmg,
-      HistogramMap map,
-      Arrayd quantiles);
-
-  Velocity<double> wrap(double x) {return Velocity<double>::knots(x);}
-  double unwrap(Velocity<double> x) {return x.knots();}
-  std::function<double(Velocity<double>)> makeUnwrapper() {return [=](Velocity<double> x) {return unwrap(x);};}
-
-  // All velocities are internally stored as [knots]
-  // Such a convention is reasonable, since HistogramMap only
-  // works with doubles.
-  Arrayd _quantiles;
-  HistogramMap _hist;
-  Array<Arrayd> _medianValues;
-};
-
-void TargetSpeedData::init(Array<Velocity<double> > windSpeeds,
-                                 Array<Velocity<double> > vmg,
-
-                                 HistogramMap map,
-                                 Arrayd quantiles) {
-  assert(!quantiles.empty());
-  assert(validQuantiles(quantiles));
-  Arrayd X = windSpeeds.map<double>(makeUnwrapper());
-  if (map.undefined()) {
-    map = HistogramMap(10, X);
-  }
-  _hist = map;
-  int count = windSpeeds.size();
-  assert(vmg.size() == count);
-  Array<Array<Velocity<double> > > groupedVmg =
-      _hist.groupValuesByBin(X, vmg);
-  for (auto &group : groupedVmg) {
-    std::sort(group.begin(), group.end());
-  }
-  _medianValues = groupedVmg.map<Arrayd>(
-      [&](const Array<Velocity<double> > &vmg) {
-    return extractQuantiles(vmg, quantiles, makeUnwrapper());
-  });
-  _quantiles = quantiles;
-}
-
-
-TargetSpeedData::TargetSpeedData(Array<Velocity<double> > windSpeeds,
-    Array<Velocity<double> > vmg,
-    int binCount, Velocity<double> minTws, Velocity<double> maxTws,
-    Arrayd quantiles) {
-  init(windSpeeds, vmg, HistogramMap(binCount,
-      unwrap(minTws), unwrap(maxTws)), quantiles);
-}
-
 Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
   int sign = (isUpwind? 1 : -1);
   return navs.map<Velocity<double> >([&](const Nav &n) {
@@ -294,16 +231,19 @@ Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
   });
 }
 
-Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind) {
-  int sign = (isUpwind? 1 : -1);
+Array<Velocity<double> > calcExternalVmgSigned(Array<Nav> navs, int sign) {
   return navs.map<Velocity<double> >([&](const Nav &n) {
     double factor = sign*cos(n.externalTwa());
     return n.gpsSpeed().scaled(factor);
   });
 }
 
+Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind) {
+  return calcExternalVmgSigned(navs, isUpwind? 1 : -1);
+}
+
 Array<Velocity<double> > calcExternalUnsigned(Array<Nav> navs) {
-  return calcExternalVmg(navs, true);
+  return calcExternalVmgSigned(navs, 1);
 }
 
 Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs) {
@@ -344,49 +284,6 @@ namespace {
     return c;
   }
 
-}
-
-void TargetSpeedData::plot(std::string title) {
-  Arrayb sel = markValidBins(_medianValues);
-  Arrayd X = makeBinCenters(_hist, sel);
-  Array<Arrayd> mvalues = _medianValues.slice(sel);
-  GnuplotExtra plot;
-  plot.set_grid();
-  plot.set_style("lines");
-  plot.set_xlabel("Wind Speed (knots)");
-  plot.set_ylabel("VMG (knots)");
-  plot.set_title(title);
-
-  for (int i = 0; i < _quantiles.size(); i++) {
-    Arrayd Y = mvalues.map<double>([&](const Array<double> &x) {
-      return x[i];
-    });
-    assert(X.size() == Y.size());
-    plot.plot_xy(X, Y, stringFormat("Quantile at %.3g", _quantiles[i]));
-  }
-  plot.show();
-}
-
-Arrayd TargetSpeedData::targetVmgForWindSpeed(Velocity<double> windSpeed) const {
-  // This is "nearest" sampling. TODO: linear interpolation.
-  int bin = _hist.toBin(windSpeed.knots());
-  if (bin == -1) { // If it falls outside the bin
-    return Arrayd();
-  }
-  return _medianValues[bin];
-}
-
-void saveTargetSpeedTableChunk(
-    ostream *stream,
-    const TargetSpeedData& upwind,
-    const TargetSpeedData& downwind) {
-  TargetSpeedTable table;
-  for (int knots = 0; knots < TargetSpeedTable::NUM_ENTRIES; ++knots) {
-    Velocity<double> binCenter = Velocity<double>::knots(double(knots) + .5);
-    table._upwind[knots] = FP8_8(max(upwind.targetVmgForWindSpeed(binCenter), -1.0));
-    table._downwind[knots] = FP8_8(max(downwind.targetVmgForWindSpeed(binCenter), -1.0));
-  }
-  writeChunk(*stream, &table);
 }
 
 void saveTargetSpeedTableChunk(
