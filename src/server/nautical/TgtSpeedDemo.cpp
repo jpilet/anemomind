@@ -40,37 +40,72 @@ namespace {
   const int wdIndex = 22  - 1;
   const int daysIndex = 23  - 1;
 
+  bool isUpwindAwa(Angle<double> angle) {
+    double x = cos(angle);
+    return cos(Angle<double>::degrees(45)) <= x && x <= cos(Angle<double>::degrees(20));
+  }
+
   Arrayb getUpwind(MDArray2d data) {
     int count = data.rows();
     Arrayb ch(count);
     for (int i = 0; i < count; i++) {
-      double x = cos(Angle<double>::degrees(data(i, awaIndex)));
-      ch[i] = cos(Angle<double>::degrees(45)) <= x && x <= cos(Angle<double>::degrees(20));
+      Angle<double> x = Angle<double>::degrees(data(i, awaIndex));
+      ch[i] = isUpwindAwa(x);
     }
     return ch;
+  }
+
+  Arrayb getUpwind(Array<Nav> navs) {
+    return navs.map<bool>([=](const Nav &x) {
+      return isUpwindAwa(x.awa());
+    });
+  }
+
+
+  bool isDownwindAwa(Angle<double> angle) {
+    double x = cos(angle);
+    return x <= 0;
   }
 
   Arrayb getDownwind(MDArray2d data) {
     int count = data.rows();
     Arrayb ch(count);
     for (int i = 0; i < count; i++) {
-      double x = cos(Angle<double>::degrees(data(i, awaIndex)));
-      ch[i] = x <= 0;
+      Angle<double> x = Angle<double>::degrees(data(i, awaIndex));
+      ch[i] = isDownwindAwa(x);
     }
     return ch;
+  }
+
+  Arrayb getDownwind(Array<Nav> navs) {
+    return navs.map<bool>([=](const Nav &x) {
+      return isDownwindAwa(x.awa());
+    });
   }
 
 
   //vmgGps = data(:, gpsSpeed) .* cos(data(:,twa) * pi / 180);
 
+  Velocity<double> calcVmgGps(Velocity<double> gpsSpeed, Angle<double> twa) {
+    double factor = cos(twa);
+    return gpsSpeed.scaled(factor);
+  }
+
   Array<Velocity<double> > getVmgGps(MDArray2d data) {
     int count = data.rows();
     Array<Velocity<double> > vmg(count);
     for (int i = 0; i < count; i++) {
-      double factor = cos(Angle<double>::degrees(data(i, twaIndex)));
-      vmg[i] = Velocity<double>::knots(data(i, gpsSpeedIndex)).scaled(factor);
+      Angle<double> twa = Angle<double>::degrees(data(i, twaIndex));
+      Velocity<double> gpsSpeed = Velocity<double>::knots(data(i, gpsSpeedIndex));
+      vmg[i] = calcVmgGps(gpsSpeed, twa);
     }
     return vmg;
+  }
+
+  Array<Velocity<double> > getVmgGps(Array<Nav> navs) {
+    return navs.map<Velocity<double> >([=](const Nav &x) {
+      return calcVmgGps(x.gpsSpeed(), x.externalTwa());
+    });
   }
 
   Array<Velocity<double> > getTws(MDArray2d data) {
@@ -80,6 +115,12 @@ namespace {
       tws[i] = Velocity<double>::knots(data(i, twsIndex));
     }
     return tws;
+  }
+
+  Array<Velocity<double> > getTws(Array<Nav> navs) {
+    return navs.map<Velocity<double> >([=](const Nav &x) {
+      return x.externalTws();
+    });
   }
 
   Arrayd makeQuantiles() {
@@ -178,36 +219,45 @@ namespace {
     }
     plot.show();
   }
-}
 
+
+  void protoAlgoOnSpecialData(bool isUpwind) {
+    std::string filename = "/home/jonas/programmering/matlab/irene_tgt_speed/allnavs.txt";
+    MDArray2d data = loadMatrixText<double>(filename);
+
+    assert(!data.empty());
+
+    Array<Velocity<double> > vmg = getVmgGps(data);
+    Array<Velocity<double> > tws = getTws(data);
+    Arrayb upwind = getUpwind(data);
+    Arrayb downwind = getDownwind(data);
+
+    Arrayd quantiles = makeQuantiles();
+    Array<Velocity<double> > bounds = makeBounds();
+
+    Arrayb sel = (isUpwind? upwind : downwind);
+
+    RefImplTgtSpeed tgt(isUpwind, tws.slice(sel), vmg.slice(sel), bounds, quantiles);
+    std::cout << EXPR_AND_VAL_AS_STRING(double(countTrue(upwind))/upwind.size()) << std::endl;
+    tgt.plot();
+  }
+
+  void protoAlgoOnTestdata(bool isUpwind, int argc, const char **argv) {
+    Array<Nav> data = getTestdataNavs(argc, argv);
+
+    Array<Velocity<double> > vmg = getVmgGps(data);
+    Array<Velocity<double> > tws = getTws(data);
+    Arrayb upwind = getUpwind(data);
+    Arrayb downwind = getDownwind(data);
+  }
+}
 
 int main(int argc, const char **argv) {
   using namespace sail;
-
-  std::string filename = "/home/jonas/programmering/matlab/irene_tgt_speed/allnavs.txt";
-
-  MDArray2d data = loadMatrixText<double>(filename);
-  assert(!data.empty());
-
-  Array<Velocity<double> > vmg = getVmgGps(data);
-  Array<Velocity<double> > tws = getTws(data);
-  Arrayb upwind = getUpwind(data);
-  Arrayb downwind = getDownwind(data);
-
-  Arrayd quantiles = makeQuantiles();
-
-  Array<Velocity<double> > bounds = makeBounds();
-
   bool isUpwind = false;
 
-  Arrayb sel = (isUpwind? upwind : downwind);
-
-  RefImplTgtSpeed tgt(isUpwind, tws.slice(sel), vmg.slice(sel), bounds, quantiles);
-
-  std::cout << EXPR_AND_VAL_AS_STRING(double(countTrue(upwind))/upwind.size()) << std::endl;
-
-  tgt.plot();
-
+  protoAlgoOnSpecialData(isUpwind);
+  //protoAlgoOnTestdata(isUpwind, argc, argv);
   return 0;
 }
 
