@@ -90,7 +90,7 @@ class ArgMap {
 
 
   Array<Entry> _args;
-  std::map<std::string, Entry> _map;
+  std::map<std::string, Entry*> _map;
 };
 
 }
