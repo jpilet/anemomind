@@ -108,6 +108,11 @@ namespace {
 }
 
 
+
+
+
+
+
 TargetSpeed::TargetSpeed(bool isUpwind_, Array<Velocity<double> > tws,
     Array<Velocity<double> > vmg,
     Array<Velocity<double> > bounds, Arrayd quantiles_) {

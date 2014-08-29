@@ -24,7 +24,6 @@ namespace {
     });
   }
 
-
   bool isDownwindAwa(Angle<double> angle) {
     double x = cos(angle);
     return x <= 0;
@@ -35,9 +34,6 @@ namespace {
       return isDownwindAwa(x.awa());
     });
   }
-
-
-  //vmgGps = data(:, gpsSpeed) .* cos(data(:,twa) * pi / 180);
 
   Velocity<double> calcVmgGps(Velocity<double> gpsSpeed, Angle<double> twa) {
     double factor = cos(twa);
