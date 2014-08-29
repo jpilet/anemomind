@@ -4,8 +4,8 @@
  */
 
 #include "TargetSpeed.h"
-#include <assert.h>
 #include <algorithm>
+#include <cassert>
 #include <server/plot/extra.h>
 #include <server/common/string.h>
 #include <device/Arduino/libraries/ChunkFile/ChunkFile.h>
@@ -13,7 +13,6 @@
 #include <server/common/logging.h>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/string.h>
-#include <server/common/ArrayIO.h>
 #include <server/common/LineKM.h>
 
 namespace sail {
@@ -114,15 +113,10 @@ TargetSpeed::TargetSpeed(bool isUpwind_, Array<Velocity<double> > tws,
   isUpwind = isUpwind_;
   quantiles = quantiles_;
 
-  std::cout << EXPR_AND_VAL_AS_STRING(bounds
-      .map<double>([=](Velocity<double> x) {return x.knots();})) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(   tws.sliceTo(30)
-      .map<double>([=](Velocity<double> x) {return x.knots();})) << std::endl;
 
   Arrayi bins = lookUp(bounds, tws);
   int binCount = bounds.size() - 1;
   Array<Array<Velocity<double > > > groups = groupVmg(isUpwind, binCount, bins, vmg);
-  std::cout << EXPR_AND_VAL_AS_STRING(groups.map<int>([=](Array<Velocity<double> > x) {return x.size();})) << std::endl;
 
   int qCount = quantiles.size();
   binCenters = Array<Velocity<double> >(binCount);

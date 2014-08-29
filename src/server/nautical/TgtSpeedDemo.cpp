@@ -7,10 +7,7 @@
 #include <server/common/PathBuilder.h>
 #include <server/nautical/Nav.h>
 #include <server/common/ArrayIO.h>
-#include <server/common/ArrayBuilder.h>
 #include <server/common/string.h>
-#include <server/common/LineKM.h>
-#include <server/plot/extra.h>
 #include <server/nautical/TargetSpeed.h>
 #include <algorithm>
 
