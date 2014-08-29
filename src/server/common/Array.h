@@ -629,7 +629,15 @@ class Array {
     return _data[_size - 1];
   }
 
+  const T &last() const {
+    return _data[_size - 1];
+  }
+
   T &first() {
+    return _data[0];
+  }
+
+  const T &first() const {
     return _data[0];
   }
 

@@ -107,7 +107,7 @@ void outputMedianValues(Array<Velocity<double> > data, Arrayd quantiles, int ind
     if (0 <= i2 && i2 < data.size()) {
       out[i][index] = data[i2];
     } else {
-      out[i][index] = Velocity<double>::knots(-1);
+      out[i][index] = Velocity<double>::knots(NAN);
     }
   }
 }
@@ -241,6 +241,13 @@ namespace {
       return x.hasData();
     });
   }
+
+  double minus1IfNan(double x) {
+    if (std::isnan(x)) {
+      return -1;
+    }
+    return x;
+  }
 }
 
 void saveTargetSpeedTableChunk(
@@ -250,11 +257,9 @@ void saveTargetSpeedTableChunk(
   TargetSpeedTable table;
   CHECK(table.NUM_ENTRIES == upwind.binCenters.size());
   CHECK(table.NUM_ENTRIES == downwind.binCenters.size());
-  CHECK(  upwind.quantileCount() == 1);
-  CHECK(downwind.quantileCount() == 1);
   for (int i = 0; i < TargetSpeedTable::NUM_ENTRIES; ++i) {
-    table._upwind[i] = FP8_8(max(upwind.medianValues[0][i].knots(), -1.0));
-    table._downwind[i] = FP8_8(max(downwind.medianValues[0][i].knots(), -1.0));
+    table._upwind[i] = FP8_8(minus1IfNan(upwind.medianValues.last()[i].knots()));
+    table._downwind[i] = FP8_8(minus1IfNan(downwind.medianValues.last()[i].knots()));
   }
   writeChunk(*stream, &table);
 }
