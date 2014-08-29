@@ -135,11 +135,13 @@ namespace {
 
   class RefImplTgtSpeed {
    public:
-    RefImplTgtSpeed(bool isUpwind, Array<Velocity<double> > tws, Array<Velocity<double> > vmg,
-            Array<Velocity<double> > bounds, Arrayd quantiles);
+    RefImplTgtSpeed(bool isUpwind_, Array<Velocity<double> > tws, Array<Velocity<double> > vmg,
+            Array<Velocity<double> > bounds, Arrayd quantiles_);
 
     Array<Velocity<double> > binCenters;
     Array<Array<Velocity<double> > > medianValues;
+    bool isUpwind;
+    Arrayd quantiles;
 
     void plot();
   };
@@ -188,13 +190,20 @@ namespace {
     LineKM map(0, 1.0, 0, data.size() - 1);
     int count = data.size();
     for (int i = 0; i < qCount; i++) {
-      out[i][index] = data[int(round(map(quantiles[i])))];
+      int i2 = int(round(map(quantiles[i])));
+      if (0 <= i2 && i2 < data.size()) {
+        out[i][index] = data[i2];
+      } else {
+        out[i][index] = Velocity<double>::knots(-1);
+      }
     }
   }
 
-  RefImplTgtSpeed::RefImplTgtSpeed(bool isUpwind, Array<Velocity<double> > tws,
+  RefImplTgtSpeed::RefImplTgtSpeed(bool isUpwind_, Array<Velocity<double> > tws,
       Array<Velocity<double> > vmg,
-      Array<Velocity<double> > bounds, Arrayd quantiles) {
+      Array<Velocity<double> > bounds, Arrayd quantiles_) {
+    isUpwind = isUpwind_;
+    quantiles = quantiles_;
 
     Arrayi bins = lookUp(bounds, tws);
     int binCount = bounds.size() - 1;
@@ -213,9 +222,12 @@ namespace {
   void RefImplTgtSpeed::plot() {
     GnuplotExtra plot;
     plot.set_style("lines");
+    plot.set_xlabel("TWS (knots)");
+    plot.set_ylabel("VMG (knots)");
+    plot.set_title((isUpwind? "Upwind" : "Downwind"));
     auto mapper = [](Velocity<double> x) {return x.knots();};
     for (int i = 0; i < medianValues.size(); i++) {
-      plot.plot_xy(binCenters.map<double>(mapper), medianValues[i].map<double>(mapper));
+      plot.plot_xy(binCenters.map<double>(mapper), medianValues[i].map<double>(mapper), stringFormat("Quantile %.3g", quantiles[i]));
     }
     plot.show();
   }
@@ -246,23 +258,23 @@ namespace {
     makePlot(isUpwind, tws, vmg, upwind, downwind);
   }
 
-  void protoAlgoOnTestdata(bool isUpwind, int argc, const char **argv) {
+  void protoAlgoOnTestdata(int argc, const char **argv) {
     Array<Nav> data = getTestdataNavs(argc, argv);
 
     Array<Velocity<double> > vmg = getVmgGps(data);
     Array<Velocity<double> > tws = getTws(data);
     Arrayb upwind = getUpwind(data);
     Arrayb downwind = getDownwind(data);
-    makePlot(isUpwind, tws, vmg, upwind, downwind);
+    makePlot(true, tws, vmg, upwind, downwind);
+    makePlot(false, tws, vmg, upwind, downwind);
   }
 }
 
 int main(int argc, const char **argv) {
   using namespace sail;
 
-  bool isUpwind = true;
   //protoAlgoOnSpecialData(isUpwind);
-  protoAlgoOnTestdata(isUpwind, argc, argv);
+  protoAlgoOnTestdata(argc, argv);
 
   return 0;
 }
