@@ -54,17 +54,26 @@ namespace {
   }
 }
 
+
 int lookUp(Array<Velocity<double> > bounds, Velocity<double> tws) {
-  int count = bounds.size();
-  if (bounds.last() <= tws) {
+  int boundCount = bounds.size();
+  int binCount = boundCount-1;
+  if (tws < bounds.first() || bounds.last() <= tws || tws.isNaN()) {
     return -1;
   }
-  for (int i = count-1; i >= 0; i--) {
-    if (bounds[i] <= tws) {
-      return i;
-    }
+  Array<Velocity<double> >::Iterator i = std::upper_bound(bounds.begin(), bounds.end(), tws);
+  int index = i - bounds.begin() - 1;
+  if (index >= binCount) {
+    std::cout << EXPR_AND_VAL_AS_STRING(index) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(bounds.size()-1) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(binCount) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(tws.knots()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(bounds.first().knots()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(bounds.last().knots()) << std::endl;
   }
-  return -1;
+  assert(0 <= index);
+  assert(index < binCount);
+  return index;
 }
 
 Arrayi lookUp(Array<Velocity<double> > bounds, Array<Velocity<double> > tws) {
