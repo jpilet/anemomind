@@ -272,4 +272,9 @@ add_library(common_ArgMap
             ArgMap.h
             ArgMap.cpp
            )
-            
+
+cxx_test(common_ArgMapTest
+         ArgMapTest.cpp
+         common_ArgMap
+         gtest_main
+        )
