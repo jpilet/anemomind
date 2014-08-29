@@ -259,10 +259,11 @@ namespace {
 
 int main(int argc, const char **argv) {
   using namespace sail;
-  bool isUpwind = true;
 
+  bool isUpwind = true;
   //protoAlgoOnSpecialData(isUpwind);
   protoAlgoOnTestdata(isUpwind, argc, argv);
+
   return 0;
 }
 
