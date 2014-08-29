@@ -220,6 +220,18 @@ namespace {
     plot.show();
   }
 
+  void makePlot(bool isUpwind, Array<Velocity<double> > tws, Array<Velocity<double > > vmg,
+      Arrayb upwind, Arrayb downwind) {
+    Arrayd quantiles = makeQuantiles();
+    Array<Velocity<double> > bounds = makeBounds();
+
+    Arrayb sel = (isUpwind? upwind : downwind);
+
+    RefImplTgtSpeed tgt(isUpwind, tws.slice(sel), vmg.slice(sel), bounds, quantiles);
+    std::cout << EXPR_AND_VAL_AS_STRING(double(countTrue(upwind))/upwind.size()) << std::endl;
+    tgt.plot();
+  }
+
 
   void protoAlgoOnSpecialData(bool isUpwind) {
     std::string filename = "/home/jonas/programmering/matlab/irene_tgt_speed/allnavs.txt";
@@ -231,15 +243,7 @@ namespace {
     Array<Velocity<double> > tws = getTws(data);
     Arrayb upwind = getUpwind(data);
     Arrayb downwind = getDownwind(data);
-
-    Arrayd quantiles = makeQuantiles();
-    Array<Velocity<double> > bounds = makeBounds();
-
-    Arrayb sel = (isUpwind? upwind : downwind);
-
-    RefImplTgtSpeed tgt(isUpwind, tws.slice(sel), vmg.slice(sel), bounds, quantiles);
-    std::cout << EXPR_AND_VAL_AS_STRING(double(countTrue(upwind))/upwind.size()) << std::endl;
-    tgt.plot();
+    makePlot(isUpwind, tws, vmg, upwind, downwind);
   }
 
   void protoAlgoOnTestdata(bool isUpwind, int argc, const char **argv) {
@@ -249,15 +253,16 @@ namespace {
     Array<Velocity<double> > tws = getTws(data);
     Arrayb upwind = getUpwind(data);
     Arrayb downwind = getDownwind(data);
+    makePlot(isUpwind, tws, vmg, upwind, downwind);
   }
 }
 
 int main(int argc, const char **argv) {
   using namespace sail;
-  bool isUpwind = false;
+  bool isUpwind = true;
 
-  protoAlgoOnSpecialData(isUpwind);
-  //protoAlgoOnTestdata(isUpwind, argc, argv);
+  //protoAlgoOnSpecialData(isUpwind);
+  protoAlgoOnTestdata(isUpwind, argc, argv);
   return 0;
 }
 
