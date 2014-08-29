@@ -111,7 +111,7 @@ void outputMedianValues(Array<Velocity<double> > data, Arrayd quantiles, int ind
   }
 }
 
-RefImplTgtSpeed::RefImplTgtSpeed(bool isUpwind_, Array<Velocity<double> > tws,
+TargetSpeed::TargetSpeed(bool isUpwind_, Array<Velocity<double> > tws,
     Array<Velocity<double> > vmg,
     Array<Velocity<double> > bounds, Arrayd quantiles_) {
   isUpwind = isUpwind_;
@@ -136,7 +136,7 @@ RefImplTgtSpeed::RefImplTgtSpeed(bool isUpwind_, Array<Velocity<double> > tws,
   }
 }
 
-void RefImplTgtSpeed::plot() {
+void TargetSpeed::plot() {
   GnuplotExtra plot;
   plot.set_style("lines");
   plot.set_xlabel("TWS (knots)");
@@ -182,7 +182,7 @@ Array<Velocity<double> > makeBoundsFromBinCenters(int binCount,
 
 
 
-Arrayd RefImplTgtSpeed::makeDefaultQuantiles() {
+Arrayd TargetSpeed::makeDefaultQuantiles() {
   const int count = 5;
 
   // static, so that it remains in
@@ -288,8 +288,8 @@ namespace {
 
 void saveTargetSpeedTableChunk(
     ostream *stream,
-    const RefImplTgtSpeed& upwind,
-    const RefImplTgtSpeed& downwind) {
+    const TargetSpeed& upwind,
+    const TargetSpeed& downwind) {
   TargetSpeedTable table;
   CHECK(table.NUM_ENTRIES == upwind.binCenters.size());
   CHECK(table.NUM_ENTRIES == downwind.binCenters.size());

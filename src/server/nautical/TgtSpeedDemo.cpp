@@ -145,7 +145,7 @@ namespace {
 
     bool refimpl = true;
     if (refimpl) {
-      RefImplTgtSpeed tgt(isUpwind, tws.slice(sel), vmg.slice(sel), bounds, quantiles);
+      TargetSpeed tgt(isUpwind, tws.slice(sel), vmg.slice(sel), bounds, quantiles);
       std::cout << EXPR_AND_VAL_AS_STRING(double(countTrue(upwind))/upwind.size()) << std::endl;
       tgt.plot();
     }

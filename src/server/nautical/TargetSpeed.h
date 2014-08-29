@@ -18,10 +18,10 @@ namespace sail {
 
 
 
-class RefImplTgtSpeed {
+class TargetSpeed {
  public:
   static Arrayd makeDefaultQuantiles();
-  RefImplTgtSpeed(bool isUpwind_, Array<Velocity<double> > tws, Array<Velocity<double> > vmg,
+  TargetSpeed(bool isUpwind_, Array<Velocity<double> > tws, Array<Velocity<double> > vmg,
           Array<Velocity<double> > bounds, Arrayd quantiles_ = makeDefaultQuantiles());
 
   Array<Velocity<double> > binCenters;
@@ -64,8 +64,8 @@ Array<Velocity<double> > estimateExternalTws(Array<Nav> navs);
 
 void saveTargetSpeedTableChunk(
     ostream *stream,
-    const RefImplTgtSpeed& upwind,
-    const RefImplTgtSpeed& downwind);
+    const TargetSpeed& upwind,
+    const TargetSpeed& downwind);
 
 } /* namespace sail */
 
