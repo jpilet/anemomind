@@ -17,6 +17,20 @@ namespace sail {
 
 
 
+
+class RefImplTgtSpeed {
+ public:
+  RefImplTgtSpeed(bool isUpwind_, Array<Velocity<double> > tws, Array<Velocity<double> > vmg,
+          Array<Velocity<double> > bounds, Arrayd quantiles_);
+
+  Array<Velocity<double> > binCenters;
+  Array<Array<Velocity<double> > > medianValues;
+  bool isUpwind;
+  Arrayd quantiles;
+
+  void plot();
+};
+
 class TargetSpeedData {
  public:
   static Arrayd makeDefaultQuantiles();

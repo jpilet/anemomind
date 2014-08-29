@@ -11,6 +11,9 @@
 #include <device/Arduino/libraries/ChunkFile/ChunkFile.h>
 #include <device/Arduino/libraries/TargetSpeed/TargetSpeed.h>
 #include <server/common/logging.h>
+#include <server/common/ArrayBuilder.h>
+#include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 
@@ -54,6 +57,118 @@ namespace {
     return array.reduce<double>(additionalValue, [] (double a, double b) { return std::max(a, b); });
   }
 }
+
+int lookUp(Array<Velocity<double> > bounds, Velocity<double> tws) {
+  int count = bounds.size();
+  if (bounds.last() <= tws) {
+    return -1;
+  }
+  for (int i = count-1; i >= 0; i--) {
+    if (bounds[i] <= tws) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+Arrayi lookUp(Array<Velocity<double> > bounds, Array<Velocity<double> > tws) {
+  int count = tws.size();
+  Arrayi bins(count);
+  for (int i = 0; i < count; i++) {
+    bins[i] = lookUp(bounds, tws[i]);
+  }
+  return bins;
+}
+
+Array<Array<Velocity<double> > > groupVmg(bool isUpwind, int binCount, Arrayi bins, Array<Velocity<double> > vmg) {
+  Array<ArrayBuilder<Velocity<double> > > builders(binCount);
+  int count = vmg.size();
+  int sign = (isUpwind? 1 : -1);
+  for (int i = 0; i < count; i++) {
+    int bin = bins[i];
+    if (bin != -1) {
+      builders[bin].add(vmg[i].scaled(sign));
+    }
+  }
+  Array<Array<Velocity<double> > > groups = builders.map<Array<Velocity<double> > >([=](ArrayBuilder<Velocity<double> > x) {return x.get();});
+  for (int i = 0; i < binCount; i++) {
+    std::sort(groups[i].begin(), groups[i].end());
+  }
+  return groups;
+}
+
+void outputMedianValues(Array<Velocity<double> > data, Arrayd quantiles, int index, Array<Array<Velocity<double> > > out) {
+  int qCount = quantiles.size();
+  LineKM map(0, 1.0, 0, data.size() - 1);
+  int count = data.size();
+  for (int i = 0; i < qCount; i++) {
+    int i2 = int(round(map(quantiles[i])));
+    if (0 <= i2 && i2 < data.size()) {
+      out[i][index] = data[i2];
+    } else {
+      out[i][index] = Velocity<double>::knots(-1);
+    }
+  }
+}
+
+RefImplTgtSpeed::RefImplTgtSpeed(bool isUpwind_, Array<Velocity<double> > tws,
+    Array<Velocity<double> > vmg,
+    Array<Velocity<double> > bounds, Arrayd quantiles_) {
+  isUpwind = isUpwind_;
+  quantiles = quantiles_;
+
+  std::cout << EXPR_AND_VAL_AS_STRING(bounds
+      .map<double>([=](Velocity<double> x) {return x.knots();})) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(   tws.sliceTo(30)
+      .map<double>([=](Velocity<double> x) {return x.knots();})) << std::endl;
+
+  Arrayi bins = lookUp(bounds, tws);
+  int binCount = bounds.size() - 1;
+  Array<Array<Velocity<double > > > groups = groupVmg(isUpwind, binCount, bins, vmg);
+  std::cout << EXPR_AND_VAL_AS_STRING(groups.map<int>([=](Array<Velocity<double> > x) {return x.size();})) << std::endl;
+
+  int qCount = quantiles.size();
+  binCenters = Array<Velocity<double> >(binCount);
+  medianValues = Array<Array<Velocity<double> > >::fill(qCount, [=](int i) {return Array<Velocity<double> >(binCount);});
+  for (int i = 0; i < binCount; i++) {
+    binCenters[i] = (bounds[i] + bounds[i + 1]).scaled(0.5);
+    outputMedianValues(groups[i], quantiles, i, medianValues);
+  }
+}
+
+void RefImplTgtSpeed::plot() {
+  GnuplotExtra plot;
+  plot.set_style("lines");
+  plot.set_xlabel("TWS (knots)");
+  plot.set_ylabel("VMG (knots)");
+  plot.set_title((isUpwind? "Upwind" : "Downwind"));
+  auto mapper = [](Velocity<double> x) {return x.knots();};
+  for (int i = 0; i < medianValues.size(); i++) {
+    plot.plot_xy(binCenters.map<double>(mapper), medianValues[i].map<double>(mapper), stringFormat("Quantile %.3g", quantiles[i]));
+  }
+  plot.show();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
