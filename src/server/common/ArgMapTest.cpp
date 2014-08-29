@@ -10,7 +10,7 @@
 TEST(ArgMapTest, BasicTest) {
   using namespace sail;
   const int argc = 8;
-  const char *argv[argc] = {"nameOfThisProgram", "--slice", "10", "40", "filename.txt", "filename2.txt", "--out", "filename3.txt"};
+  const char *argv[argc] = {"nameOfThisProgram, which is not an argument", "--slice", "10", "40", "filename.txt", "filename2.txt", "--out", "filename3.txt"};
 
   ArgMap map(argc, argv);
   EXPECT_FALSE(map.hasArg("rulle"));
