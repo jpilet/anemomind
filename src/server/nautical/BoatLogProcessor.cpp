@@ -109,7 +109,7 @@ int BoatLogProcessor::main(const std::vector<std::string>& args) {
 }
 
 namespace {
-  TargetSpeedData makeTargetSpeedTable(bool isUpwind,
+  RefImplTgtSpeed makeTargetSpeedTable(bool isUpwind,
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
       Array<Nav> allnavs,
       std::string description) {
@@ -129,16 +129,16 @@ namespace {
     Velocity<double> minvel = Velocity<double>::knots(0);
     Velocity<double> maxvel = Velocity<double>::knots(TargetSpeedTable::NUM_ENTRIES);
 
-    return TargetSpeedData(tws, vmg, binCount,
-       minvel, maxvel);
+    Array<Velocity<double> > bounds = makeBoundsFromBinCenters(TargetSpeedTable::NUM_ENTRIES+1, minvel, maxvel);
+    return RefImplTgtSpeed(isUpwind, tws, vmg, bounds);
   }
 
   void outputTargetSpeedTable(std::shared_ptr<HTree> tree,
                               Array<HNode> nodeinfo,
                               Array<Nav> navs,
                               std::ofstream *file) {
-    TargetSpeedData uw = makeTargetSpeedTable(true, tree, nodeinfo, navs, "upwind-leg");
-    TargetSpeedData dw = makeTargetSpeedTable(false, tree, nodeinfo, navs, "downwind-leg");
+    RefImplTgtSpeed uw = makeTargetSpeedTable(true, tree, nodeinfo, navs, "upwind-leg");
+    RefImplTgtSpeed dw = makeTargetSpeedTable(false, tree, nodeinfo, navs, "downwind-leg");
 
     saveTargetSpeedTableChunk(file, uw, dw);
   }

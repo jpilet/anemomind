@@ -149,6 +149,16 @@ void RefImplTgtSpeed::plot() {
   plot.show();
 }
 
+Array<Velocity<double> > makeBoundsFromBinCenters(int binCount,
+    Velocity<double> minBinCenter,
+    Velocity<double> maxBinCenter) {
+    int boundCount = binCount + 1;
+    LineKM boundMap(0.0 + 0.5, boundCount-1 - 0.5, minBinCenter.knots(), maxBinCenter.knots());
+    return Array<Velocity<double> >::fill(boundCount, [=](int i) {
+      return Velocity<double>::knots(boundMap(i));
+    });
+}
+
 
 
 
@@ -213,6 +223,34 @@ namespace {
   }
 }
 
+class TargetSpeedData {
+ public:
+  TargetSpeedData() {}
+  TargetSpeedData(Array<Velocity<double> > windSpeeds,
+      Array<Velocity<double> > vmg,
+      int binCount, Velocity<double> minTws, Velocity<double> maxTws,
+      Arrayd quantiles = RefImplTgtSpeed::makeDefaultQuantiles());
+  void plot(std::string title = "Untitled target speed");
+
+  Arrayd targetVmgForWindSpeed(Velocity<double> windSpeed) const;
+ private:
+  void init(Array<Velocity<double> > windSpeeds,
+      Array<Velocity<double> > vmg,
+      HistogramMap map,
+      Arrayd quantiles);
+
+  Velocity<double> wrap(double x) {return Velocity<double>::knots(x);}
+  double unwrap(Velocity<double> x) {return x.knots();}
+  std::function<double(Velocity<double>)> makeUnwrapper() {return [=](Velocity<double> x) {return unwrap(x);};}
+
+  // All velocities are internally stored as [knots]
+  // Such a convention is reasonable, since HistogramMap only
+  // works with doubles.
+  Arrayd _quantiles;
+  HistogramMap _hist;
+  Array<Arrayd> _medianValues;
+};
+
 void TargetSpeedData::init(Array<Velocity<double> > windSpeeds,
                                  Array<Velocity<double> > vmg,
 
@@ -262,6 +300,10 @@ Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind) {
     double factor = sign*cos(n.externalTwa());
     return n.gpsSpeed().scaled(factor);
   });
+}
+
+Array<Velocity<double> > calcExternalUnsigned(Array<Nav> navs) {
+  return calcExternalVmg(navs, true);
 }
 
 Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs) {
@@ -346,5 +388,22 @@ void saveTargetSpeedTableChunk(
   }
   writeChunk(*stream, &table);
 }
+
+void saveTargetSpeedTableChunk(
+    ostream *stream,
+    const RefImplTgtSpeed& upwind,
+    const RefImplTgtSpeed& downwind) {
+  TargetSpeedTable table;
+  CHECK(table.NUM_ENTRIES == upwind.binCenters.size());
+  CHECK(table.NUM_ENTRIES == downwind.binCenters.size());
+  CHECK(  upwind.quantileCount() == 1);
+  CHECK(downwind.quantileCount() == 1);
+  for (int i = 0; i < TargetSpeedTable::NUM_ENTRIES; ++i) {
+    table._upwind[i] = FP8_8(max(upwind.medianValues[0][i].knots(), -1.0));
+    table._downwind[i] = FP8_8(max(downwind.medianValues[0][i].knots(), -1.0));
+  }
+  writeChunk(*stream, &table);
+}
+
 
 } /* namespace sail */

@@ -148,14 +148,7 @@ namespace {
       RefImplTgtSpeed tgt(isUpwind, tws.slice(sel), vmg.slice(sel), bounds, quantiles);
       std::cout << EXPR_AND_VAL_AS_STRING(double(countTrue(upwind))/upwind.size()) << std::endl;
       tgt.plot();
-    } else {
-      int s = (isUpwind? 1 : -1);
-      TargetSpeedData tgt(tws, vmg.map<Velocity<double> >([=](Velocity<double> x) {
-        return x.scaled(s);}),
-        24, Velocity<double>::knots(0), Velocity<double>::knots(24), quantiles);
-      tgt.plot(isUpwind? "Upwind" : "Downwind");
     }
-
   }
 
 
