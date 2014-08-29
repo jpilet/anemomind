@@ -53,10 +53,6 @@ namespace {
     LOG(FATAL) << "The results from this function may not be correct";
     return estimateRawTrueWind(n).norm();
   }
-
-  double max(const Arrayd &array, double additionalValue) {
-    return array.reduce<double>(additionalValue, [] (double a, double b) { return std::max(a, b); });
-  }
 }
 
 int lookUp(Array<Velocity<double> > bounds, Velocity<double> tws) {
@@ -236,11 +232,6 @@ Array<Velocity<double> > estimateExternalTws(Array<Nav> navs) {
 
 
 namespace {
-  Arrayb markValidBins(Array<Arrayd> medianValues) {
-    return medianValues.map<bool>([&](const Arrayd &x) {
-      return x.hasData();
-    });
-  }
 
   double minus1IfNan(double x) {
     if (std::isnan(x)) {
