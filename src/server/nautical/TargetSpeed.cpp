@@ -52,69 +52,61 @@ namespace {
     LOG(FATAL) << "The results from this function may not be correct";
     return estimateRawTrueWind(n).norm();
   }
-}
 
-
-int lookUp(Array<Velocity<double> > bounds, Velocity<double> tws) {
-  int boundCount = bounds.size();
-  int binCount = boundCount-1;
-  if (tws < bounds.first() || bounds.last() <= tws || tws.isNaN()) {
-    return -1;
-  }
-  Array<Velocity<double> >::Iterator i = std::upper_bound(bounds.begin(), bounds.end(), tws);
-  int index = i - bounds.begin() - 1;
-  if (index >= binCount) {
-    std::cout << EXPR_AND_VAL_AS_STRING(index) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(bounds.size()-1) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(binCount) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(tws.knots()) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(bounds.first().knots()) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(bounds.last().knots()) << std::endl;
-  }
-  assert(0 <= index);
-  assert(index < binCount);
-  return index;
-}
-
-Arrayi lookUp(Array<Velocity<double> > bounds, Array<Velocity<double> > tws) {
-  int count = tws.size();
-  Arrayi bins(count);
-  for (int i = 0; i < count; i++) {
-    bins[i] = lookUp(bounds, tws[i]);
-  }
-  return bins;
-}
-
-Array<Array<Velocity<double> > > groupVmg(bool isUpwind, int binCount, Arrayi bins, Array<Velocity<double> > vmg) {
-  Array<ArrayBuilder<Velocity<double> > > builders(binCount);
-  int count = vmg.size();
-  int sign = (isUpwind? 1 : -1);
-  for (int i = 0; i < count; i++) {
-    int bin = bins[i];
-    if (bin != -1) {
-      builders[bin].add(vmg[i].scaled(sign));
+  int lookUp(Array<Velocity<double> > bounds, Velocity<double> tws) {
+    int boundCount = bounds.size();
+    int binCount = boundCount-1;
+    if (tws < bounds.first() || bounds.last() <= tws || tws.isNaN()) {
+      return -1;
     }
+    Array<Velocity<double> >::Iterator i = std::upper_bound(bounds.begin(), bounds.end(), tws);
+    int index = i - bounds.begin() - 1;
+    assert(0 <= index);
+    assert(index < binCount);
+    return index;
   }
-  Array<Array<Velocity<double> > > groups = builders.map<Array<Velocity<double> > >([=](ArrayBuilder<Velocity<double> > x) {return x.get();});
-  for (int i = 0; i < binCount; i++) {
-    std::sort(groups[i].begin(), groups[i].end());
-  }
-  return groups;
-}
 
-void outputMedianValues(Array<Velocity<double> > data, Arrayd quantiles, int index, Array<Array<Velocity<double> > > out) {
-  int qCount = quantiles.size();
-  LineKM map(0, 1.0, 0, data.size() - 1);
-  int count = data.size();
-  for (int i = 0; i < qCount; i++) {
-    int i2 = int(round(map(quantiles[i])));
-    if (0 <= i2 && i2 < data.size()) {
-      out[i][index] = data[i2];
-    } else {
-      out[i][index] = Velocity<double>::knots(NAN);
+  Arrayi lookUp(Array<Velocity<double> > bounds, Array<Velocity<double> > tws) {
+    int count = tws.size();
+    Arrayi bins(count);
+    for (int i = 0; i < count; i++) {
+      bins[i] = lookUp(bounds, tws[i]);
+    }
+    return bins;
+  }
+
+  Array<Array<Velocity<double> > > groupVmg(bool isUpwind, int binCount, Arrayi bins, Array<Velocity<double> > vmg) {
+    Array<ArrayBuilder<Velocity<double> > > builders(binCount);
+    int count = vmg.size();
+    int sign = (isUpwind? 1 : -1);
+    for (int i = 0; i < count; i++) {
+      int bin = bins[i];
+      if (bin != -1) {
+        builders[bin].add(vmg[i].scaled(sign));
+      }
+    }
+    Array<Array<Velocity<double> > > groups = builders.map<Array<Velocity<double> > >([=](ArrayBuilder<Velocity<double> > x) {return x.get();});
+    for (int i = 0; i < binCount; i++) {
+      std::sort(groups[i].begin(), groups[i].end());
+    }
+    return groups;
+  }
+
+  void outputMedianValues(Array<Velocity<double> > data, Arrayd quantiles, int index, Array<Array<Velocity<double> > > out) {
+    int qCount = quantiles.size();
+    LineKM map(0, 1.0, 0, data.size() - 1);
+    int count = data.size();
+    for (int i = 0; i < qCount; i++) {
+      int i2 = int(round(map(quantiles[i])));
+      if (0 <= i2 && i2 < data.size()) {
+        out[i][index] = data[i2];
+      } else {
+        out[i][index] = Velocity<double>::knots(NAN);
+      }
     }
   }
 }
+
 
 TargetSpeed::TargetSpeed(bool isUpwind_, Array<Velocity<double> > tws,
     Array<Velocity<double> > vmg,
