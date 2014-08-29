@@ -20,6 +20,7 @@ namespace sail {
 
 class RefImplTgtSpeed {
  public:
+  static Arrayd makeDefaultQuantiles();
   RefImplTgtSpeed(bool isUpwind_, Array<Velocity<double> > tws, Array<Velocity<double> > vmg,
           Array<Velocity<double> > bounds, Arrayd quantiles_);
 
@@ -33,14 +34,12 @@ class RefImplTgtSpeed {
 
 class TargetSpeedData {
  public:
-  static Arrayd makeDefaultQuantiles();
   TargetSpeedData() {}
   TargetSpeedData(Array<Velocity<double> > windSpeeds,
       Array<Velocity<double> > vmg,
       int binCount, Velocity<double> minTws, Velocity<double> maxTws,
-      Arrayd quantiles = makeDefaultQuantiles());
+      Arrayd quantiles = RefImplTgtSpeed::makeDefaultQuantiles());
   void plot(std::string title = "Untitled target speed");
-  const HistogramMap &hist() const {return _hist;}
 
   Arrayd targetVmgForWindSpeed(Velocity<double> windSpeed) const;
  private:

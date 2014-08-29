@@ -172,7 +172,7 @@ void RefImplTgtSpeed::plot() {
 
 
 
-Arrayd TargetSpeedData::makeDefaultQuantiles() {
+Arrayd RefImplTgtSpeed::makeDefaultQuantiles() {
   const int count = 5;
 
   // static, so that it remains in
