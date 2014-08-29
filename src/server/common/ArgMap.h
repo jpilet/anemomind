@@ -77,7 +77,7 @@ class ArgMap {
 
   /*
    * When all functions that need to read arguments from the command line have been called,
-   * use this method to suck up the remaining, unread arguments.
+   * use this method to suck up the remaining, unread, arguments.
    *
    * For instance, if we pass the args
    *

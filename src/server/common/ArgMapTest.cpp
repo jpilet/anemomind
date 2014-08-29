@@ -11,8 +11,8 @@ TEST(ArgMapTest, BasicTest) {
   using namespace sail;
   const int argc = 8;
   const char *argv[argc] = {"nameOfThisProgram", "--slice", "10", "40", "filename.txt", "filename2.txt", "--out", "filename3.txt"};
-  ArgMap map(argc, argv);
 
+  ArgMap map(argc, argv);
   EXPECT_FALSE(map.hasArg("rulle"));
   EXPECT_TRUE(map.hasArg("--slice"));
   EXPECT_EQ(map.argsAfter("--slice")[0]->value(), "10");
