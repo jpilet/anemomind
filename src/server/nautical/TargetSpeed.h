@@ -25,7 +25,7 @@ class TargetSpeedData {
       Array<Velocity<double> > vmg,
       int binCount, Velocity<double> minTws, Velocity<double> maxTws,
       Arrayd quantiles = makeDefaultQuantiles());
-  void plot();
+  void plot(std::string title = "Untitled target speed");
   const HistogramMap &hist() const {return _hist;}
 
   Arrayd targetVmgForWindSpeed(Velocity<double> windSpeed) const;

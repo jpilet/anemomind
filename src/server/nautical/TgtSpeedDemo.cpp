@@ -11,6 +11,7 @@
 #include <server/common/string.h>
 #include <server/common/LineKM.h>
 #include <server/plot/extra.h>
+#include <server/nautical/TargetSpeed.h>
 #include <algorithm>
 
 namespace {
@@ -205,6 +206,11 @@ namespace {
     isUpwind = isUpwind_;
     quantiles = quantiles_;
 
+    std::cout << EXPR_AND_VAL_AS_STRING(bounds
+        .map<double>([=](Velocity<double> x) {return x.knots();})) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(   tws.sliceTo(30)
+        .map<double>([=](Velocity<double> x) {return x.knots();})) << std::endl;
+
     Arrayi bins = lookUp(bounds, tws);
     int binCount = bounds.size() - 1;
     Array<Array<Velocity<double > > > groups = groupVmg(isUpwind, binCount, bins, vmg);
@@ -239,9 +245,19 @@ namespace {
 
     Arrayb sel = (isUpwind? upwind : downwind);
 
-    RefImplTgtSpeed tgt(isUpwind, tws.slice(sel), vmg.slice(sel), bounds, quantiles);
-    std::cout << EXPR_AND_VAL_AS_STRING(double(countTrue(upwind))/upwind.size()) << std::endl;
-    tgt.plot();
+    bool refimpl = false;
+    if (refimpl) {
+      RefImplTgtSpeed tgt(isUpwind, tws.slice(sel), vmg.slice(sel), bounds, quantiles);
+      std::cout << EXPR_AND_VAL_AS_STRING(double(countTrue(upwind))/upwind.size()) << std::endl;
+      tgt.plot();
+    } else {
+      int s = (isUpwind? 1 : -1);
+      TargetSpeedData tgt(tws, vmg.map<Velocity<double> >([=](Velocity<double> x) {
+        return x.scaled(s);}),
+        24, Velocity<double>::knots(0), Velocity<double>::knots(24), quantiles);
+      tgt.plot(isUpwind? "Upwind" : "Downwind");
+    }
+
   }
 
 

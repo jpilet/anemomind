@@ -415,6 +415,7 @@ target_link_libraries(nautical_TgtSpeedDemo
                       nautical_nav
                       common_PathBuilder
                       nautical_TestdataNavs
+                      nautical_TargetSpeed
                      )
 
 

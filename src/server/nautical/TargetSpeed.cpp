@@ -189,7 +189,7 @@ namespace {
 
 }
 
-void TargetSpeedData::plot() {
+void TargetSpeedData::plot(std::string title) {
   Arrayb sel = markValidBins(_medianValues);
   Arrayd X = makeBinCenters(_hist, sel);
   Array<Arrayd> mvalues = _medianValues.slice(sel);
@@ -198,6 +198,7 @@ void TargetSpeedData::plot() {
   plot.set_style("lines");
   plot.set_xlabel("Wind Speed (knots)");
   plot.set_ylabel("VMG (knots)");
+  plot.set_title(title);
 
   for (int i = 0; i < _quantiles.size(); i++) {
     Arrayd Y = mvalues.map<double>([&](const Array<double> &x) {
