@@ -15,19 +15,19 @@ ArgMap::ArgMap(int argc0, const char **argv0) {
   _keywordPrefix = "--";
 
 
-  _args = Array<Entry>(argc0-1);
+  _args = Array<Entry::Ptr>(argc0-1);
   for (int i = 1; i < argc0; i++) {
     std::string value(argv0[i]);
     int index = i - 1;
-    Entry e(index, value, _args);
+    Entry::Ptr e(new Entry(index, value, _args));
     _args[index] = e;
-    _map[value] = _args.ptr(index);
+    _map[value] = e;
   }
 }
 
 ArgMap::~ArgMap() {
   for (auto &arg: _args) {
-    arg.uncycle(); //Break cyclic references before destruction.
+    arg->uncycle(); //Break cyclic references before destruction.
   }
 }
 
@@ -39,13 +39,13 @@ bool ArgMap::hasArg(const std::string &arg) {
   return retval;
 }
 
-Array<ArgMap::Entry> ArgMap::argsAfter(const std::string &arg) {
+Array<ArgMap::Entry::Ptr> ArgMap::argsAfter(const std::string &arg) {
   assert(hasArg(arg));
   return _map[arg]->after();
 }
 
-Array<ArgMap::Entry> ArgMap::unreadArgs() const {
-  return _args.slice([=](const Entry &e) {return !e.wasRead();});
+Array<ArgMap::Entry::Ptr> ArgMap::unreadArgs() const {
+  return _args.slice([=](const Entry::Ptr &e) {return !e->wasRead();});
 }
 
 }

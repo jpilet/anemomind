@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include <server/common/Array.h>
+#include <memory>
 
 namespace sail {
 
@@ -20,8 +21,10 @@ class ArgMap {
 
   class Entry {
    public:
+    typedef std::shared_ptr<Entry> Ptr;
+
     Entry() : _index(-1), _wasRead(false) {}
-    Entry(int index, std::string arg, Array<Entry> allArgs) : _index(index),
+    Entry(int index, std::string arg, Array<Entry::Ptr> allArgs) : _index(index),
         _arg(arg), _allArgs(allArgs), _wasRead(false) {}
 
     const std::string &value() {
@@ -40,7 +43,7 @@ class ArgMap {
       return (vlen >= plen? _arg.substr(0, plen) == prefix : false);
     }
 
-    Array<Entry> after() const {
+    Array<Entry::Ptr> after() const {
       return _allArgs.sliceFrom(_index + 1);
     }
 
@@ -49,13 +52,13 @@ class ArgMap {
     }
 
     void uncycle() { // To remove cyclic references. Call before destruction.
-      _allArgs = Array<Entry>();
+      _allArgs = Array<Entry::Ptr>();
     }
    private:
     bool _wasRead;
     std::string _arg;
     int _index;
-    Array<Entry> _allArgs;
+    Array<Entry::Ptr> _allArgs;
   };
 
 
@@ -70,7 +73,7 @@ class ArgMap {
    * For instance, use this function to retrieve the filename succeeding a keyword, e.g.
    * '--outfile /home/alan/nmea.txt'
    */
-  Array<Entry> argsAfter(const std::string &arg);
+  Array<Entry::Ptr> argsAfter(const std::string &arg);
 
   /*
    * When all functions that need to read arguments from the command line have been called,
@@ -84,13 +87,13 @@ class ArgMap {
    * then the argument 'rulle.txt' will remain the single
    * unread argument.
    */
-   Array<Entry> unreadArgs() const;
+   Array<Entry::Ptr> unreadArgs() const;
  private:
   std::string _keywordPrefix;
 
 
-  Array<Entry> _args;
-  std::map<std::string, Entry*> _map;
+  Array<Entry::Ptr> _args;
+  std::map<std::string, Entry::Ptr> _map;
 };
 
 }
