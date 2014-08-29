@@ -30,6 +30,12 @@ class ArrayBuilder {
     _data->push_back(x);
   }
 
+  void add(const Array<T> &X) {
+    for (auto x : X) {
+      add(x);
+    }
+  }
+
   Array<T> get() {
     return Array<T>(ArrayStorage<T>(VectorPtr(new Vector(*_data))));
   }

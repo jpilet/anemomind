@@ -373,7 +373,7 @@ class Array {
   }
 
   // Get a slice of size to - from
-  ThisType slice(int from, int to) {
+  ThisType slice(int from, int to) const {
 #if SAFEARRAY
     assert(from <= to);
     assert(0 <= from);
@@ -442,7 +442,7 @@ class Array {
     return dst;
   }
 
-  ThisType sliceFrom(int from) {
+  ThisType sliceFrom(int from) const {
     return slice(from, _size);
   }
 

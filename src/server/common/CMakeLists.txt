@@ -267,3 +267,16 @@ add_library(common_JsonObjDeserializer
             JsonObjDeserializer.cpp
            )
 target_depends_on_poco_json(common_JsonObjDeserializer)
+
+add_library(common_ArgMap
+            ArgMap.h
+            ArgMap.cpp
+           )
+
+cxx_test(common_ArgMapTest
+         ArgMapTest.cpp
+         common_ArgMap
+         gtest_main
+         common_logging
+         common_string
+        )
