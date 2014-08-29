@@ -14,6 +14,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/LineKM.h>
 
 namespace sail {
 
@@ -192,36 +193,7 @@ Arrayd TargetSpeed::makeDefaultQuantiles() {
   return Arrayd(count, data);
 }
 
-namespace {
-  Arrayd extractQuantiles(
-      Array<Velocity<double> > velocities,
-      Arrayd quantiles, std::function<double(Velocity<double>)> unwrapper) {
 
-      if (velocities.empty()) {
-        return Arrayd();
-      }
-
-      // E.g. with size = 3, qmap maps
-      //  0.0 -> 0
-      //  0.5 -> 1
-      //  1.0 -> 2
-      LineKM qmap(0.0, 1.0, 0, velocities.size() - 1);
-
-
-      return quantiles.map<double>([&](double x) {
-        return unwrapper(velocities[int(round(qmap(x)))]);
-      });
-  }
-
-  bool validQuantiles(Arrayd Q) {
-    for (auto q : Q) {
-      if (q < 0 || 1 < q) {
-        return false;
-      }
-    }
-    return true;
-  }
-}
 
 Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
   int sign = (isUpwind? 1 : -1);
@@ -269,21 +241,6 @@ namespace {
       return x.hasData();
     });
   }
-
-  Arrayd makeBinCenters(HistogramMap hist, Arrayb sel) {
-    int count = countTrue(sel);
-    Arrayd c(count);
-    int counter = 0;
-    for (int i = 0; i < sel.size(); i++) {
-      if (sel[i]) {
-        c[counter] = hist.toCenter(i);
-        counter++;
-      }
-    }
-    assert(counter == count);
-    return c;
-  }
-
 }
 
 void saveTargetSpeedTableChunk(

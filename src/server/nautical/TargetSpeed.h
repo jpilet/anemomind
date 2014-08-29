@@ -11,7 +11,6 @@
 
 #include <ostream>
 #include <server/nautical/Nav.h>
-#include <server/common/Histogram.h>
 
 namespace sail {
 
