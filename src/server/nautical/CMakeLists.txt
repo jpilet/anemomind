@@ -313,19 +313,6 @@ target_link_libraries(nautical_TargetSpeed
                       device_ChunkFile
                      )  
 
-add_executable(nautical_TargetSpeedExample
-               TargetSpeedExample.cpp
-              )
-
-target_link_libraries(nautical_TargetSpeedExample
-                      nautical_TargetSpeed
-                      common_PathBuilder
-                      common_Env
-                      nautical_NavNmeaScan
-                      common_Span
-                      nautical_grammars_WindOrientedGrammar
-                     )
-
 add_library(nautical_TestdataNavs
             TestdataNavs.h
             TestdataNavs.cpp
