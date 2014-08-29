@@ -151,29 +151,6 @@ Array<Velocity<double> > makeBoundsFromBinCenters(int binCount,
     });
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Arrayd TargetSpeed::makeDefaultQuantiles() {
   const int count = 5;
 
@@ -183,8 +160,6 @@ Arrayd TargetSpeed::makeDefaultQuantiles() {
 
   return Arrayd(count, data);
 }
-
-
 
 Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
   int sign = (isUpwind? 1 : -1);
