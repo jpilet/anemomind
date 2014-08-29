@@ -14,14 +14,13 @@ ArgMap::ArgMap(int argc0, const char **argv0) {
   instantiated = true;
   _keywordPrefix = "--";
 
-  int argc = argc0 - 1;
-  const char **argv = argv0 + 1;
 
-  _args = Array<Entry>(argc);
-  for (int i = 0; i < argc; i++) {
-    std::string value = argv[i];
-    Entry e(i, value, _args);
-    _args[i] = e;
+  _args = Array<Entry>(argc0);
+  for (int i = 1; i < argc0; i++) {
+    std::string value(argv0[i]);
+    int index = i - 1;
+    Entry e(index, value, _args);
+    _args[index] = e;
     _map[value] = e;
   }
 }
