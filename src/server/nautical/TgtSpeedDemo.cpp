@@ -35,17 +35,6 @@ namespace {
     });
   }
 
-  Velocity<double> calcVmgGps(Velocity<double> gpsSpeed, Angle<double> twa) {
-    double factor = cos(twa);
-    return gpsSpeed.scaled(factor);
-  }
-
-  Array<Velocity<double> > getVmgGps(Array<Nav> navs) {
-    return navs.map<Velocity<double> >([=](const Nav &x) {
-      return calcVmgGps(x.gpsSpeed(), x.externalTwa());
-    });
-  }
-
   Array<Velocity<double> > getTws(Array<Nav> navs) {
     return navs.map<Velocity<double> >([=](const Nav &x) {
       return x.externalTws();
