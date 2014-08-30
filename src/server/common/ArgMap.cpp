@@ -81,13 +81,22 @@ Array<ArgMap::Entry*> ArgMap::KeywordInfo::trim(Array<Entry*> args, const std::s
 
 void ArgMap::KeywordInfo::dispHelp(std::ostream *out) const {
   *out << "   " << _keyword << "  (expects ";
-  if (_maxArgs == 0) {
-    *out << "no arguments)";
-  } else {
-    *out << "at most " << _maxArgs << " argument";
-    if (_maxArgs > 1) {
+  if (_minArgs == 0) {
+    if (_maxArgs == 0) {
+      *out << "no arguments";
+    } else {
+      *out << "at most " << _maxArgs << " argument";
+      if (_maxArgs > 1) {
+        *out << "s";
+      }
+    }
+  } else if (_minArgs == _maxArgs) {
+    *out << "exactly " << _minArgs << " argument";
+    if (_minArgs > 1) {
       *out << "s";
     }
+  } else {
+    *out << "from " << _minArgs << " to " << _maxArgs << " arguments";
   }
   *out << "):\n      " << _helpString << "\n" << std::endl;
 }
