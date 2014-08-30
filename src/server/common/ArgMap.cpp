@@ -15,20 +15,21 @@ ArgMap::ArgMap(int argc0, const char **argv0) {
   _keywordPrefix = "--";
 
 
-  _args = Array<Entry::Ptr>(argc0-1);
-  for (int i = 1; i < argc0; i++) {
-    std::string value(argv0[i]);
-    int index = i - 1;
-    Entry::Ptr e(new Entry(index, value, _args));
-    _args[index] = e;
-    _map[value] = e;
+  int argc = argc0 - 1;
+  _argStorage = Array<Entry>(argc);
+  _args = Array<Entry*>(argc);
+  for (int i0 = 1; i0 < argc0; i0++) {
+    std::string value(argv0[i0]);
+    int i = i0 - 1;
+    Entry e(i, value, _args);
+    _argStorage[i] = e;
+    Entry *ptr = _argStorage.ptr(i);
+    _args[i] = ptr;
+    _map[value] = ptr;
   }
 }
 
 ArgMap::~ArgMap() {
-  for (auto &arg: _args) {
-    arg->uncycle(); //Break cyclic references before destruction.
-  }
 }
 
 bool ArgMap::hasArg(const std::string &arg) {
@@ -39,13 +40,13 @@ bool ArgMap::hasArg(const std::string &arg) {
   return retval;
 }
 
-Array<ArgMap::Entry::Ptr> ArgMap::argsAfter(const std::string &arg) {
+Array<ArgMap::Entry*> ArgMap::argsAfter(const std::string &arg) {
   assert(hasArg(arg));
   return _map[arg]->after();
 }
 
-Array<ArgMap::Entry::Ptr> ArgMap::unreadArgs() const {
-  return _args.slice([=](const Entry::Ptr &e) {return !e->wasRead();});
+Array<ArgMap::Entry*> ArgMap::unreadArgs() const {
+  return _args.slice([=](const Entry *e) {return !e->wasRead();});
 }
 
 }

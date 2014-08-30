@@ -21,7 +21,7 @@ TEST(ArgMapTest, BasicTest) {
   EXPECT_TRUE(map.hasArg("--out"));
   EXPECT_EQ(map.argsAfter("--out")[0]->value(), "filename3.txt");
 
-  Array<ArgMap::Entry::Ptr> remain = map.unreadArgs();
+  Array<ArgMap::Entry*> remain = map.unreadArgs();
   EXPECT_EQ(remain.size(), 2);
   EXPECT_EQ(remain[0]->value(), "filename.txt");
   EXPECT_EQ(remain[1]->value(), "filename2.txt");
