@@ -94,7 +94,7 @@ class ArgMap {
     *
     *   registerKeyword("--out-filename", 1, "Specifi
     */
-   void registerKeyword(std::string keyword, int maxArgs, std::string helpString);
+   void registerKeyword(std::string keyword, int minArgs, int maxArgs, std::string helpString);
 
    void registerHelpInfo(std::string helpInfo) {_helpInfo = helpInfo;}
  private:
@@ -107,15 +107,15 @@ class ArgMap {
 
   class KeywordInfo {
    public:
-    KeywordInfo() : _maxArgs(-1) {}
-    KeywordInfo(std::string keyword, int maxArgs, std::string helpString) :
-      _keyword(keyword), _maxArgs(maxArgs), _helpString(helpString) {}
+    KeywordInfo() : _minArgs(-1), _maxArgs(-1) {}
+    KeywordInfo(std::string keyword, int minArgs, int maxArgs, std::string helpString) :
+      _keyword(keyword), _minArgs(minArgs), _maxArgs(maxArgs), _helpString(helpString) {}
 
     Array<Entry*> trim(Array<Entry*> args, const std::string &kwPref) const;
     void dispHelp(std::ostream *out) const;
    private:
     std::string _keyword;
-    int _maxArgs;
+    int _minArgs, _maxArgs;
     std::string _helpString;
   };
 

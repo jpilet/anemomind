@@ -6,6 +6,7 @@
 #include "ArgMap.h"
 #include <iostream>
 #include <server/common/logging.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -30,7 +31,7 @@ ArgMap::ArgMap(int argc0, const char **argv0) {
     _map[value] = ptr;
   }
 
-  registerKeyword("--help", 0, "Displays information about available commands.");
+  registerKeyword("--help", 0, 0, "Displays information about available commands.");
   registerHelpInfo("(no help or usage information specified)");
 }
 
@@ -57,21 +58,25 @@ Array<ArgMap::Entry*> ArgMap::unreadArgs() const {
   return _args.slice([=](const Entry *e) {return !e->wasRead() && !e->isKeyword(_keywordPrefix);});
 }
 
-void ArgMap::registerKeyword(std::string keyword, int maxArgs, std::string helpString) {
+void ArgMap::registerKeyword(std::string keyword, int minArgs, int maxArgs, std::string helpString) {
   // We cannot register the same keyword twice.
   CHECK(_keywords.find(keyword) == _keywords.end());
 
-  _keywords[keyword] = KeywordInfo(keyword, maxArgs, helpString);
+  _keywords[keyword] = KeywordInfo(keyword, minArgs, maxArgs, helpString);
 }
 
 Array<ArgMap::Entry*> ArgMap::KeywordInfo::trim(Array<Entry*> args, const std::string &kwPref) const {
   int len = std::min(args.size(), _maxArgs);
   for (int i = 0; i < len; i++) {
     if (args[i]->isKeyword(kwPref)) {
-      return i;
+      len = i;
+      break;
     }
   }
-  return len;
+  if (len < _minArgs) {
+    LOG(FATAL) << stringFormat("Less than %d arguments available to the keyword %s", _minArgs, _keyword.c_str());
+  }
+  return args.sliceTo(len);
 }
 
 void ArgMap::KeywordInfo::dispHelp(std::ostream *out) const {

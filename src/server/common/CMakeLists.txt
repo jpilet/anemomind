@@ -278,4 +278,5 @@ cxx_test(common_ArgMapTest
          common_ArgMap
          gtest_main
          common_logging
+         common_string
         )
