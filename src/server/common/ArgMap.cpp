@@ -28,7 +28,9 @@ ArgMap::ArgMap(int argc0, const char **argv0) {
     _argStorage[i] = e;
     Entry *ptr = _argStorage.ptr(i);
     _args[i] = ptr;
-    _map[value] = ptr;
+    if (ptr->isKeyword(_keywordPrefix)) {
+      _map[value] = ptr;
+    }
   }
 
   registerKeyword("--help", 0, 0, "Displays information about available commands.");
