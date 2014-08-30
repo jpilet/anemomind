@@ -16,6 +16,7 @@ TEST(ArgMapTest, BasicTest) {
   map.registerHelpInfo("Some help info for the BasicTest gtest test program.");
   map.registerKeyword("--slice", 2, 2, "Slices a subset of the data.");
   map.registerKeyword("--out", 1, 1, "Specifies the name of the file to output.");
+  map.registerKeyword("--swap", 2, 3, "Some other command not tested here...");
 
   EXPECT_FALSE(map.hasKeyword("rulle"));
   EXPECT_TRUE(map.hasKeyword("--slice"));

@@ -61,7 +61,7 @@ class ArgMap {
 
 
   /*
-   * To check if an argument exists, e.g. '--descend' if we were to call a sorting algorithm.
+   * To check if a keyword exists, e.g. '--descend' if we were to call a sorting algorithm.
    */
   bool hasKeyword(const std::string &arg);
 
