@@ -54,15 +54,13 @@ namespace {
   }
 
   int lookUp(Array<Velocity<double> > bounds, Velocity<double> tws) {
-    int boundCount = bounds.size();
-    int binCount = boundCount-1;
     if (tws < bounds.first() || bounds.last() <= tws || tws.isNaN()) {
       return -1;
     }
     Array<Velocity<double> >::Iterator i = std::upper_bound(bounds.begin(), bounds.end(), tws);
     int index = i - bounds.begin() - 1;
     assert(0 <= index);
-    assert(index < binCount);
+    assert(index < bounds.size()-1);
     return index;
   }
 
