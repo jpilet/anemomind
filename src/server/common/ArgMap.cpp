@@ -16,7 +16,7 @@ ArgMap::ArgMap(int argc0, const char **argv0) {
   assert(!instantiated);
   instantiated = true;
   _keywordPrefix = "--";
-
+  _severity = LOGLEVEL_WARNING;
 
   int argc = argc0 - 1;
   _argStorage = Array<Entry>(argc);
@@ -36,21 +36,24 @@ ArgMap::ArgMap(int argc0, const char **argv0) {
 }
 
 ArgMap::~ArgMap() {
-  if (hasArg("--help")) {
+  if (hasKeyword("--help")) {
     dispHelp(&std::cout);
   }
 }
 
-bool ArgMap::hasArg(const std::string &arg) {
+bool ArgMap::hasKeyword(const std::string &arg) {
   bool retval = !(_map.find(arg) == _map.end());
   if (retval) {
     _map[arg]->setWasRead();
   }
+  if (_keywords.find(arg) == _keywords.end()) {
+    internal::LogFinisher() = internal::LogMessage(_severity, __FILE__, __LINE__) << stringFormat("The keyword %s has not been registered", arg.c_str());
+  }
   return retval;
 }
 
-Array<ArgMap::Entry*> ArgMap::argsAfter(const std::string &arg) {
-  assert(hasArg(arg));
+Array<ArgMap::Entry*> ArgMap::argsAfterKeyword(const std::string &arg) {
+  assert(hasKeyword(arg));
   return _map[arg]->after();
 }
 

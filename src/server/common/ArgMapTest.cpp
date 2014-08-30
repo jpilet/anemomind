@@ -17,13 +17,13 @@ TEST(ArgMapTest, BasicTest) {
   map.registerKeyword("--slice", 2, 2, "Slices a subset of the data.");
   map.registerKeyword("--out", 1, 1, "Specifies the name of the file to output.");
 
-  EXPECT_FALSE(map.hasArg("rulle"));
-  EXPECT_TRUE(map.hasArg("--slice"));
-  EXPECT_EQ(map.argsAfter("--slice")[0]->value(), "10");
-  EXPECT_TRUE(map.argsAfter("--slice")[0]->wasRead());
-  EXPECT_EQ(map.argsAfter("--slice")[1]->value(), "40");
-  EXPECT_TRUE(map.hasArg("--out"));
-  EXPECT_EQ(map.argsAfter("--out")[0]->value(), "filename3.txt");
+  EXPECT_FALSE(map.hasKeyword("rulle"));
+  EXPECT_TRUE(map.hasKeyword("--slice"));
+  EXPECT_EQ(map.argsAfterKeyword("--slice")[0]->value(), "10");
+  EXPECT_TRUE(map.argsAfterKeyword("--slice")[0]->wasRead());
+  EXPECT_EQ(map.argsAfterKeyword("--slice")[1]->value(), "40");
+  EXPECT_TRUE(map.hasKeyword("--out"));
+  EXPECT_EQ(map.argsAfterKeyword("--out")[0]->value(), "filename3.txt");
 
   Array<ArgMap::Entry*> remain = map.unreadArgs();
   EXPECT_EQ(remain.size(), 2);

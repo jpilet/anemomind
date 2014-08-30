@@ -11,6 +11,7 @@
 #include <server/common/Array.h>
 #include <memory>
 #include <ostream>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -62,13 +63,13 @@ class ArgMap {
   /*
    * To check if an argument exists, e.g. '--descend' if we were to call a sorting algorithm.
    */
-  bool hasArg(const std::string &arg);
+  bool hasKeyword(const std::string &arg);
 
   /*
    * For instance, use this function to retrieve the filename succeeding a keyword, e.g.
    * '--outfile /home/alan/nmea.txt'
    */
-  Array<Entry*> argsAfter(const std::string &arg);
+  Array<Entry*> argsAfterKeyword(const std::string &arg);
 
   /*
    * When all functions that need to read arguments from the command line have been called,
@@ -103,6 +104,13 @@ class ArgMap {
   Array<Entry> _argStorage;
   Array<Entry*> _args;
   std::map<std::string, Entry*> _map;
+
+  /*
+   * If we should just issue a warning or crash the program
+   * if we are trying to access a keyword that has not been
+   * registered.
+   */
+  LogLevel _severity;
 
 
   class KeywordInfo {
