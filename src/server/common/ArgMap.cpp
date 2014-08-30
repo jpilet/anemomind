@@ -53,7 +53,7 @@ Array<ArgMap::Entry*> ArgMap::argsAfter(const std::string &arg) {
 }
 
 Array<ArgMap::Entry*> ArgMap::unreadArgs() const {
-  return _args.slice([=](const Entry *e) {return !e->wasRead();});
+  return _args.slice([=](const Entry *e) {return !e->wasRead() && !e->isKeyword(_keywordPrefix);});
 }
 
 void ArgMap::registerKeyword(std::string keyword, int maxArgs, std::string helpString) {
@@ -73,11 +73,14 @@ Array<ArgMap::Entry*> ArgMap::KeywordInfo::trim(Array<Entry*> args, const std::s
 void ArgMap::KeywordInfo::dispHelp(std::ostream *out) const {
   *out << "   " << _keyword << "  (expects ";
   if (_maxArgs == 0) {
-    *out << "no arguments";
+    *out << "no arguments)";
   } else {
-    *out << "at most " << _maxArgs << " arguments";
+    *out << "at most " << _maxArgs << " argument";
+    if (_maxArgs > 1) {
+      *out << "s";
+    }
   }
-  *out << ":\n      " << _helpString << "\n" << std::endl;
+  *out << "):\n      " << _helpString << "\n" << std::endl;
 }
 
 void ArgMap::dispHelp(std::ostream *out) {

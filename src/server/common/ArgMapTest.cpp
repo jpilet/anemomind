@@ -9,10 +9,14 @@
 
 TEST(ArgMapTest, BasicTest) {
   using namespace sail;
-  const int argc = 8;
-  const char *argv[argc] = {"nameOfThisProgram, which is not an argument", "--slice", "10", "40", "filename.txt", "filename2.txt", "--out", "filename3.txt"};
+  const int argc = 9;
+  const char *argv[argc] = {"nameOfThisProgram, which is not an argument", "--slice", "10", "40", "filename.txt", "filename2.txt", "--out", "filename3.txt", "--help"};
 
   ArgMap map(argc, argv);
+  map.registerHelpInfo("Some help info for the BasicTest gtest test program.");
+  map.registerKeyword("--slice", 2, "Slices a subset of the data.");
+  map.registerKeyword("--out", 1, "Specifies the name of the file to output.");
+
   EXPECT_FALSE(map.hasArg("rulle"));
   EXPECT_TRUE(map.hasArg("--slice"));
   EXPECT_EQ(map.argsAfter("--slice")[0]->value(), "10");
