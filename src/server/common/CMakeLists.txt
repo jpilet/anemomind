@@ -277,4 +277,5 @@ cxx_test(common_ArgMapTest
          ArgMapTest.cpp
          common_ArgMap
          gtest_main
+         common_logging
         )

@@ -5,6 +5,7 @@
 
 #include "ArgMap.h"
 #include <iostream>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -57,6 +58,9 @@ Array<ArgMap::Entry*> ArgMap::unreadArgs() const {
 }
 
 void ArgMap::registerKeyword(std::string keyword, int maxArgs, std::string helpString) {
+  // We cannot register the same keyword twice.
+  CHECK(_keywords.find(keyword) == _keywords.end());
+
   _keywords[keyword] = KeywordInfo(keyword, maxArgs, helpString);
 }
 
