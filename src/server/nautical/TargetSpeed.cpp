@@ -105,6 +105,11 @@ namespace {
   }
 }
 
+int lookUpForUnitTest(Array<Velocity<double> > bounds, Velocity<double> tws) {
+  return lookUp(bounds, tws);
+}
+
+
 
 
 

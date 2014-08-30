@@ -312,6 +312,11 @@ target_link_libraries(nautical_TargetSpeed
                       common_Histogram
                       device_ChunkFile
                      )  
+cxx_test(nautical_TargetSpeedTest
+         TargetSpeedTest.cpp
+         nautical_TargetSpeed
+         gtest_main
+        )                     
 
 add_library(nautical_TestdataNavs
             TestdataNavs.h
