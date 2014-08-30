@@ -66,11 +66,7 @@ namespace {
 
   Arrayi lookUp(Array<Velocity<double> > bounds, Array<Velocity<double> > tws) {
     int count = tws.size();
-    Arrayi bins(count);
-    for (int i = 0; i < count; i++) {
-      bins[i] = lookUp(bounds, tws[i]);
-    }
-    return bins;
+    return tws.map<int>([&](Velocity<double> x) {return lookUp(bounds, x);});
   }
 
   Array<Array<Velocity<double> > > groupVmg(bool isUpwind, int binCount, Arrayi bins, Array<Velocity<double> > vmg) {
