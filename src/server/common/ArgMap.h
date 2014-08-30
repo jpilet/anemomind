@@ -10,6 +10,7 @@
 #include <string>
 #include <server/common/Array.h>
 #include <memory>
+#include <ostream>
 
 namespace sail {
 
@@ -82,13 +83,44 @@ class ArgMap {
    * unread argument.
    */
    Array<Entry*> unreadArgs() const;
+
+   /*
+    * Information about a keyword that can be given on the command line, e.g.
+    *
+    *  --out-filename
+    *
+    * If this command for instance only accepts one argument, e.g. the filename,
+    * then call for instance
+    *
+    *   registerKeyword("--out-filename", 1, "Specifi
+    */
+   void registerKeyword(std::string keyword, int maxArgs, std::string helpString);
+
+   void registerHelpInfo(std::string helpInfo) {_helpInfo = helpInfo;}
  private:
+  void dispHelp(std::ostream *out);
   std::string _keywordPrefix;
-
-
   Array<Entry> _argStorage;
   Array<Entry*> _args;
   std::map<std::string, Entry*> _map;
+
+
+  class KeywordInfo {
+   public:
+    KeywordInfo() : _maxArgs(-1) {}
+    KeywordInfo(std::string keyword, int maxArgs, std::string helpString) :
+      _keyword(keyword), _maxArgs(maxArgs), _helpString(helpString) {}
+
+    Array<Entry*> trim(Array<Entry*> args, const std::string &kwPref) const;
+    void dispHelp(std::ostream *out) const;
+   private:
+    std::string _keyword;
+    int _maxArgs;
+    std::string _helpString;
+  };
+
+  std::map<std::string, KeywordInfo> _keywords;
+  std::string _helpInfo;
 };
 
 }
