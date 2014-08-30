@@ -78,13 +78,11 @@ namespace {
 
   void protoAlgoOnTestdata(int argc, const char **argv) {
     Array<Nav> data = getTestdataNavs(argc, argv);
-
-    Array<Velocity<double> > vmg = getVmgGps(data);
     Array<Velocity<double> > tws = getTws(data);
     Arrayb upwind = getUpwind(data);
     Arrayb downwind = getDownwind(data);
-    makePlot(true, tws, vmg, upwind, downwind);
-    makePlot(false, tws, vmg, upwind, downwind);
+    makePlot(true, tws, calcExternalVmg(data, true), upwind, downwind);
+    makePlot(false, tws, calcExternalVmg(data, false), upwind, downwind);
   }
 }
 

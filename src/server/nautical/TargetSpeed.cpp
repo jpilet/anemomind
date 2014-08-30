@@ -69,14 +69,13 @@ namespace {
     return tws.map<int>([&](Velocity<double> x) {return lookUp(bounds, x);});
   }
 
-  Array<Array<Velocity<double> > > groupVmg(bool isUpwind, int binCount, Arrayi bins, Array<Velocity<double> > vmg) {
+  Array<Array<Velocity<double> > > groupVmg(int binCount, Arrayi bins, Array<Velocity<double> > vmg) {
     Array<ArrayBuilder<Velocity<double> > > builders(binCount);
     int count = vmg.size();
-    int sign = (isUpwind? 1 : -1);
     for (int i = 0; i < count; i++) {
       int bin = bins[i];
       if (bin != -1) {
-        builders[bin].add(vmg[i].scaled(sign));
+        builders[bin].add(vmg[i]);
       }
     }
     Array<Array<Velocity<double> > > groups = builders.map<Array<Velocity<double> > >([=](ArrayBuilder<Velocity<double> > x) {return x.get();});
@@ -122,7 +121,7 @@ TargetSpeed::TargetSpeed(bool isUpwind_, Array<Velocity<double> > tws,
 
   Arrayi bins = lookUp(bounds, tws);
   int binCount = bounds.size() - 1;
-  Array<Array<Velocity<double > > > groups = groupVmg(isUpwind, binCount, bins, vmg);
+  Array<Array<Velocity<double > > > groups = groupVmg(binCount, bins, vmg);
 
   int qCount = quantiles.size();
   binCenters = Array<Velocity<double> >(binCount);
@@ -183,6 +182,10 @@ Array<Velocity<double> > calcExternalVmgSigned(Array<Nav> navs, int sign) {
 
 Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind) {
   return calcExternalVmgSigned(navs, isUpwind? 1 : -1);
+}
+
+Array<Velocity<double> > calcExternalVmgUnsigned(Array<Nav> navs) {
+  return calcExternalVmgSigned(navs, 1);
 }
 
 Array<Velocity<double> > calcExternalUnsigned(Array<Nav> navs) {
