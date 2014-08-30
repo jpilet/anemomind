@@ -13,7 +13,9 @@ int lookUpForUnitTest(Array<Velocity<double> > bounds, Velocity<double> tws);
 
 using namespace sail;
 TEST(TargetSpeedTest, LookUpTest) {
-  Array<Velocity<double> > bounds(3);
+
+  // Four bounds, three bins.
+  Array<Velocity<double> > bounds(4);
   for (int i = 0; i < bounds.size(); i++) {
     bounds[i] = Velocity<double>::knots(i);
   }
