@@ -173,24 +173,14 @@ Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
   });
 }
 
-Array<Velocity<double> > calcExternalVmgSigned(Array<Nav> navs, int sign) {
+Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind) {
+  int sign = isUpwind? 1 : -1;
   return navs.map<Velocity<double> >([&](const Nav &n) {
     double factor = sign*cos(n.externalTwa());
     return n.gpsSpeed().scaled(factor);
   });
 }
 
-Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind) {
-  return calcExternalVmgSigned(navs, isUpwind? 1 : -1);
-}
-
-Array<Velocity<double> > calcExternalVmgUnsigned(Array<Nav> navs) {
-  return calcExternalVmgSigned(navs, 1);
-}
-
-Array<Velocity<double> > calcExternalUnsigned(Array<Nav> navs) {
-  return calcExternalVmgSigned(navs, 1);
-}
 
 Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs) {
   return calcVmg(navs, true);

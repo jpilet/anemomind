@@ -47,8 +47,6 @@ Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind);
 // Using the TWA from file
 Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind);
 
-Array<Velocity<double> > calcExternalVmgUnsigned(Array<Nav> navs);
-
 // All navs are collected from upwind legs
 Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs);
 
