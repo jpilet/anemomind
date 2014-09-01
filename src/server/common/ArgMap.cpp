@@ -25,22 +25,20 @@ ArgMap::ArgMap() {
 
 namespace {
   void fillArgs(int argc, const char **argv,
-      Array<ArgMap::Entry> *storageOut, Array<ArgMap::Entry*> *argsOut) {
-    *storageOut = Array<ArgMap::Entry>::fill(argc-1, [&](int i) {
-      return ArgMap::Entry(i, argv[i+1]);
+      Array<ArgMap::Arg> *storageOut, Array<ArgMap::Arg*> *argsOut) {
+    *storageOut = Array<ArgMap::Arg>::fill(argc-1, [&](int i) {
+      return ArgMap::Arg(i, argv[i+1]);
     });
 
-    *argsOut = Array<ArgMap::Entry*>::fill(storageOut->size(), [&](int i) {
+    *argsOut = Array<ArgMap::Arg*>::fill(storageOut->size(), [&](int i) {
       return &((*storageOut)[i]);
     });
   }
-
-  typedef std::map<std::string, ArrayBuilder<ArgMap::Entry*> > TM;
 }
 
 
-bool ArgMap::readOptionAndParseSub(TempArgMap &tempmap, Option info, Entry *opt, Array<Entry*> rest,
-    ArrayBuilder<ArgMap::Entry*> &acc) {
+bool ArgMap::readOptionAndParseSub(TempArgMap &tempmap, Option info, Arg *opt, Array<Arg*> rest,
+    ArrayBuilder<ArgMap::Arg*> &acc) {
   if (acc.size() >= info.maxArgCount()) { // Max number of arguments reached?
     return parseSub(tempmap, rest); // Continue parsing...
   } else if (rest.empty() || rest[0]->isOption(_optionPrefix)) { // nothing more to read
@@ -65,16 +63,16 @@ bool ArgMap::readOptionAndParseSub(TempArgMap &tempmap, Option info, Entry *opt,
 }
 
 
-bool ArgMap::parseSub(TempArgMap &tempmap, Array<Entry*> args) {
+bool ArgMap::parseSub(TempArgMap &tempmap, Array<Arg*> args) {
   if (args.empty()) {
     return true;
   } else {
-    Entry *first = args[0];
-    Array<Entry*> rest = args.sliceFrom(1);
+    Arg *first = args[0];
+    Array<Arg*> rest = args.sliceFrom(1);
     if (first->isOption(_optionPrefix)) {
       const std::string &s = first->valueUntraced();
       Option info = _options[s];
-      ArrayBuilder<Entry*> &acc = tempmap[s];
+      ArrayBuilder<Arg*> &acc = tempmap[s];
       return readOptionAndParseSub(tempmap, info, first, rest, acc);
     } else {
       return parseSub(tempmap, rest);
@@ -82,22 +80,21 @@ bool ArgMap::parseSub(TempArgMap &tempmap, Array<Entry*> args) {
   }
 }
 
-namespace {
-  std::map<std::string, Array<ArgMap::Entry*> > buildMap(
-      std::map<std::string, ArrayBuilder<ArgMap::Entry*> > &src) {
-    std::map<std::string, Array<ArgMap::Entry*> > dst;
-    for (std::map<std::string, ArrayBuilder<ArgMap::Entry*> >::iterator
-        i = src.begin(); i != src.end(); i++) {
-      dst[i->first] = i->second.get();
-    }
-    return dst;
+
+std::map<std::string, Array<ArgMap::Arg*> > ArgMap::buildMap(
+    std::map<std::string, ArrayBuilder<ArgMap::Arg*> > &src) {
+  std::map<std::string, Array<ArgMap::Arg*> > dst;
+  for (std::map<std::string, ArrayBuilder<ArgMap::Arg*> >::iterator
+      i = src.begin(); i != src.end(); i++) {
+    dst[i->first] = i->second.get();
   }
+  return dst;
 }
 
 bool ArgMap::parse(int argc0, const char **argv0) {
   CHECK(!_successfullyParsed);
   int argc = argc0 - 1;
-  Array<Entry*> args;
+  Array<Arg*> args;
   fillArgs(argc0, argv0, &_argStorage, &args);
   TempArgMap tempmap;
   _successfullyParsed = parseSub(tempmap, args);
@@ -123,18 +120,18 @@ bool ArgMap::hasOption(const std::string &arg) {
   return retval;
 }
 
-Array<ArgMap::Entry*> ArgMap::argsAfterOption(const std::string &arg) {
+Array<ArgMap::Arg*> ArgMap::argsAfterOption(const std::string &arg) {
   CHECK(_successfullyParsed);
   assert(hasOption(arg));
   return _map[arg];
 }
 
-Array<ArgMap::Entry*> ArgMap::freeArgs() {
+Array<ArgMap::Arg*> ArgMap::freeArgs() {
   CHECK(_successfullyParsed);
   int count = _argStorage.size();
-  ArrayBuilder<ArgMap::Entry*> args(count);
+  ArrayBuilder<ArgMap::Arg*> args(count);
   for (int i = 0; i < count; i++) {
-    Entry *e = &(_argStorage[i]);
+    Arg *e = &(_argStorage[i]);
     if (!e->wasRead() && !e->isOption(_optionPrefix)) {
       args.add(e);
     }
@@ -153,8 +150,8 @@ ArgMap::Option &ArgMap::registerOption(std::string option, std::string helpStrin
   return _options[option];
 }
 
-Array<ArgMap::Entry*> ArgMap::Option::trim(Array<Entry*> optionAndArgs, const std::string &kwPref) const {
-  Array<Entry*> args = optionAndArgs.sliceFrom(1);
+Array<ArgMap::Arg*> ArgMap::Option::trim(Array<Arg*> optionAndArgs, const std::string &kwPref) const {
+  Array<Arg*> args = optionAndArgs.sliceFrom(1);
   int len = std::min(args.size(), _maxArgs);
   {
     for (int i = 0; i < len; i++) {

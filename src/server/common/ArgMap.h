@@ -25,10 +25,10 @@ class ArgMap {
 
   bool parse(int argc, const char **argv);
 
-  class Entry {
+  class Arg {
    public:
-    Entry() : _index(-1), _wasRead(false) {}
-    Entry(int index, std::string arg) : _index(index),
+    Arg() : _index(-1), _wasRead(false) {}
+    Arg(int index, std::string arg) : _index(index),
         _arg(arg), _wasRead(false) {}
 
     const std::string &value() {
@@ -60,8 +60,6 @@ class ArgMap {
     std::string _arg;
     int _index;
   };
- private:
-  typedef std::map<std::string, ArrayBuilder<ArgMap::Entry*> > TempArgMap;
  public:
 
 
@@ -75,7 +73,7 @@ class ArgMap {
    * For instance, use this function to retrieve the filename succeeding a option, e.g.
    * '--outfile /home/alan/nmea.txt'
    */
-  Array<Entry*> argsAfterOption(const std::string &arg);
+  Array<Arg*> argsAfterOption(const std::string &arg);
 
   /*
    * When all functions that need to read arguments from the command line have been called,
@@ -89,7 +87,7 @@ class ArgMap {
    * then the argument 'rulle.txt' will remain the single
    * unread argument.
    */
-   Array<Entry*> freeArgs();
+   Array<Arg*> freeArgs();
 
 
 
@@ -100,7 +98,7 @@ class ArgMap {
        _option(option), _minArgs(0), _maxArgs(0), _helpString(helpString),
        _unique(false) {}
 
-     Array<Entry*> trim(Array<Entry*> optionAndArgs, const std::string &optPref) const;
+     Array<Arg*> trim(Array<Arg*> optionAndArgs, const std::string &optPref) const;
      void dispHelp(std::ostream *out) const;
 
      Option &setMinArgCount(int ma) {
@@ -160,16 +158,34 @@ class ArgMap {
    void dispHelp(std::ostream *out);
    std::string helpMessage();
  private:
-  bool parseSub(TempArgMap &tempmap, Array<Entry*> args);
+  class TempArgs {
+   public:
+    TempArgs() : _optionCounter(0) {}
+
+    // Whenever we encounter an option, call this method to retrieve the builder.
+    ArrayBuilder<ArgMap::Arg*> getArgsForNewOption() {
+      _optionCounter++;
+      return _args;
+    }
+   private:
+    ArrayBuilder<ArgMap::Arg*> _args;
+    int _optionCounter;
+  };
+
+  static std::map<std::string, Array<ArgMap::Arg*> > buildMap(
+        std::map<std::string, ArrayBuilder<ArgMap::Arg*> > &src);
+  typedef std::map<std::string, ArrayBuilder<ArgMap::Arg*> > TempArgMap;
+
+  bool parseSub(TempArgMap &tempmap, Array<Arg*> args);
   bool readOptionAndParseSub(TempArgMap &tempmap,
-      Option info, Entry *opt, Array<Entry*> rest,
-      ArrayBuilder<Entry*> &acc);
+      Option info, Arg *opt, Array<Arg*> rest,
+      ArrayBuilder<Arg*> &acc);
 
   bool _successfullyParsed;
   std::string _optionPrefix;
-  Array<Entry> _argStorage;
+  Array<Arg> _argStorage;
   //Array<Entry*> _args;
-  std::map<std::string, Array<Entry*> > _map;
+  std::map<std::string, Array<Arg*> > _map;
 
 
 
