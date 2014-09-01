@@ -14,19 +14,19 @@ TEST(ArgMapTest, BasicTest) {
 
   ArgMap map(argc, argv);
   map.registerHelpInfo("Some help info for the BasicTest gtest test program.");
-  map.registerKeyword("--slice", 2, 2, "Slices a subset of the data.");
-  map.registerKeyword("--out", 1, 1, "Specifies the name of the file to output.");
-  map.registerKeyword("--swap", 2, 3, "Some other command not tested here...");
-  map.registerKeyword("--rulle", 0, 0, "Use short form of Rudolf");
+  map.registerOption("--slice", 2, 2, "Slices a subset of the data.");
+  map.registerOption("--out", 1, 1, "Specifies the name of the file to output.");
+  map.registerOption("--swap", 2, 3, "Some other command not tested here...");
+  map.registerOption("--rulle", 0, 0, "Use short form of Rudolf");
 
-  EXPECT_FALSE(map.hasKeyword("--rulle"));
-  EXPECT_TRUE(map.hasKeyword("--slice"));
-  EXPECT_EQ(map.argsAfterKeyword("--slice").size(), 2);
-  EXPECT_EQ(map.argsAfterKeyword("--slice")[0]->value(), "10");
-  EXPECT_TRUE(map.argsAfterKeyword("--slice")[0]->wasRead());
-  EXPECT_EQ(map.argsAfterKeyword("--slice")[1]->value(), "40");
-  EXPECT_TRUE(map.hasKeyword("--out"));
-  EXPECT_EQ(map.argsAfterKeyword("--out")[0]->value(), "filename3.txt");
+  EXPECT_FALSE(map.hasOption("--rulle"));
+  EXPECT_TRUE(map.hasOption("--slice"));
+  EXPECT_EQ(map.argsAfterOption("--slice").size(), 2);
+  EXPECT_EQ(map.argsAfterOption("--slice")[0]->value(), "10");
+  EXPECT_TRUE(map.argsAfterOption("--slice")[0]->wasRead());
+  EXPECT_EQ(map.argsAfterOption("--slice")[1]->value(), "40");
+  EXPECT_TRUE(map.hasOption("--out"));
+  EXPECT_EQ(map.argsAfterOption("--out")[0]->value(), "filename3.txt");
 
   Array<ArgMap::Entry*> remain = map.unreadArgs();
   EXPECT_EQ(remain.size(), 2);

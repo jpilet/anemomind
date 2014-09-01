@@ -37,7 +37,7 @@ class ArgMap {
     }
 
     // This function DOESN'T change the _wasRead flag.
-    bool isKeyword(const std::string &prefix) const {
+    bool isOption(const std::string &prefix) const {
       const int vlen = _arg.length();
       const int plen = prefix.length();
       return (vlen >= plen? _arg.substr(0, plen) == prefix : false);
@@ -56,15 +56,15 @@ class ArgMap {
 
 
   /*
-   * To check if a keyword exists, e.g. '--descend' if we were to call a sorting algorithm.
+   * To check if a option exists, e.g. '--descend' if we were to call a sorting algorithm.
    */
-  bool hasKeyword(const std::string &arg);
+  bool hasOption(const std::string &arg);
 
   /*
-   * For instance, use this function to retrieve the filename succeeding a keyword, e.g.
+   * For instance, use this function to retrieve the filename succeeding a option, e.g.
    * '--outfile /home/alan/nmea.txt'
    */
-  Array<Entry*> argsAfterKeyword(const std::string &arg);
+  Array<Entry*> argsAfterOption(const std::string &arg);
 
   /*
    * When all functions that need to read arguments from the command line have been called,
@@ -81,23 +81,23 @@ class ArgMap {
    Array<Entry*> unreadArgs() const;
 
    /*
-    * Information about a keyword that can be given on the command line, e.g.
+    * Information about a option that can be given on the command line, e.g.
     *
     *  --out-filename
     *
     * If this command for instance only accepts one argument such as the filename,
     * then call
     *
-    *   registerKeyword("--out-filename", 1, 1, "Specify the filename");
+    *   registerOption("--out-filename", 1, 1, "Specify the filename");
     */
-   void registerKeyword(std::string keyword, int minArgs, int maxArgs, std::string helpString);
+   void registerOption(std::string option, int minArgs, int maxArgs, std::string helpString);
 
    void registerHelpInfo(std::string helpInfo) {_helpInfo = helpInfo;}
 
    void dispHelp(std::ostream *out);
    std::string dispHelp();
  private:
-  std::string _keywordPrefix;
+  std::string _optionPrefix;
   Array<Entry> _argStorage;
   Array<Entry*> _args;
   std::map<std::string, Array<Entry*> > _map;
@@ -105,18 +105,18 @@ class ArgMap {
   class Option {
    public:
     Option() : _minArgs(-1), _maxArgs(-1) {}
-    Option(std::string keyword, int minArgs, int maxArgs, std::string helpString) :
-      _keyword(keyword), _minArgs(minArgs), _maxArgs(maxArgs), _helpString(helpString) {}
+    Option(std::string option, int minArgs, int maxArgs, std::string helpString) :
+      _option(option), _minArgs(minArgs), _maxArgs(maxArgs), _helpString(helpString) {}
 
-    Array<Entry*> trim(Array<Entry*> args, const std::string &kwPref) const;
+    Array<Entry*> trim(Array<Entry*> args, const std::string &optPref) const;
     void dispHelp(std::ostream *out) const;
    private:
-    std::string _keyword;
+    std::string _option;
     int _minArgs, _maxArgs;
     std::string _helpString;
   };
 
-  std::map<std::string, Option> _keywords;
+  std::map<std::string, Option> _options;
   std::string _helpInfo;
 };
 
