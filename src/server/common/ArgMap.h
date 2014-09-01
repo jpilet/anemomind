@@ -171,6 +171,10 @@ class ArgMap {
     Array<ArgMap::Arg*> get() {
       return _args.get();
     }
+
+    int optionCount() const {
+      return _optionCounter;
+    }
    private:
     ArrayBuilder<ArgMap::Arg*> _args;
     int _optionCounter;
