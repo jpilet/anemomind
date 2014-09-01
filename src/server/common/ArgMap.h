@@ -35,7 +35,7 @@ class ArgMap {
       return valueUntraced();
     }
 
-    // Reads the value without leaving any trace, that is settings _wasRead = true.
+    // Reads the value without leaving any trace, that would be settings _wasRead = true.
     const std::string &valueUntraced() {
       return _arg;
     }
