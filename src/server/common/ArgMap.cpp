@@ -93,6 +93,7 @@ bool ArgMap::hasAllRequiredArgs(std::map<std::string, Option> &options, TempArgM
       i != options.end(); i++) {
     if (i->second.required()) {
       if (tempmap.find(i->first) == tempmap.end()) {
+        std::cout << "Missing required option " << i->first << std::endl;
         return false;
       }
     }
@@ -106,15 +107,17 @@ bool ArgMap::parse(int argc0, const char **argv0) {
   Array<Arg*> args;
   fillArgs(argc0, argv0, &_argStorage, &args);
   TempArgMap tempmap;
-  bool s = parseSub(tempmap, args);
-
-  _successfullyParsed = s && hasAllRequiredArgs(_options, tempmap);
-
-  if (_successfullyParsed) {
-    _map = buildMap(tempmap);
-    return true;
+  if (!parseSub(tempmap, args)) {
+    return false;
   }
-  return false;
+
+  if (!hasAllRequiredArgs(_options, tempmap)) {
+    return false;
+  }
+
+  _successfullyParsed = true;
+  _map = buildMap(tempmap);
+  return true;
 }
 
 
