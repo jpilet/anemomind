@@ -77,7 +77,7 @@ bool ArgMap::hasOption(const std::string &arg) {
 Array<ArgMap::Entry*> ArgMap::argsAfterOption(const std::string &arg) {
   CHECK(_successfullyParsed);
   assert(hasOption(arg));
-  return _map[arg];
+  return _map[arg].sliceFrom(1);
 }
 
 Array<ArgMap::Entry*> ArgMap::freeArgs() {
