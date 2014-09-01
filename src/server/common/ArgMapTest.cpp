@@ -64,6 +64,7 @@ TEST(ArgMapTest, Required3) {
   const char *argv[argc] = {"progname", "--filename", "data.txt"};
   ArgMap m = makeReqMap();
   EXPECT_TRUE(m.parse(argc, argv));
+  EXPECT_EQ(m.argsAfterOption("--filename").size(), 1);
   EXPECT_EQ(m.argsAfterOption("--filename")[0]->value(), "data.txt");
   EXPECT_TRUE(m.freeArgs().empty());
 }

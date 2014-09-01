@@ -87,13 +87,29 @@ std::map<std::string, Array<ArgMap::Arg*> > ArgMap::buildMap(TempArgMap &src) {
   return dst;
 }
 
+
+bool ArgMap::hasAllRequiredArgs(std::map<std::string, Option> &options, TempArgMap &tempmap) {
+  for (std::map<std::string, Option>::iterator i = options.begin();
+      i != options.end(); i++) {
+    if (i->second.required()) {
+      if (tempmap.find(i->first) == tempmap.end()) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 bool ArgMap::parse(int argc0, const char **argv0) {
   CHECK(!_successfullyParsed);
   int argc = argc0 - 1;
   Array<Arg*> args;
   fillArgs(argc0, argv0, &_argStorage, &args);
   TempArgMap tempmap;
-  _successfullyParsed = parseSub(tempmap, args);
+  bool s = parseSub(tempmap, args);
+
+  _successfullyParsed = s && hasAllRequiredArgs(_options, tempmap);
+
   if (_successfullyParsed) {
     _map = buildMap(tempmap);
     return true;

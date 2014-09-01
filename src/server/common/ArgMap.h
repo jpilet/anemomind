@@ -190,6 +190,7 @@ class ArgMap {
 
   typedef std::map<std::string, TempArgs> TempArgMap;
   static std::map<std::string, Array<ArgMap::Arg*> > buildMap(TempArgMap &src);
+  static bool hasAllRequiredArgs(std::map<std::string, Option> &options, TempArgMap &tempmap);
 
   bool parseSub(TempArgMap &tempmap, Array<Arg*> args);
   bool readOptionAndParseSub(TempArgMap &tempmap,
