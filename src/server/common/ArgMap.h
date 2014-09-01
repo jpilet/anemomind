@@ -90,10 +90,10 @@ class ArgMap {
     *
     *  --out-filename
     *
-    * If this command for instance only accepts one argument, e.g. the filename,
-    * then call for instance
+    * If this command for instance only accepts one argument such as the filename,
+    * then call
     *
-    *   registerKeyword("--out-filename", 1, "Specifi
+    *   registerKeyword("--out-filename", 1, 1, "Specify the filename");
     */
    void registerKeyword(std::string keyword, int minArgs, int maxArgs, std::string helpString);
 
