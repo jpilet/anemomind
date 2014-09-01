@@ -69,11 +69,11 @@ bool ArgMap::parseSub(TempArgMap &tempmap, Array<Arg*> args) {
       const std::string &s = first->valueUntraced();
       Option info = _options[s];
       TempArgs targs = tempmap[s];
-      if (info.unique() && targs.optionCount() >= 1) {
+      ArrayBuilder<Arg*> &acc = targs.getArgsForNewOption();
+      if (info.unique() && targs.optionCount() > 1) {
         std::cout << "You can provide the " << s << " option at most once." << std::endl;
         return false;
       }
-      ArrayBuilder<Arg*> &acc = targs.getArgsForNewOption();
       return readOptionAndParseSub(tempmap, info, first, rest, acc);
     } else {
       return parseSub(tempmap, rest);
