@@ -20,6 +20,7 @@ TEST(ArgMapTest, BasicTest) {
 
   EXPECT_FALSE(map.hasKeyword("rulle"));
   EXPECT_TRUE(map.hasKeyword("--slice"));
+  EXPECT_EQ(map.argsAfterKeyword("--slice").size(), 2);
   EXPECT_EQ(map.argsAfterKeyword("--slice")[0]->value(), "10");
   EXPECT_TRUE(map.argsAfterKeyword("--slice")[0]->wasRead());
   EXPECT_EQ(map.argsAfterKeyword("--slice")[1]->value(), "40");
