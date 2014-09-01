@@ -93,10 +93,10 @@ class ArgMap {
 
    class Option {
     public:
-     Option() : _minArgs(0), _maxArgs(0), _unique(false) {}
+     Option() : _minArgs(0), _maxArgs(0), _unique(false), _required(false) {}
      Option(std::string option, std::string helpString) :
        _option(option), _minArgs(0), _maxArgs(0), _helpString(helpString),
-       _unique(false) {}
+       _unique(false), _required(false) {}
 
      Array<Arg*> trim(Array<Arg*> optionAndArgs, const std::string &optPref) const;
      void dispHelp(std::ostream *out) const;
@@ -122,6 +122,11 @@ class ArgMap {
        return *this;
      }
 
+     Option &setRequired() {
+       _required = true;
+       return *this;
+     }
+
      int minArgCount() const {
        return _minArgs;
      }
@@ -133,8 +138,12 @@ class ArgMap {
      bool unique() const {
        return _unique;
      }
+
+     bool required() const {
+       return _required;
+     }
     private:
-     bool _unique;
+     bool _unique, _required;
      std::string _option;
      int _minArgs, _maxArgs;
      std::string _helpString;
