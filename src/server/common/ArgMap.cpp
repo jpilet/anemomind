@@ -36,14 +36,12 @@ void ArgMap::parse(int argc0, const char **argv0) {
       _map[value] = _args.sliceFrom(i);
     }
   }
-}
 
-
-ArgMap::~ArgMap() {
   if (hasOption("--help")) {
     dispHelp(&std::cout);
   }
 }
+
 
 bool ArgMap::hasOption(const std::string &arg) {
   bool retval = !(_map.find(arg) == _map.end());

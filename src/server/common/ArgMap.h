@@ -20,7 +20,6 @@ class ArgMap {
  public:
   static bool instantiated;
   ArgMap();
-  ~ArgMap();
 
 
   void parse(int argc, const char **argv);
