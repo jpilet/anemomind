@@ -19,7 +19,7 @@ ArgMap::ArgMap() {
   assert(!instantiated);
   instantiated = true;
   _optionPrefix = "--";
-  registerOption("--help", "Displays information about available commands.").minArgs(0).maxArgs(0);
+  registerOption("--help", "Displays information about available commands.").setMinArgCount(0).setMaxArgCount(0);
   setHelpInfo("(no help or usage information specified)");
 }
 
@@ -34,29 +34,78 @@ namespace {
       return &((*storageOut)[i]);
     });
   }
+
+  typedef std::map<std::string, ArrayBuilder<ArgMap::Entry*> > TM;
+}
+
+
+bool ArgMap::readOptionAndParseSub(TempArgMap &tempmap, Option info, Entry *opt, Array<Entry*> rest,
+    ArrayBuilder<ArgMap::Entry*> &acc) {
+  if (acc.size() >= info.maxArgCount()) { // Max number of arguments reached?
+    return parseSub(tempmap, rest); // Continue parsing...
+  } else if (rest.empty() || rest[0]->isOption(_optionPrefix)) { // nothing more to read
+
+    // Check if there are not enough arguments for this option.
+    if (acc.size() < info.minArgCount()) {
+      std::cout << "Too few values provided to the " << opt->valueUntraced() << "-option." << std::endl;
+      std::cout << "You provided " << acc.size() << " values, but "
+          << info.minArgCount() << " required." << std::endl;
+      return false;
+    }
+
+    // Save all arguments read so far
+    tempmap[opt->valueUntraced()] = acc;
+
+
+    return parseSub(tempmap, rest);
+  } else { // Still data to read and max number of arguments not reached.
+    acc.add(rest[0]);
+    return readOptionAndParseSub(tempmap, info, opt, rest.sliceFrom(1), acc);
+  }
+}
+
+
+bool ArgMap::parseSub(TempArgMap &tempmap, Array<Entry*> args) {
+  if (args.empty()) {
+    return true;
+  } else {
+    Entry *first = args[0];
+    Array<Entry*> rest = args.sliceFrom(1);
+    if (first->isOption(_optionPrefix)) {
+      const std::string &s = first->valueUntraced();
+      Option info = _options[s];
+      ArrayBuilder<Entry*> &acc = tempmap[s];
+      return readOptionAndParseSub(tempmap, info, first, rest, acc);
+    } else {
+      return parseSub(tempmap, rest);
+    }
+  }
+}
+
+namespace {
+  std::map<std::string, Array<ArgMap::Entry*> > buildMap(
+      std::map<std::string, ArrayBuilder<ArgMap::Entry*> > &src) {
+    std::map<std::string, Array<ArgMap::Entry*> > dst;
+    for (std::map<std::string, ArrayBuilder<ArgMap::Entry*> >::iterator
+        i = src.begin(); i != src.end(); i++) {
+      dst[i->first] = i->second.get();
+    }
+    return dst;
+  }
 }
 
 bool ArgMap::parse(int argc0, const char **argv0) {
   CHECK(!_successfullyParsed);
   int argc = argc0 - 1;
-
   Array<Entry*> args;
   fillArgs(argc0, argv0, &_argStorage, &args);
-
-  for (int i = 0; i < argc; i++) {
-    std::string value = args[i]->valueUntraced();
-    Entry *ptr = _argStorage.ptr(i);
-    if (ptr->isOption(_optionPrefix)) {
-      CHECK(hasRegisteredOption(value));
-      _map[value] = _options[value].trim(args.sliceFrom(i), _optionPrefix);
-    }
+  TempArgMap tempmap;
+  _successfullyParsed = parseSub(tempmap, args);
+  if (_successfullyParsed) {
+    _map = buildMap(tempmap);
+    return true;
   }
-  _successfullyParsed = true;
-
-  if (hasOption("--help")) {
-    dispHelp(&std::cout);
-  }
-  return _successfullyParsed;
+  return false;
 }
 
 
@@ -65,7 +114,7 @@ bool ArgMap::hasRegisteredOption(const std::string &arg) {
 }
 
 bool ArgMap::hasOption(const std::string &arg) {
-  CHECK(_successfullyParsed);
+  //CHECK(_successfullyParsed);
   bool retval = !(_map.find(arg) == _map.end());
   if (retval) {
     _map[arg][0]->setWasRead();
@@ -77,7 +126,7 @@ bool ArgMap::hasOption(const std::string &arg) {
 Array<ArgMap::Entry*> ArgMap::argsAfterOption(const std::string &arg) {
   CHECK(_successfullyParsed);
   assert(hasOption(arg));
-  return _map[arg].sliceFrom(1);
+  return _map[arg];
 }
 
 Array<ArgMap::Entry*> ArgMap::freeArgs() {
@@ -100,9 +149,8 @@ ArgMap::Option &ArgMap::registerOption(std::string option, std::string helpStrin
   // We cannot register the same option twice.
   CHECK(_options.find(option) == _options.end());
 
-  Option &at = _options[option];
-  at = Option(option, helpString);
-  return at;
+  _options[option] = Option(option, helpString);
+  return _options[option];
 }
 
 Array<ArgMap::Entry*> ArgMap::Option::trim(Array<Entry*> optionAndArgs, const std::string &kwPref) const {

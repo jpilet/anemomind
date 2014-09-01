@@ -13,6 +13,7 @@
 #include <ostream>
 #include <server/common/logging.h>
 #include <limits>
+#include <server/common/ArrayBuilder.h>
 
 namespace sail {
 
@@ -59,7 +60,9 @@ class ArgMap {
     std::string _arg;
     int _index;
   };
-
+ private:
+  typedef std::map<std::string, ArrayBuilder<ArgMap::Entry*> > TempArgMap;
+ public:
 
 
 
@@ -100,25 +103,37 @@ class ArgMap {
      Array<Entry*> trim(Array<Entry*> optionAndArgs, const std::string &optPref) const;
      void dispHelp(std::ostream *out) const;
 
-     Option &minArgs(int ma) {
+     Option &setMinArgCount(int ma) {
        _minArgs = ma;
        return *this;
      }
 
-     Option &maxArgs(int ma) {
+     Option &setMaxArgCount(int ma) {
        _maxArgs = ma;
        return *this;
      }
 
-     Option &argCount(int ac) {
+     Option &setArgCount(int ac) {
        _minArgs = ac;
        _maxArgs = ac;
        return *this;
      }
 
-     Option &unique() {
+     Option &setUnique() {
        _unique = true;
        return *this;
+     }
+
+     int minArgCount() const {
+       return _minArgs;
+     }
+
+     int maxArgCount() const {
+       return _maxArgs;
+     }
+
+     bool isUnique() const {
+       return _unique;
      }
     private:
      bool _unique;
@@ -145,6 +160,11 @@ class ArgMap {
    void dispHelp(std::ostream *out);
    std::string helpMessage();
  private:
+  bool parseSub(TempArgMap &tempmap, Array<Entry*> args);
+  bool readOptionAndParseSub(TempArgMap &tempmap,
+      Option info, Entry *opt, Array<Entry*> rest,
+      ArrayBuilder<Entry*> &acc);
+
   bool _successfullyParsed;
   std::string _optionPrefix;
   Array<Entry> _argStorage;
