@@ -33,7 +33,7 @@ ArgMap::ArgMap(int argc0, const char **argv0) {
     }
   }
 
-  registerOption("--help", 0, 0, "Displays information about available commands.");
+  registerOption("--help", "Displays information about available commands.").minArgs(0).maxArgs(0);
   registerHelpInfo("(no help or usage information specified)");
 }
 
@@ -61,11 +61,13 @@ Array<ArgMap::Entry*> ArgMap::unreadArgs() const {
   return _args.slice([=](const Entry *e) {return !e->wasRead() && !e->isOption(_optionPrefix);});
 }
 
-void ArgMap::registerOption(std::string option, int minArgs, int maxArgs, std::string helpString) {
+ArgMap::Option &ArgMap::registerOption(std::string option, std::string helpString) {
   // We cannot register the same option twice.
   CHECK(_options.find(option) == _options.end());
 
-  _options[option] = Option(option, minArgs, maxArgs, helpString);
+  Option &at = _options[option];
+  at = Option(option, helpString);
+  return at;
 }
 
 Array<ArgMap::Entry*> ArgMap::Option::trim(Array<Entry*> args, const std::string &kwPref) const {

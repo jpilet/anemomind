@@ -14,10 +14,10 @@ TEST(ArgMapTest, BasicTest) {
 
   ArgMap map(argc, argv);
   map.registerHelpInfo("Some help info for the BasicTest gtest test program.");
-  map.registerOption("--slice", 2, 2, "Slices a subset of the data.");
-  map.registerOption("--out", 1, 1, "Specifies the name of the file to output.");
-  map.registerOption("--swap", 2, 3, "Some other command not tested here...");
-  map.registerOption("--rulle", 0, 0, "Use short form of Rudolf");
+  map.registerOption("--slice", "Slices a subset of the data.").argCount(2);
+  map.registerOption("--out", "Specifies the name of the file to output.").argCount(1);
+  map.registerOption("--swap", "Some other command not tested here...").minArgs(1).maxArgs(2);
+  map.registerOption("--rulle", "Use short form of Rudolf").argCount(0);
 
   EXPECT_FALSE(map.hasOption("--rulle"));
   EXPECT_TRUE(map.hasOption("--slice"));

@@ -12,6 +12,7 @@
 #include <memory>
 #include <ostream>
 #include <server/common/logging.h>
+#include <limits>
 
 namespace sail {
 
@@ -90,7 +91,37 @@ class ArgMap {
     *
     *   registerOption("--out-filename", 1, 1, "Specify the filename");
     */
-   void registerOption(std::string option, int minArgs, int maxArgs, std::string helpString);
+
+   class Option {
+    public:
+     Option() : _minArgs(0), _maxArgs(0) {}
+     Option(std::string option, std::string helpString) :
+       _option(option), _minArgs(0), _maxArgs(0), _helpString(helpString) {}
+
+     Array<Entry*> trim(Array<Entry*> args, const std::string &optPref) const;
+     void dispHelp(std::ostream *out) const;
+
+     Option &minArgs(int ma) {
+       _minArgs = ma;
+       return *this;
+     }
+
+     Option &maxArgs(int ma) {
+       _maxArgs = ma;
+       return *this;
+     }
+
+     Option &argCount(int ac) {
+       _minArgs = ac;
+       _maxArgs = ac;
+       return *this;
+     }
+    private:
+     std::string _option;
+     int _minArgs, _maxArgs;
+     std::string _helpString;
+   };
+   ArgMap::Option &registerOption(std::string option, std::string helpString);
 
    void registerHelpInfo(std::string helpInfo) {_helpInfo = helpInfo;}
 
@@ -102,19 +133,7 @@ class ArgMap {
   Array<Entry*> _args;
   std::map<std::string, Array<Entry*> > _map;
 
-  class Option {
-   public:
-    Option() : _minArgs(-1), _maxArgs(-1) {}
-    Option(std::string option, int minArgs, int maxArgs, std::string helpString) :
-      _option(option), _minArgs(minArgs), _maxArgs(maxArgs), _helpString(helpString) {}
 
-    Array<Entry*> trim(Array<Entry*> args, const std::string &optPref) const;
-    void dispHelp(std::ostream *out) const;
-   private:
-    std::string _option;
-    int _minArgs, _maxArgs;
-    std::string _helpString;
-  };
 
   std::map<std::string, Option> _options;
   std::string _helpInfo;
