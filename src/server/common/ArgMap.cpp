@@ -51,10 +51,6 @@ bool ArgMap::readOptionAndParseSub(TempArgMap &tempmap, Option info, Arg *opt, A
       return false;
     }
 
-    // Save all arguments read so far
-    tempmap[opt->valueUntraced()] = acc;
-
-
     return parseSub(tempmap, rest);
   } else { // Still data to read and max number of arguments not reached.
     acc.add(rest[0]);
@@ -72,7 +68,7 @@ bool ArgMap::parseSub(TempArgMap &tempmap, Array<Arg*> args) {
     if (first->isOption(_optionPrefix)) {
       const std::string &s = first->valueUntraced();
       Option info = _options[s];
-      ArrayBuilder<Arg*> &acc = tempmap[s];
+      ArrayBuilder<Arg*> &acc = tempmap[s].getArgsForNewOption();
       return readOptionAndParseSub(tempmap, info, first, rest, acc);
     } else {
       return parseSub(tempmap, rest);
@@ -81,10 +77,9 @@ bool ArgMap::parseSub(TempArgMap &tempmap, Array<Arg*> args) {
 }
 
 
-std::map<std::string, Array<ArgMap::Arg*> > ArgMap::buildMap(
-    std::map<std::string, ArrayBuilder<ArgMap::Arg*> > &src) {
+std::map<std::string, Array<ArgMap::Arg*> > ArgMap::buildMap(TempArgMap &src) {
   std::map<std::string, Array<ArgMap::Arg*> > dst;
-  for (std::map<std::string, ArrayBuilder<ArgMap::Arg*> >::iterator
+  for (TempArgMap::iterator
       i = src.begin(); i != src.end(); i++) {
     dst[i->first] = i->second.get();
   }

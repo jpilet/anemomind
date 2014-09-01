@@ -163,18 +163,21 @@ class ArgMap {
     TempArgs() : _optionCounter(0) {}
 
     // Whenever we encounter an option, call this method to retrieve the builder.
-    ArrayBuilder<ArgMap::Arg*> getArgsForNewOption() {
+    ArrayBuilder<ArgMap::Arg*> &getArgsForNewOption() {
       _optionCounter++;
       return _args;
+    }
+
+    Array<ArgMap::Arg*> get() {
+      return _args.get();
     }
    private:
     ArrayBuilder<ArgMap::Arg*> _args;
     int _optionCounter;
   };
 
-  static std::map<std::string, Array<ArgMap::Arg*> > buildMap(
-        std::map<std::string, ArrayBuilder<ArgMap::Arg*> > &src);
-  typedef std::map<std::string, ArrayBuilder<ArgMap::Arg*> > TempArgMap;
+  typedef std::map<std::string, TempArgs> TempArgMap;
+  static std::map<std::string, Array<ArgMap::Arg*> > buildMap(TempArgMap &src);
 
   bool parseSub(TempArgMap &tempmap, Array<Arg*> args);
   bool readOptionAndParseSub(TempArgMap &tempmap,
