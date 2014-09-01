@@ -12,12 +12,8 @@
 
 namespace sail {
 
-bool ArgMap::instantiated = false;
-
 ArgMap::ArgMap() {
   _successfullyParsed = false;
-  assert(!instantiated);
-  instantiated = true;
   _optionPrefix = "--";
   registerOption("--help", "Displays information about available commands.").setMinArgCount(0).setMaxArgCount(0);
   setHelpInfo("(no help or usage information specified)");

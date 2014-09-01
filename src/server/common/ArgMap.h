@@ -19,7 +19,6 @@ namespace sail {
 
 class ArgMap {
  public:
-  static bool instantiated;
   ArgMap();
 
 

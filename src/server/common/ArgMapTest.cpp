@@ -7,8 +7,9 @@
 #include <server/common/ArgMap.h>
 #include <iostream>
 
+using namespace sail;
+
 TEST(ArgMapTest, BasicTest) {
-  using namespace sail;
   const int argc = 9;
   const char *argv[argc] = {"nameOfThisProgram, which is not an argument", "--slice", "10", "40", "filename.txt", "filename2.txt", "--out", "filename3.txt", "--help"};
 
@@ -18,7 +19,7 @@ TEST(ArgMapTest, BasicTest) {
   map.registerOption("--out", "Specifies the name of the file to output.").setArgCount(1);
   map.registerOption("--swap", "Some other command not tested here...").setMinArgCount(1).setMaxArgCount(2);
   map.registerOption("--rulle", "Use short form of Rudolf").setArgCount(0);
-  map.parse(argc, argv);
+  EXPECT_TRUE(map.parse(argc, argv));
 
   EXPECT_TRUE(map.hasRegisteredOption("--slice"));
 
@@ -38,4 +39,32 @@ TEST(ArgMapTest, BasicTest) {
   EXPECT_TRUE(map.freeArgs().empty());
 }
 
+namespace {
+  ArgMap makeReqMap() {
+    ArgMap map;
+    map.registerOption("--filename", "Filename, must be specified").setRequired().setMinArgCount(1);
+    return map;
+  }
+}
+
+TEST(ArgMapTest, Required1) {
+  const int argc = 1;
+  const char *argv[argc] = {"progname"};
+  EXPECT_FALSE(makeReqMap().parse(argc, argv));
+}
+
+TEST(ArgMapTest, Required2) {
+  const int argc = 2;
+  const char *argv[argc] = {"progname", "--filename"};
+  EXPECT_FALSE(makeReqMap().parse(argc, argv));
+}
+
+TEST(ArgMapTest, Required3) {
+  const int argc = 3;
+  const char *argv[argc] = {"progname", "--filename", "data.txt"};
+  ArgMap m = makeReqMap();
+  EXPECT_TRUE(m.parse(argc, argv));
+  EXPECT_EQ(m.argsAfterOption("--filename")[0]->value(), "data.txt");
+  EXPECT_TRUE(m.freeArgs().empty());
+}
 
