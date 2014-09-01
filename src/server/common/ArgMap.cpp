@@ -22,21 +22,30 @@ ArgMap::ArgMap() {
   setHelpInfo("(no help or usage information specified)");
 }
 
+namespace {
+  void fillArgs(int argc, const char **argv,
+      Array<ArgMap::Entry> *storageOut, Array<ArgMap::Entry*> *argsOut) {
+    *storageOut = Array<ArgMap::Entry>::fill(argc-1, [&](int i) {
+      return ArgMap::Entry(i, argv[i+1]);
+    });
+
+    *argsOut = Array<ArgMap::Entry*>::fill(storageOut->size(), [&](int i) {
+      return &((*storageOut)[i]);
+    });
+  }
+}
+
 bool ArgMap::parse(int argc0, const char **argv0) {
   CHECK(!_successfullyParsed);
   int argc = argc0 - 1;
-  _argStorage = Array<Entry>(argc);
-  _args = Array<Entry*>(argc);
-  for (int i0 = 1; i0 < argc0; i0++) {
-    std::string value(argv0[i0]);
-    int i = i0 - 1;
-    Entry e(i, value);
-    _argStorage[i] = e;
+  fillArgs(argc0, argv0, &_argStorage, &_args);
+
+  for (int i = 0; i < argc; i++) {
+    std::string value = _args[i]->valueUntraced();
     Entry *ptr = _argStorage.ptr(i);
-    _args[i] = ptr;
     if (ptr->isOption(_optionPrefix)) {
       CHECK(hasRegisteredOption(value));
-      _map[value] = _args.sliceFrom(i);
+      _map[value] = _options[value].trim(_args.sliceFrom(i), _optionPrefix);
     }
   }
   _successfullyParsed = true;
@@ -85,18 +94,23 @@ ArgMap::Option &ArgMap::registerOption(std::string option, std::string helpStrin
   return at;
 }
 
-Array<ArgMap::Entry*> ArgMap::Option::trim(Array<Entry*> args, const std::string &kwPref) const {
+Array<ArgMap::Entry*> ArgMap::Option::trim(Array<Entry*> optionAndArgs, const std::string &kwPref) const {
+  Array<Entry*> args = optionAndArgs.sliceFrom(1);
   int len = std::min(args.size(), _maxArgs);
-  for (int i = 0; i < len; i++) {
-    if (args[i]->isOption(kwPref)) {
-      len = i;
-      break;
+  {
+    for (int i = 0; i < len; i++) {
+      if (args[i]->isOption(kwPref)) {
+        len = i;
+        break;
+      }
+    }
+    if (len < _minArgs) {
+      LOG(FATAL) << stringFormat("Less than %d arguments available to the option %s", _minArgs, _option.c_str());
     }
   }
-  if (len < _minArgs) {
-    LOG(FATAL) << stringFormat("Less than %d arguments available to the option %s", _minArgs, _option.c_str());
-  }
-  return args.sliceTo(len);
+
+  // Include the option
+  return optionAndArgs.sliceTo(len + 1);
 }
 
 void ArgMap::Option::dispHelp(std::ostream *out) const {

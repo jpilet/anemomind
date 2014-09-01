@@ -32,6 +32,11 @@ class ArgMap {
 
     const std::string &value() {
       _wasRead = true;
+      return valueUntraced();
+    }
+
+    // Reads the value without leaving any trace, that is settings _wasRead = true.
+    const std::string &valueUntraced() {
       return _arg;
     }
 
@@ -91,7 +96,7 @@ class ArgMap {
      Option(std::string option, std::string helpString) :
        _option(option), _minArgs(0), _maxArgs(0), _helpString(helpString) {}
 
-     Array<Entry*> trim(Array<Entry*> args, const std::string &optPref) const;
+     Array<Entry*> trim(Array<Entry*> optionAndArgs, const std::string &optPref) const;
      void dispHelp(std::ostream *out) const;
 
      Option &minArgs(int ma) {
