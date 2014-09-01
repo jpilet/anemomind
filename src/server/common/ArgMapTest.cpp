@@ -17,8 +17,9 @@ TEST(ArgMapTest, BasicTest) {
   map.registerKeyword("--slice", 2, 2, "Slices a subset of the data.");
   map.registerKeyword("--out", 1, 1, "Specifies the name of the file to output.");
   map.registerKeyword("--swap", 2, 3, "Some other command not tested here...");
+  map.registerKeyword("--rulle", 0, 0, "Use short form of Rudolf");
 
-  EXPECT_FALSE(map.hasKeyword("rulle"));
+  EXPECT_FALSE(map.hasKeyword("--rulle"));
   EXPECT_TRUE(map.hasKeyword("--slice"));
   EXPECT_EQ(map.argsAfterKeyword("--slice").size(), 2);
   EXPECT_EQ(map.argsAfterKeyword("--slice")[0]->value(), "10");

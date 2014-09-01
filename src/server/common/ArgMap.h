@@ -105,14 +105,6 @@ class ArgMap {
   Array<Entry*> _args;
   std::map<std::string, Entry*> _map;
 
-  /*
-   * If we should just issue a warning or crash the program
-   * if we are trying to access a keyword that has not been
-   * registered.
-   */
-  LogLevel _severity;
-
-
   class KeywordInfo {
    public:
     KeywordInfo() : _minArgs(-1), _maxArgs(-1) {}

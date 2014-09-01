@@ -16,7 +16,6 @@ ArgMap::ArgMap(int argc0, const char **argv0) {
   assert(!instantiated);
   instantiated = true;
   _keywordPrefix = "--";
-  _severity = LOGLEVEL_WARNING;
 
   int argc = argc0 - 1;
   _argStorage = Array<Entry>(argc);
@@ -48,9 +47,7 @@ bool ArgMap::hasKeyword(const std::string &arg) {
   if (retval) {
     _map[arg]->setWasRead();
   }
-  if (_keywords.find(arg) == _keywords.end()) {
-    internal::LogFinisher() = internal::LogMessage(_severity, __FILE__, __LINE__) << stringFormat("The keyword %s has not been registered", arg.c_str());
-  }
+  CHECK(_keywords.find(arg) != _keywords.end()) << stringFormat("hasKeyword called with unregistered keyword: %s", arg.c_str());
   return retval;
 }
 
