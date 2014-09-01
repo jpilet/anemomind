@@ -56,7 +56,7 @@ bool ArgMap::hasKeyword(const std::string &arg) {
 
 Array<ArgMap::Entry*> ArgMap::argsAfterKeyword(const std::string &arg) {
   assert(hasKeyword(arg));
-  return _map[arg]->after();
+  return _keywords[arg].trim(_map[arg]->after(), _keywordPrefix);
 }
 
 Array<ArgMap::Entry*> ArgMap::unreadArgs() const {
