@@ -111,7 +111,7 @@ bool ArgMap::hasRegisteredOption(const std::string &arg) {
 }
 
 bool ArgMap::hasOption(const std::string &arg) {
-  //CHECK(_successfullyParsed);
+  CHECK(_successfullyParsed);
   bool retval = !(_map.find(arg) == _map.end());
   if (retval) {
     _map[arg][0]->setWasRead();
