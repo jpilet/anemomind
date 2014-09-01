@@ -7,6 +7,7 @@
 #include <iostream>
 #include <server/common/logging.h>
 #include <server/common/string.h>
+#include <server/common/ArrayBuilder.h>
 #include <sstream>
 
 namespace sail {
@@ -38,14 +39,16 @@ namespace {
 bool ArgMap::parse(int argc0, const char **argv0) {
   CHECK(!_successfullyParsed);
   int argc = argc0 - 1;
-  fillArgs(argc0, argv0, &_argStorage, &_args);
+
+  Array<Entry*> args;
+  fillArgs(argc0, argv0, &_argStorage, &args);
 
   for (int i = 0; i < argc; i++) {
-    std::string value = _args[i]->valueUntraced();
+    std::string value = args[i]->valueUntraced();
     Entry *ptr = _argStorage.ptr(i);
     if (ptr->isOption(_optionPrefix)) {
       CHECK(hasRegisteredOption(value));
-      _map[value] = _options[value].trim(_args.sliceFrom(i), _optionPrefix);
+      _map[value] = _options[value].trim(args.sliceFrom(i), _optionPrefix);
     }
   }
   _successfullyParsed = true;
@@ -74,12 +77,20 @@ bool ArgMap::hasOption(const std::string &arg) {
 Array<ArgMap::Entry*> ArgMap::argsAfterOption(const std::string &arg) {
   CHECK(_successfullyParsed);
   assert(hasOption(arg));
-  return _options[arg].trim(_map[arg].sliceFrom(1), _optionPrefix);
+  return _map[arg];
 }
 
-Array<ArgMap::Entry*> ArgMap::freeArgs() const {
+Array<ArgMap::Entry*> ArgMap::freeArgs() {
   CHECK(_successfullyParsed);
-  return _args.slice([=](const Entry *e) {return !e->wasRead() && !e->isOption(_optionPrefix);});
+  int count = _argStorage.size();
+  ArrayBuilder<ArgMap::Entry*> args(count);
+  for (int i = 0; i < count; i++) {
+    Entry *e = &(_argStorage[i]);
+    if (!e->wasRead() && !e->isOption(_optionPrefix)) {
+      args.add(e);
+    }
+  }
+  return args.get();
 }
 
 ArgMap::Option &ArgMap::registerOption(std::string option, std::string helpString) {

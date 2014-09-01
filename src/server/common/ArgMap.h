@@ -86,15 +86,16 @@ class ArgMap {
    * then the argument 'rulle.txt' will remain the single
    * unread argument.
    */
-   Array<Entry*> freeArgs() const;
+   Array<Entry*> freeArgs();
 
 
 
    class Option {
     public:
-     Option() : _minArgs(0), _maxArgs(0) {}
+     Option() : _minArgs(0), _maxArgs(0), _unique(false) {}
      Option(std::string option, std::string helpString) :
-       _option(option), _minArgs(0), _maxArgs(0), _helpString(helpString) {}
+       _option(option), _minArgs(0), _maxArgs(0), _helpString(helpString),
+       _unique(false) {}
 
      Array<Entry*> trim(Array<Entry*> optionAndArgs, const std::string &optPref) const;
      void dispHelp(std::ostream *out) const;
@@ -114,7 +115,13 @@ class ArgMap {
        _maxArgs = ac;
        return *this;
      }
+
+     Option &unique() {
+       _unique = true;
+       return *this;
+     }
     private:
+     bool _unique;
      std::string _option;
      int _minArgs, _maxArgs;
      std::string _helpString;
@@ -141,7 +148,7 @@ class ArgMap {
   bool _successfullyParsed;
   std::string _optionPrefix;
   Array<Entry> _argStorage;
-  Array<Entry*> _args;
+  //Array<Entry*> _args;
   std::map<std::string, Array<Entry*> > _map;
 
 
