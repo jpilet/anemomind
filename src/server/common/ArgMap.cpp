@@ -120,6 +120,14 @@ bool ArgMap::parse(int argc0, const char **argv0) {
   return true;
 }
 
+bool ArgMap::parseAndHelp(int argc, const char **argv) {
+  bool s = parse(argc, argv);
+  if (!s || hasOption("--help")) {
+    dispHelp(&(std::cout));
+  }
+  return s;
+}
+
 
 bool ArgMap::hasRegisteredOption(const std::string &arg) {
   return _options.find(arg) != _options.end();

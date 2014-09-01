@@ -23,6 +23,7 @@ class ArgMap {
 
 
   bool parse(int argc, const char **argv);
+  bool parseAndHelp(int argc, const char **argv);
 
   class Arg {
    public:
