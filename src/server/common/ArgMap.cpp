@@ -34,7 +34,7 @@ ArgMap::ArgMap(int argc0, const char **argv0) {
   }
 
   registerOption("--help", "Displays information about available commands.").minArgs(0).maxArgs(0);
-  registerHelpInfo("(no help or usage information specified)");
+  setHelpInfo("(no help or usage information specified)");
 }
 
 ArgMap::~ArgMap() {

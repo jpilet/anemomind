@@ -81,16 +81,7 @@ class ArgMap {
    */
    Array<Entry*> freeArgs() const;
 
-   /*
-    * Information about a option that can be given on the command line, e.g.
-    *
-    *  --out-filename
-    *
-    * If this command for instance only accepts one argument such as the filename,
-    * then call
-    *
-    *   registerOption("--out-filename", 1, 1, "Specify the filename");
-    */
+
 
    class Option {
     public:
@@ -121,9 +112,19 @@ class ArgMap {
      int _minArgs, _maxArgs;
      std::string _helpString;
    };
+   /*
+    * Information about a option that can be given on the command line, e.g.
+    *
+    *  --out-filename
+    *
+    * If this command for instance only accepts one argument such as the filename,
+    * then call
+    *
+    *   registerOption("--out-filename", "Specify the filename").argCount(1);
+    */
    ArgMap::Option &registerOption(std::string option, std::string helpString);
 
-   void registerHelpInfo(std::string helpInfo) {_helpInfo = helpInfo;}
+   void setHelpInfo(std::string helpInfo) {_helpInfo = helpInfo;}
 
    void dispHelp(std::ostream *out);
    std::string helpMessage();

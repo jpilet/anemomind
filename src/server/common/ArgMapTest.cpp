@@ -13,7 +13,7 @@ TEST(ArgMapTest, BasicTest) {
   const char *argv[argc] = {"nameOfThisProgram, which is not an argument", "--slice", "10", "40", "filename.txt", "filename2.txt", "--out", "filename3.txt", "--help"};
 
   ArgMap map(argc, argv);
-  map.registerHelpInfo("Some help info for the BasicTest gtest test program.");
+  map.setHelpInfo("Some help info for the BasicTest gtest test program.");
   map.registerOption("--slice", "Slices a subset of the data.").argCount(2);
   map.registerOption("--out", "Specifies the name of the file to output.").argCount(1);
   map.registerOption("--swap", "Some other command not tested here...").minArgs(1).maxArgs(2);
