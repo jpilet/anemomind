@@ -24,12 +24,12 @@ ArgMap::ArgMap(int argc0, const char **argv0) {
   for (int i0 = 1; i0 < argc0; i0++) {
     std::string value(argv0[i0]);
     int i = i0 - 1;
-    Entry e(i, value, _args);
+    Entry e(i, value);
     _argStorage[i] = e;
     Entry *ptr = _argStorage.ptr(i);
     _args[i] = ptr;
     if (ptr->isKeyword(_keywordPrefix)) {
-      _map[value] = ptr;
+      _map[value] = _args.sliceFrom(i);
     }
   }
 
@@ -46,7 +46,7 @@ ArgMap::~ArgMap() {
 bool ArgMap::hasKeyword(const std::string &arg) {
   bool retval = !(_map.find(arg) == _map.end());
   if (retval) {
-    _map[arg]->setWasRead();
+    _map[arg][0]->setWasRead();
   }
   CHECK(_keywords.find(arg) != _keywords.end()) << stringFormat("hasKeyword called with unregistered keyword: %s", arg.c_str());
   return retval;
@@ -54,7 +54,7 @@ bool ArgMap::hasKeyword(const std::string &arg) {
 
 Array<ArgMap::Entry*> ArgMap::argsAfterKeyword(const std::string &arg) {
   assert(hasKeyword(arg));
-  return _keywords[arg].trim(_map[arg]->after(), _keywordPrefix);
+  return _keywords[arg].trim(_map[arg].sliceFrom(1), _keywordPrefix);
 }
 
 Array<ArgMap::Entry*> ArgMap::unreadArgs() const {

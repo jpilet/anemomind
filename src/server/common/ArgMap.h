@@ -24,8 +24,8 @@ class ArgMap {
   class Entry {
    public:
     Entry() : _index(-1), _wasRead(false) {}
-    Entry(int index, std::string arg, Array<Entry*> allArgs) : _index(index),
-        _arg(arg), _allArgs(allArgs), _wasRead(false) {}
+    Entry(int index, std::string arg) : _index(index),
+        _arg(arg), _wasRead(false) {}
 
     const std::string &value() {
       _wasRead = true;
@@ -43,10 +43,6 @@ class ArgMap {
       return (vlen >= plen? _arg.substr(0, plen) == prefix : false);
     }
 
-    Array<Entry*> after() const {
-      return _allArgs.sliceFrom(_index + 1);
-    }
-
     bool wasRead() const {
       return _wasRead;
     }
@@ -54,7 +50,6 @@ class ArgMap {
     bool _wasRead;
     std::string _arg;
     int _index;
-    Array<Entry*> _allArgs;
   };
 
 
@@ -105,7 +100,7 @@ class ArgMap {
   std::string _keywordPrefix;
   Array<Entry> _argStorage;
   Array<Entry*> _args;
-  std::map<std::string, Entry*> _map;
+  std::map<std::string, Array<Entry*> > _map;
 
   class KeywordInfo {
    public:
