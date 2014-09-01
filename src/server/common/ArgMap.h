@@ -19,8 +19,11 @@ namespace sail {
 class ArgMap {
  public:
   static bool instantiated;
-  ArgMap(int argc, const char **argv);
+  ArgMap();
   ~ArgMap();
+
+
+  void parse(int argc, const char **argv);
 
   class Entry {
    public:

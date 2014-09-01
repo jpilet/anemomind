@@ -13,11 +13,15 @@ namespace sail {
 
 bool ArgMap::instantiated = false;
 
-ArgMap::ArgMap(int argc0, const char **argv0) {
+ArgMap::ArgMap() {
   assert(!instantiated);
   instantiated = true;
   _optionPrefix = "--";
+  registerOption("--help", "Displays information about available commands.").minArgs(0).maxArgs(0);
+  setHelpInfo("(no help or usage information specified)");
+}
 
+void ArgMap::parse(int argc0, const char **argv0) {
   int argc = argc0 - 1;
   _argStorage = Array<Entry>(argc);
   _args = Array<Entry*>(argc);
@@ -32,10 +36,8 @@ ArgMap::ArgMap(int argc0, const char **argv0) {
       _map[value] = _args.sliceFrom(i);
     }
   }
-
-  registerOption("--help", "Displays information about available commands.").minArgs(0).maxArgs(0);
-  setHelpInfo("(no help or usage information specified)");
 }
+
 
 ArgMap::~ArgMap() {
   if (hasOption("--help")) {
