@@ -7,6 +7,7 @@
 #include <iostream>
 #include <server/common/logging.h>
 #include <server/common/string.h>
+#include <sstream>
 
 namespace sail {
 
@@ -110,6 +111,12 @@ void ArgMap::dispHelp(std::ostream *out) {
   for (I i = _keywords.begin(); i != _keywords.end(); i++) {
     i->second.dispHelp(out);
   }
+}
+
+std::string ArgMap::dispHelp() {
+  std::stringstream ss;
+  dispHelp(&ss);
+  return ss.str();
 }
 
 }

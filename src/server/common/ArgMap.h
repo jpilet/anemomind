@@ -98,8 +98,10 @@ class ArgMap {
    void registerKeyword(std::string keyword, int minArgs, int maxArgs, std::string helpString);
 
    void registerHelpInfo(std::string helpInfo) {_helpInfo = helpInfo;}
+
+   void dispHelp(std::ostream *out);
+   std::string dispHelp();
  private:
-  void dispHelp(std::ostream *out);
   std::string _keywordPrefix;
   Array<Entry> _argStorage;
   Array<Entry*> _args;
