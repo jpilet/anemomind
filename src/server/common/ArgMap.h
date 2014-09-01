@@ -21,7 +21,6 @@ class ArgMap {
  public:
   ArgMap();
 
-
   bool parse(int argc, const char **argv);
   bool parseAndHelp(int argc, const char **argv);
 
