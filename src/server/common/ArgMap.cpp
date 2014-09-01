@@ -39,12 +39,11 @@ bool ArgMap::parse(int argc0, const char **argv0) {
       _map[value] = _args.sliceFrom(i);
     }
   }
+  _successfullyParsed = true;
 
   if (hasOption("--help")) {
     dispHelp(&std::cout);
   }
-
-  _successfullyParsed = true;
   return _successfullyParsed;
 }
 
