@@ -102,11 +102,13 @@ class ArgMap {
 
      Option &setMinArgCount(int ma) {
        _minArgs = ma;
+       _maxArgs = std::max(_minArgs, _maxArgs);
        return *this;
      }
 
      Option &setMaxArgCount(int ma) {
        _maxArgs = ma;
+       _minArgs = std::min(_minArgs, _maxArgs);
        return *this;
      }
 
