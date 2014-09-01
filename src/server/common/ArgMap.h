@@ -126,7 +126,7 @@ class ArgMap {
    void registerHelpInfo(std::string helpInfo) {_helpInfo = helpInfo;}
 
    void dispHelp(std::ostream *out);
-   std::string dispHelp();
+   std::string helpMessage();
  private:
   std::string _optionPrefix;
   Array<Entry> _argStorage;

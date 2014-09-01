@@ -115,7 +115,7 @@ void ArgMap::dispHelp(std::ostream *out) {
   }
 }
 
-std::string ArgMap::dispHelp() {
+std::string ArgMap::helpMessage() {
   std::stringstream ss;
   dispHelp(&ss);
   return ss.str();
