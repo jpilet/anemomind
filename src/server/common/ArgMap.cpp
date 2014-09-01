@@ -65,10 +65,10 @@ void ArgMap::registerKeyword(std::string keyword, int minArgs, int maxArgs, std:
   // We cannot register the same keyword twice.
   CHECK(_keywords.find(keyword) == _keywords.end());
 
-  _keywords[keyword] = KeywordInfo(keyword, minArgs, maxArgs, helpString);
+  _keywords[keyword] = Option(keyword, minArgs, maxArgs, helpString);
 }
 
-Array<ArgMap::Entry*> ArgMap::KeywordInfo::trim(Array<Entry*> args, const std::string &kwPref) const {
+Array<ArgMap::Entry*> ArgMap::Option::trim(Array<Entry*> args, const std::string &kwPref) const {
   int len = std::min(args.size(), _maxArgs);
   for (int i = 0; i < len; i++) {
     if (args[i]->isKeyword(kwPref)) {
@@ -82,7 +82,7 @@ Array<ArgMap::Entry*> ArgMap::KeywordInfo::trim(Array<Entry*> args, const std::s
   return args.sliceTo(len);
 }
 
-void ArgMap::KeywordInfo::dispHelp(std::ostream *out) const {
+void ArgMap::Option::dispHelp(std::ostream *out) const {
   *out << "   " << _keyword << "  (expects ";
   if (_minArgs == 0) {
     if (_maxArgs == 0) {
@@ -107,7 +107,7 @@ void ArgMap::KeywordInfo::dispHelp(std::ostream *out) const {
 void ArgMap::dispHelp(std::ostream *out) {
   *out << _helpInfo << "\n" << std::endl;
   *out << "Available commands:\n";
-  typedef std::map<std::string, KeywordInfo>::iterator I;
+  typedef std::map<std::string, Option>::iterator I;
   for (I i = _keywords.begin(); i != _keywords.end(); i++) {
     i->second.dispHelp(out);
   }

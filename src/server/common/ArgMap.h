@@ -102,10 +102,10 @@ class ArgMap {
   Array<Entry*> _args;
   std::map<std::string, Array<Entry*> > _map;
 
-  class KeywordInfo {
+  class Option {
    public:
-    KeywordInfo() : _minArgs(-1), _maxArgs(-1) {}
-    KeywordInfo(std::string keyword, int minArgs, int maxArgs, std::string helpString) :
+    Option() : _minArgs(-1), _maxArgs(-1) {}
+    Option(std::string keyword, int minArgs, int maxArgs, std::string helpString) :
       _keyword(keyword), _minArgs(minArgs), _maxArgs(maxArgs), _helpString(helpString) {}
 
     Array<Entry*> trim(Array<Entry*> args, const std::string &kwPref) const;
@@ -116,7 +116,7 @@ class ArgMap {
     std::string _helpString;
   };
 
-  std::map<std::string, KeywordInfo> _keywords;
+  std::map<std::string, Option> _keywords;
   std::string _helpInfo;
 };
 
