@@ -79,7 +79,7 @@ class ArgMap {
    * then the argument 'rulle.txt' will remain the single
    * unread argument.
    */
-   Array<Entry*> unreadArgs() const;
+   Array<Entry*> freeArgs() const;
 
    /*
     * Information about a option that can be given on the command line, e.g.

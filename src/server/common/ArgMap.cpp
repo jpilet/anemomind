@@ -57,7 +57,7 @@ Array<ArgMap::Entry*> ArgMap::argsAfterOption(const std::string &arg) {
   return _options[arg].trim(_map[arg].sliceFrom(1), _optionPrefix);
 }
 
-Array<ArgMap::Entry*> ArgMap::unreadArgs() const {
+Array<ArgMap::Entry*> ArgMap::freeArgs() const {
   return _args.slice([=](const Entry *e) {return !e->wasRead() && !e->isOption(_optionPrefix);});
 }
 
