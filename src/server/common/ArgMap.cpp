@@ -14,6 +14,7 @@ namespace sail {
 bool ArgMap::instantiated = false;
 
 ArgMap::ArgMap() {
+  _successfullyParsed = false;
   assert(!instantiated);
   instantiated = true;
   _optionPrefix = "--";
@@ -21,7 +22,8 @@ ArgMap::ArgMap() {
   setHelpInfo("(no help or usage information specified)");
 }
 
-void ArgMap::parse(int argc0, const char **argv0) {
+bool ArgMap::parse(int argc0, const char **argv0) {
+  CHECK(!_successfullyParsed);
   int argc = argc0 - 1;
   _argStorage = Array<Entry>(argc);
   _args = Array<Entry*>(argc);
@@ -33,6 +35,7 @@ void ArgMap::parse(int argc0, const char **argv0) {
     Entry *ptr = _argStorage.ptr(i);
     _args[i] = ptr;
     if (ptr->isOption(_optionPrefix)) {
+      CHECK(hasRegisteredOption(value));
       _map[value] = _args.sliceFrom(i);
     }
   }
@@ -40,28 +43,41 @@ void ArgMap::parse(int argc0, const char **argv0) {
   if (hasOption("--help")) {
     dispHelp(&std::cout);
   }
+
+  _successfullyParsed = true;
+  return _successfullyParsed;
 }
 
 
+bool ArgMap::hasRegisteredOption(const std::string &arg) {
+  return _options.find(arg) != _options.end();
+}
+
 bool ArgMap::hasOption(const std::string &arg) {
+  CHECK(_successfullyParsed);
   bool retval = !(_map.find(arg) == _map.end());
   if (retval) {
     _map[arg][0]->setWasRead();
   }
-  CHECK(_options.find(arg) != _options.end()) << stringFormat("hasOption called with unregistered option: %s", arg.c_str());
+  CHECK(hasRegisteredOption(arg)) << stringFormat("hasOption called with unregistered option: %s", arg.c_str());
   return retval;
 }
 
 Array<ArgMap::Entry*> ArgMap::argsAfterOption(const std::string &arg) {
+  CHECK(_successfullyParsed);
   assert(hasOption(arg));
   return _options[arg].trim(_map[arg].sliceFrom(1), _optionPrefix);
 }
 
 Array<ArgMap::Entry*> ArgMap::freeArgs() const {
+  CHECK(_successfullyParsed);
   return _args.slice([=](const Entry *e) {return !e->wasRead() && !e->isOption(_optionPrefix);});
 }
 
 ArgMap::Option &ArgMap::registerOption(std::string option, std::string helpString) {
+  // Registering options must be done before any parsing.
+  CHECK(!_successfullyParsed);
+
   // We cannot register the same option twice.
   CHECK(_options.find(option) == _options.end());
 

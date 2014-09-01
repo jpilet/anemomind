@@ -22,7 +22,7 @@ class ArgMap {
   ArgMap();
 
 
-  void parse(int argc, const char **argv);
+  bool parse(int argc, const char **argv);
 
   class Entry {
    public:
@@ -126,11 +126,14 @@ class ArgMap {
     */
    ArgMap::Option &registerOption(std::string option, std::string helpString);
 
+   bool hasRegisteredOption(const std::string &arg);
+
    void setHelpInfo(std::string helpInfo) {_helpInfo = helpInfo;}
 
    void dispHelp(std::ostream *out);
    std::string helpMessage();
  private:
+  bool _successfullyParsed;
   std::string _optionPrefix;
   Array<Entry> _argStorage;
   Array<Entry*> _args;
