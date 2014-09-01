@@ -130,7 +130,7 @@ class ArgMap {
        return _maxArgs;
      }
 
-     bool isUnique() const {
+     bool unique() const {
        return _unique;
      }
     private:
