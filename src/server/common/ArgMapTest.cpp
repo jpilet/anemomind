@@ -22,7 +22,6 @@ TEST(ArgMapTest, BasicTest) {
   EXPECT_TRUE(map.parse(argc, argv));
 
   EXPECT_TRUE(map.hasRegisteredOption("--slice"));
-
   EXPECT_FALSE(map.optionProvided("--rulle"));
   EXPECT_TRUE(map.optionProvided("--slice"));
   EXPECT_EQ(map.optionArgs("--slice").size(), 2);
