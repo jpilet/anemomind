@@ -77,3 +77,11 @@ TEST(ArgMapTest, Unique) {
   EXPECT_FALSE(m.parse(argc, argv));
 }
 
+TEST(ArgMapTest, Unique2) {
+  const int argc = 2;
+  const char *argv[argc] = {"progname", "--filename"};
+  ArgMap m;
+  m.registerOption("--filename", "Provides a filename").setUnique();
+  EXPECT_TRUE(m.parse(argc, argv));
+}
+
