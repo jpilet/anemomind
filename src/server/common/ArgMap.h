@@ -66,13 +66,13 @@ class ArgMap {
   /*
    * To check if a option exists, e.g. '--descend' if we were to call a sorting algorithm.
    */
-  bool hasOption(const std::string &arg);
+  bool optionProvided(const std::string &arg);
 
   /*
    * For instance, use this function to retrieve the filename succeeding a option, e.g.
    * '--outfile /home/alan/nmea.txt'
    */
-  Array<Arg*> argsAfterOption(const std::string &arg);
+  Array<Arg*> optionArgs(const std::string &arg);
 
   /*
    * When all functions that need to read arguments from the command line have been called,

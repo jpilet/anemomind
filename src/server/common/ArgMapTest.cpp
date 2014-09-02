@@ -23,14 +23,14 @@ TEST(ArgMapTest, BasicTest) {
 
   EXPECT_TRUE(map.hasRegisteredOption("--slice"));
 
-  EXPECT_FALSE(map.hasOption("--rulle"));
-  EXPECT_TRUE(map.hasOption("--slice"));
-  EXPECT_EQ(map.argsAfterOption("--slice").size(), 2);
-  EXPECT_EQ(map.argsAfterOption("--slice")[0]->value(), "10");
-  EXPECT_TRUE(map.argsAfterOption("--slice")[0]->wasRead());
-  EXPECT_EQ(map.argsAfterOption("--slice")[1]->value(), "40");
-  EXPECT_TRUE(map.hasOption("--out"));
-  EXPECT_EQ(map.argsAfterOption("--out")[0]->value(), "filename3.txt");
+  EXPECT_FALSE(map.optionProvided("--rulle"));
+  EXPECT_TRUE(map.optionProvided("--slice"));
+  EXPECT_EQ(map.optionArgs("--slice").size(), 2);
+  EXPECT_EQ(map.optionArgs("--slice")[0]->value(), "10");
+  EXPECT_TRUE(map.optionArgs("--slice")[0]->wasRead());
+  EXPECT_EQ(map.optionArgs("--slice")[1]->value(), "40");
+  EXPECT_TRUE(map.optionProvided("--out"));
+  EXPECT_EQ(map.optionArgs("--out")[0]->value(), "filename3.txt");
 
   Array<ArgMap::Arg*> remain = map.freeArgs();
   EXPECT_EQ(remain.size(), 2);
@@ -64,8 +64,8 @@ TEST(ArgMapTest, Required3) {
   const char *argv[argc] = {"progname", "--filename", "data.txt"};
   ArgMap m = makeReqMap();
   EXPECT_TRUE(m.parse(argc, argv));
-  EXPECT_EQ(m.argsAfterOption("--filename").size(), 1);
-  EXPECT_EQ(m.argsAfterOption("--filename")[0]->value(), "data.txt");
+  EXPECT_EQ(m.optionArgs("--filename").size(), 1);
+  EXPECT_EQ(m.optionArgs("--filename")[0]->value(), "data.txt");
   EXPECT_TRUE(m.freeArgs().empty());
 }
 

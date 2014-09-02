@@ -123,7 +123,7 @@ bool ArgMap::parse(int argc0, const char **argv0) {
 
 bool ArgMap::parseAndHelp(int argc, const char **argv) {
   bool s = parse(argc, argv);
-  if (!s || hasOption("--help")) {
+  if (!s || optionProvided("--help")) {
     dispHelp(&(std::cout));
   }
   return s;
@@ -134,7 +134,7 @@ bool ArgMap::hasRegisteredOption(const std::string &arg) {
   return _options.find(arg) != _options.end();
 }
 
-bool ArgMap::hasOption(const std::string &arg) {
+bool ArgMap::optionProvided(const std::string &arg) {
   CHECK(_successfullyParsed);
   bool retval = !(_map.find(arg) == _map.end());
   if (retval) {
@@ -144,9 +144,9 @@ bool ArgMap::hasOption(const std::string &arg) {
   return retval;
 }
 
-Array<ArgMap::Arg*> ArgMap::argsAfterOption(const std::string &arg) {
+Array<ArgMap::Arg*> ArgMap::optionArgs(const std::string &arg) {
   CHECK(_successfullyParsed);
-  assert(hasOption(arg));
+  assert(optionProvided(arg));
   return _map[arg];
 }
 
