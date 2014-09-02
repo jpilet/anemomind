@@ -104,7 +104,6 @@ bool ArgMap::hasAllRequiredArgs(std::map<std::string, Option> &options, TempArgM
 
 bool ArgMap::parse(int argc0, const char **argv0) {
   CHECK(!_successfullyParsed);
-  int argc = argc0 - 1;
   Array<Arg*> args;
   fillArgs(argc0, argv0, &_argStorage, &args);
   TempArgMap tempmap;
