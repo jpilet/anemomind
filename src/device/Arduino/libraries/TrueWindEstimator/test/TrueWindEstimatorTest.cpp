@@ -53,3 +53,67 @@ TEST(TrueWindEstimatorTest, ManuallyCheckedDataTest) {
   EXPECT_NEAR(222, trueWind.angle().degrees() + 360, 5);
   EXPECT_NEAR(16, trueWind.norm().knots(), 1);
 }
+
+/*namespace {
+  class NavFilter {
+   public:
+    typedef double type;
+
+    Angle<double> awa() const { return _nav.awa(); }
+    Velocity<double> aws() const { return _nav.aws(); }
+    Angle<double> magHdg() const { return _nav.magHdg(); }
+    Velocity<double> watSpeed() const { return _nav.watSpeed(); }
+    Velocity<double> gpsSpeed() const { return _nav.gpsSpeed(); }
+    Angle<double> gpsBearing() const { return _nav.gps; }
+
+    HorizontalMotion<T> gpsMotion() const { return _gps._motion; }
+
+    NavFilter(const Nav &nav) : _nav(nav) {}
+   private:
+    Nav _nav;
+  };
+}*/
+
+TEST(TrueWindEstimatorTest, TWACompare) {
+  Array<Nav> navs = loadNavsFromNmea(
+      string(Env::SOURCE_DIR) + string("/datasets/Irene/2007/regate_1_dec_07/IreneLog.txt"),
+      Nav::debuggingBoatId()).navs();
+  EXPECT_LE(5000, navs.size());
+  EXPECT_LE(navs.size(), 7000);
+
+  double parameters[TrueWindEstimator::NUM_PARAMS];
+  TrueWindEstimator::initializeParameters(parameters);
+
+
+
+
+  int count = navs.size();
+  Angle<double> tol = Angle<double>::degrees(5.0);
+  int counter = 0;
+  for (int i = 0; i < count; i++) {
+    Nav nav = navs[i];
+    Angle<double> boatDir = nav.magHdg();
+    std::cout << "i = " << i << std::endl;
+    /*auto trueWind = TrueWindEstimator::computeTrueWind
+      <double>(parameters, navs[i]);*/
+
+    HorizontalMotion<double> boatMotion = nav.gpsMotion();
+    HorizontalMotion<double> apparentWind = HorizontalMotion<double>::polar(nav.aws(),
+        nav.awa()
+          + Angle<double>::radians(M_PI) // We measure the angle to where the wind is coming from
+          + boatDir);                    // The AWA angle is relative to the boat heading
+
+
+    HorizontalMotion<double> trueWind = apparentWind + boatMotion;
+
+
+    Angle<double> twa = calcTWA(trueWind, boatDir);
+    Angle<double> etwa = navs[i].externalTwa();
+    Angle<double> dif = (twa - etwa).normalizedAt0();
+    if (fabs(dif) < tol) {
+      counter++;
+    }
+  }
+  std::cout << "Counter   = " << counter << std::endl;
+  std::cout << "Nav count = " << navs.size() << std::endl;
+}

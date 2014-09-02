@@ -104,7 +104,7 @@ bool Nav::operator== (const Nav &other) const {
       (nearWithNan(_cwd, other._cwd, marg)) && (nearWithNan(_wd, other._wd, marg));
 }
 
-HorizontalMotion<double> Nav::gpsVelocity() const {
+HorizontalMotion<double> Nav::gpsMotion() const {
   return HorizontalMotion<double>::polar(gpsSpeed(), gpsBearing());
 }
 

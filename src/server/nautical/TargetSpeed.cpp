@@ -37,7 +37,7 @@ namespace {
     // If we are sailing upwind, the true wind and boat vel will point in opposite directions and we will have a strong
     // apparent wind.
     LOG(FATAL) << "The results from this function may not be correct";
-    return apparentWind(nav) + nav.gpsVelocity();
+    return apparentWind(nav) + nav.gpsMotion();
   }
 
   Angle<double> estimateRawTwa(const Nav &n) {

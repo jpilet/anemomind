@@ -170,7 +170,7 @@ namespace {
       const Nav &nav = _navs[i];
       HorizontalMotion<adouble> boatWrtWater =
           _calib.calcBoatMotionRelativeToWater(nav, Xin);
-      HorizontalMotion<adouble> boatGps = nav.gpsVelocity().cast<adouble>();
+      HorizontalMotion<adouble> boatGps = nav.gpsMotion().cast<adouble>();
       HorizontalMotion<adouble> current = _calib.horizontalMotionParam().get(nav,
           _calib.hmParams(Xin));
       HorizontalMotion<adouble> err = boatGps - current - boatWrtWater;

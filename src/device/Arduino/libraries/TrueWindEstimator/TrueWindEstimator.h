@@ -99,6 +99,22 @@ void TrueWindEstimator::initializeParameters(T* params) {
   }
 }
 
+/*
+ * Functions to compute TWA (which is NOT the same thing as TW.angle())
+ * and TWS.
+ * */
+template <typename T>
+Angle<T> calcTWA(HorizontalMotion<T> calibratedTW,
+    Angle<T> calibratedHeading) {
+    HorizontalMotion<T> opposite(-calibratedTW[0], -calibratedTW[1]);
+    return (opposite.angle() - calibratedHeading).normalizedAt0();
+}
+
+template <typename T>
+Velocity<T> calcTWS(HorizontalMotion<T> calibratedTW) {
+  return calibratedTW.norm();
+}
+
 }  // namespace sail
 
 #endif // NAUTICAL_BOAT_MODEL_H
