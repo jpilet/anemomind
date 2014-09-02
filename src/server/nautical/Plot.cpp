@@ -118,9 +118,9 @@ namespace sail {
 
   class PlotEnv {
    public:
-    PlotEnv(Array<Nav> navs_);
+    PlotEnv();
 
-    int run(int argc, const char **argv);
+    int run(ArgMap &src);
 
     // Access navs
     Array<Nav> navs() const {return _navs;}
@@ -128,8 +128,9 @@ namespace sail {
     // Accessors allowing for mutation
     std::vector<Plottable> &stack() {return _stack;}
     GnuplotExtra &plot() {return _plot;}
-    void dispHelp();
-    void dispCommands();
+    void dispHelp(std::ostream *out = &(std::cout));
+    void dispCommands(std::ostream *out);
+    void registerToArgMap(ArgMap &amap);
    private:
     Array<Nav> _navs;
     CmdMap _commands;
@@ -503,7 +504,7 @@ namespace sail {
 
 
 
-  PlotEnv::PlotEnv(Array<Nav> navs_) : _navs(navs_) {
+  PlotEnv::PlotEnv() {
     _plot.set_style("lines");
     CmdMap commands;
     registerCmd<Add>(&commands);
@@ -542,16 +543,11 @@ namespace sail {
     _commands = commands;
   }
 
-  int PlotEnv::run(int argc, const char **argv) {
-    int begin = findArg(argc, argv, "begin");
-    if (begin == -1) {
-      std::cout << "------> ERROR <------" << std::endl;
-      std::cout << "No 'begin' command found to indicate start of command sequence.\n";
-      std::cout << "Type 'help' to see how to use this tool." << std::endl;
-      return -1;
-    }
-    for (int i = begin+1; i < argc; i++) {
-      std::string cmd(argv[i]);
+  int PlotEnv::run(ArgMap &src) {
+    _navs = getTestdataNavs(src);
+    Array<ArgMap::Arg*> args = src.freeArgs();
+    for (auto a : args) {
+      std::string cmd = a->value();
       if (!parsePlotCommand(cmd)) {
         std::cout << "  ----------> ERROR: No such command: " << cmd << std::endl;
         return -1;
@@ -577,31 +573,35 @@ namespace sail {
     }
   }
 
-  void PlotEnv::dispHelp() {
-    std::cout << "First, specify navs:\n"
-                 "  --navpath [path]                  specifies a path where the NMEA data can be found. Defaults to the datasets/Irene subdirectory.\n"
-                 "  --slice [from-index] [to-index]   selects a subset of all loaded navs. Default is all navs.\n\n"
-                 "  help                              displays this help\n";
-    std::cout << "Then begin your plot command sequence with 'begin'." << std::endl;
-    std::cout << "After that, you can use any of the following commands: " << std::endl;
-    dispCommands();
-    std::cout << "EXAMPLE USAGE:" << std::endl;
-    std::cout << "  ./nautical_Plot --slice 0 5000 begin set-style-points awa-degrees leeway-degrees plot-xy" << std::endl;
+  void PlotEnv::dispHelp(std::ostream *out) {
+    *out << "A plotting tool\n\n";
+    *out << "Available plotting commands:\n";
+    dispCommands(out);
+    *out << "EXAMPLE USAGE:" << std::endl;
+    *out << "  ./nautical_Plot --slice 0 5000 set-style-points awa-degrees leeway-degrees plot-xy" << std::endl;
   }
 
-  void PlotEnv::dispCommands() {
+  void PlotEnv::dispCommands(std::ostream *out) {
     for (auto x : _commands) {
-      std::cout << "  " << x.first << ": " << x.second->help() << std::endl;
+      *out << "  " << x.first << ": " << x.second->help() << std::endl;
     }
+  }
+
+  void PlotEnv::registerToArgMap(ArgMap &amap) {
+    std::stringstream ss;
+    dispHelp(&ss);
+    registerGetTestdataNavs(amap);
+    amap.setHelpInfo(ss.str());
   }
 }
 
 int main(int argc, const char **argv) {
   using namespace sail;
-  PlotEnv env(getTestdataNavs(argc, argv));
-  int helpIndex = sail::findArg(argc, argv, "help");
-  if (helpIndex != -1) {
-    env.dispHelp();
+  PlotEnv env;
+  ArgMap amap;
+  env.registerToArgMap(amap);
+  if (amap.parseAndHelp(argc, argv)) {
+    return env.run(amap);
   }
-  return env.run(argc, argv);
+  return -1;
 }

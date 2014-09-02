@@ -85,11 +85,11 @@ HorizontalMotion<T> TrueWindEstimator::computeTrueWind(
         // produces a larger code than the line after.
         // Velocity<T>::knots(aws_offset) + static_cast<Velocity<T> >(measures.aws()).scaled(aws_bias),
         Velocity<T>::knots(aws_offset + measures.aws().knots() * aws_bias),
-        static_cast<Angle<T> >(measures.gpsBearing() + measures.awa())
+        static_cast<Angle<T> >(measures.gpsBearing() + measures.awa() + Angle<WorkType>::degrees(180))
             + Angle<T>::degrees(awa_offset));
 
     // True wind - boat motion = apparent wind.
-    return appWindMotion - boatMotion;
+    return appWindMotion + boatMotion;
 }
 
 template<class T>

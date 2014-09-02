@@ -7,6 +7,7 @@
 #define TESTDATANAVS_H_
 
 #include <server/nautical/Nav.h>
+#include <server/common/ArgMap.h>
 
 namespace sail {
 
@@ -24,7 +25,9 @@ Array<Nav> getTestdataNavs();
  *
  * If now path is provided, a default set of Navs is returned.
  */
-Array<Nav> getTestdataNavs(int argc, const char **argv);
+
+void registerGetTestdataNavs(ArgMap &amap);
+Array<Nav> getTestdataNavs(ArgMap &amap);
 
 } /* namespace sail */
 

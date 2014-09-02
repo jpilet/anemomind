@@ -31,5 +31,6 @@ target_link_libraries(device_DeviceSimulator
 cxx_test(device_NmeaStatTest
          NmeaStatsTest.cpp
          device_DeviceSimulator
+         common_Env
          gmock_main
         )

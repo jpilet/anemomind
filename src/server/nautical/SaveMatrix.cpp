@@ -12,12 +12,9 @@
 namespace {
   using namespace sail;
 
-  const char *getOutname(int argc, const char **argv) {
-    std::string prefix = "--out";
-    for (int i = 1; i < argc-1; i++) {
-      if (argv[i] == prefix) {
-        return argv[i+1];
-      }
+  std::string getOutname(ArgMap &amap) {
+    if (amap.optionProvided("--out")) {
+      return amap.optionArgs("--out")[0]->value();
     }
     return "outnavs.txt";
   }
@@ -112,27 +109,23 @@ namespace {
       return -1;
     }
   }
-
-  void help() {
-    std::cout << "Options: \n"
-        "  --navpath [path]                   Provide a"
-          "path for the NMEA files. Defaults to the datas"
-          "ets/Irene directory of the project.\n"
-        "  --slice [from-index] [to-index]    Select a s"
-         "ubset of the loaded navs. Defaults to the entire set.\n"
-        "  --out [filename]                   Provide"
-          "a filename for the file to output. Defaults to outnavs.txt\n";
-  }
 }
 
 int main(int argc, const char **argv) {
-  std::cout << "Loading navs..." << std::endl;
-  sail::Array<sail::Nav> data = sail::getTestdataNavs(argc, argv);
-  if (data.empty()) {
-    help();
-    return -1;
+  ArgMap amap;
+  amap.setHelpInfo("A program to output the navs as a matrix in text format.");
+  registerGetTestdataNavs(amap);
+  amap.registerOption("--out", "A filename for the output. Defaults to outnavs.txt.").setArgCount(1);
+  if (amap.parseAndHelp(argc, argv)) {
+    std::cout << "Loading navs..." << std::endl;
+    sail::Array<sail::Nav> data = sail::getTestdataNavs(amap);
+    if (data.empty()) {
+      amap.dispHelp(&std::cout);
+      return -1;
+    }
+    std::string outname = getOutname(amap);
+    std::cout << "Save matrix of " << data.size() << " navs to " << outname << "..." << std::endl;
+    return saveNavsToMatrix(data, outname);
   }
-  std::string outname = getOutname(argc, argv);
-  std::cout << "Save matrix of " << data.size() << " navs to " << outname << "..." << std::endl;
-  return saveNavsToMatrix(data, outname);
+  return -1;
 }

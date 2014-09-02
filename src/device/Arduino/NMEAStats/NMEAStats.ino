@@ -87,7 +87,7 @@ void displaySpeedRatio(const NmeaParser& parser) {
     HorizontalMotion<FP16_16> wind =
       TrueWindEstimator::computeTrueWind(calibration.params, filter);
 
-    twdir = wind.angle();
+    twdir = (wind.angle() - Angle<FP16_16>::degrees(180)).normalizedAt0();
     tws = wind.norm();
     // Todo: compute TWA with TrueWindEstimator.
   } else {
