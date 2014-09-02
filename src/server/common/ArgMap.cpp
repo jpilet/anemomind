@@ -42,7 +42,7 @@ bool ArgMap::readOptionAndParseSub(TempArgMap &tempmap, Option info, Arg *opt, A
 
     // Check if there are not enough arguments for this option.
     if (acc.size() < info.minArgCount()) {
-      std::cout << "Too few values provided to the " << opt->valueUntraced() << "-option." << std::endl;
+      std::cout << "Too few values provided to the " << opt->valueUntraced() << " option." << std::endl;
       std::cout << "You provided " << acc.size() << " values, but "
           << info.minArgCount() << " required." << std::endl;
       return false;
