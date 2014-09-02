@@ -65,7 +65,7 @@ bool ArgMap::parseSub(TempArgMap &tempmap, Array<Arg*> args) {
     if (first->isOption(_optionPrefix)) {
       const std::string &s = first->valueUntraced();
       Option info = _options[s];
-      TempArgs targs = tempmap[s];
+      TempArgs &targs = tempmap[s];
       ArrayBuilder<Arg*> &acc = targs.getArgsForNewOption();
       if (info.unique() && targs.optionCount() > 1) {
         std::cout << "You can provide the " << s << " option at most once." << std::endl;
