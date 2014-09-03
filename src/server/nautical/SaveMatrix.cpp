@@ -116,15 +116,16 @@ int main(int argc, const char **argv) {
   amap.setHelpInfo("A program to output the navs as a matrix in text format.");
   registerGetTestdataNavs(amap);
   amap.registerOption("--out", "A filename for the output. Defaults to outnavs.txt.").setArgCount(1);
-  amap.parseAndHelp(argc, argv);
-
-  std::cout << "Loading navs..." << std::endl;
-  sail::Array<sail::Nav> data = sail::getTestdataNavs(amap);
-  if (data.empty()) {
-    amap.dispHelp(&std::cout);
-    return -1;
+  if (amap.parseAndHelp(argc, argv)) {
+    std::cout << "Loading navs..." << std::endl;
+    sail::Array<sail::Nav> data = sail::getTestdataNavs(amap);
+    if (data.empty()) {
+      amap.dispHelp(&std::cout);
+      return -1;
+    }
+    std::string outname = getOutname(amap);
+    std::cout << "Save matrix of " << data.size() << " navs to " << outname << "..." << std::endl;
+    return saveNavsToMatrix(data, outname);
   }
-  std::string outname = getOutname(amap);
-  std::cout << "Save matrix of " << data.size() << " navs to " << outname << "..." << std::endl;
-  return saveNavsToMatrix(data, outname);
+  return -1;
 }
