@@ -544,8 +544,8 @@ namespace sail {
   }
 
   int PlotEnv::run(ArgMap &src) {
-    Array<ArgMap::Arg*> args = src.optionArgs("--begin");
     _navs = getTestdataNavs(src);
+    Array<ArgMap::Arg*> args = src.freeArgs();
     for (auto a : args) {
       std::string cmd = a->value();
       if (!parsePlotCommand(cmd)) {
@@ -575,11 +575,10 @@ namespace sail {
 
   void PlotEnv::dispHelp(std::ostream *out) {
     *out << "A plotting tool\n\n";
-    *out << "Begin your plot command sequence with '--begin'." << std::endl;
-    *out << "After that, you can use any of the following commands: " << std::endl;
+    *out << "Available plotting commands:\n";
     dispCommands(out);
     *out << "EXAMPLE USAGE:" << std::endl;
-    *out << "  ./nautical_Plot --slice 0 5000 begin set-style-points awa-degrees leeway-degrees plot-xy" << std::endl;
+    *out << "  ./nautical_Plot --slice 0 5000 set-style-points awa-degrees leeway-degrees plot-xy" << std::endl;
   }
 
   void PlotEnv::dispCommands(std::ostream *out) {
@@ -591,12 +590,8 @@ namespace sail {
   void PlotEnv::registerToArgMap(ArgMap &amap) {
     std::stringstream ss;
     dispHelp(&ss);
-
     registerGetTestdataNavs(amap);
-    amap.registerOption("--begin", "Specifies the start of the plot command sequence.").setRequired()
-        .setMaxArgCount(std::numeric_limits<int>::max()).setUnique();
     amap.setHelpInfo(ss.str());
-
   }
 }
 
