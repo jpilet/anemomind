@@ -15,18 +15,22 @@ using namespace sail;
 
 int main(int argc, const char **argv) {
   ScopedLog::setDepthLimit(2);
-  Array<Nav> navs = getTestdataNavs(argc, argv);
-  ZeroHorizontalMotion mparam;
-  WaterCalib calib(mparam);
-  WaterCalib::Results results = calib.optimizeRandomInits(navs, 30);
-  //WaterCalib::Results results = calib.optimize(navs);
-  std::cout << EXPR_AND_VAL_AS_STRING(results.params) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(results.inlierCount()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(results.inliers.size()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(results.rawErrors.slice(results.inliers)) << std::endl;
-  calib.makeWatSpeedCalibPlot(results.params, results.navs.slice(results.inliers));
-
-  return 0;
+  ArgMap amap;
+  registerGetTestdataNavs(amap);
+  if (amap.parseAndHelp(argc, argv)) {
+    Array<Nav> navs = getTestdataNavs(amap);
+    ZeroHorizontalMotion mparam;
+    WaterCalib calib(mparam);
+    WaterCalib::Results results = calib.optimizeRandomInits(navs, 30);
+    //WaterCalib::Results results = calib.optimize(navs);
+    std::cout << EXPR_AND_VAL_AS_STRING(results.params) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(results.inlierCount()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(results.inliers.size()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(results.rawErrors.slice(results.inliers)) << std::endl;
+    calib.makeWatSpeedCalibPlot(results.params, results.navs.slice(results.inliers));
+    return 0;
+  }
+  return -1;
 }
 
 

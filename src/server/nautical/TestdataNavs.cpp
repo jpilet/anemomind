@@ -9,6 +9,8 @@
 #include <server/common/PathBuilder.h>
 #include <server/common/Span.h>
 #include <iostream>
+#include <server/common/string.h>
+#include <server/common/ArgMap.h>
 
 namespace sail {
 
@@ -18,12 +20,16 @@ namespace {
   }
 }
 
-Array<Nav> getTestdataNavs() {
+Poco::Path getDefaultNavPath() {
   Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR).
-       pushDirectory("datasets").
-       pushDirectory("Irene").
-       get();
-  return getNavsFromPath(p);
+         pushDirectory("datasets").
+         pushDirectory("Irene").
+         get();
+  return p;
+}
+
+Array<Nav> getTestdataNavs() {
+  return getNavsFromPath(getDefaultNavPath());
 }
 
 namespace {
@@ -44,29 +50,38 @@ namespace {
     // If the user did not provide anything, return the default test navs.
     return getTestdataNavs();
   }
+}
 
-  Spani getSliceSpan(int argc, const char **argv) {
-    for (int i = 1; i < argc-2; i++) {
-      std::string v(argv[i]);
-      if (v == "--slice") {
-        return Spani(std::atoi(argv[i+1]), std::atoi(argv[i+2]));
+void registerGetTestdataNavs(ArgMap &amap) {
+  amap.registerOption("--slice", "Slices the navs").setArgCount(2).unique();
+  amap.registerOption("--navpath", "Specifies the path from where to load the arguments")
+      .setArgCount(1).setUnique();
+}
+
+Array<Nav> getTestdataNavs(ArgMap &amap) {
+  Poco::Path p = (amap.optionProvided("--navpath")?
+      Poco::Path(amap.optionArgs("--navpath")[0]->value()).makeDirectory()
+      : getDefaultNavPath());
+  Array<Nav> navs = getNavsFromPath(p);
+  if (amap.optionProvided("--slice")) {
+    Array<ArgMap::Arg*> args = amap.optionArgs("--slice");
+    int from = -1;
+    int to = -1;
+    if (tryParseInt(args[0]->value(), &from)
+        && tryParseInt(args[1]->value(), &to)) {
+      if (0 <= from && from <= to && to <= navs.size()) {
+        return navs.slice(from, to);
+      } else {
+        std::cout << "Slice arguments should both be in range 0.." << navs.size() << std::endl;
+        return Array<Nav>();
       }
+    } else {
+      std::cout << "Failed to parse --slice arguments" << std::endl;
+      return Array<Nav>();
     }
-    return Spani();
   }
-
-  Array<Nav> applySlicing(Array<Nav> navs, int argc, const char **argv) {
-    Spani span = getSliceSpan(argc, argv);
-    if (span.initialized()) {
-      std::cout << "Slice navs from " << span.minv() << " to " << span.maxv() << std::endl;
-      return navs.slice(span.minv(), span.maxv());
-    }
-    return navs;
-  }
+  return navs;
 }
 
-Array<Nav> getTestdataNavs(int argc, const char **argv) {
-  return applySlicing(loadAllNavs(argc, argv), argc, argv);
-}
 
 } /* namespace sail */

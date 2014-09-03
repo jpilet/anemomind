@@ -35,6 +35,8 @@ class ArgMap {
       return valueUntraced();
     }
 
+    bool valueToInt(int *dst);
+
     // Reads the value without leaving any trace, that would be settings _wasRead = true.
     const std::string &valueUntraced() {
       return _arg;
@@ -173,7 +175,10 @@ class ArgMap {
     TempArgs() : _optionCounter(0) {}
 
     // Whenever we encounter an option, call this method to retrieve the builder.
-    ArrayBuilder<ArgMap::Arg*> &getArgsForNewOption() {
+    ArrayBuilder<ArgMap::Arg*> &getArgsForNewOption(ArgMap::Arg *opt) {
+      if (_optionCounter == 0) {
+        _args.add(opt);
+      }
       _optionCounter++;
       return _args;
     }
@@ -204,8 +209,6 @@ class ArgMap {
   Array<Arg> _argStorage;
   //Array<Entry*> _args;
   std::map<std::string, Array<Arg*> > _map;
-
-
 
   std::map<std::string, Option> _options;
   std::string _helpInfo;

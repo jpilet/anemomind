@@ -334,6 +334,7 @@ target_link_libraries(nautical_TestdataNavs
                       nautical_NavNmeaScan
                       common_Env
                       common_PathBuilder
+                      common_ArgMap
                      )
 
 

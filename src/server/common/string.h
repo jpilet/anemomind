@@ -16,8 +16,8 @@ std::string objectToString(const T &x) {
 
 #define EXPR_AND_VAL_AS_STRING(X) (std::string(#X " = \n") + objectToString((X)))
 
-bool tryParseInt(const std::string &s, int &out);
-bool tryParseDouble(const std::string &s, double &out);
+bool tryParseInt(const std::string &s, int *out);
+bool tryParseDouble(const std::string &s, double *out);
 
 bool isEscaped(char c);
 unsigned char decodeHexDigit(char c);
@@ -38,7 +38,6 @@ void splitFilenamePrefixSuffix(const std::string &filename,
                                std::string &prefix, std::string &suffix);
 std::string int64ToHex(int64_t x);
 void indent(std::ostream *s, int count);
-int findArg(int argc, const char **argv, const std::string &arg);
 
 std::string readFileToString(const std::string& filename);
 
