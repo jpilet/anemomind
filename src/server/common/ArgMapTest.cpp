@@ -38,6 +38,14 @@ TEST(ArgMapTest, BasicTest) {
   EXPECT_TRUE(map.freeArgs().empty());
 }
 
+TEST(ArgMapTest, Help) {
+  ArgMap amap;
+  const int argc = 2;
+  const char *argv[2] = {"programName", "--help"};
+  EXPECT_TRUE(amap.parse(argc, argv));
+  EXPECT_TRUE(amap.optionProvided("--help"));
+}
+
 namespace {
   ArgMap makeReqMap() {
     ArgMap map;
