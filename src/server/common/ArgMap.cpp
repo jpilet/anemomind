@@ -36,14 +36,15 @@ namespace {
 
 bool ArgMap::readOptionAndParseSub(TempArgMap &tempmap, Option info, Arg *opt, Array<Arg*> rest,
     ArrayBuilder<ArgMap::Arg*> &acc) {
-  if (acc.size() >= info.maxArgCount()) { // Max number of arguments reached?
+  int count = acc.size()-1; // ignore first argument.
+  if (count >= info.maxArgCount()) { // Max number of arguments reached?
     return parseSub(tempmap, rest); // Continue parsing...
   } else if (rest.empty() || rest[0]->isOption(_optionPrefix)) { // nothing more to read
 
     // Check if there are not enough arguments for this option.
-    if (acc.size() < info.minArgCount()) {
+    if (count < info.minArgCount()) {
       std::cout << "Too few values provided to the " << opt->valueUntraced() << " option." << std::endl;
-      std::cout << "You provided " << acc.size() << " values, but "
+      std::cout << "You provided " << count << " values, but "
           << info.minArgCount() << " required." << std::endl;
       return false;
     }
@@ -66,7 +67,7 @@ bool ArgMap::parseSub(TempArgMap &tempmap, Array<Arg*> args) {
       const std::string &s = first->valueUntraced();
       Option info = _options[s];
       TempArgs &targs = tempmap[s];
-      ArrayBuilder<Arg*> &acc = targs.getArgsForNewOption();
+      ArrayBuilder<Arg*> &acc = targs.getArgsForNewOption(first);
       if (info.unique() && targs.optionCount() > 1) {
         std::cout << "You can provide the " << s << " option at most once." << std::endl;
         return false;
@@ -128,6 +129,10 @@ bool ArgMap::parseAndHelp(int argc, const char **argv) {
   return s;
 }
 
+bool ArgMap::Arg::valueToInt(int *dst) {
+  return tryParseInt(value(), dst);
+}
+
 
 bool ArgMap::hasRegisteredOption(const std::string &arg) {
   return _options.find(arg) != _options.end();
@@ -146,7 +151,7 @@ bool ArgMap::optionProvided(const std::string &arg) {
 Array<ArgMap::Arg*> ArgMap::optionArgs(const std::string &arg) {
   CHECK(_successfullyParsed);
   assert(optionProvided(arg));
-  return _map[arg];
+  return _map[arg].sliceFrom(1);
 }
 
 Array<ArgMap::Arg*> ArgMap::freeArgs() {
