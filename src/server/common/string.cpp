@@ -189,14 +189,6 @@ void indent(std::ostream *s, int count) {
   }
 }
 
-int findArg(int argc, const char **argv, const std::string &arg) {
-  for (int i = 1; i < argc; i++) {
-    if (arg == argv[i]) {
-      return i;
-    }
-  }
-  return -1;
-}
 
 std::string readFileToString(const std::string& filename) {
   std::string result;
