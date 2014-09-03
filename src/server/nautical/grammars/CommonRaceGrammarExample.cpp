@@ -10,11 +10,16 @@
 using namespace sail;
 
 int main(int argc, const char **argv) {
-  Array<Nav> navs = getTestdataNavs(argc, argv);
-  CommonRaceGrammarSettings s;
-  CommonRaceGrammar g(s);
-  exploreTree(g.nodeInfo(), g.parse(navs));
-  return 0;
+  ArgMap amap;
+  registerGetTestdataNavs(amap);
+  if (amap.parseAndHelp(argc, argv)) {
+    Array<Nav> navs = getTestdataNavs(amap);
+    CommonRaceGrammarSettings s;
+    CommonRaceGrammar g(s);
+    exploreTree(g.nodeInfo(), g.parse(navs));
+    return 0;
+  }
+  return -1;
 }
 
 

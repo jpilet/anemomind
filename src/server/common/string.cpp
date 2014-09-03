@@ -7,18 +7,18 @@
 namespace sail {
 
 
-bool tryParseInt(const std::string &s, int &out) {
+bool tryParseInt(const std::string &s, int *out) {
   try {
-    out = std::stoi(s);
+    *out = std::stoi(s);
     return true;
   } catch (std::exception &e) {
     return false;
   }
 }
 
-bool tryParseDouble(const std::string &s, double &out) {
+bool tryParseDouble(const std::string &s, double *out) {
   try {
-    out = std::stod(s);
+    *out = std::stod(s);
     return true;
   } catch (std::exception &e) {
     return false;

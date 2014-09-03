@@ -120,7 +120,7 @@ namespace sail {
    public:
     PlotEnv(Array<Nav> navs_);
 
-    int run(int argc, const char **argv);
+    int run(Array<ArgMap::Arg*> args);
 
     // Access navs
     Array<Nav> navs() const {return _navs;}
@@ -542,16 +542,9 @@ namespace sail {
     _commands = commands;
   }
 
-  int PlotEnv::run(int argc, const char **argv) {
-    int begin = findArg(argc, argv, "begin");
-    if (begin == -1) {
-      std::cout << "------> ERROR <------" << std::endl;
-      std::cout << "No 'begin' command found to indicate start of command sequence.\n";
-      std::cout << "Type 'help' to see how to use this tool." << std::endl;
-      return -1;
-    }
-    for (int i = begin+1; i < argc; i++) {
-      std::string cmd(argv[i]);
+  int PlotEnv::run(Array<ArgMap::Arg*> args) {
+    for (auto a : args) {
+      std::string cmd = a->value();
       if (!parsePlotCommand(cmd)) {
         std::cout << "  ----------> ERROR: No such command: " << cmd << std::endl;
         return -1;
@@ -598,10 +591,13 @@ namespace sail {
 
 int main(int argc, const char **argv) {
   using namespace sail;
-  PlotEnv env(getTestdataNavs(argc, argv));
-  int helpIndex = sail::findArg(argc, argv, "help");
-  if (helpIndex != -1) {
-    env.dispHelp();
+  ArgMap amap;
+  registerGetTestdataNavs(amap);
+  amap.registerOption("--begin", "Specifies the start of the plot command sequence.").setRequired()
+      .setMaxArgCount(std::numeric_limits<int>::max()).setUnique();
+  if (amap.parse(argc, argv)) {
+    PlotEnv env(getTestdataNavs(amap));
+    return env.run(amap.optionArgs("--begin"));
   }
-  return env.run(argc, argv);
+  return -1;
 }
