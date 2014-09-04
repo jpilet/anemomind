@@ -109,7 +109,7 @@ int BoatLogProcessor::main(const std::vector<std::string>& args) {
 }
 
 namespace {
-  TargetSpeedData makeTargetSpeedTable(bool isUpwind,
+  TargetSpeed makeTargetSpeedTable(bool isUpwind,
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
       Array<Nav> allnavs,
       std::string description) {
@@ -127,18 +127,18 @@ namespace {
     // TODO: Adapt these values to the amount of recorded data.
     const int binCount = TargetSpeedTable::NUM_ENTRIES;
     Velocity<double> minvel = Velocity<double>::knots(0);
-    Velocity<double> maxvel = Velocity<double>::knots(TargetSpeedTable::NUM_ENTRIES);
+    Velocity<double> maxvel = Velocity<double>::knots(TargetSpeedTable::NUM_ENTRIES-1);
 
-    return TargetSpeedData(tws, vmg, binCount,
-       minvel, maxvel);
+    Array<Velocity<double> > bounds = makeBoundsFromBinCenters(TargetSpeedTable::NUM_ENTRIES, minvel, maxvel);
+    return TargetSpeed(isUpwind, tws, vmg, bounds);
   }
 
   void outputTargetSpeedTable(std::shared_ptr<HTree> tree,
                               Array<HNode> nodeinfo,
                               Array<Nav> navs,
                               std::ofstream *file) {
-    TargetSpeedData uw = makeTargetSpeedTable(true, tree, nodeinfo, navs, "upwind-leg");
-    TargetSpeedData dw = makeTargetSpeedTable(false, tree, nodeinfo, navs, "downwind-leg");
+    TargetSpeed uw = makeTargetSpeedTable(true, tree, nodeinfo, navs, "upwind-leg");
+    TargetSpeed dw = makeTargetSpeedTable(false, tree, nodeinfo, navs, "downwind-leg");
 
     saveTargetSpeedTableChunk(file, uw, dw);
   }
@@ -170,14 +170,17 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   std::string prefix = "all";
 
   // Create the boat.dat file.
-  std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
+  {
+    ENTERSCOPE("Output boat.dat with target speed data.");
+    std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
 
-  Calibrator calibrator(g);
-  if (calibrator.calibrate(navs, fulltree, boatId)) {
-    calibrator.saveCalibration(&boatDatFile);
-    calibrator.simulate(&navs);
+    Calibrator calibrator(g);
+    if (calibrator.calibrate(navs, fulltree, boatId)) {
+      calibrator.saveCalibration(&boatDatFile);
+      calibrator.simulate(&navs);
+    }
+    outputTargetSpeedTable(fulltree, g.nodeInfo(), navs, &boatDatFile);
   }
-  outputTargetSpeedTable(fulltree, g.nodeInfo(), navs, &boatDatFile);
 
   {
     std::string path = outdir.makeFile(prefix + "_tree.js").get().toString();
