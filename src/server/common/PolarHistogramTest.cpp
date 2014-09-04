@@ -42,6 +42,12 @@ TEST(PolarHistogramTest, Undefined) {
 
   Arrayi hist = Arrayi::args(2, 2, 3);
   EXPECT_EQ(hist, map.countPerBin(angles));
+
+  EXPECT_NEAR(map.binSpan(1).minv().degrees(), 120.0, 1.0e-6);
+  EXPECT_NEAR(map.binSpan(1).maxv().degrees(), 240.0, 1.0e-6);
+  EXPECT_EQ(map.periodicIndex(3), 0);
+  EXPECT_EQ(map.periodicIndex(-1), 2);
+  EXPECT_EQ(map.periodicIndex(-4), 2);
 }
 
 TEST(PolarHistogramTest, CustomReference) {
