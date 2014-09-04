@@ -79,7 +79,7 @@ TEST(DeviceTest, CalibratedTest) {
   EXPECT_CALL(arduino, screenUpdate(testing::_, testing::_, testing::_)).Times(1);
 
   // The second call contains something meaningful.
-  EXPECT_CALL(arduino, screenUpdate(65, /*147*/132, 5)).Times(1);
+  EXPECT_CALL(arduino, screenUpdate(65, 132, 5)).Times(1);
 
   arduino.sendData(data);
 
