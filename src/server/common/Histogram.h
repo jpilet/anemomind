@@ -7,7 +7,7 @@
 #define HISTOGRAM_H_
 
 #include <server/common/Array.h>
-#include <server/common/LineKM.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/MDArray.h>
 #include <server/common/Span.h>
 #include <server/common/math.h>
@@ -56,7 +56,7 @@ class HistogramMap {
   int toBin(T value) const {
     int index = int(floor((value - _m)/_k));
     if (periodic) {
-      return positiveMod(index, _binCount);
+      return periodicIndex(index);
     } else if (validIndex(index)) {
       return index;
     } else {
@@ -64,16 +64,25 @@ class HistogramMap {
     }
   }
 
-  T toLeftBound(double binIndex) const {
+  T binToValue(double binIndex) const {
     return binIndex*_k + _m;
   }
 
-  double toRightBound(double binIndex) const {
-    return toLeftBound(binIndex + 1.0);
+  T toLeftBound(int binIndex) const {
+    return binToValue(binIndex);
   }
 
-  double toCenter(double binIndex) const {
-    return toLeftBound(binIndex + 0.5);
+  T toRightBound(int binIndex) const {
+    return binToValue(binIndex + 1.0);
+  }
+
+  T toCenter(int binIndex) const {
+    return binToValue(binIndex + 0.5);
+  }
+
+  Span<T> binSpan(int binIndex) const {
+    T offs = toLeftBound(binIndex);
+    return Span<T>(offs, offs + _k);
   }
 
   Arrayi countPerBin(Array<T> values) const {
@@ -87,8 +96,14 @@ class HistogramMap {
     return hist;
   }
 
-  Arrayi assignBins(Arrayd values) const {
-    return values.map<int>([&](double x) {return toBin(x);});
+  Arrayi assignBins(Array<T> values) const {
+    //return values.map<int>([&](T x) {return toBin(x);});
+    int count = values.size();
+    Arrayi dst(count);
+    for (int i = 0; i < count; i++) {
+      dst[i] = toBin(values[i]);
+    }
+    return dst;
   }
 
   bool defined() const {return _binCount > 0;}
@@ -99,6 +114,11 @@ class HistogramMap {
   // periodic and non-periodic histograms.
   bool validIndex(int index) const {
     return 0 <= index && index < _binCount;
+  }
+
+
+  int periodicIndex(int i) const {
+    return positiveMod(i, _binCount);
   }
 
   MDArray2d makePlotData(Arrayi counts,
@@ -128,6 +148,14 @@ class HistogramMap {
   int _binCount;
   T _k, _m;
 };
+
+template <typename T>
+HistogramMap<Angle<T>, true> makePolarHistogramMap(int binCount,
+    double refIndex = 0,
+    Angle<T> refAngle = Angle<T>::radians(T(0))) {
+  return HistogramMap<Angle<T>, true>(binCount,
+      refAngle, refAngle + Angle<T>::degrees(360), refIndex);
+}
 
 } /* namespace sail */
 

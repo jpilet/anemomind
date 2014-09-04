@@ -76,7 +76,6 @@ class PhysicalQuantity {
   typedef Quantity QuantityType;
   typedef Value ValueType;
 
-
   // Additon/subtraction --> Quantity
   Quantity operator+(ThisQuantity other) const {
     return Quantity::makeFromX(_x + other.get());
@@ -102,6 +101,10 @@ class PhysicalQuantity {
 
   Quantity scaled(Value s) const {
       return Quantity::makeFromX(_x * s);
+  }
+
+  Value divideBy(Quantity other) {
+    return _x/other._x;
   }
 
   Quantity fabs() const { return Quantity::makeFromX(::fabs(_x)); }
@@ -240,6 +243,17 @@ class Mass : public PhysicalQuantity<Mass<T>, T> {
   MAKE_PHYSQUANT_UNIT_CONVERTERS(lispund, 170.0/20.0);
 
 };
+
+template <typename Q, typename T>
+PhysicalQuantity<Q, T> operator* (T s, PhysicalQuantity<Q, T> x) {
+  return x.scaled(s);
+}
+
+template <typename Q, typename T>
+T operator/ (PhysicalQuantity<Q, T> p, PhysicalQuantity<Q, T> q) {
+  return p.divideBy(q);
+}
+
 
 template<typename T, int N>
 class FixedArray {
