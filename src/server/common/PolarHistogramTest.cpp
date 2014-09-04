@@ -45,6 +45,10 @@ TEST(PolarHistogramTest, Undefined) {
   EXPECT_EQ(map.toBin(Angle<double>::degrees(361)), 0);
   EXPECT_NEAR(map.binIndexToAngle(0.00001).degrees(), 0, 1.0);
   EXPECT_NEAR(map.binIndexToAngle(2.99999999).degrees(), 360.0, 1.0);
+  EXPECT_NEAR(map.toRightBound(0).radians(), map.toLeftBound(1).radians(), 1.0e-6);
+  EXPECT_NEAR(map.toRightBound(1).radians(), map.toLeftBound(2).radians(), 1.0e-6);
+  EXPECT_NEAR(map.toRightBound(2).radians(), 2.0*M_PI, 1.0e-6);
+  EXPECT_NEAR(map.toCenter(2).degrees(), 300, 1.0e-6);
 }
 
 
