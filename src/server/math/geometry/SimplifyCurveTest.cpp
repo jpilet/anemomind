@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 TEST(SimplifyCurveTest, SimpleOpen) {
-  Curve curve(false);
+  CurveSimplifier curve(false);
 
   // the 3 points are almost aligned. The middle one should be the first
   // eliminated.
@@ -19,7 +19,7 @@ TEST(SimplifyCurveTest, SimpleOpen) {
 }
 
 TEST(SimplifyCurveTest, SimpleClosed) {
-  Curve curve(true);
+  CurveSimplifier curve(true);
 
   curve.addPoint(0, 0);
   curve.addPoint(1, 0);

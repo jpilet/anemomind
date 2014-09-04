@@ -7,43 +7,12 @@
 // Implements Visvalingam’s algorithm for line simplification.
 // Inspired by http://bost.ocks.org/mike/simplify/
 
-struct Triangle {
-  Vertex* _points[3];
 
-  Triangle() { set(0, 0, 0); }
-  Triangle(const Triangle& other) {
-    LOG(FATAL) << "Triangle structure can't be copied.";
-  }
+CurveSimplifier::Triangle::Triangle(const Triangle& other) {
+  LOG(FATAL) << "Triangle structure can't be copied.";
+}
 
-  void set(Vertex* a, Vertex* b, Vertex* c) {
-    _points[0] = a; _points[1] = b; _points[2] = c;
-  }
-
-  double area() const {
-    double x[3] = { _points[0]->_x, _points[1]->_x, _points[2]->_x };
-    double y[3] = { _points[0]->_y, _points[1]->_y, _points[2]->_y };
-
-    return fabs((x[0] - x[2]) * (y[1] - y[0])
-                - (x[0] - x[1]) * (y[2] - y[0]));
-  };
-};
-
-namespace {
-struct SortingTrianglePointer {
-  Triangle *triangle;
-
-  SortingTrianglePointer(Triangle* ptr) : triangle(ptr) { }
-
-  Triangle* operator->() { return triangle; }
-
-  bool operator < (const SortingTrianglePointer& other) const {
-    return triangle->area() > other.triangle->area();
-  }
-};
-
-}  // namespace
-
-void Curve::computeTriangles(std::vector<Triangle>* triangles) {
+void CurveSimplifier::computeTriangles(std::vector<Triangle>* triangles) {
   triangles->clear();
   triangles->resize(this->numTriangles());
   int index = 0;
@@ -78,7 +47,7 @@ void Curve::computeTriangles(std::vector<Triangle>* triangles) {
 }
 
 
-std::vector<int> Curve::priorities() {
+std::vector<int> CurveSimplifier::priorities() {
   std::vector<Triangle> triangles;
   computeTriangles(&triangles);
 
