@@ -8,27 +8,6 @@
 
 using namespace sail;
 
-/*
-
-/*
- *
-  PolarHistogramMap(int binCount,
-      double refBinIndex = 0,
-      Angle<double> refAngle = Angle<double>::radians(0));
-  int toBin(Angle<double> value) const;
-  Angle<double> binIndexToAngle(double binIndex) const;
-  Angle<double> toLeftBound(int binIndex) const;
-  Angle<double> toRightBound(int binIndex) const;
-  Angle<double> toCenter(int binIndex) const;
-  Arrayi countPerBin(Array<Angle<double> > angles) const;
-  Arrayi assignBins(Array<Angle<double> > values) const;
-  int periodicIndex(int index) const;
-  Span<Angle<double> > binSpan(int binIndex) const;
-
-  int binCount() const {return _binCount;}
-  bool defined() const {return _binCount > 0;}
-  bool undefined() const {return !defined();}
- */
 TEST(PolarHistogramTest, Undefined) {
   PolarHistogramMap map;
   EXPECT_FALSE(map.defined());
@@ -63,6 +42,22 @@ TEST(PolarHistogramTest, Undefined) {
 
   Arrayi hist = Arrayi::args(2, 2, 3);
   EXPECT_EQ(hist, map.countPerBin(angles));
+}
+
+TEST(PolarHistogramTest, CustomReference) {
+
+  Angle<double> ref = Angle<double>::radians(2199.10190173919);
+  PolarHistogramMap map(9, 1.0, ref);
+
+  Angle<double> marg = Angle<double>::radians(1.0e-2);
+
+  EXPECT_EQ(map.toBin(ref + marg), 1);
+  EXPECT_EQ(map.toBin(ref - marg), 0);
+}
+
+TEST(PolarHistogramTest, Negative) {
+  PolarHistogramMap map(4);
+  EXPECT_EQ(map.toBin(Angle<double>::degrees(-1)), 3);
 }
 
 
