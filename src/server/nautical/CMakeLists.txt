@@ -419,13 +419,3 @@ target_link_libraries(nautical_plotTargetSpeed
                       device_TargetSpeed
                       device_ChunkFile
                      )
-
-add_library(nautical_BasicPolar
-            BasicPolar.cpp
-            BasicPolar.h
-           )
-cxx_test(nautical_BasicPolarTest
-         BasicPolarTest.cpp
-         nautical_BasicPolar
-         gtest_main
-        )

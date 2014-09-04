@@ -36,4 +36,11 @@ TEST(MathTest, PosModFloatingPoint) {
   EXPECT_EQ(positiveMod(-3.4, 360.0), 360.0 - 3.4);
 }
 
+TEST(MathTest, PeriodicInterval) {
+  EXPECT_EQ(toPeriodicInterval(2, 4, 1), 3);
+  EXPECT_EQ(toPeriodicInterval(2, 4, 5), 3);
+  EXPECT_EQ(toPeriodicInterval(2, 4, 4), 2);
+  EXPECT_EQ(toPeriodicInterval(2, 4, 2), 2);
+}
+
 
