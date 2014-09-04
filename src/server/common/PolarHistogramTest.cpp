@@ -18,10 +18,10 @@ TEST(PolarHistogramTest, Undefined) {
   PolarHistogramMap map(3);
   EXPECT_FALSE(map.undefined());
   EXPECT_TRUE(map.defined());
-  EXPECT_EQ(map.toBin(Angle<double>::degrees(1)), 0);
-  EXPECT_EQ(map.toBin(Angle<double>::degrees(121)), 1);
-  EXPECT_EQ(map.toBin(Angle<double>::degrees(241)), 2);
-  EXPECT_EQ(map.toBin(Angle<double>::degrees(361)), 0);
+  EXPECT_EQ(map.angleToBin(Angle<double>::degrees(1)), 0);
+  EXPECT_EQ(map.angleToBin(Angle<double>::degrees(121)), 1);
+  EXPECT_EQ(map.angleToBin(Angle<double>::degrees(241)), 2);
+  EXPECT_EQ(map.angleToBin(Angle<double>::degrees(361)), 0);
   EXPECT_NEAR(map.binIndexToAngle(0.00001).degrees(), 0, 1.0);
   EXPECT_NEAR(map.binIndexToAngle(2.99999999).degrees(), 360.0, 1.0);
   EXPECT_NEAR(map.toRightBound(0).radians(), map.toLeftBound(1).radians(), 1.0e-6);
@@ -57,13 +57,13 @@ TEST(PolarHistogramTest, CustomReference) {
 
   Angle<double> marg = Angle<double>::radians(1.0e-2);
 
-  EXPECT_EQ(map.toBin(ref + marg), 1);
-  EXPECT_EQ(map.toBin(ref - marg), 0);
+  EXPECT_EQ(map.angleToBin(ref + marg), 1);
+  EXPECT_EQ(map.angleToBin(ref - marg), 0);
 }
 
 TEST(PolarHistogramTest, Negative) {
   PolarHistogramMap map(4);
-  EXPECT_EQ(map.toBin(Angle<double>::degrees(-1)), 3);
+  EXPECT_EQ(map.angleToBin(Angle<double>::degrees(-1)), 3);
 }
 
 
