@@ -6,6 +6,7 @@
 #include <server/common/logging.h>
 #include <server/nautical/NavNmea.h>
 #include <sstream>
+#include <algorithm>
 #include <string>
 
 using std::string;
@@ -28,7 +29,7 @@ TEST(TrueWindEstimatorTest, SmokeTest) {
 }
 
 TEST(TrueWindEstimatorTest, ManuallyCheckedDataTest) {
-  // Sailing upwind. True wind: ~222, at about 16.2 knots.
+  // Sailing upwind. True wind: 222 = 198 + 24, at about 16.2 knots.
   // Existing onboard instruments said:
   // "$IIMWV,024,T,16.2,N,A*16
   const char *nmeaData =
@@ -50,6 +51,63 @@ TEST(TrueWindEstimatorTest, ManuallyCheckedDataTest) {
   auto trueWind = TrueWindEstimator::computeTrueWind
     <double, ServerFilter>(parameters, makeFilter(navs.navs()));
 
-  EXPECT_NEAR(222, trueWind.angle().degrees() + 360, 5);
+  // Comparing TWDIR
+  EXPECT_NEAR(22 + 198, calcTwdir(trueWind).degrees(), 5);
+
   EXPECT_NEAR(16, trueWind.norm().knots(), 1);
+}
+
+namespace {
+  HorizontalMotion<double> estimateTrueWindUsingEstimator(const Nav &nav) {
+    double parameters[TrueWindEstimator::NUM_PARAMS];
+    TrueWindEstimator::initializeParameters(parameters);
+    return TrueWindEstimator::computeTrueWind
+      <double>(parameters, nav);
+  }
+
+  Angle<double> getMedianAbsValue(Array<Angle<double> > difs0) {
+    Array<Angle<double> > difs = difs0.map<Angle<double> >([&](Angle<double> x) {return fabs(x);});
+    std::sort(difs.begin(), difs.end());
+    return difs[difs.size()/2];
+  }
+}
+
+TEST(TrueWindEstimatorTest, TWACompare) {
+  const int dsCount = 2;
+  const std::string ds[2] = {string("/datasets/Irene/2008/regate_28_mai_08/IreneLog.txt"),
+                             string("/datasets/psaros33_Banque_Sturdza/2014/20140627/NMEA0006.TXT")};
+
+  for (int i = 0; i < dsCount; i++) {
+    Array<Nav> navs = loadNavsFromNmea(
+        string(Env::SOURCE_DIR) +
+        ds[i],
+        Nav::debuggingBoatId()).navs();
+
+    navs = navs.sliceTo(3000);
+    EXPECT_LE(1000, navs.size());
+    int count = navs.size();
+    Angle<double> tol = Angle<double>::degrees(10.0);
+    int counter = 0;
+
+    Array<Angle<double> > difs(count);
+    for (int i = 0; i < count; i++) {
+      Nav nav = navs[i];
+      Angle<double> boatDir = nav.gpsBearing();
+      HorizontalMotion<double> trueWind = estimateTrueWindUsingEstimator(nav);
+      Angle<double> twa = calcTwa(trueWind, boatDir)
+          + Angle<double>::degrees(360);
+      Angle<double> etwa = nav.externalTwa();
+
+      Angle<double> dif = (twa - etwa).normalizedAt0();
+      difs[i] = dif;
+
+      if (fabs(dif) < tol) {
+        counter++;
+      }
+    }
+
+    double successrate = double(counter)/count;
+    EXPECT_LE(0.8, successrate);
+    EXPECT_LE(getMedianAbsValue(difs).degrees(), 3.0);
+  }
 }

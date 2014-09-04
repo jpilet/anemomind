@@ -153,15 +153,25 @@ class Angle : public PhysicalQuantity<Angle<T>, T> {
     return (*this - other).normalizedAt0();
   }
 
-  Angle<T> normalizedAt0() const {
+  Angle<T> moveToInterval(Angle<T> lower, Angle<T> upper) const {
     Angle<T> result(*this);
-    while (result < Angle<T>::degrees(T(-180))) {
+    while (result < lower) {
       result += Angle<T>::degrees(T(360));
     }
-    while (result > Angle<T>::degrees(T(180))) {
+    while (result >= upper) {
       result -= Angle<T>::degrees(T(360));
     }
     return result;
+  }
+
+  Angle<T> normalizedAt0() const {
+    return moveToInterval(Angle<T>::degrees(T(-180)),
+        Angle<T>::degrees(T(180)));
+  }
+
+  Angle<T> positiveMinAngle() const {
+    return moveToInterval(Angle<T>::degrees(T(0)),
+        Angle<T>::degrees(T(360)));
   }
 
   static Angle<T> degMinMc(T deg, T min, T mc) {

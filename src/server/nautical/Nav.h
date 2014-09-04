@@ -27,7 +27,7 @@ namespace NavDataConversion {
 class Nav {
  public:
   typedef std::string Id; // We may want to replace this typedef by a special type for Id's
-
+  typedef double type;
   static Nav::Id debuggingBoatId() {return "FFFFFFFF";}
 
 
@@ -55,7 +55,8 @@ class Nav {
   Angle<double> externalTwa() const {return _externalTwa;}
   Velocity<double> externalTws() const {return _externalTws;}
 
-  HorizontalMotion<double> gpsVelocity() const;
+  HorizontalMotion<double> gpsMotion() const;
+
 
   // As computed by the calibrated model. Not always available.
   HorizontalMotion<double> trueWind() const { return _trueWind; }
@@ -113,6 +114,7 @@ class Nav {
 
   HorizontalMotion<double> _trueWind;
 };
+
 
 Array<Velocity<double> > getExternalTws(Array<Nav> navs);
 Array<Angle<double> > getExternalTwa(Array<Nav> navs);

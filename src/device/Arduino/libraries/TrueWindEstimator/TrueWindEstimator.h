@@ -85,11 +85,11 @@ HorizontalMotion<T> TrueWindEstimator::computeTrueWind(
         // produces a larger code than the line after.
         // Velocity<T>::knots(aws_offset) + static_cast<Velocity<T> >(measures.aws()).scaled(aws_bias),
         Velocity<T>::knots(aws_offset + measures.aws().knots() * aws_bias),
-        static_cast<Angle<T> >(measures.gpsBearing() + measures.awa())
+        static_cast<Angle<T> >(measures.gpsBearing() + measures.awa() + Angle<WorkType>::degrees(180))
             + Angle<T>::degrees(awa_offset));
 
     // True wind - boat motion = apparent wind.
-    return appWindMotion - boatMotion;
+    return appWindMotion + boatMotion;
 }
 
 template<class T>
@@ -97,6 +97,30 @@ void TrueWindEstimator::initializeParameters(T* params) {
   for (int i = 0; i < NUM_PARAMS; ++i) {
     params[i] = T(0);
   }
+}
+
+/*
+ * Functions to compute TWA (which is NOT the same thing as TW.angle())
+ *
+ * Also, TW.angle() is the angle pointing in opposite
+ * direction to the vector pointing at an angle TWDIR
+ * */
+template <typename T>
+Angle<T> calcTwa(HorizontalMotion<T> calibratedTW,
+    Angle<T> calibratedHeading) {
+    HorizontalMotion<T> opposite(-calibratedTW[0], -calibratedTW[1]);
+    return (opposite.angle() - calibratedHeading).positiveMinAngle();
+}
+
+template <typename T>
+Angle<T> calcTwdir(HorizontalMotion<T> calibratedTW) {
+    return (calibratedTW.angle()
+        + Angle<T>::degrees(T(180))).positiveMinAngle();
+}
+
+template <typename T>
+Velocity<T> calcTws(HorizontalMotion<T> calibratedTW) {
+  return calibratedTW.norm();
 }
 
 }  // namespace sail
