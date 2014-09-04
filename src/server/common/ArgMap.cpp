@@ -133,6 +133,9 @@ bool ArgMap::Arg::valueToInt(int *dst) {
   return tryParseInt(value(), dst);
 }
 
+bool ArgMap::Arg::valueToDouble(double *dst) {
+  return tryParseDouble(value(), dst);
+}
 
 bool ArgMap::hasRegisteredOption(const std::string &arg) {
   return _options.find(arg) != _options.end();

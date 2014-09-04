@@ -425,4 +425,5 @@ add_executable(nautical_PolarScatterPlot
               )
 target_link_libraries(nautical_PolarScatterPlot
                       nautical_TestdataNavs
+                      plot_gnuplot
                      )              
