@@ -280,3 +280,13 @@ cxx_test(common_ArgMapTest
          common_logging
          common_string
         )
+
+add_library(common_PolarHistogram
+            PolarHistogram.cpp        
+            PolarHistogram.h
+           )
+target_link_libraries(common_PolarHistogram
+                      common_LineKM
+                      common_Span
+                      common_logging
+                     )           

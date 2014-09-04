@@ -9,22 +9,9 @@
 #define COMMON_MATH_H_
 
 #include <cmath>
+#include <cassert>
 
 namespace sail {
-
-//template <typename T, int E>
-//class Expt
-//{
-//public:
-//	inline static T eval(T x) {return x*Expt<T, E-1>(x);}
-//};
-//
-//template <typename T>
-//class Expt<T, 0>
-//{
-//public:
-//	inline static T eval(T x) {return 1;}
-//};
 
 template <int a, int b>
 class StaticPower {
@@ -133,6 +120,11 @@ T positiveMod(T a, T b) {
     assert(a2 >= T(0));
     return a2 - std::floor(a2/b)*b;
   }
+}
+
+template <typename T>
+T toPeriodicInterval(T lower, T upper, T x) {
+  return positiveMod(x - lower, upper - lower) + lower;
 }
 
 template <typename T>
