@@ -36,14 +36,16 @@ namespace HistogramInternal {
 template <typename T, bool periodic>
 class HistogramMap {
  public:
+  typedef HistogramMap<T, periodic> ThisType;
+
   HistogramMap() : _binCount(0) {}
 
-  HistogramMap(int count, T leftBd, T rightBd) {
-    assert(!periodic);
-    init(count, leftBd, rightBd);
+  HistogramMap(int count, T leftBd, T rightBd, double indexShift = 0) {
+    init(count, leftBd, rightBd, indexShift);
   }
 
   HistogramMap(int count, Array<T> values) {
+    assert(!periodic);
     Span<T> span(values);
     const double marg = 1.0e-9;
     init(count, span.minv() - marg, span.maxv() + marg);
@@ -114,13 +116,13 @@ class HistogramMap {
     return plotData;
   }
  private:
-  void init(int binCount, T leftBd, T rightBd) {
+  void init(int binCount, T leftBd, T rightBd, double indexShift = 0) {
     assert(leftBd < rightBd);
     assert(binCount > 0);
 
     _binCount = binCount;
     _k = (1.0/binCount)*(rightBd - leftBd);
-    _m = leftBd;
+    _m = leftBd - indexShift*_k;
   }
 
   int _binCount;
