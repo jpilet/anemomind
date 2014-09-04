@@ -11,41 +11,35 @@
 
 #include <ostream>
 #include <server/nautical/Nav.h>
-#include <server/common/Histogram.h>
 
 namespace sail {
 
 
 
-class TargetSpeedData {
+
+class TargetSpeed {
  public:
   static Arrayd makeDefaultQuantiles();
-  TargetSpeedData() {}
-  TargetSpeedData(Array<Velocity<double> > windSpeeds,
-      Array<Velocity<double> > vmg,
-      int binCount, Velocity<double> minTws, Velocity<double> maxTws,
-      Arrayd quantiles = makeDefaultQuantiles());
+  TargetSpeed(bool isUpwind_, Array<Velocity<double> > tws, Array<Velocity<double> > vmg,
+          Array<Velocity<double> > bounds, Arrayd quantiles_ = makeDefaultQuantiles());
+
+  Array<Velocity<double> > binCenters;
+  Array<Array<Velocity<double> > > medianValues;
+  bool isUpwind;
+  Arrayd quantiles;
+
+  int quantileCount() const {
+    return quantiles.size();
+  }
+
   void plot();
-  const HistogramMap &hist() const {return _hist;}
-
-  Arrayd targetVmgForWindSpeed(Velocity<double> windSpeed) const;
- private:
-  void init(Array<Velocity<double> > windSpeeds,
-      Array<Velocity<double> > vmg,
-      HistogramMap map,
-      Arrayd quantiles);
-
-  Velocity<double> wrap(double x) {return Velocity<double>::knots(x);}
-  double unwrap(Velocity<double> x) {return x.knots();}
-  std::function<double(Velocity<double>)> makeUnwrapper() {return [=](Velocity<double> x) {return unwrap(x);};}
-
-  // All velocities are internally stored as [knots]
-  // Such a convention is reasonable, since HistogramMap only
-  // works with doubles.
-  Arrayd _quantiles;
-  HistogramMap _hist;
-  Array<Arrayd> _medianValues;
 };
+
+Array<Velocity<double> > makeBoundsFromBinCenters(int binCount,
+    Velocity<double> minBinCenter,
+    Velocity<double> maxBinCenter);
+
+
 
 // Function used by getUpwindVmg and getDownwindVmg.
 Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind);
@@ -65,13 +59,10 @@ Array<Velocity<double> > estimateTws(Array<Nav> navs);
 // Tws from file, reliable.
 Array<Velocity<double> > estimateExternalTws(Array<Nav> navs);
 
-
-// Pack "upwind" and "downwind" tables into a TargetSpeedTable and
-// save it to the given ostream, in binary/chunk format.
 void saveTargetSpeedTableChunk(
     ostream *stream,
-    const TargetSpeedData& upwind,
-    const TargetSpeedData& downwind);
+    const TargetSpeed& upwind,
+    const TargetSpeed& downwind);
 
 } /* namespace sail */
 
