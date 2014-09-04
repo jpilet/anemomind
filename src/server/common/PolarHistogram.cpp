@@ -19,7 +19,7 @@ PolarHistogramMap::PolarHistogramMap(int binCount,
                           refBinIndex, refBinIndex + _binCount);             // bin indices
 }
 
-int PolarHistogramMap::angleToBin(Angle<double> value) const {
+int PolarHistogramMap::angleToBinIndex(Angle<double> value) const {
   return periodicIndex(int(floor(_binMapRadians(value.radians()))));
 }
 
@@ -42,13 +42,13 @@ Angle<double> PolarHistogramMap::toCenter(int binIndex) const {
 Arrayi PolarHistogramMap::countPerBin(Array<Angle<double> > angles) const {
   Arrayi counts = Arrayi::fill(_binCount, 0);
   for (auto angle : angles) {
-    counts[angleToBin(angle)]++;
+    counts[angleToBinIndex(angle)]++;
   }
   return counts;
 }
 
 Arrayi PolarHistogramMap::assignBins(Array<Angle<double> > values) const {
-  return values.map<int>([&](Angle<double> x) {return angleToBin(x);});
+  return values.map<int>([&](Angle<double> x) {return angleToBinIndex(x);});
 }
 
 int PolarHistogramMap::periodicIndex(int index) const {

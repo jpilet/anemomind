@@ -20,7 +20,7 @@ class PolarHistogramMap {
   PolarHistogramMap(int binCount,
       double refBinIndex = 0,
       Angle<double> refAngle = Angle<double>::radians(0));
-  int angleToBin(Angle<double> value) const;
+  int angleToBinIndex(Angle<double> value) const;
   Angle<double> binIndexToAngle(double binIndex) const;
   Angle<double> toLeftBound(int binIndex) const;
   Angle<double> toRightBound(int binIndex) const;
