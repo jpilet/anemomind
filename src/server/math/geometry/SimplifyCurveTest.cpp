@@ -13,6 +13,7 @@ TEST(SimplifyCurveTest, SimpleOpen) {
 
   std::vector<int> priority = curve.priorities();
 
+  EXPECT_EQ(3, priority.size());
   EXPECT_EQ(0, priority[0]);
   EXPECT_EQ(2, priority[1]);
   EXPECT_EQ(1, priority[2]);
@@ -28,6 +29,7 @@ TEST(SimplifyCurveTest, SimpleClosed) {
 
   std::vector<int> priority = curve.priorities();
 
+  EXPECT_EQ(4, priority.size());
   EXPECT_EQ(1, priority[0]);
   EXPECT_EQ(0, priority[1]);
   EXPECT_EQ(3, priority[2]);
