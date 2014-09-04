@@ -142,19 +142,6 @@ T cyclicDif(T a, T b, T cycle) {
   return (dif < dif2? dif : dif2);
 }
 
-template <typename T>
-T normalizeAngleBetweenMinusPiAndPi(T a) {
-  // Unfortunately, positiveMod can't be instanciated with a ceres::Jet.
-  // Let's fake positiveMod with comparisons and additions.
-  T result(a);
-  while (result < T(-M_PI)) {
-    result += T(2.0 * M_PI);
-  }
-  while (result > T(M_PI)) {
-    result -= T(2.0 *M_PI);
-  }
-  return result;
-}
 
 template <typename T>
 bool near(T a, T b, T marg) {

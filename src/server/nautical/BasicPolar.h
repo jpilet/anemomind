@@ -8,7 +8,13 @@
 #ifndef BASICPOLAR_H_
 #define BASICPOLAR_H_
 
-namespace mmm {
+namespace sail {
+
+class BasicPolarSettings {
+ public:
+
+ private:
+};
 
 class BasicPolar {
 public:
@@ -16,6 +22,6 @@ public:
   virtual ~BasicPolar();
 };
 
-} /* namespace mmm */
+}
 
 #endif /* BASICPOLAR_H_ */

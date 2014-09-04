@@ -5,15 +5,14 @@
 
 #include "BasicPolar.h"
 
-namespace mmm {
+namespace sail {
 
 BasicPolar::BasicPolar() {
-  // TODO Auto-generated constructor stub
 
 }
 
 BasicPolar::~BasicPolar() {
-  // TODO Auto-generated destructor stub
+
 }
 
-} /* namespace mmm */
+}
