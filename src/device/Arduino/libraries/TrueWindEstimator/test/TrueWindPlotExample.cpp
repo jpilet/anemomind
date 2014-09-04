@@ -3,7 +3,6 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
-//#include <device/Arduino/libraries/TrueWindEstimator/InstrumentFilter.h>
 #include <server/common/Env.h>
 #include <server/common/logging.h>
 #include <server/nautical/NavNmea.h>
@@ -135,7 +134,7 @@ int main(int argc, const char **argv) {
         trueWind = estimateRawTrueWind(nav, boatDir);
       }
 
-      Angle<double> twa = calcTWA(trueWind, boatDir)
+      Angle<double> twa = calcTwa(trueWind, boatDir)
           + Angle<double>::degrees(360);
 
       Angle<double> twdir = trueWind.angle() + Angle<double>::degrees(180);

@@ -52,7 +52,7 @@ TEST(TrueWindEstimatorTest, ManuallyCheckedDataTest) {
     <double, ServerFilter>(parameters, makeFilter(navs.navs()));
 
   // Comparing TWDIR
-  EXPECT_NEAR(22 + 198, trueWind.angle().degrees() + 180, 5);
+  EXPECT_NEAR(22 + 198, calcTwdir(trueWind).degrees(), 5);
 
   EXPECT_NEAR(16, trueWind.norm().knots(), 1);
 }
@@ -94,7 +94,7 @@ TEST(TrueWindEstimatorTest, TWACompare) {
       Nav nav = navs[i];
       Angle<double> boatDir = nav.gpsBearing();
       HorizontalMotion<double> trueWind = estimateTrueWindUsingEstimator(nav);
-      Angle<double> twa = calcTWA(trueWind, boatDir)
+      Angle<double> twa = calcTwa(trueWind, boatDir)
           + Angle<double>::degrees(360);
       Angle<double> etwa = nav.externalTwa();
 

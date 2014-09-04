@@ -101,17 +101,25 @@ void TrueWindEstimator::initializeParameters(T* params) {
 
 /*
  * Functions to compute TWA (which is NOT the same thing as TW.angle())
- * and TWS.
+ *
+ * Also, TW.angle() is the angle pointing in opposite
+ * direction to the vector pointing at an angle TWDIR
  * */
 template <typename T>
-Angle<T> calcTWA(HorizontalMotion<T> calibratedTW,
+Angle<T> calcTwa(HorizontalMotion<T> calibratedTW,
     Angle<T> calibratedHeading) {
     HorizontalMotion<T> opposite(-calibratedTW[0], -calibratedTW[1]);
-    return (opposite.angle() - calibratedHeading).normalizedAt0();
+    return (opposite.angle() - calibratedHeading).positiveMinAngle();
 }
 
 template <typename T>
-Velocity<T> calcTWS(HorizontalMotion<T> calibratedTW) {
+Angle<T> calcTwdir(HorizontalMotion<T> calibratedTW) {
+    return (calibratedTW.angle()
+        + Angle<T>::degrees(T(180))).positiveMinAngle();
+}
+
+template <typename T>
+Velocity<T> calcTws(HorizontalMotion<T> calibratedTW) {
   return calibratedTW.norm();
 }
 
