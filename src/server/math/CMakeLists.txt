@@ -142,5 +142,6 @@ cxx_test(math_StatisticsTest
          gtest_main
         )
 
+add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
