@@ -8,8 +8,9 @@
 #include <gtest/gtest.h>
 #include <server/nautical/BasicPolar.h>
 
-TEST(BasicPolarTest, PolarSettings) {
 
+
+TEST(BasicPolarTest, PolarSettings) {
 }
 
 
