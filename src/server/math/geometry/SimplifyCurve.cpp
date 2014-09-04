@@ -1,6 +1,7 @@
 #include <server/math/geometry/SimplifyCurve.h>
 
 #include <assert.h>
+#include <algorithm>
 #include <cmath>
 #include <server/common/logging.h>
 
