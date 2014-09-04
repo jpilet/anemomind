@@ -66,12 +66,16 @@ namespace {
   }
 
   void protoAlgoOnTestdata(int argc, const char **argv) {
-    Array<Nav> data = getTestdataNavs(argc, argv);
-    Array<Velocity<double> > tws = getTws(data);
-    Arrayb upwind = getUpwind(data);
-    Arrayb downwind = getDownwind(data);
-    makePlot(true, tws, calcExternalVmg(data, true), upwind, downwind);
-    makePlot(false, tws, calcExternalVmg(data, false), upwind, downwind);
+    ArgMap amap;
+    registerGetTestdataNavs(amap);
+    if (amap.parseAndHelp(argc, argv)) {
+      Array<Nav> data = getTestdataNavs(amap);
+      Array<Velocity<double> > tws = getTws(data);
+      Arrayb upwind = getUpwind(data);
+      Arrayb downwind = getDownwind(data);
+      makePlot(true, tws, calcExternalVmg(data, true), upwind, downwind);
+      makePlot(false, tws, calcExternalVmg(data, false), upwind, downwind);
+    }
   }
 }
 
