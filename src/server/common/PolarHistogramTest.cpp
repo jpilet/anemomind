@@ -49,6 +49,18 @@ TEST(PolarHistogramTest, Undefined) {
   EXPECT_NEAR(map.toRightBound(1).radians(), map.toLeftBound(2).radians(), 1.0e-6);
   EXPECT_NEAR(map.toRightBound(2).radians(), 2.0*M_PI, 1.0e-6);
   EXPECT_NEAR(map.toCenter(2).degrees(), 300, 1.0e-6);
+
+  const int count = 7;
+  double anglesDeg[count] = {576.2019, 102.1582, 303.6681, 659.3296, 570.3893, 690.8345, 472.1333};
+  Array<Angle<double> > angles = Arrayd(count, anglesDeg)
+      .map<Angle<double> >([&](double x) {return Angle<double>::degrees(x);});
+
+  int bins[count] = {1, 0, 2, 2, 1, 2, 0};
+  Arrayi estBins = map.assignBins(angles);
+  for (int i = 0; i < count; i++) {
+    EXPECT_EQ(bins[i], estBins[i]);
+  }
+
 }
 
 
