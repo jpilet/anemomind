@@ -87,18 +87,14 @@ void displaySpeedRatio(const NmeaParser& parser) {
     HorizontalMotion<FP16_16> wind =
       TrueWindEstimator::computeTrueWind(calibration.params, filter);
 
-    twdir = (wind.angle() - Angle<FP16_16>::degrees(180)).normalizedAt0();
+    twdir = calcTwdir(wind);
     tws = wind.norm();
     // Todo: compute TWA with TrueWindEstimator.
   } else {
-    twdir = Angle<FP16_16>(parser.twa()) + Angle<FP16_16>(parser.magHdg());
+    twdir = (Angle<FP16_16>(parser.twa()) + Angle<FP16_16>(parser.magHdg())).positiveMinAngle();
     tws = parser.tws();
   }
   
-  if (twdir > Angle<FP16_16>::degrees(360)) {
-    twdir -=  Angle<FP16_16>::degrees(360);
-  }
-
    float speedRatio = getVmgSpeedRatio(targetSpeedTable,
        parser.twa().degrees(),
        tws.knots(),
