@@ -61,6 +61,8 @@ TEST(PolarHistogramTest, Undefined) {
     EXPECT_EQ(bins[i], estBins[i]);
   }
 
+  Arrayi hist = Arrayi::args(2, 2, 3);
+  EXPECT_EQ(hist, map.countPerBin(angles));
 }
 
 
