@@ -289,4 +289,9 @@ target_link_libraries(common_PolarHistogram
                       common_LineKM
                       common_Span
                       common_logging
-                     )           
+                     )      
+cxx_test(common_PolarHistogramTest
+         PolarHistogramTest.cpp
+         common_PolarHistogram
+         gtest_main
+        )
