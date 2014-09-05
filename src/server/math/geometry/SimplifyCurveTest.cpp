@@ -30,8 +30,16 @@ TEST(SimplifyCurveTest, SimpleClosed) {
   std::vector<int> priority = curve.priorities();
 
   EXPECT_EQ(4, priority.size());
-  EXPECT_EQ(1, priority[0]);
-  EXPECT_EQ(0, priority[1]);
+  EXPECT_EQ(2, priority[0]);
   EXPECT_EQ(3, priority[2]);
-  EXPECT_EQ(2, priority[3]);
+}
+
+TEST(SimplifyCurveTest, ColinearClosed) {
+  CurveSimplifier curve(true);
+  curve.addPoint(0, 0);
+  curve.addPoint(1, 2);
+  curve.addPoint(2, 4);
+  std::vector<int> priorities = curve.priorities();
+  EXPECT_EQ(3, priorities.size());
+  EXPECT_EQ(2, priorities[1]);
 }
