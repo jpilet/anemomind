@@ -14,6 +14,11 @@
 
 namespace sail {
 
+template<typename Source>
+struct CastToDoubleFunctor {
+  double operator()(Source x) const { return static_cast<double>(x); }
+};
+
 namespace HistogramInternal {
   template <typename T>
   Array<Array<T> > allocateGroups(Arrayi cpb) {
@@ -21,16 +26,6 @@ namespace HistogramInternal {
   }
 
   void drawBin(double left, double right, double height, MDArray2d dst);
-
-  template <typename T>
-  std::function<double(T)> makeDoubleMapper() {
-    return std::function<double(T)>();
-  }
-
-  template <>
-  inline std::function<double(double)> makeDoubleMapper<double>() {
-    return [](double x) {return x;};
-  }
 }
 
 template <typename T, bool periodic>
@@ -121,17 +116,18 @@ class HistogramMap {
     return positiveMod(i, _binCount);
   }
 
-  MDArray2d makePlotData(Arrayi counts,
-      std::function<double(T)> mapper = HistogramInternal::makeDoubleMapper<T>()) const {
+
+  template<class Cast = CastToDoubleFunctor<T>>
+  MDArray2d makePlotData(Arrayi counts, Cast castToDouble = Cast()) const {
     assert(_binCount == counts.size());
     MDArray2d plotData(3*_binCount + 1, 2);
     for (int i = 0; i < _binCount; i++) {
-      double left = mapper(toLeftBound(i));
-      double right = mapper(toRightBound(i));
+      double left = castToDouble(toLeftBound(i));
+      double right = castToDouble(toRightBound(i));
       HistogramInternal::drawBin(left, right, counts[i], plotData.sliceRowBlock(i, 3));
     }
     int lastRow = plotData.rows()-1;
-    plotData(lastRow, 0) = mapper(toRightBound(_binCount-1));
+    plotData(lastRow, 0) = castToDouble(toRightBound(_binCount-1));
     plotData(lastRow, 1) = 0;
     return plotData;
   }
