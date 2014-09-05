@@ -7,6 +7,7 @@
 #include <server/nautical/TestdataNavs.h>
 #include <server/plot/extra.h>
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
+#include <server/common/string.h>
 #include <algorithm>
 
 using namespace sail;
@@ -75,11 +76,17 @@ namespace {
     return navs.map<double>([&](const PlottableNav &n) {return n.z();});
   }
 
+  const char xlab[] = "gpsSpeed*sin(TWA) (knots)";
+  const char ylab[] = "gpsSpeed*cos(TWA) (knots)";
+
   void makePolar2dScatter(Array<Nav> navs0, Velocity<double> tws, int count) {
     Array<PlottableNav> navs = reduceFromTheSides(makePlottable(navs0), tws, count);
     GnuplotExtra plot;
     plot.set_style("points");
+    plot.set_xlabel(xlab);
+    plot.set_ylabel(ylab);
     plot.plot_xy(getX(navs), getY(navs));
+    plot.set_title(stringFormat("2D scatter polar plot at TWS = %.3g knots", tws.knots()));
     plot.show();
   }
 
@@ -87,7 +94,11 @@ namespace {
     Array<PlottableNav> navs = makePlottable(navs0);
     GnuplotExtra plot;
     plot.set_style("points");
+    plot.set_xlabel(xlab);
+    plot.set_ylabel(ylab);
+    plot.set_zlabel("TWS");
     plot.plot_xyz(getX(navs), getY(navs), getZ(navs));
+    plot.set_title("3D scatter polar plot");
     plot.show();
   }
 }
