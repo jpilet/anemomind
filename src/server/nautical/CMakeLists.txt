@@ -420,3 +420,10 @@ target_link_libraries(nautical_plotTargetSpeed
                       device_ChunkFile
                      )
 
+add_library(nautical_BasicPolar
+            BasicPolar.h
+            BasicPolar.cpp
+           )
+target_link_libraries(nautical_BasicPolar
+                      common_Histogram
+                     )
