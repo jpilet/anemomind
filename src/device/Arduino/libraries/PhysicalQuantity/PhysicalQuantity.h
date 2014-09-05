@@ -103,9 +103,15 @@ class PhysicalQuantity {
       return Quantity::makeFromX(_x * s);
   }
 
-  Value divideBy(Quantity other) {
+  // Syntactic sugar for 'scaled'
+  Quantity operator* (Value other) const {
+    return scaled(other);
+  }
+
+  Value operator/ (Quantity other) const {
     return _x/other._x;
   }
+
 
   Quantity fabs() const { return Quantity::makeFromX(::fabs(_x)); }
   bool isNaN() const { return isnan(_x); }
@@ -246,13 +252,9 @@ class Mass : public PhysicalQuantity<Mass<T>, T> {
 
 template <typename Q, typename T>
 PhysicalQuantity<Q, T> operator* (T s, PhysicalQuantity<Q, T> x) {
-  return x.scaled(s);
+  return x*s;
 }
 
-template <typename Q, typename T>
-T operator/ (PhysicalQuantity<Q, T> p, PhysicalQuantity<Q, T> q) {
-  return p.divideBy(q);
-}
 
 
 template<typename T, int N>
