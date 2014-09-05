@@ -420,3 +420,4 @@ target_link_libraries(nautical_plotTargetSpeed
                       device_ChunkFile
                      )
 
+add_subdirectory("tiles")
