@@ -37,6 +37,10 @@ class PolarPoint {
   Velocity<double> boatSpeed() const {
     return _boatSpeed;
   }
+
+  bool operator< (const PolarPoint &other) const {
+    return _boatSpeed < other._boatSpeed;
+  }
  private:
   int _navIndex;
   Angle<double> _twa;
@@ -46,13 +50,14 @@ class PolarPoint {
 
 class Polar2d {
  private:
-  typedef HistogramMap<double, true> PolarHistMap;
+  typedef HistogramMap<Angle<double>, true> PolarHistMap;
  public:
-
   Polar2d() {}
-  Polar2d(PolarHistMap map) : _histmap(map) {}
+  Polar2d(PolarHistMap map,
+    Array<PolarPoint> points);
  private:
   PolarHistMap _histmap;
+  Array<Array<PolarPoint> > _pointsPerBin;
 };
 
 class BasicPolar {
