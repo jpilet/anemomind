@@ -68,5 +68,17 @@ TEST(NavTileGenerator, SplitTest) {
   EXPECT_EQ(5, result[1].size());
 }
 
+TEST(NavTileGenerator, TileKeyTest) {
+  for (int i = 0; i < 10; ++i) {
+    GeographicPosition<double> a(
+        Angle<double>::degrees((i/32.0 * 10 + 1)),
+        Angle<double>::degrees(i*3341 %180));
+    GeographicPosition<double> b(
+        a.lon() + Angle<double>::degrees(360 * i),
+        a.lat() - Angle<double>::degrees(360 * i));
+    EXPECT_EQ(TileKey::fromPos(i, a).stringKey(),
+              TileKey::fromPos(i, b).stringKey());
+  }
+}
 
 }  // namespace sail
