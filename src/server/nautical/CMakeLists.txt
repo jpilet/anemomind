@@ -420,4 +420,12 @@ target_link_libraries(nautical_plotTargetSpeed
                       device_ChunkFile
                      )
 
+add_executable(nautical_PolarScatterPlot
+               PolarScatterPlot.cpp
+              )
+target_link_libraries(nautical_PolarScatterPlot
+                      nautical_TestdataNavs
+                      plot_gnuplot
+                     )              
+
 add_subdirectory("tiles")

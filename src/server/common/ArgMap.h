@@ -35,7 +35,10 @@ class ArgMap {
       return valueUntraced();
     }
 
-    bool valueToInt(int *dst);
+    bool tryParseInt(int *dst);
+    bool tryParseDouble(double *dst);
+    int parseIntOrDie();
+    double parseDoubleOrDie();
 
     // Reads the value without leaving any trace, that would be settings _wasRead = true.
     const std::string &valueUntraced() {
