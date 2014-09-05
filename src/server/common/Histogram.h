@@ -71,6 +71,12 @@ class HistogramMap {
     return binToValue(binIndex + 1.0);
   }
 
+  ThisType slice(int fromBinIndex, int toBinIndex) const {
+    return ThisType(toBinIndex - fromBinIndex, // Number of bins in the slice
+        toLeftBound(fromBinIndex),             // Left bound of the first cell
+        toRightBound(toBinIndex-1));           // Right bound of the last cell (that has index toBinIndex-1)
+  }
+
   T toCenter(int binIndex) const {
     return binToValue(binIndex + 0.5);
   }
@@ -145,7 +151,7 @@ class HistogramMap {
   T _k, _m;
 };
 
-template <typename T>
+template <typename T = double>
 HistogramMap<Angle<T>, true> makePolarHistogramMap(int binCount,
     double refIndex = 0,
     Angle<T> refAngle = Angle<T>::radians(T(0))) {
