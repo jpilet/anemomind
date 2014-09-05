@@ -13,7 +13,7 @@ namespace {
 // http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#C.2FC.2B.2B
 double posToTileX(int scale, const GeographicPosition<double>& pos) {
   double scaleFactor = double(long(1) << scale);
-  return (pos.lon().degrees() + 180.0) / 360.0 * scaleFactor;
+  return (pos.lon().normalizedAt0().degrees() + 180.0) / 360.0 * scaleFactor;
 }
 
 double posToTileY(int scale, const GeographicPosition<double>& pos) {
@@ -71,13 +71,13 @@ Array<Array<Nav>> generateTiles(TileKey tileKey,
   // The curve might enter and leave the tile multiple times.
   // Group together consecutive points that are in the tile.
   for (int i = 0; i < navs.size(); ) {
-    int first = inOrOut.slice(i, inOrOut.size()).find(true);
+    int first = inOrOut.sliceFrom(i).find(true);
     if (first == -1) {
       break;  // nothing more in this tile.
     }
     first += i;
 
-    int end = inOrOut.slice(first + i, inOrOut.size()).find(false);
+    int end = inOrOut.sliceFrom(first + i).find(false);
     if (end == -1) {
       end = inOrOut.size();
     } else {
