@@ -427,6 +427,11 @@ add_library(nautical_BasicPolar
 target_link_libraries(nautical_BasicPolar
                       common_Histogram
                      )
+cxx_test(nautical_BasicPolarTest
+         BasicPolarTest.cpp
+         gtest_main
+         nautical_BasicPolar
+        )                     
                      
 add_executable(nautical_PolarScatterPlot
                PolarScatterPlot.cpp
@@ -435,3 +440,4 @@ target_link_libraries(nautical_PolarScatterPlot
                       nautical_TestdataNavs
                       plot_gnuplot
                      )              
+

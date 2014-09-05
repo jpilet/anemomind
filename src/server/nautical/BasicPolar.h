@@ -1,5 +1,5 @@
 /*
- *  Created on: 2014-
+ *  Created on: 2014-09-05
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
@@ -41,6 +41,7 @@ class PolarPoint {
   bool operator< (const PolarPoint &other) const {
     return _boatSpeed < other._boatSpeed;
   }
+
  private:
   int _navIndex;
   Angle<double> _twa;
@@ -48,25 +49,92 @@ class PolarPoint {
   Velocity<double> _boatSpeed;
 };
 
-class Polar2d {
- private:
-  typedef HistogramMap<Angle<double>, true> PolarHistMap;
+class PolarSlice {
  public:
-  Polar2d() {}
-  Polar2d(PolarHistMap map,
+  typedef HistogramMap<Angle<double>, true> TwaHist;
+
+  PolarSlice() : _pointCount(0) {}
+  PolarSlice(TwaHist map,
     Array<PolarPoint> points);
+
+  int pointCount() const {
+    return _pointCount;
+  }
+
+  TwaHist twaHist() {
+    return _twaHist;
+  }
+
+  PolarPoint lookUpPolarPoint(int binIndex,
+    double quantileFrac) const;
+
+  Velocity<double> lookUpBoatSpeed(int binIndex,
+      double quantileFrac) const {
+    return lookUpPolarPoint(binIndex, quantileFrac).boatSpeed();
+  }
+
+  Velocity<double> lookUpBoatSpeedOr0(int binIndex,
+      double quantileFrac) const {
+    Velocity<double> v = lookUpBoatSpeed(binIndex, quantileFrac);
+    if (v.isNaN()) {
+      return Velocity<double>::knots(0);
+    }
+    return v;
+  }
+
+  PolarPoint lookUpPolarPoint(Angle<double> twa, double qfrac) const {
+    return lookUpPolarPoint(_twaHist.toBin(twa), qfrac);
+  }
+
+  Velocity<double> lookUpBoatSpeed(Angle<double> twa, double qfrac) const {
+    return lookUpBoatSpeed(_twaHist.toBin(twa), qfrac);
+  }
+
+  Velocity<double> lookUpBoatSpeedOr0(Angle<double> twa, double qfrac) const {
+    return lookUpBoatSpeedOr0(_twaHist.toBin(twa), qfrac);
+  }
+
+  bool empty() const {
+    return _pointCount <= 0;
+  }
  private:
-  PolarHistMap _histmap;
+  int _pointCount;
+  TwaHist _twaHist;
   Array<Array<PolarPoint> > _pointsPerBin;
 };
 
 class BasicPolar {
  public:
-  BasicPolar();
-  ~BasicPolar();
+  typedef HistogramMap<Velocity<double>, false> TwsHist;
+
+  BasicPolar(TwsHist twsHist, Array<PolarSlice> slices) :
+    _twsHist(twsHist), _slices(slices) {
+    assert(twsHist.binCount() == slices.size());
+  }
+
+  BasicPolar(TwsHist twsHist_,
+      PolarSlice::TwaHist twaHist_,
+      Array<PolarPoint> points);
+
+  BasicPolar slice(int fromBinIndex, int toBinIndex) const {
+    return BasicPolar(_twsHist.slice(fromBinIndex, toBinIndex),
+        _slices.slice(fromBinIndex, toBinIndex));
+  }
+
+  BasicPolar trim() const;
+
+  Array<PolarSlice> slices() const {
+    return _slices;
+  }
+
+  TwsHist twsHist() const {
+    return _twsHist;
+  }
+
+  int pointCount() const;
  private:
-  HistogramMap<double, false> _histmap;
-  Array<Polar2d> _slices;
+  TwsHist _twsHist;
+  Array<PolarSlice> _slices;
 };
 
 }

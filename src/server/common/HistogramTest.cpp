@@ -104,3 +104,12 @@ TEST(HistogramTest, Negative) {
 }
 
 
+TEST(HistogramTest, Slice) {
+  HistogramMap<double, false> hist(3, 100.0, 400.0);
+  HistogramMap<double, false> h2 = hist.slice(1, 2);
+  EXPECT_EQ(1, h2.binCount());
+  EXPECT_NEAR(200.0, h2.toLeftBound(0), 1.0e-6);
+  EXPECT_NEAR(300.0, h2.toRightBound(0), 1.0e-6);
+}
+
+
