@@ -84,7 +84,7 @@ int main(int argc, const char **argv) {
     Array<Nav> navs;
     if (amap.optionProvided("--example-ds")) {
       int index = -1;
-      if (amap.optionArgs("--example-ds")[0]->valueToInt(&index)) {
+      if (amap.optionArgs("--example-ds")[0]->tryParseInt(&index)) {
         if (1 <= index && index <= exdsCount) {
           navs = loadNavsFromNmea(
              string(Env::SOURCE_DIR) +
