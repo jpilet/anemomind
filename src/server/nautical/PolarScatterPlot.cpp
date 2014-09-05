@@ -102,16 +102,8 @@ int main(int argc, const char **argv) {
     Array<Nav> navs = getTestdataNavs(amap);
     if (amap.optionProvided("--slice2d")) {
       Array<ArgMap::Arg*> args = amap.optionArgs("--slice2d");
-      double twsKnots = 0;
-      if (!args[0]->tryParseDouble(&twsKnots)) {
-        std::cout << "The true wind speed in knots cannot be parsed as a floating point number: " << args[0]->value() << std::endl;
-        return -1;
-      }
-      int count = 0;
-      if (!args[1]->tryParseInt(&count)) {
-        std::cout << "The number of points cannot be parsed as an integer: " << args[1]->value() << std::endl;
-        return -1;
-      }
+      double twsKnots = args[0]->parseDoubleOrDie("First argument of --slice2d");
+      int count = args[1]->parseIntOrDie("Second argument of --slice2d");
       if (count <= 0) {
         std::cout << "It doesn't make sense to plot a non-positive number of points" << std::endl;
         return -1;

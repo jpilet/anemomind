@@ -137,6 +137,26 @@ bool ArgMap::Arg::tryParseDouble(double *dst) {
   return sail::tryParseDouble(value(), dst);
 }
 
+int ArgMap::Arg::parseIntOrDie(const char *errmes) {
+  int dst = -1;
+  if (tryParseInt(&dst)) {
+    return dst;
+  }
+  LOG(FATAL) << stringFormat("Failed to parse int: %s", errmes);
+  return -1;
+}
+
+double ArgMap::Arg::parseDoubleOrDie(const char *errmes) {
+  double dst = -1;
+  if (tryParseDouble(&dst)) {
+    return dst;
+  }
+  LOG(FATAL) << stringFormat("Failed to parse int: %s", errmes);
+  return -1;
+
+}
+
+
 bool ArgMap::hasRegisteredOption(const std::string &arg) {
   return _options.find(arg) != _options.end();
 }
