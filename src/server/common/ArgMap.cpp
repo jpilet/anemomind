@@ -137,23 +137,16 @@ bool ArgMap::Arg::tryParseDouble(double *dst) {
   return sail::tryParseDouble(value(), dst);
 }
 
-int ArgMap::Arg::parseIntOrDie(const char *errmes) {
+int ArgMap::Arg::parseIntOrDie() {
   int dst = -1;
-  if (tryParseInt(&dst)) {
-    return dst;
-  }
-  LOG(FATAL) << stringFormat("Failed to parse int: %s", errmes);
-  return -1;
+  CHECK(this->tryParseInt(&dst)) << "Failed to convert " << value() << " to int.";
+  return dst;
 }
 
-double ArgMap::Arg::parseDoubleOrDie(const char *errmes) {
+double ArgMap::Arg::parseDoubleOrDie() {
   double dst = -1;
-  if (tryParseDouble(&dst)) {
-    return dst;
-  }
-  LOG(FATAL) << stringFormat("Failed to parse int: %s", errmes);
-  return -1;
-
+  CHECK(this->tryParseDouble(&dst)) << "Failed to convert " << value() << " to double.";
+  return dst;
 }
 
 

@@ -113,8 +113,8 @@ int main(int argc, const char **argv) {
     Array<Nav> navs = getTestdataNavs(amap);
     if (amap.optionProvided("--slice2d")) {
       Array<ArgMap::Arg*> args = amap.optionArgs("--slice2d");
-      double twsKnots = args[0]->parseDoubleOrDie("First argument of --slice2d");
-      int count = args[1]->parseIntOrDie("Second argument of --slice2d");
+      double twsKnots = args[0]->parseDoubleOrDie();
+      int count = args[1]->parseIntOrDie();
       if (count <= 0) {
         std::cout << "It doesn't make sense to plot a non-positive number of points" << std::endl;
         return -1;
