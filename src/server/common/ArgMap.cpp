@@ -129,12 +129,12 @@ bool ArgMap::parseAndHelp(int argc, const char **argv) {
   return s;
 }
 
-bool ArgMap::Arg::valueToInt(int *dst) {
-  return tryParseInt(value(), dst);
+bool ArgMap::Arg::tryParseInt(int *dst) {
+  return sail::tryParseInt(value(), dst);
 }
 
-bool ArgMap::Arg::valueToDouble(double *dst) {
-  return tryParseDouble(value(), dst);
+bool ArgMap::Arg::tryParseDouble(double *dst) {
+  return sail::tryParseDouble(value(), dst);
 }
 
 bool ArgMap::hasRegisteredOption(const std::string &arg) {
