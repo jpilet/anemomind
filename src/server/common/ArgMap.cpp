@@ -129,8 +129,24 @@ bool ArgMap::parseAndHelp(int argc, const char **argv) {
   return s;
 }
 
-bool ArgMap::Arg::valueToInt(int *dst) {
-  return tryParseInt(value(), dst);
+bool ArgMap::Arg::tryParseInt(int *dst) {
+  return sail::tryParseInt(value(), dst);
+}
+
+bool ArgMap::Arg::tryParseDouble(double *dst) {
+  return sail::tryParseDouble(value(), dst);
+}
+
+int ArgMap::Arg::parseIntOrDie() {
+  int dst = -1;
+  CHECK(this->tryParseInt(&dst)) << "Failed to convert " << value() << " to int.";
+  return dst;
+}
+
+double ArgMap::Arg::parseDoubleOrDie() {
+  double dst = -1;
+  CHECK(this->tryParseDouble(&dst)) << "Failed to convert " << value() << " to double.";
+  return dst;
 }
 
 
