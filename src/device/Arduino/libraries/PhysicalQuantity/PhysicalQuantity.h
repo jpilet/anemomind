@@ -76,7 +76,6 @@ class PhysicalQuantity {
   typedef Quantity QuantityType;
   typedef Value ValueType;
 
-
   // Additon/subtraction --> Quantity
   Quantity operator+(ThisQuantity other) const {
     return Quantity::makeFromX(_x + other.get());
@@ -103,6 +102,16 @@ class PhysicalQuantity {
   Quantity scaled(Value s) const {
       return Quantity::makeFromX(_x * s);
   }
+
+  // Syntactic sugar for 'scaled'
+  Quantity operator* (Value other) const {
+    return scaled(other);
+  }
+
+  Value operator/ (Quantity other) const {
+    return _x/other._x;
+  }
+
 
   Quantity fabs() const { return Quantity::makeFromX(::fabs(_x)); }
   bool isNaN() const { return isnan(_x); }
@@ -240,6 +249,13 @@ class Mass : public PhysicalQuantity<Mass<T>, T> {
   MAKE_PHYSQUANT_UNIT_CONVERTERS(lispund, 170.0/20.0);
 
 };
+
+template <typename Q, typename T>
+PhysicalQuantity<Q, T> operator* (T s, PhysicalQuantity<Q, T> x) {
+  return x*s;
+}
+
+
 
 template<typename T, int N>
 class FixedArray {

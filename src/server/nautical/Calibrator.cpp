@@ -363,7 +363,7 @@ void Calibrator::plot(GnuplotExtra *gnuplot, const std::string &title, bool exte
     allExternalNormAngle.add(externalNormAngle);
   }
   const int count = 16;
-  HistogramMap angleErrorHist(count, 0, 64);
+  HistogramMap<double, false> angleErrorHist(count, 0, 64);
   gnuplot->plot(
       angleErrorHist.makePlotData(
           angleErrorHist.countPerBin(
