@@ -43,6 +43,14 @@ class CurveSimplifier {
       return fabs((x[0] - x[2]) * (y[1] - y[0])
                   - (x[0] - x[1]) * (y[2] - y[0]));
     }
+
+    double oppositeSquaredEdgeLength() const {
+      double x[2] = {_points[0]->_x, _points[2]->_x};
+      double y[2] = {_points[0]->_y, _points[2]->_y};
+      double xdif = x[0] - x[1];
+      double ydif = y[0] - y[1];
+      return xdif*xdif + ydif*ydif;
+    }
   };
 
   struct SortingTrianglePointer {
@@ -53,7 +61,10 @@ class CurveSimplifier {
     Triangle* operator->() { return triangle; }
 
     bool operator < (const SortingTrianglePointer& other) const {
-      return triangle->area() > other.triangle->area();
+      // Firstly, eliminate points with small triangle area.
+      // If area is the same, eliminate points that have a long opposite edge first.
+      return std::make_pair(triangle->area(), -triangle->oppositeSquaredEdgeLength())
+        > std::make_pair(other.triangle->area(), -other.triangle->oppositeSquaredEdgeLength());
     }
 
   };
