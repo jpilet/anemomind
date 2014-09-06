@@ -92,3 +92,17 @@ TEST(ArgMapTest, Unique2) {
   EXPECT_TRUE(m.parse(argc, argv));
 }
 
+TEST(ArgMapTest, CallBack) {
+  const char *argv[] = {"progname", "-s", "string", "-i", "2600", "-d", "3.23"};
+  ArgMap m;
+  std::string s = "toto";
+  int i = 0;
+  double d = 7.0;
+  m.registerOption("-s", "Provide a string").store(&s);
+  m.registerOption("-i", "Provide an int").store(&i);
+  m.registerOption("-d", "Provide a double").store(&d);
+  EXPECT_TRUE(m.parse(sizeof(argv)/sizeof(argv[0]), argv));
+  EXPECT_EQ(s, "string");
+  EXPECT_EQ(i, 2600);
+  EXPECT_NEAR(3.23, d, 1e-6);
+}

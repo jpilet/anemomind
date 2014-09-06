@@ -14,7 +14,7 @@ namespace sail {
 
 ArgMap::ArgMap() {
   _successfullyParsed = false;
-  _optionPrefix = "--";
+  _optionPrefix = "-";
   registerOption("--help", "Displays information about available commands.").setMinArgCount(0).setMaxArgCount(0);
   setHelpInfo("(no help or usage information specified)");
 }
@@ -118,6 +118,13 @@ bool ArgMap::parse(int argc0, const char **argv0) {
 
   _successfullyParsed = true;
   _map = buildMap(tempmap);
+
+  for (auto opt: _map) {
+    auto callback = _options[opt.first].callback();
+    if (callback) {
+      callback(optionArgs(opt.first));
+    }
+  }
   return true;
 }
 
