@@ -26,9 +26,8 @@ class ArgMap {
 
   class Arg {
    public:
-    Arg() : _index(-1), _wasRead(false) {}
-    Arg(int index, std::string arg) : _index(index),
-        _arg(arg), _wasRead(false) {}
+    Arg() : _wasRead(false), _index(-1) {}
+    Arg(int index, std::string arg) : _wasRead(false), _arg(arg), _index(index) {}
 
     const std::string &value() {
       _wasRead = true;
@@ -133,6 +132,29 @@ class ArgMap {
        return *this;
      }
 
+     Option &callback(std::function<void(const Array<Arg*>&)> callback) {
+       _callback = callback;
+       return *this;
+     }
+
+     Option &store(std::string* destination) {
+       setArgCount(1);
+       callback([=](const Array<Arg*>& args) { *destination = args[0]->value(); });
+       return *this;
+     }
+
+     Option &store(int* destination) {
+       setArgCount(1);
+       callback([=](const Array<Arg*>& args) { *destination = args[0]->parseIntOrDie(); });
+       return *this;
+     }
+
+     Option &store(double* destination) {
+       setArgCount(1);
+       callback([=](const Array<Arg*>& args) { *destination = args[0]->parseDoubleOrDie(); });
+       return *this;
+     }
+
      int minArgCount() const {
        return _minArgs;
      }
@@ -148,11 +170,15 @@ class ArgMap {
      bool required() const {
        return _required;
      }
+
+     std::function<void(const Array<Arg*>&)> callback() { return _callback; }
+
     private:
      bool _unique, _required;
      std::string _option;
      int _minArgs, _maxArgs;
      std::string _helpString;
+     std::function<void(const Array<Arg*>&)> _callback;
    };
    /*
     * Information about a option that can be given on the command line, e.g.
