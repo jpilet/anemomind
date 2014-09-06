@@ -350,6 +350,9 @@ T cos(sail::Angle<T> x) {return cos(x.radians());}
 template <typename T>
 T sin(sail::Angle<T> x) {return sin(x.radians());}
 
+template <typename T>
+T tan(sail::Angle<T> x) {return tan(x.radians());}
+
 namespace sail {
 
 template <typename T>
