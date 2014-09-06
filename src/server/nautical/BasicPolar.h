@@ -16,9 +16,9 @@ namespace sail {
 class PolarPoint {
  public:
   PolarPoint() : _navIndex(-1) {}
-  PolarPoint(Angle<double> twa_,
-      Velocity<double> tws_,
-      Velocity<double> boatSpeed_,
+  PolarPoint(Velocity<double> tws_,
+        Angle<double> twa_,
+        Velocity<double> boatSpeed_,
 
       int navIndex = -1); // Optional reference to the Nav in an array, from which Nav these values were obtained.
 
