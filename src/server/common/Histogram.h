@@ -26,6 +26,8 @@ namespace HistogramInternal {
   }
 
   void drawBin(double left, double right, double height, MDArray2d dst);
+  void drawPolarBin(double leftRadians, double rightRadians, double radius,
+      MDArray2d dst, int segmentsPerBin, bool nautical);
 }
 
 template <typename T, bool periodic>
@@ -135,6 +137,34 @@ class HistogramMap {
     int lastRow = plotData.rows()-1;
     plotData(lastRow, 0) = castToDouble(toRightBound(_binCount-1));
     plotData(lastRow, 1) = 0;
+    return plotData;
+  }
+
+  // The radii could for instance be the count in every bin
+  // or the 80% percentile value in a bin.
+  //
+  // 'nautical = true' means that the x-position is radius*sin(angle) and
+  // the y-position is radius*cos(angle). This is suitable for making a
+  // polar plot for target speed.
+  //
+  // 'nautical = false' means that the x-position is radius*cos(angle) and
+  // the y-position is radius*sin(angle).
+  MDArray2d makePolarPlotData(Arrayd radii, bool nautical) const {
+    assert(periodic);
+    assert(_binCount == radii.size());
+    const double segmentsPerDegree = 1;
+    int segmentsPerBin = int(std::round(segmentsPerDegree*360/_binCount));
+    int rowsPerBin = 2 + segmentsPerBin;
+    int rows = _binCount*rowsPerBin + 1;
+    MDArray2d plotData(rows, 2);
+    for (int i = 0; i < _binCount; i++) {
+      double left = double(toLeftBound(i).radians());
+      double right = double(toRightBound(i).radians());
+      HistogramInternal::drawPolarBin(left, right, radii[i],
+          plotData.sliceRowBlock(i, rowsPerBin), segmentsPerBin,
+          nautical);
+    }
+    plotData.sliceRow(rows-1).setAll(0);
     return plotData;
   }
  private:

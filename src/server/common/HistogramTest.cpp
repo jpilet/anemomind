@@ -5,6 +5,7 @@
 
 #include <gtest/gtest.h>
 #include <server/common/Histogram.h>
+#include <server/common/LineKM.h>
 
 using namespace sail;
 
@@ -85,6 +86,13 @@ TEST(HistogramTest, Undefined) {
   EXPECT_EQ(map.periodicIndex(3), 0);
   EXPECT_EQ(map.periodicIndex(-1), 2);
   EXPECT_EQ(map.periodicIndex(-4), 2);
+
+  MDArray2d plotdata = map.makePolarPlotData(hist.map<double>([&](int x) {return double(x);}), true);
+  LineKM rowmap(0, 360, 0.0, plotdata.rows());
+  MDArray2d A = plotdata.sliceRow(int(round(rowmap(60))));
+  MDArray2d B = plotdata.sliceRow(int(round(rowmap(300))));
+  EXPECT_NEAR(2.0, sqrt(A(0, 0)*A(0, 0) + A(0, 1)*A(0, 1)), 1.0e-5);
+  EXPECT_NEAR(3.0, sqrt(B(0, 0)*B(0, 0) + B(0, 1)*B(0, 1)), 1.0e-5);
 }
 
 TEST(HistogramTest, CustomReference) {
