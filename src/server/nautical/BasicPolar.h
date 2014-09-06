@@ -99,7 +99,7 @@ class PolarSlice {
     return pointCount() <= 0;
   }
 
-  void plot(double quantileFrac, GnuplotExtra *dst, const std::string &title = "(no title)");
+  void plot(double quantileFrac, GnuplotExtra *dst, const std::string &title = "(no title)") const;
  private:
   TwaHist _twaHist;
   Array<Array<PolarPoint> > _pointsPerBin;
@@ -126,15 +126,17 @@ class BasicPolar {
 
   BasicPolar trim() const;
 
-  Array<PolarSlice> slices() const {
+  const Array<PolarSlice> &slices() const {
     return _slices;
   }
 
-  TwsHist twsHist() const {
+  const TwsHist &twsHist() const {
     return _twsHist;
   }
 
   int pointCount() const;
+
+  void plot(double quantileFrac) const;
  private:
   TwsHist _twsHist;
   Array<PolarSlice> _slices;

@@ -6,6 +6,7 @@
 #include "BasicPolar.h"
 #include <server/common/ArrayBuilder.h>
 #include <server/plot/extra.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -73,7 +74,8 @@ namespace {
   }
 }
 
-void PolarSlice::plot(double quantileFrac, GnuplotExtra *dst, const std::string &title) {
+void PolarSlice::plot(double quantileFrac, GnuplotExtra *dst,
+    const std::string &title) const{
   int n = _twaHist.binCount();
   Arrayd radii(n);
   for (int i = 0; i < n; i++) {
@@ -107,6 +109,18 @@ int BasicPolar::pointCount() const {
     count += s.pointCount();
   }
   return count;
+}
+
+void BasicPolar::plot(double quantileFrac) const {
+  BasicPolar trimmed = trim();
+  for (int i = 0; i < trimmed.twsHist().binCount(); i++) {
+    std::string title = stringFormat("TWS ranging from %.3g knots to %.3g knots",
+        trimmed.twsHist().toLeftBound(i).knots(),
+        trimmed.twsHist().toRightBound(i).knots());
+    GnuplotExtra dst;
+    trimmed.slices()[i].plot(quantileFrac, &dst, title);
+    dst.show();
+  }
 }
 
 namespace {

@@ -273,6 +273,11 @@ add_library(common_ArgMap
             ArgMap.cpp
            )
 
+target_link_libraries(common_ArgMap
+                      common_logging
+                      common_string
+                     )
+
 cxx_test(common_ArgMapTest
          ArgMapTest.cpp
          common_ArgMap

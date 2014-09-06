@@ -441,5 +441,15 @@ target_link_libraries(nautical_PolarScatterPlot
                       nautical_TestdataNavs
                       plot_gnuplot
                      )              
+                     
+                     
+add_executable(nautical_PolarPlot
+               PolarPlot.cpp
+              )
+target_link_libraries(nautical_PolarPlot
+                      nautical_BasicPolar
+                      nautical_TestdataNavs
+                      common_logging
+                     )                          
 
 add_subdirectory("tiles")
