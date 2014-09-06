@@ -96,7 +96,10 @@ BasicPolar::BasicPolar(TwsHist twsHist_,
     Array<PolarPoint> points) : _twsHist(twsHist_) {
   Array<ArrayBuilder<PolarPoint> > builders(twsHist_.binCount());
   for (auto p: points) {
-    builders[twsHist_.toBin(p.tws())].add(p);
+    int index = twsHist_.toBin(p.tws());
+    if (index != -1) {
+      builders[index].add(p);
+    }
   }
   _slices = builders.map<PolarSlice>([&](ArrayBuilder<PolarPoint> b) {
     return PolarSlice(twaHist_, b.get());

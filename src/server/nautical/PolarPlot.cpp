@@ -16,7 +16,7 @@ namespace {
     return TrueWindEstimator::computeTrueWind(params, x);
   }
 
-  PolarPoint makePP(const Nav &x) {
+  PolarPoint makePolarPoint(const Nav &x) {
     Angle<double> dir = x.gpsBearing();
     HorizontalMotion<double> tw = calcTW(x);
     return PolarPoint(calcTws(tw),
@@ -25,7 +25,24 @@ namespace {
   }
 
   Array<PolarPoint> navsToPolarPoints(Array<Nav> navs) {
-    return navs.map<PolarPoint>([&](const Nav &x) {return makePP(x);});
+    return navs.map<PolarPoint>([&](const Nav &x) {return makePolarPoint(x);});
+  }
+
+  BasicPolar &getPolar(BasicPolar::TwsHist twsHist, PolarSlice::TwaHist twaHist,
+      ArgMap &amap, BasicPolar *cachedPolar) {
+    if (cachedPolar->empty()) {
+      Array<Nav> navs = getTestdataNavs(amap);
+      *cachedPolar = BasicPolar(twsHist, twaHist, navsToPolarPoints(navs));
+    }
+    return *cachedPolar;
+  }
+
+  PolarSlice::TwaHist makePolarHM(int binCount) {
+    return makePolarHistogramMap(binCount,
+
+        // Middle of the first bin maps to an angle of 0 degrees.
+        0.5,
+        Angle<double>::degrees(0));
   }
 }
 
@@ -39,10 +56,13 @@ int main(int argc, const char **argv) {
       "Specify [bin-count] for the true wind angle").setArgCount(2).setUnique();
   amap.registerOption("--plot", "Make a plot, specifying [quantile-frac]").setArgCount(1).setUnique();
   if (amap.parseAndHelp(argc, argv)) {
+    /*BasicPolar::TwsHist twsHist(20,
+        Velocity<double>::metersPerSecond(0),
+        Velocity<double>::metersPerSecond(20));*/
     BasicPolar::TwsHist twsHist(20,
         Velocity<double>::metersPerSecond(0),
         Velocity<double>::metersPerSecond(20));
-    PolarSlice::TwaHist twaHist = makePolarHistogramMap(12);
+    PolarSlice::TwaHist twaHist = makePolarHM(12);
 
     if (amap.optionProvided("--tws-hist")) {
       Array<ArgMap::Arg*> args = amap.optionArgs("--tws-hist");
@@ -59,17 +79,17 @@ int main(int argc, const char **argv) {
     if (amap.optionProvided("--twa-hist")) {
       int binCount = amap.optionArgs("--twa-hist")[0]->parseIntOrDie();
       CHECK_LT(0, binCount);
-      twaHist = makePolarHistogramMap(binCount);
+      twaHist = makePolarHM(binCount);
     }
 
-    Array<Nav> navs = getTestdataNavs(amap);
-    BasicPolar polar(twsHist, twaHist, navsToPolarPoints(navs));
+    BasicPolar cachedPolar;
 
     if (amap.optionProvided("--plot")) {
       double q = amap.optionArgs("--plot")[0]->parseDoubleOrDie();
       CHECK_LT(0.0, q);
       CHECK_LE(q, 1.0);
-      polar.plot(q);
+
+      getPolar(twsHist, twaHist, amap, &cachedPolar).plot(q);
     }
 
     return 0;

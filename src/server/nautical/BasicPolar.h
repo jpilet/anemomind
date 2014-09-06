@@ -110,6 +110,8 @@ class BasicPolar {
  public:
   typedef HistogramMap<Velocity<double>, false> TwsHist;
 
+  BasicPolar() {}
+
   BasicPolar(TwsHist twsHist, Array<PolarSlice> slices) :
     _twsHist(twsHist), _slices(slices) {
     assert(twsHist.binCount() == slices.size());
@@ -135,6 +137,11 @@ class BasicPolar {
   }
 
   int pointCount() const;
+
+  bool empty() const {
+    // We should be clear what we mean by this. Does it mean _slices.empty() or pointCount() == 0?
+    return _slices.empty();
+  }
 
   void plot(double quantileFrac) const;
  private:
