@@ -26,11 +26,11 @@ namespace {
       _twa = calcTwa(_tw, x.gpsBearing());
     }
     double x() const {
-      return _nav.gpsSpeed().knots()*sin(_twa);
+      return calcPolarX(true, _nav.gpsSpeed().knots(), _twa);
     }
 
     double y() const {
-      return _nav.gpsSpeed().knots()*cos(_twa);
+      return calcPolarY(true, _nav.gpsSpeed().knots(), _twa);
     }
 
     double z() const {

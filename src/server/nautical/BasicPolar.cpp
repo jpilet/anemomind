@@ -5,6 +5,7 @@
 
 #include "BasicPolar.h"
 #include <server/common/ArrayBuilder.h>
+#include <server/plot/extra.h>
 
 namespace sail {
 
@@ -17,16 +18,24 @@ PolarPoint::PolarPoint(Angle<double> twa_,
 
 PolarSlice::PolarSlice(TwaHist map,
   Array<PolarPoint> points) : _twaHist(map),
-  _pointCount(points.size()) {
+  _allPoints(points.size()) {
 
   // Fill the bins with points
   Array<ArrayBuilder<PolarPoint> > builders(map.binCount());
   for (auto p: points) {
     builders[map.toBin(p.twa())].add(p);
   }
-  _pointsPerBin = builders.map<Array<PolarPoint> >([&](ArrayBuilder<PolarPoint> b) {
-    return b.get();
-  });
+
+
+  _pointsPerBin.create(map.binCount());
+  int from = 0;
+  for (int i = 0; i < _twaHist.binCount(); i++) {
+    int to = from + builders[i].size();
+    _pointsPerBin[i] = _allPoints.slice(from, to);
+    builders[i].get().copyToSafe(_pointsPerBin[i]);
+    from = to;
+  }
+  assert(from == _allPoints.size());
 
   // Sort every bin to make it easy to extract quantiles
   for (auto b: _pointsPerBin) {
@@ -49,6 +58,34 @@ PolarPoint PolarSlice::lookUpPolarPoint(int binIndex,
       return pts[index];
     }
   }
+}
+
+namespace {
+  MDArray2d calcPolarXYPos(Array<PolarPoint> pts) {
+    int count = pts.size();
+    MDArray2d dst(count, 2);
+    for (int i = 0; i < count; i++) {
+      PolarPoint &pt = pts[i];
+      dst(i, 0) = calcPolarX(true, pt.boatSpeed().knots(), pt.twa());
+      dst(i, 1) = calcPolarY(true, pt.boatSpeed().knots(), pt.twa());
+    }
+    return dst;
+  }
+}
+
+void PolarSlice::plot(double quantileFrac, GnuplotExtra *dst, const std::string &title) {
+  int n = _twaHist.binCount();
+  Arrayd radii(n);
+  for (int i = 0; i < n; i++) {
+    radii[i] = lookUpBoatSpeedOr0(i, quantileFrac).knots();
+  }
+  dst->set_title(title);
+  dst->set_xlabel("boatSpeed*sin(TWA) (knots)");
+  dst->set_ylabel("boatSpeed*cos(TWA) (knots)");
+  dst->set_style("points");
+  dst->plot(calcPolarXYPos(_allPoints), "Samples");
+  dst->set_style("lines");
+  dst->plot(_twaHist.makePolarPlotData(radii, true));
 }
 
 

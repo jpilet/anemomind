@@ -49,16 +49,17 @@ class PolarPoint {
   Velocity<double> _boatSpeed;
 };
 
+class GnuplotExtra;
 class PolarSlice {
  public:
   typedef HistogramMap<Angle<double>, true> TwaHist;
 
-  PolarSlice() : _pointCount(0) {}
+  PolarSlice() {}
   PolarSlice(TwaHist map,
     Array<PolarPoint> points);
 
   int pointCount() const {
-    return _pointCount;
+    return _allPoints.size();
   }
 
   TwaHist twaHist() {
@@ -95,12 +96,14 @@ class PolarSlice {
   }
 
   bool empty() const {
-    return _pointCount <= 0;
+    return pointCount() <= 0;
   }
+
+  void plot(double quantileFrac, GnuplotExtra *dst, const std::string &title = "(no title)");
  private:
-  int _pointCount;
   TwaHist _twaHist;
   Array<Array<PolarPoint> > _pointsPerBin;
+  Array<PolarPoint> _allPoints;
 };
 
 class BasicPolar {

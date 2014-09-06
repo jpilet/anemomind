@@ -426,6 +426,7 @@ add_library(nautical_BasicPolar
            )
 target_link_libraries(nautical_BasicPolar
                       common_Histogram
+                      plot_gnuplot
                      )
 cxx_test(nautical_BasicPolarTest
          BasicPolarTest.cpp
