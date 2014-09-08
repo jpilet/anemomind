@@ -8,9 +8,38 @@ target_link_libraries(tiles_NavTileGenerator
                       geometry_SimplifyCurve
                      )
 
-
 cxx_test(tiles_NavTileGeneratorTest
          NavTileGeneratorTest.cpp
          tiles_NavTileGenerator
          gtest_main
         )
+
+if (MongoDB_LIBRARIES)
+  # MongoDB depends on boost system library.
+  find_package(Boost COMPONENTS system REQUIRED)
+
+  include_directories(${MongoDB_INCLUDE_DIR})
+  add_library(tiles_NavTileUploader
+              NavTileUploader.cpp
+             )
+  target_link_libraries(tiles_NavTileUploader
+                        tiles_NavTileGenerator
+                        common_logging
+                        nautical_nav
+                        ${MongoDB_LIBRARIES}
+                        ${Boost_SYSTEM_LIBRARY}
+                       )
+
+  add_executable(tiles_generateAndUpload
+                 generateAndUpload.cpp
+                )
+  target_link_libraries(tiles_generateAndUpload
+                        tiles_NavTileUploader
+                        common_ArgMap
+                        common_logging
+                        math_hmm_StateAssign
+                        nautical_NavNmeaScan
+                        nautical_grammars_WindOrientedGrammar
+                        )
+
+endif (MongoDB_LIBRARIES)

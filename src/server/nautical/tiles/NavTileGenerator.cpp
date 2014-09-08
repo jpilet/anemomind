@@ -9,19 +9,6 @@ namespace sail {
 
 namespace {
 
-// Inspired by
-// http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#C.2FC.2B.2B
-double posToTileX(int scale, const GeographicPosition<double>& pos) {
-  double scaleFactor = double(long(1) << scale);
-  return (pos.lon().normalizedAt0().degrees() + 180.0) / 360.0 * scaleFactor;
-}
-
-double posToTileY(int scale, const GeographicPosition<double>& pos) {
-  double scaleFactor = double(long(1) << scale);
-  return (1.0 - log( tan(pos.lat()) + 1.0 / cos(pos.lat())) / M_PI)
-                 / 2.0 * scaleFactor; 
-}
-
 Array<Nav> makeTileElement(TileKey tileKey,
                            const Array<Nav>& navs,
                            int maxNumNavs) {
@@ -46,8 +33,21 @@ Array<Nav> makeTileElement(TileKey tileKey,
   return result.get();
 }
 
-
 } // namespace
+
+// Inspired by
+// http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#C.2FC.2B.2B
+double posToTileX(int scale, const GeographicPosition<double>& pos) {
+  double scaleFactor = double(long(1) << scale);
+  return (pos.lon().normalizedAt0().degrees() + 180.0) / 360.0 * scaleFactor;
+}
+
+double posToTileY(int scale, const GeographicPosition<double>& pos) {
+  double scaleFactor = double(long(1) << scale);
+  return (1.0 - log( tan(pos.lat()) + 1.0 / cos(pos.lat())) / M_PI)
+                 / 2.0 * scaleFactor; 
+}
+
 
 TileKey TileKey::fromPos(int scale, const GeographicPosition<double>& pos) {
   return TileKey(scale,
@@ -90,6 +90,21 @@ Array<Array<Nav>> generateTiles(TileKey tileKey,
     i = end;
   }
   return result.get();
+}
+
+std::set<TileKey> tilesForNav(const Array<Nav>& navs, int maxScale) {
+  std::set<TileKey> result;
+  for (const Nav& nav : navs) {
+    for (int scale = 0; scale < maxScale; scale++) {
+      result.insert(TileKey::fromPos(scale, nav.geographicPosition()));
+    }
+  }
+  return result;
+}
+
+std::string tileCurveId(std::string boatId, const Array<Nav>& navs) {
+  // TODO: hash this string.
+  return boatId + navs.first().time().toString() + navs.last().time().toString();
 }
 
 }  // namespace sail
