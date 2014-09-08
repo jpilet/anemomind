@@ -95,6 +95,17 @@ T normdif(T *a, T *b) {
   return sqrt(norm2dif<T, dims>(a, b));
 }
 
+
+
+template <typename T>
+T norm2dif(int dims, const T *a, const T *b) {
+  T sum = 0;
+  for (int i = 0; i < dims; i++) {
+    sum += sqr(a[i] - b[i]);
+  }
+  return sum;
+}
+
 // returns (a has the same value as b) , even if that value is nan or inf.
 // Otherwise, nan == nan will evaluate to false.
 template <typename T>
