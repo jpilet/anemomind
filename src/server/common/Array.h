@@ -236,13 +236,6 @@ class Array {
     }
   }
 
-  template <typename S>
-  static ThisType make(S &value) {
-    int count = sizeof(S);
-    T *data = (T *)(&value);
-    return makeCopy(count, data);
-  }
-
   static ThisType makeCopy(int count, T *data) {
     ThisType arr(count);
     for (int i = 0; i < count; i++) {

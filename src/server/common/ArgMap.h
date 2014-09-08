@@ -96,10 +96,10 @@ class ArgMap {
 
    class Option {
     public:
-     Option() : _minArgs(0), _maxArgs(0), _unique(false), _required(false) {}
+     Option() :  _unique(false), _required(false), _minArgs(0), _maxArgs(0) { }
      Option(std::string option, std::string helpString) :
-       _option(option), _minArgs(0), _maxArgs(0), _helpString(helpString),
-       _unique(false), _required(false) {}
+       _unique(false), _required(false),
+       _option(option), _minArgs(0), _maxArgs(0), _helpString(helpString) { }
 
      Array<Arg*> trim(Array<Arg*> optionAndArgs, const std::string &optPref) const;
      void dispHelp(std::ostream *out) const;
