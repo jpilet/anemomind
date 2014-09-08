@@ -69,20 +69,24 @@ std::vector<int> CurveSimplifier::priorities() {
 
   // This loop will reorder the elements of "heap" so that
   // it contains curve points sorted by increasing importance.
-  while (sortedTriangles.begin() != sortedTriangles.end()) {
+  while (sortedTriangles.size() > 0) {
     SortingTrianglePointer triangle = *sortedTriangles.begin();
-    sortedTriangles.erase(triangle);
+    sortedTriangles.erase(sortedTriangles.begin());
     result[triangle->_points[1] - &_points[0]] = priority--;
 
+    if (priority == -1) {
+      break;
+    }
+
     // Removing a point changes previous and next triangles.
-    if (triangle->_points[0]->_triangle) {
-      Triangle* prev = triangle->_points[0]->_triangle;
+    Triangle* prev = triangle->_points[0]->_triangle;
+    if (prev) {
       sortedTriangles.erase(prev);
       prev->_points[2] = triangle->_points[2];
       sortedTriangles.insert(prev);
     }
-    if (triangle->_points[2]->_triangle) {
-      Triangle* next = triangle->_points[2]->_triangle;
+    Triangle* next = triangle->_points[2]->_triangle;
+    if (next) {
       sortedTriangles.erase(next);
       next->_points[0] = triangle->_points[0];
       sortedTriangles.insert(next);
