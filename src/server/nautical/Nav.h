@@ -30,7 +30,6 @@ class Nav {
   typedef double type;
   static Nav::Id debuggingBoatId() {return "FFFFFFFF";}
 
-
   Nav();
   Nav(TimeStamp ts) : _cwd(-1), _wd(-1), _time(ts) { }
   Nav(MDArray2d row);
@@ -48,18 +47,27 @@ class Nav {
   const GeographicPosition<double> &geographicPosition() const {return _pos;}
   Angle<double> awa() const {return _awa;}
   Velocity<double> aws() const {return _aws;}
+  bool hasApparentWind() const { return !isnan(_awa) && !isnan(_aws); }
+
   Angle<double> magHdg() const {return _magHdg;}
+  bool hasMagHdg() const { return !isnan(_magHdg); }
+
   Angle<double> gpsBearing() const {return _gpsBearing;}
   Velocity<double> gpsSpeed() const {return _gpsSpeed;}
+
   Velocity<double> watSpeed() const {return _watSpeed;}
+  bool hasWatSpeed() const { return !isnan(_watSpeed); }
+
   Angle<double> externalTwa() const {return _externalTwa;}
   Velocity<double> externalTws() const {return _externalTws;}
+  bool hasExternalTrueWind() const {
+    return !isnan(_externalTwa) && !isnan(_externalTws); }
 
   HorizontalMotion<double> gpsMotion() const;
 
-
   // As computed by the calibrated model. Not always available.
   HorizontalMotion<double> trueWind() const { return _trueWind; }
+  bool hasTrueWind() const { return !isnan(_trueWind[0]); }
 
   void setAwa(Angle<double> awa_) {_awa = awa_;}
   void setAws(Velocity<double> aws_) {_aws = aws_;}

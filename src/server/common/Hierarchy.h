@@ -15,7 +15,7 @@
  *    HTree: A general parse tree node returned from Hierarchy::parse
  *    Hierarchy: A grammar compiled from an array of HNode. It has a parse method.
  *
-  */
+ */
 
 #ifndef HIERARCHY_H_
 #define HIERARCHY_H_
@@ -199,7 +199,7 @@ class Hierarchy {
   virtual ~Hierarchy();
 
   HNode node(int index) const {return _nodes[index];}
-  Array<HNode> nodes() {return _nodes;}
+  Array<HNode> nodes() const {return _nodes;}
   Array<Arrayi> childrenPerNode() const {return _childrenPerNode;}
   Arrayi children(int nodeIndex) const {return _childrenPerNode[nodeIndex];}
   int nodeCount() const {return _nodes.size();}

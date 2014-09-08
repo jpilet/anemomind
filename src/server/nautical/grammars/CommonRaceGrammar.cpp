@@ -152,7 +152,7 @@ std::shared_ptr<HTree> CommonRaceGrammar::parse(Array<Nav> navs,
   return _h.parse(makeHintedStateAssign(*this, makeSharedPtrToStack(sa), hints, navs).solve());
 }
 
-Array<HNode> CommonRaceGrammar::nodeInfo() {
+Array<HNode> CommonRaceGrammar::nodeInfo() const {
   return _h.nodes();
 }
 
