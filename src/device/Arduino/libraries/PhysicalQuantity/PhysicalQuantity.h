@@ -42,6 +42,19 @@ static inline bool isnan(double x) {
 #undef isnan
 #endif
 
+// Helper functions to implement isNaN.
+template<class T>
+typename std::enable_if<std::is_floating_point<T>::value, bool>::type
+    isNaNOrFalse(T x) {
+  return isnan(x);
+}
+
+template<class T>
+typename std::enable_if<!std::is_floating_point<T>::value, bool>::type
+    isNaNOrFalse(T) {
+  return false;
+}
+
 namespace sail {
 
 /*
@@ -114,7 +127,10 @@ class PhysicalQuantity {
 
 
   Quantity fabs() const { return Quantity::makeFromX(::fabs(_x)); }
-  bool isNaN() const { return ::isnan(_x); }
+
+  // isNaN returns isnan if Quantity is of type float or double. Otherwise,
+  // the function returns false.
+  bool isNaN() const { return isNaNOrFalse(_x); }
 
   // Comparison --> bool
   bool operator < (ThisQuantity other) const {return _x < other.get();}
@@ -331,7 +347,7 @@ class Vectorize : public FixedArray<T, N> {
         }
         return true;
     }
-      
+
     Vectorize() { }
   private:
 };
