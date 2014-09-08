@@ -371,8 +371,11 @@ class Array {
     assert(from <= to);
     assert(0 <= from);
     assert(to <= _size);
-    assert(_data != nullptr);
 #endif
+    if (empty()) {
+      assert(_data == nullptr);
+      return ThisType();
+    }
     return Array(_data + from, to - from, _storage);
   }
 
