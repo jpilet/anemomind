@@ -77,11 +77,11 @@ Array<Array<Nav>> generateTiles(TileKey tileKey,
     }
     first += i;
 
-    int end = inOrOut.sliceFrom(first + i).find(false);
+    int end = inOrOut.sliceFrom(first).find(false);
     if (end == -1) {
       end = inOrOut.size();
     } else {
-      end += first + i;
+      end += first;
     }
 
     if (end > first) {
