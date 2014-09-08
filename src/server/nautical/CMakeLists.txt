@@ -48,11 +48,10 @@ cxx_test(nautical_BoatLogProcessorTest
          gtest_main
         )
 
-add_library(nautical_DataCalib
-            DataCalib.h
-            DataCalib.cpp)
-
-target_link_libraries(nautical_DataCalib common_Array)
+#add_library(nautical_DataCalib
+#            DataCalib.h
+#            DataCalib.cpp)
+#target_link_libraries(nautical_DataCalib common_Array)
 
 
 add_library(nautical_LocalRace
@@ -171,20 +170,20 @@ cxx_test(nautical_SpeedCalibTest
 #################################################################
 ### CalibrationExamples
 #################################################################
-add_library(nautical_CalibrationExamples
-  CalibrationExamples.h
-  CalibrationExamples.cpp)
-target_link_libraries(nautical_CalibrationExamples
-  common_Env
-  math_nonlinear_GridFitter
-  nautical_DataCalib
-  nautical_LocalRace
-  )
+#add_library(nautical_CalibrationExamples
+#  CalibrationExamples.h
+#  CalibrationExamples.cpp)
+#target_link_libraries(nautical_CalibrationExamples
+#  common_Env
+#  math_nonlinear_GridFitter
+#  nautical_DataCalib
+#  nautical_LocalRace
+#  )
 
-add_executable(nautical_CalibrationExample
-  CalibrationExample.cpp)
-target_link_libraries(nautical_CalibrationExample
-  nautical_CalibrationExamples)
+#add_executable(nautical_CalibrationExample
+#  CalibrationExample.cpp)
+#target_link_libraries(nautical_CalibrationExample
+#  nautical_CalibrationExamples)
 
 cxx_test(nautical_LocalRaceTest
             LocalRaceTest.cpp

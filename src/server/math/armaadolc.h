@@ -157,10 +157,10 @@ arma::admat adMatMul(arma::admat A, arma::admat B);
 //
 }
 
-namespace std {
-inline bool isnan(adouble x) {
-  return std::isnan(x.getValue());
-}
-}
+//namespace std {
+//inline bool isnan(adouble x) {
+//  return std::isnan(x.getValue());
+//}
+//}
 
 #endif /* ARMAADOLC_H_ */
