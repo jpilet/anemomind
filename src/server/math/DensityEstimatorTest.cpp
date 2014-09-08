@@ -63,7 +63,7 @@ TEST(DensityEstimatorTest, BandWidth) {
 TEST(DensityEstimatorTest, TwoDims) {
   Arrayd a = Arrayd::args(0, 0);
   Arrayd b = Arrayd::args(1, 1);
-  Arrayd c = Arrayd::args(-2, -2);
+  Arrayd c = Arrayd::args(-0.5, 20);
 
   NaiveDensityEstimator est(1, Array<Arrayd>::args(a));
   EXPECT_LE(est.density(c), est.density(b));
