@@ -9,17 +9,20 @@
 
 using namespace sail;
 
+namespace {
+}
+
 TEST(DensityEstimatorTest, NaiveTest1d) {
   // A single training sample for the distribution.
   double c = 3.9;
 
-  NaiveDensityEstimator est(1.0, Array<Arrayd>::args(Arrayd::args(c)));
+  KDE1 est(1.0, Array<KDE1::Vec>::args(KDE1::Vec{c}));
 
   for (int i = 0; i < 30; i++) {
     double a = sin(i*123.324342);
     double b = sin(i*857.374522);
     EXPECT_EQ(std::abs(a - c) < std::abs(b - c),
-              est.density(Arrayd::args(a)) > est.density(Arrayd::args(b)));
+              est.density(KDE1::Vec{a}) > est.density(KDE1::Vec{b}));
   }
 }
 
@@ -28,8 +31,8 @@ TEST(DensityEstimatorTest, NaiveTest1dWithTwoPoints) {
   double c = 3.9;
   double d = 34.0;
 
-  NaiveDensityEstimator est(1.0, Array<Arrayd>::args(Arrayd::args(c),
-                                                     Arrayd::args(d)));
+  KDE1 est(1.0, Array<KDE1::Vec>::args(KDE1::Vec{c},
+                                    KDE1::Vec{d}));
 
   for (int i = 0; i < 30; i++) {
     double a = sin(i*123.324342);
@@ -37,35 +40,35 @@ TEST(DensityEstimatorTest, NaiveTest1dWithTwoPoints) {
     double amin = std::min(std::abs(a - c), std::abs(a - d));
     double bmin = std::min(std::abs(b - c), std::abs(b - d));
     EXPECT_EQ(amin < bmin,
-              est.density(Arrayd::args(a)) > est.density(Arrayd::args(b)));
+              est.density(KDE1::Vec{a}) > est.density(KDE1::Vec{b}));
   }
 
   double middle = 0.5*(c + d);
-  double middleDensity = est.density(Arrayd::args(middle));
+  double middleDensity = est.density(KDE1::Vec{middle});
 
   for (int i = 0; i < 30; i++) {
     double x = double(i)/29;
     double y = c + x*(d - c);
-    EXPECT_LE(middleDensity, est.density(Arrayd::args(y)));
+    EXPECT_LE(middleDensity, est.density(KDE1::Vec{y}));
   }
 }
 
 TEST(DensityEstimatorTest, BandWidth) {
-  Arrayd a = Arrayd::args(3.4);
-  Arrayd b = Arrayd::args(9.89);
+  KDE1::Vec a = KDE1::Vec{3.4};
+  KDE1::Vec b = KDE1::Vec{9.89};
 
-  NaiveDensityEstimator deWide(30, Array<Arrayd>::args(a));
-  NaiveDensityEstimator deNarrow(0.89, Array<Arrayd>::args(a));
+  KDE1 deWide(30, Array<KDE1::Vec>::args(a));
+  KDE1 deNarrow(0.89, Array<KDE1::Vec>::args(a));
   EXPECT_LE(deNarrow.density(b)/deNarrow.density(a),
             deWide.density(b)/deWide.density(a));
 }
 
 TEST(DensityEstimatorTest, TwoDims) {
-  Arrayd a = Arrayd::args(0, 0);
-  Arrayd b = Arrayd::args(1, 1);
-  Arrayd c = Arrayd::args(-0.5, 20);
+  KDE2::Vec a = KDE2::Vec{0, 0};
+  KDE2::Vec b = KDE2::Vec{-1, -1};
+  KDE2::Vec c = KDE2::Vec{-0.5, 20};
 
-  NaiveDensityEstimator est(1, Array<Arrayd>::args(a));
+  KDE2 est(1, Array<KDE2::Vec>::args(a));
   EXPECT_LE(est.density(c), est.density(b));
   EXPECT_LE(est.density(b), est.density(a));
 }

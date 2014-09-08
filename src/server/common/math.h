@@ -77,7 +77,7 @@ T norm2dif(int dims, const T *a, const T *b) {
 }
 
 template <typename T, int dims>
-T norm2dif(T *a, T *b) {
+T norm2dif(const T *a, const T *b) {
   return norm2dif(dims, a, b);
 }
 

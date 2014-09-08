@@ -8,6 +8,7 @@
 
 #include <server/common/Array.h>
 #include <server/common/math.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 namespace sail {
 
@@ -19,9 +20,9 @@ namespace sail {
 template <int N>
 class DensityEstimator {
  public:
-  typedef double Vec[N];
+  typedef Vectorize<double, N> Vec;
 
-  virtual double density(const Array<Vec> &point) const = 0;
+  virtual double density(const Vec &point) const = 0;
 
   virtual ~DensityEstimator() {}
 };
@@ -42,7 +43,7 @@ class KernelDensityEstimator : public DensityEstimator<N> {
         assert(!_samples.empty());
   }
 
-  double density(const Vec &point) {
+  double density(const Vec &point) const {
     double squaredBandwidth = sqr(_squaredBandwidth);
     double sum = 0;
     for (auto p: _samples) {
@@ -63,9 +64,14 @@ class KernelDensityEstimator : public DensityEstimator<N> {
   }
 
   static double calcDensityTerm(const Vec &a, const Vec &b, double squaredBandwidth) {
-    return gaussianKernel(norm2dif<N>(a, b), squaredBandwidth);
+    return gaussianKernel(norm2dif<double, N>(a.data(), b.data()), squaredBandwidth);
   }
 };
+
+typedef KernelDensityEstimator<1> KDE1;
+typedef KernelDensityEstimator<2> KDE2;
+typedef KernelDensityEstimator<3> KDE3;
+
 
 }
 
