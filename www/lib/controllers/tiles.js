@@ -20,7 +20,11 @@ var makeQuery = function(boatId, s, x, y, startsAfter, endsBefore) {
 };
 
 exports.retrieve = function(req, res, next) {
-  var query = makeQuery("exocet", req.params.scale, req.params.x, req.params.y);
+  var query = makeQuery(req.params.boat,
+                        req.params.scale,
+                        req.params.x,
+                        req.params.y);
+
   console.log('get tile: ' + query.key);
   Tile.find(query, function(err, tiles) {
     if (err) {
