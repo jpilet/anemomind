@@ -6,6 +6,8 @@
 #ifndef DENSITYESTIMATOR_H_
 #define DENSITYESTIMATOR_H_
 
+#include <server/common/Array.h>
+
 namespace sail {
 
 /*

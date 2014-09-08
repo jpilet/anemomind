@@ -142,6 +142,18 @@ cxx_test(math_StatisticsTest
          gtest_main
         )
 
+add_library(math_DensityEstimator
+            DensityEstimator.h
+            DensityEstimator.cpp
+           )
+cxx_test(math_DensityEstimatorTest
+         DensityEstimatorTest.cpp
+         math_DensityEstimator
+         gtest_main
+        )
+
+
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
