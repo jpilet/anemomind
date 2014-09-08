@@ -7,6 +7,7 @@
 #define DENSITYESTIMATOR_H_
 
 #include <server/common/Array.h>
+#include <server/common/math.h>
 
 namespace sail {
 
@@ -15,16 +16,12 @@ namespace sail {
  * This lets us easily replace the density estimation algorithm
  * with a faster one, once we have implemented that.
  */
+template <int N>
 class DensityEstimator {
  public:
-  /*
-   * It might be a good idea not to require
-   * this method to be const. Maybe in a
-   * sophisticated implementation, we might
-   * want to optimize the lookup procedure
-   * based on the query.
-   */
-  virtual double density(const Arrayd &point) = 0;
+  typedef double Vec[N];
+
+  virtual double density(const Array<Vec> &point) const = 0;
 
   virtual ~DensityEstimator() {}
 };
@@ -34,19 +31,40 @@ class DensityEstimator {
  * Estimating the density in a point is O(n), n being the number of
  * training points. It is not scalable, but better than nothing.
  */
-class NaiveDensityEstimator : public DensityEstimator {
+template <int N>
+class KernelDensityEstimator : public DensityEstimator<N> {
  public:
-  NaiveDensityEstimator(double bandwidth,
-        Array<Arrayd> samples);
-  double density(const Arrayd &point);
+  typedef typename DensityEstimator<N>::Vec Vec;
+
+  KernelDensityEstimator(double bandwidth,
+        Array<Vec> samples) : _squaredBandwidth(bandwidth*bandwidth),
+        _samples(samples) {
+        assert(!_samples.empty());
+  }
+
+  double density(const Vec &point) {
+    double squaredBandwidth = sqr(_squaredBandwidth);
+    double sum = 0;
+    for (auto p: _samples) {
+      sum += calcDensityTerm(p, point, squaredBandwidth);
+    }
+    return sum;
+  }
 
   int dims() const {
     return _samples[0].size();
   }
  private:
-  double _bandwidth;
-  Array<Arrayd> _samples;
-  static bool consistentDims(Array<Arrayd> samples);
+  double _squaredBandwidth;
+  Array<Vec> _samples;
+
+  static double gaussianKernel(double squaredDistance, double squaredBandwidth) {
+    return exp(-0.5*squaredDistance/squaredBandwidth);
+  }
+
+  static double calcDensityTerm(const Vec &a, const Vec &b, double squaredBandwidth) {
+    return gaussianKernel(norm2dif<N>(a, b), squaredBandwidth);
+  }
 };
 
 }
