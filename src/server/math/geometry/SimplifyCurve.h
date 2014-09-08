@@ -67,6 +67,10 @@ class CurveSimplifier {
         > std::make_pair(other.triangle->area(), -other.triangle->oppositeSquaredEdgeLength());
     }
 
+    bool operator == (const SortingTrianglePointer& other) const {
+      return triangle == other.triangle;
+    }
+
   };
 
   struct Vertex {
