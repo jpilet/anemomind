@@ -114,7 +114,7 @@ class PhysicalQuantity {
 
 
   Quantity fabs() const { return Quantity::makeFromX(::fabs(_x)); }
-  bool isNaN() const { return isnan(_x); }
+  bool isNaN() const { return ::isnan(_x); }
 
   // Comparison --> bool
   bool operator < (ThisQuantity other) const {return _x < other.get();}
