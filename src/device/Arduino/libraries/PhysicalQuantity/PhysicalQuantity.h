@@ -46,7 +46,7 @@ static inline bool isnan(double x) {
 template<class T>
 typename std::enable_if<std::is_floating_point<T>::value, bool>::type
     isNaNOrFalse(T x) {
-  return isnan(x);
+  return ::isnan(x);
 }
 
 template<class T>
