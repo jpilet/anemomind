@@ -54,10 +54,20 @@ TEST(DensityEstimatorTest, BandWidth) {
   Arrayd a = Arrayd::args(3.4);
   Arrayd b = Arrayd::args(9.89);
 
-  NaiveDensityEstimator deWide(Array<Arrayd>::args(a), 30);
-  NaiveDensityEstimator deNarrow(Array<Arrayd>::args(a), 0.89);
+  NaiveDensityEstimator deWide(30, Array<Arrayd>::args(a));
+  NaiveDensityEstimator deNarrow(0.89, Array<Arrayd>::args(a));
   EXPECT_LE(deNarrow.density(b)/deNarrow.density(a),
             deWide.density(b)/deWide.density(a));
+}
+
+TEST(DensityEstimatorTest, TwoDims) {
+  Arrayd a = Arrayd::args(0, 0);
+  Arrayd b = Arrayd::args(1, 1);
+  Arrayd c = Arrayd::args(-2, -2);
+
+  NaiveDensityEstimator est(1, Array<Arrayd>::args(a));
+  EXPECT_LE(est.density(c), est.density(b));
+  EXPECT_LE(est.density(b), est.density(a));
 }
 
 
