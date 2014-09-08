@@ -7,6 +7,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/plot/extra.h>
 #include <server/common/string.h>
+#include <server/math/PolarCoordinates.h>
 
 namespace sail {
 
