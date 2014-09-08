@@ -68,10 +68,6 @@ class KernelDensityEstimator : public DensityEstimator<N> {
   }
 };
 
-typedef KernelDensityEstimator<1> KDE1;
-typedef KernelDensityEstimator<2> KDE2;
-typedef KernelDensityEstimator<3> KDE3;
-
 
 }
 
