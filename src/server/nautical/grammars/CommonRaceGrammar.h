@@ -48,7 +48,7 @@ class CommonRaceGrammar : public Grammar {
 
   std::shared_ptr<HTree> parse(Array<Nav> navs,
       Array<UserHint> hints = Array<UserHint>());
-  Array<HNode> nodeInfo();
+  virtual Array<HNode> nodeInfo() const;
   MDArray2b startOfRaceTransitions() const {return _startOfRaceTransitions;}
   MDArray2b endOfRaceTransitions() const {return _endOfRaceTransitions;}
  private:
