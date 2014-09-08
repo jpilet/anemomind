@@ -8,6 +8,7 @@
 #ifndef POLARCOORDINATES_H_
 #define POLARCOORDINATES_H_
 
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 namespace sail {
   // Functions to map polar coordinates to cartesian ones.
