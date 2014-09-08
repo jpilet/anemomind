@@ -11,23 +11,27 @@ using namespace sail;
 
 namespace {
   Array<PolarPoint> makePts1() {
-    return Array<PolarPoint>::args(PolarPoint(Angle<double>::degrees(47),
+    return Array<PolarPoint>::args(PolarPoint(
       Velocity<double>::metersPerSecond(6.3),
+      Angle<double>::degrees(47),
       Velocity<double>::knots(4.1)));
   }
 
   Array<PolarPoint> makePts3() {
     return Array<PolarPoint>::args(
-      PolarPoint(Angle<double>::degrees(47),
+      PolarPoint(
         Velocity<double>::metersPerSecond(6.3),
+        Angle<double>::degrees(47),
         Velocity<double>::knots(4.1)),
 
-      PolarPoint(Angle<double>::degrees(47),
+      PolarPoint(
         Velocity<double>::metersPerSecond(6.3),
+        Angle<double>::degrees(47),
         Velocity<double>::knots(5.2)),
 
-      PolarPoint(Angle<double>::degrees(359),
+      PolarPoint(
         Velocity<double>::metersPerSecond(14),
+        Angle<double>::degrees(359),
         Velocity<double>::knots(7.0)));
   }
 
