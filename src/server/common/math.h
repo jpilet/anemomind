@@ -13,20 +13,6 @@
 
 namespace sail {
 
-//template <typename T, int E>
-//class Expt
-//{
-//public:
-//	inline static T eval(T x) {return x*Expt<T, E-1>(x);}
-//};
-//
-//template <typename T>
-//class Expt<T, 0>
-//{
-//public:
-//	inline static T eval(T x) {return 1;}
-//};
-
 template <int a, int b>
 class StaticPower {
  public:
@@ -82,13 +68,18 @@ void normalizeInPlace(int dims, T *x) {
   }
 }
 
-
+template <typename T>
+T norm2dif(int dims, const T *a, const T *b) {
+  T sum = 0;
+  for (int i = 0; i < dims; i++) {
+    sum += sqr(a[i] - b[i]);
+  }
+  return sum;
+}
 
 template <typename T, int dims>
-T norm2dif(T *a, T *b) {
-  T res[dims];
-  sub<T, dims>(a, b, res);
-  return norm2<T, dims>(res);
+T norm2dif(const T *a, const T *b) {
+  return norm2dif(dims, a, b);
 }
 
 template <typename T, int dims>
