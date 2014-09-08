@@ -48,12 +48,6 @@ cxx_test(nautical_BoatLogProcessorTest
          gtest_main
         )
 
-add_library(nautical_DataCalib
-            DataCalib.h
-            DataCalib.cpp)
-
-target_link_libraries(nautical_DataCalib common_Array)
-
 
 add_library(nautical_LocalRace
             LocalRace.h
@@ -171,20 +165,6 @@ cxx_test(nautical_SpeedCalibTest
 #################################################################
 ### CalibrationExamples
 #################################################################
-add_library(nautical_CalibrationExamples
-  CalibrationExamples.h
-  CalibrationExamples.cpp)
-target_link_libraries(nautical_CalibrationExamples
-  common_Env
-  math_nonlinear_GridFitter
-  nautical_DataCalib
-  nautical_LocalRace
-  )
-
-add_executable(nautical_CalibrationExample
-  CalibrationExample.cpp)
-target_link_libraries(nautical_CalibrationExample
-  nautical_CalibrationExamples)
 
 cxx_test(nautical_LocalRaceTest
             LocalRaceTest.cpp
@@ -426,19 +406,21 @@ add_library(nautical_BasicPolar
            )
 target_link_libraries(nautical_BasicPolar
                       common_Histogram
+                      plot_gnuplot
                      )
 cxx_test(nautical_BasicPolarTest
          BasicPolarTest.cpp
          gtest_main
          nautical_BasicPolar
         )                     
-                     
-add_executable(nautical_PolarScatterPlot
-               PolarScatterPlot.cpp
+                                                              
+add_executable(nautical_PolarPlot
+               PolarPlot.cpp
               )
-target_link_libraries(nautical_PolarScatterPlot
+target_link_libraries(nautical_PolarPlot
+                      nautical_BasicPolar
                       nautical_TestdataNavs
-                      plot_gnuplot
-                     )              
+                      common_logging
+                     )                          
 
 add_subdirectory("tiles")

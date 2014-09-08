@@ -16,9 +16,9 @@ namespace sail {
 class PolarPoint {
  public:
   PolarPoint() : _navIndex(-1) {}
-  PolarPoint(Angle<double> twa_,
-      Velocity<double> tws_,
-      Velocity<double> boatSpeed_,
+  PolarPoint(Velocity<double> tws_,
+        Angle<double> twa_,
+        Velocity<double> boatSpeed_,
 
       int navIndex = -1); // Optional reference to the Nav in an array, from which Nav these values were obtained.
 
@@ -49,16 +49,17 @@ class PolarPoint {
   Velocity<double> _boatSpeed;
 };
 
+class GnuplotExtra;
 class PolarSlice {
  public:
   typedef HistogramMap<Angle<double>, true> TwaHist;
 
-  PolarSlice() : _pointCount(0) {}
+  PolarSlice() {}
   PolarSlice(TwaHist map,
     Array<PolarPoint> points);
 
   int pointCount() const {
-    return _pointCount;
+    return _allPoints.size();
   }
 
   TwaHist twaHist() {
@@ -95,17 +96,21 @@ class PolarSlice {
   }
 
   bool empty() const {
-    return _pointCount <= 0;
+    return pointCount() <= 0;
   }
+
+  void plot(double quantileFrac, GnuplotExtra *dst, const std::string &title = "(no title)") const;
  private:
-  int _pointCount;
   TwaHist _twaHist;
   Array<Array<PolarPoint> > _pointsPerBin;
+  Array<PolarPoint> _allPoints;
 };
 
 class BasicPolar {
  public:
   typedef HistogramMap<Velocity<double>, false> TwsHist;
+
+  BasicPolar() {}
 
   BasicPolar(TwsHist twsHist, Array<PolarSlice> slices) :
     _twsHist(twsHist), _slices(slices) {
@@ -123,15 +128,22 @@ class BasicPolar {
 
   BasicPolar trim() const;
 
-  Array<PolarSlice> slices() const {
+  const Array<PolarSlice> &slices() const {
     return _slices;
   }
 
-  TwsHist twsHist() const {
+  const TwsHist &twsHist() const {
     return _twsHist;
   }
 
   int pointCount() const;
+
+  bool empty() const {
+    // We should be clear what we mean by this. Does it mean _slices.empty() or pointCount() == 0?
+    return _slices.empty();
+  }
+
+  void plot(double quantileFrac) const;
  private:
   TwsHist _twsHist;
   Array<PolarSlice> _slices;

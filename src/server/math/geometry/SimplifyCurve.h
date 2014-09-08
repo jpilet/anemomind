@@ -64,7 +64,7 @@ class CurveSimplifier {
       // Firstly, eliminate points with small triangle area.
       // If area is the same, eliminate points that have a long opposite edge first.
       return std::make_pair(triangle->area(), -triangle->oppositeSquaredEdgeLength())
-        > std::make_pair(other.triangle->area(), -other.triangle->oppositeSquaredEdgeLength());
+        < std::make_pair(other.triangle->area(), -other.triangle->oppositeSquaredEdgeLength());
     }
 
     bool operator == (const SortingTrianglePointer& other) const {
