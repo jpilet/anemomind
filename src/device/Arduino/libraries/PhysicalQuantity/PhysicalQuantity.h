@@ -421,6 +421,9 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
     };
 };
 
+
+
+
 }  // namespace sail
 
 #undef MAKE_PHYSQUANT_TO_UNIT_CONVERTER

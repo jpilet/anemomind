@@ -406,19 +406,21 @@ add_library(nautical_BasicPolar
            )
 target_link_libraries(nautical_BasicPolar
                       common_Histogram
+                      plot_gnuplot
                      )
 cxx_test(nautical_BasicPolarTest
          BasicPolarTest.cpp
          gtest_main
          nautical_BasicPolar
         )                     
-                     
-add_executable(nautical_PolarScatterPlot
-               PolarScatterPlot.cpp
+                                                              
+add_executable(nautical_PolarPlot
+               PolarPlot.cpp
               )
-target_link_libraries(nautical_PolarScatterPlot
+target_link_libraries(nautical_PolarPlot
+                      nautical_BasicPolar
                       nautical_TestdataNavs
-                      plot_gnuplot
-                     )              
+                      common_logging
+                     )                          
 
 add_subdirectory("tiles")

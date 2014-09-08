@@ -9,6 +9,7 @@
 #define COMMON_MATH_H_
 
 #include <cmath>
+#include <cassert>
 
 namespace sail {
 
