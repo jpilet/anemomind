@@ -15,19 +15,18 @@ cxx_test(tiles_NavTileGeneratorTest
         )
 
 if (MongoDB_LIBRARIES)
-  # MongoDB depends on boost system library.
-  find_package(Boost COMPONENTS system REQUIRED)
 
   include_directories(${MongoDB_INCLUDE_DIR})
   add_library(tiles_NavTileUploader
               NavTileUploader.cpp
              )
+  add_definitions(-DBOOST_THREAD_USE_LIB=1)
   target_link_libraries(tiles_NavTileUploader
                         tiles_NavTileGenerator
                         common_logging
                         nautical_nav
                         ${MongoDB_LIBRARIES}
-                        ${Boost_SYSTEM_LIBRARY}
+
                        )
 
   add_executable(tiles_generateAndUpload
@@ -40,6 +39,7 @@ if (MongoDB_LIBRARIES)
                         math_hmm_StateAssign
                         nautical_NavNmeaScan
                         nautical_grammars_WindOrientedGrammar
+                        ${MongoDB_LIBRARIES}
                         )
 
 endif (MongoDB_LIBRARIES)
