@@ -5,6 +5,7 @@ include("cmake/ADOLC.cmake")
 include("cmake/POCO.cmake")
 include("cmake/FindCXXFeatures.cmake")
 include("cmake/ceres-solver.cmake")
+include("cmake/FindMongoDB.cmake")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX11_COMPILER_FLAGS}")
 
 find_package(Armadillo REQUIRED)
