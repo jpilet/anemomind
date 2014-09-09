@@ -65,4 +65,21 @@ else(MongoDB_INCLUDE_DIR AND MongoDB_LIBRARIES)
   endif (MongoDB_FIND_REQUIRED)
 endif(MongoDB_INCLUDE_DIR AND MongoDB_LIBRARIES)
 
+if (UNIX)
+  # MongoDB depends on boost system library.
+  find_package(Boost COMPONENTS filesystem thread system REQUIRED)
+  set(MongoDB_LIBRARIES ${MongoDB_LIBRARIES}
+                        ${Boost_SYSTEM_LIBRARY}
+                        ${Boost_THREAD_LIBRARY}
+                        ${Boost_FILESYSTEM_LIBRARY}
+			${CMAKE_THREAD_LIBS_INIT}
+			ssl crypto)
+endif (UNIX)
+
+if (MAC)
+  # MongoDB depends on boost system library.
+  find_package(Boost COMPONENTS system REQUIRED)
+  set(MongoDB_LIBRARIES ${MongoDB_LIBRARIES}
+                        ${Boost_SYSTEM_LIBRARY})
+endif (MAC)
 mark_as_advanced(MongoDB_INCLUDE_DIR MongoDB_LIBRARIES MongoDB_EXPOSE_MACROS)

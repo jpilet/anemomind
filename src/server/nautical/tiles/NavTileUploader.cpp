@@ -89,6 +89,32 @@ bool insertOrUpdateTile(const BSONObj& obj,
   return true;
 }
 
+BSONObj makeBsonTile(const TileKey& tileKey,
+                     const Array<Array<Nav>>& subCurvesInTile,
+                     const std::string& boatId,
+                     const std::string& curveId) {
+  BSONObjBuilder tile;
+  tile.genOID();
+  tile.append("key", tileKey.stringKey());
+  tile.append("boat", boatId);
+  append(tile, "startTime", subCurvesInTile.first().first().time());
+  append(tile, "endTime", subCurvesInTile.last().last().time());
+  append(tile, "created", TimeStamp::now());
+
+  std::vector<BSONObj> curves;
+  for (auto subCurve: subCurvesInTile) {
+    BSONObjBuilder subCurveBuilder;
+
+    subCurveBuilder
+      .append("curveId", curveId)
+      .append("points", navsToBSON(subCurve));
+
+    curves.push_back(subCurveBuilder.obj());
+  }
+  tile.append("curves", curves);
+  return tile.obj();
+}
+
 }  // namespace
 
 bool generateAndUploadTiles(std::string boatId,
@@ -114,27 +140,9 @@ bool generateAndUploadTiles(std::string boatId,
         continue;
       }
 
-      BSONObjBuilder tile;
-      tile.genOID();
-      tile.append("key", tileKey.stringKey());
-      tile.append("boat", boatId);
-      append(tile, "startTime", subCurvesInTile.first().first().time());
-      append(tile, "endTime", subCurvesInTile.last().last().time());
-      append(tile, "created", TimeStamp::now());
+      BSONObj tile = makeBsonTile(tileKey, subCurvesInTile, boatId, curveId);
 
-      std::vector<BSONObj> curves;
-      for (auto subCurve: subCurvesInTile) {
-        BSONObjBuilder subCurveBuilder;
-
-        subCurveBuilder
-          .append("curveId", curveId)
-          .append("points", navsToBSON(subCurve));
-        
-        curves.push_back(subCurveBuilder.obj());
-      }
-      tile.append("curves", curves);
-
-      if (!insertOrUpdateTile(tile.obj(), params, &db)) {
+      if (!insertOrUpdateTile(tile, params, &db)) {
         // There is no point to continue if we can't write to the DB.
         return false;
       }
