@@ -39,11 +39,12 @@ namespace {
     Arrayd Yraw(count);
     Arrayd Yfiltered(count);
     for (int i = 0; i < count; i++) {
-      X[i] = 0;
+      X[i] = i;
       Yraw[i] = data(0, i);
       Yfiltered[i] = stepSizeKnots*inds[i];
     }
     GnuplotExtra plot;
+    plot.set_style("lines");
     plot.set_ylabel(label);
     plot.plot_xy(X, Yraw);
     plot.plot_xy(X, Yfiltered);
