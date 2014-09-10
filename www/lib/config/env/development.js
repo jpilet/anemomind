@@ -5,6 +5,6 @@ module.exports = {
   port: process.env.PORT || 8080,
   logfile: 'nodejs_server_dev.log',
   mongo: {
-    uri: 'mongodb://localhost/fullstack-dev'
+    uri: 'mongodb://localhost/anemomind-dev'
   }
 };

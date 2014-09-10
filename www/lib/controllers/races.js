@@ -1,11 +1,7 @@
 'use strict';
 
 var mongoose = require('mongoose'),
-    RaceData = mongoose.model('RaceData'),
-    fs = require('fs');
-    // passport = require('passport');
-
-
+    RaceData = mongoose.model('RaceData');
 
 /**
  * Get list of races for specific user/boat

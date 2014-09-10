@@ -17,7 +17,7 @@ struct TileGeneratorParameters {
     dbHost = "localhost";
     maxScale = 17;
     maxNumNavsPerSubCurve = 32;
-    tileTable = "anemomind.tiles";
+    tileTable = "anemomind-dev.tiles";
   }
 };
 
