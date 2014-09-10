@@ -15,10 +15,14 @@ namespace sail {
 class PolarDensity {
  public:
   PolarDensity(Velocity<double> bandWidth,
-      Array<PolarPoint> points);
+      Array<PolarPoint> points, bool mirrored);
 
   double density(const PolarPoint &point) const;
+
+  Velocity<double> lookUpBoatSpeed(Velocity<double> tws, Angle<double> twa,
+      Velocity<double> maxBoatSpeed, int sampleCount, double quantile) const;
  private:
+  bool _mirrored;
   KernelDensityEstimator<3> _densityEstimator;
 };
 

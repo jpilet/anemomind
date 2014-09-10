@@ -11,11 +11,13 @@
 
 namespace sail {
 
+class PolarDensity;
 class PolarCurves {
  public:
   class Vertex {
    public:
-    Vertex(Angle<double> twa, Velocity<double> bs) : _twa(twa), _boatSpeed(bs) {}
+    Vertex() {}
+    Vertex(Angle<double> twa_, Velocity<double> bs_) : _twa(twa_), _boatSpeed(bs_) {}
    private:
     Angle<double> _twa;
     Velocity<double> _boatSpeed;
@@ -23,6 +25,10 @@ class PolarCurves {
 
   PolarCurves(Velocity<double> tws, Array<Array<Vertex> > curves) :
     _tws(tws), _curves(curves) {}
+
+
+  static PolarCurves fromDensity(const PolarDensity &density, Velocity<double> tws,
+      int twaCount, Velocity<double> maxBoatSpeed, int bsCount, double quantile);
  private:
   Velocity<double> _tws;
   Array<Array<Vertex> > _curves;
