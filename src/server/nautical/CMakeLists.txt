@@ -403,11 +403,3 @@ target_link_libraries(nautical_plotTargetSpeed
                      )
 
 
-add_executable(nautical_FilteredPolar
-               FilteredPolar.cpp
-              )
-
-target_link_libraries(nautical_FilteredPolar
-                      nautical_TestdataNavs
-                      plot_gnuplot
-                     )
