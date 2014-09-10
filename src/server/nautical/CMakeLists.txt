@@ -1,5 +1,6 @@
 add_subdirectory("grammars")
 add_subdirectory("synthtest")
+add_subdirectory("tiles")
 
 add_library(nautical_Ecef
             Ecef.h
@@ -423,4 +424,8 @@ target_link_libraries(nautical_PolarPlot
                       common_logging
                      )                          
 
-add_subdirectory("tiles")
+add_library(nautical_PolarCurves
+            PolarCurves.h
+            PolarCurves.cpp
+           )
+target_link_libraries(nautical_PolarCurves)           
