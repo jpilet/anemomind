@@ -71,8 +71,7 @@ class KernelDensityEstimator : public DensityEstimator<N> {
 
   double gaussianKernel(double squaredDistance, double squaredBandwidth) const {
     double x = -0.5*squaredDistance/squaredBandwidth;
-    //return exp(x);
-    return approximateExp(x, _expThresh);
+    return exp(x);
   }
 
   double calcDensityTerm(const Vec &a, const Vec &b, double squaredBandwidth) const {
