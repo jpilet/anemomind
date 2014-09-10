@@ -12,14 +12,15 @@ namespace sail {
 
 namespace {
 KernelDensityEstimator<3>::Vec toDensityVec(const PolarPoint &p) {
-  KernelDensityEstimator<3>::Vec v = KernelDensityEstimator<3>::Vec{calcPolarX(true, p.boatSpeed(), p.twa()).knots(),
-                                          calcPolarY(true, p.boatSpeed(), p.twa()).knots(),
-                                          p.tws().knots()};
+  KernelDensityEstimator<3>::Vec v = KernelDensityEstimator<3>::Vec{ // Map to a cartesian room
+    calcPolarX(true, p.boatSpeed(), p.twa()).knots(),
+    calcPolarY(true, p.boatSpeed(), p.twa()).knots(),
+    p.tws().knots()};
   return v;
   }
 
 Array<KernelDensityEstimator<3>::Vec> makePts(Array<PolarPoint> points) {
-  return points.map<KernelDensityEstimator<3>::Vec>([&](const PolarPoint &p) {return toDensityVec(p);});
+  return points.map<KernelDensityEstimator<3>::Vec>(toDensityVec);
 }
 
 
