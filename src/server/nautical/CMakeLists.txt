@@ -423,4 +423,13 @@ target_link_libraries(nautical_PolarPlot
                       common_logging
                      )                          
 
+add_executable(nautical_FilteredPolar
+               FilteredPolar.cpp
+              )
+
+target_link_libraries(nautical_FilteredPolar
+                      nautical_TestdataNavs
+                      plot_gnuplot
+                     )
+
 add_subdirectory("tiles")
