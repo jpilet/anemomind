@@ -74,14 +74,17 @@ Velocity<double> PolarDensity::lookUpBoatSpeed(Velocity<double> tws, Angle<doubl
     dsum += d;
   }
 
-  double acc = 0;
-  for (int i = 0; i < sampleCount; i++) {
-    double frac = acc/dsum;
-    LOG(INFO) << frac;
-    if (quantile <= frac) {
-      return Velocity<double>::knots(bsKnots(i));
+  double at = dsum*quantile;
+
+  double from = densitySamples[0];
+  for (int i = 1; i < sampleCount; i++) {
+    double to = from + densitySamples[i];
+    if (from <= at && at <= to) {
+      LineKM interpolator(from, to, bsKnots(i-1), bsKnots(i));
+      return Velocity<double>::knots(interpolator(at));
     }
-    acc += densitySamples[i];
+
+    from = to;
   }
   return maxBoatSpeed;
 }

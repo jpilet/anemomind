@@ -37,11 +37,13 @@ class KernelDensityEstimator : public DensityEstimator<N> {
  public:
   typedef typename DensityEstimator<N>::Vec Vec;
 
-  KernelDensityEstimator() : _squaredBandwidth(NAN) {}
+  KernelDensityEstimator() :
+    _squaredBandwidth(NAN), _expThresh(initExpThresh) {}
 
   KernelDensityEstimator(double bandwidth,
         Array<Vec> samples) : _squaredBandwidth(bandwidth*bandwidth),
-        _samples(samples) {
+        _samples(samples),
+        _expThresh(initExpThresh) {
         assert(!_samples.empty());
   }
 
@@ -62,14 +64,18 @@ class KernelDensityEstimator : public DensityEstimator<N> {
     return _samples.empty();
   }
  private:
+  static constexpr double initExpThresh = log(1.0e-2);
   double _squaredBandwidth;
   Array<Vec> _samples;
+  double _expThresh;
 
-  static double gaussianKernel(double squaredDistance, double squaredBandwidth) {
-    return exp(-0.5*squaredDistance/squaredBandwidth);
+  double gaussianKernel(double squaredDistance, double squaredBandwidth) const {
+    double x = -0.5*squaredDistance/squaredBandwidth;
+    //return exp(x);
+    return approximateExp(x, _expThresh);
   }
 
-  static double calcDensityTerm(const Vec &a, const Vec &b, double squaredBandwidth) {
+  double calcDensityTerm(const Vec &a, const Vec &b, double squaredBandwidth) const {
     return gaussianKernel(norm2dif<double, N>(a.data(), b.data()), squaredBandwidth);
   }
 };
