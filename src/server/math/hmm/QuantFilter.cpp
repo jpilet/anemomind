@@ -5,6 +5,7 @@
 
 #include <server/math/hmm/QuantFilter.h>
 #include <server/common/math.h>
+#include <server/math/hmm/StateAssign.h>
 
 namespace sail {
 
