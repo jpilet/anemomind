@@ -13,19 +13,19 @@ namespace sail {
 
 class PolarCurves {
  public:
-  class Point {
+  class Vertex {
    public:
-    Point(Angle<double> twa, Velocity<double> bs) : _twa(twa), _boatSpeed(bs) {}
+    Vertex(Angle<double> twa, Velocity<double> bs) : _twa(twa), _boatSpeed(bs) {}
    private:
     Angle<double> _twa;
     Velocity<double> _boatSpeed;
   };
 
-  PolarCurves(Velocity<double> tws, Array<Array<Point> > curves) :
+  PolarCurves(Velocity<double> tws, Array<Array<Vertex> > curves) :
     _tws(tws), _curves(curves) {}
  private:
   Velocity<double> _tws;
-  Array<Array<Point> > _curves;
+  Array<Array<Vertex> > _curves;
 };
 
 } /* namespace mmm */

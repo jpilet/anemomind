@@ -11,12 +11,6 @@
 
 namespace sail {
 
-PolarPoint::PolarPoint(Velocity<double> tws_,
-    Angle<double> twa_,
-    Velocity<double> boatSpeed_,
-    int navIndex_): _twa(twa_),
-    _tws(tws_), _boatSpeed(boatSpeed_),
-    _navIndex(navIndex_) {}
 
 PolarSlice::PolarSlice(TwaHist map,
   Array<PolarPoint> points) : _twaHist(map),
