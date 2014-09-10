@@ -194,6 +194,13 @@ class Sigmoid {
   T _k, _m;
 };
 
+inline double approximateExp(double x, double thresh) {
+  if (x < thresh) {
+    return 0;
+  }
+  return exp(x);
+}
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */

@@ -4,29 +4,17 @@
  */
 
 #include <server/nautical/TestdataNavs.h>
-#include <server/nautical/BasicPolar.h>
-#include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
+#include <server/nautical/polar/BasicPolar.h>
+#include <server/nautical/polar/PolarCurves.h>
+#include <server/nautical/polar/PolarDensity.h>
+#include <server/plot/extra.h>
+#include <server/nautical/polar/PolarPointConv.h>
+#include <server/common/string.h>
 
 using namespace sail;
 
 namespace {
-  HorizontalMotion<double> calcTW(const Nav &x) {
-    double params[TrueWindEstimator::NUM_PARAMS];
-    TrueWindEstimator::initializeParameters(params);
-    return TrueWindEstimator::computeTrueWind(params, x);
-  }
 
-  PolarPoint makePolarPoint(const Nav &x) {
-    Angle<double> dir = x.gpsBearing();
-    HorizontalMotion<double> tw = calcTW(x);
-    return PolarPoint(calcTws(tw),
-        calcTwa(tw, dir), x.gpsSpeed());
-
-  }
-
-  Array<PolarPoint> navsToPolarPoints(Array<Nav> navs) {
-    return navs.map<PolarPoint>([&](const Nav &x) {return makePolarPoint(x);});
-  }
 
   BasicPolar &getPolar(BasicPolar::TwsHist twsHist, PolarSlice::TwaHist twaHist,
       BasicPolar *cachedPolar, Array<Nav> navs) {
@@ -83,6 +71,18 @@ int main(int argc, const char **argv) {
   amap.registerOption("--plot", "Make a plot, specifying [quantile-frac]").setArgCount(1).setUnique();
   amap.registerOption("--plot-for-tws", "Make a plot with a single polar slice close to a [wind-speed-knots] and containing [point-count] points, with bins at [quantile]")
       .setArgCount(3).setUnique();
+
+
+  double bandwidthKnots = 1.0;
+  int boatSpeedSampleCount = 30;
+  int twaCount = 30;
+  double maxSpeedKnots = 15;
+  amap.registerOption("--bandwidth", "Set the bandwidth for the density estimation").setArgCount(1).store(&bandwidthKnots);
+  amap.registerOption("--curve", "Make a curve at a [true-windspeed-knots]").setArgCount(2);
+  amap.registerOption("--boat-speed-sample-count", "Set number of boat speed samples")
+          .setArgCount(1).store(&boatSpeedSampleCount);
+  amap.registerOption("--twa-count", "Set number of twa samples for the curve").setArgCount(1).store(&twaCount);
+
   if (amap.parseAndHelp(argc, argv)) {
     /*BasicPolar::TwsHist twsHist(20,
         Velocity<double>::metersPerSecond(0),
@@ -140,6 +140,26 @@ int main(int argc, const char **argv) {
           twaHist,
           pts)
         .plot(q);
+    }
+
+    if (amap.optionProvided("--curve")) {
+      PolarDensity density(Velocity<double>::knots(bandwidthKnots),
+          navsToPolarPoints(getCachedNavs(amap, &cachedNavs)), true);
+      Array<ArgMap::Arg*> args = amap.optionArgs("--curve");
+      Velocity<double> tws = Velocity<double>::knots(args[0]->parseDoubleOrDie());
+      double q = args[1]->parseDoubleOrDie();
+      PolarCurves curve = PolarCurves::fromDensity(density, tws,
+          twaCount, Velocity<double>::knots(maxSpeedKnots), boatSpeedSampleCount, q);
+
+      Array<PolarPoint> ptsForVisualization = reduceFromTheSides(
+                navsToPolarPoints(getCachedNavs(amap, &cachedNavs)),
+                tws, 100);
+
+      GnuplotExtra plot;
+      plot.set_style("lines");
+      curve.plot(&plot);
+      plot.show();
+      LOG(INFO) << "Plotting for TWS = " << tws.knots() << " knots or " << tws.metersPerSecond() << " m/s at quantile " << q;
     }
 
     return 0;

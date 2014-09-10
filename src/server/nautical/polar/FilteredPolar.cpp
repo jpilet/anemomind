@@ -7,7 +7,13 @@
 #include <server/plot/extra.h>
 #include <server/nautical/TestdataNavs.h>
 
+
 using namespace sail;
+
+namespace {
+
+
+}
 
 int main(int argc, const char **argv) {
   double lambda = 0.0;
