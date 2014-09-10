@@ -57,6 +57,10 @@ class KernelDensityEstimator : public DensityEstimator<N> {
   int dims() const {
     return _samples[0].size();
   }
+
+  bool empty() const {
+    return _samples.empty();
+  }
  private:
   double _squaredBandwidth;
   Array<Vec> _samples;

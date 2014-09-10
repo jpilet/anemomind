@@ -6,31 +6,57 @@
 #include <server/nautical/polar/PolarDensity.h>
 #include <server/math/PolarCoordinates.h>
 #include <server/common/LineKM.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
 namespace {
 KernelDensityEstimator<3>::Vec toDensityVec(const PolarPoint &p) {
-    return KernelDensityEstimator<3>::Vec{calcPolarX(true, p.boatSpeed(), p.twa()).knots(),
+  KernelDensityEstimator<3>::Vec v = KernelDensityEstimator<3>::Vec{calcPolarX(true, p.boatSpeed(), p.twa()).knots(),
                                           calcPolarY(true, p.boatSpeed(), p.twa()).knots(),
                                           p.tws().knots()};
+  return v;
   }
+
+Array<KernelDensityEstimator<3>::Vec> makePts(Array<PolarPoint> points) {
+  return points.map<KernelDensityEstimator<3>::Vec>([&](const PolarPoint &p) {return toDensityVec(p);});
+}
+
+
+Array<KernelDensityEstimator<3>::Vec> filter(Array<KernelDensityEstimator<3>::Vec> pts) {
+  return pts.slice([&] (const KernelDensityEstimator<3>::Vec &x) {
+          for (int i = 0; i < 3; i++) {
+            if (std::isnan(x[i])) {
+              return false;
+            }
+            return true;
+          }
+        });
+}
+
 }
 
 PolarDensity::PolarDensity(Velocity<double> bandWidth,
     Array<PolarPoint> points, bool mirrored) :
     _mirrored(mirrored),
     _densityEstimator(bandWidth.knots(),
-    points.map<KernelDensityEstimator<3>::Vec>([&](const PolarPoint &p) {return toDensityVec(p);})){
+    filter(makePts(points))) {
+    assert(!_densityEstimator.empty());
 }
 
-double PolarDensity::density(const PolarPoint &point) const {
+double PolarDensity::densitySub(const PolarPoint &point) const {
   auto v = toDensityVec(point);
   double d = _densityEstimator.density(v);
   if (_mirrored) {
     v[0] = -v[0];
     return d + _densityEstimator.density(v);
   }
+  return d;
+}
+
+double PolarDensity::density(const PolarPoint &point) const {
+  double d = densitySub(point);
+  assert(!std::isnan(d));
   return d;
 }
 
@@ -49,9 +75,12 @@ Velocity<double> PolarDensity::lookUpBoatSpeed(Velocity<double> tws, Angle<doubl
 
   double acc = 0;
   for (int i = 0; i < sampleCount; i++) {
-    if (quantile <= acc/dsum) {
+    double frac = acc/dsum;
+    LOG(INFO) << frac;
+    if (quantile <= frac) {
       return Velocity<double>::knots(bsKnots(i));
     }
+    acc += densitySamples[i];
   }
   return maxBoatSpeed;
 }

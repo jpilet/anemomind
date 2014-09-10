@@ -8,6 +8,8 @@
 #include <server/common/MDArray.h>
 #include <server/math/PolarCoordinates.h>
 #include <server/nautical/polar/PolarDensity.h>
+#include <server/common/logging.h>
+#include <server/common/string.h>
 #include <server/plot/extra.h>
 
 namespace sail {
@@ -26,10 +28,12 @@ PolarCurves PolarCurves::fromDensity(const PolarDensity &density, Velocity<doubl
   Array<Vertex> pts(twaCount+1);
   for (int i = 0; i < twaCount; i++) {
     Angle<double> alpha = Angle<double>::degrees(twa(i));
+    LOG(INFO) << stringFormat("Look up vertex %d of %d", i+1, twaCount);
     pts[i] = Vertex(alpha,
                density.lookUpBoatSpeed(tws, alpha,
                maxBoatSpeed, bsCount, quantile));
   }
+  LOG(INFO) << "Done computing curve";
   pts.last() = pts.first();
   return PolarCurves(tws, Array<Array<Vertex> >::args(pts));
 }

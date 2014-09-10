@@ -9,6 +9,7 @@
 #include <server/nautical/polar/PolarCurves.h>
 #include <server/nautical/polar/PolarDensity.h>
 #include <server/plot/extra.h>
+#include <server/common/string.h>
 
 using namespace sail;
 
@@ -90,11 +91,13 @@ int main(int argc, const char **argv) {
 
   double bandwidthKnots = 1.0;
   int boatSpeedSampleCount = 30;
+  int twaCount = 30;
   double maxSpeedKnots = 15;
   amap.registerOption("--bandwidth", "Set the bandwidth for the density estimation").setArgCount(1).store(&bandwidthKnots);
-  amap.registerOption("--curve", "Make a curve at a [true-windspeed-knots]").setArgCount(1).setRequired();
+  amap.registerOption("--curve", "Make a curve at a [true-windspeed-knots]").setArgCount(2);
   amap.registerOption("--boat-speed-sample-count", "Set number of boat speed samples")
-      .setArgCount(1).store(&boatSpeedSampleCount);
+          .setArgCount(1).store(&boatSpeedSampleCount);
+  amap.registerOption("--twa-count", "Set number of twa samples for the curve").setArgCount(1).store(&twaCount);
 
   if (amap.parseAndHelp(argc, argv)) {
     /*BasicPolar::TwsHist twsHist(20,
@@ -162,10 +165,17 @@ int main(int argc, const char **argv) {
       Velocity<double> tws = Velocity<double>::knots(args[0]->parseDoubleOrDie());
       double q = args[1]->parseDoubleOrDie();
       PolarCurves curve = PolarCurves::fromDensity(density, tws,
-          twaHist.binCount(), Velocity<double>::knots(maxSpeedKnots), boatSpeedSampleCount, q);
+          twaCount, Velocity<double>::knots(maxSpeedKnots), boatSpeedSampleCount, q);
+
+      Array<PolarPoint> ptsForVisualization = reduceFromTheSides(
+                navsToPolarPoints(getCachedNavs(amap, &cachedNavs)),
+                tws, 100);
+
       GnuplotExtra plot;
+      plot.set_style("lines");
       curve.plot(&plot);
       plot.show();
+      LOG(INFO) << "Plotting for TWS = " << tws.knots() << " knots or " << tws.metersPerSecond() << " m/s at quantile " << q;
     }
 
     return 0;

@@ -22,6 +22,7 @@ class PolarDensity {
   Velocity<double> lookUpBoatSpeed(Velocity<double> tws, Angle<double> twa,
       Velocity<double> maxBoatSpeed, int sampleCount, double quantile) const;
  private:
+  double densitySub(const PolarPoint &point) const;
   bool _mirrored;
   KernelDensityEstimator<3> _densityEstimator;
 };
