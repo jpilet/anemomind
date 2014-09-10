@@ -37,6 +37,8 @@ class KernelDensityEstimator : public DensityEstimator<N> {
  public:
   typedef typename DensityEstimator<N>::Vec Vec;
 
+  KernelDensityEstimator() : _squaredBandwidth(NAN) {}
+
   KernelDensityEstimator(double bandwidth,
         Array<Vec> samples) : _squaredBandwidth(bandwidth*bandwidth),
         _samples(samples) {

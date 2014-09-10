@@ -33,3 +33,11 @@ add_library(nautical_polar_PolarPoint
             PolarPoint.h
             PolarPoint.cpp
            )
+
+add_library(nautical_polar_PolarDensity
+            PolarDensity.h
+            PolarDensity.cpp
+           )
+target_link_libraries(nautical_polar_PolarDensity
+                      nautical_polar_PolarPoint
+                     )           
