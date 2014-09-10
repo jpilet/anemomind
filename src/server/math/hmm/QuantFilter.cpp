@@ -7,6 +7,8 @@
 #include <server/common/math.h>
 #include <server/math/hmm/StateAssign.h>
 #include <server/common/logging.h>
+#include <server/common/string.h>
+#include <iostream>
 
 namespace sail {
 
@@ -33,9 +35,9 @@ namespace {
       return _allInds;
     }
 
-    bool update(Arrayi inds);
+    int update(Arrayi inds);
 
-    bool step() {
+    int step() {
       return update(solve());
     }
 
@@ -93,16 +95,16 @@ namespace {
     return _reg*sqrt(cost);
   }
 
-  bool Stepper::update(Arrayi inds) {
+  int Stepper::update(Arrayi inds) {
     assert(inds.size() == _length);
-    bool updated = false;
+    int counter = 0;
     for (int j = 0; j < _length; j++) {
       const Arrayi &newInds = getTempInds(inds[j], j);
       for (int i = 0; i < _dims; i++) {
-        updated |= updateState(i, j, newInds[i]);
+        counter += (updateState(i, j, newInds[i])? 1 : 0);
       }
     }
-    return updated;
+    return counter;
   }
 
   const Arrayi &Stepper::getTempInds(int stateIndex, int timeIndex) {
@@ -138,11 +140,40 @@ MDArray2i quantFilter(Array<LineKM> binMap,
                         double regularization) {
   Stepper stepper(binMap, noisyData, regularization);
   int counter = 0;
-  while (stepper.step()) {
+  LOG(INFO) << "Running quantFilter...";
+  while (true) {
+    int updates = stepper.step();
     counter++;
+    LOG(INFO) << "   quantFilter iteration " << counter << ". Updates: " << updates;
+    if (updates == 0) {
+      break;
+    }
   }
   LOG(INFO) << "quantFilter required " << counter << " iterations.";
   return stepper.state();
+}
+
+MDArray2i quantFilterChunked(Array<LineKM> binMap,
+    MDArray2d noisyData,
+    double regularization,
+    int chunkSize) {
+    if (chunkSize <= 0) {
+      return quantFilter(binMap, noisyData, regularization);
+    } else {
+      int count = noisyData.cols();
+      int chunkCount = (count - 1)/chunkSize + 1;
+      LOG(INFO) << "Runing quantFilterChunked...";
+      MDArray2i dst(noisyData.rows(), count);
+      for (int i = 0; i < chunkCount; i++) {
+        LOG(INFO) << " Chunk " << i << " of " << chunkCount;
+        int from = i*chunkSize;
+        int to = std::min(count, from + chunkSize);
+        quantFilter(binMap, noisyData.sliceCols(from, to), regularization)
+          .copyToSafe(dst.sliceCols(from, to));
+      }
+      LOG(INFO) << "Done quantFilterChunked.";
+      return dst;
+    }
 }
 
 

@@ -55,11 +55,11 @@ target_link_libraries(nautical_polar_PolarPointConv
                       nautical_polar_PolarPoint
                      )
 
-add_executable(nautical_FilteredPolar
-               FilteredPolar.cpp
+add_executable(nautical_FilteredPolarExample
+               FilteredPolarExample.cpp
               )
 
-target_link_libraries(nautical_FilteredPolar
+target_link_libraries(nautical_FilteredPolarExample
                       nautical_TestdataNavs
                       plot_gnuplot
                       nautical_polar_PolarPointConv

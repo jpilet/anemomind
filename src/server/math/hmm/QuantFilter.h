@@ -44,6 +44,15 @@ MDArray2i quantFilter(Array<LineKM> binMap,
                         MDArray2d noisyData,
                         double regularization);
 
+/*
+ * If the above function is still too complicated,
+ * approximate the problem by slicing up the data and optimizing chunks.
+ */
+MDArray2i quantFilterChunked(Array<LineKM> binMap,
+    MDArray2d noisyData,
+    double regularization,
+    int chunkSize);
+
 } /* namespace mmm */
 
 #endif /* BINFILTER_H_ */
