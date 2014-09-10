@@ -5,6 +5,7 @@ add_library(nautical_polar_BasicPolar
 target_link_libraries(nautical_polar_BasicPolar
                       common_Histogram
                       plot_gnuplot
+                      nautical_polar_PolarPoint
                      )
 cxx_test(nautical_polar_BasicPolarTest
          BasicPolarTest.cpp
@@ -26,3 +27,9 @@ add_library(nautical_polar_PolarCurves
             PolarCurves.cpp
            )
 target_link_libraries(nautical_polar_PolarCurves)           
+
+
+add_library(nautical_polar_PolarPoint
+            PolarPoint.h
+            PolarPoint.cpp
+           )
