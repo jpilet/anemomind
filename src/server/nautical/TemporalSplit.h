@@ -13,7 +13,7 @@
 namespace sail {
 
 Array<Spani> temporalSplit(Array<Nav> sortedNavs,
-    double relativeThresh, Duration<double> lowerThresh);
+    double relativeThresh, Duration<double> lowerThresh, int offset = 0);
 
 Array<Spani> recursiveTemporalSplit(Array<Nav> sortedNavs,
     double relativeThresh, Duration<double> lowerThresh);
