@@ -6,6 +6,7 @@
 #include <server/math/hmm/QuantFilter.h>
 #include <server/common/math.h>
 #include <server/math/hmm/StateAssign.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -136,10 +137,11 @@ MDArray2i quantFilter(Array<LineKM> binMap,
                         MDArray2d noisyData,
                         double regularization) {
   Stepper stepper(binMap, noisyData, regularization);
+  int counter = 0;
   while (stepper.step()) {
-    /////
+    counter++;
   }
-
+  LOG(INFO) << "quantFilter required " << counter << " iterations.";
   return stepper.state();
 }
 

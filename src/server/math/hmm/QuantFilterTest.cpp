@@ -32,3 +32,27 @@ TEST(QuantFilterTest, StepTest) {
     EXPECT_EQ(withReg[i], inds1(0, i));
   }
 }
+
+TEST(QuantFilterTest, StepTest2d) {
+  LineKM map(-2, 2, -1, 1);
+
+  const int count = 300;
+  MDArray2d data(2, count);
+  for (int i = 0; i < count; i++) {
+    data(0, i) = (2*i < count? -1 : 1) + 2.0*(sin(234234.234*i)*0.34 + sin(98734.234324*i)*0.3898);
+    data(1, i) = (2*i < count? 3 : 0) + 2.0*(sin(722332.37324*i)*0.34 + sin(4324.34*i)*0.16 + sin(324.34498*i)*0.17);
+  }
+
+  double lambda = 10;
+  MDArray2i inds = quantFilter(Array<LineKM>::args(map, map), data, lambda);
+  int first[2] = {-2, 6};
+  int last[2] = {2, 0};
+
+  int n = 17;
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < 2; j++) {
+      EXPECT_EQ(inds(j, i), first[j]);
+      EXPECT_EQ(inds(j, count - n - 1 + i), last[j]);
+    }
+  }
+}
