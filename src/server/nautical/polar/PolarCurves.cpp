@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/PolarCurves.h>
+#include <server/nautical/polar/PolarCurves.h>
 
 namespace sail {
 

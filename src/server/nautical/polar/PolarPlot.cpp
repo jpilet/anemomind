@@ -4,7 +4,7 @@
  */
 
 #include <server/nautical/TestdataNavs.h>
-#include <server/nautical/BasicPolar.h>
+#include <server/nautical/polar/BasicPolar.h>
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 
 using namespace sail;
