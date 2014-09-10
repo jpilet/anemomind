@@ -26,10 +26,28 @@ namespace {
     return dst;
   }
 
-  MDArray2i quantFilterVel(Velocity<double> step, Array<PolarPoint> pts, double reg) {
-    MDArray2d data = makeDataMatrix(pts);
-    Array<LineKM> maps = Array<LineKM>::fill(3, LineKM(0, 1, 0, step.knots()));
-    return quantFilter(maps, data, reg);
+  Array<LineKM> makeVelMaps(Velocity<double> step) {
+    return Array<LineKM>::fill(3, LineKM(0, 1, 0, step.knots()));
+  }
+
+  void makeRegPlot(MDArray2d data, MDArray2i inds, double stepSizeKnots, const char *label) {
+    assert(data.rows() == 1);
+    assert(inds.rows() == 1);
+    int count = data.cols();
+    assert(count == inds.cols());
+    Arrayd X(count);
+    Arrayd Yraw(count);
+    Arrayd Yfiltered(count);
+    for (int i = 0; i < count; i++) {
+      X[i] = 0;
+      Yraw[i] = data(0, i);
+      Yfiltered[i] = stepSizeKnots*inds[i];
+    }
+    GnuplotExtra plot;
+    plot.set_ylabel(label);
+    plot.plot_xy(X, Yraw);
+    plot.plot_xy(X, Yfiltered);
+    plot.show();
   }
 }
 
@@ -46,10 +64,26 @@ int main(int argc, const char **argv) {
   amap.registerOption("--plot-tws", "Plot true wind speed");
 
   if (amap.parseAndHelp(argc, argv)) {
+    Velocity<double> stepSize = Velocity<double>::knots(stepSizeKnots);
     Array<Nav> navs = getTestdataNavs(amap);
     Array<PolarPoint> pts = navsToPolarPoints(navs).slice([&](const PolarPoint &x) {return !x.hasNaN();});
 
-    MDArray2i inds = quantFilterVel(Velocity<double>::knots(stepSizeKnots), pts, lambda);
+    MDArray2d data = makeDataMatrix(pts);
+    Array<LineKM> maps = makeVelMaps(stepSize);
+    MDArray2i inds = quantFilter(maps, data, lambda);
+
+    if (amap.optionProvided("--plot-x")) {
+      const int i = 0;
+      makeRegPlot(data.sliceRow(i), inds.sliceRow(i), stepSizeKnots, "X [knots]");
+    }
+    if (amap.optionProvided("--plot-y")) {
+      const int i = 1;
+      makeRegPlot(data.sliceRow(i), inds.sliceRow(i), stepSizeKnots, "Y [knots]");
+    }
+    if (amap.optionProvided("--plot-tws")) {
+      const int i = 2;
+      makeRegPlot(data.sliceRow(i), inds.sliceRow(i), stepSizeKnots, "TWS [knots]");
+    }
 
     return 0;
   }
