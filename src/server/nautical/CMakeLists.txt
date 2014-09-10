@@ -424,3 +424,14 @@ target_link_libraries(nautical_PolarPlot
                      )                          
 
 add_subdirectory("tiles")
+
+
+add_library(nautical_TemporalSplit
+            TemporalSplit.h
+            TemporalSplit.cpp
+           )
+target_link_libraries(nautical_TemporalSplit
+                      nautical_nav
+                     )           
+            
+            
