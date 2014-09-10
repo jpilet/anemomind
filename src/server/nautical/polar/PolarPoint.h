@@ -42,6 +42,10 @@ class PolarPoint {
     return _boatSpeed < other._boatSpeed;
   }
 
+  bool hasNaN() const {
+    return _twa.isNaN() || _tws.isNaN() || _boatSpeed.isNaN();
+  }
+
  private:
   int _navIndex;
   Angle<double> _twa;
