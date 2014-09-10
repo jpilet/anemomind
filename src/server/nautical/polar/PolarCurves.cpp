@@ -5,9 +5,20 @@
 
 #include <server/nautical/polar/PolarCurves.h>
 #include <server/common/LineKM.h>
+#include <server/common/MDArray.h>
+#include <server/math/PolarCoordinates.h>
 #include <server/nautical/polar/PolarDensity.h>
+#include <server/plot/extra.h>
 
 namespace sail {
+
+Velocity<double> PolarCurves::Vertex::x() const {
+  return calcPolarX(true, _boatSpeed, _twa);
+}
+
+Velocity<double> PolarCurves::Vertex::y() const {
+  return calcPolarY(true, _boatSpeed, _twa);
+}
 
 PolarCurves PolarCurves::fromDensity(const PolarDensity &density, Velocity<double> tws,
     int twaCount, Velocity<double> maxBoatSpeed, int bsCount, double quantile) {
@@ -21,6 +32,30 @@ PolarCurves PolarCurves::fromDensity(const PolarDensity &density, Velocity<doubl
   }
   pts.last() = pts.first();
   return PolarCurves(tws, Array<Array<Vertex> >::args(pts));
+}
+
+namespace {
+  MDArray2d getCurveData(Array<PolarCurves::Vertex> curve) {
+    int count = curve.size();
+    MDArray2d data(count, 2);
+    for (int i = 0; i < count; i++) {
+      PolarCurves::Vertex &v = curve[i];
+      data(i, 0) = v.x().knots();
+      data(i, 1) = v.y().knots();
+    }
+    return data;
+  }
+
+  void plotCurve(Array<PolarCurves::Vertex> curve, GnuplotExtra *dst) {
+    MDArray2d data = getCurveData(curve);
+    dst->plot(data);
+  }
+}
+
+void PolarCurves::plot(GnuplotExtra *dst) {
+  for (auto curve: _curves) {
+    plotCurve(curve, dst);
+  }
 }
 
 

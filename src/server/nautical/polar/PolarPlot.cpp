@@ -6,6 +6,9 @@
 #include <server/nautical/TestdataNavs.h>
 #include <server/nautical/polar/BasicPolar.h>
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
+#include <server/nautical/polar/PolarCurves.h>
+#include <server/nautical/polar/PolarDensity.h>
+#include <server/plot/extra.h>
 
 using namespace sail;
 
@@ -83,6 +86,16 @@ int main(int argc, const char **argv) {
   amap.registerOption("--plot", "Make a plot, specifying [quantile-frac]").setArgCount(1).setUnique();
   amap.registerOption("--plot-for-tws", "Make a plot with a single polar slice close to a [wind-speed-knots] and containing [point-count] points, with bins at [quantile]")
       .setArgCount(3).setUnique();
+
+
+  double bandwidthKnots = 1.0;
+  int boatSpeedSampleCount = 30;
+  double maxSpeedKnots = 15;
+  amap.registerOption("--bandwidth", "Set the bandwidth for the density estimation").setArgCount(1).store(&bandwidthKnots);
+  amap.registerOption("--curve", "Make a curve at a [true-windspeed-knots]").setArgCount(1).setRequired();
+  amap.registerOption("--boat-speed-sample-count", "Set number of boat speed samples")
+      .setArgCount(1).store(&boatSpeedSampleCount);
+
   if (amap.parseAndHelp(argc, argv)) {
     /*BasicPolar::TwsHist twsHist(20,
         Velocity<double>::metersPerSecond(0),
@@ -140,6 +153,19 @@ int main(int argc, const char **argv) {
           twaHist,
           pts)
         .plot(q);
+    }
+
+    if (amap.optionProvided("--curve")) {
+      PolarDensity density(Velocity<double>::knots(bandwidthKnots),
+          navsToPolarPoints(getCachedNavs(amap, &cachedNavs)), true);
+      Array<ArgMap::Arg*> args = amap.optionArgs("--curve");
+      Velocity<double> tws = Velocity<double>::knots(args[0]->parseDoubleOrDie());
+      double q = args[1]->parseDoubleOrDie();
+      PolarCurves curve = PolarCurves::fromDensity(density, tws,
+          twaHist.binCount(), Velocity<double>::knots(maxSpeedKnots), boatSpeedSampleCount, q);
+      GnuplotExtra plot;
+      curve.plot(&plot);
+      plot.show();
     }
 
     return 0;

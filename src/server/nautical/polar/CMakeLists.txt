@@ -19,6 +19,7 @@ add_executable(nautical_polar_PolarPlot
 target_link_libraries(nautical_polar_PolarPlot
                       nautical_polar_BasicPolar
                       nautical_TestdataNavs
+                      nautical_polar_PolarCurves
                       common_logging
                      )                          
 
@@ -26,7 +27,9 @@ add_library(nautical_polar_PolarCurves
             PolarCurves.h
             PolarCurves.cpp
            )
-target_link_libraries(nautical_polar_PolarCurves)           
+target_link_libraries(nautical_polar_PolarCurves
+                      nautical_polar_PolarDensity
+                     )           
 
 
 add_library(nautical_polar_PolarPoint
