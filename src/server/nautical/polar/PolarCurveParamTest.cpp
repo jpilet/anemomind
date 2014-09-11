@@ -9,8 +9,10 @@
 using namespace sail;
 
 TEST(PolarCurveParamTest, BasicTest) {
-  PolarCurveParam param(5, 3, true);
+  PolarCurveParam param(5, 5, true);
   EXPECT_EQ(param.ctrlToParamIndex(0), 0);
   EXPECT_EQ(param.ctrlToParamIndex(1), 1);
-  EXPECT_EQ(param.ctrlToParamIndex(2), 0);
+  EXPECT_EQ(param.ctrlToParamIndex(2), 2);
+  EXPECT_EQ(param.ctrlToParamIndex(3), 1);
+  EXPECT_EQ(param.ctrlToParamIndex(4), 0);
 }
