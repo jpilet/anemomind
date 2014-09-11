@@ -70,7 +70,7 @@ int main(int argc, const char **argv) {
   double lambda = 16.0;
   double stepSizeKnots = 0.5;
   int chunkSize = 10000;
-  std::string filename;
+  std::string outFilename;
 
   ArgMap amap;
   registerGetTestdataNavs(amap);
@@ -80,36 +80,43 @@ int main(int argc, const char **argv) {
   amap.registerOption("--plot-y", "Plot speed along y-axis in polar plot");
   amap.registerOption("--plot-tws", "Plot true wind speed");
   amap.registerOption("--chunk-size", "Set the chunk size").store(&chunkSize);
-  amap.registerOption("--save", "Provide a filename to save the result").setArgCount(1).store(&filename);
+  amap.registerOption("--save", "Provide a filename to save the result").setArgCount(1).store(&outFilename);
+  amap.registerOption("--view-spans", "Load a file [filename] and analyze the [n] longest stable spans").setArgCount(2);
 
 
   if (amap.parseAndHelp(argc, argv)) {
-    Velocity<double> stepSize = Velocity<double>::knots(stepSizeKnots);
-    Array<Nav> navs = getTestdataNavs(amap);
-    Array<PolarPoint> pts = navsToPolarPoints(navs).slice([&](const PolarPoint &x) {return !x.hasNaN();});
-    MDArray2d data = makeDataMatrix(pts);
+    if (amap.optionProvided("--view-spans")) {
+      Array<ArgMap::Arg*> args = amap.optionArgs("--view-spans");
+      ifstream file(args[0]->value());
 
-    Array<LineKM> maps = makeVelMaps(stepSize);
-    MDArray2i inds = quantFilterChunked(maps, data, lambda, chunkSize);
-    Array<Duration<double> > t = calcT(pts, navs);
+    } else {
+      Velocity<double> stepSize = Velocity<double>::knots(stepSizeKnots);
+      Array<Nav> navs = getTestdataNavs(amap);
+      Array<PolarPoint> pts = navsToPolarPoints(navs).slice([&](const PolarPoint &x) {return !x.hasNaN();});
+      MDArray2d data = makeDataMatrix(pts);
 
-    if (amap.optionProvided("--plot-x")) {
-      const int i = 0;
-      makeRegPlot(data.sliceRow(i), inds.sliceRow(i), stepSizeKnots, "X [knots]", t);
-    }
-    if (amap.optionProvided("--plot-y")) {
-      const int i = 1;
-      makeRegPlot(data.sliceRow(i), inds.sliceRow(i), stepSizeKnots, "Y [knots]", t);
-    }
-    if (amap.optionProvided("--plot-tws")) {
-      const int i = 2;
-      makeRegPlot(data.sliceRow(i), inds.sliceRow(i), stepSizeKnots, "TWS [knots]", t);
-    }
-    if (!filename.empty()) {
-      std::ofstream file(filename);
-      Poco::Dynamic::Var obj = json::serialize(FilteredPolarPoints(stepSize, inds));
+      Array<LineKM> maps = makeVelMaps(stepSize);
+      MDArray2i inds = quantFilterChunked(maps, data, lambda, chunkSize);
+      Array<Duration<double> > t = calcT(pts, navs);
 
-      Poco::JSON::Stringifier::stringify(obj, file, 0, 0);
+      if (amap.optionProvided("--plot-x")) {
+        const int i = 0;
+        makeRegPlot(data.sliceRow(i), inds.sliceRow(i), stepSizeKnots, "X [knots]", t);
+      }
+      if (amap.optionProvided("--plot-y")) {
+        const int i = 1;
+        makeRegPlot(data.sliceRow(i), inds.sliceRow(i), stepSizeKnots, "Y [knots]", t);
+      }
+      if (amap.optionProvided("--plot-tws")) {
+        const int i = 2;
+        makeRegPlot(data.sliceRow(i), inds.sliceRow(i), stepSizeKnots, "TWS [knots]", t);
+      }
+      if (!outFilename.empty()) {
+        std::ofstream file(outFilename);
+        Poco::Dynamic::Var obj = json::serialize(FilteredPolarPoints(stepSize, inds));
+
+        Poco::JSON::Stringifier::stringify(obj, file, 0, 0);
+      }
     }
 
     return 0;
