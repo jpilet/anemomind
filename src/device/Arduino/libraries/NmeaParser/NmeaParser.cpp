@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <cassert>
 
 #ifdef ON_SERVER
 #include <string.h>
@@ -303,7 +304,7 @@ NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
     parseNc(argv_[3]+5,3));
 
   pos_.lon.set(
-    (argv_[6][0] == 'W' ? -1 : 1) * parseNc(argv_[5],3),
+    Word(argv_[6][0] == 'W' ? -1 : 1) * parseNc(argv_[5],3),
     parse2c(argv_[5]+3),
     parseNc(argv_[5]+6,3));
 
@@ -354,7 +355,10 @@ NmeaParser::NmeaSentence NmeaParser::processVLW() {
 
 double AccAngle::toDouble() const {
   double subdeg = ((double)min_ + (double)mc_/1000.0) / 60.0;
-  return (double)deg_ + (deg_ < 0 ? -subdeg : subdeg);
+  assert(min_ >= 0);
+  assert(mc_ >= 0);
+  int sign = (deg_ < 0? -1 : 1);
+  return sign*((double)std::abs(deg_) + subdeg);
 }
 
 AccAngle::AccAngle() {
