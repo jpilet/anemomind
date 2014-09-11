@@ -6,6 +6,8 @@
 #ifndef CURVEPARAM_H_
 #define CURVEPARAM_H_
 
+#include <server/common/MDArray.h>
+
 namespace sail {
 
 MDArray2d parameterizeOpenCurve(int vertexCount, Arrayi ctrlInds, int regDeg = 2);

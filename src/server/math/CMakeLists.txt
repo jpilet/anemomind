@@ -147,7 +147,11 @@ cxx_test(math_DensityEstimatorTest
          gtest_main
         )
 
-
+add_library(math_CurveParam
+            CurveParam.h
+            CurveParam.cpp
+           )
+target_depends_on_armadillo(math_CurveParam)
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
