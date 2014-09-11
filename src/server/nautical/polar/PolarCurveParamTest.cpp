@@ -15,4 +15,6 @@ TEST(PolarCurveParamTest, BasicTest) {
   EXPECT_EQ(param.ctrlToParamIndex(2), 2);
   EXPECT_EQ(param.ctrlToParamIndex(3), 1);
   EXPECT_EQ(param.ctrlToParamIndex(4), 0);
+  EXPECT_EQ(param.paramCount(), 3);
+  EXPECT_EQ(param.vertexCount(), (4 + 2)*5 + 1);
 }
