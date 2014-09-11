@@ -126,6 +126,11 @@ class Span {
     dst.extend(_maxv + marg);
     return dst;
   }
+
+  T width() const {
+    assert(initialized());
+    return _maxv - _minv;
+  }
  private:
   bool _initialized;
   T _minv, _maxv;

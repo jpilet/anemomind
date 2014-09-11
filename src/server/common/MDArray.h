@@ -126,7 +126,7 @@ class MDArray {
     _data = Array<T>(_size.numel());
   }
 
-  ThisType slice(int *from, int *to) {
+  ThisType slice(int *from, int *to) const {
 #if SAFEARRAY
     assert(_size.validIncl(from));
     assert(_size.validIncl(to));
@@ -335,7 +335,7 @@ class MDArray {
     return _size.step(inds, stepsize);
   }
 
-  ThisType sliceAlongDim(int dim, int from, int to) {
+  ThisType sliceAlongDim(int dim, int from, int to) const {
     int fromArr[dims];
     int toArr[dims];
     for (int i = 0; i < dims; i++) {
@@ -389,7 +389,7 @@ class MDArray {
     return sliceAlongDim(0, from, to);
   }
 
-  ThisType sliceCols(int from, int to) {
+  ThisType sliceCols(int from, int to) const {
     static_assert(dims >= 2, "Dimension should be at least 2");
     return sliceAlongDim(1, from, to);
   }
@@ -410,7 +410,7 @@ class MDArray {
     return sliceRows(0, to);
   }
 
-  ThisType sliceCol(int index) {
+  ThisType sliceCol(int index) const {
     return sliceCols(index, index + 1);
   }
 

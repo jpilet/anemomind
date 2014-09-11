@@ -75,4 +75,5 @@ add_library(nautical_polar_FilteredPolarPoints
 target_depends_on_poco_json(nautical_polar_FilteredPolarPoints)
 target_link_libraries(nautical_polar_FilteredPolarPoints
                       common_JsonObjDeserializer
+                      common_JsonIO
                      )                

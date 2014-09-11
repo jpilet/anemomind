@@ -11,6 +11,7 @@
 #include <server/math/PolarCoordinates.h>
 #include <Poco/JSON/Stringifier.h>
 #include <server/nautical/polar/FilteredPolarPoints.h>
+#include <server/common/JsonIO.h>
 
 
 
@@ -87,8 +88,17 @@ int main(int argc, const char **argv) {
   if (amap.parseAndHelp(argc, argv)) {
     if (amap.optionProvided("--view-spans")) {
       Array<ArgMap::Arg*> args = amap.optionArgs("--view-spans");
-      ifstream file(args[0]->value());
-
+      FilteredPolarPoints fpp;
+      if (json::load(args[0]->value()), &fpp) {
+        Array<FilteredPolarPoints::Point> pts = fpp.getStablePoints();
+        int count = std::min(args[1]->parseIntOrDie(), pts.size());
+        for (int i = 0; i < count; i++) {
+          FilteredPolarPoints::Point pt = pts[pts.size() - 1 - i];
+          std::cout << "Span from " << pt.span().minv() << " to " << pt.span().maxv() << " of length " << pt.span().width() << std::endl;
+        }
+      }
+      LOG(FATAL) << "Failed to load file";
+      return -1;
     } else {
       Velocity<double> stepSize = Velocity<double>::knots(stepSizeKnots);
       Array<Nav> navs = getTestdataNavs(amap);

@@ -43,7 +43,7 @@ class Index {
     return (0 <= inds[0]) && (inds[0] < sizes[0]) && Index<dims-1>::valid(inds + 1, sizes + 1);
   }
 
-  static bool validIncl(int *inds, int *sizes) {
+  static bool validIncl(const int *inds, const int *sizes) {
     return (0 <= inds[0]) && (inds[0] <= sizes[0]) && Index<dims-1>::validIncl(inds + 1, sizes + 1);
   }
 
@@ -80,7 +80,7 @@ class Index<0> {
     return true;
   }
 
-  static bool validIncl(int *inds, int *sizes) {
+  static bool validIncl(const int *inds, const int *sizes) {
     return true;
   }
 
@@ -153,7 +153,7 @@ class MDInds {
     return Index<dims>::valid(inds, _sizes);
   }
 
-  bool validIncl(int *inds) {
+  bool validIncl(const int *inds) const {
     return Index<dims>::validIncl(inds, _sizes);
   }
 
@@ -182,7 +182,7 @@ class MDInds {
     Index<dims>::calcInv(index, _sizes, indsOut);
   }
 
-  int operator[] (int index) {
+  int operator[] (int index) const {
     return _sizes[index];
   }
 
