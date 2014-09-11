@@ -64,11 +64,15 @@ target_link_libraries(nautical_FilteredPolarExample
                       plot_gnuplot
                       nautical_polar_PolarPointConv
                       math_hmm_QuantFilter
+                      nautical_polar_FilteredPolarPoints
                      )
 
 
-add_library(nautical_FilteredPolarPoints
+add_library(nautical_polar_FilteredPolarPoints
             FilteredPolarPoints.h
             FilteredPolarPoints.cpp
            )
-                                  
+target_depends_on_poco_json(nautical_polar_FilteredPolarPoints)
+target_link_libraries(nautical_polar_FilteredPolarPoints
+                      common_JsonObjDeserializer
+                     )                

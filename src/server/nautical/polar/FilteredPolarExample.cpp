@@ -9,6 +9,9 @@
 #include <server/nautical/polar/PolarPointConv.h>
 #include <server/math/hmm/QuantFilter.h>
 #include <server/math/PolarCoordinates.h>
+#include <Poco/JSON/Stringifier.h>
+#include <server/nautical/polar/FilteredPolarPoints.h>
+
 
 
 using namespace sail;
@@ -67,6 +70,7 @@ int main(int argc, const char **argv) {
   double lambda = 16.0;
   double stepSizeKnots = 0.5;
   int chunkSize = 10000;
+  std::string filename;
 
   ArgMap amap;
   registerGetTestdataNavs(amap);
@@ -76,6 +80,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--plot-y", "Plot speed along y-axis in polar plot");
   amap.registerOption("--plot-tws", "Plot true wind speed");
   amap.registerOption("--chunk-size", "Set the chunk size").store(&chunkSize);
+  amap.registerOption("--save", "Provide a filename to save the result").setArgCount(1).store(&filename);
 
 
   if (amap.parseAndHelp(argc, argv)) {
@@ -99,6 +104,12 @@ int main(int argc, const char **argv) {
     if (amap.optionProvided("--plot-tws")) {
       const int i = 2;
       makeRegPlot(data.sliceRow(i), inds.sliceRow(i), stepSizeKnots, "TWS [knots]", t);
+    }
+    if (!filename.empty()) {
+      std::ofstream file(filename);
+      Poco::Dynamic::Var obj = json::serialize(FilteredPolarPoints(stepSize, inds));
+
+      Poco::JSON::Stringifier::stringify(obj, file, 0, 0);
     }
 
     return 0;
