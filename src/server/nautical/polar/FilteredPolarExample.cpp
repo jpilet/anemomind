@@ -12,6 +12,7 @@
 #include <Poco/JSON/Stringifier.h>
 #include <server/nautical/polar/FilteredPolarPoints.h>
 #include <server/common/JsonIO.h>
+#include <server/common/ArrayIO.h>
 
 
 
@@ -89,16 +90,21 @@ int main(int argc, const char **argv) {
     if (amap.optionProvided("--view-spans")) {
       Array<ArgMap::Arg*> args = amap.optionArgs("--view-spans");
       FilteredPolarPoints fpp;
-      if (json::load(args[0]->value()), &fpp) {
+      if (json::deserialize(json::load(args[0]->value()), &fpp)) {
+        int offs = 300;
+        std::cout << EXPR_AND_VAL_AS_STRING(fpp.inds().sliceCols(offs, offs + 20)) << std::endl;
         Array<FilteredPolarPoints::Point> pts = fpp.getStablePoints();
         int count = std::min(args[1]->parseIntOrDie(), pts.size());
         for (int i = 0; i < count; i++) {
-          FilteredPolarPoints::Point pt = pts[pts.size() - 1 - i];
+          FilteredPolarPoints::Point pt = pts[i];
           std::cout << "Span from " << pt.span().minv() << " to " << pt.span().maxv() << " of length " << pt.span().width() << std::endl;
         }
+        std::cout << "Total number of stable points: " << pts.size() << std::endl;
+        return 0;
+      } else {
+        LOG(FATAL) << "Failed to load file";
+        return -1;
       }
-      LOG(FATAL) << "Failed to load file";
-      return -1;
     } else {
       Velocity<double> stepSize = Velocity<double>::knots(stepSizeKnots);
       Array<Nav> navs = getTestdataNavs(amap);
