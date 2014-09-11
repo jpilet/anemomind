@@ -4,6 +4,7 @@
  */
 
 #include <server/nautical/polar/PolarCurveParam.h>
+#include <server/math/CurveParam.h>
 #include <server/common/LineKM.h>
 #include <cassert>
 
@@ -16,6 +17,8 @@ PolarCurveParam::PolarCurveParam(int segsPerCtrlSpan, int ctrlCount, bool mirror
     } else {
       _paramCount = ctrlCount;
     }
+
+    _P = parameterizeCurve(vertexCount(), makeCtrlInds(), 2, true);
 }
 
 Angle<double> PolarCurveParam::ctrlAngle(int ctrlIndex) const {
@@ -23,6 +26,25 @@ Angle<double> PolarCurveParam::ctrlAngle(int ctrlIndex) const {
   assert(ctrlIndex < _ctrlCount);
   LineKM line(-1, _ctrlCount, 0.0, 360.0);
   return Angle<double>::degrees(line(ctrlIndex));
+}
+
+Arrayi PolarCurveParam::makeCtrlInds() const {
+  Arrayi inds(_ctrlCount);
+  for (int i = 0; i < _ctrlCount; i++) {
+    inds[i] = ctrlToVertexIndex(i);
+  }
+  return inds;
+}
+
+int PolarCurveParam::ctrlToParamIndex(int ctrlIndex) const {
+  assert(0 <= ctrlIndex);
+  assert(ctrlIndex < _ctrlCount);
+  if (ctrlIndex < _paramCount) {
+    return ctrlIndex;
+  }
+  int lastParamIndex = _paramCount - 1;
+  int overflow = ctrlIndex - lastParamIndex;
+  return lastParamIndex - overflow;
 }
 
 } /* namespace mmm */

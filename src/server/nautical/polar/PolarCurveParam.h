@@ -7,6 +7,7 @@
 #define POLARCURVEPARAM_H_
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/common/MDArray.h>
 
 namespace sail {
 
@@ -31,18 +32,18 @@ class PolarCurveParam {
     return _paramCount;
   }
 
+  int ctrlToParamIndex(int paramIndex) const;
 
  private:
+  MDArray2d _P;
   int _segsPerCtrlSpan, _ctrlCount, _paramCount;
   bool _mirrored;
-
-  int paramToCtrlIndex(int paramIndex) const;
 
   int lastVertex() const {
     return ctrlToVertexIndex(_ctrlCount);
   }
 
-
+  Arrayi makeCtrlInds() const;
 };
 
 } /* namespace mmm */

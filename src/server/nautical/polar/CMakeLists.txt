@@ -83,6 +83,8 @@ add_library(nautical_polar_PolarCurveParam
             PolarCurveParam.cpp
            )
 target_link_libraries(nautical_polar_PolarCurveParam
+                      math_CurveParam
+                      common_LineKM
                      )
 
 cxx_test(nautical_polar_PolarCurveParamTest
