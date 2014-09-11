@@ -14,7 +14,7 @@ namespace json {
 
 template <typename T, int N>
 Poco::Dynamic::Var serialize(MDArray<T, N> src) {
-  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object::Ptr());
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   obj->set("size", serialize(src.size()));
   obj->set("data", serialize(src.continuousData()));
   return obj;

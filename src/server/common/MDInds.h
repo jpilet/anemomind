@@ -33,7 +33,7 @@ class Index {
     return sizes[0]*Index<dims-1>::numel(sizes+1);
   }
 
-  static void calcInv(int index, int *sizes, int *indsOut) {
+  static void calcInv(int index, const int *sizes, int *indsOut) {
     int s = sizes[0];
     indsOut[0] = index % s;
     Index<dims-1>::calcInv(index/s, sizes + 1, indsOut + 1);
@@ -88,7 +88,7 @@ class Index<0> {
     return stepsize != 0;
   }
 
-  static void calcInv(int index, int *sizes, int *indsOut) {
+  static void calcInv(int index, const int *sizes, int *indsOut) {
   }
 
   static int numel(const int *sizes) {
@@ -178,7 +178,7 @@ class MDInds {
     return Index<dims>::numel(_sizes);
   }
 
-  void calcInv(int index, int *indsOut) {
+  void calcInv(int index, int *indsOut) const {
     Index<dims>::calcInv(index, _sizes, indsOut);
   }
 
@@ -201,6 +201,10 @@ class MDInds {
   }
 
   int *getData() {
+    return _sizes;
+  }
+
+  const int *getData() const {
     return _sizes;
   }
  private:

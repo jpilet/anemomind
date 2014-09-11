@@ -454,7 +454,7 @@ class MDArray {
     return _data;
   }
 
-  bool isContinuous() {
+  bool isContinuous() const {
     // Skip the last dimension since it is not used
     return Index<dims-1>::equals(_index.getData(), _size.getData());
   }
@@ -506,7 +506,7 @@ class MDArray {
   }
 
   Array<T> continuousData() const {
-    if (_data.isContinuous()) {
+    if (isContinuous()) {
       return _data;
     } else {
       int n = numel();
