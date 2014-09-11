@@ -7,6 +7,7 @@
 #define POLARPOINT_H_
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/math/PolarCoordinates.h>
 
 namespace sail {
 
@@ -46,6 +47,13 @@ class PolarPoint {
     return _twa.isNaN() || _tws.isNaN() || _boatSpeed.isNaN();
   }
 
+  Velocity<double> x() const {
+    return calcPolarX(true, _boatSpeed, _twa);
+  }
+
+  Velocity<double> y() const {
+    return calcPolarY(true, _boatSpeed, _twa);
+  }
  private:
   int _navIndex;
   Angle<double> _twa;

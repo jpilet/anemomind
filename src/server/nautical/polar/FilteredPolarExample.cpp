@@ -66,6 +66,37 @@ namespace {
     }
     return T;
   }
+
+  void saveAsMatrix(std::string filename, Array<FilteredPolarPoints::Point> pts) {
+    std::ofstream file(filename);
+    file << "% Col 1: polar x point (knots)\n"
+            "% Col 2: polar y point (knots)\n"
+            "% Col 3: tws point (knots)\n";
+    int count = pts.size();
+    for (int i = 0; i < count; i++) {
+      const PolarPoint &pt = pts[i].polarPoint();
+      file << pt.x().knots() << " " << pt.y().knots() << " " << pt.tws().knots() << std::endl;
+    }
+  }
+
+  void listWindSpeeds(FilteredPolarPoints &pts) {
+    typedef std::map<int, int>::iterator I;
+    for (I i = pts.samplesPerWindSpeed().begin(); i != pts.samplesPerWindSpeed().end(); i++) {
+      int index = i->first;
+      std::cout << "Wind speed " << index << " (" << pts.toVelocity(index).knots() << " knots): " << i->second << " samples." << std::endl;
+    }
+  }
+
+  void interactiveSlice(FilteredPolarPoints &pts) {
+    bool found = true;
+    do {
+      listWindSpeeds(pts);
+      std::cout << "Which wind speed? ";
+      int index = 0;
+      std::cin >> index;
+      found = pts.samplesPerWindSpeed().find(index) != pts.samplesPerWindSpeed().end();
+    } while (found);
+  }
 }
 
 int main(int argc, const char **argv) {
@@ -84,6 +115,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--chunk-size", "Set the chunk size").store(&chunkSize);
   amap.registerOption("--save", "Provide a filename to save the result").setArgCount(1).store(&outFilename);
   amap.registerOption("--view-spans", "Load a file [filename] and analyze the [n] longest stable spans").setArgCount(2);
+  amap.registerOption("--interactive-slice", "Only with --view-spans: Slice the quantized values for a particular wind speed");
 
 
   if (amap.parseAndHelp(argc, argv)) {
@@ -100,6 +132,9 @@ int main(int argc, const char **argv) {
           std::cout << "Span from " << pt.span().minv() << " to " << pt.span().maxv() << " of length " << pt.span().width() << std::endl;
         }
         std::cout << "Total number of stable points: " << pts.size() << std::endl;
+        if (!outFilename.empty()) {
+          saveAsMatrix(outFilename, pts);
+        }
         return 0;
       } else {
         LOG(FATAL) << "Failed to load file";
