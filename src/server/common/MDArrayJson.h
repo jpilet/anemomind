@@ -7,7 +7,6 @@
 #define MDARRAYJSON_H_
 
 #include <server/common/MDIndsJson.h>
-#include <server/common/JsonObjDeserializer.h>
 
 namespace sail {
 namespace json {
@@ -21,19 +20,29 @@ Poco::Dynamic::Var serialize(MDArray<T, N> src) {
 }
 
 template <typename T, int N>
-bool deserialize(Poco::Dynamic::Var src, MDArray<T, N> *dst) {
-  MDInds<N> size;
-  Array<T> data;
-  ObjDeserializer deser(src);
-  deser.get("size", &size);
-  deser.get("data", &data);
-  if (deser.success()) {
-    *dst = MDArray<T, N>(size, data);
-    return true;
-  } else {
-    *dst = MDArray<T, N>();
-    return false;
-  }
+bool deserialize(Poco::Dynamic::Var csrc, MDArray<T, N> *dst) {
+  try {
+      Poco::JSON::Object::Ptr src = csrc.extract<Poco::JSON::Object::Ptr>();
+      *dst = MDArray<T, N>();
+      if (!src->has("size")) {
+        return false;
+      }
+      if (!src->has("data")) {
+        return false;
+      }
+      MDInds<N> size;
+      if (!deserialize(src->get("size"), &size)) {
+        return false;
+      }
+      Array<T> data;
+      if (!deserialize(src->get("data"), &data)) {
+        return false;
+      }
+      *dst = MDArray<T, N>(size, data);
+      return true;
+    } catch (Poco::Exception &e) {
+      return false;
+    }
 }
 
 }

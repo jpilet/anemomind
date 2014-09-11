@@ -118,6 +118,9 @@ class MDArray {
     _data = data;
   }
 
+  MDArray(const MDInds<dims> &size, Array<T> data) :
+    _data(data), _size(size), _index(size) {}
+
   void allocate(int *sizes) {
     setSize(sizes);
     _data = Array<T>(_size.numel());
