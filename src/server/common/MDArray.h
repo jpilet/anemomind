@@ -379,6 +379,25 @@ class MDArray {
     return dst;
   }
 
+  ThisType sliceCols(Arrayb sel) {
+    static_assert(dims == 2, "Only 2d arrays");
+    assert(cols() == sel.size());
+    int colcount = countTrue(sel);
+    int rowcount = rows();
+    ThisType dst(rowcount, colcount);
+    int counter = 0;
+    for (int j = 0; j < cols(); j++) {
+      if (sel[j]) {
+        for (int i = 0; i < rowcount; i++) {
+          dst(i, counter) = get(i, j);
+        }
+        counter++;
+      }
+    }
+    assert(counter == colcount);
+    return dst;
+  }
+
   ThisType sliceBlock(int dim, int index, int blockSize) {
     int from = index*blockSize;
     int to = from + blockSize;

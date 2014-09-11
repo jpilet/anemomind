@@ -7,10 +7,11 @@
 #define CURVEPARAM_H_
 
 #include <server/common/MDArray.h>
+#include <armadillo>
 
 namespace sail {
 
-MDArray2d parameterizeOpenCurve(int vertexCount, Arrayi ctrlInds, int regDeg = 2);
+MDArray2d parameterizeCurve(int vertexCount, Arrayi ctrlInds, int regDeg = 2, bool open = true);
 
 } /* namespace mmm */
 

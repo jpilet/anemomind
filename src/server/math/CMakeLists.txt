@@ -152,6 +152,15 @@ add_library(math_CurveParam
             CurveParam.cpp
            )
 target_depends_on_armadillo(math_CurveParam)
+target_link_libraries(math_CurveParam
+                      math_BandMat
+                     )
+
+cxx_test(math_CurveParamTest
+         CurveParamTest.cpp
+         math_CurveParam
+         gtest_main
+        )
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
