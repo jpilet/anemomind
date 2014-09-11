@@ -71,30 +71,71 @@ namespace {
     std::ofstream file(filename);
     file << "% Col 1: polar x point (knots)\n"
             "% Col 2: polar y point (knots)\n"
-            "% Col 3: tws point (knots)\n";
+            "% Col 3: tws point (knots)";
+    file << "% Col 4: polar x point (index)\n"
+            "% Col 5: polar y point (index)\n"
+            "% Col 6: tws point (index)\n";
     int count = pts.size();
     for (int i = 0; i < count; i++) {
-      const PolarPoint &pt = pts[i].polarPoint();
-      file << pt.x().knots() << " " << pt.y().knots() << " " << pt.tws().knots() << std::endl;
+      FilteredPolarPoints::Point &ppt = pts[i];
+      const PolarPoint &pt = ppt.polarPoint();
+      file << pt.x().knots() << " " << pt.y().knots() << " " << pt.tws().knots() <<
+          " " << ppt.xIndex() << " " << ppt.yIndex() << " " << ppt.twsIndex() << std::endl;
     }
   }
 
-  void listWindSpeeds(FilteredPolarPoints &pts) {
+  void listWindSpeeds(std::map<int, int> &m, Velocity<double> step) {
     typedef std::map<int, int>::iterator I;
-    for (I i = pts.samplesPerWindSpeed().begin(); i != pts.samplesPerWindSpeed().end(); i++) {
+    for (I i = m.begin(); i != m.end(); i++) {
       int index = i->first;
-      std::cout << "Wind speed " << index << " (" << pts.toVelocity(index).knots() << " knots): " << i->second << " samples." << std::endl;
+      std::cout << "Wind speed " << index << " (" << double(index)*step.knots() << " knots): " << i->second << " samples." << std::endl;
     }
   }
 
-  void interactiveSlice(FilteredPolarPoints &pts) {
+
+  MDArray2d getXY(Array<FilteredPolarPoints::Point> pts) {
+    int count = pts.size();
+    MDArray2d data(count, 2);
+    for (int i = 0; i < count; i++) {
+      FilteredPolarPoints::Point &pt = pts[i];
+      data(i, 0) = pt.x().knots();
+      data(i, 1) = pt.y().knots();
+    }
+    return data;
+  }
+
+  void displayPlot(Array<FilteredPolarPoints::Point> pts) {
+    GnuplotExtra plot;
+    plot.set_style("points");
+    plot.set_xlabel("X [knots]");
+    plot.set_xlabel("Y [knots]");
+    plot.plot(getXY(pts));
+    plot.show();
+  }
+
+  void displayPlot(Array<FilteredPolarPoints::Point> pts, int wsIndex) {
+    displayPlot(pts.slice([&](const FilteredPolarPoints::Point &pt) {
+      return wsIndex == pt.twsIndex();
+    }));
+  }
+
+  void interactiveSlice(Array<FilteredPolarPoints::Point> pts) {
+    Velocity<double> step = pts[0].step();
+    std::map<int, int> m;
+    for (auto p : pts) {
+      m[p.twsIndex()]++;
+    }
+
     bool found = true;
     do {
-      listWindSpeeds(pts);
+      listWindSpeeds(m, step);
       std::cout << "Which wind speed? ";
       int index = 0;
       std::cin >> index;
-      found = pts.samplesPerWindSpeed().find(index) != pts.samplesPerWindSpeed().end();
+      found = m.find(index) != m.end();
+      if (found) {
+        displayPlot(pts, index);
+      }
     } while (found);
   }
 }
@@ -116,7 +157,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--save", "Provide a filename to save the result").setArgCount(1).store(&outFilename);
   amap.registerOption("--view-spans", "Load a file [filename] and analyze the [n] longest stable spans").setArgCount(2);
   amap.registerOption("--interactive-slice", "Only with --view-spans: Slice the quantized values for a particular wind speed");
-
+  amap.setHelpInfo(" Example usage: ./nautical_polar_FilteredPolarExample --view-spans filtered.json 1000 --save filtered.txt --interactive-slice");
 
   if (amap.parseAndHelp(argc, argv)) {
     if (amap.optionProvided("--view-spans")) {
@@ -134,6 +175,9 @@ int main(int argc, const char **argv) {
         std::cout << "Total number of stable points: " << pts.size() << std::endl;
         if (!outFilename.empty()) {
           saveAsMatrix(outFilename, pts);
+        }
+        if (amap.optionProvided("--interactive-slice")) {
+          interactiveSlice(pts.sliceTo(count));
         }
         return 0;
       } else {

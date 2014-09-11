@@ -76,4 +76,17 @@ target_depends_on_poco_json(nautical_polar_FilteredPolarPoints)
 target_link_libraries(nautical_polar_FilteredPolarPoints
                       common_JsonObjDeserializer
                       common_JsonIO
-                     )                
+                     )   
+
+add_library(nautical_polar_PolarCurveParam
+            PolarCurveParam.h
+            PolarCurveParam.cpp
+           )
+target_link_libraries(nautical_polar_PolarCurveParam
+                     )
+
+cxx_test(nautical_polar_PolarCurveParamTest
+         PolarCurveParamTest.cpp
+         nautical_polar_PolarCurveParam
+         gtest_main
+        )
