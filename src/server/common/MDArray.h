@@ -276,13 +276,7 @@ class MDArray {
 
   // One-dimensional read/write
   T &operator[] (int index) {
-#if SAFEARRAY
-    assert(0 <= index);
-    assert(index < numel());
-#endif
-    int inds[dims];
-    _size.calcInv(index, inds);
-    return _data[_index.calcIndex(inds)];
+    return _data[calcInternalIndex(index)];
   }
 
   void set(int i, int j, const T &value) {
@@ -328,7 +322,7 @@ class MDArray {
   bool empty() {
     return numel() == 0;
   }
-  int numel() {
+  int numel() const {
     return _size.numel();
   }
   virtual ~MDArray() {}
@@ -506,7 +500,35 @@ class MDArray {
   bool sameSizeAs(MDArray<T, dims> &other) {
     return Index<dims>::equals(_size.getData(), other._size.getData());
   }
+
+  const MDInds<dims> &size() const {
+    return _size;
+  }
+
+  Array<T> continuousData() const {
+    if (_data.isContinuous()) {
+      return _data;
+    } else {
+      int n = numel();
+      Array<T> dst(n);
+      int inds[dims];
+      for (int i = 0; i < n; i++) {
+
+      }
+      return dst;
+    }
+  }
  private:
+  int calcInternalIndex(int index) const {
+    #if SAFEARRAY
+        assert(0 <= index);
+        assert(index < numel());
+    #endif
+    int inds[dims];
+    _size.calcInv(index, inds);
+    return _index.calcIndex(inds);
+  }
+
   void setSize(int *sizes) {
     _index = MDInds<dims>(sizes);
     _size = MDInds<dims>(sizes);

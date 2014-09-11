@@ -65,4 +65,10 @@ target_link_libraries(nautical_FilteredPolarExample
                       nautical_polar_PolarPointConv
                       math_hmm_QuantFilter
                      )
-                      
+
+
+add_library(nautical_FilteredPolarPoints
+            FilteredPolarPoints.h
+            FilteredPolarPoints.cpp
+           )
+                                  
