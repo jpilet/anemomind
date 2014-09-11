@@ -66,8 +66,8 @@ TEST(NmeaParserTest, TestRMC) {
     &parser);
 
   EXPECT_EQ(-37, parser.pos().lat.deg());
-  EXPECT_EQ(51, parser.pos().lat.min());
-  EXPECT_EQ(650, parser.pos().lat.mc());
+  EXPECT_EQ(-51, parser.pos().lat.min());
+  EXPECT_EQ(-650, parser.pos().lat.mc());
   EXPECT_EQ(145, parser.pos().lon.deg());
   EXPECT_EQ(7, parser.pos().lon.min());
   EXPECT_EQ(360, parser.pos().lon.mc());
@@ -81,9 +81,21 @@ TEST(NmeaParserTest, TestRMC) {
   EXPECT_EQ(16, parser.pos().lat.min());
   EXPECT_EQ(450, parser.pos().lat.mc());
   EXPECT_EQ(-123, parser.pos().lon.deg());
-  EXPECT_EQ(11, parser.pos().lon.min());
-  EXPECT_EQ(120, parser.pos().lon.mc());
+  EXPECT_EQ(-11, parser.pos().lon.min());
+  EXPECT_EQ(-120, parser.pos().lon.mc());
   EXPECT_EQ(3, parser.numSentences());
+
+  sendSentence(
+    "$GPRMC,084403,A,4951.4011,N,00746.5936,W,9.0,137.5,060814,4,W*64",
+    &parser);
+
+  EXPECT_EQ(49, parser.pos().lat.deg());
+  EXPECT_EQ(51, parser.pos().lat.min());
+  EXPECT_EQ(401, parser.pos().lat.mc());
+  EXPECT_EQ(-7, parser.pos().lon.deg());
+  EXPECT_EQ(-46, parser.pos().lon.min());
+  EXPECT_EQ(-593, parser.pos().lon.mc());
+  EXPECT_EQ(4, parser.numSentences());
 }
 
 TEST(NmeaParserTest, TestAccAngle) {
@@ -98,10 +110,18 @@ TEST(NmeaParserTest, TestAccAngle) {
   angle = AccAngle(asDegrees);
   EXPECT_NEAR(angle.toDouble(), asDegrees, 1e-6);
 
-  angle.set(-45, 30, 123);
+  angle.set(-45, -30, -123);
 
   asDegrees = - (45.0 + (30.0 + (123.0 / 1000.0)) / 60.0);
   EXPECT_NEAR(angle.toDouble(), asDegrees, 1e-6);
+}
+
+TEST(NmeaParserTest, AccAngleLizardLongitude) {
+  AccAngle negative;
+
+  // Longitude of Lizard point.
+  negative.set(-5, -12, -425);
+  EXPECT_NEAR(-5.207078, negative.toDouble(), 1e-5);
 }
 
 void testDist(const GeoPos &a, const GeoPos &b,
@@ -148,3 +168,4 @@ TEST(NmeaParserTest, TestGeoRef) {
     0,
     1715);
 }
+
