@@ -52,7 +52,9 @@ namespace {
   arma::mat RegMat::makeRegMat() const {
     arma::mat A = arma::zeros(rows(), cols());
     for (int i = 0; i < rows(); i++) {
-
+      for (int j = 0; j < cols(); j++) {
+        A(i, j) = get(i, j);
+      }
     }
     return A;
   }
