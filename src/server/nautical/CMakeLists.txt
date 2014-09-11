@@ -421,6 +421,14 @@ target_link_libraries(nautical_PolarPlot
                       nautical_BasicPolar
                       nautical_TestdataNavs
                       common_logging
-                     )                          
+                     )
+                     
+add_executable(nautical_outputXYZ
+               outputXYZ.cpp
+              )
+target_link_libraries(nautical_outputXYZ
+                      nautical_TestdataNavs
+                      common_ArgMap
+                     )                                                  
 
 add_subdirectory("tiles")
