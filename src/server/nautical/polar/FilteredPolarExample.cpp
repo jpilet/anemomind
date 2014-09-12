@@ -139,6 +139,13 @@ namespace {
       }
     } while (found);
   }
+
+  void outputOptParams(std::string optOutFilename, Arrayd params) {
+    std::ofstream file(optOutFilename);
+    for (int i = 0; i < params.size(); i++) {
+      file << params[i] << std::endl;
+    }
+  }
 }
 
 int main(int argc, const char **argv) {
@@ -146,6 +153,8 @@ int main(int argc, const char **argv) {
   double stepSizeKnots = 0.5;
   int chunkSize = 10000;
   std::string outFilename;
+  std::string outOptFilename = "optimized_polar.txt";
+  std::string outOptFilenameTemp = "optimized_polar_temp.txt";
 
   ArgMap amap;
   registerGetTestdataNavs(amap);
@@ -205,8 +214,14 @@ int main(int argc, const char **argv) {
           PolarDensity density(stepSize, subpts, true);
           LevmarSettings settings;
           settings.verbosity = 2;
-          Arrayd params = optimizePolar(param, density, param.generateSurfacePoints(600), Arrayd(), settings);
+          settings.setDrawf(param.paramCount(), [=](Arrayd datai) {
+            outputOptParams(outOptFilenameTemp, datai);
+            std::cout << "Saved intermediate results to " << outOptFilenameTemp << std::endl;
+          });
+          std::cout << "Number of parameters to optimize: " << param.paramCount() << std::endl;
 
+          Arrayd params = optimizePolar(param, density, param.generateSurfacePoints(600), Arrayd(), settings);
+          outputOptParams(outOptFilename, params);
 
           GnuplotExtra plot;
           param.plot(params, &plot);

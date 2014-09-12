@@ -8,6 +8,7 @@
 #include <server/math/ADFunction.h>
 #include <server/math/nonlinear/Levmar.h>
 #include <server/math/armaadolc.h>
+#include <server/common/ScopedLog.h>
 
 namespace sail {
 
@@ -36,6 +37,7 @@ namespace {
   };
 
   void Objf::evalAD(adouble *Xin, adouble *Fout) {
+    ENTERSCOPE("Objf::evalAD");
     static int counter = 0;
     Arrayad X(inDims(), Xin);
     Arrayad vertices(_param.vertexDim());

@@ -12,6 +12,14 @@
 
 namespace sail {
 
+/*
+ * This function maps a real number
+ * (negative or positive) to a positive number.
+ *
+ * It has a more suitable behaviour than exp in the
+ * sense that it doesn't grow exponentially for large numbers,
+ * but linearly.
+ */
 template <typename T>
 T expline(T x) {
   if (ToDouble(x) < 0) {
@@ -21,6 +29,8 @@ T expline(T x) {
   }
 }
 
+
+// inverse function to the function above.
 template <typename T>
 T logline(T x) {
   if (ToDouble(x) > 1.0) {
