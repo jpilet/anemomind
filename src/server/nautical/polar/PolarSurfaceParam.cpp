@@ -14,7 +14,7 @@ PolarSurfaceParam::PolarSurfaceParam() :
 
 PolarSurfaceParam::PolarSurfaceParam(PolarCurveParam pcp, Velocity<double> maxTws,
     int twsLevelCount) :
-    _twsStep((1.0 / twsLevelCount) * maxTws),
+    _twsStep((1.0/twsLevelCount)*maxTws),
     _twsLevelCount(twsLevelCount),
     _polarCurveParam(pcp), _maxTws(maxTws) {
     assert(!pcp.empty());
