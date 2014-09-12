@@ -17,7 +17,7 @@ TEST(PolarCurveParamTest, BasicTest) {
   EXPECT_EQ(param.ctrlToParamIndex(3), 1);
   EXPECT_EQ(param.ctrlToParamIndex(4), 0);
 
-  // Verify the vertex counts
+  // Verify the counts
   EXPECT_EQ(param.paramCount(), 3);
   EXPECT_EQ(param.vertexCount(), (4 + 2)*5 + 1);
 
