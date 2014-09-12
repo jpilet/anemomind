@@ -13,6 +13,7 @@
 #include <server/nautical/polar/FilteredPolarPoints.h>
 #include <server/common/JsonIO.h>
 #include <server/common/ArrayIO.h>
+#include <server/nautical/polar/PolarOptimizer.h>
 
 
 
@@ -148,15 +149,23 @@ int main(int argc, const char **argv) {
 
   ArgMap amap;
   registerGetTestdataNavs(amap);
+
+  // Commands related to the initial filtering
   amap.registerOption("--reg", "Set the regularization parameter").setArgCount(1).store(&lambda);
   amap.registerOption("--step", "Set the step size in the quantization").setArgCount(1).store(&stepSizeKnots);
   amap.registerOption("--plot-x", "Plot speed along x-axis in polar plot");
   amap.registerOption("--plot-y", "Plot speed along y-axis in polar plot");
   amap.registerOption("--plot-tws", "Plot true wind speed");
   amap.registerOption("--chunk-size", "Set the chunk size").store(&chunkSize);
+
+  // General command to save result
   amap.registerOption("--save", "Provide a filename to save the result").setArgCount(1).store(&outFilename);
+
+  // Commands to look at the filtered result
   amap.registerOption("--view-spans", "Load a file [filename] and analyze the [n] longest stable spans").setArgCount(2);
   amap.registerOption("--interactive-slice", "Only with --view-spans: Slice the quantized values for a particular wind speed");
+  amap.registerOption("--optimize", "Optimize the loaded data using [n] control points, to a max speed of [m] knots").setArgCount(2);
+
   amap.setHelpInfo(" Example usage: ./nautical_polar_FilteredPolarExample --view-spans filtered.json 1000 --save filtered.txt --interactive-slice");
 
   if (amap.parseAndHelp(argc, argv)) {
@@ -178,6 +187,17 @@ int main(int argc, const char **argv) {
         }
         if (amap.optionProvided("--interactive-slice")) {
           interactiveSlice(pts.sliceTo(count));
+        }
+        if (amap.optionProvided("--optimize")) {
+          Array<ArgMap::Arg*> optargs = amap.optionArgs("--optimize");
+          int ctrlCount = optargs[0]->parseIntOrDie();
+          Velocity<double> maxTws = Velocity<double>::knots(optargs[1]->parseDoubleOrDie());
+
+          PolarCurveParam cparam(15, ctrlCount, true);
+          int twsLevelCount = int(ceil(maxTws.knots()/stepSizeKnots));
+          PolarSurfaceParam param(cparam, maxTws, twsLevelCount);
+
+          Array<PolarPoint> subpts = pts.sliceTo(count).map<PolarPoint>([&](const FilteredPolarPoints::Point &x) {return x.polarPoint();});
         }
         return 0;
       } else {

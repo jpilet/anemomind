@@ -58,6 +58,8 @@ Arrayd optimizePolar(const PolarSurfaceParam &param, const PolarDensity &density
   LevmarSettings settings) {
 
   Arrayd params = (initParams.empty()? param.makeInitialParams() : initParams);
+  assert(params.size() == param.paramCount());
+  assert(param.paramCount() < surfpts.size());
   LevmarState state(params);
 
   Objf fun(param, density, surfpts);

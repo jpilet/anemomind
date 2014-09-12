@@ -65,6 +65,7 @@ target_link_libraries(nautical_polar_FilteredPolarExample
                       nautical_polar_PolarPointConv
                       math_hmm_QuantFilter
                       nautical_polar_FilteredPolarPoints
+                      nautical_polar_PolarOptimizer
                      )
 
 
@@ -116,4 +117,6 @@ add_library(nautical_polar_PolarOptimizer
            )
 target_link_libraries(nautical_polar_PolarOptimizer
                       math_nonlinear_Levmar
+                      nautical_polar_PolarSurfaceParam
+                      nautical_polar_PolarDensity
                      )           
