@@ -92,6 +92,7 @@ add_library(nautical_polar_PolarSurfaceParam
            )
 target_link_libraries(nautical_polar_PolarSurfaceParam 
                       nautical_polar_PolarCurveParam
+                      common_Uniform
                      ) 
 cxx_test(nautical_polar_PolarSurfaceParamTest
          PolarSurfaceParamTest.cpp

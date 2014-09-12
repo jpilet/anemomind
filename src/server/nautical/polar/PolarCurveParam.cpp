@@ -28,7 +28,8 @@ namespace {
 
 PolarCurveParam::PolarCurveParam() :
     _segsPerCtrlSpan(0), _ctrlCount(0),
-    _mirrored(false), _paramCount(0) {}
+    _mirrored(false), _paramCount(0) {
+}
 
 
 PolarCurveParam::PolarCurveParam(int segsPerCtrlSpan, int ctrlCount, bool mirrored) :
@@ -118,6 +119,7 @@ MDArray2d PolarCurveParam::makePlotData(Arrayd params, double z) const {
   MDArray2d pts = makePolarCurvePts(vertices, z);
   return pts;
 }
+
 
 void PolarCurveParam::initializeParameters(Arrayd dst) const {
   assert(dst.size() == paramCount());

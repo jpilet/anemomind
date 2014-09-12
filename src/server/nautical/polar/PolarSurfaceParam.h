@@ -55,11 +55,25 @@ class PolarSurfaceParam {
     }
   }
 
-  /*
-   *
-   */
+
+  Arrayd makeInitialParams() const;
+
   template <typename T>
-  void computeSurfacePoint(Array<T> vertices,
+  Vectorize<Velocity<T>, 3> computeSurfacePoint(Array<T> vertices,
+      Vectorize<double, 2> surfaceCoord2) const {
+    Velocity<T> dst[3];
+    computeSurfacePointSub(vertices, surfaceCoord2.data(), dst);
+    return Vectorize<Velocity<T>, 3>(dst);
+  }
+
+  /*
+   * Generate random points, uniformly distributed
+   * on the surface.
+   */
+  static Array<Vectorize<double, 2> > generateSurfacePoints(int count);
+ private:
+  template <typename T>
+  void computeSurfacePointSub(Array<T> vertices,
       const double *surfaceCoord2,
       Velocity<T> *outXYZ3) {
     assert(0 <= surfaceCoord2[0]); assert(surfaceCoord2[0] <= 1.0);
@@ -83,10 +97,7 @@ class PolarSurfaceParam {
         upperWeight, curveVertexIndex, outXYZ3);
   }
 
-  Arrayd makeInitialParams() const;
 
-
- private:
   template <typename T>
   void addWeightedCurveVertex(Array<T> vertices,
       int index, double weight, double curveVertexIndex,
