@@ -12,6 +12,35 @@
 
 using namespace sail;
 
+namespace {
+
+  MDArray2d make3dPts(PolarSurfaceParam param,
+      Arrayd vertices,
+      Array<Vectorize<double, 2> > pts) {
+    int count = pts.size();
+    MDArray2d X(count, 3);
+    for (int i = 0; i < count; i++) {
+      Vectorize<Velocity<double>, 3> vel = param.computeSurfacePoint(vertices, pts[i]);
+      for (int j = 0; j < 3; j++) {
+        X(i, j) = vel[j].knots();
+      }
+    }
+    return X;
+  }
+
+  void makeExamplePlot(PolarSurfaceParam param,
+        Arrayd vertices) {
+      Array<Vectorize<double, 2> > srfpts = param.generateSurfacePoints(300);
+      MDArray2d pts3d = make3dPts(param, vertices, srfpts);
+
+      GnuplotExtra plot;
+      param.plot(vertices, &plot);
+      plot.set_style("points");
+      plot.plot(pts3d);
+      plot.show();
+  }
+}
+
 TEST(PolarSurfaceParamTest, BasicTest) {
   EXPECT_EQ(-1, int(floor(-0.1)));
 
@@ -38,9 +67,5 @@ TEST(PolarSurfaceParamTest, BasicTest) {
   EXPECT_NEAR(y[1].knots(), -40.0, 1.0e-4);
   EXPECT_NEAR(y[2].knots(), 40.0, 1.0e-4);
 
-  if (true) {
-    GnuplotExtra plot;
-    param.plot(vertices, &plot);
-    plot.show();
-  }
+  makeExamplePlot(param, vertices);
 }
