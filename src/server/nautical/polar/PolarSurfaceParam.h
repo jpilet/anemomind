@@ -59,13 +59,48 @@ class PolarSurfaceParam {
    *
    */
   template <typename T>
-  void computeSurfacePoint(Array<T> vertices, const double *surfaceCoord2,
-    Velocity<T> *outXYZ) {
+  void computeSurfacePoint(Array<T> vertices,
+      const double *surfaceCoord2,
+      Velocity<T> *outXYZ3) {
+    assert(0 <= surfaceCoord2[0]); assert(surfaceCoord2[0] <= 1.0);
+    assert(0 <= surfaceCoord2[1]); assert(surfaceCoord2[1] <= 1.0);
 
+    outXYZ3[2] = surfaceCoord2[1]*_twsStep.cast<T>();
+
+    double curveVertexIndex = _polarCurveParam.toVertexIndex(surfaceCoord2[0]);
+    double curveIndex = surfaceCoord2[1]*_twsLevelCount - 1;
+    int lower = int(floor(curveIndex));
+    int upper = lower + 1;
+    double lambda = curveIndex - lower;
+    double lowerWeight = 1.0 - lambda;
+    double upperWeight = lambda;
+
+    outXYZ3[0] = Velocity<double>::knots(0);
+    outXYZ3[1] = Velocity<double>::knots(0);
+    addWeightedCurveVertex(vertices, lower,
+        lowerWeight, curveVertexIndex, outXYZ3);
+    addWeightedCurveVertex(vertices, upper,
+        upperWeight, curveVertexIndex, outXYZ3);
   }
 
   Arrayd makeInitialParams() const;
+
+
  private:
+  template <typename T>
+  void addWeightedCurveVertex(Array<T> vertices,
+      int index, double weight, double curveVertexIndex,
+      Velocity<T> *outXY) const {
+    if (index >= 0) {
+      Array<T> subv = curveVertices(index, vertices);
+      T tmp[2];
+      _polarCurveParam.computeCurvePos(subv, curveVertexIndex, tmp);
+      for (int i = 0; i < 2; i++) {
+        outXY[i] += T(weight)*Velocity<T>::knots(tmp[i]);
+      }
+    }
+  }
+
   template <typename T>
   Array<T> curveVertices(int levelIndex, Array<T> vertices) const {
     return vertices.sliceBlock(levelIndex, _polarCurveParam.vertexDim());
@@ -77,7 +112,7 @@ class PolarSurfaceParam {
   }
 
   PolarCurveParam _polarCurveParam;
-  Velocity<double> _twsStep;
+  Velocity<double> _twsStep, _maxTws;
   int _twsLevelCount;
 };
 

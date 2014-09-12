@@ -72,9 +72,7 @@ class PolarCurveParam {
   template <typename T>
   void computeCurvePos(Array<T> vertexVector, double curvePos, T *dst2) const {
     assert(vertexVector.size() == vertexDim());
-    assert(0 <= curvePos);
-    assert(curvePos < 1.0);
-    double vertexPos = _curveParamToVertexIndex(curvePos);
+    double vertexPos = toVertexIndex(curvePos);
     int lowerIndex = int(floor(vertexPos));
     double lambda = vertexPos - lowerIndex;
     double lowerFactor = 1.0 - lambda;
@@ -84,6 +82,12 @@ class PolarCurveParam {
     for (int i = 0; i < 2; i++) {
       dst2[i] = lowerFactor*lowerVertex[i] + upperFactor*upperVertex[i];
     }
+  }
+
+  double toVertexIndex(double curvePos) const {
+    assert(0 <= curvePos);
+    assert(curvePos < 1.0);
+    return _curveParamToVertexIndex(curvePos);
   }
 
   void initializeParameters(Arrayd dst) const;
