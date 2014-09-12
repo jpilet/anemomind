@@ -100,7 +100,7 @@ CumulativeFunction PolarDensity::makeRadialKnotFunction(Vectorize<Velocity<doubl
     densitySamples[i] = d;
     dsum += d;
   }
-  return CumulativeFunction(densitySamples);
+  return CumulativeFunction(bsKnots, densitySamples);
 }
 
 

@@ -13,7 +13,7 @@ TEST(CumulativeFunctionTest, BasicTest) {
   X[0] = 1.0;
   X[1] = 2.0;
   X[2] = 3.0;
-  CumulativeFunction cfun(X);
+  CumulativeFunction cfun(LineKM(1.0, 0.0), X);
   EXPECT_NEAR(cfun.eval(-2.0), -1.0, 1.0e-9);
   EXPECT_NEAR(cfun.eval(0.0), 0.0, 1.0e-9);
   EXPECT_NEAR(cfun.eval(2.0), 1.0, 1.0e-9);

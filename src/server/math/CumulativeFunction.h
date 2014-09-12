@@ -16,10 +16,12 @@ namespace sail {
 class CumulativeFunction {
  public:
   CumulativeFunction() : _k(NAN) {}
-  CumulativeFunction(Arrayd samples);
+  CumulativeFunction(LineKM index2space, Arrayd samples);
 
   template <typename T>
-  T eval(T x) const {
+  T eval(T xSpace) const {
+    T x = _space2index.getK()*xSpace + _space2index.getM();
+
     double val = ToDouble(x);
     if (val < 0 || _cumul.size() - 1 <= val) {
       return x*_k;
@@ -31,6 +33,7 @@ class CumulativeFunction {
     }
   }
  private:
+  LineKM _space2index;
   Arrayd _cumul;
   double _k;
 };

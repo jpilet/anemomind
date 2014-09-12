@@ -8,7 +8,8 @@
 namespace sail {
 
 
-CumulativeFunction::CumulativeFunction(Arrayd samples) {
+CumulativeFunction::CumulativeFunction(LineKM index2space, Arrayd samples) :
+  _space2index(index2space.makeInvFun()) {
   int count = samples.size();
   _cumul = Arrayd(count);
   _cumul[0] = 0;
