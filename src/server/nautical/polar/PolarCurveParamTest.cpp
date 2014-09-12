@@ -5,6 +5,7 @@
 
 #include <gtest/gtest.h>
 #include <server/nautical/polar/PolarCurveParam.h>
+#include <server/plot/extra.h>
 
 using namespace sail;
 
@@ -43,5 +44,11 @@ TEST(PolarCurveParamTest, BasicTest) {
     EXPECT_LE(v0[1], 0.0);
     EXPECT_LE(-1.0, v0[1]);
     EXPECT_NEAR(v0[0], -v1[0], 1.0e-9);
+  }
+  if (false) {
+    GnuplotExtra plot;
+    plot.set_style("lines");
+    plot.plot(param.makePlotData(params));
+    plot.show();
   }
 }

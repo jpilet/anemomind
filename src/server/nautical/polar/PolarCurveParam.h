@@ -89,6 +89,8 @@ class PolarCurveParam {
   Arrayd makeInitialParameters() const;
 
   int ctrlToParamIndex(int paramIndex) const;
+
+  MDArray2d makePlotData(Arrayd params, double z = NAN) const;
  private:
   LineKM _curveParamToVertexIndex;
   Angle<double> ctrlAngle(int ctrlIndex) const;

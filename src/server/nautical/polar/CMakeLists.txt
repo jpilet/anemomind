@@ -90,5 +90,6 @@ target_link_libraries(nautical_polar_PolarCurveParam
 cxx_test(nautical_polar_PolarCurveParamTest
          PolarCurveParamTest.cpp
          nautical_polar_PolarCurveParam
+         plot_gnuplot
          gtest_main
         )

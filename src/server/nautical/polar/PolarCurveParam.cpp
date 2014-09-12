@@ -89,6 +89,31 @@ int PolarCurveParam::ctrlToParamIndex(int ctrlIndex) const {
   return lastParamIndex - overflow;
 }
 
+namespace {
+  MDArray2d makePolarCurvePts(Arrayd vertices, double z) {
+    int vertexCount = vertices.size()/2;
+    bool disp3d = !std::isnan(z);
+    MDArray2d pts(vertexCount, (disp3d? 3 : 2));
+    if (disp3d) {
+      pts.sliceCol(2).setAll(z);
+    }
+    for (int i = 0; i < vertexCount; i++) {
+      int offs = 2*i;
+      pts(i, 0) = vertices[offs + 0];
+      pts(i, 1) = vertices[offs + 1];
+    }
+    return pts;
+  }
+}
+
+
+MDArray2d PolarCurveParam::makePlotData(Arrayd params, double z) const {
+  Arrayd vertices(vertexDim());
+  paramToVertices(params, vertices);
+  MDArray2d pts = makePolarCurvePts(vertices, z);
+  return pts;
+}
+
 void PolarCurveParam::initializeParameters(Arrayd dst) const {
   assert(dst.size() == paramCount());
   dst.setTo(1.0);
