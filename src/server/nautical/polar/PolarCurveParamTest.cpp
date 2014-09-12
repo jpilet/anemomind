@@ -26,12 +26,12 @@ TEST(PolarCurveParamTest, BasicTest) {
     EXPECT_NEAR(params[i], 1.0, 1.0e-9);
   }
 
-//  Arrayd vertices(param.vertexCount());
-//  param.paramToVertices(params, vertices);
-//  {
-//    double v[2];
-//    param.computeCurvePos(vertices, 0.5, v);
-//    EXPECT_NEAR(v[0], 0.0, 1.0e-9);
-//    EXPECT_NEAR(v[1], -1.0, 1.0e-9);
-//  }
+  Arrayd vertices(param.vertexDim());
+  param.paramToVertices(params, vertices);
+  {
+    double v[2];
+    param.computeCurvePos(vertices, 0.5, v);
+    EXPECT_NEAR(v[0], 0.0, 1.0e-9);
+    EXPECT_NEAR(v[1], -1.0, 1.0e-9);
+  }
 }
