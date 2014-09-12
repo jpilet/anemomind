@@ -56,6 +56,17 @@ class KernelDensityEstimator : public DensityEstimator<N> {
     return sum;
   }
 
+  template <typename T>
+  T density(const T *pointN) const {
+    double squaredBandwidth = sqr(_squaredBandwidth);
+    T sum = 0;
+    for (auto p: _samples) {
+      sum += calcDensityTerm(p, pointN,
+          squaredBandwidth);
+    }
+    return sum;
+  }
+
   int dims() const {
     return _samples[0].size();
   }
@@ -69,13 +80,23 @@ class KernelDensityEstimator : public DensityEstimator<N> {
   Array<Vec> _samples;
   double _expThresh;
 
-  double gaussianKernel(double squaredDistance, double squaredBandwidth) const {
-    double x = -0.5*squaredDistance/squaredBandwidth;
+  template <typename T>
+  T gaussianKernel(T squaredDistance, double squaredBandwidth) const {
+    T x = -0.5*squaredDistance/squaredBandwidth;
     return exp(x);
   }
 
   double calcDensityTerm(const Vec &a, const Vec &b, double squaredBandwidth) const {
     return gaussianKernel(norm2dif<double, N>(a.data(), b.data()), squaredBandwidth);
+  }
+
+  template <typename T>
+  T calcDensityTerm(const Vec &refpt, const T *x, double squaredBandwidth) const {
+    T dist = 0;
+    for (int i = 0; i < N; i++) {
+      dist += refpt[i]*x[i];
+    }
+    return gaussianKernel(dist, squaredBandwidth);
   }
 };
 
