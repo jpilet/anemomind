@@ -12,8 +12,5 @@ PolarSurfaceParam::PolarSurfaceParam() {
 
 }
 
-PolarSurfaceParam::~PolarSurfaceParam() {
-
-}
 
 } /* namespace mmm */

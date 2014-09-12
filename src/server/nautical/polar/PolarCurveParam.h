@@ -19,6 +19,7 @@ namespace sail {
  */
 class PolarCurveParam {
  public:
+  PolarCurveParam();
   PolarCurveParam(int segsPerCtrlSpan, int ctrlCount, bool mirrored);
 
   int ctrlToVertexIndex(int ctrlIndex) const {

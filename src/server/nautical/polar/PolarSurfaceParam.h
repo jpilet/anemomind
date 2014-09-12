@@ -6,12 +6,19 @@
 #ifndef POLARSURFACEPARAM_H_
 #define POLARSURFACEPARAM_H_
 
+#include <server/nautical/polar/PolarCurveParam.h>
+
 namespace sail {
 
 class PolarSurfaceParam {
-public:
+ public:
+  PolarSurfaceParam(PolarCurveParam pcp,
+      Velocity<double> maxTws, int twsLevelCount);
   PolarSurfaceParam();
-  virtual ~PolarSurfaceParam();
+ private:
+  PolarCurveParam _polarCurveParam;
+  Velocity<double> _maxTws;
+  int _twsLevelCount;
 };
 
 }
