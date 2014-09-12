@@ -74,6 +74,14 @@ class KernelDensityEstimator : public DensityEstimator<N> {
   bool empty() const {
     return _samples.empty();
   }
+
+  int count() const {
+    return _samples.size();
+  }
+
+  double maxDensity() const {
+    return count();
+  }
  private:
   static constexpr double initExpThresh = log(1.0e-2);
   double _squaredBandwidth;
