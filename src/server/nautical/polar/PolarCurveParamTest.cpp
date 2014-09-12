@@ -34,4 +34,14 @@ TEST(PolarCurveParamTest, BasicTest) {
     EXPECT_NEAR(v[0], 0.0, 1.0e-9);
     EXPECT_NEAR(v[1], -1.0, 1.0e-9);
   }
+  {
+    double pos = 0.112;
+    double v0[2], v1[2];
+    param.computeCurvePos(vertices, 0.5 - pos, v0);
+    param.computeCurvePos(vertices, 0.5 + pos, v1);
+    EXPECT_NEAR(v0[1], v1[1], 1.0e-9);
+    EXPECT_LE(v0[1], 0.0);
+    EXPECT_LE(-1.0, v0[1]);
+    EXPECT_NEAR(v0[0], -v1[0], 1.0e-9);
+  }
 }
