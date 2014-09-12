@@ -113,9 +113,15 @@ namespace {
 }
 
 
-MDArray2d PolarCurveParam::makePlotData(Arrayd params, double z) const {
-  Arrayd vertices(vertexDim());
-  paramToVertices(params, vertices);
+MDArray2d PolarCurveParam::makePlotData(Arrayd paramsOrVertices, double z) const {
+  Arrayd vertices;
+  if (paramsOrVertices.size() == paramCount()) {
+    vertices = Arrayd(vertexDim());
+    paramToVertices(paramsOrVertices, vertices);
+  } else {
+    vertices = paramsOrVertices;
+  }
+
   MDArray2d pts = makePolarCurvePts(vertices, z);
   return pts;
 }

@@ -10,6 +10,7 @@
 
 namespace sail {
 
+class GnuplotExtra;
 class PolarSurfaceParam {
  public:
 
@@ -71,6 +72,8 @@ class PolarSurfaceParam {
    * on the surface.
    */
   static Array<Vectorize<double, 2> > generateSurfacePoints(int count);
+
+  void plot(Arrayd paramsOrVertices, GnuplotExtra *dst);
  private:
   template <typename T>
   void computeSurfacePointSub(Array<T> vertices,

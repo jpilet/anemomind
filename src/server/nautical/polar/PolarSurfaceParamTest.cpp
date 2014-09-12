@@ -7,6 +7,7 @@
 #include <server/nautical/polar/PolarSurfaceParam.h>
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
+#include <server/plot/extra.h>
 #include <iostream>
 
 using namespace sail;
@@ -36,4 +37,10 @@ TEST(PolarSurfaceParamTest, BasicTest) {
   EXPECT_NEAR(y[0].knots(), 0.0, 1.0e-4);
   EXPECT_NEAR(y[1].knots(), -40.0, 1.0e-4);
   EXPECT_NEAR(y[2].knots(), 40.0, 1.0e-4);
+
+  if (true) {
+    GnuplotExtra plot;
+    param.plot(vertices, &plot);
+    plot.show();
+  }
 }

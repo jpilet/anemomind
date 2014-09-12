@@ -95,7 +95,7 @@ class PolarCurveParam {
 
   int ctrlToParamIndex(int paramIndex) const;
 
-  MDArray2d makePlotData(Arrayd params, double z = NAN) const;
+  MDArray2d makePlotData(Arrayd paramsOrVertices, double z = NAN) const;
 
   bool empty() const {
     return 0 == vertexCount();
