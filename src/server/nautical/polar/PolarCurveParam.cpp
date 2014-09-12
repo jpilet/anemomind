@@ -19,11 +19,12 @@ PolarCurveParam::PolarCurveParam(int segsPerCtrlSpan, int ctrlCount, bool mirror
       _paramCount = ctrlCount;
     }
 
-    MDArray2d PtempCtrl = parameterizeCurve(vertexCount(), makeCtrlInds(), 2, true);
+    MDArray2d PtempCtrl = parameterizeCurve(vertexCount(), makeAllCtrlInds(), 2, true);
     arma::mat PmatCtrl = arma::mat(PtempCtrl.getData(), PtempCtrl.rows(), PtempCtrl.cols(), false, true);
     _Pmat = arma::kron(PmatCtrl, arma::eye(2, 2))*makeP2CMat();
     assert(_Pmat.n_rows == vertexDim());
     assert(_Pmat.n_cols == paramDim());
+    _curveParamToVertexIndex = LineKM(0.0, 1.0, 0, vertexCount()-1);
 }
 
 Angle<double> PolarCurveParam::ctrlAngle(int ctrlIndex) const {
@@ -33,16 +34,16 @@ Angle<double> PolarCurveParam::ctrlAngle(int ctrlIndex) const {
   return Angle<double>::degrees(line(ctrlIndex));
 }
 
-Arrayi PolarCurveParam::makeCtrlInds() const {
-  Arrayi inds(_ctrlCount);
-  for (int i = 0; i < _ctrlCount; i++) {
-    inds[i] = ctrlToVertexIndex(i);
+Arrayi PolarCurveParam::makeAllCtrlInds() const {
+  Arrayi inds(_ctrlCount + 2);
+  for (int i = 0; i < _ctrlCount + 2; i++) {
+    inds[i] = ctrlToVertexIndex(i-1);
   }
   return inds;
 }
 
 arma::mat PolarCurveParam::makeP2CMat() const {
-  arma::mat M = arma::zeros(2*_ctrlCount, _paramCount);
+  arma::mat M = arma::zeros(2*(_ctrlCount + 2), _paramCount);
   for (int i = 0; i < _ctrlCount; i++) {
     int rowOffset = 2*(1 + i);
     int col = ctrlToParamIndex(i);
@@ -63,5 +64,17 @@ int PolarCurveParam::ctrlToParamIndex(int ctrlIndex) const {
   int overflow = ctrlIndex - lastParamIndex;
   return lastParamIndex - overflow;
 }
+
+void PolarCurveParam::initializeParameters(Arrayd dst) const {
+  assert(dst.size() == paramCount());
+  dst.setTo(1.0);
+}
+
+Arrayd PolarCurveParam::makeInitialParameters() const {
+  Arrayd params(paramCount());
+  initializeParameters(params);
+  return params;
+}
+
 
 } /* namespace mmm */
