@@ -155,6 +155,8 @@ int main(int argc, const char **argv) {
   std::string outFilename;
   std::string outOptFilename = "optimized_polar.txt";
   std::string outOptFilenameTemp = "optimized_polar_temp.txt";
+  std::string optLoadFilename = "optimized_polar_temp.txt";
+  std::string curveMatFilename  = "curvematrix.txt";
 
   ArgMap amap;
   registerGetTestdataNavs(amap);
@@ -174,10 +176,13 @@ int main(int argc, const char **argv) {
   amap.registerOption("--view-spans", "Load a file [filename] and analyze the [n] longest stable spans").setArgCount(2);
   amap.registerOption("--interactive-slice", "Only with --view-spans: Slice the quantized values for a particular wind speed");
   amap.registerOption("--optimize", "Optimize the loaded data using [n] control points, to a max speed of [m] knots").setArgCount(2);
+  amap.registerOption("--load-opt", "Load file with optimized parameters").setArgCount(1).store(&optLoadFilename);
+  amap.registerOption("--save-curve-mat", "Save the optimized curves").setArgCount(1).store(&curveMatFilename);
 
   amap.setHelpInfo(" Example usage: \n"
-      "./nautical_polar_FilteredPolarExample --view-spans filtered.json 1000 --save filtered.txt --interactive-slice\n"
-      "./nautical_polar_FilteredPolarExample --view-spans filtered.json 3000 --optimize 7 20\n"
+      "View the filtered spans:     ./nautical_polar_FilteredPolarExample --view-spans filtered.json 1000 --save filtered.txt --interactive-slice\n"
+      "Optimize:                    ./nautical_polar_FilteredPolarExample --view-spans filtered.json 3000 --optimize 7 20\n"
+      "Visualize optimized results: ./nautical_polar_FilteredPolarExample --view-spans filtered.json 3000 --optimize 7 20 --load-opt optimized_polar_temp.txt --save-curve-mat curvematrix.txt\n"
       );
 
   if (amap.parseAndHelp(argc, argv)) {
@@ -211,17 +216,31 @@ int main(int argc, const char **argv) {
           PolarSurfaceParam param(cparam, maxTws, twsLevelCount);
 
           Array<PolarPoint> subpts = pts.sliceTo(count).map<PolarPoint>([&](const FilteredPolarPoints::Point &x) {return x.polarPoint();});
-          PolarDensity density(stepSize, subpts, true);
+          PolarDensity density(2.0*stepSize, subpts, true);
           LevmarSettings settings;
           settings.verbosity = 2;
           settings.setDrawf(param.paramCount(), [=](Arrayd datai) {
             outputOptParams(outOptFilenameTemp, datai);
             std::cout << "Saved intermediate results to " << outOptFilenameTemp << std::endl;
+            param.plot(datai);
           });
           std::cout << "Number of parameters to optimize: " << param.paramCount() << std::endl;
 
-          Arrayd params = optimizePolar(param, density, param.generateSurfacePoints(600), Arrayd(), settings);
-          outputOptParams(outOptFilename, params);
+          Arrayd params;
+          if (amap.optionProvided("--load-opt")) {
+            params = loadMatrixText<double>(optLoadFilename).getStorage();
+            std::cout << EXPR_AND_VAL_AS_STRING(params) << std::endl;
+          } else {
+            params = optimizePolar(param, density, param.generateSurfacePoints(600), Arrayd(), settings);
+            outputOptParams(outOptFilename, params);
+          }
+
+          if (!curveMatFilename.empty()) {
+            MDArray2d mat = param.makeVertexData(params);
+            std::cout << EXPR_AND_VAL_AS_STRING(mat.rows()) << std::endl;
+            std::cout << EXPR_AND_VAL_AS_STRING(mat.cols()) << std::endl;
+            saveMatrix(curveMatFilename, mat, 5, 15);
+          }
 
           GnuplotExtra plot;
           param.plot(params, &plot);

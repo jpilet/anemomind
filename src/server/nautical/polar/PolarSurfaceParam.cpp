@@ -29,7 +29,7 @@ PolarSurfaceParam::PolarSurfaceParam(PolarCurveParam pcp, Velocity<double> maxTw
 Arrayd PolarSurfaceParam::makeInitialParams() const {
   Arrayd params(paramCount());
   LineKM twsAtLevel(0, _twsLevelCount-1,
-      _twsStep.knots(), double(_twsLevelCount)*_twsStep.knots());
+      _twsStep.knots(), 0.3*double(_twsLevelCount)*_twsStep.knots());
 
   for (int i = 0; i < _twsLevelCount; i++) {
     double difToPrev = logline(twsAtLevel(i) - twsAtLevel(i - 1));
@@ -51,16 +51,20 @@ Array<Vectorize<double, 2> > PolarSurfaceParam::generateSurfacePoints(int count)
   return dst;
 }
 
-void PolarSurfaceParam::plot(Arrayd paramsOrVertices,
-    GnuplotExtra *dst) {
-
-  Arrayd vertices;
+Arrayd PolarSurfaceParam::toVertices(Arrayd paramsOrVertices) const {
   if (paramsOrVertices.size() == paramCount()) {
-    vertices = Arrayd(vertexDim());
+    Arrayd vertices(vertexDim());
     paramToVertices(paramsOrVertices, vertices);
+    return vertices;
   } else {
-    vertices = paramsOrVertices;
+    return paramsOrVertices;
   }
+}
+
+void PolarSurfaceParam::plot(Arrayd paramsOrVertices,
+    GnuplotExtra *dst) const {
+
+  Arrayd vertices = toVertices(paramsOrVertices);
 
   dst->set_style("lines");
   for (int i = 0; i < _twsLevelCount; i++) {
@@ -69,6 +73,24 @@ void PolarSurfaceParam::plot(Arrayd paramsOrVertices,
       z);
     dst->plot(plotData);
   }
+}
+
+MDArray2d PolarSurfaceParam::makeVertexData(Arrayd paramsOrVertices) const {
+  Arrayd v = toVertices(paramsOrVertices);
+  MDArray2d data(_polarCurveParam.vertexCount(), 3*_twsLevelCount);
+  for (int i = 0; i < _twsLevelCount; i++) {
+    double z = (i + 1.0)*_twsStep.knots();
+    int offs = 3*i;
+    _polarCurveParam.makePlotData(curveVertices(i, v), z)
+        .copyToSafe(data.sliceCols(offs, offs + 3));
+  }
+  return data;
+}
+
+void PolarSurfaceParam::plot(Arrayd paramsOrVertices) const {
+  GnuplotExtra p;
+  plot(paramsOrVertices, &p);
+  p.show();
 }
 
 } /* namespace mmm */

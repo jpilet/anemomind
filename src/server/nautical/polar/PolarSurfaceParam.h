@@ -106,8 +106,14 @@ class PolarSurfaceParam {
    */
   static Array<Vectorize<double, 2> > generateSurfacePoints(int count);
 
-  void plot(Arrayd paramsOrVertices, GnuplotExtra *dst);
+  void plot(Arrayd paramsOrVertices, GnuplotExtra *dst) const;
+  void plot(Arrayd paramsOrVertices) const;
+
+  // Make vertex data
+  MDArray2d makeVertexData(Arrayd paramsOrVertices) const;
  private:
+
+  Arrayd toVertices(Arrayd paramsOrVertices) const;
   double _alpha;
 
   template <typename T>
