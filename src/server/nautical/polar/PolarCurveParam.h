@@ -103,6 +103,7 @@ class PolarCurveParam {
 
   Arrayi makeAllCtrlInds() const;
   arma::mat makeP2CMat() const;
+  arma::mat makeParamMat() const;
 };
 
 } /* namespace mmm */

@@ -11,6 +11,21 @@
 
 namespace sail {
 
+namespace {
+  arma::mat makeRayMatrix(int vertexCount) {
+    LineKM angle(0, vertexCount-1, 0.0, 2.0*M_PI);
+    arma::mat A = arma::zeros(2*vertexCount, vertexCount);
+    for (int i = 0; i < vertexCount; i++) {
+      int rowoffs = 2*i;
+      int col = i;
+      Angle<double> alpha = Angle<double>::radians(angle(i));
+      A(rowoffs + 0, col) = calcPolarX(true, 1.0, alpha);
+      A(rowoffs + 1, col) = calcPolarY(true, 1.0, alpha);
+    }
+    return A;
+  }
+}
+
 PolarCurveParam::PolarCurveParam(int segsPerCtrlSpan, int ctrlCount, bool mirrored) :
     _segsPerCtrlSpan(segsPerCtrlSpan), _ctrlCount(ctrlCount), _mirrored(mirrored) {
     if (mirrored) {
@@ -21,7 +36,8 @@ PolarCurveParam::PolarCurveParam(int segsPerCtrlSpan, int ctrlCount, bool mirror
 
     MDArray2d PtempCtrl = parameterizeCurve(vertexCount(), makeAllCtrlInds(), 2, true);
     arma::mat PmatCtrl = arma::mat(PtempCtrl.getData(), PtempCtrl.rows(), PtempCtrl.cols(), false, true);
-    _Pmat = arma::kron(PmatCtrl, arma::eye(2, 2))*makeP2CMat();
+    //_Pmat = arma::kron(PmatCtrl, arma::eye(2, 2))*makeP2CMat();
+    _Pmat = makeRayMatrix(vertexCount())*PmatCtrl*makeParamMat();
     assert(_Pmat.n_rows == vertexDim());
     assert(_Pmat.n_cols == paramDim());
     _curveParamToVertexIndex = LineKM(0.0, 1.0, 0, vertexCount()-1);
@@ -50,6 +66,14 @@ arma::mat PolarCurveParam::makeP2CMat() const {
     Angle<double> alpha = ctrlAngle(i);
     M(rowOffset + 0, col) = calcPolarX(true, 1.0, alpha);
     M(rowOffset + 1, col) = calcPolarY(true, 1.0, alpha);
+  }
+  return M;
+}
+
+arma::mat PolarCurveParam::makeParamMat() const {
+  arma::mat M = arma::zeros(_ctrlCount + 2, paramCount());
+  for (int i = 0; i < _ctrlCount; i++) {
+    M(i + 1, ctrlToParamIndex(i)) = 1.0;
   }
   return M;
 }
