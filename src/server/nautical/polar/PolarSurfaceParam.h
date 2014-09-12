@@ -82,7 +82,7 @@ class PolarSurfaceParam {
     assert(0 <= surfaceCoord2[0]); assert(surfaceCoord2[0] <= 1.0);
     assert(0 <= surfaceCoord2[1]); assert(surfaceCoord2[1] <= 1.0);
 
-    outXYZ3[2] = surfaceCoord2[1]*_maxTws.cast<T>();
+    outXYZ3[2] = T(surfaceCoord2[1])*_maxTws.cast<T>();
 
     double curvep = surfaceCoord2[0];
     double curveIndex = surfaceCoord2[1]*_twsLevelCount - 1;

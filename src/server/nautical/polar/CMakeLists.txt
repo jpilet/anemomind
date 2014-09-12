@@ -109,3 +109,11 @@ cxx_test(nautical_polar_PolarCurveParamTest
          plot_gnuplot
          gtest_main
         )
+        
+add_library(nautical_polar_PolarOptimizer
+            PolarOptimizer.h
+            PolarOptimizer.cpp
+           )
+target_link_libraries(nautical_polar_PolarOptimizer
+                      math_nonlinear_Levmar
+                     )           
