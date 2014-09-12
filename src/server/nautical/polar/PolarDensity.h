@@ -10,6 +10,7 @@
 #include <server/nautical/polar/PolarPoint.h>
 #include <server/common/string.h>
 #include <iostream>
+#include <server/math/CumulativeFunction.h>
 
 namespace sail {
 
@@ -62,6 +63,9 @@ class PolarDensity {
 
   Velocity<double> lookUpBoatSpeed(Velocity<double> tws, Angle<double> twa,
       Velocity<double> maxBoatSpeed, int sampleCount, double quantile) const;
+
+  CumulativeFunction makeRadialKnotFunction(Vectorize<Velocity<double>, 3> vec,
+                    Velocity<double> maxBoatSpeed, int sampleCount) const;
  private:
   double densitySub(const PolarPoint &point) const;
   bool _mirrored;

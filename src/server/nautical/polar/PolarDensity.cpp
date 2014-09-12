@@ -89,6 +89,19 @@ Velocity<double> PolarDensity::lookUpBoatSpeed(Velocity<double> tws, Angle<doubl
   return maxBoatSpeed;
 }
 
+CumulativeFunction PolarDensity::makeRadialKnotFunction(Vectorize<Velocity<double>, 3> vec,
+                    Velocity<double> maxBoatSpeed, int sampleCount) const {
+  LineKM bsKnots(0, sampleCount-1, 0.0, maxBoatSpeed.knots());
+  Arrayd densitySamples(sampleCount);
+  double dsum = 0;
+  Angle<double> twa = Angle<double>::radians(atan2(vec[0].knots(), vec[1].knots()));
+  for (int i = 0; i < sampleCount; i++) {
+    double d = density(PolarPoint(vec[2], twa, Velocity<double>::knots(bsKnots(i))));
+    densitySamples[i] = d;
+    dsum += d;
+  }
+  return CumulativeFunction(densitySamples);
+}
 
 
 }

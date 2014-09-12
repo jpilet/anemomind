@@ -46,6 +46,7 @@ add_library(nautical_polar_PolarDensity
 target_link_libraries(nautical_polar_PolarDensity
                       nautical_polar_PolarPoint
                       common_LineKM
+                      math_CumulativeFunction
                      )         
 
 add_library(nautical_polar_PolarPointConv
