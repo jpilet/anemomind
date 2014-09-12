@@ -9,7 +9,7 @@
 using namespace sail;
 
 TEST(CumulativeFunctionTest, BasicTest) {
-  Arrayd X(2);
+  Arrayd X(3);
   X[0] = 1.0;
   X[1] = 2.0;
   X[2] = 3.0;

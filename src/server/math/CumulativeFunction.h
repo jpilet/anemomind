@@ -9,6 +9,7 @@
 #include <server/math/armaadolc.h>
 #include <server/common/ToDouble.h>
 #include <server/common/LineKM.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -20,7 +21,7 @@ class CumulativeFunction {
   template <typename T>
   T eval(T x) const {
     double val = ToDouble(x);
-    if (val < 0 || val >= _cumul.size() - 1) {
+    if (val < 0 || _cumul.size() - 1 <= val) {
       return x*_k;
     } else {
       int lower = int(floor(val));
