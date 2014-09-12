@@ -121,9 +121,11 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun) {
 void LevmarState::minimize(const LevmarSettings &settings, Function &fun) {
   ENTERSCOPE("LevmarState::minimize");
   for (int i = 0; (i < settings.maxiter) && !_stop; i++) {
+    settings.draw(getXArray(false));
     SCOPEDMESSAGE(INFO, stringFormat("Levenberg-Marquardt iteration %d", i));
     step(settings, fun);
   }
+  settings.draw(getXArray(false));
 }
 
 
