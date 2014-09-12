@@ -5,6 +5,9 @@
 
 #include <gtest/gtest.h>
 #include <server/nautical/polar/PolarSurfaceParam.h>
+#include <server/common/string.h>
+#include <server/common/ArrayIO.h>
+#include <iostream>
 
 using namespace sail;
 
@@ -17,5 +20,7 @@ TEST(PolarSurfaceParamTest, BasicTest) {
         40);
 
   Arrayd X = param.makeInitialParams();
+  EXPECT_EQ(X.size(), 3*40);
+  std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
 
 }

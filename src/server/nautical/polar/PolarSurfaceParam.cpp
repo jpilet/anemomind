@@ -23,7 +23,7 @@ PolarSurfaceParam::PolarSurfaceParam(PolarCurveParam pcp, Velocity<double> maxTw
 
 
 Arrayd PolarSurfaceParam::makeInitialParams() const {
-  Arrayd params(vertexDim());
+  Arrayd params(paramCount());
   LineKM twsAtLevel(0, _twsLevelCount-1,
       _twsStep.knots(), double(_twsLevelCount)*_twsStep.knots());
 
