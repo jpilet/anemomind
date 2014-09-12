@@ -8,6 +8,8 @@
 
 #include <server/math/DensityEstimator.h>
 #include <server/nautical/polar/PolarPoint.h>
+#include <server/common/string.h>
+#include <iostream>
 
 namespace sail {
 
@@ -27,9 +29,14 @@ class PolarDensity {
     }
 
     T d = _densityEstimator.density(xyzKnots);
+    constexpr double tol = 1.0e-9;
+    assert(-tol < d);
     if (_mirrored) {
       xyzKnots[0] = -xyzKnots[0];
-      return 0.5*(d + _densityEstimator.density(xyzKnots));
+      T e = _densityEstimator.density(xyzKnots);
+      assert(-tol <= e);
+      T f = 0.5*(d + e);
+      return f;
     }
     return d;
   }
@@ -39,7 +46,18 @@ class PolarDensity {
 
     // Pull the square root out of it, because we are going to square it
     // again in the optimizer :-)
-    return sqrt(_densityEstimator.maxDensity() - density(xyz));
+    T dens = density(xyz);
+    T maxDens = _densityEstimator.maxDensity();
+    constexpr double tol = 1.0e-9;
+    assert(-tol < dens);
+    assert(-tol < maxDens);
+    assert(dens < maxDens);
+    T dif = maxDens - dens;
+    assert(-tol < dif);
+    if (dif < 0) {
+      return 0;
+    }
+    return sqrt(dif);
   }
 
   Velocity<double> lookUpBoatSpeed(Velocity<double> tws, Angle<double> twa,

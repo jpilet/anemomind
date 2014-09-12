@@ -30,6 +30,7 @@ add_library(nautical_polar_PolarCurves
            )
 target_link_libraries(nautical_polar_PolarCurves
                       nautical_polar_PolarDensity
+                      math_ADFunction
                      )           
 
 
@@ -96,6 +97,8 @@ target_link_libraries(nautical_polar_PolarSurfaceParam
                       plot_gnuplot
                       common_Uniform
                      ) 
+target_depends_on_adolc(nautical_polar_PolarSurfaceParam)
+ 
 cxx_test(nautical_polar_PolarSurfaceParamTest
          PolarSurfaceParamTest.cpp
          gtest_main

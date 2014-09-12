@@ -7,8 +7,28 @@
 #define POLARSURFACEPARAM_H_
 
 #include <server/nautical/polar/PolarCurveParam.h>
+#include <adolc/adouble.h>
+#include <server/common/ToDouble.h>
 
 namespace sail {
+
+template <typename T>
+T expline(T x) {
+  if (ToDouble(x) < 0) {
+    return exp(x);
+  } else {
+    return 1.0 + exp(1.0)*x;
+  }
+}
+
+template <typename T>
+T logline(T x) {
+  if (ToDouble(x) > 1.0) {
+    return (x - 1.0)*exp(-1.0);
+  } else {
+    return log(x);
+  }
+}
 
 class GnuplotExtra;
 class PolarSurfaceParam {
@@ -48,7 +68,10 @@ class PolarSurfaceParam {
        * are greater than those of the level below, and that they are positive.*/
       Array<T> pi = curveParams(i, params);
       for (int j = 0; j < _polarCurveParam.paramDim(); j++) {
-        actualCurveParams[j] = exp(pi[j]) + actualCurveParams[j];
+        T &p = actualCurveParams[j];
+        assert(!std::isnan(ToDouble(p)));
+        p += expline(pi[j]);
+        assert(!std::isnan(ToDouble(p)));
       }
 
       _polarCurveParam.paramToVertices(actualCurveParams,
@@ -75,6 +98,8 @@ class PolarSurfaceParam {
 
   void plot(Arrayd paramsOrVertices, GnuplotExtra *dst);
  private:
+  double _alpha;
+
   template <typename T>
   void computeSurfacePointSub(Array<T> vertices,
       const double *surfaceCoord2,

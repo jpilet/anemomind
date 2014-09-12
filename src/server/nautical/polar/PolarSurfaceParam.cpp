@@ -10,14 +10,16 @@
 
 namespace sail {
 
+
 PolarSurfaceParam::PolarSurfaceParam() :
-    _twsLevelCount(0) {}
+    _twsLevelCount(0), _alpha(0.1) {}
 
 
 PolarSurfaceParam::PolarSurfaceParam(PolarCurveParam pcp, Velocity<double> maxTws,
     int twsLevelCount) :
     _twsStep((1.0/twsLevelCount)*maxTws),
     _twsLevelCount(twsLevelCount),
+    _alpha(0.1),
     _polarCurveParam(pcp), _maxTws(maxTws) {
     assert(!pcp.empty());
 }
@@ -30,7 +32,7 @@ Arrayd PolarSurfaceParam::makeInitialParams() const {
       _twsStep.knots(), double(_twsLevelCount)*_twsStep.knots());
 
   for (int i = 0; i < _twsLevelCount; i++) {
-    double difToPrev = log(twsAtLevel(i) - twsAtLevel(i - 1));
+    double difToPrev = logline(twsAtLevel(i) - twsAtLevel(i - 1));
     curveParams(i, params).setTo(difToPrev);
   }
   return params;

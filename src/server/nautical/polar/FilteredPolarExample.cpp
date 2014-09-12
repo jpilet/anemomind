@@ -166,9 +166,13 @@ int main(int argc, const char **argv) {
   amap.registerOption("--interactive-slice", "Only with --view-spans: Slice the quantized values for a particular wind speed");
   amap.registerOption("--optimize", "Optimize the loaded data using [n] control points, to a max speed of [m] knots").setArgCount(2);
 
-  amap.setHelpInfo(" Example usage: ./nautical_polar_FilteredPolarExample --view-spans filtered.json 1000 --save filtered.txt --interactive-slice");
+  amap.setHelpInfo(" Example usage: \n"
+      "./nautical_polar_FilteredPolarExample --view-spans filtered.json 1000 --save filtered.txt --interactive-slice\n"
+      "./nautical_polar_FilteredPolarExample --view-spans filtered.json 3000 --optimize 7 20\n"
+      );
 
   if (amap.parseAndHelp(argc, argv)) {
+    Velocity<double> stepSize = Velocity<double>::knots(stepSizeKnots);
     if (amap.optionProvided("--view-spans")) {
       Array<ArgMap::Arg*> args = amap.optionArgs("--view-spans");
       FilteredPolarPoints fpp;
@@ -198,6 +202,15 @@ int main(int argc, const char **argv) {
           PolarSurfaceParam param(cparam, maxTws, twsLevelCount);
 
           Array<PolarPoint> subpts = pts.sliceTo(count).map<PolarPoint>([&](const FilteredPolarPoints::Point &x) {return x.polarPoint();});
+          PolarDensity density(stepSize, subpts, true);
+          LevmarSettings settings;
+          settings.verbosity = 2;
+          Arrayd params = optimizePolar(param, density, param.generateSurfacePoints(600), Arrayd(), settings);
+
+
+          GnuplotExtra plot;
+          param.plot(params, &plot);
+          plot.show();
         }
         return 0;
       } else {
@@ -205,7 +218,6 @@ int main(int argc, const char **argv) {
         return -1;
       }
     } else {
-      Velocity<double> stepSize = Velocity<double>::knots(stepSizeKnots);
       Array<Nav> navs = getTestdataNavs(amap);
       Array<PolarPoint> pts = navsToPolarPoints(navs).slice([&](const PolarPoint &x) {return !x.hasNaN();});
       MDArray2d data = makeDataMatrix(pts);

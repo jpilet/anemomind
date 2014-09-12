@@ -67,5 +67,9 @@ TEST(PolarSurfaceParamTest, BasicTest) {
   EXPECT_NEAR(y[1].knots(), -40.0, 1.0e-4);
   EXPECT_NEAR(y[2].knots(), 40.0, 1.0e-4);
 
+  EXPECT_NEAR(logline(expline(13.0)), 13.0, 1.0e-9);
+  EXPECT_NEAR(logline(expline(-13.0)), -13.0, 1.0e-9);
+  EXPECT_NEAR(expline(-1.0e-9), expline(1.0e-9), 1.0e-4);
+
   //makeExamplePlot(param, vertices);
 }

@@ -9,6 +9,10 @@
 #include <server/common/Array.h>
 #include <server/common/math.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <iostream>
+#include <server/common/string.h>
+#include <adolc/adouble.h>
+#include <server/common/ToDouble.h>
 
 namespace sail {
 
@@ -61,8 +65,11 @@ class KernelDensityEstimator : public DensityEstimator<N> {
     double squaredBandwidth = sqr(_squaredBandwidth);
     T sum = 0;
     for (auto p: _samples) {
-      sum += calcDensityTerm(p, pointN,
-          squaredBandwidth);
+      T dt = calcDensityTerm(p, pointN,
+                squaredBandwidth);
+      assert(0 <= dt);
+      assert(dt <= 1.0);
+      sum += dt;
     }
     return sum;
   }
@@ -90,11 +97,19 @@ class KernelDensityEstimator : public DensityEstimator<N> {
 
   template <typename T>
   T gaussianKernel(T squaredDistance, double squaredBandwidth) const {
+    if (!(squaredDistance >= 0)) {
+      std::cout << EXPR_AND_VAL_AS_STRING(ToDouble<adouble>(squaredDistance)) << std::endl;
+    }
+    assert(squaredDistance >= 0);
+    assert(squaredBandwidth > 0);
     T x = -0.5*squaredDistance/squaredBandwidth;
+    constexpr double tol = 1.0e-9;
+    assert(x <= tol);
     return exp(x);
   }
 
   double calcDensityTerm(const Vec &a, const Vec &b, double squaredBandwidth) const {
+    assert(false);
     return gaussianKernel(norm2dif<double, N>(a.data(), b.data()), squaredBandwidth);
   }
 
@@ -102,7 +117,12 @@ class KernelDensityEstimator : public DensityEstimator<N> {
   T calcDensityTerm(const Vec &refpt, const T *x, double squaredBandwidth) const {
     T dist = 0;
     for (int i = 0; i < N; i++) {
-      dist += refpt[i]*x[i];
+      dist += sqr(refpt[i] - x[i]);
+    }
+    if (0 > dist || std::isnan(dist.getValue())) {
+      std::cout << EXPR_AND_VAL_AS_STRING(x[0].getValue()) << std::endl;
+      std::cout << EXPR_AND_VAL_AS_STRING(x[1].getValue()) << std::endl;
+      std::cout << EXPR_AND_VAL_AS_STRING(x[2].getValue()) << std::endl;
     }
     return gaussianKernel(dist, squaredBandwidth);
   }

@@ -36,19 +36,41 @@ namespace {
   };
 
   void Objf::evalAD(adouble *Xin, adouble *Fout) {
+    static int counter = 0;
     Arrayad X(inDims(), Xin);
     Arrayad vertices(_param.vertexDim());
     _param.paramToVertices(X, vertices);
+
+
+    for (int i = 0; i < X.size(); i++) {
+      assert(!std::isnan(X[i].getValue()));
+    }
+    for (int i = 0; i < vertices.size(); i++) {
+      if (std::isnan(vertices[i].getValue())) {
+        for (int i = 0; i < X.size(); i++) {
+          std::cout << EXPR_AND_VAL_AS_STRING(X[i].getValue()) << std::endl;
+        }
+        std::cout << EXPR_AND_VAL_AS_STRING(counter) << std::endl;
+        assert(false);
+      }
+    }
+
 
     int count = _surfpts.size();
     assert(count == outDims());
     for (int i = 0; i < count; i++) {
       Vectorize<Velocity<adouble>, 3> surfpt
         = _param.computeSurfacePoint(vertices, _surfpts[i]);
-      adouble f = _density.lsqResidue(surfpt.data());
-      assert(0 < f.getValue());
+      const Velocity<adouble> *pt = surfpt.data();
+      for (int i = 0; i < 3; i++) {
+        assert(!std::isnan(pt[i].knots().getValue()));
+      }
+      adouble f = _density.lsqResidue(pt);
+      double val = f.getValue();
+      assert(0 < val);
       Fout[i] = f;
     }
+    counter++;
   }
 }
 

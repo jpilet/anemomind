@@ -145,6 +145,7 @@ cxx_test(math_StatisticsTest
 cxx_test(math_DensityEstimatorTest
          DensityEstimatorTest.cpp
          gtest_main
+         math_ADFunction
         )
 
 add_library(math_CurveParam
