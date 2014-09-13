@@ -322,7 +322,7 @@ class MDArray {
   }
 
 
-  bool empty() {
+  bool empty() const {
     return numel() == 0;
   }
   int numel() const {

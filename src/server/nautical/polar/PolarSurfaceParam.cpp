@@ -54,7 +54,8 @@ Arrayd PolarSurfaceParam::makeInitialParams() const {
     double difToPrev = logline(twsAtLevel(i) - twsAtLevel(i - 1));
     curveParams(i, params).setTo(difToPrev);
   }
-  return params;
+
+  return (_P.empty()? params : params.slice(_ctrlInds));
 }
 
 Array<Vectorize<double, 2> > PolarSurfaceParam::generateSurfacePoints(int count) {

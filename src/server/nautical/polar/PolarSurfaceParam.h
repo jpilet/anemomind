@@ -68,12 +68,10 @@ class PolarSurfaceParam {
    * 'computeSurfacePoint'.
    */
   template <typename T>
-  void paramToVertices(Array<T> params, Array<T> verticesOut) const {
-    assert(params.size() == paramCount());
+  void allParamToVertices(Array<T> params, Array<T> verticesOut) const {
+    assert(params.size() == _twsLevelCount);
     assert(verticesOut.size() == vertexDim());
     Array<T> actualCurveParams = Array<T>::fill(_polarCurveParam.paramDim(), T(0));
-
-    Array<T> dstVertices = verticesOut;
 
     for (int i = 0; i < _ctrlCount; i++) {
 
@@ -86,11 +84,36 @@ class PolarSurfaceParam {
         p += expline(pi[j]);
         assert(!std::isnan(ToDouble(p)));
       }
-
       _polarCurveParam.paramToVertices(actualCurveParams,
-          curveVertices(_ctrlInds[i], dstVertices));
+          curveVertices(i, verticesOut));
     }
   }
+
+  template <typename T>
+  void paramToVertices(Array<T> params, Array<T> verticesOut) const {
+    if (_P.empty()) {
+      allParamToVertices(params, verticesOut);
+    } else {
+      Array<T> acc = Array<T>::fill(_polarCurveParam.paramDim(), T(0));
+
+      // Build the ctrl matrix
+      arma::Mat<T> ctrlp(_ctrlCount, _polarCurveParam.paramDim());
+      for (int i = 0; i < _ctrlCount; i++) {
+        Array<T> pi = curveParams(i, params);
+        for (int j = 0; j < _polarCurveParam.paramDim(); j++) {
+          T &x = acc[i];
+          x += expline(pi[j]);
+          ctrlp(i, j) = x;
+        }
+      }
+
+      assert(_P.isContinuous());
+      arma::Mat<T> pmat = ((arma::mat(_P.getData(), _P.rows(), _P.cols(), false, true))*ctrlp).t();
+      Array<T> allparams(pmat.n_elem, pmat.memptr());
+      allParamToVertices(allparams, verticesOut);
+    }
+  }
+
 
 
   Arrayd makeInitialParams() const;
