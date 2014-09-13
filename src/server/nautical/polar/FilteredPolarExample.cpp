@@ -151,6 +151,9 @@ namespace {
 int main(int argc, const char **argv) {
   double lambda = 16.0;
   double stepSizeKnots = 0.5;
+
+  double bandwidthKnots = 1.0;
+
   int chunkSize = 10000;
   std::string outFilename;
   std::string outOptFilename = "optimized_polar.txt";
@@ -216,7 +219,8 @@ int main(int argc, const char **argv) {
           PolarSurfaceParam param(cparam, maxTws, twsLevelCount);
 
           Array<PolarPoint> subpts = pts.sliceTo(count).map<PolarPoint>([&](const FilteredPolarPoints::Point &x) {return x.polarPoint();});
-          PolarDensity density(2.0*stepSize, subpts, true);
+          Velocity<double> bandwidth = Velocity<double>::knots(bandwidthKnots);
+          PolarDensity density(bandwidth, subpts, true);
           LevmarSettings settings;
           settings.verbosity = 2;
           settings.setDrawf(param.paramCount(), [=](Arrayd datai) {
