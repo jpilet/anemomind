@@ -97,7 +97,7 @@ class PolarSurfaceParam {
       Array<T> acc = Array<T>::fill(_polarCurveParam.paramDim(), T(0));
 
       // Build the ctrl matrix
-      arma::Mat<T> ctrlp(_ctrlCount, _polarCurveParam.paramDim());
+      MDArray<T, 2> ctrlp(_ctrlCount, _polarCurveParam.paramDim());
       for (int i = 0; i < _ctrlCount; i++) {
         Array<T> pi = curveParams(i, params);
         for (int j = 0; j < _polarCurveParam.paramDim(); j++) {
@@ -108,8 +108,18 @@ class PolarSurfaceParam {
       }
 
       assert(_P.isContinuous());
-      arma::Mat<T> pmat = ((arma::mat(_P.getData(), _P.rows(), _P.cols(), false, true))*ctrlp).t();
-      Array<T> allparams(pmat.n_elem, pmat.memptr());
+
+
+      arma::mat Pmat = arma::Mat<double>(_P.getData(), _P.rows(), _P.cols(), false, true);
+
+      MDArray<T, 2> dst(ctrlp.cols(), _P.rows());
+
+      arma::Mat<T> srcmat(ctrlp.getData(), ctrlp.rows(), ctrlp.cols(), false, true);
+      arma::Mat<T> dstmat(dst.getData(), dst.rows(), dst.cols(), false, true);
+
+      dstmat = (Pmat*srcmat).t();
+
+      Array<T> allparams(dst.numel(), dst.getData());
       allParamToVertices(allparams, verticesOut);
     }
   }

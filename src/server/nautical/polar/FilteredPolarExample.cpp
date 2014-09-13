@@ -154,6 +154,8 @@ int main(int argc, const char **argv) {
 
   double bandwidthKnots = 1.0;
 
+  int levelCtrlCount = 4;
+
   int chunkSize = 10000;
   std::string outFilename;
   std::string outOptFilename = "optimized_polar.txt";
@@ -216,7 +218,7 @@ int main(int argc, const char **argv) {
 
           PolarCurveParam cparam(15, ctrlCount, true);
           int twsLevelCount = int(ceil(maxTws.knots()/stepSizeKnots));
-          PolarSurfaceParam param(cparam, maxTws, twsLevelCount);
+          PolarSurfaceParam param(cparam, maxTws, twsLevelCount, levelCtrlCount);
 
           Array<PolarPoint> subpts = pts.sliceTo(count).map<PolarPoint>([&](const FilteredPolarPoints::Point &x) {return x.polarPoint();});
           Velocity<double> bandwidth = Velocity<double>::knots(bandwidthKnots);
