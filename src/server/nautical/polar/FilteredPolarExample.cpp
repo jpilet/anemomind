@@ -222,7 +222,7 @@ int main(int argc, const char **argv) {
           settings.setDrawf(param.paramCount(), [=](Arrayd datai) {
             outputOptParams(outOptFilenameTemp, datai);
             std::cout << "Saved intermediate results to " << outOptFilenameTemp << std::endl;
-            param.plot(datai);
+            //param.plot(datai);
           });
           std::cout << "Number of parameters to optimize: " << param.paramCount() << std::endl;
 

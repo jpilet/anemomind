@@ -15,9 +15,9 @@ namespace sail {
 
 
 namespace {
-  class Objf : public AutoDiffFunction {
+  class ObjfMaxDensity : public AutoDiffFunction {
    public:
-    Objf(const PolarSurfaceParam &param,
+    ObjfMaxDensity(const PolarSurfaceParam &param,
          const PolarDensity &density,
          Array<Vectorize<double, 2> > pts) :
       _param(param), _density(density), _surfpts(pts) {}
@@ -36,7 +36,7 @@ namespace {
     const PolarDensity &_density;
   };
 
-  void Objf::evalAD(adouble *Xin, adouble *Fout) {
+  void ObjfMaxDensity::evalAD(adouble *Xin, adouble *Fout) {
     ENTERSCOPE("Objf::evalAD");
     static int counter = 0;
     Arrayad X(inDims(), Xin);
@@ -74,6 +74,66 @@ namespace {
     }
     counter++;
   }
+
+  class ObjfQuantile : public AutoDiffFunction {
+   public:
+    ObjfQuantile(const PolarSurfaceParam &param,
+        const PolarDensity &density,
+        Array<Vectorize<double, 2> > pts);
+
+    int inDims() {
+      return _param.paramCount();
+    }
+
+    int outDims() {
+      return _cumulfuns.size();
+    }
+
+    void evalAD(adouble *Xin, adouble *Fout);
+   private:
+    double _quantile;
+    Array<CumulativeFunction> _cumulfuns;
+    Array<Vectorize<double, 2> > _surfpts;
+    const PolarSurfaceParam &_param;
+    const PolarDensity &_density;
+  };
+
+  ObjfQuantile::ObjfQuantile(const PolarSurfaceParam &param,
+      const PolarDensity &density,
+      Array<Vectorize<double, 2> > pts) :
+      _param(param), _density(density), _surfpts(pts) {
+    ENTERSCOPE("Objf constructor");
+    _quantile = 0.8;
+    int count = pts.size();
+    _cumulfuns = Array<CumulativeFunction>(count);
+    Velocity<double> maxBoatSpeed = Velocity<double>::knots(30.0);
+    int sampleCount = 60;
+    Arrayd params = _param.makeInitialParams();
+    Arrayd vertices(_param.vertexDim());
+    _param.paramToVertices(params, vertices);
+    for (int i = 0; i < count; i++) {
+      std::cout << "Building quantile " << i+1 << " of " << count << std::endl;
+      Vectorize<Velocity<double>, 3> vec = _param.computeSurfacePoint(vertices, _surfpts[i]);
+      _cumulfuns[i] = _density.makeRadialKnotFunction(vec, maxBoatSpeed, sampleCount);
+    }
+  }
+
+  void ObjfQuantile::evalAD(adouble *Xin, adouble *Fout) {
+    Arrayad X(inDims(), Xin);
+    Arrayad vertices(_param.vertexDim());
+    _param.paramToVertices(X, vertices);
+
+    int count = _surfpts.size();
+    assert(count == outDims());
+    for (int i = 0; i < count; i++) {
+      Vectorize<Velocity<adouble>, 3> surfpt
+        = _param.computeSurfacePoint(vertices, _surfpts[i]);
+      const Velocity<adouble> *pt = surfpt.data();
+      adouble dist = sqrt(sqr(pt[0].knots()) + sqr(pt[1].knots()));
+      Fout[i] = _cumulfuns[i].eval(dist) - _quantile;
+    }
+  }
+
 }
 
 Arrayd optimizePolar(const PolarSurfaceParam &param, const PolarDensity &density,
@@ -86,7 +146,7 @@ Arrayd optimizePolar(const PolarSurfaceParam &param, const PolarDensity &density
   assert(param.paramCount() < surfpts.size());
   LevmarState state(params);
 
-  Objf fun(param, density, surfpts);
+  ObjfQuantile fun(param, density, surfpts);
   state.minimize(settings, fun);
   return state.getXArray();
 }
