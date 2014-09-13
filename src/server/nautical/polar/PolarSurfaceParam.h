@@ -47,10 +47,10 @@ class PolarSurfaceParam {
   PolarSurfaceParam();
   PolarSurfaceParam(PolarCurveParam pcp,
       Velocity<double> maxTws,
-      int twsLevelCount);
+      int twsLevelCount, int ctrlCount=-1);
 
   int paramCount() const {
-    return _twsLevelCount*_polarCurveParam.paramCount();
+    return _ctrlCount*_polarCurveParam.paramCount();
   }
 
   int vertexCount() const {
@@ -72,7 +72,10 @@ class PolarSurfaceParam {
     assert(params.size() == paramCount());
     assert(verticesOut.size() == vertexDim());
     Array<T> actualCurveParams = Array<T>::fill(_polarCurveParam.paramDim(), T(0));
-    for (int i = 0; i < _twsLevelCount; i++) {
+
+    Array<T> dstVertices = verticesOut;
+
+    for (int i = 0; i < _ctrlCount; i++) {
 
       /* This curious mapping is to ensure that the parameters for one level
        * are greater than those of the level below, and that they are positive.*/
@@ -85,7 +88,7 @@ class PolarSurfaceParam {
       }
 
       _polarCurveParam.paramToVertices(actualCurveParams,
-          curveVertices(i, verticesOut));
+          curveVertices(_ctrlInds[i], dstVertices));
     }
   }
 
@@ -168,7 +171,9 @@ class PolarSurfaceParam {
 
   PolarCurveParam _polarCurveParam;
   Velocity<double> _twsStep, _maxTws;
-  int _twsLevelCount;
+  int _twsLevelCount, _ctrlCount;
+  MDArray2d _P;
+  Arrayi _ctrlInds;
 };
 
 }

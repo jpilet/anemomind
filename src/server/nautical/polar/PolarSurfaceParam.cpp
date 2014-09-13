@@ -6,22 +6,41 @@
 #include <server/nautical/polar/PolarSurfaceParam.h>
 #include <server/common/Uniform.h>
 #include <server/plot/extra.h>
+#include <server/math/CurveParam.h>
 
 
 namespace sail {
 
 
 PolarSurfaceParam::PolarSurfaceParam() :
-    _twsLevelCount(0), _alpha(0.1) {}
+    _twsLevelCount(0), _alpha(0.1), _ctrlCount(0) {}
 
+
+namespace {
+  Arrayi makeSpacedCtrlInds(int vertexCount, int ctrlCount) {
+    LineKM vindex(0, ctrlCount-1, 0, vertexCount-1);
+    Arrayi inds(ctrlCount);
+    for (int i = 0; i < ctrlCount; i++) {
+      inds[i] = int(round(vindex(i)));
+    }
+    return inds;
+  }
+}
 
 PolarSurfaceParam::PolarSurfaceParam(PolarCurveParam pcp, Velocity<double> maxTws,
-    int twsLevelCount) :
+    int twsLevelCount, int ctrlCount) :
     _twsStep((1.0/twsLevelCount)*maxTws),
     _twsLevelCount(twsLevelCount),
     _alpha(0.1),
-    _polarCurveParam(pcp), _maxTws(maxTws) {
+    _polarCurveParam(pcp), _maxTws(maxTws),
+    _ctrlCount(ctrlCount == -1? twsLevelCount : ctrlCount) {
     assert(!pcp.empty());
+    _ctrlInds = makeSpacedCtrlInds(_twsLevelCount, _ctrlCount);
+
+    if (ctrlCount != -1) {
+      _P = parameterizeCurve(_twsLevelCount, _ctrlInds,
+          2, true);
+    }
 }
 
 
