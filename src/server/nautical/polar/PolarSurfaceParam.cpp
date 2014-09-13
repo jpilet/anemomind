@@ -49,13 +49,19 @@ Arrayd PolarSurfaceParam::makeInitialParams() const {
   Arrayd params(paramCount());
   LineKM twsAtLevel(0, _twsLevelCount-1,
       _twsStep.knots(), 0.3*double(_twsLevelCount)*_twsStep.knots());
-
-  for (int i = 0; i < _twsLevelCount; i++) {
-    double difToPrev = logline(twsAtLevel(i) - twsAtLevel(i - 1));
-    curveParams(i, params).setTo(difToPrev);
+  if (withCtrl()) {
+    curveParams(0, params).setTo(logline(twsAtLevel(0)));
+    for (int i = 1; i < _ctrlCount; i++) {
+      double difToPrev = logline(twsAtLevel(_ctrlInds[i]) - twsAtLevel(_ctrlInds[i - 1]));
+      curveParams(i, params).setTo(difToPrev);
+    }
+  } else {
+    for (int i = 0; i < _twsLevelCount; i++) {
+      double difToPrev = logline(twsAtLevel(i) - twsAtLevel(i - 1));
+      curveParams(i, params).setTo(difToPrev);
+    }
   }
-
-  return (_P.empty()? params : params.slice(_ctrlInds));
+  return params;
 }
 
 Array<Vectorize<double, 2> > PolarSurfaceParam::generateSurfacePoints(int count) {

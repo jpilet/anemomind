@@ -48,6 +48,40 @@ TEST(PolarSurfaceParamTest, BasicTest) {
   PolarSurfaceParam param(PolarCurveParam(15, 5, true),
         Velocity<double>::knots(40),
         40);
+  EXPECT_FALSE(param.withCtrl());
+
+  Arrayd X = param.makeInitialParams();
+  EXPECT_EQ(X.size(), 3*40);
+
+  Arrayd vertices(param.vertexDim());
+  param.paramToVertices(X, vertices);
+  Vectorize<Velocity<double>, 3> x = param.computeSurfacePoint(vertices,
+      Vectorize<double, 2>{0, 0});
+  EXPECT_NEAR(x[0].knots(), 0.0, 1.0e-9);
+  EXPECT_NEAR(x[1].knots(), 0.0, 1.0e-9);
+  EXPECT_NEAR(x[2].knots(), 0.0, 1.0e-9);
+
+  Vectorize<Velocity<double>, 3> y = param.computeSurfacePoint(vertices,
+      Vectorize<double, 2>{0.5, 0.999999999});
+  EXPECT_NEAR(y[0].knots(), 0.0, 1.0e-4);
+  EXPECT_LE(y[1].knots(), -10.0);
+  EXPECT_NEAR(y[2].knots(), 40.0, 1.0e-4);
+
+  EXPECT_NEAR(logline(expline(13.0)), 13.0, 1.0e-9);
+  EXPECT_NEAR(logline(expline(-13.0)), -13.0, 1.0e-9);
+  EXPECT_NEAR(expline(-1.0e-9), expline(1.0e-9), 1.0e-4);
+
+  //makeExamplePlot(param, vertices);
+}
+
+TEST(PolarSurfaceParamTest, FullCtrl) {
+  EXPECT_EQ(-1, int(floor(-0.1)));
+
+  //PolarSurfaceParam(int segsPerCtrlSpan, int ctrlCount, bool mirrored)
+  PolarSurfaceParam param(PolarCurveParam(15, 5, true),
+        Velocity<double>::knots(40),
+        40, 40);
+  EXPECT_TRUE(param.withCtrl());
 
   Arrayd X = param.makeInitialParams();
   EXPECT_EQ(X.size(), 3*40);

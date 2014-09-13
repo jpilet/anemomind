@@ -69,11 +69,11 @@ class PolarSurfaceParam {
    */
   template <typename T>
   void allParamToVertices(Array<T> params, Array<T> verticesOut) const {
-    assert(params.size() == _twsLevelCount);
+    assert(params.size() == _twsLevelCount*_polarCurveParam.paramDim());
     assert(verticesOut.size() == vertexDim());
     Array<T> actualCurveParams = Array<T>::fill(_polarCurveParam.paramDim(), T(0));
 
-    for (int i = 0; i < _ctrlCount; i++) {
+    for (int i = 0; i < _twsLevelCount; i++) {
 
       /* This curious mapping is to ensure that the parameters for one level
        * are greater than those of the level below, and that they are positive.*/
@@ -101,7 +101,7 @@ class PolarSurfaceParam {
       for (int i = 0; i < _ctrlCount; i++) {
         Array<T> pi = curveParams(i, params);
         for (int j = 0; j < _polarCurveParam.paramDim(); j++) {
-          T &x = acc[i];
+          T &x = acc[j];
           x += expline(pi[j]);
           ctrlp(i, j) = x;
         }
@@ -137,6 +137,12 @@ class PolarSurfaceParam {
 
   // Make vertex data
   MDArray2d makeVertexData(Arrayd paramsOrVertices) const;
+
+
+
+  bool withCtrl() const {
+    return !_P.empty();
+  }
  private:
 
   Arrayd toVertices(Arrayd paramsOrVertices) const;
