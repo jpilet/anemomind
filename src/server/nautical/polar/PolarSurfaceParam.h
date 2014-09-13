@@ -9,6 +9,8 @@
 #include <server/nautical/polar/PolarCurveParam.h>
 #include <adolc/adouble.h>
 #include <server/common/ToDouble.h>
+#include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 
@@ -29,6 +31,25 @@ T expline(T x) {
   }
 }
 
+
+template <typename T>
+MDArray<T, 2> mulTransposed(MDArray<double, 2> A, MDArray<T, 2> B) {
+  int rows = A.rows();
+  int cols = B.cols();
+  int middle = A.cols();
+  assert(middle == B.rows());
+  MDArray<T, 2> dst(cols, rows); // <-- transpose the result
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      T sum = T(0);
+      for (int k = 0; k < middle; k++) {
+        sum += A(i, k)*B(k, j);
+      }
+      dst(j, i) = sum;
+    }
+  }
+  return dst;
+}
 
 // inverse function to the function above.
 template <typename T>
@@ -80,9 +101,7 @@ class PolarSurfaceParam {
       Array<T> pi = curveParams(i, params);
       for (int j = 0; j < _polarCurveParam.paramDim(); j++) {
         T &p = actualCurveParams[j];
-        assert(!std::isnan(ToDouble(p)));
         p += expline(pi[j]);
-        assert(!std::isnan(ToDouble(p)));
       }
       _polarCurveParam.paramToVertices(actualCurveParams,
           curveVertices(i, verticesOut));
@@ -107,20 +126,13 @@ class PolarSurfaceParam {
         }
       }
 
+      assert(verticesOut.size() == vertexDim());
       assert(_P.isContinuous());
-
-
-      arma::mat Pmat = arma::Mat<double>(_P.getData(), _P.rows(), _P.cols(), false, true);
-
-      MDArray<T, 2> dst(ctrlp.cols(), _P.rows());
-
-
-      arma::Mat<T> srcmat(ctrlp.getData(), ctrlp.rows(), ctrlp.cols(), false, true);
-      arma::Mat<T> dstmat(dst.getData(), dst.rows(), dst.cols(), false, true);
-      dstmat = (Pmat*srcmat).t();
-
-      Array<T> allparams(dst.numel(), dst.getData());
-      allParamToVertices(allparams, verticesOut);
+      MDArray<T, 2> dst = mulTransposed(_P, ctrlp);
+      Array<T> allparams = dst.getStorage();
+      for (int i = 0; i < _twsLevelCount; i++) {
+        _polarCurveParam.paramToVertices(curveParams(i, allparams), curveVertices(i, verticesOut));
+      }
     }
   }
 

@@ -154,7 +154,7 @@ int main(int argc, const char **argv) {
 
   double bandwidthKnots = 1.0;
 
-  int levelCtrlCount = 4;
+  int levelCtrlCount = 40;
 
   int chunkSize = 10000;
   std::string outFilename;
