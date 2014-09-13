@@ -114,9 +114,9 @@ class PolarSurfaceParam {
 
       MDArray<T, 2> dst(ctrlp.cols(), _P.rows());
 
+
       arma::Mat<T> srcmat(ctrlp.getData(), ctrlp.rows(), ctrlp.cols(), false, true);
       arma::Mat<T> dstmat(dst.getData(), dst.rows(), dst.cols(), false, true);
-
       dstmat = (Pmat*srcmat).t();
 
       Array<T> allparams(dst.numel(), dst.getData());
