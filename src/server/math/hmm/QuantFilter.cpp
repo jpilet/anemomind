@@ -137,14 +137,14 @@ namespace {
 
 MDArray2i quantFilter(Array<LineKM> binMap,
                         MDArray2d noisyData,
-                        double regularization) {
+                        double regularization, int maxIter) {
   Stepper stepper(binMap, noisyData, regularization);
-  int counter = 0;
   LOG(INFO) << "Running quantFilter...";
-  while (true) {
-    int updates = stepper.step();
+  int counter = 0;
+  for (int i = 0; i < maxIter; i++) {
     counter++;
-    LOG(INFO) << "   quantFilter iteration " << counter << ". Updates: " << updates;
+    int updates = stepper.step();
+    LOG(INFO) << "   quantFilter iteration " << i << ". Updates: " << updates;
     if (updates == 0) {
       break;
     }
@@ -156,9 +156,9 @@ MDArray2i quantFilter(Array<LineKM> binMap,
 MDArray2i quantFilterChunked(Array<LineKM> binMap,
     MDArray2d noisyData,
     double regularization,
-    int chunkSize) {
+    int chunkSize, int maxIter) {
     if (chunkSize <= 0) {
-      return quantFilter(binMap, noisyData, regularization);
+      return quantFilter(binMap, noisyData, regularization, maxIter);
     } else {
       int count = noisyData.cols();
       int chunkCount = (count - 1)/chunkSize + 1;
@@ -168,7 +168,7 @@ MDArray2i quantFilterChunked(Array<LineKM> binMap,
         LOG(INFO) << " Chunk " << i << " of " << chunkCount;
         int from = i*chunkSize;
         int to = std::min(count, from + chunkSize);
-        quantFilter(binMap, noisyData.sliceCols(from, to), regularization)
+        quantFilter(binMap, noisyData.sliceCols(from, to), regularization, maxIter)
           .copyToSafe(dst.sliceCols(from, to));
       }
       LOG(INFO) << "Done quantFilterChunked.";

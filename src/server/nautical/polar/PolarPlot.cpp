@@ -10,6 +10,7 @@
 #include <server/plot/extra.h>
 #include <server/nautical/polar/PolarPointConv.h>
 #include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 
 using namespace sail;
 
@@ -58,6 +59,23 @@ namespace {
     }
     return *navs;
   }
+
+  MDArray2d ptsToXYZ(Array<PolarPoint> pts) {
+    int count = pts.size();
+    MDArray2d data(count, 3);
+    for (int i = 0; i < count; i++) {
+      PolarPoint &pt = pts[i];
+      data(i, 0) = pt.x().knots();
+      data(i, 1) = pt.y().knots();
+      data(i, 2) = pt.tws().knots();
+    }
+    return data;
+  }
+
+  void savePointsToFile(std::string filename, Array<PolarPoint> pts) {
+    MDArray2d data = ptsToXYZ(pts);
+    saveMatrix(filename, data, 3, 16);
+  }
 }
 
 int main(int argc, const char **argv) {
@@ -73,6 +91,7 @@ int main(int argc, const char **argv) {
       .setArgCount(3).setUnique();
 
 
+  std::string xyzFilename = "raw_points_xyz.txt";
   double bandwidthKnots = 1.0;
   int boatSpeedSampleCount = 30;
   int twaCount = 30;
@@ -82,6 +101,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--boat-speed-sample-count", "Set number of boat speed samples")
           .setArgCount(1).store(&boatSpeedSampleCount);
   amap.registerOption("--twa-count", "Set number of twa samples for the curve").setArgCount(1).store(&twaCount);
+  amap.registerOption("--save-xyz", "Save all points to a file").setArgCount(1).store(&xyzFilename);
 
   if (amap.parseAndHelp(argc, argv)) {
     /*BasicPolar::TwsHist twsHist(20,
@@ -160,6 +180,10 @@ int main(int argc, const char **argv) {
       curve.plot(&plot);
       plot.show();
       LOG(INFO) << "Plotting for TWS = " << tws.knots() << " knots or " << tws.metersPerSecond() << " m/s at quantile " << q;
+    }
+
+    if (amap.optionProvided("--save-xyz")) {
+      savePointsToFile(xyzFilename, navsToPolarPoints(getCachedNavs(amap, &cachedNavs)));
     }
 
     return 0;

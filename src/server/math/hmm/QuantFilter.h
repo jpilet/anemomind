@@ -42,7 +42,7 @@ namespace sail {
  */
 MDArray2i quantFilter(Array<LineKM> binMap,
                         MDArray2d noisyData,
-                        double regularization);
+                        double regularization, int maxIter = 10000);
 
 /*
  * If the above function is still too complicated,
@@ -51,7 +51,7 @@ MDArray2i quantFilter(Array<LineKM> binMap,
 MDArray2i quantFilterChunked(Array<LineKM> binMap,
     MDArray2d noisyData,
     double regularization,
-    int chunkSize);
+    int chunkSize, int maxIter);
 
 } /* namespace mmm */
 

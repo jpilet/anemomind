@@ -93,6 +93,7 @@ void PolarSurfaceParam::plot(Arrayd paramsOrVertices,
   Arrayd vertices = toVertices(paramsOrVertices);
 
   dst->set_style("lines");
+  dst->set_pointsize(2);
   for (int i = 0; i < _twsLevelCount; i++) {
     double z = (i + 1.0)*_twsStep.knots();
     MDArray2d plotData = _polarCurveParam.makePlotData(curveVertices(i, vertices),

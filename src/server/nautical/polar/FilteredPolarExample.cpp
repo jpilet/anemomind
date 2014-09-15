@@ -151,6 +151,7 @@ namespace {
 int main(int argc, const char **argv) {
   double lambda = 16.0;
   double stepSizeKnots = 0.5;
+  int maxIter = 2000;
 
   double bandwidthKnots = 1.0;
 
@@ -173,6 +174,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--plot-y", "Plot speed along y-axis in polar plot");
   amap.registerOption("--plot-tws", "Plot true wind speed");
   amap.registerOption("--chunk-size", "Set the chunk size").store(&chunkSize);
+  amap.registerOption("--max-iter", "Set the maximum number of filtering iterations").setArgCount(1).store(&maxIter);
 
   // General command to save result
   amap.registerOption("--save", "Provide a filename to save the result").setArgCount(1).store(&outFilename);
@@ -263,7 +265,7 @@ int main(int argc, const char **argv) {
       MDArray2d data = makeDataMatrix(pts);
 
       Array<LineKM> maps = makeVelMaps(stepSize);
-      MDArray2i inds = quantFilterChunked(maps, data, lambda, chunkSize);
+      MDArray2i inds = quantFilterChunked(maps, data, lambda, chunkSize, maxIter);
       Array<Duration<double> > t = calcT(pts, navs);
 
       if (amap.optionProvided("--plot-x")) {

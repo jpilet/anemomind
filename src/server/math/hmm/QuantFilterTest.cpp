@@ -44,7 +44,7 @@ TEST(QuantFilterTest, StepTest2d) {
   }
 
   double lambda = 10;
-  MDArray2i inds = quantFilter(Array<LineKM>::args(map, map), data, lambda);
+  MDArray2i inds = quantFilter(Array<LineKM>::args(map, map), data, lambda, 10000);
   int first[2] = {-2, 6};
   int last[2] = {2, 0};
 
