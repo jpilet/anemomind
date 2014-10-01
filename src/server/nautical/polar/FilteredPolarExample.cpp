@@ -151,7 +151,7 @@ namespace {
 int main(int argc, const char **argv) {
   double lambda = 16.0;
   double stepSizeKnots = 0.5;
-  int maxIter = 2000;
+  int maxIter = 300;
 
   double bandwidthKnots = 1.0;
 
