@@ -19,8 +19,8 @@ Array<Nav> makeTileElement(TileKey tileKey,
   CurveSimplifier curve(false);
   for (const Nav& nav : navs) {
     curve.addPoint(
-       posToTileX(tileKey.scale(), nav.geographicPosition()), 
-       posToTileY(tileKey.scale(), nav.geographicPosition()));
+       posToTileX(0, nav.geographicPosition()), 
+       posToTileY(0, nav.geographicPosition()));
   }
   std::vector<int> priorities = curve.priorities();
 
