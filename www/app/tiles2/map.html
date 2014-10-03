@@ -1,0 +1,68 @@
+<!doctype html>
+
+<head>
+  <title>Map viewer</title>
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+  <style>
+    html { height: 100%; font-family: Helvetica, Arial, sans-serif}
+    body {margin: 0; width: 100%; height: 100%; overflow:hidden; }
+    #container {
+      position:absolute; width: 100%; top:0px; bottom:0px;
+    }
+    #timeBar { 
+      position: absolute; right:0px; top:0px; overflow-y:auto; height: 100%; background-color:rgba(255,255,255,0.5);
+    }
+    canvas {
+      width:100%; height:100%; position: absolute; top:0px;
+    }
+    li {
+      list-style-type: none; padding: 5px;
+    }
+  </style>
+  <script src="http://mbostock.github.com/d3/d3.v2.js?2.8.1"></script>
+  <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="utils.js"></script>
+  <script src="affinetransform.js"></script>
+  <script src="pinchzoom.js"></script>
+  <script src="TileLayer.js"></script>
+  <script src="VectorTileLayer.js"></script>
+  <script src="CanvasTilesRenderer.js"></script>
+  <script src="timebar.js"></script>
+</head>
+
+<body>
+  <div id = "container">
+    <canvas id="viewer" width="400" height="400" style="border:none">
+      Your browser sucks.
+    </canvas>
+  </div>
+  <div id="timeBar"></div>    
+    <script>        
+        var timeBar = new TimeBar('#timeBar', []);
+        timeBar.onTimeSelect = function(d) {
+          canvasTilesRenderer.layers[1].setHighlight(d);
+        };
+
+    	var canvasTilesRenderer = new CanvasTilesRenderer({
+          // debug: true,
+          canvas: document.getElementById("viewer"),
+    	    //url: function(scale, x, y) { return " http://tiles.openseamap.org/seamark/" + scale + "/" + x + "/" + y + ".png"; },
+    	    url: function(scale, x, y) { return "http://b.tile.opencyclemap.org/cycle/" + scale + "/" + x + "/" + y + ".png"; },
+            //url: function(scale, x, y) { return "http://www.mapplus.ch/mapcache/gmaps/osm_schweiz_sqlite/" + scale + "/" + x + "/" + y + ".png;" },
+    	    maxNumCachedTiles: 256,
+    	    onLocationChange: function(canvasTilesRenderer) {
+            timeBar.setData(canvasTilesRenderer.layers[1].getTimeData());
+
+      	    var element = document.getElementById("location"); 
+            if (element) {
+              var location = canvasTilesRenderer.getLocation();
+              element.innerHTML =
+      	        "{x:" + location.x + ",y:" + location.y + ",scale:" + location.scale+"}";
+    	      }
+    	    }
+    	  });
+
+      
+    </script>
+</body>
+</html>
