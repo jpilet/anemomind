@@ -55,6 +55,18 @@ this.Utils = {
     }
     return r;
   },
+
+  multiply3x3Matrices: function(A, B) {
+    var r = new Array(9);
+    for (var i = 0; i < 3; ++i) {
+      for (var j = 0; j < 3; ++j) {
+        r[i * 3 + j] = A[i*3 + 0] * B[0 * 3 + j]
+          + A[i*3 + 1] * B[1 * 3 + j]
+          + A[i*3 + 2] * B[2 * 3 + j];
+      }
+    }
+    return r;
+  },
   
   distance: function(a, b) {
     var dx = a.x - b.x;
@@ -86,6 +98,9 @@ window.requestAnimFrame = (function(){
 // creates a global "addWheelListener" method
 // example: addWheelListener( elem, function( e ) { console.log( e.deltaY ); e.preventDefault(); } );
 (function(window,document) {
+   if (!document) {
+     return;
+   }
 
     var prefix = "", _addEventListener, onwheel, support;
 
