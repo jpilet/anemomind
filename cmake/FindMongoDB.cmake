@@ -80,6 +80,9 @@ if (MAC)
   # MongoDB depends on boost system library.
   find_package(Boost COMPONENTS system REQUIRED)
   set(MongoDB_LIBRARIES ${MongoDB_LIBRARIES}
-                        ${Boost_SYSTEM_LIBRARY})
+                        ${Boost_SYSTEM_LIBRARY}
+                        ${Boost_THREAD_LIBRARY}
+                        ${Boost_FILESYSTEM_LIBRARY}
+                        )
 endif (MAC)
 mark_as_advanced(MongoDB_INCLUDE_DIR MongoDB_LIBRARIES MongoDB_EXPOSE_MACROS)
