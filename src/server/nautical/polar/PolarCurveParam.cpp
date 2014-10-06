@@ -7,6 +7,7 @@
 #include <server/math/CurveParam.h>
 #include <server/common/LineKM.h>
 #include <server/math/PolarCoordinates.h>
+#include <server/common/string.h>
 #include <cassert>
 
 namespace sail {
@@ -91,8 +92,19 @@ int PolarCurveParam::ctrlToParamIndex(int ctrlIndex) const {
     return ctrlIndex;
   }
   int lastParamIndex = _paramCount - 1;
-  int overflow = ctrlIndex - lastParamIndex;
+  int middle = _ctrlCount/2;
+  int overflow = ctrlIndex - middle;
   int result = lastParamIndex - overflow;
+
+  /*if (!(0 <= result)) {
+    std::cout << EXPR_AND_VAL_AS_STRING(ctrlIndex) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(_ctrlCount) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(_paramCount) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(middle) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(overflow) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(result) << std::endl;
+  }*/
+
   assert(0 <= result);
   assert(result < _paramCount);
   return result;
