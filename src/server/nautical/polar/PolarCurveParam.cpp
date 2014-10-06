@@ -95,16 +95,6 @@ int PolarCurveParam::ctrlToParamIndex(int ctrlIndex) const {
   int middle = _ctrlCount/2;
   int overflow = ctrlIndex - middle;
   int result = lastParamIndex - overflow;
-
-  /*if (!(0 <= result)) {
-    std::cout << EXPR_AND_VAL_AS_STRING(ctrlIndex) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(_ctrlCount) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(_paramCount) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(middle) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(overflow) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(result) << std::endl;
-  }*/
-
   assert(0 <= result);
   assert(result < _paramCount);
   return result;
