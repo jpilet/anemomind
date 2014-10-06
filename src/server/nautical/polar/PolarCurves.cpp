@@ -3,13 +3,13 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/polar/PolarCurves.h>
 #include <server/common/LineKM.h>
 #include <server/common/MDArray.h>
-#include <server/math/PolarCoordinates.h>
-#include <server/nautical/polar/PolarDensity.h>
 #include <server/common/logging.h>
 #include <server/common/string.h>
+#include <server/math/PolarCoordinates.h>
+#include <server/nautical/polar/PolarCurves.h>
+#include <server/nautical/polar/PolarDensity.h>
 #include <server/plot/extra.h>
 
 namespace sail {
