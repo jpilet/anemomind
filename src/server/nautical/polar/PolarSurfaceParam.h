@@ -31,6 +31,15 @@ T expline(T x) {
   }
 }
 
+// inverse function to the function above.
+template <typename T>
+T logline(T x) {
+  if (ToDouble(x) > 1.0) {
+    return (x - 1.0)*exp(-1.0);
+  } else {
+    return log(x);
+  }
+}
 
 template <typename T>
 MDArray<T, 2> mulTransposed(MDArray<double, 2> A, MDArray<T, 2> B) {
@@ -49,16 +58,6 @@ MDArray<T, 2> mulTransposed(MDArray<double, 2> A, MDArray<T, 2> B) {
     }
   }
   return dst;
-}
-
-// inverse function to the function above.
-template <typename T>
-T logline(T x) {
-  if (ToDouble(x) > 1.0) {
-    return (x - 1.0)*exp(-1.0);
-  } else {
-    return log(x);
-  }
 }
 
 class GnuplotExtra;
