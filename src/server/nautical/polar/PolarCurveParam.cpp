@@ -92,7 +92,10 @@ int PolarCurveParam::ctrlToParamIndex(int ctrlIndex) const {
   }
   int lastParamIndex = _paramCount - 1;
   int overflow = ctrlIndex - lastParamIndex;
-  return lastParamIndex - overflow;
+  int result = lastParamIndex - overflow;
+  assert(0 <= result);
+  assert(result < _paramCount);
+  return result;
 }
 
 namespace {
