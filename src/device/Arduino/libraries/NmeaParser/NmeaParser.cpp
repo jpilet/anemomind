@@ -298,14 +298,20 @@ NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
   year_ = parse2c(argv_[9]+4);
 
   pos_.lat.set(
-    (argv_[4][0] == 'S' ? -1 : 1) * parse2c(argv_[3]),
+    parse2c(argv_[3]),
     parse2c(argv_[3]+2),
     parseNc(argv_[3]+5,3));
+  if (argv_[4][0] == 'S') {
+    pos_.lat.flip();
+  }
 
   pos_.lon.set(
-    (argv_[6][0] == 'W' ? -1 : 1) * parseNc(argv_[5],3),
+    parseNc(argv_[5],3),
     parse2c(argv_[5]+3),
     parseNc(argv_[5]+6,3));
+  if (argv_[6][0] == 'W') {
+    pos_.lon.flip();
+  }
 
   gpsBearing_ = parseInt(argv_[8],0);
 
@@ -354,7 +360,14 @@ NmeaParser::NmeaSentence NmeaParser::processVLW() {
 
 double AccAngle::toDouble() const {
   double subdeg = ((double)min_ + (double)mc_/1000.0) / 60.0;
-  return (double)deg_ + (deg_ < 0 ? -subdeg : subdeg);
+  //return (double)deg_ + (deg_ < 0 ? -subdeg : subdeg);
+  return deg_ + subdeg;
+}
+
+void AccAngle::flip() {
+  deg_ = - deg_;
+  min_ = - min_;
+  mc_ = - mc_;
 }
 
 AccAngle::AccAngle() {
@@ -368,9 +381,14 @@ void AccAngle::set(double dbl) {
   double angleAbs = (dbl < 0 ? -dbl : dbl);
   int degrees = (int)(angleAbs);
   double minutes = (angleAbs - degrees) * 60;
-  deg_ = sign * degrees;
+  deg_ = degrees;
   min_ = (int)(minutes);
   mc_ = (int)((minutes - min_) * 1000 + .5);
+  if (sign < 0) {
+    deg_ = - deg_;
+    min_ = - min_;
+    mc_ = - mc_;
+  }
 }
 
 

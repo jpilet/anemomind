@@ -1,7 +1,8 @@
 add_subdirectory("grammars")
+add_subdirectory("polar")
 add_subdirectory("synthtest")
 add_subdirectory("tiles")
-add_subdirectory("polar")
+
 
 add_library(nautical_Ecef
             Ecef.h

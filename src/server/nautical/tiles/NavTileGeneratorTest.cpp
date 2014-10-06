@@ -81,4 +81,12 @@ TEST(NavTileGenerator, TileKeyTest) {
   }
 }
 
+TEST(NavTileGenerator, TileCoordTest) {
+  GeographicPosition<double> lizard(
+      Angle<>::degrees(-5.206271),
+      Angle<>::degrees(49.958910));
+  EXPECT_NEAR(0.48553780374881694 , posToTileX(0, lizard), 1e-6);
+  EXPECT_NEAR(0.33932217262515935, posToTileY(0, lizard), 1e-6);
+}
+
 }  // namespace sail
