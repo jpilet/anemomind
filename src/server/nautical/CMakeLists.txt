@@ -1,5 +1,8 @@
 add_subdirectory("grammars")
+add_subdirectory("polar")
 add_subdirectory("synthtest")
+add_subdirectory("tiles")
+
 
 add_library(nautical_Ecef
             Ecef.h
@@ -400,27 +403,3 @@ target_link_libraries(nautical_plotTargetSpeed
                       device_ChunkFile
                      )
 
-add_library(nautical_BasicPolar
-            BasicPolar.h
-            BasicPolar.cpp
-           )
-target_link_libraries(nautical_BasicPolar
-                      common_Histogram
-                      plot_gnuplot
-                     )
-cxx_test(nautical_BasicPolarTest
-         BasicPolarTest.cpp
-         gtest_main
-         nautical_BasicPolar
-        )                     
-                                                              
-add_executable(nautical_PolarPlot
-               PolarPlot.cpp
-              )
-target_link_libraries(nautical_PolarPlot
-                      nautical_BasicPolar
-                      nautical_TestdataNavs
-                      common_logging
-                     )                          
-
-add_subdirectory("tiles")
