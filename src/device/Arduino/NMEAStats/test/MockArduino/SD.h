@@ -27,7 +27,7 @@ class MockFile {
   const std::string& output() const { return _output; }
 
   bool seek(int pos) {
-    if (0 < pos || _input.length() < pos) {
+    if (pos < 0 || _input.length() < pos) {
       return false;
     }
     _pos = _input.begin() + pos;

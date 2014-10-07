@@ -34,7 +34,7 @@ void readFixedPoint(FixedPoint<StoreType, LongType, Shift> *dst, File *file) {
 }
 
 template <typename StoreType, typename LongType, int Shift>
-void fwriteFixedPoint(FixedPoint<StoreType, LongType, Shift> value, File *file) {
+void writeFixedPoint(FixedPoint<StoreType, LongType, Shift> value, File *file) {
   writeInteger(value.rawFixedPoint(), file);
 }
 

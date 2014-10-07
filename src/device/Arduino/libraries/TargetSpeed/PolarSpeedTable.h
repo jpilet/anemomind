@@ -88,9 +88,9 @@ class PolarSpeedTable {
 
     for (int twsIndex = 1; twsIndex <= twsCount; twsIndex++) {
       for (int twaIndex = 0; twaIndex < twaCount; twaIndex++) {
-        writeBinaryFixedPoint(FixType(fun(double(twsIndex)*twsStep,
-                                     double(twaIndex)*twaStep).knots()),
-                         out);
+        writeBinaryFixedPoint(
+            FixType(fun(double(twsIndex)*twsStep,
+                double(twaIndex)*twaStep).knots()), out);
       }
     }
 
