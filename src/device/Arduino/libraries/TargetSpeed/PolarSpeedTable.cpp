@@ -83,7 +83,7 @@ Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeed(Velocity<PolarSp
 
     // Linear interpolation
     PolarSpeedTable::FixType lambda = twsRealIndex - PolarSpeedTable::FixType(twsIndex);
-    return (FixType(1.0) - lambda)*targetSpeedForTwsIndex(twsIndex + 0, twa)
+    return (FixType(1) - lambda)*targetSpeedForTwsIndex(twsIndex + 0, twa)
                  + lambda*targetSpeedForTwsIndex(twsIndex + 1, twa);
 }
 
@@ -100,7 +100,7 @@ Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeedForTwsIndex(int t
   double tempTwaStep = double(_twaStep.degrees());
   double tempLambda = double(lambda);
 
-  return (FixType(1.0) - lambda)*get(twsIndex, twaIndex)
+  return (FixType(1) - lambda)*get(twsIndex, twaIndex)
       + lambda*get(twsIndex, (twaIndex + 1) % _twaCount);
 }
 
