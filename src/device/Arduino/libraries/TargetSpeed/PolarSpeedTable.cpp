@@ -19,33 +19,31 @@ void PolarSpeedTable::invalidate() {
 
 
 PolarSpeedTable::PolarSpeedTable(const char *filename) :
-  _file(fopen(filename, "rb")) {
+  _file(SD.open(filename)) {
 /*       *    _twsStep        sizeof(PolarSpeedTable::FixType)
        *    _twaStep        sizeof(PolarSpeedTable::FixType)
        *    _twsCount       sizeof(unsigned char)
        *    _twaCount       sizeof(unsigned char)*/
-  if (_file == nullptr) {
-    invalidate();
-  } else {
+  if (bool(_file)) {
     {
       FixType twsStep;
-      freadFixedPoint(&twsStep, _file);
+      readFixedPoint(&twsStep, &_file);
       _twsStep = Velocity<FixType>::knots(twsStep);
     }
-    _twsCount = freadInteger<unsigned char>(_file);
-    _twaCount = freadInteger<unsigned char>(_file);
+    _twsCount = readInteger<unsigned char>(&_file);
+    _twaCount = readInteger<unsigned char>(&_file);
     _twaStep = Angle<FixType>::degrees(FixType(360)/FixType(_twaCount));
+  } else {
+    _file = File();
   }
 }
 
 PolarSpeedTable::~PolarSpeedTable() {
-  if (_file != nullptr) {
-    fclose(_file);
-  }
+  _file.close();
 }
 
 Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeed(Velocity<PolarSpeedTable::FixType> tws,
-    Angle<PolarSpeedTable::FixType> twa) const {
+    Angle<PolarSpeedTable::FixType> twa) {
 
     if (empty()) {
       return Velocity<FixType>::knots(FixType(-1));
@@ -73,7 +71,7 @@ Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeed(Velocity<PolarSp
 
 
 Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeedForTwsIndex(int twsIndex,
-    Angle<PolarSpeedTable::FixType> twa) const {
+    Angle<PolarSpeedTable::FixType> twa) {
   if (twsIndex == 0) {
     return Velocity<PolarSpeedTable::FixType>::knots(PolarSpeedTable::FixType(0));
   }
@@ -105,14 +103,13 @@ int PolarSpeedTable::fileSize() const {
   return FILE_HEADER_SIZE + _twsCount*_twaCount*sizeof(FixType);
 }
 
-Velocity<PolarSpeedTable::FixType> PolarSpeedTable::get(int twsIndex, int twaIndex) const {
+Velocity<PolarSpeedTable::FixType> PolarSpeedTable::get(int twsIndex, int twaIndex) {
   // It is assumed that _file is open and can be read.
-  fseek(_file, tableEntryFilePos(twsIndex, twaIndex), SEEK_SET);
+  _file.seek(tableEntryFilePos(twsIndex, twaIndex));
   FixType raw;
-  freadFixedPoint(&raw, _file);
+  readFixedPoint(&raw, &_file);
   return Velocity<FixType>::knots(raw);
 }
-
 
 PolarSpeedTable::PolarSpeedTable(const PolarSpeedTable &other) :
   _twsCount(-1), _twaCount(-1), _file(nullptr) {}

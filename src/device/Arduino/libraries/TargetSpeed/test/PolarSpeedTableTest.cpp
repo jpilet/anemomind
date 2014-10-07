@@ -3,6 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <sstream>
 #include <device/Arduino/libraries/TargetSpeed/PolarSpeedTable.h>
 #include <string>
 #include <server/common/Env.h>
@@ -11,11 +12,13 @@
 
 using namespace sail;
 
+MockSD SD;
+
 namespace {
   typedef PolarSpeedTable::FixType FixType;
 
-  std::string getTempFilename() {
-    return std::string(Env::BINARY_DIR) + "/temp_polar_speed_table.dat";
+  const char *getTempFilename() {
+    return "polar_speed_table.h";
   }
 
   class SpeedLookUp {
@@ -31,6 +34,12 @@ TEST(PolarSpeedTableTest, EmptyTest) {
   EXPECT_TRUE(table.empty());
 }
 
+void makeTable(Velocity<double> twsStep, int twsCount, int twaCount, SpeedLookUp lu) {
+  std::stringstream ss;
+  EXPECT_TRUE(PolarSpeedTable::build(twsStep,
+          twsCount, twaCount, lu, &ss));
+  SD.setReadableFile(std::string(getTempFilename()), ss.str());
+}
 
 
 TEST(PolarSpeedTableTest, NonEmptyTest) {
@@ -39,12 +48,9 @@ TEST(PolarSpeedTableTest, NonEmptyTest) {
   int twsCount = 30;
   int twaCount = 12;
   Angle<double> twaStep = Angle<double>::degrees(30.0);
-  std::string filename = getTempFilename();
-  { // Build it
-    EXPECT_TRUE(PolarSpeedTable::build(twsStep,
-        twsCount, twaCount, lu, filename.c_str()));
-  }{
-    PolarSpeedTable table(filename.c_str());
+  makeTable(twsStep, twsCount, twaCount, lu);
+  {
+    PolarSpeedTable table(getTempFilename());
     EXPECT_FALSE(table.empty());
 
     const int testCount = 3;
@@ -69,12 +75,9 @@ TEST(PolarSpeedTableTest, Interpolation) {
   int twsCount = 30;
   int twaCount = 12;
   Angle<double> twaStep = Angle<double>::degrees(30.0);
-  std::string filename = getTempFilename();
-  { // Build it
-    EXPECT_TRUE(PolarSpeedTable::build(twsStep,
-        twsCount, twaCount, lu, filename.c_str()));
-  }{
-    PolarSpeedTable table(filename.c_str());
+  makeTable(twsStep, twsCount, twaCount, lu);
+  {
+    PolarSpeedTable table(getTempFilename());
     EXPECT_FALSE(table.empty());
 
     const int testCount = 5;
@@ -99,12 +102,10 @@ TEST(PolarSpeedTableTest, Cyclic) {
   int twsCount = 30;
   int twaCount = 12;
   Angle<double> twaStep = Angle<double>::degrees(30.0);
-  std::string filename = getTempFilename();
-  { // Build it
-    EXPECT_TRUE(PolarSpeedTable::build(twsStep,
-        twsCount, twaCount, lu, filename.c_str()));
-  }{
-    PolarSpeedTable table(filename.c_str());
+  makeTable(twsStep, twsCount, twaCount, lu);
+  {
+    PolarSpeedTable table(getTempFilename());
+
     EXPECT_FALSE(table.empty());
 
     const int testCount = 2;

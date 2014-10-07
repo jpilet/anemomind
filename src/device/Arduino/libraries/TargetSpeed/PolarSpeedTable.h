@@ -6,9 +6,20 @@
 #ifndef POLARSPEEDTABLE_H_
 #define POLARSPEEDTABLE_H_
 
+#include "../Endian/Endian.h"
+#ifdef ON_DEVICE
+#include <SD.h>
+#else
+#include <iostream>
+#include <device/Arduino/NMEAStats/test/MockArduino/SD.h>
+#include "../Endian/EndianIOStream.h"
+#endif
+#include "../Endian/EndianIOSD.h"
+
 #include "../FixedPoint/FixedPoint.h"
 #include "../PhysicalQuantity/PhysicalQuantity.h"
-#include "../Endian/EndianIO.h"
+
+
 #include <cstdio>
 
 namespace sail {
@@ -38,11 +49,11 @@ class PolarSpeedTable {
   PolarSpeedTable(const char *filename);
   ~PolarSpeedTable();
 
-  Velocity<FixType> targetSpeed(Velocity<FixType> tws, Angle<FixType> twa) const;
+  Velocity<FixType> targetSpeed(Velocity<FixType> tws, Angle<FixType> twa);
 
   Velocity<FixType> maxTws() const {return FixType(_twsCount)*_twsStep;}
   Velocity<FixType> minTws() const {return Velocity<FixType>::knots(FixType(0));}
-  bool empty() const {return _file == nullptr;}
+  bool empty() {return !bool(_file);}
 
 
 
@@ -63,42 +74,34 @@ class PolarSpeedTable {
   static bool build(Velocity<double> twsStep,
     int twsCount, int twaCount,
     TargetSpeedFunction fun,
-    const char *dstFilename) {
-    FILE *file = fopen(dstFilename, "wb");
+    std::ostream *out) {
 
-    if (file == nullptr) {
-      return false;
-    }
     if (twsCount < 0 || 255 < twsCount || twaCount < 0 || 255 < twaCount) {
-      fclose(file);
       return false;
     }
 
-    fwriteFixedPoint(FixType(twsStep.knots()), file);
-    fwriteInteger((unsigned char)(twsCount), file);
-    fwriteInteger((unsigned char)(twaCount), file);
+    writeBinaryFixedPoint(FixType(twsStep.knots()), out);
+    writeBinaryInteger((unsigned char)(twsCount), out);
+    writeBinaryInteger((unsigned char)(twaCount), out);
 
     Angle<double> twaStep = (1.0/twaCount)*Angle<double>::degrees(360.0);
 
     for (int twsIndex = 1; twsIndex <= twsCount; twsIndex++) {
       for (int twaIndex = 0; twaIndex < twaCount; twaIndex++) {
-        fwriteFixedPoint(FixType(fun(double(twsIndex)*twsStep,
+        writeBinaryFixedPoint(FixType(fun(double(twsIndex)*twsStep,
                                      double(twaIndex)*twaStep).knots()),
-                         file);
+                         out);
       }
     }
-    int end = ftell(file);
-    fclose(file);
 
-    return end == FILE_HEADER_SIZE + twsCount*twaCount*TABLE_ENTRY_SIZE;
+    return out->good();
   }
-
  private:
   void invalidate();
   int tableIndex(int twsIndex, int twaIndex) const;
   int tableEntryFilePos(int twsIndex, int twaIndex) const;
   int fileSize() const;
-  Velocity<FixType> get(int twsIndex, int twaIndex) const;
+  Velocity<FixType> get(int twsIndex, int twaIndex);
 
   // Prohibit copying and assignment. If we were to support these operations,
   // we would need some form of reference counting or something for the file pointer.
@@ -106,12 +109,12 @@ class PolarSpeedTable {
   void operator= (const PolarSpeedTable &other);
 
   Velocity<FixType> targetSpeedForTwsIndex(int twsIndex,
-      Angle<FixType> twa) const;
+      Angle<FixType> twa);
 
   FixType calcTwaRealIndex(Angle<FixType> twa) const;
   FixType calcTwsRealIndex(Velocity<FixType> tws) const;
 
-  FILE *_file;
+  File _file;
   unsigned char _twsCount, _twaCount;
   Angle<FixType> _twaStep;
   Velocity<FixType> _twsStep;

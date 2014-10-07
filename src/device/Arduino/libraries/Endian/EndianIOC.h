@@ -3,7 +3,6 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <cstdio>
 #include "Endian.h"
 #include "../FixedPoint/FixedPoint.h"
 
@@ -16,6 +15,8 @@
    * Using these routines, we will not get into
    * trouble if a file is written on a machine with
    * little endian and read on a machine with big endian.
+   *
+   * To be used with <cstdio> functions
    */
   template <typename T>
   T freadInteger(FILE *file) {
