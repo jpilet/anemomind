@@ -49,7 +49,7 @@ void writeBinaryFixedPoint(FixedPoint<StoreType, LongType, Shift> value, std::os
 }
 
 template <typename StoreType, typename LongType, int Shift>
-void readBinaryFixedPoint(std::istream *src, FixedPoint<StoreType, LongType, Shift> *dst) {
+bool readBinaryFixedPoint(std::istream *src, FixedPoint<StoreType, LongType, Shift> *dst) {
   StoreType x;
   if (readBinaryInteger<StoreType>(src, &x)) {
     *dst = FixedPoint<StoreType, LongType, Shift>::make(x);
