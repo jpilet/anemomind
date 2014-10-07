@@ -45,6 +45,7 @@ PolarSpeedTable::PolarSpeedTable(const char *filename) :
       bool goodFileSize = (fseek(_file, fileSize() + 0, SEEK_SET) == 0) &&
                           (fseek(_file, fileSize() + 1, SEEK_SET) != 0);
       if (!goodFileSize) {
+        // Should we write something to the log here, maybe?
         fclose(_file);
         invalidate();
       }
