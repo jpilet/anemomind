@@ -7,4 +7,7 @@
 
 #include <gtest/gtest.h>
 
+TEST(PolarSpeedTableTest, False) {
+  EXPECT_TRUE(false);
+}
 
