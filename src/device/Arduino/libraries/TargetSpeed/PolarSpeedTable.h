@@ -61,6 +61,7 @@ class PolarSpeedTable {
 
 
 
+  #ifdef ON_SERVER
   /*
    * Use this static function to create a file containing a table.
    * Since it will most likely be used only on the server, we can
@@ -99,6 +100,7 @@ class PolarSpeedTable {
 
     return out->good();
   }
+  #endif
  private:
   void invalidate();
   int tableIndex(int twsIndex, int twaIndex) const;
