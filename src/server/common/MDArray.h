@@ -118,12 +118,15 @@ class MDArray {
     _data = data;
   }
 
+  MDArray(const MDInds<dims> &size, Array<T> data) :
+    _data(data), _size(size), _index(size) {}
+
   void allocate(int *sizes) {
     setSize(sizes);
     _data = Array<T>(_size.numel());
   }
 
-  ThisType slice(int *from, int *to) {
+  ThisType slice(int *from, int *to) const {
 #if SAFEARRAY
     assert(_size.validIncl(from));
     assert(_size.validIncl(to));
@@ -276,13 +279,7 @@ class MDArray {
 
   // One-dimensional read/write
   T &operator[] (int index) {
-#if SAFEARRAY
-    assert(0 <= index);
-    assert(index < numel());
-#endif
-    int inds[dims];
-    _size.calcInv(index, inds);
-    return _data[_index.calcIndex(inds)];
+    return _data[calcInternalIndex(index)];
   }
 
   void set(int i, int j, const T &value) {
@@ -325,10 +322,10 @@ class MDArray {
   }
 
 
-  bool empty() {
+  bool empty() const {
     return numel() == 0;
   }
-  int numel() {
+  int numel() const {
     return _size.numel();
   }
   virtual ~MDArray() {}
@@ -338,7 +335,7 @@ class MDArray {
     return _size.step(inds, stepsize);
   }
 
-  ThisType sliceAlongDim(int dim, int from, int to) {
+  ThisType sliceAlongDim(int dim, int from, int to) const {
     int fromArr[dims];
     int toArr[dims];
     for (int i = 0; i < dims; i++) {
@@ -382,6 +379,25 @@ class MDArray {
     return dst;
   }
 
+  ThisType sliceCols(Arrayb sel) {
+    static_assert(dims == 2, "Only 2d arrays");
+    assert(cols() == sel.size());
+    int colcount = countTrue(sel);
+    int rowcount = rows();
+    ThisType dst(rowcount, colcount);
+    int counter = 0;
+    for (int j = 0; j < cols(); j++) {
+      if (sel[j]) {
+        for (int i = 0; i < rowcount; i++) {
+          dst(i, counter) = get(i, j);
+        }
+        counter++;
+      }
+    }
+    assert(counter == colcount);
+    return dst;
+  }
+
   ThisType sliceBlock(int dim, int index, int blockSize) {
     int from = index*blockSize;
     int to = from + blockSize;
@@ -392,7 +408,7 @@ class MDArray {
     return sliceAlongDim(0, from, to);
   }
 
-  ThisType sliceCols(int from, int to) {
+  ThisType sliceCols(int from, int to) const {
     static_assert(dims >= 2, "Dimension should be at least 2");
     return sliceAlongDim(1, from, to);
   }
@@ -413,7 +429,7 @@ class MDArray {
     return sliceRows(0, to);
   }
 
-  ThisType sliceCol(int index) {
+  ThisType sliceCol(int index) const {
     return sliceCols(index, index + 1);
   }
 
@@ -460,7 +476,7 @@ class MDArray {
     return _data;
   }
 
-  bool isContinuous() {
+  bool isContinuous() const {
     // Skip the last dimension since it is not used
     return Index<dims-1>::equals(_index.getData(), _size.getData());
   }
@@ -506,7 +522,35 @@ class MDArray {
   bool sameSizeAs(MDArray<T, dims> &other) {
     return Index<dims>::equals(_size.getData(), other._size.getData());
   }
+
+  const MDInds<dims> &size() const {
+    return _size;
+  }
+
+  Array<T> continuousData() const {
+    if (isContinuous()) {
+      return _data;
+    } else {
+      int n = numel();
+      Array<T> dst(n);
+      int inds[dims];
+      for (int i = 0; i < n; i++) {
+
+      }
+      return dst;
+    }
+  }
  private:
+  int calcInternalIndex(int index) const {
+    #if SAFEARRAY
+        assert(0 <= index);
+        assert(index < numel());
+    #endif
+    int inds[dims];
+    _size.calcInv(index, inds);
+    return _index.calcIndex(inds);
+  }
+
   void setSize(int *sizes) {
     _index = MDInds<dims>(sizes);
     _size = MDInds<dims>(sizes);

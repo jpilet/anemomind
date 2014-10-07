@@ -23,6 +23,7 @@ class LineKM {
   double getK() const;
   double getM() const;
   bool operator==(const LineKM &other) const;
+  LineKM makeInvFun() const;
  private:
   double _k, _m;
 };

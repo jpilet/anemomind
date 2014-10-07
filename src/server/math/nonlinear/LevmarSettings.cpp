@@ -18,7 +18,7 @@ LevmarSettings::LevmarSettings() {
   verbosity = 0;
 }
 
-void LevmarSettings::draw(Arrayd X) {
+void LevmarSettings::draw(Arrayd X) const {
   if (bool(drawf)) {
     drawf(X.ptr());
   }

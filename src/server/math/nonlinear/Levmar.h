@@ -29,8 +29,9 @@ class LevmarState {
     return _X;
   }
 
-  Arrayd getXArray() const {
-    return Arrayd(_X.n_elem, _X.memptr());
+  Arrayd getXArray(bool copy = true) const {
+    Arrayd data = Arrayd(_X.n_elem, _X.memptr());
+    return (copy? data.dup() : data);
   }
  private:
   arma::mat _X;

@@ -201,6 +201,11 @@ inline double approximateExp(double x, double thresh) {
   return exp(x);
 }
 
+// Integer division, rounding to upper integer
+inline int div1(int a, int b) {
+  return (a - 1)/b + 1;
+}
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */
