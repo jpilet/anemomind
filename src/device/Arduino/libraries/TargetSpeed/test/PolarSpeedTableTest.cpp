@@ -47,10 +47,13 @@ TEST(PolarSpeedTableTest, NonEmptyTest) {
     PolarSpeedTable table(filename.c_str());
     EXPECT_FALSE(table.empty());
 
+    const int testCount = 3;
+    double TWS[testCount] = {0.0, 3.0, 4.0};
+    double TWA[testCount] = {0.0, 30.0, 90.0};
 
-    {
-      double tws = 0.0;
-      double twa = 0.0;
+    for (int i = 0; i < testCount; i++) {
+      double tws = TWS[i];
+      double twa = TWA[i];
 
       double luValue = double(table.targetSpeed(Velocity<FixType>::knots(FixType(tws)),
                                                    Angle<FixType>::degrees(FixType(twa))).knots());

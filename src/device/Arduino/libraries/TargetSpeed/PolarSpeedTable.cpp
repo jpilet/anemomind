@@ -34,11 +34,17 @@ PolarSpeedTable::PolarSpeedTable(const char *filename) :
     }
     _twsCount = freadInteger<unsigned char>(_file);
     _twaCount = freadInteger<unsigned char>(_file);
-    _twaStep = Angle<FixType>::degrees(FixType(360.0)/FixType(_twaCount));
-    if (ftell(_file) != FILE_HEADER_SIZE) {
-      fclose(_file);
+    int step = 360/_twaCount;
+    if (step*_twaCount != 360) {
       invalidate();
-      return;
+    } else {
+      _twaStep = Angle<FixType>::degrees(FixType(step));
+      double twaStepTemp = double(_twaStep.degrees());
+      if (ftell(_file) != FILE_HEADER_SIZE) {
+        fclose(_file);
+        invalidate();
+        return;
+      }
     }
   }
 }
@@ -84,6 +90,10 @@ Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeedForTwsIndex(int t
   PolarSpeedTable::FixType twaRealIndex = twa.positiveMinAngle()/_twaStep;
   int twaIndex = int(twaRealIndex);
   PolarSpeedTable::FixType lambda = twaRealIndex - PolarSpeedTable::FixType(twaIndex);
+
+  double tempTwaStep = double(_twaStep.degrees());
+  double tempLambda = double(lambda);
+
   return (FixType(1.0) - lambda)*get(twsIndex, twaIndex)
       + lambda*get(twsIndex, (twaIndex + 1) % _twaCount);
 }
