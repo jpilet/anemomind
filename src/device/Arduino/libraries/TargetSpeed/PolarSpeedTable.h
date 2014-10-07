@@ -7,16 +7,19 @@
 #define POLARSPEEDTABLE_H_
 
 #include "../Endian/Endian.h"
-#ifdef ON_DEVICE
-#include <SD.h>
-#else
-#include <iostream>
-#include <device/Arduino/NMEAStats/test/MockArduino/SD.h>
-#include "../Endian/EndianIOStream.h"
-#endif
-#include "../Endian/EndianIOSD.h"
 
-#include "../FixedPoint/FixedPoint.h"
+#ifdef ON_DEVICE
+  #include <SD.h>
+#else
+  // For the static 'build' method.
+  #include <iostream>
+  #include "../Endian/EndianIOStream.h"
+
+  // An object that exhibits the same interface as the SD object of Arduino
+  #include <device/Arduino/NMEAStats/test/MockArduino/SD.h>
+#endif
+
+#include "../Endian/EndianIOSD.h"
 #include "../PhysicalQuantity/PhysicalQuantity.h"
 
 

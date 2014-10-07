@@ -6,10 +6,6 @@
 #include "PolarSpeedTable.h"
 
 
-#include <iostream>
-#include <server/common/string.h>
-#include <assert.h>
-
 namespace sail {
 
 PolarSpeedTable::PolarSpeedTable() {
@@ -39,10 +35,6 @@ PolarSpeedTable::PolarSpeedTable(const char *filename) :
     _twaCount = readInteger<unsigned char>(&_file);
     _twaStep = Angle<FixType>::degrees(FixType(360)/FixType(_twaCount));
 
-    std::cout << "tws-step = " << double(_twsStep.knots()) << std::endl;
-    std::cout << "twa-step = " << double(_twaStep.degrees()) << std::endl;
-
-
   } else {
     _file = File();
   }
@@ -61,8 +53,6 @@ Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeed(Velocity<PolarSp
 
     PolarSpeedTable::FixType twsRealIndex = calcTwsRealIndex(tws);
     int twsIndex = int(twsRealIndex);
-    std::cout << EXPR_AND_VAL_AS_STRING(twsIndex) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(double(twsRealIndex)) << std::endl;
 
     // Check if we are at or below the lower limit of the tws table
     if (twsIndex < 0) {
@@ -89,8 +79,6 @@ Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeedForTwsIndex(int t
   }
   PolarSpeedTable::FixType twaRealIndex = twa.positiveMinAngle()/_twaStep;
   int twaIndex = int(twaRealIndex);
-  std::cout << EXPR_AND_VAL_AS_STRING(twaIndex) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(double(twaRealIndex)) << std::endl;
 
   PolarSpeedTable::FixType lambda = twaRealIndex - PolarSpeedTable::FixType(twaIndex);
 
@@ -120,10 +108,9 @@ int PolarSpeedTable::fileSize() const {
 
 Velocity<PolarSpeedTable::FixType> PolarSpeedTable::get(int twsIndex, int twaIndex) {
   // It is assumed that _file is open and can be read.
-  assert(_file.seek(tableEntryFilePos(twsIndex, twaIndex)));
+  _file.seek(tableEntryFilePos(twsIndex, twaIndex));
   FixType raw;
   readFixedPoint(&raw, &_file);
-  std::cout << "   At (" << twsIndex << ", " << twaIndex << "): " << double(raw) << std::endl;
   return Velocity<FixType>::knots(raw);
 }
 
