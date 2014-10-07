@@ -167,7 +167,6 @@ class PolarSurfaceParam {
  private:
 
   Arrayd toVertices(Arrayd paramsOrVertices) const;
-  double _alpha;
 
   template <typename T>
   void computeSurfacePointSub(Array<T> vertices,

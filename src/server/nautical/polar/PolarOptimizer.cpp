@@ -20,7 +20,7 @@ namespace {
     ObjfMaxDensity(const PolarSurfaceParam &param,
          const PolarDensity &density,
          Array<Vectorize<double, 2> > pts) :
-      _param(param), _density(density), _surfpts(pts) {}
+      _surfpts(pts), _param(param), _density(density) {}
 
     int inDims() {
       return _param.paramCount();
@@ -101,7 +101,7 @@ namespace {
   ObjfQuantile::ObjfQuantile(const PolarSurfaceParam &param,
       const PolarDensity &density,
       Array<Vectorize<double, 2> > pts) :
-      _param(param), _density(density), _surfpts(pts) {
+      _surfpts(pts), _param(param), _density(density) {
     ENTERSCOPE("Objf constructor");
     _quantile = 0.8;
     int count = pts.size();

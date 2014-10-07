@@ -106,7 +106,6 @@ class PolarCurveParam {
 
   arma::mat _Pmat;
   int _segsPerCtrlSpan, _ctrlCount, _paramCount;
-  bool _mirrored;
 
   int lastVertex() const {
     return ctrlToVertexIndex(_ctrlCount);

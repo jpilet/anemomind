@@ -29,12 +29,12 @@ namespace {
 
 PolarCurveParam::PolarCurveParam() :
     _segsPerCtrlSpan(0), _ctrlCount(0),
-    _mirrored(false), _paramCount(0) {
+    _paramCount(0) {
 }
 
 
 PolarCurveParam::PolarCurveParam(int segsPerCtrlSpan, int ctrlCount, bool mirrored) :
-    _segsPerCtrlSpan(segsPerCtrlSpan), _ctrlCount(ctrlCount), _mirrored(mirrored) {
+    _segsPerCtrlSpan(segsPerCtrlSpan), _ctrlCount(ctrlCount)  {
     if (mirrored) {
       _paramCount = div1(ctrlCount, 2);
     } else {

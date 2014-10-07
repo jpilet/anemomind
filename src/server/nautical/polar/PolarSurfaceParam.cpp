@@ -13,7 +13,7 @@ namespace sail {
 
 
 PolarSurfaceParam::PolarSurfaceParam() :
-    _twsLevelCount(0), _alpha(0.1), _ctrlCount(0) {}
+    _twsLevelCount(0), _ctrlCount(0) {}
 
 
 namespace {
@@ -29,11 +29,11 @@ namespace {
 
 PolarSurfaceParam::PolarSurfaceParam(PolarCurveParam pcp, Velocity<double> maxTws,
     int twsLevelCount, int ctrlCount) :
-    _twsStep((1.0/twsLevelCount)*maxTws),
-    _twsLevelCount(twsLevelCount),
-    _alpha(0.1),
-    _polarCurveParam(pcp), _maxTws(maxTws),
-    _ctrlCount(ctrlCount == -1? twsLevelCount : ctrlCount) {
+  _polarCurveParam(pcp),
+  _twsStep((1.0/twsLevelCount)*maxTws),
+  _maxTws(maxTws),
+  _twsLevelCount(twsLevelCount),
+  _ctrlCount(ctrlCount == -1? twsLevelCount : ctrlCount) {
     assert(!pcp.empty());
     _ctrlInds = makeSpacedCtrlInds(_twsLevelCount, _ctrlCount);
 
