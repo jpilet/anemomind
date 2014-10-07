@@ -31,30 +31,22 @@ PolarSpeedTable::PolarSpeedTable(const char *filename) :
       FixType twsStep;
       freadFixedPoint(&twsStep, _file);
       _twsStep = Velocity<FixType>::knots(twsStep);
-    }{
-      FixType twaStep;
-      freadFixedPoint(&twaStep, _file);
-      _twaStep = Angle<FixType>::degrees(twaStep);
     }
     _twsCount = freadInteger<unsigned char>(_file);
     _twaCount = freadInteger<unsigned char>(_file);
-
-
-    { // Perform a check that the file size is the right one.
-      // Checking the file size by seeking the end using fseek(_file, 0, SEEK_END) may not be portable.
-      bool goodFileSize = (fseek(_file, fileSize() + 0, SEEK_SET) == 0) &&
-                          (fseek(_file, fileSize() + 1, SEEK_SET) != 0);
-      if (!goodFileSize) {
-        // Should we write something to the log here, maybe?
-        fclose(_file);
-        invalidate();
-      }
+    _twaStep = Angle<FixType>::degrees(FixType(360.0)/FixType(_twaCount));
+    if (ftell(_file) != FILE_HEADER_SIZE) {
+      fclose(_file);
+      invalidate();
+      return;
     }
   }
 }
 
 PolarSpeedTable::~PolarSpeedTable() {
-  fclose(_file);
+  if (_file != nullptr) {
+    fclose(_file);
+  }
 }
 
 Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeed(Velocity<PolarSpeedTable::FixType> tws,
@@ -113,7 +105,7 @@ int PolarSpeedTable::tableEntryFilePos(int twsIndex, int twaIndex) const {
 }
 
 int PolarSpeedTable::fileSize() const {
-  return FILE_HEADER_SIZE + _twsCount*_twaCount*sizeof(PolarSpeedTable::FixType);
+  return FILE_HEADER_SIZE + _twsCount*_twaCount*sizeof(FixType);
 }
 
 Velocity<PolarSpeedTable::FixType> PolarSpeedTable::get(int twsIndex, int twaIndex) const {

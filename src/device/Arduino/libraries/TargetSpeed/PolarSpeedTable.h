@@ -15,13 +15,14 @@ namespace sail {
 
 class PolarSpeedTable {
  public:
+  // Used to approximate real numbers in fixed point representation.
   typedef FP8_8 FixType;
+
   /*
    * File format:
    *
    *  Header:
    *    _twsStep        sizeof(FixType)
-   *    _twaStep        sizeof(FixType)
    *    _twsCount       sizeof(unsigned char)
    *    _twaCount       sizeof(unsigned char)
    *
@@ -29,7 +30,7 @@ class PolarSpeedTable {
    *    targetSpeed     sizeof(FixType)
    *
    */
-  static constexpr int FILE_HEADER_SIZE = 2*sizeof(FixType)           // _twsStep, _twaStep
+  static constexpr int FILE_HEADER_SIZE = sizeof(FixType)           // _twsStep
                                         + 2*sizeof(unsigned char);  // _twsCount, _twaCount
   static constexpr int TABLE_ENTRY_SIZE = sizeof(FixType);
 
@@ -52,33 +53,42 @@ class PolarSpeedTable {
   template <typename TargetSpeedFunction>
     /*
      * TargetSpeedFunction is an object that has a method
-     *   Velocity<PolarSpeedTable>::FixType operator()
-     *      (Velocity<PolarSpeedTable::FixType> tws, Angle<PolarSpeedTable::FixType> twa);
+     *
+     *   Velocity<double> operator() (Velocity<double> tws, Angle<double> twa);
      *
      *   that specifies the target speed for any tws/twa.
      */
-  static bool build(Velocity<FixType> twsStep, Angle<FixType> twaStep,
-    unsigned char twsCount, unsigned char twaCount,
+  static bool build(Velocity<double> twsStep,
+    int twsCount, int twaCount,
     TargetSpeedFunction fun,
     const char *dstFilename) {
     FILE *file = fopen(dstFilename, "wb");
+
     if (file == nullptr) {
       return false;
     }
-    fwriteFixedPoint(twsStep.knots(), file);
-    fwriteFixedPoint(twaStep.degrees(), file);
-    fwriteInteger(twsCount, file);
-    fwriteInteger(twaCount, file);
+    if (twsCount < 0 || 255 < twsCount || twaCount < 0 || 255 < twaCount) {
+      fclose(file);
+      return false;
+    }
+
+    fwriteFixedPoint(FixType(twsStep.knots()), file);
+    fwriteInteger((unsigned char)(twsCount), file);
+    fwriteInteger((unsigned char)(twaCount), file);
+
+    Angle<double> twaStep = (1.0/twaCount)*Angle<double>::degrees(360.0);
 
     for (int twsIndex = 1; twsIndex <= twsCount; twsIndex++) {
       for (int twaIndex = 0; twaIndex < twaCount; twaIndex++) {
-        fwriteFixedPoint(fun(FixType(twsIndex)*twsStep,
-            FixType(twaIndex)*twaStep), file);
+        fwriteFixedPoint(FixType(fun(double(twsIndex)*twsStep,
+                                     double(twaIndex)*twaStep).knots()),
+                         file);
       }
     }
+    int end = ftell(file);
     fclose(file);
 
-    return true;
+    return end == FILE_HEADER_SIZE + twsCount*twaCount*TABLE_ENTRY_SIZE;
   }
 
  private:

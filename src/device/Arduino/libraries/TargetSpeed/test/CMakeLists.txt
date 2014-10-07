@@ -6,5 +6,6 @@ cxx_test(device_TargetSpeedTest
 cxx_test(device_PolarSpeedTableTest
          PolarSpeedTableTest
          device_PolarSpeedTable
+         common_Env
          gtest_main
         )     
