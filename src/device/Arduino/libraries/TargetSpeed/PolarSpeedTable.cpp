@@ -34,23 +34,7 @@ PolarSpeedTable::PolarSpeedTable(const char *filename) :
     }
     _twsCount = freadInteger<unsigned char>(_file);
     _twaCount = freadInteger<unsigned char>(_file);
-
-    int step = 360/_twaCount; // For some reason, I don't get the right result when doing
-                              // _twaStep = Velocity<FixType>::knots(FixType(360)/FixType(_twaCount)),
-                              // with _twaCount = 12.
-                              // Therefore, I perform an integer division.
-
-    if (step*_twaCount == 360) {
-      _twaStep = Angle<FixType>::degrees(FixType(step));
-      if (ftell(_file) != FILE_HEADER_SIZE) {
-        fclose(_file);
-        invalidate();
-        return;
-      }
-    } else {
-      fclose(_file);
-      invalidate();
-    }
+    _twaStep = Angle<FixType>::degrees(FixType(360)/FixType(_twaCount));
   }
 }
 
@@ -82,6 +66,7 @@ Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeed(Velocity<PolarSp
 
     // Linear interpolation
     PolarSpeedTable::FixType lambda = twsRealIndex - PolarSpeedTable::FixType(twsIndex);
+
     return (FixType(1) - lambda)*targetSpeedForTwsIndex(twsIndex + 0, twa)
                  + lambda*targetSpeedForTwsIndex(twsIndex + 1, twa);
 }
