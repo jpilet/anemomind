@@ -83,7 +83,7 @@ class PolarSurfaceParam {
 
   /*
    * This method maps a parameter vector to a vector
-   * of vertex coordinates, in knots. It is knot intended
+   * of vertex coordinates, in knots. It is not intended
    * to be used directly, but as an input to a mapping function
    * 'computeSurfacePoint'.
    */
@@ -99,8 +99,7 @@ class PolarSurfaceParam {
        * are greater than those of the level below, and that they are positive.*/
       Array<T> pi = curveParams(i, params);
       for (int j = 0; j < _polarCurveParam.paramDim(); j++) {
-        T &p = actualCurveParams[j];
-        p += expline(pi[j]);
+        actualCurveParams[j] += expline(pi[j]);
       }
       _polarCurveParam.paramToVertices(actualCurveParams,
           curveVertices(i, verticesOut));
@@ -221,7 +220,11 @@ class PolarSurfaceParam {
   PolarCurveParam _polarCurveParam;
   Velocity<double> _twsStep, _maxTws;
   int _twsLevelCount, _ctrlCount;
+
+  // A linear parameterization of the polar slices, using a a few "control" slices.
+  // This means that only a sparse set of slices a specified, and the remaining ones are interpolated.
   MDArray2d _P;
+
   Arrayi _ctrlInds;
 };
 
