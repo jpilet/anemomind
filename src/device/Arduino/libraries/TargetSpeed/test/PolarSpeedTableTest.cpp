@@ -93,3 +93,33 @@ TEST(PolarSpeedTableTest, Interpolation) {
   }
 }
 
+TEST(PolarSpeedTableTest, Cyclic) {
+  SpeedLookUp lu;
+  Velocity<double> twsStep = Velocity<double>::knots(1.0);
+  int twsCount = 30;
+  int twaCount = 12;
+  Angle<double> twaStep = Angle<double>::degrees(30.0);
+  std::string filename = getTempFilename();
+  { // Build it
+    EXPECT_TRUE(PolarSpeedTable::build(twsStep,
+        twsCount, twaCount, lu, filename.c_str()));
+  }{
+    PolarSpeedTable table(filename.c_str());
+    EXPECT_FALSE(table.empty());
+
+    const int testCount = 2;
+    double TWS[testCount] = {3.0, 3.0};
+    double TWA[testCount] = {30.0, 30.0 + 720.0};
+    double res[testCount];
+
+    for (int i = 0; i < testCount; i++) {
+      double tws = TWS[i];
+      double twa = TWA[i];
+
+      res[i] = double(table.targetSpeed(Velocity<FixType>::knots(FixType(tws)),
+                                                   Angle<FixType>::degrees(FixType(twa))).knots());
+    }
+    EXPECT_NEAR(res[0], res[1], 1.0e-6);
+  }
+}
+

@@ -16,7 +16,7 @@ namespace sail {
 class PolarSpeedTable {
  public:
   // Used to approximate real numbers in fixed point representation.
-  typedef FP8_8 FixType;
+  typedef FP16_16 FixType;
 
   /*
    * File format:
@@ -49,6 +49,8 @@ class PolarSpeedTable {
 
   /*
    * Use this static function to create a file containing a table.
+   * Since it will most likely be used only on the server, we can
+   * allow ourselves to use double here.
    */
   template <typename TargetSpeedFunction>
     /*
