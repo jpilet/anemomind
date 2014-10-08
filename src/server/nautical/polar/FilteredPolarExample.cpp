@@ -154,6 +154,9 @@ int main(int argc, const char **argv) {
   double stepSizeKnots = 0.5;
   int maxIter = 300;
 
+  int tableTwsCount = 24;
+  int tableTwaCount = 12;
+
   double bandwidthKnots = 1.0;
 
   int levelCtrlCount = 4;
@@ -187,7 +190,10 @@ int main(int argc, const char **argv) {
   amap.registerOption("--load-opt", "Load file with optimized parameters").setArgCount(1).store(&optLoadFilename);
   amap.registerOption("--save-curve-mat", "Save the optimized curves").setArgCount(1).store(&curveMatFilename);
 
-  amap.registerOption("--build-table", "Writes a table of the optimized polar to [filename] with [tws-count] tws slices and [twa-count] values.").setArgCount(3);
+  amap.registerOption("--build-table", "Writes a table of the optimized polar to [filename]").setArgCount(1);
+  amap.registerOption("--table-tws-count", "Set the tws count of the table").setArgCount(1).store(&tableTwsCount);
+  amap.registerOption("--table-twa-count", "Set the twa count of the table").setArgCount(1).store(&tableTwaCount);
+
 
   amap.setHelpInfo(" Example usage: \n"
       "View the filtered spans:     ./nautical_polar_FilteredPolarExample --view-spans filtered.json 1000 --save filtered.txt --interactive-slice\n"
@@ -196,7 +202,7 @@ int main(int argc, const char **argv) {
       "\n"
       "Another example, with initial filtering:\n"
       "./nautical_polar_FilteredPolarExample --navpath ~/Documents/anemomind/anemomind/datasets/psaros33_Banque_Sturdza/ --save psaros33.filtered.json\n"
-      "./nautical_polar_FilteredPolarExample --view-spans psaros33.filtered.json 400 --optimize 8 24 --build-table polartable.dat 24 12"
+      "./nautical_polar_FilteredPolarExample --view-spans psaros33.filtered.json 400 --optimize 8 24 --build-table polartable.dat"
       );
 
   if (amap.parseAndHelp(argc, argv)) {
@@ -263,10 +269,8 @@ int main(int argc, const char **argv) {
 
             auto args = amap.optionArgs("--build-table");
             std::string tableName = args[0]->value();
-            int twsCount = args[1]->parseIntOrDie();
-            int twaCount = args[2]->parseIntOrDie();
             Velocity<double> marg = Velocity<double>::knots(1.0e-6);
-            Velocity<double> twsStep = (1.0/twsCount)*(maxTws - marg);
+            Velocity<double> twsStep = (1.0/tableTwsCount)*(maxTws - marg);
 
 
             class SpeedLookUp {
@@ -282,7 +286,7 @@ int main(int argc, const char **argv) {
 
             std::ofstream file(tableName);
             PolarSpeedTable::build(twsStep,
-                twsCount, twaCount,
+                tableTwsCount, tableTwaCount,
                 SpeedLookUp(param, vertices),
                 &file);
           }
