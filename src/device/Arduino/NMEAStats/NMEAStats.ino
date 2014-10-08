@@ -112,7 +112,12 @@ void displaySpeedRatio(const NmeaParser& parser) {
        (FP8_8) (filter.gpsSpeed().knots()));
   #else
   Velocity<FP16_16> targetSpeed = polarSpeedTable.targetSpeed(tws, twa);
-  speedRatio = float(targetSpeed / filter.gpsSpeed());    
+  if (targetSpeed > Velocity<FP16_16>::knots(.5) &&
+      filter.gpsSpeed() > Velocity<FP16_16>::knots(.5)) {
+    speedRatio = float(targetSpeed / filter.gpsSpeed());    
+  } else {
+    speedRatio = 0;
+  }
   #endif
  
    // Display speedRatio on the LCD display.

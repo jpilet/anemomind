@@ -67,6 +67,19 @@ function CanvasTilesRenderer(params) {
   // We are ready, let's allow drawing.  
   this.inDraw = false;
   
+  this.pinchZoom.onClic = function(pos) {
+    var point = t.layers[1].findPointAt(pos.startWorldPos.x, pos.startWorldPos.y);
+    if (point) {
+      console.log('Point: perf:' + point.devicePerf
+                  + ' deviceTwdir:' + point.deviceTwdir
+                  + ' eTwdir:' + ((point.magHdg + point.externalTwa + 360) % 360)
+                  + ' deviceTws:' + point.deviceTws
+                  + ' eTws:' + point.externalTws
+                  + ' time:' + point.time
+                  );
+    }
+  }
+
   var location = params.initialLocation || {
     x: (this.params.width || 1) / 2,
     y: (this.params.height || 1) / 2,
