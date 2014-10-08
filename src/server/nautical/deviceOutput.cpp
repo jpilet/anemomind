@@ -4,57 +4,25 @@
 // containing an array of:
 // {timestamp, perf, twdir, tws} as would have beend displayed by the device.
 // The array is sorted.
-#include <device/Arduino/NMEAStats/test/DeviceSimulator.h>
 
-#include <server/common/string.h>
+#include <device/Arduino/NMEAStats/test/ScreenRecordingSimulator.h>
 #include <server/nautical/NavNmeaScan.h>
-#include <vector>
-#include <algorithm>
 #include <stdio.h>
 
 using namespace sail;
 
 namespace {
-
-struct ScreenInfo {
-  TimeStamp time;
-  int perf;
-  int twdir;
-  int tws;
-
-  bool operator <(const ScreenInfo& other) const {
-    return time < other.time;
-  }
-};
-
-class ScreenRecordingSimulator : public DeviceSimulator {
- public:
-  virtual void screenUpdate(int perf, int twdir, int tws);
-  bool save(const char* filename);
- private:
-  std::vector<ScreenInfo> _screenInfo;
-};
-      
-void ScreenRecordingSimulator::screenUpdate(int perf, int twdir, int tws) {
-  ScreenInfo info;
-  info.time = getTimeStamp();
-  info.perf = perf;
-  info.twdir = twdir;
-  info.tws = tws;
-  _screenInfo.push_back(info);
-}
-
-bool ScreenRecordingSimulator::save(const char* filename) {
+bool save(const char* filename, ScreenRecordingSimulator *simulator) {
   FILE *file = fopen(filename, "wt");
   if (!file) {
     return false;
   }
 
-  std::sort(_screenInfo.begin(), _screenInfo.end());
+  simulator->sort();
 
   fprintf(file, "[\n");
   bool first = true;
-  for (const ScreenInfo& info : _screenInfo) {
+  for (const ScreenInfo& info : simulator->screenInfo()) {
     if (!first) {
       fprintf(file, ",\n");
     }
@@ -74,10 +42,12 @@ void help(const char *exe) {
           exe);
 }
 
+
 }  // namespace
 
 int main(int argc, char* argv[]) {
   const char* boatDatFilename = nullptr;
+  const char* polarDatFilename = nullptr;
   const char* outputFilename = "display.js";
   std::vector<std::string> inputFiles;
 
@@ -86,6 +56,9 @@ int main(int argc, char* argv[]) {
       if ((i + 1) < argc && argv[i][1] == 'd') {
         ++i;
         boatDatFilename = argv[i];
+      } else if ((i + 1) < argc && argv[i][1] == 'p') {
+        ++i;
+        polarDatFilename = argv[i];
       } else if ((i + 1) < argc && argv[i][1] == 'o') {
         ++i;
         outputFilename = argv[i];
@@ -105,18 +78,9 @@ int main(int argc, char* argv[]) {
 
   ScreenRecordingSimulator arduino;
 
-  if (boatDatFilename) {
-    arduino.SD()->setReadableFile(
-        "boat.dat", readFileToString(boatDatFilename));
-  }
+  arduino.simulate(inputFiles, boatDatFilename, polarDatFilename);
 
-  arduino.setup();
-
-  for (auto file : inputFiles) {
-    arduino.sendData(readFileToString(file));
-  }
-
-  if (!arduino.save(outputFilename)) {
+  if (!save(outputFilename, &arduino)) {
     perror(outputFilename);
   }
 

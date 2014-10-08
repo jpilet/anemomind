@@ -18,6 +18,8 @@ remove_definitions("-DON_SERVER")
 add_library(device_DeviceSimulator
             DeviceSimulator.cpp
             DeviceSimulator.h
+            ScreenRecordingSimulator.cpp
+            ScreenRecordingSimulator.h
             ../NMEAStats.ino
            )
 target_link_libraries(device_DeviceSimulator
@@ -35,3 +37,12 @@ cxx_test(device_NmeaStatTest
          common_Env
          gmock_main
         )
+
+add_library(device_ScreenRecordingSimulator
+            ScreenRecordingSimulator.cpp
+            ScreenRecordingSimulator.h
+           )
+target_link_libraries(device_ScreenRecordingSimulator
+                      device_DeviceSimulator
+                      common_string
+                     )

@@ -46,6 +46,12 @@ BSONObj navToBSON(const Nav& nav) {
     result.append("twdir", calcTwdir(nav.trueWind()).degrees());
     result.append("tws", calcTws(nav.trueWind()).knots());
   }
+
+  if (nav.hasDeviceScreen()) {
+    result.append("devicePerf", nav.deviceScreen().perf);
+    result.append("deviceTwdir", nav.deviceScreen().twdir);
+    result.append("deviceTws", nav.deviceScreen().tws);
+  }
   return result.obj();
 }
 
