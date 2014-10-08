@@ -65,7 +65,6 @@ namespace {
   }
 
   Arrayi lookUp(Array<Velocity<double> > bounds, Array<Velocity<double> > tws) {
-    int count = tws.size();
     return tws.map<int>([&](Velocity<double> x) {return lookUp(bounds, x);});
   }
 
@@ -88,7 +87,6 @@ namespace {
   void outputMedianValues(Array<Velocity<double> > data, Arrayd quantiles, int index, Array<Array<Velocity<double> > > out) {
     int qCount = quantiles.size();
     LineKM map(0, 1.0, 0, data.size() - 1);
-    int count = data.size();
     for (int i = 0; i < qCount; i++) {
       int i2 = int(round(map(quantiles[i])));
       if (0 <= i2 && i2 < data.size()) {

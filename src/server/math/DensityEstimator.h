@@ -9,6 +9,10 @@
 #include <server/common/Array.h>
 #include <server/common/math.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <iostream>
+#include <server/common/string.h>
+#include <adolc/adouble.h>
+#include <server/common/ToDouble.h>
 
 namespace sail {
 
@@ -37,9 +41,13 @@ class KernelDensityEstimator : public DensityEstimator<N> {
  public:
   typedef typename DensityEstimator<N>::Vec Vec;
 
+  KernelDensityEstimator() :
+    _squaredBandwidth(NAN), _expThresh(initExpThresh) {}
+
   KernelDensityEstimator(double bandwidth,
         Array<Vec> samples) : _squaredBandwidth(bandwidth*bandwidth),
-        _samples(samples) {
+        _samples(samples),
+        _expThresh(initExpThresh) {
         assert(!_samples.empty());
   }
 
@@ -52,19 +60,57 @@ class KernelDensityEstimator : public DensityEstimator<N> {
     return sum;
   }
 
+  template <typename T>
+  T density(const T *pointN) const {
+    double squaredBandwidth = sqr(_squaredBandwidth);
+    T sum = 0;
+    for (auto p: _samples) {
+      sum += calcDensityTerm(p, pointN,
+          squaredBandwidth);
+    }
+    return sum;
+  }
+
   int dims() const {
     return _samples[0].size();
   }
- private:
-  double _squaredBandwidth;
-  Array<Vec> _samples;
 
-  static double gaussianKernel(double squaredDistance, double squaredBandwidth) {
-    return exp(-0.5*squaredDistance/squaredBandwidth);
+  bool empty() const {
+    return _samples.empty();
   }
 
-  static double calcDensityTerm(const Vec &a, const Vec &b, double squaredBandwidth) {
+  int count() const {
+    return _samples.size();
+  }
+
+  double maxDensity() const {
+    return count();
+  }
+ private:
+  static constexpr double initExpThresh = -4.60517018599; //log(1.0e-2);
+  double _squaredBandwidth;
+  Array<Vec> _samples;
+  double _expThresh;
+
+  template <typename T>
+  T gaussianKernel(T squaredDistance, double squaredBandwidth) const {
+    T x = -0.5*squaredDistance/squaredBandwidth;
+    constexpr double tol = 1.0e-9;
+    assert(x <= tol);
+    return exp(x);
+  }
+
+  double calcDensityTerm(const Vec &a, const Vec &b, double squaredBandwidth) const {
     return gaussianKernel(norm2dif<double, N>(a.data(), b.data()), squaredBandwidth);
+  }
+
+  template <typename T>
+  T calcDensityTerm(const Vec &refpt, const T *x, double squaredBandwidth) const {
+    T dist = 0;
+    for (int i = 0; i < N; i++) {
+      dist += sqr(refpt[i] - x[i]);
+    }
+    return gaussianKernel(dist, squaredBandwidth);
   }
 };
 

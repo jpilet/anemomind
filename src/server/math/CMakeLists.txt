@@ -145,8 +145,39 @@ cxx_test(math_StatisticsTest
 cxx_test(math_DensityEstimatorTest
          DensityEstimatorTest.cpp
          gtest_main
+         math_ADFunction
         )
 
+add_library(math_CurveParam
+            CurveParam.h
+            CurveParam.cpp
+           )
+target_depends_on_armadillo(math_CurveParam)
+target_link_libraries(math_CurveParam
+                      math_BandMat
+                     )
+
+cxx_test(math_CurveParamTest
+         CurveParamTest.cpp
+         math_CurveParam
+         gtest_main
+        )
+
+add_library(math_CumulativeFunction
+            CumulativeFunction.cpp
+            CumulativeFunction.h
+           )
+target_link_libraries(math_CumulativeFunction
+                      math_armaadolc
+                      common_LineKM
+                     )
+
+cxx_test(math_CumulativeFunctionTest
+         CumulativeFunctionTest.cpp
+         gtest_main
+         math_CumulativeFunction
+        )                     
+                     
 
 
 add_subdirectory(geometry)

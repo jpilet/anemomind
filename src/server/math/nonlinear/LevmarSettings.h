@@ -31,7 +31,7 @@ class LevmarSettings {
   double tau;
 
   int verbosity;
-  void draw(Arrayd X);
+  void draw(Arrayd X) const;
 
   void setDrawf(int inDims, std::function<void(Arrayd)> fun);
 

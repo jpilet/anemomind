@@ -32,6 +32,10 @@ double LineKM::inv(double x) const {
   return (x - _m)/_k;
 }
 
+LineKM LineKM::makeInvFun() const {
+  return LineKM(1.0/_k, -_m/_k);
+}
+
 double LineKM::getK() const {
   return _k;
 }

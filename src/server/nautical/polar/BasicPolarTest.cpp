@@ -4,7 +4,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <server/nautical/BasicPolar.h>
+#include <server/nautical/polar/BasicPolar.h>
 #include <server/common/Histogram.h>
 
 using namespace sail;

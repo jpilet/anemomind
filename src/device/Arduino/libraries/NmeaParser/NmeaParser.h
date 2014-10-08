@@ -46,6 +46,8 @@ class AccAngle {
     mc_ = mc;
   }
 
+  void flip();
+
   Word deg() const {
     return deg_;
   }

@@ -285,3 +285,9 @@ cxx_test(common_ArgMapTest
          common_logging
          common_string
         )
+
+add_library(common_JsonIO
+            JsonIO.h
+            JsonIO.cpp
+           )
+target_depends_on_poco_json(common_JsonIO)

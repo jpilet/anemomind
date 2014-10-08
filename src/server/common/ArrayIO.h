@@ -73,9 +73,8 @@ std::ostream &operator << (std::ostream &s, MDArray<T, dims> arr) {
         arr.step(inds, 1);
       }
     }
-    //s << "RETURN THE STREAM" << std::endl;
-    return s;
   }
+  return s;
 }
 
 // Display a type which supports the operations rows() cols() and get(i, j)
