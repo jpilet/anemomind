@@ -5,6 +5,11 @@
 
 #include <stdint.h>
 
+// workaround some arduino #define..
+#ifdef round
+#undef round
+#endif
+
 template <typename StoreType, typename LongType, int Shift>
 class FixedPoint {
  public:

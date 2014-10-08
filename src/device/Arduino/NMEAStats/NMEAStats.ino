@@ -15,6 +15,7 @@
 #endif
 
 #include <InstrumentFilter.h>
+#include <PolarSpeedTable.h>
 
 using namespace sail;
 
@@ -48,7 +49,13 @@ File logFile;
 NmeaParser nmeaParser;
 unsigned long lastFlush = 0;
 
+//#define VMG_TARGET_SPEED
+
+#ifdef VMG_TARGET_SPEED
 TargetSpeedTable targetSpeedTable;
+#else
+PolarSpeedTable polarSpeedTable;
+#endif
 
 InstrumentFilter<FP16_16, ::TimeStamp, Duration<long> > filter;
 
@@ -80,7 +87,7 @@ void openLogFile() {
 #undef degrees
 
 void displaySpeedRatio(const NmeaParser& parser) {
-  Angle<FP16_16> twdir;
+  Angle<FP16_16> twdir, twa;
   Velocity<FP8_8> tws;
 
   if (calibrationLoaded) {
@@ -90,16 +97,24 @@ void displaySpeedRatio(const NmeaParser& parser) {
     twdir = calcTwdir(wind);
     tws = wind.norm();
     // Todo: compute TWA with TrueWindEstimator.
+    twa = (twdir - Angle<FP16_16>(parser.magHdg()));
   } else {
     twdir = (Angle<FP16_16>(parser.twa()) + Angle<FP16_16>(parser.magHdg())).positiveMinAngle();
     tws = parser.tws();
+    twa = parser.twa();
   }
   
-   float speedRatio = getVmgSpeedRatio(targetSpeedTable,
-       parser.twa().degrees(),
+  float speedRatio;
+  #ifdef VMG_TARGET_SPEED
+  speedRatio = getVmgSpeedRatio(targetSpeedTable,
+       twa.degrees(),
        tws.knots(),
        (FP8_8) (filter.gpsSpeed().knots()));
-   
+  #else
+  Velocity<FP16_16> targetSpeed = polarSpeedTable.targetSpeed(tws, twa);
+  speedRatio = float(targetSpeed / filter.gpsSpeed());    
+  #endif
+ 
    // Display speedRatio on the LCD display.
    screenUpdate(
      max(0,min(200, int(speedRatio * 100.0))),
@@ -110,7 +125,9 @@ void displaySpeedRatio(const NmeaParser& parser) {
 
 void loadData() {
   ChunkTarget targets[] = {
+#ifdef VMG_TARGET_SPEED    
     makeChunkTarget(&targetSpeedTable),
+#endif
     makeChunkTarget(&calibration)
   };
   
@@ -129,10 +146,14 @@ void loadData() {
 
   calibrationLoaded = targets[1].success;
   
+#ifdef VMG_TARGET_SPEED
   if (!targets[0].success) {
     invalidateSpeedTable(&targetSpeedTable);
   }
-  
+#else
+  polarSpeedTable.load("polar.dat");
+#endif
+
   screenUpdate((targets[0].success ? 0 : -1) + (targets[1].success? 0 : -2));
 }
 
