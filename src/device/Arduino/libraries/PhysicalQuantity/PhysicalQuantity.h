@@ -52,11 +52,11 @@ static inline bool isnan(double x) {
 #endif
 }
 
-template<class T> inline bool isNaNOrFalse(T x) { return false; }
-template<> inline bool isNaNOrFalse(float x) { return ::isnan(x); }
-template<> inline bool isNaNOrFalse(double x) { return ::isnan(x); }
-
 namespace sail {
+
+template<class T> inline bool isNaNOrFalse(T x) { return false; }
+template<> inline bool isNaNOrFalse(float x) { return isnan(x); }
+template<> inline bool isNaNOrFalse(double x) { return  isnan(x); }
 
 /*
  * These macros may not be in conformity with the
