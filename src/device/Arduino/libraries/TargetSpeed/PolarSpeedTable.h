@@ -22,9 +22,6 @@
 #include "../Endian/EndianIOSD.h"
 #include "../PhysicalQuantity/PhysicalQuantity.h"
 
-
-#include <cstdio>
-
 namespace sail {
 
 class PolarSpeedTable {
