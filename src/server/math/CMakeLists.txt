@@ -178,7 +178,14 @@ cxx_test(math_CumulativeFunctionTest
          math_CumulativeFunction
         )                     
                      
-
+add_library(math_Filter1d
+            Filter1d.h
+            Filter1d.cpp
+           )
+           
+target_link_libraries(math_Filter1d
+                      math_nonlinear_Levmar
+                     )           
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
