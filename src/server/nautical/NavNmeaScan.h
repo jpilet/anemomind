@@ -11,7 +11,10 @@
 
 namespace sail {
 
-Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId);
+class ScreenRecordingSimulator;
+
+Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
+                          ScreenRecordingSimulator* simulator = 0);
 
 } /* namespace sail */
 

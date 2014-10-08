@@ -20,6 +20,7 @@
 namespace sail {
 
 Nav::Nav() : _time(TimeStamp::makeUndefined()) {
+  _flags = 0;
   _cwd = -1;
   _wd = -1;
 }
@@ -49,6 +50,8 @@ namespace NavDataConversion {
 
 
 Nav::Nav(MDArray2d row) {
+  _flags = 0;
+
   assert(row.rows() == 1);
   assert(row.cols() == 23 || row.cols() == 22);
 

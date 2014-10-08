@@ -10,7 +10,8 @@
 
 namespace sail {
 
-Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId) {
+Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
+                          ScreenRecordingSimulator *simulator) {
   { // Initial checks.
     Poco::File file(p);
     if (!file.exists()) {
@@ -32,8 +33,22 @@ Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId) {
   Array<ParsedNavs> parsedNavs(count);
   for (int i = 0; i < count; i++) {
     parsedNavs[i] = loadNavsFromNmea(files[i].toString(), boatId);
+    if (simulator) {
+      simulator->simulate(files[i].toString());
+    }
   }
-  return flattenAndSort(parsedNavs, ParsedNavs::makeGpsWindMask());
+  Array<Nav> result = flattenAndSort(parsedNavs, ParsedNavs::makeGpsWindMask());
+
+  if (simulator) {
+    for (Nav& nav : result) {
+      ScreenInfo info;
+      if (simulator->screenAt(nav.time(), &info)) {
+        nav.setDeviceScreen(info);
+      }
+    }
+  }
+
+  return result;
 }
 
 } /* namespace sail */
