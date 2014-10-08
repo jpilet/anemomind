@@ -167,6 +167,8 @@ class PolarSurfaceParam {
     return !_P.empty();
   }
  private:
+  void toSurfaceCoord(Velocity<double> tws, Angle<double> twa, double *outXY) const;
+  Velocity<double> targetSpeed(Arrayd vertices, double surfaceCoord2[2]) const;
 
   Arrayd toVertices(Arrayd paramsOrVertices) const;
 
