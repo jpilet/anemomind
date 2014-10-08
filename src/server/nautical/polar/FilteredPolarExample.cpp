@@ -196,7 +196,7 @@ int main(int argc, const char **argv) {
       "\n"
       "Another example, with initial filtering:\n"
       "./nautical_polar_FilteredPolarExample --navpath ~/Documents/anemomind/anemomind/datasets/psaros33_Banque_Sturdza/ --save psaros33.filtered.json\n"
-      "./nautical_polar_FilteredPolarExample --view-spans psaros33.filtered.json 400 --optimize 8 24"
+      "./nautical_polar_FilteredPolarExample --view-spans psaros33.filtered.json 400 --optimize 8 24 --build-table polartable.dat 24 12"
       );
 
   if (amap.parseAndHelp(argc, argv)) {
