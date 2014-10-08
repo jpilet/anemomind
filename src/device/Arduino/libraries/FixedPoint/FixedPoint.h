@@ -87,16 +87,16 @@ class FixedPoint {
      return *this; 
    }
 
+   // Useful for serialization, when we need to access its internal representation.
+   // Otherwise, these should be avoided.
    StoreType rawFixedPoint() const { return _value; }
-
- private:
-   static StoreType construct(StoreType x) { return x << Shift; }
    static ThisType make(StoreType value) {
      ThisType result;
      result._value = value;
      return result;
    }
-
+ private:
+   static StoreType construct(StoreType x) { return x << Shift; }
    StoreType _value;
 };
 

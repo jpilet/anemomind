@@ -25,6 +25,14 @@ class MockFile {
   void close() { }
 
   const std::string& output() const { return _output; }
+
+  bool seek(int pos) {
+    if (pos < 0 || _input.length() < pos) {
+      return false;
+    }
+    _pos = _input.begin() + pos;
+    return true;
+  }
  private:
   std::string _input;
   std::string _output;
@@ -41,6 +49,7 @@ class File {
   int available() { return _file->available(); }
   char read() { return _file->read(); }
   void close() { _file->close(); }
+  bool seek(int pos) { return _file->seek(pos); }
 
  private:
   MockFile* _file;

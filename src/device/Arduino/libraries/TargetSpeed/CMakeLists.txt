@@ -9,4 +9,9 @@ target_link_libraries(device_TargetSpeed
                       device_ChunkFile
                      )
 
+add_library(device_PolarSpeedTable
+            PolarSpeedTable.h
+            PolarSpeedTable.cpp
+           )
+
 add_subdirectory("test")
