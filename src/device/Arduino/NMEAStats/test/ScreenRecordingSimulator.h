@@ -24,11 +24,16 @@ class ScreenRecordingSimulator : public DeviceSimulator {
 
   virtual void screenUpdate(int perf, int twdir, int tws);
 
-  ScreenInfo screenAt(TimeStamp time);
+  bool screenAt(TimeStamp time, ScreenInfo *info);
 
   void sort();
 
   const std::vector<ScreenInfo> screenInfo() const { return _screenInfo; }
+
+  void prepare(const std::string& boatDatFilename,
+               const std::string& polarDatFilename);
+
+  void simulate(std::string filename);
 
   void simulate(const std::vector<std::string>& nmeaFiles,
                 const char* boatDatFilename,

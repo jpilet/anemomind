@@ -22,34 +22,44 @@ void ScreenRecordingSimulator::sort() {
   }
 }
 
-ScreenInfo ScreenRecordingSimulator::screenAt(TimeStamp time) {
+bool ScreenRecordingSimulator::screenAt(TimeStamp time, ScreenInfo *result) {
   sort();
-  ScreenInfo wanted;
-  wanted.time = time;
-  wanted.perf = -1;
-  wanted.twdir = -1;
-  wanted.tws = -1;
+  result->time = time;
+  result->perf = -1;
+  result->twdir = -1;
+  result->tws = -1;
 
-  auto justAfter = lower_bound(_screenInfo.begin(), _screenInfo.end(), wanted);
+  auto justAfter = lower_bound(_screenInfo.begin(), _screenInfo.end(), *result);
   if (justAfter == _screenInfo.end() || justAfter == _screenInfo.begin()) {
-    return wanted;
+    return false;
   }
   auto atResult = justAfter - 1;
-  return *atResult;
+  *result = *atResult;
+  return true;
+}
+
+void ScreenRecordingSimulator::prepare(
+                const std::string& boatDatFilename,
+                const std::string& polarDatFilename) {
+  if (boatDatFilename.size() > 0) {
+    SD()->setReadableFile("boat.dat", readFileToString(boatDatFilename));
+  }
+
+  if (polarDatFilename.size() > 0) {
+    SD()->setReadableFile("polar.dat", readFileToString(polarDatFilename));
+  }
+
+  setup();
+}
+
+void ScreenRecordingSimulator::simulate(std::string file) {
+    sendData(readFileToString(file));
 }
 
 void ScreenRecordingSimulator::simulate(const std::vector<std::string>& nmeaFiles,
                 const char* boatDatFilename,
                 const char* polarDatFilename) {
-  if (boatDatFilename) {
-    SD()->setReadableFile("boat.dat", readFileToString(boatDatFilename));
-  }
-
-  if (polarDatFilename) {
-    SD()->setReadableFile("polar.dat", readFileToString(polarDatFilename));
-  }
-
-  setup();
+  prepare(boatDatFilename, polarDatFilename);
 
   for (auto file : nmeaFiles) {
     sendData(readFileToString(file));
