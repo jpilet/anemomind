@@ -24,7 +24,6 @@ bool PolarSpeedTable::load(const char *filename) {
   _file = SD.open(filename);
 
   /*    _twsStep        sizeof(PolarSpeedTable::FixType)
-   *    _twaStep        sizeof(PolarSpeedTable::FixType)
    *    _twsCount       sizeof(unsigned char)
    *    _twaCount       sizeof(unsigned char)
    */
