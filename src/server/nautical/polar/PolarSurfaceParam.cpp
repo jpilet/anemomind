@@ -86,6 +86,7 @@ void PolarSurfaceParam::toSurfaceCoord(Velocity<double> tws, Angle<double> twa, 
 
 Velocity<double> PolarSurfaceParam::targetSpeed(Arrayd vertices, double surfaceCoord2[2]) const {
     // Bilinear interpolation
+
   Velocity<double> xy[2] = {Velocity<double>::knots(0), Velocity<double>::knots(0)};
   double curvep = surfaceCoord2[0];
   double curveIndex = surfaceCoord2[1]*_twsLevelCount - 1;
@@ -100,7 +101,8 @@ Velocity<double> PolarSurfaceParam::targetSpeed(Arrayd vertices, double surfaceC
       upperWeight, curvep, xy);
 
   // Return the distance to the origin
-  return Velocity<double>::knots(sqrt(sqr(xy[0].knots()) + sqrt(xy[1].knots())));
+  double sqnorm = sqr(xy[0].knots()) + sqr(xy[1].knots());
+  return Velocity<double>::knots(sqrt(sqnorm));
 }
 
   Velocity<double> PolarSurfaceParam::targetSpeed(Arrayd vertices,
