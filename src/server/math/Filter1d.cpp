@@ -8,6 +8,8 @@
 #include <server/math/ADFunction.h>
 #include <server/math/nonlinear/Levmar.h>
 #include <server/math/nonlinear/GridFitter.h>
+#include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 #include <server/math/armaadolc.h>
 
 namespace sail {
@@ -89,7 +91,7 @@ namespace {
       _Xvalid[i] = X.slice(v);
       _Ytrain[i] = Y.slice(t);
       _Yvalid[i] = Y.slice(v);
-      _outDims += _Yvalid.size();
+      _outDims += _Yvalid[i].size();
     }
   }
 
@@ -111,7 +113,7 @@ namespace {
     Arrayad errors(outDims(), Fout);
     int offset = 0;
     for (int i = 0; i < _splitCount; i++) {
-      int next = offset + _Yvalid.size();
+      int next = offset + _Yvalid[i].size();
       Arrayad vertices = fitSignal(_strip, _Xtrain[i], _Ytrain[i],
           _regOrders, regWeights);
       if (vertices.empty()) {
@@ -119,7 +121,10 @@ namespace {
       }
       computeErrors(_strip, vertices, _Xvalid[i], _Yvalid[i],
           errors.slice(offset, next));
+      offset = next;
     }
+    std::cout << EXPR_AND_VAL_AS_STRING(offset) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(outDims()) << std::endl;
     assert(offset == outDims());
   }
 }
@@ -129,6 +134,9 @@ Arrayd filter1d(LineStrip strip, Arrayd X, Arrayd Y,
     Array<Arrayb> crossValidationSplits,
     LevmarSettings settings) {
   assert(regOrders.size() == initWeights.size());
+
+  fillEmptySplits(crossValidationSplits, X.size());
+
 
   // Tune the regularization weights using cross validation
   CVObjf objf(strip, X, Y, crossValidationSplits, regOrders);
@@ -144,27 +152,32 @@ Arrayd filter1d(Arrayd Y, Arrayi orders, Arrayd weights, Array<Arrayb> crossVali
     LevmarSettings s) {
 
   int count = Y.size();
-  double marg = 0.5;
-  BBox1d bbox(Spand(0, count - 1 + marg));
-  double spacing[1] = {1};
   Arrayd X(count);
   for (int i = 0; i < count; i++) {
     X[i] = i;
   }
-  LineStrip strip(bbox, spacing);
-  assert(strip.getVertexCount() == 1);
+
+  int dims[1] = {count};
+
+  MDInds<1> inds(dims);
+  double marg = 1.0e-6;
+  LineKM ind2Coord(0, count-1, -marg, count-1 + marg);
+  LineStrip strip(inds, &ind2Coord);
+
+  assert(strip.getVertexCount() == count);
+
   return filter1d(strip, X, Y, orders, weights, crossValidationSplits, s);
 }
 
-Arrayd filter1d(Arrayd X,
+
+
+Arrayd filter1dEasy(Arrayd X,
     int order, double initWeight,
     Array<Arrayb> crossValidationSplits,
     LevmarSettings s) {
     assert(!crossValidationSplits.empty());
 
-    fillEmptySplits(crossValidationSplits, X.size());
-
-    return filter1d(X, order, initWeight, crossValidationSplits, s);
+    return filter1d(X, Arrayi::args(order), Arrayd::args(initWeight), crossValidationSplits, s);
 }
 
 

@@ -185,7 +185,18 @@ add_library(math_Filter1d
            
 target_link_libraries(math_Filter1d
                       math_nonlinear_Levmar
-                     )           
+                      math_nonlinear_GridFitter
+                      math_BandMat
+                     )
+
+add_executable(math_Filter1dExample
+               Filter1dExample.cpp
+              )
+target_link_libraries(math_Filter1dExample
+                      math_Filter1d
+                      plot_gnuplot
+                      common_Uniform
+                     ) 
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
