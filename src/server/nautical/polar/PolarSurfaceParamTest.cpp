@@ -127,8 +127,9 @@ TEST(PolarSurfaceParamTest, Ctrl) {
   EXPECT_NEAR(x[1].knots(), 0.0, 1.0e-9);
   EXPECT_NEAR(x[2].knots(), 0.0, 1.0e-9);
 
+  Vectorize<double, 2> pt{0.5, 0.999999999};
   Vectorize<Velocity<double>, 3> y = param.computeSurfacePoint(vertices,
-      Vectorize<double, 2>{0.5, 0.999999999});
+      pt);
   EXPECT_NEAR(y[0].knots(), 0.0, 1.0e-4);
   EXPECT_LE(y[1].knots(), -10.0);
   EXPECT_NEAR(y[2].knots(), 40.0, 1.0e-4);
@@ -137,5 +138,9 @@ TEST(PolarSurfaceParamTest, Ctrl) {
   EXPECT_NEAR(logline(expline(-13.0)), -13.0, 1.0e-9);
   EXPECT_NEAR(expline(-1.0e-9), expline(1.0e-9), 1.0e-4);
 
+  Velocity<double> tgt = param.targetSpeed(vertices,
+      pt[1]*Velocity<double>::knots(40), pt[0]*Angle<double>::degrees(360.0));
+
+  EXPECT_NEAR(tgt.knots(), sqrt(sqr(y[0].knots()) + sqr(y[1].knots())), 1.0e-5);
   //makeExamplePlot(param, vertices);
 }
