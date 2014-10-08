@@ -146,6 +146,9 @@ class PolarSurfaceParam {
     return Vectorize<Velocity<T>, 3>(dst);
   }
 
+  Velocity<double> targetSpeed(Arrayd vertices,
+      Velocity<double> tws, Angle<double> twa) const;
+
   /*
    * Generate random points, uniformly distributed
    * on the surface.

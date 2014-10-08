@@ -14,6 +14,7 @@
 #include <server/common/JsonIO.h>
 #include <server/common/ArrayIO.h>
 #include <server/nautical/polar/PolarOptimizer.h>
+#include <device/Arduino/libraries/TargetSpeed/PolarSpeedTable.h>
 
 
 
@@ -186,10 +187,16 @@ int main(int argc, const char **argv) {
   amap.registerOption("--load-opt", "Load file with optimized parameters").setArgCount(1).store(&optLoadFilename);
   amap.registerOption("--save-curve-mat", "Save the optimized curves").setArgCount(1).store(&curveMatFilename);
 
+  amap.registerOption("--build-table", "Writes a table of the optimized polar to [filename] with [tws-count] tws slices and [twa-count] values.").setArgCount(3);
+
   amap.setHelpInfo(" Example usage: \n"
       "View the filtered spans:     ./nautical_polar_FilteredPolarExample --view-spans filtered.json 1000 --save filtered.txt --interactive-slice\n"
       "Optimize:                    ./nautical_polar_FilteredPolarExample --view-spans filtered.json 3000 --optimize 7 20\n"
       "Visualize optimized results: ./nautical_polar_FilteredPolarExample --view-spans filtered.json 3000 --optimize 7 20 --load-opt optimized_polar_temp.txt --save-curve-mat curvematrix.txt\n"
+      "\n"
+      "Another example, with initial filtering:\n"
+      "./nautical_polar_FilteredPolarExample --navpath ~/Documents/anemomind/anemomind/datasets/psaros33_Banque_Sturdza/ --save psaros33.filtered.json\n"
+      "./nautical_polar_FilteredPolarExample --view-spans psaros33.filtered.json 400 --optimize 8 24"
       );
 
   if (amap.parseAndHelp(argc, argv)) {
@@ -248,6 +255,36 @@ int main(int argc, const char **argv) {
             std::cout << EXPR_AND_VAL_AS_STRING(mat.rows()) << std::endl;
             std::cout << EXPR_AND_VAL_AS_STRING(mat.cols()) << std::endl;
             saveMatrix(curveMatFilename, mat, 5, 15);
+          }
+
+          if (amap.optionProvided("--build-table")) {
+            Arrayd vertices(param.vertexDim());
+            param.paramToVertices(params, vertices);
+
+            auto args = amap.optionArgs("--build-table");
+            std::string tableName = args[0]->value();
+            int twsCount = args[1]->parseIntOrDie();
+            int twaCount = args[2]->parseIntOrDie();
+            Velocity<double> marg = Velocity<double>::knots(1.0e-6);
+            Velocity<double> twsStep = (1.0/twsCount)*(maxTws - marg);
+
+
+            class SpeedLookUp {
+             public:
+              SpeedLookUp(PolarSurfaceParam &p, Arrayd &v) : _param(p), _vertices(v) {}
+              Velocity<double> operator() (Velocity<double> tws, Angle<double> twa) {
+                return _param.targetSpeed(_vertices, tws, twa);
+              };
+             private:
+              PolarSurfaceParam &_param;
+              Arrayd &_vertices;
+            };
+
+            std::ofstream file(tableName);
+            PolarSpeedTable::build(twsStep,
+                twsCount, twaCount,
+                SpeedLookUp(param, vertices),
+                &file);
           }
 
           GnuplotExtra plot;

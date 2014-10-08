@@ -77,6 +77,30 @@ Array<Vectorize<double, 2> > PolarSurfaceParam::generateSurfacePoints(int count)
   return dst;
 }
 
+Velocity<double> PolarSurfaceParam::targetSpeed(Arrayd vertices,
+    Velocity<double> tws, Angle<double> twa) const {
+  assert(0.0 <= tws.knots()); assert(tws <= _maxTws);
+  double surfaceCoord2[2] = {twa.positiveMinAngle().degrees()/360.0, tws/_maxTws};
+
+  // Bilinear interpolation
+  Velocity<double> xy[2] = {Velocity<double>::knots(0), Velocity<double>::knots(0)};
+  double curvep = surfaceCoord2[0];
+  double curveIndex = surfaceCoord2[1]*_twsLevelCount - 1;
+  int lower = std::min(int(floor(curveIndex)), _twsLevelCount-1);
+  int upper = lower + 1;
+  double lambda = curveIndex - lower;
+  double lowerWeight = 1.0 - lambda;
+  double upperWeight = lambda;
+  addWeightedCurveVertex(vertices, lower,
+      lowerWeight, curvep, xy);
+  addWeightedCurveVertex(vertices, upper,
+      upperWeight, curvep, xy);
+
+  // Return the distance to the origin
+  return Velocity<double>::knots(sqrt(sqr(xy[0].knots()) + sqrt(xy[1].knots())));
+}
+
+
 Arrayd PolarSurfaceParam::toVertices(Arrayd paramsOrVertices) const {
   if (paramsOrVertices.size() == paramCount()) {
     Arrayd vertices(vertexDim());
