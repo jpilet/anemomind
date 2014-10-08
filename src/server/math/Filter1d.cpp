@@ -23,9 +23,41 @@ namespace {
       Arrayi regOrders, Array<T> regWeights) {
     int maxOrder = getMaxOrder(regOrders);
     int width = maxOrder;
-    BandMat<T> mat(strip.getVertexCount(), strip.getVertexCount(), width, width);
-
+    BandMat<T> AtA(strip.getVertexCount(), strip.getVertexCount(), width, width);
+    AtA.addRegs(regOrders, regWeights);
+    MDArray<T, 2> AtB(strip.getVertexCount(), 1);
+    AtB.setAll(0);
+    int count = X.size();
+    assert(count == Y.size());
+    for (int i = 0; i < count; i++) {
+      int I[2];
+      double W[2];
+      strip.makeVertexLinearCombination(X.ptr(i), I, W);
+      AtA.addNormalEq(2, I, W);
+      double y = Y[i];
+      AtB[I[0]] += y*W[0];
+      AtB[I[1]] += y*W[1];
+    }
+    if (bandMatGaussElimDestructive(&AtA, &AtB)) {
+      return AtB.getStorage();
+    }
+    return Array<T>();
   }
+
+  class CVObjf : public AutoDiffFunction {
+   public:
+    CVObjf(LineStrip strip, Arrayd X, Arrayd Y,
+        Array<Arrayb> crossValidationSplits);
+
+    // OVERRIDE THESE METHODS:
+    virtual void evalAD(adouble *Xin, adouble *Fout) = 0;
+    virtual int inDims() {return _orders.size();}
+    //  virtual int outDims() = 0;
+   private:
+    Arrayi _orders;
+    LineStrip _strip;
+    Array<Arrayd> _Xtrain, _Xvalid, _Ytrain, _Yvalid;
+  };
 }
 
 Arrayd filter1d(LineStrip strip, Arrayd X, Arrayd Y,

@@ -90,7 +90,7 @@ TEST(GridTest, Filter3Test) {
   double minv = 0.0;
   double maxv = 30.0;
   Grid1d grid(BBox1d(Spand(minv, maxv)), spacing);
-  int n = grid.vertexCount();
+  int n = grid.getVertexCount();
   EXPECT_LE(5, n);
   Arrayd src = Arrayd::fill(n, 0.0);
   Arrayd dst = Arrayd::fill(n, 119.0);
