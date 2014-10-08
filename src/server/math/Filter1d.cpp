@@ -10,9 +10,23 @@
 namespace sail {
 
 namespace {
+  int getMaxOrder(Arrayi orders) {
+    int maxo = 0;
+    for (int i = 0; i < orders.size(); i++) {
+      maxo = std::max(maxo, orders[i]);
+    }
+    return maxo;
+  }
 
+  template <typename T>
+  Array<T> fitSignal(LineStrip strip, Arrayd X, Arrayd Y,
+      Arrayi regOrders, Array<T> regWeights) {
+    int maxOrder = getMaxOrder(regOrders);
+    int width = maxOrder;
+    BandMat<T> mat(strip.getVertexCount(), strip.getVertexCount(), width, width);
+
+  }
 }
-
 
 Arrayd filter1d(LineStrip strip, Arrayd X, Arrayd Y,
     Array<Arrayb> crossValidationSplits,
@@ -35,7 +49,6 @@ Arrayd filter1d(Arrayd Y, Array<Arrayb> crossValidationSplits,
   LineStrip strip(bbox, spacing);
   assert(strip.getVertexCount() == 1);
   return filter1d(strip, X, Y, crossValidationSplits, s);
-
 }
 
 

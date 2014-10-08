@@ -8,11 +8,13 @@
 
 namespace sail {
 
-Arrayd filter1d(LineStrip strip, Arrayd X, Arrayd Y, Array<Arrayb> crossValidationSplits,
+Arrayd filter1d(LineStrip strip, Arrayd X, Arrayd Y,
+    Array<Arrayb> crossValidationSplits,
     LevmarSettings s = LevmarSettings());
 
 
-Arrayd filter1d(Arrayd X, Array<Arrayb> crossValidationSplits,
+Arrayd filter1d(Arrayd X,
+    Array<Arrayb> crossValidationSplits,
     LevmarSettings s = LevmarSettings());
 
 }
