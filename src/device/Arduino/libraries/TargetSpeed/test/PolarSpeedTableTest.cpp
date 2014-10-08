@@ -47,10 +47,10 @@ TEST(PolarSpeedTableTest, NonEmptyTest) {
   Velocity<double> twsStep = Velocity<double>::knots(1.0);
   int twsCount = 30;
   int twaCount = 12;
-  Angle<double> twaStep = Angle<double>::degrees(30.0);
   makeTable(twsStep, twsCount, twaCount, lu);
   {
-    PolarSpeedTable table(getTempFilename());
+    PolarSpeedTable table;
+    EXPECT_TRUE(table.load(getTempFilename()));
     EXPECT_FALSE(table.empty());
 
     const int testCount = 3;
@@ -74,10 +74,10 @@ TEST(PolarSpeedTableTest, Interpolation) {
   Velocity<double> twsStep = Velocity<double>::knots(1.0);
   int twsCount = 30;
   int twaCount = 12;
-  Angle<double> twaStep = Angle<double>::degrees(30.0);
   makeTable(twsStep, twsCount, twaCount, lu);
   {
-    PolarSpeedTable table(getTempFilename());
+    PolarSpeedTable table;
+    EXPECT_TRUE(table.load(getTempFilename()));
     EXPECT_FALSE(table.empty());
 
     const int testCount = 5;
@@ -104,8 +104,8 @@ TEST(PolarSpeedTableTest, Cyclic) {
   Angle<double> twaStep = Angle<double>::degrees(30.0);
   makeTable(twsStep, twsCount, twaCount, lu);
   {
-    PolarSpeedTable table(getTempFilename());
-
+    PolarSpeedTable table;
+    EXPECT_TRUE(table.load(getTempFilename()));
     EXPECT_FALSE(table.empty());
 
     const int testCount = 2;
