@@ -27,6 +27,7 @@ target_link_libraries(device_DeviceSimulator
          device_ChunkFile
          device_NmeaParser
          device_TargetSpeed
+         device_PolarSpeedTable
          nautical_NavNmea
          )
 

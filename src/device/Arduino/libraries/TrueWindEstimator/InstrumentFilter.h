@@ -64,9 +64,11 @@ void InstrumentFilter<T, TimeStamp, Duration>::update(
     TimeStamp time, Angle<T> angle, Velocity<T> speed, TimedMotion *dest) {
   HorizontalMotion<T> motion = HorizontalMotion<T>::polar(speed, angle);
 
+#ifdef ON_SERVER
   if (isnan(angle) || isnan(speed)) {
     return;
   }
+#endif
 
   Duration delta;
   if (dest->_time.undefined() ||
