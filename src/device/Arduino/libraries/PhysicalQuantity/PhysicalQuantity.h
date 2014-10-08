@@ -34,6 +34,7 @@
 #undef radians
 #endif
 
+namespace sail {
 #ifdef isnan
 #pragma push_macro("isnan")
 #undef isnan
@@ -49,6 +50,7 @@ static inline bool isnan(double x) {
 }
 #undef isnan
 #endif
+}
 
 template<class T> inline bool isNaNOrFalse(T x) { return false; }
 template<> inline bool isNaNOrFalse(float x) { return ::isnan(x); }
