@@ -87,7 +87,7 @@ class KernelDensityEstimator : public DensityEstimator<N> {
     return count();
   }
  private:
-  static constexpr double initExpThresh = log(1.0e-2);
+  static constexpr double initExpThresh = -4.60517018599; //log(1.0e-2);
   double _squaredBandwidth;
   Array<Vec> _samples;
   double _expThresh;

@@ -13,18 +13,21 @@ PolarSpeedTable::PolarSpeedTable() {
 }
 
 void PolarSpeedTable::invalidate() {
-  _file = nullptr;
-  _twsCount = -1;
-  _twaCount = -1;
+  if (_file) {
+    _file.close();
+  }
+  _twsCount = 0;
+  _twaCount = 0;
 }
 
+bool PolarSpeedTable::load(const char *filename) {
+  _file = SD.open(filename);
 
-PolarSpeedTable::PolarSpeedTable(const char *filename) :
-  _file(SD.open(filename)) {
-/*       *    _twsStep        sizeof(PolarSpeedTable::FixType)
-       *    _twaStep        sizeof(PolarSpeedTable::FixType)
-       *    _twsCount       sizeof(unsigned char)
-       *    _twaCount       sizeof(unsigned char)*/
+  /*    _twsStep        sizeof(PolarSpeedTable::FixType)
+   *    _twaStep        sizeof(PolarSpeedTable::FixType)
+   *    _twsCount       sizeof(unsigned char)
+   *    _twaCount       sizeof(unsigned char)
+   */
   if (bool(_file)) {
     {
       FixType twsStep;
@@ -33,15 +36,17 @@ PolarSpeedTable::PolarSpeedTable(const char *filename) :
     }
     _twsCount = readInteger<unsigned char>(&_file);
     _twaCount = readInteger<unsigned char>(&_file);
-    _twaStep = Angle<FixType>::degrees(FixType(360)/FixType(_twaCount));
-
-  } else {
-    _file = File();
+    if (_twsCount != 0 && _twaCount != 0) {
+      _twaStep = Angle<FixType>::degrees(FixType(360)/FixType(_twaCount));
+      return true;
+    }
   }
+  invalidate();
+  return false;
 }
 
 PolarSpeedTable::~PolarSpeedTable() {
-  _file.close();
+  invalidate();
 }
 
 Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeed(Velocity<PolarSpeedTable::FixType> tws,
@@ -74,7 +79,7 @@ Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeed(Velocity<PolarSp
 
 Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeedForTwsIndex(int twsIndex,
     Angle<PolarSpeedTable::FixType> twa) {
-  if (twsIndex == 0) {
+  if (empty() || twsIndex == 0) {
     return Velocity<PolarSpeedTable::FixType>::knots(PolarSpeedTable::FixType(0));
   }
   PolarSpeedTable::FixType twaRealIndex = twa.positiveMinAngle()/_twaStep;
@@ -95,6 +100,11 @@ PolarSpeedTable::FixType PolarSpeedTable::calcTwsRealIndex(Velocity<PolarSpeedTa
 }
 
 int PolarSpeedTable::tableIndex(int twsIndex, int twaIndex) const {
+  /* A tws=0 knots always map to twsIndex=0 and there is no use storing this in
+   * the table, since the target speed will always be 0 if there is no wind.
+   * Therefore, twsIndex=1 should map to the first table (twsIndex-1 = 1-1 = 0)
+   * of target speeds for various values of twaIndex.
+   */
   return (twsIndex - 1)*_twaCount + twaIndex;
 }
 
@@ -113,11 +123,6 @@ Velocity<PolarSpeedTable::FixType> PolarSpeedTable::get(int twsIndex, int twaInd
   readFixedPoint(&raw, &_file);
   return Velocity<FixType>::knots(raw);
 }
-
-PolarSpeedTable::PolarSpeedTable(const PolarSpeedTable &other) :
-  _twsCount(-1), _twaCount(-1), _file(nullptr) {}
-
-void PolarSpeedTable::operator= (const PolarSpeedTable &other) {}
 
 
 } /* namespace mmm */

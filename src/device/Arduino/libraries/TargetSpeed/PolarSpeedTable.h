@@ -8,7 +8,7 @@
 
 #include "../Endian/Endian.h"
 
-#ifdef ON_DEVICE
+#ifndef ON_SERVER
   #include <SD.h>
 #else
   // For the static 'build' method.
@@ -41,19 +41,25 @@ class PolarSpeedTable {
    *    targetSpeed     sizeof(FixType)
    *
    */
-  static constexpr int FILE_HEADER_SIZE = sizeof(FixType)           // _twsStep
+  static const int FILE_HEADER_SIZE = sizeof(FixType)           // _twsStep
                                         + 2*sizeof(unsigned char);  // _twsCount, _twaCount
-  static constexpr int TABLE_ENTRY_SIZE = sizeof(FixType);
+  static const int TABLE_ENTRY_SIZE = sizeof(FixType);
 
   PolarSpeedTable();
-  PolarSpeedTable(const char *filename);
   ~PolarSpeedTable();
+
+  // Prohibit copying and assignment. If we were to support these operations,
+  // we would need some form of reference counting or something for the file pointer.
+  PolarSpeedTable(const PolarSpeedTable &other) = delete;
+  void operator= (const PolarSpeedTable &other) = delete;
+
+  bool load(const char *filename);
 
   Velocity<FixType> targetSpeed(Velocity<FixType> tws, Angle<FixType> twa);
 
   Velocity<FixType> maxTws() const {return FixType(_twsCount)*_twsStep;}
   Velocity<FixType> minTws() const {return Velocity<FixType>::knots(FixType(0));}
-  bool empty() {return !bool(_file);}
+  bool empty() {return !bool(_file) || _twsCount == 0;}
 
 
 
@@ -104,11 +110,6 @@ class PolarSpeedTable {
   int tableEntryFilePos(int twsIndex, int twaIndex) const;
   int fileSize() const;
   Velocity<FixType> get(int twsIndex, int twaIndex);
-
-  // Prohibit copying and assignment. If we were to support these operations,
-  // we would need some form of reference counting or something for the file pointer.
-  PolarSpeedTable(const PolarSpeedTable &other);
-  void operator= (const PolarSpeedTable &other);
 
   Velocity<FixType> targetSpeedForTwsIndex(int twsIndex,
       Angle<FixType> twa);

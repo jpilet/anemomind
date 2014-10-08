@@ -26,6 +26,14 @@
 #include <math.h>
 #endif
 
+// workaround some arduino #define..
+#ifdef degrees
+#undef degrees
+#endif
+#ifdef radians
+#undef radians
+#endif
+
 #ifdef isnan
 #pragma push_macro("isnan")
 #undef isnan
@@ -42,18 +50,9 @@ static inline bool isnan(double x) {
 #undef isnan
 #endif
 
-// Helper functions to implement isNaN.
-template<class T>
-typename std::enable_if<std::is_floating_point<T>::value, bool>::type
-    isNaNOrFalse(T x) {
-  return ::isnan(x);
-}
-
-template<class T>
-typename std::enable_if<!std::is_floating_point<T>::value, bool>::type
-    isNaNOrFalse(T) {
-  return false;
-}
+template<class T> inline bool isNaNOrFalse(T x) { return false; }
+template<> inline bool isNaNOrFalse(float x) { return ::isnan(x); }
+template<> inline bool isNaNOrFalse(double x) { return ::isnan(x); }
 
 namespace sail {
 
