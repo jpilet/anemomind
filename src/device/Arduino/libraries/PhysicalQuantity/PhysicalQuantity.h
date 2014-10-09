@@ -35,18 +35,6 @@
 #endif
 
 #ifdef isnan
-#pragma push_macro("isnan")
-#undef isnan
-static inline bool isnan(float x) {
-#pragma pop_macro("isnan")
-    return isnan(x);
-}
-#pragma push_macro("isnan")
-#undef isnan
-static inline bool isnan(double x) {
-#pragma pop_macro("isnan")
-    return isnan(x);
-}
 #undef isnan
 #endif
 
