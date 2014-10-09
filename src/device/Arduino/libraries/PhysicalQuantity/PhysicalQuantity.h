@@ -34,7 +34,6 @@
 #undef radians
 #endif
 
-namespace sail {
 #ifdef isnan
 #pragma push_macro("isnan")
 #undef isnan
@@ -50,7 +49,7 @@ static inline bool isnan(double x) {
 }
 #undef isnan
 #endif
-}
+
 
 namespace sail {
 

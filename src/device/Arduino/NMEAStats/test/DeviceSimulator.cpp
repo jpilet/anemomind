@@ -58,7 +58,7 @@ void screenUpdate(int a, int b, int c) { fakeArduino->screenUpdate(a, b, c); }
 
 sail::TimeStamp DeviceSimulator::getTimeStamp() const {
   return _referenceTime + Duration<>::milliseconds(
-      _referenceMillis - _arduinoTimeMs);
+      _arduinoTimeMs - _referenceMillis);
 }
 
 void DeviceSimulator::sendData(const std::string& data) {

@@ -46,3 +46,11 @@ target_link_libraries(device_ScreenRecordingSimulator
                       device_DeviceSimulator
                       common_string
                      )
+cxx_test(device_ScreenRecordingSimulatorTest
+         ScreenRecordingSimulatorTest.cpp
+         device_ScreenRecordingSimulator
+         common_Env
+         nautical_NavNmea
+         gmock_main
+        )
+

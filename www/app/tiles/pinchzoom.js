@@ -89,12 +89,19 @@ PinchZoom.prototype.handleMouseDown = function(event) {
     // double clic: instant zoom.
     this.handleDoubleClic(viewerPos);
     this.ongoingTouches.mouse = undefined;
+    clearTimeout(this.singleClicTimeout);
   } else {
     // simple clic - might be converted in a double clic later.
-    this.ongoingTouches.mouse = {
+    var clicPos = {
       startWorldPos: this.worldPosFromViewerPos(viewerPos.x, viewerPos.y),
       startViewerPos: viewerPos,
     };
+    this.ongoingTouches.mouse = clicPos;
+    var t = this;
+    this.singleClicTimeout = setTimeout(
+        function() {
+          t.handleSingleClic(clicPos);
+        }, 110);
   }
   this.lastMouseDown = now;
 };
@@ -311,3 +318,9 @@ PinchZoom.prototype.checkAndApplyTransform = function (newTransform) {
     }
   }
 };
+
+PinchZoom.prototype.handleSingleClic = function(mousePos) {
+  if (this.onClic) {
+    this.onClic(mousePos, this);
+  }
+}

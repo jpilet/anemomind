@@ -5,8 +5,9 @@
 
 #include "NavNmeaScan.h"
 #include "NavNmea.h"
-#include <server/common/filesystem.h>
 #include <Poco/File.h>
+#include <server/common/filesystem.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -43,7 +44,14 @@ Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
     for (Nav& nav : result) {
       ScreenInfo info;
       if (simulator->screenAt(nav.time(), &info)) {
-        nav.setDeviceScreen(info);
+        auto delta = fabs(nav.time() - info.time);
+        if (delta > Duration<>::seconds(4)) {
+          LOG(WARNING) << "Time problem while matching simulated data to nav: "
+            << delta.str() << " of time difference, at "
+            << nav.time().toString();
+        } else {
+          nav.setDeviceScreen(info);
+        }
       }
     }
   }
