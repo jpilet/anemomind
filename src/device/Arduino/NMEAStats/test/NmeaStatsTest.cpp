@@ -73,6 +73,9 @@ TEST(DeviceTest, CalibratedTest) {
   arduino.SD()->setReadableFile("boat.dat",
       readFileToString(std::string(Env::SOURCE_DIR) +
                        std::string("/src/device/Arduino/NMEAStats/test/boat.dat")));
+  arduino.SD()->setReadableFile("polar.dat",
+      readFileToString(std::string(Env::SOURCE_DIR) +
+                       std::string("/src/device/Arduino/NMEAStats/test/polar.dat")));
 
   arduino.setup();
 

@@ -17,6 +17,12 @@
 #include <InstrumentFilter.h>
 #include <PolarSpeedTable.h>
 
+
+/*
+ * TO BE REMOVED
+ */
+#include <iostream>
+
 using namespace sail;
 
 class TimeStamp {
@@ -112,12 +118,14 @@ void displaySpeedRatio(const NmeaParser& parser) {
        (FP8_8) (filter.gpsSpeed().knots()));
   #else
   Velocity<FP16_16> targetSpeed = polarSpeedTable.targetSpeed(tws, twa);
+  std::cout << "Target speed = " << double(targetSpeed.knots()) << " knots" << std::endl;
   if (targetSpeed > Velocity<FP16_16>::knots(.5) &&
       filter.gpsSpeed() > Velocity<FP16_16>::knots(.5)) {
-    speedRatio = float(targetSpeed / filter.gpsSpeed());    
+    speedRatio = float(targetSpeed / filter.gpsSpeed());
   } else {
     speedRatio = 0;
   }
+  std::cout << "speed ratio = " << speedRatio << std::endl;
   #endif
  
    // Display speedRatio on the LCD display.
