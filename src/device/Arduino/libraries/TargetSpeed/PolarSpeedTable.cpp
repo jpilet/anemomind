@@ -5,7 +5,6 @@
 
 #include "PolarSpeedTable.h"
 
-
 namespace sail {
 
 PolarSpeedTable::PolarSpeedTable() {
@@ -33,10 +32,18 @@ bool PolarSpeedTable::load(const char *filename) {
       readFixedPoint(&twsStep, &_file);
       _twsStep = Velocity<FixType>::knots(twsStep);
     }
-    _twsCount = readInteger<unsigned char>(&_file);
-    _twaCount = readInteger<unsigned char>(&_file);
+    DR(_file.available());
+    _twsCount = DR(readInteger<unsigned char>(&_file));
+    _twaCount = DR(readInteger<unsigned char>(&_file));
+    assert(false);
     if (_twsCount != 0 && _twaCount != 0) {
       _twaStep = Angle<FixType>::degrees(FixType(360)/FixType(_twaCount));
+
+      DR(_twsCount);
+      DR(_twaCount);
+      DR(_twsStep);
+      DR(_twaStep);
+
       return true;
     }
   }
@@ -52,7 +59,7 @@ Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeed(Velocity<PolarSp
     Angle<PolarSpeedTable::FixType> twa) {
 
     if (empty()) {
-      return Velocity<FixType>::knots(FixType(-1));
+      return DR(Velocity<FixType>::knots(FixType(-1)));
     }
 
     PolarSpeedTable::FixType twsRealIndex = calcTwsRealIndex(tws);

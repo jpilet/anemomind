@@ -22,7 +22,45 @@
 #include "../Endian/EndianIOSD.h"
 #include "../PhysicalQuantity/PhysicalQuantity.h"
 
+#include <iostream>
+#include <cassert>
+
 namespace sail {
+
+
+template <typename X, typename Y, int n>
+std::ostream &operator << (std::ostream &s, FixedPoint<X, Y, n> x) {
+  s << double(x) << "[fixpt]";
+  return s;
+}
+
+template <typename X, typename Y, int n>
+std::ostream &operator << (std::ostream &s, Velocity<FixedPoint<X, Y, n> > x) {
+  s << double(x.knots()) << " knots[fixpt]";
+  return s;
+}
+
+template <typename X, typename Y, int n>
+std::ostream &operator << (std::ostream &s, Angle<FixedPoint<X, Y, n> > x) {
+  s << double(x.degrees()) << " degrees[fixpt]";
+  return s;
+}
+
+inline std::ostream &operator << (std::ostream &s, unsigned char x) {
+  s << int(x);
+  return s;
+}
+
+
+
+template <typename T>
+const T &dr(const T &x, const char *xs, const char *file, int line) {
+  std::cout << "File " << file << " on line " << line << ": " << xs << " = [[[" << x << "]]]" << std::endl;
+  return x;
+}
+
+#define DR(x) dr(x, #x, __FILE__, __LINE__)
+
 
 class PolarSpeedTable {
  public:
@@ -87,9 +125,9 @@ class PolarSpeedTable {
       return false;
     }
 
-    writeBinaryFixedPoint(FixType(twsStep.knots()), out);
-    writeBinaryInteger((unsigned char)(twsCount), out);
-    writeBinaryInteger((unsigned char)(twaCount), out);
+    writeBinaryFixedPoint(DR(FixType(twsStep.knots())), out);
+    writeBinaryInteger(DR((unsigned char)(twsCount)), out);
+    writeBinaryInteger(DR((unsigned char)(twaCount)), out);
 
     Angle<double> twaStep = (1.0/twaCount)*Angle<double>::degrees(360.0);
 

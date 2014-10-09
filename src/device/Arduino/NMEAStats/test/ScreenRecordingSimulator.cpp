@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <server/common/string.h>
 
+  #include <iostream>
+
 namespace sail {
 
 void ScreenRecordingSimulator::screenUpdate(int perf, int twdir, int tws) {
@@ -41,12 +43,23 @@ bool ScreenRecordingSimulator::screenAt(TimeStamp time, ScreenInfo *result) {
 void ScreenRecordingSimulator::prepare(
                 const std::string& boatDatFilename,
                 const std::string& polarDatFilename) {
+
+
+  std::cout << EXPR_AND_VAL_AS_STRING(polarDatFilename) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(boatDatFilename) << std::endl;
+
   if (boatDatFilename.size() > 0) {
     SD()->setReadableFile("boat.dat", readFileToString(boatDatFilename));
   }
 
+  std::cout << EXPR_AND_VAL_AS_STRING(polarDatFilename.size()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(polarDatFilename.length()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(polarDatFilename.empty()) << std::endl;
+
   if (polarDatFilename.size() > 0) {
-    SD()->setReadableFile("polar.dat", readFileToString(polarDatFilename));
+    std::string polarString = readFileToString(polarDatFilename);
+    std::cout << EXPR_AND_VAL_AS_STRING(polarString) << std::endl;
+    SD()->setReadableFile("polar.dat", polarString);
   }
 
   setup();

@@ -21,22 +21,22 @@
 /*
  * TO BE REMOVED
  */
-      #include <iostream>
-      
-      template <typename X, typename Y, int n>
-      std::ostream &operator << (std::ostream &s, FixedPoint<X, Y, n> x) {
-        s << double(x) << "[fixpt]";
-        return s;
-      }
-      
-      template <typename T>
-      const T &dr(const T &x, const char *xs) {
-        std::cout << xs << " = " << x << std::endl;
-        return x;
-      } 
-      #define DOUT(x) std::cout << #x << " = " << x << std::endl;
-      #define DR(x) dr(x, #x)
-      // dr stands for: Display and Return
+//      #include <iostream>
+//      
+//      template <typename X, typename Y, int n>
+//      std::ostream &operator << (std::ostream &s, FixedPoint<X, Y, n> x) {
+//        s << double(x) << "[fixpt]";
+//        return s;
+//      }
+//      
+//      template <typename T>
+//      const T &dr(const T &x, const char *xs) {
+//        std::cout << xs << " = " << x << std::endl;
+//        return x;
+//      } 
+//      #define DOUT(x) std::cout << #x << " = " << x << std::endl;
+//      #define DR(x) dr(x, #x)
+//      // dr stands for: Display and Return
 
 using namespace sail;
 
@@ -133,14 +133,14 @@ void displaySpeedRatio(const NmeaParser& parser) {
        (FP8_8) (filter.gpsSpeed().knots()));
   #else
   Velocity<FP16_16> targetSpeed = polarSpeedTable.targetSpeed(tws, twa);
-  DOUT(double(targetSpeed.knots()));
+  DR(double(targetSpeed.knots()));
   if (targetSpeed > Velocity<FP16_16>::knots(.5) &&
       filter.gpsSpeed() > Velocity<FP16_16>::knots(.5)) {
     speedRatio = float(targetSpeed / filter.gpsSpeed());
   } else {
     speedRatio = 0;
   }
-  DOUT(speedRatio);
+  DR(speedRatio);
   #endif
  
    // Display speedRatio on the LCD display.
