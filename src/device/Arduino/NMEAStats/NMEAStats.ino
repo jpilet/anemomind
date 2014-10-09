@@ -21,7 +21,21 @@
 /*
  * TO BE REMOVED
  */
-#include <iostream>
+      #include <iostream>
+      
+      template <typename X, typename Y, int n>
+      std::ostream &operator << (std::ostream &s, FixedPoint<X, Y, n> x) {
+        s << double(x);
+        return s;
+      }
+      
+      template <typename T>
+      const T &dr(const T &x, const char *xs) {
+        std::cout << xs << " = " << x << std::endl;
+        return x;
+      } 
+      #define DR(x) dr(x, #x)
+      // dr stands for: Display and Return
 
 using namespace sail;
 
@@ -130,9 +144,9 @@ void displaySpeedRatio(const NmeaParser& parser) {
  
    // Display speedRatio on the LCD display.
    screenUpdate(
-     max(0,min(200, int(speedRatio * 100.0))),
-     twdir.degrees(),
-     tws.knots()
+     DR(max(0,min(200, int(speedRatio * 100.0)))),
+     DR(twdir.degrees()),
+     DR(tws.knots())
      );
 }
 
