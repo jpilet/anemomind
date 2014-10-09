@@ -142,3 +142,14 @@ TEST(PhysQuantTest, HorizontalMotionAngleNormTest) {
         EXPECT_NEAR(10, motion.norm().knots(), 1e-5);
     }
 }
+
+TEST(PhysQuantTest, isNaN) {
+  EXPECT_FALSE(isNaNOrFalse<int>(0));
+  EXPECT_FALSE(isNaNOrFalse<double>(0.0));
+  EXPECT_TRUE(isNaNOrFalse<double>(std::numeric_limits<double>::signaling_NaN()));
+  EXPECT_TRUE(isNaNOrFalse<float>(std::numeric_limits<float>::signaling_NaN()));
+  EXPECT_TRUE(isNaNOrFalse<float>(std::numeric_limits<float>::quiet_NaN()));
+  float inf = 1.0f / 0.0f;
+  EXPECT_EQ(isnan(inf), isNaNOrFalse(inf));
+}
+
