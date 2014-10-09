@@ -101,7 +101,10 @@ TEST(DeviceTest, PolarTest) {
 
   const int dsCount = 2;
   const char *names[dsCount] = {"Irene", "exocet"};
-  const char *name = names[0];
+
+  for (int i = 0; i < dsCount; i++) {
+    const char *name = names[i];
+
 
     MockArduino arduino;
 
@@ -136,4 +139,5 @@ TEST(DeviceTest, PolarTest) {
 
     // The code should log all input data.
     EXPECT_EQ(std::string(data), arduino.SD()->getWrittenFile("nmea0000.txt"));
+  }
 }

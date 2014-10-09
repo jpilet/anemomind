@@ -25,7 +25,7 @@
       
       template <typename X, typename Y, int n>
       std::ostream &operator << (std::ostream &s, FixedPoint<X, Y, n> x) {
-        s << double(x);
+        s << double(x) << "[fixpt]";
         return s;
       }
       
@@ -34,6 +34,7 @@
         std::cout << xs << " = " << x << std::endl;
         return x;
       } 
+      #define DOUT(x) std::cout << #x << " = " << x << std::endl;
       #define DR(x) dr(x, #x)
       // dr stands for: Display and Return
 
@@ -132,14 +133,14 @@ void displaySpeedRatio(const NmeaParser& parser) {
        (FP8_8) (filter.gpsSpeed().knots()));
   #else
   Velocity<FP16_16> targetSpeed = polarSpeedTable.targetSpeed(tws, twa);
-  std::cout << "Target speed = " << double(targetSpeed.knots()) << " knots" << std::endl;
+  DOUT(double(targetSpeed.knots()));
   if (targetSpeed > Velocity<FP16_16>::knots(.5) &&
       filter.gpsSpeed() > Velocity<FP16_16>::knots(.5)) {
     speedRatio = float(targetSpeed / filter.gpsSpeed());
   } else {
     speedRatio = 0;
   }
-  std::cout << "speed ratio = " << speedRatio << std::endl;
+  DOUT(speedRatio);
   #endif
  
    // Display speedRatio on the LCD display.
