@@ -95,3 +95,45 @@ TEST(DeviceTest, CalibratedTest) {
   // The code should log all input data.
   EXPECT_EQ(std::string(data), arduino.SD()->getWrittenFile("nmea0000.txt"));
 }
+
+TEST(DeviceTest, PolarTest) {
+  using namespace sail;
+
+  const int dsCount = 2;
+  const char *names[dsCount] = {"Irene", "exocet"};
+  const char *name = names[0];
+
+    MockArduino arduino;
+
+    EXPECT_CALL(arduino, screenUpdate(testing::_)).Times(testing::AtLeast(1));
+    EXPECT_CALL(arduino, screenInit());
+
+    arduino.SD()->setReadableFile("boat.dat",
+        readFileToString(std::string(Env::SOURCE_DIR) +
+                         std::string("/src/device/Arduino/NMEAStats/test/boat.dat")));
+
+    std::string polarData = std::string(Env::SOURCE_DIR) +
+        "/datasets/" + name + "/processed/polar.dat";
+
+    std::cout << "LOADED " << polarData.size() << " bytes of polar data\n";
+    arduino.SD()->setReadableFile("polar.dat",
+        readFileToString(polarData));
+
+    arduino.setup();
+
+  #ifdef VMG_TARGET_SPEED
+    // The first call contains only junk: no wind data has been sent yet.
+    EXPECT_CALL(arduino, screenUpdate(testing::_, testing::_, testing::_)).Times(1);
+
+    // The second call contains something meaningful.
+    EXPECT_CALL(arduino, screenUpdate(65, 132, 5)).Times(1);
+  #else
+    // TODO: setup a proper test for the polar target speed.
+    EXPECT_CALL(arduino, screenUpdate(testing::_, testing::_, testing::_)).Times(2);
+  #endif
+
+    arduino.sendData(data);
+
+    // The code should log all input data.
+    EXPECT_EQ(std::string(data), arduino.SD()->getWrittenFile("nmea0000.txt"));
+}
