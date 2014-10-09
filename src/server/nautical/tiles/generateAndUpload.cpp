@@ -64,7 +64,7 @@ int main(int argc, const char** argv) {
   args.registerOption("--boatDat", "Path to boat.dat").store(&boatDat);
 
   std::string polarDat;
-  args.registerOption("--polarDat", "Path to polar.dat").store(&boatDat);
+  args.registerOption("--polarDat", "Path to polar.dat").store(&polarDat);
 
   if (!args.parseAndHelp(argc, argv)) {
     return 1;
