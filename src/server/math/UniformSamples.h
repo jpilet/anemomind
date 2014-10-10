@@ -23,7 +23,7 @@ class UniformSamples {
   double interpolateLinear(double x) const;
   double interpolateLinearDerivative(double x) const;
 
-  const LineStrip &sampling() const {
+  const LineKM &sampling() const {
     return _sampling;
   }
 

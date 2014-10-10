@@ -24,6 +24,18 @@ class LineKM {
   double getM() const;
   bool operator==(const LineKM &other) const;
   LineKM makeInvFun() const;
+
+  /*
+   * Finds two contiguous integers, I[0] and I[1] with I[0] + 1 = I[1],
+   * and two weights W[0] and W[1] with W[0]+W[1] = 1.0,
+   *
+   * so that x = W[0]*(*this)(I[0]) + W[1]*(*this)(I[1])
+   *
+   * Useful for piecewise linear interpolation
+   */
+  void makeInterpolationWeights(double x,
+      int *indsOut2,
+      double *weightsOut2) const;
  private:
   double _k, _m;
 };
