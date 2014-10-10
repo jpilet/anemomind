@@ -12,14 +12,16 @@
 using namespace sail;
 
 namespace {
-  constexpr int third = 100;
-  constexpr int count = 3*third;
+  constexpr int fifth = 100;
+  constexpr int count = 5*fifth;
 
   double testfun(double x) {
-    if (x < third) {
+    int a = 2*fifth;
+    int b = a + fifth;
+    if (x < a) {
       return 0;
-    } else if (x < 2*third) {
-      return LineKM(third, 2*third, 0, 1)(x);
+    } else if (x < b) {
+      return LineKM(a, b, 0, 1)(x);
     }
     return 1;
   }
@@ -37,22 +39,42 @@ namespace {
 int main(int argc, const char **argv) {
   ArgMap amap;
   int order = 2;
-  double lambda = 1.0;
+  double lambda = 60.0;
   double noise = 0.5;
+  int iters = 30;
   amap.registerOption("--order", "Set the order of the regularization term")
       .setArgCount(1).store(&order);
   amap.registerOption("--lambda", "Set the regularization weight")
     .setArgCount(1).store(&lambda);
   amap.registerOption("--noise", "Set the amplitude of the noise")
       .setArgCount(1).store(&noise);
+  amap.registerOption("--iters", "Set the maximum number of iterations")
+      .setArgCount(1).store(&iters);
+
+  amap.setHelpInfo("This program illustrates generalized TV filtering\n"
+                   "of a 1-D signal. The order option sets the order\n"
+                   "of the differential operator. Standard TV denoising\n"
+                   "has an order of 1. \n"
+                   "\n"
+                   "The default options should result in a filtered signal\n"
+                   "of a signal that faithfully approximates the original\n"
+                   "\n"
+                   "An order of 1, however, can result in poor\n"
+                   "recovery if the underlying signal is no piecewise\n"
+                   "constant. Try for instance to call this program as:\n"
+                   "\n"
+                   "./math_nonlinear_GeneralizedTVExample --order 1 --lambda 4\n"
+                   "\n"
+                   "The recovered signal will have a staircase like shape.\n");
   if (amap.parseAndHelp(argc, argv)) {
-    GeneralizedTV tv;
+    GeneralizedTV tv(iters);
     Arrayd Ygt = makeGT();
     Arrayd Ynoisy = addNoise(Ygt, noise);
     Arrayd X = GeneralizedTV::makeDefaultX(count);
     UniformSamples Yfiltered = tv.filter(Ynoisy, order, lambda);
 
     GnuplotExtra plot;
+    plot.set_style("lines");
     plot.plot_xy(X, Ygt, "Ground truth signal");
     plot.plot_xy(X, Ynoisy, "Noisy signal");
     plot.plot_xy(X, Yfiltered.interpolateLinear(X), "Filtered signal");
