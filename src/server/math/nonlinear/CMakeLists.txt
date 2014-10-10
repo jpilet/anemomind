@@ -76,6 +76,26 @@ target_link_libraries(math_nonlinear_NoisyStep
   
 
 
+add_library(math_nonlinear_GeneralizedTV
+            GeneralizedTV.cpp
+            GeneralizedTV.h
+           )
+target_link_libraries(math_nonlinear_GeneralizedTV
+                      math_UniformSamples
+                      math_BandMat
+                     )           
+
+add_executable(math_nonlinear_GeneralizedTVExample
+               GeneralizedTVExample.cpp
+              )
+
+target_link_libraries(math_nonlinear_GeneralizedTVExample
+                       common_Uniform
+                       math_nonlinear_GeneralizedTV
+                       plot_gnuplot
+                       common_ArgMap
+                      )           
+
 #################################################################
 ### SignalFitExamples
 #################################################################

@@ -18,6 +18,10 @@ double UniformSamples::interpolateLinear(double x) const {
   return W[0]*_samples[I[0]] + W[1]*_samples[I[1]];
 }
 
+Arrayd UniformSamples::interpolateLinear(Arrayd X) const {
+  return X.map<double>([&](double x) {return interpolateLinear(x);});
+}
+
 double UniformSamples::interpolateLinearDerivative(double x) const {
   int I[2];
   double W[2];

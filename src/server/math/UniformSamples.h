@@ -21,6 +21,7 @@ class UniformSamples {
   UniformSamples(LineKM sampling_, Arrayd samples_);
 
   double interpolateLinear(double x) const;
+  Arrayd interpolateLinear(Arrayd X) const;
   double interpolateLinearDerivative(double x) const;
 
   const LineKM &sampling() const {
@@ -29,6 +30,14 @@ class UniformSamples {
 
   const Arrayd &samples() const {
     return _samples;
+  }
+
+  int size() const {
+    return _samples.size();
+  }
+
+  bool empty() const {
+    return _samples.empty();
   }
  private:
   // Maps sample indices to time
