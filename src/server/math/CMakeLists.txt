@@ -178,7 +178,14 @@ cxx_test(math_CumulativeFunctionTest
          math_CumulativeFunction
         )                     
                      
-
+add_library(math_UniformSamples
+            UniformSamples.h
+            UniformSamples.cpp
+           )
+target_link_libraries(math_UniformSamples
+                      common_LineKM
+                      math_Grid
+                     )           
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)

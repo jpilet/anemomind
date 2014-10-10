@@ -9,13 +9,16 @@
 #ifndef UNIFORMSAMPLES_H_
 #define UNIFORMSAMPLES_H_
 
+#include <server/common/LineKM.h>
+#include <server/common/Array.h>
+
 namespace sail {
 
 class UniformSamples {
  public:
   UniformSamples() {}
 
-  UniformSamples(LineStrip sampling_, Arrayd samples_);
+  UniformSamples(LineKM sampling_, Arrayd samples_);
 
   double interpolateLinear(double x) const;
   double interpolateLinearDerivative(double x) const;
@@ -29,7 +32,7 @@ class UniformSamples {
   }
  private:
   // Maps sample indices to time
-  LineStrip _sampling;
+  LineKM _sampling;
 
   // The samples
   Arrayd _samples;
