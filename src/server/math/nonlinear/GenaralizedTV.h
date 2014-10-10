@@ -16,6 +16,7 @@ class GeneralizedTV {
   Arrayd filter(LineStrip strip,
                 Arrayd initVertices,
                 Arrayd X, Arrayd Y);
+
   Arrayd filter(Arrayd );
  private:
   // Settings
