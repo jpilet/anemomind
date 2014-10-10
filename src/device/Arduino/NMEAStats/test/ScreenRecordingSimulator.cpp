@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <server/common/string.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -50,6 +51,15 @@ void ScreenRecordingSimulator::prepare(
   }
 
   setup();
+  if (boatDatFilename.size() > 0) {
+    CHECK(calibrationFileLoaded())
+      << "Failed to load " << boatDatFilename << " in the simulated device.";
+  }
+
+  if (polarDatFilename.size() > 0) {
+    CHECK(polarTableLoadedOrDisabled())
+      << "Failed to load " << polarDatFilename << " in the simulated device.";
+  }
 }
 
 void ScreenRecordingSimulator::simulate(std::string file) {

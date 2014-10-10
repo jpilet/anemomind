@@ -97,3 +97,16 @@ void DeviceSimulator::sendData(const std::string& data) {
     CHECK(Serial.available() == 0);
   }
 }
+
+bool DeviceSimulator::polarTableLoadedOrDisabled() const {
+#ifdef VMG_TARGET_SPEED
+  return true;
+#else
+  return !polarSpeedTable.empty();
+#endif
+}
+
+bool DeviceSimulator::calibrationFileLoaded() const {
+  return calibrationLoaded;
+}
+
