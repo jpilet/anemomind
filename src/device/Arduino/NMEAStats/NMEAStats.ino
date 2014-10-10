@@ -131,10 +131,10 @@ void displaySpeedRatio(const NmeaParser& parser) {
 
 void loadData() {
   ChunkTarget targets[] = {
-#ifdef VMG_TARGET_SPEED    
-    makeChunkTarget(&targetSpeedTable),
-#endif
     makeChunkTarget(&calibration)
+#ifdef VMG_TARGET_SPEED    
+    ,makeChunkTarget(&targetSpeedTable)
+#endif
   };
   
   ChunkLoader loader(targets, sizeof(targets) / sizeof(targets[0]));
@@ -150,7 +150,7 @@ void loadData() {
     }
   }
 
-  calibrationLoaded = targets[1].success;
+  calibrationLoaded = targets[0].success;
   
 #ifdef VMG_TARGET_SPEED
   if (!targets[0].success) {
