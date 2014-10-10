@@ -38,6 +38,13 @@ class DeviceSimulator {
   MockSD* SD();
 
   sail::TimeStamp getTimeStamp() const;
+
+  // Returns true if: VMG mode is enabled, or if the polar speed table
+  // has been properly loaded.
+  bool polarTableLoadedOrDisabled() const;
+
+  bool calibrationFileLoaded() const;
+
  private:
   long _arduinoTimeMs;
   sail::TimeStamp _referenceTime;
