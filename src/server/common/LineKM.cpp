@@ -25,6 +25,14 @@ LineKM::LineKM() {
   _m = 0.0;
 }
 
+LineKM LineKM::identity() {
+  return LineKM(1.0, 0.0);
+}
+
+LineKM LineKM::constant(double c) {
+  return LineKM(0.0, c);
+}
+
 double LineKM::operator() (double x) const {
   return _k*x + _m;
 }
@@ -41,8 +49,8 @@ void LineKM::makeInterpolationWeights(double x,
     int *indsOut2,
     double *weightsOut2) const {
     double realIndex = inv(x);
-    double lambda = 1.0 - realIndex;
     int index = int(floor(realIndex));
+    double lambda = realIndex - index;
     indsOut2[0] = index;
     indsOut2[1] = index+1;
     weightsOut2[0] = 1.0 - lambda;

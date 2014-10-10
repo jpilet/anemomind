@@ -22,7 +22,7 @@ double UniformSamples::interpolateLinearDerivative(double x) const {
   int I[2];
   double W[2];
   _sampling.makeInterpolationWeights(x, I, W);
-  return (W[1]*_samples[I[1]] - W[0]*_samples[I[0]])/_sampling.getK();
+  return (_samples[I[1]] - _samples[I[0]])/_sampling.getK();
 }
 
 
