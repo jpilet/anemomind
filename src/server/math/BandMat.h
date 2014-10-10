@@ -20,13 +20,20 @@ namespace BandMatInternal {
   //               it maps [1 -1] to [1 -2 1]
   //               it maps [1 -2 1] to [1 -3 3 -1] etc.
   Arrayd makeNextCoefs(Arrayd coefs);
+  Arrayd makeCoefs(int order);
 }
 
 
 template <typename T>
 class BandMat {
  public:
+
+
   BandMat() : _rows(-1), _cols(-1), _left(-1), _right(-1) {}
+
+
+  // The width of the central band is
+  //   left + 1 + right
   BandMat(int rows, int cols, int left, int right,
       MDArray<T, 2> data = MDArray<T, 2>()) :
     _rows(rows), _cols(cols), _left(left), _right(right) {
@@ -94,19 +101,26 @@ class BandMat {
     _data.setAll(x);
   }
 
+
+  void addRegAt(int offs, Arrayd coefs, T squaredWeight) {
+    int dim = coefs.size();
+    for (int i = 0; i < dim; i++) {
+      for (int j = 0; j < dim; j++) {
+        at(offs + i, offs + j) += squaredWeight*coefs[i]*coefs[j];
+      }
+    }
+  }
+
   void addReg(Arrayd coefs, T w) {
     T w2 = w*w;
     assert(_rows == _cols);
     int dim = coefs.size();
     int n = _rows - dim + 1;
     for (int offs = 0; offs < n; offs++) {
-      for (int i = 0; i < dim; i++) {
-        for (int j = 0; j < dim; j++) {
-          at(offs + i, offs + j) += w2*coefs[i]*coefs[j];
-        }
-      }
+      addRegAt(offs, coefs, w2);
     }
   }
+
 
   void addRegs(Arrayi orders, Array<T> regWeights) {
     int count = regWeights.size();
