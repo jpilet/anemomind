@@ -39,6 +39,7 @@ target_link_libraries(math_nonlinear_GridFitter
                       common_ScopedLog
                       common_Uniform
                       common_string
+                      common_DataSplits
                       math_ADFunction
                       math_armaadolc
                       math_mathutils
