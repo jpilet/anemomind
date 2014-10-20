@@ -26,6 +26,7 @@ class GeneralizedTV {
   UniformSamples filter(Arrayd Y, int order, double regularization) const;
 
   static Arrayd makeDefaultX(int size);
+  static UniformSamples makeInitialSignal(Arrayd Y);
  private:
   // Settings
   int _iters;

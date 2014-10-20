@@ -2,6 +2,10 @@ add_library(math_nonlinear_StepMinimizer
             StepMinimizer.cpp
             StepMinimizer.h
            )
+target_link_libraries(math_nonlinear_StepMinimizer
+                      common_ScopedLog
+                      common_string
+                     )           
 
 cxx_test(math_nonlinear_StepMinimizerTest
          StepMinimizerTest.cpp
@@ -86,13 +90,24 @@ target_link_libraries(math_nonlinear_GeneralizedTV
                       math_BandMat
                      )           
 
+add_library(math_nonlinear_GeneralizedTVAuto
+            GeneralizedTVAuto.cpp
+            GeneralizedTVAuto.h
+           )
+target_link_libraries(math_nonlinear_GeneralizedTVAuto
+                      math_nonlinear_GeneralizedTV
+                      common_DataSplits
+                      math_nonlinear_StepMinimizer
+                     )
+  
+
 add_executable(math_nonlinear_GeneralizedTVExample
                GeneralizedTVExample.cpp
               )
 
 target_link_libraries(math_nonlinear_GeneralizedTVExample
                        common_Uniform
-                       math_nonlinear_GeneralizedTV
+                       math_nonlinear_GeneralizedTVAuto
                        plot_gnuplot
                        common_ArgMap
                       )           

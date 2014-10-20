@@ -6,6 +6,7 @@
 #include <server/math/nonlinear/GeneralizedTV.h>
 #include <server/math/BandMat.h>
 #include <server/common/logging.h>
+#include <server/common/ScopedLog.h>
 
 namespace sail {
 
@@ -45,16 +46,12 @@ UniformSamples GeneralizedTV::filter(UniformSamples initialSignal,
   return signal;
 }
 
-namespace {
-
-  UniformSamples makeInitialSignal(Arrayd Y) {
-    int count = Y.size();
-    Arrayd samples(count+1);
-    Y.copyToSafe(samples.sliceBut(1));
-    samples.last() = Y.last();
-    return UniformSamples(LineKM(1.0, -0.5), samples);
-  }
-
+UniformSamples GeneralizedTV::makeInitialSignal(Arrayd Y) {
+  int count = Y.size();
+  Arrayd samples(count+1);
+  Y.copyToSafe(samples.sliceBut(1));
+  samples.last() = Y.last();
+  return UniformSamples(LineKM(1.0, -0.5), samples);
 }
 
 Arrayd GeneralizedTV::makeDefaultX(int size) {

@@ -5,9 +5,11 @@
 
 #include <server/common/ArgMap.h>
 #include <server/common/LineKM.h>
-#include <server/math/nonlinear/GeneralizedTV.h>
+#include <server/math/nonlinear/GeneralizedTVAuto.h>
 #include <server/common/Uniform.h>
 #include <server/plot/extra.h>
+#include <server/common/ScopedLog.h>
+#include <server/common/string.h>
 
 using namespace sail;
 
@@ -42,6 +44,7 @@ int main(int argc, const char **argv) {
   double lambda = 60.0;
   double noise = 0.5;
   int iters = 30;
+  int verbosity = 0;
   amap.registerOption("--order", "Set the order of the regularization term")
       .setArgCount(1).store(&order);
   amap.registerOption("--lambda", "Set the regularization weight")
@@ -50,6 +53,9 @@ int main(int argc, const char **argv) {
       .setArgCount(1).store(&noise);
   amap.registerOption("--iters", "Set the maximum number of iterations")
       .setArgCount(1).store(&iters);
+  amap.registerOption("--auto", "Automatic tuning of regularization");
+  amap.registerOption("--verbosity", "Set verbosity")
+      .setArgCount(1).store(&verbosity);
 
   amap.setHelpInfo("This program illustrates generalized TV filtering\n"
                    "of a 1-D signal. The order option sets the order\n"
@@ -67,11 +73,20 @@ int main(int argc, const char **argv) {
                    "\n"
                    "The recovered signal will have a staircase like shape.\n");
   if (amap.parseAndHelp(argc, argv)) {
+    ScopedLog::setDepthLimit(verbosity);
     GeneralizedTV tv(iters);
     Arrayd Ygt = makeGT();
     Arrayd Ynoisy = addNoise(Ygt, noise);
     Arrayd X = GeneralizedTV::makeDefaultX(count);
-    UniformSamples Yfiltered = tv.filter(Ynoisy, order, lambda);
+
+    UniformSamples Yfiltered;
+    if (amap.optionProvided("--auto")) {
+      GeneralizedTVAuto autotv(tv);
+      Yfiltered = autotv.filter(Ynoisy, order);
+    } else {
+      Yfiltered = tv.filter(Ynoisy, order, lambda);
+    }
+
 
     GnuplotExtra plot;
     plot.set_style("lines");
