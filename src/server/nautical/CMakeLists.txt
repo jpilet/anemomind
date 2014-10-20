@@ -404,3 +404,19 @@ target_link_libraries(nautical_plotTargetSpeed
                      )
 
 
+add_library(nautical_TemporalSplit
+            TemporalSplit.h
+            TemporalSplit.cpp
+           )
+target_link_libraries(nautical_TemporalSplit
+                      nautical_nav
+                     )           
+            
+add_executable(nautical_RaceOverview
+               RaceOverview.cpp
+              )
+target_link_libraries(nautical_RaceOverview
+                      nautical_TestdataNavs
+                      nautical_TemporalSplit
+                     )
+                                  
