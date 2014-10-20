@@ -12,6 +12,7 @@
 #ifdef ARDUINO_UNO
 #include <SoftwareSerial.h>
 #include <SPI.h>
+#include <avr/wdt.h>
 #endif
 
 #include <InstrumentFilter.h>
@@ -112,7 +113,12 @@ void displaySpeedRatio(const NmeaParser& parser) {
        (FP8_8) (filter.gpsSpeed().knots()));
   #else
   Velocity<FP16_16> targetSpeed = polarSpeedTable.targetSpeed(tws, twa);
-  speedRatio = float(targetSpeed / filter.gpsSpeed());    
+  if (targetSpeed > Velocity<FP16_16>::knots(.5) &&
+      filter.gpsSpeed() > Velocity<FP16_16>::knots(.5)) {
+    speedRatio = float(targetSpeed / filter.gpsSpeed());    
+  } else {
+    speedRatio = 0;
+  }
   #endif
  
    // Display speedRatio on the LCD display.
@@ -125,10 +131,10 @@ void displaySpeedRatio(const NmeaParser& parser) {
 
 void loadData() {
   ChunkTarget targets[] = {
-#ifdef VMG_TARGET_SPEED    
-    makeChunkTarget(&targetSpeedTable),
-#endif
     makeChunkTarget(&calibration)
+#ifdef VMG_TARGET_SPEED    
+    ,makeChunkTarget(&targetSpeedTable)
+#endif
   };
   
   ChunkLoader loader(targets, sizeof(targets) / sizeof(targets[0]));
@@ -144,7 +150,7 @@ void loadData() {
     }
   }
 
-  calibrationLoaded = targets[1].success;
+  calibrationLoaded = targets[0].success;
   
 #ifdef VMG_TARGET_SPEED
   if (!targets[0].success) {
@@ -183,6 +189,11 @@ void setup()
   screenUpdate(5);
 
   loadData();
+  
+#ifdef ARDUINO_UNO
+  // reset after 2 seconds, if no "pat the dog" received
+  wdt_enable(WDTO_2S);
+#endif
 }
 
 void logNmeaSentence() {
@@ -191,6 +202,17 @@ void logNmeaSentence() {
 
 void loop()
 {
+#ifdef ARDUINO_UNO
+  if (millis() < (unsigned long)(1000 * 60 * 60 * 24)) {
+    wdt_reset();  // Tell the watchdog everything is OK.
+  } else {
+    // Reset after 24 hours.
+    logFile.flush();
+    wdt_enable(WDTO_15MS);
+    delay(20);
+  }
+#endif
+
   while (Serial.available() > 0) {
     char c = Serial.read();
     

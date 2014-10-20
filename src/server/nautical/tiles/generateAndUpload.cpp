@@ -1,3 +1,4 @@
+#include <device/Arduino/NMEAStats/test/ScreenRecordingSimulator.h>
 #include <server/nautical/tiles/NavTileUploader.h>
 #include <server/common/ArgMap.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
@@ -59,11 +60,23 @@ int main(int argc, const char** argv) {
   args.registerOption("--navpath", "Path to a folder containing NMEA files.")
     .setRequired().store(&navPath);
 
+  std::string boatDat;
+  args.registerOption("--boatDat", "Path to boat.dat").store(&boatDat);
+
+  std::string polarDat;
+  args.registerOption("--polarDat", "Path to polar.dat").store(&polarDat);
+
   if (!args.parseAndHelp(argc, argv)) {
     return 1;
   }
 
-  Array<Nav> rawNavs = scanNmeaFolder(navPath, boatId);
+  ScreenRecordingSimulator simulator;
+  ScreenRecordingSimulator* simulatorPtr = 0;
+  if (boatDat.size() > 0 || polarDat.size() > 0) {
+    simulator.prepare(boatDat, polarDat);
+    simulatorPtr = &simulator;
+  }
+  Array<Nav> rawNavs = scanNmeaFolder(navPath, boatId, simulatorPtr);
 
   if (rawNavs.size() == 0) {
     LOG(FATAL) << "No NMEA data in " << navPath;

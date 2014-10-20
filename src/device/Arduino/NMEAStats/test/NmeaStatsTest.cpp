@@ -6,6 +6,10 @@
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
 
+#define ON_SERVER
+#include <device/Arduino/libraries/TargetSpeed/PolarSpeedTable.h>
+#undef ON_SERVER
+
 #include <iostream>
 
 
@@ -59,7 +63,26 @@ TEST(DeviceTest, LogTest) {
   EXPECT_EQ(std::string(data), arduino.SD()->getWrittenFile("nmea0000.txt"));
 }
 
+namespace {
+  using namespace sail;
 
+  class SpeedLookUp {
+   public:
+    Velocity<double> operator() (Velocity<double> tws, Angle<double> twa) {
+      return 0.8*tws*sin(0.5*twa.radians());
+    }
+  };
+
+  std::string makeFakePolarFile() {
+    Velocity<double> twsStep = Velocity<double>::knots(1.0);
+    int twsCount = 30;
+    int twaCount = 12;
+    std::stringstream ss;
+    EXPECT_TRUE(PolarSpeedTable::build(twsStep,
+              twsCount, twaCount, SpeedLookUp(), &ss));
+    return ss.str();
+  }
+}
 
 TEST(DeviceTest, CalibratedTest) {
   using namespace sail;
@@ -72,6 +95,7 @@ TEST(DeviceTest, CalibratedTest) {
   arduino.SD()->setReadableFile("boat.dat",
       readFileToString(std::string(Env::SOURCE_DIR) +
                        std::string("/src/device/Arduino/NMEAStats/test/boat.dat")));
+  arduino.SD()->setReadableFile("polar.dat", makeFakePolarFile());
 
   arduino.setup();
 
@@ -80,10 +104,11 @@ TEST(DeviceTest, CalibratedTest) {
   EXPECT_CALL(arduino, screenUpdate(testing::_, testing::_, testing::_)).Times(1);
 
   // The second call contains something meaningful.
-  EXPECT_CALL(arduino, screenUpdate(65, 132, 5)).Times(1);
+  EXPECT_CALL(arduino, screenUpdate(65, 132, 5)).Times(1); // <-- are these values correct? They don't seem consistent with those of LogTest
 #else
   // TODO: setup a proper test for the polar target speed.
-  EXPECT_CALL(arduino, screenUpdate(testing::_, testing::_, testing::_)).Times(2);
+  EXPECT_CALL(arduino, screenUpdate(testing::_, testing::_, testing::_)).Times(1);
+  EXPECT_CALL(arduino, screenUpdate(42, 147, 5)).Times(1);
 #endif
 
   arduino.sendData(data);

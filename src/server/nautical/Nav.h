@@ -9,6 +9,7 @@
 #define NAV_H_
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <device/Arduino/NMEAStats/test/ScreenRecordingSimulator.h>
 #include <string>
 #include <server/common/MDArray.h>
 #include <server/common/math.h>
@@ -31,7 +32,7 @@ class Nav {
   static Nav::Id debuggingBoatId() {return "FFFFFFFF";}
 
   Nav();
-  Nav(TimeStamp ts) : _cwd(-1), _wd(-1), _time(ts) { }
+  Nav(TimeStamp ts) : _flags(0), _cwd(-1), _wd(-1), _time(ts) { }
   Nav(MDArray2d row);
   virtual ~Nav();
 
@@ -94,7 +95,20 @@ class Nav {
   Id id() const;
   bool hasId() const;
   const Id &boatId() const {return _boatId;}
+
+  void setDeviceScreen(ScreenInfo info) {
+    _flags |= DEVICE_SCREEN; _deviceScreen = info; }
+  ScreenInfo deviceScreen() const { return _deviceScreen; }
+  bool hasDeviceScreen() const { return _flags & DEVICE_SCREEN; }
+
  private:
+  enum {
+    DEVICE_SCREEN = 1,
+  };
+
+  // contains entried from the enum above "ored" together.
+  long _flags;
+
   Id _boatId;
 
   Velocity<double> _gpsSpeed;
@@ -112,7 +126,6 @@ class Nav {
 
   GeographicPosition<double> _pos;
 
-  // What does cwd and wd stand for? I forgot...
   // See NmeaParser: "Cumulative Water Distance" and "Water Distance"
   double _cwd;
   double _wd;
@@ -121,6 +134,7 @@ class Nav {
   TimeStamp _time;
 
   HorizontalMotion<double> _trueWind;
+  ScreenInfo _deviceScreen;
 };
 
 

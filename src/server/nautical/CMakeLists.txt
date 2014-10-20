@@ -64,6 +64,7 @@ add_library(nautical_NavNmeaScan
             NavNmeaScan.cpp
            )
 target_link_libraries(nautical_NavNmeaScan
+                      device_ScreenRecordingSimulator
                       nautical_NavNmea
                       common_filesystem
                      )
@@ -379,8 +380,7 @@ add_executable(nautical_deviceOutput
                deviceOutput.cpp
               )
 target_link_libraries(nautical_deviceOutput
-                      common_string
-                      device_DeviceSimulator
+                      device_ScreenRecordingSimulator
                      )
 
                      

@@ -278,3 +278,33 @@ VectorTileLayer.prototype.setHighlight = function(d) {
   this.renderer.refreshIfNotMoving();
 };
 
+VectorTileLayer.prototype.findPointAt = function(x, y) {
+  var p = {x: x, y: y};
+
+  for (var scale = 20; scale >= 0; --scale) {
+    var xAtScale = Math.floor(x * (1 << scale));
+    var yAtScale = Math.floor(y * (1 << scale));
+    var key = scale + "," + xAtScale + "," + yAtScale;
+
+    if (key in this.tiles && this.tiles[key].state == "loaded") {
+      var tile = this.tiles[key];
+      var bestDist = .25 / (1 << scale);
+      var bestPoint;
+
+      for (var curve in tile.data) {
+        for (var c in tile.data[curve].curves) {
+          var points = tile.data[curve].curves[c].points;
+          for (var i in points) {
+            var dist = Utils.distance(p, {x: points[i].pos[0], y: points[i].pos[1]});
+            if (dist < bestDist) {
+              bestDist = dist;
+              bestPoint = points[i];
+            }
+          }
+        }
+      }
+      return bestPoint;
+    }
+  }
+}
+

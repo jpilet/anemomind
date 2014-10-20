@@ -58,7 +58,7 @@ void screenUpdate(int a, int b, int c) { fakeArduino->screenUpdate(a, b, c); }
 
 sail::TimeStamp DeviceSimulator::getTimeStamp() const {
   return _referenceTime + Duration<>::milliseconds(
-      _referenceMillis - _arduinoTimeMs);
+      _arduinoTimeMs - _referenceMillis);
 }
 
 void DeviceSimulator::sendData(const std::string& data) {
@@ -97,3 +97,16 @@ void DeviceSimulator::sendData(const std::string& data) {
     CHECK(Serial.available() == 0);
   }
 }
+
+bool DeviceSimulator::polarTableLoadedOrDisabled() const {
+#ifdef VMG_TARGET_SPEED
+  return true;
+#else
+  return !polarSpeedTable.empty();
+#endif
+}
+
+bool DeviceSimulator::calibrationFileLoaded() const {
+  return calibrationLoaded;
+}
+
