@@ -11,6 +11,7 @@
 #include <server/plot/extra.h>
 #include <server/common/string.h>
 #include <server/common/math.h>
+#include <server/math/CleanNumArray.h>
 
 
 using namespace sail;
@@ -26,14 +27,15 @@ namespace {
     int count = allAngles.size();
     Array<Angle<double> > clean(count);
     for (int i = 0; i < count; i++) {
-      if (isOrdinary(allAngles[i])) {
+      if (isOrdinary(allAngles[i].degrees())) {
         clean[i] = contAngles[counter];
         counter++;
       }
     }
     assert(counter == contAngles.size());
-    return makeOrdinary(clean.map<double>([](Angle<double> x) {return x.degrees();}))
-        .map<Angle<double> >([](double x) {return Angle<double>::degrees(x);});
+    Arrayd degs = clean.map<double>([](Angle<double> x) {return x.degrees();});
+    return cleanNumArray(degs)
+        .map<Angle<double> >([=](double x) {return Angle<double>::degrees(x);});
   }
 
   Array<Angle<double> > getAwa(Array<Nav> navs) {
