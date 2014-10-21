@@ -23,6 +23,7 @@ class UniformSamples {
   double interpolateLinear(double x) const;
   Arrayd interpolateLinear(Arrayd X) const;
   double interpolateLinearDerivative(double x) const;
+  Arrayd interpolateLinearDerivative(Arrayd x) const;
 
   const LineKM &sampling() const {
     return _sampling;
@@ -39,6 +40,8 @@ class UniformSamples {
   bool empty() const {
     return _samples.empty();
   }
+
+  Arrayd makeCentredX();
  private:
   // Maps sample indices to time
   LineKM _sampling;

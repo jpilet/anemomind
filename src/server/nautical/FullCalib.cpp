@@ -56,18 +56,30 @@ namespace {
     Arrayd time = getTimeSeconds(navs);
     Arrayd angles = cleanAngles(getAngles(navs)).map<double>([](Angle<double> x) {return x.degrees();});
 
-    const double reg = 4800;
-
+    double reg = 5000;
+    double spacing = 1.0;
     GeneralizedTV tv;
     UniformSamples filtered =
-        tv.filter(angles, 2, reg);
-    Arrayd f = filtered.interpolateLinear(tv.makeDefaultX(angles.size()));
+        tv.filter(time, angles, spacing, 2, reg);
 
-    GnuplotExtra plot;
-    plot.set_style("lines");
-    plot.plot_xy(time, angles);
-    plot.plot_xy(time, f);
-    plot.show();
+
+    Arrayd fx = filtered.makeCentredX();
+    Arrayd fy = filtered.interpolateLinear(fx);
+    Arrayd fdydx = filtered.interpolateLinearDerivative(fx);
+
+    {
+      GnuplotExtra plot;
+      plot.set_style("lines");
+      plot.plot_xy(time, angles);
+      plot.plot_xy(fx, fy);
+      plot.plot_xy(fx, fdydx.map<double>([=](double x) {return 30*x;}));
+      plot.show();
+    }{
+      GnuplotExtra plot;
+      plot.set_style("lines");
+      plot.plot_xy(fx, fdydx);
+      plot.show();
+    }
   }
 
   void ex0() {

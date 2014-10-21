@@ -20,6 +20,10 @@ class GeneralizedTV {
                   int order,
                   double regularization) const;
 
+  UniformSamples filter(Arrayd X, Arrayd Y, double samplingDensity,
+                    int order,
+                    double regularization) const;
+
   // The values of the signal Y are assumed to be
   // have a corresponding X vector ranging from 0 to Y.size()-1.
   // A signal is returned that can be evaluated at those locations.
@@ -27,6 +31,7 @@ class GeneralizedTV {
 
   static Arrayd makeDefaultX(int size);
   static UniformSamples makeInitialSignal(Arrayd Y);
+  static UniformSamples makeInitialSignal(Arrayd X, Arrayd Y, double sampleSpacing);
  private:
   // Settings
   int _iters;

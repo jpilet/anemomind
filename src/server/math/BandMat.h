@@ -112,6 +112,7 @@ class BandMat {
   }
 
   void addReg(Arrayd coefs, T w) {
+    assert(w > 0);
     T w2 = w*w;
     assert(_rows == _cols);
     int dim = coefs.size();
@@ -137,7 +138,9 @@ class BandMat {
     }
 
     for (int i = 0; i < count; i++) {
-      addReg(coefs[orders[i]], regWeights[i]);
+      Arrayd c = coefs[orders[i]];
+      double regw = regWeights[i];
+      addReg(c, regw);
     }
   }
 
