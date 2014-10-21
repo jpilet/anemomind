@@ -53,13 +53,20 @@ namespace {
 
   void dispAnglesAndFiltered(Array<Nav> allnavs, Spani span) {
     Array<Nav> navs = allnavs.slice(span.minv(), span.maxv());
-
-    GnuplotExtra plot;
-    plot.set_style("lines");
     Arrayd time = getTimeSeconds(navs);
     Arrayd angles = cleanAngles(getAngles(navs)).map<double>([](Angle<double> x) {return x.degrees();});
 
+    const double reg = 4800;
+
+    GeneralizedTV tv;
+    UniformSamples filtered =
+        tv.filter(angles, 2, reg);
+    Arrayd f = filtered.interpolateLinear(tv.makeDefaultX(angles.size()));
+
+    GnuplotExtra plot;
+    plot.set_style("lines");
     plot.plot_xy(time, angles);
+    plot.plot_xy(time, f);
     plot.show();
   }
 
