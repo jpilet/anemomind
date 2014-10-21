@@ -430,4 +430,6 @@ target_link_libraries(nautical_FullCalib
                       plot_gnuplot
                       common_Span
                       nautical_TemporalSplit
+                      math_CleanNumArray
+                      math_nonlinear_GeneralizedTVAuto
                      )              

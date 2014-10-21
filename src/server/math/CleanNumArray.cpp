@@ -6,6 +6,7 @@
 #include "CleanNumArray.h"
 #include <server/math/BandMat.h>
 #include <server/common/math.h>
+#include <iostream>
 
 namespace sail {
 
@@ -15,8 +16,9 @@ Arrayd cleanNumArray(Arrayd arr) {
   MDArray2d B(count, 1);
   B.setAll(0);
   Arrayi orders = Arrayi::args(2);
-  Arrayd weights = Arrayd::args(1.0e-6);
+  Arrayd weights = Arrayd::args(1.0e-2);
   A.addRegs(orders, weights);
+  int counter = 0;
   for (int i = 0; i < count; i++) {
     double x = arr[i];
     if (isOrdinary(x)) {
@@ -24,9 +26,12 @@ Arrayd cleanNumArray(Arrayd arr) {
       double W[1] = {1.0};;
       A.addNormalEq(1, I, W);
       B(i, 0) = x;
+      counter++;
     }
   }
-  bandMatGaussElimDestructive(&A, &B);
+  std::cout << "counter = " << counter << std::endl;
+  std::cout << "  count = " << count << std::endl;
+  assert(bandMatGaussElimDestructive(&A, &B, 1.0e-12));
   return B.getStorage();
 }
 

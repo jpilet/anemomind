@@ -12,6 +12,7 @@
 #include <server/common/string.h>
 #include <server/common/math.h>
 #include <server/math/CleanNumArray.h>
+#include <server/math/nonlinear/GeneralizedTV.h>
 
 
 using namespace sail;
@@ -34,12 +35,15 @@ namespace {
     }
     assert(counter == contAngles.size());
     Arrayd degs = clean.map<double>([](Angle<double> x) {return x.degrees();});
-    return cleanNumArray(degs)
+    Arrayd cleaned = cleanNumArray(degs);
+    assert(!degs.empty());
+    assert(!cleaned.empty());
+    return cleaned
         .map<Angle<double> >([=](double x) {return Angle<double>::degrees(x);});
   }
 
-  Array<Angle<double> > getAwa(Array<Nav> navs) {
-    return navs.map<Angle<double> >([=](const Nav &x) {return x.awa();});
+  Array<Angle<double> > getAngles(Array<Nav> navs) {
+    return navs.map<Angle<double> >([=](const Nav &x) {return x.magHdg();});
   }
 
   Arrayd getTimeSeconds(Array<Nav> navs) {
@@ -47,32 +51,24 @@ namespace {
     return navs.map<double>([=](const Nav &x) {return (x.time() - first).seconds();});
   }
 
-  void dispAwa(Array<Nav> allnavs, Spani span) {
+  void dispAnglesAndFiltered(Array<Nav> allnavs, Spani span) {
     Array<Nav> navs = allnavs.slice(span.minv(), span.maxv());
 
     GnuplotExtra plot;
     plot.set_style("lines");
     Arrayd time = getTimeSeconds(navs);
-    Arrayd angles = makeContinuousAngles(getAwa(navs)).map<double>([](Angle<double> x) {return x.degrees();});
-    Spand timesp(time);
-    Spand anglesp(angles);
-    std::cout << EXPR_AND_VAL_AS_STRING(timesp) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(anglesp) << std::endl;
-    plot.plot_xy(time, angles);
-    //plot.plot_xy(time, time);
-    plot.show();
-  }
+    Arrayd angles = cleanAngles(getAngles(navs)).map<double>([](Angle<double> x) {return x.degrees();});
 
-  void fullCalib(Array<Nav> navs) {
-    Array<Spani> spans = recursiveTemporalSplit(navs);
-    dispAwa(navs, spans[1]);
+    plot.plot_xy(time, angles);
+    plot.show();
   }
 
   void ex0() {
     Array<Nav> navs =
         scanNmeaFolder("/home/jonas/programmering/sailsmart/datasets/psaros33_Banque_Sturdza",
         Nav::debuggingBoatId());
-    fullCalib(navs);
+    Array<Spani> spans = recursiveTemporalSplit(navs);
+    dispAnglesAndFiltered(navs, spans[4]);
   }
 }
 
@@ -87,7 +83,8 @@ int main(int argc, const char **argv) {
   if (amap.optionProvided("--ex0")) {
     ex0();
   } else {
-    fullCalib(getTestdataNavs(amap));
+    //fullCalib(getTestdataNavs(amap));
+    std::cout << "Not yet implemented" << std::endl;
   }
   return 0;
 }
