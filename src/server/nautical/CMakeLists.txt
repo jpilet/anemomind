@@ -427,4 +427,7 @@ target_link_libraries(nautical_FullCalib
                       nautical_NavNmeaScan
                       nautical_TestdataNavs
                       common_ArgMap
+                      plot_gnuplot
+                      common_Span
+                      nautical_TemporalSplit
                      )              
