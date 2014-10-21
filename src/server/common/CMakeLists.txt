@@ -277,6 +277,15 @@ target_link_libraries(common_ArgMap
                       common_logging
                       common_string
                      )
+                     
+                     
+add_library(common_DataSplits
+            DataSplits.h
+            DataSplits.cpp
+           )
+target_link_libraries(common_DataSplits
+                      common_Uniform
+                     )                                
 
 cxx_test(common_ArgMapTest
          ArgMapTest.cpp

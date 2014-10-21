@@ -8,6 +8,8 @@
 #include "StepMinimizer.h"
 #include <iostream>
 #include <server/common/invalidate.h>
+#include <server/common/ScopedLog.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -110,10 +112,12 @@ StepMinimizerState StepMinimizer::takeStep(StepMinimizerState state, std::functi
 }
 
 StepMinimizerState StepMinimizer::minimize(StepMinimizerState state, std::function<double(double)> fun) {
+  ENTERSCOPE("StepMinimizer::minimize");
   double leftLimit = _leftLimit;
   double rightLimit = _rightLimit;
 
   for (int i = 0; i < _maxIter; i++) {
+    ENTERSCOPE(stringFormat("Iterate at level %d/%d", i+1, _maxIter));
     iterateWithCurrentStepSize(&state, &leftLimit, &rightLimit, fun, _acceptor);
     state.reduceStep();
   }
