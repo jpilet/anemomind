@@ -35,7 +35,7 @@ class UniformSamples {
     return X.map<T>([&](double x) {return interpolateLinear(x);});
   }
 
-  double interpolateLinearDerivative(double x) const {
+  T interpolateLinearDerivative(double x) const {
     int I[2];
     double W[2];
     _sampling.makeInterpolationWeights(x, I, W);

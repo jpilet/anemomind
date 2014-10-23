@@ -9,6 +9,8 @@
 #include <server/math/CleanNumArray.h>
 #include <server/math/nonlinear/GeneralizedTV.h>
 #include <server/plot/extra.h>
+#include <server/common/ScopedLog.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -66,34 +68,47 @@ namespace {
 
   template <typename T>
   void makeDebugPlot(std::string title, Arrayd rawTimesSeconds, Array<T> rawValues,
-      UniformSamples<T> filtered, std::string yLabel) {
+      UniformSamples<T> filtered, std::string yLabel, FilteredNavData::DebugPlotMode mode) {
       GnuplotExtra plot;
       plot.set_title(title);
       plot.set_style("lines");
-      plot.plot_xy(rawTimesSeconds, toDouble(rawValues), "Raw signal");
+      if (mode == FilteredNavData::SIGNAL) {
+        plot.plot_xy(rawTimesSeconds, toDouble(rawValues), "Raw signal");
+      }
       Arrayd X = filtered.makeCentredX();
-      plot.plot_xy(X, toDouble(filtered.interpolateLinear(X)), "Filtered signal");
+      if (mode == FilteredNavData::SIGNAL) {
+        Arrayd Y = toDouble(filtered.interpolateLinear(X));
+        plot.plot_xy(X, Y, "Filtered signal");
+      } else {
+        Arrayd Y = toDouble(filtered.interpolateLinearDerivative(X));
+        plot.plot_xy(X, Y, "Filtered signal derivative");
+      }
+
       plot.set_xlabel("Time (seconds)");
       plot.set_ylabel(yLabel);
       plot.show();
   }
 }
 
-FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda, bool debug) {
+FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
+  FilteredNavData::DebugPlotMode mode) {
   if (navs.hasData()) {
     std::sort(navs.begin(), navs.end());
     if (sameBoat(navs)) {
+      ENTERSCOPE("FilteredNavData");
+      SCOPEDMESSAGE(INFO, stringFormat("Number of navs: %d", navs.size()));
       _timeOffset = navs[0].time();
       Array<Duration<double> > times = getTimes(navs, _timeOffset);
       Arrayd timesSeconds = times.map<double>(
           [&](Duration<double> t) {
             return t.seconds();
           });
+      SCOPEDMESSAGE(INFO, "Get the raw data");
       Array<Angle<double> > magHdg = cleanContinuousAngles(getMagHdg(navs));
       Array<Angle<double> > awa = cleanContinuousAngles(getAwa(navs));
       Array<Velocity<double> > aws = getAws(navs);
       Array<Velocity<double> > watSpeed = getWatSpeed(navs);
-      Array<Angle<double> > gpsBearing = getGpsBearing(navs);
+      Array<Angle<double> > gpsBearing = cleanContinuousAngles(getGpsBearing(navs));
       Array<Velocity<double> > gpsSpeed = getGpsSpeed(navs);
 
       /*
@@ -112,31 +127,39 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda, bool debug) {
       //UniformSamples<Angle<double> > _awa, _magHdg, _gpsBearing;
       //UniformSamples<Velocity<double> > _watSpeed, _gpsSpeed, _aws;
       GeneralizedTV tv;
+      SCOPEDMESSAGE(INFO, "TV filter");
+      SCOPEDMESSAGE(INFO, "AWA");
       _awa = toAngles(tv.filter(timesSeconds, toDouble(awa), spacing,
           order, lambda));
+      SCOPEDMESSAGE(INFO, "Mag hdg");
       _magHdg = toAngles(tv.filter(timesSeconds, toDouble(magHdg),
           spacing, order, lambda));
+      SCOPEDMESSAGE(INFO, "GPS bearing");
       _gpsBearing = toAngles(tv.filter(timesSeconds, toDouble(gpsBearing),
           spacing, order, lambda));
+      SCOPEDMESSAGE(INFO, "Wat speed");
       _watSpeed = toVelocities(tv.filter(timesSeconds, toDouble(watSpeed),
           spacing, order, lambda));
+      SCOPEDMESSAGE(INFO, "GPS speed");
       _gpsSpeed = toVelocities(tv.filter(timesSeconds, toDouble(gpsSpeed),
           spacing, order, lambda));
+      SCOPEDMESSAGE(INFO, "AWS speed");
       _aws = toVelocities(tv.filter(timesSeconds, toDouble(aws),
           spacing, order, lambda));
-       if (debug) {
+      SCOPEDMESSAGE(INFO, "Done TV filter.");
+       if (mode != NONE) {
          makeDebugPlot("AWA", timesSeconds, awa,
-               _awa, "Angle (degrees)");
+               _awa, "Angle (degrees)", mode);
          makeDebugPlot("Magnetic heading", timesSeconds, magHdg,
-               _magHdg, "Angle (degrees)");
+               _magHdg, "Angle (degrees)", mode);
          makeDebugPlot("GPS Bearing", timesSeconds, gpsBearing,
-               _gpsBearing, "Angle (degrees)");
+               _gpsBearing, "Angle (degrees)", mode);
          makeDebugPlot("Water speed", timesSeconds, watSpeed,
-               _watSpeed, "Speed (knots)");
+               _watSpeed, "Speed (knots)", mode);
          makeDebugPlot("GPS speed", timesSeconds, gpsSpeed,
-               _gpsSpeed, "Speed (knots)");
+               _gpsSpeed, "Speed (knots)", mode);
          makeDebugPlot("AWS speed", timesSeconds, aws,
-               _aws, "Speed (knots)");
+               _aws, "Speed (knots)", mode);
        }
     } else {
       LOG(WARNING) << "Mixed boat ids";

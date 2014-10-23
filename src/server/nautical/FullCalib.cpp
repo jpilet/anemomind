@@ -13,6 +13,7 @@
 #include <server/common/math.h>
 #include <server/math/CleanNumArray.h>
 #include <server/math/nonlinear/GeneralizedTV.h>
+#include <server/nautical/FilteredNavData.h>
 
 
 using namespace sail;
@@ -79,6 +80,12 @@ namespace {
       }
   }
 
+  void filteredNavDataDemo(Array<Nav> navs, Spani span) {
+    double lambda = 3000;
+    FilteredNavData data(navs.slice(span.minv(), span.maxv()),
+        lambda, FilteredNavData::SIGNAL);
+  }
+
   void dispAnglesAndFiltered(Array<Nav> allnavs, Spani span) {
     Array<Nav> navs = allnavs.slice(span.minv(), span.maxv());
     Array<Duration<double> > time = getTime(navs);
@@ -93,7 +100,8 @@ namespace {
         scanNmeaFolder("/home/jonas/programmering/sailsmart/datasets/psaros33_Banque_Sturdza",
         Nav::debuggingBoatId());
     Array<Spani> spans = recursiveTemporalSplit(navs);
-    dispAnglesAndFiltered(navs, spans[index]);
+    //dispAnglesAndFiltered(navs, spans[index]);
+    filteredNavDataDemo(navs, spans[index]);
   }
 }
 

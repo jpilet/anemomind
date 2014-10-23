@@ -14,8 +14,10 @@ namespace sail {
 
 class FilteredNavData {
  public:
+  enum DebugPlotMode {NONE, SIGNAL, DERIVATIVE};
+
   FilteredNavData() {}
-  FilteredNavData(Array<Nav> navs, double lambda, bool debug = false);
+  FilteredNavData(Array<Nav> navs, double lambda, DebugPlotMode mode = NONE);
 
   const UniformSamples<Angle<double> > &awa() const {
     return _awa;

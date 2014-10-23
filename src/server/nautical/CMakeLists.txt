@@ -432,6 +432,7 @@ target_link_libraries(nautical_FullCalib
                       nautical_TemporalSplit
                       math_CleanNumArray
                       math_nonlinear_GeneralizedTVAuto
+                      nautical_FilteredNavData
                      )
 
 cxx_test(nautical_CalibrationModelTest
