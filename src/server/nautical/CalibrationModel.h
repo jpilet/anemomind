@@ -131,7 +131,7 @@ class CorrectorSet {
 };
 
 template <typename T>
-class DefaultCorrectorSet {
+class DefaultCorrectorSet : public CorrectorSet<T> {
  public:
   const AngleCorrector<T> &magneticHeadingCorrector() const {
     return _angleCorrector;
