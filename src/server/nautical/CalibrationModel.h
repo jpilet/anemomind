@@ -158,40 +158,54 @@ class DefaultCorrectorSet : public CorrectorSet<T> {
   DriftAngle<T> _driftAngle;
 };
 
+
 template <typename T>
-void evaluateTrueWindAndCurrent(
-  const CorrectorSet<T> &correctors,
-  T *parameters,
-  HorizontalMotion<T> gpsMotion,
-  Angle<T> rawMagneticHeading,
-  Velocity<T> rawWaterSpeed,
-  Angle<T> rawAwa,
-  Velocity<T> rawAws,
-  HorizontalMotion<T> *outTrueWind,
-  HorizontalMotion<T> *outTrueCurrent) {
-  // Initial corrections
-  Angle<T> awa = correctors.awaCorrector().correct(
-      correctors.awaParams(parameters), rawAwa);
-  Angle<T> boatOrientation = correctors.magneticHeadingCorrector().correct(
-      correctors.magneticHeadingParams(parameters), rawMagneticHeading);
-  Velocity<T> aws = correctors.awaCorrector().correct(
-      correctors.awsParams(parameters), rawAws);
-  Velocity<T> waterSpeed = correctors.waterSpeedCorrector().correct(
-      correctors.waterSpeedParams(parameters), rawWaterSpeed);
-  Angle<T> driftAngle = correctors.driftAngle().eval(
-            correctors.driftAngleParams(parameters), awa, aws);
+class CalibratedValues {
+ public:
+  Angle<T> awa;
+  Angle<T> boatOrientation;
+  Velocity<T> aws;
+  Velocity<T> waterSpeed;
+  Angle<T> driftAngle;
+  Angle<T> apparentWindAngleWrtEarth;
+  HorizontalMotion<T> gpsMotion;
+  HorizontalMotion<T> apparentWind;
+  HorizontalMotion<T> trueWind;
+  HorizontalMotion<T> trueCurrent;
+  HorizontalMotion<T> boatMotionThroughWater;
 
-  // Compute the true wind
-  Angle<T> apparentWindAngleWrtEarth = awa + boatOrientation + Angle<T>::degrees(T(180));
-  HorizontalMotion<T> apparentWind = HorizontalMotion<T>::polar(aws,
-      apparentWindAngleWrtEarth);
-  *outTrueWind = apparentWind + gpsMotion;
+  CalibratedValues(const CorrectorSet<T> &correctors,
+      T *parameters,
+      HorizontalMotion<T> gpsMotion_,
+      Angle<T> rawMagneticHeading,
+      Velocity<T> rawWaterSpeed,
+      Angle<T> rawAwa,
+      Velocity<T> rawAws) {
+    gpsMotion = gpsMotion_; // <-- nothing to calibrate, already accurate.
+    awa = correctors.awaCorrector().correct(
+        correctors.awaParams(parameters), rawAwa);
+    boatOrientation = correctors.magneticHeadingCorrector().correct(
+        correctors.magneticHeadingParams(parameters), rawMagneticHeading);
+    aws = correctors.awaCorrector().correct(
+        correctors.awsParams(parameters), rawAws);
+    waterSpeed = correctors.waterSpeedCorrector().correct(
+        correctors.waterSpeedParams(parameters), rawWaterSpeed);
+    driftAngle = correctors.driftAngle().eval(
+              correctors.driftAngleParams(parameters), awa, aws);
 
-  // Compute the true current
-  HorizontalMotion<T> boatMotionThroughWater = HorizontalMotion<T>::polar(
-      waterSpeed, driftAngle + boatOrientation);
-  *outTrueCurrent = gpsMotion - boatMotionThroughWater;
-}
+    // Compute the true wind
+    apparentWindAngleWrtEarth = awa + boatOrientation + Angle<T>::degrees(T(180));
+    apparentWind = HorizontalMotion<T>::polar(aws,
+        apparentWindAngleWrtEarth);
+    trueWind = apparentWind + gpsMotion;
+
+    // Compute the true current
+    boatMotionThroughWater = HorizontalMotion<T>::polar(
+        waterSpeed, driftAngle + boatOrientation);
+    trueCurrent = gpsMotion - boatMotionThroughWater;
+  }
+};
+
 
 }
 
