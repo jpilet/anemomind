@@ -7,6 +7,7 @@
 #define CLEANNUMARRAY_H_
 
 #include <server/common/Array.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 namespace sail {
 
@@ -16,6 +17,14 @@ namespace sail {
  * values.
  */
 Arrayd cleanNumArray(Arrayd arr);
+
+
+/*
+ * Takes an array of angles and
+ *  (i)  Makes sure they are continuous
+ *  (ii) Replaces all unusual values such as inf and nan with interpolated values.
+ */
+Array<Angle<double> > cleanContinuousAngles(Array<Angle<double> > allAngles);
 
 }
 

@@ -13,34 +13,14 @@
 #include <server/common/math.h>
 #include <server/math/CleanNumArray.h>
 #include <server/math/nonlinear/GeneralizedTV.h>
+#include <server/nautical/ManoeuverDetector.h>
 
 
 using namespace sail;
 
 namespace {
 
-  Array<Angle<double> > cleanAngles(Array<Angle<double> > allAngles) {
-    Array<Angle<double> > goodAngles = allAngles.slice([](Angle<double> x) {
-      return isOrdinary(x.degrees());
-    });
-    Array<Angle<double> > contAngles = makeContinuousAngles(goodAngles);
-    int counter = 0;
-    int count = allAngles.size();
-    Array<Angle<double> > clean(count);
-    for (int i = 0; i < count; i++) {
-      if (isOrdinary(allAngles[i].degrees())) {
-        clean[i] = contAngles[counter];
-        counter++;
-      }
-    }
-    assert(counter == contAngles.size());
-    Arrayd degs = clean.map<double>([](Angle<double> x) {return x.degrees();});
-    Arrayd cleaned = cleanNumArray(degs);
-    assert(!degs.empty());
-    assert(!cleaned.empty());
-    return cleaned
-        .map<Angle<double> >([=](double x) {return Angle<double>::degrees(x);});
-  }
+
 
   Array<Angle<double> > getAngles(Array<Nav> navs) {
     return navs.map<Angle<double> >([=](const Nav &x) {
@@ -50,12 +30,32 @@ namespace {
    });
   }
 
-  Arrayd getTimeSeconds(Array<Nav> navs) {
+  Array<Duration<double> > getTime(Array<Nav> navs) {
     TimeStamp first = navs.first().time();
-    return navs.map<double>([=](const Nav &x) {return (x.time() - first).seconds();});
+    return navs.map<Duration<double> >([=](const Nav &x) {return (x.time() - first);});
   }
 
-  void filtering(Arrayd time, Arrayd angles, int order, double reg) {
+  Arrayd toSeconds(Array<Duration<double> > src) {
+    return src.map<double>([](Duration<double> x) {return x.seconds();});
+  }
+
+  void filtering(Array<Duration<double> > inTime, Array<Angle<double> > inAngles, int order, double reg) {
+    Arrayd time = toSeconds(inTime);
+    Arrayd angles = inAngles.map<double>([](Angle<double> x) {return x.degrees();});
+
+    ManoeuverDetector detector;
+    Array<ManoeuverDetector::Manoeuver> mans = detector.detect(inTime, inAngles);
+    int mc = mans.size();
+    std::cout << "Detected " << mc << " manoeuvers" << std::endl;
+
+    Arrayd locs(mc);
+    Arrayd strengths(mc);
+    for (int i = 0; i < mc; i++) {
+      locs[i] = mans[i].peakLoc().seconds();
+      strengths[i] = mans[i].strength();
+    }
+
+
     //double reg = 5000;
       double spacing = 1.0;
       GeneralizedTV tv;
@@ -73,6 +73,8 @@ namespace {
         plot.plot_xy(time, angles);
         plot.plot_xy(fx, fy);
         plot.plot_xy(fx, fdydx.map<double>([=](double x) {return 30*x;}));
+        plot.set_style("points");
+        plot.plot_xy(locs, strengths);
         plot.show();
       }{
         int middle = 5000;
@@ -85,19 +87,19 @@ namespace {
         Arrayd fdydxsub = fdydx.slice(from, to);
         plot.plot_xy(fxsub, fdydxsub);
         plot.show();
-        for (int i = 0; i < fdydx.size(); i++) {
-          std::cout << "fx = " << fxsub[i] << "    fxydx: " << std::abs(fdydxsub[i]) << std::endl;
-        }
+//        for (int i = 0; i < fdydxsub.size(); i++) {
+//          std::cout << "fx = " << fxsub[i] << "    fxydx: " << std::abs(fdydxsub[i]) << std::endl;
+//        }
       }
   }
 
   void dispAnglesAndFiltered(Array<Nav> allnavs, Spani span) {
     Array<Nav> navs = allnavs.slice(span.minv(), span.maxv());
-    Arrayd time = getTimeSeconds(navs);
-    Arrayd angles = cleanAngles(getAngles(navs)).map<double>([](Angle<double> x) {return x.degrees();});
+    Array<Duration<double> > time = getTime(navs);
+    Array<Angle<double> > angles = cleanContinuousAngles(getAngles(navs));
 
-    //filtering(time, angles, 2, 5000);
-    filtering(time, angles, 1, 1000);
+    filtering(time, angles, 2, 5000);
+    //filtering(time, angles, 1, 5000);
   }
 
   void ex0(int index) {

@@ -6,6 +6,7 @@
 #include "CleanNumArray.h"
 #include <server/math/BandMat.h>
 #include <server/common/math.h>
+#include <server/math/ContinuousAngles.h>
 #include <iostream>
 
 namespace sail {
@@ -29,10 +30,31 @@ Arrayd cleanNumArray(Arrayd arr) {
       counter++;
     }
   }
-  std::cout << "counter = " << counter << std::endl;
-  std::cout << "  count = " << count << std::endl;
   assert(bandMatGaussElimDestructive(&A, &B, 1.0e-12));
   return B.getStorage();
+}
+
+Array<Angle<double> > cleanContinuousAngles(Array<Angle<double> > allAngles) {
+  Array<Angle<double> > goodAngles = allAngles.slice([](Angle<double> x) {
+    return isOrdinary(x.degrees());
+  });
+  Array<Angle<double> > contAngles = makeContinuousAngles(goodAngles);
+  int counter = 0;
+  int count = allAngles.size();
+  Array<Angle<double> > clean(count);
+  for (int i = 0; i < count; i++) {
+    if (isOrdinary(allAngles[i].degrees())) {
+      clean[i] = contAngles[counter];
+      counter++;
+    }
+  }
+  assert(counter == contAngles.size());
+  Arrayd degs = clean.map<double>([](Angle<double> x) {return x.degrees();});
+  Arrayd cleaned = cleanNumArray(degs);
+  assert(!degs.empty());
+  assert(!cleaned.empty());
+  return cleaned
+      .map<Angle<double> >([=](double x) {return Angle<double>::degrees(x);});
 }
 
 }

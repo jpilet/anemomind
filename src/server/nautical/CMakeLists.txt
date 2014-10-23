@@ -432,4 +432,17 @@ target_link_libraries(nautical_FullCalib
                       nautical_TemporalSplit
                       math_CleanNumArray
                       math_nonlinear_GeneralizedTVAuto
-                     )              
+                      nautical_ManoeuverDetector                      
+                     )
+                     
+                     
+add_library(nautical_ManoeuverDetector
+            ManoeuverDetector.cpp
+            ManoeuverDetector.h
+           )
+target_link_libraries(nautical_ManoeuverDetector
+                      math_nonlinear_GeneralizedTV
+                      nautical_nav
+                     )
+                     
+                                
