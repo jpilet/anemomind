@@ -8,13 +8,14 @@
 
 #include <server/common/TimeStamp.h>
 #include <server/math/UniformSamples.h>
+#include <server/nautical/Nav.h>
 
 namespace sail {
 
 class FilteredNavData {
  public:
   FilteredNavData() {}
-  FilteredNavData(Array<Nav> navs, double lambda);
+  FilteredNavData(Array<Nav> navs, double lambda, bool debug = false);
 
   const UniformSamples<Angle<double> > &awa() const {
     return _awa;

@@ -171,6 +171,30 @@ Array<Velocity<double> > getWatSpeed(Array<Nav> navs) {
   return navs.map<Velocity<double> >([&](const Nav &n) {return n.watSpeed();});
 }
 
+Array<Angle<double> > getGpsBearing(Array<Nav> navs) {
+  return navs.map<Angle<double> >([&](const Nav &nav) {
+    return nav.gpsBearing();
+  });
+}
+Array<Angle<double> > getMagHdg(Array<Nav> navs) {
+  return navs.map<Angle<double> >([&](const Nav &nav) {
+    return nav.magHdg();
+  });
+}
+
+Array<Velocity<double> > getAws(Array<Nav> navs) {
+  return navs.map<Velocity<double> >([&](const Nav &nav) {
+    return nav.aws();
+  });
+}
+
+Array<Angle<double> > getAwa(Array<Nav> navs) {
+  return navs.map<Angle<double> >([&](const Nav &nav) {
+    return nav.awa();
+  });
+}
+
+
 
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort) {

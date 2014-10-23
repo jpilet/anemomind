@@ -449,4 +449,5 @@ target_link_libraries(nautical_FilteredNavData
                       math_CleanNumArray
                       common_logging
                       nautical_nav
+                      plot_gnuplot
                      )
