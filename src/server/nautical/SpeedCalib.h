@@ -29,6 +29,7 @@
 
 #include <server/common/math.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/common/ExpLine.h>
 
 namespace sail {
 
@@ -46,13 +47,13 @@ class SpeedCalib {
   // to a subset.
   //
   // Caution: For x = 0, the derivative of lowerBound w.r.t. x is 0.
-  static T lowerBound(T x, T lb = 0) {
-    return x*x + lb;
+  static T lowerBounded(T x, T lb = 0) {
+    return expline(x) + lb;
   }
 
 
   SpeedCalib(T kParam, T mParam, T cParam, T alphaParam) :
-    _k(kSpan().eval(kParam)), _m(lowerBound(mParam)), _c(lowerBound(cParam)) {
+    _k(kSpan().eval(kParam)), _m(lowerBounded(mParam)), _c(lowerBounded(cParam)) {
 
     /*
      * Fits alpha in an interval based on the following:
@@ -89,8 +90,8 @@ class SpeedCalib {
   }
 
   static T initKParam() {return 0;}
-  static T initMParam() {return 0.01;}
-  static T initCParam() {return 0.01;}
+  static T initMParam() {return -11;}
+  static T initCParam() {return -11;}
   static T initAlphaParam() {return 0.0;}
 
   // This value can be added to the objective function in order to
