@@ -210,6 +210,7 @@ inline bool isOrdinary(double x) {
   return !(std::isnan(x) || std::isinf(x));
 }
 
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */
