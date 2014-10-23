@@ -168,8 +168,7 @@ void evaluateTrueWindAndCurrent(
   Angle<T> rawAwa,
   Velocity<T> rawAws,
   HorizontalMotion<T> *outTrueWind,
-  HorizontalMotion<T> *outTrueCurrent,
-  ) {
+  HorizontalMotion<T> *outTrueCurrent) {
   // Initial corrections
   Angle<T> awa = correctors.awaCorrector().correct(
       correctors.awaParams(parameters), rawAwa);

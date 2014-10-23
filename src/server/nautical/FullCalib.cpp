@@ -13,7 +13,6 @@
 #include <server/common/math.h>
 #include <server/math/CleanNumArray.h>
 #include <server/math/nonlinear/GeneralizedTV.h>
-#include <server/nautical/ManoeuverDetector.h>
 
 
 using namespace sail;
@@ -43,18 +42,6 @@ namespace {
     Arrayd time = toSeconds(inTime);
     Arrayd angles = inAngles.map<double>([](Angle<double> x) {return x.degrees();});
 
-    ManoeuverDetector detector;
-    Array<ManoeuverDetector::Manoeuver> mans = detector.detect(inTime, inAngles);
-    int mc = mans.size();
-    std::cout << "Detected " << mc << " manoeuvers" << std::endl;
-
-    Arrayd locs(mc);
-    Arrayd strengths(mc);
-    for (int i = 0; i < mc; i++) {
-      locs[i] = mans[i].peakLoc().seconds();
-      strengths[i] = mans[i].strength();
-    }
-
 
     //double reg = 5000;
       double spacing = 1.0;
@@ -74,7 +61,6 @@ namespace {
         plot.plot_xy(fx, fy);
         plot.plot_xy(fx, fdydx.map<double>([=](double x) {return 30*x;}));
         plot.set_style("points");
-        plot.plot_xy(locs, strengths);
         plot.show();
       }{
         int middle = 5000;
