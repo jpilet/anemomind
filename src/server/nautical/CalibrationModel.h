@@ -11,7 +11,12 @@
 namespace sail {
 
 
-// Default method to correct angles
+/*
+ *  Default method to correct angles.
+ *
+ *  We can override the methods of this class
+ *  to correct the angle in a custom way.
+ */
 template <typename T>
 class AngleCorrector {
  public:
@@ -23,7 +28,14 @@ class AngleCorrector {
   virtual ~AngleCorrector() {}
 };
 
-// Default method to correct speeds
+/*
+ *  Default method to correct speeds.
+ *
+ *  We can override the methods to
+ *  implement a custom way of correcting
+ *  the speed.
+ *
+ */
 template <typename T>
 class SpeedCorrector {
  public:
@@ -47,6 +59,9 @@ class SpeedCorrector {
 /*
  * Given calibrated values of AWA and AWS, computes a
  * correction angle.
+ *
+ * We can create our own class inheriting from
+ * this class in order to provide our own drift model.
  */
 template <typename T>
 class DriftAngle {
@@ -78,6 +93,9 @@ class DriftAngle {
  * A class that groups together
  * all the models used to calibrate the various
  * values.
+ *
+ * We can inherit from this class and provide our
+ * own models to calibrate the various values.
  */
 template <typename T>
 class CorrectorSet {
@@ -158,7 +176,10 @@ class DefaultCorrectorSet : public CorrectorSet<T> {
   DriftAngle<T> _driftAngle;
 };
 
-
+/*
+ * In the constructor, this class calibrates
+ * most relevant values that we would like to know.
+ */
 template <typename T>
 class CalibratedValues {
  public:

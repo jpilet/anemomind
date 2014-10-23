@@ -438,3 +438,15 @@ cxx_test(nautical_CalibrationModelTest
          CalibrationModelTest.cpp
          gtest_main
         )
+        
+        
+add_library(nautical_FilteredNavData
+            FilteredNavData.cpp
+            FilteredNavData.h
+           )
+
+target_link_libraries(nautical_FilteredNavData
+                      math_CleanNumArray
+                      common_logging
+                      nautical_nav
+                     )
