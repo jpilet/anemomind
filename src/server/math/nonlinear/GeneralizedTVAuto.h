@@ -19,16 +19,16 @@ class GeneralizedTVAuto {
     return _tv;
   }
 
-  double optimizeRegWeight(UniformSamples initialSignal,
+  double optimizeRegWeight(UniformSamplesd initialSignal,
                   Arrayd X, Arrayd Y,
                   int order,
                   Array<Arrayb> splits = Array<Arrayb>()) const;
 
-  UniformSamples filter(UniformSamples initialSignal,
+  UniformSamplesd filter(UniformSamplesd initialSignal,
                   Arrayd X, Arrayd Y,
                   int order,
                   Array<Arrayb> initSplits = Array<Arrayb>()) const;
-  UniformSamples filter(Arrayd Y, int order, Array<Arrayb> splits = Array<Arrayb>()) const;
+  UniformSamplesd filter(Arrayd Y, int order, Array<Arrayb> splits = Array<Arrayb>()) const;
  private:
   GeneralizedTV _tv;
   double _initX, _step;

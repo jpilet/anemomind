@@ -46,7 +46,7 @@ namespace {
     //double reg = 5000;
       double spacing = 1.0;
       GeneralizedTV tv;
-      UniformSamples filtered =
+      UniformSamplesd filtered =
           tv.filter(time, angles, spacing, order, reg);
 
 

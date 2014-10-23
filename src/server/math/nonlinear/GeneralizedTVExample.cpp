@@ -79,7 +79,7 @@ int main(int argc, const char **argv) {
     Arrayd Ynoisy = addNoise(Ygt, noise);
     Arrayd X = GeneralizedTV::makeDefaultX(count);
 
-    UniformSamples Yfiltered;
+    UniformSamplesd Yfiltered;
     if (amap.optionProvided("--auto")) {
       GeneralizedTVAuto autotv(tv);
       Yfiltered = autotv.filter(Ynoisy, order);

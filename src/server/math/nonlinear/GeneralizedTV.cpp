@@ -15,7 +15,7 @@ namespace sail {
 GeneralizedTV::GeneralizedTV(int iters, double minv, double gaussElimTol) :
    _iters(iters), _minv(minv), _gaussElimTol(gaussElimTol) {}
 
-UniformSamples GeneralizedTV::filter(UniformSamples initialSignal,
+UniformSamplesd GeneralizedTV::filter(UniformSamplesd initialSignal,
                 Arrayd X,
                 Arrayd Y,
                 int order,
@@ -29,10 +29,10 @@ UniformSamples GeneralizedTV::filter(UniformSamples initialSignal,
 
   Arrayd coefs = BandMatInternal::makeCoefs(order);
 
-  UniformSamples signal = initialSignal;
+  UniformSamplesd signal = initialSignal;
 
   for (int i = 0; i < _iters; i++) {
-    UniformSamples bak = signal;
+    UniformSamplesd bak = signal;
     signal = step(signal, X, Y, coefs, regularization);
 
     // If Gauss elimination would fail for some reason,
@@ -47,26 +47,26 @@ UniformSamples GeneralizedTV::filter(UniformSamples initialSignal,
   return signal;
 }
 
-UniformSamples GeneralizedTV::filter(Arrayd X, Arrayd Y, double samplingDensity,
+UniformSamplesd GeneralizedTV::filter(Arrayd X, Arrayd Y, double samplingDensity,
                   int order,
                   double regularization) const {
   return filter(makeInitialSignal(X, Y, samplingDensity), X, Y, order, regularization);
 }
 
 
-UniformSamples GeneralizedTV::makeInitialSignal(Arrayd Y) {
+UniformSamplesd GeneralizedTV::makeInitialSignal(Arrayd Y) {
   int count = Y.size();
   Arrayd samples(count+1);
   Y.copyToSafe(samples.sliceBut(1));
   samples.last() = Y.last();
-  return UniformSamples(LineKM(1.0, -0.5), samples);
+  return UniformSamplesd(LineKM(1.0, -0.5), samples);
 }
 
 namespace {
 
 }
 
-UniformSamples GeneralizedTV::makeInitialSignal(Arrayd X, Arrayd Y, double samplingDensity) {
+UniformSamplesd GeneralizedTV::makeInitialSignal(Arrayd X, Arrayd Y, double samplingDensity) {
   assert(X.size() == Y.size());
   int obsCount = X.size();
 
@@ -94,7 +94,7 @@ UniformSamples GeneralizedTV::makeInitialSignal(Arrayd X, Arrayd Y, double sampl
   assert(bandMatGaussElimDestructive(&AtA, &AtB, 1.0e-12));
   Arrayd data = AtB.getStorage();
   assert(data.size() == sampleCount);
-  return UniformSamples(ind2x, data);
+  return UniformSamplesd(ind2x, data);
 }
 
 Arrayd GeneralizedTV::makeDefaultX(int size) {
@@ -102,7 +102,7 @@ Arrayd GeneralizedTV::makeDefaultX(int size) {
 }
 
 
-UniformSamples GeneralizedTV::filter(Arrayd Y, int order,
+UniformSamplesd GeneralizedTV::filter(Arrayd Y, int order,
     double regularization) const {
   return filter(makeInitialSignal(Y),
       makeDefaultX(Y.size()), Y, order, regularization);
@@ -179,7 +179,7 @@ namespace {
   }
 }
 
-UniformSamples GeneralizedTV::step(UniformSamples signal,
+UniformSamplesd GeneralizedTV::step(UniformSamplesd signal,
     Arrayd X, Arrayd Y, Arrayd coefs, double regularization) const {
   int order = coefs.size() - 1;
   BandMat<double> AtA(signal.size(), signal.size(), order, order);
@@ -189,9 +189,9 @@ UniformSamples GeneralizedTV::step(UniformSamples signal,
   buildRegTerm(signal.samples(), regularization, coefs, &AtA, &AtB, _minv);
 
   if (bandMatGaussElimDestructive(&AtA, &AtB, _gaussElimTol)) {
-    return UniformSamples(signal.sampling(), AtB.getStorage());
+    return UniformSamplesd(signal.sampling(), AtB.getStorage());
   }
-  return UniformSamples(signal.sampling(), Arrayd());
+  return UniformSamplesd(signal.sampling(), Arrayd());
 }
 
 

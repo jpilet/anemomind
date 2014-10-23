@@ -86,7 +86,6 @@ add_library(math_nonlinear_GeneralizedTV
             GeneralizedTV.h
            )
 target_link_libraries(math_nonlinear_GeneralizedTV
-                      math_UniformSamples
                       math_BandMat
                      )           
 

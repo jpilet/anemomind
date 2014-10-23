@@ -22,7 +22,7 @@ GeneralizedTVAuto::GeneralizedTVAuto(const GeneralizedTV &tv,
 
 
 namespace {
-  double calcFitnessScore(UniformSamples fitted, Arrayd X, Arrayd Y,
+  double calcFitnessScore(UniformSamplesd fitted, Arrayd X, Arrayd Y,
     Arrayb split) {
     double score = 0.0;
     int count = X.size();
@@ -37,20 +37,20 @@ namespace {
   }
 
   double evaluateCrossValidation(const GeneralizedTV &tv,
-      UniformSamples initialSignal,
+      UniformSamplesd initialSignal,
     Arrayd X, Arrayd Y, int order,
     double regularization, Arrayb split) {
       ENTERSCOPE("Evaluated TV cross validation");
       int count = X.size();
       assert(count == Y.size());
       assert(count == split.size());
-      UniformSamples fitted = tv.filter(initialSignal, X.slice(split), Y.slice(split),
+      UniformSamplesd fitted = tv.filter(initialSignal, X.slice(split), Y.slice(split),
           order, regularization);
       return calcFitnessScore(fitted, X, Y, split);
   }
 
   double evaluateCrossValidation(const GeneralizedTV &tv,
-      UniformSamples initialSignal,
+      UniformSamplesd initialSignal,
     Arrayd X, Arrayd Y, int order,
     double regularization, Array<Arrayb> splits) {
     double score = 0.0;
@@ -75,7 +75,7 @@ namespace {
   }
 }
 
-double GeneralizedTVAuto::optimizeRegWeight(UniformSamples initialSignal,
+double GeneralizedTVAuto::optimizeRegWeight(UniformSamplesd initialSignal,
                 Arrayd X, Arrayd Y,
                 int order,
                 Array<Arrayb> initSplits) const {
@@ -94,7 +94,7 @@ double GeneralizedTVAuto::optimizeRegWeight(UniformSamples initialSignal,
   return w;
 }
 
-UniformSamples GeneralizedTVAuto::filter(UniformSamples initialSignal,
+UniformSamplesd GeneralizedTVAuto::filter(UniformSamplesd initialSignal,
                 Arrayd X, Arrayd Y,
                 int order,
                 Array<Arrayb> initSplits) const {
@@ -102,7 +102,7 @@ UniformSamples GeneralizedTVAuto::filter(UniformSamples initialSignal,
       optimizeRegWeight(initialSignal, X, Y, order, initSplits));
 }
 
-UniformSamples GeneralizedTVAuto::filter(Arrayd Y, int order, Array<Arrayb> splits) const {
+UniformSamplesd GeneralizedTVAuto::filter(Arrayd Y, int order, Array<Arrayb> splits) const {
   return filter(_tv.makeInitialSignal(Y),
         _tv.makeDefaultX(Y.size()), Y, order, splits);
 }

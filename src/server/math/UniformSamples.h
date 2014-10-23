@@ -79,6 +79,8 @@ class UniformSamples {
   ArrayType _samples;
 };
 
+typedef UniformSamples<double> UniformSamplesd;
+
 } /* namespace mmm */
 
 #endif /* UNIFORMSAMPLES_H_ */
