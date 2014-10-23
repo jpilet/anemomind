@@ -3,8 +3,8 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include "WaterCalib.h"
 #include <server/math/armaadolc.h>
+#include "WaterCalib.h"
 #include <server/math/ADFunction.h>
 #include <server/math/GemanMcClure.h>
 #include <server/math/nonlinear/Levmar.h>

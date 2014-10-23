@@ -10,50 +10,37 @@
 
 namespace sail {
 
-/*
- * Use SI units whenever
- * the PhysicalQuantity type is not used.
- */
 
+// Default method to correct angles
 template <typename T>
-class Corrector {
+class AngleCorrector {
  public:
-  virtual int paramCount() const = 0;
-  virtual void initialize(T *dst) const = 0;
-  T *initializeAndNext(T *dst) const {
-    initialize(dst);
-    return dst + paramCount();
+  virtual int paramCount() const {return 1;}
+  virtual void initialize(T *dst) const {dst[0] = 0;}
+  virtual Angle<T> correct(T *calibParameters, Angle<T> x) const {
+    return Angle<T>::radians(x.radians() + calibParameters[0]);
   }
-  virtual T correct(T *calibParameters, T x) const = 0;
-  virtual ~Corrector() {}
+  virtual ~AngleCorrector() {}
 };
 
+// Default method to correct speeds
 template <typename T>
-class OffsetCorrector : public Corrector<T> {
+class SpeedCorrector {
  public:
-  int paramCount() const {return 1;}
-  void initialize(T *dst) const {dst[0] = 0;}
-  T correct(T *calibParameters, T x) const {
-    return x + calibParameters[0];
-  }
-};
-
-template <typename T>
-class SpeedCorrector : public Corrector<T> {
- public:
-  int paramCount() const {return 4;}
-  void initialize(T *dst) const {
+  virtual int paramCount() const {return 4;}
+  virtual void initialize(T *dst) const {
     dst[0] = SpeedCalib<T>::initKParam();
     dst[1] = SpeedCalib<T>::initMParam();
     dst[2] = SpeedCalib<T>::initCParam();
     dst[3] = SpeedCalib<T>::initAlphaParam();
   }
-  T correct(T *calibParameters, T x) const {
+  virtual Velocity<T> correct(T *calibParameters, Velocity<T> x) const {
     SpeedCalib<T> calib(calibParameters[0],
         calibParameters[1], calibParameters[2],
         calibParameters[3]);
-    return calib.eval(Velocity<T>::metersPerSeconds(x)).metersPerSecond(x);
+    return calib.eval(x);
   }
+  virtual ~SpeedCorrector() {}
  private:
 };
 
@@ -69,8 +56,18 @@ class DriftAngle {
     dst[0] = 0;   // Maximum value of the
     dst[1] = -2;  // Slope
   }
-  virtual T correct(T *params, T x) const {
-    return params[0]*exp(-expline(params[1])*x);
+  virtual Angle<T> eval(T *params, Angle<T> awa, Velocity<T> aws) const {
+    T awa0rads = awa.normalizedAt0().radians();
+
+    // For awa angles closer to 0 than 90 degrees,
+    // scale by sinus of that angle. Otherwise, just use 0.
+    T awaFactor = params[0]*(2.0*std::abs(ToDouble(awa0rads)) < M_PI? sin(awa0rads) : 0);
+
+    // Scale it in a way that decays exponentially as
+    // aws increases. The decay is controlled by params[1].
+    T awsFactor = exp(-expline(params[1])*aws.metersPerSecond());
+
+    return Angle<T>::radians(awaFactor*awsFactor);
   }
 
   virtual ~DriftAngle() {}
@@ -85,10 +82,10 @@ class DriftAngle {
 template <typename T>
 class CorrectorSet {
  public:
-  virtual const Corrector<T> &magneticHeadingCorrector() const = 0;
-  virtual const Corrector<T> &waterSpeedCorrector() const = 0;
-  virtual const Corrector<T> &awaCorrector() const = 0;
-  virtual const Corrector<T> &awsCorrector() const = 0;
+  virtual const AngleCorrector<T> &magneticHeadingCorrector() const = 0;
+  virtual const SpeedCorrector<T> &waterSpeedCorrector() const = 0;
+  virtual const AngleCorrector<T> &awaCorrector() const = 0;
+  virtual const SpeedCorrector<T> &awsCorrector() const = 0;
   virtual const DriftAngle<T> &driftAngle() const = 0;
 
   T *magneticHeadingParams(T *x) const {return x + 0;}
@@ -112,15 +109,53 @@ class CorrectorSet {
         + driftAngle().paramCount();
   }
 
+
+
   void initialize(T *dst) const {
-     driftAngle().initialize(
-         awsCorrector().initializeAndNext(
-             awaCorrector().initializeAndNext(
-                 waterSpeedCorrector().initializeAndNext(
-                     magneticHeadingCorrector().initializeAndNext(dst)))));
+    T *x = dst;
+    initializeAndStep(magneticHeadingCorrector(), &x);
+    initializeAndStep(waterSpeedCorrector(), &x);
+    initializeAndStep(awaCorrector(), &x);
+    initializeAndStep(awsCorrector(), &x);
+    initializeAndStep(driftAngle(), &x);
+    assert(dst + paramCount() == x);
   }
 
- virtual ~CorrectorSet() {}
+  virtual ~CorrectorSet() {}
+ private:
+   template <typename Corr>
+   static void initializeAndStep(const Corr &c, T **dst) {
+     c.initialize(*dst);
+     (*dst) += c.paramCount();
+   }
+};
+
+template <typename T>
+class DefaultCorrectorSet {
+ public:
+  const AngleCorrector<T> &magneticHeadingCorrector() const {
+    return _angleCorrector;
+  }
+
+  const SpeedCorrector<T> &waterSpeedCorrector() const {
+    return _speedCorrector;
+  }
+
+  const AngleCorrector<T> &awaCorrector() const {
+    return _angleCorrector;
+  }
+
+  const SpeedCorrector<T> &awsCorrector() const {
+    return _speedCorrector;
+  }
+
+  const DriftAngle<T> &driftAngle() const {
+    return _driftAngle;
+  }
+ private:
+  AngleCorrector<T> _angleCorrector;
+  SpeedCorrector<T> _speedCorrector;
+  DriftAngle<T> _driftAngle;
 };
 
 template <typename T>
@@ -136,14 +171,16 @@ void evaluateTrueWindAndCurrent(
   HorizontalMotion<T> *outTrueCurrent,
   ) {
   // Initial corrections
-  Angle<T> awa = Angle<T>::radians(correctors.awaCorrector().eval(
-      correctors.awaParams(parameters), rawAwa.radians()));
-  Angle<T> boatOrientation = Angle<T>::radians(correctors.magneticHeadingCorrector().eval(
-      correctors.magneticHeadingParams(parameters), rawMagneticHeading.radians()));
-  Velocity<T> aws = Velocity<T>::metersPerSeconds(correctors.awaCorrector().eval(
-      correctors.awsParams(parameters), rawAws.metersPerSecond()));
-  Velocity<T> waterSpeed = Velocity<T>::metersPerSeconds(correctors.waterSpeedCorrector().eval(
-      correctors.waterSpeedParams(parameters), rawWaterSpeed.metersPerSecond()));
+  Angle<T> awa = correctors.awaCorrector().correct(
+      correctors.awaParams(parameters), rawAwa);
+  Angle<T> boatOrientation = correctors.magneticHeadingCorrector().correct(
+      correctors.magneticHeadingParams(parameters), rawMagneticHeading);
+  Velocity<T> aws = correctors.awaCorrector().correct(
+      correctors.awsParams(parameters), rawAws);
+  Velocity<T> waterSpeed = correctors.waterSpeedCorrector().correct(
+      correctors.waterSpeedParams(parameters), rawWaterSpeed);
+  Angle<T> driftAngle = correctors.driftAngle().eval(
+            correctors.driftAngleParams(parameters), awa, aws);
 
   // Compute the true wind
   Angle<T> apparentWindAngleWrtEarth = awa + boatOrientation + Angle<T>::degrees(T(180));
@@ -152,7 +189,9 @@ void evaluateTrueWindAndCurrent(
   *outTrueWind = apparentWind + gpsMotion;
 
   // Compute the true current
-
+  HorizontalMotion<T> boatMotionThroughWater = HorizontalMotion<T>::polar(
+      waterSpeed, driftAngle + boatOrientation);
+  *outTrueCurrent = gpsMotion - boatMotionThroughWater;
 }
 
 }
