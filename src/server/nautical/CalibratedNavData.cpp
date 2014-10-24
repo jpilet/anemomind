@@ -3,7 +3,9 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <server/math/ADFunction.h>
 #include <server/nautical/CalibratedNavData.h>
+
 
 namespace sail {
 
@@ -36,23 +38,23 @@ namespace {
 
   CalibratedValues<adouble> Objf::compute(int index, adouble *parameters) {
     HorizontalMotion<adouble> gpsMotion =
-        HorizontalMotion<adouble>::polar(_data.gpsSpeed().get(index),
-            _data.gpsBearing().get(index));
+        HorizontalMotion<adouble>::polar(_data.gpsSpeed().get(index).cast<adouble>(),
+            _data.gpsBearing().get(index).cast<adouble>());
 
-    return CalibratedValues<adouble>(_corr,
+    return CalibratedValues<adouble>(*_corr,
                   parameters,
                   gpsMotion,
-                  _data.magHdg().get(index),
-                  _data.watSpeed().get(index),
-                  _data.awa().get(index),
-                  _data.aws().get(index));
+                  Angle<adouble>::degrees(_data.magHdg().get(index).degrees()),
+                  Velocity<adouble>::knots(_data.watSpeed().get(index).knots()),
+                  Angle<adouble>::degrees(_data.awa().get(index).degrees()),
+                  Velocity<adouble>::knots(_data.aws().get(index).knots()));
   }
 
   Objf::Objf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr,
     Arrayd times) :
       _data(data), _corr(corr),
       _times(times),
-      _weights(data.magHdg().interpolateLinearDerivative(times)),
+      _weights(data.magHdg().interpolateLinearDerivative(times).map<double>([&](Angle<double> x) {return x.degrees();})),
       _sampling(data.sampling()) {}
 
   void Objf::evalAD(adouble *Xin, adouble *Fout) {
@@ -67,10 +69,10 @@ namespace {
 
   void Objf::evalDif(double w, CalibratedValues<adouble> a,
       CalibratedValues<adouble> b, adouble *dst) {
-    dst[0] = w*(a.trueWind[0] - b.trueWind[0]);
-    dst[1] = w*(a.trueWind[1] - b.trueWind[1]);
-    dst[2] = w*(a.trueCurrent[0] - b.trueCurrent[0]);
-    dst[3] = w*(a.trueCurrent[1] - b.trueCurrent[1]);
+    dst[0] = w*(a.trueWind[0].knots() - b.trueWind[0].knots());
+    dst[1] = w*(a.trueWind[1].knots() - b.trueWind[1].knots());
+    dst[2] = w*(a.trueCurrent[0].knots() - b.trueCurrent[0].knots());
+    dst[3] = w*(a.trueCurrent[1].knots() - b.trueCurrent[1].knots());
   }
 
 

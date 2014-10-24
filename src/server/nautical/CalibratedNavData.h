@@ -7,6 +7,8 @@
 #define CALIBRATEDNAVDATA_H_
 
 #include <server/nautical/CalibrationModel.h>
+#include <server/nautical/FilteredNavData.h>
+#include <adolc/adouble.h>
 
 
 namespace sail {
@@ -18,7 +20,7 @@ class CalibratedNavData {
       CorrectorSet<adouble>::Ptr correctorSet);
 
   const Arrayd optimalCalibrationParameters() const {
-    return _optimalCalibrationParameters();
+    return _optimalCalibrationParameters;
   }
 
  private:

@@ -451,3 +451,14 @@ target_link_libraries(nautical_FilteredNavData
                       nautical_nav
                       plot_gnuplot
                      )
+
+add_library(nautical_CalibratedNavData
+            CalibratedNavData.h
+            CalibratedNavData.cpp
+           )
+target_link_libraries(nautical_CalibratedNavData
+                      nautical_FilteredNavData
+                      math_ADFunction
+                      math_nonlinear_Levmar
+                     )       
+                    

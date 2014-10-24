@@ -6,6 +6,7 @@
 #ifndef CALIBRATIONMODEL_H_
 #define CALIBRATIONMODEL_H_
 
+#include <cmath>
 #include <server/nautical/SpeedCalib.h>
 #include <memory>
 
@@ -77,7 +78,7 @@ class DriftAngle {
 
     // For awa angles closer to 0 than 90 degrees,
     // scale by sinus of that angle. Otherwise, just use 0.
-    T awaFactor = params[0]*(2.0*std::abs(ToDouble(awa0rads)) < M_PI? sin(awa0rads) : 0);
+    T awaFactor = params[0]*(2.0*std::abs(ToDouble(awa0rads)) < M_PI? T(sin(awa0rads)) : T(0));
 
     // Scale it in a way that decays exponentially as
     // aws increases. The decay is controlled by params[1].
@@ -211,7 +212,7 @@ class CalibratedValues {
         correctors.awaParams(parameters), rawAwa);
     boatOrientation = correctors.magneticHeadingCorrector().correct(
         correctors.magneticHeadingParams(parameters), rawMagneticHeading);
-    aws = correctors.awaCorrector().correct(
+    aws = correctors.awsCorrector().correct(
         correctors.awsParams(parameters), rawAws);
     waterSpeed = correctors.waterSpeedCorrector().correct(
         correctors.waterSpeedParams(parameters), rawWaterSpeed);
