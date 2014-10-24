@@ -18,6 +18,7 @@ template <typename T>
 class UniformSamples {
  public:
   typedef Array<T> ArrayType;
+  typedef UniformSamples<T> ThisType;
 
   UniformSamples() {}
 
@@ -50,7 +51,7 @@ class UniformSamples {
     return _sampling;
   }
 
-  const Arrayd &samples() const {
+  const ArrayType &samples() const {
     return _samples;
   }
 
@@ -70,6 +71,16 @@ class UniformSamples {
       dst[i] = map(i);
     }
     return dst;
+  }
+
+  template <typename OtherElemType>
+  bool sameSamplingAs(const UniformSamples<OtherElemType> &other) const {
+    return _sampling == other.sampling() &&
+        _samples.size() == other.samples().size();
+  }
+
+  T get(int index) const {
+    return _samples[index];
   }
  private:
   // Maps sample indices to time

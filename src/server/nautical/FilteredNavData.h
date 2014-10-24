@@ -42,6 +42,14 @@ class FilteredNavData {
   const UniformSamples<Velocity<double> > &aws() const {
     return _aws;
   }
+
+  const LineKM &sampling() const {
+    return _awa.sampling();
+  }
+
+  int size() const {
+    return _awa.size();
+  }
  private:
   TimeStamp _timeOffset;
   UniformSamples<Angle<double> > _awa, _magHdg, _gpsBearing;

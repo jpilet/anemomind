@@ -146,6 +146,13 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
       SCOPEDMESSAGE(INFO, "AWS speed");
       _aws = toVelocities(tv.filter(timesSeconds, toDouble(aws),
           spacing, order, lambda));
+
+      assert(_awa.sameSamplingAs(_magHdg));
+      assert(_awa.sameSamplingAs(_gpsBearing));
+      assert(_awa.sameSamplingAs(_watSpeed));
+      assert(_awa.sameSamplingAs(_gpsSpeed));
+      assert(_awa.sameSamplingAs(_aws));
+
       SCOPEDMESSAGE(INFO, "Done TV filter.");
        if (mode != NONE) {
          makeDebugPlot("AWA", timesSeconds, awa,

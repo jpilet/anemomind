@@ -7,6 +7,7 @@
 #define CALIBRATIONMODEL_H_
 
 #include <server/nautical/SpeedCalib.h>
+#include <memory>
 
 namespace sail {
 
@@ -100,6 +101,9 @@ class DriftAngle {
 template <typename T>
 class CorrectorSet {
  public:
+  typedef CorrectorSet<T> ThisType;
+  typedef std::shared_ptr<ThisType> Ptr;
+
   virtual const AngleCorrector<T> &magneticHeadingCorrector() const = 0;
   virtual const SpeedCorrector<T> &waterSpeedCorrector() const = 0;
   virtual const AngleCorrector<T> &awaCorrector() const = 0;
