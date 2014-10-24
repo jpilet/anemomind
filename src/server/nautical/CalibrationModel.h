@@ -200,6 +200,7 @@ class CalibratedValues {
   HorizontalMotion<T> trueCurrent;
   HorizontalMotion<T> boatMotionThroughWater;
 
+  CalibratedValues() {}
   CalibratedValues(const CorrectorSet<T> &correctors,
       T *parameters,
       HorizontalMotion<T> gpsMotion_,

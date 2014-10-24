@@ -7,12 +7,22 @@
 #include <server/nautical/CalibratedNavData.h>
 #include <server/math/nonlinear/Levmar.h>
 #include <server/math/armaadolc.h>
+#include <server/common/ScopedLog.h>
+#include <server/common/string.h>
+#include <adolc/taping.h>
 
 
 namespace sail {
 
 namespace {
-  class Objf : public AutoDiffFunction {
+  double makePositive(double x) {
+    if (x < 0) {
+      return 0.001;
+    }
+    return x;
+  }
+
+  class Objf : public Function {
    public:
     static constexpr int eqsPerComparison = 4;
 
@@ -26,7 +36,7 @@ namespace {
       return eqsPerComparison*_times.size();
     }
 
-    void evalAD(adouble *Xin, adouble *Fout);
+    void eval(double *Xin, double *Fout, double *Jout);
    private:
     FilteredNavData _data;
     CorrectorSet<adouble>::Ptr _corr;
@@ -34,11 +44,14 @@ namespace {
     LineKM _sampling;
 
     CalibratedValues<adouble> compute(int time, adouble *parameters);
+    CalibratedValues<adouble> computeTest(int index, adouble *parameters);
+
     void evalDif(double w, CalibratedValues<adouble> a,
         CalibratedValues<adouble> b, adouble *dst);
   };
 
   CalibratedValues<adouble> Objf::compute(int index, adouble *parameters) {
+
     HorizontalMotion<adouble> gpsMotion =
         HorizontalMotion<adouble>::polar(_data.gpsSpeed().get(index).cast<adouble>(),
             _data.gpsBearing().get(index).cast<adouble>());
@@ -47,9 +60,21 @@ namespace {
                   parameters,
                   gpsMotion,
                   Angle<adouble>::degrees(_data.magHdg().get(index).degrees()),
-                  Velocity<adouble>::knots(_data.watSpeed().get(index).knots()),
+                  Velocity<adouble>::knots(makePositive(_data.watSpeed().get(index).knots())),
                   Angle<adouble>::degrees(_data.awa().get(index).degrees()),
-                  Velocity<adouble>::knots(_data.aws().get(index).knots()));
+                  Velocity<adouble>::knots(makePositive(_data.aws().get(index).knots())));
+  }
+
+  CalibratedValues<adouble> Objf::computeTest(int index, adouble *parameters) {
+    Velocity<adouble> v0 = Velocity<adouble>::knots(1);
+    Angle<adouble> a0 = Angle<adouble>::degrees(0);
+    HorizontalMotion<adouble> gpsMotion =
+        HorizontalMotion<adouble>::polar(v0, a0);
+
+    return CalibratedValues<adouble>(*_corr,
+                  parameters,
+                  gpsMotion,
+                  a0, v0, a0, v0);
   }
 
   Objf::Objf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr,
@@ -59,13 +84,49 @@ namespace {
       _weights(data.magHdg().interpolateLinearDerivative(times).map<double>([&](Angle<double> x) {return x.degrees();})),
       _sampling(data.sampling()) {}
 
-  void Objf::evalAD(adouble *Xin, adouble *Fout) {
+  void Objf::eval(double *Xin, double *Fout, double *Jout) {
+    ENTERSCOPE("Evaluating calibration objf");
     assert(_times.size() == _weights.size());
+
+
+    Arrayad adX(inDims());
+    Arrayad adF(4);
+
+    int rows = outDims();
+    int cols = inDims();
+    MDArray2d Jmat;
+    if (Jout != nullptr) {
+      Jmat = MDArray2d(rows, cols, Jout);
+    }
+
+    /*
+     * Here we differentiate each
+     * iteration separately. It turns
+     * out that this results in a
+     * significant speed-up. Not doing
+     * so is painfully slow, for some
+     * reason.
+     */
+    short int tape = 0;
     for (int i = 0; i < _times.size(); i++) {
+      if (Jout != nullptr) {
+        trace_on(tape);
+      }
+
+      adolcInput(inDims(), adX.getData(), Xin);
+      if (i % 10000 == 0) {
+        SCOPEDMESSAGE(INFO, stringFormat("Iteration %d/%d", i, _times.size()));
+      }
       int index = int(floor(_sampling.inv(_times[i])));
-      CalibratedValues<adouble> from = compute(index, Xin);
-      CalibratedValues<adouble> to = compute(index + 1, Xin);
-      evalDif(_weights[i], from, to, Fout + i*eqsPerComparison);
+      CalibratedValues<adouble> from = compute(index, adX.ptr());
+      CalibratedValues<adouble> to = compute(index + 1, adX.ptr());
+      evalDif(_weights[i], from, to, adF.getData());
+      adolcOutput(4, adF.getData(), Fout + i*eqsPerComparison);
+
+      if (Jout != nullptr) {
+        trace_off();
+        outputJacobianColMajor(tape, Xin, Jmat.getPtrAt(i, 0), rows);
+      }
     }
   }
 
@@ -83,11 +144,13 @@ namespace {
 CalibratedNavData::CalibratedNavData(FilteredNavData filteredData,
       CorrectorSet<adouble>::Ptr correctorSet, Arrayd times,
       LevmarSettings settings) : _filteredRawData(filteredData) {
+  ENTERSCOPE("CalibratedNavData");
   _correctorSet = (bool(correctorSet)? correctorSet : CorrectorSet<adouble>::Ptr(new DefaultCorrectorSet<adouble>()));
   if (times.empty()) {
     times = filteredData.makeCenteredX();
   }
   Objf objf(filteredData, _correctorSet, times);
+  SCOPEDMESSAGE(INFO, stringFormat("Objf dimensions: %d", objf.outDims()));
   Arrayad initParams(_correctorSet->paramCount());
   _correctorSet->initialize(initParams.ptr());
   LevmarState state(initParams.map<double>([&](adouble x) {return x.getValue();}));
