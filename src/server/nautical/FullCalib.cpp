@@ -83,7 +83,7 @@ namespace {
   void filteredNavDataDemo(Array<Nav> navs, Spani span) {
     double lambda = 3000;
     FilteredNavData data(navs.slice(span.minv(), span.maxv()),
-        lambda, FilteredNavData::SIGNAL);
+        lambda, FilteredNavData::DERIVATIVE);
   }
 
   void dispAnglesAndFiltered(Array<Nav> allnavs, Spani span) {
