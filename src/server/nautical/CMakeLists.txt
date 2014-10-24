@@ -461,4 +461,13 @@ target_link_libraries(nautical_CalibratedNavData
                       math_ADFunction
                       math_nonlinear_Levmar
                      )       
-                    
+
+add_executable(nautical_CalibrationDemo
+               CalibrationDemo.cpp
+              )
+              
+target_link_libraries(nautical_CalibrationDemo
+                      nautical_TestdataNavs
+                      nautical_CalibratedNavData
+                      common_ArgMap
+                     )
