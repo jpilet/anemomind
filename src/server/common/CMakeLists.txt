@@ -300,3 +300,15 @@ add_library(common_JsonIO
             JsonIO.cpp
            )
 target_depends_on_poco_json(common_JsonIO)
+
+
+add_library(common_ProportionateSampler
+           ProportionateSampler.cpp
+           ProportionateSampler.h
+          )
+
+cxx_test(common_ProportionateSamplerTest
+         ProportionateSamplerTest.cpp
+         common_ProportionateSampler
+         gtest_main
+        )
