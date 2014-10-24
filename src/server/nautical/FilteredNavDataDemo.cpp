@@ -21,23 +21,23 @@ using namespace sail;
 namespace {
 
 
-  void dispFilteredNavData(Array<Nav> navs, Spani span, int modeType) {
-    double lambda = 3000;
+  void dispFilteredNavData(Array<Nav> navs, Spani span, int modeType, double lambda) {
     FilteredNavData data(navs.slice(span.minv(), span.maxv()),
-        lambda, FilteredNavData::DebugPlotMode(modeType));
+        lambda, (modeType == 2? FilteredNavData::DERIVATIVE : FilteredNavData::SIGNAL));
   }
 
-  void ex0(int mode) {
+  void ex0(int mode, double lambda) {
     Array<Nav> navs =
         scanNmeaFolder("/home/jonas/programmering/sailsmart/datasets/psaros33_Banque_Sturdza",
         Nav::debuggingBoatId());
     Array<Spani> spans = recursiveTemporalSplit(navs);
-    dispFilteredNavData(navs, 5, mode);
+    dispFilteredNavData(navs, spans[5], mode, lambda);
   }
 }
 
 int main(int argc, const char **argv) {
   int mode = 1;
+  double lambda = 3000;
   ArgMap amap;
   registerGetTestdataNavs(amap);
   amap.registerOption("--plotmode",
@@ -45,20 +45,21 @@ int main(int argc, const char **argv) {
       .setArgCount(1).store(&mode);
   amap.registerOption("--ex0", "Run a preconfigured example on the Psaros33 dataset");
   amap.registerOption("--overview", "Segment the loaded navs into chunks and display those chunks");
+  amap.registerOption("--lambda", "Set the regularization parameter").setArgCount(1).store(&lambda);
   if (!amap.parseAndHelp(argc, argv)) {
     return -1;
   }
 
   if (!amap.help()) {
     if (amap.optionProvided("--ex0")) {
-      ex0(mode);
+      ex0(mode, lambda);
     } else {
       Array<Nav> navs = getTestdataNavs(amap);
       Array<Spani> spans = recursiveTemporalSplit(navs);
       if (amap.optionProvided("--overview")) {
         dispTemporalRaceOverview(spans, navs);
       } else {
-        dispFilteredNavData(navs, Spani(0, navs.size()), mode);
+        dispFilteredNavData(navs, Spani(0, navs.size()), mode, lambda);
       }
     }
   }
