@@ -24,7 +24,8 @@ namespace {
     SCOPEDMESSAGE(INFO, "Filtering the data...");
     FilteredNavData fdata(navs.slice(span.minv(), span.maxv()), lambda);
     SCOPEDMESSAGE(INFO, "Calibrating...");
-    CalibratedNavData calib(fdata);
+    Arrayd times = CalibratedNavData::sampleTimes(fdata, 1000);
+    CalibratedNavData calib(fdata, times);
     SCOPEDMESSAGE(INFO, "Done calibrating.");
   }
 }

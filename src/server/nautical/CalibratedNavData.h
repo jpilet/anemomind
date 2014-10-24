@@ -18,15 +18,16 @@ class CalibratedNavData {
  public:
 
   CalibratedNavData(FilteredNavData filteredData,
+      Arrayd times = Arrayd(),
       CorrectorSet<adouble>::Ptr correctorSet =
           CorrectorSet<adouble>::Ptr(),
-          Arrayd times = Arrayd(),
-          LevmarSettings settings = LevmarSettings());
+         LevmarSettings settings = LevmarSettings());
 
   const Arrayd optimalCalibrationParameters() const {
     return _optimalCalibrationParameters;
   }
 
+  static Arrayd sampleTimes(FilteredNavData navdata, int count);
  private:
   FilteredNavData _filteredRawData;
   Arrayd _optimalCalibrationParameters;

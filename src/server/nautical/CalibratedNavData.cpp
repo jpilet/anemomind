@@ -10,6 +10,7 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
 #include <adolc/taping.h>
+#include <server/common/ProportionateSampler.h>
 
 
 namespace sail {
@@ -142,7 +143,7 @@ namespace {
 }
 
 CalibratedNavData::CalibratedNavData(FilteredNavData filteredData,
-      CorrectorSet<adouble>::Ptr correctorSet, Arrayd times,
+      Arrayd times, CorrectorSet<adouble>::Ptr correctorSet,
       LevmarSettings settings) : _filteredRawData(filteredData) {
   ENTERSCOPE("CalibratedNavData");
   _correctorSet = (bool(correctorSet)? correctorSet : CorrectorSet<adouble>::Ptr(new DefaultCorrectorSet<adouble>()));
@@ -156,6 +157,26 @@ CalibratedNavData::CalibratedNavData(FilteredNavData filteredData,
   LevmarState state(initParams.map<double>([&](adouble x) {return x.getValue();}));
   state.minimize(settings, objf);
   _optimalCalibrationParameters = state.getXArray(true);
+}
+
+Arrayd CalibratedNavData::sampleTimes(FilteredNavData navdata, int count) {
+  Arrayd times = navdata.makeCenteredX();
+  if (times.size() < count) {
+    return times;
+  }
+
+  Arrayd maghdg = navdata.magHdg().interpolateLinear(times).map<double>([&](Angle<double> x) {
+    return std::abs(x.degrees());
+  });
+
+  ProportionateSampler prop(maghdg);
+  double marg = 1.0e-6;
+  Arrayd selected(count);
+  LineKM line(0, count-1, marg, 1.0-marg);
+  for (int i = 0; i < count; i++) {
+    selected[i] = times[prop.getAndRemove(line(i))];
+  }
+  return selected;
 }
 
 
