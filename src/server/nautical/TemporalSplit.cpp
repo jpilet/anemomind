@@ -76,6 +76,23 @@ Array<Spani> recursiveTemporalSplit(Array<Nav> sortedNavs,
     return dst.get();
 }
 
+void dispTemporalRaceOverview(Array<Spani> spans, Array<Nav> navs, std::ostream *out) {
+  int spanCount = spans.size();
+  for (int i = 0; i < spans.size(); i++) {
+    Spani span = spans[i];
+    Array<Nav> sub = navs.slice(span.minv(), span.maxv());
+    *out << "[" << span.minv() << ", " << span.maxv() << "[" << std::endl;
+    *out << "   from     " << sub.first().time().toString() << std::endl;
+    *out << "   duration " << (sub.last().time() - sub.first().time()).str() << std::endl;
+    *out << "   to     " << sub.last().time().toString() << '\n' << std::endl;
+    if (i < spans.size()-1) {
+      Duration<double> gap = navs[spans[i+1].minv()].time() - sub.last().time();
+      *out << "Gap of " << gap.str() << '\n' << std::endl;
+    }
+  }
+  *out << "Total of " << spanCount << " race episodes." << std::endl;
+}
+
 
 
 }

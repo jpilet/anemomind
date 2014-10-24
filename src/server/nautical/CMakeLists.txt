@@ -420,11 +420,10 @@ target_link_libraries(nautical_RaceOverview
                       nautical_TemporalSplit
                      )
                                   
-add_executable(nautical_FullCalib
-               FullCalib.cpp
+add_executable(nautical_FilteredNavDataDemo
+               FilteredNavDataDemo.cpp
               )
-target_link_libraries(nautical_FullCalib
-                      nautical_NavNmeaScan
+target_link_libraries(nautical_FilteredNavDataDemo
                       nautical_TestdataNavs
                       common_ArgMap
                       plot_gnuplot
