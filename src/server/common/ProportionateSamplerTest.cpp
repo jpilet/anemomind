@@ -33,13 +33,16 @@ TEST(PropTest, Test) {
   for (double x = 0.01; x < 1; x += 0.032344) {
     EXPECT_EQ(2, s.get(x));
   }
+  s.remove(2);
 
   {
     Arrayb remaining = s.remaining();
     Arrayb selected = s.selected();
+    Arrayd props = s.proportions();
     for (int i = 0; i < 3; i++) {
       EXPECT_TRUE(selected[i]);
       EXPECT_FALSE(remaining[i]);
+      EXPECT_NEAR(props[i], 0.0, 1.0e-6);
     }
   }
 }
