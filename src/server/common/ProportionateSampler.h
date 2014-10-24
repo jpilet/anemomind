@@ -17,8 +17,12 @@ class ProportionateSampler {
   int get(double x) const;
   void remove(int index);
   int getAndRemove(double x);
+
+  Arrayd proportions() const;
+  Arrayb selected() const;
+  Arrayb remaining() const;
  private:
-  int _offset;
+  int _offset, _count;
   Arrayd _values;
 
   int getBySum(int node, double x) const;

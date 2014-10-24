@@ -11,16 +11,25 @@ namespace sail {
 ProportionateSampler::ProportionateSampler(Arrayd proportions) {
   int leftmost = 0;
   int rightmost = 0;
-  int len = proportions.size();
-  while (rightmost - leftmost + 1 < len) {
+  _count = proportions.size();
+  while (rightmost - leftmost + 1 < _count) {
     leftmost = leftChild(leftmost);
     rightmost = rightChild(rightmost);
   }
   _offset = leftmost;
   _values = Arrayd::fill(rightmost + 1, 0.0);
-  proportions.copyToSafe(_values.slice(leftmost, leftmost + len));
+  proportions.copyToSafe(_values.slice(leftmost, leftmost + _count));
   fillInnerNodes(0);
 }
+
+Arrayb ProportionateSampler::selected() const {
+  return proportions().map<bool>([&](double x) {return x == 0;});
+}
+
+Arrayb ProportionateSampler::remaining() const {
+  return proportions().map<bool>([&](double x) {return x != 0;});
+}
+
 
 double ProportionateSampler::fillInnerNodes(int root) {
   if (isLeaf(root)) {
@@ -80,6 +89,10 @@ void ProportionateSampler::remove(int index0) {
     index = parent(index);
   }
   _values[start] = 0; // Make sure it is exactly 0.
+}
+
+Arrayd ProportionateSampler::proportions() const {
+  return _values.slice(_offset, _offset + _count);
 }
 
 int ProportionateSampler::getAndRemove(double x) {
