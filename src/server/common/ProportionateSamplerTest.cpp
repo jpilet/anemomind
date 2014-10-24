@@ -18,4 +18,11 @@ TEST(PropTest, Test) {
   EXPECT_EQ(1, s.get(1.5/4));
   EXPECT_EQ(1, s.get(2.5/4));
   EXPECT_EQ(2, s.get(3.5/4));
+  s.remove(1);
+  EXPECT_EQ(0, s.get(0.25));
+  EXPECT_EQ(2, s.get(0.75));
+  s.remove(2);
+  for (double x = 0.01; x < 1; x += 0.032344) {
+    EXPECT_EQ(0, s.get(x));
+  }
 }
