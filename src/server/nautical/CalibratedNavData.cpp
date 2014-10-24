@@ -5,6 +5,8 @@
 
 #include <server/math/ADFunction.h>
 #include <server/nautical/CalibratedNavData.h>
+#include <server/math/nonlinear/Levmar.h>
+#include <server/math/armaadolc.h>
 
 
 namespace sail {
@@ -14,7 +16,7 @@ namespace {
    public:
     static constexpr int eqsPerComparison = 4;
 
-    Objf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr, Arrayd times = Arrayd());
+    Objf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr, Arrayd times);
 
     int inDims() {
       return _corr->paramCount();
@@ -79,8 +81,18 @@ namespace {
 }
 
 CalibratedNavData::CalibratedNavData(FilteredNavData filteredData,
-      CorrectorSet<adouble>::Ptr correctorSet) {
-
+      CorrectorSet<adouble>::Ptr correctorSet, Arrayd times,
+      LevmarSettings settings) : _filteredRawData(filteredData) {
+  _correctorSet = (bool(correctorSet)? correctorSet : CorrectorSet<adouble>::Ptr(new DefaultCorrectorSet<adouble>()));
+  if (times.empty()) {
+    times = filteredData.makeCenteredX();
+  }
+  Objf objf(filteredData, _correctorSet, times);
+  Arrayad initParams(_correctorSet->paramCount());
+  _correctorSet->initialize(initParams.ptr());
+  LevmarState state(initParams.map<double>([&](adouble x) {return x.getValue();}));
+  state.minimize(settings, objf);
+  _optimalCalibrationParameters = state.getXArray(true);
 }
 
 

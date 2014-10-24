@@ -50,6 +50,8 @@ class FilteredNavData {
   int size() const {
     return _awa.size();
   }
+
+  Arrayd makeCenteredX() const;
  private:
   TimeStamp _timeOffset;
   UniformSamples<Angle<double> > _awa, _magHdg, _gpsBearing;

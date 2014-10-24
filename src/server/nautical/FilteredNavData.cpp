@@ -176,4 +176,8 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
   }
 }
 
+Arrayd FilteredNavData::makeCenteredX() const {
+  return _awa.makeCentredX();
+}
+
 }

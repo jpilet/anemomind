@@ -450,6 +450,7 @@ target_link_libraries(nautical_FilteredNavData
                       common_logging
                       nautical_nav
                       plot_gnuplot
+                      math_nonlinear_GeneralizedTV
                      )
 
 add_library(nautical_CalibratedNavData
@@ -470,4 +471,5 @@ target_link_libraries(nautical_CalibrationDemo
                       nautical_TestdataNavs
                       nautical_CalibratedNavData
                       common_ArgMap
+                      nautical_TemporalSplit
                      )

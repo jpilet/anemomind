@@ -15,9 +15,12 @@ namespace sail {
 
 
 Array<Spani> recursiveTemporalSplit(Array<Nav> sortedNavs,
-    double relativeThresh = 0.1, Duration<double> lowerThresh = Duration<double>::seconds(8));
+    double relativeThresh = 0.1,
+    Duration<double> lowerThresh =
+        Duration<double>::seconds(8));
 
-void dispTemporalRaceOverview(Array<Spani> spans, Array<Nav> navs, std::ostream *out = &(std::cout));
+void dispTemporalRaceOverview(Array<Spani> spans,
+    Array<Nav> navs, std::ostream *out = &(std::cout));
 
 }
 #endif /* TEMPORALSPLIT_H_ */
