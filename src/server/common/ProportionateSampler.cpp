@@ -35,6 +35,8 @@ double ProportionateSampler::fillInnerNodes(int root) {
 }
 
 int ProportionateSampler::getBySum(int node, double x) const {
+  assert(0 <= x);
+  assert(x <= _values[node]);
   if (isLeaf(node)) {
     return node - _offset;
   } else {
@@ -66,16 +68,18 @@ int ProportionateSampler::rightChild(int index) {
 int ProportionateSampler::get(double x) const {
   assert(0 <= x);
   assert(x <= 1.0);
-  return getBySum(x*_values[0], 0);
+  return getBySum(0, x*_values[0]);
 }
 
 void ProportionateSampler::remove(int index0) {
-  int index = index0 + _offset;
+  int start = index0 + _offset;
+  int index = start;
   double v = _values[index];
   while (index != -1) {
     _values[index] -= v;
     index = parent(index);
   }
+  _values[start] = 0; // Make sure it is exactly 0.
 }
 
 int ProportionateSampler::getAndRemove(double x) {
