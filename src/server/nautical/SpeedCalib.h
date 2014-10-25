@@ -90,8 +90,8 @@ class SpeedCalib {
   }
 
   static T initKParam() {return 0;}
-  static T initMParam() {return -11;}
-  static T initCParam() {return -11;}
+  static T initMParam() {return -2;}
+  static T initCParam() {return -2;}
   static T initAlphaParam() {return 0.0;}
 
   // This value can be added to the objective function in order to

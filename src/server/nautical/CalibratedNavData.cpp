@@ -144,7 +144,7 @@ namespace {
 
 CalibratedNavData::CalibratedNavData(FilteredNavData filteredData,
       Arrayd times, CorrectorSet<adouble>::Ptr correctorSet,
-      LevmarSettings settings) : _filteredRawData(filteredData) {
+      LevmarSettings settings, Arrayd initialization) : _filteredRawData(filteredData) {
   ENTERSCOPE("CalibratedNavData");
   _correctorSet = (bool(correctorSet)? correctorSet : CorrectorSet<adouble>::Ptr(new DefaultCorrectorSet<adouble>()));
   if (times.empty()) {
@@ -152,11 +152,16 @@ CalibratedNavData::CalibratedNavData(FilteredNavData filteredData,
   }
   Objf objf(filteredData, _correctorSet, times);
   SCOPEDMESSAGE(INFO, stringFormat("Objf dimensions: %d", objf.outDims()));
-  Arrayad initParams(_correctorSet->paramCount());
-  _correctorSet->initialize(initParams.ptr());
-  LevmarState state(initParams.map<double>([&](adouble x) {return x.getValue();}));
+  if (initialization.empty()) {
+    Arrayad initParams(_correctorSet->paramCount());
+    _correctorSet->initialize(initParams.ptr());
+    initialization = initParams.map<double>([&](adouble x) {return x.getValue();});
+  }
+  assert(initialization.size() == _correctorSet->paramCount());
+  LevmarState state(initialization);
   state.minimize(settings, objf);
   _optimalCalibrationParameters = state.getXArray(true);
+  _value = objf.calcSquaredNorm(_optimalCalibrationParameters.ptr());
 }
 
 Arrayd CalibratedNavData::sampleTimes(FilteredNavData navdata, int count) {
@@ -179,6 +184,21 @@ Arrayd CalibratedNavData::sampleTimes(FilteredNavData navdata, int count) {
   return selected;
 }
 
-
+CalibratedNavData CalibratedNavData::bestOfInits(Array<Arrayd> initializations,
+    FilteredNavData fdata, Arrayd times,
+    CorrectorSet<adouble>::Ptr correctorSet,
+             LevmarSettings settings) {
+  assert(initializations.hasData());
+  CalibratedNavData best(fdata, times, correctorSet, settings,
+      initializations.first());
+  for (int i = 1; i < initializations.size(); i++) {
+    CalibratedNavData candidate(fdata, times, correctorSet, settings,
+        initializations[i]);
+    if (candidate < best) {
+      best = candidate;
+    }
+  }
+  return best;
+}
 
 }

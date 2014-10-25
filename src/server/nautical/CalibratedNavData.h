@@ -20,15 +20,31 @@ class CalibratedNavData {
   CalibratedNavData(FilteredNavData filteredData,
       Arrayd times = Arrayd(),
       CorrectorSet<adouble>::Ptr correctorSet =
-          CorrectorSet<adouble>::Ptr(),
-         LevmarSettings settings = LevmarSettings());
+                CorrectorSet<adouble>::Ptr(),
+               LevmarSettings settings = LevmarSettings(),
+               Arrayd initialization = Arrayd());
 
   const Arrayd optimalCalibrationParameters() const {
     return _optimalCalibrationParameters;
   }
 
   static Arrayd sampleTimes(FilteredNavData navdata, int count);
+
+  /*
+   * Initialize from different starting points to
+   * increase the chance of optaining a local optimum
+   * close to the real optimum.
+   */
+  static CalibratedNavData bestOfInits(Array<Arrayd> initializations,
+      FilteredNavData fdata, Arrayd times = Arrayd(),
+      CorrectorSet<adouble>::Ptr correctorSet =
+                CorrectorSet<adouble>::Ptr(),
+               LevmarSettings settings = LevmarSettings());
+  bool operator< (const CalibratedNavData &other) const {
+    return _value < other._value;
+  }
  private:
+  double _value;
   FilteredNavData _filteredRawData;
   Arrayd _optimalCalibrationParameters;
   CorrectorSet<adouble>::Ptr _correctorSet;
