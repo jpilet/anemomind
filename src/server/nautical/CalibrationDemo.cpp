@@ -11,6 +11,7 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/ArrayIO.h>
 #include <server/common/string.h>
+#include <server/common/DataSplits.h>
 
 using namespace sail;
 
@@ -49,7 +50,7 @@ namespace {
     FilteredNavData fdata(navs.slice(span.minv(), span.maxv()), lambda);
     SCOPEDMESSAGE(INFO, "Calibrating...");
     Arrayd times = CalibratedNavData::sampleTimes(fdata, sampleCount);
-    CalibratedNavData calib(fdata, times);
+    CalibratedNavData calib = CalibratedNavData::bestOfInits(9, fdata, times);
     SCOPEDMESSAGE(INFO, "Done calibrating.");
     std::cout << EXPR_AND_VAL_AS_STRING(calib.optimalCalibrationParameters()) << std::endl;
     calibrationReport(calib.optimalCalibrationParameters());

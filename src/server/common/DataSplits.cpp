@@ -38,5 +38,16 @@ Array<Arrayb> makeRandomSplits(int numSplits, int size) {
   return dst;
 }
 
+Arrayb makeSlidedSplit(int count) {
+  Uniform rng(count);
+  int offset = rng.genInt();
+  int middle = count/2;
+  Arrayb dst(count);
+  for (int i = 0; i < count; i++) {
+    dst[(offset + i) % count] = i < middle;
+  }
+  return dst;
+}
+
 
 }

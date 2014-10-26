@@ -16,7 +16,7 @@ namespace sail {
 
 class CalibratedNavData {
  public:
-
+  CalibratedNavData() : _cost(1.0e20), _initCost(1.0e20) {}
   CalibratedNavData(FilteredNavData filteredData,
       Arrayd times = Arrayd(),
       CorrectorSet<adouble>::Ptr correctorSet =
@@ -49,10 +49,18 @@ class CalibratedNavData {
                LevmarSettings settings = LevmarSettings());
 
   bool operator< (const CalibratedNavData &other) const {
-    return _value < other._value;
+    return _cost < other._cost;
+  }
+
+  double cost() const {
+    return _cost;
+  }
+
+  double initCost() const {
+    return _initCost;
   }
  private:
-  double _value;
+  double _cost, _initCost;
   FilteredNavData _filteredRawData;
   Arrayd _initialCalibrationParameters,
     _optimalCalibrationParameters;

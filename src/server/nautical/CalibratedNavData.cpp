@@ -43,6 +43,10 @@ namespace {
     }
   }
 
+  adouble applyCostFun(adouble x, double w) {
+    return x;
+  }
+
   double makePositive(double x) {
     if (x < 0) {
       return 0.001;
@@ -169,10 +173,10 @@ namespace {
 
     double width = 0.01; // knots per second
 
-    dst[0] = sqrtRoundedAbs(balance*w*(a.trueWind[0].knots() - b.trueWind[0].knots()), width);
-    dst[1] = sqrtRoundedAbs(balance*w*(a.trueWind[1].knots() - b.trueWind[1].knots()), width);
-    dst[2] = sqrtRoundedAbs((1.0 - balance)*w*(a.trueCurrent[0].knots() - b.trueCurrent[0].knots()), width);
-    dst[3] = sqrtRoundedAbs((1.0 - balance)*w*(a.trueCurrent[1].knots() - b.trueCurrent[1].knots()), width);
+    dst[0] = applyCostFun(balance*w*(a.trueWind[0].knots() - b.trueWind[0].knots()), width);
+    dst[1] = applyCostFun(balance*w*(a.trueWind[1].knots() - b.trueWind[1].knots()), width);
+    dst[2] = applyCostFun((1.0 - balance)*w*(a.trueCurrent[0].knots() - b.trueCurrent[0].knots()), width);
+    dst[3] = applyCostFun((1.0 - balance)*w*(a.trueCurrent[1].knots() - b.trueCurrent[1].knots()), width);
   }
 
   /*
@@ -188,11 +192,19 @@ namespace {
   }
 }
 
+namespace {
+
+  CorrectorSet<adouble>::Ptr makeDefaultCorr(CorrectorSet<adouble>::Ptr correctorSet) {
+    return (bool(correctorSet)? correctorSet : CorrectorSet<adouble>::Ptr(new DefaultCorrectorSet<adouble>()));
+  }
+
+}
+
 CalibratedNavData::CalibratedNavData(FilteredNavData filteredData,
       Arrayd times, CorrectorSet<adouble>::Ptr correctorSet,
       LevmarSettings settings, Arrayd initialization) : _filteredRawData(filteredData) {
   ENTERSCOPE("CalibratedNavData");
-  _correctorSet = (bool(correctorSet)? correctorSet : CorrectorSet<adouble>::Ptr(new DefaultCorrectorSet<adouble>()));
+  _correctorSet = makeDefaultCorr(correctorSet);
   if (times.empty()) {
     times = filteredData.makeCenteredX();
   }
@@ -207,7 +219,9 @@ CalibratedNavData::CalibratedNavData(FilteredNavData filteredData,
   LevmarState state(initialization);
   state.minimize(settings, objf);
   _optimalCalibrationParameters = state.getXArray(true);
-  _value = objf.calcSquaredNorm(_optimalCalibrationParameters.ptr());
+
+  _initCost = objf.calcSquaredNorm(_initialCalibrationParameters.ptr());
+  _cost = objf.calcSquaredNorm(_optimalCalibrationParameters.ptr());
 }
 
 Arrayd CalibratedNavData::sampleTimes(FilteredNavData navdata, int count) {
@@ -234,14 +248,20 @@ CalibratedNavData CalibratedNavData::bestOfInits(Array<Arrayd> initializations,
     FilteredNavData fdata, Arrayd times,
     CorrectorSet<adouble>::Ptr correctorSet,
              LevmarSettings settings) {
+  correctorSet = makeDefaultCorr(correctorSet);
+  ENTERSCOPE("Calibration starting from different initializations");
   assert(initializations.hasData());
-  CalibratedNavData best(fdata, times, correctorSet, settings,
-      initializations.first());
-  for (int i = 1; i < initializations.size(); i++) {
+  CalibratedNavData best;
+  for (int i = 0; i < initializations.size(); i++) {
+    SCOPEDMESSAGE(INFO, stringFormat("Calibrating from starting point %d/%d",
+        i+1, initializations.size()));
     CalibratedNavData candidate(fdata, times, correctorSet, settings,
         initializations[i]);
+    SCOPEDMESSAGE(INFO, stringFormat("Cost: %.8g   Initial cost: %.8g (best cost: %.8g)", candidate.cost(),
+        candidate.initCost(), best.cost()));
     if (candidate < best) {
       best = candidate;
+      SCOPEDMESSAGE(INFO, "  Improvement :-)");
     }
   }
   return best;
@@ -251,11 +271,12 @@ CalibratedNavData CalibratedNavData::bestOfInits(int initCount,
     FilteredNavData fdata, Arrayd times,
     CorrectorSet<adouble>::Ptr correctorSet,
              LevmarSettings settings) {
+  correctorSet = makeDefaultCorr(correctorSet);
   assert(initCount > 0);
   Array<Arrayd> inits(initCount);
 
   // Gradually increase the randomness...
-  LineKM randomness(0, std::max(1, initCount-1), 0.0, 1.0);
+  LineKM randomness(0, std::max(1, initCount-1), 0.0, 0.2);
 
   for (int i = 0; i < initCount; i++) {
     inits[i] = correctorSet->makeInitialParams(randomness(i));
