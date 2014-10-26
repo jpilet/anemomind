@@ -167,7 +167,7 @@ namespace {
     // Skip the balancing.
     balance = 0.5;
 
-    double width = 0.1; // knots per second
+    double width = 0.01; // knots per second
 
     dst[0] = sqrtRoundedAbs(balance*w*(a.trueWind[0].knots() - b.trueWind[0].knots()), width);
     dst[1] = sqrtRoundedAbs(balance*w*(a.trueWind[1].knots() - b.trueWind[1].knots()), width);
@@ -253,8 +253,12 @@ CalibratedNavData CalibratedNavData::bestOfInits(int initCount,
              LevmarSettings settings) {
   assert(initCount > 0);
   Array<Arrayd> inits(initCount);
+
+  // Gradually increase the randomness...
+  LineKM randomness(0, std::max(1, initCount-1), 0.0, 1.0);
+
   for (int i = 0; i < initCount; i++) {
-    inits[i] = correctorSet->makeInitialParams((i == 0? 0.0 : 1.0));
+    inits[i] = correctorSet->makeInitialParams(randomness(i));
   }
   return bestOfInits(inits, fdata, times, correctorSet, settings);
 }
