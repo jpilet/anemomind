@@ -40,6 +40,14 @@ class CalibratedNavData {
       CorrectorSet<adouble>::Ptr correctorSet =
                 CorrectorSet<adouble>::Ptr(),
                LevmarSettings settings = LevmarSettings());
+
+
+  static CalibratedNavData bestOfInits(int initCount,
+      FilteredNavData fdata, Arrayd times = Arrayd(),
+      CorrectorSet<adouble>::Ptr correctorSet =
+                CorrectorSet<adouble>::Ptr(),
+               LevmarSettings settings = LevmarSettings());
+
   bool operator< (const CalibratedNavData &other) const {
     return _value < other._value;
   }

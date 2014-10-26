@@ -10,6 +10,7 @@
 #include <server/nautical/SpeedCalib.h>
 #include <memory>
 #include <server/common/Uniform.h>
+#include <server/common/Array.h>
 
 namespace sail {
 
@@ -24,10 +25,9 @@ template <typename T>
 class AngleCorrector {
  public:
   virtual int paramCount() const {return 1;}
-  virtual void initialize(T *dst) const {dst[0] = 0;}
-  virtual void initializeRandom(T *dst) const {
-    Uniform rng(-0.2, 0.2);
-    dst[0] = rng.gen();
+  virtual void initialize(double *dst, double randomness) const {
+    Uniform rng(-randomness, randomness);
+    dst[0] = rng.gen() + 0.2*rng.gen();
   }
   virtual Angle<T> correct(T *calibParameters, Angle<T> x) const {
     return Angle<T>::radians(x.radians() + calibParameters[0]);
@@ -47,19 +47,16 @@ template <typename T>
 class SpeedCorrector {
  public:
   virtual int paramCount() const {return 4;}
-  virtual void initialize(T *dst) const {
-    dst[0] = SpeedCalib<T>::initKParam();
-    dst[1] = SpeedCalib<T>::initMParam();
-    dst[2] = SpeedCalib<T>::initCParam();
-    dst[3] = SpeedCalib<T>::initAlphaParam();
+  virtual void initialize(double *dst, double randomness) const {
+    Uniform rng(-randomness, randomness);
+    dst[0] = SpeedCalib<double>::initKParam() + 0.2*rng.gen();
+    dst[1] = SpeedCalib<double>::initMParam() + 3.0*rng.gen();
+    dst[2] = SpeedCalib<double>::initCParam() + 3.0*rng.gen();
+    dst[3] = SpeedCalib<double>::initAlphaParam() + rng.gen();
   }
 
-  virtual void initializeRandom(T *dst) {
-    Uniform rng(-1, 1);
-    dst[0] = SpeedCalib<T>::initKParam() + 0.2*rng.gen();
-    dst[1] = SpeedCalib<T>::initMParam() + 3.0*rng.gen();
-    dst[2] = SpeedCalib<T>::initCParam() + 3.0*rng.gen();
-    dst[3] = SpeedCalib<T>::initAlphaParam() + rng.gen();
+  virtual void initializeRandom(double *dst) {
+
   }
 
   virtual Velocity<T> correct(T *calibParameters, Velocity<T> x) const {
@@ -83,9 +80,10 @@ template <typename T>
 class DriftAngle {
  public:
   virtual int paramCount() const {return 2;}
-  virtual void initialize(T *dst) const {
-    dst[0] = 0;   // Maximum value of the
-    dst[1] = -2;  // Slope
+  virtual void initialize(double *dst, double randomness) const {
+    Uniform rng(-randomness, randomness);
+    dst[0] = 0 + rng.gen();   // Maximum value of the
+    dst[1] = -2 + rng.gen();  // Slope
   }
   virtual Angle<T> eval(T *params, Angle<T> awa, Velocity<T> aws) const {
     T awa0rads = awa.normalizedAt0().radians();
@@ -148,21 +146,27 @@ class CorrectorSet {
 
 
 
-  void initialize(T *dst) const {
-    T *x = dst;
-    initializeAndStep(magneticHeadingCorrector(), &x);
-    initializeAndStep(waterSpeedCorrector(), &x);
-    initializeAndStep(awaCorrector(), &x);
-    initializeAndStep(awsCorrector(), &x);
-    initializeAndStep(driftAngle(), &x);
+  void initialize(double *dst, double randomness) const {
+    double *x = dst;
+    initializeAndStep(magneticHeadingCorrector(), randomness, &x);
+    initializeAndStep(waterSpeedCorrector(), randomness, &x);
+    initializeAndStep(awaCorrector(), randomness, &x);
+    initializeAndStep(awsCorrector(), randomness, &x);
+    initializeAndStep(driftAngle(), randomness, &x);
     assert(dst + paramCount() == x);
+  }
+
+  Arrayd makeInitialParams(double randomness) const {
+    Arrayd dst(paramCount());
+    initialize(dst.ptr(), randomness);
+    return dst;
   }
 
   virtual ~CorrectorSet() {}
  private:
    template <typename Corr>
-   static void initializeAndStep(const Corr &c, T **dst) {
-     c.initialize(*dst);
+   static void initializeAndStep(const Corr &c, double randomness, double **dst) {
+     c.initialize(*dst, randomness);
      (*dst) += c.paramCount();
    }
 };

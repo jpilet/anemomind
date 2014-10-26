@@ -24,7 +24,7 @@ TEST(CalibModelTest, CountTest) {
 TEST(CalibModelTest, InitTest) {
   DefaultCorrectorSet<double> set;
   Array<double> params = Array<double>::fill(set.paramCount(), 1.0e6);
-  set.initialize(params.ptr());
+  set.initialize(params.ptr(), false);
   for (double p : params) {
     EXPECT_LT(std::abs(p), 1.0e2);
   }

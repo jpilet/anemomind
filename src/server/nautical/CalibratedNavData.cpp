@@ -17,7 +17,21 @@ namespace sail {
 
 namespace {
 
-  adouble roundedAbs(adouble x0, double width) {
+  /*
+   * A cost function that looks like the square root of absolute value,
+   * except that it is smooth close to 0, so that we
+   * can use it with a smooth optimization algorithm.
+   *
+   * The width parameter controls how close to 0 it should
+   * be smooth.
+   *
+   * This function will tend to encourage sparse solutions,
+   * in contrast to the square function.
+   *
+   * The sqrt function is applied, so that we can use it
+   * with the Levenberg-Marquardt framework.
+   */
+  adouble sqrtRoundedAbs(adouble x0, double width) {
     adouble x = x0/width;
     double xd = ToDouble(x);
     if (std::abs(xd) < 1.0) {
@@ -155,10 +169,10 @@ namespace {
 
     double width = 0.1; // knots per second
 
-    dst[0] = roundedAbs(balance*w*(a.trueWind[0].knots() - b.trueWind[0].knots()), width);
-    dst[1] = roundedAbs(balance*w*(a.trueWind[1].knots() - b.trueWind[1].knots()), width);
-    dst[2] = roundedAbs((1.0 - balance)*w*(a.trueCurrent[0].knots() - b.trueCurrent[0].knots()), width);
-    dst[3] = roundedAbs((1.0 - balance)*w*(a.trueCurrent[1].knots() - b.trueCurrent[1].knots()), width);
+    dst[0] = sqrtRoundedAbs(balance*w*(a.trueWind[0].knots() - b.trueWind[0].knots()), width);
+    dst[1] = sqrtRoundedAbs(balance*w*(a.trueWind[1].knots() - b.trueWind[1].knots()), width);
+    dst[2] = sqrtRoundedAbs((1.0 - balance)*w*(a.trueCurrent[0].knots() - b.trueCurrent[0].knots()), width);
+    dst[3] = sqrtRoundedAbs((1.0 - balance)*w*(a.trueCurrent[1].knots() - b.trueCurrent[1].knots()), width);
   }
 
   /*
@@ -185,9 +199,7 @@ CalibratedNavData::CalibratedNavData(FilteredNavData filteredData,
   Objf objf(filteredData, _correctorSet, times);
   SCOPEDMESSAGE(INFO, stringFormat("Objf dimensions: %d", objf.outDims()));
   if (initialization.empty()) {
-    Arrayad initParams(_correctorSet->paramCount());
-    _correctorSet->initialize(initParams.ptr());
-    initialization = initParams.map<double>([&](adouble x) {return x.getValue();});
+    initialization = _correctorSet->makeInitialParams(0.0);
   }
   initialization = addBalanceParam(initialization);
   _initialCalibrationParameters = initialization.dup();
@@ -233,6 +245,18 @@ CalibratedNavData CalibratedNavData::bestOfInits(Array<Arrayd> initializations,
     }
   }
   return best;
+}
+
+CalibratedNavData CalibratedNavData::bestOfInits(int initCount,
+    FilteredNavData fdata, Arrayd times,
+    CorrectorSet<adouble>::Ptr correctorSet,
+             LevmarSettings settings) {
+  assert(initCount > 0);
+  Array<Arrayd> inits(initCount);
+  for (int i = 0; i < initCount; i++) {
+    inits[i] = correctorSet->makeInitialParams((i == 0? 0.0 : 1.0));
+  }
+  return bestOfInits(inits, fdata, times, correctorSet, settings);
 }
 
 }
