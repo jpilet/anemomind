@@ -16,6 +16,19 @@
 namespace sail {
 
 namespace {
+
+  adouble roundedAbs(adouble x0, double width) {
+    adouble x = x0/width;
+    double xd = ToDouble(x);
+    if (std::abs(xd) < 1.0) {
+      constexpr double a = 0.5;
+      constexpr double b = 0.5;
+      return sqrt(a*x*x + b);
+    } else {
+      return sqrt(fabs(x));
+    }
+  }
+
   double makePositive(double x) {
     if (x < 0) {
       return 0.001;
@@ -30,7 +43,7 @@ namespace {
     Objf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr, Arrayd times);
 
     int inDims() {
-      return _corr->paramCount();
+      return _corr->paramCount() + 1;
     }
 
     int outDims() {
@@ -44,11 +57,14 @@ namespace {
     Arrayd _times, _weights;
     LineKM _sampling;
 
+    adouble balance(adouble *parameters) {
+      return parameters[_corr->paramCount()];
+    }
     CalibratedValues<adouble> compute(int time, adouble *parameters);
     CalibratedValues<adouble> computeTest(int index, adouble *parameters);
 
     void evalDif(double w, CalibratedValues<adouble> a,
-        CalibratedValues<adouble> b, adouble *dst);
+        CalibratedValues<adouble> b, adouble balance, adouble *dst);
   };
 
   CalibratedValues<adouble> Objf::compute(int index, adouble *parameters) {
@@ -121,7 +137,7 @@ namespace {
       int index = int(floor(_sampling.inv(_times[i])));
       CalibratedValues<adouble> from = compute(index, adX.ptr());
       CalibratedValues<adouble> to = compute(index + 1, adX.ptr());
-      evalDif(_weights[i], from, to, adF.getData());
+      evalDif(_weights[i], from, to, balance(adX.ptr()), adF.getData());
       adolcOutput(4, adF.getData(), Fout + i*eqsPerComparison);
 
       if (Jout != nullptr) {
@@ -132,14 +148,30 @@ namespace {
   }
 
   void Objf::evalDif(double w, CalibratedValues<adouble> a,
-      CalibratedValues<adouble> b, adouble *dst) {
-    dst[0] = w*(a.trueWind[0].knots() - b.trueWind[0].knots());
-    dst[1] = w*(a.trueWind[1].knots() - b.trueWind[1].knots());
-    dst[2] = w*(a.trueCurrent[0].knots() - b.trueCurrent[0].knots());
-    dst[3] = w*(a.trueCurrent[1].knots() - b.trueCurrent[1].knots());
+      CalibratedValues<adouble> b, adouble balance, adouble *dst) {
+
+    // Skip the balancing.
+    balance = 0.5;
+
+    double width = 0.1; // knots per second
+
+    dst[0] = roundedAbs(balance*w*(a.trueWind[0].knots() - b.trueWind[0].knots()), width);
+    dst[1] = roundedAbs(balance*w*(a.trueWind[1].knots() - b.trueWind[1].knots()), width);
+    dst[2] = roundedAbs((1.0 - balance)*w*(a.trueCurrent[0].knots() - b.trueCurrent[0].knots()), width);
+    dst[3] = roundedAbs((1.0 - balance)*w*(a.trueCurrent[1].knots() - b.trueCurrent[1].knots()), width);
   }
 
-
+  /*
+   * Add a parameter that controls the balance
+   * between the current and wind fitness.
+   */
+  Arrayd addBalanceParam(Arrayd calibParams) {
+    int count = calibParams.size();
+    Arrayd dst(count + 1);
+    dst.last() = 0.5;
+    calibParams.copyToSafe(dst.sliceBut(1));
+    return dst;
+  }
 }
 
 CalibratedNavData::CalibratedNavData(FilteredNavData filteredData,
@@ -157,7 +189,9 @@ CalibratedNavData::CalibratedNavData(FilteredNavData filteredData,
     _correctorSet->initialize(initParams.ptr());
     initialization = initParams.map<double>([&](adouble x) {return x.getValue();});
   }
-  assert(initialization.size() == _correctorSet->paramCount());
+  initialization = addBalanceParam(initialization);
+  _initialCalibrationParameters = initialization.dup();
+  assert(initialization.size() == objf.inDims());
   LevmarState state(initialization);
   state.minimize(settings, objf);
   _optimalCalibrationParameters = state.getXArray(true);

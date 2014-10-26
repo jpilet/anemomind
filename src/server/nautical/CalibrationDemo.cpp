@@ -37,7 +37,7 @@ namespace {
     }
   }
 
-  void ex0(double lambda) {
+  void ex0(double lambda, int sampleCount) {
     ENTERSCOPE("Running a preconfigured example");
     SCOPEDMESSAGE(INFO, "Loading psaros33 data");
     Array<Nav> navs = scanNmeaFolder(PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -48,7 +48,7 @@ namespace {
     SCOPEDMESSAGE(INFO, "Filtering the data...");
     FilteredNavData fdata(navs.slice(span.minv(), span.maxv()), lambda);
     SCOPEDMESSAGE(INFO, "Calibrating...");
-    Arrayd times; // = CalibratedNavData::sampleTimes(fdata, 1000);
+    Arrayd times = CalibratedNavData::sampleTimes(fdata, sampleCount);
     CalibratedNavData calib(fdata, times);
     SCOPEDMESSAGE(INFO, "Done calibrating.");
     std::cout << EXPR_AND_VAL_AS_STRING(calib.optimalCalibrationParameters()) << std::endl;
@@ -60,9 +60,12 @@ int main(int argc, const char **argv) {
   ArgMap amap;
   double lambda = 1000;
   int verbosity = 9;
+  int sampleCount = 30000;
   amap.registerOption("--ex0", "Run a preconfigured example");
   amap.registerOption("--lambda", "Set the regularization parameter")
       .setArgCount(1).store(&lambda);
+  amap.registerOption("--sample-count", "Set the number of equations used for calibration")
+    .setArgCount(1).store(&sampleCount);
   amap.registerOption("--verbosity", "Set the verbosity")
     .setArgCount(1).store(&verbosity);
 
@@ -75,7 +78,7 @@ int main(int argc, const char **argv) {
   }
 
   if (amap.optionProvided("--ex0")) {
-    ex0(lambda);
+    ex0(lambda, sampleCount);
   } else {
 
   }

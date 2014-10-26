@@ -436,6 +436,7 @@ target_link_libraries(nautical_FilteredNavDataDemo
 
 cxx_test(nautical_CalibrationModelTest
          CalibrationModelTest.cpp
+         common_Uniform
          gtest_main
         )
         
@@ -461,6 +462,7 @@ target_link_libraries(nautical_CalibratedNavData
                       nautical_FilteredNavData
                       math_ADFunction
                       math_nonlinear_Levmar
+                      common_Uniform
                      )       
 
 add_executable(nautical_CalibrationDemo

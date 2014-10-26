@@ -46,7 +46,8 @@ class CalibratedNavData {
  private:
   double _value;
   FilteredNavData _filteredRawData;
-  Arrayd _optimalCalibrationParameters;
+  Arrayd _initialCalibrationParameters,
+    _optimalCalibrationParameters;
   CorrectorSet<adouble>::Ptr _correctorSet;
 };
 

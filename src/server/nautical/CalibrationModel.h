@@ -9,6 +9,7 @@
 #include <cmath>
 #include <server/nautical/SpeedCalib.h>
 #include <memory>
+#include <server/common/Uniform.h>
 
 namespace sail {
 
@@ -24,6 +25,10 @@ class AngleCorrector {
  public:
   virtual int paramCount() const {return 1;}
   virtual void initialize(T *dst) const {dst[0] = 0;}
+  virtual void initializeRandom(T *dst) const {
+    Uniform rng(-0.2, 0.2);
+    dst[0] = rng.gen();
+  }
   virtual Angle<T> correct(T *calibParameters, Angle<T> x) const {
     return Angle<T>::radians(x.radians() + calibParameters[0]);
   }
@@ -48,6 +53,15 @@ class SpeedCorrector {
     dst[2] = SpeedCalib<T>::initCParam();
     dst[3] = SpeedCalib<T>::initAlphaParam();
   }
+
+  virtual void initializeRandom(T *dst) {
+    Uniform rng(-1, 1);
+    dst[0] = SpeedCalib<T>::initKParam() + 0.2*rng.gen();
+    dst[1] = SpeedCalib<T>::initMParam() + 3.0*rng.gen();
+    dst[2] = SpeedCalib<T>::initCParam() + 3.0*rng.gen();
+    dst[3] = SpeedCalib<T>::initAlphaParam() + rng.gen();
+  }
+
   virtual Velocity<T> correct(T *calibParameters, Velocity<T> x) const {
     SpeedCalib<T> calib(calibParameters[0],
         calibParameters[1], calibParameters[2],
