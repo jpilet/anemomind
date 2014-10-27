@@ -60,13 +60,13 @@ namespace {
 
     BaseObjf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr, Arrayd times);
 
-    FilteredNavData _data;
-    CorrectorSet<adouble>::Ptr _corr;
-    Arrayd _times, _weights;
-    LineKM _sampling;
+    FilteredNavData data;
+    CorrectorSet<adouble>::Ptr corr;
+    Arrayd times, weights;
+    LineKM sampling;
 
     adouble balance(adouble *parameters) {
-      return parameters[_corr->paramCount()];
+      return parameters[corr->paramCount()];
     }
     CalibratedValues<adouble> compute(int time, adouble *parameters);
   };
@@ -76,24 +76,24 @@ namespace {
   CalibratedValues<adouble> BaseObjf::compute(int index, adouble *parameters) {
 
     HorizontalMotion<adouble> gpsMotion =
-        HorizontalMotion<adouble>::polar(_data.gpsSpeed().get(index).cast<adouble>(),
-            _data.gpsBearing().get(index).cast<adouble>());
+        HorizontalMotion<adouble>::polar(data.gpsSpeed().get(index).cast<adouble>(),
+            data.gpsBearing().get(index).cast<adouble>());
 
-    return CalibratedValues<adouble>(*_corr,
+    return CalibratedValues<adouble>(*corr,
                   parameters,
                   gpsMotion,
-                  Angle<adouble>::degrees(_data.magHdg().get(index).degrees()),
-                  Velocity<adouble>::knots(makePositive(_data.watSpeed().get(index).knots())),
-                  Angle<adouble>::degrees(_data.awa().get(index).degrees()),
-                  Velocity<adouble>::knots(makePositive(_data.aws().get(index).knots())));
+                  Angle<adouble>::degrees(data.magHdg().get(index).degrees()),
+                  Velocity<adouble>::knots(makePositive(data.watSpeed().get(index).knots())),
+                  Angle<adouble>::degrees(data.awa().get(index).degrees()),
+                  Velocity<adouble>::knots(makePositive(data.aws().get(index).knots())));
   }
 
   BaseObjf::BaseObjf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr,
     Arrayd times) :
-      _data(data), _corr(corr),
-      _times(times),
-      _weights(data.magHdg().interpolateLinearDerivative(times).map<double>([&](Angle<double> x) {return x.degrees();})),
-      _sampling(data.sampling()) {}
+      data(data), corr(corr),
+      times(times),
+      weights(data.magHdg().interpolateLinearDerivative(times).map<double>([&](Angle<double> x) {return x.degrees();})),
+      sampling(data.sampling()) {}
 
 
 
@@ -115,11 +115,11 @@ namespace {
     Objf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr, Arrayd times);
 
     int inDims() {
-      return _base._corr->paramCount() + 1;
+      return _base.corr->paramCount() + 1;
     }
 
     int outDims() {
-      return BaseObjf::eqsPerComparison*_base._times.size();
+      return BaseObjf::eqsPerComparison*_base.times.size();
     }
 
    private:
@@ -136,7 +136,7 @@ namespace {
 
   void Objf::eval(double *Xin, double *Fout, double *Jout) {
     ENTERSCOPE("Evaluating calibration objf");
-    assert(_base._times.size() == _base._weights.size());
+    assert(_base.times.size() == _base.weights.size());
 
 
     Arrayad adX(inDims());
@@ -158,19 +158,19 @@ namespace {
      * reason.
      */
     short int tape = 0;
-    for (int i = 0; i < _base._times.size(); i++) {
+    for (int i = 0; i < _base.times.size(); i++) {
       if (Jout != nullptr) {
         trace_on(tape);
       }
 
       adolcInput(inDims(), adX.getData(), Xin);
       if (i % 10000 == 0) {
-        SCOPEDMESSAGE(INFO, stringFormat("Iteration %d/%d", i, _base._times.size()));
+        SCOPEDMESSAGE(INFO, stringFormat("Iteration %d/%d", i, _base.times.size()));
       }
-      int index = int(floor(_base._sampling.inv(_base._times[i])));
+      int index = int(floor(_base.sampling.inv(_base.times[i])));
       CalibratedValues<adouble> from = _base.compute(index, adX.ptr());
       CalibratedValues<adouble> to = _base.compute(index + 1, adX.ptr());
-      double weight = sqrt(std::abs(_base._weights[i]));
+      double weight = sqrt(std::abs(_base.weights[i]));
       evalDif(weight, from, to, _base.balance(adX.ptr()), adF.getData());
       adolcOutput(4, adF.getData(), Fout + i*_base.eqsPerComparison);
 
