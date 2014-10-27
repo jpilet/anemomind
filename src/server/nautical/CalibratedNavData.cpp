@@ -155,7 +155,8 @@ namespace {
       int index = int(floor(_sampling.inv(_times[i])));
       CalibratedValues<adouble> from = compute(index, adX.ptr());
       CalibratedValues<adouble> to = compute(index + 1, adX.ptr());
-      evalDif(_weights[i], from, to, balance(adX.ptr()), adF.getData());
+      double weight = sqrt(std::abs(_weights[i]));
+      evalDif(weight, from, to, balance(adX.ptr()), adF.getData());
       adolcOutput(4, adF.getData(), Fout + i*eqsPerComparison);
 
       if (Jout != nullptr) {
