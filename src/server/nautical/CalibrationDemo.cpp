@@ -58,6 +58,10 @@ namespace {
   }
 
   void calibrationReport(Array<Arrayd> values) {
+    std::cout << "OPTIMAL PARAMETER VECTORS:" << std::endl;
+    for (int i = 0; i < values.size(); i++) {
+      std::cout << EXPR_AND_VAL_AS_STRING(values[i]) << std::endl;
+    }
     Angle<double> a = Angle<double>::degrees(0);
     DefaultCorrectorSet<double> s;
     std::cout << "A magnetic angle of 0 degs maps to " <<
