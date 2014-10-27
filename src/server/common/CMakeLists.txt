@@ -277,16 +277,7 @@ target_link_libraries(common_ArgMap
                       common_logging
                       common_string
                      )
-                     
-                     
-add_library(common_DataSplits
-            DataSplits.h
-            DataSplits.cpp
-           )
-target_link_libraries(common_DataSplits
-                      common_Uniform
-                     )                                
-
+                                     
 cxx_test(common_ArgMapTest
          ArgMapTest.cpp
          common_ArgMap
@@ -312,3 +303,17 @@ cxx_test(common_ProportionateSamplerTest
          common_ProportionateSampler
          gtest_main
         )
+
+add_library(common_DataSplits
+            DataSplits.h
+            DataSplits.cpp
+           )
+           
+target_link_libraries(common_DataSplits
+                      common_Uniform
+                     )           
+
+add_library(common_MeanAndVar
+            MeanAndVar.h
+            MeanAndVar.cpp
+           )

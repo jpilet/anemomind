@@ -602,6 +602,4 @@ Arrayi GridFitter::getRegCounts() {
 }
 
 
-
-
 } /* namespace sail */

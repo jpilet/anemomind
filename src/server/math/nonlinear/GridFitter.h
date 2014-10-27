@@ -15,6 +15,7 @@
 #include <vector>
 #include <server/math/nonlinear/LevmarSettings.h>
 #include <server/math/MatExpr.h>
+#include <server/common/DataSplits.h>
 
 namespace sail {
 
@@ -136,8 +137,6 @@ class GridFitter {
   Arrayi getRegCounts();
   void writeStatus(int i, arma::mat X, int fsize);
 };
-
-
 
 } /* namespace sail */
 

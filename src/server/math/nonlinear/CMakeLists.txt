@@ -51,6 +51,7 @@ target_link_libraries(math_nonlinear_GridFitter
                       math_nonlinear_StepMinimizer
                       math_pareto
                       math_MatExpr
+                      common_DataSplits
                      )
 target_depends_on_armadillo(math_nonlinear_GridFitter)
 
@@ -78,38 +79,6 @@ add_library(math_nonlinear_NoisyStep
 target_link_libraries(math_nonlinear_NoisyStep
   math_ADFunction
   common_Uniform)
-  
-
-
-add_library(math_nonlinear_GeneralizedTV
-            GeneralizedTV.cpp
-            GeneralizedTV.h
-           )
-target_link_libraries(math_nonlinear_GeneralizedTV
-                      math_BandMat
-                     )           
-
-add_library(math_nonlinear_GeneralizedTVAuto
-            GeneralizedTVAuto.cpp
-            GeneralizedTVAuto.h
-           )
-target_link_libraries(math_nonlinear_GeneralizedTVAuto
-                      math_nonlinear_GeneralizedTV
-                      common_DataSplits
-                      math_nonlinear_StepMinimizer
-                     )
-  
-
-add_executable(math_nonlinear_GeneralizedTVExample
-               GeneralizedTVExample.cpp
-              )
-
-target_link_libraries(math_nonlinear_GeneralizedTVExample
-                       common_Uniform
-                       math_nonlinear_GeneralizedTVAuto
-                       plot_gnuplot
-                       common_ArgMap
-                      )           
 
 #################################################################
 ### SignalFitExamples
@@ -164,3 +133,34 @@ add_executable(examples_SignalFitExampleAutoReg1st2ndOrder
   SignalFitExampleAutoReg1st2ndOrder.cpp)
 target_link_libraries(examples_SignalFitExampleAutoReg1st2ndOrder
   examples_SignalFitExamples)  
+  
+add_library(math_nonlinear_GeneralizedTV
+            GeneralizedTV.h
+            GeneralizedTV.cpp
+           )
+target_link_libraries(math_nonlinear_GeneralizedTV
+                      math_BandMat
+                      common_LineKM
+                      common_Span
+                      common_ScopedLog
+                     )
+
+add_library(math_nonlinear_GeneralizedTVAuto
+            GeneralizedTVAuto.h
+            GeneralizedTVAuto.cpp
+           )
+target_link_libraries(math_nonlinear_GeneralizedTVAuto
+                      math_nonlinear_GeneralizedTV
+                      common_DataSplits
+                      math_nonlinear_StepMinimizer
+                     )
+                     
+add_executable(math_nonlinear_GeneralizedTVExample
+               GeneralizedTVExample.cpp
+              )
+              
+target_link_libraries(math_nonlinear_GeneralizedTVExample
+                      math_nonlinear_GeneralizedTVAuto
+                      plot_gnuplot
+                      common_ArgMap
+                     )
