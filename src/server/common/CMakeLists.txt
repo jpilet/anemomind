@@ -297,3 +297,7 @@ add_library(common_DataSplits
             DataSplits.h
             DataSplits.cpp
            )
+           
+target_link_libraries(common_DataSplits
+                      common_Uniform
+                     )           
