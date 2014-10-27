@@ -95,8 +95,13 @@ namespace {
     SCOPEDMESSAGE(INFO, "Calibrating...");
     Arrayd times = fdata.makeCenteredX();
     int middle = times.size()/2;
-    CalibratedNavData calibA = CalibratedNavData::bestOfInits(9, fdata, times.sliceTo(middle));
-    CalibratedNavData calibB = CalibratedNavData::bestOfInits(9, fdata, times.sliceFrom(middle));
+
+
+    int initCount = 1; // 9
+
+
+    CalibratedNavData calibA = CalibratedNavData::bestOfInits(initCount, fdata, times.sliceTo(middle));
+    CalibratedNavData calibB = CalibratedNavData::bestOfInits(initCount, fdata, times.sliceFrom(middle));
     Array<Arrayd> params = Array<Arrayd>::args(calibA.optimalCalibrationParameters(),
                                                calibB.optimalCalibrationParameters());
     SCOPEDMESSAGE(INFO, "Done calibrating.");
