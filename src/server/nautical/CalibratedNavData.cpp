@@ -54,22 +54,12 @@ namespace {
     return x;
   }
 
-  class Objf : public Function {
+  class BaseObjf {
    public:
     static constexpr int eqsPerComparison = 4;
 
-    Objf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr, Arrayd times);
+    BaseObjf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr, Arrayd times);
 
-    int inDims() {
-      return _corr->paramCount() + 1;
-    }
-
-    int outDims() {
-      return eqsPerComparison*_times.size();
-    }
-
-    void eval(double *Xin, double *Fout, double *Jout);
-   private:
     FilteredNavData _data;
     CorrectorSet<adouble>::Ptr _corr;
     Arrayd _times, _weights;
@@ -79,13 +69,11 @@ namespace {
       return parameters[_corr->paramCount()];
     }
     CalibratedValues<adouble> compute(int time, adouble *parameters);
-    CalibratedValues<adouble> computeTest(int index, adouble *parameters);
-
-    void evalDif(double w, CalibratedValues<adouble> a,
-        CalibratedValues<adouble> b, adouble balance, adouble *dst);
   };
 
-  CalibratedValues<adouble> Objf::compute(int index, adouble *parameters) {
+
+
+  CalibratedValues<adouble> BaseObjf::compute(int index, adouble *parameters) {
 
     HorizontalMotion<adouble> gpsMotion =
         HorizontalMotion<adouble>::polar(_data.gpsSpeed().get(index).cast<adouble>(),
@@ -100,28 +88,55 @@ namespace {
                   Velocity<adouble>::knots(makePositive(_data.aws().get(index).knots())));
   }
 
-  CalibratedValues<adouble> Objf::computeTest(int index, adouble *parameters) {
-    Velocity<adouble> v0 = Velocity<adouble>::knots(1);
-    Angle<adouble> a0 = Angle<adouble>::degrees(0);
-    HorizontalMotion<adouble> gpsMotion =
-        HorizontalMotion<adouble>::polar(v0, a0);
-
-    return CalibratedValues<adouble>(*_corr,
-                  parameters,
-                  gpsMotion,
-                  a0, v0, a0, v0);
-  }
-
-  Objf::Objf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr,
+  BaseObjf::BaseObjf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr,
     Arrayd times) :
       _data(data), _corr(corr),
       _times(times),
       _weights(data.magHdg().interpolateLinearDerivative(times).map<double>([&](Angle<double> x) {return x.degrees();})),
       _sampling(data.sampling()) {}
 
+
+
+  /*
+   * Add a parameter that controls the balance
+   * between the current and wind fitness.
+   */
+  Arrayd addBalanceParam(Arrayd calibParams) {
+    int count = calibParams.size();
+    Arrayd dst(count + 1);
+    dst.last() = 0.5;
+    calibParams.copyToSafe(dst.sliceBut(1));
+    return dst;
+  }
+
+
+  class Objf : public Function {
+   public:
+    Objf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr, Arrayd times);
+
+    int inDims() {
+      return _base._corr->paramCount() + 1;
+    }
+
+    int outDims() {
+      return BaseObjf::eqsPerComparison*_base._times.size();
+    }
+
+   private:
+    BaseObjf _base;
+
+    void evalDif(double w, CalibratedValues<adouble> a,
+        CalibratedValues<adouble> b, adouble balance, adouble *dst);
+    void eval(double *Xin, double *Fout, double *Jout);
+  };
+
+  Objf::Objf(FilteredNavData data, CorrectorSet<adouble>::Ptr corr, Arrayd times) :
+    _base(data, corr, times) {}
+
+
   void Objf::eval(double *Xin, double *Fout, double *Jout) {
     ENTERSCOPE("Evaluating calibration objf");
-    assert(_times.size() == _weights.size());
+    assert(_base._times.size() == _base._weights.size());
 
 
     Arrayad adX(inDims());
@@ -143,21 +158,21 @@ namespace {
      * reason.
      */
     short int tape = 0;
-    for (int i = 0; i < _times.size(); i++) {
+    for (int i = 0; i < _base._times.size(); i++) {
       if (Jout != nullptr) {
         trace_on(tape);
       }
 
       adolcInput(inDims(), adX.getData(), Xin);
       if (i % 10000 == 0) {
-        SCOPEDMESSAGE(INFO, stringFormat("Iteration %d/%d", i, _times.size()));
+        SCOPEDMESSAGE(INFO, stringFormat("Iteration %d/%d", i, _base._times.size()));
       }
-      int index = int(floor(_sampling.inv(_times[i])));
-      CalibratedValues<adouble> from = compute(index, adX.ptr());
-      CalibratedValues<adouble> to = compute(index + 1, adX.ptr());
-      double weight = sqrt(std::abs(_weights[i]));
-      evalDif(weight, from, to, balance(adX.ptr()), adF.getData());
-      adolcOutput(4, adF.getData(), Fout + i*eqsPerComparison);
+      int index = int(floor(_base._sampling.inv(_base._times[i])));
+      CalibratedValues<adouble> from = _base.compute(index, adX.ptr());
+      CalibratedValues<adouble> to = _base.compute(index + 1, adX.ptr());
+      double weight = sqrt(std::abs(_base._weights[i]));
+      evalDif(weight, from, to, _base.balance(adX.ptr()), adF.getData());
+      adolcOutput(4, adF.getData(), Fout + i*_base.eqsPerComparison);
 
       if (Jout != nullptr) {
         trace_off();
@@ -178,18 +193,6 @@ namespace {
     dst[1] = applyCostFun(balance*w*(a.trueWind[1].knots() - b.trueWind[1].knots()), width);
     dst[2] = applyCostFun((1.0 - balance)*w*(a.trueCurrent[0].knots() - b.trueCurrent[0].knots()), width);
     dst[3] = applyCostFun((1.0 - balance)*w*(a.trueCurrent[1].knots() - b.trueCurrent[1].knots()), width);
-  }
-
-  /*
-   * Add a parameter that controls the balance
-   * between the current and wind fitness.
-   */
-  Arrayd addBalanceParam(Arrayd calibParams) {
-    int count = calibParams.size();
-    Arrayd dst(count + 1);
-    dst.last() = 0.5;
-    calibParams.copyToSafe(dst.sliceBut(1));
-    return dst;
   }
 }
 
