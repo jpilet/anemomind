@@ -12,29 +12,69 @@
 #include <server/common/ArrayIO.h>
 #include <server/common/string.h>
 #include <server/common/DataSplits.h>
+#include <server/common/MeanAndVar.h>
 
 using namespace sail;
 
 namespace {
-  void calibrationReport(Arrayd values) {
-    double *p = values.ptr();
+  MeanAndVar getMagHdg(CorrectorSet<double> &s, Array<Arrayd> params,
+    Angle<double> a) {
+    return MeanAndVar(
+        params.map<double>([&](Arrayd p) {
+        return s.magneticHeadingCorrector().correct(s.magneticHeadingParams(p.ptr()),
+            a).degrees();
+      })
+    );
+  }
+
+  MeanAndVar getAwa(CorrectorSet<double> &s, Array<Arrayd> params,
+    Angle<double> a) {
+    return MeanAndVar(
+        params.map<double>([&](Arrayd p) {
+        return s.awaCorrector().correct(s.awaParams(p.ptr()),
+            a).degrees();
+      })
+    );
+  }
+
+  MeanAndVar getAws(CorrectorSet<double> &s, Array<Arrayd> params,
+    Velocity<double> a) {
+    return MeanAndVar(
+        params.map<double>([&](Arrayd p) {
+        return s.awsCorrector().correct(s.awsParams(p.ptr()),
+            a).knots();
+      })
+    );
+  }
+
+  MeanAndVar getWatSpeed(CorrectorSet<double> &s, Array<Arrayd> params,
+    Velocity<double> a) {
+    return MeanAndVar(
+        params.map<double>([&](Arrayd p) {
+        return s.waterSpeedCorrector().correct(s.waterSpeedParams(p.ptr()),
+            a).knots();
+      })
+    );
+  }
+
+  void calibrationReport(Array<Arrayd> values) {
     Angle<double> a = Angle<double>::degrees(0);
     DefaultCorrectorSet<double> s;
     std::cout << "A magnetic angle of 0 degs maps to " <<
-        s.magneticHeadingCorrector().correct(s.magneticHeadingParams(p), a).degrees() << " degrees" << std::endl;
+        getMagHdg(s, values, a) << " degrees" << std::endl;
     std::cout << "An AWA angle of 0 degs maps to " <<
-        s.awaCorrector().correct(s.awaParams(p), a).degrees() << " degrees" << std::endl;
+        getAwa(s, values, a) << " degrees" << std::endl;
     int count = 12;
     LineKM line(0, count-1, log(1.0), log(40.0));
     for (int i = 0; i < count; i++) {
       Velocity<double> vel = Velocity<double>::knots(exp(line(i)));
-      std::cout << "An AWS of " << vel.knots() << " knots maps to " << s.awsCorrector()
-          .correct(s.awsParams(p), vel).knots() << " knots" << std::endl;
+      std::cout << "An AWS of " << vel.knots() << " knots maps to " <<
+          getAws(s, values, vel) << " knots" << std::endl;
     }
     for (int i = 0; i < count; i++) {
       Velocity<double> vel = Velocity<double>::knots(exp(line(i)));
-      std::cout << "A wat speed of " << vel.knots() << " knots maps to " << s.waterSpeedCorrector()
-          .correct(s.waterSpeedParams(p), vel).knots() << " knots" << std::endl;
+      std::cout << "A wat speed of " << vel.knots() << " knots maps to " <<
+      getWatSpeed(s, values, vel) << " knots" << std::endl;
     }
   }
 
@@ -49,11 +89,14 @@ namespace {
     SCOPEDMESSAGE(INFO, "Filtering the data...");
     FilteredNavData fdata(navs.slice(span.minv(), span.maxv()), lambda);
     SCOPEDMESSAGE(INFO, "Calibrating...");
-    Arrayd times = CalibratedNavData::sampleTimes(fdata, sampleCount);
-    CalibratedNavData calib = CalibratedNavData::bestOfInits(9, fdata, times);
+    Arrayd times = fdata.makeCenteredX();
+    int middle = times.size()/2;
+    CalibratedNavData calibA = CalibratedNavData::bestOfInits(9, fdata, times.sliceTo(middle));
+    CalibratedNavData calibB = CalibratedNavData::bestOfInits(9, fdata, times.sliceFrom(middle));
+    Array<Arrayd> params = Array<Arrayd>::args(calibA.optimalCalibrationParameters(),
+                                               calibB.optimalCalibrationParameters());
     SCOPEDMESSAGE(INFO, "Done calibrating.");
-    std::cout << EXPR_AND_VAL_AS_STRING(calib.optimalCalibrationParameters()) << std::endl;
-    calibrationReport(calib.optimalCalibrationParameters());
+    calibrationReport(params);
   }
 }
 

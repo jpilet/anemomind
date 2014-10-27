@@ -29,6 +29,7 @@ class CalibratedNavData {
   }
 
   static Arrayd sampleTimes(FilteredNavData navdata, int count);
+  static Arrayd makeAllTimes(FilteredNavData navdata);
 
   /*
    * Initialize from different starting points to

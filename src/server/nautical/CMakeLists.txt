@@ -475,4 +475,5 @@ target_link_libraries(nautical_CalibrationDemo
                       common_ArgMap
                       nautical_TemporalSplit
                       common_ProportionateSampler
+                      common_MeanAndVar
                      )
