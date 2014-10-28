@@ -17,6 +17,23 @@
 using namespace sail;
 
 namespace {
+  std::string chunkSplitString() {
+    int len = 30;
+    Arrayb x = makeChunkSplit(len);
+    std::string s(len, ' ');
+    for (int i = 0; i < len; i++) {
+      s[i] = (x[i]? '#' : '-');
+    }
+    return s;
+  }
+
+  void chunkSplitDemo() {
+    for (int i = 0; i < 30; i++) {
+      std::cout << chunkSplitString() << std::endl;
+    }
+  }
+
+
   MeanAndVar getMagHdg(CorrectorSet<double> &s, Array<Arrayd> params,
     Angle<double> a) {
     return MeanAndVar(
@@ -82,7 +99,7 @@ namespace {
     }
   }
 
-  void ex0(double lambda, int sampleCount) {
+  void ex0(double lambda) {
     ENTERSCOPE("Running a preconfigured example");
     SCOPEDMESSAGE(INFO, "Loading psaros33 data");
     Array<Nav> navs = scanNmeaFolder(PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -97,15 +114,74 @@ namespace {
     int middle = times.size()/2;
 
 
-    int initCount = 1; // 9
-
-
-    CalibratedNavData calibA = CalibratedNavData::bestOfInits(initCount, fdata, times.sliceTo(middle));
-    CalibratedNavData calibB = CalibratedNavData::bestOfInits(initCount, fdata, times.sliceFrom(middle));
+    CalibratedNavData calibA = CalibratedNavData(fdata, times.sliceTo(middle));
+    CalibratedNavData calibB = CalibratedNavData(fdata, times.sliceFrom(middle));
     Array<Arrayd> params = Array<Arrayd>::args(calibA.optimalCalibrationParameters(),
                                                calibB.optimalCalibrationParameters());
     SCOPEDMESSAGE(INFO, "Done calibrating.");
     calibrationReport(params);
+  }
+
+  void cmp1(double lambda) {
+    ENTERSCOPE("Compare several methods");
+     SCOPEDMESSAGE(INFO, "Loading psaros33 data");
+     Array<Nav> navs = scanNmeaFolder(PathBuilder::makeDirectory(Env::SOURCE_DIR)
+       .pushDirectory("datasets/psaros33_Banque_Sturdza").get(),
+       Nav::debuggingBoatId());
+
+     Array<Spani> spans = recursiveTemporalSplit(navs);
+     Spani span = spans[5];
+     SCOPEDMESSAGE(INFO, "Filtering the data...");
+     FilteredNavData fdata(navs.slice(span.minv(), span.maxv()), lambda);
+     SCOPEDMESSAGE(INFO, "Calibrating...");
+
+     Arrayd times = fdata.makeCenteredX();
+
+     int splitCount = 8;
+
+     Array<Arrayb> splits = makeChunkSplits(splitCount, times.size(), 0.7);
+
+     int settingCounter = 0;
+     int settingCount = CalibratedNavData::Settings::COST_TYPE_COUNT*CalibratedNavData::Settings::WEIGHT_TYPE_COUNT;
+     assert(settingCount == 6);
+     int totalCount = splitCount*settingCount;
+     int totalCounter = 0;
+     assert(totalCount == 48);
+     CalibratedNavData::Settings settings;
+     Array<Array<CalibratedNavData> > resultsPerSetting(settingCount);
+     for (int i = 0; i < CalibratedNavData::Settings::COST_TYPE_COUNT; i++) {
+       settings.costType = CalibratedNavData::Settings::CostType(i);
+       for (int j = 0; j < CalibratedNavData::Settings::WEIGHT_TYPE_COUNT; j++) {
+         settings.weightType = CalibratedNavData::Settings::WeightType(j);
+         Array<CalibratedNavData> results(splitCount);
+         for (int k = 0; k < splitCount; k++) {
+           ENTERSCOPE(stringFormat("CMP1 ITERATION %d/%d", totalCounter+1, totalCount));
+           results[k] = CalibratedNavData(fdata, times.slice(splits[k]),
+               CorrectorSet<adouble>::Ptr(), settings);
+
+
+           totalCounter++;
+         }
+         resultsPerSetting[settingCounter] = results;
+
+
+
+
+         settingCounter++;
+       }
+     }
+     assert(settingCount == settingCounter);
+
+     for (int i = 0; i < settingCount; i++) {
+       resultsPerSetting[i][0].outputGeneralInfo(&std::cout);
+       Array<Arrayd> params = resultsPerSetting[i].map<Arrayd>([&](CalibratedNavData x) {
+         return x.optimalCalibrationParameters();
+       });
+       calibrationReport(params);
+     }
+
+     SCOPEDMESSAGE(INFO, "Done calibrating.");
+
   }
 }
 
@@ -115,6 +191,7 @@ int main(int argc, const char **argv) {
   int verbosity = 9;
   int sampleCount = 30000;
   amap.registerOption("--ex0", "Run a preconfigured example");
+  amap.registerOption("--ex0-cmp-1", "Run a systematic comparison of different strategies using Objf1");
   amap.registerOption("--lambda", "Set the regularization parameter")
       .setArgCount(1).store(&lambda);
   amap.registerOption("--sample-count", "Set the number of equations used for calibration")
@@ -131,9 +208,9 @@ int main(int argc, const char **argv) {
   }
 
   if (amap.optionProvided("--ex0")) {
-    ex0(lambda, sampleCount);
-  } else {
-
+    ex0(lambda);
+  } else if (amap.optionProvided("--cmp1")) {
+    cmp1(lambda);
   }
 
   return 0;

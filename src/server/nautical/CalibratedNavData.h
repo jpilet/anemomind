@@ -16,12 +16,31 @@ namespace sail {
 
 class CalibratedNavData {
  public:
-  CalibratedNavData() : _cost(1.0e20), _initCost(1.0e20) {}
+  class Settings {
+   public:
+    LevmarSettings levmar;
+
+    Settings();
+
+    enum CostType {L2_COST, L1_COST, COST_TYPE_COUNT};
+    CostType costType;
+
+
+    enum WeightType {DIRECT, SQRT_ABS, UNIFORM, WEIGHT_TYPE_COUNT};
+    WeightType weightType;
+
+    static const char *costTypeString(CostType costType);
+    static const char *weightTypeString(WeightType weightType);
+  };
+
+
+  CalibratedNavData() : _cost(1.0e20), _initCost(1.0e20),
+      _costType(Settings::COST_TYPE_COUNT), _weightType(Settings::WEIGHT_TYPE_COUNT) {}
   CalibratedNavData(FilteredNavData filteredData,
       Arrayd times = Arrayd(),
       CorrectorSet<adouble>::Ptr correctorSet =
                 CorrectorSet<adouble>::Ptr(),
-               LevmarSettings settings = LevmarSettings(),
+               Settings settings = Settings(),
                Arrayd initialization = Arrayd());
 
   const Arrayd optimalCalibrationParameters() const {
@@ -40,14 +59,14 @@ class CalibratedNavData {
       FilteredNavData fdata, Arrayd times = Arrayd(),
       CorrectorSet<adouble>::Ptr correctorSet =
                 CorrectorSet<adouble>::Ptr(),
-               LevmarSettings settings = LevmarSettings());
+               Settings settings = Settings());
 
 
   static CalibratedNavData bestOfInits(int initCount,
       FilteredNavData fdata, Arrayd times = Arrayd(),
       CorrectorSet<adouble>::Ptr correctorSet =
                 CorrectorSet<adouble>::Ptr(),
-               LevmarSettings settings = LevmarSettings());
+               Settings settings = Settings());
 
   bool operator< (const CalibratedNavData &other) const {
     return _cost < other._cost;
@@ -60,12 +79,16 @@ class CalibratedNavData {
   double initCost() const {
     return _initCost;
   }
+
+  void outputGeneralInfo(std::ostream *dst) const;
  private:
   double _cost, _initCost;
   FilteredNavData _filteredRawData;
   Arrayd _initialCalibrationParameters,
     _optimalCalibrationParameters;
   CorrectorSet<adouble>::Ptr _correctorSet;
+  Settings::CostType _costType;
+  Settings::WeightType _weightType;
 };
 
 }

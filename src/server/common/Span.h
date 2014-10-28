@@ -131,6 +131,10 @@ class Span {
     assert(initialized());
     return _maxv - _minv;
   }
+
+  T middle() const {
+    return (_minv + _maxv)/2;
+  }
  private:
   bool _initialized;
   T _minv, _maxv;

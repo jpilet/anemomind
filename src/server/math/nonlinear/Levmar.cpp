@@ -84,6 +84,7 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun) {
     double rho = -1;
 
     double norm2F = norm2(_Fscratch.n_elem, _Fscratch.memptr());
+    SCOPEDMESSAGE(INFO, stringFormat("Current cost: %.8g", norm2F));
 
     while (!(_stop || rho > 0)) {
       assert(!std::isnan(_mu));

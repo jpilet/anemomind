@@ -24,6 +24,8 @@ class Function {
   void evalNumericJacobian(double *Xin, double *JNumOut, double h = 1.0e-6);
   double evalScalar(double *Xin);
 
+  double maxNumJacDif(double *X, double h = 1.0e-6);
+
   double calcSquaredNorm(double *X, double *Fscratch = nullptr);
   virtual ~Function() {}
 };

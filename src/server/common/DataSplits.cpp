@@ -5,6 +5,7 @@
 
 #include "DataSplits.h"
 #include <server/common/Uniform.h>
+#include <algorithm>
 
 namespace sail {
 
@@ -38,16 +39,52 @@ Array<Arrayb> makeRandomSplits(int numSplits, int size) {
   return dst;
 }
 
-Arrayb makeSlidedSplit(int count) {
-  Uniform rng(count);
-  int offset = rng.genInt();
-  int middle = count/2;
-  Arrayb dst(count);
-  for (int i = 0; i < count; i++) {
-    dst[(offset + i) % count] = i < middle;
+namespace {
+
+  Arrayb initializeMarked(int len) {
+    Arrayb marked(len);
+    int middle = marked.size()/2;
+    marked.sliceTo(middle).setTo(false);
+    marked.sliceFrom(middle).setTo(true);
+    return marked;
   }
-  return dst;
+
+  Arrayb rotate(Arrayb src) {
+    int len = src.size();
+    Uniform rng(len);
+    int offset = rng.gen();
+    Arrayb dst(len);
+    for (int i = 0; i < len; i++) {
+      dst[i] = src[(i + offset) % len];
+    }
+    return dst;
+  }
 }
+
+Arrayb makeChunkSplit(int length, double probNext) {
+  assert(0 < probNext);
+  assert(probNext < 1.0);
+  Arrayb marked = initializeMarked(length);
+  int middle = length/2;
+  Uniform rng(0, 1);
+  while (true) {
+    marked = rotate(marked);
+    if (rng.gen() < probNext) {
+      std::reverse(marked.begin(), marked.ptr(middle));
+    } else {
+      break;
+    }
+  }
+  return marked;
+}
+
+Array<Arrayb> makeChunkSplits(int count, int length, double probNext) {
+  return Array<Arrayb>::fill(count, [=](int indexNotUsed) {
+    return makeChunkSplit(length, probNext);
+  });
+}
+
+
 
 
 }

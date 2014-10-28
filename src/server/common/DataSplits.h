@@ -13,6 +13,8 @@ namespace sail {
 Arrayb makeRandomSplit(int size);
 Array<Arrayb> makeRandomSplits(int numSplits, int size);
 Arrayb makeSlidedSplit(int count);
+Arrayb makeChunkSplit(int length, double probNext = 0.7);
+Array<Arrayb> makeChunkSplits(int count, int length, double probNext = 0.7);
 
 }
 
