@@ -122,7 +122,7 @@ namespace {
     calibrationReport(params);
   }
 
-  void cmp1(double lambda) {
+  void cmp0(double lambda) {
     ENTERSCOPE("Compare several methods");
      SCOPEDMESSAGE(INFO, "Loading psaros33 data");
      Array<Nav> navs = scanNmeaFolder(PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -181,6 +181,26 @@ namespace {
      }
 
      SCOPEDMESSAGE(INFO, "Done calibrating.");
+  }
+
+
+  void plot0(double lambda) {
+    ENTERSCOPE("Plot true wind and current");
+    SCOPEDMESSAGE(INFO, "Loading psaros33 data");
+    Array<Nav> navs = scanNmeaFolder(PathBuilder::makeDirectory(Env::SOURCE_DIR)
+      .pushDirectory("datasets/psaros33_Banque_Sturdza").get(),
+      Nav::debuggingBoatId());
+    Array<Spani> spans = recursiveTemporalSplit(navs);
+    Spani span = spans[5];
+    SCOPEDMESSAGE(INFO, "Filtering the data...");
+    FilteredNavData fdata(navs.slice(span.minv(), span.maxv()), lambda);
+    SCOPEDMESSAGE(INFO, "Calibrating...");
+    Arrayd times = fdata.makeCenteredX();
+    int middle = times.size()/2;
+
+
+    CalibratedNavData calib(fdata, times);
+
 
   }
 }
@@ -209,9 +229,10 @@ int main(int argc, const char **argv) {
 
   if (amap.optionProvided("--ex0")) {
     ex0(lambda);
-  } else if (amap.optionProvided("--cmp1")) {
-    chunkSplitDemo();
-    cmp1(lambda);
+  } else if (amap.optionProvided("--cmp0")) {
+    cmp0(lambda);
+  } else if (amap.optionArgs("--plot0")) {
+
   }
 
   return 0;
