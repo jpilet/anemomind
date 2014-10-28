@@ -210,6 +210,7 @@ int main(int argc, const char **argv) {
   if (amap.optionProvided("--ex0")) {
     ex0(lambda);
   } else if (amap.optionProvided("--cmp1")) {
+    chunkSplitDemo();
     cmp1(lambda);
   }
 

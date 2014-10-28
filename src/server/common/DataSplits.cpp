@@ -49,15 +49,11 @@ namespace {
     return marked;
   }
 
-  Arrayb rotate(Arrayb src) {
+  void rotateRandom(Arrayb src) {
     int len = src.size();
     Uniform rng(len);
     int offset = rng.gen();
-    Arrayb dst(len);
-    for (int i = 0; i < len; i++) {
-      dst[i] = src[(i + offset) % len];
-    }
-    return dst;
+    std::rotate(src.begin(), src.begin() + offset, src.end());
   }
 }
 
@@ -67,14 +63,10 @@ Arrayb makeChunkSplit(int length, double probNext) {
   Arrayb marked = initializeMarked(length);
   int middle = length/2;
   Uniform rng(0, 1);
-  while (true) {
-    marked = rotate(marked);
-    if (rng.gen() < probNext) {
-      std::reverse(marked.begin(), marked.ptr(middle));
-    } else {
-      break;
-    }
-  }
+  do {
+    std::reverse(marked.begin(), marked.ptr(middle));
+    rotateRandom(marked);
+  } while (rng.gen() < probNext);
   return marked;
 }
 
