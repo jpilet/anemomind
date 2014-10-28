@@ -6,6 +6,7 @@ var upload = require('./controllers/upload');
 var session = require('./controllers/session');
 var races = require('./controllers/races');
 var tiles = require('./controllers/tiles');
+var tilesGeoJSON = require('./controllers/tilesGeoJSON');
 
 var middleware = require('./middleware');
 
@@ -30,6 +31,7 @@ module.exports = function(app) {
   app.get('/api/races/:id', middleware.auth, races.raceDetail);
 
   app.get('/api/tiles/:scale/:x/:y/:boat', tiles.retrieve);
+  app.get('/api/tilesGeoJSON/:scale/:x/:y/:boat', tilesGeoJSON.retrieve);
 
   // All undefined api routes should return a 404
   app.get('/api/*', function(req, res) {

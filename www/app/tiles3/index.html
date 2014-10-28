@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bol d'or</title>
+
+    <link rel="stylesheet" href="//leafletjs.com/dist/leaflet.css" />
+    <!--[if lte IE 8]>
+        <link rel="stylesheet" href="/static/leaflet/leaflet.ie.css" />
+    <![endif]-->
+    <script src="../bower_components/jquery/dist/jquery.js"></script>
+    <script src="../bower_components/leaflet/dist/leaflet.js"></script>
+    <script src="../bower_components/leaflet-tilelayer-geojson/TileLayer.GeoJSON.js"></script>
+    <script src="AnimatedMarker.js"></script>
+
+    <style type="text/css">
+    html, body, #map {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <script type="text/javascript">
+    var map = new L.Map('map'),
+        cloudmadeUrl = 'http://{s}.tiles.mapbox.com/v3/openplans.map-g4j0dszr/{z}/{x}/{y}.png',
+        // cloudmadeUrl = 'http://{s}.tile.cloudmade.com/1a1b06b230af4efdbb989ea99e9841af/997/256/{z}/{x}/{y}.png',
+        cloudmadeAttribution = 'Map data &copy; OpenStreetMap contributors, Anemomind';
+    
+    map.setView(new L.LatLng(46.4, 6.5), 10);
+
+    var baseLayer = new L.TileLayer(cloudmadeUrl, { attribution: cloudmadeAttribution});
+    map.addLayer(baseLayer);
+
+    var style = {
+        "clickable": true,
+        "color": "#0AF",
+        "weight": 5,
+        "opacity": 0.5
+    };
+    var hoverStyle = {
+        "opacity": 0.5,
+        "color": "#d10046",
+    };
+
+    var animPath = [];
+
+    var geojsonURL = '../api/tilesGeoJSON/{z}/{x}/{y}/Irene';
+    var geojsonTileLayer = new L.TileLayer.GeoJSON(geojsonURL, {
+            clipTiles: true,
+            unique: function (feature) { 
+
+                // animPath.push.apply(animPath, feature.geometry.coordinates);
+                    
+                // var geometriesLength = feature.geometry.geometries.length
+                // for (var i = 0; i < feature.geometry.geometries.length; i++) {
+                //     animPath.push.apply(animPath, feature.geometry.geometries[i].coordinates)
+                //     //Do something
+                // }
+                return feature.id;
+            }
+        }, {
+            style: style,
+            onEachFeature: function (feature, layer) {
+                if (feature.properties) {
+                    var popupString = '<div class="popup">';
+                    for (var k in feature.properties) {
+                        var v = feature.properties[k];
+                        popupString += k + ': ' + v + '<br />';
+                    }
+                    popupString += '</div>';
+                    layer.bindPopup(popupString);
+                }
+                if (!(layer instanceof L.Point)) {
+                    layer.on('mouseover', function () {
+                        layer.setStyle(hoverStyle);
+                    });
+                    layer.on('mouseout', function () {
+                        layer.setStyle(style);
+                    });
+                }
+            }
+        }
+    );
+    var line = L.polyline(animPath);
+    console.dir(line);
+    // animatedMarker = L.animatedMarker(line.getLatLngs());
+    // map.addLayer(animatedMarker);
+    map.addLayer(geojsonTileLayer);
+    </script>
+</body>
+</html>
