@@ -39,8 +39,6 @@ namespace {
 TEST(GeneralizedTVTest, Test) {
 
   RandomEngine::EngineType engine = RandomEngine::EngineType(0);
-
-  engine.seed(0);
   Arrayd gt = makeGT();
   Arrayd noisy = addNoise(gt, 0.5, engine);
 
