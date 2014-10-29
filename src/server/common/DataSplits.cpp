@@ -9,13 +9,14 @@
 
 namespace sail {
 
-Arrayb makeRandomSplit(int count) {
+Arrayb makeRandomSplit(int count, RandomEngine::EngineType *e) {
   assert(count >= 2);
-  Uniform rng(0.0, 1.0);
+  RandomEngine::EngineType &engine = RandomEngine::get(e);
+  std::uniform_real_distribution<double> distrib(0, 1);
   Arrayb split(count);
   int trueCount = 0;
   for (int i = 0; i < count; i++) {
-    bool incl = rng.gen() > 0.5;
+    bool incl = distrib(engine) > 0.5;
     split[i] = incl;
     trueCount += (incl? 1 : 0);
   }
@@ -24,23 +25,22 @@ Arrayb makeRandomSplit(int count) {
                                               //     gular matrices. Therefore, find a
                                               //     new split.
 
-    return makeRandomSplit(count); // <-- Infinite recursion will not happen: The probability that
+    return makeRandomSplit(count, e); // <-- Infinite recursion will not happen: The probability that
                                    //     we will have found a valid split after N tries tends
                                    //     to 1 as N tends towards infinity. However, we require count >= 2.
   }
   return split;
 }
 
-Array<Arrayb> makeRandomSplits(int numSplits, int size) {
+Array<Arrayb> makeRandomSplits(int numSplits, int size, RandomEngine::EngineType *e) {
   Array<Arrayb> dst(numSplits);
   for (int i = 0; i < numSplits; i++) {
-    dst[i] = makeRandomSplit(size);
+    dst[i] = makeRandomSplit(size, e);
   }
   return dst;
 }
 
 namespace {
-
   Arrayb initializeMarked(int len) {
     Arrayb marked(len);
     int middle = marked.size()/2;
@@ -49,30 +49,33 @@ namespace {
     return marked;
   }
 
-  void rotateRandom(Arrayb src) {
+  void rotateRandom(Arrayb src, RandomEngine::EngineType *e) {
     int len = src.size();
-    Uniform rng(len);
-    int offset = rng.gen();
+    //Uniform rng(len);
+    std::uniform_int_distribution<int> distrib(0, len-1);
+    int offset = distrib(RandomEngine::get(e));
     std::rotate(src.begin(), src.begin() + offset, src.end());
   }
 }
 
-Arrayb makeChunkSplit(int length, double probNext) {
+Arrayb makeChunkSplit(int length, double probNext, RandomEngine::EngineType *e) {
   assert(0 < probNext);
   assert(probNext < 1.0);
   Arrayb marked = initializeMarked(length);
   int middle = length/2;
-  Uniform rng(0, 1);
+  RandomEngine::EngineType &eng = RandomEngine::get(e);
+  std::uniform_real_distribution<double> next(0, 1);
   do {
     std::reverse(marked.begin(), marked.ptr(middle));
-    rotateRandom(marked);
-  } while (rng.gen() < probNext);
+    rotateRandom(marked, e);
+  } while (next(eng) < probNext);
   return marked;
 }
 
-Array<Arrayb> makeChunkSplits(int count, int length, double probNext) {
+Array<Arrayb> makeChunkSplits(int count, int length, double probNext,
+    RandomEngine::EngineType *e) {
   return Array<Arrayb>::fill(count, [=](int indexNotUsed) {
-    return makeChunkSplit(length, probNext);
+    return makeChunkSplit(length, probNext, e);
   });
 }
 

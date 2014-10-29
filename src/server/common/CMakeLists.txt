@@ -293,6 +293,7 @@ add_library(common_JsonIO
 target_depends_on_poco_json(common_JsonIO)
 
 
+
 add_library(common_ProportionateSampler
            ProportionateSampler.cpp
            ProportionateSampler.h
@@ -304,13 +305,18 @@ cxx_test(common_ProportionateSamplerTest
          gtest_main
         )
 
+add_library(common_RandomEngine
+            RandomEngine.h
+            RandomEngine.cpp
+           )
+
+
 add_library(common_DataSplits
             DataSplits.h
             DataSplits.cpp
            )
-           
 target_link_libraries(common_DataSplits
-                      common_Uniform
+                      common_RandomEngine
                      )           
 
 add_library(common_MeanAndVar

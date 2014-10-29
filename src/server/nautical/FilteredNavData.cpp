@@ -75,7 +75,7 @@ namespace {
       if (mode == FilteredNavData::SIGNAL) {
         plot.plot_xy(rawTimesSeconds, toDouble(rawValues), "Raw signal");
       }
-      Arrayd X = filtered.makeCentredX();
+      Arrayd X = filtered.makeCenteredX();
       if (mode == FilteredNavData::SIGNAL) {
         Arrayd Y = toDouble(filtered.interpolateLinear(X));
         plot.plot_xy(X, Y, "Filtered signal");
@@ -177,7 +177,7 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
 }
 
 Arrayd FilteredNavData::makeCenteredX() const {
-  return _awa.makeCentredX();
+  return _awa.makeCenteredX();
 }
 
 }

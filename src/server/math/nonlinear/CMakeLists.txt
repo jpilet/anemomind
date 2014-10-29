@@ -164,3 +164,9 @@ target_link_libraries(math_nonlinear_GeneralizedTVExample
                       plot_gnuplot
                       common_ArgMap
                      )
+
+cxx_test(math_nonlinear_GeneralizedTVTest
+         GeneralizedTVTest.cpp
+         math_nonlinear_GeneralizedTV
+         gtest_main
+        )

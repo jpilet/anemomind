@@ -6,20 +6,26 @@
 #include <server/common/ArgMap.h>
 #include <server/common/LineKM.h>
 #include <server/math/nonlinear/GeneralizedTVAuto.h>
-#include <server/common/Uniform.h>
 #include <server/plot/extra.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
+#include <server/common/RandomEngine.h>
 
 using namespace sail;
 
 namespace {
-  constexpr int fifth = 100;
-  constexpr int count = 5*fifth;
+  /*
+   * Some definitions related to the shape of the test
+   * signal. It consists of 5 parts, where the two
+   * first parts are 0, the third part is a slope from
+   * 0 to 1 and the last two parts are 1.
+   */
+  constexpr int partCount = 100;
+  constexpr int sampleCount = 5*partCount;
 
   double testfun(double x) {
-    int a = 2*fifth;
-    int b = a + fifth;
+    int a = 2*partCount;
+    int b = a + partCount;
     if (x < a) {
       return 0;
     } else if (x < b) {
@@ -29,12 +35,13 @@ namespace {
   }
 
   Arrayd makeGT() {
-    return Arrayd::fill(count, [](int i) {return testfun(i);});
+    return Arrayd::fill(sampleCount, [](int i) {return testfun(i);});
   }
 
   Arrayd addNoise(Arrayd Y, double noise) {
-    Uniform rng(-noise, noise);
-    return Y.map<double>([&](double x) {return x + rng.gen();});
+    std::uniform_real_distribution<double> distrib(-noise, noise);
+    RandomEngine::EngineType &engine = RandomEngine::get(nullptr);
+    return Y.map<double>([&](double x) {return x + distrib(engine);});
   }
 }
 
@@ -77,7 +84,7 @@ int main(int argc, const char **argv) {
     GeneralizedTV tv(iters);
     Arrayd Ygt = makeGT();
     Arrayd Ynoisy = addNoise(Ygt, noise);
-    Arrayd X = GeneralizedTV::makeDefaultX(count);
+    Arrayd X = GeneralizedTV::makeDefaultX(sampleCount);
 
     UniformSamplesd Yfiltered;
     if (amap.optionProvided("--auto")) {

@@ -63,7 +63,7 @@ class UniformSamples {
     return _samples.empty();
   }
 
-  Arrayd makeCentredX() const {
+  Arrayd makeCenteredX() const {
     int sampleCount = _samples.size() - 1;
     LineKM map(0, 1, _sampling(0.5), _sampling(1.5));
     Arrayd dst(sampleCount);

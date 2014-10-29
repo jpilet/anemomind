@@ -79,7 +79,7 @@ double GeneralizedTVAuto::optimizeRegWeight(UniformSamplesd initialSignal,
                 Arrayd X, Arrayd Y,
                 int order,
                 Array<Arrayb> initSplits) const {
-  ENTERSCOPE("GeneralizedTVAuto::optimizeRegWeight");
+  ENTER_FUNCTION_SCOPE;
   assert(X.size() == Y.size());
   Array<Arrayb> splits = makeDefaultSplits(initSplits, X.size());
   std::function<double(double)> objf = [=] (double x) {

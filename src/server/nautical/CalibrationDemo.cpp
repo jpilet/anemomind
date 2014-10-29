@@ -231,7 +231,7 @@ int main(int argc, const char **argv) {
     ex0(lambda);
   } else if (amap.optionProvided("--cmp0")) {
     cmp0(lambda);
-  } else if (amap.optionArgs("--plot0")) {
+  } else if (amap.optionProvided("--plot0")) {
 
   }
 

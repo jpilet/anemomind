@@ -57,6 +57,8 @@ class ScopedLog {
 #define ENTERSCOPE(SCOPENAME) ScopedLog _slog; \
   if (ScopedLog::shouldBeDisplayed(LOGLEVEL_INFO)) {_slog.enter(__FILE__, __LINE__, SCOPENAME);}
 
+#define ENTER_FUNCTION_SCOPE ENTERSCOPE(__FUNCTION__)
+
 // TODO: Provide stream-like syntax, so that we have
 //    LOG(INFO) << ...
 //  and

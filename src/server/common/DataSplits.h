@@ -7,14 +7,14 @@
 #define DATASPLITS_H_
 
 #include <server/common/Array.h>
+#include <server/common/RandomEngine.h>
 
 namespace sail {
 
-Arrayb makeRandomSplit(int size);
-Array<Arrayb> makeRandomSplits(int numSplits, int size);
-Arrayb makeSlidedSplit(int count);
-Arrayb makeChunkSplit(int length, double probNext = 0.7);
-Array<Arrayb> makeChunkSplits(int count, int length, double probNext = 0.7);
+Arrayb makeRandomSplit(int size, RandomEngine::EngineType *e = nullptr);
+Array<Arrayb> makeRandomSplits(int numSplits, int size, RandomEngine::EngineType *e = nullptr);
+Arrayb makeChunkSplit(int length, double probNext = 0.7, RandomEngine::EngineType *e = nullptr);
+Array<Arrayb> makeChunkSplits(int count, int length, double probNext = 0.7, RandomEngine::EngineType *e = nullptr);
 
 }
 
