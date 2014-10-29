@@ -8,13 +8,14 @@
 
 namespace sail {
 
-Arrayb makeRandomSplit(int count) {
+Arrayb makeRandomSplit(int count, RandomEngine::EngineType *e) {
   assert(count >= 2);
-  Uniform rng(0.0, 1.0);
+  RandomEngine::EngineType &engine = RandomEngine::get(e);
+  std::uniform_real_distribution<double> distrib(0, 1);
   Arrayb split(count);
   int trueCount = 0;
   for (int i = 0; i < count; i++) {
-    bool incl = rng.gen() > 0.5;
+    bool incl = distrib(engine) > 0.5;
     split[i] = incl;
     trueCount += (incl? 1 : 0);
   }
@@ -30,17 +31,18 @@ Arrayb makeRandomSplit(int count) {
   return split;
 }
 
-Array<Arrayb> makeRandomSplits(int numSplits, int size) {
+Array<Arrayb> makeRandomSplits(int numSplits, int size, RandomEngine::EngineType *e) {
   Array<Arrayb> dst(numSplits);
   for (int i = 0; i < numSplits; i++) {
-    dst[i] = makeRandomSplit(size);
+    dst[i] = makeRandomSplit(size, e);
   }
   return dst;
 }
 
-Arrayb makeSlidedSplit(int count) {
-  Uniform rng(count);
-  int offset = rng.genInt();
+Arrayb makeSlidedSplit(int count, RandomEngine::EngineType *e) {
+  RandomEngine::EngineType &engine = RandomEngine::get(e);
+  std::uniform_int_distribution<int> distrib(0, count-1);
+  int offset = distrib(engine);
   int middle = count/2;
   Arrayb dst(count);
   for (int i = 0; i < count; i++) {

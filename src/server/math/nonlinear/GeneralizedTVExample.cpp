@@ -6,10 +6,10 @@
 #include <server/common/ArgMap.h>
 #include <server/common/LineKM.h>
 #include <server/math/nonlinear/GeneralizedTVAuto.h>
-#include <server/common/Uniform.h>
 #include <server/plot/extra.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
+#include <server/common/RandomEngine.h>
 
 using namespace sail;
 
@@ -39,8 +39,9 @@ namespace {
   }
 
   Arrayd addNoise(Arrayd Y, double noise) {
-    Uniform rng(-noise, noise);
-    return Y.map<double>([&](double x) {return x + rng.gen();});
+    std::uniform_real_distribution<double> distrib(-noise, noise);
+    RandomEngine::EngineType &engine = RandomEngine::get(nullptr);
+    return Y.map<double>([&](double x) {return x + distrib(engine);});
   }
 }
 

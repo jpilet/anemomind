@@ -8,7 +8,7 @@
 
 #include <random>
 
-namespace {
+namespace sail {
 
 class RandomEngine {
  public:
