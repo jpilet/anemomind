@@ -16,7 +16,6 @@ ArgMap::ArgMap() {
   _successfullyParsed = false;
   _optionPrefix = "-";
   registerOption("--help", "Displays information about available commands.").setMinArgCount(0).setMaxArgCount(0);
-  registerOption("-h", "shortcut for --help").setMinArgCount(0).setMaxArgCount(0);
   setHelpInfo("(no help or usage information specified)");
 }
 
@@ -44,9 +43,9 @@ bool ArgMap::readOptionAndParseSub(TempArgMap &tempmap, Option info, Arg *opt, A
 
     // Check if there are not enough arguments for this option.
     if (count < info.minArgCount()) {
-      LOG(ERROR) << "Too few values provided to the " << opt->valueUntraced() << " option.";
-      LOG(ERROR) << "You provided " << count << " values, but "
-          << info.minArgCount() << " required.";
+      std::cout << "Too few values provided to the " << opt->valueUntraced() << " option." << std::endl;
+      std::cout << "You provided " << count << " values, but "
+          << info.minArgCount() << " required." << std::endl;
       return false;
     }
 
@@ -66,15 +65,11 @@ bool ArgMap::parseSub(TempArgMap &tempmap, Array<Arg*> args) {
     Array<Arg*> rest = args.sliceFrom(1);
     if (first->isOption(_optionPrefix)) {
       const std::string &s = first->valueUntraced();
-      if (_options.find(s) == _options.end()) {
-        LOG(ERROR) << "Unknown option: " << s;
-        return false;
-      }
       Option info = _options[s];
       TempArgs &targs = tempmap[s];
       ArrayBuilder<Arg*> &acc = targs.getArgsForNewOption(first);
       if (info.unique() && targs.optionCount() > 1) {
-        LOG(ERROR) << "You can provide the " << s << " option at most once.";
+        std::cout << "You can provide the " << s << " option at most once." << std::endl;
         return false;
       }
       return readOptionAndParseSub(tempmap, info, first, rest, acc);
@@ -100,7 +95,7 @@ bool ArgMap::hasAllRequiredArgs(std::map<std::string, Option> &options, TempArgM
       i != options.end(); i++) {
     if (i->second.required()) {
       if (tempmap.find(i->first) == tempmap.end()) {
-        LOG(ERROR) << "Missing required option " << i->first;
+        std::cout << "Missing required option " << i->first << std::endl;
         return false;
       }
     }
@@ -135,7 +130,7 @@ bool ArgMap::parse(int argc0, const char **argv0) {
 
 bool ArgMap::parseAndHelp(int argc, const char **argv) {
   bool s = parse(argc, argv);
-  if (!s || optionProvided("--help") || optionProvided("-h")) {
+  if (!s || optionProvided("--help")) {
     dispHelp(&(std::cout));
   }
   return s;
