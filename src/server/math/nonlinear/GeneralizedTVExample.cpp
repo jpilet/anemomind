@@ -9,7 +9,6 @@
 #include <server/plot/extra.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
-#include <server/common/RandomEngine.h>
 
 using namespace sail;
 
@@ -38,14 +37,14 @@ namespace {
     return Arrayd::fill(sampleCount, [](int i) {return testfun(i);});
   }
 
-  Arrayd addNoise(Arrayd Y, double noise) {
+  Arrayd addNoise(Arrayd Y, double noise, std::default_random_engine &engine) {
     std::uniform_real_distribution<double> distrib(-noise, noise);
-    RandomEngine::EngineType &engine = RandomEngine::get(nullptr);
     return Y.map<double>([&](double x) {return x + distrib(engine);});
   }
 }
 
 int main(int argc, const char **argv) {
+  std::default_random_engine engine(0);
   ArgMap amap;
   int order = 2;
   double lambda = 60.0;
@@ -83,12 +82,12 @@ int main(int argc, const char **argv) {
     ScopedLog::setDepthLimit(verbosity);
     GeneralizedTV tv(iters);
     Arrayd Ygt = makeGT();
-    Arrayd Ynoisy = addNoise(Ygt, noise);
+    Arrayd Ynoisy = addNoise(Ygt, noise, engine);
     Arrayd X = GeneralizedTV::makeDefaultX(sampleCount);
 
     UniformSamplesd Yfiltered;
     if (amap.optionProvided("--auto")) {
-      GeneralizedTVAuto autotv(tv);
+      GeneralizedTVAuto autotv(engine, tv);
       Yfiltered = autotv.filter(Ynoisy, order);
     } else {
       Yfiltered = tv.filter(Ynoisy, order, lambda);

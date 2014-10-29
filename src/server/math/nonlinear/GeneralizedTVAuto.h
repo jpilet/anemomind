@@ -7,6 +7,7 @@
 #define GENERALIZEDTVAUTO_H_
 
 #include <server/math/nonlinear/GeneralizedTV.h>
+#include <random>
 
 namespace sail {
 
@@ -21,7 +22,8 @@ namespace sail {
  */
 class GeneralizedTVAuto {
  public:
-  GeneralizedTVAuto(const GeneralizedTV &tv_,
+    GeneralizedTVAuto(std::default_random_engine &engine,
+    const GeneralizedTV &tv_,
     double initX = 1.0, double step = 1.0, int maxIter = 4);
 
   const GeneralizedTV &tv() const {
@@ -39,6 +41,7 @@ class GeneralizedTVAuto {
                   Array<Arrayb> initSplits = Array<Arrayb>()) const;
   UniformSamplesd filter(Arrayd Y, int order, Array<Arrayb> splits = Array<Arrayb>()) const;
  private:
+  std::default_random_engine &_engine;
   GeneralizedTV _tv;
   double _initX, _step;
   int _maxIter;

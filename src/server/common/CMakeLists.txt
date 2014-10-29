@@ -293,15 +293,7 @@ add_library(common_JsonIO
 target_depends_on_poco_json(common_JsonIO)
 
 
-add_library(common_RandomEngine
-            RandomEngine.h
-            RandomEngine.cpp
-           )
-
 add_library(common_DataSplits
             DataSplits.h
             DataSplits.cpp
            )
-target_link_libraries(common_DataSplits
-                      common_RandomEngine
-                     )           

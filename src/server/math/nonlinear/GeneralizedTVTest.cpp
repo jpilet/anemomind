@@ -6,8 +6,8 @@
 #include <gtest/gtest.h>
 
 #include <server/math/nonlinear/GeneralizedTV.h>
-#include <server/common/RandomEngine.h>
 #include <server/common/LineKM.h>
+#include <random>
 
 using namespace sail;
 
@@ -30,7 +30,7 @@ namespace {
     return Arrayd::fill(sampleCount, [](int i) {return testfun(i);});
   }
 
-  Arrayd addNoise(Arrayd Y, double noise, RandomEngine::EngineType &engine) {
+  Arrayd addNoise(Arrayd Y, double noise, std::default_random_engine &engine) {
     std::uniform_real_distribution<double> distrib(-noise, noise);
     return Y.map<double>([&](double x) {return x + distrib(engine);});
   }
@@ -38,7 +38,7 @@ namespace {
 
 TEST(GeneralizedTVTest, Test) {
 
-  RandomEngine::EngineType engine = RandomEngine::EngineType(0);
+  std::default_random_engine engine(0);
   Arrayd gt = makeGT();
   Arrayd noisy = addNoise(gt, 0.5, engine);
 

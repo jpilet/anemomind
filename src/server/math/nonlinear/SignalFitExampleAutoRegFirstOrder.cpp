@@ -8,5 +8,6 @@
 using namespace sail;
 
 int main() {
-  sfitexAutoRegFirstOrder();
+  std::default_random_engine engine(0);
+  sfitexAutoRegFirstOrder(engine);
 }

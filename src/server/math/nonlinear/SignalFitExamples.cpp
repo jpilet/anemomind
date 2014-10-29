@@ -13,7 +13,7 @@ namespace sail {
 
 
 
-void sfitexFixedReg() {
+void sfitexFixedReg(std::default_random_engine &engine) {
   BBox1d bbox(Spand(-1.0, 1.0));
   double spacing[1] = {0.03};
   Grid1d grid(bbox, spacing);
@@ -34,7 +34,7 @@ void sfitexFixedReg() {
     assert(arma::norm(P*Vmat - Xmat, 2) <= 1.0e-6);
   }
 
-  Array<Arrayb> splits = makeRandomSplits(3, X.size());
+  Array<Arrayb> splits = makeRandomSplits(3, X.size(), engine);
 
   NoisyStep data(X, Ynoisy);
 
@@ -68,7 +68,7 @@ void sfitexFixedReg() {
 
 
 
-void sfitexAutoRegFirstOrder() {
+void sfitexAutoRegFirstOrder(std::default_random_engine &engine) {
   BBox1d bbox(Spand(-1.0, 1.0));
   double spacing[1] = {0.03};
   Grid1d grid(bbox, spacing);
@@ -88,7 +88,7 @@ void sfitexAutoRegFirstOrder() {
     assert(arma::norm(P*Vmat - Xmat, 2) <= 1.0e-6);
   }
 
-  Array<Arrayb> splits = makeRandomSplits(9, X.size());
+  Array<Arrayb> splits = makeRandomSplits(9, X.size(), engine);
 
   NoisyStep data(X, Ynoisy);
 
@@ -127,7 +127,7 @@ void sfitexAutoRegFirstOrder() {
 }
 
 
-void sfitexAutoReg1st2ndOrder() {
+void sfitexAutoReg1st2ndOrder(std::default_random_engine &engine) {
   BBox1d bbox(Spand(-1.0, 1.0));
   double spacing[1] = {0.03};
   Grid1d grid(bbox, spacing);
@@ -141,7 +141,7 @@ void sfitexAutoReg1st2ndOrder() {
 
   arma::sp_mat P = grid.makeP(MDArray2d(X));
 
-  Array<Arrayb> splits = makeRandomSplits(9, X.size());
+  Array<Arrayb> splits = makeRandomSplits(9, X.size(), engine);
 
   //double initReg = 0.01; // works
   //double initReg = 1; // works
