@@ -49,8 +49,9 @@ void LineKM::makeInterpolationWeights(double x,
     int *indsOut2,
     double *weightsOut2) const {
     double realIndex = inv(x);
-    int index = int(floor(realIndex));
-    double lambda = realIndex - index;
+    double indexd = floor(realIndex);
+    int index = int(indexd);
+    double lambda = realIndex - indexd;
     indsOut2[0] = index;
     indsOut2[1] = index+1;
     weightsOut2[0] = 1.0 - lambda;

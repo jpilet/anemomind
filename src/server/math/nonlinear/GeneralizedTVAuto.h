@@ -10,6 +10,15 @@
 
 namespace sail {
 
+/*
+ * Performs the same job as GernalizedTV, but automatically
+ * figures out the regularization weight using cross-validation.
+ *
+ * Using this class to filter a signal takes longer, because
+ * it needs to filter the signal for many different values of
+ * a regularization weight.
+ *
+ */
 class GeneralizedTVAuto {
  public:
   GeneralizedTVAuto(const GeneralizedTV &tv_,
