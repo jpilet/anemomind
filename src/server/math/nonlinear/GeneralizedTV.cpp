@@ -23,10 +23,7 @@ UniformSamplesd GeneralizedTV::filter(UniformSamplesd initialSignal,
                 double regularization) const {
 
   CHECK(X.size() == Y.size());
-
-  // A regularization weight of 0 will probably mean that the problem becomes ill-posed.
-  // and may fail.
-  CHECK_LT(0.0, regularization);
+  CHECK(0.0 < regularization) << "A regularization weight of 0 will probably mean that the problem becomes ill-posed and may fail";
 
   Arrayd coefs = BandMatInternal::makeCoefs(order);
 
