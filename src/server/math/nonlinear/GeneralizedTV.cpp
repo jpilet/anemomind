@@ -3,6 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <cmath>
 #include <server/math/nonlinear/GeneralizedTV.h>
 #include <server/math/BandMat.h>
 #include <server/common/logging.h>
