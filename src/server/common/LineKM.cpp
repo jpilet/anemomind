@@ -7,6 +7,7 @@
 
 #include "LineKM.h"
 #include <iostream>
+#include <cmath>
 
 namespace sail {
 
@@ -24,6 +25,14 @@ LineKM::LineKM() {
   _m = 0.0;
 }
 
+LineKM LineKM::identity() {
+  return LineKM(1.0, 0.0);
+}
+
+LineKM LineKM::constant(double c) {
+  return LineKM(0.0, c);
+}
+
 double LineKM::operator() (double x) const {
   return _k*x + _m;
 }
@@ -35,6 +44,20 @@ double LineKM::inv(double x) const {
 LineKM LineKM::makeInvFun() const {
   return LineKM(1.0/_k, -_m/_k);
 }
+
+void LineKM::makeInterpolationWeights(double x,
+    int *indsOut2,
+    double *weightsOut2) const {
+    double realIndex = inv(x);
+    double indexd = floor(realIndex);
+    int index = int(indexd);
+    double lambda = realIndex - indexd;
+    indsOut2[0] = index;
+    indsOut2[1] = index+1;
+    weightsOut2[0] = 1.0 - lambda;
+    weightsOut2[1] = lambda;
+}
+
 
 double LineKM::getK() const {
   return _k;

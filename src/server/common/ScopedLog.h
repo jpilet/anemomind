@@ -46,6 +46,8 @@ class ScopedLog {
 // to be unique. Be careful.
 #define ENTERSCOPE(SCOPENAME) ScopedLog _slog(__FILE__, __LINE__, SCOPENAME)
 
+#define ENTER_FUNCTION_SCOPE ENTERSCOPE(__FUNCTION__)
+
 // TODO: Provide stream-like syntax, so that we have
 //    LOG(INFO) << ...
 //  and

@@ -8,7 +8,8 @@
 using namespace sail;
 
 int main() {
-  sfitexFixedReg();
+  std::default_random_engine engine(0);
+  sfitexFixedReg(engine);
 }
 
 

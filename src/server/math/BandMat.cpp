@@ -19,6 +19,14 @@ Arrayd makeNextCoefs(Arrayd coefs) {
   return next;
 }
 
+Arrayd makeCoefs(int order) {
+  if (order == 0) {
+    return Arrayd::args(1.0);
+  } else {
+    return makeNextCoefs(makeCoefs(order - 1));
+  }
+}
+
 }
 }
 

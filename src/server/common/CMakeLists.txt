@@ -291,3 +291,9 @@ add_library(common_JsonIO
             JsonIO.cpp
            )
 target_depends_on_poco_json(common_JsonIO)
+
+
+add_library(common_DataSplits
+            DataSplits.h
+            DataSplits.cpp
+           )
