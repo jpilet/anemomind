@@ -218,11 +218,11 @@ namespace {
   }
 
   CalibratedNavData::Settings::WeightType mapStrToWeightType(const std::string &x) {
-    if (x == "DIRECT") {
+    if (x == "direct") {
       return CalibratedNavData::Settings::DIRECT;
-    } else if (x == "SQRT_ABS") {
+    } else if (x == "sqrtabs") {
       return CalibratedNavData::Settings::SQRT_ABS;
-    } else if (x == "UNIFORM") {
+    } else if (x == "uniform") {
       return CalibratedNavData::Settings::UNIFORM;
     } else {
       LOG(FATAL) << stringFormat("Unable to map string %s to a weight type", x.c_str());
@@ -250,8 +250,10 @@ int main(int argc, const char **argv) {
     .setArgCount(1).store(&sampleCount);
   amap.registerOption("--verbosity", "Set the verbosity")
     .setArgCount(1).store(&verbosity);
-  amap.registerOption("--cost-type", "Provide l1 or l2 to set the cost type")
+  amap.registerOption("--cost-type", "Provide 'l1' or 'l2' to set the cost type")
     .setArgCount(1).store(&costType);
+  amap.registerOption("--weight-type", "Provide 'direct', 'sqrtabs' or 'uniform' to set the weight type")
+      .setArgCount(1).store(&weightType);
 
   if (!amap.parse(argc, argv)) {
     return -1;
