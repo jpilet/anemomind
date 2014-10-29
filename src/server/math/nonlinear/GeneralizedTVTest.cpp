@@ -37,10 +37,25 @@ namespace {
 }
 
 TEST(GeneralizedTVTest, Test) {
-  RandomEngine::EngineType engine = RandomEngine::EngineType();
+
+  RandomEngine::EngineType engine = RandomEngine::EngineType(0);
+
   engine.seed(0);
   Arrayd gt = makeGT();
   Arrayd noisy = addNoise(gt, 0.5, engine);
+
+  GeneralizedTV tv;
+  UniformSamplesd filtered = tv.filter(noisy, 2, 60);
+  Arrayd X = filtered.makeCenteredX();
+  Arrayd F = filtered.interpolateLinear(X);
+
+  double sumNoisyErrors = 0;
+  double sumFilteredErrors = 0;
+  for (int i = 0; i < sampleCount; i++) {
+    sumNoisyErrors += std::abs(gt[i] - noisy[i]);
+    sumFilteredErrors += std::abs(gt[i] - F[i]);
+  }
+  EXPECT_LT(10*sumFilteredErrors, sumNoisyErrors);
 }
 
 
