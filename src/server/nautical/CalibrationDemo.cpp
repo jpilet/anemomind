@@ -99,7 +99,7 @@ namespace {
     }
   }
 
-  void ex0(double lambda) {
+  void ex0(double lambda, CalibratedNavData::Settings settings) {
     ENTERSCOPE("Running a preconfigured example");
     SCOPEDMESSAGE(INFO, "Loading psaros33 data");
     Array<Nav> navs = scanNmeaFolder(PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -113,9 +113,9 @@ namespace {
     Arrayd times = fdata.makeCenteredX();
     int middle = times.size()/2;
 
-
-    CalibratedNavData calibA = CalibratedNavData(fdata, times.sliceTo(middle));
-    CalibratedNavData calibB = CalibratedNavData(fdata, times.sliceFrom(middle));
+    CorrectorSet<adouble>::Ptr corr;
+    CalibratedNavData calibA = CalibratedNavData(fdata, times.sliceTo(middle), corr, settings);
+    CalibratedNavData calibB = CalibratedNavData(fdata, times.sliceFrom(middle), corr, settings);
     Array<Arrayd> params = Array<Arrayd>::args(calibA.optimalCalibrationParameters(),
                                                calibB.optimalCalibrationParameters());
     SCOPEDMESSAGE(INFO, "Done calibrating.");
@@ -203,6 +203,32 @@ namespace {
 
 
   }
+
+
+  CalibratedNavData::Settings::CostType mapStrToCostType(const std::string &x) {
+    if (x == "l2") {
+      return CalibratedNavData::Settings::L2_COST;
+    } else if (x == "l1") {
+      return CalibratedNavData::Settings::L1_COST;
+    } else {
+      LOG(FATAL) << stringFormat("Unable to map string %s to a cost type",
+          x.c_str());
+      return CalibratedNavData::Settings::COST_TYPE_COUNT;
+    }
+  }
+
+  CalibratedNavData::Settings::WeightType mapStrToWeightType(const std::string &x) {
+    if (x == "DIRECT") {
+      return CalibratedNavData::Settings::DIRECT;
+    } else if (x == "SQRT_ABS") {
+      return CalibratedNavData::Settings::SQRT_ABS;
+    } else if (x == "UNIFORM") {
+      return CalibratedNavData::Settings::UNIFORM;
+    } else {
+      LOG(FATAL) << stringFormat("Unable to map string %s to a weight type", x.c_str());
+      return CalibratedNavData::Settings::WEIGHT_TYPE_COUNT;
+    }
+  }
 }
 
 int main(int argc, const char **argv) {
@@ -210,6 +236,12 @@ int main(int argc, const char **argv) {
   double lambda = 1000;
   int verbosity = 9;
   int sampleCount = 30000;
+
+  std::string costType = "l2";
+  std::string weightType = "direct";
+
+  CalibratedNavData::Settings settings;
+
   amap.registerOption("--ex0", "Run a preconfigured example");
   amap.registerOption("--ex0-cmp-1", "Run a systematic comparison of different strategies using Objf1");
   amap.registerOption("--lambda", "Set the regularization parameter")
@@ -218,17 +250,21 @@ int main(int argc, const char **argv) {
     .setArgCount(1).store(&sampleCount);
   amap.registerOption("--verbosity", "Set the verbosity")
     .setArgCount(1).store(&verbosity);
+  amap.registerOption("--cost-type", "Provide l1 or l2 to set the cost type")
+    .setArgCount(1).store(&costType);
 
   if (!amap.parse(argc, argv)) {
     return -1;
   }
   ScopedLog::setDepthLimit(verbosity);
+  settings.costType = mapStrToCostType(costType);
+  settings.weightType = mapStrToWeightType(weightType);
   if (amap.help()) {
     return 0;
   }
 
   if (amap.optionProvided("--ex0")) {
-    ex0(lambda);
+    ex0(lambda, settings);
   } else if (amap.optionProvided("--cmp0")) {
     cmp0(lambda);
   } else if (amap.optionProvided("--plot0")) {
