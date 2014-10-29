@@ -11,8 +11,15 @@
 namespace sail {
 
 /*
- * Performs generalized TV denoising of a signal. Here is a
- * relevant paper on that topic:
+ * Performs generalized total variation (TV) denoising of a signal.
+ *
+ * For an introduction to the classical first order total variation denoising, see
+ *
+ * http://en.wikipedia.org/wiki/Total_variation_denoising
+ *
+ *
+ * Here is a
+ * relevant paper on generalized TV denoising:
  *
       @article{karahanoglu2011signal,
         title={A signal processing approach to generalized 1-D total variation},
