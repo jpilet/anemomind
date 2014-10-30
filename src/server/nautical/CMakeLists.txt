@@ -429,4 +429,23 @@ target_link_libraries(nautical_FilteredNavDataDemo
                       math_CleanNumArray
                       math_nonlinear_GeneralizedTVAuto
                       nautical_FilteredNavData
-                     )                     
+                     )     
+                     
+
+
+add_library(nautical_TemporalSplit
+            TemporalSplit.h
+            TemporalSplit.cpp
+           )
+target_link_libraries(nautical_TemporalSplit
+                      nautical_nav
+                     )           
+            
+add_executable(nautical_RaceOverview
+               RaceOverview.cpp
+              )
+target_link_libraries(nautical_RaceOverview
+                      nautical_TestdataNavs
+                      nautical_TemporalSplit
+                     )
+                                                                  
