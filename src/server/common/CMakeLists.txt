@@ -297,3 +297,14 @@ add_library(common_DataSplits
             DataSplits.h
             DataSplits.cpp
            )
+
+add_library(common_MeanAndVar
+            MeanAndVar.h
+            MeanAndVar.cpp
+           )
+
+cxx_test(common_MeanAndVarTest
+         MeanAndVarTest.cpp
+         gtest_main
+         common_MeanAndVar
+        )
