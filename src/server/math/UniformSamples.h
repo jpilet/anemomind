@@ -95,6 +95,14 @@ class UniformSamples {
   ThisType operator-(T x) const {
     return (*this) + (-x);
   }
+
+  double low() const {
+    return _sampling(0);
+  }
+
+  double high() const {
+    return _sampling(_samples.size() - 1);
+  }
  private:
   // Maps sample indices to time
   LineKM _sampling;
