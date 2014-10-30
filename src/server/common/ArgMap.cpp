@@ -155,6 +155,10 @@ int ArgMap::Arg::parseIntOrDie() {
   return dst;
 }
 
+bool ArgMap::help() {
+  return optionProvided("--help");
+}
+
 double ArgMap::Arg::parseDoubleOrDie() {
   double dst = -1;
   CHECK(this->tryParseDouble(&dst)) << "Failed to convert " << value() << " to double.";
