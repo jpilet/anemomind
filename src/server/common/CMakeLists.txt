@@ -305,21 +305,14 @@ cxx_test(common_ProportionateSamplerTest
          gtest_main
         )
 
-add_library(common_RandomEngine
-            RandomEngine.h
-            RandomEngine.cpp
-           )
-
 
 add_library(common_DataSplits
             DataSplits.h
             DataSplits.cpp
            )
-target_link_libraries(common_DataSplits
-                      common_RandomEngine
-                     )           
 
 add_library(common_MeanAndVar
             MeanAndVar.h
             MeanAndVar.cpp
            )
+

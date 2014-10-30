@@ -14,10 +14,11 @@
 
 namespace sail {
 
-GeneralizedTVAuto::GeneralizedTVAuto(const GeneralizedTV &tv,
+GeneralizedTVAuto::GeneralizedTVAuto(std::default_random_engine &engine,
+    const GeneralizedTV &tv,
   double initX, double step, int maxIter) :
   _tv(tv), _initX(initX), _step(step), _maxIter(maxIter),
-  _factor(log(2)) {}
+  _factor(log(2)), _engine(engine) {}
 
 
 
@@ -61,13 +62,14 @@ namespace {
     return score;
   }
 
-  Array<Arrayb> makeDefaultSplits(Array<Arrayb> splits, int len) {
+  Array<Arrayb> makeDefaultSplits(Array<Arrayb> splits, int len,
+    std::default_random_engine &engine) {
     if (splits.empty()) {
-      return makeRandomSplits(4, len);
+      return makeRandomSplits(4, len, engine);
     } else {
       for (int i = 0; i < splits.size(); i++) {
         if (splits[i].size() != len) {
-          return makeRandomSplits(splits.size(), len);
+          return makeRandomSplits(splits.size(), len, engine);
         }
       }
       return splits;
@@ -81,7 +83,7 @@ double GeneralizedTVAuto::optimizeRegWeight(UniformSamplesd initialSignal,
                 Array<Arrayb> initSplits) const {
   ENTER_FUNCTION_SCOPE;
   assert(X.size() == Y.size());
-  Array<Arrayb> splits = makeDefaultSplits(initSplits, X.size());
+  Array<Arrayb> splits = makeDefaultSplits(initSplits, X.size(), _engine);
   std::function<double(double)> objf = [=] (double x) {
     return evaluateCrossValidation(_tv, initialSignal,
       X, Y, order, exp(x), splits);

@@ -3,20 +3,18 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include "DataSplits.h"
-#include <server/common/Uniform.h>
+#include <server/common/DataSplits.h>
 #include <algorithm>
 
 namespace sail {
 
-Arrayb makeRandomSplit(int count, RandomEngine::EngineType *e) {
+Arrayb makeRandomSplit(int count, std::default_random_engine &e) {
   assert(count >= 2);
-  RandomEngine::EngineType &engine = RandomEngine::get(e);
   std::uniform_real_distribution<double> distrib(0, 1);
   Arrayb split(count);
   int trueCount = 0;
   for (int i = 0; i < count; i++) {
-    bool incl = distrib(engine) > 0.5;
+    bool incl = distrib(e) > 0.5;
     split[i] = incl;
     trueCount += (incl? 1 : 0);
   }
@@ -32,7 +30,7 @@ Arrayb makeRandomSplit(int count, RandomEngine::EngineType *e) {
   return split;
 }
 
-Array<Arrayb> makeRandomSplits(int numSplits, int size, RandomEngine::EngineType *e) {
+Array<Arrayb> makeRandomSplits(int numSplits, int size, std::default_random_engine &e) {
   Array<Arrayb> dst(numSplits);
   for (int i = 0; i < numSplits; i++) {
     dst[i] = makeRandomSplit(size, e);
@@ -49,33 +47,31 @@ namespace {
     return marked;
   }
 
-  void rotateRandom(Arrayb src, RandomEngine::EngineType *e) {
+  void rotateRandom(Arrayb src, std::default_random_engine &e) {
     int len = src.size();
-    //Uniform rng(len);
     std::uniform_int_distribution<int> distrib(0, len-1);
-    int offset = distrib(RandomEngine::get(e));
+    int offset = distrib(e);
     std::rotate(src.begin(), src.begin() + offset, src.end());
   }
 }
 
-Arrayb makeChunkSplit(int length, double probNext, RandomEngine::EngineType *e) {
+Arrayb makeChunkSplit(int length, std::default_random_engine &e, double probNext) {
   assert(0 < probNext);
   assert(probNext < 1.0);
   Arrayb marked = initializeMarked(length);
   int middle = length/2;
-  RandomEngine::EngineType &eng = RandomEngine::get(e);
   std::uniform_real_distribution<double> next(0, 1);
   do {
     std::reverse(marked.begin(), marked.ptr(middle));
     rotateRandom(marked, e);
-  } while (next(eng) < probNext);
+  } while (next(e) < probNext);
   return marked;
 }
 
-Array<Arrayb> makeChunkSplits(int count, int length, double probNext,
-    RandomEngine::EngineType *e) {
-  return Array<Arrayb>::fill(count, [=](int indexNotUsed) {
-    return makeChunkSplit(length, probNext, e);
+Array<Arrayb> makeChunkSplits(int count, int length,
+    std::default_random_engine &e, double probNext) {
+  return Array<Arrayb>::fill(count, [&](int indexNotUsed) {
+    return makeChunkSplit(length, e, probNext);
   });
 }
 

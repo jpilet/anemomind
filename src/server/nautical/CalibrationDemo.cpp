@@ -17,9 +17,9 @@
 using namespace sail;
 
 namespace {
-  std::string chunkSplitString() {
+  std::string chunkSplitString(std::default_random_engine &e) {
     int len = 30;
-    Arrayb x = makeChunkSplit(len);
+    Arrayb x = makeChunkSplit(len, e);
     std::string s(len, ' ');
     for (int i = 0; i < len; i++) {
       s[i] = (x[i]? '#' : '-');
@@ -27,9 +27,9 @@ namespace {
     return s;
   }
 
-  void chunkSplitDemo() {
+  void chunkSplitDemo(std::default_random_engine &e) {
     for (int i = 0; i < 30; i++) {
-      std::cout << chunkSplitString() << std::endl;
+      std::cout << chunkSplitString(e) << std::endl;
     }
   }
 
@@ -122,7 +122,7 @@ namespace {
     calibrationReport(params);
   }
 
-  void cmp0(double lambda) {
+  void cmp0(std::default_random_engine &e, double lambda) {
     ENTERSCOPE("Compare several methods");
      SCOPEDMESSAGE(INFO, "Loading psaros33 data");
      Array<Nav> navs = scanNmeaFolder(PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -139,7 +139,7 @@ namespace {
 
      int splitCount = 8;
 
-     Array<Arrayb> splits = makeChunkSplits(splitCount, times.size(), 0.7);
+     Array<Arrayb> splits = makeChunkSplits(splitCount, times.size(), e, 0.7);
 
      int settingCounter = 0;
      int settingCount = CalibratedNavData::Settings::COST_TYPE_COUNT*CalibratedNavData::Settings::WEIGHT_TYPE_COUNT;
@@ -232,6 +232,7 @@ namespace {
 }
 
 int main(int argc, const char **argv) {
+  std::default_random_engine e;
   ArgMap amap;
   double lambda = 1000;
   int verbosity = 9;
@@ -268,7 +269,7 @@ int main(int argc, const char **argv) {
   if (amap.optionProvided("--ex0")) {
     ex0(lambda, settings);
   } else if (amap.optionProvided("--cmp0")) {
-    cmp0(lambda);
+    cmp0(e, lambda);
   } else if (amap.optionProvided("--plot0")) {
 
   }
