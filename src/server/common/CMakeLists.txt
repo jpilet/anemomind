@@ -319,3 +319,10 @@ add_library(common_MeanAndVar
 target_link_libraries(common_MeanAndVar
                       common_logging
                      )
+
+cxx_test(common_MeanAndVarTest
+         MeanAndVarTest.cpp
+         gtest_main
+         common_MeanAndVar
+        )
+        

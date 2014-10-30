@@ -5,6 +5,7 @@
 
 #include <server/common/MeanAndVar.h>
 #include <server/common/math.h>
+#include <sstream>
 #include <server/common/logging.h>
 
 namespace sail {
@@ -26,8 +27,19 @@ double MeanAndVar::mean() const {
   return _sum/_count;
 }
 
-double MeanAndVar::variance() const {
+double MeanAndVar::biasedVariance() const {
   return _sum2/_count - sqr(mean());
+}
+
+double MeanAndVar::variance() const {
+  // http://en.wikipedia.org/wiki/Variance#Sample_variance
+  // In matlab: help var
+  double bv = biasedVariance();
+  if (_count <= 1) {
+    return bv;
+  } else {
+    return (double(_count)/(_count - 1))*biasedVariance();
+  }
 }
 
 double MeanAndVar::standardDeviation() const {
@@ -37,6 +49,12 @@ double MeanAndVar::standardDeviation() const {
 MeanAndVar MeanAndVar::operator+ (const MeanAndVar &other) const {
   return MeanAndVar(_count + other._count, _sum + other._sum,
       _sum2 + other._sum2);
+}
+
+std::string MeanAndVar::toString() const {
+  std::stringstream ss;
+  ss << *this;
+  return ss.str();
 }
 
 std::ostream &operator<<(std::ostream &s, const MeanAndVar &x) {
