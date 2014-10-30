@@ -6,6 +6,7 @@
 #include <server/common/MeanAndVar.h>
 #include <server/common/math.h>
 #include <sstream>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -22,6 +23,7 @@ MeanAndVar::MeanAndVar(Arrayd arr) : MeanAndVar() {
 }
 
 double MeanAndVar::mean() const {
+  CHECK_LT(0, _count);
   return _sum/_count;
 }
 
