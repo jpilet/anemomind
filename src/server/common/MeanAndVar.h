@@ -23,8 +23,11 @@ class MeanAndVar {
   double standardDeviation() const;
   MeanAndVar operator+ (const MeanAndVar &other) const;
   std::string toString() const;
+  int count() const {
+    return _count;
+  }
  private:
-  MeanAndVar(int count, double sum, double sum2) : _sum(sum), _sum2(sum2), _count(count) {}
+  MeanAndVar(int count_, double sum, double sum2) : _sum(sum), _sum2(sum2), _count(count_) {}
   double _sum, _sum2;
   int _count;
 };
