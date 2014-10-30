@@ -43,6 +43,23 @@ double Function::evalScalar(double *Xin) {
   return f;
 }
 
+double Function::maxNumJacDif(double *X, double h) {
+  int rows = outDims();
+  int cols = inDims();
+  Arrayd F(rows);
+  int count = rows*cols;
+  Arrayd J(count);
+  Arrayd Jnum(count);
+
+  eval(X, F.ptr(), J.ptr());
+  evalNumericJacobian(X, Jnum.ptr(), h);
+  double maxv = 0.0;
+  for (int i = 0; i < count; i++) {
+    maxv = std::max(maxv, std::abs(J[i] - Jnum[i]));
+  }
+  return maxv;
+}
+
 double Function::calcSquaredNorm(double *X, double *Fscratch) {
   Arrayd s;
   if (Fscratch == nullptr) {
