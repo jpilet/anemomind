@@ -403,4 +403,15 @@ target_link_libraries(nautical_plotTargetSpeed
                       device_ChunkFile
                      )
 
+add_library(nautical_FilteredNavData
+            FilteredNavData.cpp
+            FilteredNavData.h
+           )
 
+target_link_libraries(nautical_FilteredNavData
+                      math_CleanNumArray
+                      common_logging
+                      nautical_nav
+                      plot_gnuplot
+                      math_nonlinear_GeneralizedTV
+                     )

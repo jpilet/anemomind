@@ -178,7 +178,13 @@ cxx_test(math_CumulativeFunctionTest
          math_CumulativeFunction
         )                     
                      
-
+add_library(math_CleanNumArray
+            CleanNumArray.cpp
+            CleanNumArray.h
+           )
+target_link_libraries(math_CleanNumArray
+                      math_BandMat
+                     )   
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
