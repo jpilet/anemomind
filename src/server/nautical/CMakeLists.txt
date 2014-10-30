@@ -415,3 +415,18 @@ target_link_libraries(nautical_FilteredNavData
                       plot_gnuplot
                       math_nonlinear_GeneralizedTV
                      )
+
+                     
+add_executable(nautical_FilteredNavDataDemo
+               FilteredNavDataDemo.cpp
+              )
+target_link_libraries(nautical_FilteredNavDataDemo
+                      nautical_TestdataNavs
+                      common_ArgMap
+                      plot_gnuplot
+                      common_Span
+                      nautical_TemporalSplit
+                      math_CleanNumArray
+                      math_nonlinear_GeneralizedTVAuto
+                      nautical_FilteredNavData
+                     )                     
