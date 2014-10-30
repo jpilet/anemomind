@@ -13,6 +13,7 @@
 #include <server/common/string.h>
 #include <server/common/DataSplits.h>
 #include <server/common/MeanAndVar.h>
+#include <server/plot/extra.h>
 
 using namespace sail;
 
@@ -122,7 +123,7 @@ namespace {
     calibrationReport(params);
   }
 
-  void cmp0(std::default_random_engine &e, double lambda) {
+  void cmp0(int splitCount, std::default_random_engine &e, double lambda, Angle<double> corruptAwa, Angle<double> corruptMagHdg) {
     ENTERSCOPE("Compare several methods");
      SCOPEDMESSAGE(INFO, "Loading psaros33 data");
      Array<Nav> navs = scanNmeaFolder(PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -133,11 +134,11 @@ namespace {
      Spani span = spans[5];
      SCOPEDMESSAGE(INFO, "Filtering the data...");
      FilteredNavData fdata(navs.slice(span.minv(), span.maxv()), lambda);
+     fdata.setAwa(fdata.awa() - corruptAwa);
+     fdata.setMagHdg(fdata.awa() - corruptMagHdg);
      SCOPEDMESSAGE(INFO, "Calibrating...");
 
      Arrayd times = fdata.makeCenteredX();
-
-     int splitCount = 8;
 
      Array<Arrayb> splits = makeChunkSplits(splitCount, times.size(), e, 0.7);
 
@@ -184,7 +185,7 @@ namespace {
   }
 
 
-  void plot0(double lambda) {
+  void plot0(double lambda, CalibratedNavData::Settings settings) {
     ENTERSCOPE("Plot true wind and current");
     SCOPEDMESSAGE(INFO, "Loading psaros33 data");
     Array<Nav> navs = scanNmeaFolder(PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -196,12 +197,36 @@ namespace {
     FilteredNavData fdata(navs.slice(span.minv(), span.maxv()), lambda);
     SCOPEDMESSAGE(INFO, "Calibrating...");
     Arrayd times = fdata.makeCenteredX();
-    int middle = times.size()/2;
 
+    CalibratedNavData calib(fdata, times, CorrectorSet<adouble>::Ptr(), settings);
+    int count = times.size();
+    Arrayd allwindX(count), allwindY(count), allcurrentX(count), allcurrentY(count);
+    for (int i = 0; i < count; i++) {
+      CalibratedValues<double> c = calib.calibratedValues(times[i]);
+      allwindX[i] = c.trueWind[0].knots();
+      allwindY[i] = c.trueWind[1].knots();
+      allcurrentX[i] = c.trueCurrent[0].knots();
+      allcurrentY[i] = c.trueCurrent[1].knots();
+    }
 
-    CalibratedNavData calib(fdata, times);
-
-
+    double len = Duration<double>::minutes(60).seconds();
+    int plotCount = int(ceil((times.last() - times.first())/len));
+    LineKM endpts(0, plotCount, 0, times.size());
+    for (int i = 0; i < plotCount; i++) {
+      GnuplotExtra plot;
+      plot.set_style("lines");
+      plot.set_xlabel("Time (seconds)");
+      plot.set_ylabel("Speed (knots)");
+      plot.set_title(stringFormat("Plot %d/%d", i+1, plotCount));
+      int from = int(endpts(i));
+      int to = int(endpts(i+1));
+      Arrayd timessub = times.slice(from, to);
+      plot.plot_xy(timessub, allwindX.slice(from, to), "True wind X");
+      plot.plot_xy(timessub, allwindY.slice(from, to), "True wind Y");
+      plot.plot_xy(timessub, allcurrentX.slice(from, to), "True current X");
+      plot.plot_xy(timessub, allcurrentY.slice(from, to), "True current Y");
+      plot.show();
+    }
   }
 
 
@@ -237,14 +262,24 @@ int main(int argc, const char **argv) {
   double lambda = 1000;
   int verbosity = 9;
   int sampleCount = 30000;
+  double awaCorruption = 0;
+  double magHdgCorruption = 0;
+  int splitCount = 8;
 
   std::string costType = "l2";
   std::string weightType = "direct";
 
   CalibratedNavData::Settings settings;
 
+  amap.registerOption("--corrupt-awa", "Subtract a [value] in degrees from all awa values, making it corrupt")
+      .setArgCount(1).store(&awaCorruption);
+  amap.registerOption("--corrupt-mag-hdg", "Subtract a [value] in degrees from all mag hdg values, making it corrupt")
+      .setArgCount(1).store(&magHdgCorruption);
+  amap.registerOption("--split-count", "Set the [number] of splits used for cross validation")
+    .setArgCount(1).store(&splitCount);
   amap.registerOption("--ex0", "Run a preconfigured example");
-  amap.registerOption("--ex0-cmp-1", "Run a systematic comparison of different strategies using Objf1");
+  amap.registerOption("--cmp0", "Run a systematic comparison of different strategies using Objf1");
+  amap.registerOption("--plot0", "Make a plot of true wind and current");
   amap.registerOption("--lambda", "Set the regularization parameter")
       .setArgCount(1).store(&lambda);
   amap.registerOption("--sample-count", "Set the number of equations used for calibration")
@@ -269,9 +304,9 @@ int main(int argc, const char **argv) {
   if (amap.optionProvided("--ex0")) {
     ex0(lambda, settings);
   } else if (amap.optionProvided("--cmp0")) {
-    cmp0(e, lambda);
+    cmp0(splitCount, e, lambda, Angle<double>::degrees(awaCorruption), Angle<double>::degrees(magHdgCorruption));
   } else if (amap.optionProvided("--plot0")) {
-
+    plot0(lambda, settings);
   }
 
   return 0;

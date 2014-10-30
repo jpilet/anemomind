@@ -81,12 +81,15 @@ class CalibratedNavData {
   }
 
   void outputGeneralInfo(std::ostream *dst) const;
+
+  CalibratedValues<double> calibratedValues(double localTime) const;
  private:
   double _cost, _initCost;
   FilteredNavData _filteredRawData;
   Arrayd _initialCalibrationParameters,
     _optimalCalibrationParameters;
   CorrectorSet<adouble>::Ptr _correctorSet;
+  CorrectorSet<double>::Ptr _correctorSetd;
   Settings::CostType _costType;
   Settings::WeightType _weightType;
 };

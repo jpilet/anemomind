@@ -6,9 +6,9 @@
 #ifndef CALIBRATIONMODEL_H_
 #define CALIBRATIONMODEL_H_
 
+#include <memory>
 #include <cmath>
 #include <server/nautical/SpeedCalib.h>
-#include <memory>
 #include <server/common/Uniform.h>
 #include <server/common/Array.h>
 
@@ -163,6 +163,8 @@ class CorrectorSet {
   }
 
   virtual ~CorrectorSet() {}
+
+  virtual std::shared_ptr<CorrectorSet<double> > toDouble() const = 0;
  private:
    template <typename Corr>
    static void initializeAndStep(const Corr &c, double randomness, double **dst) {
@@ -192,6 +194,11 @@ class DefaultCorrectorSet : public CorrectorSet<T> {
 
   const DriftAngle<T> &driftAngle() const {
     return _driftAngle;
+  }
+
+  std::shared_ptr<CorrectorSet<double> > toDouble() const {
+    return std::shared_ptr<CorrectorSet<double> >(
+        new DefaultCorrectorSet<double>());
   }
  private:
   AngleCorrector<T> _angleCorrector;

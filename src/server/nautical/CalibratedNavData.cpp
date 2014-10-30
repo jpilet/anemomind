@@ -67,11 +67,8 @@ namespace {
     //return sqrtRoundedAbs(x, w);
   }
 
-  double makePositive(double x) {
-    if (x < 0) {
-      return 0.001;
-    }
-    return x;
+  Velocity<double> makePositive(Velocity<double> x) {
+    return Velocity<double>::knots(std::max(0.00001, x.knots()));
   }
 
   class BaseObjf {
@@ -111,9 +108,9 @@ namespace {
                   parameters,
                   gpsMotion,
                   Angle<adouble>::degrees(data.magHdg().get(index).degrees()),
-                  Velocity<adouble>::knots(makePositive(data.watSpeed().get(index).knots())),
+                  makePositive(data.watSpeed().get(index)),
                   Angle<adouble>::degrees(data.awa().get(index).degrees()),
-                  Velocity<adouble>::knots(makePositive(data.aws().get(index).knots())));
+                  makePositive(data.aws().get(index)));
   }
 
   void BaseObjf::evalDeriv(double time, adouble *params,
@@ -401,8 +398,7 @@ CalibratedNavData::CalibratedNavData(FilteredNavData filteredData,
     times = filteredData.makeCenteredX();
   }
 
-
-
+  _correctorSetd = _correctorSet->toDouble();
 
   Objf1 objf(filteredData, _correctorSet, times, settings);
 
@@ -437,7 +433,6 @@ Arrayd CalibratedNavData::sampleTimes(FilteredNavData navdata, int count) {
   if (times.size() < count) {
     return times;
   }
-
   Arrayd maghdg = navdata.magHdg().interpolateLinear(times).map<double>([&](Angle<double> x) {
     return std::abs(x.degrees());
   });
@@ -497,5 +492,16 @@ void CalibratedNavData::outputGeneralInfo(std::ostream *dst) const {
   *dst << "  Cost type:   " << Settings::costTypeString(_costType) << std::endl;
   *dst << "  Weight type: " << Settings::weightTypeString(_weightType) << std::endl;
 }
+
+CalibratedValues<double> CalibratedNavData::calibratedValues(double localTime) const {
+  return CalibratedValues<double>(*_correctorSetd,
+      _optimalCalibrationParameters.ptr(),
+      _filteredRawData.gpsMotion(localTime),
+      _filteredRawData.magHdg().interpolateLinear(localTime),
+      makePositive(_filteredRawData.watSpeed().interpolateLinear(localTime)),
+      _filteredRawData.awa().interpolateLinear(localTime),
+      makePositive(_filteredRawData.aws().interpolateLinear(localTime)));
+}
+
 
 }

@@ -23,8 +23,16 @@ class FilteredNavData {
     return _awa;
   }
 
+  void setAwa(const UniformSamples<Angle<double> > &awa) {
+    _awa = awa;
+  }
+
   const UniformSamples<Angle<double> > &magHdg() const {
     return _magHdg;
+  }
+
+  void setMagHdg(const UniformSamples<Angle<double> > &magHdg) {
+    _magHdg = magHdg;
   }
 
   const UniformSamples<Angle<double> > &gpsBearing() const {
@@ -52,6 +60,8 @@ class FilteredNavData {
   }
 
   Arrayd makeCenteredX() const;
+
+  HorizontalMotion<double> gpsMotion(double localTime) const;
  private:
   TimeStamp _timeOffset;
   UniformSamples<Angle<double> > _awa, _magHdg, _gpsBearing;
