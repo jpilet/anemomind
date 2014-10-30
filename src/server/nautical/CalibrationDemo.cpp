@@ -135,19 +135,25 @@ namespace {
      SCOPEDMESSAGE(INFO, "Filtering the data...");
      FilteredNavData fdata(navs.slice(span.minv(), span.maxv()), lambda);
      fdata.setAwa(fdata.awa() - corruptAwa);
-     fdata.setMagHdg(fdata.awa() - corruptMagHdg);
+     fdata.setMagHdg(fdata.magHdg() - corruptMagHdg);
      SCOPEDMESSAGE(INFO, "Calibrating...");
 
      Arrayd times = fdata.makeCenteredX();
 
-     Array<Arrayb> splits = makeChunkSplits(splitCount, times.size(), e, 0.7);
+     Array<Arrayb> splits;
+     if (splitCount == 1) {
+       splits = Array<Arrayb>::args(Arrayb::fill(times.size(), true));
+     } else {
+       splits = makeChunkSplits(splitCount, times.size(), e, 0.7);
+     }
+
 
      int settingCounter = 0;
      int settingCount = CalibratedNavData::Settings::COST_TYPE_COUNT*CalibratedNavData::Settings::WEIGHT_TYPE_COUNT;
      assert(settingCount == 6);
      int totalCount = splitCount*settingCount;
      int totalCounter = 0;
-     assert(totalCount == 48);
+     assert(totalCount >= 0);
      CalibratedNavData::Settings settings;
      Array<Array<CalibratedNavData> > resultsPerSetting(settingCount);
      for (int i = 0; i < CalibratedNavData::Settings::COST_TYPE_COUNT; i++) {
@@ -180,7 +186,10 @@ namespace {
        });
        calibrationReport(params);
      }
-
+     std::cout << "AWA corruption (should be close to AWA offset): "
+         << corruptAwa.degrees() << " degrees" << std::endl;
+     std::cout << "Mag hdg corruption (should be close to mag hdg offset): "
+         << corruptMagHdg.degrees() << " degrees" << std::endl;
      SCOPEDMESSAGE(INFO, "Done calibrating.");
   }
 
