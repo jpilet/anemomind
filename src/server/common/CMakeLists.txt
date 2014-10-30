@@ -316,3 +316,6 @@ add_library(common_MeanAndVar
             MeanAndVar.cpp
            )
 
+target_link_libraries(common_MeanAndVar
+                      common_logging
+                     )
