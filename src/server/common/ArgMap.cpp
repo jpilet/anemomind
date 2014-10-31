@@ -135,7 +135,7 @@ bool ArgMap::parse(int argc0, const char **argv0) {
 
 bool ArgMap::parseAndHelp(int argc, const char **argv) {
   bool s = parse(argc, argv);
-  if (!s || optionProvided("--help") || optionProvided("-h")) {
+  if (!s || helpAsked()) {
     dispHelp(&(std::cout));
   }
   return s;
@@ -153,6 +153,10 @@ int ArgMap::Arg::parseIntOrDie() {
   int dst = -1;
   CHECK(this->tryParseInt(&dst)) << "Failed to convert " << value() << " to int.";
   return dst;
+}
+
+bool ArgMap::helpAsked() {
+  return optionProvided("--help") || optionProvided("-h");
 }
 
 double ArgMap::Arg::parseDoubleOrDie() {
