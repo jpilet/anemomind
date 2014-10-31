@@ -305,11 +305,17 @@ namespace {
     double half = 0.5*_base.settings.order;
     LineKM times(0, count-1, time - half, time + half);
     if (_base.low < times(0) && times(_base.settings.order) < _base.high) {
-      HorizontalMotion<adouble> wind(0, 0);
-      HorizontalMotion<adouble> current(0, 0);
-
+      for (int j = 0; j < 4; j++) {
+        dst[j] = 0.0;
+      }
+      adouble balance = _base.balance(parameters);
       for (int i = 0; i < count; i++) {
         CalibratedValues<adouble> values = _base.computeAtTime(time, parameters);
+        adouble windWeight = weight*balance*_base.difCoefs[i];
+        adouble currentWeight = weight*(1.0 - balance)*_base.difCoefs[i];
+        for (int j = 0; j < 2; j++) {
+          dst[0 + j] += windWeight*values.trueWind[i];
+        }
       }
 
 
