@@ -72,6 +72,9 @@ namespace {
       GnuplotExtra plot;
       plot.set_title(title);
       plot.set_style("lines");
+      plot.set_xlabel("Time (seconds)");
+      plot.set_ylabel(yLabel);
+
       if (mode == FilteredNavData::SIGNAL) {
         plot.plot_xy(rawTimesSeconds, toDouble(rawValues), "Raw signal");
       }
@@ -84,8 +87,6 @@ namespace {
         plot.plot_xy(X, Y, "Filtered signal derivative");
       }
 
-      plot.set_xlabel("Time (seconds)");
-      plot.set_ylabel(yLabel);
       plot.show();
   }
 }
