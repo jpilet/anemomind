@@ -36,6 +36,10 @@ Array<Angle<double> > cleanContinuousAngles(Array<Angle<double> > allAngles) {
   Array<Angle<double> > goodAngles = allAngles.slice([](Angle<double> x) {
     return std::isfinite(x.degrees());
   });
+  if (goodAngles.empty()) {
+    return Array<Angle<double> >();
+  }
+
   Array<Angle<double> > contAngles = makeContinuousAngles(goodAngles);
   int counter = 0;
   int count = allAngles.size();
