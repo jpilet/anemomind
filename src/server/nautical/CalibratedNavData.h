@@ -29,6 +29,9 @@ class CalibratedNavData {
     enum WeightType {DIRECT, SQRT_ABS, UNIFORM, WEIGHT_TYPE_COUNT};
     WeightType weightType;
 
+    // Order of differentiation.
+    int order;
+
     static const char *costTypeString(CostType costType);
     static const char *weightTypeString(WeightType weightType);
   };

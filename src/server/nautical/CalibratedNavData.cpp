@@ -13,13 +13,15 @@
 #include <server/common/Span.h>
 #include <server/common/ProportionateSampler.h>
 #include <algorithm>
+#include <server/math/BandMat.h>
 
 
 namespace sail {
 
 CalibratedNavData::Settings::Settings() :
     costType(L2_COST),
-    weightType(DIRECT) {
+    weightType(DIRECT),
+    order(1) {
     levmar.maxiter = 30;
 }
 
@@ -87,18 +89,22 @@ namespace {
     adouble balance(adouble *parameters) {
       return parameters[corr->paramCount()];
     }
-    CalibratedValues<adouble> compute(int time, adouble *parameters);
+    CalibratedValues<adouble> computeAtIndex(int time, adouble *parameters);
+    CalibratedValues<adouble> computeAtTime(double time, adouble *parameters);
 
     void evalDeriv(double time, adouble *params, HorizontalMotion<adouble> *windder,
           HorizontalMotion<adouble> *currentder);
 
     double getWeight(int index) const;
     adouble applyCostFun(adouble x) const;
+    double low, high;
+
+    Arrayd difCoefs;
   };
 
 
 
-  CalibratedValues<adouble> BaseObjf::compute(int index, adouble *parameters) {
+  CalibratedValues<adouble> BaseObjf::computeAtIndex(int index, adouble *parameters) {
 
     HorizontalMotion<adouble> gpsMotion =
         HorizontalMotion<adouble>::polar(data.gpsSpeed().get(index).cast<adouble>(),
@@ -113,12 +119,27 @@ namespace {
                   makePositive(data.aws().get(index)));
   }
 
+  CalibratedValues<adouble> BaseObjf::computeAtTime(double time, adouble *parameters) {
+
+    HorizontalMotion<adouble> gpsMotion =
+        HorizontalMotion<adouble>::polar(data.gpsSpeed().get(time).cast<adouble>(),
+            data.gpsBearing().interpolateLinear(time).cast<adouble>());
+
+    return CalibratedValues<adouble>(*corr,
+                  parameters,
+                  gpsMotion,
+                  Angle<adouble>::degrees(data.magHdg().interpolateLinear(time).degrees()),
+                  makePositive(data.watSpeed().interpolateLinear(time)),
+                  Angle<adouble>::degrees(data.awa().interpolateLinear(time).degrees()),
+                  makePositive(data.aws().interpolateLinear(time)));
+  }
+
   void BaseObjf::evalDeriv(double time, adouble *params,
         HorizontalMotion<adouble> *windder,
         HorizontalMotion<adouble> *currentder) {
     int index = int(floor(sampling.inv(time)));
-    CalibratedValues<adouble> a = compute(index + 0, params);
-    CalibratedValues<adouble> b = compute(index + 1, params);
+    CalibratedValues<adouble> a = computeAtIndex(index + 0, params);
+    CalibratedValues<adouble> b = computeAtIndex(index + 1, params);
     *windder = b.trueWind - a.trueWind;
     *currentder = b.trueCurrent - a.trueCurrent;
   }
@@ -147,12 +168,17 @@ namespace {
     }
   }
 
+
+  const double marg2 = 1.0e-6;
+
   BaseObjf::BaseObjf(FilteredNavData data_, CorrectorSet<adouble>::Ptr corr_,
     Arrayd times_, const CalibratedNavData::Settings &settings_) :
       data(data_), corr(corr_),
       times(times_),
       weights(data_.magHdg().interpolateLinearDerivative(times_).map<double>([&](Angle<double> x) {return x.degrees();})),
-      sampling(data_.sampling()), settings(settings_) {}
+      sampling(data_.sampling()), settings(settings_),
+      low(data_.low() + marg2), high(data_.high() - marg2),
+      difCoefs(BandMatInternal::makeCoefs(settings_.order)) {}
 
 
 
@@ -191,8 +217,10 @@ namespace {
    private:
     BaseObjf _base;
 
+
     void evalDif(double w, CalibratedValues<adouble> a,
         CalibratedValues<adouble> b, adouble balance, adouble *dst);
+    void evalDifAnyOrder(double weight, double time, adouble *parameters, adouble *dst);
     void eval(double *Xin, double *Fout, double *Jout);
   };
 
@@ -235,11 +263,17 @@ namespace {
         SCOPEDMESSAGE(INFO, stringFormat("Iteration %d/%d", i, _base.times.size()));
       }
       int index = int(floor(_base.sampling.inv(_base.times[i])));
-      CalibratedValues<adouble> from = _base.compute(index, adX.ptr());
-      CalibratedValues<adouble> to = _base.compute(index + 1, adX.ptr());
 
       double weight = _base.getWeight(i);
-      evalDif(weight, from, to, _base.balance(adX.ptr()), adF.getData());
+      if (_base.settings.order == 1) {
+        CalibratedValues<adouble> from = _base.computeAtIndex(index, adX.ptr());
+        CalibratedValues<adouble> to = _base.computeAtIndex(index + 1, adX.ptr());
+        evalDif(weight, from, to, _base.balance(adX.ptr()), adF.getData());
+      } else {
+        evalDifAnyOrder(weight, _base.times[i], adX.ptr(), adF.getData());
+      }
+
+
       int at = i*_base.eqsPerComparison;
       adolcOutput(_base.eqsPerComparison, adF.getData(), Fout + at);
 
@@ -264,6 +298,26 @@ namespace {
         - b.trueCurrent[0].knots()));
     dst[3] = _base.applyCostFun((1.0 - balance)*w*(a.trueCurrent[1].knots()
         - b.trueCurrent[1].knots()));
+  }
+
+  void Objf1::evalDifAnyOrder(double weight, double time, adouble *parameters, adouble *dst) {
+    int count = _base.difCoefs.size();
+    double half = 0.5*_base.settings.order;
+    LineKM times(0, count-1, time - half, time + half);
+    if (_base.low < times(0) && times(_base.settings.order) < _base.high) {
+      HorizontalMotion<adouble> wind(0, 0);
+      HorizontalMotion<adouble> current(0, 0);
+
+      for (int i = 0; i < count; i++) {
+        CalibratedValues<adouble> values = _base.computeAtTime(time, parameters);
+      }
+
+
+    } else {
+      for (int i = 0; i < 4; i++) {
+        dst[i] = 0.0;
+      }
+    }
   }
 
 

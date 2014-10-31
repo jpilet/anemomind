@@ -62,6 +62,14 @@ class FilteredNavData {
   Arrayd makeCenteredX() const;
 
   HorizontalMotion<double> gpsMotion(double localTime) const;
+
+  double low() const {
+    return _awa.low();
+  }
+
+  double high() const {
+    return _awa.high();
+  }
  private:
   TimeStamp _timeOffset;
   UniformSamples<Angle<double> > _awa, _magHdg, _gpsBearing;
