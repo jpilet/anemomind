@@ -310,15 +310,14 @@ namespace {
       }
       adouble balance = _base.balance(parameters);
       for (int i = 0; i < count; i++) {
-        CalibratedValues<adouble> values = _base.computeAtTime(time, parameters);
+        CalibratedValues<adouble> values = _base.computeAtTime(times(i), parameters);
         adouble windWeight = weight*balance*_base.difCoefs[i];
         adouble currentWeight = weight*(1.0 - balance)*_base.difCoefs[i];
         for (int j = 0; j < 2; j++) {
-          dst[0 + j] += windWeight*values.trueWind[i];
+          dst[0 + j] += windWeight*values.trueWind[j].knots();
+          dst[2 + j] += currentWeight*values.trueCurrent[j].knots();
         }
       }
-
-
     } else {
       for (int i = 0; i < 4; i++) {
         dst[i] = 0.0;

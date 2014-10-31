@@ -123,7 +123,7 @@ namespace {
     calibrationReport(params);
   }
 
-  void cmp0(int splitCount, std::default_random_engine &e, double lambda, Angle<double> corruptAwa, Angle<double> corruptMagHdg) {
+  void cmp0(CalibratedNavData::Settings settings, int splitCount, std::default_random_engine &e, double lambda, Angle<double> corruptAwa, Angle<double> corruptMagHdg) {
     ENTERSCOPE("Compare several methods");
      SCOPEDMESSAGE(INFO, "Loading psaros33 data");
      Array<Nav> navs = scanNmeaFolder(PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -154,7 +154,6 @@ namespace {
      int totalCount = splitCount*settingCount;
      int totalCounter = 0;
      assert(totalCount >= 0);
-     CalibratedNavData::Settings settings;
      Array<Array<CalibratedNavData> > resultsPerSetting(settingCount);
      for (int i = 0; i < CalibratedNavData::Settings::COST_TYPE_COUNT; i++) {
        settings.costType = CalibratedNavData::Settings::CostType(i);
@@ -299,6 +298,8 @@ int main(int argc, const char **argv) {
     .setArgCount(1).store(&costType);
   amap.registerOption("--weight-type", "Provide 'direct', 'sqrtabs' or 'uniform' to set the weight type")
       .setArgCount(1).store(&weightType);
+  amap.registerOption("--order", "Set the order of the differentiation")
+      .setArgCount(1).store(&settings.order);
 
   if (!amap.parse(argc, argv)) {
     return -1;
@@ -313,7 +314,7 @@ int main(int argc, const char **argv) {
   if (amap.optionProvided("--ex0")) {
     ex0(lambda, settings);
   } else if (amap.optionProvided("--cmp0")) {
-    cmp0(splitCount, e, lambda, Angle<double>::degrees(awaCorruption), Angle<double>::degrees(magHdgCorruption));
+    cmp0(settings, splitCount, e, lambda, Angle<double>::degrees(awaCorruption), Angle<double>::degrees(magHdgCorruption));
   } else if (amap.optionProvided("--plot0")) {
     plot0(lambda, settings);
   }
