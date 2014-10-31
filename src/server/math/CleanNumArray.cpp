@@ -19,7 +19,6 @@ Arrayd cleanNumArray(Arrayd arr) {
   Arrayi orders = Arrayi::args(2);
   Arrayd weights = Arrayd::args(1.0e-2);
   A.addRegs(orders, weights);
-  int counter = 0;
   for (int i = 0; i < count; i++) {
     double x = arr[i];
     if (std::isfinite(x)) {
@@ -27,7 +26,6 @@ Arrayd cleanNumArray(Arrayd arr) {
       double W[1] = {1.0};;
       A.addNormalEq(1, I, W);
       B(i, 0) = x;
-      counter++;
     }
   }
   assert(bandMatGaussElimDestructive(&A, &B, 1.0e-12));
