@@ -50,7 +50,7 @@ int main(int argc, const char **argv) {
     return -1;
   }
 
-  if (!amap.help()) {
+  if (!amap.helpAsked()) {
     if (amap.optionProvided("--ex0")) {
       ex0(mode, lambda);
     } else {

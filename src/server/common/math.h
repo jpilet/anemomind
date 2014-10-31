@@ -206,10 +206,6 @@ inline int div1(int a, int b) {
   return (a - 1)/b + 1;
 }
 
-inline bool isOrdinary(double x) {
-  return !(std::isnan(x) || std::isinf(x));
-}
-
 
 } /* namespace sail */
 

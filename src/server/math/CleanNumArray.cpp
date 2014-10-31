@@ -22,7 +22,7 @@ Arrayd cleanNumArray(Arrayd arr) {
   int counter = 0;
   for (int i = 0; i < count; i++) {
     double x = arr[i];
-    if (isOrdinary(x)) {
+    if (std::isfinite(x)) {
       int I[1] = {i};
       double W[1] = {1.0};;
       A.addNormalEq(1, I, W);
@@ -36,14 +36,14 @@ Arrayd cleanNumArray(Arrayd arr) {
 
 Array<Angle<double> > cleanContinuousAngles(Array<Angle<double> > allAngles) {
   Array<Angle<double> > goodAngles = allAngles.slice([](Angle<double> x) {
-    return isOrdinary(x.degrees());
+    return std::isfinite(x.degrees());
   });
   Array<Angle<double> > contAngles = makeContinuousAngles(goodAngles);
   int counter = 0;
   int count = allAngles.size();
   Array<Angle<double> > clean(count);
   for (int i = 0; i < count; i++) {
-    if (isOrdinary(allAngles[i].degrees())) {
+    if (std::isfinite(allAngles[i].degrees())) {
       clean[i] = contAngles[counter];
       counter++;
     }
