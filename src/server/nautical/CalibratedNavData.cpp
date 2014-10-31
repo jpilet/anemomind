@@ -122,7 +122,7 @@ namespace {
   CalibratedValues<adouble> BaseObjf::computeAtTime(double time, adouble *parameters) {
 
     HorizontalMotion<adouble> gpsMotion =
-        HorizontalMotion<adouble>::polar(data.gpsSpeed().get(time).cast<adouble>(),
+        HorizontalMotion<adouble>::polar(data.gpsSpeed().interpolateLinear(time).cast<adouble>(),
             data.gpsBearing().interpolateLinear(time).cast<adouble>());
 
     return CalibratedValues<adouble>(*corr,
