@@ -94,7 +94,8 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
   FilteredNavData::DebugPlotMode mode) {
   if (navs.hasData()) {
     std::sort(navs.begin(), navs.end());
-    if (sameBoat(navs)) {
+    CHECK(sameBoat(navs));
+
       ENTERSCOPE("FilteredNavData");
       SCOPEDMESSAGE(INFO, stringFormat("Number of navs: %d", navs.size()));
       _timeOffset = navs[0].time();
@@ -168,9 +169,7 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
          makeDebugPlot("AWS speed", timesSeconds, aws,
                _aws, "Speed (knots)", mode);
        }
-    } else {
-      LOG(WARNING) << "Mixed boat ids";
-    }
+
   } else {
     LOG(WARNING) << "No navs";
   }
