@@ -15,7 +15,7 @@ template <typename T>
 Array<Angle<T> > makeContinuousAngles(const Array<Angle<T> > &src) {
   int count = src.size();
   Array<Angle<T> > dst(count);
-  dst[0] = src[0];
+  dst[0] = src[0].normalizedAt0();
   for (int i = 1; i < count; i++) {
     dst[i] = dst[i-1] + (src[i] - src[i-1]).normalizedAt0();
   }

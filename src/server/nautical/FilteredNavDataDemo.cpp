@@ -28,7 +28,7 @@ namespace {
 
   void ex0(int mode, double lambda) {
     Array<Nav> navs =
-        scanNmeaFolder("/home/jonas/programmering/sailsmart/datasets/psaros33_Banque_Sturdza",
+        scanNmeaFolder(std::string(Env::SOURCE_DIR) + "/datasets/psaros33_Banque_Sturdza",
         Nav::debuggingBoatId());
     Array<Spani> spans = recursiveTemporalSplit(navs);
     dispFilteredNavData(navs, spans[5], mode, lambda);
@@ -50,7 +50,7 @@ int main(int argc, const char **argv) {
     return -1;
   }
 
-  if (!amap.help()) {
+  if (!amap.helpAsked()) {
     if (amap.optionProvided("--ex0")) {
       ex0(mode, lambda);
     } else {

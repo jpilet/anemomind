@@ -403,44 +403,6 @@ target_link_libraries(nautical_plotTargetSpeed
                       device_ChunkFile
                      )
 
-
-add_library(nautical_TemporalSplit
-            TemporalSplit.h
-            TemporalSplit.cpp
-           )
-target_link_libraries(nautical_TemporalSplit
-                      nautical_nav
-                     )           
-            
-add_executable(nautical_RaceOverview
-               RaceOverview.cpp
-              )
-target_link_libraries(nautical_RaceOverview
-                      nautical_TestdataNavs
-                      nautical_TemporalSplit
-                     )
-                                  
-add_executable(nautical_FilteredNavDataDemo
-               FilteredNavDataDemo.cpp
-              )
-target_link_libraries(nautical_FilteredNavDataDemo
-                      nautical_TestdataNavs
-                      common_ArgMap
-                      plot_gnuplot
-                      common_Span
-                      nautical_TemporalSplit
-                      math_CleanNumArray
-                      math_nonlinear_GeneralizedTVAuto
-                      nautical_FilteredNavData
-                     )
-
-cxx_test(nautical_CalibrationModelTest
-         CalibrationModelTest.cpp
-         common_Uniform
-         gtest_main
-        )
-        
-        
 add_library(nautical_FilteredNavData
             FilteredNavData.cpp
             FilteredNavData.h
@@ -453,6 +415,15 @@ target_link_libraries(nautical_FilteredNavData
                       plot_gnuplot
                       math_nonlinear_GeneralizedTV
                      )
+
+                                  
+
+cxx_test(nautical_CalibrationModelTest
+         CalibrationModelTest.cpp
+         common_Uniform
+         gtest_main
+        )
+        
 
 add_library(nautical_CalibratedNavData
             CalibratedNavData.h
@@ -478,3 +449,23 @@ target_link_libraries(nautical_CalibrationDemo
                       common_MeanAndVar
                       common_DataSplits
                      )
+                     
+
+
+add_library(nautical_TemporalSplit
+            TemporalSplit.h
+            TemporalSplit.cpp
+           )
+target_link_libraries(nautical_TemporalSplit
+                      nautical_nav
+                      common_logging
+                     )           
+            
+add_executable(nautical_RaceOverview
+               RaceOverview.cpp
+              )
+target_link_libraries(nautical_RaceOverview
+                      nautical_TestdataNavs
+                      nautical_TemporalSplit
+                     )
+                                                                  

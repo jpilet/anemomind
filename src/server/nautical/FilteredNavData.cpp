@@ -72,6 +72,9 @@ namespace {
       GnuplotExtra plot;
       plot.set_title(title);
       plot.set_style("lines");
+      plot.set_xlabel("Time (seconds)");
+      plot.set_ylabel(yLabel);
+
       if (mode == FilteredNavData::SIGNAL) {
         plot.plot_xy(rawTimesSeconds, toDouble(rawValues), "Raw signal");
       }
@@ -84,8 +87,6 @@ namespace {
         plot.plot_xy(X, Y, "Filtered signal derivative");
       }
 
-      plot.set_xlabel("Time (seconds)");
-      plot.set_ylabel(yLabel);
       plot.show();
   }
 }
@@ -94,7 +95,8 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
   FilteredNavData::DebugPlotMode mode) {
   if (navs.hasData()) {
     std::sort(navs.begin(), navs.end());
-    if (sameBoat(navs)) {
+    CHECK(sameBoat(navs));
+
       ENTERSCOPE("FilteredNavData");
       SCOPEDMESSAGE(INFO, stringFormat("Number of navs: %d", navs.size()));
       _timeOffset = navs[0].time();
@@ -168,9 +170,6 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
          makeDebugPlot("AWS speed", timesSeconds, aws,
                _aws, "Speed (knots)", mode);
        }
-    } else {
-      LOG(WARNING) << "Mixed boat ids";
-    }
   } else {
     LOG(WARNING) << "No navs";
   }

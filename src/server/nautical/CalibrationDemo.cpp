@@ -307,7 +307,7 @@ int main(int argc, const char **argv) {
   ScopedLog::setDepthLimit(verbosity);
   settings.costType = mapStrToCostType(costType);
   settings.weightType = mapStrToWeightType(weightType);
-  if (amap.help()) {
+  if (amap.helpAsked()) {
     return 0;
   }
 

@@ -66,7 +66,7 @@ class ArgMap {
   };
  public:
 
-  bool help();
+  bool helpAsked();
 
   /*
    * To check if a option exists, e.g. '--descend' if we were to call a sorting algorithm.
