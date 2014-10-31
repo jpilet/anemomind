@@ -5,6 +5,7 @@
 
 #include <server/nautical/TemporalSplit.h>
 #include <cassert>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -24,6 +25,7 @@ namespace {
   }
 
   Array<Spani> temporalSplit(Array<Nav> sortedNavs, Duration<double> thresh, int offset = 0) {
+    CHECK_LT(0, sortedNavs.size());
     int gapCount = countGaps(sortedNavs, thresh);
     int from = 0;
     int count = sortedNavs.size() - 1;

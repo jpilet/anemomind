@@ -439,6 +439,7 @@ add_library(nautical_TemporalSplit
            )
 target_link_libraries(nautical_TemporalSplit
                       nautical_nav
+                      common_logging
                      )           
             
 add_executable(nautical_RaceOverview
