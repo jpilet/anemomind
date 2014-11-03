@@ -197,3 +197,12 @@ target_depends_on_armadillo(math_QuadFormTest)
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
+
+add_library(math_EdgeDetector1d
+            EdgeDetector1d.h
+            EdgeDetector1d.cpp
+           )
+target_link_libraries(math_EdgeDetector1d
+                      math_LUImpl
+                      common_LineKM
+                     )           

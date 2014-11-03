@@ -6,6 +6,9 @@
 #ifndef EDGEDETECTOR1D_H_
 #define EDGEDETECTOR1D_H_
 
+#include <server/common/LineKM.h>
+#include <server/math/QuadForm.h>
+
 namespace sail {
 
 class EdgeDetector1d {

@@ -36,6 +36,10 @@ namespace sail {
 template <int lhsDims, int rhsDims, typename T = double>
 class QuadForm {
  public:
+  // Ideally, this constructor
+  // should be private, but it needs to
+  // public if I want to allocate an array of QuadForms.
+  QuadForm() {}
 
   typedef QuadForm<lhsDims, rhsDims, T> ThisType;
   static constexpr int pDims = calcSymmetricMatrixStorageSize(lhsDims);
@@ -207,8 +211,6 @@ class QuadForm {
   T _P[pDims];
   T _Q[qDims];
   T _R[rDims];
-
-  QuadForm() {}
 };
 
 typedef QuadForm<2, 1, double> LineFitQF;
