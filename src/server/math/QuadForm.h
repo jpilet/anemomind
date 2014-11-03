@@ -108,6 +108,13 @@ class QuadForm {
     return dst;
   }
 
+
+  void operator+=(const ThisType &other) {
+    add(pDims, _P, other._P, _P);
+    add(qDims, _Q, other._Q, _Q);
+    add(rDims, _R, other._R, _R);
+  }
+
   ThisType scale(T factor) const {
     ThisType dst;
     sail::scale(pDims, factor, _P, dst._P);
