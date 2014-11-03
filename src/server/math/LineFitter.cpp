@@ -7,6 +7,8 @@
 #include <cassert>
 #include <server/math/Integral1d.h>
 #include <set>
+#include <iostream>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -99,25 +101,38 @@ namespace {
   }
 
   double Discont::eval() const {
+    assert(index != -1);
     assert(isInner());
     double dif = valueWithout() - valueWith();
     assert(dif >= 0);
     return dif;
   }
 
+  double evalLineFit(const LineFitQF &other) {
+    if (other.pElement(1, 1) < 1.0e-6) {
+      return 0;
+    } else {
+      return other.evalOpt2x1();
+    }
+  }
+
   double Discont::valueWith() const {
-    return _env->itg.integrate(leftNeigh, index).evalOpt2x1() +
-        _env->itg.integrate(index, rightNeigh).evalOpt2x1();
+    auto q0 = _env->itg.integrate(leftNeigh, index);
+    auto q1 = _env->itg.integrate(index, rightNeigh);
+    return evalLineFit(q0) + evalLineFit(q1);
   }
 
   double Discont::valueWithout() const {
-    return _env->itg.integrate(leftNeigh, rightNeigh).evalOpt2x1();
+    auto q = _env->itg.integrate(leftNeigh, rightNeigh);
+    return evalLineFit(q);
   }
 
   void Discont::remove() {
     assert(isInner());
+    assert(index != -1);
     assert(_env->disconts[leftNeigh].rightNeigh == index);
     assert(_env->disconts[rightNeigh].leftNeigh == index);
+    std::cout << "REMOVAL " << leftNeigh << " [" << index << "] " << rightNeigh << std::endl;
     _env->disconts[leftNeigh].rightNeigh = rightNeigh;
     _env->disconts[rightNeigh].leftNeigh = leftNeigh;
     index = -1;
@@ -143,20 +158,31 @@ namespace {
     Discont *_d;
   };
 
-
+  void insert(std::set<DiscontRef> *dst, DiscontRef x) {
+    assert(x.get()->index != -1 && x.get()->isInner());
+    dst->insert(x);
+  }
 
 }
 
 Array<LineFitter::LineSegment> LineFitter::detect(LineKM sampling, int sampleCount, Arrayd X, Arrayd Y) const {
   Array<LineFitQF> qfs = buildQfs(sampling, sampleCount, X, Y);
   Integral1d<LineFitQF> integral(qfs);
+
+  for (int i = 0; i < integral.size(); i++) {
+    auto q = integral.integrate(i, i+1);
+  }
+
   DiscontEnv env(integral);
   std::set<DiscontRef> ordered;
   int totalDiscontCount = env.disconts.size();
-  int innerDiscontCount = totalDiscontCount - 1;
+  int innerDiscontCount = totalDiscontCount - 2; // exclude the two end points.
   for (int i = 1; i < totalDiscontCount-1; i++) {
-    ordered.insert(DiscontRef(env.disconts.ptr(i)));
+    insert(&ordered, DiscontRef(env.disconts.ptr(i)));
   }
+  std::cout << EXPR_AND_VAL_AS_STRING(ordered.size()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(innerDiscontCount) << std::endl;
+
   assert(ordered.size() == innerDiscontCount);
   int maxRemoveCount = innerDiscontCount - _minimumEdgeCount;
   double objfValue = _lambda*innerDiscontCount;
@@ -174,17 +200,26 @@ Array<LineFitter::LineSegment> LineFitter::detect(LineKM sampling, int sampleCou
     double change = r.get()->eval() - _lambda;
 
     if (change < 0) { // Reduction in objective function value.
-      DiscontRef left(env.disconts.ptr(r.get()->leftNeigh));
-      DiscontRef right(env.disconts.ptr(r.get()->leftNeigh));
-      ordered.erase(left);
-      ordered.erase(right);
+      Discont *d = r.get();
+      DiscontRef left(env.disconts.ptr(d->leftNeigh));
+      DiscontRef right(env.disconts.ptr(d->rightNeigh));
+      if (left.get()->isInner()) {
+        ordered.erase(left);
+      }
+      if (right.get()->isInner()) {
+        ordered.erase(right);
+      }
       ordered.erase(r);
 
       // This will update all the references in env.
       r.get()->remove();
 
-      ordered.insert(left);
-      ordered.insert(right);
+      if (left.get()->isInner()) {
+        insert(&ordered, left);
+      }
+      if (right.get()->isInner()) {
+        insert(&ordered, right);
+      }
       objfValue += change;
     } else {
       break;

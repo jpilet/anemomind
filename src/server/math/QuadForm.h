@@ -185,6 +185,10 @@ class QuadForm {
     T a[2] = {x, T(1.0)};
     return ThisType::fit(a, &y);
   }
+
+  T pElement(int i, int j) const {
+    return _P[calcSymmetricMatrixIndex(i, j)];
+  }
  private:
   void fillPArray(MDArray<T, 2> dst) const {
     assert(dst.rows() == lhsDims);
