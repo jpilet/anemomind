@@ -132,7 +132,6 @@ namespace {
     assert(index != -1);
     assert(_env->disconts[leftNeigh].rightNeigh == index);
     assert(_env->disconts[rightNeigh].leftNeigh == index);
-    std::cout << "REMOVAL " << leftNeigh << " [" << index << "] " << rightNeigh << std::endl;
     _env->disconts[leftNeigh].rightNeigh = rightNeigh;
     _env->disconts[rightNeigh].leftNeigh = leftNeigh;
     index = -1;
@@ -180,8 +179,6 @@ Array<LineFitter::LineSegment> LineFitter::detect(LineKM sampling, int sampleCou
   for (int i = 1; i < totalDiscontCount-1; i++) {
     insert(&ordered, DiscontRef(env.disconts.ptr(i)));
   }
-  std::cout << EXPR_AND_VAL_AS_STRING(ordered.size()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(innerDiscontCount) << std::endl;
 
   assert(ordered.size() == innerDiscontCount);
   int maxRemoveCount = innerDiscontCount - _minimumEdgeCount;
