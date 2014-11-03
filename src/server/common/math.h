@@ -220,6 +220,19 @@ void scale(int dims, T s, const T *x, T *dst) {
   }
 }
 
+/*
+ * Works for column major as well as
+ * row major order of the coefficients
+ * in a and b.
+ */
+template <typename T>
+void invert2x2(const T *a, T *b) {
+  T factor = 1.0/(a[0]*a[3] - a[1]*a[2]);
+  b[0] = factor*a[3];
+  b[1] = -factor*a[1];
+  b[2] = -factor*a[2];
+  b[3] = factor*a[0];
+}
 
 } /* namespace sail */
 

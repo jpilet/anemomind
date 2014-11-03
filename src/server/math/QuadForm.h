@@ -6,29 +6,48 @@
 #ifndef QUADFUN_H_
 #define QUADFUN_H_
 
+#include <server/common/math.h>
 #include <server/common/SymmetricMatrix.h>
 #include <algorithm>
+#include <server/math/LUImpl.h>
+#include <cassert>
 
 namespace sail {
 
 /*
  * Represents a quadratic form
  *
- * X'*P*X - 2*Q*X + R,
+ * X'PX - 2X'Q + R,
  *
  * where P and R are symmetric matrices.
  *
  * This is useful for building least squares problems
- * incrementally. P and R are symmetric matrices.
+ * incrementally.
+ *
+ * Usually Q would have one column and R would be a 1x1 matrix.
+ * However, in order to allow for least-squares problems with multiple
+ * right-hand sides, we allow for more columns.
+ *
+ *
+ *
+ * |AX - B|^2 = (X'A' - B')(AX - B) = X'A'AX - 2X'A'B + B'B = [P = A'A, Q = A'B, R = B'B]
+ *  = X'PX - 2X'Q + B'B
  */
-template <int xDims, int rhsDims, typename T = double>
+template <int lhsDims, int rhsDims, typename T = double>
 class QuadForm {
  public:
-  typedef QuadForm<xDims, rhsDims, T> ThisType;
-  static constexpr int pDims = calcSymmetricMatrixStorageSize(xDims);
-  static constexpr int qDims = xDims*rhsDims;
-  static constexpr int rDims = calcSymmetricMatrixStorageSize(rhsDims);
 
+  typedef QuadForm<lhsDims, rhsDims, T> ThisType;
+  static constexpr int pDims = calcSymmetricMatrixStorageSize(lhsDims);
+  static constexpr int pNumel = lhsDims*lhsDims;
+
+  static constexpr int qDims = lhsDims*rhsDims;
+  static constexpr int qNumel = lhsDims*rhsDims;
+
+  static constexpr int rDims = calcSymmetricMatrixStorageSize(rhsDims);
+  static constexpr int rNumel = rhsDims*rhsDims;
+
+  static constexpr int outDims = qDims;
   /*
    * Make a QuadForm from
    *
@@ -36,10 +55,13 @@ class QuadForm {
    *
    * where A is a 1*xDims matrix and
    *       B is a 1*rhsDims matrix
+   *
+   * Can be used to fit a model to
+   * observations in the least squares sense.
    */
-  static ThisType makeLsqEq(T *A, T *B) {
+  static ThisType fit(T *A, T *B) {
     QuadForm dst;
-    for (int i = 0; i < xDims; i++) {
+    for (int i = 0; i < lhsDims; i++) {
       for (int j = 0; j <= i; j++) {
         dst.setP(i, j, A[i]*A[j]);
       }
@@ -53,6 +75,29 @@ class QuadForm {
       }
     }
     return dst;
+  }
+
+  /*
+   * Create a constant squared form,
+   * that is a squared form whose value
+   * does not depend on the vector X.
+   *
+   * This constructor is useful in generic algorithms that
+   * can also work with numbers that need to be initialized to
+   * zero, that is
+   *
+   * SomeUnknownTypeThatCouldBeAQuadFormOrASimplePrimitiveSuchAsDouble x = 0;
+   */
+  QuadForm(T x) {
+    for (int i = 0; i < pDims; i++) {
+      _P[i] = T(0);
+    }
+    for (int i = 0; i < qDims; i++) {
+      _Q[i] = T(0);
+    }
+    for (int i = 0; i < rDims; i++) {
+      _R[0] = x;
+    }
   }
 
   ThisType operator+(const ThisType &other) const {
@@ -70,15 +115,81 @@ class QuadForm {
     sail::scale(rDims, factor, _R, dst._R);
     return dst;
   }
+
+  MDArray<T, 2> minimize() const {
+    T pData[pNumel];
+    T qData[qNumel];
+    MDArray<T, 2> P(lhsDims, lhsDims, pData);
+    MDArray<T, 2> Q(lhsDims, rhsDims, qData);
+    fillPArray(P);
+    fillQArray(Q);
+    MDArray<T, 2> dst(lhsDims, rhsDims);
+    LUImpl::solveLinearSystemLU(P, Q, &dst);
+    return dst;
+  }
+
+  void minimize2x1(double *out2) const {
+    static_assert(lhsDims == 2 && rhsDims == 1, "Only for 2x1 quad forms");
+    T ata[4] = {_P[0], _P[1], _P[1], _P[2]};
+    T ataInv[4];
+    invert2x2(ata, ataInv);
+    out2[0] = ataInv[0]*_Q[0] + ataInv[1]*_Q[1];
+    out2[1] = ataInv[2]*_Q[0] + ataInv[3]*_Q[1];
+  }
+
+  T eval(T *x) {
+    static_assert(rhsDims == 1 || rhsDims == 0, "Bad rhsDims value");
+    T temp[lhsDims];
+    for (int i = 0; i < lhsDims; i++) {
+      T acc = (rhsDims == 0? 0 : -2.0*_Q[i]);
+      for (int j = 0; j < lhsDims; j++) {
+        acc += _P[calcSymmetricMatrixIndex(i, j)]*x[j];
+      }
+      temp[i] = acc;
+    }
+    T value = (rhsDims == 0? 0 : _R[0]);
+    for (int i = 0; i < lhsDims; i++) {
+      value += x[i]*temp[i];
+    }
+    return value;
+  }
+
+  static ThisType fitLine(T x, T y) {
+    static_assert(lhsDims == 2 && rhsDims == 1, "Only to be used for line fitting");
+    T a[2] = {x, T(1.0)};
+    return ThisType::fit(a, &y);
+  }
  private:
-  QuadForm() {}
+  void fillPArray(MDArray<T, 2> dst) const {
+    assert(dst.rows() == lhsDims);
+    assert(dst.cols() == lhsDims);
+    for (int i = 0; i < lhsDims; i++) {
+      for (int j = 0; j < lhsDims; j++) {
+        dst(i, j) = _P[calcSymmetricMatrixIndex(i, j)];
+      }
+    }
+  }
+
+  void fillQArray(MDArray<T, 2> dst) const {
+    assert(dst.rows() == lhsDims);
+    assert(dst.cols() == rhsDims);
+    for (int i = 0; i < lhsDims; i++) {
+      for (int j = 0; j < rhsDims; j++) {
+        dst(i, j) = _Q[calcQIndex(i, j)];
+      }
+    }
+  }
 
   void setP(int i, int j, T value) {
     _P[calcSymmetricMatrixIndex(i, j)] = value;
   }
 
+  int calcQIndex(int i, int j) const {
+    return i + j*lhsDims;
+  }
+
   void setQ(int i, int j, T value) {
-    _Q[i + j*xDims] = value;
+    _Q[calcQIndex(i, j)] = value;
   }
 
   void setR(int i, int j, T value) {
@@ -88,7 +199,16 @@ class QuadForm {
   T _P[pDims];
   T _Q[qDims];
   T _R[rDims];
+ protected:
+  QuadForm() {}
 };
+
+typedef QuadForm<2, 1, double> LineFitQF;
+
+template <int lhsDims, int rhsDims, typename T>
+QuadForm<lhsDims, rhsDims, T> operator* (T s, const QuadForm<lhsDims, rhsDims, T> &x) {
+  return x.scale(s);
+}
 
 
 }

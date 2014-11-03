@@ -43,7 +43,6 @@ constexpr inline int calcSymmetricMatrixStorageSize(int dim) {
  * It is required for i >= j.
  */
 constexpr inline int calcSymmetricMatrixIndexUnsafe(int i, int j) {
-  assert(i >= j);
   return calcSymmetricMatrixStorageSize(i) + j;
 }
 
@@ -51,9 +50,9 @@ constexpr inline int calcSymmetricMatrixIndexUnsafe(int i, int j) {
  * Does the same as calcSymmetricMatrixIndexUnsafe, but
  * it is not required that i >= j.
  */
-inline int calcSymmetricMatrixIndex(int i, int j) {
-  return (i >= j? calcSymmetricMatrixIndex(i, j) :
-      calcSymmetricMatrixIndex(j, i));
+constexpr inline int calcSymmetricMatrixIndex(int i, int j) {
+  return (i >= j? calcSymmetricMatrixIndexUnsafe(i, j) :
+      calcSymmetricMatrixIndexUnsafe(j, i));
 }
 
 

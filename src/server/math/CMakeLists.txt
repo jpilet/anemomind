@@ -185,6 +185,14 @@ add_library(math_CleanNumArray
 target_link_libraries(math_CleanNumArray
                       math_BandMat
                      )   
+                     
+cxx_test(math_QuadFormTest
+         QuadFormTest.cpp
+         math_LUImpl
+         common_LineKM
+         gtest_main
+        )
+target_depends_on_armadillo(math_QuadFormTest)        
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
