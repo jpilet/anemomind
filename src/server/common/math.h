@@ -206,6 +206,20 @@ inline int div1(int a, int b) {
   return (a - 1)/b + 1;
 }
 
+template <typename T>
+void add(int dims, const T *a, const T *b, T *dst) {
+  for (int i = 0; i < dims; i++) {
+    dst[i] = a[i] + b[i];
+  }
+}
+
+template <typename T>
+void scale(int dims, T s, const T *x, T *dst) {
+  for (int i = 0; i < dims; i++) {
+    dst[i] = s*x[i];
+  }
+}
+
 
 } /* namespace sail */
 
