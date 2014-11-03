@@ -27,7 +27,7 @@ TEST(LineFitterTest, NoisyStep) {
   LineKM sampling(0, sampleCount-1, 0.0, 1.0);
 
   LineFitter fitter(1.0e6, 1);
-  Array<LineFitter::LineSegment> segments = fitter.detect(sampling, sampleCount, X, Y);
+  Array<LineFitter::LineSegment> segments = fitter.optimize(sampling, sampleCount, X, Y);
   EXPECT_EQ(segments.size(), 2);
   std::cout << EXPR_AND_VAL_AS_STRING(segments[0].span()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(segments[1].span()) << std::endl;

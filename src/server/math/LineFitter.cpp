@@ -17,7 +17,7 @@ LineFitter::LineFitter(double lambda, int minimumEdgeCount) :
 
 namespace {
   Array<LineFitQF> buildQfs(LineKM sampling, int sampleCount, Arrayd X, Arrayd Y) {
-    Array<LineFitQF> qfs = Array<LineFitQF>::fill(sampleCount, LineFitQF(0));
+    Array<LineFitQF> qfs = Array<LineFitQF>::fill(sampleCount-1, LineFitQF(0));
     int count = X.size();
     assert(count == Y.size());
     for (int i = 0; i < count; i++) {
@@ -164,7 +164,7 @@ namespace {
 
 }
 
-Array<LineFitter::LineSegment> LineFitter::detect(LineKM sampling, int sampleCount, Arrayd X, Arrayd Y) const {
+Array<LineFitter::LineSegment> LineFitter::optimize(LineKM sampling, int sampleCount, Arrayd X, Arrayd Y) const {
   Array<LineFitQF> qfs = buildQfs(sampling, sampleCount, X, Y);
   Integral1d<LineFitQF> integral(qfs);
 

@@ -48,7 +48,7 @@ class LineFitter {
     LineFitQF _lineFit;
   };
 
-  Array<LineSegment> detect(LineKM sampling, int sampleCount, Arrayd X, Arrayd Y) const;
+  Array<LineSegment> optimize(LineKM sampling, int sampleCount, Arrayd X, Arrayd Y) const;
  private:
   double _lambda;
   int _minimumEdgeCount;
