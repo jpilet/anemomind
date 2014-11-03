@@ -11,11 +11,25 @@
 
 namespace sail {
 
+namespace {
 
-std::ostream &operator<<(std::ostream &s, const Spand &x) {
+template <typename T>
+void output(std::ostream &s, const Span<T> &x) {
   s << "Span(" << x.minv() << ", " << x.maxv() << ")";
+}
+
+}
+
+std::ostream &operator<<(std::ostream &s, const Span<int> &x) {
+  output(s, x);
   return s;
 }
+
+std::ostream &operator<<(std::ostream &s, const Span<double> &x) {
+  output(s, x);
+  return s;
+}
+
 
 
 } /* namespace sail */

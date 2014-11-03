@@ -33,8 +33,16 @@ class LineFitter {
   class LineSegment {
    public:
     LineSegment() {}
-    LineSegment(Spani span, LineFitQF lineFit)  :
-      _span(span), _lineFit(lineFit) {}
+    LineSegment(Spani span_, LineFitQF lineFit_)  :
+      _span(span_), _lineFit(lineFit_) {}
+
+    Spani span() const {
+      return _span;
+    }
+
+    const LineFitQF &lineFit() const {
+      return _lineFit;
+    }
    private:
     Spani _span;
     LineFitQF _lineFit;

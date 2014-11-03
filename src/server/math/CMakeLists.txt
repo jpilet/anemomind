@@ -205,6 +205,7 @@ add_library(math_LineFitter
 target_link_libraries(math_LineFitter
                       math_LUImpl
                       common_LineKM
+                      common_Span
                      )           
 cxx_test(math_LineFitterTest
          LineFitterTest.cpp

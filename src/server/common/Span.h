@@ -139,7 +139,8 @@ class Span {
 typedef Span<double> Spand;
 typedef Span<int> Spani;
 
-std::ostream &operator<<(std::ostream &s, const Spand &x);
+std::ostream &operator<<(std::ostream &s, const Span<int> &x);
+std::ostream &operator<<(std::ostream &s, const Span<double> &x);
 
 template <typename T> class Length;
 typedef Span<Length<double> > LengthSpan;

@@ -6,6 +6,7 @@
 #include <server/math/LineFitter.h>
 #include <gtest/gtest.h>
 #include <random>
+#include <server/common/string.h>
 
 using namespace sail;
 
@@ -28,6 +29,10 @@ TEST(LineFitterTest, NoisyStep) {
   LineFitter fitter(1.0e6, 1);
   Array<LineFitter::LineSegment> segments = fitter.detect(sampling, sampleCount, X, Y);
   EXPECT_EQ(segments.size(), 2);
+  std::cout << EXPR_AND_VAL_AS_STRING(segments[0].span()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(segments[1].span()) << std::endl;
+  EXPECT_EQ(segments[0].span(), Spani(0, 15));
+  EXPECT_EQ(segments[1].span(), Spani(15, 30));
 }
 
 
