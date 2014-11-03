@@ -144,7 +144,7 @@ class QuadForm {
     out2[1] = ataInv[2]*_Q[0] + ataInv[3]*_Q[1];
   }
 
-  T eval(T *x) {
+  T eval(const T *x) {
     static_assert(rhsDims == 1 || rhsDims == 0, "Bad rhsDims value");
     T temp[lhsDims];
     for (int i = 0; i < lhsDims; i++) {
@@ -161,6 +161,7 @@ class QuadForm {
     return value;
   }
 
+  // Used to fit a straight line between a value x and a corresponding value y.
   static ThisType fitLine(T x, T y) {
     static_assert(lhsDims == 2 && rhsDims == 1, "Only to be used for line fitting");
     T a[2] = {x, T(1.0)};
@@ -206,7 +207,7 @@ class QuadForm {
   T _P[pDims];
   T _Q[qDims];
   T _R[rDims];
- protected:
+
   QuadForm() {}
 };
 
