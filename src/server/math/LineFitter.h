@@ -12,9 +12,23 @@
 
 namespace sail {
 
-class EdgeDetector1d {
+/*
+ * Given measurements X for which we have corresponding measurements Y,
+ * fit a signal consisting of piecewise straight lines.
+ * The 'lambda' parameter controls the regularization:
+ * A higher value of lambda means fewer line segments.
+ *
+ * Formally, an objective f(LineSegments) is minimized:
+ *
+ *   f(LineSegments) = Data(LineSegments) + lambda*NumberOfDiscontinuities(LineSegments)
+ *
+ * where 'Data(LineSegments)' is the least-squares fit to the data.
+ *
+ *
+ */
+class LineFitter {
  public:
-  EdgeDetector1d(double lambda, int minimumEdgeCount = 0);
+  LineFitter(double lambda, int minimumEdgeCount = 0);
 
   class LineSegment {
    public:

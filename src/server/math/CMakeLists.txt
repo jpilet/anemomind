@@ -198,11 +198,16 @@ add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
 
-add_library(math_EdgeDetector1d
-            EdgeDetector1d.h
-            EdgeDetector1d.cpp
+add_library(math_LineFitter
+            LineFitter.h
+            LineFitter.cpp
            )
-target_link_libraries(math_EdgeDetector1d
+target_link_libraries(math_LineFitter
                       math_LUImpl
                       common_LineKM
                      )           
+cxx_test(math_LineFitterTest
+         LineFitterTest.cpp
+         gtest_main
+         math_LineFitter
+        )

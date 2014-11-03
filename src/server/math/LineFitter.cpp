@@ -3,14 +3,14 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include "EdgeDetector1d.h"
+#include <server/math/LineFitter.h>
 #include <cassert>
 #include <server/math/Integral1d.h>
 #include <set>
 
 namespace sail {
 
-EdgeDetector1d::EdgeDetector1d(double lambda, int minimumEdgeCount) :
+LineFitter::LineFitter(double lambda, int minimumEdgeCount) :
     _lambda(lambda), _minimumEdgeCount(minimumEdgeCount) {}
 
 namespace {
@@ -55,7 +55,7 @@ namespace {
     Integral1d<LineFitQF> itg;
     Array<Discont> disconts;
 
-    Array<EdgeDetector1d::LineSegment> buildSegments() const;
+    Array<LineFitter::LineSegment> buildSegments() const;
     int countDisconts() const;
   };
 
@@ -75,14 +75,14 @@ namespace {
     return counter;
   }
 
-  Array<EdgeDetector1d::LineSegment> DiscontEnv::buildSegments() const {
+  Array<LineFitter::LineSegment> DiscontEnv::buildSegments() const {
     int discontCount = countDisconts();
     int segmentCount = discontCount - 1;
-    Array<EdgeDetector1d::LineSegment> dst(segmentCount);
+    Array<LineFitter::LineSegment> dst(segmentCount);
     int from = 0;
     for (int i = 0; i < segmentCount; i++) {
       int to = disconts[from].rightNeigh;
-      dst[i] = EdgeDetector1d::LineSegment(Spani(from, to), itg.integrate(from, to));
+      dst[i] = LineFitter::LineSegment(Spani(from, to), itg.integrate(from, to));
       from = to;
     }
     return dst;
@@ -147,7 +147,7 @@ namespace {
 
 }
 
-Array<EdgeDetector1d::LineSegment> EdgeDetector1d::detect(LineKM sampling, int sampleCount, Arrayd X, Arrayd Y) const {
+Array<LineFitter::LineSegment> LineFitter::detect(LineKM sampling, int sampleCount, Arrayd X, Arrayd Y) const {
   Array<LineFitQF> qfs = buildQfs(sampling, sampleCount, X, Y);
   Integral1d<LineFitQF> integral(qfs);
   DiscontEnv env(integral);
@@ -179,7 +179,10 @@ Array<EdgeDetector1d::LineSegment> EdgeDetector1d::detect(LineKM sampling, int s
       ordered.erase(left);
       ordered.erase(right);
       ordered.erase(r);
+
+      // This will update all the references in env.
       r.get()->remove();
+
       ordered.insert(left);
       ordered.insert(right);
       objfValue += change;
