@@ -214,6 +214,13 @@ void add(int dims, const T *a, const T *b, T *dst) {
 }
 
 template <typename T>
+void subtract(int dims, const T *a, const T *b, T *dst) {
+  for (int i = 0; i < dims; i++) {
+    dst[i] = a[i] - b[i];
+  }
+}
+
+template <typename T>
 void scale(int dims, T s, const T *x, T *dst) {
   for (int i = 0; i < dims; i++) {
     dst[i] = s*x[i];

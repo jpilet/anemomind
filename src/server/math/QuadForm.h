@@ -112,6 +112,14 @@ class QuadForm {
     return dst;
   }
 
+  ThisType operator-(const ThisType &other) const {
+    ThisType dst;
+    subtract(pDims, _P, other._P, dst._P);
+    subtract(qDims, _Q, other._Q, dst._Q);
+    subtract(rDims, _R, other._R, dst._R);
+    return dst;
+  }
+
 
   void operator+=(const ThisType &other) {
     add(pDims, _P, other._P, _P);
@@ -148,7 +156,7 @@ class QuadForm {
     out2[1] = ataInv[2]*_Q[0] + ataInv[3]*_Q[1];
   }
 
-  T eval(const T *x) {
+  T eval(const T *x) const {
     static_assert(rhsDims == 1 || rhsDims == 0, "Bad rhsDims value");
     T temp[lhsDims];
     for (int i = 0; i < lhsDims; i++) {
@@ -163,6 +171,12 @@ class QuadForm {
       value += x[i]*temp[i];
     }
     return value;
+  }
+
+  T evalOpt2x1() const {
+    T coefs[2];
+    minimize2x1(coefs);
+    return eval(coefs);
   }
 
   // Used to fit a straight line between a value x and a corresponding value y.
