@@ -82,6 +82,27 @@ class UniformSamples {
   T get(int index) const {
     return _samples[index];
   }
+
+  ThisType operator+(T x) const {
+    int count = _samples.size();
+    ArrayType dst(count);
+    for (int i = 0; i < count; i++) {
+      dst[i] = _samples[i] + x;
+    }
+    return ThisType(_sampling, dst);
+  }
+
+  ThisType operator-(T x) const {
+    return (*this) + (-x);
+  }
+
+  double low() const {
+    return _sampling(0);
+  }
+
+  double high() const {
+    return _sampling(_samples.size() - 1);
+  }
  private:
   // Maps sample indices to time
   LineKM _sampling;
