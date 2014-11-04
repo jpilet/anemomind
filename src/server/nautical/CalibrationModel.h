@@ -92,7 +92,7 @@ class DriftAngle {
 
     // For awa angles closer to 0 than 90 degrees,
     // scale by sinus of that angle. Otherwise, just use 0.
-    T awaFactor = params[0]*(2.0*std::abs(ToDouble(awa0rads)) < M_PI? T(sin(awa0rads)) : T(0));
+    T awaFactor = params[0]*(2.0*std::abs(ToDouble(awa0rads)) < M_PI? T(sin(2.0*awa0rads)) : T(0));
 
     // Scale it in a way that decays exponentially as
     // aws increases. The decay is controlled by params[1].
