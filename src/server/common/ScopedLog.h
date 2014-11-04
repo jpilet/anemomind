@@ -16,15 +16,22 @@ class ScopedLog {
  public:
   typedef std::string ThreadId;
 
-  ScopedLog(const char* filename, int line, std::string message);
+  ScopedLog() : _filename(nullptr), _line(-1), _finalScope(true) {}
+  void enter(const char* filename, int line, const std::string &message);
+
   ~ScopedLog();
   static void setDepthLimit(int l);
   void disp(const char *file, int line, LogLevel level, std::string s);
 
   // These methods are public so that they can be called by the SCOPEDMESSAGE macro
-  bool shouldBeDisplayed(LogLevel level);
+  static bool shouldBeDisplayed(LogLevel level);
   void dispSub(const char *filename, int line, LogLevel level, std::string s);
+
+  bool initialized() const {
+    return _line != -1;
+  }
  private:
+  void init();
   ScopedLog(const ScopedLog &x);
   void operator= (const ScopedLog &x);
   const char *_filename;
@@ -44,7 +51,11 @@ class ScopedLog {
 // This macro is flawed in the sense that the
 // name of the resulting object is not auto-generated
 // to be unique. Be careful.
-#define ENTERSCOPE(SCOPENAME) ScopedLog _slog(__FILE__, __LINE__, SCOPENAME)
+//
+// The SCOPENAME argument, which should be something from which a std::string
+// can be constructed, will only be evaluated if it needs to be displayed.
+#define ENTERSCOPE(SCOPENAME) ScopedLog _slog; \
+  if (ScopedLog::shouldBeDisplayed(LOGLEVEL_INFO)) {_slog.enter(__FILE__, __LINE__, SCOPENAME);}
 
 #define ENTER_FUNCTION_SCOPE ENTERSCOPE(__FUNCTION__)
 
@@ -61,7 +72,7 @@ class ScopedLog {
 // MESSAGE is only evaluated if it is needed. MESSAGE
 // could for instance be a call to the stringFormat function...
 #define SCOPEDMESSAGE(LEVEL, MESSAGE) \
-  if (_slog.shouldBeDisplayed(LOGLEVEL_##LEVEL)) \
+  if (_slog.initialized() && ScopedLog::shouldBeDisplayed(LOGLEVEL_##LEVEL)) \
   {_slog.dispSub(__FILE__, __LINE__, LOGLEVEL_##LEVEL, MESSAGE);}
 
 } /* namespace mmm */

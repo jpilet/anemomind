@@ -11,10 +11,10 @@
 
 namespace sail {
 
-ScopedLog::ScopedLog(const char* filename, int line, std::string message) :
-    _filename(filename),
-    _line(line),
-    _message(message) {
+void ScopedLog::enter(const char* filename, int line, const std::string &message) {
+  _filename = filename;
+  _line = line;
+  _message = message;
   verifyThread();
   _finalScope = _depth == _depthLimit-1;
 
@@ -26,7 +26,8 @@ ScopedLog::ScopedLog(const char* filename, int line, std::string message) :
   _depth++;
 }
 
-ScopedLog::ScopedLog(const ScopedLog &x) : _filename(nullptr), _line(-1), _finalScope(false) {
+ScopedLog::ScopedLog(const ScopedLog &x) :
+    _filename(nullptr), _line(-1), _finalScope(false), _message(nullptr) {
 }
 
 void ScopedLog::operator= (const ScopedLog &x) {
@@ -34,9 +35,11 @@ void ScopedLog::operator= (const ScopedLog &x) {
 
 
 ScopedLog::~ScopedLog() {
-  _depth--;
-  if (!_finalScope) {
-    dispScopeLimit("END:   ");
+  if (initialized()) {
+    _depth--;
+    if (!_finalScope) {
+      dispScopeLimit("END:   ");
+    }
   }
 }
 
@@ -58,7 +61,7 @@ void ScopedLog::dispSub(const char *filename, int line, LogLevel level, std::str
 }
 
 void ScopedLog::disp(const char *filename, int line, LogLevel level, std::string s) {
-  if (shouldBeDisplayed(level)) {
+  if (initialized() && shouldBeDisplayed(level)) {
     dispSub(filename, line, level, s);
   }
 }
