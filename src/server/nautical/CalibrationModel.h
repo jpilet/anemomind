@@ -11,6 +11,8 @@
 #include <server/nautical/SpeedCalib.h>
 #include <server/common/Uniform.h>
 #include <server/common/Array.h>
+#include <server/common/ToDouble.h>
+#include <server/common/ExpLine.h>
 
 namespace sail {
 

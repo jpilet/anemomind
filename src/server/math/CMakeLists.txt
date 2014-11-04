@@ -186,6 +186,12 @@ target_link_libraries(math_CleanNumArray
                       math_BandMat
                      )   
 
+cxx_test(math_UniformSamplesTest
+         UniformSamplesTest.cpp
+         common_LineKM
+         gtest_main
+        )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
