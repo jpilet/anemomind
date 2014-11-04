@@ -123,6 +123,20 @@ namespace {
     calibrationReport(params);
   }
 
+  void extrema(double lambda, int count) {
+    ENTERSCOPE("Running a preconfigured example");
+    SCOPEDMESSAGE(INFO, "Loading psaros33 data");
+    Array<Nav> navs = scanNmeaFolder(PathBuilder::makeDirectory(Env::SOURCE_DIR)
+      .pushDirectory("datasets/psaros33_Banque_Sturdza").get(),
+      Nav::debuggingBoatId());
+    Array<Spani> spans = recursiveTemporalSplit(navs);
+    Spani span = spans[5];
+    SCOPEDMESSAGE(INFO, "Filtering the data...");
+    FilteredNavData fdata(navs.slice(span.minv(), span.maxv()), lambda);
+    Arrayd times = fdata.makeCenteredX();
+    fdata.magHdg().interpolateLinear(times);
+  }
+
   void cmp0(CalibratedNavData::Settings settings, int splitCount, std::default_random_engine &e, double lambda, Angle<double> corruptAwa, Angle<double> corruptMagHdg) {
     ENTERSCOPE("Compare several methods");
      SCOPEDMESSAGE(INFO, "Loading psaros33 data");
@@ -273,6 +287,7 @@ int main(int argc, const char **argv) {
   double awaCorruption = 0;
   double magHdgCorruption = 0;
   int splitCount = 8;
+  int extremaCount = 12;
 
   std::string costType = "l2";
   std::string weightType = "direct";
@@ -300,6 +315,7 @@ int main(int argc, const char **argv) {
       .setArgCount(1).store(&weightType);
   amap.registerOption("--order", "Set the order of the differentiation")
       .setArgCount(1).store(&settings.order);
+  amap.registerOption("--extrema", "Detect extrema in the signal");
 
   if (!amap.parse(argc, argv)) {
     return -1;
@@ -313,6 +329,8 @@ int main(int argc, const char **argv) {
 
   if (amap.optionProvided("--ex0")) {
     ex0(lambda, settings);
+  } else if (amap.optionArgs("--extrema")) {
+    extrema(lambda, extremaCount);
   } else if (amap.optionProvided("--cmp0")) {
     cmp0(settings, splitCount, e, lambda, Angle<double>::degrees(awaCorruption), Angle<double>::degrees(magHdgCorruption));
   } else if (amap.optionProvided("--plot0")) {
