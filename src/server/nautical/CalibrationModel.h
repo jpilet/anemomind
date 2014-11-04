@@ -57,10 +57,6 @@ class SpeedCorrector {
     dst[3] = SpeedCalib<double>::initAlphaParam() + rng.gen();
   }
 
-  virtual void initializeRandom(double *dst) {
-
-  }
-
   virtual Velocity<T> correct(T *calibParameters, Velocity<T> x) const {
     SpeedCalib<T> calib(calibParameters[0],
         calibParameters[1], calibParameters[2],
