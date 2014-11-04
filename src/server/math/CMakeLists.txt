@@ -193,7 +193,30 @@ add_library(math_CleanNumArray
 target_link_libraries(math_CleanNumArray
                       math_BandMat
                      )   
+                     
+cxx_test(math_QuadFormTest
+         QuadFormTest.cpp
+         math_LUImpl
+         common_LineKM
+         gtest_main
+        )
+target_depends_on_armadillo(math_QuadFormTest)        
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
+
+add_library(math_LineFitter
+            LineFitter.h
+            LineFitter.cpp
+           )
+target_link_libraries(math_LineFitter
+                      math_LUImpl
+                      common_LineKM
+                      common_Span
+                     )           
+cxx_test(math_LineFitterTest
+         LineFitterTest.cpp
+         gtest_main
+         math_LineFitter
+        )

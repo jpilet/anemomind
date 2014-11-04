@@ -14,6 +14,7 @@
 #include <server/common/DataSplits.h>
 #include <server/common/MeanAndVar.h>
 #include <server/plot/extra.h>
+#include <server/common/Extrema.h>
 
 using namespace sail;
 
@@ -134,7 +135,18 @@ namespace {
     SCOPEDMESSAGE(INFO, "Filtering the data...");
     FilteredNavData fdata(navs.slice(span.minv(), span.maxv()), lambda);
     Arrayd times = fdata.makeCenteredX();
-    fdata.magHdg().interpolateLinear(times);
+    Arrayd signal = fdata.magHdg().interpolateLinear(times)
+          .map<double>([&](Angle<double> x) {return x.degrees();});
+    Arrayd dsignal = fdata.magHdg().interpolateLinearDerivative(times)
+          .map<double>([&](Angle<double> x) {return x.degrees();});
+    Arrayi inds = localExtrema(dsignal);
+
+    GnuplotExtra plot;
+    plot.set_style("lines");
+    plot.plot_xy(times, signal, "The signal");
+    plot.set_style("points");
+    plot.plot_xy(times.slice(inds), signal.slice(inds), "The extrema");
+    plot.show();
   }
 
   void cmp0(CalibratedNavData::Settings settings, int splitCount, std::default_random_engine &e, double lambda, Angle<double> corruptAwa, Angle<double> corruptMagHdg) {
@@ -329,7 +341,7 @@ int main(int argc, const char **argv) {
 
   if (amap.optionProvided("--ex0")) {
     ex0(lambda, settings);
-  } else if (amap.optionArgs("--extrema")) {
+  } else if (amap.optionProvided("--extrema")) {
     extrema(lambda, extremaCount);
   } else if (amap.optionProvided("--cmp0")) {
     cmp0(settings, splitCount, e, lambda, Angle<double>::degrees(awaCorruption), Angle<double>::degrees(magHdgCorruption));
