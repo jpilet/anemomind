@@ -11,35 +11,9 @@
 #include <server/common/ToDouble.h>
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/ExpLine.h>
 
 namespace sail {
-
-/*
- * This function maps a real number
- * (negative or positive) to a positive number.
- *
- * It has a more suitable behaviour than exp in the
- * sense that it doesn't grow exponentially for large numbers,
- * but linearly.
- */
-template <typename T>
-T expline(T x) {
-  if (ToDouble(x) < 0) {
-    return exp(x);
-  } else {
-    return 1.0 + exp(1.0)*x;
-  }
-}
-
-// inverse function to the function above.
-template <typename T>
-T logline(T x) {
-  if (ToDouble(x) > 1.0) {
-    return (x - 1.0)*exp(-1.0);
-  } else {
-    return log(x);
-  }
-}
 
 template <typename T>
 MDArray<T, 2> mulTransposed(MDArray<double, 2> A, MDArray<T, 2> B) {
