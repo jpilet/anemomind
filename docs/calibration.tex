@@ -1,0 +1,35 @@
+\title{Automatic calibration of nautical instruments}
+
+\section{Introduction}
+Properly calibrating instruments on a boat is important in order for sailors basing their decisions on sensor data to make close to optimal decisions that can help them win races. However, traditional calibration of instruments is a complicated procedure to carry out and therefore, many sailors skip it. It is therefore desirable to automate calibration in order to save time and let more sailors enjoy the benefits of properly calibrated nautical instruments.
+
+However, automatic calibration of instruments is a difficult problem due to the many unknown parameters. Not only are the parameters of the instruments unknown, but also the local wind and current conditions. Therefore, domain knowledge is required to build a model that can lead to a well-posed optimization problem.
+
+One such model is based on the assumption that when a manoeuver is performed and the local wind and current conditions are stable, a true wind and current estimated from improperly calibrated instruments would be unstable. Calibrating the instruments would make the estimated true wind and current to become stable. In practice, this could be implemented by minimizing the difference between true wind just before and just after a manoeuver. An approach based on this assumption is used by Team New Zealand, but it neverthless requires a substantial amount of manual labour.\footnote{According to Jean-Claude Monnin}. In order to obtain a stable estimate of the calibration parameters, the data need to be fitted to several different manoeuvers that are segmented out from data. Unfortunately, manoeuvers are sparse events and plenty of recorded data may be required to obtain sufficiently many manoeuvers over which to optimize. Furthermore, a manoeuver could be triggered by a sudden change in the wind direction. For instance, a sailor might perform a tack because a wind change lead to a less favourable VMG, which would make the assumption that the wind is relatively stable at manoeuvers less valid.
+
+\section{Problem Formulation}
+In this report, we attempt to address the concerns raised before. Specifically, we base our solution on the following points:
+\begin{enumerate}
+ \item If the true wind and current are stable when a rapid change in the velocity of the boat takes place, we would expect the estimated true wind and current from the calibration parameters to be stable as well.
+ \item If it is not true that the wind and current is stable at a manoeuver, it should have no influence on the calibration.
+ \item We should be able to perform calibration also on limited amounts of data, e.g. recordings from a few hours of sailing.
+\end{enumerate}.
+
+\section{Optimization}
+We formulate an optimization problem where we minimize an objective function w.r.t. $X \in \realnumber^n$ calibration parameters. The estimated true wind at a given moment is given by a function $\vec{w}: \realnumber \times \realnumber^n \rightarrow \realnumber^2$ that maps a local time and calibration parameters to a vector in a local two-dimensional coordinate system attached to the sea surface. For the current, we have a similar function $\vec{c}: \realnumber \times \realnumber^n \rightarrow \realnumber^2$. We assume the GPS velocity vector does not depend on any calibration parameters, but only the local time: $\vec{g}: \realnumber \rightarrow \realnumber^2$. See Fig. ... for a diagram to estimate true wind and current from sensors.
+
+We optimize the calibration parameters at densely sampled times $t_i \in \realnumber$ with $i$ in $1 \ldots N$. Typically, the difference between $t_i$ and $t_{i+1}$ could be a few seconds. We also introduce binary membership variables $a_i, \b_i \in \{0, 1\}$ that determine whether or not to enforce wind or current stability, respectively.
+
+With $\vec{X} \in \realnumber^n$ being the calibration parameters and $\vec{A} = (a_1, ..., a_N)$ \in \{0, 1\}^N, $\vec{B} = (b_1, ..., b_N)$ \in \{0, 1\}^N being the binary membership variables, we minimize.
+
+Minimize_{\vec{X} \in \realnumber^n, \vec{A} \in \{0, 1\}^N, \vec{B} \in \{0, 1\}^N}
+
+\sum_{i = 1}^N \left(\left(  q\norm{dw/dt(t_i, X)}^2 - \norm{dg/dt(t_i)}  \right) \right) 
++ \left( b_i\left( \norm{dg/dt(t_i)} - q\norm{dc/dt(t_i, X)}^2\right)\right)
+
+The objective function tries to minimize the derivatives of estimated true wind and current whenever the corresponding membership variable is 1. The purpose of the derivative of the GPS velocity $\norm{dw/dt(t_i, X)}$ is to encourage the inclusion of measurements for which rapid changes in the velocity of the boat takes place. If it were excluded from the objective function, all membership variables could trivially be set to 0 and the result would be useless. A quality parameter $q \in \realnumber$ controls how stable we require the wind and current to be. A higher value of $q$ means that fewer membership variables will be 1 in the optimized result.
+
+\section{Implementation}
+In practice, the derivatives in the objective function are estimated using finite differences. Differentiation increases noise, so the signals over which we optimize must be denoised before they can be used in the optimization, e.g. using second order Total Variation (TV) denoising which tends to produce piecewise constant derivatives of the signals.
+
+The objective function involves both binary and real variables and is not straight-forward to optimize. If we don't require a globally optimal result, we can devise a simple algorithm that can converge from an initial estimate as follows. Note that, for a fixed parameter vector $\vec{X}$, we can easily compute the optimal membership vectors $\vec{A}$ and $\vec{B}$ simply by looking at the sign of their associated terms in the objective function. This lets us optimize the parameter vector $\vec{X}$ using a standard optimization algorithm such as Levenberg-Marquardt, where in each iteration, we compute optimal $\vec{A}$ and $\vec{B}$ vectors using the current calibration vector $\vec{X}$. Despite the fact that the problem is non-smooth, in practice this approach seems to converge.
