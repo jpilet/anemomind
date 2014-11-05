@@ -166,6 +166,13 @@ cxx_test(nautical_SpeedCalibTest
          gtest_main
         )        
 
+
+cxx_test(nautical_CalibrationModelTest
+         CalibrationModelTest.cpp
+         common_Uniform
+         gtest_main
+         )
+
 #################################################################
 ### CalibrationExamples
 #################################################################

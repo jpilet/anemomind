@@ -16,7 +16,11 @@ namespace sail {
  *
  * It has a more suitable behaviour than exp in the
  * sense that it doesn't grow exponentially for large numbers,
+<<<<<<< HEAD
  * but linearly.
+=======
+ * but linearly. In addition, it is convex.
+>>>>>>> jo-calib-base
  */
 template <typename T>
 T expline(T x) {

@@ -202,6 +202,12 @@ cxx_test(math_QuadFormTest
         )
 target_depends_on_armadillo(math_QuadFormTest)        
 
+cxx_test(math_UniformSamplesTest
+         UniformSamplesTest.cpp
+         common_LineKM
+         gtest_main
+        )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)

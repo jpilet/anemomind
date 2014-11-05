@@ -11,6 +11,9 @@
 #include <server/nautical/SpeedCalib.h>
 #include <server/common/Uniform.h>
 #include <server/common/Array.h>
+#include <server/common/ToDouble.h>
+#include <server/common/ExpLine.h>
+
 
 namespace sail {
 
@@ -55,10 +58,13 @@ class SpeedCorrector {
     dst[3] = SpeedCalib<double>::initAlphaParam() + rng.gen();
   }
 
+<<<<<<< HEAD
   virtual void initializeRandom(double *dst) {
 
   }
 
+=======
+>>>>>>> jo-calib-base
   virtual Velocity<T> correct(T *calibParameters, Velocity<T> x) const {
     SpeedCalib<T> calib(calibParameters[0],
         calibParameters[1], calibParameters[2],
@@ -90,7 +96,11 @@ class DriftAngle {
 
     // For awa angles closer to 0 than 90 degrees,
     // scale by sinus of that angle. Otherwise, just use 0.
+<<<<<<< HEAD
     T awaFactor = params[0]*(2.0*std::abs(ToDouble(awa0rads)) < M_PI? T(sin(awa0rads)) : T(0));
+=======
+    T awaFactor = params[0]*(2.0*std::abs(ToDouble(awa0rads)) < M_PI? T(sin(2.0*awa0rads)) : T(0));
+>>>>>>> jo-calib-base
 
     // Scale it in a way that decays exponentially as
     // aws increases. The decay is controlled by params[1].
