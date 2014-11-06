@@ -222,7 +222,7 @@ class CorrectorSet : public Corrector<T> {
   void initialize(double *params) const {
     int offset = 0;
     for (auto c: _correctors) {
-      c->initialize(params);
+      c->initialize(params + offset);
       offset += c->paramCount();
 
     }
