@@ -87,7 +87,7 @@ class CalibratedNav {
   template <typename InstrumentAbstraction>
   CalibratedNav(const InstrumentAbstraction &x) :
     rawAwa(x.awa()), rawMagHdg(x.magHdg()),
-    rawAws(x.aws()), rawWatSpeed(x.rawWatSpeed()),
+    rawAws(x.aws()), rawWatSpeed(x.watSpeed()),
     gpsMotion(HorizontalMotion<T>::polar(x.gpsSpeed(), x.gpsBearing())),
     driftAngle(Angle<T>::degrees(0)) {}
 
@@ -119,9 +119,9 @@ class CalibratedNav {
     // Compute the true wind
     apparentWindAngleWrtEarth.set(calibAwa.get() + boatOrientation.get()
         + Angle<T>::degrees(T(180)));
-    apparentWind.set(HorizontalMotion<T>::polar(calibAws,
-        apparentWindAngleWrtEarth));
-    trueWind.set(apparentWind + gpsMotion);
+    apparentWind.set(HorizontalMotion<T>::polar(calibAws.get(),
+        apparentWindAngleWrtEarth.get()));
+    trueWind.set(apparentWind.get() + gpsMotion.get());
 
     // Compute the true current
     boatMotionThroughWater.set(HorizontalMotion<T>::polar(

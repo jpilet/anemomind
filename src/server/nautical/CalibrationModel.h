@@ -224,7 +224,6 @@ class CorrectorSet : public Corrector<T> {
     for (auto c: _correctors) {
       c->initialize(params + offset);
       offset += c->paramCount();
-
     }
   }
 
@@ -236,6 +235,14 @@ class CorrectorSet : public Corrector<T> {
       dcorrs[i] = _correctors[i]->toDouble();
     }
     return Corrector<double>::Ptr(new CorrectorSet<double>(dcorrs));
+  }
+
+  template <typename InstrumentAbstraction>
+  CalibratedNav<T> calibrate(const T *parameters, const InstrumentAbstraction &abs) const {
+    CalibratedNav<T> dst(abs);
+    apply(parameters, &dst);
+    dst.fill();
+    return dst;
   }
  private:
   int _paramCount;
