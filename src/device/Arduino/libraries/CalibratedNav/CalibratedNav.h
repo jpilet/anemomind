@@ -11,6 +11,47 @@
 
 namespace sail {
 
+// More powerful and safe than using nan
+// to indicate whether a value is defined or not.
+template <typename T>
+class DefinedValue {
+ public:
+  DefinedValue() : _defined(false) {}
+  DefinedValue(T x) : _defined(true), _value(x) {}
+
+  T get() const {
+    assert(_defined); // <-- only active in debug mode.
+    return _value;
+  }
+
+  T get(T defaultValue) const {
+    return (_defined? _value : defaultValue);
+  }
+
+  void set(T x) {
+    _defined = true;
+    _value = x;
+  }
+
+  void setOnce(T x) {
+    assert(!_defined);
+    set(x);
+  }
+
+  bool defined() const {return _defined;}
+  bool undefined() const {return !_defined;}
+
+  // TODO:
+  // Would it make sense to make
+  // the assignment operator private
+  // for this class, so that we are obliged
+  // to use the set/get methods?
+ private:
+  bool _defined;
+  T _value;
+};
+
+
 /*
  * The purpose of this class
  * is to hold the results of a
@@ -20,41 +61,75 @@ namespace sail {
  * (such as a Nav) and the idea is then that some
  * calibration procedure (not implemented here) populates
  * it with calibrated values.
+ *
+ * Note that this class does not exhibit the
+ * the InstrumentAbstraction type of methods (awa(), aws(), etc...)
+ * because for each value, there is a raw and calibrated one. However,
+ * its constructors accepts an argument that follows the InstrumentAbstracation
+ * convention.
+ *
+ *
+ * How to use this class:
+ *  1. Construct an instance from an object exhibiting the InstrumentAbstraction interface.
+ *  2. Populate the calibrated instance variables any way you like.
+ *  3. Call the fill() method to compute true wind, current, etc, using the calibrated values.
  */
 template <typename T>
 class CalibratedNav {
  public:
+  CalibratedNav() {}
+
+  typedef DefinedValue<Angle<T> > DefinedAngle;
+  typedef DefinedValue<Velocity<T> > DefinedVelocity;
+  typedef DefinedValue<HorizontalMotion<T> > DefinedMotion;
+
+  // InstrumentAbstraction can for instance be a Nav.
   template <typename InstrumentAbstraction>
+  CalibratedNav(const InstrumentAbstraction &x) :
+    rawAwa(x.awa()), rawMagHdg(x.magHdg()),
+    rawAws(x.aws()), rawWatSpeed(x.rawWatSpeed()),
+    gpsMotion(HorizontalMotion<T>::polar(x.gpsSpeed(), x.gpsBearing())),
+    driftAngle(Angle<T>::degrees(0)) {}
 
-  // Angle accessors
-  Angle<T> rawAwa() const {return read(_rawAwa);}
-  void setRawAwa(Angle<T> value) {_rawAwa = value;}
-  Angle<T> calibAwa() const {return read(_calibAwa);}
-  void setCalibAwa(Angle<T> value) {_calibAwa = value;}
+  /*
+   * Since all instance variables are encapsulated
+   * in the type DefinedValue, I think we can make
+   * them public instead of having them private.
+   */
+  // Values that are populated by the constructor.
+  DefinedMotion gpsMotion;
+  DefinedAngle rawAwa, rawMagHdg;
+  DefinedVelocity rawAws, rawWatSpeed;
 
-  Angle<T> rawMagHdg() const {return read(_rawMagHdg);}
-  void setRawMagHdg(Angle<T> value) {_rawMagHdg = value;}
-  Angle<T> calibMagHdg() const {return read(_calibMagHdg);}
-  void setCalibMagHdg(Angle<T> value) {_calibMagHdg = value;}
+  // Values that need to be calibrated externally.
+  DefinedAngle calibAwa, boatOrientation;
+  DefinedVelocity calibAws, calibWatSpeed;
+  DefinedAngle driftAngle; // <-- Optional to calibrate.
 
-  Angle<T> rawGpsBearing() const {return read(_rawGpsBearing);}
-  void setRawGpsBearing(Angle<T> value) {_rawGpsBearing = value;}
-  Angle<T> calibGpsBearing() const {return read(_calibGpsBearing);}
-  void setCalibGpsBearing(Angle<T> value) {_calibGpsBearing = value;}
- private:
-  // Helper function that checks that we don't read uninitialized values in debug mode.
-  template <typename S>
-  static S read(S src) {
-    assert(!src.isNaNOrFalse());
-    return src;
+  // Values that are populated using the fill() method.
+  // Depend on the calibrated values.
+  DefinedAngle  apparentWindAngleWrtEarth;
+  DefinedMotion apparentWind;
+  DefinedMotion trueWind;
+  DefinedMotion trueCurrent;
+  DefinedMotion boatMotionThroughWater;
+
+  // Call this method once calibrated values have been provided.
+  void fill() {
+    // Compute the true wind
+    apparentWindAngleWrtEarth.set(calibAwa.get() + boatOrientation.get()
+        + Angle<T>::degrees(T(180)));
+    apparentWind.set(HorizontalMotion<T>::polar(calibAws,
+        apparentWindAngleWrtEarth));
+    trueWind.set(apparentWind + gpsMotion);
+
+    // Compute the true current
+    boatMotionThroughWater.set(HorizontalMotion<T>::polar(
+        calibWatSpeed.get(), driftAngle.get() + boatOrientation.get()));
+    trueCurrent.set(gpsMotion.get() - boatMotionThroughWater.get());
   }
 
-  Angle<T> _rawAwa, _calibAwa,
-    _rawMagHdg, _calibMagHdg,
-    _rawGpsBearing, _calibGpsBearing;
-  Velocity<T> _rawAws, _calibAws,
-    _rawWatSpeed, _calibWatSpeed,
-    _rawGpsSpeed, _calibGpsSpeed;
+  // TODO: Extra conveniency methods, such as twdir.
 };
 
 }
