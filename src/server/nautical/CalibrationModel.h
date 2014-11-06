@@ -17,15 +17,26 @@
 
 namespace sail {
 
-
+/*
+ * A Corrector is a building block in a calibration procedure.
+ * Its main method is 'apply', that takes calibration parameters
+ * and a pointer 'dst' to a CalibratedNav. The idea is that it reads some values
+ * from the 'dst' object, applies some calibration to them, and writes the calib-
+ * rated values to the 'dst' object.
+ *
+ * In addition to the apply method, it has the 'paramCount' method that should return
+ * the number of calibration parameters used by this corrector, as well as an 'initialize'
+ * method. The 'initialize' method writes sensible default values to
+ * the first paramCount() values in the array.
+ */
 template <typename T>
 class Corrector {
  public:
   typedef std::shared_ptr<Corrector<T> > Ptr;
-  virtual void apply(T *parameters, CalibratedNav<T> *dst) const = 0;
+  virtual void apply(const T *parameters, CalibratedNav<T> *dst) const = 0;
   virtual int paramCount() const = 0;
   virtual void initialize(double *params) const = 0;
-  virtual std::shared_ptr<Corrector<T> > toDouble() const = 0;
+  virtual std::shared_ptr<Corrector<double> > toDouble() const = 0;
   virtual ~Corrector() {}
 };
 
@@ -53,7 +64,7 @@ class AngleCorrector : public Corrector<T> {
     dst[0] = 0;
   }
  protected:
-  T correct(T *parameters, Angle<T> x) const {
+  Angle<T> correct(const T *parameters, Angle<T> x) const {
     return x + Angle<T>::degrees(parameters[0]);
   }
 };
@@ -61,8 +72,8 @@ class AngleCorrector : public Corrector<T> {
 template <typename T>
 class AwaCorrector : public AngleCorrector<T> {
  public:
-  void apply(T *parameters, CalibratedNav<T> *dst) const {
-    dst->calibAwa.set(correct(parameters, dst->rawAwa.get()));
+  void apply(const T *parameters, CalibratedNav<T> *dst) const {
+    dst->calibAwa.set(AngleCorrector<T>::correct(parameters, dst->rawAwa.get()));
   }
   MAKE_TO_DOUBLE(AwaCorrector)
 };
@@ -70,8 +81,8 @@ class AwaCorrector : public AngleCorrector<T> {
 template <typename T>
 class MagHdgCorrector : public AngleCorrector<T> {
  public:
-  void apply(T *parameters, CalibratedNav<T> *dst) const {
-    dst->boatOrientation.set(correct(parameters, dst->rawMagHdg.get()));
+  void apply(const T *parameters, CalibratedNav<T> *dst) const {
+    dst->boatOrientation.set(AngleCorrector<T>::correct(parameters, dst->rawMagHdg.get()));
   }
   MAKE_TO_DOUBLE(MagHdgCorrector)
 };
@@ -79,7 +90,7 @@ class MagHdgCorrector : public AngleCorrector<T> {
 
 
 template <typename T>
-class SpeedCorrector {
+class SpeedCorrector : public Corrector<T> {
  public:
   int paramCount() const {return 4;}
   void initialize(double *dst) const {
@@ -89,7 +100,7 @@ class SpeedCorrector {
     dst[3] = SpeedCalib<double>::initAlphaParam();
   }
 protected:
-  Velocity<T> correct(T *calibParameters, Velocity<T> x) const {
+  Velocity<T> correct(const T *calibParameters, Velocity<T> x) const {
     SpeedCalib<T> calib(calibParameters[0],
         calibParameters[1], calibParameters[2],
         calibParameters[3]);
@@ -100,8 +111,8 @@ protected:
 template <typename T>
 class WatSpeedCorrector : public SpeedCorrector<T> {
  public:
-  void apply(T *parameters, CalibratedNav<T> *dst) const {
-    dst->calibWatSpeed.set(correct(parameters, dst->rawWatSpeed.get()));
+  void apply(const T *parameters, CalibratedNav<T> *dst) const {
+    dst->calibWatSpeed.set(SpeedCorrector<T>::correct(parameters, dst->rawWatSpeed.get()));
   }
   MAKE_TO_DOUBLE(WatSpeedCorrector)
  private:
@@ -110,8 +121,8 @@ class WatSpeedCorrector : public SpeedCorrector<T> {
 template <typename T>
 class AwsCorrector : public SpeedCorrector<T> {
  public:
-  void apply(T *parameters, CalibratedNav<T> *dst) const {
-    dst->calibAwsSpeed.set(correct(parameters, dst->rawAwsSpeed.get()));
+  void apply(const T *parameters, CalibratedNav<T> *dst) const {
+    dst->calibAws.set(SpeedCorrector<T>::correct(parameters, dst->rawAws.get()));
   }
   MAKE_TO_DOUBLE(AwsCorrector)
 };
@@ -133,7 +144,7 @@ class DriftAngle {
     dst[1] = -2;
   }
 
-  void apply(T *params, CalibratedNav<T> *dst) const {
+  void apply(const T *params, CalibratedNav<T> *dst) const {
     T awa0rads = dst->calibAwa.get().normalizedAt0().radians();
 
     // For awa angles closer to 0 than 90 degrees,
@@ -190,7 +201,17 @@ class CorrectorSet : public Corrector<T> {
     return _paramCount;
   }
 
-  void apply(T *parameters, CalibratedNav<T> *dst) const {
+  static CorrectorSet<T> makeDefaultCorrectorSet() {
+    Array<CorrectorPtr> corrs(5);
+    corrs[0] = CorrectorPtr(new AwaCorrector<T>());
+    corrs[1] = CorrectorPtr(new AwsCorrector<T>());
+    corrs[2] = CorrectorPtr(new MagHdgCorrector<T>());
+    corrs[3] = CorrectorPtr(new WatSpeedCorrector<T>());
+    corrs[4] = CorrectorPtr(new DriftAngle<T>()); // <-- depends on correct Awa and Aws values.
+    return CorrectorSet<T>(corrs);
+  }
+
+  void apply(const T *parameters, CalibratedNav<T> *dst) const {
     int offset = 0;
     for (auto c: _correctors) {
       c->apply(parameters + offset, dst);
