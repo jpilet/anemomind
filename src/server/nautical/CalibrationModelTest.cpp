@@ -26,7 +26,8 @@ TEST(CalibModelTest, InitTest) {
 
 TEST(CalibModelTest, NoCurrentTest) {
   CorrectorSet<double> set = CorrectorSet<double>::makeDefaultCorrectorSet();
-  Array<double> params = Array<double>::fill(set.paramCount(), 1.0e6);
+  Array<double> params = set.makeInitialParams();
+
 
   /*
    * A true wind blowing in the direction of south-west, with an angle of 225 degrees.

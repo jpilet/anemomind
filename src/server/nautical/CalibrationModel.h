@@ -244,6 +244,12 @@ class CorrectorSet : public Corrector<T> {
     dst.fill();
     return dst;
   }
+
+  Arrayd makeInitialParams() const {
+    Arrayd params(_paramCount);
+    initialize(params.ptr());
+    return params;
+  }
  private:
   int _paramCount;
   Array<CorrectorPtr> _correctors;
