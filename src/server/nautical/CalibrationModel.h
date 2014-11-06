@@ -258,4 +258,5 @@ class CorrectorSet : public Corrector<T> {
 
 }
 
+#undef MAKE_TO_DOUBLE
 #endif /* CALIBRATIONMODEL_H_ */
