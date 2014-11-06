@@ -136,7 +136,7 @@ class AwsCorrector : public SpeedCorrector<T> {
  * this class in order to provide our own drift model.
  */
 template <typename T>
-class DriftAngle {
+class DriftAngle : public Corrector<T> {
  public:
   int paramCount() const {return 2;}
   void initialize(double *dst) const {
@@ -153,7 +153,7 @@ class DriftAngle {
 
     // Scale it in a way that decays exponentially as
     // aws increases. The decay is controlled by params[1].
-    T awsFactor = exp(-expline(params[1])*dst->calibAws.metersPerSecond());
+    T awsFactor = exp(-expline(params[1])*dst->calibAws.get().metersPerSecond());
 
     dst->driftAngle.set(Angle<T>::radians(awaFactor*awsFactor));
   }
