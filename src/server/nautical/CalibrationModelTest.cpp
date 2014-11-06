@@ -13,7 +13,9 @@ using namespace sail;
 
 TEST(CalibModelTest, CountTest) {
   Corrector<double> set;
-  EXPECT_EQ(set.paramCount(), 1 + 1 + 4 + 4 + 2);
+  const int pc = (1 + 1 + 4 + 4 + 2);
+  static_assert(pc*sizeof(double) == sizeof(Corrector<double>), "It doesn't seem packed");
+  EXPECT_EQ(set.paramCount(), pc);
 }
 
 
