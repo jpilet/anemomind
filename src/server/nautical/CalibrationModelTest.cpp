@@ -103,7 +103,6 @@ TEST(CalibModelTest, NoCurrentTest) {
   };
 
   CalibratedNav<double> c = set.calibrate(params.ptr(), MeasuredData());
-  std::cout << EXPR_AND_VAL_AS_STRING(c) << std::endl;
   double marg = 1.0e-2;
   EXPECT_NEAR(c.trueCurrent.get()[0].knots(), 0.0, marg);
   EXPECT_NEAR(c.trueCurrent.get()[1].knots(), 0.0, marg);
