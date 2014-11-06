@@ -73,6 +73,8 @@ class DefinedValue {
  *  1. Construct an instance from an object exhibiting the InstrumentAbstraction interface.
  *  2. Populate the calibrated instance variables any way you like.
  *  3. Call the fill() method to compute true wind, current, etc, using the calibrated values.
+ *
+ * See CorrectorSet::calibrate for an example of how it is used.
  */
 template <typename T>
 class CalibratedNav {
@@ -115,6 +117,7 @@ class CalibratedNav {
   DefinedMotion boatMotionThroughWater;
 
   // Call this method once calibrated values have been provided.
+  // For instance, it is called from CorrectorSet::calibrate.
   void fill() {
     // Compute the true wind
     apparentWindAngleWrtEarth.set(calibAwa.get() + boatOrientation.get()

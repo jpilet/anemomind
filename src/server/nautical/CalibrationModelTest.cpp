@@ -69,7 +69,7 @@ namespace {
   }
 }
 
-TEST(CalibModelTest, NoCurrentTest) {
+TEST(CalibModelTest, NoCurrent) {
   CorrectorSet<double> set = CorrectorSet<double>::makeDefaultCorrectorSet();
   Array<double> params = set.makeInitialParams();
 
@@ -104,11 +104,48 @@ TEST(CalibModelTest, NoCurrentTest) {
 
   CalibratedNav<double> c = set.calibrate(params.ptr(), MeasuredData());
   double marg = 1.0e-2;
-  EXPECT_NEAR(c.trueCurrent.get()[0].knots(), 0.0, marg);
-  EXPECT_NEAR(c.trueCurrent.get()[1].knots(), 0.0, marg);
+  EXPECT_NEAR(c.trueWind.get()[0].knots(), trueWind[0].knots(), marg);
+  EXPECT_NEAR(c.trueWind.get()[1].knots(), trueWind[1].knots(), marg);
+  EXPECT_NEAR(c.trueCurrent.get()[0].knots(), trueCurrent[0].knots(), marg);
+  EXPECT_NEAR(c.trueCurrent.get()[1].knots(), trueCurrent[1].knots(), marg);
+}
 
-  EXPECT_NEAR(c.trueWind.get()[0].knots(), -6/sqrt(2), marg);
-  EXPECT_NEAR(c.trueWind.get()[1].knots(), -6/sqrt(2), marg);
+TEST(CalibModelTest, BeamReachWithCurrent) {
+  CorrectorSet<double> set = CorrectorSet<double>::makeDefaultCorrectorSet();
+  Array<double> params = set.makeInitialParams();
+
+
+  // A wind of 12 knots blowing from east.
+  HorizontalMotion<double> trueWind =
+      HorizontalMotion<double>::polar(Velocity<double>::knots(12), Angle<double>::degrees(270));
+
+  // A current of 1.3 knots coming from north and going south
+  HorizontalMotion<double> trueCurrent =
+      HorizontalMotion<double>::polar(Velocity<double>::knots(1.3), Angle<double>::degrees(180));
+
+  // We sail north, against the current.
+  class MeasuredData {
+   public:
+    Velocity<double> aws() const {return Velocity<double>::knots(12*sqrt(2));}
+
+    // The true wind is coming from east, but since we
+    // sail at the same speed as the wind is blowing
+    // the wind appears to come slightly against us.
+    Angle<double> awa() const {return Angle<double>::degrees(45);}
+
+    Angle<double> magHdg() const {return Angle<double>::degrees(0);}
+    Velocity<double> watSpeed() const {return Velocity<double>::knots(12 + 1.3);}
+
+    Angle<double> gpsBearing() const {return Angle<double>::degrees(0);}
+    Velocity<double> gpsSpeed() const {return Velocity<double>::knots(12);}
+  };
+
+  CalibratedNav<double> c = set.calibrate(params.ptr(), MeasuredData());
+  double marg = 1.0e-2;
+  EXPECT_NEAR(c.trueWind.get()[0].knots(), trueWind[0].knots(), marg);
+  EXPECT_NEAR(c.trueWind.get()[1].knots(), trueWind[1].knots(), marg);
+  EXPECT_NEAR(c.trueCurrent.get()[0].knots(), trueCurrent[0].knots(), marg);
+  EXPECT_NEAR(c.trueCurrent.get()[1].knots(), trueCurrent[1].knots(), marg);
 }
 
 
