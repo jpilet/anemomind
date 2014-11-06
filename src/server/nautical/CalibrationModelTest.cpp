@@ -11,13 +11,7 @@ using namespace sail;
 
 TEST(CalibModelTest, CountTest) {
   CorrectorSet<double> set = CorrectorSet<double>::makeDefaultCorrectorSet();
-//  EXPECT_EQ(set.magneticHeadingCorrector().paramCount(), 1);
-//  EXPECT_EQ(set.awaCorrector().paramCount(), 1);
-//  EXPECT_EQ(set.awsCorrector().paramCount(), 4);
-//  EXPECT_EQ(set.waterSpeedCorrector().paramCount(), 4);
-//  EXPECT_EQ(set.waterSpeedCorrector().paramCount(), 4);
-//  EXPECT_EQ(set.driftAngle().paramCount(), 2);
-//  EXPECT_EQ(set.paramCount(), 1 + 1 + 4 + 4 + 2);
+  EXPECT_EQ(set.paramCount(), 1 + 1 + 4 + 4 + 2);
 }
 
 
