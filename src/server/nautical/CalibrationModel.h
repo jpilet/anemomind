@@ -157,7 +157,7 @@ class DriftAngle {
  * most relevant values that we would like to know.
  */
 template <typename T>
-class CorrectorSet : public Corrector {
+class CorrectorSet : public Corrector<T> {
  public:
   /*
    * It is the responsibility of the user of
@@ -175,7 +175,11 @@ class CorrectorSet : public Corrector {
    * when trying to access an undefined value in the
    * DefinedValue class.
    */
-  CorrectorSet(Array<Corrector<T>::Ptr> correctors) :
+
+  // Typedef to easier avoid intricate compilation errors :-)
+  typedef typename Corrector<T>::Ptr CorrectorPtr;
+
+  CorrectorSet(Array<CorrectorPtr> correctors) :
     _correctors(correctors) {
     _paramCount = 0;
     for (auto c: correctors) {
@@ -203,16 +207,18 @@ class CorrectorSet : public Corrector {
     }
   }
 
-  std::shared_ptr<Corrector<T> > toDouble() const {
-    Array<Corrector<double>::Ptr> dcorrs = _correctors.map<Corrector<double> >(
-        [&](Corrector<T>::Ptr x) {
-      return x->toDouble();
-    });
+  std::shared_ptr<Corrector<double> > toDouble() const {
+    typedef Corrector<double>::Ptr CorrectorPtrd;
+    int count = _correctors.size();
+    Array<CorrectorPtrd> dcorrs(count);
+    for (int i = 0; i < count; i++) {
+      dcorrs[i] = _correctors[i]->toDouble();
+    }
     return Corrector<double>::Ptr(new CorrectorSet<double>(dcorrs));
   }
  private:
   int _paramCount;
-  Array<Corrector<T>::Ptr> _correctors;
+  Array<CorrectorPtr> _correctors;
 };
 
 
