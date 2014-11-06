@@ -90,11 +90,13 @@ Although it looks more elaborate, it is now straight forward to replace the robu
 \begin{displaymath}
 r_1(x, \sigma) = \frac{x^2\sigma^2}{x^2 + \sigma^2}\,,
 \end{displaymath}
-that has a similar but smoother shape which might work better with iterative solvers such as Levenberg-Marquardt.
+that has a similar but smoother shape which might work better with iterative solvers such as Levenberg-Marquardt. This cost function also has the advantage that its derivative is zero in just a few discrete points, meaning that an optimization algorithm can converge to a local optimum without a careful initialization.
 \subsection{Parameter tuning}
 As previously discussed, we have one parameter $\quality{w}$ to control wind fitness quality and one paramater $\quality{c}$ for controlling current fitness quality. Typically, water has more inertia than air and we would expect the wind related terms in the objective function to fluctuate much more than the current related ones. Having a common quality parameter $q = \quality{w} = \quality{c}$ might lead to almost all current related terms to be inliers whereas many wind related terms might be outliers, ultimately leading to poor results. By having seperate quality parameters, we would expect a better balance between the wind and current related contribution to the calibration.
 
 One possible way to initialize the quality parameters would be to assign fixed values to them. This, however, could lead to very few inliers or too many inliers, depending on the underlying data. Another strategy would be, given the initial calibration parameters assuming no distortion of the raw measurements, to adjust the quality parameters so that a fixed number of the measurements become inliers.
+
+A more sophisticated way of tuning the quality parameters would be to adjust the wind and current parameters using cross validation, to minimize the difference in true computed wind and current, respectively, over different data splits.
 \section{Implementation}
 The derivatives in the objective function are estimated using finite differences. Differentiation increases noise, so the signals over which we optimize must be denoised before they can be used in the optimization, e.g. using second order Total Variation (TV) denoising which tends to produce piecewise constant derivatives of the signals.
 
