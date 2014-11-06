@@ -7,7 +7,7 @@
 #define CALIBRATIONMODEL_H_
 
 #include <memory>
-#include <cmath>
+//#include <cmath>
 #include <server/nautical/SpeedCalib.h>
 #include <server/common/Array.h>
 #include <server/common/ToDouble.h>
@@ -95,8 +95,20 @@ namespace sail {
                       }
 
 
+                      // This method just wraps the data of this
+                      // object inside an Array<T> without copying
+                      // anything.
+                      // To allocate a new
+                      // reference counted array that will persist
+                      // even after this object has been destroyed,
+                      // call toArray().dup().
                       Array<T> toArray() const {
                         return Array<T>(paramCount(), (T *)(this));
+                      }
+
+                      // Just to hide the pointer cast.
+                      static Corrector<T> *fromPtr(T *ptr) {
+                        return (Corrector<T> *)ptr;
                       }
                     };
         #pragma pack(pop)

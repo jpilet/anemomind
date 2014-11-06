@@ -116,8 +116,8 @@ class CalibratedNav {
   DefinedMotion trueCurrent;
   DefinedMotion boatMotionThroughWater;
 
-  // Call this method once calibrated values have been provided.
-  // For instance, it is called from CorrectorSet::calibrate.
+  // Fill in the remainig values after the raw measurements and driftAngle
+  // have been corrected for.
   void fill() {
     // Compute the true wind
     apparentWindAngleWrtEarth.set(calibAwa.get() + boatOrientation.get()
