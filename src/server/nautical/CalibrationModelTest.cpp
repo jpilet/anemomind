@@ -12,15 +12,14 @@
 using namespace sail;
 
 TEST(CalibModelTest, CountTest) {
-  CorrectorSet<double> set = CorrectorSet<double>::makeDefaultCorrectorSet();
+  Corrector<double> set;
   EXPECT_EQ(set.paramCount(), 1 + 1 + 4 + 4 + 2);
 }
 
 
 TEST(CalibModelTest, InitTest) {
-  CorrectorSet<double> set = CorrectorSet<double>::makeDefaultCorrectorSet();
-  Array<double> params = Array<double>::fill(set.paramCount(), 1.0e6);
-  set.initialize(params.ptr());
+  Corrector<double> set;
+  Array<double> params = set.toArray();
   for (double p : params) {
     EXPECT_LT(std::abs(p), 1.0e2);
   }
@@ -70,9 +69,7 @@ namespace {
 }
 
 TEST(CalibModelTest, NoCurrent) {
-  CorrectorSet<double> set = CorrectorSet<double>::makeDefaultCorrectorSet();
-  Array<double> params = set.makeInitialParams();
-
+  Corrector<double> set;
 
   /*
    * A true wind blowing in the direction of south-west, with an angle of 225 degrees.
@@ -102,7 +99,7 @@ TEST(CalibModelTest, NoCurrent) {
     Velocity<double> gpsSpeed() const {return Velocity<double>::knots(4.5);}
   };
 
-  CalibratedNav<double> c = set.calibrate(params.ptr(), MeasuredData());
+  CalibratedNav<double> c = set.correct(MeasuredData());
   double marg = 1.0e-2;
   EXPECT_NEAR(c.trueWind.get()[0].knots(), trueWind[0].knots(), marg);
   EXPECT_NEAR(c.trueWind.get()[1].knots(), trueWind[1].knots(), marg);
@@ -111,9 +108,7 @@ TEST(CalibModelTest, NoCurrent) {
 }
 
 TEST(CalibModelTest, BeamReachWithCurrent) {
-  CorrectorSet<double> set = CorrectorSet<double>::makeDefaultCorrectorSet();
-  Array<double> params = set.makeInitialParams();
-
+  Corrector<double> set;
 
   // A wind of 12 knots blowing from east.
   HorizontalMotion<double> trueWind =
@@ -140,7 +135,7 @@ TEST(CalibModelTest, BeamReachWithCurrent) {
     Velocity<double> gpsSpeed() const {return Velocity<double>::knots(12);}
   };
 
-  CalibratedNav<double> c = set.calibrate(params.ptr(), MeasuredData());
+  CalibratedNav<double> c = set.correct(MeasuredData());
   double marg = 1.0e-2;
   EXPECT_NEAR(c.trueWind.get()[0].knots(), trueWind[0].knots(), marg);
   EXPECT_NEAR(c.trueWind.get()[1].knots(), trueWind[1].knots(), marg);
