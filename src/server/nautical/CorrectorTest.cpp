@@ -11,14 +11,12 @@
 
 using namespace sail;
 
-TEST(CorrectorTest, CountTest) {
-  Corrector<double> corrector;
-  static_assert(sizeof(double) == sizeof(AngleCorrector<double>), "It doesn't seem packed");
-  static_assert(4*sizeof(double) == sizeof(SpeedCorrector<double>), "It doesn't seem packed");
-  static_assert(sizeof(char) == sizeof(AngleCorrector<char>), "It doesn't seem packed");
-  static_assert(4*sizeof(char) == sizeof(SpeedCorrector<char>), "It doesn't seem packed");
-}
-
+static_assert(sizeof(double) == sizeof(AngleCorrector<double>), "It doesn't seem packed");
+static_assert(4*sizeof(double) == sizeof(SpeedCorrector<double>), "It doesn't seem packed");
+static_assert(sizeof(char) == sizeof(AngleCorrector<char>), "It doesn't seem packed");
+static_assert(4*sizeof(char) == sizeof(SpeedCorrector<char>), "It doesn't seem packed");
+static_assert(sizeof(short) == sizeof(AngleCorrector<short>), "It doesn't seem packed");
+static_assert(4*sizeof(short) == sizeof(SpeedCorrector<short>), "It doesn't seem packed");
 
 TEST(CorrectorTest, InitTest) {
   Corrector<double> corrector;

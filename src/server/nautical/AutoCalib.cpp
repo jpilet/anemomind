@@ -9,7 +9,7 @@
 #include <adolc/taping.h>
 #include <server/common/ScopedLog.h>
 #include <server/math/nonlinear/Levmar.h>
-#include <device/common/PhysicalQuantityIO.h>
+#include <server/common/PhysicalQuantityIO.h>
 
 namespace sail {
 

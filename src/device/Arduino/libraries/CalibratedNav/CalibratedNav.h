@@ -44,12 +44,6 @@ class DefinedValue {
 
   bool defined() const {return _defined;}
   bool undefined() const {return !_defined;}
-
-  // TODO:
-  // Would it make sense to make
-  // the assignment operator private
-  // for this class, so that we are obliged
-  // to use the set/get methods?
  private:
   bool _defined;
   T _value;
@@ -113,7 +107,7 @@ class CalibratedNav {
   DefinedAngle driftAngle; // <-- Optional to calibrate.
 
   // Depend on the calibrated values.
-  DefinedAngle  apparentWindAngleWrtEarth;
+  DefinedAngle  directionApparentWindBlowsTo;
   DefinedMotion apparentWind;
   DefinedMotion trueWind;
   DefinedMotion trueCurrent;
