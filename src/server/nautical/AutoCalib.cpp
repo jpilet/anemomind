@@ -5,15 +5,6 @@
 
 #include "AutoCalib.h"
 
-namespace mmm {
-
-AutoCalib::AutoCalib() {
-  // TODO Auto-generated constructor stub
+namespace sail {
 
 }
-
-AutoCalib::~AutoCalib() {
-  // TODO Auto-generated destructor stub
-}
-
-} /* namespace mmm */

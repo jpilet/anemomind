@@ -7,12 +7,16 @@
 #define AUTOCALIB_H_
 
 #include <cmath>
+#include <server/nautical/FilteredNavData.h>
+#include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
+#include <server/math/nonlinear/LevmarSettings.h>
+#include <server/nautical/Corrector.h>
 
 namespace sail {
 
 class AutoCalib {
  public:
-  AutoCalib();
+  // Holds settings related to how we calibrate
   class Settings {
    public:
     class QParam {
@@ -31,6 +35,17 @@ class AutoCalib {
 
   AutoCalib(Settings s = Settings(), LevmarSettings optSettings = LevmarSettings()) :
     _settings(s), _optSettings(optSettings) {}
+
+  class Results {
+   public:
+    Results(Corrector<double> corr, FilteredNavData srcData) :
+      _calibratedCorrector(corr), _srcData(srcData) {}
+   private:
+   Corrector<double> _calibratedCorrector;
+    FilteredNavData _srcData;
+  };
+
+  Results calibrate(FilteredNavData data) const;
  private:
   Settings _settings;
   LevmarSettings _optSettings;

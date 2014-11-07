@@ -3,9 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include
-
-
+#include <server/nautical/AutoCalib.h>
 
 using namespace sail;
 
