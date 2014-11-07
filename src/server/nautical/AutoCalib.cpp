@@ -9,6 +9,7 @@
 #include <adolc/taping.h>
 #include <server/common/ScopedLog.h>
 #include <server/math/nonlinear/Levmar.h>
+#include <device/common/PhysicalQuantityIO.h>
 
 namespace sail {
 
@@ -208,7 +209,7 @@ namespace {
       return _x < other._x;
     }
 
-    double calcThresholdQuality() const {
+    double calcQuality() const {
       return sqrt(_g/sqr(_x));
     }
    private:
@@ -231,7 +232,7 @@ namespace {
       LOG(FATAL) << "Too few measurements to perform accurate calibration";
     }
     int desiredCount = qsettings.minCount + int(floor(qsettings.frac*(X.size() - qsettings.minCount)));
-    return X[desiredCount-1].calcThresholdQuality();
+    return X[desiredCount-1].calcQuality();
   }
 
   double computeParam(Array<GX> X, QParam qsettings) {
@@ -284,6 +285,26 @@ AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) cons
   state.minimize(_optSettings, objf);
   Corrector<double> resultCorr = *(Corrector<double>::fromPtr(state.getXArray(false).ptr()));
   return Results(resultCorr, data);
+}
+
+void AutoCalib::Results::disp(std::ostream *dst) {
+  if (dst == nullptr) {
+    dst = &(std::cout);
+  }
+
+  int sampleCount = 0;
+  LineKM sample(0, sampleCount-1, log(1.0), log(40));
+  for (int i = 0; i < sampleCount; i++) {
+    Velocity<double> speed = Velocity<double>::knots(exp(sample(i)));
+    *dst << "  A raw AWS of " << speed << " maps to a corrected AWS of "
+        << _calibratedCorrector.aws.correct(speed) << std::endl;
+  }
+  for (int i = 0; i < sampleCount; i++) {
+    Velocity<double> speed = Velocity<double>::knots(exp(sample(i)));
+    *dst << "  A raw water speed of " << speed << " maps to a corrected water speed of "
+        << _calibratedCorrector.watSpeed.correct(speed) << std::endl;
+  }
+  *s << "The AWA offset is "
 }
 
 

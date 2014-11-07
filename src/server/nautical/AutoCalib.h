@@ -55,6 +55,8 @@ class AutoCalib {
    public:
     Results(Corrector<double> corr, FilteredNavData srcData) :
       _calibratedCorrector(corr), _srcData(srcData) {}
+
+    void disp(std::ostream *dst = nullptr);
    private:
    Corrector<double> _calibratedCorrector;
     FilteredNavData _srcData;
