@@ -304,7 +304,9 @@ void AutoCalib::Results::disp(std::ostream *dst) {
     *dst << "  A raw water speed of " << speed << " maps to a corrected water speed of "
         << _calibratedCorrector.watSpeed.correct(speed) << std::endl;
   }
-  *s << "The AWA offset is "
+  Angle<double> a0 = Angle<double>::degrees(0);
+  *dst << "The AWA offset is " << _calibratedCorrector.awa.correct(a0) <<std::endl;
+  *dst << "The magnetic heading offset is " << _calibratedCorrector.magHdg.correct(a0) << std::endl;
 }
 
 

@@ -106,7 +106,12 @@ namespace sail {
 
     // Just to hide the pointer cast.
     static Corrector<T> *fromPtr(T *ptr) {
-      return static_cast<Corrector<T> *>(ptr);
+      return reinterpret_cast<Corrector<T> *>(ptr);
+    }
+
+    static Corrector<T> *fromArray(Array<T> arr) {
+      assert(arr.size() == paramCount());
+      return fromPtr(arr.ptr());
     }
    private:
     // Fill in the remainig values after the raw measurements and driftAngle
