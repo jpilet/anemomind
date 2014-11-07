@@ -167,9 +167,8 @@ cxx_test(nautical_SpeedCalibTest
         )        
 
 
-cxx_test(nautical_CalibrationModelTest
-         CalibrationModelTest.cpp
-         common_Uniform
+cxx_test(nautical_CorrectorTest
+         CorrectorTest.cpp
          gtest_main
          )
 

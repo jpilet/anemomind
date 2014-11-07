@@ -7,13 +7,11 @@
 #define CALIBRATIONMODEL_H_
 
 #include <memory>
-//#include <cmath>
 #include <server/nautical/SpeedCalib.h>
 #include <server/common/Array.h>
 #include <server/common/ToDouble.h>
 #include <server/common/ExpLine.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
-#include <server/common/SharedPtrUtils.h>
 
 
 namespace sail {
@@ -83,14 +81,14 @@ namespace sail {
                       }
 
                       template <typename InstrumentAbstraction>
-                      CalibratedNav<T> correct(const InstrumentAbstraction &x) {
+                      CalibratedNav<T> correct(const InstrumentAbstraction &x) const {
                         CalibratedNav<T> c(x);
                         c.calibWatSpeed.set(watSpeed.correct(c.rawWatSpeed.get()));
                         c.calibAws.set(aws.correct(c.rawAws.get()));
                         c.calibAwa.set(awa.correct(c.rawAwa.get()));
                         c.boatOrientation.set(magHdg.correct(c.rawMagHdg.get()));
                         c.driftAngle.set(driftAngle.correct(c));
-                        c.fill();
+                        fillRemainingValues(&c);
                         return c;
                       }
 
@@ -109,6 +107,22 @@ namespace sail {
                       // Just to hide the pointer cast.
                       static Corrector<T> *fromPtr(T *ptr) {
                         return static_cast<Corrector<T> *>(ptr);
+                      }
+                     private:
+                      // Fill in the remainig values after the raw measurements and driftAngle
+                      // have been corrected for.
+                      void fillRemainingValues(CalibratedNav<T> *dst) const {
+                        // Compute the true wind
+                        dst->apparentWindAngleWrtEarth.set(dst->calibAwa.get() + dst->boatOrientation.get()
+                            + Angle<T>::degrees(T(180)));
+                        dst->apparentWind.set(HorizontalMotion<T>::polar(dst->calibAws.get(),
+                            dst->apparentWindAngleWrtEarth.get()));
+                        dst->trueWind.set(dst->apparentWind.get() + dst->gpsMotion.get());
+
+                        // Compute the true current
+                        dst->boatMotionThroughWater.set(HorizontalMotion<T>::polar(
+                            dst->calibWatSpeed.get(), dst->driftAngle.get() + dst->boatOrientation.get()));
+                        dst->trueCurrent.set(dst->gpsMotion.get() - dst->boatMotionThroughWater.get());
                       }
                     };
         #pragma pack(pop)

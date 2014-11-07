@@ -115,24 +115,6 @@ class CalibratedNav {
   DefinedMotion trueWind;
   DefinedMotion trueCurrent;
   DefinedMotion boatMotionThroughWater;
-
-  // Fill in the remainig values after the raw measurements and driftAngle
-  // have been corrected for.
-  void fill() {
-    // Compute the true wind
-    apparentWindAngleWrtEarth.set(calibAwa.get() + boatOrientation.get()
-        + Angle<T>::degrees(T(180)));
-    apparentWind.set(HorizontalMotion<T>::polar(calibAws.get(),
-        apparentWindAngleWrtEarth.get()));
-    trueWind.set(apparentWind.get() + gpsMotion.get());
-
-    // Compute the true current
-    boatMotionThroughWater.set(HorizontalMotion<T>::polar(
-        calibWatSpeed.get(), driftAngle.get() + boatOrientation.get()));
-    trueCurrent.set(gpsMotion.get() - boatMotionThroughWater.get());
-  }
-
-  // TODO: Extra conveniency methods, such as twdir.
 };
 
 }

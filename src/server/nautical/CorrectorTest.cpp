@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/CalibrationModel.h>
+#include <server/nautical/Corrector.h>
 #include <gtest/gtest.h>
 #include <server/common/Array.h>
 #include <server/common/string.h>
