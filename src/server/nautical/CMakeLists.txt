@@ -475,4 +475,5 @@ add_library(nautical_AutoCalib
 target_link_libraries(nautical_AutoCalib
                       nautical_FilteredNavData
                       math_nonlinear_Levmar
-                     )           
+                      math_armaadolc
+                     )

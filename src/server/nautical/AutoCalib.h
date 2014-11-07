@@ -45,7 +45,7 @@ class AutoCalib {
     FilteredNavData _srcData;
   };
 
-  Results calibrate(FilteredNavData data) const;
+  Results calibrate(FilteredNavData data, Arrayd times = Arrayd()) const;
  private:
   Settings _settings;
   LevmarSettings _optSettings;
