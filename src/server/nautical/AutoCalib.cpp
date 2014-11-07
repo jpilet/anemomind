@@ -155,6 +155,9 @@ namespace {
     adouble lambda = (smooth?
                         sqr(sigma)/(sqr(sigma) + sqr(x))
                         : adouble(inlier? 1 : 0));
+    if (std::isnan(lambda.getValue())) { // Could occur if smooth=true, g=0 and x=0
+      lambda = 0;
+    }
     adouble ql = quality*lambda;
     result[0] = ql*X[0].knots();
     result[1] = ql*X[1].knots();
@@ -173,7 +176,7 @@ namespace {
     }
     adouble result[blockSize]; {
       Difs<adouble> difs = calcDifs<adouble>(*corr, index);
-      _tempW[index] = evalRobust(_settings.smooth, _qw, difs.windDif, g, result + 0);
+      _tempW[index] = evalRobust(_settings.smooth, _qw, difs.windDif,    g, result + 0);
       _tempC[index] = evalRobust(_settings.smooth, _qc, difs.currentDif, g, result + 3);
     } adolcOutput(outDims(), result, F);
     if (outputJ) {
