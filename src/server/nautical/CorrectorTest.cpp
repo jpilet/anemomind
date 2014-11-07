@@ -12,16 +12,16 @@
 using namespace sail;
 
 TEST(CalibModelTest, CountTest) {
-  Corrector<double> set;
+  Corrector<double> corrector;
   const int pc = (1 + 1 + 4 + 4 + 2);
   static_assert(pc*sizeof(double) == sizeof(Corrector<double>), "It doesn't seem packed");
-  EXPECT_EQ(set.paramCount(), pc);
+  EXPECT_EQ(corrector.paramCount(), pc);
 }
 
 
 TEST(CalibModelTest, InitTest) {
-  Corrector<double> set;
-  Array<double> params = set.toArray();
+  Corrector<double> corrector;
+  Array<double> params = corrector.toArray();
   for (double p : params) {
     EXPECT_LT(std::abs(p), 1.0e2);
   }
@@ -71,7 +71,7 @@ namespace {
 }
 
 TEST(CalibModelTest, NoCurrent) {
-  Corrector<double> set;
+  Corrector<double> corrector;
 
   /*
    * A true wind blowing in the direction of south-west, with an angle of 225 degrees.
@@ -101,7 +101,7 @@ TEST(CalibModelTest, NoCurrent) {
     Velocity<double> gpsSpeed() const {return Velocity<double>::knots(4.5);}
   };
 
-  CalibratedNav<double> c = set.correct(MeasuredData());
+  CalibratedNav<double> c = corrector.correct(MeasuredData());
   double marg = 1.0e-2;
   EXPECT_NEAR(c.trueWind.get()[0].knots(), trueWind[0].knots(), marg);
   EXPECT_NEAR(c.trueWind.get()[1].knots(), trueWind[1].knots(), marg);
@@ -110,7 +110,7 @@ TEST(CalibModelTest, NoCurrent) {
 }
 
 TEST(CalibModelTest, BeamReachWithCurrent) {
-  Corrector<double> set;
+  Corrector<double> corrector;
 
   // A wind of 12 knots blowing from east.
   HorizontalMotion<double> trueWind =
@@ -137,7 +137,7 @@ TEST(CalibModelTest, BeamReachWithCurrent) {
     Velocity<double> gpsSpeed() const {return Velocity<double>::knots(12);}
   };
 
-  CalibratedNav<double> c = set.correct(MeasuredData());
+  CalibratedNav<double> c = corrector.correct(MeasuredData());
   double marg = 1.0e-2;
   EXPECT_NEAR(c.trueWind.get()[0].knots(), trueWind[0].knots(), marg);
   EXPECT_NEAR(c.trueWind.get()[1].knots(), trueWind[1].knots(), marg);
