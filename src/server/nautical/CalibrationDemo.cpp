@@ -11,6 +11,8 @@
 using namespace sail;
 
 namespace {
+
+  // A preconfigured example
   void ex0() {
     Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
       .pushDirectory("datasets/psaros33_Banque_Sturdza").get();
@@ -25,6 +27,13 @@ namespace {
 
 int main(int argc, const char **argv) {
   ex0();
+
+  /* TODO: (In another PR?)
+   *   - Parse arguments so that we can try it on many different datasets.
+   *   - Cross-validation
+   *   - Artificially corrupt measurements and see if those corruptions are corrected for.
+   */
+
   return 0;
 }
 

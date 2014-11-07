@@ -33,7 +33,8 @@ class AutoCalib {
     };
     enum GMode {GPS, MAG_HDG};
 
-    Settings() : smooth(true), gMode(GPS), tapeIndex(0) {}
+    Settings() : smooth(true), gMode(GPS),
+        tapeIndex(0), jacobianCheck(false) {}
 
     // Quality parameters.
     QParam wind, current;
@@ -46,9 +47,13 @@ class AutoCalib {
     GMode gMode;
 
     short int tapeIndex;
+
+    bool jacobianCheck;
   };
 
-  AutoCalib(Settings s = Settings(), LevmarSettings optSettings = LevmarSettings()) :
+  static LevmarSettings makeDefaultLevmarSettings();
+
+  AutoCalib(Settings s = Settings(), LevmarSettings optSettings = makeDefaultLevmarSettings()) :
     _settings(s), _optSettings(optSettings) {}
 
   class Results {

@@ -14,6 +14,41 @@
 namespace sail {
 
 namespace {
+  typedef AutoCalib::Settings::QParam QParam;
+
+  class GX {
+   public:
+    GX() : _g(NAN), _x(NAN) {}
+    GX(double g, double x) : _g(g), _x(x) {}
+    bool isInlier(double quality) const {
+      return sqr(quality*_x) <= _g;
+    }
+
+    bool operator< (const GX &other) const {
+      return _x < other._x;
+    }
+
+    double calcQuality() const {
+      return sqrt(_g/sqr(_x));
+    }
+   private:
+    double _g, _x;
+  };
+
+  template <typename T>
+  T makePositive(T x) {
+    constexpr double minv = 1.0e-4;
+    if (x < minv) {
+      return minv;
+    }
+    return x;
+  }
+
+  template <typename T>
+  Velocity<T> makePositive(Velocity<T> x) {
+    return Velocity<T>::knots(makePositive(x.knots()));
+  }
+
   class FilteredNavInstrumentAbstraction {
    public:
     FilteredNavInstrumentAbstraction(const FilteredNavData &data, int index) :
@@ -28,11 +63,11 @@ namespace {
     }
 
     Velocity<double> aws() const {
-      return _data.aws().get(_index);
+      return makePositive(_data.aws().get(_index));
     }
 
     Velocity<double> watSpeed() const {
-      return _data.watSpeed().get(_index);
+      return makePositive(_data.watSpeed().get(_index));
     }
 
     Angle<double> gpsBearing() const {
@@ -62,7 +97,7 @@ namespace {
     };
 
     int length() const {
-      return _data.size();
+      return _times.size();
     }
 
     int inDims() {
@@ -104,8 +139,11 @@ namespace {
       return Difs<T>(factor*wdif, factor*cdif);
     }
 
-    Vectorize<double, 2> evalSub(int index, double *X, double *F, MDArray2d J);
+    Vectorize<double, 2> evalSub(int index, double *X, double *F, MDArray2d J,
+        int *windInlierCounter, int *currentInlierCounter);
 
+
+    void computeWindAndCurrentDerivNorms(Array<GX> *Wdst, Array<GX> *Cdst);
     void tuneParameters();
   };
 
@@ -143,18 +181,26 @@ namespace {
   }
 
   void Objf::eval(double *X, double *F, double *J) {
+    ENTERSCOPE("Evaluate the automatic calibration objective function");
     bool outputJ = J != nullptr;
+    int windInlierCounter = 0;
+    int currentInlierCounter = 0;
     MDArray2d JMat;
     if (outputJ) {
       JMat = MDArray2d(outDims(), inDims(), J);
     }
     for (int i = 0; i < length(); i++) {
-      evalSub(i, X, F + blockSize*i, (outputJ? JMat.sliceRowBlock(i, blockSize) : MDArray2d()));
+      evalSub(i, X, F + blockSize*i, (outputJ? JMat.sliceRowBlock(i, blockSize) : MDArray2d()),
+        &windInlierCounter, &currentInlierCounter);
     }
+    SCOPEDMESSAGE(INFO, stringFormat("Wind inlier count:    %d", windInlierCounter));
+    SCOPEDMESSAGE(INFO, stringFormat("Current inlier count: %d", currentInlierCounter));
   }
 
 
-  double evalRobust(bool smooth, double quality, const HorizontalMotion<adouble> &X, double g, adouble *result) {
+  double evalRobust(bool smooth, double quality,
+      const HorizontalMotion<adouble> &X, double g, adouble *result,
+      int *inlierCounter) {
     double sigma = calcSigma(g, quality);
     adouble x = X.norm().knots();
     double xd = x.getValue();
@@ -169,25 +215,31 @@ namespace {
     result[0] = ql*X[0].knots();
     result[1] = ql*X[1].knots();
     result[2] = quality*(1.0 - lambda)*sigma;
+    if (inlier) {
+      (*inlierCounter)++;
+    }
     return xd;
   }
 
-  Vectorize<double, 2> Objf::evalSub(int index, double *X, double *F, MDArray2d J) {
+  Vectorize<double, 2> Objf::evalSub(int index, double *X, double *F, MDArray2d J,
+      int *windInlierCounter, int *currentInlierCounter) {
     double g = _G[index];
-    Array<adouble> adX = adolcInput(inDims(), X);
     bool outputJ = !J.empty();
-    Corrector<adouble> *corr = Corrector<adouble>::fromArray(adX);
 
     if (outputJ) {
       trace_on(_settings.tapeIndex);
     }
+    Array<adouble> adX = adolcInput(inDims(), X);
+    Corrector<adouble> *corr = Corrector<adouble>::fromArray(adX);
     adouble result[blockSize];
 
       Difs<adouble> difs = calcDifs<adouble>(*corr, index);
-      double w = evalRobust(_settings.smooth, _qw, difs.windDif,    g, result + 0);
-      double c = evalRobust(_settings.smooth, _qc, difs.currentDif, g, result + 3);
+      double w = evalRobust(_settings.smooth, _qw, difs.windDif,    g, result + 0,
+        windInlierCounter);
+      double c = evalRobust(_settings.smooth, _qc, difs.currentDif, g, result + 3,
+        currentInlierCounter);
 
-    adolcOutput(outDims(), result, F);
+    adolcOutput(blockSize, result, F);
     if (outputJ) {
       trace_off();
       outputJacobianColMajor(_settings.tapeIndex, X, J.ptr(), J.getStep());
@@ -195,26 +247,7 @@ namespace {
     return Vectorize<double, 2>{w, c};
   }
 
-  typedef AutoCalib::Settings::QParam QParam;
 
-  class GX {
-   public:
-    GX() : _g(NAN), _x(NAN) {}
-    GX(double g, double x) : _g(g), _x(x) {}
-    bool isInlier(double quality) const {
-      return sqr(quality*_x) <= _g;
-    }
-
-    bool operator< (const GX &other) const {
-      return _x < other._x;
-    }
-
-    double calcQuality() const {
-      return sqrt(_g/sqr(_x));
-    }
-   private:
-    double _g, _x;
-  };
 
   int countInliers(Array<GX> X, double q) {
     for (int i = 0; i < X.size(); i++) {
@@ -228,15 +261,17 @@ namespace {
 
 
   double tuneParam(Array<GX> X, QParam qsettings) {
+    ENTERSCOPE("Tune a quality parameter");
     if (X.size() < qsettings.minCount) {
       LOG(FATAL) << "Too few measurements to perform accurate calibration";
     }
     int desiredCount = qsettings.minCount + int(floor(qsettings.frac*(X.size() - qsettings.minCount)));
+    SCOPEDMESSAGE(INFO, stringFormat("Tune the quality parameter so that %d of the %d measurements are inliers. (%.3g percents)",
+        desiredCount, X.size(), (100.0*desiredCount)/X.size()));
     return X[desiredCount-1].calcQuality();
   }
 
   double computeParam(Array<GX> X, QParam qsettings) {
-    std::sort(X.begin(), X.end());
     if (qsettings.mode == QParam::FIXED ||
         qsettings.mode == QParam::TUNE_ON_ERROR) {
       int count = countInliers(X, qsettings.fixedQuality);
@@ -254,36 +289,71 @@ namespace {
     }
   }
 
+  void Objf::computeWindAndCurrentDerivNorms(Array<GX> *Wdst, Array<GX> *Cdst) {
+    int windInlierCounter = 0;
+    int currentInlierCounter = 0;
 
-  void Objf::tuneParameters() {
+    int count = length();
     Corrector<double> corr;
     double *X = corr.toArray().ptr();
     double temp[blockSize];
-
-    int count = length();
     Array<GX> W(count), C(count);
     for (int i = 0; i < count; i++) {
       double g = _G[i];
-      Vectorize<double, 2> x = evalSub(i, X, temp, MDArray2d());
+      Vectorize<double, 2> x = evalSub(i, X, temp, MDArray2d(),
+          &windInlierCounter, &currentInlierCounter);
       W[i] = GX(g, x[0]);
       C[i] = GX(g, x[1]);
     }
-
-    _qw = computeParam(W, _settings.wind);
-    _qc = computeParam(C, _settings.current);
+    std::sort(W.begin(), W.end());
+    std::sort(C.begin(), C.end());
+    *Wdst = W;
+    *Cdst = C;
   }
+
+  void Objf::tuneParameters() {
+    ENTERSCOPE("Tune the quality parameters");
+
+    Array<GX> W, C;
+    computeWindAndCurrentDerivNorms(&W, &C);
+
+    SCOPEDMESSAGE(INFO, "Compute the wind quality parameter");
+    _qw = computeParam(W, _settings.wind);
+    SCOPEDMESSAGE(INFO, "Compute the current quality parameter");
+    _qc = computeParam(C, _settings.current);
+    SCOPEDMESSAGE(INFO, stringFormat("     Wind quality parameter set to %.3g", _qw));
+    SCOPEDMESSAGE(INFO, stringFormat("  Current quality parameter set to %.3g", _qc));
+  }
+}
+
+LevmarSettings AutoCalib::makeDefaultLevmarSettings() {
+  LevmarSettings s;
+  s.maxiter = 30;
+  return s;
 }
 
 AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) const {
   if (times.empty()) {
     times = data.makeCenteredX();
   }
+
+  ENTERSCOPE("Automatic calibration");
+  SCOPEDMESSAGE(INFO, stringFormat("Number of measurements:          %d", times.size()));
+  SCOPEDMESSAGE(INFO, stringFormat("Number of parameters to recover: %d", Corrector<double>::paramCount()));
   Arrayd params = Corrector<double>().toArray().dup();
   Objf objf(data, times, _settings);
-  assert(objf.maxNumJacDif(params.ptr()) < 1.0e-5);
+
+  if (_settings.jacobianCheck) {
+    double dif = objf.maxNumJacDif(params.ptr());
+    SCOPEDMESSAGE(INFO, stringFormat("Maximum difference between numeric and analytic Jacobian: %.3g", dif));
+    assert(dif < 1.0e-3);
+  }
+
   LevmarState state(params);
+  SCOPEDMESSAGE(INFO, "Perform optimization");
   state.minimize(_optSettings, objf);
   Corrector<double> resultCorr = *(Corrector<double>::fromPtr(state.getXArray(false).ptr()));
+  SCOPEDMESSAGE(INFO, "Done optimizing.");
   return Results(resultCorr, data);
 }
 
@@ -292,7 +362,7 @@ void AutoCalib::Results::disp(std::ostream *dst) {
     dst = &(std::cout);
   }
 
-  int sampleCount = 0;
+  int sampleCount = 12;
   LineKM sample(0, sampleCount-1, log(1.0), log(40));
   for (int i = 0; i < sampleCount; i++) {
     Velocity<double> speed = Velocity<double>::knots(exp(sample(i)));
@@ -307,6 +377,9 @@ void AutoCalib::Results::disp(std::ostream *dst) {
   Angle<double> a0 = Angle<double>::degrees(0);
   *dst << "The AWA offset is " << _calibratedCorrector.awa.correct(a0) <<std::endl;
   *dst << "The magnetic heading offset is " << _calibratedCorrector.magHdg.correct(a0) << std::endl;
+  *dst << "The maximum drift angle is "
+      << Angle<double>::radians(_calibratedCorrector.driftAngle.amp).degrees()
+      << " degrees" << std::endl;
 }
 
 
