@@ -11,7 +11,7 @@
 
 using namespace sail;
 
-TEST(CalibModelTest, CountTest) {
+TEST(CorrectorTest, CountTest) {
   Corrector<double> corrector;
   static_assert(sizeof(double) == sizeof(AngleCorrector<double>), "It doesn't seem packed");
   static_assert(4*sizeof(double) == sizeof(SpeedCorrector<double>), "It doesn't seem packed");
@@ -20,7 +20,7 @@ TEST(CalibModelTest, CountTest) {
 }
 
 
-TEST(CalibModelTest, InitTest) {
+TEST(CorrectorTest, InitTest) {
   Corrector<double> corrector;
   Array<double> params = corrector.toArray();
   for (double p : params) {
@@ -71,7 +71,7 @@ namespace {
   }
 }
 
-TEST(CalibModelTest, NoCurrent) {
+TEST(CorrectorTest, NoCurrent) {
   Corrector<double> corrector;
 
   /*
@@ -82,7 +82,7 @@ TEST(CalibModelTest, NoCurrent) {
       HorizontalMotion<double>::polar(Velocity<double>::knots(6), Angle<double>::degrees(225));
 
   /*
-   *  A true current of 0.5 knots in the direction of 315 (-45) degrees.
+   * No current
    */
   HorizontalMotion<double> trueCurrent(Velocity<double>::knots(0), Velocity<double>::knots(0));
 
@@ -110,7 +110,7 @@ TEST(CalibModelTest, NoCurrent) {
   EXPECT_NEAR(c.trueCurrent.get()[1].knots(), trueCurrent[1].knots(), marg);
 }
 
-TEST(CalibModelTest, BeamReachWithCurrent) {
+TEST(CorrectorTest, BeamReachWithCurrent) {
   Corrector<double> corrector;
 
   // A wind of 12 knots blowing from east.
