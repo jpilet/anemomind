@@ -28,48 +28,6 @@ TEST(CorrectorTest, InitTest) {
   }
 }
 
-namespace {
-  std::ostream &operator<<(std::ostream &s, Velocity<double> x) {
-    s << x.knots() << " knots";
-    return s;
-  }
-
-  std::ostream &operator<<(std::ostream &s, Angle<double> x) {
-    s << x.degrees() << " degrees";
-    return s;
-  }
-
-  std::ostream &operator<<(std::ostream &s, HorizontalMotion<double> x) {
-      s << "(x=" << x[0] << ", y=" << x[1] << ", dir=" << x.angle() << ", norm=" << x.norm() << ")";
-      return s;
-    }
-
-
-
-  std::ostream &operator<<(std::ostream &s, CalibratedNav<double> n) {
-    s << EXPR_AND_VAL_AS_STRING(n.gpsMotion.get()) << std::endl;
-    s << EXPR_AND_VAL_AS_STRING(n.rawAwa.get()) << std::endl;
-    s << EXPR_AND_VAL_AS_STRING(n.rawMagHdg.get()) << std::endl;
-    s << EXPR_AND_VAL_AS_STRING(n.rawAws.get()) << std::endl;
-    s << EXPR_AND_VAL_AS_STRING(n.rawWatSpeed.get()) << std::endl;
-
-    // Values that need to be calibrated externally.
-    s << EXPR_AND_VAL_AS_STRING(n. calibAwa.get()) << std::endl;
-    s << EXPR_AND_VAL_AS_STRING(n.boatOrientation.get()) << std::endl;
-    s << EXPR_AND_VAL_AS_STRING(n.calibAws.get()) << std::endl;
-    s << EXPR_AND_VAL_AS_STRING(n.calibWatSpeed.get()) << std::endl;
-    s << EXPR_AND_VAL_AS_STRING(n. driftAngle.get()) << std::endl; // <-- Optional to calibrate.
-
-    // Values that are populated using the fill(n..get()) method.
-    // Depend on the calibrated values.
-    s << EXPR_AND_VAL_AS_STRING(n.apparentWindAngleWrtEarth.get()) << std::endl;
-    s << EXPR_AND_VAL_AS_STRING(n.apparentWind.get()) << std::endl;
-    s << EXPR_AND_VAL_AS_STRING(n.trueWind.get()) << std::endl;
-    s << EXPR_AND_VAL_AS_STRING(n.trueCurrent.get()) << std::endl;
-    s << EXPR_AND_VAL_AS_STRING(n.boatMotionThroughWater.get()) << std::endl;
-    return s;
-  }
-}
 
 TEST(CorrectorTest, NoCurrent) {
   Corrector<double> corrector;
