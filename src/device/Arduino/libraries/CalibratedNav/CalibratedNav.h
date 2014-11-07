@@ -107,7 +107,7 @@ class CalibratedNav {
   DefinedAngle driftAngle; // <-- Optional to calibrate.
 
   // Depend on the calibrated values.
-  DefinedAngle  apparentWindAngleWrtEarth;
+  DefinedAngle  directionApparentWindBlowsTo;
   DefinedMotion apparentWind;
   DefinedMotion trueWind;
   DefinedMotion trueCurrent;
