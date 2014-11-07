@@ -101,6 +101,16 @@ A more sophisticated way of tuning the quality parameters would be to adjust the
 The derivatives in the objective function are estimated using finite differences. Differentiation increases noise, so the signals over which we optimize must be denoised before they can be used in the optimization, e.g. using second order Total Variation (TV) denoising which tends to produce piecewise constant derivatives of the signals.
 
 We minimize the last form of the objective function, expressed in terms of robust cost functions. If we use the $r_0$ robust cost, the objective function becomes nonsmooth in some points, but this is usually not a problem. If we want to be sure to have a smooth objective function, we can replace the $r_0$ cost function by a smooth one, such as $r_1$.
+
+\section{Discussion}
+It would be nice to investigate the following:
+\begin{itemize}
+\item How stable the calibrated values are as the quality parameters are varied.
+\item How stable the calibrated values are over different splits (cross-validation). Compare the true winds and currents.
+\item Add corruptions to the measurements to see if these corruptions are recovered in the calibration parameters.
+\item Compare recovered true winds and currents with measures taken from another nearby boat.
+\end{itemize}
+
 \end{document}
 
 
