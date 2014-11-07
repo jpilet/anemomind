@@ -102,6 +102,7 @@ TEST(CorrectorTest, BeamReachWithCurrent) {
   EXPECT_NEAR(c.trueWind()[1].knots(), trueWind[1].knots(), marg);
   EXPECT_NEAR(c.trueCurrent()[0].knots(), trueCurrent[0].knots(), marg);
   EXPECT_NEAR(c.trueCurrent()[1].knots(), trueCurrent[1].knots(), marg);
+  EXPECT_NEAR(c.twdir().degrees(), 90.0, marg);
 }
 
 

@@ -124,7 +124,7 @@ class CalibratedNav {
    * Extra nice-to-have accessors
    */
   Angle<T> twdir() const {
-    return trueWind().angle();
+    return trueWind().angle() + Angle<T>::degrees(T(180));
   }
 
   Angle<T> tws() const {
