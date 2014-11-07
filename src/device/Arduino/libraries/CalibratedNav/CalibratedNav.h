@@ -130,8 +130,6 @@ class CalibratedNav {
   Angle<T> tws() const {
     return trueWind().norm();
   }
-
-
 };
 
 }
