@@ -26,7 +26,7 @@ class StaticPower<a, 0> {
 };
 
 template <typename T>
-T sqr(T x) {
+constexpr T sqr(T x) {
   return x*x;
 }
 

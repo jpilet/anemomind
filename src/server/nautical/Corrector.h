@@ -9,9 +9,9 @@
 #include <memory>
 #include <server/nautical/SpeedCalib.h>
 #include <server/common/Array.h>
-#include <server/common/ToDouble.h>
 #include <server/common/ExpLine.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
+#include <server/common/ToDouble.h>
 
 
 namespace sail {
@@ -106,7 +106,12 @@ namespace sail {
 
                       // Just to hide the pointer cast.
                       static Corrector<T> *fromPtr(T *ptr) {
-                        return static_cast<Corrector<T> *>(ptr);
+                        return reinterpret_cast<Corrector<T> *>(ptr);
+                      }
+
+                      static Corrector<T> *fromArray(Array<T> arr) {
+                        assert(arr.size() == paramCount());
+                        return fromPtr(arr.ptr());
                       }
                      private:
                       // Fill in the remainig values after the raw measurements and driftAngle

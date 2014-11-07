@@ -23,14 +23,29 @@ class AutoCalib {
      public:
       enum Mode {FIXED, TUNED, TUNED_ON_ERROR};
       Mode mode;
-      QParam() : mode(TUNED), fixedQuality(NAN), minCount(30), frac(0.01) {}
+      QParam() : mode(TUNED), fixedQuality(NAN), minCount(30),
+          frac(0.01) {}
 
 
       double fixedQuality;
       int minCount;
       double frac;
     };
+    enum GMode {GPS, MAG_HDG};
+
+    Settings() : smooth(true), gMode(GPS), tapeIndex(0) {}
+
+    // Quality parameters.
     QParam wind, current;
+
+    // Whether a smooth or non-smooth robust estimator should be used.
+    bool smooth;
+
+    // Whether we should use the derivative of the GPS speed or the derivative
+    // of the magnetic heading to measure how much the trajectory is changing.
+    GMode gMode;
+
+    short int tapeIndex;
   };
 
   AutoCalib(Settings s = Settings(), LevmarSettings optSettings = LevmarSettings()) :
