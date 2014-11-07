@@ -13,9 +13,10 @@ using namespace sail;
 
 TEST(CalibModelTest, CountTest) {
   Corrector<double> corrector;
-  const int pc = (1 + 1 + 4 + 4 + 2);
-  static_assert(pc*sizeof(double) == sizeof(Corrector<double>), "It doesn't seem packed");
-  EXPECT_EQ(corrector.paramCount(), pc);
+  static_assert(sizeof(double) == sizeof(AngleCorrector<double>), "It doesn't seem packed");
+  static_assert(4*sizeof(double) == sizeof(SpeedCorrector<double>), "It doesn't seem packed");
+  static_assert(sizeof(char) == sizeof(AngleCorrector<char>), "It doesn't seem packed");
+  static_assert(4*sizeof(char) == sizeof(SpeedCorrector<char>), "It doesn't seem packed");
 }
 
 
