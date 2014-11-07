@@ -6,6 +6,15 @@
 #ifndef TODOUBLE_H_
 #define TODOUBLE_H_
 
+/*
+ * I M P O R T A N T
+ *
+ * Please include this header file AFTER any header file
+ * that declares a type for for which ToDouble should be specialized.
+ *
+ */
+
+
 namespace {
 
 // Specialize this template for various Auto Diff types

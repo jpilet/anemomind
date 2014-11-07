@@ -170,7 +170,6 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
          makeDebugPlot("AWS speed", timesSeconds, aws,
                _aws, "Speed (knots)", mode);
        }
-
   } else {
     LOG(WARNING) << "No navs";
   }
@@ -178,6 +177,11 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
 
 Arrayd FilteredNavData::makeCenteredX() const {
   return _awa.makeCenteredX();
+}
+
+HorizontalMotion<double> FilteredNavData::gpsMotion(double localTime) const {
+  return HorizontalMotion<double>::polar(_gpsSpeed.interpolateLinear(localTime),
+    _gpsBearing.interpolateLinear(localTime));
 }
 
 }
