@@ -21,7 +21,7 @@ class AutoCalib {
    public:
     class QParam {
      public:
-      enum Mode {FIXED, TUNED, TUNED_ON_ERROR};
+      enum Mode {FIXED, TUNED, TUNE_ON_ERROR};
       Mode mode;
       QParam() : mode(TUNED), fixedQuality(NAN), minCount(30),
           frac(0.01) {}

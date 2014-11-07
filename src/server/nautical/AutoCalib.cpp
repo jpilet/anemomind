@@ -7,6 +7,8 @@
 #include <server/common/Function.h>
 #include <server/nautical/AutoCalib.h>
 #include <adolc/taping.h>
+#include <server/common/ScopedLog.h>
+#include <server/math/nonlinear/Levmar.h>
 
 namespace sail {
 
@@ -101,7 +103,7 @@ namespace {
       return Difs<T>(factor*wdif, factor*cdif);
     }
 
-    void evalSub(int index, double *X, double *F, MDArray2d J);
+    Vectorize<double, 2> evalSub(int index, double *X, double *F, MDArray2d J);
 
     void tuneParameters();
   };
@@ -117,8 +119,7 @@ namespace {
 
   Objf::Objf(FilteredNavData data, Arrayd times, AutoCalib::Settings s) :
       _data(data), _times(times), _qw(s.wind.fixedQuality),
-      _qc(s.current.fixedQuality), _settings(s), _G(times.size()),
-      _tempW(times.size()), _tempC(times.size()) {
+      _qc(s.current.fixedQuality), _settings(s), _G(times.size()) {
       for (int i = 0; i < length(); i++) {
         _G[i] = normGDeriv(i);
       }
@@ -170,7 +171,7 @@ namespace {
     return xd;
   }
 
-  void Objf::evalSub(int index, double *X, double *F, MDArray2d J) {
+  Vectorize<double, 2> Objf::evalSub(int index, double *X, double *F, MDArray2d J) {
     double g = _G[index];
     Array<adouble> adX = adolcInput(inDims(), X);
     bool outputJ = !J.empty();
@@ -179,16 +180,96 @@ namespace {
     if (outputJ) {
       trace_on(_settings.tapeIndex);
     }
-    adouble result[blockSize]; {
+    adouble result[blockSize];
+
       Difs<adouble> difs = calcDifs<adouble>(*corr, index);
-      _tempW[index] = evalRobust(_settings.smooth, _qw, difs.windDif,    g, result + 0);
-      _tempC[index] = evalRobust(_settings.smooth, _qc, difs.currentDif, g, result + 3);
-    } adolcOutput(outDims(), result, F);
+      double w = evalRobust(_settings.smooth, _qw, difs.windDif,    g, result + 0);
+      double c = evalRobust(_settings.smooth, _qc, difs.currentDif, g, result + 3);
+
+    adolcOutput(outDims(), result, F);
     if (outputJ) {
       trace_off();
       outputJacobianColMajor(_settings.tapeIndex, X, J.ptr(), J.getStep());
     }
+    return Vectorize<double, 2>{w, c};
+  }
 
+  typedef AutoCalib::Settings::QParam QParam;
+
+  class GX {
+   public:
+    GX() : _g(NAN), _x(NAN) {}
+    GX(double g, double x) : _g(g), _x(x) {}
+    bool isInlier(double quality) const {
+      return sqr(quality*_x) <= _g;
+    }
+
+    bool operator< (const GX &other) const {
+      return _x < other._x;
+    }
+
+    double calcThresholdQuality() const {
+      return sqrt(_g/sqr(_x));
+    }
+   private:
+    double _g, _x;
+  };
+
+  int countInliers(Array<GX> X, double q) {
+    for (int i = 0; i < X.size(); i++) {
+      if (!X[i].isInlier(q)) {
+        return i;
+      }
+    }
+    return X.size();
+  }
+
+
+
+  double tuneParam(Array<GX> X, QParam qsettings) {
+    if (X.size() < qsettings.minCount) {
+      LOG(FATAL) << "Too few measurements to perform accurate calibration";
+    }
+    int desiredCount = qsettings.minCount + int(floor(qsettings.frac*(X.size() - qsettings.minCount)));
+    return X[desiredCount-1].calcThresholdQuality();
+  }
+
+  double computeParam(Array<GX> X, QParam qsettings) {
+    std::sort(X.begin(), X.end());
+    if (qsettings.mode == QParam::FIXED ||
+        qsettings.mode == QParam::TUNE_ON_ERROR) {
+      int count = countInliers(X, qsettings.fixedQuality);
+      if (count < qsettings.minCount) {
+        if (qsettings.mode == QParam::FIXED) {
+          LOG(FATAL) << "Too few inliers. Consider setting mode to TUNED or TUNE_ON_ERROR";
+          return NAN;
+        } else {
+          return tuneParam(X, qsettings);
+        }
+      }
+      return qsettings.fixedQuality;
+    } else {
+      return tuneParam(X, qsettings);
+    }
+  }
+
+
+  void Objf::tuneParameters() {
+    Corrector<double> corr;
+    double *X = corr.toArray().ptr();
+    double temp[blockSize];
+
+    int count = length();
+    Array<GX> W(count), C(count);
+    for (int i = 0; i < count; i++) {
+      double g = _G[i];
+      Vectorize<double, 2> x = evalSub(i, X, temp, MDArray2d());
+      W[i] = GX(g, x[0]);
+      C[i] = GX(g, x[1]);
+    }
+
+    _qw = computeParam(W, _settings.wind);
+    _qc = computeParam(C, _settings.current);
   }
 }
 
@@ -196,9 +277,13 @@ AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) cons
   if (times.empty()) {
     times = data.makeCenteredX();
   }
-
   Arrayd params = Corrector<double>().toArray().dup();
-
+  Objf objf(data, times, _settings);
+  assert(objf.maxNumJacDif(params.ptr()) < 1.0e-5);
+  LevmarState state(params);
+  state.minimize(_optSettings, objf);
+  Corrector<double> resultCorr = *(Corrector<double>::fromPtr(state.getXArray(false).ptr()));
+  return Results(resultCorr, data);
 }
 
 
