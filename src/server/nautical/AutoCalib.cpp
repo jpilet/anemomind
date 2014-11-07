@@ -102,6 +102,8 @@ namespace {
     }
 
     void evalSub(int index, double *X, double *F, MDArray2d J);
+
+    void tuneParameters();
   };
 
   template <typename T>
@@ -120,6 +122,9 @@ namespace {
       for (int i = 0; i < length(); i++) {
         _G[i] = normGDeriv(i);
       }
+
+
+      tuneParameters();
   }
 
   double Objf::normGDeriv(int timeIndex) const {
