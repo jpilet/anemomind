@@ -62,10 +62,10 @@ TEST(CorrectorTest, NoCurrent) {
 
   CalibratedNav<double> c = corrector.correct(MeasuredData());
   double marg = 1.0e-2;
-  EXPECT_NEAR(c.trueWind.get()[0].knots(), trueWind[0].knots(), marg);
-  EXPECT_NEAR(c.trueWind.get()[1].knots(), trueWind[1].knots(), marg);
-  EXPECT_NEAR(c.trueCurrent.get()[0].knots(), trueCurrent[0].knots(), marg);
-  EXPECT_NEAR(c.trueCurrent.get()[1].knots(), trueCurrent[1].knots(), marg);
+  EXPECT_NEAR(c.trueWind()[0].knots(), trueWind[0].knots(), marg);
+  EXPECT_NEAR(c.trueWind()[1].knots(), trueWind[1].knots(), marg);
+  EXPECT_NEAR(c.trueCurrent()[0].knots(), trueCurrent[0].knots(), marg);
+  EXPECT_NEAR(c.trueCurrent()[1].knots(), trueCurrent[1].knots(), marg);
 }
 
 TEST(CorrectorTest, BeamReachWithCurrent) {
@@ -98,10 +98,10 @@ TEST(CorrectorTest, BeamReachWithCurrent) {
 
   CalibratedNav<double> c = corrector.correct(MeasuredData());
   double marg = 1.0e-2;
-  EXPECT_NEAR(c.trueWind.get()[0].knots(), trueWind[0].knots(), marg);
-  EXPECT_NEAR(c.trueWind.get()[1].knots(), trueWind[1].knots(), marg);
-  EXPECT_NEAR(c.trueCurrent.get()[0].knots(), trueCurrent[0].knots(), marg);
-  EXPECT_NEAR(c.trueCurrent.get()[1].knots(), trueCurrent[1].knots(), marg);
+  EXPECT_NEAR(c.trueWind()[0].knots(), trueWind[0].knots(), marg);
+  EXPECT_NEAR(c.trueWind()[1].knots(), trueWind[1].knots(), marg);
+  EXPECT_NEAR(c.trueCurrent()[0].knots(), trueCurrent[0].knots(), marg);
+  EXPECT_NEAR(c.trueCurrent()[1].knots(), trueCurrent[1].knots(), marg);
 }
 
 

@@ -55,7 +55,7 @@ namespace sail {
                        amp(0), coef(-2) {}
 
                       Angle<T> correct(const CalibratedNav<T> &c) const {
-                        T awa0rads = c.calibAwa.get().normalizedAt0().radians();
+                        T awa0rads = c.calibAwa().normalizedAt0().radians();
 
                         // For awa angles closer to 0 than 90 degrees,
                         // scale by sinus of that angle. Otherwise, just use 0.
@@ -63,7 +63,7 @@ namespace sail {
 
                         // Scale it in a way that decays exponentially as
                         // aws increases. The decay is controlled by params[1].
-                        T awsFactor = exp(-expline(coef)*c.calibAws.get().metersPerSecond());
+                        T awsFactor = exp(-expline(coef)*c.calibAws().metersPerSecond());
 
                         return Angle<T>::radians(awaFactor*awsFactor);
                       }
@@ -83,10 +83,10 @@ namespace sail {
                       template <typename InstrumentAbstraction>
                       CalibratedNav<T> correct(const InstrumentAbstraction &x) const {
                         CalibratedNav<T> c(x);
-                        c.calibWatSpeed.set(watSpeed.correct(c.rawWatSpeed.get()));
-                        c.calibAws.set(aws.correct(c.rawAws.get()));
-                        c.calibAwa.set(awa.correct(c.rawAwa.get()));
-                        c.boatOrientation.set(magHdg.correct(c.rawMagHdg.get()));
+                        c.calibWatSpeed.set(watSpeed.correct(c.rawWatSpeed()));
+                        c.calibAws.set(aws.correct(c.rawAws()));
+                        c.calibAwa.set(awa.correct(c.rawAwa()));
+                        c.boatOrientation.set(magHdg.correct(c.rawMagHdg()));
                         c.driftAngle.set(driftAngle.correct(c));
                         fillRemainingValues(&c);
                         return c;
@@ -113,16 +113,16 @@ namespace sail {
                       // have been corrected for.
                       void fillRemainingValues(CalibratedNav<T> *dst) const {
                         // Compute the true wind
-                        dst->apparentWindAngleWrtEarth.set(dst->calibAwa.get() + dst->boatOrientation.get()
+                        dst->apparentWindAngleWrtEarth.set(dst->calibAwa() + dst->boatOrientation()
                             + Angle<T>::degrees(T(180)));
-                        dst->apparentWind.set(HorizontalMotion<T>::polar(dst->calibAws.get(),
-                            dst->apparentWindAngleWrtEarth.get()));
-                        dst->trueWind.set(dst->apparentWind.get() + dst->gpsMotion.get());
+                        dst->apparentWind.set(HorizontalMotion<T>::polar(dst->calibAws(),
+                            dst->apparentWindAngleWrtEarth()));
+                        dst->trueWind.set(dst->apparentWind() + dst->gpsMotion());
 
                         // Compute the true current
                         dst->boatMotionThroughWater.set(HorizontalMotion<T>::polar(
-                            dst->calibWatSpeed.get(), dst->driftAngle.get() + dst->boatOrientation.get()));
-                        dst->trueCurrent.set(dst->gpsMotion.get() - dst->boatMotionThroughWater.get());
+                            dst->calibWatSpeed(), dst->driftAngle() + dst->boatOrientation()));
+                        dst->trueCurrent.set(dst->gpsMotion() - dst->boatMotionThroughWater());
                       }
                     };
         #pragma pack(pop)

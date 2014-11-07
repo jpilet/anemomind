@@ -19,7 +19,11 @@ class DefinedValue {
   DefinedValue() : _defined(false) {}
   DefinedValue(T x) : _defined(true), _value(x) {}
 
-  T get() const {
+  // If a there is a public field
+  // in a class of type DefinedValue,
+  // calling this operator on that field
+  // gives the feel of calling an accessor of the class.
+  T operator()() const {
     assert(_defined); // <-- only active in debug mode.
     return _value;
   }
@@ -115,6 +119,19 @@ class CalibratedNav {
   DefinedMotion trueWind;
   DefinedMotion trueCurrent;
   DefinedMotion boatMotionThroughWater;
+
+  /*
+   * Extra nice-to-have accessors
+   */
+  Angle<T> twdir() const {
+    return trueWind().angle();
+  }
+
+  Angle<T> tws() const {
+    return trueWind().norm();
+  }
+
+
 };
 
 }
