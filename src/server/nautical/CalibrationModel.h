@@ -108,7 +108,7 @@ namespace sail {
 
                       // Just to hide the pointer cast.
                       static Corrector<T> *fromPtr(T *ptr) {
-                        return (Corrector<T> *)ptr;
+                        return static_cast<Corrector<T> *>(ptr);
                       }
                     };
         #pragma pack(pop)
