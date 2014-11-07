@@ -112,7 +112,6 @@ class CalibratedNav {
   DefinedVelocity calibAws, calibWatSpeed;
   DefinedAngle driftAngle; // <-- Optional to calibrate.
 
-  // Values that are populated using the fill() method.
   // Depend on the calibrated values.
   DefinedAngle  apparentWindAngleWrtEarth;
   DefinedMotion apparentWind;
