@@ -31,7 +31,7 @@ module.exports = function(app) {
   app.get('/api/races/:id', middleware.auth, races.raceDetail);
 
   app.get('/api/tiles/:scale/:x/:y/:boat', tiles.retrieve);
-  app.get('/api/tilesGeoJSON/:scale/:x/:y/:boat', tilesGeoJSON.retrieve);
+  app.get('/api/tilesGeoJSON/:scale/:x/:y/:boat/:startsAfter?/:endsBefore?', tilesGeoJSON.retrieve);
 
   // All undefined api routes should return a 404
   app.get('/api/*', function(req, res) {

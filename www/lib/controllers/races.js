@@ -74,6 +74,7 @@ function minAxis(array) {
  * // and north/south for the y property.
  *
  */
+
 function GeoRef(latRad, lonRad, altitude) {
   var a = 6378137; // semi-major axis of ellipsoid
   var f = 1.0/298.257223563; // flatening of ellipsoid
