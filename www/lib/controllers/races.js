@@ -49,118 +49,6 @@ exports.raceDetail = function(req, res) {
   });
 };
 
-
-/**
- * Get race details in a specific format
-*/
-exports.raceLeaflet = function(req, res) {
-  var PI = Math.PI;
-  console.log('running leaflet..');
-  var raceId = req.params.id;
-
-  RaceData.findById(raceId, function (err, race) {
-    if (err) return res.send(500);
-    if (!race) return res.send(404);
-
-    var geoJSON = {
-      "type": "FeatureCollection",
-      "features": [{
-        "type": "Feature",
-        "geometry": {
-          "type": "LineString",
-          "coordinates": []
-        }
-      }]
-    };
-
-    for (var i = 0; i < race.items.length; i++) {
-      // take only 1 out of 10 coords
-      if (i % 10 === 0) {
-        var tmpCoords = [
-          race.items[i]['latRad']*(180/PI),
-          race.items[i]['lonRad']*(180/PI)
-        ];
-        geoJSON.features[0].geometry.coordinates.push(tmpCoords);
-      }
-    }
-    res.send(geoJSON);
-  });
-};
-
-
-/**
- * Get race details in a JSON Tile format
-*/
-exports.raceTiles = function(req, res) {
-  var PI = Math.PI;
-  console.log('running JSON Tile..');
-  var raceId = req.params.id;
-
-  var criteria = { _id: '5445063a950306882d7a64db' };
-
-  RaceData.find(criteria, function (err, race) {
-    if (err) return res.send(500);
-    if (!race) return res.send(404);
-
-    var geoJSON = {
-      "type": "LineString",
-      "coordinates": []
-    }
-
-    for (var i = 0; i < race.items.length; i++) {
-      // take only 1 out of 10 coords
-      if (i % 500 === 0) {
-        var tmpCoords = [
-          race.items[i]['lonRad']*(180/PI),
-          race.items[i]['latRad']*(180/PI)
-        ];
-        geoJSON.coordinates.push(tmpCoords);
-      }
-    }
-    res.send(geoJSON);
-  });
-};
-
-/**
- * Convert tile numbers to lon/lat
- */
-
-function tile2long(x,z) {
-  return (x/Math.pow(2,z)*360-180);
- }
-
-function tile2lat(y,z) {
-  var n=Math.PI-2*Math.PI*y/Math.pow(2,z);
-  return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
-}
-
-
-
-/**
- * Get race details in a specific format
-*/
-exports.raceCSV = function(req, res) {
-  var PI = Math.PI;
-  console.log('running CSV export..');
-  var raceId = req.params.id;
-
-  RaceData.findById(raceId, function (err, race) {
-    if (err) return res.send(500);
-    if (!race) return res.send(404);
-
-    var csv = 'latitude,longitude\n';
-
-    for (var i = 0; i < race.items.length; i++) {
-      // take only 1 out of 10 coords
-      if (i % 10 === 0) {
-        csv += race.items[i]['latRad']*(180/PI) + ',' +
-        race.items[i]['lonRad']*(180/PI) + '\n';
-      }
-    }
-    res.send(csv);
-  });
-};
-
 function minAxis(array) {
 
   var minAxis = {x: Number.POSITIVE_INFINITY, y: Number.POSITIVE_INFINITY};
@@ -186,6 +74,7 @@ function minAxis(array) {
  * // and north/south for the y property.
  *
  */
+
 function GeoRef(latRad, lonRad, altitude) {
   var a = 6378137; // semi-major axis of ellipsoid
   var f = 1.0/298.257223563; // flatening of ellipsoid
