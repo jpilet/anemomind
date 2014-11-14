@@ -5,6 +5,7 @@ var users = require('./controllers/users');
 var upload = require('./controllers/upload');
 var session = require('./controllers/session');
 var races = require('./controllers/races');
+var tiles = require('./controllers/tiles');
 var tilesGeoJSON = require('./controllers/tilesGeoJSON');
 
 var middleware = require('./middleware');
