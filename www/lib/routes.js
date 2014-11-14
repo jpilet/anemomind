@@ -7,6 +7,7 @@ var session = require('./controllers/session');
 var races = require('./controllers/races');
 var tiles = require('./controllers/tiles');
 var tilesGeoJSON = require('./controllers/tilesGeoJSON');
+var vectiles = require('./controllers/vectiles');
 
 var middleware = require('./middleware');
 
@@ -30,8 +31,14 @@ module.exports = function(app) {
   app.get('/api/races', middleware.auth, races.list);
   app.get('/api/races/:id', middleware.auth, races.raceDetail);
 
+  app.get('/api/races/tiles/:x/:y/:z', middleware.auth, races.raceTiles);
+  app.get('/api/races/leaflet/:id', middleware.auth, races.raceLeaflet);
+  app.get('/api/races/csv/:id', middleware.auth, races.raceCSV);
+
+  app.get('/api/vectiles/:raceId/:z/:x/:y', vectiles.retrieve);
+
   app.get('/api/tiles/:scale/:x/:y/:boat', tiles.retrieve);
-  app.get('/api/tilesGeoJSON/:scale/:x/:y/:boat', tilesGeoJSON.retrieve);
+  app.get('/api/tilesGeoJSON/:scale/:x/:y/:boat/:startsAfter?/:endsBefore?', tilesGeoJSON.retrieve);
 
   // All undefined api routes should return a 404
   app.get('/api/*', function(req, res) {

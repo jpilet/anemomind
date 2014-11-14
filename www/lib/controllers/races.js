@@ -15,6 +15,52 @@ exports.list = function (req, res) {
   });
 };
 
+
+
+
+
+/**
+ * Get data for all races with specific lod
+*/
+exports.racesData = function(req, res) {
+
+  console.log('serving races..');
+
+  var userId = req.session.passport.user;
+  console.log(userId);
+
+  RaceData.find({boatId: userId}, function (err, raceList) {
+
+    var formattedData = {
+      origin: minAxis(raceList[0].items),
+      coords: [],
+      data: []
+    };
+
+    for (var i = 0; i < raceList.length; i++) {
+
+      var ref = new GeoRef(formattedData.origin.x, formattedData.origin.y, 0);
+      console.dir(ref);
+
+      for (var j = 0; j < raceList.length; j++) {
+        // take only 1 out of 10 coords
+        if (j % 10 === 0) {
+          var projected = ref.project(raceList[i].items[j]['latRad'], raceList[i].items[j]['lonRad']);
+          var tmpCoords = {
+            x_m: projected.x,
+            y_m: projected.y,
+          };
+          var tmpData = raceList[i].items[j];
+          formattedData.coords.push(tmpCoords);
+          formattedData.data.push(tmpData);
+        }
+      }
+    }
+    res.send(formattedData);
+  });
+};
+
+
 /**
  * Get race details
 */
@@ -46,6 +92,118 @@ exports.raceDetail = function(req, res) {
       }
     }
     res.send(formattedData);
+  });
+};
+
+
+/**
+ * Get race details in a specific format
+*/
+exports.raceLeaflet = function(req, res) {
+  var PI = Math.PI;
+  console.log('running leaflet..');
+  var raceId = req.params.id;
+
+  RaceData.findById(raceId, function (err, race) {
+    if (err) return res.send(500);
+    if (!race) return res.send(404);
+
+    var geoJSON = {
+      "type": "FeatureCollection",
+      "features": [{
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": []
+        }
+      }]
+    };
+
+    for (var i = 0; i < race.items.length; i++) {
+      // take only 1 out of 10 coords
+      if (i % 10 === 0) {
+        var tmpCoords = [
+          race.items[i]['latRad']*(180/PI),
+          race.items[i]['lonRad']*(180/PI)
+        ];
+        geoJSON.features[0].geometry.coordinates.push(tmpCoords);
+      }
+    }
+    res.send(geoJSON);
+  });
+};
+
+
+/**
+ * Get race details in a JSON Tile format
+*/
+exports.raceTiles = function(req, res) {
+  var PI = Math.PI;
+  console.log('running JSON Tile..');
+  var raceId = req.params.id;
+
+  var criteria = { _id: '5445063a950306882d7a64db' };
+
+  RaceData.find(criteria, function (err, race) {
+    if (err) return res.send(500);
+    if (!race) return res.send(404);
+
+    var geoJSON = {
+      "type": "LineString",
+      "coordinates": []
+    }
+
+    for (var i = 0; i < race.items.length; i++) {
+      // take only 1 out of 10 coords
+      if (i % 500 === 0) {
+        var tmpCoords = [
+          race.items[i]['lonRad']*(180/PI),
+          race.items[i]['latRad']*(180/PI)
+        ];
+        geoJSON.coordinates.push(tmpCoords);
+      }
+    }
+    res.send(geoJSON);
+  });
+};
+
+/**
+ * Convert tile numbers to lon/lat
+ */
+
+function tile2long(x,z) {
+  return (x/Math.pow(2,z)*360-180);
+ }
+
+function tile2lat(y,z) {
+  var n=Math.PI-2*Math.PI*y/Math.pow(2,z);
+  return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
+}
+
+
+
+/**
+ * Get race details in a specific format
+*/
+exports.raceCSV = function(req, res) {
+  var PI = Math.PI;
+  console.log('running CSV export..');
+  var raceId = req.params.id;
+
+  RaceData.findById(raceId, function (err, race) {
+    if (err) return res.send(500);
+    if (!race) return res.send(404);
+
+    var csv = 'latitude,longitude\n';
+
+    for (var i = 0; i < race.items.length; i++) {
+      // take only 1 out of 10 coords
+      if (i % 10 === 0) {
+        csv += race.items[i]['latRad']*(180/PI) + ',' +
+        race.items[i]['lonRad']*(180/PI) + '\n';
+      }
+    }
+    res.send(csv);
   });
 };
 
