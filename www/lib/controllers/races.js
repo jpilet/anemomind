@@ -15,52 +15,6 @@ exports.list = function (req, res) {
   });
 };
 
-
-
-
-
-/**
- * Get data for all races with specific lod
-*/
-exports.racesData = function(req, res) {
-
-  console.log('serving races..');
-
-  var userId = req.session.passport.user;
-  console.log(userId);
-
-  RaceData.find({boatId: userId}, function (err, raceList) {
-
-    var formattedData = {
-      origin: minAxis(raceList[0].items),
-      coords: [],
-      data: []
-    };
-
-    for (var i = 0; i < raceList.length; i++) {
-
-      var ref = new GeoRef(formattedData.origin.x, formattedData.origin.y, 0);
-      console.dir(ref);
-
-      for (var j = 0; j < raceList.length; j++) {
-        // take only 1 out of 10 coords
-        if (j % 10 === 0) {
-          var projected = ref.project(raceList[i].items[j]['latRad'], raceList[i].items[j]['lonRad']);
-          var tmpCoords = {
-            x_m: projected.x,
-            y_m: projected.y,
-          };
-          var tmpData = raceList[i].items[j];
-          formattedData.coords.push(tmpCoords);
-          formattedData.data.push(tmpData);
-        }
-      }
-    }
-    res.send(formattedData);
-  });
-};
-
-
 /**
  * Get race details
 */
