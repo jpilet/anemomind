@@ -102,7 +102,16 @@ TEST(SynthBoatTrajectoryTest, TangentTest4) {
   double maxsol = std::max(sol1.degrees(), sol2.degrees());
   EXPECT_NEAR(minsol, angleB.degrees() - 180.0, 1.0e-5);
   EXPECT_NEAR(maxsol, angleA.degrees() + 180.0, 1.0e-5);
+}
 
+TEST(SynthBoatTrajectoryTest, ConnectionTest) {
+  auto a = makeWayPt(0, 0, 1);
+  auto b = makeWayPt(3, 0, 1);
+
+
+  SynthBoatTrajectory::WayPt::Connection cona = SynthBoatTrajectory::WayPt::makeConnection(a, false, b, false);
+  EXPECT_NEAR(cona.srcAngle.positiveMinAngle().degrees(), 90, 1.0e-6);
+  EXPECT_NEAR(cona.dstAngle.positiveMinAngle().degrees(), 90, 1.0e-6);
 }
 
 

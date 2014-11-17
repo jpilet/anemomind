@@ -29,6 +29,16 @@ class SynthBoatTrajectory {
     const Length<double> radius;
     const ProjectedPosition pos;
 
+    ProjectedPosition evalPos(Angle<double> theta) const {
+      return ProjectedPosition{pos[0] + radius*cos(theta),
+                               pos[1] + radius*sin(theta)};
+    }
+
+    // Normalized derivative of the above function, w.r.t. theta.
+    Vectorize<double, 2> tangent(Angle<double> theta) const {
+      return Vectorize<double, 2>{-sin(theta), cos(theta)};
+    }
+
     /*
      * Used to compute the angle of the normal vector of a
      * line that is tangent to two waypoint circles.
@@ -37,6 +47,27 @@ class SynthBoatTrajectory {
                                        const WayPt &b, bool posb,
                                    Angle<double> *outAngleA, Angle<double> *outAngleB);
 
+    class Connection {
+     public:
+      Connection(const WayPt &s, const WayPt &d, Angle<double> sa,
+        Angle<double> da) :
+          src(s.evalPos(sa)), dst(d.evalPos(da)),
+          srcAngle(sa), dstAngle(da) {}
+
+      ProjectedPosition src, dst;
+      Angle<double> srcAngle, dstAngle;
+
+      // Returns true if the trajectory from 'src' to 'dst' is coherent
+      // with the orientation of 'srcPt'. The orientation is given by
+      // positive
+      bool isValid(const WayPt &srcPt, bool positive) const {
+        Vectorize<double, 2> tgt = srcPt.tangent(srcAngle);
+        return (tgt[0]*(dst[0] - src[0]).meters() + tgt[1]*(dst[1] - src[1]).meters() > 0) == positive;
+      }
+    };
+
+    static Connection makeConnection(const WayPt &a, bool posa,
+                              const WayPt &b, bool posb);
   };
 
   SynthBoatTrajectory(Array<WayPt> waypoints);

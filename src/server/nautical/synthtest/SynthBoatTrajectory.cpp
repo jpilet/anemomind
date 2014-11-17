@@ -5,11 +5,14 @@
 
 #include "SynthBoatTrajectory.h"
 #include <cmath>
+#include <server/common/string.h>
+#include <iostream>
 
 namespace sail {
 
 
-void SynthBoatTrajectory::WayPt::solveCircleTangentLine(const WayPt &a, bool posa,
+void SynthBoatTrajectory::WayPt::solveCircleTangentLine(
+      const WayPt &a, bool posa,
       const WayPt &b, bool posb,
       Angle<double> *outAngleA, Angle<double> *outAngleB) {
   Vectorize<Length<double>, 2> dif = a.pos - b.pos;
@@ -22,6 +25,35 @@ void SynthBoatTrajectory::WayPt::solveCircleTangentLine(const WayPt &a, bool pos
   *outAngleA = Angle<double>::radians(sol1 - u);
   *outAngleB = Angle<double>::radians(sol2 - u);
 }
+
+namespace {
+  Angle<double> makeCCW(Angle<double> x, bool positive) {
+    return x + Angle<double>::degrees(positive? 0 : 180);
+  }
+}
+
+SynthBoatTrajectory::WayPt::Connection
+  SynthBoatTrajectory::WayPt::makeConnection(const WayPt &a, bool posa,
+                                             const WayPt &b, bool posb) {
+  Angle<double> sol1, sol2;
+  solveCircleTangentLine(a, posa, b, posb,
+      &sol1, &sol2);
+
+  SynthBoatTrajectory::WayPt::Connection cona(a, b, makeCCW(sol1, posa), makeCCW(sol1, posb));
+  SynthBoatTrajectory::WayPt::Connection conb(a, b, makeCCW(sol2, posa), makeCCW(sol2, posb));
+
+  std::cout << EXPR_AND_VAL_AS_STRING(sol1.degrees()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(sol2.degrees()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(cona.isValid(a, posa)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(conb.isValid(a, posb)) << std::endl;
+
+  if (cona.isValid(a, posa)) {
+    return cona;
+  }
+  assert(conb.isValid(a, posb));
+  return conb;
+}
+
 
 
 
