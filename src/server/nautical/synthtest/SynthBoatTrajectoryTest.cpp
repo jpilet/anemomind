@@ -144,5 +144,16 @@ TEST(SynthBoatTrajectoryTest, RoundingDirectionTest) {
   EXPECT_FALSE(aNeg.roundPositive(pred, succ));
 }
 
+TEST(SynthBoatTrajectoryTest, LengthTest2) {
+  double r = 0.5;
+  Array<SynthBoatTrajectory::WayPt> pts(3);
+  double circumference = 2.0*M_PI*r;
+  pts[0] = makeWayPt(0, 0, r);
+  pts[1] = makeWayPt(0, 2, r);
+  pts[2] = makeWayPt(3, 2, r);
+  SynthBoatTrajectory traj(pts);
+  EXPECT_NEAR(traj.length().meters(), 2.0 + 0.25*circumference + 3.0, 1.0e-4);
+}
+
 
 

@@ -108,12 +108,13 @@ SynthBoatTrajectory::makeCircleSegments(
     Angle<double> low  = (pos? zero : -oneRound);
     Angle<double> dif = (rawToAngle - fromAngle).moveToInterval(low, high);
     Angle<double> toAngle = fromAngle + dif;
-    double frac = (dif.degrees()/360.0);
+    double frac = std::abs(dif.degrees()/360.0);
     WayPt pt = waypts[ptIndex];
     segments[i] = CircleSegment(pt,
         frac*(pt.circumference()),
         fromAngle, toAngle);
   }
+  return segments;
 }
 
 const SynthBoatTrajectory::Segment &SynthBoatTrajectory::getSegmentByIndex(int index) const {
@@ -134,6 +135,14 @@ SynthBoatTrajectory::SynthBoatTrajectory(Array<WayPt> waypoints) {
         return LineSegment(con.src, con.dst);
   });
   _circleSegments = makeCircleSegments(waypoints, connections, positive);
+
+  int n = segmentCount();
+  Arrayd props(n);
+  for (int i = 0; i < n; i++) {
+    props[i] = getSegmentByIndex(i).length().meters();
+    std::cout << EXPR_AND_VAL_AS_STRING(props[i]) << std::endl;
+  }
+  _indexer = ProportionateIndexer(props);
 }
 
 SynthBoatTrajectory::LineSegment::LineSegment(const ProjectedPosition &src,
@@ -145,9 +154,10 @@ SynthBoatTrajectory::LineSegment::LineSegment(const ProjectedPosition &src,
   _yMapMeters = LineKM(0, len, src[1].meters(), dst[1].meters());
 }
 
-
-//LineSegment(const ProjectedPosition &src, const ProjectedPosition &dst);
-//CurvePoint map(Length<double> at) const;
+SynthBoatTrajectory::CurvePoint SynthBoatTrajectory::map(Length<double> at) const {
+  auto r = _indexer.getBySum(at.meters());
+  return getSegmentByIndex(r.index).map(Length<double>::meters(r.localX));
+}
 
 
 

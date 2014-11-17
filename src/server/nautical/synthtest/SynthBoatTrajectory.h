@@ -103,7 +103,9 @@ class SynthBoatTrajectory {
 
   SynthBoatTrajectory(Array<WayPt> waypoints);
 
-  Length<double> length() const;
+  Length<double> length() const {
+    return Length<double>::meters(_indexer.sum());
+  }
 
 
   class CurvePoint {

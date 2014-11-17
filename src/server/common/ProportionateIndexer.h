@@ -34,6 +34,7 @@ class ProportionateIndexer {
     double localX;
   };
   Result getBySum(int node, double x) const;
+  Result getBySum(double x) const {return getBySum(0, x);}
 
   double sum() const {return _values[0];}
  private:
