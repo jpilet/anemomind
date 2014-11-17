@@ -33,8 +33,8 @@ class SynthBoatTrajectory {
      * Used to compute the angle of the normal vector of a
      * line that is tangent to two waypoint circles.
      */
-    static void solveCircleTangentLine(const WayPt &a, bool cwa,
-                                       const WayPt &b, bool cwb,
+    static void solveCircleTangentLine(const WayPt &a, bool posa,
+                                       const WayPt &b, bool posb,
                                    Angle<double> *outAngleA, Angle<double> *outAngleB);
 
   };
