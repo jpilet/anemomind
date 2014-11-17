@@ -122,7 +122,10 @@ class SynthBoatTrajectory {
     LineSegment(const ProjectedPosition &src,
         const ProjectedPosition &dst);
     CurvePoint map(Length<double> at) const {
-      return CurvePoint();
+      return CurvePoint(ProjectedPosition{
+        Length<double>::meters(_xMapMeters(at.meters())),
+        Length<double>::meters(_yMapMeters(at.meters()))},
+        Vectorize<double, 2>{_xMapMeters.getK(), _yMapMeters.getK()});
     }
     Length<double> length() const {return _length;}
    private:
