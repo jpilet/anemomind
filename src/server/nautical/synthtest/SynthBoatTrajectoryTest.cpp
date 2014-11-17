@@ -183,6 +183,8 @@ TEST(SynthBoatTrajectoryTest, SimpleTest) {
   EXPECT_LE(maxdif(traj.map(Length<double>::meters(2 + q + 3 - marg)).position,
       3, 2.5), 1.0e-4);
   EXPECT_LE(maxdif(traj.map(Length<double>::meters(1)).tangent, 0, 1), 1.0e-6);
+  double k2 = 1.0/sqrt(2);
+  EXPECT_LE(maxdif(traj.map(Length<double>::meters(2 + 0.5*q)).tangent, k2, k2), 1.0e-6);
   EXPECT_LE(maxdif(traj.map(Length<double>::meters(4.5)).tangent, 1, 0), 1.0e-6);
 }
 
