@@ -175,4 +175,10 @@ add_library(math_nonlinear_RungeKutta
            )
 target_link_libraries(math_nonlinear_RungeKutta
                       common_Function
-                     )               
+                      common_logging
+                     )
+cxx_test(math_nonlinear_RungeKuttaTest
+         RungeKuttaTest.cpp
+         math_nonlinear_RungeKutta
+         gtest_main
+        )    
