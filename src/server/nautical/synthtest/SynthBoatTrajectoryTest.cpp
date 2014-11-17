@@ -149,6 +149,13 @@ namespace {
       double x, double y) {
         return std::max(std::abs(a[0].meters() - x), std::abs(a[1].meters() - y));
   }
+
+  double maxdif(const Vectorize<double, 2> &tangent,
+      double x, double y) {
+        double len = sqrt(sqr(tangent[0]) + sqr(tangent[1]));
+        double f = 1.0/len;
+        return std::max(std::abs(f*tangent[0] - x), std::abs(f*tangent[1] - y));
+  }
 }
 
 TEST(SynthBoatTrajectoryTest, SimpleTest) {
@@ -175,7 +182,8 @@ TEST(SynthBoatTrajectoryTest, SimpleTest) {
       0, 2.5), 1.0e-4);
   EXPECT_LE(maxdif(traj.map(Length<double>::meters(2 + q + 3 - marg)).position,
       3, 2.5), 1.0e-4);
-
+  EXPECT_LE(maxdif(traj.map(Length<double>::meters(1)).tangent, 0, 1), 1.0e-6);
+  EXPECT_LE(maxdif(traj.map(Length<double>::meters(4.5)).tangent, 1, 0), 1.0e-6);
 }
 
 
