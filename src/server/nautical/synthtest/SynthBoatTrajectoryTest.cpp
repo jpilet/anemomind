@@ -144,15 +144,38 @@ TEST(SynthBoatTrajectoryTest, RoundingDirectionTest) {
   EXPECT_FALSE(aNeg.roundPositive(pred, succ));
 }
 
-TEST(SynthBoatTrajectoryTest, LengthTest2) {
+namespace {
+  double maxdif(const SynthBoatTrajectory::ProjectedPosition &a,
+      double x, double y) {
+        return std::max(std::abs(a[0].meters() - x), std::abs(a[1].meters() - y));
+  }
+}
+
+TEST(SynthBoatTrajectoryTest, SimpleTest) {
   double r = 0.5;
   Array<SynthBoatTrajectory::WayPt> pts(3);
   double circumference = 2.0*M_PI*r;
+  double q = 0.25*circumference;
   pts[0] = makeWayPt(0, 0, r);
   pts[1] = makeWayPt(0, 2, r);
   pts[2] = makeWayPt(3, 2, r);
   SynthBoatTrajectory traj(pts);
-  EXPECT_NEAR(traj.length().meters(), 2.0 + 0.25*circumference + 3.0, 1.0e-4);
+  EXPECT_NEAR(traj.length().meters(), 2.0 + q + 3.0, 1.0e-4);
+
+  double marg = 1.0e-6;
+  EXPECT_LE(maxdif(traj.map(Length<double>::meters(marg)).position,
+      -0.5, 0.0), 1.0e-4);
+  EXPECT_LE(maxdif(traj.map(Length<double>::meters(2 - marg)).position,
+      -0.5, 2.0), 1.0e-4);
+  EXPECT_LE(maxdif(traj.map(Length<double>::meters(2 + marg)).position,
+      -0.5, 2.0), 1.0e-4);
+  EXPECT_LE(maxdif(traj.map(Length<double>::meters(2 + q - marg)).position,
+      0, 2.5), 1.0e-4);
+  EXPECT_LE(maxdif(traj.map(Length<double>::meters(2 + q + marg)).position,
+      0, 2.5), 1.0e-4);
+  EXPECT_LE(maxdif(traj.map(Length<double>::meters(2 + q + 3 - marg)).position,
+      3, 2.5), 1.0e-4);
+
 }
 
 
