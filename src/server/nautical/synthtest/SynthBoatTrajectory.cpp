@@ -12,7 +12,7 @@ namespace sail {
 void SynthBoatTrajectory::WayPt::solveCircleTangentLine(const WayPt &a, bool posa,
       const WayPt &b, bool posb,
       Angle<double> *outAngleA, Angle<double> *outAngleB) {
-  Vectorize<Length<double>, 2> dif = b.pos - a.pos;
+  Vectorize<Length<double>, 2> dif = a.pos - b.pos;
   double C = sqrt(sqr(dif[0].meters()) + sqr(dif[1].meters()));
   double r = (posa? 1 : -1)*a.radius.meters();
   double t = (posb? 1 : -1)*b.radius.meters();

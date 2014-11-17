@@ -42,26 +42,26 @@ TEST(SynthBoatTrajectoryTest, TangentTest2) {
   double minsol = std::min(sol1.degrees(), sol2.degrees());
   double maxsol = std::max(sol1.degrees(), sol2.degrees());
 
-
-  EXPECT_NEAR(maxsol, 270, 1.0e-5);
-  EXPECT_NEAR(minsol, 180, 1.0e-5);
-}
-
-TEST(SynthBoatTrajectoryTest, TangentTest3) {
-  auto a = makeWayPt(0.5, 0.5, 0.5);
-  auto b = makeWayPt(1.5, 1.5, 0.5);
-
-  Angle<double> sol1, sol2;
-  SynthBoatTrajectory::WayPt::solveCircleTangentLine(a, false, b, true, &sol1, &sol2);
-  sol1 = sol1.positiveMinAngle();
-  sol2 = sol2.positiveMinAngle();
-  double minsol = std::min(sol1.degrees(), sol2.degrees());
-  double maxsol = std::max(sol1.degrees(), sol2.degrees());
-
-
+  // 90 0
   EXPECT_NEAR(maxsol, 90, 1.0e-5);
   EXPECT_NEAR(minsol, 0, 1.0e-5);
 }
+//
+//TEST(SynthBoatTrajectoryTest, TangentTest3) {
+//  auto a = makeWayPt(0.5, 0.5, 0.5);
+//  auto b = makeWayPt(1.5, 1.5, 0.5);
+//
+//  Angle<double> sol1, sol2;
+//  SynthBoatTrajectory::WayPt::solveCircleTangentLine(a, false, b, true, &sol1, &sol2);
+//  sol1 = sol1.positiveMinAngle();
+//  sol2 = sol2.positiveMinAngle();
+//  double minsol = std::min(sol1.degrees(), sol2.degrees());
+//  double maxsol = std::max(sol1.degrees(), sol2.degrees());
+//
+//
+//  EXPECT_NEAR(maxsol, 90, 1.0e-5);
+//  EXPECT_NEAR(minsol, 0, 1.0e-5);
+//}
 
 
 
