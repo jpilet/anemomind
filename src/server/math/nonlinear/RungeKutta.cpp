@@ -32,6 +32,7 @@ namespace {
 
 
 void RungeKutta::step(Arrayd stateVector, double stepSize) {
+  assert(stateVector.size() == _dim);
   _fun->eval(stateVector.ptr(), _k1.ptr());
   addWeighted(stateVector, 0.5*stepSize, _k1, _temp);
   _fun->eval(_temp.ptr(), _k2.ptr());
