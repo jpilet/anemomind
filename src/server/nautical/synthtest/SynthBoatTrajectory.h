@@ -8,6 +8,7 @@
 
 #include <server/nautical/GeographicReference.h>
 #include <server/common/Array.h>
+#include <server/common/LineKM.h>
 
 namespace sail {
 
@@ -17,17 +18,24 @@ class SynthBoatTrajectory {
   typedef GeographicReference::ProjectedPosition ProjectedPosition;
 
   /*
-   * This WayPt is essentially a circle, with a radius.
-   * When we round the waypoint, we follow part of its
-   * circular arc.
+   * A WayPt is a buoy that has a positition 'pos' that
+   * we round with a radius 'radius'.
+   *
+   * The rounding direction is determined by its predecessor
+   * and successor.
    */
   class WayPt {
    public:
+    WayPt() {}
     WayPt(const ProjectedPosition &p, Length<double> r) :
       pos(p), radius(r) {}
 
     const Length<double> radius;
     const ProjectedPosition pos;
+
+    Length<double> circumference() const {
+      return 2.0*M_PI*radius;
+    }
 
     ProjectedPosition evalPos(Angle<double> theta) const {
       return ProjectedPosition{pos[0] + radius*cos(theta),
@@ -35,8 +43,9 @@ class SynthBoatTrajectory {
     }
 
     // Normalized derivative of the above function, w.r.t. theta.
-    Vectorize<double, 2> tangent(Angle<double> theta) const {
-      return Vectorize<double, 2>{-sin(theta), cos(theta)};
+    Vectorize<double, 2> tangent(Angle<double> theta, bool positive) const {
+      int sign = (positive? 1 : -1);
+      return Vectorize<double, 2>{-sign*sin(theta), sign*cos(theta)};
     }
 
     /*
@@ -50,23 +59,33 @@ class SynthBoatTrajectory {
                                        const WayPt &b, bool posb,
                                    Angle<double> *outAngleA, Angle<double> *outAngleB);
 
+
+    /*
+     * A class that specifies the connecting straight line
+     * segment between to buoys to round. In addition it specifies
+     * the angle on each buoy where the line segment touches it.
+     *
+     * Used only for internal purposes, but exposed publicly so that
+     * it can be tested.
+     */
     class Connection {
      public:
+      Connection() {}
       Connection(const WayPt &s, const WayPt &d, Angle<double> sa,
         Angle<double> da) :
           src(s.evalPos(sa)), dst(d.evalPos(da)),
           srcAngle(sa), dstAngle(da) {}
 
-      const ProjectedPosition src, dst;
-      const Angle<double> srcAngle, dstAngle;
+      ProjectedPosition src, dst;
+      Angle<double> srcAngle, dstAngle;
 
       // Returns true if the trajectory from 'src' to 'dst' is coherent
       // with the orientation of 'srcPt'. The orientation is given by
       // 'positive', with positive=1 means counter-clockwise and
       // positive=0 means clockwise.
       bool isValid(const WayPt &srcPt, bool positive) const {
-        Vectorize<double, 2> tgt = srcPt.tangent(srcAngle);
-        return (tgt[0]*(dst[0] - src[0]).meters() + tgt[1]*(dst[1] - src[1]).meters() > 0) == positive;
+        Vectorize<double, 2> tgt = srcPt.tangent(srcAngle, positive);
+        return (tgt[0]*(dst[0] - src[0]).meters() + tgt[1]*(dst[1] - src[1]).meters() > 0);
       }
     };
 
@@ -84,8 +103,49 @@ class SynthBoatTrajectory {
   SynthBoatTrajectory(Array<WayPt> waypoints);
 
   Length<double> length() const;
-  ProjectedPosition map(Length<double> at) const;
+
+
+  class CurvePoint {
+   public:
+    CurvePoint(const ProjectedPosition &p, const Vectorize<double, 2> &t) :
+      position(p), tangent(t) {}
+     const ProjectedPosition position;
+     const Vectorize<double, 2> tangent;
+  };
+
+  CurvePoint map(Length<double> at) const;
+
  private:
+  class LineSegment {
+   public:
+    LineSegment() {}
+    LineSegment(const ProjectedPosition &src,
+        const ProjectedPosition &dst);
+    CurvePoint map(Length<double> at) const;
+    Length<double> length() const {return _length;}
+   private:
+    LineKM _xMapMeters, _yMapMeters;
+    Length<double> _length;
+  };
+
+  class CircleSegment {
+   public:
+    CircleSegment() {}
+    CircleSegment(const WayPt &pt, Length<double> length,
+        bool _positive,
+        Angle<double> fromAngle, Angle<double> toAngle);
+    CurvePoint map(Length<double> at) const {
+      Angle<double> theta = Angle<double>::radians(_lengthToAngle(at.meters()));
+      return CurvePoint(_pt.evalPos(theta), _pt.tangent(theta, _lengthToAngle.getK() > 0));
+    }
+   private:
+    WayPt _pt;
+    Length<double> _length;
+    LineKM _lengthToAngle;
+  };
+
+  Array<LineSegment> _lineSegments;
+  Array<CircleSegment> _circleSegments;
 };
 
 } /* namespace mmm */

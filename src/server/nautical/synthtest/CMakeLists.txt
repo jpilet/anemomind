@@ -29,6 +29,10 @@ add_library(nautical_synthtest_SynthBoatTrajectory
             SynthBoatTrajectory.h
             SynthBoatTrajectory.cpp
            )
+           
+target_link_libraries(nautical_synthtest_SynthBoatTrajectory
+                      common_LineKM
+                     )           
 
 cxx_test(nautical_synthtest_SynthBoatTrajectoryTest
          SynthBoatTrajectoryTest.cpp         
