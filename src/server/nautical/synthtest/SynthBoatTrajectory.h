@@ -101,13 +101,34 @@ class SynthBoatTrajectory {
     bool roundPositive(const WayPt &pred, const WayPt &succ) const;
   };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /*
+   * MAIN METHODS
+   */
+
+  // Provide at least 3 waypoints
   SynthBoatTrajectory(Array<WayPt> waypoints);
 
+  // Length of the entire trajectory
   Length<double> length() const {
     return Length<double>::meters(_indexer.sum());
   }
 
 
+  // Position and tangent direction somewhere along the curve
   class CurvePoint {
    public:
     CurvePoint(const ProjectedPosition &p, const Vectorize<double, 2> &t) :
@@ -116,7 +137,16 @@ class SynthBoatTrajectory {
      const Vectorize<double, 2> tangent;
   };
 
+  // Compute a point on the curve, with 0 <= at <= length().
   CurvePoint map(Length<double> at) const;
+
+
+
+
+
+
+
+
 
  private:
   class Segment {
