@@ -108,10 +108,13 @@ TEST(SynthBoatTrajectoryTest, ConnectionTest) {
   auto a = makeWayPt(0, 0, 1);
   auto b = makeWayPt(3, 0, 1);
 
-
   SynthBoatTrajectory::WayPt::Connection cona = SynthBoatTrajectory::WayPt::makeConnection(a, false, b, false);
   EXPECT_NEAR(cona.srcAngle.positiveMinAngle().degrees(), 90, 1.0e-6);
   EXPECT_NEAR(cona.dstAngle.positiveMinAngle().degrees(), 90, 1.0e-6);
+  EXPECT_NEAR(cona.src[0].meters(), 0.0, 1.0e-6);
+  EXPECT_NEAR(cona.src[1].meters(), 1.0, 1.0e-6);
+  EXPECT_NEAR(cona.dst[0].meters(), 3.0, 1.0e-6);
+  EXPECT_NEAR(cona.dst[1].meters(), 1.0, 1.0e-6);
 }
 
 
