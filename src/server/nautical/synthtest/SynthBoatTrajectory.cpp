@@ -140,7 +140,6 @@ SynthBoatTrajectory::SynthBoatTrajectory(Array<WayPt> waypoints) {
   Arrayd props(n);
   for (int i = 0; i < n; i++) {
     props[i] = getSegmentByIndex(i).length().meters();
-    std::cout << EXPR_AND_VAL_AS_STRING(props[i]) << std::endl;
   }
   _indexer = ProportionateIndexer(props);
 }
