@@ -9,6 +9,7 @@
 #include <server/nautical/GeographicReference.h>
 #include <server/common/Array.h>
 #include <server/common/LineKM.h>
+#include <server/common/ProportionateIndexer.h>
 
 namespace sail {
 
@@ -116,7 +117,13 @@ class SynthBoatTrajectory {
   CurvePoint map(Length<double> at) const;
 
  private:
-  class LineSegment {
+  class Segment {
+   public:
+    virtual CurvePoint map(Length<double> at) const = 0;
+    virtual Length<double> length() const = 0;
+  };
+
+  class LineSegment : public Segment {
    public:
     LineSegment() {}
     LineSegment(const ProjectedPosition &src,
@@ -133,7 +140,7 @@ class SynthBoatTrajectory {
     Length<double> _length;
   };
 
-  class CircleSegment {
+  class CircleSegment : public Segment {
    public:
     CircleSegment() {}
 
@@ -163,9 +170,12 @@ class SynthBoatTrajectory {
             Array<SynthBoatTrajectory::WayPt::Connection> cons,
             Arrayb positive);
 
-
+  ProportionateIndexer _indexer;
   Array<LineSegment> _lineSegments;
   Array<CircleSegment> _circleSegments;
+
+  const int segmentCount() const {return _lineSegments.size() + _circleSegments.size();}
+  const Segment &getSegmentByIndex(int index) const;
 };
 
 } /* namespace mmm */

@@ -32,6 +32,7 @@ add_library(nautical_synthtest_SynthBoatTrajectory
            
 target_link_libraries(nautical_synthtest_SynthBoatTrajectory
                       common_LineKM
+                      common_ProportionateIndexer
                      )           
 
 cxx_test(nautical_synthtest_SynthBoatTrajectoryTest

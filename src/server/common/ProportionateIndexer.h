@@ -12,6 +12,7 @@ namespace sail {
 
 class ProportionateIndexer {
  public:
+  ProportionateIndexer() : _offset(0), _count(0) {}
   ProportionateIndexer(Arrayd proportions);
 
   int get(double x) const;

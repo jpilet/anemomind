@@ -91,7 +91,7 @@ namespace {
 }
 
 Array<SynthBoatTrajectory::CircleSegment>
-    SynthBoatTrajectory::makeCircleSegments(
+SynthBoatTrajectory::makeCircleSegments(
           Array<SynthBoatTrajectory::WayPt> waypts,
           Array<SynthBoatTrajectory::WayPt::Connection> cons,
           Arrayb positive) {
@@ -113,6 +113,15 @@ Array<SynthBoatTrajectory::CircleSegment>
     segments[i] = CircleSegment(pt,
         frac*(pt.circumference()),
         fromAngle, toAngle);
+  }
+}
+
+const SynthBoatTrajectory::Segment &SynthBoatTrajectory::getSegmentByIndex(int index) const {
+  int mainIndex = index/2;
+  if (index - 2*mainIndex == 0) {
+    return _lineSegments[mainIndex];
+  } else {
+    return _circleSegments[mainIndex];
   }
 }
 
