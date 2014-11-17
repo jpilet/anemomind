@@ -14,7 +14,6 @@
 
 namespace sail {
 
-
 class SynthBoatTrajectory {
  public:
   typedef GeographicReference::ProjectedPosition ProjectedPosition;
@@ -120,6 +119,13 @@ class SynthBoatTrajectory {
    * MAIN METHODS
    */
 
+  // Create a trajectory defined in terms of waypoints.
+  // The trajectory is composed of straight line and circle
+  // primitives.
+  //
+  // All waypoints, except for the first and last one,
+  // are rounded with a certain radius.
+  //
   // Provide at least 3 waypoints
   SynthBoatTrajectory(Array<WayPt> waypoints);
 
@@ -139,6 +145,8 @@ class SynthBoatTrajectory {
   };
 
   // Compute a point on the curve, with 0 <= at <= length().
+  // Evaluating this function is logarithmic in the number
+  // of waypoints.
   CurvePoint map(Length<double> at) const;
 
   MDArray2d makePlotData(int sampleCount = -1) const;
