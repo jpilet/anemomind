@@ -312,4 +312,15 @@ cxx_test(common_MeanAndVarTest
          gtest_main
          common_MeanAndVar
         )
-        
+
+
+add_library(common_ProportionateIndexer
+            ProportionateIndexer.cpp
+            ProportionateIndexer.h
+           )
+cxx_test(common_ProportionateSamplerTest
+         ProportionateIndexerTest.cpp
+         gtest_main
+         common_ProportionateIndexer
+        )
+  
