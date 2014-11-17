@@ -19,7 +19,6 @@ class MeanAndVar {
   void add(double value);
   double mean() const;
   double variance() const;
-  double biasedVariance() const;
   double standardDeviation() const;
   MeanAndVar operator+ (const MeanAndVar &other) const;
   std::string toString() const;
@@ -27,6 +26,7 @@ class MeanAndVar {
     return _count;
   }
  private:
+  double biasedVariance() const;
   MeanAndVar(int count_, double sum, double sum2) : _sum(sum), _sum2(sum2), _count(count_) {}
   double _sum, _sum2;
   int _count;

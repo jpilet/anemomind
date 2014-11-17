@@ -166,6 +166,12 @@ cxx_test(nautical_SpeedCalibTest
          gtest_main
         )        
 
+
+cxx_test(nautical_CorrectorTest
+         CorrectorTest.cpp
+         gtest_main
+         )
+
 #################################################################
 ### CalibrationExamples
 #################################################################
