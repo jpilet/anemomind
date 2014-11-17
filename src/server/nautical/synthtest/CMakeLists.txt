@@ -23,3 +23,15 @@ cxx_test(nautical_synthtest_TestDomainTest
          gtest_main
          nautical_synthtest_TestDomainJson
         )                     
+        
+        
+add_library(nautical_synthtest_SynthBoatTrajectory
+            SynthBoatTrajectory.h
+            SynthBoatTrajectory.cpp
+           )
+
+cxx_test(nautical_synthtest_SynthBoatTrajectoryTest
+         SynthBoatTrajectoryTest.cpp         
+         gtest_main
+         nautical_synthtest_SynthBoatTrajectory
+        )
