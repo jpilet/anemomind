@@ -42,11 +42,6 @@ SynthBoatTrajectory::WayPt::Connection
   SynthBoatTrajectory::WayPt::Connection cona(a, b, makeCCW(sol1, posa), makeCCW(sol1, posb));
   SynthBoatTrajectory::WayPt::Connection conb(a, b, makeCCW(sol2, posa), makeCCW(sol2, posb));
 
-  std::cout << EXPR_AND_VAL_AS_STRING(sol1.degrees()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(sol2.degrees()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(cona.isValid(a, posa)) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(conb.isValid(a, posb)) << std::endl;
-
   if (cona.isValid(a, posa)) {
     return cona;
   }

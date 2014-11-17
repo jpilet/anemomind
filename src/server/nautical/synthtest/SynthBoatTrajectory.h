@@ -59,7 +59,8 @@ class SynthBoatTrajectory {
 
       // Returns true if the trajectory from 'src' to 'dst' is coherent
       // with the orientation of 'srcPt'. The orientation is given by
-      // positive
+      // 'positive', with positive=1 means counter-clockwise and
+      // positive=0 means clockwise.
       bool isValid(const WayPt &srcPt, bool positive) const {
         Vectorize<double, 2> tgt = srcPt.tangent(srcAngle);
         return (tgt[0]*(dst[0] - src[0]).meters() + tgt[1]*(dst[1] - src[1]).meters() > 0) == positive;
