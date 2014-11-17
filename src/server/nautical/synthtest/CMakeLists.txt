@@ -35,3 +35,5 @@ cxx_test(nautical_synthtest_SynthBoatTrajectoryTest
          gtest_main
          nautical_synthtest_SynthBoatTrajectory
         )
+        
+target_depends_on_armadillo(nautical_synthtest_SynthBoatTrajectoryTest)        
