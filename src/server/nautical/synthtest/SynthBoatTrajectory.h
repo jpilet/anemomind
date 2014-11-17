@@ -121,7 +121,9 @@ class SynthBoatTrajectory {
     LineSegment() {}
     LineSegment(const ProjectedPosition &src,
         const ProjectedPosition &dst);
-    CurvePoint map(Length<double> at) const;
+    CurvePoint map(Length<double> at) const {
+      return CurvePoint();
+    }
     Length<double> length() const {return _length;}
    private:
     LineKM _xMapMeters, _yMapMeters;
@@ -141,6 +143,10 @@ class SynthBoatTrajectory {
     CurvePoint map(Length<double> at) const {
       Angle<double> theta = Angle<double>::radians(_lengthToAngle(at.meters()));
       return CurvePoint(_pt.evalPos(theta), _pt.tangent(theta, _lengthToAngle.getK() > 0));
+    }
+
+    Length<double> length() const {
+      return _length;
     }
    private:
     WayPt _pt;
