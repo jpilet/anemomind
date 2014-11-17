@@ -158,6 +158,21 @@ SynthBoatTrajectory::CurvePoint SynthBoatTrajectory::map(Length<double> at) cons
   return getSegmentByIndex(r.index).map(Length<double>::meters(r.localX));
 }
 
+MDArray2d SynthBoatTrajectory::makePlotData(int sampleCount) const {
+  if (sampleCount == -1) {
+    sampleCount = length().meters()*10;
+  }
+  double marg = 1.0e-2;
+  LineKM line(0, sampleCount-1, marg, length().meters() - marg);
+  MDArray2d dst(sampleCount, 2);
+  for (int i = 0; i < sampleCount; i++) {
+    auto r = map(Length<double>::meters(line(i))).position;
+    dst(i, 0) = r[0].meters();
+    dst(i, 1) = r[1].meters();
+  }
+  return dst;
+}
+
 
 
 

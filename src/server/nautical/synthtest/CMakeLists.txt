@@ -39,6 +39,7 @@ cxx_test(nautical_synthtest_SynthBoatTrajectoryTest
          SynthBoatTrajectoryTest.cpp         
          gtest_main
          nautical_synthtest_SynthBoatTrajectory
+         plot_gnuplot
         )
         
 target_depends_on_armadillo(nautical_synthtest_SynthBoatTrajectoryTest)        

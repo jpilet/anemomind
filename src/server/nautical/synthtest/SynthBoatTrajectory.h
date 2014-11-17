@@ -10,6 +10,7 @@
 #include <server/common/Array.h>
 #include <server/common/LineKM.h>
 #include <server/common/ProportionateIndexer.h>
+#include <server/common/MDArray.h>
 
 namespace sail {
 
@@ -140,6 +141,7 @@ class SynthBoatTrajectory {
   // Compute a point on the curve, with 0 <= at <= length().
   CurvePoint map(Length<double> at) const;
 
+  MDArray2d makePlotData(int sampleCount = -1) const;
 
 
 

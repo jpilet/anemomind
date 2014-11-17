@@ -7,6 +7,7 @@
 #include <server/nautical/synthtest/SynthBoatTrajectory.h>
 #include <armadillo>
 #include <server/common/string.h>
+#include <server/plot/extra.h>
 
 using namespace sail;
 
