@@ -30,8 +30,8 @@ class SynthBoatTrajectory {
     WayPt(const ProjectedPosition &p, Length<double> r) :
       pos(p), radius(r) {}
 
-    const Length<double> radius;
-    const ProjectedPosition pos;
+    Length<double> radius;
+    ProjectedPosition pos;
 
     Length<double> circumference() const {
       return 2.0*M_PI*radius;
@@ -131,9 +131,13 @@ class SynthBoatTrajectory {
   class CircleSegment {
    public:
     CircleSegment() {}
+
     CircleSegment(const WayPt &pt, Length<double> length,
-        bool _positive,
-        Angle<double> fromAngle, Angle<double> toAngle);
+        Angle<double> fromAngle, Angle<double> toAngle) :
+          _pt(pt), _length(length),
+          _lengthToAngle(0, length.meters(), fromAngle.radians(), toAngle.radians()) {}
+
+
     CurvePoint map(Length<double> at) const {
       Angle<double> theta = Angle<double>::radians(_lengthToAngle(at.meters()));
       return CurvePoint(_pt.evalPos(theta), _pt.tangent(theta, _lengthToAngle.getK() > 0));
@@ -143,6 +147,13 @@ class SynthBoatTrajectory {
     Length<double> _length;
     LineKM _lengthToAngle;
   };
+
+  static Array<SynthBoatTrajectory::CircleSegment>
+      makeCircleSegments(
+            Array<SynthBoatTrajectory::WayPt> waypts,
+            Array<SynthBoatTrajectory::WayPt::Connection> cons,
+            Arrayb positive);
+
 
   Array<LineSegment> _lineSegments;
   Array<CircleSegment> _circleSegments;

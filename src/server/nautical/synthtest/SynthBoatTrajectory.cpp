@@ -88,38 +88,33 @@ namespace {
       }
       return cons;
   }
+}
 
-  Array<SynthBoatTrajectory::CircleSegment>
-      makeCircleSegments(
+Array<SynthBoatTrajectory::CircleSegment>
+    SynthBoatTrajectory::makeCircleSegments(
           Array<SynthBoatTrajectory::WayPt> waypts,
           Array<SynthBoatTrajectory::WayPt::Connection> cons,
           Arrayb positive) {
     int count = cons.size() - 1;
-    Array<SynthBoatTrajectory::CircleSegment> segments(count);
-    Angle<double> oneRound = Angle<double>::degrees(360);
-    Angle<double> zero = Angle<double>::degrees(0);
-    for (int i = 0; i < count; i++) {
-      Angle<double> fromAngle = cons[i + 0].dstAngle;
-      Angle<double> rawToAngle   = cons[i + 1].srcAngle;
-      int ptIndex = i+1;
-      bool pos = positive[ptIndex];
-      Angle<double> high = (pos? oneRound : zero);
-      Angle<double> low  = (pos? zero : -oneRound);
-      Angle<double> dif = Array<SynthBoatTrajectory::WayPt;
-      Angle<double> toAngle = fromAngle + dif;
-
-      segments[i] = CircleSegment(waypts[ptIndex],
-          dif.degrees()/360.0, fromAngle, toAngle);
-    }
+  Array<SynthBoatTrajectory::CircleSegment> segments(count);
+  Angle<double> oneRound = Angle<double>::degrees(360);
+  Angle<double> zero = Angle<double>::degrees(0);
+  for (int i = 0; i < count; i++) {
+    Angle<double> fromAngle = cons[i + 0].dstAngle;
+    Angle<double> rawToAngle   = cons[i + 1].srcAngle;
+    int ptIndex = i+1;
+    bool pos = positive[ptIndex];
+    Angle<double> high = (pos? oneRound : zero);
+    Angle<double> low  = (pos? zero : -oneRound);
+    Angle<double> dif = (rawToAngle - fromAngle).moveToInterval(low, high);
+    Angle<double> toAngle = fromAngle + dif;
+    double frac = (dif.degrees()/360.0);
+    WayPt pt = waypts[ptIndex];
+    segments[i] = CircleSegment(pt,
+        frac*(pt.circumference()),
+        fromAngle, toAngle);
   }
 }
-
-SynthBoatTrajectory::CircleSegment::CircleSegment(
-    const WayPt &pt, Length<double> length,
-    Angle<double> fromAngle, Angle<double> toAngle) :
-    _pt(pt), _length(length),
-    _lengthToAngle(0, length.meters(), fromAngle.radians(), toAngle.radians()) {}
-
 
 SynthBoatTrajectory::SynthBoatTrajectory(Array<WayPt> waypoints) {
   Arrayb positive = calcRoundingDirections(waypoints);
@@ -129,7 +124,7 @@ SynthBoatTrajectory::SynthBoatTrajectory(Array<WayPt> waypoints) {
       [&](const SynthBoatTrajectory::WayPt::Connection &con) {
         return LineSegment(con.src, con.dst);
   });
-  _circleSegments = makeCircleSegments(connections, positive);
+  _circleSegments = makeCircleSegments(waypoints, connections, positive);
 }
 
 SynthBoatTrajectory::LineSegment::LineSegment(const ProjectedPosition &src,
