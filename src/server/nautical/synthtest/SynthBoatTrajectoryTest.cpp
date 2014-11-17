@@ -135,5 +135,14 @@ TEST(SynthBoatTrajectoryTest, ConnectionTest) {
   }
 }
 
+TEST(SynthBoatTrajectoryTest, RoundingDirectionTest) {
+  auto pred = makeWayPt(0, 0, 1);
+  auto aPos = makeWayPt(1, -0.5, 1);
+  auto aNeg = makeWayPt(1, +0.5, 1);
+  auto succ = makeWayPt(2, 0, 1);
+  EXPECT_TRUE(aPos.roundPositive(pred, succ));
+  EXPECT_FALSE(aNeg.roundPositive(pred, succ));
+}
+
 
 

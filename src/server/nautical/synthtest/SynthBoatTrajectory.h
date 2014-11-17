@@ -42,6 +42,9 @@ class SynthBoatTrajectory {
     /*
      * Used to compute the angle of the normal vector of a
      * line that is tangent to two waypoint circles.
+     *
+     * The 'posa' and 'posb' boolean arguments tell for
+     * each way pt in which direction it should be rounded.
      */
     static void solveCircleTangentLine(const WayPt &a, bool posa,
                                        const WayPt &b, bool posb,
@@ -69,6 +72,13 @@ class SynthBoatTrajectory {
 
     static Connection makeConnection(const WayPt &a, bool posa,
                               const WayPt &b, bool posb);
+
+
+    /*
+     * Based on preceding and succeeding way points,
+     * should this way point be rounded in positive (counter-clockwise) direction?
+     */
+    bool roundPositive(const WayPt &pred, const WayPt &succ) const;
   };
 
   SynthBoatTrajectory(Array<WayPt> waypoints);

@@ -49,6 +49,14 @@ SynthBoatTrajectory::WayPt::Connection
   return conb;
 }
 
+bool SynthBoatTrajectory::WayPt::roundPositive(
+    const WayPt &pred, const WayPt &succ) const {
+  auto a = pos - pred.pos;
+  auto b = succ.pos - pos;
+  auto aNormal = Vectorize<Length<double>, 2>{-a[1], a[0]};
+  return b[0].meters()*aNormal[0].meters() + b[1].meters()*aNormal[1].meters() > 0;
+}
+
 
 
 
