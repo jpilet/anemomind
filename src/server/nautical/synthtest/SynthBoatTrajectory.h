@@ -54,8 +54,8 @@ class SynthBoatTrajectory {
           src(s.evalPos(sa)), dst(d.evalPos(da)),
           srcAngle(sa), dstAngle(da) {}
 
-      ProjectedPosition src, dst;
-      Angle<double> srcAngle, dstAngle;
+      const ProjectedPosition src, dst;
+      const Angle<double> srcAngle, dstAngle;
 
       // Returns true if the trajectory from 'src' to 'dst' is coherent
       // with the orientation of 'srcPt'. The orientation is given by
