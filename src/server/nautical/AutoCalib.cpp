@@ -115,7 +115,9 @@ namespace {
     bool Evaluate(double const *const *parameters,
                           double *residuals,
                           double **jacobians) const {
-      eval(parameters[0], residuals, jacobians[0]);
+      //CostFunction::parameter_block_sizes_
+      assert(parameter_block_sizes().size() == 1);
+      eval(parameters[0], residuals, (jacobian == nullptr? nullptr : jacobians[0]));
       return true;
     }
    private:
@@ -156,6 +158,15 @@ namespace {
     void computeWindAndCurrentDerivNorms(Array<GX> *Wdst, Array<GX> *Cdst);
     void tuneParameters();
   };
+
+  bool isOK(int count, const double *X) {
+    for (int i = 0; i < count; i++) {
+      if (!std::isfinite(X[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   template <typename T>
   T unwrap(Velocity<T> x) {
@@ -202,14 +213,6 @@ namespace {
     dst = bak;
   }
 
-  void checkAssignability(int m, int n, double *F, double **J) {
-    for (int i = 0; i < m; i++) {
-      assignAndUndo(F[i]);
-      for (int j = 0; j < n; j++) {
-        assignAndUndo(J[i][j]);
-      }
-    }
-  }
 
 
   void Objf::eval(const double *X, double *F, double *J) const {
@@ -222,6 +225,10 @@ namespace {
       int at = blockSize*i;
       evalSub(i, X, F + at, (outputJ? J + at : nullptr),
         &windInlierCounter, &currentInlierCounter);
+    }
+    assert(isOK(outDims(), F));
+    if (J != nullptr) {
+      assert(isOK(outDims()*inDims(), J));
     }
     SCOPEDMESSAGE(INFO, stringFormat("Wind inlier count:    %d", windInlierCounter));
     SCOPEDMESSAGE(INFO, stringFormat("Current inlier count: %d", currentInlierCounter));
@@ -251,6 +258,8 @@ namespace {
     return xd;
   }
 
+
+
   Vectorize<double, 2> Objf::evalSub(int index, const double *X, double *F, double *J,
       int *windInlierCounter, int *currentInlierCounter) const {
     double g = _rateOfChange[index];
@@ -273,6 +282,15 @@ namespace {
     if (outputJ) {
       trace_off();
       outputJacobianRowMajor(_settings.tapeIndex, X, J);
+      assert(isOK(blockSize*inDims(), J));
+    }
+
+    if (!isOK(blockSize, F)) {
+      for (int i = 0; i < blockSize; i++) {
+        std::cout << EXPR_AND_VAL_AS_STRING(F[i]) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(result[i].getValue()) << std::endl;
+      }
+      assert(false);
     }
     return Vectorize<double, 2>{w, c};
   }
@@ -343,6 +361,8 @@ namespace {
 
   void Objf::tuneParameters() {
     ENTERSCOPE("Tune the quality parameters");
+    _qualityWind = 1;
+    _qualityCurrent = 1;
 
     Array<GX> W, C;
     computeWindAndCurrentDerivNorms(&W, &C);
@@ -382,6 +402,10 @@ AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) cons
   // auto-differentiation to obtain the derivative (jacobian).
   auto cost = new Objf(data, times, _settings);
   problem.AddResidualBlock(cost, NULL, (double *)(&corr));
+  std::cout << EXPR_AND_VAL_AS_STRING(problem.NumParameterBlocks()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(problem.NumParameters()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(problem.NumResidualBlocks()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(problem.NumResiduals()) << std::endl;
 
   // Run the solver!
   ceres::Solver::Options options;
