@@ -30,6 +30,8 @@ add_library(nautical_synth_BoatSim
            )
 target_link_libraries(nautical_synth_BoatSim
                       math_nonlinear_RungeKutta
+                      common_LineKM
+                      common_ProportionateIndexer
                      )                   
                      
 cxx_test(nautical_synth_BoatSimTest
