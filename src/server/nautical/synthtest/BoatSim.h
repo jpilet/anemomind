@@ -11,6 +11,7 @@
 #include <server/math/nonlinear/RungeKutta.h>
 #include <server/common/Span.h>
 #include <server/common/ProportionateIndexer.h>
+#include <iosfwd>
 
 namespace sail {
 
@@ -188,6 +189,9 @@ class BoatSimulator : public Function {
     return _twaSpans[_indexer.getBySum(time.seconds()).index].targetTwa;
   }
 };
+
+std::ostream &operator<<(std::ostream &s,
+    const BoatSimulator::FullBoatState &state);
 
 }
 

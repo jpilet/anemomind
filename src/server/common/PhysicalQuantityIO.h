@@ -12,6 +12,24 @@
 
 namespace sail {
 
+/*
+ * TODO: Adjust the unit depending on the magnitude,
+ *  e.g. display the distance in nautical miles if it is longer than
+ *  1852 meters, or something like that.
+ */
+
+template <typename T>
+std::ostream &operator<<(std::ostream &s, Duration<T> x) {
+  s << x.seconds() << " seconds";
+  return s;
+}
+
+template <typename T>
+std::ostream &operator<<(std::ostream &s, Length<T> x) {
+  s << x.meters() << " meters";
+  return s;
+}
+
 template <typename T>
 std::ostream &operator<<(std::ostream &s, Velocity<T> x) {
   s << x.knots() << " knots";

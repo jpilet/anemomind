@@ -7,6 +7,7 @@
 #include <cassert>
 #include <server/common/LineKM.h>
 #include <server/common/SharedPtrUtils.h>
+#include <server/common/PhysicalQuantityIO.h>
 
 namespace sail {
 
@@ -125,6 +126,25 @@ Array<BoatSimulator::FullBoatState> BoatSimulator::simulate(Duration<double> sim
   }
   return dst;
 }
+
+std::ostream &operator<<(std::ostream &s,
+    const BoatSimulator::FullBoatState &state) {
+  s << EXPR_AND_VAL_AS_STRING(state.boatMotion) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.boatMotionThroughWater) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.boatOrientation) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.boatSpeedThroughWater) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.rudderAngle) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.time) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.trueCurrent) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.trueWind) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.twaWater) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.twsWater) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.windWrtCurrent) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.x) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.y) << std::endl;
+  return s;
+}
+
 
 
 }
