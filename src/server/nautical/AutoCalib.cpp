@@ -88,9 +88,9 @@ namespace {
     Objf(FilteredNavData data, Arrayd times, AutoCalib::Settings s);
 
     template <typename T>
-    class Difs {
+    class WindAndCurrentDifs {
      public:
-      Difs(HorizontalMotion<T> wd, HorizontalMotion<T> cd) :
+      WindAndCurrentDifs(HorizontalMotion<T> wd, HorizontalMotion<T> cd) :
         windDif(wd), currentDif(cd) {}
       HorizontalMotion<T> windDif;
       HorizontalMotion<T> currentDif;
@@ -126,7 +126,7 @@ namespace {
     double normGDeriv(int timeIndex) const;
 
     template <typename T>
-    Difs<T> calcDifs(const Corrector<T> &corrector, int timeIndex) {
+    WindAndCurrentDifs<T> calcWindAndCurrentDifs(const Corrector<T> &corrector, int timeIndex) {
       int lowerIndex = calcLowerIndex(timeIndex);
       int upperIndex = lowerIndex + 1;
 
@@ -136,7 +136,7 @@ namespace {
       HorizontalMotion<T> wdif = b.trueWind() - a.trueWind();
       HorizontalMotion<T> cdif = b.trueCurrent() - a.trueCurrent();
       T factor = T(1.0/_data.samplingPeriod());
-      return Difs<T>(factor*wdif, factor*cdif);
+      return WindAndCurrentDifs<T>(factor*wdif, factor*cdif);
     }
 
     Vectorize<double, 2> evalSub(int index, double *X, double *F, MDArray2d J,
@@ -233,7 +233,7 @@ namespace {
     Corrector<adouble> *corr = Corrector<adouble>::fromArray(adX);
     adouble result[blockSize];
 
-      Difs<adouble> difs = calcDifs<adouble>(*corr, index);
+      WindAndCurrentDifs<adouble> difs = calcWindAndCurrentDifs<adouble>(*corr, index);
       double w = evalRobust(_settings.smooth, _qw, difs.windDif,    g, result + 0,
         windInlierCounter);
       double c = evalRobust(_settings.smooth, _qc, difs.currentDif, g, result + 3,
