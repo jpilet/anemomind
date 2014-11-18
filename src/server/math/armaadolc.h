@@ -120,7 +120,7 @@ typedef MDArray<adouble, 2> MDArray2ad;
 Array<double> getGradient(short int tapeIndex, Array<double> X);
 void outputGradient(short int tapeIndex, Array<double> X, double *grad);
 Array<adouble> adolcInput(Array<double> X);
-Array<adouble> adolcInput(int count, double *x);
+Array<adouble> adolcInput(int count, const double *x);
 void adolcOutput(Array<adouble> src, double *dst);
 void adolcOutput(Array<adouble> src, Array<double> &dst);
 void outputJacobianRowMajor(short int tag, double *X, double *Jrow);
@@ -128,7 +128,7 @@ void outputJacobianColMajor(short int tag, double *X, double *J, int step = -1);
 void outputJacobianColMajor(short int tag, Array<double> X, MDArray<double, 2> &J);
 MDArray<double, 2> getJacobianArray(short int tag, Array<double> X);
 void adolcOutput(int count, adouble *src, double *dst);
-void adolcInput(int count, adouble *dst, double *src);
+void adolcInput(int count, adouble *dst, const double *src);
 
 
 void dispAdolcInfo(unsigned short tag);

@@ -10,6 +10,7 @@
 #include <server/common/ScopedLog.h>
 #include <server/math/nonlinear/Levmar.h>
 #include <server/common/PhysicalQuantityIO.h>
+#include <adolc/drivers/drivers.h>
 
 namespace sail {
 
@@ -82,7 +83,7 @@ namespace {
     int _index;
   };
 
-  class Objf  {
+  class Objf /*: public ceres::CostFunction*/ {
    public:
     static constexpr int blockSize = 6;
     Objf(FilteredNavData data, Arrayd times, AutoCalib::Settings s);
@@ -108,8 +109,15 @@ namespace {
       return blockSize*length();
     }
 
-    void eval(double *X, double *F, double *J) const;
+
+    bool Evaluate(double const *const *parameters,
+                          double *residuals,
+                          double **jacobians) const {
+      eval(parameters[0], residuals, jacobians);
+      return true;
+    }
    private:
+    void eval(const double *X, double *F, double **J) const;
     AutoCalib::Settings _settings;
     FilteredNavData _data;
     Arrayd _times, _rateOfChange;
@@ -139,7 +147,7 @@ namespace {
       return WindAndCurrentDifs<T>(factor*wdif, factor*cdif);
     }
 
-    Vectorize<double, 2> evalSub(int index, double *X, double *F, MDArray2d J,
+    Vectorize<double, 2> evalSub(int index, const double *X, double *F, double **J,
         int *windInlierCounter, int *currentInlierCounter) const;
 
 
@@ -163,8 +171,13 @@ namespace {
         _rateOfChange[i] = normGDeriv(i);
       }
 
-
       tuneParameters();
+
+      /*{
+        mutable_parameter_block_sizes()->resize(1);
+        (*mutable_parameter_block_sizes()) = inDims();
+        set_num_residuals(outDims());
+      }*/
   }
 
   double Objf::normGDeriv(int timeIndex) const {
@@ -180,17 +193,14 @@ namespace {
     }
   }
 
-  void Objf::eval(double *X, double *F, double *J) const {
+  void Objf::eval(const double *X, double *F, double **J) const {
     ENTERSCOPE("Evaluate the automatic calibration objective function");
     bool outputJ = J != nullptr;
     int windInlierCounter = 0;
     int currentInlierCounter = 0;
-    MDArray2d JMat;
-    if (outputJ) {
-      JMat = MDArray2d(outDims(), inDims(), J);
-    }
     for (int i = 0; i < length(); i++) {
-      evalSub(i, X, F + blockSize*i, (outputJ? JMat.sliceRowBlock(i, blockSize) : MDArray2d()),
+      int at = blockSize*i;
+      evalSub(i, X, F + at, (outputJ? J + at : nullptr),
         &windInlierCounter, &currentInlierCounter);
     }
     SCOPEDMESSAGE(INFO, stringFormat("Wind inlier count:    %d", windInlierCounter));
@@ -221,10 +231,10 @@ namespace {
     return xd;
   }
 
-  Vectorize<double, 2> Objf::evalSub(int index, double *X, double *F, MDArray2d J,
+  Vectorize<double, 2> Objf::evalSub(int index, const double *X, double *F, double **J,
       int *windInlierCounter, int *currentInlierCounter) const {
     double g = _rateOfChange[index];
-    bool outputJ = !J.empty();
+    bool outputJ = J != nullptr;
 
     if (outputJ) {
       trace_on(_settings.tapeIndex);
@@ -242,7 +252,7 @@ namespace {
     adolcOutput(blockSize, result, F);
     if (outputJ) {
       trace_off();
-      outputJacobianColMajor(_settings.tapeIndex, X, J.ptr(), J.getStep());
+      jacobian(_settings.tapeIndex, blockSize, inDims(), X, J);
     }
     return Vectorize<double, 2>{w, c};
   }
@@ -300,7 +310,7 @@ namespace {
     Array<GX> W(count), C(count);
     for (int i = 0; i < count; i++) {
       double g = _rateOfChange[i];
-      Vectorize<double, 2> x = evalSub(i, X, temp, MDArray2d(),
+      Vectorize<double, 2> x = evalSub(i, X, temp, nullptr,
           &windInlierCounter, &currentInlierCounter);
       W[i] = GX(g, x[0]);
       C[i] = GX(g, x[1]);
