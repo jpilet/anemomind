@@ -155,6 +155,10 @@ class BoatSimulator : public Function {
    */
   class TwaDirective {
    public:
+    TwaDirective() : duration(Duration<double>::seconds(NAN)),
+      targetTwa(Angle<double>::degrees(NAN)) {}
+    TwaDirective(Duration<double> d, Angle<double> a) :
+      duration(d), targetTwa(a) {}
     Duration<double> duration;
     Angle<double> targetTwa;
   };
@@ -181,7 +185,7 @@ class BoatSimulator : public Function {
   Array<TwaDirective> _twaSpans;
   ProportionateIndexer _indexer;
   Angle<double> getTargetTwa(Duration<double> time) const {
-    return _twaSpans[_indexer.get(time.seconds())].targetTwa;
+    return _twaSpans[_indexer.getBySum(time.seconds()).index].targetTwa;
   }
 };
 

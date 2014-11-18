@@ -24,6 +24,17 @@ class ProportionateIndexer {
   Arrayb remaining() const;
 
   double sum() const {return _values[0];}
+
+  // For advanced use.
+  class Result {
+   public:
+    Result(int index_, double localX_) :
+      index(index_), localX(localX_) {}
+    int index;
+    double localX;
+  };
+  Result getBySum(int node, double x) const;
+  Result getBySum(double x) const {return getBySum(0, x);}
  private:
   int _offset, _count;
   Arrayd _values;
@@ -37,16 +48,6 @@ class ProportionateIndexer {
     return _offset <= index;
   }
 
-  // For advanced use.
-  class Result {
-   public:
-    Result(int index_, double localX_) :
-      index(index_), localX(localX_) {}
-    int index;
-    double localX;
-  };
-  Result getBySum(int node, double x) const;
-  Result getBySum(double x) const {return getBySum(0, x);}
 };
 
 }
