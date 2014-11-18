@@ -351,22 +351,26 @@ AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) cons
   ENTERSCOPE("Automatic calibration");
   SCOPEDMESSAGE(INFO, stringFormat("Number of measurements:          %d", times.size()));
   SCOPEDMESSAGE(INFO, stringFormat("Number of parameters to recover: %d", Corrector<double>::paramCount()));
-  Arrayd params = Corrector<double>().toArray().dup();
   Objf objf(data, times, _settings);
 
-  if (_settings.jacobianCheck) {
-    //double dif = objf.maxNumJacDif(params.ptr());
 
-    //SCOPEDMESSAGE(INFO, stringFormat("Maximum difference between numeric and analytic Jacobian: %.3g", dif));
-    //assert(dif < 1.0e-3);
-  }
-
-  LevmarState state(params);
   SCOPEDMESSAGE(INFO, "Perform optimization");
-  //state.minimize(_optSettings, objf);
-  Corrector<double> resultCorr = *(Corrector<double>::fromPtr(state.getXArray(false).ptr()));
+  ceres::Problem problem;
+
+  Corrector<double> corr;
+
+  // Set up the only cost function (also known as residual). This uses
+  // auto-differentiation to obtain the derivative (jacobian).
+  auto cost = new Objf(data, times, _settings);
+  problem.AddResidualBlock(cost, NULL, (double *)(&corr));
+
+  // Run the solver!
+  ceres::Solver::Options options;
+  options.minimizer_progress_to_stdout = true;
+  ceres::Solver::Summary summary;
+  Solve(options, &problem, &summary);
   SCOPEDMESSAGE(INFO, "Done optimizing.");
-  return Results(resultCorr, data);
+  return Results(corr, data);
 }
 
 void AutoCalib::Results::disp(std::ostream *dst) {

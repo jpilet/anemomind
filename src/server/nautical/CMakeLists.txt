@@ -477,3 +477,5 @@ target_link_libraries(nautical_AutoCalib
                       math_nonlinear_Levmar
                       math_armaadolc
                      )
+                     
+target_depends_on_ceres(nautical_AutoCalib)                     
