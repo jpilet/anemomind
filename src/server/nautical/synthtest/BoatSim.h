@@ -6,6 +6,11 @@
 #ifndef BOATSIM_H_
 #define BOATSIM_H_
 
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <memory>
+#include <server/math/nonlinear/RungeKutta.h>
+#include <server/common/Span.h>
+
 namespace sail {
 
 #pragma pack(push)
