@@ -9,7 +9,6 @@
 #include <cmath>
 #include <server/nautical/FilteredNavData.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
-#include <server/math/nonlinear/LevmarSettings.h>
 #include <server/nautical/Corrector.h>
 
 namespace sail {
@@ -51,10 +50,9 @@ class AutoCalib {
     bool jacobianCheck;
   };
 
-  static LevmarSettings makeDefaultLevmarSettings();
 
-  AutoCalib(Settings s = Settings(), LevmarSettings optSettings = makeDefaultLevmarSettings()) :
-    _settings(s), _optSettings(optSettings) {}
+  AutoCalib(Settings s = Settings()) :
+    _settings(s) {}
 
   class Results {
    public:
@@ -70,7 +68,6 @@ class AutoCalib {
   Results calibrate(FilteredNavData data, Arrayd times = Arrayd()) const;
  private:
   Settings _settings;
-  LevmarSettings _optSettings;
 };
 
 }

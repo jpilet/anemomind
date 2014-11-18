@@ -126,7 +126,9 @@ namespace {
                           double **jacobians) const {
       //CostFunction::parameter_block_sizes_
       assert(parameter_block_sizes().size() == 1);
-      eval(parameters[0], residuals, (jacobian == nullptr? nullptr : jacobians[0]));
+      const double *psub = parameters[0];
+      double *j = (jacobians == nullptr? nullptr : jacobians[0]);
+      eval(psub, residuals, j);
       return true;
     }
    private:
@@ -394,12 +396,6 @@ namespace {
     SCOPEDMESSAGE(INFO, stringFormat("     Wind quality parameter set to %.3g", _qualityWind));
     SCOPEDMESSAGE(INFO, stringFormat("  Current quality parameter set to %.3g", _qualityCurrent));
   }
-}
-
-LevmarSettings AutoCalib::makeDefaultLevmarSettings() {
-  LevmarSettings s;
-  s.maxiter = 30;
-  return s;
 }
 
 AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) const {
