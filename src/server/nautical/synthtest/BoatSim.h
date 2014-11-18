@@ -64,7 +64,7 @@ class BoatCharacteristics {
   BoatCharacteristics() :
     keelRudderDistance(Length<double>::meters(2.0)),
     targetSpeedFun(&defaultTargetSpeed),
-    rudderResistanceCoef(0),
+    rudderResistanceCoef(0.1),
     halfTargetSpeedTime(Duration<double>::seconds(4.0)),
     rudderCorrectionCoef(1.0),
     rudderMaxAngle(Angle<double>::degrees(45)),

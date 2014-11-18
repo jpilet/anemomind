@@ -62,6 +62,8 @@ namespace {
     Duration<double> dur = Duration<double>::minutes(0.5);
 
     BoatCharacteristics ch;
+
+
     auto windfun = makeConstantFlow(Velocity<double>::metersPerSecond(8),
                                     Angle<double>::degrees(0));
     auto currentfun = makeConstantFlow(Velocity<double>::knots(0.1),
