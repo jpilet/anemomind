@@ -57,26 +57,68 @@ namespace sail {
 #pragma pack(pop)
 
 // This class describes the characteristics of a boat, according to our model.
+// Sensible default values are provided that can be overridden as desired.
 class BoatCharacteristics {
  public:
-  // The distance between the keel and the rudder.
-  // This is used to estimate how fast the heading of the boat changes as
-    virtual Length<double> keelRudderDistance() const = 0;
 
-  // How fast the boat moves forward, given true wind and
+  // The distance between the keel and the rudder.
+  virtual Length<double> keelRudderDistance() const {
+    return Length<double>::meters(2.0);
+  }
+
+  // How fast the boat moves forward, given true wind and current.
   virtual Velocity<double> targetSpeed(
-      Angle<double> twa, Velocity<double> tws) const = 0;
+      Angle<double> twa, Velocity<double> tws) const {
+    return defaultTargetSpeed(twa, tws);
+  }
+
+  static Velocity<double> defaultTargetSpeed(Angle<double> twa, Velocity<double> tws);
+
 
   // How much the rudder slows down the boat as the rudder angle increases.
-  virtual double rudderResistanceCoef() const = 0;
+  // By default, the boat does not slow down at all, so tune this parameter
+  // through experimentation to get good results.
+  virtual double rudderResistanceCoef() const {
+    return 0;
+  }
 
   // How fast the boat reaches its target speed.
-  virtual double targetSpeedGain() const;
+  double targetSpeedGain() const {
+    constexpr double log2 = log(2.0);
+    return log2/halfTargetSpeedTime().seconds();
+  }
 
-  // How fast we turn the rudder to maintain the TWA
-  virtual double rudderCorrectionCoef() const;
+  // The time it takes to reach half of its target speed,
+  // if the rudder angle is not changing.
+  virtual Duration<double> halfTargetSpeedTime() const {
+    return Duration<double>::seconds(4.0);
+  }
+
+  // How fast the helmsman will turn the rudder towards
+  // its max position. For instance, if the coefficient is 1 and the difference
+  // between the current rudder angle and its target position is 49 degrees,
+  // then he will at that time instant turn the rudder with an angular velocity
+  // of 49 degrees per second. If the coefficient would be 0.5, he would turn the rudder
+  // with a velocity of 24 degrees per second.
+  virtual double rudderCorrectionCoef() const {
+    return 0.5;
+  }
 
   typedef std::shared_ptr<BoatCharacteristics> Ptr;
+
+  // The maximum angle at which the helmsman will turn the rudder.
+  virtual Angle<double> rudderMaxAngle() const {
+    return Angle<double>::degrees(45);
+  }
+
+  // The maximum angle error from the target value that
+  // the helmsman tolerates. When the error is below this angle,
+  // he will keep the rudder in its middle position. If the error goes
+  // above this threshold, he will start to turn the rudder towards its
+  // minimum/maximum angle ( rudderMaxAngle() ) with a rate of rudderCorrectionCoef()
+  virtual Angle<double> correctionThreshold() const {
+    return Angle<double>::degrees(5);
+  }
 
   virtual ~BoatCharacteristics() {}
 };
@@ -86,10 +128,33 @@ class BoatSimulator : public Function {
   typedef HorizontalMotion<double> FlowVector;
   typedef std::function<FlowVector(Length<double>, Length<double>, Duration<double>)> FlowFun;
 
+
+  // Contains lots of information that can be derived from the environment
+  // and a BoatSimState. This class contains values that can be used to build
+  // test cases.
+  class FullBoatState {
+   public:
+    FullBoatState() {}
+
+    Angle<double> rudderAngle;
+    Length<double> x;
+    Length<double> y;
+    Duration<double> time;
+    Angle<double> boatOrientation;
+    Velocity<double> boatSpeedThroughWater;
+    HorizontalMotion<double> trueWind;
+    HorizontalMotion<double> trueCurrent;
+    HorizontalMotion<double> windWrtCurrent;
+    Angle<double> twaWater;
+    Velocity<double> twsWater;
+    HorizontalMotion<double> boatMotionThroughWater;
+    HorizontalMotion<double> boatMotion;
+  };
+
   /*
    * An array of TWASpans specify how the boat should be
    * steered. The helmsman tries to make the TWA of the boat
-   * correspond to targetTWA during timeSpan.
+   * correspond to targetTWA.
    */
   class TwaDirective {
    public:
@@ -106,8 +171,9 @@ class BoatSimulator : public Function {
   int inDims() {return BoatSimulationState::paramCount();}
   int outDims() {return BoatSimulationState::paramCount();}
 
-  void eval(double *Xin, double *Fout, double *Jout);
+  FullBoatState makeFullState(const BoatSimulationState &state);
 
+  void eval(double *Xin, double *Fout, double *Jout);
  private:
   FlowFun _windFun;
   FlowFun _currentFun;

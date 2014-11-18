@@ -5,9 +5,24 @@
 
 #include "BoatSim.h"
 #include <cassert>
+#include <server/common/LineKM.h>
 
 namespace sail {
 
+
+namespace {
+  double testTargetSpeedProfile(Angle<double> twa) {
+    if (cos(twa) > 0) {
+      return std::abs(sin(twa));
+    } else {
+      return LineKM(-1.0, 1.0, 1.0, 0.8)(cos(twa.scaled(2.0)));
+    }
+  }
+}
+
+Velocity<double> BoatCharacteristics::defaultTargetSpeed(Angle<double> twa, Velocity<double> tws) {
+  return 0.5*testTargetSpeedProfile(twa)*tws;
+}
 
 BoatSimulator::BoatSimulator(
     FlowFun windFun,
@@ -22,46 +37,75 @@ BoatSimulator::BoatSimulator(
   }));
 }
 
-void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
-  assert(Jout == nullptr);
-  BoatSimulationState &state = *((BoatSimulationState *)Xin);
-  BoatSimulationState &deriv = *((BoatSimulationState *)Fout);
 
-  Angle<double> rudderAngle = Angle<double>::radians(state.rudderAngleRadians);
-  Length<double> x = Length<double>::meters(state.boatXMeters);
-  Length<double> y = Length<double>::meters(state.boatYMeters);
-  Duration<double> time = Duration<double>::seconds(state.timeSeconds);
-  Angle<double> boatOrientation = Angle<double>::radians(state.boatOrientationRadians);
 
-  Velocity<double> boatSpeedThroughWater = Velocity<double>::metersPerSecond(state.boatSpeedThroughWaterMPS);
 
-  HorizontalMotion<double> trueWind = _windFun(x, y, time);
-  HorizontalMotion<double> trueCurrent = _currentFun(x, y, time);
+BoatSimulator::FullBoatState BoatSimulator::makeFullState(const BoatSimulationState &state) {
+  FullBoatState dst;
+  dst.rudderAngle = Angle<double>::radians(state.rudderAngleRadians);
+  dst.x = Length<double>::meters(state.boatXMeters);
+  dst.y = Length<double>::meters(state.boatYMeters);
+  dst.time = Duration<double>::seconds(state.timeSeconds);
+  dst.boatOrientation = Angle<double>::radians(state.boatOrientationRadians);
+  dst.boatSpeedThroughWater = Velocity<double>::metersPerSecond(state.boatSpeedThroughWaterMPS);
+
+  dst.trueWind = _windFun(dst.x, dst.y, dst.time);
+  dst.trueCurrent = _currentFun(dst.x, dst.y, dst.time);
 
   // Since a polar table will assume no current, it makes sense
   // to compute the "true" wind in a coordinate system attached to
   // the local water surface.
-  HorizontalMotion<double> windWrtCurrent = trueWind - trueCurrent;
+  dst.windWrtCurrent = dst.trueWind - dst.trueCurrent;
 
-  Angle<double> twaWater = (windWrtCurrent.angle() + Angle<double>::radians(M_PI)) - boatOrientation;
-  Velocity<double> twsWater = windWrtCurrent.norm();
+  dst.twaWater = (dst.windWrtCurrent.angle() + Angle<double>::radians(M_PI)) - dst.boatOrientation;
+  dst.twsWater = dst.windWrtCurrent.norm();
 
-  HorizontalMotion<double> boatMotionThroughWater =
-      HorizontalMotion<double>::polar(boatSpeedThroughWater, boatOrientation);
+  dst.boatMotionThroughWater =
+      HorizontalMotion<double>::polar(dst.boatSpeedThroughWater, dst.boatOrientation);
 
-  HorizontalMotion<double> boatMotion = trueCurrent + boatMotionThroughWater;
+  dst.boatMotion = dst.trueCurrent + dst.boatMotionThroughWater;
 
+  return dst;
+}
+
+
+void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
+  assert(Jout == nullptr);
+  BoatSimulationState &state = *((BoatSimulationState *)Xin);
+  BoatSimulationState &deriv = *((BoatSimulationState *)Fout);
+  FullBoatState full = makeFullState(state);
+
+
+  double twaAngleErrorRadians = (getTargetTwa(full.time) - full.twaWater).radians();
+  Angle<double> targetRudderAngle = Angle<double>::radians(0);
+  if (std::abs(twaAngleErrorRadians) > _ch->correctionThreshold().radians()) {
+    targetRudderAngle = (twaAngleErrorRadians > 0? 1.0 : -1.0)*_ch->rudderMaxAngle();
+  }
+
+  // COMPUTE THE DERIVATIVES THAT TELL HOW THE STATE
+  // VECTOR WILL EVOLVE.
+
+  // The boat strives to reach its target speed, but is slowed down when the rudder angle is nonzero.
   deriv.boatSpeedThroughWaterMPS =
       _ch->targetSpeedGain()*(
-          _ch->targetSpeed(twaWater, twsWater).metersPerSecond() - state.boatSpeedThroughWaterMPS)
-        - std::abs(_ch->rudderResistanceCoef()*sin(rudderAngle))*sqr(state.boatSpeedThroughWaterMPS);
-  deriv.boatXMeters = boatMotion[0].metersPerSecond();
-  deriv.boatYMeters = boatMotion[1].metersPerSecond();
-  deriv.boatOrientationRadians = -boatSpeedThroughWater.metersPerSecond()*sin(rudderAngle)
-      /(_ch->keelRudderDistance().meters());
-  deriv.rudderAngleRadians = _ch->rudderCorrectionCoef()*(getTargetTwa(time) - twaWater).radians();
-  deriv.timeSeconds = 1.0;
+          _ch->targetSpeed(full.twaWater, full.twsWater).metersPerSecond() - state.boatSpeedThroughWaterMPS)
+        - std::abs(_ch->rudderResistanceCoef()*sin(full.rudderAngle))*sqr(state.boatSpeedThroughWaterMPS);
 
+  // The derivative of the boat X and Y positions is the boat motion.
+  deriv.boatXMeters = full.boatMotion[0].metersPerSecond();
+  deriv.boatYMeters = full.boatMotion[1].metersPerSecond();
+
+  // For a positive rudder angle, the boat orientation will decrease. The faster the boat is moving forward
+  // also, the faster the boat will turn. The greater the distance between the rudder and the keel,
+  // the slower the boat will turn.
+  deriv.boatOrientationRadians = -full.boatSpeedThroughWater.metersPerSecond()*sin(full.rudderAngle)
+      /(_ch->keelRudderDistance().meters());
+
+  // The helmsman seeks to approach a target angle of the rudder.
+  deriv.rudderAngleRadians = _ch->rudderCorrectionCoef()*(targetRudderAngle - full.rudderAngle).radians();
+
+  // The derivative of time w.r.t. time is 1.
+  deriv.timeSeconds = 1.0;
 }
 
 }
