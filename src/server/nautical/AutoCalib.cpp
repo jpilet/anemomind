@@ -173,23 +173,7 @@ namespace {
 
 
   bool isOK(int rows, int cols, const double *X) {
-    const double kImpossibleValue = 1e302;
-    int counter = 0;
-    for (int i = 0; i < rows; i++) {
-      for (int j = 0; j < cols; j++) {
-        double x = X[counter];
-        if (!ceres::IsFinite(x)) {
-          assert(false);
-          return false;
-        }
-        if (x == kImpossibleValue) {
-          assert(false);
-          return false;
-        }
-        counter++;
-      }
-    }
-    assert(counter == rows*cols);
+    return ceres::internal::IsArrayValid(rows*cols, X);
     return true;
   }
 
@@ -422,8 +406,6 @@ AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) cons
   std::cout << EXPR_AND_VAL_AS_STRING(problem.NumParameters()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(problem.NumResidualBlocks()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(problem.NumResiduals()) << std::endl;
-
-  // Run the solver!
   ceres::Solver::Options options;
   options.minimizer_progress_to_stdout = true;
   ceres::Solver::Summary summary;
