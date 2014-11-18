@@ -401,10 +401,6 @@ AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) cons
   // auto-differentiation to obtain the derivative (jacobian).
   auto cost = new Objf(data, times, _settings);
   problem.AddResidualBlock(cost, NULL, (double *)(&corr));
-  std::cout << EXPR_AND_VAL_AS_STRING(problem.NumParameterBlocks()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(problem.NumParameters()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(problem.NumResidualBlocks()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(problem.NumResiduals()) << std::endl;
   ceres::Solver::Options options;
   options.minimizer_progress_to_stdout = true;
   ceres::Solver::Summary summary;
