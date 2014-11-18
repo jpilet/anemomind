@@ -3,6 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <ceres/ceres.h>
 #include <server/math/armaadolc.h>
 #include <server/common/Function.h>
 #include <server/nautical/AutoCalib.h>
@@ -83,7 +84,7 @@ namespace {
     int _index;
   };
 
-  class Objf /*: public ceres::CostFunction*/ {
+  class Objf : public ceres::CostFunction {
    public:
     static constexpr int blockSize = 6;
     Objf(FilteredNavData data, Arrayd times, AutoCalib::Settings s);
@@ -173,11 +174,11 @@ namespace {
 
       tuneParameters();
 
-      /*{
+      { // ceres-related stuff.
         mutable_parameter_block_sizes()->resize(1);
-        (*mutable_parameter_block_sizes()) = inDims();
+        (*mutable_parameter_block_sizes())[0] = inDims();
         set_num_residuals(outDims());
-      }*/
+      }
   }
 
   double Objf::normGDeriv(int timeIndex) const {
