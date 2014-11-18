@@ -66,7 +66,7 @@ class BoatCharacteristics {
     targetSpeedFun(&defaultTargetSpeed),
     rudderResistanceCoef(0),
     halfTargetSpeedTime(Duration<double>::seconds(4.0)),
-    rudderCorrectionCoef(0.5),
+    rudderCorrectionCoef(1.0),
     rudderMaxAngle(Angle<double>::degrees(45)),
     correctionThreshold(Angle<double>::degrees(5))
     {}

@@ -38,4 +38,13 @@ cxx_test(nautical_synth_BoatSimTest
             BoatSimTest.cpp
             gtest_main
             nautical_synth_BoatSim
-           )                     
+           )      
+           
+add_executable(nautical_synth_BoatSimDemo
+               BoatSimDemo.cpp
+              )
+               
+target_link_libraries(nautical_synth_BoatSimDemo
+                      nautical_synth_BoatSim
+                      plot_gnuplot
+                     )
