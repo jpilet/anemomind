@@ -112,9 +112,9 @@ namespace {
    private:
     AutoCalib::Settings _settings;
     FilteredNavData _data;
-    Arrayd _times, _G;
+    Arrayd _times, _rateOfChange;
     Arrayd _tempW, _tempC;
-    double _qw, _qc;
+    double _qualityWind, _qualityCurrent;
 
     void adjustQualityParameters();
 
@@ -157,10 +157,10 @@ namespace {
   }
 
   Objf::Objf(FilteredNavData data, Arrayd times, AutoCalib::Settings s) :
-      _data(data), _times(times), _qw(s.wind.fixedQuality),
-      _qc(s.current.fixedQuality), _settings(s), _G(times.size()) {
+      _data(data), _times(times), _qualityWind(s.wind.fixedQuality),
+      _qualityCurrent(s.current.fixedQuality), _settings(s), _rateOfChange(times.size()) {
       for (int i = 0; i < length(); i++) {
-        _G[i] = normGDeriv(i);
+        _rateOfChange[i] = normGDeriv(i);
       }
 
 
@@ -223,7 +223,7 @@ namespace {
 
   Vectorize<double, 2> Objf::evalSub(int index, double *X, double *F, MDArray2d J,
       int *windInlierCounter, int *currentInlierCounter) {
-    double g = _G[index];
+    double g = _rateOfChange[index];
     bool outputJ = !J.empty();
 
     if (outputJ) {
@@ -234,9 +234,9 @@ namespace {
     adouble result[blockSize];
 
       WindAndCurrentDifs<adouble> difs = calcWindAndCurrentDifs<adouble>(*corr, index);
-      double w = evalRobust(_settings.smooth, _qw, difs.windDif,    g, result + 0,
+      double w = evalRobust(_settings.smooth, _qualityWind, difs.windDif,    g, result + 0,
         windInlierCounter);
-      double c = evalRobust(_settings.smooth, _qc, difs.currentDif, g, result + 3,
+      double c = evalRobust(_settings.smooth, _qualityCurrent, difs.currentDif, g, result + 3,
         currentInlierCounter);
 
     adolcOutput(blockSize, result, F);
@@ -299,7 +299,7 @@ namespace {
     double temp[blockSize];
     Array<GX> W(count), C(count);
     for (int i = 0; i < count; i++) {
-      double g = _G[i];
+      double g = _rateOfChange[i];
       Vectorize<double, 2> x = evalSub(i, X, temp, MDArray2d(),
           &windInlierCounter, &currentInlierCounter);
       W[i] = GX(g, x[0]);
@@ -318,11 +318,11 @@ namespace {
     computeWindAndCurrentDerivNorms(&W, &C);
 
     SCOPEDMESSAGE(INFO, "Compute the wind quality parameter");
-    _qw = computeParam(W, _settings.wind);
+    _qualityWind = computeParam(W, _settings.wind);
     SCOPEDMESSAGE(INFO, "Compute the current quality parameter");
-    _qc = computeParam(C, _settings.current);
-    SCOPEDMESSAGE(INFO, stringFormat("     Wind quality parameter set to %.3g", _qw));
-    SCOPEDMESSAGE(INFO, stringFormat("  Current quality parameter set to %.3g", _qc));
+    _qualityCurrent = computeParam(C, _settings.current);
+    SCOPEDMESSAGE(INFO, stringFormat("     Wind quality parameter set to %.3g", _qualityWind));
+    SCOPEDMESSAGE(INFO, stringFormat("  Current quality parameter set to %.3g", _qualityCurrent));
   }
 }
 
