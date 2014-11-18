@@ -23,19 +23,6 @@ class ProportionateIndexer {
   Arrayb selected() const;
   Arrayb remaining() const;
 
-
-
-  // For advanced use.
-  class Result {
-   public:
-    Result(int index_, double localX_) :
-      index(index_), localX(localX_) {}
-    int index;
-    double localX;
-  };
-  Result getBySum(int node, double x) const;
-  Result getBySum(double x) const {return getBySum(0, x);}
-
   double sum() const {return _values[0];}
  private:
   int _offset, _count;
@@ -49,6 +36,17 @@ class ProportionateIndexer {
   bool isLeaf(int index) const {
     return _offset <= index;
   }
+
+  // For advanced use.
+  class Result {
+   public:
+    Result(int index_, double localX_) :
+      index(index_), localX(localX_) {}
+    int index;
+    double localX;
+  };
+  Result getBySum(int node, double x) const;
+  Result getBySum(double x) const {return getBySum(0, x);}
 };
 
 }

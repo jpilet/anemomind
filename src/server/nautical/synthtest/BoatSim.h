@@ -10,6 +10,7 @@
 #include <memory>
 #include <server/math/nonlinear/RungeKutta.h>
 #include <server/common/Span.h>
+#include <server/common/ProportionateIndexer.h>
 
 namespace sail {
 
@@ -21,15 +22,18 @@ namespace sail {
     BoatSimulationState() :
       timeSeconds(0),
       boatOrientationRadians(0),
-      boatMotionThroughWaterMPS(0),
+      boatSpeedThroughWaterMPS(0),
       rudderAngleRadians(0),
-      magneticHeadingRadians(0),
       boatXMeters(0), boatYMeters(0) {}
 
 
-    // STATE VARIABLES: I would like to use PhysicalQuantities here,
+    // STATE VARIABLES:
+    // I would like to use PhysicalQuantities here,
     // but I am not sure they are packed... If we should pack them,
     // we should do that in its own PR because we might break things.
+    // However, having them as raw doubles has the advantage that we can use
+    // the same class to store both the state and the derivatives
+    // of the state variables.
 
     // The state of the time
     double timeSeconds;
@@ -38,12 +42,12 @@ namespace sail {
     double boatOrientationRadians;
 
     // How fast the boat moves through water
-    double boatMotionThroughWaterMPS;
+    double boatSpeedThroughWaterMPS;
 
     // By what angle the rudder is turned
     double rudderAngleRadians;
 
-    double magneticHeadingRadians;
+    // The boat position in a local coordinate system
     double boatXMeters, boatYMeters;
 
     static constexpr int paramCount() {
@@ -87,20 +91,17 @@ class BoatSimulator : public Function {
    * steered. The helmsman tries to make the TWA of the boat
    * correspond to targetTWA during timeSpan.
    */
-  class TWASpan {
+  class TwaDirective {
    public:
-    Span<Duration<double> > timeSpan;
-
-    // The TWA that the boat should
-    // strive to maintain during 'timeSpan'
-    Angle<double> targetTWA;
+    Duration<double> duration;
+    Angle<double> targetTwa;
   };
 
   BoatSimulator(
       FlowFun windFun,
       FlowFun currentFun,
       BoatCharacteristics::Ptr ch,
-      Array<TWASpan> twaSpans);
+      Array<TwaDirective> twaSpans);
 
   int inDims() {return BoatSimulationState::paramCount();}
   int outDims() {return BoatSimulationState::paramCount();}
@@ -108,7 +109,14 @@ class BoatSimulator : public Function {
   void eval(double *Xin, double *Fout, double *Jout);
 
  private:
-
+  FlowFun _windFun;
+  FlowFun _currentFun;
+  BoatCharacteristics::Ptr _ch;
+  Array<TwaDirective> _twaSpans;
+  ProportionateIndexer _indexer;
+  Angle<double> getTargetTwa(Duration<double> time) const {
+    return _twaSpans[_indexer.get(time.seconds())].targetTwa;
+  }
 };
 
 }
