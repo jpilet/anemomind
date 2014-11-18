@@ -12,6 +12,15 @@
 #include <server/math/nonlinear/Levmar.h>
 #include <server/common/PhysicalQuantityIO.h>
 #include <adolc/drivers/drivers.h>
+#include <ceres/fpclassify.h>
+
+
+namespace ceres {
+namespace internal {
+  bool IsArrayValid(int size, const double* x);
+}
+}
+
 
 namespace sail {
 
@@ -159,12 +168,26 @@ namespace {
     void tuneParameters();
   };
 
-  bool isOK(int count, const double *X) {
-    for (int i = 0; i < count; i++) {
-      if (!std::isfinite(X[i])) {
-        return false;
+
+
+  bool isOK(int rows, int cols, const double *X) {
+    const double kImpossibleValue = 1e302;
+    int counter = 0;
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
+        double x = X[counter];
+        if (!ceres::IsFinite(x)) {
+          assert(false);
+          return false;
+        }
+        if (x == kImpossibleValue) {
+          assert(false);
+          return false;
+        }
+        counter++;
       }
     }
+    assert(counter == rows*cols);
     return true;
   }
 
@@ -221,17 +244,21 @@ namespace {
 
     int windInlierCounter = 0;
     int currentInlierCounter = 0;
+    int jstep = blockSize*inDims();
     for (int i = 0; i < length(); i++) {
-      int at = blockSize*i;
-      evalSub(i, X, F + at, (outputJ? J + at : nullptr),
+      evalSub(i, X, F + blockSize*i, (outputJ? J + i*jstep : nullptr),
         &windInlierCounter, &currentInlierCounter);
     }
-    assert(isOK(outDims(), F));
+    assert(isOK(outDims(), 1, F));
     if (J != nullptr) {
-      assert(isOK(outDims()*inDims(), J));
+      assert(isOK(outDims(), inDims(), J));
     }
+    assert(outDims() == this->num_residuals());
+    assert(inDims()  == this->parameter_block_sizes()[0]);
+    assert(1         == this->parameter_block_sizes().size());
     SCOPEDMESSAGE(INFO, stringFormat("Wind inlier count:    %d", windInlierCounter));
     SCOPEDMESSAGE(INFO, stringFormat("Current inlier count: %d", currentInlierCounter));
+    SCOPEDMESSAGE(INFO, stringFormat("Output Jacobian:      %s", (J == nullptr? "NO" : "YES")));
   }
 
 
@@ -282,16 +309,9 @@ namespace {
     if (outputJ) {
       trace_off();
       outputJacobianRowMajor(_settings.tapeIndex, X, J);
-      assert(isOK(blockSize*inDims(), J));
+      assert(isOK(blockSize, inDims(), J));
     }
-
-    if (!isOK(blockSize, F)) {
-      for (int i = 0; i < blockSize; i++) {
-        std::cout << EXPR_AND_VAL_AS_STRING(F[i]) << std::endl;
-        std::cout << EXPR_AND_VAL_AS_STRING(result[i].getValue()) << std::endl;
-      }
-      assert(false);
-    }
+    assert(isOK(blockSize, 1, F));
     return Vectorize<double, 2>{w, c};
   }
 
