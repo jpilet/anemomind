@@ -5,6 +5,8 @@
 
 #include <gtest/gtest.h>
 #include <server/nautical/synthtest/BoatSim.h>
+#include <iostream>
+#include <server/common/string.h>
 
 using namespace sail;
 
@@ -17,7 +19,7 @@ namespace {
   }
 }
 
-TEST(BoatSimTest, Sim1) {
+TEST(BoatSimTest, SimLimit) {
   BoatCharacteristics ch;
   auto windfun = makeConstantFlow(Velocity<double>::metersPerSecond(8),
                                   Angle<double>::degrees(0));
@@ -30,6 +32,9 @@ TEST(BoatSimTest, Sim1) {
 
   Array<BoatSimulator::FullBoatState> states = simulator.simulate(Duration<double>::seconds(30.0),
       Duration<double>::seconds(1.0), 20);
+
+  EXPECT_LE(30, std::abs(states.first().twaWater.degrees()));
+  EXPECT_NEAR(129, states.last().twaWater.degrees(), 1.0);
 }
 
 
