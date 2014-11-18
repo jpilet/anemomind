@@ -37,7 +37,7 @@ TEST(BoatSimTest, SimLimit) {
   EXPECT_NEAR(129, states.last().twaWater.degrees(), 1.0);
 }
 
-TEST(BoatSimTest, SimLimit2) {
+TEST(BoatSimTest, SimDirectionChange) {
   BoatCharacteristics ch;
   auto windfun = makeConstantFlow(Velocity<double>::metersPerSecond(8),
                                   Angle<double>::degrees(0));
