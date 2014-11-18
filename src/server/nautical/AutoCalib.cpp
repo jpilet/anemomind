@@ -82,7 +82,7 @@ namespace {
     int _index;
   };
 
-  class Objf : public Function {
+  class Objf  {
    public:
     static constexpr int blockSize = 6;
     Objf(FilteredNavData data, Arrayd times, AutoCalib::Settings s);
@@ -100,15 +100,15 @@ namespace {
       return _times.size();
     }
 
-    int inDims() {
+    int inDims() const {
       return Corrector<double>::paramCount();
     }
 
-    int outDims() {
+    int outDims() const {
       return blockSize*length();
     }
 
-    void eval(double *X, double *F, double *J);
+    void eval(double *X, double *F, double *J) const;
    private:
     AutoCalib::Settings _settings;
     FilteredNavData _data;
@@ -126,7 +126,7 @@ namespace {
     double normGDeriv(int timeIndex) const;
 
     template <typename T>
-    WindAndCurrentDifs<T> calcWindAndCurrentDifs(const Corrector<T> &corrector, int timeIndex) {
+    WindAndCurrentDifs<T> calcWindAndCurrentDifs(const Corrector<T> &corrector, int timeIndex) const {
       int lowerIndex = calcLowerIndex(timeIndex);
       int upperIndex = lowerIndex + 1;
 
@@ -140,7 +140,7 @@ namespace {
     }
 
     Vectorize<double, 2> evalSub(int index, double *X, double *F, MDArray2d J,
-        int *windInlierCounter, int *currentInlierCounter);
+        int *windInlierCounter, int *currentInlierCounter) const;
 
 
     void computeWindAndCurrentDerivNorms(Array<GX> *Wdst, Array<GX> *Cdst);
@@ -180,7 +180,7 @@ namespace {
     }
   }
 
-  void Objf::eval(double *X, double *F, double *J) {
+  void Objf::eval(double *X, double *F, double *J) const {
     ENTERSCOPE("Evaluate the automatic calibration objective function");
     bool outputJ = J != nullptr;
     int windInlierCounter = 0;
@@ -222,7 +222,7 @@ namespace {
   }
 
   Vectorize<double, 2> Objf::evalSub(int index, double *X, double *F, MDArray2d J,
-      int *windInlierCounter, int *currentInlierCounter) {
+      int *windInlierCounter, int *currentInlierCounter) const {
     double g = _rateOfChange[index];
     bool outputJ = !J.empty();
 
@@ -344,14 +344,15 @@ AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) cons
   Objf objf(data, times, _settings);
 
   if (_settings.jacobianCheck) {
-    double dif = objf.maxNumJacDif(params.ptr());
-    SCOPEDMESSAGE(INFO, stringFormat("Maximum difference between numeric and analytic Jacobian: %.3g", dif));
-    assert(dif < 1.0e-3);
+    //double dif = objf.maxNumJacDif(params.ptr());
+
+    //SCOPEDMESSAGE(INFO, stringFormat("Maximum difference between numeric and analytic Jacobian: %.3g", dif));
+    //assert(dif < 1.0e-3);
   }
 
   LevmarState state(params);
   SCOPEDMESSAGE(INFO, "Perform optimization");
-  state.minimize(_optSettings, objf);
+  //state.minimize(_optSettings, objf);
   Corrector<double> resultCorr = *(Corrector<double>::fromPtr(state.getXArray(false).ptr()));
   SCOPEDMESSAGE(INFO, "Done optimizing.");
   return Results(resultCorr, data);
