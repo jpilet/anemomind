@@ -20,7 +20,7 @@ RungeKutta::RungeKutta(std::shared_ptr<Function> fun) :
 }
 
 namespace {
-  void addWeighted(Arrayd a, double lambda, Arrayd b, Arrayd dst) {
+  void addWeighted(const Arrayd &a, double lambda, const Arrayd &b, Arrayd dst) {
     int dim = a.size();
     assert(dim == b.size());
     assert(dim == dst.size());
@@ -31,18 +31,18 @@ namespace {
 }
 
 
-void RungeKutta::step(Arrayd stateVector, double stepSize) {
-  assert(stateVector.size() == _dim);
-  _fun->eval(stateVector.ptr(), _k1.ptr());
-  addWeighted(stateVector, 0.5*stepSize, _k1, _temp);
+void RungeKutta::step(Arrayd *stateVector, double stepSize) {
+  assert(stateVector->size() == _dim);
+  _fun->eval(stateVector->ptr(), _k1.ptr());
+  addWeighted(*stateVector, 0.5*stepSize, _k1, _temp);
   _fun->eval(_temp.ptr(), _k2.ptr());
-  addWeighted(stateVector, 0.5*stepSize, _k2, _temp);
+  addWeighted(*stateVector, 0.5*stepSize, _k2, _temp);
   _fun->eval(_temp.ptr(), _k3.ptr());
-  addWeighted(stateVector, stepSize, _k3, _temp);
+  addWeighted(*stateVector, stepSize, _k3, _temp);
   _fun->eval(_temp.ptr(), _k4.ptr());
   double factor = stepSize/6;
   for (int i = 0; i < _dim; i++) {
-    stateVector[i] = stateVector[i] + factor*(_k1[i] + 2*(_k2[i] + _k3[i]) + _k4[i]);
+    (*stateVector)[i] += factor*(_k1[i] + 2*(_k2[i] + _k3[i]) + _k4[i]);
   }
 }
 

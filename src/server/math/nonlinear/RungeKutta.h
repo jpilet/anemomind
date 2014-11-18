@@ -22,7 +22,7 @@ namespace sail {
 class RungeKutta {
  public:
   RungeKutta(std::shared_ptr<Function> fun);
-  void step(Arrayd stateVector, double stepSize);
+  void step(Arrayd *stateVector, double stepSize);
  private:
   std::shared_ptr<Function> _fun;
   int _dim;
