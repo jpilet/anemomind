@@ -111,14 +111,15 @@ namespace {
     }
 
 
+    //http://ceres-solver.org/modeling.html#CostFunction::Evaluate__doubleCPCP.doubleP.doublePP
     bool Evaluate(double const *const *parameters,
                           double *residuals,
                           double **jacobians) const {
-      eval(parameters[0], residuals, jacobians);
+      eval(parameters[0], residuals, jacobians[0]);
       return true;
     }
    private:
-    void eval(const double *X, double *F, double **J) const;
+    void eval(const double *X, double *F, double *J) const;
     AutoCalib::Settings _settings;
     FilteredNavData _data;
     Arrayd _times, _rateOfChange;
@@ -148,7 +149,7 @@ namespace {
       return WindAndCurrentDifs<T>(factor*wdif, factor*cdif);
     }
 
-    Vectorize<double, 2> evalSub(int index, const double *X, double *F, double **J,
+    Vectorize<double, 2> evalSub(int index, const double *X, double *F, double *J,
         int *windInlierCounter, int *currentInlierCounter) const;
 
 
@@ -194,9 +195,27 @@ namespace {
     }
   }
 
-  void Objf::eval(const double *X, double *F, double **J) const {
+
+  void assignAndUndo(double &dst) {
+    double bak = dst;
+    dst = 0;
+    dst = bak;
+  }
+
+  void checkAssignability(int m, int n, double *F, double **J) {
+    for (int i = 0; i < m; i++) {
+      assignAndUndo(F[i]);
+      for (int j = 0; j < n; j++) {
+        assignAndUndo(J[i][j]);
+      }
+    }
+  }
+
+
+  void Objf::eval(const double *X, double *F, double *J) const {
     ENTERSCOPE("Evaluate the automatic calibration objective function");
     bool outputJ = J != nullptr;
+
     int windInlierCounter = 0;
     int currentInlierCounter = 0;
     for (int i = 0; i < length(); i++) {
@@ -232,7 +251,7 @@ namespace {
     return xd;
   }
 
-  Vectorize<double, 2> Objf::evalSub(int index, const double *X, double *F, double **J,
+  Vectorize<double, 2> Objf::evalSub(int index, const double *X, double *F, double *J,
       int *windInlierCounter, int *currentInlierCounter) const {
     double g = _rateOfChange[index];
     bool outputJ = J != nullptr;
@@ -253,7 +272,7 @@ namespace {
     adolcOutput(blockSize, result, F);
     if (outputJ) {
       trace_off();
-      jacobian(_settings.tapeIndex, blockSize, inDims(), X, J);
+      outputJacobianRowMajor(_settings.tapeIndex, X, J);
     }
     return Vectorize<double, 2>{w, c};
   }

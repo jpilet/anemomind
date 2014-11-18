@@ -222,7 +222,7 @@ void outputJacobianColMajor(short int tag, double *X, double *J, int step) {
 
 
 
-void outputJacobianRowMajor(short int tag, double *X, double *Jrow) {
+void outputJacobianRowMajor(short int tag, const double *X, double *Jrow) {
   unsigned long int counts[30];
   tapestats(tag, counts);
   int m = counts[1];
