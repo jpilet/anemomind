@@ -6,6 +6,7 @@
 #include "BoatSim.h"
 #include <cassert>
 #include <server/common/LineKM.h>
+#include <server/common/SharedPtrUtils.h>
 
 namespace sail {
 
@@ -27,7 +28,7 @@ Velocity<double> BoatCharacteristics::defaultTargetSpeed(Angle<double> twa, Velo
 BoatSimulator::BoatSimulator(
     FlowFun windFun,
     FlowFun currentFun,
-    BoatCharacteristics::Ptr ch,
+    BoatCharacteristics ch,
     Array<TwaDirective> twaSpans) :
         _windFun(windFun),
         _currentFun(currentFun),
@@ -78,8 +79,8 @@ void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
 
   double twaAngleErrorRadians = (getTargetTwa(full.time) - full.twaWater).radians();
   Angle<double> targetRudderAngle = Angle<double>::radians(0);
-  if (std::abs(twaAngleErrorRadians) > _ch->correctionThreshold.radians()) {
-    targetRudderAngle = (twaAngleErrorRadians > 0? 1.0 : -1.0)*_ch->rudderMaxAngle;
+  if (std::abs(twaAngleErrorRadians) > _ch.correctionThreshold.radians()) {
+    targetRudderAngle = (twaAngleErrorRadians > 0? 1.0 : -1.0)*_ch.rudderMaxAngle;
   }
 
   // COMPUTE THE DERIVATIVES THAT TELL HOW THE STATE
@@ -87,9 +88,9 @@ void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
 
   // The boat strives to reach its target speed, but is slowed down when the rudder angle is nonzero.
   deriv.boatSpeedThroughWaterMPS =
-      _ch->targetSpeedGain()*(
-          _ch->targetSpeedFun(full.twaWater, full.twsWater).metersPerSecond() - state.boatSpeedThroughWaterMPS)
-        - std::abs(_ch->rudderResistanceCoef*sin(full.rudderAngle))*sqr(state.boatSpeedThroughWaterMPS);
+      _ch.targetSpeedGain()*(
+          _ch.targetSpeedFun(full.twaWater, full.twsWater).metersPerSecond() - state.boatSpeedThroughWaterMPS)
+        - std::abs(_ch.rudderResistanceCoef*sin(full.rudderAngle))*sqr(state.boatSpeedThroughWaterMPS);
 
   // The derivative of the boat X and Y positions is the boat motion.
   deriv.boatXMeters = full.boatMotion[0].metersPerSecond();
@@ -99,13 +100,31 @@ void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
   // also, the faster the boat will turn. The greater the distance between the rudder and the keel,
   // the slower the boat will turn.
   deriv.boatOrientationRadians = -full.boatSpeedThroughWater.metersPerSecond()*sin(full.rudderAngle)
-      /(_ch->keelRudderDistance.meters());
+      /(_ch.keelRudderDistance.meters());
 
   // The helmsman seeks to approach a target angle of the rudder.
-  deriv.rudderAngleRadians = _ch->rudderCorrectionCoef*(targetRudderAngle - full.rudderAngle).radians();
+  deriv.rudderAngleRadians = _ch.rudderCorrectionCoef*(targetRudderAngle - full.rudderAngle).radians();
 
   // The derivative of time w.r.t. time is 1.
   deriv.timeSeconds = 1.0;
 }
+
+Array<BoatSimulator::FullBoatState> BoatSimulator::simulate(Duration<double> simulationDuration,
+  Duration<double> samplingPeriod, int iterationsPerSample) {
+  int sampleCount = int(simulationDuration/samplingPeriod);
+  double stepsize = samplingPeriod.seconds()/iterationsPerSample;
+  Array<FullBoatState> dst(sampleCount);
+  BoatSimulationState state;
+  Arrayd stateVector(state.paramCount(), (double *)(&state));
+  RungeKutta rk(makeSharedPtrToStack(*this));
+  for (int i = 0; i < sampleCount; i++) {
+    dst[i] = makeFullState(state);
+    for (int j = 0; j < iterationsPerSample; j++) {
+      rk.step(&stateVector, stepsize);
+    }
+  }
+  return dst;
+}
+
 
 }

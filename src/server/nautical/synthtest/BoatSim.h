@@ -162,7 +162,7 @@ class BoatSimulator : public Function {
   BoatSimulator(
       FlowFun windFun,
       FlowFun currentFun,
-      BoatCharacteristics::Ptr ch,
+      BoatCharacteristics ch,
       Array<TwaDirective> twaSpans);
 
   int inDims() {return BoatSimulationState::paramCount();}
@@ -171,10 +171,13 @@ class BoatSimulator : public Function {
   FullBoatState makeFullState(const BoatSimulationState &state);
 
   void eval(double *Xin, double *Fout, double *Jout);
+
+  Array<FullBoatState> simulate(Duration<double> simulationDuration,
+    Duration<double> samplingPeriod, int iterationsPerSample);
  private:
   FlowFun _windFun;
   FlowFun _currentFun;
-  BoatCharacteristics::Ptr _ch;
+  BoatCharacteristics _ch;
   Array<TwaDirective> _twaSpans;
   ProportionateIndexer _indexer;
   Angle<double> getTargetTwa(Duration<double> time) const {
