@@ -52,7 +52,7 @@ TEST(RungeKutta, BasicDifEq) {
 
     EXPECT_NEAR(xGt, xEst, 0.01);
 
-    rk.step(stateVector, stepSize);
+    rk.step(&stateVector, stepSize);
     time += stepSize;
   }
 }
