@@ -24,4 +24,10 @@ cxx_test(nautical_synthtest_TestDomainTest
          nautical_synthtest_TestDomainJson
         )                     
         
-    
+add_library(nautical_synth_BoatSim
+            BoatSim.h
+            BoatSim.cpp
+           )
+target_link_libraries(nautical_synth_BoatSim
+                      math_nonlinear_RungeKutta
+                     )                   
