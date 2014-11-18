@@ -33,7 +33,7 @@ class AutoCalib {
     enum GMode {GPS, MAG_HDG};
 
     Settings() : smooth(true), gMode(GPS),
-        tapeIndex(0), jacobianCheck(false) {}
+        tapeIndex(0) {}
 
     // Quality parameters.
     QParam wind, current;
@@ -46,8 +46,6 @@ class AutoCalib {
     GMode gMode;
 
     short int tapeIndex;
-
-    bool jacobianCheck;
   };
 
 

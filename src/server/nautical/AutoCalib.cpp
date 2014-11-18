@@ -9,7 +9,6 @@
 #include <server/nautical/AutoCalib.h>
 #include <adolc/taping.h>
 #include <server/common/ScopedLog.h>
-#include <server/math/nonlinear/Levmar.h>
 #include <server/common/PhysicalQuantityIO.h>
 #include <adolc/drivers/drivers.h>
 #include <ceres/fpclassify.h>
