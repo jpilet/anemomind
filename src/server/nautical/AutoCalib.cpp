@@ -173,7 +173,6 @@ namespace {
 
   bool isOK(int rows, int cols, const double *X) {
     return ceres::internal::IsArrayValid(rows*cols, X);
-    return true;
   }
 
   template <typename T>
