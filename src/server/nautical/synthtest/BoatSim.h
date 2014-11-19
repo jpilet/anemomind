@@ -25,7 +25,8 @@ namespace sail {
       boatOrientationRadians(0),
       boatSpeedThroughWaterMPS(0),
       rudderAngleRadians(0),
-      boatXMeters(0), boatYMeters(0) {}
+      boatXMeters(0), boatYMeters(0),
+      boatAngularVelocityRadPerSec(0) {}
 
 
     // STATE VARIABLES:
@@ -41,6 +42,9 @@ namespace sail {
 
     // In which direction the boat is pointing
     double boatOrientationRadians;
+
+    // How fast the boat is turning
+    double boatAngularVelocityRadPerSec;
 
     // How fast the boat moves through water
     double boatSpeedThroughWaterMPS;
@@ -69,7 +73,8 @@ class BoatCharacteristics {
     rudderCorrectionCoef(2.0),
     rudderMaxAngle(Angle<double>::degrees(45)),
     correctionThreshold(Angle<double>::degrees(5)),
-    rudderFineTune(Angle<double>::degrees(1))
+    rudderFineTune(Angle<double>::degrees(1)),
+    boatReactiveness(20.0)
     {}
 
   // The distance between the keel and the rudder.
@@ -102,6 +107,10 @@ class BoatCharacteristics {
   // the helmsman also tries to push the rudder at this constant
   // angle per second in order for the error to be asymptotically close to 0.
   Angle<double> rudderFineTune;
+
+
+  // How rapidly the boat reacts when the rudder is turned
+  double boatReactiveness;
 
   typedef std::shared_ptr<BoatCharacteristics> Ptr;
 
@@ -145,6 +154,7 @@ class BoatSimulator : public Function {
     Length<double> y;
     Duration<double> time;
     Angle<double> boatOrientation;
+    Angle<double> boatAngularVelocity;
     Velocity<double> boatSpeedThroughWater;
     HorizontalMotion<double> trueWind;
     HorizontalMotion<double> trueCurrent;

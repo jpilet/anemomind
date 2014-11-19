@@ -67,6 +67,8 @@ BoatSimulator::FullBoatState BoatSimulator::makeFullState(const BoatSimulationSt
 
   dst.boatMotion = dst.trueCurrent + dst.boatMotionThroughWater;
 
+  dst.boatAngularVelocity = Angle<double>::radians(state.boatAngularVelocityRadPerSec);
+
   return dst;
 }
 
@@ -101,8 +103,12 @@ void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
   // For a positive rudder angle, the boat orientation will decrease. The faster the boat is moving forward
   // also, the faster the boat will turn. The greater the distance between the rudder and the keel,
   // the slower the boat will turn.
-  deriv.boatOrientationRadians = -full.boatSpeedThroughWater.metersPerSecond()*sin(full.rudderAngle)
-      /(_ch.keelRudderDistance.meters());
+  deriv.boatOrientationRadians = state.boatAngularVelocityRadPerSec;
+
+
+  double dstAngularVel = -full.boatSpeedThroughWater.metersPerSecond()*sin(full.rudderAngle)
+        /(_ch.keelRudderDistance.meters());
+  deriv.boatAngularVelocityRadPerSec = _ch.boatReactiveness*(dstAngularVel - state.boatAngularVelocityRadPerSec);
 
   // The helmsman seeks to approach a target angle of the rudder.
   deriv.rudderAngleRadians = _ch.rudderCorrectionCoef*(targetRudderAngle - full.rudderAngle).radians();
