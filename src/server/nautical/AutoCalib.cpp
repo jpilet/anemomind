@@ -494,11 +494,13 @@ namespace {
       // Bra
       //double value = calcMatchValue2(inlierMatchCounter, outlierMatchCount, 0.001);
 
-      double gamma = 0.5; //0.5;
+      //double gamma = 0.5; //0.5;
+      double gamma = 0.49;
       double value = -(std::pow(inlierMatchCounter, gamma) + std::pow(outlierMatchCount, gamma));
 
 
       //double value = -(0.001*variation + minMatchCount);
+
 
       //double value = calcMatchValue3(inlierCounters, inlierMatchCounter);
       //double value = calcMatchValue4(inlierCounters, inlierMatchCounter);
