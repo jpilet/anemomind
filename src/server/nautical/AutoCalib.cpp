@@ -138,9 +138,6 @@ namespace {
     Arrayd _tempW, _tempC;
     double _qualityWind, _qualityCurrent;
 
-    void adjustQualityParameters();
-
-
     int calcLowerIndex(int timeIndex) const {
       return int(floor(_data.sampling().inv(_times[timeIndex])));
     }
@@ -369,6 +366,74 @@ namespace {
     SCOPEDMESSAGE(INFO, stringFormat("     Wind quality parameter set to %.3g", _qualityWind));
     SCOPEDMESSAGE(INFO, stringFormat("  Current quality parameter set to %.3g", _qualityCurrent));
   }
+
+  class IndexedResidue {
+   public:
+    IndexedResidue() :
+      index(-1), residue(NAN), classIndex(-1) {}
+    IndexedResidue(int index_, // Index of the residue in the residual vector
+        double residue_,       // The residue
+        int classIndex_) :     // What class (split) the residue belongs to
+      index(index_), residue(residue_), classIndex(classIndex_) {}
+
+    bool operator<(const IndexedResidue &other) const {
+      return residue < other.residue;
+    }
+
+    int index;
+    double residue;
+    int classIndex;
+  };
+
+  template <typename T>
+  void sort(Array<T> X) {
+    std::sort(X.begin(), X.end());
+  }
+
+  double calcMatchScore(int inlierCounters[2], int matchCounter) {
+    if (matchCounter == 0) {
+      return 1.0e9;
+    }
+
+    return double(sqr(inlierCounters[0]) + sqr(inlierCounters[1]))
+                    /matchCounter;
+  }
+
+  Array<std::pair<double, double> > optimizeQualityParameter(
+      Array<IndexedResidue> residuesA,
+      Array<IndexedResidue> residuesB) {
+    int count = residuesA.size();
+    assert(count == residuesB.size());
+    for (int i = 0; i < count; i++) {
+      assert(residuesA[i].classIndex == 0);
+      assert(residuesB[i].classIndex == 1);
+    }
+
+    Array<IndexedResidue> allResidues(2*count);
+    residuesA.copyToSafe(allResidues.sliceTo(count));
+    residuesB.copyToSafe(allResidues.sliceFrom(count));
+    sort(allResidues);
+
+    Arrayb inliers[2];
+    for (int i = 0; i < 2; i++) {
+      inliers[i] = Arrayb::fill(count, false);
+    }
+    int inlierCounters[2] = {0, 0};
+    int matchCounter = 0;
+    Array<std::pair<double, double> > scorePerThreshold;
+    int last = count-1;
+    for (int i = 0; i < count; i++) {
+      IndexedResidue &x = allResidues[i];
+      inliers[x.classIndex][x.index] = true;
+      inlierCounters[x.classIndex]++;
+      if (inliers[0][x.index] && inliers[1][x.index]) {
+        matchCounter++;
+      }
+      double score = calcMatchScore(inlierCounters, matchCounter);
+      scorePerThreshold[i] = std::pair<double, double>(score, x.residue);
+    }
+    return scorePerThreshold;
+  }
 }
 
 AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) const {
@@ -396,6 +461,14 @@ AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) cons
   return Results(corr, data);
 }
 
+AutoCalib::Results AutoCalib::calibrateAutotune(FilteredNavData data,
+    Arrayd times, Arrayb split) const {
+  Objf A(data, times.slice(split), _settings);
+  Objf B(data, times.slice(neg(split)), _settings);
+  return AutoCalib::Results();
+}
+
+
 void AutoCalib::Results::disp(std::ostream *dst) {
   if (dst == nullptr) {
     dst = &(std::cout);
@@ -419,6 +492,20 @@ void AutoCalib::Results::disp(std::ostream *dst) {
   *dst << "The maximum drift angle is "
       << Angle<double>::radians(_calibratedCorrector.driftAngle.amp).degrees()
       << " degrees" << std::endl;
+}
+
+
+
+
+
+
+
+namespace {
+
+}
+
+void runExtraAutoCalibTests() {
+
 }
 
 

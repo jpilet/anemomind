@@ -54,6 +54,7 @@ class AutoCalib {
 
   class Results {
    public:
+    Results() {}
     Results(Corrector<double> corr, FilteredNavData srcData) :
       _calibratedCorrector(corr), _srcData(srcData) {}
 
@@ -64,9 +65,13 @@ class AutoCalib {
   };
 
   Results calibrate(FilteredNavData data, Arrayd times = Arrayd()) const;
+  Results calibrateAutotune(FilteredNavData data,
+      Arrayd times, Arrayb split) const;
  private:
   Settings _settings;
 };
+
+void runExtraAutoCalibTests();
 
 }
 
