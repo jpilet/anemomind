@@ -25,14 +25,15 @@ class PiecewiseFunction {
     Fun fun;
   };
 
-  PiecewiseFunction(Array<Piece> pieces) :
-    _pieces(pieces) {
+  PiecewiseFunction(double left, Array<Piece> pieces) :
+    _pieces(pieces),
+    _left(left) {
     _indexer = ProportionateIndexer(pieces.size(),
         [&](int index) {return pieces[index].width;});
   }
 
   T operator() (double x) const {
-    return _pieces[_indexer.getBySum(x).index].fun(x);
+    return _pieces[_indexer.getBySum(x - _left).index].fun(x);
   }
 
   Fun make() const {
@@ -42,6 +43,7 @@ class PiecewiseFunction {
     };
   }
  private:
+  double _left;
   ProportionateIndexer _indexer;
   Array<Piece> _pieces;
 };

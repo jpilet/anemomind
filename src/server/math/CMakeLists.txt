@@ -192,6 +192,11 @@ cxx_test(math_UniformSamplesTest
          gtest_main
         )
 
+cxx_test(math_PiecewiseFunction
+         PiecewiseFunctionTest.cpp
+         gtest_main
+        )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
