@@ -17,6 +17,8 @@ namespace {
         return HorizontalMotion<double>::polar(speed, angle);
       };
   }
+
+  const Angle<double> tol = Angle<double>::degrees(3.0);
 }
 
 TEST(BoatSimTest, SimLimit) {
@@ -34,7 +36,7 @@ TEST(BoatSimTest, SimLimit) {
       Duration<double>::seconds(1.0), 20);
 
   EXPECT_LE(30, std::abs(states.first().twaWater.degrees()));
-  EXPECT_NEAR(129, states.last().twaWater.degrees(), 1.0);
+  EXPECT_NEAR(129, states.last().twaWater.degrees(), tol.degrees());
 }
 
 TEST(BoatSimTest, SimDirectionChange) {
@@ -56,8 +58,8 @@ TEST(BoatSimTest, SimDirectionChange) {
       Duration<double>::seconds(1.0), 20);
 
 
-  EXPECT_NEAR(129, states[states.middle()].twaWater.degrees(), 1.0);
-  EXPECT_NEAR(199, states.last().twaWater.degrees(), 1.0);
+  EXPECT_NEAR(129, states[states.middle()].twaWater.degrees(), tol.degrees());
+  EXPECT_NEAR(199, states.last().twaWater.degrees(), tol.degrees());
 }
 
 
