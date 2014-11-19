@@ -13,7 +13,7 @@
 #include <adolc/drivers/drivers.h>
 #include <ceres/fpclassify.h>
 #include <random>
-
+#include <server/plot/extra.h>
 
 namespace ceres {
 namespace internal {
@@ -468,6 +468,9 @@ namespace {
     OptQuality best;
     int totalCount = 2*count;
 
+
+    Arrayd X(totalCount), Y(totalCount);
+
     for (int i = 0; i < totalCount; i++) {
       ResidueData &x = allResidues[i];
       inliers[x.classIndex()][x.sampleIndex()] = true;
@@ -484,8 +487,20 @@ namespace {
       //double value = calcMatchValue3(inlierCounters, inlierMatchCounter);
       //double value = calcMatchValue4(inlierCounters, inlierMatchCounter);
 
+      X[i] = i;
+      Y[i] = value;
+
+
       best = std::min(best, OptQuality(value, x.calcThresholdQuality()));
     }
+
+
+    Arrayb mask = Y.map<bool>([&](double x) {return x < 1.0e3;});
+    GnuplotExtra plot;
+    plot.set_style("lines");
+    plot.plot_xy(X.slice(mask), Y.slice(mask));
+    plot.show();
+
     return best;
   }
 }
