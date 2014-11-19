@@ -319,7 +319,7 @@ add_library(common_ProportionateIndexer
             ProportionateIndexer.h
            )
            
-cxx_test(common_ProportionateSamplerTest
+cxx_test(common_ProportionateIndexerTest
          ProportionateIndexerTest.cpp
          gtest_main
          common_ProportionateIndexer
