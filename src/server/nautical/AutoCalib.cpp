@@ -482,9 +482,24 @@ namespace {
       } else {
         mismatchCounter++;
       }
+      int totalInlierCount = inlierCounters[0] + inlierCounters[1];
+      int totalOutlierCount = totalCount - totalInlierCount;
+
+      int variation = std::min(totalInlierCount, totalOutlierCount);
       int outlierMatchCount = count - inlierMatchCounter - mismatchCounter;
+      int minMatchCount = std::min(inlierMatchCounter, outlierMatchCount);
+
       //double value = calcMatchValue(inlierCounters, matchCounter);
-      double value = calcMatchValue2(inlierMatchCounter, outlierMatchCount, 1.0e-3);
+
+      // Bra
+      //double value = calcMatchValue2(inlierMatchCounter, outlierMatchCount, 0.001);
+
+      double gamma = 0.5;
+      double value = -(std::pow(inlierMatchCounter, gamma) + std::pow(outlierMatchCount, gamma));
+
+
+      //double value = -(0.1*variation + minMatchCount);
+
       //double value = calcMatchValue3(inlierCounters, inlierMatchCounter);
       //double value = calcMatchValue4(inlierCounters, inlierMatchCounter);
 
@@ -575,7 +590,7 @@ namespace {
 
   void runOptimalQualityTest3() {
     std::default_random_engine e;
-    int count = 30;
+    int count = 90;
 
     const int tau = 12;
     Array<ResidueData> dataA(count), dataB(count);
@@ -599,9 +614,9 @@ namespace {
 
   void runOptimalQualityTest4() {
     std::default_random_engine e;
-    int count = 30;
+    int count = 90;
 
-    const int tau = 9;
+    const int tau = 12;
     Array<ResidueData> dataA(count), dataB(count);
     for (int i = 0; i < count; i++) {
       double offset = (i < tau? 0 : 1.8);
