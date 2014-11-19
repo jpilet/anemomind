@@ -10,10 +10,10 @@ var makeQuery = function(boatId, s, x, y, startsAfter, endsBefore) {
   };
 
   if (startsAfter) {
-    search.startTime = { $gte: startsAfter };
+    search.startTime = { $gte: new Date(startsAfter) };
   }
   if (endsBefore) {
-    search.endTime = { $lte: endsBefore };
+    search.endTime = { $lte: new Date(endsBefore) };
   }
 
   return search;
@@ -23,7 +23,9 @@ exports.retrieve = function(req, res, next) {
   var query = makeQuery(req.params.boat,
                         req.params.scale,
                         req.params.x,
-                        req.params.y);
+                        req.params.y,
+                        req.params.startsAfter,
+                        req.params.endsBefore);
 
   console.log('get tile: ' + query.key);
   Tile.find(query, function(err, tiles) {
@@ -53,7 +55,6 @@ exports.retrieve = function(req, res, next) {
             }
           };
         for (var p in curve.points) {
-          //console.dir(curve.points[p]);
           if (curve.points[p].pos) {
             var coords = tile2LonLat(curve.points[p].pos);
             feature.geometry.coordinates.push(coords);
