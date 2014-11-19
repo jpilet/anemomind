@@ -26,23 +26,27 @@ namespace sail {
 namespace {
   typedef AutoCalib::Settings::QParam QParam;
 
-  class GX {
+  class ResidueData {
    public:
-    GX() : _g(NAN), _x(NAN) {}
-    GX(double g, double x) : _g(g), _x(x) {}
+    ResidueData() : _g(NAN), _residue(NAN) {}
+    ResidueData(double g, double x) : _g(g), _residue(x) {}
     bool isInlier(double quality) const {
-      return sqr(quality*_x) <= _g;
+      return sqr(quality*_residue) <= _g;
     }
 
-    bool operator< (const GX &other) const {
-      return _x < other._x;
+    bool operator< (const ResidueData &other) const {
+      return calcSquaredThresholdQuality() > other.calcSquaredThresholdQuality();
     }
 
-    double calcQuality() const {
-      return sqrt(_g/sqr(_x));
+    double calcSquaredThresholdQuality() const {
+      return _g/sqr(_residue);
+    }
+
+    double calcThresholdQuality() const {
+      return sqrt(calcSquaredThresholdQuality());
     }
    private:
-    double _g, _x;
+    double _g, _residue;
   };
 
   template <typename T>
@@ -165,7 +169,7 @@ namespace {
         int *windInlierCounter, int *currentInlierCounter) const;
 
 
-    void computeWindAndCurrentDerivNorms(Array<GX> *Wdst, Array<GX> *Cdst);
+    void computeWindAndCurrentDerivNorms(Array<ResidueData> *Wdst, Array<ResidueData> *Cdst);
     void tuneParameters();
   };
 
@@ -292,7 +296,7 @@ namespace {
 
 
 
-  int countInliers(Array<GX> X, double q) {
+  int countInliers(Array<ResidueData> X, double q) {
     for (int i = 0; i < X.size(); i++) {
       if (!X[i].isInlier(q)) {
         return i;
@@ -303,7 +307,7 @@ namespace {
 
 
 
-  double tuneParam(Array<GX> X, QParam qsettings) {
+  double tuneParam(Array<ResidueData> X, QParam qsettings) {
     ENTERSCOPE("Tune a quality parameter");
     if (X.size() < qsettings.minCount) {
       LOG(FATAL) << "Too few measurements to perform accurate calibration";
@@ -311,10 +315,10 @@ namespace {
     int desiredCount = qsettings.minCount + int(floor(qsettings.frac*(X.size() - qsettings.minCount)));
     SCOPEDMESSAGE(INFO, stringFormat("Tune the quality parameter so that %d of the %d measurements are inliers. (%.3g percents)",
         desiredCount, X.size(), (100.0*desiredCount)/X.size()));
-    return X[desiredCount-1].calcQuality();
+    return X[desiredCount-1].calcThresholdQuality();
   }
 
-  double computeParam(Array<GX> X, QParam qsettings) {
+  double computeParam(Array<ResidueData> X, QParam qsettings) {
     if (qsettings.mode == QParam::FIXED ||
         qsettings.mode == QParam::TUNE_ON_ERROR) {
       int count = countInliers(X, qsettings.fixedQuality);
@@ -332,7 +336,7 @@ namespace {
     }
   }
 
-  void Objf::computeWindAndCurrentDerivNorms(Array<GX> *Wdst, Array<GX> *Cdst) {
+  void Objf::computeWindAndCurrentDerivNorms(Array<ResidueData> *Wdst, Array<ResidueData> *Cdst) {
     int windInlierCounter = 0;
     int currentInlierCounter = 0;
 
@@ -340,13 +344,13 @@ namespace {
     Corrector<double> corr;
     double *X = corr.toArray().ptr();
     double temp[blockSize];
-    Array<GX> W(count), C(count);
+    Array<ResidueData> W(count), C(count);
     for (int i = 0; i < count; i++) {
       double g = _rateOfChange[i];
       Vectorize<double, 2> x = evalSub(i, X, temp, nullptr,
           &windInlierCounter, &currentInlierCounter);
-      W[i] = GX(g, x[0]);
-      C[i] = GX(g, x[1]);
+      W[i] = ResidueData(g, x[0]);
+      C[i] = ResidueData(g, x[1]);
     }
     std::sort(W.begin(), W.end());
     std::sort(C.begin(), C.end());
@@ -359,7 +363,7 @@ namespace {
     _qualityWind = 1;
     _qualityCurrent = 1;
 
-    Array<GX> W, C;
+    Array<ResidueData> W, C;
     computeWindAndCurrentDerivNorms(&W, &C);
 
     SCOPEDMESSAGE(INFO, "Compute the wind quality parameter");
