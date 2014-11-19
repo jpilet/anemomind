@@ -25,23 +25,9 @@ class PiecewiseFunction {
     Fun fun;
   };
 
-  PiecewiseFunction(double left, Array<Piece> pieces) :
-    _pieces(pieces),
-    _left(left) {
-    _indexer = ProportionateIndexer(pieces.size(),
-        [=](int index) {return pieces[index].width;});
-  }
-
-  double operator() (double x) const {
-    return _pieces[_indexer.getBySum(x - _left).index].fun(x);
-  }
-
-  std::function<double(double)> make() const {
-    PiecewiseFunction fun = *this;
-    return [=](double x) {
-      return fun(x);
-    };
-  }
+  PiecewiseFunction(double left, Array<Piece> pieces);
+  double operator() (double x) const;
+  std::function<double(double)> make() const;
  private:
   double _left;
   ProportionateIndexer _indexer;
