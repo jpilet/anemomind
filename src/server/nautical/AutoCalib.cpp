@@ -601,7 +601,7 @@ namespace {
     std::default_random_engine e;
     int count = 30;
 
-    const int tau = 7;
+    const int tau = 9;
     Array<ResidueData> dataA(count), dataB(count);
     for (int i = 0; i < count; i++) {
       double offset = (i < tau? 0 : 1.8);
