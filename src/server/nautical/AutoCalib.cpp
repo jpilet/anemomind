@@ -495,9 +495,18 @@ namespace {
       //double value = calcMatchValue2(inlierMatchCounter, outlierMatchCount, 0.001);
 
       //double gamma = 0.5; //0.5;
-      double gamma = 0.49;
-      double value = -(std::pow(inlierMatchCounter, gamma) + std::pow(outlierMatchCount, gamma));
 
+
+      // WORKS WELL
+      double gamma = 0.5;
+        double value = -(std::pow(inlierMatchCounter, gamma) + std::pow(outlierMatchCount, gamma));
+
+
+      // WORKS WELL
+//        double value = mismatchCounter - minMatchCount;
+
+
+      //double value = -minMatchCount -std::min(totalInlierCount, totalOutlierCount);
 
       //double value = -(0.001*variation + minMatchCount);
 
@@ -645,7 +654,8 @@ namespace {
 void runExtraAutoCalibTests() {
   //runOptimalQualityTest1();
   //runOptimalQualityTest2();
-  runOptimalQualityTest4();
+  //runOptimalQualityTest3();
+  runOptimalQualityTest3();
 }
 
 
