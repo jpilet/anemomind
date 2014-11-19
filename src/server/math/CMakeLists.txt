@@ -194,7 +194,9 @@ cxx_test(math_UniformSamplesTest
 
 cxx_test(math_PiecewiseFunction
          PiecewiseFunctionTest.cpp
+         common_ProportionateIndexer
          gtest_main
+         common_LineKM
         )
 
 add_subdirectory(geometry)

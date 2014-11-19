@@ -31,7 +31,7 @@ ProportionateIndexer::ProportionateIndexer(int count,
     std::function<double(int)> widthPerProp) {
   Arrayd dst = prepare(count);
   for (int i = 0; i < count; i++) {
-    dst[i] = widthPerProp(count);
+    dst[i] = widthPerProp(i);
   }
   fillInnerNodes(0);
 }

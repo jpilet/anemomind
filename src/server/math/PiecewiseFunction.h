@@ -8,17 +8,17 @@
 
 #include <functional>
 #include <server/common/ProportionateIndexer.h>
+#include <server/common/LineKM.h>
 
 namespace sail {
 
-template <typename T>
 class PiecewiseFunction {
  public:
-  typedef std::function<T(double)> Fun;
+  typedef LineKM Fun;
   class Piece {
    public:
     Piece() : width(0) {}
-    Piece(Fun f, double w) :
+    Piece(double w, Fun f) :
       width(w), fun(f) {}
 
     double width;
@@ -29,14 +29,14 @@ class PiecewiseFunction {
     _pieces(pieces),
     _left(left) {
     _indexer = ProportionateIndexer(pieces.size(),
-        [&](int index) {return pieces[index].width;});
+        [=](int index) {return pieces[index].width;});
   }
 
-  T operator() (double x) const {
+  double operator() (double x) const {
     return _pieces[_indexer.getBySum(x - _left).index].fun(x);
   }
 
-  Fun make() const {
+  std::function<double(double)> make() const {
     PiecewiseFunction fun = *this;
     return [=](double x) {
       return fun(x);
