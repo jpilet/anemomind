@@ -213,15 +213,6 @@ namespace {
     }
   }
 
-
-  void assignAndUndo(double &dst) {
-    double bak = dst;
-    dst = 0;
-    dst = bak;
-  }
-
-
-
   void Objf::eval(const double *X, double *F, double *J) const {
     ENTERSCOPE("Evaluate the automatic calibration objective function");
     bool outputJ = J != nullptr;
@@ -388,17 +379,14 @@ AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) cons
   ENTERSCOPE("Automatic calibration");
   SCOPEDMESSAGE(INFO, stringFormat("Number of measurements:          %d", times.size()));
   SCOPEDMESSAGE(INFO, stringFormat("Number of parameters to recover: %d", Corrector<double>::paramCount()));
-  Objf objf(data, times, _settings);
-
 
   SCOPEDMESSAGE(INFO, "Perform optimization");
   ceres::Problem problem;
 
-  Corrector<double> corr;
-
   // Set up the only cost function (also known as residual). This uses
   // auto-differentiation to obtain the derivative (jacobian).
   auto cost = new Objf(data, times, _settings);
+  Corrector<double> corr;
   problem.AddResidualBlock(cost, NULL, (double *)(&corr));
   ceres::Solver::Options options;
   options.minimizer_progress_to_stdout = true;
