@@ -192,11 +192,19 @@ cxx_test(math_UniformSamplesTest
          gtest_main
         )
 
-cxx_test(math_PiecewiseFunction
+add_library(math_PiecewiseFunction
+            PiecewiseFunction.h
+            PiecewiseFunction.cpp
+           )
+target_link_libraries(math_PiecewiseFunction           
+                      common_ProportionateIndexer
+                      common_LineKM
+                     )
+
+cxx_test(math_PiecewiseFunctionTest
          PiecewiseFunctionTest.cpp
-         common_ProportionateIndexer
+         math_PiecewiseFunction
          gtest_main
-         common_LineKM
         )
 
 add_subdirectory(geometry)
