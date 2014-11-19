@@ -58,11 +58,11 @@ double ProportionateIndexer::fillInnerNodes(int root) {
   }
 }
 
-ProportionateIndexer::Result ProportionateIndexer::getBySum(int node, double x) const {
+ProportionateIndexer::LookupResult ProportionateIndexer::getBySum(int node, double x) const {
   assert(0 <= x);
   assert(x <= _values[node]);
   if (isLeaf(node)) {
-    return Result(node - _offset, x);
+    return LookupResult(node - _offset, x);
   } else {
     int left = leftChild(node);
     double leftSum = _values[left];
