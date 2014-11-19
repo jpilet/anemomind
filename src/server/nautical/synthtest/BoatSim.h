@@ -66,9 +66,10 @@ class BoatCharacteristics {
     targetSpeedFun(&defaultTargetSpeed),
     rudderResistanceCoef(0.1),
     halfTargetSpeedTime(Duration<double>::seconds(3.0)),
-    rudderCorrectionCoef(1.0),
+    rudderCorrectionCoef(2.0),
     rudderMaxAngle(Angle<double>::degrees(45)),
-    correctionThreshold(Angle<double>::degrees(5))
+    correctionThreshold(Angle<double>::degrees(5)),
+    rudderFineTune(Angle<double>::degrees(1))
     {}
 
   // The distance between the keel and the rudder.
@@ -96,6 +97,11 @@ class BoatCharacteristics {
   // of 49 degrees per second. If the coefficient would be 0.5, he would turn the rudder
   // with a velocity of 24 degrees per second.
   double rudderCorrectionCoef;
+
+  // In addition to moving the rudder towards a target angle,
+  // the helmsman also tries to push the rudder at this constant
+  // angle per second in order for the error to be asymptotically close to 0.
+  Angle<double> rudderFineTune;
 
   typedef std::shared_ptr<BoatCharacteristics> Ptr;
 
