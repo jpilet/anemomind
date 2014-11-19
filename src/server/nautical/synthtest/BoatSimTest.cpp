@@ -34,7 +34,7 @@ TEST(BoatSimTest, SimLimit) {
       Duration<double>::seconds(1.0), 20);
 
   EXPECT_LE(30, std::abs(states.first().twaWater.degrees()));
-  EXPECT_NEAR(129, states.last().twaWater.degrees(), 10.0);
+  EXPECT_NEAR(129, states.last().twaWater.degrees(), 1.0);
 }
 
 TEST(BoatSimTest, SimDirectionChange) {
@@ -56,8 +56,8 @@ TEST(BoatSimTest, SimDirectionChange) {
       Duration<double>::seconds(1.0), 20);
 
 
-  EXPECT_NEAR(129, states[states.middle()].twaWater.degrees(), 10.0);
-  EXPECT_NEAR(199, states.last().twaWater.degrees(), 10.0);
+  EXPECT_NEAR(129, states[states.middle()].twaWater.degrees(), 1.0);
+  EXPECT_NEAR(199, states.last().twaWater.degrees(), 1.0);
 }
 
 
