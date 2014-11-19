@@ -14,6 +14,7 @@
 #include <ceres/fpclassify.h>
 #include <random>
 #include <server/plot/extra.h>
+#include <server/common/ArrayIO.h>
 
 namespace ceres {
 namespace internal {
@@ -425,7 +426,7 @@ namespace {
                     /matchCounter;
   }
 
-  double calcMatchValue2(int positiveMatches, int negativeMatches, int expt) {
+  double calcMatchValue2(int positiveMatches, int negativeMatches, double expt = 1.0) {
     if (positiveMatches == 0 || negativeMatches == 0) {
       return 1.0e6;
     }
@@ -483,7 +484,7 @@ namespace {
       }
       int outlierMatchCount = count - inlierMatchCounter - mismatchCounter;
       //double value = calcMatchValue(inlierCounters, matchCounter);
-      double value = calcMatchValue2(inlierMatchCounter, outlierMatchCount, 1);
+      double value = calcMatchValue2(inlierMatchCounter, outlierMatchCount, 0.000001);
       //double value = calcMatchValue3(inlierCounters, inlierMatchCounter);
       //double value = calcMatchValue4(inlierCounters, inlierMatchCounter);
 
@@ -496,6 +497,7 @@ namespace {
 
 
     Arrayb mask = Y.map<bool>([&](double x) {return x < 1.0e3;});
+    std::cout << EXPR_AND_VAL_AS_STRING(mask) << std::endl;
     GnuplotExtra plot;
     plot.set_style("lines");
     plot.plot_xy(X.slice(mask), Y.slice(mask));
@@ -600,16 +602,17 @@ namespace {
     std::default_random_engine e;
     int count = 30;
 
+    const int tau = 12;
     Array<ResidueData> dataA(count), dataB(count);
     for (int i = 0; i < count; i++) {
-      double offset = (i < 7? 0 : 2);
+      double offset = (i < tau? 0 : 2);
       std::uniform_real_distribution<double> distrib(offset + 0, offset + 1);
       dataA[i] = ResidueData(i, 1.0, distrib(e), 0);
       dataB[i] = ResidueData(i, 1.0, distrib(e), 1);
     }
     OptQuality opt = optimizeQualityParameter(dataA, dataB);
 
-    double gtQuality = 0.5*(dataA[6].calcThresholdQuality() + dataA[7].calcSquaredThresholdQuality());
+    double gtQuality = 0.5*(dataA[tau-1].calcThresholdQuality() + dataA[tau].calcSquaredThresholdQuality());
     //opt.quality =
     for (int i = 0; i < count; i++) {
       std::cout << "i = " << i << "  A: " << dataA[i].isInlier(opt.quality) <<
