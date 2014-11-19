@@ -8,19 +8,34 @@
 
 namespace sail {
 
-ProportionateIndexer::ProportionateIndexer(Arrayd proportions) {
+Arrayd ProportionateIndexer::prepare(int count) {
   int leftmost = 0;
   int rightmost = 0;
-  _count = proportions.size();
+  _count = count;
   while (rightmost - leftmost + 1 < _count) {
     leftmost = leftChild(leftmost);
     rightmost = rightChild(rightmost);
   }
   _offset = leftmost;
   _values = Arrayd::fill(rightmost + 1, 0.0);
-  proportions.copyToSafe(_values.slice(leftmost, leftmost + _count));
+  return _values.slice(leftmost, leftmost + _count);
+}
+
+
+ProportionateIndexer::ProportionateIndexer(Arrayd proportions) {
+  proportions.copyToSafe(prepare(proportions.size()));
   fillInnerNodes(0);
 }
+
+ProportionateIndexer::ProportionateIndexer(int count,
+    std::function<double(int)> widthPerProp) {
+  Arrayd dst = prepare(count);
+  for (int i = 0; i < count; i++) {
+    dst[i] = widthPerProp(count);
+  }
+  fillInnerNodes(0);
+}
+
 
 Arrayb ProportionateIndexer::selected() const {
   return proportions().map<bool>([&](double x) {return x == 0;});

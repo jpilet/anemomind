@@ -14,6 +14,8 @@ class ProportionateIndexer {
  public:
   ProportionateIndexer() : _offset(0), _count(0) {}
   ProportionateIndexer(Arrayd proportions);
+  ProportionateIndexer(int count,
+      std::function<double(int)> widthPerProp);
 
   int get(double x) const;
   void remove(int index);
@@ -48,6 +50,7 @@ class ProportionateIndexer {
     return _offset <= index;
   }
 
+  Arrayd prepare(int count);
 };
 
 }
