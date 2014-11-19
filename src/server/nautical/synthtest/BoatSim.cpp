@@ -80,8 +80,11 @@ void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
 
   double twaAngleErrorRadians = (getTargetTwa(full.time) - full.twaWater).radians();
   Angle<double> targetRudderAngle = Angle<double>::radians(0);
+  bool fineCorrect = true;
+  int errorSign = (twaAngleErrorRadians > 0? 1.0 : -1.0);
   if (std::abs(twaAngleErrorRadians) > _ch.correctionThreshold.radians()) {
-    targetRudderAngle = (twaAngleErrorRadians > 0? 1.0 : -1.0)*_ch.rudderMaxAngle;
+    fineCorrect = false;
+    targetRudderAngle = double(errorSign)*_ch.rudderMaxAngle;
   }
 
   // COMPUTE THE DERIVATIVES THAT TELL HOW THE STATE
@@ -105,6 +108,9 @@ void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
 
   // The helmsman seeks to approach a target angle of the rudder.
   deriv.rudderAngleRadians = _ch.rudderCorrectionCoef*(targetRudderAngle - full.rudderAngle).radians();
+  if (fineCorrect) {
+    deriv.rudderAngleRadians += 0.1*errorSign;
+  }
 
   // The derivative of time w.r.t. time is 1.
   deriv.timeSeconds = 1.0;
