@@ -12,6 +12,7 @@
 #include <server/common/PhysicalQuantityIO.h>
 #include <adolc/drivers/drivers.h>
 #include <ceres/fpclassify.h>
+#include <random>
 
 
 namespace ceres {
@@ -399,14 +400,7 @@ namespace {
 
 
 
-  double calcMatchValue(int inlierCounters[2], int matchCounter) {
-    if (matchCounter == 0) {
-      return 1.0e9;
-    }
 
-    return double(sqr(inlierCounters[0]) + sqr(inlierCounters[1]))
-                    /matchCounter;
-  }
 
   class OptQuality {
    public:
@@ -421,6 +415,31 @@ namespace {
 
     double objfValue;
   };
+
+  double calcMatchValue(int inlierCounters[2], int matchCounter) {
+    if (matchCounter == 0) {
+      return 1.0e9;
+    }
+
+    return double(sqr(inlierCounters[0]) + sqr(inlierCounters[1]))
+                    /matchCounter;
+  }
+
+  double calcMatchValue2(int positiveMatches, int negativeMatches, int expt) {
+    if (positiveMatches == 0 || negativeMatches == 0) {
+      return 1.0e6;
+    }
+    return std::pow(1.0/positiveMatches, expt) + std::pow(1.0/negativeMatches, expt);
+  }
+
+  double calcMatchValue3(int inliers[2], int matches) {
+    return double(sqr(inliers[0]) + sqr(inliers[1]) + 3)/matches;
+  }
+
+  double calcMatchValue4(int inliers[2], int inlierMatches) {
+    double lambda = 0.08;
+    return -inlierMatches + lambda*(sqr(inliers[0]) + sqr(inliers[1]));
+  }
 
   OptQuality optimizeQualityParameter(
       Array<ResidueData> residuesA,
@@ -442,7 +461,8 @@ namespace {
       inliers[i] = Arrayb::fill(count, false);
     }
     int inlierCounters[2] = {0, 0};
-    int matchCounter = 0;
+    int inlierMatchCounter = 0;
+    int mismatchCounter = 0;
     Array<std::pair<double, double> > scorePerThreshold;
 
     OptQuality best;
@@ -453,9 +473,17 @@ namespace {
       inliers[x.classIndex()][x.sampleIndex()] = true;
       inlierCounters[x.classIndex()]++;
       if (inliers[0][x.sampleIndex()] && inliers[1][x.sampleIndex()]) {
-        matchCounter++;
+        inlierMatchCounter++;
+        mismatchCounter--;
+      } else {
+        mismatchCounter++;
       }
-      double value = calcMatchValue(inlierCounters, matchCounter);
+      int outlierMatchCount = count - inlierMatchCounter - mismatchCounter;
+      //double value = calcMatchValue(inlierCounters, matchCounter);
+      double value = calcMatchValue2(inlierMatchCounter, outlierMatchCount, 1);
+      //double value = calcMatchValue3(inlierCounters, inlierMatchCounter);
+      //double value = calcMatchValue4(inlierCounters, inlierMatchCounter);
+
       best = std::min(best, OptQuality(value, x.calcThresholdQuality()));
     }
     return best;
@@ -552,11 +580,34 @@ namespace {
     assert(std::abs(opt.objfValue - 2) < 1.0e-3);
     //std::cout << "Success " << __FUNCTION__ << std::endl;
   }
+
+  void runOptimalQualityTest3() {
+    std::default_random_engine e;
+    int count = 30;
+
+    Array<ResidueData> dataA(count), dataB(count);
+    for (int i = 0; i < count; i++) {
+      double offset = (i < 7? 0 : 2);
+      std::uniform_real_distribution<double> distrib(offset + 0, offset + 1);
+      dataA[i] = ResidueData(i, 1.0, distrib(e), 0);
+      dataB[i] = ResidueData(i, 1.0, distrib(e), 1);
+    }
+    OptQuality opt = optimizeQualityParameter(dataA, dataB);
+
+    double gtQuality = 0.5*(dataA[6].calcThresholdQuality() + dataA[7].calcSquaredThresholdQuality());
+    //opt.quality =
+    for (int i = 0; i < count; i++) {
+      std::cout << "i = " << i << "  A: " << dataA[i].isInlier(opt.quality) <<
+          "    B: " << dataB[i].isInlier(opt.quality) << std::endl;
+    }
+  }
+
 }
 
 void runExtraAutoCalibTests() {
-  runOptimalQualityTest1();
-  runOptimalQualityTest2();
+  //runOptimalQualityTest1();
+  //runOptimalQualityTest2();
+  runOptimalQualityTest3();
 }
 
 

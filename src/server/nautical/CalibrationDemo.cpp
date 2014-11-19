@@ -42,9 +42,9 @@ namespace {
 }
 
 int main(int argc, const char **argv) {
-  //runExtraAutoCalibTests();
+  runExtraAutoCalibTests();
 
-  ex0();
+  //ex0();
 
   /* TODO: (In another PR?)
    *   - Parse arguments so that we can try it on many different datasets.
