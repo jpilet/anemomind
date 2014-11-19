@@ -42,7 +42,7 @@ namespace {
 }
 
 int main(int argc, const char **argv) {
-  runExtraAutoCalibTests();
+  //runExtraAutoCalibTests();
 
   ex0();
 

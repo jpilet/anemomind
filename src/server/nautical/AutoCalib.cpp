@@ -26,23 +26,45 @@ namespace sail {
 namespace {
   typedef AutoCalib::Settings::QParam QParam;
 
-  class GX {
+  class ResidueData {
    public:
-    GX() : _g(NAN), _x(NAN) {}
-    GX(double g, double x) : _g(g), _x(x) {}
+    ResidueData() : _g(NAN), _residue(NAN),
+      _index(-1), _classIndex(-1) {}
+
+    ResidueData(int index, double g, double x, int classIndex_) :
+      _g(g), _residue(x), _index(index),
+      _classIndex(classIndex_) {}
+
     bool isInlier(double quality) const {
-      return sqr(quality*_x) <= _g;
+      return sqr(quality*_residue) <= _g;
     }
 
-    bool operator< (const GX &other) const {
-      return _x < other._x;
+    bool operator< (const ResidueData &other) const {
+      return calcSquaredThresholdQuality() > other.calcSquaredThresholdQuality();
     }
 
-    double calcQuality() const {
-      return sqrt(_g/sqr(_x));
+
+    double calcSquaredThresholdQuality() const {
+      return _g/sqr(_residue);
+    }
+
+    // The quality setting at which this residues shifts
+    // between being an inlier or an outlier.
+    double calcThresholdQuality() const {
+      return sqrt(calcSquaredThresholdQuality());
+    }
+
+    const int sampleIndex() const {
+      return _index;
+    }
+
+    const int classIndex() const {
+      return _classIndex;
     }
    private:
-    double _g, _x;
+    int _index;
+    int _classIndex;
+    double _g, _residue;
   };
 
   template <typename T>
@@ -162,7 +184,8 @@ namespace {
         int *windInlierCounter, int *currentInlierCounter) const;
 
 
-    void computeWindAndCurrentDerivNorms(Array<GX> *Wdst, Array<GX> *Cdst);
+    void computeWindAndCurrentDerivNorms(int classIndex,
+        Array<ResidueData> *Wdst, Array<ResidueData> *Cdst);
     void tuneParameters();
   };
 
@@ -289,7 +312,7 @@ namespace {
 
 
 
-  int countInliers(Array<GX> X, double q) {
+  int countInliers(Array<ResidueData> X, double q) {
     for (int i = 0; i < X.size(); i++) {
       if (!X[i].isInlier(q)) {
         return i;
@@ -300,7 +323,7 @@ namespace {
 
 
 
-  double tuneParam(Array<GX> X, QParam qsettings) {
+  double tuneParam(Array<ResidueData> X, QParam qsettings) {
     ENTERSCOPE("Tune a quality parameter");
     if (X.size() < qsettings.minCount) {
       LOG(FATAL) << "Too few measurements to perform accurate calibration";
@@ -308,10 +331,10 @@ namespace {
     int desiredCount = qsettings.minCount + int(floor(qsettings.frac*(X.size() - qsettings.minCount)));
     SCOPEDMESSAGE(INFO, stringFormat("Tune the quality parameter so that %d of the %d measurements are inliers. (%.3g percents)",
         desiredCount, X.size(), (100.0*desiredCount)/X.size()));
-    return X[desiredCount-1].calcQuality();
+    return X[desiredCount-1].calcThresholdQuality();
   }
 
-  double computeParam(Array<GX> X, QParam qsettings) {
+  double computeParam(Array<ResidueData> X, QParam qsettings) {
     if (qsettings.mode == QParam::FIXED ||
         qsettings.mode == QParam::TUNE_ON_ERROR) {
       int count = countInliers(X, qsettings.fixedQuality);
@@ -329,7 +352,14 @@ namespace {
     }
   }
 
-  void Objf::computeWindAndCurrentDerivNorms(Array<GX> *Wdst, Array<GX> *Cdst) {
+  template <typename T>
+  void sort(Array<T> X) {
+    std::sort(X.begin(), X.end());
+  }
+
+
+  void Objf::computeWindAndCurrentDerivNorms(int classIndex,
+      Array<ResidueData> *Wdst, Array<ResidueData> *Cdst) {
     int windInlierCounter = 0;
     int currentInlierCounter = 0;
 
@@ -337,16 +367,16 @@ namespace {
     Corrector<double> corr;
     double *X = corr.toArray().ptr();
     double temp[blockSize];
-    Array<GX> W(count), C(count);
+    Array<ResidueData> W(count), C(count);
     for (int i = 0; i < count; i++) {
       double g = _rateOfChange[i];
       Vectorize<double, 2> x = evalSub(i, X, temp, nullptr,
           &windInlierCounter, &currentInlierCounter);
-      W[i] = GX(g, x[0]);
-      C[i] = GX(g, x[1]);
+      W[i] = ResidueData(i, g, x[0], classIndex);
+      C[i] = ResidueData(i, g, x[1], classIndex);
     }
-    std::sort(W.begin(), W.end());
-    std::sort(C.begin(), C.end());
+    sort(W);
+    sort(C);
     *Wdst = W;
     *Cdst = C;
   }
@@ -356,8 +386,8 @@ namespace {
     _qualityWind = 1;
     _qualityCurrent = 1;
 
-    Array<GX> W, C;
-    computeWindAndCurrentDerivNorms(&W, &C);
+    Array<ResidueData> W, C;
+    computeWindAndCurrentDerivNorms(-1, &W, &C);
 
     SCOPEDMESSAGE(INFO, "Compute the wind quality parameter");
     _qualityWind = computeParam(W, _settings.wind);
@@ -367,30 +397,9 @@ namespace {
     SCOPEDMESSAGE(INFO, stringFormat("  Current quality parameter set to %.3g", _qualityCurrent));
   }
 
-  class IndexedResidue {
-   public:
-    IndexedResidue() :
-      index(-1), residue(NAN), classIndex(-1) {}
-    IndexedResidue(int index_, // Index of the residue in the residual vector
-        double residue_,       // The residue
-        int classIndex_) :     // What class (split) the residue belongs to
-      index(index_), residue(residue_), classIndex(classIndex_) {}
 
-    bool operator<(const IndexedResidue &other) const {
-      return residue < other.residue;
-    }
 
-    int index;
-    double residue;
-    int classIndex;
-  };
-
-  template <typename T>
-  void sort(Array<T> X) {
-    std::sort(X.begin(), X.end());
-  }
-
-  double calcMatchScore(int inlierCounters[2], int matchCounter) {
+  double calcMatchValue(int inlierCounters[2], int matchCounter) {
     if (matchCounter == 0) {
       return 1.0e9;
     }
@@ -399,17 +408,31 @@ namespace {
                     /matchCounter;
   }
 
-  Array<std::pair<double, double> > optimizeQualityParameter(
-      Array<IndexedResidue> residuesA,
-      Array<IndexedResidue> residuesB) {
+  class OptQuality {
+   public:
+    OptQuality() : quality(NAN), objfValue(std::numeric_limits<double>::infinity()) {}
+    OptQuality(double v, double q) : objfValue(v), quality(q) {}
+
+    double quality;
+
+    bool operator< (const OptQuality &other) const {
+      return objfValue < other.objfValue;
+    }
+
+    double objfValue;
+  };
+
+  OptQuality optimizeQualityParameter(
+      Array<ResidueData> residuesA,
+      Array<ResidueData> residuesB) {
     int count = residuesA.size();
     assert(count == residuesB.size());
     for (int i = 0; i < count; i++) {
-      assert(residuesA[i].classIndex == 0);
-      assert(residuesB[i].classIndex == 1);
+      assert(residuesA[i].classIndex() == 0);
+      assert(residuesB[i].classIndex() == 1);
     }
 
-    Array<IndexedResidue> allResidues(2*count);
+    Array<ResidueData> allResidues(2*count);
     residuesA.copyToSafe(allResidues.sliceTo(count));
     residuesB.copyToSafe(allResidues.sliceFrom(count));
     sort(allResidues);
@@ -421,18 +444,21 @@ namespace {
     int inlierCounters[2] = {0, 0};
     int matchCounter = 0;
     Array<std::pair<double, double> > scorePerThreshold;
-    int last = count-1;
-    for (int i = 0; i < count; i++) {
-      IndexedResidue &x = allResidues[i];
-      inliers[x.classIndex][x.index] = true;
-      inlierCounters[x.classIndex]++;
-      if (inliers[0][x.index] && inliers[1][x.index]) {
+
+    OptQuality best;
+    int totalCount = 2*count;
+
+    for (int i = 0; i < totalCount; i++) {
+      ResidueData &x = allResidues[i];
+      inliers[x.classIndex()][x.sampleIndex()] = true;
+      inlierCounters[x.classIndex()]++;
+      if (inliers[0][x.sampleIndex()] && inliers[1][x.sampleIndex()]) {
         matchCounter++;
       }
-      double score = calcMatchScore(inlierCounters, matchCounter);
-      scorePerThreshold[i] = std::pair<double, double>(score, x.residue);
+      double value = calcMatchValue(inlierCounters, matchCounter);
+      best = std::min(best, OptQuality(value, x.calcThresholdQuality()));
     }
-    return scorePerThreshold;
+    return best;
   }
 }
 
@@ -501,11 +527,36 @@ void AutoCalib::Results::disp(std::ostream *dst) {
 
 
 namespace {
+  void runOptimalQualityTest1() {
+    int count = 30;
+    Array<ResidueData> dataA(count), dataB(count);
+    for (int i = 0; i < count; i++) {
+      double g = 1.0;
+      dataA[i] = ResidueData(i, g, i, 0);
+      dataB[i] = ResidueData(i, g, 30 - i, 1);
+    }
+    OptQuality opt = optimizeQualityParameter(dataA, dataB);
+    assert(std::abs(opt.objfValue - 60) < 1.0e-3);
+    //std::cout << "Success " << __FUNCTION__ << std::endl;
+  }
 
+  void runOptimalQualityTest2() {
+    int count = 30;
+    Array<ResidueData> dataA(count), dataB(count);
+    for (int i = 0; i < count; i++) {
+      double g = 1.0;
+      dataA[i] = ResidueData(i, g, i, 0);
+      dataB[i] = ResidueData(i, g, i, 1);
+    }
+    OptQuality opt = optimizeQualityParameter(dataA, dataB);
+    assert(std::abs(opt.objfValue - 2) < 1.0e-3);
+    //std::cout << "Success " << __FUNCTION__ << std::endl;
+  }
 }
 
 void runExtraAutoCalibTests() {
-
+  runOptimalQualityTest1();
+  runOptimalQualityTest2();
 }
 
 
