@@ -19,6 +19,7 @@ class ProportionateIndexer {
 
   int get(double x) const;
   void remove(int index);
+  void assign(int index, double newValue);
   int getAndRemove(double x);
 
   Arrayd proportions() const;

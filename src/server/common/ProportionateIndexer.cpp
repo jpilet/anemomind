@@ -95,15 +95,19 @@ int ProportionateIndexer::get(double x) const {
   return getBySum(0, x*sum()).index;
 }
 
-void ProportionateIndexer::remove(int index0) {
+void ProportionateIndexer::assign(int index0, double newValue) {
   int start = index0 + _offset;
   int index = start;
-  double v = _values[index];
+  double change = newValue - _values[index];
   while (index != -1) {
-    _values[index] -= v;
+    _values[index] += change;
     index = parent(index);
   }
-  _values[start] = 0; // Make sure it is exactly 0.
+  _values[start] = newValue; // Make sure it is exactly the new value
+}
+
+void ProportionateIndexer::remove(int index) {
+  assign(index, 0);
 }
 
 Arrayd ProportionateIndexer::proportions() const {
