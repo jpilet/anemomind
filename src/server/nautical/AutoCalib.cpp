@@ -818,7 +818,7 @@ namespace {
     localSettings.current = QParam::half(20);
     auto objf = new Objf(data, times, localSettings);
 
-    Arrayd initSteps = Arrayd::args(0.1, 0.1);
+    Arrayd initSteps = Arrayd::fill(2, 0.1);
     Arrayd params = Arrayd::args(log(objf->qualityWind()), log(objf->qualityCurrent()));
 
     SCOPEDMESSAGE(INFO, stringFormat(
