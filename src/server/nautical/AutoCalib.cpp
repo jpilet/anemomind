@@ -521,7 +521,7 @@ namespace {
 
       enum EvalType {NCC, SQRT_SUM, COUNT_DIF};
       double value = 0;
-      switch (SQRT_SUM) {
+      switch (COUNT_DIF) {
         case NCC: // Advantage: Common similarity measure, NAN at the ends.
           value = calcNormalizedCrossCorrelation(count,
                 inlierMatchCount, outlierMatchCount,
