@@ -461,9 +461,11 @@ namespace {
     for (int i = 0; i < 2; i++) {
       inliers[i] = Arrayb::fill(count, false);
     }
-    int inlierCounters[2] = {0, 0};
-    int inlierMatchCounter = 0;
-    int mismatchCounter = 0;
+
+
+    int mismatchCount[2] = {0, 0};
+    int inlierCount[2] = {0, 0};
+    int inlierMatchCount = 0;
     Array<std::pair<double, double> > scorePerThreshold;
 
     OptQuality best;
@@ -475,19 +477,20 @@ namespace {
     for (int i = 0; i < totalCount; i++) {
       ResidueData &x = allResidues[i];
       inliers[x.classIndex()][x.sampleIndex()] = true;
-      inlierCounters[x.classIndex()]++;
+      inlierCount[x.classIndex()]++;
       if (inliers[0][x.sampleIndex()] && inliers[1][x.sampleIndex()]) {
-        inlierMatchCounter++;
-        mismatchCounter--;
+        inlierMatchCount++;
+        mismatchCount[1 - x.classIndex()]--;
       } else {
-        mismatchCounter++;
+        mismatchCount[x.classIndex()]++;
       }
-      int totalInlierCount = inlierCounters[0] + inlierCounters[1];
+      int totalMismatchCount = mismatchCount[0] + mismatchCount[1];
+      int totalInlierCount = inlierCount[0] + inlierCount[1];
       int totalOutlierCount = totalCount - totalInlierCount;
 
       int variation = std::min(totalInlierCount, totalOutlierCount);
-      int outlierMatchCount = count - inlierMatchCounter - mismatchCounter;
-      int minMatchCount = std::min(inlierMatchCounter, outlierMatchCount);
+      int outlierMatchCount = count - inlierMatchCount - totalMismatchCount;
+      int minMatchCount = std::min(inlierMatchCount, outlierMatchCount);
 
       //double value = calcMatchValue(inlierCounters, matchCounter);
 
@@ -499,11 +502,27 @@ namespace {
 
       // WORKS WELL
       double gamma = 0.5;
-        double value = -(std::pow(inlierMatchCounter, gamma) + std::pow(outlierMatchCount, gamma));
+      double value = -(std::pow(inlierMatchCount, gamma) + std::pow(outlierMatchCount, gamma));
+
+      { // Normalized cross correlation: Advantage is that it is
+        // nan when all are the same in any of the two vectors.
+          double amean = double(inlierCount[0])/count;
+          double bmean = double(inlierCount[1])/count;
+          double aInlier = 1 - amean;
+          double aOutlier = - amean;
+          double bInlier = 1 - bmean;
+          double bOutlier = - bmean;
+          double aVariance = sqr(aInlier)*inlierCount[0] + sqr(aOutlier)*(count - inlierCount[0]);
+          double bVariance = sqr(bInlier)*inlierCount[1] + sqr(bOutlier)*(count - inlierCount[1]);
+          double numerator = aInlier*bInlier*inlierMatchCount + aInlier*bOutlier*mismatchCount[0]
+              + aOutlier*bInlier*mismatchCount[1] + aOutlier*bOutlier*outlierMatchCount;
+          double corr = numerator/sqrt(aVariance*bVariance);
+          //value = -corr;
+      }
 
 
-      // WORKS WELL
-//        double value = mismatchCounter - minMatchCount;
+      // WORKS WELL, but not like the other two.
+        //double value = totalMismatchCount - minMatchCount;
 
 
       //double value = -minMatchCount -std::min(totalInlierCount, totalOutlierCount);
@@ -512,10 +531,12 @@ namespace {
 
 
       //double value = calcMatchValue3(inlierCounters, inlierMatchCounter);
-      //double value = calcMatchValue4(inlierCounters, inlierMatchCounter);
+      //double value = calcMatchValue4(inlierCounters, inlierMatchCount);
 
       X[i] = i;
       Y[i] = value;
+
+      std::cout << EXPR_AND_VAL_AS_STRING(value) << std::endl;
 
 
       best = std::min(best, OptQuality(value, x.calcThresholdQuality()));
@@ -627,10 +648,10 @@ namespace {
     std::default_random_engine e;
     int count = 90;
 
-    const int tau = 12;
+    const int tau = 30;
     Array<ResidueData> dataA(count), dataB(count);
     for (int i = 0; i < count; i++) {
-      double offset = (i < tau? 0 : 1.8);
+      double offset = (i < tau? 0 : 1.5);
       std::uniform_real_distribution<double> distrib(offset + 0, offset + 2);
       dataA[i] = ResidueData(i, 1.0, distrib(e), 0);
       dataB[i] = ResidueData(i, 1.0, distrib(e), 1);
@@ -655,7 +676,7 @@ void runExtraAutoCalibTests() {
   //runOptimalQualityTest1();
   //runOptimalQualityTest2();
   //runOptimalQualityTest3();
-  runOptimalQualityTest3();
+  runOptimalQualityTest4();
 }
 
 
