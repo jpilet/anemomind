@@ -33,8 +33,8 @@ namespace {
     Array<Nav> navs = scanNmeaFolder(p, Nav::debuggingBoatId()).slice(55895, 79143);
     FilteredNavData filtered(navs, 500);
     AutoCalib calib;
-    Arrayb split = makeRandomSplit(filtered.size(), e);
     Arrayd times = filtered.makeCenteredX();
+    Arrayb split = makeRandomSplit(times.size(), e);
     AutoCalib::Results results = calib.calibrateAutotune(filtered, times, split);
     results.disp();
   }
@@ -42,9 +42,9 @@ namespace {
 }
 
 int main(int argc, const char **argv) {
-  runExtraAutoCalibTests();
+  //runExtraAutoCalibTests();
 
-  //ex0();
+  ex1();
 
   /* TODO: (In another PR?)
    *   - Parse arguments so that we can try it on many different datasets.

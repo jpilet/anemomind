@@ -25,6 +25,9 @@ class AutoCalib {
       QParam() : mode(TUNED), fixedQuality(NAN), minCount(30),
           frac(0.01) {}
 
+      QParam(Mode m, double fq, int mc, double f) : mode(m), fixedQuality(fq),
+          minCount(mc), frac(f) {}
+
 
       double fixedQuality;
       int minCount;

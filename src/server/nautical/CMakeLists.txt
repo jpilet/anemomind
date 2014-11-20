@@ -476,6 +476,7 @@ target_link_libraries(nautical_AutoCalib
                       nautical_FilteredNavData
                       math_armaadolc
                       common_DataSplits
+                      math_nonlinear_Levmar
                      )
                      
 target_depends_on_ceres(nautical_AutoCalib)                     

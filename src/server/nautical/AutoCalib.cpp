@@ -15,6 +15,8 @@
 #include <random>
 #include <server/plot/extra.h>
 #include <server/common/ArrayIO.h>
+#include <server/math/nonlinear/Levmar.h>
+#include <server/math/nonlinear/LevmarSettings.h>
 
 namespace ceres {
 namespace internal {
@@ -154,6 +156,18 @@ namespace {
       eval(psub, residuals, j);
       return true;
     }
+
+    void computeWindAndCurrentDerivNorms(Corrector<double> *corr,
+        int classIndex,
+        Array<ResidueData> *Wdst, Array<ResidueData> *Cdst);
+
+    void setQualityWind(double qw) {
+      _qualityWind = qw;
+    }
+
+    void setQualityCurrent(double qc) {
+      _qualityCurrent = qc;
+    }
    private:
     void eval(const double *X, double *F, double *J) const;
     AutoCalib::Settings _settings;
@@ -186,8 +200,6 @@ namespace {
         int *windInlierCounter, int *currentInlierCounter) const;
 
 
-    void computeWindAndCurrentDerivNorms(int classIndex,
-        Array<ResidueData> *Wdst, Array<ResidueData> *Cdst);
     void tuneParameters();
   };
 
@@ -360,14 +372,14 @@ namespace {
   }
 
 
-  void Objf::computeWindAndCurrentDerivNorms(int classIndex,
+  void Objf::computeWindAndCurrentDerivNorms(Corrector<double> *corr,
+      int classIndex,
       Array<ResidueData> *Wdst, Array<ResidueData> *Cdst) {
     int windInlierCounter = 0;
     int currentInlierCounter = 0;
 
     int count = length();
-    Corrector<double> corr;
-    double *X = corr.toArray().ptr();
+    double *X = (double *)corr;
     double temp[blockSize];
     Array<ResidueData> W(count), C(count);
     for (int i = 0; i < count; i++) {
@@ -389,7 +401,8 @@ namespace {
     _qualityCurrent = 1;
 
     Array<ResidueData> W, C;
-    computeWindAndCurrentDerivNorms(-1, &W, &C);
+    Corrector<double> corr;
+    computeWindAndCurrentDerivNorms(&corr, -1, &W, &C);
 
     SCOPEDMESSAGE(INFO, "Compute the wind quality parameter");
     _qualityWind = computeParam(W, _settings.wind);
@@ -405,42 +418,30 @@ namespace {
 
   class OptQuality {
    public:
-    OptQuality() : quality(NAN), objfValue(std::numeric_limits<double>::infinity()) {}
-    OptQuality(double v, double q) : objfValue(v), quality(q) {}
+    OptQuality() : _inlierCount(-1), _quality(NAN), _objfValue(std::numeric_limits<double>::infinity()) {}
+    OptQuality(int inlierCount_, double v, double q) : _inlierCount(inlierCount_), _objfValue(v), _quality(q) {}
 
-    double quality;
 
     bool operator< (const OptQuality &other) const {
-      return objfValue < other.objfValue;
+      return _objfValue < other._objfValue;
     }
 
-    double objfValue;
+    bool valid() const {
+      return _inlierCount > 0;
+    }
+
+    double quality() const {
+      return _quality;
+    }
+
+    int inlierCount() const {
+      return _inlierCount;
+    }
+   private:
+    double _quality;
+    double _objfValue;
+    int _inlierCount;
   };
-
-  double calcMatchValue(int inlierCounters[2], int matchCounter) {
-    if (matchCounter == 0) {
-      return 1.0e9;
-    }
-
-    return double(sqr(inlierCounters[0]) + sqr(inlierCounters[1]))
-                    /matchCounter;
-  }
-
-  double calcMatchValue2(int positiveMatches, int negativeMatches, double expt = 1.0) {
-    if (positiveMatches == 0 || negativeMatches == 0) {
-      return 1.0e6;
-    }
-    return std::pow(1.0/positiveMatches, expt) + std::pow(1.0/negativeMatches, expt);
-  }
-
-  double calcMatchValue3(int inliers[2], int matches) {
-    return double(sqr(inliers[0]) + sqr(inliers[1]) + 3)/matches;
-  }
-
-  double calcMatchValue4(int inliers[2], int inlierMatches) {
-    double lambda = 0.08;
-    return -inlierMatches + lambda*(sqr(inliers[0]) + sqr(inliers[1]));
-  }
 
   double calcNormalizedCrossCorrelation(int count,
       int inlierMatchCount, int outlierMatchCount,
@@ -468,7 +469,9 @@ namespace {
 
   OptQuality optimizeQualityParameter(
       Array<ResidueData> residuesA,
-      Array<ResidueData> residuesB) {
+      Array<ResidueData> residuesB,
+      bool visualize) {
+    ENTER_FUNCTION_SCOPE;
     int count = residuesA.size();
     assert(count == residuesB.size());
     for (int i = 0; i < count; i++) {
@@ -490,12 +493,11 @@ namespace {
     int mismatchCount[2] = {0, 0};
     int inlierCount[2] = {0, 0};
     int inlierMatchCount = 0;
-    Array<std::pair<double, double> > scorePerThreshold;
 
     OptQuality best;
     int totalCount = 2*count;
 
-
+    // For plotting
     Arrayd X(totalCount), Y(totalCount);
 
     for (int i = 0; i < totalCount; i++) {
@@ -519,7 +521,7 @@ namespace {
 
       enum EvalType {NCC, SQRT_SUM, COUNT_DIF};
       double value = 0;
-      switch (COUNT_DIF) {
+      switch (SQRT_SUM) {
         case NCC: // Advantage: Common similarity measure, NAN at the ends.
           value = calcNormalizedCrossCorrelation(count,
                 inlierMatchCount, outlierMatchCount,
@@ -528,26 +530,25 @@ namespace {
         case SQRT_SUM: // Advantage: summable
           value = calcSqrtSum(inlierMatchCount, outlierMatchCount);
           break;
-        case COUNT_DIF: // Advantage: Unknown...
+        case COUNT_DIF: // Advantage: Unknown... A bit too high in [94b50e1]
           value = totalMismatchCount - minMatchCount;
           break;
       };
       X[i] = i;
       Y[i] = value;
 
-      std::cout << EXPR_AND_VAL_AS_STRING(value) << std::endl;
-
-
-      best = std::min(best, OptQuality(value, x.calcThresholdQuality()));
+      // Let it be a minimization problem.
+      best = std::min(best, OptQuality(i, value, x.calcThresholdQuality()));
     }
 
 
-    Arrayb mask = Y.map<bool>([&](double x) {return x < 1.0e3;});
-    std::cout << EXPR_AND_VAL_AS_STRING(mask) << std::endl;
-    GnuplotExtra plot;
-    plot.set_style("lines");
-    plot.plot_xy(X.slice(mask), Y.slice(mask));
-    plot.show();
+    if (visualize) {
+      Arrayb mask = Y.map<bool>([&](double x) {return x < 1.0e3;});
+      GnuplotExtra plot;
+      plot.set_style("lines");
+      plot.plot_xy(X.slice(mask), Y.slice(mask));
+      plot.show();
+    }
 
     return best;
   }
@@ -578,10 +579,95 @@ AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) cons
   return Results(corr, data);
 }
 
+
+namespace {
+
+  void initializeQuality(Objf &objf, double *qwOut, double *qcOut) {
+    Corrector<double> corr;
+    Array<ResidueData> W, C;
+    objf.computeWindAndCurrentDerivNorms(&corr, 0, &W, &C);
+    *qwOut = optimizeQualityParameter(W, W, false).quality();
+    *qcOut = optimizeQualityParameter(C, C, false).quality();
+  }
+
+  class ObjfWrap : public Function {
+   public:
+    ObjfWrap(Objf &o) : _objf(o) {}
+    int inDims() {return _objf.inDims();}
+    int outDims() {return _objf.outDims();}
+    void eval(double *Xin, double *Fout, double *Jout);
+   private:
+    Objf &_objf;
+  };
+
+  void ObjfWrap::eval(double *Xin, double *Fout, double *Jout) {
+    if (Jout == nullptr) {
+      _objf.Evaluate(&Xin, Fout, nullptr);
+    } else {
+      MDArray2d Jtranspose(inDims(), outDims());
+      double *jdst = Jtranspose.ptr();
+      _objf.Evaluate(&Xin, Fout, &(jdst));
+      MDArray2d Jdst(outDims(), inDims(), Jout);
+      for (int i = 0; i < Jdst.rows(); i++) {
+        for (int j = 0; j < Jdst.cols(); j++) {
+          Jdst(i, j) = Jtranspose(j, i);
+        }
+      }
+    }
+  }
+
+  std::string makeMessageString(const char *label, OptQuality q, int totalCount) {
+    return stringFormat("Optimized %s quality to %.3g (%d/%d = %.3g percents inliers)", label,
+          q.quality(), q.inlierCount(), totalCount, double(100.0*q.inlierCount())/totalCount);
+  }
+}
+
 AutoCalib::Results AutoCalib::calibrateAutotune(FilteredNavData data,
     Arrayd times, Arrayb split) const {
-  Objf A(data, times.slice(split), _settings);
-  Objf B(data, times.slice(neg(split)), _settings);
+  ENTER_FUNCTION_SCOPE;
+  assert(times.size() == split.size());
+
+  Settings localSettings = _settings;
+  QParam qinit = QParam(QParam::TUNED, NAN, 30, 0.5);
+  localSettings.wind = qinit;
+  localSettings.current = qinit;
+
+  Corrector<double> initCorr;
+  Objf fullObjf(data, times, localSettings);
+  Objf *objf[2] = {new Objf(data, times.slice(split), localSettings),
+                  new Objf(data, times.slice(neg(split)), localSettings)};
+
+  ObjfWrap objfw[2] = {ObjfWrap(*objf[0]), ObjfWrap(*objf[1])};
+  ObjfWrap fullObjfw(fullObjf);
+  LevmarState state[2] = {LevmarState(initCorr.toArray()), LevmarState(initCorr.toArray())};
+  LevmarSettings lmSettings;
+
+  int maxiter = 30;
+  for (int i = 0; i < maxiter; i++) {
+    Array<ResidueData> W[2], C[2];
+
+    for (int j = 0; j < 2; j++) {
+      state[j].step(lmSettings, objfw[j]);
+      fullObjf.computeWindAndCurrentDerivNorms(
+          Corrector<double>::fromArray(state[j].getXArray()),
+          j, W + j, C + j);
+    }
+    assert(W[0].size() == W[1].size());
+    assert(C[0].size() == C[1].size());
+    assert(W[0].size() == C[0].size());
+    int totalCount = 2*W[0].size();
+    OptQuality qw = optimizeQualityParameter(W[0], W[1], true);
+    OptQuality qc = optimizeQualityParameter(C[0], C[1], false);
+    SCOPEDMESSAGE(INFO, makeMessageString("wind", qw, totalCount));
+    SCOPEDMESSAGE(INFO, makeMessageString("current", qc, totalCount));
+    for (int j = 0; j < 2; j++) {
+      objf[j]->setQualityWind(qw.quality());
+      objf[j]->setQualityCurrent(qc.quality());
+    }
+  }
+  delete objf[0];
+  delete objf[1];
+
   return AutoCalib::Results();
 }
 
@@ -631,13 +717,13 @@ namespace {
       dataA[i] = ResidueData(i, 1.0, distrib(e), 0);
       dataB[i] = ResidueData(i, 1.0, distrib(e), 1);
     }
-    OptQuality opt = optimizeQualityParameter(dataA, dataB);
+    OptQuality opt = optimizeQualityParameter(dataA, dataB, true);
 
     double gtQuality = 0.5*(dataA[tau-1].calcThresholdQuality() + dataA[tau].calcSquaredThresholdQuality());
     //opt.quality =
     for (int i = 0; i < count; i++) {
-      std::cout << "i = " << i << "  A: " << dataA[i].isInlier(opt.quality) <<
-          "    B: " << dataB[i].isInlier(opt.quality) << std::endl;
+      std::cout << "i = " << i << "  A: " << dataA[i].isInlier(opt.quality()) <<
+          "    B: " << dataB[i].isInlier(opt.quality()) << std::endl;
     }
   }
 
@@ -659,13 +745,13 @@ namespace {
     dataA[0] = ResidueData(0, 1.0, 100.0, 0);
 
 
-    OptQuality opt = optimizeQualityParameter(dataA, dataB);
+    OptQuality opt = optimizeQualityParameter(dataA, dataB, true);
 
     double gtQuality = 0.5*(dataA[tau-1].calcThresholdQuality() + dataA[tau].calcSquaredThresholdQuality());
     //opt.quality =
     for (int i = 0; i < count; i++) {
-      std::cout << "i = " << i << "  A: " << dataA[i].isInlier(opt.quality) <<
-          "    B: " << dataB[i].isInlier(opt.quality) << std::endl;
+      std::cout << "i = " << i << "  A: " << dataA[i].isInlier(opt.quality()) <<
+          "    B: " << dataB[i].isInlier(opt.quality()) << std::endl;
     }
   }
 
