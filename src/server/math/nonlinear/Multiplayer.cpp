@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/ScopedLog.h>
 
 namespace sail {
 
@@ -65,14 +66,16 @@ namespace {
 void optimizeMultiplayerSub(StepMinimizer &minimizer,
     Array<std::shared_ptr<Function> > objfs,
     Array<StepMinimizerState> *statesIO) {
-
+  ENTER_FUNCTION_SCOPE;
   int n = statesIO->size();
   assert(n == objfs.size());
 
   assert(areNToScalarFunctions(n, objfs));
   ParetoFrontier frontier;
   for (int i = 0; i < minimizer.maxiter(); i++) {
+    ENTERSCOPE(stringFormat("Iteration %d/%d", i+1, minimizer.maxiter()));
     for (int j = 0; j < n; j++) {
+      ENTERSCOPE(stringFormat("Optimize player %d/%d", j+1, n));
       Arrayd XlocalTemp = mapStatesToX(*statesIO);
       std::function<bool(double, double)> acc = [&] (double x, double y) {
         XlocalTemp[j] = x;
@@ -85,6 +88,9 @@ void optimizeMultiplayerSub(StepMinimizer &minimizer,
       };
       (*statesIO)[j] = minimizer.takeStep((*statesIO)[j].reevaluate(objf), objf);
       frontier.insert(evaluateAll(objfs, mapStatesToX(*statesIO)));
+      SCOPEDMESSAGE(INFO, stringFormat("X         = %.3g", (*statesIO)[j].getX()));
+      SCOPEDMESSAGE(INFO, stringFormat("value     = %.3g", (*statesIO)[j].getValue()));
+      SCOPEDMESSAGE(INFO, stringFormat("Step size = %.3g", (*statesIO)[j].getStep()));
     }
   }
 }

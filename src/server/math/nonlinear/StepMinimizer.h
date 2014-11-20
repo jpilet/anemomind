@@ -65,7 +65,10 @@ class StepMinimizer {
     _leftLimit(lm), _rightLimit(rm), _maxIter(maxiter) {}
 
 
+  // Run the minimizer until there is a reduction in the function value.
   StepMinimizerState takeStep(StepMinimizerState state, std::function<double(double)> fun);
+
+  // Minimize the function.
   StepMinimizerState minimize(StepMinimizerState state, std::function<double(double)> fun);
 
   // The acceptor function lets us incorporate additional criteria in order for a solution to be accepted.

@@ -111,6 +111,8 @@ target_link_libraries(math_nonlinear_Multiplayer
                       math_nonlinear_StepMinimizer
                       common_Function
                       math_pareto
+                      common_ScopedLog
+                      common_string
                       )                                 
 
 cxx_test(math_nonlinear_MultiplayerTest

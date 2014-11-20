@@ -28,6 +28,9 @@ class AutoCalib {
       QParam(Mode m, double fq, int mc, double f) : mode(m), fixedQuality(fq),
           minCount(mc), frac(f) {}
 
+      static QParam half(int mc) {
+        return QParam(TUNED, NAN, mc, 0.5);
+      }
 
       double fixedQuality;
       int minCount;
@@ -70,7 +73,12 @@ class AutoCalib {
   Results calibrate(FilteredNavData data, Arrayd times = Arrayd()) const;
   Results calibrateAutotune(FilteredNavData data,
       Arrayd times, Arrayb split) const;
+  Results calibrateAutotuneGame(FilteredNavData data,
+      Arrayd times, Array<Arrayb> subsets) const;
  private:
+  AutoCalib::Results calibrateSub(FilteredNavData data, Arrayd times,
+    AutoCalib::Settings settings) const;
+
   Settings _settings;
 };
 

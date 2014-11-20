@@ -477,6 +477,8 @@ target_link_libraries(nautical_AutoCalib
                       math_armaadolc
                       common_DataSplits
                       math_nonlinear_Levmar
+                      math_nonlinear_Multiplayer
+                      common_MeanAndVar
                      )
                      
 target_depends_on_ceres(nautical_AutoCalib)                     

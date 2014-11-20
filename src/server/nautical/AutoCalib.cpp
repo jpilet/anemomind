@@ -17,6 +17,10 @@
 #include <server/common/ArrayIO.h>
 #include <server/math/nonlinear/Levmar.h>
 #include <server/math/nonlinear/LevmarSettings.h>
+#include <server/common/MeanAndVar.h>
+#include <server/math/nonlinear/Multiplayer.h>
+#include <server/math/nonlinear/StepMinimizer.h>
+#include <server/common/SharedPtrUtils.h>
 
 namespace ceres {
 namespace internal {
@@ -124,9 +128,10 @@ namespace {
     Objf(FilteredNavData data, Arrayd times, AutoCalib::Settings s);
 
     template <typename T>
-    class WindAndCurrentDifs {
+    class WindAndCurrentDataDifs {
      public:
-      WindAndCurrentDifs(HorizontalMotion<T> wd, HorizontalMotion<T> cd) :
+      WindAndCurrentDataDifs(HorizontalMotion<T> wd,
+                         HorizontalMotion<T> cd) :
         windDif(wd), currentDif(cd) {}
       HorizontalMotion<T> windDif;
       HorizontalMotion<T> currentDif;
@@ -168,6 +173,14 @@ namespace {
     void setQualityCurrent(double qc) {
       _qualityCurrent = qc;
     }
+
+    double qualityWind() const {
+      return _qualityWind;
+    }
+
+    double qualityCurrent() const {
+      return _qualityCurrent;
+    }
    private:
     void eval(const double *X, double *F, double *J) const;
     AutoCalib::Settings _settings;
@@ -183,7 +196,7 @@ namespace {
     double normGDeriv(int timeIndex) const;
 
     template <typename T>
-    WindAndCurrentDifs<T> calcWindAndCurrentDifs(const Corrector<T> &corrector, int timeIndex) const {
+    WindAndCurrentDataDifs<T> calcWindAndCurrentDifs(const Corrector<T> &corrector, int timeIndex) const {
       int lowerIndex = calcLowerIndex(timeIndex);
       int upperIndex = lowerIndex + 1;
 
@@ -193,7 +206,7 @@ namespace {
       HorizontalMotion<T> wdif = b.trueWind() - a.trueWind();
       HorizontalMotion<T> cdif = b.trueCurrent() - a.trueCurrent();
       T factor = T(1.0/_data.samplingPeriod());
-      return WindAndCurrentDifs<T>(factor*wdif, factor*cdif);
+      return WindAndCurrentDataDifs<T>(factor*wdif, factor*cdif);
     }
 
     Vectorize<double, 2> evalSub(int index, const double *X, double *F, double *J,
@@ -308,7 +321,7 @@ namespace {
     Corrector<adouble> *corr = Corrector<adouble>::fromArray(adX);
     adouble result[blockSize];
 
-      WindAndCurrentDifs<adouble> difs = calcWindAndCurrentDifs<adouble>(*corr, index);
+      WindAndCurrentDataDifs<adouble> difs = calcWindAndCurrentDifs<adouble>(*corr, index);
       double w = evalRobust(_settings.smooth, _qualityWind, difs.windDif,    g, result + 0,
         windInlierCounter);
       double c = evalRobust(_settings.smooth, _qualityCurrent, difs.currentDif, g, result + 3,
@@ -554,7 +567,13 @@ namespace {
   }
 }
 
+
 AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) const {
+  return calibrateSub(data, times, _settings);
+}
+
+AutoCalib::Results AutoCalib::calibrateSub(FilteredNavData data, Arrayd times,
+  AutoCalib::Settings settings) const {
   if (times.empty()) {
     times = data.makeCenteredX();
   }
@@ -568,7 +587,7 @@ AutoCalib::Results AutoCalib::calibrate(FilteredNavData data, Arrayd times) cons
 
   // Set up the only cost function (also known as residual). This uses
   // auto-differentiation to obtain the derivative (jacobian).
-  auto cost = new Objf(data, times, _settings);
+  auto cost = new Objf(data, times, settings);
   Corrector<double> corr;
   problem.AddResidualBlock(cost, NULL, (double *)(&corr));
   ceres::Solver::Options options;
@@ -670,6 +689,165 @@ AutoCalib::Results AutoCalib::calibrateAutotune(FilteredNavData data,
 
   return AutoCalib::Results();
 }
+
+
+namespace {
+
+  Array<CalibratedNav<double> > correctValues(
+      FilteredNavData fdata,
+    Arrayd times, Corrector<double> corr) {
+    int count = times.size();
+    Array<CalibratedNav<double> > navs(count);
+    for (int i = 0; i < count; i++) {
+      int index = int(floor(fdata.sampling().inv(times[i])));
+      navs[i] = corr.correct(
+          FilteredNavInstrumentAbstraction(fdata, index));
+    }
+    return navs;
+  }
+
+  double computeVariance(Array<Array<CalibratedNav<double> > > calibs,
+      std::function<HorizontalMotion<double>(const CalibratedNav<double> &)> f) {
+    int setCount = calibs.size();
+    int sampleCount = calibs[0].size();
+    double varsum = 0;
+    for (int j = 0; j < sampleCount; j++) {
+      MeanAndVar x, y;
+      for (int i = 0; i < setCount; i++) {
+        HorizontalMotion<double> m = f(calibs[i][j]);
+        x.add(m[0].knots());
+        y.add(m[1].knots());
+      }
+      varsum += x.variance() + y.variance();
+    }
+    return varsum;
+  }
+
+  Vectorize<double, 2> computeTotalVariance(
+      FilteredNavData data,
+      Arrayd times,
+      Array<Corrector<double> > corrs) {
+    int count = corrs.size();
+    Array<Array<CalibratedNav<double> > > calibs(count);
+    for (int i = 0; i < count; i++) {
+      calibs[i] = correctValues(data, times, corrs[i]);
+    }
+
+    auto w = [](CalibratedNav<double> n) {return n.trueWind();};
+    auto c = [](CalibratedNav<double> n) {return n.trueCurrent();};
+    return Vectorize<double, 2>{computeVariance(calibs, w),
+                                computeVariance(calibs, c)};
+  }
+
+  Vectorize<double, 2> evalFitness(
+      FilteredNavData data,
+      Arrayd allTimes, Array<Arrayb> subsets,
+      AutoCalib::Settings settings, double qw, double qc) {
+    ENTER_FUNCTION_SCOPE;
+    SCOPEDMESSAGE(INFO, stringFormat("qw = %.3g", qw));
+    SCOPEDMESSAGE(INFO, stringFormat("qc = %.3g", qc));
+    int mc = 0;
+    settings.wind = QParam(QParam::FIXED, qw, mc, 0.5);
+    settings.current = QParam(QParam::FIXED, qc, mc, 0.5);
+
+
+    if (allTimes.empty()) {
+      allTimes = data.makeCenteredX();
+    }
+
+
+    int setCount = subsets.size();
+    Array<Corrector<double> > correctors(setCount);
+    for (int i = 0; i < setCount; i++) {
+      ENTERSCOPE(stringFormat("Optimize over set %d/%d", i+1, setCount));
+      Arrayd times = allTimes.slice(subsets[i]);
+      ceres::Problem problem;
+
+      // Set up the only cost function (also known as residual). This uses
+      // auto-differentiation to obtain the derivative (jacobian).
+      auto cost = new Objf(data, times, settings);
+      problem.AddResidualBlock(cost, NULL, (double *)correctors.ptr(i));
+      ceres::Solver::Options options;
+      ceres::Solver::Summary summary;
+      Solve(options, &problem, &summary);
+      SCOPEDMESSAGE(INFO, "Done optimizing.");
+    }
+    Vectorize<double, 2> fitness = computeTotalVariance(data, allTimes, correctors);
+    SCOPEDMESSAGE(INFO, stringFormat("Wind fitness: %.3g", fitness[0]));
+    SCOPEDMESSAGE(INFO, stringFormat("Current fitness: %.3g", fitness[1]));
+    return fitness;
+  }
+
+  class CVObjf : public Function {
+   public:
+    CVObjf(FilteredNavData fdata,
+    Arrayd allTimes,
+    Array<Arrayb> subsets,
+    AutoCalib::Settings settings,
+    int dstIndex) : _fdata(fdata),
+      _allTimes(allTimes), _subsets(subsets),
+      _settings(settings), _dstIndex(dstIndex) {}
+
+    int inDims() {return 2;}
+    int outDims() {return 1;}
+    void eval(double *Xin, double *Fout, double *Jout);
+   private:
+    FilteredNavData _fdata;
+    Arrayd _allTimes;
+    Array<Arrayb> _subsets;
+    AutoCalib::Settings _settings;
+    int _dstIndex;
+  };
+
+  void CVObjf::eval(double *Xin, double *Fout, double *Jout) {
+    assert(Jout == nullptr);
+    ENTER_FUNCTION_SCOPE;
+    SCOPEDMESSAGE(INFO, stringFormat("log qw = %.3g", Xin[0]));
+    SCOPEDMESSAGE(INFO, stringFormat("log qc = %.3g", Xin[1]));
+    Fout[0] = evalFitness(
+              _fdata,
+              _allTimes, _subsets,
+              _settings, exp(Xin[0]), exp(Xin[1]))[_dstIndex];
+  }
+
+
+  AutoCalib::Settings adjustSettingsCV(FilteredNavData data,
+      Arrayd times, Array<Arrayb> subsets, AutoCalib::Settings localSettings) {
+    ENTER_FUNCTION_SCOPE;
+    localSettings.wind = QParam::half(20);
+    localSettings.current = QParam::half(20);
+    auto objf = new Objf(data, times, localSettings);
+
+    Arrayd initSteps = Arrayd::args(0.1, 0.1);
+    Arrayd params = Arrayd::args(log(objf->qualityWind()), log(objf->qualityCurrent()));
+
+    SCOPEDMESSAGE(INFO, stringFormat(
+        "INITIAL PARAMETERS: log(qw) = %.3g,   log(qc) = %.3g",
+        params[0], params[1]));
+
+    StepMinimizer minimizer;
+
+    CVObjf a(data, times, subsets, localSettings, 0);
+    CVObjf b(data, times, subsets, localSettings, 1);
+    Array<std::shared_ptr<Function> > funs =
+        Array<std::shared_ptr<Function> >::args(makeSharedPtrToStack(a),
+            makeSharedPtrToStack(b));
+    Arrayd optLogQ = optimizeMultiplayer(minimizer,
+        funs, params, initSteps);
+    int minCount = 0;
+    localSettings.wind = QParam(QParam::FIXED, exp(optLogQ[0]), minCount, 0.5);
+    localSettings.current = QParam(QParam::FIXED, exp(optLogQ[1]), minCount, 0.5);
+    return localSettings;
+  }
+}
+
+
+
+AutoCalib::Results AutoCalib::calibrateAutotuneGame(FilteredNavData data,
+    Arrayd times, Array<Arrayb> subsets) const {
+  return calibrateSub(data, times, adjustSettingsCV(data, times, subsets, _settings));
+}
+
 
 
 void AutoCalib::Results::disp(std::ostream *dst) {
