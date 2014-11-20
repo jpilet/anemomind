@@ -442,6 +442,30 @@ namespace {
     return -inlierMatches + lambda*(sqr(inliers[0]) + sqr(inliers[1]));
   }
 
+  double calcNormalizedCrossCorrelation(int count,
+      int inlierMatchCount, int outlierMatchCount,
+      int inlierCount[2], int mismatchCount[2]) {
+    // Normalized cross correlation: Advantage is that it is
+    // nan when all are the same in any of the two vectors.
+      double amean = double(inlierCount[0])/count;
+      double bmean = double(inlierCount[1])/count;
+      double aInlier = 1 - amean;
+      double aOutlier = - amean;
+      double bInlier = 1 - bmean;
+      double bOutlier = - bmean;
+      double aVariance = sqr(aInlier)*inlierCount[0] + sqr(aOutlier)*(count - inlierCount[0]);
+      double bVariance = sqr(bInlier)*inlierCount[1] + sqr(bOutlier)*(count - inlierCount[1]);
+      double numerator = aInlier*bInlier*inlierMatchCount + aInlier*bOutlier*mismatchCount[0]
+          + aOutlier*bInlier*mismatchCount[1] + aOutlier*bOutlier*outlierMatchCount;
+      double corr = numerator/sqrt(aVariance*bVariance);
+      return -corr;
+  }
+
+  double calcSqrtSum(int inlierMatchCount, int outlierMatchCount) {
+    return -sqrt(inlierMatchCount) - sqrt(outlierMatchCount);
+  }
+
+
   OptQuality optimizeQualityParameter(
       Array<ResidueData> residuesA,
       Array<ResidueData> residuesB) {
@@ -492,47 +516,22 @@ namespace {
       int outlierMatchCount = count - inlierMatchCount - totalMismatchCount;
       int minMatchCount = std::min(inlierMatchCount, outlierMatchCount);
 
-      //double value = calcMatchValue(inlierCounters, matchCounter);
 
-      // Bra
-      //double value = calcMatchValue2(inlierMatchCounter, outlierMatchCount, 0.001);
-
-      //double gamma = 0.5; //0.5;
-
-
-      // WORKS WELL
-      double gamma = 0.5;
-      double value = -(std::pow(inlierMatchCount, gamma) + std::pow(outlierMatchCount, gamma));
-
-      { // Normalized cross correlation: Advantage is that it is
-        // nan when all are the same in any of the two vectors.
-          double amean = double(inlierCount[0])/count;
-          double bmean = double(inlierCount[1])/count;
-          double aInlier = 1 - amean;
-          double aOutlier = - amean;
-          double bInlier = 1 - bmean;
-          double bOutlier = - bmean;
-          double aVariance = sqr(aInlier)*inlierCount[0] + sqr(aOutlier)*(count - inlierCount[0]);
-          double bVariance = sqr(bInlier)*inlierCount[1] + sqr(bOutlier)*(count - inlierCount[1]);
-          double numerator = aInlier*bInlier*inlierMatchCount + aInlier*bOutlier*mismatchCount[0]
-              + aOutlier*bInlier*mismatchCount[1] + aOutlier*bOutlier*outlierMatchCount;
-          double corr = numerator/sqrt(aVariance*bVariance);
-          //value = -corr;
-      }
-
-
-      // WORKS WELL, but not like the other two.
-        //double value = totalMismatchCount - minMatchCount;
-
-
-      //double value = -minMatchCount -std::min(totalInlierCount, totalOutlierCount);
-
-      //double value = -(0.001*variation + minMatchCount);
-
-
-      //double value = calcMatchValue3(inlierCounters, inlierMatchCounter);
-      //double value = calcMatchValue4(inlierCounters, inlierMatchCount);
-
+      enum EvalType {NCC, SQRT_SUM, COUNT_DIF};
+      double value = 0;
+      switch (COUNT_DIF) {
+        case NCC: // Advantage: Common similarity measure, NAN at the ends.
+          value = calcNormalizedCrossCorrelation(count,
+                inlierMatchCount, outlierMatchCount,
+                inlierCount, mismatchCount);
+          break;
+        case SQRT_SUM: // Advantage: summable
+          value = calcSqrtSum(inlierMatchCount, outlierMatchCount);
+          break;
+        case COUNT_DIF: // Advantage: Unknown...
+          value = totalMismatchCount - minMatchCount;
+          break;
+      };
       X[i] = i;
       Y[i] = value;
 
