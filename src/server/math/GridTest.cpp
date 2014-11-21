@@ -113,6 +113,7 @@ namespace {
 }
 
 TEST(GridTest, Minimize) {
+  ScopedLog::setDepthLimit(0);
   Spand spans[2] = {Spand(-6, 6), Spand(-7, 7)};
   int inddata[2] = {13, 15};
   MDInds<2> inds(inddata);

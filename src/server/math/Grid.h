@@ -16,6 +16,7 @@
 #include <server/common/math.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/Span.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -329,6 +330,7 @@ class Grid {
    // Grid search, used for parameter selection:
    // http://en.wikipedia.org/wiki/Hyperparameter_optimization
    double minimize(std::function<double(double*)> objf, double *dst) const {
+     ENTER_FUNCTION_SCOPE;
      assert(dst != nullptr);
 
      int bestIndex = -1;
@@ -336,6 +338,8 @@ class Grid {
 
      int count = getVertexCount();
      for (int i = 0; i < count; i++) {
+       ENTERSCOPE(stringFormat("Evaluate objective function at vertex %d/%d",
+           i+1, count));
        double value = evaluateAtVertex(objf, i);
        if (value < bestValue) {
          bestValue = value;
