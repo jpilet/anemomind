@@ -106,6 +106,23 @@ TEST(GridTest, Filter3Test) {
 }
 
 
+namespace {
+  double evalDist(double *x2) {
+    return sqr(x2[0] - 3.0) + sqr(x2[1] - 4.0);
+  }
+}
+
+TEST(GridTest, Minimize) {
+  Spand spans[2] = {Spand(-6, 6), Spand(-7, 7)};
+  int inddata[2] = {13, 15};
+  MDInds<2> inds(inddata);
+  Grid<2> grid(inds, spans);
+  double x[2] = {300, 300};
+  EXPECT_NEAR(grid.minimize(&evalDist, x), 0.0, 1.0e-6);
+  EXPECT_NEAR(x[0], 3.0, 1.0e-6);
+  EXPECT_NEAR(x[1], 4.0, 1.0e-6);
+}
+
 
 
 

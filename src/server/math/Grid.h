@@ -15,6 +15,7 @@
 #include <server/common/MDInds.h>
 #include <server/common/math.h>
 #include <server/common/ScopedLog.h>
+#include <server/common/Span.h>
 
 namespace sail {
 
@@ -43,6 +44,14 @@ class Grid {
     _inds = inds;
     for (int i = 0; i < N; i++) {
       _ind2Coord[i] = ind2Coord[i];
+    }
+  }
+
+  Grid(MDInds<N> inds, Spand *spans) :
+    _inds(inds) {
+    for (int i = 0; i < N; i++) {
+      _ind2Coord[i] = LineKM(0, _inds[i]-1,
+          spans[i].minv(), spans[i].maxv());
     }
   }
 
