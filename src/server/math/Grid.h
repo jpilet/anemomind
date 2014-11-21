@@ -14,6 +14,7 @@
 #include <server/common/MDArray.h>
 #include <server/common/MDInds.h>
 #include <server/common/math.h>
+#include <server/common/ScopedLog.h>
 
 namespace sail {
 
@@ -66,6 +67,18 @@ class Grid {
       }
     }
     return pts;
+  }
+
+  void calcVertex(const int *inds, double *dst) const {
+    for (int i = 0; i < N; i++) {
+      dst[i] = _ind2Coord[i](inds[i]);
+    }
+  }
+
+  void calcVertex(int index, double *dst) const {
+    int inds[N];
+    _inds.calcInv(index, inds);
+    calcVertex(inds, dst);
   }
 
 
@@ -302,10 +315,37 @@ class Grid {
      }
      return true;
    }
+
+
+   // Grid search, used for parameter selection:
+   // http://en.wikipedia.org/wiki/Hyperparameter_optimization
+   double minimize(std::function<double(double*)> objf, double *dst) const {
+     assert(dst != nullptr);
+
+     int bestIndex = -1;
+     double bestValue = std::numeric_limits<double>::infinity();
+
+     int count = getVertexCount();
+     for (int i = 0; i < count; i++) {
+       double value = evaluateAtVertex(objf, i);
+       if (value < bestValue) {
+         bestValue = value;
+         bestIndex = i;
+       }
+     }
+     calcVertex(bestIndex, dst);
+     return bestValue;
+   }
  private:
   MDInds<N> _inds;      // Holds the size of every dim
   LineKM _ind2Coord[N]; // Maps indices along a dimension to coordinates
 
+  template <typename T>
+  T evaluateAtVertex(std::function<T(double*)> fun, int index) const {
+    double vertex[N];
+    calcVertex(index, vertex);
+    return fun(vertex);
+  }
 };
 
 template <int N>
