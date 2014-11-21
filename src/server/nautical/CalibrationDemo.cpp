@@ -26,20 +26,6 @@ namespace {
     results.disp();
   }
 
-  // A preconfigured example
-  void ex1() {
-    std::default_random_engine e;
-    Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
-      .pushDirectory("datasets/psaros33_Banque_Sturdza").get();
-    Array<Nav> navs = scanNmeaFolder(p, Nav::debuggingBoatId()).slice(55895, 79143);
-    FilteredNavData filtered(navs, 500);
-    AutoCalib calib;
-    Arrayd times = filtered.makeCenteredX();
-    Arrayb split = makeRandomSplit(times.size(), e);
-    AutoCalib::Results results = calib.calibrateAutotune(filtered, times, split);
-    results.disp();
-  }
-
   Arrayb makeSubset(int length, int subsetSize,
       std::default_random_engine &e) {
       Arrayb subset(length);
@@ -59,7 +45,7 @@ namespace {
     return dst;
   }
 
-  void ex2() {
+  void ex1() {
     ScopedLog::setDepthLimit(5);
     std::default_random_engine e;
     Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -78,7 +64,7 @@ namespace {
 int main(int argc, const char **argv) {
   //runExtraAutoCalibTests();
 
-  ex2();
+  ex1();
 
   /* TODO: (In another PR?)
    *   - Parse arguments so that we can try it on many different datasets.

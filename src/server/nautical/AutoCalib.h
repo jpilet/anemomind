@@ -71,8 +71,6 @@ class AutoCalib {
   };
 
   Results calibrate(FilteredNavData data, Arrayd times = Arrayd()) const;
-  Results calibrateAutotune(FilteredNavData data,
-      Arrayd times, Arrayb split) const;
   Results calibrateAutotuneGame(FilteredNavData data,
       Arrayd times, Array<Arrayb> subsets) const;
  private:
