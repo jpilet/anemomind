@@ -21,6 +21,7 @@
 #include <server/math/nonlinear/Multiplayer.h>
 #include <server/math/nonlinear/StepMinimizer.h>
 #include <server/common/SharedPtrUtils.h>
+#include <server/math/Grid.h>
 
 namespace ceres {
 namespace internal {
@@ -641,6 +642,59 @@ namespace {
     localSettings.current = QParam(QParam::FIXED, exp(optLogQ[1]), minCount, 0.5);
     return localSettings;
   }
+
+
+
+  Spand makeQSpan(double q, double factor) {
+    double logQ = log(q);
+    double logFactor = log(factor);
+    return Spand(logQ - logFactor, logQ + logFactor);
+  }
+
+  double getQw(double *x) {
+    return exp(x[0]);
+  }
+  double getQc(double *x) {
+    return exp(x[1]);
+  }
+
+  AutoCalib::Settings optimizeSettingsGridSearch(FilteredNavData data,
+        Arrayd times, Array<Arrayb> subsets, AutoCalib::Settings localSettings) {
+      ENTER_FUNCTION_SCOPE;
+      localSettings.wind = QParam::half(20);
+      localSettings.current = QParam::half(20);
+      Objf temp(data, times, localSettings);
+
+      int sampleCountPerDim = 9;
+
+      double qw = temp.qualityWind();
+      double qc = temp.qualityCurrent();
+      SCOPEDMESSAGE(INFO, stringFormat("Initial qw = %.3g", qw));
+      SCOPEDMESSAGE(INFO, stringFormat("Initial qc = %.3g", qc));
+      double factor = 12;
+      Spand spans[2] = {makeQSpan(qw, factor), makeQSpan(qc, factor)};
+      Arrayd initSteps = Arrayd::fill(2, 0.1);
+
+      int sizes[2] = {sampleCountPerDim, sampleCountPerDim};
+      Grid<2> grid(MDInds<2>(sizes), spans);
+
+      std::function<double(double*)> objf = [&](double *x) {
+          double qw = getQw(x);
+          double qc = getQc(x);
+          double denom = sqr(qw + qc);
+          Vectorize<double, 2> v = evalFitness(
+                  data, times, subsets,
+                  localSettings, qw, qc);
+          return (sqr(qw)/denom)*v[0] + (sqr(qc)/denom)*v[1];
+        };
+
+      double opt[2] = {NAN, NAN};
+      grid.minimize(objf, opt);
+      int minCount = 0;
+      localSettings.wind = QParam(QParam::FIXED, getQw(opt), minCount, 0.5);
+      localSettings.current = QParam(QParam::FIXED, getQc(opt), minCount, 0.5);
+      return localSettings;
+    }
 }
 
 
