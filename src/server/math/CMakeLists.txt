@@ -104,6 +104,8 @@ target_link_libraries(math_Grid
                       common_Array
                       common_BBox
                       common_LineKM
+                      common_ScopedLog
+                      common_string
                      )
 target_depends_on_armadillo(math_Grid)
 
