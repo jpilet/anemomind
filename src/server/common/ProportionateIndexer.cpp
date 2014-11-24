@@ -91,8 +91,8 @@ int ProportionateIndexer::rightChild(int index) {
 
 int ProportionateIndexer::get(double x) const {
   assert(0 <= x);
-  assert(x <= 1.0);
-  return getBySum(0, 0, x*sum()).index;
+  assert(x <= sum());
+  return getBySum(0, 0, x).index;
 }
 
 void ProportionateIndexer::assign(int index0, double newValue) {
