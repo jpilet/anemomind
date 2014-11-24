@@ -10,6 +10,16 @@
 
 namespace sail {
 
+/*
+ * A function that maps a real number in an interval [0, S[
+ * to an integer i in 1..N with an associated proportion p_i,
+ * with
+ *
+ *  p_1 + ... + p_N = S
+ *
+ * If we randomize a number x according to a uniform distribution [0, S[,
+ * the probability that it will map to integer i is p_i/S.
+ */
 class ProportionateIndexer {
  public:
   ProportionateIndexer() : _offset(0), _count(0) {}
