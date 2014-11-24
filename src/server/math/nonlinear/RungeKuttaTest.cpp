@@ -47,12 +47,10 @@ TEST(RungeKutta, BasicDifEq) {
   double time = 0.0;
   Arrayd stateVector(1, &xEst);
 
-  for (int i = 0; i < count; i++) {
+  double totalTime = count*stepSize;
+  for (double time = 0; time < totalTime; time++) {
     double xGt = 5.0 - 2.0*exp(-time);
-
     EXPECT_NEAR(xGt, xEst, 0.01);
-
     rk.step(&stateVector, stepSize);
-    time += stepSize;
   }
 }
