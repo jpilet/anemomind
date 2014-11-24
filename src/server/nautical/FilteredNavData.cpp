@@ -181,7 +181,12 @@ Arrayd FilteredNavData::makeCenteredX() const {
 
 HorizontalMotion<double> FilteredNavData::gpsMotion(double localTime) const {
   return HorizontalMotion<double>::polar(_gpsSpeed.interpolateLinear(localTime),
-    _gpsBearing.interpolateLinear(localTime));
+      _gpsBearing.interpolateLinear(localTime));
+}
+
+HorizontalMotion<double> FilteredNavData::gpsMotionAtIndex(int index) const {
+  return HorizontalMotion<double>::polar(_gpsSpeed.get(index),
+      _gpsBearing.get(index));
 }
 
 }

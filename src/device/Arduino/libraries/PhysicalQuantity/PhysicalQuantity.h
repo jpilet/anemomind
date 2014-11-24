@@ -318,7 +318,8 @@ class Vectorize : public FixedArray<T, N> {
         return result;
     }
 
-    Vectorize<T, N> scaled(double factor) const {
+    template <typename FactorType>
+    Vectorize<T, N> scaled(FactorType factor) const {
         Vectorize result;
         for (int i = 0; i < N; ++i) {
             result[i] = (*this)[i].scaled(factor);

@@ -55,6 +55,10 @@ class FilteredNavData {
     return _awa.sampling();
   }
 
+  double samplingPeriod() const {
+    return sampling().getK();
+  }
+
   int size() const {
     return _awa.size();
   }
@@ -62,6 +66,7 @@ class FilteredNavData {
   Arrayd makeCenteredX() const;
 
   HorizontalMotion<double> gpsMotion(double localTime) const;
+  HorizontalMotion<double> gpsMotionAtIndex(int index) const;
 
   double low() const {
     return _awa.low();
