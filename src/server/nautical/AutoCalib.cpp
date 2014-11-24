@@ -417,9 +417,16 @@ namespace {
     Array<ResidueData> W, C;
     Corrector<double> corr;
     computeWindAndCurrentDerivNorms(&corr, -1, &W, &C);
+    SCOPEDMESSAGE(INFO, stringFormat("Wind qualities spanning from %.3g to %.3g",
+        W.last().calcThresholdQuality(),
+        W.first().calcSquaredThresholdQuality()));
+    SCOPEDMESSAGE(INFO, stringFormat("Current qualities spanning from %.3g to %.3g",
+        C.last().calcThresholdQuality(),
+        C.first().calcSquaredThresholdQuality()));
 
     SCOPEDMESSAGE(INFO, "Compute the wind quality parameter");
     _qualityWind = computeParam(W, _settings.wind);
+
     SCOPEDMESSAGE(INFO, "Compute the current quality parameter");
     _qualityCurrent = computeParam(C, _settings.current);
     SCOPEDMESSAGE(INFO, stringFormat("     Wind quality parameter set to %.3g", _qualityWind));
@@ -663,15 +670,21 @@ namespace {
       ENTER_FUNCTION_SCOPE;
       localSettings.wind = QParam::half(20);
       localSettings.current = QParam::half(20);
+
+
       Objf temp(data, times, localSettings);
 
-      int sampleCountPerDim = 9;
+      int sampleCountPerDim = 30;
 
-      double qw = temp.qualityWind();
-      double qc = temp.qualityCurrent();
+
+      //[INFO /home/jonas/programmering/sailsmart/src/server/nautical/AutoCalib.cpp:672]   Initial qw = 5.15
+      //[INFO /home/jonas/programmering/sailsmart/src/server/nautical/AutoCalib.cpp:673]   Initial qc = 31.8
+      double qw = 5; //temp.qualityWind();
+      double qc = 32; //temp.qualityCurrent();
+
       SCOPEDMESSAGE(INFO, stringFormat("Initial qw = %.3g", qw));
       SCOPEDMESSAGE(INFO, stringFormat("Initial qc = %.3g", qc));
-      double factor = 12;
+      double factor = 30;
       Spand spans[2] = {makeQSpan(qw, factor), makeQSpan(qc, factor)};
       Arrayd initSteps = Arrayd::fill(2, 0.1);
 
@@ -688,11 +701,18 @@ namespace {
           return (sqr(qw)/denom)*v[0] + (sqr(qc)/denom)*v[1];
         };
 
+
+//      [INFO /home/jonas/programmering/sailsmart/src/server/nautical/AutoCalib.cpp:709]   Final qw = 21.5
+//      [INFO /home/jonas/programmering/sailsmart/src/server/nautical/AutoCalib.cpp:710]   Final qc = 7.45
+//      [INFO /home/jonas/programmering/sailsmart/src/server/nautical/AutoCalib.cpp:432]          Wind quality parameter set to 0.337
+//      [INFO /home/jonas/programmering/sailsmart/src/server/nautical/AutoCalib.cpp:433]       Current quality parameter set to 960
       double opt[2] = {NAN, NAN};
       grid.minimize(objf, opt);
       int minCount = 0;
       localSettings.wind = QParam(QParam::FIXED, getQw(opt), minCount, 0.5);
       localSettings.current = QParam(QParam::FIXED, getQc(opt), minCount, 0.5);
+      SCOPEDMESSAGE(INFO, stringFormat("Final qw = %.3g", localSettings.wind.fixedQuality));
+      SCOPEDMESSAGE(INFO, stringFormat("Final qc = %.3g", localSettings.current.fixedQuality));
       return localSettings;
     }
 }
@@ -701,7 +721,7 @@ namespace {
 
 AutoCalib::Results AutoCalib::calibrateAutotuneGame(FilteredNavData data,
     Arrayd times, Array<Arrayb> subsets) const {
-  return calibrateSub(data, times, adjustSettingsCV(data, times, subsets, _settings));
+  return calibrateSub(data, times, optimizeSettingsGridSearch(data, times, subsets, _settings));
 }
 
 
