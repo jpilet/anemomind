@@ -58,18 +58,18 @@ double ProportionateIndexer::fillInnerNodes(int root) {
   }
 }
 
-ProportionateIndexer::LookupResult ProportionateIndexer::getBySum(int node, double cumulative, double x) const {
-  assert(0 <= x);
-  assert(x <= _values[node]);
+ProportionateIndexer::LookupResult ProportionateIndexer::getBySum(int node, double localX, double initX) const {
+  assert(0 <= localX);
+  assert(localX <= _values[node]);
   if (isLeaf(node)) {
-    return LookupResult(node - _offset, cumulative, x);
+    return LookupResult(node - _offset, localX, initX);
   } else {
     int left = leftChild(node);
     double leftSum = _values[left];
-    if (x < leftSum) {
-      return getBySum(left, cumulative, x);
+    if (localX < leftSum) {
+      return getBySum(left, localX, initX);
     } else {
-      return getBySum(rightChild(node), cumulative + leftSum, x - leftSum);
+      return getBySum(rightChild(node), localX - leftSum, initX);
     }
   }
 }
@@ -92,7 +92,7 @@ int ProportionateIndexer::rightChild(int index) {
 int ProportionateIndexer::get(double x) const {
   assert(0 <= x);
   assert(x <= sum());
-  return getBySum(0, 0, x).index;
+  return getBySum(0, x, x).index;
 }
 
 void ProportionateIndexer::assign(int index0, double newValue) {
