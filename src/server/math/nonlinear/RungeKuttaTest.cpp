@@ -38,7 +38,7 @@ TEST(RungeKutta, BasicDifEq) {
   };
 
   Eq eq(targetValue);
-  RungeKutta rk(makeSharedPtrToStack(eq));
+  auto fun = makeSharedPtrToStack(eq);
 
   int count = 300;
   double stepSize = 0.05;
@@ -48,9 +48,9 @@ TEST(RungeKutta, BasicDifEq) {
   Arrayd stateVector(1, &xEst);
 
   double totalTime = count*stepSize;
-  for (double time = 0; time < totalTime; time++) {
+  for (double time = 0; time < totalTime; time += stepSize) {
     double xGt = 5.0 - 2.0*exp(-time);
     EXPECT_NEAR(xGt, xEst, 0.01);
-    rk.step(&stateVector, stepSize);
+    takeRungeKuttaStep(fun, &stateVector, stepSize);
   }
 }
