@@ -41,13 +41,16 @@ class ProportionateIndexer {
   // For advanced use.
   class LookupResult {
    public:
-    LookupResult(int index_, double localX_) :
-      index(index_), localX(localX_) {}
+    LookupResult(int index_, double cumulative_, double localX_) :
+      index(index_), localX(localX_), cumulative(cumulative_) {}
+
     int index;
     double localX;
+    double cumulative;
+    double x() {return cumulative + localX;}
   };
-  LookupResult getBySum(int node, double x) const;
-  LookupResult getBySum(double x) const {return getBySum(0, x);}
+  LookupResult getBySum(int node, double cumulative, double x) const;
+  LookupResult getBySum(double x) const {return getBySum(0, 0, x);}
  private:
   int _offset, _count;
   Arrayd _values;
