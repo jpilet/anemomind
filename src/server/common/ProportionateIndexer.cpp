@@ -97,13 +97,17 @@ int ProportionateIndexer::get(double x) const {
 
 void ProportionateIndexer::assign(int index0, double newValue) {
   int start = index0 + _offset;
-  int index = start;
-  double change = newValue - _values[index];
+
+  // Initialize the leaf node
+  _values[start] = newValue;
+
+  // Loop over inner nodes
+  int index = parent(start);
   while (index != -1) {
-    _values[index] += change;
+    _values[index] = _values[leftChild(index)]
+                   + _values[rightChild(index)];
     index = parent(index);
   }
-  _values[start] = newValue; // Make sure it is exactly the new value
 }
 
 void ProportionateIndexer::remove(int index) {
