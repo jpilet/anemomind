@@ -14,7 +14,7 @@ TEST(PropTest, Test) {
   arr[1] = 2.0;
   arr[2] = 1.0;
   ProportionateIndexer s(arr);
-  EXPECT_NEAR(3.3, s.getBySum(3.3).x, 1.0e-6);
+  EXPECT_NEAR(3.3, s.getAdvanced(3.3).x, 1.0e-6);
   {
     Arrayb remaining = s.remaining();
     Arrayb selected = s.selected();
