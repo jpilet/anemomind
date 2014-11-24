@@ -455,4 +455,26 @@ target_link_libraries(nautical_RaceOverview
                       nautical_TestdataNavs
                       nautical_TemporalSplit
                      )
-                                                                  
+                      
+                      
+add_executable(nautical_CalibrationDemo
+               CalibrationDemo.cpp
+              )
+                                                                                 
+target_link_libraries(nautical_CalibrationDemo
+                      nautical_AutoCalib
+                      common_ArgMap
+                      nautical_TestdataNavs
+                     )
+                     
+add_library(nautical_AutoCalib
+            AutoCalib.h
+            AutoCalib.cpp
+           )
+           
+target_link_libraries(nautical_AutoCalib
+                      nautical_FilteredNavData
+                      math_armaadolc
+                     )
+                     
+target_depends_on_ceres(nautical_AutoCalib)                     

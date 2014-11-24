@@ -85,6 +85,8 @@ void LevmarState::step(const LevmarSettings &settings, Function &fun) {
 
     double norm2F = norm2(_Fscratch.n_elem, _Fscratch.memptr());
 
+    SCOPEDMESSAGE(INFO, stringFormat("Objective function value: %.8g", norm2F));
+
     while (!(_stop || rho > 0)) {
       assert(!std::isnan(_mu));
       arma::mat dX = -arma::solve(JtJ + _mu*arma::eye(JtJ.n_rows, JtJ.n_cols), JtF);
