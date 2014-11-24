@@ -18,7 +18,8 @@
     "leaflet": "~0.7.3",
     "leaflet-tilelayer-geojson": "glenrobertson/leaflet-tilelayer-geojson",
     "sidebar-v2": "~0.2.1",
-    "lodash": "~2.4.1"
+    "lodash": "~2.4.1",
+    "LeafletPlayback": "https://github.com/hallahan/LeafletPlayback.git"
   },
   "devDependencies": {
     "angular-mocks": "1.2.11",
