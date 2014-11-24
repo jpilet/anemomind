@@ -47,3 +47,20 @@ TEST(PropTest, Test) {
     }
   }
 }
+
+TEST(PropTest, RoundOffError) {
+  const double huge = 1.34332e30;
+  const double tiny = 9.239e-12;
+
+  Arrayd arr = Arrayd::args(huge, tiny);
+
+  ProportionateIndexer indexer(arr);
+
+  // Due to cancellation, the tiny number will no be part of the sum.
+  EXPECT_EQ(indexer.sum(), huge);
+
+  indexer.remove(0);
+
+  // Check that the cancellation effect is gone after the huge number is removed.
+  EXPECT_EQ(indexer.sum(), tiny);
+}
