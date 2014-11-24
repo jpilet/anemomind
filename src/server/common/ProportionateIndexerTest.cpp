@@ -56,11 +56,13 @@ TEST(PropTest, RoundOffError) {
 
   ProportionateIndexer indexer(arr);
 
-  // Due to cancellation, the tiny number will no be part of the sum.
+  // Due to cancellation, the tiny number will be treated as 0.
   EXPECT_EQ(indexer.sum(), huge);
 
+  // The huge number is removed...
   indexer.remove(0);
 
-  // Check that the cancellation effect is gone after the huge number is removed.
+  // Check that the cancellation effect is gone after the huge number is removed,
+  // and the sum is that of the tiny number.
   EXPECT_EQ(indexer.sum(), tiny);
 }
