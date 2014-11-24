@@ -25,7 +25,6 @@ class RungeKutta {
   void step(Arrayd *stateVector, double stepSize);
  private:
   std::shared_ptr<Function> _fun;
-  int _dim;
   Arrayd _k1, _k2, _k3, _k4, _temp;
 };
 
