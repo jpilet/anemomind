@@ -49,10 +49,11 @@ class ProportionateIndexer {
     double x;
     double cumulativeLeft() const {return x - localX;}
   };
-  LookupResult getAdvanced(int node, double localX, double initX) const;
   LookupResult getAdvanced(double x) const {return getAdvanced(0, x, x);}
  private:
-  int _offset, _count;
+  LookupResult getAdvanced(int nodeIndex, double localX, double initX) const;
+  int _offset; // Index in the the _values array where the leaf nodes start.
+  int _count; // Number of proportions.
   Arrayd _values;
 
   double fillInnerNodes(int root);

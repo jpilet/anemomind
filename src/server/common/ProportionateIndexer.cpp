@@ -58,18 +58,19 @@ double ProportionateIndexer::fillInnerNodes(int root) {
   }
 }
 
-ProportionateIndexer::LookupResult ProportionateIndexer::getAdvanced(int node, double localX, double initX) const {
+ProportionateIndexer::LookupResult ProportionateIndexer::getAdvanced(int nodeIndex, double localX, double initX) const {
   assert(0 <= localX);
-  assert(localX <= _values[node]);
-  if (isLeaf(node)) {
-    return LookupResult(node - _offset, localX, initX);
+  assert(localX <= _values[nodeIndex]);
+  if (isLeaf(nodeIndex)) {
+    int proportionIndex = nodeIndex - _offset;
+    return LookupResult(proportionIndex, localX, initX);
   } else {
-    int left = leftChild(node);
+    int left = leftChild(nodeIndex);
     double leftSum = _values[left];
     if (localX < leftSum) {
       return getAdvanced(left, localX, initX);
     } else {
-      return getAdvanced(rightChild(node), localX - leftSum, initX);
+      return getAdvanced(rightChild(nodeIndex), localX - leftSum, initX);
     }
   }
 }
