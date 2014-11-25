@@ -54,6 +54,13 @@ namespace sail {
     static constexpr int paramCount() {
       return sizeof(BoatSimulationState)/sizeof(double);
     }
+
+    /*
+     * TODO:
+     * Should we also model the inertia of mechanical details in the instruments,
+     * such as the fact the it may take some time for the wind wheel to change speed if
+     * there is a rapid drop in wind? Or are these things too fine to model?
+     */
   };
 #pragma pack(pop)
 
@@ -175,12 +182,13 @@ class BoatSimulator : public Function {
 
   FullBoatState makeFullState(const BoatSimulationState &state);
 
+  // Evaluates the derivatives of a state
   void eval(double *Xin, double *Fout, double *Jout);
 
   Array<FullBoatState> simulate(Duration<double> simulationDurationti,
     Duration<double> samplingPeriod, int iterationsPerSample);
 
-
+  // For conveniency in synthesizing test data.
   static TwaFunction makePiecewiseTwaFunction(
       Array<Duration<double> > durs,
       Array<Angle<double> > twa);
