@@ -89,6 +89,7 @@ TEST(BoatSimTest, CheckAllValues) {
   auto last = states.last();
   EXPECT_NEAR(90, last.twaWater.degrees(), tol.degrees());
   EXPECT_NEAR(last.boatOrientation.degrees(), 0.0, tol.degrees());
+  EXPECT_NEAR(last.boatSpeedThroughWater.knots(), 1.3 + last.boatMotion.norm().knots(), 0.1);
 }
 
 
