@@ -90,12 +90,6 @@ int ProportionateIndexer::rightChild(int index) {
   return 2*index + 2;
 }
 
-int ProportionateIndexer::get(double x) const {
-  assert(0 <= x);
-  assert(x <= sum());
-  return getAdvanced(0, x, x).index;
-}
-
 void ProportionateIndexer::assign(int index0, double newValue) {
   int start = index0 + _offset;
 
@@ -120,7 +114,7 @@ Arrayd ProportionateIndexer::proportions() const {
 }
 
 int ProportionateIndexer::getAndRemove(double x) {
-  int index = get(x);
+  int index = get(x).index;
   remove(index);
   return index;
 }

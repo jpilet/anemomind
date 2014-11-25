@@ -16,7 +16,7 @@ PiecewiseFunction::PiecewiseFunction(double left, Array<Piece> pieces) :
 }
 
 double PiecewiseFunction::operator() (double x) const {
-  auto result = _indexer.getAdvanced(x - _left);
+  auto result = _indexer.get(x - _left);
   return _pieces[result.index].fun(x - result.cumulativeLeft());
 }
 

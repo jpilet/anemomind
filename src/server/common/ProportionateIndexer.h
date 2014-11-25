@@ -27,7 +27,6 @@ class ProportionateIndexer {
   ProportionateIndexer(int count,
       std::function<double(int)> widthPerProp);
 
-  int get(double x) const;
   void remove(int index);
   void assign(int index, double newValue);
   int getAndRemove(double x);
@@ -49,7 +48,7 @@ class ProportionateIndexer {
     double x;
     double cumulativeLeft() const {return x - localX;}
   };
-  LookupResult getAdvanced(double x) const {return getAdvanced(0, x, x);}
+  LookupResult get(double x) const {return getAdvanced(0, x, x);}
  private:
   LookupResult getAdvanced(int nodeIndex, double localX, double initX) const;
   int _offset; // Index in the the _values array where the leaf nodes start.
