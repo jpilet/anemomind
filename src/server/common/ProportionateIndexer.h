@@ -37,7 +37,6 @@ class ProportionateIndexer {
 
   double sum() const {return _values[0];}
 
-  // For advanced use.
   class LookupResult {
    public:
     LookupResult(int index_, double localX_, double x_) :
