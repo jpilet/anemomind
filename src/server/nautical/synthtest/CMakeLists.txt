@@ -23,3 +23,5 @@ cxx_test(nautical_synthtest_TestDomainTest
          gtest_main
          nautical_synthtest_TestDomainJson
         )                     
+        
+    
