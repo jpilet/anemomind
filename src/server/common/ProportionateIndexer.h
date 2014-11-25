@@ -49,7 +49,6 @@ class ProportionateIndexer {
   };
   LookupResult get(double x) const {return getAdvanced(0, x, x);}
  private:
-  LookupResult getAdvanced(int nodeIndex, double localX, double initX) const;
   int _offset; // Index in the the _values array where the leaf nodes start.
   int _count; // Number of proportions.
   Arrayd _values;
@@ -58,6 +57,7 @@ class ProportionateIndexer {
   static int parent(int index);
   static int leftChild(int index);
   static int rightChild(int index);
+  LookupResult getAdvanced(int nodeIndex, double localX, double initX) const;
 
   bool isLeaf(int index) const {
     return _offset <= index;
