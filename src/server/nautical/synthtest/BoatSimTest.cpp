@@ -63,4 +63,32 @@ TEST(BoatSimTest, SimDirectionChange) {
   EXPECT_NEAR(199, states.last().twaWater.degrees(), tol.degrees());
 }
 
+// Inspired by the test CorrectorTest::BeamReachWithCurrent, but not identical
+TEST(BoatSimTest, CheckAllValues) {
+
+  BoatCharacteristics ch;
+
+  // Wind is blowing from east
+  auto windfun = makeConstantFlow(Velocity<double>::metersPerSecond(12),
+                                  Angle<double>::degrees(270));
+
+  // Current coming from north
+  auto currentfun = makeConstantFlow(Velocity<double>::knots(1.3),
+                                  Angle<double>::degrees(180));
+
+  // We sail north, so the true wind angle is 90 degrees.
+  auto fun = BoatSimulator::makePiecewiseTwaFunction(
+      Array<Duration<double> >::args(Duration<double>::hours(3.0)),
+      Array<Angle<double> >::args(Angle<double>::degrees(90)));
+
+  BoatSimulator simulator(windfun, currentfun, ch, fun);
+
+  Array<BoatSimulator::FullBoatState> states = simulator.simulate(Duration<double>::seconds(90.0),
+      Duration<double>::seconds(1.0), 20);
+
+  auto last = states.last();
+  EXPECT_NEAR(90, last.twaWater.degrees(), tol.degrees());
+  EXPECT_NEAR(last.boatOrientation.degrees(), 0.0, 5.0);
+}
+
 
