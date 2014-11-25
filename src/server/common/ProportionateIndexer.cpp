@@ -58,18 +58,19 @@ double ProportionateIndexer::fillInnerNodes(int root) {
   }
 }
 
-ProportionateIndexer::LookupResult ProportionateIndexer::getBySum(int node, double x) const {
-  assert(0 <= x);
-  assert(x <= _values[node]);
-  if (isLeaf(node)) {
-    return LookupResult(node - _offset, x);
+ProportionateIndexer::LookupResult ProportionateIndexer::getAdvanced(int nodeIndex, double localX, double initX) const {
+  assert(0 <= localX);
+  assert(localX <= _values[nodeIndex]);
+  if (isLeaf(nodeIndex)) {
+    int proportionIndex = nodeIndex - _offset;
+    return LookupResult(proportionIndex, localX, initX);
   } else {
-    int left = leftChild(node);
+    int left = leftChild(nodeIndex);
     double leftSum = _values[left];
-    if (x < leftSum) {
-      return getBySum(left, x);
+    if (localX < leftSum) {
+      return getAdvanced(left, localX, initX);
     } else {
-      return getBySum(rightChild(node), x - leftSum);
+      return getAdvanced(rightChild(nodeIndex), localX - leftSum, initX);
     }
   }
 }
@@ -89,21 +90,19 @@ int ProportionateIndexer::rightChild(int index) {
   return 2*index + 2;
 }
 
-int ProportionateIndexer::get(double x) const {
-  assert(0 <= x);
-  assert(x <= 1.0);
-  return getBySum(0, x*sum()).index;
-}
-
 void ProportionateIndexer::assign(int index0, double newValue) {
   int start = index0 + _offset;
-  int index = start;
-  double change = newValue - _values[index];
+
+  // Initialize the leaf node
+  _values[start] = newValue;
+
+  // Loop over inner nodes
+  int index = parent(start);
   while (index != -1) {
-    _values[index] += change;
+    _values[index] = _values[leftChild(index)]
+                   + _values[rightChild(index)];
     index = parent(index);
   }
-  _values[start] = newValue; // Make sure it is exactly the new value
 }
 
 void ProportionateIndexer::remove(int index) {
@@ -115,7 +114,7 @@ Arrayd ProportionateIndexer::proportions() const {
 }
 
 int ProportionateIndexer::getAndRemove(double x) {
-  int index = get(x);
+  int index = get(x).index;
   remove(index);
   return index;
 }

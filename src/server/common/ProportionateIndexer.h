@@ -10,6 +10,17 @@
 
 namespace sail {
 
+/*
+ * A function that maps a real number in an interval [0, S[
+ * to an integer i in 0..(N-1) with an associated proportion p_i,
+ * with
+ *
+ *  p_0 + ... + p_(N-1) = S
+ *
+ * If we randomize a number x according to a uniform distribution [0, S[,
+ * the probability that it will map to integer i is p_i/S.
+ */
+
 class ProportionateIndexer {
  public:
   ProportionateIndexer() : _offset(0), _count(0) {}
@@ -17,7 +28,6 @@ class ProportionateIndexer {
   ProportionateIndexer(int count,
       std::function<double(int)> widthPerProp);
 
-  int get(double x) const;
   void remove(int index);
   void assign(int index, double newValue);
   int getAndRemove(double x);
@@ -28,24 +38,27 @@ class ProportionateIndexer {
 
   double sum() const {return _values[0];}
 
-  // For advanced use.
   class LookupResult {
    public:
-    LookupResult(int index_, double localX_) :
-      index(index_), localX(localX_) {}
+    LookupResult(int index_, double localX_, double x_) :
+      index(index_), localX(localX_), x(x_) {}
+
     int index;
     double localX;
+    double x;
+    double cumulativeLeft() const {return x - localX;}
   };
-  LookupResult getBySum(int node, double x) const;
-  LookupResult getBySum(double x) const {return getBySum(0, x);}
+  LookupResult get(double x) const {return getAdvanced(0, x, x);}
  private:
-  int _offset, _count;
+  int _offset; // Index in the the _values array where the leaf nodes start.
+  int _count; // Number of proportions.
   Arrayd _values;
 
   double fillInnerNodes(int root);
   static int parent(int index);
   static int leftChild(int index);
   static int rightChild(int index);
+  LookupResult getAdvanced(int nodeIndex, double localX, double initX) const;
 
   bool isLeaf(int index) const {
     return _offset <= index;

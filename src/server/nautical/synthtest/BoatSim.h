@@ -8,9 +8,8 @@
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <memory>
-#include <server/math/nonlinear/RungeKutta.h>
-#include <server/common/Span.h>
-#include <server/common/ProportionateIndexer.h>
+#include <server/common/Array.h>
+#include <server/common/Function.h>
 #include <iosfwd>
 
 namespace sail {
@@ -165,26 +164,14 @@ class BoatSimulator : public Function {
     HorizontalMotion<double> boatMotion;
   };
 
-  /*
-   * An array of TWASpans specify how the boat should be
-   * steered. The helmsman tries to make the TWA of the boat
-   * correspond to targetTWA.
-   */
-  class TwaDirective {
-   public:
-    TwaDirective() : duration(Duration<double>::seconds(NAN)),
-      targetTwa(Angle<double>::degrees(NAN)) {}
-    TwaDirective(Duration<double> d, Angle<double> a) :
-      duration(d), targetTwa(a) {}
-    Duration<double> duration;
-    Angle<double> targetTwa;
-  };
+  // The desired TWA angle at duration since the simulation starts.
+  typedef std::function<Angle<double>(Duration<double>)> TwaFunction;
 
   BoatSimulator(
       FlowFun windFun,
       FlowFun currentFun,
       BoatCharacteristics ch,
-      Array<TwaDirective> twaSpans);
+      TwaFunction twaFunction);
 
   int inDims() {return BoatSimulationState::paramCount();}
   int outDims() {return BoatSimulationState::paramCount();}
@@ -193,17 +180,18 @@ class BoatSimulator : public Function {
 
   void eval(double *Xin, double *Fout, double *Jout);
 
-  Array<FullBoatState> simulate(Duration<double> simulationDuration,
+  Array<FullBoatState> simulate(Duration<double> simulationDurationti,
     Duration<double> samplingPeriod, int iterationsPerSample);
+
+
+  static TwaFunction makePiecewiseTwaFunction(
+      Array<Duration<double> > durs,
+      Array<Angle<double> > twa);
  private:
   FlowFun _windFun;
   FlowFun _currentFun;
   BoatCharacteristics _ch;
-  Array<TwaDirective> _twaSpans;
-  ProportionateIndexer _indexer;
-  Angle<double> getTargetTwa(Duration<double> time) const {
-    return _twaSpans[_indexer.getBySum(time.seconds()).index].targetTwa;
-  }
+  TwaFunction _twaFunction;
 };
 
 std::ostream &operator<<(std::ostream &s,

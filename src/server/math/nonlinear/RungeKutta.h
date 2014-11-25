@@ -19,15 +19,7 @@ namespace sail {
  *
  * assuming no dependence on a time variable.
  */
-class RungeKutta {
- public:
-  RungeKutta(std::shared_ptr<Function> fun);
-  void step(Arrayd *stateVector, double stepSize);
- private:
-  std::shared_ptr<Function> _fun;
-  int _dim;
-  Arrayd _k1, _k2, _k3, _k4, _temp;
-};
+void takeRungeKuttaStep(std::shared_ptr<Function> fun, Arrayd *stateVector, double stepSize);
 
 }
 

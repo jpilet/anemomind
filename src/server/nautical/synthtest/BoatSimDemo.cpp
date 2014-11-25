@@ -58,6 +58,7 @@ namespace {
     plot.show();
   }
 
+
   void ex0() {
     Duration<double> dur = Duration<double>::minutes(0.5);
 
@@ -69,13 +70,11 @@ namespace {
     auto currentfun = makeConstantFlow(Velocity<double>::knots(0.1),
                                     Angle<double>::degrees(90));
 
-    BoatSimulator::TwaDirective d1(dur,
-                                  Angle<double>::degrees(129));
-    BoatSimulator::TwaDirective d2(dur,
-                                  Angle<double>::degrees(199));
 
-    auto twadir = Array<BoatSimulator::TwaDirective>::args(d1, d2);
-    BoatSimulator simulator(windfun, currentfun, ch, twadir);
+    auto fun = BoatSimulator::makePiecewiseTwaFunction(Array<Duration<double> >::args(dur, dur),
+        Array<Angle<double> >::args(Angle<double>::degrees(129), Angle<double>::degrees(199)));
+
+    BoatSimulator simulator(windfun, currentfun, ch, fun);
 
     Array<BoatSimulator::FullBoatState> states = simulator.simulate(1.99*dur,
         Duration<double>::seconds(0.05), 1);

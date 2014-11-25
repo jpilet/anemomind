@@ -21,10 +21,6 @@ namespace {
       return int(fun(x));
     };
   }
-
-  int roundToInt(double x) {
-    return int(round(x));
-  }
 }
 
 TEST(PiecewiseFunctionTest, RoundToInt) {
@@ -34,6 +30,6 @@ TEST(PiecewiseFunctionTest, RoundToInt) {
   LineKM map(-1, 1, -0.5, 19);
   for (int i = 0; i < count; i++) {
     double x = map(sin(97.632324*sin(34.034*i)));
-    EXPECT_EQ(myRoundToInt(x), roundToInt(x));
+    EXPECT_EQ(myRoundToInt(x), int(round(x)));
   }
 }

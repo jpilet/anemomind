@@ -16,7 +16,8 @@ PiecewiseFunction::PiecewiseFunction(double left, Array<Piece> pieces) :
 }
 
 double PiecewiseFunction::operator() (double x) const {
-  return _pieces[_indexer.getBySum(x - _left).index].fun(x);
+  auto result = _indexer.get(x - _left);
+  return _pieces[result.index].fun(result.localX);
 }
 
 std::function<double(double)> PiecewiseFunction::make() const {

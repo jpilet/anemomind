@@ -9,15 +9,6 @@
 
 namespace sail {
 
-RungeKutta::RungeKutta(std::shared_ptr<Function> fun) :
-    _fun(fun), _dim(_fun->inDims()) {
-  CHECK(_fun->inDims() == _fun->outDims());
-  _k1 = Arrayd(_dim);
-  _k2 = Arrayd(_dim);
-  _k3 = Arrayd(_dim);
-  _k4 = Arrayd(_dim);
-  _temp = Arrayd(_dim);
-}
 
 namespace {
   void addWeighted(const Arrayd &a, double lambda, const Arrayd &b, Arrayd dst) {
@@ -31,18 +22,21 @@ namespace {
 }
 
 
-void RungeKutta::step(Arrayd *stateVector, double stepSize) {
-  assert(stateVector->size() == _dim);
-  _fun->eval(stateVector->ptr(), _k1.ptr());
-  addWeighted(*stateVector, 0.5*stepSize, _k1, _temp);
-  _fun->eval(_temp.ptr(), _k2.ptr());
-  addWeighted(*stateVector, 0.5*stepSize, _k2, _temp);
-  _fun->eval(_temp.ptr(), _k3.ptr());
-  addWeighted(*stateVector, stepSize, _k3, _temp);
-  _fun->eval(_temp.ptr(), _k4.ptr());
+void takeRungeKuttaStep(std::shared_ptr<Function> fun, Arrayd *stateVector, double stepSize) {
+  int dim = fun->inDims();
+  Arrayd k1(dim), k2(dim), k3(dim), k4(dim), temp(dim);
+
+  assert(stateVector->size() == dim);
+  fun->eval(stateVector->ptr(), k1.ptr());
+  addWeighted(*stateVector, 0.5*stepSize, k1, temp);
+  fun->eval(temp.ptr(), k2.ptr());
+  addWeighted(*stateVector, 0.5*stepSize, k2, temp);
+  fun->eval(temp.ptr(), k3.ptr());
+  addWeighted(*stateVector, stepSize, k3, temp);
+  fun->eval(temp.ptr(), k4.ptr());
   double factor = stepSize/6;
-  for (int i = 0; i < _dim; i++) {
-    (*stateVector)[i] += factor*(_k1[i] + 2*(_k2[i] + _k3[i]) + _k4[i]);
+  for (int i = 0; i < dim; i++) {
+    (*stateVector)[i] += factor*(k1[i] + 2*(k2[i] + k3[i]) + k4[i]);
   }
 }
 

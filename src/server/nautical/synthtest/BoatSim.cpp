@@ -8,6 +8,8 @@
 #include <server/common/LineKM.h>
 #include <server/common/SharedPtrUtils.h>
 #include <server/common/PhysicalQuantityIO.h>
+#include <server/math/nonlinear/RungeKutta.h>
+#include <server/common/ProportionateIndexer.h>
 
 namespace sail {
 
@@ -30,14 +32,10 @@ BoatSimulator::BoatSimulator(
     FlowFun windFun,
     FlowFun currentFun,
     BoatCharacteristics ch,
-    Array<TwaDirective> twaSpans) :
+    TwaFunction twaFunction) :
         _windFun(windFun),
         _currentFun(currentFun),
-        _ch(ch), _twaSpans(twaSpans) {
-  _indexer = ProportionateIndexer(twaSpans.map<double>([&](TwaDirective d) {
-    return d.duration.seconds();
-  }));
-}
+        _ch(ch), _twaFunction(twaFunction) {}
 
 
 
@@ -80,7 +78,7 @@ void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
   FullBoatState full = makeFullState(state);
 
 
-  double twaAngleErrorRadians = (getTargetTwa(full.time) - full.twaWater).radians();
+  double twaAngleErrorRadians = (_twaFunction(full.time) - full.twaWater).radians();
   Angle<double> targetRudderAngle = Angle<double>::radians(0);
   int errorSign = (twaAngleErrorRadians > 0? 1.0 : -1.0);
   if (std::abs(twaAngleErrorRadians) > _ch.correctionThreshold.radians()) {
@@ -125,14 +123,25 @@ Array<BoatSimulator::FullBoatState> BoatSimulator::simulate(Duration<double> sim
   Array<FullBoatState> dst(sampleCount);
   BoatSimulationState state;
   Arrayd stateVector(state.paramCount(), (double *)(&state));
-  RungeKutta rk(makeSharedPtrToStack(*this));
+  auto fun = makeSharedPtrToStack(*this);
   for (int i = 0; i < sampleCount; i++) {
     dst[i] = makeFullState(state);
     for (int j = 0; j < iterationsPerSample; j++) {
-      rk.step(&stateVector, stepsize);
+      takeRungeKuttaStep(fun, &stateVector, stepsize);
     }
   }
   return dst;
+}
+
+BoatSimulator::TwaFunction BoatSimulator::makePiecewiseTwaFunction(
+    Array<Duration<double> > durs,
+    Array<Angle<double> > twa) {
+  int count = durs.size();
+  Arrayd dursSeconds = durs.map<double>([](Duration<double> x) {return x.seconds();});
+  ProportionateIndexer indexer(dursSeconds);
+  return [=](Duration<double> x) {
+    return twa[indexer.get(x.seconds()).index];
+  };
 }
 
 std::ostream &operator<<(std::ostream &s,
