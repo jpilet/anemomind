@@ -18,7 +18,7 @@ namespace {
       };
   }
 
-  const Angle<double> tol = Angle<double>::degrees(3.0);
+  const Angle<double> tol = Angle<double>::degrees(5.0);
 }
 
 TEST(BoatSimTest, SimLimit) {
@@ -88,7 +88,7 @@ TEST(BoatSimTest, CheckAllValues) {
 
   auto last = states.last();
   EXPECT_NEAR(90, last.twaWater.degrees(), tol.degrees());
-  EXPECT_NEAR(last.boatOrientation.degrees(), 0.0, 5.0);
+  EXPECT_NEAR(last.boatOrientation.degrees(), 0.0, tol.degrees());
 }
 
 
