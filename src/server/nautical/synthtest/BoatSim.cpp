@@ -122,7 +122,7 @@ Array<BoatSimulator::FullBoatState> BoatSimulator::simulate(Duration<double> sim
   double stepsize = samplingPeriod.seconds()/iterationsPerSample;
   Array<FullBoatState> dst(sampleCount);
   BoatSimulationState state;
-  Arrayd stateVector(state.paramCount(), (double *)(&state));
+  Arrayd stateVector = state.toArray();
   auto fun = makeSharedPtrToStack(*this);
   for (int i = 0; i < sampleCount; i++) {
     dst[i] = makeFullState(state);

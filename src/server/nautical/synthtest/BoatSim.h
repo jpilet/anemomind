@@ -19,14 +19,11 @@ namespace sail {
   // for any boat type.
   class BoatSimulationState {
    public:
-    BoatSimulationState() :
-      timeSeconds(0),
-      boatOrientationRadians(0),
-      boatSpeedThroughWaterMPS(0),
-      rudderAngleRadians(0),
-      boatXMeters(0), boatYMeters(0),
-      boatAngularVelocityRadPerSec(0) {}
+    BoatSimulationState() {toArray().setTo(0);}
 
+    Arrayd toArray() {
+      return Arrayd(paramCount(), reinterpret_cast<double*>(this));
+    }
 
     // STATE VARIABLES:
     // I would like to use PhysicalQuantities here,
