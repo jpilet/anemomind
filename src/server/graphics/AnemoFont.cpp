@@ -18,6 +18,7 @@ void Renderer::write(char c) {
   Settings s;
   switch (c) {
    case 'a': {
+     _left += s.straightPadding;
      auto a0 = new Vert(s);
       auto a = Shift::leftAt(a0, _left);
       add(a);
@@ -32,9 +33,11 @@ void Renderer::write(char c) {
 
       auto d = new MiddleBar(Spand(a->middle(), b->middle()), s);
       add(d);
+      _left += s.straightPadding;
      break;
    }
    case 'n': {
+     _left += s.straightPadding;
      auto a0 = new Vert(s);
      auto a = Shift::leftAt(a0, _left);
      add(a);
@@ -46,6 +49,7 @@ void Renderer::write(char c) {
      auto c0 = new Vert(s, Spand(0.5, 1));
      auto c = Shift::middleAt(c0, b->middle());
      add(c);
+     _left += s.straightPadding;
      break;
    }
    case 'e': {
@@ -63,11 +67,16 @@ void Renderer::write(char c) {
      break;
    }
    case 'm': {
-     auto a0 = new Vert(s);
+     _left += s.straightPadding;
+     auto a0 = new Arc(true, false, s, true);
      auto a = Shift::leftAt(a0, _left);
      add(a);
 
-     auto b0 = new Arc(true, true, s);
+     auto g0 = new Vert(s, Spand(0.5, 1.0));
+     auto g = Shift::middleAt(g0, a->middle());
+     add(g);
+
+     auto b0 = new Arc(true, true, s, true);
      auto b = Shift::leftAt(b0, a->rightMost());
      add(b);
 
@@ -75,18 +84,20 @@ void Renderer::write(char c) {
      auto c = Shift::middleAt(c0, b->middle());
      add(c);
 
-     //auto d0 = new Arc(true, false, s);
-     auto d0 = new Vert(s, Spand(0, 0.5));
+     auto d0 = new Arc(true, false, s, true);
      auto d = Shift::middleAt(d0, c->middle());
      add(d);
 
-     auto e0 = new Arc(true, true, s);
+     auto e0 = new Arc(true, true, s, true);
      auto e = Shift::leftAt(e0, d->rightMost());
      add(e);
 
      auto f0 = new Vert(s, Spand(0.5, 1));
      auto f = Shift::middleAt(f0, e->middle());
      add(f);
+     _left += s.straightPadding;
+
+
 
      break;
    }
@@ -110,12 +121,15 @@ void Renderer::write(char c) {
      break;
    }
    case 'i': {
+     _left += s.straightPadding;
      auto a0 = new Vert(s);
      auto a = Shift::leftAt(a0, _left);
      add(a);
+     _left += s.straightPadding;
      break;
    }
    case 'd': {
+     _left += s.straightPadding;
      auto a0 = new Vert(s);
      auto a = Shift::leftAt(a0, _left);
      add(a);

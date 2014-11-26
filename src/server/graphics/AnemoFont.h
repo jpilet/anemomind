@@ -17,11 +17,12 @@ namespace anemofont {
 
 class Settings {
  public:
-  double strokeSize = 0.12;
+  double strokeSize = 0.13;
   double middleBarSize = 0.05;
   double radius = 0.52; // at least 0.5
   double compactRadius = 0.7;
-  double letterSpacing = 0.10;
+  double letterSpacing = 0.12;
+  double straightPadding = 0.03;
 
   double arcfun(double y, bool left, bool compact) const {
     double sol1, sol2;
