@@ -1,0 +1,10 @@
+add_library(graphics_PPM
+            PPM.h
+            PPM.cpp
+           )
+add_executable(graphics_PPMDemo
+               PPMDemo.cpp
+              )
+target_link_libraries(graphics_PPMDemo
+                      graphics_PPM
+                     )                
