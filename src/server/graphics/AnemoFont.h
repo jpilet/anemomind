@@ -20,8 +20,8 @@ class Settings {
   double strokeSize = 0.13;
   double middleBarSize = 0.05;
   double radius = 0.55; // at least 0.5
-  double compactRadius = 0.73;
-  double letterSpacing = 0.12;
+  double compactRadius = 0.77;
+  double letterSpacing = 0.10;
   double straightPadding = 0.03;
 
   double arcfun(double y, bool left, bool compact) const {
