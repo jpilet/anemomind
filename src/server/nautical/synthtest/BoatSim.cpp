@@ -57,8 +57,8 @@ BoatSimulator::FullBoatState BoatSimulator::makeFullState(const BoatSimulationSt
   // the local water surface.
   dst.windWrtCurrent = dst.trueWind - dst.trueCurrent;
 
-  dst.twaWater = (dst.windWrtCurrent.angle() + Angle<double>::radians(M_PI)) - dst.boatOrientation;
-  dst.twsWater = dst.windWrtCurrent.norm();
+  dst.windAngleWrtWater = (dst.windWrtCurrent.angle() + Angle<double>::radians(M_PI)) - dst.boatOrientation;
+  dst.windSpeedWrtWater = dst.windWrtCurrent.norm();
 
   dst.boatMotionThroughWater =
       HorizontalMotion<double>::polar(dst.boatSpeedThroughWater, dst.boatOrientation);
@@ -78,7 +78,7 @@ void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
   FullBoatState full = makeFullState(state);
 
 
-  double twaAngleErrorRadians = (_twaFunction(full.time) - full.twaWater).radians();
+  double twaAngleErrorRadians = (_twaFunction(full.time) - full.windAngleWrtWater).radians();
   Angle<double> targetRudderAngle = Angle<double>::radians(0);
   int errorSign = (twaAngleErrorRadians > 0? 1.0 : -1.0);
   if (std::abs(twaAngleErrorRadians) > _ch.correctionThreshold.radians()) {
@@ -91,7 +91,7 @@ void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
   // The boat strives to reach its target speed, but is slowed down when the rudder angle is nonzero.
   deriv.setBoatSpeedThroughWaterDeriv(Velocity<double>::metersPerSecond(
       _ch.targetSpeedGain()*(
-          _ch.targetSpeedFun(full.twaWater, full.twsWater).metersPerSecond() - state.boatSpeedThroughWater().metersPerSecond())
+          _ch.targetSpeedFun(full.windAngleWrtWater, full.windSpeedWrtWater).metersPerSecond() - state.boatSpeedThroughWater().metersPerSecond())
         - std::abs(_ch.rudderResistanceCoef*sin(full.rudderAngle))*sqr(state.boatSpeedThroughWater().metersPerSecond())));
 
   // The derivative of the boat X and Y positions is the boat motion.
@@ -155,8 +155,8 @@ std::ostream &operator<<(std::ostream &s,
   s << EXPR_AND_VAL_AS_STRING(state.time) << std::endl;
   s << EXPR_AND_VAL_AS_STRING(state.trueCurrent) << std::endl;
   s << EXPR_AND_VAL_AS_STRING(state.trueWind) << std::endl;
-  s << EXPR_AND_VAL_AS_STRING(state.twaWater) << std::endl;
-  s << EXPR_AND_VAL_AS_STRING(state.twsWater) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.windAngleWrtWater) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.windSpeedWrtWater) << std::endl;
   s << EXPR_AND_VAL_AS_STRING(state.windWrtCurrent) << std::endl;
   s << EXPR_AND_VAL_AS_STRING(state.x) << std::endl;
   s << EXPR_AND_VAL_AS_STRING(state.y) << std::endl;

@@ -240,13 +240,13 @@ class BoatSimulator : public Function {
     HorizontalMotion<double> trueWind;
     HorizontalMotion<double> trueCurrent;
     HorizontalMotion<double> windWrtCurrent;
-    Angle<double> twaWater;
-    Velocity<double> twsWater;
+    Angle<double> windAngleWrtWater;
+    Velocity<double> windSpeedWrtWater;
     HorizontalMotion<double> boatMotionThroughWater;
     HorizontalMotion<double> boatMotion;
   };
 
-  // The desired TWA angle at duration since the simulation starts.
+  // The desired TWA at duration since the simulation starts.
   typedef std::function<Angle<double>(Duration<double>)> TwaFunction;
 
   BoatSimulator(
