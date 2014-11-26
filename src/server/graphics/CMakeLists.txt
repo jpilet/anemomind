@@ -7,4 +7,12 @@ add_executable(graphics_PPMDemo
               )
 target_link_libraries(graphics_PPMDemo
                       graphics_PPM
-                     )                
+                     )            
+
+add_library(graphics_AnemoFont
+            AnemoFont.h
+            AnemoFont.cpp
+           )
+target_link_libraries(graphics_AnemoFont
+                      common_logging
+                     )                                    

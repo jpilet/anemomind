@@ -206,6 +206,20 @@ inline int div1(int a, int b) {
   return (a - 1)/b + 1;
 }
 
+template <typename T>
+void solveQuadratic(T a, T b, T *sol1, T *sol2) {
+  T p = -a/2;
+  T q = sqrt(sqr(p) - b);
+  *sol1 = p - q;
+  *sol2 = p + q;
+}
+
+
+template <typename T>
+void solveQuadratic(T x2, T x1, T x0, T *sol1, T *sol2) {
+  solveQuadratic(x1/x2, x0/x2, sol1, sol2);
+}
+
 
 } /* namespace sail */
 
