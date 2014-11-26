@@ -5,6 +5,8 @@
 
 #include "AnemoFont.h"
 #include <server/common/logging.h>
+#include <iostream>
+#include <server/common/string.h>
 
 namespace sail {
 namespace anemofont {
@@ -13,17 +15,137 @@ Renderer::Renderer() : _left(0) {
 }
 
 void Renderer::write(char c) {
+  Settings s;
   switch (c) {
-   case 'a': {break;}
-   case 'n': {break;}
-   case 'e': {break;}
-   case 'm': {break;}
-   case 'o': {break;}
-   case 'i': {break;}
-   case 'd': {break;}
+   case 'a': {
+     auto a0 = new Vert(s);
+      auto a = Shift::leftAt(a0, _left);
+      add(a);
+
+      auto b0 = new Arc(true, true, s);
+      auto b = Shift::leftAt(b0, a->rightMost());
+      add(b);
+
+      auto c0 = new Vert(s, Spand(0.5, 1));
+      auto c = Shift::middleAt(c0, b->middle());
+      add(c);
+
+      auto d = new MiddleBar(Spand(a->middle(), b->middle()), s);
+      add(d);
+     break;
+   }
+   case 'n': {
+     auto a0 = new Vert(s);
+     auto a = Shift::leftAt(a0, _left);
+     add(a);
+
+     auto b0 = new Arc(true, true, s);
+     auto b = Shift::leftAt(b0, a->rightMost());
+     add(b);
+
+     auto c0 = new Vert(s, Spand(0.5, 1));
+     auto c = Shift::middleAt(c0, b->middle());
+     add(c);
+     break;
+   }
+   case 'e': {
+     auto a0 = new Arc(true, false, s);
+     auto a = Shift::leftAt(a0, _left);
+     add(a);
+
+     auto b0 = new Arc(false, false, s);
+     auto b = Shift::middleAt(b0, a->middle());
+     add(b);
+
+     auto d = new MiddleBar(Spand(a->middle(), a->rightMost()), s);
+     add(d);
+
+     break;
+   }
+   case 'm': {
+     auto a0 = new Vert(s);
+     auto a = Shift::leftAt(a0, _left);
+     add(a);
+
+     auto b0 = new Arc(true, true, s);
+     auto b = Shift::leftAt(b0, a->rightMost());
+     add(b);
+
+     auto c0 = new Vert(s, Spand(0.5, 1));
+     auto c = Shift::middleAt(c0, b->middle());
+     add(c);
+
+     //auto d0 = new Arc(true, false, s);
+     auto d0 = new Vert(s, Spand(0, 0.5));
+     auto d = Shift::middleAt(d0, c->middle());
+     add(d);
+
+     auto e0 = new Arc(true, true, s);
+     auto e = Shift::leftAt(e0, d->rightMost());
+     add(e);
+
+     auto f0 = new Vert(s, Spand(0.5, 1));
+     auto f = Shift::middleAt(f0, e->middle());
+     add(f);
+
+     break;
+   }
+   case 'o': {
+     auto a0 = new Arc(true, false, s, true);
+     auto a = Shift::leftAt(a0, _left);
+     add(a);
+
+     auto b0 = new Arc(false, false, s, true);
+     auto b = Shift::middleAt(b0, a->middle());
+     add(b);
+
+     auto c0 = new Arc(true, true, s, true);
+     auto c = Shift::leftAt(c0, b->rightMost());
+     add(c);
+
+     auto d0 = new Arc(false, true, s, true);
+     auto d = Shift::middleAt(d0, c->middle());
+     add(d);
+
+     break;
+   }
+   case 'i': {
+     auto a0 = new Vert(s);
+     auto a = Shift::leftAt(a0, _left);
+     add(a);
+     break;
+   }
+   case 'd': {
+     auto a0 = new Vert(s);
+     auto a = Shift::leftAt(a0, _left);
+     add(a);
+
+     auto b0 = new Arc(true, true, s);
+     auto b = Shift::leftAt(b0, a->rightMost());
+     add(b);
+
+     auto c0 = new Arc(false, true, s);
+     auto c = Shift::middleAt(c0, b->middle());
+     add(c);
+     break;
+   }
    default:
      LOG(FATAL) << "This character is not implemented";
    };
+
+   _left += s.letterSpacing;
+}
+
+Renderer::Vec Renderer::operator() (double x, double y) const {
+  int count = _primitives.size();
+  Renderer::Vec fg{1, 0, 1};
+  Renderer::Vec bg{0, 0, 1};
+  for (int i = 0; i < count; i++) {
+    if (_primitives[i]->inside(x, y)) {
+      return fg;
+    }
+  }
+  return bg;
 }
 
 

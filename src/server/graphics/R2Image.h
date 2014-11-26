@@ -10,6 +10,8 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/graphics/RasterImage.h>
 #include <server/common/LineKM.h>
+#include <iostream>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -33,15 +35,19 @@ class R2Image {
 
   RasterImage<unsigned char, Channels> render(int dstWidth, int dstHeight = -1) {
     assert(definedBounds());
+    assert(height() > 0);
+    assert(width() > 0);
     if (dstHeight == -1) {
       dstHeight = int(round((height()/width())*dstWidth));
     }
+    assert(dstWidth > 0);
+    assert(dstHeight > 0);
     LineKM xmap(0, dstWidth, 0, width());
     LineKM ymap(0, dstHeight, 0, height());
     RasterImage<unsigned char, Channels> dst(dstWidth, dstHeight);
     for (int y = 0; y < dstHeight; y++) {
       for (int x = 0; x < dstWidth; x++) {
-        Vectorize<double, Channels> &srcpixel = (*this)(xmap(x), ymap(y));
+        Vectorize<double, Channels> srcpixel = (*this)(xmap(x), ymap(y));
         Vectorize<unsigned char, Channels> &dstpixel = dst(x, y);
         for (int i = 0; i < Channels; i++) {
           dstpixel[i] = (unsigned char)(round(255.0*srcpixel[i]));

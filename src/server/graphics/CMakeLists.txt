@@ -15,13 +15,14 @@ add_library(graphics_AnemoFont
            )
 target_link_libraries(graphics_AnemoFont
                       common_logging
+                      common_LineKM
                      )                       
                      
                      
-add_library(graphics_MakeLogo
+add_executable(graphics_MakeLogo
             MakeLogo.cpp
            )
 target_link_libraries(graphics_MakeLogo
-                      graphics_AneomFont
+                      graphics_AnemoFont
                       graphics_PPM
                      )                                             
