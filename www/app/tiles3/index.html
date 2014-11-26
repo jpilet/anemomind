@@ -93,10 +93,6 @@
   var geojsonTileLayer = new L.TileLayer.GeoJSON(geojsonURL, {
       clipTiles: true,
       unique: function (feature) { 
-
-        if (singleRace) {
-          geoJSONObjects.push(feature);
-        }
         return feature.id;
       }
     }, {
@@ -129,30 +125,6 @@
   function updateRaceList(races) {
     if (singleRace) {
       $("#home").html('<div id="back">&larr; back to race list</div>');
-
-      // All GeoJSON tiles have been loaded
-      if (tileLeftToBeLoaded === 0) {
-
-        geoJSONObjects.sort(function(a, b) {
-          if (a.properties.time[0] < b.properties.time[0]) return -1;
-          if (a.properties.time[0] > b.properties.time[0]) return 1;
-          return 0;
-        });
-
-        for (var o in geoJSONObjects) {
-          if (!geoJSONObjects[o].geometry.coordinates) {
-            continue;
-          }
-          for (var c in geoJSONObjects[o].geometry.coordinates) {
-            geoJSONPath.geometry.coordinates.push(geoJSONObjects[o].geometry.coordinates[c].reverse());
-          }
-          for (var t in geoJSONObjects[o].properties.time) {
-            geoJSONPath.properties.time.push(geoJSONObjects[o].properties.time[t]);
-          }
-        } 
-        playback.setData(geoJSONPath);
-
-      }
     } else {
       var html = "<h2>Irene's races</h2>";
       for (var i in races) {
@@ -172,17 +144,6 @@
   function selectRace(race) {
     singleRace = true;
     geoJSONObjects = [];
-    geoJSONPath = {
-      type: 'Feature',
-      geometry: {
-        type: 'MultiPoint',
-        coordinates: []
-      },
-      properties: {
-        title: '',
-        time: []
-      }
-    };
     var from = race._popupContent.substring(34, 53);
     var to = race._popupContent.substring(53, 72);
     geojsonURL = '../api/tilesGeoJSON/{z}/{x}/{y}/Irene/' + from + '/' + to;
@@ -195,6 +156,37 @@
       }, {
         style: normalStyle,
         onEachFeature: function (feature, layer) {
+          if (singleRace) {
+            geoJSONObjects.push(feature);
+            geoJSONObjects.sort(function(a, b) {
+              if (a.properties.time[0] < b.properties.time[0]) return -1;
+              if (a.properties.time[0] > b.properties.time[0]) return 1;
+              return 0;
+            });
+            geoJSONPath = {
+              type: 'Feature',
+              geometry: {
+                type: 'MultiPoint',
+                coordinates: []
+              },
+              properties: {
+                title: '',
+                time: []
+              }
+            };
+            for (var o in geoJSONObjects) {
+              if (geoJSONObjects[o].geometry.coordinates) {
+                for (var c in geoJSONObjects[o].geometry.coordinates) {
+                  geoJSONPath.geometry.coordinates.push(geoJSONObjects[o].geometry.coordinates[c]);
+                }
+                for (var t in geoJSONObjects[o].properties.time) {
+                  geoJSONPath.properties.time.push(geoJSONObjects[o].properties.time[t]);
+                }
+              }
+            } 
+            playback.setData(geoJSONPath);
+          }
+
           if (feature.properties) {
             var popupString = '<div class="popup">';
             for (var k in feature.properties) {
