@@ -10,6 +10,8 @@
 #include <server/common/PhysicalQuantityIO.h>
 #include <server/math/nonlinear/RungeKutta.h>
 #include <server/common/ProportionateIndexer.h>
+#include <server/plot/extra.h>
+
 
 namespace sail {
 
@@ -144,6 +146,57 @@ BoatSimulator::TwaFunction BoatSimulator::makePiecewiseTwaFunction(
     return twa[indexer.get(x.seconds()).index];
   };
 }
+
+namespace {
+  Arrayd getTimes(Array<BoatSimulator::FullBoatState> states) {
+    return states.map<double>([=](BoatSimulator::FullBoatState s) {
+      return s.time.seconds();
+    });
+  }
+
+
+  void plotAngles(const char *title, Array<BoatSimulator::FullBoatState> states,
+      std::function<Angle<double>(BoatSimulator::FullBoatState)> fun) {
+    GnuplotExtra plot;
+    plot.set_title(title);
+    plot.set_style("lines");
+    plot.plot_xy(getTimes(states),
+        states.map<Angle<double> >(fun).map<double>([&](Angle<double> x)
+            {return x.degrees();}));
+    plot.show();
+  }
+
+  void plotSpeed(const char *title, Array<BoatSimulator::FullBoatState> states,
+      std::function<Velocity<double>(BoatSimulator::FullBoatState)> fun) {
+    GnuplotExtra plot;
+    plot.set_title(title);
+    plot.set_style("lines");
+    plot.plot_xy(getTimes(states),
+        states.map<Velocity<double> >(fun).map<double>([&](Velocity<double> x)
+            {return x.knots();}));
+    plot.show();
+  }
+
+  void plotTrajectory(Array<BoatSimulator::FullBoatState> states) {
+    GnuplotExtra plot;
+    plot.set_title("Trajectory (meters)");
+    plot.set_style("lines");
+    plot.plot_xy(
+        states.map<double>([&](BoatSimulator::FullBoatState x) {return x.x.meters();}),
+        states.map<double>([&](BoatSimulator::FullBoatState x) {return x.y.meters();})
+    );
+    plot.show();
+  }
+}
+
+void BoatSimulator::makePlots(Array<BoatSimulator::FullBoatState> states) {
+  plotAngles("Rudder angle (degrees)", states, [](const BoatSimulator::FullBoatState &x) {return x.rudderAngle;});
+  plotAngles("Boat orientation (degrees)", states, [](const BoatSimulator::FullBoatState &x) {return x.boatOrientation;});
+  plotSpeed("Boat speed through water (knots)", states, [](const BoatSimulator::FullBoatState &x) {return x.boatSpeedThroughWater;});
+  plotTrajectory(states);
+}
+
+
 
 std::ostream &operator<<(std::ostream &s,
     const BoatSimulator::FullBoatState &state) {

@@ -270,6 +270,8 @@ class BoatSimulator : public Function {
   static TwaFunction makePiecewiseTwaFunction(
       Array<Duration<double> > durs,
       Array<Angle<double> > twa);
+
+  static void makePlots(Array<BoatSimulator::FullBoatState> states);
  private:
   FlowFun _windFun;
   FlowFun _currentFun;

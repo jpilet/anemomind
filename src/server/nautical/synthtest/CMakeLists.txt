@@ -32,6 +32,7 @@ target_link_libraries(nautical_synth_BoatSim
                       math_nonlinear_RungeKutta
                       common_LineKM
                       common_ProportionateIndexer
+                      plot_gnuplot                      
                      )                   
                      
 cxx_test(nautical_synth_BoatSimTest
@@ -46,5 +47,4 @@ add_executable(nautical_synth_BoatSimDemo
                
 target_link_libraries(nautical_synth_BoatSimDemo
                       nautical_synth_BoatSim
-                      plot_gnuplot
                      )
