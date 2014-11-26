@@ -8,6 +8,8 @@
 
 #include <memory>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/graphics/RasterImage.h>
+#include <server/common/LineKM.h>
 
 namespace sail {
 
@@ -20,6 +22,36 @@ class R2Image {
   typedef Vectorize<double, Channels> Vec;
 
   virtual Vec operator() (double x, double y) const = 0;
+
+  // Overriding them is optional
+  virtual double width() const {return NAN;}
+  virtual double height() const {return NAN;}
+
+  bool definedBounds() const {
+    return !std::isnan(width()) && !std::isnan(height());
+  }
+
+  RasterImage<unsigned char, Channels> render(int dstWidth, int dstHeight = -1) {
+    assert(definedBounds());
+    if (dstHeight == -1) {
+      dstHeight = int(round((height()/width())*dstWidth));
+    }
+    LineKM xmap(0, dstWidth, 0, width());
+    LineKM ymap(0, dstHeight, 0, height());
+    RasterImage<unsigned char, Channels> dst(dstWidth, dstHeight);
+    for (int y = 0; y < dstHeight; y++) {
+      for (int x = 0; x < dstWidth; x++) {
+        Vectorize<double, Channels> &srcpixel = (*this)(xmap(x), ymap(y));
+        Vectorize<unsigned char, Channels> &dstpixel = dst(x, y);
+        for (int i = 0; i < Channels; i++) {
+          dstpixel[i] = (unsigned char)(round(255.0*srcpixel[i]));
+        }
+      }
+    }
+    return dst;
+  }
+
+
 
   virtual ~R2Image() {}
 };
