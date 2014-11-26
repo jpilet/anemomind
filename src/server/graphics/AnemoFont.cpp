@@ -30,7 +30,7 @@ void Renderer::write(char c) {
        add(b);
 
        auto c0 = new Arc(true, true, s, true);
-       auto c = Shift::leftAt(c0, a->rightMost());
+       auto c = Shift::leftAt(c0, a->rightMost() - s.intersect);
        add(c);
 
        auto d0 = new Vert(s, Spand(0.5, 1));
@@ -45,7 +45,7 @@ void Renderer::write(char c) {
        add(a);
 
        auto b0 = new Arc(true, true, s);
-       auto b = Shift::leftAt(b0, a->rightMost());
+       auto b = Shift::leftAt(b0, a->rightMost() - s.intersect);
        add(b);
 
        auto c0 = new Vert(s, Spand(0.5, 1));
@@ -65,7 +65,7 @@ void Renderer::write(char c) {
      add(a);
 
      auto b0 = new Arc(true, true, s);
-     auto b = Shift::leftAt(b0, a->rightMost());
+     auto b = Shift::leftAt(b0, a->rightMost() - s.intersect);
      add(b);
 
      auto c0 = new Vert(s, Spand(0.5, 1));
@@ -99,7 +99,7 @@ void Renderer::write(char c) {
      add(g);
 
      auto b0 = new Arc(true, true, s, true);
-     auto b = Shift::leftAt(b0, a->rightMost());
+     auto b = Shift::leftAt(b0, a->rightMost() - s.intersect);
      add(b);
 
      auto c0 = new Vert(s, Spand(0.5, 1));
@@ -111,7 +111,7 @@ void Renderer::write(char c) {
      add(d);
 
      auto e0 = new Arc(true, true, s, true);
-     auto e = Shift::leftAt(e0, d->rightMost());
+     auto e = Shift::leftAt(e0, d->rightMost() - s.intersect);
      add(e);
 
      auto f0 = new Vert(s, Spand(0.5, 1));
@@ -133,7 +133,7 @@ void Renderer::write(char c) {
      add(b);
 
      auto c0 = new Arc(true, true, s, true);
-     auto c = Shift::leftAt(c0, b->rightMost());
+     auto c = Shift::leftAt(c0, b->rightMost() - s.intersect);
      add(c);
 
      auto d0 = new Arc(false, true, s, true);
@@ -157,7 +157,7 @@ void Renderer::write(char c) {
      add(a);
 
      auto b0 = new Arc(true, true, s);
-     auto b = Shift::leftAt(b0, a->rightMost());
+     auto b = Shift::leftAt(b0, a->rightMost() - s.intersect);
      add(b);
 
      auto c0 = new Arc(false, true, s);
@@ -175,7 +175,7 @@ void Renderer::write(char c) {
 Renderer::Vec Renderer::operator() (double x, double y) const {
   int count = _primitives.size();
   Renderer::Vec fg{1, 0, 1};
-  Renderer::Vec bg{0, 0, 1};
+  Renderer::Vec bg{1, 1, 1};
   for (int i = 0; i < count; i++) {
     if (_primitives[i]->inside(x, y)) {
       return fg;

@@ -17,12 +17,26 @@ namespace anemofont {
 
 class Settings {
  public:
+  // How wide the calligraphic pen is
   double strokeSize = 0.13;
+
+  // How thick the horizontal lines in a and e are
   double middleBarSize = 0.05;
+
+  // The radius of the circular arcs in letters such as 'n'
   double radius = 0.55; // at least 0.5
+
+  // The radius of a more compact circular arc used for 'm' and 'o'
   double compactRadius = 0.77;
-  double letterSpacing = 0.10;
-  double straightPadding = 0.03;
+
+  // Basic amount of whitespace between letters
+  double letterSpacing = 0.05;
+
+  // Extra amount of whitespace added at vertical lines
+  double straightPadding = 0.05;
+
+  // How connected the primitives are when they meet
+  double intersect = 0.10;
 
   double arcfun(double y, bool left, bool compact) const {
     double sol1, sol2;
