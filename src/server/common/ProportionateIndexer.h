@@ -20,6 +20,7 @@ namespace sail {
  * If we randomize a number x according to a uniform distribution [0, S[,
  * the probability that it will map to integer i is p_i/S.
  */
+
 class ProportionateIndexer {
  public:
   ProportionateIndexer() : _offset(0), _count(0) {}
