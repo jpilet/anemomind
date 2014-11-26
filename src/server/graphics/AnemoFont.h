@@ -19,8 +19,8 @@ class Settings {
  public:
   double strokeSize = 0.13;
   double middleBarSize = 0.05;
-  double radius = 0.52; // at least 0.5
-  double compactRadius = 0.7;
+  double radius = 0.55; // at least 0.5
+  double compactRadius = 0.73;
   double letterSpacing = 0.12;
   double straightPadding = 0.03;
 

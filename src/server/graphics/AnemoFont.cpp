@@ -18,21 +18,43 @@ void Renderer::write(char c) {
   Settings s;
   switch (c) {
    case 'a': {
+     constexpr bool rounded = true;
      _left += s.straightPadding;
-     auto a0 = new Vert(s);
-      auto a = Shift::leftAt(a0, _left);
-      add(a);
+     if (rounded) {
+       auto a0 = new Arc(true, false, s, true);
+       auto a = Shift::leftAt(a0, _left);
+       add(a);
 
-      auto b0 = new Arc(true, true, s);
-      auto b = Shift::leftAt(b0, a->rightMost());
-      add(b);
+       auto b0 = new Vert(s, Spand(0.5, 1.0));
+       auto b = Shift::middleAt(b0, a->middle());
+       add(b);
 
-      auto c0 = new Vert(s, Spand(0.5, 1));
-      auto c = Shift::middleAt(c0, b->middle());
-      add(c);
+       auto c0 = new Arc(true, true, s, true);
+       auto c = Shift::leftAt(c0, a->rightMost());
+       add(c);
 
-      auto d = new MiddleBar(Spand(a->middle(), b->middle()), s);
-      add(d);
+       auto d0 = new Vert(s, Spand(0.5, 1));
+       auto d = Shift::middleAt(d0, c->middle());
+       add(d);
+
+       auto e = new MiddleBar(Spand(a->middle(), c->middle()), s);
+       add(e);
+     } else {
+       auto a0 = new Vert(s);
+       auto a = Shift::leftAt(a0, _left);
+       add(a);
+
+       auto b0 = new Arc(true, true, s);
+       auto b = Shift::leftAt(b0, a->rightMost());
+       add(b);
+
+       auto c0 = new Vert(s, Spand(0.5, 1));
+       auto c = Shift::middleAt(c0, b->middle());
+       add(c);
+
+       auto d = new MiddleBar(Spand(a->middle(), b->middle()), s);
+       add(d);
+     }
       _left += s.straightPadding;
      break;
    }
