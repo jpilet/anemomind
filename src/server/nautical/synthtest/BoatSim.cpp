@@ -42,12 +42,12 @@ BoatSimulator::BoatSimulator(
 
 BoatSimulator::FullBoatState BoatSimulator::makeFullState(const BoatSimulationState &state) {
   FullBoatState dst;
-  dst.rudderAngle = Angle<double>::radians(state.rudderAngleRadians);
-  dst.x = Length<double>::meters(state.boatXMeters);
-  dst.y = Length<double>::meters(state.boatYMeters);
-  dst.time = Duration<double>::seconds(state.timeSeconds);
-  dst.boatOrientation = Angle<double>::radians(state.boatOrientationRadians);
-  dst.boatSpeedThroughWater = Velocity<double>::metersPerSecond(state.boatSpeedThroughWaterMPS);
+  dst.rudderAngle = state.rudderAngle();
+  dst.x = state.boatX();
+  dst.y = state.boatY();
+  dst.time = state.time();
+  dst.boatOrientation = state.boatOrientation();
+  dst.boatSpeedThroughWater = state.boatSpeedThroughWater();
 
   dst.trueWind = _windFun(dst.x, dst.y, dst.time);
   dst.trueCurrent = _currentFun(dst.x, dst.y, dst.time);
@@ -65,7 +65,7 @@ BoatSimulator::FullBoatState BoatSimulator::makeFullState(const BoatSimulationSt
 
   dst.boatMotion = dst.trueCurrent + dst.boatMotionThroughWater;
 
-  dst.boatAngularVelocity = Angle<double>::radians(state.boatAngularVelocityRadPerSec);
+  dst.boatAngularVelocity = state.boatAngularVelocity();
 
   return dst;
 }
@@ -89,31 +89,32 @@ void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
   // VECTOR WILL EVOLVE.
 
   // The boat strives to reach its target speed, but is slowed down when the rudder angle is nonzero.
-  deriv.boatSpeedThroughWaterMPS =
+  deriv.setBoatSpeedThroughWaterDeriv(Velocity<double>::metersPerSecond(
       _ch.targetSpeedGain()*(
-          _ch.targetSpeedFun(full.twaWater, full.twsWater).metersPerSecond() - state.boatSpeedThroughWaterMPS)
-        - std::abs(_ch.rudderResistanceCoef*sin(full.rudderAngle))*sqr(state.boatSpeedThroughWaterMPS);
+          _ch.targetSpeedFun(full.twaWater, full.twsWater).metersPerSecond() - state.boatSpeedThroughWater().metersPerSecond())
+        - std::abs(_ch.rudderResistanceCoef*sin(full.rudderAngle))*sqr(state.boatSpeedThroughWater().metersPerSecond())));
 
   // The derivative of the boat X and Y positions is the boat motion.
-  deriv.boatXMeters = full.boatMotion[0].metersPerSecond();
-  deriv.boatYMeters = full.boatMotion[1].metersPerSecond();
+  deriv.setBoatXDeriv(full.boatMotion[0]);
+  deriv.setBoatYDeriv(full.boatMotion[1]);
 
   // For a positive rudder angle, the boat orientation will decrease. The faster the boat is moving forward
   // also, the faster the boat will turn. The greater the distance between the rudder and the keel,
   // the slower the boat will turn.
-  deriv.boatOrientationRadians = state.boatAngularVelocityRadPerSec;
+  deriv.setBoatOrientationDeriv(state.boatAngularVelocity());
 
 
-  double dstAngularVel = -full.boatSpeedThroughWater.metersPerSecond()*sin(full.rudderAngle)
-        /(_ch.keelRudderDistance.meters());
-  deriv.boatAngularVelocityRadPerSec = _ch.boatReactiveness*(dstAngularVel - state.boatAngularVelocityRadPerSec);
+  Angle<double> dstAngularVel = Angle<double>::radians(-full.boatSpeedThroughWater.metersPerSecond()*sin(full.rudderAngle)
+        /(_ch.keelRudderDistance.meters()));
+  deriv.setBoatAngularVelocityDeriv(_ch.boatReactiveness*(dstAngularVel - state.boatAngularVelocity()));
 
   // The helmsman seeks to approach a target angle of the rudder.
-  deriv.rudderAngleRadians = _ch.rudderCorrectionCoef*(targetRudderAngle - full.rudderAngle).radians();
-  deriv.rudderAngleRadians += errorSign*_ch.rudderFineTune.radians();
+  double rudderAngleRadians = _ch.rudderCorrectionCoef*(targetRudderAngle - full.rudderAngle).radians();
+  rudderAngleRadians += errorSign*_ch.rudderFineTune.radians();
+  deriv.setRudderAngleDeriv(Angle<double>::radians(rudderAngleRadians));
 
   // The derivative of time w.r.t. time is 1.
-  deriv.timeSeconds = 1.0;
+  deriv.setTimeDeriv(1.0);
 }
 
 Array<BoatSimulator::FullBoatState> BoatSimulator::simulate(Duration<double> simulationDuration,

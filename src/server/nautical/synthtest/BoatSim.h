@@ -25,6 +25,83 @@ namespace sail {
       return Arrayd(paramCount(), reinterpret_cast<double*>(this));
     }
 
+
+    Duration<double> time() const {
+      return Duration<double>::seconds(timeSeconds);
+    }
+
+    Angle<double> boatOrientation() const {
+      return Angle<double>::radians(boatOrientationRadians);
+    }
+
+
+
+     // Since we currently do not have a quantity Angle/Time,
+     // we return it of type Angle (measured per second).
+     // In future we might extend the PhysicalQuantity type to accomodate
+     // such complex quantities.
+     Angle<double> boatAngularVelocity() const {
+       return Angle<double>::radians(boatAngularVelocityRadPerSec);
+     }
+
+
+
+
+
+
+
+     Velocity<double> boatSpeedThroughWater() const {
+       return Velocity<double>::metersPerSecond(boatSpeedThroughWaterMPS);
+     }
+
+     Angle<double> rudderAngle() const {
+       return Angle<double>::radians(rudderAngleRadians);
+     }
+
+     Length<double> boatX() const {
+       return Length<double>::meters(boatXMeters);
+     }
+
+     Length<double> boatY() const {
+       return Length<double>::meters(boatYMeters);
+     }
+
+
+
+
+     void setTimeDeriv(double t = 1.0 /*Dimensionless*/) {
+        timeSeconds = t;
+     }
+
+     void setBoatOrientationDeriv(Angle<double> anglePerSecond) {
+       boatOrientationRadians = anglePerSecond.radians();
+     }
+
+     void setBoatAngularVelocityDeriv(Angle<double> anglePerSquaredSecond) {
+       boatAngularVelocityRadPerSec = anglePerSquaredSecond.radians();
+     }
+
+     void setRudderAngleDeriv(Angle<double> anglePerSecond) {
+       rudderAngleRadians = anglePerSecond.radians();
+     }
+
+     void setBoatSpeedThroughWaterDeriv(Velocity<double> velocityPerSecond) {
+       boatSpeedThroughWaterMPS = velocityPerSecond.metersPerSecond();
+     }
+
+     void setBoatXDeriv(Velocity<double> x) {
+       boatXMeters = x.metersPerSecond();
+     }
+
+     void setBoatYDeriv(Velocity<double> x) {
+       boatYMeters = x.metersPerSecond();
+     }
+
+     static constexpr int paramCount() {
+       return sizeof(BoatSimulationState)/sizeof(double);
+     }
+
+   private:
     // STATE VARIABLES:
     // I would like to use PhysicalQuantities here,
     // but I am not sure they are packed... If we should pack them,
@@ -49,11 +126,9 @@ namespace sail {
     double rudderAngleRadians;
 
     // The boat position in a local coordinate system
+    // Can be mapped to global coordinates using GeographicReference class.
     double boatXMeters, boatYMeters;
 
-    static constexpr int paramCount() {
-      return sizeof(BoatSimulationState)/sizeof(double);
-    }
 
     /*
      * TODO:
