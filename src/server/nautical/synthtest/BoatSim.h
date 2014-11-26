@@ -211,7 +211,8 @@ class BoatCharacteristics {
 
   // How fast the boat reaches its target speed.
   double targetSpeedGain() const {
-    constexpr double log2 = log(2.0);
+    // clang does not like log(2.0) as constexpr.
+    constexpr double log2 = 0.693147180559945309417232121458;
     return log2/halfTargetSpeedTime.seconds();
   }
 
