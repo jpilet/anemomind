@@ -57,38 +57,33 @@ namespace {
     );
     plot.show();
   }
-
-
-  void ex0() {
-    Duration<double> dur = Duration<double>::minutes(0.5);
-
-    BoatCharacteristics ch;
-
-
-    auto windfun = makeConstantFlow(Velocity<double>::metersPerSecond(8),
-                                    Angle<double>::degrees(0));
-    auto currentfun = makeConstantFlow(Velocity<double>::knots(0.1),
-                                    Angle<double>::degrees(90));
-
-
-    auto fun = BoatSimulator::makePiecewiseTwaFunction(Array<Duration<double> >::args(dur, dur),
-        Array<Angle<double> >::args(Angle<double>::degrees(129), Angle<double>::degrees(199)));
-
-    BoatSimulator simulator(windfun, currentfun, ch, fun);
-
-    Array<BoatSimulator::FullBoatState> states = simulator.simulate(1.99*dur,
-        Duration<double>::seconds(0.05), 1);
-
-
-    plotAngles("Rudder angle (degrees)", states, [](const BoatSimulator::FullBoatState &x) {return x.rudderAngle;});
-    plotAngles("Boat orientation (degrees)", states, [](const BoatSimulator::FullBoatState &x) {return x.boatOrientation;});
-    plotSpeed("Boat speed through water (knots)", states, [](const BoatSimulator::FullBoatState &x) {return x.boatSpeedThroughWater;});
-    plotTrajectory(states);
-  }
 }
 
 int main(int argc, const char **argv) {
-  ex0();
+  Duration<double> dur = Duration<double>::minutes(0.5);
+
+  BoatCharacteristics ch;
+
+
+  auto windfun = makeConstantFlow(Velocity<double>::metersPerSecond(8),
+                                  Angle<double>::degrees(0));
+  auto currentfun = makeConstantFlow(Velocity<double>::knots(0.1),
+                                  Angle<double>::degrees(90));
+
+
+  auto fun = BoatSimulator::makePiecewiseTwaFunction(Array<Duration<double> >::args(dur, dur),
+      Array<Angle<double> >::args(Angle<double>::degrees(129), Angle<double>::degrees(199)));
+
+  BoatSimulator simulator(windfun, currentfun, ch, fun);
+
+  Array<BoatSimulator::FullBoatState> states = simulator.simulate(1.99*dur,
+      Duration<double>::seconds(0.05), 1);
+
+
+  plotAngles("Rudder angle (degrees)", states, [](const BoatSimulator::FullBoatState &x) {return x.rudderAngle;});
+  plotAngles("Boat orientation (degrees)", states, [](const BoatSimulator::FullBoatState &x) {return x.boatOrientation;});
+  plotSpeed("Boat speed through water (knots)", states, [](const BoatSimulator::FullBoatState &x) {return x.boatSpeedThroughWater;});
+  plotTrajectory(states);
   return 0;
 }
 
