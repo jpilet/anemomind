@@ -17,6 +17,9 @@ namespace sail {
 #pragma pack(push)
   // This class characterizes the current state of the boat,
   // for any boat type.
+  //
+  // We use it to store both the state and the derivative of the state
+  // w.r.t. time (in seconds).
   class BoatSimulationState {
    public:
     BoatSimulationState() {toArray().setTo(0);}
@@ -26,6 +29,12 @@ namespace sail {
     }
 
 
+
+
+
+    /*
+     * Accessors for reading the individual state variables.
+     */
     Duration<double> time() const {
       return Duration<double>::seconds(timeSeconds);
     }
@@ -34,8 +43,6 @@ namespace sail {
       return Angle<double>::radians(boatOrientationRadians);
     }
 
-
-
      // Since we currently do not have a quantity Angle/Time,
      // we return it of type Angle (measured per second).
      // In future we might extend the PhysicalQuantity type to accomodate
@@ -43,12 +50,6 @@ namespace sail {
      Angle<double> boatAngularVelocity() const {
        return Angle<double>::radians(boatAngularVelocityRadPerSec);
      }
-
-
-
-
-
-
 
      Velocity<double> boatSpeedThroughWater() const {
        return Velocity<double>::metersPerSecond(boatSpeedThroughWaterMPS);
@@ -68,8 +69,10 @@ namespace sail {
 
 
 
-
-     void setTimeDeriv(double t = 1.0 /*Dimensionless*/) {
+    /*
+     * Accessors for setting the derivatives of state variables.
+     */
+     void setTimeDeriv(double t = 1.0 /*Dimensionless, timeunit per timeunit*/) {
         timeSeconds = t;
      }
 
