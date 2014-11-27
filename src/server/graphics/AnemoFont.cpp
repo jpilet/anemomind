@@ -173,9 +173,12 @@ void Renderer::write(char c) {
 }
 
 Renderer::Vec Renderer::operator() (double x, double y) const {
+  Renderer::Vec bg{1, 1, 1};
+  if (x < 0 || _left < x || y < 0 || 1 < y) {
+    return bg;
+  }
   int count = _primitives.size();
   Renderer::Vec fg{1, 0, 1};
-  Renderer::Vec bg{1, 1, 1};
   for (int i = 0; i < count; i++) {
     if (_primitives[i]->inside(x, y)) {
       return fg;

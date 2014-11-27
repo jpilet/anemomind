@@ -18,7 +18,7 @@ namespace anemofont {
 class Settings {
  public:
   // How wide the calligraphic pen is
-  double strokeSize = 0.13;
+  double strokeSize = 0.12;
 
   // How thick the horizontal lines in a and e are
   double middleBarSize = 0.05;
@@ -33,6 +33,7 @@ class Settings {
   double letterSpacing = 0.05;
 
   // Extra amount of whitespace added at vertical lines
+  // (because rounded lines are already surrounded with lots of white space)
   double straightPadding = 0.05;
 
   // How connected the primitives are when they meet

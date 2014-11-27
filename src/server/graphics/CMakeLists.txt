@@ -7,7 +7,13 @@ add_executable(graphics_PPMDemo
               )
 target_link_libraries(graphics_PPMDemo
                       graphics_PPM
-                     )            
+                     )           
+                     
+                     
+add_library(graphics_PBM
+            PBM.h
+            PBM.cpp
+           )                      
 
 add_library(graphics_AnemoFont
             AnemoFont.h
@@ -25,4 +31,14 @@ add_executable(graphics_MakeLogo
 target_link_libraries(graphics_MakeLogo
                       graphics_AnemoFont
                       graphics_PPM
-                     )                                             
+                      graphics_TextDistort
+                     )
+                     
+add_library(graphics_TextDistort
+            TextDistort.h
+            TextDistort.cpp
+           )
+target_link_libraries(graphics_TextDistort
+                     )
+
+target_depends_on_armadillo(graphics_TextDistort)                                                                                     
