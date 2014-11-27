@@ -9,6 +9,7 @@
 #include <iostream>
 #include <server/graphics/PBM.h>
 #include <server/graphics/BitMapText.h>
+#include <server/graphics/DualColorText.h>
 
 using namespace sail;
 
