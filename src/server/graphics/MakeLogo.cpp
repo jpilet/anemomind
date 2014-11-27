@@ -7,10 +7,13 @@
 #include <server/graphics/PPM.h>
 #include <server/graphics/TextDistort.h>
 #include <iostream>
+#include <server/graphics/PBM.h>
 
 using namespace sail;
 
 int main(int argc, const char **argv) {
+  BoolMapImage bm = readPBM("/home/jonas/Documents/anemomind.pbm");
+
   std::string s = "anemomind";
   anemofont::Renderer *renderer = new anemofont::Renderer();
   for (int i = 0; i < s.size(); i++) {

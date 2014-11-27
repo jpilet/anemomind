@@ -31,6 +31,7 @@ add_executable(graphics_MakeLogo
 target_link_libraries(graphics_MakeLogo
                       graphics_AnemoFont
                       graphics_PPM
+                      graphics_PBM
                       graphics_TextDistort
                      )
                      

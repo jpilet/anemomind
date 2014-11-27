@@ -63,6 +63,7 @@ class R2Image {
 };
 
 typedef R2Image<3> R2ImageRGB;
+typedef R2Image<2> R2Image1;
 
 template <int Channels>
 class R2ImageTranslate : public R2Image<Channels> {

@@ -7,6 +7,7 @@
 #define PBM_H_
 
 #include <server/graphics/RasterImage.h>
+#include <string>
 
 namespace sail {
 
