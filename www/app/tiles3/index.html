@@ -146,6 +146,7 @@
     geoJSONObjects = [];
     console.log(race._popupContent);
     // TODO: do not take the time data from the popup and do not hardcode the substring position.
+    if (race._popupContent.substring(29,34) !== 'Irene') throw 'Err: boat is not Irene';
     var from = race._popupContent.substring(34, 53);
     var to = race._popupContent.substring(53, 72);
     geojsonURL = '../api/tilesGeoJSON/{z}/{x}/{y}/Irene/' + from + '/' + to;
