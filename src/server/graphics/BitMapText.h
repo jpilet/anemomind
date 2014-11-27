@@ -10,10 +10,11 @@
 
 namespace sail {
 
-class BitMapText : public R2Image1 {
+class BitMapText {
  public:
   BitMapText(BoolMapImage im);
-  Vec operator() (double x, double y) const;
+
+  bool operator() (double x, double y) const;
 
   double height() const {
     return 1.0;

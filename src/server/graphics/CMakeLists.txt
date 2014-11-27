@@ -25,6 +25,11 @@ target_link_libraries(graphics_AnemoFont
                      )                       
                      
                      
+add_library(graphics_BitMapText
+            BitMapText.h
+            BitMapText.cpp
+           )         
+                     
 add_executable(graphics_MakeLogo
             MakeLogo.cpp
            )
@@ -32,6 +37,7 @@ target_link_libraries(graphics_MakeLogo
                       graphics_AnemoFont
                       graphics_PPM
                       graphics_PBM
+                      graphics_BitMapText
                       graphics_TextDistort
                      )
                      

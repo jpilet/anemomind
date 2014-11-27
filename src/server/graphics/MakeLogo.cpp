@@ -8,11 +8,14 @@
 #include <server/graphics/TextDistort.h>
 #include <iostream>
 #include <server/graphics/PBM.h>
+#include <server/graphics/BitMapText.h>
 
 using namespace sail;
 
 int main(int argc, const char **argv) {
   BoolMapImage bm = readPBM("/home/jonas/Documents/anemomind.pbm");
+  BitMapText bmt(bm);
+  std::cout << EXPR_AND_VAL_AS_STRING(bmt.width()) << std::endl;
 
   std::string s = "anemomind";
   anemofont::Renderer *renderer = new anemofont::Renderer();

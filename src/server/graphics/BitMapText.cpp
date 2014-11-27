@@ -29,7 +29,7 @@ namespace {
   }
 
   int leftmost(BoolMapImage im) {
-    for (int i = 0; i < im.width(); im++) {
+    for (int i = 0; i < im.width(); i++) {
       if (colHasData(im, i)) {
         return i;
       }
@@ -72,13 +72,13 @@ BitMapText::BitMapText(BoolMapImage im) :
   _width = _xmap.inv(rightmost(im));
 }
 
-BitMapText::Vec BitMapText::operator() (double x, double y) const {
+bool BitMapText::operator() (double x, double y) const {
   int ix = int(floor(_xmap(x)));
   int iy = int(floor(_ymap(y)));
   if (_im.valid(ix, iy)) {
-    return BitMapText::Vec{_im(x, y)};
+    return _im(x, y)[0];
   }
-  return BitMapText::Vec{false};
+  return false;
 }
 
 
