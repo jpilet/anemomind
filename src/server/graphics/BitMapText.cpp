@@ -4,6 +4,8 @@
  */
 
 #include "BitMapText.h"
+#include <server/common/string.h>
+#include <iostream>
 
 namespace sail {
 
@@ -67,16 +69,35 @@ namespace {
 
 BitMapText::BitMapText(BoolMapImage im) :
     _im(im) {
+    {
+      auto s = im.getStorage();
+      int n = s.size();
+      int counter = 0;
+      for (int i = 0; i < n; i++) {
+        if (s[i][0]) {
+          counter++;
+        }
+      }
+      std::cout << EXPR_AND_VAL_AS_STRING(counter) << std::endl;
+      std::cout << EXPR_AND_VAL_AS_STRING(n) << std::endl;
+      std::cout << EXPR_AND_VAL_AS_STRING(double(counter)/n) << std::endl;
+    }
+
   _ymap = LineKM(0, 1, topmost(im), bottommost(im));
   _xmap = LineKM(_ymap.getK(), leftmost(im));
   _width = _xmap.inv(rightmost(im));
+
+  std::cout << EXPR_AND_VAL_AS_STRING(_ymap(0)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(_ymap(1)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(_xmap(0)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(_xmap(_width)) << std::endl;
 }
 
 bool BitMapText::operator() (double x, double y) const {
   int ix = int(floor(_xmap(x)));
   int iy = int(floor(_ymap(y)));
   if (_im.valid(ix, iy)) {
-    return _im(x, y)[0];
+    return _im(ix, iy)[0];
   }
   return false;
 }

@@ -23,9 +23,22 @@ int main(int argc, const char **argv) {
   for (int i = 0; i < s.size(); i++) {
     renderer->write(s[i]);
   }
-  double y[3] = {0.2, 0.2, 0};
-  TextDistort td(y, R2ImageRGB::Ptr(renderer));
-  writePPM("/home/jonas/Desktop/logo.ppm", td.render(1000));
+  double bending = 0.2;
+  double y[3] = {bending, bending, 0};
+  //:212, G:0, B:87
+  double f = 1.0/255;
+  R2ImageRGB::Vec bg{1, 1, 1};
+  R2ImageRGB::Vec fg1{0, 0, 0};
+  R2ImageRGB::Vec fg2{f*212, 0, f*87};
+  R2ImageRGB::Ptr dc(new DualColorText(bmt, bg, fg1, fg2, 0.58));
+
+  std::cout << EXPR_AND_VAL_AS_STRING(dc->width()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(dc->height()) << std::endl;
+
+  TextDistort::Ptr td(new TextDistort(y, dc));
+  R2ImageRemapXY<3> remap(td, LineKM(0.5, 0.0), LineKM::identity());
+  writePPM("/home/jonas/Desktop/logo.ppm", remap.render(1000));
+  //writePPM("/home/jonas/Desktop/logo.ppm", dc->render(1000));
   std::cout << "Rendered logo" << std::endl;
   return 0;
 }

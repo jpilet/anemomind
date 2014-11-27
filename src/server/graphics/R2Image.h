@@ -66,21 +66,30 @@ typedef R2Image<3> R2ImageRGB;
 typedef R2Image<1> R2Image1;
 
 template <int Channels>
-class R2ImageTranslate : public R2Image<Channels> {
+class R2ImageRemapXY : public R2Image<Channels> {
  public:
   typedef typename R2Image<Channels>::Ptr Ptr;
   typedef typename R2Image<Channels>::Vec Vec;
 
-  R2ImageTranslate(Ptr dst,
-      double xt, double yt) :
-    _dst(dst), _xt(xt), _yt(yt) {}
+  R2ImageRemapXY(Ptr dst, LineKM xmap, LineKM ymap) :
+    _dst(dst),
+    _invXMap(xmap.makeInvFun()),
+    _invYMap(ymap.makeInvFun()) {}
 
   Vec operator() (double x, double y) const {
-    return (*_dst)(x - _xt, y - _yt);
+    return (*_dst)(_invXMap(x), _invYMap(y));
+  }
+
+  double width() const {
+    return _invXMap.inv(_dst->width());
+  }
+
+  double height() const {
+    return _invYMap.inv(_dst->height());
   }
  private:
   Ptr _dst;
-  double _xt, _yt;
+  LineKM _invXMap, _invYMap;
 };
 
 
