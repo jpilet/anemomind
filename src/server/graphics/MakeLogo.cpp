@@ -17,9 +17,35 @@ using namespace sail;
 int main(int argc, const char **argv) {
   if (true) {
 
-    Logo logo(makeLogoSettings6());
-    writePPM("/home/jonas/Desktop/logo.ppm", logo.render(1000));
+    const int count = 3;
+    Logo::Settings settings[3] = {makeLogoSettings2(), makeLogoSettings7(), makeLogoSettings8()};
 
+    for (int j = 0; j < 2; j++) {
+      bool mirror = (j == 0? false : true);
+      for (int i = 0; i < 3; i++) {
+        Logo::Settings s = settings[i];
+
+        BoolMapImage bm = readPBM("/home/jonas/Images/anemomind/anemomind_neutra.pbm");
+        BitMapText bmt(bm);
+
+        Logo::Colors colors;
+
+        double scale = 0.9;
+        double margin = 0.18;
+        LineKM xmap(scale, margin);
+        LineKM ymap(scale, 0.0);
+
+        R2ImageRGB::Ptr dc(new R2ImageRemapXY<3>(
+            R2ImageRGB::Ptr(new DualColorText(bmt, colors.bg, colors.max, colors.max, 1.0)),
+            xmap, ymap));
+        Logo *logo = new Logo(s);
+        logo->setSize(1.0, 1.2);
+        Combine combine(Logo::Ptr(logo), dc, mirror);
+        std::cout << EXPR_AND_VAL_AS_STRING(combine.width()) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(combine.height()) << std::endl;
+        writePPM(stringFormat("/home/jonas/Desktop/logo%d_%d.ppm", i, mirror), combine.render(1000));
+      }
+    }
 
   } else {
     BoolMapImage bm = readPBM("/home/jonas/Documents/anemomind.pbm");

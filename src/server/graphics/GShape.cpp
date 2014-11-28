@@ -8,6 +8,16 @@
 
 namespace sail {
 
+GSettings::GSettings() {
+  colormap = Arrayi(4);
+  colormap[0] = 0;
+  colormap[1] = 0;
+  colormap[2] = 1;
+  colormap[3] = 2;
+}
+
+
+
 int GShape::operator() (double x, double y) const {
   if (inside(x, y)) {
     double k = _settings.width + _settings.space;

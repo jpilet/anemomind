@@ -54,6 +54,8 @@ Logo::Logo(Settings s) : _A(s.A), _G(s.G),
            _aLine(s.A.makeALine()) {
   _bender = Bender(-_aLine.getM(), -_aLine.getK(), 0.0);
   _aCurve = _bender + Bender(0.0, _aLine.getK(), _aLine.getM());
+  _width = 2;
+  _height = 2;
 }
 
 int Logo::getColorCode(double xDist, double yDist) const {
@@ -68,21 +70,16 @@ int Logo::getColorCode(double xDist, double yDist) const {
     double xLocal = w*yClosest;
     double yLocal = w*sqrt(sqr(xClosest - xDist) + sqr(yClosest - yDist));
     int gIndex = _G(xLocal, yLocal);
-    int n = _G.count() - 3;
     if (gIndex == -1) {
       return -1;
     } else {
-      if (gIndex < n) {
-        return 0;
-      } else {
-        return gIndex - n;
-      }
+      return _G.settings().colormap[gIndex];
     }
   }
 }
 
 Logo::Vec Logo::operator() (double x, double y) const {
-  int index = getColorCode(x - 0.5*_A.width(), 2.0 - y);
+  int index = getColorCode(x - 0.5*_A.width(), _height - y);
   switch (index) {
    case -1:
      return _colors.bg;
@@ -107,6 +104,7 @@ Logo::Settings makeLogoSettings2() {
   s.A.hasWaist = false;
   s.A.strokeWidth = 0.0;
   s.G.margin = s.G.space;
+  s.G.height = 1.0/goldenRatio();
   return s;
 }
 
@@ -134,7 +132,32 @@ Logo::Settings makeLogoSettings6() {
   Logo::Settings s = makeLogoSettings5();
   s.G.margin = s.G.space;
   return s;
+}
 
+namespace {
+  Arrayi makeColormap6() {
+    Arrayi m(6);
+    m[0] = 0;
+    m[1] = 0;
+    m[2] = 0;
+    m[3] = 1;
+    m[4] = 1;
+    m[5] = 2;
+    return m;
+  }
+}
+
+Logo::Settings makeLogoSettings7() {
+  Logo::Settings s = makeLogoSettings2();
+  s.G.colormap = makeColormap6();
+  s.G.height = 1.0;
+  return s;
+}
+
+Logo::Settings makeLogoSettings8() {
+  Logo::Settings s = makeLogoSettings2();
+  s.G.height = 1.0;
+  return s;
 }
 
 

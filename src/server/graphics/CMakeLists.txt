@@ -52,6 +52,7 @@ target_link_libraries(graphics_MakeLogo
                       graphics_BitMapText
                       graphics_TextDistort
                       graphics_Logo
+                      common_string
                      )
                      
 add_library(graphics_AShape

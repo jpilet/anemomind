@@ -6,6 +6,7 @@
 #ifndef LOGO_H_
 #define LOGO_H_
 
+#include <server/common/math.h>
 #include <server/graphics/AShape.h>
 #include <server/graphics/GShape.h>
 #include <cmath>
@@ -66,9 +67,16 @@ class Logo : public R2ImageRGB {
 
   Vec operator() (double x, double y) const;
 
-  double width() const {return 2;}
-  double height() const {return 2;}
+  double width() const {return _width;}
+  double height() const {return _height;}
+
+  void setSize(double w, double h) {
+    _width = w;
+    _height = h;
+  }
  private:
+  double _width;
+  double _height;
   Colors _colors;
   Bender _bender, _aCurve;
   LineKM _aLine;
@@ -82,9 +90,37 @@ Logo::Settings makeLogoSettings3();
 Logo::Settings makeLogoSettings4();
 Logo::Settings makeLogoSettings5();
 Logo::Settings makeLogoSettings6();
+Logo::Settings makeLogoSettings7();
+Logo::Settings makeLogoSettings8();
 Array<Logo::Settings> makeLogoSettings();
 
+class Combine : public R2ImageRGB {
+ public:
+  Combine(R2ImageRGB::Ptr icon, R2ImageRGB::Ptr text,
+      bool mirror) : _icon(icon), _text(text), _mirror(mirror),
+      _w0(_icon->width()), _hOffset(icon->height() - text->height()) {}
 
+  double width() const {
+    return _icon->width() + _text->width();
+  }
+
+  double height() const {
+    return std::max(_icon->height(), _text->height());
+  }
+
+  Vec operator() (double x, double y) const {
+    if (x < _w0) {
+      return (*_icon)((_mirror? _w0 - x : x), y);
+    } else {
+      return (*_text)(x - _w0, y - _hOffset);
+    }
+  }
+ private:
+  R2ImageRGB::Ptr _icon, _text;
+  bool _mirror;
+  double _w0;
+  double _hOffset;
+};
 
 
 }

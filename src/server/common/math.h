@@ -220,6 +220,10 @@ void solveQuadratic(T x2, T x1, T x0, T *sol1, T *sol2) {
   solveQuadratic(x1/x2, x0/x2, sol1, sol2);
 }
 
+constexpr double goldenRatio() {
+  return (1.0 + sqrt(5.0))/2.0;
+}
+
 
 } /* namespace sail */
 
