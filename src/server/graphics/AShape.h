@@ -22,9 +22,9 @@ class ASettings {
   double width = 0.7;
   double height = 2.0;
   bool filled = true;
-  bool hasWaist;
-  double strokeWidth = 0.2;
-  double waistHeight = 0.3;
+  bool hasWaist = true;
+  double strokeWidth = 0.15;
+  double waistHeight = 0.18;
 
   LineKM makeALine() const {
     return LineKM(0, 1, width/2, 0);
@@ -58,6 +58,9 @@ class AShape  {
   double width() const {
     return _settings.width;
   }
+
+  bool onLeftBorder(double x, double y) const;
+  bool onRightBorder(double x, double y) const;
  private:
   LineKM _bdfun;
   ASettings _settings;

@@ -17,11 +17,10 @@ AShape::AShape(ASettings settings) :
 
 bool AShape::operator() (double x, double y) const {
   if (inside(x, y)) {
-    bool onb = onBorder(x, y);
-    return onb;
+    bool onb = onLeftBorder(x, y);
 
     if (_settings.filled) {
-      if (x >= 0 && onb) { // On the right border
+      if (onb) { // On the right border
         return false;
       } else { // On the inside
         if (_settings.hasWaist) {
@@ -43,10 +42,19 @@ bool AShape::operator() (double x, double y) const {
   return false;
 }
 
-bool AShape::onBorder(double x, double y) const {
+bool AShape::onLeftBorder(double x, double y) const {
   arma::vec2 X{x, y};
-  return std::abs(arma::dot(X - _top, _leftNormal)) <= _settings.strokeWidth ||
-      std::abs(arma::dot(X - _top, _rightNormal)) <= _settings.strokeWidth;
+  return std::abs(arma::dot(X - _top, _leftNormal)) <= _settings.strokeWidth;
+}
+
+bool AShape::onRightBorder(double x, double y) const {
+  arma::vec2 X{x, y};
+  return std::abs(arma::dot(X - _top, _rightNormal)) <= _settings.strokeWidth;
+}
+
+
+bool AShape::onBorder(double x, double y) const {
+  return onLeftBorder(x, y) || onRightBorder(x, y);
 }
 
 }
