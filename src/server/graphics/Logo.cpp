@@ -4,6 +4,8 @@
  */
 
 #include "Logo.h"
+#include <server/math/ADFunction.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -23,10 +25,79 @@ Bender::Bender(double x[3]) {
   _c = X(2, 0);
 }
 
+double Bender::findClosestYReversed(double x, double y, int iters) const {
+  double xSol = x;
+  for (int i = 0; i < iters; i++) {
+    iterateClosestReversed(&xSol, x, y);
+  }
+  return xSol;
+}
+
+void Bender::iterateClosestReversed(double *x, double xDst, double yDst) const {
+  arma::vec2 tangent = normalize(arma::vec{1.0, evalDeriv(*x)});
+  double step = arma::dot(tangent, arma::vec2{xDst - *x, yDst - eval(*x)});
+  *x += step*tangent[0];
+}
+
+
+Logo::Colors::Colors() {
+  double f = 1.0/255;
+  double g = 0.5;
+
+  bg = Vec{1, 1, 1};
+  fg = Vec{g, g, g};
+  magenta = Vec{f*212, 0, f*87};
+  max = Vec{0, 0, 0};
+}
+
 Logo::Logo(ASettings as,
            GSettings gs) : _A(as), _G(gs),
            _aLine(as.makeALine()) {
   _bender = Bender(-_aLine.getM(), -_aLine.getK(), 0.0);
+  _aCurve = _bender + Bender(0.0, _aLine.getK(), _aLine.getM());
+}
+
+int Logo::getColorCode(double xDist, double yDist) const {
+  double xUndist = xDist - _bender.eval(yDist);
+  if (xUndist <= _aLine(yDist)) {
+    return -1;
+    //return (_A(xUndist, yDist)? 0 : -1);
+  } else {
+    double yClosest = _aCurve.findClosestY(xDist, yDist);
+    double xClosest = _aCurve.eval(yClosest);
+
+    double w = _G.width();
+    double xLocal = w*yClosest;
+    double yLocal = w*sqrt(sqr(xClosest - xDist) + sqr(yClosest - yDist));
+    int gIndex = _G(xLocal, yLocal);
+    int n = _G.count() - 2;
+    if (gIndex == -1) {
+      return -1;
+    } else {
+      if (gIndex < n) {
+        return 0;
+      } else {
+        return gIndex - n;
+      }
+    }
+  }
+}
+
+Logo::Vec Logo::operator() (double x, double y) const {
+  int index = getColorCode(x - 0.5*_A.width(), 2.0 - y);
+  switch (index) {
+   case -1:
+     return _colors.bg;
+   case 0:
+     return _colors.fg;
+   case 1:
+     return _colors.magenta;
+   case 2:
+     return _colors.max;
+   default:
+     LOG(FATAL) << "Illegal color code";
+  };
+  return Logo::Vec();
 }
 
 

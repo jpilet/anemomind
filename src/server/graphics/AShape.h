@@ -12,6 +12,11 @@
 
 namespace sail {
 
+inline arma::vec2 normalize(const arma::vec2 &x) {
+  double len = arma::norm(x, 2);
+  return (1.0/len)*x;
+}
+
 class ASettings {
  public:
   double width = 0.5;
@@ -48,6 +53,10 @@ class AShape  {
 
   bool onWaist(double x, double y) const {
     return _settings.waistHeight <= y && y <= _settings.waistHeight + _settings.strokeWidth;
+  }
+
+  double width() const {
+    return _settings.width;
   }
  private:
   LineKM _bdfun;

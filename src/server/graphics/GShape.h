@@ -36,6 +36,9 @@ class GShape {
     return false;
   }
 
+  int count() const {
+    return _settings.count;
+  }
  private:
   GSettings _settings;
 };

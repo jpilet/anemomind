@@ -7,12 +7,6 @@
 
 namespace sail {
 
-namespace {
-  arma::vec2 normalize(const arma::vec2 &x) {
-    double len = arma::norm(x, 2);
-    return (1.0/len)*x;
-  }
-}
 
 AShape::AShape(ASettings settings) :
   _settings(settings), _bdfun(0, 1, settings.width/2.0, 0.0),
