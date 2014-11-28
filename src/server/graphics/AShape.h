@@ -19,7 +19,7 @@ inline arma::vec2 normalize(const arma::vec2 &x) {
 
 class ASettings {
  public:
-  double width = 0.5;
+  double width = 0.7;
   double height = 2.0;
   bool filled = true;
   bool hasWaist;

@@ -60,8 +60,7 @@ Logo::Logo(ASettings as,
 int Logo::getColorCode(double xDist, double yDist) const {
   double xUndist = xDist - _bender.eval(yDist);
   if (xUndist <= _aLine(yDist)) {
-    return -1;
-    //return (_A(xUndist, yDist)? 0 : -1);
+    return (_A(xUndist, yDist)? 0 : -1);
   } else {
     double yClosest = _aCurve.findClosestY(xDist, yDist);
     double xClosest = _aCurve.eval(yClosest);
@@ -70,7 +69,7 @@ int Logo::getColorCode(double xDist, double yDist) const {
     double xLocal = w*yClosest;
     double yLocal = w*sqrt(sqr(xClosest - xDist) + sqr(yClosest - yDist));
     int gIndex = _G(xLocal, yLocal);
-    int n = _G.count() - 2;
+    int n = _G.count() - 3;
     if (gIndex == -1) {
       return -1;
     } else {
