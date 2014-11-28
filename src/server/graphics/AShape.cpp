@@ -17,9 +17,9 @@ AShape::AShape(ASettings settings) :
 
 bool AShape::operator() (double x, double y) const {
   if (inside(x, y)) {
-    return true;
-
     bool onb = onBorder(x, y);
+    return onb;
+
     if (_settings.filled) {
       if (x >= 0 && onb) { // On the right border
         return false;
