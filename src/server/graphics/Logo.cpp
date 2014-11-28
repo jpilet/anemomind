@@ -50,9 +50,8 @@ Logo::Colors::Colors() {
   max = Vec{0, 0, 0};
 }
 
-Logo::Logo(ASettings as,
-           GSettings gs) : _A(as), _G(gs),
-           _aLine(as.makeALine()) {
+Logo::Logo(Settings s) : _A(s.A), _G(s.G),
+           _aLine(s.A.makeALine()) {
   _bender = Bender(-_aLine.getM(), -_aLine.getK(), 0.0);
   _aCurve = _bender + Bender(0.0, _aLine.getK(), _aLine.getM());
 }
@@ -60,7 +59,7 @@ Logo::Logo(ASettings as,
 int Logo::getColorCode(double xDist, double yDist) const {
   double xUndist = xDist - _bender.eval(yDist);
   if (xUndist <= _aLine(yDist)) {
-    return (_A(xUndist, yDist)? 0 : -1);
+    return (_A(xUndist, yDist)? 1 : -1);
   } else {
     double yClosest = _aCurve.findClosestY(xDist, yDist);
     double xClosest = _aCurve.eval(yClosest);
@@ -97,6 +96,45 @@ Logo::Vec Logo::operator() (double x, double y) const {
      LOG(FATAL) << "Illegal color code";
   };
   return Logo::Vec();
+}
+
+Logo::Settings makeLogoSettings1() {
+  return Logo::Settings();
+}
+
+Logo::Settings makeLogoSettings2() {
+  Logo::Settings s;
+  s.A.hasWaist = false;
+  s.A.strokeWidth = 0.0;
+  s.G.margin = s.G.space;
+  return s;
+}
+
+Logo::Settings makeLogoSettings3() {
+  Logo::Settings s;
+  s.A.filled = false;
+  s.A.strokeWidth = 0.18;
+  s.A.waistHeight = 0.12;
+  return s;
+}
+
+Logo::Settings makeLogoSettings4() {
+  Logo::Settings s = makeLogoSettings3();
+  s.G.margin = s.G.space;
+  return s;
+}
+
+Logo::Settings makeLogoSettings5() {
+  Logo::Settings s = makeLogoSettings3();
+  s.A.hasWaist = false;
+  return s;
+}
+
+Logo::Settings makeLogoSettings6() {
+  Logo::Settings s = makeLogoSettings5();
+  s.G.margin = s.G.space;
+  return s;
+
 }
 
 

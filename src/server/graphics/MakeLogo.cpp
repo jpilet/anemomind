@@ -16,8 +16,11 @@ using namespace sail;
 
 int main(int argc, const char **argv) {
   if (true) {
-    Logo logo;
+
+    Logo logo(makeLogoSettings6());
     writePPM("/home/jonas/Desktop/logo.ppm", logo.render(1000));
+
+
   } else {
     BoolMapImage bm = readPBM("/home/jonas/Documents/anemomind.pbm");
     BitMapText bmt(bm);

@@ -30,7 +30,7 @@ class GShape {
   }
 
   bool inside(double x, double y) const {
-    if (0 <= _settings.margin && y <= height()) {
+    if (_settings.margin <= y && y <= height()) {
       return 0 <= x && x <= width();
     }
     return false;

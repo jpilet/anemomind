@@ -17,10 +17,8 @@ AShape::AShape(ASettings settings) :
 
 bool AShape::operator() (double x, double y) const {
   if (inside(x, y)) {
-    bool onb = onLeftBorder(x, y);
-
     if (_settings.filled) {
-      if (onb) { // On the right border
+      if (onLeftBorder(x, y)) { // On the right border
         return false;
       } else { // On the inside
         if (_settings.hasWaist) {
@@ -29,7 +27,7 @@ bool AShape::operator() (double x, double y) const {
         return true;
       }
     } else {
-      if (onb) {
+      if (onBorder(x, y)) {
         return true;
       } else {
         if (_settings.hasWaist) {

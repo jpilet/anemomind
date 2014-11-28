@@ -55,9 +55,13 @@ class Logo : public R2ImageRGB {
     Logo::Vec bg, fg, magenta, max;
   };
 
+  class Settings {
+   public:
+    ASettings A;
+    GSettings G;
+  };
 
-  Logo(ASettings as = ASettings(),
-       GSettings gs = GSettings());
+  Logo(Settings s = Settings());
   int getColorCode(double x, double y) const;
 
   Vec operator() (double x, double y) const;
@@ -71,6 +75,17 @@ class Logo : public R2ImageRGB {
   AShape _A;
   GShape _G;
 };
+
+Logo::Settings makeLogoSettings1();
+Logo::Settings makeLogoSettings2();
+Logo::Settings makeLogoSettings3();
+Logo::Settings makeLogoSettings4();
+Logo::Settings makeLogoSettings5();
+Logo::Settings makeLogoSettings6();
+Array<Logo::Settings> makeLogoSettings();
+
+
+
 
 }
 
