@@ -15,35 +15,52 @@
 using namespace sail;
 
 int main(int argc, const char **argv) {
-  if (true) {
 
+  // turn on if no image with rendered text available.
+  const bool WITH_TEXT = true;
+
+  // How wide the resulting raster image should be
+  int reswidthOnlyIcon = 1000;
+  int reswidthIconAndText = 3000;
+
+  if (true) {
     const int count = 3;
     Logo::Settings settings[3] = {makeLogoSettings2(), makeLogoSettings7(), makeLogoSettings8()};
 
-    for (int j = 0; j < 2; j++) {
-      bool mirror = (j == 0? false : true);
+    /*for (int j = 0; j < 2; j++)*/ {
+      //bool mirror = (j == 0? false : true);
+      bool mirror = true;
       for (int i = 0; i < 3; i++) {
+
+        std::string filename = stringFormat(
+            "/home/jonas/Desktop/logo%d_%d.ppm", i, mirror);
         Logo::Settings s = settings[i];
-
-        BoolMapImage bm = readPBM("/home/jonas/Images/anemomind/anemomind_neutra.pbm");
-        BitMapText bmt(bm);
-
-        Logo::Colors colors;
-
-        double scale = 0.9;
-        double margin = 0.18;
-        LineKM xmap(scale, margin);
-        LineKM ymap(scale, 0.0);
-
-        R2ImageRGB::Ptr dc(new R2ImageRemapXY<3>(
-            R2ImageRGB::Ptr(new DualColorText(bmt, colors.bg, colors.max, colors.max, 1.0)),
-            xmap, ymap));
         Logo *logo = new Logo(s);
         logo->setSize(1.0, 1.2);
-        Combine combine(Logo::Ptr(logo), dc, mirror);
-        std::cout << EXPR_AND_VAL_AS_STRING(combine.width()) << std::endl;
-        std::cout << EXPR_AND_VAL_AS_STRING(combine.height()) << std::endl;
-        writePPM(stringFormat("/home/jonas/Desktop/logo%d_%d.ppm", i, mirror), combine.render(1000));
+
+        Logo::Ptr logoptr(logo);
+
+
+          Logo::Colors colors;
+          double scale = 0.9;
+          double margin = 0.18;
+          LineKM xmap(scale, margin);
+          LineKM ymap(scale, 0.0);
+
+          BoolMapImage bm;
+          if (WITH_TEXT) {
+            bm = readPBM("/home/jonas/Images/anemomind/anemomind_neutra.pbm");
+          } else {
+            bm = BoolMapImage(1, 1);
+            bm(0, 0) = sail::Vectorize<bool, 1>{false};
+          }
+          BitMapText bmt(bm);
+          R2ImageRGB::Ptr dc(new R2ImageRemapXY<3>(
+              R2ImageRGB::Ptr(new DualColorText(bmt, colors.bg, colors.max, colors.max, 1.0)),
+              xmap, ymap));
+          Combine::Ptr combine(new Combine(logoptr, dc, mirror));
+          Padding pd(combine, 0.5);
+          writePPM(filename, pd.render(WITH_TEXT? reswidthIconAndText : reswidthOnlyIcon));
       }
     }
 

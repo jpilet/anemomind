@@ -122,6 +122,26 @@ class Combine : public R2ImageRGB {
   double _hOffset;
 };
 
+class Padding : public R2ImageRGB {
+ public:
+  Padding(R2ImageRGB::Ptr im, double pd) : _im(im), _pd(pd) {}
+
+  double width() const {
+    return _im->width() + 2*_pd;
+  }
+
+  double height() const {
+    return _im->height() + 2*_pd;
+  }
+
+  Vec operator() (double x, double y) const {
+    return (*_im)(x - _pd, y - _pd);
+  }
+
+ private:
+  R2ImageRGB::Ptr _im;
+  double _pd;
+};
 
 }
 
