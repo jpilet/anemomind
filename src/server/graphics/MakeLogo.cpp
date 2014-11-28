@@ -23,9 +23,16 @@ int main(int argc, const char **argv) {
   for (int i = 0; i < s.size(); i++) {
     renderer->write(s[i]);
   }
-  double bending = 0.2;
-  double y[3] = {bending, bending, 0};
-  //:212, G:0, B:87
+
+  //double slant = 0.3;
+  //double bend = 0; //0.5;
+
+  double slant = 0.2;
+  double bend = 0.5; //0.5;
+
+
+  double y[3] = {slant, 0.5*(1 + bend)*slant, 0};
+  //:212, G:0, B:87---
   double f = 1.0/255;
   R2ImageRGB::Vec bg{1, 1, 1};
   R2ImageRGB::Vec fg1{0, 0, 0};

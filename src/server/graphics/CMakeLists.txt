@@ -41,6 +41,18 @@ target_link_libraries(graphics_MakeLogo
                       graphics_TextDistort
                      )
                      
+add_library(graphics_AShape
+            AShape.h
+            AShape.cpp
+           )
+target_depends_on_armadillo(graphics_AShape)
+
+add_library(graphics_GShape
+            GShape.h
+            GShape.cpp
+           )
+
+                     
 add_library(graphics_TextDistort
             TextDistort.h
             TextDistort.cpp
