@@ -20,6 +20,10 @@ class ASettings {
   bool hasWaist;
   double strokeWidth = 0.2;
   double waistHeight = 0.3;
+
+  LineKM makeALine() const {
+    return LineKM(0, 1, width/2, 0);
+  }
 };
 
 class AShape  {
