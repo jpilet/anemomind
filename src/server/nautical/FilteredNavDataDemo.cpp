@@ -14,6 +14,7 @@
 #include <server/math/CleanNumArray.h>
 #include <server/math/nonlinear/GeneralizedTV.h>
 #include <server/nautical/FilteredNavData.h>
+#include <server/common/PhysicalQuantityIO.h>
 
 
 using namespace sail;
@@ -22,8 +23,16 @@ namespace {
 
 
   void dispFilteredNavData(Array<Nav> navs, Spani span, int modeType, double lambda) {
-    FilteredNavData data(navs.slice(span.minv(), span.maxv()),
+    auto selected = navs.slice(span.minv(), span.maxv()).sliceTo(30*60);
+    FilteredNavData data(selected,
         lambda, (modeType == 2? FilteredNavData::DERIVATIVE : FilteredNavData::SIGNAL));
+    FilteredNavData::NoiseStdDev stddev = data.estimateNoise(selected);
+    std::cout << EXPR_AND_VAL_AS_STRING(stddev.awa) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(stddev.aws) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(stddev.gpsBearing) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(stddev.gpsSpeed) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(stddev.magHdg) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(stddev.watSpeed) << std::endl;
   }
 
   void ex0(int mode, double lambda) {
@@ -37,7 +46,7 @@ namespace {
 
 int main(int argc, const char **argv) {
   int mode = 1;
-  double lambda = 3000;
+  double lambda = 10;
   ArgMap amap;
   registerGetTestdataNavs(amap);
   amap.registerOption("--plotmode",

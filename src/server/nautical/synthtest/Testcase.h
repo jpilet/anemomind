@@ -108,7 +108,7 @@ class CorruptedBoatState {
 
 /*
  * A Testcase holds testdata for a single race that can
- * contain any number of boats. More specific, it holds the following:
+ * contain any number of boats. More specifically, it holds the following:
  *
  * Common to all boats:
  *   * Local wind conditions in space and time
@@ -117,7 +117,10 @@ class CorruptedBoatState {
  *   * A time offset
  *
  * Per boat:
- *   *
+ *   * BoatSpecs : Information about how the boat behaves and should steer.
+ *   * Array of CorruptedBoatState : An array of simulated boat
+ *     states along with corruptions with noise and scaling
+ *     to simulate real measurements.
  *
  */
 class Testcase {

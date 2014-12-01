@@ -386,6 +386,7 @@ target_link_libraries(nautical_FilteredNavData
                       nautical_nav
                       plot_gnuplot
                       math_nonlinear_GeneralizedTV
+                      common_MeanAndVar
                      )
 
                      

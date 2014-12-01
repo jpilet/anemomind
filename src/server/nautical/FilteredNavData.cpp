@@ -11,6 +11,7 @@
 #include <server/plot/extra.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
+#include <server/common/MeanAndVar.h>
 
 namespace sail {
 
@@ -187,6 +188,32 @@ HorizontalMotion<double> FilteredNavData::gpsMotion(double localTime) const {
 HorizontalMotion<double> FilteredNavData::gpsMotionAtIndex(int index) const {
   return HorizontalMotion<double>::polar(_gpsSpeed.get(index),
       _gpsBearing.get(index));
+}
+
+FilteredNavData::NoiseStdDev FilteredNavData::estimateNoise(Array<Nav> navs) const {
+  MeanAndVar awa;
+  MeanAndVar magHdg;
+  MeanAndVar gpsBearing;
+  MeanAndVar watSpeed;
+  MeanAndVar gpsSpeed;
+  MeanAndVar aws;
+  for (int i = 0; i < navs.size(); i++) {
+    auto n = navs[i];
+    auto to = n.time();
+    double t = (to - _timeOffset).seconds();
+    awa.add((n.awa() - _awa.interpolateLinear(t)).normalizedAt0().degrees());
+    magHdg.add((n.magHdg() - _magHdg.interpolateLinear(t)).normalizedAt0().degrees());
+    gpsBearing.add((n.gpsBearing() - _gpsBearing.interpolateLinear(t)).normalizedAt0().degrees());
+    watSpeed.add((n.watSpeed() - _watSpeed.interpolateLinear(t)).knots());
+    gpsSpeed.add((n.gpsSpeed() - _gpsSpeed.interpolateLinear(t)).knots());
+    aws.add((n.aws() - _aws.interpolateLinear(t)).knots());
+  }
+  return FilteredNavData::NoiseStdDev(Angle<double>::degrees(awa.standardDeviation()),
+      Angle<double>::degrees(magHdg.standardDeviation()),
+      Angle<double>::degrees(gpsBearing.standardDeviation()),
+      Velocity<double>::knots(watSpeed.standardDeviation()),
+      Velocity<double>::knots(gpsSpeed.standardDeviation()),
+      Velocity<double>::knots(aws.standardDeviation()));
 }
 
 }
