@@ -10,6 +10,7 @@
 #include <memory>
 #include <server/common/Array.h>
 #include <server/common/Function.h>
+#include <server/nautical/GeographicReference.h>
 #include <iosfwd>
 
 namespace sail {
@@ -218,8 +219,9 @@ class BoatCharacteristics {
 
 class BoatSim : public Function {
  public:
+  typedef GeographicReference::ProjectedPosition ProjectedPosition;
   typedef HorizontalMotion<double> FlowVector;
-  typedef std::function<FlowVector(Length<double>, Length<double>, Duration<double>)> FlowFun;
+  typedef std::function<FlowVector(ProjectedPosition, Duration<double>)> FlowFun;
 
 
   // Contains lots of information that can be derived from the environment
@@ -230,8 +232,7 @@ class BoatSim : public Function {
     FullState() {}
 
     Angle<double> rudderAngle;
-    Length<double> x;
-    Length<double> y;
+    ProjectedPosition pos;
     Duration<double> time;
     Angle<double> boatOrientation;
     Angle<double> boatAngularVelocity;

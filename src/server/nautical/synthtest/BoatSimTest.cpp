@@ -11,9 +11,9 @@
 using namespace sail;
 
 namespace {
-  std::function<HorizontalMotion<double>(Length<double>, Length<double>,Duration<double>)>
+  std::function<HorizontalMotion<double>(BoatSim::ProjectedPosition,Duration<double>)>
     makeConstantFlow(Velocity<double> speed, Angle<double> angle) {
-      return [=](Length<double>, Length<double>,Duration<double>) {
+      return [=](BoatSim::ProjectedPosition,Duration<double>) {
         return HorizontalMotion<double>::polar(speed, angle);
       };
   }

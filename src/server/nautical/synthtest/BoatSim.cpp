@@ -45,14 +45,14 @@ BoatSim::BoatSim(
 BoatSim::FullState BoatSim::makeFullState(const BoatSimulationState &state) {
   FullState dst;
   dst.rudderAngle = state.rudderAngle();
-  dst.x = state.boatX();
-  dst.y = state.boatY();
+  dst.pos[0] = state.boatX();
+  dst.pos[1] = state.boatY();
   dst.time = state.time();
   dst.boatOrientation = state.boatOrientation();
   dst.boatSpeedThroughWater = state.boatSpeedThroughWater();
 
-  dst.trueWind = _windFun(dst.x, dst.y, dst.time);
-  dst.trueCurrent = _currentFun(dst.x, dst.y, dst.time);
+  dst.trueWind = _windFun(dst.pos, dst.time);
+  dst.trueCurrent = _currentFun(dst.pos, dst.time);
 
   // Since a polar table will assume no current, it makes sense
   // to compute the "true" wind in a coordinate system attached to
@@ -182,8 +182,8 @@ namespace {
     plot.set_title("Trajectory (meters)");
     plot.set_style("lines");
     plot.plot_xy(
-        states.map<double>([&](BoatSim::FullState x) {return x.x.meters();}),
-        states.map<double>([&](BoatSim::FullState x) {return x.y.meters();})
+        states.map<double>([&](BoatSim::FullState x) {return x.pos[0].meters();}),
+        states.map<double>([&](BoatSim::FullState x) {return x.pos[1].meters();})
     );
     plot.show();
   }
@@ -211,8 +211,8 @@ std::ostream &operator<<(std::ostream &s,
   s << EXPR_AND_VAL_AS_STRING(state.windAngleWrtWater) << std::endl;
   s << EXPR_AND_VAL_AS_STRING(state.windSpeedWrtWater) << std::endl;
   s << EXPR_AND_VAL_AS_STRING(state.windWrtCurrent) << std::endl;
-  s << EXPR_AND_VAL_AS_STRING(state.x) << std::endl;
-  s << EXPR_AND_VAL_AS_STRING(state.y) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.pos[0]) << std::endl;
+  s << EXPR_AND_VAL_AS_STRING(state.pos[1]) << std::endl;
   return s;
 }
 
