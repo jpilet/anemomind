@@ -291,3 +291,35 @@ add_library(common_JsonIO
             JsonIO.cpp
            )
 target_depends_on_poco_json(common_JsonIO)
+
+
+add_library(common_DataSplits
+            DataSplits.h
+            DataSplits.cpp
+           )
+
+add_library(common_MeanAndVar
+            MeanAndVar.h
+            MeanAndVar.cpp
+           )
+
+target_link_libraries(common_MeanAndVar
+                      common_logging
+                     )
+
+cxx_test(common_MeanAndVarTest
+         MeanAndVarTest.cpp
+         gtest_main
+         common_MeanAndVar
+        )
+
+add_library(common_ProportionateIndexer
+            ProportionateIndexer.cpp
+            ProportionateIndexer.h
+           )
+
+cxx_test(common_ProportionateIndexerTest
+         ProportionateIndexerTest.cpp
+         gtest_main
+         common_ProportionateIndexer
+        )

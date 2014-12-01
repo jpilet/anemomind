@@ -26,7 +26,7 @@ class StaticPower<a, 0> {
 };
 
 template <typename T>
-T sqr(T x) {
+constexpr T sqr(T x) {
   return x*x;
 }
 
@@ -205,6 +205,7 @@ inline double approximateExp(double x, double thresh) {
 inline int div1(int a, int b) {
   return (a - 1)/b + 1;
 }
+
 
 } /* namespace sail */
 

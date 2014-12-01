@@ -166,6 +166,12 @@ cxx_test(nautical_SpeedCalibTest
          gtest_main
         )        
 
+
+cxx_test(nautical_CorrectorTest
+         CorrectorTest.cpp
+         gtest_main
+         )
+
 #################################################################
 ### CalibrationExamples
 #################################################################
@@ -403,4 +409,72 @@ target_link_libraries(nautical_plotTargetSpeed
                       device_ChunkFile
                      )
 
+add_library(nautical_FilteredNavData
+            FilteredNavData.cpp
+            FilteredNavData.h
+           )
 
+target_link_libraries(nautical_FilteredNavData
+                      math_CleanNumArray
+                      common_logging
+                      nautical_nav
+                      plot_gnuplot
+                      math_nonlinear_GeneralizedTV
+                     )
+
+                     
+add_executable(nautical_FilteredNavDataDemo
+               FilteredNavDataDemo.cpp
+              )
+target_link_libraries(nautical_FilteredNavDataDemo
+                      nautical_TestdataNavs
+                      common_ArgMap
+                      plot_gnuplot
+                      common_Span
+                      nautical_TemporalSplit
+                      math_CleanNumArray
+                      math_nonlinear_GeneralizedTVAuto
+                      nautical_FilteredNavData
+                     )     
+                     
+
+
+add_library(nautical_TemporalSplit
+            TemporalSplit.h
+            TemporalSplit.cpp
+           )
+target_link_libraries(nautical_TemporalSplit
+                      nautical_nav
+                      common_logging
+                     )           
+            
+add_executable(nautical_RaceOverview
+               RaceOverview.cpp
+              )
+target_link_libraries(nautical_RaceOverview
+                      nautical_TestdataNavs
+                      nautical_TemporalSplit
+                     )
+                      
+                      
+add_executable(nautical_CalibrationDemo
+               CalibrationDemo.cpp
+              )
+                                                                                 
+target_link_libraries(nautical_CalibrationDemo
+                      nautical_AutoCalib
+                      common_ArgMap
+                      nautical_TestdataNavs
+                     )
+                     
+add_library(nautical_AutoCalib
+            AutoCalib.h
+            AutoCalib.cpp
+           )
+           
+target_link_libraries(nautical_AutoCalib
+                      nautical_FilteredNavData
+                      math_armaadolc
+                     )
+                     
+target_depends_on_ceres(nautical_AutoCalib)                     

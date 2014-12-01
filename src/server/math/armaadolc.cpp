@@ -153,7 +153,7 @@ Array<adouble> adolcInput(Array<double> X) {
 }
 
 
-Array<adouble> adolcInput(int count, double *src) {
+Array<adouble> adolcInput(int count, const double *src) {
   Array<adouble> dst(count);
   adolcInput(count, dst.ptr(), src);
   return dst;
@@ -222,7 +222,7 @@ void outputJacobianColMajor(short int tag, double *X, double *J, int step) {
 
 
 
-void outputJacobianRowMajor(short int tag, double *X, double *Jrow) {
+void outputJacobianRowMajor(short int tag, const double *X, double *Jrow) {
   unsigned long int counts[30];
   tapestats(tag, counts);
   int m = counts[1];
@@ -272,7 +272,7 @@ void adolcOutput(int count, adouble *src, double *dst) {
   }
 }
 
-void adolcInput(int count, adouble *dst, double *src) {
+void adolcInput(int count, adouble *dst, const double *src) {
   for (int i = 0; i < count; i++) {
     dst[i] <<= src[i];
   }

@@ -141,7 +141,11 @@ class Nav {
 Array<Velocity<double> > getExternalTws(Array<Nav> navs);
 Array<Angle<double> > getExternalTwa(Array<Nav> navs);
 Array<Velocity<double> > getGpsSpeed(Array<Nav> navs);
+Array<Angle<double> > getGpsBearing(Array<Nav> navs);
 Array<Velocity<double> > getWatSpeed(Array<Nav> navs);
+Array<Angle<double> > getMagHdg(Array<Nav> navs);
+Array<Velocity<double> > getAws(Array<Nav> navs);
+Array<Angle<double> > getAwa(Array<Nav> navs);
 
 
 Array<Nav> loadNavsFromText(std::string filename, bool sort = true);

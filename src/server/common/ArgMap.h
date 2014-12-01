@@ -58,6 +58,7 @@ class ArgMap {
     bool wasRead() const {
       return _wasRead;
     }
+
    private:
     bool _wasRead;
     std::string _arg;
@@ -65,7 +66,7 @@ class ArgMap {
   };
  public:
 
-
+  bool helpAsked();
 
   /*
    * To check if a option exists, e.g. '--descend' if we were to call a sorting algorithm.
