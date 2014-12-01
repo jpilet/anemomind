@@ -36,11 +36,19 @@ class Testcase {
   typedef std::function<HorizontalMotion<double>(
       ProjectedPosition, Duration<double>)> FlowFun;
 
+
+  static FlowFun constantFlowFun(HorizontalMotion<double> m);
+
   // Boat-specific data for a simulation
   class BoatSimDirs {
    public:
+    BoatSimDirs() {}
+
     class Dir {
      public:
+      Dir() : dur(Duration<double>::seconds(NAN)),
+              srcTwa(Angle<double>::degrees(NAN)),
+              dstTwa(Angle<double>::degrees(NAN)) {}
       Dir(Duration<double> dur_, Angle<double> srcTwa_, Angle<double> dstTwa_) :
         dur(dur_), srcTwa(srcTwa_), dstTwa(dstTwa_) {}
 
@@ -66,12 +74,14 @@ class Testcase {
   Testcase(std::default_random_engine &e,
            GeographicReference geoRef,
            TimeStamp timeOffset,
-           FlowFun wind, FlowFun current,
+           FlowFun wind,
+           FlowFun current,
            Array<BoatSimDirs> dirs) :
            _geoRef(geoRef),
            _timeOffset(timeOffset),
            _wind(wind),
            _current(current) {}
+
   const GeographicReference &geoRef() const {
     return _geoRef;
   }
@@ -82,6 +92,14 @@ class Testcase {
 
   TimeStamp fromLocalTime(Duration<double> dur) const {
     return _timeOffset + dur;
+  }
+
+  const FlowFun &wind() const {
+    return _wind;
+  }
+
+  const FlowFun &current() const {
+    return _current;
   }
  private:
   GeographicReference _geoRef;
