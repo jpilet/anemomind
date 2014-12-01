@@ -17,7 +17,7 @@ using namespace sail;
 int main(int argc, const char **argv) {
 
   // turn on if no image with rendered text available.
-  const bool WITH_TEXT = true;
+  const bool WITH_TEXT = false;
 
   // How wide the resulting raster image should be
   int reswidthOnlyIcon = 1000;
@@ -25,7 +25,9 @@ int main(int argc, const char **argv) {
 
   if (true) {
     const int count = 3;
-    Logo::Settings settings[3] = {makeLogoSettings2(), makeLogoSettings7(), makeLogoSettings8()};
+    Logo::Settings settings[3] = {makeLogoSettings2(),
+                                  makeLogoSettings7(),
+                                  makeLogoSettings8()};
 
     /*for (int j = 0; j < 2; j++)*/ {
       //bool mirror = (j == 0? false : true);
