@@ -89,16 +89,35 @@ class CorruptedBoatState {
   template <typename T>
   class Corruptor {
    public:
+    Corruptor() : _scale(1.0), _offset(T::zero()), _distrib(T::zero(), T::zero()) {}
     Corruptor(double scale, T offset, T noiseStd) :
       _distrib(T::zero(), noiseStd), _scale(scale), _offset(offset) {}
 
+    static Corruptor onlyNoise(T noiseStd) {
+      return Corruptor(1.0, T::zero(), noiseStd);
+    }
+
     T corrupt(T value, std::default_random_engine &e) {
       return _scale*value + _offset + _distrib(e);
+    }
+
+    void setMapping(double scale, T offset) {
+      _scale = scale;
+      _offset = offset;
     }
    private:
     double _scale;
     T _offset;
     PhysQuantNormalDistrib<T> _distrib;
+  };
+
+  class CorruptorSet {
+   public:
+    typedef Corruptor<Angle<double> > AngleCorr;
+    typedef Corruptor<Velocity<double> > VelocityCorr;
+
+    AngleCorr awa, magHdg, gpsBearing;
+    VelocityCorr aws, watSpeed, gpsSpeed;
   };
  private:
   BoatSim::FullState _trueState;
@@ -160,12 +179,34 @@ class Testcase {
       }
     };
 
-    BoatSpecs(BoatCharacteristics ch, Array<Dir> dirs);
+    BoatSpecs(BoatCharacteristics ch_, // <-- How the boat behaves
+              Array<Dir> dirs_,        // <-- How the boat should be steered
+              CorruptedBoatState::CorruptorSet corruptors_, // <-- How the measurements are corrupted
+              Nav::Id boatId = Nav::debuggingBoatId());
+
     Angle<double> twa(Duration<double> dur) const;
+
+    const Nav::Id &boatId() const {
+      return _boatId;
+    }
+
+    const BoatCharacteristics &characteristics() const {
+      return _ch;
+    }
+
+    Duration<double> duration() const {
+      Duration<double>::seconds(_indexer.sum());
+    }
+
+    const CorruptedBoatState::CorruptorSet &corruptors() const {
+      return _corruptors;
+    }
    private:
+    Nav::Id _boatId;
     BoatCharacteristics _ch;
     Array<Dir> _dirs;
     ProportionateIndexer _indexer;
+    CorruptedBoatState::CorruptorSet _corruptors;
   };
 
 

@@ -13,8 +13,15 @@ Testcase::FlowFun Testcase::constantFlowFun(HorizontalMotion<double> m) {
   };
 }
 
-Testcase::BoatSpecs::BoatSpecs(BoatCharacteristics ch, Array<Dir> dirs) : _ch(ch), _dirs(dirs) {
-}
+Testcase::BoatSpecs::BoatSpecs(BoatCharacteristics ch, Array<Dir> dirs,
+  CorruptedBoatState::CorruptorSet corruptors,
+  Nav::Id boatId) :
+    _ch(ch),
+    _dirs(dirs),
+    _corruptors(corruptors),
+    _indexer(ProportionateIndexer(dirs.size(),
+        [=](int index) {return dirs[index].dur.seconds();})),
+        _boatId(boatId) {}
 
 
 Angle<double> Testcase::BoatSpecs::twa(Duration<double> dur) const {
