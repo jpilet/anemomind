@@ -5,15 +5,15 @@
 
 #include "Testcase.h"
 
-namespace mmm {
+namespace sail {
 
-Testcase::Testcase() {
-  // TODO Auto-generated constructor stub
+Testcase::BoatSimDirs::BoatSimDirs(BoatCharacteristics ch, Array<Dir> dirs) : _ch(ch), _dirs(dirs) {
 
 }
-
-Testcase::~Testcase() {
-  // TODO Auto-generated destructor stub
+Angle<double> Testcase::BoatSimDirs::twa(Duration<double> dur) const {
+  auto result = _indexer.get(dur.seconds());
+  return _dirs[result.index].interpolate(result.localX);
 }
+
 
 } /* namespace mmm */

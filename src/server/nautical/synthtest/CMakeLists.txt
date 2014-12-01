@@ -1,29 +1,3 @@
-add_library(nautical_synthtest_TestDomain
-            TestDomain.h
-            TestDomain.cpp
-           )
-target_link_libraries(nautical_synthtest_TestDomain
-                      nautical_GeographicReference
-                      common_TimeStamp
-                      common_Span
-                     )           
-                     
-add_library(nautical_synthtest_TestDomainJson
-            TestDomainJson.h
-            TestDomainJson.cpp
-           )
-target_link_libraries(nautical_synthtest_TestDomainJson
-                      nautical_synthtest_TestDomain
-                      nautical_GeographicReferenceJson
-                      common_TimeStampJson
-                     )
-                     
-cxx_test(nautical_synthtest_TestDomainTest
-         TestDomainTest.cpp
-         gtest_main
-         nautical_synthtest_TestDomainJson
-        )                     
-        
 add_library(nautical_synth_BoatSim
             BoatSim.h
             BoatSim.cpp
@@ -48,3 +22,8 @@ add_executable(nautical_synth_BoatSimDemo
 target_link_libraries(nautical_synth_BoatSimDemo
                       nautical_synth_BoatSim
                      )
+                     
+add_library(nautical_synthtest_Testcase
+            Testcase.h
+            Testcase.cpp
+           )
