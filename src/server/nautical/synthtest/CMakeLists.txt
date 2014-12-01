@@ -27,3 +27,9 @@ add_library(nautical_synthtest_Testcase
             Testcase.h
             Testcase.cpp
            )
+           
+cxx_test(nautical_synthtest_TestcaseTest
+         TestcaseTest.cpp
+         nautical_synthtest_Testcase
+         gtest_main
+        )           

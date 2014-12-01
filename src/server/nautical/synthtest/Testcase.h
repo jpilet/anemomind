@@ -10,6 +10,7 @@
 #include <server/common/TimeStamp.h>
 #include <server/common/ProportionateIndexer.h>
 #include <server/nautical/GeographicReference.h>
+#include <random>
 
 namespace sail {
 
@@ -29,10 +30,11 @@ namespace sail {
  */
 class Testcase {
  public:
+  typedef GeographicReference::ProjectedPosition ProjectedPosition;
+
   // Used to represent the local wind/current
   typedef std::function<HorizontalMotion<double>(
-      Length<double> x, Length<double> y,
-      Duration<double>)> FlowFun;
+      ProjectedPosition, Duration<double>)> FlowFun;
 
   // Boat-specific data for a simulation
   class BoatSimDirs {
@@ -61,7 +63,8 @@ class Testcase {
   };
 
 
-  Testcase(GeographicReference geoRef,
+  Testcase(std::default_random_engine &e,
+           GeographicReference geoRef,
            TimeStamp timeOffset,
            FlowFun wind, FlowFun current,
            Array<BoatSimDirs> dirs) :
@@ -69,7 +72,17 @@ class Testcase {
            _timeOffset(timeOffset),
            _wind(wind),
            _current(current) {}
+  const GeographicReference &geoRef() const {
+    return _geoRef;
+  }
 
+  Duration<double> toLocalTime(const TimeStamp &x) const {
+    return x - _timeOffset;
+  }
+
+  TimeStamp fromLocalTime(Duration<double> dur) const {
+    return _timeOffset + dur;
+  }
  private:
   GeographicReference _geoRef;
   TimeStamp _timeOffset;
