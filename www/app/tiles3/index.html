@@ -15,7 +15,7 @@
   <script src="../bower_components/leaflet/dist/leaflet.js"></script>
   <script src="../bower_components/leaflet-tilelayer-geojson/TileLayer.GeoJSON.js"></script>
   <script src="../bower_components/sidebar-v2/js/leaflet-sidebar.js"></script>
-  <script src="AnimatedMarker.js"></script>
+  <script src="../bower_components/LeafletPlayback/dist/LeafletPlayback.js"></script>
 
   <style type="text/css">
   html, body, #map {
@@ -73,22 +73,26 @@
     "color": "#d10046",
   };
 
-  var animPath = [];
+  var geoJSONPath = {};
+  var geoJSONObjects = [];
   var tileLeftToBeLoaded = 0;
   var singleRace = false;
+  var playback;
+
+        // Playback options
+      var playbackOptions = {
+          playControl: true,
+          dateControl: true,
+          sliderControl: true,        
+      };
+      
+      // Initialize playback
+      playback = new L.Playback(map, null, null, playbackOptions);
 
   var geojsonURL = '../api/tilesGeoJSON/{z}/{x}/{y}/Irene';
   var geojsonTileLayer = new L.TileLayer.GeoJSON(geojsonURL, {
       clipTiles: true,
       unique: function (feature) { 
-
-        // animPath.push.apply(animPath, feature.geometry.coordinates);
-          
-        // var geometriesLength = feature.geometry.geometries.length
-        // for (var i = 0; i < feature.geometry.geometries.length; i++) {
-        //     animPath.push.apply(animPath, feature.geometry.geometries[i].coordinates)
-        //     //Do something
-        // }
         return feature.id;
       }
     }, {
@@ -120,22 +124,7 @@
 
   function updateRaceList(races) {
     if (singleRace) {
-      $("#home").html('<div id="back">back to race list</div>');
-
-      // All GeoJSON tiles have been loaded
-      if (tileLeftToBeLoaded === 0) {
-        for (var l in geojsonTileLayer._keyLayers) {
-          var geo = geojsonTileLayer._keyLayers[l].feature.geometry.geometries;
-          for (var g in geo) {
-            for (var c in geo[g].coordinates) {
-              animPath.push(geo[g].coordinates[c].reverse());
-            }
-          }
-        }
-        var line = L.polyline(animPath);
-        var animatedMarker = L.animatedMarker(line.getLatLngs());
-        map.addLayer(animatedMarker);
-      }
+      $("#home").html('<div id="back">&larr; back to race list</div>');
     } else {
       var html = "<h2>Irene's races</h2>";
       for (var i in races) {
@@ -154,6 +143,10 @@
 
   function selectRace(race) {
     singleRace = true;
+    geoJSONObjects = [];
+    console.log(race._popupContent);
+    // TODO: do not take the time data from the popup and do not hardcode the substring position.
+    if (race._popupContent.substring(29,34) !== 'Irene') throw 'Err: boat is not Irene';
     var from = race._popupContent.substring(34, 53);
     var to = race._popupContent.substring(53, 72);
     geojsonURL = '../api/tilesGeoJSON/{z}/{x}/{y}/Irene/' + from + '/' + to;
@@ -166,6 +159,35 @@
       }, {
         style: normalStyle,
         onEachFeature: function (feature, layer) {
+          if (singleRace) {
+            geoJSONObjects.push(feature);
+            geoJSONObjects.sort(function(a, b) {
+              return a.properties.time[0] < b.properties.time[0];
+            });
+            geoJSONPath = {
+              type: 'Feature',
+              geometry: {
+                type: 'MultiPoint',
+                coordinates: []
+              },
+              properties: {
+                title: '',
+                time: []
+              }
+            };
+            for (var o in geoJSONObjects) {
+              if (geoJSONObjects[o].geometry.coordinates) {
+                for (var c in geoJSONObjects[o].geometry.coordinates) {
+                  geoJSONPath.geometry.coordinates.push(geoJSONObjects[o].geometry.coordinates[c]);
+                }
+                for (var t in geoJSONObjects[o].properties.time) {
+                  geoJSONPath.properties.time.push(geoJSONObjects[o].properties.time[t]);
+                }
+              }
+            } 
+            playback.setData(geoJSONPath);
+          }
+
           if (feature.properties) {
             var popupString = '<div class="popup">';
             for (var k in feature.properties) {

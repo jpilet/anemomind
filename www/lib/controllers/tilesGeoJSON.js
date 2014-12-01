@@ -43,21 +43,23 @@ exports.retrieve = function(req, res, next) {
       for (var c in tiles[i].curves) {
         var curve = tiles[i].curves[c];
         var feature = {
-            geometry: {
-              type: "LineString",
-              coordinates: []
-            },
-            type: "Feature",
-            id: curve.curveId,
-            clipped: false,
-            properties: {
-              raceName: curve.curveId
+              geometry: {
+                type: "LineString",
+                coordinates: []
+              },
+              type: "Feature",
+              id: curve.curveId,
+              clipped: false,
+              properties: {
+                raceName: curve.curveId,
+                time: []
             }
           };
         for (var p in curve.points) {
           if (curve.points[p].pos) {
             var coords = tile2LonLat(curve.points[p].pos);
             feature.geometry.coordinates.push(coords);
+            feature.properties.time.push(curve.points[p].time.getTime());
           }
         }
         if (feature.geometry.coordinates.length > 1) {
@@ -65,8 +67,9 @@ exports.retrieve = function(req, res, next) {
         }
       }
     }
-
-    res.send(json);
+    return res.send(JSON.stringify(json));
+    // crazy bug, when doing res.json(json), browsers receive content twice (but only once with curl)
+    // res.json(json);
   });
 };
 
