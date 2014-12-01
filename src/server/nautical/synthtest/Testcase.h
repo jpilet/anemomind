@@ -66,8 +66,9 @@ class PhysQuantNormalDistrib<Velocity<double> > {
 
 
 /*
- * A class that holds corrupted measurements
- * derived from a BoatSim::FullBoatState. Used for testing.
+ * This class holds both the true state of the boat at a time instant
+ * and simulated corrupted measurements (corruptedNav) that can be fed
+ * to a an algorithm.
  */
 class CorruptedBoatState {
  public:
@@ -86,6 +87,7 @@ class CorruptedBoatState {
   }
 
 
+  // This class corrupts a value by scaling error, offset error, and noise.
   template <typename T>
   class Corruptor {
    public:
@@ -111,6 +113,8 @@ class CorruptedBoatState {
     PhysQuantNormalDistrib<T> _distrib;
   };
 
+  // This class holds corruptors for all measurements that we simulate.
+  // By default there is no corruption.
   class CorruptorSet {
    public:
     typedef Corruptor<Angle<double> > AngleCorr;
@@ -158,9 +162,10 @@ class Testcase {
   //  * The dynamics of the boat (BoatCharacteristics)
   //  * TWA-directives for how the boat should steer
   //  * How the measured values are corrupted
+  //  * How the boat should be simulated.
   class BoatSpecs {
    public:
-    BoatSpecs() {}
+    BoatSpecs() : _stepsPerSample(0) {}
     class Dir {
      public:
       Dir() : dur(Duration<double>::seconds(NAN)),
@@ -186,7 +191,12 @@ class Testcase {
     BoatSpecs(BoatCharacteristics ch_, // <-- How the boat behaves
               Array<Dir> dirs_,        // <-- How the boat should be steered
               CorruptedBoatState::CorruptorSet corruptors_, // <-- How the measurements are corrupted
-              Nav::Id boatId = Nav::debuggingBoatId());
+
+              Nav::Id boatId = Nav::debuggingBoatId(), // <-- Boat id. Maybe not that interesting in most cases.
+
+              // Settings for how this boat should be simulated.
+              Duration<double> samplingPeriod_ = Duration<double>::seconds(1.0),
+              int stepsPerSample_ = 20);
 
     Angle<double> twa(Duration<double> dur) const;
 
@@ -211,6 +221,8 @@ class Testcase {
     Array<Dir> _dirs;
     ProportionateIndexer _indexer;
     CorruptedBoatState::CorruptorSet _corruptors;
+    Duration<double> _samplingPeriod;
+    int _stepsPerSample;
   };
 
 
@@ -219,11 +231,7 @@ class Testcase {
            TimeStamp timeOffset,
            FlowFun wind,
            FlowFun current,
-           Array<BoatSpecs> dirs) :
-           _geoRef(geoRef),
-           _timeOffset(timeOffset),
-           _wind(wind),
-           _current(current) {}
+           Array<BoatSpecs> dirs);
 
   const GeographicReference &geoRef() const {
     return _geoRef;
@@ -245,9 +253,15 @@ class Testcase {
     return _current;
   }
 
+  // Holds computed data for a boat, ready for testing and evaluating algorithms.
   class BoatData {
    public:
-
+    BoatData() {}
+    BoatData(const BoatSpecs &specs,
+        Array<CorruptedBoatState> states) : _specs(specs), _states(states) {}
+   private:
+    BoatSpecs _specs;
+    Array<CorruptedBoatState> _states;
   };
  private:
   GeographicReference _geoRef;
