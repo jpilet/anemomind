@@ -72,6 +72,7 @@ class PhysQuantNormalDistrib<Velocity<double> > {
  */
 class CorruptedBoatState {
  public:
+  CorruptedBoatState() {}
   CorruptedBoatState(
       const BoatSim::FullState &trueState,
       const Nav &corruptedNav) : _trueState(trueState),
@@ -148,12 +149,8 @@ class CorruptedBoatState {
  */
 class Testcase {
  public:
-  typedef GeographicReference::ProjectedPosition ProjectedPosition;
-
-  // Used to represent the local wind/current
-  typedef std::function<HorizontalMotion<double>(
-      ProjectedPosition, Duration<double>)> FlowFun;
-
+  typedef BoatSim::ProjectedPosition ProjectedPosition;
+  typedef BoatSim::FlowFun FlowFun;
 
   static FlowFun constantFlowFun(HorizontalMotion<double> m);
 
@@ -215,6 +212,14 @@ class Testcase {
     CorruptedBoatState::CorruptorSet &corruptors() {
       return _corruptors;
     }
+
+    Duration<double> samplingPeriod() const {
+      return _samplingPeriod;
+    }
+
+    int stepsPerSample() const {
+      return _stepsPerSample;
+    }
    private:
     Nav::Id _boatId;
     BoatCharacteristics _ch;
@@ -270,6 +275,11 @@ class Testcase {
 
   // Simulated boat states over time along with corrupted measurements.
   Array<BoatData> _boatData;
+
+  Testcase::BoatData makeBoatData(BoatSpecs &spec,
+      Array<BoatSim::FullState> state,
+      std::default_random_engine &e) const;
+
 };
 
 } /* namespace mmm */

@@ -33,6 +33,7 @@ target_link_libraries(nautical_synthtest_Testcase
                       common_ProportionateIndexer
                       common_TimeStamp
                       nautical_synthtest_BoatSim
+                      nautical_nav
                      )
            
 cxx_test(nautical_synthtest_TestcaseTest

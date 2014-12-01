@@ -41,9 +41,34 @@ Testcase::Testcase(std::default_random_engine &e,
          _wind(wind),
          _current(current), _boatData(specs.size()) {
   for (int i = 0; i < specs.size(); i++) {
-    //BoatSim sim()
+    auto sp = specs[i];
+    BoatSim sim(wind, current, sp.characteristics(), [=](Duration<double> dur) {return sp.twa(dur);});
+    Array<BoatSim::FullState> states = sim.simulate(sp.duration(), sp.samplingPeriod(), sp.stepsPerSample());
+    _boatData[i] = makeBoatData(sp, states, e);
   }
 }
 
+Testcase::BoatData Testcase::makeBoatData(BoatSpecs &specs,
+    Array<BoatSim::FullState> states, std::default_random_engine &e) const {
+  int count = states.size();
+  Array<CorruptedBoatState> dst(count);
+  auto c = specs.corruptors();
+  for (int i = 0; i < count; i++) {
+    auto &state = states[i];
+    Nav dstnav;
+    dstnav.setAwa(c.awa.corrupt(state.awa(), e));
+    dstnav.setAws(c.aws.corrupt(state.apparentWind().norm(), e));
+    dstnav.setMagHdg(c.magHdg.corrupt(state.boatOrientation, e));
+    dstnav.setGpsBearing(c.gpsBearing.corrupt(state.boatMotion.angle(), e));
+    dstnav.setGpsSpeed(c.gpsSpeed.corrupt(state.boatMotion.norm(), e));
+    dstnav.setWatSpeed(c.watSpeed.corrupt(state.boatMotionThroughWater.norm(), e));
+    dstnav.setTime(fromLocalTime(state.time));
+    dstnav.setGeographicPosition(geoRef().unmap(state.pos));
+    dstnav.setBoatId(specs.boatId());
+    dst[i] = CorruptedBoatState(state, dstnav);
+  }
+  return BoatData(specs, dst);
+}
 
-} /* namespace mmm */
+
+}

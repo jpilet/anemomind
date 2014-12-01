@@ -10,39 +10,7 @@
 
 using namespace sail;
 
-TEST(TestcaseTest, Test1) {
-  HorizontalMotion<double> wind = HorizontalMotion<double>::polar(
-      Velocity<double>::metersPerSecond(7.3),
-      Angle<double>::degrees(129));
 
-  HorizontalMotion<double> current = HorizontalMotion<double>::polar(
-      Velocity<double>::knots(1.3),
-      Angle<double>::degrees(77));
-
-
-  TimeStamp timeoffset = TimeStamp::UTC(2012, 10, 13, 5, 34, 23);
-
-  auto pos = GeographicPosition<double>(Angle<double>::degrees(30),
-                                        Angle<double>::degrees(45));
-  GeographicReference georef(pos);
-
-  Testcase::FlowFun windfun = Testcase::constantFlowFun(wind);
-  Testcase::FlowFun currentfun = Testcase::constantFlowFun(current);
-
-  std::default_random_engine e;
-  Testcase tc(e, georef, timeoffset, windfun, currentfun,
-    Array<Testcase::BoatSpecs>(0));
-
-  auto t = tc.toLocalTime(timeoffset);
-  EXPECT_NEAR(t.seconds(), 0.0, 1.0e-6);
-  auto m = tc.geoRef().map(pos);
-  EXPECT_NEAR(m[0].meters(), 0.0, 1.0e-4);
-  EXPECT_NEAR(m[1].meters(), 0.0, 1.0e-4);
-  auto w0 = tc.wind()(m, t);
-  EXPECT_NEAR(w0[0].metersPerSecond(), wind[0].metersPerSecond(), 1.0e-5);
-  auto c0 = tc.current()(m, t);
-  EXPECT_NEAR(c0[0].metersPerSecond(), current[0].metersPerSecond(), 1.0e-5);
-}
 
 TEST(TestcaseTest, Corruptor) {
   typedef CorruptedBoatState::Corruptor<Velocity<double > > Corr;
@@ -71,6 +39,45 @@ TEST(TestcaseTest, BoatSpecs) {
   EXPECT_NEAR(specs.corruptors().aws.corrupt(Velocity<double>::knots(34), e).knots(), 34.0, 1.0e-6);
   EXPECT_NEAR(specs.corruptors().watSpeed.corrupt(Velocity<double>::knots(34), e).knots(), 34.0, 1.0e-6);
   EXPECT_NEAR(specs.corruptors().gpsSpeed.corrupt(Velocity<double>::knots(34), e).knots(), 34.0, 1.0e-6);
+}
+
+TEST(TestcaseTest, MakeTestcase) {
+  HorizontalMotion<double> wind = HorizontalMotion<double>::polar(
+      Velocity<double>::metersPerSecond(7.3),
+      Angle<double>::degrees(129));
+
+  HorizontalMotion<double> current = HorizontalMotion<double>::polar(
+      Velocity<double>::knots(1.3),
+      Angle<double>::degrees(77));
+
+
+  TimeStamp timeoffset = TimeStamp::UTC(2012, 10, 13, 5, 34, 23);
+
+  auto pos = GeographicPosition<double>(Angle<double>::degrees(30),
+                                        Angle<double>::degrees(45));
+  GeographicReference georef(pos);
+
+  Testcase::FlowFun windfun = Testcase::constantFlowFun(wind);
+  Testcase::FlowFun currentfun = Testcase::constantFlowFun(current);
+
+  Array<Testcase::BoatSpecs::Dir> dirs(2);
+  dirs[0] = Testcase::BoatSpecs::Dir::constant(Duration<double>::minutes(3.0), Angle<double>::degrees(119));
+  dirs[1] = Testcase::BoatSpecs::Dir::constant(Duration<double>::minutes(1.0), Angle<double>::degrees(32));
+  Testcase::BoatSpecs specs(BoatCharacteristics(), dirs, CorruptedBoatState::CorruptorSet());
+
+  std::default_random_engine e;
+  Testcase tc(e, georef, timeoffset, windfun, currentfun,
+    Array<Testcase::BoatSpecs>::args(specs));
+
+  auto t = tc.toLocalTime(timeoffset);
+  EXPECT_NEAR(t.seconds(), 0.0, 1.0e-6);
+  auto m = tc.geoRef().map(pos);
+  EXPECT_NEAR(m[0].meters(), 0.0, 1.0e-4);
+  EXPECT_NEAR(m[1].meters(), 0.0, 1.0e-4);
+  auto w0 = tc.wind()(m, t);
+  EXPECT_NEAR(w0[0].metersPerSecond(), wind[0].metersPerSecond(), 1.0e-5);
+  auto c0 = tc.current()(m, t);
+  EXPECT_NEAR(c0[0].metersPerSecond(), current[0].metersPerSecond(), 1.0e-5);
 }
 
 
