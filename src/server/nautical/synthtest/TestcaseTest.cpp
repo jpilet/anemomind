@@ -27,17 +27,21 @@ TEST(TestcaseTest, Test1) {
   GeographicReference georef(pos);
 
   Testcase::FlowFun windfun = Testcase::constantFlowFun(wind);
-  Testcase::FlowFun currentfun = Testcase::constantFlowFun(wind);
+  Testcase::FlowFun currentfun = Testcase::constantFlowFun(current);
 
   std::default_random_engine e;
   Testcase tc(e, georef, timeoffset, windfun, currentfun,
     Array<Testcase::BoatSimDirs>(0));
 
-  EXPECT_NEAR(tc.toLocalTime(timeoffset).seconds(), 0.0, 1.0e-6);
+  auto t = tc.toLocalTime(timeoffset);
+  EXPECT_NEAR(t.seconds(), 0.0, 1.0e-6);
   auto m = tc.geoRef().map(pos);
   EXPECT_NEAR(m[0].meters(), 0.0, 1.0e-4);
   EXPECT_NEAR(m[1].meters(), 0.0, 1.0e-4);
-
+  auto w0 = tc.wind()(m, t);
+  EXPECT_NEAR(w0[0].metersPerSecond(), wind[0].metersPerSecond(), 1.0e-5);
+  auto c0 = tc.current()(m, t);
+  EXPECT_NEAR(c0[0].metersPerSecond(), current[0].metersPerSecond(), 1.0e-5);
 }
 
 
