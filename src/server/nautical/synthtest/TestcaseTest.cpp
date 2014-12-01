@@ -53,7 +53,24 @@ TEST(TestcaseTest, Corruptor) {
       Velocity<double>::knots(1.0), Velocity<double>::knots(0.0));
   std::default_random_engine e;
   EXPECT_NEAR(corr.corrupt(Velocity<double>::knots(3.0), e).knots(), 7.0, 1.0e-6);
+}
 
+TEST(TestcaseTest, BoatSpecs) {
+  Array<Testcase::BoatSpecs::Dir> dirs(2);
+  dirs[0] = Testcase::BoatSpecs::Dir::constant(Duration<double>::minutes(3.0), Angle<double>::degrees(119));
+  dirs[1] = Testcase::BoatSpecs::Dir::constant(Duration<double>::minutes(1.0), Angle<double>::degrees(32));
+  Testcase::BoatSpecs specs(BoatCharacteristics(), dirs, CorruptedBoatState::CorruptorSet());
+  EXPECT_NEAR(specs.duration().minutes(), 4.0, 1.0e-6);
+  EXPECT_NEAR(specs.twa(Duration<double>::minutes(2.99)).degrees(), 119.0, 1.0e-6);
+  EXPECT_NEAR(specs.twa(Duration<double>::minutes(3.01)).degrees(), 32.0, 1.0e-6);
+
+  std::default_random_engine e;
+  EXPECT_NEAR(specs.corruptors().awa.corrupt(Angle<double>::degrees(34), e).degrees(), 34.0, 1.0e-6);
+  EXPECT_NEAR(specs.corruptors().magHdg.corrupt(Angle<double>::degrees(34), e).degrees(), 34.0, 1.0e-6);
+  EXPECT_NEAR(specs.corruptors().gpsBearing.corrupt(Angle<double>::degrees(34), e).degrees(), 34.0, 1.0e-6);
+  EXPECT_NEAR(specs.corruptors().aws.corrupt(Velocity<double>::knots(34), e).knots(), 34.0, 1.0e-6);
+  EXPECT_NEAR(specs.corruptors().watSpeed.corrupt(Velocity<double>::knots(34), e).knots(), 34.0, 1.0e-6);
+  EXPECT_NEAR(specs.corruptors().gpsSpeed.corrupt(Velocity<double>::knots(34), e).knots(), 34.0, 1.0e-6);
 }
 
 

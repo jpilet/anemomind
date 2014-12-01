@@ -169,6 +169,10 @@ class Testcase {
       Dir(Duration<double> dur_, Angle<double> srcTwa_, Angle<double> dstTwa_) :
         dur(dur_), srcTwa(srcTwa_), dstTwa(dstTwa_) {}
 
+      static Dir constant(Duration<double> dur, Angle<double> twa) {
+        return Dir(dur, twa, twa);
+      }
+
       Duration<double> dur;
       Angle<double> srcTwa, dstTwa;
 
@@ -198,7 +202,7 @@ class Testcase {
       Duration<double>::seconds(_indexer.sum());
     }
 
-    const CorruptedBoatState::CorruptorSet &corruptors() const {
+    CorruptedBoatState::CorruptorSet &corruptors() {
       return _corruptors;
     }
    private:
