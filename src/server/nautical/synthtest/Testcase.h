@@ -186,7 +186,7 @@ class Testcase {
     };
 
     BoatSpecs(BoatCharacteristics ch_, // <-- How the boat behaves
-              Array<TwaDirective> dirs_,        // <-- How the boat should be steered
+              Array<TwaDirective> specs_,        // <-- How the boat should be steered
               CorruptedBoatState::CorruptorSet corruptors_, // <-- How the measurements are corrupted
 
               Nav::Id boatId = Nav::debuggingBoatId(), // <-- Boat id. Maybe not that interesting in most cases.
@@ -264,10 +264,26 @@ class Testcase {
     BoatData() {}
     BoatData(const BoatSpecs &specs,
         Array<CorruptedBoatState> states) : _specs(specs), _states(states) {}
+
+    const Array<CorruptedBoatState> &states() const {
+      return _states;
+    }
    private:
     BoatSpecs _specs;
     Array<CorruptedBoatState> _states;
   };
+
+  int boatCount() const {
+    return _boatData.size();
+  }
+
+  const Array<BoatData> &boatData() const {
+    return _boatData;
+  }
+
+  const BoatData &boatData(int index) const {
+    return _boatData[index];
+  }
  private:
   GeographicReference _geoRef;
   TimeStamp _timeOffset;
@@ -276,7 +292,7 @@ class Testcase {
   // Simulated boat states over time along with corrupted measurements.
   Array<BoatData> _boatData;
 
-  Testcase::BoatData makeBoatData(BoatSpecs &spec,
+  BoatData makeBoatData(BoatSpecs &spec,
       Array<BoatSim::FullState> state,
       std::default_random_engine &e) const;
 

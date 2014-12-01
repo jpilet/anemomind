@@ -78,6 +78,9 @@ TEST(TestcaseTest, MakeTestcase) {
   EXPECT_NEAR(w0[0].metersPerSecond(), wind[0].metersPerSecond(), 1.0e-5);
   auto c0 = tc.current()(m, t);
   EXPECT_NEAR(c0[0].metersPerSecond(), current[0].metersPerSecond(), 1.0e-5);
+
+  EXPECT_EQ(tc.boatCount(), 1);
+  EXPECT_NEAR(tc.boatData(0).states().size(), 4*60, 2);
 }
 
 
