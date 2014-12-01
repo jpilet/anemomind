@@ -24,9 +24,9 @@ TEST(TestcaseTest, Corruptor) {
 }
 
 TEST(TestcaseTest, BoatSpecs) {
-  Array<Testcase::BoatSpecs::Dir> dirs(2);
-  dirs[0] = Testcase::BoatSpecs::Dir::constant(Duration<double>::minutes(3.0), Angle<double>::degrees(119));
-  dirs[1] = Testcase::BoatSpecs::Dir::constant(Duration<double>::minutes(1.0), Angle<double>::degrees(32));
+  Array<Testcase::BoatSpecs::TwaDirective> dirs(2);
+  dirs[0] = Testcase::BoatSpecs::TwaDirective::constant(Duration<double>::minutes(3.0), Angle<double>::degrees(119));
+  dirs[1] = Testcase::BoatSpecs::TwaDirective::constant(Duration<double>::minutes(1.0), Angle<double>::degrees(32));
   Testcase::BoatSpecs specs(BoatCharacteristics(), dirs, CorruptedBoatState::CorruptorSet());
   EXPECT_NEAR(specs.duration().minutes(), 4.0, 1.0e-6);
   EXPECT_NEAR(specs.twa(Duration<double>::minutes(2.99)).degrees(), 119.0, 1.0e-6);
@@ -60,9 +60,9 @@ TEST(TestcaseTest, MakeTestcase) {
   Testcase::FlowFun windfun = Testcase::constantFlowFun(wind);
   Testcase::FlowFun currentfun = Testcase::constantFlowFun(current);
 
-  Array<Testcase::BoatSpecs::Dir> dirs(2);
-  dirs[0] = Testcase::BoatSpecs::Dir::constant(Duration<double>::minutes(3.0), Angle<double>::degrees(119));
-  dirs[1] = Testcase::BoatSpecs::Dir::constant(Duration<double>::minutes(1.0), Angle<double>::degrees(32));
+  Array<Testcase::BoatSpecs::TwaDirective> dirs(2);
+  dirs[0] = Testcase::BoatSpecs::TwaDirective::constant(Duration<double>::minutes(3.0), Angle<double>::degrees(119));
+  dirs[1] = Testcase::BoatSpecs::TwaDirective::constant(Duration<double>::minutes(1.0), Angle<double>::degrees(32));
   Testcase::BoatSpecs specs(BoatCharacteristics(), dirs, CorruptedBoatState::CorruptorSet());
 
   std::default_random_engine e;

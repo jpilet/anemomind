@@ -163,16 +163,16 @@ class Testcase {
   class BoatSpecs {
    public:
     BoatSpecs() : _stepsPerSample(0) {}
-    class Dir {
+    class TwaDirective {
      public:
-      Dir() : dur(Duration<double>::seconds(NAN)),
+      TwaDirective() : dur(Duration<double>::seconds(NAN)),
               srcTwa(Angle<double>::degrees(NAN)),
               dstTwa(Angle<double>::degrees(NAN)) {}
-      Dir(Duration<double> dur_, Angle<double> srcTwa_, Angle<double> dstTwa_) :
+      TwaDirective(Duration<double> dur_, Angle<double> srcTwa_, Angle<double> dstTwa_) :
         dur(dur_), srcTwa(srcTwa_), dstTwa(dstTwa_) {}
 
-      static Dir constant(Duration<double> dur, Angle<double> twa) {
-        return Dir(dur, twa, twa);
+      static TwaDirective constant(Duration<double> dur, Angle<double> twa) {
+        return TwaDirective(dur, twa, twa);
       }
 
       Duration<double> dur;
@@ -186,7 +186,7 @@ class Testcase {
     };
 
     BoatSpecs(BoatCharacteristics ch_, // <-- How the boat behaves
-              Array<Dir> dirs_,        // <-- How the boat should be steered
+              Array<TwaDirective> dirs_,        // <-- How the boat should be steered
               CorruptedBoatState::CorruptorSet corruptors_, // <-- How the measurements are corrupted
 
               Nav::Id boatId = Nav::debuggingBoatId(), // <-- Boat id. Maybe not that interesting in most cases.
@@ -223,7 +223,7 @@ class Testcase {
    private:
     Nav::Id _boatId;
     BoatCharacteristics _ch;
-    Array<Dir> _dirs;
+    Array<TwaDirective> _dirs;
     ProportionateIndexer _indexer;
     CorruptedBoatState::CorruptorSet _corruptors;
     Duration<double> _samplingPeriod;

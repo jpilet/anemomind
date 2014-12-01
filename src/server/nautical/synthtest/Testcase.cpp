@@ -13,7 +13,7 @@ Testcase::FlowFun Testcase::constantFlowFun(HorizontalMotion<double> m) {
   };
 }
 
-Testcase::BoatSpecs::BoatSpecs(BoatCharacteristics ch, Array<Dir> dirs,
+Testcase::BoatSpecs::BoatSpecs(BoatCharacteristics ch, Array<TwaDirective> dirs,
   CorruptedBoatState::CorruptorSet corruptors,
   Nav::Id boatId, Duration<double> samplingPeriod, int stepsPerSample) :
     _ch(ch),
