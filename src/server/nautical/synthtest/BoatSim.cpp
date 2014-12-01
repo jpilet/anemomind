@@ -121,7 +121,7 @@ void BoatSim::eval(double *Xin, double *Fout, double *Jout) {
 
 Array<BoatSim::FullState> BoatSim::simulate(Duration<double> simulationDuration,
   Duration<double> samplingPeriod, int iterationsPerSample) {
-  int sampleCount = int(simulationDuration/samplingPeriod);
+  int sampleCount = int(simulationDuration/samplingPeriod) - 1; // subtract -1 to have some margin for round-off errors.
   double stepsize = samplingPeriod.seconds()/iterationsPerSample;
   Array<FullState> dst(sampleCount);
   BoatSimulationState state;
