@@ -30,7 +30,7 @@ Velocity<double> BoatCharacteristics::defaultTargetSpeed(Angle<double> twa, Velo
   return 0.5*testTargetSpeedProfile(twa)*tws;
 }
 
-BoatSimulator::BoatSimulator(
+BoatSim::BoatSim(
     FlowFun windFun,
     FlowFun currentFun,
     BoatCharacteristics ch,
@@ -42,8 +42,8 @@ BoatSimulator::BoatSimulator(
 
 
 
-BoatSimulator::FullBoatState BoatSimulator::makeFullState(const BoatSimulationState &state) {
-  FullBoatState dst;
+BoatSim::FullState BoatSim::makeFullState(const BoatSimulationState &state) {
+  FullState dst;
   dst.rudderAngle = state.rudderAngle();
   dst.x = state.boatX();
   dst.y = state.boatY();
@@ -73,11 +73,11 @@ BoatSimulator::FullBoatState BoatSimulator::makeFullState(const BoatSimulationSt
 }
 
 
-void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
+void BoatSim::eval(double *Xin, double *Fout, double *Jout) {
   assert(Jout == nullptr);
   BoatSimulationState &state = *((BoatSimulationState *)Xin);
   BoatSimulationState &deriv = *((BoatSimulationState *)Fout);
-  FullBoatState full = makeFullState(state);
+  FullState full = makeFullState(state);
 
 
   double twaAngleErrorRadians = (_twaFunction(full.time) - full.windAngleWrtWater).radians();
@@ -119,11 +119,11 @@ void BoatSimulator::eval(double *Xin, double *Fout, double *Jout) {
   deriv.setTimeDeriv(1.0);
 }
 
-Array<BoatSimulator::FullBoatState> BoatSimulator::simulate(Duration<double> simulationDuration,
+Array<BoatSim::FullState> BoatSim::simulate(Duration<double> simulationDuration,
   Duration<double> samplingPeriod, int iterationsPerSample) {
   int sampleCount = int(simulationDuration/samplingPeriod);
   double stepsize = samplingPeriod.seconds()/iterationsPerSample;
-  Array<FullBoatState> dst(sampleCount);
+  Array<FullState> dst(sampleCount);
   BoatSimulationState state;
   Arrayd stateVector = state.toArray();
   auto fun = makeSharedPtrToStack(*this);
@@ -136,7 +136,7 @@ Array<BoatSimulator::FullBoatState> BoatSimulator::simulate(Duration<double> sim
   return dst;
 }
 
-BoatSimulator::TwaFunction BoatSimulator::makePiecewiseTwaFunction(
+BoatSim::TwaFunction BoatSim::makePiecewiseTwaFunction(
     Array<Duration<double> > durs,
     Array<Angle<double> > twa) {
   int count = durs.size();
@@ -148,15 +148,15 @@ BoatSimulator::TwaFunction BoatSimulator::makePiecewiseTwaFunction(
 }
 
 namespace {
-  Arrayd getTimes(Array<BoatSimulator::FullBoatState> states) {
-    return states.map<double>([=](BoatSimulator::FullBoatState s) {
+  Arrayd getTimes(Array<BoatSim::FullState> states) {
+    return states.map<double>([=](BoatSim::FullState s) {
       return s.time.seconds();
     });
   }
 
 
-  void plotAngles(const char *title, Array<BoatSimulator::FullBoatState> states,
-      std::function<Angle<double>(BoatSimulator::FullBoatState)> fun) {
+  void plotAngles(const char *title, Array<BoatSim::FullState> states,
+      std::function<Angle<double>(BoatSim::FullState)> fun) {
     GnuplotExtra plot;
     plot.set_title(title);
     plot.set_style("lines");
@@ -166,8 +166,8 @@ namespace {
     plot.show();
   }
 
-  void plotSpeed(const char *title, Array<BoatSimulator::FullBoatState> states,
-      std::function<Velocity<double>(BoatSimulator::FullBoatState)> fun) {
+  void plotSpeed(const char *title, Array<BoatSim::FullState> states,
+      std::function<Velocity<double>(BoatSim::FullState)> fun) {
     GnuplotExtra plot;
     plot.set_title(title);
     plot.set_style("lines");
@@ -177,29 +177,29 @@ namespace {
     plot.show();
   }
 
-  void plotTrajectory(Array<BoatSimulator::FullBoatState> states) {
+  void plotTrajectory(Array<BoatSim::FullState> states) {
     GnuplotExtra plot;
     plot.set_title("Trajectory (meters)");
     plot.set_style("lines");
     plot.plot_xy(
-        states.map<double>([&](BoatSimulator::FullBoatState x) {return x.x.meters();}),
-        states.map<double>([&](BoatSimulator::FullBoatState x) {return x.y.meters();})
+        states.map<double>([&](BoatSim::FullState x) {return x.x.meters();}),
+        states.map<double>([&](BoatSim::FullState x) {return x.y.meters();})
     );
     plot.show();
   }
 }
 
-void BoatSimulator::makePlots(Array<BoatSimulator::FullBoatState> states) {
-  plotAngles("Rudder angle (degrees)", states, [](const BoatSimulator::FullBoatState &x) {return x.rudderAngle;});
-  plotAngles("Boat orientation (degrees)", states, [](const BoatSimulator::FullBoatState &x) {return x.boatOrientation;});
-  plotSpeed("Boat speed through water (knots)", states, [](const BoatSimulator::FullBoatState &x) {return x.boatSpeedThroughWater;});
+void BoatSim::makePlots(Array<BoatSim::FullState> states) {
+  plotAngles("Rudder angle (degrees)", states, [](const BoatSim::FullState &x) {return x.rudderAngle;});
+  plotAngles("Boat orientation (degrees)", states, [](const BoatSim::FullState &x) {return x.boatOrientation;});
+  plotSpeed("Boat speed through water (knots)", states, [](const BoatSim::FullState &x) {return x.boatSpeedThroughWater;});
   plotTrajectory(states);
 }
 
 
 
 std::ostream &operator<<(std::ostream &s,
-    const BoatSimulator::FullBoatState &state) {
+    const BoatSim::FullState &state) {
   s << EXPR_AND_VAL_AS_STRING(state.boatMotion) << std::endl;
   s << EXPR_AND_VAL_AS_STRING(state.boatMotionThroughWater) << std::endl;
   s << EXPR_AND_VAL_AS_STRING(state.boatOrientation) << std::endl;

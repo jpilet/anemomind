@@ -97,6 +97,10 @@ class PhysicalQuantity {
     return *this;
   }
 
+  static Quantity zero() {
+    return Quantity::makeFromX(0.0);
+  }
+
   Quantity scaled(Value s) const {
       return Quantity::makeFromX(_x * s);
   }
@@ -325,6 +329,10 @@ class Vectorize : public FixedArray<T, N> {
             result[i] = (*this)[i].scaled(factor);
         }
         return result;
+    }
+
+    Vectorize<T, N> operator- () const {
+      return Vectorize<T, N>{-(*this)[0], -(*this)[1]};
     }
 
     bool operator == (const Vectorize<T, N>& other) const {

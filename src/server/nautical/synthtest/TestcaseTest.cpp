@@ -31,7 +31,7 @@ TEST(TestcaseTest, Test1) {
 
   std::default_random_engine e;
   Testcase tc(e, georef, timeoffset, windfun, currentfun,
-    Array<Testcase::BoatSimDirs>(0));
+    Array<Testcase::BoatSpecs>(0));
 
   auto t = tc.toLocalTime(timeoffset);
   EXPECT_NEAR(t.seconds(), 0.0, 1.0e-6);
@@ -42,6 +42,18 @@ TEST(TestcaseTest, Test1) {
   EXPECT_NEAR(w0[0].metersPerSecond(), wind[0].metersPerSecond(), 1.0e-5);
   auto c0 = tc.current()(m, t);
   EXPECT_NEAR(c0[0].metersPerSecond(), current[0].metersPerSecond(), 1.0e-5);
+}
+
+TEST(TestcaseTest, Corruptor) {
+  typedef CorruptedBoatState::Corruptor<Velocity<double > > Corr;
+
+  Velocity<double> x;
+
+  Corr corr(2.0,
+      Velocity<double>::knots(1.0), Velocity<double>::knots(0.0));
+  std::default_random_engine e;
+  EXPECT_NEAR(corr.corrupt(Velocity<double>::knots(3.0), e).knots(), 7.0, 1.0e-6);
+
 }
 
 

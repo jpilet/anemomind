@@ -28,12 +28,12 @@ TEST(BoatSimTest, SimLimit) {
   auto currentfun = makeConstantFlow(Velocity<double>::knots(0.1),
                                   Angle<double>::degrees(90));
 
-  auto fun = BoatSimulator::makePiecewiseTwaFunction(
+  auto fun = BoatSim::makePiecewiseTwaFunction(
       Array<Duration<double> >::args(Duration<double>::hours(3.0)),
       Array<Angle<double> >::args(Angle<double>::degrees(129)));
-  BoatSimulator simulator(windfun, currentfun, ch, fun);
+  BoatSim simulator(windfun, currentfun, ch, fun);
 
-  Array<BoatSimulator::FullBoatState> states = simulator.simulate(Duration<double>::seconds(30.0),
+  Array<BoatSim::FullState> states = simulator.simulate(Duration<double>::seconds(30.0),
       Duration<double>::seconds(1.0), 20);
 
   EXPECT_LE(30, std::abs(states.first().windAngleWrtWater.degrees()));
@@ -47,15 +47,15 @@ TEST(BoatSimTest, SimDirectionChange) {
   auto currentfun = makeConstantFlow(Velocity<double>::knots(0.1),
                                   Angle<double>::degrees(90));
 
-  auto fun = BoatSimulator::makePiecewiseTwaFunction(
+  auto fun = BoatSim::makePiecewiseTwaFunction(
     Array<Duration<double> >::fill(2, Duration<double>::minutes(2.0)),
         Array<Angle<double> >::args(
             Angle<double>::degrees(129),
             Angle<double>::degrees(199)));
 
-  BoatSimulator simulator(windfun, currentfun, ch, fun);
+  BoatSim simulator(windfun, currentfun, ch, fun);
 
-  Array<BoatSimulator::FullBoatState> states = simulator.simulate(Duration<double>::minutes(3.99),
+  Array<BoatSim::FullState> states = simulator.simulate(Duration<double>::minutes(3.99),
       Duration<double>::seconds(1.0), 20);
 
 
@@ -77,13 +77,13 @@ TEST(BoatSimTest, CheckAllValues) {
                                   Angle<double>::degrees(180));
 
   // We sail north, so the true wind angle is 90 degrees.
-  auto fun = BoatSimulator::makePiecewiseTwaFunction(
+  auto fun = BoatSim::makePiecewiseTwaFunction(
       Array<Duration<double> >::args(Duration<double>::hours(3.0)),
       Array<Angle<double> >::args(Angle<double>::degrees(90)));
 
-  BoatSimulator simulator(windfun, currentfun, ch, fun);
+  BoatSim simulator(windfun, currentfun, ch, fun);
 
-  Array<BoatSimulator::FullBoatState> states = simulator.simulate(Duration<double>::seconds(90.0),
+  Array<BoatSim::FullState> states = simulator.simulate(Duration<double>::seconds(90.0),
       Duration<double>::seconds(1.0), 20);
 
   auto last = states.last();
