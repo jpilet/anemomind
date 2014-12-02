@@ -13,7 +13,7 @@ namespace {
     if (fun) {
       return fun(p, t);
     }
-    return 0.0;
+    return Velocity<double>::knots(0.0);
   }
 
   Flow::VelFun operator+ (const Flow::VelFun &a, const Flow::VelFun &b) {
@@ -34,11 +34,15 @@ Flow::Flow(VelFun x, VelFun y) {
   _funs[1] = y;
 }
 
-Flow Flow::constant(const HorizontalMotion<double> &m) const {
+Flow Flow::constant(const HorizontalMotion<double> &m) {
+  return constant(m[0], m[1]);
+}
+
+Flow Flow::constant(Velocity<double> x, Velocity<double> y) {
   return Flow([=](const ProjectedPosition &p, Duration<double> t) {
-                  return m[0];
+                  return x;
               },[=](const ProjectedPosition &p, Duration<double> t) {
-                  return m[1];
+                  return y;
               });
 }
 
@@ -51,7 +55,7 @@ Flow Flow::operator+ (const Flow &other) const {
   return Flow(_funs[0] + other._funs[0], _funs[1] + other._funs[1]);
 }
 
-Flow::VelFun Flow::make() const {
+Flow::FlowFun Flow::make() const {
   return [=](const ProjectedPosition &p, Duration<double> t) {
     return (*this)(p, t);
   };

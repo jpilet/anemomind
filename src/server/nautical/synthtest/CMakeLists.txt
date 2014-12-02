@@ -48,3 +48,17 @@ add_executable(nautical_synth_BoatSimDemo
 target_link_libraries(nautical_synth_BoatSimDemo
                       nautical_synth_BoatSim
                      )
+
+add_library(nautical_synthtest_Flow
+            Flow.h
+            Flow.cpp
+           )
+target_link_libraries(nautical_synthtest_Flow
+                      nautical_GeographicReference
+                     )
+
+cxx_test(nautical_synthtest_FlowTest
+         FlowTest.cpp
+         nautical_synthtest_Flow
+         gtest_main
+        )                                                     

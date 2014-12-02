@@ -7,6 +7,7 @@
 #define FLOW_H_
 
 #include <server/nautical/GeographicReference.h>
+#include <functional>
 
 namespace sail {
 
@@ -21,15 +22,17 @@ class Flow {
  public:
   typedef GeographicReference::ProjectedPosition ProjectedPosition;
   typedef std::function<Velocity<double>(ProjectedPosition, Duration<double>)> VelFun;
+  typedef std::function<HorizontalMotion<double>(ProjectedPosition, Duration<double>)> FlowFun;
 
-  Flow();
+  Flow() {}
   Flow(VelFun x, VelFun y);
-  static Flow constant(const HorizontalMotion<double> &m) const;
+  static Flow constant(const HorizontalMotion<double> &m);
+  static Flow constant(Velocity<double> x, Velocity<double> y);
 
   HorizontalMotion<double> operator() (const ProjectedPosition &p, Duration<double> t) const;
   Flow operator+ (const Flow &other) const;
 
-  VelFun make() const;
+  FlowFun make() const;
  private:
   VelFun _funs[2];
 };
