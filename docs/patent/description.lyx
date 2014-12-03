@@ -1,0 +1,352 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 479
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\begin_modules
+customHeadersFooters
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle fancy
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Center Header
+CONFIDENTIAL - Do not distribute without written approval
+\end_layout
+
+\begin_layout Right Header
+
+\end_layout
+
+\begin_layout Left Header
+
+\end_layout
+
+\begin_layout Title
+Anemomind solution description
+\end_layout
+
+\begin_layout Author
+Julien Pilet and Jonas Östlund
+\end_layout
+
+\begin_layout Section
+System Overview
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+thispagestyle{fancy}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Data Aquisition and Transfer
+\end_layout
+
+\begin_layout Section
+Data Processing
+\end_layout
+
+\begin_layout Standard
+Recorded sensor data for a particular boat from any number of races is stored
+ as NMEA sentences in text files.
+ The first step in the processing amounts to load this data for a boat and
+ group measurements into tuples.
+ We call such a tuple a nav.
+ A nav groups a time stamp together with sensor values at that time stamp.
+ Once all navs of interest have been loaded, they are sorted in ascending
+ order by their time stamp.
+\end_layout
+
+\begin_layout Subsection
+Semantic segmentation
+\end_layout
+
+\begin_layout Standard
+Given a discrete set 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$L$
+\end_layout
+
+\end_inset
+
+ of labels, the semantic segmentation assigns a label from the set to every
+ nav in a sequence of 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$N$
+\end_layout
+
+\end_inset
+
+ navs sorted by their time stamp.
+ For instance, a set of such labels could be 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$L_0 = {
+\backslash
+textrm{Downwind}, 
+\backslash
+textrm{Upwind}}$
+\end_layout
+
+\end_inset
+
+ to denote if the boat, for a particular nav, is sailing upwind or downwind.
+ The set of labels together with the rule to assign those labels to each
+ nav in a sequence is called a grammar.
+ The assignment of labels to navs in a sequence is the solution of an optimizati
+on problem where an objective function 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$f:L^N 
+\backslash
+rightarrow 
+\backslash
+mathbf{R}$
+\end_layout
+
+\end_inset
+
+ is minimized w.r.t.
+ to a vector of states.
+ The objective function has the form 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$f(I) = 
+\backslash
+sum_{n = 1}^{N} C_{
+\backslash
+textrm{state}}(n, I_n) + 
+\backslash
+sum_{i = 1}^{N-1} C_{
+\backslash
+textrm{transition}}(n, I_n, I_{n+1})$
+\end_layout
+
+\end_inset
+
+.
+ The function 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$C_{
+\backslash
+textrm{state}}(n, I_n)$
+\end_layout
+
+\end_inset
+
+ is defined by the grammar from the sequence of navs and is the cost of
+ assigning label 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$I_n$
+\end_layout
+
+\end_inset
+
+ to the nav with index 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$n$
+\end_layout
+
+\end_inset
+
+.
+ The function 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$C_{
+\backslash
+textrm{transition}}(n, I_n, I_{n+1})$
+\end_layout
+
+\end_inset
+
+ is defined by the grammar from the sequence of navs and is the cost of
+ jointly assigning label 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$I_n$
+\end_layout
+
+\end_inset
+
+ to nav with index 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$n$
+\end_layout
+
+\end_inset
+
+ and label 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$I_{n+1}$
+\end_layout
+
+\end_inset
+
+ to nav with index 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$n+1$
+\end_layout
+
+\end_inset
+
+.
+ This optimization problem has the same structure as a hidden markov model
+ (HMM) and is solved using the dynamic programming algorithm.
+\end_layout
+
+\begin_layout Subsection
+Calibration
+\end_layout
+
+\begin_layout Standard
+Calibration is the process of computing parameters that determine how the
+ raw measurements from sensors on the boat are mapped to values that represent
+ the true quantities being measured.
+\end_layout
+
+\begin_layout Standard
+A maneuver is a rapid transition from one sail trim and boat course to a
+ different sail trim and course.
+ For properly calibrated instruments and assuming consta
+\end_layout
+
+\begin_layout Subsection
+Target speed extraction
+\end_layout
+
+\begin_layout Subsection
+Data compilation for fast visualization
+\end_layout
+
+\begin_layout Section
+Real-time Data Processing and Visualization
+\end_layout
+
+\begin_layout Section
+Post-Navigation Data Visualization
+\end_layout
+
+\end_body
+\end_document
