@@ -25,42 +25,21 @@ template <typename PhysQuant>
 class PhysQuantNormalDistrib {
  public:
   PhysQuantNormalDistrib(PhysQuant mean, PhysQuant stddev)
-    : _distrib(mean.unwrap(), stddev.unwrap()) {}
+    : _distrib(unwrap(mean), unwrap(stddev)) {}
 
   template<typename UniformRandomNumberGenerator>
   PhysQuant operator()(UniformRandomNumberGenerator& urng) {
-    return PhysQuant::wrap(_distrib(urng));
+    PhysQuant dst;
+    wrap(_distrib(urng), &dst);
+    return dst;
   }
  private:
   std::normal_distribution<double> _distrib;
-};
 
-template <>
-class PhysQuantNormalDistrib<Angle<double> > {
- public:
-  PhysQuantNormalDistrib(Angle<double> mean, Angle<double> stddev) :
-    _distrib(mean.degrees(), stddev.degrees()) {}
-
-  template<typename UniformRandomNumberGenerator>
-  Angle<double> operator()(UniformRandomNumberGenerator& urng) {
-    return Angle<double>::degrees(_distrib(urng));
-  }
- private:
-  std::normal_distribution<double> _distrib;
-};
-
-template <>
-class PhysQuantNormalDistrib<Velocity<double> > {
- public:
-  PhysQuantNormalDistrib(Velocity<double> mean, Velocity<double> stddev) :
-    _distrib(mean.knots(), stddev.knots()) {}
-
-  template<typename UniformRandomNumberGenerator>
-  Velocity<double> operator()(UniformRandomNumberGenerator& urng) {
-    return Velocity<double>::knots(_distrib(urng));
-  }
- private:
-  std::normal_distribution<double> _distrib;
+  template <typename T> static T unwrap(Angle<T> src) {return src.degrees();}
+  template <typename T> static void wrap(T x, Angle<T> *dst) {*dst = Angle<T>::degrees(x);}
+  template <typename T> static T unwrap(Velocity<T> src) {return src.knots();}
+  template <typename T> static void wrap(T x, Velocity<T> *dst) {*dst = Velocity<T>::knots(x);}
 };
 
 
@@ -147,7 +126,7 @@ class CorruptedBoatState {
  *     to simulate real measurements.
  *
  */
-class Testcase {
+class BoatSimulation {
  public:
   typedef BoatSim::ProjectedPosition ProjectedPosition;
   typedef BoatSim::FlowFun FlowFun;
@@ -160,9 +139,9 @@ class Testcase {
   //  * TWA-directives for how the boat should steer
   //  * How the measured values are corrupted
   //  * How the boat should be simulated.
-  class BoatSpecs {
+  class Specs {
    public:
-    BoatSpecs() : _stepsPerSample(0) {}
+    Specs() : _stepsPerSample(0) {}
     class TwaDirective {
      public:
       TwaDirective() : dur(Duration<double>::seconds(NAN)),
@@ -185,7 +164,7 @@ class Testcase {
       }
     };
 
-    BoatSpecs(BoatCharacteristics ch_, // <-- How the boat behaves
+    Specs(BoatCharacteristics ch_, // <-- How the boat behaves
               Array<TwaDirective> specs_,        // <-- How the boat should be steered
               CorruptedBoatState::CorruptorSet corruptors_, // <-- How the measurements are corrupted
 
@@ -231,12 +210,12 @@ class Testcase {
   };
 
 
-  Testcase(std::default_random_engine &e,
+  BoatSimulation(std::default_random_engine &e,
            GeographicReference geoRef,
            TimeStamp timeOffset,
            FlowFun wind,
            FlowFun current,
-           Array<BoatSpecs> dirs);
+           Array<Specs> specs);
 
   const GeographicReference &geoRef() const {
     return _geoRef;
@@ -262,14 +241,14 @@ class Testcase {
   class BoatData {
    public:
     BoatData() {}
-    BoatData(const BoatSpecs &specs,
+    BoatData(const Specs &specs,
         Array<CorruptedBoatState> states) : _specs(specs), _states(states) {}
 
     const Array<CorruptedBoatState> &states() const {
       return _states;
     }
    private:
-    BoatSpecs _specs;
+    Specs _specs;
     Array<CorruptedBoatState> _states;
   };
 
@@ -292,7 +271,7 @@ class Testcase {
   // Simulated boat states over time along with corrupted measurements.
   Array<BoatData> _boatData;
 
-  BoatData makeBoatData(BoatSpecs &spec,
+  BoatData makeBoatData(Specs &spec,
       Array<BoatSim::FullState> state,
       std::default_random_engine &e) const;
 

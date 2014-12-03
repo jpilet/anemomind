@@ -7,13 +7,13 @@
 
 namespace sail {
 
-Testcase::FlowFun Testcase::constantFlowFun(HorizontalMotion<double> m) {
+BoatSimulation::FlowFun BoatSimulation::constantFlowFun(HorizontalMotion<double> m) {
   return [=](const ProjectedPosition &pos, Duration<double> dur) {
     return m;
   };
 }
 
-Testcase::BoatSpecs::BoatSpecs(BoatCharacteristics ch, Array<TwaDirective> dirs,
+BoatSimulation::Specs::Specs(BoatCharacteristics ch, Array<TwaDirective> dirs,
   CorruptedBoatState::CorruptorSet corruptors,
   Nav::Id boatId, Duration<double> samplingPeriod, int stepsPerSample) :
     _ch(ch),
@@ -25,17 +25,17 @@ Testcase::BoatSpecs::BoatSpecs(BoatCharacteristics ch, Array<TwaDirective> dirs,
         _stepsPerSample(stepsPerSample) {}
 
 
-Angle<double> Testcase::BoatSpecs::twa(Duration<double> dur) const {
+Angle<double> BoatSimulation::Specs::twa(Duration<double> dur) const {
   auto result = _indexer.get(dur.seconds());
   return _dirs[result.index].interpolate(result.localX);
 }
 
-Testcase::Testcase(std::default_random_engine &e,
+BoatSimulation::BoatSimulation(std::default_random_engine &e,
          GeographicReference geoRef,
          TimeStamp timeOffset,
          FlowFun wind,
          FlowFun current,
-         Array<BoatSpecs> specs) :
+         Array<Specs> specs) :
          _geoRef(geoRef),
          _timeOffset(timeOffset),
          _wind(wind),
@@ -48,7 +48,7 @@ Testcase::Testcase(std::default_random_engine &e,
   }
 }
 
-Testcase::BoatData Testcase::makeBoatData(BoatSpecs &specs,
+BoatSimulation::BoatData BoatSimulation::makeBoatData(Specs &specs,
     Array<BoatSim::FullState> states, std::default_random_engine &e) const {
   int count = states.size();
   Array<CorruptedBoatState> dst(count);
