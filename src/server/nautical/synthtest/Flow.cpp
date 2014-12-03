@@ -8,7 +8,7 @@
 namespace sail {
 
 namespace {
-  Velocity<double> eval(const Flow::VelFun &fun,
+  Velocity<double> eval(const Flow::VelocityFunction &fun,
       const Flow::ProjectedPosition &p, Duration<double> t) {
     if (fun) {
       return fun(p, t);
@@ -16,7 +16,7 @@ namespace {
     return Velocity<double>::knots(0.0);
   }
 
-  Flow::VelFun operator+ (const Flow::VelFun &a, const Flow::VelFun &b) {
+  Flow::VelocityFunction operator+ (const Flow::VelocityFunction &a, const Flow::VelocityFunction &b) {
     if (!bool(a)) {
       return b;
     } else if (!bool(b)) {
@@ -29,7 +29,7 @@ namespace {
   }
 }
 
-Flow::Flow(VelFun x, VelFun y) {
+Flow::Flow(VelocityFunction x, VelocityFunction y) {
   _funs[0] = x;
   _funs[1] = y;
 }
@@ -55,7 +55,7 @@ Flow Flow::operator+ (const Flow &other) const {
   return Flow(_funs[0] + other._funs[0], _funs[1] + other._funs[1]);
 }
 
-Flow::FlowFun Flow::make() const {
+std::function<HorizontalMotion<double>(Flow::ProjectedPosition, Duration<double>)> Flow::asFunction() const {
   return [=](const ProjectedPosition &p, Duration<double> t) {
     return (*this)(p, t);
   };
