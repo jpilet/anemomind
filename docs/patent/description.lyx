@@ -138,6 +138,10 @@ Semantic segmentation
 \begin_layout Standard
 The objective of semantic segmentation is to split a sequence of navs into
  subsequence and assign a semantically meaningful label to each such subsequence.
+ The possible number of labels that can be assigned to a subsequence is
+ limited and the labels form a discrete set.
+ The set of labels together with a rule for splitting a sequence of navs
+ into subsequences and assign labels to them is called a grammar.
 \end_layout
 
 \begin_layout Subsection
