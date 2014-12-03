@@ -1,5 +1,5 @@
-#LyX 2.1 created this file. For more info see http://www.lyx.org/
-\lyxformat 474
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 479
 \begin_document
 \begin_header
 \textclass article
@@ -120,8 +120,24 @@ Data Aquisition and Transfer
 Data Processing
 \end_layout
 
+\begin_layout Standard
+Recorded sensor data for a particular boat from any number of races is stored
+ as NMEA sentences as text files.
+ The first step in the processing amounts to load this data for a boat and
+ group measurements into tuples.
+ We call such a tuple a nav.
+ A nav groups a time stamp together with sensor values at that time stamp.
+ Once all navs have been loaded, they are sorted in ascending order by their
+ time stamp.
+\end_layout
+
 \begin_layout Subsection
 Semantic segmentation
+\end_layout
+
+\begin_layout Standard
+The objective of semantic segmentation is to split a sequence of navs into
+ subsequence and assign a semantically meaningful label to each such subsequence.
 \end_layout
 
 \begin_layout Subsection
