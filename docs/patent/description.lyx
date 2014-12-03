@@ -222,9 +222,9 @@ status open
 
 \begin_layout Plain Layout
 
-C_{
+$C_{
 \backslash
-textrm{state}}(n, I_n)
+textrm{state}}(n, I_n)$
 \end_layout
 
 \end_inset
@@ -236,7 +236,7 @@ status open
 
 \begin_layout Plain Layout
 
-I_n
+$I_n$
 \end_layout
 
 \end_inset
@@ -247,7 +247,7 @@ status open
 
 \begin_layout Plain Layout
 
-n
+$n$
 \end_layout
 
 \end_inset
@@ -259,9 +259,9 @@ status open
 
 \begin_layout Plain Layout
 
-C_{
+$C_{
 \backslash
-textrm{transition}}(n, I_n, I_{n+1})
+textrm{transition}}(n, I_n, I_{n+1})$
 \end_layout
 
 \end_inset
@@ -273,7 +273,7 @@ status open
 
 \begin_layout Plain Layout
 
-I_n
+$I_n$
 \end_layout
 
 \end_inset
@@ -284,7 +284,7 @@ status open
 
 \begin_layout Plain Layout
 
-n
+$n$
 \end_layout
 
 \end_inset
@@ -295,7 +295,7 @@ status open
 
 \begin_layout Plain Layout
 
-I_{n+1}
+$I_{n+1}$
 \end_layout
 
 \end_inset
@@ -306,7 +306,7 @@ status open
 
 \begin_layout Plain Layout
 
-n+1
+$n+1$
 \end_layout
 
 \end_inset
