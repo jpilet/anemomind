@@ -122,13 +122,13 @@ Data Processing
 
 \begin_layout Standard
 Recorded sensor data for a particular boat from any number of races is stored
- as NMEA sentences as text files.
+ as NMEA sentences in text files.
  The first step in the processing amounts to load this data for a boat and
  group measurements into tuples.
  We call such a tuple a nav.
  A nav groups a time stamp together with sensor values at that time stamp.
- Once all navs have been loaded, they are sorted in ascending order by their
- time stamp.
+ Once all navs of interest have been loaded, they are sorted in ascending
+ order by their time stamp.
 \end_layout
 
 \begin_layout Subsection
@@ -313,11 +313,23 @@ $n+1$
 
 .
  This optimization problem has the same structure as a hidden markov model
- (HMM) and can be solved using the dynamic programming algorithm.
+ (HMM) and is solved using the dynamic programming algorithm.
 \end_layout
 
 \begin_layout Subsection
 Calibration
+\end_layout
+
+\begin_layout Standard
+Calibration is the process of computing parameters that determine how the
+ raw measurements from sensors on the boat are mapped to values that represent
+ the true quantities being measured.
+\end_layout
+
+\begin_layout Standard
+A maneuver is a rapid transition from one sail trim and boat course to a
+ different sail trim and course.
+ For properly calibrated instruments and assuming consta
 \end_layout
 
 \begin_layout Subsection
