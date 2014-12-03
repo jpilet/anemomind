@@ -136,21 +136,46 @@ Semantic segmentation
 \end_layout
 
 \begin_layout Standard
-Given a discrete set of 
+Given a discrete set 
 \begin_inset ERT
 status open
 
 \begin_layout Plain Layout
 
-$M$ 
+$L$
 \end_layout
 
 \end_inset
 
-labels, the semantic segmentation assigns a label from the set to every
- nav in a sequence of navs sorted by their time stamp.
- For instance, a set of such labels could be {Downwind, Upwind} to denote
- if the boat, for a particular nav, is sailing upwind or downwind.
+ of labels, the semantic segmentation assigns a label from the set to every
+ nav in a sequence of 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$N$
+\end_layout
+
+\end_inset
+
+ navs sorted by their time stamp.
+ For instance, a set of such labels could be 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$L_0 = {
+\backslash
+textrm{Downwind}, 
+\backslash
+textrm{Upwind}}$
+\end_layout
+
+\end_inset
+
+ to denote if the boat, for a particular nav, is sailing upwind or downwind.
  The set of labels together with the rule to assign those labels to each
  nav in a sequence is called a grammar.
  The assignment of labels to navs in a sequence is the solution of an optimizati
@@ -160,18 +185,135 @@ status open
 
 \begin_layout Plain Layout
 
-$f: {1, 
+$f:L^N 
 \backslash
-ldots, M}^N 
+rightarrow 
 \backslash
-rightarrow R$
+mathbf{R}$
 \end_layout
 
 \end_inset
 
  is minimized w.r.t.
- to an index vector.
- Each 
+ to a vector of states.
+ The objective function has the form 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$f(I) = 
+\backslash
+sum_{n = 1}^{N} C_{
+\backslash
+textrm{state}}(n, I_n) + 
+\backslash
+sum_{i = 1}^{N-1} C_{
+\backslash
+textrm{transition}}(n, I_n, I_{n+1})$
+\end_layout
+
+\end_inset
+
+.
+ The function 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+C_{
+\backslash
+textrm{state}}(n, I_n)
+\end_layout
+
+\end_inset
+
+ is defined by the grammar from the sequence of navs and is the cost of
+ assigning label 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+I_n
+\end_layout
+
+\end_inset
+
+ to the nav with index 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+n
+\end_layout
+
+\end_inset
+
+.
+ The function 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+C_{
+\backslash
+textrm{transition}}(n, I_n, I_{n+1})
+\end_layout
+
+\end_inset
+
+ is defined by the grammar from the sequence of navs and is the cost of
+ jointly assigning label 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+I_n
+\end_layout
+
+\end_inset
+
+ to nav with index 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+n
+\end_layout
+
+\end_inset
+
+ and label 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+I_{n+1}
+\end_layout
+
+\end_inset
+
+ to nav with index 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+n+1
+\end_layout
+
+\end_inset
+
+.
+ This optimization problem has the same structure as a hidden markov model
+ (HMM) and can be solved using the dynamic programming algorithm.
 \end_layout
 
 \begin_layout Subsection
