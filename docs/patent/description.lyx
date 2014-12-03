@@ -136,13 +136,42 @@ Semantic segmentation
 \end_layout
 
 \begin_layout Standard
-Given a discrete set of labels, the semantic segmentation assigns a label
- from the set to every nav in a sequence of navs sorted by their time stamp.
+Given a discrete set of 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$M$ 
+\end_layout
+
+\end_inset
+
+labels, the semantic segmentation assigns a label from the set to every
+ nav in a sequence of navs sorted by their time stamp.
  For instance, a set of such labels could be {Downwind, Upwind} to denote
  if the boat, for a particular nav, is sailing upwind or downwind.
  The set of labels together with the rule to assign those labels to each
  nav in a sequence is called a grammar.
- 
+ The assignment of labels to navs in a sequence is the solution of an optimizati
+on problem where an objective function 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$f: {1, 
+\backslash
+ldots, M}^N 
+\backslash
+rightarrow R$
+\end_layout
+
+\end_inset
+
+ is minimized w.r.t.
+ to an index vector.
+ Each 
 \end_layout
 
 \begin_layout Subsection
