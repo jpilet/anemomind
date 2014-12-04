@@ -894,8 +894,25 @@ Target speed extraction
 
 \begin_layout Standard
 Target speed estimation amounts to estimating the maximum speed that the
- boat can reach under given stable wind conditions and a given course.
+ boat can reach under given stable wind conditions and a given stable course
+ of the boat.
+ We distinguish between two types of target speeds.
  
+\end_layout
+
+\begin_layout Standard
+For a wind oriented regatta, we are interested in two tables types of target
+ speeds: the VMG target speed when sailing upwind and the VMG target speed
+ when sailing downwind.
+\end_layout
+
+\begin_layout Standard
+For a regatta that is not wind oriented, we want to estimate the target
+ speed of the boat for any course and wind conditions.
+\end_layout
+
+\begin_layout Standard
+
 \end_layout
 
 \begin_layout Subsection
