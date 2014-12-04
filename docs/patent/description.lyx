@@ -915,8 +915,8 @@ For a regatta that is not wind oriented, we want to estimate the target
 \end_layout
 
 \begin_layout Standard
-In this section, we explain how target speed predictions can be made from
- past recordings.
+In this section, we explain how target speed predictions are established
+ from past recordings for a general regatta that is not wind oriented.
  Given a set of navs, we build set of 3D vectors of values (TWA, TWS, TS),
  where TS denotes the target speed which we set to the measured water speed
  of the boat.
