@@ -9,6 +9,11 @@
 </header>
 
 <div class="container">
+
+  <div ng-controller="PathController">
+    <leaflet center="center" paths="paths" markers="markers" defaults="defaults" height="500"></leaflet>
+  </div>
+
   <div class="row">
     <div class="col-lg-12">
       <h1 class="page-header">Features:</h1>
