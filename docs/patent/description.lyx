@@ -751,7 +751,7 @@ True Wind Speed (TWS)
 \begin_layout Enumerate
 True Wind Direction
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 TWA is the angle between the boat and the wind, while TWD is the angle between
@@ -821,13 +821,35 @@ The wind oriented mode assumes that the goal is either to sail upwind or
 To compute the boat performance in wind oriented mode, the light processing
  unit first determine if the boat is currently sailing upwind or downind.
  This is achived by thresholding TWA at +90 and -90 degrees.
- The upwind or downwind target VMG table is then looked up, using TWS as
- key.
+ The upwind or downwind target VMG
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Velocity Made Good
+\end_layout
+
+\end_inset
+
+ table is then looked up, using TWS as key.
  This lookup provides a target VMG.
  The current VMG is computed by projecting the boat water motion vector
  on the wind axis.
  The performance indicator is then the ratio between the current VMG and
  the target VMG.
+\end_layout
+
+\begin_layout Subsubsection
+Pure speed mode
+\end_layout
+
+\begin_layout Standard
+When the boat has to reach a destination that can be sailed to directly,
+ without any tack or jibe, the speed over water is used instead of VMG.
+ To compute the performance percentage, a target speed is obtained by looking
+ up the boat speed table using TWA and TWS.
+ The performance percentage is defined as the water speed devided by the
+ target speed.
 \end_layout
 
 \begin_layout Section
