@@ -745,7 +745,12 @@ begin{displaymath}
 
 f(X) = 
 \backslash
-sum_{i = 1}^{M} 
+sum_{i = 1}^{M}
+\end_layout
+
+\begin_layout Plain Layout
+
+	
 \backslash
 alpha
 \end_layout
@@ -1037,7 +1042,9 @@ textrm{TWS},
 \backslash
 infty)} - 0.8 
 \backslash
-right|
+right| 
+\backslash
+; .
 \end_layout
 
 \begin_layout Plain Layout
