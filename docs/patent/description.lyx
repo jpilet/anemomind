@@ -321,6 +321,12 @@ Semantic segmentation
 \end_layout
 
 \begin_layout Standard
+The purpose of semantic segmentation is to generate a parse tree from a
+ sequence of navs.
+ This is useful both to 
+\end_layout
+
+\begin_layout Standard
 Given a discrete set 
 \begin_inset ERT
 status open
@@ -503,6 +509,13 @@ $n+1$
 
 \begin_layout Subsection
 Calibration
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Calibration"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -551,8 +564,8 @@ Estimation of true wind and current from sensors.
 A maneuver is a rapid transition from one sail trim and boat course to a
  different sail trim and course.
  For properly calibrated instruments and assuming locally constant wind
- and current, we would expect no change in estimated true wind and current.
- 
+ and current, we would expect no difference in estimated true wind and current
+ just before a maneuver and just after a maneuver.
 \end_layout
 
 \begin_layout Subsection
