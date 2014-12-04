@@ -323,7 +323,15 @@ Semantic segmentation
 \begin_layout Standard
 The purpose of semantic segmentation is to generate a parse tree from a
  sequence of navs.
- This is useful both to 
+ This is useful to perform calibration as explained in Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Calibration"
+
+\end_inset
+
+, to search for particular events in the data or to build a browsable overview
+ of the data.
 \end_layout
 
 \begin_layout Standard
@@ -524,6 +532,14 @@ Calibration is the process of computing parameters that determine how the
  the true quantities being measured.
  From those values, true wind and current 2D vectors in a local coordinate
  system tangent to the sea surface can be estimated as depicted in Fig.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Estimation-of-true"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
