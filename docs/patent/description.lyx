@@ -914,10 +914,12 @@ For a regatta that is not wind oriented, we want to estimate the target
 \begin_layout Standard
 In this section, we explain how target speed predictions can be made from
  past recordings.
- Given a set of navs, we build set of 3D vectors of values (TWA, TWS, GPS-speed).
+ Given a set of navs, we build set of 3D vectors of values (TWA, TWS, TS),
+ where TS denotes the target speed which we the to the measured GPS speed
+ of the boat.
  We estimate a probability density function from this set of vectors using
  a Gaussian kernel at each point with a suitable bandwidth parameter.
- This results in a function 
+ This results in a probability density function 
 \begin_inset ERT
 status open
 
@@ -933,7 +935,15 @@ rightarrow ]0, 1[$
 \end_inset
 
  mapping an arbitrary point to a probability density.
- 
+ A target speed function is estimated that maps a true wind angle (TWA)
+ and true wind speed (TWS) to a target speed.
+ This function is obtained by sampling values of TWA and TWS within reasonable
+ ranges.
+ For fixed values of TWA and TWS, a cumulative density function is estimated
+ along the target speed (TS) dimension.
+ The target speed function is represented by all pairs of sampled TWA and
+ TWS values to which we map target speed (TS) values, so that the cumulative
+ density function is 0.8 of its maximum value.
 \end_layout
 
 \begin_layout Subsection
