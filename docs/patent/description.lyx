@@ -534,7 +534,7 @@ status open
 
 \begin_layout Plain Layout
 \begin_inset Graphics
-	filename /home/jonas/programmering/sailsmart/docs/calib/simplecalib.dia
+	filename ../calib/simplecalib.dia
 	lyxscale 10
 	width 100col%
 
@@ -547,6 +547,12 @@ status open
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Estimation-of-true"
+
+\end_inset
+
 Estimation of true wind and current from sensors.
 \end_layout
 
