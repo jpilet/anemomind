@@ -925,7 +925,9 @@ status open
 
 \begin_layout Plain Layout
 
-$p: 
+$
+\backslash
+textrm{pdf}: 
 \backslash
 mathbb{R}^3 
 \backslash
@@ -940,10 +942,111 @@ rightarrow ]0, 1[$
  This function is obtained by sampling values of TWA and TWS within reasonable
  ranges.
  For fixed values of TWA and TWS, a cumulative density function is estimated
- along the target speed (TS) dimension.
- The target speed function is represented by all pairs of sampled TWA and
- TWS values to which we map target speed (TS) values, so that the cumulative
- density function is 0.8 of its maximum value.
+ along the target speed (TS) dimension:
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{displaymath}
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+textrm{cdf}(
+\backslash
+textrm{TWA}, 
+\backslash
+textrm{TWS}, 
+\backslash
+textrm{TS}) = 
+\backslash
+int_{-
+\backslash
+infty}^{
+\backslash
+textrm{TS}} 
+\backslash
+textrm{pdf}(
+\backslash
+textrm{TWA}, 
+\backslash
+textrm{TWS}, x)
+\backslash
+; 
+\backslash
+textrm{d}x 
+\backslash
+; .
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{displaymath}
+\end_layout
+
+\end_inset
+
+We let the estimated target speed function be
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{displaymath}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+textrm{EST-TS}(
+\backslash
+textrm{TWA}, 
+\backslash
+textrm{TWS}) = 
+\backslash
+textrm{argmin}_{x} 
+\backslash
+left| 
+\backslash
+frac{
+\backslash
+textrm{cdf}(
+\backslash
+textrm{TWA}, 
+\backslash
+textrm{TWS}, x)}{
+\backslash
+textrm{cdf}(
+\backslash
+textrm{TWA}, 
+\backslash
+textrm{TWS}, 
+\backslash
+infty)} - 0.8 
+\backslash
+right|
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{displaymath}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
