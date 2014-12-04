@@ -922,6 +922,27 @@ In a wind oriented regatta we are interested in maximizing the boat speed
  measurements.
  Given a set of navs of past measurements, we take all pairs of (TWS, VMG)
  when the boat is either sailing upwind or downwind.
+ The VMG values are grouped into bins distributed over a range of TWS values.
+ Each such bin is the set of VMG values for which the TWS values belong
+ to an interval 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$[
+\backslash
+gamma, 
+\backslash
+delta[$
+\end_layout
+
+\end_inset
+
+.
+ The VMG values belonging to a bin are sorted and a target speed for the
+ bin center is defined as the VMG value at 80th percentile in the sorted
+ array.
 \end_layout
 
 \begin_layout Subsubsection
@@ -1065,7 +1086,10 @@ end{displaymath}
 
 \end_inset
 
-
+.
+ This function is evaluated for all discrete pairs of sampled TWA and TWS
+ values.
+ For the remaining values in between, bilinear interpolation is used.
 \end_layout
 
 \begin_layout Subsection
