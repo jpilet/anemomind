@@ -372,11 +372,15 @@ status open
 
 \begin_layout Plain Layout
 
-$L_0 = {
+$L_0 = 
+\backslash
+{
 \backslash
 textrm{Downwind}, 
 \backslash
-textrm{Upwind}}$
+textrm{Upwind}
+\backslash
+}$
 \end_layout
 
 \end_inset
@@ -395,7 +399,7 @@ $f:L^N
 \backslash
 rightarrow 
 \backslash
-mathbf{R}$
+mathbb{R}$
 \end_layout
 
 \end_inset
@@ -408,7 +412,14 @@ status open
 
 \begin_layout Plain Layout
 
-$f(I) = 
+
+\backslash
+begin{displaymath}
+\end_layout
+
+\begin_layout Plain Layout
+
+f(I) = 
 \backslash
 sum_{n = 1}^{N} C_{
 \backslash
@@ -416,7 +427,14 @@ textrm{state}}(n, I_n) +
 \backslash
 sum_{i = 1}^{N-1} C_{
 \backslash
-textrm{transition}}(n, I_n, I_{n+1})$
+textrm{transition}}(n, I_n, I_{n+1})
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{displaymath}
 \end_layout
 
 \end_inset
@@ -484,7 +502,7 @@ $I_n$
 
 \end_inset
 
- to nav with index 
+ to a nav with index 
 \begin_inset ERT
 status open
 
