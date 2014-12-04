@@ -474,7 +474,9 @@ Calibration is the process of computing parameters that determine how the
 \begin_layout Standard
 A maneuver is a rapid transition from one sail trim and boat course to a
  different sail trim and course.
- For properly calibrated instruments and assuming consta
+ For properly calibrated instruments and assuming locally constant wind
+ and current, we would expect no change in estimated true wind and current.
+ 
 \end_layout
 
 \begin_layout Subsection
