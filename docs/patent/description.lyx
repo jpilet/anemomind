@@ -515,6 +515,110 @@ $n+1$
  (HMM) and is solved using the dynamic programming algorithm.
 \end_layout
 
+\begin_layout Standard
+The grammar for wind-oriented races assigns the following labels the navs:
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/starboard-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/starboard-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/starboard-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/port-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/port-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/port-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/starboard-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/starboard-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/starboard-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/port-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/port-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/port-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/starboard-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/starboard-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/starboard-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/port-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/port-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/port-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/starboard-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/starboard-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/starboard-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/port-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/port-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/port-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Off 
+\end_layout
+
 \begin_layout Subsection
 Calibration
 \begin_inset CommandInset label
