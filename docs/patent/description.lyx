@@ -261,6 +261,46 @@ Information flow diagram
 Data Aquisition and Transfer
 \end_layout
 
+\begin_layout Standard
+Data acquisition is achieved by existing transducers.
+ The data is concentrated on a single interface, typically NMEA 0183 or
+ NMEA 2000.
+ The Anemomind light processing unit can be connected to this interface.
+ It can then receive all the transducers output and can send information
+ back to the bus.
+ The data is then stored locally on storage memory such as USB stick, SD
+ card, or built-in flash.
+\end_layout
+
+\begin_layout Standard
+Communication with the heavy processing unit can be achieved in one of the
+ following way:
+\end_layout
+
+\begin_layout Enumerate
+Network cable if the heavy processing unit is onboard;
+\end_layout
+
+\begin_layout Enumerate
+internet over mobile network, GSM/3G/4G receiver on the light processing
+ unit;
+\end_layout
+
+\begin_layout Enumerate
+internet over satellite network, satellite modem on the light processing
+ unit;
+\end_layout
+
+\begin_layout Enumerate
+internet over wifi, wifi antenna on the boat, access point in a harbor or
+ marina;
+\end_layout
+
+\begin_layout Enumerate
+a mobile phone shares its internet connection through bluetooth, wifi, or
+ any other local communication mean.
+\end_layout
+
 \begin_layout Section
 Data Processing
 \end_layout
