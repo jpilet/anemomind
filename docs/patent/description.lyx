@@ -318,6 +318,13 @@ Recorded sensor data for a particular boat from any number of races is stored
 
 \begin_layout Subsection
 Semantic segmentation
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Semantic-segmentation"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -681,14 +688,19 @@ Estimation of true wind and current from sensors.
 
 \end_layout
 
-\begin_layout Plain Layout
-
-\end_layout
-
 \end_inset
 
 A maneuver is a rapid transition from one sail trim and boat course to a
  different sail trim and course.
+ In practice, we use the segmantic segmentation explained in section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Semantic-segmentation"
+
+\end_inset
+
+ to identify maneuvers, by looking for transitions from upwind-leg to downwind-l
+eg, starboard-tack to port tack, and vice versa.
  For properly calibrated instruments and assuming locally constant wind
  and current, we would expect no difference in estimated true wind and current
  just before a maneuver and just after a maneuver.
@@ -817,6 +829,45 @@ mathbb{R}^2$
 
  is a function mapping a time and calibration parameters to an estimated
  true current vector.
+ These vectors are computed as local averages in time to reduce the effect
+ of noise.
+ The times 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$b_i, s_i 
+\backslash
+in 
+\backslash
+mathbb{R}$
+\end_layout
+
+\end_inset
+
+ are the times just before and just after maneuvers, respectively.
+ The values 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$
+\backslash
+alpha, 
+\backslash
+beta 
+\backslash
+in 
+\backslash
+mathbb{R}$
+\end_layout
+
+\end_inset
+
+ are weights to balance the calibration based on the true wind against calibrati
+on based on the true current.
 \end_layout
 
 \begin_layout Subsection
