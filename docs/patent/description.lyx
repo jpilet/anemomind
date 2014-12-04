@@ -908,15 +908,23 @@ Target speed estimation amounts to estimating the maximum speed that the
  
 \end_layout
 
-\begin_layout Subsubsection*
+\begin_layout Subsubsection
 Wind oriented mode
 \end_layout
 
 \begin_layout Standard
-
+In a wind oriented regatta we are interested in maximizing the boat speed
+ vector projected on the wind vector when we are either sailing upwind or
+ downwind.
+ We refer to this speed as Velocity Made Good (VMG).
+ Here we explain how the VMG can be predicted from the true wind speed (TWS)
+ when the boat is sailing upwind and the boat is sailing downwind from past
+ measurements.
+ Given a set of navs of past measurements, we take all pairs of (TWS, VMG)
+ when the boat is either sailing upwind or downwind.
 \end_layout
 
-\begin_layout Subsubsection*
+\begin_layout Subsubsection
 Pure speed mode
 \end_layout
 
