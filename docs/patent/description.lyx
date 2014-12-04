@@ -912,7 +912,28 @@ For a regatta that is not wind oriented, we want to estimate the target
 \end_layout
 
 \begin_layout Standard
+In this section, we explain how target speed predictions can be made from
+ past recordings.
+ Given a set of navs, we build set of 3D vectors of values (TWA, TWS, GPS-speed).
+ We estimate a probability density function from this set of vectors using
+ a Gaussian kernel at each point with a suitable bandwidth parameter.
+ This results in a function 
+\begin_inset ERT
+status open
 
+\begin_layout Plain Layout
+
+$p: 
+\backslash
+mathbb{R}^3 
+\backslash
+rightarrow ]0, 1[$
+\end_layout
+
+\end_inset
+
+ mapping an arbitrary point to a probability density.
+ 
 \end_layout
 
 \begin_layout Subsection
