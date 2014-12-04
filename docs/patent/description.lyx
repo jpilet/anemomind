@@ -692,6 +692,131 @@ A maneuver is a rapid transition from one sail trim and boat course to a
  For properly calibrated instruments and assuming locally constant wind
  and current, we would expect no difference in estimated true wind and current
  just before a maneuver and just after a maneuver.
+ Letting 
+\begin_inset Formula $X\in\mathbb{R}^{m}$
+\end_inset
+
+ be a vector of 
+\begin_inset Formula $m$
+\end_inset
+
+ parameters to calibrate, we formulate an unconstrained optimization problem
+ where we minimize an objective function 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{displaymath}
+\end_layout
+
+\begin_layout Plain Layout
+
+f(X) = 
+\backslash
+sum_{i = 1}^{M} 
+\backslash
+alpha
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\backslash
+| W(p_i, X) - W(s_i, X) 
+\backslash
+|^2 +
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+beta
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\backslash
+| C(p_i, X) - C(s_i, X) 
+\backslash
+|^2 
+\backslash
+: ,
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{displaymath}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$M$
+\end_layout
+
+\end_inset
+
+ is the number of maneuvers, 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$W : 
+\backslash
+mathbb{R} 
+\backslash
+times 
+\backslash
+mathbb{R}^m 
+\backslash
+rightarrow 
+\backslash
+mathbb{R}^2$
+\end_layout
+
+\end_inset
+
+ is a function mapping a time and calibration parameters to an estimated
+ true wind vector and 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$C : 
+\backslash
+mathbb{R} 
+\backslash
+times 
+\backslash
+mathbb{R}^m 
+\backslash
+rightarrow 
+\backslash
+mathbb{R}^2$
+\end_layout
+
+\end_inset
+
+ is a function mapping a time and calibration parameters to an estimated
+ true current vector.
 \end_layout
 
 \begin_layout Subsection
