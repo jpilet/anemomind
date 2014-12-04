@@ -892,6 +892,12 @@ on based on the true current.
 Target speed extraction
 \end_layout
 
+\begin_layout Standard
+Target speed estimation amounts to estimating the maximum speed that the
+ boat can reach under given stable wind conditions and a given course.
+ 
+\end_layout
+
 \begin_layout Subsection
 Data compilation for fast visualization
 \end_layout
