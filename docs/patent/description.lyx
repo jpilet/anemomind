@@ -918,7 +918,7 @@ For a regatta that is not wind oriented, we want to estimate the target
 In this section, we explain how target speed predictions can be made from
  past recordings.
  Given a set of navs, we build set of 3D vectors of values (TWA, TWS, TS),
- where TS denotes the target speed which we the to the measured GPS speed
+ where TS denotes the target speed which we set to the measured water speed
  of the boat.
  We estimate a probability density function from this set of vectors using
  a Gaussian kernel at each point with a suitable bandwidth parameter.
