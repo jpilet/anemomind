@@ -427,7 +427,7 @@ textrm{state}}(n, I_n) +
 \backslash
 sum_{i = 1}^{N-1} C_{
 \backslash
-textrm{transition}}(n, I_n, I_{n+1})
+textrm{transition}}(n, I_n, I_{n+1}).
 \end_layout
 
 \begin_layout Plain Layout
@@ -439,8 +439,7 @@ end{displaymath}
 
 \end_inset
 
-.
- The function 
+The function 
 \begin_inset ERT
 status open
 
@@ -710,7 +709,7 @@ Estimation of true wind and current from sensors.
 
 A maneuver is a rapid transition from one sail trim and boat course to a
  different sail trim and course.
- In practice, we use the segmantic segmentation explained in section 
+ In practice, we use the semantic segmentation explained in section 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sub:Semantic-segmentation"
@@ -886,6 +885,10 @@ mathbb{R}$
 
  are weights to balance the calibration based on the true wind against calibrati
 on based on the true current.
+\end_layout
+
+\begin_layout Standard
+The optimization is achieved with the algorithm of Levenberg and Marquardt.
 \end_layout
 
 \begin_layout Subsection
