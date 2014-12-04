@@ -318,6 +318,13 @@ Recorded sensor data for a particular boat from any number of races is stored
 
 \begin_layout Subsection
 Semantic segmentation
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Semantic-segmentation"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -365,11 +372,15 @@ status open
 
 \begin_layout Plain Layout
 
-$L_0 = {
+$L_0 = 
+\backslash
+{
 \backslash
 textrm{Downwind}, 
 \backslash
-textrm{Upwind}}$
+textrm{Upwind}
+\backslash
+}$
 \end_layout
 
 \end_inset
@@ -388,7 +399,7 @@ $f:L^N
 \backslash
 rightarrow 
 \backslash
-mathbf{R}$
+mathbb{R}$
 \end_layout
 
 \end_inset
@@ -401,7 +412,14 @@ status open
 
 \begin_layout Plain Layout
 
-$f(I) = 
+
+\backslash
+begin{displaymath}
+\end_layout
+
+\begin_layout Plain Layout
+
+f(I) = 
 \backslash
 sum_{n = 1}^{N} C_{
 \backslash
@@ -409,7 +427,14 @@ textrm{state}}(n, I_n) +
 \backslash
 sum_{i = 1}^{N-1} C_{
 \backslash
-textrm{transition}}(n, I_n, I_{n+1})$
+textrm{transition}}(n, I_n, I_{n+1})
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{displaymath}
 \end_layout
 
 \end_inset
@@ -477,7 +502,7 @@ $I_n$
 
 \end_inset
 
- to nav with index 
+ to a nav with index 
 \begin_inset ERT
 status open
 
@@ -513,6 +538,110 @@ $n+1$
 .
  This optimization problem has the same structure as a hidden markov model
  (HMM) and is solved using the dynamic programming algorithm.
+\end_layout
+
+\begin_layout Standard
+The grammar for wind-oriented races assigns the following labels the navs:
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/starboard-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/starboard-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/starboard-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/port-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/port-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/port-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/starboard-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/starboard-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/starboard-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/port-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/port-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/port-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/starboard-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/starboard-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/starboard-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/port-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/port-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/port-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/starboard-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/starboard-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/starboard-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/port-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/port-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/port-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Off 
 \end_layout
 
 \begin_layout Subsection
@@ -577,21 +706,234 @@ Estimation of true wind and current from sensors.
 
 \end_layout
 
-\begin_layout Plain Layout
-
-\end_layout
-
 \end_inset
 
 A maneuver is a rapid transition from one sail trim and boat course to a
  different sail trim and course.
+ In practice, we use the segmantic segmentation explained in section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Semantic-segmentation"
+
+\end_inset
+
+ to identify maneuvers, by looking for transitions from upwind-leg to downwind-l
+eg, starboard-tack to port tack, and vice versa.
  For properly calibrated instruments and assuming locally constant wind
  and current, we would expect no difference in estimated true wind and current
  just before a maneuver and just after a maneuver.
+ Letting 
+\begin_inset Formula $X\in\mathbb{R}^{m}$
+\end_inset
+
+ be a vector of 
+\begin_inset Formula $m$
+\end_inset
+
+ parameters to calibrate, we formulate an unconstrained optimization problem
+ where we minimize an objective function 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{displaymath}
+\end_layout
+
+\begin_layout Plain Layout
+
+f(X) = 
+\backslash
+sum_{i = 1}^{M} 
+\backslash
+alpha
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\backslash
+| W(p_i, X) - W(s_i, X) 
+\backslash
+|^2 +
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+beta
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\backslash
+| C(p_i, X) - C(s_i, X) 
+\backslash
+|^2 
+\backslash
+: ,
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{displaymath}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$M$
+\end_layout
+
+\end_inset
+
+ is the number of maneuvers, 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$W : 
+\backslash
+mathbb{R} 
+\backslash
+times 
+\backslash
+mathbb{R}^m 
+\backslash
+rightarrow 
+\backslash
+mathbb{R}^2$
+\end_layout
+
+\end_inset
+
+ is a function mapping a time and calibration parameters to an estimated
+ true wind vector and 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$C : 
+\backslash
+mathbb{R} 
+\backslash
+times 
+\backslash
+mathbb{R}^m 
+\backslash
+rightarrow 
+\backslash
+mathbb{R}^2$
+\end_layout
+
+\end_inset
+
+ is a function mapping a time and calibration parameters to an estimated
+ true current vector.
+ These vectors are computed as local averages in time to reduce the effect
+ of noise.
+ The times 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$b_i, s_i 
+\backslash
+in 
+\backslash
+mathbb{R}$
+\end_layout
+
+\end_inset
+
+ are the times just before and just after maneuvers, respectively.
+ The values 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$
+\backslash
+alpha, 
+\backslash
+beta 
+\backslash
+in 
+\backslash
+mathbb{R}$
+\end_layout
+
+\end_inset
+
+ are weights to balance the calibration based on the true wind against calibrati
+on based on the true current.
 \end_layout
 
 \begin_layout Subsection
 Target speed extraction
+\end_layout
+
+\begin_layout Standard
+Target speed estimation amounts to estimating the maximum speed that the
+ boat can reach under given stable wind conditions and a given stable course
+ of the boat.
+ We distinguish between two types of target speeds.
+ 
+\end_layout
+
+\begin_layout Standard
+For a wind oriented regatta, we are interested in two tables types of target
+ speeds: the VMG target speed when sailing upwind and the VMG target speed
+ when sailing downwind.
+\end_layout
+
+\begin_layout Standard
+For a regatta that is not wind oriented, we want to estimate the target
+ speed of the boat for any course and wind conditions.
+\end_layout
+
+\begin_layout Standard
+In this section, we explain how target speed predictions can be made from
+ past recordings.
+ Given a set of navs, we build set of 3D vectors of values (TWA, TWS, GPS-speed).
+ We estimate a probability density function from this set of vectors using
+ a Gaussian kernel at each point with a suitable bandwidth parameter.
+ This results in a function 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$p: 
+\backslash
+mathbb{R}^3 
+\backslash
+rightarrow ]0, 1[$
+\end_layout
+
+\end_inset
+
+ mapping an arbitrary point to a probability density.
+ 
 \end_layout
 
 \begin_layout Subsection
