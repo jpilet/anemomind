@@ -139,9 +139,9 @@ class BoatSimulation {
   //  * TWA-directives for how the boat should steer
   //  * How the measured values are corrupted
   //  * How the boat should be simulated.
-  class Specs {
+  class BoatSimulationSpecs {
    public:
-    Specs() : _stepsPerSample(0) {}
+    BoatSimulationSpecs() : _stepsPerSample(0) {}
     class TwaDirective {
      public:
       TwaDirective() : dur(Duration<double>::seconds(NAN)),
@@ -164,7 +164,7 @@ class BoatSimulation {
       }
     };
 
-    Specs(BoatCharacteristics ch_, // <-- How the boat behaves
+    BoatSimulationSpecs(BoatCharacteristics ch_, // <-- How the boat behaves
               Array<TwaDirective> specs_,        // <-- How the boat should be steered
               CorruptedBoatState::CorruptorSet corruptors_, // <-- How the measurements are corrupted
 
@@ -215,7 +215,7 @@ class BoatSimulation {
            TimeStamp timeOffset,
            FlowFun wind,
            FlowFun current,
-           Array<Specs> specs);
+           Array<BoatSimulationSpecs> specs);
 
   const GeographicReference &geoRef() const {
     return _geoRef;
@@ -241,14 +241,14 @@ class BoatSimulation {
   class BoatData {
    public:
     BoatData() {}
-    BoatData(const Specs &specs,
+    BoatData(const BoatSimulationSpecs &specs,
         Array<CorruptedBoatState> states) : _specs(specs), _states(states) {}
 
     const Array<CorruptedBoatState> &states() const {
       return _states;
     }
    private:
-    Specs _specs;
+    BoatSimulationSpecs _specs;
     Array<CorruptedBoatState> _states;
   };
 
@@ -271,7 +271,7 @@ class BoatSimulation {
   // Simulated boat states over time along with corrupted measurements.
   Array<BoatData> _boatData;
 
-  BoatData makeBoatData(Specs &spec,
+  BoatData makeBoatData(BoatSimulationSpecs &spec,
       Array<BoatSim::FullState> state,
       std::default_random_engine &e) const;
 

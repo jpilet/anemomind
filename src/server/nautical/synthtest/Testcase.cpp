@@ -13,7 +13,7 @@ BoatSimulation::FlowFun BoatSimulation::constantFlowFun(HorizontalMotion<double>
   };
 }
 
-BoatSimulation::Specs::Specs(BoatCharacteristics ch, Array<TwaDirective> dirs,
+BoatSimulation::BoatSimulationSpecs::BoatSimulationSpecs(BoatCharacteristics ch, Array<TwaDirective> dirs,
   CorruptedBoatState::CorruptorSet corruptors,
   Nav::Id boatId, Duration<double> samplingPeriod, int stepsPerSample) :
     _ch(ch),
@@ -25,7 +25,7 @@ BoatSimulation::Specs::Specs(BoatCharacteristics ch, Array<TwaDirective> dirs,
         _stepsPerSample(stepsPerSample) {}
 
 
-Angle<double> BoatSimulation::Specs::twa(Duration<double> dur) const {
+Angle<double> BoatSimulation::BoatSimulationSpecs::twa(Duration<double> dur) const {
   auto result = _indexer.get(dur.seconds());
   return _dirs[result.index].interpolate(result.localX);
 }
@@ -35,7 +35,7 @@ BoatSimulation::BoatSimulation(std::default_random_engine &e,
          TimeStamp timeOffset,
          FlowFun wind,
          FlowFun current,
-         Array<Specs> specs) :
+         Array<BoatSimulationSpecs> specs) :
          _geoRef(geoRef),
          _timeOffset(timeOffset),
          _wind(wind),
@@ -48,7 +48,7 @@ BoatSimulation::BoatSimulation(std::default_random_engine &e,
   }
 }
 
-BoatSimulation::BoatData BoatSimulation::makeBoatData(Specs &specs,
+BoatSimulation::BoatData BoatSimulation::makeBoatData(BoatSimulationSpecs &specs,
     Array<BoatSim::FullState> states, std::default_random_engine &e) const {
   int count = states.size();
   Array<CorruptedBoatState> dst(count);
