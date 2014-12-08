@@ -119,24 +119,26 @@ class CorruptedBoatState {
 class BoatSimulationSpecs {
 public:
   BoatSimulationSpecs() : _stepsPerSample(0) {}
+
+  // How the boat should be steered for a portion of time of length 'duration'
   class TwaDirective {
    public:
-    TwaDirective() : dur(Duration<double>::seconds(NAN)),
+    TwaDirective() : duration(Duration<double>::seconds(NAN)),
             srcTwa(Angle<double>::degrees(NAN)),
             dstTwa(Angle<double>::degrees(NAN)) {}
     TwaDirective(Duration<double> dur_, Angle<double> srcTwa_, Angle<double> dstTwa_) :
-      dur(dur_), srcTwa(srcTwa_), dstTwa(dstTwa_) {}
+      duration(dur_), srcTwa(srcTwa_), dstTwa(dstTwa_) {}
 
     static TwaDirective constant(Duration<double> dur, Angle<double> twa) {
       return TwaDirective(dur, twa, twa);
     }
 
-    Duration<double> dur;
+    Duration<double> duration;
     Angle<double> srcTwa, dstTwa;
 
     // Used by the twa() method of BoatSimDirs
     Angle<double> interpolate(double localTimeSeconds) const {
-      double lambda = localTimeSeconds/dur.seconds();
+      double lambda = localTimeSeconds/duration.seconds();
       return (1.0 - lambda)*srcTwa + lambda*dstTwa;
     }
   };
@@ -214,7 +216,7 @@ class NavalSimulation {
 
   NavalSimulation(std::default_random_engine &e,
            GeographicReference geoRef,
-           TimeStamp timeOffset,
+           TimeStamp simulationStartTime,
            FlowFun wind,
            FlowFun current,
            Array<BoatSimulationSpecs> specs);
@@ -224,11 +226,11 @@ class NavalSimulation {
   }
 
   Duration<double> toLocalTime(const TimeStamp &x) const {
-    return x - _timeOffset;
+    return x - _simulationStartTime;
   }
 
   TimeStamp fromLocalTime(Duration<double> dur) const {
-    return _timeOffset + dur;
+    return _simulationStartTime + dur;
   }
 
   const FlowFun &wind() const {
@@ -267,7 +269,7 @@ class NavalSimulation {
   }
  private:
   GeographicReference _geoRef;
-  TimeStamp _timeOffset;
+  TimeStamp _simulationStartTime;
   FlowFun _wind, _current;
 
   // Simulated boat states over time along with corrupted measurements.

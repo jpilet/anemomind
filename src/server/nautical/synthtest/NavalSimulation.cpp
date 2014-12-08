@@ -20,7 +20,7 @@ BoatSimulationSpecs::BoatSimulationSpecs(BoatCharacteristics ch, Array<TwaDirect
     _dirs(dirs),
     _corruptors(corruptors),
     _indexer(ProportionateIndexer(dirs.size(),
-        [=](int index) {return dirs[index].dur.seconds();})),
+        [=](int index) {return dirs[index].duration.seconds();})),
         _boatId(boatId), _samplingPeriod(samplingPeriod),
         _stepsPerSample(stepsPerSample) {}
 
@@ -37,7 +37,7 @@ NavalSimulation::NavalSimulation(std::default_random_engine &e,
          FlowFun current,
          Array<BoatSimulationSpecs> specs) :
          _geoRef(geoRef),
-         _timeOffset(timeOffset),
+         _simulationStartTime(timeOffset),
          _wind(wind),
          _current(current), _boatData(specs.size()) {
   for (int i = 0; i < specs.size(); i++) {
