@@ -1,0 +1,11 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+<div ng-controller="UploadCtrl">
+  <button ng-file-select ng-model="files" multiple="true">Attach Any File</button>
+  <div ng-file-drop ng-model="files" class="drop-box" 
+    drag-over-class="{accept:'dragover', reject:'dragover-err', delay:100}"
+    multiple="true" allow-dir="true" accept="image/*,*txt">
+    Drop Images or txt files here
+  </div>
+  <div ng-no-file-drop>File Farg/Drop is not supported for this browser</div>
+</div>

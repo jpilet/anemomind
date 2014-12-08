@@ -1,17 +1,13 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 
-<header class="hero-unit" id="banner">
-  <div class="container">
-    <h1>'Allo, 'Allo!</h1>
-    <p class="lead">Kick-start your next web app with Angular Fullstack</p>
-    <img src="assets/images/yeoman.png" alt="I'm Yeoman">
-  </div>
-</header>
-
 <div class="container">
-
   <div ng-controller="PathController">
-    <leaflet center="center" paths="paths" markers="markers" defaults="defaults" height="500"></leaflet>
+    <leaflet center="lausanne" width="640" height="400" defaults="defaults" layers="layers"></leaflet>
+    <form>
+      Latitude : <input type="number" step="any" ng-model="lausanne.lat" />
+      Longitude : <input type="number" step="any" ng-model="lausanne.lng" />
+      Zoom : <input type="number" step="any" ng-model="lausanne.zoom" />
+    </form>
   </div>
 
   <div class="row">
