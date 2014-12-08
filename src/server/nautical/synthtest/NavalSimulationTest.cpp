@@ -6,7 +6,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <server/nautical/synthtest/Testcase.h>
+#include <server/nautical/synthtest/NavalSimulation.h>
 
 using namespace sail;
 

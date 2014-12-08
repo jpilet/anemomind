@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include "Testcase.h"
+#include "NavalSimulation.h"
 
 namespace sail {
 

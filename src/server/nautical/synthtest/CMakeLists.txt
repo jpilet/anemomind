@@ -23,12 +23,12 @@ target_link_libraries(nautical_synthtest_BoatSimDemo
                       nautical_synthtest_BoatSim
                      )
                      
-add_library(nautical_synthtest_Testcase
-            Testcase.h
-            Testcase.cpp
+add_library(nautical_synthtest_NavalSimulation
+            NavalSimulation.h
+            NavalSimulation.cpp
            )
            
-target_link_libraries(nautical_synthtest_Testcase
+target_link_libraries(nautical_synthtest_NavalSimulation
                       nautical_GeographicReference
                       common_ProportionateIndexer
                       common_TimeStamp
@@ -36,8 +36,8 @@ target_link_libraries(nautical_synthtest_Testcase
                       nautical_nav
                      )
            
-cxx_test(nautical_synthtest_TestcaseTest
-         TestcaseTest.cpp
-         nautical_synthtest_Testcase
+cxx_test(nautical_synthtest_NavalSimulationTest
+         NavalSimulationTest.cpp
+         nautical_synthtest_NavalSimulation
          gtest_main
         )           
