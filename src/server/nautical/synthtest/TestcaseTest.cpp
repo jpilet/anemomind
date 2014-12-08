@@ -57,8 +57,8 @@ TEST(TestcaseTest, MakeTestcase) {
                                         Angle<double>::degrees(45));
   GeographicReference georef(pos);
 
-  BoatSimulation::FlowFun windfun = BoatSimulation::constantFlowFun(wind);
-  BoatSimulation::FlowFun currentfun = BoatSimulation::constantFlowFun(current);
+  NavalSimulation::FlowFun windfun = NavalSimulation::constantFlowFun(wind);
+  NavalSimulation::FlowFun currentfun = NavalSimulation::constantFlowFun(current);
 
   Array<BoatSimulationSpecs::TwaDirective> dirs(2);
   dirs[0] = BoatSimulationSpecs::TwaDirective::constant(Duration<double>::minutes(3.0), Angle<double>::degrees(119));
@@ -66,7 +66,7 @@ TEST(TestcaseTest, MakeTestcase) {
   BoatSimulationSpecs specs(BoatCharacteristics(), dirs, CorruptedBoatState::CorruptorSet());
 
   std::default_random_engine e;
-  BoatSimulation tc(e, georef, timeoffset, windfun, currentfun,
+  NavalSimulation tc(e, georef, timeoffset, windfun, currentfun,
     Array<BoatSimulationSpecs>::args(specs));
 
   auto t = tc.toLocalTime(timeoffset);

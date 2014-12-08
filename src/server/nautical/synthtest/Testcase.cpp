@@ -7,7 +7,7 @@
 
 namespace sail {
 
-BoatSimulation::FlowFun BoatSimulation::constantFlowFun(HorizontalMotion<double> m) {
+NavalSimulation::FlowFun NavalSimulation::constantFlowFun(HorizontalMotion<double> m) {
   return [=](const ProjectedPosition &pos, Duration<double> dur) {
     return m;
   };
@@ -30,7 +30,7 @@ Angle<double> BoatSimulationSpecs::twa(Duration<double> dur) const {
   return _dirs[result.index].interpolate(result.localX);
 }
 
-BoatSimulation::BoatSimulation(std::default_random_engine &e,
+NavalSimulation::NavalSimulation(std::default_random_engine &e,
          GeographicReference geoRef,
          TimeStamp timeOffset,
          FlowFun wind,
@@ -48,7 +48,7 @@ BoatSimulation::BoatSimulation(std::default_random_engine &e,
   }
 }
 
-BoatSimulation::BoatData BoatSimulation::makeBoatData(BoatSimulationSpecs &specs,
+NavalSimulation::BoatData NavalSimulation::makeBoatData(BoatSimulationSpecs &specs,
     Array<BoatSim::FullState> states, std::default_random_engine &e) const {
   int count = states.size();
   Array<CorruptedBoatState> dst(count);

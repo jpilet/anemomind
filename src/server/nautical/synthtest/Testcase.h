@@ -204,7 +204,7 @@ public:
  *     to simulate real measurements.
  *
  */
-class BoatSimulation {
+class NavalSimulation {
  public:
   typedef BoatSim::ProjectedPosition ProjectedPosition;
   typedef BoatSim::FlowFun FlowFun;
@@ -212,7 +212,7 @@ class BoatSimulation {
   static FlowFun constantFlowFun(HorizontalMotion<double> m);
 
 
-  BoatSimulation(std::default_random_engine &e,
+  NavalSimulation(std::default_random_engine &e,
            GeographicReference geoRef,
            TimeStamp timeOffset,
            FlowFun wind,
