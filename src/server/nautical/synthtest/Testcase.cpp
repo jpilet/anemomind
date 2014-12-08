@@ -13,7 +13,7 @@ BoatSimulation::FlowFun BoatSimulation::constantFlowFun(HorizontalMotion<double>
   };
 }
 
-BoatSimulation::BoatSimulationSpecs::BoatSimulationSpecs(BoatCharacteristics ch, Array<TwaDirective> dirs,
+BoatSimulationSpecs::BoatSimulationSpecs(BoatCharacteristics ch, Array<TwaDirective> dirs,
   CorruptedBoatState::CorruptorSet corruptors,
   Nav::Id boatId, Duration<double> samplingPeriod, int stepsPerSample) :
     _ch(ch),
@@ -25,7 +25,7 @@ BoatSimulation::BoatSimulationSpecs::BoatSimulationSpecs(BoatCharacteristics ch,
         _stepsPerSample(stepsPerSample) {}
 
 
-Angle<double> BoatSimulation::BoatSimulationSpecs::twa(Duration<double> dur) const {
+Angle<double> BoatSimulationSpecs::twa(Duration<double> dur) const {
   auto result = _indexer.get(dur.seconds());
   return _dirs[result.index].interpolate(result.localX);
 }

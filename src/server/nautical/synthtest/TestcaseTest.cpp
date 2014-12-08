@@ -24,10 +24,10 @@ TEST(TestcaseTest, Corruptor) {
 }
 
 TEST(TestcaseTest, BoatSimulationSpecs) {
-  Array<BoatSimulation::BoatSimulationSpecs::TwaDirective> dirs(2);
-  dirs[0] = BoatSimulation::BoatSimulationSpecs::TwaDirective::constant(Duration<double>::minutes(3.0), Angle<double>::degrees(119));
-  dirs[1] = BoatSimulation::BoatSimulationSpecs::TwaDirective::constant(Duration<double>::minutes(1.0), Angle<double>::degrees(32));
-  BoatSimulation::BoatSimulationSpecs specs(BoatCharacteristics(), dirs, CorruptedBoatState::CorruptorSet());
+  Array<BoatSimulationSpecs::TwaDirective> dirs(2);
+  dirs[0] = BoatSimulationSpecs::TwaDirective::constant(Duration<double>::minutes(3.0), Angle<double>::degrees(119));
+  dirs[1] = BoatSimulationSpecs::TwaDirective::constant(Duration<double>::minutes(1.0), Angle<double>::degrees(32));
+  BoatSimulationSpecs specs(BoatCharacteristics(), dirs, CorruptedBoatState::CorruptorSet());
   EXPECT_NEAR(specs.duration().minutes(), 4.0, 1.0e-6);
   EXPECT_NEAR(specs.twa(Duration<double>::minutes(2.99)).degrees(), 119.0, 1.0e-6);
   EXPECT_NEAR(specs.twa(Duration<double>::minutes(3.01)).degrees(), 32.0, 1.0e-6);
@@ -60,14 +60,14 @@ TEST(TestcaseTest, MakeTestcase) {
   BoatSimulation::FlowFun windfun = BoatSimulation::constantFlowFun(wind);
   BoatSimulation::FlowFun currentfun = BoatSimulation::constantFlowFun(current);
 
-  Array<BoatSimulation::BoatSimulationSpecs::TwaDirective> dirs(2);
-  dirs[0] = BoatSimulation::BoatSimulationSpecs::TwaDirective::constant(Duration<double>::minutes(3.0), Angle<double>::degrees(119));
-  dirs[1] = BoatSimulation::BoatSimulationSpecs::TwaDirective::constant(Duration<double>::minutes(1.0), Angle<double>::degrees(32));
-  BoatSimulation::BoatSimulationSpecs specs(BoatCharacteristics(), dirs, CorruptedBoatState::CorruptorSet());
+  Array<BoatSimulationSpecs::TwaDirective> dirs(2);
+  dirs[0] = BoatSimulationSpecs::TwaDirective::constant(Duration<double>::minutes(3.0), Angle<double>::degrees(119));
+  dirs[1] = BoatSimulationSpecs::TwaDirective::constant(Duration<double>::minutes(1.0), Angle<double>::degrees(32));
+  BoatSimulationSpecs specs(BoatCharacteristics(), dirs, CorruptedBoatState::CorruptorSet());
 
   std::default_random_engine e;
   BoatSimulation tc(e, georef, timeoffset, windfun, currentfun,
-    Array<BoatSimulation::BoatSimulationSpecs>::args(specs));
+    Array<BoatSimulationSpecs>::args(specs));
 
   auto t = tc.toLocalTime(timeoffset);
   EXPECT_NEAR(t.seconds(), 0.0, 1.0e-6);

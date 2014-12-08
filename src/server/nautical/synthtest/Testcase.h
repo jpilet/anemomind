@@ -109,6 +109,84 @@ class CorruptedBoatState {
 };
 
 
+
+// Description of how the testdata should be synthesized
+// for a boat:
+//  * The dynamics of the boat (BoatCharacteristics)
+//  * TWA-directives for how the boat should steer
+//  * How the measured values are corrupted
+//  * How the boat should be simulated.
+class BoatSimulationSpecs {
+public:
+  BoatSimulationSpecs() : _stepsPerSample(0) {}
+  class TwaDirective {
+   public:
+    TwaDirective() : dur(Duration<double>::seconds(NAN)),
+            srcTwa(Angle<double>::degrees(NAN)),
+            dstTwa(Angle<double>::degrees(NAN)) {}
+    TwaDirective(Duration<double> dur_, Angle<double> srcTwa_, Angle<double> dstTwa_) :
+      dur(dur_), srcTwa(srcTwa_), dstTwa(dstTwa_) {}
+
+    static TwaDirective constant(Duration<double> dur, Angle<double> twa) {
+      return TwaDirective(dur, twa, twa);
+    }
+
+    Duration<double> dur;
+    Angle<double> srcTwa, dstTwa;
+
+    // Used by the twa() method of BoatSimDirs
+    Angle<double> interpolate(double localTimeSeconds) const {
+      double lambda = localTimeSeconds/dur.seconds();
+      return (1.0 - lambda)*srcTwa + lambda*dstTwa;
+    }
+  };
+
+  BoatSimulationSpecs(BoatCharacteristics ch_, // <-- How the boat behaves
+            Array<TwaDirective> specs_,        // <-- How the boat should be steered
+            CorruptedBoatState::CorruptorSet corruptors_, // <-- How the measurements are corrupted
+
+            Nav::Id boatId = Nav::debuggingBoatId(), // <-- Boat id. Maybe not that interesting in most cases.
+
+            // Settings for how this boat should be simulated.
+            Duration<double> samplingPeriod_ = Duration<double>::seconds(1.0),
+            int stepsPerSample_ = 20);
+
+  Angle<double> twa(Duration<double> dur) const;
+
+  const Nav::Id &boatId() const {
+    return _boatId;
+  }
+
+  const BoatCharacteristics &characteristics() const {
+    return _ch;
+  }
+
+  Duration<double> duration() const {
+    Duration<double>::seconds(_indexer.sum());
+  }
+
+  CorruptedBoatState::CorruptorSet &corruptors() {
+    return _corruptors;
+  }
+
+  Duration<double> samplingPeriod() const {
+    return _samplingPeriod;
+  }
+
+  int stepsPerSample() const {
+    return _stepsPerSample;
+  }
+ private:
+  Nav::Id _boatId;
+  BoatCharacteristics _ch;
+  Array<TwaDirective> _dirs;
+  ProportionateIndexer _indexer;
+  CorruptedBoatState::CorruptorSet _corruptors;
+  Duration<double> _samplingPeriod;
+  int _stepsPerSample;
+};
+
+
 /*
  * A Testcase holds testdata for a single race that can
  * contain any number of boats. More specifically, it holds the following:
@@ -132,82 +210,6 @@ class BoatSimulation {
   typedef BoatSim::FlowFun FlowFun;
 
   static FlowFun constantFlowFun(HorizontalMotion<double> m);
-
-  // Description of how the testdata should be synthesized
-  // for a boat:
-  //  * The dynamics of the boat (BoatCharacteristics)
-  //  * TWA-directives for how the boat should steer
-  //  * How the measured values are corrupted
-  //  * How the boat should be simulated.
-  class BoatSimulationSpecs {
-   public:
-    BoatSimulationSpecs() : _stepsPerSample(0) {}
-    class TwaDirective {
-     public:
-      TwaDirective() : dur(Duration<double>::seconds(NAN)),
-              srcTwa(Angle<double>::degrees(NAN)),
-              dstTwa(Angle<double>::degrees(NAN)) {}
-      TwaDirective(Duration<double> dur_, Angle<double> srcTwa_, Angle<double> dstTwa_) :
-        dur(dur_), srcTwa(srcTwa_), dstTwa(dstTwa_) {}
-
-      static TwaDirective constant(Duration<double> dur, Angle<double> twa) {
-        return TwaDirective(dur, twa, twa);
-      }
-
-      Duration<double> dur;
-      Angle<double> srcTwa, dstTwa;
-
-      // Used by the twa() method of BoatSimDirs
-      Angle<double> interpolate(double localTimeSeconds) const {
-        double lambda = localTimeSeconds/dur.seconds();
-        return (1.0 - lambda)*srcTwa + lambda*dstTwa;
-      }
-    };
-
-    BoatSimulationSpecs(BoatCharacteristics ch_, // <-- How the boat behaves
-              Array<TwaDirective> specs_,        // <-- How the boat should be steered
-              CorruptedBoatState::CorruptorSet corruptors_, // <-- How the measurements are corrupted
-
-              Nav::Id boatId = Nav::debuggingBoatId(), // <-- Boat id. Maybe not that interesting in most cases.
-
-              // Settings for how this boat should be simulated.
-              Duration<double> samplingPeriod_ = Duration<double>::seconds(1.0),
-              int stepsPerSample_ = 20);
-
-    Angle<double> twa(Duration<double> dur) const;
-
-    const Nav::Id &boatId() const {
-      return _boatId;
-    }
-
-    const BoatCharacteristics &characteristics() const {
-      return _ch;
-    }
-
-    Duration<double> duration() const {
-      Duration<double>::seconds(_indexer.sum());
-    }
-
-    CorruptedBoatState::CorruptorSet &corruptors() {
-      return _corruptors;
-    }
-
-    Duration<double> samplingPeriod() const {
-      return _samplingPeriod;
-    }
-
-    int stepsPerSample() const {
-      return _stepsPerSample;
-    }
-   private:
-    Nav::Id _boatId;
-    BoatCharacteristics _ch;
-    Array<TwaDirective> _dirs;
-    ProportionateIndexer _indexer;
-    CorruptedBoatState::CorruptorSet _corruptors;
-    Duration<double> _samplingPeriod;
-    int _stepsPerSample;
-  };
 
 
   BoatSimulation(std::default_random_engine &e,
