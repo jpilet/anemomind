@@ -1,5 +1,5 @@
-#LyX 2.2 created this file. For more info see http://www.lyx.org/
-\lyxformat 479
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
 \begin_document
 \begin_header
 \textclass article
@@ -112,8 +112,193 @@ thispagestyle{fancy}
 
 \end_layout
 
+\begin_layout Standard
+The Anemomind system is an attempt to improve the information that can be
+ obtained from sensors placed on a sailing boat.
+ More specifically, the system has the following goals: to improve true
+ wind estimation through automatic calibration, to provide real-time boat
+ performance information through automatic target speed computation, and
+ to offer a fast and complete visualization system of all recorded data.
+\end_layout
+
+\begin_layout Standard
+Figure
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:System-diagram"
+
+\end_inset
+
+ describes the general system architecture.
+ On the boat, transducers (typically GPS, anemometer, water speed sensor,
+ and compass) provide information to a data bus, typically NMEA0183 or NMEA2000.
+ A light processing unit receives the data and stores it in a temporary
+ buffer.
+ When enough data has been collected and when a connection to the heavy
+ processing unit can be established, recorded data is sent to the heavy
+ processing unit.
+ This unit processes the data and produce calibration parameters that allow
+ a better true wind estimation.
+ It also produces target speed tables for the boat.
+ The calibration parameters and the target speed tables are sent back to
+ the light processing unit.
+ The light processing unit can then exploit the calibration parameters and
+ the target speed tables to compute in real-time true wind and current according
+ to the calibration parameters, and boat performance, according to the target
+ speed tables.
+ This computed information can be displayed in real-time to help sailors
+ in their navigation tasks.
+\end_layout
+
+\begin_layout Standard
+The heavy processing unit also has a data visualization component.
+ The whole boat history is served to visualization clients.
+ That makes it possible for crew members to visualize, analyse, and discuss
+ their past navigations.
+\end_layout
+
+\begin_layout Standard
+The process is split into two computating units, because the heavy unit
+ might not be convenient to use onboard.
+ If constraints such as energy or volume makes it impossible for the heavy
+ processing unit to be installed on board, this heavy unit can be hosted
+ on shore, in a datacenter.
+ The light and heavy units can then communicate through a phone network,
+ wifi, or satellite.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename system.dia
+	width 95text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:System-diagram"
+
+\end_inset
+
+System diagram
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename information.dia
+	width 95text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Information-flow-diagram"
+
+\end_inset
+
+Information flow diagram
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Data Aquisition and Transfer
+\end_layout
+
+\begin_layout Standard
+Data acquisition is achieved by existing transducers.
+ The data is concentrated on a single interface, typically NMEA 0183 or
+ NMEA 2000.
+ The Anemomind light processing unit can be connected to this interface.
+ It can then receive all the transducers output and can send information
+ back to the bus.
+ The data is then stored locally on storage memory such as USB stick, SD
+ card, or built-in flash.
+\end_layout
+
+\begin_layout Standard
+Communication with the heavy processing unit can be achieved in one of the
+ following way:
+\end_layout
+
+\begin_layout Enumerate
+Network cable if the heavy processing unit is onboard;
+\end_layout
+
+\begin_layout Enumerate
+internet over mobile network, GSM/3G/4G receiver on the light processing
+ unit;
+\end_layout
+
+\begin_layout Enumerate
+internet over satellite network, satellite modem on the light processing
+ unit;
+\end_layout
+
+\begin_layout Enumerate
+internet over wifi, wifi antenna on the boat, access point in a harbor or
+ marina;
+\end_layout
+
+\begin_layout Enumerate
+a mobile phone shares its internet connection through bluetooth, wifi, or
+ any other local communication mean.
 \end_layout
 
 \begin_layout Section
@@ -133,6 +318,27 @@ Recorded sensor data for a particular boat from any number of races is stored
 
 \begin_layout Subsection
 Semantic segmentation
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Semantic-segmentation"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The purpose of semantic segmentation is to generate a parse tree from a
+ sequence of navs.
+ This is useful to perform calibration as explained in Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Calibration"
+
+\end_inset
+
+, to search for particular events in the data or to build a browsable overview
+ of the data.
 \end_layout
 
 \begin_layout Standard
@@ -166,11 +372,15 @@ status open
 
 \begin_layout Plain Layout
 
-$L_0 = {
+$L_0 = 
+\backslash
+{
 \backslash
 textrm{Downwind}, 
 \backslash
-textrm{Upwind}}$
+textrm{Upwind}
+\backslash
+}$
 \end_layout
 
 \end_inset
@@ -189,7 +399,7 @@ $f:L^N
 \backslash
 rightarrow 
 \backslash
-mathbf{R}$
+mathbb{R}$
 \end_layout
 
 \end_inset
@@ -202,7 +412,14 @@ status open
 
 \begin_layout Plain Layout
 
-$f(I) = 
+
+\backslash
+begin{displaymath}
+\end_layout
+
+\begin_layout Plain Layout
+
+f(I) = 
 \backslash
 sum_{n = 1}^{N} C_{
 \backslash
@@ -210,13 +427,19 @@ textrm{state}}(n, I_n) +
 \backslash
 sum_{i = 1}^{N-1} C_{
 \backslash
-textrm{transition}}(n, I_n, I_{n+1})$
+textrm{transition}}(n, I_n, I_{n+1}).
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{displaymath}
 \end_layout
 
 \end_inset
 
-.
- The function 
+The function 
 \begin_inset ERT
 status open
 
@@ -278,7 +501,7 @@ $I_n$
 
 \end_inset
 
- to nav with index 
+ to a nav with index 
 \begin_inset ERT
 status open
 
@@ -316,36 +539,775 @@ $n+1$
  (HMM) and is solved using the dynamic programming algorithm.
 \end_layout
 
+\begin_layout Standard
+The grammar for wind-oriented races assigns the following labels the navs:
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/starboard-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/starboard-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/starboard-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/port-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/port-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/before-race/port-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/starboard-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/starboard-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/starboard-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/port-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/port-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/upwind-leg/port-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/starboard-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/starboard-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/starboard-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/port-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/port-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/In race/downwind-leg/port-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/starboard-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/starboard-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/starboard-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/port-tack/broad-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/port-tack/beam-reach 
+\end_layout
+
+\begin_layout Enumerate
+Top/Sailing/Not in race/idle/port-tack/close-hauled 
+\end_layout
+
+\begin_layout Enumerate
+Top/Off 
+\end_layout
+
 \begin_layout Subsection
 Calibration
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Calibration"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
 Calibration is the process of computing parameters that determine how the
  raw measurements from sensors on the boat are mapped to values that represent
  the true quantities being measured.
+ From those values, true wind and current 2D vectors in a local coordinate
+ system tangent to the sea surface can be estimated as depicted in Fig.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Estimation-of-true"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename ../calib/simplecalib.dia
+	lyxscale 10
+	width 100col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Estimation-of-true"
+
+\end_inset
+
+Estimation of true wind and current from sensors.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
 A maneuver is a rapid transition from one sail trim and boat course to a
  different sail trim and course.
- For properly calibrated instruments and assuming consta
+ In practice, we use the semantic segmentation explained in section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Semantic-segmentation"
+
+\end_inset
+
+ to identify maneuvers, by looking for transitions from upwind-leg to downwind-l
+eg, starboard-tack to port tack, and vice versa.
+ For properly calibrated instruments and assuming locally constant wind
+ and current, we would expect no difference in estimated true wind and current
+ just before a maneuver and just after a maneuver.
+ Letting 
+\begin_inset Formula $X\in\mathbb{R}^{m}$
+\end_inset
+
+ be a vector of 
+\begin_inset Formula $m$
+\end_inset
+
+ parameters to calibrate, we formulate an unconstrained optimization problem
+ where we minimize an objective function 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{displaymath}
+\end_layout
+
+\begin_layout Plain Layout
+
+f(X) = 
+\backslash
+sum_{i = 1}^{M}
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+alpha
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\backslash
+| W(p_i, X) - W(s_i, X) 
+\backslash
+|^2 +
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+beta
+\end_layout
+
+\begin_layout Plain Layout
+
+		
+\backslash
+| C(p_i, X) - C(s_i, X) 
+\backslash
+|^2 
+\backslash
+: ,
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{displaymath}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$M$
+\end_layout
+
+\end_inset
+
+ is the number of maneuvers, 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$W : 
+\backslash
+mathbb{R} 
+\backslash
+times 
+\backslash
+mathbb{R}^m 
+\backslash
+rightarrow 
+\backslash
+mathbb{R}^2$
+\end_layout
+
+\end_inset
+
+ is a function mapping a time and calibration parameters to an estimated
+ true wind vector and 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$C : 
+\backslash
+mathbb{R} 
+\backslash
+times 
+\backslash
+mathbb{R}^m 
+\backslash
+rightarrow 
+\backslash
+mathbb{R}^2$
+\end_layout
+
+\end_inset
+
+ is a function mapping a time and calibration parameters to an estimated
+ true current vector.
+ These vectors are computed as local averages in time to reduce the effect
+ of noise.
+ The times 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$b_i, s_i 
+\backslash
+in 
+\backslash
+mathbb{R}$
+\end_layout
+
+\end_inset
+
+ are the times just before and just after maneuvers, respectively.
+ The values 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$
+\backslash
+alpha, 
+\backslash
+beta 
+\backslash
+in 
+\backslash
+mathbb{R}$
+\end_layout
+
+\end_inset
+
+ are weights to balance the calibration based on the true wind against calibrati
+on based on the true current.
+\end_layout
+
+\begin_layout Standard
+The optimization is achieved with the algorithm of Levenberg and Marquardt.
 \end_layout
 
 \begin_layout Subsection
 Target speed extraction
 \end_layout
 
+\begin_layout Standard
+Target speed estimation amounts to estimating the maximum speed that the
+ boat can reach under given stable wind conditions and a given stable course
+ of the boat.
+ We distinguish between two types of target speeds.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+Wind oriented mode
+\end_layout
+
+\begin_layout Standard
+In a wind oriented regatta we are interested in maximizing the boat speed
+ vector projected on the wind vector when we are either sailing upwind or
+ downwind.
+ We refer to this speed as Velocity Made Good (VMG).
+ Here we explain how the VMG can be predicted from the true wind speed (TWS)
+ when the boat is sailing upwind and the boat is sailing downwind from past
+ measurements.
+ Given a set of navs of past measurements, we take all pairs of (TWS, VMG)
+ when the boat is either sailing upwind or downwind.
+ The VMG values are grouped into bins distributed over a range of TWS values.
+ Each such bin is the set of VMG values for which the TWS values belong
+ to an interval 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$[
+\backslash
+gamma, 
+\backslash
+delta[$
+\end_layout
+
+\end_inset
+
+.
+ The VMG values belonging to a bin are sorted and a target speed for the
+ bin center is defined as the VMG value at 80th percentile in the sorted
+ array.
+\end_layout
+
+\begin_layout Subsubsection
+Pure speed mode
+\end_layout
+
+\begin_layout Standard
+In this section, we explain how target speed predictions are established
+ from past recordings for a general regatta that is not wind oriented.
+ Given a set of navs, we build set of 3D vectors of values (TWA, TWS, TS),
+ where TS denotes the target speed which we set to the measured water speed
+ of the boat.
+ We estimate a probability density function from this set of vectors using
+ a Gaussian kernel at each point with a suitable bandwidth parameter.
+ This results in a probability density function 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+$
+\backslash
+textrm{pdf}: 
+\backslash
+mathbb{R}^3 
+\backslash
+rightarrow ]0, 1[$
+\end_layout
+
+\end_inset
+
+ mapping an arbitrary point to a probability density.
+ A target speed function is estimated that maps a true wind angle (TWA)
+ and true wind speed (TWS) to a target speed.
+ This function is obtained by sampling values of TWA and TWS within reasonable
+ ranges.
+ For fixed values of TWA and TWS, a cumulative density function is estimated
+ along the target speed (TS) dimension:
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{displaymath}
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+textrm{cdf}(
+\backslash
+textrm{TWA}, 
+\backslash
+textrm{TWS}, 
+\backslash
+textrm{TS}) = 
+\backslash
+int_{-
+\backslash
+infty}^{
+\backslash
+textrm{TS}} 
+\backslash
+textrm{pdf}(
+\backslash
+textrm{TWA}, 
+\backslash
+textrm{TWS}, x)
+\backslash
+; 
+\backslash
+textrm{d}x 
+\backslash
+; .
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{displaymath}
+\end_layout
+
+\end_inset
+
+We let the estimated target speed function be
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{displaymath}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+textrm{EST-TS}(
+\backslash
+textrm{TWA}, 
+\backslash
+textrm{TWS}) = 
+\backslash
+textrm{argmin}_{x} 
+\backslash
+left| 
+\backslash
+frac{
+\backslash
+textrm{cdf}(
+\backslash
+textrm{TWA}, 
+\backslash
+textrm{TWS}, x)}{
+\backslash
+textrm{cdf}(
+\backslash
+textrm{TWA}, 
+\backslash
+textrm{TWS}, 
+\backslash
+infty)} - 0.8 
+\backslash
+right| 
+\backslash
+; .
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{displaymath}
+\end_layout
+
+\end_inset
+
+.
+ This function is evaluated for all discrete pairs of sampled TWA and TWS
+ values.
+ For the remaining values in between, bilinear interpolation is used.
+\end_layout
+
 \begin_layout Subsection
 Data compilation for fast visualization
 \end_layout
 
+\begin_layout Standard
+Race after race, data accumulates.
+ To navigate through the potentially large amount of data, the data is pre-proce
+ssed for visualization.
+ Data is split into tiles with a well defined geographical location and
+ scale.
+ Generating the tiles amount to the following steps:
+\end_layout
+
+\begin_layout Enumerate
+All 
+\emph on
+nav
+\emph default
+ samples are segmented into tracks: 1 minute without data creates a track
+ boudary.
+\end_layout
+
+\begin_layout Enumerate
+The process described in section
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Real-time-Data-Processing"
+
+\end_inset
+
+ is conducted over all navs, and navs are annotated with corrected measures
+ and boat performance.
+\end_layout
+
+\begin_layout Enumerate
+For each nav and for each tile it covers, the track is clipped to the tile
+ and approximated with a fixed number of points (typically 32), using the
+ Visvalingam’s algorithm for line simplification.
+\end_layout
+
+\begin_layout Enumerate
+The clipped and simplified segment is then added to the database of segments,
+ with boat id and tile coordinates and scale as key.
+\end_layout
+
 \begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Real-time-Data-Processing"
+
+\end_inset
+
 Real-time Data Processing and Visualization
+\end_layout
+
+\begin_layout Standard
+The light processing unit process available data to compute useful information
+ that can be visualized in real-time.
+\end_layout
+
+\begin_layout Subsection
+Environment computation
+\end_layout
+
+\begin_layout Standard
+The light processing unit process the transducers' output and the calibration
+ parameters to compute the true wind and the current, as shown by Figure
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Estimation-of-true"
+
+\end_inset
+
+.
+ The process produces the following computed or calibration-corrected measures:
+\end_layout
+
+\begin_layout Enumerate
+Apparent Wind Angle (AWA)
+\end_layout
+
+\begin_layout Enumerate
+Apparent Wind Speed (AWS)
+\end_layout
+
+\begin_layout Enumerate
+True Wind Angle (TWA)
+\end_layout
+
+\begin_layout Enumerate
+True Wind Speed (TWS)
+\end_layout
+
+\begin_layout Enumerate
+True Wind Direction
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+TWA is the angle between the boat and the wind, while TWD is the angle between
+ the geographic north and the wind.
+\end_layout
+
+\end_inset
+
+ (TWD)
+\end_layout
+
+\begin_layout Enumerate
+Water speed
+\end_layout
+
+\begin_layout Enumerate
+Heading
+\end_layout
+
+\begin_layout Enumerate
+Water Current Direction
+\end_layout
+
+\begin_layout Enumerate
+Water Current Speed
+\end_layout
+
+\begin_layout Enumerate
+Leeway angle
+\end_layout
+
+\begin_layout Standard
+Those measurement are sent to a visualization device.
+\end_layout
+
+\begin_layout Subsection
+Boat performance computation
+\end_layout
+
+\begin_layout Standard
+The system can work in two modes.
+ A 
+\begin_inset Quotes eld
+\end_inset
+
+wind oriented
+\begin_inset Quotes erd
+\end_inset
+
+ race mode and a normal mode.
+\end_layout
+
+\begin_layout Subsubsection
+Wind oriented mode
+\end_layout
+
+\begin_layout Standard
+The wind oriented mode assumes that the goal is either to sail upwind or
+ downwind.
+ Performance is evaluated on how fast the boat is climbing up or sliding
+ down the wind.
+ Boat speed in a direction perpendicular to the wind does not influences
+ the performance evaluation in wind oriented mode.
+\end_layout
+
+\begin_layout Standard
+To compute the boat performance in wind oriented mode, the light processing
+ unit first determine if the boat is currently sailing upwind or downind.
+ This is achived by thresholding TWA at +90 and -90 degrees.
+ The upwind or downwind target VMG
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Velocity Made Good
+\end_layout
+
+\end_inset
+
+ table is then looked up, using TWS as key.
+ This lookup provides a target VMG.
+ The current VMG is computed by projecting the boat water motion vector
+ on the wind axis.
+ The performance indicator is then the ratio between the current VMG and
+ the target VMG.
+\end_layout
+
+\begin_layout Subsubsection
+Pure speed mode
+\end_layout
+
+\begin_layout Standard
+When the boat has to reach a destination that can be sailed to directly,
+ without any tack or jibe, the speed over water is used instead of VMG.
+ To compute the performance percentage, a target speed is obtained by looking
+ up the boat speed table using TWA and TWS.
+ The performance percentage is defined as the water speed devided by the
+ target speed.
 \end_layout
 
 \begin_layout Section
 Post-Navigation Data Visualization
+\end_layout
+
+\begin_layout Standard
+Visualization is achieved with a web interface that shows a map and a list
+ of races.
+ The map is displayed using tiles.
+ Rendered image tiles are used for the background.
+ They are provided by OpenStreetMap.
+ The boat trajectories are displayed with a vector tile overlay.
 \end_layout
 
 \end_body

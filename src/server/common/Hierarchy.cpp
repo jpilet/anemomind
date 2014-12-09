@@ -25,6 +25,35 @@ HNode::HNode(int index, int parent, std::string code, std::string label) : _inde
 }
 
 namespace {
+  std::string followDescs(bool isParent, int index,
+      Array<HNode> nodes,
+      Array<bool> isLeaf,
+      Array<std::string> descriptions) {
+      if (index == -1) {
+        return "";
+      } else {
+        isLeaf[index] = !isParent;
+        if (descriptions[index].empty()) {
+          HNode node = nodes[index];
+          descriptions[index] = followDescs(true, node.parent(),
+              nodes, isLeaf, descriptions) + node.description();
+        }
+        return descriptions[index] + (isParent? "/" : "");
+      }
+  }
+}
+
+Array<std::string> HNode::makeDescriptionList(Array<HNode> nodes) {
+  int count = nodes.size();
+  Arrayb leaf = Arrayb::fill(count, false);
+  Array<std::string> descriptions(count);
+  for (int i = 0; i < nodes.size(); i++) {
+    followDescs(false, i, nodes, leaf, descriptions);
+  }
+  return descriptions.slice(leaf);
+}
+
+namespace {
 // Checks that
 // if a node has a parent, that parent is defined.
 void checkHNodeValidParents(Array<HNode> nodes) {

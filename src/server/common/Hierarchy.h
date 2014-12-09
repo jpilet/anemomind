@@ -62,6 +62,8 @@ class HNode {
   }
 
   bool operator== (const HNode &other) const;
+
+  static Array<std::string> makeDescriptionList(Array<HNode> nodes);
  private:
   int _index, _parent;
   std::string _description, _code;
