@@ -75,6 +75,28 @@ class FilteredNavData {
   double high() const {
     return _awa.high();
   }
+
+  // Estimated standard deviations for the noise
+  class NoiseStdDev {
+   public:
+    NoiseStdDev(
+        Angle<double> awa_,
+        Angle<double> magHdg_,
+        Angle<double> gpsBearing_,
+        Velocity<double> watSpeed_,
+        Velocity<double> gpsSpeed_,
+        Velocity<double> aws_) : awa(awa_),
+        magHdg(magHdg_), gpsBearing(gpsBearing_),
+        watSpeed(watSpeed_), gpsSpeed(gpsSpeed_), aws(aws_) {}
+
+    Angle<double> awa;
+    Angle<double> magHdg;
+    Angle<double> gpsBearing;
+    Velocity<double> watSpeed;
+    Velocity<double> gpsSpeed;
+    Velocity<double> aws;
+  };
+  NoiseStdDev estimateNoise(Array<Nav> navs) const;
  private:
   TimeStamp _timeOffset;
   UniformSamples<Angle<double> > _awa, _magHdg, _gpsBearing;

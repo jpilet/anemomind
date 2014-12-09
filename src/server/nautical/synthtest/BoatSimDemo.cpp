@@ -10,9 +10,9 @@
 namespace {
   using namespace sail;
 
-  std::function<HorizontalMotion<double>(Length<double>, Length<double>,Duration<double>)>
+  std::function<HorizontalMotion<double>(BoatSim::ProjectedPosition,Duration<double>)>
     makeConstantFlow(Velocity<double> speed, Angle<double> angle) {
-      return [=](Length<double>, Length<double>,Duration<double>) {
+      return [=](BoatSim::ProjectedPosition,Duration<double>) {
         return HorizontalMotion<double>::polar(speed, angle);
       };
   }
@@ -30,15 +30,15 @@ int main(int argc, const char **argv) {
                                   Angle<double>::degrees(90));
 
 
-  auto fun = BoatSimulator::makePiecewiseTwaFunction(Array<Duration<double> >::args(dur, dur),
+  auto fun = BoatSim::makePiecewiseTwaFunction(Array<Duration<double> >::args(dur, dur),
       Array<Angle<double> >::args(Angle<double>::degrees(129), Angle<double>::degrees(199)));
 
-  BoatSimulator simulator(windfun, currentfun, ch, fun);
+  BoatSim simulator(windfun, currentfun, ch, fun);
 
-  Array<BoatSimulator::FullBoatState> states = simulator.simulate(1.99*dur,
+  Array<BoatSim::FullState> states = simulator.simulate(1.99*dur,
       Duration<double>::seconds(0.05), 1);
 
-  BoatSimulator::makePlots(states);
+  BoatSim::makePlots(states);
   return 0;
 }
 

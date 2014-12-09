@@ -10,6 +10,7 @@
 #include <memory>
 #include <server/common/Array.h>
 #include <server/common/Function.h>
+#include <server/nautical/GeographicReference.h>
 #include <iosfwd>
 
 namespace sail {
@@ -168,8 +169,6 @@ class BoatCharacteristics {
 
 
   // How much the rudder slows down the boat as the rudder angle increases.
-  // By default, the boat does not slow down at all, so tune this parameter
-  // through experimentation to get good results.
   double rudderResistanceCoef;
 
   // The time it takes to reach half of its target speed,
@@ -218,22 +217,22 @@ class BoatCharacteristics {
 
 };
 
-class BoatSimulator : public Function {
+class BoatSim : public Function {
  public:
+  typedef GeographicReference::ProjectedPosition ProjectedPosition;
   typedef HorizontalMotion<double> FlowVector;
-  typedef std::function<FlowVector(Length<double>, Length<double>, Duration<double>)> FlowFun;
+  typedef std::function<FlowVector(ProjectedPosition, Duration<double>)> FlowFun;
 
 
   // Contains lots of information that can be derived from the environment
   // and a BoatSimState. This class contains values that can be used to build
   // test cases.
-  class FullBoatState {
+  class FullState {
    public:
-    FullBoatState() {}
+    FullState() {}
 
     Angle<double> rudderAngle;
-    Length<double> x;
-    Length<double> y;
+    ProjectedPosition pos;
     Duration<double> time;
     Angle<double> boatOrientation;
     Angle<double> boatAngularVelocity;
@@ -245,12 +244,20 @@ class BoatSimulator : public Function {
     Velocity<double> windSpeedWrtWater;
     HorizontalMotion<double> boatMotionThroughWater;
     HorizontalMotion<double> boatMotion;
+
+    HorizontalMotion<double> apparentWind() const {
+      return trueWind - boatMotion;
+    }
+
+    Angle<double> awa() const {
+      return apparentWind().angle() - Angle<double>::degrees(180) - boatOrientation;
+    }
   };
 
   // The desired TWA at duration since the simulation starts.
   typedef std::function<Angle<double>(Duration<double>)> TwaFunction;
 
-  BoatSimulator(
+  BoatSim(
       FlowFun windFun,
       FlowFun currentFun,
       BoatCharacteristics ch,
@@ -259,12 +266,12 @@ class BoatSimulator : public Function {
   int inDims() {return BoatSimulationState::paramCount();}
   int outDims() {return BoatSimulationState::paramCount();}
 
-  FullBoatState makeFullState(const BoatSimulationState &state);
+  FullState makeFullState(const BoatSimulationState &state);
 
   // Evaluates the derivatives of a state
   void eval(double *Xin, double *Fout, double *Jout);
 
-  Array<FullBoatState> simulate(Duration<double> simulationDurationti,
+  Array<FullState> simulate(Duration<double> simulationDurationti,
     Duration<double> samplingPeriod, int iterationsPerSample);
 
   // For conveniency in synthesizing test data.
@@ -272,7 +279,7 @@ class BoatSimulator : public Function {
       Array<Duration<double> > durs,
       Array<Angle<double> > twa);
 
-  static void makePlots(Array<BoatSimulator::FullBoatState> states);
+  static void makePlots(Array<BoatSim::FullState> states);
  private:
   FlowFun _windFun;
   FlowFun _currentFun;
@@ -281,7 +288,7 @@ class BoatSimulator : public Function {
 };
 
 std::ostream &operator<<(std::ostream &s,
-    const BoatSimulator::FullBoatState &state);
+    const BoatSim::FullState &state);
 
 }
 

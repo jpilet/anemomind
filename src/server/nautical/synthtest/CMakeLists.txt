@@ -1,64 +1,43 @@
-add_library(nautical_synthtest_TestDomain
-            TestDomain.h
-            TestDomain.cpp
-           )
-target_link_libraries(nautical_synthtest_TestDomain
-                      nautical_GeographicReference
-                      common_TimeStamp
-                      common_Span
-                     )           
-                     
-add_library(nautical_synthtest_TestDomainJson
-            TestDomainJson.h
-            TestDomainJson.cpp
-           )
-target_link_libraries(nautical_synthtest_TestDomainJson
-                      nautical_synthtest_TestDomain
-                      nautical_GeographicReferenceJson
-                      common_TimeStampJson
-                     )
-                     
-cxx_test(nautical_synthtest_TestDomainTest
-         TestDomainTest.cpp
-         gtest_main
-         nautical_synthtest_TestDomainJson
-        )                     
-        
-add_library(nautical_synth_BoatSim
+add_library(nautical_synthtest_BoatSim
             BoatSim.h
             BoatSim.cpp
            )
-target_link_libraries(nautical_synth_BoatSim
+target_link_libraries(nautical_synthtest_BoatSim
                       math_nonlinear_RungeKutta
                       common_LineKM
                       common_ProportionateIndexer
                       plot_gnuplot                      
                      )                   
                      
-cxx_test(nautical_synth_BoatSimTest
+cxx_test(nautical_synthtest_BoatSimTest
             BoatSimTest.cpp
             gtest_main
-            nautical_synth_BoatSim
+            nautical_synthtest_BoatSim
            )      
            
-add_executable(nautical_synth_BoatSimDemo
+add_executable(nautical_synthtest_BoatSimDemo
                BoatSimDemo.cpp
               )
                
-target_link_libraries(nautical_synth_BoatSimDemo
-                      nautical_synth_BoatSim
+target_link_libraries(nautical_synthtest_BoatSimDemo
+                      nautical_synthtest_BoatSim
                      )
-
-add_library(nautical_synthtest_Flow
-            Flow.h
-            Flow.cpp
+                     
+add_library(nautical_synthtest_NavalSimulation
+            NavalSimulation.h
+            NavalSimulation.cpp
            )
-target_link_libraries(nautical_synthtest_Flow
+           
+target_link_libraries(nautical_synthtest_NavalSimulation
                       nautical_GeographicReference
+                      common_ProportionateIndexer
+                      common_TimeStamp
+                      nautical_synthtest_BoatSim
+                      nautical_nav
                      )
-
-cxx_test(nautical_synthtest_FlowTest
-         FlowTest.cpp
-         nautical_synthtest_Flow
+           
+cxx_test(nautical_synthtest_NavalSimulationTest
+         NavalSimulationTest.cpp
+         nautical_synthtest_NavalSimulation
          gtest_main
-        )                                                     
+        )           
