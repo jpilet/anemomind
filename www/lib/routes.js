@@ -30,13 +30,6 @@ module.exports = function(app) {
   app.get('/api/races', middleware.auth, races.list);
   app.get('/api/races/:id', middleware.auth, races.raceDetail);
 
-<<<<<<< HEAD
-  app.get('/api/races/tiles/:x/:y/:z', middleware.auth, races.raceTiles);
-  app.get('/api/races/leaflet/:id', middleware.auth, races.raceLeaflet);
-  app.get('/api/races/csv/:id', middleware.auth, races.raceCSV);
-
-=======
->>>>>>> master
   app.get('/api/tiles/:scale/:x/:y/:boat', tiles.retrieve);
   app.get('/api/tilesGeoJSON/:scale/:x/:y/:boat/:startsAfter?/:endsBefore?', tilesGeoJSON.retrieve);
 
