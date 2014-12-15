@@ -34,6 +34,7 @@ target_link_libraries(nautical_synthtest_NavalSimulation
                       common_TimeStamp
                       nautical_synthtest_BoatSim
                       nautical_nav
+                      common_MeanAndVar
                      )
            
 cxx_test(nautical_synthtest_NavalSimulationTest

@@ -48,6 +48,20 @@ NavalSimulation::NavalSimulation(std::default_random_engine &e,
   }
 }
 
+NavalSimulation::FlowErrors NavalSimulation::BoatData::evaluateFitness(
+    const Corrector<double> &corr) const {
+  MeanAndVar wind, current;
+  for (auto state: _states) {
+    CalibratedNav<double> c = corr.correct(state.nav());
+    wind.add(HorizontalMotion<double>(c.trueWind() - state.trueState()
+        .trueWind).norm().knots());
+    current.add(HorizontalMotion<double>(c.trueCurrent() - state.trueState()
+        .trueCurrent).norm().knots());
+  }
+  return NavalSimulation::FlowErrors(FlowError::knots(wind), FlowError::knots(current));
+}
+
+
 NavalSimulation::BoatData NavalSimulation::makeBoatData(BoatSimulationSpecs &specs,
     Array<BoatSim::FullState> states, std::default_random_engine &e) const {
   int count = states.size();

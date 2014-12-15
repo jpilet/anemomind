@@ -12,6 +12,8 @@
 #include <server/nautical/GeographicReference.h>
 #include <server/nautical/Nav.h>
 #include <random>
+#include <server/common/MeanAndVar.h>
+#include <server/nautical/Corrector.h>
 
 namespace sail {
 
@@ -222,6 +224,40 @@ class NavalSimulation {
 
   static FlowFun constantFlowFun(HorizontalMotion<double> m);
 
+  class FlowError {
+   public:
+    static FlowError knots(const MeanAndVar &e) {
+      return FlowError(e);
+    }
+
+    Velocity<double> mean() const {
+      return Velocity<double>::knots(_e.mean());
+    }
+
+    Velocity<double> rms() const {
+      return Velocity<double>::knots(_e.rms());
+    }
+   private:
+    FlowError(const MeanAndVar &e) : _e(e) {}
+    MeanAndVar _e;
+  };
+
+  class FlowErrors {
+   public:
+    FlowErrors(const FlowError &wind_, const FlowError &current_) :
+      _wind(wind_), _current(current_) {}
+
+    const FlowError &wind() const {
+      return _wind;
+    }
+
+    const FlowError &current() const {
+      return _current;
+    }
+   private:
+    FlowError _wind, _current;
+  };
+
 
   NavalSimulation(std::default_random_engine &e,
            GeographicReference geoRef,
@@ -260,6 +296,14 @@ class NavalSimulation {
     const Array<CorruptedBoatState> &states() const {
       return _states;
     }
+
+    Array<Nav> navs() const {
+      return _states.map<Nav>([&](const CorruptedBoatState &s) {
+        return s.nav();
+      });
+    }
+
+    FlowErrors evaluateFitness(const Corrector<double> &corr) const;
    private:
     BoatSimulationSpecs _specs;
     Array<CorruptedBoatState> _states;
