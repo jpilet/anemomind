@@ -72,11 +72,19 @@ class CorruptedBoatState {
   class Corruptor {
    public:
     Corruptor() : _scale(1.0), _offset(T::zero()), _distrib(T::zero(), T::zero()) {}
-    Corruptor(double scale, T offset, T noiseStd) :
+    Corruptor(double scale, T offset, T noiseStd = T::zero()) :
       _distrib(T::zero(), noiseStd), _scale(scale), _offset(offset) {}
 
     static Corruptor onlyNoise(T noiseStd) {
       return Corruptor(1.0, T::zero(), noiseStd);
+    }
+
+    static Corruptor offset(T x) {
+      return Corruptor(1.0, x, T::zero());
+    }
+
+    static Corruptor scaling(double x) {
+      return Corruptor(x, T::zero(), T::zero());
     }
 
     T corrupt(T value, std::default_random_engine &e) {
@@ -87,6 +95,7 @@ class CorruptedBoatState {
       _scale = scale;
       _offset = offset;
     }
+
    private:
     double _scale;
     T _offset;
@@ -278,8 +287,14 @@ class NavalSimulation {
   BoatData makeBoatData(BoatSimulationSpecs &spec,
       Array<BoatSim::FullState> state,
       std::default_random_engine &e) const;
-
 };
+
+/*
+ * Standard synthetic tests that
+ * we will use to evaluate calibration
+ * algorithms.
+ */
+NavalSimulation makeNavSim001();
 
 } /* namespace mmm */
 
