@@ -84,7 +84,7 @@ TEST(TestcaseTest, MakeTestcase) {
 }
 
 TEST(TestcaseTest, NoCorruption) {
-  auto sim = makeNavSimConstantFlows();
+  auto sim = makeNavSimConstantFlow();
   auto errors = sim.boatData(0).fitnessNoCalibration();
   EXPECT_LE(errors.wind().mean().knots(), 1.0e-6);
   EXPECT_LE(errors.wind().rms().knots(), 1.0e-6);

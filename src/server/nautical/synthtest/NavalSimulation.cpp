@@ -5,6 +5,7 @@
 
 #include "NavalSimulation.h"
 #include <server/common/PhysicalQuantityIO.h>
+#include <server/nautical/synthtest/Flow.h>
 
 namespace sail {
 
@@ -93,41 +94,8 @@ NavalSimulation::BoatData NavalSimulation::makeBoatData(BoatSimulationSpecs &spe
 
 
 
-NavalSimulation makeNavSim002(CorruptedBoatState::CorruptorSet corruptors) {
-  std::default_random_engine e;
 
-  GeographicReference geoRef(GeographicPosition<double>(
-      Angle<double>::degrees(30),
-      Angle<double>::degrees(29)));
-  TimeStamp simulationStartTime = TimeStamp::UTC(2014, 12, 15, 12, 06, 29);
-
-  auto wind = NavalSimulation::constantFlowFun(
-     HorizontalMotion<double>::polar(Velocity<double>::metersPerSecond(10.8),
-                                     Angle<double>::degrees(306)));
-  auto current = NavalSimulation::constantFlowFun(
-     HorizontalMotion<double>::polar(Velocity<double>::knots(0.5),
-                                     Angle<double>::degrees(49)));
-
-
-  Array<BoatSimulationSpecs::TwaDirective> dirs(12);
-  for (int i = 0; i < 12; i++) {
-    dirs[i] = BoatSimulationSpecs::TwaDirective::constant(
-        Duration<double>::minutes(2.0),
-        Angle<double>::degrees((i + 2)*67.0));
-  }
-
-  BoatSimulationSpecs specs(BoatCharacteristics(),
-      dirs,        // <-- How the boat should be steered
-      corruptors);
-
-  return NavalSimulation(e, geoRef,
-           simulationStartTime,
-           wind,
-           current,
-           Array<BoatSimulationSpecs>::args(specs));
-}
-
-NavalSimulation makeNavSimConstantFlows() {
+NavalSimulation makeNavSimConstantFlow() {
   std::default_random_engine e;
 
   GeographicReference geoRef(GeographicPosition<double>(
@@ -165,6 +133,77 @@ NavalSimulation makeNavSimConstantFlows() {
   specs[1] = BoatSimulationSpecs(BoatCharacteristics(),
       dirs,
       corruptors2);
+
+
+  return NavalSimulation(e, geoRef,
+           simulationStartTime,
+           wind,
+           current,
+           specs
+           );
+}
+
+NavalSimulation makeNavSimUpwindDownwind() {
+  std::default_random_engine e;
+
+  GeographicReference geoRef(GeographicPosition<double>(
+      Angle<double>::degrees(30),
+      Angle<double>::degrees(29)));
+  TimeStamp simulationStartTime = TimeStamp::UTC(2014, 12, 15, 12, 06, 29);
+
+  auto wind = (Flow::constant(Velocity<double>::metersPerSecond(6),
+      Velocity<double>::metersPerSecond(-2)) +
+          Flow(
+          Flow::spatiallyChangingVelocity(
+                    Velocity<double>::metersPerSecond(1.3),
+                    Angle<double>::radians(3234.234),
+                    Length<double>::meters(30),
+                    Angle<double>::radians(34.4)),
+          Flow::spatiallyChangingVelocity(
+                    Velocity<double>::metersPerSecond(1.0),
+                    Angle<double>::radians(54.2),
+                    Length<double>::meters(51),
+                    Angle<double>::radians(12.4)))).asFunction();
+  auto current = (Flow::constant(Velocity<double>::metersPerSecond(0.1),
+        Velocity<double>::metersPerSecond(-0.2)) +
+            Flow(
+            Flow::spatiallyChangingVelocity(
+                      Velocity<double>::knots(0.29),
+                      Angle<double>::radians(99),
+                      Length<double>::meters(4),
+                      Angle<double>::radians(234.912)),
+            Flow::spatiallyChangingVelocity(
+                      Velocity<double>::knots(0.1),
+                      Angle<double>::radians(98.66),
+                      Length<double>::meters(9),
+                      Angle<double>::radians(2996.33)))).asFunction();
+
+  Array<BoatSimulationSpecs::TwaDirective> dirs(12);
+  for (int i = 0; i < 6; i++) {
+    int sign = 2*(i % 2) - 1;
+    // Upwind
+    dirs[i + 0] = BoatSimulationSpecs::TwaDirective::constant(
+        Duration<double>::minutes(2.0),
+        Angle<double>::degrees(sign*45));
+
+    // Downwind
+    dirs[i + 6] = BoatSimulationSpecs::TwaDirective::constant(
+        Duration<double>::minutes(2.0),
+        Angle<double>::degrees(180 + sign*20));
+  }
+
+  CorruptedBoatState::CorruptorSet corruptors;
+    corruptors.awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+        Angle<double>::degrees(-4));
+    corruptors.magHdg = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+        Angle<double>::degrees(-9));
+    corruptors.aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.12, Velocity<double>::knots(-0.5));
+    corruptors.watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.3, Velocity<double>::knots(0.8));
+
+  Array<BoatSimulationSpecs> specs(1);
+  specs[0] = BoatSimulationSpecs(BoatCharacteristics(),
+      dirs,
+      corruptors);
 
 
   return NavalSimulation(e, geoRef,

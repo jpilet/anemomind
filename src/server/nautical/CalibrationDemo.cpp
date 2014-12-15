@@ -29,7 +29,7 @@ namespace {
   }
 
   void synthDemo() {
-    auto sim = makeNavSimConstantFlows();
+    auto sim = makeNavSimConstantFlow();
 
     for (int i = 0; i < sim.boatCount(); i++) {
       auto boatData = sim.boatData(i);

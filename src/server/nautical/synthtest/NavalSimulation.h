@@ -363,7 +363,19 @@ std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e)
  * we will use to evaluate calibration
  * algorithms.
  */
-NavalSimulation makeNavSimConstantFlows();
+
+// This tests simulate two boats that sail the
+// same trajectory. One boat doesn't have any
+// corrupted parameters. The other boat has corrupted
+// paramters. Wind and current are constant in space
+// and time. The boats try to maintain piecewise constant
+// TWA.
+NavalSimulation makeNavSimConstantFlow();
+
+
+// Sail upwind, alternating between TWA of 45 and -45 degs.
+// Wind and current vary.
+NavalSimulation makeNavSimUpwindDownwind();
 
 } /* namespace mmm */
 
