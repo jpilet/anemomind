@@ -29,20 +29,21 @@ namespace {
   }
 
   void synthDemo() {
-    auto sim = makeNavSim001();
+    auto sim = makeNavSimConstantFlows();
 
+    for (int i = 0; i < sim.boatCount(); i++) {
+      auto boatData = sim.boatData(i);
+      auto initialErrors = boatData.fitnessNoCalibration();
 
-
-    auto initialErrors = sim.boatData(0).fitnessNoCalibration();
-
-    Array<Nav> navs = sim.boatData(0).navs();
-    FilteredNavData filtered(navs, 12.0);
-    AutoCalib calib;
-    AutoCalib::Results results = calib.calibrate(filtered);
-    auto finalErrors = sim.boatData(0).evaluateFitness(results.corrector());
-    results.disp(&(std::cout));
-    std::cout << EXPR_AND_VAL_AS_STRING(initialErrors) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(finalErrors) << std::endl;
+      Array<Nav> navs = boatData.navs();
+      FilteredNavData filtered(navs, 12.0);
+      AutoCalib calib;
+      AutoCalib::Results results = calib.calibrate(filtered);
+      auto finalErrors = boatData.evaluateFitness(results.corrector());
+      results.disp(&(std::cout));
+      std::cout << EXPR_AND_VAL_AS_STRING(initialErrors) << std::endl;
+      std::cout << EXPR_AND_VAL_AS_STRING(finalErrors) << std::endl;
+    }
   }
 }
 

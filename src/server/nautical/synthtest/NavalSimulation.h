@@ -337,7 +337,12 @@ class NavalSimulation {
   const BoatData &boatData(int index) const {
     return _boatData[index];
   }
+
+  void setDescription(const std::string &desc) {
+    _desc = desc;
+  }
  private:
+  std::string _desc;
   GeographicReference _geoRef;
   TimeStamp _simulationStartTime;
   FlowFun _wind, _current;
@@ -358,8 +363,7 @@ std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e)
  * we will use to evaluate calibration
  * algorithms.
  */
-NavalSimulation makeNavSim000();
-NavalSimulation makeNavSim001();
+NavalSimulation makeNavSimConstantFlows();
 
 } /* namespace mmm */
 
