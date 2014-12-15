@@ -4,6 +4,7 @@
  */
 
 #include "NavalSimulation.h"
+#include <server/common/PhysicalQuantityIO.h>
 
 namespace sail {
 
@@ -58,7 +59,8 @@ NavalSimulation::FlowErrors NavalSimulation::BoatData::evaluateFitness(
     current.add(HorizontalMotion<double>(c.trueCurrent() - state.trueState()
         .trueCurrent).norm().knots());
   }
-  return NavalSimulation::FlowErrors(FlowError::knots(wind), FlowError::knots(current));
+  return NavalSimulation::FlowErrors(FlowError::knots(wind.normalize()),
+                                     FlowError::knots(current.normalize()));
 }
 
 
@@ -125,6 +127,20 @@ NavalSimulation makeNavSim001() {
            current,
            Array<BoatSimulationSpecs>::args(specs));
 }
+
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowError &e) {
+  s << "FlowError(mean = " << e.mean() << ", rms = " << e.rms() << ")";
+  return s;
+}
+
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e) {
+  s << "FlowErrors(\n";
+  s << "  wind    = " << e.wind() << "\n";
+  s << "  current = " << e.current() << "\n";
+  s << ")\n";
+  return s;
+}
+
 
 
 }

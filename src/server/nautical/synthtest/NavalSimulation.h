@@ -237,6 +237,10 @@ class NavalSimulation {
     Velocity<double> rms() const {
       return Velocity<double>::knots(_e.rms());
     }
+
+    FlowError operator+ (const FlowError &other) const {
+      return FlowError(_e + other._e);
+    }
    private:
     FlowError(const MeanAndVar &e) : _e(e) {}
     MeanAndVar _e;
@@ -253,6 +257,10 @@ class NavalSimulation {
 
     const FlowError &current() const {
       return _current;
+    }
+
+    FlowErrors operator+ (const FlowErrors &other) const {
+      return FlowErrors(_wind + other._wind, _current + other._current);
     }
    private:
     FlowError _wind, _current;
@@ -304,6 +312,9 @@ class NavalSimulation {
     }
 
     FlowErrors evaluateFitness(const Corrector<double> &corr) const;
+    FlowErrors fitnessNoCalibration() const {
+      return evaluateFitness(Corrector<double>());
+    }
    private:
     BoatSimulationSpecs _specs;
     Array<CorruptedBoatState> _states;
@@ -332,6 +343,9 @@ class NavalSimulation {
       Array<BoatSim::FullState> state,
       std::default_random_engine &e) const;
 };
+
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowError &e);
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e);
 
 /*
  * Standard synthetic tests that
