@@ -54,6 +54,9 @@ int main(int argc, const char **argv) {
   amap.registerOption("--synth-demo", "Run a demo on synthetic data")
       .callback(synthDemo);
 
+  if (!amap.parseAndHelp(argc, argv)) {
+    return -1;
+  }
 
   /* TODO: (In another PR?)
    *   - Parse arguments so that we can try it on many different datasets.

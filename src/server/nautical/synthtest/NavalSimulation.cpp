@@ -54,10 +54,14 @@ NavalSimulation::FlowErrors NavalSimulation::BoatData::evaluateFitness(
   MeanAndVar wind, current;
   for (auto state: _states) {
     CalibratedNav<double> c = corr.correct(state.nav());
-    wind.add(HorizontalMotion<double>(c.trueWind() - state.trueState()
-        .trueWind).norm().knots());
-    current.add(HorizontalMotion<double>(c.trueCurrent() - state.trueState()
-        .trueCurrent).norm().knots());
+    double windError = HorizontalMotion<double>(c.trueWind() - state.trueState()
+            .trueWind).norm().knots();
+    double currentError = HorizontalMotion<double>(c.trueCurrent() - state.trueState()
+        .trueCurrent).norm().knots();
+    assert(std::isfinite(windError));
+    assert(std::isfinite(currentError));
+    wind.add(windError);
+    current.add(currentError);
   }
   return NavalSimulation::FlowErrors(FlowError::knots(wind.normalize()),
                                      FlowError::knots(current.normalize()));

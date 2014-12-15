@@ -66,7 +66,6 @@ class SpeedCalib {
 
   Velocity<T> eval(Velocity<T> vx) {
     T x = vx.metersPerSecond();
-    assert(x > 0);
     T y =  scaleCoef()*x + offsetCoef();
     if (withExp) {
       y += nonlinCoef()*exp(-decayCoef()*x);
