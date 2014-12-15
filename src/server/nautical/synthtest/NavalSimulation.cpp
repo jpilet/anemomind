@@ -192,18 +192,30 @@ NavalSimulation makeNavSimUpwindDownwind() {
         Angle<double>::degrees(180 + sign*20));
   }
 
-  CorruptedBoatState::CorruptorSet corruptors;
-    corruptors.awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+  CorruptedBoatState::CorruptorSet corruptors1;
+    corruptors1.awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
         Angle<double>::degrees(-4));
-    corruptors.magHdg = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+    corruptors1.magHdg = CorruptedBoatState::Corruptor<Angle<double> >::offset(
         Angle<double>::degrees(-9));
-    corruptors.aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.12, Velocity<double>::knots(-0.5));
-    corruptors.watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.3, Velocity<double>::knots(0.8));
+    corruptors1.aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.12, Velocity<double>::knots(-0.5));
+    corruptors1.watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.3, Velocity<double>::knots(0.8));
 
-  Array<BoatSimulationSpecs> specs(1);
+    CorruptedBoatState::CorruptorSet corruptors2;
+      corruptors2.awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+          Angle<double>::degrees(-14));
+      corruptors2.magHdg = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+          Angle<double>::degrees(-1));
+      corruptors2.aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.2, Velocity<double>::knots(0.0));
+      corruptors2.watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.0, Velocity<double>::knots(-0.7));
+
+
+  Array<BoatSimulationSpecs> specs(2);
   specs[0] = BoatSimulationSpecs(BoatCharacteristics(),
       dirs,
-      corruptors);
+      corruptors1);
+  specs[1] = BoatSimulationSpecs(BoatCharacteristics(),
+      dirs,
+      corruptors2);
 
 
   return NavalSimulation(e, geoRef,

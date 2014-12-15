@@ -29,20 +29,24 @@ namespace {
   }
 
   void synthDemo() {
-    auto sim = makeNavSimConstantFlow();
+    const int count = 2;
+    NavalSimulation sims[count] = {makeNavSimConstantFlow(),
+                                   makeNavSimUpwindDownwind()};
+    for (int j = 0; j < count; j++) {
+      auto sim = sims[j];
+      for (int i = 0; i < sim.boatCount(); i++) {
+        auto boatData = sim.boatData(i);
+        auto initialErrors = boatData.fitnessNoCalibration();
 
-    for (int i = 0; i < sim.boatCount(); i++) {
-      auto boatData = sim.boatData(i);
-      auto initialErrors = boatData.fitnessNoCalibration();
-
-      Array<Nav> navs = boatData.navs();
-      FilteredNavData filtered(navs, 12.0);
-      AutoCalib calib;
-      AutoCalib::Results results = calib.calibrate(filtered);
-      auto finalErrors = boatData.evaluateFitness(results.corrector());
-      results.disp(&(std::cout));
-      std::cout << EXPR_AND_VAL_AS_STRING(initialErrors) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(finalErrors) << std::endl;
+        Array<Nav> navs = boatData.navs();
+        FilteredNavData filtered(navs, 12.0);
+        AutoCalib calib;
+        AutoCalib::Results results = calib.calibrate(filtered);
+        auto finalErrors = boatData.evaluateFitness(results.corrector());
+        results.disp(&(std::cout));
+        std::cout << EXPR_AND_VAL_AS_STRING(initialErrors) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(finalErrors) << std::endl;
+      }
     }
   }
 }

@@ -68,8 +68,12 @@ Flow Flow::operator+ (const Flow &other) const {
 }
 
 std::function<HorizontalMotion<double>(Flow::ProjectedPosition, Duration<double>)> Flow::asFunction() const {
+
+  // So that we copy the data, and not the pointer.
+  Flow thisData = *this;
+
   return [=](const ProjectedPosition &p, Duration<double> t) {
-    return (*this)(p, t);
+    return thisData(p, t);
   };
 }
 

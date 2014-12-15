@@ -374,6 +374,7 @@ NavalSimulation makeNavSimConstantFlow();
 
 
 // Sail upwind, alternating between TWA of 45 and -45 degs.
+// Two different corruptions.
 // Wind and current vary.
 NavalSimulation makeNavSimUpwindDownwind();
 
