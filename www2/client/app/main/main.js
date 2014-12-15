@@ -6,6 +6,6 @@ angular.module('www2App')
       .state('main', {
         url: '/',
         templateUrl: 'app/main/main.html',
-        controller: 'MainCtrl'
+        controller: 'PathController'
       });
   });
