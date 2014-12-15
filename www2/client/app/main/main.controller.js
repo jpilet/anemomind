@@ -33,7 +33,7 @@ angular.module('www2App')
       },
       overlays: {
         sessions: {
-          name:'Sesions',
+          name:'Sessions',
           type: 'geoJSON',
           url:'../api/tiles/{z}/{x}/{y}/Irene',
           layerOptions: {
