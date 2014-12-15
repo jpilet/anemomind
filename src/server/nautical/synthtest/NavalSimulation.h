@@ -246,6 +246,12 @@ class NavalSimulation {
     MeanAndVar _e;
   };
 
+  /*
+   * We measure the performance of a calibration
+   * algorithm in terms of its ability to recover
+   * true wind and current. The smaller the error,
+   * the better.
+   */
   class FlowErrors {
    public:
     FlowErrors(const FlowError &wind_, const FlowError &current_) :
@@ -352,6 +358,7 @@ std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e)
  * we will use to evaluate calibration
  * algorithms.
  */
+NavalSimulation makeNavSim000();
 NavalSimulation makeNavSim001();
 
 } /* namespace mmm */

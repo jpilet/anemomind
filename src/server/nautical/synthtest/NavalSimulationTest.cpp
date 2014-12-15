@@ -83,4 +83,13 @@ TEST(TestcaseTest, MakeTestcase) {
   EXPECT_NEAR(tc.boatData(0).states().size(), 4*60, 2);
 }
 
+TEST(TestcaseTest, NoCorruption) {
+  auto sim = makeNavSim000();
+  auto errors = sim.boatData(0).fitnessNoCalibration();
+  EXPECT_LE(errors.wind().mean().knots(), 1.0e-6);
+  EXPECT_LE(errors.wind().rms().knots(), 1.0e-6);
+  EXPECT_LE(errors.current().mean().knots(), 1.0e-6);
+  EXPECT_LE(errors.current().rms().knots(), 1.0e-6);
+}
+
 

@@ -35,7 +35,7 @@ namespace sail {
 template <typename T>
 class SpeedCalib {
  public:
-  static constexpr bool withExp = true;
+  static constexpr bool withExp = false;
 
   static Sigmoid<T> kSpan() {
     double marg = 0.1;
