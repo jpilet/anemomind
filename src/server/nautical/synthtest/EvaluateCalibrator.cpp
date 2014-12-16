@@ -37,5 +37,6 @@ namespace {
 }
 
 int main() {
+  evaluate();
   return 0;
 }

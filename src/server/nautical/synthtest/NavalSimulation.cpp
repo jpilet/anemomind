@@ -212,8 +212,8 @@ NavalSimulation makeNavSimUpwindDownwind(int count) {
                         Length<double>::meters(9),
                         Angle<double>::radians(2996.33)))).asFunction();
 
-    Array<BoatSimulationSpecs::TwaDirective> dirs(12);
-    for (int i = 0; i < 2*count; i++) {
+    Array<BoatSimulationSpecs::TwaDirective> dirs(2*count);
+    for (int i = 0; i < count; i++) {
       int sign = 2*(i % 2) - 1;
       // Upwind
       dirs[i + 0] = BoatSimulationSpecs::TwaDirective::constant(
