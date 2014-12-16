@@ -231,11 +231,15 @@ class NavalSimulation {
     }
 
     Velocity<double> mean() const {
-      return Velocity<double>::knots(_e.mean());
+      return (_e.empty()?
+                Velocity<double>::knots(NAN) :
+                Velocity<double>::knots(_e.mean()));
     }
 
     Velocity<double> rms() const {
-      return Velocity<double>::knots(_e.rms());
+      return (_e.empty()?
+                Velocity<double>::knots(NAN) :
+                Velocity<double>::knots(_e.rms()));
     }
 
     FlowError operator+ (const FlowError &other) const {
@@ -316,6 +320,12 @@ class NavalSimulation {
         return s.nav();
       });
     }
+
+    // Suitable for calibration procedures that don't
+    // use the Corruptor class.
+    FlowErrors evaluateFitnessPerNav(
+        Array<HorizontalMotion<double> > estimatedTrueWindPerNav,
+        Array<HorizontalMotion<double> > estimatedTrueCurrentPerNav) const;
 
     FlowErrors evaluateFitness(const Corrector<double> &corr) const;
     FlowErrors fitnessNoCalibration() const {

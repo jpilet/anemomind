@@ -28,6 +28,9 @@ class MeanAndVar {
   }
 
   MeanAndVar normalize() const;
+  bool empty() const {
+    return _count == 0;
+  }
  private:
   double biasedVariance() const;
   MeanAndVar(int count_, double sum, double sum2) : _sum(sum), _sum2(sum2), _count(count_) {}

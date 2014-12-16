@@ -69,6 +69,39 @@ NavalSimulation::FlowErrors NavalSimulation::BoatData::evaluateFitness(
                                      FlowError::knots(current.normalize()));
 }
 
+namespace {
+  MeanAndVar evaluateMeanAndVar(Array<CorruptedBoatState> states,
+    Array<HorizontalMotion<double> > estimated, bool wind) {
+    if (estimated.empty()) {
+      return MeanAndVar();
+    } else {
+      MeanAndVar acc;
+      int count = states.size();
+      assert(count == estimated.size());
+      for (int i = 0; i < count; i++) {
+        auto s = states[i].trueState();
+        double error = HorizontalMotion<double>(
+            estimated[i] - (wind? s.trueWind : s.trueCurrent))
+            .norm().knots();
+        assert(std::isfinite(error));
+        acc.add(error);
+      }
+      return acc.normalize();
+    }
+  }
+}
+
+NavalSimulation::FlowErrors
+  NavalSimulation::BoatData::evaluateFitnessPerNav(Array<HorizontalMotion<double> > estimatedTrueWind,
+          Array<HorizontalMotion<double> > estimatedTrueCurrent) const {
+    return NavalSimulation::FlowErrors(
+        FlowError::knots(evaluateMeanAndVar(_states, estimatedTrueWind, true)),
+        FlowError::knots(evaluateMeanAndVar(_states, estimatedTrueCurrent, false))
+    );
+
+}
+
+
 
 NavalSimulation::BoatData NavalSimulation::makeBoatData(BoatSimulationSpecs &specs,
     Array<BoatSim::FullState> states, std::default_random_engine &e) const {
