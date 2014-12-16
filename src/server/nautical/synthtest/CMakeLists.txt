@@ -56,3 +56,11 @@ cxx_test(nautical_synthtest_FlowTest
          gtest_main
          nautical_synthtest_Flow
         )
+        
+add_executable(nautical_synthtest_EvaluateCalibrator
+               EvaluateCalibrator.cpp
+              )
+target_link_libraries(nautical_synthtest_EvaluateCalibrator
+                      nautical_synthtest_NavalSimulation
+                      nautical_Calibrator
+                     )
