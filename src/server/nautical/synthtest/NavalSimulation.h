@@ -230,6 +230,10 @@ class NavalSimulation {
       return FlowError(e);
     }
 
+    bool undefined() const {
+      return _e.empty();
+    }
+
     Velocity<double> mean() const {
       return (_e.empty()?
                 Velocity<double>::knots(NAN) :
