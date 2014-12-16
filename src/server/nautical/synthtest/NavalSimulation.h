@@ -391,6 +391,7 @@ NavalSimulation makeNavSimConstantFlow();
 // Two different corruptions.
 // Wind and current vary.
 NavalSimulation makeNavSimUpwindDownwind();
+NavalSimulation makeNavSimUpwindDownwindLong();
 
 } /* namespace mmm */
 

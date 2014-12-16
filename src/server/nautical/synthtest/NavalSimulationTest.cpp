@@ -110,8 +110,6 @@ TEST(TestcaseTest, NoCorruption) {
     auto B = boatData.evaluateFitnessPerNav(Array<HorizontalMotion<double> >(), current);
     EXPECT_LE(A.wind().mean().knots(), 1.0e-6); EXPECT_TRUE(A.current().undefined());
     EXPECT_TRUE(B.wind().undefined()); EXPECT_LE(B.current().mean().knots(), 1.0e-6);
-
-
   }
 }
 
