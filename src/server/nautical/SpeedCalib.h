@@ -29,6 +29,7 @@
 
 #include <server/common/math.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/common/ExpLine.h>
 
 namespace sail {
 
@@ -68,7 +69,7 @@ class SpeedCalib {
     T x = vx.metersPerSecond();
     T y =  scaleCoef()*x + offsetCoef();
     if (withExp) {
-      y += nonlinCoef()*exp(-decayCoef()*x);
+      y += nonlinCoef()*expline(T(-decayCoef()*x));
     }
     return Velocity<T>::metersPerSecond(y);
 
