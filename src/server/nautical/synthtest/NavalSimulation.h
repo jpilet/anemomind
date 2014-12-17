@@ -224,7 +224,7 @@ class NavalSimulation {
 
   static FlowFun constantFlowFun(HorizontalMotion<double> m);
 
-  class FlowError {
+  class FlowErrors {
    public:
     template <typename T>
     class Error {
@@ -253,28 +253,28 @@ class NavalSimulation {
       T _unit;
     };
 
-    FlowError(Array<HorizontalMotion<double> > trueMotion,
+    FlowErrors(Array<HorizontalMotion<double> > trueMotion,
               Array<HorizontalMotion<double> > estimatedMotion);
 
-    Error<Velocity<double> > normError() const {
+    Error<Velocity<double> > norm() const {
       return _normError;
     }
 
-    Error<Velocity<double> > magnitudeError() const {
+    Error<Velocity<double> > magnitude() const {
       return _magnitudeError;
     }
 
-    Error<Angle<double> > angleError() const {
+    Error<Angle<double> > angle() const {
       return _angleError;
     }
 
-    FlowError operator+ (const FlowError &other) const {
-      return FlowError(_normError + other._normError,
+    FlowErrors operator+ (const FlowErrors &other) const {
+      return FlowErrors(_normError + other._normError,
           _magnitudeError + other._magnitudeError,
           _angleError + other._angleError);
     }
    private:
-    FlowError(const Error<Velocity<double> > &ne,
+    FlowErrors(const Error<Velocity<double> > &ne,
         const Error<Velocity<double> > &me,
         const Error<Angle<double> > &ae) :
         _normError(ne), _angleError(ae),
@@ -292,12 +292,12 @@ class NavalSimulation {
     EvalResults1(Array<HorizontalMotion<double> > trueMotion,
                 Array<HorizontalMotion<double> > estimatedMotion) :
                 _trueMotion(trueMotion), _estimatedMotion(estimatedMotion),
-                _flowError(trueMotion, estimatedMotion) {}
-    const FlowError &error() const {
-      return _flowError;
+                _flowErrors(trueMotion, estimatedMotion) {}
+    const FlowErrors &error() const {
+      return _flowErrors;
     }
    private:
-    FlowError _flowError;
+    FlowErrors _flowErrors;
     Array<HorizontalMotion<double> > _trueMotion, _estimatedMotion;
   };
 
@@ -411,11 +411,11 @@ class NavalSimulation {
 
 template <typename T>
 std::ostream &operator<< (std::ostream &s,
-    const NavalSimulation::FlowError::Error<T> &e) {
+    const NavalSimulation::FlowErrors::Error<T> &e) {
   s << "Error(mean = " << e.mean() << ", rms = " << e.rms() << ")";
 }
 
-std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowError &e);
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e);
 std::ostream &operator<< (std::ostream &s, const NavalSimulation::EvalResults2 &e);
 
 /*

@@ -86,7 +86,7 @@ namespace {
   }
 }
 
-NavalSimulation::FlowError::FlowError(Array<HorizontalMotion<double> > trueMotion,
+NavalSimulation::FlowErrors::FlowErrors(Array<HorizontalMotion<double> > trueMotion,
           Array<HorizontalMotion<double> > estimatedMotion) {
   _normError = Error<Velocity<double> >(evaluateMeanAndVar(trueMotion, estimatedMotion,
       [=](HorizontalMotion<double> a, HorizontalMotion<double> b) {
@@ -291,8 +291,8 @@ NavalSimulation makeNavSimUpwindDownwindLong() {
 }
 
 
-std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowError &e) {
-  s << "FlowError( norm: " << e.normError() << " angle: " << e.angleError() << " magnitude: " << e.magnitudeError() << ")";
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e) {
+  s << "FlowError( norm: " << e.norm() << " angle: " << e.angle() << " magnitude: " << e.magnitude() << ")";
   return s;
 }
 
