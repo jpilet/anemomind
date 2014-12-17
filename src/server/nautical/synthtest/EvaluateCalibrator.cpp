@@ -11,7 +11,8 @@
 namespace {
   using namespace sail;
 
-  NavalSimulation::FlowErrors evaluateCalibration(NavalSimulation::BoatData boatData,
+  NavalSimulation::EvalResults2
+    evaluateCalibration(NavalSimulation::BoatData boatData,
       const Calibrator &c) {
     Array<Nav> navsWithTrueWind = boatData.navs();
     c.simulate(&navsWithTrueWind);

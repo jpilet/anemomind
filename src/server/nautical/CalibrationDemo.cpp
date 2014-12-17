@@ -33,7 +33,7 @@ namespace {
 
     auto sim = makeNavSimUpwindDownwindLong();
     auto boatData = sim.boatData(0);
-    auto initialErrors = boatData.fitnessNoCalibration();
+    auto initialErrors = boatData.evaluateNoCalibration();
 
     Array<Nav> navs = boatData.navs();
     FilteredNavData filtered(navs, 12.0);

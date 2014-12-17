@@ -226,58 +226,62 @@ class NavalSimulation {
 
   class FlowError {
    public:
-    static FlowError knots(const MeanAndVar &e) {
-      return FlowError(e);
-    }
+    FlowError(Array<HorizontalMotion<double> > trueMotion,
+              Array<HorizontalMotion<double> > estimatedMotion);
 
     bool undefined() const {
-      return _e.empty();
+      return _normError.empty();
     }
 
     Velocity<double> mean() const {
-      return (_e.empty()?
+      return (_normError.empty()?
                 Velocity<double>::knots(NAN) :
-                Velocity<double>::knots(_e.mean()));
+                Velocity<double>::knots(_normError.mean()));
     }
 
     Velocity<double> rms() const {
-      return (_e.empty()?
+      return (_normError.empty()?
                 Velocity<double>::knots(NAN) :
-                Velocity<double>::knots(_e.rms()));
+                Velocity<double>::knots(_normError.rms()));
     }
 
     FlowError operator+ (const FlowError &other) const {
-      return FlowError(_e + other._e);
+      return FlowError(_normError + other._normError);
     }
    private:
-    FlowError(const MeanAndVar &e) : _e(e) {}
-    MeanAndVar _e;
+    FlowError(const MeanAndVar &e) : _normError(e) {}
+    MeanAndVar _normError;
   };
 
-  /*
-   * We measure the performance of a calibration
-   * algorithm in terms of its ability to recover
-   * true wind and current. The smaller the error,
-   * the better.
-   */
-  class FlowErrors {
+  // The evaluation results for wind or current.
+  class EvalResults1 {
    public:
-    FlowErrors(const FlowError &wind_, const FlowError &current_) :
+    EvalResults1(Array<HorizontalMotion<double> > trueMotion,
+                Array<HorizontalMotion<double> > estimatedMotion) :
+                _trueMotion(trueMotion), _estimatedMotion(estimatedMotion),
+                _flowError(trueMotion, estimatedMotion) {}
+    const FlowError &error() const {
+      return _flowError;
+    }
+   private:
+    FlowError _flowError;
+    Array<HorizontalMotion<double> > _trueMotion, _estimatedMotion;
+  };
+
+  class EvalResults2 {
+   public:
+    EvalResults2(const EvalResults1 &wind_, const EvalResults1 &current_) :
       _wind(wind_), _current(current_) {}
 
-    const FlowError &wind() const {
+    const EvalResults1 &wind() const {
       return _wind;
     }
 
-    const FlowError &current() const {
+    const EvalResults1 &current() const {
       return _current;
     }
-
-    FlowErrors operator+ (const FlowErrors &other) const {
-      return FlowErrors(_wind + other._wind, _current + other._current);
-    }
    private:
-    FlowError _wind, _current;
+    EvalResults1 _wind, _current;
   };
 
 
@@ -327,14 +331,17 @@ class NavalSimulation {
 
     // Suitable for calibration procedures that don't
     // use the Corruptor class.
-    FlowErrors evaluateFitnessPerNav(
+    NavalSimulation::EvalResults2 evaluateFitnessPerNav(
         Array<HorizontalMotion<double> > estimatedTrueWindPerNav,
         Array<HorizontalMotion<double> > estimatedTrueCurrentPerNav) const;
 
-    FlowErrors evaluateFitness(const Corrector<double> &corr) const;
-    FlowErrors fitnessNoCalibration() const {
+    NavalSimulation::EvalResults2 evaluateFitness(const Corrector<double> &corr) const;
+    NavalSimulation::EvalResults2 evaluateNoCalibration() const {
       return evaluateFitness(Corrector<double>());
     }
+
+    Array<HorizontalMotion<double> > trueWind() const;
+    Array<HorizontalMotion<double> > trueCurrent() const;
    private:
     BoatSimulationSpecs _specs;
     Array<CorruptedBoatState> _states;
@@ -370,7 +377,7 @@ class NavalSimulation {
 };
 
 std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowError &e);
-std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e);
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::EvalResults2 &e);
 
 /*
  * Standard synthetic tests that

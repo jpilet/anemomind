@@ -50,37 +50,31 @@ NavalSimulation::NavalSimulation(std::default_random_engine &e,
   }
 }
 
-NavalSimulation::FlowErrors NavalSimulation::BoatData::evaluateFitness(
+NavalSimulation::EvalResults2 NavalSimulation::BoatData::evaluateFitness(
     const Corrector<double> &corr) const {
-  MeanAndVar wind, current;
-  for (auto &state: _states) {
-    CalibratedNav<double> c = corr.correct(state.nav());
-    double windError = HorizontalMotion<double>(c.trueWind() - state.trueState()
-            .trueWind).norm().knots();
-    double currentError = HorizontalMotion<double>(c.trueCurrent() - state.trueState()
-        .trueCurrent).norm().knots();
-    assert(std::isfinite(windError));
-    assert(std::isfinite(currentError));
-    wind.add(windError);
-    current.add(currentError);
-  }
-  return NavalSimulation::FlowErrors(FlowError::knots(wind.normalize()),
-                                     FlowError::knots(current.normalize()));
+  Array<HorizontalMotion<double> > trueWind
+    = _states.map<HorizontalMotion<double> >([=](const CorruptedBoatState &state) {
+      return state.trueState().trueWind;
+  });
+  Array<HorizontalMotion<double> > trueCurrent
+    = _states.map<HorizontalMotion<double> >([=](const CorruptedBoatState &state) {
+      return state.trueState().trueCurrent;
+  });
 }
 
 namespace {
-  MeanAndVar evaluateMeanAndVar(Array<CorruptedBoatState> states,
-    Array<HorizontalMotion<double> > estimated, bool wind) {
-    if (estimated.empty()) {
+  MeanAndVar evaluateMeanAndVarNormDif(
+      Array<HorizontalMotion<double> > trueMotion,
+      Array<HorizontalMotion<double> > estimatedMotion) {
+    if (estimatedMotion.empty() || trueMotion.empty()) {
       return MeanAndVar();
     } else {
+      assert(trueMotion.size() == estimatedMotion.size());
+      int count = trueMotion.size();
       MeanAndVar acc;
-      int count = states.size();
-      assert(count == estimated.size());
       for (int i = 0; i < count; i++) {
-        auto s = states[i].trueState();
         double error = HorizontalMotion<double>(
-            estimated[i] - (wind? s.trueWind : s.trueCurrent))
+            trueMotion[i] - estimatedMotion[i])
             .norm().knots();
         assert(std::isfinite(error));
         acc.add(error);
@@ -90,16 +84,31 @@ namespace {
   }
 }
 
-NavalSimulation::FlowErrors
-  NavalSimulation::BoatData::evaluateFitnessPerNav(Array<HorizontalMotion<double> > estimatedTrueWind,
-          Array<HorizontalMotion<double> > estimatedTrueCurrent) const {
-    return NavalSimulation::FlowErrors(
-        FlowError::knots(evaluateMeanAndVar(_states, estimatedTrueWind, true)),
-        FlowError::knots(evaluateMeanAndVar(_states, estimatedTrueCurrent, false))
-    );
-
+NavalSimulation::FlowError::FlowError(Array<HorizontalMotion<double> > trueMotion,
+          Array<HorizontalMotion<double> > estimatedMotion) {
+  _normError = evaluateMeanAndVarNormDif(trueMotion, estimatedMotion);
 }
 
+
+NavalSimulation::EvalResults2
+  NavalSimulation::BoatData::evaluateFitnessPerNav(Array<HorizontalMotion<double> > estimatedTrueWind,
+          Array<HorizontalMotion<double> > estimatedTrueCurrent) const {
+  return EvalResults2(
+      EvalResults1(trueWind(), estimatedTrueWind),
+      EvalResults1(trueCurrent(), estimatedTrueCurrent));
+}
+
+
+Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueWind() const {
+  return _states.map<HorizontalMotion<double> >([=] (const CorruptedBoatState &s) {
+    return s.trueState().trueWind;
+  });
+}
+Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueCurrent() const {
+  return _states.map<HorizontalMotion<double> >([=] (const CorruptedBoatState &s) {
+    return s.trueState().trueCurrent;
+  });
+}
 
 
 NavalSimulation::BoatData NavalSimulation::makeBoatData(BoatSimulationSpecs &specs,
@@ -274,10 +283,10 @@ std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowError &e) 
   return s;
 }
 
-std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e) {
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::EvalResults2 &e) {
   s << "FlowErrors(\n";
-  s << "  wind    = " << e.wind() << "\n";
-  s << "  current = " << e.current() << "\n";
+  s << "  wind    = " << e.wind().error() << "\n";
+  s << "  current = " << e.current().error() << "\n";
   s << ")\n";
   return s;
 }
