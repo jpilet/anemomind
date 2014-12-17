@@ -52,14 +52,16 @@ NavalSimulation::NavalSimulation(std::default_random_engine &e,
 
 NavalSimulation::EvalResults2 NavalSimulation::BoatData::evaluateFitness(
     const Corrector<double> &corr) const {
-  Array<HorizontalMotion<double> > trueWind
-    = _states.map<HorizontalMotion<double> >([=](const CorruptedBoatState &state) {
-      return state.trueState().trueWind;
-  });
-  Array<HorizontalMotion<double> > trueCurrent
-    = _states.map<HorizontalMotion<double> >([=](const CorruptedBoatState &state) {
-      return state.trueState().trueCurrent;
-  });
+  int count = _states.size();
+  Array<HorizontalMotion<double> > estWind(count), estCurrent(count);
+  for (int i = 0; i < count; i++) {
+    auto s = _states[i];
+    CalibratedNav<double> c = corr.correct(s.nav());
+    estWind[i] = c.trueWind();
+    estCurrent[i] = c.trueCurrent();
+  }
+  return EvalResults2(EvalResults1(trueWind(), estWind),
+      EvalResults1(trueCurrent(), estCurrent));
 }
 
 namespace {
