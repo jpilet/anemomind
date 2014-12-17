@@ -97,10 +97,10 @@ namespace {
 TEST(TestcaseTest, NoCorruption) {
   auto sim = makeNavSimConstantFlow();
   auto errors = sim.boatData(0).evaluateNoCalibration();
-  EXPECT_LE(errors.wind().error().mean().knots(), 1.0e-6);
-  EXPECT_LE(errors.wind().error().rms().knots(), 1.0e-6);
-  EXPECT_LE(errors.current().error().mean().knots(), 1.0e-6);
-  EXPECT_LE(errors.current().error().rms().knots(), 1.0e-6);
+  EXPECT_LE(errors.wind().error().normError().mean().knots(), 1.0e-6);
+  EXPECT_LE(errors.wind().error().normError().rms().knots(), 1.0e-6);
+  EXPECT_LE(errors.current().error().normError().mean().knots(), 1.0e-6);
+  EXPECT_LE(errors.current().error().normError().rms().knots(), 1.0e-6);
 
   {
     NavalSimulation::BoatData boatData = sim.boatData(1);
@@ -108,8 +108,8 @@ TEST(TestcaseTest, NoCorruption) {
     Array<HorizontalMotion<double> > current = getGT(boatData, false);
     auto A = boatData.evaluateFitnessPerNav(wind, Array<HorizontalMotion<double> >());
     auto B = boatData.evaluateFitnessPerNav(Array<HorizontalMotion<double> >(), current);
-    EXPECT_LE(A.wind().error().mean().knots(), 1.0e-6); EXPECT_TRUE(A.current().error().undefined());
-    EXPECT_TRUE(B.wind().error().undefined()); EXPECT_LE(B.current().error().mean().knots(), 1.0e-6);
+    EXPECT_LE(A.wind().error().normError().mean().knots(), 1.0e-6); EXPECT_TRUE(A.current().error().normError().undefined());
+    EXPECT_TRUE(B.wind().error().normError().undefined()); EXPECT_LE(B.current().error().normError().mean().knots(), 1.0e-6);
   }
 }
 

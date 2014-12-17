@@ -65,9 +65,11 @@ NavalSimulation::EvalResults2 NavalSimulation::BoatData::evaluateFitness(
 }
 
 namespace {
-  MeanAndVar evaluateMeanAndVarNormDif(
+  MeanAndVar evaluateMeanAndVar(
       Array<HorizontalMotion<double> > trueMotion,
-      Array<HorizontalMotion<double> > estimatedMotion) {
+      Array<HorizontalMotion<double> > estimatedMotion,
+      std::function<double(HorizontalMotion<double>,
+          HorizontalMotion<double>)> errorFun) {
     if (estimatedMotion.empty() || trueMotion.empty()) {
       return MeanAndVar();
     } else {
@@ -75,9 +77,7 @@ namespace {
       int count = trueMotion.size();
       MeanAndVar acc;
       for (int i = 0; i < count; i++) {
-        double error = HorizontalMotion<double>(
-            trueMotion[i] - estimatedMotion[i])
-            .norm().knots();
+        double error = errorFun(trueMotion[i], estimatedMotion[i]);
         assert(std::isfinite(error));
         acc.add(error);
       }
@@ -88,7 +88,18 @@ namespace {
 
 NavalSimulation::FlowError::FlowError(Array<HorizontalMotion<double> > trueMotion,
           Array<HorizontalMotion<double> > estimatedMotion) {
-  _normError = evaluateMeanAndVarNormDif(trueMotion, estimatedMotion);
+  _normError = Error<Velocity<double> >(evaluateMeanAndVar(trueMotion, estimatedMotion,
+      [=](HorizontalMotion<double> a, HorizontalMotion<double> b) {
+      return HorizontalMotion<double>(a - b).norm().knots();
+  }), Velocity<double>::knots(1.0));
+  _angleError = Error<Angle<double> >(evaluateMeanAndVar(trueMotion, estimatedMotion,
+        [=](HorizontalMotion<double> a, HorizontalMotion<double> b) {
+        return (a.angle() - b.angle()).normalizedAt0().degrees();
+    }), Angle<double>::degrees(1.0));
+  _magnitudeError = Error<Velocity<double> >(evaluateMeanAndVar(trueMotion, estimatedMotion,
+        [=](HorizontalMotion<double> a, HorizontalMotion<double> b) {
+        return (a.norm() - b.norm()).knots();
+    }), Velocity<double>::knots(1.0));
 }
 
 
@@ -281,7 +292,7 @@ NavalSimulation makeNavSimUpwindDownwindLong() {
 
 
 std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowError &e) {
-  s << "FlowError(mean = " << e.mean() << ", rms = " << e.rms() << ")";
+  s << "FlowError( norm: " << e.normError() << " angle: " << e.angleError() << " magnitude: " << e.magnitudeError() << ")";
   return s;
 }
 

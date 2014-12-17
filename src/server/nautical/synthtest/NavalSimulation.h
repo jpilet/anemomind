@@ -226,31 +226,64 @@ class NavalSimulation {
 
   class FlowError {
    public:
+    template <typename T>
+    class Error {
+     public:
+      Error() : _unit(T::zero()) {}
+      Error(const MeanAndVar &mv, T unit) :
+        _mv(mv), _unit(unit) {}
+
+      bool undefined() const {
+        return _mv.empty();
+      }
+
+      T mean() const {
+        return (_mv.empty()? NAN : _mv.mean())*_unit;
+      }
+      T rms() const {
+        return (_mv.empty()? NAN : _mv.rms())*_unit;
+      }
+
+      Error operator+ (const Error &other) const {
+        assert(_unit == other._unit);
+        return Error(_mv + other._mv, _unit);
+      }
+     private:
+      MeanAndVar _mv;
+      T _unit;
+    };
+
     FlowError(Array<HorizontalMotion<double> > trueMotion,
               Array<HorizontalMotion<double> > estimatedMotion);
 
-    bool undefined() const {
-      return _normError.empty();
+    Error<Velocity<double> > normError() const {
+      return _normError;
     }
 
-    Velocity<double> mean() const {
-      return (_normError.empty()?
-                Velocity<double>::knots(NAN) :
-                Velocity<double>::knots(_normError.mean()));
+    Error<Velocity<double> > magnitudeError() const {
+      return _magnitudeError;
     }
 
-    Velocity<double> rms() const {
-      return (_normError.empty()?
-                Velocity<double>::knots(NAN) :
-                Velocity<double>::knots(_normError.rms()));
+    Error<Angle<double> > angleError() const {
+      return _angleError;
     }
 
     FlowError operator+ (const FlowError &other) const {
-      return FlowError(_normError + other._normError);
+      return FlowError(_normError + other._normError,
+          _magnitudeError + other._magnitudeError,
+          _angleError + other._angleError);
     }
    private:
-    FlowError(const MeanAndVar &e) : _normError(e) {}
-    MeanAndVar _normError;
+    FlowError(const Error<Velocity<double> > &ne,
+        const Error<Velocity<double> > &me,
+        const Error<Angle<double> > &ae) :
+        _normError(ne), _angleError(ae),
+        _magnitudeError(me) {}
+    Error<Velocity<double> > _normError, _magnitudeError;
+    Error<Angle<double> > _angleError;
+    static double nanIfEmpty(const MeanAndVar &mv, double x) {
+      return (mv.empty()? NAN : x);
+    }
   };
 
   // The evaluation results for wind or current.
@@ -375,6 +408,12 @@ class NavalSimulation {
       Array<BoatSim::FullState> state,
       std::default_random_engine &e) const;
 };
+
+template <typename T>
+std::ostream &operator<< (std::ostream &s,
+    const NavalSimulation::FlowError::Error<T> &e) {
+  s << "Error(mean = " << e.mean() << ", rms = " << e.rms() << ")";
+}
 
 std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowError &e);
 std::ostream &operator<< (std::ostream &s, const NavalSimulation::EvalResults2 &e);
