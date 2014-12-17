@@ -53,8 +53,7 @@ NavalSimulation::NavalSimulation(std::default_random_engine &e,
 NavalSimulation::FlowErrors NavalSimulation::BoatData::evaluateFitness(
     const Corrector<double> &corr) const {
   MeanAndVar wind, current;
-  for (int i = 0; i < _states.size(); i++) {
-    auto &state = _states[i];
+  for (auto &state: _states) {
     CalibratedNav<double> c = corr.correct(state.nav());
     double windError = HorizontalMotion<double>(c.trueWind() - state.trueState()
             .trueWind).norm().knots();
