@@ -413,6 +413,7 @@ template <typename T>
 std::ostream &operator<< (std::ostream &s,
     const NavalSimulation::FlowErrors::Error<T> &e) {
   s << "Error(mean = " << e.mean() << ", rms = " << e.rms() << ")";
+  return s;
 }
 
 std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e);
