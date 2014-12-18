@@ -11,43 +11,39 @@
 namespace sail {
 
 template <int Dim>
-class DimList {
+class IndexList {
  public:
-  DimList() : _dimIndex(Dim-1) {}
-  DimList<Dim-1> remove(int dim) const {
-    assert(dim >= 0);
-    if (dim == 0) {
-      return _next;
-    } else {
-      return DimList<Dim-1>(_dimIndex, _next.remove(dim-1));
+  IndexList() : _size(Dim) {
+    for (int i = 0; i < Dim; i++) {
+      _inds[i] = i;
     }
   }
- private:
-  DimList(int index_, const DimList<Dim-1> &next_) :
-    _dimIndex(index_), _next(next_) {}
-  int _dimIndex;
-  DimList<Dim-1> _next;
-};
 
-template <>
-class DimList<0> {
- public:
-  DimList() {}
-};
+  int size() const {
+    return _size;
+  }
 
-template <>
-class DimList<1> {
- public:
-  DimList() : _dimIndex(0) {}
-  DimList(int index_, const DimList<0> &next) : _dimIndex(index_) {}
-  DimList<0> remove(int dim) const {
-    return DimList<0>();
+  IndexList remove(int index) const {
+    return IndexList(index, *this);
+  }
+
+  int operator[] (int index) const {
+    return _inds[index];
   }
  private:
-  int _dimIndex;
+  IndexList(int indexToRemove, const IndexList &src) {
+    _size = src._size - 1;
+    for (int i = 0; i < indexToRemove; i++) {
+      _inds[i] = src._inds[i];
+    }
+    for (int i = indexToRemove+1; i < src._size; i++) {
+      _inds[i-1] = src._inds[i];
+    }
+  }
+
+  int _inds[Dim];
+  int _size;
 };
-
-
 
 
 template <int Dim>

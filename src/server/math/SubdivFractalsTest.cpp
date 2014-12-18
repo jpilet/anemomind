@@ -30,3 +30,15 @@ TEST(SubdivFractalsTest, IndexBoxMidpoint) {
   EXPECT_EQ(rulle.lowIndex(), 0);
   EXPECT_EQ(rulle.highIndex(), 14);
 }
+
+TEST(SubdivFractalsTest, IndexList) {
+  IndexList<3> indexList;
+  EXPECT_EQ(indexList.size(), 3);
+  for (int i = 0; i < 3; i++) {
+    EXPECT_EQ(indexList[i], i);
+  }
+  IndexList<3> reduced = indexList.remove(1);
+  EXPECT_EQ(reduced.size(), 2);
+  EXPECT_EQ(reduced[0], 0);
+  EXPECT_EQ(reduced[1], 2);
+}
