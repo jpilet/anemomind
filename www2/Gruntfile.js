@@ -30,7 +30,7 @@ module.exports = function (grunt) {
     pkg: grunt.file.readJSON('package.json'),
     shell: {
       mongo: {
-        command: 'mongod',
+        command: 'mongod --dbpath ../www/db',
         options: {
           async: true
         }
