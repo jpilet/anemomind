@@ -21,6 +21,10 @@ class Flow {
   typedef GeographicReference::ProjectedPosition ProjectedPosition;
   typedef std::function<Velocity<double>(ProjectedPosition, Duration<double>)> VelocityFunction;
 
+  static VelocityFunction spatiallyChangingVelocity(
+      Velocity<double> amplitude,
+      Angle<double> angle, Length<double> period, Angle<double> phase);
+
   Flow() {}
   Flow(VelocityFunction x, VelocityFunction y);
   static Flow constant(const HorizontalMotion<double> &m);

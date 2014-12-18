@@ -138,6 +138,11 @@ class ArgMap {
        return *this;
      }
 
+     Option &callback(std::function<void()> callback) {
+       _callback = [=](const Array<Arg*> &) {callback();};
+       return *this;
+     }
+
      Option &store(std::string* destination) {
        setArgCount(1);
        callback([=](const Array<Arg*>& args) { *destination = args[0]->value(); });

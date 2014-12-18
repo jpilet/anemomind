@@ -34,6 +34,18 @@ Flow::Flow(VelocityFunction x, VelocityFunction y) {
   _funs[1] = y;
 }
 
+Flow::VelocityFunction Flow::spatiallyChangingVelocity(
+    Velocity<double> amplitude,
+    Angle<double> angle, Length<double> period, Angle<double> phase) {
+    return [=](const ProjectedPosition &p, Duration<double> t) {
+      Length<double> proj = cos(angle)*p[0] + sin(angle)*p[1];
+      double at = proj/period;
+      double f = sin(2.0*M_PI*at + phase.radians());
+      return f*amplitude;
+    };
+}
+
+
 Flow Flow::constant(const HorizontalMotion<double> &m) {
   return constant(m[0], m[1]);
 }
@@ -56,8 +68,12 @@ Flow Flow::operator+ (const Flow &other) const {
 }
 
 std::function<HorizontalMotion<double>(Flow::ProjectedPosition, Duration<double>)> Flow::asFunction() const {
+
+  // So that we copy the data, and not the pointer.
+  Flow thisData = *this;
+
   return [=](const ProjectedPosition &p, Duration<double> t) {
-    return (*this)(p, t);
+    return thisData(p, t);
   };
 }
 

@@ -432,6 +432,7 @@ target_link_libraries(nautical_CalibrationDemo
                       nautical_AutoCalib
                       common_ArgMap
                       nautical_TestdataNavs
+                      nautical_synthtest_NavalSimulation
                      )
                      
 add_library(nautical_AutoCalib

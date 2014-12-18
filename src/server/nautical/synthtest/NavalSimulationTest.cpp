@@ -83,4 +83,35 @@ TEST(TestcaseTest, MakeTestcase) {
   EXPECT_NEAR(tc.boatData(0).states().size(), 4*60, 2);
 }
 
+namespace {
+  Array<HorizontalMotion<double> > getGroundTruth(
+      NavalSimulation::BoatData boatData, bool wind) {
+    return boatData.states().map<HorizontalMotion<double> >(
+    [=](const CorruptedBoatState &s) {
+      return (wind?
+              s.trueState().trueWind :
+              s.trueState().trueCurrent);
+    });
+  }
+}
+
+TEST(TestcaseTest, NoCorruption) {
+  auto sim = makeNavSimConstantFlow();
+  auto errors = sim.boatData(0).evaluateNoCalibration();
+  EXPECT_LE(errors.wind().error().norm().mean().knots(), 1.0e-6);
+  EXPECT_LE(errors.wind().error().norm().rms().knots(), 1.0e-6);
+  EXPECT_LE(errors.current().error().norm().mean().knots(), 1.0e-6);
+  EXPECT_LE(errors.current().error().norm().rms().knots(), 1.0e-6);
+
+  {
+    NavalSimulation::BoatData boatData = sim.boatData(1);
+    Array<HorizontalMotion<double> > wind = getGroundTruth(boatData, true);
+    Array<HorizontalMotion<double> > current = getGroundTruth(boatData, false);
+    auto A = boatData.evaluateFitness(wind, Array<HorizontalMotion<double> >());
+    auto B = boatData.evaluateFitness(Array<HorizontalMotion<double> >(), current);
+    EXPECT_LE(A.wind().error().norm().mean().knots(), 1.0e-6); EXPECT_TRUE(A.current().error().norm().undefined());
+    EXPECT_TRUE(B.wind().error().norm().undefined()); EXPECT_LE(B.current().error().norm().mean().knots(), 1.0e-6);
+  }
+}
+
 

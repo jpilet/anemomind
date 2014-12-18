@@ -42,6 +42,10 @@ double MeanAndVar::variance() const {
   }
 }
 
+double MeanAndVar::rms() const {
+  return sqrt(_sum2/_count);
+}
+
 double MeanAndVar::standardDeviation() const {
   return sqrt(variance());
 }
@@ -55,6 +59,11 @@ std::string MeanAndVar::toString() const {
   std::stringstream ss;
   ss << *this;
   return ss.str();
+}
+
+MeanAndVar MeanAndVar::normalize() const {
+  CHECK_LT(0, _count);
+  return MeanAndVar(1, _sum/_count, _sum2/_count);
 }
 
 std::ostream &operator<<(std::ostream &s, const MeanAndVar &x) {
