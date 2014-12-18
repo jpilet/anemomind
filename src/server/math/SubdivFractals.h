@@ -113,6 +113,11 @@ class IndexBox {
     return withOffset(inds[0]) + _actualSize*_next.calcIndex(inds + 1);
   }
 
+  void calcInds(int index, int *inds) const {
+    inds[0] = index % _actualSize;
+    _next.calcIndex(index/_actualSize, inds+1);
+  }
+
   bool hasMidpoint() const {
     return (_size % 2 == 1) && _next.hasMidpoint();
   }
@@ -205,6 +210,8 @@ class IndexBox<0> {
   int midpointIndex() const {return 0;}
   int lowIndex() const {return 0;}
   int highIndex() const {return 0;}
+
+  void calcInds(int index, int *inds) const {}
  private:
 };
 
@@ -240,9 +247,25 @@ class SubdivFractals {
   }
 
   template <typename VertexType, typename CoordType=double>
-  VertexType eval(CoordType coords[Dim], VertexType ctrl[ctrlCount()]) const {
+  VertexType eval(CoordType coords[Dim], VertexType ctrl[ctrlCount()], int depth) const {
     VertexType vertices[vertexCount()];
-
+    if (depth == 0) {
+      IndexBox<Dim> box = IndexBox<Dim>::sameSize(2);
+      assert(box.numel() == ctrlCount());
+      VertexType result = 0.0*ctrl[0];
+      for (int i = 0; i < ctrlCount(); i++) {
+        int inds[Dim];
+        box.calcInds(i, inds);
+        double weight = 1.0;
+        for (int j = 0; j < Dim; j++) {
+          weight *= (inds[j] == 0? 1.0 - coords[j] : coords[j]);
+        }
+        result = result + weight*ctrl[i];
+      }
+      return result;
+    } else {
+      return eval(coords, ctrl, 0);
+    }
   }
  private:
   MDArray2i _subdivIndex;
