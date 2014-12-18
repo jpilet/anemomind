@@ -247,7 +247,10 @@ class SubdivFractals {
   }
 
   template <typename VertexType, typename CoordType=double>
-  VertexType eval(CoordType coords[Dim], VertexType ctrl[ctrlCount()], int depth) const {
+  VertexType eval(CoordType coords[Dim],
+      VertexType ctrl[ctrlCount()],
+      int ctrlClasses[ctrlCount()],
+      int depth) const {
     VertexType vertices[vertexCount()];
     if (depth == 0) {
       IndexBox<Dim> box = IndexBox<Dim>::sameSize(2);
@@ -264,7 +267,57 @@ class SubdivFractals {
       }
       return result;
     } else {
-      return eval(coords, ctrl, 0);
+      IndexBox<Dim> vertexBox = IndexBox<Dim>::sameSize(vertexDim());
+      IndexBox<Dim> ctrlBox = IndexBox<Dim>::sameSize(ctrlDim());
+
+      VertexType vertices[vertexCount()];
+      int vertexClasses[vertexCount()];
+
+      // Just for safety, so that memory is always initialized
+      for (int i = 0; i < vertexCount(); i++) {
+        vertices[i] = NAN*ctrl[0];
+        vertexClasses[i] = -1;
+      }
+
+      // Initialized the arrays
+      for (int i = 0; i < ctrlCount(); i++) {
+        int inds[Dim];
+        ctrlBox.calcInds(i, inds);
+        for (int j = 0; j < Dim; j++) {
+          inds[j] *= 2;
+        }
+        int index = vertexBox.calcIndex(inds);
+        vertices[index] = ctrl[i];
+        vertexClasses[index] = ctrlClasses[i];
+      }
+
+      // Generate
+      vertexBox.generate(vertexClasses, vertices, _subdivIndex, _subdivLambda);
+
+      // Assign cell indices and compute local coordinates
+      int cellInds[Dim];
+      double localCoords[Dim];
+      for (int i = 0; i < Dim; i++) {
+        int c = (coords[i] < 0.5? 0 : 1);
+        cellInds[i] = c;
+        localCoords[i] = 2.0*coords[i] - c;
+      }
+
+      // Slice out the local values
+      int localCtrlClasses[ctrlCount()];
+      VertexType localCtrl[ctrlCount()];
+      for (int i = 0; i < ctrlCount(); i++) {
+        int inds[Dim];
+        ctrlBox.calcInds(i, inds);
+        for (int j = 0; j < Dim; j++) {
+          inds[j] += cellInds[j];
+        }
+        int index = vertexBox.calcIndex(inds);
+        localCtrlClasses[i] = vertexClasses[index];
+        localCtrl[i] = vertices[index];
+      }
+
+      return eval(localCoords, localCtrl, localCtrlClasses, depth - 1);
     }
   }
  private:

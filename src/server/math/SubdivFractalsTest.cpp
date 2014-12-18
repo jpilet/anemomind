@@ -83,21 +83,22 @@ TEST(SubdivFractalsTest, BaseCase) {
   lambda.setAll(0.5);
   SubdivFractals<2> fractal(inds, lambda);
   double ctrl[4] = {0, 2, 2, 3};
+  int classes[4] = {0, 0, 0, 0};
   {
     double coords[2] = {0, 0};
-    EXPECT_NEAR(fractal.eval(coords, ctrl, 0), 0.0, 1.0e-6);
+    EXPECT_NEAR(fractal.eval(coords, ctrl, classes, 0), 0.0, 1.0e-6);
   }{
     double coords[2] = {1, 1};
-    EXPECT_NEAR(fractal.eval(coords, ctrl, 0), 3.0, 1.0e-6);
+    EXPECT_NEAR(fractal.eval(coords, ctrl, classes, 0), 3.0, 1.0e-6);
   }{
     double coords[2] = {1, 0};
-    EXPECT_NEAR(fractal.eval(coords, ctrl, 0), 2.0, 1.0e-6);
+    EXPECT_NEAR(fractal.eval(coords, ctrl, classes, 0), 2.0, 1.0e-6);
   }{
     double coords[2] = {0.5, 0.5};
-    EXPECT_NEAR(fractal.eval(coords, ctrl, 0), 7.0/4, 1.0e-6);
+    EXPECT_NEAR(fractal.eval(coords, ctrl, classes, 0), 7.0/4, 1.0e-6);
   }{
     double coords[2] = {0.5, 1};
-    EXPECT_NEAR(fractal.eval(coords, ctrl, 0), 2.5, 1.0e-6);
+    EXPECT_NEAR(fractal.eval(coords, ctrl, classes, 0), 2.5, 1.0e-6);
   }
 
 }
