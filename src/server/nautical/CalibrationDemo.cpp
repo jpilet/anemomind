@@ -29,7 +29,6 @@ namespace {
   }
 
   void synthDemo() {
-    const int count = 2;
 
     auto sim = makeNavSimUpwindDownwindLong();
     auto boatData = sim.boatData(0);
@@ -39,7 +38,16 @@ namespace {
     FilteredNavData filtered(navs, 12.0);
     AutoCalib calib;
     AutoCalib::Results results = calib.calibrate(filtered);
-    auto finalErrors = boatData.evaluateFitness(results.corrector());
+
+    int count = navs.size();
+    Array<HorizontalMotion<double> > estWind(count), estCurrent(count);
+    for (int i = 0; i < count; i++) {
+      auto c = results.corrector().correct(navs[i]);
+      estWind[i] = c.trueWind();
+      estCurrent[i] = c.trueCurrent();
+    }
+
+    auto finalErrors = boatData.evaluateFitness(estWind, estCurrent);
     results.disp(&(std::cout));
     std::cout << EXPR_AND_VAL_AS_STRING(initialErrors) << std::endl;
     std::cout << EXPR_AND_VAL_AS_STRING(finalErrors) << std::endl;

@@ -364,11 +364,10 @@ class NavalSimulation {
 
     // Suitable for calibration procedures that don't
     // use the Corruptor class.
-    NavalSimulation::SimulatedCalibrationResults evaluateFitnessPerNav(
+    NavalSimulation::SimulatedCalibrationResults evaluateFitness(
         Array<HorizontalMotion<double> > estimatedTrueWindPerNav,
         Array<HorizontalMotion<double> > estimatedTrueCurrentPerNav) const;
 
-    NavalSimulation::SimulatedCalibrationResults evaluateFitness(const Corrector<double> &corr) const;
     NavalSimulation::SimulatedCalibrationResults evaluateNoCalibration() const {
       return evaluateFitness(Corrector<double>());
     }
@@ -378,6 +377,7 @@ class NavalSimulation {
    private:
     BoatSimulationSpecs _specs;
     Array<CorruptedBoatState> _states;
+    NavalSimulation::SimulatedCalibrationResults evaluateFitness(const Corrector<double> &corr) const;
   };
 
   int boatCount() const {

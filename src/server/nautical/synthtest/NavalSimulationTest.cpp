@@ -107,8 +107,8 @@ TEST(TestcaseTest, NoCorruption) {
     NavalSimulation::BoatData boatData = sim.boatData(1);
     Array<HorizontalMotion<double> > wind = getGroundTruth(boatData, true);
     Array<HorizontalMotion<double> > current = getGroundTruth(boatData, false);
-    auto A = boatData.evaluateFitnessPerNav(wind, Array<HorizontalMotion<double> >());
-    auto B = boatData.evaluateFitnessPerNav(Array<HorizontalMotion<double> >(), current);
+    auto A = boatData.evaluateFitness(wind, Array<HorizontalMotion<double> >());
+    auto B = boatData.evaluateFitness(Array<HorizontalMotion<double> >(), current);
     EXPECT_LE(A.wind().error().norm().mean().knots(), 1.0e-6); EXPECT_TRUE(A.current().error().norm().undefined());
     EXPECT_TRUE(B.wind().error().norm().undefined()); EXPECT_LE(B.current().error().norm().mean().knots(), 1.0e-6);
   }

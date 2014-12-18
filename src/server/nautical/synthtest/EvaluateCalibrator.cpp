@@ -20,7 +20,7 @@ namespace {
         navsWithTrueWind.map<HorizontalMotion<double> >([=](const Nav &x) {
           return x.trueWind();
     });
-    return boatData.evaluateFitnessPerNav(trueWind, Array<HorizontalMotion<double> >());
+    return boatData.evaluateFitness(trueWind, Array<HorizontalMotion<double> >());
   }
 
   void evaluate() {

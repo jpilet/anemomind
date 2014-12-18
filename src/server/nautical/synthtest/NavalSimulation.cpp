@@ -24,7 +24,13 @@ BoatSimulationSpecs::BoatSimulationSpecs(BoatCharacteristics ch, Array<TwaDirect
     _indexer(ProportionateIndexer(dirs.size(),
         [=](int index) {return dirs[index].duration.seconds();})),
         _boatId(boatId), _samplingPeriod(samplingPeriod),
-        _stepsPerSample(stepsPerSample) {}
+        _stepsPerSample(stepsPerSample) {
+  double totalSeconds = 0;
+  for (auto d: dirs) {
+    totalSeconds += d.duration.seconds();
+  }
+  assert(std::abs(totalSeconds - _indexer.sum()) < 0.1);
+}
 
 
 Angle<double> BoatSimulationSpecs::twa(Duration<double> dur) const {
@@ -105,7 +111,7 @@ NavalSimulation::FlowErrors::FlowErrors(Array<HorizontalMotion<double> > trueMot
 
 
 NavalSimulation::SimulatedCalibrationResults
-  NavalSimulation::BoatData::evaluateFitnessPerNav(Array<HorizontalMotion<double> > estimatedTrueWind,
+  NavalSimulation::BoatData::evaluateFitness(Array<HorizontalMotion<double> > estimatedTrueWind,
           Array<HorizontalMotion<double> > estimatedTrueCurrent) const {
   return SimulatedCalibrationResults(
       SimulatedMotionResults(trueWind(), estimatedTrueWind),
