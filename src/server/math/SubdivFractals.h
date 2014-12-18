@@ -115,7 +115,7 @@ class IndexBox {
 
   void calcInds(int index, int *inds) const {
     inds[0] = index % _actualSize;
-    _next.calcIndex(index/_actualSize, inds+1);
+    _next.calcInds(index/_actualSize, inds+1);
   }
 
   bool hasMidpoint() const {

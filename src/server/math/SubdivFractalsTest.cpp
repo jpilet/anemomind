@@ -74,5 +74,30 @@ TEST(SubdivFractalsTest, Generate) {
     EXPECT_EQ(vertexTypes[i], expectedVertexTypes[i]);
     EXPECT_NEAR(vertices[i], expectedVertices[i], 1.0e-9);
   }
+}
+
+TEST(SubdivFractalsTest, BaseCase) {
+  MDArray2i inds(1, 1);
+  inds.setAll(0);
+  MDArray2d lambda(1, 1);
+  lambda.setAll(0.5);
+  SubdivFractals<2> fractal(inds, lambda);
+  double ctrl[4] = {0, 2, 2, 3};
+  {
+    double coords[2] = {0, 0};
+    EXPECT_NEAR(fractal.eval(coords, ctrl, 0), 0.0, 1.0e-6);
+  }{
+    double coords[2] = {1, 1};
+    EXPECT_NEAR(fractal.eval(coords, ctrl, 0), 3.0, 1.0e-6);
+  }{
+    double coords[2] = {1, 0};
+    EXPECT_NEAR(fractal.eval(coords, ctrl, 0), 2.0, 1.0e-6);
+  }{
+    double coords[2] = {0.5, 0.5};
+    EXPECT_NEAR(fractal.eval(coords, ctrl, 0), 7.0/4, 1.0e-6);
+  }{
+    double coords[2] = {0.5, 1};
+    EXPECT_NEAR(fractal.eval(coords, ctrl, 0), 2.5, 1.0e-6);
+  }
 
 }
