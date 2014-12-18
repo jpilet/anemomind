@@ -17,15 +17,34 @@ class IndexBox {
   typedef IndexBox<Dim> ThisType;
   IndexBox() : _actualSize(0), _offset(0), _size(0) {}
 
+  IndexBox(int size_) : _actualSize(size_), _offset(0), _size(size_) {}
+
   static ThisType sameSize(int size) {
     return IndexBox(size, 0, size, NextBox::sameSize(size));
   }
 
- private:
-  IndexBox(int actualSize, int offset, int size,
-    const NextBox &next) : _actualSize(actualSize),
-    _offset(offset), _size(size), _next(next) {}
+  ThisType slice(int dim, int from, int to) const {
+    if (dim == 0) {
+      return IndexBox(_actualSize, _offset + from, to - from, _next);
+    } else {
+      return IndexBox(_actualSize, _offset, _size, _next.slice(dim-1, from, to));
+    }
+  }
 
+  int numel() const {
+    return _size*_next.numel();
+  }
+
+
+  // Public so that the + operator can use it.
+  IndexBox(int actualSize_, int offset_, int size_,
+    const NextBox &next_) : _actualSize(actualSize_),
+    _offset(offset_), _size(size_), _next(next_) {}
+
+  int actualSize() const {return _actualSize;}
+  int offset() const {return _offset;}
+  int size() const {return _size;}
+ private:
   int _actualSize;
   int _offset, _size;
   NextBox _next;
@@ -42,11 +61,22 @@ class IndexBox<0> {
     return ThisType();
   }
 
-  ThisType slice(int dim, int from, int to) {
+  ThisType slice(int dim, int from, int to) const {
     return ThisType();
+  }
+
+  int numel() const {
+    return 1;
   }
  private:
 };
+
+template <int Dim>
+IndexBox<Dim+1> operator+(const IndexBox<1> &a, const IndexBox<Dim> &b) {
+  return IndexBox<Dim+1>(a.actualSize(), a.offset(), a.size(), b);
+}
+
+
 
 
 template <int Dim>
