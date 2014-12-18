@@ -84,7 +84,8 @@ TEST(TestcaseTest, MakeTestcase) {
 }
 
 namespace {
-  Array<HorizontalMotion<double> > getGT(NavalSimulation::BoatData boatData, bool wind) {
+  Array<HorizontalMotion<double> > getGroundTruth(
+      NavalSimulation::BoatData boatData, bool wind) {
     return boatData.states().map<HorizontalMotion<double> >(
     [=](const CorruptedBoatState &s) {
       return (wind?
@@ -104,8 +105,8 @@ TEST(TestcaseTest, NoCorruption) {
 
   {
     NavalSimulation::BoatData boatData = sim.boatData(1);
-    Array<HorizontalMotion<double> > wind = getGT(boatData, true);
-    Array<HorizontalMotion<double> > current = getGT(boatData, false);
+    Array<HorizontalMotion<double> > wind = getGroundTruth(boatData, true);
+    Array<HorizontalMotion<double> > current = getGroundTruth(boatData, false);
     auto A = boatData.evaluateFitnessPerNav(wind, Array<HorizontalMotion<double> >());
     auto B = boatData.evaluateFitnessPerNav(Array<HorizontalMotion<double> >(), current);
     EXPECT_LE(A.wind().error().norm().mean().knots(), 1.0e-6); EXPECT_TRUE(A.current().error().norm().undefined());

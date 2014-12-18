@@ -11,7 +11,7 @@
 namespace {
   using namespace sail;
 
-  NavalSimulation::EvalResults2
+  NavalSimulation::SimulatedCalibrationResults
     evaluateCalibration(NavalSimulation::BoatData boatData,
       const Calibrator &c) {
     Array<Nav> navsWithTrueWind = boatData.navs();

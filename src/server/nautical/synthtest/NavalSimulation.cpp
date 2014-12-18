@@ -50,7 +50,7 @@ NavalSimulation::NavalSimulation(std::default_random_engine &e,
   }
 }
 
-NavalSimulation::EvalResults2 NavalSimulation::BoatData::evaluateFitness(
+NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluateFitness(
     const Corrector<double> &corr) const {
   int count = _states.size();
   Array<HorizontalMotion<double> > estWind(count), estCurrent(count);
@@ -60,8 +60,9 @@ NavalSimulation::EvalResults2 NavalSimulation::BoatData::evaluateFitness(
     estWind[i] = c.trueWind();
     estCurrent[i] = c.trueCurrent();
   }
-  return EvalResults2(EvalResults1(trueWind(), estWind),
-      EvalResults1(trueCurrent(), estCurrent));
+  return SimulatedCalibrationResults(
+          SimulatedMotionResults(trueWind(), estWind),
+          SimulatedMotionResults(trueCurrent(), estCurrent));
 }
 
 namespace {
@@ -103,12 +104,12 @@ NavalSimulation::FlowErrors::FlowErrors(Array<HorizontalMotion<double> > trueMot
 }
 
 
-NavalSimulation::EvalResults2
+NavalSimulation::SimulatedCalibrationResults
   NavalSimulation::BoatData::evaluateFitnessPerNav(Array<HorizontalMotion<double> > estimatedTrueWind,
           Array<HorizontalMotion<double> > estimatedTrueCurrent) const {
-  return EvalResults2(
-      EvalResults1(trueWind(), estimatedTrueWind),
-      EvalResults1(trueCurrent(), estimatedTrueCurrent));
+  return SimulatedCalibrationResults(
+      SimulatedMotionResults(trueWind(), estimatedTrueWind),
+      SimulatedMotionResults(trueCurrent(), estimatedTrueCurrent));
 }
 
 
@@ -296,7 +297,7 @@ std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e)
   return s;
 }
 
-std::ostream &operator<< (std::ostream &s, const NavalSimulation::EvalResults2 &e) {
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::SimulatedCalibrationResults &e) {
   s << "FlowErrors(\n";
   s << "  wind    = " << e.wind().error() << "\n";
   s << "  current = " << e.current().error() << "\n";

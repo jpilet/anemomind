@@ -287,9 +287,9 @@ class NavalSimulation {
   };
 
   // The evaluation results for wind or current.
-  class EvalResults1 {
+  class SimulatedMotionResults {
    public:
-    EvalResults1(Array<HorizontalMotion<double> > trueMotion,
+    SimulatedMotionResults(Array<HorizontalMotion<double> > trueMotion,
                 Array<HorizontalMotion<double> > estimatedMotion) :
                 _trueMotion(trueMotion), _estimatedMotion(estimatedMotion),
                 _flowErrors(trueMotion, estimatedMotion) {}
@@ -301,20 +301,20 @@ class NavalSimulation {
     Array<HorizontalMotion<double> > _trueMotion, _estimatedMotion;
   };
 
-  class EvalResults2 {
+  class SimulatedCalibrationResults {
    public:
-    EvalResults2(const EvalResults1 &wind_, const EvalResults1 &current_) :
+    SimulatedCalibrationResults(const SimulatedMotionResults &wind_, const SimulatedMotionResults &current_) :
       _wind(wind_), _current(current_) {}
 
-    const EvalResults1 &wind() const {
+    const SimulatedMotionResults &wind() const {
       return _wind;
     }
 
-    const EvalResults1 &current() const {
+    const SimulatedMotionResults &current() const {
       return _current;
     }
    private:
-    EvalResults1 _wind, _current;
+    SimulatedMotionResults _wind, _current;
   };
 
 
@@ -364,12 +364,12 @@ class NavalSimulation {
 
     // Suitable for calibration procedures that don't
     // use the Corruptor class.
-    NavalSimulation::EvalResults2 evaluateFitnessPerNav(
+    NavalSimulation::SimulatedCalibrationResults evaluateFitnessPerNav(
         Array<HorizontalMotion<double> > estimatedTrueWindPerNav,
         Array<HorizontalMotion<double> > estimatedTrueCurrentPerNav) const;
 
-    NavalSimulation::EvalResults2 evaluateFitness(const Corrector<double> &corr) const;
-    NavalSimulation::EvalResults2 evaluateNoCalibration() const {
+    NavalSimulation::SimulatedCalibrationResults evaluateFitness(const Corrector<double> &corr) const;
+    NavalSimulation::SimulatedCalibrationResults evaluateNoCalibration() const {
       return evaluateFitness(Corrector<double>());
     }
 
@@ -416,7 +416,7 @@ std::ostream &operator<< (std::ostream &s,
 }
 
 std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e);
-std::ostream &operator<< (std::ostream &s, const NavalSimulation::EvalResults2 &e);
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::SimulatedCalibrationResults &e);
 
 /*
  * Standard synthetic tests that
