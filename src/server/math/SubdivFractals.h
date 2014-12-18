@@ -31,6 +31,10 @@ class IndexBox {
     }
   }
 
+  ThisType slice(int dim, int index) const {
+    return slice(dim, index, index + 1);
+  }
+
   int numel() const {
     return _size*_next.numel();
   }
