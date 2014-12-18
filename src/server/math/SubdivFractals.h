@@ -7,6 +7,8 @@
 
 #include <server/common/MDArray.h>
 #include <cmath>
+#include <iostream>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -29,6 +31,10 @@ class IndexList {
 
   int operator[] (int index) const {
     return _inds[index];
+  }
+
+  bool empty() const {
+    return _size == 0;
   }
  private:
   IndexList(int indexToRemove, const IndexList &src) {
@@ -66,6 +72,23 @@ class IndexBox {
       return IndexBox(_actualSize, _offset, _size, _next.slice(dim-1, from, to));
     }
   }
+
+  ThisType sliceLow(int dim) const {
+    if (dim == 0) {
+      return IndexBox(_actualSize, _offset, 1, _next);
+    } else {
+      return IndexBox(_actualSize, _offset, _size, _next.sliceLow(dim-1));
+    }
+  }
+
+  ThisType sliceHigh(int dim) const {
+    if (dim == 0) {
+      return IndexBox(_actualSize, _offset + _size-1, 1, _next);
+    } else {
+      return IndexBox(_actualSize, _offset, _size, _next.sliceHigh(dim-1));
+    }
+  }
+
 
   ThisType slice(int dim, int index) const {
     return slice(dim, index, index + 1);
@@ -106,6 +129,39 @@ class IndexBox {
     return withOffset(_size/2) + _actualSize*_next.midpointIndex();
   }
 
+  template <typename VertexType>
+  void generate(int *vertexTypes,
+                VertexType *vertices,
+                const MDArray2i &indexTable,
+                const MDArray2d &lambdaTable,
+      const IndexList<Dim> &indexList = IndexList<Dim>()) const {
+      if (!indexList.empty()) {
+        assert(hasMidpoint());
+        int low = lowIndex();
+        int lowType = vertexTypes[low];
+        assert(lowType != -1);
+
+        int middle = midpointIndex();
+
+        int high = highIndex();
+        int highType = vertexTypes[high];
+        assert(highType != -1);
+
+        double lambda = lambdaTable(lowType, highType);
+        vertexTypes[middle] = indexTable(lowType, highType);
+        vertices[middle] = (1.0 - lambda)*vertices[low] + lambda*vertices[high];
+
+        for (int ka = 0; ka < indexList.size(); ka++) {
+          IndexList<Dim> slicedList = indexList.remove(ka);
+          assert(slicedList.size() < indexList.size());
+          int kabel = indexList[ka];
+          sliceLow(kabel).generate(vertexTypes, vertices,
+              indexTable, lambdaTable, slicedList);
+          sliceHigh(kabel).generate(vertexTypes, vertices,
+              indexTable, lambdaTable, slicedList);
+        }
+      }
+    }
  private:
   int withOffset(int x) const {return x + _offset;}
   int _actualSize;
@@ -125,6 +181,14 @@ class IndexBox<0> {
   }
 
   ThisType slice(int dim, int from, int to) const {
+    return ThisType();
+  }
+
+  ThisType sliceLow(int index) const {
+    return ThisType();
+  }
+
+  ThisType sliceHigh(int index) const {
     return ThisType();
   }
 

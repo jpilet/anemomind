@@ -5,6 +5,7 @@
 
 #include <server/math/SubdivFractals.h>
 #include <gtest/gtest.h>
+#include <server/common/Array.h>
 
 using namespace sail;
 
@@ -41,4 +42,37 @@ TEST(SubdivFractalsTest, IndexList) {
   EXPECT_EQ(reduced.size(), 2);
   EXPECT_EQ(reduced[0], 0);
   EXPECT_EQ(reduced[1], 2);
+}
+
+TEST(SubdivFractalsTest, Generate) {
+  MDArray2i indexTable(7, 7);
+  indexTable.setAll(1);
+
+  {
+    const int ruleCount = 3;
+    int A[ruleCount] = {0, 0, 2};
+    int B[ruleCount] = {3, 2, 3};
+    int C[ruleCount] = {4, 5, 6};
+    for (int i = 0; i < ruleCount; i++) {
+      indexTable(A[i], B[i]) = C[i];
+    }
+  }
+
+  IndexBox<2> box = IndexBox<1>(3) + IndexBox<1>(3);
+
+  int vertexTypes[9] = {0, -1, 2,  -1, -1, -1,  2, -1, 3};
+  int expectedVertexTypes[9] = {0, 5, 2, 5, 4, 6, 2, 6, 3};
+
+  MDArray2d lambda(7, 7);
+  lambda.setAll(0.5);
+
+  double vertices[9] = {0, NAN, 1,  NAN, NAN, NAN,  1, NAN, 2};
+  double expectedVertices[9] = {0, 0.5, 1, 0.5, 1, 1.5, 1, 1.5, 2};
+
+  box.generate<double>(vertexTypes, vertices, indexTable, lambda);
+  for (int i = 0; i < 9; i++) {
+    EXPECT_EQ(vertexTypes[i], expectedVertexTypes[i]);
+    EXPECT_NEAR(vertices[i], expectedVertices[i], 1.0e-9);
+  }
+
 }
