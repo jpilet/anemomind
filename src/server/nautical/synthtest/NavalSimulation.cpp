@@ -46,8 +46,10 @@ NavalSimulation::NavalSimulation(std::default_random_engine &e,
          _current(current), _boatData(specs.size()) {
   for (int i = 0; i < specs.size(); i++) {
     auto sp = specs[i];
-    BoatSim sim(wind, current, sp.characteristics(), [=](Duration<double> dur) {return sp.twa(dur);});
-    Array<BoatSim::FullState> states = sim.simulate(sp.duration(), sp.samplingPeriod(), sp.stepsPerSample());
+    BoatSim sim(wind, current, sp.characteristics(),
+        [=](Duration<double> dur) {return sp.twa(dur);});
+    Array<BoatSim::FullState> states = sim.simulate(sp.duration(),
+        sp.samplingPeriod(), sp.stepsPerSample());
     _boatData[i] = makeBoatData(sp, states, e);
   }
 }
