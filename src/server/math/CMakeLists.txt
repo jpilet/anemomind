@@ -208,6 +208,11 @@ cxx_test(math_PiecewiseFunctionTest
          gtest_main
         )
 
+cxx_test(math_SubdivFractalsTest
+         SubdivFractalsTest.cpp
+         gtest_main
+        )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
