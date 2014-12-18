@@ -212,6 +212,15 @@ cxx_test(math_SubdivFractalsTest
          SubdivFractalsTest.cpp
          gtest_main
         )
+        
+add_executable(math_SubdivFractalsDemo
+               SubdivFractalsDemo.cpp
+              )        
+
+target_link_libraries(math_SubdivFractalsDemo
+                      plot_gnuplot
+                     )
+
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
