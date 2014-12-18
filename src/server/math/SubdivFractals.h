@@ -11,6 +11,46 @@
 namespace sail {
 
 template <int Dim>
+class DimList {
+ public:
+  DimList() : _dimIndex(Dim-1) {}
+  DimList<Dim-1> remove(int dim) const {
+    assert(dim >= 0);
+    if (dim == 0) {
+      return _next;
+    } else {
+      return DimList<Dim-1>(_dimIndex, _next.remove(dim-1));
+    }
+  }
+ private:
+  DimList(int index_, const DimList<Dim-1> &next_) :
+    _dimIndex(index_), _next(next_) {}
+  int _dimIndex;
+  DimList<Dim-1> _next;
+};
+
+template <>
+class DimList<0> {
+ public:
+  DimList() {}
+};
+
+template <>
+class DimList<1> {
+ public:
+  DimList() : _dimIndex(0) {}
+  DimList(int index_, const DimList<0> &next) : _dimIndex(index_) {}
+  DimList<0> remove(int dim) const {
+    return DimList<0>();
+  }
+ private:
+  int _dimIndex;
+};
+
+
+
+
+template <int Dim>
 class IndexBox {
  public:
   typedef IndexBox<Dim-1> NextBox;
@@ -48,7 +88,30 @@ class IndexBox {
   int actualSize() const {return _actualSize;}
   int offset() const {return _offset;}
   int size() const {return _size;}
+
+  int calcIndex(const int *inds) const {
+    assert(0 <= inds[0] && inds[0] < _size);
+    return withOffset(inds[0]) + _actualSize*_next.calcIndex(inds + 1);
+  }
+
+  bool hasMidpoint() const {
+    return (_size % 2 == 1) && _next.hasMidpoint();
+  }
+
+  int lowIndex() const {
+    return _offset + _actualSize*_next.lowIndex();
+  }
+
+  int highIndex() const {
+    return withOffset(_size-1) + _actualSize*_next.highIndex();
+  }
+
+  int midpointIndex() const {
+    return withOffset(_size/2) + _actualSize*_next.midpointIndex();
+  }
+
  private:
+  int withOffset(int x) const {return x + _offset;}
   int _actualSize;
   int _offset, _size;
   NextBox _next;
@@ -72,6 +135,16 @@ class IndexBox<0> {
   int numel() const {
     return 1;
   }
+
+  int calcIndex(const int *inds) const {
+    return 0;
+  }
+
+  bool hasMidpoint() const {return true;}
+
+  int midpointIndex() const {return 0;}
+  int lowIndex() const {return 0;}
+  int highIndex() const {return 0;}
  private:
 };
 
