@@ -94,11 +94,11 @@ NavalSimulation::FlowErrors::FlowErrors(Array<HorizontalMotion<double> > trueMot
   }), Velocity<double>::knots(1.0));
   _angleError = Error<Angle<double> >(evaluateMeanAndVar(trueMotion, estimatedMotion,
         [=](HorizontalMotion<double> a, HorizontalMotion<double> b) {
-        return (a.angle() - b.angle()).normalizedAt0().degrees();
+        return std::abs((a.angle() - b.angle()).normalizedAt0().degrees());
     }), Angle<double>::degrees(1.0));
   _magnitudeError = Error<Velocity<double> >(evaluateMeanAndVar(trueMotion, estimatedMotion,
         [=](HorizontalMotion<double> a, HorizontalMotion<double> b) {
-        return (a.norm() - b.norm()).knots();
+        return std::abs((a.norm() - b.norm()).knots());
     }), Velocity<double>::knots(1.0));
 }
 
