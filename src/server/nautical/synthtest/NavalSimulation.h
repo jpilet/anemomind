@@ -175,7 +175,7 @@ public:
   }
 
   Duration<double> duration() const {
-    Duration<double>::seconds(_indexer.sum());
+    return Duration<double>::seconds(_indexer.sum());
   }
 
   CorruptedBoatState::CorruptorSet &corruptors() {

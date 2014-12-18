@@ -6,6 +6,8 @@
 #include "NavalSimulation.h"
 #include <server/common/PhysicalQuantityIO.h>
 #include <server/nautical/synthtest/Flow.h>
+#include <iostream>
+#include <server/common/PhysicalQuantityIO.h>
 
 namespace sail {
 
@@ -24,13 +26,7 @@ BoatSimulationSpecs::BoatSimulationSpecs(BoatCharacteristics ch, Array<TwaDirect
     _indexer(ProportionateIndexer(dirs.size(),
         [=](int index) {return dirs[index].duration.seconds();})),
         _boatId(boatId), _samplingPeriod(samplingPeriod),
-        _stepsPerSample(stepsPerSample) {
-  double totalSeconds = 0;
-  for (auto d: dirs) {
-    totalSeconds += d.duration.seconds();
-  }
-  assert(std::abs(totalSeconds - _indexer.sum()) < 0.1);
-}
+        _stepsPerSample(stepsPerSample) {}
 
 
 Angle<double> BoatSimulationSpecs::twa(Duration<double> dur) const {
