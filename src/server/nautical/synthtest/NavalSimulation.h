@@ -12,6 +12,8 @@
 #include <server/nautical/GeographicReference.h>
 #include <server/nautical/Nav.h>
 #include <random>
+#include <server/common/MeanAndVar.h>
+#include <server/nautical/Corrector.h>
 
 namespace sail {
 
@@ -72,11 +74,19 @@ class CorruptedBoatState {
   class Corruptor {
    public:
     Corruptor() : _scale(1.0), _offset(T::zero()), _distrib(T::zero(), T::zero()) {}
-    Corruptor(double scale, T offset, T noiseStd) :
+    Corruptor(double scale, T offset, T noiseStd = T::zero()) :
       _distrib(T::zero(), noiseStd), _scale(scale), _offset(offset) {}
 
     static Corruptor onlyNoise(T noiseStd) {
       return Corruptor(1.0, T::zero(), noiseStd);
+    }
+
+    static Corruptor offset(T x) {
+      return Corruptor(1.0, x, T::zero());
+    }
+
+    static Corruptor scaling(double x) {
+      return Corruptor(x, T::zero(), T::zero());
     }
 
     T corrupt(T value, std::default_random_engine &e) {
@@ -87,6 +97,7 @@ class CorruptedBoatState {
       _scale = scale;
       _offset = offset;
     }
+
    private:
     double _scale;
     T _offset;
@@ -164,7 +175,7 @@ public:
   }
 
   Duration<double> duration() const {
-    Duration<double>::seconds(_indexer.sum());
+    return Duration<double>::seconds(_indexer.sum());
   }
 
   CorruptedBoatState::CorruptorSet &corruptors() {
@@ -213,6 +224,99 @@ class NavalSimulation {
 
   static FlowFun constantFlowFun(HorizontalMotion<double> m);
 
+  class FlowErrors {
+   public:
+    template <typename T>
+    class Error {
+     public:
+      Error() : _unit(T::zero()) {}
+      Error(const MeanAndVar &mv, T unit) :
+        _mv(mv), _unit(unit) {}
+
+      bool undefined() const {
+        return _mv.empty();
+      }
+
+      T mean() const {
+        return (_mv.empty()? NAN : _mv.mean())*_unit;
+      }
+      T rms() const {
+        return (_mv.empty()? NAN : _mv.rms())*_unit;
+      }
+
+      Error operator+ (const Error &other) const {
+        assert(_unit == other._unit);
+        return Error(_mv + other._mv, _unit);
+      }
+     private:
+      MeanAndVar _mv;
+      T _unit;
+    };
+
+    FlowErrors(Array<HorizontalMotion<double> > trueMotion,
+              Array<HorizontalMotion<double> > estimatedMotion);
+
+    Error<Velocity<double> > norm() const {
+      return _normError;
+    }
+
+    Error<Velocity<double> > magnitude() const {
+      return _magnitudeError;
+    }
+
+    Error<Angle<double> > angle() const {
+      return _angleError;
+    }
+
+    FlowErrors operator+ (const FlowErrors &other) const {
+      return FlowErrors(_normError + other._normError,
+          _magnitudeError + other._magnitudeError,
+          _angleError + other._angleError);
+    }
+   private:
+    FlowErrors(const Error<Velocity<double> > &ne,
+        const Error<Velocity<double> > &me,
+        const Error<Angle<double> > &ae) :
+        _normError(ne), _angleError(ae),
+        _magnitudeError(me) {}
+    Error<Velocity<double> > _normError, _magnitudeError;
+    Error<Angle<double> > _angleError;
+    static double nanIfEmpty(const MeanAndVar &mv, double x) {
+      return (mv.empty()? NAN : x);
+    }
+  };
+
+  // The evaluation results for wind or current.
+  class SimulatedMotionResults {
+   public:
+    SimulatedMotionResults(Array<HorizontalMotion<double> > trueMotion,
+                Array<HorizontalMotion<double> > estimatedMotion) :
+                _trueMotion(trueMotion), _estimatedMotion(estimatedMotion),
+                _flowErrors(trueMotion, estimatedMotion) {}
+    const FlowErrors &error() const {
+      return _flowErrors;
+    }
+   private:
+    FlowErrors _flowErrors;
+    Array<HorizontalMotion<double> > _trueMotion, _estimatedMotion;
+  };
+
+  class SimulatedCalibrationResults {
+   public:
+    SimulatedCalibrationResults(const SimulatedMotionResults &wind_, const SimulatedMotionResults &current_) :
+      _wind(wind_), _current(current_) {}
+
+    const SimulatedMotionResults &wind() const {
+      return _wind;
+    }
+
+    const SimulatedMotionResults &current() const {
+      return _current;
+    }
+   private:
+    SimulatedMotionResults _wind, _current;
+  };
+
 
   NavalSimulation(std::default_random_engine &e,
            GeographicReference geoRef,
@@ -251,9 +355,29 @@ class NavalSimulation {
     const Array<CorruptedBoatState> &states() const {
       return _states;
     }
+
+    Array<Nav> navs() const {
+      return _states.map<Nav>([&](const CorruptedBoatState &s) {
+        return s.nav();
+      });
+    }
+
+    // Suitable for calibration procedures that don't
+    // use the Corruptor class.
+    NavalSimulation::SimulatedCalibrationResults evaluateFitness(
+        Array<HorizontalMotion<double> > estimatedTrueWindPerNav,
+        Array<HorizontalMotion<double> > estimatedTrueCurrentPerNav) const;
+
+    NavalSimulation::SimulatedCalibrationResults evaluateNoCalibration() const {
+      return evaluateFitness(Corrector<double>());
+    }
+
+    Array<HorizontalMotion<double> > trueWind() const;
+    Array<HorizontalMotion<double> > trueCurrent() const;
    private:
     BoatSimulationSpecs _specs;
     Array<CorruptedBoatState> _states;
+    NavalSimulation::SimulatedCalibrationResults evaluateFitness(const Corrector<double> &corr) const;
   };
 
   int boatCount() const {
@@ -267,7 +391,12 @@ class NavalSimulation {
   const BoatData &boatData(int index) const {
     return _boatData[index];
   }
+
+  void setDescription(const std::string &desc) {
+    _desc = desc;
+  }
  private:
+  std::string _desc;
   GeographicReference _geoRef;
   TimeStamp _simulationStartTime;
   FlowFun _wind, _current;
@@ -278,8 +407,38 @@ class NavalSimulation {
   BoatData makeBoatData(BoatSimulationSpecs &spec,
       Array<BoatSim::FullState> state,
       std::default_random_engine &e) const;
-
 };
+
+template <typename T>
+std::ostream &operator<< (std::ostream &s,
+    const NavalSimulation::FlowErrors::Error<T> &e) {
+  s << "Error(mean = " << e.mean() << ", rms = " << e.rms() << ")";
+  return s;
+}
+
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e);
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::SimulatedCalibrationResults &e);
+
+/*
+ * Standard synthetic tests that
+ * we will use to evaluate calibration
+ * algorithms.
+ */
+
+// This tests simulate two boats that sail the
+// same trajectory. One boat doesn't have any
+// corrupted parameters. The other boat has corrupted
+// paramters. Wind and current are constant in space
+// and time. The boats try to maintain piecewise constant
+// TWA.
+NavalSimulation makeNavSimConstantFlow();
+
+
+// Sail upwind, alternating between TWA of 45 and -45 degs.
+// Two different corruptions.
+// Wind and current vary.
+NavalSimulation makeNavSimUpwindDownwind();
+NavalSimulation makeNavSimUpwindDownwindLong();
 
 } /* namespace mmm */
 

@@ -30,8 +30,8 @@ Array<KernelDensityEstimator<3>::Vec> filter(Array<KernelDensityEstimator<3>::Ve
             if (std::isnan(x[i])) {
               return false;
             }
-            return true;
           }
+          return true;
         });
 }
 

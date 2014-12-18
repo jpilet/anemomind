@@ -3,10 +3,12 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <ceres/ceres.h>
 #include <server/math/armaadolc.h>
-#include <server/common/Function.h>
+static_assert(ADOLC_ADOUBLE_H, "Flag not set");
+#include <server/common/ToDouble.h>
 #include <server/nautical/AutoCalib.h>
+#include <ceres/ceres.h>
+#include <server/common/Function.h>
 #include <adolc/taping.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/PhysicalQuantityIO.h>

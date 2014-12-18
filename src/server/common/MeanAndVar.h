@@ -19,11 +19,17 @@ class MeanAndVar {
   void add(double value);
   double mean() const;
   double variance() const;
+  double rms() const;
   double standardDeviation() const;
   MeanAndVar operator+ (const MeanAndVar &other) const;
   std::string toString() const;
   int count() const {
     return _count;
+  }
+
+  MeanAndVar normalize() const;
+  bool empty() const {
+    return _count == 0;
   }
  private:
   double biasedVariance() const;

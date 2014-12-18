@@ -29,13 +29,14 @@
 
 #include <server/common/math.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/common/ExpLine.h>
 
 namespace sail {
 
 template <typename T>
 class SpeedCalib {
  public:
-  static constexpr bool withExp = true;
+  static constexpr bool withExp = false;
 
   static Sigmoid<T> kSpan() {
     double marg = 0.1;
@@ -66,10 +67,9 @@ class SpeedCalib {
 
   Velocity<T> eval(Velocity<T> vx) {
     T x = vx.metersPerSecond();
-    assert(x > 0);
     T y =  scaleCoef()*x + offsetCoef();
     if (withExp) {
-      y += nonlinCoef()*exp(-decayCoef()*x);
+      y += nonlinCoef()*expline(T(-decayCoef()*x));
     }
     return Velocity<T>::metersPerSecond(y);
 

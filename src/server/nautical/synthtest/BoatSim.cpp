@@ -11,7 +11,7 @@
 #include <server/math/nonlinear/RungeKutta.h>
 #include <server/common/ProportionateIndexer.h>
 #include <server/plot/extra.h>
-
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -121,6 +121,10 @@ void BoatSim::eval(double *Xin, double *Fout, double *Jout) {
 
 Array<BoatSim::FullState> BoatSim::simulate(Duration<double> simulationDuration,
   Duration<double> samplingPeriod, int iterationsPerSample) {
+  if (simulationDuration < samplingPeriod) {
+    LOG(WARNING) << "Too short time for simulation";
+    return Array<BoatSim::FullState>();
+  }
   int sampleCount = int(simulationDuration/samplingPeriod) - 1; // subtract -1 to have some margin for round-off errors.
   double stepsize = samplingPeriod.seconds()/iterationsPerSample;
   Array<FullState> dst(sampleCount);

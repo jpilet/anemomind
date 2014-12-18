@@ -4,6 +4,10 @@
  */
 
 #include "NavalSimulation.h"
+#include <server/common/PhysicalQuantityIO.h>
+#include <server/nautical/synthtest/Flow.h>
+#include <iostream>
+#include <server/common/PhysicalQuantityIO.h>
 
 namespace sail {
 
@@ -42,11 +46,88 @@ NavalSimulation::NavalSimulation(std::default_random_engine &e,
          _current(current), _boatData(specs.size()) {
   for (int i = 0; i < specs.size(); i++) {
     auto sp = specs[i];
-    BoatSim sim(wind, current, sp.characteristics(), [=](Duration<double> dur) {return sp.twa(dur);});
-    Array<BoatSim::FullState> states = sim.simulate(sp.duration(), sp.samplingPeriod(), sp.stepsPerSample());
+    BoatSim sim(wind, current, sp.characteristics(),
+        [=](Duration<double> dur) {return sp.twa(dur);});
+    Array<BoatSim::FullState> states = sim.simulate(sp.duration(),
+        sp.samplingPeriod(), sp.stepsPerSample());
     _boatData[i] = makeBoatData(sp, states, e);
   }
 }
+
+NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluateFitness(
+    const Corrector<double> &corr) const {
+  int count = _states.size();
+  Array<HorizontalMotion<double> > estWind(count), estCurrent(count);
+  for (int i = 0; i < count; i++) {
+    auto s = _states[i];
+    CalibratedNav<double> c = corr.correct(s.nav());
+    estWind[i] = c.trueWind();
+    estCurrent[i] = c.trueCurrent();
+  }
+  return SimulatedCalibrationResults(
+          SimulatedMotionResults(trueWind(), estWind),
+          SimulatedMotionResults(trueCurrent(), estCurrent));
+}
+
+namespace {
+  MeanAndVar evaluateMeanAndVar(
+      Array<HorizontalMotion<double> > trueMotion,
+      Array<HorizontalMotion<double> > estimatedMotion,
+      std::function<double(HorizontalMotion<double>,
+          HorizontalMotion<double>)> errorFun) {
+    if (estimatedMotion.empty() || trueMotion.empty()) {
+      return MeanAndVar();
+    } else {
+      assert(trueMotion.size() == estimatedMotion.size());
+      int count = trueMotion.size();
+      MeanAndVar acc;
+      for (int i = 0; i < count; i++) {
+        double error = errorFun(trueMotion[i], estimatedMotion[i]);
+        assert(std::isfinite(error));
+        acc.add(error);
+      }
+      return acc.normalize();
+    }
+  }
+}
+
+NavalSimulation::FlowErrors::FlowErrors(Array<HorizontalMotion<double> > trueMotion,
+          Array<HorizontalMotion<double> > estimatedMotion) {
+  _normError = Error<Velocity<double> >(evaluateMeanAndVar(trueMotion, estimatedMotion,
+      [=](HorizontalMotion<double> a, HorizontalMotion<double> b) {
+      return HorizontalMotion<double>(a - b).norm().knots();
+  }), Velocity<double>::knots(1.0));
+  _angleError = Error<Angle<double> >(evaluateMeanAndVar(trueMotion, estimatedMotion,
+        [=](HorizontalMotion<double> a, HorizontalMotion<double> b) {
+        return std::abs((a.angle() - b.angle()).normalizedAt0().degrees());
+    }), Angle<double>::degrees(1.0));
+  _magnitudeError = Error<Velocity<double> >(evaluateMeanAndVar(trueMotion, estimatedMotion,
+        [=](HorizontalMotion<double> a, HorizontalMotion<double> b) {
+        return std::abs((a.norm() - b.norm()).knots());
+    }), Velocity<double>::knots(1.0));
+}
+
+
+NavalSimulation::SimulatedCalibrationResults
+  NavalSimulation::BoatData::evaluateFitness(Array<HorizontalMotion<double> > estimatedTrueWind,
+          Array<HorizontalMotion<double> > estimatedTrueCurrent) const {
+  return SimulatedCalibrationResults(
+      SimulatedMotionResults(trueWind(), estimatedTrueWind),
+      SimulatedMotionResults(trueCurrent(), estimatedTrueCurrent));
+}
+
+
+Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueWind() const {
+  return _states.map<HorizontalMotion<double> >([=] (const CorruptedBoatState &s) {
+    return s.trueState().trueWind;
+  });
+}
+Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueCurrent() const {
+  return _states.map<HorizontalMotion<double> >([=] (const CorruptedBoatState &s) {
+    return s.trueState().trueCurrent;
+  });
+}
+
 
 NavalSimulation::BoatData NavalSimulation::makeBoatData(BoatSimulationSpecs &specs,
     Array<BoatSim::FullState> states, std::default_random_engine &e) const {
@@ -69,6 +150,165 @@ NavalSimulation::BoatData NavalSimulation::makeBoatData(BoatSimulationSpecs &spe
   }
   return BoatData(specs, dst);
 }
+
+
+
+
+NavalSimulation makeNavSimConstantFlow() {
+  std::default_random_engine e;
+
+  GeographicReference geoRef(GeographicPosition<double>(
+      Angle<double>::degrees(30),
+      Angle<double>::degrees(29)));
+  TimeStamp simulationStartTime = TimeStamp::UTC(2014, 12, 15, 12, 06, 29);
+
+  auto wind = NavalSimulation::constantFlowFun(
+     HorizontalMotion<double>::polar(Velocity<double>::metersPerSecond(10.8),
+                                     Angle<double>::degrees(306)));
+  auto current = NavalSimulation::constantFlowFun(
+     HorizontalMotion<double>::polar(Velocity<double>::knots(0.5),
+                                     Angle<double>::degrees(49)));
+
+
+  Array<BoatSimulationSpecs::TwaDirective> dirs(12);
+  for (int i = 0; i < 12; i++) {
+    dirs[i] = BoatSimulationSpecs::TwaDirective::constant(
+        Duration<double>::minutes(2.0),
+        Angle<double>::degrees((i + 2)*67.0));
+  }
+
+  CorruptedBoatState::CorruptorSet corruptors2;
+    corruptors2.awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+        Angle<double>::degrees(9.8));
+    corruptors2.magHdg = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+        Angle<double>::degrees(-3.3));
+    corruptors2.aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.09, Velocity<double>::knots(0.3));
+    corruptors2.watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(0.94, Velocity<double>::knots(-0.2));
+
+  Array<BoatSimulationSpecs> specs(2);
+  specs[0] = BoatSimulationSpecs(BoatCharacteristics(),
+      dirs,
+      CorruptedBoatState::CorruptorSet());
+  specs[1] = BoatSimulationSpecs(BoatCharacteristics(),
+      dirs,
+      corruptors2);
+
+
+  return NavalSimulation(e, geoRef,
+           simulationStartTime,
+           wind,
+           current,
+           specs
+           );
+}
+
+namespace {
+NavalSimulation makeNavSimUpwindDownwind(int count) {
+    std::default_random_engine e;
+
+    GeographicReference geoRef(GeographicPosition<double>(
+        Angle<double>::degrees(30),
+        Angle<double>::degrees(29)));
+    TimeStamp simulationStartTime = TimeStamp::UTC(2014, 12, 15, 12, 06, 29);
+
+    auto wind = (Flow::constant(Velocity<double>::metersPerSecond(6),
+        Velocity<double>::metersPerSecond(-2)) +
+            Flow(
+            Flow::spatiallyChangingVelocity(
+                      Velocity<double>::metersPerSecond(1.3),
+                      Angle<double>::radians(3234.234),
+                      Length<double>::meters(30),
+                      Angle<double>::radians(34.4)),
+            Flow::spatiallyChangingVelocity(
+                      Velocity<double>::metersPerSecond(1.0),
+                      Angle<double>::radians(54.2),
+                      Length<double>::meters(51),
+                      Angle<double>::radians(12.4)))).asFunction();
+    auto current = (Flow::constant(Velocity<double>::metersPerSecond(0.1),
+          Velocity<double>::metersPerSecond(-0.2)) +
+              Flow(
+              Flow::spatiallyChangingVelocity(
+                        Velocity<double>::knots(0.29),
+                        Angle<double>::radians(99),
+                        Length<double>::meters(4),
+                        Angle<double>::radians(234.912)),
+              Flow::spatiallyChangingVelocity(
+                        Velocity<double>::knots(0.1),
+                        Angle<double>::radians(98.66),
+                        Length<double>::meters(9),
+                        Angle<double>::radians(2996.33)))).asFunction();
+
+    Array<BoatSimulationSpecs::TwaDirective> dirs(2*count);
+    for (int i = 0; i < count; i++) {
+      int sign = 2*(i % 2) - 1;
+      // Upwind
+      dirs[i + 0] = BoatSimulationSpecs::TwaDirective::constant(
+          Duration<double>::minutes(2.0),
+          Angle<double>::degrees(sign*45));
+
+      // Downwind
+      dirs[i + count] = BoatSimulationSpecs::TwaDirective::constant(
+          Duration<double>::minutes(2.0),
+          Angle<double>::degrees(180 + sign*20));
+    }
+
+    CorruptedBoatState::CorruptorSet corruptors1;
+      corruptors1.awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+          Angle<double>::degrees(-4));
+      corruptors1.magHdg = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+          Angle<double>::degrees(-9));
+      corruptors1.aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.12, Velocity<double>::knots(-0.5));
+      corruptors1.watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.3, Velocity<double>::knots(0.8));
+
+      CorruptedBoatState::CorruptorSet corruptors2;
+        corruptors2.awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+            Angle<double>::degrees(-14));
+        corruptors2.magHdg = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+            Angle<double>::degrees(-1));
+        corruptors2.aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.2, Velocity<double>::knots(0.0));
+        corruptors2.watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.0, Velocity<double>::knots(-0.7));
+
+
+    Array<BoatSimulationSpecs> specs(2);
+    specs[0] = BoatSimulationSpecs(BoatCharacteristics(),
+        dirs,
+        corruptors1);
+    specs[1] = BoatSimulationSpecs(BoatCharacteristics(),
+        dirs,
+        corruptors2);
+
+
+    return NavalSimulation(e, geoRef,
+             simulationStartTime,
+             wind,
+             current,
+             specs
+             );
+  }
+}
+
+NavalSimulation makeNavSimUpwindDownwind() {
+  return makeNavSimUpwindDownwind(6);
+}
+
+NavalSimulation makeNavSimUpwindDownwindLong() {
+  return makeNavSimUpwindDownwind(18);
+}
+
+
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e) {
+  s << "FlowError( norm: " << e.norm() << " angle: " << e.angle() << " magnitude: " << e.magnitude() << ")";
+  return s;
+}
+
+std::ostream &operator<< (std::ostream &s, const NavalSimulation::SimulatedCalibrationResults &e) {
+  s << "FlowErrors(\n";
+  s << "  wind    = " << e.wind().error() << "\n";
+  s << "  current = " << e.current().error() << "\n";
+  s << ")\n";
+  return s;
+}
+
 
 
 }
