@@ -207,6 +207,19 @@ inline int div1(int a, int b) {
 }
 
 
+template <typename T>
+void solveQuadratic(T a, T b, T c, T *x0, T *x1) {
+  T twoA = 2*a;
+  T q = sqrt(b*b - 4*a*c);
+  *x0 = (-b + q)/twoA;
+  *x1 = (-b - q)/twoA;
+}
+
+// A tri basis is a linear basis where the norm
+// between any pair of basic vectors is 1, such as
+// two connected edges of a regular triangle or tetrahedron.
+void makeTriBasisVector(int dims, int index, double *dst);
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */

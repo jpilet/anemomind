@@ -36,4 +36,16 @@ TEST(MathTest, PosModFloatingPoint) {
   EXPECT_EQ(positiveMod(-3.4, 360.0), 360.0 - 3.4);
 }
 
+TEST(MathTest, TriBasis) {
+
+  // Some high dimension, just for fun...
+  const int N = 9;
+
+  double a[N], b[N];
+  makeTriBasisVector(N, 3, a);
+  makeTriBasisVector(N, 7, b);
+  EXPECT_NEAR(norm(9, a), 1.0, 1.0e-6);
+  EXPECT_NEAR(norm(9, b), 1.0, 1.0e-6);
+  EXPECT_NEAR((normdif<double, 9>(a, b)), 1.0, 1.0e-6);
+}
 
