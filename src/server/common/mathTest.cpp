@@ -54,8 +54,8 @@ TEST(MathTest, TriBasis) {
   double a[N], b[N];
   makeTriBasisVector(N, 3, a);
   makeTriBasisVector(N, 7, b);
-  EXPECT_NEAR(norm(9, a), 1.0, 1.0e-6);
-  EXPECT_NEAR(norm(9, b), 1.0, 1.0e-6);
-  EXPECT_NEAR((normdif<double, 9>(a, b)), 1.0, 1.0e-6);
+  EXPECT_NEAR(norm(N, a), 1.0, 1.0e-6);
+  EXPECT_NEAR(norm(N, b), 1.0, 1.0e-6);
+  EXPECT_NEAR((normdif<double, N>(a, b)), 1.0, 1.0e-6);
 }
 
