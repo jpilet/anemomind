@@ -18,14 +18,14 @@ typedef Fractal<2> Frac2d;
 
 template <int Dim>
 void initCtrl(Vertex *dst, int classCount) {
-  for (int i = 0; i < Fractal<Dim>::ctrlCount(); i++) {
+  for (int i = 0; i < Fractal<Dim>::ctrlCount; i++) {
     dst[i] = Vertex(0, i % classCount);
   }
 
 }
 
 void plotFractal1d(const Frac1d &f, double minx, double maxx, int depth) {
-  Vertex ctrl[Frac1d::ctrlCount()];
+  Vertex ctrl[Frac1d::ctrlCount];
   initCtrl<1>(ctrl, f.classCount());
   int sampleCount = 4000;
   Arrayd X(sampleCount);
@@ -71,10 +71,10 @@ void plotSlice(LineKM xmap, LineKM ymap, Frac2d f, GnuplotExtra *plot, int depth
 }
 
 void plotFractal2d(const Frac2d &f, int depth) {
-  Vertex ctrl[Frac2d::ctrlCount()];
+  Vertex ctrl[Frac2d::ctrlCount];
   initCtrl<2>(ctrl, f.classCount());
 
-  for (int i = 0; i < Frac1d::ctrlCount(); i++) {
+  for (int i = 0; i < Frac1d::ctrlCount; i++) {
     ctrl[i] = Vertex(0, i % f.classCount());
   }
 

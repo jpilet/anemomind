@@ -366,7 +366,7 @@ class Fractal {
   static constexpr int vertexDim() {return 3;}
   static constexpr int vertexCount() {return std::pow(vertexDim(), Dim);}
   static constexpr int ctrlDim() {return 2;}
-  static constexpr int ctrlCount() {return std::pow(ctrlDim(), Dim);}
+  static constexpr int ctrlCount = std::pow(ctrlDim(), Dim);
 
   Fractal(MDArray<Rule, 2> rules) :
     _rules(rules) {
@@ -381,14 +381,14 @@ class Fractal {
 
   template <typename CoordType=double>
   double eval(CoordType coords[Dim],
-      Vertex ctrl[ctrlCount()],
+      Vertex ctrl[ctrlCount],
       int depth, double width = 1.0) const {
     Vertex vertices[vertexCount()];
     if (depth == 0) {
       IndexBox<Dim> box = IndexBox<Dim>::sameSize(2);
-      assert(box.numel() == ctrlCount());
+      assert(box.numel() == ctrlCount);
       double result = 0.0*ctrl[0].value();
-      for (int i = 0; i < ctrlCount(); i++) {
+      for (int i = 0; i < ctrlCount; i++) {
         int inds[Dim];
         box.calcInds(i, inds);
         double weight = 1.0;
@@ -406,7 +406,7 @@ class Fractal {
       Vertex vertices[vertexCount()];
 
       // Initialized the arrays
-      for (int i = 0; i < ctrlCount(); i++) {
+      for (int i = 0; i < ctrlCount; i++) {
         int inds[Dim];
         ctrlBox.calcInds(i, inds);
         for (int j = 0; j < Dim; j++) {
@@ -429,8 +429,8 @@ class Fractal {
       }
 
       // Slice out the local values
-      Vertex localCtrl[ctrlCount()];
-      for (int i = 0; i < ctrlCount(); i++) {
+      Vertex localCtrl[ctrlCount];
+      for (int i = 0; i < ctrlCount; i++) {
         int inds[Dim];
         ctrlBox.calcInds(i, inds);
         for (int j = 0; j < Dim; j++) {
