@@ -49,7 +49,11 @@ TEST(SubdivFractalsTest, MaxSlope) {
   EXPECT_NEAR(maxSlope.eval(0.5), 1.0, 1.0e-6);
   EXPECT_NEAR(maxSlope.eval(0.9), 1.0, 1.0e-6);
   EXPECT_NEAR(maxSlope.eval(2.0), 0.5, 1.0e-6);
+
+  EXPECT_NEAR(maxSlope.fitValue(0.0, 0.0, 0.5, -0.5, 0.1), 0.05, 1.0e-6);
 }
+
+
 
 //TEST(SubdivFractalsTest, Generate) {
 //  MDArray2i indexTable(7, 7);

@@ -27,9 +27,17 @@ class MaxSlope {
     }
     return _maxSlope;
   }
+
+  double fitValue(double y0, double y1, double alpha,
+      double beta, double w) const {
+      double m = eval(w);
+      return 0.5*((y0 + alpha*m*w) + (y1 - beta*m*w));
+  }
  private:
   double _signalRange, _maxSlope;
 };
+
+
 
 template <typename T>
 class Vertex {
