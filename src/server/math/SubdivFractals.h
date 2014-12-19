@@ -13,13 +13,26 @@
 namespace sail {
 
 
+// Helper object in the computation of the
+// curve
 class MaxSlope {
  public:
+  MaxSlope() : _signalRange(NAN), _maxSlope(NAN) {}
+
+  // Signal range:
+  //  For instance if the signal models wind conditions in a spatial dimension,
+  //  then signalRange controls approximately the bounds of the signal, e.g. 25 m/s which
+  //  is storm.
+  // maxSlope:
+  //  how much the signal will maximally change along the dimension. An indicative
+  //  value might be that if you move 30 meters, the wind strength increases from 0 m/s to 8 m/s.
+  //  Then set maxSlope = 8/30, or something like that.
   MaxSlope(double signalRange, double maxSlope) :
     _signalRange(signalRange), _maxSlope(maxSlope) {
     assert(signalRange > 0);
     assert(maxSlope > 0);
   }
+
   double eval(double width) const {
     assert(width > 0);
     if (_maxSlope*width > _signalRange) {
@@ -30,62 +43,57 @@ class MaxSlope {
 
   double fitValue(double y0, double y1, double alpha,
       double beta, double w) const {
+      assert(-1 <= alpha && alpha <= 1);
+      assert(-1 <= beta && beta <= 1);
+      assert(0 < w);
       double m = eval(w);
       return 0.5*((y0 + alpha*m*w) + (y1 - beta*m*w));
   }
+
  private:
   double _signalRange, _maxSlope;
 };
 
 
 
-template <typename T>
 class Vertex {
  public:
-  Vertex() : _classIndex(-1) {}
-  Vertex(const T &value, const T &ref, int classIndex) :
-    _value(value), _ref(ref), _classIndex(classIndex) {}
+  Vertex() : _classIndex(-1), _value(NAN) {}
+  Vertex(double value, int classIndex) :
+    _value(value), _classIndex(classIndex) {}
 
-  const T &value() const {
+  double value() const {
     return _value;
-  }
-
-  const T &ref() const {
-    return _ref;
   }
 
   int classIndex() const {
     return _classIndex;
   }
  private:
-  T _value, _ref;
+  double _value;
   int _classIndex;
 };
 
 class Rule {
  public:
-  Rule(double balance, double scaling, int newClass, double irreg) :
-    _balance(balance), _scaling(scaling), _newClass(newClass), _irreg(irreg) {
-    assert(0 <= balance && balance <= 1);
-    assert(-1 < scaling && scaling < 1);
-    assert(0 <= newClass);
-    assert(std::isfinite(irreg));
+  Rule(MaxSlope slope, double alpha, double beta, int newClass) :
+    _slope(slope), _alpha(alpha), _beta(beta), _newClass(newClass) {
   }
 
-  Rule() : _balance(NAN), _scaling(NAN), _newClass(-1), _irreg(NAN) {}
+  Rule() : _alpha(NAN), _beta(NAN), _newClass(-1) {}
 
-  template <typename T>
-  Vertex<T> combine(const Vertex<T> &a, const Vertex<T> &b) const {
-    T ref = _scaling*((1.0 - _balance)*a.ref() + _balance*b.ref());
-    T value = 0.5*(a.value() + b.value()) + _irreg*ref;
-    return Vertex<T>(value, ref, _newClass);
+  Vertex combine(const Vertex &a, const Vertex &b, double w) const {
+    //T value = 0.5*(a.value() + b.value()) + _irreg*ref;
+    double value = _slope.fitValue(a.value(), b.value(), _alpha, _beta, 0.5*w);
+    return Vertex(value, _newClass);
   }
 
   bool defined() const {
     return _newClass != -1;
   }
  private:
-  double _balance, _scaling, _irreg;
+  double _alpha, _beta;
+  MaxSlope _slope;
   int _newClass;
 };
 
@@ -214,9 +222,8 @@ class IndexBox {
     return withOffset(_size/2) + _actualSize*_next.midpointIndex();
   }
 
-  template <typename T>
-  void generate(Vertex<T> *vertices,
-                const MDArray<Rule, 2> &rules,
+  void generate(Vertex *vertices,
+                const MDArray<Rule, 2> &rules, double width,
       const IndexList<Dim> &indexList = IndexList<Dim>()) const {
       if (!indexList.empty()) {
         assert(hasMidpoint());
@@ -232,14 +239,14 @@ class IndexBox {
         int highType = highv.classIndex();
         assert(highType != -1);
 
-        vertices[middle] = rules(lowType, highType).combine(lowv, highv);
+        vertices[middle] = rules(lowType, highType).combine(lowv, highv, width);
 
         for (int ka = 0; ka < indexList.size(); ka++) {
           IndexList<Dim> slicedList = indexList.remove(ka);
           assert(slicedList.size() < indexList.size());
           int kabel = indexList[ka];
-          sliceLow(kabel).generate(vertices, rules, slicedList);
-          sliceHigh(kabel).generate(vertices, rules, slicedList);
+          sliceLow(kabel).generate(vertices, rules, width, slicedList);
+          sliceHigh(kabel).generate(vertices, rules, width, slicedList);
         }
       }
     }
@@ -319,15 +326,15 @@ class SubdivFractals {
     }
   }
 
-  template <typename T, typename CoordType=double>
-  T eval(CoordType coords[Dim],
-      Vertex<T> ctrl[ctrlCount()],
-      int depth) const {
-    Vertex<T> vertices[vertexCount()];
+  template <typename CoordType=double>
+  double eval(CoordType coords[Dim],
+      Vertex ctrl[ctrlCount()],
+      int depth, double width = 1.0) const {
+    Vertex vertices[vertexCount()];
     if (depth == 0) {
       IndexBox<Dim> box = IndexBox<Dim>::sameSize(2);
       assert(box.numel() == ctrlCount());
-      T result = 0.0*ctrl[0].value();
+      double result = 0.0*ctrl[0].value();
       for (int i = 0; i < ctrlCount(); i++) {
         int inds[Dim];
         box.calcInds(i, inds);
@@ -343,7 +350,7 @@ class SubdivFractals {
       IndexBox<Dim> vertexBox = IndexBox<Dim>::sameSize(vertexDim());
       IndexBox<Dim> ctrlBox = IndexBox<Dim>::sameSize(ctrlDim());
 
-      Vertex<T> vertices[vertexCount()];
+      Vertex vertices[vertexCount()];
 
       // Initialized the arrays
       for (int i = 0; i < ctrlCount(); i++) {
@@ -357,7 +364,7 @@ class SubdivFractals {
       }
 
       // Generate
-      vertexBox.generate(vertices, _rules);
+      vertexBox.generate(vertices, _rules, width);
 
       // Assign cell indices and compute local coordinates
       int cellInds[Dim];
@@ -369,7 +376,7 @@ class SubdivFractals {
       }
 
       // Slice out the local values
-      Vertex<T> localCtrl[ctrlCount()];
+      Vertex localCtrl[ctrlCount()];
       for (int i = 0; i < ctrlCount(); i++) {
         int inds[Dim];
         ctrlBox.calcInds(i, inds);
@@ -380,7 +387,7 @@ class SubdivFractals {
         localCtrl[i] = vertices[index];
       }
 
-      return eval(localCoords, localCtrl, depth - 1);
+      return eval(localCoords, localCtrl, 0.5*width, depth - 1);
     }
   }
  private:
