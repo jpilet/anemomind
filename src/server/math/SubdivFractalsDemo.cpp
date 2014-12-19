@@ -45,10 +45,12 @@ int main() {
 
   SubdivFractals<1> f(rules);
 
-  int sampleCount = 3000;
+  int sampleCount = 4000;
   Arrayd X(sampleCount);
   Arrayd Y(sampleCount);
-  for (int i = 0; i < sampleCount; i++) {
+  //for (int i = 0; i < sampleCount; i++) {
+  {
+    int i = 1000;
     double x = double(i)/sampleCount;
     X[i] = x;
     double xcoord[Dim];
@@ -58,10 +60,10 @@ int main() {
     Y[i] = f.eval(xcoord, ctrl, 2);
   }
 
-  GnuplotExtra plot;
-  plot.set_style("lines");
-  plot.plot_xy(X, Y);
-  plot.show();
+//  GnuplotExtra plot;
+//  plot.set_style("lines");
+//  plot.plot_xy(X, Y);
+//  plot.show();
 
   return 0;
 }

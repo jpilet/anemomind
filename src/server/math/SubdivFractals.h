@@ -84,6 +84,12 @@ class Rule {
 
   Vertex combine(const Vertex &a, const Vertex &b, double w) const {
     //T value = 0.5*(a.value() + b.value()) + _irreg*ref;
+    std::cout << EXPR_AND_VAL_AS_STRING(w) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(0.5*w) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(a.value()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(b.value()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(_alpha) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(_beta) << std::endl;
     double value = _slope.fitValue(a.value(), b.value(), _alpha, _beta, 0.5*w);
     return Vertex(value, _newClass);
   }
@@ -404,7 +410,7 @@ class SubdivFractals {
         localCtrl[i] = vertices[index];
       }
 
-      return eval(localCoords, localCtrl, 0.5*width, depth - 1);
+      return eval(localCoords, localCtrl, depth - 1, 0.5*width);
     }
   }
  private:
