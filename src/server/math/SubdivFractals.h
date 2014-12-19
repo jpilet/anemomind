@@ -9,6 +9,7 @@
 #include <cmath>
 #include <iostream>
 #include <server/common/string.h>
+#include <vector>
 
 namespace sail {
 namespace SubdivFractals {
@@ -146,48 +147,64 @@ inline std::ostream &operator << (std::ostream &s, const Rule &r) {
 
 
 
-// This is an integer vector upper bounded by Dim.
-// From such a vector, a new vector with an element removed
-// can be created with the remove method.
-// This class is used by the 'generate' method in IndexBox.
-template <int Dim>
-class IndexList {
- public:
-  IndexList() : _size(Dim) {
-    for (int i = 0; i < Dim; i++) {
-      _inds[i] = i;
-    }
-  }
+//// This is an integer vector upper bounded by Dim.
+//// From such a vector, a new vector with an element removed
+//// can be created with the remove method.
+//// This class is used by the 'generate' method in IndexBox.
+//template <int Dim>
+//class IndexList {
+// public:
+//  IndexList() : _size(Dim) {
+//    for (int i = 0; i < Dim; i++) {
+//      _inds[i] = i;
+//    }
+//  }
+//
+//  int size() const {
+//    return _size;
+//  }
+//
+//  IndexList remove(int index) const {
+//    return IndexList(index, *this);
+//  }
+//
+//  int operator[] (int index) const {
+//    return _inds[index];
+//  }
+//
+//  bool empty() const {
+//    return _size == 0;
+//  }
+// private:
+//  IndexList(int indexToRemove, const IndexList &src) {
+//    _size = src._size - 1;
+//    for (int i = 0; i < indexToRemove; i++) {
+//      _inds[i] = src._inds[i];
+//    }
+//    for (int i = indexToRemove+1; i < src._size; i++) {
+//      _inds[i-1] = src._inds[i];
+//    }
+//  }
+//
+//  int _inds[Dim];
+//  int _size;
+//};
 
-  int size() const {
-    return _size;
-  }
+typedef std::vector<int> IndexList;
 
-  IndexList remove(int index) const {
-    return IndexList(index, *this);
+inline IndexList makeIndexList(int len) {
+  IndexList dst(len);
+  for (int i = 0; i < len; i++) {
+    dst[i] = i;
   }
+  return dst;
+}
 
-  int operator[] (int index) const {
-    return _inds[index];
-  }
-
-  bool empty() const {
-    return _size == 0;
-  }
- private:
-  IndexList(int indexToRemove, const IndexList &src) {
-    _size = src._size - 1;
-    for (int i = 0; i < indexToRemove; i++) {
-      _inds[i] = src._inds[i];
-    }
-    for (int i = indexToRemove+1; i < src._size; i++) {
-      _inds[i-1] = src._inds[i];
-    }
-  }
-
-  int _inds[Dim];
-  int _size;
-};
+inline IndexList remove(const IndexList &src, int index) {
+  IndexList dst = src;
+  dst.erase(dst.begin() + index);
+  return dst;
+}
 
 // This object handles the indexing when subdividing a line segment,
 // a square, a cube or its higher dimensional generalization.
@@ -273,7 +290,7 @@ class IndexBox {
 
   void generate(Vertex *vertices,
                 const MDArray<Rule, 2> &rules, double width,
-      const IndexList<Dim> &indexList = IndexList<Dim>()) const {
+      const IndexList &indexList = makeIndexList(Dim)) const {
       if (!indexList.empty()) {
         assert(hasMidpoint());
         int low = lowIndex();
@@ -291,7 +308,7 @@ class IndexBox {
         vertices[middle] = rules(lowType, highType).combine(lowv, highv, width);
 
         for (int ka = 0; ka < indexList.size(); ka++) {
-          IndexList<Dim> slicedList = indexList.remove(ka);
+          IndexList slicedList = remove(indexList, ka);
           assert(slicedList.size() < indexList.size());
           int kabel = indexList[ka];
           sliceLow(kabel).generate(vertices, rules, width, slicedList);
