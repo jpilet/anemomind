@@ -19,14 +19,20 @@ int main() {
   int ruleCount = 5;
   MDArray<Rule, 2> rules(ruleCount, ruleCount);
 
-  MaxSlope slope(1.0, 1.0);
+  MaxSlope slope(300.0, 300.0);
   std::uniform_real_distribution<double> alphaBetaDistrib(-1, 1);
   std::uniform_int_distribution<int> indexDistrib(0, ruleCount-1);
+  std::cout << "RULES:" << std::endl;
   for (int i = 0; i < ruleCount; i++) {
     for (int j = 0; j < ruleCount; j++) {
-      rules(i, j) = Rule(slope, alphaBetaDistrib(e), alphaBetaDistrib(e),
+      auto rule = Rule(slope,
+          alphaBetaDistrib(e),
+          alphaBetaDistrib(e),
           indexDistrib(e));
+      rules(i, j) = rule;
+      std::cout << rule << " ";
     }
+    std::cout << std::endl;
   }
 
 
@@ -49,7 +55,7 @@ int main() {
     for (int j = 0; j < Dim; j++) {
       xcoord[j] = x;
     }
-    Y[i] = f.eval(xcoord, ctrl, 12);
+    Y[i] = f.eval(xcoord, ctrl, 2);
   }
 
   GnuplotExtra plot;

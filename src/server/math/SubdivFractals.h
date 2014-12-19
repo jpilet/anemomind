@@ -91,11 +91,28 @@ class Rule {
   bool defined() const {
     return _newClass != -1;
   }
+
+  double alpha() const {
+    return _alpha;
+  }
+
+  double beta() const {
+    return _beta;
+  }
+
+  int newClass() const {
+    return _newClass;
+  }
  private:
   double _alpha, _beta;
   MaxSlope _slope;
   int _newClass;
 };
+
+inline std::ostream &operator << (std::ostream &s, const Rule &r) {
+  s << "Rule(alpha=" << r.alpha() << ", beta=" << r.beta() << ", newClass=" << r.newClass() << ")";
+  return s;
+}
 
 
 
