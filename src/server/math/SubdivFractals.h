@@ -16,7 +16,7 @@ namespace SubdivFractals {
 
 
 // Helper object in the computation of the
-// curve
+// curve locally.
 class MaxSlope {
  public:
   MaxSlope() : _signalRange(NAN), _maxSlope(NAN) {}
@@ -43,6 +43,13 @@ class MaxSlope {
     return _maxSlope;
   }
 
+  // Given two curve values y0 and y1, this
+  // function computes a new curve value
+  // in between.
+  //  alpha and beta in [-1, 1] control the slopes
+  //  of the line segments connecting the new value
+  //  with y0 and y1, respectively.
+  //  w is half the spacing between y0 and y1.
   double fitValue(double y0, double y1, double alpha,
       double beta, double w) const {
       assert(-1 <= alpha && alpha <= 1);
@@ -57,7 +64,11 @@ class MaxSlope {
 };
 
 
-
+// A vertex holds a curve value together
+// with a class index. When a new vertex
+// is generated between two vertices,
+// their class indices are used to look
+// up the rule to generate that vertex.
 class Vertex {
  public:
   Vertex() : _classIndex(-1), _value(NAN) {}
@@ -76,6 +87,8 @@ class Vertex {
   int _classIndex;
 };
 
+// A rule determines how a new vertex should be generated w.r.t.
+// its two neighbors.
 class Rule {
  public:
   Rule(MaxSlope slope, double alpha, double beta, int newClass) :
@@ -117,7 +130,10 @@ inline std::ostream &operator << (std::ostream &s, const Rule &r) {
 
 
 
-
+// This is an integer vector upper bounded by Dim.
+// From such a vector, a new vector with an element removed
+// can be created with the remove method.
+// This class is used by the 'generate' method in IndexBox.
 template <int Dim>
 class IndexList {
  public:
@@ -157,7 +173,8 @@ class IndexList {
   int _size;
 };
 
-
+// This object handles the indexing when subdividing a line segment,
+// a square, a cube or its higher dimensional generalization.
 template <int Dim>
 class IndexBox {
  public:
