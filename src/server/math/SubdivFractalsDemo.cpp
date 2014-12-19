@@ -8,11 +8,12 @@
 #include <server/math/SubdivFractals.h>
 
 using namespace sail;
+using namespace sail::SubdivFractals;
 
 int main() {
   constexpr int Dim = 1;
 
-  typedef SubdivFractals<Dim> Frac;
+  typedef Fractal<Dim> Frac;
 
   std::default_random_engine e;
 
@@ -43,7 +44,7 @@ int main() {
   }
 
 
-  SubdivFractals<1> f(rules);
+  Fractal<1> f(rules);
 
   int sampleCount = 4000;
   Arrayd X(sampleCount);

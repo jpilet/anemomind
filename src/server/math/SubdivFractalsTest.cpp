@@ -8,6 +8,7 @@
 #include <server/common/Array.h>
 
 using namespace sail;
+using namespace sail::SubdivFractals;
 
 TEST(SubdivFractalsTest, IndexBox) {
   EXPECT_EQ(IndexBox<2>().numel(), 0);

@@ -11,6 +11,8 @@
 #include <server/common/string.h>
 
 namespace sail {
+namespace SubdivFractals {
+
 
 
 // Helper object in the computation of the
@@ -202,8 +204,6 @@ class IndexBox {
     return _size*_next.numel();
   }
 
-
-  // Public so that the + operator can use it.
   IndexBox(int actualSize_, int offset_, int size_,
     const NextBox &next_) : _actualSize(actualSize_),
     _offset(offset_), _size(size_), _next(next_) {}
@@ -324,14 +324,14 @@ IndexBox<Dim+1> operator+(const IndexBox<1> &a, const IndexBox<Dim> &b) {
 
 
 template <int Dim>
-class SubdivFractals {
+class Fractal {
  public:
   static constexpr int vertexDim() {return 3;}
   static constexpr int vertexCount() {return std::pow(vertexDim(), Dim);}
   static constexpr int ctrlDim() {return 2;}
   static constexpr int ctrlCount() {return std::pow(ctrlDim(), Dim);}
 
-  SubdivFractals(MDArray<Rule, 2> rules) :
+  Fractal(MDArray<Rule, 2> rules) :
     _rules(rules) {
     assert(rules.isSquare());
     int n = rules.rows();
@@ -411,6 +411,10 @@ class SubdivFractals {
 };
 
 
+
+
+
+}
 }
 
 
