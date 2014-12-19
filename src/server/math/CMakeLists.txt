@@ -215,8 +215,8 @@ cxx_test(math_SubdivFractalsTest
         
 add_executable(math_SubdivFractalsDemo
                SubdivFractalsDemo.cpp
-              )        
-
+              )
+                      
 target_link_libraries(math_SubdivFractalsDemo
                       plot_gnuplot
                       common_ArgMap

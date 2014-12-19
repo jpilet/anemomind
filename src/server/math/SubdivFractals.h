@@ -361,6 +361,8 @@ IndexBox<Dim+1> operator+(const IndexBox<1> &a, const IndexBox<Dim> &b) {
 template <int Dim>
 class Fractal {
  public:
+  static constexpr int spaceDimension = Dim;
+
   static constexpr int vertexDim() {return 3;}
   static constexpr int vertexCount() {return std::pow(vertexDim(), Dim);}
   static constexpr int ctrlDim() {return 2;}
