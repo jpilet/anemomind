@@ -12,6 +12,78 @@
 
 namespace sail {
 
+
+class MaxSlope {
+ public:
+  MaxSlope(double signalRange, double maxSlope) :
+    _signalRange(signalRange), _maxSlope(maxSlope) {
+    assert(signalRange > 0);
+    assert(maxSlope > 0);
+  }
+  double eval(double width) const {
+    assert(width > 0);
+    if (_maxSlope*width > _signalRange) {
+      return _signalRange/width;
+    }
+    return _maxSlope;
+  }
+ private:
+  double _signalRange, _maxSlope;
+};
+
+template <typename T>
+class Vertex {
+ public:
+  Vertex() : _classIndex(-1) {}
+  Vertex(const T &value, const T &ref, int classIndex) :
+    _value(value), _ref(ref), _classIndex(classIndex) {}
+
+  const T &value() const {
+    return _value;
+  }
+
+  const T &ref() const {
+    return _ref;
+  }
+
+  int classIndex() const {
+    return _classIndex;
+  }
+ private:
+  T _value, _ref;
+  int _classIndex;
+};
+
+class Rule {
+ public:
+  Rule(double balance, double scaling, int newClass, double irreg) :
+    _balance(balance), _scaling(scaling), _newClass(newClass), _irreg(irreg) {
+    assert(0 <= balance && balance <= 1);
+    assert(-1 < scaling && scaling < 1);
+    assert(0 <= newClass);
+    assert(std::isfinite(irreg));
+  }
+
+  Rule() : _balance(NAN), _scaling(NAN), _newClass(-1), _irreg(NAN) {}
+
+  template <typename T>
+  Vertex<T> combine(const Vertex<T> &a, const Vertex<T> &b) const {
+    T ref = _scaling*((1.0 - _balance)*a.ref() + _balance*b.ref());
+    T value = 0.5*(a.value() + b.value()) + _irreg*ref;
+    return Vertex<T>(value, ref, _newClass);
+  }
+
+  bool defined() const {
+    return _newClass != -1;
+  }
+ private:
+  double _balance, _scaling, _irreg;
+  int _newClass;
+};
+
+
+
+
 template <int Dim>
 class IndexList {
  public:
@@ -134,36 +206,32 @@ class IndexBox {
     return withOffset(_size/2) + _actualSize*_next.midpointIndex();
   }
 
-  template <typename VertexType>
-  void generate(int *vertexTypes,
-                VertexType *vertices,
-                const MDArray2i &indexTable,
-                const MDArray2d &lambdaTable,
+  template <typename T>
+  void generate(Vertex<T> *vertices,
+                const MDArray<Rule, 2> &rules,
       const IndexList<Dim> &indexList = IndexList<Dim>()) const {
       if (!indexList.empty()) {
         assert(hasMidpoint());
         int low = lowIndex();
-        int lowType = vertexTypes[low];
+        auto &lowv = vertices[low];
+        int lowType = lowv.classIndex();
         assert(lowType != -1);
 
         int middle = midpointIndex();
 
         int high = highIndex();
-        int highType = vertexTypes[high];
+        auto &highv = vertices[high];
+        int highType = highv.classIndex();
         assert(highType != -1);
 
-        double lambda = lambdaTable(lowType, highType);
-        vertexTypes[middle] = indexTable(lowType, highType);
-        vertices[middle] = (1.0 - lambda)*vertices[low] + lambda*vertices[high];
+        vertices[middle] = rules(lowType, highType).combine(lowv, highv);
 
         for (int ka = 0; ka < indexList.size(); ka++) {
           IndexList<Dim> slicedList = indexList.remove(ka);
           assert(slicedList.size() < indexList.size());
           int kabel = indexList[ka];
-          sliceLow(kabel).generate(vertexTypes, vertices,
-              indexTable, lambdaTable, slicedList);
-          sliceHigh(kabel).generate(vertexTypes, vertices,
-              indexTable, lambdaTable, slicedList);
+          sliceLow(kabel).generate(vertices, rules, slicedList);
+          sliceHigh(kabel).generate(vertices, rules, slicedList);
         }
       }
     }
@@ -223,6 +291,7 @@ IndexBox<Dim+1> operator+(const IndexBox<1> &a, const IndexBox<Dim> &b) {
 
 
 
+
 template <int Dim>
 class SubdivFractals {
  public:
@@ -231,53 +300,42 @@ class SubdivFractals {
   static constexpr int ctrlDim() {return 2;}
   static constexpr int ctrlCount() {return std::pow(ctrlDim(), Dim);}
 
-  SubdivFractals(MDArray2i subdivIndex, MDArray2d subdivLambda) :
-    _subdivIndex(subdivIndex), _subdivLambda(subdivLambda) {
-    assert(subdivIndex.isSquare());
-    assert(subdivLambda.isSquare());
-    int n = subdivIndex.rows();
-    assert(n == subdivLambda.rows());
+  SubdivFractals(MDArray<Rule, 2> rules) :
+    _rules(rules) {
+    assert(rules.isSquare());
+    int n = rules.rows();
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
-        assert(std::isfinite(_subdivLambda(i, j)));
-        int index = _subdivIndex(i, j);
-        assert(0 <= index && index < n);
+        assert(rules(i, j).defined());
       }
     }
   }
 
-  template <typename VertexType, typename CoordType=double>
-  VertexType eval(CoordType coords[Dim],
-      VertexType ctrl[ctrlCount()],
-      int ctrlClasses[ctrlCount()],
+  template <typename T, typename CoordType=double>
+  T eval(CoordType coords[Dim],
+      Vertex<T> ctrl[ctrlCount()],
       int depth) const {
-    VertexType vertices[vertexCount()];
+    Vertex<T> vertices[vertexCount()];
     if (depth == 0) {
       IndexBox<Dim> box = IndexBox<Dim>::sameSize(2);
       assert(box.numel() == ctrlCount());
-      VertexType result = 0.0*ctrl[0];
+      T result = 0.0*ctrl[0].value();
       for (int i = 0; i < ctrlCount(); i++) {
         int inds[Dim];
         box.calcInds(i, inds);
         double weight = 1.0;
         for (int j = 0; j < Dim; j++) {
-          weight *= (inds[j] == 0? 1.0 - coords[j] : coords[j]);
+          auto x = coords[j];
+          weight *= (inds[j] == 0? 1.0 - x : x);
         }
-        result = result + weight*ctrl[i];
+        result = result + weight*ctrl[i].value();
       }
       return result;
     } else {
       IndexBox<Dim> vertexBox = IndexBox<Dim>::sameSize(vertexDim());
       IndexBox<Dim> ctrlBox = IndexBox<Dim>::sameSize(ctrlDim());
 
-      VertexType vertices[vertexCount()];
-      int vertexClasses[vertexCount()];
-
-      // Just for safety, so that memory is always initialized
-      for (int i = 0; i < vertexCount(); i++) {
-        vertices[i] = NAN*ctrl[0];
-        vertexClasses[i] = -1;
-      }
+      Vertex<T> vertices[vertexCount()];
 
       // Initialized the arrays
       for (int i = 0; i < ctrlCount(); i++) {
@@ -288,11 +346,10 @@ class SubdivFractals {
         }
         int index = vertexBox.calcIndex(inds);
         vertices[index] = ctrl[i];
-        vertexClasses[index] = ctrlClasses[i];
       }
 
       // Generate
-      vertexBox.generate(vertexClasses, vertices, _subdivIndex, _subdivLambda);
+      vertexBox.generate(vertices, _rules);
 
       // Assign cell indices and compute local coordinates
       int cellInds[Dim];
@@ -304,8 +361,7 @@ class SubdivFractals {
       }
 
       // Slice out the local values
-      int localCtrlClasses[ctrlCount()];
-      VertexType localCtrl[ctrlCount()];
+      Vertex<T> localCtrl[ctrlCount()];
       for (int i = 0; i < ctrlCount(); i++) {
         int inds[Dim];
         ctrlBox.calcInds(i, inds);
@@ -313,16 +369,14 @@ class SubdivFractals {
           inds[j] += cellInds[j];
         }
         int index = vertexBox.calcIndex(inds);
-        localCtrlClasses[i] = vertexClasses[index];
         localCtrl[i] = vertices[index];
       }
 
-      return eval(localCoords, localCtrl, localCtrlClasses, depth - 1);
+      return eval(localCoords, localCtrl, depth - 1);
     }
   }
  private:
-  MDArray2i _subdivIndex;
-  MDArray2d _subdivLambda;
+  MDArray<Rule, 2> _rules;
 };
 
 

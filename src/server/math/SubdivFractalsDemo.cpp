@@ -12,24 +12,27 @@ using namespace sail;
 int main() {
   std::default_random_engine e;
 
-  int ruleCount = 12;
-  MDArray2i inds(ruleCount, ruleCount);
-  MDArray2d lambda(ruleCount, ruleCount);
+  int ruleCount = 5;
+  MDArray<Rule, 2> rules(ruleCount, ruleCount);
 
   double marg = 0.2;
-  std::uniform_real_distribution<double> lambdaDistrib(-marg, 1 + marg);
+  std::uniform_real_distribution<double> balanceDistrib(0, 1);
+  double s = 0.1;
+  std::uniform_real_distribution<double> scalingDistrib(-s, s);
+  std::uniform_real_distribution<double> irregDistrib(-1, 1);
   std::uniform_int_distribution<int> indexDistrib(0, ruleCount-1);
   for (int i = 0; i < ruleCount; i++) {
     for (int j = 0; j < ruleCount; j++) {
-      lambda(i, j) = lambdaDistrib(e);
-      inds(i, j) = indexDistrib(e);
+      rules(i, j) = Rule(balanceDistrib(e), scalingDistrib(e),
+          indexDistrib(e), irregDistrib(e));
     }
   }
 
-  double ctrl[4] = {0, 1, 1, 2};
-  int ctrlClasses[4] = {0, 1, 2, 3};
+  typedef Vertex<double> Vertexd;
 
-  SubdivFractals<1> f(inds, lambda);
+  Vertexd ctrl[4] = {Vertexd(0, 1, 0), Vertexd(0, 1, 1), Vertexd(0, 1, 2), Vertexd(0, 1, 3)};
+
+  SubdivFractals<1> f(rules);
 
   int sampleCount = 3000;
   Arrayd X(sampleCount);
@@ -37,7 +40,8 @@ int main() {
   for (int i = 0; i < sampleCount; i++) {
     double x = double(i)/sampleCount;
     X[i] = x;
-    Y[i] = f.eval(&x, ctrl, ctrlClasses, 12);
+    double x2[2] = {x, x};
+    Y[i] = f.eval(x2, ctrl, 12);
   }
 
   GnuplotExtra plot;
