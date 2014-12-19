@@ -215,8 +215,8 @@ void solveQuadratic(T a, T b, T c, T *x0, T *x1) {
   *x1 = (-b - q)/twoA;
 }
 
-// A tri basis is a linear basis where the norm
-// between any pair of basic vectors is 1, such as
+// A tri basis is a linear basis where the 2-norm
+// between any pair of two different basis vectors is 1, such as
 // two connected edges of a regular triangle or tetrahedron.
 void makeTriBasisVector(int dims, int index, double *dst);
 
