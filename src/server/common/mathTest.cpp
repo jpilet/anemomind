@@ -36,6 +36,16 @@ TEST(MathTest, PosModFloatingPoint) {
   EXPECT_EQ(positiveMod(-3.4, 360.0), 360.0 - 3.4);
 }
 
+TEST(MathTest, QuadTest) {
+  double a = 3.34;
+  double b = 9.18;
+
+  double ax, bx;
+  solveQuadratic(1.0, -a-b, a*b, &ax, &bx);
+  EXPECT_NEAR(a, std::min(ax, bx), 1.0e-6);
+  EXPECT_NEAR(b, std::max(ax, bx), 1.0e-6);
+}
+
 TEST(MathTest, TriBasis) {
 
   // Some high dimension, just for fun...
