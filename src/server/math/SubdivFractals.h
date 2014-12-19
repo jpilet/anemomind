@@ -363,10 +363,10 @@ class Fractal {
  public:
   static constexpr int spaceDimension = Dim;
 
-  static constexpr int vertexDim() {return 3;}
-  static constexpr int vertexCount() {return std::pow(vertexDim(), Dim);}
-  static constexpr int ctrlDim() {return 2;}
-  static constexpr int ctrlCount = std::pow(ctrlDim(), Dim);
+  static constexpr int vertexDim = 3;
+  static constexpr int vertexCount = std::pow(vertexDim, Dim);
+  static constexpr int ctrlDim = 2;
+  static constexpr int ctrlCount = std::pow(ctrlDim, Dim);
 
   Fractal(MDArray<Rule, 2> rules) :
     _rules(rules) {
@@ -383,7 +383,7 @@ class Fractal {
   double eval(CoordType coords[Dim],
       Vertex ctrl[ctrlCount],
       int depth, double width = 1.0) const {
-    Vertex vertices[vertexCount()];
+    Vertex vertices[vertexCount];
     if (depth == 0) {
       IndexBox<Dim> box = IndexBox<Dim>::sameSize(2);
       assert(box.numel() == ctrlCount);
@@ -400,10 +400,10 @@ class Fractal {
       }
       return result;
     } else {
-      IndexBox<Dim> vertexBox = IndexBox<Dim>::sameSize(vertexDim());
-      IndexBox<Dim> ctrlBox = IndexBox<Dim>::sameSize(ctrlDim());
+      IndexBox<Dim> vertexBox = IndexBox<Dim>::sameSize(vertexDim);
+      IndexBox<Dim> ctrlBox = IndexBox<Dim>::sameSize(ctrlDim);
 
-      Vertex vertices[vertexCount()];
+      Vertex vertices[vertexCount];
 
       // Initialized the arrays
       for (int i = 0; i < ctrlCount; i++) {
