@@ -145,51 +145,6 @@ inline std::ostream &operator << (std::ostream &s, const Rule &r) {
   return s;
 }
 
-
-
-//// This is an integer vector upper bounded by Dim.
-//// From such a vector, a new vector with an element removed
-//// can be created with the remove method.
-//// This class is used by the 'generate' method in IndexBox.
-//template <int Dim>
-//class IndexList {
-// public:
-//  IndexList() : _size(Dim) {
-//    for (int i = 0; i < Dim; i++) {
-//      _inds[i] = i;
-//    }
-//  }
-//
-//  int size() const {
-//    return _size;
-//  }
-//
-//  IndexList remove(int index) const {
-//    return IndexList(index, *this);
-//  }
-//
-//  int operator[] (int index) const {
-//    return _inds[index];
-//  }
-//
-//  bool empty() const {
-//    return _size == 0;
-//  }
-// private:
-//  IndexList(int indexToRemove, const IndexList &src) {
-//    _size = src._size - 1;
-//    for (int i = 0; i < indexToRemove; i++) {
-//      _inds[i] = src._inds[i];
-//    }
-//    for (int i = indexToRemove+1; i < src._size; i++) {
-//      _inds[i-1] = src._inds[i];
-//    }
-//  }
-//
-//  int _inds[Dim];
-//  int _size;
-//};
-
 typedef std::vector<int> IndexList;
 
 inline IndexList makeIndexList(int len) {
