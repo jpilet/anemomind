@@ -48,22 +48,20 @@ int main() {
   int sampleCount = 4000;
   Arrayd X(sampleCount);
   Arrayd Y(sampleCount);
-  //for (int i = 0; i < sampleCount; i++) {
-  {
-    int i = 1000;
+  for (int i = 0; i < sampleCount; i++) {
     double x = double(i)/sampleCount;
     X[i] = x;
     double xcoord[Dim];
     for (int j = 0; j < Dim; j++) {
       xcoord[j] = x;
     }
-    Y[i] = f.eval(xcoord, ctrl, 2);
+    Y[i] = f.eval(xcoord, ctrl, 12);
   }
 
-//  GnuplotExtra plot;
-//  plot.set_style("lines");
-//  plot.plot_xy(X, Y);
-//  plot.show();
+  GnuplotExtra plot;
+  plot.set_style("lines");
+  plot.plot_xy(X, Y);
+  plot.show();
 
   return 0;
 }
