@@ -10,7 +10,7 @@
 using namespace sail;
 
 int main() {
-  constexpr int Dim = 2;
+  constexpr int Dim = 1;
 
   typedef SubdivFractals<Dim> Frac;
 
@@ -19,7 +19,7 @@ int main() {
   int ruleCount = 5;
   MDArray<Rule, 2> rules(ruleCount, ruleCount);
 
-  MaxSlope slope(300.0, 300.0);
+  MaxSlope slope(0.1, 1.0);
   std::uniform_real_distribution<double> alphaBetaDistrib(-1, 1);
   std::uniform_int_distribution<int> indexDistrib(0, ruleCount-1);
   std::cout << "RULES:" << std::endl;
