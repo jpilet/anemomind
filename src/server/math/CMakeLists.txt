@@ -219,6 +219,8 @@ add_executable(math_SubdivFractalsDemo
 
 target_link_libraries(math_SubdivFractalsDemo
                       plot_gnuplot
+                      common_ArgMap
+                      common_LineKM
                      )
 
 

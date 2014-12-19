@@ -59,9 +59,21 @@ class MaxSlope {
       return 0.5*((y0 + alpha*m*w) + (y1 - beta*m*w));
   }
 
+  double signalRange() const {
+    return _signalRange;
+  }
+
+  double maxSlope() const {
+    return _maxSlope;
+  }
  private:
   double _signalRange, _maxSlope;
 };
+
+inline std::ostream &operator<< (std::ostream &s, const MaxSlope &x) {
+  s << "MaxSlope(" << x.signalRange() << "," << x.maxSlope() << ")";
+  return s;
+}
 
 
 // A vertex holds a curve value together
@@ -117,6 +129,10 @@ class Rule {
   int newClass() const {
     return _newClass;
   }
+
+  const MaxSlope &slope() const {
+    return _slope;
+  }
  private:
   double _alpha, _beta;
   MaxSlope _slope;
@@ -124,7 +140,7 @@ class Rule {
 };
 
 inline std::ostream &operator << (std::ostream &s, const Rule &r) {
-  s << "Rule(alpha=" << r.alpha() << ", beta=" << r.beta() << ", newClass=" << r.newClass() << ")";
+  s << "Rule(" << r.slope() << "," << r.alpha() << "," << r.beta() << "," << r.newClass() << ")";
   return s;
 }
 
@@ -339,7 +355,9 @@ IndexBox<Dim+1> operator+(const IndexBox<1> &a, const IndexBox<Dim> &b) {
 
 
 
-
+// Given a set of rules defining what a fractal should look like,
+// This object has an 'eval' method that evaluates a fractal function.
+// It works for any dimension.
 template <int Dim>
 class Fractal {
  public:
@@ -422,6 +440,26 @@ class Fractal {
 
       return eval(localCoords, localCtrl, depth - 1, 0.5*width);
     }
+  }
+
+  // Generates code to build the rules for this fractal that can be copy/pasted into
+  // the source code. Useful when we build test cases that should work on all computers
+  // no matter their implementation of random numbers.
+  void generateCode(std::string matrixName, std::ostream *dst = nullptr) const {
+    if (dst == nullptr) {
+      dst = &(std::cout);
+    }
+    *dst << "MDArray<Rule, 2> " << matrixName << "(" << _rules.rows() << ", " << _rules.cols() << ");\n {constexpr double inf = std::numeric_limits<double>::infinity();";
+    for (int i = 0; i < _rules.rows(); i++) {
+      for (int j = 0; j < _rules.cols(); j++) {
+        *dst << matrixName << "(" << i << "," << j << ")=" << _rules(i, j) << ";";
+      }
+    }
+    *dst << "}" << std::endl;
+  }
+
+  int classCount() const {
+    return _rules.rows();
   }
  private:
   MDArray<Rule, 2> _rules;
