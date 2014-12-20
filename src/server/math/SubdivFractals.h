@@ -325,6 +325,14 @@ IndexBox<Dim+1> operator+(const IndexBox<1> &a, const IndexBox<Dim> &b) {
 }
 
 
+namespace {
+
+// Because std::pow is not constexpr with clang
+constexpr int intPow(int x, int n) {
+  return n > 0 ? x * intPow(x, n - 1) : 1;
+}
+
+}  // namespace
 
 
 // Given a set of rules defining what a fractal should look like,
@@ -336,9 +344,9 @@ class Fractal {
   static constexpr int spaceDimension = Dim;
 
   static constexpr int vertexDim = 3;
-  static constexpr int vertexCount = std::pow(vertexDim, Dim);
+  static constexpr int vertexCount = intPow(vertexDim, Dim);
   static constexpr int ctrlDim = 2;
-  static constexpr int ctrlCount = std::pow(ctrlDim, Dim);
+  static constexpr int ctrlCount = intPow(ctrlDim, Dim);
 
   Fractal(MDArray<Rule, 2> rules) :
     _rules(rules) {
