@@ -208,6 +208,22 @@ cxx_test(math_PiecewiseFunctionTest
          gtest_main
         )
 
+cxx_test(math_SubdivFractalsTest
+         SubdivFractalsTest.cpp
+         gtest_main
+        )
+        
+add_executable(math_SubdivFractalsDemo
+               SubdivFractalsDemo.cpp
+              )
+                      
+target_link_libraries(math_SubdivFractalsDemo
+                      plot_gnuplot
+                      common_ArgMap
+                      common_LineKM
+                     )
+
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
