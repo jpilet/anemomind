@@ -207,6 +207,25 @@ inline int div1(int a, int b) {
 }
 
 
+template <typename T>
+void solveQuadratic(T a, T b, T c, T *x0, T *x1) {
+  T twoA = 2*a;
+  T q = sqrt(b*b - 4*a*c);
+  *x0 = (-b + q)/twoA;
+  *x1 = (-b - q)/twoA;
+}
+
+// A tri basis is a linear basis where the 2-norm
+// between any pair of two different basis vectors is 1, such as
+// two connected edges of a regular triangle or tetrahedron.
+// For instance,
+// If you have a tetrahedron, whose edges all have the same length 1,
+// and translate that tetrahedron so that one of its vertices is at
+// the origin, then it is possible to rotate the tetrahedron around
+// the origin so that the remaining three vertices are the three vectors
+// output by this function, respectively, when dim=3.
+void makeTriBasisVector(int dims, int index, double *dst);
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */
