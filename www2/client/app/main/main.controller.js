@@ -37,6 +37,7 @@ angular.module('www2App')
             name:'Sessions',
             type: 'geoJSON',
             url:'../api/tiles/{z}/{x}/{y}/Irene',
+            visible: true,
             layerOptions: {
               style: {
                 "color": "#00D",
