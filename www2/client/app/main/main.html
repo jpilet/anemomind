@@ -2,11 +2,11 @@
 
 <div class="container">
   <div ng-controller="PathController">
-    <leaflet center="lausanne" width="100%" height="400" defaults="defaults" layers="layers"></leaflet>
+    <leaflet center="map.position" width="100%" height="400" defaults="map.defaults" layers="map.layers"></leaflet>
     <form>
-      Latitude : <input type="number" step="any" ng-model="lausanne.lat" />
-      Longitude : <input type="number" step="any" ng-model="lausanne.lng" />
-      Zoom : <input type="number" step="any" ng-model="lausanne.zoom" />
+      Latitude : <input type="number" step="any" ng-model="map.position.lat" />
+      Longitude : <input type="number" step="any" ng-model="map.position.lng" />
+      Zoom : <input type="number" step="any" ng-model="map.position.zoom" />
     </form>
   </div>
 
