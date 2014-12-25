@@ -1,5 +1,3 @@
-console.log('VectorTileLayer loading...');
-
 function VectorTileLayer(params, renderer) {
   this.params = params;
 
@@ -84,16 +82,6 @@ VectorTileLayer.prototype.draw = function(canvas, pinchZoom,
   this.numDraw++;
 }
 
-VectorTileLayer.prototype.isHighlighted = function(curveId) {
-  if (!this.highlight) {
-    return false;
-  }
-  var endTime= new Date(curveId.substr(curveId.length-19));
-  var startTime= new Date(curveId.substr(curveId.length-19*2,19));
-  return this.highlight.startTime >= startTime
-    && this.highlight.endTime <= endTime;
-};
-
 VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
                                                 tileGeometry, canvas) {
   var left = tileGeometry.origin.x
@@ -105,7 +93,7 @@ VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
     return;
   }
 
-  for (var upLevel = 0; upLevel <= scale && upLevel < 3; ++upLevel) {
+  for (var upLevel = 0; upLevel <= scale && upLevel < 4; ++upLevel) {
     var upTileX = tileX >> upLevel;
     var upTileY = tileY >> upLevel;
     
@@ -130,20 +118,31 @@ VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
 };
 
 VectorTileLayer.prototype.drawVisibleCurves = function(context, pinchZoom) {
-  for (var curveId in this.visibleCurves) {
-    this.drawCurve(curveId, context, pinchZoom);
+  if (this.selectedCurve) {
+    this.drawCurve(this.selectedCurve, context, pinchZoom);
+  } else {
+    for (var curveId in this.visibleCurves) {
+      this.drawCurve(curveId, context, pinchZoom);
+    }
   }
 }
 
 VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   // prepare the Cavas path
+
   if (this.isHighlighted(curveId)) {
     context.strokeStyle="#FF0000";
+    context.lineWidth = 3;
   } else {
     if (this.highlight) {
-      return;
+      // Another curve is hightlighted
+      context.strokeStyle="#777777";
+      context.lineWidth = 1;
+    } else {
+      // Nothing is highlighted
+      context.strokeStyle="#000000";
+      context.lineWidth = 2;
     }
-    context.strokeStyle="#000000";
   }
 
   // Extract all points
@@ -216,6 +215,7 @@ VectorTileLayer.prototype.queueTileRequest = function(key, url, priority) {
   return tile;
 };
 
+// Convert string time representation to javascript Date() objects.
 function parseTime(data) {
   for (var i in data) {
     var curves = data[i].curves;
@@ -311,18 +311,59 @@ VectorTileLayer.prototype.limitCacheSize = function() {
   }
 };
 
+VectorTileLayer.prototype.highlightCurve = function(curveId) {
+  return {
+    curveId: curveId,
+    endTime: new Date(curveId.substr(curveId.length-19)),
+    startTime: new Date(curveId.substr(curveId.length-19*2,19))
+  };
+};
+
 VectorTileLayer.prototype.getTimeData = function() {
   var result = [];
   for (var c in this.visibleCurves) {
-    result.push({ endTime: new Date(c.substr(c.length-19)),
-                startTime: new Date(c.substr(c.length-19*2,19)) });
+    result.push(this.highlightCurve(c));
   }
   return result;
 };
 
+VectorTileLayer.prototype.selectCurve = function(curveId) {
+  if (curveId == this.selectedCurve) {
+    return;
+  }
+
+  this.selectedCurve = curveId;
+
+  if (curveId) {
+    this.highlight = this.highlightCurve(curveId);
+    var loc = this.locationForCurve(curveId);
+    if (loc) {
+      this.renderer.setLocation(loc);
+    }
+  } else {
+    this.highlight = undefined;
+    this.renderer.refreshIfNotMoving();
+  }
+}
+
 VectorTileLayer.prototype.setHighlight = function(d) {
+  if (this.selectedCurve && (!d || this.selectedCurve != d.curveId)) {
+    // When a curve is selected, we refuse to highlight another one.
+    // We also refuse to unhighlight.
+    return;
+  }
   this.highlight = d;
   this.renderer.refreshIfNotMoving();
+};
+
+VectorTileLayer.prototype.isHighlighted = function(curveId) {
+  if (!this.highlight) {
+    return false;
+  }
+  var endTime= new Date(curveId.substr(curveId.length-19));
+  var startTime= new Date(curveId.substr(curveId.length-19*2,19));
+  return this.highlight.startTime >= startTime
+    && this.highlight.endTime <= endTime;
 };
 
 VectorTileLayer.prototype.findPointAt = function(x, y) {
@@ -336,22 +377,58 @@ VectorTileLayer.prototype.findPointAt = function(x, y) {
     if (key in this.tiles && this.tiles[key].state == "loaded") {
       var tile = this.tiles[key];
       var bestDist = .25 / (1 << scale);
-      var bestPoint;
+      var bestPoint = false;
+      var bestCurve;
 
       for (var curve in tile.data) {
         for (var c in tile.data[curve].curves) {
+          var curveId = tile.data[curve].curves[c].curveId;
+          if (this.selectedCurve && this.selectedCurve != curveId) {
+            continue;
+          }
           var points = tile.data[curve].curves[c].points;
           for (var i in points) {
             var dist = Utils.distance(p, {x: points[i].pos[0], y: points[i].pos[1]});
             if (dist < bestDist) {
               bestDist = dist;
               bestPoint = points[i];
+              bestCurve = curveId;
             }
           }
         }
       }
-      return bestPoint;
+      if (bestPoint) {
+        return { point: bestPoint, curveId: bestCurve };
+      }
+      return undefined;
     }
   }
 }
 
+VectorTileLayer.prototype.locationForCurve = function(curveId) {
+  if (!(curveId in this.visibleCurves)) {
+    return undefined;
+  }
+  var minX = 1000, minY = 1000, maxX = -1000, maxY = -1000;
+
+  // TODO: instead of searching in the visibleCurves array, looking at the tile
+  // at scale 0 would be both faster and more accurate, since visibleCurves
+  // might only contain partial data.
+  var curveElements = this.visibleCurves[curveId];
+
+  for (var e in curveElements) {
+    var element = curveElements[e];
+    for (var i in element.points) {
+      var p = element.points[i].pos;
+      minX = Math.min(p[0], minX);
+      minY = Math.min(p[1], minY);
+      maxX = Math.max(p[0], maxX);
+      maxY = Math.max(p[1], maxY);
+    }
+  }
+  return {
+    x: (minX + maxX) / 2,
+    y: (minY + maxY) / 2,
+    scale: 2*Math.max(maxX - minX, maxY - minY)
+  };
+}

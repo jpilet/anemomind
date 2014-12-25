@@ -2,7 +2,7 @@
 function TimeBar(reference, data) {
   this.reference = reference;
   this.data = data;
-  this.onTimeSelect = function(d) {
+  this.onTimeHighlight = function(d) {
   };
  
   //A better idom for binding with resize is to debounce
@@ -88,11 +88,14 @@ TimeBar.prototype.draw = function() {
     .attr("fill", rectColor)
     .on("mouseover", function(d) {
         d3.select(this).attr("fill", '#777');
-        me.onTimeSelect(d);
+        me.onTimeHighlight(d);
         })
     .on("mouseout", function() {
         d3.select(this).attr("fill", rectColor);
-        me.onTimeSelect(undefined);
+        me.onTimeHighlight(undefined);
+        })
+    .on("click", function(d) {
+        me.onSelect(d);
         })
     ;
 
