@@ -64,3 +64,12 @@ target_link_libraries(nautical_synthtest_EvaluateCalibrator
                       nautical_synthtest_NavalSimulation
                       nautical_Calibrator
                      )
+                     
+add_library(nautical_synthtest_FractalFlow
+            FractalFlow.h
+            FractalFlow.cpp
+           )
+target_link_libraries(nautical_synthtest_FractalFlow
+                      common_math
+                      nautical_synthtest_Flow
+                     )                                

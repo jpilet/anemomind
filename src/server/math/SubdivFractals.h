@@ -447,6 +447,29 @@ class Fractal {
   MDArray<Rule, 2> _rules;
 };
 
+/*
+ * Wraps a Fractal with control points and depth parameter
+ * to a single composite type.
+ */
+template <int Dim>
+class FractalFunction {
+ public:
+  FractalFunction(const Fractal<Dim> &fractal,
+                  Array<Vertex> ctrl, int depth) :
+                   _fractal(fractal), _ctrl(ctrl), _depth(depth) {
+    assert(ctrl.size() == Fractal<Dim>::ctrlCount);
+  }
+
+  template <typename CoordType=double>
+  double eval(CoordType coords[Dim]) const {
+    return _fractal.eval(coords, _ctrl.ptr(), _depth);
+  }
+ private:
+  Fractal<Dim> _fractal;
+  Array<Vertex> _ctrl;
+  int _depth;
+};
+
 
 
 

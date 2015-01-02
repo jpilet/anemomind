@@ -13,8 +13,8 @@ namespace sail {
 
 Flow makeFractalFlow(Length<double> spaceUnit,
                      Duration<double> timeUnit,
-                     SubdivFractals::Fractal<3> xFlow,
-                     SubdivFractals::Fractal<3> yFlow);
+                     SubdivFractals::FractalFunction<3> xFlow,
+                     SubdivFractals::FractalFunction<3> yFlow);
 
 }
 
