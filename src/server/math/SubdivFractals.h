@@ -10,6 +10,7 @@
 #include <iostream>
 #include <server/common/string.h>
 #include <vector>
+#include <random>
 
 namespace sail {
 namespace SubdivFractals {
@@ -102,18 +103,32 @@ class Vertex {
 
 // A rule determines how a new vertex should be generated w.r.t.
 // its two neighbors.
-class BoundedRule {
+class Rule {
  public:
-  BoundedRule(MaxSlope slope, double alpha, double beta, int newClass) :
-    _slope(slope), _alpha(alpha), _beta(beta), _newClass(newClass) {
-  }
+  typedef std::shared_ptr<Rule> Ptr;
+  virtual Vertex combine(const Vertex &a, const Vertex &b, double width) const = 0;
+  virtual std::string toString() const = 0;
+  virtual ~Rule() {}
+};
 
-  BoundedRule() : _alpha(NAN), _beta(NAN), _newClass(-1) {}
+// This rule is suitable for angles
+class AngleRule {
+ public:
+  AngleRule(double lambda, int newClass);
 
-  Vertex combine(const Vertex &a, const Vertex &b, double w) const {
-    double value = _slope.fitValue(a.value(), b.value(), _alpha, _beta, 0.5*w);
-    return Vertex(value, _newClass);
-  }
+  Vertex combine(const Vertex &a, const Vertex &b, double w) const;
+  std::string toString() const;
+ private:
+  double _lambda;
+  int _newClass;
+};
+
+// This rule is suitable for bounded signals
+class BoundedRule : public Rule {
+ public:
+  BoundedRule(MaxSlope slope, double alpha, double beta, int newClass);
+
+  Vertex combine(const Vertex &a, const Vertex &b, double w) const;
 
   bool defined() const {
     return _newClass != -1;
@@ -134,16 +149,14 @@ class BoundedRule {
   const MaxSlope &slope() const {
     return _slope;
   }
+
+  std::string toString() const;
+
  private:
   double _alpha, _beta;
   MaxSlope _slope;
   int _newClass;
 };
-
-inline std::ostream &operator << (std::ostream &s, const BoundedRule &r) {
-  s << "Rule(" << r.slope() << "," << r.alpha() << "," << r.beta() << "," << r.newClass() << ")";
-  return s;
-}
 
 typedef std::vector<int> IndexList;
 
@@ -244,7 +257,7 @@ class IndexBox {
   }
 
   void generate(Vertex *vertices,
-                const MDArray<BoundedRule, 2> &rules, double width,
+                const MDArray<Rule::Ptr, 2> &rules, double width,
       const IndexList &indexList = makeIndexList(Dim)) const {
       if (!indexList.empty()) {
         assert(hasMidpoint());
@@ -260,7 +273,7 @@ class IndexBox {
         int highType = highv.classIndex();
         assert(highType != -1);
 
-        vertices[middle] = rules(lowType, highType).combine(lowv, highv, width);
+        vertices[middle] = rules(lowType, highType)->combine(lowv, highv, width);
 
         for (int ka = 0; ka < indexList.size(); ka++) {
           IndexList slicedList = remove(indexList, ka);
@@ -348,15 +361,9 @@ class Fractal {
   static constexpr int ctrlDim = 2;
   static constexpr int ctrlCount = intPow(ctrlDim, Dim);
 
-  Fractal(MDArray<BoundedRule, 2> rules) :
+  Fractal(MDArray<Rule::Ptr, 2> rules) :
     _rules(rules) {
     assert(rules.isSquare());
-    int n = rules.rows();
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
-        assert(rules(i, j).defined());
-      }
-    }
   }
 
   template <typename CoordType=double>
@@ -444,11 +451,14 @@ class Fractal {
     return _rules.rows();
   }
  private:
-  MDArray<BoundedRule, 2> _rules;
+  MDArray<Rule::Ptr, 2> _rules;
 };
 
+MDArray<Rule::Ptr, 2> makeRandomRules(int classCount,
+    MaxSlope maxSlope, std::default_random_engine &e);
 
-
+Array<Vertex> makeRandomCtrl(int ctrlCount, int classCount, double maxv,
+    std::default_random_engine &e);
 
 
 }

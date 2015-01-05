@@ -92,12 +92,6 @@ void plotFractal2d(const Frac2d &f, int depth) {
   plot.show();
 }
 
-void example(double minx, double maxx, int depth) {
-  MDArray<BoundedRule, 2> rules(5, 5);
-   {constexpr double inf = std::numeric_limits<double>::infinity();rules(0,0)=BoundedRule(MaxSlope(inf,1),0.0655345,0.511211,0);rules(0,1)=BoundedRule(MaxSlope(inf,1),0.869386,0.357729,1);rules(0,2)=BoundedRule(MaxSlope(inf,1),-0.893077,0.661931,1);rules(0,3)=BoundedRule(MaxSlope(inf,1),-0.866316,-0.984604,2);rules(0,4)=BoundedRule(MaxSlope(inf,1),0.692334,0.177953,2);rules(1,0)=BoundedRule(MaxSlope(inf,1),0.402381,0.307838,2);rules(1,1)=BoundedRule(MaxSlope(inf,1),0.472164,-0.475094,4);rules(1,2)=BoundedRule(MaxSlope(inf,1),-0.269323,0.512821,1);rules(1,3)=BoundedRule(MaxSlope(inf,1),0.303037,0.445321,1);rules(1,4)=BoundedRule(MaxSlope(inf,1),-0.127177,0.769414,0);rules(2,0)=BoundedRule(MaxSlope(inf,1),-0.28147,-0.524451,3);rules(2,1)=BoundedRule(MaxSlope(inf,1),-0.878871,0.795313,0);rules(2,2)=BoundedRule(MaxSlope(inf,1),0.973284,0.0325839,4);rules(2,3)=BoundedRule(MaxSlope(inf,1),-0.852502,-0.818534,2);rules(2,4)=BoundedRule(MaxSlope(inf,1),0.0594948,-0.445836,2);rules(3,0)=BoundedRule(MaxSlope(inf,1),0.540409,-0.899832,2);rules(3,1)=BoundedRule(MaxSlope(inf,1),0.736494,-0.968265,4);rules(3,2)=BoundedRule(MaxSlope(inf,1),0.777144,0.450824,3);rules(3,3)=BoundedRule(MaxSlope(inf,1),0.182227,-0.29797,1);rules(3,4)=BoundedRule(MaxSlope(inf,1),-0.169211,0.683021,4);rules(4,0)=BoundedRule(MaxSlope(inf,1),-0.69256,-0.425575,2);rules(4,1)=BoundedRule(MaxSlope(inf,1),-0.00303976,-0.933892,2);rules(4,2)=BoundedRule(MaxSlope(inf,1),0.249699,0.109168,4);rules(4,3)=BoundedRule(MaxSlope(inf,1),-0.739145,-0.574497,4);rules(4,4)=BoundedRule(MaxSlope(inf,1),-0.946247,-0.994001,0);}
-  Frac1d f(rules);
-  plotFractal1d(f, minx, maxx, depth);
-}
 
 int main(int argc, const char **argv) {
 
@@ -110,7 +104,6 @@ int main(int argc, const char **argv) {
   double maxSlope = 1.0;
 
   ArgMap amap;
-  amap.registerOption("--example", "Run a preconfigured example");
   amap.registerOption("--minx",
       "Minimum x value for which to plot (default 0").store(&minx);
   amap.registerOption("--maxx",
@@ -133,26 +126,21 @@ int main(int argc, const char **argv) {
     return -1;
   } else if (amap.helpAsked()) {
     return 0;
-  } else if (amap.optionProvided("--example")) {
-    example(minx, maxx, depth);
-    return 0;
   }
-
 
   std::default_random_engine e(seed);
 
-  MDArray<BoundedRule, 2> rules(classCount, classCount);
+  MDArray<Rule::Ptr, 2> rules(classCount, classCount);
 
   MaxSlope slope(maxv, maxSlope);
   std::uniform_real_distribution<double> alphaBetaDistrib(-1, 1);
   std::uniform_int_distribution<int> indexDistrib(0, classCount-1);
   for (int i = 0; i < classCount; i++) {
     for (int j = 0; j < classCount; j++) {
-      auto rule = BoundedRule(slope,
+      rules(i, j) = Rule::Ptr(new BoundedRule(slope,
           alphaBetaDistrib(e),
           alphaBetaDistrib(e),
-          indexDistrib(e));
-      rules(i, j) = rule;
+          indexDistrib(e)));
     }
   }
 

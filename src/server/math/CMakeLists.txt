@@ -213,6 +213,11 @@ cxx_test(math_SubdivFractalsTest
          gtest_main
         )
         
+add_library(math_SubdivFractals
+            SubdivFractals.cpp
+            SubdivFractals.h
+           )
+        
 add_executable(math_SubdivFractalsDemo
                SubdivFractalsDemo.cpp
               )
@@ -221,6 +226,7 @@ target_link_libraries(math_SubdivFractalsDemo
                       plot_gnuplot
                       common_ArgMap
                       common_LineKM
+                      math_SubdivFractals
                      )
 
 
