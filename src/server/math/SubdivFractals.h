@@ -360,13 +360,45 @@ class Fractal {
   static constexpr int ctrlDim = 2;
   static constexpr int ctrlCount = intPow(ctrlDim, Dim);
 
-  Fractal(MDArray<Rule::Ptr, 2> rules) :
-    _rules(rules) {
+  Fractal(MDArray<Rule::Ptr, 2> rules, Array<Vertex> initCtrl,
+      int depth) :
+    _rules(rules), _initCtrl(initCtrl), _depth(depth) {
     assert(rules.isSquare());
   }
 
+
+
+  // Generates code to build the rules for this fractal that can be copy/pasted into
+  // the source code. Useful when we build test cases that should work on all computers
+  // no matter their implementation of random numbers.
+  void generateCode(std::string matrixName, std::ostream *dst = nullptr) const {
+    if (dst == nullptr) {
+      dst = &(std::cout);
+    }
+    *dst << "MDArray<Rule, 2> " << matrixName << "(" << _rules.rows() << ", " << _rules.cols() << ");\n {constexpr double inf = std::numeric_limits<double>::infinity();";
+    for (int i = 0; i < _rules.rows(); i++) {
+      for (int j = 0; j < _rules.cols(); j++) {
+        *dst << matrixName << "(" << i << "," << j << ")=" << _rules(i, j) << ";";
+      }
+    }
+    *dst << "}" << std::endl;
+  }
+
+  int classCount() const {
+    return _rules.rows();
+  }
+
   template <typename CoordType=double>
-  double eval(CoordType coords[Dim],
+  double eval(CoordType coords[Dim]) const {
+    return evalSub(coords, _initCtrl.ptr(), _depth);
+  }
+
+ private:
+  int _depth;
+  Array<Vertex> _initCtrl;
+
+  template <typename CoordType=double>
+  double evalSub(CoordType coords[Dim],
       Vertex ctrl[ctrlCount],
       int depth, double width = 1.0) const {
     Vertex vertices[vertexCount];
@@ -426,30 +458,10 @@ class Fractal {
         localCtrl[i] = vertices[index];
       }
 
-      return eval(localCoords, localCtrl, depth - 1, 0.5*width);
+      return evalSub(localCoords, localCtrl, depth - 1, 0.5*width);
     }
   }
 
-  // Generates code to build the rules for this fractal that can be copy/pasted into
-  // the source code. Useful when we build test cases that should work on all computers
-  // no matter their implementation of random numbers.
-  void generateCode(std::string matrixName, std::ostream *dst = nullptr) const {
-    if (dst == nullptr) {
-      dst = &(std::cout);
-    }
-    *dst << "MDArray<Rule, 2> " << matrixName << "(" << _rules.rows() << ", " << _rules.cols() << ");\n {constexpr double inf = std::numeric_limits<double>::infinity();";
-    for (int i = 0; i < _rules.rows(); i++) {
-      for (int j = 0; j < _rules.cols(); j++) {
-        *dst << matrixName << "(" << i << "," << j << ")=" << _rules(i, j) << ";";
-      }
-    }
-    *dst << "}" << std::endl;
-  }
-
-  int classCount() const {
-    return _rules.rows();
-  }
- private:
   MDArray<Rule::Ptr, 2> _rules;
 };
 

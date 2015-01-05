@@ -17,17 +17,15 @@ typedef Fractal<1> Frac1d;
 typedef Fractal<2> Frac2d;
 
 template <int Dim>
-void initCtrl(Vertex *dst, int classCount, double maxv) {
-  std::cout << EXPR_AND_VAL_AS_STRING(maxv) << std::endl;
+Array<Vertex> initCtrl(int classCount, double maxv) {
+  Array<Vertex> dst(Fractal<2>::ctrlCount);
   for (int i = 0; i < Fractal<Dim>::ctrlCount; i++) {
     dst[i] = Vertex(maxv*(i % 2), i % classCount);
   }
-
+  return dst;
 }
 
-void plotFractal1d(const Frac1d &f, double minx, double maxx, int depth, double maxv) {
-  Vertex ctrl[Frac1d::ctrlCount];
-  initCtrl<1>(ctrl, f.classCount(), maxv);
+void plotFractal1d(const Frac1d &f, double minx, double maxx) {
   int sampleCount = 4000;
   Arrayd X(sampleCount);
   Arrayd Y(sampleCount);
@@ -39,7 +37,7 @@ void plotFractal1d(const Frac1d &f, double minx, double maxx, int depth, double 
     for (int j = 0; j < Frac1d::spaceDimension; j++) {
       xcoord[j] = x;
     }
-    Y[i] = f.eval(xcoord, ctrl, depth);
+    Y[i] = f.eval(xcoord);
   }
 
   GnuplotExtra plot;
@@ -56,7 +54,7 @@ double toY(double x, double y) {
   return 0.5*sqrt(3.0)*y;
 }
 
-void plotSlice(LineKM xmap, LineKM ymap, Frac2d f, GnuplotExtra *plot, int depth, Vertex *ctrl) {
+void plotSlice(LineKM xmap, LineKM ymap, Frac2d f, GnuplotExtra *plot) {
   int sampleCount = 4000;
   LineKM map01(0, sampleCount-1, 0, 1);
   Arrayd X(sampleCount), Y(sampleCount), Z(sampleCount);
@@ -64,21 +62,14 @@ void plotSlice(LineKM xmap, LineKM ymap, Frac2d f, GnuplotExtra *plot, int depth
     double x0 = xmap(map01(i));
     double y0 = ymap(map01(i));
     double coords[2] = {x0, y0};
-    Z[i] = f.eval(coords, ctrl, depth);
+    Z[i] = f.eval(coords);
     X[i] = toX(x0, y0);
     Y[i] = toY(x0, y0);
   }
   plot->plot_xyz(X, Y, Z);
 }
 
-void plotFractal2d(const Frac2d &f, int depth, double maxv) {
-  Vertex ctrl[Frac2d::ctrlCount];
-  initCtrl<2>(ctrl, f.classCount(), maxv);
-
-  for (int i = 0; i < Frac1d::ctrlCount; i++) {
-    ctrl[i] = Vertex(0, i % f.classCount());
-  }
-
+void plotFractal2d(const Frac2d &f) {
   int sparseCount = 9;
   LineKM sparseMap(0, sparseCount-1, 0.0, 1.0);
 
@@ -86,9 +77,9 @@ void plotFractal2d(const Frac2d &f, int depth, double maxv) {
   plot.set_style("lines");
   for (int i = 0; i < sparseCount; i++) {
     double sp = sparseMap(i);
-    plotSlice(LineKM(0, 1, sp, sp), LineKM(0, 1, 0, 1.0 - sp), f, &plot, depth, ctrl);
-    plotSlice(LineKM(0, 1, 0, 1.0 - sp), LineKM(0, 1, sp, sp), f, &plot, depth, ctrl);
-    plotSlice(LineKM(0, 1, sp, 0), LineKM(0, 1, 0, sp), f, &plot, depth, ctrl);
+    plotSlice(LineKM(0, 1, sp, sp), LineKM(0, 1, 0, 1.0 - sp), f, &plot);
+    plotSlice(LineKM(0, 1, 0, 1.0 - sp), LineKM(0, 1, sp, sp), f, &plot);
+    plotSlice(LineKM(0, 1, sp, 0), LineKM(0, 1, 0, sp), f, &plot);
   }
   plot.show();
 }
@@ -143,18 +134,21 @@ int main(int argc, const char **argv) {
   }
 
 
-  Fractal<1> f(rules);
+
   if (amap.optionProvided("--2d")) {
-    Fractal<2> f2(rules);
-    plotFractal2d(f2, depth, r);
+    Array<Vertex> ctrl = initCtrl<2>(classCount, r);
+    Fractal<2> f2(rules, ctrl, depth);
+    plotFractal2d(f2);
   } else {
-    plotFractal1d(f, minx, maxx, depth, r);
+    Array<Vertex> ctrl = initCtrl<2>(classCount, r);
+    Fractal<1> f(rules, ctrl, depth);
+    plotFractal1d(f, minx, maxx);
+    if (amap.optionProvided("--generate")) {
+      f.generateCode("rules");
+    }
   }
 
 
-  if (amap.optionProvided("--generate")) {
-    f.generateCode("rules");
-  }
 
   return 0;
 }
