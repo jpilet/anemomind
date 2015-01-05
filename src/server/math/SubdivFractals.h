@@ -102,13 +102,13 @@ class Vertex {
 
 // A rule determines how a new vertex should be generated w.r.t.
 // its two neighbors.
-class Rule {
+class BoundedRule {
  public:
-  Rule(MaxSlope slope, double alpha, double beta, int newClass) :
+  BoundedRule(MaxSlope slope, double alpha, double beta, int newClass) :
     _slope(slope), _alpha(alpha), _beta(beta), _newClass(newClass) {
   }
 
-  Rule() : _alpha(NAN), _beta(NAN), _newClass(-1) {}
+  BoundedRule() : _alpha(NAN), _beta(NAN), _newClass(-1) {}
 
   Vertex combine(const Vertex &a, const Vertex &b, double w) const {
     double value = _slope.fitValue(a.value(), b.value(), _alpha, _beta, 0.5*w);
@@ -140,7 +140,7 @@ class Rule {
   int _newClass;
 };
 
-inline std::ostream &operator << (std::ostream &s, const Rule &r) {
+inline std::ostream &operator << (std::ostream &s, const BoundedRule &r) {
   s << "Rule(" << r.slope() << "," << r.alpha() << "," << r.beta() << "," << r.newClass() << ")";
   return s;
 }
@@ -244,7 +244,7 @@ class IndexBox {
   }
 
   void generate(Vertex *vertices,
-                const MDArray<Rule, 2> &rules, double width,
+                const MDArray<BoundedRule, 2> &rules, double width,
       const IndexList &indexList = makeIndexList(Dim)) const {
       if (!indexList.empty()) {
         assert(hasMidpoint());
@@ -348,7 +348,7 @@ class Fractal {
   static constexpr int ctrlDim = 2;
   static constexpr int ctrlCount = intPow(ctrlDim, Dim);
 
-  Fractal(MDArray<Rule, 2> rules) :
+  Fractal(MDArray<BoundedRule, 2> rules) :
     _rules(rules) {
     assert(rules.isSquare());
     int n = rules.rows();
@@ -444,7 +444,7 @@ class Fractal {
     return _rules.rows();
   }
  private:
-  MDArray<Rule, 2> _rules;
+  MDArray<BoundedRule, 2> _rules;
 };
 
 
