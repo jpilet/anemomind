@@ -226,6 +226,25 @@ void solveQuadratic(T a, T b, T c, T *x0, T *x1) {
 // output by this function, respectively, when dim=3.
 void makeTriBasisVector(int dims, int index, double *dst);
 
+
+template <typename T>
+T mirror(T x, T width) {
+  T doubleWidth = 2*width;
+  T local = positiveMod(x, doubleWidth);
+  if (local < width) {
+    return local;
+  } else {
+    return doubleWidth - local;
+  }
+}
+
+template <typename T>
+void mirror(int dims, T width, const T *x, T *y) {
+  for (int i = 0; i < dims; i++) {
+    y[i] = mirror(x[i], width);
+  }
+}
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */

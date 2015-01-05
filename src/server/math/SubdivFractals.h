@@ -112,7 +112,10 @@ class Rule {
   virtual ~Rule() {}
 };
 
-// This rule is suitable for angles
+// This rule is suitable for angles.
+// It will be used to define the direction in which it flows.
+// Fractals with this rule have the property that, as we zoom in on the flow,
+// the local directions of the flow becomes smoother and smoother.
 class AngleRule : public Rule {
  public:
   AngleRule(double lambda, int newClass);
@@ -123,7 +126,11 @@ class AngleRule : public Rule {
   int _newClass;
 };
 
-// This rule is suitable for bounded signals
+// This rule is suitable for bounded signals.
+// For instance, we would usually not expect the wind to be
+// much stronger than 25 m/s (storm). We can use this rule
+// to generate a fractal that defines the speed of flow, but not its
+// direction.
 class BoundedRule : public Rule {
  public:
   BoundedRule(MaxSlope slope, double alpha, double beta, int newClass);
@@ -400,9 +407,10 @@ class Fractal {
     static Basis basis;
 
     typedef arma::template Col<CoordType> Vec;
-    typedef typename Vec::template fixed<Dim> FixVec; // <-- so messy...
+    typedef typename Vec::template fixed<Dim> FixVec; // <-- what a mess :-D
 
     Vec y = basis.toBasis(Vec(Dim, coords));
+    mirror(Dim, 1.0, y.memptr(), y.memptr());
     return eval(y.memptr());
   }
 
