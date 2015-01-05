@@ -15,7 +15,7 @@ function VectorTileLayer(params, renderer) {
     this.url = this.params.vectorurl;
   } else {
     this.url = function(scale, x, y) {
-      return "http://localhost:8080/api/tiles/" + scale + '/' + x + '/' + y + '/Irene/';
+      return "/api/tiles/" + scale + '/' + x + '/' + y + '/Irene/';
     };
   }
   if (params.debug) {
@@ -73,6 +73,7 @@ VectorTileLayer.prototype.draw = function(canvas, pinchZoom,
     }
   }
   this.drawVisibleCurves(context, pinchZoom);
+  this.drawTimeSelection(context, pinchZoom);
 
   this.processQueue();
 
@@ -127,6 +128,25 @@ VectorTileLayer.prototype.drawVisibleCurves = function(context, pinchZoom) {
   }
 }
 
+VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
+  // Extract all points
+  var points = [];
+  var curveElements = this.visibleCurves[curveId];
+  for (var e in curveElements) {
+    var element = curveElements[e];
+    for (var i in element.points) {
+      points.push(element.points[i]);
+    }
+  }
+  // Sort by time
+  points.sort(function(a, b) {
+    return a.time - b.time;
+  });
+
+  this.lastPointArray = points;
+  return points;
+}
+
 VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   // prepare the Cavas path
 
@@ -145,24 +165,10 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
     }
   }
 
-  // Extract all points
-  var points = [];
-  var curveElements = this.visibleCurves[curveId];
-  for (var e in curveElements) {
-    var element = curveElements[e];
-    for (var i in element.points) {
-      points.push(element.points[i]);
-    }
-  }
-
+  var points = this.getPointsForCurve(curveId);
   if (points.length == 0) {
     return;
   }
-
-  // Sort by time
-  points.sort(function(a, b) {
-    return a.time - b.time;
-  });
 
   // Draw.
   context.beginPath();
@@ -179,6 +185,94 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   console.log('Curve ' + curveId + ' span: ' + points[0].time + ' to '
               + points[points.length - 1].time);
   */
+}
+
+VectorTileLayer.prototype.setCurrentTime = function(time) {
+  this.currentTime = time;
+  this.renderer.refreshIfNotMoving();
+}
+  
+VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
+  if (!this.currentTime || !this.lastPointArray ||
+      this.lastPointArray.length < 2 ||
+      this.currentTime < this.lastPointArray[0] ||
+      this.currentTime > this.lastPointArray[this.lastPointArray.length - 1]) {
+    return;
+  }
+
+  /**
+   * Performs a binary search on the provided sorted list and returns the index
+   * of the item if found. If it can't be found it'll return -1.
+   * Inspired from https://github.com/Wolfy87/binary-search
+   *
+   * @param {*[]} list Items to search through.
+   * @param {*} item The item to look for.
+   * @return {Number} The index of the item if found, -1 if not.
+   */
+  var binarySearch = function(list, item) {
+    var min = 0;
+    var max = list.length - 1;
+    var guess;
+
+    while ((max - min) > 1) {
+        guess = Math.floor((min + max) / 2);
+
+        if (list[guess].time < item) {
+            min = guess;
+        }
+        else {
+            max = guess;
+        }
+    }
+
+    return [min, max];
+  };
+
+  var pixelRatio = this.renderer.pixelRatio;
+
+  var windArrow = function(angle, color) {
+    var d = 20 * pixelRatio;
+    var l = 30 * pixelRatio;
+    var w = 8 * pixelRatio;
+    context.save();
+    context.rotate((180+angle) * toRadians);
+    context.beginPath();
+    context.moveTo(-w/2, d + l);
+    context.lineTo(w/2, d + l);
+    context.lineTo(0, d);
+    context.closePath();
+    context.fillStyle = color;
+    context.fill();
+    context.restore();
+  }
+
+
+  var bounds = binarySearch(this.lastPointArray, this.currentTime);
+  var p = this.lastPointArray[bounds[0]];
+  var pos = pinchZoom.viewerPosFromWorldPos(p.pos[0], p.pos[1]);
+
+  var toRadians = Math.PI / 180.0;
+  context.save();
+  context.translate(pos.x, pos.y);
+
+  windArrow(p.deviceTwdir, '7744ff');
+
+  context.rotate(p.gpsBearing * toRadians);
+
+  var l = 30 * pixelRatio;
+  var w = 8 * pixelRatio;
+  context.beginPath();
+  context.moveTo(0, -l/2);
+  context.lineTo(w/2, l/2);
+  context.lineTo(-w/2, l/2);
+  context.closePath();
+  context.fillStyle = '#662200';
+  context.fill();
+
+  windArrow(p.awa, '774400');
+
+  context.restore();
+
 }
 
 VectorTileLayer.prototype.getTile = function(scale, x, y, priority) {
@@ -262,6 +356,15 @@ VectorTileLayer.prototype.processQueue = function() {
               parseTime(data);
               query.tile.data = data;
               t.renderer.refreshIfNotMoving();
+              if (t.onDataArrived) {
+                if (t.onDataArrivedTimer) {
+                  clearTimeout(t.onDataArrivedTimer);
+                }
+                t.onDataArrivedTimer = setTimeout(function() {
+                  t.onDataArrivedTimer = undefined;
+                  t.onDataArrived();
+                }, 100);
+              }
             } else {
               query.tile.state = "empty";
             }
@@ -271,7 +374,8 @@ VectorTileLayer.prototype.processQueue = function() {
             query.tile.state = "failed";
             console.log('Failed to load: ' + query.url);
             t.processQueue();
-          }
+          },
+          timeout: 2000
         });  
       })(this, query);
       
@@ -339,6 +443,9 @@ VectorTileLayer.prototype.selectCurve = function(curveId) {
     var loc = this.locationForCurve(curveId);
     if (loc) {
       this.renderer.setLocation(loc);
+    }
+    if (this.onSelect) {
+      this.onSelect(curveId);
     }
   } else {
     this.highlight = undefined;

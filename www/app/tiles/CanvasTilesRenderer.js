@@ -162,6 +162,7 @@ CanvasTilesRenderer.prototype.resizeCanvas = function() {
           Math.abs(canvas.height - newHeight) > 3)) {
       canvas.width = newWidth;
       canvas.height = newHeight;
+      this.pixelRatio = factor;
   }
 
   if (canvas.width != this.canvasWidth || canvas.height != this.canvasHeight) {
