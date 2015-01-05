@@ -454,7 +454,7 @@ class Fractal {
   MDArray<Rule::Ptr, 2> _rules;
 };
 
-MDArray<Rule::Ptr, 2> makeRandomRules(int classCount,
+MDArray<Rule::Ptr, 2> makeRandomBoundedRules(int classCount,
     MaxSlope maxSlope, std::default_random_engine &e);
 
 Array<Vertex> makeRandomCtrl(int ctrlCount, int classCount, double maxv,
