@@ -14,7 +14,10 @@ BoundedRule::BoundedRule(MaxSlope slope, double alpha, double beta, int newClass
   _slope(slope), _alpha(alpha), _beta(beta), _newClass(newClass) {}
 
 
-AngleRule::AngleRule(double lambda, int newClass) : _lambda(lambda), _newClass(newClass) {}
+AngleRule::AngleRule(double lambda, int newClass) :
+    _lambda(lambda), _newClass(newClass) {
+    assert(0 <= lambda && lambda <= 1.0);
+}
 
 Vertex AngleRule::combine(const Vertex &a, const Vertex &b, double w) const {
   double value = _lambda*a.value() + (1.0 - _lambda)*b.value();
