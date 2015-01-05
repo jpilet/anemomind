@@ -23,6 +23,7 @@ Vertex AngleRule::combine(const Vertex &a, const Vertex &b, double w) const {
   double value = _lambda*a.value() + (1.0 - _lambda)*b.value();
   return Vertex(value, _newClass);
 }
+
 std::string AngleRule::toString() const {
   std::stringstream ss;
   ss << "Rule::Ptr(new AngleRule(" << _lambda << ", " << _newClass << "))";
