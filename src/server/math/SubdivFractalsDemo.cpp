@@ -122,6 +122,7 @@ int main(int argc, const char **argv) {
       .store(&maxSlope);
   amap.registerOption("--generate", "Generate code for this fractal.");
   amap.registerOption("--2d", "Plot in a 2d space");
+  amap.registerOption("--angular", "Generate angle-based instead of bounded fractals");
   if (!amap.parseAndHelp(argc, argv)) {
     return -1;
   } else if (amap.helpAsked()) {
@@ -130,8 +131,13 @@ int main(int argc, const char **argv) {
 
   std::default_random_engine e(seed);
 
-  MaxSlope slope(maxv, maxSlope);
-  MDArray<Rule::Ptr, 2> rules = makeRandomBoundedRules(classCount, slope, e);
+  MDArray<Rule::Ptr, 2> rules;
+  if (amap.optionProvided("--angular")) {
+    rules = makeRandomAngleRules(classCount, e);
+  } else {
+    MaxSlope slope(maxv, maxSlope);
+    rules = makeRandomBoundedRules(classCount, slope, e);
+  }
 
   Fractal<1> f(rules);
   if (amap.optionProvided("--2d")) {

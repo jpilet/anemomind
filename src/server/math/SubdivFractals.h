@@ -112,7 +112,7 @@ class Rule {
 };
 
 // This rule is suitable for angles
-class AngleRule {
+class AngleRule : public Rule {
  public:
   AngleRule(double lambda, int newClass);
   Vertex combine(const Vertex &a, const Vertex &b, double w) const;
@@ -455,6 +455,9 @@ class Fractal {
 
 MDArray<Rule::Ptr, 2> makeRandomBoundedRules(int classCount,
     MaxSlope maxSlope, std::default_random_engine &e);
+
+MDArray<Rule::Ptr, 2> makeRandomAngleRules(int classCount,
+    std::default_random_engine &e);
 
 Array<Vertex> makeRandomCtrl(int ctrlCount, int classCount, double maxv,
     std::default_random_engine &e);

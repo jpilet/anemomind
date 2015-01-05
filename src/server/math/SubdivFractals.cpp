@@ -66,6 +66,20 @@ MDArray<Rule::Ptr, 2> makeRandomBoundedRules(int classCount,
   return rules;
 }
 
+MDArray<Rule::Ptr, 2> makeRandomAngleRules(int classCount,
+    std::default_random_engine &e) {
+  MDArray<Rule::Ptr, 2> rules(classCount, classCount);
+  std::uniform_real_distribution<double> lambdaDistrib(0, 1);
+  auto classDistrib = makeClassDistrib(classCount);
+  for (int i = 0; i < classCount; i++) {
+    for (int j = 0; j < classCount; j++) {
+      rules(i, j) = Rule::Ptr(new AngleRule(lambdaDistrib(e), classDistrib(e)));
+    }
+  }
+  return rules;
+}
+
+
 Array<Vertex> makeRandomCtrl(int ctrlCount, int classCount, double maxv,
     std::default_random_engine &e) {
   std::uniform_int_distribution<int> indexDistrib = makeClassDistrib(classCount);
