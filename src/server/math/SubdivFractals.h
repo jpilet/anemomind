@@ -115,7 +115,6 @@ class Rule {
 class AngleRule {
  public:
   AngleRule(double lambda, int newClass);
-
   Vertex combine(const Vertex &a, const Vertex &b, double w) const;
   std::string toString() const;
  private:
