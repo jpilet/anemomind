@@ -17,16 +17,17 @@ typedef Fractal<1> Frac1d;
 typedef Fractal<2> Frac2d;
 
 template <int Dim>
-void initCtrl(Vertex *dst, int classCount) {
+void initCtrl(Vertex *dst, int classCount, double maxv) {
+  std::cout << EXPR_AND_VAL_AS_STRING(maxv) << std::endl;
   for (int i = 0; i < Fractal<Dim>::ctrlCount; i++) {
-    dst[i] = Vertex(0, i % classCount);
+    dst[i] = Vertex(maxv*(i % 2), i % classCount);
   }
 
 }
 
-void plotFractal1d(const Frac1d &f, double minx, double maxx, int depth) {
+void plotFractal1d(const Frac1d &f, double minx, double maxx, int depth, double maxv) {
   Vertex ctrl[Frac1d::ctrlCount];
-  initCtrl<1>(ctrl, f.classCount());
+  initCtrl<1>(ctrl, f.classCount(), maxv);
   int sampleCount = 4000;
   Arrayd X(sampleCount);
   Arrayd Y(sampleCount);
@@ -70,9 +71,9 @@ void plotSlice(LineKM xmap, LineKM ymap, Frac2d f, GnuplotExtra *plot, int depth
   plot->plot_xyz(X, Y, Z);
 }
 
-void plotFractal2d(const Frac2d &f, int depth) {
+void plotFractal2d(const Frac2d &f, int depth, double maxv) {
   Vertex ctrl[Frac2d::ctrlCount];
-  initCtrl<2>(ctrl, f.classCount());
+  initCtrl<2>(ctrl, f.classCount(), maxv);
 
   for (int i = 0; i < Frac1d::ctrlCount; i++) {
     ctrl[i] = Vertex(0, i % f.classCount());
@@ -132,19 +133,22 @@ int main(int argc, const char **argv) {
   std::default_random_engine e(seed);
 
   MDArray<Rule::Ptr, 2> rules;
+  double r = 0;
   if (amap.optionProvided("--angular")) {
     rules = makeRandomAngleRules(classCount, e);
+    r = 1.0;
   } else {
     MaxSlope slope(maxv, maxSlope);
     rules = makeRandomBoundedRules(classCount, slope, e);
   }
 
+
   Fractal<1> f(rules);
   if (amap.optionProvided("--2d")) {
     Fractal<2> f2(rules);
-    plotFractal2d(f2, depth);
+    plotFractal2d(f2, depth, r);
   } else {
-    plotFractal1d(f, minx, maxx, depth);
+    plotFractal1d(f, minx, maxx, depth, r);
   }
 
 
