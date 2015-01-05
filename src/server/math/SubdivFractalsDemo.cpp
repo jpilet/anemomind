@@ -130,20 +130,8 @@ int main(int argc, const char **argv) {
 
   std::default_random_engine e(seed);
 
-  MDArray<Rule::Ptr, 2> rules(classCount, classCount);
-
   MaxSlope slope(maxv, maxSlope);
-  std::uniform_real_distribution<double> alphaBetaDistrib(-1, 1);
-  std::uniform_int_distribution<int> indexDistrib(0, classCount-1);
-  for (int i = 0; i < classCount; i++) {
-    for (int j = 0; j < classCount; j++) {
-      rules(i, j) = Rule::Ptr(new BoundedRule(slope,
-          alphaBetaDistrib(e),
-          alphaBetaDistrib(e),
-          indexDistrib(e)));
-    }
-  }
-
+  MDArray<Rule::Ptr, 2> rules = makeRandomBoundedRules(classCount, slope, e);
 
   Fractal<1> f(rules);
   if (amap.optionProvided("--2d")) {
