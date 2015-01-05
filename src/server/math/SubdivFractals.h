@@ -11,6 +11,7 @@
 #include <server/common/string.h>
 #include <vector>
 #include <random>
+#include <server/math/TriBasis.h>
 
 namespace sail {
 namespace SubdivFractals {
@@ -393,6 +394,18 @@ class Fractal {
     return evalSub(coords, _initCtrl.ptr(), _depth);
   }
 
+  template <typename CoordType=double>
+  double evalOrtho(CoordType coords[Dim]) const {
+    typedef TriBasis<Dim> Basis;
+    static Basis basis;
+
+    typedef arma::template Col<CoordType> Vec;
+    typedef typename Vec::template fixed<Dim> FixVec; // <-- so messy...
+
+    Vec y = basis.toBasis(Vec(Dim, coords));
+    return eval(y.memptr());
+  }
+
  private:
   int _depth;
   Array<Vertex> _initCtrl;
@@ -473,7 +486,6 @@ MDArray<Rule::Ptr, 2> makeRandomAngleRules(int classCount,
 
 Array<Vertex> makeRandomCtrl(int ctrlCount, int classCount, double maxv,
     std::default_random_engine &e);
-
 
 }
 }
