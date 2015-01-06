@@ -231,6 +231,9 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
   var pixelRatio = this.renderer.pixelRatio;
 
   var windArrow = function(angle, color) {
+    if (angle == undefined) {
+      return;
+    }
     var d = 20 * pixelRatio;
     var l = 30 * pixelRatio;
     var w = 8 * pixelRatio;
@@ -246,6 +249,16 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
     context.restore();
   }
 
+  var getTwdir = function(nav) {
+    if (nav.deviceTwdir) {
+      return nav.deviceTwdir;
+    }
+    if (nav.externalTwa) {
+      return nav.externalTwa + nav.gpsBearing;
+    }
+    return undefined;
+  };
+
 
   var bounds = binarySearch(this.lastPointArray, this.currentTime);
   var p = this.lastPointArray[bounds[0]];
@@ -255,7 +268,7 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
   context.save();
   context.translate(pos.x, pos.y);
 
-  windArrow(p.deviceTwdir, '7744ff');
+  windArrow(getTwdir(p), '#7744ff');
 
   context.rotate(p.gpsBearing * toRadians);
 

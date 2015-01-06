@@ -92,8 +92,8 @@ PinchZoom.prototype.clicPosFromViewerPos = function(viewerPos) {
 PinchZoom.prototype.handleMouseDown = function(event) {
   var viewerPos = Utils.eventPosInElementCoordinates(event, this.element);
 
-  var now = new Date().getTime();
-  if ((now - this.lastMouseDown) < 100) {
+  var now = event.timeStamp;
+  if ((now - this.lastMouseDown) < 200) {
     // double clic: instant zoom.
     this.handleDoubleClic(viewerPos);
     this.ongoingTouches.mouse = undefined;
@@ -116,7 +116,7 @@ PinchZoom.prototype.handleMouseDown = function(event) {
 };
 
 PinchZoom.prototype.handleMouseUp = function(event) {
-  this.lastMouseUp = new Date().getTime();
+  this.lastMouseUp = event.timeStamp;
   event.preventDefault();
   this.handleMouseMove(event);
   this.ongoingTouches.mouse = undefined;
