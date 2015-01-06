@@ -11,6 +11,8 @@
 
 namespace sail {
 
+class GnuplotExtra;
+
 /*
  * A class that can be used to build
  * vectorfields easily to represent wind and
@@ -34,6 +36,10 @@ class Flow {
   Flow operator+ (const Flow &other) const;
 
   std::function<HorizontalMotion<double>(ProjectedPosition, Duration<double>)> asFunction() const;
+
+  void plot1d(int dim, ProjectedPosition fromPos, Duration<double> fromTime,
+      ProjectedPosition   toPos, Duration<double>   toTime,
+      GnuplotExtra *dst);
  private:
   VelocityFunction _funs[2];
 };

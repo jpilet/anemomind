@@ -409,7 +409,7 @@ class Fractal {
     typedef arma::template Col<CoordType> Vec;
     typedef typename Vec::template fixed<Dim> FixVec; // <-- what a mess :-D
 
-    Vec y = basis.toBasis(Vec(Dim, coords));
+    Vec y = basis.toBasis(Vec(coords, Dim));
     mirror(Dim, 1.0, y.memptr(), y.memptr());
     return eval(y.memptr());
   }

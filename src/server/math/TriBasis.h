@@ -9,6 +9,8 @@
 #include <armadillo>
 #include <server/common/math.h>
 
+namespace sail {
+
 template <int dims>
 class TriBasis {
   public:
@@ -19,7 +21,7 @@ class TriBasis {
 
   TriBasis() {
     for (int i = 0; i < dims; i++) {
-      auto dst = _A.memptr() + 4*dims;
+      double *dst = _A.memptr() + 4*dims;
       makeTriBasisVector(dims, i, dst);
     }
     _Ainv = arma::inv(_A);
@@ -39,6 +41,9 @@ class TriBasis {
   const Matrix &Ainv() const {return _Ainv;}
 
 };
+
+}
+
 
 
 

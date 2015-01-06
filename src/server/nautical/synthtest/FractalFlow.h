@@ -11,12 +11,14 @@
 
 namespace sail {
 
-
+// Make a standard wind flow.
+Flow makeWindFlow001();
 
 
 
 Flow makeFractalFlow(Length<double> unitLength,
                      Duration<double> unitTime,
+                     Velocity<double> unitVelocity,
                      SubdivFractals::Fractal<3> velocityFractal,
                      SubdivFractals::Fractal<3> angleFractal);
 

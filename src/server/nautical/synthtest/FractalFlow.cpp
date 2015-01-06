@@ -4,6 +4,7 @@
  */
 
 #include "FractalFlow.h"
+#include <random>
 
 namespace sail {
 
@@ -16,7 +17,7 @@ namespace {
       double local[3] = {pos[0]/unitLength, pos[1]/unitLength, time/unitTime};
       double angle = angleFractal.evalOrtho(local);
       double vel = velocityFractal.evalOrtho(local);
-      return sin(angle + phase);
+      return sin(angle + phase)*vel*unitVelocity;
     };
   }
 }
@@ -39,6 +40,18 @@ Flow makeFractalFlow(Length<double> unitLength,
 using namespace SubdivFractals;
 
 namespace {
+  Array<Vertex> makeRandomCtrl(double maxv, int classCount,
+    std::default_random_engine &e) {
+    std::uniform_real_distribution<double> value(-maxv, maxv);
+    std::uniform_int_distribution<int> index(0, classCount-1);
+    const int count = Fractal<3>::ctrlCount;
+    Array<Vertex> vertices(count);
+    for (int i = 0; i < count; i++) {
+      vertices[i] = Vertex(value(e), index(e));
+    }
+    return vertices;
+  }
+
 
 }
 
@@ -57,18 +70,20 @@ Flow makeWindFlow001() {
   int depth = 25;
 
   double bd = 0.1;
+  double angleBd = 2.0*M_PI;
 
   int classCount = 4;
   MaxSlope maxSlope(bd, 1.0);
   MDArray<Rule::Ptr, 2> angleRules = makeRandomAngleRules(classCount, e);
   MDArray<Rule::Ptr, 2> velRules = makeRandomBoundedRules(classCount, maxSlope, e);
 
-  Array<Vertex> angleCtrl =
-  Array<Vertex> velCtrl =
+  double maxAngle;
+  Array<Vertex> angleCtrl = makeRandomCtrl(bd, classCount, e);
+  Array<Vertex> velCtrl = makeRandomCtrl(angleBd, classCount, e);
 
 
-  Flow result = makeFractalFlow(unitLength, unitTime, unitVelocity,
-    Fractal<3>(velRules, velCtrl), angleRules);
+  return makeFractalFlow(unitLength, unitTime, unitVelocity,
+      Fractal<3>(velRules, velCtrl, depth), Fractal<3>(angleRules, angleCtrl, depth));
 
 }
 

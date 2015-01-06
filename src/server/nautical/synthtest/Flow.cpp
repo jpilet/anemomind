@@ -4,6 +4,9 @@
  */
 
 #include "Flow.h"
+#include <server/common/Array.h>
+#include <server/common/LineKM.h>
+#include <server/plot/extra.h>
 
 namespace sail {
 
@@ -75,6 +78,24 @@ std::function<HorizontalMotion<double>(Flow::ProjectedPosition, Duration<double>
   return [=](const ProjectedPosition &p, Duration<double> t) {
     return thisData(p, t);
   };
+}
+
+void Flow::plot1d(int dim, ProjectedPosition fromPos, Duration<double> fromTime,
+    ProjectedPosition   toPos, Duration<double>   toTime,
+    GnuplotExtra *dst) {
+  int sampleCount = 1000;
+  Array<double> X(sampleCount);
+  Array<double> Y(sampleCount);
+  LineKM lambdaMap(0, sampleCount-1, 0.0, 1.0);
+  for (int i = 0; i < sampleCount; i++) {
+    double lambda = lambdaMap(i);
+    X[i] = lambda;
+    ProjectedPosition pos = (1.0 - lambda)*fromPos + lambda*toPos;
+    Duration<double> time = (1.0 - lambda)*fromTime + lambda*toTime;
+    Velocity<double> vel = _funs[dim](pos, time);
+  }
+
+
 }
 
 
