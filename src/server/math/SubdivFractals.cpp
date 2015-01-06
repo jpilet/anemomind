@@ -13,6 +13,15 @@ namespace SubdivFractals {
 BoundedRule::BoundedRule(MaxSlope slope, double alpha, double beta, int newClass) :
   _slope(slope), _alpha(alpha), _beta(beta), _newClass(newClass) {}
 
+std::ostream &operator<< (std::ostream &s, const Vertex &x) {
+   s << "Vertex(" << x.value() << ", " << x.classIndex() << ")";
+   return s;
+}
+
+std::ostream &operator<< (std::ostream &s, Rule::Ptr x) {
+  s << x->toString();
+  return s;
+}
 
 AngleRule::AngleRule(double lambda, int newClass) :
     _lambda(lambda), _newClass(newClass) {

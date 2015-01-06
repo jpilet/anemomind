@@ -12,6 +12,7 @@
 #include <vector>
 #include <random>
 #include <server/math/TriBasis.h>
+#include <iostream>
 
 namespace sail {
 namespace SubdivFractals {
@@ -102,6 +103,9 @@ class Vertex {
   int _classIndex;
 };
 
+std::ostream &operator<< (std::ostream &s, const Vertex &x);
+
+
 // A rule determines how a new vertex should be generated w.r.t.
 // its two neighbors.
 class Rule {
@@ -111,6 +115,9 @@ class Rule {
   virtual std::string toString() const = 0;
   virtual ~Rule() {}
 };
+
+std::ostream &operator<< (std::ostream &s, Rule::Ptr x);
+
 
 // This rule is suitable for angles.
 // It will be used to define the direction in which it flows.
@@ -379,17 +386,26 @@ class Fractal {
   // Generates code to build the rules for this fractal that can be copy/pasted into
   // the source code. Useful when we build test cases that should work on all computers
   // no matter their implementation of random numbers.
-  void generateCode(std::string matrixName, std::ostream *dst = nullptr) const {
+  void generateCode(std::string functionName, std::ostream *dst = nullptr) const {
     if (dst == nullptr) {
       dst = &(std::cout);
     }
-    *dst << "MDArray<Rule, 2> " << matrixName << "(" << _rules.rows() << ", " << _rules.cols() << ");\n {constexpr double inf = std::numeric_limits<double>::infinity();";
+    std::string type = stringFormat("Fractal<%d>", Dim);
+    *dst << type << " " << functionName << "() {";
+    *dst << "MDArray<Rule, 2> rules(" << _rules.rows() << ", " << _rules.cols() << ");\n constexpr double inf = std::numeric_limits<double>::infinity();";
     for (int i = 0; i < _rules.rows(); i++) {
       for (int j = 0; j < _rules.cols(); j++) {
-        *dst << matrixName << "(" << i << "," << j << ")=" << _rules(i, j) << ";";
+        *dst <<  "rules(" << i << "," << j << ")=" << _rules(i, j) << ";";
       }
     }
+    *dst << "Array<Vertex> ctrl(" << _initCtrl.size() << ");";
+    for (int i = 0; i < _initCtrl.size(); i++) {
+      *dst << "ctrl[" << i << "] = " << _initCtrl[i] << ";";
+    }
+
+    *dst << "return " << type << "(rules, ctrl, depth);";
     *dst << "}" << std::endl;
+
   }
 
   int classCount() const {
@@ -417,6 +433,8 @@ class Fractal {
  private:
   int _depth;
   Array<Vertex> _initCtrl;
+  MDArray<Rule::Ptr, 2> _rules;
+
 
   template <typename CoordType=double>
   double evalSub(CoordType coords[Dim],
@@ -483,7 +501,6 @@ class Fractal {
     }
   }
 
-  MDArray<Rule::Ptr, 2> _rules;
 };
 
 MDArray<Rule::Ptr, 2> makeRandomBoundedRules(int classCount,
