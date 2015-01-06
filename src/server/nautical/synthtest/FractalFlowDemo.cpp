@@ -13,8 +13,8 @@ namespace {
     Duration<double> ut = Duration<double>::days(7);
 
     auto flow = makeWindFlow001();
-    flow.plotForPosition(0,
-        Flow::ProjectedPosition{0.5*ul, 0.5*ul},
+    flow.plotForPosition(
+    Flow::ProjectedPosition{0.5*ul, 0.5*ul},
         0.0*ut, 1.0*ut);
   }
 }

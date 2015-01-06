@@ -37,11 +37,11 @@ class Flow {
 
   std::function<HorizontalMotion<double>(ProjectedPosition, Duration<double>)> asFunction() const;
 
-  void plot1d(int dim, ProjectedPosition fromPos, Duration<double> fromTime,
+  void plot1d(ProjectedPosition fromPos, Duration<double> fromTime,
       ProjectedPosition   toPos, Duration<double>   toTime,
       GnuplotExtra *dst);
 
-  void plotForPosition(int dim, ProjectedPosition at,
+  void plotForPosition(ProjectedPosition at,
         Duration<double> fromTime, Duration<double> toTime);
  private:
   VelocityFunction _funs[2];

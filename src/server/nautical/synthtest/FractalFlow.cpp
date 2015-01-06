@@ -5,25 +5,28 @@
 
 #include "FractalFlow.h"
 #include <random>
+#include <server/common/logging.h>
 
 namespace sail {
 
 namespace {
   Flow::VelocityFunction makeFractalFlowSub(Length<double> unitLength,
       Duration<double> unitTime, Velocity<double> unitVelocity,
+      Angle<double> unitAngle,
       SubdivFractals::Fractal<3> velocityFractal,
-      SubdivFractals::Fractal<3> angleFractal, double phase) {
+      SubdivFractals::Fractal<3> angleFractal, Angle<double> phase) {
     return [=](Flow::ProjectedPosition pos, Duration<double> time) {
       double local[3] = {pos[0]/unitLength, pos[1]/unitLength, time/unitTime};
-      double angle = angleFractal.evalOrtho(local);
-      double vel = velocityFractal.evalOrtho(local);
-      return sin(angle + phase)*vel*unitVelocity;
+      Angle<double> angle = angleFractal.evalOrtho(local)*unitAngle;
+      Velocity<double> vel = velocityFractal.evalOrtho(local)*unitVelocity;
+      return sin(angle + phase)*vel;
     };
   }
 }
 
 Flow makeFractalFlow(Length<double> unitLength,
     Duration<double> unitTime, Velocity<double> unitVelocity,
+    Angle<double> unitAngle,
     SubdivFractals::Fractal<3> velocityFractal,
     SubdivFractals::Fractal<3> angleFractal) {
 
@@ -31,10 +34,10 @@ Flow makeFractalFlow(Length<double> unitLength,
   // more or less the same thing... Twice as much work. Maybe, if it turns out
   // that we only need flows to be defined as fractals, we can restructure the
   // code to avoid this.
-  return Flow(makeFractalFlowSub(unitLength, unitTime, unitVelocity,
-                                 velocityFractal, angleFractal, 0.5*M_PI),
-              makeFractalFlowSub(unitLength, unitTime, unitVelocity,
-                                 velocityFractal, angleFractal, 0.0));
+  return Flow(makeFractalFlowSub(unitLength, unitTime, unitVelocity, unitAngle,
+                                 velocityFractal, angleFractal, Angle<double>::degrees(90)),
+              makeFractalFlowSub(unitLength, unitTime, unitVelocity, unitAngle,
+                                 velocityFractal, angleFractal, Angle<double>::zero()));
 }
 
 using namespace SubdivFractals;
@@ -63,15 +66,14 @@ Flow makeWindFlow001() {
   Duration<double> unitTime = Duration<double>::days(7);
 
   // Tuned so that the wind is in range.
-  Velocity<double> unitVelocity = Velocity<double>::metersPerSecond(1.0);
+  Velocity<double> unitVelocity = Velocity<double>::metersPerSecond(100.0);
+  Angle<double> unitAngle = Angle<double>::degrees(360);
 
   int depth = 25;
 
+  int classCount = 30;
 
-
-  int classCount = 4;
-
-  double angleBd = 0.1;
+  double angleBd = 1.0;
   MaxSlope angleMaxSlope(angleBd, 1.0);
   MDArray<Rule::Ptr, 2> angleRules = makeRandomBoundedRules(classCount, angleMaxSlope, e);
 
@@ -84,7 +86,8 @@ Flow makeWindFlow001() {
   Array<Vertex> velCtrl = makeRandomCtrl(bd, classCount, e);
 
 
-  return makeFractalFlow(unitLength, unitTime, unitVelocity,
+  return makeFractalFlow(unitLength, unitTime,
+      unitVelocity, unitAngle,
       Fractal<3>(velRules, velCtrl, depth),
       Fractal<3>(angleRules, angleCtrl, depth));
 
