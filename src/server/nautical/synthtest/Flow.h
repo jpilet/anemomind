@@ -8,6 +8,7 @@
 
 #include <server/nautical/GeographicReference.h>
 #include <functional>
+#include <server/common/BBox.h>
 
 namespace sail {
 
