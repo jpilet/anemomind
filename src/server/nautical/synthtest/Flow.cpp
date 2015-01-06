@@ -83,6 +83,7 @@ std::function<HorizontalMotion<double>(Flow::ProjectedPosition, Duration<double>
 void Flow::plot1d(int dim, ProjectedPosition fromPos, Duration<double> fromTime,
     ProjectedPosition   toPos, Duration<double>   toTime,
     GnuplotExtra *dst) {
+
   int sampleCount = 1000;
   Array<double> X(sampleCount);
   Array<double> Y(sampleCount);
@@ -93,9 +94,9 @@ void Flow::plot1d(int dim, ProjectedPosition fromPos, Duration<double> fromTime,
     ProjectedPosition pos = (1.0 - lambda)*fromPos + lambda*toPos;
     Duration<double> time = (1.0 - lambda)*fromTime + lambda*toTime;
     Velocity<double> vel = _funs[dim](pos, time);
+    Y[i] = vel.knots();
   }
-
-
+  dst->plot_xy(X, Y);
 }
 
 

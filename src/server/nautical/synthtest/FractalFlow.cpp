@@ -69,21 +69,26 @@ Flow makeWindFlow001() {
 
   int depth = 25;
 
-  double bd = 0.1;
-  double angleBd = 2.0*M_PI;
+
 
   int classCount = 4;
-  MaxSlope maxSlope(bd, 1.0);
-  MDArray<Rule::Ptr, 2> angleRules = makeRandomAngleRules(classCount, e);
-  MDArray<Rule::Ptr, 2> velRules = makeRandomBoundedRules(classCount, maxSlope, e);
+
+  double angleBd = 0.1;
+  MaxSlope angleMaxSlope(angleBd, 1.0);
+  MDArray<Rule::Ptr, 2> angleRules = makeRandomBoundedRules(classCount, angleMaxSlope, e);
+
+  double bd = 0.1;
+  MaxSlope velMaxSlope(bd, 1.0);
+  MDArray<Rule::Ptr, 2> velRules = makeRandomBoundedRules(classCount, velMaxSlope, e);
 
   double maxAngle;
-  Array<Vertex> angleCtrl = makeRandomCtrl(bd, classCount, e);
-  Array<Vertex> velCtrl = makeRandomCtrl(angleBd, classCount, e);
+  Array<Vertex> angleCtrl = makeRandomCtrl(angleBd, classCount, e);
+  Array<Vertex> velCtrl = makeRandomCtrl(bd, classCount, e);
 
 
   return makeFractalFlow(unitLength, unitTime, unitVelocity,
-      Fractal<3>(velRules, velCtrl, depth), Fractal<3>(angleRules, angleCtrl, depth));
+      Fractal<3>(velRules, velCtrl, depth),
+      Fractal<3>(angleRules, angleCtrl, depth));
 
 }
 
