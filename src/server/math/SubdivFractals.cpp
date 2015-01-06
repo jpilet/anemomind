@@ -23,21 +23,6 @@ std::ostream &operator<< (std::ostream &s, Rule::Ptr x) {
   return s;
 }
 
-AngleRule::AngleRule(double lambda, int newClass) :
-    _lambda(lambda), _newClass(newClass) {
-    assert(0 <= lambda && lambda <= 1.0);
-}
-
-Vertex AngleRule::combine(const Vertex &a, const Vertex &b, double w) const {
-  double value = _lambda*a.value() + (1.0 - _lambda)*b.value();
-  return Vertex(value, _newClass);
-}
-
-std::string AngleRule::toString() const {
-  std::stringstream ss;
-  ss << "Rule::Ptr(new AngleRule(" << _lambda << ", " << _newClass << "))";
-  return ss.str();
-}
 
 
 Vertex BoundedRule::combine(const Vertex &a, const Vertex &b, double w) const {
@@ -76,18 +61,6 @@ MDArray<Rule::Ptr, 2> makeRandomBoundedRules(int classCount,
   return rules;
 }
 
-MDArray<Rule::Ptr, 2> makeRandomAngleRules(int classCount,
-    std::default_random_engine &e) {
-  MDArray<Rule::Ptr, 2> rules(classCount, classCount);
-  std::uniform_real_distribution<double> lambdaDistrib(0, 1);
-  auto classDistrib = makeClassDistrib(classCount);
-  for (int i = 0; i < classCount; i++) {
-    for (int j = 0; j < classCount; j++) {
-      rules(i, j) = Rule::Ptr(new AngleRule(lambdaDistrib(e), classDistrib(e)));
-    }
-  }
-  return rules;
-}
 
 
 Array<Vertex> makeRandomCtrl(int ctrlCount, int classCount, double maxv,

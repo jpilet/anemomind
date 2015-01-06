@@ -118,21 +118,6 @@ class Rule {
 
 std::ostream &operator<< (std::ostream &s, Rule::Ptr x);
 
-
-// This rule is suitable for angles.
-// It will be used to define the direction in which it flows.
-// Fractals with this rule have the property that, as we zoom in on the flow,
-// the local directions of the flow becomes smoother and smoother.
-class AngleRule : public Rule {
- public:
-  AngleRule(double lambda, int newClass);
-  Vertex combine(const Vertex &a, const Vertex &b, double w) const;
-  std::string toString() const;
- private:
-  double _lambda;
-  int _newClass;
-};
-
 // This rule is suitable for bounded signals.
 // For instance, we would usually not expect the wind to be
 // much stronger than 25 m/s (storm). We can use this rule
@@ -508,9 +493,6 @@ class Fractal {
 
 MDArray<Rule::Ptr, 2> makeRandomBoundedRules(int classCount,
     MaxSlope maxSlope, std::default_random_engine &e);
-
-MDArray<Rule::Ptr, 2> makeRandomAngleRules(int classCount,
-    std::default_random_engine &e);
 
 Array<Vertex> makeRandomCtrl(int ctrlCount, int classCount, double maxv,
     std::default_random_engine &e);
