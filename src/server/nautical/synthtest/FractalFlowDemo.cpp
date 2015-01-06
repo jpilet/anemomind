@@ -12,7 +12,7 @@ namespace {
     Length<double> ul = Length<double>::nauticalMiles(1000);
     Duration<double> ut = Duration<double>::days(7);
 
-    auto flow = makeWindFlow001();
+    auto flow = makeWindCurrentPair001().wind;
     flow.plotForPosition(
     Flow::ProjectedPosition{0.5*ul, 0.5*ul},
         0.0*ut, 1.0*ut);
@@ -22,7 +22,7 @@ namespace {
     Span<Length<double> > spans[2] = {span, span};
     BBox<Length<double>, 2> box(spans);
     Length<double> spacing = 0.01*ul;
-    flow.plotVectorField(Duration<double>::days(3), box, spacing);
+    flow.plotVectorField(Duration<double>::days(5), box, spacing);
   }
 }
 

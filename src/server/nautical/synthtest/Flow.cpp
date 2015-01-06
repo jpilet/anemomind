@@ -9,6 +9,7 @@
 #include <server/plot/extra.h>
 #include <server/common/string.h>
 #include <armadillo>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -160,6 +161,8 @@ void Flow::plotVectorField(Duration<double> time, BBox<Length<double>, 2> area,
       maxvel = std::max(maxvel, vel);
     }
   }
+  std::cout << "Max grid velocity (m/s):   " << maxvel.metersPerSecond() << std::endl;
+  std::cout << "Max grid velocity (knots): " << maxvel.knots() << std::endl;
 
   GnuplotExtra plot;
   plot.set_style("lines");

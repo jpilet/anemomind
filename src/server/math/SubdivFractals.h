@@ -375,6 +375,8 @@ class Fractal {
   static constexpr int ctrlDim = 2;
   static constexpr int ctrlCount = intPow(ctrlDim, Dim);
 
+
+  Fractal() : _depth(-1) {}
   Fractal(MDArray<Rule::Ptr, 2> rules, Array<Vertex> initCtrl,
       int depth) :
     _rules(rules), _initCtrl(initCtrl), _depth(depth) {
@@ -392,7 +394,7 @@ class Fractal {
     }
     std::string type = stringFormat("Fractal<%d>", Dim);
     *dst << type << " " << functionName << "() {";
-    *dst << "MDArray<Rule, 2> rules(" << _rules.rows() << ", " << _rules.cols() << ");\n constexpr double inf = std::numeric_limits<double>::infinity();";
+    *dst << "MDArray<Rule::Ptr, 2> rules(" << _rules.rows() << ", " << _rules.cols() << ");\n constexpr double inf = std::numeric_limits<double>::infinity();";
     for (int i = 0; i < _rules.rows(); i++) {
       for (int j = 0; j < _rules.cols(); j++) {
         *dst <<  "rules(" << i << "," << j << ")=" << _rules(i, j) << ";";
@@ -403,7 +405,7 @@ class Fractal {
       *dst << "ctrl[" << i << "] = " << _initCtrl[i] << ";";
     }
 
-    *dst << "return " << type << "(rules, ctrl, depth);";
+    *dst << "return " << type << "(rules, ctrl, " << _depth << ");";
     *dst << "}" << std::endl;
 
   }
@@ -440,6 +442,7 @@ class Fractal {
   double evalSub(CoordType coords[Dim],
       Vertex ctrl[ctrlCount],
       int depth, double width = 1.0) const {
+    assert(0 <= depth);
     Vertex vertices[vertexCount];
     if (depth == 0) {
       IndexBox<Dim> box = IndexBox<Dim>::sameSize(2);
