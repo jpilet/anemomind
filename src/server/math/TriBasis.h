@@ -29,8 +29,6 @@ class TriBasis {
       makeTriBasisVector(dims, i, dst);
     }
     _Ainv = arma::inv(_A);
-    std::cout << EXPR_AND_VAL_AS_STRING(_A) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(_Ainv) << std::endl;
   }
 
   template <typename T>
