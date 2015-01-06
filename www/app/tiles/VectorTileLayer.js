@@ -71,9 +71,10 @@ VectorTileLayer.prototype.draw = function(canvas, pinchZoom,
 
   for (var tileY = firstTileY; tileY <= lastTileY; ++tileY) {
     for (var tileX = firstTileX; tileX <= lastTileX; ++tileX) {
-      this.requestTile(scale, tileX, tileY, context, tileGeometry, pinchZoom, canvas);
+      this.requestTile(scale, tileX, tileY, tileGeometry, canvas);
     }
   }
+  this.drawVisibleCurves(context, pinchZoom);
 
   this.processQueue();
 
@@ -94,9 +95,7 @@ VectorTileLayer.prototype.isHighlighted = function(curveId) {
 };
 
 VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
-                                                context, tileGeometry,
-                                                pinchZoom,
-                                                canvas) {
+                                                tileGeometry, canvas) {
   var left = tileGeometry.origin.x
       + tileGeometry.delta.x * (tileX - tileGeometry.firstTileX);
   var top = tileGeometry.origin.y
@@ -114,33 +113,15 @@ VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
     if (tile && tile.state == "loaded") {
 
       for (var curve in tile.data) {
-        context.beginPath();
 
         for (var c in tile.data[curve].curves) {
           var curveId = tile.data[curve].curves[c].curveId;
-          if (upLevel < 2) {
-            this.visibleCurves[curveId] = tile.data[curve];
-          }
+          var curveData = tile.data[curve].curves[c];
 
-          if (this.isHighlighted(curveId)) {
-            context.strokeStyle="#FF0000";
-          } else {
-            if (this.highlight) {
-              continue;
-            }
-            context.strokeStyle="#000000";
+          if (!this.visibleCurves[curveId]) {
+            this.visibleCurves[curveId] = { };
           }
-
-          var points = tile.data[curve].curves[c].points;
-          var first = pinchZoom.viewerPosFromWorldPos(points[0].pos[0],
-                                                      points[0].pos[1]);
-          context.moveTo(first.x, first.y);
-          for (var i = 1; i < points.length; ++i) {
-            var point = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
-                                                        points[i].pos[1]);
-            context.lineTo(point.x, point.y);
-          }
-          context.stroke();
+          this.visibleCurves[curveId][tile.key + c] = curveData;
         }
       }
       return;
@@ -148,6 +129,58 @@ VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
   }
 };
 
+VectorTileLayer.prototype.drawVisibleCurves = function(context, pinchZoom) {
+  for (var curveId in this.visibleCurves) {
+    this.drawCurve(curveId, context, pinchZoom);
+  }
+}
+
+VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
+  // prepare the Cavas path
+  if (this.isHighlighted(curveId)) {
+    context.strokeStyle="#FF0000";
+  } else {
+    if (this.highlight) {
+      return;
+    }
+    context.strokeStyle="#000000";
+  }
+
+  // Extract all points
+  var points = [];
+  var curveElements = this.visibleCurves[curveId];
+  for (var e in curveElements) {
+    var element = curveElements[e];
+    for (var i in element.points) {
+      points.push(element.points[i]);
+    }
+  }
+
+  if (points.length == 0) {
+    return;
+  }
+
+  // Sort by time
+  points.sort(function(a, b) {
+    return a.time - b.time;
+  });
+
+  // Draw.
+  context.beginPath();
+  var first = pinchZoom.viewerPosFromWorldPos(points[0].pos[0],
+                                              points[0].pos[1]);
+  context.moveTo(first.x, first.y);
+  for (var i = 1; i < points.length; ++i) {
+    var point = pinchZoom.viewerPosFromWorldPos(points[i].pos[0],
+                                                points[i].pos[1]);
+    context.lineTo(point.x, point.y);
+  }
+  context.stroke();
+  /*
+  console.log('Curve ' + curveId + ' span: ' + points[0].time + ' to '
+              + points[points.length - 1].time);
+  */
+}
 
 VectorTileLayer.prototype.getTile = function(scale, x, y, priority) {
   var key = scale + "," + x + "," + y;
@@ -179,8 +212,21 @@ VectorTileLayer.prototype.queueTileRequest = function(key, url, priority) {
   Utils.assert(tile.priority != undefined);
   this.loadQueue.push({key: key, url: url, tile: tile});
   this.tiles[key] = tile;
+  tile.key = key;
   return tile;
 };
+
+function parseTime(data) {
+  for (var i in data) {
+    var curves = data[i].curves;
+    for (var c in curves) {
+      var curve = curves[c];
+      for (var p in curve.points) {
+        curve.points[p].time = new Date(curve.points[p].time);
+      }
+    }
+  }
+}
 
 VectorTileLayer.prototype.processQueue = function() {
   var queue = this.loadQueue;
@@ -213,6 +259,7 @@ VectorTileLayer.prototype.processQueue = function() {
             t.numCachedTiles++;
             if (data.length > 0) {
               query.tile.state = "loaded";
+              parseTime(data);
               query.tile.data = data;
               t.renderer.refreshIfNotMoving();
             } else {
