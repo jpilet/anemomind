@@ -51,8 +51,6 @@ namespace {
     }
     return vertices;
   }
-
-
 }
 
 

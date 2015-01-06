@@ -217,6 +217,10 @@ add_library(math_SubdivFractals
             SubdivFractals.cpp
             SubdivFractals.h
            )
+target_link_libraries(math_SubdivFractals
+                      common_math
+                     )
+target_depends_on_armadillo(math_SubdivFractals)                                
         
 add_executable(math_SubdivFractalsDemo
                SubdivFractalsDemo.cpp

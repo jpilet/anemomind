@@ -7,6 +7,7 @@
 #include <server/common/Array.h>
 #include <server/common/LineKM.h>
 #include <server/plot/extra.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -97,6 +98,15 @@ void Flow::plot1d(int dim, ProjectedPosition fromPos, Duration<double> fromTime,
     Y[i] = vel.knots();
   }
   dst->plot_xy(X, Y);
+}
+
+void Flow::plotForPosition(int dim, ProjectedPosition at,
+      Duration<double> fromTime, Duration<double> toTime) {
+  GnuplotExtra plot;
+  plot.set_title(stringFormat("Plot dim %d for position (%.3g, %.3g) nautical miles for %d hours",
+      dim, at[0].nauticalMiles(), at[1].nauticalMiles(), (toTime - fromTime).hours()));
+  plot1d(dim, at, fromTime, at, toTime, &plot);
+  plot.show();
 }
 
 
