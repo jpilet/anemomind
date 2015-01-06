@@ -16,6 +16,13 @@ namespace {
     flow.plotForPosition(
     Flow::ProjectedPosition{0.5*ul, 0.5*ul},
         0.0*ut, 1.0*ut);
+
+
+    Span<Length<double> > span(0.2*ul, 0.4*ul);
+    Span<Length<double> > spans[2] = {span, span};
+    BBox<Length<double>, 2> box(spans);
+    Length<double> spacing = 0.01*ul;
+    flow.plotVectorField(Duration<double>::days(3), box, spacing);
   }
 }
 

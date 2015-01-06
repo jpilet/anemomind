@@ -40,10 +40,13 @@ class Flow {
 
   void plot1d(ProjectedPosition fromPos, Duration<double> fromTime,
       ProjectedPosition   toPos, Duration<double>   toTime,
-      GnuplotExtra *dst);
+      GnuplotExtra *dst) const;
 
   void plotForPosition(ProjectedPosition at,
-        Duration<double> fromTime, Duration<double> toTime);
+        Duration<double> fromTime, Duration<double> toTime) const;
+
+  void plotVectorField(Duration<double> time, BBox<Length<double>, 2> area,
+      Length<double> spacing) const;
  private:
   VelocityFunction _funs[2];
 };
