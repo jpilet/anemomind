@@ -9,6 +9,10 @@
 #include <armadillo>
 #include <server/common/math.h>
 
+#include <iostream>
+#include <server/common/string.h>
+
+
 namespace sail {
 
 template <int dims>
@@ -21,10 +25,12 @@ class TriBasis {
 
   TriBasis() {
     for (int i = 0; i < dims; i++) {
-      double *dst = _A.memptr() + 4*dims;
+      double *dst = _A.memptr() + i*dims;
       makeTriBasisVector(dims, i, dst);
     }
     _Ainv = arma::inv(_A);
+    std::cout << EXPR_AND_VAL_AS_STRING(_A) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(_Ainv) << std::endl;
   }
 
   template <typename T>
