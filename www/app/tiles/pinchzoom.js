@@ -107,10 +107,10 @@ PinchZoom.prototype.handleMouseDown = function(event) {
         function() {
           // Make sure this is not a long clic or a drag.
           if (t.lastMouseUp > t.lastMouseDown &&
-              (t.lastMouseUp - t.lastMouseDown) < 50) {
+              (t.lastMouseUp - t.lastMouseDown) < 200) {
             t.handleSingleClic(clicPos);
           }
-        }, 110);
+        }, 200);
   }
   this.lastMouseDown = now;
 };
