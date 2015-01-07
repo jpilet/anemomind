@@ -8,8 +8,11 @@
 
 #include <server/nautical/GeographicReference.h>
 #include <functional>
+#include <server/common/BBox.h>
 
 namespace sail {
+
+class GnuplotExtra;
 
 /*
  * A class that can be used to build
@@ -34,6 +37,16 @@ class Flow {
   Flow operator+ (const Flow &other) const;
 
   std::function<HorizontalMotion<double>(ProjectedPosition, Duration<double>)> asFunction() const;
+
+  void plot1d(ProjectedPosition fromPos, Duration<double> fromTime,
+      ProjectedPosition   toPos, Duration<double>   toTime,
+      GnuplotExtra *dst) const;
+
+  void plotForPosition(ProjectedPosition at,
+        Duration<double> fromTime, Duration<double> toTime) const;
+
+  void plotVectorField(Duration<double> time, BBox<Length<double>, 2> area,
+      Length<double> spacing) const;
  private:
   VelocityFunction _funs[2];
 };

@@ -25,11 +25,11 @@ class Grid {
 
 
   Grid() {}
-  Grid(BBox<N> bbox, double *spacingN) {
+  Grid(BBox<double, N> bbox, double *spacingN) {
     int sizes[N];
     for (int i = 0; i < N; i++) {
       double &s = spacingN[i];
-      Spand &span = bbox.getSpan(i);
+      const Spand &span = bbox.getSpan(i);
       int from = int(floor(span.minv()/s));
       int to = int(ceil(span.maxv()/s)) + 1;
       sizes[i] = to - from;

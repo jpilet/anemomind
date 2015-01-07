@@ -14,28 +14,28 @@
 namespace sail {
 
 // A bounding box of N dimensions.
-template <int N>
+template <typename T, int N>
 class BBox {
  public:
-  typedef BBox<N> ThisType;
+  typedef BBox<T, N> ThisType;
 
   BBox() {}
-  BBox(double *vecN) {
+  BBox(T *vecN) {
     extend(vecN);
   }
 
-  BBox(Spand *spans) {
+  BBox(Span<T> *spans) {
     for (int i = 0; i < N; i++) {
       _span[i] = spans[i];
     }
   }
 
-  BBox(Spand x) {
+  BBox(Span<T> x) {
     static_assert(N == 1, "This constructor is only applicable to 1-D bounding boxes.");
     _span[0] = x;
   }
 
-  void extend(double *vecN) {
+  void extend(T *vecN) {
     for (int i = 0; i < N; i++) {
       _span[i].extend(vecN[i]);
     }
@@ -47,18 +47,18 @@ class BBox {
     }
   }
 
-  Spand &getSpan(int index) {
+  const Span<T> &getSpan(int index) {
     return _span[index];
   }
 
-  virtual ~BBox() {}
+  ~BBox() {}
  private:
-  Spand _span[N];
+  Span<T> _span[N];
 };
 
-typedef BBox<1> BBox1d;
-typedef BBox<2> BBox2d;
-typedef BBox<3> BBox3d;
+typedef BBox<double, 1> BBox1d;
+typedef BBox<double, 2> BBox2d;
+typedef BBox<double, 3> BBox3d;
 
 std::ostream &operator<< (std::ostream &s, BBox2d box);
 std::ostream &operator<< (std::ostream &s, BBox3d box);

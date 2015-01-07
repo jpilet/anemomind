@@ -135,6 +135,39 @@ class Span {
   T middle() const {
     return (_minv + _maxv)/2;
   }
+
+  class Iterator {
+   public:
+    Iterator(T index) : _index(index) {}
+
+    T operator*() const {
+      return _index;
+    }
+
+    void operator++() {
+      _index++;
+    }
+
+    bool operator== (Iterator other) const {
+      return _index == other._index;
+    }
+
+    bool operator!= (Iterator other) const {
+      return !((*this) == other);
+    }
+   private:
+    T _index;
+  };
+
+  Iterator begin() const {
+    assert(_initialized);
+    return Iterator(_minv);
+  }
+
+  Iterator end() const {
+    assert(_initialized);
+    return Iterator(_maxv);
+  }
  private:
   bool _initialized;
   T _minv, _maxv;

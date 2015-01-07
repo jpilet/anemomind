@@ -50,6 +50,8 @@ add_library(nautical_synthtest_Flow
            )        
 target_link_libraries(nautical_synthtest_Flow
                       nautical_GeographicReference
+                      common_LineKM
+                      plot_gnuplot
                      )
 cxx_test(nautical_synthtest_FlowTest
          FlowTest.cpp
@@ -63,4 +65,22 @@ add_executable(nautical_synthtest_EvaluateCalibrator
 target_link_libraries(nautical_synthtest_EvaluateCalibrator
                       nautical_synthtest_NavalSimulation
                       nautical_Calibrator
+                     )
+                     
+                     
+add_library(nautical_synthtest_FractalFlow
+            FractalFlow.h
+            FractalFlow.cpp
+           )
+target_link_libraries(nautical_synthtest_FractalFlow
+                       nautical_synthtest_Flow
+                       math_SubdivFractals
+                      ) 
+                      
+add_executable(nautical_synthtest_FractalFlowDemo
+               FractalFlowDemo.cpp
+              )
+
+target_link_libraries(nautical_synthtest_FractalFlowDemo
+                      nautical_synthtest_FractalFlow
                      )

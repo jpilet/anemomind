@@ -10,6 +10,9 @@
 #include <iostream>
 #include <server/common/string.h>
 #include <vector>
+#include <random>
+#include <server/math/TriBasis.h>
+#include <iostream>
 
 namespace sail {
 namespace SubdivFractals {
@@ -100,20 +103,31 @@ class Vertex {
   int _classIndex;
 };
 
+std::ostream &operator<< (std::ostream &s, const Vertex &x);
+
+
 // A rule determines how a new vertex should be generated w.r.t.
 // its two neighbors.
 class Rule {
  public:
-  Rule(MaxSlope slope, double alpha, double beta, int newClass) :
-    _slope(slope), _alpha(alpha), _beta(beta), _newClass(newClass) {
-  }
+  typedef std::shared_ptr<Rule> Ptr;
+  virtual Vertex combine(const Vertex &a, const Vertex &b, double width) const = 0;
+  virtual std::string toString() const = 0;
+  virtual ~Rule() {}
+};
 
-  Rule() : _alpha(NAN), _beta(NAN), _newClass(-1) {}
+std::ostream &operator<< (std::ostream &s, Rule::Ptr x);
 
-  Vertex combine(const Vertex &a, const Vertex &b, double w) const {
-    double value = _slope.fitValue(a.value(), b.value(), _alpha, _beta, 0.5*w);
-    return Vertex(value, _newClass);
-  }
+// This rule is suitable for bounded signals.
+// For instance, we would usually not expect the wind to be
+// much stronger than 25 m/s (storm). We can use this rule
+// to generate a fractal that defines the speed of flow, but not its
+// direction.
+class BoundedRule : public Rule {
+ public:
+  BoundedRule(MaxSlope slope, double alpha, double beta, int newClass);
+
+  Vertex combine(const Vertex &a, const Vertex &b, double w) const;
 
   bool defined() const {
     return _newClass != -1;
@@ -134,16 +148,14 @@ class Rule {
   const MaxSlope &slope() const {
     return _slope;
   }
+
+  std::string toString() const;
+
  private:
   double _alpha, _beta;
   MaxSlope _slope;
   int _newClass;
 };
-
-inline std::ostream &operator << (std::ostream &s, const Rule &r) {
-  s << "Rule(" << r.slope() << "," << r.alpha() << "," << r.beta() << "," << r.newClass() << ")";
-  return s;
-}
 
 typedef std::vector<int> IndexList;
 
@@ -244,7 +256,7 @@ class IndexBox {
   }
 
   void generate(Vertex *vertices,
-                const MDArray<Rule, 2> &rules, double width,
+                const MDArray<Rule::Ptr, 2> &rules, double width,
       const IndexList &indexList = makeIndexList(Dim)) const {
       if (!indexList.empty()) {
         assert(hasMidpoint());
@@ -260,7 +272,7 @@ class IndexBox {
         int highType = highv.classIndex();
         assert(highType != -1);
 
-        vertices[middle] = rules(lowType, highType).combine(lowv, highv, width);
+        vertices[middle] = rules(lowType, highType)->combine(lowv, highv, width);
 
         for (int ka = 0; ka < indexList.size(); ka++) {
           IndexList slicedList = remove(indexList, ka);
@@ -348,21 +360,74 @@ class Fractal {
   static constexpr int ctrlDim = 2;
   static constexpr int ctrlCount = intPow(ctrlDim, Dim);
 
-  Fractal(MDArray<Rule, 2> rules) :
-    _rules(rules) {
+
+  Fractal() : _depth(-1) {}
+  Fractal(MDArray<Rule::Ptr, 2> rules, Array<Vertex> initCtrl,
+      int depth) :
+    _rules(rules), _initCtrl(initCtrl), _depth(depth) {
     assert(rules.isSquare());
-    int n = rules.rows();
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
-        assert(rules(i, j).defined());
+  }
+
+
+
+  // Generates code to build the rules for this fractal that can be copy/pasted into
+  // the source code. Useful when we build test cases that should work on all computers
+  // no matter their implementation of random numbers.
+  void generateCode(std::string functionName, std::ostream *dst = nullptr) const {
+    if (dst == nullptr) {
+      dst = &(std::cout);
+    }
+    std::string type = stringFormat("Fractal<%d>", Dim);
+    *dst << type << " " << functionName << "() {";
+    *dst << "MDArray<Rule::Ptr, 2> rules(" << _rules.rows() << ", " << _rules.cols() << ");\n constexpr double inf = std::numeric_limits<double>::infinity();";
+    for (int i = 0; i < _rules.rows(); i++) {
+      for (int j = 0; j < _rules.cols(); j++) {
+        *dst <<  "rules(" << i << "," << j << ")=" << _rules(i, j) << ";";
       }
     }
+    *dst << "Array<Vertex> ctrl(" << _initCtrl.size() << ");";
+    for (int i = 0; i < _initCtrl.size(); i++) {
+      *dst << "ctrl[" << i << "] = " << _initCtrl[i] << ";";
+    }
+
+    *dst << "return " << type << "(rules, ctrl, " << _depth << ");";
+    *dst << "}" << std::endl;
+
+  }
+
+  int classCount() const {
+    return _rules.rows();
   }
 
   template <typename CoordType=double>
-  double eval(CoordType coords[Dim],
+  double eval(CoordType coords[Dim]) const {
+    return evalSub(coords, _initCtrl.ptr(), _depth);
+  }
+
+  template <typename CoordType=double>
+  double evalOrtho(CoordType coords[Dim]) const {
+    typedef TriBasis<Dim> Basis;
+    static Basis basis;
+
+    typedef arma::template Col<CoordType> Vec;
+    typedef typename Vec::template fixed<Dim> FixVec; // <-- what a mess :-D
+
+    Vec y = basis.toBasis(Vec(coords, Dim));
+    mirror(Dim, 1.0, y.memptr(), y.memptr());
+    return eval(y.memptr());
+  }
+
+ private:
+  int _depth;
+  Array<Vertex> _initCtrl;
+  MDArray<Rule::Ptr, 2> _rules;
+
+
+  template <typename CoordType=double>
+  double evalSub(CoordType coords[Dim],
       Vertex ctrl[ctrlCount],
       int depth, double width = 1.0) const {
+    assert(0 <= depth);
     Vertex vertices[vertexCount];
     if (depth == 0) {
       IndexBox<Dim> box = IndexBox<Dim>::sameSize(2);
@@ -420,36 +485,17 @@ class Fractal {
         localCtrl[i] = vertices[index];
       }
 
-      return eval(localCoords, localCtrl, depth - 1, 0.5*width);
+      return evalSub(localCoords, localCtrl, depth - 1, 0.5*width);
     }
   }
 
-  // Generates code to build the rules for this fractal that can be copy/pasted into
-  // the source code. Useful when we build test cases that should work on all computers
-  // no matter their implementation of random numbers.
-  void generateCode(std::string matrixName, std::ostream *dst = nullptr) const {
-    if (dst == nullptr) {
-      dst = &(std::cout);
-    }
-    *dst << "MDArray<Rule, 2> " << matrixName << "(" << _rules.rows() << ", " << _rules.cols() << ");\n {constexpr double inf = std::numeric_limits<double>::infinity();";
-    for (int i = 0; i < _rules.rows(); i++) {
-      for (int j = 0; j < _rules.cols(); j++) {
-        *dst << matrixName << "(" << i << "," << j << ")=" << _rules(i, j) << ";";
-      }
-    }
-    *dst << "}" << std::endl;
-  }
-
-  int classCount() const {
-    return _rules.rows();
-  }
- private:
-  MDArray<Rule, 2> _rules;
 };
 
+MDArray<Rule::Ptr, 2> makeRandomBoundedRules(int classCount,
+    MaxSlope maxSlope, std::default_random_engine &e);
 
-
-
+Array<Vertex> makeRandomCtrl(int ctrlCount, int classCount, double maxv,
+    std::default_random_engine &e);
 
 }
 }
