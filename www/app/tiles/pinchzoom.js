@@ -9,6 +9,7 @@ function PinchZoom(element, transformChanged, width, height) {
   this.worldWidth = width || 1;
   this.worldHeight = height || 1;
   this.lastMouseDown = 0;
+  this.lastMouseUp = 0;
   this.lastTouchDown = 0;
   this.lastTouchDownPos = {x:-1, y:-1};
   this.minScale = 0;
@@ -81,32 +82,41 @@ PinchZoom.prototype.handleDoubleClic = function(viewerPos) {
     this.processConstraints(constraints);
 };
 
+PinchZoom.prototype.clicPosFromViewerPos = function(viewerPos) {
+  return {
+      startWorldPos: this.worldPosFromViewerPos(viewerPos.x, viewerPos.y),
+      startViewerPos: viewerPos,
+    };
+};
+
 PinchZoom.prototype.handleMouseDown = function(event) {
   var viewerPos = Utils.eventPosInElementCoordinates(event, this.element);
 
-  var now = new Date().getTime();
-  if ((now - this.lastMouseDown) < 100) {
+  var now = event.timeStamp;
+  if ((now - this.lastMouseDown) < 200) {
     // double clic: instant zoom.
     this.handleDoubleClic(viewerPos);
     this.ongoingTouches.mouse = undefined;
     clearTimeout(this.singleClicTimeout);
   } else {
     // simple clic - might be converted in a double clic later.
-    var clicPos = {
-      startWorldPos: this.worldPosFromViewerPos(viewerPos.x, viewerPos.y),
-      startViewerPos: viewerPos,
-    };
+    var clicPos = this.clicPosFromViewerPos(viewerPos);
     this.ongoingTouches.mouse = clicPos;
     var t = this;
     this.singleClicTimeout = setTimeout(
         function() {
-          t.handleSingleClic(clicPos);
-        }, 110);
+          // Make sure this is not a long clic or a drag.
+          if (t.lastMouseUp > t.lastMouseDown &&
+              (t.lastMouseUp - t.lastMouseDown) < 200) {
+            t.handleSingleClic(clicPos);
+          }
+        }, 200);
   }
   this.lastMouseDown = now;
 };
 
 PinchZoom.prototype.handleMouseUp = function(event) {
+  this.lastMouseUp = event.timeStamp;
   event.preventDefault();
   this.handleMouseMove(event);
   this.ongoingTouches.mouse = undefined;
@@ -144,7 +154,7 @@ PinchZoom.prototype.handleStart = function(event) {
 
   // Detect double clic, single touch.
   if (event.touches.length == 1) {
-    var now = new Date().getTime();
+    var now = event.timeStamp;
     var delta = (now - this.lastTouchDown);
     var viewerPos = Utils.eventPosInElementCoordinates(
         event.touches[0], this.element);
@@ -170,6 +180,22 @@ startWorldPos: this.worldPosFromViewerPos(viewerPos.x, viewerPos.y),
 	
 PinchZoom.prototype.handleEnd = function(event) {
   event.preventDefault();
+
+  if (event.touches.length == 0) {
+    // No finger left on the screen. Was it a single tap?
+    var now = event.timeStamp;
+    var delta = (now - this.lastTouchDown);
+    if (delta < 300) {
+      // yes!
+      for (var i in this.ongoingTouches) {
+        this.handleSingleClic(this.ongoingTouches[i]);
+        break;
+      }
+      this.ongoingTouches = {};
+      return;
+    }
+  }
+
   // If one finger leaves the screen, we forget all finger positions. Thus, it
   // starts a new motion if some other fingers keep moving.
   this.ongoingTouches = {};
