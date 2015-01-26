@@ -318,6 +318,12 @@ add_library(common_ProportionateIndexer
             ProportionateIndexer.h
            )
 
+add_library(common_Progress
+            Progress.cpp
+            Progress.h
+           )
+
+
 cxx_test(common_ProportionateIndexerTest
          ProportionateIndexerTest.cpp
          gtest_main

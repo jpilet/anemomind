@@ -12,6 +12,8 @@
 #include <server/common/ProportionateIndexer.h>
 #include <server/plot/extra.h>
 #include <server/common/logging.h>
+#include <server/common/ScopedLog.h>
+#include <server/common/Progress.h>
 
 namespace sail {
 
@@ -121,6 +123,7 @@ void BoatSim::eval(double *Xin, double *Fout, double *Jout) {
 
 Array<BoatSim::FullState> BoatSim::simulate(Duration<double> simulationDuration,
   Duration<double> samplingPeriod, int iterationsPerSample) {
+  ENTER_FUNCTION_SCOPE;
   if (simulationDuration < samplingPeriod) {
     LOG(WARNING) << "Too short time for simulation";
     return Array<BoatSim::FullState>();
@@ -131,10 +134,16 @@ Array<BoatSim::FullState> BoatSim::simulate(Duration<double> simulationDuration,
   BoatSimulationState state;
   Arrayd stateVector = state.toArray();
   auto fun = makeSharedPtrToStack(*this);
+
+  Progress prog(sampleCount);
   for (int i = 0; i < sampleCount; i++) {
     dst[i] = makeFullState(state);
     for (int j = 0; j < iterationsPerSample; j++) {
       takeRungeKuttaStep(fun, &stateVector, stepsize);
+    }
+    if (prog.endOfIteration()) {
+      SCOPEDMESSAGE(INFO, stringFormat("Completed iteration %d/%d (elapsed: %s, remaining: %s)",
+        i+1, sampleCount, prog.elapsedTime().str().c_str(), prog.remainingTime().str().c_str()));
     }
   }
   return dst;

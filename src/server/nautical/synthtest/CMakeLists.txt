@@ -6,7 +6,9 @@ target_link_libraries(nautical_synthtest_BoatSim
                       math_nonlinear_RungeKutta
                       common_LineKM
                       common_ProportionateIndexer
-                      plot_gnuplot                      
+                      plot_gnuplot              
+                      common_Progress
+                      common_ScopedLog        
                      )                   
                      
 cxx_test(nautical_synthtest_BoatSimTest

@@ -7,6 +7,7 @@
 #define PROGRESS_H_
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/common/TimeOffset.h>
 
 namespace sail {
 
@@ -23,7 +24,7 @@ namespace sail {
  *    ... computation ...
  *
  *    if (prog.endOfIteration()) {
- *      std::cout << "Time left: " << prog.timeLeft() << std::endl;
+ *      std::cout << "Remaining time: " << prog.remainingTime() << std::endl;
  *    }
  *  }
  *
@@ -37,18 +38,17 @@ class Progress {
   // return true if a notification should be produced.
   bool endOfIteration();
 
-  Duration<double> timeLeft() const;
 
   int remainingIterations() const {
     return _totalIterations - _counter;
   }
 
-  Duration<double> timeElapsed() const {
+  Duration<double> elapsedTime() const {
     return _timeOffset.elapsed();
   }
 
   Duration<double> averageTimePerIteration() const {
-    return (1.0/_counter)*timeElapsed();
+    return (1.0/_counter)*elapsedTime();
   }
 
   Duration<double> remainingTime() const {
