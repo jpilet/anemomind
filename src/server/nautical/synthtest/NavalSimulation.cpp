@@ -348,7 +348,7 @@ namespace {
 }
 
 NavalSimulation makeNavSimLongWindOriented() {
-  Array<CorruptedBoatState::CorruptorSet> corruptorSets;
+  Array<CorruptedBoatState::CorruptorSet> corruptorSets(2);
 
   corruptorSets[0].awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
       Angle<double>::degrees(-4));
