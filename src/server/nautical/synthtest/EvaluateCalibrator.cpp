@@ -24,7 +24,9 @@ namespace {
   }
 
   void evaluate() {
+    std::cout << "Synthesize the dataset..." << std::endl;
     auto sim = makeNavSimLongWindOriented();
+    std::cout << "Done synthesis." << std::endl;
 
     for (int i = 0; i < sim.boatCount(); i++) {
       std::cout << "CALIBRATE FOR BOAT " << i+1

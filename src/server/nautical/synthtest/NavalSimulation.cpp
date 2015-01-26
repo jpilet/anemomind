@@ -320,7 +320,7 @@ NavalSimulation makeNavSimLong(Array<BoatSimulationSpecs::TwaDirective> dirs,
 
   auto flowpair = makeWindCurrentPair001();
 
-  int n = dirs.size();
+  int n = corruptorSets.size();
   Array<BoatSimulationSpecs> specs(n);
   for (int i = 0; i < n; i++) {
     specs[i] = BoatSimulationSpecs(BoatCharacteristics(),
