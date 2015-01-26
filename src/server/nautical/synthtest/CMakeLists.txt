@@ -36,6 +36,7 @@ target_link_libraries(nautical_synthtest_NavalSimulation
                       nautical_nav
                       common_MeanAndVar
                       nautical_synthtest_Flow
+                      nautical_synthtest_FractalFlow
                      )
            
 cxx_test(nautical_synthtest_NavalSimulationTest
