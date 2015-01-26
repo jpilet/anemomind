@@ -349,7 +349,7 @@ namespace {
 }
 
 NavalSimulation makeNavSimFractalWindOriented() {
-  Array<CorruptedBoatState::CorruptorSet> corruptorSets(2);
+  Array<CorruptedBoatState::CorruptorSet> corruptorSets(1);
 
   corruptorSets[0].awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
       Angle<double>::degrees(-4));
@@ -357,16 +357,19 @@ NavalSimulation makeNavSimFractalWindOriented() {
       Angle<double>::degrees(-9));
   corruptorSets[0].aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.12, Velocity<double>::knots(-0.5));
   corruptorSets[0].watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.3, Velocity<double>::knots(0.8));
+
+  /*
   corruptorSets[1].awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
       Angle<double>::degrees(-14));
   corruptorSets[1].magHdg = CorruptedBoatState::Corruptor<Angle<double> >::offset(
       Angle<double>::degrees(-1));
   corruptorSets[1].aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.2, Velocity<double>::knots(0.0));
   corruptorSets[1].watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.0, Velocity<double>::knots(-0.7));
+*/
 
   Duration<double> legDur = Duration<double>::minutes(30.0);
 
-  Duration<double> totalDur = Duration<double>::hours(3.0);
+  Duration<double> totalDur = Duration<double>::hours(0.2);
 
   Duration<double> tackDur = Duration<double>::minutes(3);
 

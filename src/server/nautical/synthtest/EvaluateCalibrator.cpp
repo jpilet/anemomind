@@ -34,7 +34,9 @@ namespace {
       WindOrientedGrammarSettings gs;
       WindOrientedGrammar grammar(gs);
       auto tree = grammar.parse(navs);
+
       Calibrator calib(grammar);
+      calib.setVerbose();
 
       std::cout << "Before calibration with default values: " <<
           evaluateCalibration(boatData, calib);
