@@ -25,13 +25,10 @@ namespace {
 
   void evaluate() {
     std::cout << "Synthesize the dataset..." << std::endl;
-    auto sim = makeNavSimLongWindOriented();
+    auto sim = makeNavSimFractalWindOriented();
     std::cout << "Done synthesis." << std::endl;
 
-    for (int i = 0; i < sim.boatCount(); i++) {
-      std::cout << "CALIBRATE FOR BOAT " << i+1
-          << " OF " << sim.boatCount() << std::endl;
-      auto boatData = sim.boatData(i);
+      auto boatData = sim.boatData(0);
 
       Array<Nav> navs = boatData.navs();
       WindOrientedGrammarSettings gs;
@@ -46,7 +43,6 @@ namespace {
 
       std::cout << "After calibration with optimal values:  " <<
           evaluateCalibration(boatData, calib);
-    }
   }
 }
 

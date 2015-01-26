@@ -448,12 +448,12 @@ NavalSimulation makeNavSimUpwindDownwindLong();
  *  - The 'dirs' specify how the boat should sail
  *  - The 'corruptorSets' are different ways of corrupting the measurements
  */
-NavalSimulation makeNavSimLong(
+NavalSimulation makeNavSimFractal(
     Array<BoatSimulationSpecs::TwaDirective> dirs,
     Array<CorruptedBoatState::CorruptorSet> corruptorSets);
 
 // A long series of wind oriented race data.
-NavalSimulation makeNavSimLongWindOriented();
+NavalSimulation makeNavSimFractalWindOriented();
 
 } /* namespace mmm */
 

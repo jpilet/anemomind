@@ -9,6 +9,7 @@
 #include <iostream>
 #include <server/common/PhysicalQuantityIO.h>
 #include <server/nautical/synthtest/FractalFlow.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -310,7 +311,7 @@ std::ostream &operator<< (std::ostream &s, const NavalSimulation::SimulatedCalib
   return s;
 }
 
-NavalSimulation makeNavSimLong(Array<BoatSimulationSpecs::TwaDirective> dirs,
+NavalSimulation makeNavSimFractal(Array<BoatSimulationSpecs::TwaDirective> dirs,
     Array<CorruptedBoatState::CorruptorSet> corruptorSets) {
   std::default_random_engine e;
   GeographicReference geoRef(GeographicPosition<double>(
@@ -347,7 +348,7 @@ namespace {
   }
 }
 
-NavalSimulation makeNavSimLongWindOriented() {
+NavalSimulation makeNavSimFractalWindOriented() {
   Array<CorruptedBoatState::CorruptorSet> corruptorSets(2);
 
   corruptorSets[0].awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
@@ -363,16 +364,14 @@ NavalSimulation makeNavSimLongWindOriented() {
   corruptorSets[1].aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.2, Velocity<double>::knots(0.0));
   corruptorSets[1].watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.0, Velocity<double>::knots(-0.7));
 
-  // One leg is one hour
-  Duration<double> legDur = Duration<double>::hours(1.0);
+  Duration<double> legDur = Duration<double>::minutes(30.0);
 
-  // Four days of data
-  Duration<double> totalDur = Duration<double>::days(4.0);
+  Duration<double> totalDur = Duration<double>::hours(3.0);
 
-  // 10 minutes between maneuvers
-  Duration<double> tackDur = Duration<double>::minutes(10);
+  Duration<double> tackDur = Duration<double>::minutes(3);
 
   int tackCount = int(floor(totalDur/tackDur));
+  LOG(INFO) << stringFormat("Tack count: %d", tackCount);
 
   Array<BoatSimulationSpecs::TwaDirective> dirs(tackCount);
   for (int i = 0; i < tackCount; i++) {
@@ -380,7 +379,7 @@ NavalSimulation makeNavSimLongWindOriented() {
     dirs[i] = BoatSimulationSpecs::TwaDirective::constant(tackDur,
         tackAngle + getMainDir(double(i)*tackDur, legDur));
   }
-  return makeNavSimLong(dirs, corruptorSets);
+  return makeNavSimFractal(dirs, corruptorSets);
 }
 
 
