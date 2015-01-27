@@ -65,12 +65,20 @@ class NKEVelocityUnit : public NKEUnit {
   Velocity<double> _unit;
 };
 
+class NKETimeOfDayUnit : public NKEUnit {
+ public:
+  NKETimeOfDayUnit() {}
+
+  Duration<double> toDuration(const std::string &x) const;
+};
+
 
 
 // Represents an array of values loaded from an NKE file, associated with a unit, such as
 // knots.
 class NKEArray {
  public:
+  NKEArray() {}
   NKEArray(NKEUnit::Ptr unit,
       Array<std::string> values);
  private:
@@ -114,15 +122,39 @@ class NKEType {
 Array<NKEType> makeNKETypes();
 
 
-// A class to hold the loaded data from an NKE-file.
+// A class to hold the loaded data from a csv file output
+// from the LogConverter software of NKE.
 class NKEData {
+ public:
+  NKEData(Arrayi typeIndices, Array<NKEArray> values);
 
+  NKEArray getByType(const NKEType &type) {
+    return _values[_type2column[type.index()]];
+  }
+
+  bool hasType(const NKEType &type) {
+    return _type2column.find(type.index()) != _type2column.end();
+  }
+ private:
+  Arrayi _typeIndices;
+  std::map<int, int> _type2column;
+  Array<NKEArray> _values;
 };
 
 class NKEParser {
  public:
   NKEParser();
 
+  // Use this to the NKEType given one of its names.
+  // The returned type can in turn be used to refer to one of the
+  // loaded arrays in an object of the class NKEData, using its
+  // 'getByType
+  const NKEType &type(const std::string &name) {
+    return _name2type[name];
+  }
+
+  NKEData load(const std::string filename);
+  NKEData load(std::istream &file);
  private:
   std::map<std::string, NKEType> _name2type;
 };

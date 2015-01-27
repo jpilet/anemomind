@@ -9,6 +9,8 @@
 #include <Poco/String.h>
 #include <Poco/StringTokenizer.h>
 #include <server/common/string.h>
+#include <server/common/MDArray.h>
+#include <fstream>
 
 namespace sail {
 
@@ -67,6 +69,17 @@ NKEType::NKEType(int index, Array<std::string> names,
 
 Array<NKEType> makeNKETypes() {
   ArrayBuilder<NKEType> types;
+
+  // The first column of the CSV data is always Date_Time,
+  // no matter what data we choose to export from LogConverter.
+  // I think it makes sense to treat this column as any other column,
+  // so therefore I assign it its own NKEType.
+  types.add(NKEType(
+      -2, Array<std::string>{"Date_Time"},
+      "Time of the day (hours:minutes:seconds)"
+  ));
+
+
 
   types.add(NKEType(
       24, Array<std::string>{"AncAVA_Pil", "R_ANG_VENT_APP"},
@@ -197,6 +210,121 @@ Array<NKEType> makeNKETypes() {
       ));
   return types.get();
 }
+
+NKEData::NKEData(Arrayi typeIndices, Array<NKEArray> values) :
+    _typeIndices(typeIndices),
+    _values(values) {
+    assert(_typeIndices.size() == _values.size());
+    for (int i = 0; i < _typeIndices.size(); i++) {
+      _type2column[_typeIndices[i]] = i;
+    }
+}
+
+NKEData NKEParser::load(const std::string filename) {
+  std::ifstream file(filename);
+  return load(file);
+}
+
+namespace {
+  std::string getLine(std::istream &file) {
+    return "";
+  }
+
+  std::string getName(std::string token) {
+    int index = token.find("(");
+    if (index == token.npos) {
+      return token;
+    }
+    return token.substr(0, index);
+  }
+
+  NKEUnit::Ptr getUnit(std::string token) {
+    int from = token.find("(");
+    if (from != token.npos) {
+      int to = token.find(")");
+      assert(from < to);
+      return NKEUnit::make(trim(token.substr(from, to - from)));
+    }
+    return NKEUnit::Ptr();
+  }
+
+  MDArray<std::string, 2> readCsv(std::istream &file) {
+    ArrayBuilder<std::string> linesBuilder;
+    std::string line;
+    while (std::getline(file, line)) {
+      linesBuilder.add(line);
+    }
+
+    Array<std::string> lines = linesBuilder.get();
+
+    int count = lines.size();
+    MDArray<std::string, 2> result;
+    for (int i = 0; i < count; i++) {
+      StringTokenizer tok(lines[i], ";",
+          StringTokenizer::TOK_TRIM | StringTokenizer::TOK_IGNORE_EMPTY);
+
+      if (result.empty()) {
+        result = MDArray<std::string, 2>(count, tok.count());
+      } else if (result.cols() != tok.count()) {
+        return result.sliceRowsTo(i);
+      }
+      for (int j = 0; j < tok.count(); j++) {
+        result(i, j) = tok[j];
+      }
+    }
+
+    return result;
+  }
+
+  int parseInt(const std::string &s) {
+    std::stringstream ss;
+    ss << s;
+    int x;
+    ss >> x;
+    return x;
+  }
+
+  // Quick-and-dirty parsing of time on the format
+  // hh:mm:ss
+  // which is the format of NKE. Returns a duration
+  // since the start of the day (00:00:00).
+  // This duration can be added to a timestamp when the day starts.
+  Duration<double> parseTimeOfDay(std::string s) {
+    assert(s.length() == 8);
+    assert(s[2] == ':');
+    assert(s[5] == ':');
+    return Duration<double>::hours(parseInt(s.substr(0, 2))) +
+           Duration<double>::minutes(parseInt(s.substr(3, 5))) +
+           Duration<double>::seconds(parseInt(s.substr(6, 8)));
+  }
+
+}
+
+Duration<double> NKETimeOfDayUnit::toDuration(const std::string &x) const {
+  return parseTimeOfDay(x);
+}
+
+NKEData NKEParser::load(std::istream &file) {
+  MDArray<std::string, 2> table = readCsv(file);
+  int cols = table.cols();
+  int rows = table.rows();
+  assert(table(0, 0) == "Date_Time");
+
+  Arrayi typeInds(cols);
+  Array<NKEArray> values(cols);
+  for (int i = 0; i < cols; i++) {
+    const std::string &header = table(0, i);
+    typeInds[i] = _name2type[getName(header)].index();
+
+    auto unit = (i == 0?
+                  NKEUnit::Ptr(new NKETimeOfDayUnit()) : // <-- No unit annotation for Date_Time.
+                  getUnit(header));
+
+    values[i] = NKEArray(unit, table.sliceCol(i).getStorage().slice(1, rows-1));
+  }
+  return NKEData(typeInds, values);
+}
+
 
 NKEParser::NKEParser() {
   Array<NKEType> types = makeNKETypes();

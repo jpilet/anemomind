@@ -452,4 +452,17 @@ add_library(nautical_NKEParser
             NKEParser.h
             NKEParser.cpp
            )                  
-target_depends_on_poco_foundation(nautical_NKEParser)              
+target_depends_on_poco_foundation(nautical_NKEParser)
+
+target_link_libraries(nautical_NKEParser
+                      common_logging
+                      common_string
+                     )             
+                     
+add_executable(nautical_NKEParserDemo
+               NKEParserDemo.cpp
+              )
+target_link_libraries(nautical_NKEParserDemo
+                      nautical_NKEParser
+                      common_ArgMap
+                     )
