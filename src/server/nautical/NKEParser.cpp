@@ -340,7 +340,10 @@ NKEData NKEParser::load(std::istream &file) {
   Array<NKEArray> values(cols);
   for (int i = 0; i < cols; i++) {
     const std::string &header = table(0, i);
-    typeInds[i] = _name2type[getName(header)].index();
+    auto type = _name2type[getName(header)];
+    typeInds[i] = type.index();
+
+    LOG(INFO) << "Type of column " << i << " is " << type.index();
 
     auto unit = (i == 0?
                   NKEUnit::Ptr(new NKETimeOfDayUnit()) : // <-- No unit annotation for Date_Time.
