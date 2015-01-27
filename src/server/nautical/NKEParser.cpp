@@ -259,7 +259,7 @@ namespace {
     if (index == token.npos) {
       return token;
     }
-    return token.substr(0, index);
+    return trim(token.substr(0, index));
   }
 
   NKEUnit::Ptr getUnit(std::string token) {
@@ -340,10 +340,14 @@ NKEData NKEParser::load(std::istream &file) {
   Array<NKEArray> values(cols);
   for (int i = 0; i < cols; i++) {
     const std::string &header = table(0, i);
-    auto type = _name2type[getName(header)];
+    const std::string name = getName(header);
+    auto type = _name2type[name];
     typeInds[i] = type.index();
 
-    LOG(INFO) << "Type of column " << i << " is " << type.index();
+    LOG(INFO) << "Type of column " << i << " (" << name << ") is " << type.index();
+    if (type.index() == -1) {
+      LOG(WARNING) << "This type is not recognized. Please add it.";
+    }
 
     auto unit = (i == 0?
                   NKEUnit::Ptr(new NKETimeOfDayUnit()) : // <-- No unit annotation for Date_Time.

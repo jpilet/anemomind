@@ -160,6 +160,10 @@ class NKEData {
   int cols() const {
     return _values.size();
   }
+
+  NKEArray col(int index) const {
+    return _values[index];
+  }
  private:
   Arrayi _typeIndices;
   std::map<int, int> _type2column;
