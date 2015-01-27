@@ -130,6 +130,13 @@ Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueCurrent() const 
   });
 }
 
+void NavalSimulation::BoatData::plot() const {
+  BoatSim::makePlots(
+      _states.map<BoatSim::FullState>([=](const CorruptedBoatState &x) {
+        return x.trueState();
+      }));
+}
+
 
 NavalSimulation::BoatData NavalSimulation::makeBoatData(BoatSimulationSpecs &specs,
     Array<BoatSim::FullState> states, std::default_random_engine &e) const {
@@ -367,11 +374,13 @@ NavalSimulation makeNavSimFractalWindOriented() {
   corruptorSets[1].watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.0, Velocity<double>::knots(-0.7));
 */
 
-  Duration<double> legDur = Duration<double>::minutes(30.0);
+  //  Duration<double> legDur = Duration<double>::minutes(30.0);
+  //  Duration<double> totalDur = Duration<double>::hours(0.2);
+  //  Duration<double> tackDur = Duration<double>::minutes(3);
+  Duration<double> legDur = Duration<double>::minutes(10.0);
+  Duration<double> totalDur = Duration<double>::hours(1);
+  Duration<double> tackDur = Duration<double>::minutes(1);
 
-  Duration<double> totalDur = Duration<double>::hours(0.2);
-
-  Duration<double> tackDur = Duration<double>::minutes(3);
 
   int tackCount = int(floor(totalDur/tackDur));
   LOG(INFO) << stringFormat("Tack count: %d", tackCount);

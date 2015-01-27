@@ -30,6 +30,8 @@ namespace {
 
       auto boatData = sim.boatData(0);
 
+      boatData.plot();
+
       Array<Nav> navs = boatData.navs();
       WindOrientedGrammarSettings gs;
       WindOrientedGrammar grammar(gs);

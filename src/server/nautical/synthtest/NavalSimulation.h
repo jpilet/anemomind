@@ -374,6 +374,8 @@ class NavalSimulation {
 
     Array<HorizontalMotion<double> > trueWind() const;
     Array<HorizontalMotion<double> > trueCurrent() const;
+
+    void plot() const;
    private:
     BoatSimulationSpecs _specs;
     Array<CorruptedBoatState> _states;
