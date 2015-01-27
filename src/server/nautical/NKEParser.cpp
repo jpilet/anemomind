@@ -28,6 +28,11 @@ Velocity<double> NKEUnit::toVelocity(double x) const {
   return Velocity<double>::knots(NAN);
 }
 
+Duration<double> NKEUnit::toDuration(const std::string &x) const {
+  LOG(FATAL) << "Not implemented";
+  return Duration<double>::seconds(NAN);
+}
+
 double NKEUnit::toDouble(const std::string &value) const {
   double result = 0.0;
   try {
@@ -41,14 +46,32 @@ double NKEUnit::toDouble(const std::string &value) const {
   }
 }
 
+namespace {
+  bool hasDegreeSign(const std::string &s) {
+    for (int i = 0; i < s.length(); i++) {
+
+      // The degree sign in the text encoding used for the CSV exported by LogConverter
+      // has this code.
+      if ((unsigned char)(s[i]) == 176) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+
 NKEUnit::Ptr NKEUnit::make(const std::string &key) {
 
-  if (key.find("°") != key.npos) { // For some reason, the degree sign ° is sometimes suffixed
+  if (hasDegreeSign(key)) { // For some reason, the degree sign ° is sometimes suffixed
                                    // by a character, e.g. V, such as °V
                                    // for CapFondMes.
     return NKEUnit::Ptr(new NKEAngleUnit(Angle<double>::degrees(1.0)));
   } else if (key == "Nd") { // Noeuds
     return NKEUnit::Ptr(new NKEVelocityUnit(Velocity<double>::knots(1.0)));
+  }
+  for (int i = 0; i < key.length(); i++) {
+    LOG(INFO) << "Code of " << key[i] << " = " << (unsigned char)(key[i]);
   }
   LOG(FATAL) << stringFormat("Unknown unit: '%s'", key.c_str());
   return NKEUnit::Ptr();
@@ -222,6 +245,7 @@ NKEData::NKEData(Arrayi typeIndices, Array<NKEArray> values) :
 
 NKEData NKEParser::load(const std::string filename) {
   std::ifstream file(filename);
+  LOG(INFO) << "Load file " << filename;
   return load(file);
 }
 
@@ -243,7 +267,8 @@ namespace {
     if (from != token.npos) {
       int to = token.find(")");
       assert(from < to);
-      return NKEUnit::make(trim(token.substr(from, to - from)));
+      LOG(INFO) << "Get unit from token " << token;
+      return NKEUnit::make(trim(token.substr(from+1, to - from - 1)));
     }
     return NKEUnit::Ptr();
   }
@@ -254,6 +279,7 @@ namespace {
     while (std::getline(file, line)) {
       linesBuilder.add(line);
     }
+    LOG(INFO) << "LINE: " << line;
 
     Array<std::string> lines = linesBuilder.get();
 
@@ -329,6 +355,7 @@ NKEData NKEParser::load(std::istream &file) {
 NKEParser::NKEParser() {
   Array<NKEType> types = makeNKETypes();
   for (auto type : types) {
+    _index2type[type.index()] = type;
     for (auto name : type.names()) {
       _name2type[name] = type;
     }

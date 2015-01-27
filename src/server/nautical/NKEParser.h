@@ -36,6 +36,7 @@ class NKEUnit {
 
   virtual Angle<double> toAngle(double x) const;
   virtual Velocity<double> toVelocity(double x) const;
+  virtual Duration<double> toDuration(const std::string &x) const;
 
   double toDouble(const std::string &value) const;
 
@@ -81,6 +82,22 @@ class NKEArray {
   NKEArray() {}
   NKEArray(NKEUnit::Ptr unit,
       Array<std::string> values);
+
+  int size() const {
+    return _values.size();
+  }
+
+  Angle<double> angle(int index) const {
+    return _unit->toAngle(_values[index]);
+  }
+
+  Velocity<double> velocity(int index) const {
+    return _unit->toVelocity(_values[index]);
+  }
+
+  Duration<double> duration(int index) const {
+    return _unit->toDuration(_values[index]);
+  }
  private:
   NKEUnit::Ptr _unit;
   Array<std::string> _values;
@@ -135,6 +152,14 @@ class NKEData {
   bool hasType(const NKEType &type) {
     return _type2column.find(type.index()) != _type2column.end();
   }
+
+  int rows() const {
+    return _values[0].size();
+  }
+
+  int cols() const {
+    return _values.size();
+  }
  private:
   Arrayi _typeIndices;
   std::map<int, int> _type2column;
@@ -153,10 +178,15 @@ class NKEParser {
     return _name2type[name];
   }
 
+  const NKEType &type(int index) {
+    return _index2type[index];
+  }
+
   NKEData load(const std::string filename);
   NKEData load(std::istream &file);
  private:
   std::map<std::string, NKEType> _name2type;
+  std::map<int, NKEType> _index2type;
 };
 
 }
