@@ -445,4 +445,11 @@ target_link_libraries(nautical_AutoCalib
                       math_armaadolc
                      )
                      
-target_depends_on_ceres(nautical_AutoCalib)                     
+target_depends_on_ceres(nautical_AutoCalib)
+
+
+add_library(nautical_NKEParser
+            NKEParser.h
+            NKEParser.cpp
+           )                  
+target_depends_on_poco_foundation(nautical_NKEParser)              
