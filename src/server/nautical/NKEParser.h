@@ -87,6 +87,25 @@ class NKEArray {
   Duration<double> duration(int index) const {
     return _unit->toDuration(_values[index]);
   }
+
+  Array<Angle<double> > angles() const {
+    return _values.map<Angle<double> >([&](const std::string &x) {
+      return _unit->toAngle(x);
+    });
+  }
+
+  Array<Velocity<double> > velocities() const {
+    return _values.map<Velocity<double> >([&](const std::string &x) {
+      return _unit->toVelocity(x);
+    });
+  }
+
+  Array<Duration<double> > durations() const {
+    return _values.map<Duration<double> >([&](const std::string &x) {
+      return _unit->toDuration(x);
+    });
+  }
+
  private:
   std::shared_ptr<NKEUnit> _unit;
   Array<std::string> _values;
