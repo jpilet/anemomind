@@ -73,6 +73,8 @@ TEST(NKEParserTest, TestNavs) {
 
   Array<Nav> navs = parser.makeNavs(Nav::debuggingBoatId(), data);
   EXPECT_EQ(navs.size(), 3);
+
+  EXPECT_NEAR(327, navs.last().gpsBearing().degrees(), 2.0);
 }
 
 
