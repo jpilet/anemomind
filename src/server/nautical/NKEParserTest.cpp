@@ -75,6 +75,10 @@ TEST(NKEParserTest, TestNavs) {
   EXPECT_EQ(navs.size(), 3);
 
   EXPECT_NEAR(327, navs.last().gpsBearing().degrees(), 2.0);
+
+  TimeStamp time = TimeStamp::UTC(2014, 11, 28, 15, 0, 0);
+  Duration<double> dif = time - navs.first().time();
+  EXPECT_NEAR(dif.seconds(), 0.0, 3.0);
 }
 
 
