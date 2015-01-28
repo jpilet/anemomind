@@ -12,15 +12,6 @@
 
 namespace sail {
 
-//class NKEData {
-// public:
-//
-// private:
-//  // Maps an integer, representing an NKE code, to a column index.
-//  std::map<int, int> _code2column;
-//  MDArray<std::string, 2> _data;
-//};
-
 
 class NKEUnit {
  public:
