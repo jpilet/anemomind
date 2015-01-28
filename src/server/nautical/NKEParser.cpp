@@ -73,7 +73,7 @@ std::shared_ptr<NKEUnit> NKEUnit::make(const std::string &key) {
   for (int i = 0; i < key.length(); i++) {
     LOG(INFO) << "Code of " << key[i] << " = " << (unsigned char)(key[i]);
   }
-  LOG(FATAL) << stringFormat("Unknown unit: '%s'", key.c_str());
+  LOG(FATAL) << "Unknown unit: " << key;
   return std::shared_ptr<NKEUnit>();
 }
 
