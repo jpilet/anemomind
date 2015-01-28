@@ -459,6 +459,7 @@ target_link_libraries(nautical_NKEParser
                       common_string
                       common_MeanAndVar
                       common_TimeStamp
+                      nautical_nav
                      )             
                      
 add_executable(nautical_NKEParserDemo
