@@ -48,15 +48,25 @@ double NKEUnit::toDouble(const std::string &value) const {
 
 namespace {
   bool hasDegreeSign(const std::string &s) {
-    for (int i = 0; i < s.length(); i++) {
+    std::string alt1 = " ";
+    alt1[0] = 176;
 
-      // The degree sign in the text encoding used for the CSV exported by LogConverter
-      // has this code.
-      if ((unsigned char)(s[i]) == 176) {
-        return true;
-      }
-    }
-    return false;
+    std::string alt2 = "   ";
+    alt2[0] = 239;
+    alt2[1] = 191;
+    alt2[2] = 189;
+
+    return (s.find(alt1) != s.npos || s.find(alt2) != s.npos);
+
+//    for (int i = 0; i < s.length(); i++) {
+//
+//      // The degree sign in the text encoding used for the CSV exported by LogConverter
+//      // has this code.
+//      if ((unsigned char)(s[i]) == 176) {
+//        return true;
+//      }
+//    }
+//    return false;
   }
 }
 
@@ -69,6 +79,8 @@ std::shared_ptr<NKEUnit> NKEUnit::make(const std::string &key) {
     return std::shared_ptr<NKEUnit>(new NKEAngleUnit(Angle<double>::degrees(1.0)));
   } else if (key == "Nd") { // Noeuds
     return std::shared_ptr<NKEUnit>(new NKEVelocityUnit(Velocity<double>::knots(1.0)));
+  } else if (key == "") {
+    return std::shared_ptr<NKEUnit>(new NKEScalarUnit());
   }
   for (int i = 0; i < key.length(); i++) {
     LOG(INFO) << "Code of " << key[i] << " = " << (unsigned char)(key[i]);
