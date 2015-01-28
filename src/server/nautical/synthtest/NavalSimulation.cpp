@@ -318,32 +318,6 @@ std::ostream &operator<< (std::ostream &s, const NavalSimulation::SimulatedCalib
   return s;
 }
 
-NavalSimulation makeNavSimFractal(Array<BoatSimulationSpecs::TwaDirective> dirs,
-    Array<CorruptedBoatState::CorruptorSet> corruptorSets) {
-  std::default_random_engine e;
-  GeographicReference geoRef(GeographicPosition<double>(
-      Angle<double>::degrees(30),
-      Angle<double>::degrees(29)));
-  TimeStamp simulationStartTime = TimeStamp::UTC(2014, 12, 15, 12, 06, 29);
-
-  auto flowpair = makeWindCurrentPair001();
-
-  int n = corruptorSets.size();
-  Array<BoatSimulationSpecs> specs(n);
-  for (int i = 0; i < n; i++) {
-    specs[i] = BoatSimulationSpecs(BoatCharacteristics(),
-          dirs,
-          corruptorSets[i]);
-  }
-
-  return NavalSimulation(e, geoRef,
-           simulationStartTime,
-           flowpair.wind,
-           flowpair.current,
-           specs
-           );
-}
-
 
 namespace {
   Angle<double> getMainDir(Duration<double> time, Duration<double> legDur) {
@@ -355,7 +329,7 @@ namespace {
   }
 }
 
-CorruptedBoatState::CorruptorSet makeCorruptorSet001() {
+Array<CorruptedBoatState::CorruptorSet> makeCorruptorSets001() {
   CorruptedBoatState::CorruptorSet corruptorSet;
   corruptorSet.awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
       Angle<double>::degrees(-14));
@@ -363,8 +337,9 @@ CorruptedBoatState::CorruptorSet makeCorruptorSet001() {
       Angle<double>::degrees(-1));
   corruptorSet.aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.2, Velocity<double>::knots(0.0));
   corruptorSet.watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.0, Velocity<double>::knots(-0.7));
-  return corruptorSet;
+  return Array<CorruptedBoatState::CorruptorSet>::args(corruptorSet);
 }
+
 
 
 Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectives001() {
@@ -384,11 +359,38 @@ Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectives001() {
   return dirs;
 }
 
+Array<BoatSimulationSpecs> makeSpecs001() {
+  auto sets = makeCorruptorSets001();
+  auto dirs = makeTwaDirectives001();
+
+  int n = sets.size();
+  Array<BoatSimulationSpecs> specs(n);
+  for (int i = 0; i < n; i++) {
+    specs[i] = BoatSimulationSpecs(BoatCharacteristics(),
+          dirs,
+          sets[i]);
+  }
+  return specs;
+}
+
+
 
 NavalSimulation makeNavSimFractalWindOriented() {
-  Array<CorruptedBoatState::CorruptorSet> sets(1);
-  sets[0] = makeCorruptorSet001();
-  return makeNavSimFractal(makeTwaDirectives001(), sets);
+
+  GeographicReference geoRef(GeographicPosition<double>(
+      Angle<double>::degrees(30),
+      Angle<double>::degrees(29)));
+
+  TimeStamp simulationStartTime = TimeStamp::UTC(2014, 12, 15, 12, 06, 29);
+  auto flowpair = makeWindCurrentPair001();
+
+  std::default_random_engine e;
+  return NavalSimulation(e, geoRef,
+           simulationStartTime,
+           flowpair.wind,
+           flowpair.current,
+           makeSpecs001()
+           );
 }
 
 
