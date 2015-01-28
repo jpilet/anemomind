@@ -457,6 +457,7 @@ target_depends_on_poco_foundation(nautical_NKEParser)
 target_link_libraries(nautical_NKEParser
                       common_logging
                       common_string
+                      common_MeanAndVar
                      )             
                      
 add_executable(nautical_NKEParserDemo

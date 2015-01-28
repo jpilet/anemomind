@@ -28,6 +28,10 @@ class NKEUnit {
   virtual Velocity<double> toVelocity(double x) const;
   virtual Duration<double> toDuration(const std::string &x) const;
 
+  virtual bool isAngle() const {return false;}
+  virtual bool isVelocity() const {return false;}
+  virtual bool isDuration() const {return false;}
+
   double toDouble(const std::string &value) const;
 
   static std::shared_ptr<NKEUnit> make(const std::string &key);
@@ -41,6 +45,8 @@ class NKEAngleUnit : public NKEUnit {
   Angle<double> toAngle(double x) const {
     return x*_unit;
   }
+
+  virtual bool isAngle() const {return true;}
  private:
   Angle<double> _unit;
 };
@@ -52,6 +58,8 @@ class NKEVelocityUnit : public NKEUnit {
   Velocity<double> toVelocity(double x) const {
     return x*_unit;
   }
+
+  virtual bool isVelocity() const {return true;}
  private:
   Velocity<double> _unit;
 };
@@ -59,6 +67,8 @@ class NKEVelocityUnit : public NKEUnit {
 class NKETimeOfDayUnit : public NKEUnit {
  public:
   NKETimeOfDayUnit() {}
+
+  virtual bool isDuration() const {return true;}
 
   Duration<double> toDuration(const std::string &x) const;
 };
@@ -105,6 +115,10 @@ class NKEArray {
     return _values.map<Duration<double> >([&](const std::string &x) {
       return _unit->toDuration(x);
     });
+  }
+
+  std::shared_ptr<NKEUnit> unit() const {
+    return _unit;
   }
 
  private:

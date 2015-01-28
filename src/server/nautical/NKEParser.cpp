@@ -145,7 +145,7 @@ Array<NKEType> makeNKETypes() {
     *
     * Speedo, the water passing the boat (SPEEDO)
     *   58, VitesSurf
-    *   238, VitSurfPil <-- Corrigé?
+    *   230, VitSurfPil <-- Corrigé?
     *
     *
     *
@@ -251,8 +251,7 @@ Array<NKEType> makeNKETypes() {
 
   types.add(NKEType(
       66, Array<std::string>{"CapFond", "CAP_FOND"},
-          "???"
-
+          "Course over ground"
       ));
 
 
