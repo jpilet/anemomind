@@ -9,6 +9,7 @@
 #include <server/common/Array.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <map>
+#include <set>
 
 namespace sail {
 
@@ -197,8 +198,14 @@ class NKEParser {
   NKEData load(const std::string filename);
   NKEData load(std::istream &file);
  private:
+  // Maps a name to an NKE type
   std::map<std::string, NKEType> _name2type;
+
+  // Maps an index to an NKE type
   std::map<int, NKEType> _index2type;
+
+  // Various sets grouping together similar measures.
+  std::map<std::string, std::set<NKEType> > _sets;
 };
 
 }

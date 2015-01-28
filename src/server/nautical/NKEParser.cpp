@@ -102,6 +102,14 @@ Array<NKEType> makeNKETypes() {
       "Time of the day (hours:minutes:seconds)"
   ));
 
+  /* Empty template for extending the list below.
+
+    types.add(NKEType(
+       , Array<std::string>{"", ""},
+           ""
+       ));
+
+     */
 
 
   types.add(NKEType(
@@ -149,6 +157,19 @@ Array<NKEType> makeNKETypes() {
           "Magnetic compass."
       ));
 
+
+  types.add(NKEType(
+      65, Array<std::string>{"VitFond", "V_FOND"},
+          "Speed over ground"
+      ));
+
+  types.add(NKEType(
+      66, Array<std::string>{"CapFond", "CAP_FOND"},
+          "???"
+      ));
+
+
+
   types.add(NKEType(
       72, Array<std::string>{"AngVentApp", "GIRMP"},
           "Apparent wind angle."
@@ -184,6 +205,15 @@ Array<NKEType> makeNKETypes() {
           "Longitude."
       ));
 
+  types.add(NKEType(
+      213, Array<std::string>{"DirVentFnd", "DIR_VENT_FOND"},
+          "Direction of wind over ground."
+      ));
+
+  types.add(NKEType(
+      214, Array<std::string>{"VitVentFnd", "VIT_VENT_FOND"},
+          "Wind speed over ground"
+      ));
 
   types.add(NKEType(
       227, Array<std::string>{"VVR_Pilote", "VVR_PILOTE"},
@@ -204,6 +234,16 @@ Array<NKEType> makeNKETypes() {
   types.add(NKEType(
       230, Array<std::string>{"VitSurfPil", "SPEEDO_PIL"},
           "Water surface speed from auto pilot."
+      ));
+
+  types.add(NKEType(
+      232, Array<std::string>{"VitFondMes", "V_FOND_MES"},
+          "Measured(?) wind speed."
+      ));
+
+  types.add(NKEType(
+      233, Array<std::string>{"CapFondMes", "C_FOND_MES"},
+          "???"
       ));
 
   types.add(NKEType(
