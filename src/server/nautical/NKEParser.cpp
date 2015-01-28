@@ -492,8 +492,14 @@ namespace {
 NKEData NKEParser::load(const std::string filename) {
   std::ifstream file(filename);
   LOG(INFO) << "Load file " << filename;
+  return load(filename, file);
+}
+
+NKEData NKEParser::load(const std::string filename,
+  std::istream &file) {
   return load(getTimeOffsetFromFilename(filename), file);
 }
+
 
 namespace {
   std::string getLine(std::istream &file) {
@@ -524,8 +530,8 @@ namespace {
     std::string line;
     while (std::getline(file, line)) {
       linesBuilder.add(line);
+      LOG(INFO) << "LINE: " << line;
     }
-    LOG(INFO) << "LINE: " << line;
 
     Array<std::string> lines = linesBuilder.get();
 
@@ -535,10 +541,12 @@ namespace {
       StringTokenizer tok(lines[i], ";",
           StringTokenizer::TOK_TRIM | StringTokenizer::TOK_IGNORE_EMPTY);
 
+      LOG(INFO) << "Tokens: " << tok.count();
+
       if (result.empty()) {
         result = MDArray<std::string, 2>(count, tok.count());
       } else if (result.cols() != tok.count()) {
-        return result.sliceRowsTo(i);
+        return result.sliceRowsTo(i+1);
       }
       for (int j = 0; j < tok.count(); j++) {
         result(i, j) = tok[j];

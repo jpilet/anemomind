@@ -228,6 +228,7 @@ class NKEParser {
   }
 
   NKEData load(const std::string filename);
+  NKEData load(const std::string filename, std::istream &file);
   NKEData load(TimeStamp offset, std::istream &file);
 
   Array<Nav> makeNavs(Nav::Id boatId, NKEData data);

@@ -469,3 +469,9 @@ target_link_libraries(nautical_NKEParserDemo
                       nautical_NKEParser
                       common_ArgMap
                      )
+                     
+cxx_test(nautical_NKEParserTest
+         NKEParserTest.cpp
+         gtest_main
+         nautical_NKEParser
+        )                     
