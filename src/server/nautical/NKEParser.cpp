@@ -112,164 +112,264 @@ Array<NKEType> makeNKETypes() {
      */
 
 
+   /*
+    * Some questions to ask Hugo:
+    *
+    * - Does the suffix _MES mean that it is the raw value? Similarly, when
+    *   it is not there, does it mean that the value has been corrected?
+    *
+    * - The suffix _PIL means auto pilot I believe. Is it a corrected value?
+    *
+    * To create a Nav, we will need:
+    *
+    * Apparent wind angle (AWA) (NKE calls it AVA: Angle Vent Apparrent)
+    *   24, AncAVA_Pil
+    *   60, AncAVA
+    *   72, AngVentApp
+    *   234, AVA_Cor
+    *
+    * Apparent wind speed AWS (NKE calls it VVA: Vitesse Vent Apparent)
+    *   59, VitVentApp
+    *   235, VVA_Cor
+    *
+    * Magnetic compass (NKE refers to it using Mag, Compas)
+    *   25, CapMagPil
+    *   61, CapMag
+    *
+    *   See also:
+    *     229, DeclMag
+    *
+    * Speedo, the water passing the boat (SPEEDO)
+    *   58, VitesSurf
+    *   238, VitSurfPil
+    *
+    *
+    * GPS bearing over ground:
+    *   66, CapFond
+    *   233, CapFondMes
+    *
+    * GPS speed over ground:
+    *   65, VitFond
+    *   232, VitFondMes
+    *
+    * GPS position:
+    *   86, Latitude
+    *   87, LatDecMin
+    *   88, Longitude
+    *   89, LonDecMin
+    *
+    *
+    *
+    * Inferred wind and current:
+    *
+    * What is the difference between VitVentFnd and VitVentRl?
+    * See maybe:
+    *   http://www.cruisersforum.com/forums/f121/differences-between-ground-apparent-and-true-wind-direction-73563.html
+    *
+    *
+    * Wind:
+    *   214, VitVentFnd
+    *   213, DirVentFnd
+    *
+    *   37, VitVentRl
+    *   38, AngVentRl
+    *
+    * Current:
+    *   76, VitCourMes
+    *   77, DirCourMes
+    *
+    */
+
+
   types.add(NKEType(
       24, Array<std::string>{"AncAVA_Pil", "R_ANG_VENT_APP"},
-        "Apparent wind angle from auto pilot."
+        "Apparent wind angle from auto pilot.",
+        Array<std::string>{"angle", "wind"}
       ));
   types.add(NKEType(
         25, Array<std::string>{"CapMagPil", "R_COMPASS"},
-        "Magnetic compass direction from auto pilot."
+        "Magnetic compass direction from auto pilot.",
+        Array<std::string>{"angle", "boat"}
     ));
 
   types.add(NKEType(
           37, Array<std::string>{"VitVentRl", "VIT_VENT_VRAI"},
-          "True wind speed."
+          "True wind speed.",
+          Array<std::string>{"speed", "wind"}
       ));
 
   types.add(NKEType(
       38, Array<std::string>{"AngVentRl", "ANG_VENT_VRAI"},
-          "True wind angle (angle w.r.t. boat)"
+          "True wind angle (angle w.r.t. boat)",
+          Array<std::string>{"angle", "wind"}
       ));
 
   types.add(NKEType(
       39, Array<std::string>{"DVR_Mag", "DIR_VENT_VRAI"},
-          "True wind direction (angle w.r.t. magnetic north)"
+          "True wind direction (angle w.r.t. magnetic north)",
+        Array<std::string>{"angle", "wind"}
       ));
 
   types.add(NKEType(
       58, Array<std::string>{"VitesSurf", "SPEEDO"},
-          "Speed of water passing the boat."
+          "Speed of water passing the boat.",
+      Array<std::string>{"speed", "water", "boat"}
       ));
 
   types.add(NKEType(
       59, Array<std::string>{"VitVentApp", "ANEMO"},
-          "Speed of apparent wind"
+          "Speed of apparent wind",
+          Array<std::string>{"wind", "speed"}
       ));
 
   types.add(NKEType(
       60, Array<std::string>{"AncAVA", "ANG_VENT_APP"},
-          "Angle of apparent wind."
+          "Angle of apparent wind.",
+          Array<std::string>{"wind", "angle"}
       ));
 
 
   types.add(NKEType(
       61, Array<std::string>{"CapMag", "COMPAS"},
-          "Magnetic compass."
+          "Magnetic compass.",
+          Array<std::string>{"boat", "angle"}
       ));
 
 
   types.add(NKEType(
       65, Array<std::string>{"VitFond", "V_FOND"},
-          "Speed over ground"
+          "Speed over ground",
+          Array<std::string>{"speed", "boat"}
       ));
 
   types.add(NKEType(
       66, Array<std::string>{"CapFond", "CAP_FOND"},
           "???"
+
       ));
 
 
 
   types.add(NKEType(
       72, Array<std::string>{"AngVentApp", "GIRMP"},
-          "Apparent wind angle."
+          "Apparent wind angle. See also AVA_Cor (234) and AncAVA (60) ",
+          Array<std::string>{"wind", "angle"}
       ));
 
   types.add(NKEType(
       76, Array<std::string>{"VitCourMes", "V_COURANT"},
-          "Speed of current."
+          "Speed of current.",
+          Array<std::string>{"water", "speed"}
       ));
 
   types.add(NKEType(
       77, Array<std::string>{"DirCourMes", "C_COURANT"},
-          "Direction of current"
+          "Direction of current",
+          Array<std::string>{"water", "angle"}
       ));
 
   types.add(NKEType(
       86, Array<std::string>{"Latitude", "LAT_DEGMIN"},
-          "Latitude in degrees and minutes"
+          "Latitude in degrees and minutes",
+          Array<std::string>{"boat", "position"}
       ));
 
   types.add(NKEType(
       87, Array<std::string>{"LatDecMin", "LAT_MILMIN"},
-          "Latitude expressed as minutes? Or some fraction of a minute?"
+          "Latitude expressed as minutes? Or some fraction of a minute?",
+          Array<std::string>{"boat", "position"}
       ));
 
   types.add(NKEType(
       88, Array<std::string>{"Longitude", "LON_DEGMIN"},
-          "Longitude in degrees and minutes"
+          "Longitude in degrees and minutes",
+          Array<std::string>{"boat", "position"}
       ));
 
   types.add(NKEType(
       89, Array<std::string>{"LonDecMin", "LON_MILMIN"},
-          "Longitude."
+          "Longitude.",
+          Array<std::string>{"boat", "position"}
       ));
 
   types.add(NKEType(
       213, Array<std::string>{"DirVentFnd", "DIR_VENT_FOND"},
-          "Direction of wind over ground."
+          "Direction of wind over ground.",
+          Array<std::string>{"wind", "angle"}
       ));
 
   types.add(NKEType(
       214, Array<std::string>{"VitVentFnd", "VIT_VENT_FOND"},
-          "Wind speed over ground"
+          "Wind speed over ground",
+          Array<std::string>{"wind", "speed"}
       ));
 
   types.add(NKEType(
-      227, Array<std::string>{"VVR_Pilote", "VVR_PILOTE"},
-          "True wind speed from the auto pilot."
+      227, Array<std::string>{"VVR_Pilote", "VVR_PILOTE"}, // vitesse vent reelle
+          "True wind speed from the auto pilot.",
+          Array<std::string>{"wind", "speed"}
       ));
 
   types.add(NKEType(
       228, Array<std::string>{"AVR_Pilote", "AVR_PILOTE"},
-          "True wind angle from the auto pilot."
+          "True wind angle from the auto pilot.",
+          Array<std::string>{"wind", "angle"}
       ));
 
 
   types.add(NKEType(
       229, Array<std::string>{"DeclMag", "DECL_MAG"},
-          "Magnetic declination"
+          "Magnetic declination",
+          Array<std::string>{"angle"}
       ));
 
   types.add(NKEType(
       230, Array<std::string>{"VitSurfPil", "SPEEDO_PIL"},
-          "Water surface speed from auto pilot."
+          "Water surface speed from auto pilot.",
+          Array<std::string>{"speed", "water", "boat"}
       ));
 
   types.add(NKEType(
       232, Array<std::string>{"VitFondMes", "V_FOND_MES"},
-          "Measured(?) wind speed."
+          "Measured(?) wind speed.",
+          Array<std::string>{"speed", "boat"}
       ));
 
   types.add(NKEType(
       233, Array<std::string>{"CapFondMes", "C_FOND_MES"},
-          "???"
+          "Measured boat direction over ground (bearing). MEASURED?",
+          Array<std::string>{"angle", "boat"}
       ));
 
   types.add(NKEType(
       234, Array<std::string>{"AVA_Cor", "AVA_COR"},
-          "Corrected apparent wind angle."
+          "Corrected apparent wind angle. CORRECTED",
+          Array<std::string>{"angle", "wind"}
       ));
 
   types.add(NKEType(
       235, Array<std::string>{"VVA_Cor", "VVA_COR"},
-          "Corrected apparent wind speed."
+          "Corrected apparent wind speed. CORRECTED.",
+          Array<std::string>{"speed", "wind"}
       ));
 
 
   types.add(NKEType(
       236, Array<std::string>{"Orig_VVR", "ORIG_VVR"},
-          "Original true wind speed?"
+          "Original true wind speed?",
+          Array<std::string>{"wind", "speed"}
       ));
 
   types.add(NKEType(
       237, Array<std::string>{"Orig_AVR", "ORIG_AVR"},
-          "Original true wind angle?"
+          "Original true wind angle?",
+          Array<std::string>{"angle", "boat"}
       ));
 
   types.add(NKEType(
       238, Array<std::string>{"Orig_DVR", "ORIG_DVR"},
-          "Original true wind direction."
+          "Original true wind direction.",
+          Array<std::string>{"wind", "angle"}
       ));
   return types.get();
 }
