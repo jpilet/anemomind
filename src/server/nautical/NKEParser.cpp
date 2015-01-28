@@ -346,7 +346,9 @@ NKEData NKEParser::load(std::istream &file) {
 
     LOG(INFO) << "Type of column " << i << " (" << name << ") is " << type.index();
     if (type.index() == -1) {
-      LOG(WARNING) << "This type is not recognized. Please add it.";
+      LOG(WARNING) << "This type (" << name <<
+          ") is not recognized. Please register it in the code \n" <<
+          "in the function makeNKETypes in the file " << __FILE__ << ".";
     }
 
     auto unit = (i == 0?
