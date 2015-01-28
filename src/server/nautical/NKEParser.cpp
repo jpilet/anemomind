@@ -61,23 +61,23 @@ namespace {
 }
 
 
-NKEUnit::Ptr NKEUnit::make(const std::string &key) {
+std::shared_ptr<NKEUnit> NKEUnit::make(const std::string &key) {
 
   if (hasDegreeSign(key)) { // For some reason, the degree sign ° is sometimes suffixed
                                    // by a character, e.g. V, such as °V
                                    // for CapFondMes.
-    return NKEUnit::Ptr(new NKEAngleUnit(Angle<double>::degrees(1.0)));
+    return std::shared_ptr<NKEUnit>(new NKEAngleUnit(Angle<double>::degrees(1.0)));
   } else if (key == "Nd") { // Noeuds
-    return NKEUnit::Ptr(new NKEVelocityUnit(Velocity<double>::knots(1.0)));
+    return std::shared_ptr<NKEUnit>(new NKEVelocityUnit(Velocity<double>::knots(1.0)));
   }
   for (int i = 0; i < key.length(); i++) {
     LOG(INFO) << "Code of " << key[i] << " = " << (unsigned char)(key[i]);
   }
   LOG(FATAL) << stringFormat("Unknown unit: '%s'", key.c_str());
-  return NKEUnit::Ptr();
+  return std::shared_ptr<NKEUnit>();
 }
 
-NKEArray::NKEArray(NKEUnit::Ptr unit,
+NKEArray::NKEArray(std::shared_ptr<NKEUnit> unit,
     Array<std::string> values) :
     _unit(unit), _values(values) {}
 
@@ -262,7 +262,7 @@ namespace {
     return trim(token.substr(0, index));
   }
 
-  NKEUnit::Ptr getUnit(std::string token) {
+  std::shared_ptr<NKEUnit> getUnit(std::string token) {
     int from = token.find("(");
     if (from != token.npos) {
       int to = token.find(")");
@@ -270,7 +270,7 @@ namespace {
       LOG(INFO) << "Get unit from token " << token;
       return NKEUnit::make(trim(token.substr(from+1, to - from - 1)));
     }
-    return NKEUnit::Ptr();
+    return std::shared_ptr<NKEUnit>();
   }
 
   MDArray<std::string, 2> readCsv(std::istream &file) {
@@ -350,7 +350,7 @@ NKEData NKEParser::load(std::istream &file) {
     }
 
     auto unit = (i == 0?
-                  NKEUnit::Ptr(new NKETimeOfDayUnit()) : // <-- No unit annotation for Date_Time.
+                  std::shared_ptr<NKEUnit>(new NKETimeOfDayUnit()) : // <-- No unit annotation for Date_Time.
                   getUnit(header));
 
     values[i] = NKEArray(unit, table.sliceCol(i).getStorage().slice(1, rows-1));

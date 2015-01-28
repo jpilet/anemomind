@@ -15,8 +15,6 @@ namespace sail {
 
 class NKEUnit {
  public:
-  typedef std::shared_ptr<NKEUnit> Ptr;
-
   Angle<double> toAngle(const std::string &value) const {
     return toAngle(toDouble(value));
   }
@@ -31,7 +29,7 @@ class NKEUnit {
 
   double toDouble(const std::string &value) const;
 
-  static NKEUnit::Ptr make(const std::string &key);
+  static std::shared_ptr<NKEUnit> make(const std::string &key);
   virtual ~NKEUnit() {}
 };
 
@@ -71,7 +69,7 @@ class NKETimeOfDayUnit : public NKEUnit {
 class NKEArray {
  public:
   NKEArray() {}
-  NKEArray(NKEUnit::Ptr unit,
+  NKEArray(std::shared_ptr<NKEUnit> unit,
       Array<std::string> values);
 
   int size() const {
@@ -90,7 +88,7 @@ class NKEArray {
     return _unit->toDuration(_values[index]);
   }
  private:
-  NKEUnit::Ptr _unit;
+  std::shared_ptr<NKEUnit> _unit;
   Array<std::string> _values;
 };
 
