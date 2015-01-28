@@ -125,32 +125,39 @@ Array<NKEType> makeNKETypes() {
     * Apparent wind angle (AWA) (NKE calls it AVA: Angle Vent Apparrent)
     *   24, AncAVA_Pil
     *   60, AncAVA
-    *   72, AngVentApp
+    *   72, AngVentApp (GIRMP, la girouette) <-- Le plus brût?
     *   234, AVA_Cor
     *
+    *   Quelle entre ces mésures est la plus brûte?
+    *
     * Apparent wind speed AWS (NKE calls it VVA: Vitesse Vent Apparent)
-    *   59, VitVentApp
+    *   59, VitVentApp (ANEMO) <-- Le plus brût?
     *   235, VVA_Cor
     *
     * Magnetic compass (NKE refers to it using Mag, Compas)
-    *   25, CapMagPil
+    *   25, CapMagPil <-- Corrigé?
     *   61, CapMag
     *
     *   See also:
     *     229, DeclMag
     *
+    *   Est-ce que les mésures 25 and 61 ont déja été corrigés par la déclinaison magnétique?
+    *
     * Speedo, the water passing the boat (SPEEDO)
     *   58, VitesSurf
-    *   238, VitSurfPil
+    *   238, VitSurfPil <-- Corrigé?
+    *
+    *
     *
     *
     * GPS bearing over ground:
     *   66, CapFond
-    *   233, CapFondMes
+    *   233, CapFondMes <-- Plus brût?
     *
     * GPS speed over ground:
     *   65, VitFond
-    *   232, VitFondMes
+    *   232, VitFondMes <-- Plus brût?
+    *
     *
     * GPS position:
     *   86, Latitude
