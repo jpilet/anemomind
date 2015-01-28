@@ -80,7 +80,7 @@ std::shared_ptr<NKEUnit> NKEUnit::make(const std::string &key) {
   } else if (key == "Nd") { // Noeuds
     return std::shared_ptr<NKEUnit>(new NKEVelocityUnit(Velocity<double>::knots(1.0)));
   } else if (key == "") {
-    return std::shared_ptr<NKEUnit>(new NKEScalarUnit());
+    return std::shared_ptr<NKEUnit>(new NKEDimensionlessUnit());
   }
   for (int i = 0; i < key.length(); i++) {
     LOG(INFO) << "Code of " << key[i] << " = " << (unsigned char)(key[i]);
@@ -156,7 +156,7 @@ Array<NKEType> makeNKETypes() {
     *   Est-ce que les mésures 25 and 61 ont déja été corrigés par la déclinaison magnétique?
     *
     * Speedo, the water passing the boat (SPEEDO)
-    *   58, VitesSurf
+    *   58, VitesSurf   <-- Plus brût?
     *   230, VitSurfPil <-- Corrigé?
     *
     *

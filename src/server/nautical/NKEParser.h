@@ -28,7 +28,7 @@ class NKEUnit {
   virtual Velocity<double> toVelocity(double x) const;
   virtual Duration<double> toDuration(const std::string &x) const;
 
-  virtual bool isScalar() const {return false;}
+  virtual bool isDimensionless() const {return false;}
   virtual bool isAngle() const {return false;}
   virtual bool isVelocity() const {return false;}
   virtual bool isDuration() const {return false;}
@@ -39,9 +39,9 @@ class NKEUnit {
   virtual ~NKEUnit() {}
 };
 
-class NKEScalarUnit : public NKEUnit {
+class NKEDimensionlessUnit : public NKEUnit {
  public:
-  bool isScalar() const {return true;}
+  bool isDimensionless() const {return true;}
 };
 
 class NKEAngleUnit : public NKEUnit {
