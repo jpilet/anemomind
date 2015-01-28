@@ -10,6 +10,7 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <map>
 #include <set>
+#include <server/common/TimeStamp.h>
 
 namespace sail {
 
@@ -148,6 +149,10 @@ class NKEType {
   int index() const {
     return _index;
   }
+
+  Array<std::string> keywords() const {
+    return _keywords;
+  }
  private:
   // Index given to this type by NKE
   int _index;
@@ -172,7 +177,7 @@ Array<NKEType> makeNKETypes();
 // from the LogConverter software of NKE.
 class NKEData {
  public:
-  NKEData(Arrayi typeIndices, Array<NKEArray> values);
+  NKEData(TimeStamp offset, Arrayi typeIndices, Array<NKEArray> values);
 
   NKEArray getByType(const NKEType &type) {
     return _values[_type2column[type.index()]];
@@ -193,10 +198,13 @@ class NKEData {
   NKEArray col(int index) const {
     return _values[index];
   }
+
+  Array<TimeStamp> timeStamps() const;
  private:
   Arrayi _typeIndices;
   std::map<int, int> _type2column;
   Array<NKEArray> _values;
+  TimeStamp _offset;
 };
 
 class NKEParser {
@@ -216,16 +224,13 @@ class NKEParser {
   }
 
   NKEData load(const std::string filename);
-  NKEData load(std::istream &file);
+  NKEData load(TimeStamp offset, std::istream &file);
  private:
   // Maps a name to an NKE type
   std::map<std::string, NKEType> _name2type;
 
   // Maps an index to an NKE type
   std::map<int, NKEType> _index2type;
-
-  // Various sets grouping together similar measures.
-  std::map<std::string, std::set<NKEType> > _sets;
 };
 
 }

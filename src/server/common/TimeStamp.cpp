@@ -53,6 +53,10 @@ TimeStamp TimeStamp::UTC(int year_ad, unsigned int month_1to12, unsigned int day
                    hour, minute, intSecs, fracSecs);
 }
 
+TimeStamp TimeStamp::date(int year_ad, unsigned int month_1to12, unsigned int day_1to31) {
+  return TimeStamp::UTC(year_ad, month_1to12, day_1to31, 0, 0, 0);
+}
+
 struct tm TimeStamp::makeGMTimeStruct() const {
   time_t rawtime = time_t(_time/TimeRes);
   struct tm result;

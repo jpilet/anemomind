@@ -142,33 +142,49 @@ Array<NKEType> makeNKETypes() {
     *
     *   Quelle entre ces mésures est la plus brûte?
     *
+    *   THIS IS THE RAW APPARENT WIND ANGLE:
+    *   [HK]  à 193, AVA_MesHR = Valeur Brute
+    *
+    *
     * Apparent wind speed AWS (NKE calls it VVA: Vitesse Vent Apparent)
     *   59, VitVentApp (ANEMO) <-- Le plus brût?
     *   235, VVA_Cor
     *
+    *   THIS IS THE RAW APPARENT WIND SPEED:
+    *   192, VVA_MesHR
+    *
     * Magnetic compass (NKE refers to it using Mag, Compas)
     *   25, CapMagPil <-- Corrigé?
-    *   61, CapMag
+    *   61, CapMag    <-- Plus brût
     *
     *   See also:
     *     229, DeclMag
     *
     *   Est-ce que les mésures 25 and 61 ont déja été corrigés par la déclinaison magnétique?
     *
+    *   [HK] Cap Vrai canal 212
+    *   Sinon le canal 267 est intéressant( 3DH_Lacet) c’est la valeur la plus réactive ( dans le référentiel magnétique)
+    *
+    *   This is the raw magnetic value:
+    *   212, CapVrai
+    *
     * Speedo, the water passing the boat (SPEEDO)
     *   58, VitesSurf   <-- Plus brût?
     *   230, VitSurfPil <-- Corrigé?
     *
     *
+    *   [HK] Pour valeurs brutes voir 120 et 124
+    *
+    *
     *
     *
     * GPS bearing over ground:
-    *   66, CapFond
-    *   233, CapFondMes <-- Plus brût?
+    *   66, CapFond <-- Filtered.
+    *   233, CapFondMes <-- Plus brût. Yes
     *
     * GPS speed over ground:
     *   65, VitFond
-    *   232, VitFondMes <-- Plus brût?
+    *   232, VitFondMes <-- Plus brût. Yes.
     *
     *
     * GPS position:
@@ -311,6 +327,31 @@ Array<NKEType> makeNKETypes() {
       ));
 
   types.add(NKEType(
+        120, Array<std::string>{"VitSurUsTr", "SPEEDO_US"},
+            "Raw speedo value"
+        ));
+  types.add(NKEType(
+        124, Array<std::string>{"VitSurUsBa", "SPEEDO_US_BA"},
+            "Raw speedo value"
+        ));
+
+  types.add(NKEType(
+      192, Array<std::string>{"VVA_MesHR", "VVA_MESHR"},
+      "This is the raw apparent wind speed."
+  ));
+
+
+  types.add(NKEType(
+      193, Array<std::string>{"AVA_MesHR", "AVA_MESHR"},
+      "This is the raw apparent wind angle."
+  ));
+
+  types.add(NKEType(
+      212, Array<std::string>{"CapVrai", "CAP_VRAI"},
+      "The raw magnetic value."
+  ));
+
+  types.add(NKEType(
       213, Array<std::string>{"DirVentFnd", "DIR_VENT_FOND"},
           "Direction of wind over ground.",
           Array<std::string>{"wind", "angle"}
@@ -392,19 +433,43 @@ Array<NKEType> makeNKETypes() {
   return types.get();
 }
 
-NKEData::NKEData(Arrayi typeIndices, Array<NKEArray> values) :
+NKEData::NKEData(TimeStamp offset, Arrayi typeIndices, Array<NKEArray> values) :
     _typeIndices(typeIndices),
-    _values(values) {
+    _values(values), _offset(offset) {
     assert(_typeIndices.size() == _values.size());
     for (int i = 0; i < _typeIndices.size(); i++) {
       _type2column[_typeIndices[i]] = i;
     }
 }
 
+Array<TimeStamp> NKEData::timeStamps() const {
+  return _values[0].durations().map<TimeStamp>([&](const Duration<double> &d) {
+    return d + _offset;
+  });
+}
+
+namespace {
+  int parseInt(const std::string &s) {
+    std::stringstream ss;
+    ss << s;
+    int x;
+    ss >> x;
+    return x;
+  }
+
+  TimeStamp getTimeOffsetFromFilename(const std::string &s) {
+    int n = s.length();
+    assert(s.substr(n - 4, 4) == ".csv");
+    return TimeStamp::date(parseInt(s.substr(6, 4)),
+                           parseInt(s.substr(3, 2)),
+                           parseInt(s.substr(0, 2)));
+  }
+}
+
 NKEData NKEParser::load(const std::string filename) {
   std::ifstream file(filename);
   LOG(INFO) << "Load file " << filename;
-  return load(file);
+  return load(getTimeOffsetFromFilename(filename), file);
 }
 
 namespace {
@@ -460,13 +525,6 @@ namespace {
     return result;
   }
 
-  int parseInt(const std::string &s) {
-    std::stringstream ss;
-    ss << s;
-    int x;
-    ss >> x;
-    return x;
-  }
 
   // Quick-and-dirty parsing of time on the format
   // hh:mm:ss
@@ -488,7 +546,7 @@ Duration<double> NKETimeOfDayUnit::toDuration(const std::string &x) const {
   return parseTimeOfDay(x);
 }
 
-NKEData NKEParser::load(std::istream &file) {
+NKEData NKEParser::load(TimeStamp offset, std::istream &file) {
   MDArray<std::string, 2> table = readCsv(file);
   int cols = table.cols();
   int rows = table.rows();
@@ -515,7 +573,7 @@ NKEData NKEParser::load(std::istream &file) {
 
     values[i] = NKEArray(unit, table.sliceCol(i).getStorage().slice(1, rows-1));
   }
-  return NKEData(typeInds, values);
+  return NKEData(offset, typeInds, values);
 }
 
 
