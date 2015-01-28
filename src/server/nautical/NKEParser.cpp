@@ -327,8 +327,8 @@ Array<NKEType> makeNKETypes() {
       ));
 
   types.add(NKEType(
-        120, Array<std::string>{"VitSurUsTr", "SPEEDO_US",
-          "navRawWatSpeed"},
+        120, Array<std::string>{"VitSurUsTr", "SPEEDO_US"},
+
             "Raw speedo value"
         ));
   types.add(NKEType(
@@ -387,8 +387,8 @@ Array<NKEType> makeNKETypes() {
       ));
 
   types.add(NKEType(
-      230, Array<std::string>{"VitSurfPil", "SPEEDO_PIL"},
-          "Water surface speed from auto pilot.",
+      230, Array<std::string>{"VitSurfPil", "SPEEDO_PIL", "navRawWatSpeed"},
+          "Water surface speed from auto pilot. Slightly filtered",
           Array<std::string>{"speed", "water", "boat"}
       ));
 
