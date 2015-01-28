@@ -7,7 +7,7 @@
 #define PROGRESS_H_
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
-#include <server/common/TimeOffset.h>
+#include <server/common/TimeStamp.h>
 
 namespace sail {
 
@@ -44,7 +44,7 @@ class Progress {
   }
 
   Duration<double> elapsedTime() const {
-    return _timeOffset.elapsed();
+    return TimeStamp::now() - _offset;
   }
 
   Duration<double> averageTimePerIteration() const {
@@ -65,7 +65,7 @@ class Progress {
     return _totalIterations;
   }
  private:
-  TimeOffset _timeOffset;
+  TimeStamp _offset;
   Duration<double> _nextUpdate, _notificationPeriod;
   int _counter;
   int _totalIterations;

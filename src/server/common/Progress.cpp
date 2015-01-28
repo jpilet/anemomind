@@ -19,7 +19,7 @@ Progress::Progress(int totalIterations,
 
 
 void Progress::setNextUpdateFromNow() {
-  _nextUpdate = _timeOffset.elapsed() + _notificationPeriod;
+  _nextUpdate = elapsedTime() + _notificationPeriod;
 }
 
 // Once an iteration is complete, call this method. It will
@@ -27,7 +27,7 @@ void Progress::setNextUpdateFromNow() {
 bool Progress::endOfIteration() {
   _counter++;
   assert(_counter <= _totalIterations);
-  if (_timeOffset.elapsed() >= _nextUpdate) {
+  if (elapsedTime() >= _nextUpdate) {
     setNextUpdateFromNow();
     return true;
   }
