@@ -173,6 +173,7 @@ class NKEType {
 Array<NKEType> makeNKETypes();
 
 
+
 // A class to hold the loaded data from a csv file output
 // from the LogConverter software of NKE.
 class NKEData {

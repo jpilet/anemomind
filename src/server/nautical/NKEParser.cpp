@@ -327,7 +327,8 @@ Array<NKEType> makeNKETypes() {
       ));
 
   types.add(NKEType(
-        120, Array<std::string>{"VitSurUsTr", "SPEEDO_US"},
+        120, Array<std::string>{"VitSurUsTr", "SPEEDO_US",
+          "navRawWatSpeed"},
             "Raw speedo value"
         ));
   types.add(NKEType(
@@ -336,18 +337,21 @@ Array<NKEType> makeNKETypes() {
         ));
 
   types.add(NKEType(
-      192, Array<std::string>{"VVA_MesHR", "VVA_MESHR"},
+      192, Array<std::string>{"VVA_MesHR", "VVA_MESHR",
+        "navRawAWS"},
       "This is the raw apparent wind speed."
   ));
 
 
   types.add(NKEType(
-      193, Array<std::string>{"AVA_MesHR", "AVA_MESHR"},
+      193, Array<std::string>{"AVA_MesHR", "AVA_MESHR",
+        "navRawAWA"},
       "This is the raw apparent wind angle."
   ));
 
   types.add(NKEType(
-      212, Array<std::string>{"CapVrai", "CAP_VRAI"},
+      212, Array<std::string>{"CapVrai", "CAP_VRAI",
+      "navRawMagHdg"}, // <-- is it the magnetic heading of the boat. I think so.
       "The raw magnetic value."
   ));
 
@@ -389,13 +393,15 @@ Array<NKEType> makeNKETypes() {
       ));
 
   types.add(NKEType(
-      232, Array<std::string>{"VitFondMes", "V_FOND_MES"},
-          "Measured(?) wind speed.",
+      232, Array<std::string>{"VitFondMes", "V_FOND_MES",
+              "navGpsSpeed"},
+          "Measured boat speed.",
           Array<std::string>{"speed", "boat"}
       ));
 
   types.add(NKEType(
-      233, Array<std::string>{"CapFondMes", "C_FOND_MES"},
+      233, Array<std::string>{"CapFondMes", "C_FOND_MES",
+                              "navGpsBearing"},
           "Measured boat direction over ground (bearing). MEASURED?",
           Array<std::string>{"angle", "boat"}
       ));
