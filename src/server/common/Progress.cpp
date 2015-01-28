@@ -13,7 +13,7 @@ Progress::Progress(int totalIterations,
     Duration<double> notificationPeriod) :
     _totalIterations(totalIterations),
     _notificationPeriod(notificationPeriod),
-    _counter(0) {
+    _counter(0), _offset(TimeStamp::now()) {
   setNextUpdateFromNow();
 }
 
