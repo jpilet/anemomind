@@ -519,7 +519,6 @@ namespace {
     if (from != token.npos) {
       int to = token.find(")");
       assert(from < to);
-      LOG(INFO) << "Get unit from token " << token;
       return NKEUnit::make(trim(token.substr(from+1, to - from - 1)));
     }
     return std::shared_ptr<NKEUnit>();
@@ -530,7 +529,6 @@ namespace {
     std::string line;
     while (std::getline(file, line)) {
       linesBuilder.add(line);
-      LOG(INFO) << "LINE: " << line;
     }
 
     Array<std::string> lines = linesBuilder.get();
@@ -540,8 +538,6 @@ namespace {
     for (int i = 0; i < count; i++) {
       StringTokenizer tok(lines[i], ";",
           StringTokenizer::TOK_TRIM | StringTokenizer::TOK_IGNORE_EMPTY);
-
-      LOG(INFO) << "Tokens: " << tok.count();
 
       if (result.empty()) {
         result = MDArray<std::string, 2>(count, tok.count());
