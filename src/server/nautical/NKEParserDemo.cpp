@@ -44,6 +44,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--velocity", "Provide row and col inds to view velocity value").setArgCount(2);
   amap.registerOption("--duration", "Provide row and col inds to view duration value").setArgCount(2);
   amap.registerOption("--ncc", "Compute the normalized cross correlation between two columns").setArgCount(2);
+  amap.registerOption("--navs", "Generate navs, just to see if it works");
 
 
   if (!amap.parseAndHelp(argc, argv)) {
@@ -77,6 +78,11 @@ int main(int argc, const char **argv) {
     std::cout << "Velocity: " << data.col(j).velocity(i) << std::endl;
   }
 
+  if (amap.optionProvided("--navs")) {
+    Array<Nav> navs = parser.makeNavs(Nav::debuggingBoatId(), data);
+    LOG(INFO) << "Produced " << navs.size() << " navs.";
+  }
+
   if (amap.optionProvided("--ncc")) {
     auto args = amap.optionArgs("--ncc");
     NKEArray X = data.getByType(parser.type(args[0]->value()));
@@ -85,5 +91,8 @@ int main(int argc, const char **argv) {
   }
 
 
+
+
+  LOG(INFO) << "Success";
   return 0;
 }

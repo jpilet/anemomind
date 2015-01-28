@@ -479,7 +479,8 @@ namespace {
     return x;
   }
 
-  TimeStamp getTimeOffsetFromFilename(const std::string &s) {
+  TimeStamp getTimeOffsetFromFilename(const std::string &s0) {
+    std::string s = s0.substr(s0.length() - 23, 23);
     int n = s.length();
     assert(s.substr(n - 4, 4) == ".csv");
     return TimeStamp::date(parseInt(s.substr(6, 4)),
@@ -625,10 +626,10 @@ Array<Nav> NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
       data.getByType(type("navRawWatSpeed")).velocities();
 
   Array<Velocity<double> > gpsSpeed =
-      data.getByType(type("navRawGpsSpeed")).velocities();
+      data.getByType(type("navGpsSpeed")).velocities();
 
   Array<Angle<double> > gpsBearing =
-      data.getByType(type("navRawGpsBearing")).angles();
+      data.getByType(type("navGpsBearing")).angles();
 
   Array<Angle<double> > latitude =
       data.getByType(type("Latitude")).angles();
