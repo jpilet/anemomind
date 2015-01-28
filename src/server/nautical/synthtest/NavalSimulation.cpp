@@ -355,32 +355,22 @@ namespace {
   }
 }
 
-NavalSimulation makeNavSimFractalWindOriented() {
-  Array<CorruptedBoatState::CorruptorSet> corruptorSets(1);
-
-  corruptorSets[0].awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
-      Angle<double>::degrees(-4));
-  corruptorSets[0].magHdg = CorruptedBoatState::Corruptor<Angle<double> >::offset(
-      Angle<double>::degrees(-9));
-  corruptorSets[0].aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.12, Velocity<double>::knots(-0.5));
-  corruptorSets[0].watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.3, Velocity<double>::knots(0.8));
-
-  /*
-  corruptorSets[1].awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+CorruptedBoatState::CorruptorSet makeCorruptorSet001() {
+  CorruptedBoatState::CorruptorSet corruptorSet;
+  corruptorSet.awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
       Angle<double>::degrees(-14));
-  corruptorSets[1].magHdg = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+  corruptorSet.magHdg = CorruptedBoatState::Corruptor<Angle<double> >::offset(
       Angle<double>::degrees(-1));
-  corruptorSets[1].aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.2, Velocity<double>::knots(0.0));
-  corruptorSets[1].watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.0, Velocity<double>::knots(-0.7));
-*/
+  corruptorSet.aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.2, Velocity<double>::knots(0.0));
+  corruptorSet.watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.0, Velocity<double>::knots(-0.7));
+  return corruptorSet;
+}
 
-  //  Duration<double> legDur = Duration<double>::minutes(30.0);
-  //  Duration<double> totalDur = Duration<double>::hours(0.2);
-  //  Duration<double> tackDur = Duration<double>::minutes(3);
+
+Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectives001() {
   Duration<double> legDur = Duration<double>::minutes(10.0);
   Duration<double> totalDur = Duration<double>::hours(1);
   Duration<double> tackDur = Duration<double>::minutes(1);
-
 
   int tackCount = int(floor(totalDur/tackDur));
   LOG(INFO) << stringFormat("Tack count: %d", tackCount);
@@ -391,7 +381,14 @@ NavalSimulation makeNavSimFractalWindOriented() {
     dirs[i] = BoatSimulationSpecs::TwaDirective::constant(tackDur,
         tackAngle + getMainDir(double(i)*tackDur, legDur));
   }
-  return makeNavSimFractal(dirs, corruptorSets);
+  return dirs;
+}
+
+
+NavalSimulation makeNavSimFractalWindOriented() {
+  Array<CorruptedBoatState::CorruptorSet> sets(1);
+  sets[0] = makeCorruptorSet001();
+  return makeNavSimFractal(makeTwaDirectives001(), sets);
 }
 
 
