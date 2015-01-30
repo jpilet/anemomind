@@ -97,6 +97,47 @@ class FilteredNavData {
     Velocity<double> aws;
   };
   NoiseStdDev estimateNoise(Array<Nav> navs) const;
+
+  // The lifetime of _data should completely overlap
+  // the lifetime of this object.
+  class Indexed {
+   public:
+    Indexed(const FilteredNavData *data, int index) :
+      _data(data), _index(index) {}
+
+    Angle<double> awa() const {
+      return _data->awa().get(_index);
+    }
+
+    Angle<double> magHdg() const {
+      return _data->magHdg().get(_index);
+    }
+
+    Angle<double> gpsBearing() const {
+      return _data->gpsBearing().get(_index);
+    }
+
+    Velocity<double> watSpeed() const {
+      return _data->watSpeed().get(_index);
+    }
+
+    Velocity<double> gpsSpeed() const {
+      return _data->gpsSpeed().get(_index);
+    }
+
+    Velocity<double> aws() const {
+      return _data->aws().get(_index);
+    }
+   private:
+    const FilteredNavData *_data;
+    int _index;
+  };
+
+  Indexed makeIndexedInstrumentAbstraction(int sampleIndex) const {
+    assert(0 <= sampleIndex);
+    assert(sampleIndex < size());
+    return Indexed(this, sampleIndex);
+  }
  private:
   TimeStamp _timeOffset;
   UniformSamples<Angle<double> > _awa, _magHdg, _gpsBearing;

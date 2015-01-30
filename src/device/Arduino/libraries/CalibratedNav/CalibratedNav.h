@@ -89,7 +89,7 @@ class CalibratedNav {
     rawAwa(x.awa()), rawMagHdg(x.magHdg()),
     rawAws(x.aws()), rawWatSpeed(x.watSpeed()),
     gpsMotion(HorizontalMotion<T>::polar(x.gpsSpeed(), x.gpsBearing())),
-    driftAngle(Angle<T>::degrees(0)) {}
+    driftAngle(Angle<T>::degrees(T(0))) {}
 
   /*
    * Since all instance variables are encapsulated

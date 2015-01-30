@@ -445,4 +445,24 @@ target_link_libraries(nautical_AutoCalib
                       math_armaadolc
                      )
                      
-target_depends_on_ceres(nautical_AutoCalib)                     
+target_depends_on_ceres(nautical_AutoCalib)  
+
+
+
+
+add_library(nautical_DecorrCalib
+            DecorrCalib.h
+            DecorrCalib.cpp
+           )
+target_link_libraries(nautical_DecorrCalib
+                      nautical_FilteredNavData
+                     )
+                     
+target_depends_on_ceres(nautical_DecorrCalib)
+
+add_executable(nautical_DecorrCalibDemo
+               DecorrCalibDemo.cpp
+              )
+target_link_libraries(nautical_DecorrCalibDemo
+                      nautical_DecorrCalib
+                     )

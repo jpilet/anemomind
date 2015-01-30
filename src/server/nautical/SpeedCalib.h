@@ -40,14 +40,14 @@ class SpeedCalib {
 
   static Sigmoid<T> kSpan() {
     double marg = 0.1;
-    return Sigmoid<T>(1.0 - marg, 1.0 + marg);
+    return Sigmoid<T>(T(1.0 - marg), T(1.0 + marg));
   }
 
   // These functions can be used to map a variable in R
   // to a subset.
   //
   // Caution: For x = 0, the derivative of lowerBound w.r.t. x is 0.
-  static T lowerBound(T x, T lb = 0) {
+  static T lowerBound(T x, T lb = T(0)) {
     return x*x + lb;
   }
 
@@ -61,7 +61,7 @@ class SpeedCalib {
      *    (i)  _alpha > 0 (so that the exponential curve decreases asymptotically towards zero)
      *    (ii) slope of the curve at 0 should not be negative
      */
-    _alpha = Sigmoid<T>(0, _k/(_c + 1.0e-9 /*_c > 0, so adding a small number to it eliminates
+    _alpha = Sigmoid<T>(T(0), T(_k/(_c + 1.0e-9) /*_c > 0, so adding a small number to it eliminates
       division by zero*/)).eval(alphaParam);
   }
 
@@ -82,16 +82,16 @@ class SpeedCalib {
    */
   T offsetCoef() {return _m - _c;}
 
-  T nonlinCoef() {return (withExp? _c : 0.0);}
+  T nonlinCoef() {return (withExp? T(_c) : T(0.0));}
 
   T decayCoef() {
     return (withExp? _alpha : T(0.0));
   }
 
-  static T initKParam() {return 0;}
-  static T initMParam() {return 0.01;}
-  static T initCParam() {return 0.01;}
-  static T initAlphaParam() {return 0.0;}
+  static T initKParam() {return T(0);}
+  static T initMParam() {return T(0.01);}
+  static T initCParam() {return T(0.01);}
+  static T initAlphaParam() {return T(0.0);}
 
   // This value can be added to the objective function in order to
   // push the nonlinCoef to zero if decayCoef is close to 0.

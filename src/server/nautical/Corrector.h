@@ -14,9 +14,8 @@
 #include <server/common/ToDouble.h>
 
 namespace sail {
+
 #pragma pack(push, 1)
-
-
   template <typename T>
   class AngleCorrector {
    public:
