@@ -233,6 +233,11 @@ target_link_libraries(math_SubdivFractalsDemo
                       math_SubdivFractals
                      )
 
+cxx_test(math_QuadFormTest
+         QuadFormTest.cpp
+         gtest_main
+         common_LineKM
+        )
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
