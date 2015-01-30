@@ -8,6 +8,7 @@
 #include "DecorrCalib.h"
 #include <server/common/Span.h>
 #include <server/common/ScopedLog.h>
+#include <server/math/QuadForm.h>
 
 namespace sail {
 
@@ -20,6 +21,9 @@ namespace {
       return corr.correct(data.makeIndexedInstrumentAbstraction(index));
     });
   }
+
+  template <typename T>
+  Array<QuadForm<T, 2, 1> >
 
 
   class Objf {
