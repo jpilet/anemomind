@@ -163,7 +163,7 @@ class QuadForm {
     return dst;
   }
 
-  bool minimize2x1(double *out2) const {
+  bool minimize2x1(T *out2) const {
     static_assert(lhsDims == 2 && rhsDims == 1, "Only for 2x1 quad forms");
     T ata[4] = {_P[0], _P[1], _P[1], _P[2]};
     T ataInv[4];

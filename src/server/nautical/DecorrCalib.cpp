@@ -70,15 +70,40 @@ namespace {
    private:
     FilteredNavData _data;
     DecorrCalib *_decorr;
-    int _windowCount, _absoluteOverlap;
+    int _windowCount, _windowStep;
 
     template <typename T>
-    bool evalSub(Array<QuadForm<2, 1, T> > W[2], Array<QuadForm<2, 1, T> > C[2]) const {
+    void evalWindow(QuadForm<2, 1, T> Wl[2], QuadForm<2, 1, T> Cl[2],
+        Array<QuadForm<2, 1, T> > Wslice[2],
+        Array<QuadForm<2, 1, T> > Cslice[2], T *residuals) const {
+
+    }
+
+    template <typename T>
+    bool evalSub(Array<QuadForm<2, 1, T> > W[2], Array<QuadForm<2, 1, T> > C[2],
+      T *residuals) const {
       const T init(0.0);
       Integral1d<QuadForm<2, 1, T> > Wi[2] = {Integral1d<QuadForm<2, 1, T> >(W[0], init),
                                               Integral1d<QuadForm<2, 1, T> >(W[1], init)};
       Integral1d<QuadForm<2, 1, T> > Ci[2] = {Integral1d<QuadForm<2, 1, T> >(C[0], init),
                                               Integral1d<QuadForm<2, 1, T> >(C[1], init)};
+      for (int i = 0; i < _windowCount; i++) {
+        int left = i*_windowStep;
+        int right = left + _decorr->windowSize();
+        assert(right <= _data.size());
+
+        QuadForm<2, 1, T> Wl[2] = {Wi[0].integrate(left, right),
+                                   Wi[1].integrate(left, right)};
+        QuadForm<2, 1, T> Cl[2] = {Ci[0].integrate(left, right),
+                                   Ci[1].integrate(left, right)};
+
+        Array<QuadForm<2, 1, T> > Wslice[2] = {W[0].slice(left, right),
+                                               W[1].slice(left, right)};
+        Array<QuadForm<2, 1, T> > Cslice[2] = {C[0].slice(left, right),
+                                               C[1].slice(left, right)};
+
+        evalWindow(Wl, Cl, Wslice, Cslice, residuals + i*termsPerSample);
+      }
     }
 
     template <typename T>
@@ -89,7 +114,7 @@ namespace {
                                         extractQF<T>(cnavs, &(getTrueWind<T>), 1)};
       Array<QuadForm<2, 1, T> > C[2] = {extractQF<T>(cnavs, &(getTrueCurrent<T>), 0),
                                         extractQF<T>(cnavs, &(getTrueCurrent<T>), 1)};
-      return evalSub(W, C);
+      return evalSub(W, C, residuals);
     }
   };
 
@@ -97,9 +122,10 @@ namespace {
       FilteredNavData data) :
       _data(data),
       _decorr(decorr),
-      _absoluteOverlap(decorr->absoluteWindowOverlap()) {
+      _windowStep(decorr->windowStep()) {
 
-    _windowCount = ((data.size() - _decorr->windowSize())/_absoluteOverlap) + 1;
+    _windowCount = ((data.size() - _decorr->windowSize())/_windowStep) + 1;
+    assert(_decorr->windowSize() + (_windowCount - 1)*_windowStep <= data.size());
   }
 }
 

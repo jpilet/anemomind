@@ -74,7 +74,7 @@ class DecorrCalib {
     return _windowOverlap;
   }
 
-  int absoluteWindowOverlap() const {
+  int windowStep() const {
     return std::max(1, int(floor((1.0 - _windowOverlap)*_windowSize)));
   }
  private:

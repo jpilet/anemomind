@@ -14,7 +14,7 @@ namespace sail {
 
 namespace {
   arma::mat makeRayMatrix(int vertexCount) {
-    LineKM angle(0, vertexCount-1, 0.0, 2.0*M_PI);
+    LineKM angle(0.0, double(vertexCount-1), 0.0, 2.0*M_PI);
     arma::mat A = arma::zeros(2*vertexCount, vertexCount);
     for (int i = 0; i < vertexCount; i++) {
       int rowoffs = 2*i;

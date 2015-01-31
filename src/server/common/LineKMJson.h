@@ -10,7 +10,7 @@
 #include <Poco/Dynamic/Var.h>
 
 namespace sail {
-class LineKM;
+//class LineKM;
 
 namespace json {
 

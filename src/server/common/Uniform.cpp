@@ -45,7 +45,7 @@ Uniform::~Uniform() {
 
 
 void Uniform::set(double a, double b) {
-  calcLineKM(0, RAND_MAX, a, b, _k, _m);
+  calcLineKM<double>(0.0, RAND_MAX, a, b, _k, _m);
 }
 
 
