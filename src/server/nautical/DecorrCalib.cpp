@@ -124,15 +124,15 @@ namespace {
       }
 
       // Normalize
-      LOG(INFO) << "count " << count << " left = " << left << " right = " << right;
-      LOG(INFO) << "offsets: " << ToDouble(Wl[0](middle)) << " " << ToDouble(Wl[1](middle))
-          << " " << ToDouble(Cl[0](middle)) << " " << ToDouble(Cl[1](middle));
+      //LOG(INFO) << "count " << count << " left = " << left << " right = " << right;
+      //LOG(INFO) << "offsets: " << ToDouble(Wl[0](middle)) << " " << ToDouble(Wl[1](middle))
+      //    << " " << ToDouble(Cl[0](middle)) << " " << ToDouble(Cl[1](middle));
       T f(1.0/count);
       for (int i = 0; i < termsPerSample; i++) {
-        T factor = f*(_decorr->normalized()? T(1.0)/(wvar[i % 2]*cvar[i / 2]) : T(1.0));
+        T factor = f*(_decorr->normalized()? T(1.0)/(abs(wvar[i % 2]*cvar[i / 2]) + 1.0e-9) : T(1.0));
         residuals[i] *= factor;
 
-        LOG(INFO) << "Residual: " << ToDouble(residuals[i]);
+        //LOG(INFO) << "Residual: " << ToDouble(residuals[i]);
       }
     }
 
@@ -164,6 +164,7 @@ namespace {
         evalWindow(left, right,
             Wl, Cl, Wslice, Cslice, residuals + i*termsPerSample);
       }
+      return true;
     }
 
     template <typename T>
@@ -204,6 +205,7 @@ DecorrCalib::Results DecorrCalib::calibrate(FilteredNavData data) {
   problem.AddResidualBlock(cost, NULL, (double *)(&corr));
   ceres::Solver::Options options;
   options.minimizer_progress_to_stdout = true;
+  options.max_num_iterations = 60;
   ceres::Solver::Summary summary;
   Solve(options, &problem, &summary);
   SCOPEDMESSAGE(INFO, "Done optimizing.");

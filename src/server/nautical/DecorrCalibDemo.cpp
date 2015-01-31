@@ -14,7 +14,7 @@ int main(int argc, const char **argv) {
   auto boatData = navsim.boatData(0);
 
   double lambda = 0.5;
-  FilteredNavData fdata(boatData.navs(), lambda);
+  FilteredNavData fdata(boatData.navs(), lambda, FilteredNavData::SIGNAL);
 
   LOG(INFO) << "Calibrate...";
   DecorrCalib calib;
