@@ -100,12 +100,13 @@ namespace {
       T wvar[2] = {T(0), T(0)};
       T cvar[2] = {T(0), T(0)};
       int count = right - left;
+      T middle = T((left + right)/2.0);
       for (int k = 0; k < count; k++) {
         T x = T(left + k);
-        T w[2] = {Wslice[0][k].lineFitX() - Wl[0](x),
-                  Wslice[1][k].lineFitX() - Wl[1](x)};
-        T c[2] = {Cslice[0][k].lineFitX() - Cl[0](x),
-                  Cslice[1][k].lineFitX() - Cl[1](x)};
+        T w[2] = {Wslice[0][k].lineFitY() - Wl[0](x),
+                  Wslice[1][k].lineFitY() - Wl[1](x)};
+        T c[2] = {Cslice[0][k].lineFitY() - Cl[0](x),
+                  Cslice[1][k].lineFitY() - Cl[1](x)};
         for (int i = 0; i < termsPerSample; i++) {
           residuals[i] += w[i % 2]*c[i / 2];
         }
@@ -124,6 +125,8 @@ namespace {
 
       // Normalize
       LOG(INFO) << "count " << count << " left = " << left << " right = " << right;
+      LOG(INFO) << "offsets: " << ToDouble(Wl[0](middle)) << " " << ToDouble(Wl[1](middle))
+          << " " << ToDouble(Cl[0](middle)) << " " << ToDouble(Cl[1](middle));
       T f(1.0/count);
       for (int i = 0; i < termsPerSample; i++) {
         T factor = f*(_decorr->normalized()? T(1.0)/(wvar[i % 2]*cvar[i / 2]) : T(1.0));
