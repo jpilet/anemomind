@@ -21,6 +21,11 @@ int main(int argc, const char **argv) {
   auto results = calib.calibrate(fdata);
   LOG(INFO) << "Done.";
 
+  std::cout << "Before calibreation with default values: " << boatData.evaluateFitness(Corrector<double>());
+
+  std::cout << "After calibration with optimal values:  " <<
+            boatData.evaluateFitness(results.corrector);
+
 
 
   return 0;

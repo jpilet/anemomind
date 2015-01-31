@@ -14,6 +14,7 @@
 #include <random>
 #include <server/common/MeanAndVar.h>
 #include <server/nautical/Corrector.h>
+#include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
 
 namespace sail {
 
@@ -368,6 +369,9 @@ class NavalSimulation {
         Array<HorizontalMotion<double> > estimatedTrueWindPerNav,
         Array<HorizontalMotion<double> > estimatedTrueCurrentPerNav) const;
 
+    NavalSimulation::SimulatedCalibrationResults evaluateFitness(
+        Array<CalibratedNav<double> > cnavs) const;
+
     NavalSimulation::SimulatedCalibrationResults evaluateNoCalibration() const {
       return evaluateFitness(Corrector<double>());
     }
@@ -376,10 +380,11 @@ class NavalSimulation {
     Array<HorizontalMotion<double> > trueCurrent() const;
 
     void plot() const;
+
+    NavalSimulation::SimulatedCalibrationResults evaluateFitness(const Corrector<double> &corr) const;
    private:
     BoatSimulationSpecs _specs;
     Array<CorruptedBoatState> _states;
-    NavalSimulation::SimulatedCalibrationResults evaluateFitness(const Corrector<double> &corr) const;
   };
 
   int boatCount() const {
