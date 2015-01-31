@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <server/math/LUImpl.h>
 #include <cassert>
+#include <server/common/LineKM.h>
 
 namespace sail {
 
@@ -164,13 +165,22 @@ class QuadForm {
   }
 
   bool minimize2x1(T *out2) const {
-    static_assert(lhsDims == 2 && rhsDims == 1, "Only for 2x1 quad forms");
+    static_assert(isStraightLineFit, "Only for 2x1 quad forms");
     T ata[4] = {_P[0], _P[1], _P[1], _P[2]};
     T ataInv[4];
     bool ret = invert2x2(ata, ataInv);
     out2[0] = ataInv[0]*_Q[0] + ataInv[1]*_Q[1];
     out2[1] = ataInv[2]*_Q[0] + ataInv[3]*_Q[1];
     return ret;
+  }
+
+  GenericLineKM<T> makeLine() const {
+    T coefs[2];
+    if (minimize2x1(coefs)) {
+      return GenericLineKM<T>(coefs[0], coefs[1]);
+    } else {
+      return GenericLineKM<T>::undefined();
+    }
   }
 
   T eval(const T *x) const {

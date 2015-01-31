@@ -21,7 +21,7 @@ void calcLineKM(T x0, T x1, T y0, T y1, T &k, T &m) {
 }
 
 // function on the form f(x) = _k*x + _m
-// The previous LineKM class that works with double, generalized to any type T.
+// Based on the previous LineKM class that works with double, generalized to any type T.
 template <typename T>
 class GenericLineKM {
  public:
@@ -31,6 +31,10 @@ class GenericLineKM {
 
   GenericLineKM(T k, T m) : _k(k), _m(m) {}
   GenericLineKM() : _k(T(1.0)), _m(T(0.0)) {}
+
+  static GenericLineKM undefined() {
+    return GenericLineKM(T(NAN), T(NAN));
+  }
 
   static GenericLineKM identity() {
     return GenericLineKM(T(1.0), T(0.0));

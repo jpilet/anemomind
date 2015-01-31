@@ -17,6 +17,17 @@ namespace sail {
 namespace {
 
   template <typename T>
+  GenericLineKM<T> toLine(QuadForm<2, 1, T> qf, int deg) {
+    if (deg == 0) {
+      // Mean value (polynom of degree 0)
+      return GenericLineKM<T>::constant(qf.lineFitY());
+    } else {
+      assert(deg == 1); // only deg=0 and deg=1 currently supported.
+      return qf.makeLine();
+    }
+  }
+
+  template <typename T>
   Array<CalibratedNav<T> > correctSamples(const Corrector<T> &corr, FilteredNavData data) {
     return Spani(0, data.size()).map<CalibratedNav<T> >([&](int index) {
       return corr.correct(data.makeIndexedInstrumentAbstraction(index));
@@ -73,7 +84,7 @@ namespace {
     int _windowCount, _windowStep;
 
     template <typename T>
-    void evalWindow(QuadForm<2, 1, T> Wl[2], QuadForm<2, 1, T> Cl[2],
+    void evalWindow(GenericLineKM<T> Wl[2], GenericLineKM<T> Cl[2],
         Array<QuadForm<2, 1, T> > Wslice[2],
         Array<QuadForm<2, 1, T> > Cslice[2], T *residuals) const {
 
@@ -92,10 +103,12 @@ namespace {
         int right = left + _decorr->windowSize();
         assert(right <= _data.size());
 
-        QuadForm<2, 1, T> Wl[2] = {Wi[0].integrate(left, right),
-                                   Wi[1].integrate(left, right)};
-        QuadForm<2, 1, T> Cl[2] = {Ci[0].integrate(left, right),
-                                   Ci[1].integrate(left, right)};
+        GenericLineKM<T> Wl[2] = {
+            toLine(Wi[0].integrate(left, right), _decorr->polyDeg()),
+            toLine(Wi[1].integrate(left, right), _decorr->polyDeg())};
+        GenericLineKM<T> Cl[2] = {
+            toLine(Ci[0].integrate(left, right), _decorr->polyDeg()),
+            toLine(Ci[1].integrate(left, right), _decorr->polyDeg())};
 
         Array<QuadForm<2, 1, T> > Wslice[2] = {W[0].slice(left, right),
                                                W[1].slice(left, right)};
