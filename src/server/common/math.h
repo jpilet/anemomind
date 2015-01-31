@@ -206,6 +206,43 @@ inline int div1(int a, int b) {
   return (a - 1)/b + 1;
 }
 
+template <typename T>
+void add(int dims, const T *a, const T *b, T *dst) {
+  for (int i = 0; i < dims; i++) {
+    dst[i] = a[i] + b[i];
+  }
+}
+
+template <typename T>
+void subtract(int dims, const T *a, const T *b, T *dst) {
+  for (int i = 0; i < dims; i++) {
+    dst[i] = a[i] - b[i];
+  }
+}
+
+template <typename T>
+void scale(int dims, T s, const T *x, T *dst) {
+  for (int i = 0; i < dims; i++) {
+    dst[i] = s*x[i];
+  }
+}
+
+/*
+ * Works for column major as well as
+ * row major order of the coefficients
+ * in a and b.
+ */
+template <typename T>
+bool invert2x2(const T *a, T *b) {
+  T denom = a[0]*a[3] - a[1]*a[2];
+  T factor = 1.0/denom;
+  b[0] = factor*a[3];
+  b[1] = -factor*a[1];
+  b[2] = -factor*a[2];
+  b[3] = factor*a[0];
+  return !std::isnan(factor);
+}
+
 
 template <typename T>
 void solveQuadratic(T a, T b, T c, T *x0, T *x1) {
@@ -244,6 +281,9 @@ void mirror(int dims, T width, const T *x, T *y) {
     y[i] = mirror(x[i], width);
   }
 }
+
+
+
 
 } /* namespace sail */
 

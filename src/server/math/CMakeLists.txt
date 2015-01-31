@@ -237,6 +237,7 @@ cxx_test(math_QuadFormTest
          QuadFormTest.cpp
          gtest_main
          common_LineKM
+         math_LUImpl
         )
 
 add_subdirectory(geometry)

@@ -9,6 +9,7 @@
 #include <server/common/Span.h>
 #include <server/common/ScopedLog.h>
 #include <server/math/QuadForm.h>
+#include <server/math/Integral1d.h>
 
 namespace sail {
 
@@ -23,7 +24,25 @@ namespace {
   }
 
   template <typename T>
-  Array<QuadForm<T, 2, 1> >
+  Array<QuadForm<2, 1, T> > extractQF(Array<CalibratedNav<T> > cnavs,
+    std::function<HorizontalMotion<T>(CalibratedNav<T>)> extractor, int index) {
+    int count = cnavs.size();
+    Array<QuadForm<2, 1, T> > dst(count);
+    for (int i = 0; i < count; i++) {
+      dst[i] = QuadForm<2, 1, T>::fitLine(T(i), extractor(cnavs[i])[index].knots());
+    }
+    return dst;
+  }
+
+  template <typename T>
+  HorizontalMotion<T> getTrueWind(const CalibratedNav<T> &x) {
+    return x.trueWind();
+  }
+
+  template <typename T>
+  HorizontalMotion<T> getTrueCurrent(const CalibratedNav<T> &x) {
+    return x.trueCurrent();
+  }
 
 
   class Objf {
@@ -54,8 +73,23 @@ namespace {
     int _windowCount, _absoluteOverlap;
 
     template <typename T>
+    bool evalSub(Array<QuadForm<2, 1, T> > W[2], Array<QuadForm<2, 1, T> > C[2]) const {
+      const T init(0.0);
+      Integral1d<QuadForm<2, 1, T> > Wi[2] = {Integral1d<QuadForm<2, 1, T> >(W[0], init),
+                                              Integral1d<QuadForm<2, 1, T> >(W[1], init)};
+      Integral1d<QuadForm<2, 1, T> > Ci[2] = {Integral1d<QuadForm<2, 1, T> >(C[0], init),
+                                              Integral1d<QuadForm<2, 1, T> >(C[1], init)};
+    }
+
+    template <typename T>
     bool eval(const Corrector<T> *corr, T *residuals) const {
-      Array<CalibratedNav<T> > corrected = correctSamples(*corr, _data);
+      Array<CalibratedNav<T> > cnavs = correctSamples(*corr, _data);
+
+      Array<QuadForm<2, 1, T> > W[2] = {extractQF<T>(cnavs, &(getTrueWind<T>), 0),
+                                        extractQF<T>(cnavs, &(getTrueWind<T>), 1)};
+      Array<QuadForm<2, 1, T> > C[2] = {extractQF<T>(cnavs, &(getTrueCurrent<T>), 0),
+                                        extractQF<T>(cnavs, &(getTrueCurrent<T>), 1)};
+      return evalSub(W, C);
     }
   };
 
@@ -66,7 +100,6 @@ namespace {
       _absoluteOverlap(decorr->absoluteWindowOverlap()) {
 
     _windowCount = ((data.size() - _decorr->windowSize())/_absoluteOverlap) + 1;
-
   }
 }
 

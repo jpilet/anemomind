@@ -12,9 +12,9 @@ template <typename T>
 class Integral1d {
  public:
   Integral1d() : _srcSize(0) {}
-  Integral1d(Array<T> data) : _srcSize(data.size()) {
+  Integral1d(Array<T> data, T offset = T(0)) : _srcSize(data.size()) {
     _integral = Array<T>(_srcSize + 1);
-    _integral[0] = T(0);
+    _integral[0] = offset;
     for (int i = 0; i < _srcSize; i++) {
       _integral[i + 1] = _integral[i] + data[i];
     }

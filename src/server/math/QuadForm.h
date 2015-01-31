@@ -51,7 +51,23 @@ class QuadForm {
   static constexpr int rDims = calcSymmetricMatrixStorageSize(rhsDims);
   static constexpr int rNumel = rhsDims*rhsDims;
 
+  static constexpr bool isStraightLineFit = lhsDims == 2 && rhsDims == 1;
+
   static constexpr int outDims = qDims;
+
+
+//  QuadForm(T x) {
+//    for (int i = 0; i < pNumel; i++) {
+//      _P[i] = x;
+//    }
+//    for (int i = 0; i < qNumel; i++) {
+//      _Q[i] = x;
+//    }
+//    for (int i = 0; i < rNumel; i++) {
+//      _R[i] = x;
+//    }
+//  }
+
   /*
    * Make a QuadForm from
    *
@@ -100,7 +116,7 @@ class QuadForm {
       _Q[i] = T(0);
     }
     for (int i = 0; i < rDims; i++) {
-      _R[0] = x;
+      _R[0] = T(x);
     }
   }
 
@@ -182,9 +198,23 @@ class QuadForm {
 
   // Used to fit a straight line between a value x and a corresponding value y.
   static ThisType fitLine(T x, T y) {
-    static_assert(lhsDims == 2 && rhsDims == 1, "Only to be used for line fitting");
+    static_assert(isStraightLineFit, "Only to be used for line fitting");
     T a[2] = {x, T(1.0)};
     return ThisType::fit(a, &y);
+  }
+
+  // When this is a line fit, this is the number of equations.
+  T lineFitCount() const {
+    static_assert(isStraightLineFit, "Only applicable to straight line fits.");
+    return _P[2];
+  }
+
+  T lineFitX() const {
+    return _P[1]/lineFitCount();
+  }
+
+  T lineFitY() const {
+    return _Q[1]/lineFitCount();
   }
 
   T pElement(int i, int j) const {
