@@ -10,7 +10,7 @@
 using namespace sail;
 
 int main(int argc, const char **argv) {
-  NavalSimulation navsim = makeNavSimConstantFlow();//makeNavSimFractalWindOriented();
+  NavalSimulation navsim = makeNavSimFractalWindOriented(); //makeNavSimConstantFlow();//makeNavSimFractalWindOriented();
   auto boatData = navsim.boatData(0);
 
   double lambda = 0.5;
