@@ -58,7 +58,7 @@ class DecorrCalib {
 
 
 
-  bool normlalized() const {
+  bool normalized() const {
     return _normalized;
   }
 

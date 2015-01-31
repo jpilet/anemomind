@@ -465,4 +465,6 @@ add_executable(nautical_DecorrCalibDemo
               )
 target_link_libraries(nautical_DecorrCalibDemo
                       nautical_DecorrCalib
+                      nautical_FilteredNavData
+                      nautical_synthtest_NavalSimulation
                      )

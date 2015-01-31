@@ -84,10 +84,50 @@ namespace {
     int _windowCount, _windowStep;
 
     template <typename T>
-    void evalWindow(GenericLineKM<T> Wl[2], GenericLineKM<T> Cl[2],
+    void evalWindow(
+        int left, int right,
+        GenericLineKM<T> Wl[2],
+        GenericLineKM<T> Cl[2],
         Array<QuadForm<2, 1, T> > Wslice[2],
         Array<QuadForm<2, 1, T> > Cslice[2], T *residuals) const {
 
+      // Initialize
+      for (int i = 0; i < termsPerSample; i++) {
+        residuals[i] = T(0);
+      }
+
+      // Accumulate
+      T wvar[2] = {T(0), T(0)};
+      T cvar[2] = {T(0), T(0)};
+      int count = right - left;
+      for (int k = 0; k < count; k++) {
+        T x = T(left + k);
+        T w[2] = {Wslice[0][k].lineFitX() - Wl[0](x),
+                  Wslice[1][k].lineFitX() - Wl[1](x)};
+        T c[2] = {Cslice[0][k].lineFitX() - Cl[0](x),
+                  Cslice[1][k].lineFitX() - Cl[1](x)};
+        for (int i = 0; i < termsPerSample; i++) {
+          residuals[i] += w[i % 2]*c[i / 2];
+        }
+        if (_decorr->normalized()) {
+          for (int i = 0; i < 2; i++) {
+            wvar[i] += sqr(w[i]);
+            cvar[i] += sqr(c[i]);
+          }
+        }
+      }
+
+      for (int i = 0; i < 2; i++) {
+        wvar[i] = sqrt(wvar[i]/T(count));
+        cvar[i] = sqrt(cvar[i]/T(count));
+      }
+
+      // Normalize
+      T f(1.0/count);
+      for (int i = 0; i < termsPerSample; i++) {
+        T factor = f*(_decorr->normalized()? T(1.0)/(wvar[i % 2]*cvar[i / 2]) : T(1.0));
+        residuals[i] *= factor;
+      }
     }
 
     template <typename T>
@@ -115,7 +155,8 @@ namespace {
         Array<QuadForm<2, 1, T> > Cslice[2] = {C[0].slice(left, right),
                                                C[1].slice(left, right)};
 
-        evalWindow(Wl, Cl, Wslice, Cslice, residuals + i*termsPerSample);
+        evalWindow(left, right,
+            Wl, Cl, Wslice, Cslice, residuals + i*termsPerSample);
       }
     }
 
@@ -150,6 +191,7 @@ DecorrCalib::Results DecorrCalib::calibrate(FilteredNavData data) {
 
   auto objf = new Objf(this, data);
   auto cost = new ceres::DynamicAutoDiffCostFunction<Objf>(objf);
+  cost->AddParameterBlock(Corrector<double>::paramCount());
   cost->SetNumResiduals(objf->outDims());
 
   Corrector<double> corr;
