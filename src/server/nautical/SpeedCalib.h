@@ -98,7 +98,7 @@ class SpeedCalib {
   T ambiguityPenalty() {
     return (1.0e-8)*(nonlinCoef()/(1.0e-12 + decayCoef()));
   }
- private:
+ //private:
   T _k, _m, _c, _alpha;
 };
 

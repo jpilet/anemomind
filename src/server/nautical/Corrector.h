@@ -39,9 +39,12 @@ namespace sail {
       alpha(SpeedCalib<T>::initAlphaParam()) {}
 
 
+    SpeedCalib<T> make() const {
+      return SpeedCalib<T>(k, m, c, alpha);
+    }
+
     Velocity<T> correct(Velocity<T> raw) const {
-      SpeedCalib<T> cal(k, m, c, alpha);
-      return cal.eval(raw);
+      return make().eval(raw);
     }
   };
 

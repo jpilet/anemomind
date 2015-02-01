@@ -10,6 +10,7 @@
 #include <server/common/ScopedLog.h>
 #include <server/math/QuadForm.h>
 #include <server/math/Integral1d.h>
+#include <iostream>
 
 namespace sail {
 
@@ -17,7 +18,29 @@ namespace sail {
 namespace {
 
   template <typename T>
-  GenericLineKM<T> toLine(QuadForm<2, 1, T> qf, int deg) {
+  bool messedUp(T x) {
+    //return !std::isfinite(x);
+    return false;
+  }
+
+  template <>
+  bool messedUp<ceres::Jet<double, 4> >(ceres::Jet<double, 4> x) {
+    if (!std::isfinite(x.a)) {
+      //return true;
+    }
+    for (int i = 0; i < 4; i++) {
+      if (!std::isfinite(x.v(i, 0))) {
+        std::cout << "x = " << x << std::endl;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  #define CHECKVALUE(x) assert(!std::isnan(ToDouble(x))); assert(!messedUp(x))
+
+  template <typename T>
+  GenericLineKM<T> toLineSub(QuadForm<2, 1, T> qf, int deg) {
     if (deg == 0) {
       // Mean value (polynom of degree 0)
       return GenericLineKM<T>::constant(qf.lineFitY());
@@ -28,9 +51,48 @@ namespace {
   }
 
   template <typename T>
-  Array<CalibratedNav<T> > correctSamples(const Corrector<T> &corr, FilteredNavData data) {
+  GenericLineKM<T> toLine(QuadForm<2, 1, T> qf, int deg) {
+    auto line = toLineSub(qf, deg);
+    if (messedUp(line.getK()) || messedUp(line.getM())) {
+      for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+          std::cout << qf.pElement(i, j) << " ";
+        }
+        std::cout << "   " << qf.qElement(i, 0) << std::endl;
+      }
+    }
+    CHECKVALUE(line.getK());
+    CHECKVALUE(line.getM());
+    return line;
+  }
+
+  template <typename T>
+  CalibratedNav<T> checkCNav(CalibratedNav<T> x) {
+    CHECKVALUE(x.calibAwa().degrees());
+    CHECKVALUE(x.calibAws().knots());
+    CHECKVALUE(x.driftAngle().degrees());
+    CHECKVALUE(x.trueCurrent()[0].knots());
+    CHECKVALUE(x.trueCurrent()[1].knots());
+    CHECKVALUE(x.trueWind()[0].knots());
+    CHECKVALUE(x.trueWind()[1].knots());
+    return x;
+  }
+
+  template <typename T>
+  Array<CalibratedNav<T> > correctSamples(const Corrector<T> &corr,
+      FilteredNavData data) {
+    CHECKVALUE(corr.aws.k);
+    CHECKVALUE(corr.aws.m);
+    CHECKVALUE(corr.aws.c);
+    CHECKVALUE(corr.aws.alpha);
+    auto cal = corr.aws.make();
+    CHECKVALUE(cal._k);
+    CHECKVALUE(cal._m);
+    CHECKVALUE(cal._c);
+    CHECKVALUE(cal._alpha);
+
     return Spani(0, data.size()).map<CalibratedNav<T> >([&](int index) {
-      return corr.correct(data.makeIndexedInstrumentAbstraction(index));
+      return checkCNav(corr.correct(data.makeIndexedInstrumentAbstraction(index)));
     });
   }
 
@@ -90,6 +152,12 @@ namespace {
         GenericLineKM<T> Cl[2],
         Array<QuadForm<2, 1, T> > Wslice[2],
         Array<QuadForm<2, 1, T> > Cslice[2], T *residuals) const {
+      for (int i = 0; i < 2; i++) {
+        CHECKVALUE(Wl[i].getK());
+        CHECKVALUE(Wl[i].getM());
+        CHECKVALUE(Cl[i].getK());
+        CHECKVALUE(Cl[i].getM());
+      }
 
       // Initialize
       for (int i = 0; i < termsPerSample; i++) {
@@ -107,7 +175,11 @@ namespace {
                   Wslice[1][k].lineFitY() - Wl[1](x)};
         T c[2] = {Cslice[0][k].lineFitY() - Cl[0](x),
                   Cslice[1][k].lineFitY() - Cl[1](x)};
+
         for (int i = 0; i < termsPerSample; i++) {
+          assert(!messedUp(w[i]));
+          assert(!messedUp(c[i]));
+
           residuals[i] += w[i % 2]*c[i / 2];
         }
         if (_decorr->normalized()) {
@@ -119,8 +191,13 @@ namespace {
       }
 
       for (int i = 0; i < 2; i++) {
+        assert(!messedUp(wvar[i]));
         wvar[i] = sqrt(wvar[i]/T(count));
+        assert(!messedUp(wvar[i]));
+
+        assert(!messedUp(cvar[i]));
         cvar[i] = sqrt(cvar[i]/T(count));
+        assert(!messedUp(cvar[i]));
       }
 
       // Normalize
@@ -129,9 +206,12 @@ namespace {
       //    << " " << ToDouble(Cl[0](middle)) << " " << ToDouble(Cl[1](middle));
       T f(1.0/count);
       for (int i = 0; i < termsPerSample; i++) {
-        T factor = f*(_decorr->normalized()? T(1.0)/(abs(wvar[i % 2]*cvar[i / 2]) + 1.0e-9) : T(1.0));
+        auto denom = abs(wvar[i % 2]*cvar[i / 2]);
+        assert(!messedUp(denom));
+        T factor = f*(_decorr->normalized()? T(1.0)/(denom + 1.0e-9) : T(1.0));
         residuals[i] *= factor;
         assert(!std::isnan(ToDouble(residuals[i])));
+        assert(!messedUp(residuals[i]));
 
         //LOG(INFO) << "Residual: " << ToDouble(residuals[i]);
       }
@@ -176,6 +256,9 @@ namespace {
                                         extractQF<T>(cnavs, &(getTrueWind<T>), 1)};
       Array<QuadForm<2, 1, T> > C[2] = {extractQF<T>(cnavs, &(getTrueCurrent<T>), 0),
                                         extractQF<T>(cnavs, &(getTrueCurrent<T>), 1)};
+
+
+
       return evalSub(W, C, residuals);
     }
   };

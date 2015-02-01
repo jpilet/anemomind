@@ -230,6 +230,10 @@ class QuadForm {
   T pElement(int i, int j) const {
     return _P[calcSymmetricMatrixIndex(i, j)];
   }
+
+  T qElement(int i, int j) const {
+    return _Q[calcQIndex(i, j)];
+  }
  private:
   void fillPArray(MDArray<T, 2> dst) const {
     assert(dst.rows() == lhsDims);
