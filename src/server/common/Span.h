@@ -44,17 +44,10 @@ class Span {
 
   Span(T value) : _minv(value), _maxv(value), _initialized(true) {}
   Span(Array<T> arr) {
-    if (arr.empty()) {
-      _initialized = false;
-    } else {
-      _initialized = false;
-      int count = arr.size();
-      _minv = arr[0];
-      _maxv = _minv;
-      for (int i = 1; i < count; i++) {
-        extend(arr[i]);
-      }
-      _initialized = true;
+    _initialized = false;
+    int count = arr.size();
+    for (int i = 0; i < count; i++) {
+      extend(arr[i]);
     }
   }
 
