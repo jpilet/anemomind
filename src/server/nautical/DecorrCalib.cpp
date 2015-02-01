@@ -131,6 +131,7 @@ namespace {
       for (int i = 0; i < termsPerSample; i++) {
         T factor = f*(_decorr->normalized()? T(1.0)/(abs(wvar[i % 2]*cvar[i / 2]) + 1.0e-9) : T(1.0));
         residuals[i] *= factor;
+        assert(!std::isnan(ToDouble(residuals[i])));
 
         //LOG(INFO) << "Residual: " << ToDouble(residuals[i]);
       }

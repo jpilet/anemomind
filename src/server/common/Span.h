@@ -49,12 +49,9 @@ class Span {
     } else {
       _initialized = false;
       int count = arr.size();
-      _minv = arr[0];
-      _maxv = _minv;
-      for (int i = 1; i < count; i++) {
+      for (int i = 0; i < count; i++) {
         extend(arr[i]);
       }
-      _initialized = true;
     }
   }
 
