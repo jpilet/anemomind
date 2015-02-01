@@ -192,11 +192,11 @@ namespace {
 
       for (int i = 0; i < 2; i++) {
         assert(!messedUp(wvar[i]));
-        wvar[i] = sqrt(wvar[i]/T(count));
+        wvar[i] = sqrt(wvar[i]/T(count) + 1.0e-9);
         assert(!messedUp(wvar[i]));
 
         assert(!messedUp(cvar[i]));
-        cvar[i] = sqrt(cvar[i]/T(count));
+        cvar[i] = sqrt(cvar[i]/T(count) + 1.0e-9);
         assert(!messedUp(cvar[i]));
       }
 
