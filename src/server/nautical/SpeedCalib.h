@@ -39,7 +39,7 @@ class SpeedCalib {
   static constexpr bool withExp = false;
 
   static Sigmoid<T> kSpan() {
-    double marg = 0.1;
+    double marg = 0.3;
     return Sigmoid<T>(T(1.0 - marg), T(1.0 + marg));
   }
 
