@@ -43,8 +43,10 @@ TEST(NavalSimulationJsonTest, SerializeDeserialize) {
 
     // Compare a couple of values
     EXPECT_EQ(sim.boatData(0).navs()[30],
-              sim.boatData(0).navs()[30]);
+              sim2.boatData(0).navs()[30]);
     EXPECT_EQ(sim.boatData(1).navs()[39],
-              sim.boatData(1).navs()[39]);
+              sim2.boatData(1).navs()[39]);
+    EXPECT_EQ(sim.boatData(0).specs().samplingPeriod(),
+              sim2.boatData(0).specs().samplingPeriod());
   }
 }
