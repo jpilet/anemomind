@@ -35,6 +35,18 @@ class ObjDeserializer {
     }
   }
 
+  // Methods to allow for a work-around when the wrong version of 'deserialize' is chosen:
+  //
+  // deser.registerSuccess(myDeserializationFunction(deser.get("field"), &dst))
+  void registerSuccess(bool s) {
+    if (!s) {
+      _success = false;
+    }
+  }
+  Poco::Dynamic::Var get(const std::string &s) const {
+    return _src->get(s);
+  }
+
 
   bool success() {_checked = true; return _success;}
 

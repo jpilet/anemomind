@@ -131,11 +131,8 @@ class CorruptedBoatState {
   // By default there is no corruption.
   class CorruptorSet {
    public:
-    typedef Corruptor<Angle<double> > AngleCorr;
-    typedef Corruptor<Velocity<double> > VelocityCorr;
-
-    AngleCorr awa, magHdg, gpsBearing;
-    VelocityCorr aws, watSpeed, gpsSpeed;
+    Corruptor<Angle<double> > awa, magHdg, gpsBearing;
+    Corruptor<Velocity<double> > aws, watSpeed, gpsSpeed;
   };
  private:
   BoatSim::FullState _trueState;

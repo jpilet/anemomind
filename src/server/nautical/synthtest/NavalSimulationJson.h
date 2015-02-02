@@ -6,11 +6,9 @@
 #ifndef NAVALSIMULATIONJSON_H_
 #define NAVALSIMULATIONJSON_H_
 
+#include <server/nautical/synthtest/NavalSimulation.h>
 #include <server/common/Json.h>
 #include <Poco/Dynamic/Var.h>
-#include <server/nautical/synthtest/NavalSimulation.h>
-#include <server/common/PhysicalQuantityJson.h>
-#include <server/nautical/NavJson.h>
 
 namespace sail {
 namespace json {
@@ -21,17 +19,19 @@ bool deserialize(Poco::Dynamic::Var src, BoatSim::FullState *dst);
 Poco::Dynamic::Var serialize(const CorruptedBoatState::Corruptor<Angle<double> > &src);
 Poco::Dynamic::Var serialize(const CorruptedBoatState::Corruptor<Velocity<double> > &src);
 
-bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::Corruptor<Angle<double> > *dst);
-bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::Corruptor<Velocity<double> > *dst);
+bool deserialize(Poco::Dynamic::Var src,
+    CorruptedBoatState::Corruptor<Angle<double> > *dst);
+bool deserialize(Poco::Dynamic::Var src,
+    CorruptedBoatState::Corruptor<Velocity<double> > *dst);
 
 Poco::Dynamic::Var serialize(const CorruptedBoatState &obj);
 bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState *dst);
 
+Poco::Dynamic::Var serialize(const BoatSimulationSpecs::TwaDirective &obj);
+bool deserialize(Poco::Dynamic::Var src, BoatSimulationSpecs::TwaDirective *dst);
 
-
-//BoatCharacteristics ch_, // <-- How the boat behaves
-//            Array<TwaDirective> specs_,        // <-- How the boat should be steered
-//            CorruptedBoatState::CorruptorSet corruptors_,
+Poco::Dynamic::Var serialize(const CorruptedBoatState::CorruptorSet &obj);
+bool deserialize(Poco::Dynamic::Var src, const CorruptedBoatState::CorruptorSet *dst);
 
 
 }

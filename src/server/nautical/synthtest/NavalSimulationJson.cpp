@@ -4,6 +4,8 @@
  */
 
 #include <server/nautical/synthtest/NavalSimulationJson.h>
+#include <server/common/PhysicalQuantityJson.h>
+#include <server/nautical/NavJson.h>
 #include <server/common/JsonObjDeserializer.h>
 
 
@@ -131,6 +133,46 @@ bool deserialize(Poco::Dynamic::Var src, BoatCharacteristics *dst) {
   return deser.success();
 }
 
+Poco::Dynamic::Var serialize(const BoatSimulationSpecs::TwaDirective &src) {
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  obj->set("duration", serialize(src.duration));
+  obj->set("srcTwa", serialize(src.srcTwa));
+  obj->set("dstTwa", serialize(src.dstTwa));
+  return obj;
+}
+
+bool deserialize(Poco::Dynamic::Var src, BoatSimulationSpecs::TwaDirective *obj) {
+  ObjDeserializer deser(src);
+  deser.get("duration", &(obj->duration));
+  deser.get("srcTwa", &(obj->srcTwa));
+  deser.get("dstTwa", &(obj->dstTwa));
+  return deser.success();
+}
+
+// AngleCorr awa, magHdg, gpsBearing;
+// VelocityCorr aws, watSpeed, gpsSpeed;
+Poco::Dynamic::Var serialize(const CorruptedBoatState::CorruptorSet &src) {
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  obj->set("awa", serialize(src.awa));
+  obj->set("magHdg", serialize(src.magHdg));
+  obj->set("gpsBearing", serialize(src.gpsBearing));
+  obj->set("aws", serialize(src.aws));
+  obj->set("watSpeed", serialize(src.watSpeed));
+  obj->set("gpsSpeed", serialize(src.gpsSpeed));
+  return obj;
+}
+
+bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::CorruptorSet *dst) {
+  ObjDeserializer deser(src);
+
+  deser.get("awa", &(dst->awa));
+  deser.get("magHdg", &(dst->magHdg));
+  deser.get("gpsBearing", &(dst->gpsBearing));
+  deser.get("aws", &(dst->aws));
+  deser.get("watSpeed", &(dst->watSpeed));
+  deser.get("gpsSpeed", &(dst->gpsSpeed));
+  return deser.success();
+}
 
 
 
