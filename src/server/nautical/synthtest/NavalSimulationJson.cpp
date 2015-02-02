@@ -130,6 +130,12 @@ bool deserialize(Poco::Dynamic::Var src, BoatCharacteristics *dst) {
   deser.get("boatReactiveness", &(dst->boatReactiveness));
   deser.get("rudderMaxAngle", &(dst->rudderMaxAngle));
   deser.get("correctionThreshold", &(dst->correctionThreshold));
+
+  // Since we don't know how to serialize/deserialize
+  // a generic std::function object, make sure
+  // that it is empty.
+  dst->targetSpeedFun = std::function<Velocity<double>(Angle<double>,Velocity<double>)>();
+
   return deser.success();
 }
 
