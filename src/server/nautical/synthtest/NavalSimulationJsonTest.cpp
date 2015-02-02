@@ -40,5 +40,11 @@ TEST(NavalSimulationJsonTest, SerializeDeserialize) {
   {
     NavalSimulation sim2;
     EXPECT_TRUE(json::deserialize(readVar(file), &sim2));
+
+    // Compare a couple of values
+    EXPECT_EQ(sim.boatData(0).navs()[30],
+              sim.boatData(0).navs()[30]);
+    EXPECT_EQ(sim.boatData(1).navs()[39],
+              sim.boatData(1).navs()[39]);
   }
 }
