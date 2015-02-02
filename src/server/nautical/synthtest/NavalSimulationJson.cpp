@@ -105,8 +105,34 @@ bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState *dst) {
   return false;
 }
 
-BoatSim::FullState _trueState;
-  Nav _corruptedNav;
+Poco::Dynamic::Var serialize(const BoatCharacteristics &src) {
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  obj->set("keelRudderDistance", serialize(src.keelRudderDistance));
+  obj->set("rudderResistanceCoef", serialize(src.rudderResistanceCoef));
+  obj->set("halfTargetSpeedTime", serialize(src.halfTargetSpeedTime));
+  obj->set("rudderCorrectionCoef", serialize(src.rudderCorrectionCoef));
+  obj->set("rudderFineTune", serialize(src.rudderFineTune));
+  obj->set("boatReactiveness", serialize(src.boatReactiveness));
+  obj->set("rudderMaxAngle", serialize(src.rudderMaxAngle));
+  obj->set("correctionThreshold", serialize(src.correctionThreshold));
+  return obj;
+}
+
+bool deserialize(Poco::Dynamic::Var src, BoatCharacteristics *dst) {
+  ObjDeserializer deser(src);
+  deser.get("keelRudderDistance", &(dst->keelRudderDistance));
+  deser.get("rudderResistanceCoef", &(dst->rudderResistanceCoef));
+  deser.get("halfTargetSpeedTime", &(dst->halfTargetSpeedTime));
+  deser.get("rudderCorrectionCoef", &(dst->rudderCorrectionCoef));
+  deser.get("rudderFineTune", &(dst->rudderFineTune));
+  deser.get("boatReactiveness", &(dst->boatReactiveness));
+  deser.get("rudderMaxAngle", &(dst->rudderMaxAngle));
+  deser.get("correctionThreshold", &(dst->correctionThreshold));
+  return deser.success();
+}
+
+
+
 
 }
 }

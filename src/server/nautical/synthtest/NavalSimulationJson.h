@@ -17,12 +17,22 @@ namespace json {
 
 Poco::Dynamic::Var serialize(const BoatSim::FullState &x);
 bool deserialize(Poco::Dynamic::Var src, BoatSim::FullState *dst);
+
 Poco::Dynamic::Var serialize(const CorruptedBoatState::Corruptor<Angle<double> > &src);
 Poco::Dynamic::Var serialize(const CorruptedBoatState::Corruptor<Velocity<double> > &src);
+
 bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::Corruptor<Angle<double> > *dst);
 bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::Corruptor<Velocity<double> > *dst);
+
 Poco::Dynamic::Var serialize(const CorruptedBoatState &obj);
 bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState *dst);
+
+
+
+//BoatCharacteristics ch_, // <-- How the boat behaves
+//            Array<TwaDirective> specs_,        // <-- How the boat should be steered
+//            CorruptedBoatState::CorruptorSet corruptors_,
+
 
 }
 }
