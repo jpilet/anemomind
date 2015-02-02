@@ -32,9 +32,7 @@ TEST(NavalSimulationJsonTest, SerializeDeserialize) {
   std::stringstream file;
   {
     auto simj = json::serialize(sim);
-    std::cout << "Serialized. Now put it into a file" << std::endl;
     Poco::JSON::Stringifier::stringify(simj, file, 0, 0);
-    std::cout << "Put into a file" << std::endl;
   }
 
   {
@@ -48,5 +46,7 @@ TEST(NavalSimulationJsonTest, SerializeDeserialize) {
               sim2.boatData(1).navs()[39]);
     EXPECT_EQ(sim.boatData(0).specs().samplingPeriod(),
               sim2.boatData(0).specs().samplingPeriod());
+    EXPECT_EQ(sim.boatData(0).states()[3].trueState().boatSpeedThroughWater,
+              sim2.boatData(0).states()[3].trueState().boatSpeedThroughWater);
   }
 }
