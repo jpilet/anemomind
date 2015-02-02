@@ -35,6 +35,18 @@ class PhysQuantNormalDistrib {
     wrap(_distrib(urng), &dst);
     return dst;
   }
+
+  PhysQuant mean() const {
+      PhysQuant dst;
+      wrap(_distrib.mean(), &dst);
+      return dst;
+    }
+
+  PhysQuant stddev() const {
+      PhysQuant dst;
+      wrap(_distrib.stddev(), &dst);
+      return dst;
+    }
  private:
   std::normal_distribution<double> _distrib;
 
@@ -98,6 +110,17 @@ class CorruptedBoatState {
       _offset = offset;
     }
 
+    double scale() const {
+      return _scale;
+    }
+
+    T offset() const {
+      return _offset;
+    }
+
+    PhysQuantNormalDistrib<T> distrib() const {
+      return _distrib;
+    }
    private:
     double _scale;
     T _offset;

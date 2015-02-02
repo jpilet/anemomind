@@ -10,25 +10,17 @@
 #include <Poco/Dynamic/Var.h>
 #include <server/nautical/synthtest/NavalSimulation.h>
 #include <server/common/PhysicalQuantityJson.h>
-#include <server/common/JsonObjDeserializer.h>
+#include <server/nautical/NavJson.h>
 
 namespace sail {
 namespace json {
 
 Poco::Dynamic::Var serialize(const BoatSim::FullState &x);
 bool deserialize(Poco::Dynamic::Var src, BoatSim::FullState *dst);
-
-template <typename T>
-Poco::Dynamic::Var serialize(const CorruptedBoatState::Corruptor<T> &obj) {
-
-}
-
-template <typename T>
-bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::Corruptor<T> *dst) {
-
-}
-
-
+Poco::Dynamic::Var serialize(const CorruptedBoatState::Corruptor<Angle<double> > &src);
+Poco::Dynamic::Var serialize(const CorruptedBoatState::Corruptor<Velocity<double> > &src);
+bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::Corruptor<Angle<double> > *dst);
+bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::Corruptor<Velocity<double> > *dst);
 Poco::Dynamic::Var serialize(const CorruptedBoatState &obj);
 bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState *dst);
 
