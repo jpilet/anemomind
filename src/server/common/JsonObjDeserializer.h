@@ -18,6 +18,8 @@
 namespace sail {
 namespace json {
 
+
+// BEFORE USING THIS CLASS, SEE THE NOTE IN THE HEADER!!!
 class ObjDeserializer {
  public:
   ObjDeserializer(Poco::Dynamic::Var x);
