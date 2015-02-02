@@ -377,7 +377,7 @@ Array<BoatSimulationSpecs> makeSpecs001() {
   Array<BoatSimulationSpecs> specs(n);
   for (int i = 0; i < n; i++) {
     specs[i] = BoatSimulationSpecs(BoatCharacteristics(),
-          dirs,
+          dirs.sliceTo(2),
           sets[i]);
   }
   return specs;
