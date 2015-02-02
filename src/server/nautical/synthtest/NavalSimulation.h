@@ -175,7 +175,7 @@ public:
   };
 
   BoatSimulationSpecs(BoatCharacteristics ch_, // <-- How the boat behaves
-            Array<TwaDirective> specs_,        // <-- How the boat should be steered
+            Array<TwaDirective> dirs_,        // <-- How the boat should be steered
             CorruptedBoatState::CorruptorSet corruptors_, // <-- How the measurements are corrupted
 
             Nav::Id boatId = Nav::debuggingBoatId(), // <-- Boat id. Maybe not that interesting in most cases.
@@ -194,11 +194,16 @@ public:
     return _ch;
   }
 
+
   Duration<double> duration() const {
     return Duration<double>::seconds(_indexer.sum());
   }
 
   CorruptedBoatState::CorruptorSet &corruptors() {
+    return _corruptors;
+  }
+
+  CorruptedBoatState::CorruptorSet corruptors() const {
     return _corruptors;
   }
 
@@ -208,6 +213,10 @@ public:
 
   int stepsPerSample() const {
     return _stepsPerSample;
+  }
+
+  Array<TwaDirective> dirs() const {
+    return _dirs;
   }
  private:
   Nav::Id _boatId;

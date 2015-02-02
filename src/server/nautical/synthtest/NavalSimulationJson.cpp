@@ -170,7 +170,6 @@ Poco::Dynamic::Var serialize(const CorruptedBoatState::CorruptorSet &src) {
 
 bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::CorruptorSet *dst) {
   ObjDeserializer deser(src);
-
   deser.get("awa", &(dst->awa));
   deser.get("magHdg", &(dst->magHdg));
   deser.get("gpsBearing", &(dst->gpsBearing));
@@ -180,7 +179,40 @@ bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::CorruptorSet *dst) 
   return deser.success();
 }
 
+Poco::Dynamic::Var serialize(const BoatSimulationSpecs &src) {
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  obj->set("characteristics", serialize(src.characteristics()));
+  obj->set("dirs", serialize(src.dirs()));
+  obj->set("corruptors", serialize(src.corruptors()));
+  obj->set("boatId", serialize(src.boatId()));
+  obj->set("samplingPeriod", serialize(src.samplingPeriod()));
+  obj->set("stepsPerSample", serialize(src.stepsPerSample()));
+  return obj;
+}
 
+bool deserialize(Poco::Dynamic::Var src, BoatSimulationSpecs *dst) {
+  BoatCharacteristics ch;
+  Array<BoatSimulationSpecs::TwaDirective> dirs;
+  CorruptedBoatState::CorruptorSet corruptors;
+  Nav::Id boatId;
+  Duration<double> samplingPeriod;
+  int stepsPerSample;
+  ObjDeserializer deser(src);
+
+}
+
+
+/*
+ * BoatCharacteristics ch_, // <-- How the boat behaves
+            Array<TwaDirective> specs_,        // <-- How the boat should be steered
+            CorruptedBoatState::CorruptorSet corruptors_, // <-- How the measurements are corrupted
+
+            Nav::Id boatId = Nav::debuggingBoatId(), // <-- Boat id. Maybe not that interesting in most cases.
+
+            // Settings for how this boat should be simulated.
+            Duration<double> samplingPeriod_ = Duration<double>::seconds(1.0),
+            int stepsPerSample_ = 20
+ */
 
 }
 }
