@@ -91,6 +91,9 @@ add_library(nautical_synthtest_NavalSimulationJson
            )                     
 target_link_libraries(nautical_synthtest_NavalSimulationJson
                       nautical_synthtest_NavalSimulation
+                      common_Json
+                      common_TimeStampJson
+                      nautical_GeographicReferenceJson
                       common_JsonObjDeserializer
                       nautical_NavJson
                      )

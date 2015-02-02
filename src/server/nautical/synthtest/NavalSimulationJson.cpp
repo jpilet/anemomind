@@ -9,6 +9,7 @@
 #include <server/nautical/GeographicReferenceJson.h>
 #include <server/common/TimeStampJson.h>
 #include <server/common/JsonObjDeserializer.h>
+#include <server/common/Json.impl.h>
 
 
 namespace sail {
@@ -182,7 +183,7 @@ bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::CorruptorSet *dst) 
 Poco::Dynamic::Var serialize(const BoatSimulationSpecs &src) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   obj->set("characteristics", serialize(src.characteristics()));
-  //obj->set("dirs", serialize(src.dirs()));
+  obj->set("dirs", serialize(src.dirs()));
   obj->set("corruptors", serialize(src.corruptors()));
   obj->set("boatId", serialize(src.boatId()));
   obj->set("samplingPeriod", serialize(src.samplingPeriod()));
