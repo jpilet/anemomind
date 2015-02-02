@@ -445,6 +445,8 @@ class NavalSimulation {
   std::string description() const {
     return _desc;
   }
+
+  NavalSimulation() {}
  private:
   std::string _desc;
   GeographicReference _geoRef;
