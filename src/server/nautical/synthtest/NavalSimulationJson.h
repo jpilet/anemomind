@@ -8,6 +8,9 @@
 
 #include <server/common/Json.h>
 #include <Poco/Dynamic/Var.h>
+#include <server/nautical/synthtest/NavalSimulation.h>
+#include <server/common/PhysicalQuantityJson.h>
+#include <server/common/JsonObjDeserializer.h>
 
 namespace sail {
 namespace json {

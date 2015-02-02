@@ -84,3 +84,12 @@ add_executable(nautical_synthtest_FractalFlowDemo
 target_link_libraries(nautical_synthtest_FractalFlowDemo
                       nautical_synthtest_FractalFlow
                      )
+
+add_library(nautical_synthtest_NavalSimulationJson
+            NavalSimulationJson.h
+            NavalSimulationJson.cpp
+           )                     
+target_link_libraries(nautical_synthtest_NavalSimulationJson
+                      nautical_synthtest_NavalSimulation
+                     )
+target_depends_on_poco_foundation(nautical_synthtest_NavalSimulationJson)                                
