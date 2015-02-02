@@ -391,6 +391,10 @@ class NavalSimulation {
       });
     }
 
+    const BoatSimulationSpecs &specs() const {
+      return _specs;
+    }
+
     // Suitable for calibration procedures that don't
     // use the Corruptor class.
     NavalSimulation::SimulatedCalibrationResults evaluateFitness(
@@ -424,14 +428,30 @@ class NavalSimulation {
   void setDescription(const std::string &desc) {
     _desc = desc;
   }
+
+  // Constructor used by deserializer
+  NavalSimulation(std::string desc,
+    GeographicReference geoRef,
+    TimeStamp simulationStartTime,
+    Array<BoatData> boatData) :
+      _desc(desc), _geoRef(geoRef),
+      _simulationStartTime(simulationStartTime),
+      _boatData(boatData) {}
+
+  TimeStamp simulationStartTime() const {
+    return _simulationStartTime;
+  }
+
+  std::string description() const {
+    return _desc;
+  }
  private:
   std::string _desc;
   GeographicReference _geoRef;
   TimeStamp _simulationStartTime;
-  FlowFun _wind, _current;
-
-  // Simulated boat states over time along with corrupted measurements.
   Array<BoatData> _boatData;
+
+  FlowFun _wind, _current;
 
   BoatData makeBoatData(BoatSimulationSpecs &spec,
       Array<BoatSim::FullState> state,

@@ -4,8 +4,10 @@
  */
 
 #include <server/nautical/synthtest/NavalSimulationJson.h>
-#include <server/common/PhysicalQuantityJson.h>
 #include <server/nautical/NavJson.h>
+#include <server/common/PhysicalQuantityJson.h>
+#include <server/nautical/GeographicReferenceJson.h>
+#include <server/common/TimeStampJson.h>
 #include <server/common/JsonObjDeserializer.h>
 
 
@@ -155,8 +157,6 @@ bool deserialize(Poco::Dynamic::Var src, BoatSimulationSpecs::TwaDirective *obj)
   return deser.success();
 }
 
-// AngleCorr awa, magHdg, gpsBearing;
-// VelocityCorr aws, watSpeed, gpsSpeed;
 Poco::Dynamic::Var serialize(const CorruptedBoatState::CorruptorSet &src) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   obj->set("awa", serialize(src.awa));
@@ -182,7 +182,7 @@ bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::CorruptorSet *dst) 
 Poco::Dynamic::Var serialize(const BoatSimulationSpecs &src) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   obj->set("characteristics", serialize(src.characteristics()));
-  obj->set("dirs", serialize(src.dirs()));
+  //obj->set("dirs", serialize(src.dirs()));
   obj->set("corruptors", serialize(src.corruptors()));
   obj->set("boatId", serialize(src.boatId()));
   obj->set("samplingPeriod", serialize(src.samplingPeriod()));
@@ -197,22 +197,69 @@ bool deserialize(Poco::Dynamic::Var src, BoatSimulationSpecs *dst) {
   Nav::Id boatId;
   Duration<double> samplingPeriod;
   int stepsPerSample;
-  ObjDeserializer deser(src);
 
+  ObjDeserializer deser(src);
+  deser.get("characteristics", &ch);
+  deser.get("dirs", &dirs);
+  deser.get("corruptors", &corruptors);
+  deser.get("boatId", &boatId);
+  deser.get("samplingPeriod", &samplingPeriod);
+  deser.get("stepsPerSample", &stepsPerSample);
+  if (deser.success()) {
+    *dst = BoatSimulationSpecs(ch, dirs, corruptors, boatId, samplingPeriod, stepsPerSample);
+    return true;
+  }
+  return false;
 }
 
+Poco::Dynamic::Var serialize(const NavalSimulation::BoatData &src) {
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  obj->set("specs", src.specs());
+  obj->set("states", src.states());
+  return obj;
+}
 
-/*
- * BoatCharacteristics ch_, // <-- How the boat behaves
-            Array<TwaDirective> specs_,        // <-- How the boat should be steered
-            CorruptedBoatState::CorruptorSet corruptors_, // <-- How the measurements are corrupted
+bool deserialize(Poco::Dynamic::Var src, NavalSimulation::BoatData *dst) {
+  BoatSimulationSpecs specs;
+  Array<CorruptedBoatState> states;
 
-            Nav::Id boatId = Nav::debuggingBoatId(), // <-- Boat id. Maybe not that interesting in most cases.
+  ObjDeserializer deser(src);
+  deser.get("specs", &specs);
+  deser.get("states", &states);
+  if (deser.success()) {
+    *dst = NavalSimulation::BoatData(specs, states);
+    return true;
+  }
+  return false;
+}
 
-            // Settings for how this boat should be simulated.
-            Duration<double> samplingPeriod_ = Duration<double>::seconds(1.0),
-            int stepsPerSample_ = 20
- */
+Poco::Dynamic::Var serialize(const NavalSimulation &src) {
+  Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
+  obj->set("desc", src.description());
+  obj->set("geoRef", src.geoRef());
+  obj->set("simulationStartTime", src.simulationStartTime());
+  obj->set("boatData", src.boatData());
+  return obj;
+}
+
+bool deserialize(Poco::Dynamic::Var src, NavalSimulation *dst) {
+  std::string desc;
+  GeographicReference geoRef;
+  TimeStamp simulationStartTime;
+  Array<NavalSimulation::BoatData> boatData;
+
+  ObjDeserializer deser(src);
+  deser.get("desc", &desc);
+  deser.get("geoRef", &geoRef);
+  deser.get("simulationStartTime", &simulationStartTime);
+  deser.get("boatData", &boatData);
+  if (deser.success()) {
+    *dst = NavalSimulation(desc, geoRef, simulationStartTime, boatData);
+    return true;
+  }
+  return false;
+}
+
 
 }
 }

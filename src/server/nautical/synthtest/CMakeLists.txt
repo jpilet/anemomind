@@ -91,5 +91,15 @@ add_library(nautical_synthtest_NavalSimulationJson
            )                     
 target_link_libraries(nautical_synthtest_NavalSimulationJson
                       nautical_synthtest_NavalSimulation
+                      common_JsonObjDeserializer
+                      nautical_NavJson
                      )
-target_depends_on_poco_foundation(nautical_synthtest_NavalSimulationJson)                                
+target_depends_on_poco_foundation(nautical_synthtest_NavalSimulationJson)  
+target_depends_on_poco_json(nautical_synthtest_NavalSimulationJson)
+  
+
+cxx_test(nautical_synthtest_NavalSimulationJsonTest
+         NavalSimulationJsonTest.cpp
+         gtest_main
+         nautical_synthtest_NavalSimulationJson
+        )                                               
