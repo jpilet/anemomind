@@ -46,8 +46,8 @@ class Span {
   Span(Array<T> arr) {
     _initialized = false;
     int count = arr.size();
-    for (int i = 0; i < count; i++) {
-      extend(arr[i]);
+    for (auto e: arr) {
+      extend(e);
     }
   }
 
