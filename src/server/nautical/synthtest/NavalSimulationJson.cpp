@@ -20,12 +20,16 @@ namespace {
 
   // Validate a serialized object by checking that it can be stringified
   Poco::Dynamic::Var validate(Poco::Dynamic::Var jobj) {
-    std::stringstream ss;
-    try {
-      Poco::JSON::Stringifier::stringify(jobj, ss, 0, 0);
-    } catch (std::exception &e) {
-      assert(false);
+    constexpr bool performValidation = false;
+    if (performValidation) {
+      std::stringstream ss;
+      try {
+        Poco::JSON::Stringifier::stringify(jobj, ss, 0, 0);
+      } catch (std::exception &e) {
+        assert(false);
+      }
     }
+
     return jobj;
   }
 }
