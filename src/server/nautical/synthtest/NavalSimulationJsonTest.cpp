@@ -32,8 +32,12 @@ TEST(NavalSimulationJsonTest, SerializeDeserialize) {
   std::stringstream file;
   {
     auto simj = json::serialize(sim);
+    std::cout << "Serialized. Now put it into a file" << std::endl;
     Poco::JSON::Stringifier::stringify(simj, file, 0, 0);
-  }{
+    std::cout << "Put into a file" << std::endl;
+  }
+
+  {
     NavalSimulation sim2;
     EXPECT_TRUE(json::deserialize(readVar(file), &sim2));
   }
