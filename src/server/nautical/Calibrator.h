@@ -14,6 +14,7 @@ namespace sail {
 class TackCost;
 class GnuplotExtra;
 
+
 class Calibrator  {
   public:
     Calibrator() : _grammar(_settings), _verbose(false) { clear(); }
@@ -49,11 +50,20 @@ class Calibrator  {
     int maneuverCount() const {
       return _maneuvers.size();
     }
+
+    const std::vector<TackCost*> &maneuvers() const {
+      return _maneuvers;
+    }
+
+    bool segment(const Array<Nav>& navs,
+                 std::shared_ptr<HTree> tree);
   private:
     std::string description(std::shared_ptr<HTree> tree);
     void addAllTack(std::shared_ptr<HTree> tree);
     void addTack(int pos, double weight);
     void addBuoyTurn(std::shared_ptr<HTree> tree);
+    GnuplotExtra* initializePlot();
+    void finalizePlot(GnuplotExtra* gnuplot, const ceres::Solver::Summary &summary);
 
     Array<Nav> _allnavs;
     WindOrientedGrammarSettings _settings;

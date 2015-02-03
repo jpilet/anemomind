@@ -242,9 +242,8 @@ bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
   return calibrate(allnavs, tree, boatId);
 }
 
-bool Calibrator::calibrate(const Array<Nav>& navs,
-                           std::shared_ptr<HTree> tree,
-                           Nav::Id boatId) {
+bool Calibrator::segment(const Array<Nav>& navs,
+    std::shared_ptr<HTree> tree) {
   clear();
   _tree = tree;
   _allnavs = navs;
@@ -260,16 +259,42 @@ bool Calibrator::calibrate(const Array<Nav>& navs,
     clear();
     return false;
   }
+  return true;
+}
+
+GnuplotExtra* Calibrator::initializePlot() {
+  GnuplotExtra* gnuplot = new GnuplotExtra();
+  print();
+  gnuplot->set_style("lines");
+  gnuplot->set_xlabel("error [degrees]");
+  gnuplot->set_ylabel("count");
+  plot(gnuplot, "external", true);
+  plot(gnuplot, "before", false);
+  return gnuplot;
+}
+
+void Calibrator::finalizePlot(GnuplotExtra* gnuplot, const ceres::Solver::Summary &summary) {
+  std::cout << summary.BriefReport() << "\n";
+
+  for (int i = 0; i < TrueWindEstimator::NUM_PARAMS; ++i) {
+    LOG(INFO) << "param: " << _calibrationValues[i];
+  }
+
+  print();
+  plot(gnuplot, "after", false);
+  delete gnuplot;
+}
+
+bool Calibrator::calibrate(const Array<Nav>& navs,
+                           std::shared_ptr<HTree> tree,
+                           Nav::Id boatId) {
+  if (!segment(navs, tree)) {
+    return false;
+  }
 
   GnuplotExtra* gnuplot = 0;
   if (_verbose) {
-    gnuplot = new GnuplotExtra();
-    print();
-    gnuplot->set_style("lines");
-    gnuplot->set_xlabel("error [degrees]");
-    gnuplot->set_ylabel("count");
-    plot(gnuplot, "external", true);
-    plot(gnuplot, "before", false);
+    gnuplot = initializePlot();
   }
 
   // Run the solver!
@@ -282,15 +307,7 @@ bool Calibrator::calibrate(const Array<Nav>& navs,
   Solve(options, &_problem, &summary);
 
   if (_verbose) {
-    std::cout << summary.BriefReport() << "\n";
-
-    for (int i = 0; i < TrueWindEstimator::NUM_PARAMS; ++i) {
-      LOG(INFO) << "param: " << _calibrationValues[i];
-    }
-
-    print();
-    plot(gnuplot, "after", false);
-    delete gnuplot;
+    finalizePlot(gnuplot, summary);
   }
 
   return true;
