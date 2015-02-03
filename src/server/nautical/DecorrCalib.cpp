@@ -258,6 +258,8 @@ namespace {
   template <typename T>
   class Signal2d {
    public:
+    Signal2d() {}
+
     Signal2d(bool wind, Array<CalibratedNav<T> > navs, int polyDeg) {
       data[0] = Signal1d<T>(wind, 0, navs, polyDeg);
       data[1] = Signal1d<T>(wind, 1, navs, polyDeg);
@@ -286,6 +288,8 @@ namespace {
   template <typename T>
   class Flows {
    public:
+    Flows() {}
+
     Flows(Array<CalibratedNav<T> > navs, int polyDeg) :
       wind(Signal2d<T>(true, navs, polyDeg)),
       current(Signal2d<T>(false, navs, polyDeg)) {}
@@ -331,18 +335,17 @@ namespace {
     }
 
     int outDims() const {
-      if (_corruptors.empty()) {
+      if (_corruptedFlows.empty()) {
         return baseCount();
       }
-      return _corruptors.size()*perCorruptorCount();
+      return _corruptedFlows.size()*perCorruptorCount();
     }
 
     int inDims() const {
       return Corrector<double>::paramCount();
     }
    private:
-    Array<Corrector<double> > _corruptors;
-    Array<Array<CalibratedNav<double> > > _corruptedNavs;
+    Array<Flows<double> > _corruptedFlows;
 
 
     FilteredNavData _data;
@@ -421,12 +424,26 @@ namespace {
     template <typename T>
     bool evalOldSub(Flows<T> flows,
       T *residuals) const {
-      const T init(0.0);
       for (int i = 0; i < _windowCount; i++) {
         int left = i*_windowStep;
         int right = left + _decorr->windowSize();
-        assert(right <= _data.size());
         evalOldWindow(flows.slice(left, right), residuals + i*termsPerSample);
+      }
+      return true;
+    }
+
+    template <typename T>
+    void evalPerCorruptor(Flows<T> optimized, Flows<double> corrupt,
+        T *residuals) const {
+      evalPair<T, double>(optimized.wind, corrupt.current, residuals + 0);
+      evalPair<T, double>(optimized.current, corrupt.wind, residuals + baseCount());
+    }
+
+    template <typename T>
+    bool evalNewSub(Flows<T> flows, T *residuals) const {
+      for (int i = 0; i < _corruptedFlows.size(); i++) {
+        evalPerCorruptor(flows, _corruptedFlows[i],
+            residuals + i*perCorruptorCount());
       }
       return true;
     }
@@ -443,10 +460,11 @@ namespace {
       FilteredNavData data, Array<Corrector<double> > corrupted) :
       _data(data),
       _decorr(decorr),
-      _windowStep(decorr->windowStep()),
-      _corruptors(corrupted) {
-    _corruptedNavs = corrupted.map<Array<CalibratedNav<double> > >([&](Corrector<double> x) {
-      return correctSamples(x, data);
+      _windowStep(decorr->windowStep()) {
+    _corruptedFlows = corrupted.map<Flows<double> >([&](Corrector<double> x) {
+      return Flows<double>(
+          correctSamples(x, data),
+          _decorr->polyDeg());
     });
     _windowCount = ((data.size() - _decorr->windowSize())/_windowStep) + 1;
     assert(_decorr->windowSize() + (_windowCount - 1)*_windowStep <= data.size());
