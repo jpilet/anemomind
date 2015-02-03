@@ -25,6 +25,14 @@ class Array {
     _data = nullptr;
   }
 
+  Array(std::initializer_list<T> args) {
+    initialize(args.size());
+    int i = 0;
+    for (auto arg: args) {
+      _data[i++] = arg;
+    }
+  }
+
   typedef std::function<T(int index)> ArrayFun;
   static ThisType fill(int size, ArrayFun fun) {
     ThisType dst(size);

@@ -445,7 +445,7 @@ target_link_libraries(nautical_AutoCalib
                       math_armaadolc
                      )
                      
-target_depends_on_ceres(nautical_AutoCalib)  
+
 
 
 
@@ -467,4 +467,36 @@ target_link_libraries(nautical_DecorrCalibDemo
                       nautical_DecorrCalib
                       nautical_FilteredNavData
                       nautical_synthtest_NavalSimulationPrecomp
+                      common_ArgMap
                      )
+target_depends_on_ceres(nautical_AutoCalib)
+
+
+add_library(nautical_NKEParser
+            NKEParser.h
+            NKEParser.cpp
+           )                  
+target_depends_on_poco_foundation(nautical_NKEParser)
+
+target_link_libraries(nautical_NKEParser
+                      common_logging
+                      common_string
+                      common_MeanAndVar
+                      common_TimeStamp
+                      nautical_nav
+                     )             
+                     
+add_executable(nautical_NKEParserDemo
+               NKEParserDemo.cpp
+              )
+target_link_libraries(nautical_NKEParserDemo
+                      nautical_NKEParser
+                      common_ArgMap
+                     )
+                     
+cxx_test(nautical_NKEParserTest
+         NKEParserTest.cpp
+         gtest_main
+         nautical_NKEParser
+        )                     
+

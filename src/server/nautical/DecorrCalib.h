@@ -8,8 +8,13 @@
 
 #include <server/nautical/Corrector.h>
 #include <server/nautical/FilteredNavData.h>
+#include <random>
 
 namespace sail {
+
+Corrector<double> makeRandomCorrector(std::default_random_engine &e);
+Array<Corrector<double> > makeRandomCorrectors(int count, std::default_random_engine &e);
+Array<Corrector<double> > makeCorruptCorrectors();
 
 /*
  * Calibration by assuming that wind and current are locally decorrelated.
@@ -46,6 +51,8 @@ class DecorrCalib {
 
   class Results {
    public:
+    Results() {}
+
     Results(const Corrector<double> &c,
       FilteredNavData d) : corrector(c), data(d) {}
 
@@ -54,7 +61,8 @@ class DecorrCalib {
 
   };
 
-  Results calibrate(FilteredNavData data);
+  Results calibrate(FilteredNavData data,
+      Array<Corrector<double> > corrupted = Array<Corrector<double> >());
 
 
 

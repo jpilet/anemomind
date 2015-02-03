@@ -20,14 +20,21 @@ std::ostream &operator << (std::ostream &s, Array<T> arr) {
   return s;
 }
 
+
 template <typename T>
-void outputAsCArrayInitializer(std::string name, Array<T> arr, std::ostream *out) {
-  *out << name << "[" << arr.size() << "] = {";
+void outputArrayLiteral(Array<T> arr, std::ostream *out) {
+  *out << "{";
   int lastIndex = arr.size()-1;
   for (int i = 0; i < lastIndex; i++) {
     *out << arr[i] << ", ";
   }
   *out << arr[lastIndex] << "};\n";
+}
+
+template <typename T>
+void outputAsCArrayInitializer(std::string name, Array<T> arr, std::ostream *out) {
+  *out << name << "[" << arr.size() << "] = ";
+  outputArrayLiteral(arr, out);
 }
 
 #define OUTPUT_AS_C_ARRAY_INITIALIZER(stream, arr) outputAsCArrayInitializer(#arr, (arr), &(stream))

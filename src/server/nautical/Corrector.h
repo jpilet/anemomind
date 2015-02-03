@@ -15,10 +15,13 @@
 
 namespace sail {
 
-#pragma pack(push, 1)
+#pragma pack(push, 1) // Since PhysicalQuantity is currently not packed, store the numbers raw.
+
   template <typename T>
   class AngleCorrector {
    public:
+    AngleCorrector(Angle<double> x) : value(x.degrees()) {}
+
     T value;
 
     AngleCorrector() : value(0) {}
@@ -30,6 +33,7 @@ namespace sail {
   template <typename T>
   class SpeedCorrector {
    public:
+    SpeedCorrector(T k_, T m_, T c_, T alpha_) : k(k_), c(c_), m(m_), alpha(alpha_) {}
     T k, m, c, alpha;
 
     SpeedCorrector() :
@@ -52,6 +56,8 @@ namespace sail {
   class DriftAngleCorrector {
    public:
     T amp, coef;
+
+    DriftAngleCorrector(T amp_, T coef_) : amp(amp_), coef(coef_) {}
 
     DriftAngleCorrector() :
      amp(0), coef(-2) {}

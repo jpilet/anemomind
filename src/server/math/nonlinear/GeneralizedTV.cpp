@@ -70,11 +70,6 @@ UniformSamplesd GeneralizedTV::makeInitialSignal(Arrayd X, Arrayd Y, double samp
   int obsCount = X.size();
 
   Spand xspan(X);
-  std::cout << EXPR_AND_VAL_AS_STRING(xspan.minv()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(xspan.maxv()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(X.first()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(X.last()) << std::endl;
-
   Spand sp = xspan.getWider(1.0e-3*xspan.width());
   assert(sp.minv() < xspan.minv());
   assert(xspan.maxv() < sp.maxv());
