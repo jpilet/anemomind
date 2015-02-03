@@ -8,6 +8,7 @@
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <string>
 #include <iostream>
+#include <server/nautical/Corrector.h>
 
 namespace sail {
 
@@ -77,6 +78,13 @@ class Calibrator  {
 
     bool _verbose;
 };
+
+// Calibrates a Corrector<double> by using a Calibrator.
+// This lets us recover both true wind and current.
+Corrector<double> calibrateFull(Calibrator *calib,
+    const Array<Nav>& navs,
+    std::shared_ptr<HTree> tree,
+    Nav::Id boatId);
 
 }  // namespace sail
 

@@ -21,6 +21,7 @@
 #include <server/plot/extra.h>
 #include <server/common/Histogram.h>
 #include <server/common/ArrayBuilder.h>
+#include <server/nautical/Corrector.h>
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
@@ -53,9 +54,9 @@ using std::isnan;
 
 class TackCost {
   public:
-    TackCost(Array<Nav> before, Array<Nav> after, double weight)
+    TackCost(Array<Nav> before, Array<Nav> after, double weight_)
       : _before(makeFilter(before)), _after(makeFilter(after)),
-      _beforeNav(before), _afterNav(after), _weight(weight) { }
+      _beforeNav(before), _afterNav(after), _weight(weight_) { }
 
     template<typename T>
     bool operator()(const T* const x, T* residual) const {
@@ -115,6 +116,20 @@ class TackCost {
           (_beforeNav.last().externalTws() - _afterNav.last().externalTws()).knots());
     }
 
+
+
+
+    const ServerFilter &before() const {
+      return _before;
+    }
+
+    const ServerFilter &after() const {
+      return _after;
+    }
+
+    double weight() const {
+      return _weight;
+    }
   private:
     ServerFilter _before;
     ServerFilter _after;
@@ -409,6 +424,92 @@ void Calibrator::simulate(Array<Nav> *navs) const {
         TrueWindEstimator::computeTrueWind(_calibrationValues, filter));
   }
 }
+
+namespace {
+  class Objf {
+   public:
+    Objf(const std::vector<TackCost*> &maneuvers) : _maneuvers(maneuvers) {}
+
+    template<typename T>
+    bool operator()(T const* const* parameters, T* residuals) const {
+      const Corrector<T> *corr = (Corrector<T> *)parameters[0];
+      return eval(*corr, residuals);
+    }
+
+    // Difference in true {wind, current} in {x, y} directions.
+    static constexpr int residualsPerManeuver = 4;
+
+    int outDims() const {
+      return maneuverCount()*residualsPerManeuver;
+    }
+
+    int maneuverCount() const {
+      return _maneuvers.size();
+    }
+   private:
+    const std::vector<TackCost*> &_maneuvers;
+
+    template <typename T>
+    bool evalSub(const Corrector<T> &corr, const TackCost *cost, T *residuals) const {
+      auto before = corr.correct(cost->before());
+      auto after = corr.correct(cost->after());
+      double weight = cost->weight();
+
+      auto windDif = before.trueWind() - after.trueWind();
+      auto currentDif = before.trueCurrent() - after.trueCurrent();
+      for (int i = 0; i < 2; i++) {
+        int offset = 2*i;
+        residuals[offset + 0] = weight*windDif[i].knots();
+        residuals[offset + 1] = weight*currentDif[i].knots();
+      }
+      return true;
+    }
+
+    template <typename T>
+    bool eval(const Corrector<T> &corr, T *residuals) const {
+      for (int i = 0; i < maneuverCount(); i++) {
+        if (!evalSub(corr, _maneuvers[i], residuals + i*residualsPerManeuver)) {
+          return false;
+        }
+      }
+      return true;
+    }
+  };
+}
+
+Corrector<double> calibrateFull(Calibrator *calib0,
+    const Array<Nav>& navs,
+    std::shared_ptr<HTree> tree,
+    Nav::Id boatId) {
+
+  // Make a local mutable instance that we can play with.
+  Calibrator &calib = *calib0;
+
+  if (!calib.segment(navs, tree)) {
+    LOG(WARNING) << "Segmentation failed when attempting to calibrate.";
+    return Corrector<double>();
+  }
+
+  LOG(INFO) << "Number of maneuvers: " << calib.maneuverCount();
+
+  ceres::Problem problem;
+  auto objf = new Objf(calib.maneuvers());
+  auto cost = new ceres::DynamicAutoDiffCostFunction<Objf>(objf);
+  cost->AddParameterBlock(Corrector<double>::paramCount());
+  cost->SetNumResiduals(objf->outDims());
+  LOG(INFO) << "NUMBER OF RESIDUALS: " << objf->outDims();
+
+  Corrector<double> corr;
+  problem.AddResidualBlock(cost, NULL, (double *)(&corr));
+  ceres::Solver::Options options;
+  options.minimizer_progress_to_stdout = true;
+  options.max_num_iterations = 60;
+  ceres::Solver::Summary summary;
+  Solve(options, &problem, &summary);
+  LOG(INFO) << "Done optimizing.";
+  return corr;
+}
+
 
 }  // namespace sail
 
