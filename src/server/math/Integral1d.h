@@ -11,11 +11,12 @@ namespace sail {
 template <typename T>
 class Integral1d {
  public:
-  Integral1d() : _srcSize(0) {}
-  Integral1d(Array<T> data, T offset = T(0)) : _srcSize(data.size()) {
-    _integral = Array<T>(_srcSize + 1);
+  Integral1d() {}
+  Integral1d(Array<T> data, T offset = T(0)) {
+    int srcSize = data.size();
+    _integral = Array<T>(srcSize + 1);
     _integral[0] = offset;
-    for (int i = 0; i < _srcSize; i++) {
+    for (int i = 0; i < srcSize; i++) {
       _integral[i + 1] = _integral[i] + data[i];
     }
   }
@@ -24,12 +25,29 @@ class Integral1d {
     return _integral[to] - _integral[from];
   }
 
+  T integral() const {
+    return integrate(0, size());
+  }
+
   // Size of the source array over which we are integrating.
   int size() const {
-    return _srcSize;
+    return _integral.size() - 1;
+  }
+
+  Integral1d<T> slice(int from, int to) const {
+    Integral1d<T> dst;
+    dst._integral = _integral.slice(from, to+1);
+    return dst;
+  }
+
+  Integral1d<T> sliceFrom(int from) const {
+    return slice(from, size());
+  }
+
+  Integral1d<T> sliceTo(int to) const {
+    return slice(0, to);
   }
  private:
-  int _srcSize;
   Array<T> _integral;
 };
 

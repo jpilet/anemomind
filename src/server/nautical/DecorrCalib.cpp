@@ -151,6 +151,9 @@ namespace {
     return line;
   }
 
+
+
+
   template <typename T>
   CalibratedNav<T> checkCNav(CalibratedNav<T> x) {
     CHECKVALUE(x.calibAwa().degrees());
@@ -202,6 +205,87 @@ namespace {
     return x.trueCurrent();
   }
 
+  template <typename T>
+  class Signal1d {
+   public:
+    Signal1d() : _polyDeg(-1), _offset(0) {}
+    Signal1d(bool wind,
+        int index,
+        Array<CalibratedNav<T> > navs, int polyDeg) : _polyDeg(polyDeg),
+     _qf(extractQF(navs, (wind? getTrueWind<T> : getTrueCurrent<T>), index)),
+     _offset(0) {
+      const T init(0.0);
+      _itg = Integral1d<QuadForm<2, 1, T> >(_qf, init);
+      updateFit();
+    }
+
+    int size() const {
+      return _qf.size();
+    }
+
+    T operator[] (int index) const {
+      return _qf[index].lineFitY() - _fit(index + _offset);
+    }
+
+
+    Signal1d(Array<QuadForm<2, 1, T> > qf,
+        Integral1d<QuadForm<2, 1, T> > itg,
+        int polyDeg, int offset) : _qf(qf),
+        _itg(itg), _polyDeg(polyDeg), _offset(offset) {
+      updateFit();
+    }
+
+    Signal1d<T> slice(int from, int to) const {
+      return Signal1d<T>(_qf.slice(from, to), _itg.slice(from, to),
+          _polyDeg, _offset + from);
+    }
+   private:
+    void updateFit() {
+      _fit = toLine(_itg.integral(), _polyDeg);
+    }
+
+    Array<QuadForm<2, 1, T> > _qf;
+    Integral1d<QuadForm<2, 1, T> > _itg;
+    int _polyDeg, _offset;
+    GenericLineKM<T> _fit;
+  };
+
+  template <typename T>
+  class Signal2d {
+   public:
+    Signal2d(bool wind, Array<CalibratedNav<T> > navs, int polyDeg) {
+      data[0] = Signal1d<T>(wind, 0, navs, polyDeg);
+      data[1] = Signal1d<T>(wind, 1, navs, polyDeg);
+    }
+    Signal2d(Signal1d<T> a, Signal1d<T> b) {
+      data[0] = a;
+      data[1] = b;
+    }
+
+    Signal2d<T> slice(int from, int to) const {
+      return Signal2d<T>(data[0].slice(from, to), data[1].slice(from, to));
+    }
+
+    Signal1d<T> data[2];
+  };
+
+  template <typename T>
+  class Flows {
+   public:
+    Flows(Array<CalibratedNav<T> > navs, int polyDeg) :
+      wind(Signal2d<T>(true, navs, polyDeg)),
+      current(Signal2d<T>(false, navs, polyDeg)) {}
+    Flows(Signal2d<T> w, Signal2d<T> c) : wind(w), current(c) {}
+
+    Flows<T> slice(int from, int to) const {
+      return Flows<T>(wind.slice(from, to), current.slice(from, to));
+    }
+
+    Signal2d<T> wind, current;
+  };
+
+
+
 
   class Objf {
    public:
@@ -219,12 +303,20 @@ namespace {
     // (Wx, Cx), (Wy, Cy), (Wy, Cx), (Wx, Cy)
     static constexpr int termsPerSample = 4;
 
+
+    int baseCount() const {
+      return termsPerSample*_windowCount;
+    }
+
+    int perCorruptorCount() const {
+      return 2*baseCount();
+    }
+
     int outDims() const {
-      int baseCount = termsPerSample*_windowCount;
       if (_corruptors.empty()) {
-        return baseCount;
+        return baseCount();
       }
-      return 2*baseCount*_corruptors.size();
+      return _corruptors.size()*perCorruptorCount();
     }
 
     int inDims() const {
@@ -240,7 +332,7 @@ namespace {
     int _windowCount, _windowStep;
 
     template <typename T>
-    void evalWindow(
+    void evalOldWindow(
         int left, int right,
         GenericLineKM<T> Wl[2],
         GenericLineKM<T> Cl[2],
@@ -312,7 +404,7 @@ namespace {
     }
 
     template <typename T>
-    bool evalSub(Array<QuadForm<2, 1, T> > W[2], Array<QuadForm<2, 1, T> > C[2],
+    bool evalOldSub(Array<QuadForm<2, 1, T> > W[2], Array<QuadForm<2, 1, T> > C[2],
       T *residuals) const {
       const T init(0.0);
       Integral1d<QuadForm<2, 1, T> > Wi[2] = {Integral1d<QuadForm<2, 1, T> >(W[0], init),
@@ -336,7 +428,7 @@ namespace {
         Array<QuadForm<2, 1, T> > Cslice[2] = {C[0].slice(left, right),
                                                C[1].slice(left, right)};
 
-        evalWindow(left, right,
+        evalOldWindow(left, right,
             Wl, Cl, Wslice, Cslice, residuals + i*termsPerSample);
       }
       return true;
@@ -353,7 +445,7 @@ namespace {
 
 
 
-      return evalSub(W, C, residuals);
+      return evalOldSub(W, C, residuals);
     }
   };
 
