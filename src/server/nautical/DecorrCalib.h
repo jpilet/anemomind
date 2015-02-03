@@ -21,9 +21,9 @@ namespace sail {
 class DecorrCalib {
  public:
   DecorrCalib() :
-    _normalized(true),
+    _normalized(false),
     _windowSize(30),
-    _polyDeg(1),
+    _polyDeg(0),
     _windowOverlap(0.5) {}
 
   void setNormalized(bool n) {

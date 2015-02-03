@@ -4,13 +4,13 @@
  */
 
 #include <server/nautical/DecorrCalib.h>
-#include <server/nautical/synthtest/NavalSimulation.h>
+#include <server/nautical/synthtest/NavalSimulationPrecomp.h>
 #include <server/common/logging.h>
 
 using namespace sail;
 
 int main(int argc, const char **argv) {
-  NavalSimulation navsim = makeNavSimFractalWindOriented(); //makeNavSimConstantFlow();//makeNavSimFractalWindOriented();
+  NavalSimulation navsim = getNavSimFractalWindOriented(); //makeNavSimConstantFlow();//makeNavSimFractalWindOriented();
   auto boatData = navsim.boatData(0);
 
   double lambda = 0.5;

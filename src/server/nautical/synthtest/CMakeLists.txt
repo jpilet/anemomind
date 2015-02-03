@@ -118,4 +118,5 @@ target_link_libraries(nautical_synthtest_NavalSimulationPrecomp
                       nautical_synthtest_NavalSimulationJson
                       common_Env
                       common_PathBuilder
+                      common_JsonIO
                      )           
