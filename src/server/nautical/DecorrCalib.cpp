@@ -276,6 +276,10 @@ namespace {
       out[1] = data[1][index];
     }
 
+    int size() const {
+      return data[0].size();
+    }
+
     Signal1d<T> data[2];
   };
 
@@ -345,14 +349,16 @@ namespace {
     DecorrCalib *_decorr;
     int _windowCount, _windowStep;
 
-    template <typename T>
-    void evalOldWindow(Flows<T> flows, T *residuals) const {
+    template <typename T, // Should usually be the type that is passed to eval.
+              typename P> // Can be a primitive type, but must not.
+    void evalPair(Signal2d<T> a, Signal2d<P> b, T *residuals) const {
       for (int i = 0; i < 2; i++) {
-        CHECKVALUE(flows.wind.data[i].line().getK());
-        CHECKVALUE(flows.wind.data[i].line().getM());
-        CHECKVALUE(flows.current.data[i].line().getK());
-        CHECKVALUE(flows.current.data[i].line().getM());
+        CHECKVALUE(a.data[i].line().getK());
+        CHECKVALUE(a.data[i].line().getM());
+        CHECKVALUE(b.data[i].line().getK());
+        CHECKVALUE(b.data[i].line().getM());
       }
+      assert(a.size() == b.size());
 
       // Initialize
       for (int i = 0; i < termsPerSample; i++) {
@@ -362,11 +368,12 @@ namespace {
       // Accumulate
       T wvar[2] = {T(0), T(0)};
       T cvar[2] = {T(0), T(0)};
-      int count = flows.size();
+      int count = a.size();
       for (int k = 0; k < count; k++) {
-        T w[2], c[2];
-        flows.wind.eval(k, w);
-        flows.current.eval(k, c);
+        T w[2];
+        P c[2];
+        a.eval(k, w);
+        b.eval(k, c);
 
         for (int i = 0; i < termsPerSample; i++) {
           assert(!messedUp(w[i]));
@@ -404,6 +411,12 @@ namespace {
         //LOG(INFO) << "Residual: " << ToDouble(residuals[i]);
       }
     }
+
+    template <typename T>
+    void evalOldWindow(Flows<T> flows, T *residuals) const {
+      evalPair(flows.wind, flows.current, residuals);
+    }
+
 
     template <typename T>
     bool evalOldSub(Flows<T> flows,
