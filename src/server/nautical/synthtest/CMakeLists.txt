@@ -102,10 +102,20 @@ target_link_libraries(nautical_synthtest_NavalSimulationJson
                      )
 target_depends_on_poco_foundation(nautical_synthtest_NavalSimulationJson)  
 target_depends_on_poco_json(nautical_synthtest_NavalSimulationJson)
-  
 
 cxx_test(nautical_synthtest_NavalSimulationJsonTest
          NavalSimulationJsonTest.cpp
          gtest_main
          nautical_synthtest_NavalSimulationJson
         )                                               
+
+add_library(nautical_synthtest_NavalSimulationPrecomp
+            NavalSimulationPrecomp.h
+            NavalSimulationPrecomp.cpp
+           )
+           
+target_link_libraries(nautical_synthtest_NavalSimulationPrecomp
+                      nautical_synthtest_NavalSimulationJson
+                      common_Env
+                      common_PathBuilder
+                     )           

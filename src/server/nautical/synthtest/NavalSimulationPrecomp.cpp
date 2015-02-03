@@ -3,17 +3,12 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include "NavalSimulationPrecomp.h"
+#include <server/nautical/synthtest/NavalSimulationPrecomp.h>
+#include <server/common/Env.h>
+#include <server/common/PathBuilder.h>
 
-namespace mmm {
+namespace sail {
 
-NavalSimulationPrecomp::NavalSimulationPrecomp() {
-  // TODO Auto-generated constructor stub
 
-}
-
-NavalSimulationPrecomp::~NavalSimulationPrecomp() {
-  // TODO Auto-generated destructor stub
-}
 
 } /* namespace mmm */
