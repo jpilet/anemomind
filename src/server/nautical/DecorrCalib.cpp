@@ -220,14 +220,21 @@ namespace {
     static constexpr int termsPerSample = 4;
 
     int outDims() const {
-      return termsPerSample*_windowCount;
+      int baseCount = termsPerSample*_windowCount;
+      if (_corruptors.empty()) {
+        return baseCount;
+      }
+      return 2*baseCount*_corruptors.size();
     }
 
     int inDims() const {
       return Corrector<double>::paramCount();
     }
    private:
-    Array<Corrector<double> > _corrupted;
+    Array<Corrector<double> > _corruptors;
+    Array<Array<CalibratedNav<double> > > _corruptedNavs;
+
+
     FilteredNavData _data;
     DecorrCalib *_decorr;
     int _windowCount, _windowStep;
@@ -355,8 +362,10 @@ namespace {
       _data(data),
       _decorr(decorr),
       _windowStep(decorr->windowStep()),
-      _corrupted(corrupted) {
-
+      _corruptors(corrupted) {
+    _corruptedNavs = corrupted.map<Array<CalibratedNav<double> > >([&](Corrector<double> x) {
+      return correctSamples(x, data);
+    });
     _windowCount = ((data.size() - _decorr->windowSize())/_windowStep) + 1;
     assert(_decorr->windowSize() + (_windowCount - 1)*_windowStep <= data.size());
   }
