@@ -352,6 +352,14 @@ namespace {
     DecorrCalib *_decorr;
     int _windowCount, _windowStep;
 
+    int left(int i) const {
+      return i*_windowStep;
+    }
+
+    int right(int i) const {
+      return left(i) + _decorr->windowSize();
+    }
+
     template <typename T, // Should usually be the type that is passed to eval.
               typename P> // Can be a primitive type, but must not.
     void evalPair(Signal2d<T> a, Signal2d<P> b, T *residuals) const {
@@ -387,7 +395,7 @@ namespace {
         if (_decorr->normalized()) {
           for (int i = 0; i < 2; i++) {
             wvar[i] += sqr(w[i]);
-            cvar[i] += sqr(c[i]);
+            cvar[i] += sqr(T(c[i]));
           }
         }
       }
@@ -425,9 +433,7 @@ namespace {
     bool evalOldSub(Flows<T> flows,
       T *residuals) const {
       for (int i = 0; i < _windowCount; i++) {
-        int left = i*_windowStep;
-        int right = left + _decorr->windowSize();
-        evalOldWindow(flows.slice(left, right), residuals + i*termsPerSample);
+        evalOldWindow(flows.slice(left(i), right(i)), residuals + i*termsPerSample);
       }
       return true;
     }
@@ -436,14 +442,21 @@ namespace {
     void evalPerCorruptor(Flows<T> optimized, Flows<double> corrupt,
         T *residuals) const {
       evalPair<T, double>(optimized.wind, corrupt.current, residuals + 0);
-      evalPair<T, double>(optimized.current, corrupt.wind, residuals + baseCount());
+      evalPair<T, double>(optimized.current, corrupt.wind, residuals + termsPerSample);
     }
 
     template <typename T>
     bool evalNewSub(Flows<T> flows, T *residuals) const {
       for (int i = 0; i < _corruptedFlows.size(); i++) {
-        evalPerCorruptor(flows, _corruptedFlows[i],
-            residuals + i*perCorruptorCount());
+        auto corr = _corruptedFlows[i];
+        auto rsub = residuals + i*perCorruptorCount();
+        for (int j = 0; j < _windowCount; j++) {
+          int l = left(j);
+          int r = right(j);
+          evalPerCorruptor(flows.slice(l, r),
+              corr.slice(l, r),
+              rsub + 2*j*termsPerSample);
+        }
       }
       return true;
     }
@@ -452,7 +465,11 @@ namespace {
     bool eval(const Corrector<T> *corr, T *residuals) const {
       Array<CalibratedNav<T> > cnavs = correctSamples(*corr, _data);
       Flows<T> flows(cnavs, _decorr->polyDeg());
-      return evalOldSub(flows, residuals);
+      if (_corruptedFlows.empty()) {
+        return evalOldSub(flows, residuals);
+      } else {
+        return evalNewSub(flows, residuals);
+      }
     }
   };
 
@@ -475,12 +492,17 @@ namespace {
 
 DecorrCalib::Results DecorrCalib::calibrate(FilteredNavData data, Array<Corrector<double> > corrupted) {
   ENTER_FUNCTION_SCOPE;
+  LOG(INFO) << "NUMBER OF CORRUPTOR: " << corrupted.size();
+  LOG(INFO) << "NUMBER OF SAMPLES:   " << data.size();
+
   ceres::Problem problem;
 
   auto objf = new Objf(this, data, corrupted);
   auto cost = new ceres::DynamicAutoDiffCostFunction<Objf>(objf);
   cost->AddParameterBlock(Corrector<double>::paramCount());
   cost->SetNumResiduals(objf->outDims());
+
+  LOG(INFO) << "NUMBER OF RESIDUALS: " << objf->outDims();
 
   Corrector<double> corr;
   problem.AddResidualBlock(cost, NULL, (double *)(&corr));

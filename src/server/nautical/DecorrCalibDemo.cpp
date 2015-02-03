@@ -43,8 +43,7 @@ int main(int argc, const char **argv) {
     if (amap.optionProvided("--run-old")) {
       results = calib.calibrate(fdata);
     } else {
-      LOG(FATAL) << "To do";
-      //results = calib.calibrate(fdata, makeCorruptCorrectors());
+      results = calib.calibrate(fdata, makeCorruptCorrectors().sliceTo(4));
     }
     LOG(INFO) << "Done.";
 
