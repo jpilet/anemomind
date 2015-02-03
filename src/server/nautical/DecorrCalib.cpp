@@ -415,7 +415,11 @@ namespace {
         auto denom = abs(wvar[i % 2]*cvar[i / 2]);
         assert(!messedUp(denom));
         T factor = f*(_decorr->normalized()? T(1.0)/(denom + 1.0e-9) : T(1.0));
-        residuals[i] *= factor;
+        auto scaled = factor*residuals[i];
+
+        residuals[i] = sqrt(abs(scaled));
+        //residuals[i] = scaled;
+
         assert(!std::isnan(ToDouble(residuals[i])));
         assert(!messedUp(residuals[i]));
 
