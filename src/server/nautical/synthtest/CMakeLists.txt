@@ -66,7 +66,7 @@ add_executable(nautical_synthtest_EvaluateCalibrator
                EvaluateCalibrator.cpp
               )
 target_link_libraries(nautical_synthtest_EvaluateCalibrator
-                      nautical_synthtest_NavalSimulation
+                      nautical_synthtest_NavalSimulationPrecomp
                       nautical_Calibrator
                      )
                      

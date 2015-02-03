@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/synthtest/NavalSimulation.h>
+#include <server/nautical/synthtest/NavalSimulationPrecomp.h>
 #include <server/nautical/Calibrator.h>
 #include <server/common/string.h>
 
@@ -25,28 +25,29 @@ namespace {
 
   void evaluate() {
     std::cout << "Synthesize the dataset..." << std::endl;
-    auto sim = makeNavSimFractalWindOriented();
+    auto sim = getNavSimFractalWindOriented();
     std::cout << "Done synthesis." << std::endl;
 
-      auto boatData = sim.boatData(0);
+    auto boatData = sim.boatData(0);
 
-      boatData.plot();
+    boatData.plot();
 
-      Array<Nav> navs = boatData.navs();
-      WindOrientedGrammarSettings gs;
-      WindOrientedGrammar grammar(gs);
-      auto tree = grammar.parse(navs);
+    Array<Nav> navs = boatData.navs();
+    WindOrientedGrammarSettings gs;
+    WindOrientedGrammar grammar(gs);
+    auto tree = grammar.parse(navs);
 
-      Calibrator calib(grammar);
-      calib.setVerbose();
+    Calibrator calib(grammar);
+    calib.setVerbose();
 
-      std::cout << "Before calibration with default values: " <<
-          evaluateCalibration(boatData, calib);
 
-      assert(calib.calibrate(navs, tree, Nav::debuggingBoatId()));
+    auto before = evaluateCalibration(boatData, calib);
+    assert(calib.calibrate(navs, tree, Nav::debuggingBoatId()));
+    auto after = evaluateCalibration(boatData, calib);
 
-      std::cout << "After calibration with optimal values:  " <<
-          evaluateCalibration(boatData, calib);
+    std::cout << "Number of maneuvers used: " << calib.maneuverCount() << std::endl;
+    std::cout << "Before calibration with default values: " << before << std::endl;
+    std::cout << "After calibration with optimal values:  " << after << std::endl;
   }
 }
 

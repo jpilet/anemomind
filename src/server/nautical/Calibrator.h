@@ -45,6 +45,10 @@ class Calibrator  {
     //! Use the calibration to compute true wind on the given navigation data.
     void simulate(Array<Nav> *array) const;
 
+    //! Returns the number of maneuvers used to fit the data.
+    int maneuverCount() const {
+      return _maneuvers.size();
+    }
   private:
     std::string description(std::shared_ptr<HTree> tree);
     void addAllTack(std::shared_ptr<HTree> tree);
