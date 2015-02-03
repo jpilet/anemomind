@@ -42,18 +42,16 @@ namespace {
 
     NavalSimulation::SimulatedCalibrationResults after, before;
     if (full) {
-      auto before = boatData.evaluateFitness(Corrector<double>());
-      auto after = calibrateFull(&calib, navs, tree, Nav::debuggingBoatId());
-
+      before = boatData.evaluateFitness(Corrector<double>());
+      after = boatData.evaluateFitness(calibrateFull(&calib, navs, tree, Nav::debuggingBoatId()));
     } else {
       before = evaluateCalibration(boatData, calib);
       assert(calib.calibrate(navs, tree, Nav::debuggingBoatId()));
       after = evaluateCalibration(boatData, calib);
-
-      std::cout << "Number of maneuvers used: " << calib.maneuverCount() << std::endl;
-      std::cout << "Before calibration with default values: " << before << std::endl;
-      std::cout << "After calibration with optimal values:  " << after << std::endl;
     }
+    std::cout << "Number of maneuvers used: " << calib.maneuverCount() << std::endl;
+    std::cout << "Before calibration with default values: " << before << std::endl;
+    std::cout << "After calibration with optimal values:  " << after << std::endl;
   }
 }
 
