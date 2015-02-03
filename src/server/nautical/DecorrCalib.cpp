@@ -417,8 +417,13 @@ namespace {
         T factor = f*(_decorr->normalized()? T(1.0)/(denom + 1.0e-9) : T(1.0));
         auto scaled = factor*residuals[i];
 
-        residuals[i] = sqrt(abs(scaled));
-        //residuals[i] = scaled;
+        if (_decorr->withSqrt()) {
+          residuals[i] = sqrt(abs(scaled));
+        } else {
+          residuals[i] = scaled;
+        }
+
+
 
         assert(!std::isnan(ToDouble(residuals[i])));
         assert(!messedUp(residuals[i]));
@@ -470,6 +475,9 @@ namespace {
       Array<CalibratedNav<T> > cnavs = correctSamples(*corr, _data);
       Flows<T> flows(cnavs, _decorr->polyDeg());
       if (_corruptedFlows.empty()) {
+        for (int i = 0; i < 30; i++) {
+          LOG(WARNING) << "YOU ARE USING AN OBSOLETE IMPLEMENTATION THAT IS JUST HERE FOR REFERENCE.";
+        }
         return evalOldSub(flows, residuals);
       } else {
         return evalNewSub(flows, residuals);

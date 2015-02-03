@@ -22,17 +22,27 @@ Array<Corrector<double> > makeCorruptCorrectors();
  * because the current has so much inertia. For longer time spans of several hours,
  * this decorrelation assumption may be less true.
  *
+ * How it works:
+ * The correlation between the actual wind and a corrupted current is close to 0. The
+ * correlation between the actual current and a corrupted wind is also close to 0. This
+ * is what we minimize over many short overlapping time windows.
+ *
  */
 class DecorrCalib {
  public:
   DecorrCalib() :
-    _normalized(false),
+    _normalized(true),
+    _withSqrt(true),
     _windowSize(30),
     _polyDeg(0),
     _windowOverlap(0.5) {}
 
   void setNormalized(bool n) {
     _normalized = n;
+  }
+
+  bool withSqrt() const {
+    return _withSqrt;
   }
 
   void setWindowSize(int windowSize) {
@@ -91,6 +101,11 @@ class DecorrCalib {
    * Normalized covariance is called correlation.
    */
   bool _normalized;
+
+  /*
+   * Whether the square root should be applied to the residuals.
+   */
+  bool _withSqrt;
 
   /*
    * How large windows in time we should compute the covariance across.
