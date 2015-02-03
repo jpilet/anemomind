@@ -283,6 +283,7 @@ class NavalSimulation {
       T _unit;
     };
 
+    FlowErrors() {}
     FlowErrors(Array<HorizontalMotion<double> > trueMotion,
               Array<HorizontalMotion<double> > estimatedMotion);
 
@@ -319,6 +320,7 @@ class NavalSimulation {
   // The evaluation results for wind or current.
   class SimulatedMotionResults {
    public:
+    SimulatedMotionResults() {}
     SimulatedMotionResults(Array<HorizontalMotion<double> > trueMotion,
                 Array<HorizontalMotion<double> > estimatedMotion) :
                 _trueMotion(trueMotion), _estimatedMotion(estimatedMotion),
@@ -333,6 +335,7 @@ class NavalSimulation {
 
   class SimulatedCalibrationResults {
    public:
+    SimulatedCalibrationResults() {}
     SimulatedCalibrationResults(const SimulatedMotionResults &wind_, const SimulatedMotionResults &current_) :
       _wind(wind_), _current(current_) {}
 

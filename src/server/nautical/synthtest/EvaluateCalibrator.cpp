@@ -23,7 +23,7 @@ namespace {
     return boatData.evaluateFitness(trueWind, Array<HorizontalMotion<double> >());
   }
 
-  void evaluate() {
+  void evaluate(bool full) {
     std::cout << "Synthesize the dataset..." << std::endl;
     auto sim = getNavSimFractalWindOriented();
     std::cout << "Done synthesis." << std::endl;
@@ -40,18 +40,24 @@ namespace {
     Calibrator calib(grammar);
     calib.setVerbose();
 
+    NavalSimulation::SimulatedCalibrationResults after, before;
+    if (full) {
+      auto before = boatData.evaluateFitness(Corrector<double>());
+      auto after = calibrateFull(&calib, navs, tree, Nav::debuggingBoatId());
 
-    auto before = evaluateCalibration(boatData, calib);
-    assert(calib.calibrate(navs, tree, Nav::debuggingBoatId()));
-    auto after = evaluateCalibration(boatData, calib);
+    } else {
+      before = evaluateCalibration(boatData, calib);
+      assert(calib.calibrate(navs, tree, Nav::debuggingBoatId()));
+      after = evaluateCalibration(boatData, calib);
 
-    std::cout << "Number of maneuvers used: " << calib.maneuverCount() << std::endl;
-    std::cout << "Before calibration with default values: " << before << std::endl;
-    std::cout << "After calibration with optimal values:  " << after << std::endl;
+      std::cout << "Number of maneuvers used: " << calib.maneuverCount() << std::endl;
+      std::cout << "Before calibration with default values: " << before << std::endl;
+      std::cout << "After calibration with optimal values:  " << after << std::endl;
+    }
   }
 }
 
 int main() {
-  evaluate();
+  evaluate(true);
   return 0;
 }
