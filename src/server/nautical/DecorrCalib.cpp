@@ -212,9 +212,10 @@ namespace {
     Signal1d(bool wind,
         int index,
         Array<CalibratedNav<T> > navs, int polyDeg) : _polyDeg(polyDeg),
-     _qf(extractQF(navs, (wind? getTrueWind<T> : getTrueCurrent<T>), index)),
      _offset(0) {
       const T init(0.0);
+      std::function<HorizontalMotion<T>(CalibratedNav<T>)> extractor = (wind? &(getTrueWind<T>) : &(getTrueCurrent<T>));
+      _qf = extractQF(navs, extractor, index);
       _itg = Integral1d<QuadForm<2, 1, T> >(_qf, init);
       updateFit();
     }
@@ -224,7 +225,7 @@ namespace {
     }
 
     T operator[] (int index) const {
-      return _qf[index].lineFitY() - _fit(index + _offset);
+      return _qf[index].lineFitY() - _fit(T(index + _offset));
     }
 
 
@@ -238,6 +239,10 @@ namespace {
     Signal1d<T> slice(int from, int to) const {
       return Signal1d<T>(_qf.slice(from, to), _itg.slice(from, to),
           _polyDeg, _offset + from);
+    }
+
+    GenericLineKM<T> line() const {
+      return _fit;
     }
    private:
     void updateFit() {
@@ -266,6 +271,11 @@ namespace {
       return Signal2d<T>(data[0].slice(from, to), data[1].slice(from, to));
     }
 
+    void eval(int index, T out[2]) const {
+      out[0] = data[0][index];
+      out[1] = data[1][index];
+    }
+
     Signal1d<T> data[2];
   };
 
@@ -279,6 +289,10 @@ namespace {
 
     Flows<T> slice(int from, int to) const {
       return Flows<T>(wind.slice(from, to), current.slice(from, to));
+    }
+
+    int size() const {
+      return wind.data[0].size(); // same if we choose data[1] or current
     }
 
     Signal2d<T> wind, current;
@@ -332,17 +346,12 @@ namespace {
     int _windowCount, _windowStep;
 
     template <typename T>
-    void evalOldWindow(
-        int left, int right,
-        GenericLineKM<T> Wl[2],
-        GenericLineKM<T> Cl[2],
-        Array<QuadForm<2, 1, T> > Wslice[2],
-        Array<QuadForm<2, 1, T> > Cslice[2], T *residuals) const {
+    void evalOldWindow(Flows<T> flows, T *residuals) const {
       for (int i = 0; i < 2; i++) {
-        CHECKVALUE(Wl[i].getK());
-        CHECKVALUE(Wl[i].getM());
-        CHECKVALUE(Cl[i].getK());
-        CHECKVALUE(Cl[i].getM());
+        CHECKVALUE(flows.wind.data[i].line().getK());
+        CHECKVALUE(flows.wind.data[i].line().getM());
+        CHECKVALUE(flows.current.data[i].line().getK());
+        CHECKVALUE(flows.current.data[i].line().getM());
       }
 
       // Initialize
@@ -353,14 +362,11 @@ namespace {
       // Accumulate
       T wvar[2] = {T(0), T(0)};
       T cvar[2] = {T(0), T(0)};
-      int count = right - left;
-      T middle = T((left + right)/2.0);
+      int count = flows.size();
       for (int k = 0; k < count; k++) {
-        T x = T(left + k);
-        T w[2] = {Wslice[0][k].lineFitY() - Wl[0](x),
-                  Wslice[1][k].lineFitY() - Wl[1](x)};
-        T c[2] = {Cslice[0][k].lineFitY() - Cl[0](x),
-                  Cslice[1][k].lineFitY() - Cl[1](x)};
+        T w[2], c[2];
+        flows.wind.eval(k, w);
+        flows.current.eval(k, c);
 
         for (int i = 0; i < termsPerSample; i++) {
           assert(!messedUp(w[i]));
@@ -386,10 +392,6 @@ namespace {
         assert(!messedUp(cvar[i]));
       }
 
-      // Normalize
-      //LOG(INFO) << "count " << count << " left = " << left << " right = " << right;
-      //LOG(INFO) << "offsets: " << ToDouble(Wl[0](middle)) << " " << ToDouble(Wl[1](middle))
-      //    << " " << ToDouble(Cl[0](middle)) << " " << ToDouble(Cl[1](middle));
       T f(1.0/count);
       for (int i = 0; i < termsPerSample; i++) {
         auto denom = abs(wvar[i % 2]*cvar[i / 2]);
@@ -404,32 +406,14 @@ namespace {
     }
 
     template <typename T>
-    bool evalOldSub(Array<QuadForm<2, 1, T> > W[2], Array<QuadForm<2, 1, T> > C[2],
+    bool evalOldSub(Flows<T> flows,
       T *residuals) const {
       const T init(0.0);
-      Integral1d<QuadForm<2, 1, T> > Wi[2] = {Integral1d<QuadForm<2, 1, T> >(W[0], init),
-                                              Integral1d<QuadForm<2, 1, T> >(W[1], init)};
-      Integral1d<QuadForm<2, 1, T> > Ci[2] = {Integral1d<QuadForm<2, 1, T> >(C[0], init),
-                                              Integral1d<QuadForm<2, 1, T> >(C[1], init)};
       for (int i = 0; i < _windowCount; i++) {
         int left = i*_windowStep;
         int right = left + _decorr->windowSize();
         assert(right <= _data.size());
-
-        GenericLineKM<T> Wl[2] = {
-            toLine(Wi[0].integrate(left, right), _decorr->polyDeg()),
-            toLine(Wi[1].integrate(left, right), _decorr->polyDeg())};
-        GenericLineKM<T> Cl[2] = {
-            toLine(Ci[0].integrate(left, right), _decorr->polyDeg()),
-            toLine(Ci[1].integrate(left, right), _decorr->polyDeg())};
-
-        Array<QuadForm<2, 1, T> > Wslice[2] = {W[0].slice(left, right),
-                                               W[1].slice(left, right)};
-        Array<QuadForm<2, 1, T> > Cslice[2] = {C[0].slice(left, right),
-                                               C[1].slice(left, right)};
-
-        evalOldWindow(left, right,
-            Wl, Cl, Wslice, Cslice, residuals + i*termsPerSample);
+        evalOldWindow(flows.slice(left, right), residuals + i*termsPerSample);
       }
       return true;
     }
@@ -437,15 +421,8 @@ namespace {
     template <typename T>
     bool eval(const Corrector<T> *corr, T *residuals) const {
       Array<CalibratedNav<T> > cnavs = correctSamples(*corr, _data);
-
-      Array<QuadForm<2, 1, T> > W[2] = {extractQF<T>(cnavs, &(getTrueWind<T>), 0),
-                                        extractQF<T>(cnavs, &(getTrueWind<T>), 1)};
-      Array<QuadForm<2, 1, T> > C[2] = {extractQF<T>(cnavs, &(getTrueCurrent<T>), 0),
-                                        extractQF<T>(cnavs, &(getTrueCurrent<T>), 1)};
-
-
-
-      return evalOldSub(W, C, residuals);
+      Flows<T> flows(cnavs, _decorr->polyDeg());
+      return evalOldSub(flows, residuals);
     }
   };
 
