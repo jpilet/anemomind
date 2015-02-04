@@ -85,7 +85,6 @@ Corrector<double> calibrateFull(Calibrator *calib,
     const Array<Nav>& navs,
     std::shared_ptr<HTree> tree,
     Nav::Id boatId);
-
 }  // namespace sail
 
 #endif // NAUTICAL_CALIBRATOR_H

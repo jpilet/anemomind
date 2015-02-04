@@ -500,3 +500,7 @@ cxx_test(nautical_NKEParserTest
          nautical_NKEParser
         )                     
 
+add_library(nautical_SimpleCalibrator
+            SimpleCalibrator.h
+            SimpleCalibrator.cpp
+           )
