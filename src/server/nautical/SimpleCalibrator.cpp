@@ -3,6 +3,8 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
+#include <ceres/ceres.h>
+#include <server/common/ToDouble.h>
 #include "SimpleCalibrator.h"
 #include <server/common/ProportionateIndexer.h>
 #include <queue>
@@ -185,6 +187,46 @@ namespace {
     }
     return builder.get();
   }
+
+  Array<std::pair<Nav, Nav> > computeNavPairs(Array<Loc> locs, Integrator itg) {
+    return locs.map<std::pair<Nav, Nav> >([&](Loc loc) {
+      int i = loc.index();
+      return std::pair<Nav, Nav>(itg.leftNav(i), itg.rightNav(i));
+    });
+  }
+
+  class Objf {
+   public:
+    Objf(Array<std::pair<Nav, Nav> > pairs) : _pairs(pairs) {}
+    int outDims() const {
+      return 4*_pairs.size();
+    }
+
+    template<typename T>
+    bool operator()(T const* const* parameters, T* residuals) const {
+      const Corrector<T> *corr = (Corrector<T> *)parameters[0];
+      return eval(*corr, residuals);
+    }
+   private:
+    Array<std::pair<Nav, Nav> > _pairs;
+
+    template <typename T>
+    bool eval(const Corrector<T> &corrector, T *residuals) const {
+      for (int i = 0; i < _pairs.size(); i++) {
+        auto p = _pairs[i];
+        auto left  = corrector.correct(p.first);
+        auto right = corrector.correct(p.second);
+        auto wind = left.trueWind() - right.trueWind();
+        auto current = left.trueCurrent() - right.trueCurrent();
+        T *r = residuals + 4*i;
+        for (int j = 0; j < 2; j++) {
+          r[2*j + 0] = wind[j].knots();
+          r[2*j + 1] = current[j].knots();
+        }
+      }
+      return true;
+    }
+  };
 }
 
 Corrector<double> SimpleCalibrator::calibrate(FilteredNavData data0) const {
@@ -193,8 +235,23 @@ Corrector<double> SimpleCalibrator::calibrate(FilteredNavData data0) const {
                  durationToSampleCount(sampling, _gap),
                  NavItg(data0));
   auto locs = findBestLocs(itg, _maneuverCount);
-  std::cout << EXPR_AND_VAL_AS_STRING(locs) << std::endl;
-  return Corrector<double>();
+  auto pairs = computeNavPairs(locs, itg);
+
+  ceres::Problem problem;
+  auto objf = new Objf(pairs);
+  auto cost = new ceres::DynamicAutoDiffCostFunction<Objf>(objf);
+  cost->AddParameterBlock(Corrector<double>::paramCount());
+  cost->SetNumResiduals(objf->outDims());
+  LOG(INFO) << "NUMBER OF RESIDUALS: " << objf->outDims();
+  Corrector<double> corr;
+  problem.AddResidualBlock(cost, NULL, (double *)(&corr));
+  ceres::Solver::Options options;
+  options.minimizer_progress_to_stdout = true;
+  options.max_num_iterations = 60;
+  ceres::Solver::Summary summary;
+  Solve(options, &problem, &summary);
+
+  return corr;
 }
 
 }
