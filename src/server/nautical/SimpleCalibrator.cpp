@@ -138,41 +138,51 @@ namespace {
 
   class Loc {
    public:
-    Loc(double strength, int index) :
-      _strength(std::abs(strength)), _index(index) {}
+    Loc(Angle<double> strength, int index) :
+      _angle(strength), _index(index) {}
 
     bool operator< (const Loc &other) const {
-      return _strength < other._strength;
+      return std::abs(_angle.degrees()) < std::abs(other._angle.degrees());
     }
 
     int index() const {
       return _index;
     }
+
+    Angle<double> angle() const {
+      return _angle;
+    }
    private:
-    double _strength;
+    Angle<double> _angle;
     int _index;
   };
 
-  Arrayi findBestLocs(Integrator itg, int count) {
+  std::ostream &operator<< (std::ostream &s, const Loc &x) {
+    s << "Loc(" << x.index() << ", " << x.angle().degrees() << " degrees)";
+    return s;
+  }
+
+  Array<Loc> findBestLocs(Integrator itg, int count) {
     std::priority_queue<Loc> locs;
     RegionMarker marker(itg.trueSize());
     for (int i = 0; i < itg.size(); i++) {
-      double s = itg.maneuverStrength(i).degrees();
+      auto s = itg.maneuverStrength(i);
       locs.push(Loc(s, i));
     }
-    ArrayBuilder<int> builder;
+    ArrayBuilder<Loc> builder;
     for (int i = 0; i < count; i++) {
       std::cout << EXPR_AND_VAL_AS_STRING(i) << std::endl;
       std::cout << EXPR_AND_VAL_AS_STRING(count) << std::endl;
       if (locs.empty()) {
         break;
       }
-      int left = locs.top().index();
+      auto loc = locs.top();
+      int left = loc.index();
       locs.pop();
       int right = left + itg.totalWidth();
       if (!marker.marked(left, right)) {
         marker.mark(left, right);
-        builder.add(left);
+        builder.add(loc);
       }
     }
     return builder.get();
@@ -184,7 +194,7 @@ Corrector<double> SimpleCalibrator::calibrate(FilteredNavData data0) const {
   Integrator itg(durationToSampleCount(sampling, _integrationWidth),
                  durationToSampleCount(sampling, _gap),
                  NavItg(data0));
-  Arrayi locs = findBestLocs(itg, _maneuverCount);
+  auto locs = findBestLocs(itg, _maneuverCount);
   std::cout << EXPR_AND_VAL_AS_STRING(locs) << std::endl;
   return Corrector<double>();
 }
