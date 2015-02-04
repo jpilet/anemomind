@@ -171,8 +171,6 @@ namespace {
     }
     ArrayBuilder<Loc> builder;
     for (int i = 0; i < count; i++) {
-      std::cout << EXPR_AND_VAL_AS_STRING(i) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(count) << std::endl;
       if (locs.empty()) {
         break;
       }
