@@ -6,6 +6,8 @@
 #ifndef INTEGRAL1D_H_
 #define INTEGRAL1D_H_
 
+#include <server/common/Array.h>
+
 namespace sail {
 
 template <typename T>
@@ -23,6 +25,10 @@ class Integral1d {
 
   T integrate(int from, int to) const {
     return _integral[to] - _integral[from];
+  }
+
+  T average(int from, int to) const {
+    return (1.0/(to - from))*integrate(from, to);
   }
 
   T integral() const {
@@ -46,6 +52,10 @@ class Integral1d {
 
   Integral1d<T> sliceTo(int to) const {
     return slice(0, to);
+  }
+
+  const Array<T> &data() const {
+    return _integral;
   }
  private:
   Array<T> _integral;

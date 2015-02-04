@@ -176,6 +176,30 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
   }
 }
 
+FilteredNavData::FilteredNavData(
+      TimeStamp timeOffset,
+      LineKM sampling,
+      Array<Angle<double> > awaSamples,
+      Array<Angle<double> > magHdgSamples,
+      Array<Angle<double> > gpsBearingSamples,
+      Array<Velocity<double> > watSpeedSamples,
+      Array<Velocity<double> > gpsSpeedSamples,
+      Array<Velocity<double> > awsSamples) :
+      _awa(sampling, awaSamples),
+      _magHdg(sampling, magHdgSamples),
+      _gpsBearing(sampling, gpsBearingSamples),
+      _watSpeed(sampling, watSpeedSamples),
+      _gpsSpeed(sampling, gpsSpeedSamples),
+      _aws(sampling, awsSamples)
+      {
+  int count = awaSamples.size();
+  assert(count == magHdgSamples.size());
+  assert(count == gpsBearingSamples.size());
+  assert(count == watSpeedSamples.size());
+  assert(count == gpsSpeedSamples.size());
+  assert(count == awsSamples.size());
+}
+
 Arrayd FilteredNavData::makeCenteredX() const {
   return _awa.makeCenteredX();
 }

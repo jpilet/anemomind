@@ -19,6 +19,17 @@ class FilteredNavData {
   FilteredNavData() {}
   FilteredNavData(Array<Nav> navs, double lambda, DebugPlotMode mode = NONE);
 
+  FilteredNavData(
+        TimeStamp timeOffset,
+        LineKM sampling,
+        Array<Angle<double> > awaSamples,
+        Array<Angle<double> > magHdgSamples,
+        Array<Angle<double> > gpsBearingSamples,
+        Array<Velocity<double> > watSpeedSamples,
+        Array<Velocity<double> > gpsSpeedSamples,
+        Array<Velocity<double> > awsSamples);
+
+
   const UniformSamples<Angle<double> > &awa() const {
     return _awa;
   }
@@ -137,6 +148,10 @@ class FilteredNavData {
     assert(0 <= sampleIndex);
     assert(sampleIndex < size());
     return Indexed(this, sampleIndex);
+  }
+
+  TimeStamp timeOffset() const {
+    return _timeOffset;
   }
  private:
   TimeStamp _timeOffset;

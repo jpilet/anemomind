@@ -18,7 +18,7 @@ class SimpleCalibrator {
                        _gap(Duration<double>::seconds(12)),
                        _maneuverCount(30) {}
 
-  Corrector<double> calibrate(FilteredNavData data);
+  Corrector<double> calibrate(FilteredNavData data) const;
  private:
   Duration<double> _integrationWidth, _gap;
   int _maneuverCount;

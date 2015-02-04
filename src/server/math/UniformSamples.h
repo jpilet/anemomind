@@ -32,6 +32,16 @@ class UniformSamples {
     return W[0]*_samples[I[0]] + W[1]*_samples[I[1]];
   }
 
+  T interpolateLinearBounded(double x) const {
+    if (x <= low()) {
+      return _samples.first();
+    }
+    if (high() <= x) {
+      return _samples.last();
+    }
+    return interpolateLinear(x);
+  }
+
   ArrayType interpolateLinear(Arrayd X) const {
     return X.map<T>([&](double x) {return interpolateLinear(x);});
   }
