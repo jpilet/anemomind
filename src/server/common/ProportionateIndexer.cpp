@@ -5,6 +5,7 @@
 
 #include "ProportionateIndexer.h"
 #include <cassert>
+#include <cmath>
 
 namespace sail {
 
@@ -43,6 +44,27 @@ Arrayb ProportionateIndexer::selected() const {
 
 Arrayb ProportionateIndexer::remaining() const {
   return proportions().map<bool>([&](double x) {return x != 0;});
+}
+
+
+double ProportionateIndexer::sumTo(double fracIndex) const {
+  int index = int(floor(fracIndex));
+  double acc = fracIndex - index;
+  if (index >= size()) {
+    return sum();
+  }
+  if (index < 0) {
+    return 0;
+  }
+
+  while (0 < index) {
+    int next = parent(index);
+    if (rightChild(next) == index) {
+      acc += _values[leftChild(next)];;
+    }
+    index = next;
+  }
+  return acc;
 }
 
 

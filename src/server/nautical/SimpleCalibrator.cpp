@@ -4,6 +4,11 @@
  */
 
 #include "SimpleCalibrator.h"
+#include <server/common/ProportionateIndexer.h>
+#include <queue>
+#include <server/common/ArrayBuilder.h>
+#include <server/common/ArrayIO.h>
+#include <server/common/string.h>
 
 namespace sail {
 
@@ -55,11 +60,16 @@ namespace {
 
 
 
+    // How many indexable locations there are.
     int size() const {
       return _itg.size() - totalWidth() + 1;
     }
 
-    template <typename T>
+    // True size of the data.
+    int trueSize() const {
+      return _itg.size();
+    }
+
     Angle<double> maneuverStrength(int index) const {
       return evalStep(index, _itg.magHdg);
     }
@@ -71,6 +81,10 @@ namespace {
     Nav rightNav(int index) const {
       int offset = index + _width + _gap;
       return avgNav(offset, offset + _width);
+    }
+
+    int totalWidth() const {
+      return 2*_width + _gap;
     }
    private:
     Nav avgNav(int from, int to) const {
@@ -100,15 +114,69 @@ namespace {
       return evalRight(pos, itg) - evalLeft(pos, itg);
     }
 
-    int totalWidth() const {
-      return 2*_width + _gap;
-    }
 
     int _width, _gap;
     NavItg _itg;
   };
 
-  Arrayi findBestLocs()
+  class RegionMarker {
+   public:
+    RegionMarker(int size) : _indexer(Arrayd::fill(size, 0.0)) {}
+
+    void mark(int from, int to) {
+      // Assign values to the end points
+      _indexer.assign(from, 1.0);
+      _indexer.assign(to-1, 1.0);
+    }
+
+    bool marked(int from, int to) {
+      return _indexer.integrate(from, to) > 0.5;
+    }
+   private:
+    ProportionateIndexer _indexer;
+  };
+
+  class Loc {
+   public:
+    Loc(double strength, int index) :
+      _strength(std::abs(strength)), _index(index) {}
+
+    bool operator< (const Loc &other) const {
+      return _strength < other._strength;
+    }
+
+    int index() const {
+      return _index;
+    }
+   private:
+    double _strength;
+    int _index;
+  };
+
+  Arrayi findBestLocs(Integrator itg, int count) {
+    std::priority_queue<Loc> locs;
+    RegionMarker marker(itg.trueSize());
+    for (int i = 0; i < itg.size(); i++) {
+      double s = itg.maneuverStrength(i).degrees();
+      locs.push(Loc(s, i));
+    }
+    ArrayBuilder<int> builder;
+    for (int i = 0; i < count; i++) {
+      std::cout << EXPR_AND_VAL_AS_STRING(i) << std::endl;
+      std::cout << EXPR_AND_VAL_AS_STRING(count) << std::endl;
+      if (locs.empty()) {
+        break;
+      }
+      int left = locs.top().index();
+      locs.pop();
+      int right = left + itg.totalWidth();
+      if (!marker.marked(left, right)) {
+        marker.mark(left, right);
+        builder.add(left);
+      }
+    }
+    return builder.get();
+  }
 }
 
 Corrector<double> SimpleCalibrator::calibrate(FilteredNavData data0) const {
@@ -116,7 +184,9 @@ Corrector<double> SimpleCalibrator::calibrate(FilteredNavData data0) const {
   Integrator itg(durationToSampleCount(sampling, _integrationWidth),
                  durationToSampleCount(sampling, _gap),
                  NavItg(data0));
-  Arrayi locs = findBestLocs(itg);
+  Arrayi locs = findBestLocs(itg, _maneuverCount);
+  std::cout << EXPR_AND_VAL_AS_STRING(locs) << std::endl;
+  return Corrector<double>();
 }
 
 }

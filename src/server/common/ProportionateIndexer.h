@@ -37,6 +37,11 @@ class ProportionateIndexer {
   Arrayb remaining() const;
 
   double sum() const {return _values[0];}
+  double sumTo(double fracIndex) const;
+
+  double integrate(double from, double to) const {
+    return sumTo(to) - sumTo(from);
+  }
 
   class LookupResult {
    public:
@@ -49,6 +54,10 @@ class ProportionateIndexer {
     double cumulativeLeft() const {return x - localX;}
   };
   LookupResult get(double x) const {return getAdvanced(0, x, x);}
+
+  int size() const {
+    return _count;
+  }
  private:
   int _offset; // Index in the the _values array where the leaf nodes start.
   int _count; // Number of proportions.
