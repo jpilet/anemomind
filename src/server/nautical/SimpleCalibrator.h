@@ -14,7 +14,7 @@ namespace sail {
 
 class SimpleCalibrator {
  public:
-  SimpleCalibrator() : _integrationWidth(Duration<double>::seconds(12)),
+  SimpleCalibrator() : _integrationWidth(Duration<double>::seconds(4)),
                        _gap(Duration<double>::seconds(12)),
                        _maneuverCount(30) {}
 
