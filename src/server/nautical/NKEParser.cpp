@@ -57,16 +57,6 @@ namespace {
     alt2[2] = 189;
 
     return (s.find(alt1) != s.npos || s.find(alt2) != s.npos);
-
-//    for (int i = 0; i < s.length(); i++) {
-//
-//      // The degree sign in the text encoding used for the CSV exported by LogConverter
-//      // has this code.
-//      if ((unsigned char)(s[i]) == 176) {
-//        return true;
-//      }
-//    }
-//    return false;
   }
 }
 
