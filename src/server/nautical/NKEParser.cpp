@@ -454,7 +454,7 @@ Array<TimeStamp> NKEData::timeStamps() const {
   });
 }
 
-void NKEData::require(std::initializer_list<NKEType> types) {
+bool NKEData::hasAllFields(std::initializer_list<NKEType> types) {
   bool has = true;
   for (auto type : types) {
     if (!hasType(type)) {
@@ -466,8 +466,9 @@ void NKEData::require(std::initializer_list<NKEType> types) {
     for (auto type : types) {
       LOG(INFO) << "  Required type: " << type.index();
     }
-    LOG(FATAL) << "There were required types missing.";
+    LOG(INFO) << "There were required types missing.";
   }
+  return has;
 }
 
 namespace {
@@ -606,7 +607,7 @@ NKEData NKEParser::load(TimeStamp offset, std::istream &file) {
 Array<Nav> NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
   Array<TimeStamp> times = data.timeStamps();
 
-  data.require({
+  if (data.hasAllFields({
       type("navRawAws"),
       type("navRawAwa"),
       type("navRawMagHdg"),
@@ -615,50 +616,52 @@ Array<Nav> NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
       type("navGpsBearing"),
       type("Latitude"),
       type("Longitude")
-  });
+  })) {
 
-  Array<Velocity<double> > aws =
-      data.getByType(type("navRawAws")).velocities();
+    Array<Velocity<double> > aws =
+        data.getByType(type("navRawAws")).velocities();
 
-  Array<Angle<double> > awa =
-      data.getByType(type("navRawAwa")).angles();
+    Array<Angle<double> > awa =
+        data.getByType(type("navRawAwa")).angles();
 
-  Array<Angle<double> > magHdg =
-      data.getByType(type("navRawMagHdg")).angles();
+    Array<Angle<double> > magHdg =
+        data.getByType(type("navRawMagHdg")).angles();
 
-  Array<Velocity<double> > watSpeed =
-      data.getByType(type("navRawWatSpeed")).velocities();
+    Array<Velocity<double> > watSpeed =
+        data.getByType(type("navRawWatSpeed")).velocities();
 
-  Array<Velocity<double> > gpsSpeed =
-      data.getByType(type("navGpsSpeed")).velocities();
+    Array<Velocity<double> > gpsSpeed =
+        data.getByType(type("navGpsSpeed")).velocities();
 
-  Array<Angle<double> > gpsBearing =
-      data.getByType(type("navGpsBearing")).angles();
+    Array<Angle<double> > gpsBearing =
+        data.getByType(type("navGpsBearing")).angles();
 
-  Array<Angle<double> > latitude =
-      data.getByType(type("Latitude")).angles();
+    Array<Angle<double> > latitude =
+        data.getByType(type("Latitude")).angles();
 
-  Array<Angle<double> > longitude =
-      data.getByType(type("Longitude")).angles();
+    Array<Angle<double> > longitude =
+        data.getByType(type("Longitude")).angles();
 
 
 
-  int count = data.rows();
-  Array<Nav> dst(count);
-  for (int i = 0; i < count; i++) {
-    GeographicPosition<double> pos(longitude[i], latitude[i]);
+    int count = data.rows();
+    Array<Nav> dst(count);
+    for (int i = 0; i < count; i++) {
+      GeographicPosition<double> pos(longitude[i], latitude[i]);
 
-    auto &x = dst[i];
-    x.setBoatId(boatId);
-    x.setTime(times[i]);
-    x.setAws(aws[i]);
-    x.setAwa(awa[i]);
-    x.setMagHdg(magHdg[i]);
-    x.setWatSpeed(watSpeed[i]);
-    x.setGpsSpeed(gpsSpeed[i]);
-    x.setGpsBearing(gpsBearing[i]);
+      auto &x = dst[i];
+      x.setBoatId(boatId);
+      x.setTime(times[i]);
+      x.setAws(aws[i]);
+      x.setAwa(awa[i]);
+      x.setMagHdg(magHdg[i]);
+      x.setWatSpeed(watSpeed[i]);
+      x.setGpsSpeed(gpsSpeed[i]);
+      x.setGpsBearing(gpsBearing[i]);
+    }
+    return dst;
   }
-  return dst;
+  return Array<Nav>();
 }
 
 
