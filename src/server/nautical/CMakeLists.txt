@@ -52,11 +52,6 @@ cxx_test(nautical_BoatLogProcessorTest
         )
 
 
-add_library(nautical_LocalRace
-            LocalRace.h
-            LocalRace.cpp)
-target_link_libraries(nautical_LocalRace
-  math_armaadolc)            
             
 
 add_library(nautical_NavNmeaScan            
@@ -98,18 +93,6 @@ target_depends_on_poco_foundation(nautical_ParseExample)
 #################################################################
 ### PlotTrajectoryExamples
 #################################################################
-add_library(examples_PlotTrajectoryExamples
-  PlotTrajectoryExamples.h
-  PlotTrajectoryExamples.cpp)  
-target_link_libraries(examples_PlotTrajectoryExamples
-                      common_Env
-                      nautical_LocalRace
-                      plot_gnuplot)
-
-add_executable(examples_PlotTrajectoryExampleLastRace
-  PlotTrajectoryExampleLastRace.cpp)
-target_link_libraries(examples_PlotTrajectoryExampleLastRace
-  examples_PlotTrajectoryExamples)  
 
 add_executable(nautical_ScanNmeaExample
                ScanNmeaExample.cpp
@@ -119,17 +102,6 @@ target_link_libraries(nautical_ScanNmeaExample
                        nautical_NavNmeaScan
                        common_PathBuilder
                       )
-  
-add_executable(examples_PlotTrajectoryExampleLocalRace
-  PlotTrajectoryExampleLocalRace.cpp)
-target_link_libraries(examples_PlotTrajectoryExampleLocalRace
-  examples_PlotTrajectoryExamples)             
-
-target_link_libraries(nautical_LocalRace
-  nautical_nav
-  common_Array
-  plot_gnuplot
-  math_Grid)
 
 
 cxx_test(nautical_GeographicPositionTest
