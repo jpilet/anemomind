@@ -7,7 +7,7 @@
 #define CALIBRATIONMODEL_H_
 
 #include <memory>
-#include <server/nautical/SpeedCalib.h>
+#include "SpeedCalib.h"
 #include <server/common/Array.h>
 #include <server/common/ExpLine.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>

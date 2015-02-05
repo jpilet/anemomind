@@ -25,7 +25,7 @@
 #include <server/nautical/NavNmeaScan.h>
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
-#include <server/nautical/Corrector.h>
+#include <device/Arduino/libraries/Corrector/Corrector.h>
 #include <server/common/Json.impl.h>
 
 namespace sail {

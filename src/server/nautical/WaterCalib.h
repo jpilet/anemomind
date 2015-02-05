@@ -8,7 +8,7 @@
 
 #include <server/common/Array.h>
 #include <server/nautical/Nav.h>
-#include <server/nautical/SpeedCalib.h>
+#include <device/Arduino/libraries/Corrector/SpeedCalib.h>
 #include <server/nautical/ParametricHorizontalMotion.h>
 
 namespace sail {

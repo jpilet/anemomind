@@ -13,7 +13,7 @@
 #include <server/nautical/Nav.h>
 #include <random>
 #include <server/common/MeanAndVar.h>
-#include <server/nautical/Corrector.h>
+#include <device/Arduino/libraries/Corrector/Corrector.h>
 
 namespace sail {
 
