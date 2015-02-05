@@ -25,7 +25,7 @@
 #include <server/nautical/NavNmeaScan.h>
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
-
+#include <server/nautical/Corrector.h>
 #include <server/common/Json.impl.h>
 
 namespace sail {
@@ -114,7 +114,18 @@ namespace {
       Nav::Id boatId) {
 
     /*
-     * The function
+     * The function calibrateFull in server/nautical/Calibrator.*
+     * uses the Calibrator and performs a full calibration. It is
+     * currently in the branch jo-decorr-calib.
+     *
+     *
+     * Previous code:
+     * Calibrator calibrator(g);
+       if (calibrator.calibrate(navs, fulltree, boatId)) {
+          calibrator.saveCalibration(&boatDatFile);
+          calibrator.simulate(&navs);
+       }
+    }
      */
     LOG(WARNING) << "Please perform a calibration on the navs using the "
                     << "code from the jo-decorr-calib branch";
@@ -189,11 +200,7 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
     ENTERSCOPE("Output boat.dat with target speed data.");
     std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
 
-    Calibrator calibrator(g);
-    if (calibrator.calibrate(navs, fulltree, boatId)) {
-      calibrator.saveCalibration(&boatDatFile);
-      calibrator.simulate(&navs);
-    }
+
     outputTargetSpeedTable(fulltree, g.nodeInfo(), navs, &boatDatFile);
   }
 

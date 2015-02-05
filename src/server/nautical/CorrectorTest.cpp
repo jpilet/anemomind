@@ -103,5 +103,9 @@ TEST(CorrectorTest, BeamReachWithCurrent) {
   EXPECT_NEAR(c.twdir().degrees(), 90.0, marg);
 }
 
+/*// Try the corrector with FixPt numbers
+TEST(CorrectorTest, FixPt) {
+
+}*/
 
 
