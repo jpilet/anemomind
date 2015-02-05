@@ -6,7 +6,7 @@
 #ifndef DECORRCALIB_H_
 #define DECORRCALIB_H_
 
-#include <server/nautical/Corrector.h>
+#include <device/Arduino/libraries/Corrector/Corrector.h>
 #include <server/nautical/FilteredNavData.h>
 #include <random>
 

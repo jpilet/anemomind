@@ -8,7 +8,7 @@
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <string>
 #include <iostream>
-#include <server/nautical/Corrector.h>
+#include <device/Arduino/libraries/Corrector/Corrector.h>
 
 namespace sail {
 

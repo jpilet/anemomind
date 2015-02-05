@@ -21,7 +21,7 @@
 #include <server/plot/extra.h>
 #include <server/common/Histogram.h>
 #include <server/common/ArrayBuilder.h>
-#include <server/nautical/Corrector.h>
+#include <device/Arduino/libraries/Corrector/Corrector.h>
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;

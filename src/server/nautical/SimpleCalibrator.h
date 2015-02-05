@@ -8,7 +8,7 @@
 
 #include <server/math/Integral1d.h>
 #include <server/nautical/FilteredNavData.h>
-#include <server/nautical/Corrector.h>
+#include <device/Arduino/libraries/Corrector/Corrector.h>
 
 namespace sail {
 

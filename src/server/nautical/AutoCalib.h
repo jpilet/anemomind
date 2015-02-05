@@ -9,7 +9,7 @@
 #include <cmath>
 #include <server/nautical/FilteredNavData.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
-#include <server/nautical/Corrector.h>
+#include <device/Arduino/libraries/Corrector/Corrector.h>
 
 namespace sail {
 
