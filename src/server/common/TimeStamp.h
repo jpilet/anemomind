@@ -25,6 +25,8 @@ class TimeStamp {
   static TimeStamp UTC(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
             unsigned int hour, unsigned int minute, double seconds);
 
+  static TimeStamp date(int year_ad, unsigned int month_1to12, unsigned int day_1to31);
+
   TimeStamp(const TimeStamp &) = default;
 
   static TimeStamp now();
