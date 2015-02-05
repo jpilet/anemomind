@@ -11,7 +11,7 @@
 #include <server/common/Array.h>
 #include <server/common/ExpLine.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
-#include <server/common/ToDouble.h>
+//#include <server/common/ToDouble.h>
 
 namespace sail {
 
@@ -65,9 +65,15 @@ namespace sail {
     Angle<T> correct(const CalibratedNav<T> &c) const {
       T awa0rads = c.calibAwa().normalizedAt0().radians();
 
+
+      //I am not sure we need 'ToDouble': bool upwind = 2.0*std::abs(ToDouble(awa0rads)) < M_PI;
+
+      T twice = 2.0*awa0rads;
+      bool upwind =  -M_PI < twice && twice < M_PI;
+
       // For awa angles closer to 0 than 90 degrees,
       // scale by sinus of that angle. Otherwise, just use 0.
-      T awaFactor = amp*(2.0*std::abs(ToDouble(awa0rads)) < M_PI? T(sin(2.0*awa0rads)) : T(0));
+      T awaFactor = amp*(upwind? T(sin(2.0*awa0rads)) : T(0));
 
       // Scale it in a way that decays exponentially as
       // aws increases. The decay is controlled by params[1].

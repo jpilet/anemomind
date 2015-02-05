@@ -459,4 +459,4 @@ target_link_libraries(nautical_SimpleCalibratorDemo
                       nautical_SimpleCalibrator
                       nautical_synthtest_NavalSimulationPrecomp
                      )
-target_depends_on_ceres(nautical_SimpleCalibratorDemo)                     
+target_depends_on_ceres(nautical_SimpleCalibratorDemo) 
