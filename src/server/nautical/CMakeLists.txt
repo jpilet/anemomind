@@ -148,14 +148,6 @@ cxx_test(nautical_CorrectorTest
 ### CalibrationExamples
 #################################################################
 
-cxx_test(nautical_LocalRaceTest
-            LocalRaceTest.cpp
-            nautical_LocalRace
-            common_PathBuilder
-            common_Env
-            nautical_NavNmea
-            gtest_main
-           )
 
 cxx_test(nautical_NavTest
           NavTest.cpp
@@ -281,27 +273,6 @@ add_library(nautical_ParametricHorizontalMotion
 target_link_libraries(nautical_ParametricHorizontalMotion 
                       common_Uniform
                      )
-add_library(nautical_WaterCalib
-            WaterCalib.h
-            WaterCalib.cpp
-           )
-target_link_libraries(nautical_WaterCalib
-                      nautical_nav
-                      math_ADFunction
-                      math_GemanMcClure
-                      common_ScopedLog
-                      math_nonlinear_Levmar
-                      plot_gnuplot
-                      nautical_ParametricHorizontalMotion
-                     )
-           
-add_executable(nautical_WaterCalibExample
-               WaterCalibExample.cpp
-              )
-target_link_libraries(nautical_WaterCalibExample
-                      nautical_WaterCalib
-                      nautical_TestdataNavs
-                     )              
 
 add_executable(nautical_Plot
                Plot.cpp
