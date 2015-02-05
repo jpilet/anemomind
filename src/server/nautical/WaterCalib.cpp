@@ -124,11 +124,6 @@ void WaterCalib::makeWatSpeedCalibPlot(Arrayd params, Array<Nav> navs) const {
     std::cout << x.knots() << " knots maps to " << sc.eval(x).knots()
         << " knots" << std::endl;
   }
-  std::cout << EXPR_AND_VAL_AS_STRING(sc.scaleCoef()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(sc.offsetCoef()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(sc.nonlinCoef()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(sc.decayCoef()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(sc.kSpan().eval(0)) << std::endl;
 
   plot.show();
 }

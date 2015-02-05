@@ -27,9 +27,8 @@
 #ifndef SPEEDCALIB_H_
 #define SPEEDCALIB_H_
 
-#include <server/common/math.h>
+//#include <server/common/math.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
-#include <server/common/ExpLine.h>
 
 namespace sail {
 
@@ -38,66 +37,25 @@ class SpeedCalib {
  public:
   static constexpr bool withExp = false;
 
-  static Sigmoid<T> kSpan() {
-    double marg = 0.3;
-    return Sigmoid<T>(T(1.0 - marg), T(1.0 + marg));
-  }
-
-  // These functions can be used to map a variable in R
-  // to a subset.
-  //
-  // Caution: For x = 0, the derivative of lowerBound w.r.t. x is 0.
-  static T lowerBound(T x, T lb = T(0)) {
-    return x*x + lb;
-  }
-
-
   SpeedCalib(T kParam, T mParam, T cParam, T alphaParam) :
-    _k(kSpan().eval(kParam)), _m(lowerBound(mParam)), _c(lowerBound(cParam)) {
-
-    /*
-     * Fits alpha in an interval based on the following:
-     *
-     *    (i)  _alpha > 0 (so that the exponential curve decreases asymptotically towards zero)
-     *    (ii) slope of the curve at 0 should not be negative
-     */
-    _alpha = Sigmoid<T>(T(0), T(_k/(_c + 1.0e-9) /*_c > 0, so adding a small number to it eliminates
-      division by zero*/)).eval(alphaParam);
+    _k(kParam + 1.0), _m(mParam), _c(cParam), _alpha(alphaParam) {
   }
 
   Velocity<T> eval(Velocity<T> vx) {
     T x = vx.metersPerSecond();
-    T y =  scaleCoef()*x + offsetCoef();
+    T y =  _k*x + _m;
     if (withExp) {
-      y += nonlinCoef()*expline(T(-decayCoef()*x));
+      y += _c*exp(_alpha*x);
     }
     return Velocity<T>::metersPerSecond(y);
 
   }
 
-  T scaleCoef() {return _k;}
-
-  /*
-   * Require that f(0) >= 0
-   */
-  T offsetCoef() {return _m - _c;}
-
-  T nonlinCoef() {return (withExp? T(_c) : T(0.0));}
-
-  T decayCoef() {
-    return (withExp? _alpha : T(0.0));
-  }
-
   static T initKParam() {return T(0);}
-  static T initMParam() {return T(0.01);}
-  static T initCParam() {return T(0.01);}
-  static T initAlphaParam() {return T(0.0);}
+  static T initMParam() {return T(0);}
+  static T initCParam() {return T(0);}
+  static T initAlphaParam() {return T(0);}
 
-  // This value can be added to the objective function in order to
-  // push the nonlinCoef to zero if decayCoef is close to 0.
-  T ambiguityPenalty() {
-    return (1.0e-8)*(nonlinCoef()/(1.0e-12 + decayCoef()));
-  }
  //private:
   T _k, _m, _c, _alpha;
 };
