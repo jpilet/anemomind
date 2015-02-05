@@ -114,96 +114,58 @@ Array<NKEType> makeNKETypes() {
      */
 
 
-   /*
-    * Some questions to ask Hugo:
-    *
-    * - Does the suffix _MES mean that it is the raw value? Similarly, when
-    *   it is not there, does it mean that the value has been corrected?
-    *
-    * - The suffix _PIL means auto pilot I believe. Is it a corrected value?
-    *
-    * To create a Nav, we will need:
-    *
-    * Apparent wind angle (AWA) (NKE calls it AVA: Angle Vent Apparrent)
-    *   24, AncAVA_Pil
-    *   60, AncAVA
-    *   72, AngVentApp (GIRMP, la girouette) <-- Le plus brût?
-    *   234, AVA_Cor
-    *
-    *   Quelle entre ces mésures est la plus brûte?
-    *
-    *   THIS IS THE RAW APPARENT WIND ANGLE:
-    *   [HK]  à 193, AVA_MesHR = Valeur Brute
-    *
-    *
-    * Apparent wind speed AWS (NKE calls it VVA: Vitesse Vent Apparent)
-    *   59, VitVentApp (ANEMO) <-- Le plus brût?
-    *   235, VVA_Cor
-    *
-    *   THIS IS THE RAW APPARENT WIND SPEED:
-    *   192, VVA_MesHR
-    *
-    * Magnetic compass (NKE refers to it using Mag, Compas)
-    *   25, CapMagPil <-- Corrigé?
-    *   61, CapMag    <-- Plus brût
-    *
-    *   See also:
-    *     229, DeclMag
-    *
-    *   Est-ce que les mésures 25 and 61 ont déja été corrigés par la déclinaison magnétique?
-    *
-    *   [HK] Cap Vrai canal 212
-    *   Sinon le canal 267 est intéressant( 3DH_Lacet) c’est la valeur la plus réactive ( dans le référentiel magnétique)
-    *
-    *   This is the raw magnetic value:
-    *   212, CapVrai
-    *
-    * Speedo, the water passing the boat (SPEEDO)
-    *   58, VitesSurf   <-- Plus brût?
-    *   230, VitSurfPil <-- Corrigé?
-    *
-    *
-    *   [HK] Pour valeurs brutes voir 120 et 124
-    *
-    *
-    *
-    *
-    * GPS bearing over ground:
-    *   66, CapFond <-- Filtered.
-    *   233, CapFondMes <-- Plus brût. Yes
-    *
-    * GPS speed over ground:
-    *   65, VitFond
-    *   232, VitFondMes <-- Plus brût. Yes.
-    *
-    *
-    * GPS position:
-    *   86, Latitude
-    *   87, LatDecMin
-    *   88, Longitude
-    *   89, LonDecMin
-    *
-    *
-    *
-    * Inferred wind and current:
-    *
-    * What is the difference between VitVentFnd and VitVentRl?
-    * See maybe:
-    *   http://www.cruisersforum.com/forums/f121/differences-between-ground-apparent-and-true-wind-direction-73563.html
-    *
-    *
-    * Wind:
-    *   214, VitVentFnd
-    *   213, DirVentFnd
-    *
-    *   37, VitVentRl
-    *   38, AngVentRl
-    *
-    * Current:
-    *   76, VitCourMes
-    *   77, DirCourMes
-    *
-    */
+
+// Questions sent to Hugo. His response is prefixed by [HK]. See
+//
+//   https://docs.google.com/document/d/1CefjZgMkd7nWHkPFU7HqWNLfcG3xINsAtMej6YT_0Wk/edit#heading=h.k0kj9xcn8sp9
+//
+// for a document with nice formatting.
+//
+//    1. Pour l'angle de vent apparent, il y a ces valeurs importantes:
+//    * 24, AncAVA_Pil[HK]  = 193, moins échantillonné
+//    * 60, AncAVA[HK]  = 193 Filtré
+//    * 72, AngVentApp[HK]  = 234 Filtré
+//    * 234, AVA_Cor[ HK]  = 193 débruité + Angle de mât
+//Quelle entre ces valeurs est la valeur la plus brûte (pas corrigé)? [HK]  à 193, AVA_MesHR = Valeur Brute
+//
+//2. Pour la vitesse de vent apparent, il y a ces valeurs importantes:
+//    * 59, VitVentApp
+//    * 235, VVA_Cor
+//Ici, c'est VitVentApp qui est la plus brûte, ne c'est pas?[HK]  Voir descriptif AVA, Meme prince
+//
+//3. Quant au compas, il y a ces mésures:
+//    * 25, CapMagPil
+//    * 61, CapMag
+//    * 229, DeclMag
+//Est-ce que la declinaison est pris en compte dans les valeurs 25 et 61, ou faut-il l'additionner?[HK]  non  Quelle est la différence entre 25 et 61?[HK]
+//[HK] Cap Vrai canal 212
+//
+//Sinon le canal 267 est intéressant( 3DH_Lacet) c’est la valeur la plus réactive ( dans le référentiel magnétique)
+//
+//
+//4. Quant au speedo, il y a ces valeurs:
+//    * 58, VitesSurf[HK]  =  230 Filtré
+//    * 230, VitSurfPil[HK]  Filtré légèrement
+//Quelle est la différence entre ces valeurs? Est-ce que VitesSurf est plus brûte et VitSurfPil une valeur corrigé?
+//
+//[HK] Pour valeurs brutes voir 120 et 124
+//
+//
+//
+//5. Quant a la course du bateau, il y a
+//    * 66, CapFond
+//    * 233, CapFondMes
+//Quelle est la difference entre ces valeurs?[HK]  Filtrage
+//
+//6. Quant à la vitesse du bateau par rapport au fond, il y
+//    * 65, VitFond[HK]  = 232 Filtré
+//    * 232, VitFondMes
+//Quelle est la difference entre ces valeurs?[HK]  Filtrage
+//
+//7. Finalement, quant au vent, VitVentFnd et DirVentFnd définissent le vent par rapport au fond. Est-ce que VitVentRl et AngVentRl définissent le vent par rapport au surface de la mer (peut-être qu'il y a des courrants)?[HK]  Oui, c’est la définition la plus utilisé. On l’utilise pour les Polaires par exemple.
+//
+//Vent fond est utilisé pour les routages, il est sensé être identique au vent synoptique (Météo)
+
 
 
   types.add(NKEType(
