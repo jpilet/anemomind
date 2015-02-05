@@ -27,7 +27,6 @@
 #ifndef SPEEDCALIB_H_
 #define SPEEDCALIB_H_
 
-//#include <server/common/math.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 namespace sail {
