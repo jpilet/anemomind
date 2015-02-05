@@ -109,6 +109,21 @@ int BoatLogProcessor::main(const std::vector<std::string>& args) {
 }
 
 namespace {
+  Corrector<double> calibrate(Array<Nav> nav,
+      std::shared_ptr<HTree> tree,
+      Nav::Id boatId) {
+
+    /*
+     * The function
+     */
+    LOG(WARNING) << "Please perform a calibration on the navs using the "
+                    << "code from the jo-decorr-calib branch";
+
+
+    // For now, return default parameters.
+    return Corrector<double>();
+  }
+
   TargetSpeed makeTargetSpeedTable(bool isUpwind,
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
       Array<Nav> allnavs,
