@@ -23,10 +23,6 @@ bool isPositive(T x) {
   return 0 < x;
 }
 
-template <typename T>
-template <typename T>
-double ToDouble(T x) {return double(x);}
-
 #ifdef ON_SERVER
 
 // Optional support for ADOL-C
