@@ -115,7 +115,7 @@ Array<NKEType> makeNKETypes() {
 
 
 
-// Questions sent to Hugo. His response is prefixed by [HK]. See
+// Questions sent to Hugo (hkerhascoet@nke.fr). His response is prefixed by [HK]. See
 //
 //   https://docs.google.com/document/d/1CefjZgMkd7nWHkPFU7HqWNLfcG3xINsAtMej6YT_0Wk/edit#heading=h.k0kj9xcn8sp9
 //
