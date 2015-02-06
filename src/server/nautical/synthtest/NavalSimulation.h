@@ -35,6 +35,18 @@ class PhysQuantNormalDistrib {
     wrap(_distrib(urng), &dst);
     return dst;
   }
+
+  PhysQuant mean() const {
+      PhysQuant dst;
+      wrap(_distrib.mean(), &dst);
+      return dst;
+    }
+
+  PhysQuant stddev() const {
+      PhysQuant dst;
+      wrap(_distrib.stddev(), &dst);
+      return dst;
+    }
  private:
   std::normal_distribution<double> _distrib;
 
@@ -98,6 +110,17 @@ class CorruptedBoatState {
       _offset = offset;
     }
 
+    double scale() const {
+      return _scale;
+    }
+
+    T offset() const {
+      return _offset;
+    }
+
+    PhysQuantNormalDistrib<T> distrib() const {
+      return _distrib;
+    }
    private:
     double _scale;
     T _offset;
@@ -108,11 +131,8 @@ class CorruptedBoatState {
   // By default there is no corruption.
   class CorruptorSet {
    public:
-    typedef Corruptor<Angle<double> > AngleCorr;
-    typedef Corruptor<Velocity<double> > VelocityCorr;
-
-    AngleCorr awa, magHdg, gpsBearing;
-    VelocityCorr aws, watSpeed, gpsSpeed;
+    Corruptor<Angle<double> > awa, magHdg, gpsBearing;
+    Corruptor<Velocity<double> > aws, watSpeed, gpsSpeed;
   };
  private:
   BoatSim::FullState _trueState;
@@ -155,7 +175,7 @@ public:
   };
 
   BoatSimulationSpecs(BoatCharacteristics ch_, // <-- How the boat behaves
-            Array<TwaDirective> specs_,        // <-- How the boat should be steered
+            Array<TwaDirective> dirs_,        // <-- How the boat should be steered
             CorruptedBoatState::CorruptorSet corruptors_, // <-- How the measurements are corrupted
 
             Nav::Id boatId = Nav::debuggingBoatId(), // <-- Boat id. Maybe not that interesting in most cases.
@@ -174,11 +194,16 @@ public:
     return _ch;
   }
 
+
   Duration<double> duration() const {
     return Duration<double>::seconds(_indexer.sum());
   }
 
   CorruptedBoatState::CorruptorSet &corruptors() {
+    return _corruptors;
+  }
+
+  CorruptedBoatState::CorruptorSet corruptors() const {
     return _corruptors;
   }
 
@@ -188,6 +213,10 @@ public:
 
   int stepsPerSample() const {
     return _stepsPerSample;
+  }
+
+  Array<TwaDirective> dirs() const {
+    return _dirs;
   }
  private:
   Nav::Id _boatId;
@@ -362,6 +391,10 @@ class NavalSimulation {
       });
     }
 
+    const BoatSimulationSpecs &specs() const {
+      return _specs;
+    }
+
     // Suitable for calibration procedures that don't
     // use the Corruptor class.
     NavalSimulation::SimulatedCalibrationResults evaluateFitness(
@@ -397,14 +430,32 @@ class NavalSimulation {
   void setDescription(const std::string &desc) {
     _desc = desc;
   }
+
+  // Constructor used by deserializer
+  NavalSimulation(std::string desc,
+    GeographicReference geoRef,
+    TimeStamp simulationStartTime,
+    Array<BoatData> boatData) :
+      _desc(desc), _geoRef(geoRef),
+      _simulationStartTime(simulationStartTime),
+      _boatData(boatData) {}
+
+  TimeStamp simulationStartTime() const {
+    return _simulationStartTime;
+  }
+
+  std::string description() const {
+    return _desc;
+  }
+
+  NavalSimulation() {}
  private:
   std::string _desc;
   GeographicReference _geoRef;
   TimeStamp _simulationStartTime;
-  FlowFun _wind, _current;
-
-  // Simulated boat states over time along with corrupted measurements.
   Array<BoatData> _boatData;
+
+  FlowFun _wind, _current;
 
   BoatData makeBoatData(BoatSimulationSpecs &spec,
       Array<BoatSim::FullState> state,

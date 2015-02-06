@@ -17,8 +17,6 @@ Poco::Dynamic::Var load(const std::string &filename) {
   Poco::JSON::Parser parser;
   Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
   parser.setHandler(handler);
-
-  parser.setHandler(handler);
   try {
     parser.parse(file);
     return handler->asVar();

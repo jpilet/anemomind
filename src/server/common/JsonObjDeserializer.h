@@ -18,6 +18,8 @@
 namespace sail {
 namespace json {
 
+
+// BEFORE USING THIS CLASS, SEE THE NOTE IN THE HEADER!!!
 class ObjDeserializer {
  public:
   ObjDeserializer(Poco::Dynamic::Var x);
@@ -31,6 +33,18 @@ class ObjDeserializer {
         _success = false;
       }
     }
+  }
+
+  // Methods to allow for a work-around when the wrong version of 'deserialize' is chosen:
+  //
+  // deser.registerSuccess(myDeserializationFunction(deser.get("field"), &dst))
+  void registerSuccess(bool s) {
+    if (!s) {
+      _success = false;
+    }
+  }
+  Poco::Dynamic::Var get(const std::string &s) const {
+    return _src->get(s);
   }
 
 

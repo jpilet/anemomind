@@ -125,9 +125,8 @@ Poco::Dynamic::Var serialize(const Vectorize<T, N> &x) {
   return serializeVectorize<T, N>(x);
 }
 
-
 template <typename T, int N>
-bool deserialize(Poco::Dynamic::Var src, Vectorize<T, N> *x) {
+bool deserializeVectorize(Poco::Dynamic::Var src, Vectorize<T, N> *x) {
   Array<T> arr;
   if (!deserialize(src, &arr)) {
     return false;
@@ -139,6 +138,22 @@ bool deserialize(Poco::Dynamic::Var src, Vectorize<T, N> *x) {
   return true;
 }
 
+template <typename T, int N>
+bool deserialize(Poco::Dynamic::Var src, Vectorize<T, N> *x) {
+  return deserializeVectorize(src, x);
+}
+
+
+// To help the compiler if it is not smart enough...
+template <typename T>
+Poco::Dynamic::Var serialize(const HorizontalMotion<T> &x) {
+  return serializeVectorize(x);
+}
+
+template <typename T>
+bool deserialize(Poco::Dynamic::Var src, HorizontalMotion<T> *dst) {
+  return deserializeVectorize(src, dst);
+}
 
 }
 } /* namespace sail */
