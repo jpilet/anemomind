@@ -24,21 +24,29 @@ namespace {
   }
 
   void evaluate() {
-    auto sim = makeNavSimUpwindDownwindLong();
-    auto boatData = sim.boatData(0);
-    Array<Nav> navs = boatData.navs();
-    WindOrientedGrammarSettings gs;
-    WindOrientedGrammar grammar(gs);
-    auto tree = grammar.parse(navs);
-    Calibrator calib(grammar);
+    std::cout << "Synthesize the dataset..." << std::endl;
+    auto sim = makeNavSimFractalWindOriented();
+    std::cout << "Done synthesis." << std::endl;
 
-    std::cout << "Before calibration with default values: " <<
-        evaluateCalibration(boatData, calib);
+      auto boatData = sim.boatData(0);
 
-    assert(calib.calibrate(navs, tree, Nav::debuggingBoatId()));
+      boatData.plot();
 
-    std::cout << "After calibration with optimal values:  " <<
-        evaluateCalibration(boatData, calib);
+      Array<Nav> navs = boatData.navs();
+      WindOrientedGrammarSettings gs;
+      WindOrientedGrammar grammar(gs);
+      auto tree = grammar.parse(navs);
+
+      Calibrator calib(grammar);
+      calib.setVerbose();
+
+      std::cout << "Before calibration with default values: " <<
+          evaluateCalibration(boatData, calib);
+
+      assert(calib.calibrate(navs, tree, Nav::debuggingBoatId()));
+
+      std::cout << "After calibration with optimal values:  " <<
+          evaluateCalibration(boatData, calib);
   }
 }
 

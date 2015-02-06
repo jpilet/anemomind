@@ -8,6 +8,8 @@
 #include <server/nautical/synthtest/Flow.h>
 #include <iostream>
 #include <server/common/PhysicalQuantityIO.h>
+#include <server/nautical/synthtest/FractalFlow.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -126,6 +128,13 @@ Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueCurrent() const 
   return _states.map<HorizontalMotion<double> >([=] (const CorruptedBoatState &s) {
     return s.trueState().trueCurrent;
   });
+}
+
+void NavalSimulation::BoatData::plot() const {
+  BoatSim::makePlots(
+      _states.map<BoatSim::FullState>([=](const CorruptedBoatState &x) {
+        return x.trueState();
+      }));
 }
 
 
@@ -307,6 +316,81 @@ std::ostream &operator<< (std::ostream &s, const NavalSimulation::SimulatedCalib
   s << "  current = " << e.current().error() << "\n";
   s << ")\n";
   return s;
+}
+
+
+namespace {
+  Angle<double> getMainDir(Duration<double> time, Duration<double> legDur) {
+    double side = positiveMod(time.hours(), 2*legDur.hours());
+    if (side > legDur.hours()) {
+      return Angle<double>::degrees(180);
+    }
+    return Angle<double>::degrees(0);
+  }
+}
+
+Array<CorruptedBoatState::CorruptorSet> makeCorruptorSets001() {
+  CorruptedBoatState::CorruptorSet corruptorSet;
+  corruptorSet.awa = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+      Angle<double>::degrees(-14));
+  corruptorSet.magHdg = CorruptedBoatState::Corruptor<Angle<double> >::offset(
+      Angle<double>::degrees(-1));
+  corruptorSet.aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.2, Velocity<double>::knots(0.0));
+  corruptorSet.watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.0, Velocity<double>::knots(-0.7));
+  return Array<CorruptedBoatState::CorruptorSet>::args(corruptorSet);
+}
+
+
+
+Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectives001() {
+  Duration<double> legDur = Duration<double>::minutes(10.0);
+  Duration<double> totalDur = Duration<double>::hours(1);
+  Duration<double> tackDur = Duration<double>::minutes(1);
+
+  int tackCount = int(floor(totalDur/tackDur));
+  LOG(INFO) << stringFormat("Tack count: %d", tackCount);
+
+  Array<BoatSimulationSpecs::TwaDirective> dirs(tackCount);
+  for (int i = 0; i < tackCount; i++) {
+    Angle<double> tackAngle = double((2*(i % 2) - 1))*Angle<double>::degrees(45);
+    dirs[i] = BoatSimulationSpecs::TwaDirective::constant(tackDur,
+        tackAngle + getMainDir(double(i)*tackDur, legDur));
+  }
+  return dirs;
+}
+
+Array<BoatSimulationSpecs> makeSpecs001() {
+  auto sets = makeCorruptorSets001();
+  auto dirs = makeTwaDirectives001();
+
+  int n = sets.size();
+  Array<BoatSimulationSpecs> specs(n);
+  for (int i = 0; i < n; i++) {
+    specs[i] = BoatSimulationSpecs(BoatCharacteristics(),
+          dirs,
+          sets[i]);
+  }
+  return specs;
+}
+
+
+
+NavalSimulation makeNavSimFractalWindOriented() {
+
+  GeographicReference geoRef(GeographicPosition<double>(
+      Angle<double>::degrees(30),
+      Angle<double>::degrees(29)));
+
+  TimeStamp simulationStartTime = TimeStamp::UTC(2014, 12, 15, 12, 06, 29);
+  auto flowpair = makeWindCurrentPair001();
+
+  std::default_random_engine e;
+  return NavalSimulation(e, geoRef,
+           simulationStartTime,
+           flowpair.wind,
+           flowpair.current,
+           makeSpecs001()
+           );
 }
 
 

@@ -318,6 +318,14 @@ add_library(common_ProportionateIndexer
             ProportionateIndexer.h
            )
 
+add_library(common_Progress
+            Progress.cpp
+            Progress.h
+           )
+target_link_libraries(common_Progress
+                       common_TimeStamp
+                      )
+
 cxx_test(common_ProportionateIndexerTest
          ProportionateIndexerTest.cpp
          gtest_main

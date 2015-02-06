@@ -374,6 +374,8 @@ class NavalSimulation {
 
     Array<HorizontalMotion<double> > trueWind() const;
     Array<HorizontalMotion<double> > trueCurrent() const;
+
+    void plot() const;
    private:
     BoatSimulationSpecs _specs;
     Array<CorruptedBoatState> _states;
@@ -439,6 +441,21 @@ NavalSimulation makeNavSimConstantFlow();
 // Wind and current vary.
 NavalSimulation makeNavSimUpwindDownwind();
 NavalSimulation makeNavSimUpwindDownwindLong();
+
+
+///////////////////////////////////////
+// Simulations using a fractal-based dataset.
+
+/*
+ *  - The 'dirs' specify how the boat should sail
+ *  - The 'corruptorSets' are different ways of corrupting the measurements
+ */
+NavalSimulation makeNavSimFractal(
+    Array<BoatSimulationSpecs::TwaDirective> dirs,
+    Array<CorruptedBoatState::CorruptorSet> corruptorSets);
+
+// A long series of wind oriented race data.
+NavalSimulation makeNavSimFractalWindOriented();
 
 } /* namespace mmm */
 
