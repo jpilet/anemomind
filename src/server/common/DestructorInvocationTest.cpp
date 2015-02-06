@@ -4,6 +4,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <server/common/string.h>
 
 namespace {
   class MyStringClass {
@@ -32,7 +33,9 @@ namespace {
     MyStringClass str() {
       return MyStringClass(_stringData);
     }
-   private:
+
+
+
     char _stringData[2];
   };
 
@@ -46,7 +49,8 @@ namespace {
 TEST(DestructorInvocationTest, StringTest) {
   MockObj obj;
   assignResult(obj.str().c_str());
-  EXPECT_TRUE(result == "1");
+  EXPECT_EQ(std::string(obj._stringData), "0");
+  EXPECT_EQ(result, "1");
 }
 
 
