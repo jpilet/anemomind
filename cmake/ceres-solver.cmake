@@ -46,11 +46,10 @@ ExternalProject_Add(glog_ext
         )
 
 ExternalProject_Add(ceres_ext
-        URL "http://ceres-solver.googlecode.com/files/ceres-solver-1.8.0.tar.gz"
+        URL "http://ceres-solver.org/ceres-solver-1.10.0.tar.gz"
         BINARY_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-build"
         SOURCE_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-src"
         INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/ceres-install"
-        PATCH_COMMAND patch -p3 -t -N < "${CMAKE_SOURCE_DIR}/cmake/ceres.patch"
         CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/third-party/ceres-install"
         "-DHAVE_LTO_SUPPORT=OFF"
         "-DSUITESPARSE=ON"
