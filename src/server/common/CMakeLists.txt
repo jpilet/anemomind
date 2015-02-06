@@ -323,9 +323,5 @@ cxx_test(common_ProportionateIndexerTest
          gtest_main
          common_ProportionateIndexer
         )
-        
-cxx_test(common_DestructorInvocationTest
-         DestructorInvocationTest.cpp
-         gtest_main
-        )
+       
                  
