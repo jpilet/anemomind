@@ -10,6 +10,7 @@
 #include <server/common/TimeStampJson.h>
 #include <server/common/JsonObjDeserializer.h>
 #include <server/common/Json.impl.h>
+#include <server/common/logging.h>
 
 
 
@@ -19,14 +20,14 @@ namespace json {
 namespace {
 
   // Validate a serialized object by checking that it can be stringified
-  Poco::Dynamic::Var validate(Poco::Dynamic::Var jobj) {
+  Poco::Dynamic::Var validate(const Poco::Dynamic::Var &jobj) {
     constexpr bool performValidation = false;
     if (performValidation) {
       std::stringstream ss;
       try {
         Poco::JSON::Stringifier::stringify(jobj, ss, 0, 0);
       } catch (std::exception &e) {
-        assert(false);
+        LOG(FATAL) << "Failed to serialize object";
       }
     }
 
