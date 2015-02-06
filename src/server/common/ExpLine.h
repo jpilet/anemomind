@@ -6,8 +6,6 @@
 #ifndef EXPLINE_H_
 #define EXPLINE_H_
 
-#include <server/common/ToDouble.h>
-
 namespace sail {
 
 /*
@@ -20,7 +18,7 @@ namespace sail {
  */
 template <typename T>
 T expline(T x) {
-  if (ToDouble(x) < 0) {
+  if (x < T(0)) {
     return exp(x);
   } else {
     return 1.0 + exp(1.0)*x;
@@ -30,7 +28,7 @@ T expline(T x) {
 // inverse function to the function above.
 template <typename T>
 T logline(T x) {
-  if (ToDouble(x) > 1.0) {
+  if (x > 1.0) {
     return (x - 1.0)*exp(-1.0);
   } else {
     return log(x);

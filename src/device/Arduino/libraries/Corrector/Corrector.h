@@ -8,10 +8,13 @@
 
 #include <memory>
 #include "SpeedCalib.h"
+
+#ifdef ON_SERVER
 #include <server/common/Array.h>
+#endif
+
 #include <server/common/ExpLine.h>
-#include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
-//#include <server/common/ToDouble.h>
+#include "../CalibratedNav/CalibratedNav.h"
 
 namespace sail {
 
@@ -107,26 +110,22 @@ namespace sail {
     }
 
 
-    // This method just wraps the data of this
-    // object inside an Array<T> without copying
-    // anything.
-    // To allocate a new
-    // reference counted array that will persist
-    // even after this object has been destroyed,
-    // call toArray().dup().
+    #ifdef ON_SERVER
     Array<T> toArray() const {
       return Array<T>(paramCount(), (T *)(this));
-    }
-
-    // Just to hide the pointer cast.
-    static Corrector<T> *fromPtr(T *ptr) {
-      return reinterpret_cast<Corrector<T> *>(ptr);
     }
 
     static Corrector<T> *fromArray(Array<T> arr) {
       assert(arr.size() == paramCount());
       return fromPtr(arr.ptr());
     }
+    #endif
+
+    // Just to hide the pointer cast.
+    static Corrector<T> *fromPtr(T *ptr) {
+      return reinterpret_cast<Corrector<T> *>(ptr);
+    }
+
    private:
     // Fill in the remainig values after the raw measurements and driftAngle
     // have been corrected for.
