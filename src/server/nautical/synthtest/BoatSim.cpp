@@ -142,8 +142,7 @@ Array<BoatSim::FullState> BoatSim::simulate(Duration<double> simulationDuration,
       takeRungeKuttaStep(fun, &stateVector, stepsize);
     }
     if (prog.endOfIteration()) {
-      SCOPEDMESSAGE(INFO, stringFormat("Completed iteration %d/%d (elapsed: %s, remaining: %s)",
-        i+1, sampleCount, prog.elapsedTime().str().c_str(), prog.remainingTime().str().c_str()));
+      SCOPEDMESSAGE(INFO, prog.iterationMessage());
     }
   }
   return dst;

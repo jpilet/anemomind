@@ -5,6 +5,7 @@
 
 #include <server/common/Progress.h>
 #include <server/common/logging.h>
+#include <server/common/string.h>
 #include <cassert>
 
 namespace sail {
@@ -33,6 +34,21 @@ bool Progress::endOfIteration() {
   }
   return false;
 }
+
+std::string Progress::iterationMessage() const {
+  std::string e = elapsedTime().str();
+  std::string r = remainingTime().str();
+  return stringFormat("Completed iteration %d/%d (elapsed: %s, remaining: %s)",
+          _counter, _totalIterations, e.c_str(), r.c_str());
+}
+
+Duration<double> Progress::averageTimePerIteration() const {
+  if (_counter == 0) {
+    LOG(FATAL) << "Please call endOfIteration() at least once";
+  }
+  return (1.0/_counter)*elapsedTime();
+}
+
 
 
 } /* namespace mmm */

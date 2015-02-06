@@ -38,6 +38,9 @@ class Progress {
   // return true if a notification should be produced.
   bool endOfIteration();
 
+  std::string iterationMessage() const;
+
+  Duration<double> averageTimePerIteration() const;
 
   int remainingIterations() const {
     return _totalIterations - _counter;
@@ -45,10 +48,6 @@ class Progress {
 
   Duration<double> elapsedTime() const {
     return TimeStamp::now() - _offset;
-  }
-
-  Duration<double> averageTimePerIteration() const {
-    return (1.0/_counter)*elapsedTime();
   }
 
   Duration<double> remainingTime() const {

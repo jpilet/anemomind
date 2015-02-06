@@ -25,7 +25,7 @@ namespace json {
 // If serializeField, deserializeField are already defined for type T,
 // use this templates to build a serialize function.
 //
-//  SEE THE COMMENT IN THE HEADER FILE!!! VERY IMPORTANT
+//  SEE THE COMMENT IN THE HEADER OF THIS FILE!!! VERY IMPORTANT
 //
 template <typename T>
 Poco::Dynamic::Var toJsonObjectWithField(const std::string &typeName, const T &x);

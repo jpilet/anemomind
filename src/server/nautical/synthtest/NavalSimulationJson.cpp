@@ -10,6 +10,7 @@
 #include <server/common/TimeStampJson.h>
 #include <server/common/JsonObjDeserializer.h>
 #include <server/common/Json.impl.h>
+#include <server/common/logging.h>
 
 
 
@@ -19,14 +20,14 @@ namespace json {
 namespace {
 
   // Validate a serialized object by checking that it can be stringified
-  Poco::Dynamic::Var validate(Poco::Dynamic::Var jobj) {
+  Poco::Dynamic::Var validateOrDie(const Poco::Dynamic::Var &jobj) {
     constexpr bool performValidation = false;
     if (performValidation) {
       std::stringstream ss;
       try {
         Poco::JSON::Stringifier::stringify(jobj, ss, 0, 0);
       } catch (std::exception &e) {
-        assert(false);
+        LOG(FATAL) << "Failed to serialize object";
       }
     }
 
@@ -49,7 +50,7 @@ Poco::Dynamic::Var serialize(const BoatSim::FullState &x) {
   obj->set("windSpeedWrtWater", serialize(x.windSpeedWrtWater));
   obj->set("boatMotionThroughWater", serialize(x.boatMotionThroughWater));
   obj->set("boatMotion", serialize(x.boatMotion));
-  return validate(obj);
+  return validateOrDie(obj);
 }
 
 bool deserialize(Poco::Dynamic::Var src, BoatSim::FullState *dst) {
@@ -75,7 +76,7 @@ Poco::Dynamic::Var serializeCorr(const CorruptedBoatState::Corruptor<T> &src) {
   obj->set("stddev", serialize(src.distrib().stddev()));
   obj->set("scale", serialize(src.scale()));
   obj->set("offset", serialize(src.offset()));
-  return validate(obj);
+  return validateOrDie(obj);
 }
 
 template <typename T>
@@ -114,7 +115,7 @@ Poco::Dynamic::Var serialize(const CorruptedBoatState &src) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   obj->set("trueState", serialize(src.trueState()));
   obj->set("corruptedNav", serialize(src.nav()));
-  return validate(obj);
+  return validateOrDie(obj);
 }
 
 bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState *dst) {
@@ -140,7 +141,7 @@ Poco::Dynamic::Var serialize(const BoatCharacteristics &src) {
   obj->set("boatReactiveness", serialize(src.boatReactiveness));
   obj->set("rudderMaxAngle", serialize(src.rudderMaxAngle));
   obj->set("correctionThreshold", serialize(src.correctionThreshold));
-  return validate(obj);
+  return validateOrDie(obj);
 }
 
 bool deserialize(Poco::Dynamic::Var src, BoatCharacteristics *dst) {
@@ -167,7 +168,7 @@ Poco::Dynamic::Var serialize(const BoatSimulationSpecs::TwaDirective &src) {
   obj->set("duration", serialize(src.duration));
   obj->set("srcTwa", serialize(src.srcTwa));
   obj->set("dstTwa", serialize(src.dstTwa));
-  return validate(obj);
+  return validateOrDie(obj);
 }
 
 bool deserialize(Poco::Dynamic::Var src, BoatSimulationSpecs::TwaDirective *obj) {
@@ -186,7 +187,7 @@ Poco::Dynamic::Var serialize(const CorruptedBoatState::CorruptorSet &src) {
   obj->set("aws", serialize(src.aws));
   obj->set("watSpeed", serialize(src.watSpeed));
   obj->set("gpsSpeed", serialize(src.gpsSpeed));
-  return validate(obj);
+  return validateOrDie(obj);
 }
 
 bool deserialize(Poco::Dynamic::Var src, CorruptedBoatState::CorruptorSet *dst) {
@@ -208,7 +209,7 @@ Poco::Dynamic::Var serialize(const BoatSimulationSpecs &src) {
   obj->set("boatId", serialize(src.boatId()));
   obj->set("samplingPeriod", serialize(src.samplingPeriod()));
   obj->set("stepsPerSample", serialize(src.stepsPerSample()));
-  return validate(obj);
+  return validateOrDie(obj);
 }
 
 bool deserialize(Poco::Dynamic::Var src, BoatSimulationSpecs *dst) {
@@ -237,7 +238,7 @@ Poco::Dynamic::Var serialize(const NavalSimulation::BoatData &src) {
   Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
   obj->set("specs", serialize(src.specs()));
   obj->set("states", serialize(src.states()));
-  return validate(obj);
+  return validateOrDie(obj);
 }
 
 bool deserialize(Poco::Dynamic::Var src, NavalSimulation::BoatData *dst) {
@@ -260,7 +261,7 @@ Poco::Dynamic::Var serialize(const NavalSimulation &src) {
   obj->set("geoRef", serialize(src.geoRef()));
   obj->set("simulationStartTime", serialize(src.simulationStartTime()));
   obj->set("boatData", serialize(src.boatData()));
-  return validate(obj);
+  return validateOrDie(obj);
 }
 
 bool deserialize(Poco::Dynamic::Var src, NavalSimulation *dst) {

@@ -203,7 +203,7 @@ class NKEData {
 
   Array<TimeStamp> timeStamps() const;
 
-  void require(std::initializer_list<NKEType> types);
+  bool hasAllFields(std::initializer_list<NKEType> types);
  private:
   Arrayi _typeIndices;
   std::map<int, int> _type2column;
