@@ -48,8 +48,9 @@ Arrayb ProportionateIndexer::remaining() const {
 
 
 double ProportionateIndexer::sumTo(double fracIndex) const {
-  int index = int(floor(fracIndex));
-  double acc = fracIndex - index;
+  double indexd = floor(fracIndex);
+  double acc = fracIndex - indexd;
+  int index = int(indexd);
   if (index >= size()) {
     return sum();
   }
