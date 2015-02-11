@@ -174,10 +174,10 @@ namespace {
     CHECKVALUE(corr.aws.c);
     CHECKVALUE(corr.aws.alpha);
     auto cal = corr.aws.make();
-    CHECKVALUE(cal._k);
-    CHECKVALUE(cal._m);
-    CHECKVALUE(cal._c);
-    CHECKVALUE(cal._alpha);
+    CHECKVALUE(cal.k());
+    CHECKVALUE(cal.m());
+    CHECKVALUE(cal.c());
+    CHECKVALUE(cal.alpha());
 
     return Spani(0, data.size()).map<CalibratedNav<T> >([&](int index) {
       return checkCNav(corr.correct(data.makeIndexedInstrumentAbstraction(index)));

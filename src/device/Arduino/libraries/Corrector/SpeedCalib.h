@@ -55,7 +55,11 @@ class SpeedCalib {
   static T initCParam() {return T(0);}
   static T initAlphaParam() {return T(0);}
 
- //private:
+  T k() const {return _k;}
+  T m() const {return _m;}
+  T c() const {return _c;}
+  T alpha() const {return _alpha;}
+ private:
   T _k, _m, _c, _alpha;
 };
 
