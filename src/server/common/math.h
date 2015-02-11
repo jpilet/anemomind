@@ -241,7 +241,6 @@ bool invert2x2(const T *a, T *b) {
   b[1] = -factor*a[1];
   b[2] = -factor*a[2];
   b[3] = factor*a[0];
-
   return !(-std::numeric_limits<double>::epsilon() < denom &&
       denom < std::numeric_limits<double>::epsilon());
 }
