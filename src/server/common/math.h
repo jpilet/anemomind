@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <limits>
 
 namespace sail {
 
@@ -241,9 +242,8 @@ bool invert2x2(const T *a, T *b) {
   b[2] = -factor*a[2];
   b[3] = factor*a[0];
 
-  // http://stackoverflow.com/questions/570669/checking-if-a-double-or-float-is-nan-in-c
-  // Should work with ceres::Jet too.
-  return !(factor != factor); // /*!std::*/isnan(factor);
+  return !(-std::numeric_limits<double>::epsilon() < denom &&
+      denom < std::numeric_limits<double>::epsilon());
 }
 
 
