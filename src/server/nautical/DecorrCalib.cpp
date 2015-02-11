@@ -16,6 +16,8 @@
 
 namespace sail {
 
+enum FlowType {TYPE_WIND, TYPE_CURRENT};
+
 namespace {
   AngleCorrector<double> makeRandomAngleCorrector(std::default_random_engine &e) {
     constexpr double maxDeg = 45;
@@ -209,12 +211,12 @@ namespace {
   class Signal1d {
    public:
     Signal1d() : _polyDeg(-1), _offset(0) {}
-    Signal1d(bool wind,
+    Signal1d(FlowType ft,
         int index,
         Array<CalibratedNav<T> > navs, int polyDeg) : _polyDeg(polyDeg),
      _offset(0) {
       const T init(0.0);
-      std::function<HorizontalMotion<T>(CalibratedNav<T>)> extractor = (wind? &(getTrueWind<T>) : &(getTrueCurrent<T>));
+      std::function<HorizontalMotion<T>(CalibratedNav<T>)> extractor = (ft == TYPE_WIND? &(getTrueWind<T>) : &(getTrueCurrent<T>));
       _qf = extractQF(navs, extractor, index);
       _itg = Integral1d<QuadForm<2, 1, T> >(_qf, init);
       updateFit();
@@ -258,11 +260,12 @@ namespace {
   template <typename T>
   class Signal2d {
    public:
+
     Signal2d() {}
 
-    Signal2d(bool wind, Array<CalibratedNav<T> > navs, int polyDeg) {
-      data[0] = Signal1d<T>(wind, 0, navs, polyDeg);
-      data[1] = Signal1d<T>(wind, 1, navs, polyDeg);
+    Signal2d(FlowType ft, Array<CalibratedNav<T> > navs, int polyDeg) {
+      data[0] = Signal1d<T>(ft, 0, navs, polyDeg);
+      data[1] = Signal1d<T>(ft, 1, navs, polyDeg);
     }
     Signal2d(Signal1d<T> a, Signal1d<T> b) {
       data[0] = a;
@@ -291,8 +294,8 @@ namespace {
     Flows() {}
 
     Flows(Array<CalibratedNav<T> > navs, int polyDeg) :
-      wind(Signal2d<T>(true, navs, polyDeg)),
-      current(Signal2d<T>(false, navs, polyDeg)) {}
+      wind(Signal2d<T>(TYPE_WIND, navs, polyDeg)),
+      current(Signal2d<T>(TYPE_CURRENT, navs, polyDeg)) {}
     Flows(Signal2d<T> w, Signal2d<T> c) : wind(w), current(c) {}
 
     Flows<T> slice(int from, int to) const {
@@ -305,9 +308,6 @@ namespace {
 
     Signal2d<T> wind, current;
   };
-
-
-
 
   class Objf {
    public:

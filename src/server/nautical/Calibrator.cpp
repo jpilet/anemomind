@@ -33,24 +33,22 @@ using std::string;
 namespace sail {
 
 namespace {
+  string showWind(const HorizontalMotion<double>& wind) {
+    double degrees = wind.angle().degrees();
+    return stringFormat("%3.0f/%4.1fkn",
+                        positiveMod(degrees, 360.0),
+                        wind.norm().knots());
+  }
 
-string showWind(const HorizontalMotion<double>& wind) {
-  double degrees = wind.angle().degrees();
-  return stringFormat("%3.0f/%4.1fkn",
-                      positiveMod(degrees, 360.0),
-                      wind.norm().knots());
+  Angle<double> externalTrueWindDirection(Array<Nav> nav) {
+    return nav.last().externalTwa() + nav.last().magHdg();
+  }
+
+  template <typename T, int N>
+  bool isnan(const ceres::Jet<T, N>& f) { return ceres::IsNaN(f); }
+
+  using std::isnan;
 }
-
-Angle<double> externalTrueWindDirection(Array<Nav> nav) {
-  return nav.last().externalTwa() + nav.last().magHdg();
-}
-
-template <typename T, int N>
-bool isnan(const ceres::Jet<T, N>& f) { return ceres::IsNaN(f); }
-
-using std::isnan;
-
-}  // namespace
 
 class TackCost {
   public:
@@ -510,6 +508,4 @@ Corrector<double> calibrateFull(Calibrator *calib0,
   return corr;
 }
 
-
-}  // namespace sail
-
+}

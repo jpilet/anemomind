@@ -9,7 +9,6 @@
 #include <server/common/logging.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/Span.h>
-#include <server/common/string.h>
 
 namespace sail {
 

@@ -32,7 +32,7 @@ namespace sail {
  *
  *
  * |AX - B|^2 = (X'A' - B')(AX - B) = X'A'AX - 2X'A'B + B'B = [P = A'A, Q = A'B, R = B'B]
- *  = X'PX - 2X'Q + B'B
+ *  = X'PX - 2X'Q + R
  */
 template <int lhsDims, int rhsDims, typename T = double>
 class QuadForm {
