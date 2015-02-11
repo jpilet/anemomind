@@ -10,8 +10,6 @@
 #include <Poco/Dynamic/Var.h>
 
 namespace sail {
-//class LineKM;
-
 namespace json {
 
 Poco::Dynamic::Var serialize(const LineKM &x);
