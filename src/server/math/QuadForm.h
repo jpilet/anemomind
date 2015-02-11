@@ -56,19 +56,6 @@ class QuadForm {
 
   static constexpr int outDims = qDims;
 
-
-//  QuadForm(T x) {
-//    for (int i = 0; i < pNumel; i++) {
-//      _P[i] = x;
-//    }
-//    for (int i = 0; i < qNumel; i++) {
-//      _Q[i] = x;
-//    }
-//    for (int i = 0; i < rNumel; i++) {
-//      _R[i] = x;
-//    }
-//  }
-
   /*
    * Make a QuadForm from
    *
@@ -81,7 +68,7 @@ class QuadForm {
    * observations in the least squares sense.
    */
   static ThisType fit(T *A, T *B) {
-    QuadForm dst;
+    ThisType dst;
     for (int i = 0; i < lhsDims; i++) {
       for (int j = 0; j <= i; j++) {
         dst.setP(i, j, A[i]*A[j]);
