@@ -55,6 +55,12 @@ constexpr inline int calcSymmetricMatrixIndex(int i, int j) {
       calcSymmetricMatrixIndexUnsafe(j, i));
 }
 
+inline int calcSymmetricMatrixIndex(int i, int j, int dim) {
+  assert(0 <= i); assert(i < dim);
+  assert(0 <= j); assert(j < dim);
+  return calcSymmetricMatrixIndex(i, j);
+}
+
 
 
 }
