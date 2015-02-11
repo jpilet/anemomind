@@ -71,8 +71,7 @@ namespace sail {
 
       //I am not sure we need 'ToDouble': bool upwind = 2.0*std::abs(ToDouble(awa0rads)) < M_PI;
 
-      T twice = 2.0*awa0rads;
-      bool upwind =  -M_PI < twice && twice < M_PI;
+      bool upwind =  (-M_PI/2 < awa0rads) && (awa0rads < M_PI/2);
 
       // For awa angles closer to 0 than 90 degrees,
       // scale by sinus of that angle. Otherwise, just use 0.
