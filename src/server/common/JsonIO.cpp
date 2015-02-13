@@ -25,9 +25,10 @@ Poco::Dynamic::Var load(const std::string &filename) {
   }
 }
 
-void save(const std::string &filename, Poco::Dynamic::Var x) {
+bool save(const std::string &filename, Poco::Dynamic::Var x) {
   std::ofstream file(filename);
   Poco::JSON::Stringifier::stringify(x, file, 0, 0);
+  return file.good();
 }
 
 

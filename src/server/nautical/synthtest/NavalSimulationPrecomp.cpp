@@ -48,7 +48,8 @@ namespace sail {
       }
 
       LOG(INFO) << "Save them to " << p.toString();
-      json::save(p.toString(), jsondata);
+      CHECK(json::save(p.toString(), jsondata));
+      CHECK(file.exists());
       return results;
     }
 
