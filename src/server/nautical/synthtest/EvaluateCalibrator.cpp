@@ -6,6 +6,8 @@
 #include <server/nautical/synthtest/NavalSimulationPrecomp.h>
 #include <server/nautical/Calibrator.h>
 #include <server/common/string.h>
+#include <server/common/logging.h>
+#include <server/common/ArgMap.h>
 
 
 namespace {
@@ -55,7 +57,25 @@ namespace {
   }
 }
 
-int main() {
-  evaluate(true);
+int main(int argc, const char **argv) {
+  ArgMap amap;
+  amap.registerOption("--only-wind", "Calibrate only on wind (our initial implementation). Otherwise full.");
+  if (!amap.parseAndHelp(argc, argv)) {
+    return -1;
+  }
+
+  if (amap.helpAsked()) {
+    return 0;
+  }
+
+  if (amap.optionProvided("--only-wind")) {
+    LOG(INFO) << "Calibration only on wind";
+    evaluate(false);
+  } else {
+    LOG(INFO) << "Calibration on wind and current";
+    evaluate(true);
+  }
+  LOG(INFO) << "Done.";
+
   return 0;
 }

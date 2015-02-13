@@ -68,6 +68,7 @@ add_executable(nautical_synthtest_EvaluateCalibrator
 target_link_libraries(nautical_synthtest_EvaluateCalibrator
                       nautical_synthtest_NavalSimulationPrecomp
                       nautical_Calibrator
+                      common_ArgMap
                      )
                      
                      
