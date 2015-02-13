@@ -15,8 +15,17 @@ namespace sail {
 
     NavalSimulation loadOrMake(std::function<NavalSimulation()> srcFunction, std::string filename) {
 
-      Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
-        .pushDirectory("datasets").pushDirectory("synth").makeFile(filename).get();
+      auto dir = PathBuilder::makeDirectory(Env::SOURCE_DIR)
+        .pushDirectory("datasets").pushDirectory("synth");
+      {
+        Poco::File dst(dir.get());
+
+        // Ignore the return value. Just
+        // make sure that the directory exists.
+        dst.createDirectory();
+      }
+
+      auto p = dir.makeFile(filename).get();
       Poco::File file(p);
       if (file.exists()) {
         NavalSimulation dst;
@@ -27,8 +36,19 @@ namespace sail {
       }
       LOG(INFO) << "No precomputed results available from " << p.toString() << ", generate...";
       auto results =  srcFunction();
-      LOG(INFO) << "Done generating them. Save them to " << p.toString();
-      json::save(p.toString(), json::serialize(results));
+      if (!results.hasBoatData()) {
+        LOG(FATAL) << "No boat data was generated. This is probably a bug.";
+      }
+
+      LOG(INFO) << "Done generating them. Convert to json structure.";
+
+      auto jsondata = json::serialize(results);
+      if (jsondata.isEmpty()) {
+        LOG(FATAL) << "Failed to serialize the data to a json datastructure.";
+      }
+
+      LOG(INFO) << "Save them to " << p.toString();
+      json::save(p.toString(), jsondata);
       return results;
     }
 

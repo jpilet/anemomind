@@ -431,6 +431,10 @@ class NavalSimulation {
     return _boatData;
   }
 
+  bool hasBoatData() const {
+    return _boatData.hasData();
+  }
+
   const BoatData &boatData(int index) const {
     return _boatData[index];
   }
