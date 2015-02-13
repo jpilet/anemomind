@@ -48,7 +48,7 @@ namespace {
   bool isnan(const ceres::Jet<T, N>& f) { return ceres::IsNaN(f); }
 
   using std::isnan;
-}
+} // namespace
 
 class TackCost {
   public:
@@ -473,7 +473,7 @@ namespace {
       return true;
     }
   };
-}
+} // namespace
 
 Corrector<double> calibrateFull(Calibrator *calib0,
     const Array<Nav>& navs,
@@ -508,4 +508,4 @@ Corrector<double> calibrateFull(Calibrator *calib0,
   return corr;
 }
 
-}
+} // namespace sail
