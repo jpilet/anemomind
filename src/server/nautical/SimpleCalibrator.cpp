@@ -18,9 +18,8 @@ namespace {
 
   // A class that holds the integrals
   // of
-  class NavItg {
-   public:
-    NavItg(FilteredNavData data);
+  struct NavIntegral {
+    NavIntegral(FilteredNavData data);
 
     // Size of the initial array
     int size() const {
@@ -39,7 +38,7 @@ namespace {
     return Integral1d<T>(x.samples(), T::zero());
   }
 
-  NavItg::NavItg(FilteredNavData data) :
+  NavIntegral::NavIntegral(FilteredNavData data) :
     awa(toItg(data.awa())),
     magHdg(toItg(data.magHdg())),
     gpsBearing(toItg(data.gpsBearing())),
@@ -57,7 +56,7 @@ namespace {
 
   class Integrator {
    public:
-    Integrator(int width, int gap, NavItg itg) :
+    Integrator(int width, int gap, NavIntegral itg) :
       _width(width), _gap(gap), _itg(itg) {}
 
 
@@ -118,7 +117,7 @@ namespace {
 
 
     int _width, _gap;
-    NavItg _itg;
+    NavIntegral _itg;
   };
 
   class RegionMarker {
@@ -233,7 +232,7 @@ Corrector<double> SimpleCalibrator::calibrate(FilteredNavData data0) const {
   auto sampling = data0.sampling();
   Integrator itg(durationToSampleCount(sampling, _integrationWidth),
                  durationToSampleCount(sampling, _gap),
-                 NavItg(data0));
+                 NavIntegral(data0));
   auto locs = findBestLocs(itg, _maneuverCount);
   auto pairs = computeNavPairs(locs, itg);
 
