@@ -439,24 +439,4 @@ cxx_test(nautical_NKEParserTest
          NKEParserTest.cpp
          gtest_main
          nautical_NKEParser
-        )                     
-
-add_library(nautical_SimpleCalibrator
-            SimpleCalibrator.h
-            SimpleCalibrator.cpp
-           )
-target_link_libraries(nautical_SimpleCalibrator
-                      common_LineKM
-                      common_ProportionateIndexer
-                      nautical_FilteredNavData
-                     )
-                                
-add_executable(nautical_SimpleCalibratorDemo
-               SimpleCalibratorDemo.cpp
-              )
-              
-target_link_libraries(nautical_SimpleCalibratorDemo              
-                      nautical_SimpleCalibrator
-                      nautical_synthtest_NavalSimulationPrecomp
-                     )
-target_depends_on_ceres(nautical_SimpleCalibratorDemo) 
+        )                      
