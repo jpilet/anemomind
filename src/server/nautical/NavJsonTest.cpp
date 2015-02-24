@@ -35,7 +35,6 @@ Array<Nav> deserializeNavs(const char *dataToDecode) {
     LOG(FATAL) << e.displayText() << "\nFor JSON: " << dataToDecode;
   }
   Poco::Dynamic::Var result = handler->asVar();
-  EXPECT_TRUE(result.isArray());
   json::deserialize(result, &navs);
   return navs;
 }
