@@ -57,6 +57,7 @@ bool deserialize(Poco::Dynamic::Var csrc, std::shared_ptr<HTree> *dst) {
     if (src.isNull()) {
       return false;
     }
+
     int index = src->getValue<int>("index");
     int left = src->getValue<int>("left");
     int right = src->getValue<int>("right");
@@ -66,13 +67,8 @@ bool deserialize(Poco::Dynamic::Var csrc, std::shared_ptr<HTree> *dst) {
     Array<std::shared_ptr<HTree> > children;
     Poco::Dynamic::Var ch = src->get("children");
 
-    if (ch.isArray()) {
-      Poco::JSON::Array::Ptr arrptr = ch.extract<Poco::JSON::Array::Ptr>();
-      if (!arrptr.isNull()) {
-        if (!deserialize(ch, &children)) {
-          return false;
-        }
-      }
+    if (src->isArray("children")) {
+      deserialize(src->get("children"), &children);
     }
 
     if (children.empty()) {
