@@ -65,7 +65,6 @@ bool deserialize(Poco::Dynamic::Var csrc, std::shared_ptr<HTree> *dst) {
       return false;
     }
     Array<std::shared_ptr<HTree> > children;
-    Poco::Dynamic::Var ch = src->get("children");
 
     if (src->isArray("children")) {
       deserialize(src->get("children"), &children);
