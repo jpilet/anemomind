@@ -85,7 +85,6 @@ bool deserialize(Poco::Dynamic::Var csrc, std::shared_ptr<HTree> *dst) {
       *dst = std::shared_ptr<HTree>(new HLeaves(left, index, right - left));
     }
     return true;
-    return true;
   } catch (Poco::Exception &e) {
     return false;
   }
