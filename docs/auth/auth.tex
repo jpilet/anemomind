@@ -57,8 +57,67 @@ For testing purposes, we register a new user on the webpage, at \texttt{www.anem
 
 In this example, the name is \texttt{authdemo}, the e-mail \texttt{authdemo@email.com} and the password \texttt{kalle123}.
 \section{Obtaining a token}
-Using the registered test user
+Using the registered test user we can obtain a token. To demonstrate how this works in detail, we will be using cURL\footnote{http://curl.haxx.se/}. We request a new token by making this cURL call from the terminal:
+\begin{verbatim}
+curl -d "{\"email\":\"authdemo@email.com\",
+          \"password\":\"kalle123\"}" 
+     -H "Content-type: application/json" 
+     http://www.anemolab.com/auth/local
+\end{verbatim}
+and we receive as a response
+\begin{verbatim}
+{"token":
+"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJfaWQiOiI1
+NGVkOTkzNTdkNTY3NTgzMTgzMjBlYzUiLCJpYXQiOjE0MjQ4N
+TkyMzc1OTEsImV4cCI6MTQyNDg3NzIzNzU5MX0.Qmauv_nK7J
+UMr8pg-OT8pUUAtIYlJxCgvyO5W0i9AEk"}
+\end{verbatim}
+The above token is valid at the time of writing this document but probably not at the time when you are reading it. You should therefore reproduce these experiments yourself.
+
+A couple of things to note:
+\begin{itemize}
+\item The \texttt{-d} flag with its associated data string means that cURL will produce a \texttt{POST} request.
+\item The data string passed to \texttt{-d} is encoded as JSON data.
+\item The \texttt{-H} flag and its associated data string tells the server that JSON data is passed.
+\end{itemize}
 \section{Accessing data that requires authentication}
+Using the token that we just obtained, we send a \texttt{GET} request to look up information about this user:
+\begin{verbatim}
+curl -H "Authorization: Bearer 
+eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ
+faWQiOiI1NGVkOTkzNTdkNTY3NTgzMTgzMjBlYzU
+iLCJpYXQiOjE0MjQ4NTkyMzc1OTEsImV4cCI6MTQ
+yNDg3NzIzNzU5MX0.Qmauv_nK7JUMr8pg-OT8pUU
+AtIYlJxCgvyO5W0i9AEk" 
+http://anemolab.com/api/users/me
+\end{verbatim}
+and receive a response
+\begin{verbatim}
+{"_id":"54ed99357d56758318320ec5",
+ "provider":"local",
+ "name":"authdemo",
+ "email":"authdemo@email.com",
+ "__v":0,
+ "role":"user"}
+\end{verbatim}
+To verify that it does not work without a valid token, we replace the token string by the string \texttt{CORRUPTED}:
+\begin{verbatim}
+curl -H "Authorization: CORRUPTED" http://anemolab.com/api/users/me
+\end{verbatim}
+and we receive the response
+\begin{verbatim}
+Unauthorized
+\end{verbatim}
+By passing the \texttt{-I} flag to the previous command, we obtain more information, among other things the status code 401.
+\begin{verbatim}
+HTTP/1.1 401 Unauthorized
+X-Powered-By: Express
+Content-Type: text/html
+Content-Length: 12
+set-cookie: connect.sid=s%3AUT3VrUuXcZhKEEfMAkuNfNyE.tXK4OfWsU4V2%2B42lM%2FZghdrLStgVhQP6jevF%2BjfA3zQ; Path=/; HttpOnly
+Date: Wed, 25 Feb 2015 10:22:02 GMT
+Connection: keep-alive
+\end{verbatim}
 \end{document}
 
 
