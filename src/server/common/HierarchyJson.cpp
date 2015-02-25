@@ -64,23 +64,27 @@ bool deserialize(Poco::Dynamic::Var csrc, std::shared_ptr<HTree> *dst) {
     if (!(left < right)) {
       return false;
     }
-    Array<std::shared_ptr<HTree> > children;
 
-    if (src->isArray("children")) {
-      deserialize(src->get("children"), &children);
-    }
-
-    if (children.empty()) {
-      *dst = std::shared_ptr<HTree>(new HLeaves(left, index, right - left));
-    } else {
+    if (src->has("children")) {
+      if (!src->isArray("children")) {
+        return false;
+      }
+      Array<std::shared_ptr<HTree> > children;
+      if (!deserialize(src->get("children"), &children)) {
+        return false;
+      }
       HInner *hi = new HInner(index, children[0]);
       *dst = std::shared_ptr<HTree>(hi);
       int childCount = children.size();
       for (int i = 1; i < childCount; i++) {
         hi->add(children[i]);
       }
+      assert(children.size() == (*dst)->childCount());
+      return true;
+    } else {
+      *dst = std::shared_ptr<HTree>(new HLeaves(left, index, right - left));
     }
-    assert(children.size() == (*dst)->childCount());
+    return true;
     return true;
   } catch (Poco::Exception &e) {
     return false;
