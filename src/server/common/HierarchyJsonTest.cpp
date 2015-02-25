@@ -11,6 +11,7 @@
 #include <sstream>
 
 #include <server/common/Json.impl.h>
+#include <server/common/JsonIO.h>
 
 using namespace sail;
 
