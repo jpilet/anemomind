@@ -23,7 +23,6 @@ TEST(PocoTest, PocoJsonStackoverflow) {
 
   parser.parse(jsondata);
   Poco::Dynamic::Var result = handler->asVar();
-  EXPECT_TRUE(result.isArray());
   Array::Ptr arr = result.extract<Array::Ptr>();
   Object::Ptr object = arr->getObject(0);//
   EXPECT_EQ(object->getValue<int>("test"), 0);
