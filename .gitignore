@@ -15,3 +15,8 @@ www/data
 www/dist
 www/node_modules
 www/uploads/*
+
+anemionicApp/node_modules/
+anemionicApp/platforms/
+anemionicApp/plugins/
+anemionicApp/www/lib
