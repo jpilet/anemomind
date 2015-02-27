@@ -1,17 +1,27 @@
 angular.module('starter.services', [])
 
-.factory('Devices', function() {
+.factory('Devices', function($ionicPlatform) {
 
-  var ble = evothings.ble;
+  var ble;
+
+  $ionicPlatform.ready(function() {
+    ble = evothings.ble;
+    if (scanCallback) {
+      ble.stopScan();
+      ble.startScan(scanCallback);
+    }
+  });
 
   var connectedDevices = {};
   var scanCallback;
 
   return {
     startScan: function(callback) {
-      ble.stopScan();
       scanCallback = callback;
-      ble.startScan(callback);
+      if (ble) {
+        ble.stopScan();
+        ble.startScan(scanCallback);
+      }
     },
     connect: function(address, success, failure) {
       ble.stopScan();
