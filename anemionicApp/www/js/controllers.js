@@ -25,8 +25,10 @@ angular.module('starter.controllers', [])
 
 .controller('DeviceDetailCtrl', function($scope, $stateParams, $timeout, Devices) {
   $scope.device = {
-    status: 'Connecting..',
-    address: $stateParams.deviceAddress
+    status: 'Disconnected',
+    address: $stateParams.deviceAddress,
+    connected: false,
+    services: []
   };
 
   $scope.disconnect = function() {
@@ -34,26 +36,47 @@ angular.module('starter.controllers', [])
       Devices.disconnect($scope.device.handle);
     }
     $scope.device.status = "disconnected.";
+    $scope.device.connected = false;
     $scope.$apply();
   }
     
-  Devices.connect($stateParams.deviceAddress,
-                 function(info) { // success
-                   $timeout(function() {
-                     console.log('BLE connect status for device: '
-                          + info.deviceHandle
-                          + ' state: '
-                          + info.state);
-                     $scope.device.status = 'State: ' + info.state;
-                     $scope.handle = info.deviceHandle;
-                     $scope.$apply();
-                   });
-                 },
-                 function(errCode) {  // failure
-                   console.log('BLE connect error: ' + errorCode);
-                   $scope.device.status = 'Error: ' + errCode;
-                   $scope.$apply();
-                 });
+  var discoverServices = function() {
+    if ($scope.device.handle) {
+      Devices.getServices(
+        $scope.device.handle,
+        function(services) {
+          $scope.device.services = services;
+          $scope.$apply();
+        }
+      );
+    }
+  };
+
+  $scope.connect = function() {
+    Devices.connect(
+      $stateParams.deviceAddress,
+      function(info) { // success
+        console.log('BLE connect status for device: '
+                           + info.deviceHandle
+                           + ' state: '
+                           + info.state);
+        $scope.device.status = 'State: ' + info.state;
+        if (info.state == 2) {
+          $scope.device.connected = true;
+        }
+        $scope.device.handle = info.deviceHandle;
+        $scope.$apply();
+        if (info.state == 2) {
+          discoverServices();
+        }
+      },
+      function(errCode) {  // failure
+        console.log('BLE connect error: ' + errorCode);
+        $scope.device.status = 'Error: ' + errCode;
+        $scope.$apply();
+      }
+    );
+  };
 })
 
 .controller('FriendsCtrl', function($scope, Friends) {

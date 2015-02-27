@@ -20,6 +20,9 @@ angular.module('starter.services', [])
     disconnect: function(handle) {
       ble.close(handle);
       ble.startScan(scanCallback);
+    },
+    getServices: function(handle, cb) {
+      ble.services(handle, cb);
     }
   };
 })
