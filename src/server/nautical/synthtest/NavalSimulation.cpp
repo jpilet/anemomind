@@ -118,6 +118,16 @@ NavalSimulation::SimulatedCalibrationResults
       SimulatedMotionResults(trueCurrent(), estimatedTrueCurrent));
 }
 
+NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluateFitness(
+    Array<CalibratedNav<double> > cnavs) const {
+    return evaluateFitness(cnavs.map<HorizontalMotion<double> >([&](const CalibratedNav<double> &x) {
+      return x.trueWind();
+    }), cnavs.map<HorizontalMotion<double> >([&] (const CalibratedNav<double> &x) {
+      return x.trueCurrent();
+    }));
+}
+
+
 
 Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueWind() const {
   return _states.map<HorizontalMotion<double> >([=] (const CorruptedBoatState &s) {

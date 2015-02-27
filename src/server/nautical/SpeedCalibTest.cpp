@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 #include <cmath>
-#include <server/nautical/SpeedCalib.h>
+#include <device/Arduino/libraries/Corrector/SpeedCalib.h>
 #include <server/common/string.h>
 
 

@@ -161,6 +161,16 @@ class Span {
     assert(_initialized);
     return Iterator(_maxv);
   }
+
+  template <typename Dst>
+  Array<Dst> map(std::function<Dst(T)> f) const {
+    int n = int(_maxv - _minv);
+    Array<Dst> dst(n);
+    for (int i = 0; i < n; i++) {
+      dst[i] = f(_minv + i);
+    }
+    return dst;
+  }
  private:
   bool _initialized;
   T _minv, _maxv;

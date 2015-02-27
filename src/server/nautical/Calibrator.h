@@ -8,11 +8,13 @@
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <string>
 #include <iostream>
+#include <device/Arduino/libraries/Corrector/Corrector.h>
 
 namespace sail {
 
 class TackCost;
 class GnuplotExtra;
+
 
 class Calibrator  {
   public:
@@ -45,11 +47,24 @@ class Calibrator  {
     //! Use the calibration to compute true wind on the given navigation data.
     void simulate(Array<Nav> *array) const;
 
+    //! Returns the number of maneuvers used to fit the data.
+    int maneuverCount() const {
+      return _maneuvers.size();
+    }
+
+    const std::vector<TackCost*> &maneuvers() const {
+      return _maneuvers;
+    }
+
+    bool segment(const Array<Nav>& navs,
+                 std::shared_ptr<HTree> tree);
   private:
     std::string description(std::shared_ptr<HTree> tree);
     void addAllTack(std::shared_ptr<HTree> tree);
     void addTack(int pos, double weight);
     void addBuoyTurn(std::shared_ptr<HTree> tree);
+    GnuplotExtra* initializePlot();
+    void finalizePlot(GnuplotExtra* gnuplot, const ceres::Solver::Summary &summary);
 
     Array<Nav> _allnavs;
     WindOrientedGrammarSettings _settings;
@@ -64,6 +79,12 @@ class Calibrator  {
     bool _verbose;
 };
 
+// Calibrates a Corrector<double> by using a Calibrator.
+// This lets us recover both true wind and current.
+Corrector<double> calibrateFull(Calibrator *calib,
+    const Array<Nav>& navs,
+    std::shared_ptr<HTree> tree,
+    Nav::Id boatId);
 }  // namespace sail
 
 #endif // NAUTICAL_CALIBRATOR_H

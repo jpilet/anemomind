@@ -8,24 +8,64 @@
 #ifndef LINEKM_H_
 #define LINEKM_H_
 
-#include <iosfwd>
+#include <iostream>
+#include <cmath>
 
 namespace sail {
 
+
+template <typename T>
+void calcLineKM(T x0, T x1, T y0, T y1, T &k, T &m) {
+  k = (y1 - y0)/(x1 - x0);
+  m = y0 - k*x0;
+}
+
 // function on the form f(x) = _k*x + _m
-class LineKM {
+// Based on the previous LineKM class that works with double, generalized to any type T.
+template <typename T>
+class GenericLineKM {
  public:
-  LineKM(double x0, double x1, double y0, double y1);
-  LineKM(double k, double m) : _k(k), _m(m) {}
-  LineKM();
-  static LineKM identity();
-  static LineKM constant(double c);
-  double operator() (double x) const;
-  double inv(double x) const;
-  double getK() const;
-  double getM() const;
-  bool operator==(const LineKM &other) const;
-  LineKM makeInvFun() const;
+  GenericLineKM(T x0, T x1, T y0, T y1) {
+    calcLineKM(x0, x1, y0, y1, _k, _m);
+  }
+
+  GenericLineKM(T k, T m) : _k(k), _m(m) {}
+  GenericLineKM() : _k(T(1.0)), _m(T(0.0)) {}
+
+  static GenericLineKM undefined() {
+    return GenericLineKM(T(NAN), T(NAN));
+  }
+
+  static GenericLineKM identity() {
+    return GenericLineKM(T(1.0), T(0.0));
+  }
+
+  static GenericLineKM constant(T c) {
+    return GenericLineKM(T(0.0), c);
+  }
+  T operator() (T x) const {
+    return _k*x + _m;
+  }
+
+  T inv(T x) const {
+    return (x - _m)/_k;
+  }
+
+  T getK() const {
+    return _k;
+  }
+
+  T getM() const {
+    return _m;
+  }
+
+  bool operator==(const GenericLineKM &other) const {
+    return _k == other._k && _m == other._m;
+  }
+
+  GenericLineKM makeInvFun() const {
+    return GenericLineKM(T(1.0)/_k, -_m/_k);
+  }
 
   /*
    * Finds two contiguous integers, I[0] and I[1] with I[0] + 1 = I[1],
@@ -35,16 +75,32 @@ class LineKM {
    *
    * Useful for piecewise linear interpolation
    */
-  void makeInterpolationWeights(double x,
+  void makeInterpolationWeights(T x,
       int *indsOut2,
-      double *weightsOut2) const;
+      T *weightsOut2) const {
+    T realIndex = inv(x);
+    T indexd = floor(realIndex);
+    int index = int(indexd);
+    T lambda = realIndex - indexd;
+    indsOut2[0] = index;
+    indsOut2[1] = index+1;
+    weightsOut2[0] = 1.0 - lambda;
+    weightsOut2[1] = lambda;
+  }
  private:
-  double _k, _m;
+  T _k, _m;
 };
 
-std::ostream &operator<<(std::ostream &s, LineKM line);
+typedef GenericLineKM<double> LineKM;
 
-void calcLineKM(double x0, double x1, double y0, double y1, double &k, double &m);
+template <typename T>
+std::ostream &operator<<(std::ostream &s, GenericLineKM<T> line) {
+  s << "Line y = " << line.getK() << "*x + " << line.getM();
+  return s;
+}
+
+
+
 
 } /* namespace sail */
 

@@ -13,7 +13,8 @@
 #include <server/nautical/Nav.h>
 #include <random>
 #include <server/common/MeanAndVar.h>
-#include <server/nautical/Corrector.h>
+#include <device/Arduino/libraries/Corrector/Corrector.h>
+#include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
 
 namespace sail {
 
@@ -282,6 +283,7 @@ class NavalSimulation {
       T _unit;
     };
 
+    FlowErrors() {}
     FlowErrors(Array<HorizontalMotion<double> > trueMotion,
               Array<HorizontalMotion<double> > estimatedMotion);
 
@@ -318,6 +320,7 @@ class NavalSimulation {
   // The evaluation results for wind or current.
   class SimulatedMotionResults {
    public:
+    SimulatedMotionResults() {}
     SimulatedMotionResults(Array<HorizontalMotion<double> > trueMotion,
                 Array<HorizontalMotion<double> > estimatedMotion) :
                 _trueMotion(trueMotion), _estimatedMotion(estimatedMotion),
@@ -332,6 +335,7 @@ class NavalSimulation {
 
   class SimulatedCalibrationResults {
    public:
+    SimulatedCalibrationResults() {}
     SimulatedCalibrationResults(const SimulatedMotionResults &wind_, const SimulatedMotionResults &current_) :
       _wind(wind_), _current(current_) {}
 
@@ -401,6 +405,9 @@ class NavalSimulation {
         Array<HorizontalMotion<double> > estimatedTrueWindPerNav,
         Array<HorizontalMotion<double> > estimatedTrueCurrentPerNav) const;
 
+    NavalSimulation::SimulatedCalibrationResults evaluateFitness(
+        Array<CalibratedNav<double> > cnavs) const;
+
     NavalSimulation::SimulatedCalibrationResults evaluateNoCalibration() const {
       return evaluateFitness(Corrector<double>());
     }
@@ -409,10 +416,11 @@ class NavalSimulation {
     Array<HorizontalMotion<double> > trueCurrent() const;
 
     void plot() const;
+
+    NavalSimulation::SimulatedCalibrationResults evaluateFitness(const Corrector<double> &corr) const;
    private:
     BoatSimulationSpecs _specs;
     Array<CorruptedBoatState> _states;
-    NavalSimulation::SimulatedCalibrationResults evaluateFitness(const Corrector<double> &corr) const;
   };
 
   int boatCount() const {
@@ -421,6 +429,10 @@ class NavalSimulation {
 
   const Array<BoatData> &boatData() const {
     return _boatData;
+  }
+
+  bool hasBoatData() const {
+    return _boatData.hasData();
   }
 
   const BoatData &boatData(int index) const {

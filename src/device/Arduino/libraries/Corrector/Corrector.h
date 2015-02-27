@@ -7,19 +7,24 @@
 #define CALIBRATIONMODEL_H_
 
 #include <memory>
-#include <server/nautical/SpeedCalib.h>
+#include "SpeedCalib.h"
+
+#ifdef ON_SERVER
 #include <server/common/Array.h>
+#endif
+
 #include <server/common/ExpLine.h>
-#include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
-#include <server/common/ToDouble.h>
+#include "../CalibratedNav/CalibratedNav.h"
 
 namespace sail {
-#pragma pack(push, 1)
 
+#pragma pack(push, 1) // Since PhysicalQuantity is currently not packed, store the numbers raw.
 
   template <typename T>
   class AngleCorrector {
    public:
+    AngleCorrector(Angle<double> x) : value(x.degrees()) {}
+
     T value;
 
     AngleCorrector() : value(0) {}
@@ -31,6 +36,7 @@ namespace sail {
   template <typename T>
   class SpeedCorrector {
    public:
+    SpeedCorrector(T k_, T m_, T c_, T alpha_) : k(k_), c(c_), m(m_), alpha(alpha_) {}
     T k, m, c, alpha;
 
     SpeedCorrector() :
@@ -40,9 +46,12 @@ namespace sail {
       alpha(SpeedCalib<T>::initAlphaParam()) {}
 
 
+    SpeedCalib<T> make() const {
+      return SpeedCalib<T>(k, m, c, alpha);
+    }
+
     Velocity<T> correct(Velocity<T> raw) const {
-      SpeedCalib<T> cal(k, m, c, alpha);
-      return cal.eval(raw);
+      return make().eval(raw);
     }
   };
 
@@ -51,15 +60,22 @@ namespace sail {
    public:
     T amp, coef;
 
+    DriftAngleCorrector(T amp_, T coef_) : amp(amp_), coef(coef_) {}
+
     DriftAngleCorrector() :
      amp(0), coef(-2) {}
 
     Angle<T> correct(const CalibratedNav<T> &c) const {
       T awa0rads = c.calibAwa().normalizedAt0().radians();
 
+
+      //I am not sure we need 'ToDouble': bool upwind = 2.0*std::abs(ToDouble(awa0rads)) < M_PI;
+
+      bool upwind =  (-M_PI/2 < awa0rads) && (awa0rads < M_PI/2);
+
       // For awa angles closer to 0 than 90 degrees,
       // scale by sinus of that angle. Otherwise, just use 0.
-      T awaFactor = amp*(2.0*std::abs(ToDouble(awa0rads)) < M_PI? T(sin(2.0*awa0rads)) : T(0));
+      T awaFactor = amp*(upwind? T(sin(2.0*awa0rads)) : T(0));
 
       // Scale it in a way that decays exponentially as
       // aws increases. The decay is controlled by params[1].
@@ -93,26 +109,22 @@ namespace sail {
     }
 
 
-    // This method just wraps the data of this
-    // object inside an Array<T> without copying
-    // anything.
-    // To allocate a new
-    // reference counted array that will persist
-    // even after this object has been destroyed,
-    // call toArray().dup().
+    #ifdef ON_SERVER
     Array<T> toArray() const {
       return Array<T>(paramCount(), (T *)(this));
-    }
-
-    // Just to hide the pointer cast.
-    static Corrector<T> *fromPtr(T *ptr) {
-      return reinterpret_cast<Corrector<T> *>(ptr);
     }
 
     static Corrector<T> *fromArray(Array<T> arr) {
       assert(arr.size() == paramCount());
       return fromPtr(arr.ptr());
     }
+    #endif
+
+    // Just to hide the pointer cast.
+    static Corrector<T> *fromPtr(T *ptr) {
+      return reinterpret_cast<Corrector<T> *>(ptr);
+    }
+
    private:
     // Fill in the remainig values after the raw measurements and driftAngle
     // have been corrected for.

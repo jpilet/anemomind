@@ -3,9 +3,11 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/synthtest/NavalSimulation.h>
+#include <server/nautical/synthtest/NavalSimulationPrecomp.h>
 #include <server/nautical/Calibrator.h>
 #include <server/common/string.h>
+#include <server/common/logging.h>
+#include <server/common/ArgMap.h>
 
 
 namespace {
@@ -23,34 +25,57 @@ namespace {
     return boatData.evaluateFitness(trueWind, Array<HorizontalMotion<double> >());
   }
 
-  void evaluate() {
+  void evaluate(bool full) {
     std::cout << "Synthesize the dataset..." << std::endl;
-    auto sim = makeNavSimFractalWindOriented();
+    auto sim = getNavSimFractalWindOriented();
     std::cout << "Done synthesis." << std::endl;
 
-      auto boatData = sim.boatData(0);
+    auto boatData = sim.boatData(0);
 
-      boatData.plot();
+    boatData.plot();
 
-      Array<Nav> navs = boatData.navs();
-      WindOrientedGrammarSettings gs;
-      WindOrientedGrammar grammar(gs);
-      auto tree = grammar.parse(navs);
+    Array<Nav> navs = boatData.navs();
+    WindOrientedGrammarSettings gs;
+    WindOrientedGrammar grammar(gs);
+    auto tree = grammar.parse(navs);
 
-      Calibrator calib(grammar);
-      calib.setVerbose();
+    Calibrator calib(grammar);
+    calib.setVerbose();
 
-      std::cout << "Before calibration with default values: " <<
-          evaluateCalibration(boatData, calib);
-
+    NavalSimulation::SimulatedCalibrationResults after, before;
+    if (full) {
+      before = boatData.evaluateFitness(Corrector<double>());
+      after = boatData.evaluateFitness(calibrateFull(&calib, navs, tree, Nav::debuggingBoatId()));
+    } else {
+      before = evaluateCalibration(boatData, calib);
       assert(calib.calibrate(navs, tree, Nav::debuggingBoatId()));
-
-      std::cout << "After calibration with optimal values:  " <<
-          evaluateCalibration(boatData, calib);
+      after = evaluateCalibration(boatData, calib);
+    }
+    std::cout << "Number of maneuvers used: " << calib.maneuverCount() << std::endl;
+    std::cout << "Before calibration with default values: " << before << std::endl;
+    std::cout << "After calibration with optimal values:  " << after << std::endl;
   }
 }
 
-int main() {
-  evaluate();
+int main(int argc, const char **argv) {
+  ArgMap amap;
+  amap.registerOption("--only-wind", "Calibrate only on wind (our initial implementation). Otherwise full.");
+  if (!amap.parseAndHelp(argc, argv)) {
+    return -1;
+  }
+
+  if (amap.helpAsked()) {
+    return 0;
+  }
+
+  if (amap.optionProvided("--only-wind")) {
+    LOG(INFO) << "Calibration only on wind";
+    evaluate(false);
+  } else {
+    LOG(INFO) << "Calibration on wind and current";
+    evaluate(true);
+  }
+  LOG(INFO) << "Done.";
+
   return 0;
 }

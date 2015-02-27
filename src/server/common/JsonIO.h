@@ -12,7 +12,7 @@ namespace sail {
 namespace json {
 
 Poco::Dynamic::Var load(const std::string &filename);
-void save(const std::string &filename, Poco::Dynamic::Var x);
+bool save(const std::string &filename, Poco::Dynamic::Var x);
 
 }
 }
