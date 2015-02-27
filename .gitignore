@@ -18,6 +18,5 @@ www/uploads/*
 
 anemionicApp/node_modules/
 anemionicApp/platforms/
-anemionicApp/plugins/com.*
-anemionicApp/plugins/org.*
+anemionicApp/plugins/
 anemionicApp/www/lib
