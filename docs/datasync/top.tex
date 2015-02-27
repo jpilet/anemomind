@@ -28,7 +28,24 @@
 \begin{document}
 \maketitle
 \section{Introduction}
-This documents presents an architecture for synchronization of data between different devices. 
+This documents presents an architecture for synchronization of data between different devices. We use a mailbox model for transfering the data, see Fig. \ref{fig:mailbox}.
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{mailbox.pdf}
+  \caption{Mailbox model for passing data between devices.}
+  \label{fig:mailbox}
+\end{figure}
+
+A mailbox can hold a collection of packets. Every device has a mailbox in which it receives packets from and all other devices have corresponding mailboxes that temporarily hold packets that are to be sent to that mailbox. For instance, in Fig. \ref{fig:mailbox} the Anemobox has a mailbox labeled in bold ``Mailbox for Anemobox'' but all other devices also have mailboxes with the same label, connected to it directly or indirectly through arrows. Whenever such a connection exists, e.g. over the Internet or over Bluetooth, two connected mailboxes will attempt to synchronize by transferring messages from one mailbox to the other in the direction of the arrow until the two mailboxes contain the same messages.
+
+For instance, suppose a sailor is sailing and is logging data. This data will be packed into packets and put in the mailbox labeled \textbf{Mailbox for Server} on Anemobox. His phone, labeled \textbf{Phone A}, is turned on and connected to the Anemobox, but it does not have an internet connection. The phone also has a mailbox labeled \textbf{Mailbox for Server}. On synchronization, log files will be sent from the mailbox on the Anemobox to the corresponding mailbox on the phone. Suppose that when the sailor comes home, his phone has access to a wireless network and can thus connect to the server. On synchronization, the log files that were previously delivered to the phone will propagate to server.
+
+\subsection{Production rules}
+
+\begin{verbatim}
+
+\subsection{Packet format}
+
 \subsection{Useful Technologies}
 
 \end{document}
