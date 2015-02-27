@@ -3,6 +3,15 @@
     <p>
       {{device.address}}
     </p>
-    <button ng-click="disconnect()">Disconnect</button>
+
+    <button ng-if="!device.connected" ng-click="connect()">Connect</button>
+    <div ng-if="device.connected">
+      <button  ng-click="disconnect()">Disconnect</button>
+      <ion-list>
+        <ion-item class="item-icon-right" ng-repeat="service in device.services" type="item-text-wrap" href="#/tab/service/{{service.uuid}}">
+          <p>{{service.uuid}}</p>
+        </ion-item>
+      </ion-list>
+    </div>
   </ion-content>
 </ion-view>

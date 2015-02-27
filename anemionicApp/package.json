@@ -14,5 +14,10 @@
     "gulp-util": "^2.2.14",
     "shelljs": "^0.3.0"
   },
-  "cordovaPlugins": []
+  "cordovaPlugins": [
+    "com.evothings.ble",
+    "com.ionic.keyboard",
+    "org.apache.cordova.console",
+    "org.apache.cordova.device"
+  ]
 }
