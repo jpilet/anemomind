@@ -13,6 +13,8 @@ top.pdf: top.tex $(EPSFILES)
 	dia $< --export $@
 
 clean:
+	rm -f *.aux
+	rm -f *.log
 	rm -f *.pdf
 	rm -f *.eps
 	rm -f *~ # emacs autosave files.
