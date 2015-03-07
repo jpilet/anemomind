@@ -83,69 +83,71 @@ In this scenario, a sailor is on the sea with his sailboat, of the type Surprise
 \label{sec:hardcase}
 In this scenario, a sailor is on the sea with his sailboat, sailing for a week-end. He has a mobile phone with him that is talking over bluetooth to the anemobox onboard. However, this sailor is a more modest man and he only has a prepaid phone with limited data traffic, so his phone rarely has an internet connection except when is at home connected to the WLAN. He records data on the anemobox that are transferred to the memory of the phone and saved there. When he comes home on the Sunday evening, he connects his phone to the WLAN and boat logs are uploaded to the server. Fresh calibration parameters are calculated and sent back from the server to the phone. The next week-end when he goes sailing, those parameters are transferred from the phone to the anemobox on his boat.
 
-\section{Mailbox Model}
-The mailbox model can be used to design a system that will work for either one of the two use cases in the previous section. In this model, every device has a target mailbox in its memory. It also has a temporary mailbox on some of the other devices. For instance, the server will have a target mailbox in its memory and a temporary mailbox on the phone and a temporary mailbox on the anemobox. Likewise, the phone will have a target mailbox in its memory and a temporary mailbox on the anemobox and a temporary mailbox on the server. The anemobox will also have a target mailbox in its memory and a temporary mailbox on the phone and one on the server. This is illustrated in Fig.~\ref{fig:mailboxes}.
-\begin{figure}
-\includegraphics[width=\textwidth]{mailboxes.eps}
-\caption{Mailbox model. Double-directed arrows are drawn between mailboxes that can synchronize in the Nividic version.}
-\label{fig:mailboxes}
-\end{figure}
-We assume that we apply this model for a particular boat. Since Nividic will be used with several boats, there will be one mailbox for every boat on the server. On the other devices, however, there will rarely be mailboxes related to more than one boat.
+\subsection{Use case III: Dropping the phone in the sea}
+A sailor is sailing with his boat and the anemobox on board connected via bluetooth to his phone. He is currently synchronizing the two devices but drops the phone in the sea by accident.
 
-Transferring a piece of data, that we will refer to as a \textbf{packet}, is done by synchronizing pairs of mailboxes until the packet reaches its destination. Multiple versions of the same packet can live on different devices simultaneously.
+\section{Mailbox Model}
+The mailbox model can be used to design a system that will work for all of the three use cases in the previous section. In this model, a \textbf{node} is a unit that can send and receive \textbf{packets} to other nodes. Often, a \textbf{node} can map to a physical device such as the anemobox or a mobile phone, but not always. On the server, there is one \textbf{node} for every boat with an anemobox.
+
+In this model every node has a unique idenitification number that identifies it. It also has a set of mailboxes. Between mailboxes, messages that we call \textbf{packets} har sent. Every node has
+\begin{itemize}
+  \item One \textbf{mailbox of outgoing packets} for every other mailbox that it can send packets to.
+  \item A \textbf{mailbox of temporary packets} that are to be forwarded to some other node.
+  \item One \textbf{mailbox of incoming packets} from every other node.
+  \item A \textbf{table} of the last known C-number of every sender-receiver pair.
+\end{itemize}
+
+This model is designed so that
+\begin{itemize}
+  \item Delivering a packet more than once is avoided (through the use of S- and C-numbers).
+  \item The sender of a packet will eventually know that the packet has reached its destination.
+  \item Packets will not get lost, because they are only removed once the sender knows the packet has been delivered.
+  \item Timeouts and retransmission of packets is not needed.
+\end{itemize}
+
+\subsection{Node synchronization}
+Packets are propagated from the sending node to the receiving node through pairwise synchronizations between nodes, where they exchange information so that both nodes are up-to-date. This means that
+\begin{itemize}
+  \item A packet that exists on a node A, but not on a node B will result in a copy of that packet being created on node B.
+  \item Sharing on information on what packets have been delivered and removal of those packets.
+\begin{itemize}
+The protocol used for synchronizing two devices will be specified in a later document.
 
 \subsection{Packet format}
+A packet is a datastructure with these fields:
+\begin{description}
+  \item[Sender] The identification number of the sending node. This is the node that sends the packet. The packet will initially be put in the mailbox of outgoing packets of the sending node.
+  \item[Receiver] This is the identification number of the node to which the packet is sent.
+  \item[Sequence number] This is the value of a counter inside the mailbox of outgoing packets on the sending node. Whenever the the sending node sends a packet, the state of this counter is increased by one.
+  \item[C-number] This is the highest sequence number among the outgoing packets on the sending node such that all packets with sequence numbers less than that number have been acknowledged. Every node in the network maintains a so called C-table that maps (sender, receiver) pairs to C-numbers. For every packet that this node receives, it will first check if the sequence number of the packet is below the C-number of (sender, receiver) the table. If yes, the packet is ignored. Otherwise, the C-table is updated if the C-number of the incoming packet is higher than the current value in the table.
+  \item[Label] A code that tells what sort of data the packet carries. One special code, \texttt{acknowledged}, is reserved for packets sent back to the sender, telling them what messages can be removed.
+  \item[Data] The data of the packet.
+\end{description}
+
+
+\subsection{Protocol}
+The protocol used for delivering packets is inspired by the TCP protocol in the sense that a concept similar to sequence numbers is used. However, it is different in order to accomodate for the various use cases where it is to be used. For instance, in use case II explained in section \ref{sec:hardcase}, a three-way handshake mechanism of the TCP protocol in order to synchronize sequence numbers would take a week to complete. Therefore, something different is necessary.
+
+Another difference is that every intermediate node used to deliver a packet will keep the packet until it knows it has been delivered and can be reliably removed. Whenever two nodes are connected, their mailboxes will synchronize their data eagerly so that the packets are replicated on both nodes. This is in contrast to the TCP protocol, where the intermediate nodes just forward the packets. If the sender of a packet does not receive an acknowledgement within a certain time since it sent its packet, it will retransmit it. A timeout in our scenario, however, would be little useful because even a month could be a perfectly reasonable time until an acknowledgement would be returned to the sender.
+
+\subsubsection{Packet format}
 A packet is a data structure with the following fields:
 
 \begin{tabular}{l p{30em}}
   \texttt{from} & The identity of the sender. \\
   \texttt{to} & The identity of the receiver. \\
-  \texttt{status} & A code that determines the status of the packet. Can be \texttt{in-progress} or \texttt{delivered}. \\
-  \texttt{packet-id} & A code that uniquely identifies the packet. \\
+  \texttt{sequence-number} & The value of a counter that is increased by 1 for every packet sent by \texttt{from}. \\
+
+  \texttt{completed-number} & The \texttt{sequence-number} of the last packet that the sender has registered as acknowledged so far.\\
   \texttt{label} & A code that specifies what kind of contents the packet contains.\\
   \texttt{data} & The data to be delivered.
 \end{tabular}
 
-Some explanations may be useful. The codes in the \texttt{from} and \texttt{to} fields must uniquely identify the device (\anemobox{}, \phone{} or \anemolab{}) and the boat identity related to a mailbox. The status code indicates where the packet is in the life cycle. In the beginning of the life cycle when the packet is created, its status is \texttt{in-progress}. Once it has been delivered, the packet is replaced by a similar packet where the status has been changed to \texttt{delivered}. A \texttt{packet-id} uniquely identifies the packet and is computed from the identity of the sender, the current time and a counter variable on the sender. The \texttt{label} specifies what type of packet it is used by a higher level protocol than defined in this document. It can be anything except for \texttt{collect-garbage} that we will explain in section \ref{sec:gc}. The \texttt{data} fields is the actual data to be carried. Its format is defined by a protocol and it should be clear by the \texttt{label} what the format is.
-
-\subsection{Sending a packet}
-When a packet is to be sent all the fields are filled in with information. In particular, the \texttt{status} field is set to \texttt{in-progress} and the \texttt{data} field is filled with the data to be sent. The packet is put in a temporary mailbox belonging to the target mailbox, on the sending device. Whenever that mailbox is synchronized with a corresponding mailbox on some other device, the packet is updated as explained in section~\ref{sec:sync}.
-
-\subsection{Pairwise synchronization}
-\label{sec:sync}
-Delivering a packet from one device to another device can be broken down to a set of pairwise synchronizations of mailboxes. When a pair of devices are connected and synchronize, every pair of corresponding mailboxes that exist on both devices are synchronized. When two mailboxes are synchronized, all packets that exist on one or both of the mailboxes are considered. How two mailboxes are synchronized for a particular packet can be explained by a few simple rules.
-\begin{itemize}
-  \item When the packet only exists on one of the two devices, an identical copy of the packet is put on the other device, Fig.~\ref{fig:rules}(a, b). If the packet has the status code \texttt{in-progress}, putting the packet on the other mailbox means that the packet and the data that it carries propagates towards the destination, (a). If the packet has the status code \texttt{delivered}, putting the packet in the other mailbox means that the information that the packet has been sent is being propagated back to the sender, (b).
-  \item When the packet exists on both devices having the status of \texttt{in-progress} on one device and the status of \texttt{delivered} on the other device, the packet with status \texttt{in-progress} will have its status updated to \texttt{delivered} and its data will be removed so that the package takes up less space on the device, Fig.~\ref{fig:rules}(c).
-\end{itemize}
-
-\begin{figure}
-  \begin{tabular}{ccc}
-    \includegraphics[width=0.3\textwidth]{rulea.eps} & \includegraphics[width=0.3\textwidth]{ruleb.eps} & \includegraphics[width=0.3\textwidth]{rulec.eps} \\
-    (a) & (b) & (c)
-  \end{tabular}
-  \caption{Rules for synchronizing packets.}
-  \label{fig:rules}
-\end{figure}
-
-\subsection{Complete packet delivery example}
-\label{sec:delivery}
-Using the mechanisms previously explained, we illustrate a complete delivery from \anemobox{} to the \anemolab{} in Fig.~\ref{fig:delivery}. In (a), a packet of boat logs are just about to be delivered over bluetooth from the \anemobox{} to the \phone{}. In (b), the packet to be delivered is on the phone and about the be delivered to the \anemolab{}. There is no longer any connection to the \anemobox{}. In (c), all devices now have the same packet and it has reached the destination. From (d) to (f), the fact that the packet has been delivered is propagated backwards from the \anemolab{} to the \anemobox{}.
-\begin{figure}
-  \includegraphics[width=\textwidth]{syncexample.eps}
-  \caption{Delivery of boat logs from \anemobox{} to \anemolab{}.}
-  \label{fig:delivery}
-\end{figure}
-
-\subsection{Garbage collection}
-\label{sec:gc}
-Every packet that is being sent generates some garbage that is being spread out across multiple devices. Even if the data is removed from a packet that is marked \texttt{delivered}, it is still going to consume some space on the device. The mechanism for reducing the amount of garbage is as follows: Whenever the number of packets sent from a device that are also marked \texttt{delivered} on that same device exceeds a number $n$, all those packets are removed from the device and a new packet with \texttt{label} set to \texttt{collect-garbage} is put in the temporary mailboxes of all other devices. This packet contains a list of all the packets that can be safely removed and whenever a device receives this packet, it will take action to remove all packets listed in the \texttt{data}. The packet with \texttt{label = collect-garbage} will, apart from this action, go through the same life cycle as any other packet. Even if this special garbage collection packet by itself generates some garbage through its own existence, it will result in the removal of many more packets so on the average, there will be more space available after the garbage collection packet has been propagated to all devices as long as $n$ is reasonably high.
-
-Any device that receives the the garbage collection packet is free to decide for itself whether or not to actually remove the packets listed in the garbage collection packet.
+Here are some explanations: \texttt{from} is a code that identifies the sender. It can be based on the identity of the boat and the type of node. \texttt{to} is a code that identifies the receiver. \texttt{sequence-number} is an integer that is increased for every packet that the sender sends. The sequence number is used by the receiving node to order the incoming packets. \texttt{completed-number} is the sequence number chosen such that all sequence numbers inferior to \texttt{completed-number} correspond to packets for which the sender has received an acknowledgement. It effectively serves as a threshold to reject late deliveries of packets that have already been acknowledged. On the other hand, any mailbox must keep all packets with a higher or equal sequence number. \texttt{label} contains a code that specifies the contents of a packet. This protocol reserves one code, \texttt{acknowledged}, to return messages that tell what other messages have been acknowledged. We will explain that code later. The \texttt{data} field contains the data of the packet.
 
 \section{Discussion}
 Some domain specific optimizations may be possible sometimes, in order to reduce the amount of data transferred and stored. For instance, if we are about to send data from the \phone{} to \anemolab{}, there is no point in propagating that data to the \anemobox{}, unless the \anemobox{} has some other connection to \anemolab{} than through the \phone{}.
 
-We outline in a separate document the details about the protocol used for synchronizing two devices and their mailboxes. This protocol will specify how to devices talk with each other in order to synchronize.
+We outline in a separate document the details about the protocol used for synchronizing two nodes and their mailboxes. This protocol will specify how to nodes talk with each other in order to synchronize.
 \end{document}
 
