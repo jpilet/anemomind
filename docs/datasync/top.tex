@@ -102,7 +102,8 @@ This model is designed so that
   \item Delivering a packet more than once is avoided (through the use of S- and C-numbers).
   \item The sender of a packet will eventually know that the packet has reached its destination.
   \item Packets will not get lost, because they are only removed once the sender knows the packet has been delivered.
-  \item Timeouts and retransmission of packets is not needed.
+  \item Timeouts and retransmission of packets is not needed. For our use cases (especially the second one), there could be delays in the order of weeks.
+  \item Failure of delivering a packet should not block other packets from being delivered.
 \end{itemize}
 
 \subsection{Node synchronization}
@@ -110,7 +111,7 @@ Packets are propagated from the sending node to the receiving node through pairw
 \begin{itemize}
   \item A packet that exists on a node A, but not on a node B will result in a copy of that packet being created on node B.
   \item Sharing on information on what packets have been delivered and removal of those packets.
-\begin{itemize}
+\end{itemize}
 The protocol used for synchronizing two devices will be specified in a later document.
 
 \subsection{Packet format}
@@ -124,30 +125,50 @@ A packet is a datastructure with these fields:
   \item[Data] The data of the packet.
 \end{description}
 
+\subsection{Mailbox for outgoing packets}
+Every node has one mailbox of outgoing packets for every receiver. The mailbox of outgoing packets can be characterized by the following fields:
+\begin{description}
+  \item[Receiver] This is the constant identification number of the receiver.
+  \item[Sequence counter] This is a counter that holds the integer that will be put in the \textbf{Sequence number} field of the next packet to be sent.
+  \item[C-counter] This is an integer of all \emph{Completed} transmissions. It means that any packet emitted from this node with a sequence number less than the C-counter has been acknowledged.
+  \item[Packets] This is a list of all packets that have been emitted from this device and have sequence numbers greater or equal to that of \textbf{C-counter}. Every packet in this list has a flag which can be either \texttt{pending} or \texttt{acknowledged}. Whenever a packet with in this list with a sequence number which is the same as the C-counter is marked \texttt{acknowledged}, the C-counter is increased by one and the packet is removed from the mailbox of outgoing packets.
+\end{description}
 
-\subsection{Protocol}
+Sending a packet from the device amounts to putting the value of the \textbf{Sequence counter} in the \textbf{Sequence number} field of the packet, the value of the \textbf{C-counter} in the \textbf{C-number} field of the packet and filling all the other fields with their values. The packet is then put in \textbf{Packets} of the outgoing mailbox and the \textbf{Sequence counter} is increased by one. Whenever the node is synchronized with another node, this packet and possibly other packets too, will be copied to that node.
+
+\subsection{Mailbox for temporary packets}
+This is a mailbox of packets where the current node is neither the sender nor the receiver: It only keeps the packets so that they can be forwarded on the next synchronization. It is important to note that it will only accept packets with sequence numbers greater or equal to the corresponding C-number looked up in the C-table. Also, whenever the C-table is updated, all messages in with sequence numbers that are less than their corresponding C-numbers in the C-table are removed.
+
+\subsection{Mailbox of incoming packets}
+A node has one mailbox of incoming packets for every other node from which it could receive packets. It will only accept packets with a sequence number greater or equal to the corresponding C-number in the C-table, thereby avoiding double delivery. Also, whenever the C-table is updated, packets in the incoming mailbox with sequence numbers less than their corresponding C-number in that table can be safely removed. 
+
+For every $n$ packets received (in any order), an acknowledgement packet is sent back to the sender listing the sequence numbers of those $n$ packets so that the sender can mark those packets as acknowledged. The acknowledgement packet is like any other packet with the only exception that its \textbf{Label} field is set to \texttt{acknowledged}.
+
+\subsection{C-table}
+The C-table maps (sender, receiver) identity pairs to C-numbers. The purpose of the C-table is to provide a mechanism for removing packets that have been delivered in order to save space on all devices. It has two functions:
+\begin{itemize}
+  \item It can be used by the node to see what packets that it is already storing, can be removed.
+  \item It can be used to ignore incoming packets that are outdated.
+\end{itemize}
+Whenever the node sees a packet, it will form a (sender, receiver)-pair from that packet and look up the C-number in the table. If the sequence number of the packet is less than the C-number, the packet is outdated and can be ignored. Otherwise, if the C-number of the packet is greater than the C-number in the table, the C-number in the table will be updated to the C-number in the packet.
+
+\subsection{Similarities and differences with the TCP protocol}
 The protocol used for delivering packets is inspired by the TCP protocol in the sense that a concept similar to sequence numbers is used. However, it is different in order to accomodate for the various use cases where it is to be used. For instance, in use case II explained in section \ref{sec:hardcase}, a three-way handshake mechanism of the TCP protocol in order to synchronize sequence numbers would take a week to complete. Therefore, something different is necessary.
 
-Another difference is that every intermediate node used to deliver a packet will keep the packet until it knows it has been delivered and can be reliably removed. Whenever two nodes are connected, their mailboxes will synchronize their data eagerly so that the packets are replicated on both nodes. This is in contrast to the TCP protocol, where the intermediate nodes just forward the packets. If the sender of a packet does not receive an acknowledgement within a certain time since it sent its packet, it will retransmit it. A timeout in our scenario, however, would be little useful because even a month could be a perfectly reasonable time until an acknowledgement would be returned to the sender.
-
-\subsubsection{Packet format}
-A packet is a data structure with the following fields:
-
-\begin{tabular}{l p{30em}}
-  \texttt{from} & The identity of the sender. \\
-  \texttt{to} & The identity of the receiver. \\
-  \texttt{sequence-number} & The value of a counter that is increased by 1 for every packet sent by \texttt{from}. \\
-
-  \texttt{completed-number} & The \texttt{sequence-number} of the last packet that the sender has registered as acknowledged so far.\\
-  \texttt{label} & A code that specifies what kind of contents the packet contains.\\
-  \texttt{data} & The data to be delivered.
-\end{tabular}
-
-Here are some explanations: \texttt{from} is a code that identifies the sender. It can be based on the identity of the boat and the type of node. \texttt{to} is a code that identifies the receiver. \texttt{sequence-number} is an integer that is increased for every packet that the sender sends. The sequence number is used by the receiving node to order the incoming packets. \texttt{completed-number} is the sequence number chosen such that all sequence numbers inferior to \texttt{completed-number} correspond to packets for which the sender has received an acknowledgement. It effectively serves as a threshold to reject late deliveries of packets that have already been acknowledged. On the other hand, any mailbox must keep all packets with a higher or equal sequence number. \texttt{label} contains a code that specifies the contents of a packet. This protocol reserves one code, \texttt{acknowledged}, to return messages that tell what other messages have been acknowledged. We will explain that code later. The \texttt{data} field contains the data of the packet.
+Another difference is that every intermediate node used to deliver a packet will keep the packet until it knows it has been delivered and can be reliably removed. Whenever two nodes are connected, their mailboxes will synchronize their data eagerly so that the packets are replicated on both nodes. This is in contrast to the TCP protocol, where the intermediate nodes just forward the packets. In the TCP protocol, a the sender of a packet who does not receive an acknowledgement within a certain time since it sent its packet, will retransmit it. A timeout in our scenario, however, would be probably not be very useful because even a month could be a perfectly reasonable time until an acknowledgement would be returned to the sender, depending on what sort of connection to the internet the sailor has.
 
 \section{Discussion}
-Some domain specific optimizations may be possible sometimes, in order to reduce the amount of data transferred and stored. For instance, if we are about to send data from the \phone{} to \anemolab{}, there is no point in propagating that data to the \anemobox{}, unless the \anemobox{} has some other connection to \anemolab{} than through the \phone{}.
+In order to optimize the delivery of packets and reduce unnecessary transmissions of data, domain-specific constraints may be introduced so that certain messages only can synchronize in one direction for certain node pairs. For instance, if the a mobile phone needs to send packets to the server anemolab, it would probably not be useful to send those packets also to the anemobox, especially not if the anemobox does not have an internet connection.
 
+We also discuss some other design decisions, especially related to mailboxes.
+
+\subsection{Why have one mailbox of outgoing packets for \emph{every} receiver instead of one common mailbox of outgoing packets for all receivers?}
+This has to do with the C-counter. The C-counter will be increased by one whenever a sent packet with the sequence number of the C-counter is acknowledged. Suppose that a packet is sent to a device and that device is dropped in the sea. This packet will never be marked as acknowledged and the C-counter will be stuck forever, meaning that packets will accumulate on all devices as they are sent. If we have separate outgoing mailboxes and every such mailbox has its own C-counter, the C-counters of devices that were \emph{not} dropped in the sea can still be increased and messages can be removed, preventing accumulation of packets as the system is being used.
+
+\subsection{Why have one mailbox of incoming packets for \emph{every} sender, instead of one common mailbox of incoming packets for all senders?}
+This has to do with the acknowledgement. If we send an acknowledgement packet for every $n$ packets received, those packets could all have different senders, and we would have to send that packet to all senders. Seperarating the incoming packets into seperate mailboxes should be more efficient, since for every $n$ packets we receive to such a mailbox, we only need to send one acknowledgement packet to the single sender of those packets.
+
+\subsection{Protocol for synchronization}
 We outline in a separate document the details about the protocol used for synchronizing two nodes and their mailboxes. This protocol will specify how to nodes talk with each other in order to synchronize.
 \end{document}
 
