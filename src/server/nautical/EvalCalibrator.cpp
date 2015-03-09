@@ -5,9 +5,9 @@
  *  Code to evaluate the performance of the calibrator
  */
 
-#include <server/common/PathBuilder.h>
-#include <server/common/Env.h>
+#include <server/nautical/RealCalibData.h>
 
-
-
+int main(int argc, const char **argv) {
+  return 0;
+}
 

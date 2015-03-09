@@ -439,4 +439,20 @@ cxx_test(nautical_NKEParserTest
          NKEParserTest.cpp
          gtest_main
          nautical_NKEParser
-        )                      
+        )
+ 
+add_library(nautical_RealCalibData
+            RealCalibData.h
+            RealCalibData.cpp
+           )
+target_link_libraries(nautical_RealCalibData
+                      common_Env
+                      common_PathBuilder
+                     )           
+        
+add_executable(nautical_EvalCalibrator
+               EvalCalibrator.cpp
+              )
+target_link_libraries(nautical_EvalCalibrator
+                      nautical_RealCalibData
+                     )

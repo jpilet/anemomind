@@ -8,9 +8,12 @@
 #ifndef SERVER_NAUTICAL_REALCALIBDATA_H_
 #define SERVER_NAUTICAL_REALCALIBDATA_H_
 
+#include <Poco/Path.h>
+#include <server/common/Array.h>
+
 namespace sail {
 
-Array<Poco::Path>
+Array<Poco::Path> getRealDatasets();
 
 }
 
