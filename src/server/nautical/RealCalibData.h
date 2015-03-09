@@ -13,7 +13,7 @@
 
 namespace sail {
 
-Array<Poco::Path> getRealDatasets();
+Array<Poco::Path> getRealDatasetPaths();
 
 }
 

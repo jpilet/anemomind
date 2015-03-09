@@ -480,7 +480,6 @@ Corrector<double> calibrateFull(Calibrator *calib0,
     std::shared_ptr<HTree> tree,
     Nav::Id boatId) {
 
-  // Make a local mutable instance that we can play with.
   Calibrator &calib = *calib0;
 
   if (!calib.segment(navs, tree)) {

@@ -6,8 +6,23 @@
  */
 
 #include <server/nautical/RealCalibData.h>
+#include <iostream>
+
+using namespace sail;
+
+namespace {
+  void calibrateAndMakeReport(Poco::Path p) {
+    std::cout << "EVALUATION ON DATASET " << p.toString() << std::endl;
+
+    std::cout << "\n\n" << std::endl;
+  }
+}
 
 int main(int argc, const char **argv) {
-  return 0;
+  auto paths = getRealDatasetPaths();
+
+  for (auto p : paths) {
+    calibrateAndMakeReport(p);
+  }
 }
 
