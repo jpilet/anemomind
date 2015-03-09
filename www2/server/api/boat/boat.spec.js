@@ -55,15 +55,12 @@ describe('GET /api/boats', function() {
       .send({ name: 'TestBoat' })
       .expect(201)
       .end(function(err, res) {
-        console.log('finished add');
-        console.log(res);
         if (err) return done(err);
         done();
      });
    });
 
   it('should respond with an array containing TestBoat', function(done) {
-     console.log('starting fetch');
     request(app)
       .get('/api/boats')
       .set('Authorization', 'Bearer ' + token)
