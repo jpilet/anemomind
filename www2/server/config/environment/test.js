@@ -5,6 +5,6 @@
 module.exports = {
   // MongoDB connection options
   mongo: {
-    uri: 'mongodb://localhost/www2-test'
+    uri: 'mongodb://localhost/anemomind-test'
   }
 };
