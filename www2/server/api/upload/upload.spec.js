@@ -6,14 +6,15 @@ var request = require('supertest');
 
 describe('GET /api/upload', function() {
 
-  it('should respond with JSON array', function(done) {
+  it('should accept a file upload', function(done) {
     request(app)
-      .get('/api/upload')
-      .expect(200)
-      .expect('Content-Type', /json/)
+      .post('/api/upload')
+      .set('Content-Disposition', 'form-data; name="uploadedfile"; filename="testfile.txt"')
+      .send({ testobject: true })
+      .expect(201)
       .end(function(err, res) {
         if (err) return done(err);
-        res.body.should.be.instanceof(Array);
+        res.body.should.equal('ok');
         done();
       });
   });
