@@ -75,6 +75,7 @@ exports.retrieve = function(req, res, next) {
         }
       }
     }
+    res.contentType('application/json');
     return res.send(JSON.stringify(json));
     // crazy bug, when doing res.json(json), browsers receive content twice (but only once with curl)
     // res.json(json);

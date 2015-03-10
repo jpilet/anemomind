@@ -1,0 +1,23 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+<div class="container">
+<h4>Add boat</h4>
+<p class="input-group">
+  <input type="text" class="form-control" placeholder="Boat name" ng-model="newBoat">
+  <span class="input-group-btn">
+    <button type="submit" class="btn btn-primary" ng-click="addBoat()">Add Boat</button>
+  </span>
+</p>
+<br />
+<h4>Boat list</h4>
+<ul class="nav nav-tabs nav-stacked col-md-4 col-lg-4 col-sm-6" ng-repeat="boat in boats">
+  <li>{{ boat.name }}<button type="button" class="close" ng-click="deleteBoat(boat)">&times;</button></li>
+</ul>
+
+</div>
+
+<footer class="footer">
+  <div class="container">
+      <p>&copy; 2014 <a href="http://anemomind.com">Anemomind</a></p>
+  </div>
+</footer>

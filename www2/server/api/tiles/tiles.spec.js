@@ -6,14 +6,14 @@ var request = require('supertest');
 
 describe('GET /api/tiles', function() {
 
-  it('should respond with JSON array', function(done) {
+  it('should respond with a GeoJSON structure', function(done) {
     request(app)
-      .get('/api/tiles')
+      .get('/api/tiles/0/0/0/Irene')
       .expect(200)
-      .expect('Content-Type', /json/)
       .end(function(err, res) {
         if (err) return done(err);
-        res.body.should.be.instanceof(Array);
+        res.body.should.have.property("features");
+        res.body.features.should.be.instanceof(Array).with.length(0);
         done();
       });
   });
