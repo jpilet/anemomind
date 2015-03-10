@@ -47,15 +47,17 @@ namespace {
 }
 
 int main(int argc, const char **argv) {
-  {
-    calibrateOnSyntheticData();
-  }{
-    auto paths = getRealDatasetPaths();
-    int count = paths.size();
-    for (int i = 0; i < count; i++) {
-      std::cout << "\n\n============== DATASET " << i+1 << " OF " << count << std::endl;
-      calibrateOnRealData(paths[i]);
+  if (argc >= 2) {
+    for (int i = 1; i < argc; ++i) {
+      if (std::string(argv[i]) == "-s") {
+        calibrateOnSyntheticData();
+      } else {
+        calibrateOnRealData(argv[i]);
+      }
     }
+  } else {
+    LOG(FATAL) << "Usage: " << argv[0] << " [-s] [<path>] [<path>] ...\n"
+      << " -s evaluates on synthetic data.";
   }
 }
 
