@@ -7,12 +7,25 @@
 
 #include <server/nautical/RealCalibData.h>
 #include <iostream>
+#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/Calibrator.h>
 
 using namespace sail;
 
 namespace {
   void calibrateAndMakeReport(Poco::Path p) {
+    auto id = Nav::debuggingBoatId();
+    Calibrator calib;
+
     std::cout << "EVALUATION ON DATASET " << p.toString() << std::endl;
+
+    Corrector<double> defaultParameters;
+
+    Array<Nav> navs = scanNmeaFolder(p, id);
+
+    Corrector<double> calibratedParameters = calibrateFull(&calib, navs, id);
+
+
 
     std::cout << "\n\n" << std::endl;
   }

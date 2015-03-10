@@ -58,6 +58,8 @@ class Calibrator  {
 
     bool segment(const Array<Nav>& navs,
                  std::shared_ptr<HTree> tree);
+
+    WindOrientedGrammar grammar() const;
   private:
     std::string description(std::shared_ptr<HTree> tree);
     void addAllTack(std::shared_ptr<HTree> tree);
@@ -85,6 +87,15 @@ Corrector<double> calibrateFull(Calibrator *calib,
     const Array<Nav>& navs,
     std::shared_ptr<HTree> tree,
     Nav::Id boatId);
+
+
+Corrector<double> calibrateFull(Calibrator *calib,
+    const Array<Nav>& navs,
+    Nav::Id boatId);
+
+
+
 }  // namespace sail
+
 
 #endif // NAUTICAL_CALIBRATOR_H

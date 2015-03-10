@@ -275,6 +275,10 @@ bool Calibrator::segment(const Array<Nav>& navs,
   return true;
 }
 
+WindOrientedGrammar Calibrator::grammar() const {
+  return _grammar;
+}
+
 GnuplotExtra* Calibrator::initializePlot() {
   GnuplotExtra* gnuplot = new GnuplotExtra();
   print();
@@ -473,6 +477,18 @@ namespace {
       return true;
     }
   };
+
+
+
+  struct CorrectedPair {
+    CalibratedNav<double> before, after;
+  };
+
+//  CorrectedPair calcFlowPairs(TackCost *tackCost, const Corrector<double> &corr) {
+//    return CorrectedPair{corr.correct(tackCost->before()),
+//                         corr.correct(tackCost->after())};
+//    }
+//  }
 } // namespace
 
 Corrector<double> calibrateFull(Calibrator *calib0,
@@ -505,6 +521,12 @@ Corrector<double> calibrateFull(Calibrator *calib0,
   Solve(options, &problem, &summary);
   LOG(INFO) << "Done optimizing.";
   return corr;
+}
+
+Corrector<double> calibrateFull(Calibrator *calib0,
+    const Array<Nav>& navs,
+    Nav::Id boatId) {
+    return calibrateFull(calib0, navs, calib0->grammar().parse(navs), boatId);
 }
 
 } // namespace sail

@@ -315,11 +315,6 @@ NavalSimulation makeNavSimUpwindDownwindLong() {
 }
 
 
-std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e) {
-  s << "FlowError( norm: " << e.norm() << " angle: " << e.angle() << " magnitude: " << e.magnitude() << ")";
-  return s;
-}
-
 std::ostream &operator<< (std::ostream &s, const NavalSimulation::SimulatedCalibrationResults &e) {
   s << "FlowErrors(\n";
   s << "  wind    = " << e.wind().error() << "\n";

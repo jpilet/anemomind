@@ -455,4 +455,6 @@ add_executable(nautical_EvalCalibrator
               )
 target_link_libraries(nautical_EvalCalibrator
                       nautical_RealCalibData
+                      nautical_NavNmeaScan
+                      nautical_Calibrator
                      )
