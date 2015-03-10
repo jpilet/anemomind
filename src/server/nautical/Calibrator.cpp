@@ -22,6 +22,7 @@
 #include <server/common/Histogram.h>
 #include <server/common/ArrayBuilder.h>
 #include <device/Arduino/libraries/Corrector/Corrector.h>
+#include <server/nautical/FlowErrors.h>
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
@@ -479,16 +480,26 @@ namespace {
   };
 
 
+  WindCurrentErrors computeErrors(const std::vector<TackCost*> &tackCosts,
+      const Corrector<double> &corr) {
+    int count = tackCosts.size();
+    Array<HorizontalMotion<double> >
+      windBefore(count), windAfter(count),
+      currentBefore(count), currentAfter(count);
+    for (int i = 0; i < count; i++) {
+      auto tc = tackCosts[i];
+      CalibratedNav<double> before = corr.correct(tc->before());
+      CalibratedNav<double> after = corr.correct(tc->after());
+      windBefore[i] = before.trueWind();
+      windAfter[i] = after.trueWind();
+      currentBefore[i] = before.trueCurrent();
+      currentAfter[i] = after.trueCurrent();
+    }
+    return WindCurrentErrors{FlowErrors(windBefore, windAfter),
+                             FlowErrors(currentBefore, currentAfter),
+                             count};
 
-  struct CorrectedPair {
-    CalibratedNav<double> before, after;
-  };
-
-//  CorrectedPair calcFlowPairs(TackCost *tackCost, const Corrector<double> &corr) {
-//    return CorrectedPair{corr.correct(tackCost->before()),
-//                         corr.correct(tackCost->after())};
-//    }
-//  }
+  }
 } // namespace
 
 Corrector<double> calibrateFull(Calibrator *calib0,
@@ -527,6 +538,10 @@ Corrector<double> calibrateFull(Calibrator *calib0,
     const Array<Nav>& navs,
     Nav::Id boatId) {
     return calibrateFull(calib0, navs, calib0->grammar().parse(navs), boatId);
+}
+
+WindCurrentErrors computeErrors(Calibrator *calib, Corrector<double> corr) {
+  return computeErrors(calib->maneuvers(), corr);
 }
 
 } // namespace sail

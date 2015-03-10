@@ -9,6 +9,7 @@
 #include <string>
 #include <iostream>
 #include <device/Arduino/libraries/Corrector/Corrector.h>
+#include <server/nautical/FlowErrors.h>
 
 namespace sail {
 
@@ -93,6 +94,7 @@ Corrector<double> calibrateFull(Calibrator *calib,
     const Array<Nav>& navs,
     Nav::Id boatId);
 
+WindCurrentErrors computeErrors(Calibrator *calib, Corrector<double> corr);
 
 
 }  // namespace sail

@@ -198,6 +198,7 @@ target_link_libraries(nautical_Calibrator
                       common_Histogram
                       plot_gnuplot
                       common_math
+                      nautical_FlowErrors
                      )
 target_depends_on_ceres(nautical_Calibrator)
 
@@ -457,6 +458,7 @@ target_link_libraries(nautical_EvalCalibrator
                       nautical_RealCalibData
                       nautical_NavNmeaScan
                       nautical_Calibrator
+                      nautical_FlowErrors
                      )
                      
 add_library(nautical_FlowErrors

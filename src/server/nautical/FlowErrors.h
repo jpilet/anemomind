@@ -39,6 +39,10 @@ class FlowErrors {
       assert(_unit == other._unit);
       return Error(_mv + other._mv, _unit);
     }
+
+    int count() const {
+      return _mv.count();
+    }
    private:
     MeanAndVar _mv;
     T _unit;
@@ -65,6 +69,10 @@ class FlowErrors {
         _magnitudeError + other._magnitudeError,
         _angleError + other._angleError);
   }
+
+  int count() const {
+    return _normError.count();
+  }
  private:
   FlowErrors(const Error<Velocity<double> > &ne,
       const Error<Velocity<double> > &me,
@@ -86,6 +94,13 @@ std::ostream &operator<< (std::ostream &s,
 }
 
 std::ostream &operator<< (std::ostream &s, const FlowErrors &e);
+
+struct WindCurrentErrors {
+  FlowErrors wind, current;
+  int count;
+};
+
+std::ostream &operator<< (std::ostream &s, const WindCurrentErrors &e);
 
 }
 
