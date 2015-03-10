@@ -15,7 +15,7 @@
 using namespace sail;
 
 namespace {
-  void calibrateAndMakeReport(Poco::Path p) {
+  void calibrateOnRealData(Poco::Path p) {
     auto id = Nav::debuggingBoatId();
     Calibrator calib;
 
@@ -54,7 +54,7 @@ int main(int argc, const char **argv) {
     int count = paths.size();
     for (int i = 0; i < count; i++) {
       std::cout << "\n\n============== DATASET " << i+1 << " OF " << count << std::endl;
-      calibrateAndMakeReport(paths[i]);
+      calibrateOnRealData(paths[i]);
     }
   }
 }
