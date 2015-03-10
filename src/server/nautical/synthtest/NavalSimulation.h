@@ -15,6 +15,7 @@
 #include <server/common/MeanAndVar.h>
 #include <device/Arduino/libraries/Corrector/Corrector.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
+#include <server/nautical/FlowErrors.h>
 
 namespace sail {
 

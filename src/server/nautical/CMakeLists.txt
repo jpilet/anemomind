@@ -458,3 +458,11 @@ target_link_libraries(nautical_EvalCalibrator
                       nautical_NavNmeaScan
                       nautical_Calibrator
                      )
+                     
+add_library(nautical_FlowErrors
+            FlowErrors.h
+            FlowErrors.cpp
+           )              
+target_link_libraries(nautical_FlowErrors
+                      common_MeanAndVar
+                     )                  

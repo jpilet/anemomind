@@ -4,6 +4,10 @@
  */
 
 #include <cmath>
+#include <server/common/MeanAndVar.h>
+#include <server/common/Array.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/common/PhysicalQuantityIO.h>
 
 #ifndef SERVER_NAUTICAL_FLOWERRORS_H_
 #define SERVER_NAUTICAL_FLOWERRORS_H_
@@ -76,7 +80,7 @@ class FlowErrors {
 
 template <typename T>
 std::ostream &operator<< (std::ostream &s,
-    const NavalSimulation::FlowErrors::Error<T> &e) {
+    const FlowErrors::Error<T> &e) {
   s << "Error(mean = " << e.mean() << ", rms = " << e.rms() << ")";
   return s;
 }
