@@ -459,6 +459,7 @@ target_link_libraries(nautical_EvalCalibrator
                       nautical_NavNmeaScan
                       nautical_Calibrator
                       nautical_FlowErrors
+                      nautical_synthtest_NavalSimulationPrecomp
                      )
                      
 add_library(nautical_FlowErrors

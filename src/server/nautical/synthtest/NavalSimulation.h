@@ -447,8 +447,11 @@ NavalSimulation makeNavSimFractal(
     Array<BoatSimulationSpecs::TwaDirective> dirs,
     Array<CorruptedBoatState::CorruptorSet> corruptorSets);
 
-// A long series of wind oriented race data.
+// An hour of wind oriented race data.
 NavalSimulation makeNavSimFractalWindOriented();
+
+// Several hours of wind oriented race data.
+NavalSimulation makeNavSimFractalWindOrientedLong();
 
 } /* namespace mmm */
 

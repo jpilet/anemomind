@@ -309,10 +309,8 @@ Array<CorruptedBoatState::CorruptorSet> makeCorruptorSets001() {
 
 
 
-Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectives001() {
-  Duration<double> legDur = Duration<double>::minutes(10.0);
-  Duration<double> totalDur = Duration<double>::hours(1);
-  Duration<double> tackDur = Duration<double>::minutes(1);
+Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectivesSub(
+  Duration<double> legDur, Duration<double> totalDur, Duration<double> tackDur) {
 
   int tackCount = int(floor(totalDur/tackDur));
   LOG(INFO) << stringFormat("Tack count: %d", tackCount);
@@ -326,37 +324,77 @@ Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectives001() {
   return dirs;
 }
 
-Array<BoatSimulationSpecs> makeSpecs001() {
+Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectives001() {
+  Duration<double> legDur = Duration<double>::minutes(10.0);
+  Duration<double> totalDur = Duration<double>::hours(1);
+  Duration<double> tackDur = Duration<double>::minutes(1);
+
+  return makeTwaDirectivesSub(legDur, totalDur, tackDur);
+}
+
+Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectives002() {
+  Duration<double> legDur = Duration<double>::minutes(100.0);
+  Duration<double> totalDur = Duration<double>::days(2);
+  Duration<double> tackDur = Duration<double>::minutes(10);
+
+  return makeTwaDirectivesSub(legDur, totalDur, tackDur);
+}
+
+Array<BoatSimulationSpecs> makeSpecs001(int stepsPerSample, Array<BoatSimulationSpecs::TwaDirective> dirs) {
   auto sets = makeCorruptorSets001();
-  auto dirs = makeTwaDirectives001();
 
   int n = sets.size();
   Array<BoatSimulationSpecs> specs(n);
   for (int i = 0; i < n; i++) {
     specs[i] = BoatSimulationSpecs(BoatCharacteristics(),
           dirs,
-          sets[i]);
+          sets[i], Nav::debuggingBoatId(),
+          Duration<double>::seconds(1.0),
+          stepsPerSample);
   }
   return specs;
+}
+
+namespace {
+
+  GeographicReference makeGeoRef() {
+    return GeographicPosition<double>(
+        Angle<double>::degrees(30),
+        Angle<double>::degrees(29));
+  }
+
+  TimeStamp makeStartTime() {
+    return TimeStamp::UTC(2014, 12, 15, 12, 06, 29);
+  }
+
+
 }
 
 
 
 NavalSimulation makeNavSimFractalWindOriented() {
-
-  GeographicReference geoRef(GeographicPosition<double>(
-      Angle<double>::degrees(30),
-      Angle<double>::degrees(29)));
-
-  TimeStamp simulationStartTime = TimeStamp::UTC(2014, 12, 15, 12, 06, 29);
+  auto geoRef = makeGeoRef();
+  TimeStamp simulationStartTime = makeStartTime();
   auto flowpair = makeWindCurrentPair001();
-
   std::default_random_engine e;
   return NavalSimulation(e, geoRef,
            simulationStartTime,
            flowpair.wind,
            flowpair.current,
-           makeSpecs001()
+           makeSpecs001(20, makeTwaDirectives001())
+           );
+}
+
+NavalSimulation makeNavSimFractalWindOrientedLong() {
+  auto geoRef = makeGeoRef();
+  TimeStamp simulationStartTime = makeStartTime();
+  auto flowpair = makeWindCurrentPair001();
+  std::default_random_engine e;
+  return NavalSimulation(e, geoRef,
+           simulationStartTime,
+           flowpair.wind,
+           flowpair.current,
+           makeSpecs001(8, makeTwaDirectives002())
            );
 }
 
