@@ -523,8 +523,12 @@ Corrector<double> calibrateFull(Calibrator *calib0,
   cost->SetNumResiduals(objf->outDims());
   LOG(INFO) << "NUMBER OF RESIDUALS: " << objf->outDims();
 
+
+  bool squareLoss = true;
+  ceres::LossFunction *loss = (squareLoss? nullptr : new ceres::CauchyLoss(1));
+
   Corrector<double> corr;
-  problem.AddResidualBlock(cost, NULL, (double *)(&corr));
+  problem.AddResidualBlock(cost, loss, (double *)(&corr));
   ceres::Solver::Options options;
   options.minimizer_progress_to_stdout = true;
   options.max_num_iterations = 60;

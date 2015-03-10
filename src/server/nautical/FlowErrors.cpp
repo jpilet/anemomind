@@ -53,7 +53,7 @@ std::ostream &operator<< (std::ostream &s, const FlowErrors &e) {
 std::ostream &operator<< (std::ostream &s, const WindCurrentErrors &e) {
   s << "Wind and current errors over " << e.count << " samples:" << std::endl;
   s << "  Wind: " << e.wind << std::endl;
-  s << "  Current: " << e.wind << std::endl;
+  s << "  Current: " << e.current << std::endl;
   return s;
 }
 
