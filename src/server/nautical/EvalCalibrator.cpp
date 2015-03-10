@@ -35,7 +35,7 @@ int main(int argc, const char **argv) {
   int count = paths.size();
 
   for (int i = 0; i < count; i++) {
-    std::cout << "DATASET " << i+1 << " OF " << count << std::endl;
+    std::cout << "\n\n============== DATASET " << i+1 << " OF " << count << std::endl;
     calibrateAndMakeReport(paths[i]);
   }
 }

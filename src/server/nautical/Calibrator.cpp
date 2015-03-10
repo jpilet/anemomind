@@ -524,7 +524,7 @@ Corrector<double> calibrateFull(Calibrator *calib0,
   LOG(INFO) << "NUMBER OF RESIDUALS: " << objf->outDims();
 
 
-  bool squareLoss = true;
+  bool squareLoss = false;
   ceres::LossFunction *loss = (squareLoss? nullptr : new ceres::CauchyLoss(1));
 
   Corrector<double> corr;
