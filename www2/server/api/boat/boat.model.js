@@ -10,7 +10,11 @@ var BoatSchema = new Schema({
   lengthMeters: Number,
   sails: [ String ],
   admins: [ Schema.ObjectId ],
-  readers: [ Schema.ObjectId ]
+  readers: [ Schema.ObjectId ],
+  invited: [{
+    email: String,
+    admin: Boolean
+  }]
 });
 
 module.exports = mongoose.model('Boat', BoatSchema);
