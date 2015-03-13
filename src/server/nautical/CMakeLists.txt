@@ -204,6 +204,7 @@ target_depends_on_ceres(nautical_Calibrator)
 add_executable(nautical_BasicCalibrate
                BasicCalibrate.cpp)
 target_link_libraries(nautical_BasicCalibrate
+                      common_Env
                       common_logging
                       nautical_Calibrator)
 
@@ -439,4 +440,4 @@ cxx_test(nautical_NKEParserTest
          NKEParserTest.cpp
          gtest_main
          nautical_NKEParser
-        )                      
+        )

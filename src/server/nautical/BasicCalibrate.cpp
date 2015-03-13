@@ -1,5 +1,10 @@
-#include <server/nautical/Calibrator.h>
+#include <string>
+
+#include <server/common/env.h>
 #include <server/common/logging.h>
+#include <server/nautical/Calibrator.h>
+
+using namespace sail;
 
 int main(int argc, char **argv) {
   if (argc < 2) {
@@ -9,6 +14,17 @@ int main(int argc, char **argv) {
 
   sail::Calibrator calibrator;
   calibrator.setVerbose();
-  return calibrator.calibrate(Poco::Path(argv[1]), "00000000")
-    ? 0 : 1;
+  if (!calibrator.calibrate(Poco::Path(argv[1]), "00000000")) {
+    return 1;
+  }
+
+  std::string matfile = "/tmp/calibration.mat";
+  calibrator.saveResultsAsMat(matfile.c_str());
+
+  LOG(INFO) << "Calibration data saved in " << matfile
+    << ". Run:\n"
+    << "octave " << Env::SOURCE_DIR << "/src/server/nautical/calibration_info.m\n"
+    << "to read it.";
+
+  return 0;
 }

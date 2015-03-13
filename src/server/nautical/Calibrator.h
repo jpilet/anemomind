@@ -32,7 +32,10 @@ class Calibrator  {
     void saveCalibration(std::ofstream *file);
 
     //! Print last calibration results.
-    void print();
+    void print() const;
+
+    //! Write a matlab compatible file with all maneuvers.
+    bool saveResultsAsMat(const char *filename) const;
 
     //! Invokes gnuplot to show some error distribution.
     void plot(GnuplotExtra *gnuplot, const std::string &title, bool external);
