@@ -1,0 +1,14 @@
+{
+  "name": "btserver",
+  "version": "1.0.0",
+  "description": "Code to run on the Anemobox, responsible for providing bluetooth services to synchronize mail boxes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jonas Östlund",
+  "license": "ISC",
+  "dependencies": {
+    "bleno": "^0.1.11"
+  }
+}
