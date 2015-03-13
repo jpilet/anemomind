@@ -14,6 +14,7 @@
 #include <server/common/logging.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/Progress.h>
+#include <limits>
 
 namespace sail {
 
@@ -41,7 +42,15 @@ BoatSim::BoatSim(
         _currentFun(currentFun),
         _ch(ch), _twaFunction(twaFunction) {}
 
-
+bool BoatSimulationState::valid() {
+  auto p = toArray();
+  for (int i = 0; i < paramCount(); i++) {
+    if (!std::isfinite(p[i])) {
+      return false;
+    }
+  }
+  return true;
+}
 
 
 BoatSim::FullState BoatSim::makeFullState(const BoatSimulationState &state) {
@@ -78,6 +87,7 @@ BoatSim::FullState BoatSim::makeFullState(const BoatSimulationState &state) {
 void BoatSim::eval(double *Xin, double *Fout, double *Jout) {
   assert(Jout == nullptr);
   BoatSimulationState &state = *((BoatSimulationState *)Xin);
+  assert(state.valid());
   BoatSimulationState &deriv = *((BoatSimulationState *)Fout);
   FullState full = makeFullState(state);
 

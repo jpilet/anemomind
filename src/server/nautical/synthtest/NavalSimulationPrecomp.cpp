@@ -60,4 +60,9 @@ NavalSimulation getNavSimFractalWindOriented() {
       "navSimFractalWindOriented.json");
 }
 
+NavalSimulation getNavSimFractalWindOrientedLong() {
+  return loadOrMake(&makeNavSimFractalWindOrientedLong,
+      "navSimFractalWindOrientedLong.json");
+}
+
 } /* namespace mmm */
