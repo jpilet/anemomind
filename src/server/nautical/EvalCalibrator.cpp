@@ -5,7 +5,6 @@
  *  Code to evaluate the performance of the calibrator
  */
 
-#include <server/nautical/RealCalibData.h>
 #include <iostream>
 #include <server/nautical/NavNmeaScan.h>
 #include <server/nautical/Calibrator.h>
