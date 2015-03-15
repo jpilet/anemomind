@@ -29,7 +29,7 @@ namespace sail {
       return Arrayd(paramCount(), reinterpret_cast<double*>(this));
     }
 
-
+    bool valid();
 
 
 

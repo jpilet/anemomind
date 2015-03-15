@@ -9,6 +9,7 @@
 #include <string>
 #include <iostream>
 #include <device/Arduino/libraries/Corrector/Corrector.h>
+#include <server/nautical/FlowErrors.h>
 
 namespace sail {
 
@@ -61,6 +62,8 @@ class Calibrator  {
 
     bool segment(const Array<Nav>& navs,
                  std::shared_ptr<HTree> tree);
+
+    WindOrientedGrammar grammar() const;
   private:
     std::string description(std::shared_ptr<HTree> tree);
     void addAllTack(std::shared_ptr<HTree> tree);
@@ -88,6 +91,16 @@ Corrector<double> calibrateFull(Calibrator *calib,
     const Array<Nav>& navs,
     std::shared_ptr<HTree> tree,
     Nav::Id boatId);
+
+
+Corrector<double> calibrateFull(Calibrator *calib,
+    const Array<Nav>& navs,
+    Nav::Id boatId);
+
+WindCurrentErrors computeErrors(Calibrator *calib, Corrector<double> corr);
+
+
 }  // namespace sail
+
 
 #endif // NAUTICAL_CALIBRATOR_H

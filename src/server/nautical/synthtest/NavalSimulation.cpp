@@ -71,44 +71,6 @@ NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluate
           SimulatedMotionResults(trueCurrent(), estCurrent));
 }
 
-namespace {
-  MeanAndVar evaluateMeanAndVar(
-      Array<HorizontalMotion<double> > trueMotion,
-      Array<HorizontalMotion<double> > estimatedMotion,
-      std::function<double(HorizontalMotion<double>,
-          HorizontalMotion<double>)> errorFun) {
-    if (estimatedMotion.empty() || trueMotion.empty()) {
-      return MeanAndVar();
-    } else {
-      assert(trueMotion.size() == estimatedMotion.size());
-      int count = trueMotion.size();
-      MeanAndVar acc;
-      for (int i = 0; i < count; i++) {
-        double error = errorFun(trueMotion[i], estimatedMotion[i]);
-        assert(std::isfinite(error));
-        acc.add(error);
-      }
-      return acc.normalize();
-    }
-  }
-}
-
-NavalSimulation::FlowErrors::FlowErrors(Array<HorizontalMotion<double> > trueMotion,
-          Array<HorizontalMotion<double> > estimatedMotion) {
-  _normError = Error<Velocity<double> >(evaluateMeanAndVar(trueMotion, estimatedMotion,
-      [=](HorizontalMotion<double> a, HorizontalMotion<double> b) {
-      return HorizontalMotion<double>(a - b).norm().knots();
-  }), Velocity<double>::knots(1.0));
-  _angleError = Error<Angle<double> >(evaluateMeanAndVar(trueMotion, estimatedMotion,
-        [=](HorizontalMotion<double> a, HorizontalMotion<double> b) {
-        return std::abs((a.angle() - b.angle()).normalizedAt0().degrees());
-    }), Angle<double>::degrees(1.0));
-  _magnitudeError = Error<Velocity<double> >(evaluateMeanAndVar(trueMotion, estimatedMotion,
-        [=](HorizontalMotion<double> a, HorizontalMotion<double> b) {
-        return std::abs((a.norm() - b.norm()).knots());
-    }), Velocity<double>::knots(1.0));
-}
-
 
 NavalSimulation::SimulatedCalibrationResults
   NavalSimulation::BoatData::evaluateFitness(Array<HorizontalMotion<double> > estimatedTrueWind,
@@ -315,11 +277,6 @@ NavalSimulation makeNavSimUpwindDownwindLong() {
 }
 
 
-std::ostream &operator<< (std::ostream &s, const NavalSimulation::FlowErrors &e) {
-  s << "FlowError( norm: " << e.norm() << " angle: " << e.angle() << " magnitude: " << e.magnitude() << ")";
-  return s;
-}
-
 std::ostream &operator<< (std::ostream &s, const NavalSimulation::SimulatedCalibrationResults &e) {
   s << "FlowErrors(\n";
   s << "  wind    = " << e.wind().error() << "\n";
@@ -352,10 +309,8 @@ Array<CorruptedBoatState::CorruptorSet> makeCorruptorSets001() {
 
 
 
-Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectives001() {
-  Duration<double> legDur = Duration<double>::minutes(10.0);
-  Duration<double> totalDur = Duration<double>::hours(1);
-  Duration<double> tackDur = Duration<double>::minutes(1);
+Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectivesSub(
+  Duration<double> legDur, Duration<double> totalDur, Duration<double> tackDur) {
 
   int tackCount = int(floor(totalDur/tackDur));
   LOG(INFO) << stringFormat("Tack count: %d", tackCount);
@@ -369,37 +324,77 @@ Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectives001() {
   return dirs;
 }
 
-Array<BoatSimulationSpecs> makeSpecs001() {
+Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectives001() {
+  Duration<double> legDur = Duration<double>::minutes(10.0);
+  Duration<double> totalDur = Duration<double>::hours(1);
+  Duration<double> tackDur = Duration<double>::minutes(1);
+
+  return makeTwaDirectivesSub(legDur, totalDur, tackDur);
+}
+
+Array<BoatSimulationSpecs::TwaDirective> makeTwaDirectives002() {
+  Duration<double> legDur = Duration<double>::minutes(100.0);
+  Duration<double> totalDur = Duration<double>::days(2);
+  Duration<double> tackDur = Duration<double>::minutes(10);
+
+  return makeTwaDirectivesSub(legDur, totalDur, tackDur);
+}
+
+Array<BoatSimulationSpecs> makeSpecs001(int stepsPerSample, Array<BoatSimulationSpecs::TwaDirective> dirs) {
   auto sets = makeCorruptorSets001();
-  auto dirs = makeTwaDirectives001();
 
   int n = sets.size();
   Array<BoatSimulationSpecs> specs(n);
   for (int i = 0; i < n; i++) {
     specs[i] = BoatSimulationSpecs(BoatCharacteristics(),
           dirs,
-          sets[i]);
+          sets[i], Nav::debuggingBoatId(),
+          Duration<double>::seconds(1.0),
+          stepsPerSample);
   }
   return specs;
+}
+
+namespace {
+
+  GeographicReference makeGeoRef() {
+    return GeographicPosition<double>(
+        Angle<double>::degrees(30),
+        Angle<double>::degrees(29));
+  }
+
+  TimeStamp makeStartTime() {
+    return TimeStamp::UTC(2014, 12, 15, 12, 06, 29);
+  }
+
+
 }
 
 
 
 NavalSimulation makeNavSimFractalWindOriented() {
-
-  GeographicReference geoRef(GeographicPosition<double>(
-      Angle<double>::degrees(30),
-      Angle<double>::degrees(29)));
-
-  TimeStamp simulationStartTime = TimeStamp::UTC(2014, 12, 15, 12, 06, 29);
+  auto geoRef = makeGeoRef();
+  TimeStamp simulationStartTime = makeStartTime();
   auto flowpair = makeWindCurrentPair001();
-
   std::default_random_engine e;
   return NavalSimulation(e, geoRef,
            simulationStartTime,
            flowpair.wind,
            flowpair.current,
-           makeSpecs001()
+           makeSpecs001(20, makeTwaDirectives001())
+           );
+}
+
+NavalSimulation makeNavSimFractalWindOrientedLong() {
+  auto geoRef = makeGeoRef();
+  TimeStamp simulationStartTime = makeStartTime();
+  auto flowpair = makeWindCurrentPair001();
+  std::default_random_engine e;
+  return NavalSimulation(e, geoRef,
+           simulationStartTime,
+           flowpair.wind,
+           flowpair.current,
+           makeSpecs001(8, makeTwaDirectives002())
            );
 }
 

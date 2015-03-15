@@ -198,6 +198,7 @@ target_link_libraries(nautical_Calibrator
                       common_Histogram
                       plot_gnuplot
                       common_math
+                      nautical_FlowErrors
                      )
 target_depends_on_ceres(nautical_Calibrator)
 
@@ -441,3 +442,21 @@ cxx_test(nautical_NKEParserTest
          gtest_main
          nautical_NKEParser
         )
+
+add_executable(nautical_EvalCalibrator
+               EvalCalibrator.cpp
+              )
+target_link_libraries(nautical_EvalCalibrator
+                      nautical_NavNmeaScan
+                      nautical_Calibrator
+                      nautical_FlowErrors
+                      nautical_synthtest_NavalSimulationPrecomp
+                     )
+                     
+add_library(nautical_FlowErrors
+            FlowErrors.h
+            FlowErrors.cpp
+           )              
+target_link_libraries(nautical_FlowErrors
+                      common_MeanAndVar
+                     )
