@@ -11,8 +11,8 @@ q80Ext = quantile(m(:,4), .8)
 
 binWidth = 4;
 range = binWidth/2:binWidth:30;
-[numOpt, binsOpt] = hist(m(:,2), range, "facecolor", "g");
-[numExt, binsExt] = hist(m(:,4), range, "edgecolor", "r");
+[numOpt, binsOpt] = hist(m(:,2), range);
+[numExt, binsExt] = hist(m(:,4), range);
 
 histogramData = [binsOpt; numOpt; numExt]';
 
