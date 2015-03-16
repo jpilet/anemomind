@@ -1,19 +1,31 @@
 var sqlite3 = require('sqlite3').verbose();
 
-function isValidDBFilename(x) {
+function isString(x) {
     if (typeof x == 'string') {
 	return true;
     }
     return false;
 }
 
-function isValidMailboxName(x) {
-    if (typeof x == 'string') {
-	if (x.length > 0) {
-	    return true;
-	}
+function isNonEmptyString(x) {
+    if (isString(x)) {
+	return 0 < x.length;
     }
     return false;
+}
+
+
+function isValidDBFilename(x) {
+    return isNonEmptyString(x);
+}
+
+function isValidMailboxName(x) {
+    return isNonEmptyString(x);
+}
+
+function runWithLog(db, cmd) {
+    console.log(cmd);
+    db.run(cmd);
 }
 
 function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
@@ -42,7 +54,6 @@ function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
  This is a table that holds all packets.
 */
 
-
 function initializePacketsTable(db) {
     var tableName = 'packets';
     initializeTableIfNotAlready(
@@ -50,43 +61,44 @@ function initializePacketsTable(db) {
 	function() {
 	    cmd = 'CREATE TABLE ' + tableName + ' ('
 		   + 'diarynumber TEXT, ' // Unique number used internally by this mailbox for every message.
-		   + 'sender TEXT, '        // Text string encoding sender mailbox
-		   + 'receiver TEXT, '          // Text string encoding receiver mailbox
-		   + 'seqnumber TEXT, '    // Sequence number. Value of a counter increased by 1 for every packet sent.
-		   + 'label TEXT, '        // Description of what the packet contains
+		   + 'src TEXT, '         // Text string encoding sender mailbox
+		   + 'dst TEXT, '         // Text string encoding receiver mailbox
+		   + 'seqnumber TEXT, '   // Sequence number. Value of a counter increased by 1 for every packet sent.
+		   + 'label TEXT, '       // Description of what the packet contains
 		   + 'data BLOB'          // The data to be sent. Can be in any form.
 		   + ');';
-	    console.log('Run ' + cmd);
-	    db.run(cmd);
+	    runWithLog(db, cmd);
 	});
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
- C T A B L E
+ S E Q C O U N T E R S 
 
- This is a table that holds all C-numbers seen so far.
-
+ This is a table that holds sequence counters.
 */
-function initializeCTable(db) {
-    var tableName = 'ctable';
+function initializeSeqCountersTable(db) {
+    var tableName = 'seqcounters';
     initializeTableIfNotAlready(
 	db, tableName,
 	function() {
 	    cmd = 'CREATE TABLE ' + tableName + ' ('
-		+ 'sender TEXT, '
-		+ 'receiver TEXT, '
-		+ 'cnumber TEXT'
+		+ 'dst TEXT'
+		+ 'counter TEXT'
 		+ ');';
-	    console.log('Run ' + cmd);
-	    db.run(cmd, function(err) {
-		
-	    });
-	}
-    );
+	    runWithLog(db, cmd);
+	});
+    
 }
 
-
+// A complete packet.
+function Packet(src, dst, seqnumber, label, data) {
+    this.src = src;
+    this.dst = dst;
+    this.seqnumber = seqnumber;
+    this.label = label;
+    this.data = data;
+}
 
 // A constructor for a temprorary storage of all mails.
 function Mailbox(dbFilename,      // <-- The filename where all
@@ -103,13 +115,42 @@ function Mailbox(dbFilename,      // <-- The filename where all
     this.dbFilename = dbFilename;
     this.mailboxName = thisMailboxName;
     this.db = new sqlite3.Database(dbFilename, errorCallback);
+
+    // Tables that don't exist should be created.
     initializePacketsTable(this.db);
-    initializeCTable(this.db);
+    initializeSeqCountersTable(this.db);
+    //initializeCTable(this.db);
 }
+
+// Every message in this mailbox is a assigned a unique so called 'diary number'.
+Mailbox.makeNewDiaryNumber = function(dst) {
+    
+}
+
+// Returns the current sequence number by calling a callback.
+Mailbox.getCurrentSeqNumber = function(dst, callbackNewNumber) {
+    if (!isNonEmptyString(dst)) {
+	throw new Error('Dst should be a string');
+    }
+    db.run('SELECT FROM seqnumbers WHERE dst = \'' + dst + '\';',
+	   function(err, row) {
+	       if (row == undefined) {
+		   callbackNewNumber();
+	       } else {
+		   callbackNewNumber(row.counter);
+	       }
+	   });
+};
+
+
+
+Mailbox.sendPacket = function (dst, label, data) {
+    
+};
 
 Mailbox.prototype.rulle = function() {
     console.log('RULLE!!!');
-}
+};
 
 
 
