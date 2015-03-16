@@ -1,0 +1,54 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+<div class="container">
+<h2>{{ boat.name }}</h2>
+<h3>Boat profile</h3>
+<p class="input-group">
+<input type="text" class="form-control" placeholder="Boat name" ng-model="boat.name">
+<input type="text" class="form-control" placeholder="Boat type" ng-model="boat.type">
+  <div class="input-group-btn">
+    <button type="submit" class="btn btn-primary" ng-click="saveBoat()">Save changes</button>
+  </div>
+</p>
+<br />
+<h3>Team</h3>
+<div>
+<h4>Full team members:</h4>
+<ul class="nav nav-tabs nav-stacked" ng-repeat="admin in boat.admins">
+  <li>{{ users[admin].name }}<button type="button" class="close" ng-click="removeMember('admins', admin)">&times;</button></li>
+</ul>
+</div>
+
+<div>
+<h4>Members that can only view:</h4>
+<ul class="nav nav-tabs nav-stacked" ng-repeat="member in boat.readers">
+  <li>{{ users[member].name }}<button type="button" class="close" ng-click="removeMember('readers', member)">&times;</button></li>
+</ul>
+</div>
+
+<div>
+<h4>Pending invitations:</h4>
+<ul class="nav nav-tabs nav-stacked" ng-repeat="guest in boat.invited">
+  <li>{{ guest.email }}<button type="button" class="close" ng-click="removeInvitation(guest)">&times;</button></li>
+</ul>
+</div>
+
+
+
+<p class="input-group">
+Add a team member
+  <input type="text" class="form-control" placeholder="e-mail" ng-model="invitedEMail"/>
+  User can add and modify boat data <input type="checkbox" ng-model="invitedAdmin"/>
+  <div class="input-group-btn">
+    <button type="submit" class="btn btn-primary" ng-click="addMember()">Add member</button>
+  </div>
+  <p>{{ invitationMessage }}</p>
+</p>
+
+</div>
+
+<footer class="footer">
+  <div class="container">
+      <p>&copy; 2014 <a href="http://anemomind.com">Anemomind</a></p>
+  </div>
+</footer>
