@@ -160,4 +160,7 @@ var box = new Mailbox('demo.db', 'demobox');
 //console.log(typeof box.db);
 console.log(box.db);
 console.log('Created');
+box.getCurrentSeqNumber('mjao', function(x) {
+    console.log('Current seq number for mjao is ' + x);
+});
 box.rulle();
