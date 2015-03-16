@@ -7,5 +7,10 @@ angular.module('www2App')
         url: '/boats',
         templateUrl: 'app/boats/boats.html',
         controller: 'BoatsCtrl'
+      })
+      .state('boat-detail', {
+        url: '/boats/:boatId',
+        templateUrl: 'app/boats/boat-detail.html',
+        controller: 'BoatDetailCtrl'
       });
   });
