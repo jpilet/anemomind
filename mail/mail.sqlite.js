@@ -107,7 +107,9 @@ function initializePacketsTable(db, cb) {
 	 'seqnumber BIGINT',
 	 'cnumber BIGINT',
 	 'label TEXT', 
-	 'data BLOB'], cb);
+	 'data BLOB',
+	 'ack INTEGER' // <-- boolean, only used for packets originating from this mailbox.
+	], cb);
 }
 
 function initializeSeqNumbersTable(db, cb) {
