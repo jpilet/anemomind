@@ -1,5 +1,12 @@
+/*
+
+Mailbox model based on sqlite
+
+*/
+
 var sqlite3 = require('sqlite3').verbose();
 var seqnums = require('./seqnums.js');
+
 
 /////////////////////////////////////////////////////////
 // General functions for checking if an object is a string
@@ -16,12 +23,6 @@ function isNonEmptyString(x) {
     }
     return false;
 }
-
-/////////////////////////////////////////////////////////
-// Sequence numbers
-
-
-
 
 /////////////////////////////////////////////////////////
 function isValidDBFilename(x) {
@@ -69,12 +70,12 @@ function initializePacketsTable(db) {
 	db, tableName,
 	function() {
 	    cmd = 'CREATE TABLE ' + tableName + ' ('
-		   + 'diarynumber TEXT, ' // Unique number used internally by this mailbox for every message.
-		   + 'src TEXT, '         // Text string encoding sender mailbox
-		   + 'dst TEXT, '         // Text string encoding receiver mailbox
-		   + 'seqnumber TEXT, '   // Sequence number. Value of a counter increased by 1 for every packet sent.
-		   + 'label TEXT, '       // Description of what the packet contains
-		   + 'data BLOB'          // The data to be sent. Can be in any form.
+		   + 'diarynumber BIGINT, ' // Unique number used internally by this mailbox for every message.
+		   + 'src TEXT, '           // Text string encoding sender mailbox
+		   + 'dst TEXT, '           // Text string encoding receiver mailbox
+		   + 'seqnumber BIGINT, '   // Sequence number. Value of a counter increased by 1 for every packet sent.
+		   + 'label TEXT, '         // Description of what the packet contains
+		   + 'data BLOB'            // The data to be sent. Can be in any form.
 		   + ');';
 	    runWithLog(db, cmd);
 	});
@@ -84,7 +85,8 @@ function initializePacketsTable(db) {
 /*
  S E Q C O U N T E R S 
 
- This is a table that holds sequence counters.
+ This is a table that holds sequence counters for every mailbox
+ that we might want to sent to.
 */
 function initializeSeqCountersTable(db) {
     var tableName = 'seqcounters';
@@ -93,21 +95,13 @@ function initializeSeqCountersTable(db) {
 	function() {
 	    cmd = 'CREATE TABLE ' + tableName + ' ('
 		+ 'dst TEXT'
-		+ 'counter TEXT'
+		+ 'counter BIGINT'
 		+ ');';
 	    runWithLog(db, cmd);
 	});
     
 }
 
-// A complete packet.
-function Packet(src, dst, seqnumber, label, data) {
-    this.src = src;
-    this.dst = dst;
-    this.seqnumber = seqnumber;
-    this.label = label;
-    this.data = data;
-}
 
 // A constructor for a temprorary storage of all mails.
 function Mailbox(dbFilename,      // <-- The filename where all
@@ -171,12 +165,6 @@ Mailbox.prototype.rulle = function() {
 };
 
 
-
-var a = makeFixLenNumber(2)
-for (var i = 0; i < 109; i++) {
-    console.log('a = ' + a);
-    a = nextNumber(a);
-}
 
 
 console.log('Make a test mailbox');
