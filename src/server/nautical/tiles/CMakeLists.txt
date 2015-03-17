@@ -1,3 +1,5 @@
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/generateDevDB.sh.in" "${CMAKE_CURRENT_BINARY_DIR}/generateDevDB.sh" @ONLY)
+
 add_library(tiles_NavTileGenerator
             NavTileGenerator.cpp
            )

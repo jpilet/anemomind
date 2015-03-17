@@ -4,7 +4,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
   
 var TileSchema = new Schema({
-    boat: String,
+    boat: Schema.ObjectId,
     key: String,
     startTime: Date,
     endTime: Date,
