@@ -202,15 +202,12 @@ Mailbox.prototype.makeNewSeqNumber = function(dst, callbackNewNumber) {
 		}
 	    };
 	}
-	console.log('Read number ' + x);
 	if (x == undefined) {
 	    var newNumber = seqnums.make();
-	    console.log('New number is ' + newNumber);
 	    self.db.run('INSERT INTO seqnumbers VALUES (?, ?);',
 			dst, newNumber, makeCompletedFun(newNumber));
 	} else {
 	    var newNumber = seqnums.next(x);
-	    console.log('New number is ' + newNumber);
 	    self.db.run('UPDATE seqnumbers SET counter = ? WHERE dst = ?',
 			newNumber, dst, makeCompletedFun(newNumber));
 	}
