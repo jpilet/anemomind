@@ -1,5 +1,8 @@
 var sqlite3 = require('sqlite3').verbose();
+var seqnums = require('./seqnums.js');
 
+/////////////////////////////////////////////////////////
+// General functions for checking if an object is a string
 function isString(x) {
     if (typeof x == 'string') {
 	return true;
@@ -14,7 +17,13 @@ function isNonEmptyString(x) {
     return false;
 }
 
+/////////////////////////////////////////////////////////
+// Sequence numbers
 
+
+
+
+/////////////////////////////////////////////////////////
 function isValidDBFilename(x) {
     return isNonEmptyString(x);
 }
@@ -122,17 +131,12 @@ function Mailbox(dbFilename,      // <-- The filename where all
     //initializeCTable(this.db);
 }
 
-// Every message in this mailbox is a assigned a unique so called 'diary number'.
-Mailbox.makeNewDiaryNumber = function(dst) {
-    
-}
-
 // Returns the current sequence number by calling a callback.
-Mailbox.getCurrentSeqNumber = function(dst, callbackNewNumber) {
+Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
     if (!isNonEmptyString(dst)) {
 	throw new Error('Dst should be a string');
     }
-    db.run('SELECT FROM seqnumbers WHERE dst = \'' + dst + '\';',
+    this.db.run('SELECT FROM seqnumbers WHERE dst = \'' + dst + '\';',
 	   function(err, row) {
 	       if (row == undefined) {
 		   callbackNewNumber();
@@ -141,6 +145,20 @@ Mailbox.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 	       }
 	   });
 };
+
+// Sets the sequence number and calls 'cb' once done.
+Mailbox.prototype.setCurrentSeqNumber = function(dst, cb) {
+    
+}
+
+Mailbox.prototype.makeSeqNumber = function(dst, callbackNewNumber) {
+    this.getCurrentSeqNumber(dst, function(number) {
+	if (number == undefined) {
+	    var newNumber = makeZero();
+	    
+	}
+    });
+}
 
 
 
@@ -153,6 +171,12 @@ Mailbox.prototype.rulle = function() {
 };
 
 
+
+var a = makeFixLenNumber(2)
+for (var i = 0; i < 109; i++) {
+    console.log('a = ' + a);
+    a = nextNumber(a);
+}
 
 
 console.log('Make a test mailbox');
