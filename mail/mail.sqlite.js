@@ -49,22 +49,35 @@ function makeCreateCmd(tableName, fieldSpecs) {
     return result + ')';
 }
 
-function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
-				     tableName,     // <-- Name of the table to be created.
-				     fieldSpecs,    // <-- The fields of the table
-				     cb) {          // <-- A callback that accepts optional err.
+function tableExists(db, tableName, cb) {
     db.get('SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\''
 	   + tableName + '\'', function(err, row) {
-	       if (err == null) {
+	       if (err == undefined) {
 		   if (row == undefined) {
-		       db.run(makeCreateCmd(tableName, fieldSpecs), cb);
+		       cb(false);
 		   } else {
-		       cb();
+		       cb(true);
 		   }
 	       } else {
 		   cb(err);
 	       }
 	   });
+}
+
+function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
+				     tableName,     // <-- Name of the table to be created.
+				     fieldSpecs,    // <-- The fields of the table
+				     cb) {          // <-- A callback that accepts optional err.
+    tableExists(db, tableName, function(status) {
+	console.log('status = ' + status);
+	if (status == false) {
+	    db.run(makeCreateCmd(tableName, fieldSpecs), cb);
+	} else if (status == true) {
+	    cb();
+	} else {
+	    cb(status);
+	}
+    });
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -192,7 +205,7 @@ Mailbox.prototype.rulle = function() {
 console.log('Make a test mailbox');
 
 var inMemory = false;
-var filename = (inMemory? ':memory:' : 'demo.js');
+var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
     if (err != undefined) {
 	console.log('SOMETHING WENT WRONG WHEN BUILDING MAILBOX!!!!');
@@ -203,7 +216,6 @@ var box = new Mailbox(filename, 'demobox', function(err) {
 
     // See if we 
     if (true) {
-	console.log('Created');
 	box.getCurrentSeqNumber('mjao', function(x) {
 	    console.log('Current seq number for mjao is ' + x);
 	});
