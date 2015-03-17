@@ -8,7 +8,6 @@ angular.module('www2App', [
   'ui.router',
   'ui.bootstrap',
   'angularFileUpload',
-  'leaflet-directive'
 ])
   .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider) {
     $urlRouterProvider

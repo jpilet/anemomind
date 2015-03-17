@@ -36,7 +36,7 @@ exports.retrieveRaw = function(req, res, next) {
     if (!tiles) return res.send(404);
 
     res.contentType('application/json');
-    return res.send(JSON.stringify(json));
+    return res.send(JSON.stringify(tiles));
   });
 };
 

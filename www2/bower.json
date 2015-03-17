@@ -16,11 +16,7 @@
     "angular-socket-io": "~0.6.0",
     "angular-ui-router": "~0.2.10",
     "ng-file-upload": "~2.0.0",
-    "ng-file-upload-shim": "~2.0.0",
-    "angular-leaflet-directive": "~0.7.9",
-    "sidebar-v2": "~0.2.1",
-    "leaflet-tilelayer-geojson": "*",
-    "LeafletPlayback": "https://github.com/hallahan/LeafletPlayback.git"
+    "ng-file-upload-shim": "~2.0.0"
   },
   "devDependencies": {
     "angular-mocks": ">=1.2.*",
