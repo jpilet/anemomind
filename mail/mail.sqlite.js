@@ -146,6 +146,7 @@ function Mailbox(dbFilename,      // <-- The filename where all
     //initializeCTable(this.db);
 }
 
+
 // Returns the current sequence number stored in the database, by calling a callback with that number.
 // If no such number exists, it calls the callback without any arguments.
 Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
