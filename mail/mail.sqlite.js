@@ -188,7 +188,7 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 };
 
 // Makes a new sequence number that can be used.
-Mailbox.prototype.makeNextSeqNumber = function(dst, callbackNewNumber) {
+Mailbox.prototype.makeNewSeqNumber = function(dst, callbackNewNumber) {
     var self = this;
     var cbNumberRetrived = function(x) {
 	var makeCompletedFun = function(y) {
@@ -216,11 +216,11 @@ Mailbox.prototype.makeNextSeqNumber = function(dst, callbackNewNumber) {
 // Gets the last diary number of all messages
 Mailbox.prototype.getLastDiaryNumber = function(cb) {
     var query = 'SELECT max(diarynumber) FROM packets';
-    this.db.get(query, function(err, row) {
+    this.db.get(query, function(err, result) {
 	if (err == undefined) {
-	    cb(row);
+	    cb(err, result["max(diarynumber)"]);
 	} else {
-	    cb(err);
+	    cb(err, null);
 	}
     });
 };
@@ -240,11 +240,44 @@ Mailbox.prototype.rulle = function() {
 
 console.log('Make a test mailbox');
 
+function errThrow(err) {
+    if (err != undefined) {
+	throw new Error('Something wen wrong');
+    }
+}
+
 var inMemory = true;
 var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
-    tableExists(box.db, 'seqnumbers');
-    tableExists(box.db, 'packets');
+
+	['diarynumber BIGINT',
+	 'src TEXT',
+	 'dst TEXT',         
+	 'seqnumber BIGINT',
+	 'cnumber BIGINT',
+	 'label TEXT', 
+	 'data BLOB'];
+
+    box.getLastDiaryNumber(function(err, num) {
+	errThrow(err);
+	console.log('Last diary number is %j', num);
+    });
+    
+    box.db.run('INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?)',
+		129, "abra", "kadabra", 119, 109, "testpacket", "sometestdata",
+		function(err) {
+		    errThrow(err);
+		    box.getLastDiaryNumber(function(err, num) {
+			errThrow(err);
+			console.log('Last diary number is %j', num);
+		    });
+		});
+		
+    
+    if (false) {
+	tableExists(box.db, 'seqnumbers');
+	tableExists(box.db, 'packets');
+    }
     
     if (err != undefined) {
 	console.log('SOMETHING WENT WRONG WHEN BUILDING MAILBOX!!!!');
@@ -263,17 +296,15 @@ var box = new Mailbox(filename, 'demobox', function(err) {
 
     // Sequence number generation
     if (true) {
-	box.makeNextSeqNumber('abra', function(x) {
+	box.makeNewSeqNumber('abra', function(x) {
 	    console.log('First seq num is ' + x);
-	    box.makeNextSeqNumber('abra', function(x) {
+	    box.makeNewSeqNumber('abra', function(x) {
 		console.log('Second seq num is ' + x);
-		box.makeNextSeqNumber('abra', function(x) {
+		box.makeNewSeqNumber('abra', function(x) {
 		    console.log('Third seq num is ' + x);
 		});
 	    });
 	});
     }
 });
-tableExists(box.db, 'seqnumbers');
-tableExists(box.db, 'packets');
 
