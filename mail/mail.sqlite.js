@@ -38,21 +38,31 @@ function runWithLog(db, cmd) {
     db.run(cmd);
 }
 
+function makeCreateCmd(tableName, fieldSpecs) {
+    var result = 'CREATE TABLE ' + tableName + ' (';
+    for (var i = 0; i < fieldSpecs.length; i++) {
+	result += fieldSpecs[i];
+	if (i < fieldSpecs.length - 1) {
+	    result += ', ';
+	}
+    }
+    return result + ')';
+}
+
 function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
 				     tableName,     // <-- Name of the table to be created.
-				     createTable) { // <-- Function that should create the table.
+				     fieldSpecs,    // <-- The fields of the table
+				     cb) {          // <-- A callback that accepts optional err.
     db.get('SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\''
 	   + tableName + '\'', function(err, row) {
 	       if (err == null) {
 		   if (row == undefined) {
-		       console.log('Create a new table');
-		       createTable();
+		       db.run(makeCreateCmd(tableName, fieldSpecs), cb);
 		   } else {
-		       console.log('The table '
-				   + tableName + ' already exists, no need to create it');
+		       cb();
 		   }
 	       } else {
-		   throw new Error('Error when checking existence of table.');
+		   cb(err);
 	       }
 	   });
 }
@@ -64,22 +74,18 @@ function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
  This is a table that holds all packets.
 */
 
-function initializePacketsTable(db) {
-    var tableName = 'packets';
+function initializePacketsTable(db, cb) {
     initializeTableIfNotAlready(
-	db, tableName,
-	function() {
-	    cmd = 'CREATE TABLE ' + tableName + ' ('
-		   + 'diarynumber BIGINT, ' // Unique number used internally by this mailbox for every message.
-		   + 'src TEXT, '           // Text string encoding sender mailbox
-		   + 'dst TEXT, '           // Text string encoding receiver mailbox
-		   + 'seqnumber BIGINT, '   // Sequence number. Value of a counter increased by 1 for every packet sent.
-		   + 'label TEXT, '         // Description of what the packet contains
-		   + 'data BLOB'            // The data to be sent. Can be in any form.
-		   + ');';
-	    runWithLog(db, cmd);
-	});
+	db, 'packets',
+	['diarynumber BIGINT',
+	 'src TEXT',
+	 'dst TEXT',         
+	 'seqnumber BIGINT',
+	 'label TEXT', 
+	 'data BLOB'], cb);
 }
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -88,18 +94,11 @@ function initializePacketsTable(db) {
  This is a table that holds sequence counters for every mailbox
  that we might want to sent to.
 */
-function initializeSeqCountersTable(db) {
-    var tableName = 'seqcounters';
+function initializeSeqNumbersTable(db, cb) {
     initializeTableIfNotAlready(
-	db, tableName,
-	function() {
-	    cmd = 'CREATE TABLE ' + tableName + ' ('
-		+ 'dst TEXT, '
-		+ 'counter BIGINT'
-		+ ');';
-	    runWithLog(db, cmd);
-	});
-    
+	db, 'seqnumbers',
+	['dst TEXT',
+	 'counter BIGINT'], cb);
 }
 
 
@@ -108,7 +107,7 @@ function Mailbox(dbFilename,      // <-- The filename where all
 		                  //     messages are stored.
 		 thisMailboxName, // <-- A string that uniquely
 		                  //     identifies this mailbox
-		 errorCallback) { // <-- Optional error callback for db.
+		 cb) { // <-- Optional error callback for db.
     if (!isValidDBFilename(dbFilename)) {
 	throw new Error('Invalid database filename');
     }
@@ -117,11 +116,17 @@ function Mailbox(dbFilename,      // <-- The filename where all
     }
     this.dbFilename = dbFilename;
     this.mailboxName = thisMailboxName;
-    this.db = new sqlite3.Database(dbFilename, errorCallback);
+    this.db = new sqlite3.Database(
+	dbFilename,
+	function(err) {
+	    if (err != undefined) {
+		cb(err);
+	    }
+	});
 
-    // Tables that don't exist should be created.
-    initializePacketsTable(this.db);
-    initializeSeqCountersTable(this.db);
+    var self = this;
+    //initializePacketsTable(self.db);
+    initializeSeqNumbersTable(self.db, cb);
     //initializeCTable(this.db);
 }
 
@@ -131,7 +136,9 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
     if (!isNonEmptyString(dst)) {
 	throw new Error('Dst should be a string');
     }
-    this.db.run('SELECT FROM seqnumbers WHERE dst = ?;', dst,
+    var self = this;
+    this.db.serialize(function() {
+	self.db.get('SELECT counter FROM seqnumbers WHERE dst = ?', dst,
 	   function(err, row) {
 	       if (row == undefined) {
 		   callbackNewNumber();
@@ -139,35 +146,32 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 		   callbackNewNumber(row.counter);
 	       }
 	   });
-};
-
-Mailbox.prototype.getCurrentSeqNumber2 = function(dst, cb) {
-    this.getCurrentSeqNumber(dst, cb);
+    });
 };
 
 // Makes a new sequence nubmer that can be used
 Mailbox.prototype.makeNextSeqNumber = function(dst, callbackNewNumber) {
     var self = this;
     var cbNumberRetrived = function(x) {
-	var newNumber = undefined;
 	var makeCompletedFun = function(y) {
 	    return function(err) {	
 		if (err == undefined) {
 		    callbackNewNumber(y);
 		} else {
-		    callbackNewNumber();
+		    callbackNewNumber(err);
 		}
 	    };
 	}
+	console.log('Current number: ' + x);
 	if (x == undefined) {
 	    var newNumber = seqnums.make();
 	    console.log('INSERT ' + newNumber);
-	    self.db.run('INSERT INTO seqcounters VALUES (?, ?);',
+	    self.db.run('INSERT INTO seqnumbers VALUES (?, ?);',
 			dst, newNumber, makeCompletedFun(newNumber));
 	} else {
 	    console.log('UPDATE' + newNumber);
 	    var newNumber = seqnums.next(x);
-	    self.db.run('UPDATE seqcounters SET counter = ? WHERE dst = ?',
+	    self.db.run('UPDATE seqnumbers SET counter = ? WHERE dst = ?',
 			newNumber, dst, makeCompletedFun(newNumber));
 	}
     };
@@ -189,21 +193,31 @@ Mailbox.prototype.rulle = function() {
 
 
 console.log('Make a test mailbox');
-var box = new Mailbox('demo.db', 'demobox');
-//console.log(typeof box.db);
-console.log(box.db);
+var box = new Mailbox(':memory:', 'demobox', function(err) {
+    if (err != undefined) {
+	console.log('SOMETHING WENT WRONG WHEN BUILDING MAILBOX!!!!');
+	return;
+    }
+    
+    console.log(box.db);
 
-if (false) {
-    console.log('Created');
-    box.getCurrentSeqNumber('mjao', function(x) {
-	console.log('Current seq number for mjao is ' + x);
-    });
-    var dispnum = function(x) {console.log('The number is ' + x);};
-}
+    if (false) {
+	console.log('Created');
+	box.getCurrentSeqNumber('mjao', function(x) {
+	    console.log('Current seq number for mjao is ' + x);
+	});
+	var dispnum = function(x) {console.log('The number is ' + x);};
+    }
 
-box.makeNextSeqNumber('abra', function(x) {
-    console.log('First seq num is ' + x);
     box.makeNextSeqNumber('abra', function(x) {
-	console.log('Second seq num is ' + x);
+	console.log('First seq num is ' + x);
+	box.makeNextSeqNumber('abra', function(x) {
+	    console.log('Second seq num is ' + x);
+	    box.makeNextSeqNumber('abra', function(x) {
+		console.log('Third seq num is ' + x);
+	    });
+	});
     });
+
 });
+
