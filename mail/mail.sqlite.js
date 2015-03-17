@@ -149,22 +149,26 @@ Mailbox.prototype.getCurrentSeqNumber2 = function(dst, cb) {
 Mailbox.prototype.makeNextSeqNumber = function(dst, callbackNewNumber) {
     var self = this;
     var cbNumberRetrived = function(x) {
-	var completedUpdate =
-	    function(err) {	
+	var newNumber = undefined;
+	var makeCompletedFun = function(y) {
+	    return function(err) {	
 		if (err == undefined) {
-		    callbackNewNumber(newNumber);
+		    callbackNewNumber(y);
 		} else {
 		    callbackNewNumber();
 		}
 	    };
+	}
 	if (x == undefined) {
 	    var newNumber = seqnums.make();
+	    console.log('INSERT ' + newNumber);
 	    self.db.run('INSERT INTO seqcounters VALUES (?, ?);',
-			dst, newNumber, completedUpdate);
+			dst, newNumber, makeCompletedFun(newNumber));
 	} else {
+	    console.log('UPDATE' + newNumber);
 	    var newNumber = seqnums.next(x);
 	    self.db.run('UPDATE seqcounters SET counter = ? WHERE dst = ?',
-			newNumber, dst, completedUpdate);
+			newNumber, dst, makeCompletedFun(newNumber));
 	}
     };
     
@@ -188,13 +192,18 @@ console.log('Make a test mailbox');
 var box = new Mailbox('demo.db', 'demobox');
 //console.log(typeof box.db);
 console.log(box.db);
-console.log('Created');
-box.getCurrentSeqNumber('mjao', function(x) {
-    console.log('Current seq number for mjao is ' + x);
-});
-var dispnum = function(x) {console.log('The number is ' + x);};
 
-box.makeNextSeqNumber('abra', dispnum);
-box.makeNextSeqNumber('abra', dispnum);
-box.makeNextSeqNumber('abra', dispnum);
-box.rulle();
+if (false) {
+    console.log('Created');
+    box.getCurrentSeqNumber('mjao', function(x) {
+	console.log('Current seq number for mjao is ' + x);
+    });
+    var dispnum = function(x) {console.log('The number is ' + x);};
+}
+
+box.makeNextSeqNumber('abra', function(x) {
+    console.log('First seq num is ' + x);
+    box.makeNextSeqNumber('abra', function(x) {
+	console.log('Second seq num is ' + x);
+    });
+});
