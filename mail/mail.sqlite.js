@@ -88,7 +88,6 @@ function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
 				     fieldSpecs,    // <-- The fields of the table
 				     cb) {          // <-- A callback that accepts optional err.
     tableExists(db, tableName, function(status) {
-	console.log('status = ' + status);
 	if (status == false) {
 	    db.run(makeCreateCmd(tableName, fieldSpecs), cb);
 	} else if (status == true) {
@@ -193,7 +192,7 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 // Call this method every time we send a packet
 Mailbox.prototype.makeNewSeqNumber = function(dst, callbackNewNumber) {
     var self = this;
-    var cbNumberRetrived = function(x) {
+    var cbNumberRetrived = function(err, x) {
 	var makeCompletedFun = function(y) {
 	    return function(err) {	
 		if (err == undefined) {
@@ -203,12 +202,15 @@ Mailbox.prototype.makeNewSeqNumber = function(dst, callbackNewNumber) {
 		}
 	    };
 	}
+	console.log('Read number ' + x);
 	if (x == undefined) {
 	    var newNumber = seqnums.make();
+	    console.log('New number is ' + newNumber);
 	    self.db.run('INSERT INTO seqnumbers VALUES (?, ?);',
 			dst, newNumber, makeCompletedFun(newNumber));
 	} else {
 	    var newNumber = seqnums.next(x);
+	    console.log('New number is ' + newNumber);
 	    self.db.run('UPDATE seqnumbers SET counter = ? WHERE dst = ?',
 			newNumber, dst, makeCompletedFun(newNumber));
 	}
@@ -284,16 +286,18 @@ var box = new Mailbox(filename, 'demobox', function(err) {
 	    console.log('A new number is ' + num);
 	});
     });
-    
-    box.db.run('INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?)',
-		129, "abra", "kadabra", 119, 109, "testpacket", "sometestdata",
-		function(err) {
-		    errThrow(err);
-		    box.getLastDiaryNumber(function(err, num) {
-			errThrow(err);
-			console.log('Last diary number is %j', num);
-		    });
-		});
+
+    if (false) {
+	box.db.run('INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?)',
+    		   129, "abra", "kadabra", 119, 109, "testpacket", "sometestdata",
+    		   function(err) {
+    		       errThrow(err);
+    		       box.getLastDiaryNumber(function(err, num) {
+    			   errThrow(err);
+    			   console.log('Last diary number is %j', num);
+    		       });
+    		   });
+    }
 		
     
     if (false) {
@@ -322,8 +326,8 @@ var box = new Mailbox(filename, 'demobox', function(err) {
 	    console.log('First seq num is ' + x);
 	    box.makeNewSeqNumber('abra', function(err, x) {
 		console.log('Second seq num is ' + x);
-		box.makeNewSeqNumber('abra', function(err, x) {
-		    console.log('Third seq num is ' + x);
+		box.makeNewSeqNumber('abra', function(err, y) {
+		    console.log('Third seq num is ' + y);
 		});
 	    });
 	});
