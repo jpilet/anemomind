@@ -6,6 +6,7 @@ Mailbox model based on sqlite
 
 var sqlite3 = require('sqlite3').verbose();
 var seqnums = require('./seqnums.js');
+var async = require('async');
 
 
 /////////////////////////////////////////////////////////
@@ -52,6 +53,19 @@ function makeCreateCmd(tableName, fieldSpecs) {
 
 // Checks if a table exists, and calls 'cb' with that information, or error.
 function tableExists(db, tableName, cb) {
+    if (cb == undefined) {
+	cb = function(status) {
+	    console.log('DEBUG INFO:');
+	    if (status == true) {
+		console.log('  There is a table with name ' + tableName);
+	    } else if (status == false) {
+		console.log('  There is NO table with name ' + tableName);
+	    } else {
+		console.log('  Error while testing existence of table with name ' + tableName);
+	    }
+	};
+    }
+    
     db.get('SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\''
 	   + tableName + '\'', function(err, row) {
 	       if (err == undefined) {
@@ -140,9 +154,17 @@ function Mailbox(dbFilename,      // <-- The filename where all
 	    }
 	});
 
+    // For variable visibility.
     var self = this;
-    //initializePacketsTable(self.db);
-    initializeSeqNumbersTable(self.db, cb);
+    
+    async.parallel([
+	function(a) {initializeSeqNumbersTable(self.db, a);},
+	function(a) {initializePacketsTable(self.db, a);}
+    ], function(err, resultArrayNotUsed) {
+	cb(err);
+    });
+    
+    
     //initializeCTable(this.db);
 }
 
@@ -208,9 +230,12 @@ Mailbox.prototype.rulle = function() {
 
 console.log('Make a test mailbox');
 
-var inMemory = false;
+var inMemory = true;
 var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
+    tableExists(box.db, 'seqnumbers');
+    tableExists(box.db, 'packets');
+    
     if (err != undefined) {
 	console.log('SOMETHING WENT WRONG WHEN BUILDING MAILBOX!!!!');
 	return;
@@ -238,6 +263,7 @@ var box = new Mailbox(filename, 'demobox', function(err) {
 	    });
 	});
     }
-
 });
+tableExists(box.db, 'seqnumbers');
+tableExists(box.db, 'packets');
 
