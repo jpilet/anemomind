@@ -53,6 +53,7 @@ function makeCreateCmd(tableName, fieldSpecs) {
 
 // Checks if a table exists, and calls 'cb' with that information, or error.
 function tableExists(db, tableName, cb) {
+    // If no callback is provided, provide a default callback for debugging purposes.
     if (cb == undefined) {
 	cb = function(status) {
 	    console.log('DEBUG INFO:');
@@ -65,7 +66,8 @@ function tableExists(db, tableName, cb) {
 	    }
 	};
     }
-    
+
+    // The query
     db.get('SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\''
 	   + tableName + '\'', function(err, row) {
 	       if (err == undefined) {
@@ -97,13 +99,6 @@ function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
     });
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
- P A C K E T S   T A B L E
-
- This is a table that holds all packets.
-*/
-
 function initializePacketsTable(db, cb) {
     initializeTableIfNotAlready(
 	db, 'packets',
@@ -111,26 +106,26 @@ function initializePacketsTable(db, cb) {
 	 'src TEXT',
 	 'dst TEXT',         
 	 'seqnumber BIGINT',
+	 'cnumber BIGINT',
 	 'label TEXT', 
 	 'data BLOB'], cb);
 }
 
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
- S E Q C O U N T E R S 
-
- This is a table that holds sequence counters for every mailbox
- that we might want to sent to.
-*/
 function initializeSeqNumbersTable(db, cb) {
     initializeTableIfNotAlready(
 	db, 'seqnumbers',
-	['dst TEXT',
-	 'counter BIGINT'], cb);
+	['dst TEXT', 'counter BIGINT'],
+	cb
+    );
 }
 
+function initializeCTable(db, cb) {
+    initializeTableIfNotAlready(
+	db, 'ctable',
+	['src TEXT', 'dst TEXT', 'counter BIGINT'],
+	cb
+    );
+}
 
 // A constructor for a temprorary storage of all mails.
 function Mailbox(dbFilename,      // <-- The filename where all
@@ -156,20 +151,20 @@ function Mailbox(dbFilename,      // <-- The filename where all
 
     // For variable visibility.
     var self = this;
-    
+
+    // Wait for the creation of all tables to complete before we call cb.
     async.parallel([
 	function(a) {initializeSeqNumbersTable(self.db, a);},
-	function(a) {initializePacketsTable(self.db, a);}
-    ], function(err, resultArrayNotUsed) {
+	function(a) {initializePacketsTable(self.db, a);},
+	function(a) {initializeCTable(self.db, a);},
+    ], function(err) {
 	cb(err);
     });
-    
-    
-    //initializeCTable(this.db);
 }
 
 
-// Returns the current sequence number stored in the database, by calling a callback with that number.
+// Returns the current sequence number stored in the database,
+// by calling a callback with that number.
 // If no such number exists, it calls the callback without any arguments.
 Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
     if (!isNonEmptyString(dst)) {
@@ -179,10 +174,14 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
     this.db.serialize(function() {
 	self.db.get('SELECT counter FROM seqnumbers WHERE dst = ?', dst,
 	   function(err, row) {
-	       if (row == undefined) {
-		   callbackNewNumber();
+	       if (err == undefined) {
+		   if (row == undefined) {
+		       callbackNewNumber();
+		   } else {
+		       callbackNewNumber(row.counter);
+		   }
 	       } else {
-		   callbackNewNumber(row.counter);
+		   callbackNewNumber(err);
 	       }
 	   });
     });
@@ -211,9 +210,20 @@ Mailbox.prototype.makeNextSeqNumber = function(dst, callbackNewNumber) {
 			newNumber, dst, makeCompletedFun(newNumber));
 	}
     };
-    
     this.getCurrentSeqNumber(dst, cbNumberRetrived);
 }
+
+// Gets the last diary number of all messages
+Mailbox.prototype.getLastDiaryNumber = function(cb) {
+    var query = 'SELECT max(diarynumber) FROM packets';
+    this.db.get(query, function(err, row) {
+	if (err == undefined) {
+	    cb(row);
+	} else {
+	    cb(err);
+	}
+    });
+};
 
 
 
