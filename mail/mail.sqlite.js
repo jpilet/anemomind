@@ -94,7 +94,7 @@ function initializeSeqCountersTable(db) {
 	db, tableName,
 	function() {
 	    cmd = 'CREATE TABLE ' + tableName + ' ('
-		+ 'dst TEXT'
+		+ 'dst TEXT, '
 		+ 'counter BIGINT'
 		+ ');';
 	    runWithLog(db, cmd);
@@ -125,12 +125,13 @@ function Mailbox(dbFilename,      // <-- The filename where all
     //initializeCTable(this.db);
 }
 
-// Returns the current sequence number by calling a callback.
+// Returns the current sequence number stored in the database, by calling a callback with that number.
+// If no such number exists, it calls the callback without any arguments.
 Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
     if (!isNonEmptyString(dst)) {
 	throw new Error('Dst should be a string');
     }
-    this.db.run('SELECT FROM seqnumbers WHERE dst = \'' + dst + '\';',
+    this.db.run('SELECT FROM seqnumbers WHERE dst = ?;', dst,
 	   function(err, row) {
 	       if (row == undefined) {
 		   callbackNewNumber();
@@ -140,18 +141,34 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 	   });
 };
 
-// Sets the sequence number and calls 'cb' once done.
-Mailbox.prototype.setCurrentSeqNumber = function(dst, cb) {
-    
-}
+Mailbox.prototype.getCurrentSeqNumber2 = function(dst, cb) {
+    this.getCurrentSeqNumber(dst, cb);
+};
 
-Mailbox.prototype.makeSeqNumber = function(dst, callbackNewNumber) {
-    this.getCurrentSeqNumber(dst, function(number) {
-	if (number == undefined) {
-	    var newNumber = makeZero();
-	    
+// Makes a new sequence nubmer that can be used
+Mailbox.prototype.makeNextSeqNumber = function(dst, callbackNewNumber) {
+    var self = this;
+    var cbNumberRetrived = function(x) {
+	var completedUpdate =
+	    function(err) {	
+		if (err == undefined) {
+		    callbackNewNumber(newNumber);
+		} else {
+		    callbackNewNumber();
+		}
+	    };
+	if (x == undefined) {
+	    var newNumber = seqnums.make();
+	    self.db.run('INSERT INTO seqcounters VALUES (?, ?);',
+			dst, newNumber, completedUpdate);
+	} else {
+	    var newNumber = seqnums.next(x);
+	    self.db.run('UPDATE seqcounters SET counter = ? WHERE dst = ?',
+			newNumber, dst, completedUpdate);
 	}
-    });
+    };
+    
+    this.getCurrentSeqNumber(dst, cbNumberRetrived);//function(x) {});
 }
 
 
@@ -175,4 +192,9 @@ console.log('Created');
 box.getCurrentSeqNumber('mjao', function(x) {
     console.log('Current seq number for mjao is ' + x);
 });
+var dispnum = function(x) {console.log('The number is ' + x);};
+
+box.makeNextSeqNumber('abra', dispnum);
+box.makeNextSeqNumber('abra', dispnum);
+box.makeNextSeqNumber('abra', dispnum);
 box.rulle();
