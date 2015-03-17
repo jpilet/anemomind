@@ -179,7 +179,7 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 	   function(err, row) {
 	       if (err == undefined) {
 		   if (row == undefined) {
-		       callbackNewNumber();
+		       callbackNewNumber(err);
 		   } else {
 		       callbackNewNumber(err, row.counter);
 		   }
@@ -229,7 +229,10 @@ Mailbox.prototype.getLastDiaryNumber = function(cb) {
     });
 };
 
+
+
 // Call this method whenever we send or handle a packet.
+// (See 'sendPacket' or 'handleIncomingPacket')
 // If nothing goes wrong, it calls cb with the new number.
 // It doesn't mutate the database.
 Mailbox.prototype.makeNewDiaryNumber = function(cb) {
@@ -245,10 +248,65 @@ Mailbox.prototype.makeNewDiaryNumber = function(cb) {
     });
 };
 
+Mailbox.prototype.getCNumber = function(src, dst, seqNumber, cb) {
+    if (cb == undefined) { // src argument omitted, thus cb is undefined.
+	// src assumed to be this.mailboxName.
+	this.getCNumber(this.mailboxName, src, dst, seqNumber);
+    } else {
 
+	var query = 'SELECT counter FROM ctable WHERE src = ? AND dst = ?';
+	var self = this;
+	this.db.get(
+	    query, src, dst,
+	    function(err, row) {
+		if (err == undefined) {
+		    if (row == undefined) { /* If there isn't already a cnumber,
+					       initialize it with sequence counter value */
+			var insert = 'INSERT INTO ctable VALUES (?, ?, ?)';
+			self.db.run(insert, src, dst, seqNumber, function(err2) {
+			    console.log('Create c-number');
+			    cb(err2, seqNumber);
+			});
+		    } else { /* If there is a value, just use it as cnumber.*/
+			console.log('Read c-number');
+			cb(err, row.counter);
+		    }
+		} else {
+		    cb(err);
+		}
+	    });
+    }
+}
 
-Mailbox.sendPacket = function (dst, label, data) {
-    
+/*
+	['diarynumber BIGINT',
+	 'src TEXT',
+	 'dst TEXT',         
+	 'seqnumber BIGINT',
+	 'cnumber BIGINT',
+	 'label TEXT', 
+	 'data BLOB'];
+*/
+Mailbox.sendPacket = function (dst, label, data, cb) {
+    var self = this;
+    async.parallel({
+	diaryNumber: function(a) {
+	    self.makeNewDiaryNumber(a);
+	},
+	sequenceNumber: function(a) {
+	    self.makeNewSequenceNumber(a);
+	}
+    }, function(err, results) {
+	if (err == undefined) {
+	    getCNumber(
+		dst, results.sequenceNumber,
+		function(err, cNumber) {
+		    
+	    });
+	} else {
+	    cb(err);
+	}
+    });
 };
 
 Mailbox.prototype.rulle = function() {
@@ -270,13 +328,14 @@ var inMemory = true;
 var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
 
-	['diarynumber BIGINT',
-	 'src TEXT',
-	 'dst TEXT',         
-	 'seqnumber BIGINT',
-	 'cnumber BIGINT',
-	 'label TEXT', 
-	 'data BLOB'];
+    if (false) {
+	box.getCNumber('abra', '12349', function(err, cnumber) {
+	    console.log('C-number is ' + cnumber);
+	    box.getCNumber('abra', '19999', function(err, cnumber) {
+		console.log('C-number is ' + cnumber);
+	    });
+	});
+    }
 
     box.getLastDiaryNumber(function(err, num) {
 	errThrow(err);
@@ -287,8 +346,8 @@ var box = new Mailbox(filename, 'demobox', function(err) {
     });
 
     if (false) {
-	box.db.run('INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?)',
-    		   129, "abra", "kadabra", 119, 109, "testpacket", "sometestdata",
+	box.db.run('INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    		   129, "abra", "kadabra", 119, 109, "testpacket", "sometestdata", false,
     		   function(err) {
     		       errThrow(err);
     		       box.getLastDiaryNumber(function(err, num) {
