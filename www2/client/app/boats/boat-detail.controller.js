@@ -1,25 +1,17 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('BoatDetailCtrl', function ($scope, $stateParams, Auth, $http) {
+  .controller('BoatDetailCtrl', function ($scope, $stateParams, Auth, $http, userDB) {
     $scope.boat = {};
-    $scope.users = {};
-    $scope.invitationMessage = {};
+    $scope.invitationMessage = "";
     $scope.invitedEMail = "";
     $scope.invitedAdmin = true;
+    $scope.users = {};
 
     var resolveUser = function(user) {
-      var me = Auth.getCurrentUser();
-      if (user == me._id) {
-        $scope.users[me._id] = me;
-      } else {
-        $http.get('/api/users/' + user)
-        .success(function(data, status, headers, config) {
-          if (data && data._id) {
-            $scope.users[data._id] = data;
-          }
-        });
-      }
+      userDB.resolveUser(user, function(user) {
+        $scope.users[user._id] = user;
+      });
     };
 
     $http.get('/api/boats/' + $stateParams.boatId)
