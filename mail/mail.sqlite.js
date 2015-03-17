@@ -53,6 +53,7 @@ function makeCreateCmd(tableName, fieldSpecs) {
 
 // Checks if a table exists, and calls 'cb' with that information, or error.
 function tableExists(db, tableName, cb) {
+    
     // If no callback is provided, provide a default callback for debugging purposes.
     if (cb == undefined) {
 	cb = function(status) {
@@ -287,6 +288,8 @@ Mailbox.prototype.makeNewDiaryNumber = function(cb) {
     });
 };
 
+// Retrieves the C-number for a given (src, dst) pair. A sequence number
+// is provided for initialization if no C-number exists. The result is passed to cb.
 Mailbox.prototype.getCNumber = function(src, dst, seqNumber, cb) {
     if (cb == undefined) { // src argument omitted, thus cb is undefined.
 	// src assumed to be this.mailboxName.
@@ -328,6 +331,9 @@ Mailbox.prototype.getCNumber = function(src, dst, seqNumber, cb) {
 	 'ack INTEGER'
 	 ];
 */
+
+// Given destination mailbox, label and data,
+// a new packet is produced that is put in the packets table.
 Mailbox.sendPacket = function (dst, label, data, cb) {
     var self = this;
     async.parallel({
