@@ -38,6 +38,7 @@ function runWithLog(db, cmd) {
     db.run(cmd);
 }
 
+// Assembles an SQL command as a string to create a table.
 function makeCreateCmd(tableName, fieldSpecs) {
     var result = 'CREATE TABLE ' + tableName + ' (';
     for (var i = 0; i < fieldSpecs.length; i++) {
@@ -49,6 +50,7 @@ function makeCreateCmd(tableName, fieldSpecs) {
     return result + ')';
 }
 
+// Checks if a table exists, and calls 'cb' with that information, or error.
 function tableExists(db, tableName, cb) {
     db.get('SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\''
 	   + tableName + '\'', function(err, row) {
@@ -64,6 +66,7 @@ function tableExists(db, tableName, cb) {
 	   });
 }
 
+// Creates a new table if it doesn't exist already.
 function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
 				     tableName,     // <-- Name of the table to be created.
 				     fieldSpecs,    // <-- The fields of the table
@@ -74,7 +77,7 @@ function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
 	    db.run(makeCreateCmd(tableName, fieldSpecs), cb);
 	} else if (status == true) {
 	    cb();
-	} else {
+	} else { // Pass on the error code to the callback.
 	    cb(status);
 	}
     });
