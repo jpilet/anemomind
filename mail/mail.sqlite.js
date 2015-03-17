@@ -82,6 +82,45 @@ function tableExists(db, tableName, cb) {
 	   });
 }
 
+function getAllTables(db, cb) {
+    db.all('SELECT * FROM sqlite_master WHERE type=\'table\'', cb);
+}
+
+function getAllTableRows(db, tableName, cb) {
+    db.all('SELECT * FROM ' + tableName, cb);
+}
+
+// For debugging.
+function dispAllTableData(db) {
+    getAllTables(db, function(err, tables) {
+	async.map(
+	    tables,
+	    function(table, a) {
+		getAllTableRows(db, table.name, a);
+	    },
+	    function(err, tableData) {
+		if (err != undefined) {
+		    throw new Error('There was an error: ' + err);
+		}
+		if (tables.length != tableData.length) {
+		    console.log('tables = %j', tables);
+		    console.log('tableData = %j', tableData);
+		    throw new Error('Array length mismatch');
+		}
+
+		console.log('=== TABLE SUMMARY ===');
+		for (var i = 0; i < tables.length; i++) {
+		    var ind = i+1;
+		    console.log('Table ' + ind + ' of ' + tables.length + ' is named "' +
+				tables[i].name
+				+ '" and contains:');
+		    console.log('  %j', tableData[i]);
+		}
+	    })});
+    
+}
+
+
 // Creates a new table if it doesn't exist already.
 function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
 				     tableName,     // <-- Name of the table to be created.
@@ -285,7 +324,9 @@ Mailbox.prototype.getCNumber = function(src, dst, seqNumber, cb) {
 	 'seqnumber BIGINT',
 	 'cnumber BIGINT',
 	 'label TEXT', 
-	 'data BLOB'];
+	 'data BLOB',
+	 'ack INTEGER'
+	 ];
 */
 Mailbox.sendPacket = function (dst, label, data, cb) {
     var self = this;
@@ -301,8 +342,14 @@ Mailbox.sendPacket = function (dst, label, data, cb) {
 	    getCNumber(
 		dst, results.sequenceNumber,
 		function(err, cNumber) {
-		    
-	    });
+		    // Now we have all we need to make the packet.
+		    var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+		    self.db.run(
+			query, results.diaryNumber,
+			self.mailboxName, dst, results.sequenceNumber,
+			cNumber, label, data, false,/*not yet acknowledged*/
+			cb);
+		});
 	} else {
 	    cb(err);
 	}
@@ -342,10 +389,11 @@ var box = new Mailbox(filename, 'demobox', function(err) {
 	console.log('Last diary number is %j', num);
 	box.makeNewDiaryNumber(function(err, num) {
 	    console.log('A new number is ' + num);
+	    dispAllTableData(box.db);
 	});
     });
 
-    if (false) {
+    if (true) {
 	box.db.run('INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
     		   129, "abra", "kadabra", 119, 109, "testpacket", "sometestdata", false,
     		   function(err) {
@@ -353,6 +401,7 @@ var box = new Mailbox(filename, 'demobox', function(err) {
     		       box.getLastDiaryNumber(function(err, num) {
     			   errThrow(err);
     			   console.log('Last diary number is %j', num);
+			   dispAllTableData(box.db);
     		       });
     		   });
     }
