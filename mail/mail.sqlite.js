@@ -149,7 +149,7 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
     });
 };
 
-// Makes a new sequence nubmer that can be used
+// Makes a new sequence number that can be used.
 Mailbox.prototype.makeNextSeqNumber = function(dst, callbackNewNumber) {
     var self = this;
     var cbNumberRetrived = function(x) {
@@ -162,21 +162,18 @@ Mailbox.prototype.makeNextSeqNumber = function(dst, callbackNewNumber) {
 		}
 	    };
 	}
-	console.log('Current number: ' + x);
 	if (x == undefined) {
 	    var newNumber = seqnums.make();
-	    console.log('INSERT ' + newNumber);
 	    self.db.run('INSERT INTO seqnumbers VALUES (?, ?);',
 			dst, newNumber, makeCompletedFun(newNumber));
 	} else {
-	    console.log('UPDATE' + newNumber);
 	    var newNumber = seqnums.next(x);
 	    self.db.run('UPDATE seqnumbers SET counter = ? WHERE dst = ?',
 			newNumber, dst, makeCompletedFun(newNumber));
 	}
     };
     
-    this.getCurrentSeqNumber(dst, cbNumberRetrived);//function(x) {});
+    this.getCurrentSeqNumber(dst, cbNumberRetrived);
 }
 
 
@@ -193,7 +190,10 @@ Mailbox.prototype.rulle = function() {
 
 
 console.log('Make a test mailbox');
-var box = new Mailbox(':memory:', 'demobox', function(err) {
+
+var inMemory = false;
+var filename = (inMemory? ':memory:' : 'demo.js');
+var box = new Mailbox(filename, 'demobox', function(err) {
     if (err != undefined) {
 	console.log('SOMETHING WENT WRONG WHEN BUILDING MAILBOX!!!!');
 	return;
@@ -201,7 +201,8 @@ var box = new Mailbox(':memory:', 'demobox', function(err) {
     
     console.log(box.db);
 
-    if (false) {
+    // See if we 
+    if (true) {
 	console.log('Created');
 	box.getCurrentSeqNumber('mjao', function(x) {
 	    console.log('Current seq number for mjao is ' + x);
@@ -209,15 +210,18 @@ var box = new Mailbox(':memory:', 'demobox', function(err) {
 	var dispnum = function(x) {console.log('The number is ' + x);};
     }
 
-    box.makeNextSeqNumber('abra', function(x) {
-	console.log('First seq num is ' + x);
+    // Sequence number generation
+    if (true) {
 	box.makeNextSeqNumber('abra', function(x) {
-	    console.log('Second seq num is ' + x);
+	    console.log('First seq num is ' + x);
 	    box.makeNextSeqNumber('abra', function(x) {
-		console.log('Third seq num is ' + x);
+		console.log('Second seq num is ' + x);
+		box.makeNextSeqNumber('abra', function(x) {
+		    console.log('Third seq num is ' + x);
+		});
 	    });
 	});
-    });
+    }
 
 });
 
