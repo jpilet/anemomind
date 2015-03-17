@@ -122,7 +122,9 @@ function initializeSeqNumbersTable(db, cb) {
 function initializeCTable(db, cb) {
     initializeTableIfNotAlready(
 	db, 'ctable',
-	['src TEXT', 'dst TEXT', 'counter BIGINT'],
+	['src TEXT',
+	 'dst TEXT',
+	 'counter BIGINT'],
 	cb
     );
 }
@@ -178,7 +180,7 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 		   if (row == undefined) {
 		       callbackNewNumber();
 		   } else {
-		       callbackNewNumber(row.counter);
+		       callbackNewNumber(err, row.counter);
 		   }
 	       } else {
 		   callbackNewNumber(err);
@@ -188,13 +190,14 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 };
 
 // Makes a new sequence number that can be used.
+// Call this method every time we send a packet
 Mailbox.prototype.makeNewSeqNumber = function(dst, callbackNewNumber) {
     var self = this;
     var cbNumberRetrived = function(x) {
 	var makeCompletedFun = function(y) {
 	    return function(err) {	
 		if (err == undefined) {
-		    callbackNewNumber(y);
+		    callbackNewNumber(err, y);
 		} else {
 		    callbackNewNumber(err);
 		}
@@ -221,6 +224,22 @@ Mailbox.prototype.getLastDiaryNumber = function(cb) {
 	    cb(err, result["max(diarynumber)"]);
 	} else {
 	    cb(err, null);
+	}
+    });
+};
+
+// Call this method whenever we send or handle a packet.
+// If nothing goes wrong, it calls cb with the new number.
+// It doesn't mutate the database.
+Mailbox.prototype.makeNewDiaryNumber = function(cb) {
+    this.getLastDiaryNumber(function(err, number) {
+	if (err == undefined) {
+	    var result = (number == undefined?
+			  seqnums.make() :
+			  seqnums.next(number));
+	    cb(err, result);
+	} else {
+	    cb(err);
 	}
     });
 };
@@ -261,6 +280,9 @@ var box = new Mailbox(filename, 'demobox', function(err) {
     box.getLastDiaryNumber(function(err, num) {
 	errThrow(err);
 	console.log('Last diary number is %j', num);
+	box.makeNewDiaryNumber(function(err, num) {
+	    console.log('A new number is ' + num);
+	});
     });
     
     box.db.run('INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -288,7 +310,7 @@ var box = new Mailbox(filename, 'demobox', function(err) {
 
     // See if we 
     if (true) {
-	box.getCurrentSeqNumber('mjao', function(x) {
+	box.getCurrentSeqNumber('mjao', function(err, x) {
 	    console.log('Current seq number for mjao is ' + x);
 	});
 	var dispnum = function(x) {console.log('The number is ' + x);};
@@ -296,11 +318,11 @@ var box = new Mailbox(filename, 'demobox', function(err) {
 
     // Sequence number generation
     if (true) {
-	box.makeNewSeqNumber('abra', function(x) {
+	box.makeNewSeqNumber('abra', function(err, x) {
 	    console.log('First seq num is ' + x);
-	    box.makeNewSeqNumber('abra', function(x) {
+	    box.makeNewSeqNumber('abra', function(err, x) {
 		console.log('Second seq num is ' + x);
-		box.makeNewSeqNumber('abra', function(x) {
+		box.makeNewSeqNumber('abra', function(err, x) {
 		    console.log('Third seq num is ' + x);
 		});
 	    });
