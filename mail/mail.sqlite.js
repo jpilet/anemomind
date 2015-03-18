@@ -118,10 +118,13 @@ function dispAllTableData(db, cb) {
 		    console.log('=== TABLE SUMMARY ===');
 		    for (var i = 0; i < tables.length; i++) {
 			var ind = i+1;
+			console.log('');
+			console.log('');
 			console.log('Table ' + ind + ' of ' + tables.length + ' is named "' +
 				    tables[i].name
 				    + '" and contains:');
 			console.log('  %j', tableData[i]);
+			console.log('TOTAL OF ' + tableData[i].length + ' ITEMS.');
 		    }
 		} else if (cb == undefined) {
 		    throw new Error('There was an error');
@@ -616,27 +619,30 @@ function valueOf(x) {
 
 // Sends an ack to the source of a packet.
 Mailbox.prototype.sendAck = function(src, cb) {
+    console.log('SEND ACK!!');
     var self = this;
-    var query = 'SELECT * FROM packets WHERE src = ? AND dst = ? AND ack = 0';
+    var query = 'SELECT seqnumber FROM packets WHERE src = ? AND dst = ? AND ack = 0';
     self.db.all(
-	query, valueOf(src), valueOf(self.mailboxName),
+	query, src, self.mailboxName,
 	function(err, data) {
-	    console.log('data = %j', data);
 	    var seqnums = new Array(data.length);
 	    for (var i = 0; i < data.length; i++) {
 		seqnums[i] = data[i].seqnumber;
-		async.parallel([
-		    function(a) {
-			self.sendPacket(
-			    src, 'ack',
-			    seqnums,
-			    a);
-		    },
-		    function(a) {
-			self.setAcked(src, self.mailboxName, seqnums, a);
-		    }], cb);
 	    }
+
+	    console.log('seqnums = ' + seqnums);
 	    
+	    async.parallel([
+		function(a) {
+		    self.sendPacket(
+			src/*back to the source*/,
+			'ack',
+			seqnums,
+			a);
+		},
+		function(a) {
+		    self.setAcked(src, self.mailboxName, seqnums, a);
+		}], cb);
 	});
 }
 
@@ -645,7 +651,6 @@ Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
     var self = this;
     this.getNonAckCount(src, function(err, count) {
 	if (err == undefined) {
-	    console.log(' There are ' + count + ' packets');
 	    if (count < self.ackFrequency) {
 		cb(err);
 	    } else {
@@ -735,10 +740,8 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 	function(err, p) {
 	    if (err == undefined) {
 		if (p) {
-		    console.log('Accept it');
 		    self.acceptIncomingPacket(packet, cb);
 		} else {
-		    console.log('Reject it');
 		    cb(err);
 		}
 	    } else {
@@ -752,6 +755,7 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 // Given destination mailbox, label and data,
 // a new packet is produced that is put in the packets table.
 Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
+    console.log('Send a packet');
     var self = this;
     async.parallel({
 	diaryNumber: function(a) {
@@ -761,6 +765,7 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
 	    self.makeNewSeqNumber(dst, a);
 	}
     }, function(err, results) {
+	console.log('  generated numbers dnum = ', results.diaryNumber, '  seqnum = ', results.sequenceNumber);
 	if (err == undefined) {
 	    box.getOrMakeCNumber(
 		dst, results.sequenceNumber,
@@ -960,6 +965,7 @@ function maximizeCNumberDemo(box) {
 	}
     };
     spammer(30, function(err) {
+	assert(err == undefined);
 	dispAllTableData(box.db);
     });
 }
