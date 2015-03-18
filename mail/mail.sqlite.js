@@ -642,8 +642,8 @@ Mailbox.prototype.sendAck = function(src, cb) {
 		},
 		function(a) {
 		    self.setAcked(src, self.mailboxName, seqnums, a);
-		}], function(err) {
-		    console.log('Both sending the packet and setAcked completed!');
+		}], function(err, results) {
+		    console.log('Both sending the packet and setAcked completed, with results ' + results);
 		    cb(err);
 		});
 	});
@@ -755,10 +755,7 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 
 
 
-// Given destination mailbox, label and data,
-// a new packet is produced that is put in the packets table.
-Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
-    console.log('Send a packet');
+Mailbox.prototype.getDiaryAndSeqNumbers = function(dst, cb) {
     var self = this;
     async.parallel({
 	diaryNumber: function(a) {
@@ -766,27 +763,37 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
 	},
 	sequenceNumber: function(a) {
 	    self.makeNewSeqNumber(dst, a);
-	}
-    }, function(err, results) {
-	console.log('  generated numbers dnum = ', results.diaryNumber, '  seqnum = ', results.sequenceNumber);
-	if (err == undefined) {
-	    box.getOrMakeCNumber(
-		dst, results.sequenceNumber,
-		function(err, cNumber) {
-		    // Now we have all we need to make the packet.
-		    console.log('Run query');
-		    var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-		    self.db.run(
-			query, results.diaryNumber,
-			self.mailboxName, dst, results.sequenceNumber,
-			cNumber, label, data, false,/*not yet acknowledged*/
-			cb);
-		});
-	} else {
-	    console.log('Error in sendPacket');
-	    cb(err);
-	}
-    });
+	}}, cb);
+}
+
+
+// Given destination mailbox, label and data,
+// a new packet is produced that is put in the packets table.
+Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
+    console.log('Send a packet');
+    var self = this;
+    this.getDiaryAndSeqNumbers(
+	dst,
+	function(err, results) {
+	    console.log('  generated numbers dnum = ', results.diaryNumber, '  seqnum = ', results.sequenceNumber);
+	    if (err == undefined) {
+		box.getOrMakeCNumber(
+		    dst, results.sequenceNumber,
+		    function(err, cNumber) {
+			// Now we have all we need to make the packet.
+			console.log('Run query');
+			var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+			self.db.run(
+			    query, results.diaryNumber,
+			    self.mailboxName, dst, results.sequenceNumber,
+			    cNumber, label, data, false,/*not yet acknowledged*/
+			    cb);
+		    });
+	    } else {
+		console.log('Error in sendPacket');
+		cb(err);
+	    }
+	});
     console.log('Leaving function sendPacket');
 };
 
@@ -958,6 +965,7 @@ function registerPacketDataDemo(box) {
 function maximizeCNumberDemo(box) {
     var spammer = function(n, cb) {
 	if (n == 0) {
+	    console.log('Done spamming');
 	    cb();
 	} else {
 	    console.log('Handle packet ' + n);
@@ -965,6 +973,8 @@ function maximizeCNumberDemo(box) {
 		new pkt.Packet(
 		    'some-spammer', box.mailboxName,
 		    n, -1, 'Spam message', 'There are ' + n + ' messages left to send'),
+
+		// Function to be called once the incoming packet has been handled:
 		function(err) {
 		    spammer(n - 1, cb);
 		});
