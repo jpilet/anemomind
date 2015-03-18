@@ -7,6 +7,7 @@ Mailbox model based on sqlite
 var sqlite3 = require('sqlite3').verbose();
 var seqnums = require('./seqnums.js');
 var async = require('async');
+var pkt = require('./packet.js');
 
 
 /////////////////////////////////////////////////////////
@@ -218,6 +219,10 @@ function Mailbox(dbFilename,      // <-- The filename where all
     if (!isValidMailboxName(thisMailboxName)) {
 	throw new Error('Invalid mailbox name');
     }
+
+    // How often we should respond with an ack packet.
+    this.ackFrequency = 30;
+    
     this.dbFilename = dbFilename;
     this.mailboxName = thisMailboxName;
     this.db = new sqlite3.Database(
@@ -409,37 +414,282 @@ Mailbox.prototype.makeNewDiaryNumber = function(cb) {
     });
 };
 
+
+
 // Retrieves the C-number for a given (src, dst) pair. A sequence number
 // is provided for initialization if no C-number exists. The result is passed to cb.
-Mailbox.prototype.getCNumber = function(src, dst, seqNumber, cb) {
-    if (cb == undefined) { // src argument omitted, thus cb is undefined.
-	// src assumed to be this.mailboxName.
-	this.getCNumber(this.mailboxName, src, dst, seqNumber);
-    } else {
+Mailbox.prototype.getCNumber = function(src, dst, cb) {
+    var query = 'SELECT counter FROM ctable WHERE src = ? AND dst = ?';
+    var self = this;
+    this.db.get(
+	query, src, dst,
+	function(err, row) {
+	    if (err == undefined) {
+		if (row == undefined) {
+		    cb(err);
+		} else {
+		    cb(err, row.counter);
+		}
+	    } else {
+		cb(err);
+	    }
+	});
+};
 
-	var query = 'SELECT counter FROM ctable WHERE src = ? AND dst = ?';
-	var self = this;
-	this.db.get(
-	    query, src, dst,
-	    function(err, row) {
-		if (err == undefined) {
-		    if (row == undefined) { /* If there isn't already a cnumber,
-					       initialize it with sequence counter value */
-			var insert = 'INSERT INTO ctable VALUES (?, ?, ?)';
-			self.db.run(insert, src, dst, seqNumber, function(err2) {
-			    console.log('Create c-number');
-			    cb(err2, seqNumber);
+
+Mailbox.prototype.insertCTable = function(src, dst, value, cb) {
+    var insert = 'INSERT INTO ctable VALUES (?, ?, ?)';
+    this.db.run(insert, src, dst, value, cb);
+};
+
+// Used when sending new packets.
+Mailbox.prototype.getOrMakeCNumber = function(dst, seqNumber, cb) {
+    var self = this;
+    this.getCNumber(
+	this.mailboxName, dst,
+    	function(err, value) {
+	    if (err == undefined) {
+		if (value == undefined) { /* If there isn't already a cnumber,
+					     initialize it with sequence counter value */
+		    self.insertCTable(
+			this.mailboxName, dst, seqNumber,
+			function(err) {
+			    cb(err, seqNumber);
 			});
-		    } else { /* If there is a value, just use it as cnumber.*/
-			console.log('Read c-number');
-			cb(err, row.counter);
+		} else { /* If there is a value, just use it as cnumber.*/
+		    cb(err, value);
+		}
+	    } else {
+		cb(err);
+	    }
+	});
+}
+
+//Mailbox.prototype.removeObsoletePackets(src, dst, cb) {}
+
+// Update the C table. Used when handling incoming packets.
+Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
+    var onUpdate = function(err) {
+	//this.removeObsoletePackets(src, dst, cb);
+	cb(err);
+    };
+    
+    var onUpdate = cb;
+    var self = this;
+    this.getCNumber(src, dst, function(err, currentValue) {
+	if (err == undefined) {
+	    if (currentValue == undefined) {
+		self.insertCTable(src, dst, newValue, onUpdate);
+	    } else if (currentValue < newValue) {
+		var query = 'UPDATE ctable SET counter = ? WHERE src = ? AND dst = ?';
+		self.db.run(query, newValue, src, dst, onUpdate);
+	    } else {
+		cb(err);
+	    }
+	} else {
+	    cb(err);
+	}
+    });
+};
+
+// Check if an incoming packet should be admitted.
+Mailbox.prototype.isAdmissable = function(src, dst, seqNumber, cb) {
+    this.getCNumber(src, dst, function(err, cnumber) {
+	if (err == undefined) {
+	    cb(err, cnumber <= seqNumber);
+	} else {
+	    cb(err);
+	}
+    });
+};
+
+
+// A packet can be uniquely identified by its source mailbox and the seqNumber.
+Mailbox.prototype.hasPacket = function(src, seqNumber, cb) {
+    var query = 'SELECT * FROM packets WHERE src = ? AND seqnumber = ?';
+    this.db.get(query, src, seqNumber, function(err, row) {
+	if (err == undefined) {
+	    cb(err, !(row == undefined));
+	} else {
+	    cb(err);
+	}
+    });
+}
+
+
+		// var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+		// self.db.run(
+		//     query,
+
+
+// This method will update the C-table and save the packet in the db.
+Mailbox.prototype.registerPacketData = function(packet, cb) {
+    var self = this;
+    
+    this.hasPacket(packet.src, packet.seqNumber, function(err, has) {
+	if (err == undefined) {
+	    if (has) {
+		
+		// Nothing to do if we already have the packet.
+		// TODO: If we end up here, we have probably transferred
+		//       packet data for no use.
+		cb(err);
+		
+	    } else {
+
+		// Get a diary number for this packet
+		self.makeNewDiaryNumber(function(err, num) {
+		    if (err == undefined) {
+
+			// Insert the packet into the packet database
+			var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+			self.db.run(
+			    query, num,
+			    packet.src, packet.dst, packet.seqNumber,
+			    packet.cNumber, packet.label, packet.data, false,
+			    function(err) {
+				if (err == undefined) {
+				    
+				    // Update the c-number
+				    self.updateCNumber(
+					packet.src, packet.dst,
+					packet.cNumber, cb);
+				    
+				} else {
+				    cb(err);
+				}
+			    });
+		    } else {
+			cb(err);
 		    }
+		});
+	    }
+	} else {
+	    cb(err);
+	}
+    });
+}
+
+// Get the number of packets for which we haven't sent an ack packet.
+Mailbox.prototype.getNonAckCount = function(src, cb) {
+    var query = 'SELECT count(*) FROM packets WHERE src = ? AND dst = ? AND ack = ?';
+    this.db.get(
+	query, src, this.mailboxName, false,
+	function(err, row) {
+	    if (err == undefined) {
+		var value = row['count(*)'];
+		if (value == undefined) {
+		    cb(err, 0);
+		} else {
+		    cb(err, value);
+		}
+	    } else {
+		cb(err);
+	    }
+	});
+}
+
+// Set packets as acknowledged
+Mailbox.prototype.setAcked = function(src, dst, seqnums, cb) {
+    var query = 'UPDATE packets SET ack = true WHERE src = ? AND dst = ? AND seqnubmer = ?';
+    var self = this;
+    var f = function(seqnum, a) {
+	self.db.run(query, src, dst, seqnum, a);
+    };
+    async.map(seqnums, f, cb);
+}
+
+
+// Sends an ack to the source of a packet.
+Mailbox.prototype.sendAck = function(src, cb) {
+    var self = this;
+    var query = 'SELECT * FROM packets WHERE src = ? AND dst = ? AND ack = false';
+    this.db.all(
+	query, packet.src, this.mailboxName,
+	function(err, data) {
+	    var seqnums = new Array(data.length);
+	    for (var i = 0; i < data.length; i++) {
+		seqnums[i] = data[i].seqnumber;
+		async.parallel([
+		    function(a) {
+			self.sendPacket(
+			    src, 'ack',
+			    {"mailbox" : self.mailboxName,
+			     "seqnums" : seqnums},
+			    a);
+		    },
+		    function(a) {
+			self.setAcked(src, self.mailboxName, seqnums, a);
+		    }], cb);
+	    }
+	    
+	});
+}
+
+// Sends an ack-packet if we have received enough packets.
+Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
+    var self = this;
+    this.getNonAckCount(src, function(err, count) {
+	if (err == undefined) {
+	    if (count < this.ackFrequency) {
+		cb(err);
+	    } else {
+		self.sendAck(src, cb);
+	    }
+	} else {
+	    cb(err);
+	}
+    });
+}
+
+Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
+    if (packet.label == 'ack') {
+	// Mark packets as acked
+	// Push the counter
+	throw new Error('todo');
+    } else {
+	this.sendAckIfNeeded(packet.src, cb);
+    }
+}
+
+// This method is called only for packets that should not be rejected.
+Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
+    var self = this;
+    this.registerPacketData(packet, function(err) {
+	if (err == undefined) {
+	    self.handleAckPacketIfNeeded(packet, cb);
+	} else {
+	    cb(err);
+	}
+    });
+}
+
+// Handle an incoming packet.
+Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
+    var self = this;
+    this.isAdmissable(
+	packet.src,
+	packet.dst,
+	packet.seqNumber,
+	function(err, p) {
+	    if (err == undefined) {
+		if (p) {
+		    self.acceptIncomingPacket(packet, cb);
 		} else {
 		    cb(err);
 		}
-	    });
-    }
+	    } else {
+		cb(err);
+	    }
+	});
 }
+
+
+
+// Updates a number in the ctable
+// Mailbox.prototype.updateCTable = function(src, dst, cNumber, cb) {
+    
+// };
 
 /*
 	['diarynumber BIGINT',
@@ -466,7 +716,7 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
 	}
     }, function(err, results) {
 	if (err == undefined) {
-	    box.getCNumber(
+	    box.getOrMakeCNumber(
 		dst, results.sequenceNumber,
 		function(err, cNumber) {
 		    // Now we have all we need to make the packet.
@@ -527,9 +777,9 @@ function sendPacketDemo(box) {
 }
 
 function getCNumberDemo(box) {
-    box.getCNumber('abra', '12349', function(err, cnumber) {
+    box.getOrMakeCNumber('abra', '12349', function(err, cnumber) {
 	console.log('C-number is ' + cnumber);
-	box.getCNumber('abra', '19999', function(err, cnumber) {
+	box.getOrMakeCNumber('abra', '19999', function(err, cnumber) {
 	    console.log('C-number is ' + cnumber);
 	});
     });
@@ -604,11 +854,30 @@ function packetsStartingFromDemo(box) {
     });
 }
 
+function updateCTableDemo(box) {
+    box.updateCTable('a', 'b', 19, function(err) {
+	box.getCNumber('a', 'b', function(err, value) {
+	    console.log('The cnumber is ' + value);
+	    box.updateCTable('a', 'b', 29, function(err) {
+		box.getCNumber('a', 'b', function(err, value) {
+		    console.log('The cnumber is ' + value);
+		    box.updateCTable('a', 'b', 13, function(err) {
+			box.getCNumber('a', 'b', function(err, value) {
+			    console.log('Should be unchanged: ', value);
+			});
+		    });
+		});
+	    });
+	});
+    });
+}
+
 var inMemory = true;
 var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
 
-    packetsStartingFromDemo(box);
+    updateCTableDemo(box);
+    //packetsStartingFromDemo(box);
     //foreignDiaryNumberDemo(box);
     //sendPacketDemo(box);
     //getLastDiaryNumberDemo(box);
