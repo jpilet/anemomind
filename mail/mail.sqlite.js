@@ -638,12 +638,20 @@ Mailbox.prototype.sendAck = function(src, cb) {
 			src/*back to the source*/,
 			'ack',
 			seqnums,
-			a);
+			function(err) {
+			    console.log('SENT PACKET!');
+			    a(err, 'SENT :-)');
+			});
 		},
 		function(a) {
-		    self.setAcked(src, self.mailboxName, seqnums, a);
+		    self.setAcked(
+			src, self.mailboxName, seqnums,
+			function(err) {
+			    console.log('SET ACKED!');
+			    a(err, 'ACKED :-)');
+			});
 		}], function(err, results) {
-		    console.log('Both sending the packet and setAcked completed, with results ' + results);
+		    console.log('Both sending the packet and setAcked completed, with results %j', results);
 		    cb(err);
 		});
 	});
@@ -756,20 +764,31 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 
 
 Mailbox.prototype.getDiaryAndSeqNumbers = function(dst, cb) {
+    console.log(' Enter getDiaryAndSeqNumbers');
     var self = this;
-    async.parallel({
-	diaryNumber: function(a) {
-	    self.makeNewDiaryNumber(a);
-	},
-	sequenceNumber: function(a) {
-	    self.makeNewSeqNumber(dst, a);
-	}}, cb);
+    self.makeNewDiaryNumber(function(err, diaryNumber) {
+	if (err == undefined) {
+	    self.makeNewSeqNumber(dst, function(err, seqNumber) {
+		if (err == undefined) {
+		    console.log('  Call with results!');
+		    cb(err, {diaryNumber: diaryNumber, seqNumber: seqNumber});
+		} else {
+		    console.log('  Call with error!');
+		    cb(err);
+		}
+	    });
+	} else {
+	    console.log('  Call with error!');
+	    cb(err);
+	}
+    });
+    console.log(' Leave getDiaryAndSeqNumbers');
 }
 
 
 // Given destination mailbox, label and data,
 // a new packet is produced that is put in the packets table.
-Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
+Mailbox.prototype.sendPacket0 = function (dst, label, data, cb) {
     console.log('Send a packet');
     var self = this;
     this.getDiaryAndSeqNumbers(
@@ -797,6 +816,13 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
     console.log('Leaving function sendPacket');
 };
 
+// DEBUGVERSION
+Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
+    console.log('Enter sendPacket');
+    this.getDiaryAndSeqNumbers(dst, cb);
+    console.log('Leave sendPacket');
+}
+
 
 
 function errThrow(err) {
@@ -816,24 +842,25 @@ function errThrow(err) {
 //// DEMO
 
 function sendPacketDemo(box) {
-    box.sendPacket('dst', 'some-label', 'some-data',
-		   function(err) {
-		       if (err == undefined) {
-			   console.log('Successfully sent the FIRST packet');
-			   dispAllTableData(box.db);
-			   console.log('Let us send another packet');
-			   box.sendPacket('dst', 'some-other-label', 'some-other-data', function(err) {
-			       if (err == undefined) {
-				   console.log('Successfully sent the SECOND packet');
-				   dispAllTableData(box.db);
-			       }else {
-				   console.log('Failed to send the other packet but at least the first packet succeeded.');
-			       }
-			   });
-		       } else {
-			   console.log('Failed to send packet');
-		       }
-		   });
+    box.sendPacket(
+	'dst', 'some-label', 'some-data',
+	function(err) {
+	    if (err == undefined) {
+		console.log('Successfully sent the FIRST packet');
+		dispAllTableData(box.db);
+		console.log('Let us send another packet');
+		box.sendPacket('dst', 'some-other-label', 'some-other-data', function(err) {
+		    if (err == undefined) {
+			console.log('Successfully sent the SECOND packet');
+			dispAllTableData(box.db);
+		    }else {
+			console.log('Failed to send the other packet but at least the first packet succeeded.');
+		    }
+		});
+	    } else {
+		console.log('Failed to send packet');
+	    }
+	});
 }
 
 function getCNumberDemo(box) {
@@ -990,6 +1017,7 @@ var inMemory = true;
 var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
     maximizeCNumberDemo(box);
+    
     //registerPacketDataDemo(box);
     //updateCTableDemo(box);
     //packetsStartingFromDemo(box);
