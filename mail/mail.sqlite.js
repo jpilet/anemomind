@@ -333,7 +333,7 @@ Mailbox.prototype.getLastDiaryNumber = function(cb) {
 	if (err == undefined) {
 	    cb(err, result["max(diarynumber)"]);
 	} else {
-	    cb(err, null);
+	    cb(err);
 	}
     });
 };
@@ -540,7 +540,6 @@ Mailbox.prototype.hasPacket = function(src, seqNumber, cb) {
 // This method will update the C-table and save the packet in the db.
 Mailbox.prototype.registerPacketData = function(packet, cb) {
     var self = this;
-    
     this.hasPacket(packet.src, packet.seqNumber, function(err, has) {
 	if (err == undefined) {
 	    if (has) {
@@ -566,7 +565,7 @@ Mailbox.prototype.registerPacketData = function(packet, cb) {
 				if (err == undefined) {
 				    
 				    // Update the c-number
-				    self.updateCNumber(
+				    self.updateCTable(
 					packet.src, packet.dst,
 					packet.cNumber, cb);
 				    
@@ -918,8 +917,24 @@ function updateCTableDemo(box) {
 
 function registerPacketDataDemo(box) {
     box.registerPacketData(
-	new Packet('a', 'b', 119, 30, 'My label', 'Some data'), function(err) {
+	new pkt.Packet('a', 'b', 119, 30, 'My label', 'Some data'), function(err) {
 	    assert(err == undefined);
+	    box.getCNumber('a', 'b', function(err, num) {
+		assert(err == undefined);
+		assert(num == 30);
+		box.getLastDiaryNumber(function(err, dnum) {
+		    assert(err == undefined);
+		    box.getFirstPacketStartingFrom(dnum, function(err, packet) {
+			assert(packet.src == 'a');
+			assert(packet.dst == 'b');
+			assert(packet.seqnumber == 119);
+			assert(packet.cnumber == 30);
+			assert(packet.label == 'My label');
+			assert(packet.data == 'Some data');
+			console.log('SUCCESS');
+		    });
+		});
+	    });
 	});
 }
 
