@@ -657,18 +657,34 @@ Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
 }
 
 Mailbox.prototype.maximizeCNumber = function(dst, cb) {
+    var update = function(x) {
+	self.updateCTable(
+	    self.mailboxName,
+	    dst,
+	    x,
+	    cb);
+    };
+    
     // retrieve the first seqnumber that has not been acked.
     var query = 'SELECT cnumber FROM packets WHERE ack = false ORDER BY seqnumber ASC';
+    var self = this;
     this.db.get(query, function(err, row) {
 	if (err == undefined) {
-	    if (row == undefined) { // No packets found, leave it untouched
-		cb();
+	    if (row == undefined) { // No packets found, set it to 1 + the latest ack
+		var query = 'SELECT cnumber FROM packets WHERE ack = true ORDER BY seqnumber DESC';
+		self.db.get(query, function(err, row) {
+		    if (err == undefined) {
+			if (row == undefined) {
+			    cb();
+			} else {
+			    update(1 + row.seqnumber);
+			}
+		    } else {
+			cb(err);
+		    }
+		});
 	    } else {
-		self.updateCTable(
-		    self.mailboxName,
-		    dst,
-		    row.cnumber,
-		    cb);
+		update(row.seqnumber);
 	    }
 	} else {
 	    cb(err);
@@ -729,23 +745,6 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 }
 
 
-
-// Updates a number in the ctable
-// Mailbox.prototype.updateCTable = function(src, dst, cNumber, cb) {
-    
-// };
-
-/*
-	['diarynumber BIGINT',
-	 'src TEXT',
-	 'dst TEXT',         
-	 'seqnumber BIGINT',
-	 'cnumber BIGINT',
-	 'label TEXT', 
-	 'data BLOB',
-	 'ack INTEGER'
-	 ];
-*/
 
 // Given destination mailbox, label and data,
 // a new packet is produced that is put in the packets table.
@@ -917,13 +916,21 @@ function updateCTableDemo(box) {
     });
 }
 
+function registerPacketDataDemo(box) {
+    box.registerPacketData(
+	new Packet('a', 'b', 119, 30, 'My label', 'Some data'), function(err) {
+	    assert(err == undefined);
+	});
+}
+
 var inMemory = true;
 var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
 
-    updateCTableDemo(box);
-    packetsStartingFromDemo(box);
-    foreignDiaryNumberDemo(box);
+    registerPacketDataDemo(box);
+    //updateCTableDemo(box);
+    //packetsStartingFromDemo(box);
+    //foreignDiaryNumberDemo(box);
     //sendPacketDemo(box);
     //getLastDiaryNumberDemo(box);
 });
