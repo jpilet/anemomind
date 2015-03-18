@@ -511,7 +511,9 @@ Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
 Mailbox.prototype.isAdmissable = function(src, dst, seqNumber, cb) {
     this.getCNumber(src, dst, function(err, cnumber) {
 	if (err == undefined) {
-	    cb(err, cnumber <= seqNumber);
+	    console.log("    cnumber = " + cnumber);
+	    console.log("    seqnumber = " + seqNumber);
+	    cb(err, (cnumber == undefined? true : (cnumber <= seqNumber)));
 	} else {
 	    cb(err);
 	}
@@ -733,8 +735,10 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 	function(err, p) {
 	    if (err == undefined) {
 		if (p) {
+		    console.log('Accept it');
 		    self.acceptIncomingPacket(packet, cb);
 		} else {
+		    console.log('Reject it');
 		    cb(err);
 		}
 	    } else {
@@ -938,11 +942,32 @@ function registerPacketDataDemo(box) {
 	});
 }
 
+
+function maximizeCNumberDemo(box) {
+    var spammer = function(n, cb) {
+	if (n == 0) {
+	    cb();
+	} else {
+	    console.log('Handle packet ' + n);
+	    box.handleIncomingPacket(
+		new pkt.Packet(
+		    'some-spammer', box.mailboxName,
+		    n, -1, 'Spam message', 'There are ' + n + ' messages left to send'),
+		function(err) {
+		    spammer(n - 1, cb);
+		});
+	}
+    };
+    spammer(30, function(err) {
+	dispAllTableData(box.db);
+    });
+}
+
 var inMemory = true;
 var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
-
-    registerPacketDataDemo(box);
+    maximizeCNumberDemo(box);
+    //registerPacketDataDemo(box);
     //updateCTableDemo(box);
     //packetsStartingFromDemo(box);
     //foreignDiaryNumberDemo(box);
