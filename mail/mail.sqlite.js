@@ -245,13 +245,15 @@ Mailbox.prototype.makeNewSeqNumber = function(dst, callbackNewNumber) {
 	    };
 	}
 	if (x == undefined) {
-	    var newNumber = seqnums.make();
+	    var toReturn = seqnums.make();
+	    var nextNumber = seqnums.next(toReturn);
 	    self.db.run('INSERT INTO seqnumbers VALUES (?, ?);',
-			dst, newNumber, makeCompletedFun(newNumber));
+			dst, nextNumber, makeCompletedFun(toReturn));
 	} else {
-	    var newNumber = seqnums.next(x);
+	    var toReturn = x;
+	    var nextNumber = seqnums.next(x);
 	    self.db.run('UPDATE seqnumbers SET counter = ? WHERE dst = ?',
-			newNumber, dst, makeCompletedFun(newNumber));
+			nextNumber, dst, makeCompletedFun(toReturn));
 	}
     };
     this.getCurrentSeqNumber(dst, cbNumberRetrived);
