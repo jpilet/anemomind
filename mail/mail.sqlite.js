@@ -511,8 +511,6 @@ Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
 Mailbox.prototype.isAdmissable = function(src, dst, seqNumber, cb) {
     this.getCNumber(src, dst, function(err, cnumber) {
 	if (err == undefined) {
-	    console.log("    cnumber = " + cnumber);
-	    console.log("    seqnumber = " + seqNumber);
 	    cb(err, (cnumber == undefined? true : (cnumber <= seqNumber)));
 	} else {
 	    cb(err);
@@ -532,11 +530,6 @@ Mailbox.prototype.hasPacket = function(src, seqNumber, cb) {
 	}
     });
 }
-
-
-		// var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-		// self.db.run(
-		//     query,
 
 
 // This method will update the C-table and save the packet in the db.
@@ -588,9 +581,9 @@ Mailbox.prototype.registerPacketData = function(packet, cb) {
 
 // Get the number of packets for which we haven't sent an ack packet.
 Mailbox.prototype.getNonAckCount = function(src, cb) {
-    var query = 'SELECT count(*) FROM packets WHERE src = ? AND dst = ? AND ack = ?';
+    var query = 'SELECT count(*) FROM packets WHERE src = ? AND dst = ? AND ack = 0';
     this.db.get(
-	query, src, this.mailboxName, false,
+	query, src, this.mailboxName,
 	function(err, row) {
 	    if (err == undefined) {
 		var value = row['count(*)'];
@@ -607,7 +600,7 @@ Mailbox.prototype.getNonAckCount = function(src, cb) {
 
 // Set packets as acknowledged
 Mailbox.prototype.setAcked = function(src, dst, seqnums, cb) {
-    var query = 'UPDATE packets SET ack = true WHERE src = ? AND dst = ? AND seqnubmer = ?';
+    var query = 'UPDATE packets SET ack = 1 WHERE src = ? AND dst = ? AND seqnubmer = ?';
     var self = this;
     var f = function(seqnum, a) {
 	self.db.run(query, src, dst, seqnum, a);
@@ -615,14 +608,22 @@ Mailbox.prototype.setAcked = function(src, dst, seqnums, cb) {
     async.map(seqnums, f, cb);
 }
 
+function valueOf(x) {
+    console.log('     value is %j', x);
+    return x;
+}
+
 
 // Sends an ack to the source of a packet.
 Mailbox.prototype.sendAck = function(src, cb) {
+    console.log('  Send an ack!!!');
     var self = this;
-    var query = 'SELECT * FROM packets WHERE src = ? AND dst = ? AND ack = false';
-    this.db.all(
-	query, packet.src, this.mailboxName,
+
+    var query = 'SELECT * FROM packets WHERE src = ? AND dst = ? AND ack = 0';
+    self.db.all(
+	query, valueOf(src), valueOf(self.mailboxName),
 	function(err, data) {
+	    console.log('data = %j', data);
 	    var seqnums = new Array(data.length);
 	    for (var i = 0; i < data.length; i++) {
 		seqnums[i] = data[i].seqnumber;
@@ -646,7 +647,8 @@ Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
     var self = this;
     this.getNonAckCount(src, function(err, count) {
 	if (err == undefined) {
-	    if (count < this.ackFrequency) {
+	    console.log(' There are ' + count + ' packets');
+	    if (count < self.ackFrequency) {
 		cb(err);
 	    } else {
 		self.sendAck(src, cb);
@@ -667,12 +669,12 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
     };
     
     // retrieve the first seqnumber that has not been acked.
-    var query = 'SELECT cnumber FROM packets WHERE ack = false ORDER BY seqnumber ASC';
+    var query = 'SELECT cnumber FROM packets WHERE ack = 0 ORDER BY seqnumber ASC';
     var self = this;
     this.db.get(query, function(err, row) {
 	if (err == undefined) {
 	    if (row == undefined) { // No packets found, set it to 1 + the latest ack
-		var query = 'SELECT cnumber FROM packets WHERE ack = true ORDER BY seqnumber DESC';
+		var query = 'SELECT cnumber FROM packets WHERE ack = 1 ORDER BY seqnumber DESC';
 		self.db.get(query, function(err, row) {
 		    if (err == undefined) {
 			if (row == undefined) {
@@ -717,7 +719,7 @@ Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
 	if (err == undefined) {
 	    self.handleAckPacketIfNeeded(
 		packet, function(err) {
-		    self.sendAckPacketIfNeeded(packet.src, cb);
+		    self.sendAckIfNeeded(packet.src, cb);
 		});
 	} else {
 	    cb(err);
@@ -779,20 +781,21 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
     });
 };
 
-Mailbox.prototype.rulle = function() {
-    console.log('RULLE!!!');
-};
 
-
-
-
-console.log('Make a test mailbox');
 
 function errThrow(err) {
     if (err != undefined) {
 	throw new Error('Something wen wrong');
     }
 }
+
+
+
+
+
+
+
+
 
 //// DEMO
 
