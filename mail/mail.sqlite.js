@@ -624,7 +624,6 @@ function valueOf(x) {
 
 // Sends an ack to the source of a packet.
 Mailbox.prototype.sendAck = function(src, cb) {
-    console.log('SEND ACK!!');
     var self = this;
     var query = 'SELECT seqnumber FROM packets WHERE src = ? AND dst = ? AND ack = 0';
     self.db.all(
@@ -762,66 +761,54 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 
 
 Mailbox.prototype.getDiaryAndSeqNumbers = function(dst, cb) {
-    console.log(' Enter getDiaryAndSeqNumbers');
     var self = this;
     self.makeNewDiaryNumber(function(err, diaryNumber) {
-	console.log('We have a diary number');
 	if (err == undefined) {
-	    console.log('About to make new seq number...');
 	    self.makeNewSeqNumber(dst, function(err, seqNumber) {
 		if (err == undefined) {
-		    console.log('  Call with results!');
+		    assert(typeof diaryNumber == 'number');
+		    assert(typeof seqNumber == 'number');
 		    cb(err, {diaryNumber: diaryNumber, seqNumber: seqNumber});
 		} else {
-		    console.log('  Call with error!');
 		    cb(err);
 		}
 	    });
 	} else {
-	    console.log('  Call with error!');
 	    cb(err);
 	}
     });
-    console.log(' Leave getDiaryAndSeqNumbers');
 }
 
 
 // Given destination mailbox, label and data,
 // a new packet is produced that is put in the packets table.
-Mailbox.prototype.sendPacket0 = function (dst, label, data, cb) {
-    console.log('Send a packet');
+Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
     var self = this;
     this.getDiaryAndSeqNumbers(
 	dst,
 	function(err, results) {
-	    console.log('  generated numbers dnum = ', results.diaryNumber, '  seqnum = ', results.sequenceNumber);
+	    console.log('numbers are %j', results);
+	    var seqNumber = results.seqNumber;
+	    console.log('numbers are %j', results.seqNumber);
 	    if (err == undefined) {
 		box.getOrMakeCNumber(
-		    dst, results.sequenceNumber,
+		    dst, results.seqNumber,
 		    function(err, cNumber) {
 			// Now we have all we need to make the packet.
-			console.log('Run query');
 			var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+			console.log('data = %j', data);
 			self.db.run(
 			    query, results.diaryNumber,
-			    self.mailboxName, dst, results.sequenceNumber,
+			    self.mailboxName, dst, results.seqNumber,
 			    cNumber, label, data, false,/*not yet acknowledged*/
 			    cb);
 		    });
 	    } else {
-		console.log('Error in sendPacket');
 		cb(err);
 	    }
 	});
-    console.log('Leaving function sendPacket');
 };
 
-// DEBUGVERSION
-Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
-    console.log('Enter sendPacket');
-    this.getDiaryAndSeqNumbers(dst, cb);
-    console.log('Leave sendPacket');
-}
 
 
 
@@ -989,7 +976,7 @@ function registerPacketDataDemo(box) {
 }
 
 
-function maximizeCNumberDemo(box) {
+function ackSentDemo(box) {
     var spammer = function(n, cb) {
 	if (n == 0) {
 	    console.log('Done spamming');
@@ -1009,14 +996,19 @@ function maximizeCNumberDemo(box) {
     };
     spammer(30, function(err) {
 	assert(err == undefined);
-	dispAllTableData(box.db);
+	var query = 'SELECT * FROM packets WHERE src = ?';
+	box.db.get(
+	    query, box.mailboxName,
+	    function(err, results) {
+		console.log('results = %j', results);
+	    });
     });
 }
 
 var inMemory = true;
 var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
-    maximizeCNumberDemo(box);
+    ackSentDemo(box);
     
     //registerPacketDataDemo(box);
     //updateCTableDemo(box);
