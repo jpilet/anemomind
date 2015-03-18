@@ -91,7 +91,7 @@ function getAllTableRows(db, tableName, cb) {
     db.all('SELECT * FROM ' + tableName, cb);
 }
 
-// For debugging.
+// For debugging. The callback cb is optional
 function dispAllTableData(db, cb) {
     getAllTables(db, function(err, tables) {
 	async.map(
@@ -100,23 +100,25 @@ function dispAllTableData(db, cb) {
 		getAllTableRows(db, table.name, a);
 	    },
 	    function(err, tableData) {
-		if (err != undefined) {
-		    throw new Error('There was an error: ' + err);
-		}
-		if (tables.length != tableData.length) {
-		    console.log('tables = %j', tables);
-		    console.log('tableData = %j', tableData);
-		    throw new Error('Array length mismatch');
+		if (err == undefined) {
+		    if (tables.length != tableData.length) {
+			console.log('tables = %j', tables);
+			console.log('tableData = %j', tableData);
+			throw new Error('Array length mismatch');
+		    }
+
+		    console.log('=== TABLE SUMMARY ===');
+		    for (var i = 0; i < tables.length; i++) {
+			var ind = i+1;
+			console.log('Table ' + ind + ' of ' + tables.length + ' is named "' +
+				    tables[i].name
+				    + '" and contains:');
+			console.log('  %j', tableData[i]);
+		    }
+		} else if (cb == undefined) {
+		    throw new Error('There was an error');
 		}
 
-		console.log('=== TABLE SUMMARY ===');
-		for (var i = 0; i < tables.length; i++) {
-		    var ind = i+1;
-		    console.log('Table ' + ind + ' of ' + tables.length + ' is named "' +
-				tables[i].name
-				+ '" and contains:');
-		    console.log('  %j', tableData[i]);
-		}
 		if (cb != undefined) {
 		    cb(err);
 		}
@@ -141,37 +143,68 @@ function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
     });
 }
 
+
+// This is a common table for all packets that exist
+// inside this mailbox: that includes packets sent
+// from this mailbox, packets that are transferred
+// via this mailbox, and packets delivered to this mailbox.
 function initializePacketsTable(db, cb) {
     initializeTableIfNotAlready(
 	db, 'packets',
-	['diarynumber BIGINT',
-	 'src TEXT',
-	 'dst TEXT',         
-	 'seqnumber BIGINT',
-	 'cnumber BIGINT',
-	 'label TEXT', 
-	 'data BLOB',
+	['diarynumber BIGINT', // <-- Every packet has a diary number. This is used to refer to the packet within this mailbox.
+	 'src TEXT', // <-- The identifier of the mailbox sending the packet.
+	 'dst TEXT',         // <-- The mailbox to which the packet is sent
+	 'seqnumber BIGINT', // <-- Determines how old this packet is and if it can be ignored.
+	 'cnumber BIGINT', // <-- An update of the last c-number, used to update the c-table.
+	 'label TEXT', // <-- What this packet is about. The label 'ack' is reserved for acknowledgement packets.
+	 'data BLOB', // <-- The data of this packet. To be on a form specified by a higher level protocol
 	 'ack INTEGER' // <-- boolean, only used for packets originating from this mailbox.
 	], cb);
 }
 
+// This is a table with the sequence number counters
+// for all other mailboxes to which this mailbox sends
+// packets. The value of the counter should be one more
+// than that of the last packet sent.
 function initializeSeqNumbersTable(db, cb) {
     initializeTableIfNotAlready(
 	db, 'seqnumbers',
-	['dst TEXT', 'counter BIGINT'],
+	['dst TEXT', // <-- The destination mailbox.
+	 'counter BIGINT'], // <-- Next sequence number to be assigned a newly created packet.
 	cb
     );
 }
 
+// The C-table holds a number for every
+// (src, dst) pair. It will only let a packet
+// through if its sequence number is at least
+// that of the C-number.
 function initializeCTable(db, cb) {
     initializeTableIfNotAlready(
 	db, 'ctable',
-	['src TEXT',
-	 'dst TEXT',
-	 'counter BIGINT'],
+	['src TEXT', // <-- source mailbox identifier
+	 'dst TEXT', // <-- destination mailbox identifier
+	 'counter BIGINT'], // <-- Last known maximum c-number, used to reject packets that are too old.
 	cb
     );
 }
+
+// The diary number table is a table with
+// diary numbers for foreign mailboxes
+// with which this mailbox has synchronized.
+// It is used by this mailbox whenever it synchronizes
+// with another mailbox by only fetching packets
+// with diary numbers greater than that in this table.
+function initializeDiaryNumberTable(db, cb) {
+    initializeTableIfNotAlready(
+	db, 'diarynumbers',
+	['mailbox TEXT',  // <-- identifier of the other mailbox
+	 'number BIGINT'], // <-- The diary number
+	cb
+    );
+}
+
+
 
 // A constructor for a temprorary storage of all mails.
 function Mailbox(dbFilename,      // <-- The filename where all
@@ -196,17 +229,36 @@ function Mailbox(dbFilename,      // <-- The filename where all
 	});
 
     // For variable visibility.
-    var self = this;
+    var db = this.db;
 
     // Wait for the creation of all tables to complete before we call cb.
     async.parallel([
-	function(a) {initializeSeqNumbersTable(self.db, a);},
-	function(a) {initializePacketsTable(self.db, a);},
-	function(a) {initializeCTable(self.db, a);},
+	function(a) {initializeSeqNumbersTable(db, a);},
+	function(a) {initializePacketsTable(db, a);},
+	function(a) {initializeCTable(db, a);},
+	function(a) {initializeDiaryNumberTable(db, a);}
     ], function(err) {
 	cb(err);
     });
 }
+
+/*
+  A callback function cb(err, packet) can
+  be assigned. It will be called whenever this
+  mailbox receives a packet.
+  
+  By default, there is no callback.
+*/
+Mailbox.prototype.onPacketReceived = null;
+
+/*
+  A callback function cb(err, {"dst":..., "seqnums": ...}) can
+  be assigned. It will be called whenever an ack packet
+  is received for some packets that this mailbox sent.
+
+  By default, there is no callback.
+ */
+Mailbox.prototype.onAcknowledged = null;
 
 
 // Returns the current sequence number stored in the database,
@@ -262,7 +314,7 @@ Mailbox.prototype.makeNewSeqNumber = function(dst, callbackNewNumber) {
     this.getCurrentSeqNumber(dst, cbNumberRetrived);
 }
 
-// Gets the last diary number of all messages
+// Gets the last diary number of all messages in THIS box.
 Mailbox.prototype.getLastDiaryNumber = function(cb) {
     var query = 'SELECT max(diarynumber) FROM packets';
     this.db.get(query, function(err, result) {
@@ -273,6 +325,64 @@ Mailbox.prototype.getLastDiaryNumber = function(cb) {
 	}
     });
 };
+
+// This returns the diary number for a foreign mailbox.
+// This number is upon synchronization when we fetch messages from the
+// other mailbox.
+Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
+    if (typeof cb != 'function') {
+	throw new Error('cb is of wrong type: ' + cb);
+    }
+    
+    var query = 'SELECT number FROM diarynumbers WHERE mailbox = ?';
+    this.db.get(
+	query, otherMailbox,
+	function(err, row) {
+	    if (err == undefined) {
+		if (row == undefined) {
+		    // Initialize with a low number.
+		    cb(err, undefined);
+		} else {
+		    cb(err, row.number);
+		}
+	    } else {
+		cb(err);
+	    }
+	});
+}
+
+// Use this function to get a number of the first packet to ask for when synchronizing
+Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
+    this.getForeignDiaryNumber(otherMailbox, function(err, value) {
+	if (err == undefined) {
+	    cb(err, (value == undefined? 0 : value));
+	} else {
+	    cb(err);
+	}
+    });
+}
+
+// Sets the foreign number to a new value.
+Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
+    var self = this;
+    this.getForeignDiaryNumber(otherMailbox, function(err, previousValue) {
+	if (err == undefined) {
+	    if (previousValue > newValue) {
+		console.log('You are setting a new diary number which is lower than the previous one. This could be a bug.');
+	    }
+
+	    if (previousValue == undefined) { // <-- This only happens when there isn't any existing diary number already.
+		var query = 'INSERT INTO diarynumbers VALUES (?, ?)';
+		self.db.run(query, otherMailbox, newValue, cb);
+	    } else {
+		var query = 'UPDATE diarynumbers SET number = ? WHERE mailbox = ?';
+		self.db.run(query, newValue, otherMailbox, cb);
+	    }
+	} else {
+	    cb(err);
+	}
+    });
+}
 
 
 
@@ -455,10 +565,28 @@ function seqNumberDemo(box) {
     });
 }
 
+function foreignDiaryNumberDemo(box) {
+    box.getForeignDiaryNumber('rulle', function(err, value) {
+	console.log('The diary number is ', value);
+	box.setForeignDiaryNumber('rulle', 119, function(err) {
+	    box.getForeignDiaryNumber('rulle', function(err, value2) {
+		console.log('Now the diary number is ' + value2);
+		box.setForeignDiaryNumber('rulle', 135, function(err) {
+		    box.getForeignDiaryNumber('rulle', function(err, value3) {
+			console.log('The diary number should now be something different: ' + value3);
+		    });
+		});
+	    });
+	});
+    });
+}
+
 var inMemory = true;
 var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
-    
-    sendPacketDemo(box);
+
+    foreignDiaryNumberDemo(box);
+    //sendPacketDemo(box);
+    //getLastDiaryNumberDemo(box);
 });
 
