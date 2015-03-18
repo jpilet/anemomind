@@ -642,7 +642,10 @@ Mailbox.prototype.sendAck = function(src, cb) {
 		},
 		function(a) {
 		    self.setAcked(src, self.mailboxName, seqnums, a);
-		}], cb);
+		}], function(err) {
+		    console.log('Both sending the packet and setAcked completed!');
+		    cb(err);
+		});
 	});
 }
 
@@ -771,6 +774,7 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
 		dst, results.sequenceNumber,
 		function(err, cNumber) {
 		    // Now we have all we need to make the packet.
+		    console.log('Run query');
 		    var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
 		    self.db.run(
 			query, results.diaryNumber,
@@ -779,9 +783,11 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
 			cb);
 		});
 	} else {
+	    console.log('Error in sendPacket');
 	    cb(err);
 	}
     });
+    console.log('Leaving function sendPacket');
 };
 
 
