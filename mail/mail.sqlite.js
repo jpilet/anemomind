@@ -384,6 +384,12 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
     });
 }
 
+// Retrieves the first packet starting from a diary number.
+Mailbox.getFirstPacketStartingFrom = function(diaryNumber, cb) {
+    var query = 'SELECT * FROM packets WHERE ? <= diarynumber ORDER BY diarynumber ASC';
+    this.db.run(query, diaryNumber, cb);
+}
+
 
 
 // Call this method whenever we send or handle a packet.
