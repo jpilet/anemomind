@@ -637,27 +637,20 @@ Mailbox.prototype.sendAck = function(src, cb) {
 
 	    console.log('seqnums = ' + seqnums);
 	    
-	    async.parallel([
-		function(a) {
-		    self.sendPacket(
-			src/*back to the source*/,
-			'ack',
-			seqnums,
-			function(err) {
-			    console.log('SENT PACKET!');
-			    a(err, 'SENT :-)');
-			});
-		},
-		function(a) {
-		    self.setAcked(
-			src, self.mailboxName, seqnums,
-			function(err) {
-			    console.log('SET ACKED!');
-			    a(err, 'ACKED :-)');
-			});
-		}], function(err, results) {
-		    console.log('Both sending the packet and setAcked completed, with results %j', results);
-		    cb(err);
+	    self.sendPacket(
+		src/*back to the source*/,
+		'ack',
+		seqnums,
+		function(err) {
+		    if (err == undefined) {
+			self.setAcked(
+			    src, self.mailboxName, seqnums,
+			    function(err) {
+				cb(err);
+			    });
+		    } else {
+			cb(err);
+		    }
 		});
 	});
 }
