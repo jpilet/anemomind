@@ -385,9 +385,11 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
 }
 
 // Retrieves the first packet starting from a diary number.
-Mailbox.getFirstPacketStartingFrom = function(diaryNumber, cb) {
-    var query = 'SELECT * FROM packets WHERE ? <= diarynumber ORDER BY diarynumber ASC';
-    this.db.run(query, diaryNumber, cb);
+Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, cb) {
+    var query = 'SELECT * FROM packets  WHERE ? <= diarynumber ORDER BY diarynumber ASC';
+    this.db.get(query, diaryNumber, cb);
+    //var query = 'SELECT * FROM packets';
+    //this.db.get(query, cb);
 }
 
 
@@ -587,11 +589,29 @@ function foreignDiaryNumberDemo(box) {
     });
 }
 
+function packetsStartingFromDemo(box) {
+    box.getFirstPacketStartingFrom(0, function(err, result) {
+	console.log('Got this packet: %j', result);
+	box.sendPacket('dst', 'label', 'data', function(err) {
+	    if (err != undefined) {
+		throw new Error(err);
+	    }
+	    box.getFirstPacketStartingFrom(0, function(err, result) {
+		console.log('Got THIS packet starting from 0, should be NONEMPTY: %j', result);
+		box.getFirstPacketStartingFrom(result.diarynumber + 1, function(err, result) {
+		    console.log('This result should be empty: ', result);
+		});
+	    });
+	});
+    });
+}
+
 var inMemory = true;
 var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
 
-    foreignDiaryNumberDemo(box);
+    packetsStartingFromDemo(box);
+    //foreignDiaryNumberDemo(box);
     //sendPacketDemo(box);
     //getLastDiaryNumberDemo(box);
 });
