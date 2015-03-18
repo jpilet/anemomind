@@ -800,7 +800,7 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
 			self.db.run(
 			    query, results.diaryNumber,
 			    self.mailboxName, dst, results.seqNumber,
-			    cNumber, label, 'kalle'/*data*/, false,/*not yet acknowledged*/
+			    cNumber, label, 'TODO: code the data appropriately using buffers' + data, false,/*not yet acknowledged*/
 			    cb);
 		    });
 	    } else {
