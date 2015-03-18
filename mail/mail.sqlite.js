@@ -388,8 +388,6 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
 Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, cb) {
     var query = 'SELECT * FROM packets  WHERE ? <= diarynumber ORDER BY diarynumber ASC';
     this.db.get(query, diaryNumber, cb);
-    //var query = 'SELECT * FROM packets';
-    //this.db.get(query, cb);
 }
 
 
