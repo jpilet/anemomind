@@ -280,6 +280,7 @@ Mailbox.prototype.onAcknowledged = null;
 // by calling a callback with that number.
 // If no such number exists, it calls the callback without any arguments.
 Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
+    console.log('   Enter getCurrentSeqNumber');
     if (!isNonEmptyString(dst)) {
 	throw new Error('Dst should be a string. Currently, its value is '+ dst);
     }
@@ -298,6 +299,7 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 	       }
 	   });
     });
+    console.log('   Leave getCurrentSeqNumber');
 };
 
 // Makes a new sequence number that can be used.
@@ -331,14 +333,17 @@ Mailbox.prototype.makeNewSeqNumber = function(dst, callbackNewNumber) {
 
 // Gets the last diary number of all messages in THIS box.
 Mailbox.prototype.getLastDiaryNumber = function(cb) {
+    console.log('    Enter getLastDiaryNumber');
     var query = 'SELECT max(diarynumber) FROM packets';
     this.db.get(query, function(err, result) {
+	console.log('Query performed');
 	if (err == undefined) {
 	    cb(err, result["max(diarynumber)"]);
 	} else {
 	    cb(err);
 	}
     });
+    console.log('    Leave getLastDiaryNumber');
 };
 
 // This returns the diary number for a foreign mailbox.
@@ -767,7 +772,9 @@ Mailbox.prototype.getDiaryAndSeqNumbers = function(dst, cb) {
     console.log(' Enter getDiaryAndSeqNumbers');
     var self = this;
     self.makeNewDiaryNumber(function(err, diaryNumber) {
+	console.log('We have a diary number');
 	if (err == undefined) {
+	    console.log('About to make new seq number...');
 	    self.makeNewSeqNumber(dst, function(err, seqNumber) {
 		if (err == undefined) {
 		    console.log('  Call with results!');
