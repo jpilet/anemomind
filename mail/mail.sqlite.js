@@ -614,8 +614,7 @@ Mailbox.prototype.sendAck = function(src, cb) {
 		    function(a) {
 			self.sendPacket(
 			    src, 'ack',
-			    {"mailbox" : self.mailboxName,
-			     "seqnums" : seqnums},
+			    seqnums,
 			    a);
 		    },
 		    function(a) {
@@ -642,13 +641,40 @@ Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
     });
 }
 
+Mailbox.prototype.maximizeCNumber = function(dst, cb) {
+    // retrieve the first seqnumber that has not been acked.
+    var query = 'SELECT cnumber FROM packets WHERE ack = false ORDER BY seqnumber ASC';
+    this.db.get(query, function(err, row) {
+	if (err == undefined) {
+	    if (row == undefined) { // No packets found, leave it untouched
+		cb();
+	    } else {
+		self.updateCTable(
+		    self.mailboxName,
+		    dst,
+		    row.cnumber,
+		    cb);
+	    }
+	} else {
+	    cb(err);
+	}
+    });
+}
+
 Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     if (packet.label == 'ack') {
-	// Mark packets as acked
-	// Push the counter
-	throw new Error('todo');
+	var self = this;
+	self.setAcked(
+	    self.mailboxName, packet.src, packet.data,
+	    function (err) {
+		if (err == undefined) {
+		    self.maximizeCNumber(packet.src, cb);
+		} else {
+		    cb(err);
+		}
+	    });
     } else {
-	this.sendAckIfNeeded(packet.src, cb);
+	cb();
     }
 }
 
@@ -657,7 +683,10 @@ Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
     var self = this;
     this.registerPacketData(packet, function(err) {
 	if (err == undefined) {
-	    self.handleAckPacketIfNeeded(packet, cb);
+	    self.handleAckPacketIfNeeded(
+		packet, function(err) {
+		    self.sendAckPacketIfNeeded(packet.src, cb);
+		});
 	} else {
 	    cb(err);
 	}
