@@ -92,7 +92,7 @@ function getAllTableRows(db, tableName, cb) {
 }
 
 // For debugging.
-function dispAllTableData(db) {
+function dispAllTableData(db, cb) {
     getAllTables(db, function(err, tables) {
 	async.map(
 	    tables,
@@ -116,6 +116,9 @@ function dispAllTableData(db) {
 				tables[i].name
 				+ '" and contains:');
 		    console.log('  %j', tableData[i]);
+		}
+		if (cb != undefined) {
+		    cb(err);
 		}
 	    })});
     
@@ -390,8 +393,17 @@ function sendPacketDemo(box) {
     box.sendPacket('dst', 'some-label', 'some-data',
 		   function(err) {
 		       if (err == undefined) {
-			   console.log('SUCCESSFULLY PUT PACKET');
+			   console.log('Successfully sent the FIRST packet');
 			   dispAllTableData(box.db);
+			   console.log('Let us send another packet');
+			   box.sendPacket('dst', 'some-other-label', 'some-other-data', function(err) {
+			       if (err == undefined) {
+				   console.log('Successfully sent the SECOND packet');
+				   dispAllTableData(box.db);
+			       }else {
+				   console.log('Failed to send the other packet but at least the first packet succeeded.');
+			       }
+			   });
 		       } else {
 			   console.log('Failed to send packet');
 		       }
