@@ -211,7 +211,7 @@ function Mailbox(dbFilename,      // <-- The filename where all
 // If no such number exists, it calls the callback without any arguments.
 Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
     if (!isNonEmptyString(dst)) {
-	throw new Error('Dst should be a string');
+	throw new Error('Dst should be a string. Currently, its value is '+ dst);
     }
     var self = this;
     this.db.serialize(function() {
@@ -334,18 +334,18 @@ Mailbox.prototype.getCNumber = function(src, dst, seqNumber, cb) {
 
 // Given destination mailbox, label and data,
 // a new packet is produced that is put in the packets table.
-Mailbox.sendPacket = function (dst, label, data, cb) {
+Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
     var self = this;
     async.parallel({
 	diaryNumber: function(a) {
 	    self.makeNewDiaryNumber(a);
 	},
 	sequenceNumber: function(a) {
-	    self.makeNewSequenceNumber(a);
+	    self.makeNewSeqNumber(dst, a);
 	}
     }, function(err, results) {
 	if (err == undefined) {
-	    getCNumber(
+	    box.getCNumber(
 		dst, results.sequenceNumber,
 		function(err, cNumber) {
 		    // Now we have all we need to make the packet.
@@ -377,19 +377,35 @@ function errThrow(err) {
     }
 }
 
-var inMemory = true;
-var filename = (inMemory? ':memory:' : 'demo.db');
-var box = new Mailbox(filename, 'demobox', function(err) {
 
-    if (false) {
-	box.getCNumber('abra', '12349', function(err, cnumber) {
+
+
+
+
+//// DEMO
+
+function sendPacketDemo(box) {
+    box.sendPacket('dst', 'some-label', 'some-data',
+		   function(err) {
+		       if (err == undefined) {
+			   console.log('SUCCESSFULLY PUT PACKET');
+			   dispAllTableData(box.db);
+		       } else {
+			   console.log('Failed to send packet');
+		       }
+		   });
+}
+
+function getCNumberDemo(box) {
+    box.getCNumber('abra', '12349', function(err, cnumber) {
+	console.log('C-number is ' + cnumber);
+	box.getCNumber('abra', '19999', function(err, cnumber) {
 	    console.log('C-number is ' + cnumber);
-	    box.getCNumber('abra', '19999', function(err, cnumber) {
-		console.log('C-number is ' + cnumber);
-	    });
 	});
-    }
+    });
+}
 
+function getLastDiaryNumberDemo(box) {
     box.getLastDiaryNumber(function(err, num) {
 	errThrow(err);
 	console.log('Last diary number is %j', num);
@@ -398,52 +414,37 @@ var box = new Mailbox(filename, 'demobox', function(err) {
 	    dispAllTableData(box.db);
 	});
     });
+}
 
-    if (true) {
-	box.db.run('INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    		   129, "abra", "kadabra", 119, 109, "testpacket", "sometestdata", false,
-    		   function(err) {
+function insertTestPacketDemo(box) {
+    box.db.run('INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    	       129, "abra", "kadabra", 119, 109, "testpacket", "sometestdata", false,
+    	       function(err) {
+    		   errThrow(err);
+    		   box.getLastDiaryNumber(function(err, num) {
     		       errThrow(err);
-    		       box.getLastDiaryNumber(function(err, num) {
-    			   errThrow(err);
-    			   console.log('Last diary number is %j', num);
-			   dispAllTableData(box.db);
-    		       });
+    		       console.log('Last diary number is %j', num);
+		       dispAllTableData(box.db);
     		   });
-    }
-		
-    
-    if (false) {
-	tableExists(box.db, 'seqnumbers');
-	tableExists(box.db, 'packets');
-    }
-    
-    if (err != undefined) {
-	console.log('SOMETHING WENT WRONG WHEN BUILDING MAILBOX!!!!');
-	return;
-    }
-    
-    console.log(box.db);
+    	       });
+}
 
-    // See if we 
-    if (true) {
-	box.getCurrentSeqNumber('mjao', function(err, x) {
-	    console.log('Current seq number for mjao is ' + x);
-	});
-	var dispnum = function(x) {console.log('The number is ' + x);};
-    }
-
-    // Sequence number generation
-    if (true) {
+function seqNumberDemo(box) {
+    box.makeNewSeqNumber('abra', function(err, x) {
+	console.log('First seq num is ' + x);
 	box.makeNewSeqNumber('abra', function(err, x) {
-	    console.log('First seq num is ' + x);
-	    box.makeNewSeqNumber('abra', function(err, x) {
-		console.log('Second seq num is ' + x);
-		box.makeNewSeqNumber('abra', function(err, y) {
-		    console.log('Third seq num is ' + y);
-		});
+	    console.log('Second seq num is ' + x);
+	    box.makeNewSeqNumber('abra', function(err, y) {
+		console.log('Third seq num is ' + y);
 	    });
 	});
-    }
+    });
+}
+
+var inMemory = true;
+var filename = (inMemory? ':memory:' : 'demo.db');
+var box = new Mailbox(filename, 'demobox', function(err) {
+    
+    sendPacketDemo(box);
 });
 
