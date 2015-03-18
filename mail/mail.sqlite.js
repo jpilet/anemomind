@@ -10,6 +10,13 @@ var async = require('async');
 var pkt = require('./packet.js');
 
 
+function assert(x) {
+    if (!x) {
+	throw new Error('Assertion failed');
+    }
+}
+
+
 /////////////////////////////////////////////////////////
 // General functions for checking if an object is a string
 function isString(x) {
@@ -465,7 +472,15 @@ Mailbox.prototype.getOrMakeCNumber = function(dst, seqNumber, cb) {
 	});
 }
 
-//Mailbox.prototype.removeObsoletePackets(src, dst, cb) {}
+Mailbox.prototype.removeObsoletePackets = function(src, dst, cb) {
+    this.getCNumber(
+	src, dst,
+	function(err, value) {
+	    if (err == undefined) {
+	    } else {
+	    }
+	});
+}
 
 // Update the C table. Used when handling incoming packets.
 Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
@@ -777,11 +792,6 @@ function errThrow(err) {
     }
 }
 
-
-
-
-
-
 //// DEMO
 
 function sendPacketDemo(box) {
@@ -852,12 +862,15 @@ function seqNumberDemo(box) {
 
 function foreignDiaryNumberDemo(box) {
     box.getForeignDiaryNumber('rulle', function(err, value) {
+	assert(value == undefined);
 	console.log('The diary number is ', value);
 	box.setForeignDiaryNumber('rulle', 119, function(err) {
 	    box.getForeignDiaryNumber('rulle', function(err, value2) {
+		assert(value2 == 119);
 		console.log('Now the diary number is ' + value2);
 		box.setForeignDiaryNumber('rulle', 135, function(err) {
 		    box.getForeignDiaryNumber('rulle', function(err, value3) {
+			assert(value3 == 135);
 			console.log('The diary number should now be something different: ' + value3);
 		    });
 		});
@@ -869,13 +882,13 @@ function foreignDiaryNumberDemo(box) {
 function packetsStartingFromDemo(box) {
     box.getFirstPacketStartingFrom(0, function(err, result) {
 	console.log('Got this packet: %j', result);
+	assert(result == undefined);
 	box.sendPacket('dst', 'label', 'data', function(err) {
-	    if (err != undefined) {
-		throw new Error(err);
-	    }
 	    box.getFirstPacketStartingFrom(0, function(err, result) {
+		assert(result != undefined);
 		console.log('Got THIS packet starting from 0, should be NONEMPTY: %j', result);
 		box.getFirstPacketStartingFrom(result.diarynumber + 1, function(err, result) {
+		    assert(result == undefined);
 		    console.log('This result should be empty: ', result);
 		});
 	    });
@@ -886,12 +899,15 @@ function packetsStartingFromDemo(box) {
 function updateCTableDemo(box) {
     box.updateCTable('a', 'b', 19, function(err) {
 	box.getCNumber('a', 'b', function(err, value) {
+	    assert(value == 19);
 	    console.log('The cnumber is ' + value);
 	    box.updateCTable('a', 'b', 29, function(err) {
 		box.getCNumber('a', 'b', function(err, value) {
+		    assert(value == 29);
 		    console.log('The cnumber is ' + value);
 		    box.updateCTable('a', 'b', 13, function(err) {
 			box.getCNumber('a', 'b', function(err, value) {
+			    assert(value == 29);
 			    console.log('Should be unchanged: ', value);
 			});
 		    });
@@ -906,8 +922,8 @@ var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
 
     updateCTableDemo(box);
-    //packetsStartingFromDemo(box);
-    //foreignDiaryNumberDemo(box);
+    packetsStartingFromDemo(box);
+    foreignDiaryNumberDemo(box);
     //sendPacketDemo(box);
     //getLastDiaryNumberDemo(box);
 });
