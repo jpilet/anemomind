@@ -616,9 +616,7 @@ function valueOf(x) {
 
 // Sends an ack to the source of a packet.
 Mailbox.prototype.sendAck = function(src, cb) {
-    console.log('  Send an ack!!!');
     var self = this;
-
     var query = 'SELECT * FROM packets WHERE src = ? AND dst = ? AND ack = 0';
     self.db.all(
 	query, valueOf(src), valueOf(self.mailboxName),
