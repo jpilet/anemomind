@@ -1,5 +1,7 @@
 var mailsqlite = require('../mail.sqlite.js');
+var pkt = require('../packet.js');
 var assert = require('assert');
+
 
 var withbox = function(cb) {
     var box = new mailsqlite.Mailbox(
@@ -9,29 +11,23 @@ var withbox = function(cb) {
 	});
 };
 
-describe(
-    'Failing test',
-    function() {
-	it('SHOULD FAIL', function() {
-	    assert.equal(-1, 0);
-	});
-    });
+// describe(
+//     'Failing test',
+//     function() {
+// 	it('SHOULD FAIL', function() {
+// 	    assert.equal(-1, 0);
+// 	});
+//     });
 	 
 
 describe(
     'Send acknowledge',
     function() {
-	it('Should send 30 packets and make sure that there are 31 packets (one ack produced)',
-	   function() {
-	       //console.log('REACHES HERE 1');
+	it('Should send packets so that an ack is produced',
+	   function(done) {
 	       var box = new mailsqlite.Mailbox(
 		   ':memory:', 'demobox',
 		   function(err) {
-		       console.log('REACHES HERE 2');
-		       assert.equal(0, 1);
-
-		       
-		       // This is a function that sends 30 packets, then call cb
 		       var spammer = function(n, cb) {
 			   if (n == 0) {
 			       cb();
@@ -48,14 +44,13 @@ describe(
 		       };
 
 		       // Call the spammer here
-		       spammer(30, function(err) {
+		       spammer(box.ackFrequency, function(err) {
 			   assert(err == undefined);
 			   var query = 'SELECT * FROM packets WHERE src = ?';
-			   box.db.get(
+			   box.db.all(
 			       query, box.mailboxName,
 			       function(err, results) {
-				   console.length('RESULTS LENGTH = ', results.length);
-				   assert.equal(results.length, 29);
+				   assert.equal(results.length, 1);
 				   done();
 			       });
 		       });

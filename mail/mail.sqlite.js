@@ -1025,8 +1025,7 @@ function ackSentDemo(box) {
 var inMemory = true;
 var filename = (inMemory? ':memory:' : 'demo.db');
 var box = new Mailbox(filename, 'demobox', function(err) {
-    ackSentDemo(box);
-    
+    //ackSentDemo(box);
     //registerPacketDataDemo(box);
     //updateCTableDemo(box);
     //packetsStartingFromDemo(box);
