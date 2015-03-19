@@ -366,25 +366,22 @@ describe(
 
 
 
-function makeFiller(box, ackFn) {
-    var filler = function(n, cb) {
-	if (n == 0) {
-	    cb();
-	} else {
-	    var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-	    box.db.run(
-		query, n + 119,
-		box.mailboxName, 'destination', n,
-		0, 'some label', new Buffer(1),
-		ackFn(n),
-		function (err) {
-		    assert(err == undefined);
-		    filler(n - 1, cb);
-		}
-	    );
-	}
-    };
-    return filler;
+function fillPackets(box, ackFn, n, cb) {
+    if (n == 0) {
+	cb();
+    } else {
+	var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+	box.db.run(
+	    query, n + 119,
+	    box.mailboxName, 'destination', n,
+	    0, 'some label', new Buffer(1),
+	    ackFn(n),
+	    function (err) {
+		assert(err == undefined);
+		fillPackets(box, ackFn, n-1, cb);
+	    }
+	);
+    }
 }
 
 function maximizeAndGetCNumber(box, cb) {
@@ -410,20 +407,24 @@ describe(
 	    function(done) {
 		withbox(
 		    function(box) {
-			var filler = makeFiller(box, function(i) {
-			    return i < 15 || i == 20;
-			});
-			filler(30, function(err) {
-			    assert(err == undefined);
-			    maximizeAndGetCNumber(
-				box,
-				function(err, value) {
-				    assert(err == undefined);
-				    assert(value == 15);
-				    done();
-				}
-			    );
-			});
+			fillPackets(
+			    box,
+			    function(i) {
+				return i < 15 || i == 20;
+			    },
+			    30,
+			    function(err) {
+				assert(err == undefined);
+				maximizeAndGetCNumber(
+				    box,
+				    function(err, value) {
+					assert(err == undefined);
+					assert(value == 15);
+					done();
+				    }
+				);
+			    }
+			);
 		    }
 		);
 	    }
