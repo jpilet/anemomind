@@ -387,6 +387,21 @@ function makeFiller(box, ackFn) {
     return filler;
 }
 
+function maximizeAndGetCNumber(box, cb) {
+    box.maximizeCNumber(
+	'destination',
+	function(err) {
+	    assert(err == undefined);
+	    box.getCNumber(
+		box.mailboxName,
+		'destination',
+		cb
+	    );
+	}
+    );
+}
+
+
 describe(
     'maximizeCNumber',
     function() {
@@ -400,19 +415,12 @@ describe(
 			});
 			filler(30, function(err) {
 			    assert(err == undefined);
-			    box.maximizeCNumber(
-				'destination',
-				function(err) {
+			    maximizeAndGetCNumber(
+				box,
+				function(err, value) {
 				    assert(err == undefined);
-				    box.getCNumber(
-					box.mailboxName,
-					'destination',
-					function(err, value) {
-					    assert(err == undefined);
-					    assert(value == 15);
-					    done();
-					}
-				    );
+				    assert(value == 15);
+				    done();
 				}
 			    );
 			});
