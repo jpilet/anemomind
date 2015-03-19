@@ -45,6 +45,46 @@ describe(
 );
 
 
+
+describe(
+    'getFirstPacketStartingFrom',
+    function() {
+	it(
+	    'Retrieve the first packet starting from a diary number',
+	    function(done) {
+		withbox(
+		    function(box) {
+
+			box.getFirstPacketStartingFrom(0, function(err, result) {
+			    assert(result == undefined);
+			    box.sendPacket('dst', 'label', new Buffer(1), function(err) {
+				box.getFirstPacketStartingFrom(0, function(err, result) {
+				    assert(result != undefined);
+
+				    box.getFirstPacketStartingFrom(
+					result.diarynumber + 1, function(err, result) {
+					    
+					    assert(result == undefined);
+					    done();
+
+					});
+				});
+			    });
+			});
+
+			
+		    }
+		);
+	    }
+	);
+    }
+);
+
+
+
+
+
+
 describe(
     'updateCTable',
     function() {
