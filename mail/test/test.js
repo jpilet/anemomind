@@ -32,6 +32,7 @@ describe(
 		withbox(
 		    function(box) {
 
+			
 			// Insert code here.
 			assert(true);
 			done();
@@ -206,13 +207,10 @@ describe(
 						assert(packet.data == 'Some data');
 
 						done();
-
-						
 					});
 				    });
 				});
 			    });
-
 		    }
 		);
 	    }
