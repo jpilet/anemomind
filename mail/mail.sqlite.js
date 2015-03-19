@@ -784,29 +784,36 @@ Mailbox.prototype.getDiaryAndSeqNumbers = function(dst, cb) {
 // a new packet is produced that is put in the packets table.
 Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
     var self = this;
-    this.getDiaryAndSeqNumbers(
-	dst,
-	function(err, results) {
-	    console.log('numbers are %j', results);
-	    var seqNumber = results.seqNumber;
-	    console.log('numbers are %j', results.seqNumber);
-	    if (err == undefined) {
-		box.getOrMakeCNumber(
-		    dst, results.seqNumber,
-		    function(err, cNumber) {
-			// Now we have all we need to make the packet.
-			var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-			console.log('data = %j', data);
-			self.db.run(
-			    query, results.diaryNumber,
-			    self.mailboxName, dst, results.seqNumber,
-			    cNumber, label, 'TODO: code the data appropriately using buffers' + data, false,/*not yet acknowledged*/
-			    cb);
-		    });
-	    } else {
-		cb(err);
-	    }
-	});
+    if ((typeof data != 'string') && (typeof data != 'object')) {
+	cb(new Error('Please only send data in the form of a Buffer'));
+    } else {
+	if (typeof data == 'string') {
+	    console.log('It is recommended that the data you store is Buffer. Use string only for debugging.');
+	}
+	this.getDiaryAndSeqNumbers(
+	    dst,
+	    function(err, results) {
+		console.log('numbers are %j', results);
+		var seqNumber = results.seqNumber;
+		console.log('numbers are %j', results.seqNumber);
+		if (err == undefined) {
+		    box.getOrMakeCNumber(
+			dst, results.seqNumber,
+			function(err, cNumber) {
+			    // Now we have all we need to make the packet.
+			    var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+			    console.log('data = %j', data);
+			    self.db.run(
+				query, results.diaryNumber,
+				self.mailboxName, dst, results.seqNumber,
+				cNumber, label, data, false,/*not yet acknowledged*/
+				cb);
+			});
+		} else {
+		    cb(err);
+		}
+	    });
+    }
 };
 
 
