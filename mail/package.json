@@ -9,13 +9,8 @@
   "author": "",
   "license": "BSD-2-Clause",
   "dependencies": {
-      // Used to wait for DB queries to complete
     "async": "~0.9.0",
-
-      // Testing framework. Type 'mocha' to run the tests
     "mocha": "^2.2.1",
-
-      // Database driver used by mail.sqlite.js
     "sqlite3": "~3.0.5"
   }
 }
