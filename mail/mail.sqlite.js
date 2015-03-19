@@ -863,7 +863,7 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
 	    function(err, results) {
 		var seqNumber = results.seqNumber;
 		if (err == undefined) {
-		    box.getOrMakeCNumber(
+		    self.getOrMakeCNumber(
 			dst, results.seqNumber,
 			function(err, cNumber) {
 			    // Now we have all we need to make the packet.
@@ -884,34 +884,5 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
 
 
 
-function errThrow(err) {
-    if (err != undefined) {
-	throw new Error('Something wen wrong');
-    }
-}
-
-
 module.exports.Mailbox = Mailbox;
 module.exports.dispAllTableData = dispAllTableData;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//// DEMO
-
-var inMemory = true;
-var filename = (inMemory? ':memory:' : 'demo.db');
-var box = new Mailbox(filename, 'demobox', function(err) {
-});
-
