@@ -485,6 +485,19 @@ Mailbox.prototype.removeObsoletePackets = function(src, dst, cb) {
 	});
 }
 
+Mailbox.prototype.getTotalPacketCount = function(cb) {
+    var query = 'SELECT count(*) FROM packets';
+    this.db.get(
+	query, function(err, row) {
+	    if (err == undefined) {
+		cb(err, row['count(*)']);
+	    } else {
+		cb(err);
+	    }
+	}
+    );
+}
+
 
 
 // Update the C table. Used when handling incoming packets.

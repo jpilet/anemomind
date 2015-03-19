@@ -403,7 +403,7 @@ describe(
     'maximizeCNumber',
     function() {
 	it(
-	    'Should maximize the C number to 15',
+	    'Should maximize the C number to 15, and remove the obsolete packets.',
 	    function(done) {
 		withbox(
 		    function(box) {
@@ -420,7 +420,12 @@ describe(
 				    function(err, value) {
 					assert(err == undefined);
 					assert(value == 15);
-					done();
+					box.getTotalPacketCount(
+					    function(err, value) { // 1--14 removed => 16 remain
+						assert(value == 16);
+						done();
+					    }
+					);
 				    }
 				);
 			    }
