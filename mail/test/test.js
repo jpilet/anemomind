@@ -25,9 +25,7 @@ describe(
     function() {
 	it('Should send packets so that an ack packet is produced to the spammer',
 	   function(done) {
-	       var box = new mailsqlite.Mailbox(
-		   ':memory:', 'demobox',
-		   function(err) {
+	       withbox(function(box) {
 		       var spammer = function(n, cb) {
 			   if (n == 0) {
 			       cb();
