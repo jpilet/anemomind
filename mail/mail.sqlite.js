@@ -9,12 +9,8 @@ var seqnums = require('./seqnums.js');
 var async = require('async');
 var pkt = require('./packet.js');
 var intarray = require('./intarray.js');
+var assert = require('assert');
 
-function assert(x) {
-    if (!x) {
-	throw new Error('Assertion failed');
-    }
-}
 
 
 /////////////////////////////////////////////////////////
@@ -603,12 +599,26 @@ Mailbox.prototype.getNonAckCount = function(src, cb) {
 
 // Set packets as acknowledged
 Mailbox.prototype.setAcked = function(src, dst, seqnums, cb) {
-    var query = 'UPDATE packets SET ack = 1 WHERE src = ? AND dst = ? AND seqnubmer = ?';
+    var query = 'UPDATE packets SET ack = 1 WHERE src = ? AND dst = ? AND seqnumber = ?';
     var self = this;
-    var f = function(seqnum, a) {
-	self.db.run(query, src, dst, seqnum, a);
+
+    var setter = function(nums) {
+	if (nums.length == 0) {
+	    cb();
+	} else {
+	    var seqnum = nums[0];
+	    self.db.run(
+		query, src, dst, seqnum,
+		function(err) {
+		    if (err == undefined) {
+			setter(nums.slice(1));
+		    } else {
+			cb(err);
+		    }
+		});
+	}
     };
-    async.map(seqnums, f, cb);
+    setter(seqnums);
 }
 
 function valueOf(x) {
