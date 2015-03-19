@@ -2,6 +2,26 @@
 This repository holds the code to perform numerical calculations
 on nautical recordings. The majority of the code is written in C++.
 
+# Quick dev setup guide
+To build the cpp code in release mode:
+
+    mkdir build_release; cd build_release; cmake .. -DCMAKE_BUILD_TYPE=Release; make -j 4
+
+Then build the test database. Make sure mongo is runnning, then run:
+
+    build_release/src/server/nautical/tiles/generateDevDB.sh
+
+Now run prepare the web server:
+
+   cd www2
+   npm install
+   bower install
+
+and run it:
+
+   grunt server:dev
+
+
 ## Reference platform
 The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
 

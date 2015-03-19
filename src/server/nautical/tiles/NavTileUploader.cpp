@@ -102,7 +102,7 @@ BSONObj makeBsonTile(const TileKey& tileKey,
   BSONObjBuilder tile;
   tile.genOID();
   tile.append("key", tileKey.stringKey());
-  tile.append("boat", boatId);
+  tile.append("boat", OID(boatId));
   append(tile, "startTime", subCurvesInTile.first().first().time());
   append(tile, "endTime", subCurvesInTile.last().last().time());
   append(tile, "created", TimeStamp::now());
