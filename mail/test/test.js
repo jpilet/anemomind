@@ -21,6 +21,8 @@ var withbox = function(cb) {
 //     });
 
 
+// Template
+
 describe(
     'name of code to test',
     function() {
@@ -29,8 +31,12 @@ describe(
 	    function(done) {
 		withbox(
 		    function(box) {
+
+			// Insert code here.
 			assert(true);
 			done();
+
+			
 		    }
 		);
 	    }
