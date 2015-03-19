@@ -483,12 +483,13 @@ Mailbox.prototype.removeObsoletePackets = function(src, dst, cb) {
 
 // Update the C table. Used when handling incoming packets.
 Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
+
+    console.log('Update ctable with value ' + newValue);
     var onUpdate = function(err) {
 	//this.removeObsoletePackets(src, dst, cb);
 	cb(err);
     };
     
-    var onUpdate = cb;
     var self = this;
     this.getCNumber(src, dst, function(err, currentValue) {
 	if (err == undefined) {
@@ -674,6 +675,7 @@ Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
 
 Mailbox.prototype.maximizeCNumber = function(dst, cb) {
     var update = function(x) {
+	console.log('UPDATE C-table with ' + x);
 	self.updateCTable(
 	    self.mailboxName,
 	    dst,
@@ -682,17 +684,22 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
     };
     
     // retrieve the first seqnumber that has not been acked.
-    var query = 'SELECT cnumber FROM packets WHERE ack = 0 ORDER BY seqnumber ASC';
+    var query = 'SELECT seqnumber FROM packets WHERE ack = 0 ORDER BY seqnumber ASC';
     var self = this;
     this.db.get(query, function(err, row) {
 	if (err == undefined) {
 	    if (row == undefined) { // No packets found, set it to 1 + the latest ack
-		var query = 'SELECT cnumber FROM packets WHERE ack = 1 ORDER BY seqnumber DESC';
+		var query = 'SELECT seqnumber FROM packets WHERE ack = 1 ORDER BY seqnumber DESC';
 		self.db.get(query, function(err, row) {
 		    if (err == undefined) {
 			if (row == undefined) {
+
+			    // No packets, so let the C number remain the same, whatever it was.
 			    cb();
+			    
 			} else {
+
+			    // The last packet that was acked + 1, in case no packets with ack=0
 			    update(1 + row.seqnumber);
 			}
 		    } else {
@@ -700,6 +707,8 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 		    }
 		});
 	    } else {
+
+		// The first packet not acked.
 		update(row.seqnumber);
 	    }
 	} else {
@@ -827,6 +836,7 @@ function errThrow(err) {
 
 
 module.exports.Mailbox = Mailbox;
+module.exports.dispAllTableData = dispAllTableData;
 
 
 

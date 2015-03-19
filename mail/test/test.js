@@ -360,10 +360,60 @@ describe(
 		       });
 		   }
 	       );
-	       
-
-	       
-	       
 	   });});
+
+
+
+
+describe(
+    'maximizeCNumber',
+    function() {
+	it(
+	    'Should maximize the C number',
+	    function(done) {
+		withbox(
+		    function(box) {
+		       var filler = function(n, cb) {
+			   if (n == 0) {
+			       cb();
+			   } else {
+			       var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+			       box.db.run(
+				   query, n + 119,
+				   box.mailboxName, 'destination', n,
+				   0, 'some label', new Buffer(1),
+				   (n < 15) || n == 20,
+				   function (err) {
+				       assert(err == undefined);
+				       filler(n - 1, cb);
+				   }
+			       );
+			   }
+		       };
+			filler(30, function(err) {
+			    assert(err == undefined);
+			    box.maximizeCNumber(
+				'destination',
+				function(err) {
+				    assert(err == undefined);
+				    box.getCNumber(
+					box.mailboxName,
+					'destination',
+					function(err, value) {
+					    assert(err == undefined);
+					    assert(value == 15);
+					    done();
+					}
+				    );
+				}
+			    );
+			});
+		    }
+		);
+	    }
+	);
+    }
+);
+
 
 
