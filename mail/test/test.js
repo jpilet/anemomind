@@ -45,6 +45,39 @@ describe(
 );
 
 
+describe(
+    'updateCTable',
+    function() {
+	it(
+	    'Update the C table appropriately',
+	    function(done) {
+		withbox(
+		    function(box) {
+
+			box.updateCTable('a', 'b', 19, function(err) {
+			    box.getCNumber('a', 'b', function(err, value) {
+				assert(value == 19);
+				box.updateCTable('a', 'b', 29, function(err) {
+				    box.getCNumber('a', 'b', function(err, value) {
+					assert(value == 29);
+					box.updateCTable('a', 'b', 13, function(err) {
+					    box.getCNumber('a', 'b', function(err, value) {
+						assert(value == 29);
+						done();
+					    });
+					});
+				    });
+				});
+			    });
+			});
+		    }
+		);
+	    }
+	);
+    }
+);
+
+
 
 
 
