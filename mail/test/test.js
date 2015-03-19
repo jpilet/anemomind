@@ -1,6 +1,7 @@
 var mailsqlite = require('../mail.sqlite.js');
 var pkt = require('../packet.js');
 var assert = require('assert');
+var intarray = require('../intarray.js');
 
 
 var withbox = function(cb) {
@@ -19,11 +20,10 @@ var withbox = function(cb) {
 // 	});
 //     });
 	 
-
 describe(
     'Send acknowledge',
     function() {
-	it('Should send packets so that an ack is produced',
+	it('Should send packets so that an ack packet is produced to the spammer',
 	   function(done) {
 	       var box = new mailsqlite.Mailbox(
 		   ':memory:', 'demobox',
@@ -55,6 +55,12 @@ describe(
 				   assert.equal(r.label, 'ack');
 				   assert.equal(r.src, 'demobox');
 				   assert.equal(r.dst, 'some-spammer');
+				   var nums = intarray.deserialize(r.data);
+				   assert.equal(nums.length, box.ackFrequency);
+				   for (var i = 0; i < nums.length; i++) {
+				       assert(1 <= nums[i]);
+				       assert(nums[i] <= box.ackFrequency);
+				   }
 				   var query = 'SELECT * FROM packets WHERE dst = ?';
 				   box.db.all(
 				       query, box.mailboxName,
