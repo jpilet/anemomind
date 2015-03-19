@@ -19,9 +19,52 @@ var withbox = function(cb) {
 // 	    assert.equal(-1, 0);
 // 	});
 //     });
+
+describe(
+    'registerPacketData',
+    function() {
+	it(
+	    'Should store a packet in the DB',
+	    function(done) {
+		withbox(
+		    function(box) {
+			box.registerPacketData(
+			    new pkt.Packet(
+				'a', 'b', 119, 30, 'My label',
+				'Some data'), function(err) {
+				assert(err == undefined);
+				box.getCNumber('a', 'b', function(err, num) {
+				    assert(err == undefined);
+				    assert(num == 30);
+				    box.getLastDiaryNumber(function(err, dnum) {
+					assert(err == undefined);
+					box.getFirstPacketStartingFrom(
+					    dnum, function(err, packet) {
+						
+						assert(packet.src == 'a');
+						assert(packet.dst == 'b');
+						assert(packet.seqnumber == 119);
+						assert(packet.cnumber == 30);
+						assert(packet.label == 'My label');
+						assert(packet.data == 'Some data');
+
+						done();
+
+						
+					});
+				    });
+				});
+			    });
+
+		    }
+		);
+	    }
+	);
+    }
+);
 	 
 describe(
-    'Send acknowledge',
+    'handleIncomingPacket',
     function() {
 	it('Should send packets so that an ack packet is produced to the spammer',
 	   function(done) {
