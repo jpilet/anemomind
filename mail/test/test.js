@@ -49,6 +49,33 @@ describe(
 
 
 
+
+describe(
+    'makeNewDiaryNumber',
+    function() {
+	it(
+	    'Generate a new diary number',
+	    function(done) {
+		withbox(
+		    function(box) {
+			box.getLastDiaryNumber(function(err, num) {
+			    assert(num == undefined);
+			    box.makeNewDiaryNumber(function(err, num) {
+				assert(typeof num == 'number');
+				done();
+			    });
+			});
+		    }
+		);
+	    }
+	);
+    }
+);
+
+
+
+
+
 describe(
     'getLastDiaryNumber',
     function() {
