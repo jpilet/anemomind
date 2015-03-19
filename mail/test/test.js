@@ -347,6 +347,13 @@ describe(
 				       query, box.mailboxName,
 				       function(err, results) {
 					   assert.equal(results.length, box.ackFrequency);
+
+					   // When an ack is sent, the packets have
+					   // their 'ack' flags set to true.
+					   for (var i = 0; i < results.length; i++) {
+					       assert(results[i].ack);
+					   }
+					   
 					   done();
 				       });
 			       });
