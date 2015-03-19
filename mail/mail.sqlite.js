@@ -333,7 +333,6 @@ Mailbox.prototype.makeNewSeqNumber = function(dst, callbackNewNumber) {
 Mailbox.prototype.getLastDiaryNumber = function(cb) {
     var query = 'SELECT max(diarynumber) FROM packets';
     this.db.get(query, function(err, result) {
-	console.log('Query performed');
 	if (err == undefined) {
 	    cb(err, result["max(diarynumber)"]);
 	} else {
@@ -629,9 +628,6 @@ Mailbox.prototype.sendAck = function(src, cb) {
 	    for (var i = 0; i < data.length; i++) {
 		seqnums[i] = data[i].seqnumber;
 	    }
-
-	    console.log('seqnums = ' + seqnums);
-	    
 	    self.sendPacket(
 		src/*back to the source*/,
 		'ack',
@@ -790,16 +786,13 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
 	this.getDiaryAndSeqNumbers(
 	    dst,
 	    function(err, results) {
-		console.log('numbers are %j', results);
 		var seqNumber = results.seqNumber;
-		console.log('numbers are %j', results.seqNumber);
 		if (err == undefined) {
 		    box.getOrMakeCNumber(
 			dst, results.seqNumber,
 			function(err, cNumber) {
 			    // Now we have all we need to make the packet.
 			    var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-			    console.log('data = %j', data);
 			    self.db.run(
 				query, results.diaryNumber,
 				self.mailboxName, dst, results.seqNumber,
