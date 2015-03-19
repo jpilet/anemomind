@@ -263,7 +263,7 @@ function Mailbox(dbFilename,      // <-- The filename where all
 Mailbox.prototype.onPacketReceived = null;
 
 /*
-  A callback function cb(err, {"dst":..., "seqnums": ...}) can
+  A callback function cb({"dst":..., "seqnums": ...}) can
   be assigned. It will be called whenever an ack packet
   is received for some packets that this mailbox sent.
 
@@ -736,10 +736,20 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 
 Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     if (packet.label == 'ack') {
+	var seqnums = intarray.deserialize(packet.data);
 	var self = this;
+
+	// Optional call to function whenever some packets that we sent were acknowledged.
+	if (this.onAcknowledged != undefined) {
+	    this.onAcknowledged({
+		dst: packet.src, // The mailbox we sent to
+		seqnums: seqnums // The sequence numbers.
+	    });
+	}
+	
 	self.setAcked(
 	    self.mailboxName, packet.src,
-	    intarray.deserialize(packet.data),
+	    seqnums,
 	    function (err) {
 		if (err == undefined) {
 		    self.maximizeCNumber(packet.src, cb);
