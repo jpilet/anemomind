@@ -472,21 +472,27 @@ Mailbox.prototype.getOrMakeCNumber = function(dst, seqNumber, cb) {
 }
 
 Mailbox.prototype.removeObsoletePackets = function(src, dst, cb) {
+    var self = this;
     this.getCNumber(
 	src, dst,
 	function(err, value) {
 	    if (err == undefined) {
+		var query = 'DELETE FROM packets WHERE seqnumber < ?';
+		self.db.run(query, value, cb);
 	    } else {
+		cb(err);
 	    }
 	});
 }
 
+
+
 // Update the C table. Used when handling incoming packets.
 Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
 
+    var self = this;
     var onUpdate = function(err) {
-	//this.removeObsoletePackets(src, dst, cb);
-	cb(err);
+	self.removeObsoletePackets(src, dst, cb);
     };
     
     var self = this;
