@@ -8,7 +8,7 @@ var sqlite3 = require('sqlite3').verbose();
 var seqnums = require('./seqnums.js');
 var async = require('async');
 var pkt = require('./packet.js');
-
+var intarray = require('./intarray.js');
 
 function assert(x) {
     if (!x) {
@@ -639,7 +639,7 @@ Mailbox.prototype.sendAck = function(src, cb) {
 	    self.sendPacket(
 		src/*back to the source*/,
 		'ack',
-		seqnums,
+		intarray.serialize(seqnums),
 		function(err) {
 		    if (err == undefined) {
 			self.setAcked(
@@ -710,7 +710,8 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     if (packet.label == 'ack') {
 	var self = this;
 	self.setAcked(
-	    self.mailboxName, packet.src, packet.data,
+	    self.mailboxName, packet.src,
+	    intarray.deserialize(packet.data),
 	    function (err) {
 		if (err == undefined) {
 		    self.maximizeCNumber(packet.src, cb);
