@@ -47,6 +47,38 @@ describe(
 
 
 describe(
+    '{set, get}ForeignDiaryNumber',
+    function() {
+	it(
+	    'Set and get a foreign diary number',
+	    function(done) {
+		withbox(
+		    function(box) {
+			box.getForeignDiaryNumber('rulle', function(err, value) {
+			    assert(value == undefined);
+			    box.setForeignDiaryNumber('rulle', 119, function(err) {
+				box.getForeignDiaryNumber('rulle', function(err, value2) {
+				    assert(value2 == 119);
+				    box.setForeignDiaryNumber('rulle', 135, function(err) {
+					box.getForeignDiaryNumber('rulle', function(err, value3) {
+					    assert(value3 == 135);
+					    done();
+					});
+				    });
+				});
+			    });
+			});
+		    }
+		);
+	    }
+	);
+    }
+);
+
+
+
+
+describe(
     'getFirstPacketStartingFrom',
     function() {
 	it(
