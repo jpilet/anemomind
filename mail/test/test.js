@@ -127,7 +127,8 @@ describe(
 				    assert(num == 129);
 				    done();
     				});
-    			    });
+    			    }
+			);
 		    }
 		);
 	    }
@@ -200,25 +201,19 @@ describe(
 	    function(done) {
 		withbox(
 		    function(box) {
-
 			box.getFirstPacketStartingFrom(0, function(err, result) {
 			    assert(result == undefined);
 			    box.sendPacket('dst', 'label', new Buffer(1), function(err) {
 				box.getFirstPacketStartingFrom(0, function(err, result) {
 				    assert(result != undefined);
-
 				    box.getFirstPacketStartingFrom(
 					result.diarynumber + 1, function(err, result) {
-					    
 					    assert(result == undefined);
 					    done();
-
 					});
 				});
 			    });
 			});
-
-			
 		    }
 		);
 	    }
