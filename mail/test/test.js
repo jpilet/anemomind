@@ -13,15 +13,6 @@ var withbox = function(cb) {
 	});
 };
 
-// describe(
-//     'Failing test',
-//     function() {
-// 	it('SHOULD FAIL', function() {
-// 	    assert.equal(-1, 0);
-// 	});
-//     });
-
-
 // Template
 
 describe(

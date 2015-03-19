@@ -735,7 +735,7 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 }
 
 Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
-    if (packet.label == 'ack') {
+    if (packet.label == 'ack' && packet.dst == this.mailboxName) {
 	var seqnums = intarray.deserialize(packet.data);
 	var self = this;
 
