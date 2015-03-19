@@ -403,7 +403,7 @@ describe(
     'maximizeCNumber',
     function() {
 	it(
-	    'Should maximize the C number',
+	    'Should maximize the C number to 15',
 	    function(done) {
 		withbox(
 		    function(box) {
@@ -429,8 +429,63 @@ describe(
 		);
 	    }
 	);
+
+
+
+
+	it(
+	    'Should maximize the C number to 31',
+	    function(done) {
+		withbox(
+		    function(box) {
+			fillPackets(
+			    box,
+			    function(i) {
+				return true;
+			    },
+			    30,
+			    function(err) {
+				assert(err == undefined);
+				maximizeAndGetCNumber(
+				    box,
+				    function(err, value) {
+					assert(err == undefined);
+					assert(value == 31);
+					done();
+				    }
+				);
+			    }
+			);
+		    }
+		);
+	    }
+	);
+
+
+
+
+
+
+	it(
+	    'C-number should remain undefined',
+	    function(done) {
+		withbox(
+		    function(box) {
+			maximizeAndGetCNumber(
+			    box,
+			    function(err, value) {
+				assert(err == undefined);
+				assert(value == undefined);
+				done();
+			    }
+			);
+		    }
+		);
+	    }
+	);
     }
 );
+
 
 
 
