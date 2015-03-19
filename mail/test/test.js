@@ -8,6 +8,7 @@ var withbox = function(cb) {
     var box = new mailsqlite.Mailbox(
 	':memory:', 'demobox',
 	function(err) {
+	    assert(err == undefined);
 	    cb(box);
 	});
 };
@@ -38,6 +39,34 @@ describe(
 			done();
 
 			
+		    }
+		);
+	    }
+	);
+    }
+);
+
+
+
+
+describe(
+    'getLastDiaryNumber',
+    function() {
+	it(
+	    'Retrieve the last diary number',
+	    function(done) {
+		withbox(
+		    function(box) {
+			box.db.run(
+			    'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    			    129, "abra", "kadabra", 119, 109,
+			    "testpacket", "sometestdata", false,
+    			    function(err) {
+    				box.getLastDiaryNumber(function(err, num) {
+				    assert(num == 129);
+				    done();
+    				});
+    			    });
 		    }
 		);
 	    }
