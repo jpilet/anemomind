@@ -50,8 +50,18 @@ describe(
 			   box.db.all(
 			       query, box.mailboxName,
 			       function(err, results) {
+				   var r = results[0];
 				   assert.equal(results.length, 1);
-				   done();
+				   assert.equal(r.label, 'ack');
+				   assert.equal(r.src, 'demobox');
+				   assert.equal(r.dst, 'some-spammer');
+				   var query = 'SELECT * FROM packets WHERE dst = ?';
+				   box.db.all(
+				       query, box.mailboxName,
+				       function(err, results) {
+					   assert.equal(results.length, box.ackFrequency);
+					   done();
+				       });
 			       });
 		       });
 		   }
