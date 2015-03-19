@@ -456,13 +456,13 @@ Mailbox.prototype.insertCTable = function(src, dst, value, cb) {
 Mailbox.prototype.getOrMakeCNumber = function(dst, seqNumber, cb) {
     var self = this;
     this.getCNumber(
-	this.mailboxName, dst,
+	self.mailboxName, dst,
     	function(err, value) {
 	    if (err == undefined) {
 		if (value == undefined) { /* If there isn't already a cnumber,
 					     initialize it with sequence counter value */
 		    self.insertCTable(
-			this.mailboxName, dst, seqNumber,
+			self.mailboxName, dst, seqNumber,
 			function(err) {
 			    cb(err, seqNumber);
 			});
@@ -859,8 +859,10 @@ function sendPacketDemo(box) {
 function getCNumberDemo(box) {
     box.getOrMakeCNumber('abra', '12349', function(err, cnumber) {
 	console.log('C-number is ' + cnumber);
+	dispAllTableData(box.db);
 	box.getOrMakeCNumber('abra', '19999', function(err, cnumber) {
 	    console.log('C-number is ' + cnumber);
+	    dispAllTableData(box.db);
 	});
     });
 }
@@ -1021,7 +1023,8 @@ var box = new Mailbox(filename, 'demobox', function(err) {
     //foreignDiaryNumberDemo(box);
     //sendPacketDemo(box);
     //getLastDiaryNumberDemo(box);
-    insertTestPacketDemo(box);
+    //insertTestPacketDemo(box);
     //seqNumberDemo(box);
+    getCNumberDemo(box);
 });
 

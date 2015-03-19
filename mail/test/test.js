@@ -30,6 +30,7 @@ describe(
 	it(
 	    'Do something',
 	    function(done) {
+
 		withbox(
 		    function(box) {
 
@@ -45,6 +46,39 @@ describe(
 	);
     }
 );
+
+
+
+
+
+
+
+
+describe(
+    'getOrMakeCNumber',
+    function() {
+	it(
+	    'get or make a C number',
+	    function(done) {
+		withbox(
+		    function(box) {
+			box.getOrMakeCNumber('abra', 12349, function(err, cnumber) {
+			    assert(cnumber == 12349);
+			    box.getOrMakeCNumber('abra', 19999, function(err, cnumber) {
+				// unchanged, because there is already a number there.
+				assert(cnumber == 12349);
+				done();
+			    });
+			});
+		    }
+		);
+	    }
+	);
+    }
+);
+
+
+
 
 
 
