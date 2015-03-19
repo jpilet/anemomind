@@ -1021,5 +1021,6 @@ var box = new Mailbox(filename, 'demobox', function(err) {
     //foreignDiaryNumberDemo(box);
     //sendPacketDemo(box);
     //getLastDiaryNumberDemo(box);
+    //seqNumberDemo(box);
 });
 

@@ -45,6 +45,29 @@ describe(
 );
 
 
+describe(
+    'makeNewSeqNumber',
+    function() {
+	it(
+	    'Generate unique sequence numbers for a destination mailbox in a sequence',
+	    function(done) {
+		withbox(
+		    function(box) {
+			box.makeNewSeqNumber('abra', function(err, x) {
+			    box.makeNewSeqNumber('abra', function(err, y) {
+				assert(x + 1 == y);
+				box.makeNewSeqNumber('abra', function(err, z) {
+				    assert(y + 1 == z);
+				    done();
+				});
+			    });
+			});
+		    }
+		);
+	    }
+	);
+    }
+);
 
 describe(
     '{set, get}ForeignDiaryNumber',
