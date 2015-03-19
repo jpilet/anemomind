@@ -396,8 +396,15 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
 }
 
 // Retrieves the first packet starting from a diary number.
-Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, cb) {
-    var query = 'SELECT * FROM packets  WHERE ? <= diarynumber ORDER BY diarynumber ASC';
+Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, cb, lightWeight) {
+    
+    // During the synchronization process, we might only want the essential information
+    // to determine whether or not we are going to ask for the whole packet.
+    var what = (lightWeight? 'src,seqnumber' : '*');
+    
+    var query = 'SELECT ' + what +
+	' FROM packets  WHERE ? <= diarynumber ORDER BY diarynumber ASC';
+    
     this.db.get(query, diaryNumber, cb);
 }
 
