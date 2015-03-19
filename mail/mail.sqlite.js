@@ -827,6 +827,15 @@ function errThrow(err) {
 }
 
 
+module.exports.Mailbox = Mailbox;
+
+
+
+
+
+
+
+
 
 
 
