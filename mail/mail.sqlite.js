@@ -484,7 +484,6 @@ Mailbox.prototype.removeObsoletePackets = function(src, dst, cb) {
 // Update the C table. Used when handling incoming packets.
 Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
 
-    console.log('Update ctable with value ' + newValue);
     var onUpdate = function(err) {
 	//this.removeObsoletePackets(src, dst, cb);
 	cb(err);
@@ -675,7 +674,6 @@ Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
 
 Mailbox.prototype.maximizeCNumber = function(dst, cb) {
     var update = function(x) {
-	console.log('UPDATE C-table with ' + x);
 	self.updateCTable(
 	    self.mailboxName,
 	    dst,

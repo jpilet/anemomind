@@ -365,6 +365,28 @@ describe(
 
 
 
+
+function makeFiller(box, ackFn) {
+    var filler = function(n, cb) {
+	if (n == 0) {
+	    cb();
+	} else {
+	    var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+	    box.db.run(
+		query, n + 119,
+		box.mailboxName, 'destination', n,
+		0, 'some label', new Buffer(1),
+		ackFn(n),
+		function (err) {
+		    assert(err == undefined);
+		    filler(n - 1, cb);
+		}
+	    );
+	}
+    };
+    return filler;
+}
+
 describe(
     'maximizeCNumber',
     function() {
@@ -373,23 +395,9 @@ describe(
 	    function(done) {
 		withbox(
 		    function(box) {
-		       var filler = function(n, cb) {
-			   if (n == 0) {
-			       cb();
-			   } else {
-			       var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-			       box.db.run(
-				   query, n + 119,
-				   box.mailboxName, 'destination', n,
-				   0, 'some label', new Buffer(1),
-				   (n < 15) || n == 20,
-				   function (err) {
-				       assert(err == undefined);
-				       filler(n - 1, cb);
-				   }
-			       );
-			   }
-		       };
+			var filler = makeFiller(box, function(i) {
+			    return i < 15 || i == 20;
+			});
 			filler(30, function(err) {
 			    assert(err == undefined);
 			    box.maximizeCNumber(
