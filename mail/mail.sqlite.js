@@ -382,7 +382,9 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
 		console.log('You are setting a new diary number which is lower than the previous one. This could be a bug.');
 	    }
 
-	    if (previousValue == undefined) { // <-- This only happens when there isn't any existing diary number already.
+	    if (previousValue == undefined) {  // <-- This only happens when
+		                               //     there isn't any existing
+		                               //     diary number already.
 		var query = 'INSERT INTO diarynumbers VALUES (?, ?)';
 		self.db.run(query, otherMailbox, newValue, cb);
 	    } else {
