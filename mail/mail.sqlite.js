@@ -254,7 +254,7 @@ function Mailbox(dbFilename,      // <-- The filename where all
 }
 
 /*
-  A callback function cb(err, packet) can
+  A callback function cb(packet) can
   be assigned. It will be called whenever this
   mailbox receives a packet.
   
@@ -765,11 +765,31 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 // This method is called only for packets that should not be rejected.
 Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
     var self = this;
+
+    // This call will
+    //  * Store the packet in the mailbox
+    //  * Update the C-table using the data of the packet
     this.registerPacketData(packet, function(err) {
 	if (err == undefined) {
+
+	    // Optional callback to inform us that
+	    // we have a new packet to open.
+	    if (self.onPacketReceived != undefined
+		&& packet.dst == self.mailboxName) {
+		self.onPackedReceived(packet);
+	    }
+	    
+	    // If the packet was intended for this mailbox,
+	    // this call will mark packets as acknowledged
+	    // and maximize the C-number.
 	    self.handleAckPacketIfNeeded(
 		packet, function(err) {
+
+		    // If we have received enough packets
+		    // from packet.src, return an 'ack' packet
+		    // to that source.
 		    self.sendAckIfNeeded(packet.src, cb);
+		    
 		});
 	} else {
 	    cb(err);
