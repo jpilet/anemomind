@@ -16,10 +16,7 @@ var assert = require('assert');
 /////////////////////////////////////////////////////////
 // General functions for checking if an object is a string
 function isString(x) {
-    if (typeof x == 'string') {
-	return true;
-    }
-    return false;
+    return typeof x == 'string';
 }
 
 function isNonEmptyString(x) {
