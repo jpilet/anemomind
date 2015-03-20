@@ -102,7 +102,8 @@ function dispAllTableData(db, cb) {
 
 
 
-// A constructor for a temprorary storage of all mails.
+// A constructor for a temporary storage of all mails and their
+// transactions.
 function Mailbox(dbFilename,      // <-- The filename where all
 		                  //     messages are stored.
 		 thisMailboxName, // <-- A string that uniquely
@@ -161,7 +162,7 @@ Mailbox.prototype.onAcknowledged = null;
 // If no such number exists, it calls the callback without any arguments.
 Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
     if (!isNonEmptyString(dst)) {
-	throw new Error('Dst should be a string. Currently, its value is '+ dst);
+	throw new Error('Dst should be a string. Currently, its value is ' + dst);
     }
     var self = this;
     this.db.serialize(function() {
