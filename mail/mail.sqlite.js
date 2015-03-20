@@ -448,7 +448,7 @@ Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
 };
 
 // Check if an incoming packet should be admitted.
-Mailbox.prototype.isAdmissable = function(src, dst, seqNumber, cb) {
+Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
     this.getCNumber(src, dst, function(err, cnumber) {
 	if (err == undefined) {
 	    cb(err, (cnumber == undefined? true : (cnumber <= seqNumber)));
@@ -722,7 +722,7 @@ Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
 // Handle an incoming packet.
 Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
     var self = this;
-    this.isAdmissable(
+    this.isAdmissible(
 	packet.src,
 	packet.dst,
 	packet.seqNumber,
