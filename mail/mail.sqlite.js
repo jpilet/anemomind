@@ -40,6 +40,8 @@ function runWithLog(db, cmd) {
 
 // To obtain these strings, instantiate the db with the file 'network.db'
 // Then type in the terminal 'sqlite3 network.db .fullschema'
+//
+// PRIMARY KEY should be the last column of every create statement
 var fullschema = "CREATE TABLE seqnumbers (dst TEXT, counter BIGINT, PRIMARY KEY(dst)); CREATE TABLE packets (diarynumber BIGINT, src TEXT, dst TEXT, seqnumber BIGINT, cnumber BIGINT, label TEXT, data BLOB, ack INTEGER, PRIMARY KEY(diarynumber)); CREATE TABLE diarynumbers (mailbox TEXT, number BIGINT, PRIMARY KEY(mailbox)); CREATE TABLE ctable (src TEXT, dst TEXT, counter BIGINT, PRIMARY KEY(src, dst));";
 
 function addIfNotExists(x) {
@@ -50,7 +52,6 @@ function addIfNotExists(x) {
 function createAllTables(db, cb) {
     db.exec(addIfNotExists(fullschema), cb);
 }
-
 
 function getAllTables(db, cb) {
     db.all('SELECT * FROM sqlite_master WHERE type=\'table\'', cb);
