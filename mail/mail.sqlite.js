@@ -37,12 +37,9 @@ function runWithLog(db, cmd) {
     db.run(cmd);
 }
 
-// To obtain this string, instantiate the db with the file 'network.db'
+// To obtain these strings, instantiate the db with the file 'network.db'
 // Then type in the terminal 'sqlite3 network.db .fullschema'
-var fullschema = ['CREATE TABLE seqnumbers (dst TEXT, counter BIGINT);',
-		  'CREATE TABLE packets (diarynumber BIGINT, src TEXT, dst TEXT, seqnumber BIGINT, cnumber BIGINT, label TEXT, data BLOB, ack INTEGER);',
-		  'CREATE TABLE diarynumbers (mailbox TEXT, number BIGINT);',
-		  'CREATE TABLE ctable (src TEXT, dst TEXT, counter BIGINT);'];
+var fullschema = "CREATE TABLE seqnumbers (dst TEXT, counter BIGINT); CREATE TABLE packets (diarynumber BIGINT, src TEXT, dst TEXT, seqnumber BIGINT, cnumber BIGINT, label TEXT, data BLOB, ack INTEGER); CREATE TABLE diarynumbers (mailbox TEXT, number BIGINT); CREATE TABLE ctable (src TEXT, dst TEXT, counter BIGINT);";
 
 function addIfNotExists(x) {
     assert(isString(x));
@@ -54,20 +51,26 @@ function createAllTables(db, cb) {
 	if (cmds.length == 0) {
 	    cb();
 	} else {
-	    var cmd = addIfNotExists(cmds[0]);
-	    db.run(
-		cmd,
-		function(err) {
-		    if (err == undefined) {
-			f(cmds.slice(1));
-		    } else {
-			cb(err);
+	    var cmd = addIfNotExists(cmds[0]).trim();
+	    var rest = cmds.slice(1)
+	    if (cmd.length == 0) {
+		f(rest);
+	    } else {
+		db.run(
+		    cmd,
+		    function(err) {
+			if (err == undefined) {
+			    f(rest);
+			} else {
+			    cb(err);
+			}
 		    }
-		}
-	    );
+		);
+
+	    }
 	}
     };
-    f(fullschema);
+    f(fullschema.split(";"));
 
     /* Creating all tables in a single query doesn't seem to work:
     var cmd = addIfNotExists(fullschema.join(" "));
