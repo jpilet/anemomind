@@ -39,7 +39,10 @@ function runWithLog(db, cmd) {
 
 // To obtain this string, instantiate the db with the file 'network.db'
 // Then type in the terminal 'sqlite3 network.db .fullschema'
-var fullschema = 'CREATE TABLE seqnumbers (dst TEXT, counter BIGINT); CREATE TABLE packets (diarynumber BIGINT, src TEXT, dst TEXT, seqnumber BIGINT, cnumber BIGINT, label TEXT, data BLOB, ack INTEGER); CREATE TABLE diarynumbers (mailbox TEXT, number BIGINT); CREATE TABLE ctable (src TEXT, dst TEXT, counter BIGINT);';
+var fullschema = ['CREATE TABLE seqnumbers (dst TEXT, counter BIGINT);',
+		  'CREATE TABLE packets (diarynumber BIGINT, src TEXT, dst TEXT, seqnumber BIGINT, cnumber BIGINT, label TEXT, data BLOB, ack INTEGER);',
+		  'CREATE TABLE diarynumbers (mailbox TEXT, number BIGINT);',
+		  'CREATE TABLE ctable (src TEXT, dst TEXT, counter BIGINT);'];
 
 function addIfNotExists(x) {
     assert(isString(x));
@@ -47,7 +50,30 @@ function addIfNotExists(x) {
 }
 
 function createAllTables(db, cb) {
-    db.run(addIfNotExists(fullschema), cb);
+    var f = function(cmds) {
+	if (cmds.length == 0) {
+	    cb();
+	} else {
+	    var cmd = addIfNotExists(cmds[0]);
+	    db.run(
+		cmd,
+		function(err) {
+		    if (err == undefined) {
+			f(cmds.slice(1));
+		    } else {
+			cb(err);
+		    }
+		}
+	    );
+	}
+    };
+    f(fullschema);
+
+    /* Creating all tables in a single query doesn't seem to work:
+    var cmd = addIfNotExists(fullschema.join(" "));
+     console.log('cmd = ' + cmd);
+     db.run(cmd, cb);
+    cb();*/
 }
 
 // Assembles an SQL command as a string to create a table.
@@ -237,7 +263,7 @@ function Mailbox(dbFilename,      // <-- The filename where all
 
     // Wait for the creation of all tables to complete before we call cb.
 
-    if (false) {
+    if (true) {
 	createAllTables(db, cb);
     } else {
 	async.parallel([
