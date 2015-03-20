@@ -39,14 +39,8 @@ function runWithLog(db, cmd) {
 
 // Assembles an SQL command as a string to create a table.
 function makeCreateCmd(tableName, fieldSpecs) {
-    var result = 'CREATE TABLE ' + tableName + ' (';
-    for (var i = 0; i < fieldSpecs.length; i++) {
-	result += fieldSpecs[i];
-	if (i < fieldSpecs.length - 1) {
-	    result += ', ';
-	}
-    }
-    return result + ')';
+    var s = 'CREATE TABLE ' + tableName + ' (' + fieldSpecs.join(", ") + ")"; // ") IF NOT EXISTS;";
+    return s;
 }
 
 // Checks if a table exists, and calls 'cb' with that information, or error.
@@ -129,19 +123,11 @@ function dispAllTableData(db, cb) {
 
 
 // Creates a new table if it doesn't exist already.
-function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
-				     tableName,     // <-- Name of the table to be created.
-				     fieldSpecs,    // <-- The fields of the table
-				     cb) {          // <-- A callback that accepts optional err.
-    tableExists(db, tableName, function(status) {
-	if (status == false) {
-	    db.run(makeCreateCmd(tableName, fieldSpecs), cb);
-	} else if (status == true) {
-	    cb();
-	} else { // Pass on the error code to the callback.
-	    cb(status);
-	}
-    });
+function initializeTable(db,            // <-- A sqlite3 database
+			 tableName,     // <-- Name of the table to be created.
+			 fieldSpecs,    // <-- The fields of the table
+			 cb) {          // <-- A callback that accepts optional err.
+    db.run(makeCreateCmd(tableName, fieldSpecs), cb);
 }
 
 
@@ -150,7 +136,7 @@ function initializeTableIfNotAlready(db,            // <-- A sqlite3 database
 // from this mailbox, packets that are transferred
 // via this mailbox, and packets delivered to this mailbox.
 function initializePacketsTable(db, cb) {
-    initializeTableIfNotAlready(
+    initializeTable(
 	db, 'packets',
 	['diarynumber BIGINT', // <-- Every packet has a diary number. This is used to refer to the packet within this mailbox.
 	 'src TEXT', // <-- The identifier of the mailbox sending the packet.
@@ -168,7 +154,7 @@ function initializePacketsTable(db, cb) {
 // packets. The value of the counter should be one more
 // than that of the last packet sent.
 function initializeSeqNumbersTable(db, cb) {
-    initializeTableIfNotAlready(
+    initializeTable(
 	db, 'seqnumbers',
 	['dst TEXT', // <-- The destination mailbox.
 	 'counter BIGINT'], // <-- Next sequence number to be assigned a newly created packet.
@@ -181,7 +167,7 @@ function initializeSeqNumbersTable(db, cb) {
 // through if its sequence number is at least
 // that of the C-number.
 function initializeCTable(db, cb) {
-    initializeTableIfNotAlready(
+    initializeTable(
 	db, 'ctable',
 	['src TEXT', // <-- source mailbox identifier
 	 'dst TEXT', // <-- destination mailbox identifier
@@ -197,7 +183,7 @@ function initializeCTable(db, cb) {
 // with another mailbox by only fetching packets
 // with diary numbers greater than that in this table.
 function initializeDiaryNumberTable(db, cb) {
-    initializeTableIfNotAlready(
+    initializeTable(
 	db, 'diarynumbers',
 	['mailbox TEXT',  // <-- identifier of the other mailbox
 	 'number BIGINT'], // <-- The diary number
