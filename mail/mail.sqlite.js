@@ -66,7 +66,6 @@ function createAllTables(db, cb) {
 			}
 		    }
 		);
-
 	    }
 	}
     };
@@ -85,37 +84,6 @@ function makeCreateCmd(tableName, fieldSpecs) {
     return s;
 }
 
-// Checks if a table exists, and calls 'cb' with that information, or error.
-function tableExists(db, tableName, cb) {
-    
-    // If no callback is provided, provide a default callback for debugging purposes.
-    if (cb == undefined) {
-	cb = function(status) {
-	    console.log('DEBUG INFO:');
-	    if (status == true) {
-		console.log('  There is a table with name ' + tableName);
-	    } else if (status == false) {
-		console.log('  There is NO table with name ' + tableName);
-	    } else {
-		console.log('  Error while testing existence of table with name ' + tableName);
-	    }
-	};
-    }
-
-    // The query
-    db.get('SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\''
-	   + tableName + '\'', function(err, row) {
-	       if (err == undefined) {
-		   if (row == undefined) {
-		       cb(false);
-		   } else {
-		       cb(true);
-		   }
-	       } else {
-		   cb(err);
-	       }
-	   });
-}
 
 function getAllTables(db, cb) {
     db.all('SELECT * FROM sqlite_master WHERE type=\'table\'', cb);
@@ -164,75 +132,6 @@ function dispAllTableData(db, cb) {
 }
 
 
-// Creates a new table if it doesn't exist already.
-function initializeTable(db,            // <-- A sqlite3 database
-			 tableName,     // <-- Name of the table to be created.
-			 fieldSpecs,    // <-- The fields of the table
-			 cb) {          // <-- A callback that accepts optional err.
-    db.run(makeCreateCmd(tableName, fieldSpecs), cb);
-}
-
-
-// This is a common table for all packets that exist
-// inside this mailbox: that includes packets sent
-// from this mailbox, packets that are transferred
-// via this mailbox, and packets delivered to this mailbox.
-function initializePacketsTable(db, cb) {
-    initializeTable(
-	db, 'packets',
-	['diarynumber BIGINT', // <-- Every packet has a diary number. This is used to refer to the packet within this mailbox.
-	 'src TEXT', // <-- The identifier of the mailbox sending the packet.
-	 'dst TEXT',         // <-- The mailbox to which the packet is sent
-	 'seqnumber BIGINT', // <-- Determines how old this packet is and if it can be ignored.
-	 'cnumber BIGINT', // <-- An update of the last c-number, used to update the c-table.
-	 'label TEXT', // <-- What this packet is about. The label 'ack' is reserved for acknowledgement packets.
-	 'data BLOB', // <-- The data of this packet. To be on a form specified by a higher level protocol
-	 'ack INTEGER' // <-- boolean, only used for packets originating from this mailbox.
-	], cb);
-}
-
-// This is a table with the sequence number counters
-// for all other mailboxes to which this mailbox sends
-// packets. The value of the counter should be one more
-// than that of the last packet sent.
-function initializeSeqNumbersTable(db, cb) {
-    initializeTable(
-	db, 'seqnumbers',
-	['dst TEXT', // <-- The destination mailbox.
-	 'counter BIGINT'], // <-- Next sequence number to be assigned a newly created packet.
-	cb
-    );
-}
-
-// The C-table holds a number for every
-// (src, dst) pair. It will only let a packet
-// through if its sequence number is at least
-// that of the C-number.
-function initializeCTable(db, cb) {
-    initializeTable(
-	db, 'ctable',
-	['src TEXT', // <-- source mailbox identifier
-	 'dst TEXT', // <-- destination mailbox identifier
-	 'counter BIGINT'], // <-- Last known maximum c-number, used to reject packets that are too old.
-	cb
-    );
-}
-
-// The diary number table is a table with
-// diary numbers for foreign mailboxes
-// with which this mailbox has synchronized.
-// It is used by this mailbox whenever it synchronizes
-// with another mailbox by only fetching packets
-// with diary numbers greater than that in this table.
-function initializeDiaryNumberTable(db, cb) {
-    initializeTable(
-	db, 'diarynumbers',
-	['mailbox TEXT',  // <-- identifier of the other mailbox
-	 'number BIGINT'], // <-- The diary number
-	cb
-    );
-}
-
 
 
 // A constructor for a temprorary storage of all mails.
@@ -264,20 +163,7 @@ function Mailbox(dbFilename,      // <-- The filename where all
     // For variable visibility.
     var db = this.db;
 
-    // Wait for the creation of all tables to complete before we call cb.
-
-    if (true) {
-	createAllTables(db, cb);
-    } else {
-	async.parallel([
-    	    function(a) {initializeSeqNumbersTable(db, a);},
-    	    function(a) {initializePacketsTable(db, a);},
-    	    function(a) {initializeCTable(db, a);},
-    	    function(a) {initializeDiaryNumberTable(db, a);}
-	], function(err) {
-    	    cb(err);
-	});
-    }
+    createAllTables(db, cb);
 }
 
 /*
