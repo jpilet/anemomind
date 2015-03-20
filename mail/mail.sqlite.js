@@ -153,13 +153,16 @@ function Mailbox(dbFilename,      // <-- The filename where all
     
     this.dbFilename = dbFilename;
     this.mailboxName = thisMailboxName;
-    this.db = new sqlite3.Database(
-	dbFilename,
-	function(err) {
-	    if (err != undefined) {
-		cb(err);
+    this.db = new TransactionDatabase(
+	new sqlite3.Database(
+	    dbFilename,
+	    function(err) {
+		if (err != undefined) {
+		    cb(err);
+		}
 	    }
-	});
+	)
+    );
 
     // For variable visibility.
     var db = this.db;
