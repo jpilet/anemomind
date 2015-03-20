@@ -39,7 +39,7 @@ function runWithLog(db, cmd) {
 
 // Assembles an SQL command as a string to create a table.
 function makeCreateCmd(tableName, fieldSpecs) {
-    var s = 'CREATE TABLE ' + tableName + ' IF NOT EXISTS (' + fieldSpecs.join(", ") + ")"; // ") IF NOT EXISTS;";
+    var s = 'CREATE TABLE IF NOT EXISTS ' + tableName + ' (' + fieldSpecs.join(", ") + ")"; // ") IF NOT EXISTS;";
     return s;
 }
 
