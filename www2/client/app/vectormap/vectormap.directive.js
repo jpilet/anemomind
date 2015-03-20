@@ -9,7 +9,8 @@ angular.module('www2App')
         var canvas = new CanvasTilesRenderer({
           canvas: element.children()[0],
           url: function(scale, x, y) { 
-            return "http://b.tile.opencyclemap.org/cycle/" + scale + "/" + x + "/" + y + ".png";
+            return "http://b.tiles.mapbox.com/v3/openplans.map-g4j0dszr/" + scale + "/" + x + "/" + y + ".png";
+            // return "http://b.tile.opencyclemap.org/cycle/" + scale + "/" + x + "/" + y + ".png";
           },
           maxNumCachedTiles: 256,
           onLocationChange: function(canvasTilesRenderer) {
