@@ -1,14 +1,13 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 
-<div class="container">
-  <div ng-controller="PathController">
-    <leaflet center="map.position" width="100%" height="400" defaults="map.defaults" layers="map.layers"></leaflet>
-    <form>
-      Latitude : <input type="number" step="any" ng-model="map.position.lat" />
-      Longitude : <input type="number" step="any" ng-model="map.position.lng" />
-      Zoom : <input type="number" step="any" ng-model="map.position.zoom" />
-    </form>
-  </div>
+<div ng-if="isLoggedIn" class="container">
+<p>Welcome!</p>
+<a href="/boats">See your boats</a>
+</div>
+
+<div ng-if="!isLoggedIn" class="container">
+<p>Please <a href="/login">login</a></p>
+</div>
 
 <footer class="footer">
   <div class="container">

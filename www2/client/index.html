@@ -15,7 +15,6 @@
       <!-- bower:css -->
       <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
       <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css" />
-      <link rel="stylesheet" href="bower_components/leaflet/dist/leaflet.css" />
       <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css({.tmp,client}) app/app.css -->
@@ -26,6 +25,7 @@
       <link rel="stylesheet" href="app/app.css">
       <link rel="stylesheet" href="app/boats/boats.css">
       <link rel="stylesheet" href="app/main/main.css">
+      <link rel="stylesheet" href="app/map/map.css">
       <link rel="stylesheet" href="components/modal/modal.css">
       <!-- endinjector -->
     <!-- endbuild -->
@@ -66,18 +66,8 @@
       <script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script>
       <script src="bower_components/ng-file-upload/angular-file-upload.js"></script>
       <script src="bower_components/ng-file-upload-shim/angular-file-upload-shim.js"></script>
-      <script src="bower_components/leaflet/dist/leaflet.js"></script>
-      <script src="bower_components/leaflet/dist/leaflet-src.js"></script>
-      <script src="bower_components/angular-leaflet-directive/dist/angular-leaflet-directive.js"></script>
-      <script src="bower_components/sidebar-v2/css/gmaps-sidebar.js"></script>
-      <script src="bower_components/sidebar-v2/css/leaflet-sidebar.js"></script>
-      <script src="bower_components/sidebar-v2/css/ol2-sidebar.js"></script>
-      <script src="bower_components/sidebar-v2/css/ol3-sidebar.js"></script>
-      <script src="bower_components/sidebar-v2/js/jquery-sidebar.js"></script>
-      <script src="bower_components/sidebar-v2/js/leaflet-sidebar.js"></script>
       <!-- endbower -->
       <script src="socket.io-client/socket.io.js"></script>
-      <script src="bower_components/leaflet-tilelayer-geojson/TileLayer.GeoJSON.js"></script>
     <!-- endbuild -->
 
         <!-- build:js({.tmp,client}) app/app.js -->
@@ -94,6 +84,18 @@
           <script src="app/boats/boats.js"></script>
           <script src="app/main/main.controller.js"></script>
           <script src="app/main/main.js"></script>
+          <script src="app/map/map.controller.js"></script>
+          <script src="app/map/map.js"></script>
+          <script src="app/userDB/userDB.service.js"></script>
+          <script src="app/vectormap/tiles/CanvasTilesRenderer.js"></script>
+          <script src="app/vectormap/tiles/TileLayer.js"></script>
+          <script src="app/vectormap/tiles/VectorTileLayer.js"></script>
+          <script src="app/vectormap/tiles/affinetransform.js"></script>
+          <script src="app/vectormap/tiles/htmlinterface.js"></script>
+          <script src="app/vectormap/tiles/pinchzoom.js"></script>
+          <script src="app/vectormap/tiles/timebar.js"></script>
+          <script src="app/vectormap/tiles/utils.js"></script>
+          <script src="app/vectormap/vectormap.directive.js"></script>
           <script src="components/auth/auth.service.js"></script>
           <script src="components/auth/user.service.js"></script>
           <script src="components/modal/modal.service.js"></script>
