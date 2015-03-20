@@ -20,10 +20,7 @@ function isString(x) {
 }
 
 function isNonEmptyString(x) {
-    if (isString(x)) {
-	return 0 < x.length;
-    }
-    return false;
+    return isString(x) && 0 < x.length;
 }
 
 /////////////////////////////////////////////////////////
