@@ -4,6 +4,7 @@ Mailbox model based on sqlite
 
 */
 
+var TransactionDatabase = require("sqlite3-transactions").TransactionDatabase;
 var sqlite3 = require('sqlite3').verbose();
 var seqnums = require('./seqnums.js');
 var async = require('async');
