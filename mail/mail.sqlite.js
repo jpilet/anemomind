@@ -216,6 +216,10 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 // Makes a new sequence number that can be used.
 // Call this method every time we send a packet
 Mailbox.prototype.makeNewSeqNumber = function(dst, callbackNewNumber) {
+    //this.db.beginTransaction(
+    //);
+
+    
     var self = this;
     var cbNumberRetrived = function(err, x) {
 	var makeCompletedFun = function(y) {
