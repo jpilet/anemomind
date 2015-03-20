@@ -40,7 +40,7 @@ function runWithLog(db, cmd) {
 
 // To obtain these strings, instantiate the db with the file 'network.db'
 // Then type in the terminal 'sqlite3 network.db .fullschema'
-var fullschema = "CREATE TABLE seqnumbers (dst TEXT, counter BIGINT); CREATE TABLE packets (diarynumber BIGINT, src TEXT, dst TEXT, seqnumber BIGINT, cnumber BIGINT, label TEXT, data BLOB, ack INTEGER); CREATE TABLE diarynumbers (mailbox TEXT, number BIGINT); CREATE TABLE ctable (src TEXT, dst TEXT, counter BIGINT);";
+var fullschema = "CREATE TABLE seqnumbers (dst TEXT, counter BIGINT); CREATE TABLE packets (diarynumber BIGINT, src TEXT, dst TEXT, seqnumber BIGINT, cnumber BIGINT, label TEXT, data BLOB, ack INTEGER, PRIMARY KEY(diarynumber)); CREATE TABLE diarynumbers (mailbox TEXT, number BIGINT); CREATE TABLE ctable (src TEXT, dst TEXT, counter BIGINT);";
 
 function addIfNotExists(x) {
     assert(isString(x));
