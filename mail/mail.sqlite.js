@@ -213,37 +213,59 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
     });
 };
 
+
+function makeNewSeqNumberSub(T, dst, x, cb) {
+    var self = this;
+    var makeCompletedFun = function(y) {
+	return function(err) {
+	    T.commit(
+		function(err) {
+		    if (err == undefined) {
+			cb(err, y);
+		    } else {
+			cb(err);
+		    }
+		}
+	    );
+	};
+    };
+    if (x == undefined) {
+	var toReturn = seqnums.make();
+	var nextNumber = seqnums.next(toReturn);
+	T.run('INSERT INTO seqnumbers VALUES (?, ?);',
+	      dst, nextNumber, makeCompletedFun(toReturn));
+    } else {
+	var toReturn = x;
+	var nextNumber = seqnums.next(x);
+	T.run('UPDATE seqnumbers SET counter = ? WHERE dst = ?',
+	      nextNumber, dst, makeCompletedFun(toReturn));
+    }
+
+}
+
 // Makes a new sequence number that can be used.
 // Call this method every time we send a packet
-Mailbox.prototype.makeNewSeqNumber = function(dst, callbackNewNumber) {
-    //this.db.beginTransaction(
-    //);
-
-    
-    var self = this;
-    var cbNumberRetrived = function(err, x) {
-	var makeCompletedFun = function(y) {
-	    return function(err) {	
-		if (err == undefined) {
-		    callbackNewNumber(err, y);
-		} else {
-		    callbackNewNumber(err);
+Mailbox.prototype.makeNewSeqNumber = function(dst, cb) {
+    this.db.beginTransaction(
+	function(err, T) {
+	    assert(err == undefined);
+	    assert(T != undefined);
+	    T.get(
+		'SELECT counter FROM seqnumbers WHERE dst = ?', dst,
+		function(err, row) {
+		    if (err == undefined) {
+			if (row == undefined) {
+			    makeNewSeqNumberSub(T, dst, undefined, cb);
+			} else {
+			    makeNewSeqNumberSub(T, dst, row.counter, cb);
+			}
+		    } else {
+			cb(err);
+		    }
 		}
-	    };
+	    );
 	}
-	if (x == undefined) {
-	    var toReturn = seqnums.make();
-	    var nextNumber = seqnums.next(toReturn);
-	    self.db.run('INSERT INTO seqnumbers VALUES (?, ?);',
-			dst, nextNumber, makeCompletedFun(toReturn));
-	} else {
-	    var toReturn = x;
-	    var nextNumber = seqnums.next(x);
-	    self.db.run('UPDATE seqnumbers SET counter = ? WHERE dst = ?',
-			nextNumber, dst, makeCompletedFun(toReturn));
-	}
-    };
-    this.getCurrentSeqNumber(dst, cbNumberRetrived);
+    );    
 }
 
 // Gets the last diary number of all messages in THIS box.
