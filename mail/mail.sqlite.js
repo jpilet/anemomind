@@ -37,6 +37,19 @@ function runWithLog(db, cmd) {
     db.run(cmd);
 }
 
+// To obtain this string, instantiate the db with the file 'network.db'
+// Then type in the terminal 'sqlite3 network.db .fullschema'
+var fullschema = 'CREATE TABLE seqnumbers (dst TEXT, counter BIGINT); CREATE TABLE packets (diarynumber BIGINT, src TEXT, dst TEXT, seqnumber BIGINT, cnumber BIGINT, label TEXT, data BLOB, ack INTEGER); CREATE TABLE diarynumbers (mailbox TEXT, number BIGINT); CREATE TABLE ctable (src TEXT, dst TEXT, counter BIGINT);';
+
+function addIfNotExists(x) {
+    assert(isString(x));
+    return x.replace("CREATE TABLE", "CREATE TABLE IF NOT EXISTS");
+}
+
+function createAllTables(db, cb) {
+    db.run(addIfNotExists(fullschema), cb);
+}
+
 // Assembles an SQL command as a string to create a table.
 function makeCreateCmd(tableName, fieldSpecs) {
     var s = 'CREATE TABLE IF NOT EXISTS ' + tableName + ' (' + fieldSpecs.join(", ") + ")";
@@ -223,14 +236,19 @@ function Mailbox(dbFilename,      // <-- The filename where all
     var db = this.db;
 
     // Wait for the creation of all tables to complete before we call cb.
-    async.parallel([
-	function(a) {initializeSeqNumbersTable(db, a);},
-	function(a) {initializePacketsTable(db, a);},
-	function(a) {initializeCTable(db, a);},
-	function(a) {initializeDiaryNumberTable(db, a);}
-    ], function(err) {
-	cb(err);
-    });
+
+    if (false) {
+	createAllTables(db, cb);
+    } else {
+	async.parallel([
+    	    function(a) {initializeSeqNumbersTable(db, a);},
+    	    function(a) {initializePacketsTable(db, a);},
+    	    function(a) {initializeCTable(db, a);},
+    	    function(a) {initializeDiaryNumberTable(db, a);}
+	], function(err) {
+    	    cb(err);
+	});
+    }
 }
 
 /*
