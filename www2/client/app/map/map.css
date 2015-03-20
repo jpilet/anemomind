@@ -1,0 +1,24 @@
+body > div.ng-scope {
+height:100%;
+}
+
+#mapContainer {
+position: relative;
+width:100%;
+height: 100%;
+}
+
+vectormap {
+position: absolute;
+width: 100%;
+top: 50px;
+bottom: 100px;
+}
+
+perfplot {
+position: absolute;
+bottom: 0px;
+height: 100px;
+width:100%;
+display:block;
+}
