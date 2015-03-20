@@ -48,41 +48,7 @@ function addIfNotExists(x) {
 }
 
 function createAllTables(db, cb) {
-    var f = function(cmds) {
-	if (cmds.length == 0) {
-	    cb();
-	} else {
-	    var cmd = addIfNotExists(cmds[0]).trim();
-	    var rest = cmds.slice(1)
-	    if (cmd.length == 0) {
-		f(rest);
-	    } else {
-		db.run(
-		    cmd,
-		    function(err) {
-			if (err == undefined) {
-			    f(rest);
-			} else {
-			    cb(err);
-			}
-		    }
-		);
-	    }
-	}
-    };
-    f(fullschema.split(";"));
-
-    /* Creating all tables in a single query doesn't seem to work:
-    var cmd = addIfNotExists(fullschema.join(" "));
-     console.log('cmd = ' + cmd);
-     db.run(cmd, cb);
-    cb();*/
-}
-
-// Assembles an SQL command as a string to create a table.
-function makeCreateCmd(tableName, fieldSpecs) {
-    var s = 'CREATE TABLE IF NOT EXISTS ' + tableName + ' (' + fieldSpecs.join(", ") + ")";
-    return s;
+    db.exec(addIfNotExists(fullschema), cb);
 }
 
 
