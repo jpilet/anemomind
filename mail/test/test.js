@@ -13,8 +13,11 @@ var withbox = function(cb) {
 	});
 };
 
-// Template
 
+
+/* // Template that you can reuse when building new test cases:
+
+   
 describe(
     'name of code to test',
     function() {
@@ -38,6 +41,8 @@ describe(
     }
 );
 
+
+*/
 
 
 
