@@ -96,7 +96,6 @@ function fetchFullPacket(index, boxA, boxB, cb) {
 }
 
 function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
-    console.log('Incoming light packet: %j', lightPacket);
     if (lightPacket == undefined) {
 
 	finishSync(index, boxA, boxB, cb);
@@ -129,11 +128,6 @@ function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
 }
 
 function synchronizeDirectedFrom(startFrom, boxA, boxB, cb) {
-    console.log(
-	'Synchronize directed from ' + boxA.mailboxName + " to " +
-	    boxB.mailboxName + " starting from index " + startFrom
-    );
-    
     // Retrieve a light-weight packet
     // just to see if we should accept it
     boxB.getFirstPacketStartingFrom(
@@ -229,11 +223,19 @@ function dispMailboxes(mailboxes, cb) {
     }
 }
 
+function someSpace(s) {
+    for (var i = 0; i < 9; i++) {
+	console.log(s);
+    }
+}
+    
+
 function startSync(err, mailboxes) {
     if (err == undefined) {
 	synchronizeForthAndBack(
 	    mailboxes,
 	    function (err) {
+		someSpace('---------------------- DONE SYNC --------------------------------');
 		dispMailboxes(
 		    mailboxes, function(err) {
 			console.log('Done synchronizing');
@@ -247,8 +249,11 @@ function startSync(err, mailboxes) {
     }
 }
 
+
 // Called once the first mailbox has been filled
 function mailboxesCreated(err, mailboxes) {
+
+    someSpace('');
 
     var PACKETCOUNT = 39;
     
