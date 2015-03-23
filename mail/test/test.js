@@ -196,13 +196,13 @@ describe(
 	    function(done) {
 		withbox(
 		    function(box) {
-			box.getFirstPacketStartingFrom(0, function(err, result) {
+			box.getFirstPacketStartingFrom(0, false, function(err, result) {
 			    assert(result == undefined);
 			    box.sendPacket('dst', 'label', new Buffer(1), function(err) {
-				box.getFirstPacketStartingFrom(0, function(err, result) {
+				box.getFirstPacketStartingFrom(0, false, function(err, result) {
 				    assert(result != undefined);
 				    box.getFirstPacketStartingFrom(
-					result.diarynumber + 1, function(err, result) {
+					result.diarynumber + 1, false, function(err, result) {
 					    assert(result == undefined);
 					    done();
 					});
@@ -277,7 +277,7 @@ describe(
 				    box.getLastDiaryNumber(function(err, dnum) {
 					assert(err == undefined);
 					box.getFirstPacketStartingFrom(
-					    dnum, function(err, packet) {
+					    dnum, false, function(err, packet) {
 						
 						assert(packet.src == 'a');
 						assert(packet.dst == 'b');

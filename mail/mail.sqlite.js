@@ -328,7 +328,7 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
 }
 
 // Retrieves the first packet starting from a diary number.
-Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, cb, lightWeight) {
+Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight, cb) {
     assert(isFunction(cb));
     // During the synchronization process, we might only want the essential information
     // to determine whether or not we are going to ask for the whole packet.
