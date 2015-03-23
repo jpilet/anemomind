@@ -180,13 +180,32 @@ function synchronize(boxA, boxB, cb) {
     );
 }
 
+function dispMailboxes(mailboxes, cb) {
+    if (mailboxes.length == 0) {
+	cb();
+    } else {
+	var box = mailboxes[0];
+	console.log('\n\n MAILBOX NAMED ' + box.mailboxName);
+	mb.dispAllTableData(
+	    box.db,
+	    function (err) {
+		dispMailboxes(mailboxes.slice(1), cb);
+	    }
+	);		    
+    }
+}
+
 function startSync(err, mailboxes) {
     if (err == undefined) {
 	synchronize(
 	    mailboxes[0], mailboxes[1],
 	    function (err) {
-		console.log('Done synchronizing');
-		assert(err == undefined);
+		dispMailboxes(
+		    mailboxes, function(err) {
+			console.log('Done synchronizing');
+			assert(err == undefined);
+		    }
+		);
 	    }
 	);
     } else {
