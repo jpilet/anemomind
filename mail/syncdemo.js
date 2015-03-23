@@ -172,11 +172,10 @@ function synchronize(boxA, boxB, cb) {
     synchronizeDirected(
 	boxA, boxB,
 	function(err) {
-	    console.log('Synchronized A-B');
-	    // synchronizeDirected(
-	    // 	boxB, boxA,
-	    // 	cb
-	    // );
+	    synchronizeDirected(
+	    	boxB, boxA,
+	    	cb
+	    );
 	}
     );
 }
@@ -197,8 +196,11 @@ function startSync(err, mailboxes) {
 
 // Called once the first mailbox has been filled
 function mailboxesCreated(err, mailboxes) {
+
+    var PACKETCOUNT = 2;
+    
     fillWithPackets(
-	2,
+	PACKETCOUNT,
 	mailboxes[0],
 	mailboxes[2].mailboxName,
 	function(err) {
