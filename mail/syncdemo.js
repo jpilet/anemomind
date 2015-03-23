@@ -166,6 +166,7 @@ function synchronizeDirected(boxA, boxB, cb) {
     );
 }
 
+
 // Perform a full synchronization of the contents in the two mailboxes.
 // boxB will share its packets with boxA, and boxA will share its packets with boxB.
 function synchronize(boxA, boxB, cb) {
@@ -179,6 +180,39 @@ function synchronize(boxA, boxB, cb) {
 	}
     );
 }
+
+// Perform pairwise synchronization of mailboxes, from left to right.
+function synchronizeArray(mailboxes, cb) {
+    if (mailboxes.length < 2) {
+	cb();
+    } else {
+	synchronize(
+	    mailboxes[0],
+	    mailboxes[1],
+	    function (err) {
+		if (err == undefined) {
+		    synchronizeArray(mailboxes.slice(1), cb);
+		} else {
+		    cb(err);
+		}
+	    }
+	);
+    }
+}
+
+function synchronizeForthAndBack(mailboxes, cb) {
+    synchronizeArray(
+	mailboxes,
+	function (err) {
+	    synchronizeArray(
+		mailboxes.reverse(),
+		cb
+	    );
+	}
+    );
+}
+
+
 
 function dispMailboxes(mailboxes, cb) {
     if (mailboxes.length == 0) {
@@ -197,8 +231,8 @@ function dispMailboxes(mailboxes, cb) {
 
 function startSync(err, mailboxes) {
     if (err == undefined) {
-	synchronize(
-	    mailboxes[0], mailboxes[1],
+	synchronizeForthAndBack(
+	    mailboxes,
 	    function (err) {
 		dispMailboxes(
 		    mailboxes, function(err) {
@@ -216,7 +250,7 @@ function startSync(err, mailboxes) {
 // Called once the first mailbox has been filled
 function mailboxesCreated(err, mailboxes) {
 
-    var PACKETCOUNT = 2;
+    var PACKETCOUNT = 39;
     
     fillWithPackets(
 	PACKETCOUNT,
