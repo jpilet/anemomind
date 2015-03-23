@@ -607,6 +607,7 @@ Mailbox.prototype.sendAck = function(src, cb) {
 	    for (var i = 0; i < data.length; i++) {
 		seqnums[i] = data[i].seqnumber;
 	    }
+	    console.log('Send ack for ' + seqnums.length + ' packets.');
 	    self.sendPacket(
 		src/*back to the source*/,
 		'ack',
@@ -690,6 +691,9 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     assert(isFunction(cb));    
     if (packet.label == 'ack' && packet.dst == this.mailboxName) {
 	var seqnums = intarray.deserialize(packet.data);
+
+	console.log('Incoming ack packet with ' + seqnums.length + ' seqnums');
+	
 	var self = this;
 
 	// Optional call to function whenever some packets that we sent were acknowledged.
@@ -699,6 +703,8 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 		seqnums: seqnums // The sequence numbers.
 	    });
 	}
+
+	
 	
 	self.setAcked(
 	    self.mailboxName, packet.src,
