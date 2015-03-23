@@ -531,6 +531,21 @@ describe(
     }
 );
 
+function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
+    assert(typeof count == 'number');
+    assert(typeof dstMailboxName == 'string');
+    if (count == 0) {
+	cb();
+    } else {
+	srcMailbox.sendPacket(
+	    dstMailboxName,
+	    "Some-label" + count,
+	    new Buffer(3),
+	    fillWithPackets(count-1, srcMailbox, dstMailboxName, cb)
+	);
+    }
+}
+
 
 describe(
     'sendPacket',
@@ -538,15 +553,14 @@ describe(
 	it(
 	    'Send many packets',
 	    function(done) {
-
 		withbox(
 		    function(box) {
 
 			
-			// Insert code here.
-			assert(true);
-			done();
-
+			fillWithPackets(39, box, 'B', function(err) {
+			    assert(err == undefined);
+			    done();
+			});
 			
 		    }
 		);

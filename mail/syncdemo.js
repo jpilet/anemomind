@@ -4,7 +4,7 @@ var assert = require('assert');
 var async = require("async");
 var q = require("q");
 
-var boxnames = ["A"]; //, "B", "C"];
+var boxnames = ["A", "B", "C"];
 
 
 function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
@@ -16,7 +16,7 @@ function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
 	srcMailbox.sendPacket(
 	    dstMailboxName,
 	    "Some-label" + count,
-	    "some-data " + count,
+	    new Buffer(3),
 	    fillWithPackets(count-1, srcMailbox, dstMailboxName, cb)
 	);
     }
@@ -25,7 +25,7 @@ function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
 
 function mailboxesCreated(err, mailboxes) {
     fillWithPackets(
-	39,
+	2,
 	mailboxes[0],
 	mailboxes[2].mailboxName,
 	function() {
