@@ -4,7 +4,7 @@ var assert = require('assert');
 var async = require("async");
 var q = require("q");
 
-var boxnames = ["A", "B", "C"];
+var boxnames = ["A"]; //, "B", "C"];
 
 
 function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {

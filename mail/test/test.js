@@ -24,7 +24,6 @@ describe(
 	it(
 	    'Do something',
 	    function(done) {
-
 		withbox(
 		    function(box) {
 
@@ -533,4 +532,26 @@ describe(
 );
 
 
+describe(
+    'sendPacket',
+    function() {
+	it(
+	    'Send many packets',
+	    function(done) {
+
+		withbox(
+		    function(box) {
+
+			
+			// Insert code here.
+			assert(true);
+			done();
+
+			
+		    }
+		);
+	    }
+	);
+    }
+);
 
