@@ -28,6 +28,113 @@ function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
     }
 }
 
+
+
+function finishSync(index, boxA, boxB, cb) {
+    // Where are done synchronizing. Save the index and
+    // move on.
+    boxA.setForeignDiaryNumber(
+	boxB.mailboxName,
+	index,
+	cb
+    );
+}
+
+function fetchFullPacket(index, boxA, boxB, cb) {
+    boxB.getFirstPacketStartingFrom(
+	index,
+	false,
+	function (err, row) {
+	    if (err == undefined) {
+
+		if (row == undefined) {
+		    console.log('WARNING: We wouldnt expect the packet to be empty');
+		    finishSync(index, boxA, boxB, cb);
+		} else {
+
+		    // Create a packet object
+		    var packet = new Packet(
+			row.src,
+			row.dst,
+			row.seqnumber,
+			row.cnumber,
+			row.label,
+			row.data
+		    );
+		    
+		    boxA.handleIncomingPacket(
+			packet,
+			function (err) {
+			    
+			    if (err == undefined) {
+
+				// Recur with the next index.
+				synchronizeDirectedFrom(
+				    index+1, boxA, boxB, cb
+				);
+				
+			    } else {
+				cb(err);
+			    }
+			}
+		    );
+		}
+		
+	    } else {
+		cb(err);
+	    }
+	}
+    );
+}
+
+function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
+    if (lightPacket == undefined) {
+
+	finishSync(index, boxA, boxB, cb);
+	
+    } else { 
+	box.isAdmissible(
+	    lightPacket.src, lightPacket.dst, lightPacket.seqnumber,
+	    function(err, admissible) {
+		if (err == undefined) {
+		    if (admissible) {
+
+			// It is admissible. Let's fetch the full packet.
+			fetchFullPacket(
+			    index,
+			    boxA,
+			    boxB,
+			    cb
+			);
+			
+		    } else {
+			// Recur, with next index.
+			synchronizeDirectedFrom(index+1, boxA, boxB, cb);
+		    }
+		} else {
+		    cb(err);
+		}
+	    }
+	);
+    }
+}
+
+function synchronizeDirectedFrom(startFrom, boxA, boxB, cb) {
+    // Retrieve a light-weight packet
+    // just to see if we should accept it
+    boxB.getFirstPacketStartingFrom(
+	startFrom,
+	true,
+	function(err, row) {
+	    if (err == undefined) {
+		handleSyncPacketLight(startFrom, row, boxA, boxB, cb);
+	    } else {
+		cb(err);
+	    }	    
+	}
+    );
+}
+
 // Synchronize state in only one direction,
 // so that boxA will know everything that boxB knows,
 // but not the other way around.
@@ -37,27 +144,7 @@ function synchronizeDirected(boxA, boxB, cb) {
 	boxB.mailboxName,
 	function(err, startFrom) {
 	    if (err == undefined) {
-		
-		// Retrieve a light-weight packet
-		// just to see if we should accept it
-		boxB.getFirstPacketStartingFrom(
-		    startFrom,
-		    function(err, row) {
-			if (err == undefined) {
-
-			    if (row == undefined) { // <-- no more data to fetch, we are done.
-				cb();
-			    } else {
-
-				// Check if this packet is admissible
-				
-			    }
-			} else {
-			    cb(err);
-			}
-		    }
-		    true,
-		);
+		synchronizeDirectedFrom(startFrom, boxA, boxB, cb);
 	    } else {
 		cb(err);
 	    }
