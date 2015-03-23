@@ -42,15 +42,15 @@ function runWithLog(db, cmd) {
 // Then type in the terminal 'sqlite3 network.db .fullschema'
 //
 // PRIMARY KEY should be the last column of every create statement
-var fullschema = "CREATE TABLE seqnumbers (dst TEXT, counter BIGINT, PRIMARY KEY(dst)); CREATE TABLE packets (diarynumber BIGINT, src TEXT, dst TEXT, seqnumber BIGINT, cnumber BIGINT, label TEXT, data BLOB, ack INTEGER, PRIMARY KEY(diarynumber)); CREATE TABLE diarynumbers (mailbox TEXT, number BIGINT, PRIMARY KEY(mailbox)); CREATE TABLE ctable (src TEXT, dst TEXT, counter BIGINT, PRIMARY KEY(src, dst));";
+var fullschema = "CREATE TABLE IF NOT EXISTS seqnumbers (dst TEXT, counter BIGINT, PRIMARY KEY(dst));\
+                  CREATE TABLE IF NOT EXISTS packets (diarynumber BIGINT, src TEXT, dst TEXT, \
+                          seqnumber BIGINT, cnumber BIGINT, label TEXT, data BLOB, ack INTEGER, PRIMARY KEY(diarynumber)); \
+                  CREATE TABLE IF NOT EXISTS diarynumbers (mailbox TEXT, number BIGINT, PRIMARY KEY(mailbox)); \
+                  CREATE TABLE IF NOT EXISTS ctable (src TEXT, dst TEXT, counter BIGINT, PRIMARY KEY(src, dst));";
 
-function addIfNotExists(x) {
-    assert(isString(x));
-    return x.replace("CREATE TABLE", "CREATE TABLE IF NOT EXISTS");
-}
 
 function createAllTables(db, cb) {
-    db.exec(addIfNotExists(fullschema), cb);
+    db.exec(fullschema, cb);
 }
 
 function getAllTables(db, cb) {
