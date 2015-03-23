@@ -28,14 +28,69 @@ function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
     }
 }
 
+// Synchronize state in only one direction,
+// so that boxA will know everything that boxB knows,
+// but not the other way around.
+function synchronizeDirected(boxA, boxB, cb) {
+    // First retrieve the first number we should ask for
+    box.getForeignStartNumber(
+	boxB.mailboxName,
+	function(err, startFrom) {
+	    if (err == undefined) {
+		
+		// Retrieve a light-weight packet
+		// just to see if we should accept it
+		boxB.getFirstPacketStartingFrom(
+		    startFrom,
+		    function(err, row) {
+			if (err == undefined) {
 
+			    if (row == undefined) { // <-- no more data to fetch, we are done.
+				cb();
+			    } else {
+
+				// Check if this packet is admissible
+				
+			    }
+			} else {
+			    cb(err);
+			}
+		    }
+		    true,
+		);
+	    } else {
+		cb(err);
+	    }
+	}
+    );
+}
+
+// Perform a full synchronization of the contents in the two mailboxes.
+// boxB will share its packets with boxA, and boxA will share its packets with boxB.
+function synchronize(boxA, boxB, cb) {
+    synchronizeDirected(
+	boxA, boxB,
+	function(err) {
+	    synchronizeDirected(
+		boxB, boxA,
+		cb
+	    );
+	}
+    );
+}
+
+function startSync(err, mailboxes) {
+
+}
+
+// Called once the first mailbox has been filled
 function mailboxesCreated(err, mailboxes) {
     fillWithPackets(
 	2,
 	mailboxes[0],
 	mailboxes[2].mailboxName,
-	function() {
-	    console.log("Filled with packets");
+	function(err) {
+	    startSync(err, mailboxes);
 	}
     );
 }

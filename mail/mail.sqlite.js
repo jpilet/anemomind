@@ -300,6 +300,9 @@ Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
 }
 
 // Sets the foreign number to a new value.
+
+// TODO: getForeignDiaryNumber and the following query should be in one transaction,
+// just like inside makeNewSeqNumber.
 Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
     assert(isFunction(cb));    
     var self = this;
