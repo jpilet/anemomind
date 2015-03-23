@@ -2,6 +2,7 @@
 var mb = require("./mail.sqlite.js");
 var assert = require('assert');
 var async = require("async");
+var pkt = require("./packet.js");
 var q = require("q");
 
 var boxnames = ["A", "B", "C"];
@@ -53,7 +54,7 @@ function fetchFullPacket(index, boxA, boxB, cb) {
 		} else {
 
 		    // Create a packet object
-		    var packet = new Packet(
+		    var packet = new pkt.Packet(
 			row.src,
 			row.dst,
 			row.seqnumber,
@@ -61,18 +62,25 @@ function fetchFullPacket(index, boxA, boxB, cb) {
 			row.label,
 			row.data
 		    );
+
+		    // The actual index of the packet
+		    // that we fetched.
+		    var newIndex = row.diarynumber;
+
 		    
 		    boxA.handleIncomingPacket(
 			packet,
 			function (err) {
 			    
 			    if (err == undefined) {
-
+				
 				// Recur with the next index.
 				synchronizeDirectedFrom(
-				    index+1, boxA, boxB, cb
+				    // IMPORTANT: Call with the index of the
+				    // packet fetched here.
+				    newIndex + 1,
+				    boxA, boxB, cb
 				);
-				
 			    } else {
 				cb(err);
 			    }
@@ -88,12 +96,13 @@ function fetchFullPacket(index, boxA, boxB, cb) {
 }
 
 function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
+    console.log('Incoming light packet: %j', lightPacket);
     if (lightPacket == undefined) {
 
 	finishSync(index, boxA, boxB, cb);
 	
     } else { 
-	box.isAdmissible(
+	boxA.isAdmissible(
 	    lightPacket.src, lightPacket.dst, lightPacket.seqnumber,
 	    function(err, admissible) {
 		if (err == undefined) {
@@ -120,6 +129,11 @@ function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
 }
 
 function synchronizeDirectedFrom(startFrom, boxA, boxB, cb) {
+    console.log(
+	'Synchronize directed from ' + boxA.mailboxName + " to " +
+	    boxB.mailboxName + " starting from index " + startFrom
+    );
+    
     // Retrieve a light-weight packet
     // just to see if we should accept it
     boxB.getFirstPacketStartingFrom(
@@ -140,7 +154,7 @@ function synchronizeDirectedFrom(startFrom, boxA, boxB, cb) {
 // but not the other way around.
 function synchronizeDirected(boxA, boxB, cb) {
     // First retrieve the first number we should ask for
-    box.getForeignStartNumber(
+    boxA.getForeignStartNumber(
 	boxB.mailboxName,
 	function(err, startFrom) {
 	    if (err == undefined) {
@@ -158,16 +172,27 @@ function synchronize(boxA, boxB, cb) {
     synchronizeDirected(
 	boxA, boxB,
 	function(err) {
-	    synchronizeDirected(
-		boxB, boxA,
-		cb
-	    );
+	    console.log('Synchronized A-B');
+	    // synchronizeDirected(
+	    // 	boxB, boxA,
+	    // 	cb
+	    // );
 	}
     );
 }
 
 function startSync(err, mailboxes) {
-
+    if (err == undefined) {
+	synchronize(
+	    mailboxes[0], mailboxes[1],
+	    function (err) {
+		console.log('Done synchronizing');
+		assert(err == undefined);
+	    }
+	);
+    } else {
+	console.log('Something failed: %j', err);
+    }
 }
 
 // Called once the first mailbox has been filled
