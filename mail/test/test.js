@@ -487,6 +487,50 @@ describe(
     }
 );
 
+describe(
+    'sendPacket',
+    function() {
+	it(
+	    'Send two packets, and unique diary numbers',
+	    function(done) {
+		withbox(
+		    function(box) {
+
+			
+			box.sendPacket(
+			    'dst-name',
+			    'some-label',
+			    new Buffer(1),
+			    function() {
+				box.sendPacket(
+				    'dst-name',
+				    'some-label',
+				    new Buffer(1),
+				    function() {
+					box.db.all(
+					    'SELECT diarynumber FROM packets',
+					    function (err, results) {
+						assert(err == undefined);
+						assert(results.length == 2);
+						assert(
+						    Math.abs(
+							results[0].diarynumber
+							    - results[1].diarynumber
+						    ) == 1
+						);
+						done();
+					    }
+					);
+				    }
+				);
+			    }
+			);
+		    }
+		);
+	    }
+	);
+    }
+);
 
 
 
