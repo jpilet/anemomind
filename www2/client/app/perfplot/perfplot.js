@@ -17,8 +17,6 @@ Graph.prototype.prepare = function() {
   var innerWidth = width - 2 * horizontalMargin;
   var innerHeight = height - 2 * verticalMargin;
 
-  var format = d3.time.format("%Y");
-
   // Scales. Note the inverted domain for the y-scale: bigger is up!
   this.x = d3.time.scale().range([0, innerWidth]);
   var x = this.x;

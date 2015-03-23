@@ -14,9 +14,7 @@ function VectorTileLayer(params, renderer) {
   if ("vectorurl" in this.params) {
     this.url = this.params.vectorurl;
   } else {
-    this.url = function(scale, x, y) {
-      return "/api/raw/tiles/" + scale + '/' + x + '/' + y + '/Irene/';
-    };
+    this.url = undefined;
   }
   if (params.debug) {
       this.debug = function(msg) { console.log(msg); }
@@ -45,6 +43,10 @@ VectorTileLayer.prototype.setUrl = function(url) {
 
 VectorTileLayer.prototype.draw = function(canvas, pinchZoom,
                                     bboxTopLeft, bboxBottomRight) {
+  if (!this.url) {
+    return;
+  }
+
   // Compute the scale level
   var numTiles = canvas.width / this.params.tileSize;
   var targetUnitPerTile = (bboxBottomRight.x - bboxTopLeft.x) / numTiles;
