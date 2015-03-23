@@ -14,6 +14,15 @@ var assert = require('assert');
 
 
 
+function expand(span, value) {
+    if (span == undefined) {
+	return [value, value];
+    } else {
+	return [Math.min(span[0], value),
+	        Math.max(span[1], value)];
+    }
+}
+
 /////////////////////////////////////////////////////////
 // General functions for checking if an object is a string
 function isString(x) {
@@ -840,3 +849,4 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
 
 module.exports.Mailbox = Mailbox;
 module.exports.dispAllTableData = dispAllTableData;
+module.exports.expand = expand;

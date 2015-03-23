@@ -552,14 +552,7 @@ function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
     }
 }
 
-function expand(span, value) {
-    if (span == undefined) {
-	return [value, value];
-    } else {
-	return [Math.min(span[0], value),
-	        Math.max(span[1], value)];
-    }
-}
+var expand = mailsqlite.expand;
 
 function spanWidth(span) {
     return span[1] - span[0];
