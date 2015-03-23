@@ -17,7 +17,13 @@ function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
 	    dstMailboxName,
 	    "Some-label" + count,
 	    new Buffer(3),
-	    fillWithPackets(count-1, srcMailbox, dstMailboxName, cb)
+	    function (err) {
+		if (err == undefined) {
+		    fillWithPackets(count-1, srcMailbox, dstMailboxName, cb)
+		} else {
+		    cb(err);
+		}
+	    }
 	);
     }
 }

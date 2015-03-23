@@ -24,6 +24,10 @@ function isNonEmptyString(x) {
     return isString(x) && 0 < x.length;
 }
 
+function isFunction(x) {
+    return typeof x == 'function';
+}
+
 /////////////////////////////////////////////////////////
 function isValidDBFilename(x) {
     return isNonEmptyString(x);
@@ -50,19 +54,23 @@ var fullschema = "CREATE TABLE IF NOT EXISTS seqnumbers (dst TEXT, counter BIGIN
 
 
 function createAllTables(db, cb) {
+    assert(isFunction(cb));
     db.exec(fullschema, cb);
 }
 
 function getAllTables(db, cb) {
+    assert(isFunction(cb));    
     db.all('SELECT * FROM sqlite_master WHERE type=\'table\'', cb);
 }
 
 function getAllTableRows(db, tableName, cb) {
+    assert(isFunction(cb));    
     db.all('SELECT * FROM ' + tableName, cb);
 }
 
 // For debugging. The callback cb is optional
 function dispAllTableData(db, cb) {
+    assert(isFunction(cb));    
     getAllTables(db, function(err, tables) {
 	async.map(
 	    tables,
@@ -108,7 +116,8 @@ function Mailbox(dbFilename,      // <-- The filename where all
 		                  //     messages are stored.
 		 thisMailboxName, // <-- A string that uniquely
 		                  //     identifies this mailbox
-		 cb) { // <-- Optional error callback for db.
+		 cb) {
+    assert(isFunction(cb));    
     if (!isValidDBFilename(dbFilename)) {
 	throw new Error('Invalid database filename');
     }
@@ -161,6 +170,7 @@ Mailbox.prototype.onAcknowledged = null;
 // by calling a callback with that number.
 // If no such number exists, it calls the callback without any arguments.
 Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
+    assert(isFunction(callbackNewNumber));    
     if (!isNonEmptyString(dst)) {
 	throw new Error('Dst should be a string. Currently, its value is ' + dst);
     }
@@ -183,6 +193,7 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 
 
 function makeNewSeqNumberSub(T, dst, x, cb) {
+    assert(isFunction(cb));    
     var self = this;
     var makeCompletedFun = function(y) {
 	return function(err) {
@@ -214,6 +225,7 @@ function makeNewSeqNumberSub(T, dst, x, cb) {
 // Makes a new sequence number that can be used.
 // Call this method every time we send a packet
 Mailbox.prototype.makeNewSeqNumber = function(dst, cb) {
+    assert(isFunction(cb));    
     this.db.beginTransaction(
 	function(err, T) {
 	    assert(err == undefined);
@@ -238,6 +250,7 @@ Mailbox.prototype.makeNewSeqNumber = function(dst, cb) {
 
 // Gets the last diary number of all messages in THIS box.
 Mailbox.prototype.getLastDiaryNumber = function(cb) {
+    assert(isFunction(cb));    
     var query = 'SELECT max(diarynumber) FROM packets';
     this.db.get(query, function(err, result) {
 	if (err == undefined) {
@@ -252,6 +265,7 @@ Mailbox.prototype.getLastDiaryNumber = function(cb) {
 // This number is upon synchronization when we fetch messages from the
 // other mailbox.
 Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
+    assert(isFunction(cb));    
     if (typeof cb != 'function') {
 	throw new Error('cb is of wrong type: ' + cb);
     }
@@ -275,6 +289,7 @@ Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
 
 // Use this function to get a number of the first packet to ask for when synchronizing
 Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
+    assert(isFunction(cb));    
     this.getForeignDiaryNumber(otherMailbox, function(err, value) {
 	if (err == undefined) {
 	    cb(err, (value == undefined? 0 : value));
@@ -286,6 +301,7 @@ Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
 
 // Sets the foreign number to a new value.
 Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
+    assert(isFunction(cb));    
     var self = this;
     this.getForeignDiaryNumber(otherMailbox, function(err, previousValue) {
 	if (err == undefined) {
@@ -310,7 +326,7 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
 
 // Retrieves the first packet starting from a diary number.
 Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, cb, lightWeight) {
-    
+    assert(isFunction(cb));
     // During the synchronization process, we might only want the essential information
     // to determine whether or not we are going to ask for the whole packet.
     var what = (lightWeight? 'src,seqnumber' : '*');
@@ -328,6 +344,7 @@ Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, cb, lightWe
 // If nothing goes wrong, it calls cb with the new number.
 // It doesn't mutate the database.
 Mailbox.prototype.makeNewDiaryNumber = function(cb) {
+    assert(isFunction(cb));    
     this.getLastDiaryNumber(function(err, number) {
 	if (err == undefined) {
 	    var result = (number == undefined?
@@ -345,6 +362,7 @@ Mailbox.prototype.makeNewDiaryNumber = function(cb) {
 // Retrieves the C-number for a given (src, dst) pair. A sequence number
 // is provided for initialization if no C-number exists. The result is passed to cb.
 Mailbox.prototype.getCNumber = function(src, dst, cb) {
+    assert(isFunction(cb));    
     var query = 'SELECT counter FROM ctable WHERE src = ? AND dst = ?';
     var self = this;
     this.db.get(
@@ -364,12 +382,14 @@ Mailbox.prototype.getCNumber = function(src, dst, cb) {
 
 
 Mailbox.prototype.insertCTable = function(src, dst, value, cb) {
+    assert(isFunction(cb));    
     var insert = 'INSERT INTO ctable VALUES (?, ?, ?)';
     this.db.run(insert, src, dst, value, cb);
 };
 
 // Used when sending new packets.
 Mailbox.prototype.getOrMakeCNumber = function(dst, seqNumber, cb) {
+    assert(isFunction(cb));    
     var self = this;
     this.getCNumber(
 	self.mailboxName, dst,
@@ -392,6 +412,7 @@ Mailbox.prototype.getOrMakeCNumber = function(dst, seqNumber, cb) {
 }
 
 Mailbox.prototype.removeObsoletePackets = function(src, dst, cb) {
+    assert(isFunction(cb));    
     var self = this;
     this.getCNumber(
 	src, dst,
@@ -406,6 +427,7 @@ Mailbox.prototype.removeObsoletePackets = function(src, dst, cb) {
 }
 
 Mailbox.prototype.getTotalPacketCount = function(cb) {
+    assert(isFunction(cb));    
     var query = 'SELECT count(*) FROM packets';
     this.db.get(
 	query, function(err, row) {
@@ -422,7 +444,7 @@ Mailbox.prototype.getTotalPacketCount = function(cb) {
 
 // Update the C table. Used when handling incoming packets.
 Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
-
+    assert(isFunction(cb));
     var self = this;
     var onUpdate = function(err) {
 	self.removeObsoletePackets(src, dst, cb);
@@ -447,6 +469,7 @@ Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
 
 // Check if an incoming packet should be admitted.
 Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
+    assert(isFunction(cb));    
     this.getCNumber(src, dst, function(err, cnumber) {
 	if (err == undefined) {
 	    cb(err, (cnumber == undefined? true : (cnumber <= seqNumber)));
@@ -459,6 +482,7 @@ Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
 
 // A packet can be uniquely identified by its source mailbox and the seqNumber.
 Mailbox.prototype.hasPacket = function(src, seqNumber, cb) {
+    assert(isFunction(cb));    
     var query = 'SELECT * FROM packets WHERE src = ? AND seqnumber = ?';
     this.db.get(query, src, seqNumber, function(err, row) {
 	if (err == undefined) {
@@ -472,6 +496,7 @@ Mailbox.prototype.hasPacket = function(src, seqNumber, cb) {
 
 // This method will update the C-table and save the packet in the db.
 Mailbox.prototype.registerPacketData = function(packet, cb) {
+    assert(isFunction(cb));    
     var self = this;
     this.hasPacket(packet.src, packet.seqNumber, function(err, has) {
 	if (err == undefined) {
@@ -538,6 +563,7 @@ Mailbox.prototype.getNonAckCount = function(src, cb) {
 
 // Set packets as acknowledged
 Mailbox.prototype.setAcked = function(src, dst, seqnums, cb) {
+    assert(isFunction(cb));    
     var query = 'UPDATE packets SET ack = 1 WHERE src = ? AND dst = ? AND seqnumber = ?';
     var self = this;
 
@@ -568,6 +594,7 @@ function valueOf(x) {
 
 // Sends an ack to the source of a packet.
 Mailbox.prototype.sendAck = function(src, cb) {
+    assert(isFunction(cb));    
     var self = this;
     var query = 'SELECT seqnumber FROM packets WHERE src = ? AND dst = ? AND ack = 0';
     self.db.all(
@@ -597,6 +624,7 @@ Mailbox.prototype.sendAck = function(src, cb) {
 
 // Sends an ack-packet if we have received enough packets.
 Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
+    assert(isFunction(cb));    
     var self = this;
     this.getNonAckCount(src, function(err, count) {
 	if (err == undefined) {
@@ -612,6 +640,7 @@ Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
 }
 
 Mailbox.prototype.maximizeCNumber = function(dst, cb) {
+    assert(isFunction(cb));    
     var update = function(x) {
 	self.updateCTable(
 	    self.mailboxName,
@@ -655,6 +684,7 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 }
 
 Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
+    assert(isFunction(cb));    
     if (packet.label == 'ack' && packet.dst == this.mailboxName) {
 	var seqnums = intarray.deserialize(packet.data);
 	var self = this;
@@ -684,6 +714,7 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 
 // This method is called only for packets that should not be rejected.
 Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
+    assert(isFunction(cb));    
     var self = this;
 
     // This call will
@@ -719,6 +750,7 @@ Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
 
 // Handle an incoming packet.
 Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
+    assert(isFunction(cb));    
     var self = this;
     this.isAdmissible(
 	packet.src,
@@ -740,6 +772,7 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 
 
 Mailbox.prototype.getDiaryAndSeqNumbers = function(dst, cb) {
+    assert(isFunction(cb));    
     var self = this;
     self.makeNewDiaryNumber(function(err, diaryNumber) {
 	if (err == undefined) {
@@ -762,6 +795,7 @@ Mailbox.prototype.getDiaryAndSeqNumbers = function(dst, cb) {
 // Given destination mailbox, label and data,
 // a new packet is produced that is put in the packets table.
 Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
+    assert(isFunction(cb));    
     var self = this;
     if ((typeof data != 'string') && (typeof data != 'object')) {
 	cb(new Error('Please only send data in the form of a Buffer'));

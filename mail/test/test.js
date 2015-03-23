@@ -541,14 +541,32 @@ function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
 	    dstMailboxName,
 	    "Some-label" + count,
 	    new Buffer(3),
-	    fillWithPackets(count-1, srcMailbox, dstMailboxName, cb)
+	    function(err) {
+		if (err == undefined) {
+		    fillWithPackets(count-1, srcMailbox, dstMailboxName, cb)
+		} else {
+		    cb(err);
+		}
+	    }
 	);
     }
 }
 
+function expand(span, value) {
+    if (span == undefined) {
+	return [value, value];
+    } else {
+	return [Math.min(span[0], value),
+	        Math.max(span[1], value)];
+    }
+}
+
+function spanWidth(span) {
+    return span[1] - span[0];
+}
 
 describe(
-    'sendPacket',
+    'sendPacket2',
     function() {
 	it(
 	    'Send many packets',
@@ -557,11 +575,31 @@ describe(
 		    function(box) {
 
 			
-			fillWithPackets(39, box, 'B', function(err) {
-			    assert(err == undefined);
-			    done();
-			});
-			
+			fillWithPackets(
+			    39, box, 'B',
+			    function(err) {
+				box.db.all(
+				    'SELECT * FROM packets',
+				    function (err, results) {
+					assert(err == undefined);
+					assert(results.length == 39);
+
+					var seqnumSpan = undefined;
+					var diarynumSpan = undefined;
+
+					for (var i = 0; i < results.length; i++) {
+					    var r = results[i];
+					    seqnumSpan = expand(seqnumSpan, r.seqnumber);
+					    diarynumSpan = expand(diarynumSpan, r.diarynumber);
+					}
+					
+					assert(spanWidth(seqnumSpan) + 1 == 39);
+					assert(spanWidth(diarynumSpan) + 1 == 39);
+					done();
+				    }
+				);
+			    }
+			);
 		    }
 		);
 	    }
