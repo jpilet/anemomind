@@ -487,13 +487,10 @@ Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
 Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
     assert(src != undefined);
     assert(dst != undefined);
-    console.log('Mailbox ' + this.mailboxName + ': Admit packet from '
-		+ src + ' to ' + dst + '?');
     
     assert(isFunction(cb));
 
     if (src == this.mailboxName) {
-	console.log('  NO!!!!!');
 	cb(undefined, false);
     } else {
 	this.getCNumber(src, dst, function(err, cnumber) {
@@ -680,19 +677,6 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 		    dst,
 		    x,
 		    cb);
-	
-	// self.getCNumber(
-	//     self.mailboxName, dst,
-	//     function (err, oldValue) {
-	// 	console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Move C-number from ', oldValue, ' to ', x, ' which is ', x - oldValue);
-	// 	self.updateCTable(
-	// 	    self.mailboxName,
-	// 	    dst,
-	// 	    x,
-	// 	    cb);
-	//     }
-	// );		
-	
     };
     
     // retrieve the first seqnumber that has not been acked.
@@ -731,9 +715,6 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 
 
 Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
-    console.log('Mailbox ' + this.mailboxName + ': Handle packet from '
-		+ packet.src + ' to ' + packet.dst);
-    
     assert(isFunction(cb));
     var self = this;
     if (packet.label == 'ack' && packet.dst == this.mailboxName) {
@@ -762,10 +743,6 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 
  // This method is called only for packets that should not be rejected.
  Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
-    console.log('Mailbox ' + this.mailboxName + ': Accept packet from '
-		+ packet.src + ' to ' + packet.dst);
-
-     
      assert(isFunction(cb));    
      var self = this;
 
@@ -812,7 +789,6 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 
 // Handle an incoming packet.
 Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
-    console.log('HANDLE INCOMING PACKET: %j', packet);
     assert(isFunction(cb));
     var self = this;
     this.isAdmissible(
