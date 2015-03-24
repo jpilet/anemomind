@@ -457,6 +457,7 @@ Mailbox.prototype.getTotalPacketCount = function(cb) {
 
 // Update the C table. Used when handling incoming packets.
 Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
+    assert(src != dst);
     assert(isFunction(cb));
     var self = this;
     var onUpdate = function(err) {
@@ -713,6 +714,7 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
     });
 }
 
+
 Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     assert(isFunction(cb));
     var self = this;
@@ -730,48 +732,56 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 	self.setAcked(
 	    self.mailboxName, packet.src,
 	    seqnums,
-	    function (err) {
-		if (err == undefined) {
-		    self.maximizeCNumber(packet.src, cb);
-		} else {
-		    cb(err);
-		}
-	    });
+	    cb
+	);
     } else {
 	cb();
     }
 }
 
-// This method is called only for packets that should not be rejected.
-Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
-    assert(isFunction(cb));    
-    var self = this;
 
-    // This call will
-    //  * Store the packet in the mailbox
-    //  * Update the C-table using the data of the packet
-    this.registerPacketData(packet, function(err) {
-	if (err == undefined) {
 
-	    // Optional callback to inform us that
-	    // we have a new packet to open.
-	    if (self.onPacketReceived != undefined
-		&& packet.dst == self.mailboxName) {
-		self.onPackedReceived(packet);
-	    }
-	    
-	    // If the packet was intended for this mailbox,
-	    // this call will mark packets as acknowledged
-	    // and maximize the C-number.
-	    self.handleAckPacketIfNeeded(
-		packet, function(err) {
 
-		    // If we have received enough packets
-		    // from packet.src, return an 'ack' packet
-		    // to that source.
-		    self.sendAckIfNeeded(packet.src, cb);
-		    
-		});
+ // This method is called only for packets that should not be rejected.
+ Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
+     assert(isFunction(cb));    
+     var self = this;
+
+     // This call will
+     //  * Store the packet in the mailbox
+     //  * Update the C-table using the data of the packet
+     this.registerPacketData(packet, function(err) {
+	 if (err == undefined) {
+
+	     // Optional callback to inform us that
+	     // we have a new packet to open.
+	     if (self.onPacketReceived != undefined
+		 && packet.dst == self.mailboxName) {
+		 self.onPackedReceived(packet);
+	     }
+
+	     // If the packet was intended for this mailbox,
+	     // this call will mark packets as acknowledged
+	     // and maximize the C-number.
+	     self.handleAckPacketIfNeeded(
+		 packet,
+		 function(err) {
+		     if (err == undefined) {
+			 // Always maximize the C-number
+			 self.maximizeCNumber(
+			     packet.src,
+			     function (err) {
+				 if (err == undefined) {
+				     self.sendAckIfNeeded(packet.src, cb);
+				 } else {
+				     cb(err);
+				 }
+			     }
+			 );
+		     } else {
+			 cb(err);
+		     }
+		 });
 	} else {
 	    cb(err);
 	}
