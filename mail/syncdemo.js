@@ -3,11 +3,10 @@ var mb = require("./mail.sqlite.js");
 var assert = require('assert');
 var async = require("async");
 var pkt = require("./packet.js");
-var q = require("q");
 
 var boxnames = ["A", "B", "C"];
 
-var VERBOSE = 0;
+var VERBOSE = 1;
 
 function disp(x) {
     if (VERBOSE) {
