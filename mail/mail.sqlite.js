@@ -431,8 +431,8 @@ Mailbox.prototype.removeObsoletePackets = function(src, dst, cb) {
 	src, dst,
 	function(err, value) {
 	    if (err == undefined) {
-		var query = 'DELETE FROM packets WHERE seqnumber < ?';
-		self.db.run(query, value, cb);
+		var query = 'DELETE FROM packets WHERE seqnumber < ? AND src = ? AND dst = ?';
+		self.db.run(query, value, src, dst, cb);
 	    } else {
 		cb(err);
 	    }
@@ -470,6 +470,8 @@ Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
 		self.insertCTable(src, dst, newValue, onUpdate);
 	    } else if (currentValue < newValue) {
 		var query = 'UPDATE ctable SET counter = ? WHERE src = ? AND dst = ?';
+		console.log('Update ctable from ' + currentValue + ' to '
+			    + newValue + ' at (' + src + ', ' + dst + ')');
 		self.db.run(query, newValue, src, dst, onUpdate);
 	    } else {
 		cb(err);
@@ -716,7 +718,6 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     var self = this;
     if (packet.label == 'ack' && packet.dst == this.mailboxName) {
 
-
 	self.dispPacketSummary(
 	    function(err) {
 		var seqnums = intarray.deserialize(packet.data);
@@ -794,6 +795,7 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 	packet.dst,
 	packet.seqNumber,
 	function(err, p) {
+	    assert(err == undefined);
 	    if (err == undefined) {
 		if (p) {
 		    self.acceptIncomingPacket(packet, cb);

@@ -47,6 +47,7 @@ function dispPacketCounts(boxes, cb) {
 	    for (var i = 0; i < results.length; i++) {
 		console.log('  ' + boxes[i].mailboxName + ': ' + results[i]);
 	    }
+	    console.log('\n\n\n');
 	    cb(err);
 	}
     );
@@ -182,8 +183,8 @@ function synchronizeDirected(boxA, boxB, cb) {
 		synchronizeDirectedFrom(
 		    startFrom, boxA, boxB,
 		    function() {
-			console.log('Synchronize ' + boxA.mailboxName +
-				    ' from ' + boxB.mailboxName);
+			console.log('Synchronized ' + boxA.mailboxName +
+				    ' from ' + boxB.mailboxName + '.]');
 			dispPacketCounts(
 			    allMailboxes,
 			    cb
