@@ -6,7 +6,7 @@ var pkt = require("../packet.js");
 
 var boxnames = ["A", "B", "C"];
 
-var VERBOSE = 1;
+var VERBOSE = 0;
 
 function disp(x) {
     if (VERBOSE) {
