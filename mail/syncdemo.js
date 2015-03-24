@@ -144,7 +144,10 @@ function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
 			
 		    } else {
 			// Recur, with next index.
-			synchronizeDirectedFrom(index+1, boxA, boxB, cb);
+			synchronizeDirectedFrom(
+			    lightPacket.diarynumber + 1,
+			    boxA, boxB, cb
+			);
 		    }
 		} else {
 		    cb(err);

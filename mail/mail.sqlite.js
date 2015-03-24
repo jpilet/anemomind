@@ -342,7 +342,7 @@ Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight
     assert(isFunction(cb));
     // During the synchronization process, we might only want the essential information
     // to determine whether or not we are going to ask for the whole packet.
-    var what = (lightWeight? 'src,seqnumber,dst' : '*');
+    var what = (lightWeight? 'diarynumber,src,seqnumber,dst' : '*');
     
     var query = 'SELECT ' + what +
 	' FROM packets  WHERE ? <= diarynumber ORDER BY diarynumber ASC';
@@ -493,16 +493,18 @@ Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
     assert(isFunction(cb));
 
     if (src == this.mailboxName) {
+	console.log('  NO!!!!!');
+	assert(false);
 	cb(undefined, false);
+    } else {
+	this.getCNumber(src, dst, function(err, cnumber) {
+	    if (err == undefined) {
+		cb(err, (cnumber == undefined? true : (cnumber <= seqNumber)));
+	    } else {
+		cb(err);
+	    }
+	});
     }
-	
-    this.getCNumber(src, dst, function(err, cnumber) {
-	if (err == undefined) {
-	    cb(err, (cnumber == undefined? true : (cnumber <= seqNumber)));
-	} else {
-	    cb(err);
-	}
-    });
 };
 
 
@@ -667,7 +669,10 @@ Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
 }
 
 Mailbox.prototype.maximizeCNumber = function(dst, cb) {
+
+    // We are never sending packets to ourself, are we?
     assert(dst != this.mailboxName);
+    
     assert(isFunction(cb));    
     var update = function(x) {
 
