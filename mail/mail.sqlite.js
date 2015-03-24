@@ -718,8 +718,8 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     var self = this;
     if (packet.label == 'ack' && packet.dst == this.mailboxName) {
 
-	self.dispPacketSummary(
-	    function(err) {
+	//self.dispPacketSummary(
+	    //function(err) {
 		var seqnums = intarray.deserialize(packet.data);
 
 		console.log('Incoming ack packet with ' + seqnums.length + ' seqnums');
@@ -743,8 +743,9 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 			    cb(err);
 			}
 		    });
-	    }
-	);
+//	    }
+	//);
+
     } else {
 	cb();
     }
@@ -839,7 +840,8 @@ Mailbox.prototype.dispPacketSummary = function(cb) {
 		console.log('PACKET SUMMARY OF ' + self.mailboxName + ' (' + results.length + ' packets)');
 		for (var i = 0; i < results.length; i++) {
 		    var r = results[i];
-		    console.log('  diarynumber = ' + r.diarynumber + '   seqnumber = ' + r.seqnumber + '   ack = ' + r.ack);
+		    console.log('  diarynumber = ' + r.diarynumber +
+				'   seqnumber = ' + r.seqnumber + '   ack = ' + r.ack);
 		}
 		cb(err);
 	    } else {

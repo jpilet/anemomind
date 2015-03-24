@@ -232,16 +232,29 @@ function synchronizeArray(mailboxes, cb) {
     }
 }
 
-function synchronizeForthAndBack(mailboxes, cb) {
-    synchronizeArray(
-	mailboxes,
-	function (err) {
-	    synchronizeArray(
-		mailboxes.reverse(),
-		cb
-	    );
-	}
-    );
+// function synchronizeForthAndBack(mailboxes, cb) {
+//     synchronizeArray(
+// 	mailboxes,
+// 	function (err) {
+// 	    synchronizeArray(
+// 		mailboxes.reverse(),
+// 		cb
+// 	    );
+// 	}
+//     );
+// }
+
+function synchronizeForthAndBack(mailboxes, iters, cb) {
+    if (iters == 0) {
+	cb();
+    } else {
+	synchronizeArray(
+	    (iters % 2 == 1? mailboxes : mailboxes.reverse()),
+	    function(err) {
+		synchronizeForthAndBack(mailboxes, iters-1, cb)
+	    }
+	);
+    }
 }
 
 
@@ -272,6 +285,7 @@ function startSync(err, mailboxes) {
     if (err == undefined) {
 	synchronizeForthAndBack(
 	    mailboxes,
+	    3,
 	    function (err) {
 		someSpace('---------------------- DONE SYNC --------------------------------');
 		//dispMailboxes(
