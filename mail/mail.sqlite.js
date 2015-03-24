@@ -688,6 +688,7 @@ Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
     });
 }
 
+// Maximize the c-number for this mailbox as a sender
 Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 
     // We are never sending packets to ourself, are we?
@@ -702,15 +703,17 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 		    x,
 		    cb);
     };
+
+    var src = this.mailboxName;
     
     // retrieve the first seqnumber that has not been acked.
-    var query = 'SELECT seqnumber FROM packets WHERE ack = 0 ORDER BY seqnumber ASC';
+    var query = 'SELECT seqnumber FROM packets WHERE ack = 0 AND src = ? ORDER BY seqnumber ASC';
     var self = this;
-    this.db.get(query, function(err, row) {
+    this.db.get(query, src, function(err, row) {
 	if (err == undefined) {
 	    if (row == undefined) { // No packets found, set it to 1 + the latest ack
-		var query = 'SELECT seqnumber FROM packets WHERE ack = 1 ORDER BY seqnumber DESC';
-		self.db.get(query, function(err, row) {
+		var query = 'SELECT seqnumber FROM packets WHERE ack = 1 AND src = ? ORDER BY seqnumber DESC';
+		self.db.get(query, src, function(err, row) {
 		    if (err == undefined) {
 			if (row == undefined) {
 
