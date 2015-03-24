@@ -7,9 +7,17 @@ var q = require("q");
 
 var boxnames = ["A", "B", "C"];
 
+var VERBOSE = true;
+
+function disp(x) {
+    if (VERBOSE) {
+	console.log(x);
+    }
+}
+
 
 function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
-    console.log('Fill mailbox with name ' + srcMailbox.mailboxName +
+    disp('Fill mailbox with name ' + srcMailbox.mailboxName +
 		' with ' + count + ' packets intended for ' + dstMailboxName);
     assert(typeof count == 'number');
     assert(typeof dstMailboxName == 'string');
@@ -45,11 +53,11 @@ function dispPacketCounts(boxes, cb) {
     getPacketCounts(
 	boxes,
 	function(err, results) {
-	    console.log('Packet counts');
+	    disp('Packet counts');
 	    for (var i = 0; i < results.length; i++) {
-		console.log('  ' + boxes[i].mailboxName + ': ' + results[i]);
+		disp('  ' + boxes[i].mailboxName + ': ' + results[i]);
 	    }
-	    console.log('\n\n\n');
+	    disp('\n\n\n');
 	    cb(err);
 	}
     );
@@ -188,7 +196,7 @@ function synchronizeDirected(boxA, boxB, cb) {
 		synchronizeDirectedFrom(
 		    startFrom, boxA, boxB,
 		    function() {
-			console.log('Synchronized ' + boxA.mailboxName +
+			disp('Synchronized ' + boxA.mailboxName +
 				    ' from ' + boxB.mailboxName + '.]');
 			dispPacketCounts(
 			    allMailboxes,
@@ -253,9 +261,9 @@ function synchronizeForthAndBack(mailboxes, from, to, cb) {
     if (from < to) {
 	var even = from % 2 == 0;
 	if (even) {
-	    console.log('FORWARD SYNCH, from = ' + from);
+	    disp('FORWARD SYNCH, from = ' + from);
 	} else {
-	    console.log('BACKWARD SYNCH, from = ' + from);
+	    disp('BACKWARD SYNCH, from = ' + from);
 	}
 	var reversed = mailboxes.slice(0).reverse();
 	synchronizeArray(
@@ -276,7 +284,7 @@ function dispMailboxes(mailboxes, cb) {
 	cb();
     } else {
 	var box = mailboxes[0];
-	console.log('\n\n MAILBOX NAMED ' + box.mailboxName);
+	disp('\n\n MAILBOX NAMED ' + box.mailboxName);
 	mb.dispAllTableData(
 	    box.db,
 	    function (err) {
@@ -288,15 +296,15 @@ function dispMailboxes(mailboxes, cb) {
 
 function someSpace(s) {
     for (var i = 0; i < 9; i++) {
-	console.log(s);
+	disp(s);
     }
 }
 
 
 function dispMailboxes(boxes) {
-    console.log('MAILBOXES:');
+    disp('MAILBOXES:');
     for (var i = 0; i < boxes.length; i++) {
-	console.log('  mailbox ' + boxes[i].mailboxName);
+	disp('  mailbox ' + boxes[i].mailboxName);
     }
 }
 
@@ -317,7 +325,7 @@ function startSync(err, mailboxes) {
 			    mailboxes, 0, 2,
 			    function(err) {
 				dispMailboxes(mailboxes);				
-				console.log('Done synchronizing');
+				disp('Done synchronizing');
 				assert(err == undefined);
 			    }			    
 			);
