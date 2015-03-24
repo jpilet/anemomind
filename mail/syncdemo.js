@@ -9,6 +9,8 @@ var boxnames = ["A", "B", "C"];
 
 
 function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
+    console.log('Fill mailbox with name ' + srcMailbox.mailboxName +
+		' with ' + count + ' packets intended for ' + dstMailboxName);
     assert(typeof count == 'number');
     assert(typeof dstMailboxName == 'string');
     if (count == 0) {
@@ -244,16 +246,18 @@ function synchronizeArray(mailboxes, cb) {
 //     );
 // }
 
-function synchronizeForthAndBack(mailboxes, iters, cb) {
-    if (iters == 0) {
-	cb();
-    } else {
+function synchronizeForthAndBack(mailboxes, from, to, cb) {
+    if (from < to) {
+	var even = from % 2;
+	var reversed = mailboxes.slice(0).reverse();
 	synchronizeArray(
-	    (iters % 2 == 1? mailboxes : mailboxes.reverse()),
+	    (even? mailboxes : reversed),
 	    function(err) {
-		synchronizeForthAndBack(mailboxes, iters-1, cb)
+		synchronizeForthAndBack(mailboxes, from+1, to, cb)
 	    }
 	);
+    } else {
+	cb();
     }
 }
 
@@ -279,26 +283,38 @@ function someSpace(s) {
 	console.log(s);
     }
 }
-    
+
+
+function dispMailboxes(boxes) {
+    console.log('MAILBOXES:');
+    for (var i = 0; i < boxes.length; i++) {
+	console.log('  mailbox ' + boxes[i].mailboxName);
+    }
+}
 
 function startSync(err, mailboxes) {
+    dispMailboxes(mailboxes);
     if (err == undefined) {
 	synchronizeForthAndBack(
 	    mailboxes,
-	    3,
+	    0, 2,
 	    function (err) {
-		someSpace('---------------------- DONE SYNC --------------------------------');
-		//dispMailboxes(
-		    //mailboxes, function(err) {
-			dispPacketCounts(
-			    mailboxes,
+		dispMailboxes(mailboxes);
+		fillWithPackets(
+		    2,
+		    mailboxes[0],
+		    mailboxes[2].mailboxName,
+		    function(err) {
+			synchronizeForthAndBack(
+			    mailboxes, 0, 2,
 			    function(err) {
+				dispMailboxes(mailboxes);				
 				console.log('Done synchronizing');
 				assert(err == undefined);
-			    }
+			    }			    
 			);
-		    //}
-		//);
+		    }
+		);
 	    }
 	);
     } else {
