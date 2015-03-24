@@ -277,22 +277,6 @@ function synchronizeForthAndBack(mailboxes, from, to, cb) {
 }
 
 
-
-function dispMailboxes(mailboxes, cb) {
-    if (mailboxes.length == 0) {
-	cb();
-    } else {
-	var box = mailboxes[0];
-	disp('\n\n MAILBOX NAMED ' + box.mailboxName);
-	mb.dispAllTableData(
-	    box.db,
-	    function (err) {
-		dispMailboxes(mailboxes.slice(1), cb);
-	    }
-	);		    
-    }
-}
-
 function someSpace(s) {
     for (var i = 0; i < 9; i++) {
 	disp(s);
@@ -300,21 +284,17 @@ function someSpace(s) {
 }
 
 
-function dispMailboxes(boxes) {
-    disp('MAILBOXES:');
-    for (var i = 0; i < boxes.length; i++) {
-	disp('  mailbox ' + boxes[i].mailboxName);
-    }
-}
 
 function startSync(err, mailboxes, done) {
-    dispMailboxes(mailboxes);
     if (err == undefined) {
 	synchronizeForthAndBack(
 	    mailboxes,
 	    0, 2,
 	    function (err) {
 
+		
+
+		// Let's send two more packets.
 		fillWithPackets(
 		    2,
 		    mailboxes[0],
@@ -323,8 +303,6 @@ function startSync(err, mailboxes, done) {
 			synchronizeForthAndBack(
 			    mailboxes, 0, 2,
 			    function(err) {
-				dispMailboxes(mailboxes);				
-				disp('Done synchronizing');
 				done();
 			    }			    
 			);
