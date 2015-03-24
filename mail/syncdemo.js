@@ -7,7 +7,7 @@ var q = require("q");
 
 var boxnames = ["A", "B", "C"];
 
-var VERBOSE = true;
+var VERBOSE = 0;
 
 function disp(x) {
     if (VERBOSE) {

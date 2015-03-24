@@ -473,7 +473,12 @@ Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
     assert(isFunction(cb));
     var self = this;
     var onUpdate = function(err) {
-	self.removeObsoletePackets(src, dst, cb);
+	assert(err == undefined);
+	if (err == undefined) {
+	    self.removeObsoletePackets(src, dst, cb);	    
+	} else {
+	    cb(err);
+	}
     };
     
     var self = this;
@@ -483,7 +488,8 @@ Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
 		self.insertCTable(src, dst, newValue, onUpdate);
 	    } else if (currentValue < newValue) {
 		var query = 'UPDATE ctable SET counter = ? WHERE src = ? AND dst = ?';
-		console.log('Update ctable from ' + currentValue + ' to '
+		console.log('Mailbox ' + self.mailboxName +
+			    ': Update ctable from ' + currentValue + ' to '
 			    + newValue + ' at (' + src + ', ' + dst + ')');
 		self.db.run(query, newValue, src, dst, onUpdate);
 	    } else {
