@@ -717,35 +717,26 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     assert(isFunction(cb));
     var self = this;
     if (packet.label == 'ack' && packet.dst == this.mailboxName) {
-
-	//self.dispPacketSummary(
-	    //function(err) {
-		var seqnums = intarray.deserialize(packet.data);
-
-		console.log('Incoming ack packet with ' + seqnums.length + ' seqnums');
-		
-
-		// Optional call to function whenever some packets that we sent were acknowledged.
-		if (this.onAcknowledged != undefined) {
-		    this.onAcknowledged({
-			dst: packet.src, // The mailbox we sent to
-			seqnums: seqnums // The sequence numbers.
-		    });
+	var seqnums = intarray.deserialize(packet.data);
+	console.log('Incoming ack packet with ' + seqnums.length + ' seqnums');
+	// Optional call to function whenever some packets that we sent were acknowledged.
+	if (this.onAcknowledged != undefined) {
+	    this.onAcknowledged({
+		dst: packet.src, // The mailbox we sent to
+		seqnums: seqnums // The sequence numbers.
+	    });
+	}
+	
+	self.setAcked(
+	    self.mailboxName, packet.src,
+	    seqnums,
+	    function (err) {
+		if (err == undefined) {
+		    self.maximizeCNumber(packet.src, cb);
+		} else {
+		    cb(err);
 		}
-		
-		self.setAcked(
-		    self.mailboxName, packet.src,
-		    seqnums,
-		    function (err) {
-			if (err == undefined) {
-			    self.maximizeCNumber(packet.src, cb);
-			} else {
-			    cb(err);
-			}
-		    });
-//	    }
-	//);
-
+	    });
     } else {
 	cb();
     }
