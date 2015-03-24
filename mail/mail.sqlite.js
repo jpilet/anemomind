@@ -494,7 +494,6 @@ Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
 
     if (src == this.mailboxName) {
 	console.log('  NO!!!!!');
-	assert(false);
 	cb(undefined, false);
     } else {
 	this.getCNumber(src, dst, function(err, cnumber) {
