@@ -342,7 +342,7 @@ Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight
     assert(isFunction(cb));
     // During the synchronization process, we might only want the essential information
     // to determine whether or not we are going to ask for the whole packet.
-    var what = (lightWeight? 'src,seqnumber' : '*');
+    var what = (lightWeight? 'src,seqnumber,dst' : '*');
     
     var query = 'SELECT ' + what +
 	' FROM packets  WHERE ? <= diarynumber ORDER BY diarynumber ASC';
@@ -485,7 +485,17 @@ Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
 
 // Check if an incoming packet should be admitted.
 Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
-    assert(isFunction(cb));    
+    assert(src != undefined);
+    assert(dst != undefined);
+    console.log('Mailbox ' + this.mailboxName + ': Admit packet from '
+		+ src + ' to ' + dst + '?');
+    
+    assert(isFunction(cb));
+
+    if (src == this.mailboxName) {
+	cb(undefined, false);
+    }
+	
     this.getCNumber(src, dst, function(err, cnumber) {
 	if (err == undefined) {
 	    cb(err, (cnumber == undefined? true : (cnumber <= seqNumber)));
@@ -657,6 +667,7 @@ Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
 }
 
 Mailbox.prototype.maximizeCNumber = function(dst, cb) {
+    assert(dst != this.mailboxName);
     assert(isFunction(cb));    
     var update = function(x) {
 
@@ -716,6 +727,9 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 
 
 Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
+    console.log('Mailbox ' + this.mailboxName + ': Handle packet from '
+		+ packet.src + ' to ' + packet.dst);
+    
     assert(isFunction(cb));
     var self = this;
     if (packet.label == 'ack' && packet.dst == this.mailboxName) {
@@ -744,6 +758,10 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 
  // This method is called only for packets that should not be rejected.
  Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
+    console.log('Mailbox ' + this.mailboxName + ': Accept packet from '
+		+ packet.src + ' to ' + packet.dst);
+
+     
      assert(isFunction(cb));    
      var self = this;
 
@@ -790,7 +808,8 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 
 // Handle an incoming packet.
 Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
-    assert(isFunction(cb));    
+    console.log('HANDLE INCOMING PACKET: %j', packet);
+    assert(isFunction(cb));
     var self = this;
     this.isAdmissible(
 	packet.src,
