@@ -489,9 +489,6 @@ Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
 		self.insertCTable(src, dst, newValue, onUpdate);
 	    } else if (currentValue < newValue) {
 		var query = 'UPDATE ctable SET counter = ? WHERE src = ? AND dst = ?';
-		console.log('Mailbox ' + self.mailboxName +
-			    ': Update ctable from ' + currentValue + ' to '
-			    + newValue + ' at (' + src + ', ' + dst + ')');
 		self.db.run(query, newValue, src, dst, onUpdate);
 	    } else {
 		cb(err);
