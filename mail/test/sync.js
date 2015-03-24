@@ -287,30 +287,45 @@ function someSpace(s) {
 
 function startSync(err, mailboxes, done) {
     if (err == undefined) {
+
+	// This will propage messages from A to C,
+	// then propagate messages from C to A.
 	synchronizeForthAndBack(
 	    mailboxes,
 	    0, 2,
 	    function (err) {
 
-		
+		getPacketCounts(
+		    mailboxes,
+		    function(err, counts) {
 
-		// Let's send two more packets.
-		fillWithPackets(
-		    2,
-		    mailboxes[0],
-		    mailboxes[2].mailboxName,
-		    function(err) {
-			synchronizeForthAndBack(
-			    mailboxes, 0, 2,
+			// The 9 packets A->C that were not marked as acked,
+			// and the 'ack' packet C->A.
+			assert(counts[0] == 10);
+
+			// The 39 packets A->C and the 'ack' packet C->A
+			assert(counts[1] == 40);
+			
+			// The 39 packets A->C and the 'ack' packet C->A
+			assert(counts[2] == 40);
+			
+			// Let's send two more packets.
+			fillWithPackets(
+			    2,
+			    mailboxes[0],
+			    mailboxes[2].mailboxName,
 			    function(err) {
-				assert(false);
-				done();
-			    }			    
+				synchronizeForthAndBack(
+				    mailboxes, 0, 2,
+				    
+				    function(err) {
+					done();
+				    }			    
+				);
+			    }
 			);
 		    }
 		);
-
-		
 	    }
 	);
     } else {
