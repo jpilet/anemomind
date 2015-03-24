@@ -303,6 +303,7 @@ function startSync(err, mailboxes, done) {
 			synchronizeForthAndBack(
 			    mailboxes, 0, 2,
 			    function(err) {
+				assert(false);
 				done();
 			    }			    
 			);
