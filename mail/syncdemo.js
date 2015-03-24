@@ -251,7 +251,12 @@ function synchronizeArray(mailboxes, cb) {
 
 function synchronizeForthAndBack(mailboxes, from, to, cb) {
     if (from < to) {
-	var even = from % 2;
+	var even = from % 2 == 0;
+	if (even) {
+	    console.log('FORWARD SYNCH, from = ' + from);
+	} else {
+	    console.log('BACKWARD SYNCH, from = ' + from);
+	}
 	var reversed = mailboxes.slice(0).reverse();
 	synchronizeArray(
 	    (even? mailboxes : reversed),

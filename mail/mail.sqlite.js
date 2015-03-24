@@ -12,6 +12,18 @@ var pkt = require('./packet.js');
 var intarray = require('./intarray.js');
 var assert = require('assert');
 
+function makeNestedLogger() {
+    var indent = 0;
+    return function(s) {
+	var x = '';
+	for (var i = 0; i < indent; i++) {
+	    x = x + '  ';
+	}
+	console.log(x + s);
+	indent++;
+    };
+}
+
 
 
 function expand(span, value) {
@@ -520,12 +532,13 @@ Mailbox.prototype.hasPacket = function(src, seqNumber, cb) {
 
 // This method will update the C-table and save the packet in the db.
 Mailbox.prototype.registerPacketData = function(packet, cb) {
+    var logger = makeNestedLogger();
     assert(isFunction(cb));    
     var self = this;
     this.hasPacket(packet.src, packet.seqNumber, function(err, has) {
 	if (err == undefined) {
 	    if (has) {
-		
+
 		// Nothing to do if we already have the packet.
 		// TODO: If we end up here, we have probably transferred
 		//       packet data for no use.
@@ -537,6 +550,7 @@ Mailbox.prototype.registerPacketData = function(packet, cb) {
 		self.makeNewDiaryNumber(function(err, num) {
 		    if (err == undefined) {
 
+
 			// Insert the packet into the packet database
 			var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
 			self.db.run(
@@ -544,7 +558,10 @@ Mailbox.prototype.registerPacketData = function(packet, cb) {
 			    packet.src, packet.dst, packet.seqNumber,
 			    packet.cNumber, packet.label, packet.data, false,
 			    function(err) {
+
+				
 				if (err == undefined) {
+
 				    
 				    // Update the c-number
 				    self.updateCTable(
