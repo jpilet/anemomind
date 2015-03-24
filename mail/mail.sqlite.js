@@ -77,6 +77,7 @@ function getAllTableRows(db, tableName, cb) {
     db.all('SELECT * FROM ' + tableName, cb);
 }
 
+
 // For debugging. The callback cb is optional
 function dispAllTableData(db, cb) {
     assert(isFunction(cb));    
@@ -655,11 +656,25 @@ Mailbox.prototype.sendAckIfNeeded = function(src, cb) {
 Mailbox.prototype.maximizeCNumber = function(dst, cb) {
     assert(isFunction(cb));    
     var update = function(x) {
-	self.updateCTable(
-	    self.mailboxName,
-	    dst,
-	    x,
-	    cb);
+
+		self.updateCTable(
+		    self.mailboxName,
+		    dst,
+		    x,
+		    cb);
+	
+	// self.getCNumber(
+	//     self.mailboxName, dst,
+	//     function (err, oldValue) {
+	// 	console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Move C-number from ', oldValue, ' to ', x, ' which is ', x - oldValue);
+	// 	self.updateCTable(
+	// 	    self.mailboxName,
+	// 	    dst,
+	// 	    x,
+	// 	    cb);
+	//     }
+	// );		
+	
     };
     
     // retrieve the first seqnumber that has not been acked.
@@ -697,34 +712,38 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 }
 
 Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
-    assert(isFunction(cb));    
+    assert(isFunction(cb));
+    var self = this;
     if (packet.label == 'ack' && packet.dst == this.mailboxName) {
-	var seqnums = intarray.deserialize(packet.data);
 
-	console.log('Incoming ack packet with ' + seqnums.length + ' seqnums');
-	
-	var self = this;
 
-	// Optional call to function whenever some packets that we sent were acknowledged.
-	if (this.onAcknowledged != undefined) {
-	    this.onAcknowledged({
-		dst: packet.src, // The mailbox we sent to
-		seqnums: seqnums // The sequence numbers.
-	    });
-	}
+	self.dispPacketSummary(
+	    function(err) {
+		var seqnums = intarray.deserialize(packet.data);
 
-	
-	
-	self.setAcked(
-	    self.mailboxName, packet.src,
-	    seqnums,
-	    function (err) {
-		if (err == undefined) {
-		    self.maximizeCNumber(packet.src, cb);
-		} else {
-		    cb(err);
+		console.log('Incoming ack packet with ' + seqnums.length + ' seqnums');
+		
+
+		// Optional call to function whenever some packets that we sent were acknowledged.
+		if (this.onAcknowledged != undefined) {
+		    this.onAcknowledged({
+			dst: packet.src, // The mailbox we sent to
+			seqnums: seqnums // The sequence numbers.
+		    });
 		}
-	    });
+		
+		self.setAcked(
+		    self.mailboxName, packet.src,
+		    seqnums,
+		    function (err) {
+			if (err == undefined) {
+			    self.maximizeCNumber(packet.src, cb);
+			} else {
+			    cb(err);
+			}
+		    });
+	    }
+	);
     } else {
 	cb();
     }
@@ -808,6 +827,26 @@ Mailbox.prototype.getDiaryAndSeqNumbers = function(dst, cb) {
 	}
     });
 }
+
+Mailbox.prototype.dispPacketSummary = function(cb) {
+    var self = this;
+    this.db.all(
+	'SELECT diarynumber, seqnumber, ack FROM packets',
+	function (err, results) {
+	    if (err == undefined) {
+		console.log('PACKET SUMMARY OF ' + self.mailboxName + ' (' + results.length + ' packets)');
+		for (var i = 0; i < results.length; i++) {
+		    var r = results[i];
+		    console.log('  diarynumber = ' + r.diarynumber + '   seqnumber = ' + r.seqnumber + '   ack = ' + r.ack);
+		}
+		cb(err);
+	    } else {
+		cb(err);
+	    }
+	}
+    );
+}
+
 
 
 // Given destination mailbox, label and data,

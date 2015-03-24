@@ -29,6 +29,30 @@ function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
     }
 }
 
+function getPacketCounts(boxes, cb) {
+    async.map(
+	boxes,
+	function(box, a) {
+	    box.getTotalPacketCount(a);
+	},
+	cb
+    );
+}
+
+function dispPacketCounts(boxes, cb) {
+    getPacketCounts(
+	boxes,
+	function(err, results) {
+	    console.log('Packet counts');
+	    for (var i = 0; i < results.length; i++) {
+		console.log('  ' + boxes[i].mailboxName + ': ' + results[i]);
+	    }
+	    cb(err);
+	}
+    );
+}
+
+
 
 
 function finishSync(index, boxA, boxB, cb) {
@@ -143,16 +167,29 @@ function synchronizeDirectedFrom(startFrom, boxA, boxB, cb) {
     );
 }
 
+var allMailboxes = undefined;
+
 // Synchronize state in only one direction,
 // so that boxA will know everything that boxB knows,
 // but not the other way around.
 function synchronizeDirected(boxA, boxB, cb) {
+    assert(allMailboxes.length == 3);
     // First retrieve the first number we should ask for
     boxA.getForeignStartNumber(
 	boxB.mailboxName,
 	function(err, startFrom) {
 	    if (err == undefined) {
-		synchronizeDirectedFrom(startFrom, boxA, boxB, cb);
+		synchronizeDirectedFrom(
+		    startFrom, boxA, boxB,
+		    function() {
+			console.log('Synchronize ' + boxA.mailboxName +
+				    ' from ' + boxB.mailboxName);
+			dispPacketCounts(
+			    allMailboxes,
+			    cb
+			);
+		    }
+		);
 	    } else {
 		cb(err);
 	    }
@@ -236,12 +273,17 @@ function startSync(err, mailboxes) {
 	    mailboxes,
 	    function (err) {
 		someSpace('---------------------- DONE SYNC --------------------------------');
-		dispMailboxes(
-		    mailboxes, function(err) {
-			console.log('Done synchronizing');
-			assert(err == undefined);
-		    }
-		);
+		//dispMailboxes(
+		    //mailboxes, function(err) {
+			dispPacketCounts(
+			    mailboxes,
+			    function(err) {
+				console.log('Done synchronizing');
+				assert(err == undefined);
+			    }
+			);
+		    //}
+		//);
 	    }
 	);
     } else {
@@ -254,6 +296,8 @@ function startSync(err, mailboxes) {
 function mailboxesCreated(err, mailboxes) {
 
     someSpace('');
+
+    allMailboxes = mailboxes;
 
     var PACKETCOUNT = 39;
     
