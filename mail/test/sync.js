@@ -317,9 +317,25 @@ function startSync(err, mailboxes, done) {
 			    function(err) {
 				synchronizeForthAndBack(
 				    mailboxes, 0, 2,
-				    
 				    function(err) {
-					done();
+					getPacketCounts(
+					    mailboxes,
+					    function(err, counts) {
+
+						// Now the 30 packets that were
+						// acked have been removed. What
+						// remains are the remaining 9
+						// packets A->C that were not acked,
+						// the 'ack' packet C->A and the
+						// two new packets A->C that were
+						// just sent. 12 packets in total.
+						assert(counts[0] == 12);
+						assert(counts[1] == 12);
+						assert(counts[2] == 12);
+						
+						done();
+					    }
+					);
 				    }			    
 				);
 			    }
