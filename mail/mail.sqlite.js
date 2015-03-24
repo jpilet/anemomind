@@ -469,6 +469,7 @@ Mailbox.prototype.getTotalPacketCount = function(cb) {
 
 // Update the C table. Used when handling incoming packets.
 Mailbox.prototype.updateCTable = function(src, dst, newValue, cb) {
+    assert(src != 'B');
     assert(src != dst);
     assert(isFunction(cb));
     var self = this;
