@@ -217,10 +217,14 @@ function synchronize(boxA, boxB, cb) {
     synchronizeDirected(
 	boxA, boxB,
 	function(err) {
-	    synchronizeDirected(
-	    	boxB, boxA,
-	    	cb
-	    );
+	    if (err == undefined) {
+		synchronizeDirected(
+	    	    boxB, boxA,
+	    	    cb
+		);
+	    } else {
+		cb(err);
+	    }
 	}
     );
 }
@@ -243,18 +247,6 @@ function synchronizeArray(mailboxes, cb) {
 	);
     }
 }
-
-// function synchronizeForthAndBack(mailboxes, cb) {
-//     synchronizeArray(
-// 	mailboxes,
-// 	function (err) {
-// 	    synchronizeArray(
-// 		mailboxes.reverse(),
-// 		cb
-// 	    );
-// 	}
-//     );
-// }
 
 function synchronizeForthAndBack(mailboxes, from, to, cb) {
     if (from < to) {
@@ -392,8 +384,6 @@ describe(
 			mailboxesCreated(boxes, done);
 		    }
 		);
-
-		
 	    }
 	);
     }
