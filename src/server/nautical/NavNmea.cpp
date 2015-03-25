@@ -228,13 +228,24 @@ ParsedNavs loadNavsFromNmea(std::string filename, Nav::Id boatId) {
 }
 
 namespace {
-  std::string getFieldLabel(ParsedNavs::FieldId id) {
-    typedef const char *Str;
-    static Str labels[ParsedNavs::FIELD_COUNT] =
-      {"TIME", "POS", "AWA", "AWS", "MAG_HDG", "GPS_BEARING", "GPS_SPEED", "WAT_SPEED"};
-    return labels[id];
+
+std::string getFieldLabel(ParsedNavs::FieldId id) {
+  switch (id) {
+    case ParsedNavs::TIME: return "TIME";
+    case ParsedNavs::POS: return "POS";
+    case ParsedNavs::AWA: return "AWA";
+    case ParsedNavs::AWS: return "AWS";
+    case ParsedNavs::MAG_HDG: return "MAG_HDG";
+    case ParsedNavs::GPS_BEARING: return "GPS_BEARING";
+    case ParsedNavs::GPS_SPEED: return "GPS_SPEED";
+    case ParsedNavs::WAT_SPEED: return "WAT_SPEED";
+    case ParsedNavs::TWA_EXTERNAL: return "TWA_EXTERNAL";
+    case ParsedNavs::TWS_EXTERNAL: return "TWS_EXTERNAL";
+    case ParsedNavs::FIELD_COUNT: return "UNKNOWN FIELD";
   }
 }
+
+} // namespace
 
 std::ostream &operator<<(std::ostream &s, ParsedNavs x) {
   s << "ParsedNavs: " << x.navs().size() << std::endl;
