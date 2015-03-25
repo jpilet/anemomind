@@ -10,6 +10,8 @@
   "license": "BSD-2-Clause",
   "dependencies": {
     "async": "~0.9.0",
+    "bleno": "^0.1.12",
+    "noble": "^0.3.11",
     "sqlite3": "~3.0.5",
     "sqlite3-transactions": "0.0.5"
   },
