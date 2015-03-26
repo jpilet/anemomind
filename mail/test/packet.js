@@ -51,20 +51,22 @@ it(
     }
 );
 
-it(
-    'serialize',
-    function() {
-	it(
-	    'Should serialize and deserialize and object correctly',
-	    function() {
-		var data = {
-		    diaryNumber: 0,
-		    src: 1,
-		    dst: 2,
-		    seqNumber: 3
-		};
-		assert(deserializeLight(serializeLight(data)) == data);
-	    }
-	);
-    }
-);
+// TO BE COMPLETED ONCE WE KNOW THE EXACT PACKET FORMAT
+//
+// it(
+//     'serialize',
+//     function() {
+// 	it(
+// 	    'Should serialize and deserialize and object correctly',
+// 	    function() {
+// 		var data = {
+// 		    diaryNumber: 0,
+// 		    src: 1,
+// 		    dst: 2,
+// 		    seqNumber: 3
+// 		};
+// 		assert(deserializeFull(serializeFull(data)) == data);
+// 	    }
+// 	);
+//     }
+// );

@@ -5,7 +5,7 @@ var int64Size = 8;
 // src and dst.
 var mailboxIdSize = int64Size;
 
-// cNumber, seqNumber, diaryNumber are various counters.
+// cNumber, seqNumber, diaryNumber are counters.
 var counterSize = int64Size;
 
 
@@ -63,6 +63,16 @@ BufferManager.prototype.readInt = function(elemSize) {
 }
 
 
+
+
+
+
+///// serializeLight/deserializeLight are used when we test if a packet should
+// be transferred.
+//
+// If it is the case that the packet should be transferred, the
+// diaryNumber is used as a starting point for querying the next
+// packet.
 function serializeLight(packet) {
     assert(isLightPacket(packet));
     
@@ -95,6 +105,45 @@ function deserializePacket(x) {
     assert(isLightPacket(result));
     return result;
 }
+
+
+
+// TO BE COMPLETED ONCE WE KNOW THE EXACT PACKET FORMAT
+//
+///// For full packets
+// function serializeFull(packet) {
+//     assert(isLightPacket(packet));
+    
+//      var dst = new BufferManager(
+// 	3*counterSize + 2*mailboxIdSize
+//     );
+
+//     // To serialize: diaryNumber, src, dst, seqNumber       
+//     dst.writeInt(src.diaryNumber, counterSize);
+//     dst.writeInt(src.src, mailboxIdSize);
+//     dst.writeInt(src.dst, mailboxIdSize);
+//     dst.writeInt(src.seqNumber, counterSize);
+//     dst.writeInt();
+
+//     assert(dst.finished());
+//     return dst;
+// }
+
+// function deserializePacket(x) {
+//     var b = new BufferManager(x);
+//     var diaryNumber = b.readInt(counterSize);
+//     var src = b.readInt(mailboxIdSize);
+//     var dst = b.readInt(mailboxIdSize);
+//     var seqNumber = b.readInt(counterSize);
+//     var result = {
+// 	diaryNumber: diaryNumber,
+// 	src: src,
+// 	dst: dst,
+// 	seqNumber: seqNumber
+//     };
+//     assert(isLightPacket(result));
+//     return result;
+// }
 
 exports.isLightPacket = isLightPacket;
 exports.isFullPacket = isFullPacket;
