@@ -88,14 +88,7 @@ function fetchFullPacket(index, boxA, boxB, cb) {
 		} else {
 
 		    // Create a packet object
-		    var packet = new pkt.Packet(
-			row.src,
-			row.dst,
-			row.seqNumber,
-			row.cNumber,
-			row.label,
-			row.data
-		    );
+		    var packet = row;
 
 		    // The actual index of the packet
 		    // that we fetched.
