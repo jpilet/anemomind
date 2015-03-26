@@ -88,18 +88,11 @@ function fetchFullPacket(index, boxA, boxB, cb) {
 		} else {
 
 		    // Create a packet object
-		    var packet = new pkt.Packet(
-			row.src,
-			row.dst,
-			row.seqnumber,
-			row.cnumber,
-			row.label,
-			row.data
-		    );
+		    var packet = row;
 
 		    // The actual index of the packet
 		    // that we fetched.
-		    var newIndex = row.diarynumber;
+		    var newIndex = row.diaryNumber;
 
 		    
 		    boxA.handleIncomingPacket(
@@ -136,7 +129,7 @@ function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
 	
     } else { 
 	boxA.isAdmissible(
-	    lightPacket.src, lightPacket.dst, lightPacket.seqnumber,
+	    lightPacket.src, lightPacket.dst, lightPacket.seqNumber,
 	    function(err, admissible) {
 		if (err == undefined) {
 		    if (admissible) {
@@ -152,7 +145,7 @@ function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
 		    } else {
 			// Recur, with next index.
 			synchronizeDirectedFrom(
-			    lightPacket.diarynumber + 1,
+			    lightPacket.diaryNumber + 1,
 			    boxA, boxB, cb
 			);
 		    }
