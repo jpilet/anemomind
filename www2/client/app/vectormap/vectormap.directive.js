@@ -90,8 +90,19 @@ angular.module('www2App')
           var point = scope.pathLayer.findPointAt(
             pos.startWorldPos.x, pos.startWorldPos.y);
           if (point) {
-            scope.selectedCurve = point.curveId;
-            scope.currentTime = point.point.time;
+            var dist = Utils.distance(
+                pos.startViewerPos,
+                canvas.pinchZoom.viewerPosFromWorldPos(point.point.pos[0],
+                                                     point.point.pos[1]));
+
+            // This is a threshold, in pixels, to select a point.
+            if (dist < 20) {
+              scope.selectedCurve = point.curveId;
+              scope.currentTime = point.point.time;
+            } else {
+              scope.selectedCurve = undefined;
+              scope.currentTime = undefined;
+            }
           } else {
             scope.selectedCurve = undefined;
             scope.currentTime = undefined;
