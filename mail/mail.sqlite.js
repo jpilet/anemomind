@@ -10,6 +10,7 @@ var seqnums = require('./seqnums.js');
 var async = require('async');
 var intarray = require('./intarray.js');
 var assert = require('assert');
+var pkt = require('./packet.js');
 
 function makeNestedLogger() {
     var indent = 0;
