@@ -18,6 +18,25 @@ it(
 		));
 	    }
 	);
+    }
+);
 
+it(
+    'isFullPacket',
+    function() {
+	describe(
+	    'Should distinguish between what is a full packet and what is not',
+	    function() {
+		assert(!pkt.isFullPacket(undefined));
+		assert(!pkt.isFullPacket(1));
+		assert(!pkt.isFullPacket(
+		    {
+			src: 1,
+			dst: 2,
+			seqNumber: 3,
+		    }
+		));
+	    }
+	);
     }
 );
