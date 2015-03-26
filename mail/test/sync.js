@@ -173,13 +173,11 @@ function synchronizeDirectedFrom(startFrom, boxA, boxB, cb) {
     );
 }
 
-var allMailboxes = undefined;
 
 // Synchronize state in only one direction,
 // so that boxA will know everything that boxB knows,
 // but not the other way around.
 function synchronizeDirected(boxA, boxB, cb) {
-    assert(allMailboxes.length == 3);
     // First retrieve the first number we should ask for
     boxA.getForeignStartNumber(
 	boxB.mailboxName,
@@ -190,10 +188,7 @@ function synchronizeDirected(boxA, boxB, cb) {
 		    function() {
 			disp('Synchronized ' + boxA.mailboxName +
 				    ' from ' + boxB.mailboxName + '.]');
-			dispPacketCounts(
-			    allMailboxes,
-			    cb
-			);
+			cb();
 		    }
 		);
 	    } else {
@@ -339,8 +334,6 @@ function startSync(err, mailboxes, done) {
 function mailboxesCreated(mailboxes, done) {
 
     someSpace('');
-
-    allMailboxes = mailboxes;
 
     var PACKETCOUNT = 39;
     
