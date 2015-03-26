@@ -36,6 +36,16 @@ it(
 			seqNumber: 3,
 		    }
 		));
+		assert(pkt.isFullPacket(
+		    {
+			src: 1,
+			dst: 2,
+			seqNumber: 3,
+			label: 'some-label',
+			cNumber: 4,
+			data: new Buffer(3)
+		    }
+		));
 	    }
 	);
     }
