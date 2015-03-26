@@ -275,10 +275,20 @@ NmeaParser::NmeaSentence NmeaParser::processCommand() {
     return processGPRMC();
   } else if (strcmp(c, "MWV") == 0) {
     return processMWV();
+  } else if (strcmp(c, "VWR") == 0) {
+    return processVWR();
+  } else if (strcmp(c, "VWT") == 0) {
+    return processVWT();
   } else if (strcmp(c, "VHW") == 0) {
     return processVHW();
   } else if (strcmp(c, "VLW") == 0) {
     return processVLW();
+  } else if (strcmp(c, "GLL") == 0) {
+    return processGLL();
+  } else if (strcmp(c, "ZDA") == 0) {
+    return processZDA();
+  } else if (strcmp(c, "VTG") == 0) {
+    return processVTG();
   }
 
   return NMEA_UNKNOWN;
@@ -336,6 +346,68 @@ NmeaParser::NmeaSentence NmeaParser::processMWV() {
   return NMEA_NONE;
 }
 
+/*
+VWR Relative Wind Speed and Angle
+$--VWR,x.x,a,x.x,N,x.x,M,x.x,K*hh
+
+1) Wind direction magnitude in degrees
+2) Wind direction Left/Right of bow
+3) Speed
+4) N = Knots
+5) Speed
+6) M = Meters Per Second
+7) Speed
+8) K = Kilometers Per Hour
+9) Checksum
+*/
+NmeaParser::NmeaSentence NmeaParser::processVWR() {
+  if (argc_<8) return NMEA_NONE;
+  awa_ = parseInt(argv_[1], 0);
+
+  if (argv_[2][0] == 'L') {
+    awa_ = - awa_;
+  }
+
+  DWord s = parseSpeed(argv_[3], argv_[4]);
+  aws_ = s;
+
+  return NMEA_AW;
+}
+
+/*
+ VWT - True Wind Speed and Angle
+True wind angle in relation to the vessel's heading and true wind speed
+referenced to the water. True wind is the vector sum of the Relative (Apparent)
+wind vector and the vessel's velocity vector relative to the water along the
+heading line of the vessel. It represents the wind at the vessel if it were
+stationary relative to the water and heading in the same direction.
+
+￼￼￼The use of $--MWV is recommended.
+
+$--VWT,x.x,a,x.x,N,x.x,M,x.x,K*hh<CR><LF>
+
+Wind speed, Km/Hr
+Wind speed, meters/second
+Calculated wind Speed, knots o
+Calculated wind angle relative to the vessel, 0 to 180 , left/right L/R of
+vessel heading
+
+$IIVWT,045.,L,19.6,N,10.1,M,036.3,K*68
+        1   2   3  4   5  6   7   8
+*/
+NmeaParser::NmeaSentence NmeaParser::processVWT() {
+  if (argc_<6) return NMEA_NONE;
+
+  twa_ = parseInt(argv_[1],0);
+  if (argv_[2][0] == 'L') {
+    twa_ = - twa_;
+  }
+
+  tws_ = parseSpeed(argv_[3], argv_[4]);
+
+  return NMEA_TW;
+}
+
 NmeaParser::NmeaSentence NmeaParser::processVHW() {
   if (argc_<6) return NMEA_NONE;
 
@@ -355,6 +427,119 @@ NmeaParser::NmeaSentence NmeaParser::processVLW() {
   wd_ = 10*parseInt(argv_[3], &n);
   wd_ += parseInt(argv_[3]+n+1,0);
   return NMEA_VLW;
+}
+
+/* GLL Geographic Position – Latitude/Longitude
+
+$--GLL,llll.ll,a,yyyyy.yy,a,hhmmss.ss,A*hh
+
+1) Latitude
+2) N or S (North or South)
+3) Longitude
+4) E or W (East or West)
+5) Time (UTC)
+6) Status A - Data Valid, V - Data Invalid
+7) Checksum
+*/
+NmeaParser::NmeaSentence NmeaParser::processGLL() {
+  if (argc_<7) return NMEA_NONE;
+  if (strlen(argv_[5]) < 6) return NMEA_NONE;
+  if (argv_[6][0] != 'A') return NMEA_NONE;
+  if (strlen(argv_[1]) != 8 || strlen(argv_[2]) != 1
+      || strlen(argv_[3]) != 9 || strlen(argv_[4]) != 1) {
+    return NMEA_NONE;
+  }
+
+  hour_ = parse2c(argv_[5]);
+  min_ = parse2c(argv_[5]+2);
+  sec_ = parse2c(argv_[5]+4);
+
+  pos_.lat.set(
+    parse2c(argv_[1]),
+    parse2c(argv_[1]+2),
+    parseNc(argv_[1]+5,3));
+  if (argv_[2][0] == 'S') {
+    pos_.lat.flip();
+  }
+
+  pos_.lon.set(
+    parseNc(argv_[3],3),
+    parse2c(argv_[3]+3),
+    parseNc(argv_[3]+6,3));
+
+  if (argv_[4][0] == 'W') {
+    pos_.lon.flip();
+  }
+
+  return NMEA_GLL;
+}
+
+/*
+ZDA Time & Date – UTC, Day, Month, Year and Local Time Zone
+
+The spec says:
+$--ZDA,hhmmss.ss,xx,xx,xxxx,xx,xx*hh
+
+1) Local zone minutes description, same sign as local hours
+2) Local zone description, 00 to +/- 13 hours
+3) Year
+4) Month, 01 to 12
+5) Day, 01 to 31
+6) Time (UTC)
+7) Checksum
+
+However, NKE sends:
+$IIZDA,084546,27,02,2015,,*55
+
+field [2] is not present. The order is day, month, year.
+*/
+NmeaParser::NmeaSentence NmeaParser::processZDA() {
+  if (argc_<4) return NMEA_NONE;
+
+  if (strlen(argv_[1]) < 6) return NMEA_NONE;
+  hour_ = parse2c(argv_[1]);
+  min_ = parse2c(argv_[1]+2);
+  sec_ = parse2c(argv_[1]+4);
+
+  int yearLen = strlen(argv_[4]);
+  if (yearLen < 2) {
+    return NMEA_NONE;
+  }
+  year_ = parse2c(argv_[4] + yearLen - 2);
+
+  if (strlen(argv_[3]) < 2) return NMEA_NONE;
+  month_ = parse2c(argv_[3]);
+  if (month_ < 1 || month_ > 12) {
+    return NMEA_NONE;
+  }
+
+  if (strlen(argv_[2]) < 2) return NMEA_NONE;
+  day_ = parse2c(argv_[2]);
+  if (day_ < 1 || day_ > 31) return NMEA_NONE;
+
+  return NMEA_ZDA;
+}
+
+/*
+ VTG Track Made Good and Ground Speed
+$--VTG,x.x,T,x.x,M,x.x,N,x.x,K*hh
+1) Track Degrees
+2) T = True
+3) Track Degrees
+4) M = Magnetic
+5) Speed Knots
+6) N = Knots
+7) Speed Kilometers Per Hour
+8) K = Kilometres Per Hour
+9) Checksum
+*/
+NmeaParser::NmeaSentence NmeaParser::processVTG() {
+  if (argc_<6) return NMEA_NONE;
+
+  gpsBearing_ = parseInt(argv_[1],0);
+  gpsSpeed_ = parseSpeed(argv_[5], argv_[6]);
+
+  return NMEA_VTG;
 }
 
 

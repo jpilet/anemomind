@@ -108,11 +108,17 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
           });
       SCOPEDMESSAGE(INFO, "Get the raw data");
       Array<Angle<double> > magHdg = cleanContinuousAngles(getMagHdg(navs));
+      SCOPEDMESSAGE(INFO, "Done mag hdg");
       Array<Angle<double> > awa = cleanContinuousAngles(getAwa(navs));
+      SCOPEDMESSAGE(INFO, "Done awa");
       Array<Velocity<double> > aws = getAws(navs);
+      SCOPEDMESSAGE(INFO, "Done aws");
       Array<Velocity<double> > watSpeed = getWatSpeed(navs);
+      SCOPEDMESSAGE(INFO, "Done wat speed");
       Array<Angle<double> > gpsBearing = cleanContinuousAngles(getGpsBearing(navs));
+      SCOPEDMESSAGE(INFO, "Done gps bearing");
       Array<Velocity<double> > gpsSpeed = getGpsSpeed(navs);
+      SCOPEDMESSAGE(INFO, "Done gps speed");
 
       /*
        * order=2 means that we will have

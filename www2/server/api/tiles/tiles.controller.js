@@ -2,10 +2,11 @@
 
 var _ = require('lodash');
 var Tiles = require('./tiles.model');
+var mongoose = require('mongoose');
 
 var makeQuery = function(boatId, s, x, y, startsAfter, endsBefore) {
   var search = {
-    boat: boatId,
+    boat: mongoose.Types.ObjectId(boatId),
     key: "s" + s + "x" + x + "y" + y
   };
 
@@ -19,15 +20,27 @@ var makeQuery = function(boatId, s, x, y, startsAfter, endsBefore) {
   return search;
 };
 
-exports.test = function(req, res, next) {
-  var string = "test";
-  for (var i=0; i<=50000; i++) {
-    string += 0;
-  }
-  res.send(string);
+exports.retrieveRaw = function(req, res, next) {
+  var query = makeQuery(req.params.boat,
+                        req.params.scale,
+                        req.params.x,
+                        req.params.y,
+                        req.params.startsAfter,
+                        req.params.endsBefore);
+
+  console.log('get tile: ' + query.key);
+  Tiles.find(query, function(err, tiles) {
+    if (err) {
+      return next(err);
+    }
+    if (!tiles) return res.send(404);
+
+    res.contentType('application/json');
+    return res.send(JSON.stringify(tiles));
+  });
 };
 
-exports.retrieve = function(req, res, next) {
+exports.retrieveGeoJson = function(req, res, next) {
   var query = makeQuery(req.params.boat,
                         req.params.scale,
                         req.params.x,

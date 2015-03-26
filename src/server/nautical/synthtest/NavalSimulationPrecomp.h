@@ -12,6 +12,7 @@ namespace sail {
 
 // Load or make
 NavalSimulation getNavSimFractalWindOriented();
+NavalSimulation getNavSimFractalWindOrientedLong();
 
 }
 

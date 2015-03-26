@@ -34,6 +34,11 @@ Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
   Array<ParsedNavs> parsedNavs(count);
   for (int i = 0; i < count; i++) {
     parsedNavs[i] = loadNavsFromNmea(files[i].toString(), boatId);
+
+    std::stringstream sstream;
+    sstream << parsedNavs[i];
+    LOG(INFO) << files[i].toString() << ": " << sstream.str();
+
     if (simulator) {
       simulator->simulate(files[i].toString());
     }

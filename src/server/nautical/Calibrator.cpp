@@ -22,6 +22,7 @@
 #include <server/common/Histogram.h>
 #include <server/common/ArrayBuilder.h>
 #include <device/Arduino/libraries/Corrector/Corrector.h>
+#include <server/nautical/FlowErrors.h>
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
@@ -275,6 +276,10 @@ bool Calibrator::segment(const Array<Nav>& navs,
   return true;
 }
 
+WindOrientedGrammar Calibrator::grammar() const {
+  return _grammar;
+}
+
 GnuplotExtra* Calibrator::initializePlot() {
   GnuplotExtra* gnuplot = new GnuplotExtra();
   print();
@@ -294,6 +299,7 @@ void Calibrator::finalizePlot(GnuplotExtra* gnuplot, const ceres::Solver::Summar
   }
 
   print();
+
   plot(gnuplot, "after", false);
   delete gnuplot;
 }
@@ -335,7 +341,7 @@ void Calibrator::saveCalibration(std::ofstream *file) {
   writeChunk(*file, &calibration);
 }
 
-void Calibrator::print() {
+void Calibrator::print() const {
   double sumAngleError = 0;
   double sumNormAngle = 0;
   double sumExternalAngleError = 0;
@@ -371,6 +377,33 @@ void Calibrator::print() {
     << " (external: " << sumExternalAngleError << ")\n"
     << " * Average speed error: " << sumNormAngle << " knots"
     << " (external: " << sumExternalNormAngle << ")";
+}
+
+bool Calibrator::saveResultsAsMat(const char *filename) const {
+  FILE *file = fopen(filename, "wt");
+  if (!file) {
+    return false;
+  }
+
+  for (auto maneuver : _maneuvers) {
+    double angleError = 0;
+    double normError = 0;
+    double externalAngleError = 0;
+    double externalNormError = 0;
+    maneuver->angularError(_calibrationValues,
+                              &angleError, &normError,
+                              &externalAngleError, &externalNormError);
+
+    fprintf(file, "%e\t%e\t%e\t%e\t%e\n",
+            maneuver->weight(),
+            angleError,
+            normError,
+            externalAngleError,
+            externalNormError
+            );
+  }
+  fclose(file);
+  return true;
 }
 
 void Calibrator::plot(GnuplotExtra *gnuplot, const std::string &title, bool external) {
@@ -473,6 +506,28 @@ namespace {
       return true;
     }
   };
+
+
+  WindCurrentErrors computeErrors(const std::vector<TackCost*> &tackCosts,
+      const Corrector<double> &corr) {
+    int count = tackCosts.size();
+    Array<HorizontalMotion<double> >
+      windBefore(count), windAfter(count),
+      currentBefore(count), currentAfter(count);
+    for (int i = 0; i < count; i++) {
+      auto tc = tackCosts[i];
+      CalibratedNav<double> before = corr.correct(tc->before());
+      CalibratedNav<double> after = corr.correct(tc->after());
+      windBefore[i] = before.trueWind();
+      windAfter[i] = after.trueWind();
+      currentBefore[i] = before.trueCurrent();
+      currentAfter[i] = after.trueCurrent();
+    }
+    return WindCurrentErrors{FlowErrors(windBefore, windAfter),
+                             FlowErrors(currentBefore, currentAfter),
+                             count};
+
+  }
 } // namespace
 
 Corrector<double> calibrateFull(Calibrator *calib0,
@@ -480,7 +535,6 @@ Corrector<double> calibrateFull(Calibrator *calib0,
     std::shared_ptr<HTree> tree,
     Nav::Id boatId) {
 
-  // Make a local mutable instance that we can play with.
   Calibrator &calib = *calib0;
 
   if (!calib.segment(navs, tree)) {
@@ -497,8 +551,12 @@ Corrector<double> calibrateFull(Calibrator *calib0,
   cost->SetNumResiduals(objf->outDims());
   LOG(INFO) << "NUMBER OF RESIDUALS: " << objf->outDims();
 
+
+  bool squareLoss = false;
+  ceres::LossFunction *loss = (squareLoss? nullptr : new ceres::CauchyLoss(1));
+
   Corrector<double> corr;
-  problem.AddResidualBlock(cost, NULL, (double *)(&corr));
+  problem.AddResidualBlock(cost, loss, (double *)(&corr));
   ceres::Solver::Options options;
   options.minimizer_progress_to_stdout = true;
   options.max_num_iterations = 60;
@@ -506,6 +564,16 @@ Corrector<double> calibrateFull(Calibrator *calib0,
   Solve(options, &problem, &summary);
   LOG(INFO) << "Done optimizing.";
   return corr;
+}
+
+Corrector<double> calibrateFull(Calibrator *calib0,
+    const Array<Nav>& navs,
+    Nav::Id boatId) {
+    return calibrateFull(calib0, navs, calib0->grammar().parse(navs), boatId);
+}
+
+WindCurrentErrors computeErrors(Calibrator *calib, Corrector<double> corr) {
+  return computeErrors(calib->maneuvers(), corr);
 }
 
 } // namespace sail

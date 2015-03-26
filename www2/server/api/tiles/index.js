@@ -5,7 +5,10 @@ var controller = require('./tiles.controller');
 
 var router = express.Router();
 
-router.get('/:scale/:x/:y/:boat/:startsAfter?/:endsBefore?', controller.retrieve);
-router.get('/test', controller.test);
+router.get('/raw/:scale/:x/:y/:boat/:startsAfter?/:endsBefore?',
+           controller.retrieveRaw);
+
+router.get('/geojson/:scale/:x/:y/:boat/:startsAfter?/:endsBefore?',
+           controller.retrieveGeoJson);
 
 module.exports = router;

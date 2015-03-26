@@ -28,7 +28,7 @@ int main(int argc, const char **argv) {
     makeRandomCorrectors(30, e);
   } else {
 
-    NavalSimulation navsim = getNavSimFractalWindOriented(); //makeNavSimConstantFlow();//makeNavSimFractalWindOriented();
+    NavalSimulation navsim = getNavSimFractalWindOrientedLong(); //makeNavSimConstantFlow();//makeNavSimFractalWindOriented();
     auto boatData = navsim.boatData(0);
 
     double lambda = 0.5;
