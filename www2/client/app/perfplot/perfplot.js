@@ -140,7 +140,10 @@ Graph.prototype.setData = function(field, data) {
   if (!data || !data.length || data.length == 0) {
     // no data -> we do not plot anything.
     this.field = undefined;
-    return;
+
+    if (!data) {
+      return;
+    }
   }
   this.field = field;
 
@@ -149,9 +152,11 @@ Graph.prototype.setData = function(field, data) {
   this.svg.select("path.line").data([data]);
 
   // Compute bounds
-  this.x.domain([data[0].time, data[data.length - 1].time]);
-  this.y.domain([0, d3.max(data, function(d) { return d[field]; })]);
-  this.zoom.x(this.x);
+  if (data.length > 1) {
+    this.x.domain([data[0].time, data[data.length - 1].time]);
+    this.y.domain([0, d3.max(data, function(d) { return d[field]; })]);
+    this.zoom.x(this.x);
+  }
 
   this.draw();
 };
