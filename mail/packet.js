@@ -36,6 +36,7 @@ function hasDiaryNumber(x) {
     if (isLightPacket(x)) {
 	return x.diaryNumber != undefined;
     }
+    return undefined; // <-- is this a reasonable return value in case we provide the wrong type?
 }
 
 // Helper object to read/write buffers.
