@@ -50,3 +50,21 @@ it(
 	);
     }
 );
+
+it(
+    'serialize',
+    function() {
+	it(
+	    'Should serialize and deserialize and object correctly',
+	    function() {
+		var data = {
+		    diaryNumber: 0,
+		    src: 1,
+		    dst: 2,
+		    seqNumber: 3
+		};
+		assert(deserializeLight(serializeLight(data)) == data);
+	    }
+	);
+    }
+);
