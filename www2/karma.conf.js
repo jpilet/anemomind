@@ -28,6 +28,7 @@ module.exports = function(config) {
       'client/bower_components/sidebar-v2/css/ol2-sidebar.js',
       'client/bower_components/sidebar-v2/css/ol3-sidebar.js',
       'client/bower_components/sidebar-v2/js/jquery-sidebar.js',
+      'client/bower_components/d3/d3.js',
       'node_modules/socket.io-client/socket.io.js',
       'client/app/app.js',
       'client/app/app.coffee',
