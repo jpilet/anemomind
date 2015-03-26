@@ -8,7 +8,6 @@ var TransactionDatabase = require("sqlite3-transactions").TransactionDatabase;
 var sqlite3 = require('sqlite3').verbose();
 var seqnums = require('./seqnums.js');
 var async = require('async');
-var pkt = require('./packet.js');
 var intarray = require('./intarray.js');
 var assert = require('assert');
 
@@ -67,10 +66,10 @@ function runWithLog(db, cmd) {
 // Then type in the terminal 'sqlite3 network.db .fullschema'
 //
 // PRIMARY KEY should be the last column of every create statement
-var fullschema = "CREATE TABLE IF NOT EXISTS seqnumbers (dst TEXT, counter BIGINT, PRIMARY KEY(dst));\
-                  CREATE TABLE IF NOT EXISTS packets (diarynumber BIGINT, src TEXT, dst TEXT, \
-                          seqnumber BIGINT, cnumber BIGINT, label TEXT, data BLOB, ack INTEGER, PRIMARY KEY(diarynumber)); \
-                  CREATE TABLE IF NOT EXISTS diarynumbers (mailbox TEXT, number BIGINT, PRIMARY KEY(mailbox)); \
+var fullschema = "CREATE TABLE IF NOT EXISTS seqNumbers (dst TEXT, counter BIGINT, PRIMARY KEY(dst));\
+                  CREATE TABLE IF NOT EXISTS packets (diaryNumber BIGINT, src TEXT, dst TEXT, \
+                          seqNumber BIGINT, cNumber BIGINT, label TEXT, data BLOB, ack INTEGER, PRIMARY KEY(diaryNumber)); \
+                  CREATE TABLE IF NOT EXISTS diaryNumbers (mailbox TEXT, number BIGINT, PRIMARY KEY(mailbox)); \
                   CREATE TABLE IF NOT EXISTS ctable (src TEXT, dst TEXT, counter BIGINT, PRIMARY KEY(src, dst));";
 
 
@@ -198,7 +197,7 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
     }
     var self = this;
     this.db.serialize(function() {
-	self.db.get('SELECT counter FROM seqnumbers WHERE dst = ?', dst,
+	self.db.get('SELECT counter FROM seqNumbers WHERE dst = ?', dst,
 	   function(err, row) {
 	       if (err == undefined) {
 		   if (row == undefined) {
@@ -233,12 +232,12 @@ function makeNewSeqNumberSub(T, dst, x, cb) {
     if (x == undefined) {
 	var toReturn = seqnums.make();
 	var nextNumber = seqnums.next(toReturn);
-	T.run('INSERT INTO seqnumbers VALUES (?, ?);',
+	T.run('INSERT INTO seqNumbers VALUES (?, ?);',
 	      dst, nextNumber, makeCompletedFun(toReturn));
     } else {
 	var toReturn = x;
 	var nextNumber = seqnums.next(x);
-	T.run('UPDATE seqnumbers SET counter = ? WHERE dst = ?',
+	T.run('UPDATE seqNumbers SET counter = ? WHERE dst = ?',
 	      nextNumber, dst, makeCompletedFun(toReturn));
     }
 
@@ -253,7 +252,7 @@ Mailbox.prototype.makeNewSeqNumber = function(dst, cb) {
 	    assert(err == undefined);
 	    assert(T != undefined);
 	    T.get(
-		'SELECT counter FROM seqnumbers WHERE dst = ?', dst,
+		'SELECT counter FROM seqNumbers WHERE dst = ?', dst,
 		function(err, row) {
 		    if (err == undefined) {
 			if (row == undefined) {
@@ -273,10 +272,10 @@ Mailbox.prototype.makeNewSeqNumber = function(dst, cb) {
 // Gets the last diary number of all messages in THIS box.
 Mailbox.prototype.getLastDiaryNumber = function(cb) {
     assert(isFunction(cb));    
-    var query = 'SELECT max(diarynumber) FROM packets';
+    var query = 'SELECT max(diaryNumber) FROM packets';
     this.db.get(query, function(err, result) {
 	if (err == undefined) {
-	    cb(err, result["max(diarynumber)"]);
+	    cb(err, result["max(diaryNumber)"]);
 	} else {
 	    cb(err);
 	}
@@ -292,7 +291,7 @@ Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
 	throw new Error('cb is of wrong type: ' + cb);
     }
     
-    var query = 'SELECT number FROM diarynumbers WHERE mailbox = ?';
+    var query = 'SELECT number FROM diaryNumbers WHERE mailbox = ?';
     this.db.get(
 	query, otherMailbox,
 	function(err, row) {
@@ -337,10 +336,10 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
 	    if (previousValue == undefined) {  // <-- This only happens when
 		                               //     there isn't any existing
 		                               //     diary number already.
-		var query = 'INSERT INTO diarynumbers VALUES (?, ?)';
+		var query = 'INSERT INTO diaryNumbers VALUES (?, ?)';
 		self.db.run(query, otherMailbox, newValue, cb);
 	    } else {
-		var query = 'UPDATE diarynumbers SET number = ? WHERE mailbox = ?';
+		var query = 'UPDATE diaryNumbers SET number = ? WHERE mailbox = ?';
 		self.db.run(query, newValue, otherMailbox, cb);
 	    }
 	} else {
@@ -354,10 +353,10 @@ Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight
     assert(isFunction(cb));
     // During the synchronization process, we might only want the essential information
     // to determine whether or not we are going to ask for the whole packet.
-    var what = (lightWeight? 'diarynumber,src,seqnumber,dst' : '*');
+    var what = (lightWeight? 'diaryNumber,src,seqNumber,dst' : '*');
     
     var query = 'SELECT ' + what +
-	' FROM packets  WHERE ? <= diarynumber ORDER BY diarynumber ASC';
+	' FROM packets  WHERE ? <= diaryNumber ORDER BY diaryNumber ASC';
     
     this.db.get(query, diaryNumber, cb);
 }
@@ -420,14 +419,14 @@ Mailbox.prototype.getOrMakeCNumber = function(dst, seqNumber, cb) {
 	self.mailboxName, dst,
     	function(err, value) {
 	    if (err == undefined) {
-		if (value == undefined) { /* If there isn't already a cnumber,
+		if (value == undefined) { /* If there isn't already a cNumber,
 					     initialize it with sequence counter value */
 		    self.insertCTable(
 			self.mailboxName, dst, seqNumber,
 			function(err) {
 			    cb(err, seqNumber);
 			});
-		} else { /* If there is a value, just use it as cnumber.*/
+		} else { /* If there is a value, just use it as cNumber.*/
 		    cb(err, value);
 		}
 	    } else {
@@ -443,7 +442,7 @@ Mailbox.prototype.removeObsoletePackets = function(src, dst, cb) {
 	src, dst,
 	function(err, value) {
 	    if (err == undefined) {
-		var query = 'DELETE FROM packets WHERE seqnumber < ? AND src = ? AND dst = ?';
+		var query = 'DELETE FROM packets WHERE seqNumber < ? AND src = ? AND dst = ?';
 		self.db.run(query, value, src, dst, cb);
 	    } else {
 		cb(err);
@@ -509,9 +508,9 @@ Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
     if (src == this.mailboxName) {
 	cb(undefined, false);
     } else {
-	this.getCNumber(src, dst, function(err, cnumber) {
+	this.getCNumber(src, dst, function(err, cNumber) {
 	    if (err == undefined) {
-		cb(err, (cnumber == undefined? true : (cnumber <= seqNumber)));
+		cb(err, (cNumber == undefined? true : (cNumber <= seqNumber)));
 	    } else {
 		cb(err);
 	    }
@@ -523,7 +522,7 @@ Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
 // A packet can be uniquely identified by its source mailbox and the seqNumber.
 Mailbox.prototype.hasPacket = function(src, seqNumber, cb) {
     assert(isFunction(cb));    
-    var query = 'SELECT * FROM packets WHERE src = ? AND seqnumber = ?';
+    var query = 'SELECT * FROM packets WHERE src = ? AND seqNumber = ?';
     this.db.get(query, src, seqNumber, function(err, row) {
 	if (err == undefined) {
 	    cb(err, !(row == undefined));
@@ -609,7 +608,7 @@ Mailbox.prototype.getNonAckCount = function(src, cb) {
 // Set packets as acknowledged
 Mailbox.prototype.setAcked = function(src, dst, seqnums, cb) {
     assert(isFunction(cb));    
-    var query = 'UPDATE packets SET ack = 1 WHERE src = ? AND dst = ? AND seqnumber = ?';
+    var query = 'UPDATE packets SET ack = 1 WHERE src = ? AND dst = ? AND seqNumber = ?';
     var self = this;
 
     var setter = function(nums) {
@@ -641,13 +640,13 @@ function valueOf(x) {
 Mailbox.prototype.sendAck = function(src, cb) {
     assert(isFunction(cb));    
     var self = this;
-    var query = 'SELECT seqnumber FROM packets WHERE src = ? AND dst = ? AND ack = 0';
+    var query = 'SELECT seqNumber FROM packets WHERE src = ? AND dst = ? AND ack = 0';
     self.db.all(
 	query, src, self.mailboxName,
 	function(err, data) {
 	    var seqnums = new Array(data.length);
 	    for (var i = 0; i < data.length; i++) {
-		seqnums[i] = data[i].seqnumber;
+		seqnums[i] = data[i].seqNumber;
 	    }
 	    self.sendPacket(
 		src/*back to the source*/,
@@ -702,13 +701,13 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 
     var src = this.mailboxName;
     
-    // retrieve the first seqnumber that has not been acked.
-    var query = 'SELECT seqnumber FROM packets WHERE ack = 0 AND src = ? ORDER BY seqnumber ASC';
+    // retrieve the first seqNumber that has not been acked.
+    var query = 'SELECT seqNumber FROM packets WHERE ack = 0 AND src = ? ORDER BY seqNumber ASC';
     var self = this;
     this.db.get(query, src, function(err, row) {
 	if (err == undefined) {
 	    if (row == undefined) { // No packets found, set it to 1 + the latest ack
-		var query = 'SELECT seqnumber FROM packets WHERE ack = 1 AND src = ? ORDER BY seqnumber DESC';
+		var query = 'SELECT seqNumber FROM packets WHERE ack = 1 AND src = ? ORDER BY seqNumber DESC';
 		self.db.get(query, src, function(err, row) {
 		    if (err == undefined) {
 			if (row == undefined) {
@@ -719,7 +718,7 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 			} else {
 
 			    // The last packet that was acked + 1, in case no packets with ack=0
-			    update(1 + row.seqnumber);
+			    update(1 + row.seqNumber);
 			}
 		    } else {
 			cb(err);
@@ -728,7 +727,7 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 	    } else {
 
 		// The first packet not acked.
-		update(row.seqnumber);
+		update(row.seqNumber);
 	    }
 	} else {
 	    cb(err);
@@ -856,14 +855,14 @@ Mailbox.prototype.getDiaryAndSeqNumbers = function(dst, cb) {
 Mailbox.prototype.dispPacketSummary = function(cb) {
     var self = this;
     this.db.all(
-	'SELECT diarynumber, seqnumber, ack FROM packets',
+	'SELECT diaryNumber, seqNumber, ack FROM packets',
 	function (err, results) {
 	    if (err == undefined) {
 		console.log('PACKET SUMMARY OF ' + self.mailboxName + ' (' + results.length + ' packets)');
 		for (var i = 0; i < results.length; i++) {
 		    var r = results[i];
-		    console.log('  diarynumber = ' + r.diarynumber +
-				'   seqnumber = ' + r.seqnumber + '   ack = ' + r.ack);
+		    console.log('  diaryNumber = ' + r.diaryNumber +
+				'   seqNumber = ' + r.seqNumber + '   ack = ' + r.ack);
 		}
 		cb(err);
 	    } else {

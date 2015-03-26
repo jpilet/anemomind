@@ -91,15 +91,15 @@ function fetchFullPacket(index, boxA, boxB, cb) {
 		    var packet = new pkt.Packet(
 			row.src,
 			row.dst,
-			row.seqnumber,
-			row.cnumber,
+			row.seqNumber,
+			row.cNumber,
 			row.label,
 			row.data
 		    );
 
 		    // The actual index of the packet
 		    // that we fetched.
-		    var newIndex = row.diarynumber;
+		    var newIndex = row.diaryNumber;
 
 		    
 		    boxA.handleIncomingPacket(
@@ -136,7 +136,7 @@ function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
 	
     } else { 
 	boxA.isAdmissible(
-	    lightPacket.src, lightPacket.dst, lightPacket.seqnumber,
+	    lightPacket.src, lightPacket.dst, lightPacket.seqNumber,
 	    function(err, admissible) {
 		if (err == undefined) {
 		    if (admissible) {
@@ -152,7 +152,7 @@ function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
 		    } else {
 			// Recur, with next index.
 			synchronizeDirectedFrom(
-			    lightPacket.diarynumber + 1,
+			    lightPacket.diaryNumber + 1,
 			    boxA, boxB, cb
 			);
 		    }
