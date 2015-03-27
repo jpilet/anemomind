@@ -122,8 +122,9 @@ function inc(x) {
 }
 
 function calcEvenLength(x) {
-    var even = (x.length % 2) == 0;
-    return (even? x.length : x.length + 1);
+    assert(typeof x == 'number');
+    var even = (x % 2) == 0;
+    return (even? x : x + 1);
 }
 
 function calcByteCount(x) {
@@ -131,12 +132,12 @@ function calcByteCount(x) {
 }
 
 function padToEvenDigits(x) {
-    return padWith0(x, calcEvenLength(x));
+    return padWith0(x, calcEvenLength(x.length));
 }
 
 
 function serializeBigIntToBuffer(x, dstBuffer, dstOffset) {
-    offset = (offset == undefined? 0 : offset);
+    dstOffset = (dstOffset == undefined? 0 : dstOffset);
     x = padToEvenDigits(x);
     var bytes = x.length/2;
     for (var i = 0; i < bytes; i++) {
@@ -152,7 +153,7 @@ function serializeBigIntToBuffer(x, dstBuffer, dstOffset) {
 }
 
 function serializeBigInt(x) {
-    var buf = new Buffer(calcByteCount(x));
+    var buf = new Buffer(calcByteCount(x.length));
     assert(serializeBigIntToBuffer(x, buf, 0) == buf.length);
     return buf;
     
@@ -160,9 +161,11 @@ function serializeBigInt(x) {
 
 function deserializeBigIntFromBuffer(srcBuffer, srcOffset, dstWidth) {
     var byteCount = calcByteCount(dstWidth);
+    console.log('dstWidth = ' + dstWidth);
+    console.log('byteCount = ' + byteCount);
     var bytes = new Array(byteCount);
     for (var i = 0; i < byteCount; i++) {
-	bytes[i] = padWith0(readUInt8(srcOffset + i).toString(16), 2);
+	bytes[i] = padWith0(srcBuffer.readUInt8(srcOffset + i).toString(16), 2);
     }
     return bytes.join("").slice(2*byteCount == dstWidth? 0 : 1);
 }
@@ -170,7 +173,7 @@ function deserializeBigIntFromBuffer(srcBuffer, srcOffset, dstWidth) {
 function deserializeBigInt(srcBuffer, dstWidth) {
     return deserializeBigIntFromBuffer(
 	srcBuffer, 0,
-	(dstWidth == undefined? 2*srcBuffer.length : dstWidth)
+	dstWidth || 2*srcBuffer.length
     );
 }
 
@@ -195,10 +198,31 @@ function serialize(x) {
     }
 }
 
+function deserialize(buf, width, count) {
+    if (count == undefined) {
+	width = width || 2*buf.length;
+	return deserializeBigIntFromBuffer(buf, 0, width);
+    } else { // Multiple numbers of this width, an array.
+	var concatResult = deserialize(buf, width*count);
+	var result = new Array(count);
+	for (var i = 0; i < count; i++) {
+	    var offset = width*i;
+	    result[i] = concatResult.slice(offset, offset + width);
+	}
+	return result;
+    }
+}
+
 // Todo: randomize strings using
 //       the system rng, to assign
 //       unique names for mailboxes.
 
+var x = make(3009);
+console.log('x = ', x);
+var y = serialize(x);
+console.log('y = ', y);
+var z = deserialize(y);
+console.log('z = ', z);
 
 module.exports.zero = zero;
 module.exports.isZero = isZero;
