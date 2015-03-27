@@ -232,15 +232,15 @@ describe(
 		withbox(
 		    function(box) {
 
-			box.updateCTable('a', 'b', 19, function(err) {
+			box.updateCTable('a', 'b', '19', function(err) {
 			    box.getCNumber('a', 'b', function(err, value) {
-				assert(value == 19);
-				box.updateCTable('a', 'b', 29, function(err) {
+				assert(value == '19');
+				box.updateCTable('a', 'b', '29', function(err) {
 				    box.getCNumber('a', 'b', function(err, value) {
-					assert(value == 29);
-					box.updateCTable('a', 'b', 13, function(err) {
+					assert(value == '29');
+					box.updateCTable('a', 'b', '13', function(err) {
 					    box.getCNumber('a', 'b', function(err, value) {
-						assert(value == 29);
+						assert(value == '29');
 						done();
 					    });
 					});
