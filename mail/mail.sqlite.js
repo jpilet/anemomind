@@ -342,7 +342,7 @@ Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
     
     this.getForeignDiaryNumber(otherMailbox, function(err, value) {
 	if (err == undefined) {
-	    cb(err, (value == undefined? 0 : value));
+	    cb(err, (value == undefined? bigint.zero() : value));
 	} else {
 	    cb(err);
 	}

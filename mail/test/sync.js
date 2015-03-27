@@ -3,8 +3,9 @@ var mb = require("../mail.sqlite.js");
 var assert = require('assert');
 var async = require("async");
 var pkt = require("../packet.js");
+var bigint = require('../bigint.js');
 
-var boxnames = ["A", "B", "C"];
+var boxnames = ["a", "b", "c"];
 
 var VERBOSE = 0;
 
@@ -145,7 +146,7 @@ function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
 		    } else {
 			// Recur, with next index.
 			synchronizeDirectedFrom(
-			    lightPacket.diaryNumber + 1,
+			    bigint.inc(lightPacket.diaryNumber),
 			    boxA, boxB, cb
 			);
 		    }
@@ -160,6 +161,7 @@ function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
 function synchronizeDirectedFrom(startFrom, boxA, boxB, cb) {
     // Retrieve a light-weight packet
     // just to see if we should accept it
+    console.log('startFrom = ' + startFrom);
     boxB.getFirstPacketStartingFrom(
 	startFrom,
 	true,
