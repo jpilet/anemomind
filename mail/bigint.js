@@ -86,6 +86,15 @@ function makeFromTime(width) {
     return padWith0(x, withDefaultWidth(width));
 }
 
+
+function make(x, w) {
+    assert(typeof x == 'number');
+    return padWith0(
+	x.toString(16),
+	withDefaultWidth(w)
+    );
+}
+
 // Increase a number by 1, padding with 0 if necessary.
 // The number should be possible to represent exactly as a 'number'.
 function incSub(x) {
@@ -123,5 +132,5 @@ module.exports.isBigInt = isBigInt;
 module.exports.inc = inc;
 module.exports.isBigIntStrict = isBigIntStrict;
 module.exports.makeFromTime = makeFromTime;
-
+module.exports.make = make;
 module.int64width = int64width;

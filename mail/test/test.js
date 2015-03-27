@@ -312,10 +312,10 @@ describe(
 			   } else {
 			       box.handleIncomingPacket(
 				   {
-				       src: 'some-spammer',
+				       src: 'caa',
 				       dst: box.mailboxName,
-				       seqNumber: n,
-				       cNumber: -1,
+				       seqNumber: bigint.make(n),
+				       cNumber: bigint.make(0),
 				       label: 'Spam message',
 				       data: 'There are ' + n + ' messages left to send',
 				   },
@@ -336,7 +336,7 @@ describe(
 				   assert.equal(results.length, 1);
 				   assert.equal(r.label, 'ack');
 				   assert.equal(r.src, 'aaabbb');
-				   assert.equal(r.dst, 'some-spammer');
+				   assert.equal(r.dst, 'caa');
 				   var nums = intarray.deserialize(r.data);
 				   assert.equal(nums.length, box.ackFrequency);
 				   for (var i = 0; i < nums.length; i++) {
