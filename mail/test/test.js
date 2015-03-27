@@ -1,6 +1,7 @@
 var mailsqlite = require('../mail.sqlite.js');
 var assert = require('assert');
 var intarray = require('../intarray.js');
+var bigint = require('../bigint.js');
 
 
 var withbox = function(cb) {
@@ -140,11 +141,11 @@ describe(
 	    function(done) {
 		withbox(
 		    function(box) {
-			box.makeNewSeqNumber('abra', function(err, x) {
-			    box.makeNewSeqNumber('abra', function(err, y) {
-				assert(x + 1 == y);
-				box.makeNewSeqNumber('abra', function(err, z) {
-				    assert(y + 1 == z);
+			box.makeNewSeqNumber('aa', function(err, x) {
+			    box.makeNewSeqNumber('aa', function(err, y) {
+				assert(bigint.inc(x) == y);
+				box.makeNewSeqNumber('aa', function(err, z) {
+				    assert(bigint.inc(y) == z);
 				    done();
 				});
 			    });
