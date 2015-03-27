@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .directive('vectormap', function ($timeout) {
+  .directive('vectormap', function ($timeout, $window) {
     return {
       template: '<canvas style="width:100%;height:100%"></canvas>',
       restrict: 'E',
@@ -19,6 +19,26 @@ angular.module('www2App')
             });
           }
         });
+        scope.pathLayer = canvas.layers[1];
+        scope.selectedCurve = undefined;
+        scope.plotData = [];
+        scope.plotField = 'gpsSpeed';
+        scope.currentTime = undefined;
+
+        scope.pathLayer.onSelect = function(curveId) {
+          $timeout(function() {
+            scope.selectedCurve = curveId;
+            scope.plotData = scope.pathLayer.getPointsForCurve(curveId);
+          });
+        };
+
+        scope.pathLayer.onDataArrived = function() {
+          $timeout(function() {
+            if (scope.selectedCurve) {
+              scope.plotData = scope.pathLayer.getPointsForCurve(scope.selectedCurve);
+            }
+          });
+        };
 
         scope.$watch('mapLocation', function(newValue, oldValue) {
           function near(x,y) {
@@ -59,7 +79,49 @@ angular.module('www2App')
             }
           },
           true // deep object compare
-          );
+        );
+
+        angular.element($window).bind('resize', function () {
+          scope.$apply();
+        });
+
+        // A clic on the map selects a curve and sets current time.
+        canvas.pinchZoom.onClic = function(pos) {
+          var point = scope.pathLayer.findPointAt(
+            pos.startWorldPos.x, pos.startWorldPos.y);
+          if (point) {
+            var dist = Utils.distance(
+                pos.startViewerPos,
+                canvas.pinchZoom.viewerPosFromWorldPos(point.point.pos[0],
+                                                     point.point.pos[1]));
+
+            // This is a threshold, in pixels, to select a point.
+            if (dist < 20) {
+              scope.selectedCurve = point.curveId;
+              scope.currentTime = point.point.time;
+            } else {
+              scope.selectedCurve = undefined;
+              scope.currentTime = undefined;
+            }
+          } else {
+            scope.selectedCurve = undefined;
+            scope.currentTime = undefined;
+          }
+          scope.$apply();
+        };
+
+        scope.$watch('selectedCurve', function(newValue, oldValue) {
+          if (newValue != oldValue) {
+            scope.pathLayer.selectCurve(newValue);
+            scope.plotData = scope.pathLayer.getPointsForCurve(newValue);
+          }
+        });
+
+        scope.$watch('currentTime', function(newValue, oldValue) {
+          if (newValue != oldValue) {
+            scope.pathLayer.setCurrentTime(newValue);
+          }
+        });
       }
     };
   });
