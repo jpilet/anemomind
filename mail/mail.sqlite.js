@@ -383,7 +383,6 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
 Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight, cb) {
     assert(isFunction(cb));
     assert(isCounter(diaryNumber));
-    console.log('diaryNumber = ' + diaryNumber);
     
     // During the synchronization process, we might only want the essential information
     // to determine whether or not we are going to ask for the whole packet.
@@ -771,7 +770,7 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 			} else {
 
 			    // The last packet that was acked + 1, in case no packets with ack=0
-			    update(1 + row.seqNumber);
+			    update(bigint.inc(row.seqNumber));
 			}
 		    } else {
 			cb(err);

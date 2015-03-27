@@ -419,6 +419,7 @@ describe(
 				    box,
 				    function(err, value) {
 					assert(err == undefined);
+					console.log('value = ' + value);
 					assert(value == bigint.make(15));
 					box.getTotalPacketCount(
 					    function(err, value) { // 1--14 removed => 16 remain
