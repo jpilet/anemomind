@@ -5,7 +5,7 @@ var intarray = require('../intarray.js');
 
 var withbox = function(cb) {
     var box = new mailsqlite.Mailbox(
-	':memory:', 'demobox',
+	':memory:', 'aaabbb',
 	function(err) {
 	    assert(err == undefined);
 	    cb(box);
@@ -56,11 +56,12 @@ describe(
 	    function(done) {
 		withbox(
 		    function(box) {
-			box.getOrMakeCNumber('abra', 12349, function(err, cNumber) {
-			    assert(cNumber == 12349);
-			    box.getOrMakeCNumber('abra', 19999, function(err, cNumber) {
+			box.getOrMakeCNumber('abc', '12349', function(err, cNumber) {
+			    assert(err == undefined);
+			    assert(cNumber == '12349');
+			    box.getOrMakeCNumber('abc', '19999', function(err, cNumber) {
 				// unchanged, because there is already a number there.
-				assert(cNumber == 12349);
+				assert(cNumber == '12349');
 				done();
 			    });
 			});
@@ -89,7 +90,7 @@ describe(
 			box.getLastDiaryNumber(function(err, num) {
 			    assert(num == undefined);
 			    box.makeNewDiaryNumber(function(err, num) {
-				assert(typeof num == 'number');
+				assert(mailsqlite.isCounter(num));
 				done();
 			    });
 			});
@@ -114,11 +115,11 @@ describe(
 		    function(box) {
 			box.db.run(
 			    'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    			    129, "abra", "kadabra", 119, 109,
-			    "testpacket", "sometestdata", false,
+    			    '129', 'a', 'c', '119', '109',
+			    'testpacket', 'sometestdata', false,
     			    function(err) {
     				box.getLastDiaryNumber(function(err, num) {
-				    assert(num == 129);
+				    assert(num == '129');
 				    done();
     				});
     			    }
@@ -331,7 +332,7 @@ describe(
 				   var r = results[0];
 				   assert.equal(results.length, 1);
 				   assert.equal(r.label, 'ack');
-				   assert.equal(r.src, 'demobox');
+				   assert.equal(r.src, 'aaabbb');
 				   assert.equal(r.dst, 'some-spammer');
 				   var nums = intarray.deserialize(r.data);
 				   assert.equal(nums.length, box.ackFrequency);

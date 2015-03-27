@@ -94,6 +94,7 @@ function incSub(x) {
 
 // Returns a new integer increased by one. Any length is OK.
 function inc(x) {
+    assert(isBigInt(x));
     if (x == '') {
 	return x;
     } else {
@@ -122,6 +123,5 @@ module.exports.isBigInt = isBigInt;
 module.exports.inc = inc;
 module.exports.isBigIntStrict = isBigIntStrict;
 module.exports.makeFromTime = makeFromTime;
-module.exports.makeFromTime = inc;
 
 module.int64width = int64width;
