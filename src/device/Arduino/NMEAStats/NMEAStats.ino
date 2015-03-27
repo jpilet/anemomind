@@ -50,7 +50,7 @@ File logFile;
 NmeaParser nmeaParser;
 unsigned long lastFlush = 0;
 
-//#define VMG_TARGET_SPEED
+#define VMG_TARGET_SPEED
 
 #ifdef VMG_TARGET_SPEED
 TargetSpeedTable targetSpeedTable;

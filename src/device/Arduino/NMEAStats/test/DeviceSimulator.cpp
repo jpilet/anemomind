@@ -110,3 +110,10 @@ bool DeviceSimulator::calibrationFileLoaded() const {
   return calibrationLoaded;
 }
 
+bool DeviceSimulator::compiledWithVMGTargetSpeed() const {
+#ifdef VMG_TARGET_SPEED
+  return true;
+#else
+  return false;
+#endif
+}

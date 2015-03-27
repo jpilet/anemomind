@@ -99,17 +99,18 @@ TEST(DeviceTest, CalibratedTest) {
 
   arduino.setup();
 
-#ifdef VMG_TARGET_SPEED
-  // The first call contains only junk: no wind data has been sent yet.
-  EXPECT_CALL(arduino, screenUpdate(testing::_, testing::_, testing::_)).Times(1);
+  if (arduino.compiledWithVMGTargetSpeed()) {
+    // The first call contains only junk: no wind data has been sent yet.
+    EXPECT_CALL(arduino, screenUpdate(testing::_, testing::_, testing::_)).Times(1);
 
-  // The second call contains something meaningful.
-  EXPECT_CALL(arduino, screenUpdate(65, 132, 5)).Times(1); // <-- are these values correct? They don't seem consistent with those of LogTest
-#else
-  // TODO: setup a proper test for the polar target speed.
-  EXPECT_CALL(arduino, screenUpdate(testing::_, testing::_, testing::_)).Times(1);
-  EXPECT_CALL(arduino, screenUpdate(42, 147, 5)).Times(1);
-#endif
+    // The second call contains something meaningful.
+    // The values do not match those of LogTest because of the calibration.
+    EXPECT_CALL(arduino, screenUpdate(46, 132, 5)).Times(1);
+  } else {
+    // TODO: setup a proper test for the polar target speed.
+    EXPECT_CALL(arduino, screenUpdate(testing::_, testing::_, testing::_)).Times(1);
+    EXPECT_CALL(arduino, screenUpdate(59, 132, 5)).Times(1);
+  }
 
   arduino.sendData(data);
 
