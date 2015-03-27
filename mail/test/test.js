@@ -561,7 +561,20 @@ function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
 var expand = mailsqlite.expand;
 
 function spanWidth(span) {
-    return span[1] - span[0];
+    console.log('span[0] = ' + span[0] );
+    console.log('span[1] = ' + span[1] );
+    if (typeof span[0] == 'number') {
+	return span[1] - span[0];	
+    } else {
+	assert(bigint.isBigIntStrict(span[0]));
+	var counter = 0;
+	var x = span[0];
+	while (x < span[1]) {
+	    x = bigint.inc(x);
+	    counter++;
+	}
+	return counter;
+    }
 }
 
 describe(
@@ -575,7 +588,7 @@ describe(
 
 			
 			fillWithPackets(
-			    39, box, 'B',
+			    39, box, 'b',
 			    function(err) {
 				box.db.all(
 				    'SELECT * FROM packets',
@@ -591,9 +604,13 @@ describe(
 					    seqnumSpan = expand(seqnumSpan, r.seqNumber);
 					    diarynumSpan = expand(diarynumSpan, r.diaryNumber);
 					}
-					
-					assert(spanWidth(seqnumSpan) + 1 == 39);
-					assert(spanWidth(diarynumSpan) + 1 == 39);
+
+					console.log('w = ' + spanWidth(seqnumSpan));
+					console.log('spw = ' + spanWidth(seqnumSpan));
+					assert(spanWidth(seqnumSpan) + 1
+					       == 39);
+					assert(spanWidth(diarynumSpan) + 1
+					       == 39);
 					done();
 				    }
 				);

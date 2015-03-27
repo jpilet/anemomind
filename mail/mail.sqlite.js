@@ -37,8 +37,9 @@ function expand(span, value) {
     if (span == undefined) {
 	return [value, value];
     } else {
-	return [Math.min(span[0], value),
-	        Math.max(span[1], value)];
+	var newMin = (value < span[0]? value : span[0]);
+	var newMax = (span[1] < value? value : span[1]);
+	return [newMin, newMax];
     }
 }
 
@@ -422,13 +423,12 @@ Mailbox.prototype.makeNewDiaryNumber = function(cb) {
 Mailbox.prototype.getCNumber = function(src, dst, cb) {
     assert(isIdentifier(src));
     assert(isIdentifier(dst));
-    assert(isFunction(cb));    
+    assert(isFunction(cb));
     var query = 'SELECT counter FROM ctable WHERE src = ? AND dst = ?';
     var self = this;
     this.db.get(
 	query, src, dst,
 	function(err, row) {
-	    console.log('ROW == ', row);
 	    if (err == undefined) {
 		if (row == undefined) {
 		    cb(err);
