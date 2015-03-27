@@ -561,8 +561,6 @@ function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
 var expand = mailsqlite.expand;
 
 function spanWidth(span) {
-    console.log('span[0] = ' + span[0] );
-    console.log('span[1] = ' + span[1] );
     if (typeof span[0] == 'number') {
 	return span[1] - span[0];	
     } else {
@@ -605,8 +603,6 @@ describe(
 					    diarynumSpan = expand(diarynumSpan, r.diaryNumber);
 					}
 
-					console.log('w = ' + spanWidth(seqnumSpan));
-					console.log('spw = ' + spanWidth(seqnumSpan));
 					assert(spanWidth(seqnumSpan) + 1
 					       == 39);
 					assert(spanWidth(diarynumSpan) + 1
