@@ -269,12 +269,13 @@ describe(
 		withbox(
 		    function(box) {
 			box.registerPacketData(
-			    {src: 'a', dst: 'b', seqNumber: 119, cNumber: 30, label: 'My label', data: 'Some data'},
+			    {src: 'a', dst: 'b', seqNumber: '119', cNumber: '030',
+			     label: 'My label', data: 'Some data'},
 			    function(err) {
 				assert(err == undefined);
 				box.getCNumber('a', 'b', function(err, num) {
 				    assert(err == undefined);
-				    assert(num == 30);
+				    assert(num == '030');
 				    box.getLastDiaryNumber(function(err, dnum) {
 					assert(err == undefined);
 					box.getFirstPacketStartingFrom(
@@ -282,8 +283,8 @@ describe(
 						
 						assert(packet.src == 'a');
 						assert(packet.dst == 'b');
-						assert(packet.seqNumber == 119);
-						assert(packet.cNumber == 30);
+						assert(packet.seqNumber == '119');
+						assert(packet.cNumber == '030');
 						assert(packet.label == 'My label');
 						assert(packet.data == 'Some data');
 
