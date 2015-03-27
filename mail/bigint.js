@@ -22,7 +22,7 @@ var int64width = 16;
 var defaultWidth = int64width;
 
 function isBigInt(x) {
-    return typeof x == 'string';
+    return typeof x == 'string'; 
 }
 
 function isHexDigit(x) {
@@ -107,7 +107,7 @@ function inc(x) {
     if (x == '') {
 	return x;
     } else {
-	var w = 8;
+	var w = 8; // 8 hex digits => 4 bytes => A 32 bit int that can be accurately represented.
 	var k = x.length - w;
 	var right = (x.length <= w? x : x.slice(k));
 	var left = (x.length <= w? '' : x.slice(0, k));
@@ -118,6 +118,80 @@ function inc(x) {
 	} else {
 	    return left + rightInc;
 	}	
+    }
+}
+
+function calcEvenLength(x) {
+    var even = (x.length % 2) == 0;
+    return (even? x.length : x.length + 1);
+}
+
+function calcByteCount(x) {
+    return calcEvenLength(x)/2;
+}
+
+function padToEvenDigits(x) {
+    return padWith0(x, calcEvenLength(x));
+}
+
+
+function serializeBigIntToBuffer(x, dstBuffer, dstOffset) {
+    offset = (offset == undefined? 0 : offset);
+    x = padToEvenDigits(x);
+    var bytes = x.length/2;
+    for (var i = 0; i < bytes; i++) {
+	srcOffset = 2*i;
+	dstBuffer.writeUInt8(
+	    parseInt(x.slice(srcOffset, srcOffset + 2), 16),
+	    dstOffset + i
+	);
+    }
+
+    // Return the point where we can write the next object.
+    return dstOffset + bytes;
+}
+
+function serializeBigInt(x) {
+    var buf = new Buffer(calcByteCount(x));
+    assert(serializeBigIntToBuffer(x, buf, 0) == buf.length);
+    return buf;
+    
+}
+
+function deserializeBigIntFromBuffer(srcBuffer, srcOffset, dstWidth) {
+    var byteCount = calcByteCount(dstWidth);
+    var bytes = new Array(byteCount);
+    for (var i = 0; i < byteCount; i++) {
+	bytes[i] = padWith0(readUInt8(srcOffset + i).toString(16), 2);
+    }
+    return bytes.join("").slice(2*byteCount == dstWidth? 0 : 1);
+}
+
+function deserializeBigInt(srcBuffer, dstWidth) {
+    return deserializeBigIntFromBuffer(
+	srcBuffer, 0,
+	(dstWidth == undefined? 2*srcBuffer.length : dstWidth)
+    );
+}
+
+
+function serialize(x) {
+    if (typeof x == 'string') {
+	return serializeBigInt(x);
+    } else { // Supposedly an array of big ints
+	if (x.length == 0) {
+	    return new Buffer(0);
+	} else {
+
+	    // Require that all integers are equally long. Does that make sense?
+	    var len = x[0].length;
+	    for (var i = 0; i < x.length; i++) {
+		assert(x[i].length == len);
+		assert(isBigInt(x[i]));
+	    }
+	    
+	    return serializeBigInt(x.join(""));
+	}
     }
 }
 
