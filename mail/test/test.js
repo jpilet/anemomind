@@ -1,6 +1,5 @@
 var mailsqlite = require('../mail.sqlite.js');
 var assert = require('assert');
-var intarray = require('../intarray.js');
 var bigint = require('../bigint.js');
 
 
@@ -337,11 +336,11 @@ describe(
 				   assert.equal(r.label, 'ack');
 				   assert.equal(r.src, 'aaabbb');
 				   assert.equal(r.dst, 'caa');
-				   var nums = intarray.deserialize(r.data);
+				   var nums = bigint.deserialize(r.data);
 				   assert.equal(nums.length, box.ackFrequency);
 				   for (var i = 0; i < nums.length; i++) {
-				       assert(1 <= nums[i]);
-				       assert(nums[i] <= box.ackFrequency);
+				       assert(bigint.make(1) <= nums[i]);
+				       assert(nums[i] <= bigint.make(box.ackFrequency));
 				   }
 				   var query = 'SELECT * FROM packets WHERE dst = ?';
 				   box.db.all(
@@ -373,9 +372,9 @@ function fillPackets(box, ackFn, n, cb) {
     } else {
 	var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
 	box.db.run(
-	    query, n + 119,
-	    box.mailboxName, 'destination', n,
-	    0, 'some label', new Buffer(1),
+	    query, bigint.make(n + 119),
+	    box.mailboxName, 'ddd', bigint.make(n),
+	    bigint.make(0), 'some label', new Buffer(1),
 	    ackFn(n),
 	    function (err) {
 		assert(err == undefined);
@@ -392,7 +391,7 @@ function maximizeAndGetCNumber(box, cb) {
 	    assert(err == undefined);
 	    box.getCNumber(
 		box.mailboxName,
-		'destination',
+		'ddd',
 		cb
 	    );
 	}
@@ -420,7 +419,7 @@ describe(
 				    box,
 				    function(err, value) {
 					assert(err == undefined);
-					assert(value == 15);
+					assert(value == bigint.make(15));
 					box.getTotalPacketCount(
 					    function(err, value) { // 1--14 removed => 16 remain
 						assert(value == 16);

@@ -7,7 +7,6 @@ Mailbox model based on sqlite
 var TransactionDatabase = require("sqlite3-transactions").TransactionDatabase;
 var sqlite3 = require('sqlite3').verbose();
 var async = require('async');
-var intarray = require('./intarray.js');
 var assert = require('assert');
 var pkt = require('./packet.js');
 var bigint = require('./bigint.js');
@@ -694,7 +693,7 @@ Mailbox.prototype.sendAck = function(src, cb) {
 	    self.sendPacket(
 		src/*back to the source*/,
 		'ack',
-		intarray.serialize(seqnums),
+		bigint.serialize(seqnums),
 		function(err) {
 		    if (err == undefined) {
 			self.setAcked(
@@ -785,7 +784,7 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     assert(isFunction(cb));
     var self = this;
     if (packet.label == 'ack' && packet.dst == this.mailboxName) {
-	var seqnums = intarray.deserialize(packet.data);
+	var seqnums = bigint.deserialize(packet.data);
 	// Optional call to function whenever some packets that we sent were acknowledged.
 	if (this.onAcknowledged != undefined) {
 	    this.onAcknowledged({
