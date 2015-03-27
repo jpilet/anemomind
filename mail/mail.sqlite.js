@@ -11,6 +11,14 @@ var assert = require('assert');
 var pkt = require('./packet.js');
 var bigint = require('./bigint.js');
 
+function serializeSeqNums(x) {
+    return bigint.serialize(x);
+}
+
+function deserializeSeqNums(x) {
+    return bigint.deserializeBigInts(x, bigint.defaultWidth);
+}
+
 function makeNestedLogger() {
     var indent = 0;
     return function(s) {
@@ -375,6 +383,7 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
 Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight, cb) {
     assert(isFunction(cb));
     assert(isCounter(diaryNumber));
+    console.log('diaryNumber = ' + diaryNumber);
     
     // During the synchronization process, we might only want the essential information
     // to determine whether or not we are going to ask for the whole packet.
@@ -693,7 +702,7 @@ Mailbox.prototype.sendAck = function(src, cb) {
 	    self.sendPacket(
 		src/*back to the source*/,
 		'ack',
-		bigint.serialize(seqnums),
+		serializeSeqNums(seqnums),
 		function(err) {
 		    if (err == undefined) {
 			self.setAcked(
@@ -784,7 +793,7 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     assert(isFunction(cb));
     var self = this;
     if (packet.label == 'ack' && packet.dst == this.mailboxName) {
-	var seqnums = bigint.deserialize(packet.data);
+	var seqnums = deserializeSeqNums(packet.data);
 	// Optional call to function whenever some packets that we sent were acknowledged.
 	if (this.onAcknowledged != undefined) {
 	    this.onAcknowledged({
@@ -962,3 +971,5 @@ module.exports.dispAllTableData = dispAllTableData;
 module.exports.expand = expand;
 module.exports.isCounter = isCounter;
 module.exports.isIdentifier = isIdentifier;
+module.exports.serializeSeqNums = serializeSeqNums;
+module.exports.deserializeSeqNums = deserializeSeqNums;

@@ -336,7 +336,7 @@ describe(
 				   assert.equal(r.label, 'ack');
 				   assert.equal(r.src, 'aaabbb');
 				   assert.equal(r.dst, 'caa');
-				   var nums = bigint.deserialize(r.data);
+				   var nums = mailsqlite.deserializeSeqNums(r.data);
 				   assert.equal(nums.length, box.ackFrequency);
 				   for (var i = 0; i < nums.length; i++) {
 				       assert(bigint.make(1) <= nums[i]);

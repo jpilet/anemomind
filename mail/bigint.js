@@ -220,23 +220,10 @@ function deserializeBigInts(buf, width) {
 //       the system rng, to assign
 //       unique names for mailboxes.
 
-{
-    var x = make(3009);
-    console.log('x = ', x);
-    var y = serialize(x);
-    console.log('y = ', y);
-    var z = deserializeBigInt(y);
-    console.log('z = ', z);
-}{
-    var x = [make(3009), make(3020)];
-    console.log('x = ', x);
-    var y = serialize(x);
-    console.log('y = ', y);
-    var z = deserializeBigInts(y);
-    console.log('z = ', z);
-}
 
-
+module.exports.serialize = serialize;
+module.exports.deserializeBigInt = deserializeBigInt;
+module.exports.deserializeBigInts = deserializeBigInts;
 module.exports.zero = zero;
 module.exports.isZero = isZero;
 module.exports.isBigInt = isBigInt;
@@ -244,4 +231,5 @@ module.exports.inc = inc;
 module.exports.isBigIntStrict = isBigIntStrict;
 module.exports.makeFromTime = makeFromTime;
 module.exports.make = make;
-module.int64width = int64width;
+module.exports.int64width = int64width;
+module.exports.defaultWidth = defaultWidth;
