@@ -37,10 +37,13 @@ function isBigIntStrict(x) {
     if (isBigInt(x)) {
 	for (var i = 0; i < x.length; i++) {
 	    if (!isHexDigit(x[i])) {
+		console.log('x = ' + x + ' is not a valid hex digit');
 		return false;
 	    }
 	}
+	return true;
     }
+    console.log('Reached end');
     return false;
 }
 
@@ -63,7 +66,7 @@ function withDefaultWidth(x) {
 
 // Repeat string s n times.
 function repeatString(s, n) {
-    return new Array(n).join(s);
+    return new Array(n + 1).join(s);
 }
 
 // A string representing 0.
@@ -73,7 +76,9 @@ function zero(width) {
 
 // Add zeros so that the number x has width w.
 function padWith0(x, w) {
+    assert(typeof x == 'string');
     var remain = w - x.length;
+    console.log('remain = ' + remain);
     return (remain <= 0? x : zero(remain) + x);
 }
 
@@ -87,7 +92,9 @@ function makeFromTime(width) {
 // Increase a number by 1, padding with 0 if necessary.
 // The number should be possible to represent exactly as a 'number'.
 function incSub(x) {
-    return padWith0((parseInt(x, 16) + 1).toString(16), x.length);
+    var next = (parseInt(x, 16) + 1).toString(16);
+    console.log('next = ' + next);
+    return padWith0(next, x.length);
 }
 
 // Returns a new integer increased by one. Any length is OK.
@@ -101,6 +108,9 @@ function inc(x) {
 	var left = (x.length <= w? '' : x.slice(0, k));
 	assert(left.length + right.length == x.length);
 	var rightInc = incSub(right);
+	console.log('right = ' + right);
+	console.log('rightInc = ' + rightInc);
+	assert(rightInc.length >= right.length);
 	if (rightInc.length > right.length) {
 	    return inc(left) + rightInc.slice(1);
 	} else {
@@ -117,6 +127,7 @@ function inc(x) {
 module.exports.zero = zero;
 module.exports.isZero = isZero;
 module.exports.isBigInt = isBigInt;
+module.exports.inc = inc;
 module.exports.isBigIntStrict = isBigIntStrict;
 module.exports.makeFromTime = makeFromTime;
 module.exports.makeFromTime = inc;
