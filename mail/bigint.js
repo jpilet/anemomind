@@ -161,8 +161,6 @@ function serializeBigInt(x) {
 
 function deserializeBigIntFromBuffer(srcBuffer, srcOffset, dstWidth) {
     var byteCount = calcByteCount(dstWidth);
-    console.log('dstWidth = ' + dstWidth);
-    console.log('byteCount = ' + byteCount);
     var bytes = new Array(byteCount);
     for (var i = 0; i < byteCount; i++) {
 	bytes[i] = padWith0(srcBuffer.readUInt8(srcOffset + i).toString(16), 2);
@@ -198,31 +196,46 @@ function serialize(x) {
     }
 }
 
-function deserialize(buf, width, count) {
-    if (count == undefined) {
-	width = width || 2*buf.length;
-	return deserializeBigIntFromBuffer(buf, 0, width);
-    } else { // Multiple numbers of this width, an array.
-	var concatResult = deserialize(buf, width*count);
-	var result = new Array(count);
-	for (var i = 0; i < count; i++) {
-	    var offset = width*i;
-	    result[i] = concatResult.slice(offset, offset + width);
-	}
-	return result;
+function deserializeBigInt(buf, width) {
+    width = width || 2*buf.length;
+    return deserializeBigIntFromBuffer(buf, 0, width);
+}
+
+function deserializeBigInts(buf, width) {
+    width = withDefaultWidth(width);
+    var concatWidth = 2*buf.length;
+    var count = Math.floor(concatWidth/width);
+    var concatResult = deserializeBigInt(buf, concatWidth);
+    concatResult = (count*width == concatWidth? concatResult : concatResult.slice(1));
+    var result = new Array(count);
+    for (var i = 0; i < count; i++) {
+	var offset = width*i;
+	result[i] = concatResult.slice(offset, offset + width);
     }
+    return result;
+
 }
 
 // Todo: randomize strings using
 //       the system rng, to assign
 //       unique names for mailboxes.
 
-var x = make(3009);
-console.log('x = ', x);
-var y = serialize(x);
-console.log('y = ', y);
-var z = deserialize(y);
-console.log('z = ', z);
+{
+    var x = make(3009);
+    console.log('x = ', x);
+    var y = serialize(x);
+    console.log('y = ', y);
+    var z = deserializeBigInt(y);
+    console.log('z = ', z);
+}{
+    var x = [make(3009), make(3020)];
+    console.log('x = ', x);
+    var y = serialize(x);
+    console.log('y = ', y);
+    var z = deserializeBigInts(y);
+    console.log('z = ', z);
+}
+
 
 module.exports.zero = zero;
 module.exports.isZero = isZero;
