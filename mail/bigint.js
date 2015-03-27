@@ -37,13 +37,11 @@ function isBigIntStrict(x) {
     if (isBigInt(x)) {
 	for (var i = 0; i < x.length; i++) {
 	    if (!isHexDigit(x[i])) {
-		console.log('x = ' + x + ' is not a valid hex digit');
 		return false;
 	    }
 	}
 	return true;
     }
-    console.log('Reached end');
     return false;
 }
 
@@ -78,7 +76,6 @@ function zero(width) {
 function padWith0(x, w) {
     assert(typeof x == 'string');
     var remain = w - x.length;
-    console.log('remain = ' + remain);
     return (remain <= 0? x : zero(remain) + x);
 }
 
@@ -92,9 +89,7 @@ function makeFromTime(width) {
 // Increase a number by 1, padding with 0 if necessary.
 // The number should be possible to represent exactly as a 'number'.
 function incSub(x) {
-    var next = (parseInt(x, 16) + 1).toString(16);
-    console.log('next = ' + next);
-    return padWith0(next, x.length);
+    return padWith0((parseInt(x, 16) + 1).toString(16), x.length);
 }
 
 // Returns a new integer increased by one. Any length is OK.
@@ -108,9 +103,6 @@ function inc(x) {
 	var left = (x.length <= w? '' : x.slice(0, k));
 	assert(left.length + right.length == x.length);
 	var rightInc = incSub(right);
-	console.log('right = ' + right);
-	console.log('rightInc = ' + rightInc);
-	assert(rightInc.length >= right.length);
 	if (rightInc.length > right.length) {
 	    return inc(left) + rightInc.slice(1);
 	} else {

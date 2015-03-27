@@ -18,8 +18,6 @@ it(
 		    assert(bigint.isBigIntStrict(x));
 		    var nextX = bigint.inc(x);
 		    assert(x.length == nextX.length);
-		    console.log('x = ' + x);
-		    console.log('nextX = ' + nextX);
 		    assert(x < nextX || bigint.isZero(nextX));
 		}
 
@@ -31,8 +29,6 @@ it(
 
 		var a = bigint.inc(bigint.inc('00c8'));
 		var b = bigint.inc('00c9');
-		console.log('a = ' + a);
-		console.log('b = ' + b);
 		assert(a == b);
 		
 	    }
