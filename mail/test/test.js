@@ -165,14 +165,14 @@ describe(
 	    function(done) {
 		withbox(
 		    function(box) {
-			box.getForeignDiaryNumber('rulle', function(err, value) {
+			box.getForeignDiaryNumber('eff', function(err, value) {
 			    assert(value == undefined);
-			    box.setForeignDiaryNumber('rulle', 119, function(err) {
-				box.getForeignDiaryNumber('rulle', function(err, value2) {
-				    assert(value2 == 119);
-				    box.setForeignDiaryNumber('rulle', 135, function(err) {
-					box.getForeignDiaryNumber('rulle', function(err, value3) {
-					    assert(value3 == 135);
+			    box.setForeignDiaryNumber('eff', '119', function(err) {
+				box.getForeignDiaryNumber('eff', function(err, value2) {
+				    assert(value2 == '119');
+				    box.setForeignDiaryNumber('eff', '135', function(err) {
+					box.getForeignDiaryNumber('eff', function(err, value3) {
+					    assert(value3 == '135');
 					    done();
 					});
 				    });
@@ -197,13 +197,14 @@ describe(
 	    function(done) {
 		withbox(
 		    function(box) {
-			box.getFirstPacketStartingFrom(0, false, function(err, result) {
+			box.getFirstPacketStartingFrom('0', false, function(err, result) {
 			    assert(result == undefined);
-			    box.sendPacket('dst', 'label', new Buffer(1), function(err) {
-				box.getFirstPacketStartingFrom(0, false, function(err, result) {
+			    box.sendPacket('ddd', 'label', new Buffer(1), function(err) {
+				box.getFirstPacketStartingFrom('0', false, function(err, result) {
 				    assert(result != undefined);
 				    box.getFirstPacketStartingFrom(
-					result.diaryNumber + 1, false, function(err, result) {
+					bigint.inc(result.diaryNumber),
+					false, function(err, result) {
 					    assert(result == undefined);
 					    done();
 					});

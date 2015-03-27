@@ -885,8 +885,8 @@ Mailbox.prototype.getDiaryAndSeqNumbers = function(dst, cb) {
 	if (err == undefined) {
 	    self.makeNewSeqNumber(dst, function(err, seqNumber) {
 		if (err == undefined) {
-		    assert(typeof diaryNumber == 'number');
-		    assert(typeof seqNumber == 'number');
+		    assert(isCounter(diaryNumber));
+		    assert(isCounter(seqNumber));
 		    cb(err, {diaryNumber: diaryNumber, seqNumber: seqNumber});
 		} else {
 		    cb(err);
