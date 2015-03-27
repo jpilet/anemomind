@@ -505,12 +505,12 @@ describe(
 
 			
 			box.sendPacket(
-			    'dst-name',
+			    'abb',
 			    'some-label',
 			    new Buffer(1),
 			    function() {
 				box.sendPacket(
-				    'dst-name',
+				    'abb',
 				    'some-label',
 				    new Buffer(1),
 				    function() {
@@ -519,12 +519,10 @@ describe(
 					    function (err, results) {
 						assert(err == undefined);
 						assert(results.length == 2);
-						assert(
-						    Math.abs(
-							results[0].diaryNumber
-							    - results[1].diaryNumber
-						    ) == 1
-						);
+						var a = results[0].diaryNumber;
+						var b = results[1].diaryNumber;
+						assert(a == bigint.inc(b) ||
+						       b == bigint.inc(a));
 						done();
 					    }
 					);
