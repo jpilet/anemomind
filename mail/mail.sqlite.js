@@ -428,6 +428,7 @@ Mailbox.prototype.getCNumber = function(src, dst, cb) {
     this.db.get(
 	query, src, dst,
 	function(err, row) {
+	    console.log('ROW == ', row);
 	    if (err == undefined) {
 		if (row == undefined) {
 		    cb(err);

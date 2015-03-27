@@ -386,7 +386,7 @@ function fillPackets(box, ackFn, n, cb) {
 
 function maximizeAndGetCNumber(box, cb) {
     box.maximizeCNumber(
-	'destination',
+	'ddd',
 	function(err) {
 	    assert(err == undefined);
 	    box.getCNumber(
@@ -419,15 +419,15 @@ describe(
 				    box,
 				    function(err, value) {
 					assert(err == undefined);
-					mailsqlite.dispAllTableData(box.db, function() { done();});
-					// console.log('value = ' + value);
-					// //assert(value == bigint.make(15));
-					// box.getTotalPacketCount(
-					//     function(err, value) { // 1--14 removed => 16 remain
-					// 	assert(value == 16);
-					// 	done();
-					//     }
-					// );
+					//mailsqlite.dispAllTableData(box.db, function() { done();});
+					console.log('value = ' + value);
+					assert(value == bigint.make(15));
+					box.getTotalPacketCount(
+					    function(err, value) { // 1--14 removed => 16 remain
+						assert(value == 16);
+						done();
+					    }
+					);
 				    }
 				);
 			    }
@@ -457,6 +457,7 @@ describe(
 				    box,
 				    function(err, value) {
 					assert(err == undefined);
+					
 					assert(value == 31);
 					done();
 				    }
