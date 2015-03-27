@@ -45,6 +45,8 @@ class DeviceSimulator {
 
   bool calibrationFileLoaded() const;
 
+  bool compiledWithVMGTargetSpeed() const;
+
  private:
   long _arduinoTimeMs;
   sail::TimeStamp _referenceTime;

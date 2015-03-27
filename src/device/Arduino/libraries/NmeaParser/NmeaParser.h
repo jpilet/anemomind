@@ -122,6 +122,9 @@ class NmeaParser {
     NMEA_TW,
     NMEA_WAT_SP_HDG,
     NMEA_VLW,
+    NMEA_GLL,
+    NMEA_ZDA = NMEA_TIME_POS,
+    NMEA_VTG
   };
 
   NmeaParser();
@@ -285,8 +288,13 @@ class NmeaParser {
   NmeaSentence processCommand();
   NmeaSentence processGPRMC();
   NmeaSentence processMWV();
+  NmeaSentence processVWR();
+  NmeaSentence processVWT();
   NmeaSentence processVHW();
   NmeaSentence processVLW();
+  NmeaSentence processGLL();
+  NmeaSentence processZDA();
+  NmeaSentence processVTG();
 };
 
 double geoPosDist(GeoPos *a, GeoPos *b);
