@@ -458,7 +458,7 @@ describe(
 				    function(err, value) {
 					assert(err == undefined);
 					
-					assert(value == 31);
+					assert(value == bigint.make(31));
 					done();
 				    }
 				);
