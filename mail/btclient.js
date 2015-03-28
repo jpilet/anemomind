@@ -7,7 +7,7 @@ function makeUuidMap() {
 	'13333333333333333333333333330002': 'GetFirstPacketStartingFrom',
 	'13333333333333333333333333330003': 'HandleIncomingPacket',
 	'13333333333333333333333333330004': 'IsAdmissible',
-	'13333333333333333333333333330005': 'GetForeignDiaryNumber'
+	'13333333333333333333333333330005': 'GetForeignDiaryNumber',
 	'setForeignDiaryNumber': null,
 	'getFirstPacketStartingFrom': null,
 	'handleIncomingPacket': null,
