@@ -13,6 +13,7 @@ var assert = require('assert');
 // just make sure that the digit of 9 is less than
 // the digit of 10.
 assert('9' < 'a');
+assert((9).toString(16) < (10).toString(16));
 
 // 64 bits = 8 bytes = 16 hexadecimal digits
 var int64width = 16;
