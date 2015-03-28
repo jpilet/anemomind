@@ -866,6 +866,7 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 
  // This method is called only for packets that should not be rejected.
  Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
+     assert(isValidPacket(packet));
      assert(isFunction(cb));    
      var self = this;
 
@@ -912,6 +913,7 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 
 // Handle an incoming packet.
 Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
+    assert(isValidPacket(packet));
     assert(isFunction(cb));
     var self = this;
     this.isAdmissible(
