@@ -316,7 +316,7 @@ describe(
 				       seqNumber: bigint.make(n),
 				       cNumber: bigint.make(0),
 				       label: 'Spam message',
-				       data: new Buffer(3),
+				       data: new Buffer(3)
 				   },
 				   function(err) {
 				       spammer(n - 1, cb);
