@@ -35,7 +35,15 @@ it(
 	);
 
 	describe(
-	    'Should serialize and deserialize big integers correctly',
+	    'Should serialize and deserialize a big integer correctly',
+	    function() {
+		var a = 'fffff1234';
+		assert(bigint.deserializeBigInt(bigint.serialize(a), a.length) == a);
+	    }
+	);
+	
+	describe(
+	    'Should serialize and deserialize arrays of big integers correctly',
 	    function() {
 		var a = ['abc', 'cba', '123'];
 		var b = bigint.serialize(a);
