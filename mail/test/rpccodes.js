@@ -76,5 +76,15 @@ it(
 		assert(eq.eqv(packet, wrapAndUnwrap(c.handleIncomingPacket.args, packet)));
 	    }
 	);
+
+	describe(
+	    'isAdmissible',
+	    function() {
+		var args = {src: bigint.make(12), dst: bigint.make(144)};
+		assert(eq.eqv(args, wrapAndUnwrap(c.isAdmissible.args, args)));
+		var result = true;
+		assert(eq.eqv(result, wrapAndUnwrap(c.isAdmissible.result, result)));
+	    }
+	);
     }
 );
