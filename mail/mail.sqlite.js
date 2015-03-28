@@ -83,7 +83,7 @@ function isObject(x) {
 
 
 // Also check that the types are valid types.
-function isValidPacket(x) {
+function isValidPacketSub(x) {
     if (pkt.isFullPacket(x)) {
 	return validField(x.src, isIdentifier) &&
 	    validField(x.dst, isIdentifier) &&
@@ -91,8 +91,16 @@ function isValidPacket(x) {
 	    validField(x.seqNumber, isCounter) &&
 	    validField(x.label, isString) &&
 	    validField(x.cNumber, isCounter) &&
-	    validField(x.data, isBuffer);
+	    validField(x.data, isObject);
     }
+    return false;
+}
+
+function isValidPacket(x) {
+    if (isValidPacketSub(x)) {
+	return true;
+    }
+    console.log('Invalid packet: %j', x);
     return false;
 }
 
@@ -821,6 +829,7 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 
 
 Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
+    assert(isValidPacket(packet));
     assert(isFunction(cb));
     var self = this;
     if (packet.label == 'ack' && packet.dst == this.mailboxName) {
