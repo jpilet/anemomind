@@ -26,7 +26,7 @@ function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
     } else {
 	srcMailbox.sendPacket(
 	    dstMailboxName,
-	    "Some-label" + count,
+	    49 + count,
 	    new Buffer(3),
 	    function (err) {
 		if (err == undefined) {
