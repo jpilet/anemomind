@@ -2,6 +2,27 @@
 var assert = require('assert');
 var bigint = require('./bigint.js');
 
+/*
+
+  SYNCHRONIZATION CODE FOR MAILBOXES
+
+  All mailboxes, no matter the underlying implementation, must support these methods
+  in order to be able to synchronize using the code in this file:
+
+  * setForeignDiaryNumber(mailboxName, index, cb):
+     Calls cb once set
+  * getFirstPacketStartingFrom(mailboxName, index, cb):
+     Calls cb with the first packet
+  * handleIncomingPacket(packet, cb):
+     Calls cb once the packet has been handled
+  * isAdmissible(src, dst, cb):
+     Calls cb with a boolean value
+  * getForeignDiaryNumber(mailboxName, cb):
+     Calls cb with the foreign diaryNumber
+
+*/
+
+
 
 function finishSync(index, boxA, boxB, cb) {
     // Where are done synchronizing. Save the index and
