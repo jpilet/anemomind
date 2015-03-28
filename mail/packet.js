@@ -52,11 +52,13 @@ BufferManager.prototype.finished = function() {
 }
 
 BufferManager.prototype.writeBigInt = function(x, width) {
+    width = width || bigint.defaultWidth;
     assert(!this.finished());
     this.pointer = bigint.serializeBigIntToBuffer(x, this.buffer, this.pointer);
 }
 
 BufferManager.prototype.readBigInt = function(width) {
+    width = width || bigint.defaultWidth;    
     assert(!this.finished());
     var result = bigint.deserializeBigIntFromBuffer(this.buffer, width);
     this.pointer += bigint.calcByteCount(width);
@@ -116,64 +118,60 @@ function deserializeLightPacket(x) {
 }
 
 function serializeFullPacket(packet) {
+    assert(isFullPacket(packet));
     var dstLen = calcByteCount(5*bigint.defaultWidth) + 1 + packet.data.length;
+    var b = new BufferManager(new Buffer(dstLen));
+    b.writeBigInt(packet.diaryNumber);
+    b.writeBigInt(packet.src);
+    b.writeBigInt(packet.dst);
+    b.writeBigInt(packet.seqNumber);
+    b.writeBigInt(packet.cNumber);
+    b.writeUInt8(packet.label);
+    b.writeBuffer(packet.data);
+    assert(b.finished());
+    return b.buffer;
 }
 
-function deserializePacket(x) {
-    var b = new BufferManager(x);
-    var diaryNumber = b.readInt(counterSize);
-    var src = b.readInt(mailboxIdSize);
-    var dst = b.readInt(mailboxIdSize);
-    var seqNumber = b.readInt(counterSize);
+function deserializeFullPacket(buf) {
+    var b = new BufferManager(buf);
+    var diaryNumber = b.readBigInt();
+    var src = b.readBigInt();
+    var dst = b.readBigInt();
+    var seqNumber = b.readBigInt();
+    var cNumber = b.readBigInt();
+    var label = b.readUInt8();
+    var data = b.getRemainingBuffer();
+    
     var result = {
 	diaryNumber: diaryNumber,
 	src: src,
 	dst: dst,
-	seqNumber: seqNumber
+	seqNumber: seqNumber,
+	cNumber: cNumber,
+	label: label,
+	data: data
     };
-    assert(isLightPacket(result));
     return result;
 }
 
+function serialize(packet) {
+    if (isFullPacket(packet)) {
+	return serializeFullPacket(packet);
+    } else {
+	return serializeLightPacket(packet);
+    }
+}
 
-
-// TO BE COMPLETED ONCE WE KNOW THE EXACT PACKET FORMAT
-//
-///// For full packets
-// function serializeFull(packet) {
-//     assert(isLightPacket(packet));
-    
-//      var dst = new BufferManager(
-// 	3*counterSize + 2*mailboxIdSize
-//     );
-
-//     // To serialize: diaryNumber, src, dst, seqNumber       
-//     dst.writeInt(src.diaryNumber, counterSize);
-//     dst.writeInt(src.src, mailboxIdSize);
-//     dst.writeInt(src.dst, mailboxIdSize);
-//     dst.writeInt(src.seqNumber, counterSize);
-//     dst.writeInt();
-
-//     assert(dst.finished());
-//     return dst;
-// }
-
-// function deserializePacket(x) {
-//     var b = new BufferManager(x);
-//     var diaryNumber = b.readInt(counterSize);
-//     var src = b.readInt(mailboxIdSize);
-//     var dst = b.readInt(mailboxIdSize);
-//     var seqNumber = b.readInt(counterSize);
-//     var result = {
-// 	diaryNumber: diaryNumber,
-// 	src: src,
-// 	dst: dst,
-// 	seqNumber: seqNumber
-//     };
-//     assert(isLightPacket(result));
-//     return result;
-// }
+function deserialize(x) {
+    if (isSerializedLightPacket(x)) {
+	return deserializeLightPacket(x);
+    } else {
+	return deserializeFullPacket(x);
+    }
+}
 
 exports.isLightPacket = isLightPacket;
 exports.isFullPacket = isFullPacket;
 exports.hasDiaryNumber = hasDiaryNumber;
+exports.serialize = serialize;
+exports.deserialize = deserialize;
