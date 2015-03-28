@@ -31,6 +31,15 @@ function makeNestedLogger() {
     };
 }
 
+function validField(x, tester) {
+    if (x == undefined) {
+	return true;
+    } else {
+	return tester(x);
+    }
+}
+
+
 
 
 function expand(span, value) {
@@ -53,6 +62,7 @@ function isIdentifier(x) {
     return bigint.isBigInt(x);
 }
 
+
 /////////////////////////////////////////////////////////
 // General functions for checking if an object is a string
 function isString(x) {
@@ -66,6 +76,27 @@ function isNonEmptyString(x) {
 function isFunction(x) {
     return typeof x == 'function';
 }
+
+function isObject(x) {
+    return typeof x == 'object';
+}
+
+
+// Also check that the types are valid types.
+function isValidPacket(x) {
+    if (pkt.isFullPacket(x)) {
+	return validField(x.src, isIdentifier) &&
+	    validField(x.dst, isIdentifier) &&
+	    validField(x.diaryNumber, isCounter) &&
+	    validField(x.seqNumber, isCounter) &&
+	    validField(x.label, isString) &&
+	    validField(x.cNumber, isCounter) &&
+	    validField(x.data, isBuffer);
+    }
+    return false;
+}
+
+
 
 /////////////////////////////////////////////////////////
 function isValidDBFilename(x) {

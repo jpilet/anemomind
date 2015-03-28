@@ -161,7 +161,6 @@ function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
 function synchronizeDirectedFrom(startFrom, boxA, boxB, cb) {
     // Retrieve a light-weight packet
     // just to see if we should accept it
-    console.log('startFrom = ' + startFrom);
     boxB.getFirstPacketStartingFrom(
 	startFrom,
 	true,
