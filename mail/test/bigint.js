@@ -33,5 +33,21 @@ it(
 		
 	    }
 	);
+
+	describe(
+	    'Should serialize and deserialize big integers correctly',
+	    function() {
+		var a = ['abc', 'cba', '123'];
+		var b = bigint.serialize(a);
+		var c = bigint.deserializeBigInts(b, 3);
+
+		// Directly asserting a == c doesn't seem to work for some reason:
+		assert(a.length == c.length);
+		assert(a.length == 3);
+		for (var i = 0; i < 3; i++) {
+		    assert(a[i] == c[i]);
+		}
+	    }
+	);
     }
 );
