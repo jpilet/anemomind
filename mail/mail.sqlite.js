@@ -11,6 +11,8 @@ var assert = require('assert');
 var pkt = require('./packet.js');
 var bigint = require('./bigint.js');
 
+var ACKLABEL = 127;
+
 function serializeString(x) {
     assert(typeof x == 'string');
     var buf = new Buffer(2*x.length);
@@ -89,6 +91,9 @@ function isObject(x) {
     return typeof x == 'object';
 }
 
+function isNumber(x) {
+    return typeof x == 'number';
+}
 
 // Also check that the types are valid types.
 function isValidPacketSub(x) {
@@ -97,7 +102,7 @@ function isValidPacketSub(x) {
 	    validField(x.dst, isIdentifier) &&
 	    validField(x.diaryNumber, isCounter) &&
 	    validField(x.seqNumber, isCounter) &&
-	    validField(x.label, isString) &&
+	    validField(x.label, isNumber) &&
 	    validField(x.cNumber, isCounter) &&
 	    validField(x.data, isObject);
     }
@@ -134,7 +139,7 @@ function runWithLog(db, cmd) {
 // PRIMARY KEY should be the last column of every create statement
 var fullschema = "CREATE TABLE IF NOT EXISTS seqNumbers (dst TEXT, counter TEXT, PRIMARY KEY(dst));\
                   CREATE TABLE IF NOT EXISTS packets (diaryNumber TEXT, src TEXT, dst TEXT, \
-                          seqNumber TEXT, cNumber TEXT, label TEXT, data BLOB, ack INTEGER, PRIMARY KEY(diaryNumber)); \
+                          seqNumber TEXT, cNumber TEXT, label INT, data BLOB, ack INTEGER, PRIMARY KEY(diaryNumber)); \
                   CREATE TABLE IF NOT EXISTS diaryNumbers (mailbox TEXT, number TEXT, PRIMARY KEY(mailbox)); \
                   CREATE TABLE IF NOT EXISTS ctable (src TEXT, dst TEXT, counter TEXT, PRIMARY KEY(src, dst));";
 
@@ -749,7 +754,7 @@ Mailbox.prototype.sendAck = function(src, cb) {
 	    }
 	    self.sendPacket(
 		src/*back to the source*/,
-		'ack',
+		ACKLABEL,
 		serializeSeqNums(seqnums),
 		function(err) {
 		    if (err == undefined) {
@@ -841,7 +846,7 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     assert(isValidPacket(packet));
     assert(isFunction(cb));
     var self = this;
-    if (packet.label == 'ack' && packet.dst == this.mailboxName) {
+    if (packet.label == ACKLABEL && packet.dst == this.mailboxName) {
 	var seqnums = deserializeSeqNums(packet.data);
 	// Optional call to function whenever some packets that we sent were acknowledged.
 	if (this.onAcknowledged != undefined) {
@@ -982,6 +987,7 @@ Mailbox.prototype.dispPacketSummary = function(cb) {
 // Given destination mailbox, label and data,
 // a new packet is produced that is put in the packets table.
 Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
+    assert(isNumber(label));
     assert(isIdentifier(dst));
     assert(isFunction(cb));
     var self = this;
@@ -1025,3 +1031,4 @@ module.exports.isIdentifier = isIdentifier;
 module.exports.serializeSeqNums = serializeSeqNums;
 module.exports.deserializeSeqNums = deserializeSeqNums;
 module.exports.serializeString = serializeString;
+module.exports.ACKLABEL = ACKLABEL;

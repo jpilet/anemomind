@@ -116,7 +116,7 @@ describe(
 			box.db.run(
 			    'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
     			    '129', 'a', 'c', '119', '109',
-			    'testpacket', 'sometestdata', false,
+			    0, 'sometestdata', false,
     			    function(err) {
     				box.getLastDiaryNumber(function(err, num) {
 				    assert(num == '129');
@@ -198,7 +198,7 @@ describe(
 		    function(box) {
 			box.getFirstPacketStartingFrom('0', false, function(err, result) {
 			    assert(result == undefined);
-			    box.sendPacket('ddd', 'label', new Buffer(1), function(err) {
+			    box.sendPacket('ddd', 49, new Buffer(1), function(err) {
 				box.getFirstPacketStartingFrom('0', false, function(err, result) {
 				    assert(result != undefined);
 				    box.getFirstPacketStartingFrom(
@@ -269,7 +269,7 @@ describe(
 		    function(box) {
 			box.registerPacketData(
 			    {src: 'a', dst: 'b', seqNumber: '119', cNumber: '030',
-			     label: 'My label', data: mailsqlite.serializeString('Some data')},
+			     label: 49, data: mailsqlite.serializeString('Some data')},
 			    function(err) {
 				assert(err == undefined);
 				box.getCNumber('a', 'b', function(err, num) {
@@ -284,7 +284,7 @@ describe(
 						assert(packet.dst == 'b');
 						assert(packet.seqNumber == '119');
 						assert(packet.cNumber == '030');
-						assert(packet.label == 'My label');
+						assert(packet.label == 49);
 						assert(packet.data == 'Some data');
 
 						done();
@@ -315,7 +315,7 @@ describe(
 				       dst: box.mailboxName,
 				       seqNumber: bigint.make(n),
 				       cNumber: bigint.make(0),
-				       label: 'Spam message',
+				       label: 49,
 				       data: mailsqlite.serializeString('Some spam message'),
 				   },
 				   function(err) {
@@ -333,7 +333,7 @@ describe(
 			       function(err, results) {
 				   var r = results[0];
 				   assert.equal(results.length, 1);
-				   assert.equal(r.label, 'ack');
+				   assert.equal(r.label, mailsqlite.ACKLABEL);
 				   assert.equal(r.src, 'aaabbb');
 				   assert.equal(r.dst, 'caa');
 				   var nums = mailsqlite.deserializeSeqNums(r.data);
@@ -374,7 +374,7 @@ function fillPackets(box, ackFn, n, cb) {
 	box.db.run(
 	    query, bigint.make(n + 119),
 	    box.mailboxName, 'ddd', bigint.make(n),
-	    bigint.make(0), 'some label', new Buffer(1),
+	    bigint.make(0), 49, new Buffer(1),
 	    ackFn(n),
 	    function (err) {
 		assert(err == undefined);
@@ -419,7 +419,6 @@ describe(
 				    box,
 				    function(err, value) {
 					assert(err == undefined);
-					//mailsqlite.dispAllTableData(box.db, function() { done();});
 					assert(value == bigint.make(15));
 					box.getTotalPacketCount(
 					    function(err, value) { // 1--14 removed => 16 remain
@@ -505,12 +504,12 @@ describe(
 			
 			box.sendPacket(
 			    'abb',
-			    'some-label',
+			    49,
 			    new Buffer(1),
 			    function() {
 				box.sendPacket(
 				    'abb',
-				    'some-label',
+				    49,
 				    new Buffer(1),
 				    function() {
 					box.db.all(
@@ -544,7 +543,7 @@ function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
     } else {
 	srcMailbox.sendPacket(
 	    dstMailboxName,
-	    "Some-label" + count,
+	    49 + count,
 	    new Buffer(3),
 	    function(err) {
 		if (err == undefined) {
