@@ -9,9 +9,9 @@ var bigint = require('./bigint.js');
   All mailboxes, no matter the underlying implementation, must support these methods
   in order to be able to synchronize using the code in this file:
 
-  * setForeignDiaryNumber(mailboxName, index, cb):
+  * setForeignDiaryNumber(mailboxName, diaryNumber, cb):
      Calls cb once set
-  * getFirstPacketStartingFrom(mailboxName, index, cb):
+  * getFirstPacketStartingFrom(mailboxName, diaryNumber, lightWeight, cb):
      Calls cb with the first packet
   * handleIncomingPacket(packet, cb):
      Calls cb once the packet has been handled
@@ -64,7 +64,7 @@ function fetchFullPacket(index, boxA, boxB, cb) {
 				synchronizeDirectedFrom(
 				    // IMPORTANT: Call with the index of the
 				    // packet fetched here.
-				    newIndex + 1,
+				    bigint.inc(newIndex),
 				    boxA, boxB, cb
 				);
 			    } else {

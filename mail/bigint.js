@@ -234,3 +234,5 @@ module.exports.makeFromTime = makeFromTime;
 module.exports.make = make;
 module.exports.int64width = int64width;
 module.exports.defaultWidth = defaultWidth;
+module.exports.deserializeBigIntFromBuffer = deserializeBigIntFromBuffer;
+module.exports.calcByteCount = calcByteCount;

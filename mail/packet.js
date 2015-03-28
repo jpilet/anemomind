@@ -51,20 +51,40 @@ BufferManager.prototype.finished = function() {
     return this.pointer == this.buffer.length;
 }
 
-BufferManager.prototype.writeInt = function(x, elemSize) {
+BufferManager.prototype.writeBigInt = function(x, width) {
     assert(!this.finished());
-    this.buffer.writeIntLE(x, this.pointer, elemSize);
-    this.pointer += elemSize;
+    this.pointer = bigint.serializeBigIntToBuffer(x, this.buffer, this.pointer);
 }
 
-BufferManager.prototype.readInt = function(elemSize) {
-    assert(!this.finished());    
-    this.buffer.readIntLE(this.pointer, this.elemSize);
+BufferManager.prototype.readBigInt = function(width) {
+    assert(!this.finished());
+    var result = bigint.deserializeBigIntFromBuffer(this.buffer, width);
+    this.pointer += bigint.calcByteCount(width);
+    return result;
 }
 
+BufferManager.prototype.writeUInt8 = function(x) {
+    assert(!this.finished());
+    this.buffer.writeUInt8(x, this.pointer);
+    this.pointer++;
+}
 
+BufferManager.prototype.readUInt8 = function() {
+    var result = this.readUInt8(this.pointer);
+    this.pointer++;
+    return result;
+}
 
+BufferManager.prototype.writeBuffer = function(buf) {
+    buf.copy(this.buffer, this.pointer);
+    this.pointer += buf.length;
+}
 
+BufferManager.prototype.getRemainingBuffer = function() {
+    var result = this.buffer.slice(this.pointer);
+    this.pointer = this.buffer.length;
+    return result;
+}
 
 
 ///// serializeLight/deserializeLight are used when we test if a packet should
@@ -75,19 +95,28 @@ BufferManager.prototype.readInt = function(elemSize) {
 // packet.
 function serializeLight(packet) {
     assert(isLightPacket(packet));
-    
-     var dst = new BufferManager(
-	2*counterSize + 2*mailboxIdSize
+    return bigint.serialize(
+	[packet.diaryNumber, packet.src, packet.dst, packet.seqNumber]
     );
+}
 
-    // To serialize: diaryNumber, src, dst, seqNumber       
-    dst.writeInt(src.diaryNumber, counterSize);
-    dst.writeInt(src.src, mailboxIdSize);
-    dst.writeInt(src.dst, mailboxIdSize);
-    dst.writeInt(src.seqNumber, counterSize);    
+function isSerializedLightPacket(x) {
+    return bigint.calcByteCount(4*bigint.defaultWidth) == x.length;
+}
 
-    assert(dst.finished());
-    return dst;
+function deserializeLightPacket(x) {
+    var arr = bigint.deserializeBigInts(x, bigint.defaultWidth);
+    assert(arr.length == 4);
+    return {
+	diaryNumber: arr[0],
+	src: arr[1],
+	dst: arr[2],
+	seqNumber: arr[3]
+    };
+}
+
+function serializeFullPacket(packet) {
+    var dstLen = calcByteCount(5*bigint.defaultWidth) + 1 + packet.data.length;
 }
 
 function deserializePacket(x) {

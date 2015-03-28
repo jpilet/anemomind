@@ -1,1 +1,98 @@
 // Coding/decoding of RPC calls.
+
+var pkt = require('./packet.js');
+
+// An object with functions to wrap or unwrap another object
+function Coder(wrap, unwrap) {
+    this.wrap = wrap;
+    this.unwrap = unwrap;
+}
+
+function isCoder(x) {
+    if (typeof x == 'object') {
+	return (typeof x.wrap == 'function') &&
+	    (typeof x.unwrap == 'function');
+    }
+    return false;
+}
+
+// All the wrapping functions needed to
+// perform an RPC call.
+function Call(args, result) {
+    assert(isCoder(args) || args == undefined);
+    assert(isCoder(result) || result == undefined);
+    this.args = args;
+    this.result = result;
+}
+
+module.exports.setForeignDiaryNumber = new Call(
+    // Args
+    new Coder(
+	function(obj) {
+	    assert(bigint.isBigInt(obj.mailboxName));
+	    assert(bigint.isBigInt(obj.diaryNumber));
+	    return bigint.serialize(obj.mailboxName + obj.diaryNumber);
+	}, function(wrappedObj) {
+	    var arr = bigint.deserializeBigInts(wrappedObj, defaultWidth);
+	    return {
+		mailboxName: arr[0],
+		diaryNumber: arr[1]
+	    };
+	}
+    ),
+
+    // No data to return => no need for a Coder.
+    undefined
+);
+
+module.exports.setForeignDiaryNumber = new Call(
+    // Args
+    new Coder(
+	function(obj) {
+	    assert(bigint.isBigInt(obj.mailboxName));
+	    assert(bigint.isBigInt(obj.diaryNumber));
+	    return bigint.serialize(obj.mailboxName + obj.diaryNumber);
+	}, function(wrappedObj) {
+	    var arr = bigint.deserializeBigInts(wrappedObj, defaultWidth);
+	    return {
+		mailboxName: arr[0],
+		diaryNumber: arr[1]
+	    };
+	}
+    ),
+
+    // No data to return => no need for a Coder.
+    undefined
+);
+
+
+module.exports.getFirstPacketStartingFrom = new Call(
+    // Args
+    new Coder(
+	function(obj) {
+	    assert(bigint.isBigInt(obj.mailboxName));
+	    assert(bigint.isBigInt(obj.diaryNumber));
+	    assert(typeof obj.lightWeight == 'boolean');
+	    var buf = new Buffer(bigint.defaultWidth + 1);
+	    var a0 = serializeBigIntToBuffer(obj.mailboxName, buf, 0);
+	    var a1 = serializeBigIntToBuffer(obj.diaryNumber, buf, a0);
+	    assert(a1 + 1 == buf.length);
+	    var a2 = buf.writeUInt8(obj.lightWeight? 1 : 0);
+	    return buf;
+	}, function(buf) {
+	    assert(buf.length == 1 + bigint.defaultWidth);
+	    var mailboxName = bigint.deserializeBigIntFromBuffer(buf, 0, bigint.defaultWidth);
+	    var diaryNumber = bigint.deserializeBigIntFromBuffer(
+		buf,
+		bigint.defaultWidth/2, bigint.defaultWidth);
+	    var lightWeight = (buf.readUInt8(bigint.defaultWidth) == 0? false : true);
+	}
+    ),
+
+    // Return value
+    new Coder(
+	function(packet) {
+	    
+	}
+    )
+);
