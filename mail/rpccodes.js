@@ -1,6 +1,7 @@
 // Coding/decoding of RPC calls.
-
+var assert = require('assert');
 var pkt = require('./packet.js');
+var bigint = require('./bigint.js');
 
 // An object with functions to wrap or unwrap another object
 function Coder(wrap, unwrap) {
@@ -33,7 +34,7 @@ module.exports.setForeignDiaryNumber = new Call(
 	    assert(bigint.isBigInt(obj.diaryNumber));
 	    return bigint.serialize(obj.mailboxName + obj.diaryNumber);
 	}, function(wrappedObj) {
-	    var arr = bigint.deserializeBigInts(wrappedObj, defaultWidth);
+	    var arr = bigint.deserializeBigInts(wrappedObj, bigint.defaultWidth);
 	    return {
 		mailboxName: arr[0],
 		diaryNumber: arr[1]
