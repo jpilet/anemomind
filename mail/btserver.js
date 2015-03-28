@@ -174,6 +174,33 @@ GetForeignDiaryNumber.prototype.onWriteRequest =
 	}
     );
 
+function MailboxName(mailbox) {
+    this.mailbox = mailbox;
+    bleno.Characteristic.call(
+	this, {
+	    uuid: '13333333333333333333333333330006',
+	    properties: ['write', 'notify'],
+	    descriptors: [
+		new bleno.Descriptor(
+		    {
+			uuid: '2901',
+			value: 'Get the mailbox name'
+		    }
+		)
+	    ]
+	}
+    );
+}
+util.inherits(MailboxName, bleno.Characteristic);
+MailboxName.prototype.onWriteRequest =
+    makeRPCHandler(
+	c.getForeignDiaryNumber,
+	function(self, args, cb) {
+	    // ignore the args: we just want to the the name of this mailbox
+	    cb(undefined, self.mailbox.mailboxName);
+	}
+    );
+
 
 
 
@@ -188,7 +215,8 @@ function MailService(mailbox) {
 		new GetFirstPacketStartingFrom(mailbox),
 		new HandleIncomingPacket(mailbox),
 		new IsAdmissible(mailbox),
-		new GetForeignDiaryNumber(mailbox)
+		new GetForeignDiaryNumber(mailbox),
+		new MailboxName(mailbox)
             ]
 	}
     );
