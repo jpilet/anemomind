@@ -56,10 +56,10 @@ module.exports.getFirstPacketStartingFrom = new Call(
 	    assert(bigint.isBigInt(obj.diaryNumber));
 	    assert(typeof obj.lightWeight == 'boolean');
 	    var buf = new Buffer(bigint.defaultWidth + 1);
-	    var a0 = serializeBigIntToBuffer(obj.mailboxName, buf, 0);
-	    var a1 = serializeBigIntToBuffer(obj.diaryNumber, buf, a0);
+	    var a0 = bigint.serializeBigIntToBuffer(obj.mailboxName, buf, 0);
+	    var a1 = bigint.serializeBigIntToBuffer(obj.diaryNumber, buf, a0);
 	    assert(a1 + 1 == buf.length);
-	    var a2 = buf.writeUInt8(obj.lightWeight? 1 : 0);
+	    var a2 = buf.writeUInt8(obj.lightWeight? 1 : 0, a1);
 	    return buf;
 	}, function(buf) {
 	    assert(buf.length == 1 + bigint.defaultWidth);
@@ -67,7 +67,12 @@ module.exports.getFirstPacketStartingFrom = new Call(
 	    var diaryNumber = bigint.deserializeBigIntFromBuffer(
 		buf,
 		bigint.defaultWidth/2, bigint.defaultWidth);
-	    var lightWeight = buf.readUInt8(bigint.defaultWidth) != 0;
+	    var lightWeight = buf.readUInt8(bigint.defaultWidth, bigint.defaultWidth) != 0;
+	    return {
+		mailboxName: mailboxName,
+		diaryNumber: diaryNumber,
+		lightWeight: lightWeight
+	    };
 	}
     ),
 
