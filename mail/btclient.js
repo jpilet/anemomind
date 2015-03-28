@@ -49,16 +49,15 @@ var handleIncomingPacket = null;
 var isAdmissible = null;
 var getForeignDiaryNumber = null;
 
-function synchronize(service, cmap) {
-    //console.log('todo');
+function synchronize(localMailbox, service, cmap) {
 
     // A remote mailbox.
-    var mailbox = new Mailbox(service, cmap);
+    var remoteMailbox = new Mailbox(service, cmap);
 
     
 }
 
-function handleService(service) {
+function handleService(localMailbox, service) {
     console.log('found service:', service.uuid);
     service.discoverCharacteristics(
 	[],
@@ -71,7 +70,7 @@ function handleService(service) {
 		}
 	    );
 	    if (isComplete(uuidMap)) {
-		synchronize(service, uuidMap);
+		synchronize(localMailbox, service, uuidMap);
 	    }
 	    else {
 		console.log('missing characteristics: %j', uuidMap);
@@ -80,7 +79,7 @@ function handleService(service) {
     ); // discoverCharacteristics
 } // function(service)
 
-function connectAndSynchronize() {
+function connectAndSynchronize(localMailbox) {
     noble.on(
 	'discover',
 	function(peripheral) {
@@ -90,7 +89,9 @@ function connectAndSynchronize() {
 		    peripheral.discoverServices(
 			[mailServiceUuid], function(err, services) {
 			    services.forEach(
-				handleService
+				function (service) {
+				    handleService(localMailbox, service);
+				}
 			    ); // foreach
 			} // function(err, services)
 		    );
@@ -135,4 +136,6 @@ function Mailbox(service, cmap) {
     this.service = service;
     this.cmap = cmap;
 }
+
+Mailbox.prototype
 
