@@ -75,11 +75,16 @@ module.exports.getFirstPacketStartingFrom = new Call(
 );
 
 module.exports.handleIncomingPacket = new Call(
+    // Args: packet
     packetCoder,
+
+    // No return value
     undefined
 );
 
 module.exports.isAdmissible = new Call(
+
+    // Args: src, dst
     new Coder(
 	function(obj) {
 	    return bigint.serialize([obj.src, obj.dst]);
@@ -91,6 +96,8 @@ module.exports.isAdmissible = new Call(
 	    };
 	}
     ),
+
+    // Return value, a boolean
     new Coder(
 	function(p) {
 	    assert(typeof p == 'boolean');
@@ -100,6 +107,26 @@ module.exports.isAdmissible = new Call(
 	}, function(buf) {
 	    assert(buf.length == 1);
 	    return buf.readUInt8(0) != 0;
+	}
+    )
+);
+
+module.exports.getForeignDiaryNumber = new Call(
+    // Args: a mailbox name
+    new Coder(
+	function(mailboxName) {
+	    return bigint.serialize(mailboxName);
+	}, function(wrappedName) {
+	    return bigint.deserializeBigInt(wrappedName);
+	}
+    ),
+
+    // Return value: a diary number.
+    new Coder(
+	function(diaryNumber) {
+	    return bigint.serialize(diaryNumber);
+	}, function(wrappedDiaryNumber) {
+	    return bigint.deserialize(wrappedDiaryNumber);
 	}
     )
 );
