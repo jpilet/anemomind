@@ -1,4 +1,5 @@
 var assert = require('assert');
+var bigint = require('./bigint.js');
 
 var int64Size = 8;
 
@@ -60,7 +61,7 @@ BufferManager.prototype.writeBigInt = function(x, width) {
 BufferManager.prototype.readBigInt = function(width) {
     width = width || bigint.defaultWidth;    
     assert(!this.finished());
-    var result = bigint.deserializeBigIntFromBuffer(this.buffer, width);
+    var result = bigint.deserializeBigIntFromBuffer(this.buffer, this.pointer, width);
     this.pointer += bigint.calcByteCount(width);
     return result;
 }
@@ -72,7 +73,7 @@ BufferManager.prototype.writeUInt8 = function(x) {
 }
 
 BufferManager.prototype.readUInt8 = function() {
-    var result = this.readUInt8(this.pointer);
+    var result = this.buffer.readUInt8(this.pointer);
     this.pointer++;
     return result;
 }
@@ -119,7 +120,7 @@ function deserializeLightPacket(x) {
 
 function serializeFullPacket(packet) {
     assert(isFullPacket(packet));
-    var dstLen = calcByteCount(5*bigint.defaultWidth) + 1 + packet.data.length;
+    var dstLen = bigint.calcByteCount(5*bigint.defaultWidth) + 1 + packet.data.length;
     var b = new BufferManager(new Buffer(dstLen));
     b.writeBigInt(packet.diaryNumber);
     b.writeBigInt(packet.src);
