@@ -26,6 +26,8 @@ function Call(args, result) {
     this.result = result;
 }
 
+
+
 module.exports.setForeignDiaryNumber = new Call(
     // Args
     new Coder(
@@ -133,6 +135,20 @@ module.exports.getForeignDiaryNumber = new Call(
 	    return bigint.serialize(diaryNumber);
 	}, function(wrappedDiaryNumber) {
 	    return bigint.deserializeBigInt(wrappedDiaryNumber);
+	}
+    )
+);
+
+module.exports.mailboxName = new Call(
+    // Args: none
+    undefined,
+
+    // Result
+    new Coder(
+	function(mailboxName) {
+	    return bigint.serialize(mailboxName);
+	}, function(wrappedMailboxName) {
+	    return bigint.deserializeBigInt(wrappedMailboxName);
 	}
     )
 );

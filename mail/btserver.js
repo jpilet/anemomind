@@ -28,6 +28,7 @@ function makeRPCHandler(call, argHandler) {
 }
 
 
+
 function SetForeignDiaryNumber(mailbox) {
     this.mailbox = mailbox;
     bleno.Characteristic.call(
@@ -55,6 +56,8 @@ SetForeignDiaryNumber.prototype.onWriteRequest =
 	    );
 	}
     );
+
+
 
 function GetFirstPacketStartingFrom(mailbox) {
     this.mailbox = mailbox;
