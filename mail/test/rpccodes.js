@@ -47,6 +47,16 @@ it(
 		    assert(eq.eqv(packet, wrapAndUnwrap(
 			c.getFirstPacketStartingFrom.result, packet
 		    )));
+		}{
+		    var packet = {
+			diaryNumber: bigint.make(39),
+			src: bigint.make(12),
+			dst: bigint.make(3),
+			seqNumber: bigint.make(3999),
+		    };
+		    assert(eq.eqv(packet, wrapAndUnwrap(
+			c.getFirstPacketStartingFrom.result, packet
+		    )));
 		}
 	    }
 	);

@@ -96,7 +96,7 @@ BufferManager.prototype.getRemainingBuffer = function() {
 // If it is the case that the packet should be transferred, the
 // diaryNumber is used as a starting point for querying the next
 // packet.
-function serializeLight(packet) {
+function serializeLightPacket(packet) {
     assert(isLightPacket(packet));
     return bigint.serialize(
 	[packet.diaryNumber, packet.src, packet.dst, packet.seqNumber]
