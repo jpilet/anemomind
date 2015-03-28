@@ -269,7 +269,7 @@ describe(
 		    function(box) {
 			box.registerPacketData(
 			    {src: 'a', dst: 'b', seqNumber: '119', cNumber: '030',
-			     label: 'My label', data: 'Some data'},
+			     label: 'My label', data: mailsqlite.serializeString('Some data')},
 			    function(err) {
 				assert(err == undefined);
 				box.getCNumber('a', 'b', function(err, num) {
@@ -316,7 +316,7 @@ describe(
 				       seqNumber: bigint.make(n),
 				       cNumber: bigint.make(0),
 				       label: 'Spam message',
-				       data: new Buffer(3)
+				       data: mailsqlite.serializeString('Some spam message'),
 				   },
 				   function(err) {
 				       spammer(n - 1, cb);

@@ -11,6 +11,14 @@ var assert = require('assert');
 var pkt = require('./packet.js');
 var bigint = require('./bigint.js');
 
+function serializeString(x) {
+    assert(typeof x == 'string');
+    var buf = new Buffer(2*x.length);
+    var len = buf.write(x, 0);
+    return buf.slice(0, len);
+}
+
+
 function serializeSeqNums(x) {
     return bigint.serialize(x);
 }
@@ -625,6 +633,7 @@ Mailbox.prototype.hasPacket = function(src, seqNumber, cb) {
 
 // This method will update the C-table and save the packet in the db.
 Mailbox.prototype.registerPacketData = function(packet, cb) {
+    assert(isValidPacket(packet));
     var logger = makeNestedLogger();
     assert(isFunction(cb));    
     var self = this;
@@ -1013,3 +1022,4 @@ module.exports.isCounter = isCounter;
 module.exports.isIdentifier = isIdentifier;
 module.exports.serializeSeqNums = serializeSeqNums;
 module.exports.deserializeSeqNums = deserializeSeqNums;
+module.exports.serializeString = serializeString;
