@@ -37,8 +37,13 @@ it(
 	describe(
 	    'Should serialize and deserialize a big integer correctly',
 	    function() {
-		var a = 'fffff1234';
-		assert(bigint.deserializeBigInt(bigint.serialize(a), a.length) == a);
+		{
+		    var a = 'fffff1234';
+		    assert(bigint.deserializeBigInt(bigint.serialize(a), a.length) == a);
+		}{
+		    var a = 'ffff1234';
+		    assert(bigint.deserializeBigInt(bigint.serialize(a), a.length) == a);
+		}
 	    }
 	);
 	
