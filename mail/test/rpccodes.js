@@ -60,5 +60,21 @@ it(
 		}
 	    }
 	);
+
+	describe(
+	    'Should validate handleIncomingPacket',
+	    function() {
+		var packet = {
+		    diaryNumber: bigint.make(39),
+		    src: bigint.make(12),
+		    dst: bigint.make(3),
+		    seqNumber: bigint.make(3999),
+		    cNumber: bigint.make(324111),
+		    label: 9,
+		    data: bigint.serialize('abcdef')
+		};
+		assert(eq.eqv(packet, wrapAndUnwrap(c.handleIncomingPacket.args, packet)));
+	    }
+	);
     }
 );
