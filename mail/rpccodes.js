@@ -132,7 +132,7 @@ module.exports.getForeignDiaryNumber = new Call(
 	function(diaryNumber) {
 	    return bigint.serialize(diaryNumber);
 	}, function(wrappedDiaryNumber) {
-	    return bigint.deserialize(wrappedDiaryNumber);
+	    return bigint.deserializeBigInt(wrappedDiaryNumber);
 	}
     )
 );

@@ -86,5 +86,15 @@ it(
 		assert(eq.eqv(result, wrapAndUnwrap(c.isAdmissible.result, result)));
 	    }
 	);
+
+	describe(
+	    'getForeignDiaryNumber',
+	    function() {
+		var args = bigint.make(12335);
+		assert(eq.eqv(args, wrapAndUnwrap(c.getForeignDiaryNumber.args, args)));
+		var result = bigint.make(99765);
+		assert(eq.eqv(result, wrapAndUnwrap(c.getForeignDiaryNumber.result, result)));
+	    }
+	);
     }
 );
