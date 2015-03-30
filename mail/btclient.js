@@ -8,11 +8,13 @@ function makeUuidMap() {
 	'13333333333333333333333333330003': 'HandleIncomingPacket',
 	'13333333333333333333333333330004': 'IsAdmissible',
 	'13333333333333333333333333330005': 'GetForeignDiaryNumber',
+	'13333333333333333333333333330005': 'MailboxName',
 	'setForeignDiaryNumber': null,
 	'getFirstPacketStartingFrom': null,
 	'handleIncomingPacket': null,
 	'isAdmissible': null,
-	'getForeignDiaryNumber': null
+	'getForeignDiaryNumber': null,
+	'mailboxName': null
     };
 }
 
@@ -42,19 +44,18 @@ noble.on('stateChange', function(state) {
   }
 })
 
-var mailService = null;
-var setForeignDiaryNumber = null;
-var getFirstPacketStartingFrom = null;
-var handleIncomingPacket = null;
-var isAdmissible = null;
-var getForeignDiaryNumber = null;
 
 function synchronize(localMailbox, service, cmap) {
 
-    // A remote mailbox.
-    var remoteMailbox = new Mailbox(service, cmap);
-
     
+    makeRpcCall(
+	cmap.mailboxName,
+	c.mailboxName,
+	undefined,
+	function(name) {
+	    var remoteMailbox = new Mailbox(name, service, cmap);	    
+	}
+    );
 }
 
 function handleService(localMailbox, service) {
@@ -90,6 +91,7 @@ function connectAndSynchronize(localMailbox) {
 			[mailServiceUuid], function(err, services) {
 			    services.forEach(
 				function (service) {
+				    console.log('handle service');
 				    handleService(localMailbox, service);
 				}
 			    ); // foreach
@@ -132,10 +134,36 @@ function makeRpcCall(characteristic, call, args, cb) {
     );
 }
 
-function Mailbox(service, cmap) {
+function Mailbox(name, service, cmap) {
+    console.log('Create a new mailbox with name ', name);
+    this.name = name;
     this.service = service;
     this.cmap = cmap;
 }
 
-Mailbox.prototype
+Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
+    makeRpcCall(cmap.setForeignDiaryNumber,
+		c.setForeignDiaryNumber,
+		{mailboxName: otherMailbox, diaryNumber: newValue},
+		cb);
+}
 
+Mailbox.prototype.getFirstPacketStartingFrom =
+    function(mailboxName, diaryNumber, lightWeight, cb) {
+	makeRpcCall(cmap.getFirstPacketStartingFrom,
+		   c.getFirstPacketStartingFrom,
+		   {mailboxName: mailboxName, diaryNumber: diaryNumber, lightWeight: lightWeight},
+		    cb);
+}
+
+Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
+    makeRpcCall(cmap.handleIncomingPacket, c.handleIncomingPacket,
+	       packet, cb);
+}
+
+Mailbox.prototype.isAdmissible = function(src, dst, cb) {
+    makeRpcCall(cmap.isAdmissible, c.isAdmissible, {src: src, dst: dst}, cb);
+}
+
+module.exports.connectAndSynchronize =
+    connectAndSynchronize;
