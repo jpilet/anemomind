@@ -261,3 +261,5 @@ function runMailService(name, mailService) {
 	}
     });
 }
+
+module.exports.runMailService = runMailService;
