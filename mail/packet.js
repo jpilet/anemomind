@@ -156,7 +156,9 @@ function deserializeFullPacket(buf) {
 }
 
 function serialize(packet) {
-    if (isFullPacket(packet)) {
+    if (packet == undefined) {
+	return new Buffer(0);
+    } else if (isFullPacket(packet)) {
 	return serializeFullPacket(packet);
     } else {
 	return serializeLightPacket(packet);
@@ -164,7 +166,9 @@ function serialize(packet) {
 }
 
 function deserialize(x) {
-    if (isSerializedLightPacket(x)) {
+    if (x.length == 0) {
+	return undefined;
+    } else if (isSerializedLightPacket(x)) {
 	return deserializeLightPacket(x);
     } else {
 	return deserializeFullPacket(x);
