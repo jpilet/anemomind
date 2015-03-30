@@ -1,6 +1,12 @@
 var mb = require('./mail.sqlite.js');
 var bigint = require('./bigint.js');
 var bleno = require('bleno');
+var util = require('util');
+var ms = require('./mailservice.js');
+var c = require('./rpccodes.js');
+
+
+var mailService = new ms.MailService(mailbox);
 
 
 var mailbox = new mb.Mailbox(
@@ -10,12 +16,7 @@ var mailbox = new mb.Mailbox(
 );
 
 
-
 function runIt(err) {
-    var mailService = new MailService(mailbox);
-    
-    var util = require('util');
-    var c = require('./rpccodes.js');
 
 
     // argHandler(self, args, cb(err, result))
