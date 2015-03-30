@@ -1,14 +1,21 @@
 var noble = require('noble');
 var c = require('./rpccodes.js');
+var Q = require('q');
+var mb = require('./mail.sqlite.js');
+var bigint = require('./bigint.js');
 
 function makeUuidMap() {
     return {
+	// Maps uuids of detected services to their names
 	'13333333333333333333333333330001': 'setForeignDiaryNumber',
-	'13333333333333333333333333330002': 'GetFirstPacketStartingFrom',
-	'13333333333333333333333333330003': 'HandleIncomingPacket',
-	'13333333333333333333333333330004': 'IsAdmissible',
-	'13333333333333333333333333330005': 'GetForeignDiaryNumber',
-	'13333333333333333333333333330005': 'MailboxName',
+	'13333333333333333333333333330002': 'getFirstPacketStartingFrom',
+	'13333333333333333333333333330003': 'handleIncomingPacket',
+	'13333333333333333333333333330004': 'isAdmissible',
+	'13333333333333333333333333330005': 'getForeignDiaryNumber',
+	'13333333333333333333333333330005': 'mailboxName',
+
+	// Maps names to characteristics. To be filled in upon detection
+	// of a device.
 	'setForeignDiaryNumber': null,
 	'getFirstPacketStartingFrom': null,
 	'handleIncomingPacket': null,
@@ -16,6 +23,15 @@ function makeUuidMap() {
 	'getForeignDiaryNumber': null,
 	'mailboxName': null
     };
+}
+
+function isComplete(m) {
+    for (var key in m) {
+	if (m[key] == undefined) {
+	    return false;
+	}
+    }
+    return true;
 }
 
 var mailServiceUuid = '13333333333333333333333333333337';
@@ -42,12 +58,11 @@ noble.on('stateChange', function(state) {
   else {
     noble.stopScanning();
   }
-})
+});
 
 
 function synchronize(localMailbox, service, cmap) {
-
-    
+    console.log('synchronize');
     makeRpcCall(
 	cmap.mailboxName,
 	c.mailboxName,
@@ -67,7 +82,9 @@ function handleService(localMailbox, service) {
 	    characteristics.forEach(
 		function(characteristic) {
 		    console.log('found characteristic:', characteristic.uuid);
-		    uuidMap[characteristic.uuid] = characteristic;
+		    var cname = uuidMap[characteristic.uuid];
+		    console.log('  which is ' + cname);
+		    uuidMap[cname] = characteristic;
 		}
 	    );
 	    if (isComplete(uuidMap)) {
@@ -80,28 +97,32 @@ function handleService(localMailbox, service) {
     ); // discoverCharacteristics
 } // function(service)
 
-function connectAndSynchronize(localMailbox) {
-    noble.on(
-	'discover',
-	function(peripheral) {
-	    console.log('found peripheral:', peripheral.advertisement);
-	    peripheral.connect(
-		function(err) {
-		    peripheral.discoverServices(
-			[mailServiceUuid], function(err, services) {
-			    services.forEach(
-				function (service) {
-				    console.log('handle service');
-				    handleService(localMailbox, service);
-				}
-			    ); // foreach
-			} // function(err, services)
-		    );
-		}
-	    );
-	}
-    );
-}
+var localMailboxPromise = Q.nfcall(mb.makeMailbox, ":memory:", bigint.make(60));
+
+noble.on(
+    'discover',
+    function(peripheral) {
+	console.log('found peripheral:', peripheral.advertisement);
+	peripheral.connect(
+	    function(err) {
+		peripheral.discoverServices(
+		    [mailServiceUuid], function(err, services) {
+			services.forEach(
+			    function (service) {
+				console.log('handle service');
+				localMailboxPromise.then(
+				    function(localMailbox) {
+					handleService(localMailbox, service);
+				    }
+				);
+			    }
+			); // foreach
+		    } // function(err, services)
+		);
+	    }
+	);
+    }
+);
 
 function makeRawRpcCall(characteristic, codedArgs, cb) {
     characteristic.on(
@@ -164,6 +185,3 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 Mailbox.prototype.isAdmissible = function(src, dst, cb) {
     makeRpcCall(cmap.isAdmissible, c.isAdmissible, {src: src, dst: dst}, cb);
 }
-
-module.exports.connectAndSynchronize =
-    connectAndSynchronize;
