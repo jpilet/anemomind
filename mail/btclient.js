@@ -12,7 +12,7 @@ function makeUuidMap() {
 	'13333333333333333333333333330002': 'getFirstPacketStartingFrom',
 	'13333333333333333333333333330003': 'handleIncomingPacket',
 	'13333333333333333333333333330004': 'isAdmissible',
-	'13333333333333333333333333330005': 'getForeignDiaryNumber',
+	'13333333333333333333333333330005': 'getForeignStartNumber',
 	'13333333333333333333333333330006': 'mailboxName',
 
 	// Maps names to characteristics. To be filled in upon detection
@@ -21,7 +21,7 @@ function makeUuidMap() {
 	'getFirstPacketStartingFrom': null,
 	'handleIncomingPacket': null,
 	'isAdmissible': null,
-	'getForeignDiaryNumber': null,
+	'getForeignStartNumber': null,
 	'mailboxName': null
     };
 }

@@ -17,9 +17,10 @@ var bigint = require('./bigint.js');
      Calls cb once the packet has been handled
   * isAdmissible(src, dst, cb):
      Calls cb with a boolean value
-  * getForeignDiaryNumber(mailboxName, cb):
+  * getForeignStartNumber(mailboxName, cb):
      Calls cb with the foreign diaryNumber
-
+  * mailboxName
+     Calls cb with the mailbox name.
 */
 
 
