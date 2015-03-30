@@ -6,19 +6,6 @@ var ms = require('./mailservice.js');
 var c = require('./rpccodes.js');
 
 
-var mailService = new ms.MailService(mailbox);
-
-
-var mailbox = new mb.Mailbox(
-    ':memory:',
-    bigint.make(0),
-    runIt
-);
-
-
-function runIt(err) {
-
-
     // argHandler(self, args, cb(err, result))
     function makeRPCHandler(call, argHandler) {
 	return function(data, offset, withoutResponse, cb) {
@@ -240,46 +227,51 @@ function runIt(err) {
 
 
 
+var name = bigint.make(0);
 
+var mailbox = new mb.Mailbox(
+    ':memory:',
+    name,
+    runIt
+);
 
+function runIt(err) {
+    console.log('Mailbox created');
 
+    var mailService = new ms.MailService(mailbox);
 
+    console.log('Run the mail service!!!');
+    bleno.on('stateChange', function(state) {
+	if (state === 'poweredOn') {
+	    console.log('powered on.');
+	    //
+	    // We will also advertise the service ID in the advertising packet,
+	    // so it's easier to find.
+	    //
+	    bleno.startAdvertising(name, [mailService.uuid], function(err) {
+		if (err) {
+		    console.log(err);
+		}
+	    });
+	}
+	else {
+	    bleno.stopAdvertising();
+	}
+    });
 
-
-    function runMailService(name, mailService) {
-	console.log('Run the mail service!!!');
-	bleno.on('stateChange', function(state) {
-	    if (state === 'poweredOn') {
-		console.log('powered on.');
-		//
-		// We will also advertise the service ID in the advertising packet,
-		// so it's easier to find.
-		//
-		bleno.startAdvertising(name, [mailService.uuid], function(err) {
-		    if (err) {
-			console.log(err);
-		    }
-		});
-	    }
-	    else {
-		bleno.stopAdvertising();
-	    }
-	});
-
-	bleno.on('advertisingStart', function(err) {
-	    if (!err) {
-		console.log('advertising...');
-		//
-		// Once we are advertising, it's time to set up our services,
-		// along with our characteristics.
-		//
-		bleno.setServices([
-		    mailService
-		]);
-	    } else {
-		console.log('Error: %j', err);
-	    }
-	});
-    }
+    bleno.on('advertisingStart', function(err) {
+	if (!err) {
+	    console.log('advertising...');
+	    //
+	    // Once we are advertising, it's time to set up our services,
+	    // along with our characteristics.
+	    //
+	    bleno.setServices([
+		mailService
+	    ]);
+	} else {
+	    console.log('Error: %j', err);
+	}
+    });
 
 }
