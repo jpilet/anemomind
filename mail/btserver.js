@@ -212,7 +212,7 @@ IsAdmissible.prototype.onWriteRequest =
     );
 
 
-function GetForeignDiaryNumber(mailbox) {
+function GetForeignStartNumber(mailbox) {
     this.mailbox = mailbox;
     bleno.Characteristic.call(
 	this, {
@@ -230,12 +230,12 @@ function GetForeignDiaryNumber(mailbox) {
     );
     console.log('Created characteristic.');
 }
-util.inherits(GetForeignDiaryNumber, bleno.Characteristic);
-GetForeignDiaryNumber.prototype.onWriteRequest =
+util.inherits(GetForeignStartNumber, bleno.Characteristic);
+GetForeignStartNumber.prototype.onWriteRequest =
     makeRPCHandler(
-	c.getForeignDiaryNumber,
+	c.getForeignStartNumber,
 	function(self, args, cb) {
-	    self.mailbox.getForeignDiaryNumber(
+	    self.mailbox.getForeignStartNumber(
 		args.mailboxName, cb
 	    );
 	}
@@ -262,7 +262,7 @@ function MailboxName(mailbox) {
 util.inherits(MailboxName, bleno.Characteristic);
 MailboxName.prototype.onWriteRequest =
     makeRPCHandler(
-	c.getForeignDiaryNumber,
+	c.getForeignStartNumber,
 	function(self, args, cb) {
 	    // ignore the args: we just want to the the name of this mailbox
 	    cb(undefined, self.mailbox.mailboxName);
@@ -283,7 +283,7 @@ function MailService(mailbox) {
 		new GetFirstPacketStartingFrom(mailbox),
 		new HandleIncomingPacket(mailbox),
 		new IsAdmissible(mailbox),
-		new GetForeignDiaryNumber(mailbox),
+		new GetForeignStartNumber(mailbox),
 		new MailboxName(mailbox)
 	    ]
 	}

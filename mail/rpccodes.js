@@ -119,7 +119,7 @@ module.exports.isAdmissible = new Call(
     )
 );
 
-module.exports.getForeignDiaryNumber = new Call(
+module.exports.getForeignStartNumber = new Call(
     // Args: a mailbox name
     new Coder(
 	function(mailboxName) {
