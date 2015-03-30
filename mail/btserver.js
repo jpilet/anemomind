@@ -19,14 +19,13 @@ function makeService(cb) {
 		console.log('Failed to create a mailbox.');
 	    }
 	    console.log('A mailbox with name ' + box.mailboxName + ' was successfully created');
-	    cb(err, new MailService(mailbox));
+	    cb(err, new MailService(box));
 	}
     );
 }
-var qMakeService = Q.nfbind(makeService);
 
-// mailService
-var mailServicePromise = qMakeService();
+// mailService.
+var mailServicePromise = Q.nfcall(makeService);
 
 
 bleno.on('stateChange', function(state) {
