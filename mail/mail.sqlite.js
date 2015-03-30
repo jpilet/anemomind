@@ -205,6 +205,15 @@ function dispAllTableData(db, cb) {
 // Don't call this constructor directly: Please call
 // makeMailbox instead.
 function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
+    var goodInput = 
+	isString(dbFilename) &&
+	isString(mailboxName) &&
+	isNumber(ackFrequency) &&
+	isObject(db);
+    if (!goodInput) {
+	console.log('You are trying to create a mailbox with bad inputs.');
+	console.log('Dont call this constructor directly, use makeMailbox instead.');
+    }
     this.dbFilename = dbFilename;
     this.mailboxName = mailboxName;
     this.ackFrequency = ackFrequency;
@@ -216,6 +225,7 @@ function makeMailbox(dbFilename,  // <-- The filename where all
 		 mailboxName, // <-- A string that uniquely
 		                  //     identifies this mailbox
 		 cb) { // <-- call cb(err, mailbox) when the mailbox is created.
+    console.log('makeMailbox 1');
     assert(isFunction(cb));    
     if (!isValidDBFilename(dbFilename)) {
 	throw new Error('Invalid database filename');
@@ -1036,3 +1046,4 @@ module.exports.deserializeSeqNums = deserializeSeqNums;
 module.exports.serializeString = serializeString;
 module.exports.ACKLABEL = ACKLABEL;
 module.exports.makeMailbox = makeMailbox;
+module.exports.Mailbox = Mailbox;

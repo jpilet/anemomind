@@ -7,19 +7,39 @@ var c = require('./rpccodes.js');
 var Q = require('q');
 
 
+var name = bigint.make(0);
+
+function makeService(cb) {
+    console.log('Make a mailbox with name ' + name);
+    mb.makeMailbox(
+	':memory:',
+	name,
+	function(err, box) {
+	    if (err) {
+		console.log('Failed to create a mailbox.');
+	    }
+	    console.log('A mailbox with name ' + box.mailboxName + ' was successfully created');
+	    cb(err, new MailService(mailbox));
+	}
+    );
+}
+var qMakeService = Q.nfbind(makeService);
+
+// mailService
+var mailServicePromise = qMakeService();
+
 
 bleno.on('stateChange', function(state) {
     console.log('stateChange');
     if (state === 'poweredOn') {
 	console.log('powered on.');
-	//
-	// We will also advertise the service ID in the advertising packet,
-	// so it's easier to find.
-	//
-	bleno.startAdvertising(name, [mailService.uuid], function(err) {
-	    if (err) {
-		console.log(err);
-	    }
+	mailServicePromise.then(function(mailService) {
+	    console.log('Start advertising...');
+	    bleno.startAdvertising(name, [mailService.uuid], function(err) {
+		if (err) {
+		    console.log(err);
+		}
+	    });
 	});
     }
     else {
@@ -32,9 +52,11 @@ bleno.on('advertisingStart', function(err) {
     if (!err) {
 	console.log('advertising...');
 
-	// bleno.setServices([
-	//     mailService
-	// ]);
+	mailServicePromise.then(function(mailService) {
+	    bleno.setServices([
+	        mailService
+	    ]);
+	});
     } else {
 	console.log('Error: %j', err);
     }
@@ -265,20 +287,14 @@ util.inherits(MailService, bleno.PrimaryService);
 
 
 
-var name = bigint.make(0);
 
-var mailbox = new mb.Mailbox(
-    ':memory:',
-    name,
-    runIt
-);
 
 function runIt(err) {
     if (err) {
 	console.log('Error creating a mailbox: %j', err);
     }
     
-    var mailService = new MailService(mailbox);
+
 
     console.log('Run the mail service!!!');
     
