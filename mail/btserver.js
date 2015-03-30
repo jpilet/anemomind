@@ -7,7 +7,7 @@ var c = require('./rpccodes.js');
 var Q = require('q');
 
 
-var name = bigint.make(0);
+var name = bigint.make(119);
 
 function makeService(cb) {
     console.log('Make a mailbox with name ' + name);
@@ -52,6 +52,7 @@ bleno.on('advertisingStart', function(err) {
 	console.log('advertising...');
 
 	mailServicePromise.then(function(mailService) {
+	    console.log('Set the services');
 	    bleno.setServices([
 	        mailService
 	    ]);
@@ -66,6 +67,7 @@ bleno.on('advertisingStart', function(err) {
 // argHandler(self, args, cb(err, result))
 function makeRPCHandler(call, argHandler) {
     return function(data, offset, withoutResponse, cb) {
+	console.log('RPC handler called for ' + call.name);
 	var self = this;
 	if (offset) {
 	    cb(this.RESULT_ATTR_NOT_LONG);
@@ -105,6 +107,7 @@ function SetForeignDiaryNumber(mailbox) {
 	    ]
 	}
     );
+    console.log('Created characteristic.');
 }
 util.inherits(SetForeignDiaryNumber, bleno.Characteristic);
 SetForeignDiaryNumber.prototype.onWriteRequest =
@@ -135,6 +138,7 @@ function GetFirstPacketStartingFrom(mailbox) {
 	    ]
 	}
     );
+    console.log('Created characteristic.');
 }
 util.inherits(GetFirstPacketStartingFrom, bleno.Characteristic);
 GetFirstPacketStartingFrom.prototype.onWriteRequest =
@@ -164,6 +168,7 @@ function HandleIncomingPacket(mailbox) {
 	    ]
 	}
     );
+    console.log('Created characteristic.');
 }
 util.inherits(HandleIncomingPacket, bleno.Characteristic);
 HandleIncomingPacket.prototype.onWriteRequest =
@@ -193,6 +198,7 @@ function IsAdmissible(mailbox) {
 	    ]
 	}
     );
+    console.log('Created characteristic.');
 }
 util.inherits(IsAdmissible, bleno.Characteristic);
 IsAdmissible.prototype.onWriteRequest =
@@ -222,6 +228,7 @@ function GetForeignDiaryNumber(mailbox) {
 	    ]
 	}
     );
+    console.log('Created characteristic.');
 }
 util.inherits(GetForeignDiaryNumber, bleno.Characteristic);
 GetForeignDiaryNumber.prototype.onWriteRequest =
@@ -250,6 +257,7 @@ function MailboxName(mailbox) {
 	    ]
 	}
     );
+    console.log('Created characteristic.');
 }
 util.inherits(MailboxName, bleno.Characteristic);
 MailboxName.prototype.onWriteRequest =
