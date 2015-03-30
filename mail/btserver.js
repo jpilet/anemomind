@@ -77,7 +77,7 @@ function makeRPCHandler(call, argHandler) {
 		self, args, function(err, result) {
 		    console.log('  ...and produce the result: %j', result);
 		    self.updateValueCallback(
-			call.result.wrap == undefined? new Buffer(0)
+			call.result == undefined? new Buffer(0)
 			    : call.result.wrap(result)
 		    );
 		    cb(this.RESULT_SUCCESS);
@@ -113,7 +113,7 @@ SetForeignDiaryNumber.prototype.onWriteRequest =
 	c.setForeignDiaryNumber,
 	function(self, args, cb) {
 	    self.mailbox.setForeignDiaryNumber(
-		args.mailboxName, args.DiaryNumber, cb
+		args.mailboxName, args.diaryNumber, cb
 	    );
 	}
     );
@@ -234,7 +234,7 @@ GetForeignStartNumber.prototype.onWriteRequest =
 	c.getForeignStartNumber,
 	function(self, args, cb) {
 	    self.mailbox.getForeignStartNumber(
-		args.mailboxName, cb
+		args, cb
 	    );
 	}
     );
