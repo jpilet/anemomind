@@ -154,12 +154,9 @@ function makeRpcCall(characteristic, call, args, cb) {
 	characteristic,
 	(call.args == undefined? new Buffer(0) : call.args.wrap(args)),
 	function(wrappedResult, notified) {
-	    console.log('Received wrapped result: %j', wrappedResult);
 	    var unwrapped = (call.result == undefined?
 			     undefined
 			     : call.result.unwrap(wrappedResult));
-	    console.log('The unwrapped result is: %j', unwrapped);
-
 	    // drop the 'notified' argument, why would that be interesting?
 	    cb(undefined, unwrapped);
 	}

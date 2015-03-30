@@ -173,7 +173,7 @@ function serialize(packet) {
     }
 }
 
-function deserialize0(x) {
+function deserialize(x) {
     if (x.length == 0) {
 	return undefined;
     } else if (isSerializedLightPacket(x)) {
@@ -181,12 +181,6 @@ function deserialize0(x) {
     } else {
 	return deserializeFullPacket(x);
     }
-}
-
-function deserialize(x) {
-    var y = deserialize0(x);
-    console.log('Deserialize x -> y: %j -> %j', x, y);
-    return y;
 }
 
 exports.isLightPacket = isLightPacket;
