@@ -9,17 +9,31 @@ var Q = require('q');
 
 var name = bigint.make(119);
 
+var globalDebuggingBox = null;
+
 function makeService(cb) {
     console.log('Make a mailbox with name ' + name);
     mb.makeMailbox(
 	':memory:',
 	name,
 	function(err, box) {
-	    if (err) {
-		console.log('Failed to create a mailbox.');
-	    }
-	    console.log('A mailbox with name ' + box.mailboxName + ' was successfully created');
-	    cb(err, new MailService(box));
+
+	    // For debugging.
+	    globalDebuggingBox = box;
+	    
+	    box.sendPacket(
+		bigint.make(60),
+		13,
+		mb.serializeString('A message'),
+		function (err) {
+		    if (err) {
+			console.log('Failed to create a mailbox.');
+		    }
+		    console.log('A mailbox with name ' + box.mailboxName + ' was successfully created');
+		    cb(err, new MailService(box));
+		    
+		}
+	    );
 	}
     );
 }
@@ -76,11 +90,16 @@ function makeRPCHandler(call, argHandler) {
 	    argHandler(
 		self, args, function(err, result) {
 		    console.log('  ...and produce the result: %j', result);
-		    self.updateValueCallback(
-			call.result == undefined? new Buffer(0)
-			    : call.result.wrap(result)
+		    mb.dispAllTableData(
+			globalDebuggingBox.db,
+			function (err) {
+			    self.updateValueCallback(
+				call.result == undefined? new Buffer(0)
+				    : call.result.wrap(result)
+			    );
+			    cb(this.RESULT_SUCCESS);
+			}
 		    );
-		    cb(this.RESULT_SUCCESS);
 		}
 	    );
 	}
@@ -289,21 +308,3 @@ function MailService(mailbox) {
 }
 
 util.inherits(MailService, bleno.PrimaryService);
-
-
-
-
-
-function runIt(err) {
-    if (err) {
-	console.log('Error creating a mailbox: %j', err);
-    }
-    
-
-
-    console.log('Run the mail service!!!');
-    
-
-    console.log('Registered advertisingStart');
-
-}
