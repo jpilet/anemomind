@@ -67,7 +67,7 @@ bleno.on('advertisingStart', function(err) {
 // argHandler(self, args, cb(err, result))
 function makeRPCHandler(call, argHandler) {
     return function(data, offset, withoutResponse, cb) {
-	console.log('RPC handler called for ' + call.name);
+	console.log('RPC handler called for %j', call);
 	var self = this;
 	if (offset) {
 	    cb(this.RESULT_ATTR_NOT_LONG);
@@ -75,13 +75,11 @@ function makeRPCHandler(call, argHandler) {
 	    var args = call.args.unwrap(data);
 	    argHandler(
 		self, args, function(err, result) {
-		    if (call.result.wrap == undefined) {
-			var data = new Buffer(0);
-			self.updateValueCallback(data);
-		    } else {
-			var data = call.result.wrap(result);
-			self.updateValueCallback(data);			
-		    }
+		    console.log('  ...and produce the result!');
+		    self.updateValueCallback(
+			call.result.wrap == undefined? new Buffer(0)
+			    : call.result.wrap(result)
+		    );
 		    cb(this.RESULT_SUCCESS);
 		}
 	    );
