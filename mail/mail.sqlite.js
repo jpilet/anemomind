@@ -403,6 +403,7 @@ Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
 
 // Use this function to get a number of the first packet to ask for when synchronizing
 Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
+    console.log('otherMailbox = %j', otherMailbox);
     assert(isIdentifier(otherMailbox));
     assert(isFunction(cb));
     

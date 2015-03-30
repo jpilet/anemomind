@@ -3,6 +3,7 @@ var c = require('./rpccodes.js');
 var Q = require('q');
 var mb = require('./mail.sqlite.js');
 var bigint = require('./bigint.js');
+var sync = require('./sync.js');
 
 function makeUuidMap() {
     return {
@@ -12,7 +13,7 @@ function makeUuidMap() {
 	'13333333333333333333333333330003': 'handleIncomingPacket',
 	'13333333333333333333333333330004': 'isAdmissible',
 	'13333333333333333333333333330005': 'getForeignDiaryNumber',
-	'13333333333333333333333333330005': 'mailboxName',
+	'13333333333333333333333333330006': 'mailboxName',
 
 	// Maps names to characteristics. To be filled in upon detection
 	// of a device.
@@ -67,8 +68,11 @@ function synchronize(localMailbox, service, cmap) {
 	cmap.mailboxName,
 	c.mailboxName,
 	undefined,
-	function(name) {
-	    var remoteMailbox = new Mailbox(name, service, cmap);	    
+	function(lname) {
+	    var remoteMailbox = new Mailbox(lname, service, cmap);
+	    sync.synchronize(localMailbox, remoteMailbox, function() {
+		console.log('Done synchronizing');
+	    });
 	}
     );
 }
@@ -148,7 +152,7 @@ function makeRawRpcCall(characteristic, codedArgs, cb) {
 function makeRpcCall(characteristic, call, args, cb) {
     makeRawRpcCall(
 	characteristic,
-	call.args.wrap(args),
+	(call.args == undefined? new Buffer(0) : call.args.wrap(args)),
 	function(wrappedResult, notified) {
 	    cb(call.result.unwrap(wrappedResult), notified);
 	}
@@ -157,7 +161,7 @@ function makeRpcCall(characteristic, call, args, cb) {
 
 function Mailbox(name, service, cmap) {
     console.log('Create a new mailbox with name ', name);
-    this.name = name;
+    this.mailboxName = name;
     this.service = service;
     this.cmap = cmap;
 }
