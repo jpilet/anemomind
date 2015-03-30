@@ -172,6 +172,8 @@ function Mailbox(name, service, cmap) {
 }
 
 Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
+    console.log('otherMailbox = %j', otherMailbox);
+    console.log('newValue = %j', newValue);
     makeRpcCall(this.cmap.setForeignDiaryNumber,
 		c.setForeignDiaryNumber,
 		{mailboxName: otherMailbox, diaryNumber: newValue},
@@ -203,8 +205,8 @@ Mailbox.prototype.isAdmissible = function(src, dst, cb) {
 }
 
 Mailbox.prototype.getForeignStartNumber = function(mailboxName, cb) {
-    makeRpcCall(this.cmap.setForeignDiaryNumber,
-		c.setForeignDiaryNumber,
+    makeRpcCall(this.cmap.getForeignDiaryNumber,
+		c.getForeignDiaryNumber,
 		mailboxName,
 		cb);
 }
