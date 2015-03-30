@@ -51,7 +51,7 @@ class ValueDispatcher {
  private:
   std::set<Listener<T> *> listeners_;
   std::deque<TimedValue<T>> values_;
-  int bufferLength_;
+  size_t bufferLength_;
 };
 
 template <typename T>
