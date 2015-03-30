@@ -75,7 +75,7 @@ function makeRPCHandler(call, argHandler) {
 	    var args = call.args.unwrap(data);
 	    argHandler(
 		self, args, function(err, result) {
-		    console.log('  ...and produce the result!');
+		    console.log('  ...and produce the result: %j', result);
 		    self.updateValueCallback(
 			call.result.wrap == undefined? new Buffer(0)
 			    : call.result.wrap(result)
@@ -144,7 +144,7 @@ GetFirstPacketStartingFrom.prototype.onWriteRequest =
 	c.getFirstPacketStartingFrom,
 	function(self, args, cb) {
 	    self.mailbox.getFirstPacketStartingFrom(
-		args.mailboxName, args.DiaryNumber, args.lightWeight, cb
+		args.diaryNumber, args.lightWeight, cb
 	    );
 	}
     );

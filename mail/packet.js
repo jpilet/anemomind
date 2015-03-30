@@ -97,10 +97,14 @@ BufferManager.prototype.getRemainingBuffer = function() {
 // diaryNumber is used as a starting point for querying the next
 // packet.
 function serializeLightPacket(packet) {
-    assert(isLightPacket(packet));
-    return bigint.serialize(
-	[packet.diaryNumber, packet.src, packet.dst, packet.seqNumber]
-    );
+    if (packet == undefined) {
+	return new Buffer(0);
+    } else {
+	assert(isLightPacket(packet));
+	return bigint.serialize(
+	    [packet.diaryNumber, packet.src, packet.dst, packet.seqNumber]
+	);	
+    }
 }
 
 function isSerializedLightPacket(x) {
@@ -108,14 +112,18 @@ function isSerializedLightPacket(x) {
 }
 
 function deserializeLightPacket(x) {
-    var arr = bigint.deserializeBigInts(x, bigint.defaultWidth);
-    assert(arr.length == 4);
-    return {
-	diaryNumber: arr[0],
-	src: arr[1],
-	dst: arr[2],
-	seqNumber: arr[3]
-    };
+    if (x.length == 0) {
+	return undefined;
+    } else {
+	var arr = bigint.deserializeBigInts(x, bigint.defaultWidth);
+	assert(arr.length == 4);
+	return {
+	    diaryNumber: arr[0],
+	    src: arr[1],
+	    dst: arr[2],
+	    seqNumber: arr[3]
+	};	
+    }
 }
 
 function serializeFullPacket(packet) {
