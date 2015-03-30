@@ -205,8 +205,8 @@ Mailbox.prototype.isAdmissible = function(src, dst, cb) {
 }
 
 Mailbox.prototype.getForeignStartNumber = function(mailboxName, cb) {
-    makeRpcCall(this.cmap.getForeignDiaryNumber,
-		c.getForeignDiaryNumber,
+    makeRpcCall(this.cmap.getForeignStartNumber,
+		c.getForeignStartNumber,
 		mailboxName,
 		cb);
 }
