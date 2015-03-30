@@ -202,27 +202,30 @@ function dispAllTableData(db, cb) {
 
 
 
-// A constructor for a temporary storage of all mails and their
-// transactions.
-function Mailbox(dbFilename,      // <-- The filename where all
+// Don't call this constructor directly: Please call
+// makeMailbox instead.
+function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
+    this.dbFilename = dbFilename;
+    this.mailboxName = mailboxName;
+    this.ackFrequency = ackFrequency;
+    this.db = db;
+}
+
+function makeMailbox(dbFilename,  // <-- The filename where all
 		                  //     messages are stored.
-		 thisMailboxName, // <-- A string that uniquely
+		 mailboxName, // <-- A string that uniquely
 		                  //     identifies this mailbox
-		 cb) {
+		 cb) { // <-- call cb(err, mailbox) when the mailbox is created.
     assert(isFunction(cb));    
     if (!isValidDBFilename(dbFilename)) {
 	throw new Error('Invalid database filename');
     }
-    if (!isValidMailboxName(thisMailboxName)) {
+    if (!isValidMailboxName(mailboxName)) {
 	throw new Error('Invalid mailbox name');
     }
 
     // How often we should respond with an ack packet.
-    this.ackFrequency = 30;
-    
-    this.dbFilename = dbFilename;
-    this.mailboxName = thisMailboxName;
-    this.db = new TransactionDatabase(
+    var db = new TransactionDatabase(
 	new sqlite3.Database(
 	    dbFilename,
 	    function(err) {
@@ -232,11 +235,12 @@ function Mailbox(dbFilename,      // <-- The filename where all
 	    }
 	)
     );
-
-    // For variable visibility.
-    var db = this.db;
-
-    createAllTables(db, cb);
+    createAllTables(db, function() {
+	cb(
+	    undefined,
+	    new Mailbox(dbFilename, mailboxName, 30, db)
+	);
+    });
 }
 
 /*
@@ -1023,7 +1027,6 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
 
 
 
-module.exports.Mailbox = Mailbox;
 module.exports.dispAllTableData = dispAllTableData;
 module.exports.expand = expand;
 module.exports.isCounter = isCounter;
@@ -1032,3 +1035,4 @@ module.exports.serializeSeqNums = serializeSeqNums;
 module.exports.deserializeSeqNums = deserializeSeqNums;
 module.exports.serializeString = serializeString;
 module.exports.ACKLABEL = ACKLABEL;
+module.exports.makeMailbox = makeMailbox;

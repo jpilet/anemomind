@@ -4,12 +4,13 @@ var bigint = require('../bigint.js');
 
 
 var withbox = function(cb) {
-    var box = new mailsqlite.Mailbox(
+    mailsqlite.makeMailbox(
 	':memory:', 'aaabbb',
-	function(err) {
+	function(err, box) {
 	    assert(err == undefined);
 	    cb(box);
-	});
+	}
+    );
 };
 
 
