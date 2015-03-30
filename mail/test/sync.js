@@ -206,6 +206,8 @@ describe(
 	    'Synchronize three mailboxes with each other',
 	    function(done) {
 
+		this.timeout(4000);
+
 		async.map(
 		    boxnames,
 		    function (boxname, cb) {
