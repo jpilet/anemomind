@@ -167,25 +167,29 @@ function Mailbox(name, service, cmap) {
 }
 
 Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
-    makeRpcCall(cmap.setForeignDiaryNumber,
+    makeRpcCall(this.cmap.setForeignDiaryNumber,
 		c.setForeignDiaryNumber,
 		{mailboxName: otherMailbox, diaryNumber: newValue},
 		cb);
 }
 
 Mailbox.prototype.getFirstPacketStartingFrom =
-    function(mailboxName, diaryNumber, lightWeight, cb) {
-	makeRpcCall(cmap.getFirstPacketStartingFrom,
+    function(diaryNumber, lightWeight, cb) {
+	console.log('Get first packet starting from:');
+	console.log('diaryNumber = ' + diaryNumber);
+	console.log('lightWeight = ' + lightWeight);
+	makeRpcCall(this.cmap.getFirstPacketStartingFrom,
 		   c.getFirstPacketStartingFrom,
-		   {mailboxName: mailboxName, diaryNumber: diaryNumber, lightWeight: lightWeight},
+		   {diaryNumber: diaryNumber,
+		    lightWeight: lightWeight},
 		    cb);
 }
 
 Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
-    makeRpcCall(cmap.handleIncomingPacket, c.handleIncomingPacket,
+    makeRpcCall(this.cmap.handleIncomingPacket, c.handleIncomingPacket,
 	       packet, cb);
 }
 
 Mailbox.prototype.isAdmissible = function(src, dst, cb) {
-    makeRpcCall(cmap.isAdmissible, c.isAdmissible, {src: src, dst: dst}, cb);
+    makeRpcCall(this.cmap.isAdmissible, c.isAdmissible, {src: src, dst: dst}, cb);
 }

@@ -28,7 +28,6 @@ it(
 	    function() {
 		{
 		    var args = {
-			mailboxName: bigint.make(12),
 			diaryNumber: bigint.make(13),
 			lightWeight: true,
 		    };
@@ -88,12 +87,14 @@ it(
 	);
 
 	describe(
-	    'getForeignDiaryNumber',
+	    'getForeignStartNumber',
 	    function() {
 		var args = bigint.make(12335);
-		assert(eq.eqv(args, wrapAndUnwrap(c.getForeignDiaryNumber.args, args)));
+		assert(eq.eqv(args, wrapAndUnwrap(c.getForeignStartNumber.args,
+						  args)));
 		var result = bigint.make(99765);
-		assert(eq.eqv(result, wrapAndUnwrap(c.getForeignDiaryNumber.result, result)));
+		assert(eq.eqv(result, wrapAndUnwrap(c.getForeignStartNumber.result,
+						    result)));
 	    }
 	);
     }
