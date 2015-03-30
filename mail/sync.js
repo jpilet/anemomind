@@ -83,6 +83,7 @@ function fetchFullPacket(index, boxA, boxB, cb) {
 }
 
 function handleSyncPacketLight(index, lightPacket, boxA, boxB, cb) {
+    console.log('Handle this packet: %j', lightPacket);
     if (lightPacket == undefined) {
 
 	finishSync(index, boxA, boxB, cb);

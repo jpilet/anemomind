@@ -68,7 +68,7 @@ function synchronize(localMailbox, service, cmap) {
 	cmap.mailboxName,
 	c.mailboxName,
 	undefined,
-	function(lname) {
+	function(err, lname) {
 	    var remoteMailbox = new Mailbox(lname, service, cmap);
 	    sync.synchronize(localMailbox, remoteMailbox, function() {
 		console.log('Done synchronizing');
@@ -154,7 +154,12 @@ function makeRpcCall(characteristic, call, args, cb) {
 	characteristic,
 	(call.args == undefined? new Buffer(0) : call.args.wrap(args)),
 	function(wrappedResult, notified) {
-	    cb(call.result.unwrap(wrappedResult), notified);
+	    console.log('Received wrapped result: %j', wrappedResult);
+	    var unwrapped = call.result.unwrap(wrappedResult);
+	    console.log('The unwrapped result is: %j', unwrapped);
+
+	    // drop the 'notified' argument, why would that be interesting?
+	    cb(undefined, unwrapped);
 	}
     );
 }
@@ -182,7 +187,10 @@ Mailbox.prototype.getFirstPacketStartingFrom =
 		   c.getFirstPacketStartingFrom,
 		   {diaryNumber: diaryNumber,
 		    lightWeight: lightWeight},
-		    cb);
+		    function(err, value) {
+			console.log("Got this packet: %j", value);
+			cb(err, value);
+		    });
 }
 
 Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
@@ -192,4 +200,11 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 
 Mailbox.prototype.isAdmissible = function(src, dst, cb) {
     makeRpcCall(this.cmap.isAdmissible, c.isAdmissible, {src: src, dst: dst}, cb);
+}
+
+Mailbox.prototype.getForeignStartNumber = function(mailboxName, cb) {
+    makeRpcCall(this.cmap.setForeignDiaryNumber,
+		c.setForeignDiaryNumber,
+		mailboxName,
+		cb);
 }
