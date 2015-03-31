@@ -129,6 +129,8 @@ noble.on(
 );
 
 function makeRawRpcCall(characteristic, codedArgs, cb) {
+    // TODO: call centrally characteristic.on('read', characteristic.onReadMethod)
+    // characteristic.setOnRead(cb) will be here then.
     characteristic.on(
 	'read',
 	cb

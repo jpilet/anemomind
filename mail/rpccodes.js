@@ -54,7 +54,6 @@ module.exports.getFirstPacketStartingFrom = new Call(
     // Argsrpc
     new Coder(
 	function(obj) {
-	    console.log('obj = %j', obj);
 	    assert(bigint.isBigInt(obj.diaryNumber));
 	    assert(typeof obj.lightWeight == 'boolean');
 	    var buf = new Buffer(bigint.defaultWidth/2 + 1);
