@@ -203,7 +203,7 @@ function dispAllTableData(db, cb) {
 
 
 // Don't call this constructor directly: Please call
-// makeMailbox instead.
+// tryMakeMailbox instead.
 function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
     var goodInput = 
 	isString(dbFilename) &&
@@ -233,7 +233,6 @@ function tryMakeMailbox(dbFilename,  // <-- The filename where all
 	throw new Error('Invalid mailbox name');
     }
 
-    // How often we should respond with an ack packet.
     var db = new TransactionDatabase(
 	new sqlite3.Database(
 	    dbFilename,
