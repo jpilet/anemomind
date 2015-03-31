@@ -22,3 +22,9 @@ height: 100px;
 width:100%;
 display:block;
 }
+
+#dataSourceSelector {
+position: absolute;
+bottom: 100px;
+display:inline-block;
+}

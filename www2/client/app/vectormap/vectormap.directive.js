@@ -22,7 +22,6 @@ angular.module('www2App')
         scope.pathLayer = canvas.layers[1];
         scope.selectedCurve = undefined;
         scope.plotData = [];
-        scope.plotField = 'gpsSpeed';
         scope.currentTime = undefined;
 
         scope.pathLayer.onSelect = function(curveId) {

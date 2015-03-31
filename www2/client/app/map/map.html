@@ -1,5 +1,9 @@
 <div id="mapContainer">
 <h1>{{boat.name}} map</h1>
+
 <vectormap></vectormap>
+
+<select id="dataSourceSelector" ng-model="plotField" ng-options="field as label for (field, label) in plotFieldLabels"></select>
+
 <perfplot plot-data="plotData" current-time="currentTime" field="plotField"></perfplot>
 </div>
