@@ -35,15 +35,16 @@ function isHexDigit(x) {
 }
 
 function isBigIntStrict(x) {
-    if (isBigInt(x)) {
-	for (var i = 0; i < x.length; i++) {
-	    if (!isHexDigit(x[i])) {
-		return false;
-	    }
-	}
-	return true;
-    }
-    return false;
+    return x.match(/[0-9a-f]+/g);
+    // if (isBigInt(x)) {
+    // 	for (var i = 0; i < x.length; i++) {
+    // 	    if (!isHexDigit(x[i])) {
+    // 		return false;
+    // 	    }
+    // 	}
+    // 	return true;
+    // }
+    // return false;
 }
 
 function isZero(x) {
