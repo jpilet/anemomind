@@ -41,7 +41,7 @@ function makeNestedLogger() {
     };
 }
 
-function validField(x, tester) {
+function isValidOrUndefined(x, tester) {
     if (x == undefined) {
 	return true;
     } else {
@@ -98,13 +98,13 @@ function isNumber(x) {
 // Also check that the types are valid types.
 function isValidPacketSub(x) {
     if (pkt.isFullPacket(x)) {
-	return validField(x.src, isIdentifier) &&
-	    validField(x.dst, isIdentifier) &&
-	    validField(x.diaryNumber, isCounter) &&
-	    validField(x.seqNumber, isCounter) &&
-	    validField(x.label, isNumber) &&
-	    validField(x.cNumber, isCounter) &&
-	    validField(x.data, isObject);
+	return isValidOrUndefined(x.src, isIdentifier) &&
+	    isValidOrUndefined(x.dst, isIdentifier) &&
+	    isValidOrUndefined(x.diaryNumber, isCounter) &&
+	    isValidOrUndefined(x.seqNumber, isCounter) &&
+	    isValidOrUndefined(x.label, isNumber) &&
+	    isValidOrUndefined(x.cNumber, isCounter) &&
+	    isValidOrUndefined(x.data, isObject);
     }
     return false;
 }
