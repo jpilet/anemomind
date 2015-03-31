@@ -211,7 +211,7 @@ describe(
 		async.map(
 		    boxnames,
 		    function (boxname, cb) {
-			mb.makeMailbox(":memory:", boxname, cb);
+			mb.tryMakeMailbox(":memory:", boxname, cb);
 		    },
 		    function(err, boxes) {
 			assert(err == undefined);

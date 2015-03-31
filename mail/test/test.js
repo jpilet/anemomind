@@ -4,7 +4,7 @@ var bigint = require('../bigint.js');
 
 
 var withbox = function(cb) {
-    mailsqlite.makeMailbox(
+    mailsqlite.tryMakeMailbox(
 	':memory:', 'aaabbb',
 	function(err, box) {
 	    assert(err == undefined);

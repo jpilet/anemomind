@@ -220,7 +220,7 @@ function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
     this.db = db;
 }
 
-function makeMailbox(dbFilename,  // <-- The filename where all
+function tryMakeMailbox(dbFilename,  // <-- The filename where all
 		                  //     messages are stored.
 		 mailboxName, // <-- A string that uniquely
 		                  //     identifies this mailbox
@@ -244,11 +244,15 @@ function makeMailbox(dbFilename,  // <-- The filename where all
 	    }
 	)
     );
-    createAllTables(db, function() {
-	cb(
-	    undefined,
-	    new Mailbox(dbFilename, mailboxName, 30, db)
-	);
+    createAllTables(db, function(err) {
+	if (err) {
+	    cb(err);
+	} else {
+	    cb(
+		undefined,
+		new Mailbox(dbFilename, mailboxName, 30, db)
+	    );
+	}
     });
 }
 
@@ -1044,5 +1048,4 @@ module.exports.serializeSeqNums = serializeSeqNums;
 module.exports.deserializeSeqNums = deserializeSeqNums;
 module.exports.serializeString = serializeString;
 module.exports.ACKLABEL = ACKLABEL;
-module.exports.makeMailbox = makeMailbox;
-module.exports.Mailbox = Mailbox;
+module.exports.tryMakeMailbox = tryMakeMailbox;
