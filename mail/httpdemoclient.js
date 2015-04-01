@@ -67,7 +67,7 @@ Server.prototype.login = function(userdata, cb) {
 var address = 'http://localhost:9000';
 (new Server(address)).login(testuser, function(err, server) {
     
-    //
+    console.log('server = %j', server);
     
 });
 
