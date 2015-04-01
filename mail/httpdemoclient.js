@@ -3,9 +3,10 @@
 var assert = require('assert');
 var request = require('request');
 
-function Server(address) {
+function Server(address, token) {
     this.address = address;
     this.authurl = address + '/auth/local';
+    this.token = token;
 }
 
 // curl -d "{\"email\":\"kalle@abc.com\", \"password\":\"abc\"}" -H "Content-type: application/json" http://localhost:9000/auth/local
@@ -27,6 +28,7 @@ function debugcb(err, response, body) {
 Server.prototype.login = function(userdata, cb) {
     assert(userdata.email);
     assert(userdata.password);
+    var self = this;
     var opts = {
 	url: this.authurl,
 	method: 'POST',
@@ -40,12 +42,14 @@ Server.prototype.login = function(userdata, cb) {
 		cb(err);
 	    } else {
 		if (response.statusCode == 200) {
-		    cb(undefined, {
-			success: true,
-			token: body.token
-		    });
+		    cb(
+			undefined,
+			new Server(self.address, body.token)
+		    );
 		} else {
-		    cb(undefined, {success: false});
+		    cb(
+			undefined, this
+		    );
 		}
 	    }
 	}
@@ -54,12 +58,16 @@ Server.prototype.login = function(userdata, cb) {
 
 
 
+
+
+
+
+
 // Always have 'http://' at the beginning.
 var address = 'http://localhost:9000';
-
-var server = new Server(address);
-
-server.login(testuser, function(err, data) {
-    console.log('data = %j', data);
+(new Server(address)).login(testuser, function(err, server) {
+    
+    //
+    
 });
 
