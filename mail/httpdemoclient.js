@@ -2,12 +2,12 @@
 
 var assert = require('assert');
 var request = require('request');
-var bson = require('bson');
-var b = bson.BSONPure.BSON;
+var JSONB = require('json-buffer');
 
 function Server(address, token) {
     this.address = address;
     this.authurl = address + '/auth/local';
+    this.mailRpcUrl = address + '/api/mailrpc';
     this.token = token;
 }
 
@@ -32,7 +32,7 @@ Server.prototype.login = function(userdata, cb) {
     assert(userdata.password);
     var self = this;
     var opts = {
-	url: this.authurl,
+	url: this.authUrl,
 	method: 'POST',
 	json: userdata
     };
@@ -59,23 +59,28 @@ Server.prototype.login = function(userdata, cb) {
 }
 
 Server.prototype.registerCalls = function(calls) {
-    for (int i = 0; i < calls.length; i++) {
+    for (var i = 0; i < calls.length; i++) {
 	var call = calls[i];
 	assert(typeof call == 'string');
 	this[call] = function() {
-	    // Concatenate the index of the function with the arguments
-	    var rpcdata = [i].concat(arguments.slice(0, arguments.length-1));
-	    
+	    var rpcdata = [call].concat(arguments.slice(0, arguments.length-1));
 	    var cb = arguments[arguments.length-1];
 	    
 	    var opts = {
 		headers : {
+		    'url': this.mailRpcUrl,
+		    'method': 'POST',
+		    
+		    // We don't want express to automatically decode it
+		    // for us on the server side: The hander should decode
+		    // it using the json-buffer library.
+		    'Content-type': 'text/plain' 
 		},
-		method: 'POST',
-		body: b.serialize(rpcdata);
+		body: JSONB.stringify(rpcdata)
 	    };
 
-	    b.serialize(args)
+	    // Call it
+	    request(opts, cb);
 	}
     }
 }
@@ -90,8 +95,10 @@ Server.prototype.registerCalls = function(calls) {
 // Always have 'http://' at the beginning.
 var address = 'http://localhost:9000';
 (new Server(address)).login(testuser, function(err, server) {
-    
+
+    console.log('err = %j', err);
     console.log('server = %j', server);
+    //server.registerCalls(['add']);
     
 });
 
