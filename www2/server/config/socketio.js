@@ -18,6 +18,7 @@ function onConnect(socket) {
   });
 
   // Insert sockets below
+  require('../api/mailrpc/mailrpc.socket').register(socket);
   require('../api/tiles/tiles.socket').register(socket);
   require('../api/upload/upload.socket').register(socket);
   require('../api/boat/boat.socket').register(socket);
