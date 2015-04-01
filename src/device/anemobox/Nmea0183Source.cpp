@@ -13,8 +13,11 @@ bool Nmea0183Source::open(const char *path) {
 }
 
 void Nmea0183Source::poll() {
-  unsigned char buffer[256];
+  if (_fd < 0) {
+    return;
+  }
 
+  unsigned char buffer[256];
   ssize_t bytes = read(_fd, buffer, sizeof(buffer));
 
   if (bytes <= 0) {

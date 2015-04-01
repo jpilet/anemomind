@@ -109,7 +109,6 @@ class Dispatcher {
   }
 
  private:
-  void add(DispatchData *d);
   std::map<DataMeaning, DispatchData*> _data;
 
   DispatchAngleData _awa;
