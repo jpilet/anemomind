@@ -4,10 +4,7 @@ var express = require('express');
 var router = express.Router();
 
 function call(req, res) {
-  Mailrpc.create(req.body, function(err, mailrpc) {
-    if(err) { return handleError(res, err); }
-    return res.json(201, mailrpc);
-  });
+    return res.json(201, 'Here is the response');
 };
 
 
@@ -15,6 +12,6 @@ function handleError(res, err) {
   return res.send(500, err);
 }
 
-router.post('/', controller.handleRPC);
+router.post('/', call);
 
 module.exports = router;
