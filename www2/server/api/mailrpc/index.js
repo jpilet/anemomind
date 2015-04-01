@@ -4,6 +4,8 @@ var express = require('express');
 var router = express.Router();
 
 function call(req, res) {
+    console.log('req = %j', req);
+    console.log('req.body = %j', req.body);
     return res.json(201, 'Here is the response');
 };
 

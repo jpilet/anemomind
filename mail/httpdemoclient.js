@@ -71,17 +71,16 @@ Server.prototype.registerCalls = function(calls) {
 		args[i+1] = arguments[i];
 	    }
 	    var cb = arguments[arguments.length-1];
+
 	    var opts = {
 		url: this.mailRpcUrl,
 		method: 'POST',
-		headers : {
-		    // We don't want express to automatically decode it
-		    // for us on the server side: The hander should decode
-		    // it using the json-buffer library.
-		    'Content-type': 'text/plain' 
-		},
-		body: JSONB.stringify(args)
+
+		// Stringify it manually using JSONB, in order to
+		// get the buffers right.
+		json: {jsonb: JSONB.stringify(args)}
 	    };
+	    	
 
 	    // Call it
 	    request(opts, cb);
@@ -106,8 +105,7 @@ s.login(testuser, function(err, server) {
     server.registerCalls(['add']);
     console.log('err = %j', err);
     console.log('server = %j', server);
-
-    console.log(server.add(3, 4, 5, debugcb));
+    console.log(server.add(3, 4, 5, 119, debugcb));
     
 });
 
