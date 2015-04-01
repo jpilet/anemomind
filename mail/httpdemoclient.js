@@ -6,7 +6,7 @@ var JSONB = require('json-buffer');
 
 function Server(address, token) {
     this.address = address;
-    this.authurl = address + '/auth/local';
+    this.authUrl = address + '/auth/local';
     this.mailRpcUrl = address + '/api/mailrpc';
     this.token = token;
 }
@@ -31,6 +31,7 @@ Server.prototype.login = function(userdata, cb) {
     assert(userdata.email);
     assert(userdata.password);
     var self = this;
+    
     var opts = {
 	url: this.authUrl,
 	method: 'POST',
@@ -63,25 +64,30 @@ Server.prototype.registerCalls = function(calls) {
 	var call = calls[i];
 	assert(typeof call == 'string');
 	this[call] = function() {
-	    var rpcdata = [call].concat(arguments.slice(0, arguments.length-1));
+	    var n = Object.keys(arguments).length;
+	    var args = new Array(n);
+	    args[0] = call;
+	    for (var i = 0; i < n - 1; i++) {
+		args[i+1] = arguments[i];
+	    }
 	    var cb = arguments[arguments.length-1];
-	    
 	    var opts = {
+		url: this.mailRpcUrl,
+		method: 'POST',
 		headers : {
-		    'url': this.mailRpcUrl,
-		    'method': 'POST',
-		    
 		    // We don't want express to automatically decode it
 		    // for us on the server side: The hander should decode
 		    // it using the json-buffer library.
 		    'Content-type': 'text/plain' 
 		},
-		body: JSONB.stringify(rpcdata)
+		body: JSONB.stringify(args)
 	    };
 
 	    // Call it
 	    request(opts, cb);
+	    return opts;
 	}
+	assert(this[call] != undefined);
     }
 }
 
@@ -94,11 +100,14 @@ Server.prototype.registerCalls = function(calls) {
 
 // Always have 'http://' at the beginning.
 var address = 'http://localhost:9000';
-(new Server(address)).login(testuser, function(err, server) {
+var s = new Server(address);
+s.login(testuser, function(err, server) {
 
+    server.registerCalls(['add']);
     console.log('err = %j', err);
     console.log('server = %j', server);
-    //server.registerCalls(['add']);
+
+    console.log(server.add(3, 4, 5, debugcb));
     
 });
 
