@@ -2,6 +2,10 @@ var assert = require('assert');
 var bigint = require('../bigint.js');
 
 
+function implies(a, b) {
+    return !a || b;
+}
+
 it(
     'bigint',
     function() {
@@ -14,13 +18,21 @@ it(
 		assert(bigint.isZero(bigint.zero()));
 		
 		var intTester = function(x, is) {
-		    assert(bigint.isBigInt(x));
-		    assert(bigint.isBigIntStrict(x));
-		    var nextX = bigint.inc(x);
-		    assert(x.length == nextX.length);
-		    assert(x < nextX || bigint.isZero(nextX));
+		    if (is == undefined) {
+			is = true;
+		    }
+		    
+		    assert(implies(is, bigint.isBigInt(x)));
+		    assert(bigint.isBigIntStrict(x) == is);
+		    if (is) {
+			var nextX = bigint.inc(x);
+			assert(x.length == nextX.length);
+			assert(x < nextX || bigint.isZero(nextX));
+		    }
 		}
 
+		intTester('abcde99o', false);
+		intTester('    abc   ', false);
 		intTester('abcde99');
 		intTester('fffffff');
 		intTester('00000000000000000000000000000000000000000000000000');

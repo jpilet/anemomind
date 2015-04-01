@@ -35,7 +35,7 @@ function isHexDigit(x) {
 }
 
 function isBigIntStrict(x) {
-    return x.match(/[0-9a-f]+/g);
+    return !!x.match(/^[0-9a-f]+$/);
 }
 
 function isZero(x) {
