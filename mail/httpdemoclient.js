@@ -1,10 +1,12 @@
 // A demo client for the HTTP api
 
+var assert = require('assert');
 var request = require('request');
 
-// Always have 'http://' at the beginning.
-var address = 'http://localhost:9000';
-var authurl = address + '/auth/local';
+function Server(address) {
+    this.address = address;
+    this.authurl = address + '/auth/local';
+}
 
 // curl -d "{\"email\":\"kalle@abc.com\", \"password\":\"abc\"}" -H "Content-type: application/json" http://localhost:9000/auth/local
 
@@ -22,21 +24,42 @@ function debugcb(err, response, body) {
 }
 
 
-function login(cb) {
+Server.prototype.login = function(userdata, cb) {
+    assert(userdata.email);
+    assert(userdata.password);
     var opts = {
-	url: authurl,
+	url: this.authurl,
 	method: 'POST',
-	json: testuser
+	json: userdata
     };
 
     request(
 	opts,
-	debugcb
+	function(err, response, body) {
+	    if (err) {
+		cb(err);
+	    } else {
+		if (response.statusCode == 200) {
+		    cb(undefined, {
+			success: true,
+			token: body.token
+		    });
+		} else {
+		    cb(undefined, {success: false});
+		}
+	    }
+	}
     );
 }
 
-function test() {
-    request(address, debugcb);
-}
 
-login();
+
+// Always have 'http://' at the beginning.
+var address = 'http://localhost:9000';
+
+var server = new Server(address);
+
+server.login(testuser, function(err, data) {
+    console.log('data = %j', data);
+});
+
