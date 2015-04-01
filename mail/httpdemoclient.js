@@ -2,6 +2,8 @@
 
 var assert = require('assert');
 var request = require('request');
+var bson = require('bson');
+var b = bson.BSONPure.BSON;
 
 function Server(address, token) {
     this.address = address;
@@ -54,6 +56,28 @@ Server.prototype.login = function(userdata, cb) {
 	    }
 	}
     );
+}
+
+Server.prototype.registerCalls = function(calls) {
+    for (int i = 0; i < calls.length; i++) {
+	var call = calls[i];
+	assert(typeof call == 'string');
+	this[call] = function() {
+	    // Concatenate the index of the function with the arguments
+	    var rpcdata = [i].concat(arguments.slice(0, arguments.length-1));
+	    
+	    var cb = arguments[arguments.length-1];
+	    
+	    var opts = {
+		headers : {
+		},
+		method: 'POST',
+		body: b.serialize(rpcdata);
+	    };
+
+	    b.serialize(args)
+	}
+    }
 }
 
 
