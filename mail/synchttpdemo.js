@@ -1,0 +1,35 @@
+// A simulation of mailbox synchronizations
+var mb = require("./mail.http.js");
+var async = require("async");
+var demo = require('./syncdemo-3.js');
+var assert = require('assert');
+
+var testuser = {
+    'email': 'kalle@abc.com',
+    'password': 'abc'
+};
+
+var address = 'http://localhost:9000';
+
+var boxnames = ["a", "b", "c"];
+
+
+console.log('Try to synchronize three mailboxes');
+async.map(
+    boxnames,
+    function (boxname, cb) {
+	mb.tryMakeMailbox(address, testuser, boxname, cb);
+    },
+    function(err, boxes) {
+	assert(err == undefined);
+	demo.synchronizeThreeMailboxes(boxes, function(err) {
+	    if (err) {
+		console.log('THERE WAS AN ERROR: %j', err);
+	    } else {
+		console.log('SUCCESS!!!');
+	    }
+	});
+    }
+);
+
+

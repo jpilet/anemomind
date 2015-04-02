@@ -5,6 +5,7 @@ module.exports = [
     'handleIncomingPacket',
     'isAdmissible',
     'getForeignDiaryNumber',
+    'getForeignStartNumber',
     'getMailboxName',
 
     // Reset the contents of the mailbox

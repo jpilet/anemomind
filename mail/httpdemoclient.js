@@ -28,7 +28,7 @@ function addNumbersDemo() {
     });
 }
 
-function mailboxDemo() {
+function mailboxDemo1() {
 
     mb.tryMakeMailbox(
 	address, testuser, 'a',
@@ -40,5 +40,17 @@ function mailboxDemo() {
 	});    
 }
 
-//mailboxDemo();
-addNumbersDemo();
+function mailboxDemo2() {
+
+    mb.tryMakeMailbox(
+	address, testuser, 'a',
+	function (err, mailbox) {
+	    mailbox.reset(function(err) {
+		console.log('Error: %j', err);
+	    });
+	});    
+}
+
+
+mailboxDemo2();
+//addNumbersDemo();
