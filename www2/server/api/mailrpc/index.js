@@ -3,6 +3,7 @@
 var express = require('express');
 var router = express.Router();
 var JSONB = require('json-buffer');
+var rpc = require('./rpc.js');
 
 // http://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
 Object.defineProperty(Error.prototype, 'toJSON', {
@@ -17,24 +18,6 @@ Object.defineProperty(Error.prototype, 'toJSON', {
     },
     configurable: true
 });
-
-/*
-  All rpc functions should, by convention,
-  deliver their results by calling a call-
-  back.
-*/  
-
-// All RPC-bound functions should be fields of this object. Just add
-// them here below.
-var rpc = {};
-
-// Just for testing
-rpc.add = function(a, b, c, cb) {
-    cb(undefined, a + b + c);
-}
-
-
-
 
 function call(req, res) {
     
