@@ -1017,7 +1017,9 @@ Mailbox.prototype.reset = function(cb) {
     dropTables(this.db, cb);
 }
 
-
+Mailbox.prototype.close = function(cb) {
+    this.db.close(cb);
+}
 
 // Given destination mailbox, label and data,
 // a new packet is produced that is put in the packets table.

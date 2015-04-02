@@ -19,7 +19,8 @@ function makeMailboxHandler(methodName) {
 	var allArgs = Array.prototype.slice.call(arguments);
 	var mailboxName = allArgs[0];
 
-	var args = allArgs.slice(1);
+	var args = allArgs.slice(1, allArgs.length-1);
+	var cb = allArgs[allArgs.length-1];
 
 	// Every mailbox has its own file
 	var filename = mailboxName + '.mailsqlite.db';
@@ -28,9 +29,19 @@ function makeMailboxHandler(methodName) {
 	    filename, mailboxName,
 	    function(err, mailbox) {
 		if (err) {
-		    args[args.length-1](err);
+		    cb(err);
 		} else {
-		    mailbox[methodName].apply(mailbox, args);
+		    mailbox[methodName].apply(
+			mailbox, args.concat([
+			    function(err, result) {
+				mailbox.close(
+				    function(err) {
+					cb(err, result);
+				    }
+				);
+			    }
+			])
+		    );
 		}
 	    }
 	);
