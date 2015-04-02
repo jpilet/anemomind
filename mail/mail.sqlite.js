@@ -143,10 +143,18 @@ var fullschema = "CREATE TABLE IF NOT EXISTS seqNumbers (dst TEXT, counter TEXT,
                   CREATE TABLE IF NOT EXISTS diaryNumbers (mailbox TEXT, number TEXT, PRIMARY KEY(mailbox)); \
                   CREATE TABLE IF NOT EXISTS ctable (src TEXT, dst TEXT, counter TEXT, PRIMARY KEY(src, dst));";
 
-
 function createAllTables(db, cb) {
     assert(isFunction(cb));
     db.exec(fullschema, cb);
+}
+
+function dropTables(db, cb) {
+    var names = ['seqNumbers', 'packets', 'diaryNumbers', 'ctable'];
+    var query = '';
+    for (var i = 0; i < names.length; i++) {
+	query += 'DROP TABLE IF EXISTS ' + names[i] + ';';
+    }
+    db.exec(query, cb);
 }
 
 function getAllTables(db, cb) {
@@ -1003,6 +1011,10 @@ Mailbox.prototype.dispPacketSummary = function(cb) {
 	    }
 	}
     );
+}
+
+Mailbox.prototype.reset = function(cb) {
+    dropTables(this.db, cb);
 }
 
 

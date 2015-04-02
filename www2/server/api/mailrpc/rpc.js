@@ -15,7 +15,6 @@ var rpc = {};
 // where the mailbox name is passed as the first parameter,
 // to a method call to a mailbox with that name.
 function makeMailboxHandler(methodName) {
-    console.log('Make for method %j', methodName);
     return function() {
 	var allArgs = Array.prototype.slice.call(arguments);
 	var mailboxName = allArgs[0];
@@ -28,12 +27,9 @@ function makeMailboxHandler(methodName) {
 	mb.tryMakeMailbox(
 	    filename, mailboxName,
 	    function(err, mailbox) {
-
 		if (err) {
 		    args[args.length-1](err);
 		} else {
-		    console.log('The method name is %j', methodName);
-		    console.log('This mailbox name is %j', mailbox.mailboxName);
 		    mailbox[methodName].apply(mailbox, args);
 		}
 	    }

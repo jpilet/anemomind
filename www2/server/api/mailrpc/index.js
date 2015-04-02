@@ -5,6 +5,12 @@ var router = express.Router();
 var JSONB = require('json-buffer');
 var rpc = require('./rpc.js');
 
+/* TODO:
+   
+   * Protect this interface using the authentication
+   
+*/   
+
 // http://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
 // Code that lets us serialize Error objects
 // to be passed back as JSON over HTTP and
@@ -24,8 +30,6 @@ Object.defineProperty(Error.prototype, 'toJSON', {
 
 function handler(req, res) {
     var args = JSONB.parse(req.body.args);
-    console.log('args = %j', args);
-    
     var resultCB = function(err, result) {
 	res.json(201, {
 	    err: JSONB.stringify(err),
