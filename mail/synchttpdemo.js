@@ -18,7 +18,15 @@ console.log('Try to synchronize three mailboxes');
 async.map(
     boxnames,
     function (boxname, cb) {
-	mb.tryMakeMailbox(address, testuser, boxname, cb);
+	mb.tryMakeMailbox(
+	    address, testuser, boxname,
+	    function(err, mailbox) {
+		assert(err == undefined);
+		mailbox.reset(function(err) {
+		    cb(err, mailbox);
+		});
+	    }
+	);
     },
     function(err, boxes) {
 	assert(err == undefined);
