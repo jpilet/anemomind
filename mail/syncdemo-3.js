@@ -121,7 +121,8 @@ function startSync(err, mailboxes, done) {
 		getPacketCounts(
 		    mailboxes,
 		    function(err, counts) {
-
+			console.log('counts = ', counts);
+			
 			// The 9 packets A->C that were not marked as acked,
 			// and the 'ack' packet C->A.
 			assert(counts[0] == 10);
