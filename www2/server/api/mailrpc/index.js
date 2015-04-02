@@ -18,14 +18,14 @@ Object.defineProperty(Error.prototype, 'toJSON', {
     configurable: true
 });
 
-
-
 /*
   All rpc functions should, by convention,
   deliver their results by calling a call-
   back.
 */  
 
+// All RPC-bound functions should be fields of this object. Just add
+// them here below.
 var rpc = {};
 
 // Just for testing
