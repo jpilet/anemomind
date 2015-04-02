@@ -24,6 +24,8 @@ Object.defineProperty(Error.prototype, 'toJSON', {
 
 function handler(req, res) {
     var args = JSONB.parse(req.body.args);
+    console.log('args = %j', args);
+    
     var resultCB = function(err, result) {
 	res.json(201, {
 	    err: JSONB.stringify(err),
