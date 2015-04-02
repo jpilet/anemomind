@@ -51,7 +51,6 @@ ServerConnection.prototype.login = function(userdata, cb) {
 
 function makeRpcCall(self, fn) {
     return function() {
-	console.log('Calling %j (server-connection.js)', fn);
 	var n = Object.keys(arguments).length;
 
 	// Omit the callback.
