@@ -25,17 +25,23 @@ function call(req, res) {
     var args = JSONB.parse(req.body.args);
     console.log('args = %j', args);
 
-    // The arguments passed to the function that we are calling:
-    //   * The rest of the arguments sent by json
-    //   * A callback for the result.
-    var argArray = args.concat([function(err, result) {
+    var resultCB = function(err, result) {
 	res.json(201, {
 	    err: JSONB.stringify(err),
 	    result: JSONB.stringify(result)
 	});
-    }]);
-    
-    rpc[req.body.fn].apply(null, argArray);
+    };
+
+    // The arguments passed to the function that we are calling:
+    //   * The rest of the arguments sent by json
+    //   * A callback for the result.
+    var argArray = args.concat([resultCB]);
+
+    try {
+	rpc[req.body.fn].apply(null, argArray);
+    } catch (e) {
+	resultCB(e);
+    }
 };
 
 function handleError(res, err) {
