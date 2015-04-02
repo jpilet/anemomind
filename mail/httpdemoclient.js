@@ -88,7 +88,9 @@ Server.prototype.registerCalls = function(functions) {
 	    };
 
 	    // Call it
-	    request(opts, cb);
+	    request(opts, function(err, response, body) {
+		cb(JSONB.parse(body.err), JSONB.parse(body.result));
+	    });
 	    return opts;
 	}
 	assert(this[fn] != undefined);
@@ -106,11 +108,11 @@ Server.prototype.registerCalls = function(functions) {
 var address = 'http://localhost:9000';
 var s = new Server(address);
 s.login(testuser, function(err, server) {
-
     server.registerCalls(['add']);
-    console.log('err = %j', err);
-    console.log('server = %j', server);
-    console.log(server.add(3, 4, 5, debugcb));
+    server.add(3, 4, 5, function (err, result) {
+	console.log('Got error: %j', err);
+	console.log('Got result: %j', result);
+    });
     
 });
 
