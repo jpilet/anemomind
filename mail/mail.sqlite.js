@@ -547,8 +547,8 @@ Mailbox.prototype.getOrMakeCNumber = function(dst, seqNumber, cb) {
 
 // We want to have functions to access all properties
 // to exhibit a consistent interface.
-Mailbox.prototype.getMailboxName = function() {
-    return this.mailboxName;
+Mailbox.prototype.getMailboxName = function(cb) {
+    cb(null, this.mailboxName);
 }
 
 Mailbox.prototype.removeObsoletePackets = function(src, dst, cb) {
