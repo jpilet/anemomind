@@ -19,7 +19,7 @@ var bigint = require('./bigint.js');
      Calls cb with a boolean value
   * getForeignStartNumber(mailboxName, cb):
      Calls cb with the foreign diaryNumber
-  * mailboxName
+  * getMailboxName()
      Calls cb with the mailbox name.
 */
 
@@ -138,7 +138,7 @@ function synchronizeDirectedFrom(startFrom, boxA, boxB, cb) {
 function synchronizeDirected(boxA, boxB, cb) {
     // First retrieve the first number we should ask for
     boxA.getForeignStartNumber(
-	boxB.mailboxName,
+	boxB.getMailboxName(),
 	function(err, startFrom) {
 	    if (err == undefined) {
 		synchronizeDirectedFrom(

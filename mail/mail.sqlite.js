@@ -545,6 +545,12 @@ Mailbox.prototype.getOrMakeCNumber = function(dst, seqNumber, cb) {
 	});
 }
 
+// We want to have functions to access all properties
+// to exhibit a consistent interface.
+Mailbox.prototype.getMailboxName = function() {
+    return this.mailboxName;
+}
+
 Mailbox.prototype.removeObsoletePackets = function(src, dst, cb) {
     assert(isIdentifier(src));
     assert(isIdentifier(dst));
