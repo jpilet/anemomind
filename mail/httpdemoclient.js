@@ -35,10 +35,10 @@ function mailboxDemo() {
 	function (err, mailbox) {
 	    mailbox.getMailboxName(function(err, mailboxName) {
 		console.log('Error: %j', err);
-		console.log('The mailbox name is: ' + mailboxName);
+		console.log('The mailbox name is: %j', mailboxName);
 	    });
 	});    
 }
 
-//mailboxDemo();
-addNumbersDemo();
+mailboxDemo();
+//addNumbersDemo();

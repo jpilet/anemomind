@@ -35,7 +35,8 @@ function makeMailboxHandler(methodName) {
     }
 }
 
-for (var call in calls) {
+for (var i = 0; i < calls.length; i++) {
+    var call = calls[i];
     rpc[call] = makeMailboxHandler(call);
 }
 

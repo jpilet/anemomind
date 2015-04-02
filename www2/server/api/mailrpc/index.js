@@ -37,11 +37,21 @@ function handler(req, res) {
     var argArray = args.concat([resultCB]);
 
     var fn = rpc[req.body.fn];
-    try {
-	fn.apply(null, argArray);
-    } catch (e) {
-	console.log('Caught an exception while processing RPC call: %j', e);
-	resultCB(e);
+
+    if (fn == undefined) {
+	resultCB(
+	    {
+		noSuchFunction: req.body.fn,
+		availableFunctions: Object.keys(rpc)
+	    }
+	);
+    } else {
+	try {
+	    fn.apply(null, argArray);
+	} catch (e) {
+	    console.log('Caught an exception while processing RPC call: %j', e);
+	    resultCB(e);
+	}
     }
 };
 

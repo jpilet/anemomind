@@ -30,9 +30,9 @@ function tryMakeMailbox(serverAddress, userdata, mailboxName, cb) {
 	    cb(err);
 	} else {
 	    // Register these as rpc calls.
-	    s.registerCalls(mailboxcalls);
+	    s.registerCalls(mailboxCalls);
 	    
-	    cb(undefined, new Mailbox(s, mailboxName, calls));
+	    cb(undefined, new Mailbox(s, mailboxName, mailboxCalls));
 	}
     });
 }
