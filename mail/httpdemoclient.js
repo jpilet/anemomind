@@ -59,17 +59,20 @@ Server.prototype.login = function(userdata, cb) {
     );
 }
 
-Server.prototype.registerCalls = function(calls) {
-    for (var i = 0; i < calls.length; i++) {
-	var call = calls[i];
-	assert(typeof call == 'string');
-	this[call] = function() {
+Server.prototype.registerCalls = function(functions) {
+    for (var i = 0; i < functions.length; i++) {
+	var fn = functions[i];
+	assert(typeof fn == 'string');
+	this[fn] = function() {
 	    var n = Object.keys(arguments).length;
-	    var args = new Array(n);
-	    args[0] = call;
+
+	    // Omit the callback.
+	    var args = new Array(n-1);
 	    for (var i = 0; i < n - 1; i++) {
-		args[i+1] = arguments[i];
+		args[i] = arguments[i];
 	    }
+
+	    // This is the callback
 	    var cb = arguments[arguments.length-1];
 
 	    var opts = {
@@ -78,15 +81,17 @@ Server.prototype.registerCalls = function(calls) {
 
 		// Stringify it manually using JSONB, in order to
 		// get the buffers right.
-		json: {jsonb: JSONB.stringify(args)}
+		json: {
+		    fn: fn,
+		    args: JSONB.stringify(args)
+		}
 	    };
-	    	
 
 	    // Call it
 	    request(opts, cb);
 	    return opts;
 	}
-	assert(this[call] != undefined);
+	assert(this[fn] != undefined);
     }
 }
 
@@ -105,7 +110,7 @@ s.login(testuser, function(err, server) {
     server.registerCalls(['add']);
     console.log('err = %j', err);
     console.log('server = %j', server);
-    console.log(server.add(3, 4, 5, 119, debugcb));
+    console.log(server.add(3, 4, 5, debugcb));
     
 });
 

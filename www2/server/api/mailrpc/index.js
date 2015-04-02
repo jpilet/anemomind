@@ -2,6 +2,7 @@
 
 var express = require('express');
 var router = express.Router();
+var JSONB = require('json-buffer');
 
 /*
   All rpc functions should, by convention,
@@ -11,27 +12,34 @@ var router = express.Router();
 
 var rpc = {};
 
-// Just for testing it
-rpc.add = function() {
-    var sum = 0;
-    for (var i = 0; i < keys(arguments).length-1; i++) {
-	sum += arguments[i];
-    }
-    var cb(undefined, sum);
+// Just for testing
+rpc.add = function(a, b, c, cb) {
+    cb(undefined, a + b + c);
 }
 
 
 
 
-////
 function call(req, res) {
-    console.log('req = %j', req);
-    console.log('req.body = %j', req.body);
-    return res.json(201, 'Here is the response');
+    
+    var args = JSONB.parse(req.body.args);
+    console.log('args = %j', args);
+
+    // The arguments passed to the function that we are calling:
+    //   * The rest of the arguments sent by json
+    //   * A callback for the result.
+    var argArray = args.concat([function(err, result) {
+	res.json(201, {
+	    err: JSONB.stringify(err),
+	    result: JSONB.stringify(result)
+	});
+    }]);
+    
+    rpc[req.body.fn].apply(null, argArray);
 };
 
 function handleError(res, err) {
-  return res.send(500, err);
+    res.send(500, err);
 }
 
 router.post('/', call);
