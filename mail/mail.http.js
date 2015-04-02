@@ -35,7 +35,11 @@ function tryMakeMailbox(serverAddress, userdata, mailboxName, cb) {
 		'handleIncomingPacket',
 		'isAdmissible',
 		'getForeignDiaryNumber',
-		'getMailboxName'
+		'getMailboxName',
+
+		// Calls for other functions
+		'sendPacket',
+		'getTotalPacketCount'
 	    ];
 
 	    // Register these as rpc calls.
