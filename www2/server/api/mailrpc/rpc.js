@@ -9,6 +9,29 @@
 var mb = require('../../../../mail/mail.sqlite.js');
 var rpc = {};
 
+function makeMailboxHandler(methodName) {
+    return function() {
+	var allArgs = Array.prototype.slice.call(arguments);
+	var mailboxName = allArgs[0];
+	var args = allArgs.slice(1);
+	
+
+	// Every mailbox has its own file
+	var filename = mailboxName + '.mailsqlite.db';
+	
+	mb.tryMakeMailbox(
+	    filename, mailboxName,
+	    function(err, mailbox) {
+		if (err) {
+		    args[args.length-1](err);
+		} else {
+		    mailbox[methodName].apply(mailbox, args);
+		}
+	    }
+	);
+    }
+}
+
 
 
 // Just for testing

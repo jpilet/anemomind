@@ -1,6 +1,7 @@
 // A remote mailbox that we can play with, over HTTP.
 
 var ServerConnection = require('./server-connection.js');
+var mailboxCalls = require('./mailbox-calls.js');
 
 
 function Mailbox(serverConnection, mailboxName, calls) {
@@ -28,22 +29,8 @@ function tryMakeMailbox(serverAddress, userdata, mailboxName, cb) {
 	if (err) {
 	    cb(err);
 	} else {
-	    var calls = [
-		// Calls required for synchronization
-		'setForeignDiaryNumber',
-		'getFirstPacketStartingFrom',
-		'handleIncomingPacket',
-		'isAdmissible',
-		'getForeignDiaryNumber',
-		'getMailboxName',
-
-		// Calls for other functions
-		'sendPacket',
-		'getTotalPacketCount'
-	    ];
-
 	    // Register these as rpc calls.
-	    s.registerCalls(calls);
+	    s.registerCalls(mailboxcalls);
 	    
 	    cb(undefined, new Mailbox(s, mailboxName, calls));
 	}
