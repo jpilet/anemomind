@@ -79,7 +79,6 @@ ServerConnection.prototype.registerCalls = function(functions) {
 		}
 	    };
 
-	    console.log('Send call to server: %j', opts);
 	    // Call it
 	    request(opts, function(err, response, body) {
 		if (err) {

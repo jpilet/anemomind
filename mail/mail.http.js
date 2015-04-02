@@ -24,23 +24,24 @@ function Mailbox(serverConnection, mailboxName, calls) {
 function tryMakeMailbox(serverAddress, userdata, mailboxName, cb) {
     var s0 = new ServerConnection(serverAddress);
     s0.login(userdata, function(err, s) {
-	console.log('Login err: %j', err);
-	console.log('userdata = %j', userdata);
-	console.log('s = %j', s);
-	var calls = [
-	    // Calls required for synchronization
-	    'setForeignDiaryNumber',
-	    'getFirstPacketStartingFrom',
-	    'handleIncomingPacket',
-	    'isAdmissible',
-	    'getForeignDiaryNumber',
-	    'getMailboxName'
-	];
+	if (err) {
+	    cb(err);
+	} else {
+	    var calls = [
+		// Calls required for synchronization
+		'setForeignDiaryNumber',
+		'getFirstPacketStartingFrom',
+		'handleIncomingPacket',
+		'isAdmissible',
+		'getForeignDiaryNumber',
+		'getMailboxName'
+	    ];
 
-	// Register these as rpc calls.
-	s.registerCalls(calls);
-	
-	cb(undefined, new Mailbox(s, mailboxName, calls));
+	    // Register these as rpc calls.
+	    s.registerCalls(calls);
+	    
+	    cb(undefined, new Mailbox(s, mailboxName, calls));
+	}
     });
 }
 

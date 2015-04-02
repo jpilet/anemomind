@@ -138,7 +138,7 @@ function synchronizeDirectedFrom(startFrom, boxA, boxB, cb) {
 function synchronizeDirected(boxA, boxB, cb) {
     // First retrieve the first number we should ask for
     boxA.getForeignStartNumber(
-	boxB.getMailboxName(),
+	boxB.mailboxName,
 	function(err, startFrom) {
 	    if (err == undefined) {
 		synchronizeDirectedFrom(

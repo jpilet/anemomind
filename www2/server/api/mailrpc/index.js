@@ -6,6 +6,9 @@ var JSONB = require('json-buffer');
 var rpc = require('./rpc.js');
 
 // http://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
+// Code that lets us serialize Error objects
+// to be passed back as JSON over HTTP and
+// handled by the client.
 Object.defineProperty(Error.prototype, 'toJSON', {
     value: function () {
         var alt = {};
@@ -19,13 +22,8 @@ Object.defineProperty(Error.prototype, 'toJSON', {
     configurable: true
 });
 
-function call(req, res) {
-
-    console.log('Received RPC call');
-    
+function handler(req, res) {
     var args = JSONB.parse(req.body.args);
-    console.log('args = %j', args);
-
     var resultCB = function(err, result) {
 	res.json(201, {
 	    err: JSONB.stringify(err),
@@ -38,9 +36,8 @@ function call(req, res) {
     //   * A callback for the result.
     var argArray = args.concat([resultCB]);
 
+    var fn = rpc[req.body.fn];
     try {
-	var fn = rpc[req.body.fn];
-	console.log('Handle RPC call to %j', fn);
 	fn.apply(null, argArray);
     } catch (e) {
 	console.log('Caught an exception while processing RPC call: %j', e);
@@ -52,6 +49,6 @@ function handleError(res, err) {
     res.send(500, err);
 }
 
-router.post('/', call);
+router.post('/', handler);
 
 module.exports = router;

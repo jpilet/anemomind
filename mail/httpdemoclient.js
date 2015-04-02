@@ -33,8 +33,6 @@ function mailboxDemo() {
     mb.tryMakeMailbox(
 	address, testuser, 'a',
 	function (err, mailbox) {
-	    console.log('Created a mailbox');
-	    console.log('Keys are: %j', Object.keys(mailbox));
 	    mailbox.getMailboxName(function(err, mailboxName) {
 		console.log('Error: %j', err);
 		console.log('The mailbox name is: ' + mailboxName);
