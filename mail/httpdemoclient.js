@@ -11,27 +11,13 @@ var testuser = {
     'password': 'abc'
 };
 
-function debugcb(err, response, body) {
-    console.log('err = %j', err);
-    console.log('response = %j', response);
-    console.log('body = %j', body);
-}
-
-
-
-
-
-
-
-
-
 
 // Always have 'http://' at the beginning.
 var address = 'http://localhost:9000';
 var s = new ServerConnection(address);
 s.login(testuser, function(err, server) {
-    server.registerCalls(['add']);
-    server.add(3, 4, 5, function (err, result) {
+    s.registerCalls(['add']);
+    s.add(3, 4, 5, function (err, result) {
 	console.log('Got error: %j', err);
 	console.log('Got result: %j', result);
     });

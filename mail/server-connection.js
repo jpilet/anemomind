@@ -2,6 +2,12 @@ var assert = require('assert');
 var request = require('request');
 var JSONB = require('json-buffer');
 
+function debugcb(err, response, body) {
+    console.log('err = %j', err);
+    console.log('response = %j', response);
+    console.log('body = %j', body);
+}
+
 // An object that represents a connection to a server.
 function ServerConnection(address, token) {
     this.address = address;
@@ -74,7 +80,11 @@ ServerConnection.prototype.registerCalls = function(functions) {
 
 	    // Call it
 	    request(opts, function(err, response, body) {
-		cb(JSONB.parse(body.err), JSONB.parse(body.result));
+		if (err) {
+		    cb(err);
+		} else {
+		    cb(JSONB.parse(body.err), JSONB.parse(body.result));
+		}
 	    });
 	    return opts;
 	}
