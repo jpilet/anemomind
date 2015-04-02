@@ -49,46 +49,50 @@ ServerConnection.prototype.login = function(userdata, cb) {
     );
 }
 
+function makeRpcCall(self, fn) {
+    return function() {
+	console.log('Calling %j (server-connection.js)', fn);
+	var n = Object.keys(arguments).length;
+
+	// Omit the callback.
+	var args = new Array(n-1);
+	for (var i = 0; i < n - 1; i++) {
+	    args[i] = arguments[i];
+	}
+
+	// This is the callback
+	var cb = arguments[arguments.length-1];
+
+	var opts = {
+	    url: self.mailRpcUrl,
+	    method: 'POST',
+
+	    // Stringify it manually using JSONB, in order to
+	    // get the buffers right.
+	    json: {
+		fn: fn,
+		args: JSONB.stringify(args)
+	    }
+	};
+
+	// Call it
+	request(opts, function(err, response, body) {
+	    if (err) {
+		cb(err);
+	    } else {
+		cb(JSONB.parse(body.err), JSONB.parse(body.result));
+	    }
+	});
+    }
+}
+
 // To register RPC calls
 ServerConnection.prototype.registerCalls = function(functions) {
     var self = this;
     for (var i = 0; i < functions.length; i++) {
 	var fn = functions[i];
 	assert(typeof fn == 'string');
-	this[fn] = function() {
-	    var n = Object.keys(arguments).length;
-
-	    // Omit the callback.
-	    var args = new Array(n-1);
-	    for (var i = 0; i < n - 1; i++) {
-		args[i] = arguments[i];
-	    }
-
-	    // This is the callback
-	    var cb = arguments[arguments.length-1];
-
-	    var opts = {
-		url: self.mailRpcUrl,
-		method: 'POST',
-
-		// Stringify it manually using JSONB, in order to
-		// get the buffers right.
-		json: {
-		    fn: fn,
-		    args: JSONB.stringify(args)
-		}
-	    };
-
-	    // Call it
-	    request(opts, function(err, response, body) {
-		if (err) {
-		    cb(err);
-		} else {
-		    cb(JSONB.parse(body.err), JSONB.parse(body.result));
-		}
-	    });
-	    return opts;
-	}
+	this[fn] = makeRpcCall(self, fn);
 	assert(this[fn] != undefined);
     }
 }
