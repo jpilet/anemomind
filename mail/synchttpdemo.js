@@ -22,6 +22,9 @@ async.map(
 	    address, testuser, boxname,
 	    function(err, mailbox) {
 		assert(err == undefined);
+
+		// Always reset first so that we start from
+		// the same state.
 		mailbox.reset(function(err) {
 		    cb(err, mailbox);
 		});
