@@ -11,18 +11,10 @@ var calls = require('../../../../mail/mailbox-calls.js');
 var assert = require('assert');
 var rpc = {};
 
-function makeMailboxHandler(methodName) {
-    return function() {
-	var allArgs = Array.prototype.slice.call(arguments);
-	allArgs[allArgs.length-1](null, methodName);
-    };
-}
-
-
 // A function that converts the RPC call (invisible to the user),
 // where the mailbox name is passed as the first parameter,
 // to a method call to a mailbox with that name.
-function makeMailboxHandler0(methodName) {
+function makeMailboxHandler(methodName) {
     console.log('Make for method %j', methodName);
     return function() {
 	var allArgs = Array.prototype.slice.call(arguments);
@@ -55,18 +47,11 @@ function makeMailboxHandler0(methodName) {
     }
 }
 
-function registerMailboxCalls(dst) {
-    for (var i = 0; i < calls.length; i++) {
-	var call = calls[i];
-	assert(typeof call == 'string');
-	//rpc[call] = makeMailboxHandler(call);
-	dst[call] = function() {
-	    var allArgs = Array.prototype.slice.call(arguments);
-	    allArgs[allArgs.length-1](null, call);
-	};
-    }
+for (var i = 0; i < calls.length; i++) {
+    var call = calls[i];
+    assert(typeof call == 'string');
+    rpc[call] = makeMailboxHandler(call);
 }
-console.log('Available calls are: %j', Object.keys(rpc));
 
 
 
