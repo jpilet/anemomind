@@ -13,19 +13,20 @@ function Mailbox(serverConnection, mailboxName, calls) {
 	this[call] = function() {
 	    serverConnection[call].apply(
 		null,
-		[mailboxName].concat(Array.prototype.slice.call(arguments));
+		[mailboxName].concat(Array.prototype.slice.call(arguments))
 	    );
 	};
     }
 }
 
 
-
-
 // Call this function when you need a new mailbox.
 function tryMakeMailbox(serverAddress, userdata, mailboxName, cb) {
-    var s = new ServerConnection(serverAddress);
-    s.login(userdata, function(err, s) {
+    var s0 = new ServerConnection(serverAddress);
+    s0.login(userdata, function(err, s) {
+	console.log('Login err: %j', err);
+	console.log('userdata = %j', userdata);
+	console.log('s = %j', s);
 	var calls = [
 	    // Calls required for synchronization
 	    'setForeignDiaryNumber',
@@ -36,7 +37,14 @@ function tryMakeMailbox(serverAddress, userdata, mailboxName, cb) {
 	    'getMailboxName'
 	];
 
+	// Register these as rpc calls.
 	s.registerCalls(calls);
+	
 	cb(undefined, new Mailbox(s, mailboxName, calls));
     });
 }
+
+
+
+
+module.exports.tryMakeMailbox = tryMakeMailbox;

@@ -20,6 +20,8 @@ Object.defineProperty(Error.prototype, 'toJSON', {
 });
 
 function call(req, res) {
+
+    console.log('Received RPC call');
     
     var args = JSONB.parse(req.body.args);
     console.log('args = %j', args);
@@ -37,8 +39,11 @@ function call(req, res) {
     var argArray = args.concat([resultCB]);
 
     try {
-	rpc[req.body.fn].apply(null, argArray);
+	var fn = rpc[req.body.fn];
+	console.log('Handle RPC call to %j', fn);
+	fn.apply(null, argArray);
     } catch (e) {
+	console.log('Caught an exception while processing RPC call: %j', e);
 	resultCB(e);
     }
 };

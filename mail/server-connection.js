@@ -51,6 +51,7 @@ ServerConnection.prototype.login = function(userdata, cb) {
 
 // To register RPC calls
 ServerConnection.prototype.registerCalls = function(functions) {
+    var self = this;
     for (var i = 0; i < functions.length; i++) {
 	var fn = functions[i];
 	assert(typeof fn == 'string');
@@ -67,7 +68,7 @@ ServerConnection.prototype.registerCalls = function(functions) {
 	    var cb = arguments[arguments.length-1];
 
 	    var opts = {
-		url: this.mailRpcUrl,
+		url: self.mailRpcUrl,
 		method: 'POST',
 
 		// Stringify it manually using JSONB, in order to
@@ -78,6 +79,7 @@ ServerConnection.prototype.registerCalls = function(functions) {
 		}
 	    };
 
+	    console.log('Send call to server: %j', opts);
 	    // Call it
 	    request(opts, function(err, response, body) {
 		if (err) {
