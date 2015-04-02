@@ -20,8 +20,6 @@ function makeMailboxHandler(methodName) {
 	var allArgs = Array.prototype.slice.call(arguments);
 	var mailboxName = allArgs[0];
 
-	console.log('mailboxName = %j', mailboxName);
-	
 	var args = allArgs.slice(1);
 
 	// Every mailbox has its own file
@@ -31,10 +29,6 @@ function makeMailboxHandler(methodName) {
 	    filename, mailboxName,
 	    function(err, mailbox) {
 
-		// DEBUGGING
-		args[args.length-1](null, methodName);
-		return;
-		
 		if (err) {
 		    args[args.length-1](err);
 		} else {
