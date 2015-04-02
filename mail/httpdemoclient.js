@@ -40,5 +40,5 @@ function mailboxDemo() {
 	});    
 }
 
-mailboxDemo();
-//addNumbersDemo();
+//mailboxDemo();
+addNumbersDemo();

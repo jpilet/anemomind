@@ -179,12 +179,10 @@ function startSync(err, mailboxes, done) {
 
 
 // Called once the first mailbox has been filled
-function mailboxesCreated(mailboxes, done) {
-
+function synchronizeThreeMailboxes(mailboxes, done) {
+    assert(mailboxes.length == 3);
     someSpace('');
-
     var PACKETCOUNT = 39;
-    
     fillWithPackets(
 	PACKETCOUNT,
 	mailboxes[0],
@@ -215,7 +213,7 @@ describe(
 		    },
 		    function(err, boxes) {
 			assert(err == undefined);
-			mailboxesCreated(boxes, done);
+			synchronizeThreeMailboxes(boxes, done);
 		    }
 		);
 	    }

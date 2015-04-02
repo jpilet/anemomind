@@ -4,6 +4,7 @@ var ServerConnection = require('./server-connection.js');
 
 
 function Mailbox(serverConnection, mailboxName, calls) {
+    this.mailboxName = mailboxName;
     for (var i = 0; i < calls.length; i++) {
 	var call = calls[i];
 
