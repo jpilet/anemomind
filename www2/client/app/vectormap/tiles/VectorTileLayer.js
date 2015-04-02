@@ -167,7 +167,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
   // prepare the Cavas path
 
   if (this.isHighlighted(curveId)) {
-    context.strokeStyle="#FF0000";
+    context.strokeStyle="#FF0033";
     context.lineWidth = 3;
   } else {
     if (this.highlight) {
@@ -176,7 +176,7 @@ VectorTileLayer.prototype.drawCurve = function(curveId, context, pinchZoom) {
       context.lineWidth = 1;
     } else {
       // Nothing is highlighted
-      context.strokeStyle="#000000";
+      context.strokeStyle="#333333";
       context.lineWidth = 2;
     }
   }
