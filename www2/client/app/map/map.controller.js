@@ -26,13 +26,18 @@ angular.module('www2App')
     var animationTimer;
 
     $scope.togglePlayPause = function() {
-      if (!$scope.isPlaying) {
-        animationTimer = $interval(updatePosition, 100);
-      } else {
-        $interval.cancel(animationTimer);
-      }
       $scope.isPlaying = !$scope.isPlaying;
     }
+
+    $scope.$watch('isPlaying', function(newVal, oldVal) {
+      if (newVal != oldVal) {
+        if (newVal) {
+          animationTimer = $interval(updatePosition, 100);
+        } else {
+          $interval.cancel(animationTimer);
+        }
+      }
+    });
 
     function updatePosition() {
       $scope.currentTime = new Date($scope.currentTime.getTime()+20 * 1000);
