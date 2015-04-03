@@ -17,8 +17,7 @@ var address = 'http://localhost:9000';
 
 function addNumbersDemo() {
     // Always have 'http://' at the beginning.
-    var s = new ServerConnection(address);
-    s.login(testuser, function(err, server) {
+    (new ServerConnection(address)).login(testuser, function(err, s) {
 	s.registerCalls(['add']);
 	s.add(3, 4, 5, function (err, result) {
 	    console.log('Got error: %j', err);
@@ -52,5 +51,5 @@ function mailboxDemo2() {
 }
 
 
-mailboxDemo2();
-//addNumbersDemo();
+//mailboxDemo2();
+addNumbersDemo();
