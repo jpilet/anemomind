@@ -20,13 +20,27 @@
         "../../../server/common/logging.cpp"
       ],
       "include_dirs": [
-        "../../.."
+        "../../..",
+        "../../../../build/third-party/poco-install/include"
       ], 
       "cflags_cc": [
 	"-std=c++11", "-fexceptions"
       ],
+      'xcode_settings': {
+        'MACOSX_DEPLOYMENT_TARGET': '10.7',
+
+        'OTHER_CFLAGS': [
+          "-std=c++11",
+          "-stdlib=libc++",
+          "-fexceptions"
+        ]
+      },
       "defines": [ "ON_SERVER" ],
-      "libraries" : [ "-lPocoFoundation", "-lPocoUtil" ]
+      "libraries" : [
+        "-L../../../../../build/third-party/poco-install/lib",
+        "-lPocoFoundation",
+        "-lPocoUtil"
+      ]
     }
   ]
 }

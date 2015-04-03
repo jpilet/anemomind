@@ -30,16 +30,16 @@ void Nmea0183Source::poll() {
       case NmeaParser::NMEA_UNKNOWN: break;
       case NmeaParser::NMEA_TIME_POS: break;
       case NmeaParser::NMEA_AW:
-        _dispatcher->publishValue<Angle<double>>(
-            _dispatcher->awa(), this, static_cast<Angle<double>>(_parser.awa()));
-        _dispatcher->publishValue<Velocity<double>>(
-            _dispatcher->aws(), this, static_cast<Velocity<double>>(_parser.aws()));
+        _dispatcher->awa()->publishValue(
+            sourceName(), static_cast<Angle<double>>(_parser.awa()));
+        _dispatcher->aws()->publishValue(
+            sourceName(), static_cast<Velocity<double>>(_parser.aws()));
         break;
       case NmeaParser::NMEA_TW:
-        _dispatcher->publishValue(
-            _dispatcher->twa(), this, static_cast<Angle<double>>(_parser.twa()));
-        _dispatcher->publishValue(
-            _dispatcher->tws(), this, static_cast<Velocity<double>>(_parser.tws()));
+        _dispatcher->twa()->publishValue(
+            sourceName(), static_cast<Angle<double>>(_parser.twa()));
+        _dispatcher->tws()->publishValue(
+            sourceName(), static_cast<Velocity<double>>(_parser.tws()));
         break;
       case NmeaParser::NMEA_WAT_SP_HDG: break;
       case NmeaParser::NMEA_VLW: break;
