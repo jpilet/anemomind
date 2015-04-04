@@ -298,7 +298,7 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
   context.fillStyle = '#662200';
   context.fill();
 
-  windArrow(p.awa, '774400');
+  windArrow(p.awa, '#774400');
 
   context.restore();
 
