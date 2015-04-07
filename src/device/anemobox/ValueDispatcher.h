@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <set>
+#include <vector>
 
 #include <server/common/TimeStamp.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
@@ -14,15 +15,24 @@ template <typename T> class ValueDispatcher;
 template <typename T>
 class Listener {
  public:
-  Listener(Duration<> minInterval = Duration<>::seconds(0)) : minInterval_(minInterval) { }
+  Listener(Duration<> minInterval = Duration<>::seconds(0))
+    : minInterval_(minInterval), listeningTo_(0) { }
+  virtual ~Listener();
+
   Duration<> minInterval() const { return minInterval; }
   virtual void onNewValue(const ValueDispatcher<T> &dispatcher) = 0;
 
   void notify(const ValueDispatcher<T> &dispatcher);
 
+  bool isListening() const { return listeningTo_ != 0; }
+  void listen(ValueDispatcher<T> *dispatcher);
+  void stopListening();
+  ValueDispatcher<T> *listeningTo() const { return listeningTo_; };
+
  private:
   TimeStamp lastNotified_;
   Duration<> minInterval_;
+  ValueDispatcher<T> *listeningTo_;
 };
 
 template <typename T>
@@ -38,11 +48,15 @@ class ValueDispatcher {
  public:
   ValueDispatcher(int bufferLength) : bufferLength_(bufferLength) { }
 
-  void subscribe(Listener<T> *listener) { listeners_.insert(listener); }
+  void subscribe(Listener<T> *listener) { 
+    listeners_.insert(listener);
+    listener->listen(this);
+  }
   int unsubscribe(Listener<T> *listener) { return listeners_.erase(listener); }
 
   void setValue(T value);
 
+  bool hasValue() const { return values_.size() > 0; }
   T lastValue() const { return values_.front().value; }
   virtual TimeStamp lastTimeStamp() const { return values_.front().time; }
 
@@ -55,6 +69,11 @@ class ValueDispatcher {
 };
 
 template <typename T>
+Listener<T>::~Listener() {
+  stopListening();
+}
+
+template <typename T>
 void Listener<T>::notify(const ValueDispatcher<T> &dispatcher)
 {
   if (!lastNotified_.defined()
@@ -65,12 +84,38 @@ void Listener<T>::notify(const ValueDispatcher<T> &dispatcher)
 }
 
 template <typename T>
+void Listener<T>::listen(ValueDispatcher<T> *dispatcher) {
+  if (listeningTo_ != dispatcher) {
+    stopListening();
+    listeningTo_ = dispatcher;
+    listeningTo_->subscribe(this);
+  }
+}
+
+template <typename T>
+void Listener<T>::stopListening() {
+  if (isListening()) {
+    listeningTo_->unsubscribe(this);
+  }
+  listeningTo_ = 0;
+}
+
+template <typename T>
 void ValueDispatcher<T>::setValue(T value) {
   values_.push_front(TimedValue<T>(value));
   while (values_.size() > bufferLength_) {
     values_.pop_back();
   }
-  for (Listener<T> *listener : listeners_) {
+  // listeners might unsubscribe during notification.
+  // in that case, the listerners_ list will be modified.
+  // thus, we can not iterate safely over listeners_,
+  // we have to copy the list first.
+  std::vector<Listener<T> *> listenersToCall;
+  listenersToCall.reserve(listeners_.size());
+  std::copy(listeners_.begin(),
+            listeners_.end(),
+            std::back_inserter(listenersToCall));
+  for (Listener<T> *listener : listenersToCall) {
     listener->notify(*this);
   }
 }

@@ -8,17 +8,17 @@
 
 namespace sail {
 
-class Nmea0183Source : public DataSource {
+class Nmea0183Source {
  public:
   Nmea0183Source(Dispatcher *dispatcher)
     : _dispatcher(dispatcher), _fd(-1) { }
-
-  virtual const char* name() const { return "NMEA0183"; }
 
   bool open(const char *path);
 
   int fd() const { return _fd; }
   void poll();
+
+  const char *sourceName() const { return "NMEA0183"; }
 
  private:
   Dispatcher *_dispatcher;
