@@ -108,6 +108,8 @@ Object.defineProperty(Error.prototype, 'toJSON', {
 });
 
 function handler(req, res) {
+    console.log('Recieved param %j', req.params[0]);
+    
     var args = JSONB.parse(req.body.args);
     var resultCB = function(err, result) {
 	res.json(201, {

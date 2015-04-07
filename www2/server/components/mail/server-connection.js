@@ -12,7 +12,7 @@ function debugcb(err, response, body) {
 function ServerConnection(address, token) {
     this.address = address;
     this.authUrl = address + '/auth/local';
-    this.mailRpcUrl = address + '/api/mailrpc';
+    this.mailRpcUrl = address + '/api/mailrpc/rulle';
     this.token = token;
 }
 
