@@ -1062,6 +1062,7 @@ module.exports.dispAllTableData = dispAllTableData;
 module.exports.expand = expand;
 module.exports.isCounter = isCounter;
 module.exports.isIdentifier = isIdentifier;
+module.exports.isValidMailboxName = isValidMailboxName;
 module.exports.serializeSeqNums = serializeSeqNums;
 module.exports.deserializeSeqNums = deserializeSeqNums;
 module.exports.serializeString = serializeString;

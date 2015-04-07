@@ -38,28 +38,33 @@ function makeMailboxHandler(methodName) {
 	var cb = allArgs[allArgs.length-1];
 
 	// Every mailbox has its own file
-	var filename = mailboxName + '.mailsqlite.db';
-	
-	mb.tryMakeMailbox(
-	    filename, mailboxName,
-	    function(err, mailbox) {
-		if (err) {
-		    cb(err);
-		} else {
-		    mailbox[methodName].apply(
-			mailbox, args.concat([
-			    function(err, result) {
-				mailbox.close(
-				    function(err) {
-					cb(err, result);
-				    }
-				);
-			    }
-			])
-		    );
+
+
+	if (!mb.isValidMailboxName(mailboxName)) {
+	    cb(new Error('Invalid mailbox name: ' + mailboxName));
+	} else {
+	    var filename = mailboxName + '.mailsqlite.db';
+	    mb.tryMakeMailbox(
+		filename, mailboxName,
+		function(err, mailbox) {
+		    if (err) {
+			cb(err);
+		    } else {
+			mailbox[methodName].apply(
+			    mailbox, args.concat([
+				function(err, result) {
+				    mailbox.close(
+					function(err) {
+					    cb(err, result);
+					}
+				    );
+				}
+			    ])
+			);
+		    }
 		}
-	    }
-	);
+	    );
+	}
     }
 }
 
