@@ -71,6 +71,10 @@ function makeRpcCall(self, fn) {
 	    // get the buffers right.
 	    json: {
 		args: JSONB.stringify(args)
+	    },
+
+	    headers: {
+		Authorization: "Bearer " + self.token
 	    }
 	};
 
