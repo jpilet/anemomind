@@ -2,6 +2,11 @@
 <div class="titleBox">{{boat.name}}&nbsp;&nbsp;<a href="javascript:history.back()">&#10006;</a></div>
 <vectormap></vectormap>
 
+<div class="animationControls">
+  <div ng-hide="isPlaying" ng-click="togglePlayPause()">&#9658; play</div>
+  <div ng-show="isPlaying" ng-click="togglePlayPause()">&#10073;&#10073; pause</div>
+</div>
+
 <select id="dataSourceSelector" ng-model="plotField" ng-options="field as label for (field, label) in plotFieldLabels"></select>
 
 <perfplot plot-data="plotData" current-time="currentTime" field="plotField"></perfplot>
