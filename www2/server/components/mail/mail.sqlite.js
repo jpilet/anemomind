@@ -113,7 +113,6 @@ function isValidPacket(x) {
     if (isValidPacketSub(x)) {
 	return true;
     }
-    console.log('Invalid packet: %j', x);
     return false;
 }
 
@@ -556,7 +555,6 @@ Mailbox.prototype.getOrMakeCNumber = function(dst, seqNumber, cb) {
 // We want to have functions to access all properties
 // to exhibit a consistent interface.
 Mailbox.prototype.getMailboxName = function(cb) {
-    console.log('Mailbox name inside getMailboxName: %j', this.mailboxName);
     cb(null, this.mailboxName);
 }
 
