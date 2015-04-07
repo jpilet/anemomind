@@ -108,8 +108,8 @@ Object.defineProperty(Error.prototype, 'toJSON', {
 });
 
 function handler(req, res) {
-    console.log('Path = %j', req.path);
-    console.log('Recieved param %j', req.params);
+    //console.log('Path = %j', req.path);
+    //console.log('Recieved param %j', req.params);
     
     var args = JSONB.parse(req.body.args);
     var resultCB = function(err, result) {
@@ -124,12 +124,13 @@ function handler(req, res) {
     //   * A callback for the result.
     var argArray = args.concat([resultCB]);
 
-    var fn = rpc[req.body.fn];
+    var fnName = req.params[0];
+    var fn = rpc[fnName];
 
     if (fn == undefined) {
 	resultCB(
 	    {
-		noSuchFunction: req.body.fn,
+		noSuchFunction: fnName,
 		availableFunctions: Object.keys(rpc)
 	    }
 	);

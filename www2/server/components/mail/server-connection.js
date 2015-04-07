@@ -12,7 +12,7 @@ function debugcb(err, response, body) {
 function ServerConnection(address, token) {
     this.address = address;
     this.authUrl = address + '/auth/local';
-    this.mailRpcUrl = address + '/api/mailrpc/rulle';
+    this.mailRpcUrl = address + '/api/mailrpc/';
     this.token = token;
 }
 
@@ -63,13 +63,13 @@ function makeRpcCall(self, fn) {
 	var cb = arguments[arguments.length-1];
 
 	var opts = {
-	    url: self.mailRpcUrl,
+	    url: (self.mailRpcUrl + fn),
+
 	    method: 'POST',
 
 	    // Stringify it manually using JSONB, in order to
 	    // get the buffers right.
 	    json: {
-		fn: fn,
 		args: JSONB.stringify(args)
 	    }
 	};
