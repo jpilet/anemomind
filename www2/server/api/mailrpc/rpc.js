@@ -6,8 +6,8 @@
 
 // All RPC-bound functions should be fields of this object. Just add
 // them here below.
-var mb = require('../../../../mail/mail.sqlite.js');
-var calls = require('../../../../mail/mailbox-calls.js');
+var mb = require('../../components/mail/mail.sqlite.js');
+var calls = require('../../components/mail/mailbox-calls.js');
 var assert = require('assert');
 var rpc = {};
 
