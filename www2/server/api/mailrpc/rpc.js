@@ -11,8 +11,20 @@ var JSONB = require('json-buffer');
 
 
 // All RPC-bound functions should be fields of this 'rpc' object. Just add
-// them here below.
+// them here below, using 'addRpc'
 var rpc = {};
+
+function addRpc(dstObj, name, fn) {
+    assert(typeof dstObj == 'object');
+    assert(typeof name == 'string');
+    assert(typeof fn == 'function');
+
+    // Make sure that there are no naming collisions when we map to lower case.
+    var namelow = name.toLowerCase();
+    assert(dstObj[namelow] == undefined);
+    dstObj[namelow] = fn;
+}
+
 
 // A function that converts the RPC call (invisible to the user),
 // where the mailbox name is passed as the first parameter,
@@ -58,16 +70,16 @@ function makeMailboxHandler(methodName) {
 for (var i = 0; i < calls.length; i++) {
     var call = calls[i];
     assert(typeof call == 'string');
-    rpc[call] = makeMailboxHandler(call);
+    addRpc(rpc, call, makeMailboxHandler(call));
 }
 
 
 
 
 // Just for testing
-rpc.add = function(a, b, c, cb) {
+addRpc(rpc, 'add', function(a, b, c, cb) {
     cb(undefined, a + b + c);
-}
+});
 
 
 
@@ -125,7 +137,7 @@ function handler(req, res) {
     var argArray = args.concat([resultCB]);
 
     var fnName = req.params[0];
-    var fn = rpc[fnName];
+    var fn = rpc[fnName.toLowerCase()];
 
     if (fn == undefined) {
 	resultCB(
