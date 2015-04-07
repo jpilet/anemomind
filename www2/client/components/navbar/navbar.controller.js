@@ -1,11 +1,18 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('NavbarCtrl', function ($scope, $location, Auth) {
+  .controller('NavbarCtrl', function ($scope, $location, Auth, $http, socket) {
     $scope.menu = [{
       'title': 'Home',
       'link': '/'
     }];
+
+    $scope.boats = [];
+    $http.get('/api/boats')
+    .success(function(data, status, headers, config) {
+       $scope.boats = data;
+       socket.syncUpdates('boat', $scope.boats);
+    });
 
     $scope.isCollapsed = true;
     $scope.isLoggedIn = Auth.isLoggedIn;
