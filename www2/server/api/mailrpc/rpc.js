@@ -4,11 +4,14 @@
   back.
 */  
 
-// All RPC-bound functions should be fields of this object. Just add
-// them here below.
 var mb = require('../../components/mail/mail.sqlite.js');
 var calls = require('../../components/mail/mailbox-calls.js');
 var assert = require('assert');
+var JSONB = require('json-buffer');
+
+
+// All RPC-bound functions should be fields of this 'rpc' object. Just add
+// them here below.
 var rpc = {};
 
 // A function that converts the RPC call (invisible to the user),
@@ -48,6 +51,10 @@ function makeMailboxHandler(methodName) {
     }
 }
 
+
+
+
+
 for (var i = 0; i < calls.length; i++) {
     var call = calls[i];
     assert(typeof call == 'string');
@@ -64,4 +71,79 @@ rpc.add = function(a, b, c, cb) {
 
 
 
-module.exports = rpc;
+
+
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+/// HTTP interface
+////////////////////////////////////////////////////////////////////////////////
+/* TODO:
+   
+   * Protect this interface using the authentication
+   
+*/   
+
+// http://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
+// Code that lets us serialize Error objects
+// to be passed back as JSON over HTTP and
+// handled by the client.
+Object.defineProperty(Error.prototype, 'toJSON', {
+    value: function () {
+        var alt = {};
+
+        Object.getOwnPropertyNames(this).forEach(function (key) {
+            alt[key] = this[key];
+        }, this);
+
+        return alt;
+    },
+    configurable: true
+});
+
+function handler(req, res) {
+    var args = JSONB.parse(req.body.args);
+    var resultCB = function(err, result) {
+	res.json(201, {
+	    err: JSONB.stringify(err),
+	    result: JSONB.stringify(result)
+	});
+    };
+
+    // The arguments passed to the function that we are calling:
+    //   * The rest of the arguments sent by json
+    //   * A callback for the result.
+    var argArray = args.concat([resultCB]);
+
+    var fn = rpc[req.body.fn];
+
+    if (fn == undefined) {
+	resultCB(
+	    {
+		noSuchFunction: req.body.fn,
+		availableFunctions: Object.keys(rpc)
+	    }
+	);
+    } else {
+	try {
+	    fn.apply(null, argArray);
+	} catch (e) {
+	    console.log('Caught an exception while processing RPC call: %j', e);
+	    resultCB(e);
+	}
+    }
+};
+
+function handleError(res, err) {
+    res.send(500, err);
+}
+
+
+
+module.exports = handler;
