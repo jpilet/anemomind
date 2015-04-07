@@ -108,7 +108,8 @@ Object.defineProperty(Error.prototype, 'toJSON', {
 });
 
 function handler(req, res) {
-    console.log('Recieved param %j', req.params[0]);
+    console.log('Path = %j', req.path);
+    console.log('Recieved param %j', req.params);
     
     var args = JSONB.parse(req.body.args);
     var resultCB = function(err, result) {
