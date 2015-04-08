@@ -126,7 +126,7 @@ function handler(req, res) {
     
     var args = JSONB.parse(req.body.args);
     var resultCB = function(err, result) {
-	res.json(201, {
+	res.json(200, {
 	    err: JSONB.stringify(err),
 	    result: JSONB.stringify(result)
 	});

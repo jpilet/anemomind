@@ -3,6 +3,7 @@
 var should = require('should');
 var app = require('../../app');
 var request = require('supertest');
+var JSONB = require('json-buffer');
 var User = require('../user/user.model');
 //var Boat = require('../boat/boat.model');
 
@@ -34,6 +35,20 @@ describe('POST /api/mailrpc', function() {
                  return done();
              });
         });
+
+    it('should get the number of packets', function(done) {
+	server
+	    .post('/api/mailrpc/getTotalPacketCount')
+	    .set('Authorization', 'Bearer ' + token)
+	    .send({args: ['abc']})
+	    .expect(200)
+	    .end(
+		function(err, res) {
+		    res.body.result.should.equal(JSONB.stringify(0));
+		    done();
+		}
+	    );
+    });
 
 
   after(function(done) {
