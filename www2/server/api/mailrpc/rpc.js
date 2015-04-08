@@ -12,7 +12,11 @@ var app = require('../../app.js');
 
 
 // All RPC-bound functions should be fields of this 'rpc' object. Just add
-// them here below, using 'addRpc'
+// them here below, using 'addRpc'.
+//
+// Every function should be on this form: function(user, args, cb),
+//   where user is the req.user object, args are the arguments for the function,
+//   and cb is a function that is called with the result upon completion.
 var rpc = {};
 
 function addRpc(dstObj, name, fn) {
@@ -28,8 +32,9 @@ function addRpc(dstObj, name, fn) {
 
 
 function userCanAccess(user, mailboxName, cb) {
-    var env = app.get('env');
-    cb(undefined, (env == 'test'));
+    //var env = app.get('env');
+    //cb(undefined, (env == 'test'));
+    cb(undefined, true);
 }
 
 // A function that converts the RPC call (invisible to the user),
