@@ -4,10 +4,10 @@
   back.
 */  
 
-var mb = require('../../components/mail/mail.sqlite.js');
 var calls = require('../../components/mail/mailbox-calls.js');
 var assert = require('assert');
 var JSONB = require('json-buffer');
+var mb = require('./mailbox.js');
 
 
 // All RPC-bound functions should be fields of this 'rpc' object. Just add
@@ -39,32 +39,28 @@ function makeMailboxHandler(methodName) {
 
 	// Every mailbox has its own file
 
-
-	if (!mb.isValidMailboxName(mailboxName)) {
-	    cb(new Error('Invalid mailbox name: ' + mailboxName));
-	} else {
-	    var filename = mailboxName + '.mailsqlite.db';
-	    mb.tryMakeMailbox(
-		filename, mailboxName,
-		function(err, mailbox) {
-		    if (err) {
-			cb(err);
-		    } else {
-			mailbox[methodName].apply(
-			    mailbox, args.concat([
-				function(err, result) {
-				    mailbox.close(
-					function(err) {
-					    cb(err, result);
-					}
-				    );
-				}
-			    ])
-			);
-		    }
+	assert(mb != undefined);
+	assert(mb.openMailbox != undefined);
+	mb.openMailbox(
+	    mailboxName,
+	    function(err, mailbox) {
+		if (err) {
+		    cb(err);
+		} else {
+		    mailbox[methodName].apply(
+			mailbox, args.concat([
+			    function(err, result) {
+				mailbox.close(
+				    function(err) {
+					cb(err, result);
+				    }
+				);
+			    }
+			])
+		    );
 		}
-	    );
-	}
+	    }
+	);
     }
 }
 
