@@ -68,7 +68,6 @@ function openMailbox(mailboxName, cb) {
     }
 }
 
-
 exports.openMailbox = openMailbox;
 exports.sendPackets = sendPackets;
 exports.sendPacket = sendPacket;

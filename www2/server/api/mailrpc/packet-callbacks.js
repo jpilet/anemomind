@@ -7,12 +7,12 @@ module.exports.onPacketReceived = [
     // been received.
     
     // Some example handlers
-    function(self, packet, cb) {
+    function(mailbox, packet, cb) {
 	console.log('First handler: Received packet %j', packet);
 	cb();
     },
 
-    function(self, packet, cb) {
+    function(mailbox, packet, cb) {
 	console.log('Second handler, called after the first handler.');
 	cb();
     }
@@ -29,7 +29,7 @@ module.exports.onAcknowledged = [
     //
     // For instance, if we were transferring a file, we might want to delete that file
     // or something once we know all its pieces has reached the destination.
-    function(self, data, cb) {
+    function(mailbox, data, cb) {
 	console.log('Received acknowledgement for packets previously sent: %j', data);
 	cb();
     }
