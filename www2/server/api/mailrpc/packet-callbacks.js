@@ -1,0 +1,36 @@
+// Please list below all the callbacks that should be called,
+// sequentially, whenever a packet is received
+module.exports.onPacketReceived = [
+
+    // For instance, if this packet is part of a file being transferred,
+    // we might want to do something with this file once all pieces have
+    // been received.
+    
+    // Some example handlers
+    function(self, packet, cb) {
+	console.log('First handler: Received packet %j', packet);
+	cb();
+    },
+
+    function(self, packet, cb) {
+	console.log('Second handler, called after the first handler.');
+	cb();
+    }
+    
+];
+
+
+// Please list below all the callbacks that should be called,
+// sequentially, whenever an ack packet is received.
+module.exports.onAcknowledged = [
+
+    // As for onPacketReceived, maybe we want to do something once
+    // we receive an acknowledgment packet for packets previously sent.
+    //
+    // For instance, if we were transferring a file, we might want to delete that file
+    // or something once we know all its pieces has reached the destination.
+    function(self, data, cb) {
+	console.log('Received acknowledgement for packets previously sent: %j', data);
+	cb();
+    }
+];

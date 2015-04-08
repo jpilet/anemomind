@@ -1,43 +1,19 @@
 var mb = require('../../components/mail/mail.sqlite.js');
+var packetCallbacks = require('./packet-callbacks.js');
 
+/*
 
-// Please list below all the callbacks that should be called,
-// sequentially, whenever a packet is received
-var onPacketReceived = [
+  On the server, you typically want to do this:
 
-    // For instance, if this packet is part of a file being transferred,
-    // we might want to do something with this file once all pieces have
-    // been received.
-    
-    // Some example handlers
-    function(packet, cb) {
-	console.log('First handler: Received packet %j', packet);
-	cb();
-    },
+    * send packet(s): Use the exports.sendPacket(s) to do that.
 
-    function(packet, cb) {
-	console.log('Second handler, called after the first handler.');
-	cb();
-    }
-    
-];
+    * Receive packets: Put your handler inside the onPacketReceived array in packet-callbacks.js
+  
+    * In some cases, you might want to do something once you know that a packet
+      that you sent reached its destination. In that case, put your handler
+      in the onAcknowledged array, in packet-callbacks.js.
 
-// Please list below all the callbacks that should be called,
-// sequentially, whenever an ack packet is received.
-var onAcknowledged = [
-
-    // As for onPacketReceived, maybe we want to do something once
-    // we receive an acknowledgment packet for packets previously sent.
-    //
-    // For instance, if we were transferring a file, we might want to delete that file
-    // or something once we know all its pieces has reached the destination.
-    function(data, cb) {
-	console.log('Received acknowledgement for packets previously sent: %j', data);
-	cb();
-    }
-
-    
-];
+*/
 
 // Conveniency function for sending a packet:
 // It will open a mailbox, send packets from
@@ -83,14 +59,15 @@ function openMailbox(mailboxName, cb) {
 		if (err) {
 		    cb(err);
 		} else {
-		    mailbox.onPacketReceived = onPacketReceived;
-		    mailbox.onAcknowledged = onAcknowledged;
+		    mailbox.onPacketReceived = packetCallbacks.onPacketReceived;
+		    mailbox.onAcknowledged = packetCallbacks.onAcknowledged;
 		    cb(err, mailbox);
 		}
 	    }
 	);
     }
 }
+
 
 exports.openMailbox = openMailbox;
 exports.sendPackets = sendPackets;

@@ -877,6 +877,7 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
 Mailbox.prototype.callOnAcknowledged = function(packet, seqnums, cb) {
     if (this.onAcknowledged != undefined) {
 	callHandlers(
+	    this,
 	    this.onAcknowledged,
 	    {
 		dst: packet.src, // The mailbox we sent to
@@ -916,37 +917,38 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 }
 
 
-function callHandlersArray(handlers, data, cb) {
+function callHandlersArray(self, handlers, data, cb) {
     if (handlers.length == 0) {
 	cb();
     } else {
 	handlers[0](
+	    self,
 	    data,
 	    function(err) {
 		if (err) {
 		    cb(err);
 		} else {
-		    callHandlersArray(handlers.slice(1), data, cb);
+		    callHandlersArray(self, handlers.slice(1), data, cb);
 		}
 	    }
 	);
     }
 }
 
-function callHandlers(handlers, data, cb) {
+function callHandlers(self, handlers, data, cb) {
     if (handlers == undefined) {
 	cb();
     } else if (typeof handlers == 'function') {
-	handlers(data, cb);
+	handlers(self, data, cb);
     } else { // It is an array
-	callHandlersArray(handlers, data, cb);
+	callHandlersArray(self, handlers, data, cb);
     }
 }
 
 Mailbox.prototype.callOnPacketReceived = function(packet, cb) {
     if (this.onPacketReceived != undefined
 	&& packet.dst == this.mailboxName) {
-	callHandlers(this.onPacketReceived, packet, cb);
+	callHandlers(this, this.onPacketReceived, packet, cb);
     } else {
 	cb();
     }
