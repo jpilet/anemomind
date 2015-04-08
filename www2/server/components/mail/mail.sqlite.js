@@ -896,7 +896,15 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 }
 
 
-
+Mailbox.prototype.callOnPacketReceived = function(packet, cb) {
+    if (this.onPacketReceived != undefined
+	&& packet.dst == this.mailboxName) {
+	this.onPacketReceived(packet, cb);
+    } else {
+	cb();
+    }
+    
+}
 
  // This method is called only for packets that should not be rejected.
  Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
@@ -909,36 +917,34 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
      //  * Update the C-table using the data of the packet
      this.registerPacketData(packet, function(err) {
 	 if (err == undefined) {
-
-	     // Optional callback to inform us that
-	     // we have a new packet to open.
-	     if (self.onPacketReceived != undefined
-		 && packet.dst == self.mailboxName) {
-		 self.onPackedReceived(packet);
-	     }
-
-	     // If the packet was intended for this mailbox,
-	     // this call will mark packets as acknowledged
-	     // and maximize the C-number.
-	     self.handleAckPacketIfNeeded(
+	     self.callOnPacketReceived(
 		 packet,
 		 function(err) {
-		     if (err == undefined) {
-			 // Always maximize the C-number
-			 self.maximizeCNumber(
-			     packet.src,
-			     function (err) {
-				 if (err == undefined) {
-				     self.sendAckIfNeeded(packet.src, cb);
-				 } else {
-				     cb(err);
-				 }
+		     // If the packet was intended for this mailbox,
+		     // this call will mark packets as acknowledged
+		     // and maximize the C-number.
+		     self.handleAckPacketIfNeeded(
+			 packet,
+			 function(err) {
+			     if (err == undefined) {
+				 // Always maximize the C-number
+				 self.maximizeCNumber(
+				     packet.src,
+				     function (err) {
+					 if (err == undefined) {
+					     self.sendAckIfNeeded(packet.src, cb);
+					 } else {
+					     cb(err);
+					 }
+				     }
+				 );
+			     } else {
+				 cb(err);
 			     }
-			 );
-		     } else {
-			 cb(err);
-		     }
-		 });
+			 }
+		     );
+		 }
+	     );
 	} else {
 	    cb(err);
 	}
