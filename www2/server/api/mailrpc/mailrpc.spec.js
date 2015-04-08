@@ -34,7 +34,6 @@ describe('POST /api/mailrpc', function() {
     testUser.save(done);
   });
 
-  console.log('env = ', app.get('env'));
     
   var server = request(app);
   var token;

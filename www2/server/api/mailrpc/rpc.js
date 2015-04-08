@@ -8,7 +8,6 @@ var calls = require('../../components/mail/mailbox-calls.js');
 var assert = require('assert');
 var JSONB = require('json-buffer');
 var mb = require('./mailbox.js');
-var app = require('../../app.js');
 
 
 // All RPC-bound functions should be fields of this 'rpc' object. Just add
@@ -32,9 +31,8 @@ function addRpc(dstObj, name, fn) {
 
 
 function userCanAccess(user, mailboxName, cb) {
-    //var env = app.get('env');
-    //cb(undefined, (env == 'test'));
-    cb(undefined, true);
+    var env = process.env.NODE_ENV;
+    cb(undefined, (env == 'test' || env == 'development'));
 }
 
 // A function that converts the RPC call (invisible to the user),
