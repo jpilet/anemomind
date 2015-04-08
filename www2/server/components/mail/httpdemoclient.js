@@ -55,5 +55,5 @@ function mailboxDemo2() {
 }
 
 
-mailboxDemo2();
-//addNumbersDemo();
+//mailboxDemo1();
+addNumbersDemo();
