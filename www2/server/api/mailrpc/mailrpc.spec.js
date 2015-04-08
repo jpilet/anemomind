@@ -40,7 +40,7 @@ describe('POST /api/mailrpc', function() {
 	server
 	    .post('/api/mailrpc/getTotalPacketCount')
 	    .set('Authorization', 'Bearer ' + token)
-	    .send({args: ['abc']})
+	    .send({args: JSONB.stringify(['abc'])})
 	    .expect(200)
 	    .end(
 		function(err, res, body) {
