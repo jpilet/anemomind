@@ -51,23 +51,39 @@ function makeMailboxHandler(methodName) {
 
 	assert(mb != undefined);
 	assert(mb.openMailbox != undefined);
-	mb.openMailbox(
-	    mailboxName,
-	    function(err, mailbox) {
+
+
+	userCanAccess(
+	    user, mailboxName,
+	    function(err, p) {
 		if (err) {
 		    cb(err);
+		} else if (!p) {
+		    cb(new Error('Unauthorized to access that mailbox'));
 		} else {
-		    mailbox[methodName].apply(
-			mailbox, args.concat([
-			    function(err, result) {
-				mailbox.close(
-				    function(err) {
-					cb(err, result);
-				    }
+
+		    mb.openMailbox(
+			mailboxName,
+			function(err, mailbox) {
+			    if (err) {
+				cb(err);
+			    } else {
+				mailbox[methodName].apply(
+				    mailbox, args.concat([
+					function(err, result) {
+					    mailbox.close(
+						function(err) {
+						    cb(err, result);
+						}
+					    );
+					}
+				    ])
 				);
 			    }
-			])
+			}
 		    );
+
+
 		}
 	    }
 	);
