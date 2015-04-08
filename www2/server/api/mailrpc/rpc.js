@@ -18,6 +18,9 @@ var mb = require('./mailbox.js');
 //   and cb is a function that is called with the result upon completion.
 var rpc = {};
 
+
+// Utility function that should be used when adding
+// functions to the rpc object.
 function addRpc(dstObj, name, fn) {
     assert(typeof dstObj == 'object');
     assert(typeof name == 'string');
@@ -29,7 +32,7 @@ function addRpc(dstObj, name, fn) {
     dstObj[namelow] = fn;
 }
 
-
+// Check if a user is authorized to access a mailbox.
 function userCanAccess(user, mailboxName, cb) {
     var env = process.env.NODE_ENV;
     cb(undefined, (env == 'test' || env == 'development'));
@@ -57,7 +60,10 @@ function makeMailboxHandler(methodName) {
 		if (err) {
 		    cb(err);
 		} else if (!p) {
-		    cb(new Error('Unauthorized to access that mailbox'));
+		    cb(new Error(
+			'Unauthorized to access that mailbox with name '
+			    + mailboxName
+		    ));
 		} else {
 
 		    mb.openMailbox(
