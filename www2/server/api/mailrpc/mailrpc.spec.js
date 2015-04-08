@@ -6,7 +6,6 @@ var app = require('../../app');
 var request = require('supertest');
 var JSONB = require('json-buffer');
 var User = require('../user/user.model');
-//var Boat = require('../boat/boat.model');
 
 function callFunction(server, token, functionName, args, cb) {
     server
@@ -35,6 +34,8 @@ describe('POST /api/mailrpc', function() {
     testUser.save(done);
   });
 
+  console.log('env = ', app.get('env'));
+    
   var server = request(app);
   var token;
 

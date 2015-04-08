@@ -8,6 +8,7 @@ var calls = require('../../components/mail/mailbox-calls.js');
 var assert = require('assert');
 var JSONB = require('json-buffer');
 var mb = require('./mailbox.js');
+var app = require('../../app.js');
 
 
 // All RPC-bound functions should be fields of this 'rpc' object. Just add
@@ -26,16 +27,20 @@ function addRpc(dstObj, name, fn) {
 }
 
 
+function userCanAccess(user, mailboxName, cb) {
+    var env = app.get('env');
+    cb(undefined, (env == 'test'));
+}
+
 // A function that converts the RPC call (invisible to the user),
 // where the mailbox name is passed as the first parameter,
 // to a method call to a mailbox with that name.
 function makeMailboxHandler(methodName) {
-    return function() {
-	var allArgs = Array.prototype.slice.call(arguments);
+    return function(user, allArgs, cb) {
+	// How to turn an arguments map into an array:  Array.prototype.slice.call(arguments);
 	var mailboxName = allArgs[0];
 
-	var args = allArgs.slice(1, allArgs.length-1);
-	var cb = allArgs[allArgs.length-1];
+	var args = allArgs.slice(1, allArgs.length);
 
 	// Every mailbox has its own file
 
@@ -73,23 +78,6 @@ for (var i = 0; i < calls.length; i++) {
     assert(typeof call == 'string');
     addRpc(rpc, call, makeMailboxHandler(call));
 }
-
-
-
-
-// Just for testing
-addRpc(rpc, 'add', function(a, b, c, cb) {
-    cb(undefined, a + b + c);
-});
-
-
-
-
-
-
-
-
-
 
 
 
@@ -135,7 +123,6 @@ function handler(req, res) {
 	// The arguments passed to the function that we are calling:
 	//   * The rest of the arguments sent by json
 	//   * A callback for the result.
-	var argArray = args.concat([resultCB]);
 
 	var fnName = req.params[0];
 	var fn = rpc[fnName.toLowerCase()];
@@ -148,7 +135,7 @@ function handler(req, res) {
 		}
 	    );
 	} else {
-	    fn.apply(null, argArray);
+	    fn(req.user, args, resultCB);
 	}
     } catch (e) {
 	resultCB(e);
