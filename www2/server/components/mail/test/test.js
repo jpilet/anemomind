@@ -620,3 +620,33 @@ describe(
     }
 );
 
+describe(
+    'sendPackets',
+    function() {
+	it(
+	    'Should send many packets',
+	    function(done) {
+		withbox(
+		    function(box) {
+
+			box.sendPackets(
+			    'abc',
+			    9,
+			    [new Buffer(1), new Buffer(2), new Buffer(3)],
+			    function (err) {
+				assert(err == undefined);
+				box.getTotalPacketCount(function(err, n) {
+				    assert(err == undefined);
+				    assert(n == 3);
+				    done();
+				});
+			    }
+			);
+		    }
+		);
+	    }
+	);
+    }
+);
+
+

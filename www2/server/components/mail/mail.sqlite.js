@@ -1104,6 +1104,29 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
     }
 };
 
+// Send multiple packets to the same destination
+// and with the same label, but with different data, stored in an array.
+//
+// Convenient when we need to chop up a big file in smaller packets
+// for robust transfer over e.g. bluetooth.
+Mailbox.prototype.sendPackets = function(dst, label, dataArray, cb) {
+    if (dataArray.length == 0) {
+	cb();
+    } else {
+	var self = this;
+	this.sendPacket(
+	    dst, label, dataArray[0],
+	    function (err) {
+		if (err) {
+		    cb(err);
+		} else {
+		    self.sendPackets(dst, label, dataArray.slice(1), cb);
+		}
+	    }
+	);
+    }
+}
+
 
 
 

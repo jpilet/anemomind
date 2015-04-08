@@ -39,6 +39,35 @@ var onAcknowledged = [
     
 ];
 
+// Conveniency function for sending a packet:
+// It will open a mailbox, send a packet from
+// that mailbox, and close the mailbox.
+function sendPackets(src, dst, label, dataArray, cb) {
+    openMailbox(
+	src,
+	function(err, mailbox) {
+	    if (err) {
+		cb(err);
+	    } else {
+		mailbox.sendPackets(
+		    dst,
+		    label,
+		    dataArray,
+		    function (err) {
+			if (err) {
+			    cb(err);
+			} else {
+			    mailbox.close(
+				cb
+			    );			    
+			}
+		    }
+		);
+	    }
+	}
+    );
+}
+
 function openMailbox(mailboxName, cb) {
     if (!mb.isValidMailboxName(mailboxName)) {
 	cb(new Error('Invalid mailbox name: ' + mailboxName));
@@ -60,3 +89,4 @@ function openMailbox(mailboxName, cb) {
 }
 
 exports.openMailbox = openMailbox;
+exports.sendPacket = sendPacket;
