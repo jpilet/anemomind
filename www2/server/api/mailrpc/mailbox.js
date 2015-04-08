@@ -28,7 +28,9 @@ function openMailbox(mailboxName, cb) {
 		if (err) {
 		    cb(err);
 		} else {
-		    cb		    
+		    mailbox.onPacketReceived = onPacketReceived;
+		    mailbox.onAcknowledged = onAcknowledged;
+		    cb(err, mailbox);
 		}
 	    }
 	);

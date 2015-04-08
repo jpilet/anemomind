@@ -870,6 +870,20 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
     });
 }
 
+Mailbox.prototype.callOnAcknowledged = function(packet, seqnums, cb) {
+    if (this.onAcknowledged != undefined) {
+	callHandlers(
+	    this.onAcknowledged,
+	    {
+		dst: packet.src, // The mailbox we sent to
+		seqnums: seqnums // The sequence numbers.
+	    },
+	    cb
+	);
+    } else {
+	cb();
+    }
+}
 
 Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     assert(isValidPacket(packet));
@@ -878,17 +892,19 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     if (packet.label == ACKLABEL && packet.dst == this.mailboxName) {
 	var seqnums = deserializeSeqNums(packet.data);
 	// Optional call to function whenever some packets that we sent were acknowledged.
-	if (this.onAcknowledged != undefined) {
-	    this.onAcknowledged({
-		dst: packet.src, // The mailbox we sent to
-		seqnums: seqnums // The sequence numbers.
-	    });
-	}
-	
-	self.setAcked(
-	    self.mailboxName, packet.src,
-	    seqnums,
-	    cb
+	this.callOnAcknowledged(
+	    packet, seqnums,
+	    function (err) {
+		if (err) {
+		    cb(err);
+		} else {
+		    self.setAcked(
+			self.mailboxName, packet.src,
+			seqnums,
+			cb
+		    );
+		}
+	    }
 	);
     } else {
 	cb();
@@ -919,7 +935,7 @@ function callHandlers(handlers, data, cb) {
     } else if (typeof handlers == 'function') {
 	handlers(data, cb);
     } else { // It is an array
-	callHandlerArray(handlers, data, cb);
+	callHandlersArray(handlers, data, cb);
     }
 }
 
