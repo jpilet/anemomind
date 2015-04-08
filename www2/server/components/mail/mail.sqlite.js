@@ -896,10 +896,37 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 }
 
 
+function callHandlersArray(handlers, data, cb) {
+    if (handlers.length == 0) {
+	cb();
+    } else {
+	handlers[0](
+	    data,
+	    function(err) {
+		if (err) {
+		    cb(err);
+		} else {
+		    callHandlersArray(handlers.slice(1), data, cb);
+		}
+	    }
+	);
+    }
+}
+
+function callHandlers(handlers, data, cb) {
+    if (handlers == undefined) {
+	cb();
+    } else if (typeof handlers == 'function') {
+	handlers(data, cb);
+    } else { // It is an array
+	callHandlerArray(handlers, data, cb);
+    }
+}
+
 Mailbox.prototype.callOnPacketReceived = function(packet, cb) {
     if (this.onPacketReceived != undefined
 	&& packet.dst == this.mailboxName) {
-	this.onPacketReceived(packet, cb);
+	callHandlers(this.onPacketReceived, packet, cb);
     } else {
 	cb();
     }

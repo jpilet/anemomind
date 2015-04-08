@@ -23,7 +23,14 @@ function openMailbox(mailboxName, cb) {
     } else {
 	var filename = mailboxName + '.mailsqlite.db';
 	mb.tryMakeMailbox(
-	    filename, mailboxName, cb
+	    filename, mailboxName,
+	    function(err, mailbox) {
+		if (err) {
+		    cb(err);
+		} else {
+		    cb		    
+		}
+	    }
 	);
     }
 }
