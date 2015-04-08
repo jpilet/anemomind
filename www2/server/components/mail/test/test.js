@@ -635,9 +635,15 @@ describe(
 			    [new Buffer(1), new Buffer(2), new Buffer(3)],
 			    function (err) {
 				assert(err == undefined);
-				box.getTotalPacketCount(function(err, n) {
-				    assert(err == undefined);
-				    assert(n == 3);
+				box.getAllPackets(function(err, packets) {
+				    assert(packets.length == 3);
+				    var marks = [false, false, false];
+				    for (var i = 0; i < 3; i++) {
+					marks[packets[i].data.length-1] = true;
+				    }
+				    for (var i = 0; i < 3; i++) {
+					assert(marks[i]);
+				    }
 				    done();
 				});
 			    }
@@ -648,5 +654,7 @@ describe(
 	);
     }
 );
+
+
 
 

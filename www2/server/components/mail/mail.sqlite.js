@@ -649,6 +649,10 @@ Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
 };
 
 
+Mailbox.prototype.getAllPackets = function(cb) {
+    this.db.all('SELECT * FROM packets', cb);
+}
+
 // A packet can be uniquely identified by its source mailbox and the seqNumber.
 Mailbox.prototype.hasPacket = function(src, seqNumber, cb) {
     assert(isIdentifier(src));
