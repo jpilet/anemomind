@@ -4,9 +4,9 @@ var should = require('should');
 var app = require('../../app');
 var request = require('supertest');
 var User = require('../user/user.model');
-var Boat = require('../boat/boat.model');
+//var Boat = require('../boat/boat.model');
 
-describe('GET /api/boats', function() {
+describe('POST /api/mailrpc', function() {
   before(function(done) {
     var testUser = new User({
       "provider" : "local",
@@ -35,48 +35,8 @@ describe('GET /api/boats', function() {
              });
         });
 
-  it('should respond with an empty array', function(done) {
-    request(app)
-      .get('/api/boats')
-      .set('Authorization', 'Bearer ' + token)
-      .expect(200)
-      .end(function(err, res) {
-        if (err) return done(err);
-        res.body.should.be.instanceof(Array);
-        res.body.should.have.length(0);
-        done();
-      });
-  });
-
-  // it('should add a TestBoat', function(done) {
-  //   request(app)
-  //     .post('/api/boats')
-  //     .set('Authorization', 'Bearer ' + token)
-  //     .send({ name: 'TestBoat' })
-  //     .expect(201)
-  //     .end(function(err, res) {
-  //       if (err) return done(err);
-  //       done();
-  //    });
-  //  });
-
-  // it('should respond with an array containing TestBoat', function(done) {
-  //   request(app)
-  //     .get('/api/boats')
-  //     .set('Authorization', 'Bearer ' + token)
-  //     .expect(200)
-  //     .end(function(err, res) {
-  //       if (err) return done(err);
-  //       res.body.should.be.instanceof(Array);
-  //       res.body.should.have.length(1);
-  //       res.body[0].should.have.property('name');
-  //       res.body[0].name.should.equal('TestBoat');
-  //       done();
-  //     });
-  // });
 
   after(function(done) {
-    Boat.remove({name: "TestBoat"}).exec();
     User.remove({email: "test@anemomind.com"}, done);
   });
 });
