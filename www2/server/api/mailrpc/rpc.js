@@ -122,10 +122,7 @@ Object.defineProperty(Error.prototype, 'toJSON', {
 
 function handler(req, res) {
     try {
-	console.log('Handle this data: %j', req.body);
 	var resultCB = function(err, result) {
-	    console.log('The error is %j', err);
-	    console.log('The result is %j', result);
 	    res.json(200, {
 		err: JSONB.stringify(err),
 		result: JSONB.stringify(result)
