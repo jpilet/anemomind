@@ -35,13 +35,13 @@ ServerConnection.prototype.login = function(userdata, cb) {
 		cb(err);
 	    } else {
 		if (response.statusCode == 200) {
+		    self.token = body.token;
 		    cb(
-			undefined,
-			new ServerConnection(self.address, body.token)
+			undefined
 		    );
 		} else {
 		    cb(
-			undefined, this
+			new Error('Unexpected status code: ' + response.statusCode)
 		    );
 		}
 	    }

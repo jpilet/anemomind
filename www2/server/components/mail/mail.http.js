@@ -28,14 +28,13 @@ function Mailbox(serverConnection, mailboxName, calls) {
 
 // Call this function when you need a new mailbox.
 function tryMakeMailbox(serverAddress, userdata, mailboxName, cb) {
-    var s0 = new ServerConnection(serverAddress);
-    s0.login(userdata, function(err, s) {
+    var s = new ServerConnection(serverAddress);
+    s.login(userdata, function(err) {
 	if (err) {
 	    cb(err);
 	} else {
 	    // Register these as rpc calls.
 	    s.registerCalls(mailboxCalls);
-	    
 	    cb(undefined, new Mailbox(s, mailboxName, mailboxCalls));
 	}
     });

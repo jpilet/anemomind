@@ -36,6 +36,10 @@ async.map(
 	demo.synchronizeThreeMailboxes(boxes, function(err) {
 	    if (err) {
 		console.log('THERE WAS AN ERROR: %j', err);
+		console.log(
+		    'Please make sure that there is a user like this on the server: %j',
+		    testuser
+		);
 	    } else {
 		console.log('SUCCESS!!!');
 	    }

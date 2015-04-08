@@ -17,13 +17,17 @@ var address = 'http://localhost:9000';
 
 function addNumbersDemo() {
     // Always have 'http://' at the beginning.
-    (new ServerConnection(address)).login(testuser, function(err, s) {
-	s.registerCalls(['add']);
-	s.add(3, 4, 5, function (err, result) {
-	    console.log('Got error: %j', err);
-	    console.log('Got result: %j', result);
-	});
-	
+    var s = new ServerConnection(address);
+    s.login(testuser, function(err) {
+	if (err) {
+	    console.log('Got error while logging in: %j', err);
+	} else {
+	    s.registerCalls(['add']);
+	    s.add(3, 4, 5, function (err, result) {
+		console.log('Got error: %j', err);
+		console.log('Got result: %j', result);
+	    });
+	}
     });
 }
 
