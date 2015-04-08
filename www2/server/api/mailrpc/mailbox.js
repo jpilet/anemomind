@@ -16,7 +16,7 @@ var onPacketReceived = [
     },
 
     function(packet, cb) {
-	console.log('Second handler.');
+	console.log('Second handler, called after the first handler.');
 	cb();
     }
     
@@ -40,7 +40,7 @@ var onAcknowledged = [
 ];
 
 // Conveniency function for sending a packet:
-// It will open a mailbox, send a packet from
+// It will open a mailbox, send packets from
 // that mailbox, and close the mailbox.
 function sendPackets(src, dst, label, dataArray, cb) {
     openMailbox(
@@ -68,6 +68,10 @@ function sendPackets(src, dst, label, dataArray, cb) {
     );
 }
 
+function sendPacket(src, dst, label, data, cb) {
+    sendPackets(src, dst, label, [data], cb);
+}
+
 function openMailbox(mailboxName, cb) {
     if (!mb.isValidMailboxName(mailboxName)) {
 	cb(new Error('Invalid mailbox name: ' + mailboxName));
@@ -89,4 +93,5 @@ function openMailbox(mailboxName, cb) {
 }
 
 exports.openMailbox = openMailbox;
+exports.sendPackets = sendPackets;
 exports.sendPacket = sendPacket;
