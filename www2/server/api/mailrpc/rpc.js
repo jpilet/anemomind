@@ -121,46 +121,41 @@ Object.defineProperty(Error.prototype, 'toJSON', {
 });
 
 function handler(req, res) {
-    //console.log('Path = %j', req.path);
-    //console.log('Recieved param %j', req.params);
-    
-    var args = JSONB.parse(req.body.args);
-    var resultCB = function(err, result) {
-	res.json(200, {
-	    err: JSONB.stringify(err),
-	    result: JSONB.stringify(result)
-	});
-    };
+    try {
+	var resultCB = function(err, result) {
+	    console.log('The error is %j', err);
+	    console.log('The result is %j', result);
+	    res.json(200, {
+		err: JSONB.stringify(err),
+		result: JSONB.stringify(result)
+	    });
+	};
 
-    // The arguments passed to the function that we are calling:
-    //   * The rest of the arguments sent by json
-    //   * A callback for the result.
-    var argArray = args.concat([resultCB]);
+	var args = JSONB.parse(req.body.args);
 
-    var fnName = req.params[0];
-    var fn = rpc[fnName.toLowerCase()];
 
-    if (fn == undefined) {
-	resultCB(
-	    {
-		noSuchFunction: fnName,
-		availableFunctions: Object.keys(rpc)
-	    }
-	);
-    } else {
-	try {
+	// The arguments passed to the function that we are calling:
+	//   * The rest of the arguments sent by json
+	//   * A callback for the result.
+	var argArray = args.concat([resultCB]);
+
+	var fnName = req.params[0];
+	var fn = rpc[fnName.toLowerCase()];
+
+	if (fn == undefined) {
+	    resultCB(
+		{
+		    noSuchFunction: fnName,
+		    availableFunctions: Object.keys(rpc)
+		}
+	    );
+	} else {
 	    fn.apply(null, argArray);
-	} catch (e) {
-	    console.log('Caught an exception while processing RPC call: %j', e);
-	    resultCB(e);
 	}
+    } catch (e) {
+	resultCB(e);
     }
 };
-
-function handleError(res, err) {
-    res.send(500, err);
-}
-
 
 
 module.exports = handler;

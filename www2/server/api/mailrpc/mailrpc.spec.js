@@ -43,7 +43,10 @@ describe('POST /api/mailrpc', function() {
 	    .send({args: ['abc']})
 	    .expect(200)
 	    .end(
-		function(err, res) {
+		function(err, res, body) {
+		    console.log('Err: %j', err);
+		    console.log('Received response: %j', res);
+		    console.log('Body: %j', body);
 		    res.body.result.should.equal(JSONB.stringify(0));
 		    done();
 		}
