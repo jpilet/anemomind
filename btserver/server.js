@@ -1,9 +1,11 @@
 var util = require('util');
 var bleno = require('bleno');
 var msgpack = require('msgpack');
-var rpc = require('./rpc.js');
 
-function RpcCharacteristic(rpcObj) {
+// To be set using the exported function setRpc
+var rpc = {};
+
+function RpcCharacteristic() {
     bleno.Characteristic.call(this, {
 	uuid: '13333333333333333333333333330003',
 	properties: ['notify', 'write'],
@@ -14,8 +16,6 @@ function RpcCharacteristic(rpcObj) {
 	    })
 	]
     });
-
-    this.rpc = rpcObj;
 }
 
 util.inherits(RpcCharacteristic, bleno.Characteristic);
@@ -69,11 +69,11 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
 };
 
 
-function RpcService(rpcObj) {
+function RpcService() {
     bleno.PrimaryService.call(this, {
         uuid: '13333333333333333333333333333337',
         characteristics: [
-            new RpcCharacteristic(rpcObj)
+            new RpcCharacteristic()
         ]
     });
 }
@@ -82,7 +82,7 @@ util.inherits(RpcService, bleno.PrimaryService);
 
 
 var name = 'RPC';
-var rpcService = new RpcService(rpc);
+var rpcService = new RpcService();
 
 //
 // Wait until the BLE radio powers on before attempting to advertise.
@@ -117,3 +117,7 @@ bleno.on('advertisingStart', function(err) {
 	]);
     }
 });
+
+module.exports.setRpc = function(obj) {
+    rpc = obj;
+}
