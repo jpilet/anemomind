@@ -26,6 +26,7 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
 	callback(this.RESULT_ATTR_NOT_LONG);
     } else {
 	try {
+	    var responded = false;
 	    var respond = function(err, value) {
 		if (err) {
 		    console.log('Called respond function with these args');
@@ -38,7 +39,6 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
 		}
 	    };
 	    
-	    var responded = false;
 	    var call = msgpack.unpack(data);
 	    var fun = call.fun;
 	    if (!(typeof fun == 'string')) {
