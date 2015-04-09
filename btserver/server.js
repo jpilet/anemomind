@@ -26,7 +26,6 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
 	callback(this.RESULT_ATTR_NOT_LONG);
     } else {
 	try {
-	    var responded = false;
 	    var respond = function(err, value) {
 		if (err) {
 		    console.log('Called respond function with these args');
@@ -38,6 +37,8 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
 		    responded = true;
 		}
 	    };
+	    
+	    var responded = false;
 	    var call = msgpack.unpack(data);
 	    var fun = call.fun;
 	    if (!(typeof fun == 'string')) {
@@ -60,8 +61,7 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
 		}
 	    }
 	} catch (e) {
-	    console.log('Caught exception: %j', e.message);
-	    respond('Failed to process RPC call');
+	    respond('Caught exception: '+ e.message);
 	}
 
 	// If we end up here, we did not return
