@@ -2,7 +2,7 @@ var util = require('util');
 var bleno = require('bleno');
 var msgpack = require('msgpack');
 
-// To be set using the exported function setRpc
+// To be set using the exported function 'setRpc'
 var rpc = {};
 
 function RpcCharacteristic() {
@@ -21,10 +21,10 @@ function RpcCharacteristic() {
 util.inherits(RpcCharacteristic, bleno.Characteristic);
 
 RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutResponse, callback) {
+    var self = this;
     if (offset) {
 	callback(this.RESULT_ATTR_NOT_LONG);
     } else {
-	var self = this;
 	try {
 	    var responded = false;
 	    var respond = function(err, value) {
@@ -37,19 +37,20 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
 		    self.updateValueCallback(msgpack.pack([err, value]));
 		    responded = true;
 		}
-	    }
+	    };
 	    var call = msgpack.unpack(data);
 	    var fun = call.fun;
 	    if (!(typeof fun == 'string')) {
 		respond('Bad function name, it should be a string but got ' + (typeof fun));
-	    } else if (!self.rpc[fun]) {
+	    } else if (!rpc[fun]) {
 		respond('No function registered with name ' + fun);
 	    } else {
 		var allArgs = call.args.concat([respond]);
-		var returnValue = rcp[fun].apply(null, allArgs);
+		var returnValue = rpc[fun].apply(null, allArgs);
 		if (returnValue == undefined) {
 
 		    callback(this.RESULT_SUCCESS);
+		    console.log('Successfully evaluated ' + fun);
 		    // If we get here, we are successful and should return.		    
 		    return;
 		    
@@ -59,6 +60,7 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
 		}
 	    }
 	} catch (e) {
+	    console.log('Caught exception: %j', e.message);
 	    respond('Failed to process RPC call');
 	}
 
@@ -68,6 +70,18 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
     }
 };
 
+
+
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+//// The service
+///////////////////////////////////////////////////////////////////////////////////////
 
 function RpcService() {
     bleno.PrimaryService.call(this, {
@@ -79,7 +93,6 @@ function RpcService() {
 }
 
 util.inherits(RpcService, bleno.PrimaryService);
-
 
 var name = 'RPC';
 var rpcService = new RpcService();
@@ -118,6 +131,20 @@ bleno.on('advertisingStart', function(err) {
     }
 });
 
+
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+/// EXPORTS
+/////////////////////////////////////////////////////////////////////////////////
 module.exports.setRpc = function(obj) {
     rpc = obj;
 }
