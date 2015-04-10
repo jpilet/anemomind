@@ -17,12 +17,13 @@
       to a string of hexadecimal numbers. With msgpack,
       it will be encoded to a buffer.
     * 'any' : A general object. With JSON it will be encoded
-      as a JSON object, with the exception that buffers are 
-      coded in a special way. With msgpack, it will be encoded
+      as a JSON object using the 'json-buffer' library.
+      
+      With msgpack, it will be encoded
       as a binary buffer.
+      
     * The usual ones used in MongoDB schemas:
       String, Boolean, Number, etc.
-
 
     How to get the names of function parameters:
     
