@@ -15,7 +15,10 @@ function makeMethod(scon, mailboxName, methodName, methodSchema) {
 	var args = allArgs.slice(0, lastArgIndex);
 	var cb = allArgs[lastArgIndex];
 	var dataToPost = coder.encodeArgs(methodSchema.spec.input, args);
+
+	assert(dataToPost.thisMailbox == undefined);
 	dataToPost.thisMailbox = mailboxName;
+	
 	scon.makePostRequest(
 	    dataToPost,
 	    function(err, body) {
@@ -47,7 +50,6 @@ function Mailbox(serverConnection, mailboxName, calls) {
     }
 }
 
-
 // Call this function when you need a new mailbox.
 function tryMakeMailbox(serverAddress, userdata, mailboxName, cb) {
     var s = new ServerConnection(serverAddress);
@@ -61,8 +63,5 @@ function tryMakeMailbox(serverAddress, userdata, mailboxName, cb) {
 	}
     });
 }
-
-
-
 
 module.exports.tryMakeMailbox = tryMakeMailbox;

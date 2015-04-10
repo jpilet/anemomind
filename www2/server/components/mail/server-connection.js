@@ -49,7 +49,7 @@ ServerConnection.prototype.login = function(userdata, cb) {
     );
 }
 
-ServerConnection.prototype.makePostRequest(methodName, dataToPost, cb) {
+ServerConnection.prototype.makePostRequest = function(methodName, dataToPost, cb) {
     var opts = {
 	url: (self.mailRpcUrl + methodName),
 	method: 'POST',

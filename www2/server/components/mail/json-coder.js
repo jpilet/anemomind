@@ -1,6 +1,10 @@
 var schema = require('./mailbox-schema.js');
 var JSONB = require('json-buffer');
 
+// Functions to code and decode arguments according to the mailbox schema.
+// Used on the web server to decode a request and encode a response.
+// Used on the client to encode a request and decode a response.
+
 function encode(argSpec, data) {
     var type = schema.getArgType(argSpec);
     if (type == 'any' || type == 'buffer') {
