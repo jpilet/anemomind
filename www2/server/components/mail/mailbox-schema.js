@@ -76,6 +76,8 @@ function isValidTypeSpec(x) {
 	|| (x == undefined);
 }
 
+var errorTypes = ['any', null];
+
 function isValidArg(x) {
     if (typeof x == 'object') {
 	var keys = Object.keys(x);
@@ -165,7 +167,7 @@ methods.setForeignDiaryNumber = new MethodSchema({
 	{newValue: 'hex'}
     ],
     output: [
-	{err: 'any'},
+	{err: errorTypes},
     ]
 });
 
@@ -175,7 +177,7 @@ methods.getFirstPacketStartingFrom = new MethodSchema({
 	{lightWeight: Boolean},
     ],
     output: [
-	{err: 'any'},
+	{err: errorTypes},
 	{packet: 'any'}
     ]
 });
@@ -185,7 +187,7 @@ methods.handleIncomingPacket = new MethodSchema({
 	{packet: 'any'}
     ],
     output: [
-	{err: 'any'}
+	{err: errorTypes}
     ]
 });
 
@@ -196,7 +198,7 @@ methods.isAdmissible = new MethodSchema({
 	{seqNumber: 'hex'}
     ],
     output: [
-	{err: 'any'},
+	{err: errorTypes},
 	{p: Boolean}
     ]
 });
@@ -206,7 +208,7 @@ methods.getForeignDiaryNumber = new MethodSchema({
 	{otherMailbox: 'hex'}
     ],
     output: [
-	{err: 'any'},
+	{err: errorTypes},
 	{diaryNumber: 'hex'}
     ]
 });
@@ -216,7 +218,7 @@ methods.getForeignStartNumber = new MethodSchema({
 	{otherMailbox: 'hex'}
     ],
     output: [
-	{err: 'any'},
+	{err: errorTypes},
 	{diaryNumber: 'hex'}
     ]
 });
@@ -231,7 +233,7 @@ methods.getMailboxName = new MethodSchema({
 methods.reset = new MethodSchema({
     input: [],
     output: [
-	{err: 'any'}
+	{err: errorTypes}
     ]
 });
 
@@ -242,14 +244,14 @@ methods.sendPacket = new MethodSchema({
 	{data: 'buffer'}
     ],
     output: [
-	{err: 'any'}
+	{err: errorTypes}
     ]
 });
 
 methods.getTotalPacketCount = new MethodSchema({
     input: [],
     output: [
-	{err: ['any', null]},
+	{err: errorTypes},
 	{count: Number}
     ]
 });
