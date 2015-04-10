@@ -44,8 +44,36 @@ var assert = require('assert');
 */
 var methods = {};
 
+
+// Copied from stack overflow
+var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+var ARGUMENT_NAMES = /([^\s,]+)/g;
+function getParamNames(func) {
+  var fnStr = func.toString().replace(STRIP_COMMENTS, '');
+  var result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
+  if(result === null)
+     result = [];
+  return result;
+}
+
+
+
+function isValidTypeSpec(x) {
+    return (x == String) || (x == Boolean)
+	|| (x == 'hex') || (x == 'buffer')
+	|| (x == Number) || (x == 'any') || (x == null);
+}
+
 function isValidArg(x) {
-    return typeof x == 'object';
+    if (typeof x == 'object') {
+	var keys = Object.keys(x);
+	if (keys.length == 1) {
+	    var key = keys[0];
+	    return isValidTypeSpec(x[key]);
+	}
+	return false;
+    }
+    return false;
 }
 
 function areValidArgs(x) {
@@ -69,7 +97,10 @@ function MethodSchema(spec) {
 }
 
 MethodSchema.prototype.isValidMethod = function(x) {
-    return x != undefined;
+    if (typeof x == 'function') {
+	return true;
+    }
+    return false;
 }
 
 // Below follows specifications of what methods every
@@ -154,7 +185,7 @@ methods.sendPacket = new MethodSchema({
     input: [
 	{dst: 'hex'},
 	{label: Number},
-	{data: 'binary'}
+	{data: 'buffer'}
     ],
     output: [
 	{err: 'any'}
