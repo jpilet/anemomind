@@ -1,15 +1,10 @@
-// A simulation of mailbox synchronizations
-var mb = require("../mail.sqlite.js");
 var assert = require('assert');
+var pkt = require("./packet.js");
+var bigint = require('./bigint.js');
+var sync = require('./sync.js');
 var async = require("async");
-var pkt = require("../packet.js");
-var bigint = require('../bigint.js');
-var sync = require('../sync.js');
-
-var boxnames = ["a", "b", "c"];
 
 var VERBOSE = 0;
-
 function disp(x) {
     if (VERBOSE) {
 	console.log(x);
@@ -126,7 +121,8 @@ function startSync(err, mailboxes, done) {
 		getPacketCounts(
 		    mailboxes,
 		    function(err, counts) {
-
+			console.log('counts = ', counts);
+			
 			// The 9 packets A->C that were not marked as acked,
 			// and the 'ack' packet C->A.
 			assert(counts[0] == 10);
@@ -179,12 +175,10 @@ function startSync(err, mailboxes, done) {
 
 
 // Called once the first mailbox has been filled
-function mailboxesCreated(mailboxes, done) {
-
+function synchronizeThreeMailboxes(mailboxes, done) {
+    assert(mailboxes.length == 3);
     someSpace('');
-
     var PACKETCOUNT = 39;
-    
     fillWithPackets(
 	PACKETCOUNT,
 	mailboxes[0],
@@ -197,30 +191,4 @@ function mailboxesCreated(mailboxes, done) {
 }
 
 
-
-// Main call to run the demo
-describe(
-    'Synchronize',
-    function() {
-	it(
-	    'Synchronize three mailboxes with each other',
-	    function(done) {
-
-		this.timeout(4000);
-
-		async.map(
-		    boxnames,
-		    function (boxname, cb) {
-			mb.tryMakeMailbox(":memory:", boxname, cb);
-		    },
-		    function(err, boxes) {
-			assert(err == undefined);
-			mailboxesCreated(boxes, done);
-		    }
-		);
-	    }
-	);
-    }
-);
-
-
+module.exports.synchronizeThreeMailboxes = synchronizeThreeMailboxes;

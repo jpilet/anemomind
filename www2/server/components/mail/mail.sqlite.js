@@ -113,7 +113,6 @@ function isValidPacket(x) {
     if (isValidPacketSub(x)) {
 	return true;
     }
-    console.log('Invalid packet: %j', x);
     return false;
 }
 
@@ -143,10 +142,18 @@ var fullschema = "CREATE TABLE IF NOT EXISTS seqNumbers (dst TEXT, counter TEXT,
                   CREATE TABLE IF NOT EXISTS diaryNumbers (mailbox TEXT, number TEXT, PRIMARY KEY(mailbox)); \
                   CREATE TABLE IF NOT EXISTS ctable (src TEXT, dst TEXT, counter TEXT, PRIMARY KEY(src, dst));";
 
-
 function createAllTables(db, cb) {
     assert(isFunction(cb));
     db.exec(fullschema, cb);
+}
+
+function dropTables(db, cb) {
+    var names = ['seqNumbers', 'packets', 'diaryNumbers', 'ctable'];
+    var query = '';
+    for (var i = 0; i < names.length; i++) {
+	query += 'DROP TABLE IF EXISTS ' + names[i] + ';';
+    }
+    db.exec(query, cb);
 }
 
 function getAllTables(db, cb) {
@@ -545,6 +552,12 @@ Mailbox.prototype.getOrMakeCNumber = function(dst, seqNumber, cb) {
 	});
 }
 
+// We want to have functions to access all properties
+// to exhibit a consistent interface.
+Mailbox.prototype.getMailboxName = function(cb) {
+    cb(null, this.mailboxName);
+}
+
 Mailbox.prototype.removeObsoletePackets = function(src, dst, cb) {
     assert(isIdentifier(src));
     assert(isIdentifier(dst));
@@ -635,6 +648,10 @@ Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
     }
 };
 
+
+Mailbox.prototype.getAllPackets = function(cb) {
+    this.db.all('SELECT * FROM packets', cb);
+}
 
 // A packet can be uniquely identified by its source mailbox and the seqNumber.
 Mailbox.prototype.hasPacket = function(src, seqNumber, cb) {
@@ -857,6 +874,21 @@ Mailbox.prototype.maximizeCNumber = function(dst, cb) {
     });
 }
 
+Mailbox.prototype.callOnAcknowledged = function(packet, seqnums, cb) {
+    if (this.onAcknowledged != undefined) {
+	callHandlers(
+	    this,
+	    this.onAcknowledged,
+	    {
+		dst: packet.src, // The mailbox we sent to
+		seqnums: seqnums // The sequence numbers.
+	    },
+	    cb
+	);
+    } else {
+	cb();
+    }
+}
 
 Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     assert(isValidPacket(packet));
@@ -865,17 +897,19 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
     if (packet.label == ACKLABEL && packet.dst == this.mailboxName) {
 	var seqnums = deserializeSeqNums(packet.data);
 	// Optional call to function whenever some packets that we sent were acknowledged.
-	if (this.onAcknowledged != undefined) {
-	    this.onAcknowledged({
-		dst: packet.src, // The mailbox we sent to
-		seqnums: seqnums // The sequence numbers.
-	    });
-	}
-	
-	self.setAcked(
-	    self.mailboxName, packet.src,
-	    seqnums,
-	    cb
+	this.callOnAcknowledged(
+	    packet, seqnums,
+	    function (err) {
+		if (err) {
+		    cb(err);
+		} else {
+		    self.setAcked(
+			self.mailboxName, packet.src,
+			seqnums,
+			cb
+		    );
+		}
+	    }
 	);
     } else {
 	cb();
@@ -883,7 +917,43 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
 }
 
 
+function callHandlersArray(self, handlers, data, cb) {
+    if (handlers.length == 0) {
+	cb();
+    } else {
+	handlers[0](
+	    self,
+	    data,
+	    function(err) {
+		if (err) {
+		    cb(err);
+		} else {
+		    callHandlersArray(self, handlers.slice(1), data, cb);
+		}
+	    }
+	);
+    }
+}
 
+function callHandlers(self, handlers, data, cb) {
+    if (handlers == undefined) {
+	cb();
+    } else if (typeof handlers == 'function') {
+	handlers(self, data, cb);
+    } else { // It is an array
+	callHandlersArray(self, handlers, data, cb);
+    }
+}
+
+Mailbox.prototype.callOnPacketReceived = function(packet, cb) {
+    if (this.onPacketReceived != undefined
+	&& packet.dst == this.mailboxName) {
+	callHandlers(this, this.onPacketReceived, packet, cb);
+    } else {
+	cb();
+    }
+    
+}
 
  // This method is called only for packets that should not be rejected.
  Mailbox.prototype.acceptIncomingPacket = function(packet, cb) {
@@ -896,36 +966,34 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(packet, cb) {
      //  * Update the C-table using the data of the packet
      this.registerPacketData(packet, function(err) {
 	 if (err == undefined) {
-
-	     // Optional callback to inform us that
-	     // we have a new packet to open.
-	     if (self.onPacketReceived != undefined
-		 && packet.dst == self.mailboxName) {
-		 self.onPackedReceived(packet);
-	     }
-
-	     // If the packet was intended for this mailbox,
-	     // this call will mark packets as acknowledged
-	     // and maximize the C-number.
-	     self.handleAckPacketIfNeeded(
+	     self.callOnPacketReceived(
 		 packet,
 		 function(err) {
-		     if (err == undefined) {
-			 // Always maximize the C-number
-			 self.maximizeCNumber(
-			     packet.src,
-			     function (err) {
-				 if (err == undefined) {
-				     self.sendAckIfNeeded(packet.src, cb);
-				 } else {
-				     cb(err);
-				 }
+		     // If the packet was intended for this mailbox,
+		     // this call will mark packets as acknowledged
+		     // and maximize the C-number.
+		     self.handleAckPacketIfNeeded(
+			 packet,
+			 function(err) {
+			     if (err == undefined) {
+				 // Always maximize the C-number
+				 self.maximizeCNumber(
+				     packet.src,
+				     function (err) {
+					 if (err == undefined) {
+					     self.sendAckIfNeeded(packet.src, cb);
+					 } else {
+					     cb(err);
+					 }
+				     }
+				 );
+			     } else {
+				 cb(err);
 			     }
-			 );
-		     } else {
-			 cb(err);
-		     }
-		 });
+			 }
+		     );
+		 }
+	     );
 	} else {
 	    cb(err);
 	}
@@ -998,7 +1066,13 @@ Mailbox.prototype.dispPacketSummary = function(cb) {
     );
 }
 
+Mailbox.prototype.reset = function(cb) {
+    dropTables(this.db, cb);
+}
 
+Mailbox.prototype.close = function(cb) {
+    this.db.close(cb);
+}
 
 // Given destination mailbox, label and data,
 // a new packet is produced that is put in the packets table.
@@ -1036,6 +1110,29 @@ Mailbox.prototype.sendPacket = function (dst, label, data, cb) {
     }
 };
 
+// Send multiple packets to the same destination
+// and with the same label, but with different data, stored in an array.
+//
+// Convenient when we need to chop up a big file in smaller packets
+// for robust transfer over e.g. bluetooth.
+Mailbox.prototype.sendPackets = function(dst, label, dataArray, cb) {
+    if (dataArray.length == 0) {
+	cb();
+    } else {
+	var self = this;
+	this.sendPacket(
+	    dst, label, dataArray[0],
+	    function (err) {
+		if (err) {
+		    cb(err);
+		} else {
+		    self.sendPackets(dst, label, dataArray.slice(1), cb);
+		}
+	    }
+	);
+    }
+}
+
 
 
 
@@ -1043,6 +1140,7 @@ module.exports.dispAllTableData = dispAllTableData;
 module.exports.expand = expand;
 module.exports.isCounter = isCounter;
 module.exports.isIdentifier = isIdentifier;
+module.exports.isValidMailboxName = isValidMailboxName;
 module.exports.serializeSeqNums = serializeSeqNums;
 module.exports.deserializeSeqNums = deserializeSeqNums;
 module.exports.serializeString = serializeString;
