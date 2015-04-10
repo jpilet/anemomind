@@ -162,7 +162,7 @@ methods.getForeignStartNumber = new MethodSchema({
 	{otherMailbox: 'hex'}
     ],
     output: [
-	{err: 'any'},
+	{err: 'an'},
 	{diaryNumber: 'hex'}
     ]
 });
