@@ -77,7 +77,11 @@ function isValidArg(x) {
 }
 
 function areValidArgs(x) {
-    if (x.length) {
+    if (x == undefined) {
+	return false;
+    }
+    
+    if (typeof x.length == 'number') {
 	for (var i = 0; i < x.length; i++) {
 	    if (!isValidArg(x[i])) {
 		return false;
@@ -85,14 +89,19 @@ function areValidArgs(x) {
 	}
 	return true;
     }
+    console.log('Invalid arguments spec: %j', x);
     return false;
 }
 
 function isValidSpec(x) {
-    return areValidArgs(x.inputs) && areValidArgs(x.outputs);
+    return areValidArgs(x.input) && areValidArgs(x.output);
 }
 
 function MethodSchema(spec) {
+    if (!isValidSpec(spec)) {
+	console.log('Bad spce: %j', spec);
+	throw new Error('Bad spec');
+    }
     this.spec = spec;
 }
 
@@ -162,7 +171,7 @@ methods.getForeignStartNumber = new MethodSchema({
 	{otherMailbox: 'hex'}
     ],
     output: [
-	{err: 'an'},
+	{err: 'any'},
 	{diaryNumber: 'hex'}
     ]
 });
