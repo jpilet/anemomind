@@ -123,6 +123,18 @@ MethodSchema.prototype.isValidMethod = function(x) {
 	    return true;
 	} else {
 	    if (actualArgs.length - 1 == expectedArgs.length) {
+		for (var i = 0; i < expectedArgs.length; i++) {
+		    var a = expectedArgs[i];
+		    var b = actualArgs[i];
+		    if (a != b) {
+			console.log('Validation of method failed:');
+			console.log(
+			    ('Argument mismatch between %j and %j '
+			     + 'in %j and %j, respectively'),
+			    a, b, expectedArgs, actualArgs);
+			return false;
+		    }
+		}
 		return true;
 	    }
 	    console.log('Argument mismatch between %j and %j',
