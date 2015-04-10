@@ -145,22 +145,28 @@ function handler(req, res) {
 	var args = JSONB.parse(req.body.args);
 
 
-	// The arguments passed to the function that we are calling:
-	//   * The rest of the arguments sent by json
-	//   * A callback for the result.
-
 	var fnName = req.params.functionName;
-	var fn = rpc[fnName.toLowerCase()];
+	if (typeof fnName == 'string') {
+	    var fnNameLower = fnName.toLowerCase();
+	    if (fnNameLower in rpc) {
+		var fn = rpc[fnNameLower];
 
-	if (fn == undefined) {
-	    resultCB(
-		{
-		    noSuchFunction: fnName,
-		    availableFunctions: Object.keys(rpc)
+		if (fn == undefined) {
+		    resultCB(
+			{
+			    noSuchFunction: fnName,
+			    availableFunctions: Object.keys(rpc)
+			}
+		    );
+		} else {
+		    fn(req.user, args, resultCB);
 		}
-	    );
+	    } else {
+		resultCB(new Error('Unknown function: ' + fnName));
+	    }
 	} else {
-	    fn(req.user, args, resultCB);
+	    resultCB('The function name should be a string, but got '
+		     + fnName);
 	}
     } catch (e) {
 	resultCB(e);
