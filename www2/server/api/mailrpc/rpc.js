@@ -19,19 +19,6 @@ var mb = require('./mailbox.js');
 var rpc = {};
 
 
-// Utility function that should be used when adding
-// functions to the rpc object.
-function addRpc(dstObj, name, fn) {
-    assert(typeof dstObj == 'object');
-    assert(typeof name == 'string');
-    assert(typeof fn == 'function');
-
-    // Make sure that there are no naming collisions when we map to lower case.
-    var namelow = name.toLowerCase();
-    assert(dstObj[namelow] == undefined);
-    dstObj[namelow] = fn;
-}
-
 // Check if a user is authorized to access a mailbox.
 function userCanAccess(user, mailboxName, cb) {
     var env = process.env.NODE_ENV;
@@ -97,6 +84,19 @@ function makeMailboxHandler(methodName) {
 
 
 
+
+// Utility function that should be used when adding
+// functions to the rpc object.
+function addRpc(dstObj, name, fn) {
+    assert(typeof dstObj == 'object');
+    assert(typeof name == 'string');
+    assert(typeof fn == 'function');
+
+    // Make sure that there are no naming collisions when we map to lower case.
+    var namelow = name.toLowerCase();
+    assert(dstObj[namelow] == undefined);
+    dstObj[namelow] = fn;
+}
 
 for (var i = 0; i < calls.length; i++) {
     var call = calls[i];
