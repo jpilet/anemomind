@@ -149,7 +149,7 @@ function handler(req, res) {
 	//   * The rest of the arguments sent by json
 	//   * A callback for the result.
 
-	var fnName = req.params[0];
+	var fnName = req.params.functionName;
 	var fn = rpc[fnName.toLowerCase()];
 
 	if (fn == undefined) {
