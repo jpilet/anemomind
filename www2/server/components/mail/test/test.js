@@ -1,6 +1,7 @@
 var mailsqlite = require('../mail.sqlite.js');
 var assert = require('assert');
 var bigint = require('../bigint.js');
+var schema = require('../mailbox-schema.js');
 
 
 
@@ -656,6 +657,27 @@ describe(
 );
 
 
+
+
+describe(
+    'mailbox-schema',
+    function() {
+	it(
+	    'Check that the object conforms with the schema',
+	    function(done) {
+		withbox(
+		    function(box) {
+
+			assert(schema.isValidMailbox(box));
+			done();
+
+			
+		    }
+		);
+	    }
+	);
+    }
+);
 
 
 

@@ -32,17 +32,49 @@
     Can be used to validate that the methods of a mailbox implements
     this specification.
 */  
+var assert = require('assert');
 
+
+
+
+/*
+
+  METHODS
+
+*/
 var methods = {};
 
-function Schema(spec) {
+function isValidArg(x) {
+    return typeof x == 'object';
+}
+
+function areValidArgs(x) {
+    if (x.length) {
+	for (var i = 0; i < x.length; i++) {
+	    if (!isValidArg(x[i])) {
+		return false;
+	    }
+	}
+	return true;
+    }
+    return false;
+}
+
+function isValidSpec(x) {
+    return areValidArgs(x.inputs) && areValidArgs(x.outputs);
+}
+
+function MethodSchema(spec) {
     this.spec = spec;
 }
 
+MethodSchema.prototype.isValidMethod = function(x) {
+    return x != undefined;
+}
 
 // Below follows specifications of what methods every
 // method of a mailbox object should support:
-methods.setForeignDiaryNumber = new Schema({
+methods.setForeignDiaryNumber = new MethodSchema({
     input: [
 	{otherMailbox: 'hex'},
 	{newValue: 'hex'}
@@ -52,7 +84,7 @@ methods.setForeignDiaryNumber = new Schema({
     ]
 });
 
-methods.getFirstPacketStartingFrom = new Schema({
+methods.getFirstPacketStartingFrom = new MethodSchema({
     input: [
 	{diaryNumber: 'hex'},
 	{lightWeight: Boolean},
@@ -63,7 +95,7 @@ methods.getFirstPacketStartingFrom = new Schema({
     ]
 });
 
-methods.handleIncomingPacket = new Schema({
+methods.handleIncomingPacket = new MethodSchema({
     input: [
 	{packet: 'any'}
     ],
@@ -72,7 +104,7 @@ methods.handleIncomingPacket = new Schema({
     ]
 });
 
-methods.isAdmissible = new Schema({
+methods.isAdmissible = new MethodSchema({
     input: [
 	{src: 'hex'},
 	{dst: 'hex'},
@@ -84,7 +116,7 @@ methods.isAdmissible = new Schema({
     ]
 });
 
-methods.getForeignDiaryNumber = new Schema({
+methods.getForeignDiaryNumber = new MethodSchema({
     input: [
 	{otherMailbox: 'hex'}
     ],
@@ -94,7 +126,7 @@ methods.getForeignDiaryNumber = new Schema({
     ]
 });
 
-methods.getForeignStartNumber = new Schema({
+methods.getForeignStartNumber = new MethodSchema({
     input: [
 	{otherMailbox: 'hex'}
     ],
@@ -104,21 +136,21 @@ methods.getForeignStartNumber = new Schema({
     ]
 });
 
-methods.getMailboxName = new Schema({
+methods.getMailboxName = new MethodSchema({
     input: [],
     output: [
 	{mailboxName: 'hex'}
     ]
 });
 
-methods.reset = new Schema({
+methods.reset = new MethodSchema({
     input: [],
     output: [
 	{err: 'any'}
     ]
 });
 
-methods.sendPacket = new Schema({
+methods.sendPacket = new MethodSchema({
     input: [
 	{dst: 'hex'},
 	{label: Number},
@@ -129,7 +161,7 @@ methods.sendPacket = new Schema({
     ]
 });
 
-methods.getTotalPacketCount = new Schema({
+methods.getTotalPacketCount = new MethodSchema({
     input: [],
     output: [
 	{err: 'any'},
@@ -138,10 +170,33 @@ methods.getTotalPacketCount = new Schema({
 });
 
 
+
+
+
+
+
+
+/*
+
+  THE MAILBOX SCHEMA
+
+ */
 function MailboxSchema(methods) {
+    for (methodName in methods) {
+	assert(methods[methodName] instanceof MethodSchema);
+    }
+    
     this.methods = methods;
 }
 
-module.exports = new MailboxSchema(
-    methods
-);
+// Test if x conforms with the mailbox schema.
+MailboxSchema.prototype.isValidMailbox = function(x) {
+    for (methodName in this.methods) {
+	if (!this.methods[methodName].isValidMethod(x[methodName])) {
+	    return false;
+	}
+    }
+    return true;
+}
+
+module.exports = new MailboxSchema(methods);

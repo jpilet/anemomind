@@ -5,9 +5,9 @@ it(
     'Schema',
     function() {
 	describe(
-	    'Should fail',
+	    'Succeed',
 	    function() {
-		assert(false);
+		assert(true);
 	    }
 	);
     }
