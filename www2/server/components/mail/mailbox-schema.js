@@ -83,6 +83,10 @@ function isValidArg(x) {
 	var keys = Object.keys(x);
 	if (keys.length == 1) {
 	    var key = keys[0];
+	    if (key == 'thisMailbox') {
+		console.log('This parameter name is reserved');
+		return false;
+	    }
 	    return isValidTypeSpec(x[key]);
 	}
 	return false;
@@ -90,14 +94,28 @@ function isValidArg(x) {
     return false;
 }
 
-function getTheOnlyKey(x) {
+
+function getArgName(x) {
     var keys = Object.keys(x);
     assert(keys.length == 1);
     return keys[0];
 }
 
+function getArgTypeSub(x) {
+    if (isArrayTypeSpec(x)) {
+	return x[0];
+    }
+    return x;
+}
+
+function getArgType(x) {
+    var name = getArgName(x);
+    return getArgTypeSub(x[name]);
+}
+
+
 function getArgNames(args) {
-    return args.map(getTheOnlyKey);
+    return args.map(getArgName);
 }
 
 function areValidArgs(x) {
@@ -287,3 +305,5 @@ MailboxSchema.prototype.isValidMailbox = function(x) {
 }
 
 module.exports = new MailboxSchema(methods);
+module.exports.getArgName = getArgName;
+module.exports.getArgType = getArgType;

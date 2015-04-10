@@ -49,55 +49,19 @@ ServerConnection.prototype.login = function(userdata, cb) {
     );
 }
 
-function makeRpcCall(self, fn) {
-    return function() {
-	var n = Object.keys(arguments).length;
-
-	// Omit the callback.
-	var args = new Array(n-1);
-	for (var i = 0; i < n - 1; i++) {
-	    args[i] = arguments[i];
+ServerConnection.prototype.makePostRequest(methodName, dataToPost, cb) {
+    var opts = {
+	url: (self.mailRpcUrl + methodName),
+	method: 'POST',
+	json: dataToPost,
+	headers: {
+	    Authorization: "Bearer " + self.token
 	}
-
-	// This is the callback
-	var cb = arguments[arguments.length-1];
-
-	var opts = {
-	    url: (self.mailRpcUrl + fn),
-
-	    method: 'POST',
-
-	    // Stringify it manually using JSONB, in order to
-	    // get the buffers right.
-	    json: {
-		args: JSONB.stringify(args)
-	    },
-
-	    headers: {
-		Authorization: "Bearer " + self.token
-	    }
-	};
-
-	// Call it
-	request(opts, function(err, response, body) {
-	    if (err) {
-		cb(err);
-	    } else {
-		cb(JSONB.parse(body.err), JSONB.parse(body.result));
-	    }
-	});
-    }
+    };
+    request(opts, function(err, response, body) {
+	cb(err, body)
+    });
 }
 
-// To register RPC calls
-ServerConnection.prototype.registerCalls = function(functions) {
-    var self = this;
-    for (var i = 0; i < functions.length; i++) {
-	var fn = functions[i];
-	assert(typeof fn == 'string');
-	this[fn] = makeRpcCall(self, fn);
-	assert(this[fn] != undefined);
-    }
-}
 
 module.exports = ServerConnection;
