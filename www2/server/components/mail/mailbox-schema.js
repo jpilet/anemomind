@@ -33,7 +33,7 @@
     this specification.
 */  
 
-var calls = {};
+var methods = {};
 
 function Schema(spec) {
     this.spec = spec;
@@ -42,7 +42,7 @@ function Schema(spec) {
 
 // Below follows specifications of what methods every
 // method of a mailbox object should support:
-calls.setForeignDiaryNumber = new Schema({
+methods.setForeignDiaryNumber = new Schema({
     input: [
 	{otherMailbox: 'hex'},
 	{newValue: 'hex'}
@@ -52,7 +52,7 @@ calls.setForeignDiaryNumber = new Schema({
     ]
 });
 
-calls.getFirstPacketStartingFrom = new Schema({
+methods.getFirstPacketStartingFrom = new Schema({
     input: [
 	{diaryNumber: 'hex'},
 	{lightWeight: Boolean},
@@ -63,7 +63,7 @@ calls.getFirstPacketStartingFrom = new Schema({
     ]
 });
 
-calls.handleIncomingPacket = new Schema({
+methods.handleIncomingPacket = new Schema({
     input: [
 	{packet: 'any'}
     ],
@@ -72,7 +72,7 @@ calls.handleIncomingPacket = new Schema({
     ]
 });
 
-calls.isAdmissible = new Schema({
+methods.isAdmissible = new Schema({
     input: [
 	{src: 'hex'},
 	{dst: 'hex'},
@@ -84,7 +84,7 @@ calls.isAdmissible = new Schema({
     ]
 });
 
-calls.getForeignDiaryNumber = new Schema({
+methods.getForeignDiaryNumber = new Schema({
     input: [
 	{otherMailbox: 'hex'}
     ],
@@ -94,7 +94,7 @@ calls.getForeignDiaryNumber = new Schema({
     ]
 });
 
-calls.getForeignStartNumber = new Schema({
+methods.getForeignStartNumber = new Schema({
     input: [
 	{otherMailbox: 'hex'}
     ],
@@ -104,21 +104,21 @@ calls.getForeignStartNumber = new Schema({
     ]
 });
 
-calls.getMailboxName = new Schema({
+methods.getMailboxName = new Schema({
     input: [],
     output: [
 	{mailboxName: 'hex'}
     ]
 });
 
-calls.reset = new Schema({
+methods.reset = new Schema({
     input: [],
     output: [
 	{err: 'any'}
     ]
 });
 
-calls.sendPacket = new Schema({
+methods.sendPacket = new Schema({
     input: [
 	{dst: 'hex'},
 	{label: Number},
@@ -129,10 +129,19 @@ calls.sendPacket = new Schema({
     ]
 });
 
-calls.getTotalPacketCount = new Schema({
+methods.getTotalPacketCount = new Schema({
     input: [],
     output: [
 	{err: 'any'},
 	{count: Number}
     ]
 });
+
+
+function MailboxSchema(methods) {
+    this.methods = methods;
+}
+
+module.exports = new MailboxSchema(
+    methods
+);
