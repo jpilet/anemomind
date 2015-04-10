@@ -76,6 +76,16 @@ function isValidArg(x) {
     return false;
 }
 
+function getTheOnlyKey(x) {
+    var keys = Object.keys(x);
+    assert(keys.length == 1);
+    return keys[0];
+}
+
+function getArgNames(args) {
+    return args.map(getTheOnlyKey);
+}
+
 function areValidArgs(x) {
     if (x == undefined) {
 	return false;
@@ -107,7 +117,18 @@ function MethodSchema(spec) {
 
 MethodSchema.prototype.isValidMethod = function(x) {
     if (typeof x == 'function') {
-	return true;
+	var expectedArgs = getArgNames(this.spec.input);
+	var actualArgs = getParamNames(x);
+	if (actualArgs.length == 0) {
+	    return true;
+	} else {
+	    if (actualArgs.length - 1 == expectedArgs.length) {
+		return true;
+	    }
+	    console.log('Argument mismatch between %j and %j',
+			expectedArgs, actualArgs);
+	    return false;
+	}
     }
     return false;
 }
