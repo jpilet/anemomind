@@ -25,17 +25,8 @@
     * The usual ones used in MongoDB schemas:
       String, Boolean, Number, etc.
 
-    How to get the names of function parameters:
-    
-      http://stackoverflow.com/questions/1007981/how-to-get-function-parameter-names-values-dynamically-from-javascript
-
-    Can be used to validate that the methods of a mailbox implements
-    this specification.
 */  
 var assert = require('assert');
-
-
-
 
 /*
 
@@ -45,7 +36,14 @@ var assert = require('assert');
 var methods = {};
 
 
-// Copied from stack overflow
+/*
+    How to get the names of function parameters:
+    
+      http://stackoverflow.com/questions/1007981/how-to-get-function-parameter-names-values-dynamically-from-javascript
+
+    Can be used to validate that the methods of a mailbox implements
+    this specification.
+*/
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 var ARGUMENT_NAMES = /([^\s,]+)/g;
 function getParamNames(func) {
@@ -58,10 +56,24 @@ function getParamNames(func) {
 
 
 
+function isArrayTypeSpec(x) {
+    if (typeof x.length == 'number') {
+	for (var i = 0; i < x.length; i++) {
+	    if (!isValidTypeSpec(x[i])) {
+		return false;
+	    }
+	}
+	return true;
+    }
+    return false;
+}
+
 function isValidTypeSpec(x) {
     return (x == String) || (x == Boolean)
 	|| (x == 'hex') || (x == 'buffer')
-	|| (x == Number) || (x == 'any') || (x == null);
+	|| (x == Number) || (x == 'any')
+	|| (x == null) || isArrayTypeSpec(x)
+	|| (x == undefined);
 }
 
 function isValidArg(x) {
@@ -237,7 +249,7 @@ methods.sendPacket = new MethodSchema({
 methods.getTotalPacketCount = new MethodSchema({
     input: [],
     output: [
-	{err: 'any'},
+	{err: ['any', null]},
 	{count: Number}
     ]
 });
