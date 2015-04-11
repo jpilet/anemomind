@@ -4,6 +4,10 @@
       "target_name": "anemonode",
       "sources": [
         "anemonode.cpp",
+        "JsNmea0183Source.h",
+        "JsNmea0183Source.cpp",
+        "JsDispatchData.h",
+        "JsDispatchData.cpp",
         "../Dispatcher.cpp",
         "../Dispatcher.h",
         "../main.cpp",
@@ -20,6 +24,7 @@
         "../../../server/common/logging.cpp"
       ],
       "include_dirs": [
+        "<!(node -e \"require('nan')\")",
         "../../..",
         "../../../../build/third-party/poco-install/include"
       ], 

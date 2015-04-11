@@ -11,19 +11,15 @@ namespace sail {
 class Nmea0183Source {
  public:
   Nmea0183Source(Dispatcher *dispatcher)
-    : _dispatcher(dispatcher), _fd(-1) { }
-
-  bool open(const char *path);
-
-  int fd() const { return _fd; }
-  void poll();
+    : _dispatcher(dispatcher) { }
 
   const char *sourceName() const { return "NMEA0183"; }
+
+  void process(const unsigned char* buffer, int length);
 
  private:
   Dispatcher *_dispatcher;
   NmeaParser _parser;
-  int _fd;
 };
 
 }  // namespace

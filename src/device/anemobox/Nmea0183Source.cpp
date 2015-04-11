@@ -7,24 +7,8 @@
 
 namespace sail {
 
-bool Nmea0183Source::open(const char *path) {
-  _fd = ::open(path, O_RDONLY | O_NOCTTY | O_NONBLOCK);
-  return _fd >= 0;
-}
-
-void Nmea0183Source::poll() {
-  if (_fd < 0) {
-    return;
-  }
-
-  unsigned char buffer[256];
-  ssize_t bytes = read(_fd, buffer, sizeof(buffer));
-
-  if (bytes <= 0) {
-    return;
-  }
-
-  for (ssize_t i = 0; i < bytes; ++i) {
+void Nmea0183Source::process(const unsigned char* buffer, int length) {
+  for (ssize_t i = 0; i < length; ++i) {
     switch (_parser.processByte(buffer[i])) {
       case NmeaParser::NMEA_NONE:
       case NmeaParser::NMEA_UNKNOWN: break;

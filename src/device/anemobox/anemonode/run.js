@@ -1,34 +1,51 @@
+var fs = require('fs');
 var anemonode = require('./build/Release/anemonode');
 
 // Inspect the anemonode object
 console.warn(anemonode);
 
+// Try subscribe/unsubscribe functions
 var numCalls = 0;
-var subsIndex = anemonode.entries.awa.subscribe(function(val) {
-  var description = anemonode.entries.awa.description;
+var subsIndex = anemonode.dispatcher.awa.subscribe(function(val) {
+  var description = anemonode.dispatcher.awa.description;
   console.log(description + ' changed to: ' + val);
   if (++numCalls == 3) {
     // stop notifying.
     console.log('Unsubscribing from ' + description);
-    anemonode.entries.awa.unsubscribe(subsIndex);
+    anemonode.dispatcher.awa.unsubscribe(subsIndex);
   }
 });
 
-anemonode.entries.awa.setValue("js test", 1);
-console.log('awa ' + anemonode.entries.awa.value());
+anemonode.dispatcher.awa.setValue("js test", 1);
+console.log('awa ' + anemonode.dispatcher.awa.value());
 
-// Read NMEA for 1 second
-anemonode.run("../../../../datasets/tinylog.txt", 1);
+var nmeaSource = new anemonode.Nmea0183Source();
+console.warn(nmeaSource.process);
 
-// List all available values
-for (var i in anemonode.entries) {
-  console.log(anemonode.entries[i].description
-              + ": " + anemonode.entries[i].value());
+function printHistory(field) {
+  for (var i = 0; i < anemonode.dispatcher[field].length(); ++i) {
+    var dispatchData = anemonode.dispatcher[field];
+    console.log(anemonode.dispatcher[field].description
+                + ': ' + dispatchData.value(i)
+                + ' ' + anemonode.dispatcher[field].unit
+                + ' set on: ' + dispatchData.time(i).toLocaleString());
+  }
 }
+// Read some NMEA data.
+fs.readFile("../../../../datasets/tinylog.txt", function (err, data ) {
+  if (err) {
+    console.warn(err);
+  } else {
+    nmeaSource.process(data);
+  }
 
-// Go back in time
-for (var i = 0; i < anemonode.entries.awa.length(); ++i) {
-  var awa = anemonode.entries.awa;
-  console.log(' awa ' + awa.value(i)
-              + ' set on: ' + awa.time(i).toLocaleString());
-}
+  // List all available values
+  for (var i in anemonode.dispatcher) {
+    console.log(anemonode.dispatcher[i].description
+                + ": " + anemonode.dispatcher[i].value());
+  }
+
+  printHistory('awa');
+  printHistory('twa');
+  printHistory('tws');
+});

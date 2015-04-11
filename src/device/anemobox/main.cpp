@@ -4,10 +4,7 @@
 #include <vector>
 #include <memory>
 
-#include <fcntl.h>
-#include <sys/poll.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include <stdio.h>
 
 namespace sail {
 
@@ -60,31 +57,26 @@ bool run(const char *filename) {
   Dispatcher dispatcher;
   Nmea0183Source nmea0183(&dispatcher);
   PrintUpdates visitor;
+  
+  FILE *f = fopen(filename, "r");
+  if (!f) {
+    return false;
+  }
 
   for (auto value : dispatcher.data()) {
     value.second->visit(&visitor);
   }
 
-  if (!nmea0183.open(filename)) {
-    perror(filename);
-    return false;
-  }
-
-  struct pollfd pfds[1];
-  pfds[0].fd = nmea0183.fd();
-  pfds[0].events = POLLIN;
+  unsigned char buffer[128];
 
   while (1) {
-    int r = poll(pfds, sizeof(pfds) / sizeof(pfds[0]), -1);
-    if (r >= 0) {
-      nmea0183.poll();
-    } else {
-      if (errno != EAGAIN) {
-        perror("poll");
-        break;
-      }
-    }
-  }
+   int len = fread(buffer, 1, 128, f);
+   if (len <= 0) {
+     break;
+   }
+
+   nmea0183.process(buffer, len);
+  } 
   return true;
 }
 
