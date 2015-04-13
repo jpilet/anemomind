@@ -79,7 +79,6 @@ function makeArgsString(args) {
 
 ServerConnection.prototype.makeGetRequest =
     function(mailboxName, methodName, args, cb) {
-	console.log('makeGetRequest %j', methodName);
 	var self = this;
 	var opts = {
 	    url: (self.mailRpcUrl + '/' + methodName + '/' + mailboxName + '/' + args),

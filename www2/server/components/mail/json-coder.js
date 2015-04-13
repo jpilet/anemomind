@@ -46,7 +46,20 @@ function encodeGetArg(argSpec, arg) {
     } else if (type == Number) {
 	return '' + arg;
     } else {
+	assert(type == 'hex');
 	assert(bigint.isBigInt(arg));
+	return arg;
+    }
+}
+
+function decodeGetArg(argSpec, arg) {
+    var type = schema.getArgType(argSpec);
+    if (type == Boolean) {
+	return (arg == '1'? true : false);
+    } else if (type == Number) {
+	return Number.parseFloat(arg);
+    } else {
+	assert(type == 'hex');
 	return arg;
     }
 }
@@ -68,16 +81,35 @@ function decode(argSpec, data) {
     return data;
 }
 
-function decodeArgs(argSpecs, data) {
+function decodeArgsSub(argSpecs, data, decoderFunction) {
     var dst = new Array(argSpecs.length);
     for (var i = 0; i < argSpecs.length; i++) {
 	var argSpec = argSpecs[i];
 	var argName = schema.getArgName(argSpec);
-	dst[i] = decode(argSpec, data[argName]);
+	dst[i] = decoderFunction(argSpec, data[argName]);
     }
     return dst;
 }
 
+function decodeArgs(argSpecs, data) {
+    return decodeArgsSub(argSpecs, data, decode);
+}
+
+function decodeGetArgs(argSpecs, data) {
+    return decodeArgsSub(argSpecs, data, decodeGetArg);
+}
+
+function makeGetArgPattern(argSpecs) {
+    var dst = '';
+    for (var i = 0; i < argSpecs.length; i++) {
+	dst = dst + '/:' + schema.getArgName(argSpecs[i]);
+    }
+    return dst;
+}
+
+
 module.exports.encodeArgs = encodeArgs;
 module.exports.decodeArgs = decodeArgs;
 module.exports.encodeGetArgs = encodeGetArgs;
+module.exports.makeGetArgPattern = makeGetArgPattern;
+module.exports.decodeGetArgs = decodeGetArgs;

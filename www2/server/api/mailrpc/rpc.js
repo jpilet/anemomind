@@ -40,7 +40,6 @@ function callMailboxMethod(user, mailboxName, methodName, args, cb) {
 			+ mailboxName
 		));
 	    } else {
-
 		mb.openMailbox(
 		    mailboxName,
 		    function(err, mailbox) {
@@ -108,7 +107,15 @@ function handler(method, req, res) {
 	    );
 	};
 	var mailboxName = req.params.mailboxName;
-	var args = coder.decodeArgs(method.input, req.body);
+	
+	var args = null;
+
+	if (method.httpMethod == 'post') {
+	    args = coder.decodeArgs(method.input, req.body);
+	} else {
+	    args = coder.decodeGetArgs(method.input, req.params);
+	}
+	
 	callMailboxMethod(
 	    req.user,
 	    mailboxName,
@@ -132,18 +139,24 @@ function makeBasicSubpath(method) {
 }
 
 function makePostHandler(router, authenticator, method) {
-    router.post(
-	makeBasicSubpath(method),
-	authenticator,
-	makeHandler(method)
-    );
 }
 
 function bindMethodHandler(router, authenticator, method) {
     var httpMethod = method.httpMethod;
 
-    // TODO: use httpMethod here to select the appropriate choice.
-    makePostHandler(router, authenticator, method);
+    if (method.httpMethod == 'post') {
+	router.post(
+	    makeBasicSubpath(method),
+	    authenticator,
+	    makeHandler(method)
+	);
+    } else {
+	router.get(
+	    makeBasicSubpath(method) + coder.makeGetArgPattern(method.input),
+	    authenticator,
+	    makeHandler(method)
+	);
+    }
 }
 
 module.exports.bindMethodHandler = bindMethodHandler;

@@ -20,7 +20,15 @@ function makeMethod(scon, mailboxName, method) {
 		cb(err);
 	    } else {
 		var output = method.output;
-		var data = coder.decodeArgs(output, body);
+		var data = coder.decodeArgs(
+		    output,
+
+		    // Don't know why we get the response as a string when
+		    // sending a get request. Probably related to the
+		    // 'request library'.
+		    (method.httpMethod == 'get'? JSON.parse(body) : body)
+		);
+		
 		if (data == undefined) {
 		    cb(new Error('Failed to decode HTTP response'));
 		} else {
