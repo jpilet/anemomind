@@ -175,6 +175,17 @@ function bindMethodHandlers(router, authenticator) {
     }
 }
 
+function makeMethodDesc(method) {
+    console.log('Function name: %s', method.name);
+    console.log('HTTP-call: %s %s\n', method.httpMethod.toUpperCase(), makeSubpath(method));
+}
 
+// To auto-generate a documentation.
+function makeOverview() {
+    for (var key in schema.methods) {
+	makeMethodDesc(schema.methods[key]);
+    }
+}
 
 module.exports.bindMethodHandlers = bindMethodHandlers;
+
