@@ -8,22 +8,18 @@
 
 namespace sail {
 
-class Nmea0183Source : public DataSource {
+class Nmea0183Source {
  public:
   Nmea0183Source(Dispatcher *dispatcher)
-    : _dispatcher(dispatcher), _fd(-1) { }
+    : _dispatcher(dispatcher) { }
 
-  virtual const char* name() const { return "NMEA0183"; }
+  const char *sourceName() const { return "NMEA0183"; }
 
-  bool open(const char *path);
-
-  int fd() const { return _fd; }
-  void poll();
+  void process(const unsigned char* buffer, int length);
 
  private:
   Dispatcher *_dispatcher;
   NmeaParser _parser;
-  int _fd;
 };
 
 }  // namespace
