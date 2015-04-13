@@ -48,16 +48,12 @@ describe('/api/mailrpc', function() {
 	    });
     });
     
-    it('should reset the mailbox', function(done) {
+    it('should get the number of packets', function(done) {
 	server
 	    .get('/api/mailrpc/getTotalPacketCount/abc')
 	    .set('Authorization', 'Bearer ' + token)
 	    .expect(200)
 	    .end(function(err, res) {
-		console.log('res.body = %j', res.body);
-		for (var key in res) {
-		    console.log('   %j = %j', key, res[key]);
-		}
 		if (err) return done(err);
 		JSON.parse(res.text).should.equal(0);
 		done();
@@ -78,31 +74,30 @@ describe('/api/mailrpc', function() {
     	);
     });
 
-    // it('should send a packet to another mailbox', function(done) {
-    // 	callFunction(
-    // 	    server,
-    // 	    token,
-    // 	    'sendPacket',
-    // 	    ['abc', 'ccc', 0, new Buffer(4)],
-    // 	    function(result) {
-    // 		assert(result == undefined);
-    // 		done();
-    // 	    }
-    // 	);
-    // });
+    it('should send a packet to another mailbox', function(done) {
+    	server
+	    .post('/api/mailrpc/sendPacket/abc')
+	    .send({dst: 'ccc', label: 0, data: new Buffer(4)})
+	    .set('Authorization', 'Bearer ' + token)
+	    .end(function(err, res) {
+		if (err) return done(err);
+		done();
+	    });
+    });
 
-    // it('should get the number of packets, after the packet was sent', function(done) {
-    // 	callFunction(
-    // 	    server,
-    // 	    token,
-    // 	    'getTotalPacketCount',
-    // 	    ['abc'],
-    // 	    function (result) {
-    // 		assert(result == 1);
-    // 		done();
-    // 	    }
-    // 	);
-    // });
+    it('should get the number of packets', function(done) {
+	server
+	    .get('/api/mailrpc/getTotalPacketCount/abc')
+	    .set('Authorization', 'Bearer ' + token)
+	    .expect(200)
+	    .end(function(err, res) {
+		if (err) return done(err);
+		JSON.parse(res.text).should.equal(1);
+		done();
+	    });
+    });
+
+
 
 
 
