@@ -9,6 +9,6 @@ var auth = require('../../auth/auth.service');
 This api is accessible both by bluetooth LE and by this
 http API. To avoid duplicating the api, callable functions
 are listed in mailbox-calls.js */
-router.post('/:functionName', auth.isAuthenticated(), handler);
+router.post('/:mailboxName/:methodName', auth.isAuthenticated(), handler);
 
 module.exports = router;

@@ -17,9 +17,10 @@ function makeMethod(scon, mailboxName, methodName, methodSchema) {
 	var dataToPost = coder.encodeArgs(methodSchema.spec.input, args);
 
 	assert(dataToPost.thisMailbox == undefined);
-	dataToPost.thisMailbox = mailboxName;
 	
 	scon.makePostRequest(
+	    mailboxName,
+	    methodName,
 	    dataToPost,
 	    function(err, body) {
 		if (err) {

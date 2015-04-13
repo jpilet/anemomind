@@ -4,9 +4,9 @@
   back.
 */  
 
-var calls = require('../../components/mail/mailbox-calls.js');
+var schema = require('../../components/mail/mailbox-schema.js');
+var coder = require('../../components/mail/json-coder.js');
 var assert = require('assert');
-var JSONB = require('json-buffer');
 var mb = require('./mailbox.js');
 
 
@@ -25,86 +25,45 @@ function userCanAccess(user, mailboxName, cb) {
     cb(undefined, (env == 'test' || env == 'development'));
 }
 
-// A function that converts the RPC call (invisible to the user),
-// where the mailbox name is passed as the first parameter,
-// to a method call to a mailbox with that name.
-function makeMailboxHandler(methodName) {
-    return function(user, allArgs, cb) {
-	// How to turn an arguments map into an array:  Array.prototype.slice.call(arguments);
-	var mailboxName = allArgs[0];
+function callMailboxMethod(user, mailboxName, methodName, args, cb) {
+    assert(mb != undefined);
+    assert(mb.openMailbox != undefined);
+    userCanAccess(
+	user, mailboxName,
+	function(err, p) {
+	    if (err) {
+		cb(err);
+	    } else if (!p) {
+		cb(new Error(
+		    'Unauthorized to access that mailbox with name '
+			+ mailboxName
+		));
+	    } else {
 
-	var args = allArgs.slice(1, allArgs.length);
-
-	// Every mailbox has its own file
-
-	assert(mb != undefined);
-	assert(mb.openMailbox != undefined);
-
-
-	userCanAccess(
-	    user, mailboxName,
-	    function(err, p) {
-		if (err) {
-		    cb(err);
-		} else if (!p) {
-		    cb(new Error(
-			'Unauthorized to access that mailbox with name '
-			    + mailboxName
-		    ));
-		} else {
-
-		    mb.openMailbox(
-			mailboxName,
-			function(err, mailbox) {
-			    if (err) {
-				cb(err);
-			    } else {
-				mailbox[methodName].apply(
-				    mailbox, args.concat([
-					function(err, result) {
-					    mailbox.close(
-						function(err) {
-						    cb(err, result);
-						}
-					    );
-					}
-				    ])
-				);
-			    }
+		mb.openMailbox(
+		    mailboxName,
+		    function(err, mailbox) {
+			if (err) {
+			    cb(err);
+			} else {
+			    mailbox[methodName].apply(
+				mailbox, args.concat([
+				    function(err, result) {
+					mailbox.close(
+					    function(err) {
+						cb(err, result);
+					    }
+					);
+				    }
+				])
+			    );
 			}
-		    );
-
-
-		}
+		    }
+		);
 	    }
-	);
-    }
+	}
+    );
 }
-
-
-
-
-
-// Utility function that should be used when adding
-// functions to the rpc object.
-function addRpc(dstObj, name, fn) {
-    assert(typeof dstObj == 'object');
-    assert(typeof name == 'string');
-    assert(typeof fn == 'function');
-
-    // Make sure that there are no naming collisions when we map to lower case.
-    var namelow = name.toLowerCase();
-    assert(dstObj[namelow] == undefined);
-    dstObj[namelow] = fn;
-}
-
-for (var i = 0; i < calls.length; i++) {
-    var call = calls[i];
-    assert(typeof call == 'string');
-    addRpc(rpc, call, makeMailboxHandler(call));
-}
-
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -136,34 +95,26 @@ Object.defineProperty(Error.prototype, 'toJSON', {
 function handler(req, res) {
     try {
 	var resultCB = function(err, result) {
-	    res.json(200, {
-		err: JSONB.stringify(err),
-		result: JSONB.stringify(result)
-	    });
+	    res.json(
+		200,
+		coder.encodeArgs(
+		    schema.spec.output, [err, result]
+		)
+	    );
 	};
 
-	var args = JSONB.parse(req.body.args);
-
-
-	var fnName = req.params.functionName;
+	var methodName = req.params.methodName;
+	var mailboxName = req.params.mailboxName;
+	
+	var args = coder.decodeArgs(schema.methods[methodName].spec.input, req.body);
 	if (typeof fnName == 'string') {
-	    var fnNameLower = fnName.toLowerCase();
-	    if (fnNameLower in rpc) {
-		var fn = rpc[fnNameLower];
-
-		if (fn == undefined) {
-		    resultCB(
-			{
-			    noSuchFunction: fnName,
-			    availableFunctions: Object.keys(rpc)
-			}
-		    );
-		} else {
-		    fn(req.user, args, resultCB);
-		}
-	    } else {
-		resultCB(new Error('Unknown function: ' + fnName));
-	    }
+	    callMailboxMethod(
+		req.user,
+		mailboxName,
+		methodName,
+		args,
+		resultCB
+	    );
 	} else {
 	    resultCB('The function name should be a string, but got '
 		     + fnName);

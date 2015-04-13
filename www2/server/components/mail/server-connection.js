@@ -12,7 +12,7 @@ function debugcb(err, response, body) {
 function ServerConnection(address, token) {
     this.address = address;
     this.authUrl = address + '/auth/local';
-    this.mailRpcUrl = address + '/api/mailrpc/';
+    this.mailRpcUrl = address + '/api/mailrpc';
     this.token = token;
 }
 
@@ -49,9 +49,11 @@ ServerConnection.prototype.login = function(userdata, cb) {
     );
 }
 
-ServerConnection.prototype.makePostRequest = function(methodName, dataToPost, cb) {
+ServerConnection.prototype.makePostRequest =
+    function(mailboxName, methodName, dataToPost, cb) {
+    var self = this;
     var opts = {
-	url: (self.mailRpcUrl + methodName),
+	url: (self.mailRpcUrl + '/' + mailboxName + '/' + methodName),
 	method: 'POST',
 	json: dataToPost,
 	headers: {
