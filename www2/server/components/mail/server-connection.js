@@ -53,7 +53,7 @@ ServerConnection.prototype.makePostRequest =
     function(mailboxName, methodName, dataToPost, cb) {
     var self = this;
     var opts = {
-	url: (self.mailRpcUrl + '/' + mailboxName + '/' + methodName),
+	url: (self.mailRpcUrl + '/' + methodName + '/' + mailboxName),
 	method: 'POST',
 	json: dataToPost,
 	headers: {

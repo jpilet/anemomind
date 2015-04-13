@@ -1,5 +1,6 @@
 var schema = require('./mailbox-schema.js');
-var JSONB = require('json-buffer');
+var mangler = require('../mangler/mangler.js');
+var assert = require('assert');
 
 // Functions to code and decode arguments according to the mailbox schema.
 // Used on the web server to decode a request and encode a response.
@@ -8,7 +9,7 @@ var JSONB = require('json-buffer');
 function encode(argSpec, data) {
     var type = schema.getArgType(argSpec);
     if (type == 'any' || type == 'buffer') {
-	return JSONB.stringify(data);
+	return mangler.mangle(data);
     }
     return data;
 }
@@ -18,6 +19,8 @@ function encode(argSpec, data) {
 // keys according to argSpecs, suitable to transfer
 // as a POST request.
 function encodeArgs(argSpecs, args) {
+    console.log('argSpecs = %j', argSpecs);
+    console.log('args = %j', args);
     assert(argSpecs.length == args.length);
     var dst = {};
     for (var i = 0; i < argSpecs.length; i++) {
@@ -31,7 +34,7 @@ function encodeArgs(argSpecs, args) {
 function decode(argSpec, data) {
     var type = schema.getArgType(argSpec);
     if (type == 'any' || type == 'buffer') {
-	return JSONB.parse(data);
+	return mangler.demangle(data);
     }
     return data;
 }

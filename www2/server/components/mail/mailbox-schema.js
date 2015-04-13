@@ -96,6 +96,7 @@ function isValidArg(x) {
 
 
 function getArgName(x) {
+    console.log('getArgName: x = %j', x);
     var keys = Object.keys(x);
     assert(keys.length == 1);
     return keys[0];
@@ -180,6 +181,7 @@ MethodSchema.prototype.isValidMethod = function(x) {
 // Below follows specifications of what methods every
 // method of a mailbox object should support:
 methods.setForeignDiaryNumber = new MethodSchema({
+    httpMethod:'get',
     input: [
 	{otherMailbox: 'hex'},
 	{newValue: 'hex'}
@@ -190,6 +192,7 @@ methods.setForeignDiaryNumber = new MethodSchema({
 });
 
 methods.getFirstPacketStartingFrom = new MethodSchema({
+    httpMethod:'get',
     input: [
 	{diaryNumber: 'hex'},
 	{lightWeight: Boolean},
@@ -201,6 +204,7 @@ methods.getFirstPacketStartingFrom = new MethodSchema({
 });
 
 methods.handleIncomingPacket = new MethodSchema({
+    httpMethod:'post',
     input: [
 	{packet: 'any'}
     ],
@@ -210,6 +214,7 @@ methods.handleIncomingPacket = new MethodSchema({
 });
 
 methods.isAdmissible = new MethodSchema({
+    httpMethod:'get',
     input: [
 	{src: 'hex'},
 	{dst: 'hex'},
@@ -222,6 +227,7 @@ methods.isAdmissible = new MethodSchema({
 });
 
 methods.getForeignDiaryNumber = new MethodSchema({
+    httpMethod:'get',
     input: [
 	{otherMailbox: 'hex'}
     ],
@@ -232,6 +238,7 @@ methods.getForeignDiaryNumber = new MethodSchema({
 });
 
 methods.getForeignStartNumber = new MethodSchema({
+    httpMethod:'get',
     input: [
 	{otherMailbox: 'hex'}
     ],
@@ -242,6 +249,7 @@ methods.getForeignStartNumber = new MethodSchema({
 });
 
 methods.getMailboxName = new MethodSchema({
+    httpMethod:'get',
     input: [],
     output: [
 	{mailboxName: 'hex'}
@@ -249,6 +257,7 @@ methods.getMailboxName = new MethodSchema({
 });
 
 methods.reset = new MethodSchema({
+    httpMethod:'get',
     input: [],
     output: [
 	{err: errorTypes}
@@ -256,6 +265,7 @@ methods.reset = new MethodSchema({
 });
 
 methods.sendPacket = new MethodSchema({
+    httpMethod: 'post',
     input: [
 	{dst: 'hex'},
 	{label: Number},
@@ -267,6 +277,7 @@ methods.sendPacket = new MethodSchema({
 });
 
 methods.getTotalPacketCount = new MethodSchema({
+    httpMethod: 'get',
     input: [],
     output: [
 	{err: errorTypes},
@@ -289,6 +300,7 @@ methods.getTotalPacketCount = new MethodSchema({
 function MailboxSchema(methods) {
     for (methodName in methods) {
 	assert(methods[methodName] instanceof MethodSchema);
+	methods[methodName].name = methodName;
     }
     
     this.methods = methods;

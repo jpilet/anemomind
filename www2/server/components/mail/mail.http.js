@@ -1,32 +1,33 @@
 // A remote mailbox that we can play with, over HTTP.
 
 var ServerConnection = require('./server-connection.js');
-var schema = require('./mailbox-schema.js');
 var coder = require('./json-coder.js');
-
+var schema = require('./mailbox-schema.js');
+var assert = require('assert');
 
 // Make a method to put in the local mailbox object
 // that will result in an HTTP request according
 // to the schema.
-function makeMethod(scon, mailboxName, methodName, methodSchema) {
+function makeMethod(scon, mailboxName, method) {
     return function() {
 	var allArgs = Array.prototype.slice.call(arguments);
 	var lastArgIndex = allArgs.length - 1;
 	var args = allArgs.slice(0, lastArgIndex);
 	var cb = allArgs[lastArgIndex];
-	var dataToPost = coder.encodeArgs(methodSchema.spec.input, args);
+	var dataToPost = coder.encodeArgs(method.spec.input, args);
 
 	assert(dataToPost.thisMailbox == undefined);
 	
 	scon.makePostRequest(
 	    mailboxName,
-	    methodName,
+	    method.name,
 	    dataToPost,
 	    function(err, body) {
 		if (err) {
 		    cb(err);
 		} else {
-		    var output = methodSchema.spec.output;
+		    var output = method.spec.output;
+		    console.log('RESPONSE: %j', body);
 		    var data = coder.decodeArgs(output, body);
 		    if (data == undefined) {
 			cb(new Error('Failed to decode HTTP response'));
@@ -39,13 +40,12 @@ function makeMethod(scon, mailboxName, methodName, methodSchema) {
     }
 }
 
-function Mailbox(serverConnection, mailboxName, calls) {
+function Mailbox(serverConnection, mailboxName) {
     this.mailboxName = mailboxName;
     for (methodName in schema.methods) {
 	this[methodName] = makeMethod(
 	    serverConnection,
 	    mailboxName,
-	    methodName,
 	    schema.methods[methodName]
 	);
     }
@@ -59,8 +59,7 @@ function tryMakeMailbox(serverAddress, userdata, mailboxName, cb) {
 	    cb(err);
 	} else {
 	    // Register these as rpc calls.
-	    s.registerCalls(mailboxCalls);
-	    cb(undefined, new Mailbox(s, mailboxName, mailboxCalls));
+	    cb(undefined, new Mailbox(s, mailboxName));
 	}
     });
 }

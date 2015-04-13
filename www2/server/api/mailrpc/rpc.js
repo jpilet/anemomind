@@ -25,6 +25,7 @@ function userCanAccess(user, mailboxName, cb) {
     cb(undefined, (env == 'test' || env == 'development'));
 }
 
+// This function is common, irrespective of whether it is a post or get request.
 function callMailboxMethod(user, mailboxName, methodName, args, cb) {
     assert(mb != undefined);
     assert(mb.openMailbox != undefined);
@@ -92,37 +93,56 @@ Object.defineProperty(Error.prototype, 'toJSON', {
     configurable: true
 });
 
-function handler(req, res) {
+function handler(method, req, res) {
     try {
 	var resultCB = function(err, result) {
+	    if (err) {
+		console.log('WARNING: There was an error on the server: %j', err);
+	    }
 	    res.json(
 		200,
 		coder.encodeArgs(
-		    schema.spec.output, [err, result]
+		    method.spec.output, [err, result]
 		)
 	    );
 	};
-
-	var methodName = req.params.methodName;
 	var mailboxName = req.params.mailboxName;
-	
-	var args = coder.decodeArgs(schema.methods[methodName].spec.input, req.body);
-	if (typeof fnName == 'string') {
-	    callMailboxMethod(
-		req.user,
-		mailboxName,
-		methodName,
-		args,
-		resultCB
-	    );
-	} else {
-	    resultCB('The function name should be a string, but got '
-		     + fnName);
-	}
+	var args = coder.decodeArgs(method.spec.input, req.body);
+	callMailboxMethod(
+	    req.user,
+	    mailboxName,
+	    method.name,
+	    args,
+	    resultCB
+	);
     } catch (e) {
 	resultCB(e);
     }
 };
 
+function makeHandler(method) {
+    return function(req, res) {
+	handler(method, req, res);
+    };
+}
 
-module.exports = handler;
+function makeBasicSubpath(method) {
+    return '/' + method.name + '/:mailboxName';
+}
+
+function makePostHandler(router, authenticator, method) {
+    router.post(
+	makeBasicSubpath(method),
+	authenticator,
+	makeHandler(method)
+    );
+}
+
+function bindMethodHandler(router, authenticator, method) {
+    var httpMethod = method.httpMethod;
+
+    // TODO: use httpMethod here to select the appropriate choice.
+    makePostHandler(router, authenticator, method);
+}
+
+module.exports.bindMethodHandler = bindMethodHandler;
