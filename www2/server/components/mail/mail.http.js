@@ -14,28 +14,38 @@ function makeMethod(scon, mailboxName, method) {
 	var lastArgIndex = allArgs.length - 1;
 	var args = allArgs.slice(0, lastArgIndex);
 	var cb = allArgs[lastArgIndex];
-	var dataToPost = coder.encodeArgs(method.input, args);
 
-	assert(dataToPost.thisMailbox == undefined);
-	
-	scon.makePostRequest(
-	    mailboxName,
-	    method.name,
-	    dataToPost,
-	    function(err, body) {
-		if (err) {
-		    cb(err);
+	var responseHandler = function(err, body) {
+	    if (err) {
+		cb(err);
+	    } else {
+		var output = method.output;
+		var data = coder.decodeArgs(output, body);
+		if (data == undefined) {
+		    cb(new Error('Failed to decode HTTP response'));
 		} else {
-		    var output = method.output;
-		    var data = coder.decodeArgs(output, body);
-		    if (data == undefined) {
-			cb(new Error('Failed to decode HTTP response'));
-		    } else {
-			cb.apply(null, data);
-		    }
+		    cb.apply(null, data);
 		}
 	    }
-	);
+	};
+
+	if (method.httpMethod == 'post') {
+	    var dataToPost = coder.encodeArgs(method.input, args);
+	    scon.makePostRequest(
+		mailboxName,
+		method.name,
+		dataToPost,
+		responseHandler
+	    );
+	} else {
+	    assert(args.length == method.input.length);
+	    scon.makeGetRequest(
+		mailboxName,
+		method.name,
+		args,
+		responseHandler
+	    );
+	}
     }
 }
 

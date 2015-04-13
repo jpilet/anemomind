@@ -140,6 +140,7 @@ function synchronizeDirected(boxA, boxB, cb) {
     boxA.getForeignStartNumber(
 	boxB.mailboxName,
 	function(err, startFrom) {
+	    console.log('startFrom = %j', startFrom);
 	    if (err == undefined) {
 		synchronizeDirectedFrom(
 		    startFrom, boxA, boxB,

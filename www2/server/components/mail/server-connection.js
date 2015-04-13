@@ -51,19 +51,47 @@ ServerConnection.prototype.login = function(userdata, cb) {
 
 ServerConnection.prototype.makePostRequest =
     function(mailboxName, methodName, dataToPost, cb) {
-    var self = this;
-    var opts = {
-	url: (self.mailRpcUrl + '/' + methodName + '/' + mailboxName),
-	method: 'POST',
-	json: dataToPost,
-	headers: {
-	    Authorization: "Bearer " + self.token
-	}
-    };
-    request(opts, function(err, response, body) {
-	cb(err, body)
-    });
+	var self = this;
+	var opts = {
+	    url: (self.mailRpcUrl + '/' + methodName + '/' + mailboxName),
+	    method: 'POST',
+	    json: dataToPost,
+	    headers: {
+		Authorization: "Bearer " + self.token
+	    }
+	};
+	request(opts, function(err, response, body) {
+	    cb(err, body)
+	});
+    }
+
+
+function makeArgsString(args) {
+    console.log('args = %j', args);
+    var dst = '';
+    for (var i = 0; i < args.length; i++) {
+	var arg = args[i];
+	assert(typeof arg == 'string');
+	dst = dst + '/' + arg;
+    }
+    return dst;
 }
+
+ServerConnection.prototype.makeGetRequest =
+    function(mailboxName, methodName, args, cb) {
+	console.log('makeGetRequest %j', methodName);
+	var self = this;
+	var opts = {
+	    url: (self.mailRpcUrl + '/' + methodName + '/' + mailboxName + makeArgsString(args)),
+	    method: 'GET',
+	    headers: {
+		Authorization: "Bearer " + self.token
+	    }
+	};
+	request(opts, function(err, response, body) {
+	    cb(err, body)
+	});
+    }
 
 
 module.exports = ServerConnection;
