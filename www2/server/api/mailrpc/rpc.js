@@ -92,7 +92,7 @@ Object.defineProperty(Error.prototype, 'toJSON', {
     configurable: true
 });
 
-
+// This will handle an HTTP request related to a specific method.
 function handler(method, req, res) {
     assert(method.httpMethod == 'post' || method.httpMethod == 'get');
     try {
@@ -136,10 +136,14 @@ function makeHandler(method) {
     };
 }
 
+// The basic path is just the method name together with the
+// mailbox name.
 function makeBasicSubpath(method) {
     return '/' + method.name + '/:mailboxName';
 }
 
+// This is a general method for both POST and GET request.
+// For GET requests, it adds a pattern for the arguments.
 function makeSubpath(method) {
     return makeBasicSubpath(method) +
 	(method.httpMethod == 'post' || method.httpMethod == 'put'? '' :
@@ -148,6 +152,7 @@ function makeSubpath(method) {
 	 coder.makeGetArgPattern(method.input));
 }
 
+// Adds a route to the router for a method.
 function bindMethodHandler(router, authenticator, method) {
     var httpMethod = method.httpMethod;
 
@@ -167,7 +172,7 @@ function bindMethodHandler(router, authenticator, method) {
     }
 }
 
-
+// Adds all routes to the router.
 function bindMethodHandlers(router, authenticator) {
     // Register a GET or POST handler
     // for every remote function that
@@ -177,6 +182,7 @@ function bindMethodHandlers(router, authenticator) {
     }
 }
 
+// Prints a summary of the HTTP call to a remote function.
 function makeMethodDesc(method) {
     console.log('Function name: %s', method.name);
     console.log('HTTP-call: %s %s\n', method.httpMethod.toUpperCase(), makeSubpath(method));
