@@ -138,7 +138,12 @@ function makeBasicSubpath(method) {
     return '/' + method.name + '/:mailboxName';
 }
 
-function makePostHandler(router, authenticator, method) {
+function makeSubpath(method) {
+    return makeBasicSubpath(method) +
+	(method.httpMethod == 'post' || method.httpMethod == 'put'? '' :
+
+	 // Also add a pattern for the arguments.
+	 coder.makeGetArgPattern(method.input));
 }
 
 function bindMethodHandler(router, authenticator, method) {
@@ -146,13 +151,14 @@ function bindMethodHandler(router, authenticator, method) {
 
     if (method.httpMethod == 'post') {
 	router.post(
-	    makeBasicSubpath(method),
+	    makeSubpath(method),
 	    authenticator,
 	    makeHandler(method)
 	);
     } else {
+	assert(method.httpMethod == 'get');
 	router.get(
-	    makeBasicSubpath(method) + coder.makeGetArgPattern(method.input),
+	    makeSubpath(method),
 	    authenticator,
 	    makeHandler(method)
 	);
@@ -168,5 +174,7 @@ function bindMethodHandlers(router, authenticator) {
 	bindMethodHandler(router, authenticator, schema.methods[methodName]);
     }
 }
+
+
 
 module.exports.bindMethodHandlers = bindMethodHandlers;
