@@ -41,7 +41,7 @@ function demangle(data) {
 	    if (typeof x == 'string') {
 		if((/^:base64:/).test(x)) {
 		    return new Buffer(x.substring(8), 'base64');		    		} else {
-		    return (/^:/).test(x) ? value.substring(1) : x;
+		    return (/^:/).test(x) ? x.substring(1) : x;
 		}
 	    }
 	    return x;
