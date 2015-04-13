@@ -159,4 +159,14 @@ function bindMethodHandler(router, authenticator, method) {
     }
 }
 
-module.exports.bindMethodHandler = bindMethodHandler;
+
+function bindMethodHandlers(router, authenticator) {
+    // Register a GET or POST handler
+    // for every remote function that
+    // we can call.
+    for (var methodName in schema.methods) {
+	bindMethodHandler(router, authenticator, schema.methods[methodName]);
+    }
+}
+
+module.exports.bindMethodHandlers = bindMethodHandlers;
