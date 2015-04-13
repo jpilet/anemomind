@@ -57,7 +57,7 @@ function getParamNames(func) {
 
 
 function isArrayTypeSpec(x) {
-    if (typeof x.length == 'number') {
+    if (Array.isArray(x)) {
 	for (var i = 0; i < x.length; i++) {
 	    if (!isValidTypeSpec(x[i])) {
 		return false;
@@ -68,12 +68,18 @@ function isArrayTypeSpec(x) {
     return false;
 }
 
-function isValidTypeSpec(x) {
+function isValidTypeSpecSub(x) {
     return (x == String) || (x == Boolean)
 	|| (x == 'hex') || (x == 'buffer')
 	|| (x == Number) || (x == 'any')
 	|| (x == null) || isArrayTypeSpec(x)
 	|| (x == undefined);
+}
+
+function isValidTypeSpec(x) {
+    var x = isValidTypeSpecSub(x);
+    assert(x);
+    return x;
 }
 
 var errorTypes = ['any', null];
