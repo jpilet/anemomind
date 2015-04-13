@@ -13,7 +13,7 @@
   
   Types used for:
     * 'hex' : An integer represented as a hexadecimal number
-    * 'binary' : A buffer. With JSON, it will be converted
+    * 'buffer' : A buffer. With JSON, it will be converted
       to a string of hexadecimal numbers. With msgpack,
       it will be encoded to a buffer.
     * 'any' : A general object. With JSON it will be encoded
