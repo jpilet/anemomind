@@ -94,6 +94,7 @@ Object.defineProperty(Error.prototype, 'toJSON', {
 });
 
 function handler(method, req, res) {
+    assert(method.spec.httpMethod == 'post' || method.spec.httpMethod == 'get');
     try {
 	var resultCB = function(err, result) {
 	    if (err) {
@@ -102,7 +103,7 @@ function handler(method, req, res) {
 	    res.json(
 		200,
 		coder.encodeArgs(
-		    method.spec.output, [err, result]
+		    method.spec.output, [err, result], true
 		)
 	    );
 	};
@@ -139,7 +140,7 @@ function makePostHandler(router, authenticator, method) {
 }
 
 function bindMethodHandler(router, authenticator, method) {
-    var httpMethod = method.httpMethod;
+    var httpMethod = method.spec.httpMethod;
 
     // TODO: use httpMethod here to select the appropriate choice.
     makePostHandler(router, authenticator, method);

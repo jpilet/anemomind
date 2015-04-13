@@ -18,20 +18,28 @@ function encode(argSpec, data) {
 // and encodes these arguments as a JSON object with
 // keys according to argSpecs, suitable to transfer
 // as a POST request.
-function encodeArgs(argSpecs, args) {
-    console.log('argSpecs = %j', argSpecs);
-    console.log('args = %j', args);
-    assert(argSpecs.length == args.length);
-    var dst = {};
-    for (var i = 0; i < argSpecs.length; i++) {
-	var argSpec = argSpecs[i];
-	dst[schema.getArgName(argSpec)]
-	    = encode(argSpec, args[i]);
+function encodeArgs(argSpecs, args, trimmed) {
+    if (trimmed) { // <-- Remove excessive part of args if it just contains undefined values.
+	var len = argSpecs.length;
+	var remaining = args.slice(len);
+	for (var i = 0; i < remaining.length; i++) {
+	    assert(remaining[i] == undefined);
+	}
+	return encodeArgs(argSpecs, args.slice(0, len));
+    } else {
+	assert(argSpecs.length == args.length);
+	var dst = {};
+	for (var i = 0; i < argSpecs.length; i++) {
+	    var argSpec = argSpecs[i];
+	    dst[schema.getArgName(argSpec)]
+		= encode(argSpec, args[i]);
+	}
+	return dst;
     }
-    return dst;
 }
 
 function decode(argSpec, data) {
+    console.log('decode %j and %j', argSpec, data);
     var type = schema.getArgType(argSpec);
     if (type == 'any' || type == 'buffer') {
 	return mangler.demangle(data);
@@ -40,10 +48,14 @@ function decode(argSpec, data) {
 }
 
 function decodeArgs(argSpecs, data) {
+    console.log('decodeArgs: %j and %j', argSpecs, data);
     var dst = new Array(argSpecs.length);
     for (var i = 0; i < argSpecs.length; i++) {
 	var argSpec = argSpecs[i];
-	dst[i] = decode(data[schema.getArgName(argSpec)]);
+	console.log('argSpec = %j', argSpec);
+	var argName = schema.getArgName(argSpec);
+	console.log('argName = %j', argName);
+	dst[i] = decode(argSpec, data[argName]);
     }
     return dst;
 }
