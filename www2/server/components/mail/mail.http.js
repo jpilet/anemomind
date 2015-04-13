@@ -30,11 +30,10 @@ function makeMethod(scon, mailboxName, method) {
 	};
 
 	if (method.httpMethod == 'post') {
-	    var dataToPost = coder.encodeArgs(method.input, args);
 	    scon.makePostRequest(
 		mailboxName,
 		method.name,
-		dataToPost,
+		coder.encodeArgs(method.input, args),
 		responseHandler
 	    );
 	} else {
@@ -42,7 +41,7 @@ function makeMethod(scon, mailboxName, method) {
 	    scon.makeGetRequest(
 		mailboxName,
 		method.name,
-		args,
+		coder.encodeGetArgs(method.input, args),
 		responseHandler
 	    );
 	}

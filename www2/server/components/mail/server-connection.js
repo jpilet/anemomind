@@ -82,7 +82,7 @@ ServerConnection.prototype.makeGetRequest =
 	console.log('makeGetRequest %j', methodName);
 	var self = this;
 	var opts = {
-	    url: (self.mailRpcUrl + '/' + methodName + '/' + mailboxName + makeArgsString(args)),
+	    url: (self.mailRpcUrl + '/' + methodName + '/' + mailboxName + '/' + args),
 	    method: 'GET',
 	    headers: {
 		Authorization: "Bearer " + self.token

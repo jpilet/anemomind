@@ -1,6 +1,7 @@
 var schema = require('./mailbox-schema.js');
 var mangler = require('../mangler/mangler.js');
 var assert = require('assert');
+var bigint = require('./bigint.js');
 
 // Functions to code and decode arguments according to the mailbox schema.
 // Used on the web server to decode a request and encode a response.
@@ -38,6 +39,27 @@ function encodeArgs(argSpecs, args, trimmed) {
     }
 }
 
+function encodeGetArg(argSpec, arg) {
+    var type = schema.getArgType(argSpec);
+    if (type == Boolean) {
+	return (arg? '1' : '0');
+    } else if (type == Number) {
+	return '' + arg;
+    } else {
+	assert(bigint.isBigInt(arg));
+	return arg;
+    }
+}
+
+function encodeGetArgs(argSpecs, args) {
+    assert(argSpecs.length == args.length);
+    var dst = new Array(args.length);
+    for (var i = 0; i < args.length; i++) {
+	dst[i] = encodeGetArg(argSpecs[i], args[i]);
+    }
+    return dst.join("/");
+}
+
 function decode(argSpec, data) {
     var type = schema.getArgType(argSpec);
     if (type == 'any' || type == 'buffer') {
@@ -58,3 +80,4 @@ function decodeArgs(argSpecs, data) {
 
 module.exports.encodeArgs = encodeArgs;
 module.exports.decodeArgs = decodeArgs;
+module.exports.encodeGetArgs = encodeGetArgs;
