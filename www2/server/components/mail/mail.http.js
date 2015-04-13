@@ -6,9 +6,6 @@ var schema = require('./mailbox-schema.js');
 var assert = require('assert');
 
 
-function toJson(method, data) {
-    return (method.httpMethod == 'get'? JSON.parse(data) : data);
-}
 
 
 // Make a method to put in the local mailbox object
@@ -21,32 +18,15 @@ function makeMethod(scon, mailboxName, method) {
 	var args = allArgs.slice(0, lastArgIndex);
 	var cb = allArgs[lastArgIndex];
 
-	var responseHandler = function(err, body) {
-	    if (err) {
-		cb(toJson(err));
-	    } else {
-		var output = method.output;
-		var data = coder.decodeArgs(
-		    output,
-
-		    // Don't know why we get the response as a string when
-		    // sending a get request. Probably related to the
-		    // 'request library'.
-		    toJson(method, body)
-		);
-		
-		if (data == undefined) {
-		    cb(new Error('Failed to decode HTTP response'));
-		} else {
-		    cb.apply(null, data);
-		}
-	    }
+	var responseHandler = function(err, data) {
+	    cb(coder.decode(method.output[0], err),
+	       coder.decode(method.output[1], data));
 	};
 
 	if (method.httpMethod == 'post') {
 	    scon.makePostRequest(
 		mailboxName,
-		method.name,
+		method,
 		coder.encodeArgs(method.input, args),
 		responseHandler
 	    );
@@ -54,7 +34,7 @@ function makeMethod(scon, mailboxName, method) {
 	    assert(args.length == method.input.length);
 	    scon.makeGetRequest(
 		mailboxName,
-		method.name,
+		method,
 		coder.encodeGetArgs(method.input, args),
 		responseHandler
 	    );

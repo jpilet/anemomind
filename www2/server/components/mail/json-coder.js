@@ -8,11 +8,16 @@ var bigint = require('./bigint.js');
 // Used on the client to encode a request and decode a response.
 
 function encode(argSpec, data) {
-    var type = schema.getArgType(argSpec);
-    if (type == 'any' || type == 'buffer') {
-	return mangler.mangle(data);
+    if (argSpec == undefined) {
+	assert(data == undefined);
+	return undefined;
+    } else {
+	var type = schema.getArgType(argSpec);
+	if (type == 'any' || type == 'buffer') {
+	    return mangler.mangle(data);
+	}
+	return data;
     }
-    return data;
 }
 
 // Takes an array of arguments passed to a function
@@ -74,11 +79,16 @@ function encodeGetArgs(argSpecs, args) {
 }
 
 function decode(argSpec, data) {
-    var type = schema.getArgType(argSpec);
-    if (type == 'any' || type == 'buffer') {
-	return mangler.demangle(data);
+    if (argSpec == undefined) {
+	assert(data == undefined);
+	return undefined;
+    } else {
+	var type = schema.getArgType(argSpec);
+	if (type == 'any' || type == 'buffer') {
+	    return mangler.demangle(data);
+	}
+	return data;
     }
-    return data;
 }
 
 function decodeArgsSub(argSpecs, data, decoderFunction) {

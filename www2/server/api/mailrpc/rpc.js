@@ -92,45 +92,24 @@ Object.defineProperty(Error.prototype, 'toJSON', {
     configurable: true
 });
 
-function encodeError(argSpecs, error) {
-    assert(argSpecs.length >= 1);
-    return coder.encode(argSpecs[0], error);
-}
-
-function encodeResult(argSpecs, result) {
-    if (argSpecs.length <= 1) {
-	assert(result == undefined);
-	return undefined;
-    } else {
-	return coder.encode(argSpecs[1], result);
-    }
-}
 
 function handler(method, req, res) {
     assert(method.httpMethod == 'post' || method.httpMethod == 'get');
     try {
 	var resultCB = function(err, result) {
+	    // Do we need a try statement in this function?
 	    if (err) {
 		console.log('WARNING: There was an error on the server: %j', err);
 	    }
-	    if (err) {
-		res.json(
-		    500, // "Internal Server Error"
-		         // http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
-		    encodeError(method.output, err)
-		);
-	    } else {
-		res.json(
-		    200, // "OK"
-		    encodeResult(
-			method.output,
-			result
-		    )
-		);
-	    }
+	    var statusCode = (err? 500 : 200);
+	    res.status(statusCode).json(
+		coder.encode(
+		    method.output[err? 0 : 1], // How the return value should be coded.
+		    (err? err : result) // What data to send.
+		)
+	    );
 	};
 	var mailboxName = req.params.mailboxName;
-	
 	var args = null;
 
 	if (method.httpMethod == 'post') {

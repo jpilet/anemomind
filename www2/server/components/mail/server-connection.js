@@ -49,11 +49,31 @@ ServerConnection.prototype.login = function(userdata, cb) {
     );
 }
 
+function toJson(method, data) {
+    if (typeof data == 'string') {
+	if (data.length == 0) {
+	    return undefined;
+	}
+	return JSON.parse(data);
+    }
+    return data;
+}
+    
+function interpretResponse(method, err, response, rawBody, cb) {
+    var body = toJson(method, rawBody);
+    if (response.statusCode == 200) {
+	cb(undefined, body);
+    } else {
+	cb(body, undefined);
+    }
+}
+
+
 ServerConnection.prototype.makePostRequest =
-    function(mailboxName, methodName, dataToPost, cb) {
+    function(mailboxName, method, dataToPost, cb) {
 	var self = this;
 	var opts = {
-	    url: (self.mailRpcUrl + '/' + methodName + '/' + mailboxName),
+	    url: (self.mailRpcUrl + '/' + method.name + '/' + mailboxName),
 	    method: 'POST',
 	    json: dataToPost,
 	    headers: {
@@ -61,7 +81,7 @@ ServerConnection.prototype.makePostRequest =
 	    }
 	};
 	request(opts, function(err, response, body) {
-	    cb(err, body)
+	    interpretResponse(method, err, response, body, cb);
 	});
     }
 
@@ -78,17 +98,17 @@ function makeArgsString(args) {
 }
 
 ServerConnection.prototype.makeGetRequest =
-    function(mailboxName, methodName, args, cb) {
+    function(mailboxName, method, args, cb) {
 	var self = this;
 	var opts = {
-	    url: (self.mailRpcUrl + '/' + methodName + '/' + mailboxName + '/' + args),
+	    url: (self.mailRpcUrl + '/' + method.name + '/' + mailboxName + '/' + args),
 	    method: 'GET',
 	    headers: {
 		Authorization: "Bearer " + self.token
 	    }
 	};
 	request(opts, function(err, response, body) {
-	    cb(err, body)
+	    interpretResponse(method, err, response, body, cb);
 	});
     }
 
