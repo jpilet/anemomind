@@ -50,11 +50,16 @@ describe('/api/mailrpc', function() {
     
     it('should reset the mailbox', function(done) {
 	server
-	    .get('/api/mailrpc/getPacketCount/abc')
+	    .get('/api/mailrpc/getTotalPacketCount/abc')
 	    .set('Authorization', 'Bearer ' + token)
 	    .expect(200)
-	    .end(function(err, res, body) {
+	    .end(function(err, res) {
+		console.log('res.body = %j', res.body);
+		for (var key in res) {
+		    console.log('   %j = %j', key, res[key]);
+		}
 		if (err) return done(err);
+		JSON.parse(res.text).should.equal(0);
 		done();
 	    });
     });
