@@ -102,7 +102,6 @@ function isValidArg(x) {
 
 
 function getArgName(x) {
-    console.log('getArgName: %j', x);
     var keys = Object.keys(x);
     assert(keys.length == 1);
     return keys[0];

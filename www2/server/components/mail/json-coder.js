@@ -39,7 +39,6 @@ function encodeArgs(argSpecs, args, trimmed) {
 }
 
 function decode(argSpec, data) {
-    console.log('decode %j and %j', argSpec, data);
     var type = schema.getArgType(argSpec);
     if (type == 'any' || type == 'buffer') {
 	return mangler.demangle(data);
@@ -48,13 +47,10 @@ function decode(argSpec, data) {
 }
 
 function decodeArgs(argSpecs, data) {
-    console.log('decodeArgs: %j and %j', argSpecs, data);
     var dst = new Array(argSpecs.length);
     for (var i = 0; i < argSpecs.length; i++) {
 	var argSpec = argSpecs[i];
-	console.log('argSpec = %j', argSpec);
 	var argName = schema.getArgName(argSpec);
-	console.log('argName = %j', argName);
 	dst[i] = decode(argSpec, data[argName]);
     }
     return dst;

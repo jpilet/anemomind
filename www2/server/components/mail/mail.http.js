@@ -27,7 +27,6 @@ function makeMethod(scon, mailboxName, method) {
 		    cb(err);
 		} else {
 		    var output = method.spec.output;
-		    console.log('RESPONSE: %j', body);
 		    var data = coder.decodeArgs(output, body);
 		    if (data == undefined) {
 			cb(new Error('Failed to decode HTTP response'));
