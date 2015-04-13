@@ -261,6 +261,7 @@ methods.getMailboxName = new MethodSchema({
     httpMethod:'get',
     input: [],
     output: [
+	{err: errorTypes},
 	{mailboxName: 'hex'}
     ]
 });

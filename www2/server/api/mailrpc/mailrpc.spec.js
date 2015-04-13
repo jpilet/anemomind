@@ -65,18 +65,18 @@ describe('/api/mailrpc', function() {
     });
 
 
-    // it('should return the mailbox name', function(done) {
-    // 	callFunction(
-    // 	    server,
-    // 	    token,
-    // 	    'getMailboxName',
-    // 	    ['abc'],
-    // 	    function(result) {
-    // 		assert(result == 'abc');
-    // 		done();
-    // 	    }
-    // 	);
-    // });
+    it('should return the mailbox name', function(done) {
+	server
+	    .get('/api/mailrpc/getMailboxName/abc')
+	    .set('Authorization', 'Bearer ' + token)
+	    .expect(200)
+	    .end(function(err, res) {
+		if (err) return done(err);
+    		JSON.parse(res.text).should.equal('abc');
+    		done();
+    	    }
+    	);
+    });
 
     // it('should send a packet to another mailbox', function(done) {
     // 	callFunction(
