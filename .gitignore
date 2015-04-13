@@ -4,6 +4,7 @@ build*
 cpp/build
 src/device/Arduino/libraries/IreneTargetSpeed/test/test
 .*.swp
+.*.swo
 .DS_Store
 *.log
 *.orig
@@ -20,3 +21,5 @@ anemionicApp/node_modules/
 anemionicApp/platforms/
 anemionicApp/plugins/
 anemionicApp/www/lib
+
+src/device/anemobox/anemonode/node_modules
