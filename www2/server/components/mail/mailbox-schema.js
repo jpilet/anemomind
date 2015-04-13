@@ -150,12 +150,16 @@ function MethodSchema(spec) {
 	console.log('Bad spce: %j', spec);
 	throw new Error('Bad spec');
     }
-    this.spec = spec;
+
+    // Just copy the fields.
+    for (x in spec) {
+	this[x] = spec[x];
+    }
 }
 
 MethodSchema.prototype.isValidMethod = function(x) {
     if (typeof x == 'function') {
-	var expectedArgs = getArgNames(this.spec.input);
+	var expectedArgs = getArgNames(this.input);
 	var actualArgs = getParamNames(x);
 	if (actualArgs.length == 0) {
 	    return true;

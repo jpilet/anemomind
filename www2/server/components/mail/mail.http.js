@@ -14,7 +14,7 @@ function makeMethod(scon, mailboxName, method) {
 	var lastArgIndex = allArgs.length - 1;
 	var args = allArgs.slice(0, lastArgIndex);
 	var cb = allArgs[lastArgIndex];
-	var dataToPost = coder.encodeArgs(method.spec.input, args);
+	var dataToPost = coder.encodeArgs(method.input, args);
 
 	assert(dataToPost.thisMailbox == undefined);
 	
@@ -26,7 +26,7 @@ function makeMethod(scon, mailboxName, method) {
 		if (err) {
 		    cb(err);
 		} else {
-		    var output = method.spec.output;
+		    var output = method.output;
 		    var data = coder.decodeArgs(output, body);
 		    if (data == undefined) {
 			cb(new Error('Failed to decode HTTP response'));
