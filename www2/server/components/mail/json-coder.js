@@ -108,6 +108,8 @@ function makeGetArgPattern(argSpecs) {
 }
 
 
+module.exports.encode = encode;
+module.exports.decode = decode;
 module.exports.encodeArgs = encodeArgs;
 module.exports.decodeArgs = decodeArgs;
 module.exports.encodeGetArgs = encodeGetArgs;

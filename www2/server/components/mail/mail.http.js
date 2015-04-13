@@ -5,6 +5,12 @@ var coder = require('./json-coder.js');
 var schema = require('./mailbox-schema.js');
 var assert = require('assert');
 
+
+function toJson(method, data) {
+    return (method.httpMethod == 'get'? JSON.parse(data) : data);
+}
+
+
 // Make a method to put in the local mailbox object
 // that will result in an HTTP request according
 // to the schema.
@@ -17,7 +23,7 @@ function makeMethod(scon, mailboxName, method) {
 
 	var responseHandler = function(err, body) {
 	    if (err) {
-		cb(err);
+		cb(toJson(err));
 	    } else {
 		var output = method.output;
 		var data = coder.decodeArgs(
@@ -26,7 +32,7 @@ function makeMethod(scon, mailboxName, method) {
 		    // Don't know why we get the response as a string when
 		    // sending a get request. Probably related to the
 		    // 'request library'.
-		    (method.httpMethod == 'get'? JSON.parse(body) : body)
+		    toJson(method, body)
 		);
 		
 		if (data == undefined) {
