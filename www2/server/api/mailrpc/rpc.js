@@ -97,8 +97,6 @@ function handler(method, req, res) {
     assert(method.httpMethod == 'post' || method.httpMethod == 'get');
     try {
 	var resultCB = function(err, result) {
-
-	    console.log('The result is %j', result);
 	    // Do we need a try statement in this function?
 	    if (err) {
 		console.log('WARNING: There was an error on the server: %j', err);

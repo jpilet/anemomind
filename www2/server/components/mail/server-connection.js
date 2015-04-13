@@ -86,16 +86,6 @@ ServerConnection.prototype.makePostRequest =
     }
 
 
-function makeArgsString(args) {
-    console.log('args = %j', args);
-    var dst = '';
-    for (var i = 0; i < args.length; i++) {
-	var arg = args[i];
-	assert(typeof arg == 'string');
-	dst = dst + '/' + arg;
-    }
-    return dst;
-}
 
 ServerConnection.prototype.makeGetRequest =
     function(mailboxName, method, args, cb) {
