@@ -21,7 +21,7 @@ async.map(
 	mb.tryMakeMailbox(
 	    address, testuser, boxname,
 	    function(err, mailbox) {
-		assert(err == undefined);
+		assert.equal(err, undefined);
 
 		// Always reset first so that we start from
 		// the same state.
