@@ -67,7 +67,7 @@ void DeviceSimulator::sendData(const std::string& data) {
   bool timeInitialized = false;
 
   for (auto c : data) {
-    if (parser.processByte(c) == NmeaParser::NMEA_TIME_POS) {
+    if (NmeaParser::isCycleMark(parser.processByte(c))) {
       if (!timeInitialized) {
         timeInitialized = true;
         _referenceMillis = millis();

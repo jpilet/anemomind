@@ -117,14 +117,15 @@ class NmeaParser {
   enum NmeaSentence {
     NMEA_NONE=0,
     NMEA_UNKNOWN,
-    NMEA_TIME_POS,
+    NMEA_RMC,
     NMEA_AW,
     NMEA_TW,
     NMEA_WAT_SP_HDG,
     NMEA_VLW,
     NMEA_GLL,
-    NMEA_ZDA = NMEA_TIME_POS,
-    NMEA_VTG
+    NMEA_VTG,
+    NMEA_ZDA,
+    NMEA_TIME_POS = NMEA_RMC,
   };
 
   NmeaParser();
@@ -148,6 +149,10 @@ class NmeaParser {
   static const short INVALID_DATA_SHORT = 0x8000;
   static const char INVALID_DATA_CHAR = 0x80;
   static const long INVALID_DATA_LONG = 0x800000;
+
+  static bool isCycleMark(NmeaSentence x) {
+    return x == NMEA_RMC || x == NMEA_ZDA;
+  }
 
   // GPS data
   sail::Velocity<FP8_8> gpsSpeed() const {
@@ -210,6 +215,10 @@ class NmeaParser {
   }
   DWord wd() const {
     return wd_;  // water distance since reset [1/10 nautical miles]
+  }
+
+  sail::Length<double> watDist() const {
+    return sail::Length<double>::nauticalMiles(wd_ / 10.0);
   }
 
   DWord numBytes() const {

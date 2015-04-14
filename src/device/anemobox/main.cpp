@@ -18,6 +18,10 @@ void print(const VelocityDispatcher &velocity) {
   std::cout << stringFormat("%.2f", velocity.lastValue().knots());
 }
 
+void print(const LengthDispatcher &length) {
+  std::cout << stringFormat("%.2f", length.lastValue().nauticalMiles());
+}
+
 template <class T>
 class PrintListenener : public Listener<T> {
  public:
@@ -33,6 +37,7 @@ class PrintListenener : public Listener<T> {
 
 class PrintUpdates : public DispatchDataVisitor {
  public:
+
   virtual void run(DispatchAngleData *angle) {
     std::shared_ptr<PrintListenener<Angle<double>>> anglePrinter(
         new PrintListenener<Angle<double>>(angle->description()));
@@ -46,9 +51,17 @@ class PrintUpdates : public DispatchDataVisitor {
     value->dispatcher()->subscribe(valuePrinter.get());
     _velocityPrinters.push_back(valuePrinter);
   }
+
+  virtual void run(DispatchLengthData *value) {
+    std::shared_ptr<PrintListenener<Length<double>>> valuePrinter(
+        new PrintListenener<Length<double>>(value->description()));
+    value->dispatcher()->subscribe(valuePrinter.get());
+    _lengthPrinters.push_back(valuePrinter);
+  }
  private:
   std::vector<std::shared_ptr<PrintListenener<Angle<double>>>> _anglePrinters;
   std::vector<std::shared_ptr<PrintListenener<Velocity<double>>>> _velocityPrinters;
+  std::vector<std::shared_ptr<PrintListenener<Length<double>>>> _lengthPrinters;
 };
 
 }  // namespace
