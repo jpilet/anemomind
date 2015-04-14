@@ -106,19 +106,6 @@ exports.update = function(req, res) {
   });
 };
 
-// Deletes a boat from the DB.
-exports.destroy = function(req, res) {
-  Boat.findById(req.params.id, function (err, boat) {
-    if(err) { return handleError(res, err); }
-    if(!boat) { return res.send(404); }
-    if (!userCanWrite(req.user, boat)) { return res.send(403); }
-    boat.remove(function(err) {
-      if(err) { return handleError(res, err); }
-      return res.send(204);
-    });
-  });
-};
-
 // Invite a user to join a boat.
 exports.inviteUser = function(req, res) {
 

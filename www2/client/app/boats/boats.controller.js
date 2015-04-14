@@ -15,12 +15,4 @@ angular.module('www2App')
       $http.post('/api/boats', { name: $scope.newBoat });
       $scope.newBoat = '';
     };
-
-    $scope.deleteBoat = function(boat) {
-      $http.delete('/api/boats/' + boat._id);
-    };
-
-    $scope.$on('$destroy', function () {
-      socket.unsyncUpdates('boat');
-    });
   });
