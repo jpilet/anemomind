@@ -23,6 +23,7 @@ function makeRandomCall(cb) {
 // Make two different calls.
 makeRandomCall(
     function(err) {
+	console.log('Evaluate a second call.');
 	makeRandomCall(function() {});
     }
 );

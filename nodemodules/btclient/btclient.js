@@ -3,9 +3,13 @@ var msgpack = require('msgpack');
 var Q = require('q');
 var assert = require('assert');
 
+// These numbers must be in sync with the bt peripheral code.
 var rpcCharacteristicUuid = '13333333333333333333333333330003';
 var rpcServiceUuid = '13333333333333333333333333333337';
 
+
+// The code below just sets up bleno to scan for
+// devices.
 noble.on('stateChange', function(state) {
     if (state === 'poweredOn') {
 	console.log('scanning...');
@@ -16,7 +20,11 @@ noble.on('stateChange', function(state) {
     }
 })
 
-
+// RPC manager handles calls to remote functions over bluetooth.
+// An instance of this class is exported from this module.
+// The RPC manager has a method called 'setCalls' that specifies what
+// remote functions can be called. Those functions will be available
+// as methods of the RPC manager object.
 function RPCManager() {
 
     // This is a callback that is called when a connection is established.
@@ -42,10 +50,18 @@ function RPCManager() {
 	    // This makes sure that a callback is called 
 	    characteristic.on('read', function(data, isNotification) {
 		if (self.cb) {
-		    var errAndValue = msgpack.unpack(data);
-		    var err = errAndValue[0];
-		    var value = errAndValue[1];
-		    self.cb(err, value);
+		    var errOrResult = msgpack.unpack(data);
+		    // errOrResult is an array with two elements:
+		    //   [success, x]
+		    // where success=true iff there was no error,
+		    // and x is either the result or the error object.
+		    var success = errOrResult[0];
+		    var x = errOrResult[1];
+		    if (success) {
+			self.cb(undefined, x);
+		    } else {
+			self.cb(x);
+		    }
 		}
 		self.cb = undefined;
 	    });
@@ -114,6 +130,10 @@ RPCManager.prototype.call = function(functionName, args, cb) {
     );
 }
 
+// Returns a function that, once called, will
+// call a remote function over bluetooth.
+// makeRpcCall is used by the 'setCalls' method
+// of RPCManagaer.
 function makeRpcCall(self, functionName) {
     return function() {
 	var allArgs = Array.prototype.slice.call(arguments);
@@ -133,6 +153,7 @@ RPCManager.prototype.setCalls = function(functionNames) {
     }
 }
 
+// Create the manager that will be exported from this module.
 var manager = new RPCManager();
 
 // Initiate the BT.
