@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "bleno": "^0.1.12",
-    "msgpack": "^0.2.6"
+    "msgpack": "^0.2.6",
+    "q": "^1.2.0"
   }
 }

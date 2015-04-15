@@ -1,10 +1,18 @@
 var util = require('util');
 var bleno = require('bleno');
 var msgpack = require('msgpack');
+var Q = require('q');
 
 // To be set using the exported function 'setRpc'
-var rpc = {};
+// This is a global variable/placeholder for all
+// the functions that should be accessible over bluetooth.
+//
+// It can be assigned with the exported function setRpc
+var deferredRpc = Q.defer();
 
+
+// This is a common bluetooth characteristic
+// for all RPC calls.
 function RpcCharacteristic() {
     bleno.Characteristic.call(this, {
 	uuid: '13333333333333333333333333330003',
@@ -17,7 +25,6 @@ function RpcCharacteristic() {
 	]
     });
 }
-
 util.inherits(RpcCharacteristic, bleno.Characteristic);
 
 RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutResponse, callback) {
@@ -25,44 +32,47 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
     if (offset) {
 	callback(this.RESULT_ATTR_NOT_LONG);
     } else {
-	try {
-	    var responded = false;
-	    var respond = function(err, value) {
-		if (err) {
-		    console.log('Called respond function with these args');
-		    console.log('  err =   %j', err);
-		    console.log('  value = %j', value);
-		}
-		if (!responded) {
-		    self.updateValueCallback(msgpack.pack([err, value]));
-		    responded = true;
-		}
-	    };
-	    
-	    var call = msgpack.unpack(data);
-	    var fun = call.fun;
-	    if (!(typeof fun == 'string')) {
-		respond('Bad function name, it should be a string but got ' + (typeof fun));
-	    } else if (!rpc[fun]) {
-		respond('No function registered with name ' + fun);
-	    } else {
-		var allArgs = call.args.concat([respond]);
-		var returnValue = rpc[fun].apply(null, allArgs);
-		if (returnValue == undefined) {
 
-		    callback(this.RESULT_SUCCESS);
-		    console.log('Successfully evaluated ' + fun);
-		    // If we get here, we are successful and should return.		    
-		    return;
-		    
+	deferredRpc.promise.then(function(rpc) {
+	    try {
+		var responded = false;
+		var respond = function(err, value) {
+		    if (err) {
+			console.log('Called respond function with these args');
+			console.log('  err =   %j', err);
+			console.log('  value = %j', value);
+		    }
+		    if (!responded) {
+			self.updateValueCallback(msgpack.pack([err, value]));
+			responded = true;
+		    }
+		};
+		
+		var call = msgpack.unpack(data);
+		var fun = call.fun;
+		if (!(typeof fun == 'string')) {
+		    respond('Bad function name, it should be a string but got ' + (typeof fun));
+		} else if (!rpc[fun]) {
+		    respond('No function registered with name ' + fun);
 		} else {
-		    // The result should be delivered by 
-		    respond('The return value should always be undefined');
+		    var allArgs = call.args.concat([respond]);
+		    var returnValue = rpc[fun].apply(null, allArgs);
+		    if (returnValue == undefined) {
+
+			callback(this.RESULT_SUCCESS);
+			console.log('Successfully evaluated ' + fun);
+			// If we get here, we are successful and should return.		    
+			return;
+			
+		    } else {
+			// The result should be delivered by 
+			respond('The return value should always be undefined');
+		    }
 		}
+	    } catch (e) {
+		respond('Caught exception: '+ e.message);
 	    }
-	} catch (e) {
-	    respond('Caught exception: '+ e.message);
-	}
+	});
 
 	// If we end up here, we did not return
 	// and we are not successful.
@@ -146,5 +156,5 @@ bleno.on('advertisingStart', function(err) {
 /// EXPORTS
 /////////////////////////////////////////////////////////////////////////////////
 module.exports.setRpc = function(obj) {
-    rpc = obj;
+    deferredRpc.resolve(obj);
 }

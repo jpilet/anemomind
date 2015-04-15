@@ -6,5 +6,3 @@
 module.exports.testAdd = function(a, b, cb) {
     cb(undefined, a + b);
 }
-
-
