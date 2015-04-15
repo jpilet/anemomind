@@ -4,8 +4,8 @@
   back.
 */  
 
-var schema = require('../../components/mail/mailbox-schema.js');
-var coder = require('../../components/mail/json-coder.js');
+var schema = require('mail/mailbox-schema.js');
+var coder = require('mail/json-coder.js');
 var assert = require('assert');
 var mb = require('./mailbox.js');
 

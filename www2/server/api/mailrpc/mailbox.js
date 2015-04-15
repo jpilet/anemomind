@@ -1,4 +1,4 @@
-var mb = require('../../components/mail/mail.sqlite.js');
+var mb = require('mail/mail.sqlite.js');
 var packetCallbacks = require('./packet-callbacks.js');
 
 /*
