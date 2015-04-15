@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
   std::unique_ptr<GeoRef> ref;
   bool started = false;
   for(c=0; c!=EOF; c = fgetc(f)) {
-    if (np.processByte(c) == NmeaParser::NMEA_TIME_POS) {
+    if (NmeaParser::isCycleMark(np.processByte(c))) {
       if (!ref) {
         ref.reset(new GeoRef(np.pos(), 0));
       }

@@ -16,19 +16,6 @@
 namespace sail {
 
 namespace {
-  const char *getNmeaSentenceLabel(NmeaParser::NmeaSentence s) {
-    typedef const char *Str;
-    Str labels[] = {"0", //"NMEA_NONE",
-        "NMEA_UNKNOWN",
-        "NMEA_TIME_POS",
-        "NMEA_AW",
-        "NMEA_TW",
-        "NMEA_WAT_SP_HDG",
-        "NMEA_VLW"};
-    return labels[s];
-  }
-
-
   Angle<double> getGpsBearing(const NmeaParser &parser) {
     return Angle<double>(parser.gpsBearing());
   }

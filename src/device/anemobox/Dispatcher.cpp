@@ -13,7 +13,8 @@ Dispatcher::Dispatcher() :
   _gpsBearing(&_data, GPS_BEARING, "gpsBearing", "GPS bearing"),
   _gpsSpeed(&_data, GPS_SPEED, "gpsSpeed", "GPS speed"),
   _magHeading(&_data, MAG_HEADING, "magHdg", "magnetic heading"),
-  _watSpeed(&_data, WAT_SPEED, "watSpeed", "water speed")
+  _watSpeed(&_data, WAT_SPEED, "watSpeed", "water speed"),
+  _watDist(&_data, WAT_DIST, "watDist", "distance over water")
 {
 }
 

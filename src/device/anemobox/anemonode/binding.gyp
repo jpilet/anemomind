@@ -10,7 +10,6 @@
         "JsDispatchData.cpp",
         "../Dispatcher.cpp",
         "../Dispatcher.h",
-        "../main.cpp",
         "../Nmea0183Source.cpp",
         "../Nmea0183Source.h",
         "../ValueDispatcher.h",

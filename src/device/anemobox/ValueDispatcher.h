@@ -123,6 +123,7 @@ void ValueDispatcher<T>::setValue(T value) {
 // Pre-define a few types
 typedef ValueDispatcher<Angle<double>> AngleDispatcher;
 typedef ValueDispatcher<Velocity<double>> VelocityDispatcher;
+typedef ValueDispatcher<Length<double>> LengthDispatcher;
 
 }  // namespace sail
 

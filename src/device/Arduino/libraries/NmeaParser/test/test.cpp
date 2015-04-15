@@ -47,7 +47,7 @@ TEST(NmeaParserTest, TestRMC) {
   NmeaParser parser;
 
   EXPECT_EQ(
-      NmeaParser::NMEA_TIME_POS,
+      NmeaParser::NMEA_RMC,
       sendSentence(
           "$IIRMC,130222,A,4612.929,N,00610.063,E,01.5,286,100708,,,A*4E",
           &parser));

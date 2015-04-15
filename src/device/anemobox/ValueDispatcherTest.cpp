@@ -29,8 +29,8 @@ TEST(ValueDispatcherTest, Notify) {
 }
 
 TEST(ValueDispatcher, AvoidFlooding) {
-  MockListener listener(Duration<>::milliseconds(5));
   ValueDispatcher<int> dispatcher(1);
+  MockListener listener(Duration<>::milliseconds(5));
   dispatcher.subscribe(&listener);
 
   EXPECT_CALL(listener, gotValue(3));
