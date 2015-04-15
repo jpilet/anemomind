@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "mocha": "^2.2.4",
-    "traverse": "file:../../../../../../../../tmp/npm-3343-c9d03b8e/git-cache-d52b6631eeba/e5fd6fdd238848df3c9467f45a18c533da62061b"
+    "mocha": "^2.2.4",    
+    "traverse": "git+https://github.com/jankuca/js-traverse.git"
   }
 }
