@@ -8,10 +8,19 @@ angular.module('www2App')
     }];
 
     $scope.boats = [];
-    $http.get('/api/boats')
-    .success(function(data, status, headers, config) {
-       $scope.boats = data;
-       socket.syncUpdates('boat', $scope.boats);
+
+    $scope.$watch('isLoggedIn', function(newval, oldval) {
+      if (newval != oldval) {
+        if (newval) {
+          $http.get('/api/boats')
+            .success(function(data, status, headers, config) {
+              $scope.boats = data;
+              socket.syncUpdates('boat', $scope.boats);
+            });
+        } else {
+          $scope.boats = [];
+        }
+      }
     });
 
     $scope.isCollapsed = true;

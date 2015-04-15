@@ -19,7 +19,7 @@ var bigint = require('./bigint.js');
      Calls cb with a boolean value
   * getForeignStartNumber(mailboxName, cb):
      Calls cb with the foreign diaryNumber
-  * mailboxName
+  * getMailboxName()
      Calls cb with the mailbox name.
 */
 

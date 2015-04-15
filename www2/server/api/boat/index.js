@@ -11,7 +11,6 @@ router.get('/:id', auth.isAuthenticated(), controller.show);
 router.post('/', auth.isAuthenticated(), controller.create);
 router.put('/:id', auth.isAuthenticated(), controller.update);
 router.patch('/:id', auth.isAuthenticated(), controller.update);
-router.delete('/:id', auth.isAuthenticated(), controller.destroy);
 router.put('/:id/invite', auth.isAuthenticated(), controller.inviteUser);
 
 module.exports = router;

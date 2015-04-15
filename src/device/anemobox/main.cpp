@@ -1,50 +1,95 @@
 #include <device/anemobox/Nmea0183Source.h>
 
 #include <iostream>
+#include <vector>
+#include <memory>
 
-#include <fcntl.h>
-#include <sys/poll.h>
-#include <sys/time.h>
-#include <unistd.h>
+#include <stdio.h>
 
 namespace sail {
 
-class PrintAngleListenener : public Listener<Angle<double>> {
+namespace {
+
+void print(const AngleDispatcher &angle) {
+  std::cout << stringFormat("%.1f", angle.lastValue().degrees());
+}
+
+void print(const VelocityDispatcher &velocity) {
+  std::cout << stringFormat("%.2f", velocity.lastValue().knots());
+}
+
+void print(const LengthDispatcher &length) {
+  std::cout << stringFormat("%.2f", length.lastValue().nauticalMiles());
+}
+
+template <class T>
+class PrintListenener : public Listener<T> {
  public:
-  PrintAngleListenener(std::string prefix) : _prefix(prefix) { }
-  virtual void onNewValue(const ValueDispatcher<Angle<double>> &dispatcher) {
-    std::cout << _prefix << ": " << dispatcher.lastValue().degrees() << std::endl;
+   PrintListenener(std::string prefix) : _prefix(prefix) { }
+  virtual void onNewValue(const ValueDispatcher<T> &dispatcher) {
+    std::cout << _prefix << ": ";
+    print(dispatcher);
+    std::cout << std::endl;
   }
  private:
-  std::string _prefix;
+   std::string _prefix;
 };
+
+class PrintUpdates : public DispatchDataVisitor {
+ public:
+
+  virtual void run(DispatchAngleData *angle) {
+    std::shared_ptr<PrintListenener<Angle<double>>> anglePrinter(
+        new PrintListenener<Angle<double>>(angle->description()));
+    angle->dispatcher()->subscribe(anglePrinter.get());
+    _anglePrinters.push_back(anglePrinter);
+  }
+
+  virtual void run(DispatchVelocityData *value) {
+    std::shared_ptr<PrintListenener<Velocity<double>>> valuePrinter(
+        new PrintListenener<Velocity<double>>(value->description()));
+    value->dispatcher()->subscribe(valuePrinter.get());
+    _velocityPrinters.push_back(valuePrinter);
+  }
+
+  virtual void run(DispatchLengthData *value) {
+    std::shared_ptr<PrintListenener<Length<double>>> valuePrinter(
+        new PrintListenener<Length<double>>(value->description()));
+    value->dispatcher()->subscribe(valuePrinter.get());
+    _lengthPrinters.push_back(valuePrinter);
+  }
+ private:
+  std::vector<std::shared_ptr<PrintListenener<Angle<double>>>> _anglePrinters;
+  std::vector<std::shared_ptr<PrintListenener<Velocity<double>>>> _velocityPrinters;
+  std::vector<std::shared_ptr<PrintListenener<Length<double>>>> _lengthPrinters;
+};
+
+}  // namespace
 
 bool run(const char *filename) {
   Dispatcher dispatcher;
   Nmea0183Source nmea0183(&dispatcher);
-  PrintAngleListenener twaPrint("TWA");
-  dispatcher.twa()->subscribe(&twaPrint);
-
-  if (!nmea0183.open(filename)) {
-    perror(filename);
+  PrintUpdates visitor;
+  
+  FILE *f = fopen(filename, "r");
+  if (!f) {
     return false;
   }
 
-  struct pollfd pfds[1];
-  pfds[0].fd = nmea0183.fd();
-  pfds[0].events = POLLIN;
+  for (auto value : dispatcher.data()) {
+    value.second->visit(&visitor);
+  }
+
+  unsigned char buffer[128];
 
   while (1) {
-    int r = poll(pfds, sizeof(pfds) / sizeof(pfds[0]), -1);
-    if (r >= 0) {
-      nmea0183.poll();
-    } else {
-      if (errno != EAGAIN) {
-        perror("poll");
-        break;
-      }
-    }
-  }
+   int len = fread(buffer, 1, 128, f);
+   if (len <= 0) {
+     break;
+   }
+
+   nmea0183.process(buffer, len);
+  } 
   return true;
 }
 

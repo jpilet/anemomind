@@ -16,7 +16,7 @@ namespace sail {
 // For compatibility: never re-use or change a number.
 // When adding fields, keep increasing.
 // When removing a field, never recycle its index value.
-enum DataMeaning {
+enum DataCode {
   AWA = 1,
   AWS = 2,
   TWA = 3,
@@ -25,91 +25,100 @@ enum DataMeaning {
   GPS_SPEED = 6,
   GPS_BEARING = 7,
   MAG_HEADING = 8,
-  WAT_SPEED = 9
+  WAT_SPEED = 9,
+  WAT_DIST = 10
 };
 
-class DataSource {
- public:
-  virtual const char* name() const = 0;
-};
-
+class DispatchDataVisitor;
 class DispatchData {
  public:
-  DispatchData(std::map<DataMeaning, DispatchData*> *index,
-               DataMeaning nature,
+  DispatchData(std::map<DataCode, DispatchData*> *index,
+               DataCode code,
+               std::string wordIdentifier,
                std::string description)
-    : _nature(nature), _description(description) { (*index)[nature] = this; }
+    : _code(code),
+    _description(description),
+    _wordIdentifier(wordIdentifier) { (*index)[code] = this; }
 
   std::string description() const { return _description; }
-  DataMeaning nature() const { return _nature; }
-  virtual std::string valueAsString() const = 0;
-  virtual std::string unitAsString() const = 0;
+  DataCode dataCode() const { return _code; }
+
+
+  //! returns a single word that describe what this value is.
+  // For example: awa, tws, watSpeed, etc.
+  std::string wordIdentifier() const { return _wordIdentifier; }
+
+  virtual void visit(DispatchDataVisitor *visitor) = 0;
  private:
-  DataMeaning _nature;
+  DataCode _code;
   std::string _description;
+  std::string _wordIdentifier;
 };
 
-class DispatchAngleData : public DispatchData {
+template <typename T>
+class TypedDispatchData : public DispatchData {
  public:
-   DispatchAngleData(std::map<DataMeaning, DispatchData*> *index,
-                     DataMeaning nature,
-                     std::string description)
-     : DispatchData(index, nature, description), _dispatcher(1024) { }
+  TypedDispatchData(std::map<DataCode, DispatchData*> *index,
+                    DataCode nature,
+                    std::string wordIdentifier,
+                    std::string description)
+     : DispatchData(index, nature, wordIdentifier, description),
+     _dispatcher(1024) { }
 
-  virtual std::string valueAsString() const {
-    return stringFormat("%.1f", _dispatcher.lastValue().degrees());
+  virtual void visit(DispatchDataVisitor *visitor);
+  ValueDispatcher<T> *dispatcher() { return &_dispatcher; }
+  const ValueDispatcher<T> *dispatcher() const { return &_dispatcher; }
+
+  void publishValue(const char *source, T value) {
+    // TODO: check if <source> is the current preferred source for this dispatcher.
+    _dispatcher.setValue(value);
   }
-  virtual std::string unitAsString() const { return "degrees"; };
 
-  AngleDispatcher *dispatcher() { return &_dispatcher; }
  private:
-  AngleDispatcher _dispatcher;
+  ValueDispatcher<T> _dispatcher;
 };
+typedef TypedDispatchData<Angle<double>> DispatchAngleData;
+typedef TypedDispatchData<Velocity<double>> DispatchVelocityData;
+typedef TypedDispatchData<Length<double>> DispatchLengthData;
 
-class DispatchVelocityData : public DispatchData {
+class DispatchDataVisitor {
  public:
-   DispatchVelocityData(std::map<DataMeaning, DispatchData*> *index,
-                        DataMeaning nature,
-                        std::string description)
-     : DispatchData(index, nature, description), _dispatcher(1024) { }
-
-  virtual std::string valueAsString() const {
-    return stringFormat("%.2f", _dispatcher.lastValue().knots());
-  }
-  virtual std::string unitAsString() const { return "knots"; };
-
-  VelocityDispatcher *dispatcher() { return &_dispatcher; }
- private:
-  VelocityDispatcher _dispatcher;
+  virtual void run(DispatchAngleData *angle) = 0;
+  virtual void run(DispatchVelocityData *velocity) = 0;
+  virtual void run(DispatchLengthData *length) = 0;
 };
 
-// Dispatcher: the hub for all values processed by the anemobox.
+template <typename T>
+void TypedDispatchData<T>::visit(DispatchDataVisitor *visitor) {
+  visitor->run(this);
+}
+
+//! Dispatcher: the hub for all values processed by the anemobox.
 // the data() method allows enumeration of all components.
 class Dispatcher {
  public:
   Dispatcher();
 
-  const DispatchData& dispatchData(DataMeaning index) const; 
-  const std::map<DataMeaning, DispatchData*> data() const { return _data; }
+  //! Get a pointer to the default anemobox dispatcher.
+  static Dispatcher *global();
 
-  AngleDispatcher* awa() { return _awa.dispatcher(); }
-  VelocityDispatcher* aws() { return _aws.dispatcher(); }
-  AngleDispatcher* twa() { return _twa.dispatcher(); }
-  VelocityDispatcher* tws() { return _tws.dispatcher(); }
-  AngleDispatcher* twdir() { return _twdir.dispatcher(); }
-  AngleDispatcher* gpsBearing() { return _gpsBearing.dispatcher(); }
-  VelocityDispatcher* gpsSpeed() { return _gpsSpeed.dispatcher(); }
-  AngleDispatcher* magHeading() { return _magHeading.dispatcher(); }
-  VelocityDispatcher* watSpeed() { return _watSpeed.dispatcher(); }
+  const DispatchData& dispatchData(DataCode index) const; 
+  const std::map<DataCode, DispatchData*> data() const { return _data; }
 
-  template <class T>
-  void publishValue(ValueDispatcher<T> *dispatcher, DataSource *source, T value) {
-    // TODO: check if <source> is the current preferred source for this dispatcher.
-    dispatcher->setValue(value);
-  }
+  DispatchAngleData* awa() { return &_awa; }
+  DispatchVelocityData* aws() { return &_aws; }
+  DispatchAngleData* twa() { return &_twa; }
+  DispatchVelocityData* tws() { return &_tws; }
+  DispatchAngleData* twdir() { return &_twdir; }
+  DispatchAngleData* gpsBearing() { return &_gpsBearing; }
+  DispatchVelocityData* gpsSpeed() { return &_gpsSpeed; }
+  DispatchAngleData* magHdg() { return &_magHeading; }
+  DispatchVelocityData* watSpeed() { return &_watSpeed; }
+  DispatchLengthData* watDist() { return &_watDist; }
 
  private:
-  std::map<DataMeaning, DispatchData*> _data;
+  static Dispatcher *_globalInstance;
+  std::map<DataCode, DispatchData*> _data;
 
   DispatchAngleData _awa;
   DispatchVelocityData _aws;
@@ -120,6 +129,7 @@ class Dispatcher {
   DispatchVelocityData _gpsSpeed;
   DispatchAngleData _magHeading;
   DispatchVelocityData _watSpeed;
+  DispatchLengthData _watDist;
 };
 
 }  // namespace sail

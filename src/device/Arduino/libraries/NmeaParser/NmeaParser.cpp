@@ -325,7 +325,7 @@ NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
 
   gpsBearing_ = parseInt(argv_[8],0);
 
-  return NMEA_TIME_POS;
+  return NMEA_RMC;
 }
 
 NmeaParser::NmeaSentence NmeaParser::processMWV() {
