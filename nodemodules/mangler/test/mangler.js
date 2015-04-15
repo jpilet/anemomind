@@ -1,4 +1,4 @@
-var mangler = require('../mangler.js');
+var mangler = require('../index.js');
 var eq = require('deep-equal-ident');
 var assert = require('assert');
 

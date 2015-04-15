@@ -1,5 +1,5 @@
 var schema = require('./mailbox-schema.js');
-var mangler = require('../mangler/mangler.js');
+var mangler = require('mangler');
 var assert = require('assert');
 var bigint = require('./bigint.js');
 
