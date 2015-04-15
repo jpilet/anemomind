@@ -29,9 +29,6 @@ var auth = require('../../auth/auth.service');
   Function name: getForeignStartNumber
   HTTP-call: GET /getForeignStartNumber/:mailboxName/:otherMailbox
 
-  Function name: getMailboxName
-  HTTP-call: GET /getMailboxName/:mailboxName
-
   Function name: reset
   HTTP-call: GET /reset/:mailboxName
 
