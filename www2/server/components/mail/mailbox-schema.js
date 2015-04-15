@@ -257,15 +257,6 @@ methods.getForeignStartNumber = new MethodSchema({
     ]
 });
 
-methods.getMailboxName = new MethodSchema({
-    httpMethod:'get',
-    input: [],
-    output: [
-	{err: errorTypes},
-	{mailboxName: 'hex'}
-    ]
-});
-
 methods.reset = new MethodSchema({
     httpMethod:'get',
     input: [],
