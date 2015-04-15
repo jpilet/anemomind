@@ -9,7 +9,7 @@ var bigint = require('./bigint.js');
 
 function encode(argSpec, data) {
     if (argSpec == undefined) {
-	assert(data == undefined);
+	assert.equal(data, undefined);
 	return undefined;
     } else {
 	var type = schema.getArgType(argSpec);
@@ -29,11 +29,11 @@ function encodeArgs(argSpecs, args, trimmed) {
 	var len = argSpecs.length;
 	var remaining = args.slice(len);
 	for (var i = 0; i < remaining.length; i++) {
-	    assert(remaining[i] == undefined);
+	    assert.equal(remaining[i], undefined);
 	}
 	return encodeArgs(argSpecs, args.slice(0, len));
     } else {
-	assert(argSpecs.length == args.length);
+	assert.equal(argSpecs.length, args.length);
 	var dst = {};
 	for (var i = 0; i < argSpecs.length; i++) {
 	    var argSpec = argSpecs[i];
@@ -51,7 +51,7 @@ function encodeGetArg(argSpec, arg) {
     } else if (type == Number) {
 	return '' + arg;
     } else {
-	assert(type == 'hex');
+	assert.equal(type, 'hex');
 	assert(bigint.isBigInt(arg));
 	return arg;
     }
@@ -64,13 +64,13 @@ function decodeGetArg(argSpec, arg) {
     } else if (type == Number) {
 	return Number.parseFloat(arg);
     } else {
-	assert(type == 'hex');
+	assert.equal(type, 'hex');
 	return arg;
     }
 }
 
 function encodeGetArgs(argSpecs, args) {
-    assert(argSpecs.length == args.length);
+    assert.equal(argSpecs.length, args.length);
     var dst = new Array(args.length);
     for (var i = 0; i < args.length; i++) {
 	dst[i] = encodeGetArg(argSpecs[i], args[i]);
@@ -80,7 +80,7 @@ function encodeGetArgs(argSpecs, args) {
 
 function decode(argSpec, data) {
     if (argSpec == undefined) {
-	assert(data == undefined);
+	assert.equal(data, undefined);
 	return undefined;
     } else {
 	var type = schema.getArgType(argSpec);
