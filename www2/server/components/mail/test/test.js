@@ -381,7 +381,7 @@ function fillPackets(box, ackFn, n, cb) {
 	    bigint.make(0), 49, new Buffer(1),
 	    ackFn(n),
 	    function (err) {
-		assert(err == undefined);
+		assert.equal(err, undefined);
 		fillPackets(box, ackFn, n-1, cb);
 	    }
 	);
@@ -392,7 +392,7 @@ function maximizeAndGetCNumber(box, cb) {
     box.maximizeCNumber(
 	'ddd',
 	function(err) {
-	    assert(err == undefined);
+	    assert.equal(err, undefined);
 	    box.getCNumber(
 		box.mailboxName,
 		'ddd',
@@ -635,7 +635,7 @@ describe(
 			    function (err) {
 				assert.equal(err, undefined);
 				box.getAllPackets(function(err, packets) {
-				    assert(packets.length == 3);
+				    assert.equal(packets.length, 3);
 				    var marks = [false, false, false];
 				    for (var i = 0; i < 3; i++) {
 					marks[packets[i].data.length-1] = true;
