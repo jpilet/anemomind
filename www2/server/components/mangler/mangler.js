@@ -1,7 +1,7 @@
 // An up-to-date version of traverse that I found
 // on Github. See the readme.txt file in the
 // traverse subdirectory.
-var traverse = require('./traverse/index.js');
+var traverse = require('traverse');
 
 // This module does something similar to what
 // json-buffer does. However, instead of providing
