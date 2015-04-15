@@ -35,6 +35,16 @@ class GetValueVisitor : public DispatchDataVisitor {
       timestamp_ = val.time;
     }
   }
+  virtual void run(DispatchLengthData *velocity) {
+    auto values = velocity->dispatcher()->values();
+    valid_ = values.size() > index_;
+    if (valid_) {
+      auto val = values[index_];
+      value_ = NanNew(val.value.nauticalMiles());
+      timestamp_ = val.time;
+    }
+  }
+
 
   Local<Value> value() const { return value_; }
   TimeStamp time() const { return timestamp_; }
@@ -55,6 +65,9 @@ class CountValuesVisitor : public DispatchDataVisitor {
     count_ = angle->dispatcher()->values().size();
   }
   virtual void run(DispatchVelocityData *v) {
+    count_ = v->dispatcher()->values().size();
+  }
+  virtual void run(DispatchLengthData *v) {
     count_ = v->dispatcher()->values().size();
   }
   int numValues() const { return count_; }
@@ -82,6 +95,13 @@ class SetValueVisitor : public DispatchDataVisitor {
           Velocity<double>::knots(value_->ToNumber()->Value()));
     }
   }
+  virtual void run(DispatchLengthData *velocity) {
+    if (checkNumberAndSetSuccess()) {
+      velocity->publishValue(
+          source_.c_str(),
+          Length<double>::nauticalMiles(value_->ToNumber()->Value()));
+    }
+  }
 
   bool checkNumberAndSetSuccess() {
     success_ = value_->IsNumber();
@@ -95,7 +115,10 @@ class SetValueVisitor : public DispatchDataVisitor {
   bool success_;
 };
 
-class JsListener: public Listener<Angle<double>>, public Listener<Velocity<double>> {
+class JsListener:
+  public Listener<Angle<double>>,
+  public Listener<Velocity<double>>,
+  public Listener<Length<double>> {
  public:
   JsListener(DispatchData *dispatchData,
              Local<Function> callback,
@@ -109,6 +132,7 @@ class JsListener: public Listener<Angle<double>>, public Listener<Velocity<doubl
 
   virtual void onNewValue(const ValueDispatcher<Angle<double>> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<Velocity<double>> &) { valueChanged(); }
+  virtual void onNewValue(const ValueDispatcher<Length<double>> &) { valueChanged(); }
 
   void valueChanged() {
     GetValueVisitor getValue(0);
@@ -136,6 +160,10 @@ class SubscribeVisitor : public DispatchDataVisitor {
     velocity->dispatcher()->subscribe(listener_);
   }
 
+  virtual void run(DispatchLengthData *data) {
+    data->dispatcher()->subscribe(listener_);
+  }
+
  private:
   JsListener *listener_;
 };
@@ -149,6 +177,10 @@ class GetTypeAndUnitVisitor : public DispatchDataVisitor {
   virtual void run(DispatchVelocityData *) {
     type_ = "velocity";
     unit_ = "knots";
+  }
+  virtual void run(DispatchLengthData *) {
+    type_ = "distance";
+    unit_ = "nautical miles";
   }
 
   const std::string& type() const { return type_; }

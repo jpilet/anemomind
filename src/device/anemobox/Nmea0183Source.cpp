@@ -12,7 +12,12 @@ void Nmea0183Source::process(const unsigned char* buffer, int length) {
     switch (_parser.processByte(buffer[i])) {
       case NmeaParser::NMEA_NONE:
       case NmeaParser::NMEA_UNKNOWN: break;
-      case NmeaParser::NMEA_TIME_POS: break;
+      case NmeaParser::NMEA_RMC:
+        _dispatcher->gpsBearing()->publishValue(
+            sourceName(), static_cast<Angle<double>>(_parser.gpsBearing()));
+        _dispatcher->gpsSpeed()->publishValue(
+            sourceName(), static_cast<Velocity<double>>(_parser.gpsSpeed()));
+        break;
       case NmeaParser::NMEA_AW:
         _dispatcher->awa()->publishValue(
             sourceName(), static_cast<Angle<double>>(_parser.awa()));
@@ -25,9 +30,24 @@ void Nmea0183Source::process(const unsigned char* buffer, int length) {
         _dispatcher->tws()->publishValue(
             sourceName(), static_cast<Velocity<double>>(_parser.tws()));
         break;
-      case NmeaParser::NMEA_WAT_SP_HDG: break;
+      case NmeaParser::NMEA_WAT_SP_HDG:
+        _dispatcher->magHdg()->publishValue(
+            sourceName(), static_cast<Angle<double>>(_parser.magHdg()));
+        _dispatcher->watSpeed()->publishValue(
+            sourceName(), static_cast<Velocity<double>>(_parser.watSpeed()));
+        break;
       case NmeaParser::NMEA_VLW: break;
+        _dispatcher->watDist()->publishValue(
+            sourceName(), static_cast<Length<double>>(_parser.watDist()));
       case NmeaParser::NMEA_GLL: break;
+      case NmeaParser::NMEA_VTG:
+        _dispatcher->gpsBearing()->publishValue(
+            sourceName(), static_cast<Angle<double>>(_parser.gpsBearing()));
+        _dispatcher->gpsSpeed()->publishValue(
+            sourceName(), static_cast<Velocity<double>>(_parser.gpsSpeed()));
+        break;
+      case NmeaParser::NMEA_ZDA:
+        break;
     }
   }
 } 

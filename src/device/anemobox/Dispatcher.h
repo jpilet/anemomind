@@ -25,7 +25,8 @@ enum DataCode {
   GPS_SPEED = 6,
   GPS_BEARING = 7,
   MAG_HEADING = 8,
-  WAT_SPEED = 9
+  WAT_SPEED = 9,
+  WAT_DIST = 10
 };
 
 class DispatchDataVisitor;
@@ -78,11 +79,13 @@ class TypedDispatchData : public DispatchData {
 };
 typedef TypedDispatchData<Angle<double>> DispatchAngleData;
 typedef TypedDispatchData<Velocity<double>> DispatchVelocityData;
+typedef TypedDispatchData<Length<double>> DispatchLengthData;
 
 class DispatchDataVisitor {
  public:
   virtual void run(DispatchAngleData *angle) = 0;
   virtual void run(DispatchVelocityData *velocity) = 0;
+  virtual void run(DispatchLengthData *length) = 0;
 };
 
 template <typename T>
@@ -109,8 +112,9 @@ class Dispatcher {
   DispatchAngleData* twdir() { return &_twdir; }
   DispatchAngleData* gpsBearing() { return &_gpsBearing; }
   DispatchVelocityData* gpsSpeed() { return &_gpsSpeed; }
-  DispatchAngleData* magHeading() { return &_magHeading; }
+  DispatchAngleData* magHdg() { return &_magHeading; }
   DispatchVelocityData* watSpeed() { return &_watSpeed; }
+  DispatchLengthData* watDist() { return &_watDist; }
 
  private:
   static Dispatcher *_globalInstance;
@@ -125,6 +129,7 @@ class Dispatcher {
   DispatchVelocityData _gpsSpeed;
   DispatchAngleData _magHeading;
   DispatchVelocityData _watSpeed;
+  DispatchLengthData _watDist;
 };
 
 }  // namespace sail
