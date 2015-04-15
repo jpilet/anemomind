@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "./build/Release/anemonode",
   "dependencies": {
+    "bleno": "^0.1.12",
     "nan": "^1.7.0"
   }
 }
