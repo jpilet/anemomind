@@ -67,7 +67,7 @@ function zero(width) {
 
 // Add zeros so that the number x has width w.
 function padWith0(x, w) {
-    assert(typeof x == 'string');
+    assert.equal(typeof x, 'string');
     var remain = w - x.length;
     return (remain <= 0? x : zero(remain) + x);
 }
@@ -81,7 +81,7 @@ function makeFromTime(width) {
 
 
 function make(x, w) {
-    assert(typeof x == 'number');
+    assert.equal(typeof x, 'number');
     return padWith0(
 	x.toString(16),
 	withDefaultWidth(w)
@@ -104,7 +104,7 @@ function inc(x) {
 	var k = x.length - w;
 	var right = (x.length <= w? x : x.slice(k));
 	var left = (x.length <= w? '' : x.slice(0, k));
-	assert(left.length + right.length == x.length);
+	assert.equal(left.length + right.length, x.length);
 	var rightInc = incSub(right);
 	if (rightInc.length > right.length) {
 	    return inc(left) + rightInc.slice(1);
@@ -115,7 +115,7 @@ function inc(x) {
 }
 
 function calcEvenLength(x) {
-    assert(typeof x == 'number');
+    assert.equal(typeof x, 'number');
     var even = (x % 2) == 0;
     return (even? x : x + 1);
 }
@@ -147,7 +147,7 @@ function serializeBigIntToBuffer(x, dstBuffer, dstOffset) {
 
 function serializeBigInt(x) {
     var buf = new Buffer(calcByteCount(x.length));
-    assert(serializeBigIntToBuffer(x, buf, 0) == buf.length);
+    assert.equal(serializeBigIntToBuffer(x, buf, 0), buf.length);
     return buf;
     
 }
@@ -180,7 +180,7 @@ function serialize(x) {
 	    // Require that all integers are equally long. Does that make sense?
 	    var len = x[0].length;
 	    for (var i = 0; i < x.length; i++) {
-		assert(x[i].length == len);
+		assert.equal(x[i].length, len);
 		assert(isBigInt(x[i]));
 	    }
 	    
