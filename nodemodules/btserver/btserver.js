@@ -8,7 +8,7 @@ var Q = require('q');
 // the functions that should be accessible over bluetooth.
 //
 // It can be assigned with the exported function setRpc
-var deferredRpc = Q.defer();
+var rpc = {};
 
 
 // This is a common bluetooth characteristic
@@ -33,7 +33,7 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
 	callback(this.RESULT_ATTR_NOT_LONG);
     } else {
 
-	deferredRpc.promise.then(function(rpc) {
+
 	    try {
 		var responded = false;
 		var respond = function(err, value) {
@@ -43,7 +43,11 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
 			console.log('  value = %j', value);
 		    }
 		    if (!responded) {
-			self.updateValueCallback(msgpack.pack([err, value]));
+			if (err) {
+			    self.updateValueCallback(msgpack.pack([false, err]));			    
+			} else {
+			    self.updateValueCallback(msgpack.pack([true, value]));
+			}
 			responded = true;
 		    }
 		};
@@ -72,13 +76,12 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
 	    } catch (e) {
 		respond('Caught exception: '+ e.message);
 	    }
-	});
 
 	// If we end up here, we did not return
 	// and we are not successful.
 	callback(this.RESULT_UNLIKELY_ERROR);
     }
-};
+}
 
 
 
@@ -156,5 +159,5 @@ bleno.on('advertisingStart', function(err) {
 /// EXPORTS
 /////////////////////////////////////////////////////////////////////////////////
 module.exports.setRpc = function(obj) {
-    deferredRpc.resolve(obj);
+    rpc = obj;
 }
