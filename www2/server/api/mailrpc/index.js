@@ -8,7 +8,8 @@ var auth = require('../../auth/auth.service');
 
 /*
 
-  Available functions to call, bound to this router:
+  Available functions to call, bound to this router.
+  This list can be generated using rpc.makeOverview():
   
   Function name: setForeignDiaryNumber
   HTTP-call: GET /setForeignDiaryNumber/:mailboxName/:otherMailbox/:newValue

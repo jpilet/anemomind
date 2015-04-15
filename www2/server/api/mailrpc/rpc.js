@@ -27,8 +27,8 @@ function userCanAccess(user, mailboxName, cb) {
 
 // This function is common, irrespective of whether it is a post or get request.
 function callMailboxMethod(user, mailboxName, methodName, args, cb) {
-    assert(mb != undefined);
-    assert(mb.openMailbox != undefined);
+    assert.notEqual(mb, undefined);
+    assert.notEqual(mb.openMailbox, undefined);
     userCanAccess(
 	user, mailboxName,
 	function(err, p) {
@@ -154,22 +154,12 @@ function makeSubpath(method) {
 
 // Adds a route to the router for a method.
 function bindMethodHandler(router, authenticator, method) {
-    var httpMethod = method.httpMethod;
-
-    if (method.httpMethod == 'post') {
-	router.post(
-	    makeSubpath(method),
-	    authenticator,
-	    makeHandler(method)
-	);
-    } else {
-	assert(method.httpMethod == 'get');
-	router.get(
-	    makeSubpath(method),
-	    authenticator,
-	    makeHandler(method)
-	);
-    }
+    assert(schema.isValidHttpMethod(method.httpMethod));
+    router[method.httpMethod](
+	makeSubpath(method),
+	authenticator,
+	makeHandler(method)
+    );
 }
 
 // Adds all routes to the router.
@@ -196,4 +186,4 @@ function makeOverview() {
 }
 
 module.exports.bindMethodHandlers = bindMethodHandlers;
-
+module.exports.makeOverview = makeOverview;

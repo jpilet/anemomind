@@ -329,3 +329,6 @@ MailboxSchema.prototype.isValidMailbox = function(x) {
 module.exports = new MailboxSchema(methods);
 module.exports.getArgName = getArgName;
 module.exports.getArgType = getArgType;
+module.exports.isValidHttpMethod = function(x) {
+    return x == 'get' || x == 'post';
+}
