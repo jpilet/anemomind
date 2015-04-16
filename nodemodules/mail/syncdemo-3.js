@@ -15,8 +15,8 @@ function disp(x) {
 function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
     disp('Fill mailbox with name ' + srcMailbox.mailboxName +
 		' with ' + count + ' packets intended for ' + dstMailboxName);
-    assert(typeof count == 'number');
-    assert(typeof dstMailboxName == 'string');
+    assert.equal(typeof count, 'number');
+    assert.equal(typeof dstMailboxName, 'string');
     if (count == 0) {
 	cb();
     } else {
@@ -125,13 +125,13 @@ function startSync(err, mailboxes, done) {
 			
 			// The 9 packets A->C that were not marked as acked,
 			// and the 'ack' packet C->A.
-			assert(counts[0] == 10);
+			assert.equal(counts[0], 10);
 
 			// The 39 packets A->C and the 'ack' packet C->A
-			assert(counts[1] == 40);
+			assert.equal(counts[1], 40);
 			
 			// The 39 packets A->C and the 'ack' packet C->A
-			assert(counts[2] == 40);
+			assert.equal(counts[2], 40);
 			
 			// Let's send two more packets.
 			fillWithPackets(
@@ -153,9 +153,9 @@ function startSync(err, mailboxes, done) {
 						// the 'ack' packet C->A and the
 						// two new packets A->C that were
 						// just sent. 12 packets in total.
-						assert(counts[0] == 12);
-						assert(counts[1] == 12);
-						assert(counts[2] == 12);
+						assert.equal(counts[0], 12);
+						assert.equal(counts[1], 12);
+						assert.equal(counts[2], 12);
 						
 						done();
 					    }
@@ -176,7 +176,7 @@ function startSync(err, mailboxes, done) {
 
 // Called once the first mailbox has been filled
 function synchronizeThreeMailboxes(mailboxes, done) {
-    assert(mailboxes.length == 3);
+    assert.equal(mailboxes.length, 3);
     someSpace('');
     var PACKETCOUNT = 39;
     fillWithPackets(
@@ -184,7 +184,7 @@ function synchronizeThreeMailboxes(mailboxes, done) {
 	mailboxes[0],
 	mailboxes[2].mailboxName,
 	function(err) {
-	    assert(err == undefined);
+	    assert.equal(err, undefined);
 	    startSync(err, mailboxes, done);
 	}
     );

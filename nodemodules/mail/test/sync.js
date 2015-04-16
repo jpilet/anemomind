@@ -21,7 +21,7 @@ describe(
 			mb.tryMakeMailbox(":memory:", boxname, cb);
 		    },
 		    function(err, boxes) {
-			assert(err == undefined);
+			assert.equal(err, undefined);
 			demo.synchronizeThreeMailboxes(boxes, done);
 		    }
 		);

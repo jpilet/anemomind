@@ -1,6 +1,7 @@
 var mailsqlite = require('../mail.sqlite.js');
 var assert = require('assert');
 var bigint = require('../bigint.js');
+var schema = require('../mailbox-schema.js');
 
 
 
@@ -9,7 +10,7 @@ var withbox = function(cb) {
     mailsqlite.tryMakeMailbox(
 	':memory:', 'aaabbb',
 	function(err, box) {
-	    assert(err == undefined);
+	    assert.equal(err, undefined);
 	    cb(box);
 	}
     );
@@ -60,11 +61,11 @@ describe(
 		withbox(
 		    function(box) {
 			box.getOrMakeCNumber('abc', '12349', function(err, cNumber) {
-			    assert(err == undefined);
-			    assert(cNumber == '12349');
+			    assert.equal(err, undefined);
+			    assert.equal(cNumber, '12349');
 			    box.getOrMakeCNumber('abc', '19999', function(err, cNumber) {
 				// unchanged, because there is already a number there.
-				assert(cNumber == '12349');
+				assert.equal(cNumber, '12349');
 				done();
 			    });
 			});
@@ -91,7 +92,7 @@ describe(
 		withbox(
 		    function(box) {
 			box.getLastDiaryNumber(function(err, num) {
-			    assert(num == undefined);
+			    assert.equal(num, undefined);
 			    box.makeNewDiaryNumber(function(err, num) {
 				assert(mailsqlite.isCounter(num));
 				done();
@@ -122,7 +123,7 @@ describe(
 			    0, 'sometestdata', false,
     			    function(err) {
     				box.getLastDiaryNumber(function(err, num) {
-				    assert(num == '129');
+				    assert.equal(num, '129');
 				    done();
     				});
     			    }
@@ -145,9 +146,9 @@ describe(
 		    function(box) {
 			box.makeNewSeqNumber('aa', function(err, x) {
 			    box.makeNewSeqNumber('aa', function(err, y) {
-				assert(bigint.inc(x) == y);
+				assert.equal(bigint.inc(x), y);
 				box.makeNewSeqNumber('aa', function(err, z) {
-				    assert(bigint.inc(y) == z);
+				    assert.equal(bigint.inc(y), z);
 				    done();
 				});
 			    });
@@ -168,13 +169,13 @@ describe(
 		withbox(
 		    function(box) {
 			box.getForeignDiaryNumber('eff', function(err, value) {
-			    assert(value == undefined);
+			    assert.equal(value, undefined);
 			    box.setForeignDiaryNumber('eff', '119', function(err) {
 				box.getForeignDiaryNumber('eff', function(err, value2) {
-				    assert(value2 == '119');
+				    assert.equal(value2, '119');
 				    box.setForeignDiaryNumber('eff', '135', function(err) {
 					box.getForeignDiaryNumber('eff', function(err, value3) {
-					    assert(value3 == '135');
+					    assert.equal(value3, '135');
 					    done();
 					});
 				    });
@@ -200,14 +201,14 @@ describe(
 		withbox(
 		    function(box) {
 			box.getFirstPacketStartingFrom('0', false, function(err, result) {
-			    assert(result == undefined);
+			    assert.equal(result, undefined);
 			    box.sendPacket('ddd', 49, new Buffer(1), function(err) {
 				box.getFirstPacketStartingFrom('0', false, function(err, result) {
-				    assert(result != undefined);
+				    assert.notEqual(result, undefined);
 				    box.getFirstPacketStartingFrom(
 					bigint.inc(result.diaryNumber),
 					false, function(err, result) {
-					    assert(result == undefined);
+					    assert.equal(result, undefined);
 					    done();
 					});
 				});
@@ -236,13 +237,13 @@ describe(
 
 			box.updateCTable('a', 'b', '19', function(err) {
 			    box.getCNumber('a', 'b', function(err, value) {
-				assert(value == '19');
+				assert.equal(value, '19');
 				box.updateCTable('a', 'b', '29', function(err) {
 				    box.getCNumber('a', 'b', function(err, value) {
-					assert(value == '29');
+					assert.equal(value, '29');
 					box.updateCTable('a', 'b', '13', function(err) {
 					    box.getCNumber('a', 'b', function(err, value) {
-						assert(value == '29');
+						assert.equal(value, '29');
 						done();
 					    });
 					});
@@ -274,21 +275,21 @@ describe(
 			    {src: 'a', dst: 'b', seqNumber: '119', cNumber: '030',
 			     label: 49, data: mailsqlite.serializeString('Some data')},
 			    function(err) {
-				assert(err == undefined);
+				assert.equal(err, undefined);
 				box.getCNumber('a', 'b', function(err, num) {
-				    assert(err == undefined);
-				    assert(num == '030');
+				    assert.equal(err, undefined);
+				    assert.equal(num, '030');
 				    box.getLastDiaryNumber(function(err, dnum) {
-					assert(err == undefined);
+					assert.equal(err, undefined);
 					box.getFirstPacketStartingFrom(
 					    dnum, false, function(err, packet) {
 						
-						assert(packet.src == 'a');
-						assert(packet.dst == 'b');
-						assert(packet.seqNumber == '119');
-						assert(packet.cNumber == '030');
-						assert(packet.label == 49);
-						assert(packet.data == 'Some data');
+						assert.equal(packet.src, 'a');
+						assert.equal(packet.dst, 'b');
+						assert.equal(packet.seqNumber, '119');
+						assert.equal(packet.cNumber, '030');
+						assert.equal(packet.label, 49);
+						assert.equal(packet.data, 'Some data');
 
 						done();
 					    });
@@ -329,7 +330,7 @@ describe(
 
 		       // Call the spammer here
 		       spammer(box.ackFrequency, function(err) {
-			   assert(err == undefined);
+			   assert.equal(err, undefined);
 			   var query = 'SELECT * FROM packets WHERE src = ?';
 			   box.db.all(
 			       query, box.mailboxName,
@@ -380,7 +381,7 @@ function fillPackets(box, ackFn, n, cb) {
 	    bigint.make(0), 49, new Buffer(1),
 	    ackFn(n),
 	    function (err) {
-		assert(err == undefined);
+		assert.equal(err, undefined);
 		fillPackets(box, ackFn, n-1, cb);
 	    }
 	);
@@ -391,7 +392,7 @@ function maximizeAndGetCNumber(box, cb) {
     box.maximizeCNumber(
 	'ddd',
 	function(err) {
-	    assert(err == undefined);
+	    assert.equal(err, undefined);
 	    box.getCNumber(
 		box.mailboxName,
 		'ddd',
@@ -417,15 +418,15 @@ describe(
 			    },
 			    30,
 			    function(err) {
-				assert(err == undefined);
+				assert.equal(err, undefined);
 				maximizeAndGetCNumber(
 				    box,
 				    function(err, value) {
-					assert(err == undefined);
-					assert(value == bigint.make(15));
+					assert.equal(err, undefined);
+					assert.equal(value, bigint.make(15));
 					box.getTotalPacketCount(
 					    function(err, value) { // 1--14 removed => 16 remain
-						assert(value == 16);
+						assert.equal(value, 16);
 						done();
 					    }
 					);
@@ -453,13 +454,13 @@ describe(
 			    },
 			    30,
 			    function(err) {
-				assert(err == undefined);
+				assert.equal(err, undefined);
 				maximizeAndGetCNumber(
 				    box,
 				    function(err, value) {
-					assert(err == undefined);
+					assert.equal(err, undefined);
 					
-					assert(value == bigint.make(31));
+					assert.equal(value, bigint.make(31));
 					done();
 				    }
 				);
@@ -483,8 +484,8 @@ describe(
 			maximizeAndGetCNumber(
 			    box,
 			    function(err, value) {
-				assert(err == undefined);
-				assert(value == undefined);
+				assert.equal(err, undefined);
+				assert.equal(value, undefined);
 				done();
 			    }
 			);
@@ -518,8 +519,8 @@ describe(
 					box.db.all(
 					    'SELECT diaryNumber FROM packets',
 					    function (err, results) {
-						assert(err == undefined);
-						assert(results.length == 2);
+						assert.equal(err, undefined);
+						assert.equal(results.length, 2);
 						var a = results[0].diaryNumber;
 						var b = results[1].diaryNumber;
 						assert(a == bigint.inc(b) ||
@@ -539,8 +540,8 @@ describe(
 );
 
 function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
-    assert(typeof count == 'number');
-    assert(typeof dstMailboxName == 'string');
+    assert.equal(typeof count, 'number');
+    assert.equal(typeof dstMailboxName, 'string');
     if (count == 0) {
 	cb();
     } else {
@@ -592,8 +593,8 @@ describe(
 				box.db.all(
 				    'SELECT * FROM packets',
 				    function (err, results) {
-					assert(err == undefined);
-					assert(results.length == 39);
+					assert.equal(err, undefined);
+					assert.equal(results.length, 39);
 
 					var seqnumSpan = undefined;
 					var diarynumSpan = undefined;
@@ -604,10 +605,8 @@ describe(
 					    diarynumSpan = expand(diarynumSpan, r.diaryNumber);
 					}
 
-					assert(spanWidth(seqnumSpan) + 1
-					       == 39);
-					assert(spanWidth(diarynumSpan) + 1
-					       == 39);
+					assert.equal(spanWidth(seqnumSpan) + 1, 39);
+					assert.equal(spanWidth(diarynumSpan) + 1, 39);
 					done();
 				    }
 				);
@@ -634,9 +633,9 @@ describe(
 			    9,
 			    [new Buffer(1), new Buffer(2), new Buffer(3)],
 			    function (err) {
-				assert(err == undefined);
+				assert.equal(err, undefined);
 				box.getAllPackets(function(err, packets) {
-				    assert(packets.length == 3);
+				    assert.equal(packets.length, 3);
 				    var marks = [false, false, false];
 				    for (var i = 0; i < 3; i++) {
 					marks[packets[i].data.length-1] = true;
@@ -656,6 +655,27 @@ describe(
 );
 
 
+
+
+describe(
+    'mailbox-schema',
+    function() {
+	it(
+	    'Check that the object conforms with the schema',
+	    function(done) {
+		withbox(
+		    function(box) {
+
+			assert(schema.isValidMailbox(box));
+			done();
+
+			
+		    }
+		);
+	    }
+	);
+    }
+);
 
 
 

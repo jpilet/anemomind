@@ -4,9 +4,9 @@
   back.
 */  
 
-var calls = require('../../components/mail/mailbox-calls.js');
+var schema = require('mail/mailbox-schema.js');
+var coder = require('mail/json-coder.js');
 var assert = require('assert');
-var JSONB = require('json-buffer');
 var mb = require('./mailbox.js');
 
 
@@ -25,86 +25,45 @@ function userCanAccess(user, mailboxName, cb) {
     cb(undefined, (env == 'test' || env == 'development'));
 }
 
-// A function that converts the RPC call (invisible to the user),
-// where the mailbox name is passed as the first parameter,
-// to a method call to a mailbox with that name.
-function makeMailboxHandler(methodName) {
-    return function(user, allArgs, cb) {
-	// How to turn an arguments map into an array:  Array.prototype.slice.call(arguments);
-	var mailboxName = allArgs[0];
-
-	var args = allArgs.slice(1, allArgs.length);
-
-	// Every mailbox has its own file
-
-	assert(mb != undefined);
-	assert(mb.openMailbox != undefined);
-
-
-	userCanAccess(
-	    user, mailboxName,
-	    function(err, p) {
-		if (err) {
-		    cb(err);
-		} else if (!p) {
-		    cb(new Error(
-			'Unauthorized to access that mailbox with name '
-			    + mailboxName
-		    ));
-		} else {
-
-		    mb.openMailbox(
-			mailboxName,
-			function(err, mailbox) {
-			    if (err) {
-				cb(err);
-			    } else {
-				mailbox[methodName].apply(
-				    mailbox, args.concat([
-					function(err, result) {
-					    mailbox.close(
-						function(err) {
-						    cb(err, result);
-						}
-					    );
-					}
-				    ])
-				);
-			    }
+// This function is common, irrespective of whether it is a post or get request.
+function callMailboxMethod(user, mailboxName, methodName, args, cb) {
+    assert.notEqual(mb, undefined);
+    assert.notEqual(mb.openMailbox, undefined);
+    userCanAccess(
+	user, mailboxName,
+	function(err, p) {
+	    if (err) {
+		cb(err);
+	    } else if (!p) {
+		cb(new Error(
+		    'Unauthorized to access that mailbox with name '
+			+ mailboxName
+		));
+	    } else {
+		mb.openMailbox(
+		    mailboxName,
+		    function(err, mailbox) {
+			if (err) {
+			    cb(err);
+			} else {
+			    mailbox[methodName].apply(
+				mailbox, args.concat([
+				    function(err, result) {
+					mailbox.close(
+					    function(err) {
+						cb(err, result);
+					    }
+					);
+				    }
+				])
+			    );
 			}
-		    );
-
-
-		}
+		    }
+		);
 	    }
-	);
-    }
+	}
+    );
 }
-
-
-
-
-
-// Utility function that should be used when adding
-// functions to the rpc object.
-function addRpc(dstObj, name, fn) {
-    assert(typeof dstObj == 'object');
-    assert(typeof name == 'string');
-    assert(typeof fn == 'function');
-
-    // Make sure that there are no naming collisions when we map to lower case.
-    var namelow = name.toLowerCase();
-    assert(dstObj[namelow] == undefined);
-    dstObj[namelow] = fn;
-}
-
-for (var i = 0; i < calls.length; i++) {
-    var call = calls[i];
-    assert(typeof call == 'string');
-    addRpc(rpc, call, makeMailboxHandler(call));
-}
-
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -133,45 +92,98 @@ Object.defineProperty(Error.prototype, 'toJSON', {
     configurable: true
 });
 
-function handler(req, res) {
+// This will handle an HTTP request related to a specific method.
+function handler(method, req, res) {
+    assert(method.httpMethod == 'post' || method.httpMethod == 'get');
     try {
 	var resultCB = function(err, result) {
-	    res.json(200, {
-		err: JSONB.stringify(err),
-		result: JSONB.stringify(result)
-	    });
-	};
-
-	var args = JSONB.parse(req.body.args);
-
-
-	var fnName = req.params.functionName;
-	if (typeof fnName == 'string') {
-	    var fnNameLower = fnName.toLowerCase();
-	    if (fnNameLower in rpc) {
-		var fn = rpc[fnNameLower];
-
-		if (fn == undefined) {
-		    resultCB(
-			{
-			    noSuchFunction: fnName,
-			    availableFunctions: Object.keys(rpc)
-			}
-		    );
-		} else {
-		    fn(req.user, args, resultCB);
-		}
-	    } else {
-		resultCB(new Error('Unknown function: ' + fnName));
+	    // Do we need a try statement in this function?
+	    if (err) {
+		console.log('WARNING: There was an error on the server: %j', err);
 	    }
+	    var statusCode = (err? 500 : 200);
+	    res.status(statusCode).json(
+		coder.encode(
+		    method.output[err? 0 : 1], // How the return value should be coded.
+		    (err? err : result) // What data to send.
+		)
+	    );
+	};
+	var mailboxName = req.params.mailboxName;
+	var args = null;
+
+	if (method.httpMethod == 'post') {
+	    args = coder.decodeArgs(method.input, req.body);
 	} else {
-	    resultCB('The function name should be a string, but got '
-		     + fnName);
+	    args = coder.decodeGetArgs(method.input, req.params);
 	}
+	
+	callMailboxMethod(
+	    req.user,
+	    mailboxName,
+	    method.name,
+	    args,
+	    resultCB
+	);
     } catch (e) {
 	resultCB(e);
     }
 };
 
+function makeHandler(method) {
+    return function(req, res) {
+	handler(method, req, res);
+    };
+}
 
-module.exports = handler;
+// The basic path is just the method name together with the
+// mailbox name.
+function makeBasicSubpath(method) {
+    return '/' + method.name + '/:mailboxName';
+}
+
+// This is a general method for both POST and GET request.
+// For GET requests, it adds a pattern for the arguments.
+function makeSubpath(method) {
+    return makeBasicSubpath(method) +
+	(method.httpMethod == 'post' || method.httpMethod == 'put'? '' :
+
+	 // Also add a pattern for the arguments.
+	 coder.makeGetArgPattern(method.input));
+}
+
+// Adds a route to the router for a method.
+function bindMethodHandler(router, authenticator, method) {
+    assert(schema.isValidHttpMethod(method.httpMethod));
+    router[method.httpMethod](
+	makeSubpath(method),
+	authenticator,
+	makeHandler(method)
+    );
+}
+
+// Adds all routes to the router.
+function bindMethodHandlers(router, authenticator) {
+    // Register a GET or POST handler
+    // for every remote function that
+    // we can call.
+    for (var methodName in schema.methods) {
+	bindMethodHandler(router, authenticator, schema.methods[methodName]);
+    }
+}
+
+// Prints a summary of the HTTP call to a remote function.
+function makeMethodDesc(method) {
+    console.log('Function name: %s', method.name);
+    console.log('HTTP-call: %s %s\n', method.httpMethod.toUpperCase(), makeSubpath(method));
+}
+
+// To auto-generate a documentation.
+function makeOverview() {
+    for (var key in schema.methods) {
+	makeMethodDesc(schema.methods[key]);
+    }
+}
+
+module.exports.bindMethodHandlers = bindMethodHandlers;
+module.exports.makeOverview = makeOverview;

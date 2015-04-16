@@ -22,6 +22,7 @@
     "json-buffer": "^2.0.11",
     "jsonwebtoken": "^0.3.0",
     "lodash": "~2.4.1",
+    "mail": "file:../nodemodules/mail",
     "method-override": "~1.0.0",
     "mongoose": "~3.8.8",
     "morgan": "~1.0.0",

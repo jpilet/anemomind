@@ -12,7 +12,7 @@ function debugcb(err, response, body) {
 function ServerConnection(address, token) {
     this.address = address;
     this.authUrl = address + '/auth/local';
-    this.mailRpcUrl = address + '/api/mailrpc/';
+    this.mailRpcUrl = address + '/api/mailrpc';
     this.token = token;
 }
 
@@ -49,55 +49,58 @@ ServerConnection.prototype.login = function(userdata, cb) {
     );
 }
 
-function makeRpcCall(self, fn) {
-    return function() {
-	var n = Object.keys(arguments).length;
-
-	// Omit the callback.
-	var args = new Array(n-1);
-	for (var i = 0; i < n - 1; i++) {
-	    args[i] = arguments[i];
+function toJson(method, data) {
+    if (typeof data == 'string') {
+	if (data.length == 0) {
+	    return undefined;
 	}
+	return JSON.parse(data);
+    }
+    return data;
+}
+    
+function interpretResponse(method, err, response, rawBody, cb) {
+    var body = toJson(method, rawBody);
+    if (response.statusCode == 200) {
+	cb(undefined, body);
+    } else {
+	cb(body, undefined);
+    }
+}
 
-	// This is the callback
-	var cb = arguments[arguments.length-1];
 
+ServerConnection.prototype.makePostRequest =
+    function(mailboxName, method, dataToPost, cb) {
+	var self = this;
 	var opts = {
-	    url: (self.mailRpcUrl + fn),
-
+	    url: (self.mailRpcUrl + '/' + method.name + '/' + mailboxName),
 	    method: 'POST',
-
-	    // Stringify it manually using JSONB, in order to
-	    // get the buffers right.
-	    json: {
-		args: JSONB.stringify(args)
-	    },
-
+	    json: dataToPost,
 	    headers: {
 		Authorization: "Bearer " + self.token
 	    }
 	};
-
-	// Call it
 	request(opts, function(err, response, body) {
-	    if (err) {
-		cb(err);
-	    } else {
-		cb(JSONB.parse(body.err), JSONB.parse(body.result));
-	    }
+	    interpretResponse(method, err, response, body, cb);
 	});
     }
-}
 
-// To register RPC calls
-ServerConnection.prototype.registerCalls = function(functions) {
-    var self = this;
-    for (var i = 0; i < functions.length; i++) {
-	var fn = functions[i];
-	assert(typeof fn == 'string');
-	this[fn] = makeRpcCall(self, fn);
-	assert(this[fn] != undefined);
+
+
+ServerConnection.prototype.makeGetRequest =
+    function(mailboxName, method, args, cb) {
+	var self = this;
+	var opts = {
+	    url: (self.mailRpcUrl + '/' + method.name + '/' + mailboxName + '/' + args),
+	    method: 'GET',
+	    headers: {
+		Authorization: "Bearer " + self.token
+	    }
+	};
+	request(opts, function(err, response, body) {
+	    interpretResponse(method, err, response, body, cb);
+	});
     }
-}
+
 
 module.exports = ServerConnection;

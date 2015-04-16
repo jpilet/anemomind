@@ -116,7 +116,7 @@ function deserializeLightPacket(x) {
 	return undefined;
     } else {
 	var arr = bigint.deserializeBigInts(x, bigint.defaultWidth);
-	assert(arr.length == 4);
+	assert.equal(arr.length, 4);
 	return {
 	    diaryNumber: arr[0],
 	    src: arr[1],
