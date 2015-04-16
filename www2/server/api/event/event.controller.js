@@ -7,6 +7,14 @@ var mongoose = require('mongoose');
 
 var boatAccess = require('../boat/access.js');
 
+// Encoding hex mongoid in urls is too long.
+// we should switch to https://www.npmjs.com/package/hashids
+// at some point.
+// In the mean time, this function can still be used.
+function stringIsObjectId(a) {
+  return /^[0-9a-fA-F]{24}$/.test(a);
+}
+
 var canRead = function(req, event) {
   // A user can access a note if he/she is the author
   if (req.user && req.user.id && event.author == req.user.id) {
@@ -68,9 +76,8 @@ exports.create = function(req, res) {
   if (!req.body.boat) {
     return res.send(400);
   }
-  var checkId = new RegExp("^[0-9a-fA-F]{24}$");
 
-  if (!checkId.test(req.body.boat)) {
+  if (!stringIsObjectId(req.body.boat)) {
     return res.send(400);
   }
 

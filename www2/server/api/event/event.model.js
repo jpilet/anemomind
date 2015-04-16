@@ -3,6 +3,9 @@
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
+// This schema corresponds to
+// ANMEvent
+// https://github.com/jpilet/anemomind-ios/blob/master/AnemomindApp/ANMEvent.swift#L13
 var EventSchema = new Schema({
   author: Schema.ObjectId,
   boat: Schema.ObjectId,
