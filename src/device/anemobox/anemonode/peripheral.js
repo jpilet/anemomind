@@ -8,45 +8,45 @@ var BlenoCharacteristic = bleno.Characteristic;
 var characteristics = {};
 var characteristicsArray = [];
 
+//Define a class to adapt dispacher entries to characteristics.
+function DispatcherCharacteristic(entry) {
+  this.entry = entry;
+  DispatcherCharacteristic.super_.call(this, {
+    uuid: '0000000000000000000000000000000'+anemonode.dispatcher[entry].dataCode,
+    properties: ['notify', 'read']
+  });
+}
+util.inherits(DispatcherCharacteristic, BlenoCharacteristic);
 
-for (var entry in anemonode.dispatcher) {
-  characteristics[entry] = function() {
-    this.entry = entry;
-    characteristics[entry].super_.call(this, {
-      uuid: '0000000000000000000000000000000'+anemonode.dispatcher[entry].dataCode,
-      properties: ['notify', 'read']
-    });
-  }
-  util.inherits(characteristics[entry], BlenoCharacteristic);
-
-  characteristics[entry].prototype.onSubscribe = function(maxValueSize, updateValueCallback) {
-    console.log(this.entry +' subscribe');
-   
-    this.counter = 0;
-    this.changeInterval = setInterval(function() {
-      var data = new Buffer(this.counter + '', 'utf-8');
-      data.write(this.counter+'');
-      console.log(entry +' update value: ' + this.counter);
-      updateValueCallback(data);
-      this.counter++;
-    }.bind(this), 500);
-  };
-
-  characteristics[entry].prototype.onUnsubscribe = function() {
-    console.log(this.entry +' unsubscribe');
-   
-    if (this.changeInterval) {
-      clearInterval(this.changeInterval);
-      this.changeInterval = null;
-    }
-  };
+DispatcherCharacteristic.prototype.onSubscribe = function(maxValueSize, updateValueCallback) {
+  console.log(this.entry +' subscribe');
  
-  characteristics[entry].prototype.onNotify = function() {
-    console.log(this.entry +' on notify');
-  };
+  this.counter = 0;
+  this.changeInterval = setInterval(function() {
+    var data = new Buffer(this.counter + '', 'utf-8');
+    data.write(this.counter+'');
+    console.log(entry +' update value: ' + this.counter);
+    updateValueCallback(data);
+    this.counter++;
+  }.bind(this), 500);
+};
 
-  characteristicsArray.push(new characteristics[entry]());
+DispatcherCharacteristic.prototype.onUnsubscribe = function() {
+  console.log(this.entry +' unsubscribe');
+ 
+  if (this.changeInterval) {
+    clearInterval(this.changeInterval);
+    this.changeInterval = null;
+  }
+};
 
+DispatcherCharacteristic.prototype.onNotify = function() {
+  console.log(this.entry +' on notify');
+};
+
+// Instanciate one DispatcherCharacteristic for each dispatcher entry
+for (var entry in anemonode.dispatcher) {
+  characteristicsArray.push(new DispatcherCharacteristic(entry));
 }
 
 var SendDataCharacteristic = function() {
