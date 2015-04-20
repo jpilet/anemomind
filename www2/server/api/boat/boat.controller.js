@@ -5,22 +5,9 @@ var Boat = require('./boat.model');
 var User = require('../user/user.model');
 var mongoose = require('mongoose');
 
-var userCanRead = function(user, boat) {
-  if (!user || !user.id || !boat) {
-    return false;
-  }
-  var userId = mongoose.Types.ObjectId(user.id);
-
-  return (boat.admins && (_.findIndex(boat.admins, userId) >= 0))
-    || (boat.readers && (_.findIndex(boat.readers, userId) >= 0));
-}
-var userCanWrite = function(user, boat) {
-  if (!user || !user.id || !boat || !boat.admins) {
-    return false;
-  }
-  var userId = mongoose.Types.ObjectId(user.id);
-  return _.findIndex(boat.admins, userId) >= 0;
-}
+var access = require('./access.js');
+var userCanRead = access.userCanRead;
+var userCanWrite = access.userCanWrite;
 
 var validateBoatForUser = function(user, boat) {
   // Make sure the following arrays contain unique values.
@@ -39,13 +26,13 @@ var validateBoatForUser = function(user, boat) {
 
 // Get list of boats
 exports.index = function(req, res) {
-  if (!req.user) { return res.send(403); }
-  var user = mongoose.Types.ObjectId(req.user.id);
-  var query = {$or: [{admins: { $in: [user] } }, {readers: { $in: [user]}}]};
-
-  Boat.find(query, function (err, boats) {
-    if(err) { return handleError(res, err); }
-    return res.json(200, boats);
+  if (!req.user) { return res.send(401); }
+  access.readableBoats(req.user.id)
+  .then(function (boats) {
+    res.json(200, boats);
+  })
+  .catch(function (err) {
+    handleError(res, err);
   });
 };
 
