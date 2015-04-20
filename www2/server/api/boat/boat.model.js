@@ -8,7 +8,7 @@ var BoatSchema = new Schema({
   type: String,
   sailNumber: String,
   length: String,
-  lengthUnit: {type: String, enum: ['meters', 'feet']},
+  lengthUnit: {type: String, enum: ['meter', 'feet']},
   sails: [ String ],
   admins: [ Schema.ObjectId ],
   readers: [ Schema.ObjectId ],
