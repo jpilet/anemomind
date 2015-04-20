@@ -6,8 +6,9 @@ var Schema = mongoose.Schema;
 var BoatSchema = new Schema({
   name: String,
   type: String,
-  active: Boolean,
-  lengthMeters: Number,
+  sailNumber: String,
+  length: String,
+  lengthUnit: {type: String, enum: ['meters', 'feet']},
   sails: [ String ],
   admins: [ Schema.ObjectId ],
   readers: [ Schema.ObjectId ],

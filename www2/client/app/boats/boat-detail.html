@@ -7,6 +7,17 @@
 <p class="input-group">
 <input type="text" class="form-control" placeholder="Boat name" ng-model="boat.name">
 <input type="text" class="form-control" placeholder="Boat type" ng-model="boat.type">
+<input type="text" class="form-control" placeholder="Sail number" ng-model="boat.sailNumber">
+<input type="text"  pattern="\d*\.?\d*" class="form-control" placeholder="Length" ng-model="boat.length">
+<label>
+  <input type="radio" ng-model="boat.lengthUnit" value="meters">
+  meters
+</label>
+<label>
+  <input type="radio" ng-model="boat.lengthUnit" value="feet">
+  feet
+</label>
+
   <div class="input-group-btn">
     <button type="submit" class="btn btn-primary" ng-click="saveBoat()">Save changes</button>
   </div>
