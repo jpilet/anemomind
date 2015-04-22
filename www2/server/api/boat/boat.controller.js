@@ -72,6 +72,7 @@ exports.create = function(req, res) {
 exports.update = function(req, res) {
   var userId = mongoose.Types.ObjectId(req.user.id);
   if(req.body.id) { delete req.body.id; }
+  if(req.body._id) { delete req.body._id; }
   Boat.findById(req.params.id, function (err, boat) {
     if (err) { return handleError(res, err); }
     if(!boat) { return res.send(404); }

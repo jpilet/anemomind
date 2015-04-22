@@ -2,11 +2,12 @@
 
 angular.module('www2App')
   .controller('BoatDetailCtrl', function ($scope, $stateParams, Auth, $http, userDB) {
-    $scope.boat = {};
+    $scope.boat = { sails: [] };
     $scope.invitationMessage = "";
     $scope.invitedEMail = "";
     $scope.invitedAdmin = true;
     $scope.users = {};
+    $scope.newSails = "";
 
     var resolveUser = function(user) {
       userDB.resolveUser(user, function(user) {
@@ -64,4 +65,15 @@ angular.module('www2App')
     $scope.removeInvitation = function(guest) {
       $scope.removeMember('invited', guest);
     };
+
+    $scope.removeSail = function(sail) {
+      var index = $scope.boat.sails.indexOf(sail);
+      $scope.boat.sails.splice(index, 1);
+    }
+    $scope.addSail = function() {
+      if ($scope.newSail) {
+        $scope.boat.sails.push($scope.newSail);
+        $scope.newSail = "";
+      }
+    }
   });
