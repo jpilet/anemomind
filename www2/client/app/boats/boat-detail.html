@@ -18,6 +18,23 @@
   feet
 </label>
 
+<div>
+Sails:
+<ul>
+  <li ng-repeat="sail in boat.sails track by $index">
+    <input type="text" ng-model="boat.sails[$index]">
+    <a href="" ng-click="removeSail(sail)">&#x2716;</a>
+  </li>
+  <li>
+    <form ng-submit="addSail()">
+      <input type="text" ng-model="newSail">
+      <a href="" ng-click="addSail()">&#x271A;</a>
+    </form>
+  </li>
+</ul>
+
+</div>
+
   <div class="input-group-btn">
     <button type="submit" class="btn btn-primary" ng-click="saveBoat()">Save changes</button>
   </div>
