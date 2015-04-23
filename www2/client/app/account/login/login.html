@@ -1,27 +1,29 @@
-<div ng-include="'components/navbar/navbar.html'"></div>
-
-<div class="container">
-  <div class="row">
-    <div class="col-sm-12">
-      <h1>Login</h1>
-      <p>Accounts are reset on server restart from <code>server/config/seed.js</code>. Default account is <code>test@test.com</code> / <code>test</code></p>
-      <p>Admin account is <code>admin@admin.com</code> / <code>admin</code></p>
-    </div>
-    <div class="col-sm-12">
-      <form class="form" name="form" ng-submit="login(form)" novalidate>
-
-        <div class="form-group">
-          <label>Email</label>
-
-          <input type="email" name="email" class="form-control" ng-model="user.email" required>
+<div class="container" style="margin-top:10%">
+  <div class="col-md-3 col-md-offset-4">
+    <div class="panel member_signin">
+      <div class="panel-body">
+        <div class="fa_user">
+          <i><img src="assets/images/login.logo.png" width="35" height="35"></i>
         </div>
-
-        <div class="form-group">
-          <label>Password</label>
-
-          <input type="password" name="password" class="form-control" ng-model="user.password" required>
-        </div>
-
+        <p class="member">Member Login</p>
+        <form name="form" class="loginform" ng-submit="login(form)" novalidate>
+          <div class="form-group">
+            <label for="exampleInputEmail1" class="sr-only">Email address</label>
+            <div class="input-group">
+              <input type="email" class="form-control" name="email" 
+                ng-model="user.email" required placeholder="Email">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1" class="sr-only">Password</label>
+            <div class="input-group">
+              <input type="password" class="form-control" name="password"
+                ng-model="user.password" required placeholder="Password">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-md login">LOG IN</button>
+        </form>
+        <p class="forgotpass"><a href="/signup" class="small">Create account</a></p>
         <div class="form-group has-error">
           <p class="help-block" ng-show="form.email.$error.required && form.password.$error.required && submitted">
              Please enter your email and password.
@@ -32,30 +34,7 @@
 
           <p class="help-block">{{ errors.other }}</p>
         </div>
-
-        <div>
-          <button class="btn btn-inverse btn-lg btn-login" type="submit">
-            Login
-          </button>
-          <a class="btn btn-default btn-lg btn-register" href="/signup">
-            Register
-          </a>
-        </div>
-
-        <hr>
-        <div>
-          <a class="btn btn-facebook" href="" ng-click="loginOauth('facebook')">
-            <i class="fa fa-facebook"></i> Connect with Facebook
-          </a>
-          <a class="btn btn-google-plus" href="" ng-click="loginOauth('google')">
-            <i class="fa fa-google-plus"></i> Connect with Google+
-          </a>
-          <a class="btn btn-twitter" href="" ng-click="loginOauth('twitter')">
-            <i class="fa fa-twitter"></i> Connect with Twitter
-          </a>
-        </div>
-      </form>
+      </div>
     </div>
   </div>
-  <hr>
 </div>

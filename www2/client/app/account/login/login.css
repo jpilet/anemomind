@@ -1,23 +1,57 @@
-.btn-facebook {
-  color: #fff;
-  background-color: #3B5998;
-  border-color: #133783;
+
+body {
+    background-color: #eee !important;
 }
 
-.btn-twitter {
-  color: #fff;
-  background-color: #2daddc;
-  border-color: #0271bf;
+div.member_signin {
+    text-align: center;
 }
 
-.btn-google-plus {
-  color: #fff;
-  background-color: #dd4b39;
-  border-color: #c53727;
+div.member_signin  i {
+    color: #FFF;
+    background-color: #F03;
+    border-radius: 500px;
+    font-size: 36px;
+    padding: 15px 20px 15px 20px;
 }
 
-.btn-github {
+div.fa_user {
+    margin-top: -47px;
+    margin-bottom: 15px;
+}
+
+p.member {
+    font-size: 19px;
+    color: #888888;
+    margin-bottom: 20px;
+}
+
+button.login {
+    width: 100%;
+    text-transform: uppercase;
+}
+
+form.loginform div.input-group {
+    width: 100%;
+}
+
+form.loginform input[type="email"], form.loginform input[type="password"] {
+    color: #6C6C6C;
+    text-align: center;
+}
+
+p.forgotpass {
+    margin-top: 10px;
+}
+
+p.forgotpass a {
+    color: #F03;
+}
+p.help-block {
+    color: #F03 !important;
+}
+.btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:focus{
   color: #fff;
-  background-color: #fafafa;
-  border-color: #ccc;
+  background-color: #F03;
+  border-color: #F03;
 }
