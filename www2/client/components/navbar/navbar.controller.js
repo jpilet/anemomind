@@ -9,13 +9,15 @@ angular.module('www2App')
 
     $scope.boats = [];
 
-    if (Auth.isLoggedIn()) {
-      $http.get('/api/boats')
-        .success(function(data, status, headers, config) {
-           $scope.boats = data;
-           socket.syncUpdates('boat', $scope.boats);
-        });
-    }
+    $scope.$watch('isLoggedIn()', function() {
+      if (Auth.isLoggedIn()) {
+        $http.get('/api/boats')
+          .success(function(data, status, headers, config) {
+             $scope.boats = data;
+             socket.syncUpdates('boat', $scope.boats);
+          });
+      }
+    });
 
     $scope.isCollapsed = true;
     $scope.isLoggedIn = Auth.isLoggedIn;
