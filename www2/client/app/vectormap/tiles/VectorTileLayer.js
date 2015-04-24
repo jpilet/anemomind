@@ -469,10 +469,7 @@ VectorTileLayer.prototype.selectCurve = function(curveId) {
 
   if (curveId) {
     this.highlight = this.highlightCurve(curveId);
-    var loc = this.locationForCurve(curveId);
-    if (loc) {
-      this.renderer.setLocation(loc);
-    }
+
     if (this.onSelect) {
       this.onSelect(curveId);
     }
@@ -539,32 +536,4 @@ VectorTileLayer.prototype.findPointAt = function(x, y) {
       return undefined;
     }
   }
-}
-
-VectorTileLayer.prototype.locationForCurve = function(curveId) {
-  if (!(curveId in this.visibleCurves)) {
-    return undefined;
-  }
-  var minX = 1000, minY = 1000, maxX = -1000, maxY = -1000;
-
-  // TODO: instead of searching in the visibleCurves array, looking at the tile
-  // at scale 0 would be both faster and more accurate, since visibleCurves
-  // might only contain partial data.
-  var curveElements = this.visibleCurves[curveId];
-
-  for (var e in curveElements) {
-    var element = curveElements[e];
-    for (var i in element.points) {
-      var p = element.points[i].pos;
-      minX = Math.min(p[0], minX);
-      minY = Math.min(p[1], minY);
-      maxX = Math.max(p[0], maxX);
-      maxY = Math.max(p[1], maxY);
-    }
-  }
-  return {
-    x: (minX + maxX) / 2,
-    y: (minY + maxY) / 2,
-    scale: 2*Math.max(maxX - minX, maxY - minY)
-  };
 }

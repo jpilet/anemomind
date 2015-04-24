@@ -1,12 +1,49 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('MapCtrl', function ($scope, $stateParams, userDB, $http, $interval) {
-    $scope.boat = { name: 'loading' };
+  .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
+                                   $http, $interval, $state, $location) {
+
+    $scope.boat = { _id: $stateParams.boatId, name: 'loading' };
+
+    var setLocationTimeout;
+    function setLocation() {
+      function delayed() {
+        setLocationTimeout = undefined;
+        var search = '';
+        if ($scope.mapLocation) {
+          var l = $scope.mapLocation;
+          search += 'l=' + l.x +',' + l.y + ',' + l.scale; 
+        }
+        if ($scope.selectedCurve) {
+          search += '&c=' + $scope.selectedCurve;
+        }
+        $location.search(search).replace();
+      }
+
+      if (setLocationTimeout) {
+        $timeout.cancel(setLocationTimeout);
+      }
+      setLocationTimeout = $timeout(delayed, 1000);
+    }
+
+    if ($stateParams.c) {
+      $scope.selectedCurve = $stateParams.c;
+    }
+
+    if ($stateParams.l) {
+      var entries = $stateParams.l.split(',');
+      $scope.mapLocation = {
+        x: parseFloat(entries[0]),
+        y: parseFloat(entries[1]),
+        scale: parseFloat(entries[2])
+      };
+    }
 
     $http.get('/api/boats/' + $stateParams.boatId)
     .success(function(data, status, headers, config) {
       $scope.boat = data;
+
     });
 
     $scope.plotField = 'devicePerf';
@@ -45,4 +82,7 @@ angular.module('www2App')
         $scope.currentTime = new Date($scope.plotData[0]['time']);
       }
     }
+
+    $scope.$watch('mapLocation', setLocation);
+    $scope.$watch('selectedCurve', setLocation);
 });
