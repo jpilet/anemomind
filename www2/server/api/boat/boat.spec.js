@@ -75,8 +75,51 @@ describe('GET /api/boats', function() {
       });
   });
 
+  var id ="123456789012345678901234";
+  it('should add a TestBoat2 with a given _id', function(done) {
+    request(app)
+      .post('/api/boats')
+      .set('Authorization', 'Bearer ' + token)
+      .send({ _id: id, name: 'TestBoat2' })
+      .expect(201)
+      .end(function(err, res) {
+        if (err) return done(err);
+        res.body.should.have.property('_id');
+        res.body._id.should.equal(id);
+        done();
+     });
+   });
+
+  it('should respond with the details of TestBoat2', function(done) {
+    request(app)
+      .get('/api/boats/' + id)
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200)
+      .end(function(err, res) {
+        if (err) return done(err);
+        res.body.should.have.property('name');
+        res.body.name.should.equal('TestBoat2');
+        res.body.should.have.property('_id');
+        res.body._id.should.equal(id);
+        done();
+      });
+  });
+
+  var id ="123456789012345678901234";
+  it('should refuse to add a boat with an existing id', function(done) {
+    request(app)
+      .post('/api/boats')
+      .set('Authorization', 'Bearer ' + token)
+      .send({ _id: id, name: 'TestBoat3' })
+      .expect(400)
+      .end(done);
+   });
+
+
+
   after(function(done) {
     Boat.remove({name: "TestBoat"}).exec();
+    Boat.remove({name: "TestBoat2"}).exec();
     User.remove({email: "test@anemomind.com"}, done);
   });
 });
