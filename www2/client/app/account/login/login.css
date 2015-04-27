@@ -35,11 +35,6 @@ form.loginform div.input-group {
     width: 100%;
 }
 
-form.loginform input[type="email"], form.loginform input[type="password"] {
-    color: #6C6C6C;
-    text-align: center;
-}
-
 p.forgotpass {
     margin-top: 10px;
 }

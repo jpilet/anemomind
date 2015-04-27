@@ -1,6 +1,6 @@
-<div class="container" style="margin-top:10%">
+<div class="container">
   <div class="col-md-3 col-md-offset-4">
-    <div class="panel member_signin">
+    <div class="panel member_signin" style="margin-top:100px">
       <div class="panel-body">
         <div class="fa_user">
           <i><img src="assets/images/login.logo.png" width="35" height="35"></i>
@@ -23,7 +23,6 @@
           </div>
           <button type="submit" class="btn btn-primary btn-md login">LOG IN</button>
         </form>
-        <p class="forgotpass"><a href="/signup" class="small">Create account</a></p>
         <div class="form-group has-error">
           <p class="help-block" ng-show="form.email.$error.required && form.password.$error.required && submitted">
              Please enter your email and password.
@@ -34,6 +33,7 @@
 
           <p class="help-block">{{ errors.other }}</p>
         </div>
+        <p class="forgotpass"><a href="/signup" class="small">Create account</a></p>
       </div>
     </div>
   </div>
