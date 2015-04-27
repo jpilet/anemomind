@@ -3,6 +3,14 @@
 <div ng-if="isLoggedIn" class="container">
 <p>Welcome!</p>
 <a href="/boats">See your boats</a>
+
+<ul>
+<li ng-repeat="session in sessions">
+  <a href="/map/{{session.boat}}?c={{session.curves[0].curveId}}">
+  {{ boat(session.boat).name }} {{ session.startTime }}</a>
+</li>
+
+</ul>
 </div>
 
 <div ng-if="!isLoggedIn" class="container">
