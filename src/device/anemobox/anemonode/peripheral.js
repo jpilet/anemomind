@@ -1,5 +1,6 @@
 var util = require('util');
 var bleno = require('bleno');
+var exec = require('child_process').exec;
 var anemonode = require('./build/Release/anemonode');
 
 var BlenoPrimaryService = bleno.PrimaryService;
@@ -12,7 +13,7 @@ var characteristicsArray = [];
 function DispatcherCharacteristic(entry) {
   this.entry = entry;
   DispatcherCharacteristic.super_.call(this, {
-    uuid: '0000000000000000000000000000000'+anemonode.dispatcher[entry].dataCode,
+    uuid: pad(anemonode.dispatcher[entry].dataCode.toString(16), 32),
     properties: ['notify', 'read']
   });
 }
@@ -108,6 +109,29 @@ SendDataCharacteristic.prototype.onWriteRequest = function(data, offset, without
 };
 
 characteristicsArray.push(new SendDataCharacteristic());
+
+var GetAnemoIdCharacteristic = function() {
+  GetAnemoIdCharacteristic.super_.call(this, {
+    uuid: 'ffffffffffffffffffffffffffffff00',
+    properties: ['read']
+  });
+};
+
+util.inherits(GetAnemoIdCharacteristic, BlenoCharacteristic);
+
+GetAnemoIdCharacteristic.prototype.onReadRequest = function(offset, callback) {
+  exec("ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'", function (error, stdout, stderr) {
+    if (stdout) {
+      console.log("wlan0 mac address sent: " + stdout);
+      callback(this.RESULT_SUCCESS, new Buffer(stdout));
+    } else {
+      console.log("wlan0 not found, sending: " + '78:4b:87:a1:f2:61');
+      callback(this.RESULT_SUCCESS, new Buffer('78:4b:87:a1:f2:61'));
+    }
+  });
+};
+
+characteristicsArray.push(new GetAnemoIdCharacteristic());
  
 function AnemoService() {
   AnemoService.super_.call(this, {
@@ -145,3 +169,7 @@ bleno.on('advertisingStop', function() {
 bleno.on('servicesSet', function() {
   console.log('on -> servicesSet');
 });
+
+function pad (str, max) {
+  return str.length < max ? pad("0" + str, max) : str;
+}
