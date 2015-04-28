@@ -15,7 +15,8 @@ var BoatSchema = new Schema({
   invited: [{
     email: String,
     admin: Boolean
-  }]
+  }],
+  anemobox: String
 });
 
 module.exports = mongoose.model('Boat', BoatSchema);

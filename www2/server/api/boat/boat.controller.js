@@ -52,6 +52,15 @@ exports.create = function(req, res) {
   var user = mongoose.Types.ObjectId(req.user.id);
   var boat = req.body;
 
+  if (boat._id) {
+    try {
+      var id = mongoose.Types.ObjectId(boat._id);
+    } catch (e) {
+      res.json(400);
+      return;
+    }
+  }
+
   // Make sure the user who creates a boat has
   // administrative rights.
   if (!userCanWrite(req.user, boat)) {
@@ -63,7 +72,13 @@ exports.create = function(req, res) {
   }
 
   Boat.create(boat, function(err, boat) {
-    if(err) { return handleError(res, err); }
+    if (err) {
+      if (err.code == 11000) {
+        // Duplicate key error.
+        return res.send(400);
+      }
+      return handleError(res, err);
+    }
     return res.json(201, boat);
   });
 };
