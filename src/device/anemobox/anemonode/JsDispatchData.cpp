@@ -45,6 +45,29 @@ class GetValueVisitor : public DispatchDataVisitor {
     }
   }
 
+  virtual void run(DispatchGeoPosData *pos) {
+    auto values = pos->dispatcher()->values();
+    valid_ = values.size() > index_;
+    if (valid_) {
+      auto val = values[index_];
+      Local<Object> obj = NanNew<Object>();
+      obj->Set(NanNew("lon"), NanNew(val.value.lon().degrees()));
+      obj->Set(NanNew("lat"), NanNew(val.value.lat().degrees()));
+      value_ = obj;
+      timestamp_ = val.time;
+    }
+  }
+
+  virtual void run(DispatchTimeStampData *dateTime) {
+    auto values = dateTime->dispatcher()->values();
+    valid_ = values.size() > index_;
+    if (valid_) {
+      auto val = values[index_];
+      value_ = NanNew<Date>(val.value.toMilliSecondsSince1970() / 1000.0);
+      timestamp_ = val.time;
+    }
+  }
+
 
   Local<Value> value() const { return value_; }
   TimeStamp time() const { return timestamp_; }
@@ -68,6 +91,12 @@ class CountValuesVisitor : public DispatchDataVisitor {
     count_ = v->dispatcher()->values().size();
   }
   virtual void run(DispatchLengthData *v) {
+    count_ = v->dispatcher()->values().size();
+  }
+  virtual void run(DispatchGeoPosData *v) {
+    count_ = v->dispatcher()->values().size();
+  }
+  virtual void run(DispatchTimeStampData *v) {
     count_ = v->dispatcher()->values().size();
   }
   int numValues() const { return count_; }
@@ -102,15 +131,28 @@ class SetValueVisitor : public DispatchDataVisitor {
           Length<double>::nauticalMiles(value_->ToNumber()->Value()));
     }
   }
+  virtual void run(DispatchGeoPosData *) {
+    error_ = "set GeoPos from javascript is not implemented yet in " __FILE__;
+    success_ = false;
+  }
+  virtual void run(DispatchTimeStampData *) {
+    error_ = "set TimeStamp from javascript is not implemented yet in " __FILE__;
+    success_ = false;
+  }
 
   bool checkNumberAndSetSuccess() {
     success_ = value_->IsNumber();
+    if (!success_) {
+      error_ = "a number is expected.";
+    }
     return success_;
   }
     
   bool success() const { return success_; }
+  const std::string& error() const { return error_; }
  private:
   std::string source_;
+  std::string error_;
   Handle<Value> value_;
   bool success_;
 };
@@ -118,7 +160,9 @@ class SetValueVisitor : public DispatchDataVisitor {
 class JsListener:
   public Listener<Angle<double>>,
   public Listener<Velocity<double>>,
-  public Listener<Length<double>> {
+  public Listener<Length<double>>,
+  public Listener<GeographicPosition<double>>,
+  public Listener<TimeStamp> {
  public:
   JsListener(DispatchData *dispatchData,
              Local<Function> callback,
@@ -133,6 +177,8 @@ class JsListener:
   virtual void onNewValue(const ValueDispatcher<Angle<double>> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<Velocity<double>> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<Length<double>> &) { valueChanged(); }
+  virtual void onNewValue(const ValueDispatcher<GeographicPosition<double>> &) { valueChanged(); }
+  virtual void onNewValue(const ValueDispatcher<TimeStamp> &) { valueChanged(); }
 
   void valueChanged() {
     GetValueVisitor getValue(0);
@@ -164,6 +210,14 @@ class SubscribeVisitor : public DispatchDataVisitor {
     data->dispatcher()->subscribe(listener_);
   }
 
+  virtual void run(DispatchGeoPosData *data) {
+    data->dispatcher()->subscribe(listener_);
+  }
+
+  virtual void run(DispatchTimeStampData *data) {
+    data->dispatcher()->subscribe(listener_);
+  }
+
  private:
   JsListener *listener_;
 };
@@ -181,6 +235,14 @@ class GetTypeAndUnitVisitor : public DispatchDataVisitor {
   virtual void run(DispatchLengthData *) {
     type_ = "distance";
     unit_ = "nautical miles";
+  }
+  virtual void run(DispatchGeoPosData *) {
+    type_ = "geographic position";
+    unit_ = "WGS84 latitude and longitude, in degrees";
+  }
+  virtual void run(DispatchTimeStampData *) {
+    type_ = "Date and time";
+    unit_ = "seconds since 1.1.1970, UTC";
   }
 
   const std::string& type() const { return type_; }
@@ -305,7 +367,7 @@ NAN_METHOD(JsDispatchData::setValue) {
   dispatchData->visit(&setValue);
 
   if (!setValue.success()) {
-    return NanThrowError("failed to convert or set value");
+    return NanThrowError(setValue.error().c_str());
   }
 
   NanReturnUndefined();

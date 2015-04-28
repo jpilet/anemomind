@@ -7,6 +7,18 @@
 
 namespace sail {
 
+TimeStamp getTime(const NmeaParser& parser) {
+  return TimeStamp::UTC(
+      parser.year() + 2000, parser.month(), parser.day(),
+      parser.hour(), parser.min(), parser.sec());
+}
+
+GeographicPosition<double> getPos(const NmeaParser& parser) {
+  return GeographicPosition<double>(
+      Angle<double>::degrees(parser.pos().lon.toDouble()),
+      Angle<double>::degrees(parser.pos().lat.toDouble()));
+}
+
 void Nmea0183Source::process(const unsigned char* buffer, int length) {
   for (ssize_t i = 0; i < length; ++i) {
     switch (_parser.processByte(buffer[i])) {
@@ -17,6 +29,8 @@ void Nmea0183Source::process(const unsigned char* buffer, int length) {
             sourceName(), static_cast<Angle<double>>(_parser.gpsBearing()));
         _dispatcher->gpsSpeed()->publishValue(
             sourceName(), static_cast<Velocity<double>>(_parser.gpsSpeed()));
+        _dispatcher->pos()->publishValue(sourceName(), getPos(_parser));
+        _dispatcher->dateTime()->publishValue(sourceName(), getTime(_parser));
         break;
       case NmeaParser::NMEA_AW:
         _dispatcher->awa()->publishValue(
@@ -39,7 +53,9 @@ void Nmea0183Source::process(const unsigned char* buffer, int length) {
       case NmeaParser::NMEA_VLW: break;
         _dispatcher->watDist()->publishValue(
             sourceName(), static_cast<Length<double>>(_parser.watDist()));
-      case NmeaParser::NMEA_GLL: break;
+      case NmeaParser::NMEA_GLL:
+        _dispatcher->pos()->publishValue(sourceName(), getPos(_parser));
+        break;
       case NmeaParser::NMEA_VTG:
         _dispatcher->gpsBearing()->publishValue(
             sourceName(), static_cast<Angle<double>>(_parser.gpsBearing()));
@@ -47,6 +63,7 @@ void Nmea0183Source::process(const unsigned char* buffer, int length) {
             sourceName(), static_cast<Velocity<double>>(_parser.gpsSpeed()));
         break;
       case NmeaParser::NMEA_ZDA:
+        _dispatcher->dateTime()->publishValue(sourceName(), getTime(_parser));
         break;
     }
   }

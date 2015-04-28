@@ -14,7 +14,9 @@ Dispatcher::Dispatcher() :
   _gpsSpeed(&_data, GPS_SPEED, "gpsSpeed", "GPS speed"),
   _magHeading(&_data, MAG_HEADING, "magHdg", "magnetic heading"),
   _watSpeed(&_data, WAT_SPEED, "watSpeed", "water speed"),
-  _watDist(&_data, WAT_DIST, "watDist", "distance over water")
+  _watDist(&_data, WAT_DIST, "watDist", "distance over water"),
+  _pos(&_data, GPS_POS, "pos", "GPS position"),
+  _dateTime(&_data, DATE_TIME, "dateTime", "GPS date and time (UTC)")
 {
 }
 

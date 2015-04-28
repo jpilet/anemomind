@@ -22,11 +22,15 @@ console.log('awa ' + anemonode.dispatcher.awa.value());
 var nmeaSource = new anemonode.Nmea0183Source();
 console.warn(nmeaSource.process);
 
+function format(x) {
+  return JSON.stringify(x);
+}
+
 function printHistory(field) {
   for (var i = 0; i < anemonode.dispatcher[field].length(); ++i) {
     var dispatchData = anemonode.dispatcher[field];
     console.log(anemonode.dispatcher[field].description
-                + ': ' + dispatchData.value(i)
+                + ': ' + format(dispatchData.value(i))
                 + ' ' + anemonode.dispatcher[field].unit
                 + ' set on: ' + dispatchData.time(i).toLocaleString());
   }
@@ -47,5 +51,7 @@ fs.readFile("../../../../datasets/tinylog.txt", function (err, data ) {
 
   printHistory('awa');
   printHistory('twa');
-  printHistory('tws');
+  printHistory('pos');
+  printHistory('dateTime');
+
 });
