@@ -26,7 +26,9 @@ enum DataCode {
   GPS_BEARING = 7,
   MAG_HEADING = 8,
   WAT_SPEED = 9,
-  WAT_DIST = 10
+  WAT_DIST = 10,
+  GPS_POS = 11,
+  DATE_TIME = 12,
 };
 
 class DispatchDataVisitor;
@@ -80,12 +82,16 @@ class TypedDispatchData : public DispatchData {
 typedef TypedDispatchData<Angle<double>> DispatchAngleData;
 typedef TypedDispatchData<Velocity<double>> DispatchVelocityData;
 typedef TypedDispatchData<Length<double>> DispatchLengthData;
+typedef TypedDispatchData<GeographicPosition<double>> DispatchGeoPosData;
+typedef TypedDispatchData<TimeStamp> DispatchTimeStampData;
 
 class DispatchDataVisitor {
  public:
   virtual void run(DispatchAngleData *angle) = 0;
   virtual void run(DispatchVelocityData *velocity) = 0;
   virtual void run(DispatchLengthData *length) = 0;
+  virtual void run(DispatchGeoPosData *pos) = 0;
+  virtual void run(DispatchTimeStampData *timestamp) = 0;
 };
 
 template <typename T>
@@ -115,6 +121,8 @@ class Dispatcher {
   DispatchAngleData* magHdg() { return &_magHeading; }
   DispatchVelocityData* watSpeed() { return &_watSpeed; }
   DispatchLengthData* watDist() { return &_watDist; }
+  DispatchGeoPosData* pos() { return &_pos; }
+  DispatchTimeStampData* dateTime() { return &_dateTime; }
 
  private:
   static Dispatcher *_globalInstance;
@@ -130,6 +138,8 @@ class Dispatcher {
   DispatchAngleData _magHeading;
   DispatchVelocityData _watSpeed;
   DispatchLengthData _watDist;
+  DispatchGeoPosData _pos;
+  DispatchTimeStampData _dateTime;
 };
 
 }  // namespace sail

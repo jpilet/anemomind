@@ -7,6 +7,7 @@
 
 #include <server/common/TimeStamp.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/nautical/GeographicPosition.h>
 
 namespace sail {
 
@@ -124,6 +125,8 @@ void ValueDispatcher<T>::setValue(T value) {
 typedef ValueDispatcher<Angle<double>> AngleDispatcher;
 typedef ValueDispatcher<Velocity<double>> VelocityDispatcher;
 typedef ValueDispatcher<Length<double>> LengthDispatcher;
+typedef ValueDispatcher<GeographicPosition<double>> GeoPosDispatcher;
+typedef ValueDispatcher<TimeStamp> TimeStampDispatcher;
 
 }  // namespace sail
 
