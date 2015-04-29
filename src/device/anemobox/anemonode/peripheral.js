@@ -8,6 +8,17 @@ var BlenoCharacteristic = bleno.Characteristic;
 
 var characteristics = {};
 var characteristicsArray = [];
+var anemoId;
+
+exec("ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'", function (error, stdout, stderr) {
+    if (stdout) {
+      console.log("wlan0 found, anemoID is: " + stdout);
+      anemoId = stdout;
+    } else {
+      console.log("wlan0 not found, anemoID is: " + '78:4b:87:a1:f2:61');
+      anemoId = '78:4b:87:a1:f2:61';
+    }
+  });
 
 //Define a class to adapt dispacher entries to characteristics.
 function DispatcherCharacteristic(entry) {
@@ -120,15 +131,8 @@ var GetAnemoIdCharacteristic = function() {
 util.inherits(GetAnemoIdCharacteristic, BlenoCharacteristic);
 
 GetAnemoIdCharacteristic.prototype.onReadRequest = function(offset, callback) {
-  exec("ifconfig wlan0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'", function (error, stdout, stderr) {
-    if (stdout) {
-      console.log("wlan0 mac address sent: " + stdout);
-      callback(this.RESULT_SUCCESS, new Buffer(stdout));
-    } else {
-      console.log("wlan0 not found, sending: " + '78:4b:87:a1:f2:61');
-      callback(this.RESULT_SUCCESS, new Buffer('78:4b:87:a1:f2:61'));
-    }
-  });
+  console.log("AnemoID characteristic sent: " + anemoId);
+  callback(this.RESULT_SUCCESS, new Buffer(anemoId));
 };
 
 characteristicsArray.push(new GetAnemoIdCharacteristic());
