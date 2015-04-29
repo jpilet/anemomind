@@ -1,0 +1,43 @@
+package sail;
+
+message AngleValueSet {
+  // Unit: 1/100 degree.
+  // The first entry contains the full angle.
+  // The other entries contain delta with previous.
+  repeated int32 deltaAngle = 1 [packed = true];
+}
+
+message VelocityValueSet {
+  // Unit: 1/100 knots
+  repeated int32 deltaVelocity = 1 [packed = true];
+}
+
+message LengthValueSet {
+  // Unit: meters
+  repeated int32 deltaLength = 1 [packed = true];
+}
+
+message GeoPosValueSet {
+  // Unit: degrees
+  message Pos {
+    required double lat = 1;
+    required double lon = 2;
+  }
+  repeated Pos pos = 1;
+}
+
+message ValueSet {
+  required string shortName = 1;
+  repeated int64 timestamps = 2 [packed = true];
+  optional AngleValueSet angles = 3;
+  optional VelocityValueSet velocity = 4;
+  optional LengthValueSet length = 5;
+  optional GeoPosValueSet pos = 6;
+}
+
+message LogFile {
+  repeated ValueSet stream = 1;
+  optional string anemobox = 2;
+  optional string boatId = 3;
+  optional string boatName = 4;
+}

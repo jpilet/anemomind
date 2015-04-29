@@ -1,3 +1,4 @@
+add_subdirectory(logger)
 
 cxx_test(anemobox_ValueDispatcherTest ValueDispatcherTest.cpp
          common_TimeStamp

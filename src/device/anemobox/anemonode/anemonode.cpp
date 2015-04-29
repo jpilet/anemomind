@@ -9,6 +9,7 @@
 
 #include <device/anemobox/anemonode/JsDispatchData.h>
 #include <device/anemobox/anemonode/JsNmea0183Source.h>
+#include <device/anemobox/anemonode/JsLogger.h>
 
 #include <iostream>
 #include <vector>
@@ -43,6 +44,7 @@ void registerDispatcher(Dispatcher *dispatcher, Handle<Object> target) {
 void RegisterModule(Handle<Object> target) {
   registerDispatcher(Dispatcher::global(), target);
   JsNmea0183Source::Init(target);
+  JsLogger::Init(target);
 }
 
 // Register the module with node. Note that "modulename" must be the same as
