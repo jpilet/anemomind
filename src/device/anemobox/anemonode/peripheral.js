@@ -72,9 +72,10 @@ function encodeValueInBuffer(entry) {
 
 DispatcherCharacteristic.prototype.onSubscribe = function(maxValueSize, updateValueCallback) {
   console.log(this.entry +' subscribe');
-
+  var entry = this.entry;
   this.subscribeIndex = anemonode.dispatcher[this.entry].subscribe(
     function(val) {
+      console.log("test sending again");
       updateValueCallback(encodeValueInBuffer(entry));
     }
   );
@@ -85,6 +86,7 @@ DispatcherCharacteristic.prototype.onUnsubscribe = function() {
  
   if (this.subscribeIndex) {
     anemonode.dispatcher[this.entry].unsubscribe(this.subscribeIndex);
+    delete this.subscribeIndex;
   }
 };
 
@@ -221,3 +223,7 @@ bleno.on('servicesSet', function() {
 function pad (str, max) {
   return str.length < max ? pad("0" + str, max) : str;
 }
+
+// setInterval(function() {
+//   anemonode.dispatcher.awa.setValue("js test", Math.random()*360);
+// }, 1000);
