@@ -30,30 +30,76 @@ function DispatcherCharacteristic(entry) {
 }
 util.inherits(DispatcherCharacteristic, BlenoCharacteristic);
 
+function encodeValueInBuffer(entry) {
+  var dispatchData = anemonode.dispatcher[entry];
+
+  function format16bits(value) {
+    // is it LE or BE?
+    var buffer = new Buffer(2);
+    buffer.writeIntLE(value, 0, 2);
+    return buffer;
+  }
+  function format64bits(value) {
+    // is it LE or BE?
+    var buffer = new Buffer(8);
+    buffer.writeIntLE(value, 0, 8);
+    return buffer;
+  }
+  function formatPos(value) {
+    // is it LE or BE?
+    var buffer = new Buffer(2* 8);
+    buffer.writeDoubleLE(value.lon, 0, 8);
+    buffer.writeDoubleLE(value.lat, 8, 8);
+    return buffer;
+  }
+  var formatValue = {
+    "degrees": format16bits,
+    "knots": format16bits,
+    "nautical miles": format16bits,
+    "WGS84 latitude and longitude, in degrees": formatPos,
+    "seconds since 1.1.1970, UTC": format64bits
+  };
+  
+  var unit = dispatchData.unit;
+  if (!unit in formatValue) {
+    // OK to crash, because all possible units are known at compile time.
+    throw('Error: do not know how to format: ' + unit);
+  }
+
+  var value = dispatchData.value();
+  return formatValue[unit](value);
+}
+
 DispatcherCharacteristic.prototype.onSubscribe = function(maxValueSize, updateValueCallback) {
   console.log(this.entry +' subscribe');
- 
-  this.counter = 0;
-  this.changeInterval = setInterval(function() {
-    var data = new Buffer(this.counter + '', 'utf-8');
-    data.write(this.counter+'');
-    console.log(entry +' update value: ' + this.counter);
-    updateValueCallback(data);
-    this.counter++;
-  }.bind(this), 500);
+  var entry = this.entry;
+  this.subscribeIndex = anemonode.dispatcher[this.entry].subscribe(
+    function(val) {
+      console.log("test sending again");
+      updateValueCallback(encodeValueInBuffer(entry));
+    }
+  );
 };
 
 DispatcherCharacteristic.prototype.onUnsubscribe = function() {
   console.log(this.entry +' unsubscribe');
  
-  if (this.changeInterval) {
-    clearInterval(this.changeInterval);
-    this.changeInterval = null;
+  if (this.subscribeIndex) {
+    anemonode.dispatcher[this.entry].unsubscribe(this.subscribeIndex);
+    delete this.subscribeIndex;
   }
 };
 
 DispatcherCharacteristic.prototype.onNotify = function() {
   console.log(this.entry +' on notify');
+};
+
+DispatcherCharacteristic.prototype.onReadRequest = function(offset, callback) {
+  if (anemonode.dispatcher[this.entry].length() == 0) {
+    callback(this.RESULT_UNLIKELY_ERROR);
+  } else {
+    callback(this.RESULT_SUCCESS, encodeValueInBuffer(this.entry));
+  }
 };
 
 // Instanciate one DispatcherCharacteristic for each dispatcher entry
@@ -177,3 +223,7 @@ bleno.on('servicesSet', function() {
 function pad (str, max) {
   return str.length < max ? pad("0" + str, max) : str;
 }
+
+// setInterval(function() {
+//   anemonode.dispatcher.awa.setValue("js test", Math.random()*360);
+// }, 1000);
