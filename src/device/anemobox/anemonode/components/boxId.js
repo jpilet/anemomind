@@ -23,3 +23,4 @@ function getAnemoId(cb) {
 getAnemoId(function(id){});
 
 module.exports.getAnemoId = getAnemoId;
+
