@@ -1,3 +1,11 @@
+// The anemomind logging file format.
+//
+// the format is compact because:
+// - time and values are delta-coded
+// - most values are coded with integers, with a variable number of bytes
+// - values are "packed" (see protobuf doc)
+// - the result is gzipped.
+
 package sail;
 
 message AngleValueSet {
