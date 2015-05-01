@@ -51,6 +51,7 @@ class DispatchData {
   std::string wordIdentifier() const { return _wordIdentifier; }
 
   virtual void visit(DispatchDataVisitor *visitor) = 0;
+  virtual ~DispatchData() {}
  private:
   DataCode _code;
   std::string _description;
@@ -92,6 +93,7 @@ class DispatchDataVisitor {
   virtual void run(DispatchLengthData *length) = 0;
   virtual void run(DispatchGeoPosData *pos) = 0;
   virtual void run(DispatchTimeStampData *timestamp) = 0;
+  virtual ~DispatchDataVisitor() {}
 };
 
 template <typename T>
