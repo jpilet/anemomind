@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <memory>
-
+#include <server/common/PhysicalQuantityIO.h>
 #include <stdio.h>
 
 namespace sail {
@@ -22,15 +22,25 @@ void print(const LengthDispatcher &length) {
   std::cout << stringFormat("%.2f", length.lastValue().nauticalMiles());
 }
 
+void print(const GeoPosDispatcher &geoPos) {
+  auto pos = geoPos.lastValue();
+  std::cout << "GeoPos(lon = " << pos.lon() << " lat = " << pos.lat() << ")";
+}
+
+void print(const TimeStampDispatcher &timeStamp) {
+  std::cout << timeStamp.lastValue().toString();
+}
+
 template <class T>
-class PrintListenener : public Listener<T> {
+class PrintListener : public Listener<T> {
  public:
-   PrintListenener(std::string prefix) : _prefix(prefix) { }
+   PrintListener(std::string prefix) : _prefix(prefix) { }
   virtual void onNewValue(const ValueDispatcher<T> &dispatcher) {
     std::cout << _prefix << ": ";
     print(dispatcher);
     std::cout << std::endl;
   }
+  virtual ~PrintListener() {}
  private:
    std::string _prefix;
 };
@@ -39,29 +49,45 @@ class PrintUpdates : public DispatchDataVisitor {
  public:
 
   virtual void run(DispatchAngleData *angle) {
-    std::shared_ptr<PrintListenener<Angle<double>>> anglePrinter(
-        new PrintListenener<Angle<double>>(angle->description()));
+    std::shared_ptr<PrintListener<Angle<double>>> anglePrinter(
+        new PrintListener<Angle<double>>(angle->description()));
     angle->dispatcher()->subscribe(anglePrinter.get());
     _anglePrinters.push_back(anglePrinter);
   }
 
   virtual void run(DispatchVelocityData *value) {
-    std::shared_ptr<PrintListenener<Velocity<double>>> valuePrinter(
-        new PrintListenener<Velocity<double>>(value->description()));
+    std::shared_ptr<PrintListener<Velocity<double>>> valuePrinter(
+        new PrintListener<Velocity<double>>(value->description()));
     value->dispatcher()->subscribe(valuePrinter.get());
     _velocityPrinters.push_back(valuePrinter);
   }
 
   virtual void run(DispatchLengthData *value) {
-    std::shared_ptr<PrintListenener<Length<double>>> valuePrinter(
-        new PrintListenener<Length<double>>(value->description()));
+    std::shared_ptr<PrintListener<Length<double>>> valuePrinter(
+        new PrintListener<Length<double>>(value->description()));
     value->dispatcher()->subscribe(valuePrinter.get());
     _lengthPrinters.push_back(valuePrinter);
   }
+
+  virtual void run(DispatchGeoPosData *value) {
+    std::shared_ptr<PrintListener<GeographicPosition<double>>> valuePrinter(
+        new PrintListener<GeographicPosition<double>>(value->description()));
+    value->dispatcher()->subscribe(valuePrinter.get());
+    _geoPosPrinters.push_back(valuePrinter);
+  }
+
+  virtual void run(DispatchTimeStampData *value) {
+    std::shared_ptr<PrintListener<TimeStamp>> valuePrinter(
+        new PrintListener<TimeStamp>(value->description()));
+    value->dispatcher()->subscribe(valuePrinter.get());
+    _timeStampPrinters.push_back(valuePrinter);
+  }
  private:
-  std::vector<std::shared_ptr<PrintListenener<Angle<double>>>> _anglePrinters;
-  std::vector<std::shared_ptr<PrintListenener<Velocity<double>>>> _velocityPrinters;
-  std::vector<std::shared_ptr<PrintListenener<Length<double>>>> _lengthPrinters;
+  std::vector<std::shared_ptr<PrintListener<Angle<double>>>> _anglePrinters;
+  std::vector<std::shared_ptr<PrintListener<Velocity<double>>>> _velocityPrinters;
+  std::vector<std::shared_ptr<PrintListener<Length<double>>>> _lengthPrinters;
+  std::vector<std::shared_ptr<PrintListener<GeographicPosition<double>>>> _geoPosPrinters;
+  std::vector<std::shared_ptr<PrintListener<TimeStamp>>> _timeStampPrinters;
 };
 
 }  // namespace
