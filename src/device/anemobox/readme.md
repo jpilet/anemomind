@@ -1,17 +1,49 @@
 ## Setting up the anemobox
 
+# basics
+
 1. Connect the anemobox to your computer using two micro usb cables.
 
 2. Check your anemobox serial port with the command: `ls /dev/tty.*`
 
 3. in my case, the port of the anemobox is `/dev/tty.usbserial-A9049MM3`
+   connect to it using: 
+   screen /dev/tty.usbserial-A9049MM3 115200
+   ( to quit: ctrl-a then ctrl \ )
 
-4. Run the setup tool to connect it to your wifi network
+# Network: yocto
+
+Run the setup tool to connect it to your wifi network
     `configure_edison --setup` I used the name anemobox.
-    
-5. Connect via ssh `ssh root@anemobox.local` using the password you specified.
 
-6. To install GIT insert these lines in `/etc/opkg/base-feeds.conf`:
+Connect via ssh `ssh root@anemobox.local` using the password you specified.
+
+# Network: debian
+
+edit the file /etc/network/interfaces
+
+mine looks like:
+    
+    #auto usb0
+    iface usb0 inet static
+        address 192.168.2.15
+        netmask 255.255.255.0
+
+    #auto wlan0
+    iface wlan0 inet dhcp
+        # For WPA
+        wpa-ssid JulienNetworkN
+        wpa-psk "password"
+        # For WEP
+        #wireless-essid Emutex
+        #wireless-mode Managed
+        #wireless-key s:password
+    
+run `ifup wlan0` to connect to the wireless network, then `ssh root@anemobox.local`.
+
+    
+# Software: Yocto
+1. To install GIT insert these lines in `/etc/opkg/base-feeds.conf`:
 ```
 src all     http://iotdk.intel.com/repos/1.1/iotdk/all
 src x86 http://iotdk.intel.com/repos/1.1/iotdk/x86
@@ -22,12 +54,21 @@ Then run:
 opkg update && opkg install git
 ```
 
-7. install node gyp and poco. You might have to add this path:
+2. install node gyp and poco. You might have to add this path:
 `export LD_LIBRARY_PATH=/usr/local/lib`
 
 
-9. install protobuf:
-`sudo port install protobuf-cpp`
-
-10. If you get this error message while doing `npm install`, try with this argument:
+3. If you get this error message while doing `npm install`, try with this argument:
 `npm install --unsafe-perm`
+
+# Software: Debian
+
+1. create this file `/etc/apt/sources.list.d/nodesource.list`
+containing:
+
+    deb https://deb.nodesource.com/node_0.12 wheezy main
+    deb-src https://deb.nodesource.com/node_0.12 wheezy main
+
+2. `apt-get update; apt-get upgrade; apt-get install nodejs git`
+
+
