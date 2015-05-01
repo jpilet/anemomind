@@ -74,13 +74,7 @@
         "-lPocoUtil",
         "<!@(pkg-config protobuf --libs-only-L)",
         "-lprotobuf",
-	"-L/usr/lib",
-	"-lboost_iostreams",
-	"-lboost_iostreams-mt"
-      ],
-      "conditions" : [
-        [ "OS=='mac'", { "libraries!": ["-lboost_iostreams"]  } ],
-        [ "OS=='linux'",{ "libraries!": ["-lboost_iostreams-mt"] }  ]
+        "-lboost_iostreams-mt"
       ]
     }
   ]
