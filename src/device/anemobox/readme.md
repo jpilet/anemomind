@@ -69,6 +69,6 @@ opkg update && opkg install git
 	sudo apt-get install -y nodejs
 	```
 
-2. type `apt-get update; apt-get upgrade; apt-get install git libpoco-dev libboost-thread-dev protobuf-compiler libprotobuf-dev libboost-iostreams-dev`
+2. type `apt-get update; apt-get upgrade; apt-get install git libpoco-dev libboost-thread-dev protobuf-compiler libprotobuf-dev libboost-iostreams-dev libbluetooth-dev`
 
 3. In the anemonode folder, type: `node-gyp configure; node-gyp build`
