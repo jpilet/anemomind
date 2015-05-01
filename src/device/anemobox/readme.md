@@ -63,12 +63,12 @@ opkg update && opkg install git
 
 # Software: Debian
 
-1. create this file `/etc/apt/sources.list.d/nodesource.list`
-containing:
+1. Install node by typing:
+	```
+	curl -sL https://deb.nodesource.com/setup_0.12 | sudo bash -
+	sudo apt-get install -y nodejs
+	```
 
-    deb https://deb.nodesource.com/node_0.12 wheezy main
-    deb-src https://deb.nodesource.com/node_0.12 wheezy main
+2. type `apt-get update; apt-get upgrade; apt-get install git libpoco-dev libboost-thread-dev protobuf-compiler libprotobuf-dev libboost-iostreams-dev`
 
-2. `apt-get update; apt-get upgrade; apt-get install nodejs git`
-
-
+3. In the anemonode folder, type: `node-gyp configure; node-gyp build`
