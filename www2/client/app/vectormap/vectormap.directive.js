@@ -13,8 +13,11 @@ angular.module('www2App')
           canvas = new CanvasTilesRenderer({
             canvas: element.children()[0],
             url: function(scale, x, y) { 
-              return "http://b.tiles.mapbox.com/v3/openplans.map-g4j0dszr/" + scale + "/" + x + "/" + y + ".png";
-              // return "http://b.tile.opencyclemap.org/cycle/" + scale + "/" + x + "/" + y + ".png";
+              // The token corresponds to account anemojp on mapbox.
+              return "http://api.tiles.mapbox.com/v4/anemojp.d4524095/"
+                + scale + "/" + x + "/" + y
+                + ".png32?access_token="
+                + "pk.eyJ1IjoiYW5lbW9qcCIsImEiOiJ3QjFnX00wIn0.M9AEKUTlyhDC-sMM9a0obQ";
             },
             maxNumCachedTiles: 256,
             initialLocation: scope.mapLocation,
