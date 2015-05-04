@@ -144,6 +144,37 @@ class Dispatcher {
   DispatchTimeStampData _dateTime;
 };
 
+// A convenient visitor to subscribe to any dispatch data type.
+template <class Listener>
+class SubscribeVisitor : public DispatchDataVisitor {
+ public:
+  SubscribeVisitor(Listener *listener) : listener_(listener) { }
+
+  virtual void run(DispatchAngleData *angle) {
+    angle->dispatcher()->subscribe(listener_);
+  }
+
+  virtual void run(DispatchVelocityData *velocity) {
+    velocity->dispatcher()->subscribe(listener_);
+  }
+
+  virtual void run(DispatchLengthData *data) {
+    data->dispatcher()->subscribe(listener_);
+  }
+
+  virtual void run(DispatchGeoPosData *data) {
+    data->dispatcher()->subscribe(listener_);
+  }
+
+  virtual void run(DispatchTimeStampData *data) {
+    data->dispatcher()->subscribe(listener_);
+  }
+
+ private:
+  Listener *listener_;
+};
+
+
 }  // namespace sail
 
 #endif  // ANEMOBOX_DISPATCHER_H

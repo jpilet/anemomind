@@ -194,34 +194,6 @@ class JsListener:
   Persistent<Function> callback_;
 };
 
-class SubscribeVisitor : public DispatchDataVisitor {
- public:
-  SubscribeVisitor(JsListener *listener) : listener_(listener) { }
-
-  virtual void run(DispatchAngleData *angle) {
-    angle->dispatcher()->subscribe(listener_);
-  }
-
-  virtual void run(DispatchVelocityData *velocity) {
-    velocity->dispatcher()->subscribe(listener_);
-  }
-
-  virtual void run(DispatchLengthData *data) {
-    data->dispatcher()->subscribe(listener_);
-  }
-
-  virtual void run(DispatchGeoPosData *data) {
-    data->dispatcher()->subscribe(listener_);
-  }
-
-  virtual void run(DispatchTimeStampData *data) {
-    data->dispatcher()->subscribe(listener_);
-  }
-
- private:
-  JsListener *listener_;
-};
-
 class GetTypeAndUnitVisitor : public DispatchDataVisitor {
  public:
   virtual void run(DispatchAngleData *) {
@@ -412,7 +384,7 @@ NAN_METHOD(JsDispatchData::subscribe) {
   int index = registeredCallbacks.size() + 1;
   registeredCallbacks[index] = listener;
 
-  SubscribeVisitor subscriber(listener);
+  SubscribeVisitor<JsListener> subscriber(listener);
   dispatchData->visit(&subscriber);
   NanReturnValue(NanNew<Integer>(index));
 }

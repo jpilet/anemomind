@@ -4,6 +4,8 @@ var anemonode = require('./build/Release/anemonode');
 // Inspect the anemonode object
 console.warn(anemonode);
 
+var logger = new anemonode.Logger();
+
 // Try subscribe/unsubscribe functions
 var numCalls = 0;
 var subsIndex = anemonode.dispatcher.awa.subscribe(function(val) {
@@ -54,4 +56,11 @@ fs.readFile("../../../../datasets/tinylog.txt", function (err, data ) {
   printHistory('pos');
   printHistory('dateTime');
 
+  logger.flush("./", function(path, err) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log('log written to: ' + path);
+    }
+  });
 });
