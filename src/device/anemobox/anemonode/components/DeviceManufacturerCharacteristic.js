@@ -17,7 +17,7 @@ var DeviceManufacturerCharacteristic = function() {
       // Device Manufacturer
       uuid: '2A29',
       properties: ['read'],
-      value: new Buffer('Intel Corporation','utf8'),
+      value: new Buffer('Anemomind','utf8'),
       descriptors: [
         new Descriptor({
         uuid: '2901',
