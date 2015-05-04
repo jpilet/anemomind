@@ -6,8 +6,13 @@ var util = require('util'),
   exec = require('child_process').exec,
   bleno = require('bleno'),
   Descriptor = bleno.Descriptor,
-  Characteristic = bleno.Characteristic;
+  Characteristic = bleno.Characteristic,
+  boxId = require('./boxId'),
+  anemoId;
 
+  boxId.getAnemoId(function(id) {
+    anemoId = new Buffer(id, 'utf8'));
+  });
 /**
 * Reference:
 * https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.manufacturer_name_string.xml
@@ -17,7 +22,7 @@ var DeviceManufacturerCharacteristic = function() {
       // Device Manufacturer
       uuid: '2A29',
       properties: ['read'],
-      value: new Buffer('Anemomind','utf8'),
+      value: anemoId,
       descriptors: [
         new Descriptor({
         uuid: '2901',
