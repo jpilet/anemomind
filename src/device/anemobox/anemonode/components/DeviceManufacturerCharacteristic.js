@@ -11,7 +11,7 @@ var util = require('util'),
   anemoId;
 
   boxId.getAnemoId(function(id) {
-    anemoId = new Buffer(id, 'utf8'));
+    anemoId = new Buffer(id, 'utf8');
   });
 /**
 * Reference:
