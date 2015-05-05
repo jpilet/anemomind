@@ -61,7 +61,7 @@ function encodeGetArg(argSpec, arg) {
     } else if (type == Number) {
 	return '' + arg;
     } else if (type == String) {
-	var res = isValidGetString(arg);
+	assert(isValidGetString(arg));
 	return arg;
     } else {
 	assert.equal(type, 'hex');
