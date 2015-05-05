@@ -192,7 +192,7 @@ MethodSchema.prototype.isValidMethod = function(x) {
 methods.setForeignDiaryNumber = new MethodSchema({
     httpMethod:'get',
     input: [
-	{otherMailbox: 'hex'},
+	{otherMailbox: String},
 	{newValue: 'hex'}
     ],
     output: [
@@ -225,8 +225,8 @@ methods.handleIncomingPacket = new MethodSchema({
 methods.isAdmissible = new MethodSchema({
     httpMethod:'get',
     input: [
-	{src: 'hex'},
-	{dst: 'hex'},
+	{src: String},
+	{dst: String},
 	{seqNumber: 'hex'}
     ],
     output: [
@@ -238,7 +238,7 @@ methods.isAdmissible = new MethodSchema({
 methods.getForeignDiaryNumber = new MethodSchema({
     httpMethod:'get',
     input: [
-	{otherMailbox: 'hex'}
+	{otherMailbox: String}
     ],
     output: [
 	{err: errorTypes},
@@ -249,7 +249,7 @@ methods.getForeignDiaryNumber = new MethodSchema({
 methods.getForeignStartNumber = new MethodSchema({
     httpMethod:'get',
     input: [
-	{otherMailbox: 'hex'}
+	{otherMailbox: String}
     ],
     output: [
 	{err: errorTypes},
@@ -268,7 +268,7 @@ methods.reset = new MethodSchema({
 methods.sendPacket = new MethodSchema({
     httpMethod: 'post',
     input: [
-	{dst: 'hex'},
+	{dst: String},
 	{label: Number},
 	{data: 'buffer'}
     ],
