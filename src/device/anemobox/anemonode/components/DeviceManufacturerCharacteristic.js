@@ -1,18 +1,8 @@
-/**
-* Reference: https://developer.bluetooth.org/gatt/services/Pages/ServiceViewer.aspx?u=org.bluetooth.service.device_information.xml
-*/
-
 var util = require('util'),
   exec = require('child_process').exec,
   bleno = require('bleno'),
   Descriptor = bleno.Descriptor,
-  Characteristic = bleno.Characteristic,
-  anemoId = require('./boxId'),
-  anemoIdBuffer;
-
-anemoId.getAnemoId(function(id) {
-  anemoIdBuffer = new Buffer(id, 'utf8');
-});
+  Characteristic = bleno.Characteristic;
 
 /**
 * Reference:
@@ -23,6 +13,7 @@ var DeviceManufacturerCharacteristic = function() {
       // Device Manufacturer
       uuid: '2A29',
       properties: ['read'],
+      value: new Buffer('Anemomind','utf8'),
       descriptors: [
         new Descriptor({
             uuid: '2901',
@@ -33,9 +24,5 @@ var DeviceManufacturerCharacteristic = function() {
 };
 
 util.inherits(DeviceManufacturerCharacteristic, Characteristic);
-
-DeviceManufacturerCharacteristic.prototype.onReadRequest = function(offset, callback) {
-  callback(this.RESULT_SUCCESS, anemoIdBuffer);
-};
 
 module.exports = DeviceManufacturerCharacteristic;

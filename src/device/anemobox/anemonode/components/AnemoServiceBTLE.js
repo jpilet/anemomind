@@ -1,6 +1,7 @@
 var util = require('util');
 var bleno = require('bleno');
 var DeviceManufacturerCharacteristic = require('./DeviceManufacturerCharacteristic');
+var SerialNumberCharacteristic = require('./SerialNumberCharacteristic');
 
 var BlenoPrimaryService = bleno.PrimaryService;
 var BlenoCharacteristic = bleno.Characteristic;
@@ -16,6 +17,7 @@ function startBTLE() {
     DeviceInformationService.super_.call(this, {
         uuid: '180A',
         characteristics: [
+            new SerialNumberCharacteristic(),
             new DeviceManufacturerCharacteristic()
         ]
     });
