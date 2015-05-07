@@ -65,9 +65,11 @@ function callMailboxMethod(user, mailboxName, methodName, args, cb) {
 			    // to a callback, but having a catch here
 			    // makes it safer.
 			    } catch (e) { 
+				console.log("Caught an exception when calling mailbox method: %j.", e);
+				console.log("THIS SHOULD NOT HAPPEN and this is a bug. Please don't throw exceptions,");
+				console.log("but pass the errors as the first argument to the callback instead.")
 				cb(e);
 			    }
-
 			}
 		    }
 		);
