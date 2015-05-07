@@ -96,7 +96,7 @@ BoatNameCharacteristic.prototype.onWriteRequest =
   } else if (data.length < 3) {
     callback(this.RESULT_INVALID_ATTRIBUTE_LENGTH);
   } else {
-    var boatName = data.toString('ascii');
+    var boatName = data.toString('utf8');
     console.log('changing boat name: ' + boatName);
     config.change({boatName: boatName}, function(err, cfg) {
       if (err) {
