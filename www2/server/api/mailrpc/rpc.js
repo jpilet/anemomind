@@ -124,10 +124,7 @@ function handler(method, req, res) {
 	var args = null;
 
 	if (method.httpMethod == 'post') {
-	    console.log("POST DATA = %j", req.body);
-	    console.log("THE TYPE IS %j", typeof req.body);
 	    args = coder.decodeArgs(method.input, req.body);
-	    console.log("DECODED = %j", args);
 	} else {
 	    args = coder.decodeGetArgs(method.input, req.params);
 	}
