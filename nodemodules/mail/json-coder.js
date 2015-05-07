@@ -76,6 +76,8 @@ function decodeGetArg(argSpec, arg) {
 	return (arg == '1'? true : false);
     } else if (type == Number) {
 	return Number.parseFloat(arg);
+    } else if (type == String) {
+	return arg;
     } else {
 	assert.equal(type, 'hex');
 	return arg;
@@ -105,12 +107,15 @@ function decode(argSpec, data) {
 }
 
 function decodeArgsSub(argSpecs, data, decoderFunction) {
+    console.log("decodeArgsSub argSpecs = %j", argSpecs);
+    console.log("decodeArgsSub data     = %j", data);
     var dst = new Array(argSpecs.length);
     for (var i = 0; i < argSpecs.length; i++) {
 	var argSpec = argSpecs[i];
 	var argName = schema.getArgName(argSpec);
 	dst[i] = decoderFunction(argSpec, data[argName]);
     }
+    console.log("To return: %j", dst);
     return dst;
 }
 

@@ -46,17 +46,28 @@ function callMailboxMethod(user, mailboxName, methodName, args, cb) {
 			if (err) {
 			    cb(err);
 			} else {
-			    mailbox[methodName].apply(
-				mailbox, args.concat([
-				    function(err, result) {
-					mailbox.close(
-					    function(err) {
-						cb(err, result);
-					    }
-					);
-				    }
-				])
-			    );
+
+			    try {
+				mailbox[methodName].apply(
+				    mailbox, args.concat([
+					function(err, result) {
+					    mailbox.close(
+						function(err) {
+						    cb(err, result);
+						}
+					    );
+					}
+				    ])
+				);
+
+			    // Ideally, all errors should be handled
+		            // by passing them as the first argument
+			    // to a callback, but having a catch here
+			    // makes it safer.
+			    } catch (e) { 
+				cb(e);
+			    }
+
 			}
 		    }
 		);
@@ -113,7 +124,10 @@ function handler(method, req, res) {
 	var args = null;
 
 	if (method.httpMethod == 'post') {
+	    console.log("POST DATA = %j", req.body);
+	    console.log("THE TYPE IS %j", typeof req.body);
 	    args = coder.decodeArgs(method.input, req.body);
+	    console.log("DECODED = %j", args);
 	} else {
 	    args = coder.decodeGetArgs(method.input, req.params);
 	}
