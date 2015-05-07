@@ -4,6 +4,7 @@
   "main": "./build/Release/anemonode",
   "dependencies": {
     "bleno": "^0.1.12",
+    "mraa": "^0.6.2",
     "nan": "^1.7.0",
     "serialport": "^1.6.3"
   }

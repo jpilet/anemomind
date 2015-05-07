@@ -24,7 +24,6 @@ function init() {
       var c = i2c.readReg(CAM_M8Q_REG_DATA_STREAM);
       if (c != 255) {
         data.push(c);
-        console.log(c);
       } else {
         break;
       }
@@ -33,7 +32,6 @@ function init() {
     if (data.length > 0) {
       var buffer = new Buffer(data);
       nmeaSource.process(buffer);
-      console.log('GPS:' + buffer.toString('ascii'));
     }
   }, 50);
 }

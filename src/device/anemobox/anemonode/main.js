@@ -1,5 +1,5 @@
 var nmea0183PortPath = '/dev/ttyMFD1';
-var logRoot = '/media/sdcard/logs';
+var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
 
 var config = require('./components/config');
