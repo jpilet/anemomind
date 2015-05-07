@@ -1,7 +1,6 @@
 // Data source: NMEA0183
 
-
-var anemonode = require('./build/Release/anemonode');
+var anemonode = require('../build/Release/anemonode');
 var SerialPort = require("serialport").SerialPort
 
 var nmea0183Port;
@@ -34,6 +33,6 @@ function emitNmea0183Sentence (sentence) {
   }
 }
 
-module.export.init = init;
-module.export.emitNmea0183Sentence = emitNmea0183Sentence;
+module.exports.init = init;
+module.exports.emitNmea0183Sentence = emitNmea0183Sentence;
 
