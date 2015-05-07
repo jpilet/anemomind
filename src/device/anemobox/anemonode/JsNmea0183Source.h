@@ -10,7 +10,7 @@ namespace sail {
 
 class JsNmea0183Source : public node::ObjectWrap {
  public:
-  JsNmea0183Source();
+  JsNmea0183Source(const std::string& sourceName);
 
   static void Init(v8::Handle<v8::Object> target);
 
