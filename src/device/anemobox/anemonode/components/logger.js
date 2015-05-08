@@ -15,8 +15,13 @@ function startLogging(logRoot, logInterval, cb) {
     }, logInterval);
   }
 
-  mkdirp(logRoot, 0755, function() {
-    createAndScheduleLogger();
+  mkdirp(logRoot, 0755, function(err) {
+    if (err) {
+      console.log('Failed to create path: ' + logRoot);
+    } else {
+      console.log('Logging dispatcher data to: ' + logRoot);
+      createAndScheduleLogger();
+    }
   });
 }
 
