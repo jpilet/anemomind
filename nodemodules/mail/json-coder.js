@@ -44,12 +44,25 @@ function encodeArgs(argSpecs, args, trimmed) {
     }
 }
 
+// When passing strings as GET arguments,
+// just allow strings composed of common
+// characters that don't interfere with
+// the syntax of GET strings.
+function isValidGetString(x) {
+    return !!x.match(/^[\w]*$/)
+
+    // Maybe more specific: return !!x.match(/^[0-9a-zA-Z]*$/)
+}
+
 function encodeGetArg(argSpec, arg) {
     var type = schema.getArgType(argSpec);
     if (type == Boolean) {
 	return (arg? '1' : '0');
     } else if (type == Number) {
 	return '' + arg;
+    } else if (type == String) {
+	assert(isValidGetString(arg));
+	return arg;
     } else {
 	assert.equal(type, 'hex');
 	assert(bigint.isBigInt(arg));
@@ -63,6 +76,8 @@ function decodeGetArg(argSpec, arg) {
 	return (arg == '1'? true : false);
     } else if (type == Number) {
 	return Number.parseFloat(arg);
+    } else if (type == String) {
+	return arg;
     } else {
 	assert.equal(type, 'hex');
 	return arg;

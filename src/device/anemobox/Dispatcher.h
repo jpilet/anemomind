@@ -72,7 +72,7 @@ class TypedDispatchData : public DispatchData {
   ValueDispatcher<T> *dispatcher() { return &_dispatcher; }
   const ValueDispatcher<T> *dispatcher() const { return &_dispatcher; }
 
-  void publishValue(const char *source, T value) {
+  void publishValue(const std::string& source, T value) {
     // TODO: check if <source> is the current preferred source for this dispatcher.
     _dispatcher.setValue(value);
   }

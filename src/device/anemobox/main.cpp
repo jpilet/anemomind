@@ -94,7 +94,7 @@ class PrintUpdates : public DispatchDataVisitor {
 
 bool run(const char *filename) {
   Dispatcher dispatcher;
-  Nmea0183Source nmea0183(&dispatcher);
+  Nmea0183Source nmea0183(&dispatcher, std::string(filename));
   PrintUpdates visitor;
   
   FILE *f = fopen(filename, "r");

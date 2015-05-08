@@ -69,7 +69,7 @@ function isCounter(x) {
 
 // Such as mailbox names
 function isIdentifier(x) {
-    return bigint.isBigInt(x);
+    return typeof x == 'string';
 }
 
 

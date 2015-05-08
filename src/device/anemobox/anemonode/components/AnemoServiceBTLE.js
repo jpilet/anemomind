@@ -39,7 +39,7 @@ function startBTLE() {
     console.log('on -> stateChange: ' + state);
    
     if (state === 'poweredOn') {
-      bleno.startAdvertising('anemomind', ['fffffffffffffffffffffffffffffff0']);
+      bleno.startAdvertising('Anemobox', ['fffffffffffffffffffffffffffffff0']);
     } else {
       bleno.stopAdvertising();
     }

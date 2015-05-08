@@ -46,17 +46,30 @@ function callMailboxMethod(user, mailboxName, methodName, args, cb) {
 			if (err) {
 			    cb(err);
 			} else {
-			    mailbox[methodName].apply(
-				mailbox, args.concat([
-				    function(err, result) {
-					mailbox.close(
-					    function(err) {
-						cb(err, result);
-					    }
-					);
-				    }
-				])
-			    );
+
+			    try {
+				mailbox[methodName].apply(
+				    mailbox, args.concat([
+					function(err, result) {
+					    mailbox.close(
+						function(err) {
+						    cb(err, result);
+						}
+					    );
+					}
+				    ])
+				);
+
+			    // Ideally, all errors should be handled
+		            // by passing them as the first argument
+			    // to a callback, but having a catch here
+			    // makes it safer.
+			    } catch (e) { 
+				console.log("Caught an exception when calling mailbox method: %j.", e);
+				console.log("THIS SHOULD NOT HAPPEN and this is a bug. Please don't throw exceptions,");
+				console.log("but pass the errors as the first argument to the callback instead.")
+				cb(e);
+			    }
 			}
 		    }
 		);
