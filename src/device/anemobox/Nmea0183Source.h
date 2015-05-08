@@ -10,16 +10,17 @@ namespace sail {
 
 class Nmea0183Source {
  public:
-  Nmea0183Source(Dispatcher *dispatcher)
-    : _dispatcher(dispatcher) { }
+  Nmea0183Source(Dispatcher *dispatcher, const std::string& sourceName)
+    : _dispatcher(dispatcher), _sourceName(sourceName) { }
 
-  const char *sourceName() const { return "NMEA0183"; }
+  const std::string& sourceName() const { return _sourceName; }
 
   void process(const unsigned char* buffer, int length);
 
  private:
   Dispatcher *_dispatcher;
   NmeaParser _parser;
+  std::string _sourceName;
 };
 
 }  // namespace

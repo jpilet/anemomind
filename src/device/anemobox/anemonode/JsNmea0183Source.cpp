@@ -12,7 +12,8 @@ namespace {
 v8::Persistent<v8::FunctionTemplate> nmea0183_constructor;
 }  // namespace
 
-JsNmea0183Source::JsNmea0183Source() : _nmea0183(Dispatcher::global()) { }
+JsNmea0183Source::JsNmea0183Source(const std::string& sourceName )
+  : _nmea0183(Dispatcher::global(), sourceName) { }
 
 void JsNmea0183Source::Init(v8::Handle<v8::Object> target) {
   NanScope();
@@ -33,7 +34,16 @@ void JsNmea0183Source::Init(v8::Handle<v8::Object> target) {
 
 NAN_METHOD(JsNmea0183Source::New) {
   NanScope();
-  JsNmea0183Source *obj = new JsNmea0183Source();
+  std::string name = "NMEA0183";
+
+  if (args.Length() >= 1) {
+    if (args[0]->IsString()) {
+      name = std::string(args[0]->ToString());
+    } else {
+      NanThrowTypeError("Source name must be a string");
+    }
+  }
+  JsNmea0183Source *obj = new JsNmea0183Source(name);
   obj->Wrap(args.This());
   NanReturnValue(args.This());
 }
