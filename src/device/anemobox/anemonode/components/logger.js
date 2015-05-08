@@ -1,5 +1,5 @@
 var anemonode = require('../build/Release/anemonode');
-var fs = require('fs');
+var mkdirp = require('mkdirp');
 
 function startLogging(logRoot, logInterval, cb) {
   function createAndScheduleLogger() {
@@ -15,11 +15,13 @@ function startLogging(logRoot, logInterval, cb) {
     }, logInterval);
   }
 
-  fs.exists(logRoot, function(exists) {
-    if (!exists) {
-      fs.mkdir(logRoot, 0755, function() { });
+  mkdirp(logRoot, 0755, function(err) {
+    if (err) {
+      console.log('Failed to create path: ' + logRoot);
+    } else {
+      console.log('Logging dispatcher data to: ' + logRoot);
+      createAndScheduleLogger();
     }
-    createAndScheduleLogger();
   });
 }
 
