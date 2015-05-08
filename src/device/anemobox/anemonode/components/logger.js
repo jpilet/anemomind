@@ -1,5 +1,5 @@
 var anemonode = require('../build/Release/anemonode');
-var fs = require('fs');
+var mkdirp = require('mkdirp');
 
 function startLogging(logRoot, logInterval, cb) {
   function createAndScheduleLogger() {
@@ -15,10 +15,7 @@ function startLogging(logRoot, logInterval, cb) {
     }, logInterval);
   }
 
-  fs.exists(logRoot, function(exists) {
-    if (!exists) {
-      fs.mkdir(logRoot, 0755, function() { });
-    }
+  mkdirp(logRoot, 0755, function() {
     createAndScheduleLogger();
   });
 }
