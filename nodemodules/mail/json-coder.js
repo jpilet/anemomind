@@ -76,6 +76,8 @@ function decodeGetArg(argSpec, arg) {
 	return (arg == '1'? true : false);
     } else if (type == Number) {
 	return Number.parseFloat(arg);
+    } else if (type == String) {
+	return arg;
     } else {
 	assert.equal(type, 'hex');
 	return arg;
