@@ -16,11 +16,11 @@ anemoId.getAnemoId(function(id) {
 
 /**
 * Reference:
-* https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.manufacturer_name_string.xml
+* https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.serial_number_string.xml
 */
 var SerialNumberCharacteristic = function() {
   SerialNumberCharacteristic.super_.call(this, {
-      // Device Manufacturer
+      // Serial Number
       uuid: '2A25',
       properties: ['read'],
       descriptors: [
