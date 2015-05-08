@@ -11,7 +11,7 @@ var CAM_M8Q_REG_DATA_STREAM=0xFF
 var CHECK_OUT_STREAM=0xFF
 
 
-function init() {
+function init(dataCb) {
   console.log('Reading internal GPS');
 
   var nmeaSource = new anemonode.Nmea0183Source("Internal GPS");
@@ -32,6 +32,9 @@ function init() {
     if (data.length > 0) {
       var buffer = new Buffer(data);
       nmeaSource.process(buffer);
+      if (dataCb) {
+        dataCb(buffer);
+      }
     }
   }, 50);
 }
