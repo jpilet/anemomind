@@ -1,8 +1,11 @@
 var util = require('util');
 var bleno = require('bleno');
+var DeviceManufacturerCharacteristic = require('./DeviceManufacturerCharacteristic');
+var SerialNumberCharacteristic = require('./SerialNumberCharacteristic');
 
 var BlenoPrimaryService = bleno.PrimaryService;
 var BlenoCharacteristic = bleno.Characteristic;
+
 
 function startBTLE() {
 
@@ -10,6 +13,18 @@ function startBTLE() {
   require('./DispatcherBLE').pushCharacteristics(characteristicsArray);
   require('./ConfigBLE').pushCharacteristics(characteristicsArray);
 
+  function DeviceInformationService() {
+    DeviceInformationService.super_.call(this, {
+        uuid: '180A',
+        characteristics: [
+            new SerialNumberCharacteristic(),
+            new DeviceManufacturerCharacteristic()
+        ]
+    });
+  }
+
+  util.inherits(DeviceInformationService, BlenoPrimaryService);
+  module.exports = DeviceInformationService;
    
   function AnemoService() {
     AnemoService.super_.call(this, {
@@ -35,7 +50,8 @@ function startBTLE() {
    
     if (!error) {
       bleno.setServices([
-        new AnemoService()
+        new AnemoService(),
+        new DeviceInformationService()
       ]);
     }
   });

@@ -17,4 +17,3 @@ require('./components/logger').startLogging(logRoot, logInterval, function(path)
   // TODO: send file to phone.
   console.log('log written to: ' + path);
 });
-
