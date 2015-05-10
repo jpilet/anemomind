@@ -1,38 +1,43 @@
 // Data source: NMEA0183
 
 var anemonode = require('../build/Release/anemonode');
-var SerialPort = require("serialport").SerialPort
+var exec = require('child_process').exec;
+var fs = require('fs');
 
-var nmea0183Port;
+var nmeaPortFd;
 
-function init(nmea0183PortPath) {
-  var port = new SerialPort(nmea0183PortPath, {
-    baudrate: 4800
-  }, false); // this is the openImmediately flag [default is true]
+function init(port) {
+exec("stty -F " + port + " 4800",  function (error, stdout, stderr) {
+  if (error) { console.log(error); }
 
+  fs.open(port, 'r+', function(err, fd) {
+
+    nmeaPortFd = fd;
+  var buffer = new Buffer(4096);
   var nmeaPortSource = new anemonode.Nmea0183Source(
-      "NMEA0183: " + nmea0183PortPath);
+      "NMEA0183: " + port);
 
-  port.open(function (error) {
-    if ( error ) {
-      console.log('failed to open: '+error);
-    } else {
-      console.log('Listening to NMEA0183 port ' + nmea0183PortPath);
-      nmea0183Port = port;
-      port.on('data', function(data) {
-        nmeaPortSource.process(data);
-        // TODO: log raw NMEA.
-      });
-    }
+    setInterval(function() {
+      fs.read(fd, buffer, 0, 4096, null, function(err, bytes_read, buffer) {
+	 if (err) {
+	   console.log(err);
+	 } else {
+	   //console.log('received: ' +bytes_read + ' bytes: ' +  buffer.slice(0, bytes_read));
+	   nmeaPortSource.process(buffer.slice(0, bytes_read));
+	 }
+       });
+    }, 500);
   });
+});
 }
 
 function emitNmea0183Sentence (sentence) {
-  if (nmea0183Port) {
-    nmea0183Port.write(sentence);
+  if (nmeaPortFd) {
+    //console.log(sentence.toString('ascii'));
+    fs.write(nmeaPortFd, sentence, 0, sentence.length, function(err, written, buffer) {
+});
   }
 }
 
 module.exports.init = init;
 module.exports.emitNmea0183Sentence = emitNmea0183Sentence;
-
