@@ -30,6 +30,12 @@ void Logger::flushTo(LogFile* container) {
       ptr->clear();
     }
   }
+  for (auto pair : _textLoggers) {
+    if (pair.second.valueSet().timestamps_size() > 0) {
+      container->add_text()->Swap(pair.second.mutable_valueSet());
+      pair.second.clear();
+    }
+  }
 }
 
 std::string Logger::nextFilename(const std::string& folder) {
@@ -42,7 +48,7 @@ bool Logger::flushAndSave(const std::string& folder,
 
   flushTo(&container);
 
-  if (container.stream_size() == 0) {
+  if (container.stream_size() == 0 && container.text_size() == 0) {
     // nothing to save.
     return false;
   }
@@ -73,6 +79,15 @@ void Logger::subscribe() {
 
     _listeners.push_back(std::shared_ptr<LoggerValueListener>(listener));
   }
+}
+
+void Logger::logText(const std::string& streamName, const std::string& content) {
+  auto it = _textLoggers.find(streamName);
+  if (it == _textLoggers.end()) {
+    it = _textLoggers.insert(
+        make_pair(streamName, LoggerValueListener(streamName))).first;
+  }
+  it->second.addText(content);
 }
 
 bool Logger::save(const std::string& filename, const LogFile& data) {

@@ -56,6 +56,8 @@ fs.readFile("../../../../datasets/tinylog.txt", function (err, data ) {
   printHistory('pos');
   printHistory('dateTime');
 
+  logger.logText("test", "this text is logged from javascript");
+
   logger.flush("./", function(path, err) {
     if (err) {
       console.log(err);

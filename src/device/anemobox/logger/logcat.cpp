@@ -62,6 +62,11 @@ void streamCat(const ValueSet& valueSet) {
     Logger::unpack(valueSet.pos(), &values);
     formatValues(times, values);
   }
+
+  for (int i = 0; i < valueSet.text_size(); ++i) {
+    cout << "  " << times[i].toString() << ": \""
+      << valueSet.text(i) << "\"\n";
+  }
 }
 
 void logCat(const char* file) {
@@ -84,6 +89,10 @@ void logCat(const char* file) {
 
   for (int i = 0; i < data.stream_size(); ++i) {
     streamCat(data.stream(i));
+  }
+
+  for (int i = 0; i < data.text_size(); ++i) {
+    streamCat(data.text(i));
   }
 }
 
