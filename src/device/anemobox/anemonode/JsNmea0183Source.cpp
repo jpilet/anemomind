@@ -38,7 +38,8 @@ NAN_METHOD(JsNmea0183Source::New) {
 
   if (args.Length() >= 1) {
     if (args[0]->IsString()) {
-      name = std::string(args[0]->ToString());
+      v8::String::Utf8Value nameArg(args[0]->ToString());
+      name = *nameArg;
     } else {
       NanThrowTypeError("Source name must be a string");
     }
