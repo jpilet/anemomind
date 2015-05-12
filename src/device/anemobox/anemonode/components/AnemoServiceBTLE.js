@@ -28,7 +28,7 @@ function startBTLE() {
    
   function AnemoService() {
     AnemoService.super_.call(this, {
-      uuid: 'fffffffffffffffffffffffffffffff0',
+      uuid: 'AFF1E42DEF91456F86FA8703FFFFFFF0',
       characteristics: characteristicsArray
     });
   }
@@ -39,7 +39,7 @@ function startBTLE() {
     console.log('on -> stateChange: ' + state);
    
     if (state === 'poweredOn') {
-      bleno.startAdvertising('Anemobox', ['fffffffffffffffffffffffffffffff0']);
+      bleno.startAdvertising('Anemobox', ['AFF1E42DEF91456F86FA8703FFFFFFF0']);
     } else {
       bleno.stopAdvertising();
     }

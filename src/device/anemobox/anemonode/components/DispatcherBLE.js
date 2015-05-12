@@ -13,7 +13,8 @@ function pad (str, max) {
 function DispatcherCharacteristic(entry) {
   this.entry = entry;
   DispatcherCharacteristic.super_.call(this, {
-    uuid: pad(anemonode.dispatcher[entry].dataCode.toString(16), 32),
+    uuid: 'AFF1E42D-EF91-456F-86FA-8703'
+          + pad(anemonode.dispatcher[entry].dataCode.toString(16), 8),
     properties: ['notify', 'read']
   });
 }
@@ -22,10 +23,9 @@ util.inherits(DispatcherCharacteristic, BlenoCharacteristic);
 function encodeValueInBuffer(entry) {
   var dispatchData = anemonode.dispatcher[entry];
 
-  function format16bits(value) {
-    // is it LE or BE?
-    var buffer = new Buffer(2);
-    buffer.writeIntLE(value, 0, 2);
+  function formatFloat(value) {
+    var buffer = new Buffer(4);
+    buffer.writeFloatLE(value, 0, 4);
     return buffer;
   }
   function format64bits(value) {
@@ -42,9 +42,9 @@ function encodeValueInBuffer(entry) {
     return buffer;
   }
   var formatValue = {
-    "degrees": format16bits,
-    "knots": format16bits,
-    "nautical miles": format16bits,
+    "degrees": formatFloat,
+    "knots": formatFloat,
+    "nautical miles": formatFloat,
     "WGS84 latitude and longitude, in degrees": formatPos,
     "seconds since 1.1.1970, UTC": format64bits
   };

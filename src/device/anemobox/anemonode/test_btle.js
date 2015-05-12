@@ -5,5 +5,7 @@ var anemonode = require('./build/Release/anemonode');
 btle.startBTLE();
 
 setInterval(function() {
-   anemonode.dispatcher.awa.setValue(__filename, Math.random()*360);
-}, 1000);
+  var tws = Math.random()*16;
+  anemonode.dispatcher.tws.setValue(__filename, tws);
+  console.log('tws: ' + tws);
+}, 2000);
