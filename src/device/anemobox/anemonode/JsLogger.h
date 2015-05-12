@@ -17,6 +17,7 @@ class JsLogger : public node::ObjectWrap {
  protected:
   static NAN_METHOD(New);
   static NAN_METHOD(flush);
+  static NAN_METHOD(logText);
 
  private:
   Logger _logger;

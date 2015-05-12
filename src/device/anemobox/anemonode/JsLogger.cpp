@@ -60,6 +60,7 @@ void JsLogger::Init(v8::Handle<v8::Object> target) {
   // Prototype
   Local<ObjectTemplate> proto = tpl->PrototypeTemplate();
   NODE_SET_METHOD(proto, "flush", JsLogger::flush);
+  NODE_SET_METHOD(proto, "logText", JsLogger::logText);
 
   NanAssignPersistent<FunctionTemplate>(logger_constructor, tpl);
 
@@ -95,6 +96,30 @@ NAN_METHOD(JsLogger::flush) {
   obj->_logger.flushTo(worker->dataContainer());
 
   NanAsyncQueueWorker(worker);
+  NanReturnUndefined();
+}
+
+NAN_METHOD(JsLogger::logText) {
+  NanScope();
+
+  JsLogger* obj = ObjectWrap::Unwrap<JsLogger>(args.This());
+  if (!obj) {
+    NanThrowTypeError("This is not a Logger");
+    NanReturnUndefined();
+  }
+
+  if (args.Length() < 2 || !args[0]->IsString() || !args[1]->IsString()) {
+    NanThrowTypeError(
+        "Bad arguments. "
+        "Usage: logText('source', 'content')");
+    NanReturnUndefined();
+  }
+
+  v8::String::Utf8Value source(args[0]->ToString());
+  v8::String::Utf8Value content(args[1]->ToString());
+
+  obj->_logger.logText(*source, *content);
+
   NanReturnUndefined();
 }
 

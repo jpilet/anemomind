@@ -41,6 +41,7 @@ message ValueSet {
   optional VelocityValueSet velocity = 4;
   optional LengthValueSet length = 5;
   optional GeoPosValueSet pos = 6;
+  repeated string text = 7;
 }
 
 message LogFile {
@@ -48,4 +49,8 @@ message LogFile {
   optional string anemobox = 2;
   optional string boatId = 3;
   optional string boatName = 4;
+
+  // those streams do not directly come from the dispatcher.
+  // They can contain raw nmea or text logs.
+  repeated ValueSet text = 5;
 }

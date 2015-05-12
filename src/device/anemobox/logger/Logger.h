@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <map>
 
 namespace sail {
 
@@ -23,6 +24,7 @@ public:
   LoggerValueListener(const std::string& shortName) : _shortName(shortName) {
     clear();
   }
+  LoggerValueListener(const LoggerValueListener& other) = default;
 
   const ValueSet& valueSet() const { return _valueSet; }
   ValueSet* mutable_valueSet() { return &_valueSet; }
@@ -89,6 +91,10 @@ public:
 
   virtual void onNewValue(const ValueDispatcher<TimeStamp> &) { }
 
+  void addText(const std::string& text) {
+    addTimestamp(TimeStamp::now());
+    _valueSet.add_text(text);
+  }
 private:
   ValueSet _valueSet;
   int intBase;
@@ -113,6 +119,8 @@ class Logger {
   // Start listening to dispatched values.
   void subscribe();
 
+  void logText(const std::string& streamName, const std::string& content);
+
   // Save invokes gzip, it might be slightly time consuming.
   static bool save(const std::string& filename, const LogFile& data);
   static bool read(const std::string& filename, LogFile *dst);
@@ -134,6 +142,7 @@ class Logger {
  private:
   Dispatcher* _dispatcher;
   std::vector<std::shared_ptr<LoggerValueListener>> _listeners;
+  std::map<std::string, LoggerValueListener> _textLoggers;
 };
 
 }  // namespace sail

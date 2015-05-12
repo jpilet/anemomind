@@ -35,3 +35,32 @@ TEST(LoggerTest, SmokeTest) {
   }
   boost::filesystem::remove(filename);
 }
+
+TEST(LoggerTest, LogText) {
+  Dispatcher dispatcher;
+  Logger logger(&dispatcher);
+
+  logger.logText("source A", "sentence A1");
+  logger.logText("source B", "sentence B1");
+  logger.logText("source A", "sentence A2");
+
+  LogFile data;
+  logger.flushTo(&data);
+
+  EXPECT_EQ(2, data.text_size());
+
+  for (int i = 0; i < 2; ++i) {
+    auto stream = data.text(i);
+    if (stream.shortname() == "source A") {
+      EXPECT_EQ(2, stream.text_size());
+      EXPECT_EQ(2, stream.timestamps_size());
+      EXPECT_EQ("sentence A1", stream.text(0));
+      EXPECT_EQ("sentence A2", stream.text(1));
+    } else {
+      EXPECT_EQ("source B", stream.shortname());
+      EXPECT_EQ(1, stream.text_size());
+      EXPECT_EQ(1, stream.timestamps_size());
+      EXPECT_EQ("sentence B1", stream.text(0));
+    }
+  }
+}
