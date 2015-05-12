@@ -26,9 +26,10 @@ function startBTLE() {
   util.inherits(DeviceInformationService, BlenoPrimaryService);
   module.exports = DeviceInformationService;
    
+  var anemoServiceUuid = 'AFF1E42DEF91456F86FA8703FFFFFFF0';
   function AnemoService() {
     AnemoService.super_.call(this, {
-      uuid: 'AFF1E42DEF91456F86FA8703FFFFFFF0',
+      uuid: anemoServiceUuid,
       characteristics: characteristicsArray
     });
   }
@@ -39,7 +40,7 @@ function startBTLE() {
     console.log('on -> stateChange: ' + state);
    
     if (state === 'poweredOn') {
-      bleno.startAdvertising('Anemobox', ['AFF1E42DEF91456F86FA8703FFFFFFF0']);
+      bleno.startAdvertising('Anemobox', [anemoServiceUuid]);
     } else {
       bleno.stopAdvertising();
     }
