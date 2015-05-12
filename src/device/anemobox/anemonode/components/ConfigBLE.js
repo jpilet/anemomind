@@ -6,9 +6,11 @@ var config = require('./config');
 var BlenoPrimaryService = bleno.PrimaryService;
 var BlenoCharacteristic = bleno.Characteristic;
 
+var anemoConfigUuidPrefix = 'AFF1E42DEF91456F86FA87031000000';
+
 var GetAnemoIdCharacteristic = function() {
   GetAnemoIdCharacteristic.super_.call(this, {
-    uuid: 'ffffffffffffffffffffffffffffff00',
+    uuid: anemoConfigUuidPrefix + '0',
     properties: ['read']
   });
 };
@@ -23,7 +25,7 @@ GetAnemoIdCharacteristic.prototype.onReadRequest = function(offset, callback) {
 
 var BoatIdCharacteristic = function() {
   BoatIdCharacteristic.super_.call(this, {
-    uuid: '0001ffffffffffffffffffffffffff00',
+    uuid: anemoConfigUuidPrefix + '1',
     properties: ['read', 'write']
   });
 };
@@ -72,7 +74,7 @@ BoatIdCharacteristic.prototype.onWriteRequest =
 
 var BoatNameCharacteristic = function() {
   BoatNameCharacteristic.super_.call(this, {
-    uuid: '0001ffffffffffffffffffffffffff01',
+    uuid: anemoConfigUuidPrefix + '2',
     properties: ['read', 'write']
   });
 };

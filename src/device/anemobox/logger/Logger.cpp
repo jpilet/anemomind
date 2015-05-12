@@ -159,9 +159,10 @@ void Logger::unpackTime(const ValueSet& valueSet,
   result->clear();
   result->reserve(valueSet.timestamps_size());
 
+  int64_t time = 0;
   for (int i = 0; i < valueSet.timestamps_size(); ++i) {
-    result->push_back(TimeStamp::fromMilliSecondsSince1970(
-            valueSet.timestamps(i)));
+    time += valueSet.timestamps(i);
+    result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
   }
 }
 
