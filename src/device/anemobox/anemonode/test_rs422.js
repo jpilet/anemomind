@@ -1,6 +1,5 @@
 // Data source: NMEA0183
 
-var anemonode = require('../build/Release/anemonode');
 var SerialPort = require("serialport").SerialPort
 var fs = require('fs');
 
@@ -8,17 +7,13 @@ var nmea0183Port;
 
 function init(nmea0183PortPath) {
   // Let flow control make the port work.
-  fs.writeFile('/sys/kernel/debug/gpio_debug/gpio129/current_pinmux',
-               'mode0', function() {});
-  fs.writeFile('/sys/kernel/debug/gpio_debug/gpio129/current_value',
-               'high', function() {});
+  fs.writeFile('/sys/kernel/debug/gpio_debug/gpio129/current_pinmux', 'mode0', function() {});
+  fs.writeFile('/sys/kernel/debug/gpio_debug/gpio129/current_value', 'high', function() {});
 
   var port = new SerialPort(nmea0183PortPath, {
     baudrate: 4800
   }, false); // this is the openImmediately flag [default is true]
 
-  var nmeaPortSource = new anemonode.Nmea0183Source(
-      "NMEA0183: " + nmea0183PortPath);
 
   port.open(function (error) {
     if ( error ) {
@@ -27,8 +22,7 @@ function init(nmea0183PortPath) {
       console.log('Listening to NMEA0183 port ' + nmea0183PortPath);
       nmea0183Port = port;
       port.on('data', function(data) {
-        nmeaPortSource.process(data);
-        // TODO: log raw NMEA.
+        console.log('Received: ' + data);
       });
     }
   });
@@ -36,10 +30,15 @@ function init(nmea0183PortPath) {
 
 function emitNmea0183Sentence (sentence) {
   if (nmea0183Port) {
+    console.log('sending: ' + sentence);
     nmea0183Port.write(sentence);
   }
 }
 
-module.exports.init = init;
-module.exports.emitNmea0183Sentence = emitNmea0183Sentence;
+init('/dev/ttyMFD1');
+
+var counter = 0;
+setInterval(function() {
+  emitNmea0183Sentence('Hello ' + ++counter);
+  }, 1000);
 
