@@ -9,3 +9,9 @@ setInterval(function() {
   anemonode.dispatcher.tws.setValue(__filename, tws);
   console.log('tws: ' + tws);
 }, 2000);
+
+
+require('./components/rpcble').rpcFuncTable.echo = function(data, cb) {
+  console.log('RPC echo called with: ' + data.text); 
+  cb({ echo: 'I got your message: ' + data.text + '. Thanks!'});
+};
