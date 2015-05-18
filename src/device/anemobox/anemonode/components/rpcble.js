@@ -8,7 +8,7 @@ var ANSWER_CODE = 0;
 
 var rpcFuncTable = {};
 
-var mtu = bleno.mtu;
+var mtu = 20;
 
 bleno.onMtuChange = function(newMtu) {
   mtu = newMtu;
@@ -37,32 +37,18 @@ RpcCharacteristic.prototype.call = function(func, args, callback) {
     args: args
   };
 
-  this.pendingCalls[callId] = callback;
+  this.pendingCalls[packet.callId] = callback;
 
-  zlib.deflate(JSON.stringify(packet), function(err, buffer) {
-    if (err) {
-      callback(err, undefined);
-    } else {
-      this.sendBuffer(buffer);
-    }
-  });
+  this.sendBuffer(zlib.gzipSync(JSON.stringify(packet)));
 }
 
-RpcCharacteristic.prototype.handleReceivedBuffer = function(buffer) {
+RpcCharacteristic.prototype.handleReceivedPacket = function(packet) {
   var rpcble = this;
-
-  zlib.unzip(buffer, function(err, buffer) {
-    if (err) {
-      console.log('btrpc: ignoring a bad RPC buffer');
-      return;
-    }
-    var packet = JSON.parse(buffer.toString());
-
     if ('answerId' in packet) {
       // We received an answer. Let's check we actually asked for it.
       if (packet.answerId in rpcble.pendingCalls) {
         rpcble.pendingCalls[packet.answerId]('answer' in packet ? packet.answer : undefined);
-        delete rpcble.pendingCalls[pcaket.answerId];
+        delete rpcble.pendingCalls[packet.answerId];
       } else {
         console.log('answerId does not match the know callIds: ' + packet.answerId);
       }
@@ -70,25 +56,34 @@ RpcCharacteristic.prototype.handleReceivedBuffer = function(buffer) {
                && 'callId' in packet) {
       // We received a valid call.
       var rpcFunc = rpcFuncTable[packet.func];
+      console.log('call to: ' + packet.func);
 
       rpcFunc(('args' in packet ? packet.args : undefined), function(answer) {
         var reply = {
           answerId: packet.callId,
           answer: answer
         };
-        zlib.deflate(JSON.stringify(reply), function(err, buffer) {
-          if (err) {
-            throw(err);
-          } else {
-            console.log('sending ' + buffer.length + ' bytes');
-            rpcble.sendBuffer(buffer);
-          }
-        });
+        var buffer = zlib.gzipSync(JSON.stringify(reply));
+        rpcble.sendBuffer(buffer);
       });
     } else {
-      console.log('malformed btrpc call: ' + buffer.toString());
+      console.log('malformed btrpc call: ');
+      console.warn(packet);
     }
-  });
+};
+
+RpcCharacteristic.prototype.handleReceivedBuffer = function(compressed) {
+  var buffer;
+  try {
+    buffer = zlib.gunzipSync(compressed);
+  } catch(e) {
+    console.log('btrpc: ignoring a bad RPC buffer');
+    return;
+  }
+
+
+  var packet = JSON.parse(buffer.toString());
+  this.handleReceivedPacket(packet);
 };
 
 RpcCharacteristic.prototype.sendBuffer = function(buffer, callback) {
@@ -123,14 +118,16 @@ RpcCharacteristic.prototype.sendNextChunk = function() {
   var chunkLimit = this.sentBytes + mtu;
   var sendLimit = Math.min(chunkLimit, buffer.length);
 
-  this.pushBuffer(buffer.slice(this.sentBytes, sendLimit));
+  //console.log('sending ' + (sendLimit - this.sentBytes) + ' bytes, ' + this.sentBytes + ' already sent');
+  var from = this.sentBytes;
   this.sendingEOM = false;
-
   this.sentBytes = sendLimit;
+  this.pushBuffer(buffer.slice(from, sendLimit));
 };
 
 RpcCharacteristic.prototype.onSubscribe =
     function(maxValueSize, updateValueCallback) {
+  mtu = maxValueSize;
   this.pushBuffer = updateValueCallback;
   this.sendNextBuffer();
 };
@@ -156,8 +153,8 @@ RpcCharacteristic.prototype.onNotify = function() {
     this.sendNextBuffer();
   } else if (this.bufferToSend.data.length <= this.sentBytes) {
     // everything is sent. Send EOM.
-    this.pushBuffer(new Buffer("==EOM=="));
     this.sendingEOM = true;
+    this.pushBuffer(new Buffer("==EOM=="));
   } else {
     // We are in the middle of a transfer, send the next chunk.
     this.sendNextChunk();
@@ -183,8 +180,13 @@ RpcCharacteristic.prototype.onWriteRequest = function(data, offset, withoutRespo
 
 //module.exports.rpc = new RpcCharacteristic();
 
+var rpcChar = new RpcCharacteristic();
+
+module.exports.call = function(func, args, callback) {
+  rpcChar.call(func, args, callback);
+}
+
 module.exports.pushCharacteristics = function(array) {
-  var rpcChar = new RpcCharacteristic();
   array.push(rpcChar);
 }
 module.exports.rpcFuncTable = rpcFuncTable;
