@@ -40,16 +40,16 @@ function write(config, cb) {
 function get(cb) {
   if (globalConfig) {
     cb(undefined, clone(globalConfig));
+  } else {
+    fs.readFile(configFile, {encoding: 'utf8'}, function(err, data) {
+      if (err) {
+	write(defaultConfig(), cb);
+      } else {
+	globalConfig = JSON.parse(data);
+	cb(undefined, clone(globalConfig));
+      }
+    });
   }
-
-  fs.readFile(configFile, {encoding: 'utf8'}, function(err, data) {
-    if (err) {
-      write(defaultConfig(), cb);
-    } else {
-      globalConfig = JSON.parse(data);
-      cb(undefined, clone(globalConfig));
-    }
-  });
 }
 
 function change(changes, cb) {
@@ -59,6 +59,7 @@ function change(changes, cb) {
     } else {
       for (var i in changes) {
         config[i] = changes[i];
+        console.log('Changing config.' + i + ' to ' + changes[i]);
       }
       write(config, cb);
     }

@@ -33,8 +33,10 @@ var BoatIdCharacteristic = function() {
 util.inherits(BoatIdCharacteristic, BlenoCharacteristic);
 
 BoatIdCharacteristic.prototype.onReadRequest = function(offset, callback) {
+  console.log('read request boatId with offset: ' + offset);
   config.get(function(err, config) {
     if (config && config.boatId) {
+      console.log('Sending boatId:' + config.boatId);
       callback(this.RESULT_SUCCESS, new Buffer(config.boatId));
     } else {
       callback(this.RESULT_UNLIKELY_ERROR);
@@ -51,22 +53,11 @@ BoatIdCharacteristic.prototype.onWriteRequest =
   } else {
     var boatId = data.toString('ascii');
     console.log('assigning boat id: ' + boatId);
-    config.get(function(err, cfg) {
-      if (cfg) {
-        if (!cfg.boatId || cfg.boatId == boatId) {
-          cfg.boatId = boatId;
-          config.write(cfg, function(err) {
-            if (err) {
-              callback(this.RESULT_UNLIKELY_ERROR);
-            } else {
-              callback(this.RESULT_SUCCESS);
-            }
-          });
-        } else {
-          callback(this.RESULT_UNLIKELY_ERROR);
-        }
-      } else {
+    config.change({boatId: boatId}, function(err, cfg) {
+      if (err) {
         callback(this.RESULT_UNLIKELY_ERROR);
+      } else {
+        callback(this.RESULT_SUCCESS);
       }
     });
   }
@@ -82,8 +73,10 @@ var BoatNameCharacteristic = function() {
 util.inherits(BoatNameCharacteristic, BlenoCharacteristic);
 
 BoatNameCharacteristic.prototype.onReadRequest = function(offset, callback) {
+  console.log('boat name read request.');
   config.get(function(err, config) {
     if (config && config.boatName) {
+      console.log('Sending boatName:' + config.boatName);
       callback(this.RESULT_SUCCESS, new Buffer(config.boatName));
     } else {
       callback(this.RESULT_UNLIKELY_ERROR);
