@@ -12,6 +12,7 @@ function startBTLE() {
   var characteristicsArray = [];
   require('./DispatcherBLE').pushCharacteristics(characteristicsArray);
   require('./ConfigBLE').pushCharacteristics(characteristicsArray);
+  require('./rpcble').pushCharacteristics(characteristicsArray);
 
   function DeviceInformationService() {
     DeviceInformationService.super_.call(this, {
