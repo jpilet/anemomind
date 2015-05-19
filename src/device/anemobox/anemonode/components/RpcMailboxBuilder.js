@@ -54,7 +54,7 @@ function callMailboxMethod(mailboxName, methodName, args, cb) {
 
 function encodeResult(argSpecs, result) {
     var len = argSpecs.length;
-    assert(len == 1 || len == 2);
+    assert(len == 1 || len == 2); // Only error, or error and result.
     if (len == 1) {
 	return {};
     } else {
