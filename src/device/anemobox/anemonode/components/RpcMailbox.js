@@ -31,27 +31,32 @@ function callMailboxMethod(mailboxName, methodName, args, cb) {
 	if (err) {
 	    cb(err);
 	} else {
-	    try {
-		mailbox[methodName].apply(mailbox, args.concat([
-		    function(err, result) {
-			if (err) {
-			    cb(err);
-			} else {
-			    mailbox.close(function(err) {
-				if (err) {
-				    cb(err);
-				} else {
-				    cb(undefined, result);
-				}
-			    });
+	    var method = mailbox[methodName];
+	    if (!method || typeof(method) != 'function') {
+		cb('unknown mailbox method: ' + mailbox.methodName);
+	    } else {
+		try {
+		    method.apply(mailbox, args.concat([
+			function(err, result) {
+			    if (err) {
+				cb(err);
+			    } else {
+				mailbox.close(function(err) {
+				    if (err) {
+					cb(err);
+				    } else {
+					cb(undefined, result);
+				    }
+				});
+			    }
 			}
-		    }
-		]));
-	    } catch (e) {
-		console.log(
-		    "Please don't throw exceptions, passing errors to the callback is better.");
-		console.log("This exception was caught: %j", e);
-		cb(e);
+		    ]));
+		} catch (e) {
+		    console.log(
+			"Please don't throw exceptions, passing errors to the callback is better.");
+		    console.log("This exception was caught: %j", e);
+		    cb(e);
+		}
 	    }
 	}
     });
