@@ -1,11 +1,9 @@
-// This file exposes an RPC interface over bluetooth
-// to interact with a mailbox.
-
+// This file exports a single function, fillTable, that can be used to fille the rpcFuncTable of
+// rpcble.js. It is used by RpcMailbox.js. The reason for putting this code in its own file
+// is to facilitate unit testing.
 schema = require('mail/mailbox-schema.js');
 coder = require("mail/json-coder.js");
 mb = require("mail/mail.sqlite.js");
-assert = require('assert');
-
 
 // Conveniency function for
 // error handling.
@@ -61,11 +59,14 @@ function callMailboxMethod(mailboxName, methodName, args, cb) {
 
 function encodeResult(argSpecs, result) {
     var len = argSpecs.length;
-    assert(len == 1 || len == 2); // Only error, or error and result.
-    if (len == 1) {
-	return {};
+    if (len == 1 || len == 2) {
+	if (len == 1) {
+	    return {};
+	} else {
+	    return {result: coder.encode(argSpecs[1], result)};
+	}
     } else {
-	return {result: coder.encode(argSpecs[1], result)};
+	return {error: "Bad arg specs"};
     }
 }
 
