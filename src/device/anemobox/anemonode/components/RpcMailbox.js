@@ -1,4 +1,4 @@
 rpcFuncTable = require('./rpcble').rpcFuncTable;
-builder = require('./components/RpcMailboxBuilder.js');
+builder = require('./RpcMailboxBuilder.js');
 
 builder.fillTable(rpcFuncTable);
