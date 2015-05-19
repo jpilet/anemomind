@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "./build/Release/anemonode",
   "dependencies": {
-    "mail": "file:../../../../nodemodules/mail",
     "bleno": "^0.1.12",
+    "mail": "file:../../../../nodemodules/mail",
     "mkdirp": "^0.5.0",
+    "mocha": "^2.2.5",
     "mraa": "^0.6.2",
     "nan": "^1.7.0"
   }

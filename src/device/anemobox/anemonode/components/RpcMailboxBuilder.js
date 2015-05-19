@@ -4,6 +4,7 @@
 schema = require('mail/mailbox-schema.js');
 coder = require("mail/json-coder.js");
 mb = require("mail/mail.sqlite.js");
+assert = require('assert');
 
 
 // Conveniency function for
@@ -37,7 +38,7 @@ function callMailboxMethod(mailboxName, methodName, args, cb) {
 		    if (err) {
 			cb(err);
 		    } else {
-			mb.close(function(err) {
+			mailbox.close(function(err) {
 			    if (err) {
 				cb(err);
 			    } else {
@@ -51,13 +52,13 @@ function callMailboxMethod(mailboxName, methodName, args, cb) {
     });
 }
 
-function encodeResult(argSpec, result) {
-    var len = argSpec.length;
+function encodeResult(argSpecs, result) {
+    var len = argSpecs.length;
     assert(len == 1 || len == 2);
     if (len == 1) {
 	return {};
     } else {
-	return {result: coder.encode(argSpec, result)};
+	return {result: coder.encode(argSpecs[1], result)};
     }
 }
 
