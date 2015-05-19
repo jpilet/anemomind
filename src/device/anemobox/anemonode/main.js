@@ -20,4 +20,6 @@ require('./components/logger').startLogging(logRoot, logInterval, function(path)
 
 require('./components/RpcAssignBoat');
 
-require('./components/RpcMailbox');
+require('./components/RpcMailbox').fillTable(
+    require('./components/rpcble').rpcFuncTable
+);

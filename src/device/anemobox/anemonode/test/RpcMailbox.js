@@ -1,4 +1,4 @@
-var builder = require('../components/RpcMailboxBuilder.js');
+var builder = require('../components/RpcMailbox.js');
 var assert = require('assert');
 
 var rpcTable = {};
