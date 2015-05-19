@@ -5,6 +5,7 @@
   "dependencies": {
     "bleno": "^0.1.12",
     "mail": "file:../../../../nodemodules/mail",
+    "mangler": "file:../../../../nodemodules/mangler",
     "mkdirp": "^0.5.0",
     "mocha": "^2.2.5",
     "mraa": "^0.6.2",

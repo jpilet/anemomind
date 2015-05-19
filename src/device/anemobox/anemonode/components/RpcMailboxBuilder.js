@@ -4,6 +4,7 @@
 schema = require('mail/mailbox-schema.js');
 coder = require("mail/json-coder.js");
 mb = require("mail/mail.sqlite.js");
+mangler = require("mangler");
 
 // Conveniency function for
 // error handling.
@@ -91,7 +92,7 @@ function makeRpcFunction(methodName, method) {
 			    console.log("The error is %j", err);
 			    cb({error: message +  + ". See the server log for details."});
 			} else {
-			    cb(encodeResult(method.output, result));
+			    cb(mangler.mangle(encodeResult(method.output, result)));
 			}
 		    }
 		);
