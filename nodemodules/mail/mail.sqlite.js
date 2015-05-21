@@ -1093,12 +1093,21 @@ Mailbox.prototype.dispPacketSummary = function(cb) {
 }
 
 Mailbox.prototype.reset = function(cb) {
-  var db = this.db;
-  dropTables(db, function(err) {
+  this.db.beginTransaction(function(err, T) {
     if (err) {
       cb(err);
     } else {
-      createAllTables(db, cb);
+      dropTables(T, function(err) {
+	if (err) {
+	  cb(err);
+	} else {
+	  createAllTables(T, function(err) {
+	    T.commit(function(err2) {
+	      cb(err || err2);
+	    });
+	  });
+	}
+      });
     }
   });
 }
