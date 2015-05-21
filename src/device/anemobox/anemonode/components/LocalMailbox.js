@@ -13,11 +13,17 @@ function getName(cb) {
   });
 }
 
+// Open a mailbox with a particular name. Usually, this should
+// be the one obtained from 'getName'.
+function openWithName(mailboxName, cb) {
+  var filename = mailRoot + mailboxName;
+  tryMakeMailbox(filename, mailboxName, cb);
+}
+
 // Open a local mailbox. cb is called with (err, mailbox)
 function open(cb) {
   getName(function(mailboxName) {
-    var filename = mailRoot + localMailboxName;
-    tryMakeMailbox(filename, mailboxName, cb);
+    openWithName(mailboxName, cb);
   });
 }
 
