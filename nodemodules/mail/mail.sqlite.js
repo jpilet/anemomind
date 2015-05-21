@@ -336,15 +336,11 @@ function makeNewSeqNumberSub(T, dst, x, cb) {
   var self = this;
   var makeCompletedFun = function(y) {
     return function(err) {
-      T.commit(
-	function(err) {
-	  if (err == undefined) {
-	    cb(err, y);
-	  } else {
-	    cb(err);
-	  }
-	}
-      );
+      if (err == undefined) {
+	cb(err, y);
+      } else {
+	cb(err);
+      }
     };
   };
   if (x == undefined) {
@@ -1170,10 +1166,10 @@ Mailbox.prototype.sendPacketSub = function (T, dst, label, data, cb) {
 		query, results.diaryNumber,
 		self.mailboxName, dst, results.seqNumber,
 		cNumber, label, data, false,/*not yet acknowledged*/
-		cb2);
+		cb);
 	    });
 	} else {
-	  cb2(err);
+	  cb(err);
 	}
       });
   }
@@ -1181,15 +1177,18 @@ Mailbox.prototype.sendPacketSub = function (T, dst, label, data, cb) {
 
 Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
   var self = this;
+  console.log("BEGIN SEND PACKET");
   self.db.beginTransaction(function(err, T) {
     if (err) {
       cb(err)
     } else {
       var cb2 = function(err) {
+	console.log("END SEND PACKET");
 	T.commit(function(err2) {
 	  cb(err || err2);
 	});
       }
+      
       self.sendPacketSub(T, dst, label, data, cb2);
     }
   });
