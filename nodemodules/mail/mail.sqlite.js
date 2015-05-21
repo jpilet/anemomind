@@ -715,17 +715,19 @@ Mailbox.prototype.getAllPackets = function(cb) {
 
 // A packet can be uniquely identified by its source mailbox and the seqNumber.
 Mailbox.prototype.hasPacket = function(T, src, seqNumber, cb) {
-  assert(isIdentifier(src));
-  assert(isCounter(seqNumber));
-  assert(isFunction(cb));    
-  var query = 'SELECT * FROM packets WHERE src = ? AND seqNumber = ?';
-  T.get(query, src, seqNumber, function(err, row) {
-    if (err == undefined) {
-      cb(err, !(row == undefined));
-    } else {
-      cb(err);
-    }
-  });
+  if (!(isIdentifier(src) && isCounter(seqNumber))) {
+    cb(new Error("hasPacket got bad input"))
+  } else {
+    assert(isFunction(cb));    
+    var query = 'SELECT * FROM packets WHERE src = ? AND seqNumber = ?';
+    T.get(query, src, seqNumber, function(err, row) {
+      if (err == undefined) {
+	cb(err, !(row == undefined));
+      } else {
+	cb(err);
+      }
+    });
+  }
 }
 
 
