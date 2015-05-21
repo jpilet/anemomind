@@ -838,7 +838,7 @@ Mailbox.prototype.sendAck = function(T, src, cb) {
   assert(isFunction(cb));    
   var self = this;
   var query = 'SELECT seqNumber FROM packets WHERE src = ? AND dst = ? AND ack = 0';
-  self.getDB().all(
+  T.all(
     query, src, self.mailboxName,
     function(err, data) {
       var seqnums = new Array(data.length);
