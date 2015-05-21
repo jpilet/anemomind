@@ -733,56 +733,59 @@ Mailbox.prototype.hasPacket = function(T, src, seqNumber, cb) {
 
 // This method will update the C-table and save the packet in the db.
 Mailbox.prototype.registerPacketData = function(T, packet, cb) {
-  assert(isValidPacket(packet));
-  var logger = makeNestedLogger();
-  assert(isFunction(cb));    
-  var self = this;
-  this.hasPacket(T, packet.src, packet.seqNumber, function(err, has) {
-    if (err == undefined) {
-      if (has) {
+  if (!isValidPacket(packet)) {
+    cb(new Error("registerPacketData got bad input"));
+  } else {
+    var logger = makeNestedLogger();
+    assert(isFunction(cb));    
+    var self = this;
+    this.hasPacket(T, packet.src, packet.seqNumber, function(err, has) {
+      if (err == undefined) {
+	if (has) {
 
-	// Nothing to do if we already have the packet.
-	// TODO: If we end up here, we have probably transferred
-	//       packet data for no use.
-	cb(err);
-	
+	  // Nothing to do if we already have the packet.
+	  // TODO: If we end up here, we have probably transferred
+	  //       packet data for no use.
+	  cb(err);
+	  
+	} else {
+
+	  // Get a diary number for this packet
+	  self.makeNewDiaryNumber(T, function(err, num) {
+	    if (err == undefined) {
+
+
+	      // Insert the packet into the packet database
+	      var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+	      T.run(
+		query, num,
+		packet.src, packet.dst, packet.seqNumber,
+		packet.cNumber, packet.label, packet.data, false,
+		function(err) {
+
+		  
+		  if (err == undefined) {
+
+		    
+		    // Update the c-number
+		    self.updateCTable(T,
+				      packet.src, packet.dst,
+				      packet.cNumber, cb);
+		    
+		  } else {
+		    cb(err);
+		  }
+		});
+	    } else {
+	      cb(err);
+	    }
+	  });
+	}
       } else {
-
-	// Get a diary number for this packet
-	self.makeNewDiaryNumber(T, function(err, num) {
-	  if (err == undefined) {
-
-
-	    // Insert the packet into the packet database
-	    var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-	    T.run(
-	      query, num,
-	      packet.src, packet.dst, packet.seqNumber,
-	      packet.cNumber, packet.label, packet.data, false,
-	      function(err) {
-
-		
-		if (err == undefined) {
-
-		  
-		  // Update the c-number
-		  self.updateCTable(T,
-		    packet.src, packet.dst,
-		    packet.cNumber, cb);
-		  
-		} else {
-		  cb(err);
-		}
-	      });
-	  } else {
-	    cb(err);
-	  }
-	});
+	cb(err);
       }
-    } else {
-      cb(err);
-    }
-  });
+    });
+  }
 }
 
 // Get the number of packets for which we haven't sent an ack packet.
