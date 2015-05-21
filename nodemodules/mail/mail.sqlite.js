@@ -10,8 +10,9 @@ var async = require('async');
 var assert = require('assert');
 var pkt = require('./packet.js');
 var bigint = require('./bigint.js');
+var labels = require('./labels.js');
 
-var ACKLABEL = 127;
+var ACKLABEL = labels.ack;
 
 function serializeString(x) {
     assert(typeof x == 'string');
