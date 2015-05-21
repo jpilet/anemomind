@@ -676,24 +676,21 @@ Mailbox.prototype.updateCTable = function(T, src, dst, newValue, cb) {
 
 // Check if an incoming packet should be admitted.
 Mailbox.prototype.isAdmissibleSub = function(T, src, dst, seqNumber, cb) {
-  assert(isIdentifier(src));
-  assert(isIdentifier(dst));
-  assert(isCounter(seqNumber));
-  assert(src != undefined);
-  assert(dst != undefined);
-  
-  assert(isFunction(cb));
-
-  if (src == this.mailboxName) {
-    cb(undefined, false);
+  if (!(isIdentifier(src) && isIdentifier(dst) && isCounter(seqNumber) && src != undefined && dst != undefined)) {
+    cb(new Error("Bad input to isAdmissibleSub"));
   } else {
-    this.getCNumber(T, src, dst, function(err, cNumber) {
-      if (err == undefined) {
-	cb(err, (cNumber == undefined? true : (cNumber <= seqNumber)));
-      } else {
-	cb(err);
-      }
-    });
+    assert(isFunction(cb));
+    if (src == this.mailboxName) {
+      cb(undefined, false);
+    } else {
+      this.getCNumber(T, src, dst, function(err, cNumber) {
+	if (err == undefined) {
+	  cb(err, (cNumber == undefined? true : (cNumber <= seqNumber)));
+	} else {
+	  cb(err);
+	}
+      });
+    }
   }
 };
 
