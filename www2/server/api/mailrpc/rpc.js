@@ -9,6 +9,12 @@ var coder = require('mail/json-coder.js');
 var assert = require('assert');
 var mb = require('./mailbox.js');
 
+var boat = require('../boat/boat.controller.js');
+
+var userCanAccess(user, mailboxName, cb) {
+    
+}
+
 
 // All RPC-bound functions should be fields of this 'rpc' object. Just add
 // them here below, using 'addRpc'.
@@ -22,6 +28,7 @@ var rpc = {};
 // Check if a user is authorized to access a mailbox.
 function acquireMailboxAccess(user, mailboxName, cb) {
     //cb(new Error("Unauthorized mailbox access"), {statusCode: 401});
+    console.log("The user is %j", user);
     cb({statusCode: 401, message: "Unauthorized access to " + mailboxName});
 }
 
