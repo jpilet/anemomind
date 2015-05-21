@@ -393,7 +393,7 @@ function maximizeAndGetCNumber(box, cb) {
     'ddd',
     function(err) {
       assert.equal(err, undefined);
-      box.getCNumber(
+      box.getCNumber(box.db, 
 	box.mailboxName,
 	'ddd',
 	cb
