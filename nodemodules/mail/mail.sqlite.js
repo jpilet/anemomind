@@ -33,6 +33,20 @@ var labels = require('./labels.js');
 
 var ACKLABEL = labels.ack;
 
+
+var inTransaction = false;
+
+function beginTransaction(db, cb) {
+  inTransaction = true;
+  db.beginTransaction(cb);
+}
+
+function commit(T, cb) {
+  inTransaction = false;
+  T.commit(cb);
+}
+
+
 function serializeString(x) {
   assert(typeof x == 'string');
   var buf = new Buffer(2*x.length);
@@ -152,8 +166,8 @@ function runWithLog(db, cmd) {
   db.run(cmd);
 }
 
-// To obtain these strings, instantiate the db with the file 'network.db'
-// Then type in the terminal 'sqlite3 network.db .fullschema'
+// To obtain these strings, instantiate the db with the file 'network.getDB()'
+// Then type in the terminal 'sqlite3 network.getDB() .fullschema'
 //
 // PRIMARY KEY should be the last column of every create statement
 var fullschema = "CREATE TABLE IF NOT EXISTS seqNumbers (dst TEXT, counter TEXT, PRIMARY KEY(dst));\
@@ -314,8 +328,8 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
       throw new Error('Dst should be a string. Currently, its value is ' + dst);
     }
     var self = this;
-    this.db.serialize(function() {
-      self.db.get(
+    this.getDB().serialize(function() {
+      self.getDB().get(
 	'SELECT counter FROM seqNumbers WHERE dst = ?', dst,
 	function(err, row) {
 	  if (err == undefined) {
@@ -427,11 +441,11 @@ Mailbox.prototype.getForeignDiaryNumberSub = function(T, otherMailbox, cb) {
 
 Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
   var self = this;
-  this.db.beginTransaction(function(err, T) {
+  beginTransaction(this.getDB(), function(err, T) {
     assert(err == undefined);
     
     self.getForeignDiaryNumberSub(T, otherMailbox, function(err, result) {
-      T.commit(function(err2) {
+      commit(T, function(err2) {
 	cb(err || err2, result);
       });
     });
@@ -461,10 +475,10 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
   assert(isCounter(newValue));
   
   var self = this;
-  self.db.beginTransaction(function(err, T) {
+  beginTransaction(self.getDB(), function(err, T) {
     
     var cb2 = function(err) {
-      T.commit(function(err2) {
+      commit(T, function(err2) {
 	cb(err || err2);
       });
     }
@@ -504,7 +518,7 @@ Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight
     var query = 'SELECT ' + what +
       ' FROM packets  WHERE ? <= diaryNumber ORDER BY diaryNumber ASC';
     
-    this.db.get(query, diaryNumber, cb);
+    this.getDB().get(query, diaryNumber, cb);
   }
 }
 
@@ -610,7 +624,7 @@ Mailbox.prototype.removeObsoletePackets = function(T, src, dst, cb) {
 Mailbox.prototype.getTotalPacketCount = function(cb) {
   assert(isFunction(cb));    
   var query = 'SELECT count(*) FROM packets';
-  this.db.get(
+  this.getDB().get(
     query, function(err, row) {
       if (err == undefined) {
 	cb(err, row['count(*)']);
@@ -682,9 +696,9 @@ Mailbox.prototype.isAdmissibleSub = function(T, src, dst, seqNumber, cb) {
 
 Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
   var self = this;
-  this.db.beginTransaction(function(err, T) {
+  beginTransaction(this.getDB(), function(err, T) {
     var cb2 = function(err, adm) {
-      T.commit(function(err2) {
+      commit(T, function(err2) {
 	cb(err || err2, adm);
       });
     };
@@ -696,7 +710,7 @@ Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
 
 
 Mailbox.prototype.getAllPackets = function(cb) {
-  this.db.all('SELECT * FROM packets', cb);
+  this.getDB().all('SELECT * FROM packets', cb);
 }
 
 // A packet can be uniquely identified by its source mailbox and the seqNumber.
@@ -824,7 +838,7 @@ Mailbox.prototype.sendAck = function(T, src, cb) {
   assert(isFunction(cb));    
   var self = this;
   var query = 'SELECT seqNumber FROM packets WHERE src = ? AND dst = ? AND ack = 0';
-  self.db.all(
+  self.getDB().all(
     query, src, self.mailboxName,
     function(err, data) {
       var seqnums = new Array(data.length);
@@ -1054,9 +1068,9 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
   assert(isValidPacket(packet));
   assert(isFunction(cb));
   var self = this;
-  self.db.beginTransaction(function(err, T) {
+  beginTransaction(self.getDB(), function(err, T) {
     var cb2 = function(err, result) {
-      T.commit(function(err2) {
+      commit(T, function(err2) {
 	cb(err || err2, result);
       });
     }
@@ -1105,7 +1119,7 @@ Mailbox.prototype.getDiaryAndSeqNumbers = function(T, dst, cb) {
 
 Mailbox.prototype.dispPacketSummary = function(cb) {
   var self = this;
-  this.db.all(
+  this.getDB().all(
     'SELECT diaryNumber, seqNumber, ack FROM packets',
     function (err, results) {
       if (err == undefined) {
@@ -1124,7 +1138,7 @@ Mailbox.prototype.dispPacketSummary = function(cb) {
 }
 
 Mailbox.prototype.reset = function(cb) {
-  this.db.beginTransaction(function(err, T) {
+  beginTransaction(this.getDB(), function(err, T) {
     if (err) {
       cb(err);
     } else {
@@ -1133,7 +1147,7 @@ Mailbox.prototype.reset = function(cb) {
 	  cb(err);
 	} else {
 	  createAllTables(T, function(err) {
-	    T.commit(function(err2) {
+	    commit(T, function(err2) {
 	      cb(err || err2);
 	    });
 	  });
@@ -1144,7 +1158,7 @@ Mailbox.prototype.reset = function(cb) {
 }
 
 Mailbox.prototype.close = function(cb) {
-  this.db.close(cb);
+  this.getDB().close(cb);
 }
 
 // Given destination mailbox, label and data,
@@ -1188,7 +1202,7 @@ Mailbox.prototype.sendPacketSub = function (T, dst, label, data, cb) {
 Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
   var self = this;
   console.log("BEGIN SEND PACKET");
-  self.db.beginTransaction(function(err, T) {
+  beginTransaction(self.getDB(), function(err, T) {
     if (err) {
       cb(err)
     } else {
@@ -1196,7 +1210,7 @@ Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
       // The callback. 
       var cb2 = function(err) {
 	console.log("END SEND PACKET");
-	T.commit(function(err2) {
+	commit(T, function(err2) {
 	  cb(err || err2);
 	});
       }
@@ -1228,6 +1242,11 @@ Mailbox.prototype.sendPackets = function(dst, label, dataArray, cb) {
       }
     );
   }
+}
+
+Mailbox.prototype.getDB = function() {
+  assert(!inTransaction);
+  return this.db;
 }
 
 
