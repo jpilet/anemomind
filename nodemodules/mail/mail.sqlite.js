@@ -790,49 +790,54 @@ Mailbox.prototype.registerPacketData = function(T, packet, cb) {
 
 // Get the number of packets for which we haven't sent an ack packet.
 Mailbox.prototype.getNonAckCount = function(T, src, cb) {
-  assert(isIdentifier(src));
-  var query = 'SELECT count(*) FROM packets WHERE src = ? AND dst = ? AND ack = 0';
-  T.get(
-    query, src, this.mailboxName,
-    function(err, row) {
-      if (err == undefined) {
-	var value = row['count(*)'];
-	if (value == undefined) {
-	  cb(err, 0);
+  if (!isIdentifier(src)) {
+    cb(new Error("getNonAckCount got bad input"));
+  } else {
+    var query = 'SELECT count(*) FROM packets WHERE src = ? AND dst = ? AND ack = 0';
+    T.get(
+      query, src, this.mailboxName,
+      function(err, row) {
+	if (err == undefined) {
+	  var value = row['count(*)'];
+	  if (value == undefined) {
+	    cb(err, 0);
+	  } else {
+	    cb(err, value);
+	  }
 	} else {
-	  cb(err, value);
+	  cb(err);
 	}
-      } else {
-	cb(err);
-      }
-    });
+      });
+  }
 }
 
 // Set packets as acknowledged
 Mailbox.prototype.setAcked = function(T, src, dst, seqnums, cb) {
-  assert(isIdentifier(src));
-  assert(isIdentifier(dst));
-  assert(isFunction(cb));    
-  var query = 'UPDATE packets SET ack = 1 WHERE src = ? AND dst = ? AND seqNumber = ?';
-  var self = this;
+  if (!(isIdentifier(src) && isIdentifier(dst))) {
+    cb(new Error("setAcked got bad input"));
+  } else {
+    assert(isFunction(cb));    
+    var query = 'UPDATE packets SET ack = 1 WHERE src = ? AND dst = ? AND seqNumber = ?';
+    var self = this;
 
-  var setter = function(nums) {
-    if (nums.length == 0) {
-      cb();
-    } else {
-      var seqnum = nums[0];
-      T.run(
-	query, src, dst, seqnum,
-	function(err) {
-	  if (err == undefined) {
-	    setter(nums.slice(1));
-	  } else {
-	    cb(err);
-	  }
-	});
-    }
-  };
-  setter(seqnums);
+    var setter = function(nums) {
+      if (nums.length == 0) {
+	cb();
+      } else {
+	var seqnum = nums[0];
+	T.run(
+	  query, src, dst, seqnum,
+	  function(err) {
+	    if (err == undefined) {
+	      setter(nums.slice(1));
+	    } else {
+	      cb(err);
+	    }
+	  });
+      }
+    };
+    setter(seqnums);
+  }
 }
 
 
