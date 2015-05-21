@@ -490,16 +490,18 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
 // Retrieves the first packet starting from a diary number.
 Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight, cb) {
   assert(isFunction(cb));
-  assert(isCounter(diaryNumber));
-  
-  // During the synchronization process, we might only want the essential information
-  // to determine whether or not we are going to ask for the whole packet.
-  var what = (lightWeight? 'diaryNumber,src,seqNumber,dst' : '*');
-  
-  var query = 'SELECT ' + what +
-    ' FROM packets  WHERE ? <= diaryNumber ORDER BY diaryNumber ASC';
-  
-  this.db.get(query, diaryNumber, cb);
+  if (!isCounter(diaryNumber)) {
+    cb('The diary number must be a counter value, but was provided with ' + diaryNumber);
+  } else {
+    // During the synchronization process, we might only want the essential information
+    // to determine whether or not we are going to ask for the whole packet.
+    var what = (lightWeight? 'diaryNumber,src,seqNumber,dst' : '*');
+    
+    var query = 'SELECT ' + what +
+      ' FROM packets  WHERE ? <= diaryNumber ORDER BY diaryNumber ASC';
+    
+    this.db.get(query, diaryNumber, cb);
+  }
 }
 
 
