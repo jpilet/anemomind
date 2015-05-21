@@ -687,7 +687,13 @@ describe('Mailbox on file system', function() {
       mailsqlite.tryMakeMailbox('/tmp/mailbox.db', 'abc', function(err, mb) {
 	assert.equal(err, undefined);
 	assert(mb);
+	assert(mb.db);
 	mb.reset(function(err) {
+	  mailsqlite.dispAllTableData(mb.db, function(err) {
+	    done();
+	  });
+
+	  /*
 	  assert.equal(err, undefined);
 	  mb.sendPacket('rulle', 122, new Buffer(0), function(err) {
 	    assert.equal(err, undefined);
@@ -696,6 +702,8 @@ describe('Mailbox on file system', function() {
 	      done();
 	    });
 	  });
+	  */
+	  
 	});
       });
     }

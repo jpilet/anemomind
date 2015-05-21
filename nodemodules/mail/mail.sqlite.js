@@ -1062,7 +1062,14 @@ Mailbox.prototype.dispPacketSummary = function(cb) {
 }
 
 Mailbox.prototype.reset = function(cb) {
-  dropTables(this.db, cb);
+  var db = this.db;
+  dropTables(db, function(err) {
+    if (err) {
+      cb(err);
+    } else {
+      createAllTables(db, cb);
+    }
+  });
 }
 
 Mailbox.prototype.close = function(cb) {
