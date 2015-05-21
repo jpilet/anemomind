@@ -24,6 +24,7 @@ var rpc = {};
 
 
 // Check if a user is authorized to access a mailbox.
+// If not, produce an error object.
 function acquireMailboxAccess(user, mailboxName, cb) {
     var errorObject = {statusCode: 401,
 		       message: "Unauthorized access to " + mailboxName};

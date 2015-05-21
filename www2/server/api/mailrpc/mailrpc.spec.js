@@ -96,7 +96,7 @@ describe('/api/mailrpc', function() {
 
     it('should send a packet to another mailbox', function(done) {
     	server
-	    .post('/api/mailrpc/sendPacket/abc')
+	    .post('/api/mailrpc/sendPacket/' + remoteMailboxName)
 	    .send({dst: 'ccc', label: 0, data: new Buffer(4)})
 	    .set('Authorization', 'Bearer ' + token)
 	    .end(function(err, res) {
@@ -107,7 +107,7 @@ describe('/api/mailrpc', function() {
 
     it('should get the number of packets', function(done) {
 	server
-	    .get('/api/mailrpc/getTotalPacketCount/abc')
+	    .get('/api/mailrpc/getTotalPacketCount/' + remoteMailboxName)
 	    .set('Authorization', 'Bearer ' + token)
 	    .expect(200)
 	    .end(function(err, res) {
