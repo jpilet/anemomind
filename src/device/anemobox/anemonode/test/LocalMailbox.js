@@ -13,10 +13,13 @@ describe('LocalMailbox', function() {
 	  assert.equal(err, undefined);
 	  mb.sendPacket('rulle', 122, new Buffer(0), function(err) {
 	    assert.equal(err, undefined);
-	    mb.close(function(err) {
+	    mb.getTotalPacketCount(function(err, n) {
+	      assert.equal(n, 1);
 	      assert.equal(err, undefined);
-	      console.log('DONE!!!!!');
-	      done();
+	      mb.close(function(err) {
+		assert.equal(err, undefined);
+		done();
+	      });
 	    });
 	  });
 	});
