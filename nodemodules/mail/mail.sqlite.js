@@ -334,54 +334,58 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 
 // OBS!!!!
 function makeNewSeqNumberSub(T, dst, x, cb) {
-  assert(isIdentifier(dst));
-  assert(isCounter(x) || x == undefined);
-  assert(isFunction(cb));
-  
-  var self = this;
-  var makeCompletedFun = function(y) {
-    return function(err) {
-      if (err == undefined) {
-	cb(err, y);
-      } else {
-	cb(err);
-      }
-    };
-  };
-  if (x == undefined) {
-    var toReturn = bigint.makeFromTime();
-    var nextNumber = bigint.inc(toReturn);
-    T.run('INSERT INTO seqNumbers VALUES (?, ?);',
-	  dst, nextNumber, makeCompletedFun(toReturn));
+  if (!(isIdentifier(dst) && (isCounter(x) || x == undefined))) {
+    cb(new Error('makeNewSeqNumberSub bad input'));
   } else {
-    var toReturn = x;
-    var nextNumber = bigint.inc(x);
-    T.run('UPDATE seqNumbers SET counter = ? WHERE dst = ?',
-	  nextNumber, dst, makeCompletedFun(toReturn));
+    assert(isFunction(cb));
+    
+    var self = this;
+    var makeCompletedFun = function(y) {
+      return function(err) {
+	if (err == undefined) {
+	  cb(err, y);
+	} else {
+	  cb(err);
+	}
+      };
+    };
+    if (x == undefined) {
+      var toReturn = bigint.makeFromTime();
+      var nextNumber = bigint.inc(toReturn);
+      T.run('INSERT INTO seqNumbers VALUES (?, ?);',
+	    dst, nextNumber, makeCompletedFun(toReturn));
+    } else {
+      var toReturn = x;
+      var nextNumber = bigint.inc(x);
+      T.run('UPDATE seqNumbers SET counter = ? WHERE dst = ?',
+	    nextNumber, dst, makeCompletedFun(toReturn));
+    }
   }
-
 }
 
 // Makes a new sequence number that can be used.
 // Call this method every time we send a packet
 Mailbox.prototype.makeNewSeqNumber = function(T, dst, cb) {
-  assert(isFunction(cb));
-  assert(isIdentifier(dst));
-  
-  T.get(
-    'SELECT counter FROM seqNumbers WHERE dst = ?', dst,
-    function(err, row) {
-      if (err == undefined) {
-	if (row == undefined) {
-	  makeNewSeqNumberSub(T, dst, undefined, cb);
+  if (!isIdentifier(dst)) {
+    cb(new Error('Bad input to makeNewSeqNumber'));
+  } else {
+    assert(isFunction(cb));
+    
+    T.get(
+      'SELECT counter FROM seqNumbers WHERE dst = ?', dst,
+      function(err, row) {
+	if (err == undefined) {
+	  if (row == undefined) {
+	    makeNewSeqNumberSub(T, dst, undefined, cb);
+	  } else {
+	    makeNewSeqNumberSub(T, dst, row.counter, cb);
+	  }
 	} else {
-	  makeNewSeqNumberSub(T, dst, row.counter, cb);
+	  cb(err);
 	}
-      } else {
-	cb(err);
       }
-    }
-  );
+    );
+  }
 }
 
 // Gets the last diary number of all messages in THIS box.
