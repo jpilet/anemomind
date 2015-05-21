@@ -328,6 +328,7 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 };
 
 
+// OBS!!!!
 function makeNewSeqNumberSub(T, dst, x, cb) {
   assert(isIdentifier(dst));
   assert(isCounter(x) || x == undefined);
