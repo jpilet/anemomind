@@ -12,7 +12,18 @@ it(
 		var name = naming.makeMailboxNameFromBoatId(boatId);
 		assert.equal(name, "boatId_119");
 		var parsed = naming.parseMailboxName(name);
-		console.log("parsed = %j", parsed);
 		assert.equal(parsed.boatId, boatId);
 	    });
+
+	describe(
+	    'Should make a mailbox name from a box id and parse it',
+	    function() {
+		var boxId = "abc-119";
+		var name = naming.makeMailboxNameFromBoxId(boxId);
+		assert.equal(name, "boxId_abc-119");
+		var parsed = naming.parseMailboxName(name);
+		assert.equal(parsed.boxId, boxId);
+	    });
     });
+
+
