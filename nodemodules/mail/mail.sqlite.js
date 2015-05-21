@@ -1226,22 +1226,38 @@ Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
 //
 // Convenient when we need to chop up a big file in smaller packets
 // for robust transfer over e.g. bluetooth.
-Mailbox.prototype.sendPackets = function(dst, label, dataArray, cb) {
+Mailbox.prototype.sendPacketsSub = function(T, dst, label, dataArray, cb) {
   if (dataArray.length == 0) {
     cb();
   } else {
     var self = this;
-    this.sendPacket(
+    this.sendPacketSub(T, 
       dst, label, dataArray[0],
       function (err) {
 	if (err) {
 	  cb(err);
 	} else {
-	  self.sendPackets(dst, label, dataArray.slice(1), cb);
+	  self.sendPacketsSub(T, dst, label, dataArray.slice(1), cb);
 	}
       }
     );
   }
+}
+
+Mailbox.prototype.sendPackets = function(dst, label, dataArray, cb) {
+  var self = this;
+  this.db.beginTransaction(function(err, T) {
+    if (err) {
+      cb(err);
+    } else {
+      var cb2 = function(err) {
+	T.commit(function(err2) {
+	  cb(err || err2);
+	});
+      };
+      self.sendPacketsSub(T, dst, label, dataArray, cb2);
+    }
+  });
 }
 
 Mailbox.prototype.getDB = function() {
@@ -1251,7 +1267,9 @@ Mailbox.prototype.getDB = function() {
 
 
 
-
+module.exports.resetInTransaction = function() {
+  inTransaction = false;
+}
 module.exports.dispAllTableData = dispAllTableData;
 module.exports.expand = expand;
 module.exports.isCounter = isCounter;
