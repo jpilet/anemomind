@@ -448,53 +448,57 @@ Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
 
 // Use this function to get a number of the first packet to ask for when synchronizing
 Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
-  assert(isIdentifier(otherMailbox));
-  assert(isFunction(cb));
-  
-  this.getForeignDiaryNumber(otherMailbox, function(err, value) {
-    if (err == undefined) {
-      cb(err, (value == undefined? bigint.zero() : value));
-    } else {
-      cb(err);
-    }
-  });
+  if (!isIdentifier(otherMailbox)) {
+    cb(new Error("bad input to getForeignStartNumber"));
+  } else {
+    assert(isFunction(cb));
+    
+    this.getForeignDiaryNumber(otherMailbox, function(err, value) {
+      if (err == undefined) {
+	cb(err, (value == undefined? bigint.zero() : value));
+      } else {
+	cb(err);
+      }
+    });
+  }
 }
 
 // Sets the foreign number to a new value.
 Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
   assert(isFunction(cb));
-  assert(isIdentifier(otherMailbox));
-  assert(isCounter(newValue));
-  
-  var self = this;
-  beginTransaction(self.getDB(), function(err, T) {
-    
-    var cb2 = function(err) {
-      commit(T, function(err2) {
-	cb(err || err2);
-      });
-    }
-    
-    self.getForeignDiaryNumberSub(T, otherMailbox, function(err, previousValue) {
-      if (err == undefined) {
-	if (previousValue > newValue) {
-	  console.log('You are setting a new diary number which is lower than the previous one. This could be a bug.');
-	}
-
-	if (previousValue == undefined) {  // <-- This only happens when
-	  //     there isn't any existing
-	  //     diary number already.
-	  var query = 'INSERT INTO diaryNumbers VALUES (?, ?)';
-	  T.run(query, otherMailbox, newValue, cb2);
-	} else {
-	  var query = 'UPDATE diaryNumbers SET number = ? WHERE mailbox = ?';
-	  T.run(query, newValue, otherMailbox, cb2);
-	}
-      } else {
-	cb2(err);
+  if (!(isIdentifier(otherMailbox) && isCounter(newValue))) {
+    cb(new Error("Bad input to setForeignDiaryNumber"));
+  } else {
+    var self = this;
+    beginTransaction(self.getDB(), function(err, T) {
+      
+      var cb2 = function(err) {
+	commit(T, function(err2) {
+	  cb(err || err2);
+	});
       }
+      
+      self.getForeignDiaryNumberSub(T, otherMailbox, function(err, previousValue) {
+	if (err == undefined) {
+	  if (previousValue > newValue) {
+	    console.log('You are setting a new diary number which is lower than the previous one. This could be a bug.');
+	  }
+
+	  if (previousValue == undefined) {  // <-- This only happens when
+	    //     there isn't any existing
+	    //     diary number already.
+	    var query = 'INSERT INTO diaryNumbers VALUES (?, ?)';
+	    T.run(query, otherMailbox, newValue, cb2);
+	  } else {
+	    var query = 'UPDATE diaryNumbers SET number = ? WHERE mailbox = ?';
+	    T.run(query, newValue, otherMailbox, cb2);
+	  }
+	} else {
+	  cb2(err);
+	}
+      });
     });
-  });
+  }
 }
 
 // Retrieves the first packet starting from a diary number.
