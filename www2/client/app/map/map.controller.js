@@ -85,4 +85,42 @@ angular.module('www2App')
 
     $scope.$watch('mapLocation', setLocation);
     $scope.$watch('selectedCurve', setLocation);
+
+    var pointAtTime = function(time) {
+      if (!time || !$scope.plotData || $scope.plotData.length < 2) {
+        return {};
+      }
+
+      // TODO: move this function in a library.
+      var binarySearch = function(list, item) {
+        var min = 0;
+        var max = list.length - 1;
+        var guess;
+
+        while ((max - min) > 1) {
+            guess = Math.floor((min + max) / 2);
+
+            if (list[guess].time < item) {
+                min = guess;
+            }
+            else {
+                max = guess;
+            }
+        }
+
+        return [min, max];
+      };
+
+      var bounds = binarySearch($scope.plotData, time);
+      var delta = [
+        Math.abs($scope.plotData[bounds[0]].time - time),
+        Math.abs($scope.plotData[bounds[1]].time - time)];
+      var s = (delta[0] < delta[1] ? 0 : 1);
+      return $scope.plotData[bounds[s]];
+    };
+
+    $scope.currentPoint = pointAtTime($scope.currentTime);
+    $scope.$watch('currentTime', function(time) {
+      $scope.currentPoint = pointAtTime(time);
+    });
 });
