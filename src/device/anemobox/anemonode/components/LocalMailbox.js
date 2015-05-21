@@ -8,7 +8,8 @@ var mailRoot = '/media/sdcard/mail/';
 
 // Get the name of the local mailbox. cb is called with that as the single argument.
 function getName(cb) {
-  boxId.getAnemoId(function(id) {
+  boxId.getAnemoId(function(rawId) {
+    var id = rawId.trim();
     cb(naming.makeMailboxNameFromBoxId(id));
   });
 }
@@ -17,8 +18,9 @@ function getName(cb) {
 // be the one obtained from 'getName'.
 function openWithName(mailboxName, cb) {
   mkdirp(mailRoot, 0755, function(err) {
-    var filename = mailRoot + mailboxName;
-    tryMakeMailbox(filename, mailboxName, cb);
+
+    var filename = mailRoot + 'box.db'; //mailboxName + ".sqlite.db";
+    mb.tryMakeMailbox(filename, mailboxName, cb);
   });
 }
 
