@@ -568,12 +568,13 @@ Mailbox.prototype.getCNumber = function(T, src, dst, cb) {
 
 
 Mailbox.prototype.insertCTable = function(T, src, dst, value, cb) {
-  assert(isIdentifier(src));
-  assert(isIdentifier(dst));
-  assert(isCounter(value));
-  assert(isFunction(cb));    
-  var insert = 'INSERT INTO ctable VALUES (?, ?, ?)';
-  T.run(insert, src, dst, value, cb);
+  if (!(isIdentifier(src) && isIdentifier(dst) && isCounter(value))) {
+    cb(new Error("Bad input to insertCTable"));
+  } else {
+    assert(isFunction(cb));    
+    var insert = 'INSERT INTO ctable VALUES (?, ?, ?)';
+    T.run(insert, src, dst, value, cb);
+  }
 };
 
 // Used when sending new packets.
