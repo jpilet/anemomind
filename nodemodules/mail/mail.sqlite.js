@@ -300,27 +300,31 @@ Mailbox.prototype.onAcknowledged = null;
 // by calling a callback with that number.
 // If no such number exists, it calls the callback without any arguments.
 Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
-  assert(isIdentifier(dst));
   assert(isFunction(callbackNewNumber));
-  
-  if (!isNonEmptyString(dst)) {
-    throw new Error('Dst should be a string. Currently, its value is ' + dst);
+  if (!isIdentifier(dst)) {
+    callbackNewNumber(new Error('dst is not an identifier ' + dst));
+  } else {
+    
+    if (!isNonEmptyString(dst)) {
+      throw new Error('Dst should be a string. Currently, its value is ' + dst);
+    }
+    var self = this;
+    this.db.serialize(function() {
+      self.db.get(
+	'SELECT counter FROM seqNumbers WHERE dst = ?', dst,
+	function(err, row) {
+	  if (err == undefined) {
+	    if (row == undefined) {
+	      callbackNewNumber(err);
+	    } else {
+	      callbackNewNumber(err, row.counter);
+	    }
+	  } else {
+	    callbackNewNumber(err);
+	  }
+	});
+    });
   }
-  var self = this;
-  this.db.serialize(function() {
-    self.db.get('SELECT counter FROM seqNumbers WHERE dst = ?', dst,
-		function(err, row) {
-		  if (err == undefined) {
-		    if (row == undefined) {
-		      callbackNewNumber(err);
-		    } else {
-		      callbackNewNumber(err, row.counter);
-		    }
-		  } else {
-		    callbackNewNumber(err);
-		  }
-		});
-  });
 };
 
 
