@@ -14,13 +14,25 @@ function getName(cb) {
   });
 }
 
+function replaceSpecialChars(mailboxName) {
+  return mailboxName.replace(/\W/g, function (m) {
+    return "_";
+  });
+}
+
+function makeFilenameFromMailboxName(mailboxName) {
+  return mailRoot + replaceSpecialChars(mailboxName)
+    + ".sqlite.db";
+}
+
 // Open a mailbox with a particular name. Usually, this should
 // be the one obtained from 'getName'.
 function openWithName(mailboxName, cb) {
   mkdirp(mailRoot, 0755, function(err) {
-
-    var filename = mailRoot + 'box.db'; //mailboxName + ".sqlite.db";
-    mb.tryMakeMailbox(filename, mailboxName, cb);
+    mb.tryMakeMailbox(
+      makeFilenameFromMailboxName(mailboxName),
+      mailboxName, cb
+    );
   });
 }
 

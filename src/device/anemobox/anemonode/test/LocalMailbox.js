@@ -5,7 +5,7 @@ describe('LocalMailbox', function() {
   it(
     'Should instantiate a local mailbox and reset it',
     function(done) {
-      lmb.setMailRoot('/home/jonas/');
+      lmb.setMailRoot('/tmp/anemobox/');
       lmb.open(function(err, mb) {
 	assert.equal(err, undefined);
 	assert(mb);
