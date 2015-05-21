@@ -1,7 +1,7 @@
 var mb = require('mail/mail.sqlite.js');
-var mkdirp = require('mkdirp');
-var boxId = require('components/boxId.js');
 var naming = require('mail/naming.js');
+var mkdirp = require('mkdirp');
+var boxId = require('./boxId.js');
 
 // The path '/media/sdcard/' is also used in logger.js
 var mailRoot = '/media/sdcard/mail/';
@@ -20,3 +20,11 @@ function open(cb) {
     tryMakeMailbox(filename, mailboxName, cb);
   });
 }
+
+// Convenient when doing unit tests and we don't have an SD card.
+module.exports.setMailRoot = function(newMailRoot) {
+  mailRoot = newMailRoot;
+}
+
+module.exports.getName = getName;
+module.exports.open = open;
