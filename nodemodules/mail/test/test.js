@@ -170,10 +170,10 @@ describe(
 	  function(box) {
 	    box.getForeignDiaryNumber('eff', function(err, value) {
 	      assert.equal(value, undefined);
-	      box.setForeignDiaryNumber(box.db, 'eff', '119', function(err) {
+	      box.setForeignDiaryNumber('eff', '119', function(err) {
 		box.getForeignDiaryNumber('eff', function(err, value2) {
 		  assert.equal(value2, '119');
-		  box.setForeignDiaryNumber(box.db, 'eff', '135', function(err) {
+		  box.setForeignDiaryNumber('eff', '135', function(err) {
 		    box.getForeignDiaryNumber('eff', function(err, value3) {
 		      assert.equal(value3, '135');
 		      done();
@@ -389,7 +389,7 @@ function fillPackets(box, ackFn, n, cb) {
 }
 
 function maximizeAndGetCNumber(box, cb) {
-  box.maximizeCNumber(
+  box.maximizeCNumber(box.db,
     'ddd',
     function(err) {
       assert.equal(err, undefined);

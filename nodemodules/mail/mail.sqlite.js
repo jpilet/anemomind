@@ -424,11 +424,13 @@ Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
   var self = this;
   this.db.beginTransaction(function(err, T) {
     assert(err == undefined);
+    
     self.getForeignDiaryNumberSub(T, otherMailbox, function(err, result) {
       T.commit(function(err2) {
 	cb(err || err2, result);
       });
     });
+    
   });
 };
 
@@ -455,11 +457,13 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
   
   var self = this;
   self.db.beginTransaction(function(err, T) {
+    
     var cb2 = function(err) {
       T.commit(function(err2) {
 	cb(err || err2);
       });
     }
+    
     self.getForeignDiaryNumberSub(T, otherMailbox, function(err, previousValue) {
       if (err == undefined) {
 	if (previousValue > newValue) {
@@ -1183,6 +1187,8 @@ Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
     if (err) {
       cb(err)
     } else {
+
+      // The callback. 
       var cb2 = function(err) {
 	console.log("END SEND PACKET");
 	T.commit(function(err2) {
