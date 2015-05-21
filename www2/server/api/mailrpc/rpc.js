@@ -29,7 +29,9 @@ function acquireMailboxAccess(user, mailboxName, cb) {
 		       message: "Unauthorized access to " + mailboxName};
     
     var parsed = naming.parseMailboxName(mailboxName);
-    if (parsed.boatId) {
+    if (parsed == null) {
+	cb(errorObject);
+    } else if (parsed.boatId) {
 	Boat.findById(parsed.boatId, function (err, boat) {
 	    if (err) {
 		// Don't reveal the reason to intruders. Should we log it?
