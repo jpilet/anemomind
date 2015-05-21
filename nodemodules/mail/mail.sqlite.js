@@ -1201,7 +1201,6 @@ Mailbox.prototype.sendPacketSub = function (T, dst, label, data, cb) {
 
 Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
   var self = this;
-  console.log("BEGIN SEND PACKET");
   beginTransaction(self.getDB(), function(err, T) {
     if (err) {
       cb(err)
@@ -1209,7 +1208,6 @@ Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
 
       // The callback. 
       var cb2 = function(err) {
-	console.log("END SEND PACKET");
 	commit(T, function(err2) {
 	  cb(err || err2);
 	});
