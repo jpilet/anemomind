@@ -405,27 +405,30 @@ Mailbox.prototype.getLastDiaryNumber = function(T, cb) {
 // This number is upon synchronization when we fetch messages from the
 // other mailbox.
 Mailbox.prototype.getForeignDiaryNumberSub = function(T, otherMailbox, cb) {
-  assert(isIdentifier(otherMailbox));
-  assert(isFunction(cb));    
-  if (typeof cb != 'function') {
-    throw new Error('cb is of wrong type: ' + cb);
-  }
-  
-  var query = 'SELECT number FROM diaryNumbers WHERE mailbox = ?';
-  T.get(
-    query, otherMailbox,
-    function(err, row) {
-      if (err == undefined) {
-	if (row == undefined) {
-	  // Initialize with a low number.
-	  cb(err, undefined);
+  if (!isIdentifier(otherMailbox)) {
+    cb(new Error("Bad input to getForeignDiaryNumberSub"));
+  } else {
+    assert(isFunction(cb));    
+    if (typeof cb != 'function') {
+      throw new Error('cb is of wrong type: ' + cb);
+    }
+    
+    var query = 'SELECT number FROM diaryNumbers WHERE mailbox = ?';
+    T.get(
+      query, otherMailbox,
+      function(err, row) {
+	if (err == undefined) {
+	  if (row == undefined) {
+	    // Initialize with a low number.
+	    cb(err, undefined);
+	  } else {
+	    cb(err, row.number);
+	  }
 	} else {
-	  cb(err, row.number);
+	  cb(err);
 	}
-      } else {
-	cb(err);
-      }
-    });
+      });
+  }
 }
 
 Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
