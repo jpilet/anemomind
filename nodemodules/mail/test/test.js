@@ -271,15 +271,15 @@ describe(
       function(done) {
 	withbox(
 	  function(box) {
-	    box.registerPacketData(
+	    box.registerPacketData(box.db,
 	      {src: 'a', dst: 'b', seqNumber: '119', cNumber: '030',
 	       label: 49, data: mailsqlite.serializeString('Some data')},
 	      function(err) {
 		assert.equal(err, undefined);
-		box.getCNumber('a', 'b', function(err, num) {
+		box.getCNumber(box.db, 'a', 'b', function(err, num) {
 		  assert.equal(err, undefined);
 		  assert.equal(num, '030');
-		  box.getLastDiaryNumber(function(err, dnum) {
+		  box.getLastDiaryNumber(box.db, function(err, dnum) {
 		    assert.equal(err, undefined);
 		    box.getFirstPacketStartingFrom(
 		      dnum, false, function(err, packet) {

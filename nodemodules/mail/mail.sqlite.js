@@ -15,7 +15,12 @@
   TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
   TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
   TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
-  TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
+  TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+
+  Att göra:
+   * Skriv ut när vi påbörjar en transaktion
+   * Skriv ut när vi avslutar en transaktion
+   * Skriv ut när vi anropar databasobjektet.
 */
 
 var TransactionDatabase = require("sqlite3-transactions").TransactionDatabase;
@@ -765,10 +770,10 @@ Mailbox.prototype.registerPacketData = function(T, packet, cb) {
 }
 
 // Get the number of packets for which we haven't sent an ack packet.
-Mailbox.prototype.getNonAckCount = function(src, cb) {
+Mailbox.prototype.getNonAckCount = function(T, src, cb) {
   assert(isIdentifier(src));
   var query = 'SELECT count(*) FROM packets WHERE src = ? AND dst = ? AND ack = 0';
-  this.db.get(
+  T.get(
     query, src, this.mailboxName,
     function(err, row) {
       if (err == undefined) {
@@ -849,7 +854,7 @@ Mailbox.prototype.sendAckIfNeeded = function(T, src, cb) {
   assert(isIdentifier(src));
   assert(isFunction(cb));    
   var self = this;
-  this.getNonAckCount(src, function(err, count) {
+  this.getNonAckCount(T, src, function(err, count) {
     if (err == undefined) {
       if (count < self.ackFrequency) {
 	cb(err);
