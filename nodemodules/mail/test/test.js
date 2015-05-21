@@ -235,14 +235,14 @@ describe(
 	withbox(
 	  function(box) {
 
-	    box.updateCTable('a', 'b', '19', function(err) {
-	      box.getCNumber('a', 'b', function(err, value) {
+	    box.updateCTable(box.db, 'a', 'b', '19', function(err) {
+	      box.getCNumber(box.db, 'a', 'b', function(err, value) {
 		assert.equal(value, '19');
-		box.updateCTable('a', 'b', '29', function(err) {
-		  box.getCNumber('a', 'b', function(err, value) {
+		box.updateCTable(box.db, 'a', 'b', '29', function(err) {
+		  box.getCNumber(box.db, 'a', 'b', function(err, value) {
 		    assert.equal(value, '29');
-		    box.updateCTable('a', 'b', '13', function(err) {
-		      box.getCNumber('a', 'b', function(err, value) {
+		    box.updateCTable(box.db, 'a', 'b', '13', function(err) {
+		      box.getCNumber(box.db, 'a', 'b', function(err, value) {
 			assert.equal(value, '29');
 			done();
 		      });
