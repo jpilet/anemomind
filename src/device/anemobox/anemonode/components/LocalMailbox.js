@@ -30,7 +30,14 @@ function makeFilenameFromMailboxName(mailboxName) {
 function openWithName(mailboxName, cb) {
   mkdirp(mailRoot, 0755, function(err) {
     mb.tryMakeMailbox(
+
+      // We could be using a constant mailbox filename
+      // if we wanted because there is only one mailbox
+      // endpoint on the anemobox, but I believe this is more
+      // robust in case we reinstall the anemobox without
+      // wiping the contents of the SD card.
       makeFilenameFromMailboxName(mailboxName),
+      
       mailboxName, cb
     );
   });
