@@ -8,13 +8,11 @@ var schema = require('mail/mailbox-schema.js');
 var coder = require('mail/json-coder.js');
 var assert = require('assert');
 var mb = require('./mailbox.js');
+var naming = require('mail/naming.js');
 
 var boat = require('../boat/boat.controller.js');
-
-// var userCanAccess(user, mailboxName, cb) {
-    
-// }
-
+var Boat = require('../boat/boat.model.js');
+var boatAccess = require('../boat/access.js');
 
 // All RPC-bound functions should be fields of this 'rpc' object. Just add
 // them here below, using 'addRpc'.
@@ -27,8 +25,26 @@ var rpc = {};
 
 // Check if a user is authorized to access a mailbox.
 function acquireMailboxAccess(user, mailboxName, cb) {
-    //cb(new Error("Unauthorized mailbox access"), {statusCode: 401});
-    cb({statusCode: 401, message: "Unauthorized access to " + mailboxName});
+    var errorObject = {statusCode: 401,
+		       message: "Unauthorized access to " + mailboxName};
+    
+    var parsed = naming.parseMailboxName(mailboxName);
+    if (parsed.boatId) {
+	Boat.findById(parsed.boatId, function (err, boat) {
+	    if (err) {
+		// Don't reveal the reason to intruders. Should we log it?
+		cb(errorObject);
+	    } else {
+		if (boatAccess.userCanWrite(user, boat)) {
+		    cb(); // OK, move on
+		} else {
+		    cb(errorObject);
+		}
+	    }
+	});
+    } else {
+	cb(errorObject);
+    }
 }
 
 // This function is common, irrespective of whether it is a post or get request.
