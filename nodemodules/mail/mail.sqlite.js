@@ -33,18 +33,22 @@ var labels = require('./labels.js');
 
 var ACKLABEL = labels.ack;
 
-
-var inTransaction = false;
-
+// These functions (beginTransaction and commit) are
+// just here to facilitate debugging. We can use them,
+// along with the method getDB() of Mailbox, to check
+// that we don't attempt to access the database within
+// a transaction which would lead to a deadlock. In order
+// for this debugging strategy to work, we should only
+// use these functions.
 function beginTransaction(db, cb) {
-  inTransaction = true;
   db.beginTransaction(cb);
 }
 
 function commit(T, cb) {
-  inTransaction = false;
   T.commit(cb);
 }
+
+
 
 
 function serializeString(x) {
@@ -1244,12 +1248,12 @@ Mailbox.prototype.sendPacketsSub = function(T, dst, label, dataArray, cb) {
 
 Mailbox.prototype.sendPackets = function(dst, label, dataArray, cb) {
   var self = this;
-  this.db.beginTransaction(function(err, T) {
+  this.getDB().beginTransaction(function(err, T) {
     if (err) {
       cb(err);
     } else {
       var cb2 = function(err) {
-	T.commit(function(err2) {
+	commit(T, function(err2) {
 	  cb(err || err2);
 	});
       };
@@ -1259,15 +1263,11 @@ Mailbox.prototype.sendPackets = function(dst, label, dataArray, cb) {
 }
 
 Mailbox.prototype.getDB = function() {
-  assert(!inTransaction);
   return this.db;
 }
 
 
 
-module.exports.resetInTransaction = function() {
-  inTransaction = false;
-}
 module.exports.dispAllTableData = dispAllTableData;
 module.exports.expand = expand;
 module.exports.isCounter = isCounter;

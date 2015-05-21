@@ -7,7 +7,6 @@ var schema = require('../mailbox-schema.js');
 
 
 var withbox = function(cb) {
-  mailsqlite.resetInTransaction();
   mailsqlite.tryMakeMailbox(
     ':memory:', 'aaabbb',
     function(err, box) {
