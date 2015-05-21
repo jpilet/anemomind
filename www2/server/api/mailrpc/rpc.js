@@ -35,9 +35,10 @@ function acquireMailboxAccess(user, mailboxName, cb) {
     } else if (parsed.boatId) {
 	Boat.findById(parsed.boatId, function (err, boat) {
 	    if (err) {
-		// Don't reveal the reason to intruders. Should we log it?
+		// Don't the error details to intruders. Should we log it?
 		cb(errorObject);
 	    } else {
+		// I guess it makes sense to require write access.
 		if (boatAccess.userCanWrite(user, boat)) {
 		    cb(); // OK, move on
 		} else {
