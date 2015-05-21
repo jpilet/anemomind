@@ -5,6 +5,7 @@ var assert = require('assert');
 var app = require('../../app');
 var request = require('supertest');
 var User = require('../user/user.model');
+var Boat = require('../boat/boat.model');
 
 
 describe('/api/mailrpc', function() {
@@ -37,7 +38,35 @@ describe('/api/mailrpc', function() {
              });
         });
 
-    it('should reset the mailbox', function(done) {
+    it('should fail to reset the mailbox', function(done) {
+	server
+	    .get('/api/mailrpc/reset/abc')
+	    .set('Authorization', 'Bearer ' + token)
+	    .expect(401)
+	    .end(function(err, res) {
+		if (err) return done(err);
+		done();
+	    });
+    });
+
+    // Copy/pasted from boat.spec.js:
+    // We need a boat in order to have a mailbox for that boat
+    var id ="123456789012345678901234";
+    it('should add a TestBoat2 with a given _id', function(done) {
+	request(app)
+	    .post('/api/boats')
+	    .set('Authorization', 'Bearer ' + token)
+	    .send({ _id: id, name: 'TestBoat2' })
+	    .expect(201)
+	    .end(function(err, res) {
+		if (err) return done(err);
+		res.body.should.have.property('_id');
+		res.body._id.should.equal(id);
+		done();
+	    });
+    });
+
+    it('should successfully reset the mailbox', function(done) {
 	server
 	    .get('/api/mailrpc/reset/abc')
 	    .set('Authorization', 'Bearer ' + token)
@@ -88,8 +117,9 @@ describe('/api/mailrpc', function() {
 
 
 
-  after(function(done) {
-    User.remove({email: "test@anemomind.com"}, done);
-  });
+    after(function(done) {
+	User.remove({email: "test@anemomind.com"}, done);
+	Boat.remove({name: "TestBoat2"}).exec();
+    });
 });
 
