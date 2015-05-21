@@ -1,33 +1,36 @@
-var boatIdPrefix = "boatId";
-var boxIdPrefix = "boxId";
+var types = {
+    boatId: "string",
+    boxId: "string",
+};
 
 function makeMailboxNameFromBoatId(boatId) {
-    if (typeof boatId == "number") {
-	return boatIdPrefix + "_" + boatId;
+    if (typeof boatId == types.boatId) {
+	return "boatId_" + boatId;
     }
     return null;
 }
 
 function makeMailboxNameFromBoxId(boxId) {
-    if (typeof boxId == "string") {
-	return boxIdPrefix + "_" + boxId;
+    if (typeof boxId == types.boxId) {
+	return "boxId_" + boxId;
     }
     return null;
 }
 
-function isNumericType(type) {
-    return type == boatIdPrefix;
-}
 
 function parseMailboxName(mailboxName) {
     if (typeof mailboxName == "string") {
 	var index = mailboxName.indexOf("_");
 	if (0 <= index) {
-	    var type = mailboxName.substring(0, index);
+	    var prefix = mailboxName.substring(0, index);
+	    if (types[prefix] != "string") {
+		// not implemented for any other types than string.
+		return null;
+	    }
 	    var stringData = mailboxName.substring(index + 1);
-	    var data = (isNumericType(type)? parseInt(stringData) : stringData);
+	    var data = stringData;
 	    var result = {};
-	    result[type] = data;
+	    result[prefix] = data;
 	    return result;
 	    
 	}

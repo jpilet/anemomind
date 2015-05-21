@@ -8,7 +8,7 @@ it(
 	describe(
 	    'Should make a mailbox name from a boat id and parse it',
 	    function() {
-		var boatId = 119;
+		var boatId = "119";
 		var name = naming.makeMailboxNameFromBoatId(boatId);
 		assert.equal(name, "boatId_119");
 		var parsed = naming.parseMailboxName(name);
