@@ -29,17 +29,21 @@ function makeFilenameFromMailboxName(mailboxName) {
 // be the one obtained from 'getName'.
 function openWithName(mailboxName, cb) {
   mkdirp(mailRoot, 0755, function(err) {
-    mb.tryMakeMailbox(
+    if (err) {
+      cb(err);
+    } else {
 
       // We could be using a constant mailbox filename
       // if we wanted because there is only one mailbox
       // endpoint on the anemobox, but I believe this is more
       // robust in case we reinstall the anemobox without
       // wiping the contents of the SD card.
-      makeFilenameFromMailboxName(mailboxName),
-      
-      mailboxName, cb
-    );
+      var filename = makeFilenameFromMailboxName(mailboxName);
+      mb.tryMakeMailbox(
+	filename,
+	mailboxName, cb
+      );
+    }
   });
 }
 
@@ -57,3 +61,4 @@ module.exports.setMailRoot = function(newMailRoot) {
 
 module.exports.getName = getName;
 module.exports.open = open;
+module.exports.openWithName = openWithName;

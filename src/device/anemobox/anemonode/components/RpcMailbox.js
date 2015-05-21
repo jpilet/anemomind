@@ -3,7 +3,8 @@
 // is to facilitate unit testing.
 schema = require('mail/mailbox-schema.js');
 coder = require("mail/json-coder.js");
-mb = require("mail/mail.sqlite.js");
+mb = require("./LocalMailbox.js");
+
 
 // Conveniency function for
 // error handling.
@@ -26,8 +27,11 @@ function ensureCB(p, errorMessage, cb) {
   method for a different mailbox.
 */
 function callMailboxMethod(mailboxName, methodName, args, cb) {
-  var filename = mailboxName + ".sqlite.db";
-  mb.tryMakeMailbox(filename, mailboxName, function(err, mailbox) {
+  // TODO: Since there is only one mailbox endpoint on the
+  // anemobox, maybe we could simply remove 'thisMailboxName'
+  // from the RPC protocol? In that case, we would simply
+  // use mb.open(...) below.
+  mb.openWithName(mailboxName, function(err, mailbox) {
     if (err) {
       cb(err);
     } else {
@@ -102,7 +106,7 @@ function makeRpcFunction(methodName, method) {
 	);
       }
     } catch (e) {
-      console.log("Caught this exception: %j", e);
+      console.log("Caught this exception: " + e);
       cb({error: "Caught an exception on the server. See the server log for details."});
     }
   }
