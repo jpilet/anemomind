@@ -642,36 +642,36 @@ Mailbox.prototype.getTotalPacketCount = function(cb) {
 
 // Update the C table. Used when handling incoming packets.
 Mailbox.prototype.updateCTable = function(T, src, dst, newValue, cb) {
-  assert(isIdentifier(src));
-  assert(isIdentifier(dst));
-  assert(isCounter(newValue));
-  assert(src != dst);
-  assert(isFunction(cb));
-  var self = this;
-  var onUpdate = function(err) {
-    assert(err == undefined);
-    if (err == undefined) {
-      self.removeObsoletePackets(T, src, dst, cb);	    
-    } else {
-      cb(err);
-    }
-  };
-  
-  var self = this;
-  this.getCNumber(T, src, dst, function(err, currentValue) {
-    if (err == undefined) {
-      if (currentValue == undefined) {
-	self.insertCTable(T, src, dst, newValue, onUpdate);
-      } else if (currentValue < newValue) {
-	var query = 'UPDATE ctable SET counter = ? WHERE src = ? AND dst = ?';
-	T.run(query, newValue, src, dst, onUpdate);
+  if (!(isIdentifier(src) && isIdentifier(dst) && isCounter(newValue) && (src != dst))) {
+    cb(new Error("bad input to updateCTable"));
+  } else {
+    assert(isFunction(cb));
+    var self = this;
+    var onUpdate = function(err) {
+      assert(err == undefined);
+      if (err == undefined) {
+	self.removeObsoletePackets(T, src, dst, cb);	    
       } else {
 	cb(err);
       }
-    } else {
-      cb(err);
-    }
-  });
+    };
+    
+    var self = this;
+    this.getCNumber(T, src, dst, function(err, currentValue) {
+      if (err == undefined) {
+	if (currentValue == undefined) {
+	  self.insertCTable(T, src, dst, newValue, onUpdate);
+	} else if (currentValue < newValue) {
+	  var query = 'UPDATE ctable SET counter = ? WHERE src = ? AND dst = ?';
+	  T.run(query, newValue, src, dst, onUpdate);
+	} else {
+	  cb(err);
+	}
+      } else {
+	cb(err);
+      }
+    });
+  }
 };
 
 // Check if an incoming packet should be admitted.
