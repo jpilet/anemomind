@@ -544,24 +544,26 @@ Mailbox.prototype.makeNewDiaryNumber = function(T, cb) {
 // Retrieves the C-number for a given (src, dst) pair. A sequence number
 // is provided for initialization if no C-number exists. The result is passed to cb.
 Mailbox.prototype.getCNumber = function(T, src, dst, cb) {
-  assert(isIdentifier(src));
-  assert(isIdentifier(dst));
-  assert(isFunction(cb));
-  var query = 'SELECT counter FROM ctable WHERE src = ? AND dst = ?';
-  var self = this;
-  T.get(
-    query, src, dst,
-    function(err, row) {
-      if (err == undefined) {
-	if (row == undefined) {
-	  cb(err);
+  if (!(isIdentifier(src) && isIdentifier(dst))) {
+    cb(new Error("bad input to getCNumber"));
+  } else {
+    assert(isFunction(cb));
+    var query = 'SELECT counter FROM ctable WHERE src = ? AND dst = ?';
+    var self = this;
+    T.get(
+      query, src, dst,
+      function(err, row) {
+	if (err == undefined) {
+	  if (row == undefined) {
+	    cb(err);
+	  } else {
+	    cb(err, row.counter);
+	  }
 	} else {
-	  cb(err, row.counter);
+	  cb(err);
 	}
-      } else {
-	cb(err);
-      }
-    });
+      });
+  }
 };
 
 
