@@ -9,5 +9,15 @@
 
 <select id="dataSourceSelector" ng-model="plotField" ng-options="field as label for (field, label) in plotFieldLabels"></select>
 
+<div class="instrumentsView">
+
+<table>
+<tr ng-repeat="(key, value) in currentPoint">
+  <td> {{key}} </td> <td> {{ value }} </td>
+</tr>
+</table>
+
+</div>
+
 <perfplot plot-data="plotData" current-time="currentTime" field="plotField"></perfplot>
 </div>
