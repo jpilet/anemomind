@@ -579,28 +579,30 @@ Mailbox.prototype.insertCTable = function(T, src, dst, value, cb) {
 
 // Used when sending new packets.
 Mailbox.prototype.getOrMakeCNumber = function(T, dst, seqNumber, cb) {
-  assert(isIdentifier(dst));
-  assert(isCounter(seqNumber));
-  assert(isFunction(cb));    
-  var self = this;
-  this.getCNumber(T, 
-    self.mailboxName, dst,
-    function(err, value) {
-      if (err == undefined) {
-	if (value == undefined) { /* If there isn't already a cNumber,
-				     initialize it with sequence counter value */
-	  self.insertCTable(T, 
-	    self.mailboxName, dst, seqNumber,
-	    function(err) {
-	      cb(err, seqNumber);
-	    });
-	} else { /* If there is a value, just use it as cNumber.*/
-	  cb(err, value);
-	}
-      } else {
-	cb(err);
-      }
-    });
+  if (!(isIdentifier(dst) && isCounter(seqNumber))) {
+    cb(new Error("Bad input to getOrMakeCNumber"));
+  } else {
+    assert(isFunction(cb));    
+    var self = this;
+    this.getCNumber(T, 
+		    self.mailboxName, dst,
+		    function(err, value) {
+		      if (err == undefined) {
+			if (value == undefined) { /* If there isn't already a cNumber,
+						     initialize it with sequence counter value */
+			  self.insertCTable(T, 
+					    self.mailboxName, dst, seqNumber,
+					    function(err) {
+					      cb(err, seqNumber);
+					    });
+			} else { /* If there is a value, just use it as cNumber.*/
+			  cb(err, value);
+			}
+		      } else {
+			cb(err);
+		      }
+		    });
+  }
 }
 
 Mailbox.prototype.removeObsoletePackets = function(T, src, dst, cb) {
