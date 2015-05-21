@@ -682,7 +682,7 @@ describe(
 
 describe('Mailbox on file system', function() {
   it(
-    'Should instantiate a local mailbox and reset it',
+    'A mailbox on the file system',
     function(done) {
       mailsqlite.tryMakeMailbox('/tmp/mailbox.db', 'abc', function(err, mb) {
 	assert.equal(err, undefined);
@@ -692,9 +692,13 @@ describe('Mailbox on file system', function() {
 	    assert.equal(err, undefined);
 	    mb.sendPacket('rulle', 122, new Buffer(0), function(err) {
 	      assert.equal(err, undefined);
-	      mb.close(function(err) {
+	      mb.getTotalPacketCount(function(err, n) {
 		assert.equal(err, undefined);
-		done();
+		assert.equal(n, 1);
+		mb.close(function(err) {
+		  assert.equal(err, undefined);
+		  done();
+		});
 	      });
 	    });
 	});
