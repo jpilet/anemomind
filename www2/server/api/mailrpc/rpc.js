@@ -20,25 +20,20 @@ var rpc = {};
 
 
 // Check if a user is authorized to access a mailbox.
-function userCanAccess(user, mailboxName, cb) {
-    var env = process.env.NODE_ENV;
-    cb(undefined, (env == 'test' || env == 'development'));
+function acquireMailboxAccess(user, mailboxName, cb) {
+    //cb(new Error("Unauthorized mailbox access"), {statusCode: 401});
+    cb(undefined);
 }
 
 // This function is common, irrespective of whether it is a post or get request.
 function callMailboxMethod(user, mailboxName, methodName, args, cb) {
     assert.notEqual(mb, undefined);
     assert.notEqual(mb.openMailbox, undefined);
-    userCanAccess(
+    acquireMailboxAccess(
 	user, mailboxName,
 	function(err, p) {
 	    if (err) {
 		cb(err);
-	    } else if (!p) {
-		cb(new Error(
-		    'Unauthorized to access that mailbox with name '
-			+ mailboxName
-		));
 	    } else {
 		mb.openMailbox(
 		    mailboxName,
@@ -82,12 +77,6 @@ function callMailboxMethod(user, mailboxName, methodName, args, cb) {
 ////////////////////////////////////////////////////////////////////////////////
 /// HTTP interface
 ////////////////////////////////////////////////////////////////////////////////
-/* TODO:
-   
-   * Protect this interface using the authentication
-   
-*/   
-
 // http://stackoverflow.com/questions/18391212/is-it-not-possible-to-stringify-an-error-using-json-stringify
 // Code that lets us serialize Error objects
 // to be passed back as JSON over HTTP and
@@ -105,6 +94,22 @@ Object.defineProperty(Error.prototype, 'toJSON', {
     configurable: true
 });
 
+function getStatusCode(err, result) {
+    if (err) {
+	if (typeof result == 'object') {
+	    if (result.statusCode) {
+		// In case of error, we can be specific about the status code.
+		return result.statusCode;
+	    }
+	}
+	
+	// Default code for general, unspecified error:
+	return 500;
+    } else {
+	return 200; // OK
+    }
+}
+
 // This will handle an HTTP request related to a specific method.
 function handler(method, req, res) {
     assert(method.httpMethod == 'post' || method.httpMethod == 'get');
@@ -114,8 +119,7 @@ function handler(method, req, res) {
 	    if (err) {
 		console.log('WARNING: There was an error on the server: %j', err);
 	    }
-	    var statusCode = (err? 500 : 200);
-	    res.status(statusCode).json(
+	    res.status(getStatusCode(err, result)).json(
 		coder.encode(
 		    method.output[err? 0 : 1], // How the return value should be coded.
 		    (err? err : result) // What data to send.
