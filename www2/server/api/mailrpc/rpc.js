@@ -22,7 +22,7 @@ var rpc = {};
 // Check if a user is authorized to access a mailbox.
 function acquireMailboxAccess(user, mailboxName, cb) {
     //cb(new Error("Unauthorized mailbox access"), {statusCode: 401});
-    cb(undefined);
+    cb({statusCode: 401, message: "Unauthorized access to " + mailboxName});
 }
 
 // This function is common, irrespective of whether it is a post or get request.
@@ -94,12 +94,13 @@ Object.defineProperty(Error.prototype, 'toJSON', {
     configurable: true
 });
 
-function getStatusCode(err, result) {
+function getStatusCode(err) {
     if (err) {
-	if (typeof result == 'object') {
-	    if (result.statusCode) {
+	if (typeof err == 'object') {
+	    if (err.statusCode) {
+		
 		// In case of error, we can be specific about the status code.
-		return result.statusCode;
+		return err.statusCode;
 	    }
 	}
 	
@@ -115,11 +116,15 @@ function handler(method, req, res) {
     assert(method.httpMethod == 'post' || method.httpMethod == 'get');
     try {
 	var resultCB = function(err, result) {
+	    var code = getStatusCode(err);
+
 	    // Do we need a try statement in this function?
 	    if (err) {
 		console.log('WARNING: There was an error on the server: %j', err);
+		console.log('THE CODE IS %j', code);
 	    }
-	    res.status(getStatusCode(err, result)).json(
+	    
+	    res.status(code).json(
 		coder.encode(
 		    method.output[err? 0 : 1], // How the return value should be coded.
 		    (err? err : result) // What data to send.
