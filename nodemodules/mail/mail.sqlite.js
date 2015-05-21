@@ -401,7 +401,7 @@ Mailbox.prototype.getLastDiaryNumber = function(cb) {
 // This returns the diary number for a foreign mailbox.
 // This number is upon synchronization when we fetch messages from the
 // other mailbox.
-Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
+Mailbox.prototype.getForeignDiaryNumberSub = function(T, otherMailbox, cb) {
   assert(isIdentifier(otherMailbox));
   assert(isFunction(cb));    
   if (typeof cb != 'function') {
@@ -409,7 +409,7 @@ Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
   }
   
   var query = 'SELECT number FROM diaryNumbers WHERE mailbox = ?';
-  this.db.get(
+  T.get(
     query, otherMailbox,
     function(err, row) {
       if (err == undefined) {
@@ -424,6 +424,19 @@ Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
       }
     });
 }
+
+Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
+  var self = this;
+  this.db.beginTransaction(function(err, T) {
+    assert(err == undefined);
+    self.getForeignDiaryNumberSub(T, otherMailbox, function(err, result) {
+      T.commit(function(err2) {
+	cb(err || err2, result);
+      });
+    });
+  });
+};
+
 
 // Use this function to get a number of the first packet to ask for when synchronizing
 Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
@@ -440,33 +453,37 @@ Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
 }
 
 // Sets the foreign number to a new value.
-
-// TODO: getForeignDiaryNumber and the following query should be in one transaction,
-// just like inside makeNewSeqNumber.
 Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
   assert(isFunction(cb));
   assert(isIdentifier(otherMailbox));
   assert(isCounter(newValue));
   
   var self = this;
-  this.getForeignDiaryNumber(otherMailbox, function(err, previousValue) {
-    if (err == undefined) {
-      if (previousValue > newValue) {
-	console.log('You are setting a new diary number which is lower than the previous one. This could be a bug.');
-      }
-
-      if (previousValue == undefined) {  // <-- This only happens when
-	//     there isn't any existing
-	//     diary number already.
-	var query = 'INSERT INTO diaryNumbers VALUES (?, ?)';
-	self.db.run(query, otherMailbox, newValue, cb);
-      } else {
-	var query = 'UPDATE diaryNumbers SET number = ? WHERE mailbox = ?';
-	self.db.run(query, newValue, otherMailbox, cb);
-      }
-    } else {
-      cb(err);
+  self.db.beginTransaction(function(err, T) {
+    var cb2 = function(err) {
+      T.commit(function(err2) {
+	cb(err || err2);
+      });
     }
+    self.getForeignDiaryNumberSub(T, otherMailbox, function(err, previousValue) {
+      if (err == undefined) {
+	if (previousValue > newValue) {
+	  console.log('You are setting a new diary number which is lower than the previous one. This could be a bug.');
+	}
+
+	if (previousValue == undefined) {  // <-- This only happens when
+	  //     there isn't any existing
+	  //     diary number already.
+	  var query = 'INSERT INTO diaryNumbers VALUES (?, ?)';
+	  T.run(query, otherMailbox, newValue, cb2);
+	} else {
+	  var query = 'UPDATE diaryNumbers SET number = ? WHERE mailbox = ?';
+	  T.run(query, newValue, otherMailbox, cb2);
+	}
+      } else {
+	cb2(err);
+      }
+    });
   });
 }
 
