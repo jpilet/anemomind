@@ -689,23 +689,15 @@ describe('Mailbox on file system', function() {
 	assert(mb);
 	assert(mb.db);
 	mb.reset(function(err) {
-	  mailsqlite.dispAllTableData(mb.db, function(err) {
-	    done();
-	  });
-
-	  /*
-	  assert.equal(err, undefined);
-	  mb.sendPacket('rulle', 122, new Buffer(0), function(err) {
 	    assert.equal(err, undefined);
-	    mb.close(function(err) {
+	    mb.sendPacket('rulle', 122, new Buffer(0), function(err) {
 	      assert.equal(err, undefined);
-	      done();
+	      mb.close(function(err) {
+		assert.equal(err, undefined);
+		done();
+	      });
 	    });
-	  });
-	  */
-	  
 	});
       });
-    }
-  );
+    });
 });
