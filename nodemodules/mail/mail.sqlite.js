@@ -606,20 +606,22 @@ Mailbox.prototype.getOrMakeCNumber = function(T, dst, seqNumber, cb) {
 }
 
 Mailbox.prototype.removeObsoletePackets = function(T, src, dst, cb) {
-  assert(isIdentifier(src));
-  assert(isIdentifier(dst));
-  assert(isFunction(cb));    
-  var self = this;
-  this.getCNumber(T,
-    src, dst,
-    function(err, value) {
-      if (err == undefined) {
-	var query = 'DELETE FROM packets WHERE seqNumber < ? AND src = ? AND dst = ?';
-	T.run(query, value, src, dst, cb);
-      } else {
-	cb(err);
-      }
-    });
+  if (!(isIdentifier(src) && isIdentifier(dst))) {
+    cb(new Error("Bad input to removeObsoletePackets"));
+  } else {
+    assert(isFunction(cb));    
+    var self = this;
+    this.getCNumber(T,
+		    src, dst,
+		    function(err, value) {
+		      if (err == undefined) {
+			var query = 'DELETE FROM packets WHERE seqNumber < ? AND src = ? AND dst = ?';
+			T.run(query, value, src, dst, cb);
+		      } else {
+			cb(err);
+		      }
+		    });
+  }
 }
 
 Mailbox.prototype.getTotalPacketCount = function(cb) {
