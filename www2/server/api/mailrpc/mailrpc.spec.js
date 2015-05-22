@@ -47,7 +47,7 @@ describe('/api/mailrpc', function() {
     server
       .get('/api/mailrpc/reset/' + remoteMailboxName)
       .set('Authorization', 'Bearer ' + token)
-      .expect(401)
+      .expect(403)
       .end(function(err, res) {
 	if (err) return done(err);
 	done();

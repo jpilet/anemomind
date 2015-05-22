@@ -23,45 +23,34 @@ var boatAccess = require('../boat/access.js');
 var rpc = {};
 
 
-function testUserAndMailbox(user, mailboxName) {
-  if (user.email == "test@anemomind.com") {
-    return mailboxName == "a" || mailboxName == "b" || mailboxName == "c";
-  }
-  return false;
-}
-
 // Check if a user is authorized to access a mailbox.
 // If not, produce an error object.
 function acquireMailboxAccess(user, mailboxName, cb) {
-  if (testUserAndMailbox(user, mailboxName)) { // <-- for conveniency of unit testing.
-    cb();
-  } else {
-    var errorObject = {statusCode: 401,
-		       message: "Unauthorized access to " + mailboxName};
-    var parsed = naming.parseMailboxName(mailboxName);
-    if (parsed == null) {
-      cb(errorObject);
-    } else if (parsed.boatId) {
-      Boat.findById(parsed.boatId, function (err, boat) {
-	if (err) {
-	  // Don't the error details to intruders. Should we log it?
-	  cb(errorObject);
-	} else {
-	  if (boat) {
-	    // I guess it makes sense to require write access.
-	    if (boatAccess.userCanWrite(user, boat)) {
-	      cb(); // OK, move on
-	    } else {
-	      cb(errorObject);
-	    }
-	  } else { // No such boat.
+  var errorObject = {statusCode: 403,
+		     message: "Unauthorized access to " + mailboxName};
+  var parsed = naming.parseMailboxName(mailboxName);
+  if (parsed == null) {
+    cb(errorObject);
+  } else if (parsed.prefix == "boat") {
+    Boat.findById(parsed.id, function (err, boat) {
+      if (err) {
+	// Don't the error details to intruders. Should we log it?
+	cb(errorObject);
+      } else {
+	if (boat) {
+	  // I guess it makes sense to require write access.
+	  if (boatAccess.userCanWrite(user, boat)) {
+	    cb(); // OK, move on
+	  } else {
 	    cb(errorObject);
 	  }
+	} else { // No such boat.
+	  cb(errorObject);
 	}
-      });
-    } else {
-      cb(errorObject);
-    }
+      }
+    });
+  } else {
+    cb(errorObject);
   }
 }
 
