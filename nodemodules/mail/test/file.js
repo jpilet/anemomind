@@ -190,16 +190,16 @@ describe(
     it(
       'Make sure that the utilities for testing log files work',
       function(done) {
-	makeLogFiles(35, function(err) {
+	makeLogFiles(3, function(err) {
 	  assert(!err);
-	  logFilesExist(35, function(arr) {
-	    assert.equal(arr.length, 35);
+	  logFilesExist(3, function(arr) {
+	    assert.equal(arr.length, 3);
 	    for (var i = 0; i < arr.length; i++) {
 	      assert(arr[i]);
 	    }
-	    removeLogFiles(35, function(err) {
+	    removeLogFiles(3, function(err) {
 	      assert(!err);
-	      logFilesExist(35, function(arr) {
+	      logFilesExist(3, function(arr) {
 		for (var i = 0; i < arr.length; i++) {
 		  assert(!arr[i]);
 		}
