@@ -661,9 +661,9 @@ Mailbox.prototype.updateCTable = function(T, src, dst, newValue, cb) {
 };
 
 // Check if an incoming packet should be admitted.
-Mailbox.prototype.isAdmissibleSub = function(T, src, dst, seqNumber, cb) {
+Mailbox.prototype.isAdmissibleInTransaction = function(T, src, dst, seqNumber, cb) {
   if (!(common.isIdentifier(src) && common.isIdentifier(dst) && common.isCounter(seqNumber) && src != undefined && dst != undefined)) {
-    cb(new Error("Bad input to isAdmissibleSub"));
+    cb(new Error("Bad input to isAdmissibleInTransaction"));
   } else {
     assert(isFunction(cb));
     if (src == this.mailboxName) {
@@ -689,7 +689,7 @@ Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
       });
     };
 
-    self.isAdmissibleSub(T, src, dst, seqNumber, cb2);
+    self.isAdmissibleInTransaction(T, src, dst, seqNumber, cb2);
   });
 }
 
@@ -845,7 +845,7 @@ Mailbox.prototype.sendAck = function(T, src, cb) {
       for (var i = 0; i < data.length; i++) {
 	seqnums[i] = data[i].seqNumber;
       }
-      self.sendPacketSub(T,
+      self.sendPacketInTransaction(T,
 	src/*back to the source*/,
 	common.ack,
 	serializeSeqNums(seqnums),
@@ -982,18 +982,18 @@ function callHandlersArray(T, self, handlers, data, cb) {
   if (handlers.length == 0) {
     cb();
   } else {
-    handlers[0](
-      self,
-      T,
-      data,
-      function(err) {
-	if (err) {
-	  cb(err);
-	} else {
-	  callHandlersArray(T, self, handlers.slice(1), data, cb);
-	}
-      }
-    );
+    var handler = handlers[0];
+    
+    // Don't wait for handler to complete.
+    // Since we are inside a transaction T,
+    // waiting for handler to complete could
+    // easily lead to dead locks, if handler 
+    // waits for a database call outside the
+    // transaction to complete, while we are
+    // inside the transaction.
+    handler(self, data);
+    
+    callHandlersArray(T, self, handlers.slice(1), data, cb);
   }
 }
 
@@ -1075,7 +1075,7 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 	cb(err || err2, result);
       });
     }
-    self.isAdmissibleSub(
+    self.isAdmissibleInTransaction(
       T,
       packet.src,
       packet.dst,
@@ -1164,7 +1164,7 @@ Mailbox.prototype.close = function(cb) {
 
 // Given destination mailbox, label and data,
 // a new packet is produced that is put in the packets table.
-Mailbox.prototype.sendPacketSub = function (T, dst, label, data, cb) {
+Mailbox.prototype.sendPacketInTransaction = function (T, dst, label, data, cb) {
   assert(isNumber(label));
   assert(common.isIdentifier(dst));
   assert(isFunction(cb));
@@ -1214,7 +1214,7 @@ Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
 	});
       }
       
-      self.sendPacketSub(T, dst, label, data, cb2);
+      self.sendPacketInTransaction(T, dst, label, data, cb2);
     }
   });
 };
@@ -1225,18 +1225,18 @@ Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
 //
 // Convenient when we need to chop up a big file in smaller packets
 // for robust transfer over e.g. bluetooth.
-Mailbox.prototype.sendPacketsSub = function(T, dst, label, dataArray, cb) {
+Mailbox.prototype.sendPacketsInTransaction = function(T, dst, label, dataArray, cb) {
   if (dataArray.length == 0) {
     cb();
   } else {
     var self = this;
-    this.sendPacketSub(T, 
+    this.sendPacketInTransaction(T, 
       dst, label, dataArray[0],
       function (err) {
 	if (err) {
 	  cb(err);
 	} else {
-	  self.sendPacketsSub(T, dst, label, dataArray.slice(1), cb);
+	  self.sendPacketsInTransaction(T, dst, label, dataArray.slice(1), cb);
 	}
       }
     );
@@ -1254,7 +1254,7 @@ Mailbox.prototype.sendPackets = function(dst, label, dataArray, cb) {
 	  cb(err || err2);
 	});
       };
-      self.sendPacketsSub(T, dst, label, dataArray, cb2);
+      self.sendPacketsInTransaction(T, dst, label, dataArray, cb2);
     }
   });
 }

@@ -79,6 +79,35 @@ function removeLogFiles(count, cb) {
   }
 }
 
+function makeEndpoint(name, cb) {
+  mb.tryMakeMailbox('/tmp/' + name + '.db', name, cb);
+}
+
+function makeEndpointsSub(dst, index, arr, cb) {
+  if (index == arr.length) {
+    cb(null, arr);
+  } else {
+    makeEndpoint(arr[index], function(err, mailbox) {
+      if (err) {
+	cb(err);
+      } else {
+	dst[index] = mailbox;
+	makeEndpointsSub(dst, index+1, arr, cb);
+      }
+    });
+  }
+}
+
+function makeEndpoints(arr, cb) {
+  makeEndpointsSub(new Array(arr.length), 0, arr, cb);
+}
+
+function makeAnemoSetup(cb) {
+  var names = ["server", "phone", "box"];
+  makeEndpoints(names, cb);
+}
+
+
 describe(
   'Test utilities',
   function() {
@@ -105,3 +134,13 @@ describe(
 	})
       });
     });
+
+describe('anemo setup', function() {
+  it('Should instantiate 3 mailboxes on the file system', function(done) {
+    makeAnemoSetup(function(err, boxes) {
+      assert(!err);
+      assert.equal(boxes.length, 3);
+      done();
+    })
+  });
+});
