@@ -80,10 +80,10 @@ function removeLogFiles(count, cb) {
 }
 
 describe(
-  'Sending files',
+  'Test utilities',
   function() {
     it(
-      'Synchronize a lot of log files, and remove the log files once they have arrived.',
+      'Make sure that the utilities for testing log files work',
       function(done) {
 	makeLogFiles(35, function(err) {
 	  assert(!err);
