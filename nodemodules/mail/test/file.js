@@ -133,17 +133,6 @@ function makeEndpoints(arr, cb) {
   makeEndpointsSub(new Array(arr.length), 0, arr, cb);
 }
 
-function isObjectWithFields(x, fields) {
-  if (typeof x == 'object') {
-    for (var i = 0; i < fields.length; i++) {
-      if (!x.hasOwnProperty(fields[i])) {
-	return false;
-      }
-      return true;
-    }
-  }
-  return false;
-}
 
 function all(x) {
   for (var i = 0; i < x.length; i++) {
@@ -154,6 +143,9 @@ function all(x) {
   return true;
 }
 
+function anemoboxAckHandler() {
+}
+
 // Called when the server receives a packet
 function makeServerPacketHandler(markArray, deferred) {
   return function(mailbox, packet, T, cb) {
@@ -162,7 +154,7 @@ function makeServerPacketHandler(markArray, deferred) {
     
     if (packet.label == common.file) {
       var msg = file.unpackFileMessage(packet.data);
-      if (isObjectWithFields(msg.info, ['logIndex'])) {
+      if (common.isObjectWithFields(msg.info, ['logIndex'])) {
 	var index = msg.info.logIndex;
 	var msgText = msg.data.toString('utf8');
 	if (msgText == makeLogData(index)) {

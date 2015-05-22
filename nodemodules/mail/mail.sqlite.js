@@ -249,7 +249,7 @@ function tryMakeMailbox(dbFilename,  // <-- The filename where all
   if (!common.isValidMailboxName(mailboxName)) {
     throw new Error('Invalid mailbox name');
   }
-
+  
   var db = new TransactionDatabase(
     new sqlite3.Database(
       dbFilename,
@@ -1286,6 +1286,38 @@ function isMailbox(x) {
     return x.constructor.name == 'Mailbox';
   }
   return false;
+}
+
+
+
+function callPerPacketHandlerForEveryNumber(mailbox, T, ackData, index, perPacketHandler, cb) {
+  if (!common.isObjectWithFields(ackData, ['dst', 'seqnums'])) {
+    cb(new Error('Bad ack data'));
+  } else {
+    if (index == ackData.seqnums.length) {
+      cb();
+    } else {
+      mailbox.getPacket(
+	T, mailbox.mailboxName,
+	ackData.dst, ackData.seqnums[index],
+	function(err) {
+	  if (err) {
+	    cb(err);
+	  } else {
+	    callPerPacketHandlerForEveryNumber(
+	      mailbox, T, ackData, index+1, perPacketHandler, cb
+	    );
+	  }
+	}
+      );
+    }
+  }
+}
+
+function makePerPacketAckHandler(perPacketHandler) {
+  return function(mailbox, ackData, T, cb) {
+    callPerPacketHandlerForEveryNumber(mailbox, T, ackData, 0, perPacketHandler, cb);
+  }
 }
 
 

@@ -26,3 +26,15 @@ module.exports.isCounter = isCounter;
 module.exports.isIdentifier = isIdentifier;
 module.exports.isValidMailboxName = isValidMailboxName;
 module.exports.isPacket = isPacket;
+module.exports.isObjectWithFields = function(x, fields) {
+  if (typeof x == 'object') {
+    for (var i = 0; i < fields.length; i++) {
+      if (!x.hasOwnProperty(fields[i])) {
+	return false;
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
