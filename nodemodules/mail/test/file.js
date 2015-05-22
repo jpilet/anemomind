@@ -3,6 +3,7 @@ var file = require('../file.js');
 var mb = require('../mail.sqlite.js');
 var fs = require('fs');
 var Q = require('q');
+var sync = require('../sync.js');
 
 function makeLogFilename(index) {
   return '/tmp/anemolog' + index + '.log';
@@ -216,11 +217,21 @@ describe('log file sync', function() {
       server.onPacketReceived = makeServerPacketHandler(new Array(35), serverDeferred);
 
       // Create the log files
-      makeLogFiles(35, function(err) {
+      makeLogFiles(3, function(err) {
 	assert(!err);
-	sendFiles(box, 'server', 35, function(err) {
+	sendFiles(box, 'server', 3, function(err) {
 	  assert(!err);
+
 	  done();
+	  // sync.synchronize(box, phone, function(err) {
+	  //   assert(!err);
+	  //   done();
+	  //   // sync.synchronize(phone, server, function(err) {
+	  //   //   assert(!err);
+	  //   //   done();
+	  //   // });
+	  // });
+	  
 	});
       });
     })

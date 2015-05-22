@@ -12,6 +12,7 @@ var pkt = require('./packet.js');
 var bigint = require('./bigint.js');
 var common = require('./common.js');
 
+var inTransaction = false;
 // These functions (beginTransaction and commit) are
 // just here to facilitate debugging. We can use them,
 // along with the method getDB() of Mailbox, to check
@@ -20,10 +21,14 @@ var common = require('./common.js');
 // for this debugging strategy to work, we should only
 // use these functions.
 function beginTransaction(db, cb) {
+  //console.log("BEGIN TRANSACTION");
+  //inTransaction = true;
   db.beginTransaction(cb);
 }
 
 function commit(T, cb) {
+  //console.log("END TRANSACTION");
+  //inTransaction = false;
   T.commit(cb);
 }
 
@@ -1260,6 +1265,7 @@ Mailbox.prototype.sendPackets = function(dst, label, dataArray, cb) {
 }
 
 Mailbox.prototype.getDB = function() {
+  //assert(!inTransaction);
   return this.db;
 }
 
