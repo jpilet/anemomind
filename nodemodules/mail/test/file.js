@@ -30,6 +30,7 @@ function sendFiles(src, dst, count, cb) {
     cb();
   } else {
     var index = count-1;
+    console.log('Send file with index %j', index);
     file.sendFile(src, dst, makeLogFilename(index), {logIndex: index}, function(err) {
       if (err) {
 	cb(err);
@@ -136,7 +137,7 @@ function makeEndpoints(arr, cb) {
 function isObjectWithFields(x, fields) {
   if (typeof x == 'object') {
     for (var i = 0; i < fields.length; i++) {
-      if (!x[fields[i]]) {
+      if (!x.hasOwnProperty(fields[i])) {
 	return false;
       }
       return true;
@@ -157,10 +158,12 @@ function all(x) {
 // Called when the server receives a packet
 function makeServerPacketHandler(markArray, deferred) {
   return function(mailbox, packet) {
+    console.log('RECEIVE PACKET %j', packet);
     if (packet.label == common.file) {
       var msg = file.unpackFileMessage(packet.data);
       if (isObjectWithFields(msg.info, ['logIndex'])) {
 	var index = msg.info.logIndex;
+	console.log('  index = %j', index);
 	var msgText = msg.data.toString('utf8');
 	if (msgText == makeLogData(index)) {
 	  markArray[index] = true;
@@ -222,21 +225,31 @@ describe('log file sync', function() {
       assert(phone.mailboxName == 'phone');
       assert(box.mailboxName == 'box');
 
+      var n = 9;
       var serverDeferred = Q.defer();
-      server.onPacketReceived = makeServerPacketHandler(new Array(35), serverDeferred);
+      server.onPacketReceived = makeServerPacketHandler(new Array(n), serverDeferred);
 
       // Create the log files
-      makeLogFiles(3, function(err) {
+      makeLogFiles(n, function(err) {
 	assert(!err);
-	sendFiles(box, 'server', 3, function(err) {
+	sendFiles(box, 'server', n, function(err) {
 	  assert(!err);
 	  sync.synchronize(box, phone, function(err) {
 	    assert(!err);
 	    sync.synchronize(phone, server, function(err) {
 	      assert(!err);
-	      done();
+	      //  serverDeferred.promise.then(function(value) {
+	      //    assert(all(value));
+	      //    done();
+	      //  });
+	      mb.dispAllTableData(server.db, function(err) {
+		done();
+	      });
+	      
+
 	    });
 	  });
+	  
 	});
       });
     })
