@@ -272,8 +272,11 @@ function tryMakeMailbox(dbFilename,  // <-- The filename where all
   });
 }
 
+
+
+//*** IMPORTANT NOTE ***: See the importantant note in callHandlersArray
 /*
-  A callback function cb(packet) can
+  A callback function can
   be assigned. It will be called whenever this
   mailbox receives a packet.
   
@@ -721,9 +724,9 @@ Mailbox.prototype.hasPacket = function(T, src, seqNumber, cb) {
   }
 }
 
-Mailbox.prototype.getPacket = function(T, src, seqNumber, cb) {
-  var query = 'SELECT * FROM packets WHERE src = ? AND seqNumber = ?';
-  T.get(query, src, seqNumber, cb);
+Mailbox.prototype.getPacket = function(T, src, dst, seqNumber, cb) {
+  var query = 'SELECT * FROM packets WHERE src = ? AND dst = ? AND seqNumber = ?';
+  T.get(query, src, dst, seqNumber, cb);
 }
 
 // This method will update the C-table and save the packet in the db.
@@ -988,17 +991,25 @@ function callHandlersArray(T, self, handlers, data, cb) {
     cb();
   } else {
     var handler = handlers[0];
-    
-    // Don't wait for handler to complete.
-    // Since we are inside a transaction T,
-    // waiting for handler to complete could
-    // easily lead to dead locks, if handler 
-    // waits for a database call outside the
-    // transaction to complete, while we are
-    // inside the transaction.
-    handler(self, data);
-    
-    callHandlersArray(T, self, handlers.slice(1), data, cb);
+
+    var nextIteration = function(err) {
+      if (err) {
+	cb(err);
+      } else {
+	callHandlersArray(T, self, handlers.slice(1), data, cb);
+      }
+    }
+    // *** IMPORTANT NOTE ***
+    // 
+    // We must be very careful when implementing handlers!
+    // Since they are called within a transaction,
+    // database access must happen in either of two ways:
+    //  (i)  The handler accesses the database through the T transaction object
+    //       and then calls nextIteration.
+    //  (ii) The handler accesses the database through self.db or self.getDB().
+    //       In that case, the handler MUST NOT wait for that operation to complete
+    //       because that would cause a deadlock since there is currently an open transaction.
+    handler(self, data, T, nextIteration);
   }
 }
 
@@ -1019,7 +1030,6 @@ Mailbox.prototype.callOnPacketReceived = function(T, packet, cb) {
   } else {
     cb();
   }
-  
 }
 
 // This method is called only for packets that should not be rejected.

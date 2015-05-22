@@ -156,7 +156,10 @@ function all(x) {
 
 // Called when the server receives a packet
 function makeServerPacketHandler(markArray, deferred) {
-  return function(mailbox, packet) {
+  return function(mailbox, packet, T, cb) {
+    // Let the synchronization process continue, don't block it.
+    cb();
+    
     if (packet.label == common.file) {
       var msg = file.unpackFileMessage(packet.data);
       if (isObjectWithFields(msg.info, ['logIndex'])) {
@@ -239,9 +242,22 @@ describe('log file sync', function() {
 	    assert(!err);
 	    sync.synchronize(phone, server, function(err) {
 	      assert(!err);
+
+	      // Wait for the server to receive all the log files
+	      // sent from the box
 	       serverDeferred.promise.then(function(value) {
 	         assert(all(value));
-	         done();
+
+		 // By now, the server will have emitted an ack packet for 3 of the packets.
+		 // That ack packet is propagated back.
+		 sync.synchronize(phone, server, function(err) {
+		   assert(!err);
+		   sync.synchronize(box, phone, function(err) {
+		     
+		     done();
+
+		   });
+		 });
 	       });
 	    });
 	  });
