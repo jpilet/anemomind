@@ -1,3 +1,4 @@
+// File transfer facilities
 var labels = require('./labels.js');
 
 function packFileData(path, type, cb) {
