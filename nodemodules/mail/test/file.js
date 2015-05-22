@@ -30,7 +30,6 @@ function sendFiles(src, dst, count, cb) {
     cb();
   } else {
     var index = count-1;
-    console.log('Send file with index %j', index);
     file.sendFile(src, dst, makeLogFilename(index), {logIndex: index}, function(err) {
       if (err) {
 	cb(err);
@@ -158,12 +157,10 @@ function all(x) {
 // Called when the server receives a packet
 function makeServerPacketHandler(markArray, deferred) {
   return function(mailbox, packet) {
-    console.log('RECEIVE PACKET %j', packet);
     if (packet.label == common.file) {
       var msg = file.unpackFileMessage(packet.data);
       if (isObjectWithFields(msg.info, ['logIndex'])) {
 	var index = msg.info.logIndex;
-	console.log('  index = %j', index);
 	var msgText = msg.data.toString('utf8');
 	if (msgText == makeLogData(index)) {
 	  markArray[index] = true;
@@ -226,8 +223,11 @@ describe('log file sync', function() {
       assert(phone.mailboxName == 'phone');
       assert(box.mailboxName == 'box');
 
-      var n = 9;
+      var n = 5;
       var serverDeferred = Q.defer();
+
+      server.ackFrequency = 3;
+      
       server.onPacketReceived = makeServerPacketHandler(new Array(n), serverDeferred);
 
       // Create the log files
