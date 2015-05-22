@@ -1258,6 +1258,12 @@ Mailbox.prototype.getDB = function() {
   return this.db;
 }
 
+function isMailbox(x) {
+  if (typeof x == 'object') {
+    return x.constructor.name == 'Mailbox';
+  }
+  return false;
+}
 
 
 module.exports.dispAllTableData = dispAllTableData;
@@ -1266,3 +1272,4 @@ module.exports.serializeSeqNums = serializeSeqNums;
 module.exports.deserializeSeqNums = deserializeSeqNums;
 module.exports.serializeString = serializeString;
 module.exports.tryMakeMailbox = tryMakeMailbox;
+module.exports.isMailbox = isMailbox;
