@@ -1,7 +1,9 @@
 // File transfer facilities
-var commont = require('./common.js');
+var common = require('./common.js');
 var mb = require('./mail.sqlite.js');
 var fs = require('fs');
+var assert = require('assert');
+var msgpack = require('msgpack');
 
 // fs.writeFile(filename, data, cb)
 
@@ -56,3 +58,6 @@ function sendFile(mailbox,   // The local mailbox
 function unpackFile(packet) {
   msgpack.unpack(buf);
 }
+
+
+module.exports.sendFile = sendFile;

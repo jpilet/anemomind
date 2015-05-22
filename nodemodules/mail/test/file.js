@@ -23,6 +23,21 @@ function logFileExists(index, cb) {
   fs.exists(makeLogFilename(index), cb);
 }
 
+function sendFiles(src, dst, count, cb) {
+  if (count == 0) {
+    cb();
+  } else {
+    var index = count-1;
+    file.sendFile(src, dst, makeLogFilename(index), {logIndex: index}, function(err) {
+      if (err) {
+	cb(err);
+      } else {
+	sendFiles(src, dst, index, cb);
+      }
+    });
+  }
+}
+
 function logFilesExistSub(dst, count, cb) {
   if (count == 0) {
     cb(dst);
@@ -199,7 +214,15 @@ describe('log file sync', function() {
 
       var serverDeferred = Q.defer();
       server.onPacketReceived = makeServerPacketHandler(new Array(35), serverDeferred);
-      done();
+
+      // Create the log files
+      makeLogFiles(35, function(err) {
+	assert(!err);
+	sendFiles(box, 'server', 35, function(err) {
+	  assert(!err);
+	  done();
+	});
+      });
     })
   });
 });
