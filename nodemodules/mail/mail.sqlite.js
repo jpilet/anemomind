@@ -1007,8 +1007,10 @@ function callHandlersArray(T, self, handlers, data, cb) {
     //  (i)  The handler accesses the database through the T transaction object
     //       and then calls nextIteration.
     //  (ii) The handler accesses the database through self.db or self.getDB().
-    //       In that case, the handler MUST NOT wait for that operation to complete
-    //       because that would cause a deadlock since there is currently an open transaction.
+    //       In that case, the handler MUST NOT wait for that DB operation to complete
+    //       before it calls nextIteration, because that is going to cause a deadlock:
+    //       The operation will never complete before T is committed, and in order
+    //       for T to be committed, nextIteration must be called.
     handler(self, data, T, nextIteration);
   }
 }
