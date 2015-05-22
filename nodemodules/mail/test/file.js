@@ -102,7 +102,15 @@ function removeLogFiles(count, cb) {
 }
 
 function makeEndpoint(name, cb) {
-  mb.tryMakeMailbox('/tmp/' + name + '.db', name, cb);
+  mb.tryMakeMailbox('/tmp/' + name + '.db', name, function(err, mb) {
+    if (err) {
+      cb(err);
+    } else {
+      mb.reset(function(err) {
+	cb(err, mb);
+      });
+    }
+  });
 }
 
 function makeEndpointsSub(dst, index, arr, cb) {
@@ -221,8 +229,14 @@ describe('log file sync', function() {
 	assert(!err);
 	sendFiles(box, 'server', 3, function(err) {
 	  assert(!err);
+	  
+	  mb.dispAllTableData(box.db, function(err) {
+	    mb.dispAllTableData(phone.db, function(err) {
+	      done();
+	    });
+	  });
 
-	  done();
+
 	  // sync.synchronize(box, phone, function(err) {
 	  //   assert(!err);
 	  //   done();
