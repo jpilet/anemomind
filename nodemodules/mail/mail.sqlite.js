@@ -12,8 +12,6 @@ var pkt = require('./packet.js');
 var bigint = require('./bigint.js');
 var common = require('./common.js');
 
-var ACKLABEL = common.ack;
-
 // These functions (beginTransaction and commit) are
 // just here to facilitate debugging. We can use them,
 // along with the method getDB() of Mailbox, to check
@@ -81,15 +79,6 @@ function expand(span, value) {
   }
 }
 
-// Such as sequence numbers
-function isCounter(x) {
-  return bigint.isBigInt(x);
-}
-
-// Such as mailbox names
-function isIdentifier(x) {
-  return typeof x == 'string';
-}
 
 
 /////////////////////////////////////////////////////////
@@ -117,12 +106,12 @@ function isNumber(x) {
 // Also check that the types are valid types.
 function isValidPacketSub(x) {
   if (pkt.isFullPacket(x)) {
-    return isValidOrUndefined(x.src, isIdentifier) &&
-      isValidOrUndefined(x.dst, isIdentifier) &&
-      isValidOrUndefined(x.diaryNumber, isCounter) &&
-      isValidOrUndefined(x.seqNumber, isCounter) &&
+    return isValidOrUndefined(x.src, common.isIdentifier) &&
+      isValidOrUndefined(x.dst, common.isIdentifier) &&
+      isValidOrUndefined(x.diaryNumber, common.isCounter) &&
+      isValidOrUndefined(x.seqNumber, common.isCounter) &&
       isValidOrUndefined(x.label, isNumber) &&
-      isValidOrUndefined(x.cNumber, isCounter) &&
+      isValidOrUndefined(x.cNumber, common.isCounter) &&
       isValidOrUndefined(x.data, isObject);
   }
   return false;
@@ -142,9 +131,6 @@ function isValidDBFilename(x) {
   return isNonEmptyString(x);
 }
 
-function isValidMailboxName(x) {
-  return isIdentifier(x);
-}
 
 function runWithLog(db, cmd) {
   console.log(cmd);
@@ -255,7 +241,7 @@ function tryMakeMailbox(dbFilename,  // <-- The filename where all
   if (!isValidDBFilename(dbFilename)) {
     throw new Error('Invalid database filename');
   }
-  if (!isValidMailboxName(mailboxName)) {
+  if (!common.isValidMailboxName(mailboxName)) {
     throw new Error('Invalid mailbox name');
   }
 
@@ -305,7 +291,7 @@ Mailbox.prototype.onAcknowledged = null;
 // If no such number exists, it calls the callback without any arguments.
 Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
   assert(isFunction(callbackNewNumber));
-  if (!isIdentifier(dst)) {
+  if (!common.isIdentifier(dst)) {
     callbackNewNumber(new Error('dst is not an identifier ' + dst));
   } else {
     
@@ -334,7 +320,7 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
 
 // OBS!!!!
 function makeNewSeqNumberSub(T, dst, x, cb) {
-  if (!(isIdentifier(dst) && (isCounter(x) || x == undefined))) {
+  if (!(common.isIdentifier(dst) && (common.isCounter(x) || x == undefined))) {
     cb(new Error('makeNewSeqNumberSub bad input'));
   } else {
     assert(isFunction(cb));
@@ -366,7 +352,7 @@ function makeNewSeqNumberSub(T, dst, x, cb) {
 // Makes a new sequence number that can be used.
 // Call this method every time we send a packet
 Mailbox.prototype.makeNewSeqNumber = function(T, dst, cb) {
-  if (!isIdentifier(dst)) {
+  if (!common.isIdentifier(dst)) {
     cb(new Error('Bad input to makeNewSeqNumber'));
   } else {
     assert(isFunction(cb));
@@ -405,7 +391,7 @@ Mailbox.prototype.getLastDiaryNumber = function(T, cb) {
 // This number is upon synchronization when we fetch messages from the
 // other mailbox.
 Mailbox.prototype.getForeignDiaryNumberSub = function(T, otherMailbox, cb) {
-  if (!isIdentifier(otherMailbox)) {
+  if (!common.isIdentifier(otherMailbox)) {
     cb(new Error("Bad input to getForeignDiaryNumberSub"));
   } else {
     assert(isFunction(cb));    
@@ -448,7 +434,7 @@ Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
 
 // Use this function to get a number of the first packet to ask for when synchronizing
 Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
-  if (!isIdentifier(otherMailbox)) {
+  if (!common.isIdentifier(otherMailbox)) {
     cb(new Error("bad input to getForeignStartNumber"));
   } else {
     assert(isFunction(cb));
@@ -466,7 +452,7 @@ Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
 // Sets the foreign number to a new value.
 Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
   assert(isFunction(cb));
-  if (!(isIdentifier(otherMailbox) && isCounter(newValue))) {
+  if (!(common.isIdentifier(otherMailbox) && common.isCounter(newValue))) {
     cb(new Error("Bad input to setForeignDiaryNumber"));
   } else {
     var self = this;
@@ -504,7 +490,7 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
 // Retrieves the first packet starting from a diary number.
 Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight, cb) {
   assert(isFunction(cb));
-  if (!isCounter(diaryNumber)) {
+  if (!common.isCounter(diaryNumber)) {
     cb('The diary number must be a counter value, but was provided with ' + diaryNumber);
   } else {
     // During the synchronization process, we might only want the essential information
@@ -544,7 +530,7 @@ Mailbox.prototype.makeNewDiaryNumber = function(T, cb) {
 // Retrieves the C-number for a given (src, dst) pair. A sequence number
 // is provided for initialization if no C-number exists. The result is passed to cb.
 Mailbox.prototype.getCNumber = function(T, src, dst, cb) {
-  if (!(isIdentifier(src) && isIdentifier(dst))) {
+  if (!(common.isIdentifier(src) && common.isIdentifier(dst))) {
     cb(new Error("bad input to getCNumber"));
   } else {
     assert(isFunction(cb));
@@ -568,7 +554,7 @@ Mailbox.prototype.getCNumber = function(T, src, dst, cb) {
 
 
 Mailbox.prototype.insertCTable = function(T, src, dst, value, cb) {
-  if (!(isIdentifier(src) && isIdentifier(dst) && isCounter(value))) {
+  if (!(common.isIdentifier(src) && common.isIdentifier(dst) && common.isCounter(value))) {
     cb(new Error("Bad input to insertCTable"));
   } else {
     assert(isFunction(cb));    
@@ -579,7 +565,7 @@ Mailbox.prototype.insertCTable = function(T, src, dst, value, cb) {
 
 // Used when sending new packets.
 Mailbox.prototype.getOrMakeCNumber = function(T, dst, seqNumber, cb) {
-  if (!(isIdentifier(dst) && isCounter(seqNumber))) {
+  if (!(common.isIdentifier(dst) && common.isCounter(seqNumber))) {
     cb(new Error("Bad input to getOrMakeCNumber"));
   } else {
     assert(isFunction(cb));    
@@ -606,7 +592,7 @@ Mailbox.prototype.getOrMakeCNumber = function(T, dst, seqNumber, cb) {
 }
 
 Mailbox.prototype.removeObsoletePackets = function(T, src, dst, cb) {
-  if (!(isIdentifier(src) && isIdentifier(dst))) {
+  if (!(common.isIdentifier(src) && common.isIdentifier(dst))) {
     cb(new Error("Bad input to removeObsoletePackets"));
   } else {
     assert(isFunction(cb));    
@@ -642,7 +628,7 @@ Mailbox.prototype.getTotalPacketCount = function(cb) {
 
 // Update the C table. Used when handling incoming packets.
 Mailbox.prototype.updateCTable = function(T, src, dst, newValue, cb) {
-  if (!(isIdentifier(src) && isIdentifier(dst) && isCounter(newValue) && (src != dst))) {
+  if (!(common.isIdentifier(src) && common.isIdentifier(dst) && common.isCounter(newValue) && (src != dst))) {
     cb(new Error("bad input to updateCTable"));
   } else {
     assert(isFunction(cb));
@@ -676,7 +662,7 @@ Mailbox.prototype.updateCTable = function(T, src, dst, newValue, cb) {
 
 // Check if an incoming packet should be admitted.
 Mailbox.prototype.isAdmissibleSub = function(T, src, dst, seqNumber, cb) {
-  if (!(isIdentifier(src) && isIdentifier(dst) && isCounter(seqNumber) && src != undefined && dst != undefined)) {
+  if (!(common.isIdentifier(src) && common.isIdentifier(dst) && common.isCounter(seqNumber) && src != undefined && dst != undefined)) {
     cb(new Error("Bad input to isAdmissibleSub"));
   } else {
     assert(isFunction(cb));
@@ -715,7 +701,7 @@ Mailbox.prototype.getAllPackets = function(cb) {
 
 // A packet can be uniquely identified by its source mailbox and the seqNumber.
 Mailbox.prototype.hasPacket = function(T, src, seqNumber, cb) {
-  if (!(isIdentifier(src) && isCounter(seqNumber))) {
+  if (!(common.isIdentifier(src) && common.isCounter(seqNumber))) {
     cb(new Error("hasPacket got bad input"))
   } else {
     assert(isFunction(cb));    
@@ -790,7 +776,7 @@ Mailbox.prototype.registerPacketData = function(T, packet, cb) {
 
 // Get the number of packets for which we haven't sent an ack packet.
 Mailbox.prototype.getNonAckCount = function(T, src, cb) {
-  if (!isIdentifier(src)) {
+  if (!common.isIdentifier(src)) {
     cb(new Error("getNonAckCount got bad input"));
   } else {
     var query = 'SELECT count(*) FROM packets WHERE src = ? AND dst = ? AND ack = 0';
@@ -814,7 +800,7 @@ Mailbox.prototype.getNonAckCount = function(T, src, cb) {
 // Set packets as acknowledged
 Mailbox.prototype.setAcked = function(T, src, dst, seqnums, cb) {
   assert(isFunction(cb));    
-  if (!(isIdentifier(src) && isIdentifier(dst))) {
+  if (!(common.isIdentifier(src) && common.isIdentifier(dst))) {
     cb(new Error("setAcked got bad input"));
   } else {
     var query = 'UPDATE packets SET ack = 1 WHERE src = ? AND dst = ? AND seqNumber = ?';
@@ -844,7 +830,7 @@ Mailbox.prototype.setAcked = function(T, src, dst, seqnums, cb) {
 
 // Sends an ack to the source of a packet.
 Mailbox.prototype.sendAck = function(T, src, cb) {
-  assert(isIdentifier(src));
+  assert(common.isIdentifier(src));
   assert(isFunction(cb));    
   var self = this;
   var query = 'SELECT seqNumber FROM packets WHERE src = ? AND dst = ? AND ack = 0';
@@ -857,7 +843,7 @@ Mailbox.prototype.sendAck = function(T, src, cb) {
       }
       self.sendPacketSub(T,
 	src/*back to the source*/,
-	ACKLABEL,
+	common.ack,
 	serializeSeqNums(seqnums),
 	function(err) {
 	  if (err == undefined) {
@@ -875,7 +861,7 @@ Mailbox.prototype.sendAck = function(T, src, cb) {
 
 // Sends an ack-packet if we have received enough packets.
 Mailbox.prototype.sendAckIfNeeded = function(T, src, cb) {
-  assert(isIdentifier(src));
+  assert(common.isIdentifier(src));
   assert(isFunction(cb));    
   var self = this;
   this.getNonAckCount(T, src, function(err, count) {
@@ -893,7 +879,7 @@ Mailbox.prototype.sendAckIfNeeded = function(T, src, cb) {
 
 // Maximize the c-number for this mailbox as a sender
 Mailbox.prototype.maximizeCNumber = function(T, dst, cb) {
-  assert(isIdentifier(dst));
+  assert(common.isIdentifier(dst));
 
   // We are never sending packets to ourself, are we?
   assert(dst != this.mailboxName);
@@ -964,7 +950,7 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(T, packet, cb) {
   assert(isValidPacket(packet));
   assert(isFunction(cb));
   var self = this;
-  if (packet.label == ACKLABEL && packet.dst == this.mailboxName) {
+  if (packet.label == common.ack && packet.dst == this.mailboxName) {
     var seqnums = deserializeSeqNums(packet.data);
     // Optional call to function whenever some packets that we sent were acknowledged.
     this.callOnAcknowledged(
@@ -1107,15 +1093,15 @@ Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
 
 
 Mailbox.prototype.getDiaryAndSeqNumbers = function(T, dst, cb) {
-  assert(isIdentifier(dst));
+  assert(common.isIdentifier(dst));
   assert(isFunction(cb));    
   var self = this;
   self.makeNewDiaryNumber(T, function(err, diaryNumber) {
     if (err == undefined) {
       self.makeNewSeqNumber(T, dst, function(err, seqNumber) {
 	if (err == undefined) {
-	  assert(isCounter(diaryNumber));
-	  assert(isCounter(seqNumber));
+	  assert(common.isCounter(diaryNumber));
+	  assert(common.isCounter(seqNumber));
 	  cb(err, {diaryNumber: diaryNumber, seqNumber: seqNumber});
 	} else {
 	  cb(err);
@@ -1175,7 +1161,7 @@ Mailbox.prototype.close = function(cb) {
 // a new packet is produced that is put in the packets table.
 Mailbox.prototype.sendPacketSub = function (T, dst, label, data, cb) {
   assert(isNumber(label));
-  assert(isIdentifier(dst));
+  assert(common.isIdentifier(dst));
   assert(isFunction(cb));
   var self = this;
   if ((typeof data != 'string') && (typeof data != 'object')) {
@@ -1276,11 +1262,7 @@ Mailbox.prototype.getDB = function() {
 
 module.exports.dispAllTableData = dispAllTableData;
 module.exports.expand = expand;
-module.exports.isCounter = isCounter;
-module.exports.isIdentifier = isIdentifier;
-module.exports.isValidMailboxName = isValidMailboxName;
 module.exports.serializeSeqNums = serializeSeqNums;
 module.exports.deserializeSeqNums = deserializeSeqNums;
 module.exports.serializeString = serializeString;
-module.exports.ACKLABEL = ACKLABEL;
 module.exports.tryMakeMailbox = tryMakeMailbox;

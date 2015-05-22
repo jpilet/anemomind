@@ -2,7 +2,7 @@ var mailsqlite = require('../mail.sqlite.js');
 var assert = require('assert');
 var bigint = require('../bigint.js');
 var schema = require('../mailbox-schema.js');
-
+var common = require('../common.js');
 
 
 
@@ -94,7 +94,7 @@ describe(
 	    box.getLastDiaryNumber(box.db, function(err, num) {
 	      assert.equal(num, undefined);
 	      box.makeNewDiaryNumber(box.db, function(err, num) {
-		assert(mailsqlite.isCounter(num));
+		assert(common.isCounter(num));
 		done();
 	      });
 	    });
@@ -337,7 +337,7 @@ describe(
 	       function(err, results) {
 		 var r = results[0];
 		 assert.equal(results.length, 1);
-		 assert.equal(r.label, mailsqlite.ACKLABEL);
+		 assert.equal(r.label, common.ack);
 		 assert.equal(r.src, 'aaabbb');
 		 assert.equal(r.dst, 'caa');
 		 var nums = mailsqlite.deserializeSeqNums(r.data);
