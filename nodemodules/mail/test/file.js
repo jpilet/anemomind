@@ -1,15 +1,21 @@
 var assert = require('assert');
+var file = require('../file.js');
 var mb = require('../mail.sqlite.js');
 var fs = require('fs');
+var Q = require('q');
 
 function makeLogFilename(index) {
   return '/tmp/anemolog' + index + '.log';
 }
 
+function makeLogData(index) {
+  return 'This is log file ' + index;
+}
+
 
 function makeLogFile(index, cb) {
   var filename = makeLogFilename(index);
-  var contents = 'This is log file ' + index;
+  var contents = makeLogData(index);
   fs.writeFile(filename, contents, cb);
 }
 
@@ -85,7 +91,7 @@ function makeEndpoint(name, cb) {
 
 function makeEndpointsSub(dst, index, arr, cb) {
   if (index == arr.length) {
-    cb(null, arr);
+    cb(null, dst);
   } else {
     makeEndpoint(arr[index], function(err, mailbox) {
       if (err) {
@@ -100,6 +106,48 @@ function makeEndpointsSub(dst, index, arr, cb) {
 
 function makeEndpoints(arr, cb) {
   makeEndpointsSub(new Array(arr.length), 0, arr, cb);
+}
+
+function isObjectWithFields(x, fields) {
+  if (typeof x == 'object') {
+    for (var i = 0; i < fields.length; i++) {
+      if (!x[files[i]]) {
+	return false;
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+function all(x) {
+  for (var i = 0; i < x.length; i++) {
+    if (!x[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Called when the server receives a packet
+function makeServerPacketHandler(markArray, deferred) {
+  return function(mailbox, packet) {
+    if (packet.label == common.file) {
+      var msg = msgpack.unpack(packet.data);
+      if (isObjectWithFields(msg.info, ['logIndex'])) {
+	var index = msg.info.logIndex;
+	var msgText = msg.data.toString('utf8');
+	if (msgText == makeLogData(index)) {
+	  markArray[index] = true;
+	  if (all(markArray)) {
+	    promise.resolve(markArray);
+	  }
+	} else {
+	  promise.reject('Message data mismatch');
+	}
+      }
+    }
+  }
 }
 
 function makeAnemoSetup(cb) {
@@ -135,11 +183,22 @@ describe(
       });
     });
 
-describe('anemo setup', function() {
-  it('Should instantiate 3 mailboxes on the file system', function(done) {
+describe('log file sync', function() {
+  it('Should synchronize log files', function(done) {
     makeAnemoSetup(function(err, boxes) {
       assert(!err);
       assert.equal(boxes.length, 3);
+      
+      var server = boxes[0];
+      var phone = boxes[1];
+      var box = boxes[2];
+      
+      assert(server.mailboxName == 'server');
+      assert(phone.mailboxName == 'phone');
+      assert(box.mailboxName == 'box');
+
+      var serverDeferred = Q.defer();
+      server.onPacketReceived = makeServerPacketHandler(new Array(35), serverDeferred);
       done();
     })
   });
