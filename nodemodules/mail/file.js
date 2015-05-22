@@ -15,26 +15,29 @@ function isFileMessage(x) {
   return false;
 }
 
-function packFileData(path, info, cb) {
+function packFileMessage(path, info, data) {
+  // We could just send the buffer,
+  // but I think it makes sense to send it together with
+  // some context.
+  var message = {
+    path: path, // The path of the file on the sender file system.
+    info: info, // Extra information about the file, free format. E.g. a tag saying that
+    // it is a log file.
+    data: data  // The file data.
+  };
+
+  assert(isFileMessage(message));
+
+  // Call the callback with the packed packet.
+  return msgpack.pack(message);
+}
+
+function readAndPackFile(path, info, cb) {
   fs.readFile(path, function(err, data) {
     if (err) {
       cb(err);
     } else {
-      
-      // We could just send the buffer,
-      // but I think it makes sense to send it together with
-      // some context.
-      var message = {
-	path: path, // The path of the file on the sender file system.
-	info: info, // Extra information about the file, free format. E.g. a tag saying that
-	            // it is a log file.
-	data: data  // The file data.
-      };
-
-      assert(isFileMessage(message));
-           
-      // Call the callback with the packed packet.
-      cb(null, msgpack.pack(message));
+      cb(null, packFileMessage(path, info, data));
     }
   });
 }
@@ -49,15 +52,16 @@ function sendFile(mailbox,   // The local mailbox
   if (!(mb.isMailbox(mailbox) && common.isIdentifier(dst))) {
     cb(new Error('Bad input to sendFile'));
   } else {
-    packFileData(path, info, function(err, buf) {
+    readAndPackFile(path, info, function(err, buf) {
       mailbox.sendPacket(dst, common.file, buf, cb);
     });
   }
 }
 
-function unpackFile(packet) {
-  msgpack.unpack(buf);
+function unpackFileMessage(buf) {
+  return msgpack.unpack(buf);
 }
 
 
 module.exports.sendFile = sendFile;
+module.exports.unpackFileMessage = unpackFileMessage;

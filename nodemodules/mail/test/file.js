@@ -3,6 +3,7 @@ var file = require('../file.js');
 var mb = require('../mail.sqlite.js');
 var fs = require('fs');
 var Q = require('q');
+var common = require('../common.js');
 var sync = require('../sync.js');
 
 function makeLogFilename(index) {
@@ -135,7 +136,7 @@ function makeEndpoints(arr, cb) {
 function isObjectWithFields(x, fields) {
   if (typeof x == 'object') {
     for (var i = 0; i < fields.length; i++) {
-      if (!x[files[i]]) {
+      if (!x[fields[i]]) {
 	return false;
       }
       return true;
@@ -157,7 +158,7 @@ function all(x) {
 function makeServerPacketHandler(markArray, deferred) {
   return function(mailbox, packet) {
     if (packet.label == common.file) {
-      var msg = msgpack.unpack(packet.data);
+      var msg = file.unpackFileMessage(packet.data);
       if (isObjectWithFields(msg.info, ['logIndex'])) {
 	var index = msg.info.logIndex;
 	var msgText = msg.data.toString('utf8');
@@ -229,23 +230,13 @@ describe('log file sync', function() {
 	assert(!err);
 	sendFiles(box, 'server', 3, function(err) {
 	  assert(!err);
-	  
-	  mb.dispAllTableData(box.db, function(err) {
-	    mb.dispAllTableData(phone.db, function(err) {
+	  sync.synchronize(box, phone, function(err) {
+	    assert(!err);
+	    sync.synchronize(phone, server, function(err) {
+	      assert(!err);
 	      done();
 	    });
 	  });
-
-
-	  // sync.synchronize(box, phone, function(err) {
-	  //   assert(!err);
-	  //   done();
-	  //   // sync.synchronize(phone, server, function(err) {
-	  //   //   assert(!err);
-	  //   //   done();
-	  //   // });
-	  // });
-	  
 	});
       });
     })
