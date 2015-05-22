@@ -716,6 +716,11 @@ Mailbox.prototype.hasPacket = function(T, src, seqNumber, cb) {
   }
 }
 
+Mailbox.prototype.getPacket = function(T, src, seqNumber, cb) {
+  var query = 'SELECT * FROM packets WHERE src = ? AND seqNumber = ?';
+  T.get(query, src, seqNumber, cb);
+}
+
 
 // This method will update the C-table and save the packet in the db.
 Mailbox.prototype.registerPacketData = function(T, packet, cb) {
@@ -930,9 +935,9 @@ Mailbox.prototype.maximizeCNumber = function(T, dst, cb) {
   });
 }
 
-Mailbox.prototype.callOnAcknowledged = function(packet, seqnums, cb) {
+Mailbox.prototype.callOnAcknowledged = function(T, packet, seqnums, cb) {
   if (this.onAcknowledged != undefined) {
-    callHandlers(
+    callHandlers(T,
       this,
       this.onAcknowledged,
       {
@@ -953,7 +958,7 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(T, packet, cb) {
   if (packet.label == common.ack && packet.dst == this.mailboxName) {
     var seqnums = deserializeSeqNums(packet.data);
     // Optional call to function whenever some packets that we sent were acknowledged.
-    this.callOnAcknowledged(
+    this.callOnAcknowledged(T,
       packet, seqnums,
       function (err) {
 	if (err) {
@@ -974,38 +979,39 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(T, packet, cb) {
 }
 
 
-function callHandlersArray(self, handlers, data, cb) {
+function callHandlersArray(T, self, handlers, data, cb) {
   if (handlers.length == 0) {
     cb();
   } else {
     handlers[0](
       self,
+      T,
       data,
       function(err) {
 	if (err) {
 	  cb(err);
 	} else {
-	  callHandlersArray(self, handlers.slice(1), data, cb);
+	  callHandlersArray(T, self, handlers.slice(1), data, cb);
 	}
       }
     );
   }
 }
 
-function callHandlers(self, handlers, data, cb) {
+function callHandlers(T, self, handlers, data, cb) {
   if (handlers == undefined) {
     cb();
   } else if (typeof handlers == 'function') {
-    handlers(self, data, cb);
+    handlers(self, T, data, cb);
   } else { // It is an array
-    callHandlersArray(self, handlers, data, cb);
+    callHandlersArray(T, self, handlers, data, cb);
   }
 }
 
-Mailbox.prototype.callOnPacketReceived = function(packet, cb) {
+Mailbox.prototype.callOnPacketReceived = function(T, packet, cb) {
   if (this.onPacketReceived != undefined
       && packet.dst == this.mailboxName) {
-    callHandlers(this, this.onPacketReceived, packet, cb);
+    callHandlers(T, this, this.onPacketReceived, packet, cb);
   } else {
     cb();
   }
@@ -1023,7 +1029,7 @@ Mailbox.prototype.acceptIncomingPacket = function(T, packet, cb) {
   //  * Update the C-table using the data of the packet
   this.registerPacketData(T, packet, function(err) {
     if (err == undefined) {
-      self.callOnPacketReceived(
+      self.callOnPacketReceived(T,
 	packet,
 	function(err) {
 	  // If the packet was intended for this mailbox,
