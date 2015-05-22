@@ -1001,7 +1001,7 @@ function callHandlers(T, self, handlers, data, cb) {
   if (handlers == undefined) {
     cb();
   } else if (typeof handlers == 'function') {
-    handlers(self, T, data, cb);
+    callHandlersArray(T, self, [handlers], data, cb);
   } else { // It is an array
     callHandlersArray(T, self, handlers, data, cb);
   }
