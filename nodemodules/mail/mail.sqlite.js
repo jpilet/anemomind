@@ -10,9 +10,9 @@ var async = require('async');
 var assert = require('assert');
 var pkt = require('./packet.js');
 var bigint = require('./bigint.js');
-var labels = require('./labels.js');
+var common = require('./common.js');
 
-var ACKLABEL = labels.ack;
+var ACKLABEL = common.ack;
 
 // These functions (beginTransaction and commit) are
 // just here to facilitate debugging. We can use them,

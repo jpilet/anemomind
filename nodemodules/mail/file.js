@@ -1,5 +1,6 @@
 // File transfer facilities
 var labels = require('./labels.js');
+var mb = require('./mail.sqlite.js');
 
 function packFileData(path, type, cb) {
   type = type || 'unspecified';
