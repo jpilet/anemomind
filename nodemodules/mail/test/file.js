@@ -239,16 +239,12 @@ describe('log file sync', function() {
 	    assert(!err);
 	    sync.synchronize(phone, server, function(err) {
 	      assert(!err);
-	      //  serverDeferred.promise.then(function(value) {
-	      //    assert(all(value));
-	      //    done();
-	      //  });
-	      mb.dispAllTableData(server.db, function(err) {
-		done();
-	      });
+	       serverDeferred.promise.then(function(value) {
+	         assert(all(value));
+	         done();
+	       });
 	    });
 	  });
-	  
 	});
       });
     })
