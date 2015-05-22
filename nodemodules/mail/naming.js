@@ -1,40 +1,20 @@
-var types = {
-  boatId: "string",
-  boxId: "string",
-};
-
 function makeMailboxNameFromBoatId(boatId) {
-  if (typeof boatId == types.boatId) {
-    return "boatId_" + boatId;
-  }
-  return null;
+  return "boat" + boatId;
 }
 
 function makeMailboxNameFromBoxId(boxId) {
-  if (typeof boxId == types.boxId) {
-    return "boxId_" + boxId;
-  }
-  return null;
+  return "box" + boxId;
 }
 
 
 function parseMailboxName(mailboxName) {
   if (typeof mailboxName == "string") {
-    var index = mailboxName.indexOf("_");
-    if (0 <= index) {
-      var prefix = mailboxName.substring(0, index);
-      if (types[prefix] != "string") {
-	// not implemented for any other types than string.
-	return null;
-      }
-      var stringData = mailboxName.substring(index + 1);
-      var data = stringData;
-      var result = {};
-      result[prefix] = data;
-      return result;
-      
+    var groups = mailboxName.match(/^(box|boat)(.*)/);
+    if (groups) {
+      return {prefix: groups[1], id: groups[2]};
+    } else {
+      return null;
     }
-    return null;
   }
   return null;
 }
