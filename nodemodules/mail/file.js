@@ -37,9 +37,6 @@ function packFileData(path, info, cb) {
   });
 }
 
-
-
-
 // Send a file
 function sendFile(mailbox,   // The local mailbox
 		  dst,       // destination mailbox

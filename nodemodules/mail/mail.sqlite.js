@@ -721,7 +721,6 @@ Mailbox.prototype.getPacket = function(T, src, seqNumber, cb) {
   T.get(query, src, seqNumber, cb);
 }
 
-
 // This method will update the C-table and save the packet in the db.
 Mailbox.prototype.registerPacketData = function(T, packet, cb) {
   if (!isValidPacket(packet)) {
