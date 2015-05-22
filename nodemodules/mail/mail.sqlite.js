@@ -813,10 +813,10 @@ Mailbox.prototype.getNonAckCount = function(T, src, cb) {
 
 // Set packets as acknowledged
 Mailbox.prototype.setAcked = function(T, src, dst, seqnums, cb) {
+  assert(isFunction(cb));    
   if (!(isIdentifier(src) && isIdentifier(dst))) {
     cb(new Error("setAcked got bad input"));
   } else {
-    assert(isFunction(cb));    
     var query = 'UPDATE packets SET ack = 1 WHERE src = ? AND dst = ? AND seqNumber = ?';
     var self = this;
 
