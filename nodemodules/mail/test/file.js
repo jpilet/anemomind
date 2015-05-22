@@ -168,10 +168,10 @@ function makeServerPacketHandler(markArray, deferred) {
 	if (msgText == makeLogData(index)) {
 	  markArray[index] = true;
 	  if (all(markArray)) {
-	    promise.resolve(markArray);
+	    deferred.resolve(markArray);
 	  }
 	} else {
-	  promise.reject('Message data mismatch');
+	  deferred.reject('Message data mismatch');
 	}
       }
     }
@@ -212,6 +212,7 @@ describe(
     });
 
 describe('log file sync', function() {
+  this.timeout(12000);
   it('Should synchronize log files', function(done) {
     makeAnemoSetup(function(err, boxes) {
       assert(!err);
@@ -245,8 +246,6 @@ describe('log file sync', function() {
 	      mb.dispAllTableData(server.db, function(err) {
 		done();
 	      });
-	      
-
 	    });
 	  });
 	  
