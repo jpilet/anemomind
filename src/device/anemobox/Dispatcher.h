@@ -64,9 +64,10 @@ class TypedDispatchData : public DispatchData {
   TypedDispatchData(std::map<DataCode, DispatchData*> *index,
                     DataCode nature,
                     std::string wordIdentifier,
-                    std::string description)
+                    std::string description,
+                    Clock* clock)
      : DispatchData(index, nature, wordIdentifier, description),
-     _dispatcher(1024) { }
+     _dispatcher(clock, 1024) { }
 
   virtual void visit(DispatchDataVisitor *visitor);
   ValueDispatcher<T> *dispatcher() { return &_dispatcher; }
@@ -103,7 +104,7 @@ void TypedDispatchData<T>::visit(DispatchDataVisitor *visitor) {
 
 //! Dispatcher: the hub for all values processed by the anemobox.
 // the data() method allows enumeration of all components.
-class Dispatcher {
+class Dispatcher : public Clock {
  public:
   Dispatcher();
 
