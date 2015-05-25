@@ -16,7 +16,9 @@ Dispatcher::Dispatcher() :
   _watSpeed(&_data, WAT_SPEED, "watSpeed", "water speed", this),
   _watDist(&_data, WAT_DIST, "watDist", "distance over water", this),
   _pos(&_data, GPS_POS, "pos", "GPS position", this),
-  _dateTime(&_data, DATE_TIME, "dateTime", "GPS date and time (UTC)", this)
+  _dateTime(&_data, DATE_TIME, "dateTime", "GPS date and time (UTC)", this),
+  _targetVmg(&_data, TARGET_VMG, "targetVmg", "Target VMG", this),
+  _vmg(&_data, VMG, "vmg", "VMG", this)
 {
 }
 

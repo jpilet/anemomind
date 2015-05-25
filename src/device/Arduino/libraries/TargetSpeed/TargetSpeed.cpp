@@ -10,8 +10,9 @@
 #include <server/plot/extra.h>
 #include <sstream>
 
-using namespace sail;
 #endif
+
+namespace sail {
 
 namespace {
 
@@ -47,6 +48,17 @@ float getSpeedDownWind(const TargetSpeedTable& table, FP8_8 tws) {
 }
 
 } // namespace
+
+Velocity<> getVmgTarget(const TargetSpeedTable& table,
+                        Angle<> twa, Velocity<> tws) {
+  if (cos(twa) > 0) {
+    // upwind
+    return Velocity<>::knots(getSpeedUpWind(table, tws.knots()));
+  } else {
+    // downwind
+    return Velocity<>::knots(getSpeedDownWind(table, tws.knots()));
+  }
+}
 
 float getVmgSpeedRatio(const TargetSpeedTable& table,
                        short twa, FP8_8 tws, FP8_8 gpsSpeed) {
@@ -113,4 +125,7 @@ void plotTargetSpeedTable(const TargetSpeedTable& table) {
   plot.plot_xy(X, downwind, "Downwind");
   plot.show();
 }
+
+}  // namespace sail
+
 #endif

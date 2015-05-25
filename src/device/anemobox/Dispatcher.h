@@ -29,6 +29,8 @@ enum DataCode {
   WAT_DIST = 10,
   GPS_POS = 11,
   DATE_TIME = 12,
+  TARGET_VMG = 13,
+  VMG = 14,
 };
 
 class DispatchDataVisitor;
@@ -126,6 +128,8 @@ class Dispatcher : public Clock {
   DispatchLengthData* watDist() { return &_watDist; }
   DispatchGeoPosData* pos() { return &_pos; }
   DispatchTimeStampData* dateTime() { return &_dateTime; }
+  DispatchVelocityData* targetVmg() { return &_targetVmg; }
+  DispatchVelocityData* vmg() { return &_vmg; }
 
  private:
   static Dispatcher *_globalInstance;
@@ -143,6 +147,8 @@ class Dispatcher : public Clock {
   DispatchLengthData _watDist;
   DispatchGeoPosData _pos;
   DispatchTimeStampData _dateTime;
+  DispatchVelocityData _targetVmg;
+  DispatchVelocityData _vmg;
 };
 
 // A convenient visitor to subscribe to any dispatch data type.

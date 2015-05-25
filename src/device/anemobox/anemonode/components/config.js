@@ -1,6 +1,7 @@
 var fs = require('fs');
 
-var configFile = "./config.json"
+
+var configFile = (process.env.ANEMOBOX_CONFIG_PATH || "." ) + "./config.json"
 
 function defaultConfig() {
   return {

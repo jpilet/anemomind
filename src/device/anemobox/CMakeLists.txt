@@ -38,9 +38,25 @@ target_link_libraries(anemobox_DispatcherFilter
                       anemobox_Dispatcher
                       common_TimeStamp
                      )
-
 cxx_test(anemobox_DispatcherFilterTest DispatcherFilterTest.cpp
          anemobox_Dispatcher
          anemobox_DispatcherFilter
          gtest_main
         )
+
+add_library(anemobox_DispatcherTrueWindEstimator
+            DispatcherTrueWindEstimator.h
+            DispatcherTrueWindEstimator.cpp)
+target_link_libraries(anemobox_DispatcherTrueWindEstimator
+                      anemobox_Dispatcher
+                      anemobox_DispatcherFilter
+                      device_ChunkFile
+                      device_TargetSpeed
+                     )
+cxx_test(anemobox_DispatcherTrueWindEstimatorTest
+         DispatcherTrueWindEstimatorTest.cpp
+         anemobox_DispatcherTrueWindEstimator
+         common_Env
+         gtest_main
+        )
+

@@ -4,6 +4,9 @@
 #define DEVICE_TARGET_SPEED_H
 
 #include "../FixedPoint/FixedPoint.h"
+#include "../PhysicalQuantity/PhysicalQuantity.h"
+
+namespace sail {
 
 struct TargetSpeedTable {
   enum {
@@ -24,6 +27,9 @@ float getVmgSpeedRatio(const TargetSpeedTable& table,
 
 void invalidateSpeedTable(TargetSpeedTable *table);
 
+Velocity<> getVmgTarget(const TargetSpeedTable& table,
+                        Angle<> twa, Velocity<> tws);
+
 #ifdef ON_SERVER
 //! Reads the 'boat.dat' file from disc, and fill the given TargetSpeedTable
 //  structure. Returns true on success, false on failure.
@@ -32,5 +38,7 @@ bool loadTargetSpeedTable(const char *filename, TargetSpeedTable *table);
 //! Invokes gnuplot with the given speed table. 
 void plotTargetSpeedTable(const TargetSpeedTable& table);
 #endif
+
+}  // namespace sail
 
 #endif // DEVICE_TARGET_SPEED_H
