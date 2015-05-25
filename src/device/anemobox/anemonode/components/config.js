@@ -1,7 +1,7 @@
 var fs = require('fs');
 
 
-var configFile = (process.env.ANEMOBOX_CONFIG_PATH || "." ) + "./config.json"
+var configFile = (process.env.ANEMOBOX_CONFIG_PATH || "." ) + "/config.json"
 
 function defaultConfig() {
   return {
@@ -23,7 +23,7 @@ function write(config, cb) {
   fs.writeFile(configFile, data, {encoding:'utf8'},
                function (err) {
     if (err) {
-      console.log('There has been an error saving your configuration data.');
+      console.log(configFile + ': There has been an error saving your configuration data.');
       console.log(err.message);
       if (cb) {
         cb(err, undefined);
@@ -68,7 +68,7 @@ function change(changes, cb) {
 }
 
 get(function(err, config) {
-  if (config.boatName) {
+  if (config && config.boatName) {
     console.log('This anemobox is installed on boat: ' + config.boatName + " (" + config.boatId + ")");
   } else {
     console.log('This anemobox is not assigned to any boat.');

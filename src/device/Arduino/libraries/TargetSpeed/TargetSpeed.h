@@ -35,8 +35,6 @@ Velocity<> getVmgTarget(const TargetSpeedTable& table,
 //  structure. Returns true on success, false on failure.
 bool loadTargetSpeedTable(const char *filename, TargetSpeedTable *table);
 
-//! Invokes gnuplot with the given speed table. 
-void plotTargetSpeedTable(const TargetSpeedTable& table);
 #endif
 
 }  // namespace sail
