@@ -23,3 +23,8 @@ require('./components/RpcAssignBoat');
 require('./components/RpcMailbox').fillTable(
     require('./components/rpcble').rpcFuncTable
 );
+
+// The estimator computes the true wind and the target speed.
+var estimator = require('./components/estimator.js');
+estimator.loadCalib();
+estimator.start();

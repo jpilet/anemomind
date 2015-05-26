@@ -5,6 +5,14 @@ var anemonode = require('./build/Release/anemonode');
 console.warn(anemonode);
 
 var logger = new anemonode.Logger();
+var estimator = new anemonode.Estimator();
+
+var calibFile = '../../Arduino/NMEAStats/test/boat.dat';
+if (!estimator.loadCalibration(calibFile)) {
+  console.log('Failed to load: ' + calibFile);
+} else {
+  console.log(calibFile + ': calibration loaded');
+}
 
 // Try subscribe/unsubscribe functions
 var numCalls = 0;
@@ -57,6 +65,10 @@ fs.readFile("../../../../datasets/tinylog.txt", function (err, data ) {
   printHistory('dateTime');
 
   logger.logText("test", "this text is logged from javascript");
+
+  estimator.compute();
+  printHistory('vmg');
+  printHistory('targetVmg');
 
   logger.flush("./", function(path, err) {
     if (err) {

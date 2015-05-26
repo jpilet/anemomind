@@ -23,6 +23,7 @@ struct DispatcherFilterParams {
 // It adapts the Dispatcher to functions such as computeTrueWind.
 class DispatcherFilter {
  public:
+   typedef double type;
 
   // The dispatcher is expected to remain valid during
   // the lifetime of the DispatcherFilter.
@@ -51,6 +52,11 @@ class DispatcherFilter {
 
   Angle<> gpsBearing() const {
     return filterAngle(_dispatcher->gpsBearing(), _params.gpsMotionWindow);
+  }
+
+  HorizontalMotion<double> gpsMotion() const {
+    return HorizontalMotion<double>::polar(
+        gpsSpeed(), gpsBearing());
   }
 
  private:

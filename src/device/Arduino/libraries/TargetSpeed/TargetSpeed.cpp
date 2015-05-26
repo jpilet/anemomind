@@ -7,11 +7,11 @@
 #ifdef ON_SERVER
 #include <device/Arduino/libraries/ChunkFile/ChunkFile.h>
 #include <fstream>
-#include <server/plot/extra.h>
 #include <sstream>
 
-using namespace sail;
 #endif
+
+namespace sail {
 
 namespace {
 
@@ -47,6 +47,17 @@ float getSpeedDownWind(const TargetSpeedTable& table, FP8_8 tws) {
 }
 
 } // namespace
+
+Velocity<> getVmgTarget(const TargetSpeedTable& table,
+                        Angle<> twa, Velocity<> tws) {
+  if (cos(twa) > 0) {
+    // upwind
+    return Velocity<>::knots(getSpeedUpWind(table, tws.knots()));
+  } else {
+    // downwind
+    return Velocity<>::knots(getSpeedDownWind(table, tws.knots()));
+  }
+}
 
 float getVmgSpeedRatio(const TargetSpeedTable& table,
                        short twa, FP8_8 tws, FP8_8 gpsSpeed) {
@@ -89,28 +100,6 @@ bool loadTargetSpeedTable(const char *filename, TargetSpeedTable *table) {
   }
 }
 
-void plotTargetSpeedTable(const TargetSpeedTable& table) {
-  GnuplotExtra plot;
-  plot.set_grid();
-  plot.set_style("lines");
-  plot.set_xlabel("Wind Speed (knots)");
-  plot.set_ylabel("VMG (knots)");
+}  // namespace sail
 
-  const int numEntries = TargetSpeedTable::NUM_ENTRIES;
-  Arrayd X = Arrayd::fill(
-      numEntries, [&](int i) { return double(table.binCenter(i)); });
-  Arrayd upwind(numEntries);
-  Arrayd downwind(numEntries);
-
-  for (int i = 0; i < numEntries; ++i) {
-    upwind[i] = table._upwind[i];
-    downwind[i] = table._downwind[i];
-    std::cout << static_cast<double>(table.binCenter(i))
-      << ", " << upwind[i] << ", " << downwind[i] << "\n";
-  }
-   
-  plot.plot_xy(X, upwind, "Upwind");
-  plot.plot_xy(X, downwind, "Downwind");
-  plot.show();
-}
 #endif

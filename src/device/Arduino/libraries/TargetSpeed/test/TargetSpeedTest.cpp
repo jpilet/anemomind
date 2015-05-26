@@ -5,6 +5,8 @@
 
 #include <gtest/gtest.h>
 
+using namespace sail;
+
 TEST(TargetSpeed, IreneSpeedUpWind) {
   TargetSpeedTable table;
   fillTestSpeedTable(&table);
