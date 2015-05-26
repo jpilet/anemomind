@@ -27,19 +27,3 @@ describe('LocalMailbox', function() {
     }
   );
 });
-
-
-
-
-
-// it('LocalMailbox', function() {
-//   describe(
-//     'get mailbox name',
-//     function(done) {
-//       console.log('done = %j', done);
-//       lmb.getName(function(name) {
-// 	console.log('The name is ' + name);
-// 	done();
-//       });
-//     });
-// });
