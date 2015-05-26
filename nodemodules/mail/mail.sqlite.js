@@ -304,7 +304,9 @@ Mailbox.prototype.getCurrentSeqNumber = function(dst, callbackNewNumber) {
   } else {
     
     if (!isNonEmptyString(dst)) {
-      throw new Error('Dst should be a string. Currently, its value is ' + dst);
+      throw new Error(
+        'Dst should be a string. Currently, its value is '
+          + dst);
     }
     var self = this;
     this.getDB().serialize(function() {
@@ -425,12 +427,15 @@ Mailbox.prototype.getForeignDiaryNumberSub = function(T, otherMailbox, cb) {
   }
 }
 
-Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
+Mailbox.prototype.getForeignDiaryNumber
+  = function(otherMailbox, cb) {
   var self = this;
   beginTransaction(this.getDB(), function(err, T) {
     assert(err == undefined);
     
-    self.getForeignDiaryNumberSub(T, otherMailbox, function(err, result) {
+    self.getForeignDiaryNumberSub(
+      T, otherMailbox,
+      function(err, result) {
       commit(T, function(err2) {
 	cb(err || err2, result);
       });
@@ -441,7 +446,8 @@ Mailbox.prototype.getForeignDiaryNumber = function(otherMailbox, cb) {
 
 
 // Use this function to get a number of the first packet to ask for when synchronizing
-Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
+Mailbox.prototype.getForeignStartNumber
+  = function(otherMailbox, cb) {
   if (!common.isIdentifier(otherMailbox)) {
     cb(new Error("bad input to getForeignStartNumber"));
   } else {
@@ -458,7 +464,8 @@ Mailbox.prototype.getForeignStartNumber = function(otherMailbox, cb) {
 }
 
 // Sets the foreign number to a new value.
-Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
+Mailbox.prototype.setForeignDiaryNumber = function(
+  otherMailbox, newValue, cb) {
   assert(isFunction(cb));
   if (!(common.isIdentifier(otherMailbox) && common.isCounter(newValue))) {
     cb(new Error("Bad input to setForeignDiaryNumber"));
@@ -472,7 +479,9 @@ Mailbox.prototype.setForeignDiaryNumber = function(otherMailbox, newValue, cb) {
 	});
       }
       
-      self.getForeignDiaryNumberSub(T, otherMailbox, function(err, previousValue) {
+      self.getForeignDiaryNumberSub(
+        T,
+        otherMailbox, function(err, previousValue) {
 	if (err == undefined) {
 	  if (previousValue > newValue) {
 	    console.log('You are setting a new diary number which is lower than the previous one. This could be a bug.');
@@ -578,7 +587,8 @@ Mailbox.prototype.getOrMakeCNumber = function(T, dst, seqNumber, cb) {
   } else {
     assert(isFunction(cb));    
     var self = this;
-    this.getCNumber(T, 
+    this.getCNumber(
+      T, 
 		    self.mailboxName, dst,
 		    function(err, value) {
 		      if (err == undefined) {
@@ -605,7 +615,8 @@ Mailbox.prototype.removeObsoletePackets = function(T, src, dst, cb) {
   } else {
     assert(isFunction(cb));    
     var self = this;
-    this.getCNumber(T,
+    this.getCNumber(
+      T,
 		    src, dst,
 		    function(err, value) {
 		      if (err == undefined) {
@@ -766,7 +777,8 @@ Mailbox.prototype.registerPacketData = function(T, packet, cb) {
 
 		    
 		    // Update the c-number
-		    self.updateCTable(T,
+		    self.updateCTable(
+                      T,
 				      packet.src, packet.dst,
 				      packet.cNumber, cb);
 		    
@@ -853,7 +865,8 @@ Mailbox.prototype.sendAck = function(T, src, cb) {
       for (var i = 0; i < data.length; i++) {
 	seqnums[i] = data[i].seqNumber;
       }
-      self.sendPacketInTransaction(T,
+      self.sendPacketInTransaction(
+        T,
 				   src/*back to the source*/,
 				   common.ack,
 				   serializeSeqNums(seqnums),
@@ -899,7 +912,8 @@ Mailbox.prototype.maximizeCNumber = function(T, dst, cb) {
   assert(isFunction(cb));    
   var update = function(x) {
 
-    self.updateCTable(T,
+    self.updateCTable(
+      T,
 		      self.mailboxName,
 		      dst,
 		      x,
@@ -944,7 +958,8 @@ Mailbox.prototype.maximizeCNumber = function(T, dst, cb) {
 
 Mailbox.prototype.callOnAcknowledged = function(T, packet, seqnums, cb) {
   if (this.onAcknowledged != undefined) {
-    callHandlers(T,
+    callHandlers(
+      T,
 		 this,
 		 this.onAcknowledged,
 		 {
@@ -965,7 +980,8 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(T, packet, cb) {
   if (packet.label == common.ack && packet.dst == this.mailboxName) {
     var seqnums = deserializeSeqNums(packet.data);
     // Optional call to function whenever some packets that we sent were acknowledged.
-    this.callOnAcknowledged(T,
+    this.callOnAcknowledged(
+      T,
 			    packet, seqnums,
 			    function (err) {
 			      if (err) {
@@ -1045,36 +1061,39 @@ Mailbox.prototype.acceptIncomingPacket = function(T, packet, cb) {
   //  * Update the C-table using the data of the packet
   this.registerPacketData(T, packet, function(err) {
     if (err == undefined) {
-      self.callOnPacketReceived(T,
-				packet,
-				function(err) {
-				  // If the packet was intended for this mailbox,
-				  // this call will mark packets as acknowledged
-				  // and maximize the C-number.
-				  self.handleAckPacketIfNeeded(T,
-							       packet,
-							       function(err) {
-								 if (err == undefined) {
-								   // Always maximize the C-number
-								   self.maximizeCNumber(T,
-											packet.src,
-											function (err) {
-											  if (err == undefined) {
-											    self.sendAckIfNeeded(
-											      T,
-											      packet.src, cb);
-											  } else {
-											    cb(err);
-											  }
-											}
-										       );
-								 } else {
-								   cb(err);
-								 }
-							       }
-							      );
-				}
-			       );
+      self.callOnPacketReceived(
+        T,
+	packet,
+	function(err) {
+	  // If the packet was intended for this mailbox,
+	  // this call will mark packets as acknowledged
+	  // and maximize the C-number.
+	  self.handleAckPacketIfNeeded(
+            T,
+	    packet,
+	    function(err) {
+	      if (err == undefined) {
+		// Always maximize the C-number
+		self.maximizeCNumber(
+                  T,
+		  packet.src,
+		  function (err) {
+		    if (err == undefined) {
+		      self.sendAckIfNeeded(
+			T,
+			packet.src, cb);
+		    } else {
+		      cb(err);
+		    }
+		  }
+		);
+	      } else {
+		cb(err);
+	      }
+	    }
+	  );
+	}
+      );
     } else {
       cb(err);
     }
@@ -1193,27 +1212,28 @@ Mailbox.prototype.sendPacketInTransaction = function (T, dst, label, data, cb) {
     if (typeof data == 'string') {
       console.log('It is recommended that the data you store is Buffer. Use string only for debugging.');
     }
-    this.getDiaryAndSeqNumbers(T,
-			       dst,
-			       function(err, results) {
-				 if (err == undefined) {
-				   var seqNumber = results.seqNumber;
-				   self.getOrMakeCNumber(
-				     T, 
-				     dst, results.seqNumber,
-				     function(err, cNumber) {
-				       // Now we have all we need to make the packet.
-				       var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-				       T.run(
-					 query, results.diaryNumber,
-					 self.mailboxName, dst, results.seqNumber,
-					 cNumber, label, data, false,/*not yet acknowledged*/
-					 cb);
-				     });
-				 } else {
-				   cb(err);
-				 }
-			       });
+    this.getDiaryAndSeqNumbers(
+      T,
+      dst,
+      function(err, results) {
+	if (err == undefined) {
+	  var seqNumber = results.seqNumber;
+	  self.getOrMakeCNumber(
+	    T, 
+	    dst, results.seqNumber,
+	    function(err, cNumber) {
+	      // Now we have all we need to make the packet.
+	      var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+	      T.run(
+		query, results.diaryNumber,
+		self.mailboxName, dst, results.seqNumber,
+		cNumber, label, data, false,/*not yet acknowledged*/
+		cb);
+	    });
+	} else {
+	  cb(err);
+	}
+      });
   }
 };
 
@@ -1247,16 +1267,17 @@ Mailbox.prototype.sendPacketsInTransaction = function(T, dst, label, dataArray, 
     cb();
   } else {
     var self = this;
-    this.sendPacketInTransaction(T, 
-				 dst, label, dataArray[0],
-				 function (err) {
-				   if (err) {
-				     cb(err);
-				   } else {
-				     self.sendPacketsInTransaction(T, dst, label, dataArray.slice(1), cb);
-				   }
-				 }
-				);
+    this.sendPacketInTransaction(
+      T, 
+      dst, label, dataArray[0],
+      function (err) {
+	if (err) {
+	  cb(err);
+	} else {
+	  self.sendPacketsInTransaction(T, dst, label, dataArray.slice(1), cb);
+	}
+      }
+    );
   }
 }
 
