@@ -77,7 +77,7 @@ TimeStamp::TimeStamp(int year_ad, int month_1to12, int day_1to31,
 TimeStamp TimeStamp::now() {
   struct timeval tv;
   gettimeofday(&tv, 0);
-  int64_t t = int64_t(tv.tv_sec) * 1000 + int64_t(tv.tv_sec / 1000);
+  int64_t t = int64_t(tv.tv_sec) * 1000 + int64_t(tv.tv_usec / 1000);
   return TimeStamp(t);
 }
 
