@@ -944,6 +944,7 @@ Mailbox.prototype.maximizeCNumber = function(T, dst, cb) {
 
 Mailbox.prototype.callOnAcknowledged = function(T, packet, seqnums, cb) {
   if (this.onAcknowledged != undefined) {
+    console.log('CALL THE HANDLER OF ' + this.mailboxName);
     callHandlers(T,
       this,
       this.onAcknowledged,
@@ -964,6 +965,8 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(T, packet, cb) {
   var self = this;
   if (packet.label == common.ack && packet.dst == this.mailboxName) {
     var seqnums = deserializeSeqNums(packet.data);
+    console.log('----------> GOT AN ACK FOR ');
+    console.log(seqnums);
     // Optional call to function whenever some packets that we sent were acknowledged.
     this.callOnAcknowledged(T,
       packet, seqnums,
@@ -1324,6 +1327,7 @@ function callPerPacketHandlerForEveryNumber(
 
 function makePerPacketAckHandler(perPacketHandler) {
   return function(mailbox, ackData, T, cb) {
+    console.log('PER PACKET ACK HANDLER CALLED.');
     callPerPacketHandlerForEveryNumber(mailbox, T, ackData, 0, perPacketHandler, cb);
   }
 }

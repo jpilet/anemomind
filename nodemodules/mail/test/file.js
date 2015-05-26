@@ -147,12 +147,16 @@ function isLogFileMsg(msg) {
   return common.isObjectWithFields(msg, ['info', 'path', 'data']);
 }
 
-function makeAnemoboxAckHandler() {
+function makeAnemoboxAckHandler(markArray, deferred) {
   return mb.makePerPacketAckHandler(function(mailbox, packet) {
+    console.log('Got ack packet');
     if (packet.label == common.file) {
       var msg = file.unpackFileMessage(packet.data);
       if (isLogFileMsg(msg)) {
-	console.log('ACKED FOR ' + msg.path);
+	markArray[msg.info.logIndex] = true;
+	if (all(markArray)) {
+	  deferred.resolve(markArray);
+	}
       }
     }
   });
@@ -236,10 +240,12 @@ describe('logfiles', function() {
 
       var n = 5;
       var serverDeferred = Q.defer();
+      var boxDeferred = Q.defer();
 
       server.ackFrequency = 3;
 
-      box.onAcknowledged = makeAnemoboxAckHandler();
+      box.onAcknowledged = makeAnemoboxAckHandler(
+	new Array(n), boxDeferred);
       server.onPacketReceived = makeServerPacketHandler(
 	new Array(n), serverDeferred);
 
@@ -263,8 +269,10 @@ describe('logfiles', function() {
 		 sync.synchronize(phone, server, function(err) {
 		   assert(!err);
 		   sync.synchronize(box, phone, function(err) {
-		     
-		     done();
+
+		     boxDeferred.promise.then(function(value) {
+		       done();
+		     });
 
 		   });
 		 });
