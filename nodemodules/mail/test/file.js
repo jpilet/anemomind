@@ -148,7 +148,7 @@ function isLogFileMsg(msg) {
 }
 
 function makeAnemoboxAckHandler() {
-  return makePerPacketAckHandler(function(mailbox, packet) {
+  return mb.makePerPacketAckHandler(function(mailbox, packet) {
     if (packet.label == common.file) {
       var msg = file.unpackFileMessage(packet.data);
       if (isLogFileMsg(msg)) {
