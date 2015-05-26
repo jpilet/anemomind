@@ -53,25 +53,25 @@ struct tm TimeStamp::makeGMTimeStruct() const {
   return result;
 }
 
-TimeStamp::TimeStamp(int year, int mon, int day,
-    int hour, int min, int sec, double fracSeconds) {
+TimeStamp::TimeStamp(int year_ad, int month_1to12, int day_1to31,
+    int hour, int minute, double seconds) {
   assert(inRange(month_1to12, 1, 12));
   assert(inRange(day_1to31, 1, 31));
   assert(inRange(hour, 0, 23));
   assert(inRange(minute, 0, 59));
   assert(seconds >= 0);
 
-  struct tm;
-  memset(&tm, 0, sizeof(tm));
-  tm.tm_year = year_ad - 1900;
-  tm.tm_month = month_1to12 - 1;
-  tm.tm_mday = day_1to31;
-  tm.tm_hour = hour;
-  tm.tm_min = minute;
-  tm.tm_sec = int(seconds);
+  struct tm time;
+  memset(&time, 0, sizeof(tm));
+  time.tm_year = year_ad - 1900;
+  time.tm_mon = month_1to12 - 1;
+  time.tm_mday = day_1to31;
+  time.tm_hour = hour;
+  time.tm_min = minute;
+  time.tm_sec = int(seconds);
 
-  time_t t = timegm(&tm);
-  _time = int64_t(t) * 1000 + int64_t((seconds - tm.tm_sec) * 1000);
+  time_t t = timegm(&time);
+  _time = int64_t(t) * 1000 + int64_t((seconds - time.tm_sec) * 1000);
 }
 
 TimeStamp TimeStamp::now() {

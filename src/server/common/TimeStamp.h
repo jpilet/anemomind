@@ -51,7 +51,7 @@ class TimeStamp {
     return _time == other._time;
   }
  private:
-  TimeStamp(int year, int mon, int day, int hour, int min, int sec, double fracSeconds);
+  TimeStamp(int year, int mon, int day, int hour, int min, double seconds);
 
   TimeStamp(int64_t is);
   static double difSeconds(const TimeStamp &a, const TimeStamp &b);
