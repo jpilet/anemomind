@@ -18,6 +18,7 @@ class JsNmea0183Source : public node::ObjectWrap {
   static NAN_METHOD(New);
   static NAN_METHOD(process);
   static NAN_METHOD(adjTime);
+  static NAN_METHOD(currentTime);
 
  private:
   sail::Nmea0183Source _nmea0183;

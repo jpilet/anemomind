@@ -12,10 +12,6 @@
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
-namespace Poco {
-  class DateTime;
-}
-
 namespace sail {
 
 // A more accurate and safe type than time_t in <ctime>
@@ -56,9 +52,6 @@ class TimeStamp {
   }
  private:
   TimeStamp(int year, int mon, int day, int hour, int min, int sec, double fracSeconds);
-
-  void init(const Poco::DateTime &dt);
-  TimeStamp(const Poco::DateTime &dt) {init(dt);}
 
   TimeStamp(int64_t is);
   static double difSeconds(const TimeStamp &a, const TimeStamp &b);

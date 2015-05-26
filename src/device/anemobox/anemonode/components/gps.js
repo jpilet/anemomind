@@ -16,9 +16,7 @@ function init(dataCb) {
 
   var nmeaSource = new anemonode.Nmea0183Source("Internal GPS");
 
-
-
-/* does not work yet
+/* does not work yet */
   function format(x) {
       return JSON.stringify(x);
   }
@@ -32,20 +30,24 @@ function printHistory(field) {
   }
 }
 
-  anemonode.dispatcher.dateTime.subscribe(function(val) {
+function setTimeFromHistory() {
     var sysTime = anemonode.dispatcher.dateTime.time(0);
     var gpsTime = anemonode.dispatcher.dateTime.value(0);
-    var delta = 0 + gpsTime - sysTime;
     console.log('sysTime:'+sysTime);
-    console.log('gpsTime:'+val);
+    console.log('gpsTime:'+gpsTime);
+    if (!sysTime || !gpsTime) {
+      console.log('time undefined');
+      return;
+    }
+    var delta = gpsTime.getTime() - sysTime.getTime();
     if (delta > 1) {
       console.log('Calling adjtime with delta: ' + delta);
-      nmeaSource.adjTime(delta);
+      anemonode.adjTime(delta);
     } else {
       console.log('not calling adjtime, delta=' + delta);
       }
-  });
-*/
+}
+  anemonode.dispatcher.dateTime.subscribe(setTimeFromHistory);
 
   setInterval(function() {
     i2c.address(CAM_M8Q_I2C_BASE_ADDR);
@@ -61,10 +63,13 @@ function printHistory(field) {
 
     if (data.length > 0) {
       var buffer = new Buffer(data);
+      console.log('GPS: ' + buffer.toString('ascii'));
+      setTimeFromHistory();
       nmeaSource.process(buffer);
       if (dataCb) {
         dataCb(buffer);
       }
+      printHistory('dateTime');
     }
   }, 50);
 }

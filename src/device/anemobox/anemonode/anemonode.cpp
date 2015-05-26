@@ -15,6 +15,8 @@
 #include <iostream>
 #include <vector>
 
+#include <sys/time.h>
+
 using namespace sail;
 using namespace v8;
 using namespace node;
@@ -40,6 +42,43 @@ void registerDispatcher(Dispatcher *dispatcher, Handle<Object> target) {
 
 }
 
+NAN_METHOD(adjTime) {
+  NanScope();
+
+  if (!args[0]->IsNumber()) {
+    NanThrowTypeError("Expecting time delta in seconds");
+    NanReturnUndefined();
+  }
+  double delta = args[0]->ToNumber()->Value();
+  if (fabs(delta) > 60) {
+    struct timeval tv;
+    gettimeofday(&tv, 0);
+    tv.tv_sec += time_t(delta);
+    int r = settimeofday(&tv, 0);
+    if (r) {
+      perror("settimeofday");
+    }
+    NanReturnValue(r);
+  } else {
+    struct timeval tv;
+    tv.tv_sec = time_t(delta);
+    tv.tv_usec = suseconds_t((delta - round(delta)) * 1e-6);
+    int r = adjtime(&tv, 0);
+    if (r) {
+      perror("adjtime");
+    }
+    NanReturnValue(r);
+  }
+}
+
+NAN_METHOD(currentTime) {
+  NanScope();
+
+  //TimeStamp now = Dispatcher::global()->currentTime();
+  TimeStamp now = TimeStamp::now();
+  NanReturnValue(NanNew<Date>(now.toMilliSecondsSince1970()));
+}
+
 }  // namespace
 
 void RegisterModule(Handle<Object> target) {
@@ -47,6 +86,9 @@ void RegisterModule(Handle<Object> target) {
   JsNmea0183Source::Init(target);
   JsLogger::Init(target);
   JsEstimator::Init(target);
+
+  NODE_SET_METHOD(target, "adjTime", adjTime);
+  NODE_SET_METHOD(target, "currentTime", currentTime);
 }
 
 // Register the module with node. Note that "modulename" must be the same as

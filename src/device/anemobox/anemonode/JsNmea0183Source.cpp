@@ -26,7 +26,6 @@ void JsNmea0183Source::Init(v8::Handle<v8::Object> target) {
   // Prototype
   Local<ObjectTemplate> proto = tpl->PrototypeTemplate();
   NODE_SET_METHOD(proto, "process", JsNmea0183Source::process);
-  NODE_SET_METHOD(proto, "adjTime", JsNmea0183Source::adjTime);
 
   NanAssignPersistent<FunctionTemplate>(nmea0183_constructor, tpl);
 
@@ -70,36 +69,6 @@ NAN_METHOD(JsNmea0183Source::process) {
 
   obj->_nmea0183.process(bufferData, bufferLength);
   NanReturnUndefined();
-}
-
-#include <sys/time.h>
-NAN_METHOD(JsNmea0183Source::adjTime) {
-  NanScope();
-
-  if (!args[0]->IsNumber()) {
-    NanThrowTypeError("Expecting time delta in seconds");
-    NanReturnUndefined();
-  }
-  double delta = args[0]->ToNumber()->Value();
-  if (fabs(delta) > 60) {
-    struct timeval tv;
-    gettimeofday(&tv, 0);
-    tv.tv_sec += time_t(delta);
-    int r = settimeofday(&tv, 0);
-    if (r) {
-      perror("settimeofday");
-    }
-    NanReturnValue(r);
-  } else {
-    struct timeval tv;
-    tv.tv_sec = time_t(delta);
-    tv.tv_usec = suseconds_t((delta - round(delta)) * 1000000);
-    int r = adjtime(&tv, 0);
-    if (r) {
-      perror("adjtime");
-    }
-    NanReturnValue(r);
-  }
 }
 
 }  // namespace sail

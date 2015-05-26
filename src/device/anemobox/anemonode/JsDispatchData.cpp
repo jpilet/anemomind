@@ -63,7 +63,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     valid_ = values.size() > index_;
     if (valid_) {
       auto val = values[index_];
-      value_ = NanNew<Date>(val.value.toMilliSecondsSince1970() / 1000.0);
+      value_ = NanNew<Date>(double(val.value.toMilliSecondsSince1970()));
       timestamp_ = val.time;
     }
   }
