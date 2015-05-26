@@ -147,14 +147,25 @@ function isLogFileMsg(msg) {
   return common.isObjectWithFields(msg, ['info', 'path', 'data']);
 }
 
+function countMarked(arr) {
+  var counter = 0;
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i]) {
+      counter++;
+    }
+  }
+  return counter;
+}
+
 function makeAnemoboxAckHandler(markArray, deferred) {
   return mb.makePerPacketAckHandler(function(mailbox, packet) {
     console.log('Got ack packet');
     if (packet.label == common.file) {
       var msg = file.unpackFileMessage(packet.data);
+      console.log('The index is ' + msg.info.logIndex);
       if (isLogFileMsg(msg)) {
 	markArray[msg.info.logIndex] = true;
-	if (all(markArray)) {
+	if (countMarked(markArray) == 3) {
 	  deferred.resolve(markArray);
 	}
       }
