@@ -1295,9 +1295,7 @@ function isMailbox(x) {
 
 function callPerPacketHandlerForEveryNumber(
   mailbox, T, ackData, index, perPacketHandler, cb) {
-  cb(); return;
 
-  
   if (!common.isObjectWithFields(ackData, ['dst', 'seqnums'])) {
     cb(new Error('Bad ack data'));
   } else {
