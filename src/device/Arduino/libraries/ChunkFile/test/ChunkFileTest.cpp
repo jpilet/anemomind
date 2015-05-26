@@ -7,6 +7,8 @@
 #include <sstream>
 #include <fstream>
 
+using namespace sail;
+
 #pragma pack(1)
 struct TestStructA {
   enum {
