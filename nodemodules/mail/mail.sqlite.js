@@ -854,20 +854,20 @@ Mailbox.prototype.sendAck = function(T, src, cb) {
 	seqnums[i] = data[i].seqNumber;
       }
       self.sendPacketInTransaction(T,
-	src/*back to the source*/,
-	common.ack,
-	serializeSeqNums(seqnums),
-	function(err) {
-	  if (err == undefined) {
-	    self.setAcked(T,
-	      src, self.mailboxName, seqnums,
-	      function(err) {
-		cb(err);
-	      });
-	  } else {
-	    cb(err);
-	  }
-	});
+				   src/*back to the source*/,
+				   common.ack,
+				   serializeSeqNums(seqnums),
+				   function(err) {
+				     if (err == undefined) {
+				       self.setAcked(T,
+						     src, self.mailboxName, seqnums,
+						     function(err) {
+						       cb(err);
+						     });
+				     } else {
+				       cb(err);
+				     }
+				   });
     });
 }
 
@@ -900,10 +900,10 @@ Mailbox.prototype.maximizeCNumber = function(T, dst, cb) {
   var update = function(x) {
 
     self.updateCTable(T,
-      self.mailboxName,
-      dst,
-      x,
-      cb);
+		      self.mailboxName,
+		      dst,
+		      x,
+		      cb);
   };
 
   var src = this.mailboxName;
@@ -944,16 +944,15 @@ Mailbox.prototype.maximizeCNumber = function(T, dst, cb) {
 
 Mailbox.prototype.callOnAcknowledged = function(T, packet, seqnums, cb) {
   if (this.onAcknowledged != undefined) {
-    console.log('CALL THE HANDLER OF ' + this.mailboxName);
     callHandlers(T,
-      this,
-      this.onAcknowledged,
-      {
-	dst: packet.src, // The mailbox we sent to
-	seqnums: seqnums // The sequence numbers.
-      },
-      cb
-    );
+		 this,
+		 this.onAcknowledged,
+		 {
+		   dst: packet.src, // The mailbox we sent to
+		   seqnums: seqnums // The sequence numbers.
+		 },
+		 cb
+		);
   } else {
     cb();
   }
@@ -965,24 +964,22 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(T, packet, cb) {
   var self = this;
   if (packet.label == common.ack && packet.dst == this.mailboxName) {
     var seqnums = deserializeSeqNums(packet.data);
-    console.log('----------> GOT AN ACK FOR ');
-    console.log(seqnums);
     // Optional call to function whenever some packets that we sent were acknowledged.
     this.callOnAcknowledged(T,
-      packet, seqnums,
-      function (err) {
-	if (err) {
-	  cb(err);
-	} else {
-	  self.setAcked(
-	    T,
-	    self.mailboxName, packet.src,
-	    seqnums,
-	    cb
-	  );
-	}
-      }
-    );
+			    packet, seqnums,
+			    function (err) {
+			      if (err) {
+				cb(err);
+			      } else {
+				self.setAcked(
+				  T,
+				  self.mailboxName, packet.src,
+				  seqnums,
+				  cb
+				);
+			      }
+			    }
+			   );
   } else {
     cb();
   }
@@ -1049,35 +1046,35 @@ Mailbox.prototype.acceptIncomingPacket = function(T, packet, cb) {
   this.registerPacketData(T, packet, function(err) {
     if (err == undefined) {
       self.callOnPacketReceived(T,
-	packet,
-	function(err) {
-	  // If the packet was intended for this mailbox,
-	  // this call will mark packets as acknowledged
-	  // and maximize the C-number.
-	  self.handleAckPacketIfNeeded(T,
-	    packet,
-	    function(err) {
-	      if (err == undefined) {
-		// Always maximize the C-number
-		self.maximizeCNumber(T,
-		  packet.src,
-		  function (err) {
-		    if (err == undefined) {
-		      self.sendAckIfNeeded(
-			T,
-			packet.src, cb);
-		    } else {
-		      cb(err);
-		    }
-		  }
-		);
-	      } else {
-		cb(err);
-	      }
-	    }
-	  );
-	}
-      );
+				packet,
+				function(err) {
+				  // If the packet was intended for this mailbox,
+				  // this call will mark packets as acknowledged
+				  // and maximize the C-number.
+				  self.handleAckPacketIfNeeded(T,
+							       packet,
+							       function(err) {
+								 if (err == undefined) {
+								   // Always maximize the C-number
+								   self.maximizeCNumber(T,
+											packet.src,
+											function (err) {
+											  if (err == undefined) {
+											    self.sendAckIfNeeded(
+											      T,
+											      packet.src, cb);
+											  } else {
+											    cb(err);
+											  }
+											}
+										       );
+								 } else {
+								   cb(err);
+								 }
+							       }
+							      );
+				}
+			       );
     } else {
       cb(err);
     }
@@ -1197,26 +1194,26 @@ Mailbox.prototype.sendPacketInTransaction = function (T, dst, label, data, cb) {
       console.log('It is recommended that the data you store is Buffer. Use string only for debugging.');
     }
     this.getDiaryAndSeqNumbers(T,
-      dst,
-      function(err, results) {
-	if (err == undefined) {
-	  var seqNumber = results.seqNumber;
-	  self.getOrMakeCNumber(
-	    T, 
-	    dst, results.seqNumber,
-	    function(err, cNumber) {
-	      // Now we have all we need to make the packet.
-	      var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-	      T.run(
-		query, results.diaryNumber,
-		self.mailboxName, dst, results.seqNumber,
-		cNumber, label, data, false,/*not yet acknowledged*/
-		cb);
-	    });
-	} else {
-	  cb(err);
-	}
-      });
+			       dst,
+			       function(err, results) {
+				 if (err == undefined) {
+				   var seqNumber = results.seqNumber;
+				   self.getOrMakeCNumber(
+				     T, 
+				     dst, results.seqNumber,
+				     function(err, cNumber) {
+				       // Now we have all we need to make the packet.
+				       var query = 'INSERT INTO packets VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+				       T.run(
+					 query, results.diaryNumber,
+					 self.mailboxName, dst, results.seqNumber,
+					 cNumber, label, data, false,/*not yet acknowledged*/
+					 cb);
+				     });
+				 } else {
+				   cb(err);
+				 }
+			       });
   }
 };
 
@@ -1238,7 +1235,7 @@ Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
     }
   });
 };
-	
+
 
 // Send multiple packets to the same destination
 // and with the same label, but with different data, stored in an array.
@@ -1251,15 +1248,15 @@ Mailbox.prototype.sendPacketsInTransaction = function(T, dst, label, dataArray, 
   } else {
     var self = this;
     this.sendPacketInTransaction(T, 
-      dst, label, dataArray[0],
-      function (err) {
-	if (err) {
-	  cb(err);
-	} else {
-	  self.sendPacketsInTransaction(T, dst, label, dataArray.slice(1), cb);
-	}
-      }
-    );
+				 dst, label, dataArray[0],
+				 function (err) {
+				   if (err) {
+				     cb(err);
+				   } else {
+				     self.sendPacketsInTransaction(T, dst, label, dataArray.slice(1), cb);
+				   }
+				 }
+				);
   }
 }
 
@@ -1302,7 +1299,9 @@ function callPerPacketHandlerForEveryNumber(
     if (index == ackData.seqnums.length) {
       cb();
     } else {
-      mailbox.getPacket(
+      mailbox.getPacket( // It is important that we read the packet, before calling cb.
+        // Otherwise it might be deleted before we have had the opportunity
+        // to read it.
 	T, mailbox.mailboxName,
 	ackData.dst, ackData.seqnums[index],
 	function(err, packet) {
@@ -1325,7 +1324,6 @@ function callPerPacketHandlerForEveryNumber(
 
 function makePerPacketAckHandler(perPacketHandler) {
   return function(mailbox, ackData, T, cb) {
-    console.log('PER PACKET ACK HANDLER CALLED.');
     callPerPacketHandlerForEveryNumber(mailbox, T, ackData, 0, perPacketHandler, cb);
   }
 }

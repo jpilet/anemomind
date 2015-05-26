@@ -159,10 +159,8 @@ function countMarked(arr) {
 
 function makeAnemoboxAckHandler(markArray, deferred) {
   return mb.makePerPacketAckHandler(function(mailbox, packet) {
-    console.log('Got ack packet');
     if (packet.label == common.file) {
       var msg = file.unpackFileMessage(packet.data);
-      console.log('The index is ' + msg.info.logIndex);
       if (isLogFileMsg(msg)) {
 	markArray[msg.info.logIndex] = true;
 	if (countMarked(markArray) == 3) {
@@ -177,20 +175,18 @@ function makeAnemoboxAckHandler(markArray, deferred) {
 function makeServerPacketHandler(markArray, deferred) {
   return function(mailbox, packet, T, cb) {
     // Let the synchronization process continue, don't block it.
+    // We already have the data that we want, and we are not going
+    // to change anything in the db.
     cb();
-    console.log('On the server, we received a packet.');
     
     if (packet.label == common.file) {
       var msg = file.unpackFileMessage(packet.data);
       if (isLogFileMsg(msg)) {
-	console.log('It is a log file');
 	var index = msg.info.logIndex;
 	var msgText = msg.data.toString('utf8');
 	if (msgText == makeLogData(index)) {
-	  console.log('The index of the file received was ' + index);
 	  markArray[index] = true;
 	  if (all(markArray)) {
-	    console.log('All files received');
 	    deferred.resolve(markArray);
 	  }
 	} else {
