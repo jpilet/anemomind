@@ -94,7 +94,7 @@ TEST(NmeaParserTest, TestRMC) {
   EXPECT_EQ(401, parser.pos().lat.mc());
   EXPECT_EQ(-7, parser.pos().lon.deg());
   EXPECT_EQ(-46, parser.pos().lon.min());
-  EXPECT_EQ(-593, parser.pos().lon.mc());
+  EXPECT_EQ(-594, parser.pos().lon.mc());
   EXPECT_EQ(4, parser.numSentences());
 
   sendSentence(
@@ -102,7 +102,7 @@ TEST(NmeaParserTest, TestRMC) {
       &parser);
   EXPECT_EQ(47, parser.pos().lat.deg());
   EXPECT_EQ(35, parser.pos().lat.min());
-  EXPECT_EQ(105, parser.pos().lat.mc());
+  EXPECT_EQ(106, parser.pos().lat.mc());
   EXPECT_EQ(-3, parser.pos().lon.deg());
   EXPECT_EQ(-01, parser.pos().lon.min());
   EXPECT_EQ(-755, parser.pos().lon.mc());
