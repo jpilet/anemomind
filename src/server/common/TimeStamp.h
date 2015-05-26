@@ -76,6 +76,12 @@ TimeStamp operator+(const Duration<double> &a, const TimeStamp &b);
 
 std::ostream &operator<<(std::ostream &s, const TimeStamp &t);
 
+class Clock {
+ public:
+  virtual ~Clock() { }
+  virtual TimeStamp currentTime() { return TimeStamp::now(); }
+};
+
 } /* namespace sail */
 
 #endif /* TIMESTAMP_H_ */
