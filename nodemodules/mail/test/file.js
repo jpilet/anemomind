@@ -253,10 +253,9 @@ describe('logfiles', function() {
 	    sync.synchronize(phone, server, function(err) {
 	      assert(!err);
 
-	      done();
 	      // Wait for the server to receive all the log files
 	      // sent from the box
-	       /*serverDeferred.promise.then(function(value) {
+	       serverDeferred.promise.then(function(value) {
 	         assert(all(value));
 
 		 // By now, the server will have emitted an ack packet for 3 of the packets.
@@ -269,7 +268,7 @@ describe('logfiles', function() {
 
 		   });
 		 });
-	       });*/
+	       });
 
 	      
 	    });
