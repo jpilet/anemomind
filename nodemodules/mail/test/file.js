@@ -144,7 +144,7 @@ function all(x) {
 }
 
 function isLogFileMsg(msg) {
-  return common.isObjectWithFields(msg, ['logIndex']);
+  return common.isObjectWithFields(msg, ['info', 'path', 'data']);
 }
 
 function makeAnemoboxAckHandler() {
@@ -163,15 +163,19 @@ function makeServerPacketHandler(markArray, deferred) {
   return function(mailbox, packet, T, cb) {
     // Let the synchronization process continue, don't block it.
     cb();
+    console.log('On the server, we received a packet.');
     
     if (packet.label == common.file) {
       var msg = file.unpackFileMessage(packet.data);
       if (isLogFileMsg(msg)) {
+	console.log('It is a log file');
 	var index = msg.info.logIndex;
 	var msgText = msg.data.toString('utf8');
 	if (msgText == makeLogData(index)) {
+	  console.log('The index of the file received was ' + index);
 	  markArray[index] = true;
 	  if (all(markArray)) {
+	    console.log('All files received');
 	    deferred.resolve(markArray);
 	  }
 	} else {
@@ -215,7 +219,7 @@ describe(
       });
     });
 
-describe('log file sync', function() {
+describe('logfiles', function() {
   this.timeout(12000);
   it('Should synchronize log files', function(done) {
     makeAnemoSetup(function(err, boxes) {
