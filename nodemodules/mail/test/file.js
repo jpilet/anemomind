@@ -143,11 +143,17 @@ function all(x) {
   return true;
 }
 
+function isLogFileMsg(msg) {
+  return common.isObjectWithFields(msg, ['logIndex']);
+}
+
 function makeAnemoboxAckHandler() {
   return makePerPacketAckHandler(function(mailbox, packet) {
     if (packet.label == common.file) {
       var msg = file.unpackFileMessage(packet.data);
-      
+      if (isLogFileMsg(msg)) {
+	console.log('ACKED FOR ' + msg.path);
+      }
     }
   });
 }
@@ -228,8 +234,10 @@ describe('log file sync', function() {
       var serverDeferred = Q.defer();
 
       server.ackFrequency = 3;
-      
-      server.onPacketReceived = makeServerPacketHandler(new Array(n), serverDeferred);
+
+      box.onAcknowledged = makeAnemoboxAckHandler();
+      server.onPacketReceived = makeServerPacketHandler(
+	new Array(n), serverDeferred);
 
       // Create the log files
       makeLogFiles(n, function(err) {
