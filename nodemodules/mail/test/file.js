@@ -143,7 +143,13 @@ function all(x) {
   return true;
 }
 
-function anemoboxAckHandler() {
+function makeAnemoboxAckHandler() {
+  return makePerPacketAckHandler(function(mailbox, packet) {
+    if (packet.label == common.file) {
+      var msg = file.unpackFileMessage(packet.data);
+      
+    }
+  });
 }
 
 // Called when the server receives a packet
@@ -154,7 +160,7 @@ function makeServerPacketHandler(markArray, deferred) {
     
     if (packet.label == common.file) {
       var msg = file.unpackFileMessage(packet.data);
-      if (common.isObjectWithFields(msg.info, ['logIndex'])) {
+      if (isLogFileMsg(msg)) {
 	var index = msg.info.logIndex;
 	var msgText = msg.data.toString('utf8');
 	if (msgText == makeLogData(index)) {

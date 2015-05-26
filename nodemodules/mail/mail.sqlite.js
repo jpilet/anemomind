@@ -1300,7 +1300,11 @@ function callPerPacketHandlerForEveryNumber(mailbox, T, ackData, index, perPacke
       mailbox.getPacket(
 	T, mailbox.mailboxName,
 	ackData.dst, ackData.seqnums[index],
-	function(err) {
+	function(err, packet) {
+
+	  // Call to user provided function.
+	  perPacketHandler(mailbox, packet);
+	  
 	  if (err) {
 	    cb(err);
 	  } else {
@@ -1328,3 +1332,4 @@ module.exports.deserializeSeqNums = deserializeSeqNums;
 module.exports.serializeString = serializeString;
 module.exports.tryMakeMailbox = tryMakeMailbox;
 module.exports.isMailbox = isMailbox;
+module.exports.makePerPacketAckHandler = makePerPacketAckHandler;
