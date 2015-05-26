@@ -8,6 +8,7 @@
 #include <limits>
 #include <server/common/logging.h>
 #include <server/common/string.h>
+#include <string.h>
 #include <sys/time.h>
 
 namespace sail {

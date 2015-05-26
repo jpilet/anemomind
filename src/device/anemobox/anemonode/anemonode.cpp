@@ -50,25 +50,16 @@ NAN_METHOD(adjTime) {
     NanReturnUndefined();
   }
   double delta = args[0]->ToNumber()->Value();
-  if (fabs(delta) > 60) {
-    struct timeval tv;
-    gettimeofday(&tv, 0);
-    tv.tv_sec += time_t(delta);
-    int r = settimeofday(&tv, 0);
-    if (r) {
-      perror("settimeofday");
-    }
-    NanReturnValue(r);
-  } else {
-    struct timeval tv;
-    tv.tv_sec = time_t(delta);
-    tv.tv_usec = suseconds_t((delta - round(delta)) * 1e-6);
-    int r = adjtime(&tv, 0);
-    if (r) {
-      perror("adjtime");
-    }
-    NanReturnValue(r);
+  struct timeval tv;
+  gettimeofday(&tv, 0);
+  double secs = double(tv.tv_sec) + double(tv.tv_usec)*1e-6 + delta;
+  tv.tv_sec = time_t(secs);
+  tv.tv_usec = (secs - tv.tv_sec) * 1e6;
+  int r = settimeofday(&tv, 0);
+  if (r) {
+    perror("settimeofday");
   }
+  NanReturnValue(r);
 }
 
 NAN_METHOD(currentTime) {
