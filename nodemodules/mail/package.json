@@ -13,6 +13,7 @@
     "deep-equal-ident": "^1.0.0",
     "json-buffer": "^2.0.11",
     "mangler": "file:../mangler",
+    "msgpack": "^0.2.6",
     "q": "^1.2.0",
     "request": "^2.54.0",
     "sqlite3": "~3.0.5",
