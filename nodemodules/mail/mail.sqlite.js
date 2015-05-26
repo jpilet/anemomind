@@ -1307,10 +1307,10 @@ function callPerPacketHandlerForEveryNumber(
 	function(err, packet) {
 
 	  // Call to user provided function.
-	  perPacketHandler(mailbox, packet);
+          perPacketHandler(mailbox, packet);
 	  
 	  if (err) {
-	    cb(err);
+            cb(err);
 	  } else {
 	    callPerPacketHandlerForEveryNumber(
 	      mailbox, T, ackData, index+1, perPacketHandler, cb
@@ -1333,7 +1333,7 @@ module.exports.dispAllTableData = dispAllTableData;
 module.exports.expand = expand;
 module.exports.serializeSeqNums = serializeSeqNums;
 module.exports.deserializeSeqNums = deserializeSeqNums;
-module.exports.serializeString = serializeString;
+pmodule.exports.serializeString = serializeString;
 module.exports.tryMakeMailbox = tryMakeMailbox;
 module.exports.isMailbox = isMailbox;
 module.exports.makePerPacketAckHandler = makePerPacketAckHandler;
