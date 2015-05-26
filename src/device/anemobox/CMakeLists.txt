@@ -9,6 +9,7 @@ add_library(anemobox_Dispatcher
             Dispatcher.h
             Dispatcher.cpp
             ValueDispatcher.h
+            FakeClockDispatcher.h
             )
 target_link_libraries(anemobox_Dispatcher
                       common_string
@@ -29,3 +30,17 @@ target_link_libraries(anemobox
                anemobox_Dispatcher
                anemobox_Nmea0183Source
               )
+
+add_library(anemobox_DispatcherFilter
+            DispatcherFilter.h
+            DispatcherFilter.cpp)
+target_link_libraries(anemobox_DispatcherFilter
+                      anemobox_Dispatcher
+                      common_TimeStamp
+                     )
+
+cxx_test(anemobox_DispatcherFilterTest DispatcherFilterTest.cpp
+         anemobox_Dispatcher
+         anemobox_DispatcherFilter
+         gtest_main
+        )
