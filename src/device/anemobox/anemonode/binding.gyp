@@ -79,9 +79,6 @@
       },
       "defines": [ "ON_SERVER" ],
       "libraries" : [
-#"-L../../../../../build/third-party/poco-install/lib",
-#       "-lPocoFoundation",
-#       "-lPocoUtil",
         "<!@(pkg-config protobuf --libs-only-L)",
         "-lprotobuf",
 	"-L/usr/lib",
