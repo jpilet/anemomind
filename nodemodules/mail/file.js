@@ -9,7 +9,7 @@ var assert = require('assert');
   
   http://stackoverflow.com/questions/13924936/encoding-messagepack-objects-containing-node-js-buffers
 
-  Therefore, we use msgpack-js instead
+  Therefore, we use msgpack-js instead.
   */
   
 var msgpack = require('msgpack-js');
