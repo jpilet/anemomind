@@ -84,7 +84,7 @@ function postLogFile(path, cb) {
             mb.close(function(err2) {
               cb(err || err2);
             });
-          });
+           });
       });
     }
   });

@@ -40,7 +40,7 @@ describe('LocalMailbox', function() {
             assert(!err);
             lmb.postLogFile('/tmp/anemolog.txt', function(err) {
               assert(!err);
-              mb.open(function(err, mb) {
+              lmb.open(function(err, mb) {
                 assert(!err);
                 mb.getAllPackets(function(err, packets) {
                   assert(packets.length == 1);
