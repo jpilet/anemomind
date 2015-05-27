@@ -9,10 +9,7 @@ var msgpack = require('msgpack');
 
 
 function isFileMessage(x) {
-  if (typeof x == 'object') {
-    return x.path && x.info && x.data;
-  }
-  return false;
+  return isObjectWithFields(x, ['path', 'info', 'data']);
 }
 
 function packFileMessage(path, info, data) {
@@ -63,5 +60,23 @@ function unpackFileMessage(buf) {
 }
 
 
+///////////////////
+// Log files
+function isLogFileInfo(info) {
+  if (isObjectWithFields(info, ['type'])) {
+    return info.type == 'logfile';
+  }
+  return false;
+}
+
+// This function might accept more
+// arguments in future.
+function makeLogFileInfo() {
+  return {type: 'logfile'}
+}
+
+
 module.exports.sendFile = sendFile;
 module.exports.unpackFileMessage = unpackFileMessage;
+module.exports.isLogFileInfo = isLogFileInfo;
+module.exports.makeLogFileInfo = makeLogFileInfo;

@@ -1,7 +1,9 @@
 var mb = require('mail/mail.sqlite.js');
 var naming = require('mail/naming.js');
+var file = require('mail/file.js');
 var mkdirp = require('mkdirp');
 var boxId = require('./boxId.js');
+var config = require('./config.js');
 
 // The path '/media/sdcard/' is also used in logger.js
 var mailRoot = '/media/sdcard/mail/';
@@ -51,6 +53,40 @@ function openWithName(mailboxName, cb) {
 function open(cb) {
   getName(function(mailboxName) {
     openWithName(mailboxName, cb);
+  });
+}
+
+function getBoatId(cb) {
+  config.get(function(err, cfg) {
+    if (err) {
+      cb(err);
+    } else {
+      if (cfg && cfg.boatId) {
+        cb(null, cfg.boatId);
+      } else {
+        cb(new Error('Missing boat id'));
+      }
+    }
+  });
+}
+
+function openMailboxAndPostFile(path, cb) {
+  open(function(err, mb) {
+    if (err) {
+      cb(err);
+    } else {
+      getBoatId(function(err, boatId) {
+        var dst = naming.makeMailboxNameFromBoatId(boatId);
+        file.sendFile(
+          mb, dst, path,
+          file.makeLogFileInfo(), function(err) {
+            // Always try to close, even if there was an error.
+            mb.close(function(err2) {
+              cb(err || err2);
+            });
+          });
+      });
+    }
   });
 }
 
