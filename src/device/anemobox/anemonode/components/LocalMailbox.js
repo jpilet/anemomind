@@ -33,9 +33,6 @@ function makeFilenameFromMailboxName(mailboxName) {
 
 function makeAckHandler() {
   return mb.makePerPacketAckHandler(function(mailbox, packet) {
-    for (var i = 0; i < 30; i++) {
-      console.log('RECEIVED ACK FOR PACKET ' + packet);
-    }
     if (file.isFilePacket(packet)) {
       var msg = file.unpackFileMessage(packet.data);
       if (file.isLogFileInfo(msg.info)) {

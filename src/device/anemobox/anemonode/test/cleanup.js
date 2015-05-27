@@ -38,8 +38,6 @@ function countLogFiles(n, counter, cb) {
   } else {
     var filename = makeLogFilename(n);
     fs.readFile(filename, function(err, data) {
-      console.log('Try log file: ' + filename);
-      console.log('err = ' + err);
       countLogFiles(n-1, counter + (err? 0 : 1), cb);
     });
   }
@@ -78,16 +76,10 @@ describe('Cleanup sent log files', function() {
                     // server are moved back.
                     sync.synchronize(anemoboxMailbox, serverMailbox, function(err) {
                       assert(!err);
-
-                      mb.dispAllTableData(anemoboxMailbox.db, function(err) {
-                        
-                        countLogFiles(5, 0, function(err, remainingCount) {
-                          assert(!err);
-                          assert(remainingCount == 2);
-                          done();
-                        });
-
-                        
+                      countLogFiles(5, 0, function(err, remainingCount) {
+                        assert(!err);
+                        assert(remainingCount == 2);
+                        done();
                       });
                     });
                   });
