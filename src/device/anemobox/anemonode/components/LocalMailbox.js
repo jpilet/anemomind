@@ -108,6 +108,16 @@ function getBoatId(cb) {
   });
 }
 
+function getServerSideMailboxName(cb) {
+  getBoatId(function(err, boatId) {
+    if (err) {
+      cb(err);
+    } else {
+      cb(null, naming.makeMailboxNameFromBoatId(boatId));
+    }
+  });
+}
+
 function postLogFile(path, cb) {
   open(function(err, mb) {
     if (err) {
@@ -142,3 +152,4 @@ module.exports.open = open;
 module.exports.openWithName = openWithName;
 module.exports.postLogFile = postLogFile;
 module.exports.setRemoveLogFiles = setRemoveLogFiles;
+module.exports.getServerSideMailboxName = getServerSideMailboxName;
