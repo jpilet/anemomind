@@ -49,8 +49,13 @@ describe('LocalMailbox', function() {
                   var msg = file.unpackFileMessage(packet.data);
                   assert(file.isLogFileInfo(msg.info));
                   var filedata = msg.data;
+                  console.log('filedata is ');
+                  console.log(filedata);
+                  //assert(filedata instanceof Buffer);
                   fs.readFile('/tmp/anemolog.txt', function(err2, filedata2) {
-                    //assert(filedata.equals(filedata2));
+                    console.log(filedata2);
+                    assert(filedata2 instanceof Buffer);
+                    assert.equal(filedata.length, filedata2.length);
                     done();
                   });
                 });

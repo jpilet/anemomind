@@ -293,3 +293,29 @@ describe('logfiles', function() {
     })
   });
 });
+
+
+// Investigate this:
+// http://stackoverflow.com/questions/13924936/encoding-messagepack-objects-containing-node-js-buffers
+describe(
+  'Packing and unpacking files',
+  function() {
+    it('Should pack and unpack a file', function(done) {
+      var filename = '/tmp/mailtestfile.txt';
+      var txtdata = 'This is a file containing text.';
+      fs.writeFile(filename, txtdata, function(err) {
+        file.readAndPackFile(filename, file.makeLogFileInfo(), function(err, packed) {
+          var unpacked = file.unpackFileMessage(packed);
+          fs.readFile(filename, function(err, filedata2) {
+            console.log('THE UNPACKED DATA IS:');
+            console.log(unpacked.data);
+            console.log(typeof unpacked.data);
+            console.log(unpacked.data.constructor.name);
+            assert(typeof unpacked.data == 'string'); // <--- THIS IS BAD!!!
+            assert(filedata2 instanceof Buffer);
+            done();
+          });
+        });
+      });
+    });
+  });
