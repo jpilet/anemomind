@@ -124,9 +124,6 @@ function postLogFile(path, cb) {
       cb(err);
     } else {
       getServerSideMailboxName(function(err, dst) {
-        console.log('Error: ' + err);
-        //var dst = naming.makeMailboxNameFromBoatId(boatId);
-        console.log('dst = '+ dst);
         file.sendFile(
           mb, dst, path,
           file.makeLogFileInfo(), function(err) {
