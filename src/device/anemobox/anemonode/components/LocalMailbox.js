@@ -4,6 +4,7 @@ var file = require('mail/file.js');
 var mkdirp = require('mkdirp');
 var boxId = require('./boxId.js');
 var config = require('./config.js');
+var fs = require('fs');
 
 // The path '/media/sdcard/' is also used in logger.js
 var mailRoot = '/media/sdcard/mail/';
@@ -32,9 +33,12 @@ function makeFilenameFromMailboxName(mailboxName) {
 
 function makeAckHandler() {
   return mb.makePerPacketAckHandler(function(mailbox, packet) {
+    for (var i = 0; i < 30; i++) {
+      console.log('RECEIVED ACK FOR PACKET ' + packet);
+    }
     if (file.isFilePacket(packet)) {
       var msg = file.unpackFileMessage(packet.data);
-      if (isLogFileMessage(msg)) {
+      if (file.isLogFileInfo(msg.info)) {
         var p = msg.path;
         console.log(
           'This logfile was successfully delivered to the server and can be removed: ' + p);
@@ -79,7 +83,7 @@ function openWithName(mailboxName, cb) {
           if (err) {
             cb(err);
           } else {
-            mb.onAcknowledged = makeAckHandler();
+            mailbox.onAcknowledged = makeAckHandler();
             cb(null, mailbox);
           }
         });
