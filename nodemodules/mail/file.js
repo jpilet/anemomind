@@ -63,7 +63,7 @@ function unpackFileMessage(buf) {
 ///////////////////
 // Log files
 function isLogFileInfo(info) {
-  if (isObjectWithFields(info, ['type'])) {
+  if (common.isObjectWithFields(info, ['type'])) {
     return info.type == 'logfile';
   }
   return false;

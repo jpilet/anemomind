@@ -1,6 +1,7 @@
 var lmb = require('../components/LocalMailbox.js');
 var assert = require('assert');
 var fs = require('fs');
+var file = require('mail/file.js');
 
 describe('LocalMailbox', function() {
   it(
@@ -44,7 +45,14 @@ describe('LocalMailbox', function() {
                 assert(!err);
                 mb.getAllPackets(function(err, packets) {
                   assert(packets.length == 1);
-                  done();
+                  var packet = packets[0];
+                  var msg = file.unpackFileMessage(packet.data);
+                  assert(file.isLogFileInfo(msg.info));
+                  var filedata = msg.data;
+                  fs.readFile('/tmp/anemolog.txt', function(err2, filedata2) {
+                    //assert(filedata.equals(filedata2));
+                    done();
+                  });
                 });
               });
             });
