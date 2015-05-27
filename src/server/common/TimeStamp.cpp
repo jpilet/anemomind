@@ -3,13 +3,13 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <Poco/DateTime.h>
 #include "TimeStamp.h"
 #include <assert.h>
 #include <limits>
 #include <server/common/logging.h>
 #include <server/common/string.h>
-#include <Poco/Timestamp.h>
+#include <string.h>
+#include <sys/time.h>
 
 namespace sail {
 
@@ -40,17 +40,7 @@ bool TimeStamp::defined() const {
 
 TimeStamp TimeStamp::UTC(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
           unsigned int hour, unsigned int minute, double seconds) {
-  assert(inRange(month_1to12, 1, 12));
-  assert(inRange(day_1to31, 1, 31));
-  assert(inRange(hour, 0, 23));
-  assert(inRange(minute, 0, 59));
-  assert(seconds >= 0);
-
-  unsigned int intSecs = int(seconds);
-  double fracSecs = seconds - intSecs;
-
-  return TimeStamp(year_ad, month_1to12, day_1to31,
-                   hour, minute, intSecs, fracSecs);
+  return TimeStamp(year_ad, month_1to12, day_1to31, hour, minute, seconds);
 }
 
 TimeStamp TimeStamp::date(int year_ad, unsigned int month_1to12, unsigned int day_1to31) {
@@ -64,33 +54,32 @@ struct tm TimeStamp::makeGMTimeStruct() const {
   return result;
 }
 
-TimeStamp::TimeStamp(int year, int mon, int day,
-    int hour, int min, int sec, double fracSeconds) {
-  double fmillis = fracSeconds*1000;
-  int millis = int(fmillis);
-  int micros = int(1000*(fmillis - millis));
-  assert(inRange(millis, 0, 999));
-  assert(inRange(micros, 0, 999));
-  Poco::DateTime dt(year, mon, day,
-                    hour, min, sec, millis, micros);
-  init(dt);
+TimeStamp::TimeStamp(int year_ad, int month_1to12, int day_1to31,
+    int hour, int minute, double seconds) {
+  assert(inRange(month_1to12, 1, 12));
+  assert(inRange(day_1to31, 1, 31));
+  assert(inRange(hour, 0, 23));
+  assert(inRange(minute, 0, 59));
+  assert(seconds >= 0);
+
+  struct tm time;
+  memset(&time, 0, sizeof(tm));
+  time.tm_year = year_ad - 1900;
+  time.tm_mon = month_1to12 - 1;
+  time.tm_mday = day_1to31;
+  time.tm_hour = hour;
+  time.tm_min = minute;
+  time.tm_sec = int(seconds);
+
+  time_t t = timegm(&time);
+  _time = int64_t(t) * 1000 + int64_t((seconds - time.tm_sec) * 1000);
 }
-
-void TimeStamp::init(const Poco::DateTime &dt) {
-  Poco::Timestamp::UtcTimeVal utcval = dt.utcTime();
-  Poco::Timestamp ts = Poco::Timestamp::fromUtcTime(utcval);
-  time_t x = ts.epochTime();
-
-  double frac = 1.0e-6*(ts.epochMicroseconds() - 1.0e6*x);
-
-  assert(x != -1);
-  _time = TimeRes*x + int64_t(TimeRes*frac);
-}
-
 
 TimeStamp TimeStamp::now() {
-  Poco::DateTime dt;
-  return TimeStamp(dt);
+  struct timeval tv;
+  gettimeofday(&tv, 0);
+  int64_t t = int64_t(tv.tv_sec) * 1000 + int64_t(tv.tv_usec / 1000);
+  return TimeStamp(t);
 }
 
 TimeStamp TimeStamp::makeUndefined() {

@@ -13,6 +13,9 @@ nmea0183port.init(nmea0183PortPath);
 // Internal GPS with output to NMEA0183
 require('./components/gps').init(nmea0183port.emitNmea0183Sentence);
 
+// Set the system clock to GPS time
+require('./components/settime.js');
+
 require('./components/logger').startLogging(logRoot, logInterval, function(path) {
   // TODO: send file to phone.
   console.log('log written to: ' + path);

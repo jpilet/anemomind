@@ -3,7 +3,7 @@
     {
       'target_name': 'action_before_build',
       'type': 'none',
-      'hard_dependency': 1,
+      'hard_dependency': 0,
       'actions': [
         {
           'action_name': 'run_protoc',
@@ -79,9 +79,6 @@
       },
       "defines": [ "ON_SERVER" ],
       "libraries" : [
-        "-L../../../../../build/third-party/poco-install/lib",
-        "-lPocoFoundation",
-        "-lPocoUtil",
         "<!@(pkg-config protobuf --libs-only-L)",
         "-lprotobuf",
 	"-L/usr/lib",

@@ -296,8 +296,8 @@ NmeaParser::NmeaSentence NmeaParser::processCommand() {
 
 NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
   if (argc_<10) return NMEA_NONE;
-  if (strlen(argv_[1]) != 6) return NMEA_NONE;
-  if (strlen(argv_[9]) != 6) return NMEA_NONE;
+  if (strlen(argv_[1]) < 6) return NMEA_NONE;
+  if (strlen(argv_[9]) < 6) return NMEA_NONE;
 
   gpsSpeed_ = parseSpeed(argv_[7], argv_[8]);
   hour_ = parse2c(argv_[1]);
