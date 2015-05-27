@@ -307,12 +307,10 @@ describe(
         file.readAndPackFile(filename, file.makeLogFileInfo(), function(err, packed) {
           var unpacked = file.unpackFileMessage(packed);
           fs.readFile(filename, function(err, filedata2) {
-            console.log('THE UNPACKED DATA IS:');
-            console.log(unpacked.data);
-            console.log(typeof unpacked.data);
-            console.log(unpacked.data.constructor.name);
-            assert(typeof unpacked.data == 'string'); // <--- THIS IS BAD!!!
+            // Would have failed with 'msgpack'. But works with 'msgpack-js'
+            assert(unpacked.data instanceof Buffer); 
             assert(filedata2 instanceof Buffer);
+            assert(unpacked.data.equals(filedata2));
             done();
           });
         });

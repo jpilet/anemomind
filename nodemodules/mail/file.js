@@ -3,7 +3,16 @@ var common = require('./common.js');
 var mb = require('./mail.sqlite.js');
 var fs = require('fs');
 var assert = require('assert');
-var msgpack = require('msgpack');
+
+/*
+  As documented here, 'msgpack' doesn't accurately encode node buffers:
+  
+  http://stackoverflow.com/questions/13924936/encoding-messagepack-objects-containing-node-js-buffers
+
+  Therefore, we use msgpack-js instead
+  */
+  
+var msgpack = require('msgpack-js');
 
 // fs.writeFile(filename, data, cb)
 
@@ -26,7 +35,7 @@ function packFileMessage(path, info, data) {
   assert(isFileMessage(message));
 
   // Call the callback with the packed packet.
-  return msgpack.pack(message);
+  return msgpack.encode(message);
 }
 
 function readAndPackFile(path, info, cb) {
@@ -56,7 +65,7 @@ function sendFile(mailbox,   // The local mailbox
 }
 
 function unpackFileMessage(buf) {
-  return msgpack.unpack(buf);
+  return msgpack.decode(buf);
 }
 
 
