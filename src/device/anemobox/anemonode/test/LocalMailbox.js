@@ -1,5 +1,6 @@
 var lmb = require('../components/LocalMailbox.js');
 var assert = require('assert');
+var fs = require('fs');
 
 describe('LocalMailbox', function() {
   it(
@@ -26,4 +27,30 @@ describe('LocalMailbox', function() {
       });
     }
   );
+
+  it('Post a log file', function(done) {
+    lmb.setMailRoot('/tmp/anemobox/');
+    fs.writeFile('/tmp/anemolog.txt', 'This is a log file', function(err) {
+      assert(!err);
+      lmb.open(function(err, mb) {
+        assert(!err);
+        mb.reset(function(err) {
+          assert(!err);
+          mb.close(function(err) {
+            assert(!err);
+            lmb.postLogFile('/tmp/anemolog.txt', function(err) {
+              assert(!err);
+              mb.open(function(err, mb) {
+                assert(!err);
+                mb.getAllPackets(function(err, packets) {
+                  assert(packets.length == 1);
+                  done();
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
 });

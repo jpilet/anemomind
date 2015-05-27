@@ -70,7 +70,7 @@ function getBoatId(cb) {
   });
 }
 
-function openMailboxAndPostFile(path, cb) {
+function postLogFile(path, cb) {
   open(function(err, mb) {
     if (err) {
       cb(err);
@@ -98,3 +98,4 @@ module.exports.setMailRoot = function(newMailRoot) {
 module.exports.getName = getName;
 module.exports.open = open;
 module.exports.openWithName = openWithName;
+module.exports.postLogFile = postLogFile;

@@ -9,7 +9,7 @@ var msgpack = require('msgpack');
 
 
 function isFileMessage(x) {
-  return isObjectWithFields(x, ['path', 'info', 'data']);
+  return common.isObjectWithFields(x, ['path', 'info', 'data']);
 }
 
 function packFileMessage(path, info, data) {

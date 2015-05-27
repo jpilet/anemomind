@@ -1,6 +1,7 @@
 var nmea0183PortPath = '/dev/ttyMFD1';
 var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
+var localMailbox = require('./components/LocalMailbox.js');
 
 var config = require('./components/config');
 
@@ -17,8 +18,12 @@ require('./components/gps').init(nmea0183port.emitNmea0183Sentence);
 require('./components/settime.js');
 
 require('./components/logger').startLogging(logRoot, logInterval, function(path) {
-  // TODO: send file to phone.
-  console.log('log written to: ' + path);
+  localMailbox.postLogFile(path, function(err) {
+    if (err) {
+      console.log('###### Error posting file located at ' + path + ':');
+      console.log(err);
+    }
+  });
 });
 
 require('./components/RpcAssignBoat');
