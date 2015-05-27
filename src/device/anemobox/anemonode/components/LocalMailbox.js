@@ -8,6 +8,8 @@ var config = require('./config.js');
 // The path '/media/sdcard/' is also used in logger.js
 var mailRoot = '/media/sdcard/mail/';
 
+var doRemoveLogFiles = false;
+
 // Get the name of the local mailbox. cb is called with that as the single argument.
 function getName(cb) {
   boxId.getAnemoId(function(rawId) {
@@ -27,6 +29,36 @@ function makeFilenameFromMailboxName(mailboxName) {
     + ".sqlite.db";
 }
 
+
+function makeAckHandler() {
+  return mb.makePerPacketAckHandler(function(mailbox, packet) {
+    if (file.isFilePacket(packet)) {
+      var msg = file.unpackFileMessage(packet.data);
+      if (isLogFileMessage(msg)) {
+        var p = msg.path;
+        console.log(
+          'This logfile was successfully delivered to the server and can be removed: ' + p);
+
+        // Removing files is a bit scary, so
+        // maybe we want to have it disabled to start with.
+        // We might lose valuable data. We can enable it once
+        // we are very sure everything works.
+        if (doRemoveLogFiles) {
+          fs.unlink(p, function(err) {
+            if (err) {
+              console.log('Failed to remove ' + p);
+            } else {
+              console.log('Removed.');
+            }
+          });
+        } else {
+          console.log('It is configured not to be removed.');
+        }
+      }
+    }
+  });
+}
+
 // Open a mailbox with a particular name. Usually, this should
 // be the one obtained from 'getName'.
 function openWithName(mailboxName, cb) {
@@ -43,8 +75,14 @@ function openWithName(mailboxName, cb) {
       var filename = makeFilenameFromMailboxName(mailboxName);
       mb.tryMakeMailbox(
 	filename,
-	mailboxName, cb
-      );
+	mailboxName, function(err, mailbox) {
+          if (err) {
+            cb(err);
+          } else {
+            mb.onAcknowledged = makeAckHandler();
+            cb(null, mailbox);
+          }
+        });
     }
   });
 }
@@ -90,6 +128,10 @@ function postLogFile(path, cb) {
   });
 }
 
+function setRemoveLogFiles(p) {
+  doRemoveLogFiles = p;
+}
+
 // Convenient when doing unit tests and we don't have an SD card.
 module.exports.setMailRoot = function(newMailRoot) {
   mailRoot = newMailRoot;
@@ -99,3 +141,4 @@ module.exports.getName = getName;
 module.exports.open = open;
 module.exports.openWithName = openWithName;
 module.exports.postLogFile = postLogFile;
+module.exports.setRemoveLogFiles = setRemoveLogFiles;

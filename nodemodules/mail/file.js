@@ -84,9 +84,13 @@ function makeLogFileInfo() {
   return {type: 'logfile'}
 }
 
+function isFilePacket(pkt) {
+  return pkt.label == common.file;
+}
 
 module.exports.sendFile = sendFile;
 module.exports.unpackFileMessage = unpackFileMessage;
 module.exports.isLogFileInfo = isLogFileInfo;
 module.exports.makeLogFileInfo = makeLogFileInfo;
 module.exports.readAndPackFile = readAndPackFile;
+module.exports.isFilePacket = isFilePacket;
