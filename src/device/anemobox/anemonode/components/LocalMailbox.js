@@ -84,7 +84,10 @@ function openWithName(mailboxName, cb) {
           if (err) {
             cb(err);
           } else {
-            mailbox.onAcknowledged = makeAckHandler();
+
+            // Maybe it is better to 
+            //mailbox.onAcknowledged = makeAckHandler();
+            
             cb(null, mailbox);
           }
         });
@@ -123,18 +126,55 @@ function getServerSideMailboxName(cb) {
   });
 }
 
+function makeSentLogPathData(logFilePath) {
+  var parsed = path.parse(logFilePath);
+  var sentDir = path.join(parsed.dir, sentName);
+  return {
+    srcFilePath: logFilePath, // The file that should be read
+    sentDir: sentDir,         // The directory where it should go
+    dstFilePath: path.join(sentDir, parsed.base) // Its new filename.
+  };
+}
+
+function moveLogFileToSent(logfile, cb) {
+  var pdata = makeSentLogPathData(logfile);
+  mkdirp(pdata.sentDir, function(err) {
+    if (err) {
+      cb(err);
+    } else {
+      console.log('Now rename it from ' +
+                  pdata.srcFilePath + ' to ' + pdata.dstFilePath);
+      fs.rename(pdata.srcFilePath, pdata.dstFilePath, cb);
+    }
+  });
+}
 
 function postLogFilesSub(mailbox, dst, paths, cb) {
+  console.log('postLogFilesSub: ' + paths);
+  assert(typeof cb == 'function');
   if (paths.length == 0) {
+    console.log('DONE, call cb: ');
+    console.log(cb);
     cb();
   } else {
+    var logFilename = paths[0];
+    console.log('Send the log file');
     file.sendLogFile(
-      mailbox, dst, paths[0],
+      mailbox, dst, logFilename,
       file.makeLogFileInfo(), function(err) {
+        console.log('SENT');
         if (err) {
           cb(err);
         } else {
-          postLogFilesSub(mailbox, dst, paths.slice(1), cb);
+          console.log('Move it to sent');
+          moveLogFileToSent(logFilename, function(err) {
+            console.log('MOVED');
+            if (err) {
+              cb(err);
+            } else {
+              postLogFilesSub(mailbox, dst, paths.slice(1), cb);
+            }
+          });
         }
       });
   }
@@ -145,7 +185,8 @@ function postLogFilesForMailbox(mailbox, paths, cb) {
     if (err) {
       cb(err);
     } else {
-      postLogFilesSub(mailbox, dst, paths, function(err) {
+      console.log('postLogFilesForMailbox');
+      postLogFilesSub(mailbox, dst, paths, function(err) {        
         cb(err, paths);
       });
     }
@@ -162,29 +203,21 @@ function postLogFile(path, cb) {
   postLogFiles([path], cb);
 }
 
-function setDifference(A, B) {
-  // http://stackoverflow.com/questions/1723168/what-is-the-fastest-or-most-elegant-way-to-compute-a-set-difference-using-javasc
-  return A.filter(function(x) { return B.indexOf(x) < 0 });
+function isLogFilename(x) {
+  // In the logs directory, we expect only log files
+  // and a directory named by the variable sentName.
+  return x != sentName;
 }
 
 function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
-  mailbox.getAllPackets(function(err, packets) {
+  fs.readdir(logRoot, function(err, logFilesInDir) {
     if (err) {
       cb(err);
     } else {
-      var logFilesInMailbox = packets.filter(file.isLogFilePacket)
-        .map(function(p) {return file.unpackFileMessage(p.data).path;});
-
-      fs.readdir(logRoot, function(err, logFilesInDir) {
-        if (err) {
-          cb(err);
-        } else {
-          cb(null, setDifference(
-            logFilesInDir.map(function(fname) {
-              return path.join(logRoot, fname);
-          }), logFilesInMailbox));
-        }
-      });
+      var fullPaths =
+        logFilesInDir.filter(isLogFilename).map(function(fname) {
+          return path.join(logRoot, fname);
+        });
     }
   });
 }
@@ -262,19 +295,6 @@ function reset(cb) {
   }, cb);
 }
 
-function postLogFileAndRemaining(path, logRoot, cb) {
-  postLogFile(path, function(err) {
-    if (err) {
-      cb(err);
-    } else {
-      if (logRoot) {
-        postRemainingLogFiles(logRoot, cb);
-      } else {
-        cb();
-      }
-    }
-  });
-}
 
 // Convenient when doing unit tests and we don't have an SD card.
 module.exports.setMailRoot = function(newMailRoot) {
@@ -282,26 +302,6 @@ module.exports.setMailRoot = function(newMailRoot) {
 }
 
 
-function makeSentLogPathData(logFilePath) {
-  var parsed = logFilePath;
-  var sentDir = path.join(parsed.dir, sentName);
-  return {
-    srcFilePath: logFilePath, // The file that should be read
-    sentDir: sentDir,         // The directory where it should go
-    dstFilePath: path.join(sentDir, parsed.base) // Its new filename.
-  };
-}
-
-function moveLogFileToSent(logfile, cb) {
-  var pdata = makeSentLogPathData(logfile);
-  mkdirp(pdata.sentDir, function(err) {
-    if (err) {
-      cb(err);
-    } else {
-      fs.rename(pdata.srcFilePath, pdata.dstFilePath, cb);
-    }
-  });
-}
 
 module.exports.reset = reset;
 module.exports.getName = getName;
@@ -312,4 +312,3 @@ module.exports.listLogFilesNotPosted = listLogFilesNotPosted;
 module.exports.withLocalMailbox = withLocalMailbox;
 module.exports.withNamedLocalMailbox = withNamedLocalMailbox;
 module.exports.postRemainingLogFiles = postRemainingLogFiles;
-module.exports.postLogFileAndRemaining = postLogFileAndRemaining;
