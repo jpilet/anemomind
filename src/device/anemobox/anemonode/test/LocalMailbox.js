@@ -112,7 +112,7 @@ function createAndPostLogFiles(postFilterFun, n, cb) {
 }
 
 
-describe('Listing files not posted', function() {
+describe('Listing and posting files not posted', function() {
   it('Post log files', function(done) {
     mkdirp(testLogRoot, function(err) {
       var odd = function(i) {return i % 2 == 0;}
@@ -135,6 +135,11 @@ describe('Listing files not posted', function() {
       });
     });
   });
+
+  it('Posting a file, and the remaining ones too', function(done) {
+    done();
+  });
 });
+
   
 

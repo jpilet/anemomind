@@ -126,7 +126,7 @@ function getServerSideMailboxName(cb) {
 
 function postLogFilesSub(mailbox, dst, paths, cb) {
   if (paths.length == 0) {
-    cb();
+    cb(null, paths);
   } else {
     file.sendLogFile(
       mailbox, dst, paths[0],
@@ -260,6 +260,20 @@ function reset(cb) {
   }, cb);
 }
 
+function postLogFileAndRemaining(path, logRoot, cb) {
+  postLogFile(path, function(err) {
+    if (err) {
+      cb(err);
+    } else {
+      if (logRoot) {
+        postRemainingLogFiles(logRoot, cb);
+      } else {
+        cb();
+      }
+    }
+  });
+}
+
 // Convenient when doing unit tests and we don't have an SD card.
 module.exports.setMailRoot = function(newMailRoot) {
   mailRoot = newMailRoot;
@@ -274,3 +288,4 @@ module.exports.listLogFilesNotPosted = listLogFilesNotPosted;
 module.exports.withLocalMailbox = withLocalMailbox;
 module.exports.withNamedLocalMailbox = withNamedLocalMailbox;
 module.exports.postRemainingLogFiles = postRemainingLogFiles;
+module.exports.postLogFileAndRemaining = postLogFileAndRemaining;

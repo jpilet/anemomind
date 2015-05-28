@@ -23,19 +23,19 @@ require('./components/gps').init(
 // Set the system clock to GPS time
 require('./components/settime.js');
 
-<<<<<<< HEAD
 require('./components/logger').startLogging(logRoot, logInterval, function(path) {
-  localMailbox.postLogFile(path, function(err) {
+  localMailbox.postLogFileAndRemaining(path, logRoot, function(err, remaining) {
     if (err) {
       console.log('###### Error posting file located at ' + path + ':');
       console.log(err);
+    } else {
+      console.log('This log file was posted: ' + path);
+      if (remaining) {
+        console.log('The following files were also posted: ');
+        console.log(remaining);
+      }
     }
   });
-=======
-logger.startLogging(logRoot, logInterval, function(path) {
-  // TODO: send file to phone.
-  console.log('log written to: ' + path);
->>>>>>> master
 });
 
 require('./components/RpcAssignBoat');
