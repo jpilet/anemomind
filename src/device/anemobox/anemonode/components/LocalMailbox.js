@@ -142,7 +142,8 @@ function postLogFile(path, cb) {
 
 function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
   mailbox.getAllPackets(function(err, packets) {
-    var unpacked = packets.filter(file.isLogFilePacket);
+    var filePathsInDB = packets.filter(file.isLogFilePacket)
+      .map(function(p) {return unpackFileMessage(p.data).path;});
   });
 }
 
