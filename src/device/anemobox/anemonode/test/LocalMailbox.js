@@ -72,7 +72,7 @@ describe('LocalMailbox', function() {
 
 
 
-var testLogRoot = '/tmp/testlogs/';
+var testLogRoot = '/tmp/testlogsMissing/';
 
 function makeLogFilename(i) {
   return testLogRoot + 'testlog' + i + '.txt';
@@ -88,11 +88,11 @@ function createAndPostLogFiles(postFilterFun, n, cb) {
   } else {
     var index = n-1;
     var fname = makeLogFilename(index);
-    fs.writeFile(fname, makeLogFileContents(i), function(err) {
+    fs.writeFile(fname, makeLogFileContents(index), function(err) {
       if (err) {
         cb(err);
       } else {
-        var next = function() {createAndPostLogFiles(n - 1, cb);}
+        var next = function() {createAndPostLogFiles(postFilterFun, index, cb);}
         if (postFilterFun(index)) {
           lmb.postLogFile(fname, function(err) {
             if (err) {
@@ -111,13 +111,18 @@ function createAndPostLogFiles(postFilterFun, n, cb) {
 
 
 describe('Listing files not posted', function() {
-  
-});
-  
-  mkdirp(testLogRoot, function(err) {
-    var odd = function(i) {return i % 2 == 0;}
-    createAndPostLogFiles(odd, 7, function(err) {
-
+  it('Post log files', function(done) {
+    mkdirp(testLogRoot, function(err) {
+      var odd = function(i) {return i % 2 == 0;}
+      createAndPostLogFiles(odd, 7, function(err) {
+        assert(!err);
+        lmb.listLogFilesNotPosted(testLogRoot, function(err, files) {
+          console.log(files);
+          done();
+        });
+      });
     });
   });
+});
+  
 

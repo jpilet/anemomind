@@ -5,6 +5,7 @@ var mkdirp = require('mkdirp');
 var boxId = require('./boxId.js');
 var config = require('./config.js');
 var fs = require('fs');
+var path = require('path');
 
 // The path '/media/sdcard/' is also used in logger.js
 var mailRoot = '/media/sdcard/mail/';
@@ -122,33 +123,76 @@ function getServerSideMailboxName(cb) {
 }
 
 function postLogFile(path, cb) {
-  open(function(err, mb) {
+  withLocalMailbox(function(mailbox, done) {
+    getServerSideMailboxName(function(err, dst) {
+      file.sendLogFile(
+        mailbox, dst, path,
+        file.makeLogFileInfo(), done);
+    });
+  }, cb);
+}
+
+function setDifference(A, B) {
+  // http://stackoverflow.com/questions/1723168/what-is-the-fastest-or-most-elegant-way-to-compute-a-set-difference-using-javasc
+  return A.filter(function(x) { return B.indexOf(x) < 0 });
+}
+
+function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
+  mailbox.getAllPackets(function(err, packets) {
     if (err) {
       cb(err);
     } else {
-      getServerSideMailboxName(function(err, dst) {
-        file.sendLogFile(
-          mb, dst, path,
-          file.makeLogFileInfo(), function(err) {
-            // Always try to close, even if there was an error.
-            mb.close(function(err2) {
-              cb(err || err2);
-            });
-           });
+      var logFilesInMailbox = packets.filter(file.isLogFilePacket)
+        .map(function(p) {return file.unpackFileMessage(p.data).path;});
+
+      fs.readdir(logRoot, function(err, logFilesInDir) {
+        if (err) {
+          cb(err);
+        } else {
+          cb(null, setDifference(
+            logFilesInDir.map(function(fname) {
+              return path.join(logRoot, fname);
+          }), logFilesInMailbox));
+        }
       });
     }
   });
 }
 
-function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
-  mailbox.getAllPackets(function(err, packets) {
-    var filePathsInDB = packets.filter(file.isLogFilePacket)
-      .map(function(p) {return unpackFileMessage(p.data).path;});
+// TODO: Would it make sense to always keep the DB open?
+function withLocalMailbox(cbOperationOnMailbox, cbResults) {
+  open(function(err, mailbox) {
+    if (err) {
+      cbResults(err);
+    } else {
+      cbOperationOnMailbox(mailbox, function(err, results) {
+        mailbox.close(function(err2) {
+          var totalErr = err || err2;
+          if (totalErr) {
+            cbResults(totalErr);
+          } else {
+            cbResults(null, results);
+          }
+        });
+      });
+    }
   });
+}
+
+function listLogFilesNotPosted(logRoot, cb) {
+  withLocalMailbox(function(mailbox, done) {
+    listLogFilesNotPostedForMailbox(mailbox, logRoot, done);
+  }, cb);
 }
 
 function setRemoveLogFiles(p) {
   doRemoveLogFiles = p;
+}
+
+function reset(cb) {
+  withLocalMailbox(function(mailbox, done) {
+    mailbox.reset(done);
+  }, cb);
 }
 
 // Convenient when doing unit tests and we don't have an SD card.
@@ -162,3 +206,4 @@ module.exports.openWithName = openWithName;
 module.exports.postLogFile = postLogFile;
 module.exports.setRemoveLogFiles = setRemoveLogFiles;
 module.exports.getServerSideMailboxName = getServerSideMailboxName;
+module.exports.listLogFilesNotPosted = listLogFilesNotPosted;
