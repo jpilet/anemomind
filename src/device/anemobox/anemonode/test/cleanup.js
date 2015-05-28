@@ -70,7 +70,7 @@ describe('Cleanup sent log files', function() {
                       assert(!err);
                       countLogFiles(5, 0, function(err, remainingCount) {
                         assert(!err);
-                        assert(remainingCount == 2);
+                        assert(remainingCount == 0);
                         doneMB();
                       });
                     });

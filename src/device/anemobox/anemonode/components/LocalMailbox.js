@@ -214,10 +214,9 @@ function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
     if (err) {
       cb(err);
     } else {
-      var fullPaths =
-        logFilesInDir.filter(isLogFilename).map(function(fname) {
-          return path.join(logRoot, fname);
-        });
+      cb(null, logFilesInDir.filter(isLogFilename).map(function(fname) {
+        return path.join(logRoot, fname);
+      }));
     }
   });
 }

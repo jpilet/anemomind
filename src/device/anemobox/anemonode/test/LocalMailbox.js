@@ -127,7 +127,7 @@ describe('Listing and posting files not posted', function() {
       console.log('PREPARED PREPARED PREPARED PREPARED ');
       assert(!err);
       lmb.listLogFilesNotPosted(testLogRoot, function(err, files) {
-        console.log('listed');
+        console.log('LISTED');
         assert(!err);
         assert(files.length == 3);
         lmb.postRemainingLogFiles(testLogRoot, function(err) {
@@ -140,15 +140,6 @@ describe('Listing and posting files not posted', function() {
             done();
           });
         });
-      });
-    });
-  });
-
-  it('Posting a file, and the remaining ones too', function(done) {
-    preparePostingTest(function(err) {
-      lmb.postLogFileAndRemaining(makeLogFilename(1), testLogRoot, function(err, remaining) {
-        assert(remaining.length == 2);
-        done();
       });
     });
   });
