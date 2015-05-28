@@ -43,15 +43,6 @@ function countLogFiles(n, counter, cb) {
   }
 }
 
-function resetLocalMailbox(cb) {
-  lmb.open(function(err, local) {
-    assert(!err);
-    local.reset(function(err) {
-      assert(!err);
-      local.close(cb);
-    });
-  })
-}
 
 describe('Cleanup sent log files', function() {
   it('cleanup', function(done) {
@@ -59,7 +50,7 @@ describe('Cleanup sent log files', function() {
       lmb.setRemoveLogFiles(true);
       lmb.getServerSideMailboxName(function(err, mailboxName) {
         assert(!err);
-        resetLocalMailbox(function(err) {
+        reset(function(err) {
           createAndSendLogFiles(5, function(err, localMailbox) {
             assert(!err);
             mb.tryMakeMailbox('/tmp/serverbox.db', mailboxName, function(err, serverMailbox) {

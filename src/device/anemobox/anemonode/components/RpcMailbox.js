@@ -26,44 +26,40 @@ function ensureCB(p, errorMessage, cb) {
   If we want, we might want to leave the last opened mailbox opened until we call a
   method for a different mailbox.
 */
-function callMailboxMethod(mailboxName, methodName, args, cb) {
+function callMailboxMethod(mailboxName, methodName, args, cbFinal) {
   // TODO: Since there is only one mailbox endpoint on the
   // anemobox, maybe we could simply remove 'thisMailboxName'
   // from the RPC protocol? In that case, we would simply
   // use mb.open(...) below.
-  mb.openWithName(mailboxName, function(err, mailbox) {
-    if (err) {
-      cb(err);
+  mb.withNamedLocalMailbox(mailboxName, function(mailbox, cb) {
+    var method = mailbox[methodName];
+    if (!method || typeof(method) != 'function') {
+      cb('unknown mailbox method: ' + mailbox.methodName);
     } else {
-      var method = mailbox[methodName];
-      if (!method || typeof(method) != 'function') {
-	cb('unknown mailbox method: ' + mailbox.methodName);
-      } else {
-	try {
-	  method.apply(mailbox, args.concat([
-	    function(err, result) {
-	      if (err) {
-		cb(err);
-	      } else {
-		mailbox.close(function(err) {
-		  if (err) {
-		    cb(err);
-		  } else {
-		    cb(undefined, result);
-		  }
-		});
-	      }
+      try {
+	method.apply(mailbox, args.concat([
+	  function(err, result) {
+	    if (err) {
+	      cb(err);
+	    } else {
+	      mailbox.close(function(err) {
+		if (err) {
+		  cb(err);
+		} else {
+		  cb(undefined, result);
+		}
+	      });
 	    }
-	  ]));
-	} catch (e) {
-	  console.log(
-	    "Please don't throw exceptions, passing errors to the callback is better.");
-	  console.log("This exception was caught: %j", e);
-	  cb(e);
-	}
+	  }
+	]));
+      } catch (e) {
+	console.log(
+	  "Please don't throw exceptions, passing errors to the callback is better.");
+	console.log("This exception was caught: %j", e);
+	cb(e);
       }
     }
-  });
+  }, cbFinal);
 }
 
 function encodeResult(argSpecs, result) {

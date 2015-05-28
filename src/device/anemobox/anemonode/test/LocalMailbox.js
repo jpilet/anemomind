@@ -11,7 +11,10 @@ describe('LocalMailbox', function() {
     function(done) {
       ensureConfig(function(err, cfg) {
         lmb.setMailRoot('/tmp/anemobox/');
-        lmb.open(function(err, mb) {
+
+
+        
+        lmb.withLocalMailbox(function(mb, doneMB) {
 	  assert.equal(err, undefined);
 	  assert(mb);
 	  mb.reset(function(err) {
@@ -21,14 +24,11 @@ describe('LocalMailbox', function() {
 	      mb.getTotalPacketCount(function(err, n) {
 	        assert.equal(n, 1);
 	        assert.equal(err, undefined);
-	        mb.close(function(err) {
-		  assert.equal(err, undefined);
-		  done();
-	        });
-	      });
-	    });
-	  });
-        });
+                doneMB();
+              });
+            });
+          });
+        }, done);
       });
     }
   );
@@ -38,7 +38,8 @@ describe('LocalMailbox', function() {
       lmb.setMailRoot('/tmp/anemobox/');
       fs.writeFile('/tmp/anemolog.txt', 'This is a log file', function(err) {
         assert(!err);
-        lmb.open(function(err, mb) {
+        
+        lmb.withLocalMailbox(function(mb, doneMB) {
           assert(!err);
           mb.reset(function(err) {
             assert(!err);
@@ -46,7 +47,8 @@ describe('LocalMailbox', function() {
               assert(!err);
               lmb.postLogFile('/tmp/anemolog.txt', function(err) {
                 assert(!err);
-                lmb.open(function(err, mb) {
+                
+                lmb.withLocalMailbox(function(mb, doneMB2) {
                   assert(!err);
                   mb.getAllPackets(function(err, packets) {
                     assert(packets.length == 1);
@@ -57,14 +59,14 @@ describe('LocalMailbox', function() {
                     fs.readFile('/tmp/anemolog.txt', function(err2, filedata2) {
                       assert(filedata2 instanceof Buffer);
                       assert.equal(filedata.length, filedata2.length);
-                      done();
+                      doneMB2();
                     });
                   });
-                });
+                }, doneMB);
               });
             });
           });
-        });
+        }, done());
       });
     });
   });

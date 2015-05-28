@@ -6,6 +6,7 @@ var boxId = require('./boxId.js');
 var config = require('./config.js');
 var fs = require('fs');
 var path = require('path');
+var assert = require('assert');
 
 // The path '/media/sdcard/' is also used in logger.js
 var mailRoot = '/media/sdcard/mail/';
@@ -159,8 +160,22 @@ function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
   });
 }
 
-// TODO: Would it make sense to always keep the DB open?
+/*
+
+  Manages a whole session of accessing a mailbox.
+  Opens and closes it. Maybe we want to keep it open
+  all the time. Changing that throughout the application
+  becomes easy with this function, if we use it instead
+  of open and close.
+  
+  TODO: Would it make sense to always keep the DB open?
+*/
 function withLocalMailboxSub(openFun, cbOperationOnMailbox, cbResults) {
+  
+  assert(typeof openFun == 'function');
+  assert(typeof cbOperationOnMailbox == 'function');
+  assert(typeof cbResults == 'function');
+  
   openFun(function(err, mailbox) {
     if (err) {
       cbResults(err);
@@ -210,10 +225,11 @@ module.exports.setMailRoot = function(newMailRoot) {
   mailRoot = newMailRoot;
 }
 
+module.exports.reset = reset;
 module.exports.getName = getName;
-module.exports.open = open;
-module.exports.openWithName = openWithName;
 module.exports.postLogFile = postLogFile;
 module.exports.setRemoveLogFiles = setRemoveLogFiles;
 module.exports.getServerSideMailboxName = getServerSideMailboxName;
 module.exports.listLogFilesNotPosted = listLogFilesNotPosted;
+module.exports.withLocalMailbox = withLocalMailbox;
+module.exports.withNamedLocalMailbox = withNamedLocalMailbox;
