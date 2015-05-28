@@ -123,14 +123,34 @@ function getServerSideMailboxName(cb) {
   });
 }
 
-function postLogFile(path, cb) {
+
+function postLogFilesSub(mailbox, dst, paths, cb) {
+  if (paths.length == 0) {
+    cb();
+  } else {
+    file.sendLogFile(
+      mailbox, dst, paths[0],
+      file.makeLogFileInfo(), function(err) {
+        if (err) {
+          cb(err);
+        } else {
+          postLogFilesSub(mailbox, dst, paths.slice(1), cb);
+        }
+      });
+  }
+}
+
+
+function postLogFiles(paths, cb) {
   withLocalMailbox(function(mailbox, done) {
     getServerSideMailboxName(function(err, dst) {
-      file.sendLogFile(
-        mailbox, dst, path,
-        file.makeLogFileInfo(), done);
+      postLogFilesSub(mailbox, dst, paths, done);
     });
   }, cb);
+}
+
+function postLogFile(path, cb) {
+  postLogFiles([path], cb);
 }
 
 function setDifference(A, B) {
