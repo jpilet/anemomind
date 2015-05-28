@@ -1,9 +1,11 @@
 var anemonode = require('../build/Release/anemonode');
 var mkdirp = require('mkdirp');
 
+var logger;
+
 function startLogging(logRoot, logInterval, cb) {
   function createAndScheduleLogger() {
-    var logger = new anemonode.Logger();
+    logger = new anemonode.Logger();
     setInterval(function() {
       logger.flush(logRoot, function(path, err) {
 	if (err) {
@@ -25,4 +27,11 @@ function startLogging(logRoot, logInterval, cb) {
   });
 }
 
+function logText(stream, text) {
+  if (logger) {
+    logger.logText(stream, text);
+  }
+}
+
 module.exports.startLogging = startLogging;
+module.exports.logText = logText;

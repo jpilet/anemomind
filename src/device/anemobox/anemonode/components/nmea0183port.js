@@ -6,7 +6,7 @@ var fs = require('fs');
 
 var nmea0183Port;
 
-function init(nmea0183PortPath) {
+function init(nmea0183PortPath, dataCb) {
   // Let flow control make the port work.
   fs.writeFile('/sys/kernel/debug/gpio_debug/gpio129/current_pinmux',
                'mode0', function() {});
@@ -28,7 +28,9 @@ function init(nmea0183PortPath) {
       nmea0183Port = port;
       port.on('data', function(data) {
         nmeaPortSource.process(data);
-        // TODO: log raw NMEA.
+        if (dataCb) {
+          dataCb(data);
+        }
       });
     }
   });
