@@ -53,15 +53,20 @@ function sendFile(mailbox,   // The local mailbox
 		  dst,       // destination mailbox
 		  path,      // Path to the file to send
 		  info,      // Misc information for the user to choose.
+                  label,     // The label used for the packet
 		  cb) {      // Called once the file has been put in the mailbox,
                              //   waiting to be sent.
   if (!(mb.isMailbox(mailbox) && common.isIdentifier(dst))) {
     cb(new Error('Bad input to sendFile'));
   } else {
     readAndPackFile(path, info, function(err, buf) {
-      mailbox.sendPacket(dst, common.file, buf, cb);
+      mailbox.sendPacket(dst, label, buf, cb);
     });
   }
+}
+
+function sendLogFile(mailbox, dst, path, info, cb) {
+  sendFile(mailbox, dst, path, info, common.logfile, cb);
 }
 
 function unpackFileMessage(buf) {
@@ -84,13 +89,14 @@ function makeLogFileInfo() {
   return {type: 'logfile'}
 }
 
-function isFilePacket(pkt) {
-  return pkt.label == common.file;
+function isLogFilePacket(pkt) {
+  return pkt.label == common.logfile;
 }
 
-module.exports.sendFile = sendFile;
+
+module.exports.sendLogFile = sendLogFile;
 module.exports.unpackFileMessage = unpackFileMessage;
 module.exports.isLogFileInfo = isLogFileInfo;
 module.exports.makeLogFileInfo = makeLogFileInfo;
 module.exports.readAndPackFile = readAndPackFile;
-module.exports.isFilePacket = isFilePacket;
+module.exports.isLogFilePacket = isLogFilePacket;

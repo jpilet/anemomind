@@ -138,6 +138,12 @@ function postLogFile(path, cb) {
   });
 }
 
+function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
+  mailbox.getAllPackets(function(err, packets) {
+    var unpacked = packets.map(file.unpackIfFilePacket);
+  });
+}
+
 function setRemoveLogFiles(p) {
   doRemoveLogFiles = p;
 }

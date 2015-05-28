@@ -30,7 +30,7 @@ function sendFiles(src, dst, count, cb) {
     cb();
   } else {
     var index = count-1;
-    file.sendFile(src, dst, makeLogFilename(index), {logIndex: index}, function(err) {
+    file.sendLogFile(src, dst, makeLogFilename(index), {logIndex: index}, function(err) {
       if (err) {
 	cb(err);
       } else {
@@ -159,13 +159,12 @@ function countMarked(arr) {
 
 function makeAnemoboxAckHandler(markArray, deferred) {
   return mb.makePerPacketAckHandler(function(mailbox, packet) {
-    if (packet.label == common.file) {
+    if (packet.label == common.logfile) {
       var msg = file.unpackFileMessage(packet.data);
-      if (isLogFileMsg(msg)) {
-	markArray[msg.info.logIndex] = true;
-	if (countMarked(markArray) == 3) {
-	  deferred.resolve(markArray);
-	}
+      assert(isLogFileMsg(msg));
+      markArray[msg.info.logIndex] = true;
+      if (countMarked(markArray) == 3) {
+	deferred.resolve(markArray);
       }
     }
   });
@@ -179,7 +178,7 @@ function makeServerPacketHandler(markArray, deferred) {
     // to change anything in the db.
     cb();
     
-    if (packet.label == common.file) {
+    if (packet.label == common.logfile) {
       var msg = file.unpackFileMessage(packet.data);
       if (isLogFileMsg(msg)) {
 	var index = msg.info.logIndex;

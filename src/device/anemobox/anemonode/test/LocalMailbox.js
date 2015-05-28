@@ -3,6 +3,7 @@ var assert = require('assert');
 var fs = require('fs');
 var file = require('mail/file.js');
 var ensureConfig = require('./EnsureConfig.js');
+var mkdirp = require('mkdirp');
 
 describe('LocalMailbox', function() {
   it(
@@ -68,3 +69,51 @@ describe('LocalMailbox', function() {
     });
   });
 });
+
+
+
+var testLogRoot = '/tmp/testlogs/';
+
+function makeLogFilename(i) {
+  return testLogRoot + 'testlog' + i + '.txt';
+}
+
+function makeLogFileContents(i) {
+  return 'LogFile' + i;
+}
+
+function createAndPostLogFiles(postFilterFun, n, cb) {
+  if (n == 0) {
+    cb();
+  } else {
+    var index = n-1;
+    var fname = makeLogFilename(index);
+    fs.writeFile(fname, makeLogFileContents(i), function(err) {
+      if (err) {
+        cb(err);
+      } else {
+        var next = function() {createAndPostLogFiles(n - 1, cb);}
+        if (postFilterFun(index)) {
+          lmb.postLogFile(fname, function(err) {
+            if (err) {
+              cb(err);
+            } else {
+              next();
+            }
+          });
+        } else {
+          next();
+        }
+      }
+    });
+  }
+}
+
+
+function prepareTestLogs(cb) {
+  mkdirp(testLogRoot, function(err) {
+    var odd = function(i) {return i % 2 == 0;}
+    createAndPostLogFiles(odd, 7, cb);
+    
+  });
+}
