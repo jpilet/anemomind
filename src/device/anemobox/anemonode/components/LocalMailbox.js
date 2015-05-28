@@ -126,7 +126,7 @@ function getServerSideMailboxName(cb) {
 
 function postLogFilesSub(mailbox, dst, paths, cb) {
   if (paths.length == 0) {
-    cb(null, paths);
+    cb();
   } else {
     file.sendLogFile(
       mailbox, dst, paths[0],
@@ -145,7 +145,9 @@ function postLogFilesForMailbox(mailbox, paths, cb) {
     if (err) {
       cb(err);
     } else {
-      postLogFilesSub(mailbox, dst, paths, cb);
+      postLogFilesSub(mailbox, dst, paths, function(err) {
+        cb(err, paths);
+      });
     }
   });  
 }

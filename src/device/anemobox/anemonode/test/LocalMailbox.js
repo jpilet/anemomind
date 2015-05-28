@@ -111,25 +111,28 @@ function createAndPostLogFiles(postFilterFun, n, cb) {
   }
 }
 
+function preparePostingTest(cb) {
+  mkdirp(testLogRoot, function(err) {
+    var even = function(i) {return i % 2 == 0;}
+    lmb.reset(function(err) {
+      createAndPostLogFiles(even, 7, cb);
+    });
+  });
+}
 
 describe('Listing and posting files not posted', function() {
   it('Post log files', function(done) {
-    mkdirp(testLogRoot, function(err) {
-      var odd = function(i) {return i % 2 == 0;}
-      lmb.reset(function(err) {
-        createAndPostLogFiles(odd, 7, function(err) {
+    preparePostingTest(function(err) {
+      assert(!err);
+      lmb.listLogFilesNotPosted(testLogRoot, function(err, files) {
+        assert(!err);
+        assert(files.length == 3);
+        lmb.postRemainingLogFiles(testLogRoot, function(err) {
           assert(!err);
           lmb.listLogFilesNotPosted(testLogRoot, function(err, files) {
             assert(!err);
-            assert(files.length == 3);
-            lmb.postRemainingLogFiles(testLogRoot, function(err) {
-              assert(!err);
-              lmb.listLogFilesNotPosted(testLogRoot, function(err, files) {
-                assert(!err);
-                assert(files.length == 0);
-                done();
-              });
-            });
+            assert(files.length == 0);
+            done();
           });
         });
       });
@@ -137,7 +140,12 @@ describe('Listing and posting files not posted', function() {
   });
 
   it('Posting a file, and the remaining ones too', function(done) {
-    done();
+    preparePostingTest(function(err) {
+      lmb.postLogFileAndRemaining(makeLogFilename(1), testLogRoot, function(err, remaining) {
+        assert(remaining.length == 2);
+        done();
+      });
+    });
   });
 });
 
