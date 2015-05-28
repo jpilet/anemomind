@@ -160,8 +160,8 @@ function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
 }
 
 // TODO: Would it make sense to always keep the DB open?
-function withLocalMailbox(cbOperationOnMailbox, cbResults) {
-  open(function(err, mailbox) {
+function withLocalMailboxSub(openFun, cbOperationOnMailbox, cbResults) {
+  openFun(function(err, mailbox) {
     if (err) {
       cbResults(err);
     } else {
@@ -177,6 +177,10 @@ function withLocalMailbox(cbOperationOnMailbox, cbResults) {
       });
     }
   });
+}
+
+function withLocalMailbox(cbOperationOnMailbox, cbResults) {
+  withLocalMailboxSub(open, cbOperationOnMailbox, cbResults);
 }
 
 function listLogFilesNotPosted(logRoot, cb) {
