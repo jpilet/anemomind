@@ -24,16 +24,11 @@ require('./components/gps').init(
 require('./components/settime.js');
 
 require('./components/logger').startLogging(logRoot, logInterval, function(path) {
-  localMailbox.postLogFileAndRemaining(path, logRoot, function(err, remaining) {
+  localMailbox.postLogFile(path, function(err, remaining) {
     if (err) {
       console.log('###### Error posting file located at ' + path + ':');
-      console.log(err);
     } else {
-      console.log('This log file was posted: ' + path);
-      if (remaining) {
-        console.log('The following files were also posted: ');
-        console.log(remaining);
-      }
+      console.log('Posted this file: ' + path);
     }
   });
 });

@@ -10,8 +10,8 @@ var assert = require('assert');
 
 // The path '/media/sdcard/' is also used in logger.js
 var mailRoot = '/media/sdcard/mail/';
-
 var doRemoveLogFiles = false;
+var sentName = 'sentlogs';
 
 // Get the name of the local mailbox. cb is called with that as the single argument.
 function getName(cb) {
@@ -279,6 +279,28 @@ function postLogFileAndRemaining(path, logRoot, cb) {
 // Convenient when doing unit tests and we don't have an SD card.
 module.exports.setMailRoot = function(newMailRoot) {
   mailRoot = newMailRoot;
+}
+
+
+function makeSentLogPathData(logFilePath) {
+  var parsed = logFilePath;
+  var sentDir = path.join(parsed.dir, sentName);
+  return {
+    srcFilePath: logFilePath, // The file that should be read
+    sentDir: sentDir,         // The directory where it should go
+    dstFilePath: path.join(sentDir, parsed.base) // Its new filename.
+  };
+}
+
+function moveLogFileToSent(logfile, cb) {
+  var pdata = makeSentLogPathData(logfile);
+  mkdirp(pdata.sentDir, function(err) {
+    if (err) {
+      cb(err);
+    } else {
+      fs.rename(pdata.srcFilePath, pdata.dstFilePath, cb);
+    }
+  });
 }
 
 module.exports.reset = reset;
