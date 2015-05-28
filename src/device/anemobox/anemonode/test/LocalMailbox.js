@@ -122,19 +122,14 @@ function preparePostingTest(cb) {
 
 describe('Listing and posting files not posted', function() {
   it('Post log files', function(done) {
-    console.log('START HERE!!!!');
     preparePostingTest(function(err) {
-      console.log('PREPARED PREPARED PREPARED PREPARED ');
       assert(!err);
       lmb.listLogFilesNotPosted(testLogRoot, function(err, files) {
-        console.log('LISTED');
         assert(!err);
         assert(files.length == 3);
         lmb.postRemainingLogFiles(testLogRoot, function(err) {
-          console.log('posted');
           assert(!err);
           lmb.listLogFilesNotPosted(testLogRoot, function(err, files) {
-            console.log('listed 2');
             assert(!err);
             assert(files.length == 0);
             done();

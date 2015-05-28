@@ -142,33 +142,24 @@ function moveLogFileToSent(logfile, cb) {
     if (err) {
       cb(err);
     } else {
-      console.log('Now rename it from ' +
-                  pdata.srcFilePath + ' to ' + pdata.dstFilePath);
       fs.rename(pdata.srcFilePath, pdata.dstFilePath, cb);
     }
   });
 }
 
 function postLogFilesSub(mailbox, dst, paths, cb) {
-  console.log('postLogFilesSub: ' + paths);
   assert(typeof cb == 'function');
   if (paths.length == 0) {
-    console.log('DONE, call cb: ');
-    console.log(cb);
     cb();
   } else {
     var logFilename = paths[0];
-    console.log('Send the log file');
     file.sendLogFile(
       mailbox, dst, logFilename,
       file.makeLogFileInfo(), function(err) {
-        console.log('SENT');
         if (err) {
           cb(err);
         } else {
-          console.log('Move it to sent');
           moveLogFileToSent(logFilename, function(err) {
-            console.log('MOVED');
             if (err) {
               cb(err);
             } else {
@@ -185,7 +176,6 @@ function postLogFilesForMailbox(mailbox, paths, cb) {
     if (err) {
       cb(err);
     } else {
-      console.log('postLogFilesForMailbox');
       postLogFilesSub(mailbox, dst, paths, function(err) {        
         cb(err, paths);
       });
