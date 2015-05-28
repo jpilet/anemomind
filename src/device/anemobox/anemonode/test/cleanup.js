@@ -50,14 +50,15 @@ describe('Cleanup sent log files', function() {
       lmb.setRemoveLogFiles(true);
       lmb.getServerSideMailboxName(function(err, mailboxName) {
         assert(!err);
-        reset(function(err) {
+        lmb.reset(function(err) {
           createAndSendLogFiles(5, function(err, localMailbox) {
             assert(!err);
             mb.tryMakeMailbox('/tmp/serverbox.db', mailboxName, function(err, serverMailbox) {
               serverMailbox.reset(function(err) {
                 serverMailbox.ackFrequency = 3;
                 assert(!err);
-                lmb.open(function(err, anemoboxMailbox) {
+                
+                lmb.withLocalMailbox(function(anemoboxMailbox, doneMB) {
                   assert(!err);
                   sync.synchronize(anemoboxMailbox, serverMailbox, function(err) {
                     assert(!err);
@@ -70,11 +71,12 @@ describe('Cleanup sent log files', function() {
                       countLogFiles(5, 0, function(err, remainingCount) {
                         assert(!err);
                         assert(remainingCount == 2);
-                        done();
+                        doneMB();
                       });
                     });
                   });
-                });
+                }, done);
+                
               });
             });
           });
