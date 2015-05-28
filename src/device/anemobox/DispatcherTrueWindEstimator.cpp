@@ -46,7 +46,9 @@ void DispatcherTrueWindEstimator::compute() const {
   Angle<> twa;
   Velocity<> tws;
 
-  if (!_dispatcher->gpsSpeed()->dispatcher()->hasValue()) {
+  if (!_dispatcher->gpsSpeed()->dispatcher()->hasValue()
+      || !_dispatcher->awa()->dispatcher()->hasValue()
+      || !_dispatcher->aws()->dispatcher()->hasValue()) {
     // we can't compute anything useful without GPS.
     return;
   }
