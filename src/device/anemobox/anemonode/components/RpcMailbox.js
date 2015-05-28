@@ -42,13 +42,7 @@ function callMailboxMethod(mailboxName, methodName, args, cbFinal) {
 	    if (err) {
 	      cb(err);
 	    } else {
-	      mailbox.close(function(err) {
-		if (err) {
-		  cb(err);
-		} else {
-		  cb(undefined, result);
-		}
-	      });
+              cb(null, result);
 	    }
 	  }
 	]));
