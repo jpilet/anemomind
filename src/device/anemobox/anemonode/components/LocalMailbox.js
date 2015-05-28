@@ -33,7 +33,7 @@ function makeFilenameFromMailboxName(mailboxName) {
 
 function makeAckHandler() {
   return mb.makePerPacketAckHandler(function(mailbox, packet) {
-    if (file.isFilePacket(packet)) {
+    if (file.isLogFilePacket(packet)) {
       var msg = file.unpackFileMessage(packet.data);
       if (file.isLogFileInfo(msg.info)) {
         var p = msg.path;
@@ -55,6 +55,8 @@ function makeAckHandler() {
         } else {
           console.log('It is configured not to be removed.');
         }
+      } else {
+        console.log('WARNING: Packets labeled logfile should contain logfile data.');
       }
     }
   });
@@ -125,7 +127,7 @@ function postLogFile(path, cb) {
       cb(err);
     } else {
       getServerSideMailboxName(function(err, dst) {
-        file.sendFile(
+        file.sendLogFile(
           mb, dst, path,
           file.makeLogFileInfo(), function(err) {
             // Always try to close, even if there was an error.
@@ -140,7 +142,7 @@ function postLogFile(path, cb) {
 
 function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
   mailbox.getAllPackets(function(err, packets) {
-    var unpacked = packets.map(file.unpackIfFilePacket);
+    var unpacked = packets.filter(file.isLogFilePacket);
   });
 }
 

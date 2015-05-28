@@ -110,10 +110,14 @@ function createAndPostLogFiles(postFilterFun, n, cb) {
 }
 
 
-function prepareTestLogs(cb) {
+describe('Listing files not posted', function() {
+  
+});
+  
   mkdirp(testLogRoot, function(err) {
     var odd = function(i) {return i % 2 == 0;}
-    createAndPostLogFiles(odd, 7, cb);
-    
+    createAndPostLogFiles(odd, 7, function(err) {
+
+    });
   });
-}
+
