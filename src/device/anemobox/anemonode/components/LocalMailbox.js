@@ -85,8 +85,9 @@ function openWithName(mailboxName, cb) {
             cb(err);
           } else {
 
-            // Maybe it is better to 
-            //mailbox.onAcknowledged = makeAckHandler();
+            // Maybe it is better to not remove them.
+            // After all, they are in the sent folder that we can remove when we like.
+            /////mailbox.onAcknowledged = makeAckHandler();
             
             cb(null, mailbox);
           }

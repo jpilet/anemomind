@@ -3,6 +3,13 @@ var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
 var localMailbox = require('./components/LocalMailbox.js');
 
+localMailbox.postRemainingLogFiles(logRoot, function(err, files) {
+  if (0 < files.length) {
+    console.log('Posted these logfiles at startup:');
+    console.log(files);
+  }
+});
+
 var config = require('./components/config');
 var logger = require('./components/logger');
 
