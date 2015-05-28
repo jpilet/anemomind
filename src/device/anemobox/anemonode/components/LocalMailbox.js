@@ -183,6 +183,12 @@ function withLocalMailbox(cbOperationOnMailbox, cbResults) {
   withLocalMailboxSub(open, cbOperationOnMailbox, cbResults);
 }
 
+function withNamedLocalMailbox(name, cbOperationOnMailbox, cbResults) {
+  withLocalMailboxSub(function(cb) {
+    openWithName(name, cb);
+  }, cbOperationOnMailbox, cbResults);
+}
+
 function listLogFilesNotPosted(logRoot, cb) {
   withLocalMailbox(function(mailbox, done) {
     listLogFilesNotPostedForMailbox(mailbox, logRoot, done);
