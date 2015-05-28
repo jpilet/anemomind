@@ -116,11 +116,21 @@ describe('Listing files not posted', function() {
   it('Post log files', function(done) {
     mkdirp(testLogRoot, function(err) {
       var odd = function(i) {return i % 2 == 0;}
-      createAndPostLogFiles(odd, 7, function(err) {
-        assert(!err);
-        lmb.listLogFilesNotPosted(testLogRoot, function(err, files) {
-          console.log(files);
-          done();
+      lmb.reset(function(err) {
+        createAndPostLogFiles(odd, 7, function(err) {
+          assert(!err);
+          lmb.listLogFilesNotPosted(testLogRoot, function(err, files) {
+            assert(!err);
+            assert(files.length == 3);
+            lmb.postRemainingLogFiles(testLogRoot, function(err) {
+              assert(!err);
+              lmb.listLogFilesNotPosted(testLogRoot, function(err, files) {
+                assert(!err);
+                assert(files.length == 0);
+                done();
+              });
+            });
+          });
         });
       });
     });

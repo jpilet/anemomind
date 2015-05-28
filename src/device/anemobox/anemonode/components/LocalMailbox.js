@@ -140,12 +140,19 @@ function postLogFilesSub(mailbox, dst, paths, cb) {
   }
 }
 
+function postLogFilesForMailbox(mailbox, paths, cb) {
+  getServerSideMailboxName(function(err, dst) {
+    if (err) {
+      cb(err);
+    } else {
+      postLogFilesSub(mailbox, dst, paths, cb);
+    }
+  });  
+}
 
 function postLogFiles(paths, cb) {
   withLocalMailbox(function(mailbox, done) {
-    getServerSideMailboxName(function(err, dst) {
-      postLogFilesSub(mailbox, dst, paths, done);
-    });
+    postLogFilesForMailbox(mailbox, paths, done);
   }, cb);
 }
 
@@ -231,6 +238,18 @@ function listLogFilesNotPosted(logRoot, cb) {
   }, cb);
 }
 
+function postRemainingLogFiles(logRoot, cb) {
+  withLocalMailbox(function(mailbox, done) {
+    listLogFilesNotPostedForMailbox(mailbox, logRoot, function(err, files) {
+      if (err) {
+        done(err);
+      } else {
+        postLogFilesForMailbox(mailbox, files, done);
+      }
+    });
+  }, cb);
+}
+
 function setRemoveLogFiles(p) {
   doRemoveLogFiles = p;
 }
@@ -254,3 +273,4 @@ module.exports.getServerSideMailboxName = getServerSideMailboxName;
 module.exports.listLogFilesNotPosted = listLogFilesNotPosted;
 module.exports.withLocalMailbox = withLocalMailbox;
 module.exports.withNamedLocalMailbox = withNamedLocalMailbox;
+module.exports.postRemainingLogFiles = postRemainingLogFiles;
