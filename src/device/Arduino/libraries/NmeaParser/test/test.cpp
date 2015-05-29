@@ -109,6 +109,7 @@ TEST(NmeaParserTest, TestRMC) {
   EXPECT_EQ(15, parser.hour());
   EXPECT_EQ(30, parser.min());
   EXPECT_EQ(22, parser.sec());
+  EXPECT_NEAR(.022, parser.gpsSpeed().knots(), .01);
   EXPECT_EQ(5, parser.numSentences());
 }
 
