@@ -32,31 +32,25 @@ class AccAngle {
 
   AccAngle();
   AccAngle(double angle) {
+    _angle = angle;
     set(angle);
   }
-  AccAngle(Word deg, Word min, Word mc) : deg_(deg), min_(min), mc_(mc) { }
+  //AccAngle(Word deg, Word min, Word mc) : deg_(deg), min_(min), mc_(mc) { }
 
   // Returns the angle in degrees.
-  double toDouble() const;
+  double toDouble() const { return _angle; }
 
-  void set(double a);
+  void set(double a) { _angle = a; }
+
   void set(Word deg, Word min, Word mc) {
-    deg_ = deg;
-    min_ = min;
-    mc_ = mc;
+    _angle = double(deg) + ((double)min + (double)mc/1000.0) / 60.0;
   }
 
   void flip();
 
-  Word deg() const {
-    return deg_;
-  }
-  Word min() const {
-    return min_;
-  }
-  Word mc() const {
-    return mc_;
-  }
+  Word deg() const;
+  Word min() const;
+  Word mc() const;
 
   AccAngle &operator = (double a) {
     set(a);
@@ -64,14 +58,17 @@ class AccAngle {
   }
 
  private:
-  Word deg_, min_, mc_;
+  double _angle;
 };
 
 class GeoPos {
  public:
   GeoPos() { }
-  GeoPos(int latDeg, int latMin, int latMc, int lonDeg, int lonMin, int lonMc) :
-    lon(lonDeg, lonMin, lonMc), lat(latDeg, latMin, latMc) { }
+  GeoPos(double lat, double lon) : lon(lon), lat(lat) { }
+  GeoPos(int latDeg, int latMin, int latMc, int lonDeg, int lonMin, int lonMc) {
+    lat.set(latDeg, latMin, latMc);
+    lon.set(lonDeg, lonMin, lonMc);
+  }
 
   AccAngle lon, lat;
 };

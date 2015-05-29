@@ -1,7 +1,8 @@
 bigint = require('./bigint.js');
 
 module.exports.ack = 127;
-module.exports.file = 128;
+module.exports.logfile = 128;
+
 
 function isIdentifier(x) {
   return typeof x == 'string';
