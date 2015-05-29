@@ -3,16 +3,22 @@ var common = require('./common.js');
 var mb = require('./mail.sqlite.js');
 var fs = require('fs');
 var assert = require('assert');
-var msgpack = require('msgpack');
+
+/*
+  As documented here, 'msgpack' doesn't accurately encode node buffers:
+  
+  http://stackoverflow.com/questions/13924936/encoding-messagepack-objects-containing-node-js-buffers
+
+  Therefore, we use msgpack-js instead.
+  */
+  
+var msgpack = require('msgpack-js');
 
 // fs.writeFile(filename, data, cb)
 
 
 function isFileMessage(x) {
-  if (typeof x == 'object') {
-    return x.path && x.info && x.data;
-  }
-  return false;
+  return common.isObjectWithFields(x, ['path', 'info', 'data']);
 }
 
 function packFileMessage(path, info, data) {
@@ -29,7 +35,7 @@ function packFileMessage(path, info, data) {
   assert(isFileMessage(message));
 
   // Call the callback with the packed packet.
-  return msgpack.pack(message);
+  return msgpack.encode(message);
 }
 
 function readAndPackFile(path, info, cb) {
@@ -47,21 +53,50 @@ function sendFile(mailbox,   // The local mailbox
 		  dst,       // destination mailbox
 		  path,      // Path to the file to send
 		  info,      // Misc information for the user to choose.
+                  label,     // The label used for the packet
 		  cb) {      // Called once the file has been put in the mailbox,
                              //   waiting to be sent.
   if (!(mb.isMailbox(mailbox) && common.isIdentifier(dst))) {
     cb(new Error('Bad input to sendFile'));
   } else {
     readAndPackFile(path, info, function(err, buf) {
-      mailbox.sendPacket(dst, common.file, buf, cb);
+      mailbox.sendPacket(dst, label, buf, cb);
     });
   }
 }
 
+function sendLogFile(mailbox, dst, path, info, cb) {
+  sendFile(mailbox, dst, path, info, common.logfile, cb);
+}
+
 function unpackFileMessage(buf) {
-  return msgpack.unpack(buf);
+  return msgpack.decode(buf);
 }
 
 
-module.exports.sendFile = sendFile;
+///////////////////
+// Log files
+function isLogFileInfo(info) {
+  if (common.isObjectWithFields(info, ['type'])) {
+    return info.type == 'logfile';
+  }
+  return false;
+}
+
+// This function might accept more
+// arguments in future.
+function makeLogFileInfo() {
+  return {type: 'logfile'}
+}
+
+function isLogFilePacket(pkt) {
+  return pkt.label == common.logfile;
+}
+
+
+module.exports.sendLogFile = sendLogFile;
 module.exports.unpackFileMessage = unpackFileMessage;
+module.exports.isLogFileInfo = isLogFileInfo;
+module.exports.makeLogFileInfo = makeLogFileInfo;
+module.exports.readAndPackFile = readAndPackFile;
+module.exports.isLogFilePacket = isLogFilePacket;

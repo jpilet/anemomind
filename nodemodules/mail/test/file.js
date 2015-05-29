@@ -30,7 +30,7 @@ function sendFiles(src, dst, count, cb) {
     cb();
   } else {
     var index = count-1;
-    file.sendFile(src, dst, makeLogFilename(index), {logIndex: index}, function(err) {
+    file.sendLogFile(src, dst, makeLogFilename(index), {logIndex: index}, function(err) {
       if (err) {
 	cb(err);
       } else {
@@ -159,13 +159,12 @@ function countMarked(arr) {
 
 function makeAnemoboxAckHandler(markArray, deferred) {
   return mb.makePerPacketAckHandler(function(mailbox, packet) {
-    if (packet.label == common.file) {
+    if (packet.label == common.logfile) {
       var msg = file.unpackFileMessage(packet.data);
-      if (isLogFileMsg(msg)) {
-	markArray[msg.info.logIndex] = true;
-	if (countMarked(markArray) == 3) {
-	  deferred.resolve(markArray);
-	}
+      assert(isLogFileMsg(msg));
+      markArray[msg.info.logIndex] = true;
+      if (countMarked(markArray) == 3) {
+	deferred.resolve(markArray);
       }
     }
   });
@@ -179,7 +178,7 @@ function makeServerPacketHandler(markArray, deferred) {
     // to change anything in the db.
     cb();
     
-    if (packet.label == common.file) {
+    if (packet.label == common.logfile) {
       var msg = file.unpackFileMessage(packet.data);
       if (isLogFileMsg(msg)) {
 	var index = msg.info.logIndex;
@@ -293,3 +292,27 @@ describe('logfiles', function() {
     })
   });
 });
+
+
+// Investigate this:
+// http://stackoverflow.com/questions/13924936/encoding-messagepack-objects-containing-node-js-buffers
+describe(
+  'Packing and unpacking files',
+  function() {
+    it('Should pack and unpack a file', function(done) {
+      var filename = '/tmp/mailtestfile.txt';
+      var txtdata = 'This is a file containing text.';
+      fs.writeFile(filename, txtdata, function(err) {
+        file.readAndPackFile(filename, file.makeLogFileInfo(), function(err, packed) {
+          var unpacked = file.unpackFileMessage(packed);
+          fs.readFile(filename, function(err, filedata2) {
+            // Would have failed with 'msgpack'. But works with 'msgpack-js'
+            assert(unpacked.data instanceof Buffer); 
+            assert(filedata2 instanceof Buffer);
+            assert(unpacked.data.equals(filedata2));
+            done();
+          });
+        });
+      });
+    });
+  });
