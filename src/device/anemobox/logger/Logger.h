@@ -30,7 +30,7 @@ public:
   ValueSet* mutable_valueSet() { return &_valueSet; }
 
   void clear() {
-    _valueSet.Clear();
+    _valueSet = ValueSet();
     _valueSet.set_shortname(_shortName);
   }
 

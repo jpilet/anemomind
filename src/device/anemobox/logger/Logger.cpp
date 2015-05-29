@@ -24,6 +24,9 @@ Logger::Logger(Dispatcher* dispatcher) :
 }
 
 void Logger::flushTo(LogFile* container) {
+  // Clear content.
+  *container = LogFile();
+ 
   for (auto ptr : _listeners) {
     if (ptr->valueSet().timestamps_size() > 0) {
       container->add_stream()->Swap(ptr->mutable_valueSet());
