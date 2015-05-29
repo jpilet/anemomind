@@ -1,5 +1,6 @@
 var mb = require('mail/mail.sqlite.js');
 var packetCallbacks = require('./packet-callbacks.js');
+var common = require('mail/common.js');
 
 /*
 
@@ -49,7 +50,7 @@ function sendPacket(src, dst, label, data, cb) {
 }
 
 function openMailbox(mailboxName, cb) {
-    if (!mb.isValidMailboxName(mailboxName)) {
+    if (!common.isValidMailboxName(mailboxName)) {
 	cb(new Error('Invalid mailbox name: ' + mailboxName));
     } else {
 	var filename = mailboxName + '.mailsqlite.db';

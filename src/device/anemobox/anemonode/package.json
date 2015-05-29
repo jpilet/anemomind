@@ -5,7 +5,7 @@
   "dependencies": {
     "bleno": "^0.1.12",
     "mail": "file:../../../../nodemodules/mail",
-    "mkdirp": "^0.5.0",    
+    "mkdirp": "^0.5.0",
     "mraa": "^0.6.2",
     "nan": "^1.7.0",
     "serialport": "^1.6.3"
