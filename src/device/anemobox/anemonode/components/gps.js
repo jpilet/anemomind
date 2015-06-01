@@ -16,7 +16,7 @@ function init(dataCb) {
 
   var nmeaSource = new anemonode.Nmea0183Source("Internal GPS");
 
-  setInterval(function() {
+  function pollGps() {
     i2c.address(CAM_M8Q_I2C_BASE_ADDR);
     var data = [];
     do {
@@ -35,7 +35,9 @@ function init(dataCb) {
         dataCb(buffer);
       }
     }
-  }, 50);
+    setTimeout(pollGps, 50);
+  }
+  pollGps();
 }
 
 module.exports.init = init;
