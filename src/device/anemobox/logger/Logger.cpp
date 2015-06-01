@@ -24,17 +24,20 @@ Logger::Logger(Dispatcher* dispatcher) :
 }
 
 void Logger::flushTo(LogFile* container) {
+  // Clear content.
+  *container = LogFile();
+ 
   for (auto ptr : _listeners) {
     if (ptr->valueSet().timestamps_size() > 0) {
       container->add_stream()->Swap(ptr->mutable_valueSet());
-      ptr->clear();
     }
+    ptr->clear();
   }
-  for (auto pair : _textLoggers) {
-    if (pair.second.valueSet().timestamps_size() > 0) {
-      container->add_text()->Swap(pair.second.mutable_valueSet());
-      pair.second.clear();
+  for (auto it = _textLoggers.begin();  it != _textLoggers.end(); ++it) {
+    if (it->second.valueSet().timestamps_size() > 0) {
+      container->add_text()->Swap(it->second.mutable_valueSet());
     }
+    it->second.clear();
   }
 }
 
