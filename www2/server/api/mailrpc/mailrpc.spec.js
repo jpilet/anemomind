@@ -9,6 +9,7 @@ var Boat = require('../boat/boat.model');
 var naming = require('mail/naming.js');
 var common = require('mail/common.js');
 var fs = require('fs');
+var file = require('mail/file.js');
 
 
 describe('/api/mailrpc', function() {
@@ -120,26 +121,24 @@ describe('/api/mailrpc', function() {
   });
 
   it('Should handle an incoming log file', function(done) {
+    var p = '/tmp/the_log_file.txt';
     fs.writeFile(
-      '/tmp/the_log_file.txt', "Here there be boat logs.",
+      p, "Here there be boat logs.",
       function(err) {
-        done(err);
-/*        assert(!err);
-        server
-          .post('/api/mailrpc/handleIncomingPacket/' + remoteMailboxName)
-          .send({src: "thebox", dst: remoteMailboxName,
-                 label: common.logfile, data: })
-          .set('Authorization', 'Bearer ' + token)
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {return done(err);}
-          })*/
+        file.readAndPackFile(p, file.makeLogFileInfo(), function(err, filedata) {
+          server
+            .post('/api/mailrpc/handleIncomingPacket/' + remoteMailboxName)
+            .send({src: "thebox", dst: remoteMailboxName,
+                   label: common.logfile,
+                   data: filedata, seqNumber: 2344, cNumber: 34})
+            .set('Authorization', 'Bearer ' + token)
+            .expect(200)
+            .end(function(err, res) {
+              done(err);
+            })
+        });
       });
   });
-
-
-
-
 
 
   after(function(done) {
