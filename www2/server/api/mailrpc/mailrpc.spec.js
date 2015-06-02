@@ -10,6 +10,7 @@ var naming = require('mail/naming.js');
 var common = require('mail/common.js');
 var fs = require('fs');
 var file = require('mail/file.js');
+var coder = require('mail/json-coder.js');
 
 
 describe('/api/mailrpc', function() {
@@ -126,11 +127,19 @@ describe('/api/mailrpc', function() {
       p, "Here there be boat logs.",
       function(err) {
         file.readAndPackFile(p, file.makeLogFileInfo(), function(err, filedata) {
+          
+          var postdata = coder.encodeArgs(
+            [{packet: 'any'}],
+            [{src: "thebox", dst: remoteMailboxName,
+              label: common.logfile,
+              data: filedata, seqNumber: "2344", cNumber: "0034"}]);
+
+          console.log('POST THIS DATA:');
+          console.log(postdata);
+          
           server
             .post('/api/mailrpc/handleIncomingPacket/' + remoteMailboxName)
-            .send({src: "thebox", dst: remoteMailboxName,
-                   label: common.logfile,
-                   data: filedata, seqNumber: 2344, cNumber: 34})
+            .send(postdata)
             .set('Authorization', 'Bearer ' + token)
             .expect(200)
             .end(function(err, res) {
