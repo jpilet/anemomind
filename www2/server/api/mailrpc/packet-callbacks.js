@@ -28,15 +28,15 @@ function makeLogFilenameFromParts(tgtDir, parsedFilename, counter) {
 
 function tryToSaveWithName(tgtDir, parsedFilename, counter, data, cb) {
   var filename = makeLogFilenameFromParts(tgtDir, parsedFilename, counter);
-  console.log('FILENAME = %j', filename);
   fileExists(filename, function(err, p) {
     if (err) {
       cb(err);
     } else {
       if (p) {
+        console.log('WARNING (when saving incoming log file): ' +
+                    'There is already a file with name ' + filename);
         tryToSaveWithName(tgtDir, parsedFilename, counter + 1, data, cb);
       } else {
-        console.log('SAVE IT!!!');
         fs.writeFile(filename, data, cb);
       }
     }
