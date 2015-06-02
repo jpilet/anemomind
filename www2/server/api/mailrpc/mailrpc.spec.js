@@ -184,9 +184,11 @@ describe('/api/mailrpc', function() {
                   fs.unlink(
                     "uploads/anemologs/boat123456789012345678901234/the_log_file_version2.txt",
                     function(err) {
+                      assert(!err);
                       fs.unlink(
                         "uploads/anemologs/boat123456789012345678901234/the_log_file.txt",
                         function(err) {
+                          assert(!err);
                           done();
                         });
                     });
