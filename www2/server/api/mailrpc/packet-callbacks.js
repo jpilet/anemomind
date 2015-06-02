@@ -1,6 +1,6 @@
 var file = require('mail/file.js');
 
-var logRoot
+var logRoot = 
 
 // Please list below all the callbacks that should be called,
 // sequentially, whenever a packet is received
