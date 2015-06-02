@@ -56,6 +56,7 @@ function saveLogFile(tgtDir, msg, cb) {
 }
 
 function getTargetDirectory(mailbox) {
+  // Is there a better place to put them?
   return path.join(config.uploadDir, "anemologs", mailbox.mailboxName);
 }  
 
