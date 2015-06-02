@@ -133,10 +133,6 @@ describe('/api/mailrpc', function() {
             [{src: "thebox", dst: remoteMailboxName,
               label: common.logfile,
               data: filedata, seqNumber: "2344", cNumber: "0034"}]);
-
-          console.log('POST THIS DATA:');
-          console.log(postdata);
-          
           server
             .post('/api/mailrpc/handleIncomingPacket/' + remoteMailboxName)
             .send(postdata)

@@ -982,20 +982,20 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(T, packet, cb) {
     // Optional call to function whenever some packets that we sent were acknowledged.
     this.callOnAcknowledged(
       T,
-			    packet, seqnums,
-			    function (err) {
-			      if (err) {
-				cb(err);
-			      } else {
-				self.setAcked(
-				  T,
-				  self.mailboxName, packet.src,
-				  seqnums,
-				  cb
-				);
-			      }
-			    }
-			   );
+      packet, seqnums,
+      function (err) {
+	if (err) {
+	  cb(err);
+	} else {
+	  self.setAcked(
+	    T,
+	    self.mailboxName, packet.src,
+	    seqnums,
+	    cb
+	  );
+	}
+      }
+    );
   } else {
     cb();
   }
