@@ -198,6 +198,7 @@ describe('/api/mailrpc', function() {
         });
       });
   });
+  
 
   after(function(done) {
     User.remove({email: "test@anemomind.com"}, done);
