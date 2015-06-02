@@ -28,16 +28,18 @@ function makeLogFilenameFromParts(tgtDir, parsedFilename, counter) {
 
 function tryToSaveWithName(tgtDir, parsedFilename, counter, data, cb) {
   var filename = makeLogFilenameFromParts(tgtDir, parsedFilename, counter);
-  fileExists(filename, function(err, p) {
-    if (err) {
-      cb(err);
+  fs.readFile(filename, function(err, loadedData) {
+    if (err) { // <-- No such file.
+      fs.writeFile(filename, data, cb);
     } else {
-      if (p) {
-        console.log('WARNING (when saving incoming log file): ' +
-                    'There is already a file with name ' + filename);
-        tryToSaveWithName(tgtDir, parsedFilename, counter + 1, data, cb);
+      if (loadedData.equals(data)) {
+        cb();
+        // No point in saving the same data twice with different names
       } else {
-        fs.writeFile(filename, data, cb);
+        console.log('WARNING (when saving incoming log file): ' +
+                    'There is already a file with name ' + filename
+                    + ' but different data');
+        tryToSaveWithName(tgtDir, parsedFilename, counter + 1, data, cb);
       }
     }
   });
