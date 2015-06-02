@@ -7,6 +7,8 @@ var request = require('supertest');
 var User = require('../user/user.model');
 var Boat = require('../boat/boat.model');
 var naming = require('mail/naming.js');
+var common = require('mail/common.js');
+var fs = require('fs');
 
 
 describe('/api/mailrpc', function() {
@@ -114,6 +116,23 @@ describe('/api/mailrpc', function() {
 	if (err) return done(err);
 	JSON.parse(res.text).should.equal(1);
 	done();
+      });
+  });
+
+  it('Should handle an incoming log file', function(done) {
+    fs.writeFile(
+      '/tmp/the_log_file.txt', "Here there be boat logs.",
+      function(err) {
+        assert(!err);
+        server
+          .post('/api/mailrpc/handleIncomingPacket/' + remoteMailboxName)
+          .send({src: "thebox", dst: remoteMailboxName,
+                 label: common.logfile, data: })
+          .set('Authorization', 'Bearer ' + token)
+          .expect(200)
+          .end(function(err, res) {
+            if (err) {return done(err);}
+          })
       });
   });
 

@@ -156,7 +156,7 @@ function postLogFilesSub(mailbox, dst, paths, cb) {
     var logFilename = paths[0];
     file.sendLogFile(
       mailbox, dst, logFilename,
-      file.makeLogFileInfo(), function(err) {
+      function(err) {
         if (err) {
           cb(err);
         } else {

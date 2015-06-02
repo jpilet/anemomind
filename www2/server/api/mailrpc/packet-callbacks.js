@@ -1,23 +1,17 @@
+var file = require('mail/file.js');
+
+var logRoot
+
 // Please list below all the callbacks that should be called,
 // sequentially, whenever a packet is received
-module.exports.onPacketReceived = [
-
-    // For instance, if this packet is part of a file being transferred,
-    // we might want to do something with this file once all pieces have
-    // been received.
-    
-    // Some example handlers
-    function(mailbox, T, packet, cb) {
-	console.log('First handler: Received packet %j', packet);
-	cb();
-    },
-
-    function(mailbox, T, packet, cb) {
-	console.log('Second handler, called after the first handler.');
-	cb();
+module.exports.onPacketReceived = 
+  function(mailbox, T, packet, cb) {
+    cb();
+    if (file.isLogFilePacket(packet)) {
+      var msg = file.unpackFileMessage(packet.data);
+      
     }
-    
-];
+  }
 
 
 // Please list below all the callbacks that should be called,
