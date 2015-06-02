@@ -29,13 +29,16 @@ function makeLogFilenameFromParts(tgtDir, parsedFilename, counter) {
 function tryToSaveWithName(tgtDir, parsedFilename, counter, data, cb) {
   var filename = makeLogFilenameFromParts(tgtDir, parsedFilename, counter);
   fs.readFile(filename, function(err, loadedData) {
-    if (err) { // <-- No such file.
+    if (err) { // <-- No such file with that name.
       fs.writeFile(filename, data, cb);
     } else {
       if (loadedData.equals(data)) {
-        cb();
+        
         // No point in saving the same data twice with different names
+        cb();
+        
       } else {
+        // We don't want to end up here, but if we do, make sure the data is saved.
         console.log('WARNING (when saving incoming log file): ' +
                     'There is already a file with name ' + filename
                     + ' but different data');
