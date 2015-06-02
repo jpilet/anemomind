@@ -910,69 +910,68 @@ Mailbox.prototype.sendAckIfNeeded = function(T, src, cb) {
 
 // Maximize the c-number for this mailbox as a sender
 Mailbox.prototype.maximizeCNumber = function(T, dst, cb) {
-  assert(common.isIdentifier(dst));
+  if (!(common.isIdentifier(dst) && (dst != this.mailboxName))) {
+    cb(new Error("maximizeCNumber: Bad inputs"));
+  } else {
+    assert(isFunction(cb));    
+    var update = function(x) {
+      self.updateCTable(
+        T,
+        self.mailboxName,
+        dst,
+        x,
+        cb);
+    };
 
-  // We are never sending packets to ourself, are we?
-  assert(dst != this.mailboxName);
-  
-  assert(isFunction(cb));    
-  var update = function(x) {
-    self.updateCTable(
-      T,
-      self.mailboxName,
-      dst,
-      x,
-      cb);
-  };
+    var src = this.mailboxName;
+    
+    // retrieve the first seqNumber that has not been acked.
+    var query = 'SELECT seqNumber FROM packets WHERE ack = 0 AND src = ? ORDER BY seqNumber ASC';
+    var self = this;
+    T.get(query, src, function(err, row) {
+      if (err == undefined) {
+        if (row == undefined) { // No packets found, set it to 1 + the latest ack
+	  var query = 'SELECT seqNumber FROM packets WHERE ack = 1 AND src = ? ORDER BY seqNumber DESC';
+	  T.get(query, src, function(err, row) {
+	    if (err == undefined) {
+	      if (row == undefined) {
 
-  var src = this.mailboxName;
-  
-  // retrieve the first seqNumber that has not been acked.
-  var query = 'SELECT seqNumber FROM packets WHERE ack = 0 AND src = ? ORDER BY seqNumber ASC';
-  var self = this;
-  T.get(query, src, function(err, row) {
-    if (err == undefined) {
-      if (row == undefined) { // No packets found, set it to 1 + the latest ack
-	var query = 'SELECT seqNumber FROM packets WHERE ack = 1 AND src = ? ORDER BY seqNumber DESC';
-	T.get(query, src, function(err, row) {
-	  if (err == undefined) {
-	    if (row == undefined) {
+	        // No packets, so let the C number remain the same, whatever it was.
+	        cb();
+	        
+	      } else {
 
-	      // No packets, so let the C number remain the same, whatever it was.
-	      cb();
-	      
+	        // The last packet that was acked + 1, in case no packets with ack=0
+	        update(bigint.inc(row.seqNumber));
+	      }
 	    } else {
-
-	      // The last packet that was acked + 1, in case no packets with ack=0
-	      update(bigint.inc(row.seqNumber));
+	      cb(err);
 	    }
-	  } else {
-	    cb(err);
-	  }
-	});
-      } else {
+	  });
+        } else {
 
-	// The first packet not acked.
-	update(row.seqNumber);
+	  // The first packet not acked.
+	  update(row.seqNumber);
+        }
+      } else {
+        cb(err);
       }
-    } else {
-      cb(err);
-    }
-  });
+    });
+  }
 }
 
 Mailbox.prototype.callOnAcknowledged = function(T, packet, seqnums, cb) {
   if (this.onAcknowledged != undefined) {
     callHandlers(
       T,
-		 this,
-		 this.onAcknowledged,
-		 {
-		   dst: packet.src, // The mailbox we sent to
-		   seqnums: seqnums // The sequence numbers.
-		 },
-		 cb
-		);
+      this,
+      this.onAcknowledged,
+      {
+	dst: packet.src, // The mailbox we sent to
+	seqnums: seqnums // The sequence numbers.
+      },
+      cb
+    );
   } else {
     cb();
   }
