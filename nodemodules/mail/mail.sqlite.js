@@ -1232,7 +1232,12 @@ Mailbox.prototype.sendPacketInTransaction = function (T, dst, label, data, cb) {
 		query, results.diaryNumber,
 		self.mailboxName, dst, results.seqNumber,
 		cNumber, label, data, false,/*not yet acknowledged*/
-		cb);
+		function(err) {
+                  cb(err,
+                     {src: self.mailboxName, dst: dst,
+                      seqNumber: results.seqNumber,
+                      diaryNumber: results.diaryNumber});
+                });
 	    });
 	} else {
 	  cb(err);
