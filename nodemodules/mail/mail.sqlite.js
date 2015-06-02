@@ -1236,7 +1236,8 @@ Mailbox.prototype.sendPacketInTransaction = function (T, dst, label, data, cb) {
                   cb(err,
                      {src: self.mailboxName, dst: dst,
                       seqNumber: results.seqNumber,
-                      diaryNumber: results.diaryNumber});
+                      diaryNumber: results.diaryNumber,
+                      label: label, data: data});
                 });
 	    });
 	} else {
