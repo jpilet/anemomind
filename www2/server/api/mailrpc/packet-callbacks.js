@@ -5,17 +5,6 @@ var fs = require('fs');
 var config = require('../../config/environment');
 
 
-// http://stackoverflow.com/questions/9080085/node-js-find-home-directory-in-platform-agnostic-way
-function getUserHome() {
-  return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
-}
-
-function fileExists(filename, cb) {
-  fs.readFile(filename, function(err, data) {
-    cb(undefined, !err);
-  });
-}
-
 function makeLogFilenameFromParts(tgtDir, parsedFilename, counter) {
   if (counter == 0) {
     return path.join(tgtDir, parsedFilename.base);
