@@ -854,52 +854,58 @@ Mailbox.prototype.setAcked = function(T, src, dst, seqnums, cb) {
 
 // Sends an ack to the source of a packet.
 Mailbox.prototype.sendAck = function(T, src, cb) {
-  assert(common.isIdentifier(src));
-  assert(isFunction(cb));    
-  var self = this;
-  var query = 'SELECT seqNumber FROM packets WHERE src = ? AND dst = ? AND ack = 0';
-  T.all(
-    query, src, self.mailboxName,
-    function(err, data) {
-      var seqnums = new Array(data.length);
-      for (var i = 0; i < data.length; i++) {
-	seqnums[i] = data[i].seqNumber;
-      }
-      self.sendPacketInTransaction(
-        T,
-				   src/*back to the source*/,
-				   common.ack,
-				   serializeSeqNums(seqnums),
-				   function(err) {
-				     if (err == undefined) {
-				       self.setAcked(T,
-						     src, self.mailboxName, seqnums,
-						     function(err) {
-						       cb(err);
-						     });
-				     } else {
-				       cb(err);
-				     }
-				   });
-    });
+  assert(isFunction(cb));
+  if (!common.isIdentifier(src)) {
+    cb(new Error("sendAck: Invalid identifier"));
+  } else {
+    var self = this;
+    var query = 'SELECT seqNumber FROM packets WHERE src = ? AND dst = ? AND ack = 0';
+    T.all(
+      query, src, self.mailboxName,
+      function(err, data) {
+        var seqnums = new Array(data.length);
+        for (var i = 0; i < data.length; i++) {
+	  seqnums[i] = data[i].seqNumber;
+        }
+        self.sendPacketInTransaction(
+          T,
+	  src/*back to the source*/,
+	  common.ack,
+	  serializeSeqNums(seqnums),
+	  function(err) {
+	    if (err == undefined) {
+	      self.setAcked(T,
+			    src, self.mailboxName, seqnums,
+			    function(err) {
+			      cb(err);
+			    });
+	    } else {
+	      cb(err);
+	    }
+	  });
+      });
+  }
 }
 
 // Sends an ack-packet if we have received enough packets.
 Mailbox.prototype.sendAckIfNeeded = function(T, src, cb) {
-  assert(common.isIdentifier(src));
-  assert(isFunction(cb));    
-  var self = this;
-  this.getNonAckCount(T, src, function(err, count) {
-    if (err == undefined) {
-      if (count < self.ackFrequency) {
-	cb(err);
+  if (!common.isIdentifier(src)) {
+    cb(new Error('sendAckIfNeeded: Not an identifier'));
+  } else {
+    assert(isFunction(cb));    
+    var self = this;
+    this.getNonAckCount(T, src, function(err, count) {
+      if (err == undefined) {
+        if (count < self.ackFrequency) {
+	  cb(err);
+        } else {
+	  self.sendAck(T, src, cb);
+        }
       } else {
-	self.sendAck(T, src, cb);
+        cb(err);
       }
-    } else {
-      cb(err);
-    }
-  });
+    });
+  }
 }
 
 // Maximize the c-number for this mailbox as a sender
@@ -911,13 +917,12 @@ Mailbox.prototype.maximizeCNumber = function(T, dst, cb) {
   
   assert(isFunction(cb));    
   var update = function(x) {
-
     self.updateCTable(
       T,
-		      self.mailboxName,
-		      dst,
-		      x,
-		      cb);
+      self.mailboxName,
+      dst,
+      x,
+      cb);
   };
 
   var src = this.mailboxName;
