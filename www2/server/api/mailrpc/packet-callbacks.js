@@ -20,7 +20,8 @@ function makeLogFilenameFromParts(tgtDir, parsedFilename, counter) {
   if (counter == 0) {
     return path.join(tgtDir, parsedFilename.base);
   } else {
-    return path.join(tgtDir, parsedFilename.name + "_version" + counter
+    var versionNumber = counter + 1;
+    return path.join(tgtDir, parsedFilename.name + "_version" + versionNumber
                      + parsedFilename.ext);
   }
 }

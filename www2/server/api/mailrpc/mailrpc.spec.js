@@ -139,12 +139,63 @@ describe('/api/mailrpc', function() {
             .set('Authorization', 'Bearer ' + token)
             .expect(200)
             .end(function(err, res) {
-              done(err);
+              assert(!err);
+              var uploadedFilename =
+                "uploads/anemologs/boat123456789012345678901234/the_log_file.txt";
+              fs.readFile(uploadedFilename, function(err, data0) {
+                assert(!err);
+                fs.readFile(p, function(err, data1) {
+                  assert(!err);
+                  assert(data0.equals(data1));
+                  done();
+                });
+              });
             })
         });
       });
   });
 
+  it('Should handle another incoming log file with the same name', function(done) {
+    var p = '/tmp/the_log_file.txt';
+    fs.writeFile(
+      p, "Here there be boat logs.",
+      function(err) {
+        file.readAndPackFile(p, file.makeLogFileInfo(), function(err, filedata) {
+          
+          var postdata = coder.encodeArgs(
+            [{packet: 'any'}],
+            [{src: "thebox", dst: remoteMailboxName,
+              label: common.logfile,
+              data: filedata, seqNumber: "2345", cNumber: "0034"}]);
+          server
+            .post('/api/mailrpc/handleIncomingPacket/' + remoteMailboxName)
+            .send(postdata)
+            .set('Authorization', 'Bearer ' + token)
+            .expect(200)
+            .end(function(err, res) {
+              assert(!err);
+              var uploadedFilename =
+                "uploads/anemologs/boat123456789012345678901234/the_log_file_version2.txt";
+              fs.readFile(uploadedFilename, function(err, data0) {
+                assert(!err);
+                fs.readFile(p, function(err, data1) {
+                  assert(!err);
+                  assert(data0.equals(data1));
+                  fs.unlink(
+                    "uploads/anemologs/boat123456789012345678901234/the_log_file_version2.txt",
+                    function(err) {
+                      fs.unlink(
+                        "uploads/anemologs/boat123456789012345678901234/the_log_file.txt",
+                        function(err) {
+                          done();
+                        });
+                    });
+                });
+              });
+            })
+        });
+      });
+  });
 
   after(function(done) {
     User.remove({email: "test@anemomind.com"}, done);
