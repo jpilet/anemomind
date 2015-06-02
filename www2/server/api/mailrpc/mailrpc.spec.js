@@ -120,11 +120,11 @@ describe('/api/mailrpc', function() {
   });
 
   it('Should handle an incoming log file', function(done) {
-    done();
-    /*fs.writeFile(
+    fs.writeFile(
       '/tmp/the_log_file.txt', "Here there be boat logs.",
       function(err) {
-        assert(!err);
+        done(err);
+/*        assert(!err);
         server
           .post('/api/mailrpc/handleIncomingPacket/' + remoteMailboxName)
           .send({src: "thebox", dst: remoteMailboxName,
@@ -133,8 +133,8 @@ describe('/api/mailrpc', function() {
           .expect(200)
           .end(function(err, res) {
             if (err) {return done(err);}
-          })
-      });*/
+          })*/
+      });
   });
 
 
