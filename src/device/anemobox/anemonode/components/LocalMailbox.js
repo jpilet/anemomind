@@ -13,6 +13,9 @@ var mailRoot = '/media/sdcard/mail/';
 var doRemoveLogFiles = false;
 var sentName = 'sentlogs';
 
+// Keeps the last opened mailbox.
+var openedMailbox = undefined;
+
 // Get the name of the local mailbox. cb is called with that as the single argument.
 function getName(cb) {
   boxId.getAnemoId(function(rawId) {
