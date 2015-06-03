@@ -237,19 +237,7 @@ function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
   this.db = db;
 }
 
-function tryMakeMailbox(dbFilename,  // <-- The filename where all
-		        //     messages are stored.
-			mailboxName, // <-- A string that uniquely
-		        //     identifies this mailbox
-			cb) { // <-- call cb(err, mailbox) when the mailbox is created.
-  assert(isFunction(cb));    
-  if (!isValidDBFilename(dbFilename)) {
-    throw new Error('Invalid database filename');
-  }
-  if (!common.isValidMailboxName(mailboxName)) {
-    throw new Error('Invalid mailbox name');
-  }
-  
+function openDBWithFilename(dbFilename, cb) {
   var db = new TransactionDatabase(
     new sqlite3.Database(
       dbFilename,
@@ -264,11 +252,25 @@ function tryMakeMailbox(dbFilename,  // <-- The filename where all
     if (err) {
       cb(err);
     } else {
-      cb(
-	undefined,
-	new Mailbox(dbFilename, mailboxName, 30, db)
-      );
+      cb(undefined, db);
     }
+  });
+}
+
+function tryMakeMailbox(dbFilename,  // <-- The filename where all
+		        //     messages are stored.
+			mailboxName, // <-- A string that uniquely
+		        //     identifies this mailbox
+			cb) { // <-- call cb(err, mailbox) when the mailbox is created.
+  assert(isFunction(cb));    
+  if (!isValidDBFilename(dbFilename)) {
+    throw new Error('Invalid database filename');
+  }
+  if (!common.isValidMailboxName(mailboxName)) {
+    throw new Error('Invalid mailbox name');
+  }
+  openDBWithFilename(dbFilename, function(err, db) {
+    cb(null, new Mailbox(dbFilename, mailboxName, 30, db));
   });
 }
 
