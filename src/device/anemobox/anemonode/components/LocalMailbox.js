@@ -82,7 +82,6 @@ function closeOpenedMailbox() {
         console.log("Error when closing mailbox named " + mb.name);
       }
     });
-    
     openMailbox = null;
   }
 }
