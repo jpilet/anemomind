@@ -77,8 +77,12 @@ function makeAckHandler() {
 
 function registerMailbox(mailboxName, mailbox) {
   mailboxes[mailboxName] = mailbox;
-  if (mailboxCount() > 30) {
-    console.log("WARNING: You have opened a lot of mailboxes!");
+  if (mailboxCount() > 1) {
+    console.log('WARNING: More than one mailbox opened.');
+    console.log('Opened mailboxes:');
+    for (var k in mailboxes) {
+      console.log('  ' + k);
+    }
   }
 }
 
