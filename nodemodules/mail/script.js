@@ -39,12 +39,13 @@ function makeRequestCode(x) {
 // 
 function runRemoteScript(mailbox, dstMailboxName, type, script, cb) {
   if (!(mailbox.sendPacket && common.isIdentifier(dstMailboxName)
-        && validScriptType(type) && (typeof script == 'function'))) {
+        && validScriptType(type) && (typeof script == 'string'))) {
     cb(new Error("runRemoteScript: Bad inputs"));
   } else {
     mailbox.sendPacket(
       dstMailboxName, common.scriptRequest,
       packScriptRequest(type, script), function(err, packetData) {
+        console.log('packetData = ' + packetData);
         if (err) {
           cb(err);
         } else if (!packetData) {
@@ -152,6 +153,7 @@ function makeScriptRequestHandler(done) {
   done = done || function() {};
   return function(mailbox, packet, T, cb) {
     cb();
+    strongLog('GOT PACKET: ' + packet);
     handleScriptRequest(mailbox, packet, done, function(err) {
       if (err) {
         console.log('Failed to handle script request with this error:');

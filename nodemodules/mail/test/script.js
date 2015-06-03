@@ -2,6 +2,7 @@ var script = require('../script.js');
 var mb = require('../mail.sqlite.js');
 var assert = require('assert');
 var sync = require('../sync.js');
+var common = require('../common.js');
 
 describe('script', function() {
   it('Should execute a shell script', function(done) {
@@ -24,15 +25,16 @@ describe('script', function() {
           var msg = script.unpackScriptResponse;
           assert(msg.reqCode == reqCode);
           assert(msg.stdout == '/tmp');
-          for (var i = 0; i < 30; i++) {
-            console.log('GOT THIS ReSPONSE');
-            console.log(msg);
-          }
           done();
         };
         script.runRemoteScript(mb0, 'b', 'sh', 'pwd', function(err, rc) {
+          console.log(err);
+          assert(!err);
           reqCode = rc;
-          performSync();
+          performSync(function(err) {
+            assert(!err);
+            common.strongLog('INITIATE SYNC...');
+          });
         });
       });
     });

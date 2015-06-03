@@ -25,6 +25,19 @@ function isPacket(x) {
   return false;
 }
 
+
+function strongLog(x) {
+  var border = function() {
+    for (var i = 0; i < 5; i++) {
+      console.log('********************************************');
+    }
+  }
+  border();
+  console.log('***********' + x);
+  border();
+}
+
+
 module.exports.isCounter = isCounter; 
 module.exports.isIdentifier = isIdentifier;
 module.exports.isValidMailboxName = isValidMailboxName;
@@ -40,4 +53,4 @@ module.exports.isObjectWithFields = function(x, fields) {
   }
   return false;
 }
-
+module.exports.strongLog = strongLog;
