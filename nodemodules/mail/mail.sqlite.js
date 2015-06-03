@@ -1202,6 +1202,7 @@ Mailbox.prototype.reset = function(cb) {
 
 Mailbox.prototype.close = function(cb) {
   this.getDB().close(cb);
+  this.db = null;
 }
 
 // Given destination mailbox, label and data,
