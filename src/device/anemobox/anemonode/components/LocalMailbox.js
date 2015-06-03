@@ -13,8 +13,16 @@ var mailRoot = '/media/sdcard/mail/';
 var doRemoveLogFiles = false;
 var sentName = 'sentlogs';
 
-// Keeps the last opened mailbox.
-var openMailbox = null;
+var mailboxes = {};
+
+function mailboxCount() {
+  var counter = 0;
+  for (var k in mailboxes) {
+    counter++;
+  }
+  return counter;
+}
+
 
 // Get the name of the local mailbox. cb is called with that as the single argument.
 function getName(cb) {
@@ -67,32 +75,21 @@ function makeAckHandler() {
   });
 }
 
-function isOpenWithName(name) {
-  if (openMailbox) {
-    return openMailbox.mailboxName == name;
+function registerMailbox(mailboxName, mailbox) {
+  mailboxes[mailboxName] = mailbox;
+  if (mailboxCount() > 30) {
+    console.log("WARNING: You have opened a lot of mailboxes!");
   }
-  return false;
 }
 
-function closeOpenedMailbox() {
-  if (openMailbox) {
-    var mb = openMailbox;
-    openMailbox.close(function(err) {
-      if (err) {
-        console.log("Error when closing mailbox named " + mb.name);
-      }
-    });
-    openMailbox = null;
-  }
-}
 
 // Open a mailbox with a particular name. Usually, this should
 // be the one obtained from 'getName'.
 function openWithName(mailboxName, cb) {
-  if (isOpenWithName(mailboxName)) {
-    cb(null, openMailbox);
+  var alreadyOpened = mailboxes[mailboxName];
+  if (alreadyOpened) {
+    cb(null, alreadyOpened);
   } else {
-    closeOpenedMailbox();
     mkdirp(mailRoot, 0755, function(err) {
       if (err) {
         cb(err);
@@ -104,7 +101,7 @@ function openWithName(mailboxName, cb) {
             if (err) {
               cb(err);
             } else {
-              openMailbox = mailbox;
+              registerMailbox(mailboxName, mailbox);
               cb(null, mailbox);
             }
           });
