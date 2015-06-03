@@ -76,7 +76,13 @@ function isOpenWithName(name) {
 
 function closeOpenedMailbox() {
   if (openMailbox) {
-    openMailbox.close(function() {});
+    var mb = openMailbox;
+    openMailbox.close(function(err) {
+      if (err) {
+        console.log("Error when closing mailbox named " + mb.name);
+      }
+    });
+    
     openMailbox = null;
   }
 }
