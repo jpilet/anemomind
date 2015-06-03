@@ -46,7 +46,6 @@ function runRemoteScript(mailbox, dstMailboxName, type, script, cb) {
     mailbox.sendPacket(
       dstMailboxName, common.scriptRequest,
       packScriptRequest(type, script), function(err, packetData) {
-        console.log('packetData = ' + packetData);
         if (err) {
           cb(err);
         } else if (!packetData) {
@@ -170,7 +169,6 @@ function makeScriptRequestHandler(done) {
   done = done || function() {};
   return function(mailbox, packet, T, cb) {
     cb();
-    common.strongLog('GOT PACKET: ' + packet);
     handleScriptRequest(mailbox, packet, done, function(err) {
       if (err) {
         console.log('Failed to handle script request with this error:');
