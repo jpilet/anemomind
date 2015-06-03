@@ -94,34 +94,38 @@ function sendResponse(mailbox, dst, data, cb) {
 
 function executeAndRespondJS(reqCode, mailbox, filename, packet, cb) {
   try {
+    var sendTheResponse = function(data) {
+      sendResponse(mailbox, packet.src, data, cb);
+    }
     var main = require(filename);
     if (!(typeof main == "function")) {
-      cb(new Error('The script must export a function'));
+      sendtheResponse({reqCode: reqCode, err: 'The script must export a function'});
     } else {
       main(function(err, result) {
         if (err) {
           cb(err);
         } else {
-          var data = {reqCode: reqCode, err: err, result: result};
-          sendResponse(mailbox, packet.src, data, cb);
+          sendTheResponse({reqCode: reqCode, err: err, result: result});
         }
       });
     }
   } catch (e) {
-    cb(e);
+    sendTheResponse({reqCode: reqCode, err: ('' + e)});
   }
 }
 
 function executeAndRespondSH(reqCode, mailbox, filename, packet, cb) {
   try {
+    var sendTheResponse = function(data) {
+      sendResponse(mailbox, packet.src, data, cb);
+    }
     exec(
       'sh ' + filename,
       function (error, stdout, stderr) {
-        var data = {reqCode: reqCode, error:error, stdout: stdout, stderr: stderr};
-        sendResponse(mailbox, packet.src, data, cb);
+        sendTheResponse({reqCode: reqCode, err:error, stdout: stdout, stderr: stderr});
       });
-  } catch (e) {
-    cb(e);
+  } catch (e) {p
+    sendTheResponse({reqCode: reqCode, err: ('' + e)});
   }
 }
 
