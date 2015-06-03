@@ -30,14 +30,23 @@ function makeRequestCode(x) {
   return "src" + x.src + "_dst" + x.dst + "_seqNumber" + x.seqNumber;
 }
 
+// Run a remote script. cb is called with a string as a result,
+// that serves as a reference to the request.
 function runRemoteScript(mailbox, dstMailboxName, type, script, cb) {
   if (!(mailbox.sendPacket && common.isIdentifier(dstMailboxName)
         && validScriptType(type) && (typeof script == 'function'))) {
     cb(new Error("runRemoteScript: Bad inputs"));
   } else {
-    mailbox.sendPacket(dstMailboxName, common.scriptRequest,
-                       packScriptRequest(type, script), function(err, data) {
-                         
-                       });
+    mailbox.sendPacket(
+      dstMailboxName, common.scriptRequest,
+      packScriptRequest(type, script), function(err, packetData) {
+        if (err) {
+          cb(err);
+        } else if (!packetData) {
+          cb(new Error('The sendPacket method of mailbox does not work as expected.'));
+        } else {
+          cb(null, makeRequestCode(packetData));
+        }
+      });
   }
 }
