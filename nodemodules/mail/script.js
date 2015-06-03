@@ -160,3 +160,7 @@ function makeScriptRequestHandler(done) {
     });
   };
 }
+
+module.exports.makeScriptRequestHandler = makeScriptRequestHandler;
+module.exports.runRemoteScript = runRemoteScript;
+module.exports.unpackScriptResponse = unpackScriptResponse;
