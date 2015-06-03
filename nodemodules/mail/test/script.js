@@ -22,12 +22,15 @@ describe('script', function() {
         mb0.onPacketReceived = function(mailbox, packet, T, cb) {
           cb();
           assert(packet.label == common.scriptResponse);
-          var msg = script.unpackScriptResponse;
+          var msg = script.unpackScriptResponse(packet.data);
+          console.log("msg: ");
+          console.log(msg);
+          console.log("reqCode expected: " + reqCode);
           assert(msg.reqCode == reqCode);
-          assert(msg.stdout == '/tmp');
+          assert(msg.stdout == '/tmp\n');
           done();
         };
-        script.runRemoteScript(mb0, 'b', 'sh', 'pwd', function(err, rc) {
+        script.runRemoteScript(mb0, 'b', 'sh', 'cd /tmp\npwd', function(err, rc) {
           console.log(err);
           assert(!err);
           reqCode = rc;

@@ -1,7 +1,8 @@
 var common = require('./common.js');
 var msgpack = require('msgpack-js');
 var bigint = require('./bigint.js');
-var path = require('path');
+var fs = require('fs');
+var exec = require('child_process').exec;
 
 function validScriptType(type) {
   return type == "sh" || type == "js";
@@ -57,16 +58,32 @@ function runRemoteScript(mailbox, dstMailboxName, type, script, cb) {
   }
 }
 
+function fileExists(filename, cb) {
+  fs.stat(filename, function(err, stat) {
+    if (err == null) {
+      cb(null, true);
+    } else if (err.code == 'ENOENT') {
+      cb(null, false);
+    } else {
+      cb(err);
+    }
+  });
+}
+
 function generateScriptFilename(type, counter, cb) {
   if (!bigint.isBigInt(counter)) {
     counter = bigint.makeFromTime();
   }
   var filename = '/tmp/script' + counter + "." + type;
-  path.exists(filename, function(p) {
-    if (p) {
-      generateScriptFilename(type, bigint.inc(counter), cb);
+  fileExists(filename, function(err, p) {
+    if (err) {
+      cb(err);
     } else {
-      cb(null, filename);
+      if (p) {
+        generateScriptFilename(type, bigint.inc(counter), cb);
+      } else {
+        cb(null, filename);
+      }
     }
   });
 }
@@ -126,7 +143,7 @@ function handleScriptRequest(mailbox, packet, done, cb) {
         if (err) {
           cb(err);
         } else {
-          fs.write(filename, req.script, function(err) {
+          fs.writeFile(filename, req.script, function(err) {
             if (err) {
               cb(err);
             } else {
@@ -153,7 +170,7 @@ function makeScriptRequestHandler(done) {
   done = done || function() {};
   return function(mailbox, packet, T, cb) {
     cb();
-    strongLog('GOT PACKET: ' + packet);
+    common.strongLog('GOT PACKET: ' + packet);
     handleScriptRequest(mailbox, packet, done, function(err) {
       if (err) {
         console.log('Failed to handle script request with this error:');
