@@ -229,17 +229,6 @@ function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
   });
 }
 
-/*
-
-  Manages a whole session of accessing a mailbox.
-  Opens and closes it. Maybe we want to keep it open
-  all the time. Changing that throughout the application
-  becomes easy with this function, if we use it instead
-  of open and close.
-  Or we could also use it to enqueue mailbox access.
-  
-  TODO: Would it make sense to always keep the DB open?
-*/
 function withLocalMailboxSub(openFun, cbOperationOnMailbox, cbResults) {
   
   assert(typeof openFun == 'function');
