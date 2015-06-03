@@ -1255,9 +1255,9 @@ Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
     } else {
 
       // The callback. 
-      var cb2 = function(err) {
+      var cb2 = function(err, pdata) {
 	commit(T, function(err2) {
-	  cb(err || err2);
+	  cb(err || err2, pdata);
 	});
       }
       
