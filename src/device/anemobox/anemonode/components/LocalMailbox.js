@@ -14,7 +14,7 @@ var doRemoveLogFiles = false;
 var sentName = 'sentlogs';
 
 // Keeps the last opened mailbox.
-var openedMailbox = undefined;
+var openMailbox = null;
 
 // Get the name of the local mailbox. cb is called with that as the single argument.
 function getName(cb) {
@@ -67,36 +67,45 @@ function makeAckHandler() {
   });
 }
 
+function isOpenWithName(name) {
+  if (openMailbox) {
+    return openMailbox.mailboxName == name;
+  }
+  return false;
+}
+
+function closeOpenedMailbox() {
+  if (openMailbox) {
+    openMailbox.close(function() {});
+    openMailbox = null;
+  }
+}
+
 // Open a mailbox with a particular name. Usually, this should
 // be the one obtained from 'getName'.
 function openWithName(mailboxName, cb) {
-  mkdirp(mailRoot, 0755, function(err) {
-    if (err) {
-      cb(err);
-    } else {
-
-      // We could be using a constant mailbox filename
-      // if we wanted because there is only one mailbox
-      // endpoint on the anemobox, but I believe this is more
-      // robust in case we reinstall the anemobox without
-      // wiping the contents of the SD card.
-      var filename = makeFilenameFromMailboxName(mailboxName);
-      mb.tryMakeMailbox(
-	filename,
-	mailboxName, function(err, mailbox) {
-          if (err) {
-            cb(err);
-          } else {
-
-            // Maybe it is better to not remove them.
-            // After all, they are in the sent folder that we can remove when we like.
-            /////mailbox.onAcknowledged = makeAckHandler();
-            
-            cb(null, mailbox);
-          }
-        });
-    }
-  });
+  if (isOpenWithName(mailboxName)) {
+    cb(null, openMailbox);
+  } else {
+    closeOpenedMailbox();
+    mkdirp(mailRoot, 0755, function(err) {
+      if (err) {
+        cb(err);
+      } else {
+        var filename = makeFilenameFromMailboxName(mailboxName);
+        mb.tryMakeMailbox(
+	  filename,
+	  mailboxName, function(err, mailbox) {
+            if (err) {
+              cb(err);
+            } else {
+              openMailbox = mailbox;
+              cb(null, mailbox);
+            }
+          });
+      }
+    });
+  }
 }
 
 // Open a local mailbox. cb is called with (err, mailbox)
@@ -236,16 +245,7 @@ function withLocalMailboxSub(openFun, cbOperationOnMailbox, cbResults) {
     if (err) {
       cbResults(err);
     } else {
-      cbOperationOnMailbox(mailbox, function(err, results) {
-        mailbox.close(function(err2) {
-          var totalErr = err || err2;
-          if (totalErr) {
-            cbResults(totalErr);
-          } else {
-            cbResults(null, results);
-          }
-        });
-      });
+      cbOperationOnMailbox(mailbox, cbResults);
     }
   });
 }
