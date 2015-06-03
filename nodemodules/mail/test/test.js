@@ -711,6 +711,7 @@ describe('Mailbox open and close', function() {
     'Should close and open a mailbox',
     function(done) {
       mailsqlite.tryMakeMailbox('/tmp/mailbox.db', 'abc', function(err, mb) {
+        assert(!err);
         assert(mb.db);
         mb.close(function(err) {
           assert(!err);
