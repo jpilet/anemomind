@@ -705,3 +705,24 @@ describe('Mailbox on file system', function() {
       });
     });
 });
+
+describe('Mailbox open and close', function() {
+  it(
+    'Should close and open a mailbox',
+    function(done) {
+      mailsqlite.tryMakeMailbox('/tmp/mailbox.db', 'abc', function(err, mb) {
+        assert(mb.db);
+        mb.close(function(err) {
+          assert(!err);
+          assert(!mb.db);
+          mb.open(function(err) {
+            assert(!err);
+            assert(mb.db);
+            done();
+          })
+        });
+      });
+    });
+});
+
+
