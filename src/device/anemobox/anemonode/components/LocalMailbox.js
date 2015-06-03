@@ -84,6 +84,7 @@ function openWithName(mailboxName, cb) {
           if (err) {
             cb(err);
           } else {
+            mailbox.forwardPackets = false;
 
             // Maybe it is better to not remove them.
             // After all, they are in the sent folder that we can remove when we like.
