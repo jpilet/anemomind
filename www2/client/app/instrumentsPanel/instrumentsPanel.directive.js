@@ -6,10 +6,10 @@ angular.module('www2App')
       templateUrl: 'app/instrumentsPanel/instrumentsPanel.html',
       restrict: 'EA',
       link: function ($scope, element, attrs) {
-        createPanel();
+        var panel=new Panel();
 
         $scope.$watch('currentTime', function(newValue, oldValue) {
-          updateGraphs();
+          panel.updatePanelGraphs($scope.currentTime);
       }, true);
     }
 };
