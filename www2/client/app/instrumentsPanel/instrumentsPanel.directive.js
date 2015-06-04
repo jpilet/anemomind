@@ -9,7 +9,7 @@ angular.module('www2App')
         var panel=new Panel();
 
         $scope.$watch('currentTime', function(newValue, oldValue) {
-          panel.updatePanelGraphs($scope.currentTime);
+          panel.updatePanelGraphs($scope.currentPoint);
       }, true);
     }
 };
