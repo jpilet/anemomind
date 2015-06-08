@@ -94,14 +94,12 @@ exports.changePassword = function(req, res, next) {
 exports.resetPassword = function(req, res, next) {
 
   var newPass = generatePassword();
-  console.log(newPass);
 
   User.findOne({
     email: req.body.email
   }, function (err, user) {
     if (err) return next(err);
     if (!user) {
-      console.log('no user!');
       return validationError(res, err);
     }
     transporter.sendMail({
