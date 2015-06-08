@@ -65,7 +65,7 @@ describe('script', function() {
           mb0, 'b', 'js',
           'var fs = require("fs"); (function(cb) {var fib = function(x) {return (x < 2? x : fib(x-1) + fib(x-2));}; cb(null, fib(5));})',
           function(err, rc) {
-            assert(!err);
+            assert.equal(err, null);
             reqCode = rc;
             performSync(function(err) {
               assert(!err);
