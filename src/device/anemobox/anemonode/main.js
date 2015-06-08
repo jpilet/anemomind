@@ -2,7 +2,6 @@ var nmea0183PortPath = '/dev/ttyMFD1';
 var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
 var localMailbox = require('./components/LocalMailbox.js');
-var sync = require('./components/sync.js');
 
 localMailbox.postRemainingLogFiles(logRoot, function(err, files) {
   if (0 < files.length) {
@@ -37,7 +36,6 @@ require('./components/logger').startLogging(logRoot, logInterval, function(path)
       console.log('###### Error posting file located at ' + path + ':');
     } else {
       console.log('Posted this file: ' + path);
-      sync.triggerSync();
     }
   });
 });
