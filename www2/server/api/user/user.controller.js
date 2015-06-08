@@ -4,6 +4,7 @@ var User = require('./user.model');
 var passport = require('passport');
 var config = require('../../config/environment');
 var jwt = require('jsonwebtoken');
+var winston = require('winston');
 var generatePassword = require('password-generator');
 var nodemailer = require('nodemailer');
 var transporter = nodemailer.createTransport({
@@ -116,6 +117,7 @@ exports.resetPassword = function(req, res, next) {
       user.password = newPass;
       user.save(function(err) {
         if (err) return validationError(res, err);
+        winston.log('info', 'User with email ' + req.body.email + ' resetted his password');
         res.send(200);
       });
     });

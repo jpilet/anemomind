@@ -40,7 +40,8 @@
     "socket.io-client": "^1.0.6",
     "socketio-jwt": "^2.0.2",
     "sqlite3": "^3.0.5",
-    "sqlite3-transactions": "0.0.5"
+    "sqlite3-transactions": "0.0.5",
+    "winston": "^1.0.0"
   },
   "devDependencies": {
     "connect-livereload": "~0.4.0",
