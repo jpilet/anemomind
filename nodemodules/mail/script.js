@@ -92,14 +92,14 @@ function sendResponse(mailbox, dst, data, cb) {
 }
 
 
-function executeAndRespondJS(reqCode, mailbox, filename, packet, cb) {
+function executeAndRespondJS(reqCode, mailbox, script, packet, cb) {
   try {
     var sendTheResponse = function(data) {
       sendResponse(mailbox, packet.src, data, cb);
     }
-    var main = require(filename);
+    var main = eval(script);
     if (!(typeof main == "function")) {
-      sendtheResponse({reqCode: reqCode, err: 'The script must export a function'});
+      sendtheResponse({reqCode: reqCode, err: 'The script must return a functionto be evaluated'});
     } else {
       main(function(err, result) {
         if (err) {
@@ -114,13 +114,12 @@ function executeAndRespondJS(reqCode, mailbox, filename, packet, cb) {
   }
 }
 
-function executeAndRespondSH(reqCode, mailbox, filename, packet, cb) {
+function executeAndRespondSH(reqCode, mailbox, script, packet, cb) {
   try {
     var sendTheResponse = function(data) {
       sendResponse(mailbox, packet.src, data, cb);
     }
-    exec(
-      'sh ' + filename,
+    exec(script,
       function (error, stdout, stderr) {
         sendTheResponse({reqCode: reqCode, err:error, stdout: stdout, stderr: stderr});
       });
@@ -129,12 +128,12 @@ function executeAndRespondSH(reqCode, mailbox, filename, packet, cb) {
   }
 }
 
-function executeScriptAndRespond(mailbox, filename, packet, type, cb) {
+function executeScriptAndRespond(mailbox, script, packet, type, cb) {
   var reqCode = makeRequestCode(packet);
   if (type == 'js') {
-    executeAndRespondJS(reqCode, mailbox, filename, packet, cb);
+    executeAndRespondJS(reqCode, mailbox, script, packet, cb);
   } else if (type == 'sh') {
-    executeAndRespondSH(reqCode, mailbox, filename, packet, cb);
+    executeAndRespondSH(reqCode, mailbox, script, packet, cb);
   }
 }
 
@@ -142,24 +141,12 @@ function handleScriptRequest(mailbox, packet, done, cb) {
   if (packet.label == common.scriptRequest) {
     var req = unpackScriptRequest(packet.data);
     if (validScriptType(req.type)) {
-      generateScriptFilename(req.type, null, function(err, filename) {
+      executeScriptAndRespond(mailbox, req.script, packet, req.type, function(err) {
         if (err) {
           cb(err);
         } else {
-          fs.writeFile(filename, req.script, function(err) {
-            if (err) {
-              cb(err);
-            } else {
-              executeScriptAndRespond(mailbox, filename, packet, req.type, function(err) {
-                if (err) {
-                  cb(err);
-                } else {
-                  done();
-                  cb();
-                }
-              });
-            }
-          });
+          done();
+          cb();
         }
       });
     } else {
