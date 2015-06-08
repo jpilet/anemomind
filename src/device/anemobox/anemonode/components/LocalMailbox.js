@@ -7,11 +7,13 @@ var config = require('./config.js');
 var fs = require('fs');
 var path = require('path');
 var assert = require('assert');
+var DelayedCall = require('./DelayedCall.js');
 
 // The path '/media/sdcard/' is also used in logger.js
 var mailRoot = '/media/sdcard/mail/';
 var doRemoveLogFiles = false;
 var sentName = 'sentlogs';
+var closeTimeoutMillis = 30000;
 
 var mailboxes = {};
 
@@ -76,7 +78,14 @@ function makeAckHandler() {
 }
 
 function registerMailbox(mailboxName, mailbox) {
-  mailboxes[mailboxName] = mailbox;
+  mailboxData = {
+    mailbox:mailbox,
+    close: new DelayedCall(function() {mailbox.close(function(err) {
+      console.log('Delayed call to close mailbox with name ' + mailboxName + ' failed.');
+      console.log(err);
+    })})
+  };
+  mailboxes[mailboxName] = mailboxData;
   if (mailboxCount() > 1) {
     console.log('WARNING: More than one end point mailbox opened.');
     console.log('Opened mailboxes:');
@@ -84,33 +93,43 @@ function registerMailbox(mailboxName, mailbox) {
       console.log('  ' + k);
     }
   }
+  return mailboxData;
 }
 
+
+function openNewMailbox(mailboxName, cb) {
+  mkdirp(mailRoot, 0755, function(err) {
+    if (err) {
+      cb(err);
+    } else {
+      var filename = makeFilenameFromMailboxName(mailboxName);
+      mb.tryMakeMailbox(
+	filename,
+	mailboxName, function(err, mailbox) {
+          if (err) {
+            cb(err);
+          } else {
+            var data = registerMailbox(mailboxName, mailbox);
+            data.close.callDelayed(closeTimeoutMillis);
+            cb(null, mailbox);
+          }
+        });
+    }
+  });
+}
 
 // Open a mailbox with a particular name. Usually, this should
 // be the one obtained from 'getName'.
 function openWithName(mailboxName, cb) {
-  var alreadyOpened = mailboxes[mailboxName];
-  if (alreadyOpened) {
-    cb(null, alreadyOpened);
-  } else {
-    mkdirp(mailRoot, 0755, function(err) {
-      if (err) {
-        cb(err);
-      } else {
-        var filename = makeFilenameFromMailboxName(mailboxName);
-        mb.tryMakeMailbox(
-	  filename,
-	  mailboxName, function(err, mailbox) {
-            if (err) {
-              cb(err);
-            } else {
-              registerMailbox(mailboxName, mailbox);
-              cb(null, mailbox);
-            }
-          });
-      }
+  var data = mailboxes[mailboxName];
+  if (data) {
+    assert(data.mailbox);
+    data.mailbox.open(function(err, db) {
+      data.close.callDelayed(closeTimeoutMillis);
+      cb(null, data.mailbox);
     });
+  } else {
+    openNewMailbox(mailboxName, cb);
   }
 }
 
