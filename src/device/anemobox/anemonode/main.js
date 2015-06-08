@@ -36,8 +36,8 @@ require('./components/logger').startLogging(logRoot, logInterval, function(path)
     if (err) {
       console.log('###### Error posting file located at ' + path + ':');
     } else {
-      console.log('Posted this file: ' + path);
       sync.triggerSync();
+      console.log('Posted this file: ' + path);
     }
   });
 });
