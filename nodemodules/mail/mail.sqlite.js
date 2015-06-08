@@ -234,6 +234,7 @@ function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
   this.dbFilename = dbFilename;
   this.mailboxName = mailboxName;
   this.ackFrequency = ackFrequency;
+  this.forwardPackets = true;
   this.db = db;
 }
 
@@ -702,6 +703,8 @@ Mailbox.prototype.isAdmissibleInTransaction = function(T, src, dst, seqNumber, c
     assert(isFunction(cb));
     if (src == this.mailboxName) {
       cb(undefined, false);
+    } else if (!this.forwardPackets && (dst != this.mailboxName)) {
+      cb(null, false);
     } else {
       this.getCNumber(T, src, dst, function(err, cNumber) {
 	if (err == undefined) {

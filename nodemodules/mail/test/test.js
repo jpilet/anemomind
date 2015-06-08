@@ -706,6 +706,29 @@ describe('Mailbox on file system', function() {
     });
 });
 
+
+describe('Packet forwarding flag', function() {
+  it('Should investigate the effect of the packet forwarding flag', function(done) {
+    mailsqlite.tryMakeMailbox('/tmp/fwdbox.db', 'box', function(err, box) {
+      box.forwardPackets = false;
+      box.isAdmissible('abc', 'otherbox', "001", function(err, p) {
+        assert(!err);
+        assert(!p);
+        box.isAdmissible('abc', 'box', "001", function(err, p) {
+          assert(!err);
+          assert(p);
+          box.forwardPackets = true;
+          box.isAdmissible('abc', 'otherbox', "002", function(err, p) {
+            assert(!err);
+            assert(p);
+            done();
+          });
+        });
+      });
+    });
+  });
+});
+
 describe('Mailbox open and close', function() {
   it(
     'Should close and open a mailbox',
@@ -725,5 +748,3 @@ describe('Mailbox open and close', function() {
       });
     });
 });
-
-
