@@ -23,7 +23,7 @@ describe('script', function() {
           cb();
           assert(packet.label == common.scriptResponse);
           var msg = script.unpackScriptResponse(packet.data);
-          assert(msg.reqCode == reqCode);
+          assert.equal(msg.reqCode, reqCode);
           assert(msg.stdout == '/tmp\n');
           done();
         };
@@ -57,7 +57,6 @@ describe('script', function() {
           cb();
           assert(packet.label == common.scriptResponse);
           var msg = script.unpackScriptResponse(packet.data);
-          console.log(msg);
           assert(msg.reqCode == reqCode);
           assert.equal(msg.result, fib(5));
           done();
@@ -66,12 +65,12 @@ describe('script', function() {
           mb0, 'b', 'js',
           'var fs = require("fs"); (function(cb) {var fib = function(x) {return (x < 2? x : fib(x-1) + fib(x-2));}; cb(null, fib(5));})',
           function(err, rc) {
-          assert(!err);
-          reqCode = rc;
-          performSync(function(err) {
             assert(!err);
+            reqCode = rc;
+            performSync(function(err) {
+              assert(!err);
+            });
           });
-        });
       });
     });
   });
