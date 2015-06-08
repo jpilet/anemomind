@@ -57,11 +57,11 @@ function openMailbox(mailboxName, cb) {
     mb.tryMakeMailbox(
       filename, mailboxName,
       function(err, mailbox) {
-        mailbox.forwardPackets = false;
-        mailbox.setAckFrequency(12);
 	if (err) {
 	  cb(err);
 	} else {
+          mailbox.forwardPackets = false;
+          mailbox.setAckFrequency(12);
 	  mailbox.onPacketReceived = packetCallbacks.onPacketReceived;
 	  mailbox.onAcknowledged = packetCallbacks.onAcknowledged;
 	  cb(err, mailbox);
