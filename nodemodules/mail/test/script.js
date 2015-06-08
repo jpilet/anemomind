@@ -4,11 +4,27 @@ var assert = require('assert');
 var sync = require('../sync.js');
 var common = require('../common.js');
 
+function tryMakeAndResetMailbox(filename, name, cb) {
+  mb.tryMakeMailbox(filename, name, function(err, x) {
+    if (err) {
+      cb(err);
+    } else {
+      x.reset(function(err) {
+        if (err) {
+          cb(err);
+        } else {
+          cb(null, x);
+        }
+      });
+    }
+  });
+}
+
 describe('script', function() {
   it('Should execute a shell script', function(done) {
-    mb.tryMakeMailbox('/tmp/mb0.db', 'a', function(err, mb0) {
+    tryMakeAndResetMailbox('/tmp/mb0.db', 'a', function(err, mb0) {
       assert(!err);
-      mb.tryMakeMailbox('/tmp/mb1.db', 'b', function(err, mb1) {
+      tryMakeAndResetMailbox('/tmp/mb1.db', 'b', function(err, mb1) {
         assert(!err);
 
         var performSync = function(cb) {
@@ -39,9 +55,9 @@ describe('script', function() {
   });
   
   it('Should execute a node script', function(done) {
-    mb.tryMakeMailbox('/tmp/mb0.db', 'a', function(err, mb0) {
+    tryMakeAndResetMailbox('/tmp/mb0.db', 'a', function(err, mb0) {
       assert(!err);
-      mb.tryMakeMailbox('/tmp/mb1.db', 'b', function(err, mb1) {
+      tryMakeAndResetMailbox('/tmp/mb1.db', 'b', function(err, mb1) {
         assert(!err);
 
         var performSync = function(cb) {
