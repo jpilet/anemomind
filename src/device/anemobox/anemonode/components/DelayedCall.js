@@ -1,3 +1,5 @@
+var assert = require('assert');
+
 function getTimeMillis() {
   return (new Date()).getTime();
 }
@@ -8,7 +10,7 @@ function getTimeMillis() {
 // occurs sooner than the already pending one. If it occurs
 // later, the pending call will be rescheduled.
 function DelayedCall(functionToCall) {
-  assert(typeof functionToCall == 'undefined');
+  assert(typeof functionToCall == 'function');
   this.functionToCall = functionToCall;
   this.whenToCall = null;
 }
@@ -24,13 +26,13 @@ DelayedCall.prototype.initiateTimeout = function() {
         self.functionToCall();
       } else {
         // Wait longer. Maybe the timer was inaccurate, or the call was rescheduled.
-        self.initiateCall();
+        self.initiateTimeout();
       }
     }, delayMillis);
   }
 }
 
-function callDelayed(delayMillis) {
+DelayedCall.prototype.callDelayed = function(delayMillis) {
   var whenToCall = getTimeMillis() + delayMillis;
   if (this.whenToCall) { // <-- If there is a call pending.
     if (this.whenToCall < whenToCall) { // <-- We can only reschedule a call to happen later.
@@ -39,6 +41,8 @@ function callDelayed(delayMillis) {
   } else {
     this.whenToCall = whenToCall;
     // Apparently no call is pending, so we need to initiate the timeout.
-    initiateTimeout();
+    this.initiateTimeout();
   }
 }
+
+module.exports = DelayedCall;
