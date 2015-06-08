@@ -58,6 +58,7 @@ function openMailbox(mailboxName, cb) {
       filename, mailboxName,
       function(err, mailbox) {
         mailbox.forwardPackets = false;
+        mailbox.setAckFrequency(12);
 	if (err) {
 	  cb(err);
 	} else {

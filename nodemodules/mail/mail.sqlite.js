@@ -238,6 +238,10 @@ function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
   this.db = db;
 }
 
+Mailbox.prototype.setAckFrequency = function(f) {
+  this.ackFrequency = f;
+}
+
 function openDBWithFilename(dbFilename, cb) {
   var db = new TransactionDatabase(
     new sqlite3.Database(
