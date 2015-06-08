@@ -90,7 +90,6 @@ function registerMailbox(mailboxName, mailbox) {
 // Open a mailbox with a particular name. Usually, this should
 // be the one obtained from 'getName'.
 function openWithName(mailboxName, cb) {
-<<<<<<< HEAD
   var alreadyOpened = mailboxes[mailboxName];
   if (alreadyOpened) {
     cb(null, alreadyOpened);
@@ -113,36 +112,6 @@ function openWithName(mailboxName, cb) {
       }
     });
   }
-=======
-  mkdirp(mailRoot, 0755, function(err) {
-    if (err) {
-      cb(err);
-    } else {
-
-      // We could be using a constant mailbox filename
-      // if we wanted because there is only one mailbox
-      // endpoint on the anemobox, but I believe this is more
-      // robust in case we reinstall the anemobox without
-      // wiping the contents of the SD card.
-      var filename = makeFilenameFromMailboxName(mailboxName);
-      mb.tryMakeMailbox(
-	filename,
-	mailboxName, function(err, mailbox) {
-          if (err) {
-            cb(err);
-          } else {
-            mailbox.forwardPackets = false;
-
-            // Maybe it is better to not remove them.
-            // After all, they are in the sent folder that we can remove when we like.
-            /////mailbox.onAcknowledged = makeAckHandler();
-            
-            cb(null, mailbox);
-          }
-        });
-    }
-  });
->>>>>>> master
 }
 
 // Open a local mailbox. cb is called with (err, mailbox)
