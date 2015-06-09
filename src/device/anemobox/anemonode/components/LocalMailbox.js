@@ -81,8 +81,10 @@ function registerMailbox(mailboxName, mailbox) {
   mailboxData = {
     mailbox:mailbox,
     close: new DelayedCall(function() {mailbox.close(function(err) {
-      console.log('Delayed call to close mailbox with name ' + mailboxName + ' failed.');
-      console.log(err);
+      if (err) {
+        console.log('Delayed call to close mailbox with name ' + mailboxName + ' failed.');
+        console.log(err);
+      }
     })})
   };
   mailboxes[mailboxName] = mailboxData;
