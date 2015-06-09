@@ -1,6 +1,6 @@
 {
   "name": "mail",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Mailbox handling",
   "main": "index.js",
   "scripts": {
