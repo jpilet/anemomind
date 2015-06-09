@@ -1,7 +1,9 @@
 var naming = require('mail/naming.js');
-//var mb = require('../server/api/mailrpc/mailbox.js');
-var script = require('mail/scripts.js');
-var Boat = require('../server/api/mailrpc/boat.model.js');
+var common = require('mail/common.js');
+var appRoot = require('app-root-path');
+var Boat = require('../api/boat/boat.model.js');
+
+
 /*
 
 function getBoxId(boatId, cb) {
