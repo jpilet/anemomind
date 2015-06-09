@@ -8,6 +8,7 @@ var withGps = true;
 var withSetTime = true;
 var withBT = true;
 var echoGpsOnNmea = false;
+var withEstimator = true;
 
 var config = require('./components/config');
 
@@ -75,7 +76,7 @@ require('./components/RpcAssignBoat');
 
 
 // The estimator computes the true wind and the target speed.
-if (0) {
+if (withEstimator) {
   var estimator = require('./components/estimator.js');
 
   estimator.loadCalib();
