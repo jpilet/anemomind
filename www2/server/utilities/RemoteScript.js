@@ -2,7 +2,16 @@ var naming = require('mail/naming.js');
 var common = require('mail/common.js');
 var appRoot = require('app-root-path');
 var Boat = require('../api/boat/boat.model.js');
+var mongoose = require('mongoose');
 
+mongoose.connect();
+
+/*var mongoUri = 'mongodb://localhost/anemomind'
+var mongoOptions = {
+  db: {
+    safe: true
+  }
+};*/
 
 /*
 
