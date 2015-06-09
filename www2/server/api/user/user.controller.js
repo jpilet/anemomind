@@ -4,6 +4,16 @@ var User = require('./user.model');
 var passport = require('passport');
 var config = require('../../config/environment');
 var jwt = require('jsonwebtoken');
+var winston = require('winston');
+var generatePassword = require('password-generator');
+var nodemailer = require('nodemailer');
+var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'anemobot@gmail.com',
+        pass: 'an3m0b0t!'
+    }
+});
 
 var validationError = function(res, err) {
   return res.json(422, err);
@@ -76,6 +86,41 @@ exports.changePassword = function(req, res, next) {
     } else {
       res.send(403);
     }
+  });
+};
+
+/**
+ * Resets a users password
+ */
+exports.resetPassword = function(req, res, next) {
+
+  var newPass = generatePassword();
+
+  User.findOne({
+    email: req.body.email
+  }, function (err, user) {
+    if (err) return next(err);
+    if (!user) {
+      return validationError(res, err);
+    }
+    transporter.sendMail({
+      from: 'anemobot@gmail.com',
+      to: req.body.email,
+      subject: 'Your new password for anemolab.com',
+      text: 'A new password has been generated for you: ' + newPass +
+            '\n\nBest regards,\nAnemobot'
+    }, function(err, info) {
+      if (err) {
+        console.dir(err);
+        return res.json(401);
+      }
+      user.password = newPass;
+      user.save(function(err) {
+        if (err) return validationError(res, err);
+        winston.log('info', 'User with email ' + req.body.email + ' resetted his password');
+        res.send(200);
+      });
+    });
   });
 };
 
