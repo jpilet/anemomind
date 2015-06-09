@@ -1255,7 +1255,13 @@ Mailbox.prototype.sendPacketInTransaction = function (T, dst, label, data, cb) {
 		query, results.diaryNumber,
 		self.mailboxName, dst, results.seqNumber,
 		cNumber, label, data, false,/*not yet acknowledged*/
-		cb);
+		function(err) {
+                  cb(err,
+                     {src: self.mailboxName, dst: dst,
+                      seqNumber: results.seqNumber,
+                      diaryNumber: results.diaryNumber,
+                      label: label, data: data});
+                });
 	    });
 	} else {
 	  cb(err);
@@ -1272,9 +1278,9 @@ Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
     } else {
 
       // The callback. 
-      var cb2 = function(err) {
+      var cb2 = function(err, pdata) {
 	commit(T, function(err2) {
-	  cb(err || err2);
+	  cb(err || err2, pdata);
 	});
       }
       

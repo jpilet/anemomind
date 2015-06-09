@@ -2,6 +2,8 @@ bigint = require('./bigint.js');
 
 module.exports.ack = 127;
 module.exports.logfile = 128;
+module.exports.scriptRequest = 129;
+module.exports.scriptResponse = 130;
 
 
 function isIdentifier(x) {
@@ -23,6 +25,8 @@ function isPacket(x) {
   return false;
 }
 
+
+
 module.exports.isCounter = isCounter; 
 module.exports.isIdentifier = isIdentifier;
 module.exports.isValidMailboxName = isValidMailboxName;
@@ -38,4 +42,3 @@ module.exports.isObjectWithFields = function(x, fields) {
   }
   return false;
 }
-
