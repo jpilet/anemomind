@@ -7,11 +7,24 @@ var config = require('./config.js');
 var fs = require('fs');
 var path = require('path');
 var assert = require('assert');
+var DelayedCall = require('./DelayedCall.js');
 
 // The path '/media/sdcard/' is also used in logger.js
 var mailRoot = '/media/sdcard/mail/';
 var doRemoveLogFiles = false;
 var sentName = 'sentlogs';
+var closeTimeoutMillis = 30000;
+
+var mailboxes = {};
+
+function mailboxCount() {
+  var counter = 0;
+  for (var k in mailboxes) {
+    counter++;
+  }
+  return counter;
+}
+
 
 // Get the name of the local mailbox. cb is called with that as the single argument.
 function getName(cb) {
@@ -64,19 +77,31 @@ function makeAckHandler() {
   });
 }
 
-// Open a mailbox with a particular name. Usually, this should
-// be the one obtained from 'getName'.
-function openWithName(mailboxName, cb) {
+function registerMailbox(mailboxName, mailbox) {
+  mailboxData = {
+    mailbox:mailbox,
+    close: new DelayedCall(function() {mailbox.close(function(err) {
+      console.log('Delayed call to close mailbox with name ' + mailboxName + ' failed.');
+      console.log(err);
+    })})
+  };
+  mailboxes[mailboxName] = mailboxData;
+  if (mailboxCount() > 1) {
+    console.log('WARNING: More than one end point mailbox opened.');
+    console.log('Opened mailboxes:');
+    for (var k in mailboxes) {
+      console.log('  ' + k);
+    }
+  }
+  return mailboxData;
+}
+
+
+function openNewMailbox(mailboxName, cb) {
   mkdirp(mailRoot, 0755, function(err) {
     if (err) {
       cb(err);
     } else {
-
-      // We could be using a constant mailbox filename
-      // if we wanted because there is only one mailbox
-      // endpoint on the anemobox, but I believe this is more
-      // robust in case we reinstall the anemobox without
-      // wiping the contents of the SD card.
       var filename = makeFilenameFromMailboxName(mailboxName);
       mb.tryMakeMailbox(
 	filename,
@@ -84,17 +109,28 @@ function openWithName(mailboxName, cb) {
           if (err) {
             cb(err);
           } else {
-            mailbox.forwardPackets = false;
-
-            // Maybe it is better to not remove them.
-            // After all, they are in the sent folder that we can remove when we like.
-            /////mailbox.onAcknowledged = makeAckHandler();
-            
+            var data = registerMailbox(mailboxName, mailbox);
+            data.close.callDelayed(closeTimeoutMillis);
             cb(null, mailbox);
           }
         });
     }
   });
+}
+
+// Open a mailbox with a particular name. Usually, this should
+// be the one obtained from 'getName'.
+function openWithName(mailboxName, cb) {
+  var data = mailboxes[mailboxName];
+  if (data) {
+    assert(data.mailbox);
+    data.mailbox.open(function(err, db) {
+      data.close.callDelayed(closeTimeoutMillis);
+      cb(null, data.mailbox);
+    });
+  } else {
+    openNewMailbox(mailboxName, cb);
+  }
 }
 
 // Open a local mailbox. cb is called with (err, mailbox)
@@ -213,17 +249,6 @@ function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
   });
 }
 
-/*
-
-  Manages a whole session of accessing a mailbox.
-  Opens and closes it. Maybe we want to keep it open
-  all the time. Changing that throughout the application
-  becomes easy with this function, if we use it instead
-  of open and close.
-  Or we could also use it to enqueue mailbox access.
-  
-  TODO: Would it make sense to always keep the DB open?
-*/
 function withLocalMailboxSub(openFun, cbOperationOnMailbox, cbResults) {
   
   assert(typeof openFun == 'function');
@@ -234,16 +259,7 @@ function withLocalMailboxSub(openFun, cbOperationOnMailbox, cbResults) {
     if (err) {
       cbResults(err);
     } else {
-      cbOperationOnMailbox(mailbox, function(err, results) {
-        mailbox.close(function(err2) {
-          var totalErr = err || err2;
-          if (totalErr) {
-            cbResults(totalErr);
-          } else {
-            cbResults(null, results);
-          }
-        });
-      });
+      cbOperationOnMailbox(mailbox, cbResults);
     }
   });
 }
