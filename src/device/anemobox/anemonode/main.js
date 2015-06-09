@@ -21,7 +21,10 @@ if (withLocalMailbox) {
   var sync = require('./components/sync.js');
 
   localMailbox.postRemainingLogFiles(logRoot, function(err, files) {
-    if (files && 0 < files.length) {
+    if (err) {
+      console.log('Failed to post logfiles at startup:');
+      console.log(err);
+    } else if (files && 0 < files.length) {
       console.log('Posted these logfiles at startup:');
       console.log(files);
     }
