@@ -84,6 +84,7 @@ function openWithName(mailboxName, cb) {
           if (err) {
             cb(err);
           } else {
+            mailbox.forwardPackets = false;
 
             // Maybe it is better to not remove them.
             // After all, they are in the sent folder that we can remove when we like.
@@ -156,7 +157,7 @@ function postLogFilesSub(mailbox, dst, paths, cb) {
     var logFilename = paths[0];
     file.sendLogFile(
       mailbox, dst, logFilename,
-      file.makeLogFileInfo(), function(err) {
+      function(err) {
         if (err) {
           cb(err);
         } else {

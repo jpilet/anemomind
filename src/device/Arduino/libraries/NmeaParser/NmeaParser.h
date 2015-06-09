@@ -33,9 +33,7 @@ class AccAngle {
   AccAngle();
   AccAngle(double angle) {
     _angle = angle;
-    set(angle);
   }
-  //AccAngle(Word deg, Word min, Word mc) : deg_(deg), min_(min), mc_(mc) { }
 
   // Returns the angle in degrees.
   double toDouble() const { return _angle; }

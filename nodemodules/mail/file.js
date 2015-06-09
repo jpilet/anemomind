@@ -65,8 +65,9 @@ function sendFile(mailbox,   // The local mailbox
   }
 }
 
-function sendLogFile(mailbox, dst, path, info, cb) {
-  sendFile(mailbox, dst, path, info, common.logfile, cb);
+function sendLogFile(mailbox, dst, path, cb) {
+  sendFile(mailbox, dst, path,
+           makeLogFileInfo(), common.logfile, cb);
 }
 
 function unpackFileMessage(buf) {
@@ -95,6 +96,7 @@ function isLogFilePacket(pkt) {
 
 
 module.exports.sendLogFile = sendLogFile;
+module.exports.sendFile = sendFile;
 module.exports.unpackFileMessage = unpackFileMessage;
 module.exports.isLogFileInfo = isLogFileInfo;
 module.exports.makeLogFileInfo = makeLogFileInfo;

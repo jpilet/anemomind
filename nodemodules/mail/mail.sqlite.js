@@ -234,22 +234,15 @@ function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
   this.dbFilename = dbFilename;
   this.mailboxName = mailboxName;
   this.ackFrequency = ackFrequency;
+  this.forwardPackets = true;
   this.db = db;
 }
 
-function tryMakeMailbox(dbFilename,  // <-- The filename where all
-		        //     messages are stored.
-			mailboxName, // <-- A string that uniquely
-		        //     identifies this mailbox
-			cb) { // <-- call cb(err, mailbox) when the mailbox is created.
-  assert(isFunction(cb));    
-  if (!isValidDBFilename(dbFilename)) {
-    throw new Error('Invalid database filename');
-  }
-  if (!common.isValidMailboxName(mailboxName)) {
-    throw new Error('Invalid mailbox name');
-  }
-  
+Mailbox.prototype.setAckFrequency = function(f) {
+  this.ackFrequency = f;
+}
+
+function openDBWithFilename(dbFilename, cb) {
   var db = new TransactionDatabase(
     new sqlite3.Database(
       dbFilename,
@@ -264,11 +257,25 @@ function tryMakeMailbox(dbFilename,  // <-- The filename where all
     if (err) {
       cb(err);
     } else {
-      cb(
-	undefined,
-	new Mailbox(dbFilename, mailboxName, 30, db)
-      );
+      cb(undefined, db);
     }
+  });
+}
+
+function tryMakeMailbox(dbFilename,  // <-- The filename where all
+		        //     messages are stored.
+			mailboxName, // <-- A string that uniquely
+		        //     identifies this mailbox
+			cb) { // <-- call cb(err, mailbox) when the mailbox is created.
+  assert(isFunction(cb));    
+  if (!isValidDBFilename(dbFilename)) {
+    throw new Error('Invalid database filename');
+  }
+  if (!common.isValidMailboxName(mailboxName)) {
+    throw new Error('Invalid mailbox name');
+  }
+  openDBWithFilename(dbFilename, function(err, db) {
+    cb(null, new Mailbox(dbFilename, mailboxName, 30, db));
   });
 }
 
@@ -293,6 +300,19 @@ Mailbox.prototype.onPacketReceived = null;
 */
 Mailbox.prototype.onAcknowledged = null;
 
+
+// Opens the mailbox, if it is not open.
+Mailbox.prototype.open = function(cb) {
+  var self = this;
+  if (!self.db) {
+    openDBWithFilename(this.dbFilename, function(err, db) {
+      self.db = db;
+      cb(err);
+    });
+  } else {
+    cb();
+  }
+}
 
 // Returns the current sequence number stored in the database,
 // by calling a callback with that number.
@@ -687,6 +707,8 @@ Mailbox.prototype.isAdmissibleInTransaction = function(T, src, dst, seqNumber, c
     assert(isFunction(cb));
     if (src == this.mailboxName) {
       cb(undefined, false);
+    } else if (!this.forwardPackets && (dst != this.mailboxName)) {
+      cb(null, false);
     } else {
       this.getCNumber(T, src, dst, function(err, cNumber) {
 	if (err == undefined) {
@@ -854,120 +876,124 @@ Mailbox.prototype.setAcked = function(T, src, dst, seqnums, cb) {
 
 // Sends an ack to the source of a packet.
 Mailbox.prototype.sendAck = function(T, src, cb) {
-  assert(common.isIdentifier(src));
-  assert(isFunction(cb));    
-  var self = this;
-  var query = 'SELECT seqNumber FROM packets WHERE src = ? AND dst = ? AND ack = 0';
-  T.all(
-    query, src, self.mailboxName,
-    function(err, data) {
-      var seqnums = new Array(data.length);
-      for (var i = 0; i < data.length; i++) {
-	seqnums[i] = data[i].seqNumber;
-      }
-      self.sendPacketInTransaction(
-        T,
-				   src/*back to the source*/,
-				   common.ack,
-				   serializeSeqNums(seqnums),
-				   function(err) {
-				     if (err == undefined) {
-				       self.setAcked(T,
-						     src, self.mailboxName, seqnums,
-						     function(err) {
-						       cb(err);
-						     });
-				     } else {
-				       cb(err);
-				     }
-				   });
-    });
+  assert(isFunction(cb));
+  if (!common.isIdentifier(src)) {
+    cb(new Error("sendAck: Invalid identifier"));
+  } else {
+    var self = this;
+    var query = 'SELECT seqNumber FROM packets WHERE src = ? AND dst = ? AND ack = 0';
+    T.all(
+      query, src, self.mailboxName,
+      function(err, data) {
+        var seqnums = new Array(data.length);
+        for (var i = 0; i < data.length; i++) {
+	  seqnums[i] = data[i].seqNumber;
+        }
+        self.sendPacketInTransaction(
+          T,
+	  src/*back to the source*/,
+	  common.ack,
+	  serializeSeqNums(seqnums),
+	  function(err) {
+	    if (err == undefined) {
+	      self.setAcked(T,
+			    src, self.mailboxName, seqnums,
+			    function(err) {
+			      cb(err);
+			    });
+	    } else {
+	      cb(err);
+	    }
+	  });
+      });
+  }
 }
 
 // Sends an ack-packet if we have received enough packets.
 Mailbox.prototype.sendAckIfNeeded = function(T, src, cb) {
-  assert(common.isIdentifier(src));
-  assert(isFunction(cb));    
-  var self = this;
-  this.getNonAckCount(T, src, function(err, count) {
-    if (err == undefined) {
-      if (count < self.ackFrequency) {
-	cb(err);
+  if (!common.isIdentifier(src)) {
+    cb(new Error('sendAckIfNeeded: Not an identifier'));
+  } else {
+    assert(isFunction(cb));    
+    var self = this;
+    this.getNonAckCount(T, src, function(err, count) {
+      if (err == undefined) {
+        if (count < self.ackFrequency) {
+	  cb(err);
+        } else {
+	  self.sendAck(T, src, cb);
+        }
       } else {
-	self.sendAck(T, src, cb);
+        cb(err);
       }
-    } else {
-      cb(err);
-    }
-  });
+    });
+  }
 }
 
 // Maximize the c-number for this mailbox as a sender
 Mailbox.prototype.maximizeCNumber = function(T, dst, cb) {
-  assert(common.isIdentifier(dst));
+  if (!(common.isIdentifier(dst) && (dst != this.mailboxName))) {
+    cb(new Error("maximizeCNumber: Bad inputs"));
+  } else {
+    assert(isFunction(cb));    
+    var update = function(x) {
+      self.updateCTable(
+        T,
+        self.mailboxName,
+        dst,
+        x,
+        cb);
+    };
 
-  // We are never sending packets to ourself, are we?
-  assert(dst != this.mailboxName);
-  
-  assert(isFunction(cb));    
-  var update = function(x) {
+    var src = this.mailboxName;
+    
+    // retrieve the first seqNumber that has not been acked.
+    var query = 'SELECT seqNumber FROM packets WHERE ack = 0 AND src = ? ORDER BY seqNumber ASC';
+    var self = this;
+    T.get(query, src, function(err, row) {
+      if (err == undefined) {
+        if (row == undefined) { // No packets found, set it to 1 + the latest ack
+	  var query = 'SELECT seqNumber FROM packets WHERE ack = 1 AND src = ? ORDER BY seqNumber DESC';
+	  T.get(query, src, function(err, row) {
+	    if (err == undefined) {
+	      if (row == undefined) {
 
-    self.updateCTable(
-      T,
-		      self.mailboxName,
-		      dst,
-		      x,
-		      cb);
-  };
+	        // No packets, so let the C number remain the same, whatever it was.
+	        cb();
+	        
+	      } else {
 
-  var src = this.mailboxName;
-  
-  // retrieve the first seqNumber that has not been acked.
-  var query = 'SELECT seqNumber FROM packets WHERE ack = 0 AND src = ? ORDER BY seqNumber ASC';
-  var self = this;
-  T.get(query, src, function(err, row) {
-    if (err == undefined) {
-      if (row == undefined) { // No packets found, set it to 1 + the latest ack
-	var query = 'SELECT seqNumber FROM packets WHERE ack = 1 AND src = ? ORDER BY seqNumber DESC';
-	T.get(query, src, function(err, row) {
-	  if (err == undefined) {
-	    if (row == undefined) {
-
-	      // No packets, so let the C number remain the same, whatever it was.
-	      cb();
-	      
+	        // The last packet that was acked + 1, in case no packets with ack=0
+	        update(bigint.inc(row.seqNumber));
+	      }
 	    } else {
-
-	      // The last packet that was acked + 1, in case no packets with ack=0
-	      update(bigint.inc(row.seqNumber));
+	      cb(err);
 	    }
-	  } else {
-	    cb(err);
-	  }
-	});
-      } else {
+	  });
+        } else {
 
-	// The first packet not acked.
-	update(row.seqNumber);
+	  // The first packet not acked.
+	  update(row.seqNumber);
+        }
+      } else {
+        cb(err);
       }
-    } else {
-      cb(err);
-    }
-  });
+    });
+  }
 }
 
 Mailbox.prototype.callOnAcknowledged = function(T, packet, seqnums, cb) {
   if (this.onAcknowledged != undefined) {
     callHandlers(
       T,
-		 this,
-		 this.onAcknowledged,
-		 {
-		   dst: packet.src, // The mailbox we sent to
-		   seqnums: seqnums // The sequence numbers.
-		 },
-		 cb
-		);
+      this,
+      this.onAcknowledged,
+      {
+	dst: packet.src, // The mailbox we sent to
+	seqnums: seqnums // The sequence numbers.
+      },
+      cb
+    );
   } else {
     cb();
   }
@@ -982,20 +1008,20 @@ Mailbox.prototype.handleAckPacketIfNeeded = function(T, packet, cb) {
     // Optional call to function whenever some packets that we sent were acknowledged.
     this.callOnAcknowledged(
       T,
-			    packet, seqnums,
-			    function (err) {
-			      if (err) {
-				cb(err);
-			      } else {
-				self.setAcked(
-				  T,
-				  self.mailboxName, packet.src,
-				  seqnums,
-				  cb
-				);
-			      }
-			    }
-			   );
+      packet, seqnums,
+      function (err) {
+	if (err) {
+	  cb(err);
+	} else {
+	  self.setAcked(
+	    T,
+	    self.mailboxName, packet.src,
+	    seqnums,
+	    cb
+	  );
+	}
+      }
+    );
   } else {
     cb();
   }
@@ -1196,6 +1222,7 @@ Mailbox.prototype.reset = function(cb) {
 
 Mailbox.prototype.close = function(cb) {
   this.getDB().close(cb);
+  this.db = null;
 }
 
 // Given destination mailbox, label and data,

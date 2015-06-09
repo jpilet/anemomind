@@ -93,6 +93,17 @@ angular.module('www2App')
       },
 
       /**
+       * Reset password
+       *
+       * @param  {String}   email
+       * @param  {Function} callback    - optional
+       * @return {Promise}
+       */
+      resetPassword: function(email) {
+        return User.resetPassword({ email: email }).$promise;
+      },
+
+      /**
        * Gets all available info on authenticated user
        *
        * @return {Object} user

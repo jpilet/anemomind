@@ -18,5 +18,11 @@ angular.module('www2App')
         templateUrl: 'app/account/settings/settings.html',
         controller: 'SettingsCtrl',
         authenticate: true
+      })
+      .state('resetpassword', {
+        url: '/resetpassword',
+        templateUrl: 'app/account/resetpassword/resetpassword.html',
+        controller: 'ResetPasswordCtrl',
+        authenticate: false
       });
   });

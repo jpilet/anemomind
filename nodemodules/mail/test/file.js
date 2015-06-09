@@ -30,7 +30,9 @@ function sendFiles(src, dst, count, cb) {
     cb();
   } else {
     var index = count-1;
-    file.sendLogFile(src, dst, makeLogFilename(index), {logIndex: index}, function(err) {
+    file.sendFile(
+      src, dst, makeLogFilename(index), {logIndex: index}, common.logfile,
+      function(err) {
       if (err) {
 	cb(err);
       } else {

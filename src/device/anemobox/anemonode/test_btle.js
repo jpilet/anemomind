@@ -1,4 +1,3 @@
-
 var btle = require('./components/AnemoServiceBTLE');
 var anemonode = require('./build/Release/anemonode');
 var rpcble = require('./components/rpcble');
