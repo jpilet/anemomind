@@ -1,44 +1,70 @@
 var naming = require('mail/naming.js');
+var mb = require('mail/mail.sqlite.js');
 var common = require('mail/common.js');
+var script = require('mail/script.js');
 var appRoot = require('app-root-path');
-var Boat = require('../api/boat/boat.model.js');
-var mongoose = require('mongoose');
-
-mongoose.connect();
-
-/*var mongoUri = 'mongodb://localhost/anemomind'
-var mongoOptions = {
-  db: {
-    safe: true
-  }
-};*/
 
 /*
 
-function getBoxId(boatId, cb) {
-  Boat.findById(boatId, function(err, boat) {
-    if (err) {
-      cb(err);
-    } else if (!boat) {
-      cb(new Error('No such boat'));
-    } else {
-      cb(null, boat.anemobox);
-    }
-  });
+Todo: Obtain the boxId given a boatId.
+  
+*/  
+
+function openMailbox(mailboxName, cb) {
+  if (!common.isValidMailboxName(mailboxName)) {
+    cb(new Error('Invalid mailbox name: ' + mailboxName));
+  } else {
+    var filename = appRoot + '/' + mailboxName + '.mailsqlite.db';
+    console.log('filename    = ' + filename);
+    console.log('mailboxName = ' + mailboxName);
+    mb.tryMakeMailbox(
+      filename, mailboxName,
+      function(err, mailbox) {
+	if (err) {
+	  cb(err);
+	} else {
+	  cb(err, mailbox);
+	}
+      }
+    );
+  }
 }
 
-function listAllBoats(cb) {
-  Boat.find({}, cb);
-}
-
-// Used to send a script from a boat to a box.
-function executeScriptOnBoat(boatId, type, script, cb) {
-  mb.openMailbox(
+function executeScript(boatId, boxId, type, script, cb) {
+  for (var i = 0; i < 30; i++) {
+    console.log('CB');
+    console.log(cb);
+  }
+  openMailbox(
     naming.makeMailboxNameFromBoatId(boatId),
     function(err, mailbox) {
+      var dstName = naming.makeMailboxNameFromBoxId(boxId);
+      console.log('THE MAILBOX IS ');
+      console.log(mailbox);
+      console.log('type   = '+ type);
+      console.log('dst    = '+ dstName);
+      console.log('script = '+ script);
+      console.log('cb     = '+ cb);
+      
       script.runRemoteScript(
-        mailbox, naming.makeMailboxNameFromBoxId(),
+        mailbox, dstName,
         type, script, cb);
     });
 }
-*/
+
+function makeOptionalCB(x) {
+  return x || function() {};
+}
+
+function executeJS(boatId, boxId, script, cbOptional) {
+  executeScript(boatId, boxId, 'js', script, makeOptionalCB(cbOptional));
+}
+
+function executeSH(boatId, boxId, script, cbOptional) {
+  executeScript(boatId, boxId, 'sh', script, makeOptionalCB(cbOptional));
+}
+
+module.exports.executeJS = executeJS;
+module.exports.executeSH = executeSH;
+
+executeJS('a', 'b', 'rulle');
