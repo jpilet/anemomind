@@ -39,11 +39,11 @@ function makeRequestCode(x) {
 // our script packet must propagate to the destination, then run there, and then
 // 
 function runRemoteScript(mailbox, dstMailboxName, type, script, cb) {
-  if (!(mailbox.sendPacket && common.isIdentifier(dstMailboxName)
+  if (!(mailbox.sendPacketAndReturn && common.isIdentifier(dstMailboxName)
         && validScriptType(type) && (typeof script == 'string'))) {
     cb(new Error("runRemoteScript: Bad inputs"));
   } else {
-    mailbox.sendPacket(
+    mailbox.sendPacketAndReturn(
       dstMailboxName, common.scriptRequest,
       packScriptRequest(type, script), function(err, packetData) {
         if (err) {
