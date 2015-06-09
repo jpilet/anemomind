@@ -20,8 +20,7 @@ DelayedCall.prototype.callDelayed = function(delayMillis) {
     clearTimeout(this.timeout);
   }
   var self = this;
-  this.timeout = setTimeout(function() {
-    self.functionToCall();}, delayMillis);
+  this.timeout = setTimeout(self.functionToCall, delayMillis);
 }
 
 module.exports = DelayedCall;
