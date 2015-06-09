@@ -3,6 +3,7 @@
 var anemonode = require('../build/Release/anemonode');
 var SerialPort = require("serialport").SerialPort
 var fs = require('fs');
+var config = require('./config');
 
 var nmea0183Port;
 
@@ -13,26 +14,29 @@ function init(nmea0183PortPath, dataCb) {
   fs.writeFile('/sys/kernel/debug/gpio_debug/gpio129/current_value',
                'high', function() {});
 
-  var port = new SerialPort(nmea0183PortPath, {
-    baudrate: 4800
-  }, false); // this is the openImmediately flag [default is true]
 
-  var nmeaPortSource = new anemonode.Nmea0183Source(
-      "NMEA0183: " + nmea0183PortPath);
+  config.get(function(err, config) {
+    var port = new SerialPort(nmea0183PortPath, {
+      baudrate: config.nmea0183Speed
+    }, false); // this is the openImmediately flag [default is true]
 
-  port.open(function (error) {
-    if ( error ) {
-      console.log('failed to open: '+error);
-    } else {
-      console.log('Listening to NMEA0183 port ' + nmea0183PortPath);
-      nmea0183Port = port;
-      port.on('data', function(data) {
-        nmeaPortSource.process(data);
-        if (dataCb) {
-          dataCb(data);
-        }
-      });
-    }
+    var nmeaPortSource = new anemonode.Nmea0183Source(
+        "NMEA0183: " + nmea0183PortPath);
+
+    port.open(function (error) {
+      if ( error ) {
+        console.log('failed to open: '+error);
+      } else {
+        console.log('Listening to NMEA0183 port ' + nmea0183PortPath);
+        nmea0183Port = port;
+        port.on('data', function(data) {
+          nmeaPortSource.process(data);
+          if (dataCb) {
+            dataCb(data);
+          }
+        });
+      }
+    });
   });
 }
 
