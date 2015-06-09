@@ -1270,7 +1270,7 @@ Mailbox.prototype.sendPacketInTransaction = function (T, dst, label, data, cb) {
   }
 };
 
-Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
+Mailbox.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
   var self = this;
   beginTransaction(self.getDB(), function(err, T) {
     if (err) {
@@ -1288,6 +1288,13 @@ Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
     }
   });
 };
+
+// Conforms with mailbox schema.
+Mailbox.prototype.sendPacket = function(dst, label, data, cb) {
+  this.sendPacketAndReturn(dst, label, data, function(err, packet) {
+    cb(err);
+  });
+}
 
 
 // Send multiple packets to the same destination
