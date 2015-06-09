@@ -6,7 +6,8 @@ var configFile = (process.env.ANEMOBOX_CONFIG_PATH || "." ) + "/config.json"
 function defaultConfig() {
   return {
     boatName: "",
-    boatId: ""
+    boatId: "",
+    nmea0183Speed: 4800
   };
 }
 
