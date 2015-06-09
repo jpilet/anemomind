@@ -50,6 +50,7 @@ function sendPacket(src, dst, label, data, cb) {
 }
 
 function openMailbox(mailboxName, cb) {
+  mailboxName = mailboxName.trim(); // String.prototype.trim seems to behave strange?
   if (!common.isValidMailboxName(mailboxName)) {
     cb(new Error('Invalid mailbox name: ' + mailboxName));
   } else {
