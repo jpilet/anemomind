@@ -12,37 +12,16 @@ function getTimeMillis() {
 function DelayedCall(functionToCall) {
   assert(typeof functionToCall == 'function');
   this.functionToCall = functionToCall;
-  this.whenToCall = null;
-}
-
-DelayedCall.prototype.initiateTimeout = function() {
-  var self = this;
-  if (self.whenToCall) {
-    var delayMillis = Math.max(0, getTimeMillis() - self.whenToCall);
-    setTimeout(function() {
-      if (self.whenToCall <= getTimeMillis()) {
-        // Perform the call
-        self.whenToCall = null;
-        self.functionToCall();
-      } else {
-        // Wait longer. Maybe the timer was inaccurate, or the call was rescheduled.
-        self.initiateTimeout();
-      }
-    }, delayMillis);
-  }
+  this.timeout = null;
 }
 
 DelayedCall.prototype.callDelayed = function(delayMillis) {
-  var whenToCall = getTimeMillis() + delayMillis;
-  if (this.whenToCall) { // <-- If there is a call pending.
-    if (this.whenToCall < whenToCall) { // <-- We can only reschedule a call to happen later.
-      this.whenToCall = whenToCall;
-    }
-  } else {
-    this.whenToCall = whenToCall;
-    // Apparently no call is pending, so we need to initiate the timeout.
-    this.initiateTimeout();
+  if (this.timeout) {
+    clearTimeout(this.timeout);
   }
+  var self = this;
+  this.timeout = setTimeout(function() {
+    self.functionToCall();}, delayMillis);
 }
 
 module.exports = DelayedCall;

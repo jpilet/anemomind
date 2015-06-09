@@ -31,18 +31,4 @@ describe('DelayedCall', function() {
       }, 100);
     }, 50);
   });
-
-  it('Should attempt to reschedule a call sooner with no luck', function(done) {
-    var performed = false;
-    var dc = new DelayedCall(function() {performed = true;});
-    dc.callDelayed(100);
-    dc.callDelayed(50);
-    setTimeout(function() {
-      assert(!performed);
-      setTimeout(function() {
-        assert(performed);
-        done();
-      }, 50);
-    }, 75);
-  });
 });
