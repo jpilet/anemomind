@@ -61,7 +61,7 @@ var all = {
 
   // Would it make sense to have absolute paths here to?
   uploadDir: 'uploads',
-  mailboxDir: 'mailboxes'
+  mailboxDir: '/tmp/mailboxes' // /var/mailboxes-dev was not writable on my system.
 };
 
 // Export the config object based on the NODE_ENV

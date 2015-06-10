@@ -56,11 +56,11 @@ function openMailbox(mailboxName, cb) {
   if (!common.isValidMailboxName(mailboxName)) {
     cb(new Error('Invalid mailbox name: ' + mailboxName));
   } else {
-    mkdirp(config.uploadDir, 0755, function(err) {
+    mkdirp(config.mailboxDir, 0755, function(err) {
       if (err) {
         cb(err);
       } else {
-        var filename = path.join(config.uploadDir, mailboxName + '.mailsqlite.db');
+        var filename = path.join(config.mailboxDir, mailboxName + '.mailsqlite.db');
         mb.tryMakeMailbox(
           filename, mailboxName,
           function(err, mailbox) {
