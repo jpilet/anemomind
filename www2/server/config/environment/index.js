@@ -59,7 +59,9 @@ var all = {
     callbackURL:  (process.env.DOMAIN || '') + '/auth/google/callback'
   },
 
-  uploadDir: 'uploads'
+  // Would it make sense to have absolute paths here to?
+  uploadDir: 'uploads',
+  mailboxDir: 'mailboxes'
 };
 
 // Export the config object based on the NODE_ENV
