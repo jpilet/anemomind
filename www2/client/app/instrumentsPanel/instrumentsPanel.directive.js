@@ -4,12 +4,16 @@ angular.module('www2App')
 .directive('instrumentsPanel', function () {
     return {
       templateUrl: 'app/instrumentsPanel/instrumentsPanel.html',
-      restrict: 'EA',
+      restrict: 'E',
+      scope: {
+        label: "=",
+        value: "=",
+      },
       link: function ($scope, element, attrs) {
         var panel=new Panel();
 
-        $scope.$watch('currentTime', function(newValue, oldValue) {
-          panel.updatePanelGraphs($scope.currentPoint);
+        $scope.$watch('value', function(newValue, oldValue) {
+          panel.updatePanelGraphs($scope.value);
       }, true);
     }
 };

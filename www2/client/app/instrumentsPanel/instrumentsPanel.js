@@ -16,10 +16,11 @@ function Panel(){
 
 Panel.prototype.init = function(){
 
-	var panel=document.getElementById("instruments_panel");
+	var panel = document.getElementById("instruments_panel");
+
 	var svgContainer= this.container = d3.select(panel).append("svg")
-	.attr("width", this.width)
-	.attr("height", this.height);
+	.attr("width", 400)
+	.attr("height", 400);
 
 	//compute horizontal & vertical spacing
 	var hSpace=this.width/this.column;
@@ -59,11 +60,11 @@ Panel.prototype.init = function(){
     .text("Performance");
 
 
-    /*d3.xml("/svg/gauge1.svg", "image/svg+xml", function(xml) {
+    d3.xml("/svg/gauge1.svg", "image/svg+xml", function(xml) {
     var importedNode = document.importNode(xml.documentElement, true);
     d3.select(panel).node().appendChild(importedNode);
 
-    });*/
+    });
 
 
 	var circleData = [
@@ -88,14 +89,14 @@ Panel.prototype.init = function(){
 
 }
 
-Panel.prototype.updatePanelGraphs = function(currentPoint){
+Panel.prototype.updatePanelGraphs = function(value){
 
-	if(currentPoint){
+	if(value){
 		//update perf
 		this.container.selectAll("#perf")
-		.text(currentPoint.devicePerf);
+		.text(value);
 
-		//update the graphs according to currentPoint in the scope
+		//update the graphs according to value in the scope
 		this.container.selectAll("circle")
 		.transition()
 		.attr("r",3)
