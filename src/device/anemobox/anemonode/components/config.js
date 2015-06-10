@@ -47,7 +47,16 @@ function get(cb) {
       if (err) {
 	write(defaultConfig(), cb);
       } else {
-	globalConfig = JSON.parse(data);
+        // Set defaults
+        globalConfig = defaultConfig();
+
+        // Override defaults with stored config
+        var loaded = JSON.parse(data);
+        for (var entry in loaded) {
+          globalConfig[entry] = loaded[entry];
+        }
+
+        // Clone to make sure the receiver can't modify globalConfig.
 	cb(undefined, clone(globalConfig));
       }
     });
