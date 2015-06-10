@@ -1,6 +1,8 @@
 'use strict';
 
 var User = require('./user.model');
+var Boat = require('../boat/boat.model');
+var mongoose = require('mongoose');
 var passport = require('passport');
 var config = require('../../config/environment');
 var jwt = require('jsonwebtoken');
@@ -18,6 +20,27 @@ var transporter = nodemailer.createTransport({
 var validationError = function(res, err) {
   return res.json(422, err);
 };
+
+var checkForInvite = function(user) {
+  Boat.find({invited: {$elemMatch: {email: user.email}}}, function (err, boats) {
+    for (var i in boats) {
+      for (var j in boats[i].invited) {
+        if (boats[i].invited[j].email === user.email) {
+          var action = boats[i].invited[j].admin ? {$push: {"admins": user._id}, $pull: {"invited": {"email": user.email}}} : {$push: {"readers": user._id}, $pull: {"invited": {"email": user.email}}};
+          Boat.findByIdAndUpdate(
+            boats[i]._id,
+            action,
+            {safe: true, upsert: true, new : true},
+            function(err, model) {
+              console.log(err);
+            }
+          );
+        }
+      }
+      console.log(boats[i].name);
+    }
+  });
+}
 
 /**
  * Get list of users
@@ -39,6 +62,7 @@ exports.create = function (req, res, next) {
   newUser.role = 'user';
   newUser.save(function(err, user) {
     if (err) return validationError(res, err);
+    checkForInvite(user);
     var token = jwt.sign({_id: user._id }, config.secrets.session, { expiresInMinutes: 60*5 });
     res.json({ token: token, user: user.profile });
   });
