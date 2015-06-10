@@ -1,6 +1,9 @@
 var mb = require('mail/mail.sqlite.js');
 var packetCallbacks = require('./packet-callbacks.js');
 var common = require('mail/common.js');
+var mkdirp = require('mkdirp');
+var config = require('../../config/environment');
+var path = require('path');
 
 /*
 
@@ -53,21 +56,26 @@ function openMailbox(mailboxName, cb) {
   if (!common.isValidMailboxName(mailboxName)) {
     cb(new Error('Invalid mailbox name: ' + mailboxName));
   } else {
-    var filename = mailboxName + '.mailsqlite.db';
-    mb.tryMakeMailbox(
-      filename, mailboxName,
-      function(err, mailbox) {
-	if (err) {
-	  cb(err);
-	} else {
-          mailbox.forwardPackets = false;
-          mailbox.setAckFrequency(12);
-	  mailbox.onPacketReceived = packetCallbacks.onPacketReceived;
-	  mailbox.onAcknowledged = packetCallbacks.onAcknowledged;
-	  cb(err, mailbox);
-	}
+    mkdirp(config.uploadDir, 0755, function(err) {
+      if (err) {
+        cb(err);
+      } else {
+        var filename = path.join(config.uploadDir, mailboxName + '.mailsqlite.db');
+        mb.tryMakeMailbox(
+          filename, mailboxName,
+          function(err, mailbox) {
+	    if (err) {
+	      cb(err);
+	    } else {
+              mailbox.forwardPackets = false;
+              mailbox.setAckFrequency(12);
+	      mailbox.onPacketReceived = packetCallbacks.onPacketReceived;
+	      mailbox.onAcknowledged = packetCallbacks.onAcknowledged;
+	      cb(err, mailbox);
+	    }
+          });
       }
-    );
+    });
   }
 }
 
