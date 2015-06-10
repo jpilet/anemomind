@@ -21,7 +21,10 @@ if (withLocalMailbox) {
   var sync = require('./components/sync.js');
 
   localMailbox.postRemainingLogFiles(logRoot, function(err, files) {
-    if (0 < files.length) {
+    if (err) {
+      console.log('Failed to post logfiles at startup:');
+      console.log(err);
+    } else if (files && 0 < files.length) {
       console.log('Posted these logfiles at startup:');
       console.log(files);
     }
@@ -76,6 +79,11 @@ if (withLogger) {
 
 require('./components/RpcAssignBoat');
 
+if (withLocalMailbox) {
+  var fillTable = require('./components/RpcMailbox.js').fillTable;
+  var rpcFuncTable = require('./components/rpcble.js').rpcFuncTable;
+  fillTable(rpcFuncTable);
+}
 
 // The estimator computes the true wind and the target speed.
 if (withEstimator) {

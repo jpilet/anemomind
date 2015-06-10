@@ -14,6 +14,7 @@ function getAnemoId(cb) {
           console.log("wlan0 not found, anemoID is: " + '78:4b:87:a1:f2:61');
           anemoId = '78:4b:87:a1:f2:61';
         }
+        anemoId = anemoId.trim().replace(/:/g,'');
         cb(anemoId);
       }
     );
