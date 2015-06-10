@@ -7,7 +7,10 @@ module.exports.scriptResponse = 130;
 
 
 function isIdentifier(x) {
-  return typeof x == 'string';
+  if (typeof x == 'string') {
+    return x.length > 0;
+  }
+  return false;
 }
 
 function isCounter(x) {

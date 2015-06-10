@@ -33,6 +33,24 @@ describe('LocalMailbox', function() {
     }
   );
 
+
+  it(
+    'Should fail to instantiate a local mailbox due to empty name',
+    function(done) {
+      ensureConfig(function(err, cfg) {
+        lmb.setMailRoot('/tmp/anemobox/');
+        var operationPerformed = false;
+        lmb.withNamedLocalMailbox("", function(mb, doneMB) {
+          operationPerformed = true;
+        }, function(err) {
+          assert(err); // <-- It is an error to instantiate a local mailbox with empty name.
+          assert(!operationPerformed);
+          done();
+        });
+      });
+    });
+
+
   it('Post a log file', function(done) {
     ensureConfig(function(err, cfg) {
       lmb.setMailRoot('/tmp/anemobox/');
