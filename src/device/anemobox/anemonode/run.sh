@@ -1,4 +1,5 @@
 #!/bin/bash
+mkdir -p /home/anemobox
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 RTC=/bin/rtc
