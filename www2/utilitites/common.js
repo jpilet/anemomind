@@ -4,7 +4,7 @@ var mongoose = require('mongoose');
 var exec = require('child_process').exec;
 var Boat = require('../server/api/boat/boat.model.js');
 
-var dev = false;
+var dev = true;
 var mongoOptions = {db: {safe: true}};
 var mongoUri = (dev?
                 'mongodb://localhost/anemomind-dev' :
@@ -27,7 +27,6 @@ mongoose.connection.on('open', function (ref) {
     console.log(results);
   });
 });
-
 
 
 // cmd = "mongo --quiet anemomind-dev --eval \"print(db.boats.find({})[0]._id + '')\")";
