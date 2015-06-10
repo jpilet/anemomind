@@ -16,10 +16,11 @@ function Panel(){
 
 Panel.prototype.init = function(){
 
-	var panel=document.getElementById("instruments_panel");
+	var panel = document.getElementById("instruments_panel");
+
 	var svgContainer= this.container = d3.select(panel).append("svg")
-	.attr("width", this.width)
-	.attr("height", this.height);
+	.attr("width", 400)
+	.attr("height", 400);
 
 	//compute horizontal & vertical spacing
 	var hSpace=this.width/this.column;
