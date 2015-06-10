@@ -8,7 +8,8 @@ module.exports.scriptResponse = 130;
 
 function isIdentifier(x) {
   if (typeof x == 'string') {
-    return x.length > 0;
+    // numbers and digits and some simple characters. At least one character.
+    return !!x.match(/^[\w]+$/); 
   }
   return false;
 }
