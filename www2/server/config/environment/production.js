@@ -21,5 +21,6 @@ module.exports = {
             'mongodb://localhost/anemomind'
   },
 
-  uploadDir: '/var/uploads'
+  uploadDir: '/var/uploads',
+  mailboxDir: '/var/mailboxes'
 };
