@@ -27,7 +27,8 @@ function init(nmea0183PortPath, dataCb) {
       if ( error ) {
         console.log('failed to open: '+error);
       } else {
-        console.log('Listening to NMEA0183 port ' + nmea0183PortPath);
+        console.log('Listening to NMEA0183 port ' + nmea0183PortPath
+                    + ' at ' + config.nmea0183Speed + ' bauds');
         nmea0183Port = port;
         port.on('data', function(data) {
           nmeaPortSource.process(data);
