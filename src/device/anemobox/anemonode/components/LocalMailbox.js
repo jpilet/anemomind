@@ -123,7 +123,7 @@ function openNewMailbox(mailboxName, cb) {
 // Open a mailbox with a particular name. Usually, this should
 // be the one obtained from 'getName'.
 function openWithName(mailboxName, cb) {
-  mailboxName = String.prototype.trim(mailboxName);
+  mailboxName = mailboxName.trim();
   var data = mailboxes[mailboxName];
   if (data) {
     assert(data.mailbox);
