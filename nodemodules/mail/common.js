@@ -7,7 +7,11 @@ module.exports.scriptResponse = 130;
 
 
 function isIdentifier(x) {
-  return typeof x == 'string';
+  if (typeof x == 'string') {
+    // numbers and digits and some simple characters. At least one character.
+    return !!x.match(/^[\w]+$/); 
+  }
+  return false;
 }
 
 function isCounter(x) {

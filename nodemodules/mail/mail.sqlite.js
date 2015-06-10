@@ -267,16 +267,16 @@ function tryMakeMailbox(dbFilename,  // <-- The filename where all
 			mailboxName, // <-- A string that uniquely
 		        //     identifies this mailbox
 			cb) { // <-- call cb(err, mailbox) when the mailbox is created.
-  assert(isFunction(cb));    
+  assert(isFunction(cb)); 
   if (!isValidDBFilename(dbFilename)) {
-    throw new Error('Invalid database filename');
+    cb(Error('Invalid database filename'));
+  } else if (!common.isValidMailboxName(mailboxName)) {
+    cb(Error('Invalid mailbox name'));
+  } else {
+    openDBWithFilename(dbFilename, function(err, db) {
+      cb(null, new Mailbox(dbFilename, mailboxName, 30, db));
+    });
   }
-  if (!common.isValidMailboxName(mailboxName)) {
-    throw new Error('Invalid mailbox name');
-  }
-  openDBWithFilename(dbFilename, function(err, db) {
-    cb(null, new Mailbox(dbFilename, mailboxName, 30, db));
-  });
 }
 
 
