@@ -32,12 +32,11 @@ var checkForInvite = function(user) {
             action,
             {safe: true, upsert: true, new : true},
             function(err, model) {
-              console.log(err);
+              if (err) return winston.log('err', err);
             }
           );
         }
       }
-      console.log(boats[i].name);
     }
   });
 }
@@ -135,7 +134,7 @@ exports.resetPassword = function(req, res, next) {
             '\n\nBest regards,\nAnemobot'
     }, function(err, info) {
       if (err) {
-        console.dir(err);
+        winston.log('err', err);
         return res.json(401);
       }
       user.password = newPass;
