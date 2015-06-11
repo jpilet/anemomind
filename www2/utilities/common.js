@@ -66,19 +66,16 @@ function extractBoatIdFromFilename(filename) {
 }
 
 function getBoxIdFromBoatId(boatId, cb) {
-  openMongoConnection(function (ref) {
-    Boat.findById(boatId, function(err, results) {
-      mongoose.connection.close();
-      if (err) {
-        cb(err);
+  Boat.findById(boatId, function(err, results) {
+    if (err) {
+      cb(err);
+    } else {
+      if (typeof results == 'object') {
+        cb(null, results.anemobox);
       } else {
-        if (typeof results == 'object') {
-          cb(null, results.anemobox);
-        } else {
-          cb(new Error('Cannot extract anemobox id from this data: "' + results + '"'));
-        }
+        cb(new Error('Cannot extract anemobox id from this data: "' + results + '"'));
       }
-    });
+    }
   });
 }
 

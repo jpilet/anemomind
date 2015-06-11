@@ -43,12 +43,12 @@ describe('RemoteScript', function() {
   
   it('Should extract a box id', function(done) {
     withConnectionAndTestBoat(function(id, cb) {
-      /*assert(id);
+      assert(id);
       common.getBoxIdFromBoatId(id, function(err, boxId) {
         assert(!err);
-        assert.equal(boxId, 'abc119');*/
-      cb();
-      //});
+        assert.equal(boxId, 'abc119');
+        cb();
+      });
     }, done);
   });
 });
