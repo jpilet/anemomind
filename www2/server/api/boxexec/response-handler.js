@@ -5,6 +5,13 @@ var path = require('path');
 var mkdirp = require('mkdirp');
 var fs = require('fs');
 
+function toStringIfNotNull(x) {
+  if (x) {
+    return '' + x;
+  }
+  return null;
+}
+
 function makeScriptResponseHandler(cbHandled) {
   cbHandled = cbHandled || function() {};
   return function(mailbox, packet, T, cb) {
@@ -16,9 +23,9 @@ function makeScriptResponseHandler(cbHandled) {
       BoxExec.findByIdAndUpdate(
         data.reqCode, {
           complete: true,
-          err: '' + data.err,
-          stdout: '' + data.stdout,
-          stderr: '' + data.stderr
+          err: toStringIfNotNull(data.err),
+          stdout: toStringIfNotNull(data.stdout),
+          stderr: toStringIfNotNull(data.stderr)
         }, cbHandled);
     }
   };
