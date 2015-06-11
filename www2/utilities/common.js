@@ -25,16 +25,6 @@ function openMongoConnection(cb) {
 // is loaded.
 openMongoConnection(function() {});
 
-// First attempt. Maybe not the way to go.
-function withMongoConnectionOld(cbOperation, cbDone) {
-  openMongoConnection(function(ref) {
-    cbOperation(ref, function(err) {
-      mongoose.connection.close();
-      cbDone(err);
-    });
-  });
-}
-
 function withMongoConnection(cbOperation, cbDone) {
   connectionDeferred.promise.then(function(value) {
     cbOperation(value, cbDone);
