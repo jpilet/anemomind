@@ -4,7 +4,7 @@ var mkdirp = require('mkdirp');
 var fs = require('fs');
 var config = require('../../config/environment');
 var exec = require('child_process').exec;
-var makeScriptResponseHandler = require('../script/response-handler.js');
+var makeScriptResponseHandler = require('../boxexec/response-handler.js');
 
 
 function makeLogFilenameFromParts(tgtDir, parsedFilename, counter) {
