@@ -52,23 +52,6 @@ function withMongoConnection(cbOperation) {
 }
 
 
-function mongoDemo() {
-  openMongoConnection(function (ref) {
-    console.log('Connected to mongo server.');
-    //trying to get collection names
-    mongoose.connection.db.collectionNames(function (err, names) {
-      console.log(names); // [{ name: 'dbname.myCollection' }]
-      module.exports.Collection = names;
-    });
-
-    // Find a particular boat
-    Boat.findById("552e25e0e412da9baacacffc", function(err, results) {
-      console.log('Boats');
-      console.log(results);
-    });
-  });
-}
-//mongoDemo();
 function extractBoatIdFromFilename(filename) {
   var mailboxName = naming.getMailboxNameFromFilename(filename);
   var parsed = naming.parseMailboxName(mailboxName);
