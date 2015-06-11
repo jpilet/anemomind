@@ -9,7 +9,7 @@ angular.module('www2App')
         controller: 'LoginCtrl'
       })
       .state('signup', {
-        url: '/signup',
+        url: '/signup?email&name',
         templateUrl: 'app/account/signup/signup.html',
         controller: 'SignupCtrl'
       })
