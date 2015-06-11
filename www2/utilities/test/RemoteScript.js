@@ -1,7 +1,10 @@
 var testPath = '/tmp/mailboxes/boat123456789012345678901234.mailsqlite.db';
 var assert = require('assert');
+var naming = require('mail/naming.js');
 var Boat = require('../../server/api/boat/boat.model.js');
 var common = require('../common.js');
+var path = require('path');
+var mb = require('mail/mail.sqlite.js');
 
 function withTestBoat(cbOperation, cbDone) {
   Boat.create({
@@ -53,7 +56,23 @@ describe('RemoteScript', function() {
   });
 
   it('Should send a script for execution', function(done) {
-    done();
+    withConnectionAndTestBoat(function(id, cb) {
+      var filename = path.join(
+        '/tmp/', naming.makeDBFilename(naming.makeMailboxNameFromBoatId(id)));
+
+      var boxMailboxName = naming.makeMailboxNameFromBoxId('abc119');
+      mb.tryMakeMailbox(
+        path.join('/tmp/', naming.makeDBFilename(boxMailboxName)),
+        boxMailboxName, function(err, boxMailbox) {
+          assert(!err);
+          assert(boxMailbox);
+          common.sendScriptToBox(filename, 'sh', 'cd /tmp\npwd', function(err, data) {
+            assert(!err);
+            console.log('DATA IS ' + data);
+            done();
+          });
+        });
+    });
   });
 });
 

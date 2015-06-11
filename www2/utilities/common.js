@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 var exec = require('child_process').exec;
 var Boat = require('../server/api/boat/boat.model.js');
 var Q = require('q');
+var mb = require('mail/mail.sqlite.js');
 
 var dev = true;
 var mongoOptions = {db: {safe: true}};
@@ -75,7 +76,7 @@ function getBoxIdFromFilename(filename, cb) {
   getBoxIdFromBoatId(boatId, cb);
 }
 
-function sendScriptToBox(filename, scriptType, script, cb_) {
+function sendScriptToBox(filename, scriptType, scriptData, cb_) {
   var globalMailbox = null;
   
   var cb = function(err, data) {
@@ -100,7 +101,7 @@ function sendScriptToBox(filename, scriptType, script, cb_) {
           dst = naming.makeMailboxNameFromBoxId(boxId);
           script.runRemoteScript(
             mailbox, dst,
-            scriptType, script, cb);
+            scriptType, scriptData, cb);
         }
       });
     }
@@ -110,3 +111,4 @@ function sendScriptToBox(filename, scriptType, script, cb_) {
 module.exports.extractBoatIdFromFilename = extractBoatIdFromFilename;
 module.exports.withMongoConnection = withMongoConnection;
 module.exports.getBoxIdFromBoatId = getBoxIdFromBoatId;
+module.exports.sendScriptToBox = sendScriptToBox;
