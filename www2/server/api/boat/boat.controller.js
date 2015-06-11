@@ -27,19 +27,19 @@ var validateBoatForUser = function(user, boat) {
   }
 }
 
-var sendInvitationEmail = function(email, hasAnAccount) {
+var sendInvitationEmail = function(email, boat, hasAnAccount) {
   var messageBody;
   if (hasAnAccount) {
-    messageBody = 'Please go to anemolab.com and log in with this email address: ' + email +
+    messageBody = 'Hello!\nYou have been invited to see the navigation data of the boat ' + boat.name + '.\nPlease go to anemolab.com and log in with this email address: ' + email +
           '\n\nBest regards,\nAnemobot';
   } else {
-    messageBody = 'Please go to anemolab.com and create a new account with this email address: ' + email +
+    messageBody = 'Hello!\nYou have been invited to see the navigation data of the boat ' + boat.name + '.\nPlease go to anemolab.com and create a new account with this email address: ' + email +
           '\n\nBest regards,\nAnemobot';
   }
   transporter.sendMail({
     from: 'anemobot@gmail.com',
     to: email,
-    subject: 'You have been invited to anemolab.com',
+    subject: 'You have been invited to see ' + boat.name + ' navigation data on anemolab.com',
     text: messageBody
   }, function(err, info) {
     if (err) {
@@ -171,7 +171,7 @@ exports.inviteUser = function(req, res) {
         boat.save(function (err) {
           if (err) { return handleError(res, err); }
 
-          sendInvitationEmail(req.body.email, false);
+          sendInvitationEmail(req.body.email, boat, false);
 
           return res.json(200, {
              message: 'user invited at address: ' + req.body.email,
@@ -198,7 +198,7 @@ exports.inviteUser = function(req, res) {
         boat.save(function (err) {
           if (err) { return handleError(res, err); }
 
-          sendInvitationEmail(req.body.email, true);
+          sendInvitationEmail(req.body.email, boat, true);
 
           return res.json(200, {
             message: 'user ' + users[0].name + ' added as ' + (invitedAdmin ? 'admin' : 'reader'),
