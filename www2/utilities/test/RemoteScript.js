@@ -86,8 +86,13 @@ describe('RemoteScript', function() {
               performSync = function(cb) {
                 sync.synchronize(boatMailbox, boxMailbox, cb);
               };
-              
-              done();
+
+              // Run the first sync. This will propagate the script to the box,
+              // that will execute it.
+              performSync(function(err) {
+                assert(!err);
+                done();
+              });
             });
           });
         });
