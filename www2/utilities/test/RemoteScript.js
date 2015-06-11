@@ -102,6 +102,7 @@ describe('RemoteScript', function() {
                 assert(!err);
                 assert(response);
                 assert(response._id);
+                assert.equal(response.stdout, '/tmp\n');
                 done();
               });
 
