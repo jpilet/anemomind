@@ -40,6 +40,17 @@ describe('RemoteScript', function() {
       cb();
     }, done);
   });
+  
+  it('Should extract a box id', function(done) {
+    withConnectionAndTestBoat(function(id, cb) {
+      /*assert(id);
+      common.getBoxIdFromBoatId(id, function(err, boxId) {
+        assert(!err);
+        assert.equal(boxId, 'abc119');*/
+      cb();
+      //});
+    }, done);
+  });
 });
 
 

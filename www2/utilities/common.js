@@ -3,6 +3,7 @@ var naming = require('mail/naming.js');
 var mongoose = require('mongoose');
 var exec = require('child_process').exec;
 var Boat = require('../server/api/boat/boat.model.js');
+var Q = require('q');
 
 var dev = true;
 var mongoOptions = {db: {safe: true}};
@@ -10,17 +11,33 @@ var mongoUri = (dev?
                 'mongodb://localhost/anemomind-dev' :
                 'mongodb://localhost/anemomind');
 
+
+var connectionDeferred = Q.defer();
 function openMongoConnection(cb) {
   mongoose.connect(mongoUri, mongoOptions);
-  mongoose.connection.on('open', cb);
+  mongoose.connection.on('open', function(ref) {
+    connectionDeferred.resolve(ref);
+    cb(ref);
+  });
 }
 
-function withMongoConnection(cbOperation, cbDone) {
+// Open a connection when this module
+// is loaded.
+openMongoConnection(function() {});
+
+// First attempt. Maybe not the way to go.
+function withMongoConnectionOld(cbOperation, cbDone) {
   openMongoConnection(function(ref) {
     cbOperation(ref, function(err) {
       mongoose.connection.close();
       cbDone(err);
     });
+  });
+}
+
+function withMongoConnection(cbOperation, cbDone) {
+  connectionDeferred.promise.then(function(value) {
+    cbOperation(value, cbDone);
   });
 }
 
@@ -67,3 +84,4 @@ function getBoxIdFromBoatId(boatId, cb) {
 
 module.exports.extractBoatIdFromFilename = extractBoatIdFromFilename;
 module.exports.withMongoConnection = withMongoConnection;
+module.exports.getBoxIdFromBoatId = getBoxIdFromBoatId;
