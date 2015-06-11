@@ -44,8 +44,6 @@ function mongoDemo() {
 //mongoDemo();
 function extractBoatIdFromFilename(filename) {
   var mailboxName = naming.getMailboxNameFromFilename(filename);
-  console.log('filename: ' + filename);
-  console.log('mailboxName: ' + mailboxName);
   var parsed = naming.parseMailboxName(mailboxName);
   return parsed.id;
 }
