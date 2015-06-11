@@ -6,6 +6,7 @@ var common = require('../common.js');
 var path = require('path');
 var script = require('mail/script.js');
 var mb = require('mail/mail.sqlite.js');
+var sync = require('mail/sync.js');
 
 function withTestBoat(cbOperation, cbDone) {
   Boat.create({
@@ -61,20 +62,33 @@ describe('RemoteScript', function() {
       var filename = path.join(
         '/tmp/', naming.makeDBFilename(naming.makeMailboxNameFromBoatId(id)));
 
-
+      
+      // To be set later in the code.
       var performSync = null;
       var boxMailboxName = naming.makeMailboxNameFromBoxId('abc119');
+      
+      // Make a mailbox for the anemobox
       mb.tryMakeMailbox(
         path.join('/tmp/', naming.makeDBFilename(boxMailboxName)),
         boxMailboxName, function(err, boxMailbox) {
           assert(!err);
           assert(boxMailbox);
           boxMailbox.onPacketReceived = script.makeScriptRequestHandler(performSync);
-          
+
+          // Send the script
           common.sendScriptToBox(filename, 'sh', 'cd /tmp\npwd', function(err, data) {
             assert(!err);
-            
-            done();
+
+            // Make a mailbox for the boat
+            mb.tryMakeMailboxFromFilename(filename, function(err, boatMailbox) {
+              assert(!err);
+
+              performSync = function(cb) {
+                sync.synchronize(boatMailbox, boxMailbox, cb);
+              };
+              
+              done();
+            });
           });
         });
     });
