@@ -75,7 +75,7 @@ describe('RemoteScript', function() {
   });
 
   it('Should send a script for execution', function(done) {
-    withConnectionAndTestBoat(function(id, cb) {
+    withConnectionAndTestBoat(function(id, doneAll) {
       var boatMailboxName = naming.makeMailboxNameFromBoatId(id);
       var filename = path.join(
         '/tmp/', naming.makeDBFilename(boatMailboxName));
@@ -103,7 +103,7 @@ describe('RemoteScript', function() {
                 assert(response);
                 assert(response._id);
                 assert.equal(response.stdout, '/tmp\n');
-                done();
+                doneAll();
               });
 
             // Send the script
@@ -124,6 +124,9 @@ describe('RemoteScript', function() {
             });
           });
         });
+    }, function(err) {
+      assert(!err);
+      done();
     });
   });
 });

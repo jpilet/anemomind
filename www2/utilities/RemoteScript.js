@@ -1,9 +1,6 @@
 var common = require('./common.js');
-var databaseFilename = process.argv[2];
-var scriptFilename = process.argv[3];
-console.log('Database filename: ' + databaseFilename);
-console.log('Script filename:   ' + scriptFilename);
-common.sendScriptFileToBox(databaseFilename, scriptFilename, function(err, reqCode) {
+
+function sentCallback(err, reqCode) {
   if (err) {
     console.log('Failed to send script to box because');
     console.log(err);
@@ -15,4 +12,34 @@ common.sendScriptFileToBox(databaseFilename, scriptFilename, function(err, reqCo
     console.log('You will also find the output in ');
     console.log('/tmp/scriptlogs/' + reqCode + '.txt');
   }
-});
+}
+
+var databaseFilename = process.argv[2];
+
+/*
+
+  Two different calling formats:
+
+  (i)
+  node RemoteScript.js dbFilename scriptFilename
+
+     where scriptFilename should end with either .js or .sh
+
+  or
+
+  (ii)
+  node RemoteScript.js dbFilename scriptType scriptData
+
+     where scriptType is 'js' or 'sh', and
+     scriptData is the script. If it is 'js', it
+     should, when evaled, return a function that
+     takes a single callback to which it passes its result.
+*/
+if (process.argv[4]) {
+  var scriptType = process.argv[3];
+  var scriptData = process.argv[4];
+  common.sendScriptToBox(databaseFilename, scriptType, scriptData, sentCallback);
+} else {
+  var scriptFilename = process.argv[3];
+  common.sendScriptFileToBox(databaseFilename, scriptFile, sentCallback);
+}
