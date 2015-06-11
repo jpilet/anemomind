@@ -7,25 +7,43 @@ var Boat = require('../server/api/boat/boat.model.js');
 var Q = require('q');
 var mb = require('mail/mail.sqlite.js');
 var fs = require('fs');
-var dev = true;
+
 var mongoOptions = {db: {safe: true}};
-var mongoUri = (dev?
-                'mongodb://localhost/anemomind-dev' :
-                'mongodb://localhost/anemomind');
+
+
+var mongoUris = {
+  'development': 'mongodb://localhost/anemomind-dev',
+  'production': 'mongodb://localhost/anemomind',
+  'test': 'mongodb://localhost/anemomind-test'
+}
+
 
 
 var connectionDeferred = Q.defer();
-function openMongoConnection(cb) {
-  mongoose.connect(mongoUri, mongoOptions);
-  mongoose.connection.on('open', function(ref) {
-    connectionDeferred.resolve(ref);
-    cb(ref);
-  });
+function openMongoConnection(mode, cb) {
+  if (!mongoUris[mode]) {
+    cb(new Error('Invalid mode: ' + mode));
+  } else {
+    mongoose.connect(mongoUris[mode], mongoOptions);
+    mongoose.connection.on('open', function(ref) {
+      connectionDeferred.resolve(ref);
+      cb(ref);
+    });
+  }
 }
 
 // Open a connection when this module
 // is loaded.
-openMongoConnection(function() {});
+
+
+function init(mode) {
+  openMongoConnection(mode, function(err) {
+    if (err) {
+      console.log('Failed to initialize RemoteScriptCommon.js module:');
+      console.log(err);
+    }
+  });
+}
 
 function withMongoConnection(cbOperation) {
   connectionDeferred.promise.then(function(value) {
@@ -129,3 +147,4 @@ module.exports.withMongoConnection = withMongoConnection;
 module.exports.getBoxIdFromBoatId = getBoxIdFromBoatId;
 module.exports.sendScriptToBox = sendScriptToBox;
 module.exports.sendScriptFileToBox = sendScriptFileToBox;
+module.exports.init = init;

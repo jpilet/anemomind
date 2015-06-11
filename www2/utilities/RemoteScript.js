@@ -1,5 +1,7 @@
 var common = require('./RemoteScriptCommon.js');
 
+common.init('production');
+
 function sentCallback(err, reqCode) {
   if (err) {
     console.log('Failed to send script to box because');
