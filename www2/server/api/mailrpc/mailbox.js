@@ -1,6 +1,7 @@
 var mb = require('mail/mail.sqlite.js');
 var packetCallbacks = require('./packet-callbacks.js');
 var common = require('mail/common.js');
+var naming = require('mail/naming.js');
 var mkdirp = require('mkdirp');
 var config = require('../../config/environment');
 var path = require('path');
@@ -62,7 +63,7 @@ function openMailbox(mailboxName, cb) {
       } else {
         var filename = path.join(
           config.mailboxDir,
-          naming.makeStandardDBFilename(mailboxName));
+          naming.makeDBFilename(mailboxName));
         mb.tryMakeMailbox(
           filename, mailboxName,
           function(err, mailbox) {

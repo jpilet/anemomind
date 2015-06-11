@@ -41,23 +41,11 @@ function mongoDemo() {
     });
   });
 }
-
 //mongoDemo();
-
-
-// Common functions used by the remote script and other utilities
-
-function extractMailboxNameFromFilename(filename) {
-  if (typeof filename == 'string') {
-    var parsed = path.parse(filename);
-    var index = parsed.name.indexOf(".");
-    return (index > 0? parsed.name.substring(0, index) : parsed.name);
-  }
-  return null;
-}
-
 function extractBoatIdFromFilename(filename) {
-  var mailboxName = extractMailboxNameFromFilename(filename);
+  var mailboxName = naming.getMailboxNameFromFilename(filename);
+  console.log('filename: ' + filename);
+  console.log('mailboxName: ' + mailboxName);
   var parsed = naming.parseMailboxName(mailboxName);
   return parsed.id;
 }
@@ -79,7 +67,5 @@ function getBoxIdFromBoatId(boatId, cb) {
   });
 }
 
-
-module.exports.extractMailboxNameFromFilename = extractMailboxNameFromFilename;
 module.exports.extractBoatIdFromFilename = extractBoatIdFromFilename;
 module.exports.withMongoConnection = withMongoConnection;

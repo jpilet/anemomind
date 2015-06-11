@@ -1,3 +1,5 @@
+var path = require('path');
+
 function makeMailboxNameFromBoatId(boatId) {
   return "boat" + boatId;
 }
@@ -26,7 +28,9 @@ function makeDBFilename(mailboxName) {
   return mailboxName + filenameSuffix;
 }
 
-function getMailboxNameFromFilename(filename) {
+function getMailboxNameFromFilename(fullFilename) {
+  var parsed = path.parse(fullFilename);
+  var filename = parsed.base;
   var index = filename.indexOf(filenameSuffix);
   if (0 < index) {
     if (index + filenameSuffix.length == filename.length) {
