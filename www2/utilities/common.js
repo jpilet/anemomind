@@ -108,7 +108,24 @@ function sendScriptToBox(filename, scriptType, scriptData, cb_) {
   });
 }
 
+function sendScriptFileToBox(dbFilename, scriptFilename, cb) {
+  try {
+    var parsed = path.parse(scriptFilename);
+    var scriptType = parsed.ext.substring(1);
+    fs.readFile(scriptFilename, 'utf8', function(err, scriptData) {
+      if (err) {
+        cb(err);
+      } else {
+        sendScriptToBox(dbFilename, scriptType, scriptData, cb);
+      }
+    });
+  } catch (e) {
+    cb(e);
+  }
+}
+
 module.exports.extractBoatIdFromFilename = extractBoatIdFromFilename;
 module.exports.withMongoConnection = withMongoConnection;
 module.exports.getBoxIdFromBoatId = getBoxIdFromBoatId;
 module.exports.sendScriptToBox = sendScriptToBox;
+module.exports.sendScriptFileToBox = sendScriptFileToBox;
