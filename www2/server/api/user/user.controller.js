@@ -1,23 +1,40 @@
 'use strict';
 
 var User = require('./user.model');
+var Boat = require('../boat/boat.model');
+var mongoose = require('mongoose');
 var passport = require('passport');
 var config = require('../../config/environment');
 var jwt = require('jsonwebtoken');
 var winston = require('winston');
 var generatePassword = require('password-generator');
-var nodemailer = require('nodemailer');
-var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'anemobot@gmail.com',
-        pass: 'an3m0b0t!'
-    }
-});
+var transporter = require('../../components/mailer').transporter;
 
 var validationError = function(res, err) {
   return res.json(422, err);
 };
+
+var checkForInvite = function(user) {
+  Boat.find({invited: {$elemMatch: {email: user.email}}}, function (err, boats) {
+    for (var i in boats) {
+      for (var j in boats[i].invited) {
+        if (boats[i].invited[j].email === user.email) {
+
+          var pushAction = boats[i].invited[j].admin ? {"admins": user._id} : {"readers": user._id};
+          var action = {$push: pushAction, $pull: {"invited": {"email": user.email}}};
+          Boat.findByIdAndUpdate(
+            boats[i]._id,
+            action,
+            {safe: true, upsert: true, new : true},
+            function(err, model) {
+              if (err) return winston.log('err', err);
+            }
+          );
+        }
+      }
+    }
+  });
+}
 
 /**
  * Get list of users
@@ -39,6 +56,7 @@ exports.create = function (req, res, next) {
   newUser.role = 'user';
   newUser.save(function(err, user) {
     if (err) return validationError(res, err);
+    checkForInvite(user);
     var token = jwt.sign({_id: user._id }, config.secrets.session, { expiresInMinutes: 60*5 });
     res.json({ token: token, user: user.profile });
   });
@@ -111,7 +129,7 @@ exports.resetPassword = function(req, res, next) {
             '\n\nBest regards,\nAnemobot'
     }, function(err, info) {
       if (err) {
-        console.dir(err);
+        winston.log('err', err);
         return res.json(401);
       }
       user.password = newPass;
