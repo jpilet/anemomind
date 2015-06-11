@@ -64,7 +64,11 @@ function getBoxIdFromBoatId(boatId, cb) {
       cb(err);
     } else {
       if (results) {
-        cb(null, results.anemobox);
+        if (results.anemobox) {
+          cb(null, results.anemobox);
+        } else {
+          cb(new Error('An anemobox has not been assigned to boat with id ' + boatId));
+        }
       } else {
         cb(new Error('No document in db for boat with id ' + boatId));
       }
