@@ -31,6 +31,22 @@ function withConnectionAndTestBoat(cbOperation, cb) {
 
 //function withConnectionAndBoat(cbOperation, cbDone)
 
+function makeAndResetMailbox(filename, mailboxName, cb) {
+  mb.tryMakeMailbox(filename, mailboxName, function(err, mailbox) {
+    if (err) {
+      cb(err);
+    } else {
+      mailbox.reset(function(err2) {
+        if (err2) {
+          cb(err2);
+        } else {
+          cb(null, mailbox);
+        }
+      });
+    }
+  });
+}
+
 describe('RemoteScript', function() {
   it('Should parse the filename of mailbox', function() {
     var parsed = common.extractBoatIdFromFilename(testPath);
@@ -59,8 +75,9 @@ describe('RemoteScript', function() {
 
   it('Should send a script for execution', function(done) {
     withConnectionAndTestBoat(function(id, cb) {
+      var boatMailboxName = naming.makeMailboxNameFromBoatId(id);
       var filename = path.join(
-        '/tmp/', naming.makeDBFilename(naming.makeMailboxNameFromBoatId(id)));
+        '/tmp/', naming.makeDBFilename(boatMailboxName));
 
       
       // To be set later in the code.
@@ -68,19 +85,20 @@ describe('RemoteScript', function() {
       var boxMailboxName = naming.makeMailboxNameFromBoxId('abc119');
       
       // Make a mailbox for the anemobox
-      mb.tryMakeMailbox(
+      makeAndResetMailbox(
         path.join('/tmp/', naming.makeDBFilename(boxMailboxName)),
         boxMailboxName, function(err, boxMailbox) {
           assert(!err);
           assert(boxMailbox);
           boxMailbox.onPacketReceived = script.makeScriptRequestHandler(performSync);
 
-          // Send the script
-          common.sendScriptToBox(filename, 'sh', 'cd /tmp\npwd', function(err, data) {
+
+          // Make a mailbox for the boat
+          makeAndResetMailbox(filename, boatMailboxName, function(err, boatMailbox) {
             assert(!err);
 
-            // Make a mailbox for the boat
-            mb.tryMakeMailboxFromFilename(filename, function(err, boatMailbox) {
+            // Send the script
+            common.sendScriptToBox(filename, 'sh', 'cd /tmp\npwd', function(err, data) {
               assert(!err);
 
               performSync = function(cb) {
