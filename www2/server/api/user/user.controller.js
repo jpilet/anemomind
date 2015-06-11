@@ -8,14 +8,7 @@ var config = require('../../config/environment');
 var jwt = require('jsonwebtoken');
 var winston = require('winston');
 var generatePassword = require('password-generator');
-var nodemailer = require('nodemailer');
-var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'anemobot@gmail.com',
-        pass: 'an3m0b0t!'
-    }
-});
+var transporter = require('../../components/mailer').transporter;
 
 var validationError = function(res, err) {
   return res.json(422, err);
