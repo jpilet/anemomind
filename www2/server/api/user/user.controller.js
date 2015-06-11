@@ -19,7 +19,9 @@ var checkForInvite = function(user) {
     for (var i in boats) {
       for (var j in boats[i].invited) {
         if (boats[i].invited[j].email === user.email) {
-          var action = boats[i].invited[j].admin ? {$push: {"admins": user._id}, $pull: {"invited": {"email": user.email}}} : {$push: {"readers": user._id}, $pull: {"invited": {"email": user.email}}};
+
+          var pushAction = boats[i].invited[j].admin ? {"admins": user._id} : {"readers": user._id};
+          var action = {$push: pushAction, $pull: {"invited": {"email": user.email}}};
           Boat.findByIdAndUpdate(
             boats[i]._id,
             action,

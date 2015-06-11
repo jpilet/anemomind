@@ -30,16 +30,20 @@ var validateBoatForUser = function(user, boat) {
 var sendInvitationEmail = function(email, boat, hasAnAccount) {
   var messageBody;
   if (hasAnAccount) {
-    messageBody = 'Hello!\nYou have been invited to see the navigation data of the boat ' + boat.name + '.\nPlease go to anemolab.com and log in with this email address: ' + email +
-          '\n\nBest regards,\nAnemobot';
+    messageBody = 'Hello!\nYou have been invited to see the navigation data ' +
+    'of the boat ' + boat.name + '.\nPlease go to anemolab.com and log in ' +
+    'with this email address: ' + email + '\n\nBest regards,\nAnemobot';
   } else {
-    messageBody = 'Hello!\nYou have been invited to see the navigation data of the boat ' + boat.name + '.\nPlease go to anemolab.com and create a new account with this email address: ' + email +
-          '\n\nBest regards,\nAnemobot';
+    messageBody = 'Hello!\nYou have been invited to see the navigation data ' +
+    'of the boat ' + boat.name + '.\nPlease go to anemolab.com and create a ' +
+    'new account with this email address: ' + email +
+    '\n\nBest regards,\nAnemobot';
   }
   transporter.sendMail({
     from: 'anemobot@gmail.com',
     to: email,
-    subject: 'You have been invited to see ' + boat.name + ' navigation data on anemolab.com',
+    subject: 'You have been invited to see ' + boat.name + ' navigation data ' +
+    'on anemolab.com',
     text: messageBody
   }, function(err, info) {
     if (err) {
