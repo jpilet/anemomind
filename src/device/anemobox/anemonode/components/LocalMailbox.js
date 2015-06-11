@@ -14,7 +14,8 @@ var mailRoot = '/media/sdcard/mail/';
 var doRemoveLogFiles = false;
 var sentName = 'sentlogs';
 var closeTimeoutMillis = 30000;
-
+var script = require('mail/script.js');
+var triggerSync = require('./sync.js').triggerSync;
 var mailboxes = {};
 
 function mailboxCount() {
@@ -111,6 +112,7 @@ function openNewMailbox(mailboxName, cb) {
           if (err) {
             cb(err);
           } else {
+            mailbox.onPacketReceived = script.makeScriptRequestHandler(triggerSync);
             var data = registerMailbox(mailboxName, mailbox);
             data.close.callDelayed(closeTimeoutMillis);
             cb(null, mailbox);
