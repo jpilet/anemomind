@@ -53,6 +53,40 @@ describe('script', function() {
       });
     });
   });
+
+  it('Should execute a shell script with a specific reqCode', function(done) {
+    tryMakeAndResetMailbox('/tmp/mb0.db', 'a', function(err, mb0) {
+      assert(!err);
+      tryMakeAndResetMailbox('/tmp/mb1.db', 'b', function(err, mb1) {
+        assert(!err);
+
+        var performSync = function(cb) {
+          sync.synchronize(mb0, mb1, cb || function() {});
+        }
+
+        mb1.onPacketReceived = script.makeScriptRequestHandler(performSync);
+
+        var reqCode = 'my-special-req-code';
+        
+        mb0.onPacketReceived = function(mailbox, packet, T, cb) {
+          cb();
+          assert(packet.label == common.scriptResponse);
+          var msg = script.unpackScriptResponse(packet.data);
+          assert.equal(msg.reqCode, reqCode);
+          assert(msg.stdout == '/tmp\n');
+          done();
+        };
+        script.runRemoteScript(mb0, 'b', 'sh', 'cd /tmp\npwd', reqCode, function(err, rc) {
+          assert(!err);
+          assert(rc == reqCode);
+          performSync(function(err) {
+            assert(!err);
+          });
+        });
+      });
+    });
+  });
+
   
   it('Should execute a node script', function(done) {
     tryMakeAndResetMailbox('/tmp/mb0.db', 'a', function(err, mb0) {
