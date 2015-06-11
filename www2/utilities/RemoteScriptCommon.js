@@ -7,6 +7,7 @@ var Boat = require('../server/api/boat/boat.model.js');
 var Q = require('q');
 var mb = require('mail/mail.sqlite.js');
 var fs = require('fs');
+var BoxExec = require('../server/api/boxexec/boxexec.model.js');
 
 var mongoOptions = {db: {safe: true}};
 
@@ -99,14 +100,27 @@ function sendScriptToBox(filename, scriptType, scriptData, cb_) {
       cb(err);
     } else {
       globalMailbox = mailbox;
-      getBoxIdFromFilename(filename, function(err, boxId) {
+      var boatId = extractBoatIdFromFilename(filename);
+      getBoxIdFromBoatId(boatId, function(err, boxId) {
         if (err) {
           cb(err);
         } else {
           dst = naming.makeMailboxNameFromBoxId(boxId);
-          script.runRemoteScript(
-            mailbox, dst,
-            scriptType, scriptData, cb);
+          BoxExec.create({
+            boatId: boatId,
+            boxId: boxId,
+            type: scriptType,
+            script: scriptData,
+            complete: false
+          }, function(err, boxexec) {
+            if (err) {
+              cb(err);
+            } else {
+              script.runRemoteScript(
+                mailbox, dst,
+                scriptType, scriptData, '' + boxexec._id, cb);
+            }
+          });
         }
       });
     }

@@ -13,12 +13,13 @@ function makeScriptResponseHandler(cbHandled) {
       var data = script.unpackScriptResponse(packet.data);
 
       // Save it to the database
-      BoxExec.create({
-        reqCode: data.reqCode,
-        err: '' + data.err,
-        stdout: '' + data.stdout,
-        stderr: '' + data.stderr
-      }, cbHandled);
+      BoxExec.findByIdAndUpdate(
+        data.reqCode, {
+          complete: true,
+          err: '' + data.err,
+          stdout: '' + data.stdout,
+          stderr: '' + data.stderr
+        }, cbHandled);
     }
   };
 }
