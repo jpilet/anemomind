@@ -9,6 +9,9 @@ var access = require('./access.js');
 var userCanRead = access.userCanRead;
 var userCanWrite = access.userCanWrite;
 
+var winston = require('winston');
+var transporter = require('../../components/mailer').transporter;
+
 var validateBoatForUser = function(user, boat) {
   // Make sure the following arrays contain unique values.
   var fields = ['admins', 'readers', 'invited'];
@@ -22,6 +25,32 @@ var validateBoatForUser = function(user, boat) {
     var userId = mongoose.Types.ObjectId(user.id);
     boat.admins.push(userId);
   }
+}
+
+var sendInvitationEmail = function(email, boat, hasAnAccount) {
+  var messageBody;
+  if (hasAnAccount) {
+    messageBody = 'Hello!\nYou have been invited to see the navigation data ' +
+    'of the boat ' + boat.name + '.\nPlease go to anemolab.com and log in ' +
+    'with this email address: ' + email + '\n\nBest regards,\nAnemobot';
+  } else {
+    messageBody = 'Hello!\nYou have been invited to see the navigation data ' +
+    'of the boat ' + boat.name + '.\nPlease go to anemolab.com and create a ' +
+    'new account with this email address: ' + email +
+    '\n\nBest regards,\nAnemobot';
+  }
+  transporter.sendMail({
+    from: 'anemobot@gmail.com',
+    to: email,
+    subject: 'You have been invited to see ' + boat.name + ' navigation data ' +
+    'on anemolab.com',
+    text: messageBody
+  }, function(err, info) {
+    if (err) {
+      return winston.log('error', 'Failed to send invitation sent to: ' + email);
+    }
+    winston.log('info', 'Invitation sent to: ' + email);
+  });
 }
 
 // Get list of boats
@@ -145,6 +174,9 @@ exports.inviteUser = function(req, res) {
 
         boat.save(function (err) {
           if (err) { return handleError(res, err); }
+
+          sendInvitationEmail(req.body.email, boat, false);
+
           return res.json(200, {
              message: 'user invited at address: ' + req.body.email,
              boat: boat
@@ -169,6 +201,9 @@ exports.inviteUser = function(req, res) {
         validateBoatForUser(req.user, boat);
         boat.save(function (err) {
           if (err) { return handleError(res, err); }
+
+          sendInvitationEmail(req.body.email, boat, true);
+
           return res.json(200, {
             message: 'user ' + users[0].name + ' added as ' + (invitedAdmin ? 'admin' : 'reader'),
             user: users[0].profile,
