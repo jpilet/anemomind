@@ -60,7 +60,9 @@ function openMailbox(mailboxName, cb) {
       if (err) {
         cb(err);
       } else {
-        var filename = path.join(config.mailboxDir, mailboxName + '.mailsqlite.db');
+        var filename = path.join(
+          config.mailboxDir,
+          naming.makeStandardDBFilename(mailboxName));
         mb.tryMakeMailbox(
           filename, mailboxName,
           function(err, mailbox) {

@@ -26,6 +26,13 @@ it(
 	assert.equal(parsed.prefix, "box");
 	assert.equal(parsed.id, boxId);
       });
+
+    describe('Should compose and decompose a filename', function() {
+      var mailboxName = 'rulle';
+      assert.equal(mailboxName, naming.getMailboxNameFromFilename(
+        naming.makeDBFilename(mailboxName)
+      ));
+    });
   });
 
 
