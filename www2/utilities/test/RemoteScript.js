@@ -18,10 +18,10 @@ function withTestBoat(cbOperation, cbDone) {
     });
 }
 
-function withConnectionAndTestBoat(cbOperation, cbDoneAll) {
-  common.withMongoConnection(function(ref, cbDoneConnection) {
-    withTestBoat(cbOperation, cbDoneConnection);
-  }, cbDoneAll);
+function withConnectionAndTestBoat(cbOperation, cb) {
+  common.withMongoConnection(function(ref) {
+    withTestBoat(cbOperation, cb);
+  });
 }
 
 //function withConnectionAndBoat(cbOperation, cbDone)
@@ -50,6 +50,10 @@ describe('RemoteScript', function() {
         cb();
       });
     }, done);
+  });
+
+  it('Should send a script for execution', function(done) {
+    done();
   });
 });
 

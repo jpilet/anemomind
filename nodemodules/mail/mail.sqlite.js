@@ -11,6 +11,7 @@ var assert = require('assert');
 var pkt = require('./packet.js');
 var bigint = require('./bigint.js');
 var common = require('./common.js');
+var naming = require('./naming.js');
 
 var inTransaction = false;
 // These functions (beginTransaction and commit) are
@@ -276,6 +277,15 @@ function tryMakeMailbox(dbFilename,  // <-- The filename where all
     openDBWithFilename(dbFilename, function(err, db) {
       cb(null, new Mailbox(dbFilename, mailboxName, 30, db));
     });
+  }
+}
+
+function tryMakeMailboxFromFilename(dbFilename, cb) {
+  var mailboxName = naming.getMailboxNameFromFilename(dbFilename);
+  if (mailboxName) {
+    tryMakeMailbox(dbFilename, mailboxName, cb);
+  } else {
+    cb(new Error('Unable to extract mailboxname from filename ' + dbFilename));
   }
 }
 
@@ -1398,3 +1408,4 @@ module.exports.serializeString = serializeString;
 module.exports.tryMakeMailbox = tryMakeMailbox;
 module.exports.isMailbox = isMailbox;
 module.exports.makePerPacketAckHandler = makePerPacketAckHandler;
+module.exports.tryMakeMailboxFromFilename = tryMakeMailboxFromFilename;

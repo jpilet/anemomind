@@ -1,5 +1,6 @@
 var path = require('path');
 var naming = require('mail/naming.js');
+var script = require('mail/script.js');
 var mongoose = require('mongoose');
 var exec = require('child_process').exec;
 var Boat = require('../server/api/boat/boat.model.js');
@@ -25,9 +26,9 @@ function openMongoConnection(cb) {
 // is loaded.
 openMongoConnection(function() {});
 
-function withMongoConnection(cbOperation, cbDone) {
+function withMongoConnection(cbOperation) {
   connectionDeferred.promise.then(function(value) {
-    cbOperation(value, cbDone);
+    cbOperation(value);
   });
 }
 
@@ -65,6 +66,43 @@ function getBoxIdFromBoatId(boatId, cb) {
       } else {
         cb(new Error('Cannot extract anemobox id from this data: "' + results + '"'));
       }
+    }
+  });
+}
+
+function getBoxIdFromFilename(filename, cb) {
+  var boatId = extractBoatIdFromFilename(filename);
+  getBoxIdFromBoatId(boatId, cb);
+}
+
+function sendScriptToBox(filename, scriptType, script, cb_) {
+  var globalMailbox = null;
+  
+  var cb = function(err, data) {
+    if (globalMailbox) {
+      globalMailbox.close(function(err2) {
+        cb_(err || err2, data);
+      });
+    } else {
+      cb_(err, data);
+    }
+  };
+  
+  mb.tryMakeMailboxFromFilename(filename, function(err, mailbox) {
+    if (err) {
+      cb(err);
+    } else {
+      globalMailbox = mailbox;
+      getBoxIdFromFilename(filename, function(err, boxId) {
+        if (err) {
+          cb(err);
+        } else {
+          dst = naming.makeMailboxNameFromBoxId(boxId);
+          script.runRemoteScript(
+            mailbox, dst,
+            scriptType, script, cb);
+        }
+      });
     }
   });
 }
