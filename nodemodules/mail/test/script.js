@@ -43,7 +43,7 @@ describe('script', function() {
           assert(msg.stdout == '/tmp\n');
           done();
         };
-        script.runRemoteScript(mb0, 'b', 'sh', 'cd /tmp\npwd', function(err, rc) {
+        script.runRemoteScript(mb0, 'b', 'sh', 'cd /tmp\npwd', null, function(err, rc) {
           assert(!err);
           reqCode = rc;
           performSync(function(err) {
@@ -80,6 +80,7 @@ describe('script', function() {
         script.runRemoteScript(
           mb0, 'b', 'js',
           'var fs = require("fs"); (function(cb) {var fib = function(x) {return (x < 2? x : fib(x-1) + fib(x-2));}; cb(null, fib(5));})',
+          null,
           function(err, rc) {
             assert.equal(err, null);
             reqCode = rc;

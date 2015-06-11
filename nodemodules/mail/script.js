@@ -8,8 +8,11 @@ function validScriptType(type) {
   return type == "sh" || type == "js";
 }
 
-function packScriptRequest(type, script) {
+function packScriptRequest(type, script, reqCode) {
   var x = {type:type, script:script};
+  if (reqCode) {
+    x.reqCode = reqCode;
+  }
   return msgpack.encode(x);
 }
 
@@ -38,22 +41,27 @@ function makeRequestCode(x) {
 // to come back to us after having run the script remotely: First,
 // our script packet must propagate to the destination, then run there, and then
 // 
-function runRemoteScript(mailbox, dstMailboxName, type, script, cb) {
-  if (!(mailbox.sendPacketAndReturn && common.isIdentifier(dstMailboxName)
-        && validScriptType(type) && (typeof script == 'string'))) {
-    cb(new Error("runRemoteScript: Bad inputs"));
+function runRemoteScript(mailbox, dstMailboxName, type, script, reqCode, cb) {
+  if (!(!reqCode || (typeof reqCode == 'string'))) {
+    cb(new Error('Bad request code passed to runRemoteScript: ' + reqCode));
   } else {
-    mailbox.sendPacketAndReturn(
-      dstMailboxName, common.scriptRequest,
-      packScriptRequest(type, script), function(err, packetData) {
-        if (err) {
-          cb(err);
-        } else if (!packetData) {
-          cb(new Error('The sendPacket method of mailbox does not work as expected.'));
-        } else {
-          cb(null, makeRequestCode(packetData));
-        }
-      });
+    if (!(mailbox.sendPacketAndReturn && common.isIdentifier(dstMailboxName)
+          && validScriptType(type) && (typeof script == 'string'))) {
+      cb(new Error("runRemoteScript: Bad inputs"));
+    } else {
+      mailbox.sendPacketAndReturn(
+        dstMailboxName, common.scriptRequest,
+        packScriptRequest(type, script, reqCode),
+        function(err, packetData) {
+          if (err) {
+            cb(err);
+          } else if (!packetData) {
+            cb(new Error('The sendPacket method of mailbox does not work as expected.'));
+          } else {
+            cb(null, reqCode || makeRequestCode(packetData));
+          }
+        });
+    }
   }
 }
 
@@ -128,8 +136,10 @@ function executeAndRespondSH(reqCode, mailbox, script, packet, cb) {
   }
 }
 
-function executeScriptAndRespond(mailbox, script, packet, type, cb) {
-  var reqCode = makeRequestCode(packet);
+function executeScriptAndRespond(mailbox, script, packet, type, reqCode, cb) {
+  if (!reqCode) {
+    reqCode = makeRequestCode(packet);
+  }
   if (type == 'js') {
     executeAndRespondJS(reqCode, mailbox, script, packet, cb);
   } else if (type == 'sh') {
@@ -141,7 +151,7 @@ function handleScriptRequest(mailbox, packet, done, cb) {
   if (packet.label == common.scriptRequest) {
     var req = unpackScriptRequest(packet.data);
     if (validScriptType(req.type)) {
-      executeScriptAndRespond(mailbox, req.script, packet, req.type, function(err) {
+      executeScriptAndRespond(mailbox, req.script, packet, req.type, req.reqCode, function(err) {
         if (err) {
           cb(err);
         } else {
