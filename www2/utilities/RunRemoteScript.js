@@ -8,9 +8,8 @@ function sentCallback(err, reqCode) {
     console.log(err);
   } else {
     console.log('Successfully posted script to box for remote execution.');
-    console.log('Once a response has been returned, a document will be put');
-    console.log('in the script collection of the MongoDB with reqCode = ');
-    console.log(reqCode);
+    console.log('You can view it by calling\n');
+    console.log('  node ViewRemoteScript.js ' + reqCode);
   }
 }
 
