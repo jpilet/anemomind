@@ -90,12 +90,15 @@ describe('RemoteScript', function() {
         boxMailboxName, function(err, boxMailbox) {
           assert(!err);
           assert(boxMailbox);
-          boxMailbox.onPacketReceived = script.makeScriptRequestHandler(performSync);
-
 
           // Make a mailbox for the boat
           makeAndResetMailbox(filename, boatMailboxName, function(err, boatMailbox) {
             assert(!err);
+
+            boatMailbox.onPacketReceived = function(mailbox, data, T, cb) {
+              cb();
+              done();
+            };
 
             // Send the script
             common.sendScriptToBox(filename, 'sh', 'cd /tmp\npwd', function(err, data) {
@@ -104,12 +107,13 @@ describe('RemoteScript', function() {
               performSync = function(cb) {
                 sync.synchronize(boatMailbox, boxMailbox, cb);
               };
+              
+              boxMailbox.onPacketReceived = script.makeScriptRequestHandler(performSync);
 
               // Run the first sync. This will propagate the script to the box,
               // that will execute it.
               performSync(function(err) {
                 assert(!err);
-                done();
               });
             });
           });
