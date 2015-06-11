@@ -2,6 +2,7 @@ var testPath = '/tmp/mailboxes/boat123456789012345678901234.mailsqlite.db';
 var assert = require('assert');
 var naming = require('mail/naming.js');
 var Boat = require('../../server/api/boat/boat.model.js');
+var makeScriptResponseHandler = require('../../server/api/script/response-handler.js');
 var common = require('../common.js');
 var path = require('path');
 var script = require('mail/script.js');
@@ -95,10 +96,14 @@ describe('RemoteScript', function() {
           makeAndResetMailbox(filename, boatMailboxName, function(err, boatMailbox) {
             assert(!err);
 
-            boatMailbox.onPacketReceived = function(mailbox, data, T, cb) {
-              cb();
-              done();
-            };
+            // Called when the response of executing the script is coming back.
+            boatMailbox.onPacketReceived = makeScriptResponseHandler(
+              function(err, response) {
+                assert(!err);
+                assert(response);
+                assert(response._id);
+                done();
+              });
 
             // Send the script
             common.sendScriptToBox(filename, 'sh', 'cd /tmp\npwd', function(err, data) {

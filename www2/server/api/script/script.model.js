@@ -5,7 +5,9 @@ var mongoose = require('mongoose'),
 
 var ScriptSchema = new Schema({
   reqCode: String,
-  response: String
+  err: String,
+  stdout: String,
+  stderr: String
 });
 
 module.exports = mongoose.model('Script', ScriptSchema);
