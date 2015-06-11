@@ -11,8 +11,6 @@ function sentCallback(err, reqCode) {
     console.log('Once a response has been returned, a document will be put');
     console.log('in the script collection of the MongoDB with reqCode = ');
     console.log(reqCode);
-    console.log('You will also find the output in ');
-    console.log('/tmp/scriptlogs/' + reqCode + '.txt');
   }
 }
 
