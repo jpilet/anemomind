@@ -1,4 +1,4 @@
-var common = require('./common.js');
+var common = require('./RemoteScriptCommon.js');
 
 function sentCallback(err, reqCode) {
   if (err) {
@@ -15,6 +15,7 @@ function sentCallback(err, reqCode) {
 }
 
 var databaseFilename = process.argv[2];
+console.log('DB filename:     ' + databaseFilename);
 
 /*
 
@@ -35,11 +36,15 @@ var databaseFilename = process.argv[2];
      should, when evaled, return a function that
      takes a single callback to which it passes its result.
 */
+
 if (process.argv[4]) {
   var scriptType = process.argv[3];
   var scriptData = process.argv[4];
+  console.log('Script type:     ' + scriptType);
+  console.log('Script:          ' + scriptData);
   common.sendScriptToBox(databaseFilename, scriptType, scriptData, sentCallback);
 } else {
   var scriptFilename = process.argv[3];
-  common.sendScriptFileToBox(databaseFilename, scriptFile, sentCallback);
+  console.log('Script filename: ' + scriptFilename);
+  common.sendScriptFileToBox(databaseFilename, scriptFilename, sentCallback);
 }

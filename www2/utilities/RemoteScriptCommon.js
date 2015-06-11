@@ -6,7 +6,7 @@ var exec = require('child_process').exec;
 var Boat = require('../server/api/boat/boat.model.js');
 var Q = require('q');
 var mb = require('mail/mail.sqlite.js');
-
+var fs = require('fs');
 var dev = true;
 var mongoOptions = {db: {safe: true}};
 var mongoUri = (dev?
@@ -62,10 +62,10 @@ function getBoxIdFromBoatId(boatId, cb) {
     if (err) {
       cb(err);
     } else {
-      if (typeof results == 'object') {
+      if (results) {
         cb(null, results.anemobox);
       } else {
-        cb(new Error('Cannot extract anemobox id from this data: "' + results + '"'));
+        cb(new Error('No document in db for boat with id ' + boatId));
       }
     }
   });
