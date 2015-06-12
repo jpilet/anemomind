@@ -28,7 +28,6 @@ describe('EndPoint', function() {
   it('Should get the lower bound of an empty end point', function(done) {
     makeTestEP(function(err, ep) {
       ep.getLowerBound('a', 'b', function(err, lb) {
-        console.log(err);
         assert(!err);
         assert.equal(lb, bigint.zero());
         done();

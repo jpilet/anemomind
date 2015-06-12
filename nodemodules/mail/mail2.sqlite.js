@@ -163,7 +163,32 @@ function getLowerBoundFromTable(db, src, dst, cb) {
     });
 }
 
+function getFirstPacketIndex(db, src, dst, cb) {
+  db.get(
+    'SELECT seqNumber FROM packets WHERE src = ? AND dst = ? ORDER BY seqNumber',
+    src, dst,
+    function(err, row) {
+      if (err) {
+        cb(err);
+      } else {
+        if (row) {
+          cb(null, row.seqNumber);
+        } else {
+          cb();
+        }
+      }
+    });
+}
 
+/*
+
+  Try in this order:
+  
+  1. Read it from the table lowerbounds
+  2. Try to retrieve the first packet index
+  3. Return 0
+   
+*/
 function getLowerBoundInTransaction(T, src, dst, cb) {
   getLowerBoundFromTable(T, src, dst, function(err, lowerbound) {
     if (err) {
@@ -171,7 +196,15 @@ function getLowerBoundInTransaction(T, src, dst, cb) {
     } else if (lowerbound) {
       cb(null, lowerbound);
     } else {
-      cb(null, bigint.zero());
+      getFirstPacketIndex(T, src, dst, function(err, lowerbound) {
+        if (err) {
+          cb(err);
+        } else if (lowerbound) {
+          cb(null, lowerbound);
+        } else {
+          cb(null, bigint.zero());
+        }
+      });
     }
   });
 }
@@ -184,7 +217,7 @@ EndPoint.prototype.getLowerBound = function(src, dst, cb) {
     }, cb);
 }
 
-EndPoint.prototype.sendPacket
+//EndPoint.prototype.sendPacket
 
 
 module.exports.EndPoint = EndPoint;
