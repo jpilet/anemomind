@@ -54,4 +54,17 @@ describe('EndPoint', function() {
       });
     });
   });
+  
+  it('Send a packet', function(done) {
+    makeTestEP(function(err, ep) {
+      ep.sendPacketAndReturn('b', 119, new Buffer(3), function(err, packet) {
+        assert(!err);
+        assert.equal(packet.src, ep.name);
+        assert.equal(packet.label, 119);
+        assert(bigint.zero() < packet.seqNumber);
+        assert(packet.data instanceof Buffer);
+        done();
+      });
+    });
+  });
 });

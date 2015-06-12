@@ -260,11 +260,25 @@ EndPoint.prototype.getUpperBound = function(src, dst, cb) {
 
 EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
   var self = this;
-  withTransaction(function(T, cb) {
-    getLastPacket(T, self.name, dst, function(err, packet) {
+  var src = self.name;
+  withTransaction(this.db, function(T, cb) {
+    getLastPacket(T, src, dst, function(err, packet) {
       var seqNumber = (packet? bigint.inc(packet.seqNumber) : bigint.makeFromTime());
-      T.exec('INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
-             src, dst, seqNumber, label, data, cb);
+      T.run(
+        'INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
+        src, dst, seqNumber, label, data, function(err) {
+          if (err) {
+            cb(err);
+          } else {
+            cb(null, {
+              src: src,
+              dst: dst,
+              label: label,
+              seqNumber: seqNumber,
+              data: data
+            });
+          }
+        });
     });
   }, cb);
 }
