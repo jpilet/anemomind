@@ -112,6 +112,7 @@ function openNewMailbox(mailboxName, cb) {
           if (err) {
             cb(err);
           } else {
+            mailbox.verbose = true;
             mailbox.onPacketReceived = script.makeScriptRequestHandler(triggerSync);
             var data = registerMailbox(mailboxName, mailbox);
             data.close.callDelayed(closeTimeoutMillis);
