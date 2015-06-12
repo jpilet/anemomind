@@ -22,7 +22,7 @@ function makeScriptResponseHandler(cbHandled) {
       // Save it to the database
       BoxExec.findByIdAndUpdate(
         data.reqCode, {
-          timeReceived: Date.now(),
+          timeReceived: new Date,
           complete: true,
           err: toStringIfNotNull(data.err),
           stdout: toStringIfNotNull(data.stdout),

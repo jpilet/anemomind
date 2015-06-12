@@ -107,7 +107,7 @@ function sendScriptToBox(filename, scriptType, scriptData, cb_) {
         } else {
           dst = naming.makeMailboxNameFromBoxId(boxId);
           BoxExec.create({
-            timeSent: Date.now(),
+            timeSent: new Date,
             boatId: boatId,
             boxId: boxId,
             type: scriptType,
