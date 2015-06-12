@@ -35,23 +35,23 @@ var canWrite = function(req, event) {
 // Get the latest readable events
 exports.index = function(req, res) {
   try {
-  if (!req.user) { return res.send(401); }
+  if (!req.user) { return res.sendStatus(401); }
   boatAccess.readableBoats(req.user.id)
   .then(function(boats) {
     if (boats.length == 0) {
-      return res.json(200, []);
+      return res.status(200).json([]);
     }
     var query = { boat: { $in : _.map(boats, '_id') } }
     Event.find(query, function (err, events) {
       if(err) { return handleError(res, err); }
-      return res.json(200, events);
+      return res.status(200).json(events);
     });
   })
-  .catch(function(err) { res.send(403); });
+  .catch(function(err) { res.sendStatus(403); });
   } catch(err) {
     console.warn(err);
     console.warn(err.stack);
-    res.send(500);
+    res.sendStatus(500);
   }
 };
 
@@ -59,11 +59,11 @@ exports.index = function(req, res) {
 exports.show = function(req, res) {
   Event.findById(req.params.id, function (err, event) {
     if(err) { return handleError(res, err); }
-    if(!event) { return res.send(404); }
+    if(!event) { return res.sendStatus(404); }
 
     canRead(req, event)
     .then(function() { res.json(event); })
-    .catch(function(err) { res.send(403); });
+    .catch(function(err) { res.sendStatus(403); });
   });
 };
 
@@ -71,14 +71,14 @@ exports.show = function(req, res) {
 exports.create = function(req, res) {
   try {
   if (!req.user) {
-    return res.send(401);
+    return res.sendStatus(401);
   }
   if (!req.body.boat) {
-    return res.send(400);
+    return res.sendStatus(400);
   }
 
   if (!stringIsObjectId(req.body.boat)) {
-    return res.send(400);
+    return res.sendStatus(400);
   }
 
   var user = mongoose.Types.ObjectId(req.user.id);
@@ -92,25 +92,25 @@ exports.create = function(req, res) {
 
       Event.create(event, function(err, event) {
                    if(err) { return handleError(res, err); }
-                   return res.json(201, event);
+                   return res.status(201).json(event);
                    });
     })
     .catch(function(err) {
-      res.send(403);
+      res.sendStatus(403);
     });
   } catch(err) {
     console.warn(err);
     console.warn(err.stack);
-    res.send(500);
+    res.sendStatus(500);
   }
 };
 
 exports.remove = function(req, res) {
   if (!req.user) {
-    return res.send(401);
+    return res.sendStatus(401);
   }
   if (!req.body.boat) {
-    return res.send(400);
+    return res.sendStatus(400);
   }
   boatAccess.userCanWriteBoatId(req.user.id, req.body.boat)
     .then(function() {
@@ -122,13 +122,13 @@ exports.remove = function(req, res) {
 
       Event.create(event, function(err, event) {
                    if(err) { return handleError(res, err); }
-                   return res.json(201, event);
+                   return res.status(201).json(event);
                    });
     })
-    .catch(function(err) { res.send(403); });
+    .catch(function(err) { res.sendStatus(403); });
 };
 
 function handleError(res, err) {
   console.log('error: ' + err);
-  return res.send(500, err);
+  return res.sendStatus(500, err);
 }
