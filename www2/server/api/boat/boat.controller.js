@@ -35,9 +35,9 @@ var sendInvitationEmail = function(email, boat, hasAnAccount) {
     'with this email address: ' + email + '\n\nBest regards,\nAnemobot';
   } else {
     messageBody = 'Hello!\nYou have been invited to see the navigation data ' +
-    'of the boat ' + boat.name + '.\nPlease go to anemolab.com and create a ' +
-    'new account with this email address: ' + email +
-    '\n\nBest regards,\nAnemobot';
+    'of the boat ' + boat.name + '.\n'
+    + 'Please create your account here: http://anemolab.com/signup?email=' + email
+    + '\n\nBest regards,\nAnemobot';
   }
   transporter.sendMail({
     from: 'anemobot@gmail.com',
