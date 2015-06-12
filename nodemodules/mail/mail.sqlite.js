@@ -12,6 +12,7 @@ var pkt = require('./packet.js');
 var bigint = require('./bigint.js');
 var common = require('./common.js');
 var naming = require('./naming.js');
+var util = require('util');
 
 var inTransaction = false;
 // These functions (beginTransaction and commit) are
@@ -249,9 +250,20 @@ Mailbox.prototype.log = function(x) {
 Mailbox.prototype.echo = function(label, value) {
   if (this.verbose) {
     assert(typeof label == 'string');
-    this.log('   ' + label + ': ' + value);
+    this.log(util.format('   ' + label + ': %j', value));
   }
   return value;
+}
+
+Mailbox.prototype.echoedCB = function(label, cb) {
+  var self = this;
+  if (this.verbose) {
+    return function(err, value) {
+      cb(err, self.echo(label, value));
+    };
+  } else {
+    return cb;
+  }
 }
 
 Mailbox.prototype.setAckFrequency = function(f) {
@@ -512,7 +524,9 @@ Mailbox.prototype.getForeignStartNumber
 Mailbox.prototype.setForeignDiaryNumber = function(
   otherMailbox, newValue, cb) {
   assert(isFunction(cb));
-  //this.log('setForeignD');
+  this.log('setForeignDiaryNumber');
+  this.echo('otherMailbox', otherMailbox);
+  this.echo('newValue', newValue);
   if (!(common.isIdentifier(otherMailbox) && common.isCounter(newValue))) {
     cb(new Error("Bad input to setForeignDiaryNumber"));
   } else {
@@ -553,6 +567,11 @@ Mailbox.prototype.setForeignDiaryNumber = function(
 // Retrieves the first packet starting from a diary number.
 Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight, cb) {
   assert(isFunction(cb));
+  //cb = this.echoedCB('getFirstPacketStartingFrom result', cb);
+  this.log('getFirstPacketStartingFrom called on ' + this.mailboxName);
+  this.echo('diaryNumber', diaryNumber);
+  this.echo('lightWeight', lightWeight);
+  
   if (!common.isCounter(diaryNumber)) {
     cb('The diary number must be a counter value, but was provided with ' + diaryNumber);
   } else {
@@ -752,11 +771,12 @@ Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
   this.echo('src', src);
   this.echo('dst', dst);
   this.echo('seqNumber', seqNumber);
+  cb = this.echoedCB('isAdmissible result', cb);
   var self = this;
   beginTransaction(this.getDB(), function(err, T) {
     var cb2 = function(err, adm) {
       commit(T, function(err2) {
-	cb(err || err2, self.echo('isAdmissible result: ', adm));
+	cb(err || err2, adm);
       });
     };
 
