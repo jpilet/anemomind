@@ -4,6 +4,7 @@ var mkdirp = require('mkdirp');
 var fs = require('fs');
 var config = require('../../config/environment');
 var exec = require('child_process').exec;
+var makeScriptResponseHandler = require('../boxexec/response-handler.js');
 
 
 function makeLogFilenameFromParts(tgtDir, parsedFilename, counter) {
@@ -83,7 +84,7 @@ function getTargetDirectory(mailbox) {
 // Please list below all the callbacks that should be called,
 // sequentially, whenever a packet is received
 module.exports.onPacketReceived = 
-  function(mailbox, packet, T, cb) {
+  [function(mailbox, packet, T, cb) {
     cb();
     if (file.isLogFilePacket(packet)) {
       var msg = file.unpackFileMessage(packet.data);
@@ -97,7 +98,7 @@ module.exports.onPacketReceived =
         }
       });
     }
-  };
+  }, makeScriptResponseHandler()];
 
 // Please list below all the callbacks that should be called,
 // sequentially, whenever an ack packet is received.
