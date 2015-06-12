@@ -163,21 +163,28 @@ function getLowerBoundFromTable(db, src, dst, cb) {
     });
 }
 
+
+function getLowerBoundInTransaction(T, src, dst, cb) {
+  getLowerBoundFromTable(T, src, dst, function(err, lowerbound) {
+    if (err) {
+      cb(err);
+    } else if (lowerbound) {
+      cb(null, lowerbound);
+    } else {
+      cb(null, bigint.zero());
+    }
+  });
+}
+
 EndPoint.prototype.getLowerBound = function(src, dst, cb) {
   withTransaction(
     this.db,
     function(T, cb) {
-      getLowerBoundFromTable(T, src, dst, function(err, lowerbound) {
-        if (err) {
-          cb(err);
-        } else if (lowerbound) {
-          cb(null, lowerbound);
-        } else {
-          cb(null, bigint.zero());
-        }
-      });
+      getLowerBoundInTransaction(T, src, dst, cb);
     }, cb);
 }
+
+EndPoint.prototype.sendPacket
 
 
 module.exports.EndPoint = EndPoint;
