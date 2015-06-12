@@ -114,7 +114,6 @@ describe('RemoteScript', function() {
                 assert(response);
                 assert(response._id);
                 assert.equal(response.stdout, '/tmp\n');
-                assert(response.status == "SUCCEEDED");
                 assert.equal(response.boxId, 'abc119');
                 assert.equal(response.boatId, boatId);
                 assert.equal(response.err, null);

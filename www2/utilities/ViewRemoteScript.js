@@ -27,7 +27,7 @@ function prettyPrint(data) {
   console.log('Displaying boxexec ' + data._id + '\n');
   prettyPrintRequest(data);
   console.log('');
-  if (data.complete) {
+  if (data.timeReceived) {
     prettyPrintResponse(data);
   } else {
     console.log('Response has not arrived yet.');

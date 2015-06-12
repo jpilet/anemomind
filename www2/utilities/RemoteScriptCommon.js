@@ -111,8 +111,7 @@ function sendScriptToBox(filename, scriptType, scriptData, cb_) {
             boatId: boatId,
             boxId: boxId,
             type: scriptType,
-            script: scriptData,
-            status: "SENT"
+            script: scriptData
           }, function(err, boxexec) {
             if (err) {
               cb(err);
