@@ -7,7 +7,7 @@ var naming = require('./naming.js');
 
 var fullschema = "CREATE TABLE IF NOT EXISTS packets (src TEXT, dst TEXT, \
 seqNumber TEXT, label INT, data BLOB, PRIMARY KEY(src, dst, seqNumber)); \
-CREATE TABLE IF NOT EXISTS lowerbounds (src TEXT, dst TEXT, lower TEXT, PRIMARY KEY(src, dst));";
+CREATE TABLE IF NOT EXISTS lowerbounds (src TEXT, dst TEXT, lowerbound TEXT, PRIMARY KEY(src, dst));";
 
 function beginTransaction(db, cb) {
   //console.log("BEGIN TRANSACTION");
@@ -19,6 +19,33 @@ function commit(T, cb) {
   //console.log("END TRANSACTION");
   //inTransaction = false;
   T.commit(cb);
+}
+
+function withTransaction(db, cbTransaction, cbDone) {
+  beginTransaction(db, function(err, T) {
+    if (err) {
+      cbDone(err);
+    } else {
+      cbTransaction(T, function(err, results) {
+
+        // Called from rollback or commit
+        var onFinish = function(e) {
+          var totalErr = e || err;
+          if (totalErr) {
+            cbDone(totalErr);
+          } else {
+            cbDone(null, results);
+          }
+        };
+        
+        if (err) {
+          T.rollback(onFinish);
+        } else {
+          T.commit(onFinish);
+        }
+      });
+    }
+  });
 }
 
 
@@ -35,6 +62,10 @@ function dropTables(db, cb) {
   db.exec(query, cb);
 }
 
+
+function getUniqueSrcDstPairs(db, tableName, cb) {
+  db.all('SELECT DISTINCT src,dst FROM ' + tableName + ' ORDER BY src, dst', cb);
+}
 
 function openDBWithFilename(dbFilename, cb) {
   var db = new TransactionDatabase(
@@ -114,6 +145,38 @@ function tryMakeAndResetEndPoint(filename, name, cb) {
       });
     }
   });
+}
+
+function getLowerBoundFromTable(db, src, dst, cb) {
+  db.get(
+    'SELECT lowerbound FROM lowerbounds WHERE src = ? AND dst = ?',
+    src, dst, function(err, row) {
+      if (err) {
+        cb(err);
+      } else {
+        if (row) {
+          cb(null, row.lowerbound);
+        } else {
+          cb();
+        }
+      }
+    });
+}
+
+EndPoint.prototype.getLowerBound = function(src, dst, cb) {
+  withTransaction(
+    this.db,
+    function(T, cb) {
+      getLowerBoundFromTable(T, src, dst, function(err, lowerbound) {
+        if (err) {
+          cb(err);
+        } else if (lowerbound) {
+          cb(null, lowerbound);
+        } else {
+          cb(null, bigint.zero());
+        }
+      });
+    }, cb);
 }
 
 
