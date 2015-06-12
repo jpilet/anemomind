@@ -34,4 +34,14 @@ describe('EndPoint', function() {
       });
     });
   });
+  
+  it('Try to get a packet from an empty db', function(done) {
+    makeTestEP(function(err, ep) {
+      ep.getPacket('a', 'b', '000', function(err, packet) {
+        assert(!err);
+        assert(!packet);
+        done();
+      });
+    });
+  });
 });

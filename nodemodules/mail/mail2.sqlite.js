@@ -189,7 +189,7 @@ function getFirstPacketIndex(db, src, dst, cb) {
   3. Return 0
    
 */
-function getLowerBoundInTransaction(T, src, dst, cb) {
+function getLowerBound(T, src, dst, cb) {
   getLowerBoundFromTable(T, src, dst, function(err, lowerbound) {
     if (err) {
       cb(err);
@@ -213,11 +213,54 @@ EndPoint.prototype.getLowerBound = function(src, dst, cb) {
   withTransaction(
     this.db,
     function(T, cb) {
-      getLowerBoundInTransaction(T, src, dst, cb);
+      getLowerBound(T, src, dst, cb);
     }, cb);
 }
 
-//EndPoint.prototype.sendPacket
+function getPacketSub(db, src, dst, seqNumber, cb) {
+  db.get(
+    'SELECT * FROM packets WHERE src = ? AND dst = ? AND seqNumber = ?',
+    src, dst, seqNumber, function(err, row) {
+      if (err) {
+        cb(err);
+      } else {
+        cb(null, row);
+      }
+    });
+}
+
+EndPoint.prototype.getPacket = function(src, dst, seqNumber, cb) {
+  getPacketSub(this.db, src, dst, seqNumber, cb);
+}
+
+function getLastPacket(db, src, dst, cb) {
+  db.get('SELECT * FROM packets WHERE src = ? AND dst = ? ORDER BY seqNumber DESC',
+         src, dst, cb);
+}
+
+function getUpperBound(db, src, dst, cb) {
+  getLastPacket(db, src, dst, function(err, packet) {
+    if (err) {
+      cb(err);
+    } else if (packet) {
+      cb(null, bigint.inc(packet.seqNumber));
+    } else {
+      getLowerBound(db, src, dst, cb);
+    }
+  });
+}
+
+EndPoint.prototype.getUpperBound = function(src, dst, cb) {
+  // First try the lastPacket+1
+  // Then the lower bound
+  getLast
+}
+
+EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
+  withTransaction(function(T, cb) {
+    
+  }, cb);
+}
 
 
 module.exports.EndPoint = EndPoint;
