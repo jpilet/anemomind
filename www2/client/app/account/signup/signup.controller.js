@@ -1,9 +1,16 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('SignupCtrl', function ($scope, Auth, $location, $window) {
+  .controller('SignupCtrl', function ($scope, Auth, $location, $window, $stateParams) {
     $scope.user = {};
     $scope.errors = {};
+
+    if ($stateParams.email) {
+      $scope.user.email = $stateParams.email;
+    }
+    if ($stateParams.name) {
+      $scope.user.name = $stateParams.name;
+    }
 
     $scope.register = function(form) {
       $scope.submitted = true;
