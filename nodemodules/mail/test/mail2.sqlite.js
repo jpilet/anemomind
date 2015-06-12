@@ -63,7 +63,13 @@ describe('EndPoint', function() {
         assert.equal(packet.label, 119);
         assert(bigint.zero() < packet.seqNumber);
         assert(packet.data instanceof Buffer);
-        done();
+        ep.getUpperBound('ep', 'b', function(err, ub) {
+          assert.equal(ub, bigint.inc(packet.seqNumber));
+          ep.getLowerBound('ep', 'b', function(err, lb) {
+            assert.equal(lb, packet.seqNumber);
+            done();
+          });
+        });
       });
     });
   });
