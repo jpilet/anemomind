@@ -11,6 +11,7 @@ function printIndentedIfNotNull(data, field) {
 
 function prettyPrintRequest(data) {
   console.log('REQUEST');
+  printIndentedIfNotNull(data, 'timeSent');
   printIndentedIfNotNull(data, 'boatId');
   printIndentedIfNotNull(data, 'boxId');
   printIndentedIfNotNull(data, 'type');
@@ -18,6 +19,7 @@ function prettyPrintRequest(data) {
 
 function prettyPrintResponse(data) {
   console.log('RESPONSE');
+  printIndentedIfNotNull(data, 'timeReceived');
   printIndentedIfNotNull(data, 'err');
   printIndentedIfNotNull(data, 'stdout');
   printIndentedIfNotNull(data, 'stderr');
