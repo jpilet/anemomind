@@ -255,11 +255,16 @@ Mailbox.prototype.echo = function(label, value) {
   return value;
 }
 
-Mailbox.prototype.echoedCB = function(label, cb) {
+Mailbox.prototype.echoedCB = function(label, cb, filterFun) {
   var self = this;
   if (this.verbose) {
     return function(err, value) {
-      cb(err, self.echo(label, value));
+      try {
+        self.echo(label, (filterFun? filterFun(value) : value));
+      } catch (e) {
+        console.log('Failed to echo callback data with label ' + label);
+      }
+      cb(err, value);
     };
   } else {
     return cb;
@@ -564,10 +569,20 @@ Mailbox.prototype.setForeignDiaryNumber = function(
   }
 }
 
+function stripData(x) {
+  var y = {};
+  for (var key in x) {
+    if (key != 'data') {
+      y[key] = x[key];
+    }
+  }
+  return y;
+}
+
 // Retrieves the first packet starting from a diary number.
 Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight, cb) {
   assert(isFunction(cb));
-  //cb = this.echoedCB('getFirstPacketStartingFrom result', cb);
+  cb = this.echoedCB('getFirstPacketStartingFrom result', cb, stripData);
   this.log('getFirstPacketStartingFrom called on ' + this.mailboxName);
   this.echo('diaryNumber', diaryNumber);
   this.echo('lightWeight', lightWeight);
