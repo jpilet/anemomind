@@ -253,7 +253,9 @@ function getUpperBound(db, src, dst, cb) {
 EndPoint.prototype.getUpperBound = function(src, dst, cb) {
   // First try the lastPacket+1
   // Then the lower bound
-  getLast
+  withTransaction(this.db, function(T, cb) {
+    getUpperBound(T, src, dst, cb);
+  }, cb);
 }
 
 EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {

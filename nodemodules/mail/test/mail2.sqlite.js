@@ -44,4 +44,14 @@ describe('EndPoint', function() {
       });
     });
   });
+  
+  it('Get the upper bound from an empty db', function(done) {
+    makeTestEP(function(err, ep) {
+      ep.getUpperBound('a', 'b', function(err, ub) {
+        assert(!err);
+        assert.equal(ub, bigint.zero());
+        done();
+      });
+    });
+  });
 });
