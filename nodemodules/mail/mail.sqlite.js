@@ -238,7 +238,7 @@ function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
   this.ackFrequency = ackFrequency;
   this.forwardPackets = true;
   this.db = db;
-  this.verbose = true;
+  this.verbose = false;
 }
 
 Mailbox.prototype.log = function(x) {
@@ -508,22 +508,25 @@ Mailbox.prototype.getForeignDiaryNumber
 
 
 // Use this function to get a number of the first packet to ask for when synchronizing
-Mailbox.prototype.getForeignStartNumber
-  = function(otherMailbox, cb) {
-  if (!common.isIdentifier(otherMailbox)) {
-    cb(new Error("bad input to getForeignStartNumber"));
-  } else {
-    assert(isFunction(cb));
-    
-    this.getForeignDiaryNumber(otherMailbox, function(err, value) {
-      if (err == undefined) {
-	cb(err, (value == undefined? bigint.zero() : value));
-      } else {
-	cb(err);
-      }
-    });
-  }
-}
+Mailbox.prototype.getForeignStartNumber =
+  function(otherMailbox, cb) {
+    this.log('getForeignStartNumber called on ' + this.mailboxName);
+    this.echo('otherMailbox', otherMailbox);
+    cb = this.echoedCB('getForeignStartNumber result', cb);
+    if (!common.isIdentifier(otherMailbox)) {
+      cb(new Error("bad input to getForeignStartNumber"));
+    } else {
+      assert(isFunction(cb));
+      
+      this.getForeignDiaryNumber(otherMailbox, function(err, value) {
+        if (err == undefined) {
+	  cb(err, (value == undefined? bigint.zero() : value));
+        } else {
+	  cb(err);
+        }
+      });
+    }
+  };
 
 // Sets the foreign number to a new value.
 Mailbox.prototype.setForeignDiaryNumber = function(
