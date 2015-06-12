@@ -6,6 +6,7 @@ var mongoose = require('mongoose'),
 var BoxExecSchema = new Schema({
 
   // Request-related:
+  timeSent: Date,
   boatId: String,
   boxId: String,
   type: String,
@@ -14,6 +15,7 @@ var BoxExecSchema = new Schema({
   complete: Boolean,
 
   // Response-releated
+  timeReceived: Date,
   err: String,
   stdout: String,
   stderr: String
