@@ -237,6 +237,21 @@ function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
   this.ackFrequency = ackFrequency;
   this.forwardPackets = true;
   this.db = db;
+  this.verbose = true;
+}
+
+Mailbox.prototype.log = function(x) {
+  if (this.verbose) {
+    console.log(x);
+  }
+}
+
+Mailbox.prototype.echo = function(label, value) {
+  if (this.verbose) {
+    assert(typeof label == 'string');
+    this.log('   ' + label + ': ' + value);
+  }
+  return value;
 }
 
 Mailbox.prototype.setAckFrequency = function(f) {
@@ -497,6 +512,7 @@ Mailbox.prototype.getForeignStartNumber
 Mailbox.prototype.setForeignDiaryNumber = function(
   otherMailbox, newValue, cb) {
   assert(isFunction(cb));
+  //this.log('setForeignD');
   if (!(common.isIdentifier(otherMailbox) && common.isCounter(newValue))) {
     cb(new Error("Bad input to setForeignDiaryNumber"));
   } else {
@@ -619,23 +635,23 @@ Mailbox.prototype.getOrMakeCNumber = function(T, dst, seqNumber, cb) {
     var self = this;
     this.getCNumber(
       T, 
-		    self.mailboxName, dst,
-		    function(err, value) {
-		      if (err == undefined) {
-			if (value == undefined) { /* If there isn't already a cNumber,
-						     initialize it with sequence counter value */
-			  self.insertCTable(T, 
-					    self.mailboxName, dst, seqNumber,
-					    function(err) {
-					      cb(err, seqNumber);
-					    });
-			} else { /* If there is a value, just use it as cNumber.*/
-			  cb(err, value);
-			}
-		      } else {
-			cb(err);
-		      }
-		    });
+      self.mailboxName, dst,
+      function(err, value) {
+	if (err == undefined) {
+	  if (value == undefined) { /* If there isn't already a cNumber,
+				       initialize it with sequence counter value */
+	    self.insertCTable(T, 
+			      self.mailboxName, dst, seqNumber,
+			      function(err) {
+				cb(err, seqNumber);
+			      });
+	  } else { /* If there is a value, just use it as cNumber.*/
+	    cb(err, value);
+	  }
+	} else {
+	  cb(err);
+	}
+      });
   }
 }
 
@@ -732,11 +748,15 @@ Mailbox.prototype.isAdmissibleInTransaction = function(T, src, dst, seqNumber, c
 };
 
 Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
+  this.log('isAdmissible called on ' + this.mailboxName);
+  this.echo('src', src);
+  this.echo('dst', dst);
+  this.echo('seqNumber', seqNumber);
   var self = this;
   beginTransaction(this.getDB(), function(err, T) {
     var cb2 = function(err, adm) {
       commit(T, function(err2) {
-	cb(err || err2, adm);
+	cb(err || err2, self.echo('isAdmissible result: ', adm));
       });
     };
 
@@ -1138,6 +1158,11 @@ Mailbox.prototype.acceptIncomingPacket = function(T, packet, cb) {
 
 // Handle an incoming packet.
 Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
+  this.log('handleIncomingPacket called on ' + this.mailboxName);
+  this.echo('packet.src', packet.src);
+  this.echo('packet.dst', packet.dst);
+  this.echo('packet.label', packet.label);
+  this.echo('packet.seqNumber', packet.seqNumber);
   assert(isValidPacket(packet));
   assert(isFunction(cb));
   var self = this;
