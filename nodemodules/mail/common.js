@@ -5,6 +5,9 @@ module.exports.logfile = 128;
 module.exports.scriptRequest = 129;
 module.exports.scriptResponse = 130;
 
+function isString(x) {
+  return typeof x == 'string';
+}
 
 function isIdentifier(x) {
   if (typeof x == 'string') {
@@ -35,6 +38,7 @@ module.exports.isCounter = isCounter;
 module.exports.isIdentifier = isIdentifier;
 module.exports.isValidMailboxName = isValidMailboxName;
 module.exports.isPacket = isPacket;
+module.exports.isString = isString;
 module.exports.isObjectWithFields = function(x, fields) {
   if (typeof x == 'object') {
     for (var i = 0; i < fields.length; i++) {
