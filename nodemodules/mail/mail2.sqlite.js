@@ -259,8 +259,13 @@ EndPoint.prototype.getUpperBound = function(src, dst, cb) {
 }
 
 EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
+  var self = this;
   withTransaction(function(T, cb) {
-    
+    getLastPacket(T, self.name, dst, function(err, packet) {
+      var seqNumber = (packet? bigint.inc(packet.seqNumber) : bigint.makeFromTime());
+      T.exec('INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
+             src, dst, seqNumber, label, data, cb);
+    });
   }, cb);
 }
 
