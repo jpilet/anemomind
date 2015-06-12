@@ -23,7 +23,7 @@ function makeScriptResponseHandler(cbHandled) {
       BoxExec.findByIdAndUpdate(
         data.reqCode, {
           timeReceived: new Date,
-          complete: true,
+          status: (data.err? "FAILED" : "SUCCEEDED"),
           err: toStringIfNotNull(data.err),
           stdout: toStringIfNotNull(data.stdout),
           stderr: toStringIfNotNull(data.stderr)

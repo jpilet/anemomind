@@ -11,8 +11,8 @@ var BoxExecSchema = new Schema({
   boxId: String,
   type: String,
   script: String,
-  
-  complete: Boolean,
+
+  status: {enum: ["SENT", "FAILED", "SUCCEEDED"]},
 
   // Response-releated
   timeReceived: Date,

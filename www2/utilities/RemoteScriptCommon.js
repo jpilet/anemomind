@@ -112,7 +112,7 @@ function sendScriptToBox(filename, scriptType, scriptData, cb_) {
             boxId: boxId,
             type: scriptType,
             script: scriptData,
-            complete: false
+            status: "SENT"
           }, function(err, boxexec) {
             if (err) {
               cb(err);
