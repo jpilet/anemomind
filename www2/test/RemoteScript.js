@@ -7,7 +7,7 @@ var makeScriptResponseHandler = require('../server/api/boxexec/response-handler.
 var common = require('../utilities/RemoteScriptCommon.js');
 var path = require('path');
 var script = require('mail/script.js');
-var mb = require('mail/mail.sqlite.js');
+var mb = require('mail/mail2.sqlite.js');
 var sync = require('mail/sync.js');
 
 var removeBoat = true;
@@ -42,7 +42,7 @@ function withConnectionAndTestBoat(cbOperation, cb) {
 //function withConnectionAndBoat(cbOperation, cbDone)
 
 function makeAndResetMailbox(filename, mailboxName, cb) {
-  mb.tryMakeMailbox(filename, mailboxName, function(err, mailbox) {
+  mb.tryMakeEndPoint(filename, mailboxName, function(err, mailbox) {
     if (err) {
       cb(err);
     } else {
@@ -108,7 +108,7 @@ describe('RemoteScript', function() {
             assert(!err);
 
             // Called when the response of executing the script is coming back.
-            boatMailbox.onPacketReceived = makeScriptResponseHandler(
+            boatMailbox.addPacketHandler(makeScriptResponseHandler(
               function(err, response) {
                 assert(!err);
                 assert(response);
@@ -121,7 +121,7 @@ describe('RemoteScript', function() {
                 assert.equal(response.type, 'sh');
                 assert.equal(response.script, scriptData);
                 doneAll();
-              });
+              }));
 
             // Send the script
             common.sendScriptToBox(filename, 'sh', scriptData, function(err, data) {
@@ -131,7 +131,7 @@ describe('RemoteScript', function() {
                 sync.synchronize(boatMailbox, boxMailbox, cb);
               };
               
-              boxMailbox.onPacketReceived = script.makeScriptRequestHandler(performSync);
+              boxMailbox.addPacketHandler(script.makeScriptRequestHandler(performSync));
 
               // Run the first sync. This will propagate the script to the box,
               // that will execute it.

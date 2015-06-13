@@ -557,6 +557,16 @@ EndPoint.prototype.open = function(cb) {
   }
 }
 
+function tryMakeEndPointFromFilename(dbFilename, cb) {
+  var mailboxName = naming.getMailboxNameFromFilename(dbFilename);
+  if (mailboxName) {
+    tryMakeEndPoint(dbFilename, mailboxName, cb);
+  } else {
+    cb(new Error('Unable to extract mailboxname from filename ' + dbFilename));
+  }
+}
+
+
 
 module.exports.EndPoint = EndPoint;
 module.exports.tryMakeEndPoint = tryMakeEndPoint;
@@ -565,3 +575,4 @@ module.exports.srcDstPairUnion = srcDstPairUnion;
 module.exports.srcDstPairIntersection = srcDstPairIntersection;
 module.exports.srcDstPairDifference = srcDstPairDifference;
 module.exports.filterByName = filterByName;
+module.exports.tryMakeEndPointFromFilename = tryMakeEndPointFromFilename;
