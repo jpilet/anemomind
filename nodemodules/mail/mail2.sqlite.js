@@ -483,7 +483,7 @@ EndPoint.prototype.putPacket = function(packet, cb) {
   withTransaction(this.db, function(T, cb) {
     if (self.name == packet.dst) {
       self.callPacketHandlers(packet);
-      setLowerBound(T, packet.src, packet.dst, packet.seqNumber, cb);
+      setLowerBound(T, packet.src, packet.dst, bigint.inc(packet.seqNumber), cb);
     } else {
       getPacket(T, packet.src, packet.dst, packet.seqNumber, function(err, packet2) {
         if (err) {
