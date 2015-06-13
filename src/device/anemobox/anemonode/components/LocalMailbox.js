@@ -80,7 +80,8 @@ function openNewMailbox(mailboxName, cb) {
           if (err) {
             cb(err);
           } else {
-            mailbox.addPacketHandler(script.makeScriptRequestHandler(triggerSync));
+            mailbox.addPacketHandler(
+              script.makeScriptRequestHandler(triggerSync));
             var data = registerMailbox(mailboxName, mailbox);
             data.close.callDelayed(closeTimeoutMillis);
             cb(null, mailbox);
