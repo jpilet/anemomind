@@ -748,3 +748,21 @@ describe('Mailbox open and close', function() {
       });
     });
 });
+
+function makeAndReset(name, cb) {
+  mailsqlite.tryMakeMailbox(
+    '/tmp/testbox' + name + '.db',
+    name, function(err, mailbox) {
+      if (err) {
+        cb(err);
+      } else {
+        mailbox.reset(function(err) {
+          if (err) {
+            cb(err);
+          } else {
+            cb(null, mailbox);
+          }
+        });
+      }
+    });
+}
