@@ -96,10 +96,24 @@ describe('sync2', function() {
           b.sendPacket('a', 121, makeBuf([112]), function(err) {
             assert(!err);
             sync2.synchronize(a, b, function(err) {
+              assert(!err);
               assert.equal(ap.length, 1);
               assert.equal(bp.length, 2);
               assert(ap[0].data.equals(makeBuf([112])));
-              done();
+              sync2.synchronize(a, b, function(err) {
+                assert(!err);
+                assert.equal(ap.length, 1);
+                assert.equal(bp.length, 2);
+                a.getTotalPacketCount(function(err, count) {
+                  assert(!err);
+                  assert.equal(count, 0);
+                  b.getTotalPacketCount(function(err, count) {
+                    assert(!err);
+                    assert.equal(count, 0);
+                    done();
+                  });
+                });
+              });
             });
           });
         });
