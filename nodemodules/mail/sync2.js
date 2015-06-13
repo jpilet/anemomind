@@ -2,47 +2,38 @@ var mail2 = require('./mail2.sqlite.js');
 var bigint = require('./bigint.js');
 
 function disp(a, b, cb) {
-  console.log('AAAAAA');
   a.disp(function(err) {
-    console.log('BBBBBB');
     b.disp(cb);
   });
 }
 
 function synchronizeLowerBounds(pair, a, b, cb) {
-  disp(a, b, function(err) {
-    a.getLowerBound(pair.src, pair.dst, function(err, lbA) {
-      if (err) {
-        cb(err);
-      } else {
-        b.getLowerBound(pair.src, pair.dst, function(err, lbB) {
-          if (err) {
-            cb(err);
+  a.getLowerBound(pair.src, pair.dst, function(err, lbA) {
+    if (err) {
+      cb(err);
+    } else {
+      b.getLowerBound(pair.src, pair.dst, function(err, lbB) {
+        if (err) {
+          cb(err);
+        } else {
+          if (lbA < lbB) {
+            a.setLowerBound(pair.src, pair.dst, lbB, cb);
+          } else if (lbA > lbB) {
+            b.setLowerBound(pair.src, pair.dst, lbA, cb);
           } else {
-            console.log('lbA = ' + lbA);
-            console.log('lbB = ' + lbB);
-            if (lbA < lbB) {
-              a.setLowerBound(pair.src, pair.dst, lbB, cb);
-            } else if (lbA > lbB) {
-              b.setLowerBound(pair.src, pair.dst, lbA, cb);
-            } else {
-              cb();
-            }
+            cb();
           }
-        });
-      }
-    });
+        }
+      });
+    }
   });
 }
 
 function transferPacketsSub(pair, fromIndex, toIndex, from, to, cb) {
-  console.log('Transfer packets from ' + from.name + ' to ' + to.name);
   if (fromIndex == toIndex) {
     cb();
   } else {
     from.getPacket(pair.src, pair.dst, fromIndex, function(err, packet) {
-      console.log('Get packet %j ', {pair: pair, fromIndex: fromIndex});
-      console.log('Got this: %j', packet);
       if (err) {
         cb(err);
       } else if (!packet) {
@@ -62,8 +53,6 @@ function transferPacketsSub(pair, fromIndex, toIndex, from, to, cb) {
 
 var zero = bigint.zero();
 function transferPackets(pair, fromIndex, toIndex, from, to, cb) {
-  console.log('Transfer the packets from ' + from.name + ' to ' + to.name);
-  console.log('  from index ' + fromIndex + ' to index ' + toIndex);
   if (toIndex == zero || fromIndex == toIndex) {
     cb();
   } else if (fromIndex == 0) {
