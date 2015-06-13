@@ -183,7 +183,7 @@ function EndPointSchema(methods) {
 }
 
 // Test if x conforms with the mailbox schema.
-EndPointSchema.prototype.isValidMailbox = function(x) {
+EndPointSchema.prototype.isValidEndPoint = function(x) {
     for (methodName in this.methods) {
 	if (!this.methods[methodName].isValidMethod(x[methodName])) {
 	    return false;

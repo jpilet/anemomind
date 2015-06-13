@@ -2,12 +2,19 @@ var mail2 = require('../mail2.sqlite.js');
 var assert = require('assert');
 var bigint = require('../bigint.js');
 var eq = require('deep-equal-ident');
+var schema = require('../endpoint-schema.js');
 
 function makeTestEP(cb) {
   mail2.tryMakeAndResetEndPoint('/tmp/ep.db', 'ep', cb);
 }
 
 describe('EndPoint', function() {
+  it('Should check that the endpoint conforms with the schema', function() {
+    makeTestEP(function(ep) {
+      assert(schema.isValidEndPoint(ep));
+    });
+  });
+  
   it('Should instantiate a new end point without problems', function(done) {
     mail2.tryMakeEndPoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
       assert(!err);

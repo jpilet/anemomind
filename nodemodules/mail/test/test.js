@@ -666,7 +666,7 @@ describe(
 	withbox(
 	  function(box) {
 
-	    assert(schema.isValidMailbox(box));
+	    assert(schema.isValidEndPoint(box));
 	    done();
 
 	    
