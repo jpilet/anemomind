@@ -10,6 +10,8 @@ function synchronizeLowerBounds(pair, a, b, cb) {
         if (err) {
           cb(err);
         } else {
+          console.log('lbA = ' + lbA);
+          console.log('lbB = ' + lbB);
           if (lbA < lbB) {
             a.setLowerBound(pair.src, pair.dst, lbB, cb);
           } else if (lbA > lbB) {
