@@ -252,7 +252,14 @@ describe('EndPoint', function() {
                               assert(eq(lbs,
                                         [ { src: 'a', dst: 'b', lb: '0000000000000001' },
                                           { src: 'a', dst: 'c', lb: '0000000000000003' } ]));
-                              done();
+                              ep.getUpperBounds(
+                                [{src: 'a', dst: 'b'}, {src: 'a', dst: 'c'}],
+                                function(err, ubs) {
+                                  assert(eq(ubs,
+                                            [ { src: 'a', dst: 'b', ub: '0000000000000003' },
+                                              { src: 'a', dst: 'c', ub: '0000000000000004' } ]));
+                                  done();
+                                });
                             });
                         });
                       });
