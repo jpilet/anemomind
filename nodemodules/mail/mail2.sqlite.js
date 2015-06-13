@@ -189,7 +189,7 @@ function EndPoint(filename, name, db) {
   this.dbFilename = filename;
   this.name = name;
   this.packetHandlers = [];
-  this.isLeaf = false;
+  this.isLeaf = true;
 }
 
 function tryMakeEndPoint(filename, name, cb) {
