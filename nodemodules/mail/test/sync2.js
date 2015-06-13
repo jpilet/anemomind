@@ -1,6 +1,10 @@
 var sync2 = require('../sync2.js');
 var mail2 = require('../mail2.sqlite.js');
 var assert = require('assert');
+var eq = require('deep-equal-ident');
+var common = require('../common.js');
+
+var makeBuf = common.makeBuf;
 
 function makeA(cb) {
   mail2.tryMakeAndResetEndPoint('/tmp/epa.db', 'a', cb);
@@ -25,15 +29,6 @@ function makeAB(cb) {
     }
   });
 }
-
-function makeBuf(x) {
-  var dst = new Buffer(x.length);
-  for (var i = 0; i < x.length; i++) {
-    dst[i] = i;
-  }
-  return dst;
-}
-
 
 describe('sync2', function() {
   it('Should synchronize one packet', function(done) {
@@ -80,6 +75,31 @@ describe('sync2', function() {
                 assert.equal(count, 0);
                 done();
               });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('syncmany', function(done) {
+    makeAB(function(err, a, b) {
+      var ap = [];
+      var bp = [];
+      a.addPacketHandler(function(p) {ap.push(p);});
+      b.addPacketHandler(function(p) {bp.push(p);});
+      assert(!err);
+      a.sendPacket('b', 119, makeBuf([0, 3, 4]), function(err) {
+        assert(!err);
+        a.sendPacket('b', 120, makeBuf([3, 3]), function(err) {
+          assert(!err);
+          b.sendPacket('a', 121, makeBuf([112]), function(err) {
+            assert(!err);
+            sync2.synchronize(a, b, function(err) {
+              assert.equal(ap.length, 1);
+              assert.equal(bp.length, 2);
+              assert(ap[0].data.equals(makeBuf([112])));
+              done();
             });
           });
         });

@@ -32,14 +32,15 @@ function isPacket(x) {
   return false;
 }
 
+function makeBuf(x) {
+  var dst = new Buffer(x.length);
+  for (var i = 0; i < x.length; i++) {
+    dst.writeUInt8(x[i], i);
+  }
+  return dst;
+}
 
-
-module.exports.isCounter = isCounter; 
-module.exports.isIdentifier = isIdentifier;
-module.exports.isValidMailboxName = isValidMailboxName;
-module.exports.isPacket = isPacket;
-module.exports.isString = isString;
-module.exports.isObjectWithFields = function(x, fields) {
+function isObjectWithFields(x, fields) {
   if (typeof x == 'object') {
     for (var i = 0; i < fields.length; i++) {
       if (!x.hasOwnProperty(fields[i])) {
@@ -50,3 +51,12 @@ module.exports.isObjectWithFields = function(x, fields) {
   }
   return false;
 }
+
+
+module.exports.isCounter = isCounter; 
+module.exports.isIdentifier = isIdentifier;
+module.exports.isValidMailboxName = isValidMailboxName;
+module.exports.isPacket = isPacket;
+module.exports.isString = isString;
+module.exports.isObjectWithFields = isObjectWithFields;
+module.exports.makeBuf = makeBuf;
