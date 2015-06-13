@@ -570,9 +570,17 @@ function tryMakeEndPointFromFilename(dbFilename, cb) {
   }
 }
 
+function isEndPoint(x) {
+  if (typeof x == 'object') {
+    return x.constructor.name == 'EndPoint';
+  }
+  return false;
+}
+
 
 
 module.exports.EndPoint = EndPoint;
+module.exports.isEndPoint = isEndPoint;
 module.exports.tryMakeEndPoint = tryMakeEndPoint;
 module.exports.tryMakeAndResetEndPoint = tryMakeAndResetEndPoint;
 module.exports.srcDstPairUnion = srcDstPairUnion;

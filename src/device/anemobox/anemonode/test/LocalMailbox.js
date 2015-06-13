@@ -141,6 +141,7 @@ function preparePostingTest(cb) {
 describe('Listing and posting files not posted', function() {
   it('Post log files', function(done) {
     preparePostingTest(function(err) {
+      console.log(err);
       assert(!err);
       lmb.listLogFilesNotPosted(testLogRoot, function(err, files) {
         assert(!err);
