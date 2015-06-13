@@ -1,16 +1,9 @@
 // This file exports a single function, fillTable, that can be used to fille the rpcFuncTable of
 // rpcble.js. It is used by RpcMailbox.js. The reason for putting this code in its own file
 // is to facilitate unit testing.
-<<<<<<< HEAD
-schema = require('mail/endpoint-schema.js');
-coder = require("mail/json-coder.js");
-mb = require("./LocalMailbox.js");
-
-=======
-var schema = require('mail/mailbox-schema.js');
+var schema = require('mail/endpoint-schema.js');
 var coder = require("mail/json-coder.js");
 var mb = require("./LocalMailbox.js");
->>>>>>> master
 
 // Conveniency function for
 // error handling.
@@ -80,14 +73,12 @@ function encodeResult(argSpecs, result) {
 // mailbox and return the result.
 function makeRpcFunction(methodName, method) {
   return function(data, cb) {
-<<<<<<< HEAD
-    var mailboxName = data.name;
-    try {
-      if (ensureCB(mailboxName != undefined,
-		   "You must pass a mailbox name", cb)) {
-=======
     mb.getName(function(localName) {
-      var mailboxName = data.thisMailboxName;
+      var mailboxName = data.name;
+      
+      console.log('mailboxName:');
+      console.log(mailboxName);
+      
       if (typeof mailboxName != 'string') {
         cb({error: 'The mailbox name must be a string'});
       } else if (localName.trim() != mailboxName.trim()) {
@@ -96,8 +87,6 @@ function makeRpcFunction(methodName, method) {
         try {
           if (ensureCB(mailboxName != undefined,
 		       "You must pass a mailbox name", cb)) {
->>>>>>> master
-
 	    var args = coder.decodeArgs(method.input, data);
 	    callMailboxMethod(
 	      mailboxName, methodName, args,
