@@ -66,11 +66,9 @@ describe('sync2', function() {
         assert(!err);
         sync2.synchronize(a, b, function(err) {
           assert(!err);
-          sync2.disp(a, b, function(err) {
-            assert.equal(aPackets.length, 1);
-            assert.equal(bPackets.length, 0);
-            done();
-          })
+          assert.equal(aPackets.length, 1);
+          assert.equal(bPackets.length, 0);
+          done();
         });
       });
     });
