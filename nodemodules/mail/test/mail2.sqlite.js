@@ -169,8 +169,7 @@ describe('EndPoint', function() {
               assert(!err);
               ep.getSrcDstPairs(function(err, pairs) {
                 assert(!err);
-                assert(eq(pairs, [{src:'a', dst:'ep'},
-                                  {src:'ep', dst:'a'}, {src:'ep', dst:'b'}]));
+                assert(eq(pairs, [{src:'ep', dst:'a'}, {src:'ep', dst:'b'}]));
                 done();
               });
             });

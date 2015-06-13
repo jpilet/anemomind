@@ -461,21 +461,7 @@ EndPoint.prototype.setLowerBound = function(src, dst, lowerBound, cb) {
 }
 
 EndPoint.prototype.getSrcDstPairs = function(cb) {
-  withTransaction(this.db, function(T, cb) {
-    getUniqueSrcDstPairs(T, 'packets', function(err, packetPairs) {
-      if (err) {
-        cb(err);
-      } else {
-        getUniqueSrcDstPairs(T, 'lowerBounds', function(err, lbPairs) {
-          if (err) {
-            cb(err);
-          } else {
-            cb(null, srcDstPairUnion(packetPairs, lbPairs));
-          }
-        });
-      }
-    });
-  }, cb);
+  getUniqueSrcDstPairs(this.db, 'packets', cb);
 }
 
 EndPoint.prototype.addPacketHandler = function(handler) {
