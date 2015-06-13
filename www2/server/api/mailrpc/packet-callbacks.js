@@ -78,7 +78,7 @@ function pushLogFilesToProcessingServer() {
 
 function getTargetDirectory(mailbox) {
   // Is there a better place to put them?
-  return path.join(config.uploadDir, "anemologs", mailbox.mailboxName);
+  return path.join(config.uploadDir, "anemologs", mailbox.name);
 }  
 
 // Please list below all the callbacks that should be called,
