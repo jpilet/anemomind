@@ -506,6 +506,40 @@ EndPoint.prototype.putPacket = function(packet, cb) {
   }, cb);
 }
 
+function getAllFromTable(db, tableName, cb) {
+  db.all('SELECT * FROM ' + tableName + ';', cb);
+}
+
+EndPoint.prototype.disp = function(cb) {
+  var self = this;
+  getAllFromTable(self.db, 'packets', function(err, packets) {
+    if (err) {
+      cb(err);
+    } else {
+      getAllFromTable(self.db, 'lowerBounds', function(err, lowerBounds) {
+        if (err) {
+          cb(err);
+        } else {
+          console.log('DISPLAY ' + self.name);
+          console.log('  Packets');
+          for (var i = 0; i < packets.length; i++) {
+            var p = packets[i];
+            p.data = '(hidden)';
+            console.log('    %j', p);
+          }
+          console.log('  Lower bounds');
+          for (var i = 0; i < lowerBounds.length; i++) {
+            var p = lowerBounds[i];
+            console.log('    %j', p);
+          }
+          console.log('DONE DISPLAYING');
+          cb();
+        }
+      });
+    }
+  });
+}
+
 module.exports.EndPoint = EndPoint;
 module.exports.tryMakeEndPoint = tryMakeEndPoint;
 module.exports.tryMakeAndResetEndPoint = tryMakeAndResetEndPoint;
