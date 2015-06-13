@@ -4,6 +4,59 @@ var pkt = require('./packet.js');
 var bigint = require('./bigint.js');
 var common = require('./common.js');
 var naming = require('./naming.js');
+var assert = require('assert');
+
+function isSrcDstPair(x) {
+  if (typeof x == 'object') {
+    return x.hasOwnProperty('src') && x.hasOwnProperty('dst');
+  }
+  return false;
+}
+
+function compareSrcDstPair(a, b) {
+  if (a.src == b.src) {
+    return a.dst < b.dst;
+  } else {
+    return a.src < b.src;
+  }
+}
+
+function eqSrcDstPair(a, b) {
+  return a.src == b.src && a.dst == b.dst;
+}
+
+function isSorted(X) {
+  for (var i = 0; i < X.length - 1; i++) {
+    if (!compareSrcDstPair(X[i], X[i+1])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function srcDstPairUnion(A, B) {
+  var result = [];
+  assert(A instanceof Array); assert(B instanceof Array);
+  while (A.length > 0 && B.length > 0) {
+    if (eqSrcDstPair(A[0], B[0])) {
+      result.push(A[0]);
+      A = A.slice(1);
+      B = B.slice(1);
+    } else if (compareSrcDstPair(A[0], B[0])) {
+      result.push(A[0]);
+      A = A.slice(1);
+    } else {
+      result.push(B[0]);
+      B = B.slice(1);
+    }
+    assert(A instanceof Array); assert(B instanceof Array);
+  }
+  if (A.length > 0) {
+    return result.concat(A);
+  } else {
+    return result.concat(B);
+  }
+}
 
 var fullschema = "CREATE TABLE IF NOT EXISTS packets (src TEXT, dst TEXT, \
 seqNumber TEXT, label INT, data BLOB, PRIMARY KEY(src, dst, seqNumber)); \
@@ -348,9 +401,25 @@ EndPoint.prototype.setLowerBound = function(src, dst, lowerBound, cb) {
 }
 
 EndPoint.prototype.getSrcDstPairs = function(cb) {
+  withTransaction(this.db, function(T, cb) {
+    getUniqueSrcDstPairs(T, 'packets', function(err, packetPairs) {
+      if (err) {
+        cb(err);
+      } else {
+        getUniqueSrcDstPairs(T, 'lowerBounds', function(err, lbPairs) {
+          if (err) {
+            cb(err);
+          } else {
+            cb(null, srcDstPairUnion(packetPairs, lbPairs));
+          }
+        });
+      }
+    });
+  }, cb);
 }
 
 
 module.exports.EndPoint = EndPoint;
 module.exports.tryMakeEndPoint = tryMakeEndPoint;
 module.exports.tryMakeAndResetEndPoint = tryMakeAndResetEndPoint;
+module.exports.srcDstPairUnion = srcDstPairUnion;

@@ -124,4 +124,24 @@ describe('EndPoint', function() {
       });
     });
   });
+
+  it('Compute the union', function() {
+    var A = [{src:'a', dst:'b'}, {src:'a', dst:'c'}, {src:'b', dst:'a'}];
+    var B = [{src:'a', dst:'c'}, {src:'c', dst:'a'}];
+    var C = mb.srcDstPairUnion(A, B);
+    assert(eq(C, [{src:'a', dst:'b'}, {src:'a', dst:'c'},
+                  {src:'b', dst:'a'}, {src:'c', dst:'a'}]));
+  });
+  
+  it('Send a two packets, get the sorted src,dst pairs', function(done) {
+    makeTestEP(function(err, ep) {
+      ep.sendPacketAndReturn('b', 119, new Buffer(0), function(err, pa) {
+        assert(!err);
+        ep.sendPacketAndReturn('a', 119, new Buffer(0), function(err, pb) {
+          assert(!err);
+          done();
+        });
+      });
+    });
+  });
 });
