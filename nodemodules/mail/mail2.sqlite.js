@@ -512,3 +512,4 @@ module.exports.tryMakeAndResetEndPoint = tryMakeAndResetEndPoint;
 module.exports.srcDstPairUnion = srcDstPairUnion;
 module.exports.srcDstPairIntersection = srcDstPairIntersection;
 module.exports.srcDstPairDifference = srcDstPairDifference;
+module.exports.filterByName = filterByName;

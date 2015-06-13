@@ -1,3 +1,6 @@
+var mail2 = require('./mail2.sqlite.js');
+var bigint = require('./bigint.js');
+
 function synchronizeLowerBounds(pair, a, b, cb) {
   a.getLowerBound(pair.src, pair.dst, function(err, lbA) {
     if (err) {
@@ -24,7 +27,21 @@ function transferPacketsSub(pair, fromIndex, toIndex, from, to, cb) {
   if (fromIndex == toIndex) {
     cb();
   } else {
-    
+    from.getPacket(pair.src, pair.dst, fromIndex, function(err, packet) {
+      if (err) {
+        cb(err);
+      } else if (!packet) {
+        cb(new Error("Missing packet"));
+      } else {
+        to.putPacket(packet, function(err) {
+          if (err) {
+            cb(err);
+          } else {
+            transferPacketsSub(pair, bigint.inc(fromIndex), toIndex, from, to, cb);
+          }
+        });
+      }
+    });
   }
 }
 
@@ -76,6 +93,29 @@ function synchronizePairs(pairs, a, b, cb) {
       }
     });
   }
+}
+
+function getCommonSrcDstPairs(a, b, cb) {
+  a.getSrcDstPairs(function(err, aPairs) {
+    if (err) {
+      cb(err);
+    } else {
+      b.getSrcDstPairs(function(err, bPairs) {
+        if (err) {
+          cb(err);
+        } else {
+          var abPairs = mail2.srcDstPairUnion(aPairs, bPairs);
+          if (aPairs.isLeaf) {
+            abPairs = mail2.filterByName(abPairs, a.name);
+          }
+          if (bPairs.isLeaf) {
+            abPairs = mail2.filterByName(abPairs, b.name);
+          }
+          cb(null, abPairs);
+        }
+      });
+    }
+  });
 }
 
 function synchronize(a, b, cb) {
