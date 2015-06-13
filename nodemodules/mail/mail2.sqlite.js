@@ -58,6 +58,24 @@ function srcDstPairUnion(A, B) {
   }
 }
 
+function srcDstPairIntersection(A, B) {
+  var result = [];
+  assert(A instanceof Array); assert(B instanceof Array);
+    while (A.length > 0 && B.length > 0) {
+    if (eqSrcDstPair(A[0], B[0])) {
+      result.push(A[0]);
+      A = A.slice(1);
+      B = B.slice(1);
+    } else if (compareSrcDstPair(A[0], B[0])) {
+      A = A.slice(1);
+    } else {
+      B = B.slice(1);
+    }
+    assert(A instanceof Array); assert(B instanceof Array);
+  }
+  return result;
+}
+
 var fullschema = "CREATE TABLE IF NOT EXISTS packets (src TEXT, dst TEXT, \
 seqNumber TEXT, label INT, data BLOB, PRIMARY KEY(src, dst, seqNumber)); \
 CREATE TABLE IF NOT EXISTS lowerBounds (src TEXT, dst TEXT, lowerBound TEXT, PRIMARY KEY(src, dst));";
@@ -423,3 +441,4 @@ module.exports.EndPoint = EndPoint;
 module.exports.tryMakeEndPoint = tryMakeEndPoint;
 module.exports.tryMakeAndResetEndPoint = tryMakeAndResetEndPoint;
 module.exports.srcDstPairUnion = srcDstPairUnion;
+module.exports.srcDstPairIntersection = srcDstPairIntersection;
