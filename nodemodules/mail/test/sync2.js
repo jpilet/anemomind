@@ -69,9 +69,18 @@ describe('sync2', function() {
           assert.equal(aPackets.length, 1);
           assert.equal(bPackets.length, 0);
           sync2.synchronize(a, b, function(err) {
+            assert(!err);
             assert.equal(aPackets.length, 1);
             assert.equal(bPackets.length, 0);
-            done();
+            a.getTotalPacketCount(function(err, count) {
+              assert(!err);
+              assert.equal(count, 0);
+              b.getTotalPacketCount(function(err, count) {
+                assert(!err);
+                assert.equal(count, 0);
+                done();
+              });
+            });
           });
         });
       });
