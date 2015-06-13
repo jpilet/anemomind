@@ -25,6 +25,19 @@ methods.sendPacket = new MethodSchema({
     ]
 });
 
+methods.getPacket = new MethodSchema({
+  httpMethod: 'get',
+  input: [
+    {src: String},
+    {dst: String},
+    {seqNumber: 'hex'}
+  ],
+  output: [
+    {err: errorTypes},
+    {packet: any}
+  ]
+});
+
 methods.getSrcDstPairs = new MethodSchema({
   httpMethod:'get',
   input: [],
