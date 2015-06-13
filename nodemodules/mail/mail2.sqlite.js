@@ -501,6 +501,13 @@ EndPoint.prototype.getLowerBounds = function(pairs, cb) {
   }, cb);
 }
 
+EndPoint.prototype.getUpperBounds = function(pairs, cb) {
+  withTransaction(this.db, function(T, cb) {
+    getPerPairData(T, pairs, getUpperBound, 'ub', cb);
+  }, cb);
+}
+
+
 EndPoint.prototype.addPacketHandler = function(handler) {
   this.packetHandlers.push(handler);
 }
