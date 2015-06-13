@@ -41,7 +41,8 @@ function transferPacketsSub(pair, fromIndex, toIndex, from, to, cb) {
     cb();
   } else {
     from.getPacket(pair.src, pair.dst, fromIndex, function(err, packet) {
-      console.log('Get packet: %j', packet);
+      console.log('Get packet %j ', {pair: pair, fromIndex: fromIndex});
+      console.log('Got this: %j', packet);
       if (err) {
         cb(err);
       } else if (!packet) {
@@ -81,12 +82,10 @@ function transferPackets(pair, fromIndex, toIndex, from, to, cb) {
 function synchronizePackets(pair, a, b, cb) {
   a.getUpperBound(pair.src, pair.dst, function(err, ubA) {
     b.getUpperBound(pair.src, pair.dst, function(err, ubB) {
-      console.log('ubA = ' + ubA);
-      console.log('ubB = ' + ubB);
       if (ubA > ubB) {
-        transferPackets(pair, ubA, ubB, a, b, cb);
+        transferPackets(pair, ubB, ubA, a, b, cb);
       } else if (ubA < ubB) {
-        transferPackets(pair, ubB, ubA, b, a, cb);
+        transferPackets(pair, ubA, ubB, b, a, cb);
       } else {
         cb();
       }
