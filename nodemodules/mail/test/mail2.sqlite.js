@@ -9,9 +9,10 @@ function makeTestEP(cb) {
 }
 
 describe('EndPoint', function() {
-  it('Should check that the endpoint conforms with the schema', function() {
-    makeTestEP(function(ep) {
+  it('Should check that the endpoint conforms with the schema', function(done) {
+    makeTestEP(function(err, ep) {
       assert(schema.isValidEndPoint(ep));
+      done();
     });
   });
   
