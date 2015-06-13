@@ -146,7 +146,13 @@ describe('sync2', function() {
                   assert(!err);
                   a.getTotalPacketCount(function(err, n) {
                     assert.equal(n, 0);
-                    done();
+                    b.getTotalPacketCount(function(err, n) {
+                      assert.equal(n, 0);
+                      c.getTotalPacketCount(function(err, n) {
+                        assert.equal(n, 0);
+                        done();
+                      });
+                    });
                   });
                 });
               });
