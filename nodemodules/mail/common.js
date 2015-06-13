@@ -53,6 +53,26 @@ function isObjectWithFields(x, fields) {
 }
 
 
+/*
+    How to get the names of function parameters:
+    
+      http://stackoverflow.com/questions/1007981/how-to-get-function-parameter-names-values-dynamically-from-javascript
+
+    Can be used to validate that the methods of a mailbox implements
+    this specification.
+*/
+var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
+var ARGUMENT_NAMES = /([^\s,]+)/g;
+function getParamNames(func) {
+  var fnStr = func.toString().replace(STRIP_COMMENTS, '');
+  var result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
+  if(result === null)
+     result = [];
+  return result;
+}
+
+
+
 module.exports.isCounter = isCounter; 
 module.exports.isIdentifier = isIdentifier;
 module.exports.isValidMailboxName = isValidMailboxName;
@@ -60,3 +80,4 @@ module.exports.isPacket = isPacket;
 module.exports.isString = isString;
 module.exports.isObjectWithFields = isObjectWithFields;
 module.exports.makeBuf = makeBuf;
+module.exports.getParamNames = getParamNames;
