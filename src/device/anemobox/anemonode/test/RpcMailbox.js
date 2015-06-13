@@ -108,3 +108,21 @@ describe(
     );
   }
 );
+
+describe('mb_has', function() {
+  it(
+    'Check that it is false and doesnt crash',
+    function(done) {
+      mb.getName(function(name) {
+        var strangeName = 'somestrangename123123123123123';
+        assert(strangeName != name);
+	rpcTable.mb_has({
+	  name: strangeName
+	}, function(response) {
+          console.log(response);
+	  assert(response.result === false);
+	  done();
+	});
+      });
+    });
+});
