@@ -120,4 +120,40 @@ describe('sync2', function() {
       });
     });
   });
+
+  it('syncchain', function(done) {
+    makeAB(function(err, a, b) {
+      assert(!err);
+      mail2.tryMakeAndResetEndPoint('/tmp/epc.db', 'c', function(err, c) {
+        var packets = [];
+        c.addPacketHandler(function(p) {packets.push(p);});
+        assert(!err);
+        a.sendPacket('c', 120, makeBuf([33]), function(err) {
+          assert(!err);
+          sync2.synchronize(a, b, function(err) {
+            assert(!err);
+            sync2.synchronize(b, c, function(err) {
+              assert(!err);
+              assert(packets[0]);
+              var p = packets[0];
+              assert(p.data.equals(makeBuf([33])));
+              assert.equal(p.src, 'a');
+              assert.equal(p.dst, 'c');
+              assert.equal(p.label, 120);
+              sync2.synchronize(b, c, function(err) {
+                assert(!err);
+                sync2.synchronize(a, b, function(err) {
+                  assert(!err);
+                  a.getTotalPacketCount(function(err, n) {
+                    assert.equal(n, 0);
+                    done();
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
 });
