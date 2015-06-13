@@ -37,7 +37,7 @@ RpcCharacteristic.prototype.call = function(func, args, callback) {
     args: args
   };
 
-  this.pendingCalls[packet.callId] = callback;
+  this.pendingCalls[packet.callId] = callback || function() {};
 
   this.sendBuffer(zlib.gzipSync(JSON.stringify(packet)));
 }
@@ -50,7 +50,7 @@ RpcCharacteristic.prototype.handleReceivedPacket = function(packet) {
         rpcble.pendingCalls[packet.answerId]('answer' in packet ? packet.answer : undefined);
         delete rpcble.pendingCalls[packet.answerId];
       } else {
-        console.log('answerId does not match the know callIds: ' + packet.answerId);
+        console.log('answerId does not match the known callIds: ' + packet.answerId);
       }
     } else if ('func' in packet && packet.func in rpcFuncTable
                && 'callId' in packet) {
