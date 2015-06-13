@@ -596,7 +596,7 @@ Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight
     var what = (lightWeight? 'diaryNumber,src,seqNumber,dst' : '*');
     
     var query = 'SELECT ' + what +
-      ' FROM packets  WHERE ? <= diaryNumber AND dst <> ? AND ack = 0 ORDER BY diaryNumber ASC';
+      ' FROM packets  WHERE ? <= diaryNumber AND dst <> ? ORDER BY diaryNumber ASC';
     
     this.getDB().get(query, diaryNumber, this.mailboxName, cb);
   }
