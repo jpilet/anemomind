@@ -198,7 +198,10 @@ describe('EndPoint', function() {
             p.label = 130;
             ep.putPacket(p, function(err) {
               assert(err)
-              done();
+              ep.getTotalPacketCount(function(err, count) {
+                assert.equal(count, 1);
+                done();
+              });
             });
           });
         });
