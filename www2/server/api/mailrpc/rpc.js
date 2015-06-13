@@ -243,5 +243,7 @@ function makeOverview() {
   }
 }
 
+makeOverview();
+
 module.exports.bindMethodHandlers = bindMethodHandlers;
 module.exports.makeOverview = makeOverview;
