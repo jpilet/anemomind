@@ -5,14 +5,25 @@ var assert = require('assert');
 var rpcTable = {};
 builder.fillTable(rpcTable);
 
-var mailboxName = 'rulle';
+var mailboxName = null;
 
 function prepareMailbox(cb) {
+<<<<<<< HEAD
   rpcTable.mb_reset({
     name: mailboxName,
   }, function(response) {
     assert.equal(response.error, undefined);
     cb(response);
+=======
+  mb.getName(function(lname) {
+    mailboxName = lname;
+    rpcTable.mb_reset({
+      thisMailboxName: lname,
+    }, function(response) {
+      assert.equal(response.error, undefined);
+      cb(response);
+    });
+>>>>>>> master
   });
 }
 
@@ -83,7 +94,11 @@ describe(
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
 	rpcTable.mb_reset({
+<<<<<<< HEAD
 	  // Omit 'name'
+=======
+	  // Omit 'thisMailboxName' to provoke an error.
+>>>>>>> master
 	}, function(response) {
 	  assert(response.error);
 	  done();
@@ -100,6 +115,7 @@ describe(
       'Should result in an error',
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
+<<<<<<< HEAD
 	rpcTable.mb_getLowerBound({
 	  name: mailboxName
 	  // omit the required argument for the function
@@ -108,6 +124,17 @@ describe(
 	  assert(response.error);
 	  done();
 	})
+=======
+        prepareMailbox(function(response) {
+	  rpcTable.mb_getForeignDiaryNumber({
+	    thisMailboxName: mailboxName
+	    // omit the required argument for the function
+	  }, function(response) {
+	    assert(response.error);
+	    done();
+	  })
+        });
+>>>>>>> master
       }
     );
   }
