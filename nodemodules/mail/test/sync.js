@@ -64,7 +64,7 @@ describe('Synchronize', function() {
                   assert(!err);
                   a2.getTotalPacketCount(function(err, count) {
                     assert(!err);
-                    assert.equal(count, 1);
+                    assert.equal(count, 0); // Before the bug fix, this would have failed.
                     done();
                   });
                 });
