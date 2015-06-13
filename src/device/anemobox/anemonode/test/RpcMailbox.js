@@ -5,14 +5,17 @@ var assert = require('assert');
 var rpcTable = {};
 builder.fillTable(rpcTable);
 
-var mailboxName = 'rulle';
+var mailboxName = null;
 
 function prepareMailbox(cb) {
-  rpcTable.mb_reset({
-    thisMailboxName: mailboxName,
-  }, function(response) {
-    assert.equal(response.error, undefined);
-    cb(response);
+  mb.getName(function(lname) {
+    mailboxName = lname;
+    rpcTable.mb_reset({
+      thisMailboxName: lname,
+    }, function(response) {
+      assert.equal(response.error, undefined);
+      cb(response);
+    });
   });
 }
 
