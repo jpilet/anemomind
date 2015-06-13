@@ -470,29 +470,34 @@ EndPoint.prototype.getSrcDstPairs = function(cb) {
 
 
 
+function getPerPairData(T, pairs, fun, field, cb) {
+  var counter = 0;
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i];
+    var call = function(pair) { // <-- to capture pair.
+      fun(T, pair.src, pair.dst, function(err, lb) {
+        if (err) {
+          if (counter) {
+            cb(err);
+          }
+          counter = null;
+        } else {
+          pair[field] = lb;
+          counter++;
+          if (counter == pairs.length) {
+            cb(null, pairs);
+          }
+        }
+      })
+    };
+    call(pairs[i]);
+  }
+}
+
+
 EndPoint.prototype.getLowerBounds = function(pairs, cb) {
   withTransaction(this.db, function(T, cb) {
-    var counter = 0;
-    for (var i = 0; i < pairs.length; i++) {
-      var pair = pairs[i];
-      var call = function(pair) { // <-- to capture pair.
-        getLowerBound(T, pair.src, pair.dst, function(err, lb) {
-          if (err) {
-            if (counter) {
-              cb(err);
-            }
-            counter = null;
-          } else {
-            pair.lb = lb;
-            counter++;
-            if (counter == pairs.length) {
-              cb(null, pairs);
-            }
-          }
-        })
-      };
-      call(pairs[i]);
-    }
+    getPerPairData(T, pairs, getLowerBound, 'lb', cb);
   }, cb);
 }
 
