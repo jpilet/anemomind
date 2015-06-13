@@ -468,32 +468,31 @@ EndPoint.prototype.getSrcDstPairs = function(cb) {
   getUniqueSrcDstPairs(this.db, 'packets', cb);
 }
 
-EndPoint.prototype.getLowerBounds = function(cb) {
+
+
+EndPoint.prototype.getLowerBounds = function(pairs, cb) {
   withTransaction(this.db, function(T, cb) {
-    getUniqueSrcDstPairs(T, 'packets', function(err, pairs) {
-      if (err) {
-        cb(err);
-      } else {
-        var counter = 0;
-        for (var i = 0; i < pairs.length; i++) {
-          var pair = pairs[i];
-          getLowerBound(T, pair.src, pair.dst, function(err, lb) {
-            if (err) {
-              if (counter) {
-                cb(err);
-              }
-              counter = null;
-            } else {
-              pair.lb = lb;
-              counter++;
-              if (counter == pairs.length) {
-                cb(null, pairs);
-              }
+    var counter = 0;
+    for (var i = 0; i < pairs.length; i++) {
+      var pair = pairs[i];
+      var call = function(pair) { // <-- to capture pair.
+        getLowerBound(T, pair.src, pair.dst, function(err, lb) {
+          if (err) {
+            if (counter) {
+              cb(err);
             }
-          });
-        }
-      }
-    });
+            counter = null;
+          } else {
+            pair.lb = lb;
+            counter++;
+            if (counter == pairs.length) {
+              cb(null, pairs);
+            }
+          }
+        })
+      };
+      call(pairs[i]);
+    }
   }, cb);
 }
 

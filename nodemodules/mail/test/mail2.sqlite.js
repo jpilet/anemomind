@@ -202,11 +202,20 @@ describe('EndPoint', function() {
       seqNumber: bigint.inc(p.seqNumber),
       data: new Buffer(0)
     };
+    
     var r = {
       src: 'a',
       dst: 'ep',
       label: 130,
       seqNumber: bigint.inc(p.seqNumber),
+      data: new Buffer(0)
+    };
+
+    var s = {
+      src: 'a',
+      dst: 'c',
+      label: 131,
+      seqNumber: bigint.inc(r.seqNumber),
       data: new Buffer(0)
     };
 
@@ -236,7 +245,16 @@ describe('EndPoint', function() {
                       assert(eq(r, handledPacket));
                       ep.getTotalPacketCount(function(err, count) {
                         assert.equal(count, 2);
-                        done();
+                        ep.putPacket(s, function(err) {
+                          ep.getLowerBounds(
+                            [{src: 'a', dst: 'b'}, {src: 'a', dst: 'c'}],
+                            function(err, lbs) {
+                              assert(eq(lbs,
+                                        [ { src: 'a', dst: 'b', lb: '0000000000000001' },
+                                          { src: 'a', dst: 'c', lb: '0000000000000003' } ]));
+                              done();
+                            });
+                        });
                       });
                     });
                   });
