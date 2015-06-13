@@ -34,7 +34,7 @@ methods.getPacket = new MethodSchema({
   ],
   output: [
     {err: errorTypes},
-    {packet: any}
+    {packet: 'any'}
   ]
 });
 
@@ -97,3 +97,5 @@ methods.reset = new MethodSchema({
 	{err: errorTypes}
     ]
 });
+
+module.exports = new EndPointSchema(methods);
