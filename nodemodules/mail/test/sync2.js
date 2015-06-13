@@ -7,7 +7,7 @@ function makeA(cb) {
 }
 
 function makeB(cb) {
-  mail2.tryMakeAndResetEndPoint('/tmp/epa.db', 'b', cb);
+  mail2.tryMakeAndResetEndPoint('/tmp/epb.db', 'b', cb);
 }
 
 function makeAB(cb) {

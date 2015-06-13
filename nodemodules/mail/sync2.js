@@ -1,27 +1,37 @@
 var mail2 = require('./mail2.sqlite.js');
 var bigint = require('./bigint.js');
 
+function disp(a, b, cb) {
+  console.log('AAAAAA');
+  a.disp(function(err) {
+    console.log('BBBBBB');
+    b.disp(cb);
+  });
+}
+
 function synchronizeLowerBounds(pair, a, b, cb) {
-  a.getLowerBound(pair.src, pair.dst, function(err, lbA) {
-    if (err) {
-      cb(err);
-    } else {
-      b.getLowerBound(pair.src, pair.dst, function(err, lbB) {
-        if (err) {
-          cb(err);
-        } else {
-          console.log('lbA = ' + lbA);
-          console.log('lbB = ' + lbB);
-          if (lbA < lbB) {
-            a.setLowerBound(pair.src, pair.dst, lbB, cb);
-          } else if (lbA > lbB) {
-            b.setLowerBound(pair.src, pair.dst, lbA, cb);
+  disp(a, b, function(err) {
+    a.getLowerBound(pair.src, pair.dst, function(err, lbA) {
+      if (err) {
+        cb(err);
+      } else {
+        b.getLowerBound(pair.src, pair.dst, function(err, lbB) {
+          if (err) {
+            cb(err);
           } else {
-            cb();
+            console.log('lbA = ' + lbA);
+            console.log('lbB = ' + lbB);
+            if (lbA < lbB) {
+              a.setLowerBound(pair.src, pair.dst, lbB, cb);
+            } else if (lbA > lbB) {
+              b.setLowerBound(pair.src, pair.dst, lbA, cb);
+            } else {
+              cb();
+            }
           }
-        }
-      });
-    }
+        });
+      }
+    });
   });
 }
 
@@ -52,6 +62,7 @@ function transferPacketsSub(pair, fromIndex, toIndex, from, to, cb) {
 var zero = bigint.zero();
 function transferPackets(pair, fromIndex, toIndex, from, to, cb) {
   console.log('Transfer the packets from ' + from.name + ' to ' + to.name);
+  console.log('  from index ' + fromIndex + ' to index ' + toIndex);
   if (toIndex == zero || fromIndex == toIndex) {
     cb();
   } else if (fromIndex == 0) {
@@ -68,16 +79,13 @@ function transferPackets(pair, fromIndex, toIndex, from, to, cb) {
 }
 
 function synchronizePackets(pair, a, b, cb) {
-  console.log('synchronizePackets');
-  console.log('Aname = ', a.name);
-  console.log('Bname = ', b.name);
   a.getUpperBound(pair.src, pair.dst, function(err, ubA) {
     b.getUpperBound(pair.src, pair.dst, function(err, ubB) {
       console.log('ubA = ' + ubA);
       console.log('ubB = ' + ubB);
-      if (ubA < ubB) {
+      if (ubA > ubB) {
         transferPackets(pair, ubA, ubB, a, b, cb);
-      } else if (ubA > ubB) {
+      } else if (ubA < ubB) {
         transferPackets(pair, ubB, ubA, b, a, cb);
       } else {
         cb();
@@ -87,9 +95,6 @@ function synchronizePackets(pair, a, b, cb) {
 }
 
 function synchronizePair(pair, a, b, cb) {
-  console.log('synchronizePair');
-  console.log('Aname = ', a.name);
-  console.log('Bname = ', b.name);
   synchronizeLowerBounds(pair, a, b, function(err) {
     if (err) {
       cb(err);
