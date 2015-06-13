@@ -120,6 +120,8 @@ function getCommonSrcDstPairs(a, b, cb) {
 
 function synchronize(a, b, cb) {
   getCommonSrcDstPairs(a, b, function(err, pairs) {
+    console.log('pairs: ' );
+    console.log(pairs);
     if (err) {
       cb(err);
     } else {
@@ -127,3 +129,5 @@ function synchronize(a, b, cb) {
     }
   });
 }
+
+module.exports.synchronize = synchronize;

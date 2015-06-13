@@ -36,12 +36,22 @@ function makeBuf(x) {
 
 
 describe('sync2', function() {
+  var aPackets = [];
+  var bPackets = [];
+  
   it('Should synchronize one packet', function(done) {
     makeAB(function(err, a, b) {
       assert(!err);
+      a.addPacketHandler(function(p) {aPackets.push(p);});
+      b.addPacketHandler(function(p) {bPackets.push(p);});
       a.sendPacket('b', 119, makeBuf([0, 1, 2]), function(err) {
         assert(!err);
-        done();
+        sync2.synchronize(a, b, function(err) {
+          assert(!err);
+          assert.equal(aPackets.length, 0);
+          assert.equal(bPackets.length, 1);
+          done();
+        });
       });
     });
   });
