@@ -121,7 +121,7 @@ describe('/api/mailrpc', function() {
       });
   });
 
-  it('Should handle an incoming log file', function(done) {
+/*  it('Should handle an incoming log file', function(done) {
     var p = '/tmp/the_log_file.txt';
     fs.writeFile(
       p, "Here there be boat logs.",
@@ -230,7 +230,7 @@ describe('/api/mailrpc', function() {
         });
       });
   });
-
+*/
 
   after(function(done) {
     User.remove({email: "test@anemomind.com"}, done);

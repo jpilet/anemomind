@@ -4,6 +4,7 @@
   back.
 */  
 
+var schemautils = require('mail/schemautils.js');
 var schema = require('mail/endpoint-schema.js');
 var coder = require('mail/json-coder.js');
 var assert = require('assert');
@@ -211,7 +212,7 @@ function makeSubpath(method) {
 
 // Adds a route to the router for a method.
 function bindMethodHandler(router, authenticator, method) {
-  assert(schema.isValidHttpMethod(method.httpMethod));
+  assert(schemautils.isValidHttpMethod(method.httpMethod));
   router[method.httpMethod](
     makeSubpath(method),
     authenticator,
