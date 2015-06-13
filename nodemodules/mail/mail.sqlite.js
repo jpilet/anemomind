@@ -783,11 +783,9 @@ Mailbox.prototype.isAdmissibleInTransaction = function(T, src, dst, seqNumber, c
 };
 
 Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
-  this.log('isAdmissible called on ' + this.mailboxName);
-  this.echo('src', src);
-  this.echo('dst', dst);
-  this.echo('seqNumber', seqNumber);
-  cb = this.echoedCB('isAdmissible result', cb);
+  cb = this.echoedCB(this.mailboxName + '.isAdmissible(src=' +
+                     src + ', dst=' + dst + ', seqNumber=' +
+                     seqNumber, cb);
   var self = this;
   beginTransaction(this.getDB(), function(err, T) {
     var cb2 = function(err, adm) {
