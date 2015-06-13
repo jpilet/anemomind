@@ -168,7 +168,7 @@ function handleScriptRequest(mailbox, packet, done, cb) {
 
 function makeScriptRequestHandler(done) {
   done = done || function() {};
-  return function(mailbox, packet, T, cb) {
+  return function(mailbox, packet, cb) {
     cb();
     handleScriptRequest(mailbox, packet, done, function(err) {
       if (err) {

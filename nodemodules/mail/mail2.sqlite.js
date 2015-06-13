@@ -474,7 +474,7 @@ EndPoint.prototype.setIsLeaf = function(x) {
 
 EndPoint.prototype.callPacketHandlers = function(p) {
   for (var i = 0; i < this.packetHandlers.length; i++) {
-    this.packetHandlers[i](p);
+    this.packetHandlers[i](this, p);
   }
 }
 
