@@ -84,7 +84,7 @@ function getTargetDirectory(mailbox) {
 // Please list below all the callbacks that should be called,
 // sequentially, whenever a packet is received
 module.exports.add = function(mailbox) {
-  mailbox.addPacketHandler(function(packet) {
+  mailbox.addPacketHandler(function(mailbox, packet) {
     if (file.isLogFilePacket(packet)) {
       var msg = file.unpackFileMessage(packet.data);
       var tgtDir = getTargetDirectory(mailbox);
