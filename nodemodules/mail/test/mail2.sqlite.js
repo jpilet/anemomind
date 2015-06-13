@@ -1,26 +1,26 @@
-var mb = require('../mail2.sqlite.js');
+var mail2 = require('../mail2.sqlite.js');
 var assert = require('assert');
 var bigint = require('../bigint.js');
 var eq = require('deep-equal-ident');
 
 function makeTestEP(cb) {
-  mb.tryMakeAndResetEndPoint('/tmp/ep.db', 'ep', cb);
+  mail2.tryMakeAndResetEndPoint('/tmp/ep.db', 'ep', cb);
 }
 
 describe('EndPoint', function() {
   it('Should instantiate a new end point without problems', function(done) {
-    mb.tryMakeEndPoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
+    mail2.tryMakeEndPoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
       assert(!err);
-      assert(ep instanceof mb.EndPoint);
+      assert(ep instanceof mail2.EndPoint);
       assert.equal(ep.name, "newendpt");
       done();
     });
   });
   
   it('Should instantiate a new end point without problems, and reset it', function(done) {
-    mb.tryMakeAndResetEndPoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
+    mail2.tryMakeAndResetEndPoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
       assert(!err);
-      assert(ep instanceof mb.EndPoint);
+      assert(ep instanceof mail2.EndPoint);
       assert.equal(ep.name, "newendpt");
       done();
     });
@@ -128,7 +128,7 @@ describe('EndPoint', function() {
   it('Compute the union', function() {
     var A = [{src:'a', dst:'b'}, {src:'a', dst:'c'}, {src:'b', dst:'a'}];
     var B = [{src:'a', dst:'c'}, {src:'c', dst:'a'}];
-    var C = mb.srcDstPairUnion(A, B);
+    var C = mail2.srcDstPairUnion(A, B);
     assert(eq(C, [{src:'a', dst:'b'}, {src:'a', dst:'c'},
                   {src:'b', dst:'a'}, {src:'c', dst:'a'}]));
   });
@@ -136,14 +136,14 @@ describe('EndPoint', function() {
   it('Compute the intersection', function() {
     var A = [{src:'a', dst:'b'}, {src:'a', dst:'c'}, {src:'b', dst:'a'}];
     var B = [{src:'a', dst:'c'}, {src:'c', dst:'a'}];
-    var C = mb.srcDstPairIntersection(A, B);
+    var C = mail2.srcDstPairIntersection(A, B);
     assert(eq(C, [{src:'a', dst:'c'}]));
   });
 
   it('Compute the difference', function() {
     var A = [{src:'a', dst:'b'}, {src:'a', dst:'c'}, {src:'b', dst:'a'}];
     var B = [{src:'a', dst:'c'}, {src:'c', dst:'a'}];
-    var C = mb.srcDstPairDifference(A, B);
+    var C = mail2.srcDstPairDifference(A, B);
     assert(eq(C, [{src:'a', dst:'b'}, {src:'b', dst:'a'}]));
   });
 
