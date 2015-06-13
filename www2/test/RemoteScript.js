@@ -8,7 +8,7 @@ var common = require('../utilities/RemoteScriptCommon.js');
 var path = require('path');
 var script = require('mail/script.js');
 var mb = require('mail/mail2.sqlite.js');
-var sync = require('mail/sync.js');
+var sync = require('mail/sync2.js');
 
 var removeBoat = true;
 common.init('test');
