@@ -250,7 +250,7 @@ Mailbox.prototype.log = function(x) {
 Mailbox.prototype.echo = function(label, value) {
   if (this.verbose) {
     assert(typeof label == 'string');
-    this.log(util.format('   ' + label + ': %j', value));
+    this.log(util.format(label + ': %j', value));
   }
   return value;
 }
@@ -583,10 +583,10 @@ function stripData(x) {
 // Retrieves the first packet starting from a diary number.
 Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight, cb) {
   assert(isFunction(cb));
-  cb = this.echoedCB('getFirstPacketStartingFrom result', cb, stripData);
-  this.log('getFirstPacketStartingFrom called on ' + this.mailboxName);
-  this.echo('diaryNumber', diaryNumber);
-  this.echo('lightWeight', lightWeight);
+  cb = this.echoedCB(
+    this.mailboxName +
+      '.getFirstPacketStartingFrom(diaryNumber=' + diaryNumber +
+    ', lightWeight=' + lightWeight + ')' , cb, stripData);
   
   if (!common.isCounter(diaryNumber)) {
     cb('The diary number must be a counter value, but was provided with ' + diaryNumber);
@@ -785,7 +785,7 @@ Mailbox.prototype.isAdmissibleInTransaction = function(T, src, dst, seqNumber, c
 Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
   cb = this.echoedCB(this.mailboxName + '.isAdmissible(src=' +
                      src + ', dst=' + dst + ', seqNumber=' +
-                     seqNumber, cb);
+                     seqNumber + ')', cb);
   var self = this;
   beginTransaction(this.getDB(), function(err, T) {
     var cb2 = function(err, adm) {
