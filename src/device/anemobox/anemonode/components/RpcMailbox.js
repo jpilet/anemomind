@@ -118,6 +118,11 @@ function fillTable(dst) {
       schema.methods[methodName]
     );
   }
+  dst.mb_has = function(data, cb) {
+    mb.getName(function(lname) {
+      cb({result: lname.trim() == data.name.trim()});
+    });
+  }
 }
 
 module.exports.fillTable = fillTable;
