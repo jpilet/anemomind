@@ -12,6 +12,7 @@ var pkt = require('./packet.js');
 var bigint = require('./bigint.js');
 var common = require('./common.js');
 var naming = require('./naming.js');
+var util = require('util');
 
 var inTransaction = false;
 // These functions (beginTransaction and commit) are
@@ -237,6 +238,37 @@ function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
   this.ackFrequency = ackFrequency;
   this.forwardPackets = true;
   this.db = db;
+  this.verbose = true;
+}
+
+Mailbox.prototype.log = function(x) {
+  if (this.verbose) {
+    console.log(x);
+  }
+}
+
+Mailbox.prototype.echo = function(label, value) {
+  if (this.verbose) {
+    assert(typeof label == 'string');
+    this.log(util.format(label + ': %j', value));
+  }
+  return value;
+}
+
+Mailbox.prototype.echoedCB = function(label, cb, filterFun) {
+  var self = this;
+  if (this.verbose) {
+    return function(err, value) {
+      try {
+        self.echo(label, (filterFun? filterFun(value) : value));
+      } catch (e) {
+        console.log('Failed to echo callback data with label ' + label);
+      }
+      cb(err, value);
+    };
+  } else {
+    return cb;
+  }
 }
 
 Mailbox.prototype.setAckFrequency = function(f) {
@@ -476,27 +508,31 @@ Mailbox.prototype.getForeignDiaryNumber
 
 
 // Use this function to get a number of the first packet to ask for when synchronizing
-Mailbox.prototype.getForeignStartNumber
-  = function(otherMailbox, cb) {
-  if (!common.isIdentifier(otherMailbox)) {
-    cb(new Error("bad input to getForeignStartNumber"));
-  } else {
-    assert(isFunction(cb));
-    
-    this.getForeignDiaryNumber(otherMailbox, function(err, value) {
-      if (err == undefined) {
-	cb(err, (value == undefined? bigint.zero() : value));
-      } else {
-	cb(err);
-      }
-    });
-  }
-}
+Mailbox.prototype.getForeignStartNumber =
+  function(otherMailbox, cb) {
+    cb = this.echoedCB(this.mailboxName + '.getForeignStartNumber('
+                       + otherMailbox +') ', cb);
+    if (!common.isIdentifier(otherMailbox)) {
+      cb(new Error("bad input to getForeignStartNumber"));
+    } else {
+      assert(isFunction(cb));
+      
+      this.getForeignDiaryNumber(otherMailbox, function(err, value) {
+        if (err == undefined) {
+	  cb(err, (value == undefined? bigint.zero() : value));
+        } else {
+	  cb(err);
+        }
+      });
+    }
+  };
 
 // Sets the foreign number to a new value.
 Mailbox.prototype.setForeignDiaryNumber = function(
   otherMailbox, newValue, cb) {
   assert(isFunction(cb));
+  this.log(this.mailboxName + '.setForeignDiaryNumber('
+           + otherMailbox + ', ' + newValue + ')');
   if (!(common.isIdentifier(otherMailbox) && common.isCounter(newValue))) {
     cb(new Error("Bad input to setForeignDiaryNumber"));
   } else {
@@ -534,9 +570,24 @@ Mailbox.prototype.setForeignDiaryNumber = function(
   }
 }
 
+function stripData(x) {
+  var y = {};
+  for (var key in x) {
+    if (key != 'data') {
+      y[key] = x[key];
+    }
+  }
+  return y;
+}
+
 // Retrieves the first packet starting from a diary number.
 Mailbox.prototype.getFirstPacketStartingFrom = function(diaryNumber, lightWeight, cb) {
   assert(isFunction(cb));
+  cb = this.echoedCB(
+    this.mailboxName +
+      '.getFirstPacketStartingFrom(diaryNumber=' + diaryNumber +
+    ', lightWeight=' + lightWeight + ')' , cb, stripData);
+  
   if (!common.isCounter(diaryNumber)) {
     cb('The diary number must be a counter value, but was provided with ' + diaryNumber);
   } else {
@@ -619,23 +670,23 @@ Mailbox.prototype.getOrMakeCNumber = function(T, dst, seqNumber, cb) {
     var self = this;
     this.getCNumber(
       T, 
-		    self.mailboxName, dst,
-		    function(err, value) {
-		      if (err == undefined) {
-			if (value == undefined) { /* If there isn't already a cNumber,
-						     initialize it with sequence counter value */
-			  self.insertCTable(T, 
-					    self.mailboxName, dst, seqNumber,
-					    function(err) {
-					      cb(err, seqNumber);
-					    });
-			} else { /* If there is a value, just use it as cNumber.*/
-			  cb(err, value);
-			}
-		      } else {
-			cb(err);
-		      }
-		    });
+      self.mailboxName, dst,
+      function(err, value) {
+	if (err == undefined) {
+	  if (value == undefined) { /* If there isn't already a cNumber,
+				       initialize it with sequence counter value */
+	    self.insertCTable(T, 
+			      self.mailboxName, dst, seqNumber,
+			      function(err) {
+				cb(err, seqNumber);
+			      });
+	  } else { /* If there is a value, just use it as cNumber.*/
+	    cb(err, value);
+	  }
+	} else {
+	  cb(err);
+	}
+      });
   }
 }
 
@@ -732,6 +783,9 @@ Mailbox.prototype.isAdmissibleInTransaction = function(T, src, dst, seqNumber, c
 };
 
 Mailbox.prototype.isAdmissible = function(src, dst, seqNumber, cb) {
+  cb = this.echoedCB(this.mailboxName + '.isAdmissible(src=' +
+                     src + ', dst=' + dst + ', seqNumber=' +
+                     seqNumber + ')', cb);
   var self = this;
   beginTransaction(this.getDB(), function(err, T) {
     var cb2 = function(err, adm) {
@@ -1138,6 +1192,9 @@ Mailbox.prototype.acceptIncomingPacket = function(T, packet, cb) {
 
 // Handle an incoming packet.
 Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
+  this.log(this.mailboxName + '.handleIncomingPacket(src=' +
+          packet.src + ', dst=' + packet.dst + ', label=' + packet.label +
+          ', seqNumber=' + packet.seqNumber);
   assert(isValidPacket(packet));
   assert(isFunction(cb));
   var self = this;
