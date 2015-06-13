@@ -236,7 +236,7 @@ function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
   this.dbFilename = dbFilename;
   this.mailboxName = mailboxName;
   this.ackFrequency = ackFrequency;
-  this.forwardPackets = true;
+  this.forwardPackets = false;
   this.db = db;
   this.verbose = true;
 }

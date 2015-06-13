@@ -13,6 +13,7 @@ function makeAndReset(name, cb) {
   mb.tryMakeMailbox(
     '/tmp/testbox' + name + '.db',
     name, function(err, mailbox) {
+      mailbox.forwardPackets = true;
       if (err) {
         cb(err);
       } else {

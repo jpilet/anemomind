@@ -106,6 +106,7 @@ function removeLogFiles(count, cb) {
 
 function makeEndpoint(name, cb) {
   mb.tryMakeMailbox('/tmp/' + name + '.db', name, function(err, mb) {
+    mb.forwardPackets = true;
     if (err) {
       cb(err);
     } else {
