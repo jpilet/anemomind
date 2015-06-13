@@ -9,7 +9,7 @@ var mailboxName = 'rulle';
 
 function prepareMailbox(cb) {
   rpcTable.mb_reset({
-    thisMailboxName: mailboxName,
+    name: mailboxName,
   }, function(response) {
     assert.equal(response.error, undefined);
     cb(response);
@@ -25,7 +25,7 @@ describe(
       function(done) {
 	prepareMailbox(function(response) {
 	  rpcTable.mb_getTotalPacketCount({
-	    thisMailboxName: mailboxName
+	    name: mailboxName
 	  }, function(response) {
 	    assert.equal(response.error, undefined);
 	    assert.equal(response.result, 0);
@@ -46,20 +46,23 @@ describe(
 	mb.setMailRoot('/tmp/anemobox/');
 	prepareMailbox(function(response) {
 	  assert.equal(response.error, undefined);
-	  rpcTable.mb_getForeignDiaryNumber({
-	    thisMailboxName: mailboxName,
-	    otherMailbox: "evian"
+	  rpcTable.mb_getLowerBound({
+	    name: mailboxName,
+	    src: 'a',
+            dst: 'b',
 	  }, function(response) {
-	    assert.equal(response.result, undefined);
-	    rpcTable.mb_setForeignDiaryNumber({
-	      thisMailboxName: mailboxName,
-	      otherMailbox: "evian",
-	      newValue: "0000000000000009"
+	    assert.equal(response.result, "0000000000000000");
+	    rpcTable.mb_setLowerBound({
+	      name: mailboxName,
+              src: 'a',
+              dst: 'b',
+	      lowerBound: "0000000000000009"
 	    }, function(response) {
 	      assert.equal(response.error, undefined);
-	      rpcTable.mb_getForeignDiaryNumber({
-		thisMailboxName: mailboxName,
-		otherMailbox: "evian"
+	      rpcTable.mb_getLowerBound({
+		name: mailboxName,
+                src: 'a',
+                dst: 'b',
 	      }, function(response) {
 		assert.equal(response.result, "0000000000000009");
 		done();
@@ -80,7 +83,7 @@ describe(
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
 	rpcTable.mb_reset({
-	  // Omit 'thisMailboxName'
+	  // Omit 'name'
 	}, function(response) {
 	  assert(response.error);
 	  done();
@@ -97,10 +100,11 @@ describe(
       'Should result in an error',
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
-	rpcTable.mb_getForeignDiaryNumber({
-	  thisMailboxName: mailboxName
+	rpcTable.mb_getLowerBound({
+	  name: mailboxName
 	  // omit the required argument for the function
 	}, function(response) {
+          console.log(response);
 	  assert(response.error);
 	  done();
 	})

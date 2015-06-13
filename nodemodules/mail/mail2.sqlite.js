@@ -286,23 +286,27 @@ function getFirstPacketIndex(db, src, dst, cb) {
    
 */
 function getLowerBound(T, src, dst, cb) {
-  getLowerBoundFromTable(T, src, dst, function(err, lowerBound) {
-    if (err) {
-      cb(err);
-    } else if (lowerBound) {
-      cb(null, lowerBound);
-    } else {
-      getFirstPacketIndex(T, src, dst, function(err, lowerBound) {
-        if (err) {
-          cb(err);
-        } else if (lowerBound) {
-          cb(null, lowerBound);
-        } else {
-          cb(null, bigint.zero());
-        }
-      });
-    }
-  });
+  if (!(common.isIdentifier(src) && common.isIdentifier(dst))) {
+    cb(new Error('Invalid identifiers in getLowerBound'));
+  } else {
+    getLowerBoundFromTable(T, src, dst, function(err, lowerBound) {
+      if (err) {
+        cb(err);
+      } else if (lowerBound) {
+        cb(null, lowerBound);
+      } else {
+        getFirstPacketIndex(T, src, dst, function(err, lowerBound) {
+          if (err) {
+            cb(err);
+          } else if (lowerBound) {
+            cb(null, lowerBound);
+          } else {
+            cb(null, bigint.zero());
+          }
+        });
+      }
+    });
+  }
 }
 
 EndPoint.prototype.getLowerBound = function(src, dst, cb) {

@@ -1,7 +1,7 @@
 // This file exports a single function, fillTable, that can be used to fille the rpcFuncTable of
 // rpcble.js. It is used by RpcMailbox.js. The reason for putting this code in its own file
 // is to facilitate unit testing.
-schema = require('mail/mailbox-schema.js');
+schema = require('mail/endpoint-schema.js');
 coder = require("mail/json-coder.js");
 mb = require("./LocalMailbox.js");
 
@@ -28,7 +28,7 @@ function ensureCB(p, errorMessage, cb) {
 */
 function callMailboxMethod(mailboxName, methodName, args, cbFinal) {
   // TODO: Since there is only one mailbox endpoint on the
-  // anemobox, maybe we could simply remove 'thisMailboxName'
+  // anemobox, maybe we could simply remove 'name'
   // from the RPC protocol? In that case, we would simply
   // use mb.open(...) below.
   mb.withNamedLocalMailbox(mailboxName, function(mailbox, cb) {
@@ -74,7 +74,7 @@ function encodeResult(argSpecs, result) {
 // mailbox and return the result.
 function makeRpcFunction(methodName, method) {
   return function(data, cb) {
-    var mailboxName = data.thisMailboxName;
+    var mailboxName = data.name;
     try {
       if (ensureCB(mailboxName != undefined,
 		   "You must pass a mailbox name", cb)) {
