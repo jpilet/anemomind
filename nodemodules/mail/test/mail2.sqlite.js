@@ -153,7 +153,19 @@ describe('EndPoint', function() {
         assert(!err);
         ep.sendPacketAndReturn('a', 119, new Buffer(0), function(err, pb) {
           assert(!err);
-          done();
+          ep.getSrcDstPairs(function(err, pairs) {
+            assert(!err);
+            assert(eq(pairs, [{src:'ep', dst:'a'}, {src:'ep', dst:'b'}]));
+            ep.setLowerBound('a', 'ep', bigint.inc(bigint.zero()), function(err) {
+              assert(!err);
+              ep.getSrcDstPairs(function(err, pairs) {
+                assert(!err);
+                assert(eq(pairs, [{src:'a', dst:'ep'},
+                                  {src:'ep', dst:'a'}, {src:'ep', dst:'b'}]));
+                done();
+              });
+            });
+          })
         });
       });
     });
