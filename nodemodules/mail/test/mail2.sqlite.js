@@ -143,8 +143,17 @@ describe('EndPoint', function() {
   it('Compute the difference', function() {
     var A = [{src:'a', dst:'b'}, {src:'a', dst:'c'}, {src:'b', dst:'a'}];
     var B = [{src:'a', dst:'c'}, {src:'c', dst:'a'}];
-    var C = mb.srcDstPairIntersection(A, B);
-    assert(eq(C, [{src:'a', dst:'c'}]));
+    var C = mb.srcDstPairDifference(A, B);
+    assert(eq(C, [{src:'a', dst:'b'}, {src:'b', dst:'a'}]));
+  });
+
+  it('Handler', function() {
+    makeTestEP(function(err, ep) {
+      assert(ep.packetHandlers.length == 0);
+      ep.addPacketHandler(function(packet) {console.log('Got this packet: %j', p);});
+      assert(ep.packetHandlers.length == 1);
+      assert(typeof ep.packetHandlers[0] == 'function');
+    });
   });
   
   it('Send a two packets, get the sorted src,dst pairs', function(done) {

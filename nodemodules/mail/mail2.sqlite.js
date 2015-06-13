@@ -58,6 +58,10 @@ function srcDstPairUnion(A, B) {
   }
 }
 
+function filterByName(pairs, name) {
+  pairs.filter(function(p) {return p.src == name || p.dst == name;});
+}
+
 function srcDstPairIntersection(A, B) {
   var result = [];
   assert(A instanceof Array); assert(B instanceof Array);
@@ -184,6 +188,8 @@ function EndPoint(filename, name, db) {
   this.db = db;
   this.dbFilename = filename;
   this.name = name;
+  this.packetHandlers = [];
+  this.isLeaf = false;
 }
 
 function tryMakeEndPoint(filename, name, cb) {
@@ -372,6 +378,12 @@ EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
   }, cb);
 }
 
+EndPoint.prototype.sendPacket = function(dst, label, data, cb) {
+  this.sendPacketAndReturn(dst, label, data, function(err, p) {
+    cb(err);
+  });
+}
+
 function setLowerBoundInTable(db, src, dst, lowerBound, cb) {
   db.get(
     'SELECT * FROM lowerBounds WHERE src = ? AND dst = ?',
@@ -454,6 +466,13 @@ EndPoint.prototype.getSrcDstPairs = function(cb) {
   }, cb);
 }
 
+EndPoint.prototype.addPacketHandler = function(handler) {
+  this.packetHandlers.push(handler);
+}
+
+EndPoint.setIsLeaf = function(x) {
+  this.isLeaf = x;
+}
 
 module.exports.EndPoint = EndPoint;
 module.exports.tryMakeEndPoint = tryMakeEndPoint;
