@@ -75,10 +75,6 @@ function makeRpcFunction(methodName, method) {
   return function(data, cb) {
     mb.getName(function(localName) {
       var mailboxName = data.name;
-      
-      console.log('mailboxName:');
-      console.log(mailboxName);
-      
       if (typeof mailboxName != 'string') {
         cb({error: 'The mailbox name must be a string'});
       } else if (localName.trim() != mailboxName.trim()) {
