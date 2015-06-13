@@ -353,12 +353,23 @@ EndPoint.prototype.getUpperBound = function(src, dst, cb) {
   }, cb);
 }
 
+function getNextSeqNumber(T, src, dst, cb) {
+  getLastPacket(T, src, dst, function(err, packet) {
+    if (err) {
+      cb(err);
+    } else {
+      var seqNumber = (packet? bigint.inc(packet.seqNumber) : bigint.makeFromTime());
+      cb(null, seqNumber);
+    }
+  });
+}
+
+
 EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
   var self = this;
   var src = self.name;
   withTransaction(this.db, function(T, cb) {
-    getLastPacket(T, src, dst, function(err, packet) {
-      var seqNumber = (packet? bigint.inc(packet.seqNumber) : bigint.makeFromTime());
+    getNextSeqNumber(T, src, dst, function(err, seqNumber) {
       T.run(
         'INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
         src, dst, seqNumber, label, data, function(err) {
@@ -470,8 +481,36 @@ EndPoint.prototype.addPacketHandler = function(handler) {
   this.packetHandlers.push(handler);
 }
 
-EndPoint.setIsLeaf = function(x) {
+EndPoint.prototype.setIsLeaf = function(x) {
   this.isLeaf = x;
+}
+
+EndPoint.prototype.putPacket = function(packet, cb) {
+  var self = this;
+  withTransaction(this.db, function(T, cb) {
+    if (self.name == packet.dst) {
+      callPacketHandlers(packet);
+      setLowerBound(T, packet.src, packet.dst, packet.seqNumber, cb);
+    } else {
+      getPacket(T, packet.src, packet.dst, packet.seqNumber, function(err, packet2) {
+        if (err) {
+          cb(err);
+        } else {
+          if (packet2) {
+            if (eq(packet, packet2)) {
+              cb();
+            } else {
+              cb(new Error('A different packet has already been delivered'));
+            }
+          } else {
+            T.run(
+              'INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
+              packet.src, packet.dst, packet.seqNumber, packet.label, packet.data, cb);
+          }
+        }
+      });
+    }
+  }, cb);
 }
 
 module.exports.EndPoint = EndPoint;
