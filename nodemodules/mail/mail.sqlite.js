@@ -238,7 +238,7 @@ function Mailbox(dbFilename, mailboxName, ackFrequency, db) {
   this.ackFrequency = ackFrequency;
   this.forwardPackets = true;
   this.db = db;
-  this.verbose = false;
+  this.verbose = true;
 }
 
 Mailbox.prototype.log = function(x) {
@@ -510,9 +510,8 @@ Mailbox.prototype.getForeignDiaryNumber
 // Use this function to get a number of the first packet to ask for when synchronizing
 Mailbox.prototype.getForeignStartNumber =
   function(otherMailbox, cb) {
-    this.log('getForeignStartNumber called on ' + this.mailboxName);
-    this.echo('otherMailbox', otherMailbox);
-    cb = this.echoedCB('getForeignStartNumber result', cb);
+    cb = this.echoedCB(this.mailboxName + '.getForeignStartNumber('
+                       + otherMailbox +') ', cb);
     if (!common.isIdentifier(otherMailbox)) {
       cb(new Error("bad input to getForeignStartNumber"));
     } else {
@@ -532,9 +531,8 @@ Mailbox.prototype.getForeignStartNumber =
 Mailbox.prototype.setForeignDiaryNumber = function(
   otherMailbox, newValue, cb) {
   assert(isFunction(cb));
-  this.log('setForeignDiaryNumber');
-  this.echo('otherMailbox', otherMailbox);
-  this.echo('newValue', newValue);
+  this.log(this.mailboxName + '.setForeignDiaryNumber('
+           + otherMailbox + ', ' + newValue + ')');
   if (!(common.isIdentifier(otherMailbox) && common.isCounter(newValue))) {
     cb(new Error("Bad input to setForeignDiaryNumber"));
   } else {
@@ -1196,11 +1194,9 @@ Mailbox.prototype.acceptIncomingPacket = function(T, packet, cb) {
 
 // Handle an incoming packet.
 Mailbox.prototype.handleIncomingPacket = function(packet, cb) {
-  this.log('handleIncomingPacket called on ' + this.mailboxName);
-  this.echo('packet.src', packet.src);
-  this.echo('packet.dst', packet.dst);
-  this.echo('packet.label', packet.label);
-  this.echo('packet.seqNumber', packet.seqNumber);
+  this.log(this.mailboxName + '.handleIncomingPacket(src=' +
+          packet.src + ', dst=' + packet.dst + ', label=' + packet.label +
+          ', seqNumber=' + packet.seqNumber);
   assert(isValidPacket(packet));
   assert(isFunction(cb));
   var self = this;
