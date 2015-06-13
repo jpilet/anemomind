@@ -154,7 +154,7 @@ describe('/api/mailrpc', function() {
         });
       });
   });
-/*
+
   it('Should handle another incoming log file with the same name', function(done) {
     var p = '/tmp/the_log_file.txt';
     fs.writeFile(
@@ -166,9 +166,9 @@ describe('/api/mailrpc', function() {
             [{packet: 'any'}],
             [{src: "thebox", dst: remoteMailboxName,
               label: common.logfile,
-              data: filedata, seqNumber: "2345", cNumber: "0034"}]);
+              data: filedata, seqNumber: "2345"}]);
           server
-            .post('/api/mailrpc/handleIncomingPacket/' + remoteMailboxName)
+            .post('/api/mailrpc/putPacket/' + remoteMailboxName)
             .send(postdata)
             .set('Authorization', 'Bearer ' + token)
             .expect(200)
@@ -186,7 +186,7 @@ describe('/api/mailrpc', function() {
         });
       });
   });
-
+/*
   it('Should handle another incoming log file with the same name, but different data',
        function(done) {
     var p = '/tmp/the_log_file.txt';
