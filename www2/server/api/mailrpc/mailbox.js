@@ -1,4 +1,4 @@
-var mb = require('mail/mail.sqlite.js');
+var mb = require('mail/mail2.sqlite.js');
 var packetCallbacks = require('./packet-callbacks.js');
 var common = require('mail/common.js');
 var naming = require('mail/naming.js');
@@ -64,16 +64,13 @@ function openMailbox(mailboxName, cb) {
         var filename = path.join(
           config.mailboxDir,
           naming.makeDBFilename(mailboxName));
-        mb.tryMakeMailbox(
+        mb.tryMakeEndPoint(
           filename, mailboxName,
           function(err, mailbox) {
 	    if (err) {
 	      cb(err);
 	    } else {
-              mailbox.forwardPackets = false;
-              mailbox.setAckFrequency(12);
-	      mailbox.onPacketReceived = packetCallbacks.onPacketReceived;
-	      mailbox.onAcknowledged = packetCallbacks.onAcknowledged;
+	      packetCallbacks.add(mailbox);
 	      cb(err, mailbox);
 	    }
           });
