@@ -42,7 +42,8 @@ methods.getSrcDstPairs = new MethodSchema({
   httpMethod:'get',
   input: [],
   output: [
-    {err: errorTypes}
+    {err: errorTypes},
+    {pairs: 'any'}
   ]
 });
 
