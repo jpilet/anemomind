@@ -7,7 +7,7 @@ var naming = require('./naming.js');
 
 var fullschema = "CREATE TABLE IF NOT EXISTS packets (src TEXT, dst TEXT, \
 seqNumber TEXT, label INT, data BLOB, PRIMARY KEY(src, dst, seqNumber)); \
-CREATE TABLE IF NOT EXISTS lowerbounds (src TEXT, dst TEXT, lowerbound TEXT, PRIMARY KEY(src, dst));";
+CREATE TABLE IF NOT EXISTS lowerBounds (src TEXT, dst TEXT, lowerBound TEXT, PRIMARY KEY(src, dst));";
 
 function beginTransaction(db, cb) {
   //console.log("BEGIN TRANSACTION");
@@ -54,7 +54,7 @@ function createAllTables(db, cb) {
 }
 
 function dropTables(db, cb) {
-  var names = ['packets', 'lowerbounds'];
+  var names = ['packets', 'lowerBounds'];
   var query = '';
   for (var i = 0; i < names.length; i++) {
     query += 'DROP TABLE IF EXISTS ' + names[i] + ';';
@@ -149,13 +149,13 @@ function tryMakeAndResetEndPoint(filename, name, cb) {
 
 function getLowerBoundFromTable(db, src, dst, cb) {
   db.get(
-    'SELECT lowerbound FROM lowerbounds WHERE src = ? AND dst = ?',
+    'SELECT lowerBound FROM lowerBounds WHERE src = ? AND dst = ?',
     src, dst, function(err, row) {
       if (err) {
         cb(err);
       } else {
         if (row) {
-          cb(null, row.lowerbound);
+          cb(null, row.lowerBound);
         } else {
           cb();
         }
@@ -184,23 +184,23 @@ function getFirstPacketIndex(db, src, dst, cb) {
 
   Try in this order:
   
-  1. Read it from the table lowerbounds
+  1. Read it from the table lowerBounds
   2. Try to retrieve the first packet index
   3. Return 0
    
 */
 function getLowerBound(T, src, dst, cb) {
-  getLowerBoundFromTable(T, src, dst, function(err, lowerbound) {
+  getLowerBoundFromTable(T, src, dst, function(err, lowerBound) {
     if (err) {
       cb(err);
-    } else if (lowerbound) {
-      cb(null, lowerbound);
+    } else if (lowerBound) {
+      cb(null, lowerBound);
     } else {
-      getFirstPacketIndex(T, src, dst, function(err, lowerbound) {
+      getFirstPacketIndex(T, src, dst, function(err, lowerBound) {
         if (err) {
           cb(err);
-        } else if (lowerbound) {
-          cb(null, lowerbound);
+        } else if (lowerBound) {
+          cb(null, lowerBound);
         } else {
           cb(null, bigint.zero());
         }
@@ -280,6 +280,70 @@ EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
           }
         });
     });
+  }, cb);
+}
+
+function setLowerBoundInTable(db, src, dst, lowerBound, cb) {
+  db.get(
+    'SELECT * FROM lowerBounds WHERE src = ? AND dst = ?',
+    src, dst, function(err, row) {
+      if (err) {
+        cb(err);
+      } else {
+        if (row) {
+          db.run(
+            'UPDATE lowerBounds SET lowerBound = ? WHERE src = ? AND dst = ?',
+            lowerBound, src, dst, cb);
+        } else {
+          db.run(
+            'INSERT INTO lowerBounds VALUES (?, ?, ?)',
+            src, dst, lowerBound, cb);
+        }
+      }
+    });
+}
+
+function removeObsoletePackets(db, src, dst, lowerBound, cb) {
+  db.run(
+    'DELETE FROM packets WHERE src = ? AND dst = ? AND seqNumber < lowerBound',
+    src, dst, lowerBound, cb);
+}
+
+EndPoint.prototype.getTotalPacketCount = function(cb) {
+  var query = 'SELECT count(*) FROM packets';
+  this.getDB().get(
+    query, function(err, row) {
+      if (err == undefined) {
+	cb(err, row['count(*)']);
+      } else {
+	cb(err);
+      }
+    });
+}
+
+function setLowerBound(db, src, dst, lowerBound, cb) {
+  getLowerBound(db, src, dst, function(err, currentLowerBound) {
+    if (err) {
+      cb(err);
+    } else {
+      if (currentLowerBound < lowerBound) {
+        setLowerBoundInTable(db, src, dst, lowerBound, function(err) {
+          if (err) {
+            cb(err);
+          } else {
+            removeObsoletePackets(db, src, dst, lowerBound, cb);
+          }
+        });
+      } else {
+        cb();
+      }
+    }
+  });
+}
+
+EndPoint.prototype.setLowerBound = function(src, dst, lowerBound, cb) {
+  withTransaction(this.db, function(T, cb) {
+    setLowerBound(T, src, dst, lowerBound, cb);
   }, cb);
 }
 

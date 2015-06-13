@@ -55,7 +55,7 @@ describe('EndPoint', function() {
     });
   });
   
-  it('Send a packet', function(done) {
+  it('Send a packet, get lower and upper bounds, set lower bound', function(done) {
     makeTestEP(function(err, ep) {
       ep.sendPacketAndReturn('b', 119, new Buffer(3), function(err, packet) {
         assert(!err);
@@ -64,10 +64,19 @@ describe('EndPoint', function() {
         assert(bigint.zero() < packet.seqNumber);
         assert(packet.data instanceof Buffer);
         ep.getUpperBound('ep', 'b', function(err, ub) {
+          assert(!err);
           assert.equal(ub, bigint.inc(packet.seqNumber));
           ep.getLowerBound('ep', 'b', function(err, lb) {
+            assert(!err);
             assert.equal(lb, packet.seqNumber);
-            done();
+            ep.setLowerBound('ep', 'b', packet.seqNumber, function(err) {
+              assert(!err);
+              ep.getLowerBound('ep', 'b', function(err, lb) {
+                assert(!err);
+                assert.equal(lb, packet.seqNumber);
+                done();
+              });
+            });
           });
         });
       });
