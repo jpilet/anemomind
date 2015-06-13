@@ -179,4 +179,30 @@ describe('EndPoint', function() {
       });
     });
   });
+
+  it('Put a packet', function(done) {
+    var p = {
+      src: 'a',
+      dst: 'b',
+      label: 120,
+      seqNumber: bigint.inc(bigint.zero()),
+      data: new Buffer(0)
+    };
+    makeTestEP(function(err, ep) {
+      ep.putPacket(p, function(err) {
+        assert(!err);
+        ep.getTotalPacketCount(function(err, count) {
+          assert.equal(count, 1);
+          ep.putPacket(p, function(err) {
+            assert(!err);
+            p.label = 130;
+            ep.putPacket(p, function(err) {
+              assert(err)
+              done();
+            });
+          });
+        });
+      });
+    });    
+  });
 });

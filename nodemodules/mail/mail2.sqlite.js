@@ -5,6 +5,7 @@ var bigint = require('./bigint.js');
 var common = require('./common.js');
 var naming = require('./naming.js');
 var assert = require('assert');
+var eq = require('deep-equal-ident');
 
 function isSrcDstPair(x) {
   if (typeof x == 'object') {
@@ -485,11 +486,17 @@ EndPoint.prototype.setIsLeaf = function(x) {
   this.isLeaf = x;
 }
 
+EndPoint.prototype.callPacketHandlers = function(p) {
+  for (var i = 0; i < this.packetHandlers.length; i++) {
+    this.packetHandlers[i](p);
+  }
+}
+
 EndPoint.prototype.putPacket = function(packet, cb) {
   var self = this;
   withTransaction(this.db, function(T, cb) {
     if (self.name == packet.dst) {
-      callPacketHandlers(packet);
+      self.callPacketHandlers(packet);
       setLowerBound(T, packet.src, packet.dst, packet.seqNumber, cb);
     } else {
       getPacket(T, packet.src, packet.dst, packet.seqNumber, function(err, packet2) {
