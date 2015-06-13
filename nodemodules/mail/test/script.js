@@ -11,6 +11,8 @@ function tryMakeAndResetMailbox(filename, name, cb) {
     } else {
       x.reset(function(err) {
         if (err) {
+          console.log('ERROR!!!');
+          console.log(err);
           cb(err);
         } else {
           cb(null, x);
@@ -22,9 +24,9 @@ function tryMakeAndResetMailbox(filename, name, cb) {
 
 describe('script', function() {
   it('Should execute a shell script', function(done) {
-    tryMakeAndResetMailbox('/tmp/mb0.db', 'a', function(err, mb0) {
+    tryMakeAndResetMailbox('/tmp/aamb0.db', 'a', function(err, mb0) {
       assert(!err);
-      tryMakeAndResetMailbox('/tmp/mb1.db', 'b', function(err, mb1) {
+      tryMakeAndResetMailbox('/tmp/aamb1.db', 'b', function(err, mb1) {
         assert(!err);
 
         var performSync = function(cb) {
@@ -55,9 +57,9 @@ describe('script', function() {
   });
 
   it('Should execute a shell script with a specific reqCode', function(done) {
-    tryMakeAndResetMailbox('/tmp/mb0.db', 'a', function(err, mb0) {
+    tryMakeAndResetMailbox('/tmp/bbmb0.db', 'a', function(err, mb0) {
       assert(!err);
-      tryMakeAndResetMailbox('/tmp/mb1.db', 'b', function(err, mb1) {
+      tryMakeAndResetMailbox('/tmp/bbmb1.db', 'b', function(err, mb1) {
         assert(!err);
 
         var performSync = function(cb) {
@@ -89,9 +91,9 @@ describe('script', function() {
 
   
   it('Should execute a node script', function(done) {
-    tryMakeAndResetMailbox('/tmp/mb0.db', 'a', function(err, mb0) {
+    tryMakeAndResetMailbox('/tmp/ccmb0.db', 'a', function(err, mb0) {
       assert(!err);
-      tryMakeAndResetMailbox('/tmp/mb1.db', 'b', function(err, mb1) {
+      tryMakeAndResetMailbox('/tmp/ccmb1.db', 'b', function(err, mb1) {
         assert(!err);
 
         var performSync = function(cb) {
