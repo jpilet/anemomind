@@ -83,7 +83,7 @@ describe(
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
 	rpcTable.mb_reset({
-	  // Omit 'thisMailboxName'
+	  // Omit 'thisMailboxName' to provoke an error.
 	}, function(response) {
 	  assert(response.error);
 	  done();
@@ -100,13 +100,15 @@ describe(
       'Should result in an error',
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
-	rpcTable.mb_getForeignDiaryNumber({
-	  thisMailboxName: mailboxName
-	  // omit the required argument for the function
-	}, function(response) {
-	  assert(response.error);
-	  done();
-	})
+        prepareMailbox(function(response) {
+	  rpcTable.mb_getForeignDiaryNumber({
+	    thisMailboxName: mailboxName
+	    // omit the required argument for the function
+	  }, function(response) {
+	    assert(response.error);
+	    done();
+	  })
+        });
       }
     );
   }
