@@ -24,10 +24,12 @@ function synchronizeLowerBounds(pair, a, b, cb) {
 }
 
 function transferPacketsSub(pair, fromIndex, toIndex, from, to, cb) {
+  console.log('Transfer packets from ' + from.name + ' to ' + to.name);
   if (fromIndex == toIndex) {
     cb();
   } else {
     from.getPacket(pair.src, pair.dst, fromIndex, function(err, packet) {
+      console.log('Get packet: %j', packet);
       if (err) {
         cb(err);
       } else if (!packet) {
@@ -47,6 +49,7 @@ function transferPacketsSub(pair, fromIndex, toIndex, from, to, cb) {
 
 var zero = bigint.zero();
 function transferPackets(pair, fromIndex, toIndex, from, to, cb) {
+  console.log('Transfer the packets from ' + from.name + ' to ' + to.name);
   if (toIndex == zero || fromIndex == toIndex) {
     cb();
   } else if (fromIndex == 0) {
@@ -63,8 +66,13 @@ function transferPackets(pair, fromIndex, toIndex, from, to, cb) {
 }
 
 function synchronizePackets(pair, a, b, cb) {
+  console.log('synchronizePackets');
+  console.log('Aname = ', a.name);
+  console.log('Bname = ', b.name);
   a.getUpperBound(pair.src, pair.dst, function(err, ubA) {
     b.getUpperBound(pair.src, pair.dst, function(err, ubB) {
+      console.log('ubA = ' + ubA);
+      console.log('ubB = ' + ubB);
       if (ubA < ubB) {
         transferPackets(pair, ubA, ubB, a, b, cb);
       } else if (ubA > ubB) {
@@ -77,7 +85,15 @@ function synchronizePackets(pair, a, b, cb) {
 }
 
 function synchronizePair(pair, a, b, cb) {
+  console.log('synchronizePair');
+  console.log('Aname = ', a.name);
+  console.log('Bname = ', b.name);
   synchronizeLowerBounds(pair, a, b, function(err) {
+    if (err) {
+      cb(err);
+    } else {
+      synchronizePackets(pair, a, b, cb);
+    }
   });
 }
 
@@ -85,7 +101,8 @@ function synchronizePairs(pairs, a, b, cb) {
   if (pairs.length == 0) {
     cb();
   } else {
-    synchronizePair(pairs[0], a, b, function(err, cb) {
+    var pair = pairs[0];
+    synchronizePair(pair, a, b, function(err) {
       if (err) {
         cb(err);
       } else {
@@ -119,15 +136,17 @@ function getCommonSrcDstPairs(a, b, cb) {
 }
 
 function synchronize(a, b, cb) {
-  getCommonSrcDstPairs(a, b, function(err, pairs) {
-    console.log('pairs: ' );
-    console.log(pairs);
-    if (err) {
-      cb(err);
-    } else {
-      synchronizePairs(pairs, a, b, cb);
-    }
-  });
+  if (a.name == b.name) {
+    cb(new Error('The end points must be different'));
+  } else {
+    getCommonSrcDstPairs(a, b, function(err, pairs) {
+      if (err) {
+        cb(err);
+      } else {
+        synchronizePairs(pairs, a, b, cb);
+      }
+    });
+  }
 }
 
 module.exports.synchronize = synchronize;
