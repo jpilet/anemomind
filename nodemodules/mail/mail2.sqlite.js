@@ -305,13 +305,13 @@ function setLowerBoundInTable(db, src, dst, lowerBound, cb) {
 
 function removeObsoletePackets(db, src, dst, lowerBound, cb) {
   db.run(
-    'DELETE FROM packets WHERE src = ? AND dst = ? AND seqNumber < lowerBound',
+    'DELETE FROM packets WHERE src = ? AND dst = ? AND seqNumber < ?',
     src, dst, lowerBound, cb);
 }
 
 EndPoint.prototype.getTotalPacketCount = function(cb) {
   var query = 'SELECT count(*) FROM packets';
-  this.getDB().get(
+  this.db.get(
     query, function(err, row) {
       if (err == undefined) {
 	cb(err, row['count(*)']);

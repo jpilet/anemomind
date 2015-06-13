@@ -74,7 +74,18 @@ describe('EndPoint', function() {
               ep.getLowerBound('ep', 'b', function(err, lb) {
                 assert(!err);
                 assert.equal(lb, packet.seqNumber);
-                done();
+                ep.getTotalPacketCount(function(err, count) {
+                  assert(!err);
+                  assert(count == 1);
+                  ep.setLowerBound('ep', 'b', bigint.inc(packet.seqNumber), function(err) {
+                    assert(!err);
+                    ep.getTotalPacketCount(function(err, count) {
+                      assert(!err);
+                      assert(count == 0);
+                      done();
+                    });
+                  });
+                });
               });
             });
           });
