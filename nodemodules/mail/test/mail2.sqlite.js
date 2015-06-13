@@ -111,7 +111,11 @@ describe('EndPoint', function() {
                 ep.getPacket('ep', 'a', pa.seqNumber, function(err, pa2) {
                   assert(!err);
                   assert(eq(pa, pa2));
-                  done();
+                  ep.getPacket('ep', 'b', pb.seqNumber, function(err, pb2) {
+                    assert(!err);
+                    assert(!pb2);
+                    done();
+                  });
                 });
               });
             });
