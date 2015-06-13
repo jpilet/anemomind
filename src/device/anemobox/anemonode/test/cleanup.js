@@ -1,9 +1,9 @@
-var mb = require('mail/mail.sqlite.js');
+var mb = require('mail/mail2.sqlite.js');
 var lmb = require('../components/LocalMailbox.js');
 var config = require('../components/config.js');
 var ensureConfig = require('./EnsureConfig.js');
 var fs = require('fs');
-var sync = require('mail/sync.js');
+var sync = require('mail/sync2.js');
 var assert = require('assert');
 
 function makeLogFilename(index) {
@@ -53,7 +53,7 @@ describe('Cleanup sent log files', function() {
         lmb.reset(function(err) {
           createAndSendLogFiles(5, function(err, localMailbox) {
             assert(!err);
-            mb.tryMakeMailbox('/tmp/serverbox.db', mailboxName, function(err, serverMailbox) {
+            mb.tryMakeEndPoint('/tmp/serverbox.db', mailboxName, function(err, serverMailbox) {
               serverMailbox.reset(function(err) {
                 serverMailbox.ackFrequency = 3;
                 assert(!err);
