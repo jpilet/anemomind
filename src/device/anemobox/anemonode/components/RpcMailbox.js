@@ -1,10 +1,9 @@
 // This file exports a single function, fillTable, that can be used to fille the rpcFuncTable of
 // rpcble.js. It is used by RpcMailbox.js. The reason for putting this code in its own file
 // is to facilitate unit testing.
-schema = require('mail/mailbox-schema.js');
-coder = require("mail/json-coder.js");
-mb = require("./LocalMailbox.js");
-
+var schema = require('mail/mailbox-schema.js');
+var coder = require("mail/json-coder.js");
+var mb = require("./LocalMailbox.js");
 
 // Conveniency function for
 // error handling.
@@ -74,31 +73,39 @@ function encodeResult(argSpecs, result) {
 // mailbox and return the result.
 function makeRpcFunction(methodName, method) {
   return function(data, cb) {
-    var mailboxName = data.thisMailboxName;
-    try {
-      if (ensureCB(mailboxName != undefined,
-		   "You must pass a mailbox name", cb)) {
+    mb.getName(function(localName) {
+      var mailboxName = data.thisMailboxName;
+      if (typeof mailboxName != 'string') {
+        cb({error: 'The mailbox name must be a string'});
+      } else if (localName.trim() != mailboxName.trim()) {
+        cb({error: 'The local mailbox is named "' + localName + '" but you are attempting to access "' + mailboxName + '"'});
+      } else {
+        try {
+          if (ensureCB(mailboxName != undefined,
+		       "You must pass a mailbox name", cb)) {
 
-	var args = coder.decodeArgs(method.input, data);
-	callMailboxMethod(
-	  mailboxName, methodName, args,
-	  function(err, result) {
-	    if (err) {
-	      var message = "Error accessing mailbox with name " +
-		mailboxName + " and method " + methodName;
-	      console.log(message);
-	      console.log("The error is %j", err);
-	      cb({error: message +  + ". See the server log for details."});
-	    } else {
-	      cb(encodeResult(method.output, result));
-	    }
-	  }
-	);
+	    var args = coder.decodeArgs(method.input, data);
+	    callMailboxMethod(
+	      mailboxName, methodName, args,
+	      function(err, result) {
+	        if (err) {
+	          var message = "Error accessing mailbox with name " +
+		    mailboxName + " and method " + methodName;
+	          console.log(message);
+	          console.log("The error is %j", err);
+	          cb({error: message +  + ". See the server log for details."});
+	        } else {
+	          cb(encodeResult(method.output, result));
+	        }
+	      }
+	    );
+          }
+        } catch (e) {
+          console.log("Caught this exception: " + e);
+          cb({error: "Caught an exception on the server. See the server log for details."});
+        }
       }
-    } catch (e) {
-      console.log("Caught this exception: " + e);
-      cb({error: "Caught an exception on the server. See the server log for details."});
-    }
+    });
   }
 }
 
