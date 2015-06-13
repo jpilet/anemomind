@@ -540,6 +540,24 @@ EndPoint.prototype.disp = function(cb) {
   });
 }
 
+EndPoint.prototype.close = function(cb) {
+  this.db.close(cb);
+  this.db = null;
+}
+
+EndPoint.prototype.open = function(cb) {
+  var self = this;
+  if (!self.db) {
+    openDBWithFilename(this.dbFilename, function(err, db) {
+      self.db = db;
+      cb(err);
+    });
+  } else {
+    cb();
+  }
+}
+
+
 module.exports.EndPoint = EndPoint;
 module.exports.tryMakeEndPoint = tryMakeEndPoint;
 module.exports.tryMakeAndResetEndPoint = tryMakeAndResetEndPoint;
