@@ -36,10 +36,9 @@ function makeBuf(x) {
 
 
 describe('sync2', function() {
-  var aPackets = [];
-  var bPackets = [];
-  
   it('Should synchronize one packet', function(done) {
+    var aPackets = [];
+    var bPackets = [];
     makeAB(function(err, a, b) {
       assert(!err);
       a.addPacketHandler(function(p) {aPackets.push(p);});
@@ -51,6 +50,27 @@ describe('sync2', function() {
           assert.equal(aPackets.length, 0);
           assert.equal(bPackets.length, 1);
           done();
+        });
+      });
+    });
+  });
+  
+  it('synco', function(done) {
+    var aPackets = [];
+    var bPackets = [];
+    makeAB(function(err, a, b) {
+      assert(!err);
+      a.addPacketHandler(function(p) {aPackets.push(p);});
+      b.addPacketHandler(function(p) {bPackets.push(p);});
+      b.sendPacket('a', 119, makeBuf([0, 1, 2]), function(err) {
+        assert(!err);
+        sync2.synchronize(a, b, function(err) {
+          assert(!err);
+          sync2.disp(a, b, function(err) {
+            assert.equal(aPackets.length, 1);
+            assert.equal(bPackets.length, 0);
+            done();
+          })
         });
       });
     });

@@ -34,16 +34,23 @@ function transferPacketsSub(pair, fromIndex, toIndex, from, to, cb) {
     cb();
   } else {
     from.getPacket(pair.src, pair.dst, fromIndex, function(err, packet) {
+      console.log('Get packet from ' + from.name);
+      console.log(packet);
       if (err) {
         cb(err);
       } else if (!packet) {
         cb(new Error("Missing packet"));
       } else {
         to.putPacket(packet, function(err) {
+          console.log('Put packet in ' + to.name);
           if (err) {
+            console.log('ERROR');
             cb(err);
           } else {
-            transferPacketsSub(pair, bigint.inc(fromIndex), toIndex, from, to, cb);
+            console.log('NOW DISPLAY TO');
+            to.disp(function(err) {
+              transferPacketsSub(pair, bigint.inc(fromIndex), toIndex, from, to, cb);
+            });
           }
         });
       }
@@ -53,6 +60,10 @@ function transferPacketsSub(pair, fromIndex, toIndex, from, to, cb) {
 
 var zero = bigint.zero();
 function transferPackets(pair, fromIndex, toIndex, from, to, cb) {
+  console.log('Transfer packets from ' + fromIndex + ' to ' + toIndex);
+  console.log('   pair = ', pair);
+  console.log('   from = ', from.name);
+  console.log('   to   = ', to.name);
   if (toIndex == zero || fromIndex == toIndex) {
     cb();
   } else if (fromIndex == 0) {
@@ -145,3 +156,4 @@ function synchronize(a, b, cb) {
 }
 
 module.exports.synchronize = synchronize;
+module.exports.disp = disp;
