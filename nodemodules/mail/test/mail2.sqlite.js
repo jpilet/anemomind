@@ -188,6 +188,13 @@ describe('EndPoint', function() {
       seqNumber: bigint.inc(bigint.zero()),
       data: new Buffer(0)
     };
+    var q = {
+      src: 'a',
+      dst: 'b',
+      label: 130,
+      seqNumber: bigint.inc(p.seqNumber),
+      data: new Buffer(0)
+    };
     makeTestEP(function(err, ep) {
       ep.putPacket(p, function(err) {
         assert(!err);
@@ -200,7 +207,13 @@ describe('EndPoint', function() {
               assert(err)
               ep.getTotalPacketCount(function(err, count) {
                 assert.equal(count, 1);
-                done();
+                ep.putPacket(q, function(err) {
+                  assert(!err);
+                  ep.getTotalPacketCount(function(err, count) {
+                    assert.equal(count, 2);
+                    done();
+                  });
+                });
               });
             });
           });
