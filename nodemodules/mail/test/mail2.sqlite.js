@@ -1,6 +1,7 @@
 var mb = require('../mail2.sqlite.js');
 var assert = require('assert');
 var bigint = require('../bigint.js');
+var eq = require('deep-equal-ident');
 
 function makeTestEP(cb) {
   mb.tryMakeAndResetEndPoint('/tmp/ep.db', 'ep', cb);
@@ -85,6 +86,32 @@ describe('EndPoint', function() {
                       done();
                     });
                   });
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+
+  it('Send a two packets, set the lower bound for one of them', function(done) {
+    makeTestEP(function(err, ep) {
+      ep.sendPacketAndReturn('a', 119, new Buffer(0), function(err, pa) {
+        assert(!err);
+        ep.sendPacketAndReturn('b', 119, new Buffer(0), function(err, pb) {
+          assert(!err);
+          ep.getTotalPacketCount(function(err, count) {
+            assert(!err);
+            assert.equal(count, 2);
+            ep.setLowerBound('ep', 'b', bigint.inc(pb.seqNumber), function() {
+              ep.getTotalPacketCount(function(err, count) {
+                assert(!err);
+                assert.equal(count, 1);
+                ep.getPacket('ep', 'a', pa.seqNumber, function(err, pa2) {
+                  assert(!err);
+                  assert(eq(pa, pa2));
+                  done();
                 });
               });
             });

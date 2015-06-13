@@ -217,7 +217,7 @@ EndPoint.prototype.getLowerBound = function(src, dst, cb) {
     }, cb);
 }
 
-function getPacketSub(db, src, dst, seqNumber, cb) {
+function getPacket(db, src, dst, seqNumber, cb) {
   db.get(
     'SELECT * FROM packets WHERE src = ? AND dst = ? AND seqNumber = ?',
     src, dst, seqNumber, function(err, row) {
@@ -230,7 +230,7 @@ function getPacketSub(db, src, dst, seqNumber, cb) {
 }
 
 EndPoint.prototype.getPacket = function(src, dst, seqNumber, cb) {
-  getPacketSub(this.db, src, dst, seqNumber, cb);
+  getPacket(this.db, src, dst, seqNumber, cb);
 }
 
 function getLastPacket(db, src, dst, cb) {
@@ -345,6 +345,9 @@ EndPoint.prototype.setLowerBound = function(src, dst, lowerBound, cb) {
   withTransaction(this.db, function(T, cb) {
     setLowerBound(T, src, dst, lowerBound, cb);
   }, cb);
+}
+
+EndPoint.prototype.getSrcDstPairs = function(cb) {
 }
 
 
