@@ -29,6 +29,8 @@ enum DataCode {
   WAT_DIST = 10,
   GPS_POS = 11,
   DATE_TIME = 12,
+  TARGET_VMG = 13,
+  VMG = 14,
 };
 
 class DispatchDataVisitor;
@@ -64,9 +66,10 @@ class TypedDispatchData : public DispatchData {
   TypedDispatchData(std::map<DataCode, DispatchData*> *index,
                     DataCode nature,
                     std::string wordIdentifier,
-                    std::string description)
+                    std::string description,
+                    Clock* clock)
      : DispatchData(index, nature, wordIdentifier, description),
-     _dispatcher(1024) { }
+     _dispatcher(clock, 1024) { }
 
   virtual void visit(DispatchDataVisitor *visitor);
   ValueDispatcher<T> *dispatcher() { return &_dispatcher; }
@@ -103,7 +106,7 @@ void TypedDispatchData<T>::visit(DispatchDataVisitor *visitor) {
 
 //! Dispatcher: the hub for all values processed by the anemobox.
 // the data() method allows enumeration of all components.
-class Dispatcher {
+class Dispatcher : public Clock {
  public:
   Dispatcher();
 
@@ -125,6 +128,8 @@ class Dispatcher {
   DispatchLengthData* watDist() { return &_watDist; }
   DispatchGeoPosData* pos() { return &_pos; }
   DispatchTimeStampData* dateTime() { return &_dateTime; }
+  DispatchVelocityData* targetVmg() { return &_targetVmg; }
+  DispatchVelocityData* vmg() { return &_vmg; }
 
  private:
   static Dispatcher *_globalInstance;
@@ -142,6 +147,8 @@ class Dispatcher {
   DispatchLengthData _watDist;
   DispatchGeoPosData _pos;
   DispatchTimeStampData _dateTime;
+  DispatchVelocityData _targetVmg;
+  DispatchVelocityData _vmg;
 };
 
 // A convenient visitor to subscribe to any dispatch data type.

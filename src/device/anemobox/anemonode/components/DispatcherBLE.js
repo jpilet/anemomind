@@ -9,6 +9,24 @@ function pad (str, max) {
   return str.length < max ? pad("0" + str, max) : str;
 }
 
+var queue = [];
+var queuedEntries = {};
+var sending = false;
+
+function next() {
+  if (sending) {
+    return;
+  }
+  if (queue.length == 0) {
+    return;
+  }
+  var d = queue.shift();
+  sending = true;
+  d.updateValueCallback(encodeValueInBuffer(d.entry));
+  delete queuedEntries[d.entry];
+};
+
+
 //Define a class to adapt dispacher entries to characteristics.
 function DispatcherCharacteristic(entry) {
   this.entry = entry;
@@ -64,7 +82,11 @@ DispatcherCharacteristic.prototype.onSubscribe = function(maxValueSize, updateVa
   var entry = this.entry;
   this.subscribeIndex = anemonode.dispatcher[this.entry].subscribe(
     function(val) {
-      updateValueCallback(encodeValueInBuffer(entry));
+      if (!(entry in queuedEntries)) {
+        queue.push({updateValueCallback: updateValueCallback, entry: entry });
+        queuedEntries[entry] = true;
+        next();
+      }
     }
   );
 };
@@ -80,6 +102,8 @@ DispatcherCharacteristic.prototype.onUnsubscribe = function() {
 
 DispatcherCharacteristic.prototype.onNotify = function() {
   // Called when the phone has been notified of a value change.
+  sending = false;
+  next();
 };
 
 DispatcherCharacteristic.prototype.onReadRequest = function(offset, callback) {

@@ -77,6 +77,9 @@ angular.module('www2App')
     });
 
     function updatePosition() {
+      if(!$scope.currentTime){
+        $scope.currentTime = new Date($scope.plotData[0]['time']);
+      }
       $scope.currentTime = new Date($scope.currentTime.getTime()+20 * 1000);
       if ($scope.currentTime >= $scope.plotData[$scope.plotData.length - 1]['time']) {
         $scope.currentTime = new Date($scope.plotData[0]['time']);

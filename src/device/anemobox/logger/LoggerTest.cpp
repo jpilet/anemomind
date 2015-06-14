@@ -63,4 +63,9 @@ TEST(LoggerTest, LogText) {
       EXPECT_EQ("sentence B1", stream.text(0));
     }
   }
+
+  // logger has been flushed. Flushing a 2nd time should give an empty result.
+  LogFile empty;
+  logger.flushTo(&empty);
+  EXPECT_EQ(0, empty.text_size());
 }

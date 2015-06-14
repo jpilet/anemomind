@@ -296,8 +296,8 @@ NmeaParser::NmeaSentence NmeaParser::processCommand() {
 
 NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
   if (argc_<10) return NMEA_NONE;
-  if (strlen(argv_[1]) != 6) return NMEA_NONE;
-  if (strlen(argv_[9]) != 6) return NMEA_NONE;
+  if (strlen(argv_[1]) < 6) return NMEA_NONE;
+  if (strlen(argv_[9]) < 6) return NMEA_NONE;
 
   gpsSpeed_ = parseSpeed(argv_[7], argv_[8]);
   hour_ = parse2c(argv_[1]);
@@ -307,18 +307,13 @@ NmeaParser::NmeaSentence NmeaParser::processGPRMC() {
   month_ = parse2c(argv_[9]+2);
   year_ = parse2c(argv_[9]+4);
 
-  pos_.lat.set(
-    parse2c(argv_[3]),
-    parse2c(argv_[3]+2),
-    parseNc(argv_[3]+5,3));
+  pos_.lat.set(parse2c(argv_[3]) + atof(argv_[3] + 2) / 60.0);
   if (argv_[4][0] == 'S') {
     pos_.lat.flip();
   }
 
   pos_.lon.set(
-    parseNc(argv_[5],3),
-    parse2c(argv_[5]+3),
-    parseNc(argv_[5]+6,3));
+    parseNc(argv_[5],3) + atof(argv_[5]+3) / 60.0);
   if (argv_[6][0] == 'W') {
     pos_.lon.flip();
   }
@@ -543,24 +538,50 @@ NmeaParser::NmeaSentence NmeaParser::processVTG() {
 }
 
 
-double AccAngle::toDouble() const {
-  double subdeg = ((double)min_ + (double)mc_/1000.0) / 60.0;
-  //return (double)deg_ + (deg_ < 0 ? -subdeg : subdeg);
-  return deg_ + subdeg;
-}
-
 void AccAngle::flip() {
-  deg_ = - deg_;
-  min_ = - min_;
-  mc_ = - mc_;
+  _angle = -_angle;
 }
 
 AccAngle::AccAngle() {
-  deg_ = NmeaParser::INVALID_DATA_SHORT;
-  min_ = NmeaParser::INVALID_DATA_SHORT;
-  mc_ = NmeaParser::INVALID_DATA_SHORT;
+  _angle = -1e32;
 }
 
+Word AccAngle::deg() const {
+  char sign = (_angle < 0 ? -1 : 1);
+  double angleAbs = (_angle < 0 ? -_angle : _angle);
+  int degrees = (int)(angleAbs);
+  Word deg = degrees;
+  if (sign < 0) {
+    deg = - deg;
+  }
+  return deg;
+}
+
+Word AccAngle::min() const {
+  char sign = (_angle < 0 ? -1 : 1);
+  double angleAbs = (_angle < 0 ? -_angle : _angle);
+  int degrees = (int)(angleAbs);
+  double minutes = (angleAbs - degrees) * 60;
+  Word min = (int)(minutes);
+  if (sign < 0) {
+    min = - min;
+  }
+  return min;
+}
+
+Word AccAngle::mc() const {
+  char sign = (_angle < 0 ? -1 : 1);
+  double angleAbs = (_angle < 0 ? -_angle : _angle);
+  int degrees = (int)(angleAbs);
+  double minutes = (angleAbs - degrees) * 60;
+  Word min = (int)(minutes);
+  Word mc = (int)((minutes - min) * 1000 + .5);
+  if (sign < 0) {
+    mc = - mc;
+  }
+  return mc;
+}
+/*
 void AccAngle::set(double dbl) {
   char sign = (dbl < 0 ? -1 : 1);
   double angleAbs = (dbl < 0 ? -dbl : dbl);
@@ -575,7 +596,7 @@ void AccAngle::set(double dbl) {
     mc_ = - mc_;
   }
 }
-
+*/
 
 static void wgs84ToXYZ(double lonDeg, double latDeg, double altitude,
                        double *xyz, double *dlon, double *dlat) {

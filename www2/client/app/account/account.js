@@ -9,7 +9,7 @@ angular.module('www2App')
         controller: 'LoginCtrl'
       })
       .state('signup', {
-        url: '/signup',
+        url: '/signup?email&name',
         templateUrl: 'app/account/signup/signup.html',
         controller: 'SignupCtrl'
       })
@@ -18,5 +18,11 @@ angular.module('www2App')
         templateUrl: 'app/account/settings/settings.html',
         controller: 'SettingsCtrl',
         authenticate: true
+      })
+      .state('resetpassword', {
+        url: '/resetpassword',
+        templateUrl: 'app/account/resetpassword/resetpassword.html',
+        controller: 'ResetPasswordCtrl',
+        authenticate: false
       });
   });

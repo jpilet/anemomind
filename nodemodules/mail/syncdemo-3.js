@@ -176,18 +176,19 @@ function startSync(err, mailboxes, done) {
 
 // Called once the first mailbox has been filled
 function synchronizeThreeMailboxes(mailboxes, done) {
-    assert.equal(mailboxes.length, 3);
-    someSpace('');
-    var PACKETCOUNT = 39;
-    fillWithPackets(
-	PACKETCOUNT,
-	mailboxes[0],
-	mailboxes[2].mailboxName,
-	function(err) {
-	    assert.equal(err, undefined);
-	    startSync(err, mailboxes, done);
-	}
-    );
+  assert.equal(mailboxes.length, 3);
+  mailboxes[1].forwardPackets = true;
+  someSpace('');
+  var PACKETCOUNT = 39;
+  fillWithPackets(
+    PACKETCOUNT,
+    mailboxes[0],
+    mailboxes[2].mailboxName,
+    function(err) {
+      assert.equal(err, undefined);
+      startSync(err, mailboxes, done);
+    }
+  );
 }
 
 

@@ -4,11 +4,24 @@
 
 #include <iostream>
 #include <iomanip>
+#include <vector>
+#include <algorithm>
 
 using namespace sail;
 using namespace std;
 
 namespace {
+
+struct TimedString {
+  TimeStamp time;
+  std::string str;
+
+  TimedString(TimeStamp t, const string& s) : time(t), str(s) { }
+
+  bool operator < (const TimedString& other) const {
+    return time < other.time;
+  }
+};
 
 ostream& operator<<(ostream& out, const Angle<double>& angle) {
   return out << angle.degrees() << " deg.";
@@ -27,46 +40,49 @@ ostream& operator<<(ostream& out, const GeographicPosition<double>& value) {
 
 template <class T>
 void formatValues(const vector<TimeStamp>& times,
-                  const vector<T>& values) {
+                  const vector<T>& values,
+                  const string& name,
+                  vector<TimedString>* result) {
   if (times.size() != values.size()) {
     LOG(WARNING) << "time and value array do not have the same size!";
   }
   const int len = min(times.size(), values.size());
   for (int i = 0; i < len; ++i) {
-    cout << "  " << times[i].toString() << " " << values[i] << endl;
+    ostringstream s;
+    s << name << ": " << values[i];
+    result->push_back(TimedString(times[i], s.str()));
   }
 }
   
-void streamCat(const ValueSet& valueSet) {
-  cout << "\n" << valueSet.shortname() << ":\n";
+void streamCat(const ValueSet& valueSet, vector<TimedString>* entries) {
   vector<TimeStamp> times;
   Logger::unpackTime(valueSet, &times);
 
   if (valueSet.has_angles()) {
     vector<Angle<double>> angles;
     Logger::unpack(valueSet.angles(), &angles);
-    formatValues(times, angles);
+    formatValues(times, angles, valueSet.shortname(), entries);
   }
   if (valueSet.has_velocity()) {
     vector<Velocity<double>> values;
     Logger::unpack(valueSet.velocity(), &values);
-    formatValues(times, values);
+    formatValues(times, values, valueSet.shortname(), entries);
   }
   if (valueSet.has_length()) {
     vector<Length<double>> values;
     Logger::unpack(valueSet.length(), &values);
-    formatValues(times, values);
+    formatValues(times, values, valueSet.shortname(), entries);
   }
   if (valueSet.has_pos()) {
     vector<GeographicPosition<double>> values;
     Logger::unpack(valueSet.pos(), &values);
-    formatValues(times, values);
+    formatValues(times, values, valueSet.shortname(), entries);
   }
 
   for (int i = 0; i < valueSet.text_size(); ++i) {
-    cout << "  " << times[i].toString() << ": \""
-      << valueSet.text(i) << "\"\n";
+    entries->push_back(TimedString(times[i], valueSet.shortname() + ": " + valueSet.text(i)));
   }
+
 }
 
 void logCat(const char* file) {
@@ -87,12 +103,19 @@ void logCat(const char* file) {
     cout << "boatName: " << data.boatname() << endl;
   }
 
+  vector<TimedString> entries;
   for (int i = 0; i < data.stream_size(); ++i) {
-    streamCat(data.stream(i));
+    streamCat(data.stream(i), &entries);
   }
 
   for (int i = 0; i < data.text_size(); ++i) {
-    streamCat(data.text(i));
+    streamCat(data.text(i), &entries);
+  }
+
+  sort(entries.begin(), entries.end());
+
+  for (const TimedString& entry : entries) {
+    cout << entry.time.toString() << ": " << entry.str << endl;
   }
 }
 

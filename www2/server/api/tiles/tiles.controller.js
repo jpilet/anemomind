@@ -33,7 +33,7 @@ exports.retrieveRaw = function(req, res, next) {
     if (err) {
       return next(err);
     }
-    if (!tiles) return res.send(404);
+    if (!tiles) return res.sendStatus(404);
 
     res.contentType('application/json');
     return res.send(JSON.stringify(tiles));
@@ -53,7 +53,7 @@ exports.retrieveGeoJson = function(req, res, next) {
     if (err) {
       return next(err);
     }
-    if (!tiles) return res.send(404);
+    if (!tiles) return res.sendStatus(404);
 
     var json = {
       type: "FeatureCollection",
@@ -109,5 +109,5 @@ function tile2LonLat(point) {
 }
 
 function handleError(res, err) {
-  return res.send(500, err);
+  return res.status(500).send(err);
 }

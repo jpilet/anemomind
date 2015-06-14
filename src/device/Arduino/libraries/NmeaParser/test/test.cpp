@@ -94,8 +94,23 @@ TEST(NmeaParserTest, TestRMC) {
   EXPECT_EQ(401, parser.pos().lat.mc());
   EXPECT_EQ(-7, parser.pos().lon.deg());
   EXPECT_EQ(-46, parser.pos().lon.min());
-  EXPECT_EQ(-593, parser.pos().lon.mc());
+  EXPECT_EQ(-594, parser.pos().lon.mc());
   EXPECT_EQ(4, parser.numSentences());
+
+  sendSentence(
+      "$GNRMC,153022.00,A,4735.10587,N,00301.75513,W,0.022,,260515,,,A*77",
+      &parser);
+  EXPECT_EQ(47, parser.pos().lat.deg());
+  EXPECT_EQ(35, parser.pos().lat.min());
+  EXPECT_EQ(106, parser.pos().lat.mc());
+  EXPECT_EQ(-3, parser.pos().lon.deg());
+  EXPECT_EQ(-01, parser.pos().lon.min());
+  EXPECT_EQ(-755, parser.pos().lon.mc());
+  EXPECT_EQ(15, parser.hour());
+  EXPECT_EQ(30, parser.min());
+  EXPECT_EQ(22, parser.sec());
+  EXPECT_NEAR(.022, parser.gpsSpeed().knots(), .01);
+  EXPECT_EQ(5, parser.numSentences());
 }
 
 TEST(NmeaParserTest, TestAccAngle) {

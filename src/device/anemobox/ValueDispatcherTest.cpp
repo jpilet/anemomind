@@ -16,7 +16,8 @@ class MockListener : public Listener<int> {
 
 TEST(ValueDispatcherTest, Notify) {
   MockListener listener;
-  ValueDispatcher<int> dispatcher(1);
+  Clock clock;
+  ValueDispatcher<int> dispatcher(&clock, 1);
   dispatcher.subscribe(&listener);
 
   EXPECT_CALL(listener, gotValue(3));
@@ -29,7 +30,8 @@ TEST(ValueDispatcherTest, Notify) {
 }
 
 TEST(ValueDispatcher, AvoidFlooding) {
-  ValueDispatcher<int> dispatcher(1);
+  Clock clock;
+  ValueDispatcher<int> dispatcher(&clock, 1);
   MockListener listener(Duration<>::milliseconds(5));
   dispatcher.subscribe(&listener);
 

@@ -16,7 +16,6 @@ function init(dataCb) {
 
   var nmeaSource = new anemonode.Nmea0183Source("Internal GPS");
 
-
   setInterval(function() {
     i2c.address(CAM_M8Q_I2C_BASE_ADDR);
     var data = [];

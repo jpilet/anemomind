@@ -65,3 +65,10 @@ TEST(TimeStampTest, ToStreamTest) {
   EXPECT_EQ(expected, ss.str());
 }
 
+TEST(TimeStampTest, Sleep) {
+  TimeStamp before = TimeStamp::now();
+  usleep(100000);
+  TimeStamp after = TimeStamp::now();
+  EXPECT_LE(before + Duration<>::seconds(.1), after);
+}
+

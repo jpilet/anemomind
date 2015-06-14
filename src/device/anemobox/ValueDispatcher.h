@@ -38,7 +38,7 @@ class Listener {
 
 template <typename T>
 struct TimedValue {
-  TimedValue(T value) : time(TimeStamp::now()), value(value) { }
+  TimedValue(TimeStamp time, T value) : time(time), value(value) { }
 
   TimeStamp time;
   T value;
@@ -47,7 +47,8 @@ struct TimedValue {
 template <typename T>
 class ValueDispatcher {
  public:
-  ValueDispatcher(int bufferLength) : bufferLength_(bufferLength) { }
+  ValueDispatcher(Clock* clock, int bufferLength)
+    : bufferLength_(bufferLength), clock(clock) { }
 
   void subscribe(Listener<T> *listener) { 
     listeners_.insert(listener);
@@ -67,6 +68,7 @@ class ValueDispatcher {
   std::set<Listener<T> *> listeners_;
   std::deque<TimedValue<T>> values_;
   size_t bufferLength_;
+  Clock* clock;
 };
 
 template <typename T>
@@ -103,7 +105,7 @@ void Listener<T>::stopListening() {
 
 template <typename T>
 void ValueDispatcher<T>::setValue(T value) {
-  values_.push_front(TimedValue<T>(value));
+  values_.push_front(TimedValue<T>(clock->currentTime(), value));
   while (values_.size() > bufferLength_) {
     values_.pop_back();
   }
