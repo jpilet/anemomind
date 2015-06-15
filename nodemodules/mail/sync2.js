@@ -133,6 +133,12 @@ function getCommonSrcDstPairs(a, b, cb) {
   });
 }
 
+function runSyncJob(job, putPacket, cb) {
+  transferPacketsSub(job.pair, job.fromIndex,
+                     job.toIndex, job.from, job.to, putPacket, cb);
+}
+
+
 function countPackets(jobs) {
   var counter = 0;
   for (var i = 0; i < jobs.length; i++) {
@@ -177,9 +183,9 @@ function runSyncJobs(jobs, cb, cbProgress) {
 function makeSyncJob(pair, lb, aub, bub, a, b) {
   var fromIndex = calcFromIndex(lb, aub, bub);
   if (aub < bub) {
-    return {fromIndex: fromIndex, toIndex: bub, from: b, to: a};
+    return {pair: pair, fromIndex: fromIndex, toIndex: bub, from: b, to: a};
   } else {
-    return {fromIndex: fromIndex, toIndex: aub, from: a, to: b};
+    return {pair: pair, fromIndex: fromIndex, toIndex: aub, from: a, to: b};
   }
 }
 
@@ -226,72 +232,40 @@ function synchronizeAllLowerBounds(pairs, a, b, cb) {
   b.getLowerBounds(pairs, results.makeSetter(1));
 }
 
-function calcTotalPacketCountToTransfer(ubs) {
-  assert(ubs.length == 2);
-  var a = ubs[0];
-  var b = ubs[1];
-  assert(a.length == b.length);
-  var count = 0;
-  for (var i = 0; i < a.length; i++) {
-    count += abs(bigint.diff(a[i], b[i]));
-  }
-  return count;
-}
 
-function synchronizeAllPacketsSub(i, pairs, aubs, bubs, a, b, putPacketSub, cb) {
-  assert(pairs.length == aubs.length);
-  assert(pairs.length == bubs.length);
-  if (i == pairs.length) {
-    cb();
-  } else {
 
-    // Next iteration
-    var next = function(err) {
-      if (err) {
-        cb(err);
-      } else {
-        cb(i+1, pairs, aubs, bubs, a, b, putPacketSub, cb);
-      }
-    }
-    
-    var pair = pairs[i];
-    var aub = aubs[i];
-    var bub = bubs[i];
-    if (aub > bub) {
-      transferPackets(pair, bub, aub, a, b, putPacketSub, next);
-    } else if (aub < bub) {
-      transferPackets(pair, aub, bub, b, a, putPacketSub, next);
-    } else {
-      next();
-    }
-  }
-}
-
-function synchronizeAllPackets(pairs, a, b, cb, cbProgress) {
+function synchronizeAllPackets(pairs, lbs, a, b, cb, cbProgress) {
   var reportProgress = cbProgress || function() {};
   var ubResults = new common.ResultArray(2, function(err, ubs) {
     if (err) {
       cb(err);
     } else {
-      // Putting packets and reporting progress.
-      var totalPacketCount = calcTotalPacketCountToTransfer(ubs);
-      var putCounter = 0;
-      var putPacketSub = function(dst, packet, cb) {
-        dst.putPacket(packet, function(err) {
-          if (!err) {
-            putCounter++;
-            reportProgress(putCounter, totalPacketCount);
-          }
-          cb(err);
-        });
-      }
-      
-      // Actual packet transfer.
-      synchronizeAllPacketsSub(0, pairs, aubs, bubs, a, b, putPacketSub, cb);
+      var jobs = makeSyncJobs(pairs, lbs, ubResults[0], ubResults[1], a, b);
+      runSyncJobs(jobs, cb, cbProgress);
     }
   });
   a.getUpperBounds(pairs, ubResults.makeSetter(0));
   b.getUpperBounds(pairs, ubResults.makeSetter(1));
+}
+
+function synchronize2(a, b, cb, cbProgress) {
+  if (a.name == b.name) {
+    cb(new Error('The end points must be different'));
+  } else {
+    getCommonSrcDstPairs(a, b, function(err, pairs) {
+      if (err) {
+        cb(err);
+      } else {
+        synchronizeAllLowerBounds(pairs, a, b, function(err, lbs) {
+          if (err) {
+            cb(err);
+          } else {
+            synchronizeAllPackets(pairs, lbs, a, b, cb, cbProgress);
+          }
+        });
+      }
+    });
+  }
 }
 
 function synchronize(a, b, cb) {
