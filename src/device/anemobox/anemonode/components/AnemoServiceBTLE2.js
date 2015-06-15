@@ -6,6 +6,24 @@ var SerialNumberCharacteristic = require('./SerialNumberCharacteristic');
 var BlenoPrimaryService = bleno.PrimaryService;
 var BlenoCharacteristic = bleno.Characteristic;
 
+var timer;
+var anemoServiceUuid = 'AFF1E42DEF91456F86FA8703FFFFFFF0';
+
+var changeBTState = function() {
+  console.log('looping on bt start');
+  bleno.on('stateChange', function(state) {
+    console.log('on -> stateChange: ' + state);
+   
+    if (state === 'poweredOn') {
+      console.log('poweredOn !');
+      bleno.startAdvertising('Anemobox', [anemoServiceUuid]);
+      clearInterval(timer);
+    } else {
+      bleno.stopAdvertising();
+    }
+  });
+}
+
 function startBTLE() {
 
   var characteristicsArray = [];
@@ -26,7 +44,6 @@ function startBTLE() {
   util.inherits(DeviceInformationService, BlenoPrimaryService);
   module.exports = DeviceInformationService;
    
-  var anemoServiceUuid = 'AFF1E42DEF91456F86FA8703FFFFFFF0';
   function AnemoService() {
     AnemoService.super_.call(this, {
       uuid: anemoServiceUuid,
@@ -36,17 +53,7 @@ function startBTLE() {
    
   util.inherits(AnemoService, BlenoPrimaryService);
 
-  bleno.on('stateChange', function(state) {
-    console.log('on -> stateChange: ' + state);
-   
-    if (state === 'poweredOn') {
-      console.log('poweredOn !');
-      bleno.startAdvertising('Anemobox', [anemoServiceUuid]);
-    } else {
-      bleno.stopAdvertising();
-      setTimeout(startBTLE(), 1000);
-    }
-  });
+  timer = setInterval(changeBTState(), 1000);
    
   bleno.on('advertisingStart', function(error) {
     console.log('on -> advertisingStart: ' + (error ? 'error ' + error : 'success'));
