@@ -472,25 +472,10 @@ EndPoint.prototype.getSrcDstPairs = function(cb) {
 
 function getPerPairData(T, pairs, fun, field, cb) {
   var counter = 0;
+  var results = new common.ResultArray(pairs.length, cb);
   for (var i = 0; i < pairs.length; i++) {
     var pair = pairs[i];
-    var call = function(pair) { // <-- to capture pair.
-      fun(T, pair.src, pair.dst, function(err, lb) {
-        if (err) {
-          if (counter) {
-            cb(err);
-          }
-          counter = null;
-        } else {
-          pair[field] = lb;
-          counter++;
-          if (counter == pairs.length) {
-            cb(null, pairs);
-          }
-        }
-      })
-    };
-    call(pairs[i]);
+    fun(T, pair.src, pair.dst, results.makeSetter(i));
   }
 }
 

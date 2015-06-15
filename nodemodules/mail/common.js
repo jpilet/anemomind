@@ -5,6 +5,40 @@ module.exports.logfile = 128;
 module.exports.scriptRequest = 129;
 module.exports.scriptResponse = 130;
 
+
+function ResultArray(n, cb) {
+  this.dst = new Array(n);
+  this.counter = 0;
+  this.cb = cb;
+  this.tryToDeliver();
+}
+
+ResultArray.prototype.tryToDeliver = function() {
+  if (this.counter == this.dst.length) {
+    this.cb(null, this.dst);
+    this.cb = undefined;
+  }
+}
+
+ResultArray.prototype.makeSetter = function(index) {
+  var self = this;
+  return function(err, value) {
+    if (err) {
+      if (self.cb) {
+	self.cb(err);
+      }
+      self.cb = undefined;
+    } else {
+      if (self.counter >= self.dst.length) {
+	throw new Error('MULTIPLE DELIVERY OF RESULT!!! THIS IS A PROGRAMMING ERROR');
+      }
+      self.dst[index] = value;
+      self.counter++;
+      self.tryToDeliver();
+    }
+  };
+}
+
 function isString(x) {
   return typeof x == 'string';
 }
@@ -81,3 +115,4 @@ module.exports.isString = isString;
 module.exports.isObjectWithFields = isObjectWithFields;
 module.exports.makeBuf = makeBuf;
 module.exports.getParamNames = getParamNames;
+module.exports.ResultArray = ResultArray;
