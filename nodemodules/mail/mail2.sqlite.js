@@ -6,6 +6,7 @@ var common = require('./common.js');
 var naming = require('./naming.js');
 var assert = require('assert');
 var eq = require('deep-equal-ident');
+var schema = require('./endpoint-schema.js');
 
 function isSrcDstPair(x) {
   if (typeof x == 'object') {
@@ -600,6 +601,10 @@ EndPoint.prototype.open = function(cb) {
   }
 }
 
+EndPoint.prototype.makeVerbose = function() {
+  schema.makeVerbose(this);
+}
+
 function tryMakeEndPointFromFilename(dbFilename, cb) {
   var mailboxName = naming.getMailboxNameFromFilename(dbFilename);
   if (mailboxName) {
@@ -615,7 +620,6 @@ function isEndPoint(x) {
   }
   return false;
 }
-
 
 
 module.exports.EndPoint = EndPoint;
