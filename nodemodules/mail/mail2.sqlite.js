@@ -521,8 +521,12 @@ EndPoint.prototype.putPacket = function(packet, cb) {
   var self = this;
   withTransaction(this.db, function(T, cb) {
     if (self.name == packet.dst) {
-      self.callPacketHandlers(packet);
-      setLowerBound(T, packet.src, packet.dst, bigint.inc(packet.seqNumber), cb);
+      try {
+        self.callPacketHandlers(packet);
+        setLowerBound(T, packet.src, packet.dst, bigint.inc(packet.seqNumber), cb);
+      } catch (e) {
+        cb(e);
+      }
     } else {
       getPacket(T, packet.src, packet.dst, packet.seqNumber, function(err, packet2) {
         if (err) {
