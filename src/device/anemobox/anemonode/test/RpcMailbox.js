@@ -41,21 +41,20 @@ describe(
 );
 
 describe(
-  'getForeignDiaryNumber',
+  'getLowerBounds',
   function() {
     it(
-      'Should get a foreign diary number from an empty mailbox',
+      'Should get the src dst pairs',
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
 	prepareMailbox(function(response) {
 	  assert.equal(response.error, undefined);
           assert(typeof mailboxName == 'string');
-	  rpcTable.mb_getLowerBound({
+	  rpcTable.mb_getLowerBounds({
 	    name: mailboxName,
-	    src: 'a',
-            dst: 'b',
+	    pairs: [{src:'a', dst:'b'}],
 	  }, function(response) {
-	    assert.equal(response.result, "0000000000000000");
+	    assert.equal(response.result[0], "0000000000000000");
 	    rpcTable.mb_setLowerBound({
 	      name: mailboxName,
               src: 'a',
@@ -63,12 +62,12 @@ describe(
 	      lowerBound: "0000000000000009"
 	    }, function(response) {
 	      assert.equal(response.error, undefined);
-	      rpcTable.mb_getLowerBound({
+	      rpcTable.mb_getLowerBounds({
 		name: mailboxName,
-                src: 'a',
-                dst: 'b',
+                pairs: [{src: 'a',
+                         dst: 'b'}]
 	      }, function(response) {
-		assert.equal(response.result, "0000000000000009");
+		assert.equal(response.result[0], "0000000000000009");
 		done();
 	      });
 	    });
@@ -106,7 +105,7 @@ describe(
 	mb.setMailRoot('/tmp/anemobox/');
 
         prepareMailbox(function(response) {
-	  rpcTable.mb_getLowerBound({
+	  rpcTable.mb_getLowerBounds({
 	    name: mailboxName
 	    // omit the required argument for the function
 	  }, function(response) {

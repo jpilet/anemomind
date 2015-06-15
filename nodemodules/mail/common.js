@@ -117,7 +117,13 @@ function argsToArray(args) {
   return Array.prototype.slice.call(args);
 }
 
-
+function withException(op, cb) {
+  try {
+    op();
+  } catch (e) {
+    cb(e);
+  }
+}
 
 module.exports.isCounter = isCounter; 
 module.exports.isIdentifier = isIdentifier;
@@ -130,3 +136,4 @@ module.exports.getParamNames = getParamNames;
 module.exports.ResultArray = ResultArray;
 module.exports.makeValuePasser = makeValuePasser;
 module.exports.argsToArray = argsToArray;
+module.exports.withException = withException;
