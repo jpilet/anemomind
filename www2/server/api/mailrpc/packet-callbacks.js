@@ -84,6 +84,7 @@ function getTargetDirectory(mailbox) {
 // Please list below all the callbacks that should be called,
 // sequentially, whenever a packet is received
 module.exports.add = function(endPoint) {
+  // To handle an incoming log file.
   endPoint.addPacketHandler(function(endPoint, packet) {
     if (file.isLogFilePacket(packet)) {
       var msg = file.unpackFileMessage(packet.data);
@@ -98,5 +99,7 @@ module.exports.add = function(endPoint) {
       });
     }
   });
+
+  // To handle the incoming response of running a script
   endPoint.addPacketHandler(makeScriptResponseHandler());
 };

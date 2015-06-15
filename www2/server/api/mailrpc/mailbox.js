@@ -54,9 +54,12 @@ function sendPacket(src, dst, label, data, cb) {
 }
 
 function openMailbox(mailboxName, cb) {
+  console.log('Open mailbox with name ' + mailboxName);
   if (!common.isValidMailboxName(mailboxName)) {
+    console.log('Invalid name');
     cb(new Error('Invalid mailbox name: ' + mailboxName));
   } else {
+    console.log('Valid name');
     mkdirp(config.mailboxDir, 0755, function(err) {
       if (err) {
         cb(err);
@@ -70,6 +73,8 @@ function openMailbox(mailboxName, cb) {
 	    if (err) {
 	      cb(err);
 	    } else {
+              console.log('mailbox name: ' + mailboxName);
+              console.log('filename: ' + filename);
 	      packetCallbacks.add(mailbox);
 	      cb(err, mailbox);
 	    }
