@@ -54,7 +54,6 @@ function sendPacket(src, dst, label, data, cb) {
 }
 
 function openMailbox(mailboxName, cb) {
-  console.log('Open mailbox with name ' + mailboxName);
   if (!common.isValidMailboxName(mailboxName)) {
     cb(new Error('Invalid mailbox name: ' + mailboxName));
   } else {
