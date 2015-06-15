@@ -36,8 +36,8 @@ describe('sync2', function() {
     var bPackets = [];
     makeAB(function(err, a, b) {
       assert(!err);
-      a.addPacketHandler(function(ep, p) {aPackets.push(p);});
-      b.addPacketHandler(function(ep, p) {bPackets.push(p);});
+      a.addPacketHandler(function(endPoint, packet) {aPackets.push(packet);});
+      b.addPacketHandler(function(endPoint, packet) {bPackets.push(packet);});
       a.sendPacket('b', 119, makeBuf([0, 1, 2]), function(err) {
         assert(!err);
         sync2.synchronize(a, b, function(err) {
@@ -55,8 +55,8 @@ describe('sync2', function() {
     var bPackets = [];
     makeAB(function(err, a, b) {
       assert(!err);
-      a.addPacketHandler(function(ep, p) {aPackets.push(p);});
-      b.addPacketHandler(function(ep, p) {bPackets.push(p);});
+      a.addPacketHandler(function(endPoint, packet) {aPackets.push(packet);});
+      b.addPacketHandler(function(endPoint, packet) {bPackets.push(packet);});
       b.sendPacket('a', 119, makeBuf([0, 1, 2]), function(err) {
         assert(!err);
         sync2.synchronize(a, b, function(err) {
@@ -86,8 +86,8 @@ describe('sync2', function() {
     makeAB(function(err, a, b) {
       var ap = [];
       var bp = [];
-      a.addPacketHandler(function(ep, p) {ap.push(p);});
-      b.addPacketHandler(function(ep, p) {bp.push(p);});
+      a.addPacketHandler(function(endPoint, packet) {ap.push(packet);});
+      b.addPacketHandler(function(endPoint, packet) {bp.push(packet);});
       assert(!err);
       a.sendPacket('b', 119, makeBuf([0, 3, 4]), function(err) {
         assert(!err);
@@ -126,7 +126,7 @@ describe('sync2', function() {
       assert(!err);
       mail2.tryMakeAndResetEndPoint('/tmp/epc.db', 'c', function(err, c) {
         var packets = [];
-        c.addPacketHandler(function(ep, p) {packets.push(p);});
+        c.addPacketHandler(function(endPoint, packet) {packets.push(packet);});
         assert(!err);
         a.sendPacket('c', 120, makeBuf([33]), function(err) {
           assert(!err);

@@ -162,7 +162,7 @@ function countMarked(arr) {
 
 // Called when the server receives a packet
 function makeServerPacketHandler(markArray, deferred) {
-  return function(mailbox, packet) {
+  return function(endPoint, packet) {
     if (packet.label == common.logfile) {
       var msg = file.unpackFileMessage(packet.data);
       if (isLogFileMsg(msg)) {

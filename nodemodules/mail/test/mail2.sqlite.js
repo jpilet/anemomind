@@ -158,7 +158,7 @@ describe('EndPoint', function() {
   it('Handler', function() {
     makeTestEP(function(err, ep) {
       assert(ep.packetHandlers.length == 0);
-      ep.addPacketHandler(function(ep, packet) {console.log('Got this packet: %j', p);});
+      ep.addPacketHandler(function(endPoint, packet) {console.log('Got this packet: %j', p);});
       assert(ep.packetHandlers.length == 1);
       assert(typeof ep.packetHandlers[0] == 'function');
     });
@@ -222,7 +222,7 @@ describe('EndPoint', function() {
     var handledPacket = null;
 
     makeTestEP(function(err, ep) {
-      ep.addPacketHandler(function(ep, packet) {
+      ep.addPacketHandler(function(endPoint, packet) {
         handledPacket = packet;
       });
       ep.putPacket(p, function(err) {

@@ -493,7 +493,15 @@ EndPoint.prototype.getUpperBounds = function(pairs, cb) {
 }
 
 
+var packetHandlerParamNames = ['endPoint', 'packet'];
 EndPoint.prototype.addPacketHandler = function(handler) {
+  var paramNames = common.getParamNames(handler);
+  assert(paramNames.length == packetHandlerParamNames.length);
+  for (var i = 0; i < paramNames.length; i++) {
+    if (paramNames[i] != packetHandlerParamNames[i]) {
+      throw new Error('Expected names ' + packetHandlerParamNames + ' but got ' + paramNames);
+    }
+  }
   this.packetHandlers.push(handler);
 }
 
