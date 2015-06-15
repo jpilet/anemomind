@@ -251,10 +251,6 @@ function synchronizeAllPackets(pairs, lbs, a, b, cb, cbProgress) {
     if (err) {
       cb(err);
     } else {
-      console.log('pairs = ');console.log(pairs);
-      console.log('lbs = ');console.log(lbs);
-      console.log('ubs[0] = ');console.log(ubs[0]);
-      console.log('ubs[1] = ');console.log(ubs[1]);
       var jobs = makeSyncJobs(pairs, lbs, ubs[0], ubs[1], a, b);
       runSyncJobs(jobs, cb, cbProgress);
     }

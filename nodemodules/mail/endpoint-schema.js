@@ -69,6 +69,29 @@ methods.getLowerBound = new MethodSchema({
   ]
 });
 
+methods.getLowerBounds = new MethodSchema({
+  httpMethod: 'post',
+  input: [
+    {pairs: 'any'}
+  ],
+  output: [
+    {err: errorTypes},
+    {lbs: 'any'}
+  ]
+});
+
+methods.getUpperBounds = new MethodSchema({
+  httpMethod: 'post',
+  input: [
+    {pairs: 'any'}
+  ],
+  output: [
+    {err: errorTypes},
+    {ubs: 'any'}
+  ]
+});
+
+
 methods.getUpperBound = new MethodSchema({
   httpMethod: 'get',
   input: [
