@@ -3,6 +3,7 @@ var mail2 = require('./mail2.sqlite.js');
 var sync2 = require('./sync2.js');
 var mail2h = require('./mail2.http.js');
 var common = require('./common.js');
+var schema = require('./endpoint-schema.js');
 
 var makeBuf = common.makeBuf;
 
@@ -43,6 +44,8 @@ function makeAB(cb) {
         if (err) {
           cb(err);
         } else {
+          schema.makeVerbose(A);
+          schema.makeVerbose(B);
           cb(null, A, B);
         }
       });

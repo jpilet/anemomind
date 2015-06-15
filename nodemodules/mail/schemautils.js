@@ -28,6 +28,7 @@
 */  
 var assert = require('assert');
 var common = require('./common.js');
+var util = require('util');
 
 /*
 
@@ -208,8 +209,10 @@ function makeVerboseMethod(self, methodName, methodSpec, method) {
   return function() {
     var allArgs = common.argsToArray(arguments);
     var last = allArgs.length - 1;
-    var args = allArgs.slice(last);
+    var args = allArgs.slice(0, last);
     var cb = allArgs[last];
+    assert(typeof cb == 'function');
+    assert(typeof method == 'function');
     method.apply(self, args.concat([function(err, output) {
       var s = self.name + '.' + methodName + '(' + listInputs(methodSpec.input, args) + '): ';
       if (err) {
@@ -225,7 +228,7 @@ function makeVerboseMethod(self, methodName, methodSpec, method) {
 
 EndPointSchema.prototype.makeVerbose = function(ep) {
   for (method in this.methods) {
-    ep = makeVerboseMethod(ep, method, this.methods[method], ep[method]);
+    ep[method] = makeVerboseMethod(ep, method, this.methods[method], ep[method]);
   }
 }
 
