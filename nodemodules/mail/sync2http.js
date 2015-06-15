@@ -56,7 +56,7 @@ function makeAB(cb) {
 
 makeAB(function(err, a, b) {
   var ap = [];
-  a.addPacketHandler(function(ep, p) {ap.push(p);});
+  a.addPacketHandler(function(endPoint, packet) {ap.push(packet);});
   assert(!err);
   a.sendPacket('b', 119, makeBuf([0, 3, 4]), function(err) {
     assert(!err);
