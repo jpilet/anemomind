@@ -83,11 +83,11 @@ function getTargetDirectory(mailbox) {
 
 // Please list below all the callbacks that should be called,
 // sequentially, whenever a packet is received
-module.exports.add = function(mailbox) {
-  mailbox.addPacketHandler(function(mailbox, packet) {
+module.exports.add = function(endPoint) {
+  endPoint.addPacketHandler(function(endPoint, packet) {
     if (file.isLogFilePacket(packet)) {
       var msg = file.unpackFileMessage(packet.data);
-      var tgtDir = getTargetDirectory(mailbox);
+      var tgtDir = getTargetDirectory(endPoint);
       saveLogFile(tgtDir, msg, function(err) {
         if (err) {
           console.log("Error when trying to save incoming log file:");
@@ -98,5 +98,5 @@ module.exports.add = function(mailbox) {
       });
     }
   });
-  mailbox.addPacketHandler(makeScriptResponseHandler());
+  endPoint.addPacketHandler(makeScriptResponseHandler());
 };
