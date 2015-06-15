@@ -1,5 +1,7 @@
 var mail2 = require('./mail2.sqlite.js');
 var bigint = require('./bigint.js');
+var common = require('./common.js');
+var assert = require('assert');
 
 function disp(a, b, cb) {
   a.disp(function(err) {
@@ -143,7 +145,7 @@ function countPackets(jobs) {
   var counter = 0;
   for (var i = 0; i < jobs.length; i++) {
     var job = jobs[i];
-    counter += abs(bigint.diff(job.fromIndex, job.toIndex));
+    counter += Math.abs(bigint.diff(job.fromIndex, job.toIndex));
   }
   return counter;
 }
@@ -180,6 +182,15 @@ function runSyncJobs(jobs, cb, cbProgress) {
   runSyncJobsSub(jobs, putPacket, cb);
 }
 
+function calcFromIndex(lb, aub, bub) {
+  if (aub == bigint.zero() || bub == bigint.zero()) {
+    return lb;
+  } else if (aub < bub) {
+    return aub;
+  }
+  return bub;
+}
+
 function makeSyncJob(pair, lb, aub, bub, a, b) {
   var fromIndex = calcFromIndex(lb, aub, bub);
   if (aub < bub) {
@@ -204,12 +215,12 @@ function makeSyncJobs(pairs, lbs, aubs, bubs, a, b) {
 //// Synchronize all lower bounds, and obtain the new lower bounds.
 //// cb is cb(err, lbs) where lbs are the synchronized lower bounds
 function synchronizeAllLowerBounds(pairs, a, b, cb) {
-  var results = new common.ResultsArray(2, function(err, lbs) {
+  var results = new common.ResultArray(2, function(err, lbs) {
     if (err) {
       cb(err);
     } else {
-      var albs = results[0];
-      var blbs = results[1];
+      var albs = lbs[0];
+      var blbs = lbs[1];
       var setResults = new common.ResultArray(pairs.length, cb);
       for (var i = 0; i < pairs.length; i++) {
         var set = setResults.makeSetter(i);
@@ -218,10 +229,10 @@ function synchronizeAllLowerBounds(pairs, a, b, cb) {
         var blb = blbs[i];
         if (alb < blb) {
           albs[i] = blb;
-          a.setLowerBound(pair.src, pair.dst, blb, makeValuePasser(blb, set));
+          a.setLowerBound(pair.src, pair.dst, blb, common.makeValuePasser(blb, set));
         } else if (alb > blb) {
           blbs[i] = alb;
-          b.setLowerBound(pair.src, pair.dst, alb, makeValuePassert(alb, set));
+          b.setLowerBound(pair.src, pair.dst, alb, common.makeValuePasser(alb, set));
         } else {
           set(alb);
         }
@@ -240,7 +251,11 @@ function synchronizeAllPackets(pairs, lbs, a, b, cb, cbProgress) {
     if (err) {
       cb(err);
     } else {
-      var jobs = makeSyncJobs(pairs, lbs, ubResults[0], ubResults[1], a, b);
+      console.log('pairs = ');console.log(pairs);
+      console.log('lbs = ');console.log(lbs);
+      console.log('ubs[0] = ');console.log(ubs[0]);
+      console.log('ubs[1] = ');console.log(ubs[1]);
+      var jobs = makeSyncJobs(pairs, lbs, ubs[0], ubs[1], a, b);
       runSyncJobs(jobs, cb, cbProgress);
     }
   });
@@ -282,5 +297,5 @@ function synchronize(a, b, cb) {
   }
 }
 
-module.exports.synchronize = synchronize;
+module.exports.synchronize = synchronize2;
 module.exports.disp = disp;

@@ -1,4 +1,5 @@
-bigint = require('./bigint.js');
+var bigint = require('./bigint.js');
+var assert = require('assert');
 
 module.exports.ack = 127;
 module.exports.logfile = 128;
@@ -123,3 +124,4 @@ module.exports.isObjectWithFields = isObjectWithFields;
 module.exports.makeBuf = makeBuf;
 module.exports.getParamNames = getParamNames;
 module.exports.ResultArray = ResultArray;
+module.exports.makeValuePasser = makeValuePasser;
