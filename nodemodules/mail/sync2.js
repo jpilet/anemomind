@@ -39,7 +39,7 @@ function transferPacketsSub(pair, fromIndex, toIndex, from, to, cb) {
       } else if (!packet) {
         cb(new Error("Missing packet"));
       } else {
-        to.putPacket(packet, function(err) {
+        putPacket(to, packet, function(err) {
           if (err) {
             cb(err);
           } else {
@@ -128,6 +128,109 @@ function getCommonSrcDstPairs(a, b, cb) {
       });
     }
   });
+}
+
+function synchronizeAllLowerBounds(pairs, a, b, cb) {
+  var results = new common.ResultsArray(2, function(err, lbs) {
+    if (err) {
+      cb(err);
+    } else {
+      var albs = results[0];
+      var blbs = results[1];
+      var setResults = new common.ResultArray(pairs.length, function(err) {
+        if (err) {
+          cb(err);
+        } else {
+          cb(null, albs, blbs);
+        }
+      });
+      for (var i = 0; i < pairs.length; i++) {
+        var set = setResults.makeSetter(i);
+        var pair = pairs[i];
+        var alb = albs[i];
+        var blb = blbs[i];
+        if (alb < blb) {
+          albs[i] = blb;
+          a.setLowerBound(pair.src, pair.dst, blb, set);
+        } else if (alb > blb) {
+          blbs[i] = alb;
+          b.setLowerBound(pair.src, pair.dst, alb, set);
+        } else {
+          set();
+        }
+      }
+    }
+  });
+  a.getLowerBounds(pairs, results.makeSetter(0));
+  b.getLowerBounds(pairs, results.makeSetter(1));
+}
+
+function calcTotalPacketCountToTransfer(ubs) {
+  assert(ubs.length == 2);
+  var a = ubs[0];
+  var b = ubs[1];
+  assert(a.length == b.length);
+  var count = 0;
+  for (var i = 0; i < a.length; i++) {
+    count += abs(bigint.diff(a[i], b[i]));
+  }
+  return count;
+}
+
+function synchronizeAllPacketsSub(i, pairs, aubs, bubs, a, b, putPacketSub, cb) {
+  assert(pairs.length == aubs.length);
+  assert(pairs.length == bubs.length);
+  if (i == pairs.length) {
+    cb();
+  } else {
+
+    // Next iteration
+    var next = function(err) {
+      if (err) {
+        cb(err);
+      } else {
+        cb(i+1, pairs, aubs, bubs, a, b, putPacketSub, cb);
+      }
+    }
+    
+    var pair = pairs[i];
+    var aub = aubs[i];
+    var bub = bubs[i];
+    if (aub > bub) {
+      transferPackets(pair, bub, aub, a, b, putPacketSub, next);
+    } else if (aub < bub) {
+      transferPackets(pair, aub, bub, b, a, putPacketSub, next);
+    } else {
+      next();
+    }
+  }
+}
+
+function synchronizeAllPackets(pairs, a, b, cb, cbProgress) {
+  var reportProgress = cbProgress || function() {};
+  var ubResults = new common.ResultArray(2, function(err, ubs) {
+    if (err) {
+      cb(err);
+    } else {
+      // Putting packets and reporting progress.
+      var totalPacketCount = calcTotalPacketCountToTransfer(ubs);
+      var putCounter = 0;
+      var putPacketSub = function(dst, packet, cb) {
+        dst.putPacket(packet, function(err) {
+          if (!err) {
+            putCounter++;
+            reportProgress(putCounter, totalPacketCount);
+          }
+          cb(err);
+        });
+      }
+      
+      // Actual packet transfer.
+      synchronizeAllPacketsSub(0, pairs, aubs, bubs, a, b, putPacketSub, cb);
+    }
+  });
+  a.getUpperBounds(pairs, ubResults.makeSetter(0));
+  b.getUpperBounds(pairs, ubResults.makeSetter(1));
 }
 
 function synchronize(a, b, cb) {
