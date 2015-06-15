@@ -192,7 +192,16 @@ EndPointSchema.prototype.isValidEndPoint = function(x) {
     return true;
 }
 
-function listInputs() {
+function listInputs(argSpecs, args) {
+  var n = Math.min(argSpecs.length, args.length);
+  var s = '';
+  for (var i = 0; i < n; i++) {
+    s += util.format(getArgName(argSpecs[i]) + '=%j', args[i]);
+    if (i < n-1) {
+      s += ' ';
+    }
+  }
+  return s;
 }
 
 function makeVerboseMethod(self, methodName, methodSpec, method) {
@@ -202,14 +211,14 @@ function makeVerboseMethod(self, methodName, methodSpec, method) {
     var args = allArgs.slice(last);
     var cb = allArgs[last];
     method.apply(self, args.concat([function(err, output) {
-      var s = self.name + '.' + methodName + '(' + listInputs(methodSpec, args) + '): ';
+      var s = self.name + '.' + methodName + '(' + listInputs(methodSpec.input, args) + '): ';
       if (err) {
         s += util.format('FAILED with %j', err);
       } else {
         s += util.format('%j', output);
       }
       console.log(s);
-      cb(output);
+      cb(err, output);
     }]));
   }
 }
