@@ -192,6 +192,34 @@ EndPointSchema.prototype.isValidEndPoint = function(x) {
     return true;
 }
 
+function listInputs() {
+}
+
+function makeVerboseMethod(self, methodName, methodSpec, method) {
+  return function() {
+    var allArgs = common.argsToArray(arguments);
+    var last = allArgs.length - 1;
+    var args = allArgs.slice(last);
+    var cb = allArgs[last];
+    method.apply(self, args.concat([function(err, output) {
+      var s = self.name + '.' + methodName + '(' + listInputs(methodSpec, args) + '): ';
+      if (err) {
+        s += util.format('FAILED with %j', err);
+      } else {
+        s += util.format('%j', output);
+      }
+      console.log(s);
+      cb(output);
+    }]));
+  }
+}
+
+EndPointSchema.prototype.makeVerbose = function(ep) {
+  for (method in this.methods) {
+    ep = makeVerboseMethod(ep, method, this.methods[method], ep[method]);
+  }
+}
+
 
 module.exports.errorTypes = errorTypes;
 module.exports.MethodSchema = MethodSchema;

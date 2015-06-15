@@ -259,7 +259,7 @@ function synchronizeAllPackets(pairs, lbs, a, b, cb, cbProgress) {
   b.getUpperBounds(pairs, ubResults.makeSetter(1));
 }
 
-function synchronize2(a, b, cb, cbProgress) {
+function synchronize(a, b, cb, cbProgress) {
   if (a.name == b.name) {
     cb(new Error('The end points must be different'));
   } else {
@@ -279,7 +279,7 @@ function synchronize2(a, b, cb, cbProgress) {
   }
 }
 
-function synchronize(a, b, cb) {
+function synchronizeObsoleteImplementation(a, b, cb) {
   if (a.name == b.name) {
     cb(new Error('The end points must be different'));
   } else {
@@ -293,5 +293,5 @@ function synchronize(a, b, cb) {
   }
 }
 
-module.exports.synchronize = synchronize2;
+module.exports.synchronize = synchronize;
 module.exports.disp = disp;

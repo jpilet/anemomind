@@ -113,6 +113,10 @@ function makeValuePasser(value, cb) {
   };
 }
 
+function argsToArray(args) {
+  return Array.prototype.slice.call(args);
+}
+
 
 
 module.exports.isCounter = isCounter; 
@@ -125,3 +129,4 @@ module.exports.makeBuf = makeBuf;
 module.exports.getParamNames = getParamNames;
 module.exports.ResultArray = ResultArray;
 module.exports.makeValuePasser = makeValuePasser;
+module.exports.argsToArray = argsToArray;

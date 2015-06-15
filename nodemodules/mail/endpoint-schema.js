@@ -3,26 +3,17 @@ var schemautils = require('./schemautils.js');
 var MethodSchema = schemautils.MethodSchema;
 var EndPointSchema = schemautils.EndPointSchema;
 var errorTypes = schemautils.errorTypes;
-  
+
 var methods = {};
 
+
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////  Essential methods for the interface
+/////////////////////////////////////////////////////////////////////////////
 methods.putPacket = new MethodSchema({
   httpMethod: 'post',
   input: [{packet: 'any'}],
   output: [{err: errorTypes}]
-});
-
-// Only for debugging and unit testing
-methods.sendPacket = new MethodSchema({
-    httpMethod: 'post',
-    input: [
-	{dst: String},
-	{label: Number},
-	{data: 'buffer'}
-    ],
-    output: [
-	{err: errorTypes}
-    ]
 });
 
 methods.getPacket = new MethodSchema({
@@ -57,18 +48,6 @@ methods.setLowerBound = new MethodSchema({
   output: [{err: errorTypes}]
 });
 
-methods.getLowerBound = new MethodSchema({
-  httpMethod: 'get',
-  input: [
-    {src: String},
-    {dst: String},
-  ],
-  output: [
-    {err: errorTypes},
-    {lowerBound: 'hex'}
-  ]
-});
-
 methods.getLowerBounds = new MethodSchema({
   httpMethod: 'post',
   input: [
@@ -91,35 +70,37 @@ methods.getUpperBounds = new MethodSchema({
   ]
 });
 
-
-methods.getUpperBound = new MethodSchema({
+/////////////////////////////////////////////////////////////////////////////
+/////////////////////////  Only for debugging and unit testing
+/////////////////////////////////////////////////////////////////////////////
+methods.getTotalPacketCount = new MethodSchema({
   httpMethod: 'get',
-  input: [
-    {src: String},
-    {dst: String},
-  ],
+  input: [],
   output: [
     {err: errorTypes},
-    {lowerBound: 'hex'}
+    {count: Number}
+  ]
+});
+
+methods.sendPacket = new MethodSchema({
+  httpMethod: 'post',
+  input: [
+    {dst: String},
+    {label: Number},
+    {data: 'buffer'}
+  ],
+  output: [
+    {err: errorTypes}
   ]
 });
 
 
-methods.getTotalPacketCount = new MethodSchema({
-    httpMethod: 'get',
-    input: [],
-    output: [
-	{err: errorTypes},
-	{count: Number}
-    ]
-});
-
 methods.reset = new MethodSchema({
-    httpMethod:'get',
-    input: [],
-    output: [
-	{err: errorTypes}
-    ]
+  httpMethod:'get',
+  input: [],
+  output: [
+    {err: errorTypes}
+  ]
 });
 
 module.exports = new EndPointSchema(methods);
