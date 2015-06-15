@@ -29,7 +29,7 @@ function synchronizeLowerBounds(pair, a, b, cb) {
   });
 }
 
-function transferPacketsSub(pair, fromIndex, toIndex, from, to, cb) {
+function transferPacketsSub(pair, fromIndex, toIndex, from, to, putPacket, cb) {
   if (fromIndex == toIndex) {
     cb();
   } else {
@@ -43,7 +43,7 @@ function transferPacketsSub(pair, fromIndex, toIndex, from, to, cb) {
           if (err) {
             cb(err);
           } else {
-            transferPacketsSub(pair, bigint.inc(fromIndex), toIndex, from, to, cb);
+            transferPacketsSub(pair, bigint.inc(fromIndex), toIndex, from, to, putPacket, cb);
           }
         });
       }
@@ -64,7 +64,10 @@ function transferPackets(pair, fromIndex, toIndex, from, to, cb) {
       }
     });
   } else {
-    transferPacketsSub(pair, fromIndex, toIndex, from, to, cb);
+    var putPacket = function(dst, packet, cb) {
+      dst.putPacket(packet, cb);
+    };
+    transferPacketsSub(pair, fromIndex, toIndex, from, to, putPacket, cb);
   }
 }
 
@@ -130,6 +133,70 @@ function getCommonSrcDstPairs(a, b, cb) {
   });
 }
 
+function countPackets(jobs) {
+  var counter = 0;
+  for (var i = 0; i < jobs.length; i++) {
+    var job = jobs[i];
+    counter += abs(bigint.diff(job.fromIndex, job.toIndex));
+  }
+  return counter;
+}
+
+function runSyncJobsSub(jobs, putPacket, cb) {
+  if (jobs.length == 0) {
+    cb();
+  } else {
+    runSyncJob(jobs[0], putPacket, function(err) {
+      if (err) {
+        cb(err);
+      } else {
+        runSyncJobsSub(jobs.slice(1), putPacket, cb);
+      }
+    });
+  }
+}
+
+function runSyncJobs(jobs, cb, cbProgress) {
+  var reportProgress = cbProgress || function() {};
+  var counter = 0;
+  var totalCount = countPackets(jobs);
+  
+  var putPacket = function(dst, packet, cb) {
+    dst.putPacket(packet, function(err) {
+      if (!err) {
+        reportProgress(counter, totalCount);
+        counter++;
+      }
+      cb(err);
+    });
+  }
+
+  runSyncJobsSub(jobs, putPacket, cb);
+}
+
+function makeSyncJob(pair, lb, aub, bub, a, b) {
+  var fromIndex = calcFromIndex(lb, aub, bub);
+  if (aub < bub) {
+    return {fromIndex: fromIndex, toIndex: bub, from: b, to: a};
+  } else {
+    return {fromIndex: fromIndex, toIndex: aub, from: a, to: b};
+  }
+}
+
+function makeSyncJobs(pairs, lbs, aubs, bubs, a, b) {
+  var count = pairs.length;
+  assert(count == aubs.length);
+  assert(count == bubs.length);
+  assert(count == lbs.length);
+  var jobs = new Array(count);
+  for (var i = 0; i < count; i++) {
+    jobs[i] = makeSyncJob(pairs[i], lbs[i], aubs[i], bubs[i], a, b);
+  }
+  return jobs;
+}
+
+//// Synchronize all lower bounds, and obtain the new lower bounds.
+//// cb is cb(err, lbs) where lbs are the synchronized lower bounds
 function synchronizeAllLowerBounds(pairs, a, b, cb) {
   var results = new common.ResultsArray(2, function(err, lbs) {
     if (err) {
@@ -137,13 +204,7 @@ function synchronizeAllLowerBounds(pairs, a, b, cb) {
     } else {
       var albs = results[0];
       var blbs = results[1];
-      var setResults = new common.ResultArray(pairs.length, function(err) {
-        if (err) {
-          cb(err);
-        } else {
-          cb(null, albs, blbs);
-        }
-      });
+      var setResults = new common.ResultArray(pairs.length, cb);
       for (var i = 0; i < pairs.length; i++) {
         var set = setResults.makeSetter(i);
         var pair = pairs[i];
@@ -151,12 +212,12 @@ function synchronizeAllLowerBounds(pairs, a, b, cb) {
         var blb = blbs[i];
         if (alb < blb) {
           albs[i] = blb;
-          a.setLowerBound(pair.src, pair.dst, blb, set);
+          a.setLowerBound(pair.src, pair.dst, blb, makeValuePasser(blb, set));
         } else if (alb > blb) {
           blbs[i] = alb;
-          b.setLowerBound(pair.src, pair.dst, alb, set);
+          b.setLowerBound(pair.src, pair.dst, alb, makeValuePassert(alb, set));
         } else {
-          set();
+          set(alb);
         }
       }
     }

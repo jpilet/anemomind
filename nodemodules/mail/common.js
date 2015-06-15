@@ -105,6 +105,13 @@ function getParamNames(func) {
   return result;
 }
 
+function makeValuePasser(value, cb) {
+  assert(typeof cb == 'function');
+  return function(err) {
+    cb(err, value);
+  };
+}
+
 
 
 module.exports.isCounter = isCounter; 
