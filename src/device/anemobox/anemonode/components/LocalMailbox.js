@@ -1,6 +1,7 @@
 var mb = require('mail/mail2.sqlite.js');
 var naming = require('mail/naming.js');
 var file = require('mail/file.js');
+var schema = require('mail/endpoint-schema.js');
 var mkdirp = require('mkdirp');
 var boxId = require('./boxId.js');
 var config = require('./config.js');
@@ -80,6 +81,7 @@ function openNewMailbox(mailboxName, cb) {
           if (err) {
             cb(err);
           } else {
+            schema.makeVerbose(mailbox);
             mailbox.addPacketHandler(
               script.makeScriptRequestHandler(triggerSync));
             var data = registerMailbox(mailboxName, mailbox);

@@ -5,6 +5,7 @@ var naming = require('mail/naming.js');
 var mkdirp = require('mkdirp');
 var config = require('../../config/environment');
 var path = require('path');
+var schema = require('mail/endpoint-schema.js');
 
 /*
 
@@ -70,6 +71,7 @@ function openMailbox(mailboxName, cb) {
 	    if (err) {
 	      cb(err);
 	    } else {
+              schema.makeVerbose(mailbox);
 	      packetCallbacks.add(mailbox);
 	      cb(err, mailbox);
 	    }

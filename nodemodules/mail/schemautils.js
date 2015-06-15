@@ -205,6 +205,14 @@ function listInputs(argSpecs, args) {
   return s;
 }
 
+function shortenToMaxLength(s, maxLength) {
+  if (s.length <= maxLength) {
+    return s;
+  } else {
+    return s.substring(0, maxLength-3) + '...';
+  }
+}
+
 function makeVerboseMethod(self, methodName, methodSpec, method) {
   return function() {
     var allArgs = common.argsToArray(arguments);
@@ -220,7 +228,7 @@ function makeVerboseMethod(self, methodName, methodSpec, method) {
       } else {
         s += util.format('%j', output);
       }
-      console.log(s);
+      console.log(shortenToMaxLength(s, 80));
       cb(err, output);
     }]));
   }
