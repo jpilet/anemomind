@@ -39,14 +39,17 @@ function makeMethod(scon, mailboxName, method) {
 }
 
 function EndPoint(schema, serverConnection, mailboxName) {
-    this.mailboxName = mailboxName;
-    for (methodName in schema.methods) {
-	this[methodName] = makeMethod(
-	    serverConnection,
-	    mailboxName,
-	    schema.methods[methodName]
-	);
-    }
+  // TODO: remove this line once we have migrated.
+  this.mailboxName = mailboxName;
+  
+  this.name = mailboxName;
+  for (methodName in schema.methods) {
+    this[methodName] = makeMethod(
+      serverConnection,
+      mailboxName,
+      schema.methods[methodName]
+    );
+  }
 }
 
 // Call this function when you need a new mailbox.
