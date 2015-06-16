@@ -11,7 +11,7 @@ var EventSchema = new Schema({
   boat: Schema.ObjectId,
   structuredMessage: String,
   comment: String,
-  picture: Schema.ObjectId,
+  photo: String,
   when: Date,
   latitude: Number,
   longitude: Number

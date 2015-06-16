@@ -10,4 +10,18 @@ router.get('/', auth.isAuthenticated(), controller.index);
 router.get('/:id', auth.isAuthenticated(), controller.show);
 router.post('/', auth.isAuthenticated(), controller.create);
 
+router.post('/photo/:boatId',
+            auth.isAuthenticated(),
+            controller.boatWriteAccess,
+            controller.createUploadDirForBoat,
+            controller.postPhoto);
+
+// To view a photo from an img tag, the authorization token can be passed in
+// the parameter:
+// http://localhost:9000/api/events/photo/[boat]/[picture].jpg?access_token=[token]
+router.get('/photo/:boatId/:photo',
+           auth.isAuthenticated(),
+           controller.boatReadAccess,
+           controller.getPhoto);
+
 module.exports = router;
