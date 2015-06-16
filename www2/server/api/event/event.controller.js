@@ -161,7 +161,7 @@ exports.boatReadAccess = function(req, res, next) {
   return checkAccess(boatAccess.userCanReadBoatId, req, res, next);
 };
 
-var photoUploadPath = fs.realpathSync(config.uploadDir + '/photos/');
+var photoUploadPath = fs.realpathSync(config.uploadDir) + '/photos/';
 console.log('Uploading photos to: ' + photoUploadPath);
 
 // mkdirp is async, so we take the opportunity to run before multer with
