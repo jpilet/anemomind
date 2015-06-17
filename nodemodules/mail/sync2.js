@@ -191,12 +191,22 @@ function calcFromIndex(lb, aub, bub) {
   return bub;
 }
 
+function filterSyncJob(job) {
+  var syncBack = false;
+  if (!syncBack && job.to.name == job.pair.src) {
+    job.fromIndex = job.toIndex;
+  }
+  return job;
+}
+
 function makeSyncJob(pair, lb, aub, bub, a, b) {
   var fromIndex = calcFromIndex(lb, aub, bub);
   if (aub < bub) {
-    return {pair: pair, fromIndex: fromIndex, toIndex: bub, from: b, to: a};
+    return filterSyncJob(
+      {pair: pair, fromIndex: fromIndex, toIndex: bub, from: b, to: a});
   } else {
-    return {pair: pair, fromIndex: fromIndex, toIndex: aub, from: a, to: b};
+    return filterSyncJob(
+      {pair: pair, fromIndex: fromIndex, toIndex: aub, from: a, to: b});
   }
 }
 
