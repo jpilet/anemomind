@@ -521,32 +521,40 @@ EndPoint.prototype.callPacketHandlers = function(p) {
 EndPoint.prototype.putPacket = function(packet, cb) {
   var self = this;
   withTransaction(this.db, function(T, cb) {
-    if (self.name == packet.dst) {
-      try {
-        self.callPacketHandlers(packet);
-        setLowerBound(T, packet.src, packet.dst, bigint.inc(packet.seqNumber), cb);
-      } catch (e) {
-        cb(e);
-      }
-    } else {
-      getPacket(T, packet.src, packet.dst, packet.seqNumber, function(err, packet2) {
-        if (err) {
-          cb(err);
-        } else {
-          if (packet2) {
-            if (eq(packet, packet2)) {
-              cb();
-            } else {
-              cb(new Error('A different packet has already been delivered'));
-            }
-          } else {
-            T.run(
-              'INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
-              packet.src, packet.dst, packet.seqNumber, packet.label, packet.data, cb);
+    getLowerBound(T, packet.src, packet.dst, function(err, lb) {
+      if (err) {
+        cb(err);
+      } else if (packet.seqNumber < lb) {
+        cb();
+      } else {
+        if (self.name == packet.dst) {
+          try {
+            self.callPacketHandlers(packet);
+            setLowerBound(T, packet.src, packet.dst, bigint.inc(packet.seqNumber), cb);
+          } catch (e) {
+            cb(e);
           }
+        } else {
+          getPacket(T, packet.src, packet.dst, packet.seqNumber, function(err, packet2) {
+            if (err) {
+              cb(err);
+            } else {
+              if (packet2) {
+                if (eq(packet, packet2)) {
+                  cb();
+                } else {
+                  cb(new Error('A different packet has already been delivered'));
+                }
+              } else {
+                T.run(
+                  'INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
+                  packet.src, packet.dst, packet.seqNumber, packet.label, packet.data, cb);
+              }
+            }
+          });
         }
-      });
-    }
+      }
+    });
   }, cb);
 }
 
