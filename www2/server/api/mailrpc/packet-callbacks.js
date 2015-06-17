@@ -19,20 +19,18 @@ function makeLogFilenameFromParts(tgtDir, parsedFilename, counter) {
 
 function tryToSaveWithName(tgtDir, parsedFilename, counter, data, cb) {
   var filename = makeLogFilenameFromParts(tgtDir, parsedFilename, counter);
-  console.log("TRY TO SAVE IT AS " + filename);
   fs.readFile(filename, function(err, loadedData) {
     console.log("  -> err and data:");
     console.log(err);
     console.log(loadedData)
     if (err) { // <-- No such file with that name.
       fs.writeFile(filename, data, function(err) {
-        console.log("WROTE LOG FILE: " + filename);
+        console.log("Wrote log file: " + filename);
         cb(err);
       });
     } else {
       if (loadedData.equals(data)) {
 
-        console.log("Same data, no other log file");
         // No point in saving the same data twice with different names
         cb();
         
@@ -48,7 +46,6 @@ function tryToSaveWithName(tgtDir, parsedFilename, counter, data, cb) {
 }
 
 function saveLogFile(tgtDir, msg, cb) {
-  console.log('SAVE THE LOG FILE!!!');
   var data = msg.data;
   var parsed = path.parse(msg.path);
   mkdirp(tgtDir, function(err) {
