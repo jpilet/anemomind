@@ -59,7 +59,7 @@ describe(
 	      name: mailboxName,
               src: 'a',
               dst: 'b',
-	      lowerBound: "0000000000000009"
+	      lb: "0000000000000009"
 	    }, function(response) {
 	      assert.equal(response.error, undefined);
 	      rpcTable.ep_getLowerBounds({

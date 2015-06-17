@@ -43,7 +43,7 @@ methods.setLowerBound = new MethodSchema({
   input: [
     {src: String},
     {dst: String},
-    {lowerBound: 'hex'}
+    {lb: 'hex'}
   ],
   output: [{err: errorTypes}]
 });

@@ -459,9 +459,9 @@ function setLowerBound(db, src, dst, lowerBound, cb) {
   });
 }
 
-EndPoint.prototype.setLowerBound = function(src, dst, lowerBound, cb) {
+EndPoint.prototype.setLowerBound = function(src, dst, lb, cb) {
   withTransaction(this.db, function(T, cb) {
-    setLowerBound(T, src, dst, lowerBound, cb);
+    setLowerBound(T, src, dst, lb, cb);
   }, cb);
 }
 
