@@ -10,7 +10,7 @@ var mailboxName = null;
 function prepareMailbox(cb) {
   mb.getName(function(lname) {
     mailboxName = lname;
-    rpcTable.mb_reset({
+    rpcTable.ep_reset({
       name: lname,
     }, function(response) {
       assert.equal(response.error, undefined);
@@ -27,7 +27,7 @@ describe(
       'Should reset the mailbox and make sure the packet count is 0',
       function(done) {
 	prepareMailbox(function(response) {
-	  rpcTable.mb_getTotalPacketCount({
+	  rpcTable.ep_getTotalPacketCount({
 	    name: mailboxName
 	  }, function(response) {
 	    assert.equal(response.error, undefined);
@@ -50,19 +50,19 @@ describe(
 	prepareMailbox(function(response) {
 	  assert.equal(response.error, undefined);
           assert(typeof mailboxName == 'string');
-	  rpcTable.mb_getLowerBounds({
+	  rpcTable.ep_getLowerBounds({
 	    name: mailboxName,
 	    pairs: [{src:'a', dst:'b'}],
 	  }, function(response) {
 	    assert.equal(response.result[0], "0000000000000000");
-	    rpcTable.mb_setLowerBound({
+	    rpcTable.ep_setLowerBound({
 	      name: mailboxName,
               src: 'a',
               dst: 'b',
 	      lowerBound: "0000000000000009"
 	    }, function(response) {
 	      assert.equal(response.error, undefined);
-	      rpcTable.mb_getLowerBounds({
+	      rpcTable.ep_getLowerBounds({
 		name: mailboxName,
                 pairs: [{src: 'a',
                          dst: 'b'}]
@@ -85,7 +85,7 @@ describe(
       'Should result in an error',
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
-	rpcTable.mb_reset({
+	rpcTable.ep_reset({
 	  // Omit 'name' to provoke an error.
 	}, function(response) {
 	  assert(response.error);
@@ -105,7 +105,7 @@ describe(
 	mb.setMailRoot('/tmp/anemobox/');
 
         prepareMailbox(function(response) {
-	  rpcTable.mb_getLowerBounds({
+	  rpcTable.ep_getLowerBounds({
 	    name: mailboxName
 	    // omit the required argument for the function
 	  }, function(response) {

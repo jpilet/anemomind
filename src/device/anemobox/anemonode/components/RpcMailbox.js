@@ -111,7 +111,7 @@ function makeRpcFunction(methodName, method) {
 // Prefix all mailbox-related calls with mb
 // to avoid naming collisions for common names (such as "reset")
 function makeRpcFuncName(methodName) {
-  return "mb_" + methodName;
+  return "ep_" + methodName;
 }
 
 // Use this function to register all the available mailbox calls
