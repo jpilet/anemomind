@@ -23,7 +23,7 @@ var boatAccess = require('../boat/access.js');
 //   and cb is a function that is called with the result upon completion.
 var rpc = {};
 
-var testing = true;
+var testing = (process.env.NODE_ENV == 'development');
 
 
 // Check if a user is authorized to access a mailbox.
@@ -31,7 +31,7 @@ var testing = true;
 function acquireMailboxAccess(user, mailboxName, cb) {
   var errorObject = {statusCode: 403,
 		     message: "Unauthorized access to " + mailboxName};
-  if (testing && mailboxName == 'b') {
+  if (testing && mailboxName == 'b') { // Used by iPhone unit tests.
     cb();
   } else {
     var parsed = naming.parseMailboxName(mailboxName);
