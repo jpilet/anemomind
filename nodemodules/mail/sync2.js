@@ -233,8 +233,9 @@ function synchronizeAllLowerBounds(pairs, a, b, cb) {
         } else if (alb > blb) {
           blbs[i] = alb;
           b.setLowerBound(pair.src, pair.dst, alb, common.makeValuePasser(alb, set));
-        } else {
-          set(alb);
+        } else { // same
+          assert(alb == blb);
+          set(null, alb);
         }
       }
     }
