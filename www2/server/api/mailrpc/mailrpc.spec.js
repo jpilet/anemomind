@@ -198,7 +198,7 @@ describe('/api/mailrpc', function() {
             [{packet: 'any'}],
             [{src: "thebox", dst: remoteMailboxName,
               label: common.logfile,
-              data: filedata, seqNumber: "2345"}]);
+              data: filedata, seqNumber: "2346"}]);
           server
             .post('/api/mailrpc/putPacket/' + remoteMailboxName)
             .send(postdata)
