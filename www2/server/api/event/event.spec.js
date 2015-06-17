@@ -7,6 +7,8 @@ var User = require('../user/user.model');
 var Boat = require('../boat/boat.model');
 var Event = require('./event.model');
 var Q = require('q');
+var rmdir = require('rimraf');
+var config = require('../../config/environment');
 
 function addTestBoat(boat) {
   return Q.Promise(function(resolve, reject) {
@@ -137,10 +139,52 @@ describe('GET /api/events', function() {
         done();
       });
   });
+
+  var photoName = '39AA3032-0C2B-4EFC-9DDD-60ED13B07B98.jpg';
+  var photoPath = __dirname + '/' + photoName;
+  it('should accept a photo upload', function(done) {
+    server
+      .post('/api/events/photo/' + boat1.id)
+      .set('Authorization', 'Bearer ' + token)
+      .attach(photoName, photoPath)
+      .send()
+      .expect(201)
+      .end(done);
+  });
+
+  it('should serve a photo', function(done) {
+    server
+      .get('/api/events/photo/' + boat1.id + '/' + photoName)
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200)
+      .end(done);
+  });
+
+  it('should refuse to serve a photo without auth', function(done) {
+    server
+      .get('/api/events/photo/' + boat1.id + '/' + photoName)
+      .expect(401)
+      .end(done);
+  });
+
+  it('should refuse a photo upload', function(done) {
+    server
+      .post('/api/events/photo/' + boat2.id)
+      .set('Authorization', 'Bearer ' + token)
+      .attach(photoName, photoPath)
+      .send()
+      .expect(403)
+      .end(done);
+  });
+
+
   after(function(done) {
     Boat.remove({name: boat1.name}).exec();
     Boat.remove({name: boat2.name}).exec();
     User.remove({email: "test@anemomind.com"}).exec();
     Event.remove({author: userid}, done);
+
+    // cleanup the uploaded photo.
+    rmdir(config.uploadDir + '/photos/' + boat1.id, function() { });
   });
 });
