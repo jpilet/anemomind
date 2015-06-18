@@ -410,9 +410,13 @@ function setLowerBoundInTable(db, src, dst, lowerBound, cb) {
         cb(err);
       } else {
         if (row) {
-          db.run(
-            'UPDATE lowerBounds SET lowerBound = ? WHERE src = ? AND dst = ?',
-            lowerBound, src, dst, cb);
+          if (row.lowerBound < lowerBound) {
+            db.run(
+              'UPDATE lowerBounds SET lowerBound = ? WHERE src = ? AND dst = ?',
+              lowerBound, src, dst, cb);
+          } else {
+            cb();
+          }
         } else {
           db.run(
             'INSERT INTO lowerBounds VALUES (?, ?, ?)',
