@@ -449,7 +449,9 @@ function setLowerBound(db, src, dst, lowerBound, cb) {
 EndPoint.prototype.setLowerBound = function(src, dst, lb, cb) {
   withTransaction(this.db, function(T, cb) {
     setLowerBound(T, src, dst, lb, cb);
-  }, cb);
+  }, function(err, lb) {
+    cb(err, {lb: '119'});
+  });
 }
 
 EndPoint.prototype.getSrcDstPairs = function(cb) {
