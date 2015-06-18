@@ -450,7 +450,7 @@ EndPoint.prototype.setLowerBound = function(src, dst, lb, cb) {
   withTransaction(this.db, function(T, cb) {
     setLowerBound(T, src, dst, lb, cb);
   }, function(err, lb) {
-    cb(err, {lb: '119'});
+    cb(err, '119');
   });
 }
 

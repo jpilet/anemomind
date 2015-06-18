@@ -46,7 +46,7 @@ methods.setLowerBound = new MethodSchema({
     {lb: 'hex'}
   ],
   output: [{err: errorTypes},
-           {result: 'any'}]
+           {lb: 'hex'}]
 });
 
 methods.getLowerBounds = new MethodSchema({
