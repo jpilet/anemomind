@@ -340,11 +340,12 @@ function getLastPacket(db, src, dst, cb) {
 }
 
 function getUpperBound(db, src, dst, cb) {
-  getLastPacket(db, src, dst, function(err, packet) {
+  db.get('SELECT seqNumber FROM packets WHERE src = ? AND dst = ? ORDER BY seqNumber DESC',
+         src, dst, function(err, row) {
     if (err) {
       cb(err);
-    } else if (packet) {
-      cb(null, bigint.inc(packet.seqNumber));
+    } else if (row) {
+      cb(null, bigint.inc(row.seqNumber));
     } else {
       getLowerBound(db, src, dst, cb);
     }
