@@ -38,7 +38,7 @@ methods.getSrcDstPairs = new MethodSchema({
   ]
 });
 
-methods.setLowerBound = new MethodSchema({
+methods.updateLowerBound = new MethodSchema({
   httpMethod: 'get',
   input: [
     {src: String},
