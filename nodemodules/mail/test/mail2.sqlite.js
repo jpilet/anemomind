@@ -78,7 +78,7 @@ describe('EndPoint', function() {
           ep.getLowerBound('ep', 'b', function(err, lb) {
             assert(!err);
             assert.equal(lb, packet.seqNumber);
-            ep.setLowerBound('ep', 'b', packet.seqNumber, function(err) {
+            ep.updateLowerBound('ep', 'b', packet.seqNumber, function(err) {
               assert(!err);
               ep.getLowerBound('ep', 'b', function(err, lb) {
                 assert(!err);
@@ -86,7 +86,7 @@ describe('EndPoint', function() {
                 ep.getTotalPacketCount(function(err, count) {
                   assert(!err);
                   assert(count == 1);
-                  ep.setLowerBound('ep', 'b', bigint.inc(packet.seqNumber), function(err) {
+                  ep.updateLowerBound('ep', 'b', bigint.inc(packet.seqNumber), function(err) {
                     assert(!err);
                     ep.getTotalPacketCount(function(err, count) {
                       assert(!err);
@@ -112,7 +112,7 @@ describe('EndPoint', function() {
           ep.getTotalPacketCount(function(err, count) {
             assert(!err);
             assert.equal(count, 2);
-            ep.setLowerBound('ep', 'b', bigint.inc(pb.seqNumber), function() {
+            ep.updateLowerBound('ep', 'b', bigint.inc(pb.seqNumber), function() {
               ep.getTotalPacketCount(function(err, count) {
                 assert(!err);
                 assert.equal(count, 1);
@@ -173,7 +173,7 @@ describe('EndPoint', function() {
           ep.getSrcDstPairs(function(err, pairs) {
             assert(!err);
             assert(eq(pairs, [{src:'ep', dst:'a'}, {src:'ep', dst:'b'}]));
-            ep.setLowerBound('a', 'ep', bigint.inc(bigint.zero()), function(err) {
+            ep.updateLowerBound('a', 'ep', bigint.inc(bigint.zero()), function(err) {
               assert(!err);
               ep.getSrcDstPairs(function(err, pairs) {
                 assert(!err);
