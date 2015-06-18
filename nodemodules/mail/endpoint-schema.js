@@ -49,6 +49,17 @@ methods.updateLowerBound = new MethodSchema({
            {lb: 'hex'}]
 });
 
+methods.updateLowerBounds = new MethodSchema({
+  httpMethod: 'get',
+  input: [
+    {pairs: 'any'} // pairs of {src:..., dst:.., lb:...}
+  ],
+  output: [
+    {err: errorTypes},
+    {lbs: 'any'} // array of updated lower bounds: [...]
+  ]
+});
+
 methods.getLowerBounds = new MethodSchema({
   httpMethod: 'post',
   input: [

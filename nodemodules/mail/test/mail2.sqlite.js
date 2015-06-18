@@ -271,4 +271,25 @@ describe('EndPoint', function() {
       });
     });    
   });
+
+  it('updatelowerbounds', function(done) {
+    makeTestEP(function(err, ep) {
+      assert(!err);
+      ep.updateLowerBounds([
+        {src:"a", dst:"b", lb:"0004"},
+        {src:"a", dst:"c", lb:"0005"}
+      ], function(err, lbs) {
+        assert(!err);
+        assert(eq(lbs, ["0004", "0005"]));
+        ep.updateLowerBounds([
+          {src:"a", dst:"b", lb:"0003"},
+          {src:"a", dst:"c", lb:"0006"}
+        ], function(err, lbs) {
+          assert(!err);
+          assert(eq(lbs, ["0004", "0006"]));
+          done();
+        });
+      });
+    });
+  });
 });

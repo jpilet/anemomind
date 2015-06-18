@@ -7,6 +7,7 @@ var naming = require('./naming.js');
 var assert = require('assert');
 var eq = require('deep-equal-ident');
 var schema = require('./endpoint-schema.js');
+var Q = require('q');
 
 function isSrcDstPair(x) {
   if (typeof x == 'object') {
@@ -494,6 +495,17 @@ EndPoint.prototype.getLowerBounds = function(pairs, cb) {
   withTransaction(this.db, function(T, cb) {
     getPerPairData(T, pairs, getLowerBound, 'lb', cb);
   }, cb);
+}
+
+EndPoint.prototype.updateLowerBounds = function(pairs, cb) {
+  var self = this;
+  Q.all(pairs.map(function(pair) {
+    return Q.ninvoke(self, "updateLowerBound", pair.src, pair.dst, pair.lb || bigint.zero());
+  })).then(function(lbs) {
+    cb(null, lbs);
+  }).fail(function(err) {
+    cb(err);
+  });
 }
 
 EndPoint.prototype.getUpperBounds = function(pairs, cb) {
