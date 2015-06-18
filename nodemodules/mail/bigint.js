@@ -213,6 +213,7 @@ function deserializeBigInts(buf, width) {
 // This is not a big deal, though, because the context where it is used
 // is also O(n), so this doesn't change the complexity.
 function diff(a, b) {
+  assert(a.length == b.length);
   if (a >= b) {
     var counter = 0;
     while (a > b) {
