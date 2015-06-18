@@ -426,7 +426,7 @@ EndPoint.prototype.getTotalPacketCount = function(cb) {
     });
 }
 
-function setLowerBound(db, src, dst, lowerBound, cb) {
+function updateLowerBound(db, src, dst, lowerBound, cb) {
   getLowerBound(db, src, dst, function(err, currentLowerBound) {
     if (err) {
       cb(err);
@@ -436,25 +436,35 @@ function setLowerBound(db, src, dst, lowerBound, cb) {
           if (err) {
             cb(err);
           } else {
-            removeObsoletePackets(db, src, dst, lowerBound, cb);
+            removeObsoletePackets(db, src, dst, lowerBound, function(err) {
+              if (err) {
+                cb(err);
+              } else {
+                cb(null, lowerBound);
+              }
+            });
           }
         });
       } else {
-        cb();
+        cb(null, currentLowerBound);
       }
     }
   });
 }
 
+function setLowerBound(db, src, dst, lowerBound, cb) {
+  updateLowerBound(db, src, dst, lowerBound, function(err, lb) {
+    cb(err);
+  });
+}
+
 EndPoint.prototype.setLowerBound = function(src, dst, lb, cb) {
   withTransaction(this.db, function(T, cb) {
-    setLowerBound(T, src, dst, lb, cb);
+    updateLowerBound(T, src, dst, lb, cb);
   }, function(err, lb) {
-    lb = '00001';
     if (err) {
       cb(err);
     } else if (!common.isCounter(lb)) {
-      console.log('INVALID LOWER BOUND: ' + lb);
       cb(new Error('Invalid lower bound: ' + lb));
     } else {
       cb(err, lb);
