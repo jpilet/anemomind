@@ -224,11 +224,11 @@ function makeVerboseMethod(self, methodName, methodSpec, method) {
     method.apply(self, args.concat([function(err, output) {
       var s = self.name + '.' + methodName + '(' + listInputs(methodSpec.input, args) + '): ';
       if (err) {
-        s += util.format('FAILED with %j', err);
+        s += util.format('FAILED with '+ err);
       } else {
         s += util.format('%j', output);
       }
-      console.log(shortenToMaxLength(s, 80));
+      console.log(shortenToMaxLength(s, 300));
       cb(err, output);
     }]));
   }

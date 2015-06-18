@@ -40,7 +40,7 @@ methods.getSrcDstPairs = new MethodSchema({
 
 
 methods.updateLowerBounds = new MethodSchema({
-  httpMethod: 'get',
+  httpMethod: 'post',
   input: [
     {pairs: 'any'} // pairs of {src:..., dst:.., lb:...}
   ],

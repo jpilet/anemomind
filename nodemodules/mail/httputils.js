@@ -19,6 +19,7 @@ function makeMethod(scon, mailboxName, method) {
 	       coder.decode(method.output[1], data));
 	};
 
+      try {
 	if (method.httpMethod == 'post') {
 	    scon.makePostRequest(
 		mailboxName,
@@ -35,6 +36,12 @@ function makeMethod(scon, mailboxName, method) {
 		responseHandler
 	    );
 	}
+      } catch (e) {
+        console.log('CAUGHT EXCEPTION WHEN SENDING REQUEST in httputils.js');
+        console.log('INPUT SPEC');
+        console.log(method.input);
+        cb(e);
+      }
     }
 }
 
