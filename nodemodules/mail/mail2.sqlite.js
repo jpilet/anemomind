@@ -450,7 +450,15 @@ EndPoint.prototype.setLowerBound = function(src, dst, lb, cb) {
   withTransaction(this.db, function(T, cb) {
     setLowerBound(T, src, dst, lb, cb);
   }, function(err, lb) {
-    cb(err, '119');
+    lb = '00001';
+    if (err) {
+      cb(err);
+    } else if (!common.isCounter(lb)) {
+      console.log('INVALID LOWER BOUND: ' + lb);
+      cb(new Error('Invalid lower bound: ' + lb));
+    } else {
+      cb(err, lb);
+    }
   });
 }
 
