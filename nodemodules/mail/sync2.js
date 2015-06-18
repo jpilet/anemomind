@@ -125,8 +125,8 @@ function runSyncJobs(jobs, cb, cbProgress) {
   var putPacket = function(dst, packet, cb) {
     dst.putPacket(packet, function(err) {
       if (!err) {
-        reportProgress(counter, totalCount);
         counter++;
+        reportProgress(counter, totalCount);
       }
       cb(err);
     });
@@ -210,13 +210,15 @@ function synchronizeAllLowerBounds(pairs, a, b, cb) {
 
 
 function synchronizeAllPackets(pairs, lbs, a, b, cb, cbProgress) {
-  var reportProgress = cbProgress || function() {};
+  var reportProgress = cbProgress || function(counter, total) {
+    console.log('Synchronized %d of %d packets between %s and %s', counter, total, a.name, b.name);
+  };
   var ubResults = new common.ResultArray(2, function(err, ubs) {
     if (err) {
       cb(err);
     } else {
       var jobs = makeSyncJobs(pairs, lbs, ubs[0], ubs[1], a, b);
-      runSyncJobs(jobs, cb, cbProgress);
+      runSyncJobs(jobs, cb, reportProgress);
     }
   });
   a.getUpperBounds(pairs, ubResults.makeSetter(0));
