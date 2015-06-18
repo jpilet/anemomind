@@ -9,28 +9,6 @@ function disp(a, b, cb) {
   });
 }
 
-function synchronizeLowerBounds(pair, a, b, cb) {
-  a.getLowerBound(pair.src, pair.dst, function(err, lbA) {
-    if (err) {
-      cb(err);
-    } else {
-      b.getLowerBound(pair.src, pair.dst, function(err, lbB) {
-        if (err) {
-          cb(err);
-        } else {
-          if (lbA < lbB) {
-            a.setLowerBound(pair.src, pair.dst, lbB, cb);
-          } else if (lbA > lbB) {
-            b.setLowerBound(pair.src, pair.dst, lbA, cb);
-          } else {
-            cb();
-          }
-        }
-      });
-    }
-  });
-}
-
 function transferPacketsSub(pair, fromIndex, toIndex, from, to, putPacket, cb) {
   if (fromIndex == toIndex) {
     cb();
