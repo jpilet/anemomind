@@ -191,10 +191,8 @@ function synchronizeAllLowerBounds(pairs, a, b, cb) {
         var alb = albs[i];
         var blb = blbs[i];
         if (alb < blb) {
-          albs[i] = blb;
           a.setLowerBound(pair.src, pair.dst, blb, common.makeValuePasser(blb, set));
         } else if (alb > blb) {
-          blbs[i] = alb;
           b.setLowerBound(pair.src, pair.dst, alb, common.makeValuePasser(alb, set));
         } else { // same
           assert(alb == blb);
