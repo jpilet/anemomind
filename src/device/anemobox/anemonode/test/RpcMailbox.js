@@ -41,7 +41,7 @@ describe(
 );
 
 describe(
-  'getLowerBounds',
+  'updateLowerBounds',
   function() {
     it(
       'Should get the src dst pairs',
@@ -50,26 +50,20 @@ describe(
 	prepareMailbox(function(response) {
 	  assert.equal(response.error, undefined);
           assert(typeof mailboxName == 'string');
-	  rpcTable.ep_getLowerBounds({
+	  rpcTable.ep_updateLowerBounds({
 	    name: mailboxName,
 	    pairs: [{src:'a', dst:'b'}],
 	  }, function(response) {
 	    assert.equal(response.result[0], "0000000000000000");
-	    rpcTable.ep_setLowerBound({
+	    rpcTable.ep_updateLowerBounds({
 	      name: mailboxName,
-              src: 'a',
-              dst: 'b',
-	      lb: "0000000000000009"
+              pairs: [{src: 'a',
+                       dst: 'b',
+	               lb: "0000000000000009"}]
 	    }, function(response) {
 	      assert.equal(response.error, undefined);
-	      rpcTable.ep_getLowerBounds({
-		name: mailboxName,
-                pairs: [{src: 'a',
-                         dst: 'b'}]
-	      }, function(response) {
-		assert.equal(response.result[0], "0000000000000009");
-		done();
-	      });
+	      assert.equal(response.result[0], "0000000000000009");
+	      done();
 	    });
 	  });
 	});
@@ -105,7 +99,7 @@ describe(
 	mb.setMailRoot('/tmp/anemobox/');
 
         prepareMailbox(function(response) {
-	  rpcTable.ep_getLowerBounds({
+	  rpcTable.ep_updateLowerBounds({
 	    name: mailboxName
 	    // omit the required argument for the function
 	  }, function(response) {

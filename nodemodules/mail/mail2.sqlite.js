@@ -432,22 +432,26 @@ function updateLowerBound(db, src, dst, lowerBound, cb) {
     if (err) {
       cb(err);
     } else {
-      if (currentLowerBound < lowerBound) {
-        setLowerBoundInTable(db, src, dst, lowerBound, function(err) {
-          if (err) {
-            cb(err);
-          } else {
-            removeObsoletePackets(db, src, dst, lowerBound, function(err) {
-              if (err) {
-                cb(err);
-              } else {
-                cb(null, lowerBound);
-              }
-            });
-          }
-        });
-      } else {
+      if (!lowerBound) {
         cb(null, currentLowerBound);
+      } else {
+        if (currentLowerBound < lowerBound) {
+          setLowerBoundInTable(db, src, dst, lowerBound, function(err) {
+            if (err) {
+              cb(err);
+            } else {
+              removeObsoletePackets(db, src, dst, lowerBound, function(err) {
+                if (err) {
+                  cb(err);
+                } else {
+                  cb(null, lowerBound);
+                }
+              });
+            }
+          });
+        } else {
+          cb(null, currentLowerBound);
+        }
       }
     }
   });
@@ -500,7 +504,7 @@ EndPoint.prototype.getLowerBounds = function(pairs, cb) {
 EndPoint.prototype.updateLowerBounds = function(pairs, cb) {
   var self = this;
   Q.all(pairs.map(function(pair) {
-    return Q.ninvoke(self, "updateLowerBound", pair.src, pair.dst, pair.lb || bigint.zero());
+    return Q.ninvoke(self, "updateLowerBound", pair.src, pair.dst, pair.lb);
   })).then(function(lbs) {
     cb(null, lbs);
   }).fail(function(err) {
