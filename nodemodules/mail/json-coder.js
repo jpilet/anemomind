@@ -64,7 +64,8 @@ function encodeGetArg(argSpec, arg) {
 	assert(isValidGetString(arg));
 	return arg;
     } else {
-	assert.equal(type, 'hex');
+	assert.equal(type, 'hex', 'Error in your schema: The type ' + type +
+                     ' cannot be used with arguments passed using GET');
 	assert(bigint.isBigInt(arg));
 	return arg;
     }

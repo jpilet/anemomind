@@ -13,12 +13,10 @@ function makeMethod(scon, mailboxName, method) {
 	var lastArgIndex = allArgs.length - 1;
 	var args = allArgs.slice(0, lastArgIndex);
 	var cb = allArgs[lastArgIndex];
-
 	var responseHandler = function(err, data) {
 	    cb(coder.decode(method.output[0], err),
 	       coder.decode(method.output[1], data));
 	};
-
       try {
 	if (method.httpMethod == 'post') {
 	    scon.makePostRequest(
