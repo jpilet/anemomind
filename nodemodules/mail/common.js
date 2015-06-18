@@ -73,8 +73,8 @@ function isObjectWithFields(x, fields) {
       if (!x.hasOwnProperty(fields[i])) {
 	return false;
       }
-      return true;
     }
+    return true;
   }
   return false;
 }
