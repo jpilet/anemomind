@@ -403,21 +403,9 @@ EndPoint.prototype.sendPacket = function(dst, label, data, cb) {
 }
 
 function setLowerBoundInTable(db, src, dst, lowerBound, cb) {
-  db.get(
-    'SELECT * FROM lowerBounds WHERE src = ? AND dst = ?',
-    src, dst, function(err, row) {
-      if (err) {
-        cb(err);
-      } else {
-        if (row && lowerBound <= row.lowerBound) {
-          cb();
-        } else {
-          db.run(
-            'INSERT OR REPLACE INTO lowerBounds VALUES (?, ?, ?)',
-            src, dst, lowerBound, cb);          
-        }
-      }
-    });
+  db.run(
+    'INSERT OR REPLACE INTO lowerBounds VALUES (?, ?, ?)',
+    src, dst, lowerBound, cb);          
 }
 
 function removeObsoletePackets(db, src, dst, lowerBound, cb) {
