@@ -38,16 +38,6 @@ methods.getSrcDstPairs = new MethodSchema({
   ]
 });
 
-methods.updateLowerBound = new MethodSchema({
-  httpMethod: 'get',
-  input: [
-    {src: String},
-    {dst: String},
-    {lb: 'hex'}
-  ],
-  output: [{err: errorTypes},
-           {lb: 'hex'}]
-});
 
 methods.updateLowerBounds = new MethodSchema({
   httpMethod: 'get',
@@ -57,17 +47,6 @@ methods.updateLowerBounds = new MethodSchema({
   output: [
     {err: errorTypes},
     {lbs: 'any'} // array of updated lower bounds: [...]
-  ]
-});
-
-methods.getLowerBounds = new MethodSchema({
-  httpMethod: 'post',
-  input: [
-    {pairs: 'any'}
-  ],
-  output: [
-    {err: errorTypes},
-    {lbs: 'any'}
   ]
 });
 

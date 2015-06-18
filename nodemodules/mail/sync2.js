@@ -175,34 +175,43 @@ function makeSyncJobs(pairs, lbs, aubs, bubs, a, b) {
   return jobs;
 }
 
-//// Synchronize all lower bounds, and obtain the new lower bounds.
-//// cb is cb(err, lbs) where lbs are the synchronized lower bounds
+function mergePairsAndLowerBounds(pairs, lowerBounds) {
+  assert(pairs.length == lowerBounds.length);
+  var n = pairs.length;
+  var dst = new Array(n);
+  for (var i = 0; i < n; i++) {
+    var p = pairs[i];
+    dst[i] = {src:p.src, dst:p.dst, lb:lowerBounds[i]};
+  }
+  return dst;
+}
+
+function updateLowerBounds(dst, pairs, cb) {
+  dst.updateLowerBounds(pairs, function(err, lbs) {
+    if (err) {
+      cb(err);
+    } else if (pairs.count != lbs.count) {
+      cb(new Error('Inconsistent lengths in updateLowerBounds sync2.js'));
+    } else {
+      cb(null, mergePairsAndLowerBounds(pairs, lbs));
+    }
+  });
+}
+
 function synchronizeAllLowerBounds(pairs, a, b, cb) {
-  var results = new common.ResultArray(2, function(err, lbs) {
+  updateLowerBounds(a, pairs, function(err, pairs) {
     if (err) {
       cb(err);
     } else {
-      var albs = lbs[0];
-      var blbs = lbs[1];
-      var setResults = new common.ResultArray(pairs.length, cb);
-      for (var i = 0; i < pairs.length; i++) {
-        var set = setResults.makeSetter(i);
-        var pair = pairs[i];
-        var alb = albs[i];
-        var blb = blbs[i];
-        if (alb < blb) {
-          a.updateLowerBound(pair.src, pair.dst, blb, set);
-        } else if (alb > blb) {
-          b.updateLowerBound(pair.src, pair.dst, alb, set);
-        } else { // same
-          assert(alb == blb);
-          set(null, alb);
+      updateLowerBounds(b, pairs, function(err, pairs) {
+        if (err) {
+          cb(err);
+        } else {
+          a.updateLowerBounds(pairs, cb);
         }
-      }
+      });
     }
   });
-  a.getLowerBounds(pairs, results.makeSetter(0));
-  b.getLowerBounds(pairs, results.makeSetter(1));
 }
 
 
