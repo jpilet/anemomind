@@ -243,19 +243,5 @@ function synchronize(a, b, cb, cbProgress) {
   }
 }
 
-function synchronizeObsoleteImplementation(a, b, cb) {
-  if (a.name == b.name) {
-    cb(new Error('The end points must be different'));
-  } else {
-    getCommonSrcDstPairs(a, b, function(err, pairs) {
-      if (err) {
-        cb(err);
-      } else {
-        synchronizePairs(pairs, a, b, cb);
-      }
-    });
-  }
-}
-
 module.exports.synchronize = synchronize;
 module.exports.disp = disp;
