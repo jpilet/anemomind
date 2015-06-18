@@ -65,31 +65,6 @@ function synchronizePackets(pair, a, b, cb) {
   });
 }
 
-function synchronizePair(pair, a, b, cb) {
-  synchronizeLowerBounds(pair, a, b, function(err) {
-    if (err) {
-      cb(err);
-    } else {
-      synchronizePackets(pair, a, b, cb);
-    }
-  });
-}
-
-function synchronizePairs(pairs, a, b, cb) {
-  if (pairs.length == 0) {
-    cb();
-  } else {
-    var pair = pairs[0];
-    synchronizePair(pair, a, b, function(err) {
-      if (err) {
-        cb(err);
-      } else {
-        synchronizePairs(pairs.slice(1), a, b, cb);
-      }
-    });
-  }
-}
-
 function getCommonSrcDstPairs(a, b, cb) {
   a.getSrcDstPairs(function(err, aPairs) {
     if (err) {
