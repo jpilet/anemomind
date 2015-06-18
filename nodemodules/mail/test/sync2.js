@@ -4,8 +4,6 @@ var assert = require('assert');
 var eq = require('deep-equal-ident');
 var common = require('../common.js');
 
-var makeBuf = common.makeBuf;
-
 function makeA(cb) {
   mail2.tryMakeAndResetEndPoint('/tmp/epa.db', 'a', cb);
 }
@@ -38,7 +36,7 @@ describe('sync2', function() {
       assert(!err);
       a.addPacketHandler(function(endPoint, packet) {aPackets.push(packet);});
       b.addPacketHandler(function(endPoint, packet) {bPackets.push(packet);});
-      a.sendPacket('b', 119, makeBuf([0, 1, 2]), function(err) {
+      a.sendPacket('b', 119, new Buffer([0, 1, 2]), function(err) {
         assert(!err);
         sync2.synchronize(a, b, function(err) {
           assert(!err);
@@ -57,7 +55,7 @@ describe('sync2', function() {
       assert(!err);
       a.addPacketHandler(function(endPoint, packet) {aPackets.push(packet);});
       b.addPacketHandler(function(endPoint, packet) {bPackets.push(packet);});
-      b.sendPacket('a', 119, makeBuf([0, 1, 2]), function(err) {
+      b.sendPacket('a', 119, new Buffer([0, 1, 2]), function(err) {
         assert(!err);
         sync2.synchronize(a, b, function(err) {
           assert(!err);
@@ -89,17 +87,17 @@ describe('sync2', function() {
       a.addPacketHandler(function(endPoint, packet) {ap.push(packet);});
       b.addPacketHandler(function(endPoint, packet) {bp.push(packet);});
       assert(!err);
-      a.sendPacket('b', 119, makeBuf([0, 3, 4]), function(err) {
+      a.sendPacket('b', 119, new Buffer([0, 3, 4]), function(err) {
         assert(!err);
-        a.sendPacket('b', 120, makeBuf([3, 3]), function(err) {
+        a.sendPacket('b', 120, new Buffer([3, 3]), function(err) {
           assert(!err);
-          b.sendPacket('a', 121, makeBuf([112]), function(err) {
+          b.sendPacket('a', 121, new Buffer([112]), function(err) {
             assert(!err);
             sync2.synchronize(a, b, function(err) {
               assert(!err);
               assert.equal(ap.length, 1);
               assert.equal(bp.length, 2);
-              assert(ap[0].data.equals(makeBuf([112])));
+              assert(ap[0].data.equals(new Buffer([112])));
               sync2.synchronize(a, b, function(err) {
                 assert(!err);
                 assert.equal(ap.length, 1);
@@ -128,7 +126,7 @@ describe('sync2', function() {
         var packets = [];
         c.addPacketHandler(function(endPoint, packet) {packets.push(packet);});
         assert(!err);
-        a.sendPacket('c', 120, makeBuf([33]), function(err) {
+        a.sendPacket('c', 120, new Buffer([33]), function(err) {
           assert(!err);
           sync2.synchronize(a, b, function(err) {
             assert(!err);
@@ -136,7 +134,7 @@ describe('sync2', function() {
               assert(!err);
               assert(packets[0]);
               var p = packets[0];
-              assert(p.data.equals(makeBuf([33])));
+              assert(p.data.equals(new Buffer([33])));
               assert.equal(p.src, 'a');
               assert.equal(p.dst, 'c');
               assert.equal(p.label, 120);

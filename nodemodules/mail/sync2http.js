@@ -5,7 +5,6 @@ var mail2h = require('./mail2.http.js');
 var common = require('./common.js');
 var schema = require('./endpoint-schema.js');
 
-var makeBuf = common.makeBuf;
 
 var testuser = {
     'email': 'test@anemomind.com',
@@ -58,16 +57,16 @@ makeAB(function(err, a, b) {
   var ap = [];
   a.addPacketHandler(function(endPoint, packet) {ap.push(packet);});
   assert(!err);
-  a.sendPacket('b', 119, makeBuf([0, 3, 4]), function(err) {
+  a.sendPacket('b', 119, new Buffer([0, 3, 4]), function(err) {
     assert(!err);
-    a.sendPacket('b', 120, makeBuf([3, 3]), function(err) {
+    a.sendPacket('b', 120, new Buffer([3, 3]), function(err) {
       assert(!err);
-      b.sendPacket('a', 121, makeBuf([112]), function(err) {
+      b.sendPacket('a', 121, new Buffer([112]), function(err) {
         assert(!err);
         sync2.synchronize(a, b, function(err) {
           assert(!err);
           assert.equal(ap.length, 1);
-          assert(ap[0].data.equals(makeBuf([112])));
+          assert(ap[0].data.equals(new Buffer([112])));
           sync2.synchronize(a, b, function(err) {
             assert(!err);
             assert.equal(ap.length, 1);

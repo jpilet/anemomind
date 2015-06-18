@@ -67,14 +67,6 @@ function isPacket(x) {
   return false;
 }
 
-function makeBuf(x) {
-  var dst = new Buffer(x.length);
-  for (var i = 0; i < x.length; i++) {
-    dst.writeUInt8(x[i], i);
-  }
-  return dst;
-}
-
 function isObjectWithFields(x, fields) {
   if (typeof x == 'object') {
     for (var i = 0; i < fields.length; i++) {
@@ -131,7 +123,6 @@ module.exports.isValidMailboxName = isValidMailboxName;
 module.exports.isPacket = isPacket;
 module.exports.isString = isString;
 module.exports.isObjectWithFields = isObjectWithFields;
-module.exports.makeBuf = makeBuf;
 module.exports.getParamNames = getParamNames;
 module.exports.ResultArray = ResultArray;
 module.exports.makeValuePasser = makeValuePasser;
