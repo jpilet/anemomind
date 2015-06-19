@@ -11,7 +11,7 @@ var assert = require('assert');
 var DelayedCall = require('./DelayedCall.js');
 
 // The path '/media/sdcard/' is also used in logger.js
-var mailRoot = '/media/sdcard/mail/';
+var mailRoot = '/media/sdcard/mail2/';
 var doRemoveLogFiles = false;
 var sentName = 'sentlogs';
 var closeTimeoutMillis = 30000;
