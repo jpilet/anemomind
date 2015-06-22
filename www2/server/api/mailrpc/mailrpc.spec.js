@@ -140,94 +140,24 @@ describe('/api/mailrpc', function() {
             .expect(200)
             .end(function(err, res) {
               assert(!err);
-              var uploadedFilename =
-                "uploads/anemologs/boat123456789012345678901234/the_log_file.txt";
-              fs.readFile(uploadedFilename, function(err, data0) {
-                assert(!err);
-                fs.readFile(p, function(err, data1) {
+
+              done();
+              /*
+              var lbData = coder.encodeArgs(
+                [{pairs: 'any'}],
+                [[{src: 'thebox', dst: remoteMailboxName}]]
+              );
+              server.post('/apii/mailrpc/updateLowerBounds/' + remoteMailboxName)
+                .send(lbData)
+                .set('Authorization', 'Bearer ' + token)
+                .expect(200)
+                .end(function(err, res) {
                   assert(!err);
-                  assert(data0.equals(data1));
                   done();
-                });
-              });
-            })
-        });
-      });
-  });
-
-  it('Should handle another incoming log file with the same name', function(done) {
-    var p = '/tmp/the_log_file.txt';
-    fs.writeFile(
-      p, "Here there be boat logs.",
-      function(err) {
-        file.readAndPackFile(p, file.makeLogFileInfo(), function(err, filedata) {
-          
-          var postdata = coder.encodeArgs(
-            [{packet: 'any'}],
-            [{src: "thebox", dst: remoteMailboxName,
-              label: common.logfile,
-              data: filedata, seqNumber: "2345"}]);
-          server
-            .post('/api/mailrpc/putPacket/' + remoteMailboxName)
-            .send(postdata)
-            .set('Authorization', 'Bearer ' + token)
-            .expect(200)
-            .end(function(err, res) {
-              assert(!err);
-              var uploadedFilename =
-                "uploads/anemologs/boat123456789012345678901234/the_log_file_version2.txt";
-              fs.readFile(uploadedFilename, function(err, data0) {
-                assert(err); // <-- We should not be able to load this file. Since we
-                             //     the log file contains the same data, no new file
-                             //     with be created.
-                done();
-              });
-            })
-        });
-      });
-  });
-
-  it('Should handle another incoming log file with the same name, but different data',
-       function(done) {
-    var p = '/tmp/the_log_file.txt';
-    fs.writeFile(
-      p, "Here there be some other boat logs.",
-      function(err) {
-        file.readAndPackFile(p, file.makeLogFileInfo(), function(err, filedata) {
-          var postdata = coder.encodeArgs(
-            [{packet: 'any'}],
-            [{src: "thebox", dst: remoteMailboxName,
-              label: common.logfile,
-              data: filedata, seqNumber: "2346"}]);
-          server
-            .post('/api/mailrpc/putPacket/' + remoteMailboxName)
-            .send(postdata)
-            .set('Authorization', 'Bearer ' + token)
-            .expect(200)
-            .end(function(err, res) {
-              assert(!err);
-              var uploadedFilename =
-                "uploads/anemologs/boat123456789012345678901234/the_log_file_version2.txt";
-              fs.readFile(uploadedFilename, function(err, data0) {
-                assert(!err); 
-                fs.readFile(p, function(err, data1) {
-                  assert(!err);
-                  assert(data0.equals(data1));
-                  fs.unlink(
-                    "uploads/anemologs/boat123456789012345678901234/the_log_file_version2.txt",
-                    function(err) {
-                      assert(!err);
-                      fs.unlink(
-                        "uploads/anemologs/boat123456789012345678901234/the_log_file.txt",
-                        function(err) {
-                          assert(!err);
-                          done();
-                        });
-                    });
-                });
-              });
-            })
-        });
+                });*/
+              
+            });
+        })
       });
   });
 

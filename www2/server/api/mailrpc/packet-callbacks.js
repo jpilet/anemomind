@@ -22,7 +22,7 @@ function tryToSaveWithName(tgtDir, parsedFilename, counter, data, cb) {
   fs.readFile(filename, function(err, loadedData) {
     if (err) { // <-- No such file with that name.
       fs.writeFile(filename, data, function(err) {
-        console.log("Wrote log file: " + filename);
+        console.log('Wrote the file ' + filename);
         cb(err);
       });
     } else {
