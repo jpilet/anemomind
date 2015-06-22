@@ -38,7 +38,7 @@ function openMongoConnection(mode, cb) {
 
 
 function init(mode) {
-  openMongoConnection(mode || 'production', function(err) {
+  openMongoConnection(mode || process.env.NODE_ENV, function(err) {
     if (err) {
       console.log('Failed to initialize RemoteScriptCommon.js module:');
       console.log(err);
