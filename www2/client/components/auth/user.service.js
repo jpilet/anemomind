@@ -13,7 +13,7 @@ angular.module('www2App')
         }
       },
       resetPassword: {
-        method: 'PUT',
+        method: 'POST',
         params: {
           controller:'resetpassword'
         }
