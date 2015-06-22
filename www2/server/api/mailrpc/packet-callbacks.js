@@ -20,9 +20,6 @@ function makeLogFilenameFromParts(tgtDir, parsedFilename, counter) {
 function tryToSaveWithName(tgtDir, parsedFilename, counter, data, cb) {
   var filename = makeLogFilenameFromParts(tgtDir, parsedFilename, counter);
   fs.readFile(filename, function(err, loadedData) {
-    console.log("  -> err and data:");
-    console.log(err);
-    console.log(loadedData)
     if (err) { // <-- No such file with that name.
       fs.writeFile(filename, data, function(err) {
         console.log("Wrote log file: " + filename);
