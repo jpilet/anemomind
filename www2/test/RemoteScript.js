@@ -11,7 +11,7 @@ var mb = require('mail/mail.sqlite.js');
 var sync = require('mail/sync.js');
 
 var removeBoat = true;
-common.init('test');
+common.init();
 
 
 function withTestBoat(cbOperation, cbDone) {
