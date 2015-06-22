@@ -278,6 +278,22 @@ function getFirstPacketIndex(db, src, dst, cb) {
     });
 }
 
+
+function computeTheLowerBound(lowerBound0, lowerBound1) {
+  if (lowerBound0) {
+    if (lowerBound1) {
+      if (lowerBound0 < lowerBound1) {
+        return lowerBound1;
+      }
+      return lowerBound0;
+    }
+    return lowerBound0;
+  } else if (lowerBound1) {
+    return lowerBound1;
+  }
+  return bigint.zero();
+}
+
 /*
 
   Try in this order:
@@ -291,19 +307,15 @@ function getLowerBound(T, src, dst, cb) {
   if (!(common.isIdentifier(src) && common.isIdentifier(dst))) {
     cb(new Error('Invalid identifiers in getLowerBound'));
   } else {
-    getLowerBoundFromTable(T, src, dst, function(err, lowerBound) {
+    getLowerBoundFromTable(T, src, dst, function(err, lowerBound0) {
       if (err) {
         cb(err);
-      } else if (lowerBound) {
-        cb(null, lowerBound);
       } else {
-        getFirstPacketIndex(T, src, dst, function(err, lowerBound) {
+        getFirstPacketIndex(T, src, dst, function(err, lowerBound1) {
           if (err) {
             cb(err);
-          } else if (lowerBound) {
-            cb(null, lowerBound);
           } else {
-            cb(null, bigint.zero());
+            cb(null, computeTheLowerBound(lowerBound0, lowerBound1));
           }
         });
       }
