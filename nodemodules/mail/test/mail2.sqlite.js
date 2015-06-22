@@ -327,37 +327,47 @@ sqlite>
     */
 
   it('updatelowerbounds2', function(done) {
-    makeTestEP(function(err, ep) {      
-      insertPackets(
-        ep.db,
-        [["boat553910775bfc1709601c6aa9", "boxfcc2de3178ef", "0000014e1b4b8d6e", 129,
-          new Buffer(0)],
-         ["boat553910775bfc1709601c6aa9", "boxfcc2de3178ef", "0000014e1b4b8d6f", 129,
-          new Buffer(0)],
-         ["boat553910775bfc1709601c6aa9", "boxfcc2de3178ef", "0000014e1b4b8d70", 129,
-          new Buffer(0)],
-         ["boat553910775bfc1709601c6aa9", "boxfcc2de3178ef", "0000014e1b4b8d71", 129,
-          new Buffer(0)]],
-        function(err) {
-          assert(!err);
-          ep.getLowerBound("boat553910775bfc1709601c6aa9", "boxfcc2de3178ef", function(err, lb) {
-            var lb0 = "0000014e1b4b8d6e";
-            var lb1 = "0000014e1b4948c6";
-            assert(lb1 < lb0);
-            assert(lb == lb0);
-            ep.updateLowerBounds([
-              {"src":"boat553910775bfc1709601c6aa9",
-               "dst":"boxfcc2de3178ef","lb":"0000014e1b4948c6"},
-              {"src":"boxfcc2de3178ef",
-               "dst":"boat553910775bfc1709601c6aa9","lb":"0000014e1ad6b2b2"}
-            ], function(err, lbs) {
-              assert(lbs[0] == lb0);
+    makeTestEP(function(err, ep) {
+      ep.updateLowerBound(
+        "boat553910775bfc1709601c6aa9", "boxfcc2de3178ef",
+        "0000014e1b4948c4", function(err) {
+          
+          insertPackets(
+            ep.db,
+            [["boat553910775bfc1709601c6aa9",
+              "boxfcc2de3178ef", "0000014e1b4b8d6e", 129,
+              new Buffer(0)],
+             ["boat553910775bfc1709601c6aa9",
+              "boxfcc2de3178ef", "0000014e1b4b8d6f", 129,
+              new Buffer(0)],
+             ["boat553910775bfc1709601c6aa9",
+              "boxfcc2de3178ef", "0000014e1b4b8d70", 129,
+              new Buffer(0)],
+             ["boat553910775bfc1709601c6aa9",
+              "boxfcc2de3178ef", "0000014e1b4b8d71", 129,
+              new Buffer(0)]],
+            function(err) {
               assert(!err);
-              console.log('LBS = ');
-              console.log(lbs);
-              done();
+              ep.getLowerBound("boat553910775bfc1709601c6aa9",
+                               "boxfcc2de3178ef", function(err, lb) {
+                var lb0 = "0000014e1b4b8d6e";
+                var lb1 = "0000014e1b4948c6";
+                assert(lb1 < lb0);
+                assert(lb == lb0);
+                ep.updateLowerBounds([
+                  {"src":"boat553910775bfc1709601c6aa9",
+                   "dst":"boxfcc2de3178ef","lb":"0000014e1b4948c6"},
+                  {"src":"boxfcc2de3178ef",
+                   "dst":"boat553910775bfc1709601c6aa9","lb":"0000014e1ad6b2b2"}
+                ], function(err, lbs) {
+                  assert(lbs[0] == lb0);
+                  assert(!err);
+                  console.log('LBS = ');
+                  console.log(lbs);
+                  done();
+                });
+              });
             });
-          });
         });
     });
   });
