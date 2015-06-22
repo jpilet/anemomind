@@ -113,7 +113,6 @@ exports.changePassword = function(req, res, next) {
 exports.resetPassword = function(req, res, next) {
 
   var newPass = generatePassword();
-
   User.findOne({
     email: req.body.email
   }, function (err, user) {
