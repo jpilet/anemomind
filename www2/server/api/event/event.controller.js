@@ -10,6 +10,7 @@ var config = require('../../config/environment');
 var mkdirp = require('mkdirp');
 
 var boatAccess = require('../boat/access.js');
+var backup = require('../../components/backup');
 
 // Encoding hex mongoid in urls is too long.
 // we should switch to https://www.npmjs.com/package/hashids
@@ -216,6 +217,7 @@ exports.postPhoto = multer({
 
   onFileUploadComplete: function(file, req, res) {
     res.sendStatus(201);
+    backup.backupPhotos();
   }
 });
 
