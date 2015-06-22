@@ -278,6 +278,13 @@ function getFirstPacketIndex(db, src, dst, cb) {
     });
 }
 
+
+function computeTheLowerBound(lowerBound0, lowerBound1) {
+  lowerBound0 = lowerBound0 || bigint.zero();
+  lowerBound1 = lowerBound1 || bigint.zero();
+  return (lowerBound0 < lowerBound1? lowerBound1 : lowerBound0);
+}
+
 /*
 
   Try in this order:
@@ -291,19 +298,15 @@ function getLowerBound(T, src, dst, cb) {
   if (!(common.isIdentifier(src) && common.isIdentifier(dst))) {
     cb(new Error('Invalid identifiers in getLowerBound'));
   } else {
-    getLowerBoundFromTable(T, src, dst, function(err, lowerBound) {
+    getLowerBoundFromTable(T, src, dst, function(err, lowerBound0) {
       if (err) {
         cb(err);
-      } else if (lowerBound) {
-        cb(null, lowerBound);
       } else {
-        getFirstPacketIndex(T, src, dst, function(err, lowerBound) {
+        getFirstPacketIndex(T, src, dst, function(err, lowerBound1) {
           if (err) {
             cb(err);
-          } else if (lowerBound) {
-            cb(null, lowerBound);
           } else {
-            cb(null, bigint.zero());
+            cb(null, computeTheLowerBound(lowerBound0, lowerBound1));
           }
         });
       }
@@ -362,14 +365,17 @@ EndPoint.prototype.getUpperBound = function(src, dst, cb) {
 }
 
 function getNextSeqNumber(T, src, dst, cb) {
-  getLastPacket(T, src, dst, function(err, packet) {
+  getUpperBound(T, src, dst, function(err, ub) {
     if (err) {
       cb(err);
     } else {
-      var seqNumber = (packet? bigint.inc(packet.seqNumber) : bigint.makeFromTime());
-      cb(null, seqNumber);
+      cb(null, ub == bigint.zero()? bigint.makeFromTime() : ub);
     }
   });
+}
+
+EndPoint.prototype.getNextSeqNumber = function(src, dst, cb) {
+  getNextSeqNumber(this.db, src, dst, cb);
 }
 
 
