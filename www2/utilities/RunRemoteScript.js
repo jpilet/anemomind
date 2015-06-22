@@ -1,6 +1,6 @@
 var common = require('./RemoteScriptCommon.js');
 
-common.init('production');
+common.init();
 
 function sentCallback(err, reqCode) {
   if (err) {
