@@ -8,6 +8,25 @@ function makeTestEP(cb) {
   mail2.tryMakeAndResetEndPoint('/tmp/ep.db', 'ep', cb);
 }
 
+
+function insertPackets(db, packets, cb) {
+  if (packets.length == 0) {
+    cb(null);
+  } else {
+    var p = packets[0];
+    db.get("INSERT INTO packets VALUES (?, ?, ?, ?, ?)",
+           p[0], p[1], p[2], p[3], p[4],
+           function(err) {
+             if (err) {
+               cb(err);
+             } else {
+               insertPackets(db, packets.slice(1), cb);
+             }
+           });
+  }
+}
+
+
 describe('EndPoint', function() {
   it('Should check that the endpoint conforms with the schema', function(done) {
     makeTestEP(function(err, ep) {
@@ -290,6 +309,86 @@ describe('EndPoint', function() {
           done();
         });
       });
+    });
+  });
+
+  /*
+
+sqlite> select * from packets;
+boat553910775bfc1709601c6aa9|boxfcc2de3178ef|0000014e1b4b8d6e|129|��type�sh�script�/tmp/run.sh�reqCode�558802f599080b35399d709f
+boat553910775bfc1709601c6aa9|boxfcc2de3178ef|0000014e1b4b8d6f|129|��type�sh�script
+boat553910775bfc1709601c6aa9|boxfcc2de3178ef|0000014e1b4b8d70|129|��type�sh�script
+boat553910775bfc1709601c6aa9|boxfcc2de3178ef|0000014e1b4b8d71|129|��type�sh�script
+sqlite> select * from lowerBounds;
+boat553910775bfc1709601c6aa9|boxfcc2de3178ef|0000014e1b4948c6
+boxfcc2de3178ef|boat553910775bfc1709601c6aa9|0000014e1ad6b2b7
+sqlite> 
+    
+    */
+
+  it('updatelowerbounds2', function(done) {
+    makeTestEP(function(err, ep) {
+      ep.updateLowerBound(
+        "boat553910775bfc1709601c6aa9", "boxfcc2de3178ef",
+        "0000014e1b4948c4", function(err) {
+
+          // Adding these packets just like this is going to
+          // put the table in a corrupt state, because the lowest packet number
+          // is greater than the value in the lower bound table.
+          insertPackets(
+            ep.db,
+            [["boat553910775bfc1709601c6aa9",
+              "boxfcc2de3178ef", "0000014e1b4b8d6e", 129,
+              new Buffer(0)],
+             ["boat553910775bfc1709601c6aa9",
+              "boxfcc2de3178ef", "0000014e1b4b8d6f", 129,
+              new Buffer(0)],
+             ["boat553910775bfc1709601c6aa9",
+              "boxfcc2de3178ef", "0000014e1b4b8d70", 129,
+              new Buffer(0)],
+             ["boat553910775bfc1709601c6aa9",
+              "boxfcc2de3178ef", "0000014e1b4b8d71", 129,
+              new Buffer(0)]],
+            function(err) {
+              assert(!err);
+              ep.getLowerBound("boat553910775bfc1709601c6aa9",
+                               "boxfcc2de3178ef", function(err, lb) {
+                var lb0 = "0000014e1b4b8d6e";
+                var lb1 = "0000014e1b4948c6";
+                assert(lb1 < lb0);
+                assert(lb == lb0);
+                ep.updateLowerBounds([
+                  {"src":"boat553910775bfc1709601c6aa9",
+                   "dst":"boxfcc2de3178ef","lb":"0000014e1b4948c6"},
+                  {"src":"boxfcc2de3178ef",
+                   "dst":"boat553910775bfc1709601c6aa9","lb":"0000014e1ad6b2b2"}
+                ], function(err, lbs) {
+                  assert(lbs[0] == lb0);
+                  assert(!err);
+                  console.log('LBS = ');
+                  console.log(lbs);
+                  done();
+                });
+              });
+            });
+        });
+    });
+  });
+
+  it('Should produce a correct seq number', function(done) {
+    makeTestEP(function(err, ep) {
+      ep.updateLowerBound(
+        "boat553910775bfc1709601c6aa9", "boxfcc2de3178ef",
+        "0000000000000001", function(err) {
+          assert(!err);
+          ep.getNextSeqNumber(
+            "boat553910775bfc1709601c6aa9",
+            "boxfcc2de3178ef", function(err, sn) {
+              assert(!err);
+              assert(sn == "0000000000000001");
+              done();
+            });
+        });
     });
   });
 });
