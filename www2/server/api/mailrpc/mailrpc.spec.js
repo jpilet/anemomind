@@ -132,7 +132,7 @@ describe('/api/mailrpc', function() {
             [{packet: 'any'}],
             [{src: "thebox", dst: remoteMailboxName,
               label: common.logfile,
-              data: filedata, seqNumber: "2344"}]);
+              data: filedata, seqNumber: "0000014e1ad6b2b2"}]);
           server
             .post('/api/mailrpc/putPacket/' + remoteMailboxName)
             .send(postdata)
@@ -140,26 +140,31 @@ describe('/api/mailrpc', function() {
             .expect(200)
             .end(function(err, res) {
               assert(!err);
-
               done();
-              /*
-              var lbData = coder.encodeArgs(
-                [{pairs: 'any'}],
-                [[{src: 'thebox', dst: remoteMailboxName}]]
-              );
-              server.post('/apii/mailrpc/updateLowerBounds/' + remoteMailboxName)
-                .send(lbData)
-                .set('Authorization', 'Bearer ' + token)
-                .expect(200)
-                .end(function(err, res) {
-                  assert(!err);
-                  done();
-                });*/
-              
             });
         })
       });
   });
+
+
+  it('Should read the updated number', function(done) {
+    var lbData = coder.encodeArgs(
+      [{pairs: 'any'}],
+      [[{src: 'thebox', dst: remoteMailboxName}]]
+    );
+    console.log('lbData:');
+    console.log(lbData);
+    server.post('/api/mailrpc/updateLowerBounds/' + remoteMailboxName)
+      .send(lbData)
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200)
+      .end(function(err, res) {
+        assert(res.body[0] == "0000014e1ad6b2b3");
+        assert(!err);
+        done();
+      });
+  });
+
 
   after(function(done) {
     User.remove({email: "test@anemomind.com"}, done);
