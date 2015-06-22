@@ -280,18 +280,9 @@ function getFirstPacketIndex(db, src, dst, cb) {
 
 
 function computeTheLowerBound(lowerBound0, lowerBound1) {
-  if (lowerBound0) {
-    if (lowerBound1) {
-      if (lowerBound0 < lowerBound1) {
-        return lowerBound1;
-      }
-      return lowerBound0;
-    }
-    return lowerBound0;
-  } else if (lowerBound1) {
-    return lowerBound1;
-  }
-  return bigint.zero();
+  lowerBound0 = lowerBound0 || bigint.zero();
+  lowerBound1 = lowerBound1 || bigint.zero();
+  return (lowerBound0 < lowerBound1? lowerBound1 : lowerBound0);
 }
 
 /*
