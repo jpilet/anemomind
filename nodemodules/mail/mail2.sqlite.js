@@ -374,12 +374,11 @@ EndPoint.prototype.getUpperBound = function(src, dst, cb) {
 }
 
 function getNextSeqNumber(T, src, dst, cb) {
-  getLastPacket(T, src, dst, function(err, packet) {
+  getUpperBound(T, src, dst, function(err, ub) {
     if (err) {
       cb(err);
     } else {
-      var seqNumber = (packet? bigint.inc(packet.seqNumber) : bigint.makeFromTime());
-      cb(null, seqNumber);
+      cb(null, ub == bigint.zero()? bigint.makeFromTime() : ub);
     }
   });
 }

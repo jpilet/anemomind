@@ -385,7 +385,7 @@ sqlite>
             "boat553910775bfc1709601c6aa9",
             "boxfcc2de3178ef", function(err, sn) {
               assert(!err);
-              assert(sn == "0000000000000001")
+              assert(sn == "0000000000000001");
               done();
             });
         });
