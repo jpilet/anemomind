@@ -384,6 +384,10 @@ function getNextSeqNumber(T, src, dst, cb) {
   });
 }
 
+EndPoint.prototype.getNextSeqNumber = function(src, dst, cb) {
+  getNextSeqNumber(this.db, src, dst, cb);
+}
+
 
 EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
   var self = this;

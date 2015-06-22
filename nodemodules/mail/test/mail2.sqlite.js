@@ -331,7 +331,10 @@ sqlite>
       ep.updateLowerBound(
         "boat553910775bfc1709601c6aa9", "boxfcc2de3178ef",
         "0000014e1b4948c4", function(err) {
-          
+
+          // Adding these packets just like this is going to
+          // put the table in a corrupt state, because the lowest packet number
+          // is greater than the value in the lower bound table.
           insertPackets(
             ep.db,
             [["boat553910775bfc1709601c6aa9",
@@ -367,6 +370,23 @@ sqlite>
                   done();
                 });
               });
+            });
+        });
+    });
+  });
+
+  it('Should produce a correct seq number', function(done) {
+    makeTestEP(function(err, ep) {
+      ep.updateLowerBound(
+        "boat553910775bfc1709601c6aa9", "boxfcc2de3178ef",
+        "0000000000000001", function(err) {
+          assert(!err);
+          ep.getNextSeqNumber(
+            "boat553910775bfc1709601c6aa9",
+            "boxfcc2de3178ef", function(err, sn) {
+              assert(!err);
+              assert(sn == "0000000000000001")
+              done();
             });
         });
     });
