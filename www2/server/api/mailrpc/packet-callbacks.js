@@ -3,8 +3,8 @@ var path = require('path');
 var mkdirp = require('mkdirp');
 var fs = require('fs');
 var config = require('../../config/environment');
-var exec = require('child_process').exec;
 var makeScriptResponseHandler = require('../boxexec/response-handler.js');
+var backup = require('../../components/backup');
 
 
 function makeLogFilenameFromParts(tgtDir, parsedFilename, counter) {
@@ -57,31 +57,6 @@ function saveLogFile(tgtDir, msg, cb) {
   });
 }
 
-var pushRunning = false;
-function pushLogFilesToProcessingServer() {
-  if (pushRunning) {
-    return;
-  }
-  pushRunning = true;
-  var args = [
-      'rsync',
-      '--remove-source-files',
-      '-e ssh',
-      '-ar',
-      '"' + config.uploadDir + '"/*',
-      'anemomind@vtiger.anemomind.com:userlogs'
-  ];
-  var cmd = args.join(' ');
-  exec(cmd,
-       function(err, stdout, stderr) {
-         if (err) {
-           console.log('Error while running: ' + cmd);
-           console.log(err);
-         }
-         pushRunning = false;
-       });
-}
-
 function getTargetDirectory(mailbox) {
   // Is there a better place to put them?
   return path.join(config.uploadDir, "anemologs", mailbox.name);
@@ -100,7 +75,7 @@ module.exports.add = function(endPoint) {
           console.log("Error when trying to save incoming log file:");
           console.log(err);
         } else {
-          pushLogFilesToProcessingServer();
+          backup.pushLogFilesToProcessingServer();
         }
       });
     }
