@@ -1,5 +1,5 @@
 var common = require('./RemoteScriptCommon.js');
-common.init('production');
+common.init(process.env.NODE_ENV);
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
 
 function printIndentedIfNotNull(data, field) {
