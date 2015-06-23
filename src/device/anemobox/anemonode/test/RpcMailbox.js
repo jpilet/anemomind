@@ -10,8 +10,8 @@ var mailboxName = null;
 function prepareMailbox(cb) {
   mb.getName(function(lname) {
     mailboxName = lname;
-    rpcTable.mb_reset({
-      thisMailboxName: lname,
+    rpcTable.ep_reset({
+      name: lname,
     }, function(response) {
       assert.equal(response.error, undefined);
       cb(response);
@@ -27,8 +27,8 @@ describe(
       'Should reset the mailbox and make sure the packet count is 0',
       function(done) {
 	prepareMailbox(function(response) {
-	  rpcTable.mb_getTotalPacketCount({
-	    thisMailboxName: mailboxName
+	  rpcTable.ep_getTotalPacketCount({
+	    name: mailboxName
 	  }, function(response) {
 	    assert.equal(response.error, undefined);
 	    assert.equal(response.result, 0);
@@ -41,32 +41,29 @@ describe(
 );
 
 describe(
-  'getForeignDiaryNumber',
+  'updateLowerBounds',
   function() {
     it(
-      'Should get a foreign diary number from an empty mailbox',
+      'Should get the src dst pairs',
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
 	prepareMailbox(function(response) {
 	  assert.equal(response.error, undefined);
-	  rpcTable.mb_getForeignDiaryNumber({
-	    thisMailboxName: mailboxName,
-	    otherMailbox: "evian"
+          assert(typeof mailboxName == 'string');
+	  rpcTable.ep_updateLowerBounds({
+	    name: mailboxName,
+	    pairs: [{src:'a', dst:'b'}],
 	  }, function(response) {
-	    assert.equal(response.result, undefined);
-	    rpcTable.mb_setForeignDiaryNumber({
-	      thisMailboxName: mailboxName,
-	      otherMailbox: "evian",
-	      newValue: "0000000000000009"
+	    assert.equal(response.result[0], "0000000000000000");
+	    rpcTable.ep_updateLowerBounds({
+	      name: mailboxName,
+              pairs: [{src: 'a',
+                       dst: 'b',
+	               lb: "0000000000000009"}]
 	    }, function(response) {
 	      assert.equal(response.error, undefined);
-	      rpcTable.mb_getForeignDiaryNumber({
-		thisMailboxName: mailboxName,
-		otherMailbox: "evian"
-	      }, function(response) {
-		assert.equal(response.result, "0000000000000009");
-		done();
-	      });
+	      assert.equal(response.result[0], "0000000000000009");
+	      done();
 	    });
 	  });
 	});
@@ -82,8 +79,8 @@ describe(
       'Should result in an error',
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
-	rpcTable.mb_reset({
-	  // Omit 'thisMailboxName' to provoke an error.
+	rpcTable.ep_reset({
+	  // Omit 'name' to provoke an error.
 	}, function(response) {
 	  assert(response.error);
 	  done();
@@ -100,9 +97,10 @@ describe(
       'Should result in an error',
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
+
         prepareMailbox(function(response) {
-	  rpcTable.mb_getForeignDiaryNumber({
-	    thisMailboxName: mailboxName
+	  rpcTable.ep_updateLowerBounds({
+	    name: mailboxName
 	    // omit the required argument for the function
 	  }, function(response) {
 	    assert(response.error);

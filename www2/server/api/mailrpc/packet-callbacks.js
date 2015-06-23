@@ -21,10 +21,13 @@ function tryToSaveWithName(tgtDir, parsedFilename, counter, data, cb) {
   var filename = makeLogFilenameFromParts(tgtDir, parsedFilename, counter);
   fs.readFile(filename, function(err, loadedData) {
     if (err) { // <-- No such file with that name.
-      fs.writeFile(filename, data, cb);
+      fs.writeFile(filename, data, function(err) {
+        console.log('Wrote the log file ' + filename);
+        cb(err);
+      });
     } else {
       if (loadedData.equals(data)) {
-        
+
         // No point in saving the same data twice with different names
         cb();
         
@@ -53,17 +56,17 @@ function saveLogFile(tgtDir, msg, cb) {
 
 function getTargetDirectory(mailbox) {
   // Is there a better place to put them?
-  return path.join(config.uploadDir, "anemologs", mailbox.mailboxName);
+  return path.join(config.uploadDir, "anemologs", mailbox.name);
 }  
 
 // Please list below all the callbacks that should be called,
 // sequentially, whenever a packet is received
-module.exports.onPacketReceived = 
-  [function(mailbox, packet, T, cb) {
-    cb();
+module.exports.add = function(endPoint) {
+  // To handle an incoming log file.
+  endPoint.addPacketHandler(function(endPoint, packet) {
     if (file.isLogFilePacket(packet)) {
       var msg = file.unpackFileMessage(packet.data);
-      var tgtDir = getTargetDirectory(mailbox);
+      var tgtDir = getTargetDirectory(endPoint);
       saveLogFile(tgtDir, msg, function(err) {
         if (err) {
           console.log("Error when trying to save incoming log file:");
@@ -73,19 +76,8 @@ module.exports.onPacketReceived =
         }
       });
     }
-  }, makeScriptResponseHandler()];
+  });
 
-// Please list below all the callbacks that should be called,
-// sequentially, whenever an ack packet is received.
-module.exports.onAcknowledged = [
-
-    // As for onPacketReceived, maybe we want to do something once
-    // we receive an acknowledgment packet for packets previously sent.
-    //
-    // For instance, if we were transferring a file, we might want to delete that file
-    // or something once we know all its pieces has reached the destination.
-    function(mailbox, T, data, cb) {
-	console.log('Received acknowledgement for packets previously sent: %j', data);
-	cb();
-    }
-];
+  // To handle the incoming response of running a script
+  endPoint.addPacketHandler(makeScriptResponseHandler());
+};

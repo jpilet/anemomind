@@ -27,34 +27,15 @@
 
 */  
 var assert = require('assert');
+var common = require('./common.js');
+var util = require('util');
 
 /*
 
   METHODS
 
 */
-var methods = {};
-
-
-/*
-    How to get the names of function parameters:
-    
-      http://stackoverflow.com/questions/1007981/how-to-get-function-parameter-names-values-dynamically-from-javascript
-
-    Can be used to validate that the methods of a mailbox implements
-    this specification.
-*/
-var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-var ARGUMENT_NAMES = /([^\s,]+)/g;
-function getParamNames(func) {
-  var fnStr = func.toString().replace(STRIP_COMMENTS, '');
-  var result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(ARGUMENT_NAMES);
-  if(result === null)
-     result = [];
-  return result;
-}
-
-
+var getParamNames = common.getParamNames;
 
 function isArrayTypeSpec(x) {
     if (Array.isArray(x)) {
@@ -187,118 +168,13 @@ MethodSchema.prototype.isValidMethod = function(x) {
     return false;
 }
 
-// Below follows specifications of what methods every
-// method of a mailbox object should support:
-methods.setForeignDiaryNumber = new MethodSchema({
-    httpMethod:'get',
-    input: [
-	{otherMailbox: String},
-	{newValue: 'hex'}
-    ],
-    output: [
-	{err: errorTypes},
-    ]
-});
-
-methods.getFirstPacketStartingFrom = new MethodSchema({
-    httpMethod:'get',
-    input: [
-	{diaryNumber: 'hex'},
-	{lightWeight: Boolean},
-    ],
-    output: [
-	{err: errorTypes},
-	{packet: 'any'}
-    ]
-});
-
-methods.handleIncomingPacket = new MethodSchema({
-    httpMethod:'post',
-    input: [
-	{packet: 'any'}
-    ],
-    output: [
-	{err: errorTypes}
-    ]
-});
-
-methods.isAdmissible = new MethodSchema({
-    httpMethod:'get',
-    input: [
-	{src: String},
-	{dst: String},
-	{seqNumber: 'hex'}
-    ],
-    output: [
-	{err: errorTypes},
-	{p: Boolean}
-    ]
-});
-
-methods.getForeignDiaryNumber = new MethodSchema({
-    httpMethod:'get',
-    input: [
-	{otherMailbox: String}
-    ],
-    output: [
-	{err: errorTypes},
-	{diaryNumber: 'hex'}
-    ]
-});
-
-methods.getForeignStartNumber = new MethodSchema({
-    httpMethod:'get',
-    input: [
-	{otherMailbox: String}
-    ],
-    output: [
-	{err: errorTypes},
-	{diaryNumber: 'hex'}
-    ]
-});
-
-methods.reset = new MethodSchema({
-    httpMethod:'get',
-    input: [],
-    output: [
-	{err: errorTypes}
-    ]
-});
-
-methods.sendPacket = new MethodSchema({
-    httpMethod: 'post',
-    input: [
-	{dst: String},
-	{label: Number},
-	{data: 'buffer'}
-    ],
-    output: [
-	{err: errorTypes}
-    ]
-});
-
-methods.getTotalPacketCount = new MethodSchema({
-    httpMethod: 'get',
-    input: [],
-    output: [
-	{err: errorTypes},
-	{count: Number}
-    ]
-});
-
-
-
-
-
-
-
 
 /*
 
   THE MAILBOX SCHEMA
 
  */
-function MailboxSchema(methods) {
+function EndPointSchema(methods) {
     for (methodName in methods) {
 	assert(methods[methodName] instanceof MethodSchema);
 	methods[methodName].name = methodName;
@@ -308,7 +184,7 @@ function MailboxSchema(methods) {
 }
 
 // Test if x conforms with the mailbox schema.
-MailboxSchema.prototype.isValidMailbox = function(x) {
+EndPointSchema.prototype.isValidEndPoint = function(x) {
     for (methodName in this.methods) {
 	if (!this.methods[methodName].isValidMethod(x[methodName])) {
 	    return false;
@@ -317,7 +193,57 @@ MailboxSchema.prototype.isValidMailbox = function(x) {
     return true;
 }
 
-module.exports = new MailboxSchema(methods);
+function listInputs(argSpecs, args) {
+  var n = Math.min(argSpecs.length, args.length);
+  var s = '';
+  for (var i = 0; i < n; i++) {
+    s += util.format(getArgName(argSpecs[i]) + '=%j', args[i]);
+    if (i < n-1) {
+      s += ' ';
+    }
+  }
+  return s;
+}
+
+function shortenToMaxLength(s, maxLength) {
+  if (s.length <= maxLength) {
+    return s;
+  } else {
+    return s.substring(0, maxLength-3) + '...';
+  }
+}
+
+function makeVerboseMethod(self, methodName, methodSpec, method) {
+  return function() {
+    var allArgs = common.argsToArray(arguments);
+    var last = allArgs.length - 1;
+    var args = allArgs.slice(0, last);
+    var cb = allArgs[last];
+    assert(typeof cb == 'function');
+    assert(typeof method == 'function');
+    method.apply(self, args.concat([function(err, output) {
+      var s = self.name + '.' + methodName + '(' + listInputs(methodSpec.input, args) + '): ';
+      if (err) {
+        s += util.format('FAILED with '+ err);
+      } else {
+        s += util.format('%j', output);
+      }
+      console.log(shortenToMaxLength(s, 300));
+      cb(err, output);
+    }]));
+  }
+}
+
+EndPointSchema.prototype.makeVerbose = function(ep) {
+  for (method in this.methods) {
+    ep[method] = makeVerboseMethod(ep, method, this.methods[method], ep[method]);
+  }
+}
+
+
+module.exports.errorTypes = errorTypes;
+module.exports.MethodSchema = MethodSchema;
+module.exports.EndPointSchema = EndPointSchema;
 module.exports.getArgName = getArgName;
 module.exports.getArgType = getArgType;
 module.exports.isValidHttpMethod = function(x) {

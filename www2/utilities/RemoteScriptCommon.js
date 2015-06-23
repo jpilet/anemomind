@@ -5,7 +5,7 @@ var mongoose = require('mongoose');
 var exec = require('child_process').exec;
 var Boat = require('../server/api/boat/boat.model.js');
 var Q = require('q');
-var mb = require('mail/mail.sqlite.js');
+var mb = require('mail/mail2.sqlite.js');
 var fs = require('fs');
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
 
@@ -95,7 +95,7 @@ function sendScriptToBox(filename, scriptType, scriptData, cb_) {
     }
   };
   
-  mb.tryMakeMailboxFromFilename(filename, function(err, mailbox) {
+  mb.tryMakeEndPointFromFilename(filename, function(err, mailbox) {
     if (err) {
       cb(err);
     } else {

@@ -1,4 +1,4 @@
-var schema = require('./mailbox-schema.js');
+var schema = require('./schemautils.js');
 var mangler = require('mangler');
 var assert = require('assert');
 var bigint = require('./bigint.js');
@@ -64,7 +64,8 @@ function encodeGetArg(argSpec, arg) {
 	assert(isValidGetString(arg));
 	return arg;
     } else {
-	assert.equal(type, 'hex');
+	assert.equal(type, 'hex', 'Error in your schema: The type ' + type +
+                     ' cannot be used with arguments passed using GET');
 	assert(bigint.isBigInt(arg));
 	return arg;
     }

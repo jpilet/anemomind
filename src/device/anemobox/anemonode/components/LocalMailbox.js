@@ -1,6 +1,7 @@
-var mb = require('mail/mail.sqlite.js');
+var mb = require('mail/mail2.sqlite.js');
 var naming = require('mail/naming.js');
 var file = require('mail/file.js');
+var schema = require('mail/endpoint-schema.js');
 var mkdirp = require('mkdirp');
 var boxId = require('./boxId.js');
 var config = require('./config.js');
@@ -10,7 +11,7 @@ var assert = require('assert');
 var DelayedCall = require('./DelayedCall.js');
 
 // The path '/media/sdcard/' is also used in logger.js
-var mailRoot = '/media/sdcard/mail/';
+var mailRoot = '/media/sdcard/mail2/';
 var doRemoveLogFiles = false;
 var sentName = 'sentlogs';
 var closeTimeoutMillis = 30000;
@@ -46,38 +47,6 @@ function makeFilenameFromMailboxName(mailboxName) {
     + ".sqlite.db";
 }
 
-
-function makeAckHandler() {
-  return mb.makePerPacketAckHandler(function(mailbox, packet) {
-    if (file.isLogFilePacket(packet)) {
-      var msg = file.unpackFileMessage(packet.data);
-      if (file.isLogFileInfo(msg.info)) {
-        var p = msg.path;
-        console.log(
-          'This logfile was successfully delivered to the server and can be removed: ' + p);
-
-        // Removing files is a bit scary, so
-        // maybe we want to have it disabled to start with.
-        // We might lose valuable data. We can enable it once
-        // we are very sure everything works.
-        if (doRemoveLogFiles) {
-          fs.unlink(p, function(err) {
-            if (err) {
-              console.log('Failed to remove ' + p);
-            } else {
-              console.log('Removed.');
-            }
-          });
-        } else {
-          console.log('It is configured not to be removed.');
-        }
-      } else {
-        console.log('WARNING: Packets labeled logfile should contain logfile data.');
-      }
-    }
-  });
-}
-
 function registerMailbox(mailboxName, mailbox) {
   mailboxData = {
     mailbox:mailbox,
@@ -106,14 +75,15 @@ function openNewMailbox(mailboxName, cb) {
       cb(err);
     } else {
       var filename = makeFilenameFromMailboxName(mailboxName);
-      mb.tryMakeMailbox(
+      mb.tryMakeEndPoint(
 	filename,
 	mailboxName, function(err, mailbox) {
           if (err) {
             cb(err);
           } else {
-            mailbox.verbose = true;
-            mailbox.onPacketReceived = script.makeScriptRequestHandler(triggerSync);
+            schema.makeVerbose(mailbox);
+            mailbox.addPacketHandler(
+              script.makeScriptRequestHandler(triggerSync));
             var data = registerMailbox(mailboxName, mailbox);
             data.close.callDelayed(closeTimeoutMillis);
             cb(null, mailbox);

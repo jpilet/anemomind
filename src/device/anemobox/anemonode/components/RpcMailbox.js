@@ -1,7 +1,7 @@
 // This file exports a single function, fillTable, that can be used to fille the rpcFuncTable of
 // rpcble.js. It is used by RpcMailbox.js. The reason for putting this code in its own file
 // is to facilitate unit testing.
-var schema = require('mail/mailbox-schema.js');
+var schema = require('mail/endpoint-schema.js');
 var coder = require("mail/json-coder.js");
 var mb = require("./LocalMailbox.js");
 
@@ -27,7 +27,7 @@ function ensureCB(p, errorMessage, cb) {
 */
 function callMailboxMethod(mailboxName, methodName, args, cbFinal) {
   // TODO: Since there is only one mailbox endpoint on the
-  // anemobox, maybe we could simply remove 'thisMailboxName'
+  // anemobox, maybe we could simply remove 'name'
   // from the RPC protocol? In that case, we would simply
   // use mb.open(...) below.
   mb.withNamedLocalMailbox(mailboxName, function(mailbox, cb) {
@@ -74,7 +74,7 @@ function encodeResult(argSpecs, result) {
 function makeRpcFunction(methodName, method) {
   return function(data, cb) {
     mb.getName(function(localName) {
-      var mailboxName = data.thisMailboxName;
+      var mailboxName = data.name;
       if (typeof mailboxName != 'string') {
         cb({error: 'The mailbox name must be a string'});
       } else if (localName.trim() != mailboxName.trim()) {
@@ -83,7 +83,6 @@ function makeRpcFunction(methodName, method) {
         try {
           if (ensureCB(mailboxName != undefined,
 		       "You must pass a mailbox name", cb)) {
-
 	    var args = coder.decodeArgs(method.input, data);
 	    callMailboxMethod(
 	      mailboxName, methodName, args,
@@ -112,7 +111,7 @@ function makeRpcFunction(methodName, method) {
 // Prefix all mailbox-related calls with mb
 // to avoid naming collisions for common names (such as "reset")
 function makeRpcFuncName(methodName) {
-  return "mb_" + methodName;
+  return "ep_" + methodName;
 }
 
 // Use this function to register all the available mailbox calls

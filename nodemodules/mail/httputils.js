@@ -2,11 +2,7 @@
 
 var ServerConnection = require('./server-connection.js');
 var coder = require('./json-coder.js');
-var schema = require('./mailbox-schema.js');
 var assert = require('assert');
-
-
-
 
 // Make a method to put in the local mailbox object
 // that will result in an HTTP request according
@@ -17,12 +13,11 @@ function makeMethod(scon, mailboxName, method) {
 	var lastArgIndex = allArgs.length - 1;
 	var args = allArgs.slice(0, lastArgIndex);
 	var cb = allArgs[lastArgIndex];
-
 	var responseHandler = function(err, data) {
 	    cb(coder.decode(method.output[0], err),
 	       coder.decode(method.output[1], data));
 	};
-
+      try {
 	if (method.httpMethod == 'post') {
 	    scon.makePostRequest(
 		mailboxName,
@@ -39,31 +34,44 @@ function makeMethod(scon, mailboxName, method) {
 		responseHandler
 	    );
 	}
+      } catch (e) {
+        console.log('CAUGHT EXCEPTION WHEN SENDING REQUEST in httputils.js');
+        console.log('INPUT SPEC');
+        console.log(method.input);
+        cb(e);
+      }
     }
 }
 
-function Mailbox(serverConnection, mailboxName) {
-    this.mailboxName = mailboxName;
-    for (methodName in schema.methods) {
-	this[methodName] = makeMethod(
-	    serverConnection,
-	    mailboxName,
-	    schema.methods[methodName]
-	);
-    }
+function EndPoint(schema, serverConnection, mailboxName) {
+  // TODO: remove this line once we have migrated.
+  this.mailboxName = mailboxName;
+  
+  this.name = mailboxName;
+  for (methodName in schema.methods) {
+    this[methodName] = makeMethod(
+      serverConnection,
+      mailboxName,
+      schema.methods[methodName]
+    );
+  }
 }
 
 // Call this function when you need a new mailbox.
-function tryMakeMailbox(serverAddress, userdata, mailboxName, cb) {
+function tryMakeEndPoint(schema, serverAddress, userdata, mailboxName, cb) {
     var s = new ServerConnection(serverAddress);
     s.login(userdata, function(err) {
 	if (err) {
 	    cb(err);
 	} else {
 	    // Register these as rpc calls.
-	    cb(undefined, new Mailbox(s, mailboxName));
+	    cb(undefined, new EndPoint(schema, s, mailboxName));
 	}
     });
 }
 
-module.exports.tryMakeMailbox = tryMakeMailbox;
+module.exports.makeEndPointConstructor = function(schema) {
+  return function(serverAddress, userData, mailboxName, cb) {
+    tryMakeEndPoint(schema, serverAddress, userData, mailboxName, cb);
+  };
+}
