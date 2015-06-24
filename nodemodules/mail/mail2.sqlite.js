@@ -658,6 +658,20 @@ function isEndPoint(x) {
   return false;
 }
 
+function withEP(ep, epOperation, done) {
+  ep.open(function(err) {
+    if (err) {
+      done(err);
+    } else {
+      epOperation(function(ep, err) {
+        ep.close(function(err2) {
+          done(err || err2);
+        });
+      });
+    }
+  });
+}
+
 
 module.exports.EndPoint = EndPoint;
 module.exports.isEndPoint = isEndPoint;
@@ -668,3 +682,4 @@ module.exports.srcDstPairIntersection = srcDstPairIntersection;
 module.exports.srcDstPairDifference = srcDstPairDifference;
 module.exports.filterByName = filterByName;
 module.exports.tryMakeEndPointFromFilename = tryMakeEndPointFromFilename;
+module.exports.withEP = withEP;

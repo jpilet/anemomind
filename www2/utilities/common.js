@@ -81,6 +81,16 @@ function makeBoatEndPoint(boatId, cb) {
     naming.makeMailboxNameFromBoatId(boatId), cb);
 }
 
+function withBoatEndPoint(boatId, cbOperation, done) {
+  makeBoatEndPoint(boatId, function(err, ep) {
+    if (err) {
+      done(err);
+    } else {
+      mail2.withEP(ep, cbOperation, done);
+    }
+  });
+}
+
 
 function sendScriptToBox(boatId, scriptType, scriptData, cb_) {
   var globalMailbox = null;
@@ -140,6 +150,21 @@ function sendScriptFileToBox(boatId, scriptFilename, cb) {
   } catch (e) {
     cb(e);
   }
+}
+
+function sendBoatData(boatId, filename, dstFilename, cb) {
+  withBoatEndPoint(boatId, function(ep, cb) {
+    getBoxIdFromBoatId(boatId, function(err, boxId) {
+      if (err) {
+        cb(err);
+      } else {
+        files.sendFiles(
+          naming.makeMailboxNameFromBoxId(boxId),
+          [{src: filename, dst: dstFilename}]
+        ).nodeify(cb);
+      }
+    });
+  }, cb);
 }
 
 module.exports.extractBoatIdFromFilename = extractBoatIdFromFilename;
