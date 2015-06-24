@@ -6,6 +6,15 @@ var mail2 = require('../mail2.sqlite.js');
 var sync2 = require('../sync2.js');
 var epschema = require('../endpoint-schema.js');
 
+function xfun(cb) {
+  setTimeout(function() {cb(null, 119);}, 130);
+}
+
+function yfun(cb) {
+  setTimeout(function() {cb(null, 8889);}, 140);
+}
+
+
 
 describe('File transfer code', function() {
   it('packfiles', function(done) {
@@ -32,20 +41,21 @@ describe('File transfer code', function() {
   });
 
   it('promises', function(done) {
-    function xfun(cb) {
-      setTimeout(function() {cb(null, 119);}, 130);
-    }
-
-    function yfun(cb) {
-      setTimeout(function() {cb(null, 8889);}, 140);
-    }
-    
     var X = Q.nfcall(xfun);
     var Y = Q.nfcall(yfun);
 
     X.then(Y).then(function(y) {
-      console.log('y = ', y);
-      //assert.equal(y, null);
+      assert(y == 119); // What X resolves to... why?
+      done();
+    });
+  });
+
+  it('promises', function(done) {
+    var X = Q.nfcall(xfun);
+    var Y = Q.nfcall(yfun);
+
+    X.then(function() {return Y;}).then(function(y) {
+      assert(y == 8889);
       done();
     });
   });

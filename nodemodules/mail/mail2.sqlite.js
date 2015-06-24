@@ -384,14 +384,12 @@ EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
   var src = self.name;
   withTransaction(this.db, function(T, cb) {
     getNextSeqNumber(T, src, dst, function(err, seqNumber) {
-      console.log('INSErT IT!!');
       T.run(
         'INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
         src, dst, seqNumber, label, data, function(err) {
           if (err) {
             cb(err);
           } else {
-            console.log('SUCCESS!');
             cb(null, {
               src: src,
               dst: dst,
@@ -406,7 +404,6 @@ EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
 }
 
 EndPoint.prototype.sendPacket = function(dst, label, data, cb) {
-  console.log('SEND PACKET!!!');
   this.sendPacketAndReturn(dst, label, data, function(err, p) {
     cb(err);
   });
