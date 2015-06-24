@@ -89,13 +89,7 @@ describe('files', function() {
           })
           .then(function() {
             return Q.nfcall(sync2.synchronize, a, b);
-          })
-          .then(function(v) {
-            console.log('v = %j', v);
-            a.getTotalPacketCount(function(err, n) {
-              assert(n == 1);
-            });
-          })
+          });
       });
   });
 });
