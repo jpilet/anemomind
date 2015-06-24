@@ -1,3 +1,4 @@
+
 var path = require('path');
 var naming = require('mail/naming.js');
 var script = require('mail/script.js');
@@ -9,36 +10,21 @@ var mb = require('mail/mail2.sqlite.js');
 var fs = require('fs');
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
 
-var mongoOptions = {db: {safe: true}};
-
-
-var mongoUris = {
-  'development': 'mongodb://localhost/anemomind-dev',
-  'production': 'mongodb://localhost/anemomind',
-  'test': 'mongodb://localhost/anemomind-test'
-}
-
-
+// Ensure NODE_ENV is defined.
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+var env = require('../server/config/environment');
 
 var connectionDeferred = Q.defer();
-function openMongoConnection(mode, cb) {
-  if (!mongoUris[mode]) {
-    cb(new Error('Invalid mode: ' + mode));
-  } else {
-    mongoose.connect(mongoUris[mode], mongoOptions);
-    mongoose.connection.on('open', function(ref) {
-      connectionDeferred.resolve(ref);
-      cb(ref);
-    });
-  }
+function openMongoConnection(cb) {
+  mongoose.connect(env.mongo.uri, env.mongo.options);
+  mongoose.connection.on('open', function(ref) {
+    connectionDeferred.resolve(ref);
+    cb(ref);
+  });
 }
 
-// Open a connection when this module
-// is loaded.
-
-
 function init() {
-  openMongoConnection(process.env.NODE_ENV || 'development', function(err) {
+  openMongoConnection(function(err) {
     if (err) {
       console.log('Failed to initialize RemoteScriptCommon.js module:');
       console.log(err);
