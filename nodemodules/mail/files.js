@@ -40,7 +40,9 @@ function unpackFile(root, packedFile) {
 }
 
 function unpackFiles(root, packedFileArray) {
-  return Q.all(packedFileArray.map(function(data) {return unpackFile(root, data);}));
+  return Q.all(packedFileArray.map(function(data) {
+    return unpackFile(root, data);
+  }));
 }
 
 var sendPacket = Q.promised(function(ep, dst, packed) {
@@ -58,8 +60,8 @@ var sendFiles = sendFiles;
 function makePacketHandler(root, verbose) {
   return function(endPoint, packet) {
     if (packet.label == common.files) {
-      var packedFileArray = msgpack.decode(packed.data);
-      unpackFiles(packedFileArray).then(function(filenames) {
+      var packedFileArray = msgpack.decode(packet.data);
+      unpackFiles(root, packedFileArray).then(function(filenames) {
         if (verbose) {
           console.log('Unpacked these files: ');
           console.log(filenames);

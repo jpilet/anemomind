@@ -228,7 +228,7 @@ function makeVerboseMethod(self, methodName, methodSpec, method) {
       } else {
         s += util.format('%j', output);
       }
-      console.log(shortenToMaxLength(s, 300));
+      console.log(shortenToMaxLength(s, 3000));
       cb(err, output);
     }]));
   }

@@ -75,24 +75,12 @@ describe('File transfer code', function() {
           .then(function() {
             return files.sendFiles(a, 'b', [{src: srcFilename, dst:'boat.dat'}]);
           })
-          .then(function(v) {
-            console.log('GOT THIS VALUE: ');
-            console.log(v);
-            a.getTotalPacketCount(function(err, n) {
-              console.log('TOTAL COUNT: ' + n);
-              done();
-            });
-          });
-/*          .then(function(data) {
-            a.getTotalPacketCount(function(err, n) {
-              console.log(n);
-              done();
-            });
-          })*/
- /*         .then(Q.nfcall(sync2.synchronize, a, b))
+          .then(function() {
+            return Q.nfcall(sync2.synchronize, a, b);
+          })
           .then(function() {
              done();
-          });*/
+          });
       });
   });
 });
