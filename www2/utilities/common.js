@@ -150,7 +150,6 @@ function makeDstFilename(srcFilename, dstFilename) {
     return dstFilename;
   } else {
     var p = path.parse(srcFilename);
-    console.log(p);
     return p.base;
   }
 }
