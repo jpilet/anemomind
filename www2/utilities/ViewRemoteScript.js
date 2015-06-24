@@ -44,4 +44,5 @@ BoxExec.findById(id, function(err, data) {
   } else {
     prettyPrint(data);
   }
+  process.exit();
 });

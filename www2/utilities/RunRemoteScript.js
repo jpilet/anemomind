@@ -10,7 +10,9 @@ function sentCallback(err, reqCode) {
     console.log('Successfully posted script to box for remote execution.');
     console.log('You can view it by calling\n');
     console.log('  node ViewRemoteScript.js ' + reqCode);
+    console.log('');
   }
+  process.exit();
 }
 
 var boatId = process.argv[2];

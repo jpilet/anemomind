@@ -94,6 +94,7 @@ function withBoatEndPoint(boatId, cbOperation, done) {
 
 
 function sendScriptToBox(boatId, scriptType, scriptData, cb) {
+  var code = null;
   withBoatEndPoint(boatId, function(mailbox, cb) {
     assert(typeof cb == 'function');
     getBoxIdFromBoatId(boatId, function(err, boxId) {
@@ -111,6 +112,7 @@ function sendScriptToBox(boatId, scriptType, scriptData, cb) {
           if (err) {
             cb(err);
           } else {
+            code = boxexec._id;
             script.runRemoteScript(
               mailbox, dst,
               scriptType, scriptData, '' + boxexec._id, cb);
@@ -118,7 +120,13 @@ function sendScriptToBox(boatId, scriptType, scriptData, cb) {
         });
       }
     });
-  }, cb);
+  }, function(err) {
+    if (err) {
+      cb(err);
+    } else {
+      cb(null, code);
+    }
+  });
 }
 
 function sendScriptFileToBox(boatId, scriptFilename, cb) {
