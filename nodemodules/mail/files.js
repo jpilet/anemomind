@@ -31,12 +31,8 @@ function unpackFile(root, packedFile) {
   var filename = resolveFilename(root, packedFile.dst);
   var p = path.parse(filename);
   return Q.nfcall(mkdirp, p.dir, 0755)
-    .then(function() {
-      return Q.nfcall(fs.writeFile, filename, packedFile.src)
-    })
-  
-    // Doesn't Q have a way of wrapping a value directly?
-    .then(Q.promised(function() {return filename;}));
+    .then(common.fwrap(Q.nfcall(fs.writeFile, filename, packedFile.src)))
+    .then(common.pfwrap(filename));
 }
 
 function unpackFiles(root, packedFileArray) {

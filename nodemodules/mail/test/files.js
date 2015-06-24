@@ -4,6 +4,7 @@ var assert = require('assert');
 var Q = require('q');
 var mail2 = require('../mail2.sqlite.js');
 var sync2 = require('../sync2.js');
+var common = require('../common.js');
 var epschema = require('../endpoint-schema.js');
 
 function xfun(cb) {
@@ -72,12 +73,9 @@ describe('File transfer code', function() {
         epschema.makeVerbose(b);
         var srcFilename = '/tmp/boat.dat';
         Q.nfcall(fs.writeFile, srcFilename, 'Interesting data')
-          .then(function() {
-            return files.sendFiles(a, 'b', [{src: srcFilename, dst:'boat.dat'}]);
-          })
-          .then(function() {
-            return Q.nfcall(sync2.synchronize, a, b);
-          })
+          .then(common.fwrap(files.sendFiles(
+            a, 'b', [{src: srcFilename, dst:'boat.dat'}])))
+          .then(common.fwrap(Q.nfcall(sync2.synchronize, a, b)))
           .then(function() {
              done();
           });
