@@ -8,8 +8,9 @@ var mkdirp = require('mkdirp');
 
 
 function packFile(file) {
-  return Q.promised(function(filedata) {return {src: filedata, dst: file.dst}})
-  (Q.nfcall(fs.readFile, file.src));
+  return Q.nfcall(fs.readFile, file.src).then(function(filedata) {
+    return {src: filedata, dst: file.dst};
+  });
 }
 
 function packFiles(fileArray) {
@@ -24,10 +25,8 @@ function resolveFilename(root, filename) {
   return path.join(root, filename);
 }
 
-
-
 function unpackFile(root, packedFile) {
-  var fullFilename = resolveFilename(root, packedFile.dst);
+  var filename = resolveFilename(root, packedFile.dst);
   var p = path.parse(filename);
   return Q.nfcall(mkdirp, p.dir, 0755)
     .then(Q.nfcall(fs.writeFile, filename, packedFile.src));
@@ -39,3 +38,5 @@ function unpackFiles(root, packedFileArray) {
 
 module.exports.packFile = packFile;
 module.exports.packFiles = packFiles;
+module.exports.unpackFile = unpackFile;
+module.exports.unpackFiles = unpackFiles;

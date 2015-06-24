@@ -12,7 +12,14 @@ describe('File transfer code', function() {
           var value = values[0];
           assert(value.src.equals(refdata));
           assert.equal(value.dst, 'mjao.txt');
-          done();
+          var root = '/tmp/rulle/abc';
+          files.unpackFiles(root, values).then(function(unpacked) {
+            done();
+            fs.readFile('/tmp/rulle/abc/mjao.txt', function(err, unpackedData) {
+              assert(!err);
+              assert(unpackedData.equals(refdata));
+            });
+          });
         });
       });
     });
