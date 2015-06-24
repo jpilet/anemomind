@@ -83,7 +83,7 @@ describe('File transfer code', function() {
         var srcFilename = '/tmp/boat.dat';
         Q.nfcall(fs.writeFile, srcFilename, 'Interesting data')
           .then(common.pfwrap(9))
-          .then(common.fwrap(files.sendFiles(a, 'b', [srcFilename])))
+          .then(common.fwrap(files.sendFiles(a, 'b', [{src: srcFilename, dst: 'boat.dat'}])))
           //.then(common.fwrap(Q.nfcall(r)))
           .then(function(v) {
             console.log('v = %j', v);

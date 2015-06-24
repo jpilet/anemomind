@@ -404,6 +404,7 @@ EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
 }
 
 EndPoint.prototype.sendPacket = function(dst, label, data, cb) {
+  console.log('sendPacket!!!!');
   this.sendPacketAndReturn(dst, label, data, function(err, p) {
     cb(err);
   });
