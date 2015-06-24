@@ -7,14 +7,6 @@ var sync2 = require('../sync2.js');
 var common = require('../common.js');
 var epschema = require('../endpoint-schema.js');
 
-function xfun(cb) {
-  setTimeout(function() {cb(null, 119);}, 130);
-}
-
-function yfun(cb) {
-  setTimeout(function() {cb(null, 8889);}, 140);
-}
-
 describe('files', function() {
   it('packfiles', function(done) {
     fs.writeFile('/tmp/filestest.txt', 'Some file data', function(err) {
@@ -36,26 +28,6 @@ describe('files', function() {
           });
         });
       });
-    });
-  });
-
-  it('promises', function(done) {
-    var X = Q.nfcall(xfun);
-    var Y = Q.nfcall(yfun);
-
-    X.then(Y).then(function(y) {
-      assert(y == 119); // What X resolves to... why?
-      done();
-    });
-  });
-
-  it('promises', function(done) {
-    var X = Q.nfcall(xfun);
-    var Y = Q.nfcall(yfun);
-
-    X.then(function() {return Y;}).then(function(y) {
-      assert(y == 8889);
-      done();
     });
   });
 
