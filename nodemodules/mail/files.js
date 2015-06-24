@@ -58,6 +58,10 @@ function sendFiles(ep, dstName, fileArray) {
 var sendFiles = sendFiles;
 
 function makePacketHandler(root, verbose) {
+  if (root == undefined) {
+    console.log('WARNING: In mail/files.js: Root is undefined');
+    root = "~/files";
+  }
   return function(endPoint, packet) {
     if (packet.label == common.files) {
       var packedFileArray = msgpack.decode(packet.data);
