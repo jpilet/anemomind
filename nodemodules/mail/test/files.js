@@ -83,8 +83,12 @@ describe('File transfer code', function() {
         var srcFilename = '/tmp/boat.dat';
         Q.nfcall(fs.writeFile, srcFilename, 'Interesting data')
           .then(common.pfwrap(9))
-          .then(common.fwrap(files.sendFiles(a, 'b', [{src: srcFilename, dst: 'boat.dat'}])))
-          //.then(common.fwrap(Q.nfcall(r)))
+          .then(function() {
+            return files.sendFiles(a, 'b', [{src: srcFilename, dst: 'boat.dat'}]);
+          })
+          .then(function() {
+            return Q.nfcall(sync2.synchronize, a, b);
+          })
           .then(function(v) {
             console.log('v = %j', v);
             a.getTotalPacketCount(function(err, n) {
