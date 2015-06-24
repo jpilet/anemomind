@@ -6,6 +6,7 @@ var ensureConfig = require('./EnsureConfig.js');
 var mkdirp = require('mkdirp');
 var Q = require('q');
 var config = require('../components/config.js');
+var mail2 = require('mail/mail2.sqlite.js');
 
 describe('LocalMailbox', function() {
   it(
@@ -89,20 +90,6 @@ describe('LocalMailbox', function() {
         }, done());
       });
     });
-  });
-
-  it('Handle an incoming file to be put somewhere', function(done) {
-    process.env.ANEMOBOX_CONFIG_PATH = '/tmp/anemoboxcfg';
-    assert.equal(config.getConfigPath(), '/tmp/anemoboxcfg');
-    Q.nfcall(fs.writeFile, '/tmp/thedatatosend.txt', 'Here is some boat data!')
-      .then(function() {
-        return Q.nfcall(ensureConfig)
-      })
-      .then(function(cfg) {
-        lmb.setMailRoot('/tmp/anemobox/');
-        //lmb.withLocalMailbox(function())
-        done();
-      });
   });
 });
 
