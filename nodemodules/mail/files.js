@@ -8,16 +8,6 @@ var mkdirp = require('mkdirp');
 var mail2 = require('./mail2.sqlite.js');
 var msgpack = require('msgpack-js');
 
-
-
-function s(cb) {
-  console.log('Calling s');
-  setTimeout(function() {
-    cb(null, 998);
-  }, 13);
-  
-}
-
 function packFile(file) {
   return Q.nfcall(fs.readFile, file.src).then(function(filedata) {
     return {src: filedata, dst: file.dst};

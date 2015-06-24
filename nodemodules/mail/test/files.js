@@ -15,13 +15,6 @@ function yfun(cb) {
   setTimeout(function() {cb(null, 8889);}, 140);
 }
 
-
-function r(cb) {
-  console.log('Calling r');
-  cb(null, 999);
-}
-
-
 describe('files', function() {
   it('packfiles', function(done) {
     fs.writeFile('/tmp/filestest.txt', 'Some file data', function(err) {
