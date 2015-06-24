@@ -4,6 +4,7 @@ var assert = require('assert');
 var Q = require('q');
 var mail2 = require('../mail2.sqlite.js');
 var sync2 = require('../sync2.js');
+var epschema = require('../endpoint-schema.js');
 
 describe('File transfer code', function() {
   it('packfiles', function(done) {
@@ -37,13 +38,20 @@ describe('File transfer code', function() {
         var a = eps[0];
         var b = eps[1];
         b.addPacketHandler(files.makePacketHandler('/tmp/boxdata', true));
+        epschema.makeVerbose(a);
+        epschema.makeVerbose(b);
         var srcFilename = '/tmp/boat.dat';
         Q.nfcall(fs.writeFile, srcFilename, 'Interesting data')
           .then(files.sendFiles(a, 'b', [{src: srcFilename, dst:'boat.dat'}]))
-          .then(Q.nfcall(sync2.synchronize, a, b))
-          .then(function() {
-            done();
+          .then(function(x) {
+            a.disp(function(err) {
+              done();
+            });
           });
+          // .then(Q.nfcall(sync2.synchronize, a, b))
+          // .then(function() {
+          //   done();
+          // });
       });
   });
 });

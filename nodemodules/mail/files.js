@@ -43,11 +43,12 @@ function unpackFiles(root, packedFileArray) {
 
 function sendFiles(ep, dstName, fileArray) {
   assert(mail2.isEndPoint(ep));
-  return packFiles(fileArray).then(function(packed) {
-    return Q.nfinvoke(
-      ep, 'sendPacket',
-      dstName, common.files, msgpack.encode(packed));
-  });
+  return packFiles(fileArray)
+    .then(function(packed) {
+      return Q.ninvoke(
+        ep, 'sendPacket',
+        dstName, common.files, msgpack.encode(packed));
+    });
 }
 
 function makePacketHandler(root, verbose) {
