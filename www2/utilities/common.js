@@ -9,6 +9,7 @@ var Q = require('q');
 var mb = require('mail/mail2.sqlite.js');
 var fs = require('fs');
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
+var files = require('mail/files.js');
 
 // Ensure NODE_ENV is defined.
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
@@ -74,6 +75,12 @@ function makeBoatDBFilename(boatId) {
     naming.makeDBFilenameFromBoatId(boatId))
 }
 
+function makeBoatEndPoint(boatId, cb) {
+  mb.tryMakeEndPoint(
+    makeBoatDBFilename(boatId),
+    naming.makeMailboxNameFromBoatId(boatId), cb);
+}
+
 
 function sendScriptToBox(boatId, scriptType, scriptData, cb_) {
   var globalMailbox = null;
@@ -88,9 +95,7 @@ function sendScriptToBox(boatId, scriptType, scriptData, cb_) {
     }
   };
 
-  var filename = makeBoatDBFilename(boatId);
-  
-  mb.tryMakeEndPointFromFilename(filename, function(err, mailbox) {
+  makeBoatEndPoint(boatId, function(err, mailbox) {
     if (err) {
       cb(err);
     } else {
