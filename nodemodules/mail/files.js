@@ -50,13 +50,15 @@ function sendFiles(ep, dstName, fileArray) {
   });
 }
 
-function makeFilesHandler(root) {
+function makeFilesHandler(root, verbose) {
   return function(endPoint, packet) {
     if (packet.label == common.files) {
       var packedFileArray = msgpack.decode(packed.data);
       unpackFiles(packedFileArray).then(function(filenames) {
-        console.log('Unpacked these files: ');
-        console.log(filenames);
+        if (verbose) {
+          console.log('Unpacked these files: ');
+          console.log(filenames);
+        }
       });
     }
   };
