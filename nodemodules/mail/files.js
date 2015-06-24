@@ -50,7 +50,7 @@ function sendFiles(ep, dstName, fileArray) {
   });
 }
 
-function makeFilesHandler(root, verbose) {
+function makePacketHandler(root, verbose) {
   return function(endPoint, packet) {
     if (packet.label == common.files) {
       var packedFileArray = msgpack.decode(packed.data);
@@ -69,3 +69,4 @@ module.exports.packFiles = packFiles;
 module.exports.unpackFile = unpackFile;
 module.exports.unpackFiles = unpackFiles;
 module.exports.sendFiles = sendFiles;
+module.exports.makePacketHandler = makePacketHandler;
