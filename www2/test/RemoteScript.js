@@ -9,6 +9,7 @@ var path = require('path');
 var script = require('mail/script.js');
 var mb = require('mail/mail2.sqlite.js');
 var sync = require('mail/sync2.js');
+var mkdirp = require('mkdirp');
 
 var removeBoat = true;
 common.init();
@@ -42,15 +43,22 @@ function withConnectionAndTestBoat(cbOperation, cb) {
 //function withConnectionAndBoat(cbOperation, cbDone)
 
 function makeAndResetMailbox(filename, mailboxName, cb) {
-  mb.tryMakeEndPoint(filename, mailboxName, function(err, mailbox) {
+  dir = path.parse(filename).dir;
+  mkdirp(dir, 0755, function(err) {
     if (err) {
       cb(err);
     } else {
-      mailbox.reset(function(err2) {
-        if (err2) {
-          cb(err2);
+      mb.tryMakeEndPoint(filename, mailboxName, function(err, mailbox) {
+        if (err) {
+          cb(err);
         } else {
-          cb(null, mailbox);
+          mailbox.reset(function(err2) {
+            if (err2) {
+              cb(err2);
+            } else {
+              cb(null, mailbox);
+            }
+          });
         }
       });
     }
@@ -103,7 +111,8 @@ describe('RemoteScript', function() {
           assert(boxMailbox);
 
           // Make a mailbox for the boat
-          makeAndResetMailbox(filename, boatMailboxName, function(err, boatMailbox) {
+          makeAndResetMailbox(filename, boatMailboxName,
+                              function(err, boatMailbox) {
             assert(!err);
 
             // Called when the response of executing the script is coming back.

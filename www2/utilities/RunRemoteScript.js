@@ -14,7 +14,7 @@ function sentCallback(err, reqCode) {
 }
 
 var boatId = process.argv[2];
-console.log('DB filename:     ' + databaseFilename);
+console.log('Boat id:         ' + boatId);
 
 /*
 
