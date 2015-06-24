@@ -18,6 +18,7 @@ var closeTimeoutMillis = 30000;
 var script = require('mail/script.js');
 var triggerSync = require('./sync.js').triggerSync;
 var mailboxes = {};
+var files = require('mail/files.js');
 
 function mailboxCount() {
   var counter = 0;
@@ -84,6 +85,8 @@ function openNewMailbox(mailboxName, cb) {
             schema.makeVerbose(mailbox);
             mailbox.addPacketHandler(
               script.makeScriptRequestHandler(triggerSync));
+            mailbox.addPacketHandler(
+              files.makePacketHandler(config.getConfigPath(), true));
             var data = registerMailbox(mailboxName, mailbox);
             data.close.callDelayed(closeTimeoutMillis);
             cb(null, mailbox);
