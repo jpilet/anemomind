@@ -53,7 +53,6 @@ describe('files', function() {
         
         var srcFilename = '/tmp/boat.dat';
         Q.nfcall(fs.writeFile, srcFilename, 'Interesting data for boat.dat')
-          .then(common.pfwrap(9))
           .then(function() {
             return files.sendFiles(a, 'b', [{src: srcFilename, dst: 'boat.dat'}]);
           })
