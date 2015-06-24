@@ -661,8 +661,10 @@ function isEndPoint(x) {
 function withEP(ep, epOperation, done) {
   ep.open(function(err) {
     if (err) {
+      console.log('Failed to open mailbox');
       done(err);
     } else {
+      console.log('Lets run operation');
       epOperation(ep, function(err) {
         ep.close(function(err2) {
           done(err || err2);

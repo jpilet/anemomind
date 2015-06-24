@@ -137,13 +137,27 @@ function sendScriptFileToBox(boatId, scriptFilename, cb) {
   }
 }
 
-function sendBoatData(boatId, filename, dstFilename, cb) {
+function makeDstFilename(srcFilename, dstFilename) {
+  if (dstFilename) {
+    return dstFilename;
+  } else {
+    var p = path.parse(srcFilename);
+    console.log(p);
+    return p.base;
+  }
+}
+
+function sendBoatData(boatId, srcFilename, dstFilename, cb) {
   withBoatEndPoint(boatId, function(ep, cb) {
     Q.nfcall(getBoxIdFromBoatId, boatId)
       .then(function(boxId) {
+        var dstName = naming.makeMailboxNameFromBoxId(boxId);
         return files.sendFiles(
-          naming.makeMailboxNameFromBoxId(boxId),
-          [{src: filename, dst: dstFilename}]);
+          ep,
+          dstName, [{
+            src: srcFilename,
+            dst: makeDstFilename(srcFilename, dstFilename)
+          }]);
       }).nodeify(cb);
   }, cb);
 }
@@ -155,3 +169,4 @@ module.exports.sendScriptToBox = sendScriptToBox;
 module.exports.sendScriptFileToBox = sendScriptFileToBox;
 module.exports.init = init;
 module.exports.makeBoatDBFilename = makeBoatDBFilename;
+module.exports.sendBoatData = sendBoatData;
