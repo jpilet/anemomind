@@ -5,6 +5,7 @@ var file = require('mail/logfile.js');
 var ensureConfig = require('./EnsureConfig.js');
 var mkdirp = require('mkdirp');
 var Q = require('q');
+var config = require('../components/config.js');
 
 describe('LocalMailbox', function() {
   it(
@@ -92,6 +93,7 @@ describe('LocalMailbox', function() {
 
   it('Handle an incoming file to be put somewhere', function(done) {
     process.env.ANEMOBOX_CONFIG_PATH = '/tmp/anemoboxcfg';
+    assert.equal(config.getConfigPath(), '/tmp/anemoboxcfg');
     done();
   });
 });
