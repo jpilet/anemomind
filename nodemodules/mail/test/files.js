@@ -42,12 +42,19 @@ describe('File transfer code', function() {
         epschema.makeVerbose(b);
         var srcFilename = '/tmp/boat.dat';
         Q.nfcall(fs.writeFile, srcFilename, 'Interesting data')
-          .then(files.sendFiles(a, 'b', [{src: srcFilename, dst:'boat.dat'}]))
-          .then(function(data) {
-            a.disp(function(err) {
+          .then(files.sendFiles(a, 'b', [{src: srcFilename, dst:'boat.dat'}],
+                                function(err) {
+                                  a.getTotalPacketCount(function(err, n) {
+                                    console.log('TOTAL COUNT: ' + n);
+                                    done();
+                                  });
+                                }));
+/*          .then(function(data) {
+            a.getTotalPacketCount(function(err, n) {
+              console.log(n);
               done();
             });
-          })
+          })*/
  /*         .then(Q.nfcall(sync2.synchronize, a, b))
           .then(function() {
              done();

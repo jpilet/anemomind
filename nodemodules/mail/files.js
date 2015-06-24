@@ -41,15 +41,16 @@ function unpackFiles(root, packedFileArray) {
   return Q.all(packedFileArray.map(function(data) {return unpackFile(root, data);}));
 }
 
-function sendFiles(ep, dstName, fileArray) {
+
+function sendFiles_(ep, dstName, fileArray, cb) {
   assert(mail2.isEndPoint(ep));
   return packFiles(fileArray)
     .then(function(packed) {
-      return Q.ninvoke(
-        ep, 'sendPacket',
-        dstName, common.files, msgpack.encode(packed));
+      ep.sendPacket(dstName, common.files, msgpack.encode(packed), cb);
     });
 }
+
+var sendFiles = sendFiles_; //Q.nfbind(sendFiles_);
 
 function makePacketHandler(root, verbose) {
   return function(endPoint, packet) {
