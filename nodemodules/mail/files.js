@@ -40,7 +40,9 @@ function unpackFile(root, packedFile) {
   var filename = resolveFilename(root, packedFile.dst);
   var p = path.parse(filename);
   return Q.nfcall(mkdirp, p.dir, 0755)
-    .then(common.fwrap(Q.nfcall(fs.writeFile, filename, packedFile.src)))
+    .then(function() {
+      return Q.nfcall(fs.writeFile, filename, packedFile.src);
+    })
     .then(common.pfwrap(filename));
 }
 
@@ -53,7 +55,6 @@ function unpackFiles(root, packedFileArray) {
 function sendFiles(ep, dstName, fileArray) {
   assert(mail2.isEndPoint(ep));
   return packFiles(fileArray).then(function(packed) {
-    console.log('Packed it to ' + packed);
     return Q.ninvoke(ep, 'sendPacket', dstName, common.files,
                      msgpack.encode(packed));
   });
@@ -66,7 +67,6 @@ function makePacketHandler(root, verbose, cb) {
   }
   cb = cb || function() {};
   return function(endPoint, packet) {
-    console.log('GOT A PACKET!!!');
     if (packet.label == common.files) {
       var packedFileArray = msgpack.decode(packet.data);
       unpackFiles(root, packedFileArray).then(function(filenames) {

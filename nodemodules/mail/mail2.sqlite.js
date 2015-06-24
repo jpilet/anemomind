@@ -404,7 +404,6 @@ EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
 }
 
 EndPoint.prototype.sendPacket = function(dst, label, data, cb) {
-  console.log('sendPacket!!!!');
   this.sendPacketAndReturn(dst, label, data, function(err, p) {
     cb(err);
   });
@@ -641,11 +640,6 @@ EndPoint.prototype.open = function(cb) {
 
 EndPoint.prototype.makeVerbose = function() {
   schema.makeVerbose(this);
-}
-
-EndPoint.prototype.dummy = function(cb) {
-  console.log('CALLING DUMMY!!!!');
-  cb(null, 119);
 }
 
 function tryMakeEndPointFromFilename(dbFilename, cb) {

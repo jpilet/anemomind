@@ -233,7 +233,6 @@ function synchronizeAllPackets(pairs, lbs, a, b, cb, cbProgress) {
 }
 
 function synchronize(a, b, cb, cbProgress) {
-  console.log('SYNCHRONIZE');
   if (a.name == b.name) {
     cb(new Error('The end points must be different'));
   } else {

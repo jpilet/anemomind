@@ -22,7 +22,7 @@ function r(cb) {
 }
 
 
-describe('File transfer code', function() {
+describe('files', function() {
   it('packfiles', function(done) {
     fs.writeFile('/tmp/filestest.txt', 'Some file data', function(err) {
       assert(!err);
@@ -75,6 +75,7 @@ describe('File transfer code', function() {
         var b = eps[1];
         b.addPacketHandler(
           files.makePacketHandler('/tmp/boxdata', true, function(err) {
+            console.log('GOT THE PACKET!!!');
             done();
           }));
         epschema.makeVerbose(a);
@@ -92,8 +93,7 @@ describe('File transfer code', function() {
           .then(function(v) {
             console.log('v = %j', v);
             a.getTotalPacketCount(function(err, n) {
-              //console.log('n = %j', n);
-              done();
+              assert(n == 1);
             });
           })
       });
