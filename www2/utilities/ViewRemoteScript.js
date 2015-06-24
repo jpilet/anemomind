@@ -1,4 +1,4 @@
-var common = require('./RemoteScriptCommon.js');
+var common = require('./common.js');
 common.init();
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
 

@@ -11,7 +11,7 @@ var mb = require('mail/mail2.sqlite.js');
 var sync = require('mail/sync2.js');
 var mkdirp = require('mkdirp');
 
-var removeBoat = true;
+var removeBoat = false;
 common.init();
 
 
