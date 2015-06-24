@@ -139,16 +139,12 @@ function sendScriptFileToBox(boatId, scriptFilename, cb) {
 
 function sendBoatData(boatId, filename, dstFilename, cb) {
   withBoatEndPoint(boatId, function(ep, cb) {
-    getBoxIdFromBoatId(boatId, function(err, boxId) {
-      if (err) {
-        cb(err);
-      } else {
-        files.sendFiles(
+    Q.nfcall(getBoxIdFromBoatId, boatId)
+      .then(function(boxId) {
+        return files.sendFiles(
           naming.makeMailboxNameFromBoxId(boxId),
-          [{src: filename, dst: dstFilename}]
-        ).nodeify(cb);
-      }
-    });
+          [{src: filename, dst: dstFilename}]);
+      }).nodeify(cb);
   }, cb);
 }
 
