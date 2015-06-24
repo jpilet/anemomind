@@ -109,7 +109,6 @@ describe('RemoteScript', function() {
             // Called when the response of executing the script is coming back.
             boatMailbox.addPacketHandler(makeScriptResponseHandler(
               function(err, response) {
-                console.log('GOT IT!!!');
                 assert(!err);
                 assert(response);
                 assert(response._id);
@@ -137,7 +136,6 @@ describe('RemoteScript', function() {
               // that will execute it.
               performSync(function(err) {
                 assert(!err);
-                console.log('SYNCHRONIZED!!!');
               });
             });
           });
