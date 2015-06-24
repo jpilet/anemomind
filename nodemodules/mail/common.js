@@ -5,6 +5,7 @@ module.exports.ack = 127;
 module.exports.logfile = 128;
 module.exports.scriptRequest = 129;
 module.exports.scriptResponse = 130;
+module.exports.files = 131;
 
 
 function ResultArray(n, cb) {
