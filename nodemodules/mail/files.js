@@ -31,9 +31,11 @@ function unpackFile(root, packedFile) {
   var filename = resolveFilename(root, packedFile.dst);
   var p = path.parse(filename);
   return Q.nfcall(mkdirp, p.dir, 0755)
-    .then(Q.nfcall(fs.writeFile, filename, packedFile.src))
+    .then(function() {
+      return Q.nfcall(fs.writeFile, filename, packedFile.src)
+    })
   
-  // Doesn't Q have a way of wrapping a value directly?
+    // Doesn't Q have a way of wrapping a value directly?
     .then(Q.promised(function() {return filename;}));
 }
 
@@ -41,16 +43,17 @@ function unpackFiles(root, packedFileArray) {
   return Q.all(packedFileArray.map(function(data) {return unpackFile(root, data);}));
 }
 
+var sendPacket = Q.promised(function(ep, dst, packed) {
+  return Q.ninvoke(ep, 'sendPacket', dst, common.files,
+                   msgpack.encode(packed));
+});
 
-function sendFiles_(ep, dstName, fileArray, cb) {
+function sendFiles(ep, dstName, fileArray) {
   assert(mail2.isEndPoint(ep));
-  return packFiles(fileArray)
-    .then(function(packed) {
-      ep.sendPacket(dstName, common.files, msgpack.encode(packed), cb);
-    });
+  return sendPacket(ep, dstName, packFiles(fileArray));
 }
 
-var sendFiles = sendFiles_; //Q.nfbind(sendFiles_);
+var sendFiles = sendFiles;
 
 function makePacketHandler(root, verbose) {
   return function(endPoint, packet) {

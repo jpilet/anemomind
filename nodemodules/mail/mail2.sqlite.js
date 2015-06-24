@@ -645,6 +645,11 @@ EndPoint.prototype.makeVerbose = function() {
   schema.makeVerbose(this);
 }
 
+EndPoint.prototype.dummy = function(cb) {
+  console.log('CALLING DUMMY!!!!');
+  cb(null, 119);
+}
+
 function tryMakeEndPointFromFilename(dbFilename, cb) {
   var mailboxName = naming.getMailboxNameFromFilename(dbFilename);
   if (mailboxName) {
