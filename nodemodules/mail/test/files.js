@@ -16,6 +16,11 @@ function yfun(cb) {
 }
 
 
+function r(cb) {
+  console.log('Calling r');
+  cb(null, 999);
+}
+
 
 describe('File transfer code', function() {
   it('packfiles', function(done) {
@@ -68,17 +73,25 @@ describe('File transfer code', function() {
       ]).then(function(eps) {
         var a = eps[0];
         var b = eps[1];
-        b.addPacketHandler(files.makePacketHandler('/tmp/boxdata', true));
+        b.addPacketHandler(
+          files.makePacketHandler('/tmp/boxdata', true, function(err) {
+            done();
+          }));
         epschema.makeVerbose(a);
         epschema.makeVerbose(b);
+        
         var srcFilename = '/tmp/boat.dat';
         Q.nfcall(fs.writeFile, srcFilename, 'Interesting data')
-          .then(common.fwrap(files.sendFiles(
-            a, 'b', [{src: srcFilename, dst:'boat.dat'}])))
-          .then(common.fwrap(Q.nfcall(sync2.synchronize, a, b)))
-          .then(function() {
-             done();
-          });
+          .then(common.pfwrap(9))
+          .then(common.fwrap(files.sendFiles(a, 'b', [srcFilename])))
+          //.then(common.fwrap(Q.nfcall(r)))
+          .then(function(v) {
+            console.log('v = %j', v);
+            a.getTotalPacketCount(function(err, n) {
+              //console.log('n = %j', n);
+              done();
+            });
+          })
       });
   });
 });

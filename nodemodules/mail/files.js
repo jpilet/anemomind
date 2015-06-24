@@ -9,6 +9,15 @@ var mail2 = require('./mail2.sqlite.js');
 var msgpack = require('msgpack-js');
 
 
+
+function s(cb) {
+  console.log('Calling s');
+  setTimeout(function() {
+    cb(null, 998);
+  }, 13);
+  
+}
+
 function packFile(file) {
   return Q.nfcall(fs.readFile, file.src).then(function(filedata) {
     return {src: filedata, dst: file.dst};
@@ -41,24 +50,23 @@ function unpackFiles(root, packedFileArray) {
   }));
 }
 
-var sendPacket = Q.promised(function(ep, dst, packed) {
-  return Q.ninvoke(ep, 'sendPacket', dst, common.files,
-                   msgpack.encode(packed));
-});
-
 function sendFiles(ep, dstName, fileArray) {
   assert(mail2.isEndPoint(ep));
-  return sendPacket(ep, dstName, packFiles(fileArray));
+  return Q.nfcall(s);
+/*  return packFiles(fileArray).then(function(packed) {
+    return Q.ninvoke(ep, 'sendPacket', dst, common.files,
+                     msgpack.encode(packed));
+  });*/
 }
 
-var sendFiles = sendFiles;
-
-function makePacketHandler(root, verbose) {
+function makePacketHandler(root, verbose, cb) {
   if (root == undefined) {
     console.log('WARNING: In mail/files.js: Root is undefined');
     root = "~/files";
   }
+  cb = cb || function() {};
   return function(endPoint, packet) {
+    console.log('GOT A PACKET!!!');
     if (packet.label == common.files) {
       var packedFileArray = msgpack.decode(packet.data);
       unpackFiles(root, packedFileArray).then(function(filenames) {
@@ -66,7 +74,8 @@ function makePacketHandler(root, verbose) {
           console.log('Unpacked these files: ');
           console.log(filenames);
         }
-      });
+        cb();
+      }).catch(cb);
     }
   };
 }
