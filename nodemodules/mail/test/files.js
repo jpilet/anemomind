@@ -43,15 +43,15 @@ describe('File transfer code', function() {
         var srcFilename = '/tmp/boat.dat';
         Q.nfcall(fs.writeFile, srcFilename, 'Interesting data')
           .then(files.sendFiles(a, 'b', [{src: srcFilename, dst:'boat.dat'}]))
-          .then(function(x) {
+          .then(function(data) {
             a.disp(function(err) {
               done();
             });
-          });
-          // .then(Q.nfcall(sync2.synchronize, a, b))
-          // .then(function() {
-          //   done();
-          // });
+          })
+ /*         .then(Q.nfcall(sync2.synchronize, a, b))
+          .then(function() {
+             done();
+          });*/
       });
   });
 });
