@@ -75,8 +75,13 @@ describe('files', function() {
         var b = eps[1];
         b.addPacketHandler(
           files.makePacketHandler('/tmp/boxdata', true, function(err) {
-            console.log('GOT THE PACKET!!!');
-            done();
+            Q.all([
+              Q.nfcall(fs.readFile, '/tmp/boxdata/boat.dat'),
+              Q.nfcall(fs.readFile, '/tmp/boat.dat')
+            ]).then(function(fdata) {
+              assert(fdata[0].equals(fdata[1]));
+              done();
+            });
           }));
         epschema.makeVerbose(a);
         epschema.makeVerbose(b);
