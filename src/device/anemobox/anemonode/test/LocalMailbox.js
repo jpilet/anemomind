@@ -1,7 +1,7 @@
 var lmb = require('../components/LocalMailbox.js');
 var assert = require('assert');
 var fs = require('fs');
-var file = require('mail/file.js');
+var file = require('mail/logfile.js');
 var ensureConfig = require('./EnsureConfig.js');
 var mkdirp = require('mkdirp');
 

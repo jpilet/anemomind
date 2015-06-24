@@ -1,6 +1,6 @@
 var mb = require('mail/mail2.sqlite.js');
 var naming = require('mail/naming.js');
-var file = require('mail/file.js');
+var file = require('mail/logfile.js');
 var schema = require('mail/endpoint-schema.js');
 var mkdirp = require('mkdirp');
 var boxId = require('./boxId.js');

@@ -1,4 +1,4 @@
-var file = require('mail/file.js');
+var file = require('mail/logfile.js');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var fs = require('fs');
