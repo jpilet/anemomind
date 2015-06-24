@@ -663,7 +663,7 @@ function withEP(ep, epOperation, done) {
     if (err) {
       done(err);
     } else {
-      epOperation(function(ep, err) {
+      epOperation(ep, function(err) {
         ep.close(function(err2) {
           done(err || err2);
         });

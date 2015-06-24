@@ -10,6 +10,7 @@ var mb = require('mail/mail2.sqlite.js');
 var fs = require('fs');
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
 var files = require('mail/files.js');
+var assert = require('assert');
 
 // Ensure NODE_ENV is defined.
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
@@ -86,54 +87,38 @@ function withBoatEndPoint(boatId, cbOperation, done) {
     if (err) {
       done(err);
     } else {
-      mail2.withEP(ep, cbOperation, done);
+      mb.withEP(ep, cbOperation, done);
     }
   });
 }
 
 
-function sendScriptToBox(boatId, scriptType, scriptData, cb_) {
-  var globalMailbox = null;
-  
-  var cb = function(err, data) {
-    if (globalMailbox) {
-      globalMailbox.close(function(err2) {
-        cb_(err || err2, data);
-      });
-    } else {
-      cb_(err, data);
-    }
-  };
-
-  makeBoatEndPoint(boatId, function(err, mailbox) {
-    if (err) {
-      cb(err);
-    } else {
-      globalMailbox = mailbox;
-      getBoxIdFromBoatId(boatId, function(err, boxId) {
-        if (err) {
-          cb(err);
-        } else {
-          dst = naming.makeMailboxNameFromBoxId(boxId);
-          BoxExec.create({
-            timeSent: new Date,
-            boatId: boatId,
-            boxId: boxId,
-            type: scriptType,
-            script: scriptData
-          }, function(err, boxexec) {
-            if (err) {
-              cb(err);
-            } else {
-              script.runRemoteScript(
-                mailbox, dst,
-                scriptType, scriptData, '' + boxexec._id, cb);
-            }
-          });
-        }
-      });
-    }
-  });
+function sendScriptToBox(boatId, scriptType, scriptData, cb) {
+  withBoatEndPoint(boatId, function(mailbox, cb) {
+    assert(typeof cb == 'function');
+    getBoxIdFromBoatId(boatId, function(err, boxId) {
+      if (err) {
+        cb(err);
+      } else {
+        dst = naming.makeMailboxNameFromBoxId(boxId);
+        BoxExec.create({
+          timeSent: new Date,
+          boatId: boatId,
+          boxId: boxId,
+          type: scriptType,
+          script: scriptData
+        }, function(err, boxexec) {
+          if (err) {
+            cb(err);
+          } else {
+            script.runRemoteScript(
+              mailbox, dst,
+              scriptType, scriptData, '' + boxexec._id, cb);
+          }
+        });
+      }
+    });
+  }, cb);
 }
 
 function sendScriptFileToBox(boatId, scriptFilename, cb) {
