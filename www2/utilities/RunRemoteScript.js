@@ -13,7 +13,7 @@ function sentCallback(err, reqCode) {
   }
 }
 
-var databaseFilename = process.argv[2];
+var boatId = process.argv[2];
 console.log('DB filename:     ' + databaseFilename);
 
 /*
@@ -41,9 +41,9 @@ if (process.argv[4]) {
   var scriptData = process.argv[4];
   console.log('Script type:     ' + scriptType);
   console.log('Script:          ' + scriptData);
-  common.sendScriptToBox(databaseFilename, scriptType, scriptData, sentCallback);
+  common.sendScriptToBox(boatId, scriptType, scriptData, sentCallback);
 } else {
   var scriptFilename = process.argv[3];
   console.log('Script filename: ' + scriptFilename);
-  common.sendScriptFileToBox(databaseFilename, scriptFilename, sentCallback);
+  common.sendScriptFileToBox(boatId, scriptFilename, sentCallback);
 }

@@ -68,7 +68,14 @@ function getBoxIdFromFilename(filename, cb) {
   getBoxIdFromBoatId(boatId, cb);
 }
 
-function sendScriptToBox(filename, scriptType, scriptData, cb_) {
+function makeBoatDBFilename(boatId) {
+  return path.join(
+    env.mailboxDir,
+    naming.makeDBFilenameFromBoatId(boatId))
+}
+
+
+function sendScriptToBox(boatId, scriptType, scriptData, cb_) {
   var globalMailbox = null;
   
   var cb = function(err, data) {
@@ -80,13 +87,14 @@ function sendScriptToBox(filename, scriptType, scriptData, cb_) {
       cb_(err, data);
     }
   };
+
+  var filename = makeBoatDBFilename(boatId);
   
   mb.tryMakeEndPointFromFilename(filename, function(err, mailbox) {
     if (err) {
       cb(err);
     } else {
       globalMailbox = mailbox;
-      var boatId = extractBoatIdFromFilename(filename);
       getBoxIdFromBoatId(boatId, function(err, boxId) {
         if (err) {
           cb(err);
@@ -113,7 +121,7 @@ function sendScriptToBox(filename, scriptType, scriptData, cb_) {
   });
 }
 
-function sendScriptFileToBox(dbFilename, scriptFilename, cb) {
+function sendScriptFileToBox(boatId, scriptFilename, cb) {
   try {
     var parsed = path.parse(scriptFilename);
     var scriptType = parsed.ext.substring(1);
@@ -121,7 +129,7 @@ function sendScriptFileToBox(dbFilename, scriptFilename, cb) {
       if (err) {
         cb(err);
       } else {
-        sendScriptToBox(dbFilename, scriptType, scriptData, cb);
+        sendScriptToBox(boatId, scriptType, scriptData, cb);
       }
     });
   } catch (e) {
@@ -135,3 +143,4 @@ module.exports.getBoxIdFromBoatId = getBoxIdFromBoatId;
 module.exports.sendScriptToBox = sendScriptToBox;
 module.exports.sendScriptFileToBox = sendScriptFileToBox;
 module.exports.init = init;
+module.exports.makeBoatDBFilename = makeBoatDBFilename;

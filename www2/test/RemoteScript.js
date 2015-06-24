@@ -88,8 +88,7 @@ describe('RemoteScript', function() {
     withConnectionAndTestBoat(function(id, doneAll) {
       var boatId = id;
       var boatMailboxName = naming.makeMailboxNameFromBoatId(id);
-      var filename = path.join(
-        '/tmp/', naming.makeDBFilename(boatMailboxName));
+      var filename = common.makeBoatDBFilename(boatId);
 
       
       // To be set later in the code.
@@ -110,6 +109,7 @@ describe('RemoteScript', function() {
             // Called when the response of executing the script is coming back.
             boatMailbox.addPacketHandler(makeScriptResponseHandler(
               function(err, response) {
+                console.log('GOT IT!!!');
                 assert(!err);
                 assert(response);
                 assert(response._id);
@@ -124,9 +124,9 @@ describe('RemoteScript', function() {
               }));
 
             // Send the script
-            common.sendScriptToBox(filename, 'sh', scriptData, function(err, data) {
+            common.sendScriptToBox(boatId, 'sh', scriptData, function(err, data) {
               assert(!err);
-
+              
               performSync = function(cb) {
                 sync.synchronize(boatMailbox, boxMailbox, cb);
               };
@@ -137,6 +137,7 @@ describe('RemoteScript', function() {
               // that will execute it.
               performSync(function(err) {
                 assert(!err);
+                console.log('SYNCHRONIZED!!!');
               });
             });
           });

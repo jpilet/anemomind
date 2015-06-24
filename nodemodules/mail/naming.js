@@ -28,6 +28,14 @@ function makeDBFilename(mailboxName) {
   return mailboxName + filenameSuffix;
 }
 
+function makeDBFilenameFromBoatId(boatId) {
+  return makeDBFilename(makeMailboxNameFromBoatId(boatId));
+}
+  
+function makeDBFilenameFromBoxId(boxId) {
+  return makeDBFilename(makeMailboxNameFromBoxId(boxId));
+}
+
 function getMailboxNameFromFilename(fullFilename) {
   var parsed = path.parse(fullFilename);
   var filename = parsed.base;
@@ -45,3 +53,5 @@ module.exports.makeMailboxNameFromBoxId = makeMailboxNameFromBoxId;
 module.exports.parseMailboxName = parseMailboxName;
 module.exports.makeDBFilename = makeDBFilename;
 module.exports.getMailboxNameFromFilename = getMailboxNameFromFilename;
+module.exports.makeDBFilenameFromBoatId = makeDBFilenameFromBoatId;
+module.exports.makeDBFilenameFromBoxId = makeDBFilenameFromBoxId;

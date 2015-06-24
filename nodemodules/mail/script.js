@@ -58,7 +58,9 @@ function runRemoteScript(mailbox, dstMailboxName, type, script, reqCode, cb) {
           } else if (!packetData) {
             cb(new Error('The sendPacket method of mailbox does not work as expected.'));
           } else {
-            cb(null, reqCode || makeRequestCode(packetData));
+            mailbox.disp(function(err) {
+              cb(null, reqCode || makeRequestCode(packetData));
+            });
           }
         });
     }
@@ -169,6 +171,7 @@ function handleScriptRequest(mailbox, packet, done, cb) {
 function makeScriptRequestHandler(done) {
   done = done || function() {};
   return function(endPoint, packet) {
+    console.log('HANDLE SCRIPT REQUEST!!!');
     handleScriptRequest(endPoint, packet, done, function(err) {
       if (err) {
         console.log('Failed to handle script request with this error:');
