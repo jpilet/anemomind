@@ -9,7 +9,7 @@ var Boat = require('../boat/boat.model');
 var naming = require('mail/naming.js');
 var common = require('mail/common.js');
 var fs = require('fs');
-var file = require('mail/file.js');
+var file = require('mail/logfile.js');
 var coder = require('mail/json-coder.js');
 
 

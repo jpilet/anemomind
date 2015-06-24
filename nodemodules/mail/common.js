@@ -1,10 +1,12 @@
 var bigint = require('./bigint.js');
 var assert = require('assert');
+var Q = require('q');
 
 module.exports.ack = 127;
 module.exports.logfile = 128;
 module.exports.scriptRequest = 129;
 module.exports.scriptResponse = 130;
+module.exports.files = 131;
 
 
 function ResultArray(n, cb) {
@@ -117,6 +119,16 @@ function withException(op, cb) {
   }
 }
 
+function fwrap(x) {
+  return function() {
+    return x;
+  }
+}
+
+function pfwrap(x) {
+  return Q.promised(fwrap(x));
+}
+
 module.exports.isCounter = isCounter; 
 module.exports.isIdentifier = isIdentifier;
 module.exports.isValidMailboxName = isValidMailboxName;
@@ -128,3 +140,5 @@ module.exports.ResultArray = ResultArray;
 module.exports.makeValuePasser = makeValuePasser;
 module.exports.argsToArray = argsToArray;
 module.exports.withException = withException;
+module.exports.fwrap = fwrap;
+module.exports.pfwrap = pfwrap;

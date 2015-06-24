@@ -1,7 +1,11 @@
 var fs = require('fs');
 
 
-var configFile = (process.env.ANEMOBOX_CONFIG_PATH || "." ) + "/config.json"
+function getConfigPath() {
+  return process.env.ANEMOBOX_CONFIG_PATH || ".";
+}
+
+var configFile = getConfigPath() + "/config.json"
 
 function defaultConfig() {
   return {
@@ -88,3 +92,4 @@ get(function(err, config) {
 module.exports.get = get;
 module.exports.write = write;
 module.exports.change = change;
+module.exports.getConfigPath = getConfigPath;
