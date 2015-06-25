@@ -37,6 +37,7 @@
     "passport-twitter": "latest",
     "password-generator": "^1.0.0",
     "q": "^1.2.0",
+    "rmdir": "^1.1.0",
     "serve-favicon": "~2.0.1",
     "socket.io": "^1.0.6",
     "socket.io-client": "^1.0.6",

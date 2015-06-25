@@ -1,7 +1,6 @@
 var testPath = '/tmp/mailboxes/boat123456789012345678901234.mailsqlite.db';
 var assert = require('assert');
 var naming = require('mail/naming.js');
-var Boat = require('../server/api/boat/boat.model.js');
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
 var makeScriptResponseHandler = require('../server/api/boxexec/response-handler.js');
 var common = require('../utilities/common.js');
@@ -11,28 +10,9 @@ var mb = require('mail/mail2.sqlite.js');
 var sync = require('mail/sync2.js');
 var mkdirp = require('mkdirp');
 
-var removeBoat = false;
 common.init();
 
-
-function withTestBoat(cbOperation, cbDone) {
-  Boat.create({
-    name: 'Frida',
-    type: 'IF',
-    sailNumber: '1604',
-    anemobox: 'abc119'}, function(err, docInserted) {
-      var id = docInserted._id;
-      cbOperation(id, function(err) {
-        if (removeBoat) {
-          Boat.remove({_id: id}, function(err2) {
-            cbDone(err || err2);
-          });
-        } else {
-          cbDone(err);
-        }
-      });
-    });
-}
+var withTestBoat = require('./testboat.js');
 
 function withConnectionAndTestBoat(cbOperation, cb) {
   withTestBoat(cbOperation, cb);
@@ -133,17 +113,17 @@ describe('RemoteScript', function() {
             common.sendScriptToBox(boatId, 'sh', scriptData, function(err, data) {
               assert(!err);
               
-              performSync = function(cb) {
-                sync.synchronize(boatMailbox, boxMailbox, cb);
+              performSync = function() {
+                sync.synchronize(boatMailbox, boxMailbox, function(err) {
+                  assert(!err);
+                });
               };
               
               boxMailbox.addPacketHandler(script.makeScriptRequestHandler(performSync));
 
               // Run the first sync. This will propagate the script to the box,
               // that will execute it.
-              performSync(function(err) {
-                assert(!err);
-              });
+              performSync();
             });
           });
         });
