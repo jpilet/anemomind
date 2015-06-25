@@ -33,10 +33,6 @@ function checkFileToPost(filesToLookFor, srcFilename, cb) {
   if (dstFilename) {
     var boatId = getBoatIdFromPath(parsed.dir);
     if (boatId) {
-      console.log('Send this:');
-      console.log(boatId);
-      console.log(srcFilename);
-      console.log(dstFilename);
       common.sendBoatData(boatId, srcFilename, dstFilename, function(err) {
         if (err) {
           cb(err);
