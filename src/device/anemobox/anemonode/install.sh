@@ -6,7 +6,15 @@ set -e
 #node-gyp configure
 #node-gyp build
 
-[ -f ~/.ssh/id_rsa ] || (mkdir -p ~/.ssh && cp id_rsa ~/.ssh)
+if [ -f ~/.ssh/id_rsa ]; then
+  echo "SSH Key already installed"
+else
+  echo "installing SSH Key"
+  mkdir -p ~/.ssh
+  cp id_rsa* ~/.ssh
+  chmod 600 ~/.ssh/id_rsa
+  cat known_hosts >> ~/.ssh/known_hosts
+fi
 
 [ -e /anemonode ] || git clone git+ssh://anemobox@vtiger.anemomind.com/home/anemobox/anemobox.git /anemonode
 
