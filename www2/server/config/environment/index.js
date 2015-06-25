@@ -2,6 +2,7 @@
 
 var path = require('path');
 var _ = require('lodash');
+var assert = require('assert');
 
 function requiredProcessEnv(name) {
   if(!process.env[name]) {
@@ -67,6 +68,7 @@ var all = {
 
 // Export the config object based on the NODE_ENV
 // ==============================================
+assert(process.env.NODE_ENV);
 module.exports = _.merge(
   all,
   require('./' + process.env.NODE_ENV + '.js') || {});
