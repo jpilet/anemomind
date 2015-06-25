@@ -16,8 +16,13 @@ var assert = require('assert');
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 var env = require('../server/config/environment');
 
+var inited = false;
+
 function init() {
-  mongoose.connect(env.mongo.uri, env.mongo.options);
+  if (!inited) {
+    mongoose.connect(env.mongo.uri, env.mongo.options);
+    inited = true;
+  }
 }
 
 function extractBoatIdFromFilename(filename) {

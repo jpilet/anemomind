@@ -4,12 +4,14 @@ var common = require('./common.js');
 var assert = require('assert');
 
 function disp(a, b, cb) {
+  assert(typeof cb == 'function');  
   a.disp(function(err) {
     b.disp(cb);
   });
 }
 
 function transferPacketsSub(pair, fromIndex, toIndex, from, to, putPacket, cb) {
+  assert(typeof cb == 'function');
   if (fromIndex == toIndex) {
     cb();
   } else {
@@ -33,6 +35,7 @@ function transferPacketsSub(pair, fromIndex, toIndex, from, to, putPacket, cb) {
 
 var zero = bigint.zero();
 function transferPackets(pair, fromIndex, toIndex, from, to, cb) {
+  assert(typeof cb == 'function');
   if (toIndex == zero || fromIndex == toIndex) {
     cb();
   } else if (fromIndex == 0) {
@@ -52,6 +55,7 @@ function transferPackets(pair, fromIndex, toIndex, from, to, cb) {
 }
 
 function synchronizePackets(pair, a, b, cb) {
+  assert(typeof cb == 'function');
   a.getUpperBound(pair.src, pair.dst, function(err, ubA) {
     b.getUpperBound(pair.src, pair.dst, function(err, ubB) {
       if (ubA > ubB) {
@@ -66,6 +70,7 @@ function synchronizePackets(pair, a, b, cb) {
 }
 
 function getCommonSrcDstPairs(a, b, cb) {
+  assert(typeof cb == 'function');
   a.getSrcDstPairs(function(err, aPairs) {
     if (err) {
       cb(err);
@@ -89,6 +94,7 @@ function getCommonSrcDstPairs(a, b, cb) {
 }
 
 function runSyncJob(job, putPacket, cb) {
+  assert(typeof cb == 'function');
   transferPacketsSub(job.pair, job.fromIndex,
                      job.toIndex, job.from, job.to, putPacket, cb);
 }
@@ -104,6 +110,7 @@ function countPackets(jobs) {
 }
 
 function runSyncJobsSub(jobs, putPacket, cb) {
+  assert(typeof cb == 'function');
   if (jobs.length == 0) {
     cb();
   } else {
@@ -118,6 +125,7 @@ function runSyncJobsSub(jobs, putPacket, cb) {
 }
 
 function runSyncJobs(jobs, cb, cbProgress) {
+  assert(typeof cb == 'function');
   var reportProgress = cbProgress || function() {};
   var counter = 0;
   var totalCount = countPackets(jobs);
@@ -187,6 +195,7 @@ function mergePairsAndLowerBounds(pairs, lowerBounds) {
 }
 
 function updateLowerBounds(dst, pairs, cb) {
+  assert(typeof cb == 'function');
   dst.updateLowerBounds(pairs, function(err, lbs) {
     if (err) {
       cb(err);
@@ -199,6 +208,7 @@ function updateLowerBounds(dst, pairs, cb) {
 }
 
 function synchronizeAllLowerBounds(pairs, a, b, cb) {
+  assert(typeof cb == 'function');
   updateLowerBounds(a, pairs, function(err, pairs) {
     if (err) {
       cb(err);
@@ -217,6 +227,7 @@ function synchronizeAllLowerBounds(pairs, a, b, cb) {
 
 
 function synchronizeAllPackets(pairs, lbs, a, b, cb, cbProgress) {
+  assert(typeof cb == 'function');
   var reportProgress = cbProgress || function(counter, total) {
     console.log('Synchronized %d of %d packets between %s and %s', counter, total, a.name, b.name);
   };
@@ -233,6 +244,7 @@ function synchronizeAllPackets(pairs, lbs, a, b, cb, cbProgress) {
 }
 
 function synchronize(a, b, cb, cbProgress) {
+  assert(typeof cb == 'function');
   if (a.name == b.name) {
     cb(new Error('The end points must be different'));
   } else {
