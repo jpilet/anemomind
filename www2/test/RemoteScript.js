@@ -35,9 +35,7 @@ function withTestBoat(cbOperation, cbDone) {
 }
 
 function withConnectionAndTestBoat(cbOperation, cb) {
-  common.withMongoConnection(function(ref) {
-    withTestBoat(cbOperation, cb);
-  });
+  withTestBoat(cbOperation, cb);
 }
 
 //function withConnectionAndBoat(cbOperation, cbDone)

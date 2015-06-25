@@ -16,30 +16,9 @@ var assert = require('assert');
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 var env = require('../server/config/environment');
 
-var connectionDeferred = Q.defer();
-function openMongoConnection(cb) {
-  mongoose.connect(env.mongo.uri, env.mongo.options);
-  mongoose.connection.on('open', function(ref) {
-    connectionDeferred.resolve(ref);
-    cb(ref);
-  });
-}
-
 function init() {
-  openMongoConnection(function(err) {
-    if (err) {
-      console.log('Failed to initialize RemoteScriptCommon.js module:');
-      console.log(err);
-    }
-  });
+  mongoose.connect(env.mongo.uri, env.mongo.options);
 }
-
-function withMongoConnection(cbOperation) {
-  connectionDeferred.promise.then(function(value) {
-    cbOperation(value);
-  });
-}
-
 
 function extractBoatIdFromFilename(filename) {
   var mailboxName = naming.getMailboxNameFromFilename(filename);
@@ -170,7 +149,6 @@ function sendBoatData(boatId, srcFilename, dstFilename, cb) {
 }
 
 module.exports.extractBoatIdFromFilename = extractBoatIdFromFilename;
-module.exports.withMongoConnection = withMongoConnection;
 module.exports.getBoxIdFromBoatId = getBoxIdFromBoatId;
 module.exports.sendScriptToBox = sendScriptToBox;
 module.exports.sendScriptFileToBox = sendScriptFileToBox;
