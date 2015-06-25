@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-#rm -fR node_modules/mail || true
-#npm install
-#node-gyp configure
-#node-gyp build
+rm -fR node_modules/mail || true
+npm install
+node-gyp configure
+node-gyp build
 
 if [ -f ~/.ssh/id_rsa ]; then
   echo "SSH Key already installed"
