@@ -62,8 +62,18 @@ function startWatchForFiles(root, filesToLookFor, cb) {
     });
 }
 
+function defaultPostCB(err, info) {
+  if (err) {
+    console.log('Failed to post boat data file to box:');
+    console.log(err);
+  } else {
+    console.log('Successfully posted detected file "%s" for box.', info.src);
+  }
+}
+
 function startWatch(cb) {
-  startWatchForFiles(config.uploadDir, defaultFilesToLookFor, cb);
+  startWatchForFiles(config.uploadDir, defaultFilesToLookFor,
+                     cb || defaultPostCB);
 }
 
 module.exports.startWatch = startWatch;
