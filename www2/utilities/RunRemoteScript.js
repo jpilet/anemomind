@@ -6,13 +6,14 @@ function sentCallback(err, reqCode) {
   if (err) {
     console.log('Failed to send script to box because');
     console.log(err);
+    process.exit(1);
   } else {
     console.log('Successfully posted script to box for remote execution.');
     console.log('You can view it by calling\n');
     console.log('  node ViewRemoteScript.js ' + reqCode);
     console.log('');
+    process.exit(0);
   }
-  process.exit();
 }
 
 var boatId = process.argv[2];

@@ -8,8 +8,9 @@ common.sendBoatData(boatId, srcFilename, dstFilename, function(err) {
   if (err) {
     console.log('Failed to send boat data, because');
     console.log(err);
+    process.exit(1);
   } else {
     console.log('Successfully posted boat data');
+    process.exit(0);
   }
-  process.exit();
 });

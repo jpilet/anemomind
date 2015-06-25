@@ -41,8 +41,9 @@ BoxExec.findById(id, function(err, data) {
   if (err) {
     console.log('Failed to retrieve boxexec because');
     console.log(err);
+    process.exit(1);
   } else {
     prettyPrint(data);
+    process.exit(0);
   }
-  process.exit();
 });
