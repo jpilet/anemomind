@@ -664,7 +664,6 @@ function withEP(ep, epOperation, done) {
       console.log('Failed to open mailbox');
       done(err);
     } else {
-      console.log('Lets run operation');
       epOperation(ep, function(err) {
         ep.close(function(err2) {
           done(err || err2);
