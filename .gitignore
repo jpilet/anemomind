@@ -25,4 +25,6 @@ anemionicApp/www/lib
 src/device/anemobox/anemonode/node_modules
 
 www2/node_modules
-www2/upload
+www2/uploads
+
+nodemodules/mail/node_modules

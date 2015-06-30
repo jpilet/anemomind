@@ -50,7 +50,7 @@ function sendFiles(ep, dstName, fileArray) {
   });
 }
 
-function makePacketHandler(root, verbose, cb) {
+function makePacketHandler(root, cb) {
   if (root == undefined) {
     console.log('WARNING: In mail/files.js: Root is undefined');
     root = "~/files";
@@ -60,12 +60,8 @@ function makePacketHandler(root, verbose, cb) {
     if (packet.label == common.files) {
       var packedFileArray = msgpack.decode(packet.data);
       unpackFiles(root, packedFileArray).then(function(filenames) {
-        if (verbose) {
-          console.log('Unpacked these files: ');
-          console.log(filenames);
-        }
-        cb();
-      }).catch(cb);
+        cb(filenames);
+      });
     }
   };
 }
