@@ -72,7 +72,8 @@ function registerMailbox(mailboxName, mailbox) {
 }
 
 function handleIncomingFiles(files) {
-  console.log('Received files: ' + filenames.join(', '));
+  console.log('Received files: ' + files.join(', '));
+
   for (var i in files) {
     if (path.resolve(files[i]) == path.resolve(estimator.calibFilePath())) {
       console.log('Loading calibration from ' + files[i]);

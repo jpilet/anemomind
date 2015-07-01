@@ -61,6 +61,9 @@ function makePacketHandler(root, cb) {
       var packedFileArray = msgpack.decode(packet.data);
       unpackFiles(root, packedFileArray).then(function(filenames) {
         cb(filenames);
+      }).catch(function(err) {
+        console.log("Error: " + err);
+        consle.log(err.stack);
       });
     }
   };

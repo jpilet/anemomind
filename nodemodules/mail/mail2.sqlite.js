@@ -561,6 +561,9 @@ EndPoint.prototype.putPacket = function(packet, cb) {
             self.callPacketHandlers(packet);
             setLowerBound(T, packet.src, packet.dst, bigint.inc(packet.seqNumber), cb);
           } catch (e) {
+            console.log('Catched an exception in packetHandler: ');
+            console.log(e.message);
+            console.log(e.stack);
             cb(e);
           }
         } else {
