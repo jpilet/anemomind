@@ -6,6 +6,7 @@ var mail2 = require('../mail2.sqlite.js');
 var sync2 = require('../sync2.js');
 var common = require('../common.js');
 var epschema = require('../endpoint-schema.js');
+var should = require('should');
 
 describe('files', function() {
   it('packfiles', function(done) {
@@ -31,7 +32,7 @@ describe('files', function() {
     });
   });
 
-  it('transferfiles', function(done) {
+  it('should transfer files', function(done) {
     Q.all([
       Q.nfcall(mail2.tryMakeAndResetEndPoint, '/tmp/epa.db', 'a'),
       Q.nfcall(mail2.tryMakeAndResetEndPoint, '/tmp/epb.db', 'b')
@@ -39,14 +40,17 @@ describe('files', function() {
         var a = eps[0];
         var b = eps[1];
         b.addPacketHandler(
-          files.makePacketHandler('/tmp/boxdata', true, function(err) {
+          files.makePacketHandler('/tmp/boxdata', function(files) {
+                                  console.log('**** FILES:');
+                                  console.warn(files);
+            files.should.eql(['/tmp/boxdata/boat.dat']);
             Q.all([
               Q.nfcall(fs.readFile, '/tmp/boxdata/boat.dat'),
               Q.nfcall(fs.readFile, '/tmp/boat.dat')
             ]).then(function(fdata) {
               assert(fdata[0].equals(fdata[1]));
               done();
-            });
+            }).catch(done);
           }));
         epschema.makeVerbose(a);
         epschema.makeVerbose(b);

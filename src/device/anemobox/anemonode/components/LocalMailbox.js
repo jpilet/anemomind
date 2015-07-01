@@ -20,6 +20,8 @@ var triggerSync = require('./sync.js').triggerSync;
 var mailboxes = {};
 var files = require('mail/files.js');
 
+var estimator = require('./estimator.js');
+
 function mailboxCount() {
   var counter = 0;
   for (var k in mailboxes) {
@@ -69,6 +71,16 @@ function registerMailbox(mailboxName, mailbox) {
   return mailboxData;
 }
 
+function handleIncomingFiles(files) {
+  console.log('Received files: ' + files.join(', '));
+
+  for (var i in files) {
+    if (path.resolve(files[i]) == path.resolve(estimator.calibFilePath())) {
+      console.log('Loading calibration from ' + files[i]);
+      estimator.loadCalib(files[i]);
+    }
+  }
+}
 
 function openNewMailbox(mailboxName, cb) {
   mkdirp(mailRoot, 0755, function(err) {
@@ -86,7 +98,7 @@ function openNewMailbox(mailboxName, cb) {
             mailbox.addPacketHandler(
               script.makeScriptRequestHandler(triggerSync));
             mailbox.addPacketHandler(
-              files.makePacketHandler(config.getConfigPath(), true));
+              files.makePacketHandler(config.getConfigPath(), handleIncomingFiles));
             var data = registerMailbox(mailboxName, mailbox);
             data.close.callDelayed(closeTimeoutMillis);
             cb(null, mailbox);
