@@ -1,20 +1,23 @@
-var common = require('./RemoteScriptCommon.js');
+var common = require('./common.js');
 
-common.init('production');
+common.init();
 
 function sentCallback(err, reqCode) {
   if (err) {
     console.log('Failed to send script to box because');
     console.log(err);
+    process.exit(1);
   } else {
     console.log('Successfully posted script to box for remote execution.');
     console.log('You can view it by calling\n');
     console.log('  node ViewRemoteScript.js ' + reqCode);
+    console.log('');
+    process.exit(0);
   }
 }
 
-var databaseFilename = process.argv[2];
-console.log('DB filename:     ' + databaseFilename);
+var boatId = process.argv[2];
+console.log('Boat id:         ' + boatId);
 
 /*
 
@@ -41,9 +44,9 @@ if (process.argv[4]) {
   var scriptData = process.argv[4];
   console.log('Script type:     ' + scriptType);
   console.log('Script:          ' + scriptData);
-  common.sendScriptToBox(databaseFilename, scriptType, scriptData, sentCallback);
+  common.sendScriptToBox(boatId, scriptType, scriptData, sentCallback);
 } else {
   var scriptFilename = process.argv[3];
   console.log('Script filename: ' + scriptFilename);
-  common.sendScriptFileToBox(databaseFilename, scriptFilename, sentCallback);
+  common.sendScriptFileToBox(boatId, scriptFilename, sentCallback);
 }

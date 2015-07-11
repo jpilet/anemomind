@@ -1,10 +1,10 @@
 var assert = require('assert');
-var file = require('../file.js');
-var mb = require('../mail.sqlite.js');
+var file = require('../logfile.js');
+var mb = require('../mail2.sqlite.js');
 var fs = require('fs');
 var Q = require('q');
 var common = require('../common.js');
-var sync = require('../sync.js');
+var sync = require('../sync2.js');
 
 function makeLogFilename(index) {
   return '/tmp/anemolog' + index + '.log';
@@ -105,8 +105,7 @@ function removeLogFiles(count, cb) {
 }
 
 function makeEndpoint(name, cb) {
-  mb.tryMakeMailbox('/tmp/' + name + '.db', name, function(err, mb) {
-    mb.forwardPackets = true;
+  mb.tryMakeEndPoint('/tmp/' + name + '.db', name, function(err, mb) {
     if (err) {
       cb(err);
     } else {
@@ -160,27 +159,10 @@ function countMarked(arr) {
   return counter;
 }
 
-function makeAnemoboxAckHandler(markArray, deferred) {
-  return mb.makePerPacketAckHandler(function(mailbox, packet) {
-    if (packet.label == common.logfile) {
-      var msg = file.unpackFileMessage(packet.data);
-      assert(isLogFileMsg(msg));
-      markArray[msg.info.logIndex] = true;
-      if (countMarked(markArray) == 3) {
-	deferred.resolve(markArray);
-      }
-    }
-  });
-}
 
 // Called when the server receives a packet
 function makeServerPacketHandler(markArray, deferred) {
-  return function(mailbox, packet, T, cb) {
-    // Let the synchronization process continue, don't block it.
-    // We already have the data that we want, and we are not going
-    // to change anything in the db.
-    cb();
-    
+  return function(endPoint, packet) {
     if (packet.label == common.logfile) {
       var msg = file.unpackFileMessage(packet.data);
       if (isLogFileMsg(msg)) {
@@ -243,20 +225,17 @@ describe('logfiles', function() {
       var phone = boxes[1];
       var box = boxes[2];
       
-      assert(server.mailboxName == 'server');
-      assert(phone.mailboxName == 'phone');
-      assert(box.mailboxName == 'box');
+      assert(server.name == 'server');
+      assert(phone.name == 'phone');
+      assert(box.name == 'box');
 
       var n = 5;
       var serverDeferred = Q.defer();
-      var boxDeferred = Q.defer();
 
       server.ackFrequency = 3;
 
-      box.onAcknowledged = makeAnemoboxAckHandler(
-	new Array(n), boxDeferred);
-      server.onPacketReceived = makeServerPacketHandler(
-	new Array(n), serverDeferred);
+      server.addPacketHandler(makeServerPacketHandler(
+	new Array(n), serverDeferred));
 
       // Create the log files
       makeLogFiles(n, function(err) {
@@ -278,16 +257,10 @@ describe('logfiles', function() {
 		 sync.synchronize(phone, server, function(err) {
 		   assert(!err);
 		   sync.synchronize(box, phone, function(err) {
-
-		     boxDeferred.promise.then(function(value) {
-		       done();
-		     });
-
+		     done();
 		   });
 		 });
 	       });
-
-	      
 	    });
 	  });
 	});

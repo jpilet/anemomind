@@ -1,5 +1,5 @@
-var common = require('./RemoteScriptCommon.js');
-common.init('production');
+var common = require('./common.js');
+common.init();
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
 
 function printIndentedIfNotNull(data, field) {
@@ -41,7 +41,9 @@ BoxExec.findById(id, function(err, data) {
   if (err) {
     console.log('Failed to retrieve boxexec because');
     console.log(err);
+    process.exit(1);
   } else {
     prettyPrint(data);
+    process.exit(0);
   }
 });

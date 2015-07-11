@@ -209,6 +209,23 @@ function deserializeBigInts(buf, width) {
 
 }
 
+// Compute the difference between to bigints. Hacky O(n) version.
+// This is not a big deal, though, because the context where it is used
+// is also O(n), so this doesn't change the complexity.
+function diff(a, b) {
+  assert(a.length == b.length);
+  if (a >= b) {
+    var counter = 0;
+    while (a > b) {
+      b = inc(b);
+      counter++;
+    }
+    return counter;
+  } else {
+    return -diff(b, a);
+  }
+}
+
 // Todo: randomize strings using
 //       the system rng, to assign
 //       unique names for mailboxes.
@@ -229,3 +246,4 @@ module.exports.defaultWidth = defaultWidth;
 module.exports.serializeBigIntToBuffer = serializeBigIntToBuffer;
 module.exports.deserializeBigIntFromBuffer = deserializeBigIntFromBuffer;
 module.exports.calcByteCount = calcByteCount;
+module.exports.diff = diff;

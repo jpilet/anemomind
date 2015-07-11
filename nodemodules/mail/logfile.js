@@ -1,6 +1,6 @@
 // File transfer facilities
 var common = require('./common.js');
-var mb = require('./mail.sqlite.js');
+var mb = require('./mail2.sqlite.js');
 var fs = require('fs');
 var assert = require('assert');
 
@@ -56,7 +56,7 @@ function sendFile(mailbox,   // The local mailbox
                   label,     // The label used for the packet
 		  cb) {      // Called once the file has been put in the mailbox,
                              //   waiting to be sent.
-  if (!(mb.isMailbox(mailbox) && common.isIdentifier(dst))) {
+  if (!(mb.isEndPoint(mailbox) && common.isIdentifier(dst))) {
     cb(new Error('Bad input to sendFile'));
   } else {
     readAndPackFile(path, info, function(err, buf) {

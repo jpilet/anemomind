@@ -2,6 +2,7 @@
 
 var path = require('path');
 var _ = require('lodash');
+var assert = require('assert');
 
 function requiredProcessEnv(name) {
   if(!process.env[name]) {
@@ -61,11 +62,13 @@ var all = {
 
   // Would it make sense to have absolute paths here to?
   uploadDir: 'uploads',
-  mailboxDir: '/tmp/mailboxes' // /var/mailboxes-dev was not writable on my system.
+  mailboxDir: '/tmp/mail2',
+  backupDestination: '/tmp/anemobackup'
 };
 
 // Export the config object based on the NODE_ENV
 // ==============================================
+assert(process.env.NODE_ENV);
 module.exports = _.merge(
   all,
   require('./' + process.env.NODE_ENV + '.js') || {});

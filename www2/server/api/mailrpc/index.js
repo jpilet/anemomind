@@ -10,34 +10,35 @@ var auth = require('../../auth/auth.service');
 
   Available functions to call, bound to this router.
   This list can be generated using rpc.makeOverview():
-  
-  Function name: setForeignDiaryNumber
-  HTTP-call: GET /setForeignDiaryNumber/:mailboxName/:otherMailbox/:newValue
 
-  Function name: getFirstPacketStartingFrom
-  HTTP-call: GET /getFirstPacketStartingFrom/:mailboxName/:diaryNumber/:lightWeight
+  ========= Essential calls ========
+  Function name: putPacket
+  HTTP-call: POST /putPacket/:mailboxName
 
-  Function name: handleIncomingPacket
-  HTTP-call: POST /handleIncomingPacket/:mailboxName
+  Function name: getPacket
+  HTTP-call: GET /getPacket/:mailboxName/:src/:dst/:seqNumber
 
-  Function name: isAdmissible
-  HTTP-call: GET /isAdmissible/:mailboxName/:src/:dst/:seqNumber
+  Function name: getSrcDstPairs
+  HTTP-call: GET /getSrcDstPairs/:mailboxName
 
-  Function name: getForeignDiaryNumber
-  HTTP-call: GET /getForeignDiaryNumber/:mailboxName/:otherMailbox
+  Function name: setLowerBound
+  HTTP-call: GET /setLowerBound/:mailboxName/:src/:dst/:lowerBound
 
-  Function name: getForeignStartNumber
-  HTTP-call: GET /getForeignStartNumber/:mailboxName/:otherMailbox
+  Function name: getLowerBounds
+  HTTP-call: POST /getLowerBounds/:mailboxName
 
-  Function name: reset
-  HTTP-call: GET /reset/:mailboxName
+  Function name: getUpperBounds
+  HTTP-call: POST /getUpperBounds/:mailboxName
+
+  ========= To facilitate unit testing ========
+  Function name: getTotalPacketCount
+  HTTP-call: GET /getTotalPacketCount/:mailboxName
 
   Function name: sendPacket
   HTTP-call: POST /sendPacket/:mailboxName
 
-  Function name: getTotalPacketCount
-  HTTP-call: GET /getTotalPacketCount/:mailboxName
-
+  Function name: reset
+  HTTP-call: GET /reset/:mailboxName
   
   All these functions will return JSON data in the body. On success, the
   HTTP status code is 200 and the body data is the result.

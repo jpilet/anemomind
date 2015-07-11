@@ -1,9 +1,12 @@
 var lmb = require('../components/LocalMailbox.js');
 var assert = require('assert');
 var fs = require('fs');
-var file = require('mail/file.js');
+var file = require('mail/logfile.js');
 var ensureConfig = require('./EnsureConfig.js');
 var mkdirp = require('mkdirp');
+var Q = require('q');
+var config = require('../components/config.js');
+var mail2 = require('mail/mail2.sqlite.js');
 
 describe('LocalMailbox', function() {
   it(
@@ -141,6 +144,7 @@ function preparePostingTest(cb) {
 describe('Listing and posting files not posted', function() {
   it('Post log files', function(done) {
     preparePostingTest(function(err) {
+      console.log(err);
       assert(!err);
       lmb.listLogFilesNotPosted(testLogRoot, function(err, files) {
         assert(!err);

@@ -1,56 +1,42 @@
 var testPath = '/tmp/mailboxes/boat123456789012345678901234.mailsqlite.db';
 var assert = require('assert');
 var naming = require('mail/naming.js');
-var Boat = require('../server/api/boat/boat.model.js');
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
 var makeScriptResponseHandler = require('../server/api/boxexec/response-handler.js');
-var common = require('../utilities/RemoteScriptCommon.js');
+var common = require('../utilities/common.js');
 var path = require('path');
 var script = require('mail/script.js');
-var mb = require('mail/mail.sqlite.js');
-var sync = require('mail/sync.js');
+var mb = require('mail/mail2.sqlite.js');
+var sync = require('mail/sync2.js');
+var mkdirp = require('mkdirp');
 
-var removeBoat = true;
-common.init('test');
+common.init();
 
-
-function withTestBoat(cbOperation, cbDone) {
-  Boat.create({
-    name: 'Frida',
-    type: 'IF',
-    sailNumber: '1604',
-    anemobox: 'abc119'}, function(err, docInserted) {
-      var id = docInserted._id;
-      cbOperation(id, function(err) {
-        if (removeBoat) {
-          Boat.remove({_id: id}, function(err2) {
-            cbDone(err || err2);
-          });
-        } else {
-          cbDone(err);
-        }
-      });
-    });
-}
+var withTestBoat = require('./testboat.js');
 
 function withConnectionAndTestBoat(cbOperation, cb) {
-  common.withMongoConnection(function(ref) {
-    withTestBoat(cbOperation, cb);
-  });
+  withTestBoat(cbOperation, cb);
 }
 
 //function withConnectionAndBoat(cbOperation, cbDone)
 
 function makeAndResetMailbox(filename, mailboxName, cb) {
-  mb.tryMakeMailbox(filename, mailboxName, function(err, mailbox) {
+  dir = path.parse(filename).dir;
+  mkdirp(dir, 0755, function(err) {
     if (err) {
       cb(err);
     } else {
-      mailbox.reset(function(err2) {
-        if (err2) {
-          cb(err2);
+      mb.tryMakeEndPoint(filename, mailboxName, function(err, mailbox) {
+        if (err) {
+          cb(err);
         } else {
-          cb(null, mailbox);
+          mailbox.reset(function(err2) {
+            if (err2) {
+              cb(err2);
+            } else {
+              cb(null, mailbox);
+            }
+          });
         }
       });
     }
@@ -88,8 +74,7 @@ describe('RemoteScript', function() {
     withConnectionAndTestBoat(function(id, doneAll) {
       var boatId = id;
       var boatMailboxName = naming.makeMailboxNameFromBoatId(id);
-      var filename = path.join(
-        '/tmp/', naming.makeDBFilename(boatMailboxName));
+      var filename = common.makeBoatDBFilename(boatId);
 
       
       // To be set later in the code.
@@ -104,11 +89,12 @@ describe('RemoteScript', function() {
           assert(boxMailbox);
 
           // Make a mailbox for the boat
-          makeAndResetMailbox(filename, boatMailboxName, function(err, boatMailbox) {
+          makeAndResetMailbox(filename, boatMailboxName,
+                              function(err, boatMailbox) {
             assert(!err);
 
             // Called when the response of executing the script is coming back.
-            boatMailbox.onPacketReceived = makeScriptResponseHandler(
+            boatMailbox.addPacketHandler(makeScriptResponseHandler(
               function(err, response) {
                 assert(!err);
                 assert(response);
@@ -121,23 +107,23 @@ describe('RemoteScript', function() {
                 assert.equal(response.type, 'sh');
                 assert.equal(response.script, scriptData);
                 doneAll();
-              });
+              }));
 
             // Send the script
-            common.sendScriptToBox(filename, 'sh', scriptData, function(err, data) {
+            common.sendScriptToBox(boatId, 'sh', scriptData, function(err, data) {
               assert(!err);
-
-              performSync = function(cb) {
-                sync.synchronize(boatMailbox, boxMailbox, cb);
+              
+              performSync = function() {
+                sync.synchronize(boatMailbox, boxMailbox, function(err) {
+                  assert(!err);
+                });
               };
               
-              boxMailbox.onPacketReceived = script.makeScriptRequestHandler(performSync);
+              boxMailbox.addPacketHandler(script.makeScriptRequestHandler(performSync));
 
               // Run the first sync. This will propagate the script to the box,
               // that will execute it.
-              performSync(function(err) {
-                assert(!err);
-              });
+              performSync();
             });
           });
         });

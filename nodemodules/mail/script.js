@@ -168,9 +168,8 @@ function handleScriptRequest(mailbox, packet, done, cb) {
 
 function makeScriptRequestHandler(done) {
   done = done || function() {};
-  return function(mailbox, packet, T, cb) {
-    cb();
-    handleScriptRequest(mailbox, packet, done, function(err) {
+  return function(endPoint, packet) {
+    handleScriptRequest(endPoint, packet, done, function(err) {
       if (err) {
         console.log('Failed to handle script request with this error:');
         console.log(err);
