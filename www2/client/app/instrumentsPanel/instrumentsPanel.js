@@ -23,7 +23,7 @@ Panel.prototype.init = function(){
 	.attr("height", 200);
 */
 
-    d3.xml("assets/images/svg/gauge.svg", "image/svg+xml", function(xml) {
+    d3.xml("assets/images/svg/gauge_opt.svg", "image/svg+xml", function(xml) {
     var importedNode = document.importNode(xml.documentElement, true);
     this.gauge1 = d3.select(panel).node().appendChild(importedNode);
 
@@ -40,7 +40,7 @@ Panel.prototype.updatePanelGraphs = function(value){
 
         this.gauge1.selectAll("g#needle")
         .transition()
-        .attr("transform", "rotate(45)")
+        .attr("transform", "rotate(" + value + ")")
         .duration(this.deltaTransition)
         .delay(this.delayTransition);
 
