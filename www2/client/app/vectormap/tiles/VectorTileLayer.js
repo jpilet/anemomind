@@ -9,6 +9,7 @@ function VectorTileLayer(params, renderer) {
   this.numDraw = 0;
   this.numCachedTiles = 0;
   this.visibleCurves = {};
+  this.curvesFlat = {};
 
   if (!("tileSize" in this.params)) this.params.tileSize = 256;
   if ("vectorurl" in this.params) {
@@ -124,9 +125,13 @@ VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
           var curveData = tile.data[curve].curves[c];
 
           if (!this.visibleCurves[curveId]) {
-            this.visibleCurves[curveId] = { };
+            this.visibleCurves[curveId] = { length: 0 };
           }
-          this.visibleCurves[curveId][tile.key + c] = curveData;
+          var key = tile.key + c;
+          if (!(key in this.visibleCurves[curveId])) {
+            ++this.visibleCurves[curveId].length;
+          }
+          this.visibleCurves[curveId][key] = curveData;
         }
       }
       return;
@@ -144,22 +149,42 @@ VectorTileLayer.prototype.drawVisibleCurves = function(context, pinchZoom) {
   }
 }
 
+function byTime(a, b) {
+  return a.time - b.time;
+}
+
 VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
   // Extract all points
-  var points = [];
   var curveElements = this.visibleCurves[curveId];
+  if (!curveElements) {
+    return [];
+  }
+
+  var len = curveElements.length;
+
+  if (curveId in this.curvesFlat && this.curvesFlat[curveId].length == len) {
+    this.lastPointArray = this.curvesFlat[curveId].points;
+    return this.lastPointArray;
+  }
+
+  var elementsAsArray = [];
   for (var e in curveElements) {
-    var element = curveElements[e];
-    for (var i in element.points) {
-      points.push(element.points[i]);
+    if (e != "length") {
+      var element = curveElements[e];
+      if (element.curveId == curveId) {
+        elementsAsArray.push(element.points);
+      }
     }
   }
-  // Sort by time
-  points.sort(function(a, b) {
-    return a.time - b.time;
-  });
 
+  var points = Array.prototype.concat.apply([], elementsAsArray);
+
+  // Sort by time
+  points.sort(byTime);
   this.lastPointArray = points;
+
+  this.curvesFlat[curveId] = { length: len, points: points };
+
   return points;
 }
 
