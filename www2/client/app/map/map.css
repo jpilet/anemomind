@@ -35,15 +35,15 @@ height: 100%;
   text-transform: uppercase;
 }
 
-.titleBox a:link, .titleBox a:visited { 
- color: white; 
- text-decoration: none; 
-} 
+.titleBox a:link, .titleBox a:visited {
+ color: white;
+ text-decoration: none;
+}
 
-.titleBox a:hover { 
- color: black; 
- text-decoration: none; 
-} 
+.titleBox a:hover {
+ color: black;
+ text-decoration: none;
+}
 
 perfplot {
 position: absolute;
@@ -60,10 +60,4 @@ bottom: 100px;
 display:inline-block;
 }
 
-.instrumentsView {
-position: absolute;
-right: 10px;
-top:10px;
-width: 200px;
-height: 400px;
-}
+
