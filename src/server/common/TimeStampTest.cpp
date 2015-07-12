@@ -67,8 +67,9 @@ TEST(TimeStampTest, ToStreamTest) {
 
 TEST(TimeStampTest, Sleep) {
   TimeStamp before = TimeStamp::now();
-  usleep(100000);
+  Duration<> delta = Duration<>::seconds(.1);
+  sleep(delta);
   TimeStamp after = TimeStamp::now();
-  EXPECT_LE(before + Duration<>::seconds(.1), after);
+  EXPECT_LE(before + delta, after);
 }
 

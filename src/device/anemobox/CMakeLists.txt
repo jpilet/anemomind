@@ -1,4 +1,5 @@
 add_subdirectory(logger)
+add_subdirectory(playnmea)
 
 cxx_test(anemobox_ValueDispatcherTest ValueDispatcherTest.cpp
          common_TimeStamp
