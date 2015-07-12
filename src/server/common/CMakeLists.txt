@@ -11,23 +11,25 @@ add_library(common_Env
             Env.h
            )
 
-add_library(common_PathBuilder
-            PathBuilder.h
-            PathBuilder.cpp
-           )
-target_depends_on_poco_foundation(common_PathBuilder)
+if (${FULL_BUILD})
+  add_library(common_PathBuilder
+              PathBuilder.h
+              PathBuilder.cpp
+             )
+  target_depends_on_poco_foundation(common_PathBuilder)
            
-cxx_test(common_MDIndsTest
-         MDIndsTest.cpp
-         gtest_main
-        )           
-           
-cxx_test(common_EnvTest
-         EnvTest.cpp
-         common_Env
-         gtest_main
-        )           
-target_depends_on_poco_foundation(common_EnvTest)
+  cxx_test(common_MDIndsTest
+           MDIndsTest.cpp
+           gtest_main
+          )           
+             
+  cxx_test(common_EnvTest
+           EnvTest.cpp
+           common_Env
+           gtest_main
+          )           
+  target_depends_on_poco_foundation(common_EnvTest)
+endif ()
 
 cxx_test(common_stringTest
          stringTest.cpp
@@ -46,14 +48,16 @@ add_library(common_logging
 
 cxx_test(common_logging_test logging_test.cpp common_logging gtest_main)
 
-add_library(common_filesystem
-            filesystem.h
-            filesystem.cpp
-           )
-target_depends_on_poco_foundation(common_filesystem)
-target_link_libraries(common_filesystem
-                      common_string
-                     )           
+if (${FULL_BUILD})
+  add_library(common_filesystem
+              filesystem.h
+              filesystem.cpp
+             )
+  target_depends_on_poco_foundation(common_filesystem)
+  target_link_libraries(common_filesystem
+                        common_string
+                       )           
+endif ()
 
 add_library(common_ScopedLog
             ScopedLog.h
@@ -77,23 +81,25 @@ cxx_test(common_TimeStampTest
 
 
         
-add_library(common_Json
-            Json.h
-            Json.cpp
-           )
-target_depends_on_poco_json(common_Json)                                                     
-cxx_test(common_JsonTest
-         JsonTest.cpp
-         common_Json
-         gtest_main
-        )                     
-                   
-        
-add_library(common_TimeStampJson
-            TimeStampJson.cpp
-            TimeStampJson.h
-           )
-target_depends_on_poco_foundation(common_TimeStampJson)
+if (${FULL_BUILD})
+  add_library(common_Json
+              Json.h
+              Json.cpp
+             )
+  target_depends_on_poco_json(common_Json)                                                     
+  cxx_test(common_JsonTest
+           JsonTest.cpp
+           common_Json
+           gtest_main
+          )                     
+                     
+          
+  add_library(common_TimeStampJson
+              TimeStampJson.cpp
+              TimeStampJson.h
+             )
+  target_depends_on_poco_foundation(common_TimeStampJson)
+endif ()
 
 add_library(common_Array
             Array.cpp
@@ -118,6 +124,7 @@ add_library(common_Span
             Span.cpp
             )
 
+if (${FULL_BUILD})
 add_library(common_Hierarchy
             Hierarchy.cpp
             Hierarchy.h
@@ -164,6 +171,7 @@ cxx_test(common_HierarchyJsonTest
          common_HNodeGroup
          gtest_main
         )                                
+endif ()
 
 add_library(common_Function
             Function.cpp
@@ -209,11 +217,13 @@ cxx_test(common_invalidate
          invalidate_test.cpp
          gtest_main)
 
+if (${FULL_BUILD})
 cxx_test(common_pocoTest
          pocoTest.cpp
          gtest_main
         )
 target_depends_on_poco_json(common_pocoTest) 
+endif ()
 
 add_library(common_ConcatFunction
             ConcatFunction.h
@@ -245,27 +255,29 @@ cxx_test(common_HistogramTest
          gtest_main
         )
 
-add_library(common_LineKMJson
-            LineKMJson.cpp
-            LineKMJson.h
-           )
-target_link_libraries(common_LineKMJson
-                      common_LineKM
-                     )
-target_depends_on_poco_json(common_LineKMJson)                                
+if (${FULL_BUILD})
+  add_library(common_LineKMJson
+              LineKMJson.cpp
+              LineKMJson.h
+             )
+  target_link_libraries(common_LineKMJson
+                        common_LineKM
+                       )
+  target_depends_on_poco_json(common_LineKMJson)                                
 
-cxx_test(common_SpanOverlapTest
-         SpanOverlapTest.cpp
-         gtest_main
-        )                                
-target_depends_on_poco_json(common_LineKMJson)
+  cxx_test(common_SpanOverlapTest
+           SpanOverlapTest.cpp
+           gtest_main
+          )                                
+  target_depends_on_poco_json(common_LineKMJson)
 
 
-add_library(common_JsonObjDeserializer
-            JsonObjDeserializer.h
-            JsonObjDeserializer.cpp
-           )
-target_depends_on_poco_json(common_JsonObjDeserializer)
+  add_library(common_JsonObjDeserializer
+              JsonObjDeserializer.h
+              JsonObjDeserializer.cpp
+             )
+  target_depends_on_poco_json(common_JsonObjDeserializer)
+endif ()
 
 add_library(common_ArgMap
             ArgMap.h
@@ -285,11 +297,13 @@ cxx_test(common_ArgMapTest
          common_string
         )
 
-add_library(common_JsonIO
-            JsonIO.h
-            JsonIO.cpp
-           )
-target_depends_on_poco_json(common_JsonIO)
+if (${FULL_BUILD})
+  add_library(common_JsonIO
+              JsonIO.h
+              JsonIO.cpp
+             )
+  target_depends_on_poco_json(common_JsonIO)
+endif ()
 
 
 add_library(common_DataSplits
