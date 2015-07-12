@@ -26,23 +26,23 @@ void playNmea(FILE *f) {
     switch (parser.processByte(c)) {
       case NmeaParser::NMEA_NONE: break;
       case NmeaParser::NMEA_TIME_POS:
-      case NmeaParser::NMEA_GLL:
         if (hasFakeStartTime) {
           Duration<> elapsedReal = TimeStamp::now() - startReal;
           Duration<> elapsedFake = parser.timestamp() - startFake;
           if (elapsedReal < elapsedFake) {
             sleep(elapsedFake - elapsedReal);
           }
-          // no break, execution continues at 'default'
         } else {
           startFake = parser.timestamp();
           hasFakeStartTime = true;
-          // We do not output anything before knowing the fake time.
-          break;
         }
+        // no break, execution continues at 'default'
       default:
+        // We do not output anything before knowing the fake time.
+        if (hasFakeStartTime) {
           parser.printSentence();
-          break;
+        }
+        break;
     }
   }
 }
