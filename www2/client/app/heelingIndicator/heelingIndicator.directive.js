@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('www2App')
-.directive('gaugeIndicator', function () {
+.directive('heelingIndicator', function () {
     return {
-      templateUrl: 'app/gaugeIndicator/gaugeIndicator.html',
+      templateUrl: 'app/heelingIndicator/heelingIndicator.html',
       restrict: 'E',
       scope: {
         label: "=",
@@ -13,7 +13,7 @@ angular.module('www2App')
         max: "=",
       },
       link: function ($scope, element, attrs) {
-        var panel=new GaugePanel(element);
+        var panel=new HeelingPanel(element);
 
         function update(){
           var rotation=($scope.value-$scope.min)*180/($scope.max-$scope.min);

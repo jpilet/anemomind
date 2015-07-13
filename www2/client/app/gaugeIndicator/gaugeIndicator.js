@@ -3,9 +3,7 @@
  */
 
 
-function Panel(rootElement){
-	this.row=3;
-	this.column=2
+function GaugePanel(rootElement){
 	this.width=400;
 	this.height=400;
 	this.deltaTransition=1000;
@@ -15,14 +13,10 @@ function Panel(rootElement){
 }
 
 
-Panel.prototype.init = function(){
+GaugePanel.prototype.init = function(){
 
 	var panel = this.root[0];
 
-	/*var svgContainer= this.container = d3.select(panel).append("svg")
-	.attr("width", 200)
-	.attr("height", 200);
-*/
     var panel_component=this;
 
     d3.xml("assets/images/svg/gauge.svg", "image/svg+xml", function(xml) {
@@ -34,10 +28,9 @@ Panel.prototype.init = function(){
 
 }
 
-Panel.prototype.updatePanelGraphs = function(value){
+GaugePanel.prototype.updatePanelGraphs = function(value){
 
 	if(value){
-        //console.log(this.gauge1.selectAll("g#needle"));
 
         d3.select(this.gauge1).selectAll("#needle_inside")
         .transition()
