@@ -1,9 +1,9 @@
-/* The class displays and automate the wheel component of the instrument panel
+/* The class displays and automate the small wheel component of the instrument panel
  *
  */
 
 
-function WheelPanel(rootElement){
+function WheelSmallPanel(rootElement){
     this.width=400;
     this.height=400;
     this.deltaTransition=1000;
@@ -13,22 +13,22 @@ function WheelPanel(rootElement){
 }
 
 
-WheelPanel.prototype.init = function(){
+WheelSmallPanel.prototype.init = function(){
 
     var panel = this.root[0];
 
     var panel_component=this;
 
-    d3.xml("assets/images/svg/wheel.svg", "image/svg+xml", function(xml) {
+    d3.xml("assets/images/svg/wheel_small.svg", "image/svg+xml", function(xml) {
     var importedNode = document.importNode(xml.documentElement, true);
-    panel_component.gauge1 = d3.select(panel).selectAll("#wheel-svg-container").node().appendChild(importedNode);
+    panel_component.gauge1 = d3.select(panel).selectAll("#wheel-small-svg-container").node().appendChild(importedNode);
 
     });
 
 
 }
 
-WheelPanel.prototype.updatePanelGraphs = function(value){
+WheelSmallPanel.prototype.updatePanelGraphs = function(value){
 
     if(value){
 

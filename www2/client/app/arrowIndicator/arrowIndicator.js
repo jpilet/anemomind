@@ -1,4 +1,4 @@
-/* The class displays and automate the gauge component of the instrument panel
+/* The class displays and automate the arrow component of the instrument panel
  *
  */
 
