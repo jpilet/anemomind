@@ -8,9 +8,7 @@
 namespace sail {
 
 TimeStamp getTime(const NmeaParser& parser) {
-  return TimeStamp::UTC(
-      parser.year() + 2000, parser.month(), parser.day(),
-      parser.hour(), parser.min(), parser.sec());
+  return parser.timestamp();
 }
 
 GeographicPosition<double> getPos(const NmeaParser& parser) {

@@ -1,4 +1,8 @@
-add_subdirectory("math")
 add_subdirectory("common")
-add_subdirectory("nautical")
+
+if (${FULL_BUILD})
+  add_subdirectory("math")
+  add_subdirectory("nautical")
+endif ()
+
 add_subdirectory("plot")    

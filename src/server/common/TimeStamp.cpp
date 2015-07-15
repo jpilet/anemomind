@@ -10,6 +10,7 @@
 #include <server/common/string.h>
 #include <string.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 namespace sail {
 
@@ -130,6 +131,10 @@ TimeStamp operator+(const Duration<double> &a, const TimeStamp &b) {
 
 std::ostream &operator<<(std::ostream &s, const TimeStamp &t) {
   return s << t.toString();
+}
+
+void sleep(Duration<double> duration) {
+  usleep(useconds_t(duration.seconds() * 1e6));
 }
 
 } /* namespace sail */

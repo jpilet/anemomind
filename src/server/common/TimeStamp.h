@@ -75,6 +75,8 @@ class Clock {
   virtual TimeStamp currentTime() { return TimeStamp::now(); }
 };
 
+void sleep(Duration<double> duration);
+
 } /* namespace sail */
 
 #endif /* TIMESTAMP_H_ */
