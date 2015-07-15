@@ -21,15 +21,16 @@ var app = angular.module('www2App')
         scope.boat = boatList.boat;
         scope.currentPage = 0;
         scope.pageSize = 10;
-
-        console.log(scope.boats);
+        scope.numberOfPages = function() {
+          return Math.ceil(scope.data.length/scope.pageSize);                
+        }
       }
     };
   });
 
-// app.filter('startFrom', function() {
-//     return function(input, start) {
-//         start = +start; //parse to int
-//         return input.slice(start);
-//     }
-// });
+app.filter('startFrom', function() {
+    return function(input, start) {
+        start = +start; //parse to int
+        if (input) return input.slice(start);
+    }
+});

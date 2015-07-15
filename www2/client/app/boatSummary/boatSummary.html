@@ -6,26 +6,21 @@
       </div>
       <div class="panel-body">
         <table class="table">
-          <tr ng-repeat="session in sessions[boat._id] | limitTo: 2">
-            <td><a href="/map/{{session.boat}}?c={{session.curves[0].curveId}}">{{session.startTime | date:"'le ' MM/dd/yyyy 'à' HH:mm"}}</a></td>
+          <tr ng-repeat="session in sessions[boat._id] | startFrom:currentPage*pageSize | limitTo:pageSize | orderBy:'startTime':true">
+            <td><a href="/map/{{session.boat}}?c={{session.curves[0].curveId}}">{{session.startTime | date:"'le ' dd/MM/yyyy 'à' HH:mm"}}</a></td>
           </tr>
         </table>
         <nav>
           <ul class="pagination">
             <li>
-              <a href="#" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
-              </a>
+              <button ng-disabled="currentPage == 0" ng-click="currentPage=currentPage-1" aria-label="Previous">
+                <span aria-hidden="true">&laquo; Previous</span>
+              </button>
             </li>
-            <li><a href="#">1</a></li>
-            <li><a href="#">2</a></li>
-            <li><a href="#">3</a></li>
-            <li><a href="#">4</a></li>
-            <li><a href="#">5</a></li>
             <li>
-              <a href="#" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
-              </a>
+              <button ng-disabled="currentPage >= sessions[boat._id].length/pageSize - 1" ng-click="currentPage=currentPage+1" aria-label="Next">
+                <span aria-hidden="true">Next &raquo;</span>
+              </button>
             </li>
           </ul>
         </nav>
