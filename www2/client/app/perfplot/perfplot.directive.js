@@ -22,9 +22,13 @@ angular.module('www2App')
 
         $scope.$watch('plotData', function(newData, oldData) {
           graph.setData($scope.plotField, newData);
-        }, true);
+        }, false);
         $scope.$watch('currentTime', function(newValue, oldValue) {
-          graph.setTimeMarks([newValue]);
+          if (newValue != undefined) {
+            graph.setTimeMarks([newValue]);
+          } else {
+            graph.setTimeMarks([]);
+          }
         }, true);
         $scope.$watch('plotField', function(newValue, oldValue) {
           graph.setData(newValue, $scope.plotData);
