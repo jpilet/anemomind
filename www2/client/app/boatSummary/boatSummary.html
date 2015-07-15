@@ -7,7 +7,7 @@
       <div class="panel-body">
         <table class="table">
           <tr ng-repeat="session in sessions[boat._id] | limitTo: 2">
-            <td><a href="/map/{{session.boat}}?c={{session.curves[0].curveId}}">{{session.startTime}}</a></td>
+            <td><a href="/map/{{session.boat}}?c={{session.curves[0].curveId}}">{{session.startTime | date:"'le ' MM/dd/yyyy 'à' HH:mm"}}</a></td>
           </tr>
         </table>
         <nav>
