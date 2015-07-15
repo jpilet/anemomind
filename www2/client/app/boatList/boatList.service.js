@@ -6,6 +6,7 @@ angular.module('www2App')
     var boatDict = { };
     var sessions = { };
     var curves = { };
+    var sessionsForBoats = {};
 
     function update() {
         $http.get('/api/boats')
@@ -30,7 +31,9 @@ angular.module('www2App')
         for (var i in data) {
           var element = data[i];
           var key = element.boat + element.startTime;
-          sessions[key] = data[i];
+          if (!(element.boat in sessionsForBoats)) sessionsForBoats[element.boat] = [];
+          sessionsForBoats[element.boat].push(data[i]);
+          // sessions[key] = data[i];
           for (var c in element.curves) {
             var curve = element.curves[c];
             if (curve.curveId in curves) {
@@ -40,7 +43,7 @@ angular.module('www2App')
             }
           }
         }
-        $rootScope.$broadcast('boatList:sessionsUpdated', sessions);
+        $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
       });
     }
 
@@ -79,7 +82,7 @@ angular.module('www2App')
     return {
       boat: function(id) { return boatDict[id]; },
       boats: function() { return boats.slice(0); },
-      sessions: function() { return $.extend({}, sessions); },
+      sessions: function() { return $.extend({}, sessionsForBoats); },
       getCurveData: function(curveId) { return curves[curveId]; },
       locationForCurve: locationForCurve,
       update: update,

@@ -1,0 +1,35 @@
+<div class="row">
+  <div class="col-md-6" ng-repeat="boat in boats">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">{{boat.name}}</h3>
+      </div>
+      <div class="panel-body">
+        <table class="table">
+          <tr ng-repeat="session in sessions[boat._id] | limitTo: 2">
+            <td><a href="/map/{{session.boat}}?c={{session.curves[0].curveId}}">{{session.startTime}}</a></td>
+          </tr>
+        </table>
+        <nav>
+          <ul class="pagination">
+            <li>
+              <a href="#" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+            <li><a href="#">1</a></li>
+            <li><a href="#">2</a></li>
+            <li><a href="#">3</a></li>
+            <li><a href="#">4</a></li>
+            <li><a href="#">5</a></li>
+            <li>
+              <a href="#" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
