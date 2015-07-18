@@ -4,8 +4,6 @@
 
 
 function ArrowPanel(rootElement){
-    this.width=400;
-    this.height=400;
     this.deltaTransition=1000;
     this.delayTransition=400;
     this.root=rootElement;

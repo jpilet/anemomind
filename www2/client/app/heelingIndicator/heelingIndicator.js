@@ -2,16 +2,12 @@
  *
  */
 
-
 function HeelingPanel(rootElement){
-    this.width=400;
-    this.height=400;
     this.deltaTransition=4000;
     this.delayTransition=600;
     this.root=rootElement;
     this.init();
 }
-
 
 HeelingPanel.prototype.init = function(){
 
@@ -24,8 +20,6 @@ HeelingPanel.prototype.init = function(){
     panel_component.arrow = d3.select(panel).selectAll("#heeling-svg-container").node().appendChild(importedNode);
 
     });
-
-
 }
 
 HeelingPanel.prototype.updatePanelGraphs = function(value){

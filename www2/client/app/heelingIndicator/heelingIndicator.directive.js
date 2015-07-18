@@ -9,14 +9,12 @@ angular.module('www2App')
         label: "=",
         value: "=",
         description: "=",
-        min: "=",
-        max: "=",
       },
       link: function ($scope, element, attrs) {
         var panel=new HeelingPanel(element);
 
         function update(){
-          var rotation=($scope.value-$scope.min)*180/($scope.max-$scope.min);
+          var rotation=$scope.value;
           panel.updatePanelGraphs(rotation);
         }
         $scope.$watch('value', update);

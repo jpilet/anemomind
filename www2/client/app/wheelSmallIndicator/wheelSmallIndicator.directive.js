@@ -7,21 +7,21 @@ angular.module('www2App')
       restrict: 'E',
       scope: {
         label: "=",
-        value: "=",
+        arrow: "=",
+        boat: "=",
+        north: "=",
         description: "=",
-        min: "=",
-        max: "=",
       },
       link: function ($scope, element, attrs) {
         var panel=new WheelSmallPanel(element);
 
         function update(){
-          var rotation=($scope.value-$scope.min)*360/($scope.max-$scope.min);
-          panel.updatePanelGraphs(rotation);
+
+          panel.updatePanelGraphs($scope.arrow, $scope.boat,$scope.north);
         }
-        $scope.$watch('value', update);
-        $scope.$watch('min', update);
-        $scope.$watch('max', update);
+        $scope.$watch('arrow', update);
+        $scope.$watch('boat', update);
+        $scope.$watch('north', update);
 
     }
 };

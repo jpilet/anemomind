@@ -7,19 +7,20 @@ angular.module('www2App')
         label: "=",
         value: "=",
         description: "=",
-        min: "=",
-        max: "=",
+        to: "=",
       },
       link: function ($scope, element, attrs) {
         var panel=new ArrowPanel(element);
 
         function update(){
-          var rotation = ($scope.value-$scope.min)*360/($scope.max-$scope.min);
-
-          //Not so sure about how to match the TWA on map
-          rotation= rotation-360;
-          if($scope.value < 180){
-            rotation = rotation + 180;
+          if($scope.to){
+            rotation= $scope.value-360;
+            if($scope.value < 180){
+              rotation = rotation + 180;
+            }
+          }
+          else{
+            rotation=$scope.value;
           }
           panel.updatePanelGraphs(rotation);
         }

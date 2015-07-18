@@ -6,21 +6,20 @@ angular.module('www2App')
       restrict: 'E',
       scope: {
         label: "=",
-        value: "=",
+        arrow: "=",
+        north: "=",
         description: "=",
-        min: "=",
-        max: "=",
       },
       link: function ($scope, element, attrs) {
         var panel=new WheelPanel(element);
 
         function update(){
-          var rotation=($scope.value-$scope.min)*360/($scope.max-$scope.min);
-          panel.updatePanelGraphs(rotation);
+
+          panel.updatePanelGraphs($scope.arrow, $scope.north);
+          panel.updatePanelText($scope.arrow);
         }
-        $scope.$watch('value', update);
-        $scope.$watch('min', update);
-        $scope.$watch('max', update);
+        $scope.$watch('arrow', update);
+        $scope.$watch('north', update);
 
     }
 };

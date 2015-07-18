@@ -4,8 +4,6 @@
 
 
 function WheelSmallPanel(rootElement){
-    this.width=400;
-    this.height=400;
     this.deltaTransition=1000;
     this.delayTransition=100;
     this.root=rootElement;
@@ -28,13 +26,31 @@ WheelSmallPanel.prototype.init = function(){
 
 }
 
-WheelSmallPanel.prototype.updatePanelGraphs = function(value){
+WheelSmallPanel.prototype.updatePanelGraphs = function(arrow, boat, north){
 
-    if(value){
+    if(arrow && boat && north){
 
         d3.select(this.gauge1).selectAll("#red")
         .transition()
-        .attr("transform", "rotate(" + value + ")")
+        .attr("transform", "rotate(" + arrow + ")")
+        .duration(this.deltaTransition)
+        .delay(this.delayTransition);
+
+        d3.select(this.gauge1).selectAll("#boat")
+        .transition()
+        .attr("transform", "rotate(" + boat + ")")
+        .duration(this.deltaTransition)
+        .delay(this.delayTransition);
+
+        d3.select(this.gauge1).selectAll("#north")
+        .transition()
+        .attr("transform", "rotate(" + north + ")")
+        .duration(this.deltaTransition)
+        .delay(this.delayTransition);
+
+        d3.select(this.gauge1).selectAll("#northtext")
+        .transition()
+        .attr("transform", "rotate(" + north + ")")
         .duration(this.deltaTransition)
         .delay(this.delayTransition);
 
