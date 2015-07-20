@@ -4,7 +4,6 @@ angular.module('www2App')
   .service('boatList', function (Auth, $http, socket, $rootScope) {
     var boats = [ ];
     var boatDict = { };
-    var sessions = { };
     var curves = { };
     var sessionsForBoats = {};
 
@@ -30,10 +29,8 @@ angular.module('www2App')
       .success(function(data, status, headers, config) {
         for (var i in data) {
           var element = data[i];
-          var key = element.boat + element.startTime;
           if (!(element.boat in sessionsForBoats)) sessionsForBoats[element.boat] = [];
           sessionsForBoats[element.boat].push(data[i]);
-          // sessions[key] = data[i];
           for (var c in element.curves) {
             var curve = element.curves[c];
             if (curve.curveId in curves) {

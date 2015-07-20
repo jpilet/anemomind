@@ -5,10 +5,10 @@ var app = angular.module('www2App')
     return {
       templateUrl: 'app/boatSummary/boatSummary.html',
       restrict: 'EA',
-      // scope: {
-      //   boats: "@",
-      //   sessions: "@"
-      // },
+      scope: {
+        boats: "@",
+        sessions: "@"
+      },
       link: function (scope, element, attrs) {
         scope.boats = boatList.boats();
         scope.sessions = boatList.sessions();
