@@ -1,0 +1,30 @@
+<div class="row">
+  <div class="col-md-6" ng-repeat="boat in boats">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">{{boat.name}}</h3>
+      </div>
+      <div class="panel-body">
+        <table class="table">
+          <tr ng-repeat="session in sessions[boat._id] | startFrom:currentPage*pageSize | limitTo:pageSize | orderBy:'startTime':true">
+            <td><a href="/map/{{session.boat}}?c={{session.curves[0].curveId}}">{{session.startTime | date: short}}</a></td>
+          </tr>
+        </table>
+        <nav>
+          <ul class="pagination">
+            <li>
+              <button ng-disabled="currentPage == 0" ng-click="currentPage=currentPage-1" aria-label="Previous">
+                <span aria-hidden="true">&laquo; Previous</span>
+              </button>
+            </li>
+            <li>
+              <button ng-disabled="currentPage >= sessions[boat._id].length/pageSize - 1" ng-click="currentPage=currentPage+1" aria-label="Next">
+                <span aria-hidden="true">Next &raquo;</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
