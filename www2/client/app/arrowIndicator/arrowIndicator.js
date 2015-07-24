@@ -2,7 +2,7 @@
  *
  */
 
-function ArrowPanel(rootElement){
+ function ArrowPanel(rootElement){
   this.deltaTransition=200;
   this.delayTransition=40;
   this.root=rootElement;
@@ -17,10 +17,10 @@ ArrowPanel.prototype.init = function(){
   d3.xml("assets/images/svg/arrow.svg", "image/svg+xml", function(xml) {
     var importedNode = document.importNode(xml.documentElement, true);
     panel_component.arrow = d3.select(panel)
-      .selectAll("#arrow-svg-container").node().appendChild(importedNode);
-    // The SVG just got loaded. Rotate the arrow to where it should.
-    panel_component.updatePanelGraphs(panel_component.value);
+    .selectAll("#arrow-svg-container").node().appendChild(importedNode);
   });
+  // The SVG just got loaded. Rotate the arrow to where it should.
+  panel_component.updatePanelGraphs(panel_component.value);
 }
 
 ArrowPanel.prototype.updatePanelGraphs = function(value){
@@ -29,9 +29,9 @@ ArrowPanel.prototype.updatePanelGraphs = function(value){
       // so that we can apply the rotation after loading.
       this.value = value;
       d3.select(this.arrow).selectAll("#arrow")
-        .transition()
-        .attr("transform", "rotate(" + value + ")")
-        .duration(this.deltaTransition)
-        .delay(this.delayTransition);
+      .transition()
+      .attr("transform", "rotate(" + value + ")")
+      .duration(this.deltaTransition)
+      .delay(this.delayTransition);
     }
-}
+  }

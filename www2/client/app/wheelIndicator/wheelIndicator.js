@@ -3,33 +3,40 @@
  */
 
 
-function WheelPanel(rootElement){
-    this.deltaTransition=1000;
-    this.delayTransition=100;
-    this.delayTextTransition=2000;
+ function WheelPanel(rootElement){
+    this.deltaTransition=200;
+    this.delayTransition=40;
+    this.delayTextTransition=1000;
     this.root=rootElement;
+    this.value = 0;
+    this.north = 0;
+    this.text = "0";
     this.init();
 }
 
 
 WheelPanel.prototype.init = function(){
-
     var panel = this.root[0];
-
     var panel_component=this;
-
     d3.xml("assets/images/svg/wheel.svg", "image/svg+xml", function(xml) {
-    var importedNode = document.importNode(xml.documentElement, true);
-    panel_component.wheel = d3.select(panel).selectAll("#wheel-svg-container").node().appendChild(importedNode);
-
+        var importedNode = document.importNode(xml.documentElement, true);
+        panel_component.wheel = d3.select(panel).selectAll("#wheel-svg-container").node().appendChild(importedNode);
     });
+    // The SVG just got loaded. Rotate the arrow to where it should.
+    panel_component.updatePanelGraphs(panel_component.value, panel_component.north);
+    panel_component.updatePanelText(panel_component.text);
 
 
 }
 
 WheelPanel.prototype.updatePanelGraphs = function(value, north){
 
-    if(value && north){
+    if(value != undefined && north != undefined){
+
+        // In case the SVG has not been loaded yet, remember the values
+        // so that we can apply the rotation after loading.
+        this.value = value;
+        this.north = north;
 
         d3.select(this.wheel).selectAll("#red")
         .transition()
@@ -54,10 +61,13 @@ WheelPanel.prototype.updatePanelGraphs = function(value, north){
 
 WheelPanel.prototype.updatePanelText = function(text) {
 
-    d3.select(this.wheel).selectAll("#anglevalue")
-    .transition().duration(this.delayTextTransition/2)
-    .style("opacity", 0)
-    .transition().duration(this.delayTextTransition/2)
-    .style("opacity", 1)
-    .text(text+"°");
+    if(text != null && text != undefined){
+        this.text = text;
+        d3.select(this.wheel).selectAll("#anglevalue")
+        .transition().duration(this.delayTextTransition/2)
+        .style("opacity", 0)
+        .transition().duration(this.delayTextTransition/2)
+        .style("opacity", 1)
+        .text(text+"°");
+    }
 }
