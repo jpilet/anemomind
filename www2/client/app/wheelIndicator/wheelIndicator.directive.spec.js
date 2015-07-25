@@ -67,4 +67,5 @@ describe('Directive: wheelIndicator', function () {
       // Good. The SVG has been loaded and the angle is correct.
       return true;
     }, "The wheel can't be found or is not rotated properly", 1000);
+  }));
 });

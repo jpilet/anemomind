@@ -1,10 +1,10 @@
 'use strict';
 
-describe('Directive: instrumentsPanel', function () {
+describe('Directive: gaugeIndicator', function () {
 
   // load the directive's module and view
   beforeEach(module('www2App'));
-  beforeEach(module('app/instrumentsPanel/instrumentsPanel.html'));
+  beforeEach(module('app/gaugeIndicator/gaugeIndicator.html'));
 
   var element, scope;
 
@@ -38,4 +38,5 @@ describe('Directive: instrumentsPanel', function () {
       // Good. The SVG has been loaded and the angle is correct.
       return true;
     }, "The gauge can't be found or is not rotated properly", 1000);
+  }));
 });
