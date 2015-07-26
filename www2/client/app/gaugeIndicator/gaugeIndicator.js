@@ -7,7 +7,7 @@ function GaugePanel(rootElement){
     this.deltaTransition=200;
     this.delayTransition=40;
     this.root = rootElement;
-    this.value = 0;
+    this.value=0;
     this.init();
 }
 
@@ -19,8 +19,8 @@ GaugePanel.prototype.init = function(){
     d3.xml("assets/images/svg/gauge.svg", "image/svg+xml", function(xml) {
     var importedNode = document.importNode(xml.documentElement, true);
     panel_component.gauge1 = d3.select(panel).selectAll("#gauge-svg-container").node().appendChild(importedNode);
-    });
     panel_component.updatePanelGraphs(panel_component.value);
+    });
 
 
 }

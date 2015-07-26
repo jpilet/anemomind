@@ -38,6 +38,5 @@ describe('Directive: arrowIndicator', function () {
       // Good. The SVG has been loaded and the angle is correct.
       return true;
     }, "The arrow can't be found or is not rotated properly", 1000);
-
   }));
 });

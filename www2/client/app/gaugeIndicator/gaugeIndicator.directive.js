@@ -16,8 +16,14 @@ angular.module('www2App')
         var panel=new GaugePanel(element);
 
         function update(){
-          var rotation=($scope.value-$scope.min)*180/($scope.max-$scope.min);
-          panel.updatePanelGraphs(rotation);
+          var diff = $scope.max-$scope.min;
+          if(diff != 0){
+            var rotation=($scope.value-$scope.min)*180/($scope.max-$scope.min);
+            panel.updatePanelGraphs(rotation);
+          }
+          else{
+            panel.updatePanelGraphs($scope.value);
+          }
         }
         $scope.$watch('value', update);
         $scope.$watch('min', update);

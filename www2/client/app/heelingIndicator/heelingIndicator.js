@@ -19,8 +19,8 @@ HeelingPanel.prototype.init = function(){
     d3.xml("assets/images/svg/heeling.svg", "image/svg+xml", function(xml) {
     var importedNode = document.importNode(xml.documentElement, true);
     panel_component.arrow = d3.select(panel).selectAll("#heeling-svg-container").node().appendChild(importedNode);
-    });
     panel_component.updatePanelGraphs(panel_component.value);
+    });
 }
 
 HeelingPanel.prototype.updatePanelGraphs = function(value){

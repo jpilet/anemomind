@@ -21,8 +21,8 @@ WheelSmallPanel.prototype.init = function(){
     d3.xml("assets/images/svg/wheel_small.svg", "image/svg+xml", function(xml) {
         var importedNode = document.importNode(xml.documentElement, true);
         panel_component.gauge1 = d3.select(panel).selectAll("#wheel-small-svg-container").node().appendChild(importedNode);
+        panel_component.updatePanelGraphs(panel_component.arrow, panel_component.boat, panel_component.north);
     });
-    panel_component.updatePanelGraphs(panel_component.arrow, panel_component.north, panel_component.north);
 
 
 }

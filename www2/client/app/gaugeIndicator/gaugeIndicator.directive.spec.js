@@ -15,7 +15,7 @@ describe('Directive: gaugeIndicator', function () {
   it('should change the value on the gauge', inject(function ($compile) {
     // Instanciate with a value of 63 percent.
     element = angular.element(
-        '<gauge-indicator value="63" label="\'%\'" description="\"Performance\"">'
+        '<gauge-indicator value="63" min="0" max="180" label="\'%\'" description="\"Performance\"">'
         + '</gauge-indicator>');
     element = $compile(element)(scope);
     scope.$apply();

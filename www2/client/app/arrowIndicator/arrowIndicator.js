@@ -18,10 +18,9 @@ ArrowPanel.prototype.init = function(){
     var importedNode = document.importNode(xml.documentElement, true);
     panel_component.arrow = d3.select(panel)
     .selectAll("#arrow-svg-container").node().appendChild(importedNode);
+    // The SVG just got loaded. Rotate the arrow to where it should.
     panel_component.updatePanelGraphs(panel_component.value);
   });
-  // The SVG just got loaded. Rotate the arrow to where it should.
-  panel_component.updatePanelGraphs(panel_component.value);
 }
 
 ArrowPanel.prototype.updatePanelGraphs = function(value){

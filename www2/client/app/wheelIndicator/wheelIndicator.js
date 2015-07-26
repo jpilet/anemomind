@@ -21,10 +21,10 @@ WheelPanel.prototype.init = function(){
     d3.xml("assets/images/svg/wheel.svg", "image/svg+xml", function(xml) {
         var importedNode = document.importNode(xml.documentElement, true);
         panel_component.wheel = d3.select(panel).selectAll("#wheel-svg-container").node().appendChild(importedNode);
+        // The SVG just got loaded. Rotate the arrow to where it should.
+        panel_component.updatePanelGraphs(panel_component.value, panel_component.north);
+        panel_component.updatePanelText(panel_component.text);
     });
-    // The SVG just got loaded. Rotate the arrow to where it should.
-    panel_component.updatePanelGraphs(panel_component.value, panel_component.north);
-    panel_component.updatePanelText(panel_component.text);
 
 
 }
