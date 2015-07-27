@@ -36,6 +36,33 @@ function unpackFile(root, packedFile) {
     .then(common.pfwrap(filename));
 }
 
+// function unpackFileSub(root, packedFile, cb) {
+//   var filename = resolveFilename(root, packedFile.dst);
+//   var p = path.parse(filename);
+//   mkdirp(p.dir, 0755, function(err) {
+//     if (err) {
+//       cb(err);
+//     } else {
+//       fs.writeFile(filename, packedFile.src, function(err) {
+//         if (err) {
+//           cb(err);
+//         } else {
+//           console.log('UNPACKED ' + filename + ':');
+//           console.log('  root = ' + root);
+//           console.log('  packedFile.dst = ' + packedFile.dst);
+//           console.log('  Created dir ' + p.dir);
+//           console.log('  Wrote it to ' + filename);
+//           cb(null, filename);
+//         }
+//       });
+//     }
+//   });
+// }
+
+// function unpackFile(root, packedFile) {
+//   return Q.nfcall(unpackFileSub, root, packedFile);
+// }
+
 function unpackFiles(root, packedFileArray) {
   return Q.all(packedFileArray.map(function(data) {
     return unpackFile(root, data);
@@ -60,6 +87,7 @@ function makePacketHandler(root, cb) {
     if (packet.label == common.files) {
       var packedFileArray = msgpack.decode(packet.data);
       unpackFiles(root, packedFileArray).then(function(filenames) {
+        console.log('Done unpacking files, call cb (mail/files.js)');
         cb(filenames);
       }).catch(function(err) {
         console.log("Error: " + err);

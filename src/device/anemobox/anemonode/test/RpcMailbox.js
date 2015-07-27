@@ -1,3 +1,5 @@
+process.env.ANEMOBOX_CONFIG_PATH = '/tmp/anemoboxcfg';
+
 var builder = require('../components/RpcMailbox.js');
 var mb = require('../components/LocalMailbox.js');
 var assert = require('assert');
@@ -105,8 +107,7 @@ describe(
 
 describe('files', function() {
   it('f2', function(done) {
-    this.timeout(12000);
-    process.env.ANEMOBOX_CONFIG_PATH = '/tmp/anemoboxcfg';
+    this.timeout(2000);
     assert(config.getConfigPath() == '/tmp/anemoboxcfg');
     mb.setMailRoot('/tmp/anemobox/');
     prepareMailbox(function(response) {
