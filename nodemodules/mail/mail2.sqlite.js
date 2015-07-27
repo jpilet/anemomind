@@ -245,6 +245,10 @@ function tryMakeAndResetEndPoint(filename, name, cb) {
   });
 }
 
+function makeTestEndPoint(name, cb) {
+  tryMakeAndResetEndPoint('/tmp/testep_' + name + '.db', name, cb);
+}
+
 function getLowerBoundFromTable(db, src, dst, cb) {
   db.get(
     'SELECT lowerBound FROM lowerBounds WHERE src = ? AND dst = ?',
@@ -594,6 +598,31 @@ function getAllFromTable(db, tableName, cb) {
   db.all('SELECT * FROM ' + tableName + ';', cb);
 }
 
+EndPoint.prototype.getPackets = function(cb) {
+  getAllFromTable(this.db, 'packets', cb);
+}
+
+EndPoint.prototype.hasPacket = function(pred, cb) {
+  var self = this;
+  getAllFromTable(self.db, 'packets', function(err, packets) {
+    if (err) {
+      cb(err);
+    } else {
+      console.log('The packets are: ');
+      console.log(packets);
+      for (var i = 0; i < packets.length; i++) {
+        if (pred(packets[i])) {
+          console.log('YES, it has it!!!');
+          cb(null, true);
+          break;
+        }
+      }
+      console.log('No, it doesnt have it.');
+      cb(null, false);
+    }
+  });
+}
+
 EndPoint.prototype.disp = function(cb) {
   var self = this;
   getAllFromTable(self.db, 'packets', function(err, packets) {
@@ -687,3 +716,4 @@ module.exports.srcDstPairDifference = srcDstPairDifference;
 module.exports.filterByName = filterByName;
 module.exports.tryMakeEndPointFromFilename = tryMakeEndPointFromFilename;
 module.exports.withEP = withEP;
+module.exports.makeTestEndPoint = makeTestEndPoint;
