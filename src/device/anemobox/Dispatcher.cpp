@@ -76,7 +76,7 @@ Dispatcher *Dispatcher::global() {
     auto sourcesForCode = _data[code];
     auto sourceIt = sourcesForCode.find(source);
     if (sourceIt == sourcesForCode.end()) {
-      return 0;
+      return nullptr;
     }
     return sourceIt->second;
   }
