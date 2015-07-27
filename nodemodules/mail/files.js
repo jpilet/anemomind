@@ -60,7 +60,6 @@ function makePacketHandler(root, cb) {
     if (packet.label == common.files) {
       var packedFileArray = msgpack.decode(packet.data);
       unpackFiles(root, packedFileArray).then(function(filenames) {
-        console.log('Done unpacking files, call cb (mail/files.js)');
         cb(filenames);
       }).catch(function(err) {
         console.log("Error: " + err);
