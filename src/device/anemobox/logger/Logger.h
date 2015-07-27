@@ -4,10 +4,11 @@
 #include <device/anemobox/Dispatcher.h>
 #include <logger.pb.h>
 
+#include <boost/signals2/connection.hpp>
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-#include <map>
 
 namespace sail {
 
@@ -21,7 +22,9 @@ class LoggerValueListener:
   public Listener<GeographicPosition<double>>,
   public Listener<TimeStamp> {
 public:
-  LoggerValueListener(const std::string& shortName) : _shortName(shortName) {
+  LoggerValueListener(const std::string& shortName,
+                      const std::string& sourceName)
+    : _sourceName(sourceName), _shortName(shortName) {
     clear();
   }
   LoggerValueListener(const LoggerValueListener& other) = default;
@@ -32,6 +35,14 @@ public:
   void clear() {
     _valueSet = ValueSet();
     _valueSet.set_shortname(_shortName);
+    _valueSet.set_source(_sourceName);
+  }
+
+  void setPriority(Dispatcher* dispatcher) {
+    int priority = dispatcher->sourcePriority(_sourceName);
+    if (priority != 0) {
+      _valueSet.set_priority(priority);
+    }
   }
 
   void addTimestamp(const TimeStamp& timestamp) {
@@ -95,10 +106,13 @@ public:
     addTimestamp(TimeStamp::now());
     _valueSet.add_text(text);
   }
+
+  const std::string& source() const { return _sourceName; }
 private:
   ValueSet _valueSet;
   int intBase;
   int64_t timestampBase;
+  std::string _sourceName;
   std::string _shortName;
 };
 
@@ -115,9 +129,6 @@ class Logger {
 
   // Generate a new filename to save the next logfile to.
   static std::string nextFilename(const std::string& folder);
-
-  // Start listening to dispatched values.
-  void subscribe();
 
   void logText(const std::string& streamName, const std::string& content);
 
@@ -139,10 +150,18 @@ class Logger {
 
   static void unpackTime(const ValueSet& valueSet,
                          std::vector<TimeStamp>* result);
+
+  // For unit testing
+  int numListeners() const { return _listeners.size(); }
+
  private:
+  void subscribe();
+  void subscribeToDispatcher(DispatchData *d);
+
   Dispatcher* _dispatcher;
   std::vector<std::shared_ptr<LoggerValueListener>> _listeners;
   std::map<std::string, LoggerValueListener> _textLoggers;
+  boost::signals2::scoped_connection _newDispatchDataListener;
 };
 
 }  // namespace sail

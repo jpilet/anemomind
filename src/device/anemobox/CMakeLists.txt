@@ -16,6 +16,10 @@ target_link_libraries(anemobox_Dispatcher
                       common_string
                       common_TimeStamp
                      )
+cxx_test(anemobox_DispatcherTest DispatcherTest.cpp
+         anemobox_Dispatcher
+         gtest_main
+        )
 
 add_library(anemobox_Nmea0183Source
             Nmea0183Source.h

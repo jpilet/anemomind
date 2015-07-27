@@ -14,29 +14,29 @@ TEST(DispatcherTrueWindEstimatorTest, singleValTest) {
           + std::string("/src/device/Arduino/NMEAStats/test/boat.dat")));
 
   // Values taken from NmeaStatsTest.cpp
-  dispatcher.awa()->publishValue("test", Angle<double>::degrees(330));
-  dispatcher.aws()->publishValue("test", Velocity<double>::knots(7.8));
-  dispatcher.gpsSpeed()->publishValue("test", Velocity<double>::knots(3.6));
-  dispatcher.gpsBearing()->publishValue("test", Angle<double>::degrees(188));
+  dispatcher.publishValue(AWA, "test", Angle<double>::degrees(330));
+  dispatcher.publishValue(AWS, "test", Velocity<double>::knots(7.8));
+  dispatcher.publishValue(GPS_SPEED, "test", Velocity<double>::knots(3.6));
+  dispatcher.publishValue(GPS_BEARING, "test", Angle<double>::degrees(188));
 
-  EXPECT_FALSE(dispatcher.vmg()->dispatcher()->hasValue());
-  EXPECT_FALSE(dispatcher.targetVmg()->dispatcher()->hasValue());
-  EXPECT_FALSE(dispatcher.twa()->dispatcher()->hasValue());
-  EXPECT_FALSE(dispatcher.tws()->dispatcher()->hasValue());
+  EXPECT_FALSE(dispatcher.get<VMG>()->dispatcher()->hasValue());
+  EXPECT_FALSE(dispatcher.get<TARGET_VMG>()->dispatcher()->hasValue());
+  EXPECT_FALSE(dispatcher.get<TWA>()->dispatcher()->hasValue());
+  EXPECT_FALSE(dispatcher.get<TWS>()->dispatcher()->hasValue());
 
   estimator.compute();
 
-  EXPECT_TRUE(dispatcher.vmg()->dispatcher()->hasValue());
-  EXPECT_TRUE(dispatcher.targetVmg()->dispatcher()->hasValue());
-  EXPECT_TRUE(dispatcher.twa()->dispatcher()->hasValue());
-  EXPECT_TRUE(dispatcher.tws()->dispatcher()->hasValue());
+  EXPECT_TRUE(dispatcher.get<VMG>()->dispatcher()->hasValue());
+  EXPECT_TRUE(dispatcher.get<TARGET_VMG>()->dispatcher()->hasValue());
+  EXPECT_TRUE(dispatcher.get<TWA>()->dispatcher()->hasValue());
+  EXPECT_TRUE(dispatcher.get<TWS>()->dispatcher()->hasValue());
 
-  EXPECT_NEAR(4.9, dispatcher.tws()->dispatcher()->lastValue().knots(), .5);
-  EXPECT_NEAR(315, dispatcher.twa()->dispatcher()->lastValue().degrees(), 20);
+  EXPECT_NEAR(4.9, dispatcher.val<TWS>().knots(), .5);
+  EXPECT_NEAR(315, dispatcher.val<TWA>().degrees(), 20);
 
   // High tolerance because those value may vary. We do not have ground truth.
-  EXPECT_NEAR(1.8, dispatcher.vmg()->dispatcher()->lastValue().knots(), 2);
-  EXPECT_NEAR(3.9, dispatcher.targetVmg()->dispatcher()->lastValue().knots(), 2);
+  EXPECT_NEAR(1.8, dispatcher.val<VMG>().knots(), 2);
+  EXPECT_NEAR(3.9, dispatcher.val<TARGET_VMG>().knots(), 2);
 }
 
 

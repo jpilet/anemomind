@@ -2,7 +2,7 @@ var fs = require('fs');
 var anemonode = require('./build/Release/anemonode');
 
 // Inspect the anemonode object
-console.warn(anemonode);
+console.warn(anemonode.dispatcher.values);
 
 var logger = new anemonode.Logger();
 var estimator = new anemonode.Estimator();
@@ -16,18 +16,34 @@ if (!estimator.loadCalibration(calibFile)) {
 
 // Try subscribe/unsubscribe functions
 var numCalls = 0;
-var subsIndex = anemonode.dispatcher.awa.subscribe(function(val) {
-  var description = anemonode.dispatcher.awa.description;
+var subsIndex = anemonode.dispatcher.values.awa.subscribe(function(val) {
+  var description = anemonode.dispatcher.values.awa.description;
   console.log(description + ' changed to: ' + val);
   if (++numCalls == 3) {
     // stop notifying.
     console.log('Unsubscribing from ' + description);
-    anemonode.dispatcher.awa.unsubscribe(subsIndex);
+    anemonode.dispatcher.values.awa.unsubscribe(subsIndex);
   }
 });
+console.log('Subscribed to awa: ' + subsIndex);
 
-anemonode.dispatcher.awa.setValue("js test", 1);
-console.log('awa ' + anemonode.dispatcher.awa.value());
+var sourceLow = "js test low prio";
+var sourceMedium = "js test medium prio";
+var sourceHigh = "js test high prio";
+
+anemonode.dispatcher.setSourcePriority("NMEA0183", 20);
+anemonode.dispatcher.setSourcePriority(sourceHigh, 10);
+anemonode.dispatcher.setSourcePriority(sourceMedium, 5);
+anemonode.dispatcher.setSourcePriority(sourceLow, 0);
+anemonode.dispatcher.values.awa.setValue(sourceMedium, 1);
+anemonode.dispatcher.values.awa.setValue(sourceLow, -10);
+console.log('awa ' + anemonode.dispatcher.values.awa.value()
+            + ' from source: ' + anemonode.dispatcher.values.awa.source());
+anemonode.dispatcher.values.awa.setValue(sourceHigh, 10);
+anemonode.dispatcher.values.awa.setValue(sourceHigh, 11);
+anemonode.dispatcher.values.awa.setValue(sourceHigh, 12);
+console.log('awa ' + anemonode.dispatcher.values.awa.value()
+            + ' from source: ' + anemonode.dispatcher.values.awa.source());
 
 var nmeaSource = new anemonode.Nmea0183Source();
 console.warn(nmeaSource.process);
@@ -37,11 +53,11 @@ function format(x) {
 }
 
 function printHistory(field) {
-  for (var i = 0; i < anemonode.dispatcher[field].length(); ++i) {
-    var dispatchData = anemonode.dispatcher[field];
-    console.log(anemonode.dispatcher[field].description
+  for (var i = 0; i < anemonode.dispatcher.values[field].length(); ++i) {
+    var dispatchData = anemonode.dispatcher.values[field];
+    console.log(dispatchData.description
                 + ': ' + format(dispatchData.value(i))
-                + ' ' + anemonode.dispatcher[field].unit
+                + ' ' + dispatchData.unit
                 + ' set on: ' + dispatchData.time(i).toLocaleString());
   }
 }
@@ -54,9 +70,9 @@ fs.readFile("../../../../datasets/tinylog.txt", function (err, data ) {
   }
 
   // List all available values
-  for (var i in anemonode.dispatcher) {
-    console.log(anemonode.dispatcher[i].description
-                + ": " + anemonode.dispatcher[i].value());
+  for (var i in anemonode.dispatcher.values) {
+    console.log(anemonode.dispatcher.values[i].description
+                + ": " + anemonode.dispatcher.values[i].value());
   }
 
   printHistory('awa');

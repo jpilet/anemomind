@@ -58,31 +58,35 @@ void streamCat(const ValueSet& valueSet, vector<TimedString>* entries) {
   vector<TimeStamp> times;
   Logger::unpackTime(valueSet, &times);
 
+  ostringstream s;
+  s << valueSet.shortname() << "[" << valueSet.source() << ":" 
+    << (valueSet.has_priority() ? valueSet.priority() : 0) << "]";
+  std::string prefix = s.str();
+
   if (valueSet.has_angles()) {
     vector<Angle<double>> angles;
     Logger::unpack(valueSet.angles(), &angles);
-    formatValues(times, angles, valueSet.shortname(), entries);
+    formatValues(times, angles, prefix, entries);
   }
   if (valueSet.has_velocity()) {
     vector<Velocity<double>> values;
     Logger::unpack(valueSet.velocity(), &values);
-    formatValues(times, values, valueSet.shortname(), entries);
+    formatValues(times, values, prefix, entries);
   }
   if (valueSet.has_length()) {
     vector<Length<double>> values;
     Logger::unpack(valueSet.length(), &values);
-    formatValues(times, values, valueSet.shortname(), entries);
+    formatValues(times, values, prefix, entries);
   }
   if (valueSet.has_pos()) {
     vector<GeographicPosition<double>> values;
     Logger::unpack(valueSet.pos(), &values);
-    formatValues(times, values, valueSet.shortname(), entries);
+    formatValues(times, values, prefix, entries);
   }
 
   for (int i = 0; i < valueSet.text_size(); ++i) {
-    entries->push_back(TimedString(times[i], valueSet.shortname() + ": " + valueSet.text(i)));
+    entries->push_back(TimedString(times[i], prefix + ": " + valueSet.text(i)));
   }
-
 }
 
 void logCat(const char* file) {

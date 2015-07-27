@@ -31,27 +31,27 @@ class DispatcherFilter {
                    DispatcherFilterParams params) : _dispatcher(dispatcher) { }
 
   Angle<> awa() const {
-    return filterAngle(_dispatcher->awa(), _params.apparentWindWindow);
+    return filterAngle(_dispatcher->get<AWA>(), _params.apparentWindWindow);
   }
 
   Velocity<> aws() const {
-    return filterVelocity(_dispatcher->aws(), _params.apparentWindWindow);
+    return filterVelocity(_dispatcher->get<AWS>(), _params.apparentWindWindow);
   }
 
   Angle<> magHdg() const {
-    return filterAngle(_dispatcher->magHdg(), _params.waterMotionWindow);
+    return filterAngle(_dispatcher->get<MAG_HEADING>(), _params.waterMotionWindow);
   }
 
   Velocity<> watSpeed() const {
-    return filterVelocity(_dispatcher->watSpeed(), _params.waterMotionWindow);
+    return filterVelocity(_dispatcher->get<WAT_SPEED>(), _params.waterMotionWindow);
   }
 
   Velocity<> gpsSpeed() const {
-    return filterVelocity(_dispatcher->gpsSpeed(), _params.gpsMotionWindow);
+    return filterVelocity(_dispatcher->get<GPS_SPEED>(), _params.gpsMotionWindow);
   }
 
   Angle<> gpsBearing() const {
-    return filterAngle(_dispatcher->gpsBearing(), _params.gpsMotionWindow);
+    return filterAngle(_dispatcher->get<GPS_BEARING>(), _params.gpsMotionWindow);
   }
 
   HorizontalMotion<double> gpsMotion() const {
