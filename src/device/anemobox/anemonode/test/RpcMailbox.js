@@ -105,6 +105,7 @@ describe(
 
 describe('files', function() {
   it('f2', function(done) {
+    this.timeout(12000);
     process.env.ANEMOBOX_CONFIG_PATH = '/tmp/anemoboxcfg';
     assert(config.getConfigPath() == '/tmp/anemoboxcfg');
     mb.setMailRoot('/tmp/anemobox/');
@@ -135,6 +136,10 @@ describe('files', function() {
             ]).then(function(fdata) {
               fdata[0].equals(fdata[1]);
               done();
+            }).catch(function(e) {
+              console.log('In testcase f2, got error');
+              console.log(e);
+              done(e);
             });
           }, 500);
         });
