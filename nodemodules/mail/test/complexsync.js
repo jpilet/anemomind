@@ -28,19 +28,28 @@ describe('complex', function() {
       Q.ninvoke(box, 'sendPacket', 'boat119', 119, new Buffer([1, 2, 3]))
         .then(function() {
           return Q.nfcall(synchronize, box, gatewayA);
-        })
-        .then(function() {
+        }).then(function() {
           return Q.nfcall(synchronize, gatewayA, boat);
         }).then(function() {
-          return Q.ninvoke(boat, 'hasPacket', function(packet) {
-            console.log('packet = %j', packet);
-            return packet.dst == 'boat119' && packet.label == 119 && packet.src == 'box119';
-          });
-        }).then(function(received) {
-          console.log('Received???');
-          assert(received);
+          //return Q.ninvoke(boat, 'getPackets');
+          return Q.ninvoke(boat, 'disp');
+        }).then(function(packets) {
+          console.log('The packets are');
+          console.log(packets);
           done();
-        }).catch(done);
+        });
+        // }).then(function() {
+        //   return Q.ninvoke(boat, 'disp');
+        // }).then(function() {
+        //   return Q.ninvoke(boat, 'hasPacket', function(packet) {
+        //     return packet.dst == 'boat119' && packet.label == 119 && packet.src == 'box119';
+        //   });
+        // }).then(function(received) {
+        //   console.log('Received???');
+        //   assert(received);
+        //   done();
+        // }).catch(done);
+      
     });
   });
 });

@@ -598,9 +598,13 @@ function getAllFromTable(db, tableName, cb) {
   db.all('SELECT * FROM ' + tableName + ';', cb);
 }
 
+EndPoint.prototype.getPackets = function(cb) {
+  getAllFromTable(this.db, 'packets', cb);
+}
+
 EndPoint.prototype.hasPacket = function(pred, cb) {
-  console.log('-----------hasPacket?');
-  getAllFromTable(this.db, 'packets', function(err, packets) {
+  var self = this;
+  getAllFromTable(self.db, 'packets', function(err, packets) {
     if (err) {
       cb(err);
     } else {
