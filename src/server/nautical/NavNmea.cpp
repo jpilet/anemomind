@@ -123,6 +123,8 @@ namespace {
   }
 }
 
+// TODO: move this function to somewhere that makes sense.
+// and remove duplicate in Nmea0183Source.cpp
 TimeStamp getTime(const NmeaParser &parser) {
   return NavDataConversion::makeTimeNmeaFromYMDhms(
       parser.year(), parser.month(), parser.day(),
