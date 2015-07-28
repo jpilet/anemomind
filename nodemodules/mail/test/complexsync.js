@@ -6,7 +6,7 @@ var dd = require('dentdoche');
 var bigint = require('../bigint.js');
 var pprint = require('dentdoche/pprint.js');
 
-dd.declareAsync(mail2.tryMakeAndResetEndPoint, synchronize);
+dd.declareAsync(synchronize);
 dd.declareAsyncMethods(mail2.EndPoint, 'sendPacket', 'getTotalPacketCount', 'getLowerBounds');
 
 var pair = {src: "box119", dst: "boat119"};
@@ -18,7 +18,7 @@ var handler = function(endPoint, packet) {
 }
 
 eval(dd.parse('(dafn makeEndPoints () (map (afn (fname name) ' +
-              '(mail2.tryMakeAndResetEndPoint '+
+              '(acall mail2.tryMakeAndResetEndPoint '+
               '(+ "/tmp/testep_" fname ".db") name))' +
               '(quote ("a" "b" "c" "d")) ' +
               '(quote ("box119" "gateway" "gateway" "boat119"))))'));
@@ -36,6 +36,7 @@ eval(dd.parse('(dafn test1 (eps) (withEps eps (let (lb0 (.getLowerBounds boat pa
 // Transfer a packet via the second gateway
 eval(dd.parse('(dafn test2 (eps) (withEps eps (let (lb0 (first (.getLowerBounds boat pairs))) (.sendPacket box "boat119" 140 (new Buffer (array 3 4 5))) (synchronize box g1) (assert (= 1 (.getTotalPacketCount box))) (synchronize g1 boat)  (= (bigint.inc lb0) (first (.getLowerBounds boat pairs))))))'));
 
+// Transfer the two packets and check that they were received.
 eval(dd.parse('(dafn runTest () (let (eps (makeEndPoints)) (withEps eps (.addPacketHandler boat handler) (test1 eps) (test2 eps) (assert (= (quote (139 140)) received)) (assert (= 1 (.getTotalPacketCount box))))))'));
 
 describe('complex', function() {
