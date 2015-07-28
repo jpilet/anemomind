@@ -1,3 +1,19 @@
+
+function curveEndTimeStr(curveId) {
+  return curveId.substr(curveId.length-19);
+}
+
+function curveStartTimeStr(curveId) {
+  return curveId.substr(curveId.length-19*2,19);
+}
+function curveEndTime(curveId) {
+  return new Date(curveEndTimeStr(curveId));
+}
+
+function curveStartTime(curveId) {
+  return new Date(curveStartTimeStr(curveId));
+}
+
 function VectorTileLayer(params, renderer) {
   this.params = params;
 
@@ -472,8 +488,8 @@ VectorTileLayer.prototype.limitCacheSize = function() {
 VectorTileLayer.prototype.highlightCurve = function(curveId) {
   return {
     curveId: curveId,
-    endTime: new Date(curveId.substr(curveId.length-19)),
-    startTime: new Date(curveId.substr(curveId.length-19*2,19))
+    endTime: curveEndTime(curveId),
+    startTime: curveStartTime(curveId)
   };
 };
 
@@ -518,8 +534,8 @@ VectorTileLayer.prototype.isHighlighted = function(curveId) {
   if (!this.highlight) {
     return false;
   }
-  var endTime= new Date(curveId.substr(curveId.length-19));
-  var startTime= new Date(curveId.substr(curveId.length-19*2,19));
+  var endTime = curveEndTime(curveId);
+  var startTime= curveStartTime(curveId);
   return this.highlight.startTime >= startTime
     && this.highlight.endTime <= endTime;
 };

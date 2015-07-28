@@ -47,9 +47,6 @@ angular.module('www2App')
                 scope.selectedCurve = undefined;
                 scope.currentTime = undefined;
               }
-            } else {
-              scope.selectedCurve = undefined;
-              scope.currentTime = undefined;
             }
             scope.$apply();
           };
@@ -76,8 +73,37 @@ angular.module('www2App')
             });
           };
 
+          function updateTileUrl() {
+            function makeTileUrlFunc(boatId, starts, end) {
+              if (starts) {
+                return function (scale, x, y) {
+                  return "/api/tiles/raw/"
+                    + scale + '/' + x + '/' + y + '/' + boatId + '/'
+                    + starts + '/' + end;
+                };
+              } else {
+                return function (scale, x, y) {
+                  return "/api/tiles/raw/"
+                    + scale + '/' + x + '/' + y + '/' + boatId;
+                };
+              }
+            }
+            if (scope.selectedCurve) {
+              var startsAfter = curveStartTimeStr(scope.selectedCurve);
+              var endsBefore = curveEndTimeStr(scope.selectedCurve);
+            } else {
+              var startsAfter = undefined;
+              var endsBefore = undefined;
+            }
+              
+            scope.pathLayer.setUrl(makeTileUrlFunc(scope.boat._id,
+                                                   startsAfter,
+                                                   endsBefore));
+          }
+
           scope.$watch('selectedCurve', function(newValue, oldValue) {
             if (newValue != oldValue) {
+              updateTileUrl();
               scope.pathLayer.selectCurve(newValue);
               scope.plotData = scope.pathLayer.getPointsForCurve(newValue);
             }
@@ -89,15 +115,11 @@ angular.module('www2App')
             }
           });
 
-          function tileUrl(scale, x, y) {
-            return "/api/tiles/raw/"
-              + scale + '/' + x + '/' + y + '/' + scope.boat._id + '/';
-          }
-          scope.pathLayer.setUrl(tileUrl);
+          updateTileUrl();
 
           scope.$watch('boat._id', function(newValue, oldValue) {
             if (newValue && newValue != oldValue) {
-              scope.pathLayer.setUrl(tileUrl);
+              updateTileUrl();
             }
           });
 
