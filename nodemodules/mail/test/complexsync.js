@@ -1,13 +1,12 @@
 var mail2 = require('../mail2.sqlite.js');
-var Q = require('q');
 var assert = require('assert');
-var synchronize2 = require('../sync2.js').synchronize;
+var synchronize = require('../sync2.js').synchronize;
 var schema = require('../endpoint-schema.js');
 var dd = require('dentdoche');
 var bigint = require('../bigint.js');
 var pprint = require('dentdoche/pprint.js');
 
-dd.declareAsync(mail2.tryMakeAndResetEndPoint, synchronize2);
+dd.declareAsync(mail2.tryMakeAndResetEndPoint, synchronize);
 dd.declareAsyncMethods(mail2.EndPoint, 'sendPacket', 'getTotalPacketCount', 'getLowerBounds');
 
 var pair = {src: "box119", dst: "boat119"};
@@ -17,14 +16,6 @@ var received = [];
 var handler = function(endPoint, packet) {
   received.push(packet.label);
 }
-
-// For debugging.
-var labeledValue = dd.macro(function(arg) {
-  var x = dd.gensym();
-  return ['let', [x, arg], [console.log, ['+', pprint.str(arg), ' = ',
-                                          [pprint.str, dd.sym(x)]]],
-          dd.sym(x)];
-});
 
 eval(dd.parse('(dafn makeEndPoints () (map (afn (fname name) ' +
               '(mail2.tryMakeAndResetEndPoint (+ "/tmp/testep_" fname ".db") name))' +
@@ -37,12 +28,6 @@ var withEps = dd.macro(function() {
   var result = ['let', [['box', 'g0', 'g1', 'boat'], args[0]]].concat(args.slice(1));
   return result;
 });
-
-eval(dd.parse('(dafn getLbs (eps) (map (afn (ep) (array (+ "EP:" (.-name ep)) (first (.getLowerBounds ep pairs)))) eps))'));
-
-//eval(dd.parse('(dafn synchronize (a b) (let (p (array a b)) (console.log (+ "\n   Before sync: " (getLbs p))) (synchronize2 a b) (console.log (+ "   After sync:  " (getLbs p)))))'));
-eval(dd.parse('(dafn synchronize (a b) (synchronize2 a b))'));
-
 
 // Transfer a packet via the first gateway
 eval(dd.parse('(dafn test1 (eps) (withEps eps (let (lb0 (.getLowerBounds boat pairs)) (.sendPacket box "boat119" 139 (new Buffer (array 0 1 2 3 4))) (synchronize box g0) (assert (= 1 (.getTotalPacketCount g0))) (assert (= 0 (.getTotalPacketCount boat))) (synchronize g0 boat) (assert (= 0 (.getTotalPacketCount boat))) (assert (< (get lb0 0) (get (.getLowerBounds boat (array pair)) 0))) (synchronize boat g0) (synchronize g0 box))))'));
