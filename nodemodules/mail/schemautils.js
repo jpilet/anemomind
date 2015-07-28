@@ -238,6 +238,7 @@ EndPointSchema.prototype.makeVerbose = function(ep) {
   for (method in this.methods) {
     ep[method] = makeVerboseMethod(ep, method, this.methods[method], ep[method]);
   }
+  return ep;
 }
 
 
