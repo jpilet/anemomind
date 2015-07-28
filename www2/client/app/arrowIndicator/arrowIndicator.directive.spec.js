@@ -15,7 +15,7 @@ describe('Directive: arrowIndicator', function () {
   it('should rotate the arrow', inject(function ($compile) {
     // Instanciate with a rotation of 37 degrees.
     element = angular.element(
-        '<arrow-indicator value="37" label="\'deg\'" description="\"TWDIR\"">'
+        '<arrow-indicator value="37" to="0" label="\'deg\'" description="\"TWDIR\"">'
         + '</arrow-indicator>');
     element = $compile(element)(scope);
     scope.$apply();
@@ -27,16 +27,22 @@ describe('Directive: arrowIndicator', function () {
       if (array.length != 1) {
         return false;
       }
+      return true;
+    }, "The arrow can't be found", 1000);
+
+    waitsFor(function() {
+      var array = $(element).find('#arrow');
+
       expect(array.length).toBe(1);
       var arrow = array[0];
 
       // Wait for the animation to finish
       if (arrow.transform.baseVal.numberOfItems == 0
-          || arrow.transform.baseVal.getItem(0).angle != 37) {
+          || Math.round(arrow.transform.baseVal.getItem(0).angle) != 37) {
         return false;
       }
       // Good. The SVG has been loaded and the angle is correct.
       return true;
-    }, "The arrow can't be found or is not rotated properly", 1000);
+    }, "The arrow is not rotated properly", 500);
   }));
 });

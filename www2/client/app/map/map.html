@@ -11,6 +11,18 @@
 
   <perfplot plot-data="plotData" current-time="currentTime" field="plotField"></perfplot>
 
+    <gauge-indicator label="'%'" value="currentPoint.devicePerf" description="'Performance'" min="0" max="200" ></gauge-indicator>
+
+    <arrow-indicator label="'Degree'" value="currentPoint.deviceTwdir" description="'True wind angle'" to="1" ></arrow-indicator>
+
+    <!-- The heeling value is an approximation -->
+
+    <heeling-indicator label="'Degree'" value="(currentPoint.awa > 0 ? 1 : - 1) * (currentPoint.aws / 30) * 45 * (currentPoint.twa < 90 && currentPoint.twa > -90 ? 1 : .5)" description="'Heeling angle'"></heeling-indicator>
+
+    <wheel-indicator label="'Degree'" arrow="currentPoint.externalTwa" north="currentPoint.gpsBearing" description="'True wind direction'"></wheel-indicator>
+
+    <wheel-small-indicator label="'Degree'" arrow="currentPoint.externalTwa" boat="currentPoint.externalTwa" north="currentPoint.gpsBearing" description="'Wind direction'"></wheel-small-indicator>
+
 </div>
 
 

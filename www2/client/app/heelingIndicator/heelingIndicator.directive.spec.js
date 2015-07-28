@@ -32,7 +32,7 @@ describe('Directive: heelingIndicator', function () {
 
       // Wait for the animation to finish
       if (heeling.transform.baseVal.numberOfItems == 0
-          || heeling.transform.baseVal.getItem(0).angle != 12) {
+          || Math.round(heeling.transform.baseVal.getItem(0).angle) != 12) {
         return false;
       }
       // Good. The SVG has been loaded and the angle is correct.
