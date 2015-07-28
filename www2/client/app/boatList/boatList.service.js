@@ -40,7 +40,7 @@ angular.module('www2App')
             }
           }
         }
-        sessionsForBoats[element.boat].reverse();
+        sessionsForBoats.reverse();
         $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
       });
     }
