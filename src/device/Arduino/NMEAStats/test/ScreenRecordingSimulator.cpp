@@ -39,7 +39,7 @@ bool ScreenRecordingSimulator::screenAt(TimeStamp time, ScreenInfo *result) {
   return true;
 }
 
-void ScreenRecordingSimulator::prepare(
+bool ScreenRecordingSimulator::prepare(
                 const std::string& boatDatFilename,
                 const std::string& polarDatFilename) {
   if (boatDatFilename.size() > 0) {
@@ -52,14 +52,19 @@ void ScreenRecordingSimulator::prepare(
 
   setup();
   if (boatDatFilename.size() > 0) {
-    CHECK(calibrationFileLoaded())
-      << "Failed to load " << boatDatFilename << " in the simulated device.";
+    if (!calibrationFileLoaded()) {
+	    return false;
+    }
+    //CHECK(calibrationFileLoaded())
+    //  << "Failed to load " << boatDatFilename << " in the simulated device.";
   }
 
   if (polarDatFilename.size() > 0) {
+	  return false;
     CHECK(polarTableLoadedOrDisabled())
       << "Failed to load " << polarDatFilename << " in the simulated device.";
   }
+  return true;
 }
 
 void ScreenRecordingSimulator::simulate(std::string file) {
