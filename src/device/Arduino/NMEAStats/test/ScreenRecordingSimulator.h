@@ -30,7 +30,7 @@ class ScreenRecordingSimulator : public DeviceSimulator {
 
   const std::vector<ScreenInfo> screenInfo() const { return _screenInfo; }
 
-  void prepare(const std::string& boatDatFilename,
+  bool prepare(const std::string& boatDatFilename,
                const std::string& polarDatFilename);
 
   void simulate(std::string filename);
