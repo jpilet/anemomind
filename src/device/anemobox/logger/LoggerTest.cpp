@@ -8,13 +8,12 @@ using namespace sail;
 TEST(LoggerTest, SmokeTest) {
   Dispatcher dispatcher;
   Logger logger(&dispatcher);
-  logger.subscribe();
 
   double values[] = {1, 2, 3, 7, 8, 3, 4, 5 };
   const int num_values = sizeof(values)/sizeof(values[0]);
 
   for (int i = 0; i < num_values; ++i) {
-    dispatcher.awa()->publishValue("test", Angle<double>::degrees(values[i]));
+    dispatcher.publishValue(AWA, "test", Angle<double>::degrees(values[i]));
   }
   std::string filename;
   EXPECT_TRUE(logger.flushAndSave("./", &filename));
@@ -51,13 +50,13 @@ TEST(LoggerTest, LogText) {
 
   for (int i = 0; i < 2; ++i) {
     auto stream = data.text(i);
-    if (stream.shortname() == "source A") {
+    if (stream.source() == "source A") {
       EXPECT_EQ(2, stream.text_size());
       EXPECT_EQ(2, stream.timestamps_size());
       EXPECT_EQ("sentence A1", stream.text(0));
       EXPECT_EQ("sentence A2", stream.text(1));
     } else {
-      EXPECT_EQ("source B", stream.shortname());
+      EXPECT_EQ("source B", stream.source());
       EXPECT_EQ(1, stream.text_size());
       EXPECT_EQ(1, stream.timestamps_size());
       EXPECT_EQ("sentence B1", stream.text(0));
@@ -69,3 +68,35 @@ TEST(LoggerTest, LogText) {
   logger.flushTo(&empty);
   EXPECT_EQ(0, empty.text_size());
 }
+
+TEST(LoggerTest, MultipleSources) {
+  Dispatcher dispatcher;
+  Logger logger(&dispatcher);
+
+  EXPECT_EQ(0, logger.numListeners());
+  dispatcher.publishValue(AWA, "source1", Angle<double>::degrees(1));
+  EXPECT_EQ(1, logger.numListeners());
+  dispatcher.publishValue(AWA, "source2", Angle<double>::degrees(2));
+  EXPECT_EQ(2, logger.numListeners());
+  dispatcher.publishValue(AWA, "source3", Angle<double>::degrees(3));
+  EXPECT_EQ(3, logger.numListeners());
+
+  // Source 1 already exists: it should not create a new listener.
+  dispatcher.publishValue(AWA, "source1", Angle<double>::degrees(4));
+  EXPECT_EQ(3, logger.numListeners());
+
+  LogFile loaded;
+  logger.flushTo(&loaded);
+  EXPECT_EQ(3, loaded.stream_size());
+
+  for (int i = 0; i < 3; ++i) {
+    std::vector<Angle<double>> angles;
+    Logger::unpack(loaded.stream(i).angles(), &angles);
+    EXPECT_EQ(i == 0 ? 2 : 1, angles.size());
+    EXPECT_NEAR(i + 1, angles[0].degrees(), 1e-3);
+  }
+  EXPECT_EQ("source1", loaded.stream(0).source());
+  EXPECT_EQ("source2", loaded.stream(1).source());
+  EXPECT_EQ("source3", loaded.stream(2).source());
+}
+

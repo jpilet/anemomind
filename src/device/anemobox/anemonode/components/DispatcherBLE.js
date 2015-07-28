@@ -32,14 +32,14 @@ function DispatcherCharacteristic(entry) {
   this.entry = entry;
   DispatcherCharacteristic.super_.call(this, {
     uuid: 'AFF1E42D-EF91-456F-86FA-8703'
-          + pad(anemonode.dispatcher[entry].dataCode.toString(16), 8),
+          + pad(anemonode.dispatcher.values[entry].dataCode.toString(16), 8),
     properties: ['notify', 'read']
   });
 }
 util.inherits(DispatcherCharacteristic, BlenoCharacteristic);
 
 function encodeValueInBuffer(entry) {
-  var dispatchData = anemonode.dispatcher[entry];
+  var dispatchData = anemonode.dispatcher.values[entry];
 
   function formatFloat(value) {
     var buffer = new Buffer(4);
@@ -80,7 +80,7 @@ function encodeValueInBuffer(entry) {
 DispatcherCharacteristic.prototype.onSubscribe = function(maxValueSize, updateValueCallback) {
   console.log(this.entry +' subscribe');
   var entry = this.entry;
-  this.subscribeIndex = anemonode.dispatcher[this.entry].subscribe(
+  this.subscribeIndex = anemonode.dispatcher.values[this.entry].subscribe(
     function(val) {
       if (!(entry in queuedEntries)) {
         queue.push({updateValueCallback: updateValueCallback, entry: entry });
@@ -95,7 +95,7 @@ DispatcherCharacteristic.prototype.onUnsubscribe = function() {
   console.log(this.entry +' unsubscribe');
  
   if (this.subscribeIndex) {
-    anemonode.dispatcher[this.entry].unsubscribe(this.subscribeIndex);
+    anemonode.dispatcher.values[this.entry].unsubscribe(this.subscribeIndex);
     delete this.subscribeIndex;
   }
 };
@@ -107,7 +107,7 @@ DispatcherCharacteristic.prototype.onNotify = function() {
 };
 
 DispatcherCharacteristic.prototype.onReadRequest = function(offset, callback) {
-  if (anemonode.dispatcher[this.entry].length() == 0) {
+  if (anemonode.dispatcher.values[this.entry].length() == 0) {
     callback(this.RESULT_UNLIKELY_ERROR);
   } else {
     callback(this.RESULT_SUCCESS, encodeValueInBuffer(this.entry));
@@ -116,7 +116,7 @@ DispatcherCharacteristic.prototype.onReadRequest = function(offset, callback) {
 
 module.exports.pushCharacteristics = function(array) {
   // Instanciate one DispatcherCharacteristic for each dispatcher entry
-  for (var entry in anemonode.dispatcher) {
+  for (var entry in anemonode.dispatcher.values) {
     array.push(new DispatcherCharacteristic(entry));
   }
 }

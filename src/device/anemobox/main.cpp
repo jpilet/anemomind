@@ -102,8 +102,8 @@ bool run(const char *filename) {
     return false;
   }
 
-  for (auto value : dispatcher.data()) {
-    value.second->visit(&visitor);
+  for (auto it : dispatcher.dispatchers()) {
+    it.second.get()->visit(&visitor);
   }
 
   unsigned char buffer[128];

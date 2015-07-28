@@ -46,9 +46,9 @@ void DispatcherTrueWindEstimator::compute() const {
   Angle<> twa;
   Velocity<> tws;
 
-  if (!_dispatcher->gpsSpeed()->dispatcher()->hasValue()
-      || !_dispatcher->awa()->dispatcher()->hasValue()
-      || !_dispatcher->aws()->dispatcher()->hasValue()) {
+  if (!_dispatcher->get<GPS_SPEED>()->dispatcher()->hasValue()
+      || !_dispatcher->get<AWA>()->dispatcher()->hasValue()
+      || !_dispatcher->get<AWS>()->dispatcher()->hasValue()) {
     // we can't compute anything useful without GPS.
     return;
   }
@@ -59,24 +59,24 @@ void DispatcherTrueWindEstimator::compute() const {
     twdir = calcTwdir(wind);
     tws = wind.norm();
 
-    _dispatcher->twdir()->publishValue(sourceName(), twdir);
-    _dispatcher->tws()->publishValue(sourceName(), tws);
+    _dispatcher->publishValue(TWDIR, sourceName(), twdir);
+    _dispatcher->publishValue(TWS, sourceName(), tws);
 
     // Todo: compute TWA with TrueWindEstimator.
     twa = (twdir - _filter.gpsBearing());
-    _dispatcher->twa()->publishValue(sourceName(), twa);
+    _dispatcher->publishValue(TWA, sourceName(), twa);
   } else {
-    if (!_dispatcher->twa()->dispatcher()->hasValue()
-        || !_dispatcher->tws()->dispatcher()->hasValue()) {
+    if (!_dispatcher->get<TWA>()->dispatcher()->hasValue()
+        || !_dispatcher->get<TWS>()->dispatcher()->hasValue()) {
       return;
     }
-    twa = _dispatcher->twa()->dispatcher()->lastValue();
-    tws = _dispatcher->tws()->dispatcher()->lastValue();
+    twa = _dispatcher->get<TWA>()->dispatcher()->lastValue();
+    tws = _dispatcher->get<TWS>()->dispatcher()->lastValue();
   } 
   
   if (_validTargetSpeedTable) {
     Velocity<> targetVmg = getVmgTarget(_targetSpeedTable, twa, tws);
-    _dispatcher->targetVmg()->publishValue(sourceName(), targetVmg);
+    _dispatcher->publishValue(TARGET_VMG, sourceName(), targetVmg);
   }
 
   // TODO: When the TrueWindEstimator will handle current, use water speed
@@ -84,7 +84,7 @@ void DispatcherTrueWindEstimator::compute() const {
   Velocity<> boatSpeed = _filter.gpsSpeed();
 
   Velocity<> vmg = cos(twa) * boatSpeed;
-  _dispatcher->vmg()->publishValue(sourceName(), vmg);
+  _dispatcher->publishValue(VMG, sourceName(), vmg);
 }
 
 }  // namespace sail

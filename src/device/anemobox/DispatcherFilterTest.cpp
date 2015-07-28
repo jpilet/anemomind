@@ -8,8 +8,8 @@ using namespace sail;
 TEST(DispatcherFilterTest, singleValTest) {
   FakeClockDispatcher dispatcher;
 
-  dispatcher.awa()->publishValue("test", Angle<double>::degrees(-3));
-  dispatcher.aws()->publishValue("test", Velocity<double>::knots(3));
+  dispatcher.publishValue(AWA, "test", Angle<double>::degrees(-3));
+  dispatcher.publishValue(AWS, "test", Velocity<double>::knots(3));
 
   DispatcherFilter filter(&dispatcher, DispatcherFilterParams());
 
@@ -24,8 +24,8 @@ TEST(DispatcherFilterTest, changingValTest) {
 
   // 2 minutes with value A
   for (int i = 0; i < 120; ++i) {
-    dispatcher.magHdg()->publishValue("test", Angle<double>::degrees(-3));
-    dispatcher.watSpeed()->publishValue("test", Velocity<double>::knots(3));
+    dispatcher.publishValue(MAG_HEADING, "test", Angle<double>::degrees(-3));
+    dispatcher.publishValue(WAT_SPEED, "test", Velocity<double>::knots(3));
     dispatcher.advance(Duration<>::seconds(1));
   }
 
@@ -35,8 +35,8 @@ TEST(DispatcherFilterTest, changingValTest) {
 
   // 20 seconds with value B
   for (int i = 0; i < 20; ++i) {
-    dispatcher.magHdg()->publishValue("test", Angle<double>::degrees(173));
-    dispatcher.watSpeed()->publishValue("test", Velocity<double>::knots(23));
+    dispatcher.publishValue(MAG_HEADING, "test", Angle<double>::degrees(173));
+    dispatcher.publishValue(WAT_SPEED, "test", Velocity<double>::knots(23));
     dispatcher.advance(Duration<>::seconds(1));
   }
 
@@ -51,9 +51,9 @@ TEST(DispatcherFilterTest, noisyValueTest) {
 
   // values with oscillations
   for (int i = 0; i < 120; ++i) {
-    dispatcher.magHdg()->publishValue(
+    dispatcher.publishValue(MAG_HEADING,
         "test", Angle<double>::degrees(90 + sin(i * .7213) * 5));
-    dispatcher.watSpeed()->publishValue(
+    dispatcher.publishValue(WAT_SPEED,
         "test", Velocity<double>::knots(7 + sin(i * .343)));
     dispatcher.advance(Duration<>::seconds(.1));
   }
