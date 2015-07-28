@@ -18,7 +18,8 @@ var handler = function(endPoint, packet) {
 }
 
 eval(dd.parse('(dafn makeEndPoints () (map (afn (fname name) ' +
-              '(mail2.tryMakeAndResetEndPoint (+ "/tmp/testep_" fname ".db") name))' +
+              '(mail2.tryMakeAndResetEndPoint '+
+              '(+ "/tmp/testep_" fname ".db") name))' +
               '(quote ("a" "b" "c" "d")) ' +
               '(quote ("box119" "gateway" "gateway" "boat119"))))'));
 
