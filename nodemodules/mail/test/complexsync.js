@@ -3,53 +3,25 @@ var Q = require('q');
 var assert = require('assert');
 var synchronize = require('../sync2.js').synchronize;
 var schema = require('../endpoint-schema.js');
+var dd = require('dentdoche');
 
-function makeEndPoints() {
-  var names = ['box119', 'gateway', 'gateway', 'boat119'];
-  return Q.all(names.map(function(name, index) {
-    return Q.nfcall(
-      mail2.tryMakeAndResetEndPoint, '/tmp/testbox' + index + '.db',
-      name);
-  }));
-}
+dd.setAsync(mail2.tryMakeAndResetEndPoint);
+dd.setAsync(synchronize);
+dd.setAsync(mail2.EndPoint.prototype.sendPacket);
+dd.setAsync(mail2.EndPoint.prototype.getTotalPacketCount);
+
+eval(dd.parse('(dafn makeEndPoints () (map (afn (fname name) ' +
+              '(mail2.tryMakeAndResetEndPoint (+ "/tmp/testep_" fname ".db") name))' +
+              '(quote ("a" "b" "c" "d")) ' +
+              '(quote ("box119" "gateway" "gateway" "boat119"))))'));
+
+
+eval(dd.parse('(dafn test1 (eps) (let ((box g0 g1 boat) eps) (.sendPacket box "boat119" 139 (new Buffer (array 0 1 2 3 4))) (synchronize box g0) (assert (= 1 (.getTotalPacketCount g0)))))'));
+
+eval(dd.parse('(dafn runTest () (let (eps (makeEndPoints)) (test1 eps) (console.log "Done")))'));
 
 describe('complex', function() {
   it('Should synchronize in a complex fashion', function(done) {
-    makeEndPoints().then(function(eps) {
-      box = eps[0];
-      gatewayA = eps[1];
-      gatewayB = eps[2];
-      boat = eps[3];
-      assert.equal(box.name, 'box119');
-      assert.equal(boat.name, 'boat119');
-      schema.makeVerbose(boat);
-
-      // Send the first file
-      Q.ninvoke(box, 'sendPacket', 'boat119', 119, new Buffer([1, 2, 3]))
-        .then(function() {
-          return Q.nfcall(synchronize, box, gatewayA);
-        }).then(function() {
-          return Q.nfcall(synchronize, gatewayA, boat);
-        }).then(function() {
-          //return Q.ninvoke(boat, 'getPackets');
-          return Q.ninvoke(boat, 'disp');
-        }).then(function(packets) {
-          console.log('The packets are');
-          console.log(packets);
-          done();
-        });
-        // }).then(function() {
-        //   return Q.ninvoke(boat, 'disp');
-        // }).then(function() {
-        //   return Q.ninvoke(boat, 'hasPacket', function(packet) {
-        //     return packet.dst == 'boat119' && packet.label == 119 && packet.src == 'box119';
-        //   });
-        // }).then(function(received) {
-        //   console.log('Received???');
-        //   assert(received);
-        //   done();
-        // }).catch(done);
-      
-    });
+    runTest(done);
   });
 });
