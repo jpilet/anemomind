@@ -5,8 +5,10 @@
 // The dispatcher receive data from one or more DataSource, and publish it
 // to consumers that can subscribe to any value.
 
-#include <string>
+#include <boost/signals2/signal.hpp>
 #include <map>
+#include <memory>
+#include <string>
 
 #include <device/anemobox/ValueDispatcher.h>
 #include <server/common/string.h>
@@ -31,54 +33,87 @@ enum DataCode {
   DATE_TIME = 12,
   TARGET_VMG = 13,
   VMG = 14,
+  NUM_DATA_CODE = 15
 };
+
+template <DataCode Code> struct TypeForCode { };
+
+template<> struct TypeForCode<AWA> { typedef Angle<> type; };
+template<> struct TypeForCode<AWS> { typedef Velocity<> type; };
+template<> struct TypeForCode<TWA> { typedef Angle<> type; };
+template<> struct TypeForCode<TWS> { typedef Velocity<> type; };
+template<> struct TypeForCode<TWDIR> { typedef Angle<> type; };
+template<> struct TypeForCode<GPS_SPEED> { typedef Velocity<> type; };
+template<> struct TypeForCode<GPS_BEARING> { typedef Angle<> type; };
+template<> struct TypeForCode<MAG_HEADING> { typedef Angle<> type; }; 
+template<> struct TypeForCode<WAT_SPEED> { typedef Velocity<> type; };
+template<> struct TypeForCode<WAT_DIST> { typedef Length<> type; };
+template<> struct TypeForCode<GPS_POS> { typedef GeographicPosition<double> type; };
+template<> struct TypeForCode<DATE_TIME> { typedef TimeStamp type; };
+template<> struct TypeForCode<TARGET_VMG> { typedef Velocity<> type; };
+template<> struct TypeForCode<VMG> { typedef Velocity<> type; };
+
+const char* descriptionForCode(DataCode code);
+const char* wordIdentifierForCode(DataCode code);
 
 class DispatchDataVisitor;
 class DispatchData {
  public:
-  DispatchData(std::map<DataCode, DispatchData*> *index,
-               DataCode code,
-               std::string wordIdentifier,
-               std::string description)
-    : _code(code),
-    _description(description),
-    _wordIdentifier(wordIdentifier) { (*index)[code] = this; }
+  DispatchData(DataCode code, std::string source) : _source(source), _code(code) { }
 
-  std::string description() const { return _description; }
+  const char* description() const { return descriptionForCode(_code); }
   DataCode dataCode() const { return _code; }
+  const std::string& source() const { return _source; }
 
 
   //! returns a single word that describe what this value is.
   // For example: awa, tws, watSpeed, etc.
-  std::string wordIdentifier() const { return _wordIdentifier; }
+  std::string wordIdentifier() const { return wordIdentifierForCode(_code); }
+
+  virtual bool isFresh() const = 0;
 
   virtual void visit(DispatchDataVisitor *visitor) = 0;
   virtual ~DispatchData() {}
+
+ protected:
+  std::string _source;
  private:
   DataCode _code;
-  std::string _description;
-  std::string _wordIdentifier;
 };
 
 template <typename T>
 class TypedDispatchData : public DispatchData {
  public:
-  TypedDispatchData(std::map<DataCode, DispatchData*> *index,
-                    DataCode nature,
-                    std::string wordIdentifier,
-                    std::string description,
-                    Clock* clock)
-     : DispatchData(index, nature, wordIdentifier, description),
-     _dispatcher(clock, 1024) { }
+  TypedDispatchData(DataCode nature, std::string source)
+     : DispatchData(nature, source) { }
 
   virtual void visit(DispatchDataVisitor *visitor);
-  ValueDispatcher<T> *dispatcher() { return &_dispatcher; }
-  const ValueDispatcher<T> *dispatcher() const { return &_dispatcher; }
-
-  void publishValue(const std::string& source, T value) {
-    // TODO: check if <source> is the current preferred source for this dispatcher.
-    _dispatcher.setValue(value);
+  virtual ValueDispatcher<T> *dispatcher() = 0;
+  virtual const ValueDispatcher<T> *dispatcher() const = 0;
+  virtual void setValue(T value) = 0;
+  virtual bool isFresh() const {
+    auto d = dispatcher();
+    if (d == nullptr || !d->hasValue() || !d->clock()) {
+      return false;
+    }
+    Duration<> delta(d->clock()->currentTime() - d->lastTimeStamp()) ;
+    return delta < Duration<>::seconds(15);
   }
+};
+
+template <typename T>
+class TypedDispatchDataReal : public TypedDispatchData<T> {
+ public:
+  TypedDispatchDataReal(DataCode nature,
+                        std::string source,
+                        Clock* clock, int bufferLength=1024)
+     : TypedDispatchData<T>(nature, source),
+     _dispatcher(clock, bufferLength) { }
+
+  virtual ValueDispatcher<T> *dispatcher() { return &_dispatcher; }
+  virtual const ValueDispatcher<T> *dispatcher() const { return &_dispatcher; }
+
+  virtual void setValue(T value) { _dispatcher.setValue(value); }
 
  private:
   ValueDispatcher<T> _dispatcher;
@@ -88,6 +123,32 @@ typedef TypedDispatchData<Velocity<double>> DispatchVelocityData;
 typedef TypedDispatchData<Length<double>> DispatchLengthData;
 typedef TypedDispatchData<GeographicPosition<double>> DispatchGeoPosData;
 typedef TypedDispatchData<TimeStamp> DispatchTimeStampData;
+
+template <typename T>
+class DispatchDataProxy : public TypedDispatchData<T> {
+ public:
+   DispatchDataProxy(DataCode code) : TypedDispatchData<T>(code, "") { }
+
+  virtual ValueDispatcher<T> *dispatcher() { return &_proxy; }
+  virtual const ValueDispatcher<T> *dispatcher() const {
+    return &_proxy;
+  }
+
+  void setActiveDispatcher(TypedDispatchData<T>* dispatcher) {
+    this->_source = dispatcher->source();
+    this->_forward = dispatcher;
+    _proxy.proxy(dispatcher->dispatcher());
+  }
+
+  bool hasDispatcher() const { return _proxy.hasDispatcher(); }
+  TypedDispatchData<T> *realDispatcher() const { return _forward; }
+
+  virtual void setValue(T value) { _proxy.setValue(value); }
+    
+ private:
+  ValueDispatcherProxy<T> _proxy;
+  TypedDispatchData<T>* _forward;
+};
 
 class DispatchDataVisitor {
  public:
@@ -113,42 +174,85 @@ class Dispatcher : public Clock {
   //! Get a pointer to the default anemobox dispatcher.
   static Dispatcher *global();
 
-  const DispatchData& dispatchData(DataCode index) const; 
-  const std::map<DataCode, DispatchData*> data() const { return _data; }
+  const std::map<DataCode, std::shared_ptr<DispatchData>>& dispatchers()
+    const { return _currentSource; }
 
-  DispatchAngleData* awa() { return &_awa; }
-  DispatchVelocityData* aws() { return &_aws; }
-  DispatchAngleData* twa() { return &_twa; }
-  DispatchVelocityData* tws() { return &_tws; }
-  DispatchAngleData* twdir() { return &_twdir; }
-  DispatchAngleData* gpsBearing() { return &_gpsBearing; }
-  DispatchVelocityData* gpsSpeed() { return &_gpsSpeed; }
-  DispatchAngleData* magHdg() { return &_magHeading; }
-  DispatchVelocityData* watSpeed() { return &_watSpeed; }
-  DispatchLengthData* watDist() { return &_watDist; }
-  DispatchGeoPosData* pos() { return &_pos; }
-  DispatchTimeStampData* dateTime() { return &_dateTime; }
-  DispatchVelocityData* targetVmg() { return &_targetVmg; }
-  DispatchVelocityData* vmg() { return &_vmg; }
+  const std::map<DataCode, std::map<std::string, DispatchData*>> allSources() {
+    return _data;
+  }
+
+  DispatchData *dispatchDataForSource(DataCode code, const std::string& source);
+
+  DispatchData* dispatchData(DataCode code) {
+    auto it = _currentSource.find(code);
+    assert (it != _currentSource.end());
+    return it->second.get();
+  }
+
+  template <DataCode Code>
+  TypedDispatchData<typename TypeForCode<Code>::type>* get() {
+    return dynamic_cast<TypedDispatchData<typename TypeForCode<Code>::type>*>(
+        dispatchData(Code));
+  }
+
+  template <DataCode Code>
+  typename TypeForCode<Code>::type val() {
+    return get<Code>()->dispatcher()->lastValue();
+  }
+
+  int onNewSource(std::function<void(DataCode, const std::string&)> f);
+  void removeNewSourceListener(int);
+
+  template <typename T>
+    void publishValue(DataCode code, const std::string& source, T value) {
+      auto ptr = dispatchDataForSource(code, source);
+
+      TypedDispatchData<T>* dispatchData;
+      if (!ptr) {
+        _data[code][source] = dispatchData = 
+          new TypedDispatchDataReal<T>(code, source, this);
+        newDispatchData(dispatchData);
+      } else {
+        dispatchData = dynamic_cast<TypedDispatchData<T>*>(ptr);
+        // wrong type for this code.
+        assert(dispatchData);
+      }
+
+      updateCurrentSource(code, dispatchData);
+      dispatchData->setValue(value);
+    }
+
+  template<class T>
+  void updateCurrentSource(DataCode code, TypedDispatchData<T>* dispatchData) {
+    auto proxy = dynamic_cast<DispatchDataProxy<T>*>(this->dispatchData(code));
+    assert(proxy != 0);
+
+    if (!proxy->hasDispatcher() || prefers(dispatchData, proxy->realDispatcher())) {
+      assert(dispatchData != nullptr);
+      proxy->setActiveDispatcher(dispatchData);
+
+      // Fire an event saying that 'code' is now provided by another source.
+      dataSwitchedSource(dispatchData);
+    }
+  }
+
+  bool prefers(DispatchData* a, DispatchData* b);
+  int sourcePriority(const std::string& source);
+  void setSourcePriority(const std::string& source, int priority);
+
+  boost::signals2::signal<void(DispatchData*)> newDispatchData;
+  boost::signals2::signal<void(DispatchData*)> dataSwitchedSource;
 
  private:
-  static Dispatcher *_globalInstance;
-  std::map<DataCode, DispatchData*> _data;
+  template <DataCode Code> void registerCode();
 
-  DispatchAngleData _awa;
-  DispatchVelocityData _aws;
-  DispatchAngleData _twa;
-  DispatchVelocityData _tws;
-  DispatchAngleData _twdir;
-  DispatchAngleData _gpsBearing;
-  DispatchVelocityData _gpsSpeed;
-  DispatchAngleData _magHeading;
-  DispatchVelocityData _watSpeed;
-  DispatchLengthData _watDist;
-  DispatchGeoPosData _pos;
-  DispatchTimeStampData _dateTime;
-  DispatchVelocityData _targetVmg;
-  DispatchVelocityData _vmg;
+  static Dispatcher *_globalInstance;
+
+  std::map<DataCode, std::map<std::string, DispatchData*>> _data;
+
+  // _currentSource contains the proxies of different types.
+  std::map<DataCode, std::shared_ptr<DispatchData>> _currentSource;
+  std::map<std::string, int> _sourcePriority;
 };
 
 // A convenient visitor to subscribe to any dispatch data type.

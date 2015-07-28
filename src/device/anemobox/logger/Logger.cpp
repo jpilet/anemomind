@@ -21,6 +21,9 @@ namespace sail {
 Logger::Logger(Dispatcher* dispatcher) :
     _dispatcher(dispatcher) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
+  _newDispatchDataListener = dispatcher->newDispatchData.connect(
+      [=](DispatchData* ptr) { this->subscribeToDispatcher(ptr); });
+  subscribe();
 }
 
 void Logger::flushTo(LogFile* container) {
@@ -29,6 +32,11 @@ void Logger::flushTo(LogFile* container) {
  
   for (auto ptr : _listeners) {
     if (ptr->valueSet().timestamps_size() > 0) {
+      // the priority is set every time flushTo is called, since the 
+      // priority in the dispatcher can change.
+      // We do not log exactly when the priority changed, though.
+      // Thus, it is wise to flush right before changing a priority.
+      ptr->setPriority(_dispatcher);
       container->add_stream()->Swap(ptr->mutable_valueSet());
     }
     ptr->clear();
@@ -70,25 +78,35 @@ bool Logger::flushAndSave(const std::string& folder,
 
 void Logger::subscribe() {
   _listeners.clear();
-  for (auto pair : _dispatcher->data()) {
-    if (pair.first == DATE_TIME) {
+
+  for (auto sourcesForCode : _dispatcher->allSources()) {
+    if (sourcesForCode.first == DATE_TIME) {
       continue;
     }
-
-    LoggerValueListener* listener =
-      new LoggerValueListener(pair.second->wordIdentifier());
-    SubscribeVisitor<LoggerValueListener> subscriber(listener);
-    pair.second->visit(&subscriber);
-
-    _listeners.push_back(std::shared_ptr<LoggerValueListener>(listener));
+    for (auto sourceAndDispatcher : sourcesForCode.second) {
+      subscribeToDispatcher(sourceAndDispatcher.second);
+    }
   }
+}
+
+void Logger::subscribeToDispatcher(DispatchData *d) {
+  if (d->dataCode() == DATE_TIME) {
+    return;
+  }
+
+  LoggerValueListener* listener =
+    new LoggerValueListener(d->wordIdentifier(), d->source());
+  SubscribeVisitor<LoggerValueListener> subscriber(listener);
+  d->visit(&subscriber);
+
+  _listeners.push_back(std::shared_ptr<LoggerValueListener>(listener));
 }
 
 void Logger::logText(const std::string& streamName, const std::string& content) {
   auto it = _textLoggers.find(streamName);
   if (it == _textLoggers.end()) {
     it = _textLoggers.insert(
-        make_pair(streamName, LoggerValueListener(streamName))).first;
+        make_pair(streamName, LoggerValueListener("text", streamName))).first;
   }
   it->second.addText(content);
 }

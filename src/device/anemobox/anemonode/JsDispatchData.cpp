@@ -107,26 +107,29 @@ class CountValuesVisitor : public DispatchDataVisitor {
 
 class SetValueVisitor : public DispatchDataVisitor {
  public:
-  SetValueVisitor(std::string src, Handle<Value> val)
-    : source_(src), value_(val), success_(false) { }
+  SetValueVisitor(Dispatcher* dispatcher, std::string src, Handle<Value> val)
+    : dispatcher_(dispatcher), source_(src), value_(val), success_(false) { }
 
   virtual void run(DispatchAngleData *angle) {
     if (checkNumberAndSetSuccess()) {
-      angle->publishValue(
+      dispatcher_->publishValue(
+          angle->dataCode(),
           source_.c_str(),
           Angle<double>::degrees(value_->ToNumber()->Value()));
     }
   }
   virtual void run(DispatchVelocityData *velocity) {
     if (checkNumberAndSetSuccess()) {
-      velocity->publishValue(
+      dispatcher_->publishValue(
+          velocity->dataCode(),
           source_.c_str(),
           Velocity<double>::knots(value_->ToNumber()->Value()));
     }
   }
   virtual void run(DispatchLengthData *velocity) {
     if (checkNumberAndSetSuccess()) {
-      velocity->publishValue(
+      dispatcher_->publishValue(
+          velocity->dataCode(),
           source_.c_str(),
           Length<double>::nauticalMiles(value_->ToNumber()->Value()));
     }
@@ -151,6 +154,7 @@ class SetValueVisitor : public DispatchDataVisitor {
   bool success() const { return success_; }
   const std::string& error() const { return error_; }
  private:
+  Dispatcher* dispatcher_;
   std::string source_;
   std::string error_;
   Handle<Value> value_;
@@ -238,21 +242,23 @@ Local<FunctionTemplate> JsDispatchData::functionTemplate() {
   NODE_SET_METHOD(proto, "setValue", JsDispatchData::setValue);
   NODE_SET_METHOD(proto, "subscribe", JsDispatchData::subscribe);
   NODE_SET_METHOD(proto, "unsubscribe", JsDispatchData::unsubscribe);
+  NODE_SET_METHOD(proto, "source", JsDispatchData::source);
   return t;
 }
    
 void JsDispatchData::setDispatchData(
-    Handle<Object> object, DispatchData* data) {
+    Handle<Object> object, DispatchData* data, Dispatcher* dispatcher) {
   JsDispatchData* zis = obj(object);
 
   zis->_dispatchData = data;
+  zis->_dispatcher = dispatcher;
   GetTypeAndUnitVisitor typeAndUnit;
   zis->_dispatchData->visit(&typeAndUnit);
 
   object->Set(NanNew("unit"), NanNew<String>(typeAndUnit.unit().c_str()));
   object->Set(NanNew("type"), NanNew<String>(typeAndUnit.type().c_str()));
   object->Set(NanNew("description"),
-              NanNew<String>(zis->_dispatchData->description().c_str()));
+              NanNew<String>(zis->_dispatchData->description()));
   object->Set(NanNew("dataCode"),
               NanNew<Integer>(zis->_dispatchData->dataCode()));
 }
@@ -324,7 +330,8 @@ NAN_METHOD(JsDispatchData::time) {
 
 NAN_METHOD(JsDispatchData::setValue) {
   NanScope();
-  DispatchData* dispatchData = obj(args.This())->_dispatchData;
+  JsDispatchData* zis = obj(args.This());
+  DispatchData* dispatchData = zis->_dispatchData;
 
   if (args.Length() != 2) {
     return NanThrowTypeError("setValue expects 2 argument: source name and value");
@@ -335,7 +342,7 @@ NAN_METHOD(JsDispatchData::setValue) {
   }
 
   v8::String::Utf8Value sourceName(args[0]->ToString());
-  SetValueVisitor setValue(*sourceName, args[1]);
+  SetValueVisitor setValue(zis->_dispatcher, *sourceName, args[1]);
   dispatchData->visit(&setValue);
 
   if (!setValue.success()) {
@@ -387,6 +394,13 @@ NAN_METHOD(JsDispatchData::subscribe) {
   SubscribeVisitor<JsListener> subscriber(listener);
   dispatchData->visit(&subscriber);
   NanReturnValue(NanNew<Integer>(index));
+}
+
+NAN_METHOD(JsDispatchData::source) {
+  NanScope();
+
+  DispatchData* dispatchData = obj(args.This())->_dispatchData;
+  NanReturnValue(NanNew<String>(dispatchData->source()));
 }
 
 }  // namespace sail

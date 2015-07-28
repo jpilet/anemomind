@@ -36,6 +36,9 @@ message GeoPosValueSet {
 
 message ValueSet {
   required string shortName = 1;
+  optional string source = 8;
+  optional int32 priority = 9;
+
   repeated int64 timestamps = 2 [packed = true];
   optional AngleValueSet angles = 3;
   optional VelocityValueSet velocity = 4;

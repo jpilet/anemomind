@@ -45,9 +45,7 @@ v8::Persistent<v8::FunctionTemplate> logger_constructor;
 
 }  // namespace
 
-JsLogger::JsLogger() : _logger(Dispatcher::global()) {
-  _logger.subscribe();
-}
+JsLogger::JsLogger() : _logger(Dispatcher::global()) { }
 
 void JsLogger::Init(v8::Handle<v8::Object> target) {
   NanScope();

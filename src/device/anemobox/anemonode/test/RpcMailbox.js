@@ -1,3 +1,5 @@
+process.env.ANEMOBOX_CONFIG_PATH = '/tmp/anemoboxcfg';
+
 var builder = require('../components/RpcMailbox.js');
 var mb = require('../components/LocalMailbox.js');
 var assert = require('assert');
@@ -105,7 +107,7 @@ describe(
 
 describe('files', function() {
   it('f2', function(done) {
-    process.env.ANEMOBOX_CONFIG_PATH = '/tmp/anemoboxcfg';
+    this.timeout(2000);
     assert(config.getConfigPath() == '/tmp/anemoboxcfg');
     mb.setMailRoot('/tmp/anemobox/');
     prepareMailbox(function(response) {
@@ -135,6 +137,10 @@ describe('files', function() {
             ]).then(function(fdata) {
               fdata[0].equals(fdata[1]);
               done();
+            }).catch(function(e) {
+              console.log('In testcase f2, got error');
+              console.log(e);
+              done(e);
             });
           }, 500);
         });

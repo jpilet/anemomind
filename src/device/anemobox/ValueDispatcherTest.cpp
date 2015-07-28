@@ -43,3 +43,22 @@ TEST(ValueDispatcher, AvoidFlooding) {
   usleep(10000);
   dispatcher.setValue(5);
 }
+
+TEST(ValueDispatcher, Proxy) {
+  Clock clock;
+  ValueDispatcher<int> real(&clock, 3);
+  ValueDispatcherProxy<int> proxy;
+  MockListener listener;
+  proxy.subscribe(&listener);
+
+  EXPECT_FALSE(proxy.hasValue());
+  proxy.proxy(&real);
+  EXPECT_FALSE(proxy.hasValue());
+
+  EXPECT_CALL(listener, gotValue(7));
+  real.setValue(7);
+
+  EXPECT_TRUE(proxy.hasValue());
+  EXPECT_EQ(7, proxy.lastValue());
+  EXPECT_EQ(7, real.lastValue());
+}

@@ -6,6 +6,9 @@ var fs = require('fs');
 var config = require('./config');
 
 var nmea0183Port;
+var source = '';
+
+function sourceName() { return source; }
 
 function init(nmea0183PortPath, dataCb) {
   // Let flow control make the port work.
@@ -20,8 +23,8 @@ function init(nmea0183PortPath, dataCb) {
       baudrate: config.nmea0183Speed
     }, false); // this is the openImmediately flag [default is true]
 
-    var nmeaPortSource = new anemonode.Nmea0183Source(
-        "NMEA0183: " + nmea0183PortPath);
+    source = "NMEA0183: " + nmea0183PortPath;
+    var nmeaPortSource = new anemonode.Nmea0183Source(source);
 
     port.open(function (error) {
       if ( error ) {
@@ -49,4 +52,5 @@ function emitNmea0183Sentence (sentence) {
 
 module.exports.init = init;
 module.exports.emitNmea0183Sentence = emitNmea0183Sentence;
+module.exports.sourceName = sourceName;
 

@@ -9,6 +9,7 @@
 namespace sail {
 
 class DispatchData;
+class Dispatcher;
 
 namespace {
 class JsListener;
@@ -25,7 +26,7 @@ class JsDispatchData : public node::ObjectWrap {
   }
 
   static void setDispatchData(
-      v8::Handle<v8::Object> object, DispatchData* data);
+      v8::Handle<v8::Object> object, DispatchData* data, Dispatcher* dispatcher);
 
  protected:
   static NAN_METHOD(New);
@@ -35,9 +36,11 @@ class JsDispatchData : public node::ObjectWrap {
   static NAN_METHOD(setValue);
   static NAN_METHOD(unsubscribe);
   static NAN_METHOD(subscribe);
+  static NAN_METHOD(source);
 
  private:
   DispatchData* _dispatchData;
+  Dispatcher* _dispatcher;
 
   static std::map<int, JsListener *> registeredCallbacks;
 };
