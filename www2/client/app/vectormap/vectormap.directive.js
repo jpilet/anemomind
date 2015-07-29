@@ -43,9 +43,6 @@ angular.module('www2App')
                 scope.selectedCurve = point.curveId;
                 scope.currentTime = point.point.time;
                 scope.currentPoint = point.point;
-              } else {
-                scope.selectedCurve = undefined;
-                scope.currentTime = undefined;
               }
             }
             scope.$apply();
