@@ -6,19 +6,14 @@ var bigint = require('../bigint.js');
 var pprint = require('dentdoche/pprint.js');
 var synchronize = dd.makeAsync(require('../sync2.js').synchronize);
 
-var pair = {src: "box119", dst: "boat119"};
-var pairs = [pair];
+var pairs = [{src: "box119", dst: "boat119"}];
 
 var received = [];
 var handler = function(endPoint, packet) {
   received.push(packet.label);
 }
 
-eval(dd.parse('(dafn makeEndPoints () (map (afn (fname name) ' +
-              '(acall mail2.tryMakeAndResetEndPoint '+
-              '(+ "/tmp/testep_" fname ".db") name))' +
-              '(quote ("a" "b" "c" "d")) ' +
-              '(quote ("box119" "gateway" "gateway" "boat119"))))'));
+eval(dd.parse('(dafn makeEndPoints () (map (afn (fnameAndName) (let ((fname name) fnameAndName) (acall mail2.tryMakeAndResetEndPoint (+ "/tmp/testep_" fname ".db") name))) (quote (("a" "box119") ("b" "gateway") ("c" "gateway") ("d" "boat119")))))'));
 
 // Bind the elements of the array to named local variables.
 var withEps = dd.macro(function() {
@@ -40,7 +35,7 @@ var myAssert = dd.macro(function(x) {
 });
 
 // Transfer a packet via the first gateway
-eval(dd.parse('(dafn test1 (eps) (withEps eps (let (lb0 (acall .getLowerBounds boat pairs)) (acall .sendPacket box "boat119" 139 (new Buffer (array 0 1 2 3 4))) (synchronize box g0) (myAssert (= 1 (acall .getTotalPacketCount g0))) (myAssert (= 0 (acall .getTotalPacketCount boat))) (synchronize g0 boat) (myAssert (= 0 (acall .getTotalPacketCount boat))) (myAssert (< (get lb0 0) (get (acall .getLowerBounds boat (array pair)) 0))))))'));
+eval(dd.parse('(dafn test1 (eps) (withEps eps (let (lb0 (acall .getLowerBounds boat pairs)) (acall .sendPacket box "boat119" 139 (new Buffer (array 0 1 2 3 4))) (synchronize box g0) (myAssert (= 1 (acall .getTotalPacketCount g0))) (myAssert (= 0 (acall .getTotalPacketCount boat))) (synchronize g0 boat) (myAssert (= 0 (acall .getTotalPacketCount boat))) (myAssert (< (get lb0 0) (get (acall .getLowerBounds boat pairs) 0))))))'));
 
 // Transfer a packet via the second gateway
 eval(dd.parse('(dafn test2 (eps) (withEps eps (let (lb0 (first (acall .getLowerBounds boat pairs))) (acall .sendPacket box "boat119" 140 (new Buffer (array 3 4 5))) (synchronize box g1) (myAssert (= 2 (acall .getTotalPacketCount box))) (synchronize g1 boat)  (= (bigint.inc lb0) (first (acall .getLowerBounds boat pairs))))))'));
