@@ -1,30 +1,23 @@
-<div class="row">
-  <div class="col-md-6" ng-repeat="boat in boats">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title">{{boat.name}}</h3>
-      </div>
-      <div class="panel-body">
-        <table class="table">
-          <tr ng-repeat="session in sessions[boat._id] | startFrom:currentPage*pageSize | limitTo:pageSize | orderBy:'startTime':true">
-            <td><a href="/map/{{session.boat}}?c={{session.curves[0].curveId}}">{{session.startTime | date: short}}</a></td>
-          </tr>
-        </table>
-        <nav>
-          <ul class="pagination">
-            <li>
-              <button ng-disabled="currentPage == 0" ng-click="currentPage=currentPage-1" aria-label="Previous">
-                <span aria-hidden="true">&laquo; Previous</span>
-              </button>
-            </li>
-            <li>
-              <button ng-disabled="currentPage >= sessions[boat._id].length/pageSize - 1" ng-click="currentPage=currentPage+1" aria-label="Next">
-                <span aria-hidden="true">Next &raquo;</span>
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </div>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title"><a ng-href="/boats/{{boat._id}}">{{boat.name}}</a></h3>
+  </div>
+  <div class="panel-body">
+    <table class="table">
+      <tr ng-repeat="session in sessions | startFrom:(currentPage-1)*pageSize | limitTo:pageSize | orderBy:'startTime':true">
+        <td><a href="/map/{{boatId}}?c={{session.curves[0].curveId}}">{{session.startTime | date: short}}</a></td>
+      </tr>
+    </table>
+    <pagination
+      ng-hide="sessions.length <= pageSize"
+      total-items="sessions.length"
+      items-per-page="pageSize"
+      ng-model="currentPage"
+      class="pagination-sm"
+      previous-text="&lsaquo;" next-text="&rsaquo;"
+      first-text="&laquo;" last-text="&raquo;"></pagination>
+    <p ng-hide="sessions.length > 0">
+      Sorry, no sailing sessions yet.
+    </p>
   </div>
 </div>

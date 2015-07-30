@@ -1,9 +1,13 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 
 <div ng-if="isLoggedIn" class="container">
-	<h3>My boats</h3>
-	<br />
-	<boat-summary></boat-summary>
+  <h3>My boats</h3>
+  <br />
+  <div class="row">
+    <div class="col-md-6" ng-repeat="boat in boats">
+          <boat-summary boat-id="boat._id"></boat-summary>
+    </div>
+  </div>
 </div>
 
 <div ng-if="!isLoggedIn" class="container">
