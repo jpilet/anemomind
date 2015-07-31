@@ -133,6 +133,19 @@ bool ArgMap::parse(int argc0, const char **argv0) {
   return true;
 }
 
+
+ArgMap::Status ArgMap::parse2(int argc, const char **argv) {
+  bool success = parse(argc, argv);
+  if (success) {
+    if (helpAsked()) {
+      dispHelp(&(std::cout));
+      return Done;
+    }
+    return Continue;
+  }
+  return Error;
+}
+
 bool ArgMap::parseAndHelp(int argc, const char **argv) {
   bool s = parse(argc, argv);
   if (!s || helpAsked()) {

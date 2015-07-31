@@ -142,11 +142,6 @@ cxx_test(math_StatisticsTest
          gtest_main
         )
 
-cxx_test(math_DensityEstimatorTest
-         DensityEstimatorTest.cpp
-         gtest_main
-         math_ADFunction
-        )
 
 add_library(math_CurveParam
             CurveParam.h
@@ -239,6 +234,26 @@ cxx_test(math_QuadFormTest
          common_LineKM
          math_LUImpl
         )
+        
+
+add_library(math_nnls
+            nnls.c
+            nnls.cpp
+           )
+target_depends_on_f2c(math_nnls)
+target_depends_on_m(math_nnls)    
+
+cxx_test(math_nnlsTest
+         nnlsTest.cpp
+         math_nnls
+         gtest_main
+        )       
+        
+cxx_test(math_GridSearchTest
+         GridSearchTest.cpp
+         gtest_main
+        )
+        
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)

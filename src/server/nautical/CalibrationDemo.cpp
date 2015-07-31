@@ -43,8 +43,8 @@ namespace {
     Array<HorizontalMotion<double> > estWind(count), estCurrent(count);
     for (int i = 0; i < count; i++) {
       auto c = results.corrector().correct(navs[i]);
-      estWind[i] = c.trueWind();
-      estCurrent[i] = c.trueCurrent();
+      estWind[i] = c.trueWindOverGround();
+      estCurrent[i] = c.trueCurrentOverGround();
     }
 
     auto finalErrors = boatData.evaluateFitness(estWind, estCurrent);

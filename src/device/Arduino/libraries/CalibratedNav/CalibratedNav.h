@@ -42,12 +42,44 @@ class DefinedValue {
     set(x);
   }
 
+  template <typename S>
+  DefinedValue<S> applyFun(std::function<S(T)> fun) const {
+    if (_defined) {
+      return DefinedValue<S>(fun(_value));
+    }
+    return DefinedValue<S>();
+  }
+
+  template <typename S>
+  DefinedValue<S> applyFun(std::function<S(T, T)> fun, const DefinedValue<S> &other) const {
+    if (_defined && other._defined) {
+      return DefinedValue<S>(fun(_value, other._value));
+    }
+    return DefinedValue<S>();
+  }
+
+  DefinedValue<T> operator+(const DefinedValue<T> &other) const {
+    return applyFun<T>([&](T a, T b) {return a + b;}, other);
+  }
+
+  DefinedValue<T> operator-(const DefinedValue<T> &other) const {
+    return applyFun<T>([&](T a, T b) {return a - b;}, other);
+  }
+
   bool defined() const {return _defined;}
   bool undefined() const {return !_defined;}
+
+  const DefinedValue<T> &otherwise(const DefinedValue<T> &other) const {
+    if (_defined) {
+      return *this;
+    }
+    return other;
+  }
  private:
   bool _defined;
   T _value;
 };
+
 
 
 /*
@@ -109,19 +141,44 @@ class CalibratedNav {
   // Depend on the calibrated values.
   DefinedAngle  directionApparentWindBlowsTo;
   DefinedMotion apparentWind;
-  DefinedMotion trueWind;
-  DefinedMotion trueCurrent;
-  DefinedMotion boatMotionThroughWater;
+  DefinedMotion trueWindOverGround;
+  DefinedMotion trueCurrentOverGround;
+  DefinedMotion boatMotionOverWater;
 
   /*
+   *
    * Extra nice-to-have accessors
    */
-  Angle<T> twdir() const {
-    return trueWind().angle() + Angle<T>::degrees(T(180));
+  DefinedValue<Angle<T> > twdirOverGround() const {
+    if (trueWindOverGround.defined()) {
+      return trueWindOverGround().angle() + Angle<T>::degrees(T(180));
+    }
+    return DefinedValue<Angle<T> >();
   }
 
-  Angle<T> tws() const {
-    return trueWind().norm();
+  DefinedValue<Velocity<T> > twsOverGround() const {
+    if (trueWindOverGround.defined()) {
+      return trueWindOverGround().norm();
+    }
+    return DefinedValue<Velocity<T> >();
+  }
+
+  DefinedValue<HorizontalMotion<T> > motionRelativeToBoat(const HorizontalMotion<T> &x) const {
+    if (gpsMotion.defined()) {
+      return x - gpsMotion();
+    }
+    return DefinedValue<HorizontalMotion<T> >();
+  }
+
+  DefinedValue<Angle<T> > angleRelativeToBoat(const Angle<T> &x) const {
+    if (boatOrientation.defined()) {
+      return x - boatOrientation();
+    }
+    return DefinedValue<Angle<T> >();
+  }
+
+  DefinedValue<HorizontalMotion<T> > trueWindOverWater() const {
+    return trueWindOverGround - trueCurrentOverGround;
   }
 };
 

@@ -12,7 +12,7 @@
 namespace sail {
 
 Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
-                          ScreenRecordingSimulator *simulator) {
+                          ScreenRecordingSimulator *simulator, ParsedNavs::FieldMask mask) {
   { // Initial checks.
     Poco::File file(p);
     if (!file.exists()) {
@@ -35,15 +35,13 @@ Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
   for (int i = 0; i < count; i++) {
     parsedNavs[i] = loadNavsFromNmea(files[i].toString(), boatId);
 
-    std::stringstream sstream;
-    sstream << parsedNavs[i];
-    LOG(INFO) << files[i].toString() << ": " << sstream.str();
+    LOG(INFO) << "Parsed " << files[i].toString();
 
     if (simulator) {
       simulator->simulate(files[i].toString());
     }
   }
-  Array<Nav> result = flattenAndSort(parsedNavs, ParsedNavs::makeGpsWindMask());
+  Array<Nav> result = flattenAndSort(parsedNavs, mask);
 
   if (simulator) {
     for (Nav& nav : result) {
@@ -63,5 +61,11 @@ Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
 
   return result;
 }
+
+Array<Nav> scanNmeaFolder2(Poco::Path p, Nav::Id boatId,
+                          ParsedNavs::FieldMask mask) {
+  return scanNmeaFolder(p, boatId, nullptr, mask);
+}
+
 
 } /* namespace sail */

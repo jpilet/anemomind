@@ -22,6 +22,12 @@ class ArgMap {
   ArgMap();
 
   bool parse(int argc, const char **argv);
+
+  enum Status {Continue, // no error, continue with the rest of the program
+               Error,    // parsing error or something.
+               Done};    // If the user displayed help, this is not an error, but the program should be done.
+  Status parse2(int argc, const char **argv);
+
   bool parseAndHelp(int argc, const char **argv);
 
   class Arg {

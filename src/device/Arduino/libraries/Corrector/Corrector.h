@@ -134,12 +134,12 @@ namespace sail {
           + Angle<T>::degrees(T(180)));
       dst->apparentWind.set(HorizontalMotion<T>::polar(dst->calibAws(),
           dst->directionApparentWindBlowsTo()));
-      dst->trueWind.set(dst->apparentWind() + dst->gpsMotion());
+      dst->trueWindOverGround.set(dst->apparentWind() + dst->gpsMotion());
 
       // Compute the true current
-      dst->boatMotionThroughWater.set(HorizontalMotion<T>::polar(
+      dst->boatMotionOverWater.set(HorizontalMotion<T>::polar(
           dst->calibWatSpeed(), dst->driftAngle() + dst->boatOrientation()));
-      dst->trueCurrent.set(dst->gpsMotion() - dst->boatMotionThroughWater());
+      dst->trueCurrentOverGround.set(dst->gpsMotion() - dst->boatMotionOverWater());
     }
   };
 
