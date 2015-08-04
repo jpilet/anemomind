@@ -35,15 +35,15 @@ height: 100%;
   text-transform: uppercase;
 }
 
-.titleBox a:link, .titleBox a:visited { 
- color: white; 
- text-decoration: none; 
-} 
+.titleBox a:link, .titleBox a:visited {
+ color: white;
+ text-decoration: none;
+}
 
-.titleBox a:hover { 
- color: black; 
- text-decoration: none; 
-} 
+.titleBox a:hover {
+ color: black;
+ text-decoration: none;
+}
 
 perfplot {
 position: absolute;
@@ -66,4 +66,97 @@ right: 10px;
 top:10px;
 width: 200px;
 height: 400px;
+}
+
+#topwheel {
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #FFFFF;
+    top: 10px;
+    right: 130px;
+    z-index: 10;
+}
+
+#heeling {
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #FFFFF;
+    top: 230px;
+    right: 260px;
+    z-index: 10;
+}
+
+#gaugetws {
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #FFFFF;
+    top: 300px;
+    right: 10px;
+    z-index: 10;
+}
+
+#gaugesog {
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #FFFFF;
+    top: 530px;
+    right: 10px;
+    z-index: 10;
+}
+
+#gaugetws2 {
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #FFFFF;
+    top: 530px;
+    right: 260px;
+    z-index: 10;
+}
+
+#smallwheeltwa {
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #FFFFF;
+    top: 700px;
+    right: 10px;
+    z-index: 10;
+}
+
+#smallwheelcog {
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #FFFFF;
+    top: 700px;
+    right: 260px;
+    z-index: 10;
+}
+
+
+#gaugeperf {
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #FFFFF;
+    top: 970px;
+    right: 260px;
+    z-index: 10;
+}
+
+
+
+#windarrow {
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #FFFFF;
+    top: 920px;
+    right: 10px;
+    z-index: 10;
 }
