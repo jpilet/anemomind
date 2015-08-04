@@ -37,22 +37,34 @@ var canWrite = function(req, event) {
   return boatAccess.userCanWriteBoatId(req.user.id, event.boat);
 }
 
+function sendEventsWithQuery(res, query) {
+  Event.find(query, function (err, events) {
+    if(err) { return handleError(res, err); }
+    return res.status(200).json(events);
+  });
+}
+
 // Get the latest readable events
 exports.index = function(req, res) {
   try {
-  if (!req.user) { return res.sendStatus(401); }
-  boatAccess.readableBoats(req.user.id)
-  .then(function(boats) {
-    if (boats.length == 0) {
-      return res.status(200).json([]);
+    if (!req.user) {
+      return res.sendStatus(401);
     }
-    var query = { boat: { $in : _.map(boats, '_id') } }
-    Event.find(query, function (err, events) {
-      if(err) { return handleError(res, err); }
-      return res.status(200).json(events);
-    });
-  })
-  .catch(function(err) { res.sendStatus(403); });
+
+    if (req.query.b) {
+      boatAccess.userCanReadBoatId(req.user.id, req.query.b)
+      .then(function() { sendEventsWithQuery(res, { boat: req.query.b }); })
+      .catch(function(err) { res.sendStatus(403); });
+    } else {
+      boatAccess.readableBoats(req.user.id)
+        .then(function(boats) {
+          if (boats.length == 0) {
+            return res.status(200).json([]);
+          }
+          sendEventsWithQuery({ boat: { $in : _.map(boats, '_id') } });
+        })
+        .catch(function(err) { res.sendStatus(403); });
+    }
   } catch(err) {
     console.warn(err);
     console.warn(err.stack);
