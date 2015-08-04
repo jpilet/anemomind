@@ -1,0 +1,18 @@
+#gauge-svg-container {
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #FFFFF;
+    top: 10px;
+    right: 260px;
+    z-index: 10;
+}
+
+.marginCenter {
+margin-left: auto;
+margin-right: auto;
+}
+.indicator-description {
+     text-align: center;
+
+}

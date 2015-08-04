@@ -13,7 +13,7 @@ angular.module('www2App')
         var search = '';
         if ($scope.mapLocation) {
           var l = $scope.mapLocation;
-          search += 'l=' + l.x +',' + l.y + ',' + l.scale; 
+          search += 'l=' + l.x +',' + l.y + ',' + l.scale;
         }
         if ($scope.selectedCurve) {
           search += '&c=' + $scope.selectedCurve;
