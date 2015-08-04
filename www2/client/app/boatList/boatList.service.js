@@ -40,7 +40,6 @@ angular.module('www2App')
             }
           }
         }
-        sessionsForBoats.reverse();
         $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
       });
     }
@@ -81,6 +80,7 @@ angular.module('www2App')
       boat: function(id) { return boatDict[id]; },
       boats: function() { return boats.slice(0); },
       sessions: function() { return $.extend({}, sessionsForBoats); },
+      sessionsForBoat: function(boatId) { return sessionsForBoats[boatId]; },
       getCurveData: function(curveId) { return curves[curveId]; },
       locationForCurve: locationForCurve,
       update: update,
