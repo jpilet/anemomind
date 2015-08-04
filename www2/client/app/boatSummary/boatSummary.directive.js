@@ -4,26 +4,32 @@ var app = angular.module('www2App')
   .directive('boatSummary', function (boatList) {
     return {
       templateUrl: 'app/boatSummary/boatSummary.html',
-      restrict: 'EA',
+      restrict: 'E',
       scope: {
-        boats: "@",
-        sessions: "@"
+        boatId: "=",
+        pageSize: "=?"
       },
       link: function (scope, element, attrs) {
-        scope.boats = boatList.boats();
-        scope.sessions = boatList.sessions();
-        scope.$on('boatList:updated', function(event, boats) {
-          scope.boats = boats;
-        });
-        scope.$on('boatList:sessionsUpdated', function(event, data) {
-          scope.sessions = data;
-        });
-        scope.boat = boatList.boat;
-        scope.currentPage = 0;
-        scope.pageSize = 10;
-        scope.numberOfPages = function() {
-          return Math.ceil(scope.data.length/scope.pageSize);                
+        scope.currentPage = 1;
+        scope.sessions = [];
+        if (scope.pageSize == undefined) {
+          scope.pageSize = 10;
         }
+        function updateSessions() {
+          if (!scope.boatId) {
+            return;
+          }
+          scope.boat = boatList.boat(scope.boatId);
+          scope.sessions = boatList.sessionsForBoat(scope.boatId);
+          if (scope.sessions == undefined) {
+            scope.sessions = [];
+          }
+        }
+        scope.$on('boatList:updated', updateSessions);
+        scope.$on('boatList:sessionsUpdated', updateSessions);
+        scope.$watch('boatId', updateSessions);
+
+        updateSessions();
       }
     };
   });
