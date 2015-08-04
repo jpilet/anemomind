@@ -73,8 +73,9 @@ int main(int argc, const char** argv) {
   ScreenRecordingSimulator simulator;
   ScreenRecordingSimulator* simulatorPtr = 0;
   if (boatDat.size() > 0 || polarDat.size() > 0) {
-    simulator.prepare(boatDat, polarDat);
-    simulatorPtr = &simulator;
+    if (simulator.prepare(boatDat, polarDat)) {
+	    simulatorPtr = &simulator;
+    }
   }
   Array<Nav> rawNavs = scanNmeaFolder(navPath, boatId, simulatorPtr);
 

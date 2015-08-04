@@ -1,1 +1,3 @@
-add_subdirectory("test")
+if (${FULL_BUILD})
+  add_subdirectory("test")
+endif ()

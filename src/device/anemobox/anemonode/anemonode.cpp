@@ -7,7 +7,7 @@
 #include <node.h>
 #include <nan.h>
 
-#include <device/anemobox/anemonode/JsDispatchData.h>
+#include <device/anemobox/anemonode/JsDispatcher.h>
 #include <device/anemobox/anemonode/JsNmea0183Source.h>
 #include <device/anemobox/anemonode/JsEstimator.h>
 #include <device/anemobox/anemonode/JsLogger.h>
@@ -22,25 +22,6 @@ using namespace v8;
 using namespace node;
 
 namespace {
-
-void registerDispatcher(Dispatcher *dispatcher, Handle<Object> target) {
-  NanScope();
-  static Persistent<FunctionTemplate> persistentConstructor;
-
-  Handle<Object> entries = NanNew<Object>();
-  Local<FunctionTemplate> constructor = JsDispatchData::functionTemplate();
-  NanAssignPersistent(persistentConstructor, constructor);
-
-  for (auto entry : dispatcher->data()) {
-    Handle<Object> jsentry = constructor->GetFunction()->NewInstance();
-    JsDispatchData::setDispatchData(jsentry, entry.second);
-
-    entries->Set(NanNew<String>(entry.second->wordIdentifier().c_str()), jsentry);
-  }
-    
-  target->Set(NanNew<String>("dispatcher"), entries);
-
-}
 
 NAN_METHOD(adjTime) {
   NanScope();
@@ -73,7 +54,7 @@ NAN_METHOD(currentTime) {
 }  // namespace
 
 void RegisterModule(Handle<Object> target) {
-  registerDispatcher(Dispatcher::global(), target);
+  JsDispatcher::Init(Dispatcher::global(), target);
   JsNmea0183Source::Init(target);
   JsLogger::Init(target);
   JsEstimator::Init(target);

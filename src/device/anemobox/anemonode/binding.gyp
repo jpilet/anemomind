@@ -21,6 +21,8 @@
       "target_name": "anemonode",
       "sources": [
         "anemonode.cpp",
+        "JsDispatcher.h",
+        "JsDispatcher.cpp",
         "JsNmea0183Source.h",
         "JsNmea0183Source.cpp",
         "JsDispatchData.h",

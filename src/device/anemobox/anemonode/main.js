@@ -1,3 +1,6 @@
+var setSourcePriority =
+  require('./build/Release/anemonode').dispatcher.setSourcePriority;
+
 var nmea0183PortPath = '/dev/ttyMFD1';
 var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
@@ -43,6 +46,10 @@ nmea0183port.init(nmea0183PortPath,
     logger.logText("NMEA0183 input", data.toString('ascii'));
   }
 });
+
+// The default priority is 0. Setting nmea to -1 gives priority to
+// internal GPS and to internally computed true wind information.
+setSourcePriority(nmea0183port.sourceName(), -1);
 
 // Internal GPS with output to NMEA0183
 if (withGps) {

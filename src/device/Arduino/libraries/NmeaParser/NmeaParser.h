@@ -11,6 +11,7 @@
 
 #ifdef ON_SERVER
 #include <string>
+#include <server/common/TimeStamp.h>
 #endif
 
 #include "../PhysicalQuantity/PhysicalQuantity.h"
@@ -176,6 +177,14 @@ class NmeaParser {
   char year() const {
     return year_;
   }
+
+#ifdef ON_SERVER
+  sail::TimeStamp timestamp() const {
+    return sail::TimeStamp::UTC(
+        year() + 2000, month(), day(),
+        hour(), min(), sec());
+  }
+#endif
 
   // Wind data
   sail::Angle<short> awa() const {
