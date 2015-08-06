@@ -126,4 +126,60 @@ angular.module('www2App')
     $scope.$watch('currentTime', function(time) {
       $scope.currentPoint = pointAtTime(time);
     });
+
+    function formatAngle(min, max, angle) {
+      if (angle == undefined) {
+        return "n/a";
+      } else {
+        while (angle < min) {
+          angle += 360;
+        }
+        while (angle > max) {
+          angle -= 360;
+        }
+        return "" + Math.round(angle);
+      }
+    }
+
+    function formatSpeed(speed) {
+      if (speed == undefined) {
+        return "n/a";
+      }
+      return speed.toFixed(1) +" kn";
+    }
+
+    function getPointValue(keys) {
+      if ($scope.currentPoint == undefined) {
+        return undefined;
+      }
+      for (var i in keys) {
+        var key = keys[i];
+        if (key in $scope.currentPoint) {
+          return $scope.currentPoint[key];
+        }
+      }
+      return undefined;
+    }
+
+    $scope.twa = function() {
+      var twa = getPointValue(['twa', 'externalTwa']);
+      return formatAngle(-180, 180, twa);
+    };
+    $scope.tws = function() {
+      var tws = getPointValue(['twa', 'externalTws']);
+      return formatSpeed(tws);
+    };
+    $scope.gpsSpeed = function() {
+      return formatSpeed($scope.currentPoint['gpsSpeed']);
+    };
+    $scope.twdir = function() {
+      var twa = getPointValue(['twa', 'externalTwa']);
+      var bearing = getPointValue(['gpsBearing']);
+      return formatAngle(0, 360, bearing + twa);
+    };
+    $scope.gpsBearing = function() {
+      return formatAngle(0, 360, getPointValue(['gpsBearing']));
+    };
+
+
 });

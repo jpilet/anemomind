@@ -12,9 +12,15 @@
 <div class="instrumentsView">
 
 <table>
-<tr ng-repeat="(key, value) in currentPoint">
-  <td> {{key}} </td> <td> {{ value }} </td>
-</tr>
+<tr><td>TWA</td><td>{{ twa() }}</td></tr>
+<tr><td>TWS</td><td>{{ tws() }}</td></tr>
+<tr><td>GPS speed</td><td>{{ gpsSpeed() }}</td></tr>
+<tr><td>......................</td><td> </td></tr>
+<tr><td>TWDIR</td><td>{{ twdir() }}</td></tr>
+<tr><td>GPS bearing</td><td>{{ gpsBearing() }}</td></tr>
+<tr><td>......................</td><td> </td></tr>
+<tr><td>Date</td><td>{{ currentTime | date: 'shortDate' }}</td></tr>
+<tr><td>Time</td><td>{{ currentTime | date: 'hh:mm:ss' }}</td></tr>
 </table>
 
 </div>
