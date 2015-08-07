@@ -39,8 +39,13 @@ module.exports = function(config) {
       'client/app/**/*.jade',
       'client/components/**/*.jade',
       'client/app/**/*.html',
-      'client/components/**/*.html'
+      'client/components/**/*.html',
+      { pattern: 'client/assets/**/*', served: true, included: false, watched: false }
     ],
+
+    proxies: {
+      '/assets/': '/base/client/assets/'
+    },
 
     preprocessors: {
       '**/*.jade': 'ng-jade2js',
@@ -79,7 +84,7 @@ module.exports = function(config) {
     // - Safari (only Mac)
     // - PhantomJS
     // - IE (only Windows)
-    browsers: ['PhantomJS'],
+    browsers: ['PhantomJS', 'Safari', 'Chrome', 'Firefox'],
 
 
     // Continuous Integration mode
