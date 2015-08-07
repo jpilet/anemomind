@@ -122,32 +122,6 @@ angular.module('www2App')
       return $scope.plotData[bounds[s]];
     };
 
-    $scope.currentPoint = pointAtTime($scope.currentTime);
-    $scope.$watch('currentTime', function(time) {
-      $scope.currentPoint = pointAtTime(time);
-    });
-
-    function formatAngle(min, max, angle) {
-      if (angle == undefined) {
-        return "n/a";
-      } else {
-        while (angle < min) {
-          angle += 360;
-        }
-        while (angle > max) {
-          angle -= 360;
-        }
-        return "" + Math.round(angle);
-      }
-    }
-
-    function formatSpeed(speed) {
-      if (speed == undefined) {
-        return "n/a";
-      }
-      return speed.toFixed(1) +" kn";
-    }
-
     function getPointValue(keys) {
       if ($scope.currentPoint == undefined) {
         return undefined;
@@ -161,25 +135,24 @@ angular.module('www2App')
       return undefined;
     }
 
-    $scope.twa = function() {
+    function twdir() {
       var twa = getPointValue(['twa', 'externalTwa']);
-      return formatAngle(-180, 180, twa);
-    };
-    $scope.tws = function() {
-      var tws = getPointValue(['twa', 'externalTws']);
-      return formatSpeed(tws);
-    };
-    $scope.gpsSpeed = function() {
-      return formatSpeed($scope.currentPoint['gpsSpeed']);
-    };
-    $scope.twdir = function() {
-      var twa = getPointValue(['twa', 'externalTwa']);
+      if (twa == undefined) {
+        return twa;
+      }
       var bearing = getPointValue(['gpsBearing']);
-      return formatAngle(0, 360, bearing + twa);
-    };
-    $scope.gpsBearing = function() {
-      return formatAngle(0, 360, getPointValue(['gpsBearing']));
-    };
+      return bearing + twa;
+    }
 
+    $scope.currentPoint = pointAtTime($scope.currentTime);
+    $scope.$watch('currentTime', function(time) {
+      $scope.currentPoint = pointAtTime(time);
 
+      $scope.vmgPerf = getPointValue(['devicePerf']);
+      $scope.twa = getPointValue(['twa', 'externalTwa']);
+      $scope.tws =  getPointValue(['twa', 'externalTws']);
+      $scope.gpsSpeed = getPointValue(['gpsSpeed']);
+      $scope.twdir = twdir();
+      $scope.gpsBearing = getPointValue(['gpsBearing']);
+    });
 });
