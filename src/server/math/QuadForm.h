@@ -199,6 +199,17 @@ class QuadForm {
     return eval(coefs);
   }
 
+  static ThisType fitPolynomial(T x, T y) {
+    static_assert(rhsDims == 1, "Only fitting to single values");
+    T a[lhsDims];
+    T prod = T(1);
+    for (int i = 0; i < lhsDims; i++) {
+      a[i] = prod;
+      prod *= x;
+    }
+    return ThisType::fit(a, &y);
+  }
+
   // Used to fit a straight line between a value x and a corresponding value y.
   static ThisType fitLine(T x, T y) {
     static_assert(isStraightLineFit, "Only to be used for line fitting");

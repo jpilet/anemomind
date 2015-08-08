@@ -17,8 +17,8 @@ namespace sail { namespace PiecewisePolynomials {
 
 template <int N>
 struct Piece {
- // The quadratic cost of fitting to data
- // w.r.t. polynomial coefficients.
+ // The fitting cost, as a function
+ // of coefficients
  QuadForm<N, 1> quadCost;
 
  // The span over which it is fitted
@@ -33,14 +33,19 @@ Array<QuadForm<N, 1> > buildQfs(Arrayd X, Arrayd Y, int sampleCount, LineKM samp
   LineKM xToSample = sampleToX.makeInvFun();
   Array<QuadForm<N, 1> > qfs(segmentCount);
   for (int i = 0; i < n; i++) {
-
+    int index = int(floor(xToSample(X[i])));
+    if (0 <= index && index < segmentCount) {
+      qfs[index] += QuadForm<N, 1>::fitPolynomial(X[i], Y[i]);
+    }
   }
+  return qfs;
 }
 
-// Fit piecewise polynomials of degree N to the data.
 template <int N>
 void optimize(Arrayd X, Arrayd Y, int sampleCount, LineKM sampleToX) {
-  Array<QuadForm<N, 1> > qfs = buildQfs(X, Y, sampleCount, sampleToX);
+  Array<QuadForm<N, 1> > qfs = buildQfs<N>(X, Y, sampleCount, sampleToX);
+  Integral1d<QuadForm<N, 1> > itg(qfs);
+
 }
 
 
