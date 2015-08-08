@@ -240,6 +240,11 @@ cxx_test(math_QuadFormTest
          math_LUImpl
         )
 
+cxx_test(math_PiecewisePolynomialsTest
+         PiecewisePolynomialsTest.cpp
+         gtest_main
+        )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)

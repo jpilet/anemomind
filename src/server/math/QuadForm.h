@@ -41,7 +41,7 @@ class QuadForm {
   // should be private, but it needs to
   // public if I want to allocate an array of QuadForms.
   QuadForm() {
-    setConstant(0);
+    setConstant(T(0));
   }
 
   typedef QuadForm<lhsDims, rhsDims, T> ThisType;
@@ -112,6 +112,14 @@ class QuadForm {
     for (int i = 0; i < rDims; i++) {
       _R[0] = T(x);
     }
+  }
+
+  static ThisType makeReg(double lambda) {
+    ThisType dst(0);
+    for (int i = 0; i < lhsDims; i++) {
+      dst.setP(i, i, lambda);
+    }
+    return dst;
   }
 
   ThisType operator+(const ThisType &other) const {
