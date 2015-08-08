@@ -9,6 +9,8 @@
 #include <server/math/Integral1d.h>
 #include <server/common/Span.h>
 #include <server/math/QuadForm.h>
+#include <server/common/string.h>
+#include <iostream>
 #include <server/common/LineKM.h>
 #include <set>
 
@@ -155,14 +157,15 @@ class Joints {
   }
 
   void step() {
-    auto jp = _ptrs.begin();
-    Joint<N> &joint = _joints[jp->index()];
-    _ptrs.erase(jp);
+    auto jp0 = _ptrs.begin();
+    auto jp = *jp0;
+    Joint<N> &joint = _joints[jp.index()];
+    _ptrs.erase(jp0);
     _joints[joint.left()].updateRight(joint.right(), &_ptrs);
     _joints[joint.right()].updateLeft(joint.left(), &_ptrs);
 
-    _cost += jp->increase();
-    _pickedJoints[_counter] = jp->index();
+    _cost += jp.increase();
+    _pickedJoints[_counter] = jp.index();
     _counter++;
   }
 
