@@ -242,6 +242,7 @@ cxx_test(math_QuadFormTest
 
 cxx_test(math_PiecewisePolynomialsTest
          PiecewisePolynomialsTest.cpp
+         math_LU
          gtest_main
         )
 
