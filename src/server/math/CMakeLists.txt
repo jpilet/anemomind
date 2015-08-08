@@ -240,6 +240,35 @@ cxx_test(math_QuadFormTest
          math_LUImpl
         )
 
+add_library(math_PiecewisePolynomials
+            PiecewisePolynomials.h
+            PiecewisePolynomials.cpp
+           )
+target_link_libraries(math_PiecewisePolynomials
+                      math_LU
+                     )
+
+cxx_test(math_PiecewisePolynomialsTest
+         PiecewisePolynomialsTest.cpp
+         math_PiecewisePolynomials
+         gtest_main
+        )
+
+add_library(math_Stability
+            Stability.h
+            Stability.cpp
+           )
+target_link_libraries(math_Stability
+                      math_PiecewisePolynomials
+                      common_Span
+                     )           
+
+cxx_test(math_StabilityTest
+         StabilityTest.cpp
+         gtest_main
+         math_Stability
+        )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
