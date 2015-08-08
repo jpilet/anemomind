@@ -19,26 +19,6 @@
 namespace sail {
 namespace PiecewisePolynomials {
 
-
-
-
-template <int N>
-struct Piece {
-  // The span over which it is fitted
-  Spani span;
-
-  // The fitting cost, as a function
-  // of coefficients
-  QuadForm<N, 1> quadCost;
-
-  // If this pieces represents a constant value,
-  // this function returns that value.
-  double constantValue() const {
-    static_assert(N == 1, "Only applicable to constants");
-    return quadCost.minimize1x1();
-  }
-};
-
 template <int N>
 MDArray2d calcCoefs(QuadForm<N, 1> quad) {
   static QuadForm<N, 1> reg = QuadForm<N, 1>::makeReg(1.0e-9);
@@ -228,6 +208,38 @@ Array<QuadForm<N, 1> > buildQfs(Arrayd X, Arrayd Y, int sampleCount, LineKM samp
   return qfs;
 }
 
+
+
+template <int N>
+struct Piece {
+  // The span over which it is fitted
+  Spani span;
+
+  // The fitting cost, as a function
+  // of coefficients
+  QuadForm<N, 1> quadCost;
+
+  // If this pieces represents a constant value,
+  // this function returns that value.
+  double constantValue() const {
+    static_assert(N == 1, "Only applicable to constants");
+    return quadCost.minimize1x1();
+  }
+};
+/*
+ *
+ *
+ *
+ *
+ *
+ * The main function
+ * to fit piecewise polynomials
+ * to observations.
+ *
+ *
+ *
+ *
+ */
 template <int N>
 Array<Piece<N> > optimize(Arrayd X, Arrayd Y,
     int sampleCount, LineKM sampleToX, int segmentCount) {
