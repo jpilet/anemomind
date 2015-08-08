@@ -40,7 +40,9 @@ class QuadForm {
   // Ideally, this constructor
   // should be private, but it needs to
   // public if I want to allocate an array of QuadForms.
-  QuadForm() {}
+  QuadForm() {
+    setConstant(0);
+  }
 
   typedef QuadForm<lhsDims, rhsDims, T> ThisType;
   static constexpr int pDims = calcSymmetricMatrixStorageSize(lhsDims);
@@ -97,6 +99,10 @@ class QuadForm {
    * SomeUnknownTypeThatCouldBeAQuadFormOrASimplePrimitiveSuchAsDouble x = 0;
    */
   QuadForm(T x) {
+    setConstant(x);
+  }
+
+  void setConstant(T x) {
     for (int i = 0; i < pDims; i++) {
       _P[i] = T(0);
     }
