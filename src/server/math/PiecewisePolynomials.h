@@ -31,6 +31,8 @@ struct Piece {
   // of coefficients
   QuadForm<N, 1> quadCost;
 
+  // If this pieces represents a constant value,
+  // this function returns that value.
   double constantValue() const {
     static_assert(N == 1, "Only applicable to constants");
     return quadCost.minimize1x1();
