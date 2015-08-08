@@ -175,6 +175,11 @@ class QuadForm {
     return ret;
   }
 
+  T minimize1x1() const {
+    static_assert(lhsDims == 1 && rhsDims == 1, "Only applicable to 1x1 quad forms");
+    return _Q[0]/_P[0];
+  }
+
   GenericLineKM<T> makeLine() const {
     T coefs[2];
     if (minimize2x1(coefs)) {

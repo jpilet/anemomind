@@ -3,6 +3,4 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-
-
-
+#include <server/math/PiecewisePolynomials.h>

@@ -9,10 +9,12 @@
 #include <server/math/Integral1d.h>
 #include <server/common/Span.h>
 #include <server/math/QuadForm.h>
-#include <server/common/string.h>
-#include <iostream>
 #include <server/common/LineKM.h>
 #include <set>
+
+#include <server/common/string.h>
+#include <iostream>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 namespace PiecewisePolynomials {
@@ -22,12 +24,17 @@ namespace PiecewisePolynomials {
 
 template <int N>
 struct Piece {
- // The fitting cost, as a function
- // of coefficients
- QuadForm<N, 1> quadCost;
+  // The span over which it is fitted
+  Spani span;
 
- // The span over which it is fitted
- Spani span;
+  // The fitting cost, as a function
+  // of coefficients
+  QuadForm<N, 1> quadCost;
+
+  double constantValue() const {
+    static_assert(N == 1, "Only applicable to constants");
+    return quadCost.minimize1x1();
+  }
 };
 
 template <int N>
@@ -134,19 +141,18 @@ class Joint {
   }
 };
 
+
 template <int N>
 class Joints {
  public:
   typedef typename Joint<N>::Ptr JPtr;
 
-  Joints(Integral1d<QuadForm<N, 1> > itg): _itg(itg), _counter(0) {
+  Joints(Integral1d<QuadForm<N, 1> > itg): _itg(itg) {
     _cost = 0;
     for (int i = 0; i < itg.size(); i++) {
       _cost += evalQF(itg.integrate(i, i+1));
     }
-
     int jointCount = itg.size() - 1;
-    _pickedJoints = Arrayi(jointCount);
     _joints = Array<Joint<N> >(jointCount + 2);
     for (int i = 0; i < jointCount; i++) {
       int index = i+1;
@@ -163,10 +169,7 @@ class Joints {
     _ptrs.erase(jp0);
     _joints[joint.left()].updateRight(joint.right(), &_ptrs);
     _joints[joint.right()].updateLeft(joint.left(), &_ptrs);
-
     _cost += jp.increase();
-    _pickedJoints[_counter] = jp.index();
-    _counter++;
   }
 
   bool empty() const {
@@ -182,11 +185,25 @@ class Joints {
   void stepToSegmentCount(int sc) {
     stepToJointCount(sc - 1);
   }
+
+  Array<int> getBoundingSampleIndices() {
+    Arrayi allIndices(2 + _ptrs.size());
+    allIndices[0] = 0;
+    allIndices[1] = _itg.size();
+    int counter = 2;
+    while (!_ptrs.empty()) {
+      auto jp = _ptrs.begin();
+      allIndices[counter] = jp->index();
+      counter++;
+      _ptrs.erase(jp);
+    }
+    assert(counter == allIndices.size());
+    std::sort(allIndices.begin(), allIndices.end());
+    return allIndices;
+  }
  private:
   Integral1d<QuadForm<N, 1> > _itg;
   double _cost;
-  int _counter;
-  Arrayi _pickedJoints;
   std::set<JPtr> _ptrs;
   Array<Joint<N> > _joints;
 };
@@ -212,9 +229,15 @@ Array<QuadForm<N, 1> > buildQfs(Arrayd X, Arrayd Y, int sampleCount, LineKM samp
 template <int N>
 Array<Piece<N> > optimize(Arrayd X, Arrayd Y,
     int sampleCount, LineKM sampleToX, int segmentCount) {
-  Joints<N> joints(Integral1d<QuadForm<N, 1> >(buildQfs<N>(X, Y, sampleCount, sampleToX)));
+  Integral1d<QuadForm<N, 1> > itg(buildQfs<N>(X, Y, sampleCount, sampleToX));
+  Joints<N> joints(itg);
   joints.stepToSegmentCount(segmentCount);
-  return Array<Piece<N> >();
+  auto bds = joints.getBoundingSampleIndices();
+  return Spani(0, segmentCount).map<Piece<N> >([&](int segmentIndex) {
+    int from = bds[segmentIndex];
+    int to = bds[segmentIndex + 1];
+    return Piece<N>{Spani(from, to), itg.integrate(from, to)};
+  });
 }
 
 
