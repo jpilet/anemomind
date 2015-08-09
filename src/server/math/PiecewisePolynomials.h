@@ -119,7 +119,7 @@ class Joint {
         - evalFitness(_itg, _left, _middle) - evalFitness(_itg, _middle, _right);
 
     // For a coarser approximation, we always expect an increase.
-    assert(0 <= _increase);
+    assert(-1.0e-9 <= _increase);
   }
 };
 

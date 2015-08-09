@@ -254,6 +254,21 @@ cxx_test(math_PiecewisePolynomialsTest
          gtest_main
         )
 
+add_library(math_Stability
+            Stability.h
+            Stability.cpp
+           )
+target_link_libraries(math_Stability
+                      math_PiecewisePolynomials
+                      common_Span
+                     )           
+
+cxx_test(math_StabilityTest
+         StabilityTest.cpp
+         gtest_main
+         math_Stability
+        )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
