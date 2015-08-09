@@ -236,6 +236,7 @@ struct Piece {
  * to fit piecewise polynomials
  * to observations.
  *
+ * Inspired by the SimplifyCurve algorithm.
  *
  *
  *
