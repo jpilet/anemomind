@@ -1,0 +1,6 @@
+
+<heeling-indicator id="heeling" label="'Degree'" value="(currentPoint.awa > 0 ? 1 : - 1) * (currentPoint.aws / 30) * 45 * (currentPoint.twa < 90 && currentPoint.twa > -90 ? 1 : .5)" description="'Heeling angle'"></heeling-indicator>
+
+<gauge-indicator id="gaugeperf" label="'%'" value="currentPoint.devicePerf" description="'Performance'" min="0" max="200" ></gauge-indicator>
+
+<arrow-indicator id="windarrow" label="'Degree'" value="currentPoint.deviceTwdir" description="'True wind angle'" to="1" ></arrow-indicator>
