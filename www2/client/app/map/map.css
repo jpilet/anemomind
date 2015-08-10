@@ -60,45 +60,30 @@ bottom: 100px;
 display:inline-block;
 }
 
-.instrumentsView {
-position: absolute;
-right: 10px;
-top:10px;
-width: 200px;
-height: 400px;
-}
-
 /*==================================================*/
 
 #topwheel {
-    position: absolute;
+    display:block;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
     background-color: #FFFFF;
-    top: 50px;
-    right: 10px;
-    z-index: 10;
 }
 
-
 #gaugetws {
-    position: absolute;
+    display:block;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
     background-color: #FFFFF;
-    top: 320px;
-    right: 10px;
-    z-index: 10;
 }
 
 #gaugesog {
-    position: absolute;
+    display:block;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
     background-color: #FFFFF;
-    top: 550px;
-    right: 10px;
-    z-index: 10;
 }
 
 /*==================================================*/
@@ -106,78 +91,70 @@ height: 400px;
 
 
 #gaugetws2 {
-    position: absolute;
+    display:block;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
     background-color: #FFFFF;
-    top: 50px;
-    right: 10px;
-    z-index: 10;
 }
 
 #smallwheeltwa {
-    position: absolute;
+    display:block;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
     background-color: #FFFFF;
-    top: 270px;
-    right: 10px;
-    z-index: 10;
 }
 
 #smallwheelcog {
-    position: absolute;
+    display:block;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
     background-color: #FFFFF;
-    top: 550px;
-    right: 10px;
-    z-index: 10;
 }
 
 /*==================================================*/
 
 #heeling {
-    position: absolute;
+    display:block;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
     background-color: #FFFFF;
-    top: 50px;
-    right: 10px;
-    z-index: 10;
 }
 
 
 #gaugeperf {
-    position: absolute;
+    display:block;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
     background-color: #FFFFF;
-    top: 320px;
-    right: 10px;
-    z-index: 10;
 }
 
 
 
 #windarrow {
-    position: absolute;
+    display:block;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
     background-color: #FFFFF;
-    top: 550px;
-    right: 10px;
-    z-index: 10;
 }
 
 /*==================================================*/
 
 #tabs {
-    position: absolute;
+    position: fixed;
     margin-left: auto;
     margin-right: auto;
     background-color: #FFFFF;
     top: 10px;
     right: 40px;
     z-index: 10;
+}
+
+.svgcontainer {
+    text-align: center;
 }
