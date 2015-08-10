@@ -51,10 +51,9 @@ Segment makeSegmentFromOverlap(SpanOverlap<Value> overlap) {
 
 Array<Segment> optimize(Array<std::pair<Arrayd, Arrayd> > xyPairs,
     int sampleCount, LineKM sampleToX, int segmentCount) {
-  int signalCount = xyPairs.size();
   ArrayBuilder<Spani> spans;
   ArrayBuilder<Value> values;
-  for (int i = 0; i < signalCount; i++) {
+  for (int i = 0; i < xyPairs.size(); i++) {
     auto &xy = xyPairs[i];
     getSpansAndValues(i, xy.first, xy.second,
         sampleCount, sampleToX, segmentCount,
