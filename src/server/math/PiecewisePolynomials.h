@@ -11,10 +11,11 @@
  *      int sampleCount, LineKM sampleToX, int segmentCount);
  *
  *  It will approximate a signal consisting of values Y indexed by values X using
- *  a set of piecewise polynomials, of type Piece<N>. The number of polynomials
- *  in the approximation is segmentCount. The X values are assumed to lie on an integer grid
- *  so that an index in the grid maps to an x value with sampleToX. The grid indices
- *  range from 0 to sampleCount-1.
+ *  a set of piecewise polynomials, of type Piece<N>. Here, N is the number of coefficients
+ *  used to represent the polynomial, so for example a quadratic polynomial a*x^2 + b*x + c has N = 3.
+ *  The number of polynomials in the approximation is segmentCount. The X values are assumed
+ *  to lie on an integer grid so that an index in the grid maps to an x value with sampleToX.
+ *  The grid indices range from 0 to sampleCount-1.
  */
 
 #ifndef SERVER_MATH_PIECEWISEPOLYNOMIALS_H_
