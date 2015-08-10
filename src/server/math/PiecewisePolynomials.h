@@ -1,6 +1,20 @@
 /*
  *  Created on: 2015
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
+ *
+ *
+ *  There is a single function in this header file that is interesting
+ *  to the user of the code. It is the function with signature
+ *
+ *  template <int N>
+ *    Array<Piece<N> > optimize(Arrayd X, Arrayd Y,
+ *      int sampleCount, LineKM sampleToX, int segmentCount);
+ *
+ *  It will approximate a signal consisting of values Y indexed by values X using
+ *  a set of piecewise polynomials, of type Piece<N>. The number of polynomials
+ *  in the approximation is segmentCount. The X values are assumed to lie on an integer grid
+ *  so that an index in the grid maps to an x value with sampleToX. The grid indices
+ *  range from 0 to sampleCount-1.
  */
 
 #ifndef SERVER_MATH_PIECEWISEPOLYNOMIALS_H_
@@ -42,26 +56,25 @@ class Joint {
  public:
   class Ptr {
    public:
-    Ptr(int index, double increase) : _index(index), _increase(increase) {}
+    Ptr(const Joint<N> *ptr) : _ptr(ptr) {}
 
     // Used both to identify and order the pointer in the set.
     bool operator<(const Ptr &other) const {
-      if (_increase == other._increase) {
-        return _index < other._index;
+      if (increase() == other.increase()) {
+        return index() < other.index();
       }
-      return _increase < other._increase;
+      return increase() < other.increase();
     }
 
     int index() const {
-      return _index;
+      return _ptr->middle();
     }
 
     double increase() const {
-      return _increase;
+      return _ptr->increase();
     }
    private:
-    int _index;
-    double _increase;
+    const Joint<N> *_ptr;
   };
 
   Joint() : _left(-1), _middle(-1), _right(-1), _increase(NAN) {}
@@ -77,7 +90,7 @@ class Joint {
 
   Ptr ptr() const {
     assert(defined());
-    return Ptr(_middle, _increase);
+    return Ptr(this);
   }
 
   void updateLeft(int left, std::set<Joint::Ptr> *ptrs) {
@@ -94,6 +107,14 @@ class Joint {
 
   int right() const {
     return _right;
+  }
+
+  int middle() const {
+    return _middle;
+  }
+
+  double increase() const {
+    return _increase;
   }
  private:
   Integral1d<QuadForm<N, 1> > _itg;
@@ -140,7 +161,7 @@ class Joints {
       int index = i+1;
       Joint<N> j(i, index, i+2, itg);
       _joints[index] = j;
-      _ptrs.insert(j.ptr());
+      _ptrs.insert(_joints[index].ptr());
     }
   }
 
