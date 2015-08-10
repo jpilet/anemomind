@@ -67,7 +67,7 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    background-color: #FFFFF;
+
 }
 
 #gaugetws {
@@ -75,7 +75,7 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    background-color: #FFFFF;
+
 }
 
 #gaugesog {
@@ -83,7 +83,7 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    background-color: #FFFFF;
+
 }
 
 /*==================================================*/
@@ -95,7 +95,7 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    background-color: #FFFFF;
+
 }
 
 #smallwheeltwa {
@@ -103,7 +103,7 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    background-color: #FFFFF;
+
 }
 
 #smallwheelcog {
@@ -111,7 +111,7 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    background-color: #FFFFF;
+
 }
 
 /*==================================================*/
@@ -121,7 +121,7 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    background-color: #FFFFF;
+
 }
 
 
@@ -130,7 +130,7 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    background-color: #FFFFF;
+
 }
 
 
@@ -140,7 +140,7 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    background-color: #FFFFF;
+
 }
 
 /*==================================================*/
@@ -149,7 +149,6 @@ display:inline-block;
     position: fixed;
     margin-left: auto;
     margin-right: auto;
-    background-color: #FFFFF;
     top: 10px;
     right: 40px;
     z-index: 10;
@@ -157,4 +156,45 @@ display:inline-block;
 
 .svgcontainer {
     text-align: center;
+}
+
+/*=======================SOME GRADIENT TESTS===========================*/
+
+.nav-tabs {
+  background-color:#bbb;
+}
+.row-fluid {
+    /*Chrome*/
+    background-image: -webkit-gradient(
+    linear, left top, right bottom, from(rgba(80,80,80,0.7)),
+    to(rgba(80,80,80,0.2)));
+
+    /* mozilla */
+    background-image: -moz-linear-gradient(bottom right,
+    rgba(80,80,80,0.7) 0%, rgba(80,80,80,0.2) 95%
+    );
+
+    /*IE*/
+    filter: progid:DXImageTransform.Microsoft.gradient(
+    startColorstr=#550000FF, endColorstr=#550000FF
+    );
+
+    /* IE8 */
+    -ms-filter: progid:DXImageTransform.Microsoft.gradient(
+    startColorstr=#550000FF, endColorstr=#550000FF
+    );
+
+
+
+    color:#fff;
+    padding:5px
+}
+.nav-tabs > li > a {
+  border: medium none;
+}
+.nav-tabs > li > a:hover {
+  background-color: #303136 !important;
+    border: medium none;
+    border-radius: 0;
+    color:#fff;
 }
