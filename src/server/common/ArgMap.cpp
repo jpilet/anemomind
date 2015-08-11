@@ -108,7 +108,7 @@ bool ArgMap::hasAllRequiredArgs(std::map<std::string, Option> &options, TempArgM
   return true;
 }
 
-bool ArgMap::parse(int argc0, const char **argv0) {
+bool ArgMap::parseSub(int argc0, const char **argv0) {
   CHECK(!_successfullyParsed);
   Array<Arg*> args;
   fillArgs(argc0, argv0, &_argStorage, &args);
@@ -134,8 +134,8 @@ bool ArgMap::parse(int argc0, const char **argv0) {
 }
 
 
-ArgMap::Status ArgMap::parse2(int argc, const char **argv) {
-  bool success = parse(argc, argv);
+ArgMap::Status ArgMap::parse(int argc, const char **argv) {
+  bool success = parseSub(argc, argv);
   if (success) {
     if (helpAsked()) {
       dispHelp(&(std::cout));
@@ -147,7 +147,7 @@ ArgMap::Status ArgMap::parse2(int argc, const char **argv) {
 }
 
 bool ArgMap::parseAndHelp(int argc, const char **argv) {
-  bool s = parse(argc, argv);
+  bool s = parseSub(argc, argv);
   if (!s || helpAsked()) {
     dispHelp(&(std::cout));
   }

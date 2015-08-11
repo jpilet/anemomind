@@ -66,7 +66,7 @@ int main(int argc, const char** argv) {
   std::string polarDat;
   args.registerOption("--polarDat", "Path to polar.dat").store(&polarDat);
 
-  if (!args.parseAndHelp(argc, argv)) {
+  if (args.parse(argc, argv) == ArgMap::Error) {
     return 1;
   }
 

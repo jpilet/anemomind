@@ -62,7 +62,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--synth-demo", "Run a demo on synthetic data")
       .callback(synthDemo);
 
-  if (!amap.parseAndHelp(argc, argv)) {
+  if (amap.parse(argc, argv) == ArgMap::Error) {
     return -1;
   }
 

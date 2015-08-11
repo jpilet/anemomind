@@ -175,7 +175,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--path", "Provide a path to a folder with a dataset")
     .store(&path);
 
-  switch (amap.parse2(argc, argv)) {
+  switch (amap.parse(argc, argv)) {
     case ArgMap::Continue:
       processFolder(s, path);
       return 0;

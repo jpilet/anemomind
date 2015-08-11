@@ -68,7 +68,7 @@ namespace {
   void protoAlgoOnTestdata(int argc, const char **argv) {
     ArgMap amap;
     registerGetTestdataNavs(amap);
-    if (amap.parseAndHelp(argc, argv)) {
+    if (amap.parse(argc, argv) != ArgMap::Error) {
       Array<Nav> data = getTestdataNavs(amap);
       Array<Velocity<double> > tws = getTws(data);
       Arrayb upwind = getUpwind(data);

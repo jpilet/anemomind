@@ -47,10 +47,11 @@ int main(int argc, const char **argv) {
   amap.registerOption("--navs", "Generate navs, just to see if it works");
 
 
-  if (!amap.parseAndHelp(argc, argv)) {
+  auto argCode = amap.parse(argc, argv);
+  if (argCode == ArgMap::Error) {
     return -1;
   }
-  if (amap.helpAsked()) {
+  if (argCode == ArgMap::Done) {
     return 0;
   }
 
