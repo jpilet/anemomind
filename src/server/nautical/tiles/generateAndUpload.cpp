@@ -77,7 +77,7 @@ int main(int argc, const char** argv) {
 	    simulatorPtr = &simulator;
     }
   }
-  Array<Nav> rawNavs = scanNmeaFolder(navPath, boatId, simulatorPtr);
+  Array<Nav> rawNavs = scanNmeaFolderWithSimulator(navPath, boatId, simulatorPtr);
 
   if (rawNavs.size() == 0) {
     LOG(FATAL) << "No NMEA data in " << navPath;

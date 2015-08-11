@@ -14,11 +14,11 @@ namespace sail {
 
 class ScreenRecordingSimulator;
 
-Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
+Array<Nav> scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
                           ScreenRecordingSimulator* simulator = 0,
                           ParsedNavs::FieldMask mask = ParsedNavs::makeGpsWindMask());
 
-Array<Nav> scanNmeaFolder2(Poco::Path p, Nav::Id boatId,
+Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
                           ParsedNavs::FieldMask mask = ParsedNavs::makeAllSensorsMask());
 
 } /* namespace sail */

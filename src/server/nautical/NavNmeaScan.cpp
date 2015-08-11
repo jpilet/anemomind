@@ -11,7 +11,7 @@
 
 namespace sail {
 
-Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
+Array<Nav> scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
                           ScreenRecordingSimulator *simulator, ParsedNavs::FieldMask mask) {
   { // Initial checks.
     Poco::File file(p);
@@ -62,9 +62,9 @@ Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
   return result;
 }
 
-Array<Nav> scanNmeaFolder2(Poco::Path p, Nav::Id boatId,
+Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
                           ParsedNavs::FieldMask mask) {
-  return scanNmeaFolder(p, boatId, nullptr, mask);
+  return scanNmeaFolderWithSimulator(p, boatId, nullptr, mask);
 }
 
 

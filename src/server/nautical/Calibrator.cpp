@@ -246,7 +246,7 @@ string Calibrator::description(std::shared_ptr<HTree> tree) {
 
 bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
   // Load data.
-  Array<Nav> allnavs = scanNmeaFolder(dataPath, boatId);
+  Array<Nav> allnavs = scanNmeaFolderWithSimulator(dataPath, boatId);
   if (allnavs.size() == 0) {
     return false;
   }

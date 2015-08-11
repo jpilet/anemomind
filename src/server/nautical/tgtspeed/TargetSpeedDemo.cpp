@@ -151,7 +151,7 @@ namespace {
     Poco::Path p(path);
     s.prefix = "/tmp/tgtspeed_" + p.getBaseName();
     process(s, [&]() {
-        return scanNmeaFolder2(
+        return scanNmeaFolder(
             path, "unnamed");
     });
   }
