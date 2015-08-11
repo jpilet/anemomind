@@ -31,7 +31,7 @@ namespace TargetSpeedSolver {
 
 // A data point to fit in the optimization
 struct Point {
- TargetSpeedParam::Loc loc;
+ TargetSpeedParam::BilinearWeights loc;
  Velocity<double> value;
  double stability;
 };

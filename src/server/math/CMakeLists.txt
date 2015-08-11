@@ -240,8 +240,6 @@ add_library(math_nnls
             nnls.c
             nnls.cpp
            )
-target_depends_on_f2c(math_nnls)
-target_depends_on_m(math_nnls)    
 
 cxx_test(math_nnlsTest
          nnlsTest.cpp

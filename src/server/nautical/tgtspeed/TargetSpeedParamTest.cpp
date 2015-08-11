@@ -106,8 +106,8 @@ TEST(TargetSpeedParamTest, Symmetry) {
   for (int i = 0; i < 3000; i++) {
     auto windAngle = Angle<double>::degrees(300*sin(399*i));
     auto windSpeed = Velocity<double>::knots(12*(1 + sin(34323*i)));
-    auto a = param.interpolate(windAngle, windSpeed, vertices);
-    auto b = param.interpolate(-windAngle, windSpeed, vertices);
+    auto a = param.calcBilinearWeights(windAngle, windSpeed).eval(vertices);
+    auto b = param.calcBilinearWeights(-windAngle, windSpeed).eval(vertices);
     EXPECT_NEAR(a, b, 1.0e-6);
   }
 }

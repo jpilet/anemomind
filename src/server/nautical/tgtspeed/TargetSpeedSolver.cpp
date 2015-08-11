@@ -59,7 +59,7 @@ MajQuad BalancedCost::majorize(Velocity<double> surface, const Point &pt) const 
       Array<TargetSpeedPoint> points, bool withStability) {
     Array<ArrayBuilder<Point> > dst(param.totalCellCount());
     for (auto pt: points) {
-      auto loc = param.calcLoc(pt.windAngle(), pt.windSpeed());
+      auto loc = param.calcBilinearWeights(pt.windAngle(), pt.windSpeed());
       if (loc.valid()) {
         dst[loc.cellIndex].add(
             Point{loc, pt.boatSpeed(), getStability(withStability, pt)});
@@ -122,7 +122,7 @@ MajQuad BalancedCost::majorize(Velocity<double> surface, const Point &pt) const 
     }
   }
 
-  void majorizeForCell(const Settings &s, TargetSpeedParam param, Array<Point> points,
+  void majorizeForCell(const Settings &s, Array<Point> points,
       Arrayd vertices,
       arma::mat *Q, arma::mat *q) {
     if (points.empty()) {
@@ -133,17 +133,14 @@ MajQuad BalancedCost::majorize(Velocity<double> surface, const Point &pt) const 
     arma::mat A = arma::zeros(count, 4);
     arma::mat B = arma::zeros(count, 1);
     arma::mat C = arma::zeros(4, 1);
-    int inds[4] = {-1, -1, -1, -1};
     for (int i = 0; i < count; i++) {
       auto pt = points[i];
-      double weights[4] = {NAN, NAN, NAN, NAN};
-      param.calcVertexLinearCombination(pt.loc, inds, weights);
-      double vertex = evalVertex(vertices, inds, weights);
+      double vertex = evalVertex(vertices, pt.loc.inds, pt.loc.weights);
       auto maj = s.getDataCostOrDefault()->majorize(
           Velocity<double>::knots(vertex), pt);
       if (maj.linear()) {
         for (int j = 0; j < 4; j++) {
-          C(j, 0) += maj.b*weights[j];
+          C(j, 0) += maj.b*pt.loc.weights[j];
         }
       } else {
         auto factored = maj.factor();
@@ -153,13 +150,13 @@ MajQuad BalancedCost::majorize(Velocity<double> surface, const Point &pt) const 
         assert(!std::isnan(b2));
         B(i, 0) = b2;
         for (int j = 0; j < 4; j++) {
-          A(i, j) = a2*weights[j];
+          A(i, j) = a2*pt.loc.weights[j];
         }
       }
     }
     arma::mat QCell = A.t()*A;
     arma::mat qCell = C - 2*A.t()*B;
-    accumulateQ(QCell, qCell, inds, Q, q);
+    accumulateQ(QCell, qCell, points.first().loc.inds, Q, q);
   }
 
   /*
@@ -188,14 +185,12 @@ MajQuad BalancedCost::majorize(Velocity<double> surface, const Point &pt) const 
    *
    * */
   QuadCost majorize(const Settings &settings,
-      TargetSpeedParam param,
       Array<Array<Point> > points,
       Arrayd vertices) {
-    assert(param.vertexCount() == vertices.size());
     arma::mat Q = arma::zeros(vertices.size(), vertices.size());
     arma::mat q = arma::zeros(vertices.size(), 1);
     for (auto pointsPerCell: points) {
-      majorizeForCell(settings, param, pointsPerCell, vertices, &Q, &q);
+      majorizeForCell(settings, pointsPerCell, vertices, &Q, &q);
     }
     return QuadCost{Q, q};
   }
@@ -287,18 +282,14 @@ MDArray2d toMDArray(arma::mat &X) {
   return MDArray2d(X.n_rows, X.n_cols, toArray(X));
 }
 
-double evaluateDataCost(
-    TargetSpeedParam param,
-    const Settings &s,
+double evaluateDataCost(const Settings &s,
     Arrayd vertices, Array<Array<Point> > points) {
   double cost = 0.0;
   for (auto group: points) {
     for (auto pt: group) {
-      int inds[4] = {-1, -1, -1, -1};
-      double weights[4] = {NAN, NAN, NAN, NAN};
-      param.calcVertexLinearCombination(pt.loc, inds, weights);
       cost += s.getDataCostOrDefault()->eval(
-          Velocity<double>::knots(evalVertex(vertices, inds, weights)),
+          Velocity<double>::knots(evalVertex(vertices,
+              pt.loc.inds, pt.loc.weights)),
           pt);
     }
   }
@@ -324,9 +315,9 @@ Results optimize(TargetSpeedParam param,
     arma::mat vertexMat = P*armat(X);
     Arrayd vertices = toArray(vertexMat);
     SCOPEDMESSAGE(INFO, stringFormat(" The data cost is %.7g",
-      evaluateDataCost(param, settings, vertices,
+      evaluateDataCost(settings, vertices,
       points)));
-    auto dataTerm = majorize(settings, param, points, vertices);
+    auto dataTerm = majorize(settings, points, vertices);
     auto cost = assembleLsqCost(P, reg, dataTerm);
     auto solution = NNLS::solve(toMDArray(cost.A),
         toArray(cost.B), false);
@@ -341,7 +332,7 @@ Results optimize(TargetSpeedParam param,
       .map<Velocity<double> >(
       [&](double x) {
         return Velocity<double>::knots(x);
-      })), evaluateDataCost(param, settings, vertices, points),
+      })), evaluateDataCost(settings, vertices, points),
       settings, vertices};
 }
 
@@ -399,7 +390,7 @@ Settings optimizeParameters(TargetSpeedParam param,
     // on the full set.
     double totalCost = 0;
     for (auto result: splitResults) {
-      totalCost += evaluateDataCost(param, settings, result.rawVerticesKnots, processedPoints);
+      totalCost += evaluateDataCost(settings, result.rawVerticesKnots, processedPoints);
     }
     SCOPEDMESSAGE(INFO, stringFormat("  The objective function evaluates to %.6g", totalCost));
     return totalCost;

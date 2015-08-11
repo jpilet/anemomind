@@ -7,80 +7,10 @@
 #define CALIBRATEDNAV_H_
 
 #include "../PhysicalQuantity/PhysicalQuantity.h"
+#include <server/common/Optional.h>
 #include <cassert>
 
 namespace sail {
-
-// More powerful and safe than using nan
-// to indicate whether a value is defined or not.
-template <typename T>
-class DefinedValue {
- public:
-  DefinedValue() : _defined(false) {}
-  DefinedValue(T x) : _defined(true), _value(x) {}
-
-  // If a there is a public field
-  // in a class of type DefinedValue,
-  // calling this operator on that field
-  // gives the feel of calling an accessor of the class.
-  T operator()() const {
-    assert(_defined); // <-- only active in debug mode.
-    return _value;
-  }
-
-  T get(T defaultValue) const {
-    return (_defined? _value : defaultValue);
-  }
-
-  void set(T x) {
-    _defined = true;
-    _value = x;
-  }
-
-  void setOnce(T x) {
-    assert(!_defined);
-    set(x);
-  }
-
-  template <typename S>
-  DefinedValue<S> applyFun(std::function<S(T)> fun) const {
-    if (_defined) {
-      return DefinedValue<S>(fun(_value));
-    }
-    return DefinedValue<S>();
-  }
-
-  template <typename S>
-  DefinedValue<S> applyFun(std::function<S(T, T)> fun, const DefinedValue<S> &other) const {
-    if (_defined && other._defined) {
-      return DefinedValue<S>(fun(_value, other._value));
-    }
-    return DefinedValue<S>();
-  }
-
-  DefinedValue<T> operator+(const DefinedValue<T> &other) const {
-    return applyFun<T>([&](T a, T b) {return a + b;}, other);
-  }
-
-  DefinedValue<T> operator-(const DefinedValue<T> &other) const {
-    return applyFun<T>([&](T a, T b) {return a - b;}, other);
-  }
-
-  bool defined() const {return _defined;}
-  bool undefined() const {return !_defined;}
-
-  const DefinedValue<T> &otherwise(const DefinedValue<T> &other) const {
-    if (_defined) {
-      return *this;
-    }
-    return other;
-  }
- private:
-  bool _defined;
-  T _value;
-};
-
-
 
 /*
  * The purpose of this class
@@ -111,9 +41,9 @@ class CalibratedNav {
  public:
   CalibratedNav() {}
 
-  typedef DefinedValue<Angle<T> > DefinedAngle;
-  typedef DefinedValue<Velocity<T> > DefinedVelocity;
-  typedef DefinedValue<HorizontalMotion<T> > DefinedMotion;
+  typedef Optional<Angle<T> > DefinedAngle;
+  typedef Optional<Velocity<T> > DefinedVelocity;
+  typedef Optional<HorizontalMotion<T> > DefinedMotion;
 
   // InstrumentAbstraction can for instance be a Nav.
   template <typename InstrumentAbstraction>
@@ -149,35 +79,35 @@ class CalibratedNav {
    *
    * Extra nice-to-have accessors
    */
-  DefinedValue<Angle<T> > twdirOverGround() const {
+  Optional<Angle<T> > twdirOverGround() const {
     if (trueWindOverGround.defined()) {
       return trueWindOverGround().angle() + Angle<T>::degrees(T(180));
     }
-    return DefinedValue<Angle<T> >();
+    return Optional<Angle<T> >();
   }
 
-  DefinedValue<Velocity<T> > twsOverGround() const {
+  Optional<Velocity<T> > twsOverGround() const {
     if (trueWindOverGround.defined()) {
       return trueWindOverGround().norm();
     }
-    return DefinedValue<Velocity<T> >();
+    return Optional<Velocity<T> >();
   }
 
-  DefinedValue<HorizontalMotion<T> > motionRelativeToBoat(const HorizontalMotion<T> &x) const {
+  Optional<HorizontalMotion<T> > motionRelativeToBoat(const HorizontalMotion<T> &x) const {
     if (gpsMotion.defined()) {
       return x - gpsMotion();
     }
-    return DefinedValue<HorizontalMotion<T> >();
+    return Optional<HorizontalMotion<T> >();
   }
 
-  DefinedValue<Angle<T> > angleRelativeToBoat(const Angle<T> &x) const {
+  Optional<Angle<T> > angleRelativeToBoat(const Angle<T> &x) const {
     if (boatOrientation.defined()) {
       return x - boatOrientation();
     }
-    return DefinedValue<Angle<T> >();
+    return Optional<Angle<T> >();
   }
 
-  DefinedValue<HorizontalMotion<T> > trueWindOverWater() const {
+  Optional<HorizontalMotion<T> > trueWindOverWater() const {
     return trueWindOverGround - trueCurrentOverGround;
   }
 };

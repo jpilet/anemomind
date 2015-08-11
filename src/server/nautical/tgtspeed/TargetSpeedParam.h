@@ -16,13 +16,20 @@
 
 namespace sail {
 
-// Parameterization of target speed function.
+// Parameterization of a function that maps TWA and TWS to boat speed.
+// This function is parameterized using a set of non-negative parameters,
+// that map to so called vertices. The vertices are boat speeds at different grid
+// points in a polar coordinate system. An actual function, for a particular
+// set of parameters, is a TargetSpeedFunction.
 class TargetSpeedParam {
  public:
   TargetSpeedParam(bool symmetric, bool squaredRadius,
       int totalAngleCount, int totalRadiusCount,
       Velocity<double> maxWindVelocity);
 
+  // Indexing of radii in the grid. Indices are from 0 to _totalRadiusCount-1.
+  // This function converts an index to a corresponding radius in the grid.
+  // See also angleIndexToWindAngle for the analogous function in angular direction.
   template <typename T>
   Velocity<T> radiusIndexToWindSpeed(T index) const {
     static_assert(!std::is_integral<T>::value, "Must not be integral");
@@ -37,6 +44,9 @@ class TargetSpeedParam {
     return T(-1);
   }
 
+  // Indexing of angles in the grid. Indices are from 0 to _totalAngleCount-1.
+  // This function converts an index to a corresponding angle.
+  // See also radiusIndexToWindIndex for the analogous function in the radial direction.
   template <typename T>
   Angle<T> angleIndexToWindAngle(T index) const {
     static_assert(!std::is_integral<T>::value, "Must not be integral");
@@ -45,12 +55,16 @@ class TargetSpeedParam {
 
   template <typename T>
   T windAngleToAngleIndex(Angle<T> windAngle) const {
-    return positiveMod<T>(windAngle/_angleFactor, _totalAngleCount);
+    auto frac = windAngle/_angleFactor;
+    if (std::isnan(frac)) {
+      return frac;
+    }
+    return positiveMod<T>(frac, _totalAngleCount);
   }
 
   template <typename T>
   T distortRadius(T x) const {
-    return x*(_squaredRadius? x : 1.0);
+    return _squaredRadius? x*x : x;
   }
 
   template <typename T>
@@ -71,7 +85,11 @@ class TargetSpeedParam {
   }
 
   int calcCellIndex(int angleIndex, int radiusIndex) const {
-    return angleIndex + angleCellCount()*radiusIndex;
+    if (0 <= angleIndex && angleIndex < _totalAngleCount &&
+        0 <= radiusIndex && radiusIndex < _totalRadiusCount) {
+      return angleIndex + angleCellCount()*radiusIndex;
+    }
+    return -1;
   }
 
   int angleParamCount() const;
@@ -88,47 +106,43 @@ class TargetSpeedParam {
   int calcRadiusParamIndex(int radiusIndex) const;
   int calcAngleParamIndex(int angleIndex) const;
 
-  struct Loc {
-   double angleIndex, radiusIndex;
+  // Used for the same purpose as barycentric coordinates
+  // to encode features on a 3d surface to be reconstructed.
+  // In our case, each face on the surface has four corners,
+  // so using bilinear interpolation is natural. We use this
+  // to encode the TWA and TWS from TargetSpeedPoint. Then we
+  // use the computed indices and weights in order to interpolate
+  // a boat speed.
+  struct BilinearWeights {
+   BilinearWeights();
    int cellIndex;
 
+   int inds[4];
+   double weights[4];
+
+
    bool valid() const {
-     return 0 <= angleIndex && 0 <= radiusIndex;
+     return 0 <= cellIndex;
+   }
+
+   template <typename T>
+   T eval(const Array<T> &X) const {
+     return weights[0]*X[inds[0]] + weights[1]*X[inds[1]] +
+         weights[2]*X[inds[2]] + weights[3]*X[inds[3]];
    }
   };
 
-  Loc calcLoc(Angle<double> windAngle, Velocity<double> windSpeed) const {
-    double speedIndex = windSpeedToRadiusIndex(windSpeed);
-    if (speedIndex < 0) {
-      return Loc{-1, -1, -1};
-    }
-    double angleIndex = windAngleToAngleIndex(windAngle);
-    return Loc{angleIndex, speedIndex, calcCellIndex(int(angleIndex), int(speedIndex))};
+  BilinearWeights calcBilinearWeights(Angle<double> windAngle, Velocity<double> windSpeed) const;
+
+  BilinearWeights calcBilinearWeights(HorizontalMotion<double> motion) const {
+    return calcBilinearWeights(motion.angle(), motion.norm());
   }
 
-  Loc calcLoc(HorizontalMotion<double> motion) const {
-    return calcLoc(motion.angle(), motion.norm());
-  }
+  int calcVertexLinearCombination(double angleIndex, double radiusIndex,
+      int *outInds, double *outWeights) const;
 
-  void calcVertexLinearCombination(Loc l, int *outInds, double *outWeights) const;
-
-  template <typename T>
-  T interpolate(const Loc &loc, Array<T> vertices) const {
-    int inds[4] = {-1, -1, -1, -1};
-    double weights[4] = {0, 0, 0, 0};
-    calcVertexLinearCombination(loc, inds, weights);
-    auto result = weights[0]*vertices[inds[0]];
-    for (int i = 1; i < 4; i++) {
-      result = result + weights[i]*vertices[inds[i]];
-    }
-    return result;
-  }
-
-  template <typename T>
-  T interpolate(Angle<double> angle, Velocity<double> speed,
-      Array<T> vertices) const {
-    return interpolate(calcLoc(angle, speed), vertices);
-  }
+  int calcVertexLinearCombination(Angle<double> angle, Velocity<double> radius,
+      int *outInds, double *outWeights) const;
 
   int calcVertexIndex(int angleIndex, int radiusIndex) const;
   int calcParamIndex(int angleParamIndex, int radiusParamIndex) const;
@@ -141,8 +155,6 @@ class TargetSpeedParam {
       return params[index];
     }
   }
-
-
 
   template <typename T>
   T lookUpVertex(Array<T> vertices, int angleIndex, int radiusIndex) const {
@@ -183,19 +195,21 @@ class TargetSpeedParam {
   arma::mat assembleReg(Array<SubReg> regs, int order) const;
 
 
-  MDArray2d samplePolarCurve2d(Arrayd vertices,
-      Velocity<double> windSpeed, int sampleCount = 120) const;
 
-  MDArray2d samplePolarCurve3d(Arrayd vertices,
-      Velocity<double> windSpeed, int sampleCount = 120) const;
-
-  Array<MDArray2d> samplePolarCurves(Arrayd vertices, bool dims3) const;
 
   Array<MatrixElementd> makeNonNegativeVertexParam() const;
   MDArray2d makeNonNegativeVertexParamMatrix() const;
   Arrayd initializeNonNegativeParams() const;
 
   TargetSpeedParam();
+
+  int totalAngleCount() const {
+    return _totalAngleCount;
+  }
+
+  int totalRadiusCount() const {
+    return _totalRadiusCount;
+  }
  private:
   int _totalAngleCount, _totalRadiusCount;
   Velocity<double> _maxWindSpeed, _windFactor;
@@ -209,7 +223,9 @@ class TargetSpeedFunction {
   TargetSpeedFunction() {}
   TargetSpeedFunction(TargetSpeedParam param,
       Array<Velocity<double> > vertices);
+
   bool defined() const;
+
   const Array<Velocity<double> > &vertices() const {return _vertices;}
   const TargetSpeedParam &param() const {return _param;}
 
@@ -218,12 +234,20 @@ class TargetSpeedFunction {
 
   void outputNorthSailsTable(std::ostream *out) const;
 
-  Array<MDArray2d> samplePolarCurves(bool dims3,
-      Velocity<double> unit = Velocity<double>::knots(1.0)) const;
+  Array<MDArray2d> samplePolarCurves(bool dims3) const;
 
   void plotPolarCurves(
       bool dims3, Velocity<double> unit
         = Velocity<double>::knots(1.0)) const;
+
+
+  MDArray2d samplePolarCurve2d(
+      Velocity<double> windSpeed, int sampleCount = 60) const;
+
+  MDArray2d samplePolarCurve3d(
+      Velocity<double> windSpeed, int sampleCount = 60) const;
+
+  Velocity<double> calcBoatSpeed(Angle<double> windAngle, Velocity<double> windSpeed) const;
  private:
   TargetSpeedParam _param;
   Array<Velocity<double> > _vertices;

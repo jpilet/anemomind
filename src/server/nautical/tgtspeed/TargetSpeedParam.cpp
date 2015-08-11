@@ -41,6 +41,14 @@ int TargetSpeedParam::calcRadiusParamIndex(int radiusIndex) const {
   return radiusIndex - 1;
 }
 
+TargetSpeedParam::BilinearWeights::BilinearWeights() {
+  cellIndex = -1;
+  for (int i = 0; i < 4; i++) {
+    inds[i] = -1;
+    weights[i] = NAN;
+  }
+}
+
 int TargetSpeedParam::calcAngleParamIndex(int angleIndex) const {
   int temp = positiveMod<int>(angleIndex, _totalAngleCount) - 1;
   if (_symmetric) {
@@ -151,65 +159,18 @@ arma::mat TargetSpeedParam::assembleReg(Array<SubReg> regs, int order) const {
   return dst;
 }
 
-void dispLoc(TargetSpeedParam p, Angle<double> a, Velocity<double> s) {
-  auto l = p.calcLoc(a, s);
-  Arrayi inds(4);
-  Arrayd weights(4);
-  p.calcVertexLinearCombination(l, inds.ptr(), weights.ptr());
-  std::cout << "LOC:\n";
-  std::cout << EXPR_AND_VAL_AS_STRING(inds) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(weights) << std::endl;
-}
 
-MDArray2d TargetSpeedParam::samplePolarCurve2d(Arrayd vertices,
+MDArray2d TargetSpeedFunction::samplePolarCurve2d(
     Velocity<double> windSpeed, int sampleCount) const {
   LineKM angle(0, sampleCount-1, 0.0, 360.0);
   MDArray2d xy(sampleCount, 2);
   for (int i = 0; i < sampleCount; i++) {
     auto alpha = Angle<double>::degrees(angle(i));
 
-    auto boatSpeed = interpolate(alpha, windSpeed, vertices);
+    auto boatSpeed = _param.calcBilinearWeights(alpha, windSpeed).eval(_vertices);
     auto motion = HorizontalMotion<double>::polar(windSpeed, alpha);
-    //auto boatSpeed2 = interpolate(-alpha, windSpeed, vertices);
-    auto boatSpeed2 = interpolate(calcLoc(motion), vertices);
-    auto err = std::abs(boatSpeed - boatSpeed2);
-    if (err > 1.0e-6) {
-      auto alpha2 = motion.angle(); // + Angle<double>::degrees(360);
-      auto alpha3 = motion.angle();
-      auto windSpeed2 = motion.norm();
-      std::cout << "--------------ERROR!!!!" << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(windSpeed) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(windSpeed2) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(alpha - alpha2) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(windSpeed - windSpeed2) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(_totalAngleCount) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(_totalRadiusCount) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(calcVertexIndex(2, 0)) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(calcVertexIndex(2, 1)) << std::endl;
-      dispLoc(*this, alpha, windSpeed);
-      dispLoc(*this, alpha2, windSpeed2);
-      /*std::cout << EXPR_AND_VAL_AS_STRING(windSpeed2 - motion.norm()) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(boatSpeed) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(boatSpeed2) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(windSpeed) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(alpha) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(alpha2) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(alpha - alpha2) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(interpolate(alpha2, windSpeed, vertices)) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(interpolate(alpha3, windSpeed, vertices)) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(motion.angle()) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(motion.norm()) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(interpolate(motion.angle(), motion.norm(), vertices)) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(interpolate(alpha2, motion.norm(), vertices)) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(interpolate(alpha2, windSpeed2, vertices)) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(interpolate(calcLoc(motion), vertices)) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(err) << std::endl;*/
-      assert(false);
-
-    }
-
     auto pt = HorizontalMotion<double>::polar(
-        Velocity<double>::knots(boatSpeed),
+        boatSpeed,
         alpha);
     xy(i, 0) = pt[0].knots();
     xy(i, 1) = pt[1].knots();
@@ -217,7 +178,7 @@ MDArray2d TargetSpeedParam::samplePolarCurve2d(Arrayd vertices,
   return xy;
 }
 
-MDArray2d TargetSpeedParam::samplePolarCurve3d(Arrayd vertices,
+MDArray2d TargetSpeedFunction::samplePolarCurve3d(
     Velocity<double> windSpeed, int sampleCount) const {
   LineKM angle(0, sampleCount-1, 0.0, 360.0);
   MDArray2d xyz(sampleCount, 3);
@@ -227,26 +188,41 @@ MDArray2d TargetSpeedParam::samplePolarCurve3d(Arrayd vertices,
     xyz(i, 0) = motion[0].knots();
     xyz(i, 1) = motion[1].knots();
 
-    auto z = interpolate(calcLoc(alpha, windSpeed), vertices);
-    auto z2 = interpolate(calcLoc(-alpha, windSpeed), vertices);
-    auto err = std::abs(z - z2);
-    if (err > 1.0e-6) {
-      std::cout << EXPR_AND_VAL_AS_STRING(err) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(z) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(z2) << std::endl;
-    }
-
-    xyz(i, 2) = z;
+    auto z = _param.calcBilinearWeights(alpha, windSpeed).eval(_vertices);
+    xyz(i, 2) = z.knots();
   }
   return xyz;
 }
 
-void TargetSpeedParam::calcVertexLinearCombination(Loc l,
+
+
+
+TargetSpeedParam::BilinearWeights TargetSpeedParam::calcBilinearWeights(Angle<double> windAngle,
+  Velocity<double> windSpeed) const {
+  BilinearWeights bw;
+  bw.cellIndex = calcVertexLinearCombination(windAngle, windSpeed, bw.inds, bw.weights);
+  return bw;
+}
+
+int TargetSpeedParam::calcVertexLinearCombination(
+    Angle<double> angle, Velocity<double> radius,
     int *outInds, double *outWeights) const {
-    int angleIndex = int(floor(l.angleIndex));
-    double angleFrac = l.angleIndex - angleIndex;
-    int radiusIndex = int(floor(l.radiusIndex));
-    double radiusFrac = l.radiusIndex - radiusIndex;
+  return calcVertexLinearCombination(windAngleToAngleIndex(angle),
+      windSpeedToRadiusIndex(radius), outInds, outWeights);
+}
+
+
+int TargetSpeedParam::calcVertexLinearCombination(
+    double angleIndex0, double radiusIndex0,
+    int *outInds, double *outWeights) const {
+    int angleIndex = int(floor(angleIndex0));
+    double angleFrac = angleIndex0 - angleIndex;
+    int radiusIndex = int(floor(radiusIndex0));
+    double radiusFrac = radiusIndex0 - radiusIndex;
+    int cellIndex = calcCellIndex(angleIndex, radiusIndex);
+    if (cellIndex == -1) {
+      return cellIndex;
+    }
     outInds[0] = calcVertexIndex(angleIndex + 0, radiusIndex + 0);
     outInds[1] = calcVertexIndex(angleIndex + 0, radiusIndex + 1);
     outInds[2] = calcVertexIndex(angleIndex + 1, radiusIndex + 0);
@@ -255,14 +231,15 @@ void TargetSpeedParam::calcVertexLinearCombination(Loc l,
     outWeights[1] = (1.0 - angleFrac)*radiusFrac;
     outWeights[2] = angleFrac*(1.0 - radiusFrac);
     outWeights[3] = angleFrac*radiusFrac;
+    return cellIndex;
 }
 
-Array<MDArray2d> TargetSpeedParam::samplePolarCurves(Arrayd vertices, bool dims3) const {
-  int count = _totalRadiusCount - 2;
+Array<MDArray2d> TargetSpeedFunction::samplePolarCurves(bool dims3) const {
+  int count = _param.totalRadiusCount() - 2;
   Array<MDArray2d> curves(count);
   for (int i = 0; i < count; i++) {
-    auto windSpeed = radiusIndexToWindSpeed(double(i + 1));
-    curves[i] = (dims3? samplePolarCurve3d(vertices, windSpeed) : samplePolarCurve2d(vertices, windSpeed));
+    auto windSpeed = _param.radiusIndexToWindSpeed(double(i + 1));
+    curves[i] = (dims3? samplePolarCurve3d(windSpeed) : samplePolarCurve2d(windSpeed));
   }
   return curves;
 }
@@ -321,7 +298,7 @@ void TargetSpeedFunction::outputTextTable(Array<Angle<double> > windAngles,
   for (auto angle: windAngles) {
     outputTWALabel(angle, dst);
     for (auto speed: windSpeeds) {
-      auto bs = _param.interpolate(angle, speed, _vertices);
+      auto bs = _param.calcBilinearWeights(angle, speed).eval(_vertices);
       outputValue(bs.knots(), dst);
     }
     *dst << "\n";
@@ -334,24 +311,21 @@ void TargetSpeedFunction::outputNorthSailsTable(std::ostream *out) const {
   outputTextTable(windAngles, windSpeeds, out);
 }
 
-Array<MDArray2d> TargetSpeedFunction::samplePolarCurves(bool dims3,
-    Velocity<double> unit) const {
-    return _param.samplePolarCurves(
-        _vertices.map<double>([&](Velocity<double> x) {
-          return x/unit;
-        }), dims3);
-}
-
 
 void TargetSpeedFunction::plotPolarCurves(
     bool dims3, Velocity<double> unit) const {
-  auto curves = samplePolarCurves(dims3, unit);
+  auto curves = samplePolarCurves(dims3);
   GnuplotExtra plot;
   plot.set_style("lines");
   for (int i = 0; i < curves.size(); i++) {
     plot.plot(curves[i]);
   }
   plot.show();
+}
+
+Velocity<double> TargetSpeedFunction::calcBoatSpeed(Angle<double> windAngle,
+    Velocity<double> windSpeed) const {
+    return _param.calcBilinearWeights(windAngle, windSpeed).eval(_vertices);
 }
 
 

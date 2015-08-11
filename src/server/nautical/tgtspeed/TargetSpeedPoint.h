@@ -92,7 +92,7 @@ class TargetSpeedPoint {
     return HorizontalMotion<double>::polar(_windSpeed, _windAngle);
   }
 
-  DefinedValue<double> stability() const {
+  Optional<double> stability() const {
     assert(_defined);
     return _stability;
   }
@@ -105,7 +105,7 @@ class TargetSpeedPoint {
   Velocity<double> _boatSpeed;
   Velocity<double> _windSpeed;
   Angle<double> _windAngle;
-  DefinedValue<double> _stability;
+  Optional<double> _stability;
 };
 
 Array<Velocity<double> > getBoatSpeeds(Array<TargetSpeedPoint> x);
