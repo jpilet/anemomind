@@ -473,4 +473,5 @@ cxx_test(nautical_SessionsTest
          SessionsTest.cpp
          gtest_main
          nautical_Sessions
+         nautical_TestdataNavs
         )                     

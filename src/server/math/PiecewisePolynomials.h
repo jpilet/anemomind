@@ -74,6 +74,22 @@ struct Piece {
 
 namespace INTERNAL {
         template <int N>
+        std::ostream &disp(std::ostream &s, QuadForm<N, 1> q) {
+          s << "QuadForm " << Arrayd(q.pDims, q._P) << " " << Arrayd(q.qDims, q._Q) << " " << Arrayd(q.rDims, q._R) << std::endl;
+          return s;
+        }
+
+        inline std::ostream &operator<<(std::ostream &s, QuadForm<2, 1> q) {
+          return disp<2>(s, q);
+        }
+
+        inline std::ostream &operator<<(std::ostream &s, QuadForm<1, 1> q) {
+          return disp<1>(s, q);
+        }
+
+
+
+        template <int N>
         MDArray2d calcCoefs(QuadForm<N, 1> quad) {
           return (getReg<N>() + quad).minimize();
         }
@@ -175,11 +191,26 @@ namespace INTERNAL {
             // when we approximate the signal between 'left' and 'right'
             // with a single straight line instead of two straight lines
             // divided at 'middle'
-            _increase = evalFitness(_itg, _left, _right)
-                - evalFitness(_itg, _left, _middle) - evalFitness(_itg, _middle, _right);
+            auto after =  evalFitness(_itg, _left, _right);
+            auto before = evalFitness(_itg, _left, _middle) + evalFitness(_itg, _middle, _right);
+            _increase = after - before;
 
             // For a coarser approximation, we always expect an increase.
-            assert(-1.0e-9 <= _increase);
+            if (!(-1.0e2 <= _increase)) {
+              std::cout << EXPR_AND_VAL_AS_STRING(_left) << std::endl;
+              std::cout << EXPR_AND_VAL_AS_STRING(_middle) << std::endl;
+              std::cout << EXPR_AND_VAL_AS_STRING(_right) << std::endl;
+              auto a = _itg.integrate(_left, _middle);
+              auto b = _itg.integrate(_middle, _right);
+              auto c = _itg.integrate(_left, _right);
+              disp(std::cout, a);
+              disp(std::cout, b);
+              disp(std::cout, c);
+              std::cout << EXPR_AND_VAL_AS_STRING(_increase) << std::endl;
+              std::cout << EXPR_AND_VAL_AS_STRING(before) << std::endl;
+              std::cout << EXPR_AND_VAL_AS_STRING(after) << std::endl;
+              assert(false);
+            }
           }
         };
 

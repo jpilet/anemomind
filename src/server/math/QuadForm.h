@@ -251,7 +251,7 @@ class QuadForm {
   T qElement(int i, int j) const {
     return _Q[calcQIndex(i, j)];
   }
- private:
+ //private:
   void fillPArray(MDArray<T, 2> dst) const {
     assert(dst.rows() == lhsDims);
     assert(dst.cols() == lhsDims);
