@@ -6,6 +6,7 @@
 #include <server/nautical/TemporalSplit.h>
 #include <cassert>
 #include <server/common/logging.h>
+#include <server/common/Histogram.h>
 
 namespace sail {
 
@@ -78,6 +79,29 @@ Array<Spani> recursiveTemporalSplit(Array<Nav> sortedNavs,
     return dst.get();
 }
 
+Array<Duration<double> > getDifs(Array<Nav> navs) {
+  int n = navs.size() - 1;
+  Array<Duration<double> > difs(n);
+  for (int i = 0; i < n; i++) {
+    difs[i] = navs[i+1].time() - navs[i].time();
+  }
+  return difs;
+}
+
+
+
+void dispHist(Array<Nav> navs, int binCount) {
+  auto minDur = Duration<double>::seconds(0.001);
+  auto maxDur = Duration<double>::days(3);
+  auto durs = getDifs(navs);
+  HistogramMap<double, false> m(binCount, log(minDur.seconds()), log(maxDur.seconds()));
+  auto logDurs = durs.map<double>([&](Duration<double> x) {return log(x.seconds());});
+  Arrayi countPerBin = m.countPerBin(logDurs);
+  for (int i = 0; i < m.binCount(); i++) {
+    std::cout << "From " << exp(m.toLeftBound(i)) << " seconds to " << exp(m.toRightBound(i)) << " seconds: " << countPerBin[i] << std::endl;
+  }
+}
+
 void dispTemporalRaceOverview(Array<Spani> spans, Array<Nav> navs, std::ostream *out) {
   int spanCount = spans.size();
   for (int i = 0; i < spans.size(); i++) {
@@ -95,6 +119,7 @@ void dispTemporalRaceOverview(Array<Spani> spans, Array<Nav> navs, std::ostream 
     }
   }
   *out << "Total of " << spanCount << " race episodes." << std::endl;
+  dispHist(navs, 30);
 }
 
 
