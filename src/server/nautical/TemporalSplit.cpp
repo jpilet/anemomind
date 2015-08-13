@@ -84,9 +84,11 @@ void dispTemporalRaceOverview(Array<Spani> spans, Array<Nav> navs, std::ostream 
     Spani span = spans[i];
     Array<Nav> sub = navs.slice(span.minv(), span.maxv());
     *out << "[" << span.minv() << ", " << span.maxv() << "[" << std::endl;
-    *out << "   from     " << sub.first().time().toString() << std::endl;
-    *out << "   duration " << (sub.last().time() - sub.first().time()).str() << std::endl;
-    *out << "   to     " << sub.last().time().toString() << '\n' << std::endl;
+    *out << "   from          " << sub.first().time().toString() << std::endl;
+    *out << "   duration      " << (sub.last().time() - sub.first().time()).str() << std::endl;
+    *out << "   to            " << sub.last().time().toString() << std::endl;
+    Duration<double> periodTime = (1.0/sub.size())*(sub.last().time() - sub.first().time());
+    *out << "   period time   " << (periodTime).seconds() << " seconds\n" << std::endl;
     if (i < spans.size()-1) {
       Duration<double> gap = navs[spans[i+1].minv()].time() - sub.last().time();
       *out << "Gap of " << gap.str() << '\n' << std::endl;

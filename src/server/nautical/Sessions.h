@@ -17,7 +17,7 @@ namespace Sessions {
 
 struct Session {
  Array<Nav> navs;
- Duration<double> averageSamplingPeriod, offset;
+ Duration<double> averageSamplingPeriod, offset, rms;
 };
 
 Array<Session> segment(Array<Nav> navs, Duration<double> maxRms);

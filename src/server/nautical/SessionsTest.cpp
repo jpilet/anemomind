@@ -12,7 +12,7 @@ using namespace sail;
 using namespace sail::Sessions;
 
 TEST(SessionsTest, TestIrene) {
-  auto sessions = segment(getTestdataNavs(), Duration<double>::seconds(12));
+  auto sessions = segment(getTestdataNavs(), Duration<double>::seconds(2));
   std::cout << EXPR_AND_VAL_AS_STRING(sessions) << std::endl;
 }
 

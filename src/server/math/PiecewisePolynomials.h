@@ -41,6 +41,17 @@ namespace INTERNAL {
     static QuadForm<N, 1> reg = QuadForm<N, 1>::makeReg(1.0e-9);
     return reg;
   }
+
+  template <int N>
+  MDArray2d calcCoefs(QuadForm<N, 1> quad) {
+    return (getReg<N>() + quad).minimize();
+  }
+
+  template <int N>
+  double evalQF(const QuadForm<N, 1> &qf) {
+    auto coefs = calcCoefs(qf);
+    return qf.eval(coefs.ptr());
+  }
 }
 
 // This is a piece in the optimal segmentation.
@@ -70,35 +81,13 @@ struct Piece {
   QuadForm<N, 1> regularized() const {
     return quadCost + INTERNAL::getReg<N>();
   }
+
+  double cost() const {
+    return INTERNAL::evalQF<N>(quadCost);
+  }
 };
 
 namespace INTERNAL {
-        template <int N>
-        std::ostream &disp(std::ostream &s, QuadForm<N, 1> q) {
-          s << "QuadForm " << Arrayd(q.pDims, q._P) << " " << Arrayd(q.qDims, q._Q) << " " << Arrayd(q.rDims, q._R) << std::endl;
-          return s;
-        }
-
-        inline std::ostream &operator<<(std::ostream &s, QuadForm<2, 1> q) {
-          return disp<2>(s, q);
-        }
-
-        inline std::ostream &operator<<(std::ostream &s, QuadForm<1, 1> q) {
-          return disp<1>(s, q);
-        }
-
-
-
-        template <int N>
-        MDArray2d calcCoefs(QuadForm<N, 1> quad) {
-          return (getReg<N>() + quad).minimize();
-        }
-
-        template <int N>
-        double evalQF(const QuadForm<N, 1> &qf) {
-          auto coefs = calcCoefs(qf);
-          return qf.eval(coefs.ptr());
-        }
 
         template <int N>
         double evalFitness(Integral1d<QuadForm<N, 1> > itg, int from, int to) {
@@ -194,23 +183,9 @@ namespace INTERNAL {
             auto after =  evalFitness(_itg, _left, _right);
             auto before = evalFitness(_itg, _left, _middle) + evalFitness(_itg, _middle, _right);
             _increase = after - before;
-
-            // For a coarser approximation, we always expect an increase.
-            if (!(-1.0e2 <= _increase)) {
-              std::cout << EXPR_AND_VAL_AS_STRING(_left) << std::endl;
-              std::cout << EXPR_AND_VAL_AS_STRING(_middle) << std::endl;
-              std::cout << EXPR_AND_VAL_AS_STRING(_right) << std::endl;
-              auto a = _itg.integrate(_left, _middle);
-              auto b = _itg.integrate(_middle, _right);
-              auto c = _itg.integrate(_left, _right);
-              disp(std::cout, a);
-              disp(std::cout, b);
-              disp(std::cout, c);
-              std::cout << EXPR_AND_VAL_AS_STRING(_increase) << std::endl;
-              std::cout << EXPR_AND_VAL_AS_STRING(before) << std::endl;
-              std::cout << EXPR_AND_VAL_AS_STRING(after) << std::endl;
-              assert(false);
-            }
+            // We would like to check that the increase is non-negative with an assertion,
+            // but that may be a bad idea due to cancellation effects making that number inaccurate.
+            // the final result may despite this still be useful.
           }
         };
 
