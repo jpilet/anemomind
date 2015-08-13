@@ -52,5 +52,11 @@ Array<Session> segment(Array<Nav> navs, Duration<double> maxRms) {
   return dst.get();
 }
 
+std::ostream &operator<<(std::ostream &dst, const Session &x) {
+  dst << "Session of " << x.navs.size() << " navs from " << x.navs.first().time()
+      << " to " << x.navs.last().time() << " sampled with a period of " << x.averageSamplingPeriod.seconds() << " seconds." << std::endl;
+  return dst;
+}
+
 }
 }

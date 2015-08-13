@@ -465,3 +465,12 @@ add_library(nautical_Sessions
             Sessions.h
             Sessions.cpp
            )                     
+
+target_link_libraries(nautical_Sessions
+                      math_LU
+                     )
+cxx_test(nautical_SessionsTest
+         SessionsTest.cpp
+         gtest_main
+         nautical_Sessions
+        )                     

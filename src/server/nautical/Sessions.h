@@ -9,6 +9,8 @@
 #define SERVER_NAUTICAL_SESSIONS_H_
 
 #include <server/nautical/Nav.h>
+#include <server/nautical/TestdataNavs.h>
+#include <iosfwd>
 
 namespace sail {
 namespace Sessions {
@@ -19,6 +21,8 @@ struct Session {
 };
 
 Array<Session> segment(Array<Nav> navs, Duration<double> maxRms);
+
+std::ostream &operator<<(std::ostream &dst, const Session &x);
 
 }
 }
