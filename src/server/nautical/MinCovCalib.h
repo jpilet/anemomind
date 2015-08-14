@@ -15,7 +15,12 @@ namespace sail {
 namespace MinCovCalib {
 
 struct Settings {
+  Settings() : balanced(false) {}
   SignalCovariance::Settings covarianceSettings;
+
+  // The various signal pairs are balanced against each other,
+  // based on averaged standard deviations.
+  bool balanced;
 };
 
 Corrector<double> optimize(Array<Nav> navs, Settings s);

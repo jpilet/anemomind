@@ -44,6 +44,11 @@ struct Settings {
   T abs(T x) const {
     return smoothNonNegAbs2(x, T(absThresh));
   }
+
+  template <typename T>
+  T calcWeight(T xVar, T yVar) const {
+    return 1.0/sqrt(this->abs(xVar*yVar));
+  }
 };
 
 
@@ -179,13 +184,13 @@ void evaluateResiduals(T globalWeight, // The global weight can be 1.0/(sigmaX*s
   for (int i = 0; i < windowCount; i++) {
     int from = i;
     int to = from + s.windowSize;
-    T weight = globalWeight*T(calcSpanWeight(time, from, to));
+    T weight = T(calcSpanWeight(time, from, to));
     int index = int(floor(sampleToResidual(i)));
     (*residuals)[index] += weight*s.abs(
         calcLocalCovariance(X, Y, itgXY, from, to));
   }
   for (int i = 0; i < residualCount; i++) {
-    (*residuals)[i] = sqrt((*residuals)[i]);
+    (*residuals)[i] = sqrt(globalWeight*(*residuals)[i]);
   }
 }
 

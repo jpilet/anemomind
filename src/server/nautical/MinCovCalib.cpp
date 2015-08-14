@@ -96,10 +96,24 @@ class Objf {
         SignalData<T>(_times, getSpeedsKnots(cnavs, false, 1), cs)
     };
 
+
     T variances[2] = {
         quants[0].variance + quants[1].variance,
         quants[2].variance + quants[3].variance
      };
+
+    T weights[2] = {
+        cs.calcWeight(orientations.variance, variances[0]),
+        cs.calcWeight(orientations.variance, variances[1])
+    };
+    T weightSum = weights[0] + weights[1];
+
+    if (_settings.balanced) {
+      stringstream ss;
+      ss << "Wind weight: " << weights[0] << "\n";
+      ss << "Current weight: " << weights[1] << "\n";
+      SCOPEDMESSAGE(INFO, ss.str());
+    }
 
     const char* labels[4] = {"windX", "windY", "currentX", "currentY"};
 
@@ -107,8 +121,7 @@ class Objf {
       auto span = getSpan(i);
       Array<T> dst = residuals.slice(span.minv(), span.maxv());
       auto data = quants[i];
-      auto globalWeight = T(1.0)/sqrt(cs.abs(orientations.variance*variances[i/2]));
-      std::cout << EXPR_AND_VAL_AS_STRING(globalWeight) << std::endl;
+      auto globalWeight = (_settings.balanced? weights[i/2]/weightSum : T(1.0));
       evaluateResiduals(globalWeight, orientations, data, cs, &dst);
     }
     return true;
