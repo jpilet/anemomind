@@ -34,27 +34,6 @@ TEST(SignalCovariance, Test0) {
   s.windowSize = 4;
   s.maxResidualCount = 1;
 
-  Arrayd xx = slidingWindowCovariances(time, X, X, s);
-
-  EXPECT_EQ(xx.size(), 1);
-
-  // Due to normalization, doubling one of the signals should not change much.
-  Arrayd xx2 = slidingWindowCovariances(time, X, X2, s);
-
-  // Try with a signal that where we expect less covariance.
-  Arrayd xw = slidingWindowCovariances(time, X, W, s);
-  EXPECT_LT(xw[0], xx[0]);
-  // But not negligible covariance:
-  EXPECT_LT(0.01, xw[0]);
-
-  // No covariance. It will not be exactly 0 due to the positive number added to ensure the square
-  // root is not applied close to 0.
-  Arrayd xy = slidingWindowCovariances(time, X, Y, s);
-  EXPECT_NEAR(xy[0], 0.0, 1.0e-3);
-
-  // No covariance.
-  Arrayd xz = slidingWindowCovariances(time, X, Z, s);
-  EXPECT_NEAR(xz[0], 0.0, 1.0e-3);
 
   SignalData<double> xData(time, X, s);
   SignalData<double> x2Data(time, X2, s);
@@ -62,18 +41,9 @@ TEST(SignalCovariance, Test0) {
   //auto stdX = slidingWindowStandardDeviation(time, X, X2)
 }
 
-
-// Make sure that the result has the right length
-TEST(SignalCovariance, Lengths) {
-  Settings s;
-  s.windowSize = 4;
-  s.maxResidualCount = 3;
-
-  auto T = Spani(0, 8).map<double>([&](int i) {return double(i);});
-  auto X = Arrayd::fill(6, 1);
-  auto Y = Arrayd::fill(8, 1);
-  auto Xres = slidingWindowCovariances(T.sliceTo(6), X, X, s);
-  auto Yres = slidingWindowCovariances(T, Y, Y, s);
-  EXPECT_EQ(Xres.size(), 2);
-  EXPECT_EQ(Yres.size(), 3);
+TEST(SignalCovariance, Test1) {
+  EXPECT_NEAR(smoothNonNegAbs(3.0, 2.0), 3.0, 1.0e-6);
+  EXPECT_NEAR(smoothNonNegAbs(-3.0, 2.0), 3.0, 1.0e-6);
+  EXPECT_NEAR(smoothNonNegAbs(-1.0, 2.0), smoothNonNegAbs(1.0, 2.0), 1.0e-6);
+  EXPECT_NEAR(smoothNonNegAbs(1.999999999, 2.0), smoothNonNegAbs(2.0000001, 2.0), 1.0e-4);
 }

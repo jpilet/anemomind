@@ -98,11 +98,10 @@ class Objf {
     for (int i = 0; i < 4; i++) {
       auto span = getSpan(i);
       Array<T> dst = residuals.slice(span.minv(), span.maxv());
-      auto tmp = SignalCovariance::slidingWindowCovariancesToArray<T>(
-          _times, orientations, quants[i], _settings.covarianceSettings,
-          &dst);
+//      auto tmp = SignalCovariance::slidingWindowCovariancesToArray<T>(
+//          _times, orientations, quants[i], _settings.covarianceSettings,
+//          &dst);
 
-      std::cout << "Stddev for " << labels[i] << ": " <<  tmp.stdY() << std::endl;
     }
     return true;
   }
