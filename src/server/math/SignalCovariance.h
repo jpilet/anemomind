@@ -58,16 +58,20 @@ namespace INTERNAL {
     }
 
     T stdX() const {
-      return sqrt(sumVarsX/weight);
+      return sqrt(sumVarsX/regularizedWeight());
     }
 
     T stdY() const {
-      return sqrt(sumVarsY/weight);
+      return sqrt(sumVarsY/regularizedWeight());
     }
 
     T normalizationFactor() const {
       // Add small number to avoid division by zero if one signal is very constant.
       return 1.0/(stdX()*stdY() + 1.0e-9);
+    }
+
+    double regularizedWeight() const {
+      return fabs(weight) + 1.0e-9;
     }
   };
 

@@ -44,7 +44,8 @@ TEST(SignalCovariance, Test0) {
   // But not negligible covariance:
   EXPECT_LT(0.01, xw[0]);
 
-  // No covariance
+  // No covariance. It will not be exactly 0 due to the positive number added to ensure the square
+  // root is not applied close to 0.
   Arrayd xy = slidingWindowCovariances(time, X, Y, s);
   EXPECT_NEAR(xy[0], 0.0, 1.0e-3);
 
