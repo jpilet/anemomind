@@ -27,10 +27,19 @@ angular.module('www2App')
     function loadSessionsForBoat(boat) {
       $http.get('/api/tiles/raw/0/0/0/' + boat._id)
       .success(function(data, status, headers, config) {
+        sessionsForBoats[boat._id] = [];
+
+        // This object is used to de-duplicate sessions.
+        // sessions should not be duplicated on the server.
+        // However, if they are, duplicates should be ignored here.
+        var startTimes = {};
+
         for (var i in data) {
           var element = data[i];
-          if (!(element.boat in sessionsForBoats)) sessionsForBoats[element.boat] = [];
-          sessionsForBoats[element.boat].push(data[i]);
+          if (!(element.startTime in startTimes)) {
+            sessionsForBoats[element.boat].push(element);
+            startTimes[element.startTime] = true;
+          }
           for (var c in element.curves) {
             var curve = element.curves[c];
             if (curve.curveId in curves) {
