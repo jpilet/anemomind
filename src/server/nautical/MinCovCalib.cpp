@@ -102,7 +102,8 @@ class Objf {
       auto span = getSpan(i);
       Array<T> dst = residuals.slice(span.minv(), span.maxv());
       auto data = quants[i];
-      auto globalWeight = calcGlobalWeight(orientations, data, cs);
+      //auto globalWeight = calcGlobalWeight(orientations, data, cs);
+      auto globalWeight = T(1.0);
       evaluateResiduals(globalWeight, orientations, data, cs, &dst);
     }
     return true;
