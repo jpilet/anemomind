@@ -367,52 +367,6 @@ target_link_libraries(nautical_RaceOverview
                      )
                       
                       
-add_executable(nautical_CalibrationDemo
-               CalibrationDemo.cpp
-              )
-                                                                                 
-target_link_libraries(nautical_CalibrationDemo
-                      nautical_AutoCalib
-                      common_ArgMap
-                      nautical_TestdataNavs
-                      nautical_synthtest_NavalSimulation
-                     )
-                     
-add_library(nautical_AutoCalib
-            AutoCalib.h
-            AutoCalib.cpp
-           )
-           
-target_link_libraries(nautical_AutoCalib
-                      nautical_FilteredNavData
-                      math_armaadolc
-                     )
-                     
-
-
-
-
-
-add_library(nautical_DecorrCalib
-            DecorrCalib.h
-            DecorrCalib.cpp
-           )
-target_link_libraries(nautical_DecorrCalib
-                      nautical_FilteredNavData
-                     )
-                     
-target_depends_on_ceres(nautical_DecorrCalib)
-
-add_executable(nautical_DecorrCalibDemo
-               DecorrCalibDemo.cpp
-              )
-target_link_libraries(nautical_DecorrCalibDemo
-                      nautical_DecorrCalib
-                      nautical_FilteredNavData
-                      nautical_synthtest_NavalSimulationPrecomp
-                      common_ArgMap
-                     )
-target_depends_on_ceres(nautical_AutoCalib)
 
 
 add_library(nautical_NKEParser

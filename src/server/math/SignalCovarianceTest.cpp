@@ -12,7 +12,13 @@ using namespace sail::SignalCovariance;
 
 // Make sure that the value of a residual is reasonable
 TEST(SignalCovariance, Test0) {
+
+  // The time of each sample.
   Arrayd time{0, 1, 2, 3, 4};
+
+  // The signals. Only the first four values are used.
+  // However, we use the last time sample in the time signal
+  // to determine the weight.
   Arrayd X{0, 0, 1, 1, 1};
   Arrayd X2{0, 0, 2, 2, 2};
   Arrayd W{0, 0, 0, 1, 1};
