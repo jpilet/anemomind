@@ -7,7 +7,10 @@
 #define SERVER_MATH_SIGNALCOVARIANCE_H_
 
 #include <server/math/Integral1d.h>
+#include <server/common/LineKM.h>
+#include <server/common/math.h>
 #include <cassert>
+#include <iostream>
 
 namespace sail {
 namespace SignalCovariance {
@@ -33,16 +36,17 @@ namespace INTERNAL {
   template <typename T>
   struct LocalCovariance {
     LocalCovariance() : weight(0), sumVarsX(0), sumVarsY(0), sumCovsXY(0) {}
+    LocalCovariance(T w, T x, T y, T xy) : weight(w), sumVarsX(x), sumVarsY(y), sumCovsXY(xy) {}
     T weight;
     T sumVarsX, sumVarsY; // For normalization
     T sumCovsXY; // The covariance
 
     LocalCovariance<T> operator+(const LocalCovariance<T> &other) const {
-      return LocalCovariance<T>{
+      return LocalCovariance<T>(
         weight + other.weight,
         sumVarsX + other.sumVarsX,
         sumVarsY + other.sumVarsY,
-        sumCovsXY + other.sumCovsXY};
+        sumCovsXY + other.sumCovsXY);
     }
 
     T stdX() const {
@@ -54,12 +58,25 @@ namespace INTERNAL {
     }
 
     T normalizationFactor() const {
-      return 1.0/(stdX()*stdY());
+      // Add small number to avoid division by zero if one signal is very constant.
+      return 1.0/(stdX()*stdY() + 1.0e-9);
     }
   };
 
+  template <typename T>
+  std::ostream &operator<<(std::ostream &s, const LocalCovariance<T> &x) {
+    std::cout << "LocalCov (weight=" << x.weight << ", sumVarsX=" << x.sumVarsX
+        << ", sumVarsY=" << x.sumVarsY << ", sumCovsXY=" << x.sumCovsXY << ")\n";
+        return s;
+  }
+
+  /*
+   * The shorter the time span across which we estimate covariance and vars,
+   * the greater the density of the samples. We give more weight to window
+   * positions with greater sampling density.
+   */
   inline double calcSpanWeight(const Arrayd &time, int from, int to) {
-    return 1.0/(time[to-1] - time[from]);
+    return 1.0/(time[to] - time[from]);
   }
 
   template <typename T>
@@ -106,7 +123,7 @@ Array<T> slidingWindowCovariances(Arrayd time, Array<T> X,
   Integral1d<T> itgY(Y);
   Integral1d<T> itgY2(elementwiseMul(Y, Y));
   Integral1d<T> itgXY(elementwiseMul(X, Y));
-  int windowPositionCount = time.size() - s.windowSize + 1;
+  int windowPositionCount = time.size() - s.windowSize;
   Array<LocalCovariance<T> > covs(windowPositionCount);
 
   int residualCount = std::min(windowPositionCount, s.maxResidualCount);
@@ -138,7 +155,7 @@ Array<T> slidingWindowCovariances(Arrayd time, Array<T> X,
     // minimize the sum of squared residuals.
     constexpr double positivityOffset = 1.0e-6;
 
-    dst[i] = sqrt(dst[i]*f2 + positivityOffset);
+    dst[i] = sqrt(dst[i]*f + positivityOffset);
   }
 
   return dst;
