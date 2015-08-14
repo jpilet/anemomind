@@ -32,7 +32,7 @@ struct Settings {
   }
 };
 
-namespace INTERNAL {
+
   template <typename T>
   Array<T> elementwiseMul(Array<T> X, Array<T> Y) {
     int n = X.size();
@@ -91,7 +91,7 @@ namespace INTERNAL {
    * positions with greater sampling density.
    */
   inline double calcSpanWeight(const Arrayd &time, int from, int to) {
-    return 1.0/((to - from)*(time[to] - time[from]));
+    return 1.0/(time[to] - time[from]);
   }
 
   template <typename T>
@@ -126,14 +126,58 @@ namespace INTERNAL {
       w*calcSumCovs(from, to, itgX, itgY, itgXY)
     );
   }
-}
+
+  template <typename T>
+  struct WeightedValue {
+   WeightedValue() : weight(T(0.0)), weightedValue(T(0.0)) {}
+   WeightedValue(T w, T v) : weight(w), weightedValue(w*v) {}
+
+   T weight, weightedValue;
+
+   T average() const {
+     return weightedValue/weight;
+   }
+
+   WeightedValue<T> operator+(const WeightedValue<T> &other) const {
+     return WeightedValue<T>{weight + other.weight,
+       weightedValue + other.weightedValue};
+   }
+  };
+
+
+  template <typename T>
+  WeightedValue<T> calcLocalWeightedVariance(Arrayd time,
+      Integral1d<T> X, Integral1d<T> X2, int from, int to) {
+    T weight = calcSpanWeight(time, from, to);
+    auto meanSquaredValue = X2.average(from, to);
+    auto meanValue = X.average(from, to);
+    return WeightedValue<T>(weight, meanSquaredValue - sqr(meanValue));
+  }
+
+  template <typename T>
+  T slidingWindowVariance(Arrayd time, Integral1d<T> X, Integral1d<T> X2, int windowSize) {
+    WeightedValue<T> sum{0, 0};
+    int windowCount = time.size() - windowSize;
+    for (int i = 0; i < windowCount; i++) {
+      int from = i;
+      int to = from + windowSize;
+      sum = sum + calcLocalWeightedVariance(time, X, X2, from, to);
+    }
+    return sum.average();
+  }
+
+  template <typename T>
+  T slidingWindowStandardDeviation(Arrayd time, Integral1d<T> X, Integral1d<T> X2, int windowSize) {
+    return sqrt(slidingWindowVariance(time, X, X2, windowSize));
+  }
+
 
 
 // For use in objective functions where we penalize local covariances using a sliding window.
 template <typename T>
-INTERNAL::LocalCovariance<T> slidingWindowCovariancesToArray(Arrayd time, Array<T> X,
+LocalCovariance<T> slidingWindowCovariancesToArray(Arrayd time, Array<T> X,
     Array<T> Y, Settings s, Array<T> *dst) {
-  using namespace INTERNAL;
+
   int n = time.size();
   assert(n == X.size());
   Integral1d<T> itgX(X);
