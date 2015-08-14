@@ -1,0 +1,156 @@
+/*
+ *  Created on: 2015
+ *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
+ */
+
+#ifndef SERVER_MATH_SIGNALCOVARIANCE_H_
+#define SERVER_MATH_SIGNALCOVARIANCE_H_
+
+#include <server/math/Integral1d.h>
+#include <cassert>
+
+namespace sail {
+namespace SignalCovariance {
+
+struct Settings {
+  Settings() : windowSize(30), maxResidualCount(100) {}
+  int windowSize;
+  int maxResidualCount;
+};
+
+namespace INTERNAL {
+  template <typename T>
+  Array<T> elementwiseMul(Array<T> X, Array<T> Y) {
+    int n = X.size();
+    assert(n == Y.size());
+    Array<T> XY(n);
+    for (int i = 0; i < n; i++) {
+      XY[i] = X[i]*Y[i];
+    }
+    return XY;
+  }
+
+  template <typename T>
+  struct LocalCovariance {
+    LocalCovariance() : weight(0), sumVarsX(0), sumVarsY(0), sumCovsXY(0) {}
+    T weight;
+    T sumVarsX, sumVarsY; // For normalization
+    T sumCovsXY; // The covariance
+
+    LocalCovariance<T> operator+(const LocalCovariance<T> &other) const {
+      return LocalCovariance<T>{
+        weight + other.weight,
+        sumVarsX + other.sumVarsX,
+        sumVarsY + other.sumVarsY,
+        sumCovsXY + other.sumCovsXY};
+    }
+
+    T stdX() const {
+      return sqrt(sumVarsX/weight);
+    }
+
+    T stdY() const {
+      return sqrt(sumVarsY/weight);
+    }
+
+    T normalizationFactor() const {
+      return 1.0/(stdX()*stdY());
+    }
+  };
+
+  inline double calcSpanWeight(const Arrayd &time, int from, int to) {
+    return 1.0/(time[to-1] - time[from]);
+  }
+
+  template <typename T>
+  T calcSumVars(int from, int to, Integral1d<T> itgX, Integral1d<T> itgX2) {
+    int n = to - from;
+    T mu = itgX.average(from, to);
+    return itgX2.integrate(from, to) - 2.0*mu*itgX.integrate(from, to) + n*sqr(mu);
+  }
+
+  template <typename T>
+  T calcSumCovs(int from, int to, Integral1d<T> itgX, Integral1d<T> itgY, Integral1d<T> itgXY) {
+    T muX = itgX.average(from, to);
+    T muY = itgY.average(from, to);
+    int n = to - from;
+    return itgXY.integrate(from, to) - muY*itgX.integrate(from, to) - muX*itgY.integrate(from, to)
+        + n*muX*muY;
+  }
+
+  template <typename T>
+  LocalCovariance<T> calcLocalCovariance(int from, int to, const Arrayd &time,
+      const Integral1d<T> &itgX,
+      const Integral1d<T> &itgX2,
+      const Integral1d<T> &itgY,
+      const Integral1d<T> &itgY2,
+      const Integral1d<T> &itgXY) {
+    return LocalCovariance<T>{
+      calcSpanWeight(time, from, to),
+      calcSumVars(from, to, itgX, itgX2),
+      calcSumVars(from, to, itgY, itgY2),
+      calcSumCovs(from, to, itgX, itgY, itgXY)
+    };
+  }
+}
+
+
+// For use in objective functions where we penalize local covariances using a sliding window.
+template <typename T>
+Array<T> slidingWindowCovariances(Arrayd time, Array<T> X,
+    Array<T> Y, Settings s) {
+  using namespace INTERNAL;
+  assert(time.size() == X.size());
+  Integral1d<T> itgX(X);
+  Integral1d<T> itgX2(elementwiseMul(X, X));
+  Integral1d<T> itgY(Y);
+  Integral1d<T> itgY2(elementwiseMul(Y, Y));
+  Integral1d<T> itgXY(elementwiseMul(X, Y));
+  int windowPositionCount = time.size() - s.windowSize + 1;
+  Array<LocalCovariance<T> > covs(windowPositionCount);
+
+  int residualCount = std::min(windowPositionCount, s.maxResidualCount);
+  Array<T> dst = Array<T>::fill(residualCount, T(0));
+  LineKM toResidualIndex(0, windowPositionCount, 0, residualCount);
+  LocalCovariance<T> totalSum;
+  for (int i = 0; i < windowPositionCount; i++) {
+    int from = i;
+    int to = from + s.windowSize;
+    auto x = calcLocalCovariance(from, to, time, itgX, itgX2, itgY, itgY2, itgXY);
+    totalSum = totalSum + x;
+    int index = int(floor(toResidualIndex(i)));
+
+    // The covariances of neighboring window positions are accumulated in
+    // common residuals, so that the residual vector (and Jacobian) doesn't
+    // become too large. Since
+    dst[index] += sqr(x.sumCovsXY);
+  }
+
+  // Squares it, because we have a sum of squared residuals.
+  T f = sqr(totalSum.normalizationFactor());
+  for (int i = 0; i < residualCount; i++) {
+
+    // Dirty hack: The sqrt function has derivatives
+    // approaching infinity close to 0. So add a positive
+    // number to the sum of residuals to make sure that
+    // we are not close to zero, before applying the square root.
+    // The effect of the square root will be cancelled, because we
+    // minimize the sum of squared residuals.
+    constexpr double positivityOffset = 1.0e-6;
+
+    dst[i] = sqrt(dst[i]*f2 + positivityOffset);
+  }
+
+  return dst;
+}
+
+
+
+
+
+}
+}
+
+
+
+#endif /* SERVER_MATH_SIGNALCOVARIANCE_H_ */
