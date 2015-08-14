@@ -44,7 +44,7 @@ TEST(SignalCovariance, Test0) {
 
   // No covariance
   Arrayd xy = slidingWindowCovariances(time, X, Y, s);
-  EXPECT_NEAR(xy[0], sqrt(1.0e-6), 1.0e-5);
+  EXPECT_NEAR(xy[0], 0.0, 1.0e-3);
 
   // No covariance.
   Arrayd xz = slidingWindowCovariances(time, X, Z, s);
