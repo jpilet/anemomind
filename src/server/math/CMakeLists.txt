@@ -262,6 +262,11 @@ cxx_test(math_StabilityTest
          math_Stability
         )
 
+cxx_test(math_SignalCovarianceTest
+         SignalCovarianceTest.cpp
+         gtest_main
+        )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
