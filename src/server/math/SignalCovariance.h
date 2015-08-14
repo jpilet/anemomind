@@ -20,6 +20,12 @@
 namespace sail {
 namespace SignalCovariance {
 
+template <typename T>
+bool isReasonable(T x) {
+  auto maxv = T(1.0e20);
+  return -maxv < x && x < maxv;
+}
+
 struct Settings {
   Settings() : windowSize(30), maxResidualCount(100), absThresh(1.0e-6) {}
   int windowSize;
@@ -64,7 +70,11 @@ inline double calcSpanWeight(const Arrayd &time, int from, int to) {
 template <typename T>
 struct WeightedValue {
  WeightedValue() : weight(T(0.0)), weightedValue(T(0.0)) {}
- WeightedValue(T w, T v) : weight(w), weightedValue(w*v) {}
+ WeightedValue(T w, T v) : weight(w), weightedValue(v) {}
+
+ static WeightedValue<T> weighted(T w, T v) {
+   return WeightedValue<T>(w, w*v);
+ }
 
  T weight, weightedValue;
 
@@ -73,8 +83,8 @@ struct WeightedValue {
  }
 
  WeightedValue<T> operator+(const WeightedValue<T> &other) const {
-   return WeightedValue<T>{weight + other.weight,
-     weightedValue + other.weightedValue};
+   return WeightedValue<T>(weight + other.weight,
+     weightedValue + other.weightedValue);
  }
 };
 
@@ -84,17 +94,22 @@ WeightedValue<T> calcLocalWeightedVariance(Arrayd time,
   T weight = T(calcSpanWeight(time, from, to));
   auto meanSquaredValue = X2.average(from, to);
   auto meanValue = X.average(from, to);
-  return WeightedValue<T>(weight, meanSquaredValue - sqr(meanValue));
+  return WeightedValue<T>::weighted(weight, meanSquaredValue - sqr(meanValue));
 }
 
 template <typename T>
 T slidingWindowVariance(Arrayd time, Integral1d<T> X, Integral1d<T> X2, int windowSize) {
   WeightedValue<T> sum{T(0), T(0)};
   int windowCount = time.size() - windowSize;
+
+  auto maxWeight = T(0);
+  auto maxWeightedValue = T(0);
   for (int i = 0; i < windowCount; i++) {
     int from = i;
     int to = from + windowSize;
-    sum = sum + calcLocalWeightedVariance(time, X, X2, from, to);
+
+    auto tmp = calcLocalWeightedVariance(time, X, X2, from, to);
+    sum = sum + tmp;
   }
   return sum.average();
 }
@@ -135,7 +150,7 @@ T calcLocalCovariance(SignalData<T> X, SignalData<T> Y, Integral1d<T> itgXY,
 
 template <typename T>
 T calcGlobalWeight(const SignalData<T> &X, const SignalData<T> &Y, Settings s) {
-  return 1.0/s.abs(X.standardDeviation()*Y.standardDeviation());
+  return 1.0/sqrt(s.abs(X.variance*Y.variance));
 }
 
 template <typename T>
@@ -166,8 +181,8 @@ void evaluateResiduals(T globalWeight, // The global weight can be 1.0/(sigmaX*s
     int to = from + s.windowSize;
     T weight = globalWeight*T(calcSpanWeight(time, from, to));
     int index = int(floor(sampleToResidual(i)));
-    (*residuals)[index] += s.abs(
-        weight*calcLocalCovariance(X, Y, itgXY, from, to));
+    (*residuals)[index] += weight*s.abs(
+        calcLocalCovariance(X, Y, itgXY, from, to));
   }
   for (int i = 0; i < residualCount; i++) {
     (*residuals)[i] = sqrt((*residuals)[i]);
