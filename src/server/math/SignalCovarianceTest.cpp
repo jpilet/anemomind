@@ -5,10 +5,12 @@
 
 #include <gtest/gtest.h>
 #include <server/math/SignalCovariance.h>
+#include <server/common/Span.h>
 
 using namespace sail;
 using namespace sail::SignalCovariance;
 
+// Make sure that the value of a residual is reasonable
 TEST(SignalCovariance, Test0) {
   Arrayd time{0, 1, 2, 3, 4};
   Arrayd X{0, 0, 1, 1, 1};
@@ -49,4 +51,20 @@ TEST(SignalCovariance, Test0) {
   // No covariance.
   Arrayd xz = slidingWindowCovariances(time, X, Z, s);
   EXPECT_NEAR(xz[0], 0.0, 1.0e-3);
+}
+
+
+// Make sure that the result has the right length
+TEST(SignalCovariance, Lengths) {
+  Settings s;
+  s.windowSize = 4;
+  s.maxResidualCount = 3;
+
+  auto T = Spani(0, 8).map<double>([&](int i) {return double(i);});
+  auto X = Arrayd::fill(6, 1);
+  auto Y = Arrayd::fill(8, 1);
+  auto Xres = slidingWindowCovariances(T.sliceTo(6), X, X, s);
+  auto Yres = slidingWindowCovariances(T, Y, Y, s);
+  EXPECT_EQ(Xres.size(), 2);
+  EXPECT_EQ(Yres.size(), 3);
 }

@@ -19,6 +19,14 @@ struct Settings {
   Settings() : windowSize(30), maxResidualCount(100) {}
   int windowSize;
   int maxResidualCount;
+
+  int calcWindowPositionCount(int sampleCount) const {
+    return sampleCount - windowSize;
+  }
+
+  int calcResidualCount(int sampleCount) const {
+    return std::min(calcWindowPositionCount(sampleCount), maxResidualCount);
+  }
 };
 
 namespace INTERNAL {
@@ -117,16 +125,18 @@ template <typename T>
 Array<T> slidingWindowCovariances(Arrayd time, Array<T> X,
     Array<T> Y, Settings s) {
   using namespace INTERNAL;
-  assert(time.size() == X.size());
+  int n = time.size();
+  assert(n == X.size());
   Integral1d<T> itgX(X);
   Integral1d<T> itgX2(elementwiseMul(X, X));
   Integral1d<T> itgY(Y);
   Integral1d<T> itgY2(elementwiseMul(Y, Y));
   Integral1d<T> itgXY(elementwiseMul(X, Y));
-  int windowPositionCount = time.size() - s.windowSize;
-  Array<LocalCovariance<T> > covs(windowPositionCount);
 
-  int residualCount = std::min(windowPositionCount, s.maxResidualCount);
+
+  int windowPositionCount = s.calcWindowPositionCount(n);
+  int residualCount = s.calcResidualCount(n);
+
   Array<T> dst = Array<T>::fill(residualCount, T(0));
   LineKM toResidualIndex(0, windowPositionCount, 0, residualCount);
   LocalCovariance<T> totalSum;
