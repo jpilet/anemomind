@@ -91,7 +91,7 @@ namespace INTERNAL {
    * positions with greater sampling density.
    */
   inline double calcSpanWeight(const Arrayd &time, int from, int to) {
-    return 1.0/(time[to] - time[from]);
+    return 1.0/((to - from)*(time[to] - time[from]));
   }
 
   template <typename T>
@@ -119,12 +119,11 @@ namespace INTERNAL {
       const Integral1d<T> &itgXY) {
     int n = to - from;
     auto w = T(calcSpanWeight(time, from, to));
-    auto wOverN = w/T(n);
     return LocalCovariance<T>(
       w,
-      wOverN*calcSumVars(from, to, itgX, itgX2),
-      wOverN*calcSumVars(from, to, itgY, itgY2),
-      wOverN*calcSumCovs(from, to, itgX, itgY, itgXY)
+      w*calcSumVars(from, to, itgX, itgX2),
+      w*calcSumVars(from, to, itgY, itgY2),
+      w*calcSumCovs(from, to, itgX, itgY, itgXY)
     );
   }
 }
