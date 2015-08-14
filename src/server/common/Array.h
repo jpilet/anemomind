@@ -450,15 +450,15 @@ class Array {
     return slice(from, _size);
   }
 
-  ThisType sliceTo(int to) {
+  ThisType sliceTo(int to) const {
     return slice(0, to);
   }
 
-  ThisType sliceLast(int n) {
+  ThisType sliceLast(int n) const {
     return sliceFrom(_size - n);
   }
 
-  ThisType sliceBut(int n) {
+  ThisType sliceBut(int n) const {
     return sliceTo(_size - n);
   }
 

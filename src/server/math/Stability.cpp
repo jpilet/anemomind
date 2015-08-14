@@ -23,7 +23,7 @@ struct Value {
 void getSpansAndValues(int signalIndex,
     Arrayd X, Arrayd Y, int sampleCount, LineKM sampleToX, int segmentCount,
     ArrayBuilder<Spani> *spansOut, ArrayBuilder<Value> *valuesOut) {
-    auto pieces = PiecewisePolynomials::optimize<1>(X, Y, sampleCount, sampleToX, segmentCount);
+    auto pieces = PiecewisePolynomials::optimizeForSegmentCount<1>(X, Y, sampleCount, sampleToX, segmentCount);
     int count = pieces.size();
     for (int i = 0; i < count; i++) {
       auto &piece = pieces[i];
