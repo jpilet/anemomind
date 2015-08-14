@@ -55,6 +55,11 @@ TEST(SignalCovariance, Test0) {
   // No covariance.
   Arrayd xz = slidingWindowCovariances(time, X, Z, s);
   EXPECT_NEAR(xz[0], 0.0, 1.0e-3);
+
+  SignalData<double> xData(time, X, s);
+  SignalData<double> x2Data(time, X2, s);
+  EXPECT_NEAR(2.0*xData.standardDeviation(), x2Data.standardDeviation(), 1.0e-6);
+  //auto stdX = slidingWindowStandardDeviation(time, X, X2)
 }
 
 

@@ -144,7 +144,6 @@ struct Settings {
    }
   };
 
-
   template <typename T>
   WeightedValue<T> calcLocalWeightedVariance(Arrayd time,
       Integral1d<T> X, Integral1d<T> X2, int from, int to) {
@@ -167,9 +166,20 @@ struct Settings {
   }
 
   template <typename T>
-  T slidingWindowStandardDeviation(Arrayd time, Integral1d<T> X, Integral1d<T> X2, int windowSize) {
-    return sqrt(slidingWindowVariance(time, X, X2, windowSize));
-  }
+  struct SignalData {
+   SignalData(Arrayd times, Array<T> signal, Settings s) :
+     itgX(signal), itgX2(elementwiseMul(signal, signal)) {
+     variance = slidingWindowVariance(times, itgX, itgX2, s.windowSize);
+   }
+
+   Array<T> X;
+   Integral1d<T> itgX, itgX2;
+   T variance;
+
+   T standardDeviation() const {
+     return sqrt(variance);
+   }
+  };
 
 
 
