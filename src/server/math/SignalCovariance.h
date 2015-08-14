@@ -172,6 +172,11 @@ struct Settings {
      variance = slidingWindowVariance(times, itgX, itgX2, s.windowSize);
    }
 
+   int sampleCount() const {
+     return time.size();
+   }
+
+   Arrayd time;
    Array<T> X;
    Integral1d<T> itgX, itgX2;
    T variance;
@@ -180,6 +185,23 @@ struct Settings {
      return sqrt(variance);
    }
   };
+
+  template <typename T>
+  void slidingWindowCovariancesToArray(T globalWeight, SignalData<T> X, SignalData<T> Y,
+      Settings s, Array<T> *residuals) {
+    int n = X.sampleCount();
+    assert(X.time.identicTo(Y.time));
+    int residualCount = s.calcResidualCount(n);
+    assert(residualCount == dst->size());
+    int windowCount = s.calcWindowPositionCount(n);
+    Integral1d<T> itgXY(elementwiseMul(X.X, Y.X));
+    Array<WeightedValue<T> > tmp(windowCount);
+    for (int i = 0; i < windowCount; i++) {
+      int from = i;
+      int to = from + s.windowSize;
+
+    }
+  }
 
 
 
