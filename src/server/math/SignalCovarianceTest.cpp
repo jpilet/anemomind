@@ -46,4 +46,5 @@ TEST(SignalCovariance, Test1) {
   EXPECT_NEAR(smoothNonNegAbs(-3.0, 2.0), 3.0, 1.0e-6);
   EXPECT_NEAR(smoothNonNegAbs(-1.0, 2.0), smoothNonNegAbs(1.0, 2.0), 1.0e-6);
   EXPECT_NEAR(smoothNonNegAbs(1.999999999, 2.0), smoothNonNegAbs(2.0000001, 2.0), 1.0e-4);
+  EXPECT_LT(0.5, smoothNonNegAbs(0.0, 2.0));
 }
