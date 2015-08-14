@@ -81,16 +81,19 @@ class Objf {
   template <typename T>
   bool eval(const Corrector<T> &corr, T *residualsPtr) const {
     ENTER_FUNCTION_SCOPE;
+    using namespace sail::SignalCovariance;
+    const auto &cs = _settings.covarianceSettings;
     Array<T> residuals(outDims(), residualsPtr);
     residuals.setTo(T(0));
     auto cnavs = correct(corr, _navs);
-    Array<T> orientations = getOrientationsDegs(cnavs);
+
+    SignalData<T> orientations(_times, getOrientationsDegs(cnavs), cs);
     assert(pairCount() == 4);
-    Array<T> quants[4] = {
-        getSpeedsKnots(cnavs, true, 0),
-        getSpeedsKnots(cnavs, true, 1),
-        getSpeedsKnots(cnavs, false, 0),
-        getSpeedsKnots(cnavs, false, 1)
+    SignalData<T> quants[4] = {
+        SignalData<T>(_times, getSpeedsKnots(cnavs, true, 0), cs),
+        SignalData<T>(_times, getSpeedsKnots(cnavs, true, 1), cs),
+        SignalData<T>(_times, getSpeedsKnots(cnavs, false, 0), cs),
+        SignalData<T>(_times, getSpeedsKnots(cnavs, false, 1), cs)
     };
 
     const char* labels[4] = {"windX", "windY", "currentX", "currentY"};
@@ -98,10 +101,9 @@ class Objf {
     for (int i = 0; i < 4; i++) {
       auto span = getSpan(i);
       Array<T> dst = residuals.slice(span.minv(), span.maxv());
-//      auto tmp = SignalCovariance::slidingWindowCovariancesToArray<T>(
-//          _times, orientations, quants[i], _settings.covarianceSettings,
-//          &dst);
-
+      auto data = quants[i];
+      auto globalWeight = calcGlobalWeight(orientations, data, cs);
+      evaluateResiduals(globalWeight, orientations, data, cs, &dst);
     }
     return true;
   }

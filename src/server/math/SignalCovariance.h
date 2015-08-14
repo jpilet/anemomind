@@ -14,15 +14,17 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/Progress.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/string.h>
 #include <cassert>
 
 namespace sail {
 namespace SignalCovariance {
 
 struct Settings {
-  Settings() : windowSize(20), maxResidualCount(100) {}
+  Settings() : windowSize(30), maxResidualCount(100), absThresh(1.0e-6) {}
   int windowSize;
   int maxResidualCount;
+  double absThresh;
 
   int calcWindowPositionCount(int sampleCount) const {
     return sampleCount - windowSize;
@@ -30,6 +32,11 @@ struct Settings {
 
   int calcResidualCount(int sampleCount) const {
     return std::min(calcWindowPositionCount(sampleCount), maxResidualCount);
+  }
+
+  template <typename T>
+  T abs(T x) const {
+    return smoothNonNegAbs2(x, T(absThresh));
   }
 };
 
@@ -43,18 +50,6 @@ Array<T> elementwiseMul(Array<T> X, Array<T> Y) {
     XY[i] = X[i]*Y[i];
   }
   return XY;
-}
-
-template <typename T>
-T smoothNonNegAbs(T x, T thresh = 0.001) {
-  if (x < 0) {
-    return smoothNonNegAbs(-x, thresh);
-  } else if (x < thresh) {
-    T a = 1.0/(2.0*thresh);
-    T b = 0.5*thresh;
-    return a*x*x + b;
-  }
-  return x;
 }
 
 /*
@@ -86,7 +81,7 @@ struct WeightedValue {
 template <typename T>
 WeightedValue<T> calcLocalWeightedVariance(Arrayd time,
     Integral1d<T> X, Integral1d<T> X2, int from, int to) {
-  T weight = calcSpanWeight(time, from, to);
+  T weight = T(calcSpanWeight(time, from, to));
   auto meanSquaredValue = X2.average(from, to);
   auto meanValue = X.average(from, to);
   return WeightedValue<T>(weight, meanSquaredValue - sqr(meanValue));
@@ -94,7 +89,7 @@ WeightedValue<T> calcLocalWeightedVariance(Arrayd time,
 
 template <typename T>
 T slidingWindowVariance(Arrayd time, Integral1d<T> X, Integral1d<T> X2, int windowSize) {
-  WeightedValue<T> sum{0, 0};
+  WeightedValue<T> sum{T(0), T(0)};
   int windowCount = time.size() - windowSize;
   for (int i = 0; i < windowCount; i++) {
     int from = i;
@@ -107,7 +102,7 @@ T slidingWindowVariance(Arrayd time, Integral1d<T> X, Integral1d<T> X2, int wind
 template <typename T>
 struct SignalData {
  SignalData(Arrayd times, Array<T> signal, Settings s) :
-   itgX(signal), itgX2(elementwiseMul(signal, signal)) {
+   time(times), X(signal), itgX(signal), itgX2(elementwiseMul(signal, signal)) {
    variance = slidingWindowVariance(times, itgX, itgX2, s.windowSize);
  }
 
@@ -128,27 +123,54 @@ struct SignalData {
 template <typename T>
 T calcLocalCovariance(SignalData<T> X, SignalData<T> Y, Integral1d<T> itgXY,
     int from, int to) {
+  // See https://en.wikipedia.org/wiki/Covariance :
+  //   Cov(X, Y) = E[XY] - E[X]E[Y]
+  assert(itgXY.size() == X.itgX.size());
+  assert(itgXY.size() == Y.itgX.size());
+  assert(from < to);
+  assert(0 <= from);
+  assert(to <= itgXY.size());
   return itgXY.average(from, to) - X.itgX.average(from, to)*Y.itgX.average(from, to);
 }
 
 template <typename T>
-void evaluateResiduals(T globalWeight, SignalData<T> X, SignalData<T> Y,
+T calcGlobalWeight(const SignalData<T> &X, const SignalData<T> &Y, Settings s) {
+  return 1.0/s.abs(X.standardDeviation()*Y.standardDeviation());
+}
+
+template <typename T>
+void evaluateResiduals(T globalWeight, // The global weight can be 1.0/(sigmaX*sigmaY) for normalization.
+    SignalData<T> X, SignalData<T> Y,
     Settings s, Array<T> *residuals) {
   int n = X.sampleCount();
   auto time = X.time;
   assert(time.identicTo(Y.time));
   int residualCount = s.calcResidualCount(n);
-  assert(residualCount == residuals->size());
-  int windowCount = s.calcWindowPositionCount(n);
+
   Integral1d<T> itgXY(elementwiseMul(X.X, Y.X));
+
+  /*std::cout << EXPR_AND_VAL_AS_STRING(residualCount) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(residuals->size()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(X.itgX.size()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(Y.itgX.size()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(itgXY.size()) << std::endl;*/
+
+  assert(residualCount == residuals->size());
+
+  int windowCount = s.calcWindowPositionCount(n);
   Array<WeightedValue<T> > tmp(windowCount);
   LineKM sampleToResidual(0, windowCount, 0, residualCount);
+  residuals->setTo(T(0.0));
   for (int i = 0; i < windowCount; i++) {
     int from = i;
     int to = from + s.windowSize;
-    T weight = T(calcSpanWeight(time, from, to));
+    T weight = globalWeight*T(calcSpanWeight(time, from, to));
     int index = int(floor(sampleToResidual(i)));
-    (*residuals[index]) += weight*sqr(globalWeight*calcLocalCovariance(X, Y, itgXY, from, to));
+    (*residuals)[index] += s.abs(
+        weight*calcLocalCovariance(X, Y, itgXY, from, to));
+  }
+  for (int i = 0; i < residualCount; i++) {
+    (*residuals)[i] = sqrt((*residuals)[i]);
   }
 }
 
