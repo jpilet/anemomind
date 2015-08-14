@@ -198,3 +198,7 @@ display:inline-block;
     border-radius: 0;
     color:#fff;
 }
+
+.indicator-label, .indicator-value {
+  font-size: 40pt;
+}
