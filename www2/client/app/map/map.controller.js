@@ -122,8 +122,37 @@ angular.module('www2App')
       return $scope.plotData[bounds[s]];
     };
 
+    function getPointValue(keys) {
+      if ($scope.currentPoint == undefined) {
+        return undefined;
+      }
+      for (var i in keys) {
+        var key = keys[i];
+        if (key in $scope.currentPoint) {
+          return $scope.currentPoint[key];
+        }
+      }
+      return undefined;
+    }
+
+    function twdir() {
+      var twa = getPointValue(['twa', 'externalTwa']);
+      if (twa == undefined) {
+        return twa;
+      }
+      var bearing = getPointValue(['gpsBearing']);
+      return bearing + twa;
+    }
+
     $scope.currentPoint = pointAtTime($scope.currentTime);
     $scope.$watch('currentTime', function(time) {
       $scope.currentPoint = pointAtTime(time);
+
+      $scope.vmgPerf = getPointValue(['devicePerf']);
+      $scope.twa = getPointValue(['twa', 'externalTwa']);
+      $scope.tws =  getPointValue(['twa', 'externalTws']);
+      $scope.gpsSpeed = getPointValue(['gpsSpeed']);
+      $scope.twdir = twdir();
+      $scope.gpsBearing = getPointValue(['gpsBearing']);
     });
 });
