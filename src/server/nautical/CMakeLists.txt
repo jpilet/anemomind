@@ -413,4 +413,10 @@ add_library(nautical_FlowErrors
            )              
 target_link_libraries(nautical_FlowErrors
                       common_MeanAndVar
-                     )            
+                     )     
+                     
+add_library(nautical_MinCovCalib
+            MinCovCalib.h
+            MinCovCalib.cpp
+           )
+target_depends_on_ceres(nautical_MinCovCalib)

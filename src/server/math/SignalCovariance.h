@@ -16,7 +16,7 @@ namespace sail {
 namespace SignalCovariance {
 
 struct Settings {
-  Settings() : windowSize(30), maxResidualCount(100) {}
+  Settings() : windowSize(20), maxResidualCount(100) {}
   int windowSize;
   int maxResidualCount;
 
@@ -70,8 +70,8 @@ namespace INTERNAL {
       return 1.0/(stdX()*stdY() + 1.0e-9);
     }
 
-    double regularizedWeight() const {
-      return fabs(weight) + 1.0e-9;
+    T regularizedWeight() const {
+      return abs(weight) + 1.0e-9;
     }
   };
 
@@ -93,7 +93,7 @@ namespace INTERNAL {
 
   template <typename T>
   T calcSumVars(int from, int to, Integral1d<T> itgX, Integral1d<T> itgX2) {
-    int n = to - from;
+    T n = T(to - from);
     T mu = itgX.average(from, to);
     return itgX2.integrate(from, to) - 2.0*mu*itgX.integrate(from, to) + n*sqr(mu);
   }
@@ -102,7 +102,7 @@ namespace INTERNAL {
   T calcSumCovs(int from, int to, Integral1d<T> itgX, Integral1d<T> itgY, Integral1d<T> itgXY) {
     T muX = itgX.average(from, to);
     T muY = itgY.average(from, to);
-    int n = to - from;
+    T n = T(to - from);
     return itgXY.integrate(from, to) - muY*itgX.integrate(from, to) - muX*itgY.integrate(from, to)
         + n*muX*muY;
   }
@@ -114,20 +114,20 @@ namespace INTERNAL {
       const Integral1d<T> &itgY,
       const Integral1d<T> &itgY2,
       const Integral1d<T> &itgXY) {
-    return LocalCovariance<T>{
-      calcSpanWeight(time, from, to),
+    return LocalCovariance<T>(
+      T(calcSpanWeight(time, from, to)),
       calcSumVars(from, to, itgX, itgX2),
       calcSumVars(from, to, itgY, itgY2),
       calcSumCovs(from, to, itgX, itgY, itgXY)
-    };
+    );
   }
 }
 
 
 // For use in objective functions where we penalize local covariances using a sliding window.
 template <typename T>
-Array<T> slidingWindowCovariances(Arrayd time, Array<T> X,
-    Array<T> Y, Settings s) {
+void slidingWindowCovariancesToArray(Arrayd time, Array<T> X,
+    Array<T> Y, Settings s, Array<T> *dst) {
   using namespace INTERNAL;
   int n = time.size();
   assert(n == X.size());
@@ -141,7 +141,7 @@ Array<T> slidingWindowCovariances(Arrayd time, Array<T> X,
   int windowPositionCount = s.calcWindowPositionCount(n);
   int residualCount = s.calcResidualCount(n);
 
-  Array<T> dst = Array<T>::fill(residualCount, T(0));
+  assert(dst->size() == residualCount);
   LineKM toResidualIndex(0, windowPositionCount, 0, residualCount);
   LocalCovariance<T> totalSum;
   for (int i = 0; i < windowPositionCount; i++) {
@@ -154,7 +154,7 @@ Array<T> slidingWindowCovariances(Arrayd time, Array<T> X,
     // The covariances of neighboring window positions are accumulated in
     // common residuals, so that the residual vector (and Jacobian) doesn't
     // become too large. Since
-    dst[index] += sqr(x.sumCovsXY);
+    (*dst)[index] += sqr(x.sumCovsXY);
   }
 
   // Squares it, because we have a sum of squared residuals.
@@ -169,11 +169,18 @@ Array<T> slidingWindowCovariances(Arrayd time, Array<T> X,
     // minimize the sum of squared residuals.
     constexpr double positivityOffset = 1.0e-6;
 
-    dst[i] = sqrt(dst[i]*f + positivityOffset);
+    (*dst)[i] = sqrt((*dst)[i]*f + positivityOffset);
   }
+}
 
+template <typename T>
+Array<T> slidingWindowCovariances(Arrayd time, Array<T> X,
+    Array<T> Y, Settings s) {
+  auto dst = Array<T>::fill(s.calcResidualCount(time.size()), T(0));
+  slidingWindowCovariancesToArray(time, X, Y, s, &dst);
   return dst;
 }
+
 
 
 
