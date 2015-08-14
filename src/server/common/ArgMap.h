@@ -22,8 +22,8 @@ class ArgMap {
   ArgMap();
 
 
-  enum Status {Continue, // no error, continue with the rest of the program
-               Error,    // parsing error or something.
+  enum Status {Error = 0,    // parsing error or something.
+               Continue, // no error, continue with the rest of the program
                Done};    // If the user displayed help, this is not an error, but the program should be done.
   Status parse(int argc, const char **argv);
 

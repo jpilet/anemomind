@@ -106,3 +106,9 @@ TEST(ArgMapTest, CallBack) {
   EXPECT_EQ(i, 2600);
   EXPECT_NEAR(3.23, d, 1e-6);
 }
+
+TEST(ArgMapTest, Truthiness) {
+  EXPECT_FALSE(ArgMap::Error);
+  EXPECT_TRUE(ArgMap::Continue);
+  EXPECT_TRUE(ArgMap::Done);
+}
