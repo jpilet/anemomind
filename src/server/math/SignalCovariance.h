@@ -11,6 +11,9 @@
 #include <server/common/math.h>
 #include <cassert>
 #include <iostream>
+#include <server/common/ScopedLog.h>
+#include <server/common/Progress.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 namespace SignalCovariance {
@@ -144,6 +147,7 @@ void slidingWindowCovariancesToArray(Arrayd time, Array<T> X,
   assert(dst->size() == residualCount);
   LineKM toResidualIndex(0, windowPositionCount, 0, residualCount);
   LocalCovariance<T> totalSum;
+  Progress prog(windowPositionCount);
   for (int i = 0; i < windowPositionCount; i++) {
     int from = i;
     int to = from + s.windowSize;
@@ -155,6 +159,10 @@ void slidingWindowCovariancesToArray(Arrayd time, Array<T> X,
     // common residuals, so that the residual vector (and Jacobian) doesn't
     // become too large. Since
     (*dst)[index] += sqr(x.sumCovsXY);
+    if (prog.endOfIteration()) {
+      auto mes = prog.iterationMessage();
+      std::cout << mes;
+    }
   }
 
   // Squares it, because we have a sum of squared residuals.
@@ -176,7 +184,7 @@ void slidingWindowCovariancesToArray(Arrayd time, Array<T> X,
 template <typename T>
 Array<T> slidingWindowCovariances(Arrayd time, Array<T> X,
     Array<T> Y, Settings s) {
-  auto dst = Array<T>::fill(s.calcResidualCount(time.size()), T(0));
+  auto dst = Array<T>::fill(s.calcResidualCount(time.size()), T(0.0));
   slidingWindowCovariancesToArray(time, X, Y, s, &dst);
   return dst;
 }

@@ -420,3 +420,14 @@ add_library(nautical_MinCovCalib
             MinCovCalib.cpp
            )
 target_depends_on_ceres(nautical_MinCovCalib)
+target_link_libraries(nautical_MinCovCalib
+                      common_Progress
+                     )
+
+add_executable(nautical_EvalMinCovCalib
+               EvalMinCovCalib.cpp
+              )
+target_link_libraries(nautical_EvalMinCovCalib
+                      nautical_MinCovCalib
+                      nautical_synthtest_NavalSimulationPrecomp
+                     )              

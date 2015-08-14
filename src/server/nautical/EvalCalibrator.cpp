@@ -35,7 +35,7 @@ namespace {
     auto bd = sim.boatData(0);
 
     Calibrator calib;
-    auto navs = bd.navs();
+    auto navs = bd.navs().sliceTo(3000);
 
     Corrector<double> calibratedParameters = calibrateFull(&calib, navs, Nav::debuggingBoatId());
 

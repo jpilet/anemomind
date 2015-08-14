@@ -120,11 +120,11 @@ Array<Dif> getDifs(Array<Nav> navs) {
   return difs;
 }
 
-class SplitNode {
+class NavSplitNode {
  public:
-  SplitNode(Array<Nav> navs) : _navs(navs), _span(0, navs.size()) {}
+  NavSplitNode(Array<Nav> navs) : _navs(navs), _span(0, navs.size()) {}
 
-  SplitNode(Array<Nav> navs, Spani span) : _navs(navs), _span(span) {}
+  NavSplitNode(Array<Nav> navs, Spani span) : _navs(navs), _span(span) {}
 
   bool isLeaf() const {
     return !bool(_left);
@@ -132,8 +132,8 @@ class SplitNode {
 
   void split(int index) {
     if (isLeaf()) {
-      _left = std::shared_ptr<SplitNode>(new SplitNode(_navs, Spani(_span.minv(), index)));
-      _right = std::shared_ptr<SplitNode>(new SplitNode(_navs, Spani(index, _span.maxv())));
+      _left = std::shared_ptr<NavSplitNode>(new NavSplitNode(_navs, Spani(_span.minv(), index)));
+      _right = std::shared_ptr<NavSplitNode>(new NavSplitNode(_navs, Spani(index, _span.maxv())));
     } else {
       if (index < _left->span().maxv()) {
         _left->split(index);
@@ -192,33 +192,15 @@ class SplitNode {
     return _span.minv() == 0 && _span.maxv() == _navs.size();
   }
 
-  Array<Duration<double> > getDescendingPeriodTimes(
-      ArrayBuilder<Duration<double> > *temp = nullptr) const {
-    if (isRoot() && temp == nullptr) {
-      ArrayBuilder<Duration<double> > durs;
-      getDescendingPeriodTimes(&durs);
-      auto result = durs.get();
-      std::sort(result.begin(), result.end(), std::greater<Duration<double> >());
-      return result;
-    } else {
-      if (!isLeaf()) {
-        temp->add(meanPeriodTime());
-        _left->getDescendingPeriodTimes(temp);
-        _right->getDescendingPeriodTimes(temp);
-      }
-      return Array<Duration<double> >();
-    }
-  }
-
  private:
   Spani _span;
   Array<Nav> _navs;
-  std::shared_ptr<SplitNode> _left, _right;
+  std::shared_ptr<NavSplitNode> _left, _right;
 };
 
-std::shared_ptr<SplitNode> makeSplitTree(Array<Nav> navs) {
+std::shared_ptr<NavSplitNode> makeSplitTree(Array<Nav> navs) {
   auto difs = getDifs(navs);
-  std::shared_ptr<SplitNode> result(new SplitNode(navs));
+  std::shared_ptr<NavSplitNode> result(new NavSplitNode(navs));
   for (auto dif: difs) {
     result->split(dif.index);
   }
@@ -243,11 +225,6 @@ void dispTemporalRaceOverview(Array<Spani> spans, Array<Nav> navs, std::ostream 
   }
   *out << "Total of " << spanCount << " race episodes." << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(getDifs(navs).sliceTo(180)) << std::endl;
-
-  auto tree = makeSplitTree(navs);
-  //tree->disp(&std::cout, Duration<double>::seconds(12));
-  //std::cout << EXPR_AND_VAL_AS_STRING(tree->getDescendingPeriodTimes().sliceTo(60)) << std::endl;
-
 }
 
 

@@ -265,6 +265,8 @@ cxx_test(math_StabilityTest
 cxx_test(math_SignalCovarianceTest
          SignalCovarianceTest.cpp
          gtest_main
+         common_Progress
+         common_ScopedLog
         )
 
 add_subdirectory(geometry)
