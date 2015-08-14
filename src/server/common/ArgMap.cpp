@@ -143,6 +143,7 @@ ArgMap::Status ArgMap::parse(int argc, const char **argv) {
     }
     return Continue;
   }
+  dispHelp(&(std::cout));
   return Error;
 }
 
