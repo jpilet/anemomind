@@ -117,11 +117,14 @@ namespace INTERNAL {
       const Integral1d<T> &itgY,
       const Integral1d<T> &itgY2,
       const Integral1d<T> &itgXY) {
+    int n = to - from;
+    auto w = T(calcSpanWeight(time, from, to));
+    auto wOverN = w/T(n);
     return LocalCovariance<T>(
-      T(calcSpanWeight(time, from, to)),
-      calcSumVars(from, to, itgX, itgX2),
-      calcSumVars(from, to, itgY, itgY2),
-      calcSumCovs(from, to, itgX, itgY, itgXY)
+      w,
+      wOverN*calcSumVars(from, to, itgX, itgX2),
+      wOverN*calcSumVars(from, to, itgY, itgY2),
+      wOverN*calcSumCovs(from, to, itgX, itgY, itgXY)
     );
   }
 }
