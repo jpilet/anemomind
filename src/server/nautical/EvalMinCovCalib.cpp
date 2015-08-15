@@ -7,6 +7,7 @@
 #include <server/nautical/MinCovCalib.h>
 #include <server/common/EnvUtil.h>
 #include <server/nautical/NavNmeaScan.h>
+#include <server/common/ArrayIO.h>
 
 using namespace sail;
 
@@ -44,25 +45,74 @@ SynthResults evaluateForSimulation() {
   };
 }
 
-void evaluateForRealData(std::string datasetPath) {
-  auto navs = splitNavsByDuration(
-      scanNmeaFolder(datasetPath, Nav::debuggingBoatId(), nullptr)
-        .slice(MinCovCalib::hasAllData), Duration<double>::hours(1.0));;
+struct SplitResults {
+  SplitResults(Corrector<double> aCorr, Corrector<double> bCorr,
+      Array<Nav> n) : a(aCorr), b(bCorr),
+      errors(compareCorrectors(aCorr, bCorr, n)),
+      navs(n) {}
+  SplitResults() {}
 
+  Corrector<double> a, b;
+  Array<Nav> navs;
+  WindCurrentErrors errors;
+};
+
+SplitResults evaluateForSplit(Array<Nav> navs) {
+  int middle = navs.middle();
+  MinCovCalib::Settings settings;
+  return SplitResults(
+    MinCovCalib::optimize(navs.sliceTo(middle), settings),
+    MinCovCalib::optimize(navs.sliceFrom(middle), settings),
+    navs
+  );
+}
+
+struct RealDataResults {
+ std::string datasetPath;
+ Array<SplitResults> results;
+};
+
+std::ostream &operator<<(std::ostream &s, RealDataResults x) {
+  s << "\n\n****** RESULTS ON REAL DATASET " << x.datasetPath << "******";
+  auto n = x.results.size();
+  for (int i = 0; i < n; i++) {
+    auto r = x.results[i];
+    s << "Result for subset " << i+1 << "/" << n << " of " << r.navs.size() << " navs.\n";
+    s << "Corrector for first  half: " << r.a.toArray() << std::endl;
+    s << "Corrector for second half: " << r.b.toArray() << std::endl;
+    s << "Cross validation errors:\n";
+    s << r.errors;
+    s << "\n";
+  }
+  return s;
+}
+
+RealDataResults evaluateForRealData(std::string datasetPath) {
+  ENTERSCOPE(stringFormat("Evaluating dataset %s", datasetPath.c_str()));
+  auto navs = scanNmeaFolder(datasetPath, Nav::debuggingBoatId(), nullptr)
+          .slice(MinCovCalib::hasAllData);
+  auto splits = splitNavsByDuration(navs, Duration<double>::hours(1.0));
+  SCOPEDMESSAGE(INFO, stringFormat("  Loaded %d navs.", navs.size()));
+  SCOPEDMESSAGE(INFO, stringFormat("  Split into %d groups", splits.size()));
+  return RealDataResults{
+    datasetPath,
+    splits.map<SplitResults>(evaluateForSplit)
+  };
 }
 
 void standardBenchmark() {
-  auto synthResults = evaluateForSimulation();
-  evaluateForRealData(getDatasetPath("exocet").toString());
-  evaluateForRealData(getDatasetPath("psaros33_Banque_Sturdza").toString());
-  evaluateForRealData(getDatasetPath("Irene").toString());
+  //auto synthResults = evaluateForSimulation();
+  auto exocet = evaluateForRealData(getDatasetPath("exocet").toString());
+  auto ps33 = evaluateForRealData(getDatasetPath("psaros33_Banque_Sturdza").toString());
+  auto irene = evaluateForRealData(getDatasetPath("Irene").toString());
 
-  std::cout << EXPR_AND_VAL_AS_STRING(synthResults) << std::endl;
+  std::cout << /*synthResults <<*/ exocet << ps33 << irene;
 }
 
 int main(int argc, const char **argv) {
   standardBenchmark();
   return 0;
 }
+
 
 
