@@ -18,7 +18,7 @@
 WheelPanel.prototype.init = function(){
     var panel = this.root[0];
     var panel_component=this;
-    d3.xml("assets/images/svg/wheel.svg", "image/svg+xml", function(xml) {
+    d3.xml("app/wheelIndicator/wheel.svg", "image/svg+xml", function(xml) {
         var importedNode = document.importNode(xml.documentElement, true);
         panel_component.wheel = d3.select(panel).selectAll("#wheel-svg-container").node().appendChild(importedNode);
         // The SVG just got loaded. Rotate the arrow to where it should.
@@ -31,7 +31,7 @@ WheelPanel.prototype.init = function(){
 
 WheelPanel.prototype.updatePanelGraphs = function(value, north){
 
-    if(value != undefined && north != undefined){
+    if(value != undefined && north != undefined && !isNaN(value) && !isNaN(north)){
 
         // In case the SVG has not been loaded yet, remember the values
         // so that we can apply the rotation after loading.
@@ -44,15 +44,15 @@ WheelPanel.prototype.updatePanelGraphs = function(value, north){
         .duration(this.deltaTransition)
         .delay(this.delayTransition);
 
-        d3.select(this.wheel).selectAll("#north")
+        d3.select(this.wheel).selectAll("#northtext")
         .transition()
         .attr("transform", "rotate(" + north + ")")
         .duration(this.deltaTransition)
         .delay(this.delayTransition);
 
-        d3.select(this.wheel).selectAll("#northtext")
+        d3.select(this.wheel).selectAll("#letter")
         .transition()
-        .attr("transform", "rotate(" + north + ")")
+        .attr("transform", "rotate(" + -north + ")")
         .duration(this.deltaTransition)
         .delay(this.delayTransition);
 
