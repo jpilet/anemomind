@@ -17,7 +17,8 @@ void evaluateForSimulation() {
   NavalSimulation sim = getNavSimFractalWindOrientedLong();
   auto bd = sim.boatData(0);
 
-  auto navs = bd.navs().sliceTo(10000);
+  //auto navs = bd.navs().sliceTo(10000);
+  auto navs = bd.navs();
 
   std::cout << "Run the calibration..." << std::endl;
   MinCovCalib::Settings settings;
