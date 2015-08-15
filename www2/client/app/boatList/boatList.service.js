@@ -29,6 +29,14 @@ angular.module('www2App')
       .success(function(data, status, headers, config) {
         sessionsForBoats[boat._id] = [];
 
+        // Very short sessions (less than 30 minutes)
+        // are probably only passive harbour episodes.
+        // Let's skip.
+        function longEnough(s) {
+          var delta = (new Date(s.endTime)).getTime() - (new Date(s.startTime)).getTime();
+          return delta > 30 * 60 * 1000;
+        }
+
         // This object is used to de-duplicate sessions.
         // sessions should not be duplicated on the server.
         // However, if they are, duplicates should be ignored here.
@@ -36,7 +44,7 @@ angular.module('www2App')
 
         for (var i in data) {
           var element = data[i];
-          if (!(element.startTime in startTimes)) {
+          if (!(element.startTime in startTimes) && longEnough(element)) {
             sessionsForBoats[element.boat].push(element);
             startTimes[element.startTime] = true;
           }
