@@ -431,4 +431,5 @@ target_link_libraries(nautical_EvalMinCovCalib
                       nautical_MinCovCalib
                       nautical_synthtest_NavalSimulationPrecomp
                       common_EnvUtil
+                      nautical_NavNmeaScan
                      )              

@@ -13,6 +13,10 @@
 namespace sail {
 namespace MinCovCalib {
 
+bool hasAllData(const Nav &x) {
+  return x.hasApparentWind() && x.hasMagHdg() && x.hasWatSpeed();
+}
+
 template <typename T>
 Array<CalibratedNav<T> > correct(Corrector<T> corrector, Array<Nav> navs) {
   return navs.map<CalibratedNav<T> >([&](const Nav &x) {return corrector.correct(x);});

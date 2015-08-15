@@ -6,6 +6,7 @@
 #include <server/nautical/synthtest/NavalSimulationPrecomp.h>
 #include <server/nautical/MinCovCalib.h>
 #include <server/common/EnvUtil.h>
+#include <server/nautical/NavNmeaScan.h>
 
 using namespace sail;
 
@@ -44,6 +45,9 @@ SynthResults evaluateForSimulation() {
 }
 
 void evaluateForRealData(std::string datasetPath) {
+  auto navs = splitNavsByDuration(
+      scanNmeaFolder(datasetPath, Nav::debuggingBoatId(), nullptr)
+        .slice(MinCovCalib::hasAllData), Duration<double>::hours(1.0));;
 
 }
 

@@ -152,7 +152,7 @@ Array<Nav> loadNavsFromText(std::string filename, bool sort = true);
 bool areSortedNavs(Array<Nav> navs);
 void plotNavTimeVsIndex(Array<Nav> navs);
 void dispNavTimeIntervals(Array<Nav> navs);
-Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds);
+Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, Duration<double> dur);
 MDArray2d calcNavsEcefTrajectory(Array<Nav> navs);
 Array<MDArray2d> calcNavsEcefTrajectories(Array<Array<Nav> > navs);
 void plotNavsEcefTrajectory(Array<Nav> navs);

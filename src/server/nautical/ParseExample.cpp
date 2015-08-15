@@ -32,7 +32,7 @@ namespace {
         pushDirectory("regate_1_dec_07").get();
 
     Array<Nav> allnavs = scanNmeaFolder(dataFolder, Nav::debuggingBoatId());
-    Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10).seconds());
+    Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10));
   }
 
   void loadAndDispTree() {
