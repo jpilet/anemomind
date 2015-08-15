@@ -72,7 +72,7 @@ angular.module('www2App')
         var element = curveElements[e];
         for (var i in element.points) {
           var p = element.points[i].pos;
-          if (p[0] && p[1]) {
+          if (p[0] && p[1] && Math.abs(p[0] - .5) > .001 && Math.abs(p[1] - .5) > .001) {
             minX = Math.min(p[0], minX);
             minY = Math.min(p[1], minY);
             maxX = Math.max(p[0], maxX);
