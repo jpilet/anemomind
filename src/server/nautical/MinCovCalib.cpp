@@ -82,7 +82,6 @@ class Objf {
 
   template <typename T>
   bool eval(const Corrector<T> &corr, T *residualsPtr) const {
-    ENTER_FUNCTION_SCOPE;
     using namespace sail::SignalCovariance;
     const auto &cs = _settings.covarianceSettings;
     Array<T> residuals(outDims(), residualsPtr);
@@ -114,7 +113,6 @@ class Objf {
       stringstream ss;
       ss << "Wind weight: " << weights[0] << "\n";
       ss << "Current weight: " << weights[1] << "\n";
-      SCOPEDMESSAGE(INFO, ss.str());
     }
 
     const char* labels[4] = {"windX", "windY", "currentX", "currentY"};
