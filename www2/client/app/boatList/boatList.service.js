@@ -72,10 +72,12 @@ angular.module('www2App')
         var element = curveElements[e];
         for (var i in element.points) {
           var p = element.points[i].pos;
-          minX = Math.min(p[0], minX);
-          minY = Math.min(p[1], minY);
-          maxX = Math.max(p[0], maxX);
-          maxY = Math.max(p[1], maxY);
+          if (p[0] && p[1]) {
+            minX = Math.min(p[0], minX);
+            minY = Math.min(p[1], minY);
+            maxX = Math.max(p[0], maxX);
+            maxY = Math.max(p[1], maxY);
+          }
         }
       }
       return {
