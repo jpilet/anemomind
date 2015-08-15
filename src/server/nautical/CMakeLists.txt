@@ -429,7 +429,16 @@ add_executable(nautical_EvalMinCovCalib
               )
 target_link_libraries(nautical_EvalMinCovCalib
                       nautical_MinCovCalib
+                      nautical_CalibrationBenchmark
+                     )              
+
+add_library(nautical_CalibrationBenchmark 
+            CalibrationBenchmark.h
+            CalibrationBenchmark.cpp
+           )      
+           
+target_link_libraries(nautical_CalibrationBenchmark                         
                       nautical_synthtest_NavalSimulationPrecomp
                       common_EnvUtil
                       nautical_NavNmeaScan
-                     )              
+                     )

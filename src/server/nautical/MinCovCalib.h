@@ -14,8 +14,6 @@
 namespace sail {
 namespace MinCovCalib {
 
-bool hasAllData(const Nav &x);
-
 struct Settings {
   Settings() : balanced(false) {}
   SignalCovariance::Settings covarianceSettings;
