@@ -352,6 +352,6 @@ add_library(common_EnvUtil
 
 target_link_libraries(common_EnvUtil
                       common_PathBuilder
-                      commonEnv
+                      common_Env
                      )       
                  

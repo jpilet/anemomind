@@ -430,4 +430,5 @@ add_executable(nautical_EvalMinCovCalib
 target_link_libraries(nautical_EvalMinCovCalib
                       nautical_MinCovCalib
                       nautical_synthtest_NavalSimulationPrecomp
+                      common_EnvUtil
                      )              
