@@ -130,12 +130,12 @@ class Objf {
 };
 
 
-
-Corrector<double> optimize(FilteredNavData data, Settings s) {
+template <typename Objf>
+Corrector<double> optimizeForObjf(FilteredNavData data, Settings s,
+    Objf *objf) {
   ENTER_FUNCTION_SCOPE;
   Corrector<double> corr;
   ceres::Problem problem;
-  auto objf = new Objf(data, s);
   auto cost = new ceres::DynamicAutoDiffCostFunction<Objf>(objf);
   cost->AddParameterBlock(Corrector<double>::paramCount());
   cost->SetNumResiduals(objf->outDims());
@@ -150,6 +150,12 @@ Corrector<double> optimize(FilteredNavData data, Settings s) {
   Solve(options, &problem, &summary);
   SCOPEDMESSAGE(INFO, "Done optimization.");
   return corr;
+}
+
+Corrector<double> optimize(FilteredNavData data, Settings s) {
+  return optimizeForObjf(
+      data, s,
+      new Objf(data, s));
 }
 
 }
