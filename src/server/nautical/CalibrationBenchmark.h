@@ -45,6 +45,7 @@ struct CalibrationResults {
 };
 
 CalibrationResults fullBenchmark(Calibrator calib);
+CalibrationResults reducedBenchmark(Calibrator calib);
 
 std::ostream &operator<<(std::ostream &s, CalibrationResults x);
 

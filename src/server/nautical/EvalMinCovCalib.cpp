@@ -14,7 +14,7 @@ Corrector<double> performCalibration(Array<Nav> navs) {
 }
 
 int main(int argc, const char **argv) {
-  std::cout << fullBenchmark(performCalibration);
+  std::cout << reducedBenchmark(performCalibration);
   return 0;
 }
 

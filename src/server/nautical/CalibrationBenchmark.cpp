@@ -65,13 +65,24 @@ std::ostream &operator<<(std::ostream &s, RealDataResults x) {
   return s;
 }
 
-RealDataResults evaluateForRealData(Calibrator calib, std::string datasetPath) {
+RealDataResults evaluateForRealData(Calibrator calib, std::string datasetPath,
+    Arrayi optionalInds = Arrayi()) {
   ENTERSCOPE(stringFormat("Evaluating dataset %s", datasetPath.c_str()));
   auto navs = scanNmeaFolder(datasetPath, Nav::debuggingBoatId(), nullptr)
           .slice(hasAllData);
   auto splits = splitNavsByDuration(navs, Duration<double>::hours(1.0));
+  if (!optionalInds.empty()) {
+    splits = splits.slice(optionalInds);
+  }
   SCOPEDMESSAGE(INFO, stringFormat("  Loaded %d navs.", navs.size()));
   SCOPEDMESSAGE(INFO, stringFormat("  Split into %d groups", splits.size()));
+  for (int i = 0; i < splits.size(); i++) {
+    auto split = splits[i];
+    double dur = (split.last().time() - split.first().time()).seconds();
+    double period = dur/split.size();
+    SCOPEDMESSAGE(INFO, stringFormat("  Split %d/%d has %d navs and average period of %.3g seconds.",
+      i+1, splits.size(), split.size(), period));
+  }
   return RealDataResults{
     datasetPath,
     splits.map<SplitResults>([&](Array<Nav> navs) {return evaluateForSplit(calib, navs);})
@@ -86,6 +97,17 @@ CalibrationResults fullBenchmark(Calibrator calib) {
   return CalibrationResults{
     Array<SynthResults>{synthResults},
     Array<RealDataResults>{exocet, ps33, irene}
+  };
+}
+
+CalibrationResults reducedBenchmark(Calibrator calib) {
+  auto ps33 = evaluateForRealData(calib,
+      getDatasetPath("psaros33_Banque_Sturdza").toString(),
+      Arrayi{1});
+  auto synthResults = evaluateForSimulation(calib);
+  return CalibrationResults{
+    Array<SynthResults>{synthResults},
+    Array<RealDataResults>{ps33}
   };
 }
 
