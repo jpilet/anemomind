@@ -42,6 +42,8 @@ struct RealDataResults {
 struct CalibrationResults {
   Array<SynthResults> synthResults;
   Array<RealDataResults> realDataResults;
+
+  void saveReportToFile(std::string filename);
 };
 
 CalibrationResults fullBenchmark(Calibrator calib);

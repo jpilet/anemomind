@@ -8,6 +8,7 @@
 
 #include <memory>
 #include "SpeedCalib.h"
+#include <iosfwd>
 
 #ifdef ON_SERVER
 #include <server/common/Array.h>
@@ -55,6 +56,7 @@ namespace sail {
     }
   };
 
+
   template <typename T>
   class DriftAngleCorrector {
    public:
@@ -84,6 +86,8 @@ namespace sail {
       return Angle<T>::radians(awaFactor*awsFactor);
     }
   };
+
+
 
   template <typename T>
   class Corrector {
@@ -142,10 +146,38 @@ namespace sail {
       dst->trueCurrent.set(dst->gpsMotion() - dst->boatMotionThroughWater());
     }
   };
-
 #pragma pack(pop)
+
+template <typename T>
+std::ostream &operator<<(std::ostream &s, AngleCorrector<T> corr) {
+  s << "AngleCorrector(value=" << corr.value << ")";
+  return s;
+}
+
+template <typename T>
+std::ostream &operator<<(std::ostream &s, SpeedCorrector<T> corr) {
+  s << "SpeedCorrector(k=" << corr.k << ", m=" << corr.m << ", c=" << corr.c << ", alpha=" << corr.alpha << ")";
+  return s;
+}
+
+template <typename T>
+std::ostream &operator<<(std::ostream &s, DriftAngleCorrector<T> corr) {
+  s << "DriftAngleCorrector(amp=" << corr.amp << ", " << corr.coef << ")";
+  return s;
+}
+
+template <typename T>
+std::ostream &operator<<(std::ostream &s, Corrector<T> corr) {
+  s << "Corrector:\n";
+  s << "  awa: " << corr.awa << "\n";
+  s << "  magHdg: " << corr.magHdg << "\n";
+  s << "  aws: " << corr.aws << "\n";
+  s << "  watSpeed: " << corr.watSpeed << "\n";
+  s << "  driftAngle: " << corr.driftAngle << "\n";
+  return s;
 }
 
 
 
+}
 #endif /* CALIBRATIONMODEL_H_ */

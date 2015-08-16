@@ -15,6 +15,7 @@
 #include <server/common/Progress.h>
 #include <server/common/ArrayIO.h>
 #include <server/common/string.h>
+#include <server/common/math.h>
 #include <cassert>
 
 namespace sail {
@@ -24,6 +25,16 @@ template <typename T>
 bool isReasonable(T x) {
   auto maxv = T(1.0e20);
   return -maxv < x && x < maxv;
+}
+
+template <typename T>
+bool hasNan(Array<T> X) {
+  for (auto x: X) {
+    if (genericIsNan(x)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 struct Settings {
@@ -122,8 +133,9 @@ T slidingWindowVariance(Arrayd time, Integral1d<T> X, Integral1d<T> X2, int wind
 template <typename T>
 struct SignalData {
  SignalData(Arrayd times, Array<T> signal, Settings s) :
-   time(times), X(signal), itgX(signal), itgX2(elementwiseMul(signal, signal)) {
-   variance = slidingWindowVariance(times, itgX, itgX2, s.windowSize);
+   time(times), X(signal), itgX(signal), _variance(-1),
+   _windowSize(s.windowSize) {
+   assert(!hasNan(X));
  }
 
  int sampleCount() const {
@@ -132,12 +144,24 @@ struct SignalData {
 
  Arrayd time;
  Array<T> X;
- Integral1d<T> itgX, itgX2;
- T variance;
+ Integral1d<T> itgX;
 
- T standardDeviation() const {
-   return sqrt(variance);
+
+ T standardDeviation() {
+   return sqrt(variance());
  }
+
+ T variance() {
+   if (_variance < T(0)) {
+     _itgX2 = Integral1d<T>(elementwiseMul(X, X));
+     _variance = slidingWindowVariance(time, itgX, _itgX2, _windowSize);
+   }
+   return _variance;
+ }
+ private:
+  Integral1d<T> _itgX2;
+  int _windowSize;
+  T _variance;
 };
 
 template <typename T>
@@ -150,7 +174,13 @@ T calcLocalCovariance(SignalData<T> X, SignalData<T> Y, Integral1d<T> itgXY,
   assert(from < to);
   assert(0 <= from);
   assert(to <= itgXY.size());
-  return itgXY.average(from, to) - X.itgX.average(from, to)*Y.itgX.average(from, to);
+  auto xy = itgXY.average(from, to);
+  auto x = X.itgX.average(from, to);
+  auto y = Y.itgX.average(from, to);
+  assert(!genericIsNan(xy));
+  assert(!genericIsNan(x));
+  assert(!genericIsNan(y));
+  return xy - x*y;
 }
 
 template <typename T>
@@ -185,12 +215,18 @@ void evaluateResiduals(T globalWeight, // The global weight can be 1.0/(sigmaX*s
     int from = i;
     int to = from + s.windowSize;
     T weight = T(calcSpanWeight(time, from, to));
+    assert(!genericIsNan(weight));
     int index = int(floor(sampleToResidual(i)));
-    (*residuals)[index] += weight*s.abs(
-        calcLocalCovariance(X, Y, itgXY, from, to));
+    assert(!genericIsNan(weight));
+    auto cov = calcLocalCovariance(X, Y, itgXY, from, to);
+    assert(!genericIsNan(cov));
+    (*residuals)[index] += weight*s.abs(cov);
   }
   for (int i = 0; i < residualCount; i++) {
-    (*residuals)[i] = sqrt(globalWeight*(*residuals)[i]);
+    T &r = (*residuals)[i];
+    assert(!genericIsNan(r));
+    r = sqrt(globalWeight*r);
+    assert(!genericIsNan(r));
   }
 }
 

@@ -9,6 +9,7 @@
 #include <server/common/ArrayIO.h>
 #include <server/nautical/CalibrationBenchmark.h>
 #include <server/common/ScopedLog.h>
+#include <fstream>
 
 namespace sail {
 
@@ -103,7 +104,7 @@ CalibrationResults fullBenchmark(Calibrator calib) {
 CalibrationResults reducedBenchmark(Calibrator calib) {
   auto ps33 = evaluateForRealData(calib,
       getDatasetPath("psaros33_Banque_Sturdza").toString(),
-      Arrayi{1});
+      Arrayi{0});
   auto synthResults = evaluateForSimulation(calib);
   return CalibrationResults{
     Array<SynthResults>{synthResults},
@@ -120,7 +121,11 @@ std::ostream &operator<<(std::ostream &s, CalibrationResults X) {
     s << x;
   }
   return s;
+}
 
+void CalibrationResults::saveReportToFile(std::string filename) {
+  std::ofstream file(filename);
+  file << *this;
 }
 
 

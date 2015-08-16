@@ -159,6 +159,8 @@ void plotNavsEcefTrajectory(Array<Nav> navs);
 void plotNavsEcefTrajectories(Array<Array<Nav> > navs);
 int countNavs(Array<Array<Nav> > navs);
 
+std::ostream &operator<<(std::ostream &s, const Nav &x);
+
 
 } /* namespace sail */
 

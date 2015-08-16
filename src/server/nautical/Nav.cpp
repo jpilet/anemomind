@@ -16,6 +16,7 @@
 #include <ctime>
 #include <server/nautical/WGS84.h>
 #include <server/common/string.h>
+#include <server/common/PhysicalQuantityIO.h>
 
 namespace sail {
 
@@ -370,6 +371,17 @@ int countNavs(Array<Array<Nav> > navs) {
     counter += navs[i].size();
   }
   return counter;
+}
+
+std::ostream &operator<<(std::ostream &s, const Nav &x) {
+  s << "Nav:\n";
+  s << "  maghdg: " << x.magHdg() << "\n";
+  s << "  aws: " << x.aws() << "\n";
+  s << "  awa: " << x.awa() << "\n";
+  s << "  watspeed: " << x.watSpeed() << "\n";
+  s << "  gps bearing: " << x.gpsBearing() << "\n";
+  s << "  gps speed: " << x.gpsSpeed() << "\n";
+  return s;
 }
 
 

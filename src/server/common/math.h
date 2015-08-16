@@ -301,7 +301,14 @@ T smoothNonNegAbs2(T x, T thresh) {
   return sqrt(thresh + x*x);
 }
 
+template <typename T> // Should work for AD types too.
+bool genericIsNan(T x) {
+  return !(x == x);
+}
 
+inline bool implies(bool a, bool b) {
+  return !a || b;
+}
 
 } /* namespace sail */
 

@@ -44,10 +44,26 @@ class DefinedValue {
 
   bool defined() const {return _defined;}
   bool undefined() const {return !_defined;}
+  bool isNan() const {
+    if (_defined) {
+      return !(_value == _value);
+    }
+    return false;
+  }
  private:
   bool _defined;
   T _value;
 };
+
+template <typename T>
+std::ostream &operator<<(std::ostream &s, DefinedValue<T> x) {
+  if (x.defined()) {
+    s << "Defined(" << x << ")";
+  } else {
+    s << "Undefined";
+  }
+  return s;
+}
 
 
 /*
@@ -90,6 +106,18 @@ class CalibratedNav {
     rawAws(x.aws()), rawWatSpeed(x.watSpeed()),
     gpsMotion(HorizontalMotion<T>::polar(x.gpsSpeed(), x.gpsBearing())),
     driftAngle(Angle<T>::degrees(T(0))) {}
+
+  bool hasNan() const {
+    return rawAwa.isNan() ||
+        rawAws.isNan() ||
+        rawMagHdg.isNan() ||
+        rawWatSpeed.isNan() ||
+        driftAngle.isNan() ||
+        calibWatSpeed.isNan() ||
+        calibAws.isNan() ||
+        calibAwa.isNan() ||
+        boatOrientation.isNan();
+  }
 
   /*
    * Since all instance variables are encapsulated
