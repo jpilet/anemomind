@@ -57,8 +57,8 @@ std::ostream &operator<<(std::ostream &s, RealDataResults x) {
   for (int i = 0; i < n; i++) {
     auto r = x.results[i];
     s << "Result for subset " << i+1 << "/" << n << " of " << r.navs.size() << " navs.\n";
-    s << "Corrector for first  half: " << r.a.toArray() << std::endl;
-    s << "Corrector for second half: " << r.b.toArray() << std::endl;
+    s << "Corrector for first  half: " << r.a << std::endl;
+    s << "Corrector for second half: " << r.b << std::endl;
     s << "Cross validation errors:\n";
     s << r.errors;
     s << "\n";
