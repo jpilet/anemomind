@@ -9,6 +9,7 @@
 #include <server/math/SignalCovariance.h>
 #include <device/Arduino/libraries/Corrector/Corrector.h>
 #include <server/nautical/Nav.h>
+#include <server/nautical/FilteredNavData.h>
 
 
 namespace sail {
@@ -23,7 +24,7 @@ struct Settings {
   bool balanced;
 };
 
-Corrector<double> optimize(Array<Nav> navs, Settings s);
+Corrector<double> optimize(FilteredNavData data, Settings s);
 
 }
 }

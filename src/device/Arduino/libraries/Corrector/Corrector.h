@@ -12,6 +12,8 @@
 
 #ifdef ON_SERVER
 #include <server/common/Array.h>
+#include <server/common/string.h>
+#include <iostream>
 #endif
 
 #include <server/common/ExpLine.h>
@@ -30,7 +32,9 @@ namespace sail {
 
     AngleCorrector() : value(0) {}
     Angle<T> correct(Angle<T> raw) const {
-      return raw + Angle<T>::degrees(T(value));
+      auto x = raw + Angle<T>::degrees(T(value));
+      assert(!genericIsNan(x));
+      return x;
     }
   };
 
@@ -52,7 +56,9 @@ namespace sail {
     }
 
     Velocity<T> correct(Velocity<T> raw) const {
-      return make().eval(raw);
+      auto x = make().eval(raw);
+      assert(!genericIsNan(x));
+      return x;
     }
   };
 
@@ -69,6 +75,7 @@ namespace sail {
 
     Angle<T> correct(const CalibratedNav<T> &c) const {
       T awa0rads = c.calibAwa().normalizedAt0().radians();
+      assert(!genericIsNan(awa0rads));
 
 
       //I am not sure we need 'ToDouble': bool upwind = 2.0*std::abs(ToDouble(awa0rads)) < M_PI;
@@ -78,12 +85,28 @@ namespace sail {
       // For awa angles closer to 0 than 90 degrees,
       // scale by sinus of that angle. Otherwise, just use 0.
       T awaFactor = amp*(upwind? T(sin(2.0*awa0rads)) : T(0));
+      assert(!genericIsNan(awaFactor));
+
+      auto caws = c.calibAws().metersPerSecond();
+      if (caws < T(0)) {
+        caws = T(0);
+      }
 
       // Scale it in a way that decays exponentially as
       // aws increases. The decay is controlled by params[1].
-      T awsFactor = exp(-expline(coef)*c.calibAws().metersPerSecond());
+      T awsFactor = exp(-expline(coef)*caws);
+      assert(!genericIsNan(awsFactor));
 
-      return Angle<T>::radians(awaFactor*awsFactor);
+      auto v = Angle<T>::radians(awaFactor*awsFactor);
+      if (genericIsNan(v)) {
+        std::cout << EXPR_AND_VAL_AS_STRING(c.calibAws().metersPerSecond()) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(-expline(coef)) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(-expline(coef)*c.calibAws().metersPerSecond()) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(awaFactor) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(awsFactor) << std::endl;
+      }
+      assert(!genericIsNan(v));
+      return v;
     }
   };
 

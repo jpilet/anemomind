@@ -17,16 +17,10 @@ namespace MinCovCalib {
 
 
 template <typename T>
-Array<CalibratedNav<T> > correct(Corrector<T> corrector, Array<Nav> navs) {
-  return navs.map<CalibratedNav<T> >([&](const Nav &x) {
+Array<CalibratedNav<T> > correct(Corrector<T> corrector, FilteredNavData data) {
+  return Spani(0, data.size()).map<CalibratedNav<T> >([&](int index) {
+    auto x = data.makeIndexedInstrumentAbstraction(index);
     auto cnav = corrector.correct(x);
-    if (cnav.hasNan()) {
-      std::cout << EXPR_AND_VAL_AS_STRING(x) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(corrector.awa) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(corrector.toArray()) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(corrector.awa.value) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(corrector) << std::endl;
-    }
     assert(!cnav.hasNan());
     return cnav;
   });
@@ -56,18 +50,17 @@ Array<T> getSpeedsKnots(Array<CalibratedNav<T> > cnavs, bool wind, int indexXY) 
   return dst;
 }
 
-Arrayd getTimes(Array<Nav> navs) {
-  auto offset = navs.first().time();
-  return navs.map<double>([&](const Nav &x) {
-    return (x.time() - offset).seconds();
+Arrayd getTimes(FilteredNavData data) {
+  return data.timesSinceOffset().map<double>([&](Duration<double> x) {
+    return x.seconds();
   });
 }
 
 class Objf {
  public:
-  Objf(Array<Nav> navs, Settings s) : _navs(navs), _settings(s),
-    _residualCountPerPair(s.covarianceSettings.calcResidualCount(navs.size())),
-    _times(getTimes(navs)) {}
+  Objf(FilteredNavData data, Settings s) : _data(data), _settings(s),
+    _residualCountPerPair(s.covarianceSettings.calcResidualCount(data.size())),
+    _times(getTimes(data)) {}
 
   int outDims() const {
     return pairCount()*_residualCountPerPair;
@@ -85,7 +78,7 @@ class Objf {
  private:
   int _residualCountPerPair;
   Settings _settings;
-  Array<Nav> _navs;
+  FilteredNavData _data;
   Arrayd _times;
   Spani getSpan(int pairIndex) const {
     int offset = pairIndex*_residualCountPerPair;
@@ -98,7 +91,7 @@ class Objf {
     const auto &cs = _settings.covarianceSettings;
     Array<T> residuals(outDims(), residualsPtr);
     residuals.setTo(T(0));
-    auto cnavs = correct(corr, _navs);
+    auto cnavs = correct(corr, _data);
 
     SignalData<T> orientations(_times, getOrientationsDegs(cnavs), cs);
     assert(pairCount() == 4);
@@ -138,15 +131,15 @@ class Objf {
 
 
 
-Corrector<double> optimize(Array<Nav> navs, Settings s) {
+Corrector<double> optimize(FilteredNavData data, Settings s) {
   ENTER_FUNCTION_SCOPE;
   Corrector<double> corr;
   ceres::Problem problem;
-  auto objf = new Objf(navs, s);
+  auto objf = new Objf(data, s);
   auto cost = new ceres::DynamicAutoDiffCostFunction<Objf>(objf);
   cost->AddParameterBlock(Corrector<double>::paramCount());
   cost->SetNumResiduals(objf->outDims());
-  SCOPEDMESSAGE(INFO, stringFormat("Number of samples: %d", navs.size()));
+  SCOPEDMESSAGE(INFO, stringFormat("Number of samples: %d", data.size()));
   SCOPEDMESSAGE(INFO, stringFormat("Number of residuals: %d", objf->outDims()));
   problem.AddResidualBlock(cost, NULL, (double *)(&corr));
   ceres::Solver::Options options;

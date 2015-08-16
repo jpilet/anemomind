@@ -422,6 +422,7 @@ add_library(nautical_MinCovCalib
 target_depends_on_ceres(nautical_MinCovCalib)
 target_link_libraries(nautical_MinCovCalib
                       common_Progress
+                      nautical_FilteredNavData
                      )
 
 add_executable(nautical_EvalMinCovCalib

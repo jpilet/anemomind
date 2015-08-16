@@ -52,7 +52,7 @@ SplitResults evaluateForSplit(Calibrator calib, Array<Nav> navs) {
 }
 
 std::ostream &operator<<(std::ostream &s, RealDataResults x) {
-  s << "\n\n****** RESULTS ON REAL DATASET " << x.datasetPath << "******";
+  s << "\n\n****** RESULTS ON REAL DATASET " << x.datasetPath << "******\n";
   auto n = x.results.size();
   for (int i = 0; i < n; i++) {
     auto r = x.results[i];

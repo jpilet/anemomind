@@ -10,7 +10,8 @@
 using namespace sail;
 
 Corrector<double> performCalibration(Array<Nav> navs) {
-  return MinCovCalib::optimize(navs, MinCovCalib::Settings());
+  FilteredNavData data(navs, 0.5);
+  return MinCovCalib::optimize(data, MinCovCalib::Settings());
 }
 
 int main(int argc, const char **argv) {
