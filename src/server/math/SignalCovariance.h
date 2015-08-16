@@ -66,6 +66,10 @@ struct Settings {
 template <typename T, typename T2>
 Array<T> elementwiseMul(Array<T> X, Array<T2> Y) {
   int n = X.size();
+  if (!(n == Y.size())) {
+    std::cout << EXPR_AND_VAL_AS_STRING(n) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(Y.size()) << std::endl;
+  }
   assert(n == Y.size());
   Array<T> XY(n);
   for (int i = 0; i < n; i++) {

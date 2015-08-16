@@ -128,7 +128,9 @@ Array<T> getSpeedsKnots(Array<CalibratedNav<T> > cnavs, bool wind, int indexXY) 
   int n = cnavs.size();
   Array<T> dst(n);
   for (int i = 0; i < n; i++) {
-    dst[i] = getSpeedKnots(cnavs[i]);
+    auto x = getSpeedKnots(cnavs[i]);
+    assert(!genericIsNan(x));
+    dst[i] = x;
   }
   return dst;
 }
@@ -275,16 +277,19 @@ class ObjfWindVsCurrent {
       Array<T> residuals(outDims(), residualsPtr);
       residuals.setTo(T(0));
       auto cnavs = correct(corr, _data);
+      assert(cnavs.size() > 0);
       int from = 0;
       for (int order = 0; order < 2; order++) {
         for (int activeDim = 0; activeDim < 2; activeDim++) {
           auto active = SignalData<T>(_times, getSpeedsKnots<T>(cnavs, order == 0, activeDim), cs);
+          assert(active.X.size() > 0);
           for (int i = 0; i < _corruptData.size(); i++) {
             for (int passiveDim = 0; passiveDim < 2; passiveDim++) {
               int to = from + _residualCountPerPair;
               auto subResiduals = residuals.slice(from, to);
               auto passive = SignalData<double>(_times,
                   getSpeedsKnots(_corruptData[i], order == 1, passiveDim), cs);
+              assert(passive.X.size() > 0);
               evaluateResiduals<T, double>(T(1.0), active, passive, cs, &subResiduals);
               from = to;
             }
@@ -296,7 +301,8 @@ class ObjfWindVsCurrent {
     }
 };
 
-ObjfWindVsCurrent::ObjfWindVsCurrent(FilteredNavData data, Settings settings) {
+ObjfWindVsCurrent::ObjfWindVsCurrent(FilteredNavData data, Settings settings) :
+    _settings(settings), _data(data) {
   _corruptData = settings.corruptors.map<Array<CalibratedNav<double> > >([&](Corrector<double> corr) {
     return correct(corr, data);
   });
