@@ -11,7 +11,7 @@ using namespace sail;
 
 Corrector<double> performCalibration(Array<Nav> navs) {
   FilteredNavData data(navs, 0.5);
-  return MinCovCalib::optimize(data, MinCovCalib::Settings());
+  return MinCovCalib::optimizeWindVsCurrent(data, MinCovCalib::Settings());
 }
 
 int main(int argc, const char **argv) {

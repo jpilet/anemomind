@@ -63,8 +63,8 @@ struct Settings {
 };
 
 
-template <typename T>
-Array<T> elementwiseMul(Array<T> X, Array<T> Y) {
+template <typename T, typename T2>
+Array<T> elementwiseMul(Array<T> X, Array<T2> Y) {
   int n = X.size();
   assert(n == Y.size());
   Array<T> XY(n);
@@ -164,8 +164,8 @@ struct SignalData {
   T _variance;
 };
 
-template <typename T>
-T calcLocalCovariance(SignalData<T> X, SignalData<T> Y, Integral1d<T> itgXY,
+template <typename T, typename T2>
+T calcLocalCovariance(SignalData<T> X, SignalData<T2> Y, Integral1d<T> itgXY,
     int from, int to) {
   // See https://en.wikipedia.org/wiki/Covariance :
   //   Cov(X, Y) = E[XY] - E[X]E[Y]
@@ -188,9 +188,9 @@ T calcGlobalWeight(const SignalData<T> &X, const SignalData<T> &Y, Settings s) {
   return 1.0/sqrt(s.abs(X.variance*Y.variance));
 }
 
-template <typename T>
+template <typename T, typename T2>
 void evaluateResiduals(T globalWeight, // The global weight can be 1.0/(sigmaX*sigmaY) for normalization.
-    SignalData<T> X, SignalData<T> Y,
+    SignalData<T> X, SignalData<T2> Y,
     Settings s, Array<T> *residuals) {
   int n = X.sampleCount();
   auto time = X.time;

@@ -139,9 +139,9 @@ Arrayd getTimes(FilteredNavData data) {
   });
 }
 
-class Objf {
+class ObjfOrientation {
  public:
-  Objf(FilteredNavData data, Settings s) : _data(data), _settings(s),
+  ObjfOrientation(FilteredNavData data, Settings s) : _data(data), _settings(s),
     _residualCountPerPair(s.covarianceSettings.calcResidualCount(data.size())),
     _times(getTimes(data)) {}
 
@@ -212,7 +212,6 @@ class Objf {
   }
 };
 
-
 template <typename Objf>
 Corrector<double> optimizeForObjf(FilteredNavData data, Settings s,
     Objf *objf) {
@@ -235,10 +234,79 @@ Corrector<double> optimizeForObjf(FilteredNavData data, Settings s,
   return corr;
 }
 
-Corrector<double> optimize(FilteredNavData data, Settings s) {
+Corrector<double> optimizeByOrientation(FilteredNavData data, Settings s) {
   return optimizeForObjf(
       data, s,
-      new Objf(data, s));
+      new ObjfOrientation(data, s));
+}
+
+
+
+
+
+class ObjfWindVsCurrent {
+ public:
+  ObjfWindVsCurrent(FilteredNavData data, Settings settings);
+
+  int outDims() const {
+    return pairCount()*_residualCountPerPair;
+  }
+
+  int pairCount() const {
+    return 2*2*2*_corruptData.size();
+  }
+
+  template<typename T>
+  bool operator()(T const* const* parameters, T* residuals) const {
+    const Corrector<T> *corr = (Corrector<T> *)parameters[0];
+    return eval(*corr, residuals);
+  }
+ private:
+  Array<Array<CalibratedNav<double> > > _corruptData;
+  FilteredNavData _data;
+  Settings _settings;
+  Arrayd _times;
+  int _residualCountPerPair;
+
+  template <typename T>
+    bool eval(const Corrector<T> &corr, T *residualsPtr) const {
+      using namespace sail::SignalCovariance;
+      const auto &cs = _settings.covarianceSettings;
+      Array<T> residuals(outDims(), residualsPtr);
+      residuals.setTo(T(0));
+      auto cnavs = correct(corr, _data);
+      int from = 0;
+      for (int order = 0; order < 2; order++) {
+        for (int activeDim = 0; activeDim < 2; activeDim++) {
+          auto active = SignalData<T>(_times, getSpeedsKnots<T>(cnavs, order == 0, activeDim), cs);
+          for (int i = 0; i < _corruptData.size(); i++) {
+            for (int passiveDim = 0; passiveDim < 2; passiveDim++) {
+              int to = from + _residualCountPerPair;
+              auto subResiduals = residuals.slice(from, to);
+              auto passive = SignalData<double>(_times,
+                  getSpeedsKnots(_corruptData[i], order == 1, passiveDim), cs);
+              evaluateResiduals<T, double>(T(1.0), active, passive, cs, &subResiduals);
+              from = to;
+            }
+          }
+        }
+      }
+      assert(from == outDims());
+      return true;
+    }
+};
+
+ObjfWindVsCurrent::ObjfWindVsCurrent(FilteredNavData data, Settings settings) {
+  _corruptData = settings.corruptors.map<Array<CalibratedNav<double> > >([&](Corrector<double> corr) {
+    return correct(corr, data);
+  });
+  _residualCountPerPair = settings.covarianceSettings.calcResidualCount(data.size());
+  _times = getTimes(data);
+  std::cout << EXPR_AND_VAL_AS_STRING(outDims()) << std::endl;
+}
+
+Corrector<double> optimizeWindVsCurrent(FilteredNavData data, Settings s) {
+  return optimizeForObjf(data, s, new ObjfWindVsCurrent(data, s));
 }
 
 }
