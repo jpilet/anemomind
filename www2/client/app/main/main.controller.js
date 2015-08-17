@@ -13,4 +13,18 @@ angular.module('www2App')
     $scope.$watch(Auth.isLoggedIn, function(newVal, oldVal) {
       $scope.isLoggedIn = newVal;
     });
+
+    $scope.boatFreshness = function(boat) {
+      var sessions = boatList.sessionsForBoat(boat._id);
+      if (!sessions || sessions.length == 0) {
+        return "0000";
+      }
+      var date = sessions[0].startTime;
+      for (var i = 1; i < sessions.length; ++i) {
+        if (sessions[i].startTime > date) {
+          date = sessions[i].startTime;
+        }
+      }
+      return date;
+    };
 });

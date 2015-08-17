@@ -13,11 +13,15 @@ angular.module('www2App')
           canvas = new CanvasTilesRenderer({
             canvas: element.children()[0],
             url: function(scale, x, y) { 
-              // The token corresponds to account anemojp on mapbox.
               return '/assets/leman/'
                 + scale + "/" + x + "/" + y
                 + '.png';
-              /*return "http://api.tiles.mapbox.com/v4/anemojp.d4524095/"
+              /*
+              return "http://a.tiles.wmflabs.org/bw-mapnik/"
+                + scale + "/" + x + "/" + y + ".png";
+
+              // The token corresponds to account anemojp on mapbox.
+              return "http://api.tiles.mapbox.com/v4/anemojp.d4524095/"
                 + scale + "/" + x + "/" + y
                 + ".png32?access_token="
                 + "pk.eyJ1IjoiYW5lbW9qcCIsImEiOiJ3QjFnX00wIn0.M9AEKUTlyhDC-sMM9a0obQ";
