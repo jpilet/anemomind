@@ -8,6 +8,7 @@
 #include <Poco/File.h>
 #include <server/common/filesystem.h>
 #include <server/common/logging.h>
+#include <server/nautical/NavLoader.h>
 
 namespace sail {
 
@@ -28,12 +29,12 @@ Array<Nav> scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
     }
   }
 
-  Array<std::string> nmeaExtensions = Array<std::string>::args("txt");
+  Array<std::string> nmeaExtensions = Array<std::string>::args("txt", "log");
   Array<Poco::Path> files = listFilesRecursivelyByExtension(p, nmeaExtensions);
   int count = files.size();
   Array<ParsedNavs> parsedNavs(count);
   for (int i = 0; i < count; i++) {
-    parsedNavs[i] = loadNavsFromNmea(files[i].toString(), boatId);
+    parsedNavs[i] = loadNavsFromFile(files[i].toString(), boatId);
 
     LOG(INFO) << "Parsed " << files[i].toString();
 
