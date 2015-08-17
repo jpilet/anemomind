@@ -124,14 +124,6 @@ class QuadForm {
     }
   }
 
-  static ThisType makeReg(double lambda) {
-    ThisType dst(0);
-    for (int i = 0; i < lhsDims; i++) {
-      dst.setP(i, i, lambda);
-    }
-    return dst;
-  }
-
   ThisType operator+(const ThisType &other) const {
     ThisType dst;
     add(pDims, _P, other._P, dst._P);
