@@ -31,7 +31,8 @@ namespace {
         pushDirectory("regates").
         pushDirectory("regate_1_dec_07").get();
 
-    Array<Nav> allnavs = scanNmeaFolder(dataFolder, Nav::debuggingBoatId());
+
+    Array<Nav> allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
     Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10));
   }
 
@@ -42,7 +43,7 @@ namespace {
         pushDirectory("regate_1_dec_07").get();
 
     cout << "Load navs" << endl;
-    Array<Nav> allnavs = scanNmeaFolder(dataFolder, Nav::debuggingBoatId());
+    Array<Nav> allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
     cout << "loaded" << endl;
 
     WindOrientedGrammarSettings settings;

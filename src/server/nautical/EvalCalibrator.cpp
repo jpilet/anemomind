@@ -20,7 +20,7 @@ using namespace sail;
 
     std::cout << "EVALUATION ON DATASET " << p.toString() << std::endl;
     Corrector<double> defaultParameters;
-    Array<Nav> navs = scanNmeaFolder(p, id);
+    Array<Nav> navs = scanNmeaFolderWithSimulator(p, id);
     Corrector<double> calibratedParameters = calibrateFull(&calib, navs, id);
 
     std::cout << "  With default parameters:    \n" << computeErrors(&calib, defaultParameters) << std::endl;

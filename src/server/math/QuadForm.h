@@ -87,6 +87,16 @@ class QuadForm {
     return dst;
   }
 
+  // Create a quad form with a diagonal matrix,
+  // for regularization purposes to make problems well-posed.
+  static ThisType makeReg(T lambda) {
+    ThisType result(T(0));
+    for (int i = 0; i < lhsDims; i++) {
+      result.setP(i, i, lambda);
+    }
+    return result;
+  }
+
   /*
    * Create a constant squared form,
    * that is a squared form whose value
@@ -112,14 +122,6 @@ class QuadForm {
     for (int i = 0; i < rDims; i++) {
       _R[0] = T(x);
     }
-  }
-
-  static ThisType makeReg(double lambda) {
-    ThisType dst(0);
-    for (int i = 0; i < lhsDims; i++) {
-      dst.setP(i, i, lambda);
-    }
-    return dst;
   }
 
   ThisType operator+(const ThisType &other) const {

@@ -52,6 +52,7 @@ class ParsedNavs {
 
   static FieldMask makeCompleteMask();
   static FieldMask makeGpsWindMask();
+  static FieldMask makeAllSensorsMask();
  private:
   Array<Nav> _navs;
 

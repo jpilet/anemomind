@@ -301,6 +301,15 @@ T smoothNonNegAbs2(T x, T thresh) {
   return sqrt(thresh + x*x);
 }
 
+template <typename T>
+struct MatrixElement {
+ int i, j;
+ T value;
+};
+typedef MatrixElement<double> MatrixElementd;
+
+
+
 template <typename T> // Should work for AD types too.
 bool genericIsNan(T x) {
   return !(x == x);

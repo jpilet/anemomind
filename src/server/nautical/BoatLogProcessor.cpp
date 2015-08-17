@@ -205,7 +205,7 @@ void processBoatDataFullFolder(Nav::Id boatId, Poco::Path srcPath, Poco::Path ds
   ENTERSCOPE("processBoatData complete folder");
   SCOPEDMESSAGE(INFO, std::string("Loading data from boat with id " + boatId));
   SCOPEDMESSAGE(INFO, "Scan folder for NMEA data...");
-  Array<Nav> allnavs = scanNmeaFolder(srcPath, boatId);
+  Array<Nav> allnavs = scanNmeaFolderWithSimulator(srcPath, boatId);
   CHECK_LT(0, allnavs.size());
   SCOPEDMESSAGE(INFO, "done.")
   processBoatData(boatId, allnavs, dstPath, "all");

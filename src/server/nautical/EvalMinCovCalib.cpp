@@ -25,7 +25,7 @@ class ManeuverbasedCorrectorFunction : public CorrectorFunction {
     for (int i = 0; i < n; i++) {
       auto c = correctedNavs[i];
       dst[i] = corr.correct(c);
-      dst[i].trueWind.set(c.trueWind());
+      dst[i].trueWindOverGround.set(c.trueWindOverGround());
     }
     return dst;
   }

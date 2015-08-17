@@ -7,66 +7,12 @@
 #define CALIBRATEDNAV_H_
 
 #include "../PhysicalQuantity/PhysicalQuantity.h"
+#include <server/common/Optional.h>
 #include <cassert>
 #include <functional>
 #include <server/nautical/Nav.h>
 
 namespace sail {
-
-// More powerful and safe than using nan
-// to indicate whether a value is defined or not.
-template <typename T>
-class DefinedValue {
- public:
-  DefinedValue() : _defined(false) {}
-  DefinedValue(T x) : _defined(true), _value(x) {}
-
-  // If a there is a public field
-  // in a class of type DefinedValue,
-  // calling this operator on that field
-  // gives the feel of calling an accessor of the class.
-  T operator()() const {
-    assert(_defined); // <-- only active in debug mode.
-    return _value;
-  }
-
-  T get(T defaultValue) const {
-    return (_defined? _value : defaultValue);
-  }
-
-  void set(T x) {
-    _defined = true;
-    _value = x;
-  }
-
-  void setOnce(T x) {
-    assert(!_defined);
-    set(x);
-  }
-
-  bool defined() const {return _defined;}
-  bool undefined() const {return !_defined;}
-  bool isNan() const {
-    if (_defined) {
-      return !(_value == _value);
-    }
-    return false;
-  }
- private:
-  bool _defined;
-  T _value;
-};
-
-template <typename T>
-std::ostream &operator<<(std::ostream &s, DefinedValue<T> x) {
-  if (x.defined()) {
-    s << "Defined(" << x << ")";
-  } else {
-    s << "Undefined";
-  }
-  return s;
-}
-
 
 /*
  * The purpose of this class
@@ -97,9 +43,9 @@ class CalibratedNav {
  public:
   CalibratedNav() {}
 
-  typedef DefinedValue<Angle<T> > DefinedAngle;
-  typedef DefinedValue<Velocity<T> > DefinedVelocity;
-  typedef DefinedValue<HorizontalMotion<T> > DefinedMotion;
+  typedef Optional<Angle<T> > DefinedAngle;
+  typedef Optional<Velocity<T> > DefinedVelocity;
+  typedef Optional<HorizontalMotion<T> > DefinedMotion;
 
   // InstrumentAbstraction can for instance be a Nav.
   template <typename InstrumentAbstraction>
@@ -139,19 +85,44 @@ class CalibratedNav {
   // Depend on the calibrated values.
   DefinedAngle  directionApparentWindBlowsTo;
   DefinedMotion apparentWind;
-  DefinedMotion trueWind;
-  DefinedMotion trueCurrent;
-  DefinedMotion boatMotionThroughWater;
+  DefinedMotion trueWindOverGround;
+  DefinedMotion trueCurrentOverGround;
+  DefinedMotion boatMotionOverWater;
 
   /*
+   *
    * Extra nice-to-have accessors
    */
-  Angle<T> twdir() const {
-    return trueWind().angle() + Angle<T>::degrees(T(180));
+  Optional<Angle<T> > twdirOverGround() const {
+    if (trueWindOverGround.defined()) {
+      return trueWindOverGround().angle() + Angle<T>::degrees(T(180));
+    }
+    return Optional<Angle<T> >();
   }
 
-  Angle<T> tws() const {
-    return trueWind().norm();
+  Optional<Velocity<T> > twsOverGround() const {
+    if (trueWindOverGround.defined()) {
+      return trueWindOverGround().norm();
+    }
+    return Optional<Velocity<T> >();
+  }
+
+  Optional<HorizontalMotion<T> > motionRelativeToBoat(const HorizontalMotion<T> &x) const {
+    if (gpsMotion.defined()) {
+      return x - gpsMotion();
+    }
+    return Optional<HorizontalMotion<T> >();
+  }
+
+  Optional<Angle<T> > angleRelativeToBoat(const Angle<T> &x) const {
+    if (boatOrientation.defined()) {
+      return x - boatOrientation();
+    }
+    return Optional<Angle<T> >();
+  }
+
+  Optional<HorizontalMotion<T> > trueWindOverWater() const {
+    return trueWindOverGround - trueCurrentOverGround;
   }
 };
 

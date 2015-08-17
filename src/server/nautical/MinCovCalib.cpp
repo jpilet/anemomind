@@ -123,7 +123,7 @@ Array<T> getOrientationsDegs(Array<CalibratedNav<T> > cnavs) {
 template <typename T>
 Array<T> getSpeedsKnots(Array<CalibratedNav<T> > cnavs, bool wind, int indexXY) {
   std::function<T(CalibratedNav<T>)> getSpeedKnots = [&](const CalibratedNav<T> &nav) {
-    auto m = (wind? nav.trueWind() : nav.trueCurrent());
+    auto m = (wind? nav.trueWindOverGround() : nav.trueCurrentOverGround());
     return m[indexXY].knots();
   };
   int n = cnavs.size();

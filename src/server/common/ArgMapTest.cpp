@@ -19,7 +19,7 @@ TEST(ArgMapTest, BasicTest) {
   map.registerOption("--out", "Specifies the name of the file to output.").setArgCount(1);
   map.registerOption("--swap", "Some other command not tested here...").setMinArgCount(1).setMaxArgCount(2);
   map.registerOption("--rulle", "Use short form of Rudolf").setArgCount(0);
-  EXPECT_TRUE(map.parse(argc, argv));
+  EXPECT_TRUE(map.parse(argc, argv) != ArgMap::Error);
 
   EXPECT_TRUE(map.hasRegisteredOption("--slice"));
   EXPECT_FALSE(map.optionProvided("--rulle"));
@@ -42,7 +42,7 @@ TEST(ArgMapTest, Help) {
   ArgMap amap;
   const int argc = 2;
   const char *argv[2] = {"programName", "--help"};
-  EXPECT_TRUE(amap.parse(argc, argv));
+  EXPECT_TRUE(amap.parse(argc, argv) != ArgMap::Error);
   EXPECT_TRUE(amap.optionProvided("--help"));
 }
 
@@ -57,20 +57,20 @@ namespace {
 TEST(ArgMapTest, Required1) {
   const int argc = 1;
   const char *argv[argc] = {"progname"};
-  EXPECT_FALSE(makeReqMap().parse(argc, argv));
+  EXPECT_EQ(makeReqMap().parse(argc, argv), ArgMap::Error);
 }
 
 TEST(ArgMapTest, Required2) {
   const int argc = 2;
   const char *argv[argc] = {"progname", "--filename"};
-  EXPECT_FALSE(makeReqMap().parse(argc, argv));
+  EXPECT_EQ(makeReqMap().parse(argc, argv), ArgMap::Error);
 }
 
 TEST(ArgMapTest, Required3) {
   const int argc = 3;
   const char *argv[argc] = {"progname", "--filename", "data.txt"};
   ArgMap m = makeReqMap();
-  EXPECT_TRUE(m.parse(argc, argv));
+  EXPECT_EQ(m.parse(argc, argv), ArgMap::Continue);
   EXPECT_EQ(m.optionArgs("--filename").size(), 1);
   EXPECT_EQ(m.optionArgs("--filename")[0]->value(), "data.txt");
   EXPECT_TRUE(m.freeArgs().empty());
@@ -81,7 +81,7 @@ TEST(ArgMapTest, Unique) {
   const char *argv[argc] = {"progname", "--filename", "--filename"};
   ArgMap m;
   m.registerOption("--filename", "Provides a filename").setUnique();
-  EXPECT_FALSE(m.parse(argc, argv));
+  EXPECT_EQ(m.parse(argc, argv), ArgMap::Error);
 }
 
 TEST(ArgMapTest, Unique2) {
@@ -89,7 +89,7 @@ TEST(ArgMapTest, Unique2) {
   const char *argv[argc] = {"progname", "--filename"};
   ArgMap m;
   m.registerOption("--filename", "Provides a filename").setUnique();
-  EXPECT_TRUE(m.parse(argc, argv));
+  EXPECT_EQ(m.parse(argc, argv), ArgMap::Continue);
 }
 
 TEST(ArgMapTest, CallBack) {
@@ -101,8 +101,14 @@ TEST(ArgMapTest, CallBack) {
   m.registerOption("-s", "Provide a string").store(&s);
   m.registerOption("-i", "Provide an int").store(&i);
   m.registerOption("-d", "Provide a double").store(&d);
-  EXPECT_TRUE(m.parse(sizeof(argv)/sizeof(argv[0]), argv));
+  EXPECT_EQ(m.parse(sizeof(argv)/sizeof(argv[0]), argv), ArgMap::Continue);
   EXPECT_EQ(s, "string");
   EXPECT_EQ(i, 2600);
   EXPECT_NEAR(3.23, d, 1e-6);
+}
+
+TEST(ArgMapTest, Truthiness) {
+  EXPECT_FALSE(ArgMap::Error);
+  EXPECT_TRUE(ArgMap::Continue);
+  EXPECT_TRUE(ArgMap::Done);
 }

@@ -348,8 +348,8 @@ class NavalSimulation {
 
     NavalSimulation::SimulatedCalibrationResults evaluateNoCalibration() const;
 
-    Array<HorizontalMotion<double> > trueWind() const;
-    Array<HorizontalMotion<double> > trueCurrent() const;
+    Array<HorizontalMotion<double> > trueWindOverGround() const;
+    Array<HorizontalMotion<double> > trueCurrentOverGround() const;
 
     void plot() const;
 

@@ -72,7 +72,7 @@ std::ostream &operator<<(std::ostream &s, RealDataResults x) {
 
 
 Array<Nav> loadAndFilterDataset(std::string datasetPath) {
-  return scanNmeaFolder(datasetPath, Nav::debuggingBoatId(), nullptr)
+  return scanNmeaFolder(datasetPath, Nav::debuggingBoatId())
           .slice(hasAllData);
 }
 

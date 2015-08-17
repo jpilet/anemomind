@@ -69,7 +69,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--example-ds", "Select an example dataset (1, 2 or 3)").setArgCount(1).unique();
   registerGetTestdataNavs(amap);
 
-  if (amap.parseAndHelp(argc, argv)) {
+  if (amap.parse(argc, argv) != ArgMap::Error) {
     if (amap.optionProvided("--help")) { // no need to parse anything if help was provided.
       return 0;
     }

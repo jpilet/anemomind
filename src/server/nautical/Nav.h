@@ -67,8 +67,8 @@ class Nav {
   HorizontalMotion<double> gpsMotion() const;
 
   // As computed by the calibrated model. Not always available.
-  HorizontalMotion<double> trueWind() const { return _trueWind; }
-  bool hasTrueWind() const { return !isnan(_trueWind[0]); }
+  HorizontalMotion<double> trueWindOverGround() const { return _trueWind; }
+  bool hasTrueWindOverGround() const { return !isnan(_trueWind[0]); }
 
   void setAwa(Angle<double> awa_) {_awa = awa_;}
   void setAws(Velocity<double> aws_) {_aws = aws_;}
@@ -82,7 +82,7 @@ class Nav {
   void setExternalTwa(Angle<double> twa_) {_externalTwa = twa_;}
   void setExternalTws(Velocity<double> tws_) {_externalTws = tws_;}
 
-  void setTrueWind(const HorizontalMotion<double>& trueWind) { _trueWind = trueWind; }
+  void setTrueWindOverGround(const HorizontalMotion<double>& trueWind) { _trueWind = trueWind; }
 
   bool operator== (const Nav &other) const;
 

@@ -62,8 +62,8 @@ WindCurrentErrors compareCorrectors(
     Array<Nav> navs) {
   auto aNavs = a(navs);
   auto bNavs = b(navs);
-  auto getWind = [&](const CalibratedNav<double> &x) {return x.trueWind();};
-  auto getCurrent = [&](const CalibratedNav<double> &x) {return x.trueCurrent();};
+  auto getWind = [&](const CalibratedNav<double> &x) {return x.trueWindOverGround();};
+  auto getCurrent = [&](const CalibratedNav<double> &x) {return x.trueCurrentOverGround();};
   return WindCurrentErrors{
     FlowErrors(aNavs.map<HorizontalMotion<double> >(getWind),
                bNavs.map<HorizontalMotion<double> >(getWind)),

@@ -42,9 +42,9 @@ BSONObj navToBSON(const Nav& nav) {
     result.append("externalTwa", nav.externalTwa().degrees());
     result.append("externalTws", nav.externalTws().knots());
   }
-  if (nav.hasTrueWind()) {
-    result.append("twdir", calcTwdir(nav.trueWind()).degrees());
-    result.append("tws", calcTws(nav.trueWind()).knots());
+  if (nav.hasTrueWindOverGround()) {
+    result.append("twdir", calcTwdir(nav.trueWindOverGround()).degrees());
+    result.append("tws", calcTws(nav.trueWindOverGround()).knots());
   }
 
   if (nav.hasDeviceScreen()) {

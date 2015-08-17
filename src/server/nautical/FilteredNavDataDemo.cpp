@@ -37,7 +37,7 @@ namespace {
 
   void ex0(int mode, double lambda) {
     Array<Nav> navs =
-        scanNmeaFolder(std::string(Env::SOURCE_DIR) + "/datasets/psaros33_Banque_Sturdza",
+        scanNmeaFolderWithSimulator(std::string(Env::SOURCE_DIR) + "/datasets/psaros33_Banque_Sturdza",
         Nav::debuggingBoatId());
     Array<Spani> spans = recursiveTemporalSplit(navs);
     dispFilteredNavData(navs, spans[5], mode, lambda);
@@ -55,7 +55,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--ex0", "Run a preconfigured example on the Psaros33 dataset");
   amap.registerOption("--overview", "Segment the loaded navs into chunks and display those chunks");
   amap.registerOption("--lambda", "Set the regularization parameter").setArgCount(1).store(&lambda);
-  if (!amap.parseAndHelp(argc, argv)) {
+  if (amap.parse(argc, argv) == ArgMap::Error) {
     return -1;
   }
 
