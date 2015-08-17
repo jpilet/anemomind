@@ -17,10 +17,10 @@ int main(int argc, const char **argv) {
   amap.registerOption("--run-old", "Run the old version of the algorithm, that doesn't work completely.");
   amap.registerOption("--run", "Run the current version of the algorithm, with random correctors.");
 
-  if (!amap.parseAndHelp(argc, argv)) {
+  auto argCode = amap.parse(argc, argv);
+  if (argCode == ArgMap::Error) {
     return -1;
-  }
-  if (amap.helpAsked()) {
+  } else if (argCode == ArgMap::Done) {
     return 0;
   }
 

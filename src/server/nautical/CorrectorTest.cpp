@@ -34,13 +34,13 @@ TEST(CorrectorTest, NoCurrent) {
    * A true wind blowing in the direction of south-west, with an angle of 225 degrees.
    * It is blowing from north-east with an angle of 45 degrees.
    */
-  HorizontalMotion<double> trueWind =
+  HorizontalMotion<double> trueWindOverGround =
       HorizontalMotion<double>::polar(Velocity<double>::knots(6), Angle<double>::degrees(225));
 
   /*
    * No current
    */
-  HorizontalMotion<double> trueCurrent(Velocity<double>::knots(0), Velocity<double>::knots(0));
+  HorizontalMotion<double> trueCurrentOverGround(Velocity<double>::knots(0), Velocity<double>::knots(0));
 
   // Suppose we are sailing downwind, slower than the wind.
   // We feel a small apparent wind in our back.
@@ -60,21 +60,21 @@ TEST(CorrectorTest, NoCurrent) {
 
   CalibratedNav<double> c = corrector.correct(MeasuredData());
   double marg = 1.0e-2;
-  EXPECT_NEAR(c.trueWind()[0].knots(), trueWind[0].knots(), marg);
-  EXPECT_NEAR(c.trueWind()[1].knots(), trueWind[1].knots(), marg);
-  EXPECT_NEAR(c.trueCurrent()[0].knots(), trueCurrent[0].knots(), marg);
-  EXPECT_NEAR(c.trueCurrent()[1].knots(), trueCurrent[1].knots(), marg);
+  EXPECT_NEAR(c.trueWindOverGround()[0].knots(), trueWindOverGround[0].knots(), marg);
+  EXPECT_NEAR(c.trueWindOverGround()[1].knots(), trueWindOverGround[1].knots(), marg);
+  EXPECT_NEAR(c.trueCurrentOverGround()[0].knots(), trueCurrentOverGround[0].knots(), marg);
+  EXPECT_NEAR(c.trueCurrentOverGround()[1].knots(), trueCurrentOverGround[1].knots(), marg);
 }
 
 TEST(CorrectorTest, BeamReachWithCurrent) {
   Corrector<double> corrector;
 
   // A wind of 12 knots blowing from east.
-  HorizontalMotion<double> trueWind =
+  HorizontalMotion<double> trueWindOverGround =
       HorizontalMotion<double>::polar(Velocity<double>::knots(12), Angle<double>::degrees(270));
 
   // A current of 1.3 knots coming from north and going south
-  HorizontalMotion<double> trueCurrent =
+  HorizontalMotion<double> trueCurrentOverGround =
       HorizontalMotion<double>::polar(Velocity<double>::knots(1.3), Angle<double>::degrees(180));
 
   // We sail north, against the current.
@@ -96,11 +96,11 @@ TEST(CorrectorTest, BeamReachWithCurrent) {
 
   CalibratedNav<double> c = corrector.correct(MeasuredData());
   double marg = 1.0e-2;
-  EXPECT_NEAR(c.trueWind()[0].knots(), trueWind[0].knots(), marg);
-  EXPECT_NEAR(c.trueWind()[1].knots(), trueWind[1].knots(), marg);
-  EXPECT_NEAR(c.trueCurrent()[0].knots(), trueCurrent[0].knots(), marg);
-  EXPECT_NEAR(c.trueCurrent()[1].knots(), trueCurrent[1].knots(), marg);
-  EXPECT_NEAR(c.twdir().degrees(), 90.0, marg);
+  EXPECT_NEAR(c.trueWindOverGround()[0].knots(), trueWindOverGround[0].knots(), marg);
+  EXPECT_NEAR(c.trueWindOverGround()[1].knots(), trueWindOverGround[1].knots(), marg);
+  EXPECT_NEAR(c.trueCurrentOverGround()[0].knots(), trueCurrentOverGround[0].knots(), marg);
+  EXPECT_NEAR(c.trueCurrentOverGround()[1].knots(), trueCurrentOverGround[1].knots(), marg);
+  EXPECT_NEAR(c.twdirOverGround()().degrees(), 90.0, marg);
 }
 
 

@@ -149,6 +149,12 @@ ParsedNavs::FieldMask ParsedNavs::makeGpsWindMask() {
     fm[POS] = fm[TIME] = fm[AWA] = fm[AWS] = true;
     return fm;
 }
+
+ParsedNavs::FieldMask ParsedNavs::makeAllSensorsMask() {
+    FieldMask fm;
+    fm[POS] = fm[TIME] = fm[AWA] = fm[AWS] = fm[MAG_HDG] = fm[GPS_SPEED] = fm[WAT_SPEED] = true;
+    return fm;
+}
     
 namespace {
   bool hasGreaterTimeStamp(ArrayBuilder<Nav> *navAcc, Nav *nav) {

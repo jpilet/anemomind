@@ -21,7 +21,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--rel-thresh", "Set the relative time threshold")
       .setArgCount(1).store(&relativeThresh);
 
-  if (amap.parseAndHelp(argc, argv)) {
+  if (amap.parse(argc, argv) != ArgMap::Error) {
     Array<Nav> navs = getTestdataNavs(amap);
     Array<Spani> spans = recursiveTemporalSplit(navs,
         relativeThresh, Duration<double>::seconds(lowerThresh));

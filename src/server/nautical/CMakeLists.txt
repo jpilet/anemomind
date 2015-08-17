@@ -1,5 +1,5 @@
 add_subdirectory("grammars")
-add_subdirectory("polar")
+add_subdirectory("tgtspeed")
 add_subdirectory("synthtest")
 add_subdirectory("tiles")
 

@@ -161,10 +161,10 @@ namespace {
     CHECKVALUE(x.calibAwa().degrees());
     CHECKVALUE(x.calibAws().knots());
     CHECKVALUE(x.driftAngle().degrees());
-    CHECKVALUE(x.trueCurrent()[0].knots());
-    CHECKVALUE(x.trueCurrent()[1].knots());
-    CHECKVALUE(x.trueWind()[0].knots());
-    CHECKVALUE(x.trueWind()[1].knots());
+    CHECKVALUE(x.trueCurrentOverGround()[0].knots());
+    CHECKVALUE(x.trueCurrentOverGround()[1].knots());
+    CHECKVALUE(x.trueWindOverGround()[0].knots());
+    CHECKVALUE(x.trueWindOverGround()[1].knots());
     return x;
   }
 
@@ -199,12 +199,12 @@ namespace {
 
   template <typename T>
   HorizontalMotion<T> getTrueWind(const CalibratedNav<T> &x) {
-    return x.trueWind();
+    return x.trueWindOverGround();
   }
 
   template <typename T>
   HorizontalMotion<T> getTrueCurrent(const CalibratedNav<T> &x) {
-    return x.trueCurrent();
+    return x.trueCurrentOverGround();
   }
 
   template <typename T>

@@ -16,7 +16,7 @@ namespace sail {
 
 namespace {
   Array<Nav> getNavsFromPath(Poco::Path p) {
-    return scanNmeaFolder(p, Nav::debuggingBoatId());
+    return scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
   }
 }
 
