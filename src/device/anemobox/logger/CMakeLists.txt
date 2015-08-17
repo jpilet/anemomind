@@ -9,7 +9,10 @@ target_link_libraries(anemobox_Logger anemobox_Dispatcher ${PROTOBUF_LIBRARY} ${
 cxx_test(anemobox_LoggerTest LoggerTest.cpp anemobox_Logger gtest_main)
 
 add_executable(anemobox_logcat logcat.cpp)
-target_link_libraries(anemobox_logcat anemobox_Logger common_logging)
+target_link_libraries(anemobox_logcat
+                      anemobox_Logger
+                      common_ArgMap
+                      common_logging)
 
 add_library(anemobox_LogToNav LogToNav.h LogToNav.cpp)
 target_link_libraries(anemobox_LogToNav
