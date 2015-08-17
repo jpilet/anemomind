@@ -8,7 +8,6 @@
 
 #include <memory>
 #include "SpeedCalib.h"
-#include <iosfwd>
 
 #ifdef ON_SERVER
 #include <server/common/Array.h>
@@ -98,13 +97,6 @@ namespace sail {
       assert(!genericIsNan(awsFactor));
 
       auto v = Angle<T>::radians(awaFactor*awsFactor);
-      if (genericIsNan(v)) {
-        std::cout << EXPR_AND_VAL_AS_STRING(c.calibAws().metersPerSecond()) << std::endl;
-        std::cout << EXPR_AND_VAL_AS_STRING(-expline(coef)) << std::endl;
-        std::cout << EXPR_AND_VAL_AS_STRING(-expline(coef)*c.calibAws().metersPerSecond()) << std::endl;
-        std::cout << EXPR_AND_VAL_AS_STRING(awaFactor) << std::endl;
-        std::cout << EXPR_AND_VAL_AS_STRING(awsFactor) << std::endl;
-      }
       assert(!genericIsNan(v));
       return v;
     }
