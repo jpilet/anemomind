@@ -344,5 +344,14 @@ cxx_test(common_ProportionateIndexerTest
          gtest_main
          common_ProportionateIndexer
         )
-       
+
+add_library(common_EnvUtil
+            EnvUtil.h
+            EnvUtil.cpp
+           )
+
+target_link_libraries(common_EnvUtil
+                      common_PathBuilder
+                      common_Env
+                     )       
                  

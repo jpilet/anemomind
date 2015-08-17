@@ -305,7 +305,7 @@ class Array {
     return ThisType(_size);
   }
 
-  ThisType dup() {
+  ThisType dup() const {
     int count = size();
     ThisType dst(count);
     for (int i = 0; i < count; i++) {

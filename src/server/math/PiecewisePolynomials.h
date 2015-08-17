@@ -35,6 +35,25 @@
 namespace sail {
 namespace PiecewisePolynomials {
 
+namespace INTERNAL {
+  template <int N>
+  QuadForm<N, 1> getReg() {
+    static QuadForm<N, 1> reg = QuadForm<N, 1>::makeReg(1.0e-9);
+    return reg;
+  }
+
+  template <int N>
+  MDArray2d calcCoefs(QuadForm<N, 1> quad) {
+    return (getReg<N>() + quad).minimize();
+  }
+
+  template <int N>
+  double evalQF(const QuadForm<N, 1> &qf) {
+    auto coefs = calcCoefs(qf);
+    return qf.eval(coefs.ptr());
+  }
+}
+
 // This is a piece in the optimal segmentation.
 template <int N>
 struct Piece {
@@ -49,22 +68,26 @@ struct Piece {
   // this function returns that value.
   double constantValue() const {
     static_assert(N == 1, "Only applicable to constants");
-    return quadCost.minimize1x1();
+    return regularized().minimize1x1();
+  }
+
+  LineKM line() const {
+    static_assert(N == 2, "Only applicable to lines");
+    double mAndK[2] = {0, 0};
+    regularized().minimize2x1(mAndK);
+    return LineKM(mAndK[1], mAndK[0]);
+  }
+
+  QuadForm<N, 1> regularized() const {
+    return quadCost + INTERNAL::getReg<N>();
+  }
+
+  double cost() const {
+    return INTERNAL::evalQF<N>(quadCost);
   }
 };
 
 namespace INTERNAL {
-        template <int N>
-        MDArray2d calcCoefs(QuadForm<N, 1> quad) {
-          static QuadForm<N, 1> reg = QuadForm<N, 1>::makeReg(1.0e-9);
-          return (reg + quad).minimize();
-        }
-
-        template <int N>
-        double evalQF(const QuadForm<N, 1> &qf) {
-          auto coefs = calcCoefs(qf);
-          return qf.eval(coefs.ptr());
-        }
 
         template <int N>
         double evalFitness(Integral1d<QuadForm<N, 1> > itg, int from, int to) {
@@ -157,11 +180,12 @@ namespace INTERNAL {
             // when we approximate the signal between 'left' and 'right'
             // with a single straight line instead of two straight lines
             // divided at 'middle'
-            _increase = evalFitness(_itg, _left, _right)
-                - evalFitness(_itg, _left, _middle) - evalFitness(_itg, _middle, _right);
-
-            // For a coarser approximation, we always expect an increase.
-            assert(-1.0e-9 <= _increase);
+            auto after =  evalFitness(_itg, _left, _right);
+            auto before = evalFitness(_itg, _left, _middle) + evalFitness(_itg, _middle, _right);
+            _increase = after - before;
+            // We would like to check that the increase is non-negative with an assertion,
+            // but that may be a bad idea due to cancellation effects making that number inaccurate.
+            // the final result may despite this still be useful.
           }
         };
 
