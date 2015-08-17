@@ -149,19 +149,22 @@ T[] loadData(T)(string filename)
 template <typename T>
 void saveRawArray(std::string filename, Array<T> data) {
   ofstream file(filename, ios::out | ios::binary);
-  file.write(data.getData(), sizeof(T)*data.size());
+  file.write((char *)data.getData(), sizeof(T)*data.size());
 }
 
 template <typename T>
 Array<T> loadRawArray(std::string filename) {
   std::ifstream file(filename, std::ios::binary | std::ios::ate | std::ios::in);
-  int size = file.tellg();
-  int count = size/sizeof(T);
-  assert(count*sizeof(T) == size);
-  Array<T> data(count);
-  file.seekg(0, ios::beg);
-  file.read((char *)data.getData(), size);
-  return data;
+  if (file.good()) {
+    int size = file.tellg();
+    int count = size/sizeof(T);
+    assert(count*sizeof(T) == size);
+    Array<T> data(count);
+    file.seekg(0, ios::beg);
+    file.read((char *)data.getData(), size);
+    return data;
+  }
+  return Array<T>();
 }
 
 template <typename T>

@@ -113,6 +113,8 @@ class FilteredNavData {
   // the lifetime of this object.
   class Indexed {
    public:
+    Indexed() : _data(nullptr), _index(-1) {}
+
     Indexed(const FilteredNavData *data, int index) :
       _data(data), _index(index) {}
 
@@ -149,6 +151,8 @@ class FilteredNavData {
     assert(sampleIndex < size());
     return Indexed(this, sampleIndex);
   }
+
+  Array<FilteredNavData::Indexed> makeIndexedInstrumentAbstractions() const;
 
   TimeStamp timeOffset() const {
     return _timeOffset;

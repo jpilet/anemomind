@@ -60,7 +60,7 @@ namespace {
 int main(int argc, const char **argv) {
   ArgMap amap;
   amap.registerOption("--only-wind", "Calibrate only on wind (our initial implementation). Otherwise full.");
-  if (!amap.parseAndHelp(argc, argv)) {
+  if (amap.parse(argc, argv) == ArgMap::Error) {
     return -1;
   }
 

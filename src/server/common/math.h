@@ -284,6 +284,13 @@ void mirror(int dims, T width, const T *x, T *y) {
   }
 }
 
+template <typename T>
+struct MatrixElement {
+ int i, j;
+ T value;
+};
+typedef MatrixElement<double> MatrixElementd;
+
 
 
 
