@@ -246,7 +246,7 @@ string Calibrator::description(std::shared_ptr<HTree> tree) {
 
 bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
   // Load data.
-  Array<Nav> allnavs = scanNmeaFolder(dataPath, boatId);
+  Array<Nav> allnavs = scanNmeaFolderWithSimulator(dataPath, boatId);
   if (allnavs.size() == 0) {
     return false;
   }
@@ -451,7 +451,7 @@ void Calibrator::simulate(Array<Nav> *navs) const {
     filter.setMagHdgWatSpeed(nav.magHdg(), nav.watSpeed(), nav.time());
     filter.setGps(nav.gpsBearing(), nav.gpsSpeed(), nav.time());
 
-    nav.setTrueWind(
+    nav.setTrueWindOverGround(
         TrueWindEstimator::computeTrueWind(_calibrationValues, filter));
   }
 }
@@ -486,8 +486,8 @@ namespace {
       auto after = corr.correct(cost->after());
       double weight = cost->weight();
 
-      auto windDif = before.trueWind() - after.trueWind();
-      auto currentDif = before.trueCurrent() - after.trueCurrent();
+      auto windDif = before.trueWindOverGround() - after.trueWindOverGround();
+      auto currentDif = before.trueCurrentOverGround() - after.trueCurrentOverGround();
       for (int i = 0; i < 2; i++) {
         int offset = 2*i;
         residuals[offset + 0] = weight*windDif[i].knots();
@@ -518,10 +518,10 @@ namespace {
       auto tc = tackCosts[i];
       CalibratedNav<double> before = corr.correct(tc->before());
       CalibratedNav<double> after = corr.correct(tc->after());
-      windBefore[i] = before.trueWind();
-      windAfter[i] = after.trueWind();
-      currentBefore[i] = before.trueCurrent();
-      currentAfter[i] = after.trueCurrent();
+      windBefore[i] = before.trueWindOverGround();
+      windAfter[i] = after.trueWindOverGround();
+      currentBefore[i] = before.trueCurrentOverGround();
+      currentAfter[i] = after.trueCurrentOverGround();
     }
     return WindCurrentErrors{FlowErrors(windBefore, windAfter),
                              FlowErrors(currentBefore, currentAfter),

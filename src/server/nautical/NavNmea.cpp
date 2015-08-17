@@ -149,6 +149,12 @@ ParsedNavs::FieldMask ParsedNavs::makeGpsWindMask() {
     fm[POS] = fm[TIME] = fm[AWA] = fm[AWS] = true;
     return fm;
 }
+
+ParsedNavs::FieldMask ParsedNavs::makeAllSensorsMask() {
+    FieldMask fm;
+    fm[POS] = fm[TIME] = fm[AWA] = fm[AWS] = fm[MAG_HDG] = fm[GPS_SPEED] = fm[WAT_SPEED] = true;
+    return fm;
+}
     
 namespace {
   bool hasGreaterTimeStamp(ArrayBuilder<Nav> *navAcc, Nav *nav) {
@@ -280,6 +286,32 @@ Array<Nav> flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask)
   return flattened;
 }
 
-
+ParsedNavs::FieldMask ParsedNavs::fieldsFromNavs(const Array<Nav> &navs) {
+  FieldMask result;
+  for (auto nav : navs) {
+    if (nav.hasApparentWind()) {
+      result.set(FieldId::AWA);
+      result.set(FieldId::AWS);
+    }
+    if (nav.hasExternalTrueWind()) {
+      result.set(FieldId::TWA_EXTERNAL);
+      result.set(FieldId::TWS_EXTERNAL);
+    }
+    if (nav.hasWatSpeed()) {
+      result.set(FieldId::WAT_SPEED);
+    }
+    if (nav.hasMagHdg()) {
+      result.set(FieldId::MAG_HDG);
+    }
+  }
+  // Nav does not have hasGps(), we assume we do have time and pos.
+  if (navs.size() > 0) {
+    result.set(FieldId::TIME);  
+    result.set(FieldId::POS);  
+    result.set(FieldId::GPS_BEARING);  
+    result.set(FieldId::GPS_SPEED);  
+  }
+  return result;
+}
 
 } /* namespace sail */

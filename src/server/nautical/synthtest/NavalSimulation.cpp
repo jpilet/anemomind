@@ -13,6 +13,8 @@
 
 namespace sail {
 
+
+
 NavalSimulation::FlowFun NavalSimulation::constantFlowFun(HorizontalMotion<double> m) {
   return [=](const ProjectedPosition &pos, Duration<double> dur) {
     return m;
@@ -57,18 +59,25 @@ NavalSimulation::NavalSimulation(std::default_random_engine &e,
 }
 
 NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluateFitness(
-    const Corrector<double> &corr) const {
+    const CorrectorFunction &corr) const {
   int count = _states.size();
   Array<HorizontalMotion<double> > estWind(count), estCurrent(count);
-  for (int i = 0; i < count; i++) {
-    auto s = _states[i];
-    CalibratedNav<double> c = corr.correct(s.nav());
-    estWind[i] = c.trueWind();
-    estCurrent[i] = c.trueCurrent();
+  Spani span(0, count);
+  auto navs = span.map<Nav>([&](int i) {return _states[i].nav();});
+  auto cnavs = corr(navs);
+  for (auto i: span) {
+    estWind[i] = cnavs[i].trueWindOverGround();
+    estCurrent[i] = cnavs[i].trueCurrentOverGround();
   }
   return SimulatedCalibrationResults(
-          SimulatedMotionResults(trueWind(), estWind),
-          SimulatedMotionResults(trueCurrent(), estCurrent));
+          SimulatedMotionResults(trueWindOverGround(), estWind),
+          SimulatedMotionResults(trueCurrentOverGround(), estCurrent));
+}
+
+
+NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluateNoCalibration() const {
+  auto corrFun = CorrectorObject(Corrector<double>());
+  return evaluateFitness(corrFun);
 }
 
 
@@ -76,27 +85,27 @@ NavalSimulation::SimulatedCalibrationResults
   NavalSimulation::BoatData::evaluateFitness(Array<HorizontalMotion<double> > estimatedTrueWind,
           Array<HorizontalMotion<double> > estimatedTrueCurrent) const {
   return SimulatedCalibrationResults(
-      SimulatedMotionResults(trueWind(), estimatedTrueWind),
-      SimulatedMotionResults(trueCurrent(), estimatedTrueCurrent));
+      SimulatedMotionResults(trueWindOverGround(), estimatedTrueWind),
+      SimulatedMotionResults(trueCurrentOverGround(), estimatedTrueCurrent));
 }
 
 NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluateFitness(
     Array<CalibratedNav<double> > cnavs) const {
     return evaluateFitness(cnavs.map<HorizontalMotion<double> >([&](const CalibratedNav<double> &x) {
-      return x.trueWind();
+      return x.trueWindOverGround();
     }), cnavs.map<HorizontalMotion<double> >([&] (const CalibratedNav<double> &x) {
-      return x.trueCurrent();
+      return x.trueCurrentOverGround();
     }));
 }
 
 
 
-Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueWind() const {
+Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueWindOverGround() const {
   return _states.map<HorizontalMotion<double> >([=] (const CorruptedBoatState &s) {
     return s.trueState().trueWind;
   });
 }
-Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueCurrent() const {
+Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueCurrentOverGround() const {
   return _states.map<HorizontalMotion<double> >([=] (const CorruptedBoatState &s) {
     return s.trueState().trueCurrent;
   });

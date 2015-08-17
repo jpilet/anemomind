@@ -12,6 +12,7 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
 #include <server/common/MeanAndVar.h>
+#include <server/common/Span.h>
 
 namespace sail {
 
@@ -92,6 +93,14 @@ namespace {
   }
 }
 
+UniformSamplesd tryFilter(GeneralizedTV tv, Arrayd X, Arrayd Y, double spacing,
+    int order, double lambda) {
+  if (X.size() == Y.size()) {
+    return tv.filter(X, Y, spacing, order, lambda);
+  }
+  return UniformSamplesd();
+}
+
 FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
   FilteredNavData::DebugPlotMode mode) {
   if (navs.hasData()) {
@@ -138,23 +147,24 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
       GeneralizedTV tv;
       SCOPEDMESSAGE(INFO, "TV filter");
       SCOPEDMESSAGE(INFO, "AWA");
-      _awa = toAngles(tv.filter(timesSeconds, toDouble(awa), spacing,
+      _awa = toAngles(tryFilter(tv, timesSeconds, toDouble(awa), spacing,
           order, lambda));
       SCOPEDMESSAGE(INFO, "Mag hdg");
-      _magHdg = toAngles(tv.filter(timesSeconds, toDouble(magHdg),
+      _magHdg = toAngles(tryFilter(tv, timesSeconds, toDouble(magHdg),
           spacing, order, lambda));
       SCOPEDMESSAGE(INFO, "GPS bearing");
-      _gpsBearing = toAngles(tv.filter(timesSeconds, toDouble(gpsBearing),
+      _gpsBearing = toAngles(tryFilter(tv, timesSeconds, toDouble(gpsBearing),
           spacing, order, lambda));
       SCOPEDMESSAGE(INFO, "Wat speed");
-      _watSpeed = toVelocities(tv.filter(timesSeconds, toDouble(watSpeed),
+      _watSpeed = toVelocities(tryFilter(tv, timesSeconds, toDouble(watSpeed),
           spacing, order, lambda));
       SCOPEDMESSAGE(INFO, "GPS speed");
-      _gpsSpeed = toVelocities(tv.filter(timesSeconds, toDouble(gpsSpeed),
+      _gpsSpeed = toVelocities(tryFilter(tv, timesSeconds, toDouble(gpsSpeed),
           spacing, order, lambda));
       SCOPEDMESSAGE(INFO, "AWS speed");
-      _aws = toVelocities(tv.filter(timesSeconds, toDouble(aws),
+      _aws = toVelocities(tryFilter(tv, timesSeconds, toDouble(aws),
           spacing, order, lambda));
+
 
       assert(_awa.sameSamplingAs(_magHdg));
       assert(_awa.sameSamplingAs(_gpsBearing));
@@ -245,5 +255,20 @@ FilteredNavData::NoiseStdDev FilteredNavData::estimateNoise(Array<Nav> navs) con
       Velocity<double>::knots(gpsSpeed.standardDeviation()),
       Velocity<double>::knots(aws.standardDeviation()));
 }
+
+
+Array<Duration<double> > FilteredNavData::timesSinceOffset() const {
+  int n = size();
+  Array<Duration<double> > durs(n);
+  for (int i = 0; i < n; i++) {
+    durs[i] = Duration<double>::seconds(sampling()(i));
+  }
+  return durs;
+}
+
+Array<FilteredNavData::Indexed> FilteredNavData::makeIndexedInstrumentAbstractions() const {
+  return Spani(0, size()).map<Indexed>([&](int i) {return makeIndexedInstrumentAbstraction(i);});
+}
+
 
 }

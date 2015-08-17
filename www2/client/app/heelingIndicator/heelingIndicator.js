@@ -16,7 +16,7 @@ HeelingPanel.prototype.init = function(){
 
     var panel_component=this;
 
-    d3.xml("assets/images/svg/heeling.svg", "image/svg+xml", function(xml) {
+    d3.xml("/app/heelingIndicator/heeling.svg", "image/svg+xml", function(xml) {
     var importedNode = document.importNode(xml.documentElement, true);
     panel_component.arrow = d3.select(panel).selectAll("#heeling-svg-container").node().appendChild(importedNode);
     panel_component.updatePanelGraphs(panel_component.value);
@@ -25,7 +25,7 @@ HeelingPanel.prototype.init = function(){
 
 HeelingPanel.prototype.updatePanelGraphs = function(value){
 
-    if(value != undefined){
+    if(value != undefined && !isNaN(value)){
       // In case the SVG has not been loaded yet, remember the value
       // so that we can apply the rotation after loading.
         this.value = value;

@@ -34,8 +34,14 @@ for boatdir in "${LOG_DIR}/"*; do
     boatdat="${boatprocessdir}/processed/boat.dat"
     [ -f "${boatdat}" ] && rm -f "${boatdat}"
 
-    # HACK: processBoatLogs can't deal with "log" files yet. Convert to NMEA first.
-    "${BIN}"/logcat "${boatdir}"/*log > "${boatprocessdir}/LOG.TXT"
+    # log converted to .TXT are not needed anymore, processBoatLogs will read the
+    # .log files directly.
+    rm -f "${boatprocessdir}/LOG.TXT" || true
+
+    # processBoatLogs takes only 1 arg. Create a symlink to pass the source
+    # directory.
+    [ -L "${boatprocessdir}/logs" ] || ln -s "${boatdir}" "${boatprocessdir}/logs"
+
     if "${BIN}"/processBoatLogs "${boatprocessdir}" ; then
 
       # Upload the tiles to the database

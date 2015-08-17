@@ -305,7 +305,7 @@ class Array {
     return ThisType(_size);
   }
 
-  ThisType dup() {
+  ThisType dup() const {
     int count = size();
     ThisType dst(count);
     for (int i = 0; i < count; i++) {
@@ -767,6 +767,23 @@ Arrayb neg(Arrayb X);
 bool all(Arrayb X);
 bool any(Arrayb X);
 Arrayi makeSparseInds(int arraySize, int sampleCount);
+
+template <typename T>
+Array<T> concat(Array<Array<T> > arrays) {
+  int totalCount = 0;
+  for (auto arr: arrays) {
+    totalCount += arr.size();
+  }
+  Array<T> dst(totalCount);
+  int from = 0;
+  for (int i = 0; i < arrays.size(); i++) {
+    int to = from + arrays[i].size();
+    arrays[i].copyToSafe(dst.slice(from, to));
+    from = to;
+  }
+  assert(from == totalCount);
+  return dst;
+}
 
 } /* namespace sail */
 #endif /* ARRAY_H_ */

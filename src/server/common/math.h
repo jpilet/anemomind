@@ -284,8 +284,40 @@ void mirror(int dims, T width, const T *x, T *y) {
   }
 }
 
+template <typename T>
+T smoothNonNegAbs(T x, T thresh) {
+  if (x < T(0)) {
+    return smoothNonNegAbs(-x, thresh);
+  } else if (x < thresh) {
+    T a = 1.0/(2.0*thresh);
+    T b = 0.5*thresh;
+    return a*x*x + b;
+  }
+  return x;
+}
+
+template <typename T>
+T smoothNonNegAbs2(T x, T thresh) {
+  return sqrt(thresh + x*x);
+}
+
+template <typename T>
+struct MatrixElement {
+ int i, j;
+ T value;
+};
+typedef MatrixElement<double> MatrixElementd;
 
 
+
+template <typename T> // Should work for AD types too.
+bool genericIsNan(T x) {
+  return !(x == x);
+}
+
+inline bool implies(bool a, bool b) {
+  return !a || b;
+}
 
 } /* namespace sail */
 

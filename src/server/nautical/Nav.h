@@ -67,8 +67,8 @@ class Nav {
   HorizontalMotion<double> gpsMotion() const;
 
   // As computed by the calibrated model. Not always available.
-  HorizontalMotion<double> trueWind() const { return _trueWind; }
-  bool hasTrueWind() const { return !isnan(_trueWind[0]); }
+  HorizontalMotion<double> trueWindOverGround() const { return _trueWind; }
+  bool hasTrueWindOverGround() const { return !isnan(_trueWind[0]); }
 
   void setAwa(Angle<double> awa_) {_awa = awa_;}
   void setAws(Velocity<double> aws_) {_aws = aws_;}
@@ -82,7 +82,7 @@ class Nav {
   void setExternalTwa(Angle<double> twa_) {_externalTwa = twa_;}
   void setExternalTws(Velocity<double> tws_) {_externalTws = tws_;}
 
-  void setTrueWind(const HorizontalMotion<double>& trueWind) { _trueWind = trueWind; }
+  void setTrueWindOverGround(const HorizontalMotion<double>& trueWind) { _trueWind = trueWind; }
 
   bool operator== (const Nav &other) const;
 
@@ -101,9 +101,19 @@ class Nav {
   ScreenInfo deviceScreen() const { return _deviceScreen; }
   bool hasDeviceScreen() const { return _flags & DEVICE_SCREEN; }
 
+  bool hasDeviceTargetVmg() const { return _flags & DEVICE_TARGET_VMG; }
+  Velocity<double> deviceTargetVmg() const { return _deviceTargetVmg; }
+  void setDeviceTargetVmg(Velocity<double> p) { _deviceTargetVmg= p; _flags |= DEVICE_TARGET_VMG; }
+
+  bool hasDeviceVmg() const { return _flags & DEVICE_VMG; }
+  Velocity<double> deviceVmg() const { return _deviceVmg; }
+  void setDeviceVmg(Velocity<double> p) { _deviceVmg = p; _flags |= DEVICE_VMG; }
+
  private:
   enum {
     DEVICE_SCREEN = 1,
+    DEVICE_TARGET_VMG = 2,
+    DEVICE_VMG = 4,
   };
 
   // contains entried from the enum above "ored" together.
@@ -135,6 +145,9 @@ class Nav {
 
   HorizontalMotion<double> _trueWind;
   ScreenInfo _deviceScreen;
+
+  Velocity<double> _deviceVmg;
+  Velocity<double> _deviceTargetVmg;
 };
 
 
@@ -152,12 +165,14 @@ Array<Nav> loadNavsFromText(std::string filename, bool sort = true);
 bool areSortedNavs(Array<Nav> navs);
 void plotNavTimeVsIndex(Array<Nav> navs);
 void dispNavTimeIntervals(Array<Nav> navs);
-Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds);
+Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, Duration<double> dur);
 MDArray2d calcNavsEcefTrajectory(Array<Nav> navs);
 Array<MDArray2d> calcNavsEcefTrajectories(Array<Array<Nav> > navs);
 void plotNavsEcefTrajectory(Array<Nav> navs);
 void plotNavsEcefTrajectories(Array<Array<Nav> > navs);
 int countNavs(Array<Array<Nav> > navs);
+
+std::ostream &operator<<(std::ostream &s, const Nav &x);
 
 
 } /* namespace sail */

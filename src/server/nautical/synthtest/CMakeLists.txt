@@ -63,15 +63,6 @@ cxx_test(nautical_synthtest_FlowTest
          nautical_synthtest_Flow
         )
         
-add_executable(nautical_synthtest_EvaluateCalibrator
-               EvaluateCalibrator.cpp
-              )
-target_link_libraries(nautical_synthtest_EvaluateCalibrator
-                      nautical_synthtest_NavalSimulationPrecomp
-                      nautical_Calibrator
-                      common_ArgMap
-                     )
-                     
                      
 add_library(nautical_synthtest_FractalFlow
             FractalFlow.h

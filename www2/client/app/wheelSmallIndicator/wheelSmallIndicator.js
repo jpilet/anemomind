@@ -18,7 +18,7 @@ WheelSmallPanel.prototype.init = function(){
     var panel = this.root[0];
     var panel_component=this;
 
-    d3.xml("assets/images/svg/wheel_small.svg", "image/svg+xml", function(xml) {
+    d3.xml("app/wheelSmallIndicator/wheel_small.svg", "image/svg+xml", function(xml) {
         var importedNode = document.importNode(xml.documentElement, true);
         panel_component.gauge1 = d3.select(panel).selectAll("#wheel-small-svg-container").node().appendChild(importedNode);
         panel_component.updatePanelGraphs(panel_component.arrow, panel_component.boat, panel_component.north);
@@ -29,7 +29,7 @@ WheelSmallPanel.prototype.init = function(){
 
 WheelSmallPanel.prototype.updatePanelGraphs = function(arrow, boat, north){
 
-    if(arrow != undefined && boat != undefined && north != undefined){
+    if(arrow != undefined && boat != undefined && north != undefined && !isNaN(arrow) && !isNaN(boat) && !isNaN(north)){
         this.arrow = arrow;
         this.boat = boat;
         this.north = north;
