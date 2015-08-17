@@ -415,13 +415,14 @@ target_link_libraries(nautical_MinCovCalib
                       nautical_FilteredNavData
                      )
 
-add_executable(nautical_EvalMinCovCalib
-               EvalMinCovCalib.cpp
+add_executable(nautical_EvalCalib
+               EvalCalib.cpp
               )
-target_link_libraries(nautical_EvalMinCovCalib
+target_link_libraries(nautical_EvalCalib
                       nautical_MinCovCalib
                       nautical_Calibrator
                       nautical_CalibrationBenchmark
+                      common_ArgMap
                      )              
 
 add_library(nautical_CalibrationBenchmark 
