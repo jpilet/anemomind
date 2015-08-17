@@ -13,7 +13,7 @@
 
 using namespace sail;
 
-namespace {
+/*namespace {
   void calibrateOnRealData(Poco::Path p) {
     auto id = Nav::debuggingBoatId();
     Calibrator calib;
@@ -43,10 +43,10 @@ namespace {
     std::cout << "  With calibrated paramters: \n" << bd.evaluateFitness(calibratedParameters);
 
   }
-}
+}*/
 
 int main(int argc, const char **argv) {
-  if (argc >= 2) {
+  /*if (argc >= 2) {
     for (int i = 1; i < argc; ++i) {
       if (std::string(argv[i]) == "-s") {
         calibrateOnSyntheticData();
@@ -57,6 +57,7 @@ int main(int argc, const char **argv) {
   } else {
     LOG(FATAL) << "Usage: " << argv[0] << " [-s] [<path>] [<path>] ...\n"
       << " -s evaluates on synthetic data.";
-  }
+  }*/
+  return 0;
 }
 

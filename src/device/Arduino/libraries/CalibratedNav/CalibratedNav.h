@@ -8,6 +8,8 @@
 
 #include "../PhysicalQuantity/PhysicalQuantity.h"
 #include <cassert>
+#include <functional>
+#include <server/nautical/Nav.h>
 
 namespace sail {
 
@@ -152,6 +154,14 @@ class CalibratedNav {
     return trueWind().norm();
   }
 };
+
+class CorrectorFunction {
+ public:
+  virtual Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const = 0;
+  virtual std::string toString() const = 0;
+  virtual ~CorrectorFunction() {}
+};
+
 
 }
 

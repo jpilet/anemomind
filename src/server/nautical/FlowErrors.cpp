@@ -57,11 +57,11 @@ std::ostream &operator<< (std::ostream &s, const WindCurrentErrors &e) {
   return s;
 }
 
-WindCurrentErrors compareCorrectors(Corrector<double> a, Corrector<double> b, Array<Nav> navs) {
-  auto aCorrect = [&](const Nav &x) {return a.correct(x);};
-  auto bCorrect = [&](const Nav &x) {return b.correct(x);};
-  auto aNavs = navs.map<CalibratedNav<double> >(aCorrect);
-  auto bNavs = navs.map<CalibratedNav<double> >(bCorrect);
+WindCurrentErrors compareCorrectors(
+    const CorrectorFunction &a, const CorrectorFunction &b,
+    Array<Nav> navs) {
+  auto aNavs = a(navs);
+  auto bNavs = b(navs);
   auto getWind = [&](const CalibratedNav<double> &x) {return x.trueWind();};
   auto getCurrent = [&](const CalibratedNav<double> &x) {return x.trueCurrent();};
   return WindCurrentErrors{

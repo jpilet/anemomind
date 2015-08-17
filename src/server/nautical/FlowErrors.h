@@ -104,7 +104,10 @@ struct WindCurrentErrors {
 
 std::ostream &operator<< (std::ostream &s, const WindCurrentErrors &e);
 
-WindCurrentErrors compareCorrectors(Corrector<double> a, Corrector<double> b, Array<Nav> navs);
+WindCurrentErrors compareCorrectors(
+    const CorrectorFunction &a,
+    const CorrectorFunction &b,
+    Array<Nav> navs);
 
 }
 

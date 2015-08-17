@@ -396,16 +396,6 @@ cxx_test(nautical_NKEParserTest
          gtest_main
          nautical_NKEParser
         )
-
-add_executable(nautical_EvalCalibrator
-               EvalCalibrator.cpp
-              )
-target_link_libraries(nautical_EvalCalibrator
-                      nautical_NavNmeaScan
-                      nautical_Calibrator
-                      nautical_FlowErrors
-                      nautical_synthtest_NavalSimulationPrecomp
-                     )
                      
 add_library(nautical_FlowErrors
             FlowErrors.h
@@ -430,6 +420,7 @@ add_executable(nautical_EvalMinCovCalib
               )
 target_link_libraries(nautical_EvalMinCovCalib
                       nautical_MinCovCalib
+                      nautical_Calibrator
                       nautical_CalibrationBenchmark
                      )              
 

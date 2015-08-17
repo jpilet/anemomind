@@ -200,6 +200,23 @@ std::ostream &operator<<(std::ostream &s, Corrector<T> corr) {
   return s;
 }
 
+// Adapts it so that we can use it in benchmarks
+class CorrectorObject : public CorrectorFunction {
+ public:
+  CorrectorObject(Corrector<double> c) : _c(c) {}
+
+  Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const {
+    return navs.map<CalibratedNav<double> >([&](const Nav &x) {return _c.correct(x);});
+  }
+
+  std::string toString() const {
+    std::stringstream ss;
+    ss << _c;
+    return ss.str();
+  }
+ private:
+  Corrector<double> _c;
+};
 
 
 }

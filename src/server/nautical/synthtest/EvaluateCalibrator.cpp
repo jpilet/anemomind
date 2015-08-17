@@ -8,7 +8,7 @@
 #include <server/common/string.h>
 #include <server/common/logging.h>
 #include <server/common/ArgMap.h>
-
+/*
 
 namespace {
   using namespace sail;
@@ -56,9 +56,9 @@ namespace {
     std::cout << "After calibration with optimal values:  " << after << std::endl;
   }
 }
-
+*/
 int main(int argc, const char **argv) {
-  ArgMap amap;
+/*  ArgMap amap;
   amap.registerOption("--only-wind", "Calibrate only on wind (our initial implementation). Otherwise full.");
   if (!amap.parseAndHelp(argc, argv)) {
     return -1;
@@ -75,7 +75,7 @@ int main(int argc, const char **argv) {
     LOG(INFO) << "Calibration on wind and current";
     evaluate(true);
   }
-  LOG(INFO) << "Done.";
+  LOG(INFO) << "Done.";*/
 
   return 0;
 }

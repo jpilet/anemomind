@@ -12,6 +12,7 @@
 #include <fstream>
 
 namespace sail {
+namespace Benchmark {
 
 bool hasAllData(const Nav &x) {
   return x.hasApparentWind() && x.hasMagHdg() && x.hasWatSpeed();
@@ -26,23 +27,26 @@ std::ostream &operator<<(std::ostream &s, SynthResults results) {
   return s;
 }
 
-SynthResults evaluateForSimulation(Calibrator calib) {
+
+NavalSimulation::BoatData getStandardBoatData() {
   std::cout << "Prepare synthetic data..." << std::endl;
   NavalSimulation sim = getNavSimFractalWindOrientedLong();
-  auto bd = sim.boatData(0);
+  return sim.boatData(0);
+}
 
-  //auto navs = bd.navs().sliceTo(10000);
+SynthResults evaluateForSimulation(NavalSimulation::BoatData bd,
+    CalibrationAlgorithm calib) {
   auto navs = bd.navs();
 
   std::cout << "Run the calibration..." << std::endl;
-  Corrector<double> calibratedParameters = calib(navs);
+  auto calibratedParameters = calib(navs);
   return SynthResults{
     bd.evaluateNoCalibration(),
-    bd.evaluateFitness(calibratedParameters)
+    bd.evaluateFitness(*calibratedParameters)
   };
 }
 
-SplitResults evaluateForSplit(Calibrator calib, Array<Nav> navs) {
+SplitResults evaluateForSplit(CalibrationAlgorithm calib, Array<Nav> navs) {
   int middle = navs.middle();
   return SplitResults(
     calib(navs.sliceTo(middle)),
@@ -57,8 +61,8 @@ std::ostream &operator<<(std::ostream &s, RealDataResults x) {
   for (int i = 0; i < n; i++) {
     auto r = x.results[i];
     s << "Result for subset " << i+1 << "/" << n << " of " << r.navs.size() << " navs.\n";
-    s << "Corrector for first  half: " << r.a << std::endl;
-    s << "Corrector for second half: " << r.b << std::endl;
+    s << "Corrector for first  half: " << r.a->toString() << std::endl;
+    s << "Corrector for second half: " << r.b->toString() << std::endl;
     s << "Cross validation errors:\n";
     s << r.errors;
     s << "\n";
@@ -66,49 +70,60 @@ std::ostream &operator<<(std::ostream &s, RealDataResults x) {
   return s;
 }
 
-RealDataResults evaluateForRealData(Calibrator calib, std::string datasetPath,
-    Arrayi optionalInds = Arrayi()) {
-  ENTERSCOPE(stringFormat("Evaluating dataset %s", datasetPath.c_str()));
-  auto navs = scanNmeaFolder(datasetPath, Nav::debuggingBoatId(), nullptr)
+
+Array<Nav> loadAndFilterDataset(std::string datasetPath) {
+  return scanNmeaFolder(datasetPath, Nav::debuggingBoatId(), nullptr)
           .slice(hasAllData);
-  auto splits = splitNavsByDuration(navs, Duration<double>::hours(1.0));
-  if (!optionalInds.empty()) {
-    splits = splits.slice(optionalInds);
-  }
-  SCOPEDMESSAGE(INFO, stringFormat("  Loaded %d navs.", navs.size()));
-  SCOPEDMESSAGE(INFO, stringFormat("  Split into %d groups", splits.size()));
-  for (int i = 0; i < splits.size(); i++) {
-    auto split = splits[i];
-    double dur = (split.last().time() - split.first().time()).seconds();
-    double period = dur/split.size();
-    SCOPEDMESSAGE(INFO, stringFormat("  Split %d/%d has %d navs and average period of %.3g seconds.",
-      i+1, splits.size(), split.size(), period));
-  }
-  return RealDataResults{
-    datasetPath,
-    splits.map<SplitResults>([&](Array<Nav> navs) {return evaluateForSplit(calib, navs);})
-  };
 }
 
-CalibrationResults fullBenchmark(Calibrator calib) {
-  auto synthResults = evaluateForSimulation(calib);
-  auto exocet = evaluateForRealData(calib, getDatasetPath("exocet").toString());
-  auto ps33 = evaluateForRealData(calib, getDatasetPath("psaros33_Banque_Sturdza").toString());
-  auto irene = evaluateForRealData(calib, getDatasetPath("Irene").toString());
+Array<Array<Nav> > splitRealData(Array<Nav> navs) {
+  return splitNavsByDuration(navs, Duration<double>::hours(1.0));
+}
+
+RealDataResults evaluateForRealDataSplits(CalibrationAlgorithm algo,
+    std::string dsPath, Arrayi subset = Arrayi()) {
+  auto navs = splitRealData(loadAndFilterDataset(dsPath));
+  if (!subset.empty()) {
+    navs = navs.slice(subset);
+  }
+  auto splitResults = navs.map<SplitResults>([&](Array<Nav> navs) {
+    return evaluateForSplit(algo, navs);
+  });
+  return RealDataResults{dsPath, splitResults};
+}
+
+RealDataResults evaluateWithoutSplitting(CalibrationAlgorithm algo, std::string dsPath) {
+  auto navs = loadAndFilterDataset(dsPath);
+  return RealDataResults{dsPath, Array<SplitResults>{evaluateForSplit(algo, navs)}};
+}
+
+
+CalibrationResults fullBenchmark(CalibrationAlgorithm calib) {
+  auto synthResults = evaluateForSimulation(getStandardBoatData(), calib);
+  auto exocet = evaluateForRealDataSplits(calib, getDatasetPath("exocet").toString());
+  auto ps33 = evaluateForRealDataSplits(calib, getDatasetPath("psaros33_Banque_Sturdza").toString());
+  auto irene = evaluateForRealDataSplits(calib, getDatasetPath("Irene").toString());
   return CalibrationResults{
     Array<SynthResults>{synthResults},
     Array<RealDataResults>{exocet, ps33, irene}
   };
 }
 
-CalibrationResults reducedBenchmark(Calibrator calib) {
-  auto ps33 = evaluateForRealData(calib,
+CalibrationResults reducedBenchmark(CalibrationAlgorithm calib) {
+  auto ps33 = evaluateForRealDataSplits(calib,
       getDatasetPath("psaros33_Banque_Sturdza").toString(),
       Arrayi{0});
-  auto synthResults = evaluateForSimulation(calib);
+  auto synthResults = evaluateForSimulation(getStandardBoatData(), calib);
   return CalibrationResults{
     Array<SynthResults>{synthResults},
     Array<RealDataResults>{ps33}
+  };
+}
+
+CalibrationResults longIreneBenchmark(CalibrationAlgorithm calib) {
+  return CalibrationResults{
+    Array<SynthResults>(),
+    Array<RealDataResults>{evaluateWithoutSplitting(calib, getDatasetPath("Irene").toString())}
   };
 }
 
@@ -130,5 +145,5 @@ void CalibrationResults::saveReportToFile(std::string filename) {
 
 
 
-
+}
 } /* namespace sail */
