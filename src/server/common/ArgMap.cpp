@@ -147,14 +147,6 @@ ArgMap::Status ArgMap::parse(int argc, const char **argv) {
   return Error;
 }
 
-bool ArgMap::parseAndHelp(int argc, const char **argv) {
-  bool s = parseSub(argc, argv);
-  if (!s || helpAsked()) {
-    dispHelp(&(std::cout));
-  }
-  return s;
-}
-
 bool ArgMap::Arg::tryParseInt(int *dst) {
   return sail::tryParseInt(value(), dst);
 }

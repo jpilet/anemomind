@@ -252,7 +252,6 @@ class ArgMap {
   std::map<std::string, Option> _options;
   std::string _helpInfo;
   bool parseSub(int argc, const char **argv);
-  bool parseAndHelp(int argc, const char **argv);
 
 };
 
