@@ -61,6 +61,7 @@ add_library(nautical_NavNmeaScan
 target_link_libraries(nautical_NavNmeaScan
                       device_ScreenRecordingSimulator
                       nautical_NavNmea
+                      nautical_NavLoader
                       common_filesystem
                      )
 
@@ -435,3 +436,15 @@ target_link_libraries(nautical_CalibrationBenchmark
                       common_EnvUtil
                       nautical_NavNmeaScan
                      )
+
+add_library(nautical_NavLoader
+            NavLoader.h
+            NavLoader.cpp
+           )
+target_link_libraries(nautical_NavLoader
+                      anemobox_LogToNav
+                      common_logging
+                      common_string
+                      nautical_NavNmea
+                     )
+target_depends_on_poco_foundation(nautical_NavLoader)                                                                    

@@ -47,10 +47,19 @@ BSONObj navToBSON(const Nav& nav) {
     result.append("tws", calcTws(nav.trueWindOverGround()).knots());
   }
 
+  // Old anemobox simulated data.
   if (nav.hasDeviceScreen()) {
     result.append("devicePerf", nav.deviceScreen().perf);
     result.append("deviceTwdir", nav.deviceScreen().twdir);
     result.append("deviceTws", nav.deviceScreen().tws);
+  }
+
+  // New anemobox logged data.
+  if (nav.hasDeviceVmg()) {
+    result.append("deviceVmg", nav.deviceVmg().knots());
+  }
+  if (nav.hasDeviceTargetVmg()) {
+    result.append("deviceTargetVmg", nav.deviceTargetVmg().knots());
   }
   return result.obj();
 }
