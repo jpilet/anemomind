@@ -25,7 +25,7 @@ angular.module('www2App')
     },
     template:
       '<li ng-class="{active: selected}">' +
-        '<a href="" ng-click="select()">{{ title }}</a>' +
+        '<a class="tab" href="" ng-click="select()">{{ title }}</a>' +
       '</li>'
   };
 });

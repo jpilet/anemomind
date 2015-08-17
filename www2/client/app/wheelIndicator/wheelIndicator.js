@@ -64,10 +64,6 @@ WheelPanel.prototype.updatePanelText = function(text) {
     if(text != null && text != undefined){
         this.text = text;
         d3.select(this.wheel).selectAll("#anglevalue")
-        .transition().duration(this.delayTextTransition/2)
-        .style("opacity", 0)
-        .transition().duration(this.delayTextTransition/2)
-        .style("opacity", 1)
         .text(text+"°");
     }
 }
