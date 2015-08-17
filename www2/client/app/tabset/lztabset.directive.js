@@ -31,10 +31,10 @@ angular.module('www2App')
     },
     template:
       '<div class="row-fluid">' +
-        '<div class="row-fluid">' +
+        '<div>' +
           '<div class="nav nav-tabs" ng-transclude></div>' +
         '</div>' +
-        '<div class="row-fluid">' +
+        '<div>' +
           '<ng-include src="templateUrl">' +
         '</ng-include></div>' +
       '</div>'

@@ -150,7 +150,7 @@ display:inline-block;
     margin-left: auto;
     margin-right: auto;
     top: 10px;
-    right: 40px;
+    right: 0px;
     z-index: 10;
 }
 
@@ -158,47 +158,51 @@ display:inline-block;
     text-align: center;
 }
 
-/*=======================SOME GRADIENT TESTS===========================*/
-
-.nav-tabs {
-  background-color:#bbb;
-}
 .row-fluid {
-    /*Chrome*/
-    background-image: -webkit-gradient(
-    linear, left top, right bottom, from(rgba(80,80,80,0.7)),
-    to(rgba(80,80,80,0.2)));
-
-    /* mozilla */
-    background-image: -moz-linear-gradient(bottom right,
-    rgba(80,80,80,0.7) 0%, rgba(80,80,80,0.2) 95%
-    );
+    background: rgb(255, 255, 255); /* The Fallback */
+    background: rgba(255, 255, 255, 0.5);
 
     /*IE*/
     filter: progid:DXImageTransform.Microsoft.gradient(
-    startColorstr=#550000FF, endColorstr=#550000FF
+    startColorstr=#7FFFFFFF,endColorstr=#7FFFFFFF
     );
 
     /* IE8 */
     -ms-filter: progid:DXImageTransform.Microsoft.gradient(
-    startColorstr=#550000FF, endColorstr=#550000FF
+    startColorstr=#7FFFFFFF,endColorstr=#7FFFFFFF
     );
 
 
 
-    color:#fff;
+    color:#000;
     padding:5px
 }
 .nav-tabs > li > a {
   border: medium none;
 }
 .nav-tabs > li > a:hover {
-  background-color: #303136 !important;
+  background-color: #ff0033 !important;
     border: medium none;
-    border-radius: 0;
+    border-radius: 1;
     color:#fff;
 }
 
 .indicator-label, .indicator-value {
   font-size: 40pt;
+}
+
+/* ========= bootstrap overrides ========= */
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+  color: #fff;
+  cursor: default;
+  background-color: #ff0033;
+  border: 1px solid #ddd;
+  border-bottom-color: transparent;
+}
+
+.nav-tabs > li > a {
+  margin-right: 0px;
 }
