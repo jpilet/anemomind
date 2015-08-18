@@ -8,12 +8,10 @@
 
 #include <server/common/math.h>
 #include <server/common/Sampling.h>
+#include <server/math/Majorize.h>
 
 namespace sail {
 namespace RobustSignal {
-
-
-
 
 class RobustCost {
  public:
@@ -24,15 +22,24 @@ class RobustCost {
     return _scale*evalSub(_scale*x);
   }
 
-  double derivative(double x) const {
-    //return _scale*derivativeSub(_)
+  double evalDerivative(double x) const {
+    return sqr(_scale)*derivativeSub(_scale*x);
+  }
+
+  MajQuad majorize(double x) const {
+    return MajQuad::majorize(x, eval(x), evalDerivative(x), 0.0);
   }
  private:
   double _sigma2, _scale;
 
   double evalSub(double x) const {
-    double x2 = x*x;
+    double x2 = sqr(x);
     return x2*_sigma2/(x2 + _sigma2) - _sigma2;
+  }
+
+  double derivativeSub(double x) const {
+    double f = _sigma2/(_sigma2 + sqr(x));
+    return 2*x*sqr(f);
   }
 };
 

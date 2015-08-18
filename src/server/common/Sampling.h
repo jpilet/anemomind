@@ -7,6 +7,7 @@
 #define SERVER_COMMON_SAMPLING_H_
 
 #include <server/common/LineKM.h>
+#include <server/common/MDArray.h>
 
 namespace sail {
 
@@ -50,6 +51,15 @@ template <int N>
 struct Observation {
   Sampling::Weights weights;
   double data[N];
+
+  double calcResidual(const MDArray2d &X) const {
+    double squaredDist = 0.0;
+    for (int i = 0; i < N; i++) {
+      squaredDist = weights.lowerWeight*X(weights.lowerIndex, i) +
+                    weights.upperWeight*X(weights.upperIndex(), i);
+    }
+    return sqrt(squaredDist);
+  }
 };
 
 } /* namespace sail */
