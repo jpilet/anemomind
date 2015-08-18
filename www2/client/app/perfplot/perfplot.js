@@ -44,7 +44,7 @@ Graph.prototype.prepare = function() {
     } else if (field == 'devicePerf'
                && 'deviceVmg' in d
                && 'deviceTargetVmg' in d) {
-      return d[deviceVmg] / d[deviceTargetVmg];
+      return Math.abs(100 * d.deviceVmg / d.deviceTargetVmg);
     }
     return 0;
   };
