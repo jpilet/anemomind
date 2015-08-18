@@ -12,7 +12,7 @@ namespace sail {
 
 class Sampling {
  public:
-  Sampling() : sampleCount(0) {}
+  Sampling() : _sampleCount(0) {}
   Sampling(int count, double lower, double upper);
 
   struct Weights {
@@ -37,9 +37,19 @@ class Sampling {
   double period() const {
     return _indexToX.getK();
   }
+
+  int count() const {
+    return _sampleCount;
+  }
  private:
   LineKM _indexToX, _xToIndex;
-  int sampleCount;
+  int _sampleCount;
+};
+
+template <int N>
+struct Observation {
+  Sampling::Weights weights;
+  double data[N];
 };
 
 } /* namespace sail */

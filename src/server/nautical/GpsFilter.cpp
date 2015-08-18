@@ -7,6 +7,7 @@
 #include <server/nautical/GeographicReference.h>
 #include <server/common/Span.h>
 #include <server/common/Sampling.h>
+#include <server/math/nonlinear/RobustSignal.h>
 #include <algorithm>
 
 
@@ -98,7 +99,7 @@ Array<Nav> filter(Array<Nav> navs, Settings settings) {
   int sampleCount = 2 + int(floor((toTime - fromTime)/settings.samplingPeriod));
   Sampling sampling(sampleCount, fromTime.seconds(), toTime.seconds());
   auto points = getPoints(timeRef, geoRef, navs, sampling);
-  auto result = fitRobustSignal();
+
 }
 
 }

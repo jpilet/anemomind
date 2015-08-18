@@ -182,3 +182,9 @@ cxx_test(math_nonlinear_RungeKuttaTest
          math_nonlinear_RungeKutta
          gtest_main
         )    
+        
+        
+cxx_test(math_nonlinear_RobustSignalTest
+         RobustSignalTest.cpp
+         gtest_main
+        )        
