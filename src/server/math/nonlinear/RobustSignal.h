@@ -12,6 +12,9 @@
 namespace sail {
 namespace RobustSignal {
 
+
+
+
 class RobustCost {
  public:
   RobustCost(double sigma, double scale = 1.0) :
@@ -19,6 +22,10 @@ class RobustCost {
 
   double eval(double x) const {
     return _scale*evalSub(_scale*x);
+  }
+
+  double derivative(double x) const {
+    //return _scale*derivativeSub(_)
   }
  private:
   double _sigma2, _scale;

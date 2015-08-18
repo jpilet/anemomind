@@ -293,7 +293,6 @@ typedef MatrixElement<double> MatrixElementd;
 
 
 
-
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */
