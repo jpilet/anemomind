@@ -41,10 +41,8 @@ Graph.prototype.prepare = function() {
     var field = me.field;
     if (field in d) {
       return d[field];
-    } else if (field == 'devicePerf'
-               && 'deviceVmg' in d
-               && 'deviceTargetVmg' in d) {
-      return Math.abs(100 * d.deviceVmg / d.deviceTargetVmg);
+    } else if (field == 'devicePerf') {
+      return perfAtPoint(d);
     }
     return 0;
   };
