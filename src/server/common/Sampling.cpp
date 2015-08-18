@@ -13,8 +13,9 @@ Sampling::Sampling(int count, double lower, double upper) : sampleCount(count),
 Sampling::Weights Sampling::represent(double x) const {
   auto index = _xToIndex(x);
   int lowerIndex = int(floor(index));
-  double lowerWeight = 1.0 - (index - lowerIndex);
-  return Weights{lowerIndex, lowerWeight};
+  double upperWeight = (index - lowerIndex);
+  double lowerWeight = 1.0 - upperWeight;
+  return Weights{lowerIndex, lowerWeight, upperWeight};
 }
 
 } /* namespace sail */

@@ -17,14 +17,10 @@ class Sampling {
 
   struct Weights {
    int lowerIndex;
-   double lowerWeight;
+   double lowerWeight, upperWeight;
 
    int upperIndex() const {
      return lowerIndex + 1;
-   }
-
-   double upperWeight() const {
-     return 1.0 - lowerWeight;
    }
   };
 
@@ -36,6 +32,10 @@ class Sampling {
 
   const LineKM &xToIndex() const {
     return _xToIndex;
+  }
+
+  double period() const {
+    return _indexToX.getK();
   }
  private:
   LineKM _indexToX, _xToIndex;

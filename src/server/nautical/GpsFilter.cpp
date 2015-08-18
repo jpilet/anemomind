@@ -5,7 +5,8 @@
 
 #include <server/nautical/GpsFilter.h>
 #include <server/nautical/GeographicReference.h>
-#include <server/common/ArrayBuilder.h>
+#include <server/common/Span.h>
+#include <server/common/Sampling.h>
 #include <algorithm>
 
 
@@ -60,29 +61,44 @@ GeographicReference::ProjectedPosition integrate(
   return GeographicReference::ProjectedPosition{x, y};
 }
 
-struct GpsPoint {
-  Sampling::Weights weights;
-  double posMeters[2];
-  double difMeters[2]; // How big the difference should be between the two samples
-};
 
-Array<GpsPoint> getPoints(TimeStamp timeRef,
+
+Array<Observation<2> > getPoints(TimeStamp timeRef,
     GeographicReference geoRef, Array<Nav> navs, Sampling sampling) {
-  return Spani(0, navs.size()).map<GpsPoint>([&](const Nav &nav) {
-    return GpsPoint();
-  });
+  int n = navs.size();
+  Array<Observation<2> > dst(2*n);
+  for (int i = 0; i < n; i++) {
+    auto nav = navs[i];
+    auto localTime = getLocalTime(timeRef, nav);
+    auto localTimeDif = getLocalTimeDif(navs, i);
+    auto difScale = localTimeDif.seconds()/sampling.period();
+    auto weights = sampling.represent(localTime.seconds());
+    auto geoDif = integrate(nav.gpsMotion(), localTimeDif);
+    int offset = 2*i;
+    auto localPos = geoRef.map(nav.geographicPosition());
+    auto difWeights = weights;
+    difWeights.lowerWeight = -difScale;
+    difWeights.upperWeight = difScale;
+    dst[offset + 0] = Observation<2>{weights, {localPos[0].meters(), localPos[1].meters()}};
+    dst[offset + 1] = Observation<2>{difWeights, {geoDif[0].meters(), geoDif[1].meters()}};
+  }
+  return dst;
 }
+
+
 
 Array<Nav> filter(Array<Nav> navs, Settings settings) {
   assert(std::is_sorted(navs.begin(), navs.end()));
   auto timeRef = getTimeReference(navs);
   auto geoRef = getGeographicReference(navs);
 
-  double fromTimeSeconds = getLocalTime(timeRef, navs.first()) - 0.5;
-  double toTimeSeconds = getLocalTime(timeRef, navs.last()) + 0.5;
-  int sampleCount = 2 + int(floor((toTimeSeconds - fromTimeSeconds)/settings.samplingPeriod.seconds()));
-  Sampling sampling(sampleCount, fromTimeSeconds, toTimeSeconds);
+  auto marg = Duration<double>::seconds(0.5);
+  auto fromTime = getLocalTime(timeRef, navs.first()) - marg;
+  auto toTime = getLocalTime(timeRef, navs.last()) + marg;
+  int sampleCount = 2 + int(floor((toTime - fromTime)/settings.samplingPeriod));
+  Sampling sampling(sampleCount, fromTime.seconds(), toTime.seconds());
   auto points = getPoints(timeRef, geoRef, navs, sampling);
+  auto result = fitRobustSignal();
 }
 
 }
