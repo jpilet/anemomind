@@ -54,7 +54,9 @@ angular.module('www2App')
       'aws' : 'Apparent wind speed',
       'deviceTws' : 'True wind speed (Anemomind)',
       'externalTws' : 'True wind speed (onboard instruments)',
-      'watSpeed': 'Water speed'
+      'watSpeed': 'Water speed',
+      'deviceVmg': 'VMG',
+      'deviceTargetVmg': 'Target VMG'
       // those can't be displayed because they are angles:
       // awa deviceTwdir externalTwa gpsBearing magHdg
     };

@@ -4,6 +4,8 @@
 #include <device/anemobox/DispatcherTrueWindEstimator.h>
 #include <device/anemobox/logger/Logger.h>
 #include <server/common/TimeStamp.h>
+#include <server/common/logging.h>
+#include <server/common/ArrayBuilder.h>
 #include <set>
 #include <vector>
 
@@ -43,24 +45,35 @@ bool externalSources(const string& source) {
 
 Array<Nav> makePosArray(const LogFile& data) {
   const ValueSet* pos = searchFor("pos", data);
-  if (pos == 0) {
+  if (pos == 0 || !pos->has_pos()) {
+    LOG(ERROR) << "Log file has no 'pos' data";
     return Array<Nav>();
   }
 
   vector<TimeStamp> timestamps;
   Logger::unpackTime(*pos, &timestamps);
-  Array<Nav> result(timestamps.size());
-  for (int i = 0; i < timestamps.size(); ++i) {
-    result[i].setTime(timestamps[i]);
+
+  vector<GeographicPosition<double>> values;
+  Logger::unpack(pos->pos(), &values);
+
+  if (timestamps.size() != values.size()) {
+    LOG(ERROR) << "malformed log file: " << timestamps.size() << " times, "
+      << values.size() << " pos";
+    return Array<Nav>();
   }
-  if (pos->has_pos()) {
-    vector<GeographicPosition<double>> values;
-    Logger::unpack(pos->pos(), &values);
-    for (int i = 0; i < values.size(); ++i) {
-      result[i].setGeographicPosition(values[i]);
+
+  ArrayBuilder<Nav> result;
+
+  auto minDelta = Duration<>::seconds(.09);
+  for (int i = 0; i < timestamps.size(); ++i) {
+    if (result.size() == 0 || (timestamps[i] - result.last().time()).fabs() > minDelta) {
+      Nav nav;
+      nav.setTime(timestamps[i]);
+      nav.setGeographicPosition(values[i]);
+      result.add(nav);
     }
   }
-  return result;
+  return result.get();
 }
 
 int nearest(const TimeStamp& key, const vector<TimeStamp>& timestamps) {
@@ -151,6 +164,16 @@ Array<Nav> logFileToNavArray(const LogFile& data) {
   valueSet = searchFor("watSpeed", data);
   if (valueSet != 0 && valueSet->has_velocity()) {
     fill(valueSet, valueSet->velocity(), &result, &Nav::setWatSpeed);
+  }
+
+  valueSet = searchFor("targetVmg", data);
+  if (valueSet != 0 && valueSet->has_velocity()) {
+    fill(valueSet, valueSet->velocity(), &result, &Nav::setDeviceTargetVmg);
+  }
+
+  valueSet = searchFor("vmg", data);
+  if (valueSet != 0 && valueSet->has_velocity()) {
+    fill(valueSet, valueSet->velocity(), &result, &Nav::setDeviceVmg);
   }
 
   return result;

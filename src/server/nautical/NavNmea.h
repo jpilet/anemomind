@@ -44,6 +44,7 @@ class ParsedNavs {
 
   ParsedNavs() {}
   ParsedNavs(Array<Nav> navs, FieldMask fields) : _navs(navs), _fields(fields) {}
+  ParsedNavs(Array<Nav> navs) : _navs(navs), _fields(fieldsFromNavs(navs)) {}
 
   Array<Nav> navs() {return _navs;}
 
@@ -52,6 +53,9 @@ class ParsedNavs {
 
   static FieldMask makeCompleteMask();
   static FieldMask makeGpsWindMask();
+  static FieldMask makeAllSensorsMask();
+  static FieldMask fieldsFromNavs(const Array<Nav> &navs);
+
  private:
   Array<Nav> _navs;
 

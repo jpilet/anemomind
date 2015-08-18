@@ -25,7 +25,7 @@ angular.module('www2App')
                 + scale + "/" + x + "/" + y
                 + ".png32?access_token="
                 + "pk.eyJ1IjoiYW5lbW9qcCIsImEiOiJ3QjFnX00wIn0.M9AEKUTlyhDC-sMM9a0obQ";
-              */
+                */
             },
             maxNumCachedTiles: 256,
             initialLocation: scope.mapLocation,

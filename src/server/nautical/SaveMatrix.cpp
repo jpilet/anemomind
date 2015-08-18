@@ -116,7 +116,7 @@ int main(int argc, const char **argv) {
   amap.setHelpInfo("A program to output the navs as a matrix in text format.");
   registerGetTestdataNavs(amap);
   amap.registerOption("--out", "A filename for the output. Defaults to outnavs.txt.").setArgCount(1);
-  if (amap.parseAndHelp(argc, argv)) {
+  if (amap.parse(argc, argv) != ArgMap::Error) {
     std::cout << "Loading navs..." << std::endl;
     sail::Array<sail::Nav> data = sail::getTestdataNavs(amap);
     if (data.empty()) {

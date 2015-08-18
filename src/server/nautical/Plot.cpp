@@ -600,7 +600,7 @@ int main(int argc, const char **argv) {
   PlotEnv env;
   ArgMap amap;
   env.registerToArgMap(amap);
-  if (amap.parseAndHelp(argc, argv)) {
+  if (amap.parse(argc, argv) != ArgMap::Error) {
     return env.run(amap);
   }
   return -1;

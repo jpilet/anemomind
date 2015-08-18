@@ -114,7 +114,7 @@ int main(int argc, const char **argv) {
       .store(&maxSlope);
   amap.registerOption("--generate", "Generate code for this fractal.");
   amap.registerOption("--2d", "Plot in a 2d space");
-  if (!amap.parseAndHelp(argc, argv)) {
+  if (amap.parse(argc, argv) == ArgMap::Error) {
     return -1;
   } else if (amap.helpAsked()) {
     return 0;
