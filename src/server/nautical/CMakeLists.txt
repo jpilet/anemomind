@@ -473,3 +473,12 @@ target_link_libraries(nautical_NavLoader
                       nautical_NavNmea
                      )
 target_depends_on_poco_foundation(nautical_NavLoader)                                                                    
+
+
+add_library(nautical_GpsFilter
+            GpsFilter.h
+            GpsFilter.cpp
+           )
+target_link_libraries(nautical_GpsFilter
+                      nautical_Nav
+                     )           
