@@ -8,21 +8,7 @@ function GaugePanel(rootElement){
     this.delayTransition=40;
     this.root = rootElement;
     this.value=0;
-    this.init();
-}
-
-
-GaugePanel.prototype.init = function(){
-	var panel = this.root[0];
-    var panel_component=this;
-
-    d3.xml("/app/gaugeIndicator/gauge.svg", "image/svg+xml", function(xml) {
-    var importedNode = document.importNode(xml.documentElement, true);
-    panel_component.gauge1 = d3.select(panel).selectAll("#gauge-svg-container").node().appendChild(importedNode);
-    panel_component.updatePanelGraphs(panel_component.value);
-    });
-
-
+    this.gauge1 = d3.select(this.root[0]).selectAll('#gaugeSvg');
 }
 
 GaugePanel.prototype.updatePanelGraphs = function(value){
@@ -31,7 +17,7 @@ GaugePanel.prototype.updatePanelGraphs = function(value){
       // In case the SVG has not been loaded yet, remember the value
       // so that we can apply the rotation after loading.
         this.value = value;
-        d3.select(this.gauge1).selectAll("#needle_inside")
+        this.gauge1.selectAll("#needle_inside")
         .transition()
         .attr("transform", "rotate(" + value + ")")
         .duration(this.deltaTransition)

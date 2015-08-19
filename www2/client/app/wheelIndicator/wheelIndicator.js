@@ -11,22 +11,7 @@
     this.value = 0;
     this.north = 0;
     this.text = "0";
-    this.init();
-}
-
-
-WheelPanel.prototype.init = function(){
-    var panel = this.root[0];
-    var panel_component=this;
-    d3.xml("app/wheelIndicator/wheel.svg", "image/svg+xml", function(xml) {
-        var importedNode = document.importNode(xml.documentElement, true);
-        panel_component.wheel = d3.select(panel).selectAll("#wheel-svg-container").node().appendChild(importedNode);
-        // The SVG just got loaded. Rotate the arrow to where it should.
-        panel_component.updatePanelGraphs(panel_component.value, panel_component.north);
-        panel_component.updatePanelText(panel_component.text);
-    });
-
-
+    this.wheel = d3.select(rootElement[0]).selectAll('#wheelSvg');
 }
 
 WheelPanel.prototype.updatePanelGraphs = function(value, north){
@@ -38,19 +23,19 @@ WheelPanel.prototype.updatePanelGraphs = function(value, north){
         this.value = value;
         this.north = north;
 
-        d3.select(this.wheel).selectAll("#red")
+        this.wheel.selectAll("#red")
         .transition()
         .attr("transform", "rotate(" + value + ")")
         .duration(this.deltaTransition)
         .delay(this.delayTransition);
 
-        d3.select(this.wheel).selectAll("#northtext")
+        this.wheel.selectAll("#northtext")
         .transition()
         .attr("transform", "rotate(" + north + ")")
         .duration(this.deltaTransition)
         .delay(this.delayTransition);
 
-        d3.select(this.wheel).selectAll("#letter")
+        this.wheel.selectAll("#letter")
         .transition()
         .attr("transform", "rotate(" + -north + ")")
         .duration(this.deltaTransition)
@@ -63,7 +48,7 @@ WheelPanel.prototype.updatePanelText = function(text) {
 
     if(text != null && text != undefined){
         this.text = text;
-        d3.select(this.wheel).selectAll("#anglevalue")
+        this.wheel.selectAll("#anglevalue")
         .text(text+"°");
     }
 }
