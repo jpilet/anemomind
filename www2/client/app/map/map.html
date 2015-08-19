@@ -9,7 +9,7 @@
 
   <select id="dataSourceSelector" ng-model="plotField" ng-options="field as label for (field, label) in plotFieldLabels"></select>
 
-  <div id="tabs">
+  <div id="tabs" class="semitransp padding5px">
     <tabset>
       <tab heading="Perf">
 	<gauge-indicator id="gaugetws" label="vmgPerf + '%'" value="vmgPerf" description="'VMG Performance'" min="0" max="200" ></gauge-indicator>
