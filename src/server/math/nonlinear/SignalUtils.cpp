@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/common/Sampling.h>
+#include <server/math/nonlinear/SignalUtils.h>
 
 namespace sail {
 

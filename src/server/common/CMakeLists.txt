@@ -345,9 +345,5 @@ cxx_test(common_ProportionateIndexerTest
          common_ProportionateIndexer
         )
 
-add_library(common_Sampling
-            Sampling.h
-            Sampling.cpp
-           )
 
                  

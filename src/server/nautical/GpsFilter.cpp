@@ -6,7 +6,6 @@
 #include <server/nautical/GpsFilter.h>
 #include <server/nautical/GeographicReference.h>
 #include <server/common/Span.h>
-#include <server/common/Sampling.h>
 #include <server/math/nonlinear/RobustSignal.h>
 #include <algorithm>
 

@@ -144,13 +144,18 @@ class BandMat {
     }
   }
 
-  void addNormalEq(int n, int *I, double *W) {
+  void addNormalEq(double w2, int n, int *I, double *W) {
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
-        at(I[i], I[j]) += W[i]*W[j];
+        at(I[i], I[j]) += w2*W[i]*W[j];
       }
     }
   }
+
+  void addNormalEq(int n, int *I, double *W) {
+    addNormalEq(1.0, n, I, W);
+  }
+
 
   MDArray<T, 2> getDataForDebug() {return _data;}
  private:

@@ -14,6 +14,8 @@ namespace sail {
 // A majorizing quadratic function
 //
 // on the form a*x^2 + b*x
+//
+// The constant term is ignored, because it is usually not needed.
 struct MajQuad {
  double a, b;
 
@@ -54,8 +56,14 @@ struct MajQuad {
    return LineKM(w, -0.5*b/w);
  }
 
- double varWeight() const {return sqrt(a);}
- double dataWeight() const {return -0.5*b/sqrt(a);}
+ //double varWeight() const {return sqrt(a);}
+ //double dataWeight() const {return -0.5*b/sqrt(a);}
+
+
+ // Eval, ignoring the constant.
+ double eval(double x) const {
+   return a*x*x + b*x;
+ }
 };
 
 inline MajQuad operator*(double s, const MajQuad &x) {

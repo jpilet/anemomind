@@ -7,41 +7,13 @@
 #define SERVER_MATH_NONLINEAR_ROBUSTSIGNAL_H_
 
 #include <server/common/math.h>
-#include <server/common/Sampling.h>
+#include <server/math/nonlinear/SignalUtils.h>
 #include <server/math/Majorize.h>
 
 namespace sail {
 namespace RobustSignal {
 
-class RobustCost {
- public:
-  RobustCost(double sigma, double scale = 1.0) :
-    _sigma2(sigma*sigma), _scale(scale) {}
 
-  double eval(double x) const {
-    return _scale*evalSub(_scale*x);
-  }
-
-  double evalDerivative(double x) const {
-    return sqr(_scale)*derivativeSub(_scale*x);
-  }
-
-  MajQuad majorize(double x) const {
-    return MajQuad::majorize(x, eval(x), evalDerivative(x), 0.0);
-  }
- private:
-  double _sigma2, _scale;
-
-  double evalSub(double x) const {
-    double x2 = sqr(x);
-    return x2*_sigma2/(x2 + _sigma2) - _sigma2;
-  }
-
-  double derivativeSub(double x) const {
-    double f = _sigma2/(_sigma2 + sqr(x));
-    return 2*x*sqr(f);
-  }
-};
 
 struct Settings {
  Settings() : sigma(1.0), iters(30), lambda(0.5),
