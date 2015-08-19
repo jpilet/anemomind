@@ -167,5 +167,10 @@ angular.module('www2App')
       $scope.gpsSpeed = getPointValue(['gpsSpeed']);
       $scope.twdir = twdir();
       $scope.gpsBearing = getPointValue(['gpsBearing']);
+      $scope.deviceVmg = getPointValue(['deviceVmg']);
+      if ($scope.deviceVmg) {
+        $scope.deviceVmg = Math.abs($scope.deviceVmg);
+      }
+      $scope.deviceTargetVmg = getPointValue(['deviceTargetVmg']);
     });
 });
