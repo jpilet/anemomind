@@ -35,6 +35,7 @@ struct Settings {
  // For the banded matrix solver.
  double tol = 1.0e-6;
 
+ // Lower threshold for residuals when majorizing them.
  double residualLowerBound = 0.0001;
 };
 
