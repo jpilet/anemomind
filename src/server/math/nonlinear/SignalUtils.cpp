@@ -10,6 +10,9 @@ namespace sail {
 Sampling::Sampling(int count, double lower, double upper) : _sampleCount(count),
     _indexToX(0, count-1, lower, upper), _xToIndex(lower, upper, 0, count-1) {}
 
+Sampling::Sampling(int count, LineKM indexToX) : _sampleCount(count),
+    _indexToX(indexToX), _xToIndex(indexToX.makeInvFun()) {}
+
 Sampling::Weights Sampling::represent(double x) const {
   auto index = _xToIndex(x);
   int lowerIndex = int(floor(index));

@@ -39,11 +39,7 @@ struct Settings {
 };
 
 
-MDArray2d initialize(int sampleCount, int dim) {
-  MDArray2d x(sampleCount, dim);
-  x.setAll(0.0);
-  return x;
-}
+MDArray2d initialize(int sampleCount, int dim);
 
 template <int Dim, typename DataCost>
 void accumulateData(DataCost dataCost, Array<Observation<Dim> > observations, MDArray2d X,

@@ -21,6 +21,7 @@ class Sampling {
  public:
   Sampling() : _sampleCount(0) {}
   Sampling(int count, double lower, double upper);
+  Sampling(int count, LineKM indexToX);
 
   struct Weights {
    int lowerIndex;
@@ -35,7 +36,16 @@ class Sampling {
      double weights[2] = {lowerWeight, upperWeight};
      (*dst).addNormalEq(squaredWeight, 2, inds, weights);
    }
+
+   template <typename T>
+   T eval(const Array<T> &x) const {
+     return lowerWeight*x[lowerIndex] + upperWeight*x[upperIndex()];
+   }
   };
+
+  bool valid(const Weights &w) const {
+    return w.upperIndex() < _sampleCount;
+  }
 
   Weights represent(double x) const;
 
@@ -55,7 +65,16 @@ class Sampling {
     return _sampleCount;
   }
 
+  int lastIndex() const {
+    return _sampleCount-1;
+  }
+
   Arrayd makeX() const;
+
+  bool operator==(const Sampling &other) const {
+    return _indexToX == other.indexToX() &&
+        _sampleCount == other._sampleCount;
+  }
  private:
   LineKM _indexToX, _xToIndex;
   int _sampleCount;
@@ -71,8 +90,12 @@ struct Observation {
   double data[N];
 
   double calcResidual(const MDArray2d &X) const {
+    std::cout << EXPR_AND_VAL_AS_STRING(X.rows()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(X.cols()) << std::endl;
     double squaredDist = 0.0;
     for (int i = 0; i < N; i++) {
+    std::cout << EXPR_AND_VAL_AS_STRING(weights.lowerIndex) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(weights.upperIndex()) << std::endl;
       squaredDist = sqr(weights.lowerWeight*X(weights.lowerIndex, i) +
                         weights.upperWeight*X(weights.upperIndex(), i));
     }
