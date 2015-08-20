@@ -14,7 +14,7 @@ ArrowPanel.prototype.init = function(){
   var panel = this.root[0];
   var panel_component=this;
 
-  d3.xml("assets/images/svg/arrow.svg", "image/svg+xml", function(xml) {
+  d3.xml("/assets/images/instruments/arrow.svg", "image/svg+xml", function(xml) {
     var importedNode = document.importNode(xml.documentElement, true);
     panel_component.arrow = d3.select(panel)
     .selectAll("#arrow-svg-container").node().appendChild(importedNode);
@@ -24,7 +24,7 @@ ArrowPanel.prototype.init = function(){
 }
 
 ArrowPanel.prototype.updatePanelGraphs = function(value){
-  if(value != undefined){
+  if(value != undefined && !isNaN(value)){
       // In case the SVG has not been loaded yet, remember the value
       // so that we can apply the rotation after loading.
       this.value = value;

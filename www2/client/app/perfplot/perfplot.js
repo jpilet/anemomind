@@ -12,7 +12,7 @@ Graph.prototype.prepare = function() {
   var me = this;
   var width = angular.element(this.container).width();
   var height = angular.element(this.container).height();
-  var horizontalMargin = 60;
+  var horizontalMargin = 20;
   var verticalMargin = 20;
   var innerWidth = width - 2 * horizontalMargin;
   var innerHeight = height - 2 * verticalMargin;
@@ -37,27 +37,33 @@ Graph.prototype.prepare = function() {
     .tickPadding(4)
     .ticks(5);
 
-  var fieldForPoint = function(point) {
-    var value = point[me.field];
-    if (value) {
-      return y(value);
-    } else {
-      return 0;
+  this.fieldForPoint = function(d) {
+    var field = me.field;
+    if (field in d) {
+      return d[field];
+    } else if (field == 'devicePerf') {
+      return perfAtPoint(d);
     }
-  }
+    return 0;
+  };
+  var me = this;
+
+  var yForPoint = function(d) {
+    return y(me.fieldForPoint(d));
+  };
 
   // An area generator.
   this.area = d3.svg.area()
     .interpolate("step-after")
     .x(function(d) { return x(d.time); })
     .y0(y(0))
-    .y1(fieldForPoint);
+    .y1(yForPoint);
 
   // A line generator.
   this.line = d3.svg.line()
     .interpolate("step-after")
     .x(function(d) { return x(d.time); })
-    .y(fieldForPoint);
+    .y(yForPoint);
 
   angular.element(this.container).empty();
 
@@ -145,16 +151,19 @@ Graph.prototype.setData = function(field, data) {
       return;
     }
   }
+
   this.field = field;
 
   // Bind the data to our path elements.
   this.svg.select("path.area").data([data]);
   this.svg.select("path.line").data([data]);
 
+  var me = this;
+  
   // Compute bounds
   if (data.length > 1) {
     this.x.domain([data[0].time, data[data.length - 1].time]);
-    this.y.domain([0, d3.max(data, function(d) { return d[field]; })]);
+    this.y.domain([0, d3.max(data, function(d) { return me.fieldForPoint(d) })]);
     this.zoom.x(this.x);
   }
 

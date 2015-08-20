@@ -161,8 +161,8 @@ namespace {
       CalibratedNav<T> a = corrector.correct(FilteredNavInstrumentAbstraction(_data, lowerIndex));
       CalibratedNav<T> b = corrector.correct(FilteredNavInstrumentAbstraction(_data, upperIndex));
 
-      HorizontalMotion<T> wdif = b.trueWind() - a.trueWind();
-      HorizontalMotion<T> cdif = b.trueCurrent() - a.trueCurrent();
+      HorizontalMotion<T> wdif = b.trueWindOverGround() - a.trueWindOverGround();
+      HorizontalMotion<T> cdif = b.trueCurrentOverGround() - a.trueCurrentOverGround();
       T factor = T(1.0/_data.samplingPeriod());
       return WindAndCurrentDifs<T>(factor*wdif, factor*cdif);
     }

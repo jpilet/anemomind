@@ -17,7 +17,7 @@ using namespace sail;
 int main() {
   Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR).pushDirectory("datasets").pushDirectory("regates").get();
   std::cout << EXPR_AND_VAL_AS_STRING(p.toString()) << std::endl;
-  Array<Nav> allnavs = scanNmeaFolder(p, Nav::debuggingBoatId());
+  Array<Nav> allnavs = scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
   std::cout << EXPR_AND_VAL_AS_STRING(allnavs.size()) << std::endl;
   Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10).seconds());
   std::cout << EXPR_AND_VAL_AS_STRING(navs.size()) << std::endl;

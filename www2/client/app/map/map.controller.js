@@ -1,5 +1,16 @@
 'use strict';
 
+function perfAtPoint(d) {
+    var field = 'devicePerf';
+    if (field in d) {
+      return d[field];
+    } else if ('deviceVmg' in d
+               && 'deviceTargetVmg' in d) {
+      return Math.round(Math.abs(100 * d.deviceVmg / d.deviceTargetVmg));
+    }
+    return 0;
+}
+
 angular.module('www2App')
   .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
                                    $http, $interval, $state, $location) {
@@ -54,7 +65,9 @@ angular.module('www2App')
       'aws' : 'Apparent wind speed',
       'deviceTws' : 'True wind speed (Anemomind)',
       'externalTws' : 'True wind speed (onboard instruments)',
-      'watSpeed': 'Water speed'
+      'watSpeed': 'Water speed',
+      'deviceVmg': 'VMG',
+      'deviceTargetVmg': 'Target VMG'
       // those can't be displayed because they are angles:
       // awa deviceTwdir externalTwa gpsBearing magHdg
     };
@@ -148,7 +161,7 @@ angular.module('www2App')
     $scope.$watch('currentTime', function(time) {
       $scope.currentPoint = pointAtTime(time);
 
-      $scope.vmgPerf = getPointValue(['devicePerf']);
+      $scope.vmgPerf = perfAtPoint($scope.currentPoint);
       $scope.twa = getPointValue(['twa', 'externalTwa']);
       $scope.tws =  getPointValue(['twa', 'externalTws']);
       $scope.gpsSpeed = getPointValue(['gpsSpeed']);

@@ -18,6 +18,7 @@ if (${FULL_BUILD})
   include("cmake/POCO.cmake")
   include("cmake/ceres-solver.cmake")
   include("cmake/FindMongoDB.cmake")
+  include("cmake/FindF2C.cmake")
 
   find_package(Armadillo REQUIRED)
 
@@ -25,12 +26,25 @@ if (${FULL_BUILD})
       target_link_libraries(${target} ${ARMADILLO_LIBRARY})
   endfunction()
 
+  function(target_depends_on_f2c target)
+    target_link_libraries(${target} ${F2C_LIBRARY})
+  endfunction()
+
+  find_library(M_LIB m)
+  function(target_depends_on_m target)
+    target_link_libraries(${target} ${M_LIB})
+  endfunction()
+
+  
+
 # this include dir should be set per-target.
 # However, cmake does not propagate this property to dependents. As a hack,
 # the armadillo include dir will be accessible to all files.
 # In the future, a variation of the following line might be useful:
 # set_property(TARGET ${target} APPEND PROPERTY INCLUDE_DIRECTORIES ${ARMADILLO_INCLUDE_DIR})
   include_directories(${ARMADILLO_INCLUDE_DIR})
+  include_directories(${F2C_INCLUDE_DIR})
+  include_directories(${LibM_INCLUDES})
 endif ()
 
 find_package(Protobuf REQUIRED)

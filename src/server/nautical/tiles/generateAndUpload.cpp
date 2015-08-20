@@ -66,7 +66,7 @@ int main(int argc, const char** argv) {
   std::string polarDat;
   args.registerOption("--polarDat", "Path to polar.dat").store(&polarDat);
 
-  if (!args.parseAndHelp(argc, argv)) {
+  if (args.parse(argc, argv) == ArgMap::Error) {
     return 1;
   }
 
@@ -77,7 +77,7 @@ int main(int argc, const char** argv) {
 	    simulatorPtr = &simulator;
     }
   }
-  Array<Nav> rawNavs = scanNmeaFolder(navPath, boatId, simulatorPtr);
+  Array<Nav> rawNavs = scanNmeaFolderWithSimulator(navPath, boatId, simulatorPtr);
 
   if (rawNavs.size() == 0) {
     LOG(FATAL) << "No NMEA data in " << navPath;

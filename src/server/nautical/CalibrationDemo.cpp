@@ -21,7 +21,7 @@ namespace {
   void psaros33FragmentDemo() {
     Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
       .pushDirectory("datasets/psaros33_Banque_Sturdza").get();
-    Array<Nav> navs = scanNmeaFolder(p, Nav::debuggingBoatId()).slice(55895, 79143);
+    Array<Nav> navs = scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId()).slice(55895, 79143);
     FilteredNavData filtered(navs, 500);
     AutoCalib calib;
     AutoCalib::Results results = calib.calibrate(filtered);
@@ -43,8 +43,8 @@ namespace {
     Array<HorizontalMotion<double> > estWind(count), estCurrent(count);
     for (int i = 0; i < count; i++) {
       auto c = results.corrector().correct(navs[i]);
-      estWind[i] = c.trueWind();
-      estCurrent[i] = c.trueCurrent();
+      estWind[i] = c.trueWindOverGround();
+      estCurrent[i] = c.trueCurrentOverGround();
     }
 
     auto finalErrors = boatData.evaluateFitness(estWind, estCurrent);
@@ -62,7 +62,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--synth-demo", "Run a demo on synthetic data")
       .callback(synthDemo);
 
-  if (!amap.parseAndHelp(argc, argv)) {
+  if (amap.parse(argc, argv) == ArgMap::Error) {
     return -1;
   }
 

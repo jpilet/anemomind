@@ -8,11 +8,12 @@
 #include <Poco/File.h>
 #include <server/common/filesystem.h>
 #include <server/common/logging.h>
+#include <server/nautical/NavLoader.h>
 
 namespace sail {
 
-Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
-                          ScreenRecordingSimulator *simulator) {
+Array<Nav> scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
+                          ScreenRecordingSimulator *simulator, ParsedNavs::FieldMask mask) {
   { // Initial checks.
     Poco::File file(p);
     if (!file.exists()) {
@@ -28,22 +29,20 @@ Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
     }
   }
 
-  Array<std::string> nmeaExtensions = Array<std::string>::args("txt");
+  Array<std::string> nmeaExtensions = Array<std::string>::args("txt", "log");
   Array<Poco::Path> files = listFilesRecursivelyByExtension(p, nmeaExtensions);
   int count = files.size();
   Array<ParsedNavs> parsedNavs(count);
   for (int i = 0; i < count; i++) {
-    parsedNavs[i] = loadNavsFromNmea(files[i].toString(), boatId);
+    parsedNavs[i] = loadNavsFromFile(files[i].toString(), boatId);
 
-    std::stringstream sstream;
-    sstream << parsedNavs[i];
-    LOG(INFO) << files[i].toString() << ": " << sstream.str();
+    LOG(INFO) << "Parsed " << files[i].toString();
 
     if (simulator) {
       simulator->simulate(files[i].toString());
     }
   }
-  Array<Nav> result = flattenAndSort(parsedNavs, ParsedNavs::makeGpsWindMask());
+  Array<Nav> result = flattenAndSort(parsedNavs, mask);
 
   if (simulator) {
     for (Nav& nav : result) {
@@ -63,5 +62,11 @@ Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
 
   return result;
 }
+
+Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
+                          ParsedNavs::FieldMask mask) {
+  return scanNmeaFolderWithSimulator(p, boatId, nullptr, mask);
+}
+
 
 } /* namespace sail */
