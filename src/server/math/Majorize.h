@@ -43,10 +43,6 @@ struct MajQuad {
    return MajQuad{alpha, -2.0*alpha*minX};
  }
 
- // Square completion: squareFactor()*(x - innerConstant())^2
- double squareFactor() const {return a;}
- double innerConstant() const {return -0.5*b/a;}
-
  // Represent it as factor()^2, that is on the form (k*x - m)^2
  LineKM factor() const {
    if (a == 0) {
@@ -55,10 +51,6 @@ struct MajQuad {
    double w = sqrt(std::abs(a));
    return LineKM(w, -0.5*b/w);
  }
-
- //double varWeight() const {return sqrt(a);}
- //double dataWeight() const {return -0.5*b/sqrt(a);}
-
 
  // Eval, ignoring the constant.
  double eval(double x) const {
