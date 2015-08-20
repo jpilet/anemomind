@@ -39,6 +39,7 @@ Array<Nav> getPsarosTestData() {
 TEST(GpsFilterTest, PsarosTest) {
   auto navs = getPsarosTestData();
   GpsFilter::Settings settings;
+  settings.filterSettings.lambda = 10;
   auto results = GpsFilter::filter(navs, settings);
 
   bool visualize = true;
