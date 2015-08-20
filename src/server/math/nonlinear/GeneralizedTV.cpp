@@ -65,14 +65,10 @@ UniformSamplesd GeneralizedTV::makeInitialSignal(Arrayd Y) {
   return UniformSamplesd(LineKM(1.0, -0.5), samples);
 }
 
-namespace {
-
-}
 
 UniformSamplesd GeneralizedTV::makeInitialSignal(Arrayd X, Arrayd Y, double samplingDensity) {
   assert(X.size() == Y.size());
   int obsCount = X.size();
-
   Spand xspan(X);
   Spand sp = xspan.getWider(1.0e-3*xspan.width());
   assert(sp.minv() < xspan.minv());
@@ -80,24 +76,7 @@ UniformSamplesd GeneralizedTV::makeInitialSignal(Arrayd X, Arrayd Y, double samp
   int sampleCount = std::max(2, int(round(sp.width()/samplingDensity)));
   assert(sampleCount >= 2);
   LineKM ind2x(0, sampleCount-1, sp.minv(), sp.maxv());
-  Arrayd initialSignal(sampleCount);
-  BandMatd AtA(sampleCount, sampleCount, 2, 2);
-  AtA.addRegs(Arrayi::args(2), Arrayd::args(1.0));
-  assert(AtA(0, 0) > 1.0e-6);
-  MDArray2d AtB(sampleCount, 1);
-  AtB.setAll(0);
-  for (int i = 0; i < obsCount; i++) {
-    int I[2];
-    double W[2];
-    ind2x.makeInterpolationWeights(X[i], I, W);
-    AtA.addNormalEq(2, I, W);
-    AtB(I[0], 0) += W[0]*Y[i];
-    AtB(I[1], 0) += W[1]*Y[i];
-  }
-  assert(bandMatGaussElimDestructive(&AtA, &AtB, 1.0e-12));
-  Arrayd data = AtB.getStorage();
-  assert(data.size() == sampleCount);
-  return UniformSamplesd(ind2x, data);
+  return UniformSamplesd(ind2x, Arrayd::fill(sampleCount, 0.0));
 }
 
 Arrayd GeneralizedTV::makeDefaultX(int size) {
