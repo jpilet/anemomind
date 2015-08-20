@@ -14,7 +14,7 @@ ArrowPanel.prototype.init = function(){
   var panel = this.root[0];
   var panel_component=this;
 
-  d3.xml("/app/arrowIndicator/arrow.svg", "image/svg+xml", function(xml) {
+  d3.xml("/assets/images/instruments/arrow.svg", "image/svg+xml", function(xml) {
     var importedNode = document.importNode(xml.documentElement, true);
     panel_component.arrow = d3.select(panel)
     .selectAll("#arrow-svg-container").node().appendChild(importedNode);
