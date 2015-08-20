@@ -473,3 +473,24 @@ target_link_libraries(nautical_NavLoader
                       nautical_NavNmea
                      )
 target_depends_on_poco_foundation(nautical_NavLoader)                                                                    
+
+
+add_library(nautical_GpsFilter
+            GpsFilter.h
+            GpsFilter.cpp
+           )
+target_link_libraries(nautical_GpsFilter
+                      nautical_nav
+                      nautical_GeographicReference
+                      math_nonlinear_BandedSolver
+                     )   
+                     
+cxx_test(nautical_GpsFilterTest
+         GpsFilterTest.cpp
+         nautical_GpsFilter
+         gtest_main
+         common_Env
+         common_PathBuilder
+         nautical_NavNmeaScan
+         plot_gnuplot
+        )                             

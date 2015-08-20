@@ -291,7 +291,14 @@ struct MatrixElement {
 };
 typedef MatrixElement<double> MatrixElementd;
 
-
+inline double lowerBound(double x, double lb) {
+  if (x < 0) {
+    return -lowerBound(-x, lb);
+  } else if (x < lb) {
+    return lb;
+  }
+  return x;
+}
 
 
 } /* namespace sail */
