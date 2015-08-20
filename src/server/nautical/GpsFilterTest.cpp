@@ -65,7 +65,7 @@ TEST(GpsFilterTest, PsarosTest) {
   EXPECT_LT(minCount, reasonableMotionCount);
   EXPECT_LT(minCount, reasonablePositionCount);
 
-  bool visualize = true;
+  bool visualize = false;
   if (visualize) {
     GnuplotExtra plot;
     plot.set_style("lines");
