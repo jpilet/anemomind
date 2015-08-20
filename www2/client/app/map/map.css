@@ -159,25 +159,16 @@ display:inline-block;
     text-align: center;
 }
 
-.row-fluid {
+.semitransp {
     background: rgb(255, 255, 255); /* The Fallback */
     background: rgba(255, 255, 255, 0.5);
-
-    /*IE*/
-    filter: progid:DXImageTransform.Microsoft.gradient(
-    startColorstr=#7FFFFFFF,endColorstr=#7FFFFFFF
-    );
-
-    /* IE8 */
-    -ms-filter: progid:DXImageTransform.Microsoft.gradient(
-    startColorstr=#7FFFFFFF,endColorstr=#7FFFFFFF
-    );
-
-
-
     color:#000;
+}
+
+.padding5px {
     padding:5px
 }
+
 .nav-tabs > li > a {
   border: medium none;
 }

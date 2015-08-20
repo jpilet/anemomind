@@ -24,6 +24,9 @@ describe('Directive: wheelIndicator', function () {
     // and the animation to finish.
     waitsFor(function() {
       var array = $(element).find('#red');
+      if (array.length != 1) {
+        return false;
+      }
       expect(array.length).toBe(1);
       var wheel = array[0];
 
@@ -34,7 +37,7 @@ describe('Directive: wheelIndicator', function () {
       }
 
       //Now test the north indicator rotation
-      var array1 = $(element).find('#northtext');
+      var array1 = $(element).find('#north');
       if (array1.length != 1) {
         return false;
       }
@@ -48,7 +51,7 @@ describe('Directive: wheelIndicator', function () {
       }
 
       //Now test the north text rotation
-      var array2 = $(element).find('#letter');
+      var array2 = $(element).find('#northtext');
       if (array2.length != 1) {
         return false;
       }
@@ -57,7 +60,7 @@ describe('Directive: wheelIndicator', function () {
 
       // Wait for the animation to finish
       if (wheel2.transform.baseVal.numberOfItems == 0
-          || wheel2.transform.baseVal.getItem(0).angle != -89) {
+          || wheel2.transform.baseVal.getItem(0).angle != 89) {
         return false;
       }
 
