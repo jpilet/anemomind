@@ -34,6 +34,8 @@ struct Settings {
 
  // For the banded matrix solver.
  double tol = 1.0e-6;
+
+ double residualLowerBound = 0.0001;
 };
 
 
@@ -45,11 +47,11 @@ MDArray2d initialize(int sampleCount, int dim) {
 
 template <int Dim, typename DataCost>
 void accumulateData(DataCost dataCost, Array<Observation<Dim> > observations, MDArray2d X,
-    BandMat<double> *AtA, MDArray2d *AtB) {
+    BandMat<double> *AtA, MDArray2d *AtB, const Settings &settings) {
     for (const Observation<Dim> &obs: observations) {
       auto r = obs.calcResidual(X);
       assert(!std::isnan(r));
-      auto q = majorizeCostFunction<DataCost>(dataCost, r);
+      auto q = majorizeCostFunction<DataCost>(dataCost, r, settings.residualLowerBound);
       obs.accumulateNormalEqs(q.a, AtA, AtB);
     }
 }
@@ -88,7 +90,7 @@ void accumulateReg(RegCost regCost, Arrayd regCoefs,
   int n = difs.rows();
   for (int i = 0; i < n; i++) {
     double r = calcResidual<Dim>(difs, i);
-    auto maj = majorizeCostFunction(regCost, r);
+    auto maj = majorizeCostFunction(regCost, r, settings.residualLowerBound);
     AtA->addRegAt(i, regCoefs, settings.lambda*maj.a);
   }
 }
@@ -106,7 +108,7 @@ MDArray2d iterate(DataCost dataCost, RegCost regCost,
     AtA.setAll(0.0);
     MDArray2d AtB(sampling.count(), Dim);
     AtB.setAll(0.0);
-    accumulateData<Dim, DataCost>(dataCost, observations, X, &AtA, &AtB);
+    accumulateData<Dim, DataCost>(dataCost, observations, X, &AtA, &AtB, settings);
     accumulateReg<Dim, RegCost>(regCost, regCoefs, X, settings, &AtA);
     if (bandMatGaussElimDestructive(&AtA, &AtB, settings.tol)) {
       return AtB;

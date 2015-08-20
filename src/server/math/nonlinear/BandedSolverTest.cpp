@@ -68,7 +68,12 @@ double theSignal(double x) {
 /*
  * This example shows that, if we use AbsCost for both the data and the regularization,
  * the filtered signal will have the same shape, even if we scale both the underlying true
- * signal and the noise.
+ * signal and the noise. That would probably not be the case if we mix for instance square
+ * and abs.
+ *
+ * This is useful, because if the signal-to-noise-ratio is constant, it doesn't matter
+ * what unit we use. For instance, if we filter the boat speed, it doesn't matter if
+ * we perform our calculations in knots, m/s or km/h.
  */
 TEST(BandedSolver, RampMultiscale) {
   bool visualize = false;
@@ -81,6 +86,9 @@ TEST(BandedSolver, RampMultiscale) {
 
   // 30 samples ranging from -1 to 1.
   Sampling sampling(30, -1, 1);
+
+  MDArray2d Yprevious;
+  double previousScale = 1.0;
 
   for (int i = 0; i < scaleCount; i++) {
     double scale = exp(scaleMap(i));
@@ -106,6 +114,17 @@ TEST(BandedSolver, RampMultiscale) {
       double x = sampling.indexToX()(i);
       EXPECT_NEAR(Y(i, 0), scale*theSignal(x), scale*0.04);
     }
+
+    // Check that it is close to a scaled version of the previous signal.
+    if (!Yprevious.empty()) {
+      double f = scale/previousScale;
+      for (int i = 0; i < sampling.count(); i++) {
+        EXPECT_NEAR(f*Yprevious(i, 0), Y(i, 0), 0.01*scale);
+      }
+    }
+
+    Yprevious = Y;
+    previousScale = scale;
 
     if (visualize) {
       GnuplotExtra plot;
