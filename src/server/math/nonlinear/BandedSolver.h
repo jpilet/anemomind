@@ -113,7 +113,18 @@ MDArray2d iterate(DataCost dataCost, RegCost regCost,
     return MDArray2d();
 }
 
+template <int Dim>
+Array<Observation<Dim> > filterObservations(Sampling s,
+    const Array<Observation<Dim> > &observations) {
+    return observations.slice([=](const Observation<1> &obs) {
+      return s.valid(obs.weights);
+    });
+}
+
+
 /*
+ ******* This is the main function to call in order to solve the problem.
+ *
  * Dim: The dimension of each sample. For instance, if we are fitting a trajectory
  *   in the XY plane, it is 2.
  *
@@ -134,7 +145,6 @@ MDArray2d solve(
     auto nextX = iterate<Dim, DataCost, RegCost>(dataCost, regCost,
         sampling, observations, settings, X, regCoefs);
     if (nextX.empty()) {
-      std::cout << "Stop!" << std::endl;
       return X;
     } else {
       X = nextX;
