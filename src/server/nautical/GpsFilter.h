@@ -16,15 +16,14 @@ namespace GpsFilter {
 struct Settings {
   Settings();
   Duration<double> samplingPeriod;
+  double motionWeight;
   BandedSolver::Settings filterSettings;
 };
 
 struct Results {
   // Before filtering
   Array<Nav> rawNavs;
-
-  // Input to the filtering algorithm. Twice as many elements as there are navs.
-  Array<Observation<2> > observations;
+  Array<Observation<2> > positionObservations;
 
   // Related to the optimization
   Sampling sampling;
@@ -33,6 +32,9 @@ struct Results {
   GeographicReference geoRef;
 
   Array<Nav> filteredNavs() const;
+  Sampling::Weights calcWeights(TimeStamp t) const;
+  HorizontalMotion<double> calcMotion(const Sampling::Weights &w) const;
+  GeographicPosition<double> calcPosition(const Sampling::Weights &w) const;
 };
 
 Results filter(Array<Nav> navs, Settings settings);

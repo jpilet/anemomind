@@ -31,7 +31,6 @@ Array<Nav> getPsarosTestData() {
     .pushDirectory("2014")
     .pushDirectory("20140821").get();
   auto navs = scanNmeaFolder(p, Nav::debuggingBoatId());
-  std::cout << EXPR_AND_VAL_AS_STRING(navs.size()) << std::endl;
   return navs.sliceFrom(3500);
 }
 
@@ -39,11 +38,34 @@ Array<Nav> getPsarosTestData() {
 TEST(GpsFilterTest, PsarosTest) {
   auto navs = getPsarosTestData();
   GpsFilter::Settings settings;
-  settings.filterSettings.lambda = 10;
   auto results = GpsFilter::filter(navs, settings);
+  auto filtered = results.filteredNavs();
+  EXPECT_EQ(filtered.size(), navs.size());
+
+
+  auto reasonableMotionCount = 0;
+  auto reasonablePositionCount = 0;
+  for (int i = 0; i < navs.size(); i++) {
+    auto a = filtered[i];
+    auto b = navs[i];
+    auto motionDif = a.gpsMotion() - b.gpsMotion();
+    auto motionDifNormKnots = sqrt(sqr(motionDif[0].knots()) + sqr(motionDif[1].knots()));
+    if (motionDifNormKnots < 1.0) {
+      reasonableMotionCount++;
+    }
+
+    auto posDif = results.geoRef.map(a.geographicPosition()) -
+        results.geoRef.map(b.geographicPosition());
+    auto posDifNormMeters = sqrt(sqr(posDif[0].meters()) + sqr(posDif[1].meters()));
+    if (posDifNormMeters < 10) {
+      reasonablePositionCount++;
+    }
+  }
+  auto minCount = 0.8*navs.size();
+  EXPECT_LT(minCount, reasonableMotionCount);
+  EXPECT_LT(minCount, reasonablePositionCount);
 
   bool visualize = true;
-
   if (visualize) {
     GnuplotExtra plot;
     plot.set_style("lines");

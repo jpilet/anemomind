@@ -41,6 +41,22 @@ class Sampling {
    T eval(const Array<T> &x) const {
      return lowerWeight*x[lowerIndex] + upperWeight*x[upperIndex()];
    }
+
+   template <typename T>
+   void eval(const MDArray<T, 2> &X, T *dst) const {
+     int cols = X.cols();
+     for (int i = 0; i < cols; i++) {
+       dst[i] = lowerWeight*X(lowerIndex, i) + upperWeight*X(upperIndex(), i);
+     }
+   }
+
+   template <typename T>
+   void evalDerivative(const MDArray<T, 2> &X, T *dst) const {
+     int cols = X.cols();
+     for (int i = 0; i < cols; i++) {
+       dst[i] = X(upperIndex(), i) - X(lowerIndex, i);
+     }
+   }
   };
 
   bool valid(const Weights &w) const {

@@ -33,7 +33,7 @@ struct Settings {
  int regOrder = 1;
 
  // The number of iterations.
- int iters = 30;
+ int iters = 4;
 
  // For the banded matrix solver.
  double tol = 1.0e-6;

@@ -14,7 +14,8 @@ namespace sail {
 namespace GpsFilter {
 
 Settings::Settings() :
-    samplingPeriod(Duration<double>::seconds(1.0)) {
+    samplingPeriod(Duration<double>::seconds(1.0)),
+    motionWeight(1.0) {
   filterSettings.iters = 4;
   filterSettings.regOrder = 2;
 }
@@ -65,7 +66,9 @@ GeographicReference::ProjectedPosition integrate(
 
 
 
-Array<Observation<2> > getObservations(TimeStamp timeRef,
+Array<Observation<2> > getObservations(
+    Settings settings,
+    TimeStamp timeRef,
     GeographicReference geoRef, Array<Nav> navs, Sampling sampling) {
   int n = navs.size();
   Array<Observation<2> > dst(2*n);
@@ -73,7 +76,7 @@ Array<Observation<2> > getObservations(TimeStamp timeRef,
     auto nav = navs[i];
     auto localTime = getLocalTime(timeRef, nav);
     auto localTimeDif = getLocalTimeDif(navs, i);
-    auto difScale = localTimeDif.seconds()/sampling.period();
+    auto difScale = settings.motionWeight*localTimeDif.seconds()/sampling.period();
     auto weights = sampling.represent(localTime.seconds());
     auto geoDif = integrate(nav.gpsMotion(), localTimeDif);
     int offset = 2*i;
@@ -83,11 +86,11 @@ Array<Observation<2> > getObservations(TimeStamp timeRef,
     difWeights.upperWeight = difScale;
 
     // Based on the position
-    dst[offset + 0] = Observation<2>{weights,
+    dst[i] = Observation<2>{weights,
       {localPos[0].meters(), localPos[1].meters()}};
 
     // Based on the speed
-    dst[offset + 1] = Observation<2>{difWeights,
+    dst[n + i] = Observation<2>{difWeights,
       {geoDif[0].meters(), geoDif[1].meters()}};
   }
   return dst;
@@ -105,15 +108,50 @@ Results filter(Array<Nav> navs, Settings settings) {
   auto toTime = getLocalTime(timeRef, navs.last()) + marg;
   int sampleCount = 2 + int(floor((toTime - fromTime)/settings.samplingPeriod));
   Sampling sampling(sampleCount, fromTime.seconds(), toTime.seconds());
-  auto observations = getObservations(timeRef, geoRef, navs, sampling);
+  auto observations = getObservations(settings,
+      timeRef, geoRef, navs, sampling);
   MDArray2d X = BandedSolver::solve(AbsCost(), AbsCost(), sampling,
       observations, settings.filterSettings);
-  return Results{navs, observations, sampling, X, timeRef, geoRef};
+  auto posObs = observations.sliceTo(navs.size());
+  return Results{navs, posObs, sampling, X, timeRef, geoRef};
 }
 
 Array<Nav> Results::filteredNavs() const {
-
+  int n = rawNavs.size();
+  Array<Nav> dst = rawNavs.dup();
+  for (int i = 0; i < n; i++) {
+    auto w = positionObservations[i].weights;
+    auto &nav = dst[i];
+    nav.setGeographicPosition(calcPosition(w));
+    auto m = calcMotion(w);
+    nav.setGpsBearing(m.angle());
+    nav.setGpsSpeed(m.norm());
+  }
+  return dst;
 }
+
+Sampling::Weights Results::calcWeights(TimeStamp t) const {
+  return sampling.represent((t - timeRef).seconds());
+}
+
+HorizontalMotion<double> Results::calcMotion(const Sampling::Weights &w) const {
+  double deriv[2];
+  double f = 1.0/sampling.period();
+  w.evalDerivative(Xmeters, deriv);
+  return HorizontalMotion<double>{
+    Velocity<double>::metersPerSecond(f*deriv[0]),
+    Velocity<double>::metersPerSecond(f*deriv[1])
+  };
+}
+
+GeographicPosition<double> Results::calcPosition(const Sampling::Weights &w) const {
+  double pos[2];
+  w.eval(Xmeters, pos);
+  return geoRef.unmap(GeographicReference::ProjectedPosition{
+    Length<double>::meters(pos[0]),
+    Length<double>::meters(pos[1])});
+}
+
 
 }
 }
