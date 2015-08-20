@@ -50,7 +50,6 @@ TEST(BandedSolver, TVFilterFirstOrder) {
     plot.set_style("points");
     plot.plot_xy(obsX, obsY);
     plot.show();
-
     std::cout << EXPR_AND_VAL_AS_STRING(Y) << std::endl;
   }
 }
@@ -136,7 +135,6 @@ TEST(BandedSolver, RampMultiscale) {
       plot.set_style("points");
       plot.plot_xy(obsX, obsY);
       plot.show();
-
       std::cout << EXPR_AND_VAL_AS_STRING(Y) << std::endl;
     }
 
