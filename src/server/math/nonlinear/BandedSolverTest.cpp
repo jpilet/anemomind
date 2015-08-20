@@ -14,7 +14,7 @@ using namespace sail;
 
 TEST(BandedSolver, TVFilterFirstOrder) {
   SquareCost dataCost;
-  AbsCost regCost(0.0001);
+  AbsCost regCost;
 
   // 30 samples ranging from -1 to 1.
   Sampling sampling(30, -1, 1);
@@ -74,15 +74,17 @@ double theSignal(double x) {
  * This is useful, because if the signal-to-noise-ratio is constant, it doesn't matter
  * what unit we use. For instance, if we filter the boat speed, it doesn't matter if
  * we perform our calculations in knots, m/s or km/h.
+ *
+ * Also, the abs cost is less sensitive to outliers.
  */
 TEST(BandedSolver, RampMultiscale) {
   bool visualize = false;
 
   int scaleCount = 4;
-  LineKM scaleMap(0, scaleCount-1, log(1.0), log(120));
+  LineKM scaleMap(0, scaleCount-1, log(1.0), log(120.0));
 
 
-  AbsCost regCost(0.0001), dataCost(0.0001);
+  AbsCost regCost, dataCost;
 
   // 30 samples ranging from -1 to 1.
   Sampling sampling(30, -1, 1);
@@ -106,7 +108,7 @@ TEST(BandedSolver, RampMultiscale) {
 
     BandedSolver::Settings s;
     s.regOrder = 2;
-    s.lambda = 1.0;
+    s.lambda = 1;
     s.iters = 4;
     MDArray2d Y = BandedSolver::solve(dataCost, regCost, sampling, obs, s);
 

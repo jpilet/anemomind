@@ -114,17 +114,18 @@ class RobustCost {
 
 class AbsCost {
  public:
-  AbsCost(double tao) : _tao(tao) {}
-
   double eval(double x) const {
     if (x < 0) {
       return eval(-x);
     }
-    return sqrt(_tao + x*x);
+    return x;
   }
 
   double evalDerivative(double x) const {
-    return x/eval(x); // 2.0*x* 1.0/(2.0*eval(x))
+    // The lower bound parameter in for instance majorizeCostFunction ensures this does not happen.
+    assert(x != 0);
+
+    return (x < 0? -1 : 1);
   }
  private:
   double _tao;
