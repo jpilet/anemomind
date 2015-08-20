@@ -18,4 +18,12 @@ Sampling::Weights Sampling::represent(double x) const {
   return Weights{lowerIndex, lowerWeight, upperWeight};
 }
 
+Arrayd Sampling::makeX() const {
+  Arrayd dst(_sampleCount);
+  for (int i = 0; i < _sampleCount; i++) {
+    dst[i] = _indexToX(i);
+  }
+  return dst;
+}
+
 } /* namespace sail */

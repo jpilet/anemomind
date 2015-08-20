@@ -198,5 +198,6 @@ cxx_test(math_nonlinear_BandedSolverTest
          BandedSolverTest.cpp
          math_BandMat
          math_nonlinear_SignalUtils
+         plot_gnuplot
          gtest_main
         )    

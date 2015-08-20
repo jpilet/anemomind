@@ -54,6 +54,8 @@ class Sampling {
   int count() const {
     return _sampleCount;
   }
+
+  Arrayd makeX() const;
  private:
   LineKM _indexToX, _xToIndex;
   int _sampleCount;
@@ -126,6 +128,17 @@ class AbsCost {
   }
  private:
   double _tao;
+};
+
+class SquareCost {
+ public:
+  double eval(double x) const {
+    return x*x;
+  };
+
+  double evalDerivative(double x) const {
+    return 2.0*x;
+  }
 };
 
 ////// To evaluate a scaled function: For a robust cost function, scaling makes the valley narrower,
