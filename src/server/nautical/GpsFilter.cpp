@@ -108,9 +108,11 @@ Results filter(Array<Nav> navs, Settings settings) {
   auto observations = getObservations(timeRef, geoRef, navs, sampling);
   MDArray2d X = BandedSolver::solve(AbsCost(), AbsCost(), sampling,
       observations, settings.filterSettings);
-  //auto filteredNavs = applySolutionToNavs();
+  return Results{navs, observations, sampling, X, timeRef, geoRef};
+}
 
-  return Results{sampling, X, timeRef, geoRef, Array<Nav>()};
+Array<Nav> Results::filteredNavs() const {
+
 }
 
 }

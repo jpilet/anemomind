@@ -20,13 +20,19 @@ struct Settings {
 };
 
 struct Results {
+  // Before filtering
+  Array<Nav> rawNavs;
+
+  // Input to the filtering algorithm. Twice as many elements as there are navs.
+  Array<Observation<2> > observations;
+
   // Related to the optimization
   Sampling sampling;
   MDArray2d Xmeters;
   TimeStamp timeRef;
   GeographicReference geoRef;
 
-  Array<Nav> filteredNavs;
+  Array<Nav> filteredNavs() const;
 };
 
 Results filter(Array<Nav> navs, Settings settings);

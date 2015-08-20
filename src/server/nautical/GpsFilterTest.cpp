@@ -24,14 +24,20 @@ MDArray2d getRawPositions(GpsFilter::Results r, Array<Nav> navs) {
   return X;
 }
 
-// Check that the filtered signal is reasonbly close to the non-filtered one.
-TEST(GpsFilterTest, PsarosTest) {
+Array<Nav> getPsarosTestData() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("psaros33_Banque_Sturdza")
     .pushDirectory("2014")
     .pushDirectory("20140821").get();
   auto navs = scanNmeaFolder(p, Nav::debuggingBoatId());
+  std::cout << EXPR_AND_VAL_AS_STRING(navs.size()) << std::endl;
+  return navs.sliceFrom(3500);
+}
+
+// Check that the filtered signal is reasonbly close to the non-filtered one.
+TEST(GpsFilterTest, PsarosTest) {
+  auto navs = getPsarosTestData();
   GpsFilter::Settings settings;
   auto results = GpsFilter::filter(navs, settings);
 
