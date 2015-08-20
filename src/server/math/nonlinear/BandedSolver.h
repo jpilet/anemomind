@@ -17,6 +17,9 @@
  *
  */
 
+#ifndef BANDED_SOLVER
+#define BANDED_SOLVER
+
 #include <server/math/nonlinear/SignalUtils.h>
 
 namespace sail {
@@ -155,3 +158,7 @@ MDArray2d solve(
 
 }
 }
+
+
+
+#endif
