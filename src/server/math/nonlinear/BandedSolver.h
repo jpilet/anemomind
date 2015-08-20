@@ -27,10 +27,10 @@ struct Settings {
  double lambda = 1.0;
 
  // The order of the regularization
- int regOrder;
+ int regOrder = 1;
 
  // The number of iterations.
- int iters;
+ int iters = 30;
 
  // For the banded matrix solver.
  double tol = 1.0e-6;
@@ -60,12 +60,13 @@ MDArray2d calcDifsInPlace(int regOrder, MDArray2d X) {
     return X;
   } else {
     int rows = X.rows();
-    for (int i = 0; i < rows; i++) {
+    int dstRows = rows-1;
+    for (int i = 0; i < dstRows; i++) {
       for (int j = 0; j < Dim; j++) {
         X(i, j) = X(i, j) - X(i+1, j);
       }
     }
-    return calcDifsInPlace<Dim>(regOrder - 1, X.sliceRowsTo(rows-1));
+    return calcDifsInPlace<Dim>(dstRows, X.sliceRowsTo(rows-1));
   }
 }
 
@@ -84,7 +85,7 @@ void accumulateReg(RegCost regCost, Arrayd regCoefs,
   auto difs = calcDifsInPlace<Dim>(settings.regOrder, X.dup());
   int n = difs.rows();
   for (int i = 0; i < n; i++) {
-    double r = calcResidual(difs, i);
+    double r = calcResidual<Dim>(difs, i);
     auto maj = majorizeCostFunction(regCost, r);
     AtA->addRegAt(i, regCoefs, settings.lambda*maj.a);
   }
@@ -129,10 +130,11 @@ MDArray2d solve(
   Arrayd regCoefs = BandMatInternal::makeCoefs(settings.regOrder);
   MDArray2d X = (initialX.empty()? initialize(sampling.count(), Dim) : initialX);
   for (int i = 0; i < settings.iters; i++) {
+    std::cout << EXPR_AND_VAL_AS_STRING(i) << std::endl;
     auto nextX = iterate<Dim, DataCost, RegCost>(dataCost, regCost,
         sampling, observations, settings, X, regCoefs);
-
     if (nextX.empty()) {
+      std::cout << "Stop!" << std::endl;
       return X;
     } else {
       X = nextX;

@@ -12,6 +12,9 @@
 #include <server/common/math.h>
 #include <server/math/Majorize.h>
 
+#include <iostream>
+#include <server/common/string.h>
+
 namespace sail {
 
 class Sampling {

@@ -8,7 +8,7 @@
 namespace sail {
 
 Sampling::Sampling(int count, double lower, double upper) : _sampleCount(count),
-    _indexToX(0, count, lower, upper), _xToIndex(lower, upper, 0, count) {}
+    _indexToX(0, count-1, lower, upper), _xToIndex(lower, upper, 0, count-1) {}
 
 Sampling::Weights Sampling::represent(double x) const {
   auto index = _xToIndex(x);
