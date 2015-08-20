@@ -43,7 +43,7 @@ class ArgMap {
     double parseDoubleOrDie();
 
     // Reads the value without leaving any trace, that would be settings _wasRead = true.
-    const std::string &valueUntraced() {
+    const std::string &valueUntraced() const {
       return _arg;
     }
 
