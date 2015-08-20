@@ -194,3 +194,8 @@ add_library(math_nonlinear_SignalUtils
     SignalUtils.cpp
    )
  
+cxx_test(math_nonlinear_BandedSolverTest
+         BandedSolverTest.cpp
+         math_BandMat
+         gtest_main
+        )    
