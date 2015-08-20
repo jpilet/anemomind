@@ -10,7 +10,21 @@
     this.arrow = 0;
     this.boat = 0;
     this.north = 0;
-    this.wheelSmallSvg = d3.select(rootElement[0]).selectAll('#wheelSmallSvg');
+    this.init();
+}
+
+
+WheelSmallPanel.prototype.init = function(){
+    var panel = this.root[0];
+    var panel_component=this;
+
+    d3.xml("app/wheelSmallIndicator/wheel_small.svg", "image/svg+xml", function(xml) {
+        var importedNode = document.importNode(xml.documentElement, true);
+        panel_component.gauge1 = d3.select(panel).selectAll("#wheel-small-svg-container").node().appendChild(importedNode);
+        panel_component.updatePanelGraphs(panel_component.arrow, panel_component.boat, panel_component.north);
+    });
+
+
 }
 
 WheelSmallPanel.prototype.updatePanelGraphs = function(arrow, boat, north){
@@ -20,25 +34,25 @@ WheelSmallPanel.prototype.updatePanelGraphs = function(arrow, boat, north){
         this.boat = boat;
         this.north = north;
 
-        this.wheelSmallSvg.selectAll("#red")
+        d3.select(this.gauge1).selectAll("#red")
         .transition()
         .attr("transform", "rotate(" + arrow + ")")
         .duration(this.deltaTransition)
         .delay(this.delayTransition);
 
-        this.wheelSmallSvg.selectAll("#boat")
+        d3.select(this.gauge1).selectAll("#boat")
         .transition()
         .attr("transform", "rotate(" + boat + ")")
         .duration(this.deltaTransition)
         .delay(this.delayTransition);
 
-        this.wheelSmallSvg.selectAll("#north")
+        d3.select(this.gauge1).selectAll("#north")
         .transition()
         .attr("transform", "rotate(" + north + ")")
         .duration(this.deltaTransition)
         .delay(this.delayTransition);
 
-        this.wheelSmallSvg.selectAll("#northtext")
+        d3.select(this.gauge1).selectAll("#northtext")
         .transition()
         .attr("transform", "rotate(" + north + ")")
         .duration(this.deltaTransition)
