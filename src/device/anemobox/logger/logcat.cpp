@@ -176,7 +176,7 @@ int main(int argc, const char* argv[]) {
     .store(&textField)
     .setUnique();
 
-  if (!cmdLine.parseAndHelp(argc, argv)) {
+  if (cmdLine.parse(argc, argv) != ArgMap::Continue) {
     return -1;
   }
 
