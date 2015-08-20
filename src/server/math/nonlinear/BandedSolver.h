@@ -48,6 +48,13 @@ void accumulateData(DataCost dataCost, Array<Observation<Dim> > observations, MD
     BandMat<double> *AtA, MDArray2d *AtB) {
     for (const Observation<Dim> &obs: observations) {
       auto r = obs.calcResidual(X);
+      if (std::isnan(r)) {
+        std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(obs.weights.lowerIndex) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(obs.weights.upperIndex()) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(obs.data[0]) << std::endl;
+      }
+      assert(!std::isnan(r));
       auto q = majorizeCostFunction<DataCost>(dataCost, r);
       obs.accumulateNormalEqs(q.a, AtA, AtB);
     }
@@ -66,7 +73,7 @@ MDArray2d calcDifsInPlace(int regOrder, MDArray2d X) {
         X(i, j) = X(i, j) - X(i+1, j);
       }
     }
-    return calcDifsInPlace<Dim>(dstRows, X.sliceRowsTo(rows-1));
+    return calcDifsInPlace<Dim>(regOrder-1, X.sliceRowsTo(dstRows));
   }
 }
 
@@ -75,6 +82,7 @@ double calcResidual(const MDArray2d &X, int row) {
   double r2 = 0.0;
   for (int i = 0; i < Dim; i++) {
     r2 += sqr(X(row, i));
+    assert(!std::isnan(r2));
   }
   return sqrt(r2);
 }
@@ -84,9 +92,11 @@ void accumulateReg(RegCost regCost, Arrayd regCoefs,
     MDArray2d X, Settings settings, BandMat<double> *AtA) {
   auto difs = calcDifsInPlace<Dim>(settings.regOrder, X.dup());
   int n = difs.rows();
+  std::cout << EXPR_AND_VAL_AS_STRING(n) << std::endl;
   for (int i = 0; i < n; i++) {
     double r = calcResidual<Dim>(difs, i);
     auto maj = majorizeCostFunction(regCost, r);
+    std::cout << EXPR_AND_VAL_AS_STRING(maj.a) << std::endl;
     AtA->addRegAt(i, regCoefs, settings.lambda*maj.a);
   }
 }
@@ -106,6 +116,8 @@ MDArray2d iterate(DataCost dataCost, RegCost regCost,
     AtB.setAll(0.0);
     accumulateData<Dim, DataCost>(dataCost, observations, X, &AtA, &AtB);
     accumulateReg<Dim, RegCost>(regCost, regCoefs, X, settings, &AtA);
+    std::cout << EXPR_AND_VAL_AS_STRING(AtA.getDataForDebug()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(AtB) << std::endl;
     if (bandMatGaussElimDestructive(&AtA, &AtB, settings.tol)) {
       return AtB;
     }

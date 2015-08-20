@@ -71,8 +71,8 @@ struct Observation {
   double calcResidual(const MDArray2d &X) const {
     double squaredDist = 0.0;
     for (int i = 0; i < N; i++) {
-      squaredDist = weights.lowerWeight*X(weights.lowerIndex, i) +
-                    weights.upperWeight*X(weights.upperIndex(), i);
+      squaredDist = sqr(weights.lowerWeight*X(weights.lowerIndex, i) +
+                        weights.upperWeight*X(weights.upperIndex(), i));
     }
     return sqrt(squaredDist);
   }
@@ -146,7 +146,9 @@ double evalDerivativeScaled(const CostFunction &f, double x, double scale) {
 ////// everywhere, whose derivative and value at x is that of f (but with the constant term omitted).
 ////// This lets us solve a quadratic minimization problem in every iteration.
 template <typename CostFunction>
-MajQuad majorizeCostFunction(const CostFunction &f, double x, double s = 1.0) {
+MajQuad majorizeCostFunction(const CostFunction &f, double x0, double lb = 0.0001,
+    double s = 1.0) {
+  double x = lowerBound(x0, lb);
   return MajQuad::majorize(x, evalScaled(f, x, s), evalDerivativeScaled(f, x, s), 0.0);
 }
 

@@ -20,15 +20,6 @@ namespace TargetSpeedSolver {
 
 constexpr double minErrorKnots = 0.01;
 
-double lowerBound(double x, double lb) {
-  if (x < 0) {
-    return -lowerBound(-x, lb);
-  } else if (x < lb) {
-    return lb;
-  }
-  return x;
-}
-
 // Returns the alpha of the
 // function f(x) = alpha*x^2 + beta that
 // majorizes the norm g(x) = |x|

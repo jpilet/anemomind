@@ -27,6 +27,8 @@ TEST(BandedSolver, SolveStepL1) {
   }
 
   BandedSolver::Settings s;
+  s.lambda = 10;
+  std::cout << EXPR_AND_VAL_AS_STRING(s.lambda) << std::endl;
   MDArray2d X = BandedSolver::solve(cost, cost, sampling, obs, s);
   std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
   /*for (int i = 0; i < sampling.count(); i++) {
