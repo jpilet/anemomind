@@ -3,15 +3,14 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/math/nonlinear/RobustSignal.h>
+#include <server/math/nonlinear/SignalUtils.h>
 #include <gtest/gtest.h>
 
 using namespace sail;
-using namespace sail::RobustSignal;
 
 double numericDerivative(const RobustCost &c, double x, double s) {
   constexpr double h = 1.0e-4;
-  return s*(c.eval(x + h) - c.eval(x - h))/(2.0*h);
+  return s*(c.eval(s*(x + h)) - c.eval(s*(x - h)))/(2.0*h);
 }
 
 TEST(RobustSignal, CostFun) {

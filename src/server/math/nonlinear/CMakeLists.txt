@@ -184,8 +184,8 @@ cxx_test(math_nonlinear_RungeKuttaTest
         )    
         
         
-cxx_test(math_nonlinear_RobustSignalTest
-         RobustSignalTest.cpp
+cxx_test(math_nonlinear_SignalUtilsTest
+         SignalUtilsTest.cpp
          gtest_main
         )       
         
