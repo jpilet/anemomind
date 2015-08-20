@@ -11,6 +11,13 @@ function perfAtPoint(d) {
     return 0;
 }
 
+function vmgAtPoint(p) {
+  if ('deviceVmg' in p) {
+    return Math.abs(p.deviceVmg);
+  }
+  return undefined;
+}
+
 angular.module('www2App')
   .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
                                    $http, $interval, $state, $location) {
