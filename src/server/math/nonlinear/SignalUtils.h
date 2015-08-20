@@ -103,6 +103,24 @@ class RobustCost {
   double _sigma2;
 };
 
+class AbsCost {
+ public:
+  AbsCost(double tao) : _tao(tao) {}
+
+  double eval(double x) const {
+    if (x < 0) {
+      return eval(-x);
+    }
+    return sqrt(_tao + x*x);
+  }
+
+  double evalDerivative(double x) const {
+    return x/eval(x); // 2.0*x* 1.0/(2.0*eval(x))
+  }
+ private:
+  double _tao;
+};
+
 ////// To evaluate a scaled function: For a robust cost function, scaling makes the valley narrower,
 ////// and the inlier cost lower compared to the outlier cost. Like Julien's paper with the title
 ////// "Fast Non-Rigid Surface Detection, Registration and Realistic Augmentation".
