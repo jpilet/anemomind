@@ -90,12 +90,8 @@ struct Observation {
   double data[N];
 
   double calcResidual(const MDArray2d &X) const {
-    std::cout << EXPR_AND_VAL_AS_STRING(X.rows()) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(X.cols()) << std::endl;
     double squaredDist = 0.0;
     for (int i = 0; i < N; i++) {
-    std::cout << EXPR_AND_VAL_AS_STRING(weights.lowerIndex) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(weights.upperIndex()) << std::endl;
       squaredDist = sqr(weights.lowerWeight*X(weights.lowerIndex, i) +
                         weights.upperWeight*X(weights.upperIndex(), i));
     }

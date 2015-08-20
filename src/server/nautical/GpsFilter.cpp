@@ -14,8 +14,10 @@ namespace sail {
 namespace GpsFilter {
 
 Settings::Settings() :
-    samplingPeriod(Duration<double>::seconds(1.0))
-    {}
+    samplingPeriod(Duration<double>::seconds(1.0)) {
+  filterSettings.iters = 4;
+  filterSettings.regOrder = 2;
+}
 
 Duration<double> getLocalTime(TimeStamp timeRef, const Nav &nav) {
   return nav.time() - timeRef;
@@ -63,7 +65,7 @@ GeographicReference::ProjectedPosition integrate(
 
 
 
-Array<Observation<2> > getPoints(TimeStamp timeRef,
+Array<Observation<2> > getObservations(TimeStamp timeRef,
     GeographicReference geoRef, Array<Nav> navs, Sampling sampling) {
   int n = navs.size();
   Array<Observation<2> > dst(2*n);
@@ -79,15 +81,21 @@ Array<Observation<2> > getPoints(TimeStamp timeRef,
     auto difWeights = weights;
     difWeights.lowerWeight = -difScale;
     difWeights.upperWeight = difScale;
-    dst[offset + 0] = Observation<2>{weights, {localPos[0].meters(), localPos[1].meters()}};
-    dst[offset + 1] = Observation<2>{difWeights, {geoDif[0].meters(), geoDif[1].meters()}};
+
+    // Based on the position
+    dst[offset + 0] = Observation<2>{weights,
+      {localPos[0].meters(), localPos[1].meters()}};
+
+    // Based on the speed
+    dst[offset + 1] = Observation<2>{difWeights,
+      {geoDif[0].meters(), geoDif[1].meters()}};
   }
   return dst;
 }
 
 
 
-Array<Nav> filter(Array<Nav> navs, Settings settings) {
+Results filter(Array<Nav> navs, Settings settings) {
   assert(std::is_sorted(navs.begin(), navs.end()));
   auto timeRef = getTimeReference(navs);
   auto geoRef = getGeographicReference(navs);
@@ -97,8 +105,12 @@ Array<Nav> filter(Array<Nav> navs, Settings settings) {
   auto toTime = getLocalTime(timeRef, navs.last()) + marg;
   int sampleCount = 2 + int(floor((toTime - fromTime)/settings.samplingPeriod));
   Sampling sampling(sampleCount, fromTime.seconds(), toTime.seconds());
-  auto points = getPoints(timeRef, geoRef, navs, sampling);
+  auto observations = getObservations(timeRef, geoRef, navs, sampling);
+  MDArray2d X = BandedSolver::solve(AbsCost(), AbsCost(), sampling,
+      observations, settings.filterSettings);
+  //auto filteredNavs = applySolutionToNavs();
 
+  return Results{sampling, X, timeRef, geoRef, Array<Nav>()};
 }
 
 }

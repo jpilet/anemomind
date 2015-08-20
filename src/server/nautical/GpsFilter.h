@@ -8,6 +8,7 @@
 
 #include <server/nautical/Nav.h>
 #include <server/math/nonlinear/BandedSolver.h>
+#include <server/nautical/GeographicReference.h>
 
 namespace sail {
 namespace GpsFilter {
@@ -18,7 +19,17 @@ struct Settings {
   BandedSolver::Settings filterSettings;
 };
 
-Array<Nav> filter(Array<Nav> navs, Settings settings);
+struct Results {
+  // Related to the optimization
+  Sampling sampling;
+  MDArray2d Xmeters;
+  TimeStamp timeRef;
+  GeographicReference geoRef;
+
+  Array<Nav> filteredNavs;
+};
+
+Results filter(Array<Nav> navs, Settings settings);
 
 }
 }
