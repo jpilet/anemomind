@@ -42,8 +42,10 @@ TEST(GpsFilterTest, PsarosTest) {
 
   settings.useCeres = true;
   if (settings.useCeres) {
-    settings.filterSettings.iters = 8;
+    settings.filterSettings.iters = 60;
   }
+
+
 
 
   auto results = GpsFilter::filter(navs, settings);

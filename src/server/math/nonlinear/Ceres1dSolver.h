@@ -9,6 +9,7 @@
 #include <server/math/nonlinear/BandedSolver.h>
 #include <ceres/ceres.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/logging.h>
 
 namespace sail {
 namespace Ceres1dSolver {
@@ -17,10 +18,10 @@ struct Settings {
   BandedSolver::Settings commonSettings;
   enum LossType {L1, L2};
 
-  LossType dataLoss = L2;
-  LossType regLoss = L2;
+  LossType dataLoss = L1;
+  LossType regLoss = L1;
 
-  ceres::LinearSolverType solverType = ceres::SPARSE_NORMAL_CHOLESKY;
+  ceres::LinearSolverType solverType = ceres::DENSE_NORMAL_CHOLESKY; //ceres::SPARSE_NORMAL_CHOLESKY;
 
   /*SPARSE_NORMAL_CHOLESKY,
   SPARSE_SCHUR,
@@ -98,6 +99,46 @@ class DataCost {
   }
 };
 
+template <int Dim>
+class RegCost {
+ public:
+  RegCost(Sampling sampling, Settings settings) :
+    _sampling(sampling),
+    _settings(settings) {}
+
+  template<typename T>
+  bool operator()(const T* const *x, T* residual) {
+    eval<T>(makeMat(_sampling.count(), Dim, x[0]), residual);
+    return true;
+  }
+
+  int outDims() const {
+    return _sampling.count() - _settings.commonSettings.regOrder;
+  }
+
+  int inDims() const {
+    return Dim*_sampling.count();
+  }
+ private:
+  Sampling _sampling;
+  Settings _settings;
+
+  template <typename T>
+  void eval(MDArray<T, 2> X, T *residuals) const {
+    auto difs = BandedSolver::calcDifsInPlace<T, Dim>(
+        _settings.commonSettings.regOrder, X);
+    int rows = difs.rows();
+    CHECK(rows == outDims());
+    for (int i = 0; i < rows; i++) {
+      T r2(0);
+      for (int j = 0; j < Dim; j++) {
+        r2 += sqr(difs(i, j));
+      }
+      residuals[i] = softSqrt(_settings.commonSettings.lambda*r2,
+          T(_settings.commonSettings.residualLowerBound));
+    }
+  }
+};
 
 
 template <typename T>
@@ -117,7 +158,7 @@ MDArray2d solve(Sampling sampling,
       BandedSolver::initialize(sampling.count(), Dim) : initialX);
   const int paramCount = Dim*sampling.count();
 
-  assert(X.isContinuous());
+  CHECK(X.isContinuous());
 
   ceres::Problem problem;
   {
@@ -126,14 +167,14 @@ MDArray2d solve(Sampling sampling,
         makeLossFunction(settings.dataLoss,
         settings.commonSettings.residualLowerBound),
         X.ptr());
-  }/*{
-    auto regCost = makeCeresCost(new RegCost<Dim>(sampling, observations, settings));
+  }{
+    auto regCost = makeCeresCost(new RegCost<Dim>(sampling, settings));
     problem.AddResidualBlock(regCost,
         makeLossFunction(settings.regLoss,
         settings.commonSettings.residualLowerBound),
         X.ptr());
 
-  }*/
+  }
   ceres::Solver::Options options;
   options.minimizer_progress_to_stdout = true;
   options.max_num_iterations = settings.commonSettings.iters;
