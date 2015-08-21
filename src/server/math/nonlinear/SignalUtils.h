@@ -109,7 +109,7 @@ struct Observation {
     double squaredDist = 0.0;
     for (int i = 0; i < N; i++) {
       squaredDist = sqr(weights.lowerWeight*X(weights.lowerIndex, i) +
-                        weights.upperWeight*X(weights.upperIndex(), i));
+                        weights.upperWeight*X(weights.upperIndex(), i) - data[i]);
     }
     return sqrt(squaredDist);
   }
