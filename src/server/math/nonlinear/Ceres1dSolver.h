@@ -8,16 +8,17 @@
 
 #include <server/math/nonlinear/BandedSolver.h>
 #include <ceres/ceres.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 namespace Ceres1dSolver {
 
 struct Settings {
   BandedSolver::Settings commonSettings;
-  enum LossType {L1};
+  enum LossType {L1, L2};
 
-  LossType dataLoss = L1;
-  LossType regLoss = L1;
+  LossType dataLoss = L2;
+  LossType regLoss = L2;
 
   ceres::LinearSolverType solverType = ceres::SPARSE_NORMAL_CHOLESKY;
 
@@ -30,10 +31,33 @@ ceres::LossFunction *makeLossFunction(Settings::LossType t, double lb) {
   switch (t) {
    case Settings::L1:
      return new ceres::SoftLOneLoss(lb);
+   case Settings::L2:
+     return new ceres::TrivialLoss();
   };
   return nullptr;
 }
 
+template <typename T>
+T softSqrt(T x, T lb) {
+  if (x <= T(0)) {
+    return T(0);
+  } else if (x < lb) {
+    T sqrtLb = sqrt(lb);
+    return sqrtLb - 0.5*x/sqrtLb;
+  }
+  return x;
+}
+
+template <typename T>
+MDArray<T, 2> makeMat(int rows, int cols, const T *src) {
+  MDArray<T, 2> data(rows, cols);
+  int n = data.numel();
+  T *dst = data.ptr();
+  for (int i = 0; i < n; i++) {
+    dst[i] = src[i];
+  }
+  return data;
+}
 
 template <int Dim>
 class DataCost {
@@ -47,14 +71,8 @@ class DataCost {
 
   template<typename T>
       bool operator()(const T* const *x, T* residual) {
-    MDArray<T, 2> data(_sampling.count(), Dim);
-    int n = data.numel();
-    T *dst = data.ptr();
-    const T *src = x[0];
-    for (int i = 0; i < n; i++) {
-      dst[i] = src[i];
-    }
-    eval<T>(data, residual);
+
+    eval<T>(makeMat(_sampling.count(), Dim, x[0]), residual);
     return true;
   }
 
@@ -74,9 +92,8 @@ class DataCost {
   void eval(const MDArray<T, 2> &X, T *residuals) const {
     for (int i = 0; i < _observations.size(); i++) {
       const auto &obs = _observations[i];
-      auto r = obs.calcResidualT(X);
-      std::cout << EXPR_AND_VAL_AS_STRING(r) << std::endl;
-      residuals[i] = r;
+      auto r2 = obs.calcSquaredResidualT(X);
+      residuals[i] = softSqrt(r2, T(_settings.commonSettings.residualLowerBound));
     }
   }
 };
@@ -123,6 +140,7 @@ MDArray2d solve(Sampling sampling,
   options.linear_solver_type = settings.solverType;
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
+  std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
   return X;
 }
 

@@ -108,20 +108,20 @@ struct Observation {
   double calcResidual(const MDArray2d &X) const {
     double squaredDist = 0.0;
     for (int i = 0; i < N; i++) {
-      squaredDist = sqr(weights.lowerWeight*X(weights.lowerIndex, i) +
+      squaredDist += sqr(weights.lowerWeight*X(weights.lowerIndex, i) +
                         weights.upperWeight*X(weights.upperIndex(), i) - data[i]);
     }
     return sqrt(squaredDist);
   }
 
   template <typename T>
-  T calcResidualT(const MDArray<T, 2> &X) const {
+  T calcSquaredResidualT(const MDArray<T, 2> &X) const {
     T squaredDist = T(0.0);
     for (int i = 0; i < N; i++) {
-      squaredDist = sqr(weights.lowerWeight*X(weights.lowerIndex, i) +
-                        weights.upperWeight*X(weights.upperIndex(), i));
+      squaredDist += sqr(weights.lowerWeight*X(weights.lowerIndex, i) +
+                        weights.upperWeight*X(weights.upperIndex(), i) - data[i]);
     }
-    return sqrt(squaredDist);
+    return squaredDist;
   }
 
   void accumulateNormalEqs(double squaredWeight,

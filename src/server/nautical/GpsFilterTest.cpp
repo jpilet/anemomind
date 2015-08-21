@@ -38,7 +38,14 @@ Array<Nav> getPsarosTestData() {
 TEST(GpsFilterTest, PsarosTest) {
   auto navs = getPsarosTestData();
   GpsFilter::Settings settings;
+
+
   settings.useCeres = true;
+  if (settings.useCeres) {
+    settings.filterSettings.iters = 8;
+  }
+
+
   auto results = GpsFilter::filter(navs, settings);
   auto filtered = results.filteredNavs();
   EXPECT_EQ(filtered.size(), navs.size());
