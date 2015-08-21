@@ -91,10 +91,6 @@ class DataCost {
       r2 += sqr(w.lowerWeight*x[i] + w.upperWeight*y[i] - _observation.data[i]);
     }
     auto dataResidual = softSqrt<T>(r2, T(_settings.commonSettings.residualLowerBound));
-    //std::cout << EXPR_AND_VAL_AS_STRING(dataResidual) << std::endl;
-    if (_index < 30) {
-      std::cout << " dataResidual (" << _index << ") = " << dataResidual << "\n";
-    }
     residual[0] = dataResidual;
     return true;
   }
@@ -112,8 +108,8 @@ class DataCost {
 template <int Dim>
 class RegCost {
  public:
-  RegCost(Settings settings) :
-    _settings(settings) {}
+  RegCost(Settings settings, int i) :
+    _settings(settings), _index(i) {}
 
   template<typename T>
   bool operator()(const T* const *x, T* residual) {
@@ -134,13 +130,13 @@ class RegCost {
     );
     assert(difs.rows() == 1);
 
-    T r2(0);
+    T r2(0.0);
     for (int j = 0; j < Dim; j++) {
       r2 += sqr(difs(0, j));
     }
-    auto regResidual = softSqrt(_settings.commonSettings.lambda*r2,
+    auto regResidual = _settings.commonSettings.lambda*softSqrt(r2,
         T(_settings.commonSettings.residualLowerBound));
-    residual[0] = T(0.0); //regResidual;
+    residual[0] = regResidual;
     return true;
   }
 
@@ -152,6 +148,7 @@ class RegCost {
     return Dim;
   }
  private:
+  int _index;
   Settings _settings;
 };
 
@@ -222,7 +219,7 @@ MDArray2d solve(Sampling sampling,
         int index = i + j;
         blocks[j] = getBlockPtr(X, index);
       }
-      auto regCost = makeCeresRegCost(Dim, new RegCost<Dim>(settings),
+      auto regCost = makeCeresRegCost(Dim, new RegCost<Dim>(settings, i),
           paramBlockCount);
       problem.AddResidualBlock(regCost,
           makeLossFunction(settings.regLoss,
@@ -232,12 +229,11 @@ MDArray2d solve(Sampling sampling,
   }
   ceres::Solver::Options options;
   options.minimizer_progress_to_stdout = true;
-  //options.max_num_iterations = settings.commonSettings.iters;
-  //options.linear_solver_type = settings.solverType;
+  options.max_num_iterations = settings.commonSettings.iters;
+  options.linear_solver_type = settings.solverType;
 
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
-  std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
   return transpose(X);
 }
 

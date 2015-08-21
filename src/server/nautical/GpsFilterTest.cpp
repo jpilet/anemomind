@@ -53,6 +53,7 @@ TEST(GpsFilterTest, PsarosTest) {
 
 
   settings.filterSettings.iters = 60;
+  settings.filterSettings.lambda = 0.5;
 
   auto results = GpsFilter::filter(navs, settings);
   auto filtered = results.filteredNavs();

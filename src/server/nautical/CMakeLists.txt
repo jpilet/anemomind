@@ -495,4 +495,18 @@ cxx_test(nautical_GpsFilterTest
          common_PathBuilder
          nautical_NavNmeaScan
          plot_gnuplot
-        )                             
+        )
+        
+add_executable(nautical_ceresVsBanded
+               ceresVsBanded.cpp
+              )        
+              
+target_link_libraries(nautical_ceresVsBanded
+         nautical_GpsFilter
+         gtest_main
+         common_Env
+         common_PathBuilder
+         nautical_NavNmeaScan
+         plot_gnuplot
+        )        
+target_depends_on_ceres(nautical_ceresVsBanded)                                

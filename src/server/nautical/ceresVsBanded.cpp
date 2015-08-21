@@ -2,7 +2,6 @@
  *  Created on: 2015
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
-#include <gtest/gtest.h>
 #include <server/nautical/GpsFilter.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
@@ -150,7 +149,7 @@ TimeData measureTime(
 }
 
 // Check that the filtered signal is reasonbly close to the non-filtered one.
-TEST(GpsFilterTest, Comparison) {
+int main() {
   auto navs = getPsarosTestData2();
 
   int navCounts = 20;
