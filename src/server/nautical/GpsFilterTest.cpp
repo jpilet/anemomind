@@ -9,6 +9,7 @@
 #include <server/common/PathBuilder.h>
 #include <server/nautical/NavNmeaScan.h>
 #include <server/plot/extra.h>
+#include <server/math/nonlinear/Ceres1dSolver.h>
 
 
 using namespace sail;
@@ -40,13 +41,17 @@ TEST(GpsFilterTest, PsarosTest) {
   GpsFilter::Settings settings;
 
 
-  settings.useCeres = true;
+  settings.useCeres = false;
   if (settings.useCeres) {
-    settings.filterSettings.iters = 60;
+
+
+    EXPECT_NEAR(Ceres1dSolver::softSqrt(3.0001, 3.0),
+      Ceres1dSolver::softSqrt(2.9999, 3.0), 0.001);
   }
 
 
 
+  settings.filterSettings.iters = 60;
 
   auto results = GpsFilter::filter(navs, settings);
   auto filtered = results.filteredNavs();

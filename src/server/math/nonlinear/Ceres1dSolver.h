@@ -28,7 +28,7 @@ struct Settings {
   ITERATIVE_SCHUR*/
 };
 
-ceres::LossFunction *makeLossFunction(Settings::LossType t, double lb) {
+inline ceres::LossFunction *makeLossFunction(Settings::LossType t, double lb) {
   switch (t) {
    case Settings::L1:
      return new ceres::SoftLOneLoss(lb);
@@ -44,9 +44,10 @@ T softSqrt(T x, T lb) {
     return T(0);
   } else if (x < lb) {
     T sqrtLb = sqrt(lb);
-    return sqrtLb - 0.5*x/sqrtLb;
+    auto dif = lb - x;
+    return sqrtLb - 0.5*dif/sqrtLb;
   }
-  return x;
+  return sqrt(x);
 }
 
 template <typename T>
@@ -181,7 +182,6 @@ MDArray2d solve(Sampling sampling,
   options.linear_solver_type = settings.solverType;
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
-  std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
   return X;
 }
 
