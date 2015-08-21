@@ -10,6 +10,7 @@
 #include <server/nautical/NavNmeaScan.h>
 #include <server/plot/extra.h>
 #include <server/math/nonlinear/Ceres1dSolver.h>
+#include <server/common/Span.h>
 
 
 using namespace sail;
@@ -105,74 +106,6 @@ Array<Nav> getAllPsarosData() {
 
 
 
-/*struct LabeledSettings {
-  std::string label;
-  GpsFilter::Settings settings;
-};
-
-Array<LabeledSettings> makeAllSettingsToTest() {
-  ceres::LinearSolverType solverType = ceres::SPARSE_NORMAL_CHOLESKY;
-
-}*/
-
-
-  /*
-   * ceres::DENSE_NORMAL_CHOLESKY
-   *
-   * SPARSE_NORMAL_CHOLESKY,
-  SPARSE_SCHUR,
-  CGNR
-  ITERATIVE_SCHUR*/
-
-// Check that the filtered signal is reasonbly close to the non-filtered one.
-TEST(GpsFilterTest, Comparison) {
-  auto navs = getAllPsarosData().sliceTo(500);
-  GpsFilter::Settings settings;
-
-  EXPECT_NEAR(Ceres1dSolver::softSqrt(3.0001, 3.0),
-    Ceres1dSolver::softSqrt(2.9999, 3.0), 0.001);
-
-  settings.useCeres = true;
-  settings.ceresSolverType = ceres::DENSE_NORMAL_CHOLESKY;
 
 
 
-  settings.filterSettings.iters = 30;
-
-  auto results = GpsFilter::filter(navs, settings);
-  auto filtered = results.filteredNavs();
-  EXPECT_EQ(filtered.size(), navs.size());
-
-
-  auto reasonableMotionCount = 0;
-  auto reasonablePositionCount = 0;
-  for (int i = 0; i < navs.size(); i++) {
-    auto a = filtered[i];
-    auto b = navs[i];
-    auto motionDif = a.gpsMotion() - b.gpsMotion();
-    auto motionDifNormKnots = sqrt(sqr(motionDif[0].knots()) + sqr(motionDif[1].knots()));
-    if (motionDifNormKnots < 1.0) {
-      reasonableMotionCount++;
-    }
-
-    auto posDif = results.geoRef.map(a.geographicPosition()) -
-        results.geoRef.map(b.geographicPosition());
-    auto posDifNormMeters = sqrt(sqr(posDif[0].meters()) + sqr(posDif[1].meters()));
-    if (posDifNormMeters < 10) {
-      reasonablePositionCount++;
-    }
-  }
-  auto minCount = 0.8*navs.size();
-  EXPECT_LT(minCount, reasonableMotionCount);
-  EXPECT_LT(minCount, reasonablePositionCount);
-
-  bool visualize = true;
-  if (visualize) {
-    GnuplotExtra plot;
-    plot.set_style("lines");
-    plot.plot(results.Xmeters);
-    plot.set_style("points");
-    plot.plot(getRawPositions(results, navs));
-    plot.show();
-  }
-}

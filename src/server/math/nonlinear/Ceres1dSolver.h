@@ -16,19 +16,15 @@ namespace Ceres1dSolver {
 
 struct Settings {
   BandedSolver::Settings commonSettings;
-  enum LossType {L1, L2};
+  enum LossType {
+    L1, // Like AbsCost
+    L2  // Like SquareCost
+    };
 
   LossType dataLoss = L1;
   LossType regLoss = L1;
 
   ceres::LinearSolverType solverType = ceres::SPARSE_NORMAL_CHOLESKY;
-
-  /*
-   * ceres::DENSE_NORMAL_CHOLESKY
-   *
-   * SPARSE_NORMAL_CHOLESKY,
-  SPARSE_SCHUR,
-  ITERATIVE_SCHUR*/
 };
 
 inline ceres::LossFunction *makeLossFunction(Settings::LossType t, double lb) {
@@ -41,6 +37,9 @@ inline ceres::LossFunction *makeLossFunction(Settings::LossType t, double lb) {
   return nullptr;
 }
 
+
+// Replace sqrt by this function, in order to avoid
+// non-differentiability issues at 0.
 template <typename T>
 T softSqrt(T x, T lb) {
   if (x <= T(0)) {
@@ -53,6 +52,12 @@ T softSqrt(T x, T lb) {
   return sqrt(x);
 }
 
+
+/*
+ * I am not sure how to construct
+ * an MDArray from a constant pointer,
+ * so let's copy it.
+ */
 template <typename T>
 MDArray<T, 2> makeMat(int rows, int cols, const T *src) {
   MDArray<T, 2> data(rows, cols);
@@ -64,6 +69,10 @@ MDArray<T, 2> makeMat(int rows, int cols, const T *src) {
   return data;
 }
 
+
+/*
+ * This is the data fitness cost.
+ */
 template <int Dim>
 class DataCost {
  public:
@@ -103,6 +112,10 @@ class DataCost {
   }
 };
 
+
+/*
+ * This is the regularization cost.
+ */
 template <int Dim>
 class RegCost {
  public:
@@ -145,6 +158,11 @@ class RegCost {
 };
 
 
+
+/*
+ * Creates a cost function for Ceres from an arbitrary object
+ * with the operator() to eval, and the methods inDims and outDims.
+ */
 template <typename T>
 ceres::DynamicAutoDiffCostFunction<T> *makeCeresCost(T *objf) {
   auto cost = new ceres::DynamicAutoDiffCostFunction<T>(objf);
