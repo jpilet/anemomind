@@ -54,9 +54,11 @@ LabeledSettings makeCeresSettings(ceres::LinearSolverType solverType,
     const int iters = 30;
     LabeledSettings s;
     s.label = stringFormat("Ceres (%d iters) %s", iters, label.c_str());
-    s.maxNavs = 1000;
+    s.maxNavs = 40000;
     s.settings.useCeres = true;
     s.settings.ceresSolverType = solverType;
+    s.settings.filterSettings.iters = iters;
+    s.settings.filterSettings.lambda = 0.1;
     return s;
 }
 
@@ -64,10 +66,11 @@ LabeledSettings makeBandedSettings(int iters) {
   LabeledSettings s;
   s.label = stringFormat("Banded solver (%d iters)", iters);
   s.settings.filterSettings.iters = iters;
+  s.settings.filterSettings.lambda = 0.1;
   return s;
 }
 
-Array<LabeledSettings> makeAllSettingsToTest() {
+LabeledSettings makeCeresSettings(int i) {
   ceres::LinearSolverType types[6] = {
       ceres::DENSE_NORMAL_CHOLESKY,
       ceres::DENSE_QR,
@@ -84,13 +87,15 @@ Array<LabeledSettings> makeAllSettingsToTest() {
       "Iterative Schur",
       "CGNR"
       };
-  Array<LabeledSettings> settings(8);
-  for (int i = 0; i < 6; i++) {
-    settings[i] = makeCeresSettings(types[i], labels[i]);
-  }
-  settings[6] = makeBandedSettings(8);
-  settings[7] = makeBandedSettings(30);
-  return settings;
+  return makeCeresSettings(types[i], labels[i]);
+}
+
+Array<LabeledSettings> makeAllSettingsToTest() {
+  return Array<LabeledSettings>{
+    makeBandedSettings(8),
+    makeBandedSettings(30),
+    makeCeresSettings(2)
+  };
 }
 
 struct TimeData {
@@ -134,11 +139,9 @@ TimeData measureTime(
   Array<Duration<double> > durs(n);
   for (int i = 0; i < n; i++) {
     int navCount = navCounts[i];
-    std::cout << EXPR_AND_VAL_AS_STRING(navCount) << std::endl;
     if (navCount < settings.maxNavs) {
       auto start = TimeStamp::now();
       auto results = GpsFilter::filter(navs.sliceTo(navCount), settings.settings);
-      std::cout << "DONE optimizing";
       durs[i] = TimeStamp::now() - start;
       counter++;
     } else {
@@ -159,11 +162,10 @@ int main() {
     return int(floor(exp(navSampleCountMap(i))));
   });
 
-  Array<LabeledSettings> settings = makeAllSettingsToTest().sliceFrom(6);
+  Array<LabeledSettings> settings = makeAllSettingsToTest();
   int n = settings.size();
   Array<TimeData> timeData(n);
   for (int i = 0; i < n; i++) {
-    std::cout << "OPTIMIZING FOR SETTINGS " << i+1 << "/" << settings.size() << std::endl;
     timeData[i] = measureTime(counts, navs, settings[i]);
   }
 
@@ -176,15 +178,10 @@ int main() {
     for (auto data: timeData) {
       auto d = data.makePlotData();
       plot.plot(d, data.settings.label);
-    }
-    plot.show();
-  }{
-    GnuplotExtra plot;
-    plot.set_style("lines");
-    plot.set_xlabel("Number of navs");
-    plot.set_ylabel("Log10( Time(seconds) )");
-    for (auto data: timeData) {
-      plot.plot(data.makePlotData(), data.settings.label);
+      int last = d.rows()-1;
+      std::cout << " " << data.settings.label << " with " <<
+          d(last, 0) << " navs takes " << d(last, 1)
+            << " seconds." << std::endl;
     }
     plot.show();
   }

@@ -76,12 +76,9 @@ MDArray<T, 2> makeMat(int rows, int cols, const T *src) {
 template <int Dim>
 class DataCost {
  public:
-  DataCost(const Sampling &sampling,
-      Observation<Dim> observation,
-      Settings settings, int index) :
-        _sampling(sampling),
+  DataCost(Observation<Dim> observation, double lb) :
         _observation(observation),
-        _settings(settings), _index(index) {}
+        _lb(lb) {}
 
   template<typename T>
       bool operator()(const T* x, const T* y, T* residual) const {
@@ -90,15 +87,13 @@ class DataCost {
     for (int i = 0; i < Dim; i++) {
       r2 += sqr(w.lowerWeight*x[i] + w.upperWeight*y[i] - _observation.data[i]);
     }
-    auto dataResidual = softSqrt<T>(r2, T(_settings.commonSettings.residualLowerBound));
+    auto dataResidual = softSqrt<T>(r2, T(_lb));
     residual[0] = dataResidual;
     return true;
   }
  private:
-  Sampling _sampling;
   Observation<Dim> _observation;
-  Settings _settings;
-  int _index;
+  double _lb;
 };
 
 
@@ -108,8 +103,8 @@ class DataCost {
 template <int Dim>
 class RegCost {
  public:
-  RegCost(Settings settings, int i) :
-    _settings(settings), _index(i) {}
+  RegCost(Settings settings) :
+    _settings(settings) {}
 
   template<typename T>
   bool operator()(const T* const *x, T* residual) {
@@ -148,7 +143,6 @@ class RegCost {
     return Dim;
   }
  private:
-  int _index;
   Settings _settings;
 };
 
@@ -203,7 +197,7 @@ MDArray2d solve(Sampling sampling,
   for (Observation<Dim> obs: observations) {
     i++;
     auto dataCost = new ceres::AutoDiffCostFunction<DataCost<Dim>, 1, Dim, Dim>(
-        new DataCost<Dim>(sampling, obs, settings, i));
+        new DataCost<Dim>(obs, settings.commonSettings.residualLowerBound));
     problem.AddResidualBlock(dataCost,
         makeLossFunction(settings.dataLoss,
         settings.commonSettings.residualLowerBound),
@@ -213,14 +207,14 @@ MDArray2d solve(Sampling sampling,
     int regOrder = settings.commonSettings.regOrder;
     int regCount = sampling.count() - regOrder;
     int paramBlockCount = regOrder + 1;
+    auto regCost = makeCeresRegCost(Dim, new RegCost<Dim>(settings),
+        paramBlockCount);
     for (int i = 0; i < regCount; i++) {
       std::vector<double*> blocks(paramBlockCount);
       for (int j = 0; j < paramBlockCount; j++) {
         int index = i + j;
         blocks[j] = getBlockPtr(X, index);
       }
-      auto regCost = makeCeresRegCost(Dim, new RegCost<Dim>(settings, i),
-          paramBlockCount);
       problem.AddResidualBlock(regCost,
           makeLossFunction(settings.regLoss,
           settings.commonSettings.residualLowerBound),
@@ -228,7 +222,7 @@ MDArray2d solve(Sampling sampling,
     }
   }
   ceres::Solver::Options options;
-  options.minimizer_progress_to_stdout = true;
+  options.minimizer_progress_to_stdout = false;
   options.max_num_iterations = settings.commonSettings.iters;
   options.linear_solver_type = settings.solverType;
 
