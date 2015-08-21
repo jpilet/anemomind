@@ -38,6 +38,7 @@ Array<Nav> getPsarosTestData() {
 TEST(GpsFilterTest, PsarosTest) {
   auto navs = getPsarosTestData();
   GpsFilter::Settings settings;
+  settings.useCeres = true;
   auto results = GpsFilter::filter(navs, settings);
   auto filtered = results.filteredNavs();
   EXPECT_EQ(filtered.size(), navs.size());
@@ -65,7 +66,7 @@ TEST(GpsFilterTest, PsarosTest) {
   EXPECT_LT(minCount, reasonableMotionCount);
   EXPECT_LT(minCount, reasonablePositionCount);
 
-  bool visualize = false;
+  bool visualize = true;
   if (visualize) {
     GnuplotExtra plot;
     plot.set_style("lines");

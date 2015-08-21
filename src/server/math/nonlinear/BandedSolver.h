@@ -56,8 +56,8 @@ void accumulateData(DataCost dataCost, Array<Observation<Dim> > observations, MD
     }
 }
 
-template <int Dim>
-MDArray2d calcDifsInPlace(int regOrder, MDArray2d X) {
+template <typename T, int Dim>
+MDArray<T, 2> calcDifsInPlace(int regOrder, MDArray<T, 2> X) {
   assert(Dim == X.cols());
   if (regOrder == 0) {
     return X;
@@ -69,7 +69,7 @@ MDArray2d calcDifsInPlace(int regOrder, MDArray2d X) {
         X(i, j) = X(i, j) - X(i+1, j);
       }
     }
-    return calcDifsInPlace<Dim>(regOrder-1, X.sliceRowsTo(dstRows));
+    return calcDifsInPlace<T, Dim>(regOrder-1, X.sliceRowsTo(dstRows));
   }
 }
 
@@ -86,7 +86,7 @@ double calcResidual(const MDArray2d &X, int row) {
 template <int Dim, typename RegCost>
 void accumulateReg(RegCost regCost, Arrayd regCoefs,
     MDArray2d X, Settings settings, BandMat<double> *AtA) {
-  auto difs = calcDifsInPlace<Dim>(settings.regOrder, X.dup());
+  auto difs = calcDifsInPlace<double, Dim>(settings.regOrder, X.dup());
   int n = difs.rows();
   for (int i = 0; i < n; i++) {
     double r = calcResidual<Dim>(difs, i);

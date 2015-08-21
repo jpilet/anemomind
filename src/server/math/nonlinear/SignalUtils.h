@@ -114,6 +114,16 @@ struct Observation {
     return sqrt(squaredDist);
   }
 
+  template <typename T>
+  T calcResidualT(const MDArray<T, 2> &X) const {
+    T squaredDist = T(0.0);
+    for (int i = 0; i < N; i++) {
+      squaredDist = sqr(weights.lowerWeight*X(weights.lowerIndex, i) +
+                        weights.upperWeight*X(weights.upperIndex(), i));
+    }
+    return sqrt(squaredDist);
+  }
+
   void accumulateNormalEqs(double squaredWeight,
       BandMat<double> *dstAtA, MDArray2d *dstAtB) const {
     weights.accumulateAtA(squaredWeight, dstAtA);

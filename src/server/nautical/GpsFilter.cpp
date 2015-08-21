@@ -7,6 +7,7 @@
 #include <server/nautical/GeographicReference.h>
 #include <server/common/Span.h>
 #include <server/math/nonlinear/BandedSolver.h>
+#include <server/math/nonlinear/Ceres1dSolver.h>
 #include <algorithm>
 
 
@@ -110,8 +111,14 @@ Results filter(Array<Nav> navs, Settings settings) {
   Sampling sampling(sampleCount, fromTime.seconds(), toTime.seconds());
   auto observations = getObservations(settings,
       timeRef, geoRef, navs, sampling);
-  MDArray2d X = BandedSolver::solve(AbsCost(), AbsCost(), sampling,
-      observations, settings.filterSettings);
+  MDArray2d X;
+  if (settings.useCeres) {
+    Ceres1dSolver::Settings ceresSettings;
+    X = Ceres1dSolver::solve(sampling, observations, ceresSettings);
+  } else {
+    X = BandedSolver::solve(AbsCost(), AbsCost(), sampling,
+        observations, settings.filterSettings);
+  }
   auto posObs = observations.sliceTo(navs.size());
   return Results{navs, posObs, sampling, X, timeRef, geoRef};
 }

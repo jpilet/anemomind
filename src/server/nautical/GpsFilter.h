@@ -18,6 +18,7 @@ struct Settings {
   Duration<double> samplingPeriod;
   double motionWeight;
   BandedSolver::Settings filterSettings;
+  bool useCeres = false;
 };
 
 struct Results {

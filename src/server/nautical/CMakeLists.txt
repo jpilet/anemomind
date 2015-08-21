@@ -483,7 +483,9 @@ target_link_libraries(nautical_GpsFilter
                       nautical_nav
                       nautical_GeographicReference
                       math_nonlinear_BandedSolver
-                     )   
+                     )
+                     
+target_depends_on_ceres(nautical_GpsFilter)                        
                      
 cxx_test(nautical_GpsFilterTest
          GpsFilterTest.cpp
