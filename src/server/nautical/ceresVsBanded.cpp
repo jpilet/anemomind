@@ -45,7 +45,7 @@ Array<Nav> getPsarosTestData2() {
 
 struct LabeledSettings {
   std::string label;
-  int maxNavs;
+  int maxNavs = 3000000;
   GpsFilter::Settings settings;
 };
 
