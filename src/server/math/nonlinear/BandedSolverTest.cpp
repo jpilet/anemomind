@@ -107,20 +107,20 @@ TEST(BandedSolver, RampMultiscale) {
 
     BandedSolver::Settings s;
     s.regOrder = 2;
-    s.lambda = 1;
-    s.iters = 4;
+    s.lambda = 4;
+    s.iters = 30;
     MDArray2d Y = BandedSolver::solve(dataCost, regCost, sampling, obs, s);
 
     for (int i = 0; i < sampling.count(); i++) {
       double x = sampling.indexToX()(i);
-      EXPECT_NEAR(Y(i, 0), scale*theSignal(x), scale*0.04);
+      EXPECT_NEAR(Y(i, 0), scale*theSignal(x), scale*0.1);
     }
 
     // Check that it is close to a scaled version of the previous signal.
     if (!Yprevious.empty()) {
       double f = scale/previousScale;
       for (int i = 0; i < sampling.count(); i++) {
-        EXPECT_NEAR(f*Yprevious(i, 0), Y(i, 0), 0.01*scale);
+        EXPECT_NEAR(f*Yprevious(i, 0), Y(i, 0), 0.1*scale);
       }
     }
 
