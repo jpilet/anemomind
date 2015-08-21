@@ -78,29 +78,31 @@ class DataCost {
  public:
   DataCost(const Sampling &sampling,
       Observation<Dim> observation,
-      Settings settings) :
+      Settings settings, int index) :
         _sampling(sampling),
         _observation(observation),
-        _settings(settings) {}
+        _settings(settings), _index(index) {}
 
   template<typename T>
       bool operator()(const T* x, const T* y, T* residual) const {
     T r2(0.0);
     auto w = _observation.weights;
     for (int i = 0; i < Dim; i++) {
-      r2 += sqr(w.lowerWeight*x[i] + w.upperWeight*y[i]);
+      r2 += sqr(w.lowerWeight*x[i] + w.upperWeight*y[i] - _observation.data[i]);
     }
-    residual[0] = softSqrt<T>(r2, T(_settings.commonSettings.residualLowerBound));
+    auto dataResidual = softSqrt<T>(r2, T(_settings.commonSettings.residualLowerBound));
+    //std::cout << EXPR_AND_VAL_AS_STRING(dataResidual) << std::endl;
+    if (_index < 30) {
+      std::cout << " dataResidual (" << _index << ") = " << dataResidual << "\n";
+    }
+    residual[0] = dataResidual;
     return true;
-  }
-
-  int outDims() const {
-    return 1;
   }
  private:
   Sampling _sampling;
   Observation<Dim> _observation;
   Settings _settings;
+  int _index;
 };
 
 
@@ -136,8 +138,9 @@ class RegCost {
     for (int j = 0; j < Dim; j++) {
       r2 += sqr(difs(0, j));
     }
-    residual[0] = softSqrt(_settings.commonSettings.lambda*r2,
+    auto regResidual = softSqrt(_settings.commonSettings.lambda*r2,
         T(_settings.commonSettings.residualLowerBound));
+    residual[0] = regResidual;
     return true;
   }
 
@@ -173,36 +176,51 @@ inline double *getBlockPtr(MDArray2d X, int index) {
   return X.sliceCol(index).ptr();
 }
 
+inline MDArray2d transpose(MDArray2d X) {
+  int rows = X.rows();
+  int cols = X.cols();
+  MDArray2d Y(cols, rows);
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      Y(j, i) = X(i, j);
+    }
+  }
+  return Y;
+}
+
 template <int Dim>
 MDArray2d solve(Sampling sampling,
     Array<Observation<Dim> > observations, Settings settings,
     MDArray2d initialX = MDArray2d()) {
   Arrayd regCoefs = BandMatInternal::makeCoefs(settings.commonSettings.regOrder);
   MDArray2d X(Dim, sampling.count());
-  X.setAll(0.0);
+  X.setAll(1.0);
+  CHECK(X.isContinuous());
 
   ceres::Problem problem;
   for (int i = 0; i < sampling.count(); i++) {
     problem.AddParameterBlock(X.sliceCol(i).ptr(), Dim);
   }
-  CHECK(X.isContinuous());
 
+  int i = 0;
   for (Observation<Dim> obs: observations) {
+    i++;
     auto dataCost = new ceres::AutoDiffCostFunction<DataCost<Dim>, 1, Dim, Dim>(
-        new DataCost<Dim>(sampling, obs, settings));
+        new DataCost<Dim>(sampling, obs, settings, i));
     problem.AddResidualBlock(dataCost,
         makeLossFunction(settings.dataLoss,
         settings.commonSettings.residualLowerBound),
         getBlockPtr(X, obs.weights.lowerIndex),
         getBlockPtr(X, obs.weights.upperIndex()));
-  }{
+  }/*{
     int regOrder = settings.commonSettings.regOrder;
     int regCount = sampling.count() - regOrder;
     int paramBlockCount = regOrder + 1;
     for (int i = 0; i < regCount; i++) {
       std::vector<double*> blocks(paramBlockCount);
       for (int j = 0; j < paramBlockCount; j++) {
-        blocks[j] = getBlockPtr(X, i + j);
+        int index = i + j;
+        blocks[j] = getBlockPtr(X, index);
       }
       auto regCost = makeCeresRegCost(Dim, new RegCost<Dim>(settings),
           paramBlockCount);
@@ -211,16 +229,16 @@ MDArray2d solve(Sampling sampling,
           settings.commonSettings.residualLowerBound),
           blocks);
     }
-
-  }
+  }*/
   ceres::Solver::Options options;
   options.minimizer_progress_to_stdout = true;
-  options.max_num_iterations = settings.commonSettings.iters;
-  options.linear_solver_type = settings.solverType;
+  //options.max_num_iterations = settings.commonSettings.iters;
+  //options.linear_solver_type = settings.solverType;
+
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
   std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
-  return X;
+  return transpose(X);
 }
 
 
