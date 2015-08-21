@@ -77,39 +77,30 @@ template <int Dim>
 class DataCost {
  public:
   DataCost(const Sampling &sampling,
-      Array<Observation<Dim> > observations,
+      Observation<Dim> observation,
       Settings settings) :
         _sampling(sampling),
-        _observations(observations),
+        _observation(observation),
         _settings(settings) {}
 
   template<typename T>
-      bool operator()(const T* const *x, T* residual) {
-
-    eval<T>(makeMat(_sampling.count(), Dim, x[0]), residual);
+      bool operator()(const T* x, const T* y, T* residual) const {
+    T r2(0.0);
+    auto w = _observation.weights;
+    for (int i = 0; i < Dim; i++) {
+      r2 += sqr(w.lowerWeight*x[i] + w.upperWeight*y[i]);
+    }
+    residual[0] = softSqrt<T>(r2, T(_settings.commonSettings.residualLowerBound));
     return true;
   }
 
   int outDims() const {
-    return _observations.size();
-  }
-
-  int inDims() const {
-    return Dim*_sampling.count();
+    return 1;
   }
  private:
   Sampling _sampling;
-  Array<Observation<Dim> > _observations;
+  Observation<Dim> _observation;
   Settings _settings;
-
-  template <typename T>
-  void eval(const MDArray<T, 2> &X, T *residuals) const {
-    for (int i = 0; i < _observations.size(); i++) {
-      const auto &obs = _observations[i];
-      auto r2 = obs.calcSquaredResidualT(X);
-      residuals[i] = softSqrt(r2, T(_settings.commonSettings.residualLowerBound));
-    }
-  }
 };
 
 
@@ -119,42 +110,46 @@ class DataCost {
 template <int Dim>
 class RegCost {
  public:
-  RegCost(Sampling sampling, Settings settings) :
-    _sampling(sampling),
+  RegCost(Settings settings) :
     _settings(settings) {}
 
   template<typename T>
   bool operator()(const T* const *x, T* residual) {
-    eval<T>(makeMat(_sampling.count(), Dim, x[0]), residual);
+    static MDArray<T, 2> X;
+    const int rows = _settings.commonSettings.regOrder + 1;
+    const int cols = Dim;
+    if (X.cols() != cols || X.rows() != rows) {
+      X = MDArray<T, 2>(rows, cols);
+    }
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
+        X(i, j) = x[i][j];
+      }
+    }
+
+    auto difs = BandedSolver::calcDifsInPlace<T, Dim>(
+        _settings.commonSettings.regOrder, X
+    );
+    assert(difs.rows() == 1);
+
+    T r2(0);
+    for (int j = 0; j < Dim; j++) {
+      r2 += sqr(difs(0, j));
+    }
+    residual[0] = softSqrt(_settings.commonSettings.lambda*r2,
+        T(_settings.commonSettings.residualLowerBound));
     return true;
   }
 
   int outDims() const {
-    return _sampling.count() - _settings.commonSettings.regOrder;
+    return 1;
   }
 
   int inDims() const {
-    return Dim*_sampling.count();
+    return Dim;
   }
  private:
-  Sampling _sampling;
   Settings _settings;
-
-  template <typename T>
-  void eval(MDArray<T, 2> X, T *residuals) const {
-    auto difs = BandedSolver::calcDifsInPlace<T, Dim>(
-        _settings.commonSettings.regOrder, X);
-    int rows = difs.rows();
-    CHECK(rows == outDims());
-    for (int i = 0; i < rows; i++) {
-      T r2(0);
-      for (int j = 0; j < Dim; j++) {
-        r2 += sqr(difs(i, j));
-      }
-      residuals[i] = softSqrt(_settings.commonSettings.lambda*r2,
-          T(_settings.commonSettings.residualLowerBound));
-    }
-  }
 };
 
 
@@ -164,11 +159,18 @@ class RegCost {
  * with the operator() to eval, and the methods inDims and outDims.
  */
 template <typename T>
-ceres::DynamicAutoDiffCostFunction<T> *makeCeresCost(T *objf) {
+ceres::DynamicAutoDiffCostFunction<T> *makeCeresRegCost(int Dim,
+    T *objf, int paramBlockCount) {
   auto cost = new ceres::DynamicAutoDiffCostFunction<T>(objf);
-  cost->AddParameterBlock(objf->inDims());
-  cost->SetNumResiduals(objf->outDims());
+  cost->SetNumResiduals(1);
+  for (int i = 0; i < paramBlockCount; i++) {
+    cost->AddParameterBlock(Dim);
+  }
   return cost;
+}
+
+inline double *getBlockPtr(MDArray2d X, int index) {
+  return X.sliceCol(index).ptr();
 }
 
 template <int Dim>
@@ -176,25 +178,39 @@ MDArray2d solve(Sampling sampling,
     Array<Observation<Dim> > observations, Settings settings,
     MDArray2d initialX = MDArray2d()) {
   Arrayd regCoefs = BandMatInternal::makeCoefs(settings.commonSettings.regOrder);
-  MDArray2d X = (initialX.empty()?
-      BandedSolver::initialize(sampling.count(), Dim) : initialX);
-  const int paramCount = Dim*sampling.count();
-
-  CHECK(X.isContinuous());
+  MDArray2d X(Dim, sampling.count());
+  X.setAll(0.0);
 
   ceres::Problem problem;
-  {
-    ceres::DynamicAutoDiffCostFunction<DataCost<Dim> > *dataCost = makeCeresCost(new DataCost<Dim>(sampling, observations, settings));
+  for (int i = 0; i < sampling.count(); i++) {
+    problem.AddParameterBlock(X.sliceCol(i).ptr(), Dim);
+  }
+  CHECK(X.isContinuous());
+
+  for (Observation<Dim> obs: observations) {
+    auto dataCost = new ceres::AutoDiffCostFunction<DataCost<Dim>, 1, Dim, Dim>(
+        new DataCost<Dim>(sampling, obs, settings));
     problem.AddResidualBlock(dataCost,
         makeLossFunction(settings.dataLoss,
         settings.commonSettings.residualLowerBound),
-        X.ptr());
+        getBlockPtr(X, obs.weights.lowerIndex),
+        getBlockPtr(X, obs.weights.upperIndex()));
   }{
-    auto regCost = makeCeresCost(new RegCost<Dim>(sampling, settings));
-    problem.AddResidualBlock(regCost,
-        makeLossFunction(settings.regLoss,
-        settings.commonSettings.residualLowerBound),
-        X.ptr());
+    int regOrder = settings.commonSettings.regOrder;
+    int regCount = sampling.count() - regOrder;
+    int paramBlockCount = regOrder + 1;
+    for (int i = 0; i < regCount; i++) {
+      std::vector<double*> blocks(paramBlockCount);
+      for (int j = 0; j < paramBlockCount; j++) {
+        blocks[j] = getBlockPtr(X, i + j);
+      }
+      auto regCost = makeCeresRegCost(Dim, new RegCost<Dim>(settings),
+          paramBlockCount);
+      problem.AddResidualBlock(regCost,
+          makeLossFunction(settings.regLoss,
+          settings.commonSettings.residualLowerBound),
+          blocks);
+    }
 
   }
   ceres::Solver::Options options;
@@ -203,6 +219,7 @@ MDArray2d solve(Sampling sampling,
   options.linear_solver_type = settings.solverType;
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
+  std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
   return X;
 }
 

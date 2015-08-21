@@ -19,6 +19,7 @@ Settings::Settings() :
     motionWeight(1.0) {
   filterSettings.iters = 4;
   filterSettings.regOrder = 2;
+  ceresSolverType = ceres::SPARSE_NORMAL_CHOLESKY;
 }
 
 Duration<double> getLocalTime(TimeStamp timeRef, const Nav &nav) {
