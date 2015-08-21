@@ -114,6 +114,7 @@ Results filter(Array<Nav> navs, Settings settings) {
   MDArray2d X;
   if (settings.useCeres) {
     Ceres1dSolver::Settings ceresSettings;
+    ceresSettings.solverType = settings.ceresSolverType;
     ceresSettings.commonSettings = settings.filterSettings;
     X = Ceres1dSolver::solve(sampling, observations, ceresSettings);
   } else {

@@ -21,9 +21,12 @@ struct Settings {
   LossType dataLoss = L1;
   LossType regLoss = L1;
 
-  ceres::LinearSolverType solverType = ceres::DENSE_NORMAL_CHOLESKY; //ceres::SPARSE_NORMAL_CHOLESKY;
+  ceres::LinearSolverType solverType = ceres::SPARSE_NORMAL_CHOLESKY;
 
-  /*SPARSE_NORMAL_CHOLESKY,
+  /*
+   * ceres::DENSE_NORMAL_CHOLESKY
+   *
+   * SPARSE_NORMAL_CHOLESKY,
   SPARSE_SCHUR,
   ITERATIVE_SCHUR*/
 };

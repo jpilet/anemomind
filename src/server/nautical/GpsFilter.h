@@ -9,6 +9,7 @@
 #include <server/nautical/Nav.h>
 #include <server/math/nonlinear/BandedSolver.h>
 #include <server/nautical/GeographicReference.h>
+#include <ceres/ceres.h>
 
 namespace sail {
 namespace GpsFilter {
@@ -19,6 +20,7 @@ struct Settings {
   double motionWeight;
   BandedSolver::Settings filterSettings;
   bool useCeres = false;
+  ceres::LinearSolverType ceresSolverType;
 };
 
 struct Results {
