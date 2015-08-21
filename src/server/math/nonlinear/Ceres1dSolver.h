@@ -140,7 +140,7 @@ class RegCost {
     }
     auto regResidual = softSqrt(_settings.commonSettings.lambda*r2,
         T(_settings.commonSettings.residualLowerBound));
-    residual[0] = regResidual;
+    residual[0] = T(0.0); //regResidual;
     return true;
   }
 
@@ -212,7 +212,7 @@ MDArray2d solve(Sampling sampling,
         settings.commonSettings.residualLowerBound),
         getBlockPtr(X, obs.weights.lowerIndex),
         getBlockPtr(X, obs.weights.upperIndex()));
-  }/*{
+  }{
     int regOrder = settings.commonSettings.regOrder;
     int regCount = sampling.count() - regOrder;
     int paramBlockCount = regOrder + 1;
@@ -229,7 +229,7 @@ MDArray2d solve(Sampling sampling,
           settings.commonSettings.residualLowerBound),
           blocks);
     }
-  }*/
+  }
   ceres::Solver::Options options;
   options.minimizer_progress_to_stdout = true;
   //options.max_num_iterations = settings.commonSettings.iters;
