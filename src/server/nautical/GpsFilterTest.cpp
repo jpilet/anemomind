@@ -36,9 +36,22 @@ Array<Nav> getPsarosTestData() {
   return navs.sliceFrom(3500);
 }
 
+Array<Nav> getAllPsarosTestData() {
+  auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
+    .pushDirectory("datasets")
+    .pushDirectory("psaros33_Banque_Sturdza").get();
+  auto navs = scanNmeaFolder(p, Nav::debuggingBoatId());
+  return navs.sliceFrom(3500);
+}
+
 // Check that the filtered signal is reasonbly close to the non-filtered one.
 TEST(GpsFilterTest, PsarosTest) {
+
+
+  //auto navs = getAllPsarosTestData();
   auto navs = getPsarosTestData();
+
+
   GpsFilter::Settings settings;
 
 
@@ -52,10 +65,15 @@ TEST(GpsFilterTest, PsarosTest) {
 
 
 
-  settings.filterSettings.iters = 60;
-  settings.filterSettings.lambda = 0.1;
+  settings.filterSettings.iters = 30;
+  settings.filterSettings.lambda = 1.0;
 
+  std::cout << "Run for " << navs.size() << " navs" << std::endl;
+  auto offset = TimeStamp::now();
   auto results = GpsFilter::filter(navs, settings);
+  std::cout << "Average navs per second: " << double(navs.size())/(TimeStamp::now() - offset).seconds() << std::endl;
+
+
   auto filtered = results.filteredNavs();
   EXPECT_EQ(filtered.size(), navs.size());
 

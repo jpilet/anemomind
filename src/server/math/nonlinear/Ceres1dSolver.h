@@ -41,13 +41,15 @@ inline ceres::LossFunction *makeLossFunction(Settings::LossType t, double lb) {
 // Replace sqrt by this function, in order to avoid
 // non-differentiability issues at 0.
 template <typename T>
-T softSqrt(T x, T lb) {
-  if (x <= T(0)) {
-    return T(0);
+T softSqrt(T x, double lb) {
+  if (x < T(0)) {
+    return softSqrt(-x, lb);
   } else if (x < lb) {
-    T sqrtLb = sqrt(lb);
-    auto dif = lb - x;
-    return sqrtLb - 0.5*dif/sqrtLb;
+    auto f = sqrt(lb);
+    auto df = 0.5/f;
+    auto maj = MajQuad::majorize(lb, f, df);
+    auto offset = f - maj.a*sqr(lb);
+    return offset + maj.a*sqr(x);
   }
   return sqrt(x);
 }
@@ -87,7 +89,7 @@ class DataCost {
     for (int i = 0; i < Dim; i++) {
       r2 += sqr(w.lowerWeight*x[i] + w.upperWeight*y[i] - _observation.data[i]);
     }
-    auto dataResidual = softSqrt<T>(r2, T(_lb));
+    auto dataResidual = softSqrt<T>(r2, _lb);
     residual[0] = dataResidual;
     return true;
   }
@@ -130,7 +132,7 @@ class RegCost {
       r2 += sqr(difs(0, j));
     }
     auto regResidual = _settings.commonSettings.lambda*softSqrt(r2,
-        T(_settings.commonSettings.residualLowerBound));
+        _settings.commonSettings.residualLowerBound);
     residual[0] = regResidual;
     return true;
   }
@@ -185,7 +187,11 @@ MDArray2d solve(Sampling sampling,
     MDArray2d initialX = MDArray2d()) {
   Arrayd regCoefs = BandMatInternal::makeCoefs(settings.commonSettings.regOrder);
   MDArray2d X(Dim, sampling.count());
-  X.setAll(1.0);
+  for (int i = 0; i < X.rows(); i++) {
+    for (int j = 0; j < X.cols(); j++) {
+      X(i, j) = i;
+    }
+  }
   CHECK(X.isContinuous());
 
   ceres::Problem problem;
@@ -196,11 +202,12 @@ MDArray2d solve(Sampling sampling,
   int i = 0;
   for (Observation<Dim> obs: observations) {
     i++;
+    auto loss = makeLossFunction(settings.dataLoss,
+            settings.commonSettings.residualLowerBound);
     auto dataCost = new ceres::AutoDiffCostFunction<DataCost<Dim>, 1, Dim, Dim>(
         new DataCost<Dim>(obs, settings.commonSettings.residualLowerBound));
     problem.AddResidualBlock(dataCost,
-        makeLossFunction(settings.dataLoss,
-        settings.commonSettings.residualLowerBound),
+        loss,
         getBlockPtr(X, obs.weights.lowerIndex),
         getBlockPtr(X, obs.weights.upperIndex()));
   }{
@@ -209,6 +216,8 @@ MDArray2d solve(Sampling sampling,
     int paramBlockCount = regOrder + 1;
     auto regCost = makeCeresRegCost(Dim, new RegCost<Dim>(settings),
         paramBlockCount);
+    auto loss = makeLossFunction(settings.regLoss,
+              settings.commonSettings.residualLowerBound);
     for (int i = 0; i < regCount; i++) {
       std::vector<double*> blocks(paramBlockCount);
       for (int j = 0; j < paramBlockCount; j++) {
@@ -216,8 +225,7 @@ MDArray2d solve(Sampling sampling,
         blocks[j] = getBlockPtr(X, index);
       }
       problem.AddResidualBlock(regCost,
-          makeLossFunction(settings.regLoss,
-          settings.commonSettings.residualLowerBound),
+          loss,
           blocks);
     }
   }
