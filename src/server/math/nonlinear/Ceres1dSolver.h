@@ -41,34 +41,18 @@ inline ceres::LossFunction *makeLossFunction(Settings::LossType t, double lb) {
 // Replace sqrt by this function, in order to avoid
 // non-differentiability issues at 0.
 template <typename T>
-T softSqrt(T x, double lb) {
+T softSqrt(T x, double lb = 0.1) {
   if (x < T(0)) {
     return softSqrt(-x, lb);
   } else if (x < lb) {
     auto f = sqrt(lb);
     auto df = 0.5/f;
-    auto maj = MajQuad::majorize(lb, f, df);
+    /*auto maj = MajQuad::majorize(lb, f, df);
     auto offset = f - maj.a*sqr(lb);
-    return offset + maj.a*sqr(x);
+    return offset + maj.a*sqr(x);*/
+    return f - (lb - x)*df;
   }
   return sqrt(x);
-}
-
-
-/*
- * I am not sure how to construct
- * an MDArray from a constant pointer,
- * so let's copy it.
- */
-template <typename T>
-MDArray<T, 2> makeMat(int rows, int cols, const T *src) {
-  MDArray<T, 2> data(rows, cols);
-  int n = data.numel();
-  T *dst = data.ptr();
-  for (int i = 0; i < n; i++) {
-    dst[i] = src[i];
-  }
-  return data;
 }
 
 
@@ -89,7 +73,7 @@ class DataCost {
     for (int i = 0; i < Dim; i++) {
       r2 += sqr(w.lowerWeight*x[i] + w.upperWeight*y[i] - _observation.data[i]);
     }
-    auto dataResidual = softSqrt<T>(r2, _lb);
+    auto dataResidual = softSqrt<T>(r2);
     residual[0] = dataResidual;
     return true;
   }
@@ -131,8 +115,7 @@ class RegCost {
     for (int j = 0; j < Dim; j++) {
       r2 += sqr(difs(0, j));
     }
-    auto regResidual = _settings.commonSettings.lambda*softSqrt(r2,
-        _settings.commonSettings.residualLowerBound);
+    auto regResidual = _settings.commonSettings.lambda*softSqrt(r2);
     residual[0] = regResidual;
     return true;
   }
@@ -141,9 +124,6 @@ class RegCost {
     return 1;
   }
 
-  int inDims() const {
-    return Dim;
-  }
  private:
   Settings _settings;
 };
@@ -189,7 +169,7 @@ MDArray2d solve(Sampling sampling,
   MDArray2d X(Dim, sampling.count());
   for (int i = 0; i < X.rows(); i++) {
     for (int j = 0; j < X.cols(); j++) {
-      X(i, j) = i;
+      X(i, j) = sin(3.324*i);
     }
   }
   CHECK(X.isContinuous());
@@ -233,6 +213,7 @@ MDArray2d solve(Sampling sampling,
   options.minimizer_progress_to_stdout = false;
   options.max_num_iterations = settings.commonSettings.iters;
   options.linear_solver_type = settings.solverType;
+  options.num_threads = 6;
 
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
