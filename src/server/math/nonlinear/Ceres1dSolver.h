@@ -41,7 +41,7 @@ inline ceres::LossFunction *makeLossFunction(Settings::LossType t, double lb) {
 // Replace sqrt by this function, in order to avoid
 // non-differentiability issues at 0.
 template <typename T>
-T softSqrt(T x, double lb = 0.1) {
+T softSqrt(T x, double lb = 0.0001) {
   if (x < T(0)) {
     return softSqrt(-x, lb);
   } else if (x < lb) {
@@ -116,6 +116,7 @@ class RegCost {
       r2 += sqr(difs(0, j));
     }
     auto regResidual = _settings.commonSettings.lambda*softSqrt(r2);
+    std::cout << "Residual: " << regResidual << std::endl;
     residual[0] = regResidual;
     return true;
   }
@@ -213,7 +214,7 @@ MDArray2d solve(Sampling sampling,
   options.minimizer_progress_to_stdout = false;
   options.max_num_iterations = settings.commonSettings.iters;
   options.linear_solver_type = settings.solverType;
-  options.num_threads = 6;
+  options.num_threads = 1;
 
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);

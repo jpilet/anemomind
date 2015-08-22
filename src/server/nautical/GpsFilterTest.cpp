@@ -66,7 +66,7 @@ TEST(GpsFilterTest, PsarosTest) {
 
 
   settings.filterSettings.iters = 30;
-  settings.filterSettings.lambda = 0.1;
+  settings.filterSettings.lambda = 10;
 
   std::cout << "Run for " << navs.size() << " navs" << std::endl;
   auto offset = TimeStamp::now();
