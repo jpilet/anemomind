@@ -77,7 +77,7 @@ double theSignal(double x) {
  * Also, the abs cost is less sensitive to outliers.
  */
 TEST(BandedSolver, RampMultiscale) {
-  bool visualize = true;
+  bool visualize = false;
 
   int scaleCount = 4;
   LineKM scaleMap(0, scaleCount-1, log(1.0), log(120.0));
