@@ -77,7 +77,7 @@ double theSignal(double x) {
  * Also, the abs cost is less sensitive to outliers.
  */
 TEST(BandedSolver, RampMultiscale) {
-  bool visualize = false;
+  bool visualize = true;
 
   int scaleCount = 4;
   LineKM scaleMap(0, scaleCount-1, log(1.0), log(120.0));
@@ -107,7 +107,7 @@ TEST(BandedSolver, RampMultiscale) {
 
     BandedSolver::Settings s;
     s.regOrder = 2;
-    s.lambda = 4;
+    s.lambda = 25;
     s.iters = 30;
     MDArray2d Y = BandedSolver::solve(dataCost, regCost, sampling, obs, s);
 
