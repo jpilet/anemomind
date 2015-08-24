@@ -473,3 +473,14 @@ target_link_libraries(nautical_NavLoader
                       nautical_NavNmea
                      )
 target_depends_on_poco_foundation(nautical_NavLoader)                                                                    
+
+
+add_executable(nautical_exportNavs
+               exportNavs.cpp
+              )
+              
+target_link_libraries(nautical_exportNavs
+                      nautical_NavNmeaScan
+                      common_logging
+                      common_ArgMap
+                     )              
