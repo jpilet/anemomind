@@ -127,6 +127,14 @@ CalibrationResults longIreneBenchmark(CalibrationAlgorithm calib) {
   };
 }
 
+CalibrationResults folderBenchmark(std::string folder, CalibrationAlgorithm calib) {
+  return CalibrationResults{
+    Array<SynthResults>(),
+    Array<RealDataResults>{evaluateForRealDataSplits(calib,
+        folder)}
+  };
+}
+
 std::ostream &operator<<(std::ostream &s, CalibrationResults X) {
   s << "********************** CALIBRATION RESULTS\n";
   for (auto x: X.synthResults) {

@@ -76,6 +76,8 @@ CalibrationResults reducedBenchmark(CalibrationAlgorithm calib);
 // Useful for algorithms that require lots of data in order to work.
 CalibrationResults longIreneBenchmark(CalibrationAlgorithm calib);
 
+CalibrationResults folderBenchmark(std::string folder, CalibrationAlgorithm calib);
+
 std::ostream &operator<<(std::ostream &s, CalibrationResults x);
 
 

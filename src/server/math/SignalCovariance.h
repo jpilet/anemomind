@@ -18,6 +18,7 @@
 #include <server/common/math.h>
 #include <cassert>
 
+
 namespace sail {
 namespace SignalCovariance {
 
@@ -203,12 +204,6 @@ void evaluateResiduals(T globalWeight, // The global weight can be 1.0/(sigmaX*s
 
   Integral1d<T> itgXY(elementwiseMul(X.X, Y.X));
 
-  /*std::cout << EXPR_AND_VAL_AS_STRING(residualCount) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(residuals->size()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(X.itgX.size()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(Y.itgX.size()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(itgXY.size()) << std::endl;*/
-
   assert(residualCount == residuals->size());
 
   int windowCount = s.calcWindowPositionCount(n);
@@ -233,15 +228,6 @@ void evaluateResiduals(T globalWeight, // The global weight can be 1.0/(sigmaX*s
     assert(!genericIsNan(r));
   }
 }
-
-
-
-
-
-
-
-
-
 
 }
 }

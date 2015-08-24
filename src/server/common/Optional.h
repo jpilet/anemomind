@@ -75,7 +75,7 @@ class Optional {
     if (_defined) {
       return genericIsNan(_value);
     }
-    return false;
+    return true;
   }
  private:
   bool _defined;

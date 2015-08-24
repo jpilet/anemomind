@@ -11,6 +11,7 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
 #include <iostream>
+#include <random>
 
 namespace sail {
 namespace MinCovCalib {

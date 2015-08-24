@@ -118,25 +118,39 @@ std::string listKeysCommaSeparated(std::map<std::string, T> m) {
 
 
 
+
+
+
+
 int performBenchmark(
     TestMap &testMap, AlgoMap &algoMap,
-    std::string testCode, std::string algo, std::string filename) {
-  if (testMap.find(testCode) == testMap.end()) {
+    std::string testCode, std::string algo,
+    std::string folder,
+    std::string filename) {
+
+  if (testMap.find(testCode) == testMap.end() && folder.empty()) {
     LOG(ERROR) << "No such test: '" << testCode << "'";
     return -1;
   }
+  auto test = testMap[testCode];
+
+  // But if a folder was provided, that will override the test
+  if (!folder.empty()) {
+    test = [&](CalibrationAlgorithm algorithm) {
+      return folderBenchmark(folder, algorithm);
+    };
+  }
+
   if (algoMap.find(algo) == algoMap.end()) {
     LOG(ERROR) << "No such algorithm: '" << algo << "'";
     return -1;
   }
 
+  auto results = test(algoMap[algo]);
+
   if (filename.empty()) {
     filename = "/tmp/calibtest_" + testCode + "_" + algo + ".txt";
   }
-
-  auto test = testMap[testCode];
-  auto results = test(algoMap[algo]);
-
   results.saveReportToFile(filename);
   LOG(INFO) << "Results written to " << filename << std::endl;
 
@@ -150,6 +164,7 @@ int main(int argc, const char **argv) {
   std::string testCode = "reduced";
   std::string algo = "mincov";
   std::string filename = "";
+  std::string folder = "";
 
   ArgMap amap;
   amap.setHelpInfo(
@@ -166,12 +181,15 @@ int main(int argc, const char **argv) {
     .store(&algo);
   amap.registerOption("--output", "Where the results should be saved")
     .store(&filename);
+  amap.registerOption("--folder", "Instead of providing a test (using --test), read data from a folder")
+    .store(&folder);
+
   auto status = amap.parse(argc, argv);
   switch (status) {
    case ArgMap::Done:
      return 0;
    case ArgMap::Continue:
-     return performBenchmark(testMap, algoMap, testCode, algo, filename);
+     return performBenchmark(testMap, algoMap, testCode, algo, folder, filename);
    case ArgMap::Error:
      return -1;
   };
