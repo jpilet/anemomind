@@ -8,8 +8,12 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <server/common/TimeStamp.h>
+#include <iostream>
 
 using namespace sail;
+
+enum Format  {CSV, MATLAB, JSON};
 
 Array<Nav> loadNavsFromArgs(Array<ArgMap::Arg*> args) {
   auto allNavs = args.map<Array<Nav> >([&](ArgMap::Arg *arg) {
@@ -29,20 +33,32 @@ struct NavField {
   std::function<std::string(Nav)> getLiteral;
 };
 
-std::string doubleToString(double x) {
-  stringstream ss;
-  ss.precision(std::numeric_limits<double>::max_digits10);
-  ss << x;
-  return ss.str();
+std::string doubleToString(double x, Format f) {
+  if (std::isfinite(x) || f != CSV) {
+    stringstream ss;
+    ss.precision(std::numeric_limits<double>::max_digits10);
+    ss << x;
+    return ss.str();
+  } else {
+    return "";
+  }
 }
 
-std::string angleToLiteral(Angle<double> x) {
-  return doubleToString(x.degrees());
+std::string angleToLiteral(Angle<double> x, Format f) {
+  return doubleToString(x.degrees(), f);
 }
 
-std::string velocityToLiteral(Velocity<double> x) {
-  return doubleToString(x.knots());
+std::string velocityToLiteral(Velocity<double> x, Format f) {
+  return doubleToString(x.knots(), f);
 }
+
+std::string timeToLiteralHumanReadable(TimeStamp t, Format f) {
+  if (f == MATLAB) { // Don't export text, only numbers.
+    return "NAN";
+  }
+  return t.toString("%m-%d-%Y %T");
+}
+
 
 std::string timeToLiteral(TimeStamp t) {
   std::stringstream ss;
@@ -50,34 +66,38 @@ std::string timeToLiteral(TimeStamp t) {
   return ss.str();
 }
 
-Array<NavField> getNavFields() {
+Array<NavField> getNavFields(std::string f) {
+  auto format = (f == "csv"? CSV : (f == "json"? JSON : MATLAB));
   return Array<NavField>{
-    NavField{"Epoch (milliseconds since 1970)", [&](const Nav &x) {
+    NavField{"Epoch (milliseconds since 1970)", [=](const Nav &x) {
       return timeToLiteral(x.time());
     }},
-    NavField{"AWA (degrees)", [&](const Nav &x) {
-      return angleToLiteral(x.awa());
+    NavField{"Time (mm-dd-yyyy hh:mm:ss)", [=](const Nav &x) {
+      return timeToLiteralHumanReadable(x.time(), format);
     }},
-    NavField{"AWS (knots)", [&](const Nav &x) {
-      return velocityToLiteral(x.aws());
+    NavField{"AWA (degrees)", [=](const Nav &x) {
+      return angleToLiteral(x.awa(), format);
     }},
-    NavField{"MagHdg (degrees)", [&](const Nav &x) {
-      return angleToLiteral(x.magHdg());
+    NavField{"AWS (knots)", [=](const Nav &x) {
+      return velocityToLiteral(x.aws(), format);
     }},
-    NavField{"Wat speed (knots)", [&](const Nav &x) {
-      return velocityToLiteral(x.watSpeed());
+    NavField{"MagHdg (degrees)", [=](const Nav &x) {
+      return angleToLiteral(x.magHdg(), format);
     }},
-    NavField{"Longitude (degrees)", [&](const Nav &x) {
-      return angleToLiteral(x.geographicPosition().lon());
+    NavField{"Wat speed (knots)", [=](const Nav &x) {
+      return velocityToLiteral(x.watSpeed(), format);
     }},
-    NavField{"Latitude (degree)", [&](const Nav &x) {
-      return angleToLiteral(x.geographicPosition().lat());
+    NavField{"Longitude (degrees)", [=](const Nav &x) {
+      return angleToLiteral(x.geographicPosition().lon(), format);
     }},
-    NavField{"GPS speed (knots)", [&](const Nav &x) {
-      return velocityToLiteral(x.gpsSpeed());
+    NavField{"Latitude (degree)", [=](const Nav &x) {
+      return angleToLiteral(x.geographicPosition().lat(), format);
     }},
-    NavField{"GPS bearing (degrees)", [&](const Nav &x) {
-      return angleToLiteral(x.gpsBearing());
+    NavField{"GPS speed (knots)", [=](const Nav &x) {
+      return velocityToLiteral(x.gpsSpeed(), format);
+    }},
+    NavField{"GPS bearing (degrees)", [=](const Nav &x) {
+      return angleToLiteral(x.gpsBearing(), format);
     }}
   };
 }
@@ -146,7 +166,7 @@ int exportMatlab(bool withHeader, Array<NavField> fields,
 
 int exportNavs(bool withHeader, Array<ArgMap::Arg*> args, std::string format, std::string output) {
   Array<Nav> navs = loadNavsFromArgs(args);
-  Array<NavField> fields = getNavFields();
+  Array<NavField> fields = getNavFields(format);
   std::sort(navs.begin(), navs.end());
   if (navs.empty()) {
     LOG(ERROR) << "No navs were loaded";
@@ -176,10 +196,22 @@ int main(int argc, const char **argv) {
   amap.registerOption("--output", "Where to put the exported data. Defaults to " + output)
     .store(&output);
   amap.registerOption("--no-header", "Omit header labels for data columns");
+  amap.setHelpInfo(
+      std::string("") +
+      "Exports nav data to other formats. In addition to the named arguments,\n" +
+      "it also accepts any number of free arguments pointing to directories\n" +
+      "where navs are located. Example usage: \n" +
+      "./nautical_exportNavs ~/sailsmart/datasets/Irene --output /tmp/irene_data.txt --format matlab\n");
   switch (amap.parse(argc, argv)) {
     case ArgMap::Continue:
-      return exportNavs(!amap.optionProvided("--no-header"),
-          amap.freeArgs(), format, output);
+      if (amap.freeArgs().empty()) {
+        std::cout << "No folder provided.\n";
+        amap.dispHelp(&std::cout);
+        return 0;
+      } else {
+        return exportNavs(!amap.optionProvided("--no-header"),
+            amap.freeArgs(), format, output);
+      }
     case ArgMap::Done:
       return 0;
     case ArgMap::Error:
