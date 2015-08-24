@@ -1,4 +1,4 @@
-var dispatcher = require('./build/Release/anemonode').dispatcher
+var dispatcher = require('./build/Release/anemonode').dispatcher;
 
 var nmea0183PortPath = '/dev/ttyMFD1';
 var logRoot = '/media/sdcard/logs/';
