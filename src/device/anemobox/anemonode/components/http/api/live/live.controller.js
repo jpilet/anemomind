@@ -5,9 +5,10 @@ var anemonode = require('../../../../build/Release/anemonode');
 // Get list of boats
 exports.index = function(req, res) {
   var response = {};
+  var date = new Date();
   for (var i in anemonode.dispatcher.values) {
-    var date = new Date();
-    if (anemonode.dispatcher.values[i].length() > 0 && Math.abs(anemonode.dispatcher.values[i].time() - date) < 1000) {
+    if (anemonode.dispatcher.values[i].length() > 0
+        && Math.abs(anemonode.dispatcher.values[i].time() - date) < 1000) {
       response[i] = anemonode.dispatcher.values[i].value()
     }
   }
