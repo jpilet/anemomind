@@ -7,6 +7,7 @@
 #define SERVER_NAUTICAL_CALIBRATION_LINEARCALIBRATION_H_
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/math/QuadForm.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -46,7 +47,6 @@ void makeGpsOffset(const HorizontalMotion<double> &m, MatrixType *dstB,
   (*dstB)(1, 0) = m[1]/unit;
 }
 
-
 /*
  * Use this function to express the true wind W as a function of the parameters X:
  *
@@ -85,6 +85,44 @@ void makeTrueCurrentMatrixExpression(const InstrumentAbstraction &nav,
 }
 
 void initializeLinearParameters(bool withOffset, double *dst2or4);
+
+constexpr int calcXOffset(bool withOffset) {
+  return (withOffset? 4 : 2);
+}
+
+constexpr int calcYOffset(bool withOffset, int N) {
+  return calcXOffset(withOffset) + N;
+}
+
+constexpr int calcQuadFormParamCount(bool withOffset, int N) {
+  return calcYOffset(withOffset, N) + N;
+}
+
+template <bool withOffset, int N, typename MatrixType>
+QuadForm<calcQuadFormParamCount(withOffset, N), 1> makeQuadForm(
+  double time,
+  const MatrixType &A, const MatrixType &B) {
+  constexpr int n = calcQuadFormParamCount(withOffset, N);
+  double x[n], y[n];
+  constexpr int xOffset = calcXOffset(withOffset);
+  constexpr int yOffset = calcYOffset(withOffset, N);
+  for (int i = 0; i < xOffset; i++) {
+    x[i] = A(0, i);
+    y[i] = A(1, i);
+  }
+  double prod = 1.0;
+  for (int i = 0; i < N; i++) {
+    x[xOffset + i] = prod;
+    y[yOffset + i] = prod;
+    x[yOffset + i] = 0.0;
+    y[xOffset + i] = 0.0;
+    prod *= time;
+  }
+  double bx = B(0, 0);
+  double by = B(1, 0);
+  return QuadForm<n, 1>::fit(x, &bx) + QuadForm<n, 1>::fit(y, &by);
+}
+
 
 }
 }

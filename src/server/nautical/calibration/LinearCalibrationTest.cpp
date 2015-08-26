@@ -11,6 +11,8 @@
 
 using namespace sail;
 
+
+
 TEST(LinearCalibrationTest, TestWind) {
   Nav nav;
   nav.setAwa(Angle<double>::degrees(129));
@@ -30,12 +32,22 @@ TEST(LinearCalibrationTest, TestWind) {
     arma::mat wind = A*X + B;
     EXPECT_NEAR(wind(0, 0), cnav.trueWindOverGround()[0].knots(), 1.0e-6);
     EXPECT_NEAR(wind(1, 0), cnav.trueWindOverGround()[1].knots(), 1.0e-6);
-  }{
-    arma::mat A(2, 4);
-    arma::mat B(2, 1);
-    LinearCalibration::makeTrueCurrentMatrixExpression(nav, true, &A, &B);
-    arma::mat current = A*X + B;
-    EXPECT_NEAR(current(0, 0), cnav.trueCurrentOverGround()[0].knots(), 1.0e-6);
-    EXPECT_NEAR(current(1, 0), cnav.trueCurrentOverGround()[1].knots(), 1.0e-6);
   }
+  arma::mat A(2, 4);
+  arma::mat B(2, 1);
+  LinearCalibration::makeTrueCurrentMatrixExpression(nav, true, &A, &B);
+  arma::mat current = A*X + B;
+  EXPECT_NEAR(current(0, 0), cnav.trueCurrentOverGround()[0].knots(), 1.0e-6);
+  EXPECT_NEAR(current(1, 0), cnav.trueCurrentOverGround()[1].knots(), 1.0e-6);
+
+  static_assert(LinearCalibration::calcXOffset(true) == 4, "Wrong offset");
+  static_assert(LinearCalibration::calcXOffset(false) == 2, "Wrong offset");
+  static_assert(LinearCalibration::calcYOffset(false, 1) == 3, "Wrong offset");
+  static_assert(LinearCalibration::calcYOffset(false, 2) == 4, "Wrong offset");
+  static_assert(LinearCalibration::calcYOffset(true, 2) == 6, "Wrong offset");
+  static_assert(LinearCalibration::calcQuadFormParamCount(false, 2) == 6, "Wrong offset");
+  static_assert(LinearCalibration::calcQuadFormParamCount(true, 2) == 8, "Wrong offset");
+
+  auto Q = LinearCalibration::makeQuadForm<true, 1, arma::mat>(39.9, A, B);
+
 }
