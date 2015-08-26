@@ -59,14 +59,14 @@ function makeBoatDBFilename(boatId) {
     naming.makeDBFilenameFromBoatId(boatId))
 }
 
-function makeBoatEndPoint(boatId, cb) {
+function makeBoatEndpoint(boatId, cb) {
   mb.tryMakeEndpoint(
     makeBoatDBFilename(boatId),
     naming.makeEndpointNameFromBoatId(boatId), cb);
 }
 
-function withBoatEndPoint(boatId, cbOperation, done) {
-  makeBoatEndPoint(boatId, function(err, ep) {
+function withBoatEndpoint(boatId, cbOperation, done) {
+  makeBoatEndpoint(boatId, function(err, ep) {
     if (err) {
       done(err);
     } else {
@@ -78,7 +78,7 @@ function withBoatEndPoint(boatId, cbOperation, done) {
 
 function sendScriptToBox(boatId, scriptType, scriptData, cb) {
   var code = null;
-  withBoatEndPoint(boatId, function(endpoint, cb) {
+  withBoatEndpoint(boatId, function(endpoint, cb) {
     assert(typeof cb == 'function');
     getBoxIdFromBoatId(boatId, function(err, boxId) {
       if (err) {
@@ -138,7 +138,7 @@ function makeDstFilename(srcFilename, dstFilename) {
 }
 
 function sendBoatData(boatId, srcFilename, dstFilename, cb) {
-  withBoatEndPoint(boatId, function(ep, cb) {
+  withBoatEndpoint(boatId, function(ep, cb) {
     Q.nfcall(getBoxIdFromBoatId, boatId)
       .then(function(boxId) {
         var dstName = naming.makeEndpointNameFromBoxId(boxId);
