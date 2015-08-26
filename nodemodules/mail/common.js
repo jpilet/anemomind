@@ -58,7 +58,7 @@ function isCounter(x) {
   return bigint.isBigInt(x);
 }
 
-function isValidMailboxName(x) {
+function isValidEndpointName(x) {
   return isIdentifier(x);
 }
 
@@ -87,7 +87,7 @@ function isObjectWithFields(x, fields) {
     
       http://stackoverflow.com/questions/1007981/how-to-get-function-parameter-names-values-dynamically-from-javascript
 
-    Can be used to validate that the methods of a mailbox implements
+    Can be used to validate that the methods of a endpoint implements
     this specification.
 */
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
@@ -131,7 +131,7 @@ function pfwrap(x) {
 
 module.exports.isCounter = isCounter; 
 module.exports.isIdentifier = isIdentifier;
-module.exports.isValidMailboxName = isValidMailboxName;
+module.exports.isValidEndpointName = isValidEndpointName;
 module.exports.isPacket = isPacket;
 module.exports.isString = isString;
 module.exports.isObjectWithFields = isObjectWithFields;

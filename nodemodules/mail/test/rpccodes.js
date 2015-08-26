@@ -17,7 +17,7 @@ it(
 	describe(
 	    'Should validate setForeignDiaryNumber',
 	    function() {
-		var args = {mailboxName: bigint.make(12), diaryNumber: bigint.make(32)};
+		var args = {endpointName: bigint.make(12), diaryNumber: bigint.make(32)};
 		var args2 = wrapAndUnwrap(c.setForeignDiaryNumber.args, args);
 		assert(eq(args, args2));
 	    }

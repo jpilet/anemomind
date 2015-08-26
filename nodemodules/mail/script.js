@@ -41,22 +41,22 @@ function makeRequestCode(x) {
 // to come back to us after having run the script remotely: First,
 // our script packet must propagate to the destination, then run there, and then
 // 
-function runRemoteScript(mailbox, dstMailboxName, type, script, reqCode, cb) {
+function runRemoteScript(endpoint, dstEndpointName, type, script, reqCode, cb) {
   if (!(!reqCode || (typeof reqCode == 'string'))) {
     cb(new Error('Bad request code passed to runRemoteScript: ' + reqCode));
   } else {
-    if (!(mailbox.sendPacketAndReturn && common.isIdentifier(dstMailboxName)
+    if (!(endpoint.sendPacketAndReturn && common.isIdentifier(dstEndpointName)
           && validScriptType(type) && (typeof script == 'string'))) {
       cb(new Error("runRemoteScript: Bad inputs"));
     } else {
-      mailbox.sendPacketAndReturn(
-        dstMailboxName, common.scriptRequest,
+      endpoint.sendPacketAndReturn(
+        dstEndpointName, common.scriptRequest,
         packScriptRequest(type, script, reqCode),
         function(err, packetData) {
           if (err) {
             cb(err);
           } else if (!packetData) {
-            cb(new Error('The sendPacket method of mailbox does not work as expected.'));
+            cb(new Error('The sendPacket method of endpoint does not work as expected.'));
           } else {
             cb(null, reqCode || makeRequestCode(packetData));
           }
@@ -95,15 +95,15 @@ function generateScriptFilename(type, counter, cb) {
   });
 }
 
-function sendResponse(mailbox, dst, data, cb) {
-  mailbox.sendPacket(dst, common.scriptResponse, packScriptResponse(data), cb);
+function sendResponse(endpoint, dst, data, cb) {
+  endpoint.sendPacket(dst, common.scriptResponse, packScriptResponse(data), cb);
 }
 
 
-function executeAndRespondJS(reqCode, mailbox, script, packet, cb) {
+function executeAndRespondJS(reqCode, endpoint, script, packet, cb) {
   try {
     var sendTheResponse = function(data) {
-      sendResponse(mailbox, packet.src, data, cb);
+      sendResponse(endpoint, packet.src, data, cb);
     }
     var main = eval(script);
     if (!(typeof main == "function")) {
@@ -122,10 +122,10 @@ function executeAndRespondJS(reqCode, mailbox, script, packet, cb) {
   }
 }
 
-function executeAndRespondSH(reqCode, mailbox, script, packet, cb) {
+function executeAndRespondSH(reqCode, endpoint, script, packet, cb) {
   try {
     var sendTheResponse = function(data) {
-      sendResponse(mailbox, packet.src, data, cb);
+      sendResponse(endpoint, packet.src, data, cb);
     }
     exec(script,
       function (error, stdout, stderr) {
@@ -136,22 +136,22 @@ function executeAndRespondSH(reqCode, mailbox, script, packet, cb) {
   }
 }
 
-function executeScriptAndRespond(mailbox, script, packet, type, reqCode, cb) {
+function executeScriptAndRespond(endpoint, script, packet, type, reqCode, cb) {
   if (!reqCode) {
     reqCode = makeRequestCode(packet);
   }
   if (type == 'js') {
-    executeAndRespondJS(reqCode, mailbox, script, packet, cb);
+    executeAndRespondJS(reqCode, endpoint, script, packet, cb);
   } else if (type == 'sh') {
-    executeAndRespondSH(reqCode, mailbox, script, packet, cb);
+    executeAndRespondSH(reqCode, endpoint, script, packet, cb);
   }
 }
 
-function handleScriptRequest(mailbox, packet, done, cb) {
+function handleScriptRequest(endpoint, packet, done, cb) {
   if (packet.label == common.scriptRequest) {
     var req = unpackScriptRequest(packet.data);
     if (validScriptType(req.type)) {
-      executeScriptAndRespond(mailbox, req.script, packet, req.type, req.reqCode, function(err) {
+      executeScriptAndRespond(endpoint, req.script, packet, req.type, req.reqCode, function(err) {
         if (err) {
           cb(err);
         } else {
@@ -168,8 +168,8 @@ function handleScriptRequest(mailbox, packet, done, cb) {
 
 function makeScriptRequestHandler(done) {
   done = done || function() {};
-  return function(endPoint, packet) {
-    handleScriptRequest(endPoint, packet, done, function(err) {
+  return function(endpoint, packet) {
+    handleScriptRequest(endpoint, packet, done, function(err) {
       if (err) {
         console.log('Failed to handle script request with this error:');
         console.log(err);

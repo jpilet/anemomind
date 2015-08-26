@@ -1,7 +1,7 @@
 var assert = require('assert');
 var mail2 = require('./mail2.sqlite.js');
 var sync2 = require('./sync2.js');
-var mail2h = require('./mail2.http.js');
+var mail2h = require('./mail2.httpclient.js');
 var common = require('./common.js');
 var schema = require('./endpoint-schema.js');
 
@@ -15,11 +15,11 @@ var address = 'http://localhost:9000';
 
 
 function makeA(cb) {
-  mail2.tryMakeAndResetEndPoint('/tmp/epa.db', 'a', cb);
+  mail2.tryMakeAndResetEndpoint('/tmp/epa.db', 'a', cb);
 }
 
 function makeB(cb) {
-  mail2h.tryMakeEndPoint(address, testuser, 'b', function(err, ep) {
+  mail2h.tryMakeEndpoint(address, testuser, 'b', function(err, ep) {
     if (err) {
       cb(err);
     } else {
@@ -55,7 +55,7 @@ function makeAB(cb) {
 
 makeAB(function(err, a, b) {
   var ap = [];
-  a.addPacketHandler(function(endPoint, packet) {ap.push(packet);});
+  a.addPacketHandler(function(endpoint, packet) {ap.push(packet);});
   assert(!err);
   a.sendPacket('b', 119, new Buffer([0, 3, 4]), function(err) {
     assert(!err);

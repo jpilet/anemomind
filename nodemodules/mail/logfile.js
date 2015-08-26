@@ -49,24 +49,24 @@ function readAndPackFile(path, info, cb) {
 }
 
 // Send a file
-function sendFile(mailbox,   // The local mailbox
-		  dst,       // destination mailbox
+function sendFile(endpoint,   // The local endpoint
+		  dst,       // destination endpoint
 		  path,      // Path to the file to send
 		  info,      // Misc information for the user to choose.
                   label,     // The label used for the packet
-		  cb) {      // Called once the file has been put in the mailbox,
+		  cb) {      // Called once the file has been put in the endpoint,
                              //   waiting to be sent.
-  if (!(mb.isEndPoint(mailbox) && common.isIdentifier(dst))) {
+  if (!(mb.isEndpoint(endpoint) && common.isIdentifier(dst))) {
     cb(new Error('Bad input to sendFile'));
   } else {
     readAndPackFile(path, info, function(err, buf) {
-      mailbox.sendPacket(dst, label, buf, cb);
+      endpoint.sendPacket(dst, label, buf, cb);
     });
   }
 }
 
-function sendLogFile(mailbox, dst, path, cb) {
-  sendFile(mailbox, dst, path,
+function sendLogFile(endpoint, dst, path, cb) {
+  sendFile(endpoint, dst, path,
            makeLogFileInfo(), common.logfile, cb);
 }
 

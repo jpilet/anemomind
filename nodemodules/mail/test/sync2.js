@@ -5,11 +5,11 @@ var eq = require('deep-equal-ident');
 var common = require('../common.js');
 
 function makeA(cb) {
-  mail2.tryMakeAndResetEndPoint('/tmp/epa.db', 'a', cb);
+  mail2.tryMakeAndResetEndpoint('/tmp/epa.db', 'a', cb);
 }
 
 function makeB(cb) {
-  mail2.tryMakeAndResetEndPoint('/tmp/epb.db', 'b', cb);
+  mail2.tryMakeAndResetEndpoint('/tmp/epb.db', 'b', cb);
 }
 
 function makeAB(cb) {
@@ -34,8 +34,8 @@ describe('sync2', function() {
     var bPackets = [];
     makeAB(function(err, a, b) {
       assert(!err);
-      a.addPacketHandler(function(endPoint, packet) {aPackets.push(packet);});
-      b.addPacketHandler(function(endPoint, packet) {bPackets.push(packet);});
+      a.addPacketHandler(function(endpoint, packet) {aPackets.push(packet);});
+      b.addPacketHandler(function(endpoint, packet) {bPackets.push(packet);});
       a.sendPacket('b', 119, new Buffer([0, 1, 2]), function(err) {
         assert(!err);
         sync2.synchronize(a, b, function(err) {
@@ -53,8 +53,8 @@ describe('sync2', function() {
     var bPackets = [];
     makeAB(function(err, a, b) {
       assert(!err);
-      a.addPacketHandler(function(endPoint, packet) {aPackets.push(packet);});
-      b.addPacketHandler(function(endPoint, packet) {bPackets.push(packet);});
+      a.addPacketHandler(function(endpoint, packet) {aPackets.push(packet);});
+      b.addPacketHandler(function(endpoint, packet) {bPackets.push(packet);});
       b.sendPacket('a', 119, new Buffer([0, 1, 2]), function(err) {
         assert(!err);
         sync2.synchronize(a, b, function(err) {
@@ -84,8 +84,8 @@ describe('sync2', function() {
     makeAB(function(err, a, b) {
       var ap = [];
       var bp = [];
-      a.addPacketHandler(function(endPoint, packet) {ap.push(packet);});
-      b.addPacketHandler(function(endPoint, packet) {bp.push(packet);});
+      a.addPacketHandler(function(endpoint, packet) {ap.push(packet);});
+      b.addPacketHandler(function(endpoint, packet) {bp.push(packet);});
       assert(!err);
       a.sendPacket('b', 119, new Buffer([0, 3, 4]), function(err) {
         assert(!err);
@@ -122,9 +122,9 @@ describe('sync2', function() {
   it('syncchain', function(done) {
     makeAB(function(err, a, b) {
       assert(!err);
-      mail2.tryMakeAndResetEndPoint('/tmp/epc.db', 'c', function(err, c) {
+      mail2.tryMakeAndResetEndpoint('/tmp/epc.db', 'c', function(err, c) {
         var packets = [];
-        c.addPacketHandler(function(endPoint, packet) {packets.push(packet);});
+        c.addPacketHandler(function(endpoint, packet) {packets.push(packet);});
         assert(!err);
         a.sendPacket('c', 120, new Buffer([33]), function(err) {
           assert(!err);

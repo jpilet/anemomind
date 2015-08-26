@@ -1,17 +1,17 @@
 var path = require('path');
 
-function makeMailboxNameFromBoatId(boatId) {
+function makeEndpointNameFromBoatId(boatId) {
   return "boat" + boatId;
 }
 
-function makeMailboxNameFromBoxId(boxId) {
+function makeEndpointNameFromBoxId(boxId) {
   return "box" + boxId;
 }
 
 
-function parseMailboxName(mailboxName) {
-  if (typeof mailboxName == "string") {
-    var groups = mailboxName.match(/^(box|boat)(.*)/);
+function parseEndpointName(endpointName) {
+  if (typeof endpointName == "string") {
+    var groups = endpointName.match(/^(box|boat)(.*)/);
     if (groups) {
       return {prefix: groups[1], id: groups[2]};
     } else {
@@ -24,19 +24,19 @@ function parseMailboxName(mailboxName) {
 
 var filenameSuffix = '.mailsqlite.db';
 
-function makeDBFilename(mailboxName) {
-  return mailboxName + filenameSuffix;
+function makeDBFilename(endpointName) {
+  return endpointName + filenameSuffix;
 }
 
 function makeDBFilenameFromBoatId(boatId) {
-  return makeDBFilename(makeMailboxNameFromBoatId(boatId));
+  return makeDBFilename(makeEndpointNameFromBoatId(boatId));
 }
   
 function makeDBFilenameFromBoxId(boxId) {
-  return makeDBFilename(makeMailboxNameFromBoxId(boxId));
+  return makeDBFilename(makeEndpointNameFromBoxId(boxId));
 }
 
-function getMailboxNameFromFilename(fullFilename) {
+function getEndpointNameFromFilename(fullFilename) {
   var parsed = path.parse(fullFilename);
   var filename = parsed.base;
   var index = filename.indexOf(filenameSuffix);
@@ -48,10 +48,10 @@ function getMailboxNameFromFilename(fullFilename) {
   return null;
 }
 
-module.exports.makeMailboxNameFromBoatId = makeMailboxNameFromBoatId;
-module.exports.makeMailboxNameFromBoxId = makeMailboxNameFromBoxId;
-module.exports.parseMailboxName = parseMailboxName;
+module.exports.makeEndpointNameFromBoatId = makeEndpointNameFromBoatId;
+module.exports.makeEndpointNameFromBoxId = makeEndpointNameFromBoxId;
+module.exports.parseEndpointName = parseEndpointName;
 module.exports.makeDBFilename = makeDBFilename;
-module.exports.getMailboxNameFromFilename = getMailboxNameFromFilename;
+module.exports.getEndpointNameFromFilename = getEndpointNameFromFilename;
 module.exports.makeDBFilenameFromBoatId = makeDBFilenameFromBoatId;
 module.exports.makeDBFilenameFromBoxId = makeDBFilenameFromBoxId;

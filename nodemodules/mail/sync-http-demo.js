@@ -1,4 +1,4 @@
-// A simulation of mailbox synchronizations
+// A simulation of endpoint synchronizations
 var mb = require("./mail.http.js");
 var async = require("async");
 var demo = require('./syncdemo-3.js');
@@ -17,26 +17,26 @@ var address = 'http://localhost:9000';
 var boxnames = ["a", "b", "c"];
 
 
-console.log('Try to synchronize three mailboxes');
+console.log('Try to synchronize three endpoints');
 async.map(
     boxnames,
     function (boxname, cb) {
-	mb.tryMakeMailbox(
+	mb.tryMakeEndpoint(
 	    address, testuser, boxname,
-	    function(err, mailbox) {
+	    function(err, endpoint) {
 		assert.equal(err, undefined);
 
 		// Always reset first so that we start from
 		// the same state.
-		mailbox.reset(function(err) {
-		    cb(err, mailbox);
+		endpoint.reset(function(err) {
+		    cb(err, endpoint);
 		});
 	    }
 	);
     },
     function(err, boxes) {
 	assert.equal(err, undefined);
-	demo.synchronizeThreeMailboxes(boxes, function(err) {
+	demo.synchronizeThreeEndpoints(boxes, function(err) {
 	    if (err) {
 		console.log('THERE WAS AN ERROR: %j', err);
 		console.log(

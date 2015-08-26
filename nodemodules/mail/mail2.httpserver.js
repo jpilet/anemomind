@@ -1,114 +1,24 @@
-/*
-  All rpc functions should, by convention,
-  deliver their results by calling a call-
-  back.
-*/  
-
 var schemautils = require('mail/schemautils.js');
 var schema = require('mail/endpoint-schema.js');
 var coder = require('mail/json-coder.js');
 var assert = require('assert');
-var mb = require('./mailbox.js'); // TODO <-- rename to endpoint
 var naming = require('mail/naming.js');
 
-var boat = require('../boat/boat.controller.js');
-var Boat = require('../boat/boat.model.js');
-var boatAccess = require('../boat/access.js');
-
-// All RPC-bound functions should be fields of this 'rpc' object. Just add
-// them here below, using 'addRpc'.
-//
-// Every function should be on this form: function(user, args, cb),
-//   where user is the req.user object, args are the arguments for the function,
-//   and cb is a function that is called with the result upon completion.
-var rpc = {};
-
-var testing = (process.env.NODE_ENV == 'development');
-
-
-// Check if a user is authorized to access a mailbox.
-// If not, produce an error object.
-function acquireMailboxAccess(user, mailboxName, cb) {
-  var errorObject = {statusCode: 403,
-		     message: "Unauthorized access to " + mailboxName};
-  if (testing && mailboxName == 'b') { // Used by iPhone unit tests.
-    cb();
-  } else {
-    var parsed = naming.parseMailboxName(mailboxName);
-    if (parsed == null) {
-      cb(errorObject);
-    } else if (parsed.prefix == "boat") {
-      Boat.findById(parsed.id, function (err, boat) {
-        if (err) {
-	  // Don't the error details to intruders. Should we log it?
-	  cb(errorObject);
-        } else {
-	  if (boat) {
-	    // I guess it makes sense to require write access.
-	    if (boatAccess.userCanWrite(user, boat)) {
-	      cb(); // OK, move on
-	    } else {
-	      cb(errorObject);
-	    }
-	  } else { // No such boat.
-	    cb(errorObject);
-	  }
-        }
-      });
-    } else {
-      cb(errorObject);
-    }
-  }
-}
-
 // This function is common, irrespective of whether it is a post or get request.
-function callMailboxMethod(user, mailboxName, methodName, args, cb) {
-  assert.notEqual(mb, undefined);
-  assert.notEqual(mb.openMailbox, undefined);
-  acquireMailboxAccess(
-    user, mailboxName,
-    function(err, p) {
-      if (err) {
-	cb(err);
-      } else {
-	mb.openMailbox(
-	  mailboxName,
-	  function(err, mailbox) {
-	    if (err) {
-	      cb(err);
-	    } else {
-
-	      try {
-		mailbox[methodName].apply(
-		  mailbox, args.concat([
-		    function(err, result) {
-		      mailbox.close(
-			function(err) {
-			  cb(err, result);
-			}
-		      );
-		    }
-		  ])
-		);
-
-		// Ideally, all errors should be handled
-		// by passing them as the first argument
-		// to a callback, but having a catch here
-		// makes it safer.
-	      } catch (e) { 
-		console.log("Caught an exception when calling mailbox method: %j.", e);
-		console.log("THIS SHOULD NOT HAPPEN and this is a bug. Please don't throw exceptions,");
-		console.log("but pass the errors as the first argument to the callback instead.")
-		cb(e);
-	      }
-	    }
-	  }
-	);
-      }
+function callEndpointMethod(withEndpointAccess, endpointName, req, methodName, args, cb) {
+  withEndpointAccess(endpointName, req, function(endpoint, done) {
+    try {
+      endpoint[methodName].apply(
+	endpoint, args.concat([done])
+      );
+    } catch (e) { 
+      console.log("Caught an exception when calling endpoint method: %j.", e);
+      console.log("THIS SHOULD NOT HAPPEN and this is a bug. Please don't throw exceptions,");
+      console.log("but pass the errors as the first argument to the callback instead.")
+      done(e);
     }
-  );
+  }, cb);
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 /// HTTP interface
@@ -148,7 +58,7 @@ function getStatusCode(err) {
 }
 
 // This will handle an HTTP request related to a specific method.
-function handler(method, req, res) {
+function handler(withEndpointAccess, method, req, res) {
   assert(method.httpMethod == 'post' || method.httpMethod == 'get');
   try {
     var resultCB = function(err, result) {
@@ -167,7 +77,7 @@ function handler(method, req, res) {
 	)
       );
     };
-    var mailboxName = req.params.mailboxName;
+    var endpointName = req.params.endpointName;
     var args = null;
 
     if (method.httpMethod == 'post') {
@@ -176,9 +86,10 @@ function handler(method, req, res) {
       args = coder.decodeGetArgs(method.input, req.params);
     }
     
-    callMailboxMethod(
-      req.user,
-      mailboxName,
+    callEndpointMethod(
+      withEndpointAccess,
+      endpointName,
+      req,
       method.name,
       args,
       resultCB
@@ -188,16 +99,16 @@ function handler(method, req, res) {
   }
 };
 
-function makeHandler(method) {
+function makeHandler(withEndpointAccess, method) {
   return function(req, res) {
-    handler(method, req, res);
+    handler(withEndpointAccess, method, req, res);
   };
 }
 
 // The basic path is just the method name together with the
-// mailbox name.
+// endpoint name.
 function makeBasicSubpath(method) {
-  return '/' + method.name + '/:mailboxName';
+  return '/' + method.name + '/:endpointName';
 }
 
 // This is a general method for both POST and GET request.
@@ -211,22 +122,24 @@ function makeSubpath(method) {
 }
 
 // Adds a route to the router for a method.
-function bindMethodHandler(router, authenticator, method) {
+function bindMethodHandler(withEndpointAccess, router, authenticator, method) {
   assert(schemautils.isValidHttpMethod(method.httpMethod));
   router[method.httpMethod](
     makeSubpath(method),
     authenticator,
-    makeHandler(method)
+    makeHandler(withEndpointAccess, method)
   );
 }
 
 // Adds all routes to the router.
-function bindMethodHandlers(router, authenticator) {
+function bindMethodHandlers(withEndpointAccess, router, authenticator) {
   // Register a GET or POST handler
   // for every remote function that
   // we can call.
   for (var methodName in schema.methods) {
-    bindMethodHandler(router, authenticator, schema.methods[methodName]);
+    bindMethodHandler(
+      withEndpointAccess,
+      router, authenticator, schema.methods[methodName]);
   }
 }
 

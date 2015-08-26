@@ -12,21 +12,21 @@ function disp(x) {
 }
 
 
-function fillWithPackets(count, srcMailbox, dstMailboxName, cb) {
-    disp('Fill mailbox with name ' + srcMailbox.mailboxName +
-		' with ' + count + ' packets intended for ' + dstMailboxName);
+function fillWithPackets(count, srcEndpoint, dstEndpointName, cb) {
+    disp('Fill endpoint with name ' + srcEndpoint.endpointName +
+		' with ' + count + ' packets intended for ' + dstEndpointName);
     assert.equal(typeof count, 'number');
-    assert.equal(typeof dstMailboxName, 'string');
+    assert.equal(typeof dstEndpointName, 'string');
     if (count == 0) {
 	cb();
     } else {
-	srcMailbox.sendPacket(
-	    dstMailboxName,
+	srcEndpoint.sendPacket(
+	    dstEndpointName,
 	    49 + count,
 	    new Buffer(3),
 	    function (err) {
 		if (err == undefined) {
-		    fillWithPackets(count-1, srcMailbox, dstMailboxName, cb)
+		    fillWithPackets(count-1, srcEndpoint, dstEndpointName, cb)
 		} else {
 		    cb(err);
 		}
@@ -51,7 +51,7 @@ function dispPacketCounts(boxes, cb) {
 	function(err, results) {
 	    disp('Packet counts');
 	    for (var i = 0; i < results.length; i++) {
-		disp('  ' + boxes[i].mailboxName + ': ' + results[i]);
+		disp('  ' + boxes[i].endpointName + ': ' + results[i]);
 	    }
 	    disp('\n\n\n');
 	    cb(err);
@@ -60,17 +60,17 @@ function dispPacketCounts(boxes, cb) {
 }
 
 
-// Perform pairwise synchronization of mailboxes, from left to right.
-function synchronizeArray(mailboxes, cb) {
-    if (mailboxes.length < 2) {
+// Perform pairwise synchronization of endpointes, from left to right.
+function synchronizeArray(endpointes, cb) {
+    if (endpointes.length < 2) {
 	cb();
     } else {
 	sync.synchronize(
-	    mailboxes[0],
-	    mailboxes[1],
+	    endpointes[0],
+	    endpointes[1],
 	    function (err) {
 		if (err == undefined) {
-		    synchronizeArray(mailboxes.slice(1), cb);
+		    synchronizeArray(endpointes.slice(1), cb);
 		} else {
 		    cb(err);
 		}
@@ -79,7 +79,7 @@ function synchronizeArray(mailboxes, cb) {
     }
 }
 
-function synchronizeForthAndBack(mailboxes, from, to, cb) {
+function synchronizeForthAndBack(endpointes, from, to, cb) {
     if (from < to) {
 	var even = from % 2 == 0;
 	if (even) {
@@ -87,11 +87,11 @@ function synchronizeForthAndBack(mailboxes, from, to, cb) {
 	} else {
 	    disp('BACKWARD SYNCH, from = ' + from);
 	}
-	var reversed = mailboxes.slice(0).reverse();
+	var reversed = endpointes.slice(0).reverse();
 	synchronizeArray(
-	    (even? mailboxes : reversed),
+	    (even? endpointes : reversed),
 	    function(err) {
-		synchronizeForthAndBack(mailboxes, from+1, to, cb)
+		synchronizeForthAndBack(endpointes, from+1, to, cb)
 	    }
 	);
     } else {
@@ -108,18 +108,18 @@ function someSpace(s) {
 
 
 
-function startSync(err, mailboxes, done) {
+function startSync(err, endpointes, done) {
     if (err == undefined) {
 
 	// This will propage messages from A to C,
 	// then propagate messages from C to A.
 	synchronizeForthAndBack(
-	    mailboxes,
+	    endpointes,
 	    0, 2,
 	    function (err) {
 
 		getPacketCounts(
-		    mailboxes,
+		    endpointes,
 		    function(err, counts) {
 			console.log('counts = ', counts);
 			
@@ -136,14 +136,14 @@ function startSync(err, mailboxes, done) {
 			// Let's send two more packets.
 			fillWithPackets(
 			    2,
-			    mailboxes[0],
-			    mailboxes[2].mailboxName,
+			    endpointes[0],
+			    endpointes[2].endpointName,
 			    function(err) {
 				synchronizeForthAndBack(
-				    mailboxes, 0, 2,
+				    endpointes, 0, 2,
 				    function(err) {
 					getPacketCounts(
-					    mailboxes,
+					    endpointes,
 					    function(err, counts) {
 
 						// Now the 30 packets that were
@@ -174,22 +174,22 @@ function startSync(err, mailboxes, done) {
 }
 
 
-// Called once the first mailbox has been filled
-function synchronizeThreeMailboxes(mailboxes, done) {
-  assert.equal(mailboxes.length, 3);
-  mailboxes[1].forwardPackets = true;
+// Called once the first endpoint has been filled
+function synchronizeThreeEndpointes(endpointes, done) {
+  assert.equal(endpointes.length, 3);
+  endpointes[1].forwardPackets = true;
   someSpace('');
   var PACKETCOUNT = 39;
   fillWithPackets(
     PACKETCOUNT,
-    mailboxes[0],
-    mailboxes[2].mailboxName,
+    endpointes[0],
+    endpointes[2].endpointName,
     function(err) {
       assert.equal(err, undefined);
-      startSync(err, mailboxes, done);
+      startSync(err, endpointes, done);
     }
   );
 }
 
 
-module.exports.synchronizeThreeMailboxes = synchronizeThreeMailboxes;
+module.exports.synchronizeThreeEndpointes = synchronizeThreeEndpointes;

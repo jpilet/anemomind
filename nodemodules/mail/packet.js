@@ -4,7 +4,7 @@ var bigint = require('./bigint.js');
 var int64Size = 8;
 
 // src and dst.
-var mailboxIdSize = int64Size;
+var endpointIdSize = int64Size;
 
 // cNumber, seqNumber, diaryNumber are counters.
 var counterSize = int64Size;

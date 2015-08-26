@@ -1,4 +1,4 @@
-var lmb = require('../components/LocalMailbox.js');
+var lmb = require('../components/LocalEndpoint.js');
 var assert = require('assert');
 var fs = require('fs');
 var file = require('mail/logfile.js');
@@ -8,16 +8,16 @@ var Q = require('q');
 var config = require('../components/config.js');
 var mail2 = require('mail/mail2.sqlite.js');
 
-describe('LocalMailbox', function() {
+describe('LocalEndpoint', function() {
   it(
-    'Should instantiate a local mailbox and reset it',
+    'Should instantiate a local endpoint and reset it',
     function(done) {
       ensureConfig(function(err, cfg) {
         lmb.setMailRoot('/tmp/anemobox/');
 
 
         
-        lmb.withLocalMailbox(function(mb, doneMB) {
+        lmb.withLocalEndpoint(function(mb, doneMB) {
 	  assert.equal(err, undefined);
 	  assert(mb);
 	  mb.reset(function(err) {
@@ -38,15 +38,15 @@ describe('LocalMailbox', function() {
 
 
   it(
-    'Should fail to instantiate a local mailbox due to empty name',
+    'Should fail to instantiate a local endpoint due to empty name',
     function(done) {
       ensureConfig(function(err, cfg) {
         lmb.setMailRoot('/tmp/anemobox/');
         var operationPerformed = false;
-        lmb.withNamedLocalMailbox("", function(mb, doneMB) {
+        lmb.withNamedLocalEndpoint("", function(mb, doneMB) {
           operationPerformed = true;
         }, function(err) {
-          assert(err); // <-- It is an error to instantiate a local mailbox with empty name.
+          assert(err); // <-- It is an error to instantiate a local endpoint with empty name.
           assert(!operationPerformed);
           done();
         });
@@ -60,7 +60,7 @@ describe('LocalMailbox', function() {
       fs.writeFile('/tmp/anemolog.txt', 'This is a log file', function(err) {
         assert(!err);
         
-        lmb.withLocalMailbox(function(mb, doneMB) {
+        lmb.withLocalEndpoint(function(mb, doneMB) {
           assert(!err);
           mb.reset(function(err) {
             assert(!err);
@@ -69,7 +69,7 @@ describe('LocalMailbox', function() {
               lmb.postLogFile('/tmp/anemolog.txt', function(err) {
                 assert(!err);
                 
-                lmb.withLocalMailbox(function(mb, doneMB2) {
+                lmb.withLocalEndpoint(function(mb, doneMB2) {
                   assert(!err);
                   mb.getAllPackets(function(err, packets) {
                     assert(packets.length == 1);

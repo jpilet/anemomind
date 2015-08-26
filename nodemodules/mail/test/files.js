@@ -34,8 +34,8 @@ describe('files', function() {
 
   it('should transfer files', function(done) {
     Q.all([
-      Q.nfcall(mail2.tryMakeAndResetEndPoint, '/tmp/epa.db', 'a'),
-      Q.nfcall(mail2.tryMakeAndResetEndPoint, '/tmp/epb.db', 'b')
+      Q.nfcall(mail2.tryMakeAndResetEndpoint, '/tmp/epa.db', 'a'),
+      Q.nfcall(mail2.tryMakeAndResetEndpoint, '/tmp/epb.db', 'b')
       ]).then(function(eps) {
         var a = eps[0];
         var b = eps[1];

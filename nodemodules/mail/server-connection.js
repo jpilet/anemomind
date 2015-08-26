@@ -70,10 +70,10 @@ function interpretResponse(method, err, response, rawBody, cb) {
 
 
 ServerConnection.prototype.makePostRequest =
-    function(mailboxName, method, dataToPost, cb) {
+    function(endpointName, method, dataToPost, cb) {
 	var self = this;
 	var opts = {
-	    url: (self.mailRpcUrl + '/' + method.name + '/' + mailboxName),
+	    url: (self.mailRpcUrl + '/' + method.name + '/' + endpointName),
 	    method: 'POST',
 	    json: dataToPost,
 	    headers: {
@@ -88,10 +88,10 @@ ServerConnection.prototype.makePostRequest =
 
 
 ServerConnection.prototype.makeGetRequest =
-    function(mailboxName, method, args, cb) {
+    function(endpointName, method, args, cb) {
 	var self = this;
 	var opts = {
-	    url: (self.mailRpcUrl + '/' + method.name + '/' + mailboxName + '/' + args),
+	    url: (self.mailRpcUrl + '/' + method.name + '/' + endpointName + '/' + args),
 	    method: 'GET',
 	    headers: {
 		Authorization: "Bearer " + self.token

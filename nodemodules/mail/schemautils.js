@@ -1,13 +1,13 @@
 /*
 
   This file specifies what
-  operations a mailbox interface should support.
-  It applies to the direct interaction with a mailbox
-  object, a remote mailbox over HTTP, or a remote mailbox
+  operations a endpoint interface should support.
+  It applies to the direct interaction with a endpoint
+  object, a remote endpoint over HTTP, or a remote endpoint
   over bluetooth.
 
   The specification in this file serves two purposes:
-   * It can be used to generate a mailbox API
+   * It can be used to generate a endpoint API
    * It can be used to check that implementations
      conform with this specification.
   
@@ -70,7 +70,7 @@ function isValidArg(x) {
 	var keys = Object.keys(x);
 	if (keys.length == 1) {
 	    var key = keys[0];
-	    if (key == 'thisMailbox') {
+	    if (key == 'thisEndpoint') {
 		console.log('This parameter name is reserved');
 		return false;
 	    }
@@ -171,10 +171,10 @@ MethodSchema.prototype.isValidMethod = function(x) {
 
 /*
 
-  THE MAILBOX SCHEMA
+  THE ENDPOINT SCHEMA
 
  */
-function EndPointSchema(methods) {
+function EndpointSchema(methods) {
     for (methodName in methods) {
 	assert(methods[methodName] instanceof MethodSchema);
 	methods[methodName].name = methodName;
@@ -183,8 +183,8 @@ function EndPointSchema(methods) {
     this.methods = methods;
 }
 
-// Test if x conforms with the mailbox schema.
-EndPointSchema.prototype.isValidEndPoint = function(x) {
+// Test if x conforms with the endpoint schema.
+EndpointSchema.prototype.isValidEndpoint = function(x) {
     for (methodName in this.methods) {
 	if (!this.methods[methodName].isValidMethod(x[methodName])) {
 	    return false;
@@ -234,7 +234,7 @@ function makeVerboseMethod(self, methodName, methodSpec, method) {
   }
 }
 
-EndPointSchema.prototype.makeVerbose = function(ep) {
+EndpointSchema.prototype.makeVerbose = function(ep) {
   for (method in this.methods) {
     ep[method] = makeVerboseMethod(ep, method, this.methods[method], ep[method]);
   }
@@ -243,7 +243,7 @@ EndPointSchema.prototype.makeVerbose = function(ep) {
 
 module.exports.errorTypes = errorTypes;
 module.exports.MethodSchema = MethodSchema;
-module.exports.EndPointSchema = EndPointSchema;
+module.exports.EndpointSchema = EndpointSchema;
 module.exports.getArgName = getArgName;
 module.exports.getArgType = getArgType;
 module.exports.isValidHttpMethod = function(x) {

@@ -1,7 +1,7 @@
 var schemautils = require('./schemautils.js');
 
 var MethodSchema = schemautils.MethodSchema;
-var EndPointSchema = schemautils.EndPointSchema;
+var EndpointSchema = schemautils.EndpointSchema;
 var errorTypes = schemautils.errorTypes;
 
 var methods = {};
@@ -94,4 +94,4 @@ methods.reset = new MethodSchema({
   ]
 });
 
-module.exports = new EndPointSchema(methods);
+module.exports = new EndpointSchema(methods);

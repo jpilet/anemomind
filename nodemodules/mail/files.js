@@ -43,7 +43,7 @@ function unpackFiles(root, packedFileArray) {
 }
 
 function sendFiles(ep, dstName, fileArray) {
-  assert(mail2.isEndPoint(ep));
+  assert(mail2.isEndpoint(ep));
   return packFiles(fileArray).then(function(packed) {
     return Q.ninvoke(ep, 'sendPacket', dstName, common.files,
                      msgpack.encode(packed));
@@ -56,7 +56,7 @@ function makePacketHandler(root, cb) {
     root = "~/files";
   }
   cb = cb || function() {};
-  return function(endPoint, packet) {
+  return function(endpoint, packet) {
     if (packet.label == common.files) {
       var packedFileArray = msgpack.decode(packet.data);
       unpackFiles(root, packedFileArray).then(function(filenames) {

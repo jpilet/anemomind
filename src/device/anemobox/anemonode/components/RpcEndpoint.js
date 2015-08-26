@@ -1,9 +1,9 @@
 // This file exports a single function, fillTable, that can be used to fille the rpcFuncTable of
-// rpcble.js. It is used by RpcMailbox.js. The reason for putting this code in its own file
+// rpcble.js. It is used by RpcEndpoint.js. The reason for putting this code in its own file
 // is to facilitate unit testing.
 var schema = require('mail/endpoint-schema.js');
 var coder = require("mail/json-coder.js");
-var mb = require("./LocalMailbox.js");
+var mb = require("./LocalEndpoint.js");
 
 // Conveniency function for
 // error handling.
@@ -21,22 +21,22 @@ function ensureCB(p, errorMessage, cb) {
 }
 
 /*
-  TODO: Every time we access the mailbox, we open it, call the method and close it.
-  If we want, we might want to leave the last opened mailbox opened until we call a
-  method for a different mailbox.
+  TODO: Every time we access the endpoint, we open it, call the method and close it.
+  If we want, we might want to leave the last opened endpoint opened until we call a
+  method for a different endpoint.
 */
-function callMailboxMethod(mailboxName, methodName, args, cbFinal) {
-  // TODO: Since there is only one mailbox endpoint on the
+function callEndpointMethod(endpointName, methodName, args, cbFinal) {
+  // TODO: Since there is only one endpoint endpoint on the
   // anemobox, maybe we could simply remove 'name'
   // from the RPC protocol? In that case, we would simply
   // use mb.open(...) below.
-  mb.withNamedLocalMailbox(mailboxName, function(mailbox, cb) {
-    var method = mailbox[methodName];
+  mb.withNamedLocalEndpoint(endpointName, function(endpoint, cb) {
+    var method = endpoint[methodName];
     if (!method || typeof(method) != 'function') {
-      cb('unknown mailbox method: ' + mailbox.methodName);
+      cb('unknown endpoint method: ' + endpoint.methodName);
     } else {
       try {
-	method.apply(mailbox, args.concat([
+	method.apply(endpoint, args.concat([
 	  function(err, result) {
 	    if (err) {
 	      cb(err);
@@ -70,26 +70,26 @@ function encodeResult(argSpecs, result) {
 
 // Here we make a function that takes an incoming
 // JSON object, decodes it, call a method on a local
-// mailbox and return the result.
+// endpoint and return the result.
 function makeRpcFunction(methodName, method) {
   return function(data, cb) {
     mb.getName(function(localName) {
-      var mailboxName = data.name;
-      if (typeof mailboxName != 'string') {
-        cb({error: 'The mailbox name must be a string'});
-      } else if (localName.trim() != mailboxName.trim()) {
-        cb({error: 'The local mailbox is named "' + localName + '" but you are attempting to access "' + mailboxName + '"'});
+      var endpointName = data.name;
+      if (typeof endpointName != 'string') {
+        cb({error: 'The endpoint name must be a string'});
+      } else if (localName.trim() != endpointName.trim()) {
+        cb({error: 'The local endpoint is named "' + localName + '" but you are attempting to access "' + endpointName + '"'});
       } else {
         try {
-          if (ensureCB(mailboxName != undefined,
-		       "You must pass a mailbox name", cb)) {
+          if (ensureCB(endpointName != undefined,
+		       "You must pass a endpoint name", cb)) {
 	    var args = coder.decodeArgs(method.input, data);
-	    callMailboxMethod(
-	      mailboxName, methodName, args,
+	    callEndpointMethod(
+	      endpointName, methodName, args,
 	      function(err, result) {
 	        if (err) {
-	          var message = "Error accessing mailbox with name " +
-		    mailboxName + " and method " + methodName;
+	          var message = "Error accessing endpoint with name " +
+		    endpointName + " and method " + methodName;
 	          console.log(message);
 	          console.log("The error is %j", err);
 	          cb({error: message +  + ". See the server log for details."});
@@ -108,13 +108,13 @@ function makeRpcFunction(methodName, method) {
   }
 }
 
-// Prefix all mailbox-related calls with mb
+// Prefix all endpoint-related calls with mb
 // to avoid naming collisions for common names (such as "reset")
 function makeRpcFuncName(methodName) {
   return "ep_" + methodName;
 }
 
-// Use this function to register all the available mailbox calls
+// Use this function to register all the available endpoint calls
 // that we serve
 function fillTable(dst) {
   for (var methodName in schema.methods) {

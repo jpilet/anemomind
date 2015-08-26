@@ -14,7 +14,7 @@ function toStringIfNotNull(x) {
 
 function makeScriptResponseHandler(cbHandled) {
   cbHandled = cbHandled || function() {};
-  return function(endPoint, packet) {
+  return function(endpoint, packet) {
     if (packet.label == common.scriptResponse) {
       var data = script.unpackScriptResponse(packet.data);
 

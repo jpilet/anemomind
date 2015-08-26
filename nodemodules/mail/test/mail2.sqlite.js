@@ -5,7 +5,7 @@ var eq = require('deep-equal-ident');
 var schema = require('../endpoint-schema.js');
 
 function makeTestEP(cb) {
-  mail2.tryMakeAndResetEndPoint('/tmp/ep.db', 'ep', cb);
+  mail2.tryMakeAndResetEndpoint('/tmp/ep.db', 'ep', cb);
 }
 
 
@@ -27,27 +27,27 @@ function insertPackets(db, packets, cb) {
 }
 
 
-describe('EndPoint', function() {
+describe('Endpoint', function() {
   it('Should check that the endpoint conforms with the schema', function(done) {
     makeTestEP(function(err, ep) {
-      assert(schema.isValidEndPoint(ep));
+      assert(schema.isValidEndpoint(ep));
       done();
     });
   });
   
   it('Should instantiate a new end point without problems', function(done) {
-    mail2.tryMakeEndPoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
+    mail2.tryMakeEndpoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
       assert(!err);
-      assert(ep instanceof mail2.EndPoint);
+      assert(ep instanceof mail2.Endpoint);
       assert.equal(ep.name, "newendpt");
       done();
     });
   });
   
   it('Should instantiate a new end point without problems, and reset it', function(done) {
-    mail2.tryMakeAndResetEndPoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
+    mail2.tryMakeAndResetEndpoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
       assert(!err);
-      assert(ep instanceof mail2.EndPoint);
+      assert(ep instanceof mail2.Endpoint);
       assert.equal(ep.name, "newendpt");
       done();
     });
@@ -177,7 +177,7 @@ describe('EndPoint', function() {
   it('Handler', function() {
     makeTestEP(function(err, ep) {
       assert(ep.packetHandlers.length == 0);
-      ep.addPacketHandler(function(endPoint, packet) {console.log('Got this packet: %j', p);});
+      ep.addPacketHandler(function(endpoint, packet) {console.log('Got this packet: %j', p);});
       assert(ep.packetHandlers.length == 1);
       assert(typeof ep.packetHandlers[0] == 'function');
     });
@@ -241,7 +241,7 @@ describe('EndPoint', function() {
     var handledPacket = null;
 
     makeTestEP(function(err, ep) {
-      ep.addPacketHandler(function(endPoint, packet) {
+      ep.addPacketHandler(function(endpoint, packet) {
         handledPacket = packet;
       });
       ep.putPacket(p, function(err) {

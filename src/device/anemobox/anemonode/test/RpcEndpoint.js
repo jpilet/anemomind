@@ -1,7 +1,7 @@
 process.env.ANEMOBOX_CONFIG_PATH = '/tmp/anemoboxcfg';
 
-var builder = require('../components/RpcMailbox.js');
-var mb = require('../components/LocalMailbox.js');
+var builder = require('../components/RpcEndpoint.js');
+var mb = require('../components/LocalEndpoint.js');
 var assert = require('assert');
 var common = require('mail/common.js');
 var files = require('mail/files.js');
@@ -12,7 +12,7 @@ var Q = require('q');
 var msgpack = require('msgpack-js');
 builder.fillTable(rpcTable);
 
-var mailboxName = null;
+var endpointName = null;
 
 function withErr(f) {
   return function(x, cb) {
@@ -22,9 +22,9 @@ function withErr(f) {
   }
 }
 
-function prepareMailbox(cb) {
+function prepareEndpoint(cb) {
   mb.getName(function(lname) {
-    mailboxName = lname;
+    endpointName = lname;
     rpcTable.ep_reset({
       name: lname,
     }, function(response) {
@@ -39,11 +39,11 @@ describe(
   function() {
     mb.setMailRoot('/tmp/anemobox/');
     it(
-      'Should reset the mailbox and make sure the packet count is 0',
+      'Should reset the endpoint and make sure the packet count is 0',
       function(done) {
-	prepareMailbox(function(response) {
+	prepareEndpoint(function(response) {
 	  rpcTable.ep_getTotalPacketCount({
-	    name: mailboxName
+	    name: endpointName
 	  }, function(response) {
 	    assert.equal(response.error, undefined);
 	    assert.equal(response.result, 0);
@@ -62,16 +62,16 @@ describe(
       'Should get the src dst pairs',
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
-	prepareMailbox(function(response) {
+	prepareEndpoint(function(response) {
 	  assert.equal(response.error, undefined);
-          assert(typeof mailboxName == 'string');
+          assert(typeof endpointName == 'string');
 	  rpcTable.ep_updateLowerBounds({
-	    name: mailboxName,
+	    name: endpointName,
 	    pairs: [{src:'a', dst:'b'}],
 	  }, function(response) {
 	    assert.equal(response.result[0], "0000000000000000");
 	    rpcTable.ep_updateLowerBounds({
-	      name: mailboxName,
+	      name: endpointName,
               pairs: [{src: 'a',
                        dst: 'b',
 	               lb: "0000000000000009"}]
@@ -110,8 +110,8 @@ describe('files', function() {
     this.timeout(2000);
     assert(config.getConfigPath() == '/tmp/anemoboxcfg');
     mb.setMailRoot('/tmp/anemobox/');
-    prepareMailbox(function(response) {
-      assert(typeof mailboxName == 'string');
+    prepareEndpoint(function(response) {
+      assert(typeof endpointName == 'string');
       var srcFilename = '/tmp/srcboat.dat';
       Q.nfcall(fs.writeFile, srcFilename, 'Some data for the box')
         .then(function() {
@@ -120,13 +120,13 @@ describe('files', function() {
         .then(function(packed) {
           return Q.nfcall(
             withErr(rpcTable.ep_putPacket), {
-              name: mailboxName,
+              name: endpointName,
               packet: {
                 src: 'boat119',
                 label: common.files,
                 seqNumber: "0000000000000111",
                 data: msgpack.encode(packed),
-                dst: mailboxName
+                dst: endpointName
               }
             });
         }).then(function(response) {
@@ -157,9 +157,9 @@ describe(
       function(done) {
 	mb.setMailRoot('/tmp/anemobox/');
 
-        prepareMailbox(function(response) {
+        prepareEndpoint(function(response) {
 	  rpcTable.ep_updateLowerBounds({
-	    name: mailboxName
+	    name: endpointName
 	    // omit the required argument for the function
 	  }, function(response) {
 	    assert(response.error);

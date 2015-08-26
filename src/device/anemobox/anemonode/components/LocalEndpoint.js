@@ -17,58 +17,58 @@ var sentName = 'sentlogs';
 var closeTimeoutMillis = 30000;
 var script = require('mail/script.js');
 var triggerSync = require('./sync.js').triggerSync;
-var mailboxes = {};
+var endpointes = {};
 var files = require('mail/files.js');
 
 var estimator = require('./estimator.js');
 
-function mailboxCount() {
+function endpointCount() {
   var counter = 0;
-  for (var k in mailboxes) {
+  for (var k in endpointes) {
     counter++;
   }
   return counter;
 }
 
 
-// Get the name of the local mailbox. cb is called with that as the single argument.
+// Get the name of the local endpoint. cb is called with that as the single argument.
 function getName(cb) {
   boxId.getAnemoId(function(rawId) {
     var id = rawId.trim();
-    cb(naming.makeMailboxNameFromBoxId(id));
+    cb(naming.makeEndpointNameFromBoxId(id));
   });
 }
 
-function replaceSpecialChars(mailboxName) {
-  return mailboxName.replace(/\W/g, function (m) {
+function replaceSpecialChars(endpointName) {
+  return endpointName.replace(/\W/g, function (m) {
     return "_";
   });
 }
 
-function makeFilenameFromMailboxName(mailboxName) {
-  return mailRoot + replaceSpecialChars(mailboxName)
+function makeFilenameFromEndpointName(endpointName) {
+  return mailRoot + replaceSpecialChars(endpointName)
     + ".sqlite.db";
 }
 
-function registerMailbox(mailboxName, mailbox) {
-  mailboxData = {
-    mailbox:mailbox,
-    close: new DelayedCall(function() {mailbox.close(function(err) {
+function registerEndpoint(endpointName, endpoint) {
+  endpointData = {
+    endpoint:endpoint,
+    close: new DelayedCall(function() {endpoint.close(function(err) {
       if (err) {
-        console.log('Delayed call to close mailbox with name ' + mailboxName + ' failed.');
+        console.log('Delayed call to close endpoint with name ' + endpointName + ' failed.');
         console.log(err);
       }
     })})
   };
-  mailboxes[mailboxName] = mailboxData;
-  if (mailboxCount() > 1) {
-    console.log('WARNING: More than one end point mailbox opened.');
-    console.log('Opened mailboxes:');
-    for (var k in mailboxes) {
+  endpointes[endpointName] = endpointData;
+  if (endpointCount() > 1) {
+    console.log('WARNING: More than one end point endpoint opened.');
+    console.log('Opened endpointes:');
+    for (var k in endpointes) {
       console.log('  ' + k);
     }
   }
-  return mailboxData;
+  return endpointData;
 }
 
 function handleIncomingFiles(files) {
@@ -82,52 +82,52 @@ function handleIncomingFiles(files) {
   }
 }
 
-function openNewMailbox(mailboxName, cb) {
+function openNewEndpoint(endpointName, cb) {
   mkdirp(mailRoot, 0755, function(err) {
     if (err) {
       cb(err);
     } else {
-      var filename = makeFilenameFromMailboxName(mailboxName);
-      mb.tryMakeEndPoint(
+      var filename = makeFilenameFromEndpointName(endpointName);
+      mb.tryMakeEndpoint(
 	filename,
-	mailboxName, function(err, mailbox) {
+	endpointName, function(err, endpoint) {
           if (err) {
             cb(err);
           } else {
-            schema.makeVerbose(mailbox);
-            mailbox.addPacketHandler(
+            schema.makeVerbose(endpoint);
+            endpoint.addPacketHandler(
               script.makeScriptRequestHandler(triggerSync));
-            mailbox.addPacketHandler(
+            endpoint.addPacketHandler(
               files.makePacketHandler(config.getConfigPath(), handleIncomingFiles));
-            var data = registerMailbox(mailboxName, mailbox);
+            var data = registerEndpoint(endpointName, endpoint);
             data.close.callDelayed(closeTimeoutMillis);
-            cb(null, mailbox);
+            cb(null, endpoint);
           }
         });
     }
   });
 }
 
-// Open a mailbox with a particular name. Usually, this should
+// Open a endpoint with a particular name. Usually, this should
 // be the one obtained from 'getName'.
-function openWithName(mailboxName, cb) {
-  mailboxName = mailboxName.trim();
-  var data = mailboxes[mailboxName];
+function openWithName(endpointName, cb) {
+  endpointName = endpointName.trim();
+  var data = endpointes[endpointName];
   if (data) {
-    assert(data.mailbox);
-    data.mailbox.open(function(err, db) {
+    assert(data.endpoint);
+    data.endpoint.open(function(err, db) {
       data.close.callDelayed(closeTimeoutMillis);
-      cb(null, data.mailbox);
+      cb(null, data.endpoint);
     });
   } else {
-    openNewMailbox(mailboxName, cb);
+    openNewEndpoint(endpointName, cb);
   }
 }
 
-// Open a local mailbox. cb is called with (err, mailbox)
+// Open a local endpoint. cb is called with (err, endpoint)
 function open(cb) {
-  getName(function(mailboxName) {
-    openWithName(mailboxName, cb);
+  getName(function(endpointName) {
+    openWithName(endpointName, cb);
   });
 }
 
@@ -145,12 +145,12 @@ function getBoatId(cb) {
   });
 }
 
-function getServerSideMailboxName(cb) {
+function getServerSideEndpointName(cb) {
   getBoatId(function(err, boatId) {
     if (err) {
       cb(err);
     } else {
-      cb(null, naming.makeMailboxNameFromBoatId(boatId));
+      cb(null, naming.makeEndpointNameFromBoatId(boatId));
     }
   });
 }
@@ -176,14 +176,14 @@ function moveLogFileToSent(logfile, cb) {
   });
 }
 
-function postLogFilesSub(mailbox, dst, paths, cb) {
+function postLogFilesSub(endpoint, dst, paths, cb) {
   assert(typeof cb == 'function');
   if (paths.length == 0) {
     cb();
   } else {
     var logFilename = paths[0];
     file.sendLogFile(
-      mailbox, dst, logFilename,
+      endpoint, dst, logFilename,
       function(err) {
         if (err) {
           cb(err);
@@ -192,7 +192,7 @@ function postLogFilesSub(mailbox, dst, paths, cb) {
             if (err) {
               cb(err);
             } else {
-              postLogFilesSub(mailbox, dst, paths.slice(1), cb);
+              postLogFilesSub(endpoint, dst, paths.slice(1), cb);
             }
           });
         }
@@ -200,12 +200,12 @@ function postLogFilesSub(mailbox, dst, paths, cb) {
   }
 }
 
-function postLogFilesForMailbox(mailbox, paths, cb) {
-  getServerSideMailboxName(function(err, dst) {
+function postLogFilesForEndpoint(endpoint, paths, cb) {
+  getServerSideEndpointName(function(err, dst) {
     if (err) {
       cb(err);
     } else {
-      postLogFilesSub(mailbox, dst, paths, function(err) {        
+      postLogFilesSub(endpoint, dst, paths, function(err) {        
         cb(err, paths);
       });
     }
@@ -213,8 +213,8 @@ function postLogFilesForMailbox(mailbox, paths, cb) {
 }
 
 function postLogFiles(paths, cb) {
-  withLocalMailbox(function(mailbox, done) {
-    postLogFilesForMailbox(mailbox, paths, done);
+  withLocalEndpoint(function(endpoint, done) {
+    postLogFilesForEndpoint(endpoint, paths, done);
   }, cb);
 }
 
@@ -228,7 +228,7 @@ function isLogFilename(x) {
   return x != sentName;
 }
 
-function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
+function listLogFilesNotPostedForEndpoint(endpoint, logRoot, cb) {
   fs.readdir(logRoot, function(err, logFilesInDir) {
     if (err) {
       cb(err);
@@ -240,44 +240,44 @@ function listLogFilesNotPostedForMailbox(mailbox, logRoot, cb) {
   });
 }
 
-function withLocalMailboxSub(openFun, cbOperationOnMailbox, cbResults) {
+function withLocalEndpointSub(openFun, cbOperationOnEndpoint, cbResults) {
   
   assert(typeof openFun == 'function');
-  assert(typeof cbOperationOnMailbox == 'function');
+  assert(typeof cbOperationOnEndpoint == 'function');
   assert(typeof cbResults == 'function');
   
-  openFun(function(err, mailbox) {
+  openFun(function(err, endpoint) {
     if (err) {
       cbResults(err);
     } else {
-      cbOperationOnMailbox(mailbox, cbResults);
+      cbOperationOnEndpoint(endpoint, cbResults);
     }
   });
 }
 
-function withLocalMailbox(cbOperationOnMailbox, cbResults) {
-  withLocalMailboxSub(open, cbOperationOnMailbox, cbResults);
+function withLocalEndpoint(cbOperationOnEndpoint, cbResults) {
+  withLocalEndpointSub(open, cbOperationOnEndpoint, cbResults);
 }
 
-function withNamedLocalMailbox(name, cbOperationOnMailbox, cbResults) {
-  withLocalMailboxSub(function(cb) {
+function withNamedLocalEndpoint(name, cbOperationOnEndpoint, cbResults) {
+  withLocalEndpointSub(function(cb) {
     openWithName(name, cb);
-  }, cbOperationOnMailbox, cbResults);
+  }, cbOperationOnEndpoint, cbResults);
 }
 
 function listLogFilesNotPosted(logRoot, cb) {
-  withLocalMailbox(function(mailbox, done) {
-    listLogFilesNotPostedForMailbox(mailbox, logRoot, done);
+  withLocalEndpoint(function(endpoint, done) {
+    listLogFilesNotPostedForEndpoint(endpoint, logRoot, done);
   }, cb);
 }
 
 function postRemainingLogFiles(logRoot, cb) {
-  withLocalMailbox(function(mailbox, done) {
-    listLogFilesNotPostedForMailbox(mailbox, logRoot, function(err, files) {
+  withLocalEndpoint(function(endpoint, done) {
+    listLogFilesNotPostedForEndpoint(endpoint, logRoot, function(err, files) {
       if (err) {
         done(err);
       } else {
-        postLogFilesForMailbox(mailbox, files, done);
+        postLogFilesForEndpoint(endpoint, files, done);
       }
     });
   }, cb);
@@ -288,8 +288,8 @@ function setRemoveLogFiles(p) {
 }
 
 function reset(cb) {
-  withLocalMailbox(function(mailbox, done) {
-    mailbox.reset(done);
+  withLocalEndpoint(function(endpoint, done) {
+    endpoint.reset(done);
   }, cb);
 }
 
@@ -305,8 +305,8 @@ module.exports.reset = reset;
 module.exports.getName = getName;
 module.exports.postLogFile = postLogFile;
 module.exports.setRemoveLogFiles = setRemoveLogFiles;
-module.exports.getServerSideMailboxName = getServerSideMailboxName;
+module.exports.getServerSideEndpointName = getServerSideEndpointName;
 module.exports.listLogFilesNotPosted = listLogFilesNotPosted;
-module.exports.withLocalMailbox = withLocalMailbox;
-module.exports.withNamedLocalMailbox = withNamedLocalMailbox;
+module.exports.withLocalEndpoint = withLocalEndpoint;
+module.exports.withNamedLocalEndpoint = withNamedLocalEndpoint;
 module.exports.postRemainingLogFiles = postRemainingLogFiles;

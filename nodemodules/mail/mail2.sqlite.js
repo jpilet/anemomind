@@ -187,7 +187,7 @@ function openDBWithFilename(dbFilename, cb) {
 
 
 
-function EndPoint(filename, name, db) {
+function Endpoint(filename, name, db) {
   this.db = db;
   this.dbFilename = filename;
   this.name = name;
@@ -195,21 +195,21 @@ function EndPoint(filename, name, db) {
   this.isLeaf = true;
 }
 
-function tryMakeEndPoint(filename, name, cb) {
+function tryMakeEndpoint(filename, name, cb) {
   if (!(common.isString(filename) && common.isIdentifier(name))) {
-    cb(new Error('Invalid input to tryMakeEndPoint'));
+    cb(new Error('Invalid input to tryMakeEndpoint'));
   } else {
     openDBWithFilename(filename, function(err, db) {
       if (err) {
         cb(err);
       } else {
-        cb(null, new EndPoint(filename, name, db));
+        cb(null, new Endpoint(filename, name, db));
       }
     });
   }
 }
 
-EndPoint.prototype.reset = function(cb) {
+Endpoint.prototype.reset = function(cb) {
   beginTransaction(this.db, function(err, T) {
     if (err) {
       cb(err);
@@ -229,8 +229,8 @@ EndPoint.prototype.reset = function(cb) {
   });
 }
 
-function tryMakeAndResetEndPoint(filename, name, cb) {
-  tryMakeEndPoint(filename, name, function(err, ep) {
+function tryMakeAndResetEndpoint(filename, name, cb) {
+  tryMakeEndpoint(filename, name, function(err, ep) {
     if (err) {
       cb(err);
     } else {
@@ -314,7 +314,7 @@ function getLowerBound(T, src, dst, cb) {
   }
 }
 
-EndPoint.prototype.getLowerBound = function(src, dst, cb) {
+Endpoint.prototype.getLowerBound = function(src, dst, cb) {
   withTransaction(
     this.db,
     function(T, cb) {
@@ -334,7 +334,7 @@ function getPacket(db, src, dst, seqNumber, cb) {
     });
 }
 
-EndPoint.prototype.getPacket = function(src, dst, seqNumber, cb) {
+Endpoint.prototype.getPacket = function(src, dst, seqNumber, cb) {
   getPacket(this.db, src, dst, seqNumber, cb);
 }
 
@@ -356,7 +356,7 @@ function getUpperBound(db, src, dst, cb) {
   });
 }
 
-EndPoint.prototype.getUpperBound = function(src, dst, cb) {
+Endpoint.prototype.getUpperBound = function(src, dst, cb) {
   // First try the lastPacket+1
   // Then the lower bound
   withTransaction(this.db, function(T, cb) {
@@ -374,12 +374,12 @@ function getNextSeqNumber(T, src, dst, cb) {
   });
 }
 
-EndPoint.prototype.getNextSeqNumber = function(src, dst, cb) {
+Endpoint.prototype.getNextSeqNumber = function(src, dst, cb) {
   getNextSeqNumber(this.db, src, dst, cb);
 }
 
 
-EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
+Endpoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
   var self = this;
   var src = self.name;
   withTransaction(this.db, function(T, cb) {
@@ -403,7 +403,7 @@ EndPoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
   }, cb);
 }
 
-EndPoint.prototype.sendPacket = function(dst, label, data, cb) {
+Endpoint.prototype.sendPacket = function(dst, label, data, cb) {
   this.sendPacketAndReturn(dst, label, data, function(err, p) {
     cb(err);
   });
@@ -421,7 +421,7 @@ function removeObsoletePackets(db, src, dst, lowerBound, cb) {
     src, dst, lowerBound, cb);
 }
 
-EndPoint.prototype.getTotalPacketCount = function(cb) {
+Endpoint.prototype.getTotalPacketCount = function(cb) {
   var query = 'SELECT count(*) FROM packets';
   this.db.get(
     query, function(err, row) {
@@ -469,7 +469,7 @@ function setLowerBound(db, src, dst, lowerBound, cb) {
   });
 }
 
-EndPoint.prototype.updateLowerBound = function(src, dst, lb, cb) {
+Endpoint.prototype.updateLowerBound = function(src, dst, lb, cb) {
   withTransaction(this.db, function(T, cb) {
     updateLowerBound(T, src, dst, lb, cb);
   }, function(err, lb) {
@@ -483,7 +483,7 @@ EndPoint.prototype.updateLowerBound = function(src, dst, lb, cb) {
   });
 }
 
-EndPoint.prototype.getSrcDstPairs = function(cb) {
+Endpoint.prototype.getSrcDstPairs = function(cb) {
   getUniqueSrcDstPairs(this.db, 'packets', cb);
 }
 
@@ -501,13 +501,13 @@ function getPerPairData(T, pairs, fun, field, cb) {
 }
 
 
-EndPoint.prototype.getLowerBounds = function(pairs, cb) {
+Endpoint.prototype.getLowerBounds = function(pairs, cb) {
   withTransaction(this.db, function(T, cb) {
     getPerPairData(T, pairs, getLowerBound, 'lb', cb);
   }, cb);
 }
 
-EndPoint.prototype.updateLowerBounds = function(pairs, cb) {
+Endpoint.prototype.updateLowerBounds = function(pairs, cb) {
   var self = this;
   Q.all(pairs.map(function(pair) {
     return Q.ninvoke(self, "updateLowerBound", pair.src, pair.dst, pair.lb);
@@ -518,15 +518,15 @@ EndPoint.prototype.updateLowerBounds = function(pairs, cb) {
   });
 }
 
-EndPoint.prototype.getUpperBounds = function(pairs, cb) {
+Endpoint.prototype.getUpperBounds = function(pairs, cb) {
   withTransaction(this.db, function(T, cb) {
     getPerPairData(T, pairs, getUpperBound, 'ub', cb);
   }, cb);
 }
 
 
-var packetHandlerParamNames = ['endPoint', 'packet'];
-EndPoint.prototype.addPacketHandler = function(handler) {
+var packetHandlerParamNames = ['endpoint', 'packet'];
+Endpoint.prototype.addPacketHandler = function(handler) {
   var paramNames = common.getParamNames(handler);
   assert(paramNames.length == packetHandlerParamNames.length);
   for (var i = 0; i < paramNames.length; i++) {
@@ -537,17 +537,17 @@ EndPoint.prototype.addPacketHandler = function(handler) {
   this.packetHandlers.push(handler);
 }
 
-EndPoint.prototype.setIsLeaf = function(x) {
+Endpoint.prototype.setIsLeaf = function(x) {
   this.isLeaf = x;
 }
 
-EndPoint.prototype.callPacketHandlers = function(p) {
+Endpoint.prototype.callPacketHandlers = function(p) {
   for (var i = 0; i < this.packetHandlers.length; i++) {
     this.packetHandlers[i](this, p);
   }
 }
 
-EndPoint.prototype.putPacket = function(packet, cb) {
+Endpoint.prototype.putPacket = function(packet, cb) {
   var self = this;
   withTransaction(this.db, function(T, cb) {
     getLowerBound(T, packet.src, packet.dst, function(err, lb) {
@@ -594,7 +594,7 @@ function getAllFromTable(db, tableName, cb) {
   db.all('SELECT * FROM ' + tableName + ';', cb);
 }
 
-EndPoint.prototype.disp = function(cb) {
+Endpoint.prototype.disp = function(cb) {
   var self = this;
   getAllFromTable(self.db, 'packets', function(err, packets) {
     if (err) {
@@ -624,12 +624,12 @@ EndPoint.prototype.disp = function(cb) {
   });
 }
 
-EndPoint.prototype.close = function(cb) {
+Endpoint.prototype.close = function(cb) {
   this.db.close(cb);
   this.db = null;
 }
 
-EndPoint.prototype.open = function(cb) {
+Endpoint.prototype.open = function(cb) {
   var self = this;
   if (!self.db) {
     openDBWithFilename(this.dbFilename, function(err, db) {
@@ -641,22 +641,22 @@ EndPoint.prototype.open = function(cb) {
   }
 }
 
-EndPoint.prototype.makeVerbose = function() {
+Endpoint.prototype.makeVerbose = function() {
   schema.makeVerbose(this);
 }
 
-function tryMakeEndPointFromFilename(dbFilename, cb) {
-  var mailboxName = naming.getMailboxNameFromFilename(dbFilename);
-  if (mailboxName) {
-    tryMakeEndPoint(dbFilename, mailboxName, cb);
+function tryMakeEndpointFromFilename(dbFilename, cb) {
+  var endpointName = naming.getEndpointNameFromFilename(dbFilename);
+  if (endpointName) {
+    tryMakeEndpoint(dbFilename, endpointName, cb);
   } else {
-    cb(new Error('Unable to extract mailboxname from filename ' + dbFilename));
+    cb(new Error('Unable to extract endpointname from filename ' + dbFilename));
   }
 }
 
-function isEndPoint(x) {
+function isEndpoint(x) {
   if (typeof x == 'object') {
-    return x.constructor.name == 'EndPoint';
+    return x.constructor.name == 'Endpoint';
   }
   return false;
 }
@@ -664,7 +664,7 @@ function isEndPoint(x) {
 function withEP(ep, epOperation, done) {
   ep.open(function(err) {
     if (err) {
-      console.log('Failed to open mailbox');
+      console.log('Failed to open endpoint');
       done(err);
     } else {
       epOperation(ep, function(err) {
@@ -677,13 +677,13 @@ function withEP(ep, epOperation, done) {
 }
 
 
-module.exports.EndPoint = EndPoint;
-module.exports.isEndPoint = isEndPoint;
-module.exports.tryMakeEndPoint = tryMakeEndPoint;
-module.exports.tryMakeAndResetEndPoint = tryMakeAndResetEndPoint;
+module.exports.Endpoint = Endpoint;
+module.exports.isEndpoint = isEndpoint;
+module.exports.tryMakeEndpoint = tryMakeEndpoint;
+module.exports.tryMakeAndResetEndpoint = tryMakeAndResetEndpoint;
 module.exports.srcDstPairUnion = srcDstPairUnion;
 module.exports.srcDstPairIntersection = srcDstPairIntersection;
 module.exports.srcDstPairDifference = srcDstPairDifference;
 module.exports.filterByName = filterByName;
-module.exports.tryMakeEndPointFromFilename = tryMakeEndPointFromFilename;
+module.exports.tryMakeEndpointFromFilename = tryMakeEndpointFromFilename;
 module.exports.withEP = withEP;

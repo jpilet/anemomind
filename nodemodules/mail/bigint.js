@@ -228,7 +228,7 @@ function diff(a, b) {
 
 // Todo: randomize strings using
 //       the system rng, to assign
-//       unique names for mailboxes.
+//       unique names for endpointes.
 
 
 module.exports.serialize = serialize;

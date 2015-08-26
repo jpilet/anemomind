@@ -32,13 +32,13 @@ module.exports.setForeignDiaryNumber = new Call(
     // Args
     new Coder(
 	function(obj) {
-	    assert(bigint.isBigInt(obj.mailboxName));
+	    assert(bigint.isBigInt(obj.endpointName));
 	    assert(bigint.isBigInt(obj.diaryNumber));
-	    return bigint.serialize(obj.mailboxName + obj.diaryNumber);
+	    return bigint.serialize(obj.endpointName + obj.diaryNumber);
 	}, function(wrappedObj) {
 	    var arr = bigint.deserializeBigInts(wrappedObj, bigint.defaultWidth);
 	    return {
-		mailboxName: arr[0],
+		endpointName: arr[0],
 		diaryNumber: arr[1]
 	    };
 	}
@@ -116,10 +116,10 @@ module.exports.isAdmissible = new Call(
 );
 
 module.exports.getForeignStartNumber = new Call(
-    // Args: a mailbox name
+    // Args: a endpoint name
     new Coder(
-	function(mailboxName) {
-	    return bigint.serialize(mailboxName);
+	function(endpointName) {
+	    return bigint.serialize(endpointName);
 	}, function(wrappedName) {
 	    return bigint.deserializeBigInt(wrappedName);
 	}
@@ -135,16 +135,16 @@ module.exports.getForeignStartNumber = new Call(
     )
 );
 
-module.exports.mailboxName = new Call(
+module.exports.endpointName = new Call(
     // Args: none
     undefined,
 
     // Result
     new Coder(
-	function(mailboxName) {
-	    return bigint.serialize(mailboxName);
-	}, function(wrappedMailboxName) {
-	    return bigint.deserializeBigInt(wrappedMailboxName);
+	function(endpointName) {
+	    return bigint.serialize(endpointName);
+	}, function(wrappedEndpointName) {
+	    return bigint.deserializeBigInt(wrappedEndpointName);
 	}
     )
 );

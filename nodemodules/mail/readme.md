@@ -1,4 +1,4 @@
-# Mailbox synchronization code
+# Endpoint synchronization code
 
 First, make sure node and npm are installed. You should have a late version, e.g. v0.12,
 because some ops in ```intarray.js``` require that. Go to ```mail/``` (this directory).

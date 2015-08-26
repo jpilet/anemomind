@@ -105,7 +105,7 @@ function removeLogFiles(count, cb) {
 }
 
 function makeEndpoint(name, cb) {
-  mb.tryMakeEndPoint('/tmp/' + name + '.db', name, function(err, mb) {
+  mb.tryMakeEndpoint('/tmp/' + name + '.db', name, function(err, mb) {
     if (err) {
       cb(err);
     } else {
@@ -120,11 +120,11 @@ function makeEndpointsSub(dst, index, arr, cb) {
   if (index == arr.length) {
     cb(null, dst);
   } else {
-    makeEndpoint(arr[index], function(err, mailbox) {
+    makeEndpoint(arr[index], function(err, endpoint) {
       if (err) {
 	cb(err);
       } else {
-	dst[index] = mailbox;
+	dst[index] = endpoint;
 	makeEndpointsSub(dst, index+1, arr, cb);
       }
     });
@@ -162,7 +162,7 @@ function countMarked(arr) {
 
 // Called when the server receives a packet
 function makeServerPacketHandler(markArray, deferred) {
-  return function(endPoint, packet) {
+  return function(endpoint, packet) {
     if (packet.label == common.logfile) {
       var msg = file.unpackFileMessage(packet.data);
       if (isLogFileMsg(msg)) {

@@ -3,7 +3,7 @@ var mangler = require('mangler');
 var assert = require('assert');
 var bigint = require('./bigint.js');
 
-// Functions to code and decode arguments according to the mailbox schema.
+// Functions to code and decode arguments according to the endpoint schema.
 // Used on the web server to decode a request and encode a response.
 // Used on the client to encode a request and decode a response.
 
