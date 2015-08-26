@@ -1,0 +1,63 @@
+\documentclass{article}
+\usepackage{textcomp}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{textcomp}
+\usepackage[T1]{fontenc}
+\usepackage{ucs}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{courier}
+\usepackage{graphicx}
+\usepackage{a4wide}
+
+\newcommand{\quality}[1]{q_{#1}}
+\newcommand{\minfun}{\text{min}}
+\newcommand{\realvec}[1]{\mathbf{#1}}
+\newcommand{\norm}[1]{\left\| #1 \right\|}
+\newcommand{\derivative}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\timederivative}[1]{\derivative{#1}{t}}
+\newcommand{\realnumber}{\mathbb{R}}
+\setcounter{secnumdepth}{2}
+
+\newcommand{\mat}[2]{\left( \begin{array}{#1} #2 \end{array} \right)}
+
+\author{Jonas Östlund}
+\date{\today}
+\title{Linear calibration of a motion vector}
+
+\begin{document}
+\maketitle
+
+A motion $M$ in the 2D plane can be expressed as an angle $\varphi$ and a magnitude $r$, so that the motion vector is
+\begin{displaymath}
+  M = r\mat{c}{
+    \sin \phi \\
+    \cos \phi
+   } =
+  \mat{c}{
+    r \sin \phi \\
+    r \cos \phi
+    } \, .
+\end{displaymath}
+Scaling and rotation are linear operations and can be expressed as a matrix
+\begin{displaymath}
+\mat{cc}{
+  s\cos \phi & -s \sin \phi \\
+  s\sin \phi & s \cos \phi
+} = \mat{cc}{a & -b \\ b & a} \qquad \text{with $a = s\cos \phi$ and $b = s\sin \phi$} \, .
+\end{displaymath}
+We might also want to correct for offset error $k$ in the velocity, thus the corrected motion $\hat{M}$ can be expressed as
+\begin{displaymath}
+\hat{M} = \mat{cc}{a & -b \\ b & a}\mat{c}{(r + k)\sin \varphi \\ (r + k)\cos \varphi} \, ,
+\end{displaymath}
+which can be rewritten as a data matrix multiplied by a vector with the parameters:
+\begin{displaymath}
+\hat{M} = \mat{cccc}{r\sin \varphi & -r \cos \varphi & 
+  \sin \varphi & -\cos \varphi \\
+  r\cos \varphi & r\sin \varphi & \cos \varphi & \sin \varphi}
+\mat{c}{a \\ b \\ ak \\ bk} \, .
+\end{displaymath}
+Note that $\hat{M}$ is not a linear function of $(a, b, k)$. But if we relax the problem by introducing $c = ak$ and $d = bk$, it is linear in $(a, b, c, d)$. We can thus formulate linear least squares fitting problems.
+\end{document}
