@@ -6,72 +6,85 @@
 #ifndef SERVER_NAUTICAL_CALIBRATION_LINEARCALIBRATION_H_
 #define SERVER_NAUTICAL_CALIBRATION_LINEARCALIBRATION_H_
 
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+
 namespace sail {
 namespace LinearCalibration {
 
-HorizontalMotion<double> calcRawBoatMotion(
-    Angle<double> magHdg, Velocity<double> watSpeed);
-
-HorizontalMotion<double> calcRawApparentWind(
-    Angle<double> magHdg,
-    Angle<double> awa, Velocity<double> aws);
-
-// Given a motion, the calibrated motion
-// is the matrix product of the output matrix
-// of this function multiplied by a vector of two
-// calibration parameters [a; b]. The calibration consists
-// of a rotation and scaling. When there is no calibration,
-// then a=1 and b=0.
+/*
+ * See docs/calib/linearcalib.tex
+ *
+ * If withOffset is false, dst is assumed to be a 2x2 matrix,
+ * otherwise a 2x4 matrix. The dst matrix, when multiplied with
+ * a parameter vector, results in a calibrated motion.
+ */
 template <typename MatrixType>
-void makeMotionCalibrationMatrix(double motion[2], MatrixType *dst) {
-  (*dst)(0, 0) = motion[0];
-  (*dst)(0, 1) = -motion[1];
-  (*dst)(1, 0) = motion[1];
-  (*dst)(1, 1) = motion[0];
+void makeCalibratedMotionMatrix(
+    Angle<double> angle, Velocity<double> magnitude,
+    bool withOffset,
+    MatrixType *dst, Velocity<double> unit) {
+  double cosPhi = cos(angle);
+  double sinPhi = sin(angle);
+  double r = magnitude/unit;
+  (*dst)(0, 0) = r*sinPhi; (*dst)(0, 1) = -r*cosPhi;
+  (*dst)(1, 0) = r*cosPhi; (*dst)(1, 1) = r*sinPhi;
+  if (withOffset) {
+    (*dst)(0, 2) = sinPhi; (*dst)(0, 3) = -cosPhi;
+    (*dst)(1, 2) = cosPhi; (*dst)(1, 3) = sinPhi;
+  }
+}
+
+template <typename InstrumentAbstraction>
+HorizontalMotion<double> getGpsMotion(const InstrumentAbstraction &nav) {
+  return HorizontalMotion<double>::polar(nav.gpsSpeed(), nav.gpsBearing());
+}
+
+template <typename MatrixType>
+void makeGpsOffset(const HorizontalMotion<double> &m, MatrixType *dstB,
+    Velocity<double> unit) {
+  (*dstB)(0, 0) = m[0]/unit;
+  (*dstB)(1, 0) = m[1]/unit;
 }
 
 
-// Express the local current as a function
-//
-// Current = A*[a; b] + B
-//
-// where A is a 2x2 matrix, [a; b] are calibration parameters,
-// and B is a 2x1 matrix.
-//
-// The norm of [a; b] is a correction of the scaling error of the water speed sensor.
-// The angle (atan2(b, a)) is the correction applied to magnetic heading.
-template <typename MatrixType>
-void makeLinearCurrentExpr(
-    HorizontalMotion<double> gpsMotion,
-    Angle<double> magHdg, Velocity<double> watSpeed,
-    MatrixType *Adst, MatrixType *Bdst,
-    Velocity<double> unit = Velocity<double>::knots(1.0)) {
-  HorizontalMotion<double> rawBoatMotion = calcRawBoatMotion(magHdg, watSpeed);
-  double motion[2] = {-rawBoatMotion[0]/unit, -rawBoatMotion[1]/unit};
-  makeMotionCalibrationMatrix(motion, Adst);
-  (*Bdst)(0, 0) = gpsMotion[0]/unit;
-  (*Bdst)(1, 0) = gpsMotion[1]/unit;
-}
-
-// Make a linear matrix expression to compute the
-// true wind as a vector of two parameters [a; b],
-// just like for the current. In this case,
-// both the error of the magnetic compass and the wind angle sensor
-// is corrected for at the same time.
-template <typename MatrixType>
-void makeLinearWindExpr(
-    HorizontalMotion<double> gpsMotion,
-    Angle<double> rawMagHdg,
-    Angle<double> rawAwa, Velocity<double> rawAws,
-    MatrixType *Adst, MatrixType *Bdst,
+/*
+ * Use this function to express the true wind W as a function of the parameters X:
+ *
+ * W(X) = AX + B
+ *
+ * If withOffset = false, then A is 2x2, otherwise if it is true, then A is 2x4
+ * B is always 2x1
+ */
+template <typename InstrumentAbstraction, typename MatrixType>
+void makeTrueWindMatrixExpression(const InstrumentAbstraction &nav,
+  bool withOffset,
+  MatrixType *dstA, MatrixType *dstB,
   Velocity<double> unit = Velocity<double>::knots(1.0)) {
-  HorizontalMotion<double> rawApparentWind =
-      calcRawApparentWind(rawMagHdg, rawAwa, rawAws);
-  double motion[2] = {rawApparentWind[0]/unit, rawApparentWind[1]/unit};
-  makeMotionCalibrationMatrix(motion, Adst);
-  (*Bdst)(0, 0) = gpsMotion[0]/unit;
-  (*Bdst)(1, 0) = gpsMotion[1]/unit;
+  auto absoluteDirectionOfWind = nav.magHdg() + nav.awa() + Angle<double>::degrees(180);
+  makeCalibratedMotionMatrix(absoluteDirectionOfWind, nav.aws(), withOffset, dstA, unit);
+  makeGpsOffset(getGpsMotion(nav), dstB, unit);
 }
+
+/*
+ * Use this function to express the true current C as a function of the parameters X:
+ *
+ * C(X) = AX + B
+ *
+ * If withOffset = false, then A is 2x2, otherwise if it is true, then A is 2x4
+ * B is always 2x1
+ */
+template <typename InstrumentAbstraction, typename MatrixType>
+void makeTrueCurrentMatrixExpression(const InstrumentAbstraction &nav,
+  bool withOffset,
+  MatrixType *dstA, MatrixType *dstB,
+  Velocity<double> unit = Velocity<double>::knots(1.0)) {
+  auto oppositeDirectionOfBoatOverWater = nav.magHdg() + Angle<double>::degrees(180);
+  makeCalibratedMotionMatrix(oppositeDirectionOfBoatOverWater,
+      nav.watSpeed(), withOffset, dstA, unit);
+  makeGpsOffset(getGpsMotion(nav), dstB, unit);
+}
+
+void initializeLinearParameters(bool withOffset, double *dst2or4);
 
 }
 }

@@ -26,6 +26,14 @@ HorizontalMotion<double> calcRawTrueWind(
   return HorizontalMotion<double>::polar(aws, absoluteDirectionOfWind);
 }
 
+void initializeLinearParameters(bool withOffset, double *dst2or4) {
+  dst2or4[0] = 1.0;
+  int n = (withOffset? 4 : 2);
+  for (int i = 1; i < n; i++) {
+    dst2or4[i] = 0.0;
+  }
+}
+
 
 
 }
