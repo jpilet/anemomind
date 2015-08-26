@@ -45,10 +45,20 @@ TEST(LinearCalibrationTest, TestWind) {
   static_assert(LinearCalibration::calcYOffset(false, 1) == 3, "Wrong offset");
   static_assert(LinearCalibration::calcYOffset(false, 2) == 4, "Wrong offset");
   static_assert(LinearCalibration::calcYOffset(true, 2) == 6, "Wrong offset");
-  static_assert(LinearCalibration::calcQuadFormParamCount(false, 2) == 6, "Wrong offset");
-  static_assert(LinearCalibration::calcQuadFormParamCount(true, 2) == 8, "Wrong offset");
+  static_assert(LinearCalibration::calcQuadFormParamCount(false, 2) == 6,
+      "Wrong param count");
+  static_assert(LinearCalibration::calcQuadFormParamCount(true, 2) == 8,
+      "Wrong param count");
 
-  auto Q = LinearCalibration::makeQuadForm<true, 1, arma::mat>(39.9, A, B);
-  double x[6] = {1, 0, 0, 0, current(0, 0), current(1, 0)};
-  EXPECT_NEAR(Q.eval(x), 0.0, 1.0e-6);
+  {
+    auto Q = LinearCalibration::makeQuadForm<true, 1, arma::mat>(39.9, A, B);
+    double x[6] = {1, 0, 0, 0, current(0, 0), current(1, 0)};
+    static_assert(6 == LinearCalibration::calcQuadFormParamCount(true, 1), "Wrong count");
+    EXPECT_NEAR(Q.eval(x), 0.0, 1.0e-6);
+  }{
+    auto Q = LinearCalibration::makeQuadForm<true, 2, arma::mat>(39.9, A, B);
+    double x[8] = {1, 0, 0, 0, current(0, 0), 0, current(1, 0), 0};
+    static_assert(8 == LinearCalibration::calcQuadFormParamCount(true, 2), "Wrong count");
+    EXPECT_NEAR(Q.eval(x), 0.0, 1.0e-6);
+  }
 }
