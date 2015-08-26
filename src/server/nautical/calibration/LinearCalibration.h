@@ -112,14 +112,14 @@ QuadForm<calcQuadFormParamCount(withOffset, N), 1> makeQuadForm(
   }
   double prod = 1.0;
   for (int i = 0; i < N; i++) {
-    x[xOffset + i] = prod;
-    y[yOffset + i] = prod;
+    x[xOffset + i] = -prod;
+    y[yOffset + i] = -prod;
     x[yOffset + i] = 0.0;
     y[xOffset + i] = 0.0;
     prod *= time;
   }
-  double bx = B(0, 0);
-  double by = B(1, 0);
+  double bx = -B(0, 0);
+  double by = -B(1, 0);
   return QuadForm<n, 1>::fit(x, &bx) + QuadForm<n, 1>::fit(y, &by);
 }
 

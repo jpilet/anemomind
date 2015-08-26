@@ -49,5 +49,6 @@ TEST(LinearCalibrationTest, TestWind) {
   static_assert(LinearCalibration::calcQuadFormParamCount(true, 2) == 8, "Wrong offset");
 
   auto Q = LinearCalibration::makeQuadForm<true, 1, arma::mat>(39.9, A, B);
-
+  double x[6] = {1, 0, 0, 0, current(0, 0), current(1, 0)};
+  EXPECT_NEAR(Q.eval(x), 0.0, 1.0e-6);
 }
