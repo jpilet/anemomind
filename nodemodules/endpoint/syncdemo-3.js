@@ -60,17 +60,17 @@ function dispPacketCounts(boxes, cb) {
 }
 
 
-// Perform pairwise synchronization of endpointes, from left to right.
-function synchronizeArray(endpointes, cb) {
-    if (endpointes.length < 2) {
+// Perform pairwise synchronization of endpoints, from left to right.
+function synchronizeArray(endpoints, cb) {
+    if (endpoints.length < 2) {
 	cb();
     } else {
 	sync.synchronize(
-	    endpointes[0],
-	    endpointes[1],
+	    endpoints[0],
+	    endpoints[1],
 	    function (err) {
 		if (err == undefined) {
-		    synchronizeArray(endpointes.slice(1), cb);
+		    synchronizeArray(endpoints.slice(1), cb);
 		} else {
 		    cb(err);
 		}
@@ -79,7 +79,7 @@ function synchronizeArray(endpointes, cb) {
     }
 }
 
-function synchronizeForthAndBack(endpointes, from, to, cb) {
+function synchronizeForthAndBack(endpoints, from, to, cb) {
     if (from < to) {
 	var even = from % 2 == 0;
 	if (even) {
@@ -87,11 +87,11 @@ function synchronizeForthAndBack(endpointes, from, to, cb) {
 	} else {
 	    disp('BACKWARD SYNCH, from = ' + from);
 	}
-	var reversed = endpointes.slice(0).reverse();
+	var reversed = endpoints.slice(0).reverse();
 	synchronizeArray(
-	    (even? endpointes : reversed),
+	    (even? endpoints : reversed),
 	    function(err) {
-		synchronizeForthAndBack(endpointes, from+1, to, cb)
+		synchronizeForthAndBack(endpoints, from+1, to, cb)
 	    }
 	);
     } else {
@@ -108,18 +108,18 @@ function someSpace(s) {
 
 
 
-function startSync(err, endpointes, done) {
+function startSync(err, endpoints, done) {
     if (err == undefined) {
 
 	// This will propage messages from A to C,
 	// then propagate messages from C to A.
 	synchronizeForthAndBack(
-	    endpointes,
+	    endpoints,
 	    0, 2,
 	    function (err) {
 
 		getPacketCounts(
-		    endpointes,
+		    endpoints,
 		    function(err, counts) {
 			console.log('counts = ', counts);
 			
@@ -136,14 +136,14 @@ function startSync(err, endpointes, done) {
 			// Let's send two more packets.
 			fillWithPackets(
 			    2,
-			    endpointes[0],
-			    endpointes[2].endpointName,
+			    endpoints[0],
+			    endpoints[2].endpointName,
 			    function(err) {
 				synchronizeForthAndBack(
-				    endpointes, 0, 2,
+				    endpoints, 0, 2,
 				    function(err) {
 					getPacketCounts(
-					    endpointes,
+					    endpoints,
 					    function(err, counts) {
 
 						// Now the 30 packets that were
@@ -175,21 +175,21 @@ function startSync(err, endpointes, done) {
 
 
 // Called once the first endpoint has been filled
-function synchronizeThreeEndpointes(endpointes, done) {
-  assert.equal(endpointes.length, 3);
-  endpointes[1].forwardPackets = true;
+function synchronizeThreeEndpoints(endpoints, done) {
+  assert.equal(endpoints.length, 3);
+  endpoints[1].forwardPackets = true;
   someSpace('');
   var PACKETCOUNT = 39;
   fillWithPackets(
     PACKETCOUNT,
-    endpointes[0],
-    endpointes[2].endpointName,
+    endpoints[0],
+    endpoints[2].endpointName,
     function(err) {
       assert.equal(err, undefined);
-      startSync(err, endpointes, done);
+      startSync(err, endpoints, done);
     }
   );
 }
 
 
-module.exports.synchronizeThreeEndpointes = synchronizeThreeEndpointes;
+module.exports.synchronizeThreeEndpoints = synchronizeThreeEndpoints;

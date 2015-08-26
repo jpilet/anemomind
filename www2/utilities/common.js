@@ -1,14 +1,14 @@
 var path = require('path');
-var naming = require('mail/naming.js');
-var script = require('mail/script.js');
+var naming = require('endpoint/naming.js');
+var script = require('endpoint/script.js');
 var mongoose = require('mongoose');
 var exec = require('child_process').exec;
 var Boat = require('../server/api/boat/boat.model.js');
 var Q = require('q');
-var mb = require('mail/mail2.sqlite.js');
+var mb = require('endpoint/endpoint.sqlite.js');
 var fs = require('fs');
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
-var files = require('mail/files.js');
+var files = require('endpoint/files.js');
 var assert = require('assert');
 
 // Ensure NODE_ENV is defined.

@@ -1,11 +1,11 @@
-var mail2 = require('../mail2.sqlite.js');
+var endpoint = require('../endpoint.sqlite.js');
 var assert = require('assert');
 var bigint = require('../bigint.js');
 var eq = require('deep-equal-ident');
 var schema = require('../endpoint-schema.js');
 
 function makeTestEP(cb) {
-  mail2.tryMakeAndResetEndpoint('/tmp/ep.db', 'ep', cb);
+  endpoint.tryMakeAndResetEndpoint('/tmp/ep.db', 'ep', cb);
 }
 
 
@@ -36,18 +36,18 @@ describe('Endpoint', function() {
   });
   
   it('Should instantiate a new end point without problems', function(done) {
-    mail2.tryMakeEndpoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
+    endpoint.tryMakeEndpoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
       assert(!err);
-      assert(ep instanceof mail2.Endpoint);
+      assert(ep instanceof endpoint.Endpoint);
       assert.equal(ep.name, "newendpt");
       done();
     });
   });
   
   it('Should instantiate a new end point without problems, and reset it', function(done) {
-    mail2.tryMakeAndResetEndpoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
+    endpoint.tryMakeAndResetEndpoint("/tmp/newendpt.js", "newendpt", function(err, ep) {
       assert(!err);
-      assert(ep instanceof mail2.Endpoint);
+      assert(ep instanceof endpoint.Endpoint);
       assert.equal(ep.name, "newendpt");
       done();
     });
@@ -155,7 +155,7 @@ describe('Endpoint', function() {
   it('Compute the union', function() {
     var A = [{src:'a', dst:'b'}, {src:'a', dst:'c'}, {src:'b', dst:'a'}];
     var B = [{src:'a', dst:'c'}, {src:'c', dst:'a'}];
-    var C = mail2.srcDstPairUnion(A, B);
+    var C = endpoint.srcDstPairUnion(A, B);
     assert(eq(C, [{src:'a', dst:'b'}, {src:'a', dst:'c'},
                   {src:'b', dst:'a'}, {src:'c', dst:'a'}]));
   });
@@ -163,14 +163,14 @@ describe('Endpoint', function() {
   it('Compute the intersection', function() {
     var A = [{src:'a', dst:'b'}, {src:'a', dst:'c'}, {src:'b', dst:'a'}];
     var B = [{src:'a', dst:'c'}, {src:'c', dst:'a'}];
-    var C = mail2.srcDstPairIntersection(A, B);
+    var C = endpoint.srcDstPairIntersection(A, B);
     assert(eq(C, [{src:'a', dst:'c'}]));
   });
 
   it('Compute the difference', function() {
     var A = [{src:'a', dst:'b'}, {src:'a', dst:'c'}, {src:'b', dst:'a'}];
     var B = [{src:'a', dst:'c'}, {src:'c', dst:'a'}];
-    var C = mail2.srcDstPairDifference(A, B);
+    var C = endpoint.srcDstPairDifference(A, B);
     assert(eq(C, [{src:'a', dst:'b'}, {src:'b', dst:'a'}]));
   });
 

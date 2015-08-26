@@ -5,7 +5,7 @@ var assert = require('assert');
 var path = require('path');
 var pathIsAbsolute = require('path-is-absolute');
 var mkdirp = require('mkdirp');
-var mail2 = require('./mail2.sqlite.js');
+var endpoint = require('./endpoint.sqlite.js');
 var msgpack = require('msgpack-js');
 
 function packFile(file) {
@@ -43,7 +43,7 @@ function unpackFiles(root, packedFileArray) {
 }
 
 function sendFiles(ep, dstName, fileArray) {
-  assert(mail2.isEndpoint(ep));
+  assert(endpoint.isEndpoint(ep));
   return packFiles(fileArray).then(function(packed) {
     return Q.ninvoke(ep, 'sendPacket', dstName, common.files,
                      msgpack.encode(packed));

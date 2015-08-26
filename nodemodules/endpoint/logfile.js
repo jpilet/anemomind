@@ -1,6 +1,6 @@
 // File transfer facilities
 var common = require('./common.js');
-var mb = require('./mail2.sqlite.js');
+var mb = require('./endpoint.sqlite.js');
 var fs = require('fs');
 var assert = require('assert');
 

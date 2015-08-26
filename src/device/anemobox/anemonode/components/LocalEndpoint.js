@@ -1,7 +1,7 @@
-var mb = require('mail/mail2.sqlite.js');
-var naming = require('mail/naming.js');
-var file = require('mail/logfile.js');
-var schema = require('mail/endpoint-schema.js');
+var mb = require('endpoint/endpoint.sqlite.js');
+var naming = require('endpoint/naming.js');
+var file = require('endpoint/logfile.js');
+var schema = require('endpoint/endpoint-schema.js');
 var mkdirp = require('mkdirp');
 var boxId = require('./boxId.js');
 var config = require('./config.js');
@@ -15,16 +15,16 @@ var mailRoot = '/media/sdcard/mail2/';
 var doRemoveLogFiles = false;
 var sentName = 'sentlogs';
 var closeTimeoutMillis = 30000;
-var script = require('mail/script.js');
+var script = require('endpoint/script.js');
 var triggerSync = require('./sync.js').triggerSync;
-var endpointes = {};
-var files = require('mail/files.js');
+var endpoints = {};
+var files = require('endpoint/files.js');
 
 var estimator = require('./estimator.js');
 
 function endpointCount() {
   var counter = 0;
-  for (var k in endpointes) {
+  for (var k in endpoints) {
     counter++;
   }
   return counter;
@@ -60,11 +60,11 @@ function registerEndpoint(endpointName, endpoint) {
       }
     })})
   };
-  endpointes[endpointName] = endpointData;
+  endpoints[endpointName] = endpointData;
   if (endpointCount() > 1) {
     console.log('WARNING: More than one end point endpoint opened.');
-    console.log('Opened endpointes:');
-    for (var k in endpointes) {
+    console.log('Opened endpoints:');
+    for (var k in endpoints) {
       console.log('  ' + k);
     }
   }
@@ -112,7 +112,7 @@ function openNewEndpoint(endpointName, cb) {
 // be the one obtained from 'getName'.
 function openWithName(endpointName, cb) {
   endpointName = endpointName.trim();
-  var data = endpointes[endpointName];
+  var data = endpoints[endpointName];
   if (data) {
     assert(data.endpoint);
     data.endpoint.open(function(err, db) {

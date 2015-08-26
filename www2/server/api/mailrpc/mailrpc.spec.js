@@ -1,16 +1,15 @@
 'use strict';
-
 var should = require('should');
 var assert = require('assert');
 var app = require('../../app');
 var request = require('supertest');
 var User = require('../user/user.model');
 var Boat = require('../boat/boat.model');
-var naming = require('mail/naming.js');
-var common = require('mail/common.js');
+var naming = require('endpoint/naming.js');
+var common = require('endpoint/common.js');
 var fs = require('fs');
-var file = require('mail/logfile.js');
-var coder = require('mail/json-coder.js');
+var file = require('endpoint/logfile.js');
+var coder = require('endpoint/json-coder.js');
 
 
 describe('/api/mailrpc', function() {

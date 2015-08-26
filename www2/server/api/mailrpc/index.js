@@ -2,7 +2,7 @@
 
 var express = require('express');
 var router = express.Router();
-var rpc = require('mail/mail2.httpserver.js');
+var rpc = require('endpoint/endpoint.httpserver.js');
 var auth = require('../../auth/auth.service');
 var ep = require('./endpoint.js');
 

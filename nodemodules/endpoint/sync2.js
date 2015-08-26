@@ -1,4 +1,4 @@
-var mail2 = require('./mail2.sqlite.js');
+var endpoint = require('./endpoint.sqlite.js');
 var bigint = require('./bigint.js');
 var common = require('./common.js');
 var assert = require('assert');
@@ -79,12 +79,12 @@ function getCommonSrcDstPairs(a, b, cb) {
         if (err) {
           cb(err);
         } else {
-          var abPairs = mail2.srcDstPairUnion(aPairs, bPairs);
+          var abPairs = endpoint.srcDstPairUnion(aPairs, bPairs);
           if (aPairs.isLeaf) {
-            abPairs = mail2.filterByName(abPairs, a.name);
+            abPairs = endpoint.filterByName(abPairs, a.name);
           }
           if (bPairs.isLeaf) {
-            abPairs = mail2.filterByName(abPairs, b.name);
+            abPairs = endpoint.filterByName(abPairs, b.name);
           }
           cb(null, abPairs);
         }

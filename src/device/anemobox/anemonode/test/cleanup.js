@@ -1,9 +1,9 @@
-var mb = require('mail/mail2.sqlite.js');
+var mb = require('endpoint/endpoint.sqlite.js');
 var lmb = require('../components/LocalEndpoint.js');
 var config = require('../components/config.js');
 var ensureConfig = require('./EnsureConfig.js');
 var fs = require('fs');
-var sync = require('mail/sync2.js');
+var sync = require('endpoint/sync2.js');
 var assert = require('assert');
 
 function makeLogFilename(index) {

@@ -1,8 +1,8 @@
 // This file exports a single function, fillTable, that can be used to fille the rpcFuncTable of
 // rpcble.js. It is used by RpcEndpoint.js. The reason for putting this code in its own file
 // is to facilitate unit testing.
-var schema = require('mail/endpoint-schema.js');
-var coder = require("mail/json-coder.js");
+var schema = require('endpoint/endpoint-schema.js');
+var coder = require("endpoint/json-coder.js");
 var mb = require("./LocalEndpoint.js");
 
 // Conveniency function for

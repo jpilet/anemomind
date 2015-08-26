@@ -2,7 +2,7 @@ var files = require('../files.js');
 var fs = require('fs');
 var assert = require('assert');
 var Q = require('q');
-var mail2 = require('../mail2.sqlite.js');
+var endpoint = require('../endpoint.sqlite.js');
 var sync2 = require('../sync2.js');
 var common = require('../common.js');
 var epschema = require('../endpoint-schema.js');
@@ -34,8 +34,8 @@ describe('files', function() {
 
   it('should transfer files', function(done) {
     Q.all([
-      Q.nfcall(mail2.tryMakeAndResetEndpoint, '/tmp/epa.db', 'a'),
-      Q.nfcall(mail2.tryMakeAndResetEndpoint, '/tmp/epb.db', 'b')
+      Q.nfcall(endpoint.tryMakeAndResetEndpoint, '/tmp/epa.db', 'a'),
+      Q.nfcall(endpoint.tryMakeAndResetEndpoint, '/tmp/epb.db', 'b')
       ]).then(function(eps) {
         var a = eps[0];
         var b = eps[1];

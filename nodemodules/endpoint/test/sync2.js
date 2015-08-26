@@ -1,15 +1,15 @@
 var sync2 = require('../sync2.js');
-var mail2 = require('../mail2.sqlite.js');
+var endpoint = require('../endpoint.sqlite.js');
 var assert = require('assert');
 var eq = require('deep-equal-ident');
 var common = require('../common.js');
 
 function makeA(cb) {
-  mail2.tryMakeAndResetEndpoint('/tmp/epa.db', 'a', cb);
+  endpoint.tryMakeAndResetEndpoint('/tmp/epa.db', 'a', cb);
 }
 
 function makeB(cb) {
-  mail2.tryMakeAndResetEndpoint('/tmp/epb.db', 'b', cb);
+  endpoint.tryMakeAndResetEndpoint('/tmp/epb.db', 'b', cb);
 }
 
 function makeAB(cb) {
@@ -122,7 +122,7 @@ describe('sync2', function() {
   it('syncchain', function(done) {
     makeAB(function(err, a, b) {
       assert(!err);
-      mail2.tryMakeAndResetEndpoint('/tmp/epc.db', 'c', function(err, c) {
+      endpoint.tryMakeAndResetEndpoint('/tmp/epc.db', 'c', function(err, c) {
         var packets = [];
         c.addPacketHandler(function(endpoint, packet) {packets.push(packet);});
         assert(!err);

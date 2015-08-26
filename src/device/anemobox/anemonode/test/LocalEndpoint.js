@@ -1,12 +1,12 @@
 var lmb = require('../components/LocalEndpoint.js');
 var assert = require('assert');
 var fs = require('fs');
-var file = require('mail/logfile.js');
+var file = require('endpoint/logfile.js');
 var ensureConfig = require('./EnsureConfig.js');
 var mkdirp = require('mkdirp');
 var Q = require('q');
 var config = require('../components/config.js');
-var mail2 = require('mail/mail2.sqlite.js');
+var mail2 = require('endpoint/endpoint.sqlite.js');
 
 describe('LocalEndpoint', function() {
   it(

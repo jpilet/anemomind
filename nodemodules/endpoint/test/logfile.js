@@ -1,6 +1,6 @@
 var assert = require('assert');
 var file = require('../logfile.js');
-var mb = require('../mail2.sqlite.js');
+var mb = require('../endpoint.sqlite.js');
 var fs = require('fs');
 var Q = require('q');
 var common = require('../common.js');
