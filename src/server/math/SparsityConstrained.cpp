@@ -10,6 +10,10 @@
 #include <server/common/LineKM.h>
 #include <Eigen/SparseQR>
 
+#include <server/plot/extra.h>
+#include <server/common/ArrayIO.h>
+#include <server/common/string.h>
+
 namespace sail {
 namespace SparsityConstrained {
 
@@ -124,11 +128,17 @@ Eigen::SparseMatrix<double> makeWeightMatrix(
     int aRows,
     Array<Spani> allConstraintGroups, int activeCount,
   const Eigen::VectorXd &residualVector, double avgWeight, double minResidual) {
+
   Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(allConstraintGroups,
     residualVector);
+
+  auto thresholdedResiduals = threshold(residualsPerConstraint, activeCount, minResidual);
   Arrayd weights = distributeWeights(
-      threshold(residualsPerConstraint, activeCount, minResidual),
+      thresholdedResiduals,
       avgWeight);
+
+  std::cout << EXPR_AND_VAL_AS_STRING(weights) << std::endl;
+
   if (weights.empty()) {
     return Eigen::SparseMatrix<double>();
   }
@@ -172,6 +182,19 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorX
     Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> > decomp(WA);
     X = decomp.solve(WB);
     residuals = product(A, X) - B;
+
+    if (true) {
+      Arrayd time(X.size());
+      for (int i = 0; i < time.size(); i++) {
+        time[i] = i;
+      }
+      GnuplotExtra plot;
+      plot.set_style("lines");
+      plot.plot_xy(time, Arrayd(time.size(), B.data()));
+      plot.plot_xy(time, Arrayd(time.size(), X.data()));
+      plot.show();
+    }
+
   }
   return X;
 }
