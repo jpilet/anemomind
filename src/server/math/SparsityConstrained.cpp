@@ -6,6 +6,7 @@
 #include <server/math/SparsityConstrained.h>
 #include <cmath>
 #include <server/common/math.h>
+#include <server/math/BandMat.h>
 
 namespace sail {
 namespace SparsityConstrained {
@@ -43,8 +44,35 @@ Array<Residual> buildResidualsPerConstraint(Array<Spani> allConstraintGroups,
   return dst;
 }
 
-Arrayd distributeWeightsSub(Array<Residual> residuals, double avgWeight, double minResidual) {
 
+bool allPositive(Arrayd X) {
+  return X.all([](double x) {return x > 0;});
+}
+
+// Minimize w.r.t. W: |diag(W)*sqrt(residuals)|^2 subject to average(W) = avgWeight.
+// All residuals must be positive.
+Arrayd distributeWeightsSub(Arrayd residuals, double avgWeight) {
+  assert(allPositive(residuals));
+  int n = residuals.size();
+  int m = n - 1;
+  BandMat<double> AtA(m, m, 1, 1);
+  MDArray2d AtB(m, 1);
+  for (int i = 0; i < m; i++) {
+    auto a = residuals[i];
+    auto b = residuals[i+1];
+    AtA(i, i) = a + b;
+    AtB(i, 0) = -avgWeight*(a - b);
+  }
+  for (int i = 0; i < m-1; i++) {
+    int next = i+1;
+    auto r = residuals[next];
+    AtA(i, next) = -r;
+    AtA(next, i) = -r;
+  }
+  if (bandMatGaussElimDestructive(&AtA, &AtB)) {
+    return AtB.getStorage();
+  }
+  return Arrayd();
 }
 
 Eigen::SparseMatrix<double> distributeWeights(Array<Spani> allConstraintGroups, int activeCount,
