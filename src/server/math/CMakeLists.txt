@@ -290,6 +290,7 @@ cxx_test(math_SparsityConstrainedTest
          SparsityConstrainedTest.cpp
          gtest_main
          math_SparsityConstrained
+         plot_gnuplot
         )
 
 add_subdirectory(geometry)
