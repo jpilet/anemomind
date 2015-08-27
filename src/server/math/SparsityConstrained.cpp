@@ -7,9 +7,12 @@
 #include <cmath>
 #include <server/common/math.h>
 #include <server/math/BandMat.h>
+#include <server/common/LineKM.h>
 
 namespace sail {
 namespace SparsityConstrained {
+
+typedef Eigen::Triplet<double> Triplet;
 
 struct Residual {
  Spani span;
@@ -51,7 +54,7 @@ bool allPositive(Arrayd X) {
 
 // Minimize w.r.t. W: |diag(W)*sqrt(residuals)|^2 subject to average(W) = avgWeight.
 // All residuals must be positive.
-Arrayd distributeWeightsSub(Arrayd residuals, double avgWeight) {
+Arrayd distributeWeights(Arrayd residuals, double avgWeight) {
   assert(allPositive(residuals));
   int n = residuals.size();
   int m = n - 1;
@@ -70,16 +73,63 @@ Arrayd distributeWeightsSub(Arrayd residuals, double avgWeight) {
     AtA(next, i) = -r;
   }
   if (bandMatGaussElimDestructive(&AtA, &AtB)) {
-    return AtB.getStorage();
+    auto lambda = AtB.getStorage();
+    Arrayd weights(n);
+    weights.first() = lambda.first() + avgWeight;
+    for (int i = 0; i < m-1; i++) {
+      weights[i+1] = -lambda[i] + lambda[i+1] + avgWeight;
+    }
+    weights.last() = -lambda.last() + avgWeight;
+    return weights;
   }
   return Arrayd();
 }
 
-Eigen::SparseMatrix<double> distributeWeights(Array<Spani> allConstraintGroups, int activeCount,
+Arrayd threshold(Array<Residual> residuals, int activeCount, double minResidual) {
+  int n = residuals.size();
+  Arrayd Y(n);
+  Y.sliceTo(activeCount).setTo(std::max(minResidual, residuals[activeCount-1].value));
+  for (int i = activeCount; i < n; i++) {
+    Y[i] = std::max(minResidual, residuals[i].value);
+  }
+  return Y;
+}
+
+int countCoefs(Array<Residual> residuals) {
+  int counter = 0;
+  for (auto r: residuals) {
+    counter += r.span.width();
+  }
+  return counter;
+}
+
+Eigen::SparseMatrix<double> makeWeightMatrixSub(int aRows,
+    Array<Residual> residuals, Arrayd weights) {
+  std::vector<Triplet> triplets;
+  triplets.reserve(countCoefs(residuals));
+  for (int i = 0; i < residuals.size(); i++) {
+    auto span = residuals[i].span;
+    auto w = weights[i];
+    for (auto i: span) {
+      triplets.push_back(Triplet(i, i, w));
+    }
+  }
+  Eigen::SparseMatrix<double> W(aRows, aRows);
+  W.setFromTriplets(triplets.begin(), triplets.end());
+  return W;
+}
+
+Eigen::SparseMatrix<double> makeWeightMatrix(
+    int aRows,
+    Array<Spani> allConstraintGroups, int activeCount,
   const Eigen::VectorXd &residualVector, double avgWeight, double minResidual) {
   Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(allConstraintGroups,
     residualVector);
-  Arrayd weights = distributeWeightsSub(residualsPerConstraint, avgWeight, minResidual);
+  Arrayd weights = distributeWeights(
+      threshold(residualsPerConstraint, activeCount, minResidual),
+      avgWeight);
+  std::vector<Triplet> triplets;
+  return makeWeightMatrixSub(aRows, residualsPerConstraint, weights);
 }
 
 
@@ -107,7 +157,7 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorX
   LineKM logWeights(0, settings.iters-1, log(settings.initialWeight), log(settings.finalWeight));
   for (int i = 0; i < settings.iters; i++) {
     double constraintWeight = exp(logWeights(i));
-    auto W = distributeWeights(allConstraintGroups, activeCount, residuals,
+    auto W = makeWeightMatrix(A.rows(), allConstraintGroups, activeCount, residuals,
         constraintWeight, settings.minResidual);
     //residuals = product(A, X) - B;
   }

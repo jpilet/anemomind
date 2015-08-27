@@ -14,6 +14,11 @@
 namespace sail {
 namespace SparsityConstrained {
 
+
+// Minimize w.r.t. W: |diag(W)*sqrt(residuals)|^2 subject to average(W) = avgWeight.
+// All residuals must be positive.
+Arrayd distributeWeights(Arrayd residuals, double avgWeight);
+
 struct Settings {
  int iters = 30;
  double initialWeight = 0.1;
