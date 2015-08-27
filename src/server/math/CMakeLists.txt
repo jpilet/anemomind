@@ -286,6 +286,11 @@ add_library(math_SparsityConstrained
             SparsityConstrained.h
             SparsityConstrained.cpp
            )
+cxx_test(math_SparsityConstrainedTest
+         SparsityConstrainedTest.cpp
+         gtest_main
+         math_SparsityConstrained
+        )
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)

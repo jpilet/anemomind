@@ -8,6 +8,7 @@
 #include <server/common/math.h>
 #include <server/math/BandMat.h>
 #include <server/common/LineKM.h>
+#include <Eigen/SparseQR>
 
 namespace sail {
 namespace SparsityConstrained {
@@ -128,7 +129,10 @@ Eigen::SparseMatrix<double> makeWeightMatrix(
   Arrayd weights = distributeWeights(
       threshold(residualsPerConstraint, activeCount, minResidual),
       avgWeight);
-  std::vector<Triplet> triplets;
+  if (weights.empty()) {
+    return Eigen::SparseMatrix<double>();
+  }
+  assert(weights.size() == residualsPerConstraint.size());
   return makeWeightMatrixSub(aRows, residualsPerConstraint, weights);
 }
 
@@ -153,14 +157,23 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorX
   Array<Spani> allConstraintGroups, int activeCount, Settings settings) {
   int rows = A.rows();
   assert(rows == B.rows());
-  auto residuals = Eigen::VectorXd::Constant(rows, 1.0);
+  Eigen::VectorXd residuals = Eigen::VectorXd::Constant(rows, 1.0);
+  Eigen::VectorXd X;
   LineKM logWeights(0, settings.iters-1, log(settings.initialWeight), log(settings.finalWeight));
   for (int i = 0; i < settings.iters; i++) {
     double constraintWeight = exp(logWeights(i));
     auto W = makeWeightMatrix(A.rows(), allConstraintGroups, activeCount, residuals,
         constraintWeight, settings.minResidual);
-    //residuals = product(A, X) - B;
+    if (W.nonZeros() == 0) {
+      return X;
+    }
+    Eigen::SparseMatrix<double> WA = W*A;
+    Eigen::VectorXd WB = product(W, B);
+    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> > decomp(WA);
+    X = decomp.solve(WB);
+    residuals = product(A, X) - B;
   }
+  return X;
 }
 
 
