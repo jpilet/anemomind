@@ -157,6 +157,8 @@ class FilteredNavData {
   TimeStamp timeOffset() const {
     return _timeOffset;
   }
+
+  Array<Duration<double> > timesSinceOffset() const;
  private:
   TimeStamp _timeOffset;
   UniformSamples<Angle<double> > _awa, _magHdg, _gpsBearing;

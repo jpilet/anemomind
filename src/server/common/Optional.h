@@ -70,6 +70,13 @@ class Optional {
     }
     return other;
   }
+
+  bool isNan() const {
+    if (_defined) {
+      return genericIsNan(_value);
+    }
+    return true;
+  }
  private:
   bool _defined;
   T _value;
