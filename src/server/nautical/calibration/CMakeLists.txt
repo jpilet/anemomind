@@ -5,6 +5,7 @@ add_library(nautical_calibration_LinearCalibration
 
 target_link_libraries(nautical_calibration_LinearCalibration
                       nautical_nav
+                      superlu
                      )
            
 cxx_test(nautical_calibration_LinearCalibrationTest

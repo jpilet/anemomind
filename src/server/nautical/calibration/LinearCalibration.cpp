@@ -4,6 +4,9 @@
  */
 
 #include <server/nautical/calibration/LinearCalibration.h>
+#include <armadillo>
+
+
 
 namespace sail {
 namespace LinearCalibration {
@@ -34,7 +37,8 @@ void initializeLinearParameters(bool withOffset, double *dst2or4) {
   }
 }
 
-
+void armaTest() {
+}
 
 }
 }

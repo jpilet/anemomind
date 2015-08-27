@@ -50,7 +50,6 @@ endif ()
 find_package(Protobuf REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system iostreams filesystem)
 
-
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_definitions("-DON_SERVER")

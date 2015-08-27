@@ -9,6 +9,9 @@
 #include <device/Arduino/libraries/Corrector/Corrector.h>
 #include <armadillo>
 
+#include <Eigen/SparseCore>
+#include <Eigen/SparseQR>
+
 using namespace sail;
 
 
@@ -71,4 +74,24 @@ TEST(LinearCalibrationTest, TestWind) {
     static_assert(8 == LinearCalibration::calcQuadFormParamCount(true, 2), "Wrong count");
     EXPECT_NEAR(Q.eval(x), 0.0, 1.0e-6);
   }
+}
+
+TEST(LinearCalibrationTest, Sparse) {
+  typedef Eigen::Triplet<double> T;
+  std::vector<T> triplets(3);
+  triplets[0] = T(0, 0, 1.0);
+  triplets[1] = T(1, 1, 2.0);
+  triplets[2] = T(2, 2, 4.0);
+  Eigen::SparseMatrix<double> A(3, 3);
+  A.setFromTriplets(triplets.begin(), triplets.end());
+  Eigen::MatrixXd B(3, 1);
+  B(0, 0) = 9;
+  B(1, 0) = 8;
+  B(2, 0) = 64;
+  // http://eigen.tuxfamily.org/dox/group__OrderingMethods__Module.html
+  Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> > decomp(A);
+  Eigen::MatrixXd X = decomp.solve(B);
+  EXPECT_NEAR(X(0, 0), 9.0, 1.0e-9);
+  EXPECT_NEAR(X(1, 0), 4.0, 1.0e-9);
+  EXPECT_NEAR(X(2, 0), 16.0, 1.0e-9);
 }
