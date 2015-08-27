@@ -10,10 +10,6 @@
 #include <server/common/LineKM.h>
 #include <Eigen/SparseQR>
 
-#include <server/plot/extra.h>
-#include <server/common/ArrayIO.h>
-#include <server/common/string.h>
-
 namespace sail {
 namespace SparsityConstrained {
 
@@ -108,23 +104,27 @@ int countCoefs(Array<Residual> residuals) {
   return counter;
 }
 
-Eigen::SparseMatrix<double> makeWeightMatrixSub(int aRows,
+typedef Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> DiagMat;
+
+DiagMat makeWeightMatrixSub(int aRows,
     Array<Residual> residuals, Arrayd weights) {
-  std::vector<Triplet> triplets;
-  triplets.reserve(countCoefs(residuals));
+
+  DiagMat W(aRows);
+  W.setIdentity();
+  auto &v = W.diagonal();
   for (int i = 0; i < residuals.size(); i++) {
     auto span = residuals[i].span;
     auto w = weights[i];
     for (auto i: span) {
-      triplets.push_back(Triplet(i, i, w));
+      v(i) = w;
     }
   }
-  Eigen::SparseMatrix<double> W(aRows, aRows);
-  W.setFromTriplets(triplets.begin(), triplets.end());
   return W;
 }
 
-Eigen::SparseMatrix<double> makeWeightMatrix(
+
+
+DiagMat makeWeightMatrix(
     int aRows,
     Array<Spani> allConstraintGroups, int activeCount,
   const Eigen::VectorXd &residualVector, double avgWeight, double minResidual) {
@@ -137,10 +137,8 @@ Eigen::SparseMatrix<double> makeWeightMatrix(
       thresholdedResiduals,
       avgWeight);
 
-  std::cout << EXPR_AND_VAL_AS_STRING(weights) << std::endl;
-
   if (weights.empty()) {
-    return Eigen::SparseMatrix<double>();
+    return DiagMat();
   }
   assert(weights.size() == residualsPerConstraint.size());
   return makeWeightMatrixSub(aRows, residualsPerConstraint, weights);
@@ -153,7 +151,6 @@ Eigen::SparseMatrix<double> makeWeightMatrix(
 Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &X) {
   assert(A.cols() == X.size());
   Eigen::VectorXd Y = Eigen::VectorXd::Zero(A.rows());
-  Y(0) = 3;
   for (int k = 0; k < A.outerSize(); ++k) {
     for (Eigen::SparseMatrix<double>::InnerIterator it(A, k); it; ++it) {
       Y(it.row()) += it.value()*X(it.col());
@@ -161,6 +158,8 @@ Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::Vecto
   }
   return Y;
 }
+
+typedef Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> > Decomp;
 
 
 Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
@@ -174,27 +173,14 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorX
     double constraintWeight = exp(logWeights(i));
     auto W = makeWeightMatrix(A.rows(), allConstraintGroups, activeCount, residuals,
         constraintWeight, settings.minResidual);
-    if (W.nonZeros() == 0) {
+    if (W.size() == 0) {
       return X;
     }
     Eigen::SparseMatrix<double> WA = W*A;
-    Eigen::VectorXd WB = product(W, B);
-    Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> > decomp(WA);
+    Eigen::VectorXd WB = W*B; //product(W, B);
+    Decomp decomp(WA);
     X = decomp.solve(WB);
     residuals = product(A, X) - B;
-
-    if (true) {
-      Arrayd time(X.size());
-      for (int i = 0; i < time.size(); i++) {
-        time[i] = i;
-      }
-      GnuplotExtra plot;
-      plot.set_style("lines");
-      plot.plot_xy(time, Arrayd(time.size(), B.data()));
-      plot.plot_xy(time, Arrayd(time.size(), X.data()));
-      plot.show();
-    }
-
   }
   return X;
 }

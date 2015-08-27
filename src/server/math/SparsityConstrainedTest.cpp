@@ -27,36 +27,59 @@ TEST(SparsityConstrained, DistributeWeights) {
 }
 
 TEST(SparsityConstrained, SignalFit) {
-  Arrayd noisySignal(300);
-  Arrayd time(300);
-  for (int i = 0; i < 300; i++) {
-    noisySignal[i] = (i < 100 || i > 200? 1 : 0) + 0.1*sin(34*i*i);
+  // Fit a line to a signal subject to sparsity constraints.
+  // We allow for exactly two discontinuities in the fitted signal.
+
+
+  // Build the noisy signal
+  Arrayd noisySignal(30);
+  Arrayd time(30);
+  Arrayd gt(30);
+  for (int i = 0; i < 30; i++) {
+    gt[i] = (i < 10 || i > 20? 1 : 0);
+    noisySignal[i] = gt[i] + 0.1*sin(34*i*i);
     time[i] = i;
   }
 
-  int rows = 300 + 299;
+  // Build the A matrix and the B vector.
+  // The upper part of A is an identity matrix,
+  // and the upper part of B is the noisy signal.
+  // This corresponding to fitting our denoised signal to the data.
+  // The lower part of A and B are 29 regularization equations, among which
+  // 27 should evaluate to 0. Our solver will optimize the choice of the remaining
+  // two nonzero regularity equations.
+  int rows = 30 + 29;
   Eigen::VectorXd B = Eigen::VectorXd::Zero(rows);
   typedef Eigen::Triplet<double> Triplet;
   std::vector<Triplet> triplets;
-  triplets.reserve(300 + 2*299);
-  for (int i = 0; i < 300; i++) {
+  triplets.reserve(30 + 2*29);
+  for (int i = 0; i < 30; i++) {
     triplets.push_back(Triplet(i, i, 1.0));
     B(i) = noisySignal[i];
   }
-  Array<Spani> cst(299);
-  for (int i = 0; i < 299; i++) {
-    int row = 300 + i;
+  Array<Spani> cst(29);
+  for (int i = 0; i < 29; i++) {
+    int row = 30 + i;
     triplets.push_back(Triplet(row, i, 1.0));
     triplets.push_back(Triplet(row, i+1, -1.0));
     cst[i] = Spani(row, row+1);
   }
-  Eigen::SparseMatrix<double> A(rows, 300);
+  Eigen::SparseMatrix<double> A(rows, 30);
   A.setFromTriplets(triplets.begin(), triplets.end());
   SparsityConstrained::Settings settings;
-  auto X = SparsityConstrained::solve(A, B, cst, 297, settings);
+  settings.iters = 8;
 
+  // Since we have a total of 29 constraints, and we allow
+  // for two discontinuities (that will be passive constraints),
+  // there remains 27 active constraints.
+  auto X = SparsityConstrained::solve(A, B, cst, 27, settings);
+  for (int i = 0; i < 30; i++) {
+    EXPECT_NEAR(X(i), gt[i], 0.02);
+  }
 
-  if (true) {
+  // This will show the noisy signal and the denoised signal.
+  constexpr bool visualize = false;
+  if (visualize) {
     GnuplotExtra plot;
     plot.set_style("lines");
     plot.plot_xy(time, noisySignal);

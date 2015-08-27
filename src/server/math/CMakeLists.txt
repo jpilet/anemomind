@@ -287,10 +287,7 @@ add_library(math_SparsityConstrained
             SparsityConstrained.cpp            
            )
 
-target_link_libraries(math_SparsityConstrained
-                      plot_gnuplot
-                     )           
-           
+
 cxx_test(math_SparsityConstrainedTest
          SparsityConstrainedTest.cpp
          gtest_main
