@@ -69,10 +69,7 @@ std::string timeToLiteral(TimeStamp t) {
 Array<NavField> getNavFields(std::string f) {
   auto format = (f == "csv"? CSV : (f == "json"? JSON : MATLAB));
   return Array<NavField>{
-    NavField{"Epoch (milliseconds since 1970)", [=](const Nav &x) {
-      return timeToLiteral(x.time());
-    }},
-    NavField{"Time (mm-dd-yyyy hh:mm:ss)", [=](const Nav &x) {
+    NavField{"DATE/TIME (UTC)", [=](const Nav &x) {
       return timeToLiteralHumanReadable(x.time(), format);
     }},
     NavField{"AWA (degrees)", [=](const Nav &x) {
@@ -80,6 +77,18 @@ Array<NavField> getNavFields(std::string f) {
     }},
     NavField{"AWS (knots)", [=](const Nav &x) {
       return velocityToLiteral(x.aws(), format);
+    }},
+    NavField{"TWA (degrees)", [=](const Nav &x) {
+      auto angle = (x.hasTrueWindOverGround() ?
+                    x.trueWindOverGround().angle()
+                    : x.externalTwa());
+      return angleToLiteral(angle, format);
+    }},
+    NavField{"TWS (knots)", [=](const Nav &x) {
+      auto speed = (x.hasTrueWindOverGround() ?
+                    x.trueWindOverGround().norm()
+                    : x.externalTws());
+      return velocityToLiteral(speed, format);
     }},
     NavField{"MagHdg (degrees)", [=](const Nav &x) {
       return angleToLiteral(x.magHdg(), format);
