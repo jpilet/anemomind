@@ -7,8 +7,6 @@ var server = request(app);
 var should = require('should');
 var assert = require('assert');
 
-var authorization = 'Bearer not in use for the anemobox, right?';
-
 describe('httpsync', function() {
   it('Get the packet count', function(done) {
     lep.getName(function(lname) {
