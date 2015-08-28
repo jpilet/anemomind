@@ -8,6 +8,7 @@
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/math/QuadForm.h>
+#include <server/math/SparsityConstrained.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -64,6 +65,50 @@ void makeTrueWindMatrixExpression(const InstrumentAbstraction &nav,
   makeCalibratedMotionMatrix(absoluteDirectionOfWind, nav.aws(), withOffset, dstA, unit);
   makeGpsOffset(getGpsMotion(nav), dstB, unit);
 }
+
+constexpr int calcTrueWindParamCount(bool withOffset) {
+  return (withOffset? 4 : 2);
+}
+
+constexpr int calcTrueCurrentParamCount(bool withOffset) {
+  return (withOffset? 4 : 2);
+}
+
+
+struct FlowMatrices {
+ MDArray2d A, B;
+};
+
+template <typename InstrumentAbstraction>
+FlowMatrices makeTrueWindMatrices(Array<InstrumentAbstraction> navs, bool withOffset) {
+  int n = navs.size();
+  int paramCount = calcTrueWindParamCount(withOffset);
+  MDArray2d A(2*n, paramCount);
+  MDArray2d B(2*n, 1);
+  for (int i = 0; i < n; i++) {
+    int offset = 2*i;
+    auto a = A.sliceRowBlock(i, 2);
+    auto b = B.sliceRowBlock(i, 2);
+    makeTrueWindMatrixExpression(navs[i], withOffset, &a, &b);
+  }
+  return FlowMatrices{A, B};
+}
+
+template <typename InstrumentAbstraction>
+FlowMatrices makeTrueCurrentMatrices(Array<InstrumentAbstraction> navs, bool withOffset) {
+  int n = navs.size();
+  int paramCount = calcTrueWindParamCount(withOffset);
+  MDArray2d A(2*n, paramCount);
+  MDArray2d B(2*n, 1);
+  for (int i = 0; i < n; i++) {
+    int offset = 2*i;
+    auto a = A.sliceRowBlock(i, 2);
+    auto b = B.sliceRowBlock(i, 2);
+    makeTrueCurrentMatrixExpression(navs[i], withOffset, &a, &b);
+  }
+  return FlowMatrices{A, B};
+}
+
 
 /*
  * Use this function to express the true current C as a function of the parameters X:
@@ -123,6 +168,28 @@ QuadForm<calcQuadFormParamCount(withOffset, N), 1> makeQuadForm(
   return QuadForm<n, 1>::fit(x, &bx) + QuadForm<n, 1>::fit(y, &by);
 }
 
+
+
+
+
+
+
+/*
+ * Linear calibration with sparsity constraints.
+ */
+struct Settings {
+ int regOrder = 3;
+ SparsityConstrained::Settings spcst;
+ Duration<double> nonZeroPeriod = Duration<double>::seconds(6);
+};
+
+struct Results {
+ Array<HorizontalMotion<double> > recoveredFlow;
+ Arrayd parameters;
+};
+
+Results calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
+    Settings settings);
 
 }
 }

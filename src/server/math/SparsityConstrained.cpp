@@ -177,9 +177,8 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorX
       return X;
     }
     Eigen::SparseMatrix<double> WA = W*A;
-    Eigen::VectorXd WB = W*B; //product(W, B);
-    Decomp decomp(WA);
-    X = decomp.solve(WB);
+    Eigen::VectorXd WB = W*B;
+    X = Decomp(WA).solve(WB);
     residuals = product(A, X) - B;
   }
   return X;
