@@ -25,6 +25,6 @@ module.exports.index = function(req, res) {
   if (table[fname]) {
     handleCall(table[fname], req, res);
   } else {
-    res.status(500).json('No such function: ' + fname);
+    res.status(404).json('No such function: ' + fname);
   }
 }

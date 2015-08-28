@@ -49,7 +49,7 @@ describe('httpsync', function() {
     server
       .post('/api/rpc/ep_functionThatHasNotBeenRegistered')
       .send({name: 'name', arg: 334})
-      .expect(500)
+      .expect(404)
       .end(function(err, res) {
         done();
       });
