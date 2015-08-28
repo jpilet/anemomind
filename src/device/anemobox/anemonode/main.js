@@ -11,8 +11,13 @@ var withSetTime = true;
 var withBT = true;
 var echoGpsOnNmea = false;
 var withEstimator = true;
+var withHttp = true;
 
 var config = require('./components/config');
+
+if (withHttp) {
+  var http = require('./components/http');
+}
 
 if (withLogger) {
   var logger = require('./components/logger');
