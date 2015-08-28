@@ -265,7 +265,7 @@ function withNamedLocalEndpoint(name, cbOperationOnEndpoint, cbResults) {
   }, cbOperationOnEndpoint, cbResults);
 }
 
-function withNamedLocalEndpointError(name, cbOperationOnEndpoint, cbResults) {
+function withNamedLocalEndpointValidated(name, cbOperationOnEndpoint, cbResults) {
   getName(function(localName) {
     if (localName.trim() == name.trim()) {
       withNamedLocalEndpoint(name, cbOperationOnEndpoint, cbResults);
@@ -321,5 +321,6 @@ module.exports.getServerSideEndpointName = getServerSideEndpointName;
 module.exports.listLogFilesNotPosted = listLogFilesNotPosted;
 module.exports.withLocalEndpoint = withLocalEndpoint;
 module.exports.withNamedLocalEndpoint = withNamedLocalEndpoint;
-module.exports.withNamedLocalEndpointError = withNamedLocalEndpointError;
+module.exports.withNamedLocalEndpointValidated
+  = withNamedLocalEndpointValidated;
 module.exports.postRemainingLogFiles = postRemainingLogFiles;
