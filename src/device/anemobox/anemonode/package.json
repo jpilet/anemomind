@@ -4,7 +4,7 @@
   "main": "./build/Release/anemonode",
   "dependencies": {
     "bleno": "^0.2.0",
-    "express": "^4.13.3",
+    "body-parser": "^1.13.3",
     "endpoint": "file:../../../../nodemodules/endpoint",
     "express": "^4.13.3",
     "mkdirp": "^0.5.0",
