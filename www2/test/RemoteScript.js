@@ -1,13 +1,13 @@
 var testPath = '/tmp/mailboxes/boat123456789012345678901234.mailsqlite.db';
 var assert = require('assert');
-var naming = require('mail/naming.js');
+var naming = require('endpoint/naming.js');
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
 var makeScriptResponseHandler = require('../server/api/boxexec/response-handler.js');
 var common = require('../utilities/common.js');
 var path = require('path');
-var script = require('mail/script.js');
-var mb = require('mail/mail2.sqlite.js');
-var sync = require('mail/sync2.js');
+var script = require('endpoint/script.js');
+var mb = require('endpoint/endpoint.sqlite.js');
+var sync = require('endpoint/sync2.js');
 var mkdirp = require('mkdirp');
 
 common.init();
