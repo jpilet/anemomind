@@ -6,7 +6,7 @@ var rpc = require('endpoint/endpoint.httpserver.js');
 var ep = require('../../../LocalEndpoint.js');
 
 function withEndpoint(endpointName, req, cbOperation, done) {
-  ep.withNamedLocalEndpoint(endpointName, cbOperation, done);
+  ep.withNamedLocalEndpointError(endpointName, cbOperation, done);
 }
 
 rpc.bindMethodHandlers(withEndpoint, router);

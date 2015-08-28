@@ -12,6 +12,7 @@
     "nan": "^1.7.0",
     "q": "^1.4.1",
     "serialport": "^1.6.3",
+    "should": "^7.0.4",
     "supertest": "^1.1.0"
   },
   "devDependencies": {
