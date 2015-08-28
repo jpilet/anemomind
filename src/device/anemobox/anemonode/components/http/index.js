@@ -1,6 +1,9 @@
 var express = require('express');
+var bodyParser = require('body-parser');
 
 var app = express();
+app.use(bodyParser.json());
+
 var server = require('http').createServer(app);
 require('./routes')(app);
 
