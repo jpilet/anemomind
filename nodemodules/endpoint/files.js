@@ -52,7 +52,7 @@ function sendFiles(ep, dstName, fileArray) {
 
 function makePacketHandler(root, cb) {
   if (root == undefined) {
-    console.log('WARNING: In mail/files.js: Root is undefined');
+    console.log('WARNING: In endpoint/files.js: Root is undefined');
     root = "~/files";
   }
   cb = cb || function() {};
