@@ -265,6 +265,18 @@ function withNamedLocalEndpoint(name, cbOperationOnEndpoint, cbResults) {
   }, cbOperationOnEndpoint, cbResults);
 }
 
+function withNamedLocalEndpointValidated(name, cbOperationOnEndpoint, cbResults) {
+  getName(function(localName) {
+    if (localName.trim() == name.trim()) {
+      withNamedLocalEndpoint(name, cbOperationOnEndpoint, cbResults);
+    } else {
+      cbResults(
+        new Error('The local endpoint is named ' + localName + ' but you'
+                  + ' are attempting to access an endpoint named ' + name));
+    }
+  });
+}
+
 function listLogFilesNotPosted(logRoot, cb) {
   withLocalEndpoint(function(endpoint, done) {
     listLogFilesNotPostedForEndpoint(endpoint, logRoot, done);
@@ -309,4 +321,6 @@ module.exports.getServerSideEndpointName = getServerSideEndpointName;
 module.exports.listLogFilesNotPosted = listLogFilesNotPosted;
 module.exports.withLocalEndpoint = withLocalEndpoint;
 module.exports.withNamedLocalEndpoint = withNamedLocalEndpoint;
+module.exports.withNamedLocalEndpointValidated
+  = withNamedLocalEndpointValidated;
 module.exports.postRemainingLogFiles = postRemainingLogFiles;

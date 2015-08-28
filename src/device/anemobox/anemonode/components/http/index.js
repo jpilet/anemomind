@@ -10,3 +10,5 @@ var server = app.listen(80, function () {
 
   console.log('Http server listening on port %s', port);
 });
+
+module.exports = app;

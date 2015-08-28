@@ -1,8 +1,8 @@
-var schemautils = require('mail/schemautils.js');
-var schema = require('mail/endpoint-schema.js');
-var coder = require('mail/json-coder.js');
+var schemautils = require('./schemautils.js');
+var schema = require('./endpoint-schema.js');
+var coder = require('./json-coder.js');
 var assert = require('assert');
-var naming = require('mail/naming.js');
+var naming = require('./naming.js');
 
 // This function is common, irrespective of whether it is a post or get request.
 function callEndpointMethod(withEndpointAccess, endpointName, req, methodName, args, cb) {
@@ -124,11 +124,18 @@ function makeSubpath(method) {
 // Adds a route to the router for a method.
 function bindMethodHandler(withEndpointAccess, router, authenticator, method) {
   assert(schemautils.isValidHttpMethod(method.httpMethod));
-  router[method.httpMethod](
-    makeSubpath(method),
-    authenticator,
-    makeHandler(withEndpointAccess, method)
-  );
+  if (authenticator) {
+    router[method.httpMethod](
+      makeSubpath(method),
+      authenticator,
+      makeHandler(withEndpointAccess, method)
+    );
+  } else {
+    router[method.httpMethod](
+      makeSubpath(method),
+      makeHandler(withEndpointAccess, method)
+    );
+  }
 }
 
 // Adds all routes to the router.
