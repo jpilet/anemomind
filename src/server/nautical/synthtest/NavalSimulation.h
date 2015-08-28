@@ -16,9 +16,9 @@
 #include <device/Arduino/libraries/Corrector/Corrector.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
 #include <server/nautical/FlowErrors.h>
+#include <functional>
 
 namespace sail {
-
 
 /*
  *  Since the PhysicalQuantity types don't feature
@@ -346,16 +346,14 @@ class NavalSimulation {
     NavalSimulation::SimulatedCalibrationResults evaluateFitness(
         Array<CalibratedNav<double> > cnavs) const;
 
-    NavalSimulation::SimulatedCalibrationResults evaluateNoCalibration() const {
-      return evaluateFitness(Corrector<double>());
-    }
+    NavalSimulation::SimulatedCalibrationResults evaluateNoCalibration() const;
 
     Array<HorizontalMotion<double> > trueWindOverGround() const;
     Array<HorizontalMotion<double> > trueCurrentOverGround() const;
 
     void plot() const;
 
-    NavalSimulation::SimulatedCalibrationResults evaluateFitness(const Corrector<double> &corr) const;
+    NavalSimulation::SimulatedCalibrationResults evaluateFitness(const CorrectorFunction &corr) const;
    private:
     BoatSimulationSpecs _specs;
     Array<CorruptedBoatState> _states;

@@ -5,7 +5,7 @@
   "dependencies": {
     "bleno": "^0.2.0",
     "express": "^4.13.3",
-    "mail": "file:../../../../nodemodules/mail",
+    "endpoint": "file:../../../../nodemodules/endpoint",
     "mkdirp": "^0.5.0",
     "mraa": "^0.6.2",
     "msgpack-js": "^0.3.0",

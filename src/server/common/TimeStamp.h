@@ -39,6 +39,7 @@ class TimeStamp {
   bool defined() const;
   bool undefined() const {return !defined();}
 
+  std::string toString(const char *fmt) const;
   std::string toString() const;
 
   // Used by the Json interface

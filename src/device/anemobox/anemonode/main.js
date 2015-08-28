@@ -4,7 +4,7 @@ var nmea0183PortPath = '/dev/ttyMFD1';
 var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
 
-var withLocalMailbox = true;
+var withLocalEndpoint = true;
 var withLogger = true;
 var withGps = true;
 var withSetTime = true;
@@ -23,11 +23,11 @@ if (withLogger) {
   var logger = require('./components/logger');
 }
 
-if (withLocalMailbox) {
-  var localMailbox = require('./components/LocalMailbox.js');
+if (withLocalEndpoint) {
+  var localEndpoint = require('./components/LocalEndpoint.js');
   var sync = require('./components/sync.js');
 
-  localMailbox.postRemainingLogFiles(logRoot, function(err, files) {
+  localEndpoint.postRemainingLogFiles(logRoot, function(err, files) {
     if (err) {
       console.log('Failed to post logfiles at startup:');
       console.log(err);
@@ -78,8 +78,8 @@ if (withSetTime) {
 
 if (withLogger) {
   logger.startLogging(logRoot, logInterval, function(path) {
-    if (withLocalMailbox) {
-      localMailbox.postLogFile(path, function(err, remaining) {
+    if (withLocalEndpoint) {
+      localEndpoint.postLogFile(path, function(err, remaining) {
         if (err) {
           console.log('###### Error posting file located at ' + path + ':');
         } else {
@@ -93,8 +93,8 @@ if (withLogger) {
 
 require('./components/RpcAssignBoat');
 
-if (withLocalMailbox) {
-  var fillTable = require('./components/RpcMailbox.js').fillTable;
+if (withLocalEndpoint) {
+  var fillTable = require('./components/RpcEndpoint.js').fillTable;
   var rpcFuncTable = require('./components/rpcble.js').rpcFuncTable;
   fillTable(rpcFuncTable);
 }

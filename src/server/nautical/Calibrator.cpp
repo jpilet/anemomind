@@ -451,7 +451,7 @@ void Calibrator::simulate(Array<Nav> *navs) const {
     filter.setMagHdgWatSpeed(nav.magHdg(), nav.watSpeed(), nav.time());
     filter.setGps(nav.gpsBearing(), nav.gpsSpeed(), nav.time());
 
-    nav.setTrueWind(
+    nav.setTrueWindOverGround(
         TrueWindEstimator::computeTrueWind(_calibrationValues, filter));
   }
 }
