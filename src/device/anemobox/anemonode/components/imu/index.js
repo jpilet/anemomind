@@ -8,8 +8,8 @@ function listen(cb) {
     return;
   }
 
-  analyzer = spawn('/bin/bash', ['-c', './app_bno055']);
-  analyzer.stdout.pipe(split()).on('data', function(line) {
+  imu = spawn('/bin/bash', ['-c', './app_bno055']);
+  imu.stdout.pipe(split()).on('data', function(line) {
     if (line && line.length > 0) {
       console.log('Parsing: "' + line + '"');
       var obj = JSON.parse(line);
@@ -17,10 +17,9 @@ function listen(cb) {
     }
   });
 
-  analyzer.on('close', function (code) {
-    console.log('analyzer process exited with code ' + code);
+  imu.on('close', function (code) {
+    console.log('imu process exited with code ' + code);
     listening = false;
-    analyzer = undefined;
+    imu = undefined;
   });
 }
-listen(function(obj) {console.dir(obj)});
