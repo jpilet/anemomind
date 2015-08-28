@@ -5,43 +5,53 @@ var lep = require('../components/LocalEndpoint.js');
 var request = require('supertest');
 var server = request(app);
 var should = require('should');
-
-var authorization = 'Bearer not in use for the anemobox, right?';
+var assert = require('assert');
 
 describe('httpsync', function() {
-  it('should successfully reset the endpoint', function(done) {
+  it('Get the packet count', function(done) {
     lep.getName(function(lname) {
       server
-        .get('/api/mailrpc/reset/' + lname)
-        .set('Authorization', authorization)
+        .post('/api/rpc/ep_getTotalPacketCount')
+        .send({name: lname})
         .expect(200)
         .end(function(err, res) {
-	  done(err);
+          console.log(err);
+          assert(!err);
+          assert(res);
+          assert(res.body);
+          var data = res.body;
+          assert(data.result == 0);
+          done();
         });
     });
   });
-    
-  it('should fail to reset the endpoint', function(done) {
+
+  it('Get the packet count for an endpoint that doesnt exist', function(done) {
     server
-      .get('/api/mailrpc/reset/adsfadsf')
-      .set('Authorization', 'Bearer ')
-      .expect(500)
+      .post('/api/rpc/ep_getTotalPacketCount')
+      .send({name: 'badname'})
+    // We expect 200 because the function was successfully called.
+    // But its return value encodes an error.
+      .expect(200) 
       .end(function(err, res) {
-	done(err);
+        console.log(err);
+        assert(!err);
+        assert(res);
+        assert(res.body);
+        var data = res.body;
+        assert(!data.result);
+        assert(data.error);
+        done();
       });
   });
 
-  it('should get the number of packets', function(done) {
-    lep.getName(function(lname) {
-      server
-        .get('/api/mailrpc/getTotalPacketCount/' + lname)
-        .set('Authorization', authorization)
-        .expect(200)
-        .end(function(err, res) {
-	  if (err) return done(err);
-	  JSON.parse(res.text).should.equal(0);
-	  done();
-        });
-    });
+  it('Call a function that has not been registered', function(done) {
+    server
+      .post('/api/rpc/ep_functionThatHasNotBeenRegistered')
+      .send({name: 'name', arg: 334})
+      .expect(404)
+      .end(function(err, res) {
+        done();
+      });
   });
 });
