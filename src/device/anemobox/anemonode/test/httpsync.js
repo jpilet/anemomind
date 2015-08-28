@@ -1,1 +1,1 @@
-//var app = require('../components/http');
+var app = require('../components/http');
