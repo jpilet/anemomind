@@ -119,8 +119,11 @@ CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
   // Proportional to the total duration.
   int passiveCount = 1 + int(floor(totalDuration/settings.nonZeroPeriod));
   int activeCount = std::max(regCount - passiveCount, 0);
-  auto flowAndParametersVector = SparsityConstrained::solve(AdstMat, Bdst, spans,
-      activeCount, settings.spcst);
+
+  SparsityConstrained::ConstraintGroup group{spans, activeCount};
+  auto flowAndParametersVector = SparsityConstrained::solve(AdstMat, Bdst,
+      Array<SparsityConstrained::ConstraintGroup>{group},
+      settings.spcst);
   if (flowAndParametersVector.size() == 0) {
     return CommonResults();
   }

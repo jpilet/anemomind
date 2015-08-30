@@ -110,16 +110,22 @@ int countCoefs(Array<Residual> residuals) {
 typedef Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> DiagMat;
 
 DiagMat makeWeightMatrixSub(int aRows,
-    Array<Residual> residuals, Arrayd weights) {
+    Array<Array<Residual> > residualsPerGroup, Array<Arrayd> weightsPerGroup) {
+
+  int n = residualsPerGroup.size();
 
   DiagMat W(aRows);
   W.setIdentity();
   auto &v = W.diagonal();
-  for (int i = 0; i < residuals.size(); i++) {
-    auto span = residuals[i].span;
-    auto w = weights[i];
-    for (auto i: span) {
-      v(i) = w;
+  for (int i = 0; i < n; i++) {
+    auto residuals = residualsPerGroup[i];
+    auto weights = weightsPerGroup[i];
+    for (int i = 0; i < residuals.size(); i++) {
+      auto span = residuals[i].span;
+      auto w = weights[i];
+      for (auto i: span) {
+        v(i) = w;
+      }
     }
   }
   return W;
@@ -129,22 +135,32 @@ DiagMat makeWeightMatrixSub(int aRows,
 
 DiagMat makeWeightMatrix(
     int aRows,
-    Array<Spani> allConstraintGroups, int activeCount,
+    Array<ConstraintGroup> cstGroups,
   const Eigen::VectorXd &residualVector, double avgWeight, double minResidual) {
 
-  Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(allConstraintGroups,
-    residualVector);
+  int groupCount = cstGroups.size();
 
-  auto thresholdedResiduals = threshold(residualsPerConstraint, activeCount, minResidual);
-  Arrayd weights = distributeWeights(
-      thresholdedResiduals,
-      avgWeight);
+  Array<Array<Residual> > residualsPerGroup(groupCount);
+  Array<Arrayd> weightsPerGroup(groupCount);
 
-  if (weights.empty()) {
-    return DiagMat();
+  for (int i = 0; i < groupCount; i++) {
+    auto group = cstGroups[i];
+    Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(group.spans,
+      residualVector);
+
+    auto thresholdedResiduals = threshold(residualsPerConstraint, group.activeCount, minResidual);
+    Arrayd weights = distributeWeights(
+        thresholdedResiduals,
+        avgWeight);
+
+    if (weights.empty()) {
+      return DiagMat();
+    }
+    assert(weights.size() == residualsPerConstraint.size());
+    weightsPerGroup[i] = weights;
+    residualsPerGroup[i] = residualsPerConstraint;
   }
-  assert(weights.size() == residualsPerConstraint.size());
-  return makeWeightMatrixSub(aRows, residualsPerConstraint, weights);
+  return makeWeightMatrixSub(aRows, residualsPerGroup, weightsPerGroup);
 }
 
 
@@ -167,7 +183,7 @@ typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > Decomp;
 
 
 Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
-  Array<Spani> allConstraintGroups, int activeCount, Settings settings) {
+    Array<ConstraintGroup> cstGroups, Settings settings) {
   ENTERSCOPE("SparsityConstrained::Solve");
   int rows = A.rows();
   assert(rows == B.rows());
@@ -178,7 +194,7 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorX
     double constraintWeight = exp(logWeights(i));
     SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d with weight %.3g",
         i+1, settings.iters, constraintWeight));
-    auto W = makeWeightMatrix(A.rows(), allConstraintGroups, activeCount, residuals,
+    auto W = makeWeightMatrix(A.rows(), cstGroups, residuals,
         constraintWeight, settings.minResidual);
     if (W.size() == 0) {
       return X;
