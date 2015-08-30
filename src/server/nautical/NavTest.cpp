@@ -28,7 +28,7 @@ TEST(NavTest, NavBBoxTest) {
   EXPECT_TRUE(navs.size() > 3);
 
   Array<Array<Nav> > splitNavs = splitNavsByDuration(navs,
-                                 Duration<double>::minutes(10).seconds());
+                                 Duration<double>::minutes(10));
   Array<NavBBox> boxes = calcNavBBoxes(splitNavs);
 
   int count = boxes.size();

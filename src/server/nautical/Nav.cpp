@@ -16,6 +16,7 @@
 #include <ctime>
 #include <server/nautical/WGS84.h>
 #include <server/common/string.h>
+#include <server/common/PhysicalQuantityIO.h>
 
 namespace sail {
 
@@ -279,25 +280,27 @@ void dispNavTimeIntervals(Array<Nav> navs) {
   }
 }
 
-int countNavSplitsByDuration(Array<Nav> navs, double durSeconds) {
+int countNavSplitsByDuration(Array<Nav> navs, Duration<double> dur) {
   int count = navs.size();
   int counter = 0;
   for (int i = 0; i < count-1; i++) {
-    if ((navs[i+1].time() - navs[i].time()).seconds() > durSeconds) {
+    if ((navs[i+1].time() - navs[i].time()) > dur) {
       counter++;
     }
   }
   return counter;
 }
 
-Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds) {
-  int count = 1 + countNavSplitsByDuration(navs, durSeconds);
+
+
+Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, Duration<double> dur) {
+  int count = 1 + countNavSplitsByDuration(navs, dur);
   Array<Array<Nav> > dst(count);
   int navCount = navs.size();
   int from = 0;
   int counter = 0;
   for (int i = 0; i < navCount-1; i++) {
-    if ((navs[i+1].time() - navs[i].time()).seconds() > durSeconds) {
+    if ((navs[i+1].time() - navs[i].time()) > dur) {
       dst[counter] = navs.slice(from, i+1);
       counter++;
       from = i+1;
@@ -307,6 +310,10 @@ Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds) {
   assert(counter + 1 == count);
   return dst;
 }
+
+/*Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds) {
+  return splitNavsByDuration(navs, Duration<double>::seconds(durSeconds));
+}*/
 
 MDArray2d calcNavsEcefTrajectory(Array<Nav> navs) {
   int count = navs.size();
@@ -364,6 +371,17 @@ int countNavs(Array<Array<Nav> > navs) {
     counter += navs[i].size();
   }
   return counter;
+}
+
+std::ostream &operator<<(std::ostream &s, const Nav &x) {
+  s << "Nav:\n";
+  s << "  maghdg: " << x.magHdg() << "\n";
+  s << "  aws: " << x.aws() << "\n";
+  s << "  awa: " << x.awa() << "\n";
+  s << "  watspeed: " << x.watSpeed() << "\n";
+  s << "  gps bearing: " << x.gpsBearing() << "\n";
+  s << "  gps speed: " << x.gpsSpeed() << "\n";
+  return s;
 }
 
 

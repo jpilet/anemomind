@@ -37,12 +37,17 @@ Graph.prototype.prepare = function() {
     .tickPadding(4)
     .ticks(5);
 
+  var fmtFunc = {
+    'devicePerf' : perfAtPoint,
+    'deviceVmg' : vmgAtPoint
+  };
+
   this.fieldForPoint = function(d) {
     var field = me.field;
-    if (field in d) {
+    if (field in fmtFunc) {
+      return fmtFunc[field](d);
+    } else if (field in d) {
       return d[field];
-    } else if (field == 'devicePerf') {
-      return perfAtPoint(d);
     }
     return 0;
   };

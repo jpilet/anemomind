@@ -368,52 +368,6 @@ target_link_libraries(nautical_RaceOverview
                      )
                       
                       
-add_executable(nautical_CalibrationDemo
-               CalibrationDemo.cpp
-              )
-                                                                                 
-target_link_libraries(nautical_CalibrationDemo
-                      nautical_AutoCalib
-                      common_ArgMap
-                      nautical_TestdataNavs
-                      nautical_synthtest_NavalSimulation
-                     )
-                     
-add_library(nautical_AutoCalib
-            AutoCalib.h
-            AutoCalib.cpp
-           )
-           
-target_link_libraries(nautical_AutoCalib
-                      nautical_FilteredNavData
-                      math_armaadolc
-                     )
-                     
-
-
-
-
-
-add_library(nautical_DecorrCalib
-            DecorrCalib.h
-            DecorrCalib.cpp
-           )
-target_link_libraries(nautical_DecorrCalib
-                      nautical_FilteredNavData
-                     )
-                     
-target_depends_on_ceres(nautical_DecorrCalib)
-
-add_executable(nautical_DecorrCalibDemo
-               DecorrCalibDemo.cpp
-              )
-target_link_libraries(nautical_DecorrCalibDemo
-                      nautical_DecorrCalib
-                      nautical_FilteredNavData
-                      nautical_synthtest_NavalSimulationPrecomp
-                      common_ArgMap
-                     )
-target_depends_on_ceres(nautical_AutoCalib)
 
 
 add_library(nautical_NKEParser
@@ -443,16 +397,6 @@ cxx_test(nautical_NKEParserTest
          gtest_main
          nautical_NKEParser
         )
-
-add_executable(nautical_EvalCalibrator
-               EvalCalibrator.cpp
-              )
-target_link_libraries(nautical_EvalCalibrator
-                      nautical_NavNmeaScan
-                      nautical_Calibrator
-                      nautical_FlowErrors
-                      nautical_synthtest_NavalSimulationPrecomp
-                     )
                      
 add_library(nautical_FlowErrors
             FlowErrors.h
@@ -460,6 +404,37 @@ add_library(nautical_FlowErrors
            )              
 target_link_libraries(nautical_FlowErrors
                       common_MeanAndVar
+                     )     
+                     
+add_library(nautical_MinCovCalib
+            MinCovCalib.h
+            MinCovCalib.cpp
+           )
+target_depends_on_ceres(nautical_MinCovCalib)
+target_link_libraries(nautical_MinCovCalib
+                      common_Progress
+                      nautical_FilteredNavData
+                     )
+
+add_executable(nautical_EvalCalib
+               EvalCalib.cpp
+              )
+target_link_libraries(nautical_EvalCalib
+                      nautical_MinCovCalib
+                      nautical_Calibrator
+                      nautical_CalibrationBenchmark
+                      common_ArgMap
+                     )              
+
+add_library(nautical_CalibrationBenchmark 
+            CalibrationBenchmark.h
+            CalibrationBenchmark.cpp
+           )      
+           
+target_link_libraries(nautical_CalibrationBenchmark                         
+                      nautical_synthtest_NavalSimulationPrecomp
+                      common_EnvUtil
+                      nautical_NavNmeaScan
                      )
 
 add_library(nautical_NavLoader
@@ -494,3 +469,12 @@ cxx_test(nautical_GpsFilterTest
          nautical_NavNmeaScan
          plot_gnuplot
         )                             
+add_executable(nautical_exportNavs
+               exportNavs.cpp
+              )
+              
+target_link_libraries(nautical_exportNavs
+                      nautical_NavNmeaScan
+                      common_logging
+                      common_ArgMap
+                     )              

@@ -1,13 +1,13 @@
 var testPath = '/tmp/mailboxes/boat123456789012345678901234.mailsqlite.db';
 var assert = require('assert');
-var naming = require('mail/naming.js');
+var naming = require('endpoint/naming.js');
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
 var makeScriptResponseHandler = require('../server/api/boxexec/response-handler.js');
 var common = require('../utilities/common.js');
 var path = require('path');
-var script = require('mail/script.js');
-var mb = require('mail/mail2.sqlite.js');
-var sync = require('mail/sync2.js');
+var script = require('endpoint/script.js');
+var mb = require('endpoint/endpoint.sqlite.js');
+var sync = require('endpoint/sync2.js');
 var mkdirp = require('mkdirp');
 
 common.init();
@@ -20,21 +20,21 @@ function withConnectionAndTestBoat(cbOperation, cb) {
 
 //function withConnectionAndBoat(cbOperation, cbDone)
 
-function makeAndResetMailbox(filename, mailboxName, cb) {
+function makeAndResetEndpoint(filename, endpointName, cb) {
   dir = path.parse(filename).dir;
   mkdirp(dir, 0755, function(err) {
     if (err) {
       cb(err);
     } else {
-      mb.tryMakeEndPoint(filename, mailboxName, function(err, mailbox) {
+      mb.tryMakeEndpoint(filename, endpointName, function(err, endpoint) {
         if (err) {
           cb(err);
         } else {
-          mailbox.reset(function(err2) {
+          endpoint.reset(function(err2) {
             if (err2) {
               cb(err2);
             } else {
-              cb(null, mailbox);
+              cb(null, endpoint);
             }
           });
         }
@@ -44,7 +44,7 @@ function makeAndResetMailbox(filename, mailboxName, cb) {
 }
 
 describe('RemoteScript', function() {
-  it('Should parse the filename of mailbox', function() {
+  it('Should parse the filename of endpoint', function() {
     var parsed = common.extractBoatIdFromFilename(testPath);
     assert(parsed == '123456789012345678901234');
   });
@@ -73,28 +73,28 @@ describe('RemoteScript', function() {
     var scriptData = 'cd /tmp\npwd';
     withConnectionAndTestBoat(function(id, doneAll) {
       var boatId = id;
-      var boatMailboxName = naming.makeMailboxNameFromBoatId(id);
+      var boatEndpointName = naming.makeEndpointNameFromBoatId(id);
       var filename = common.makeBoatDBFilename(boatId);
 
       
       // To be set later in the code.
       var performSync = null;
-      var boxMailboxName = naming.makeMailboxNameFromBoxId('abc119');
+      var boxEndpointName = naming.makeEndpointNameFromBoxId('abc119');
       
-      // Make a mailbox for the anemobox
-      makeAndResetMailbox(
-        path.join('/tmp/', naming.makeDBFilename(boxMailboxName)),
-        boxMailboxName, function(err, boxMailbox) {
+      // Make a endpoint for the anemobox
+      makeAndResetEndpoint(
+        path.join('/tmp/', naming.makeDBFilename(boxEndpointName)),
+        boxEndpointName, function(err, boxEndpoint) {
           assert(!err);
-          assert(boxMailbox);
+          assert(boxEndpoint);
 
-          // Make a mailbox for the boat
-          makeAndResetMailbox(filename, boatMailboxName,
-                              function(err, boatMailbox) {
+          // Make a endpoint for the boat
+          makeAndResetEndpoint(filename, boatEndpointName,
+                              function(err, boatEndpoint) {
             assert(!err);
 
             // Called when the response of executing the script is coming back.
-            boatMailbox.addPacketHandler(makeScriptResponseHandler(
+            boatEndpoint.addPacketHandler(makeScriptResponseHandler(
               function(err, response) {
                 assert(!err);
                 assert(response);
@@ -114,12 +114,12 @@ describe('RemoteScript', function() {
               assert(!err);
               
               performSync = function() {
-                sync.synchronize(boatMailbox, boxMailbox, function(err) {
+                sync.synchronize(boatEndpoint, boxEndpoint, function(err) {
                   assert(!err);
                 });
               };
               
-              boxMailbox.addPacketHandler(script.makeScriptRequestHandler(performSync));
+              boxEndpoint.addPacketHandler(script.makeScriptRequestHandler(performSync));
 
               // Run the first sync. This will propagate the script to the box,
               // that will execute it.

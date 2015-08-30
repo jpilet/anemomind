@@ -17,6 +17,17 @@
 
 namespace sail {
 
+/*
+ * Defines the sampling of a signal in time.
+ * A sampling consists of the number of samples
+ * accessed with the method count(), and the
+ * function (indexToX()) that maps a sample index to the domain
+ * where the signal is sampled.
+ * Suppose for instance that we have a function
+ * f: R -> R. We sample this signal at
+ * locations x_0 = 1, x_1 = 3, x_2 = 5 and so on.
+ * Then we have the function indexToX(i) = 2*i + 1.
+ */
 class Sampling {
  public:
   Sampling() : _sampleCount(0) {}
@@ -100,6 +111,17 @@ class Sampling {
 
 
 
+/*
+ * Encodes an observation of
+ * a vector valued function
+ * f: R -> R^N
+ * If we are attempting to recover
+ * an unknown function f from some data,
+ * we might observe that for observation with index i,
+ * x_i maps to y_i, where x_i belongs to R and
+ * y_i belongs to R^N. x_i is encoded as a linear combination
+ * of samples from the underlying signal.
+ */
 template <int N>
 struct Observation {
   Sampling::Weights weights;
@@ -197,7 +219,7 @@ double evalDerivativeScaled(const CostFunction &f, double x, double scale) {
 template <typename CostFunction>
 MajQuad majorizeCostFunction(const CostFunction &f, double x0, double lb = 0.0001,
     double s = 1.0) {
-  double x = lowerBound(x0, lb);
+  double x = absSaturate(x0, lb);
   return MajQuad::majorize(x, evalScaled(f, x, s), evalDerivativeScaled(f, x, s), 0.0);
 }
 

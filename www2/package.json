@@ -22,7 +22,7 @@
     "json-buffer": "^2.0.11",
     "jsonwebtoken": "^5.0.1",
     "lodash": "~3.9.3",
-    "mail": "file:../nodemodules/mail",
+    "endpoint": "file:../nodemodules/endpoint",
     "method-override": "~1.0.0",
     "mkdirp": "^0.5.1",
     "mongoose": "~3.8.8",

@@ -11,6 +11,13 @@ function perfAtPoint(d) {
     return 0;
 }
 
+function vmgAtPoint(p) {
+  if ('deviceVmg' in p) {
+    return Math.abs(p.deviceVmg);
+  }
+  return undefined;
+}
+
 angular.module('www2App')
   .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
                                    $http, $interval, $state, $location) {
@@ -167,5 +174,10 @@ angular.module('www2App')
       $scope.gpsSpeed = getPointValue(['gpsSpeed']);
       $scope.twdir = twdir();
       $scope.gpsBearing = getPointValue(['gpsBearing']);
+      $scope.deviceVmg = getPointValue(['deviceVmg']);
+      if ($scope.deviceVmg) {
+        $scope.deviceVmg = Math.abs($scope.deviceVmg);
+      }
+      $scope.deviceTargetVmg = getPointValue(['deviceTargetVmg']);
     });
 });

@@ -136,6 +136,18 @@ Array<Observation<Dim> > filterObservations(Sampling s,
  *
  * RegCost: A cost function applied to the regularization residuals.
  *
+ *
+ * This denoising algorithm is based on the total variation denoising
+ * algorithm used in image processing: It tends to suppress noise, while preserving features
+ * in the signal (such as sharp buoy turns) and that is what we want, right? But the
+ * regularization term is second order, meaning that acceleration is penalized. Since I
+ * regularize using l1 norm, the problem becomes nonsmooth and it becomes difficult to
+ * evaluate derivatives accurately. The Majorize-Minimize algorithm has proven effective
+ * for this nonsmooth denoising problem. In each iteration, it majorizes the objective
+ * function with a quadratic, and then minimizes that quadratic (by solving a linear system).
+ * The X that minimizes that quadratic is also guaranteed to at least not increase the value
+ * of the objective function. Thus, no line search or damping is needed.
+ *
  */
 template <int Dim, typename DataCost, typename RegCost>
 MDArray2d solve(
