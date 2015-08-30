@@ -142,49 +142,6 @@ void makeTrueCurrentMatrixExpression(const InstrumentAbstraction &nav,
 
 void initializeLinearParameters(bool withOffset, double *dst2or4);
 
-/*constexpr int calcXOffset(bool withOffset) {
-  return (withOffset? 4 : 2);
-}
-
-constexpr int calcYOffset(bool withOffset, int N) {
-  return calcXOffset(withOffset) + N;
-}
-
-constexpr int calcQuadFormParamCount(bool withOffset, int N) {
-  return calcYOffset(withOffset, N) + N;
-}
-
-template <bool withOffset, int N, typename MatrixType>
-QuadForm<calcQuadFormParamCount(withOffset, N), 1> makeQuadForm(
-  double time,
-  const MatrixType &A, const MatrixType &B) {
-  constexpr int n = calcQuadFormParamCount(withOffset, N);
-  double x[n], y[n];
-  constexpr int xOffset = calcXOffset(withOffset);
-  constexpr int yOffset = calcYOffset(withOffset, N);
-  for (int i = 0; i < xOffset; i++) {
-    x[i] = A(0, i);
-    y[i] = A(1, i);
-  }
-  double prod = 1.0;
-  for (int i = 0; i < N; i++) {
-    x[xOffset + i] = -prod;
-    y[yOffset + i] = -prod;
-    x[yOffset + i] = 0.0;
-    y[xOffset + i] = 0.0;
-    prod *= time;
-  }
-  double bx = -B(0, 0);
-  double by = -B(1, 0);
-  return QuadForm<n, 1>::fit(x, &bx) + QuadForm<n, 1>::fit(y, &by);
-}*/
-
-
-
-
-
-
-
 /*
  * Common part of the calibration:
  *
@@ -196,7 +153,9 @@ struct CommonCalibrationSettings {
  double inlierFrac = 0.9;
  int regOrder = 3;
  SparsityConstrained::Settings spcst;
- Duration<double> nonZeroPeriod = Duration<double>::minutes(0.5);
+ Duration<double> nonZeroPeriod = Duration<double>::seconds(30);
+
+ static CommonCalibrationSettings firstOrderSettings();
 };
 
 struct CommonResults {
@@ -207,6 +166,15 @@ struct CommonResults {
 CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
     CommonCalibrationSettings settings);
 
+
+
+
+
+
+
+/*
+ * Perform full calibration of wind and current.
+ */
 // A class used to map a raw nav to a corrected one, using the parameters recovered.
 class LinearCorrector : public CorrectorFunction {
  public:
