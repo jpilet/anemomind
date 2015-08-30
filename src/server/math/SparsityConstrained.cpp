@@ -175,8 +175,9 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorX
   Eigen::VectorXd X;
   LineKM logWeights(0, settings.iters-1, log(settings.initialWeight), log(settings.finalWeight));
   for (int i = 0; i < settings.iters; i++) {
-    SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d", i+1, settings.iters));
     double constraintWeight = exp(logWeights(i));
+    SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d with weight %.3g",
+        i+1, settings.iters, constraintWeight));
     auto W = makeWeightMatrix(A.rows(), allConstraintGroups, activeCount, residuals,
         constraintWeight, settings.minResidual);
     if (W.size() == 0) {
