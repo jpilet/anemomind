@@ -56,8 +56,10 @@ CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
   int paramDim = mats.A.cols();
   int regCount = flowCount - settings.regOrder;
   int regDim = 2*regCount;
-  int dstCols = flowDim + paramDim;
-  int dstRows = flowDim + regDim;
+  int dstCols = flowDim + paramDim + flowDim;
+  int dstRows = flowDim + regDim + flowDim;
+  int slackColOffset = flowDim + paramDim;
+  int slackRowOffset = flowDim + regDim;
   auto regCoefs = BandMatInternal::makeCoefs(settings.regOrder);
   auto localRegCols = 2*regCoefs.size();
 
@@ -76,12 +78,21 @@ CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
 
   std::vector<Triplet> Adst;
   Eigen::VectorXd Bdst = Eigen::VectorXd::Zero(dstRows);
-  Array<Spani> spans(regCount);
+  Array<Spani> spans(regCount), slackSpans(flowCount);
+
+  for (int i = 0; i < flowCount; i++) {
+    int offset = slackRowOffset + 2*i;
+    slackSpans[i] = Spani(offset, offset + 2);
+  }
 
   SCOPEDMESSAGE(INFO, stringFormat("Building flow equations... (%d)", flowDim));
   for (int i = 0; i < flowDim; i++) {
     // Build the upper-left part of Adst
     Adst.push_back(Triplet(i, i, 1.0));
+
+    // Add the slack for outliers
+    Adst.push_back(Triplet(i, i + slackColOffset, 1.0));
+    Adst.push_back(Triplet(i + slackRowOffset, i + slackColOffset, 1.0));
 
     // and fill the upper part of Bdst
     Bdst(i) = mats.B(i, 0);
@@ -121,15 +132,16 @@ CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
   int activeCount = std::max(regCount - passiveCount, 0);
 
   SparsityConstrained::ConstraintGroup group{spans, activeCount};
+  SparsityConstrained::ConstraintGroup slackGroup{slackSpans, int(ceil(settings.inlierFrac*flowCount))};
   auto flowAndParametersVector = SparsityConstrained::solve(AdstMat, Bdst,
-      Array<SparsityConstrained::ConstraintGroup>{group},
+      Array<SparsityConstrained::ConstraintGroup>{group, slackGroup},
       settings.spcst);
   if (flowAndParametersVector.size() == 0) {
     return CommonResults();
   }
   assert(flowAndParametersVector.size() == dstCols);
   Arrayd flowAndParameters(dstCols, flowAndParametersVector.data());
-  Arrayd parameters = flowAndParameters.sliceFrom(flowDim).dup();
+  Arrayd parameters = flowAndParameters.slice(flowDim, flowDim + paramDim).dup();
   Arrayd flowData = flowAndParameters.sliceTo(flowDim);
   Array<HorizontalMotion<double> > motions(flowCount);
   for (int i = 0; i < flowCount; i++) {

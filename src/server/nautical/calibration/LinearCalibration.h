@@ -193,6 +193,7 @@ QuadForm<calcQuadFormParamCount(withOffset, N), 1> makeQuadForm(
  */
 struct CommonCalibrationSettings {
   CommonCalibrationSettings();
+ double inlierFrac = 0.9;
  int regOrder = 3;
  SparsityConstrained::Settings spcst;
  Duration<double> nonZeroPeriod = Duration<double>::minutes(0.5);
