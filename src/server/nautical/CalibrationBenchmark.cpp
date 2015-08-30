@@ -20,6 +20,8 @@ bool hasAllData(const Nav &x) {
 
 std::ostream &operator<<(std::ostream &s, SynthResults results) {
   s << "\n****** Results on synthetic data ******\n";
+  s << "Corrector: ";
+  s << results.corrector->toString() << "\n";
   s << "Before calibration:\n";
   s << results.before;
   s << "After calibration:\n";
@@ -41,6 +43,7 @@ SynthResults evaluateForSimulation(NavalSimulation::BoatData bd,
   std::cout << "Run the calibration..." << std::endl;
   auto calibratedParameters = calib(navs);
   return SynthResults{
+    calibratedParameters,
     bd.evaluateNoCalibration(),
     bd.evaluateFitness(*calibratedParameters)
   };
