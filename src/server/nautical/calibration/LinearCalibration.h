@@ -9,9 +9,28 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/math/QuadForm.h>
 #include <server/math/SparsityConstrained.h>
+#include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
 
 namespace sail {
 namespace LinearCalibration {
+
+inline int flowParamCount(bool withOffset) {
+  return (withOffset? 4 : 2);
+}
+
+struct FlowSettings {
+ bool windWithOffset = true;
+ bool currentWithOffset = true;
+
+ int windParamCount() const {
+   return flowParamCount(windWithOffset);
+ }
+
+ int currentParamCount() const {
+   return flowParamCount(currentWithOffset);
+ }
+};
+
 
 /*
  * See docs/calib/linearcalib.tex
@@ -58,20 +77,12 @@ void makeGpsOffset(const HorizontalMotion<double> &m, MatrixType *dstB,
  */
 template <typename InstrumentAbstraction, typename MatrixType>
 void makeTrueWindMatrixExpression(const InstrumentAbstraction &nav,
-  bool withOffset,
+  FlowSettings settings,
   MatrixType *dstA, MatrixType *dstB,
   Velocity<double> unit = Velocity<double>::knots(1.0)) {
   auto absoluteDirectionOfWind = nav.magHdg() + nav.awa() + Angle<double>::degrees(180);
-  makeCalibratedMotionMatrix(absoluteDirectionOfWind, nav.aws(), withOffset, dstA, unit);
+  makeCalibratedMotionMatrix(absoluteDirectionOfWind, nav.aws(), settings.windWithOffset, dstA, unit);
   makeGpsOffset(getGpsMotion(nav), dstB, unit);
-}
-
-constexpr int calcTrueWindParamCount(bool withOffset) {
-  return (withOffset? 4 : 2);
-}
-
-constexpr int calcTrueCurrentParamCount(bool withOffset) {
-  return (withOffset? 4 : 2);
 }
 
 
@@ -80,31 +91,31 @@ struct FlowMatrices {
 };
 
 template <typename InstrumentAbstraction>
-FlowMatrices makeTrueWindMatrices(Array<InstrumentAbstraction> navs, bool withOffset) {
+FlowMatrices makeTrueWindMatrices(Array<InstrumentAbstraction> navs, const FlowSettings &s) {
   int n = navs.size();
-  int paramCount = calcTrueWindParamCount(withOffset);
+  int paramCount = s.windParamCount();
   MDArray2d A(2*n, paramCount);
   MDArray2d B(2*n, 1);
   for (int i = 0; i < n; i++) {
     int offset = 2*i;
     auto a = A.sliceRowBlock(i, 2);
     auto b = B.sliceRowBlock(i, 2);
-    makeTrueWindMatrixExpression(navs[i], withOffset, &a, &b);
+    makeTrueWindMatrixExpression(navs[i], s, &a, &b);
   }
   return FlowMatrices{A, B};
 }
 
 template <typename InstrumentAbstraction>
-FlowMatrices makeTrueCurrentMatrices(Array<InstrumentAbstraction> navs, bool withOffset) {
+FlowMatrices makeTrueCurrentMatrices(Array<InstrumentAbstraction> navs, const FlowSettings &s) {
   int n = navs.size();
-  int paramCount = calcTrueWindParamCount(withOffset);
+  int paramCount = s.currentParamCount();
   MDArray2d A(2*n, paramCount);
   MDArray2d B(2*n, 1);
   for (int i = 0; i < n; i++) {
     int offset = 2*i;
     auto a = A.sliceRowBlock(i, 2);
     auto b = B.sliceRowBlock(i, 2);
-    makeTrueCurrentMatrixExpression(navs[i], withOffset, &a, &b);
+    makeTrueCurrentMatrixExpression(navs[i], s, &a, &b);
   }
   return FlowMatrices{A, B};
 }
@@ -120,18 +131,18 @@ FlowMatrices makeTrueCurrentMatrices(Array<InstrumentAbstraction> navs, bool wit
  */
 template <typename InstrumentAbstraction, typename MatrixType>
 void makeTrueCurrentMatrixExpression(const InstrumentAbstraction &nav,
-  bool withOffset,
+  const FlowSettings &s,
   MatrixType *dstA, MatrixType *dstB,
   Velocity<double> unit = Velocity<double>::knots(1.0)) {
   auto oppositeDirectionOfBoatOverWater = nav.magHdg() + Angle<double>::degrees(180);
   makeCalibratedMotionMatrix(oppositeDirectionOfBoatOverWater,
-      nav.watSpeed(), withOffset, dstA, unit);
+      nav.watSpeed(), s.currentWithOffset, dstA, unit);
   makeGpsOffset(getGpsMotion(nav), dstB, unit);
 }
 
 void initializeLinearParameters(bool withOffset, double *dst2or4);
 
-constexpr int calcXOffset(bool withOffset) {
+/*constexpr int calcXOffset(bool withOffset) {
   return (withOffset? 4 : 2);
 }
 
@@ -166,7 +177,7 @@ QuadForm<calcQuadFormParamCount(withOffset, N), 1> makeQuadForm(
   double bx = -B(0, 0);
   double by = -B(1, 0);
   return QuadForm<n, 1>::fit(x, &bx) + QuadForm<n, 1>::fit(y, &by);
-}
+}*/
 
 
 
@@ -175,21 +186,46 @@ QuadForm<calcQuadFormParamCount(withOffset, N), 1> makeQuadForm(
 
 
 /*
+ * Common part of the calibration:
+ *
  * Linear calibration with sparsity constraints.
+ * Can be used on either wind or current.
  */
-struct Settings {
+struct CommonCalibrationSettings {
  int regOrder = 3;
  SparsityConstrained::Settings spcst;
  Duration<double> nonZeroPeriod = Duration<double>::seconds(6);
 };
 
-struct Results {
+struct CommonResults {
  Array<HorizontalMotion<double> > recoveredFlow;
  Arrayd parameters;
 };
 
-Results calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
-    Settings settings);
+CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
+    CommonCalibrationSettings settings);
+
+// A class used to map a raw nav to a corrected one, using the parameters recovered.
+class LinearCorrector : public CorrectorFunction {
+ public:
+  LinearCorrector(const FlowSettings &flowSettings, Arrayd windParams, Arrayd currentParams);
+  Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const;
+  CalibratedNav<double> operator()(const Nav &navs) const;
+  std::string toString() const;
+ private:
+  FlowSettings _flowSettings;
+  Arrayd _windParams, _currentParams;
+};
+
+struct Results {
+  LinearCorrector corrector;
+  Array<HorizontalMotion<double> > windOverGround, currentOverGround;
+};
+
+Results calibrate(CommonCalibrationSettings commonSettings,
+    FlowSettings flowSettings, Array<Nav> navs);
+
+
 
 }
 }
