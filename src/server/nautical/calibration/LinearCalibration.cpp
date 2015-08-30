@@ -42,6 +42,10 @@ void initializeLinearParameters(bool withOffset, double *dst2or4) {
 
 typedef Eigen::Triplet<double> Triplet;
 
+CommonCalibrationSettings::CommonCalibrationSettings() {
+  spcst.initialWeight = 0.01;
+}
+
 CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration, CommonCalibrationSettings settings) {
   ENTER_FUNCTION_SCOPE;
   assert(mats.A.rows() == mats.B.rows());

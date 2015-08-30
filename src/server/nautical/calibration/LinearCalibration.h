@@ -192,6 +192,7 @@ QuadForm<calcQuadFormParamCount(withOffset, N), 1> makeQuadForm(
  * Can be used on either wind or current.
  */
 struct CommonCalibrationSettings {
+  CommonCalibrationSettings();
  int regOrder = 3;
  SparsityConstrained::Settings spcst;
  Duration<double> nonZeroPeriod = Duration<double>::minutes(0.5);
