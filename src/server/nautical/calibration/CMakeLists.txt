@@ -7,6 +7,8 @@ target_link_libraries(nautical_calibration_LinearCalibration
                       nautical_nav
                       math_SparsityConstrained
                       math_BandMat
+                      common_ScopedLog
+                      common_string
                      )
            
 cxx_test(nautical_calibration_LinearCalibrationTest

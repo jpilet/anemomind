@@ -286,7 +286,10 @@ add_library(math_SparsityConstrained
             SparsityConstrained.h
             SparsityConstrained.cpp            
            )
-
+target_link_libraries(math_SparsityConstrained
+                      common_ScopedLog
+                      common_string
+                     )
 
 cxx_test(math_SparsityConstrainedTest
          SparsityConstrainedTest.cpp

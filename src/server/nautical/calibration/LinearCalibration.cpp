@@ -7,7 +7,8 @@
 #include <armadillo>
 #include <server/math/BandMat.h>
 #include <server/common/ArrayIO.h>
-
+#include <server/common/ScopedLog.h>
+#include <server/common/string.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -42,6 +43,7 @@ void initializeLinearParameters(bool withOffset, double *dst2or4) {
 typedef Eigen::Triplet<double> Triplet;
 
 CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration, CommonCalibrationSettings settings) {
+  ENTER_FUNCTION_SCOPE;
   assert(mats.A.rows() == mats.B.rows());
   assert(mats.B.cols() == 1);
   int flowDim = mats.A.rows();
@@ -55,6 +57,13 @@ CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
   auto regCoefs = BandMatInternal::makeCoefs(settings.regOrder);
   auto localRegCols = 2*regCoefs.size();
 
+  SCOPEDMESSAGE(INFO, stringFormat("Number of regs: %d", regCount));
+  SCOPEDMESSAGE(INFO, stringFormat("Number of flows: %d", flowCount));
+  SCOPEDMESSAGE(INFO, stringFormat("Number of parameters: %d", paramDim));
+  SCOPEDMESSAGE(INFO, stringFormat("Number of rows: %d", dstRows));
+  SCOPEDMESSAGE(INFO, stringFormat("Number of cols: %d", dstCols));
+
+
   // The Adst matrix has this structure. It consists of four sub matrices,
   // aligned in two rows and two columns.
   // Adst = [I -mats.A; Reg 0]
@@ -65,7 +74,7 @@ CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
   Eigen::VectorXd Bdst = Eigen::VectorXd::Zero(dstRows);
   Array<Spani> spans(regCount);
 
-
+  SCOPEDMESSAGE(INFO, stringFormat("Building flow equations... (%d)", flowDim));
   for (int i = 0; i < flowDim; i++) {
     // Build the upper-left part of Adst
     Adst.push_back(Triplet(i, i, 1.0));
@@ -82,20 +91,25 @@ CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
   // Fill in the regularization coefficients of the lower left part of Adst
   // Thanks to sparsity, most of their residuals will be more or less exactly 0
   // once the problem is solved.
+  SCOPEDMESSAGE(INFO, stringFormat("Building reg equations... (%d)", regCount));
   for (int i = 0; i < regCount; i++) {
     int offset = 2*i;
     int rowOffset = flowDim + offset;
     spans[i] = Spani(rowOffset, rowOffset + 2);
-    for (int j = 0; j < regCoefs.size(); i++) {
+    for (int j = 0; j < regCoefs.size(); j++) {
       int localCol = offset + 2*j;
       auto c = regCoefs[j];
       Adst.push_back(Triplet(rowOffset + 0, localCol + 0, c));
       Adst.push_back(Triplet(rowOffset + 1, localCol + 1, c));
     }
   }
+  SCOPEDMESSAGE(INFO, "Done building reg equations.");
 
   Eigen::SparseMatrix<double> AdstMat(dstRows, dstCols);
   AdstMat.setFromTriplets(Adst.begin(), Adst.end());
+  double totalElemCount = double(dstRows)*double(dstCols);
+  SCOPEDMESSAGE(INFO, stringFormat("Number of nonzero elements: %d", Adst.size()));
+  SCOPEDMESSAGE(INFO, stringFormat("Sparsity degree: %.3g", double(Adst.size())/totalElemCount));
 
   // How many non-zero regularization residuals that we allow for.
   // Proportional to the total duration.
@@ -175,6 +189,7 @@ std::string LinearCorrector::toString() const {
 
 Results calibrate(CommonCalibrationSettings commonSettings,
     FlowSettings flowSettings, Array<Nav> navs) {
+  navs = navs.sliceTo(3000);
     assert(std::is_sorted(navs.begin(), navs.end()));
   auto totalDuration = navs.last().time() - navs.first().time();
   auto windResults = calibrateSparse(makeTrueWindMatrices(navs, flowSettings),

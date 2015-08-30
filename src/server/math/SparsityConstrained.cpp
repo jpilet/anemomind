@@ -9,6 +9,9 @@
 #include <server/math/BandMat.h>
 #include <server/common/LineKM.h>
 #include <Eigen/SparseQR>
+#include <Eigen/SparseCholesky>
+#include <server/common/string.h>
+#include <server/common/ScopedLog.h>
 
 namespace sail {
 namespace SparsityConstrained {
@@ -159,17 +162,20 @@ Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::Vecto
   return Y;
 }
 
-typedef Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> > Decomp;
+//typedef Eigen::SparseQR<Eigen::SparseMatrix<double>, Eigen::COLAMDOrdering<int> > Decomp;
+typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > Decomp;
 
 
 Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
   Array<Spani> allConstraintGroups, int activeCount, Settings settings) {
+  ENTERSCOPE("SparsityConstrained::Solve");
   int rows = A.rows();
   assert(rows == B.rows());
   Eigen::VectorXd residuals = Eigen::VectorXd::Constant(rows, 1.0);
   Eigen::VectorXd X;
   LineKM logWeights(0, settings.iters-1, log(settings.initialWeight), log(settings.finalWeight));
   for (int i = 0; i < settings.iters; i++) {
+    SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d", i+1, settings.iters));
     double constraintWeight = exp(logWeights(i));
     auto W = makeWeightMatrix(A.rows(), allConstraintGroups, activeCount, residuals,
         constraintWeight, settings.minResidual);
@@ -178,7 +184,10 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorX
     }
     Eigen::SparseMatrix<double> WA = W*A;
     Eigen::VectorXd WB = W*B;
-    X = Decomp(WA).solve(WB);
+
+    //X = Decomp(WA).solve(WB);
+    X = Decomp(WA.transpose()*WA).solve(WA.transpose()*WB);
+
     residuals = product(A, X) - B;
   }
   return X;
