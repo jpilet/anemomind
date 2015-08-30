@@ -37,13 +37,18 @@ struct ConstraintGroup {
  * The matrix A has as many rows as the dimension of vector B.
  * So every row of A has a corresponding element in B.
  *
- * Every constraint group is a set of row spans of A and B that should be enforced
- * as equality constraints. From every ConstraintGroup, activeCount such spans
- * among all spans will be enforced and the remaining ones will be passive.
+ * Every constraint group is a set of row spans of A and B among which activeCount
+ * of them should be enforced as equality constraints. The remaining ones, that are passive,
+ * neither constrain anything or affect the objective function. The set of contraints that
+ * are active is optimized.
  *
  * Let A. and B. be the matrices formed by rows from A and B that are not part of
  * any constraint. This algorithm will minimize |A. X - B.|^2 subject to choosing
  * activeCount constraints from every constraint group.
+ *
+ * Applications: Sparsity constrained regularization, outlier detection, etc.
+ *
+ * To see an example, look at SparsityConstrainedTest.cpp and set the visualize flag to true.
  */
 Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
   Array<ConstraintGroup> cstGroups, Settings settings);
