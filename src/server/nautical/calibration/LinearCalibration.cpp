@@ -189,7 +189,6 @@ std::string LinearCorrector::toString() const {
 
 Results calibrate(CommonCalibrationSettings commonSettings,
     FlowSettings flowSettings, Array<Nav> navs) {
-  navs = navs.sliceTo(3000);
     assert(std::is_sorted(navs.begin(), navs.end()));
   auto totalDuration = navs.last().time() - navs.first().time();
   auto windResults = calibrateSparse(makeTrueWindMatrices(navs, flowSettings),
