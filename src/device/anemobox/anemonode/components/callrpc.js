@@ -11,16 +11,18 @@ exports.call = function(func, args, callback) {
   }
 };
 
-setInterval(function() {
-  var now = new Date();
-  exports.call('ping', {data: now}, function(answer) {
-    if (answer && 'data' in answer) {
-      var delta = (new Date()) - new Date(answer.data);
-      console.log('RPC ping reply in ' + delta + ' ms');
-    } else {
-      console.log('bad ping answer:');
-      console.warn(answer);
-    }
- });
-}, 900);
-  
+// Useful for debugging RPC pipeline.
+exports.ping = function() {
+  setInterval(function() {
+    var now = new Date();
+    exports.call('ping', {data: now}, function(answer) {
+      if (answer && 'data' in answer) {
+        var delta = (new Date()) - new Date(answer.data);
+        console.log('RPC ping reply in ' + delta + ' ms');
+      } else {
+        console.log('bad ping answer:');
+        console.warn(answer);
+      }
+   });
+  }, 900);
+} 
