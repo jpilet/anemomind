@@ -68,6 +68,19 @@ class GetValueVisitor : public DispatchDataVisitor {
     }
   }
 
+  virtual void run(DispatchAbsoluteOrientationData *orient) {
+    auto values = orient->dispatcher()->values();
+    valid_ = values.size() > index_;
+    if (valid_) {
+      auto val = values[index_];
+      Local<Object> obj = NanNew<Object>();
+      obj->Set(NanNew("heading"), NanNew(val.value.heading.degrees()));
+      obj->Set(NanNew("roll"), NanNew(val.value.roll.degrees()));
+      obj->Set(NanNew("pitch"), NanNew(val.value.pitch.degrees()));
+      value_ = obj;
+      timestamp_ = val.time;
+    }
+  }
 
   Local<Value> value() const { return value_; }
   TimeStamp time() const { return timestamp_; }
@@ -97,6 +110,9 @@ class CountValuesVisitor : public DispatchDataVisitor {
     count_ = v->dispatcher()->values().size();
   }
   virtual void run(DispatchTimeStampData *v) {
+    count_ = v->dispatcher()->values().size();
+  }
+  virtual void run(DispatchAbsoluteOrientationData *v) {
     count_ = v->dispatcher()->values().size();
   }
   int numValues() const { return count_; }
@@ -143,6 +159,38 @@ class SetValueVisitor : public DispatchDataVisitor {
     success_ = false;
   }
 
+  virtual void run(DispatchAbsoluteOrientationData *orientDispatch) {
+    static auto headingKey = NanNew("heading");
+    static auto rollKey = NanNew("roll");
+    static auto pitchKey = NanNew("pitch");
+
+    if (!value_->IsObject()) {
+      error_ = "an object is expected";
+      success_ = false;
+      return;
+    }
+
+    auto obj = value_->ToObject();
+
+    if (!obj->Has(headingKey) || !obj->Has(rollKey) || !obj->Has(pitchKey)) {
+      error_ = "expect an AbsoluteOrientation object with heading, roll, pitch";
+      success_ = false;
+      return;
+    }
+
+    AbsoluteOrientation orient;
+    orient.heading = Angle<double>::degrees(
+        obj->Get(headingKey)->ToNumber()->Value());
+    orient.roll = Angle<double>::degrees(
+        obj->Get(rollKey)->ToNumber()->Value());
+    orient.pitch = Angle<double>::degrees(
+        obj->Get(pitchKey)->ToNumber()->Value());
+
+    dispatcher_->publishValue(orientDispatch->dataCode(), source_.c_str(), orient);
+
+    success_ = true;
+  }
+
   bool checkNumberAndSetSuccess() {
     success_ = value_->IsNumber();
     if (!success_) {
@@ -166,7 +214,8 @@ class JsListener:
   public Listener<Velocity<double>>,
   public Listener<Length<double>>,
   public Listener<GeographicPosition<double>>,
-  public Listener<TimeStamp> {
+  public Listener<TimeStamp>,
+  public Listener<AbsoluteOrientation> {
  public:
   JsListener(DispatchData *dispatchData,
              Local<Function> callback,
@@ -183,6 +232,7 @@ class JsListener:
   virtual void onNewValue(const ValueDispatcher<Length<double>> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<GeographicPosition<double>> &) { valueChanged(); }
   virtual void onNewValue(const ValueDispatcher<TimeStamp> &) { valueChanged(); }
+  virtual void onNewValue(const ValueDispatcher<AbsoluteOrientation> &) { valueChanged(); }
 
   void valueChanged() {
     GetValueVisitor getValue(0);
@@ -219,6 +269,10 @@ class GetTypeAndUnitVisitor : public DispatchDataVisitor {
   virtual void run(DispatchTimeStampData *) {
     type_ = "Date and time";
     unit_ = "seconds since 1.1.1970, UTC";
+  }
+  virtual void run(DispatchAbsoluteOrientationData *) {
+    type_ = "Absolute orientation";
+    unit_ = "heading, roll, and pitch, in degrees";
   }
 
   const std::string& type() const { return type_; }
