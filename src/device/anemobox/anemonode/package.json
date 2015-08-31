@@ -14,5 +14,8 @@
   },
   "devDependencies": {
     "mocha": "^2.2.5"
+  },
+  "scripts" : {
+    "install" : "cd components/imu && make clean && make"
   }
 }
