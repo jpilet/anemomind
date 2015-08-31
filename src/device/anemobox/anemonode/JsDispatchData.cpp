@@ -160,9 +160,9 @@ class SetValueVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchAbsoluteOrientationData *orientDispatch) {
-    static auto headingKey = NanNew("heading");
-    static auto rollKey = NanNew("roll");
-    static auto pitchKey = NanNew("pitch");
+    auto headingKey = NanNew("heading");
+    auto rollKey = NanNew("roll");
+    auto pitchKey = NanNew("pitch");
 
     if (!value_->IsObject()) {
       error_ = "an object is expected";
