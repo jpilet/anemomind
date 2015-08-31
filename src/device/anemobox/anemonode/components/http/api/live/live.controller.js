@@ -10,10 +10,10 @@ var lastFetch;
 // Get list of boats
 exports.index = function(req, res) {
   var response = {};
-  var date = new Date();
+  var date = (new Date()).getTime();
   for (var i in anemonode.dispatcher.values) {
     if (anemonode.dispatcher.values[i].length() > 0
-        && Math.abs(anemonode.dispatcher.values[i].time() - date) < 1000) {
+        && Math.abs(anemonode.dispatcher.values[i].time().getTime() - date) < 2000) {
       response[i] = anemonode.dispatcher.values[i].value()
     }
   }
