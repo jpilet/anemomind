@@ -44,8 +44,16 @@ std::string doubleToString(double x, Format f) {
   }
 }
 
-std::string angleToLiteral(Angle<double> x, Format f) {
-  return doubleToString(x.degrees(), f);
+std::string angleToLiteral(Angle<double> x, Format f, double maxVal) {
+  double d = x.degrees();
+  while (d > maxVal) {
+    d -= 360;
+  }
+  double minVal = maxVal - 360;
+  while (d < minVal) {
+    d += 360;
+  }
+  return doubleToString(d, f);
 }
 
 std::string velocityToLiteral(Velocity<double> x, Format f) {
@@ -66,6 +74,12 @@ std::string timeToLiteral(TimeStamp t) {
   return ss.str();
 }
 
+Angle<double> twa(const Nav& nav) {
+  return (nav.hasTrueWindOverGround() ?
+          nav.trueWindOverGround().angle()
+          : nav.externalTwa());
+}
+
 Array<NavField> getNavFields(std::string f) {
   auto format = (f == "csv"? CSV : (f == "json"? JSON : MATLAB));
   return Array<NavField>{
@@ -73,16 +87,13 @@ Array<NavField> getNavFields(std::string f) {
       return timeToLiteralHumanReadable(x.time(), format);
     }},
     NavField{"AWA (degrees)", [=](const Nav &x) {
-      return angleToLiteral(x.awa(), format);
+      return angleToLiteral(x.awa(), format, 180);
     }},
     NavField{"AWS (knots)", [=](const Nav &x) {
       return velocityToLiteral(x.aws(), format);
     }},
     NavField{"TWA (degrees)", [=](const Nav &x) {
-      auto angle = (x.hasTrueWindOverGround() ?
-                    x.trueWindOverGround().angle()
-                    : x.externalTwa());
-      return angleToLiteral(angle, format);
+      return angleToLiteral(twa(x), format, 180);
     }},
     NavField{"TWS (knots)", [=](const Nav &x) {
       auto speed = (x.hasTrueWindOverGround() ?
@@ -90,23 +101,26 @@ Array<NavField> getNavFields(std::string f) {
                     : x.externalTws());
       return velocityToLiteral(speed, format);
     }},
+    NavField{"TWDIR (degrees)", [=](const Nav &x) {
+      return angleToLiteral(twa(x) + x.gpsBearing(), format, 360);
+    }},
     NavField{"MagHdg (degrees)", [=](const Nav &x) {
-      return angleToLiteral(x.magHdg(), format);
+      return angleToLiteral(x.magHdg(), format, 360);
     }},
     NavField{"Wat speed (knots)", [=](const Nav &x) {
       return velocityToLiteral(x.watSpeed(), format);
     }},
     NavField{"Longitude (degrees)", [=](const Nav &x) {
-      return angleToLiteral(x.geographicPosition().lon(), format);
+      return angleToLiteral(x.geographicPosition().lon(), format, 180);
     }},
     NavField{"Latitude (degree)", [=](const Nav &x) {
-      return angleToLiteral(x.geographicPosition().lat(), format);
+      return angleToLiteral(x.geographicPosition().lat(), format, 180);
     }},
     NavField{"GPS speed (knots)", [=](const Nav &x) {
       return velocityToLiteral(x.gpsSpeed(), format);
     }},
     NavField{"GPS bearing (degrees)", [=](const Nav &x) {
-      return angleToLiteral(x.gpsBearing(), format);
+      return angleToLiteral(x.gpsBearing(), format, 360);
     }}
   };
 }
