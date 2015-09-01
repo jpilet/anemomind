@@ -20,20 +20,11 @@ namespace TargetSpeedSolver {
 
 constexpr double minErrorKnots = 0.01;
 
-double lowerBound(double x, double lb) {
-  if (x < 0) {
-    return -lowerBound(-x, lb);
-  } else if (x < lb) {
-    return lb;
-  }
-  return x;
-}
-
 // Returns the alpha of the
 // function f(x) = alpha*x^2 + beta that
 // majorizes the norm g(x) = |x|
 double majorizeNorm(double x, double minv) {
-  return 1.0/(2.0*lowerBound(std::abs(x), minv));
+  return 1.0/(2.0*absSaturate(std::abs(x), minv));
 }
 
 double BalancedCost::eval(Velocity<double> surface, const Point &pt) const {

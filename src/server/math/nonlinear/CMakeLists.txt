@@ -131,15 +131,24 @@ add_executable(examples_SignalFitExampleAutoReg1st2ndOrder
 target_link_libraries(examples_SignalFitExampleAutoReg1st2ndOrder
   examples_SignalFitExamples)  
   
+  
+add_library(math_nonlinear_BandedSolver
+            BandedSolver.h
+            BandedSolver.cpp
+           )
+target_link_libraries(math_nonlinear_BandedSolver
+                      math_BandMat
+                      math_nonlinear_SignalUtils
+                     )              
+  
 add_library(math_nonlinear_GeneralizedTV
             GeneralizedTV.h
             GeneralizedTV.cpp
            )
 target_link_libraries(math_nonlinear_GeneralizedTV
-                      math_BandMat
-                      common_LineKM
                       common_Span
-                      common_ScopedLog
+                      common_logging
+                      math_nonlinear_BandedSolver
                      )
 
 add_library(math_nonlinear_GeneralizedTVAuto
@@ -150,6 +159,7 @@ target_link_libraries(math_nonlinear_GeneralizedTVAuto
                       math_nonlinear_GeneralizedTV
                       common_DataSplits
                       math_nonlinear_StepMinimizer
+                      common_ScopedLog
                      )
                      
 add_executable(math_nonlinear_GeneralizedTVExample
@@ -180,5 +190,23 @@ target_link_libraries(math_nonlinear_RungeKutta
 cxx_test(math_nonlinear_RungeKuttaTest
          RungeKuttaTest.cpp
          math_nonlinear_RungeKutta
+         gtest_main
+        )    
+        
+        
+cxx_test(math_nonlinear_SignalUtilsTest
+         SignalUtilsTest.cpp
+         gtest_main
+        )       
+        
+add_library(math_nonlinear_SignalUtils
+    SignalUtils.h
+    SignalUtils.cpp
+   )
+ 
+cxx_test(math_nonlinear_BandedSolverTest
+         BandedSolverTest.cpp
+         math_nonlinear_BandedSolver
+         plot_gnuplot
          gtest_main
         )    

@@ -521,6 +521,10 @@ class Array {
     return _size/2;
   }
 
+  int lastIndex() const {
+    return _size - 1;
+  }
+
 
   bool operator==(const ThisType &other) const {
     if (other.size() != _size) {
