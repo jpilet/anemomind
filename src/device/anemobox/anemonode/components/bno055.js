@@ -151,7 +151,6 @@ function init(done) {
     })
   .then(Q.delay(100))
   .finally(function() {
-    console.log('Switching to NDOF mode.');
     i2c.address(BNO055_I2C_BASE_ADDR);
     i2c.writeReg(BNO055_OPR_MODE_ADDR, BNO055_OPR_MODE_CONFIG_MODE);
     i2c.writeReg(BNO055_OPR_MODE_ADDR, BNO055_NDOF_OPR_MODE);
@@ -167,9 +166,9 @@ function getAngles() {
   var p = data.readInt16LE(4);
   var divider = 1.0 / 16.0;
   return {
-    h: h * divider,
-    r: r * divider,
-    p: p * divider
+    heading: h * divider,
+    roll: r * divider,
+    pitch: p * divider
   };
 }
 
@@ -180,12 +179,12 @@ function isCalibrated() {
 
 function saveCalib(done) {
   if (calibrationSaved) {
-    console.log('already calibrated');
+    //console.log('already calibrated');
     return;
   }
 
   if (!isCalibrated()) {
-    console.log('not calibrated.');
+    //console.log('not calibrated.');
     return;
   }
   i2c.address(BNO055_I2C_BASE_ADDR);
@@ -213,7 +212,21 @@ function saveCalib(done) {
   });
 }
 
+var publishInterval;
+function setPublishInterval(interval) {
+  if (publishInterval != undefined) {
+    clearInterval(publishInterval);
+  }
+  publishInterval = setInterval(function() {
+    // these are box angles.
+    // TODO: convert them in a boat coordinate system.
+    var angles = getAngles();
+    anemonode.dispatcher.values.orient.setValue("IMU", angles);
+  }, interval);
+}
+
 module.exports.init = init;
 module.exports.getAngles = getAngles;
 module.exports.isCalibrated = isCalibrated;
 module.exports.saveCalib = saveCalib;
+module.exports.setPublishInterval = setPublishInterval;
