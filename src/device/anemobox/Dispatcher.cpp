@@ -23,6 +23,7 @@ const char* descriptionForCode(DataCode code) {
     case DATE_TIME: return "GPS date and time (UTC)";
     case TARGET_VMG: return "Target VMG";
     case VMG: return "VMG";
+    case ORIENT: return "absolute orientation";
     case NUM_DATA_CODE: return "INVALID CODE";
     // No default: the compiler will tell us if an entry is missing.
   }
@@ -45,6 +46,7 @@ const char* wordIdentifierForCode(DataCode code) {
     case DATE_TIME: return "dateTime";
     case TARGET_VMG: return "targetVmg";
     case VMG: return "vmg";
+    case ORIENT: return "orient";
     case NUM_DATA_CODE: return "INVALID CODE";
     // No default: the compiler will tell us if an entry is missing.
   }

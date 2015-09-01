@@ -175,6 +175,26 @@ void Logger::unpack(const GeoPosValueSet& values,
   }
 }
 
+void Logger::unpack(const AbsOrientValueSet& values,
+                    std::vector<AbsoluteOrientation>* result) {
+  std::vector<Angle<double>> heading;
+  std::vector<Angle<double>> roll;
+  std::vector<Angle<double>> pitch;
+  
+  unpack(values.heading(), &heading);
+  unpack(values.roll(), &roll);
+  unpack(values.pitch(), &pitch);
+
+  int size = values.heading().deltaangle_size();
+  result->resize(size);
+  for (int i = 0; i < size; ++i) {
+    AbsoluteOrientation *entry = &((*result)[i]);
+    entry->heading = heading[i];
+    entry->pitch = pitch[i];
+    entry->roll = roll[i];
+  }
+}
+
 void Logger::unpackTime(const ValueSet& valueSet,
                         std::vector<TimeStamp>* result) {
   result->clear();
