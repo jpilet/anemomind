@@ -308,7 +308,14 @@ struct MatrixElement {
 };
 typedef MatrixElement<double> MatrixElementd;
 
-
+inline double absSaturate(double x, double lb) {
+  if (x < 0) {
+    return -absSaturate(-x, lb);
+  } else if (x < lb) {
+    return lb;
+  }
+  return x;
+}
 
 template <typename T> // Should work for AD types too.
 bool genericIsNan(T x) {

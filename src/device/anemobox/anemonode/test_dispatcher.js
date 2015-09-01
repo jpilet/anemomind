@@ -80,6 +80,7 @@ fs.readFile("../../../../datasets/tinylog.txt", function (err, data ) {
   printHistory('pos');
   printHistory('dateTime');
 
+
   logger.logText("test", "this text is logged from javascript");
 
   estimator.compute();
@@ -94,3 +95,7 @@ fs.readFile("../../../../datasets/tinylog.txt", function (err, data ) {
     }
   });
 });
+
+anemonode.dispatcher.values.orient.setValue("test", {heading: 128, roll: 12.2, pitch: -3.1});
+anemonode.dispatcher.values.orient.setValue("test", {heading: 120, roll: 10.2, pitch: -3.8});
+printHistory('orient');

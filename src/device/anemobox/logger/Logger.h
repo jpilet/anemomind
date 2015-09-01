@@ -20,7 +20,8 @@ class LoggerValueListener:
   public Listener<Velocity<double>>,
   public Listener<Length<double>>,
   public Listener<GeographicPosition<double>>,
-  public Listener<TimeStamp> {
+  public Listener<TimeStamp>,
+  public Listener<AbsoluteOrientation> {
 public:
   LoggerValueListener(const std::string& shortName,
                       const std::string& sourceName)
@@ -56,18 +57,21 @@ public:
     _valueSet.add_timestamps(value);
   }
 
+  static void accumulateAngle(const Angle<> &angle, int *base, AngleValueSet* set) {
+    int value = int(angle.degrees() * 100.0);
+    int delta = value;
+    if (set->deltaangle_size() > 0) {
+      delta -= *base;
+    }
+    set->add_deltaangle(delta);
+    *base = value;
+  }
+
   virtual void onNewValue(const ValueDispatcher<Angle<double>> &angle) {
     addTimestamp(angle.lastTimeStamp());
 
-    int value = int(angle.lastValue().degrees() * 100.0);
-    int delta = value;
-    if (_valueSet.angles().deltaangle_size() > 0) {
-      delta -= intBase;
-    }
-    _valueSet.mutable_angles()->add_deltaangle(delta);
-    intBase = value;
+    accumulateAngle(angle.lastValue(), &intBase, _valueSet.mutable_angles());
   }
-
 
   virtual void onNewValue(const ValueDispatcher<Velocity<double>> &v) {
     addTimestamp(v.lastTimeStamp());
@@ -102,6 +106,19 @@ public:
 
   virtual void onNewValue(const ValueDispatcher<TimeStamp> &) { }
 
+  virtual void onNewValue(const ValueDispatcher<AbsoluteOrientation> &v) {
+    addTimestamp(v.lastTimeStamp());
+
+    accumulateAngle(v.lastValue().heading, &intBase, 
+                    _valueSet.mutable_orient()->mutable_heading());
+
+    accumulateAngle(v.lastValue().roll, &intBaseRoll, 
+                    _valueSet.mutable_orient()->mutable_roll());
+
+    accumulateAngle(v.lastValue().pitch, &intBasePitch, 
+                    _valueSet.mutable_orient()->mutable_pitch());
+  }
+
   void addText(const std::string& text) {
     addTimestamp(TimeStamp::now());
     _valueSet.add_text(text);
@@ -111,6 +128,8 @@ public:
 private:
   ValueSet _valueSet;
   int intBase;
+  int intBaseRoll;
+  int intBasePitch;
   int64_t timestampBase;
   std::string _sourceName;
   std::string _shortName;
@@ -147,6 +166,9 @@ class Logger {
 
   static void unpack(const GeoPosValueSet& values,
                      std::vector<GeographicPosition<double>>* result);
+
+  static void unpack(const AbsOrientValueSet& values,
+                     std::vector<AbsoluteOrientation>* result);
 
   static void unpackTime(const ValueSet& valueSet,
                          std::vector<TimeStamp>* result);
