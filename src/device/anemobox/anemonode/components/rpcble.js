@@ -191,3 +191,7 @@ module.exports.pushCharacteristics = function(array) {
 }
 module.exports.rpcFuncTable = rpcFuncTable;
 
+module.exports.isConnected = function() {
+  return rpcChar.pushBuffer != undefined;
+}
+

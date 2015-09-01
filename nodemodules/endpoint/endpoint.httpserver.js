@@ -124,11 +124,18 @@ function makeSubpath(method) {
 // Adds a route to the router for a method.
 function bindMethodHandler(withEndpointAccess, router, authenticator, method) {
   assert(schemautils.isValidHttpMethod(method.httpMethod));
-  router[method.httpMethod](
-    makeSubpath(method),
-    authenticator,
-    makeHandler(withEndpointAccess, method)
-  );
+  if (authenticator) {
+    router[method.httpMethod](
+      makeSubpath(method),
+      authenticator,
+      makeHandler(withEndpointAccess, method)
+    );
+  } else {
+    router[method.httpMethod](
+      makeSubpath(method),
+      makeHandler(withEndpointAccess, method)
+    );
+  }
 }
 
 // Adds all routes to the router.

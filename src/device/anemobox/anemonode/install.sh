@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-rm -fR node_modules/mail || true
+rm -fR node_modules/mail node_modules/endpoint || true
 npm install
 node-gyp configure
 node-gyp build
