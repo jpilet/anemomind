@@ -1,4 +1,4 @@
-#include <device/anemobox/anemonode/JsLogger.h>
+#include <device/anemobox/anemonode/src/JsLogger.h>
 
 using namespace v8;
 

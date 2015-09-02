@@ -1,5 +1,5 @@
 
-#include <device/anemobox/anemonode/JsDispatchData.h>
+#include <device/anemobox/anemonode/src/JsDispatchData.h>
 
 #include <device/anemobox/Dispatcher.h>
 
