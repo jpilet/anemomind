@@ -5,7 +5,7 @@ var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
 
 var withLocalEndpoint = true;
-var withLogger = true;
+var withLogger = false;
 var withGps = true;
 var withSetTime = true;
 var withBT = false;
@@ -62,17 +62,39 @@ dispatcher.setSourcePriority(nmea0183port.sourceName(), -1);
 dispatcher.setSourcePriority("Internal GPS", -2);
 
 // Internal GPS with output to NMEA0183
-if (withGps) {
-require('./components/gps').init(
-    function(data) {
-      if (echoGpsOnNmea) {
-        nmea0183port.emitNmea0183Sentence(data);
-      }
-      if (withLogger && logInternalGpsNmea) {
-        logger.logText("Internal GPS NMEA", data.toString('ascii'));
-      }
-    });
+var gps = (withGps ?  require('./components/gps') : {readGps:function(){}});
+function gpsData(data) {
+  if (echoGpsOnNmea) {
+    nmea0183port.emitNmea0183Sentence(data);
+  }
+  if (withLogger && logInternalGpsNmea) {
+    logger.logText("Internal GPS NMEA", data.toString('ascii'));
+  }
 }
+
+if (withIMU) {
+  var bno055 = require('./components/bno055.js');
+}
+
+function startI2CPolling() {
+  if (withGps || withIMU) {
+    // All I2C polling occur is triggered by this single timer.
+    setInterval(function() {
+      gps.readGps(gpsData);
+
+      if (bno055) {
+        bno055.readImu();
+      }
+    }, 80);
+  }
+}
+
+if (withIMU) {
+  bno055.init(startI2CPolling);
+} else {
+  startI2CPolling();
+}
+
 
 // Set the system clock to GPS time
 if (withSetTime) {
@@ -110,9 +132,3 @@ if (withEstimator) {
   estimator.start();
 }
 
-if (withIMU) {
-  var bno055 = require('./components/bno055.js');
-  bno055.init(function() {
-    bno055.setPublishInterval(100);
-  });
-}

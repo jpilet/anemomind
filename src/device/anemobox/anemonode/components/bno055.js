@@ -1,5 +1,6 @@
 
-var i2c = require('./i2c').i2c;
+var i2cModule = require('./i2c');
+var i2c = i2cModule.i2c;
 var anemonode = require('../build/Release/anemonode');
 var fs = require('fs');
 var Q = require('q');
@@ -159,17 +160,23 @@ function init(done) {
 }
 
 function getAngles() {
-  i2c.address(BNO055_I2C_BASE_ADDR);
-  var data = i2c.readBytesReg(BNO055_EULER_H_LSB_ADDR, 6);
-  var h = data.readInt16LE(0);
-  var r = data.readInt16LE(2);
-  var p = data.readInt16LE(4);
-  var divider = 1.0 / 16.0;
-  return {
-    heading: h * divider,
-    roll: r * divider,
-    pitch: p * divider
-  };
+  try {
+    i2c.address(BNO055_I2C_BASE_ADDR);
+    var data = i2c.readBytesReg(BNO055_EULER_H_LSB_ADDR, 6);
+    var h = data.readInt16LE(0);
+    var r = data.readInt16LE(2);
+    var p = data.readInt16LE(4);
+    var divider = 1.0 / 16.0;
+    return {
+      heading: h * divider,
+      roll: r * divider,
+      pitch: p * divider
+    };
+  } catch(err) {
+    console.warn(err);
+    i2cModule.reset();
+    return undefined;
+  }
 }
 
 function isCalibrated() {
@@ -212,21 +219,17 @@ function saveCalib(done) {
   });
 }
 
-var publishInterval;
-function setPublishInterval(interval) {
-  if (publishInterval != undefined) {
-    clearInterval(publishInterval);
-  }
-  publishInterval = setInterval(function() {
-    // these are box angles.
-    // TODO: convert them in a boat coordinate system.
-    var angles = getAngles();
+function readImu() {
+  // these are box angles.
+  // TODO: convert them in a boat coordinate system.
+  var angles = getAngles();
+  if (angles) {
     anemonode.dispatcher.values.orient.setValue("IMU", angles);
-  }, interval);
+  }
 }
 
 module.exports.init = init;
 module.exports.getAngles = getAngles;
 module.exports.isCalibrated = isCalibrated;
 module.exports.saveCalib = saveCalib;
-module.exports.setPublishInterval = setPublishInterval;
+module.exports.readImu = readImu;
