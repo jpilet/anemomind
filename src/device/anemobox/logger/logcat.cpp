@@ -43,6 +43,12 @@ ostream& operator<<(ostream& out, const GeographicPosition<double>& value) {
   return out << setprecision(10) << "(" << value.lat().degrees() << ", "
     << setprecision(10)<< value.lon().degrees() << ")";
 }
+ostream& operator<<(ostream& out, const AbsoluteOrientation& value) {
+  return out
+    << setprecision(2) << fixed << "heading: " << value.heading.degrees()
+    << setprecision(2) << fixed << " roll: " << value.roll.degrees()
+    << setprecision(2) << fixed << " pitch: " << value.pitch.degrees();
+}
 
 template <class T>
 void formatValues(const vector<TimeStamp>& times,
@@ -89,6 +95,11 @@ void streamCat(const ValueSet& valueSet, vector<TimedString>* entries) {
     Logger::unpack(valueSet.pos(), &values);
     formatValues(times, values, prefix, entries);
   }
+  if (valueSet.has_orient()) {
+    vector<AbsoluteOrientation> values;
+    Logger::unpack(valueSet.orient(), &values);
+    formatValues(times, values, prefix, entries);
+  }
 
   for (int i = 0; i < valueSet.text_size(); ++i) {
     entries->push_back(TimedString(times[i], prefix + ": " + valueSet.text(i)));
@@ -119,7 +130,7 @@ void logCat(const LogFile& data) {
   sort(entries.begin(), entries.end());
 
   for (const TimedString& entry : entries) {
-    cout << entry.time.toString() << ": " << entry.str << endl;
+    cout << entry.time.fullPrecisionString() << ": " << entry.str << endl;
   }
 }
 
