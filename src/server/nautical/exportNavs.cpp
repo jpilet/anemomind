@@ -44,16 +44,11 @@ std::string doubleToString(double x, Format f) {
   }
 }
 
-std::string angleToLiteral(Angle<double> x, Format f, double maxVal) {
-  double d = x.degrees();
-  while (d > maxVal) {
-    d -= 360;
-  }
-  double minVal = maxVal - 360;
-  while (d < minVal) {
-    d += 360;
-  }
-  return doubleToString(d, f);
+std::string angleToLiteral(Angle<double> x, Format f, double maxValDegrees) {
+  Angle<double> maxVal = Angle<double>::degrees(maxValDegrees);
+  return doubleToString(
+      x.moveToInterval(maxVal - Angle<double>::degrees(360), maxVal).degrees(),
+      f);
 }
 
 std::string velocityToLiteral(Velocity<double> x, Format f) {
