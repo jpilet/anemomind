@@ -1,4 +1,4 @@
-#include <device/anemobox/anemonode/JsNmea0183Source.h>
+#include <device/anemobox/anemonode/src/JsNmea0183Source.h>
 #include <device/anemobox/Dispatcher.h>
 
 #include <iostream>
