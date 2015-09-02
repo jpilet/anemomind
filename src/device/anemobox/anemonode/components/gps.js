@@ -17,22 +17,35 @@ function init(dataCb) {
   var nmeaSource = new anemonode.Nmea0183Source("Internal GPS");
 
   setInterval(function() {
+    var data;
+
     i2c.address(CAM_M8Q_I2C_BASE_ADDR);
-    var data = [];
+
+    // The first read is 1: quickly exit if there is no data to read.
+    var readSize = 1;
     do {
-      var c = i2c.readReg(CAM_M8Q_REG_DATA_STREAM);
-      if (c != 255) {
-        data.push(c);
+      var c = i2c.readBytesReg(CAM_M8Q_REG_DATA_STREAM, readSize);
+      if (data) {
+        data = Buffer.concat([data, c]);
+        // If there is more data to read, we should read more than
+        // 1 byte at a time.
+        readSize = 128;
       } else {
+        data = c;
+      }
+      if (data.length > 0 && data[data.length - 1] == 255) {
         break;
       }
     } while(1);
 
-    if (data.length > 0) {
-      var buffer = new Buffer(data);
-      nmeaSource.process(buffer);
+    if (data.length > 0 && data[0] != 255) {
+      // Trim padded '255'
+      for (var i = data.length - 1; data[i] == 255; --i) {
+        data = data.slice(0, i + 1);
+      }
+      nmeaSource.process(data);
       if (dataCb) {
-        dataCb(buffer);
+        dataCb(data);
       }
     }
   }, 50);

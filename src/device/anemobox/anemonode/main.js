@@ -8,10 +8,13 @@ var withLocalEndpoint = true;
 var withLogger = true;
 var withGps = true;
 var withSetTime = true;
-var withBT = true;
+var withBT = false;
 var echoGpsOnNmea = false;
 var withEstimator = true;
+var logInternalGpsNmea = false;
+var logExternalNmea = true;
 var withHttp = true;
+var withIMU = true;
 
 var config = require('./components/config');
 
@@ -46,7 +49,7 @@ if (withBT) {
 var nmea0183port = require('./components/nmea0183port');
 nmea0183port.init(nmea0183PortPath,
   function(data) { 
-  if (withLogger) {
+  if (withLogger && logExternalNmea) {
     logger.logText("NMEA0183 input", data.toString('ascii'));
   }
 });
@@ -65,7 +68,7 @@ require('./components/gps').init(
       if (echoGpsOnNmea) {
         nmea0183port.emitNmea0183Sentence(data);
       }
-      if (withLogger) {
+      if (withLogger && logInternalGpsNmea) {
         logger.logText("Internal GPS NMEA", data.toString('ascii'));
       }
     });
@@ -105,4 +108,11 @@ if (withEstimator) {
 
   estimator.loadCalib();
   estimator.start();
+}
+
+if (withIMU) {
+  var bno055 = require('./components/bno055.js');
+  bno055.init(function() {
+    bno055.setPublishInterval(100);
+  });
 }
