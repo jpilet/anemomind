@@ -4,6 +4,10 @@ var anemonode = require('./build/Release/anemonode');
 // Inspect the anemonode object
 console.warn(anemonode.dispatcher.values);
 
+for (var i in anemonode.dispatcher.values) {
+  console.log(i + ': \"' + anemonode.dispatcher.values[i].description + '\"');
+}
+
 var logger = new anemonode.Logger();
 var estimator = new anemonode.Estimator();
 

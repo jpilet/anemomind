@@ -8,43 +8,91 @@
   </head>
   <body>
     <center><h3>Live Data</h3></center>
-    <table class="table">
-      <tr><td>Time</td><td><div id="dateTime"></div></td></tr>
-      <tr><td>GPS Speed</td><td><div id="gpsSpeed"></div></td></tr>
-      <tr><td>GPS Bearing</td><td><div id="gpsBearing"></div></td></tr>
-      <tr><td>Latitude</td><td><div id="pos-lat"></div></td></tr>
-      <tr><td>Longitude</td><td><div id="pos-lon"></div></td></tr>
-      <tr><td>Heading</td><td><div id="orient-h"></div></td></tr>
-      <tr><td>Pitch</td><td><div id="orient-p"></div></td></tr>
-      <tr><td>Roll</td><td><div id="orient-r"></div></td></tr>
+    <table id="dataTable" class="table">
     </table>
+
+    <p style="text-align:center;"><a href="3d.html">3D view</a></p>
 
     <script src="jquery.min.js"></script>
     <script>
+    function getTitle(entry) {
+      var labels = {
+        aws: "apparent wind speed",
+        twa: "true wind angle",
+        tws: "true wind speed",
+        twdir: "true wind direction",
+        gpsSpeed: "GPS speed",
+        gpsBearing: "GPS bearing",
+        magHdg: "magnetic heading",
+        watSpeed: "water speed",
+        watDist: "distance over water",
+        pos: "GPS position",
+        dateTime: "GPS date and time (local time)",
+        targetVmg: "Target VMG",
+        vmg: "VMG",
+        orient: "anemobox orientation"
+      };
+      return (entry in labels ? labels[entry] : entry);
+    }
+
+    function formatAngle(value) {
+      return value.toFixed(1) + '&deg;';
+    }
+    function formatSpeed(value) {
+      return value.toFixed(1) + ' kn';
+    }
+    function formatLength(value) {
+      return value.toFixed(2) + ' nm';
+    }
+    function formatDate(date) {
+      var d = new Date(date);
+      return d.toLocaleString();
+    }
+
+    function getValue(data, entry) {
+      var fmt = {
+        awa: formatAngle,
+        aws: formatSpeed,
+        twa: formatAngle,
+        tws: formatSpeed,
+        twdir: formatAngle,
+        gpsSpeed: formatSpeed,
+        gpsBearing: formatAngle,
+        magHdg: formatAngle,
+        watSpeed: formatSpeed,
+        watDist: formatLength,
+        pos: JSON.stringify,
+        dateTime: formatDate,
+        targetVmg: formatSpeed,
+        vmg: formatSpeed,
+        orient: JSON.stringify
+      };
+      if (entry in fmt) {
+        return fmt[entry](data[entry])
+      } else {
+        return JSON.stringify(data[entry]);
+      }
+    };
+
     (function poll() {
       $.ajax({
         url: "api/live",
         type: "GET",
         success: function(data) {
-            console.log(data);
-            $('#dateTime').html(formatDate(data.dateTime));
-            $('#gpsSpeed').html(data.gpsSpeed);
-            $('#gpsBearing').html(data.gpsBearing);
-            $('#pos-lat').html(data.pos.lat);
-            $('#pos-lon').html(data.pos.lon);
-            $('#orient-h').html(data.orient.heading);
-            $('#orient-p').html(data.orient.pitch);
-            $('#orient-r').html(data.orient.roll);
+          var table = $('#dataTable');
+          table.html('');
+          for (var entry in data) {
+            var row = $('<tr></tr>');
+            row.append('<td style="width:30%">' + getTitle(entry) + '</td>');
+            row.append('<td>' + getValue(data, entry) + '</td>');
+            table.append(row);
+          }
         },
         dataType: "json",
         complete: setTimeout(function() {poll()}, 500),
         timeout: 200
       })
     })();
-    function formatDate(date) {
-    var d = new Date(date);
-    return d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
-    }
   </script>
   </body>
 </html>
