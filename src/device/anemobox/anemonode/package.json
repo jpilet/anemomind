@@ -7,6 +7,7 @@
     "bleno": "^0.2.0",
     "bluetooth-hci-socket": "^0.3.3",
     "body-parser": "^1.13.3",
+    "debug": "^2.2.0",
     "endpoint": "file:../../../../nodemodules/endpoint",
     "express": "^4.13.3",
     "mkdirp": "^0.5.0",
