@@ -4,25 +4,33 @@ var nmea0183PortPath = '/dev/ttyMFD1';
 var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
 
-var withLocalMailbox = true;
-var withLogger = true;
+var withLocalEndpoint = true;
+var withLogger = false;
 var withGps = true;
 var withSetTime = true;
-var withBT = true;
+var withBT = false;
 var echoGpsOnNmea = false;
 var withEstimator = true;
+var logInternalGpsNmea = false;
+var logExternalNmea = true;
+var withHttp = true;
+var withIMU = true;
 
 var config = require('./components/config');
+
+if (withHttp) {
+  var http = require('./components/http');
+}
 
 if (withLogger) {
   var logger = require('./components/logger');
 }
 
-if (withLocalMailbox) {
-  var localMailbox = require('./components/LocalMailbox.js');
+if (withLocalEndpoint) {
+  var localEndpoint = require('./components/LocalEndpoint.js');
   var sync = require('./components/sync.js');
 
-  localMailbox.postRemainingLogFiles(logRoot, function(err, files) {
+  localEndpoint.postRemainingLogFiles(logRoot, function(err, files) {
     if (err) {
       console.log('Failed to post logfiles at startup:');
       console.log(err);
@@ -41,7 +49,7 @@ if (withBT) {
 var nmea0183port = require('./components/nmea0183port');
 nmea0183port.init(nmea0183PortPath,
   function(data) { 
-  if (withLogger) {
+  if (withLogger && logExternalNmea) {
     logger.logText("NMEA0183 input", data.toString('ascii'));
   }
 });
@@ -54,17 +62,39 @@ dispatcher.setSourcePriority(nmea0183port.sourceName(), -1);
 dispatcher.setSourcePriority("Internal GPS", -2);
 
 // Internal GPS with output to NMEA0183
-if (withGps) {
-require('./components/gps').init(
-    function(data) {
-      if (echoGpsOnNmea) {
-        nmea0183port.emitNmea0183Sentence(data);
-      }
-      if (withLogger) {
-        logger.logText("Internal GPS NMEA", data.toString('ascii'));
-      }
-    });
+var gps = (withGps ?  require('./components/gps') : {readGps:function(){}});
+function gpsData(data) {
+  if (echoGpsOnNmea) {
+    nmea0183port.emitNmea0183Sentence(data);
+  }
+  if (withLogger && logInternalGpsNmea) {
+    logger.logText("Internal GPS NMEA", data.toString('ascii'));
+  }
 }
+
+if (withIMU) {
+  var bno055 = require('./components/bno055.js');
+}
+
+function startI2CPolling() {
+  if (withGps || withIMU) {
+    // All I2C polling occur is triggered by this single timer.
+    setInterval(function() {
+      gps.readGps(gpsData);
+
+      if (bno055) {
+        bno055.readImu();
+      }
+    }, 80);
+  }
+}
+
+if (withIMU) {
+  bno055.init(startI2CPolling);
+} else {
+  startI2CPolling();
+}
+
 
 // Set the system clock to GPS time
 if (withSetTime) {
@@ -73,8 +103,8 @@ if (withSetTime) {
 
 if (withLogger) {
   logger.startLogging(logRoot, logInterval, function(path) {
-    if (withLocalMailbox) {
-      localMailbox.postLogFile(path, function(err, remaining) {
+    if (withLocalEndpoint) {
+      localEndpoint.postLogFile(path, function(err, remaining) {
         if (err) {
           console.log('###### Error posting file located at ' + path + ':');
         } else {
@@ -88,8 +118,8 @@ if (withLogger) {
 
 require('./components/RpcAssignBoat');
 
-if (withLocalMailbox) {
-  var fillTable = require('./components/RpcMailbox.js').fillTable;
+if (withLocalEndpoint) {
+  var fillTable = require('./components/RpcEndpoint.js').fillTable;
   var rpcFuncTable = require('./components/rpcble.js').rpcFuncTable;
   fillTable(rpcFuncTable);
 }
@@ -101,3 +131,4 @@ if (withEstimator) {
   estimator.loadCalib();
   estimator.start();
 }
+

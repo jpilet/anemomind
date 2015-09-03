@@ -19,7 +19,7 @@ int main() {
   std::cout << EXPR_AND_VAL_AS_STRING(p.toString()) << std::endl;
   Array<Nav> allnavs = scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
   std::cout << EXPR_AND_VAL_AS_STRING(allnavs.size()) << std::endl;
-  Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10).seconds());
+  Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10));
   std::cout << EXPR_AND_VAL_AS_STRING(navs.size()) << std::endl;
   dispNavTimeIntervals(allnavs);
   return 0;

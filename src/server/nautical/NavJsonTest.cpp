@@ -111,7 +111,7 @@ TEST(NavJsonTest, BackwardCompatibilityTest) {
   base.setMagHdg(Angle<>::radians(-.301));
   base.setTime(TimeStamp::fromMilliSecondsSince1970(1396029819000));
   base.setWatSpeed(Velocity<>::metersPerSecond(.03));
-  base.setTrueWind(HorizontalMotion<double>::polar(
+  base.setTrueWindOverGround(HorizontalMotion<double>::polar(
           Velocity<>::metersPerSecond(8), Angle<>::radians(-.2)));
 
   std::stringstream ss;

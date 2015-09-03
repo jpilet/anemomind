@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Live View</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="bootstrap.min.css" rel="stylesheet" media="screen">
+  </head>
+  <body>
+    <center><h3>Live Data</h3></center>
+    <table class="table">
+      <tr><td>Time</td><td><div id="dateTime"></div></td></tr>
+      <tr><td>GPS Speed</td><td><div id="gpsSpeed"></div></td></tr>
+      <tr><td>GPS Bearing</td><td><div id="gpsBearing"></div></td></tr>
+      <tr><td>Latitude</td><td><div id="pos-lat"></div></td></tr>
+      <tr><td>Longitude</td><td><div id="pos-lon"></div></td></tr>
+      <tr><td>Heading</td><td><div id="orient-h"></div></td></tr>
+      <tr><td>Pitch</td><td><div id="orient-p"></div></td></tr>
+      <tr><td>Roll</td><td><div id="orient-r"></div></td></tr>
+    </table>
+
+    <script src="jquery.min.js"></script>
+    <script>
+    (function poll() {
+      $.ajax({
+        url: "api/live",
+        type: "GET",
+        success: function(data) {
+            console.log(data);
+            $('#dateTime').html(formatDate(data.dateTime));
+            $('#gpsSpeed').html(data.gpsSpeed);
+            $('#gpsBearing').html(data.gpsBearing);
+            $('#pos-lat').html(data.pos.lat);
+            $('#pos-lon').html(data.pos.lon);
+            $('#orient-h').html(data.orient.heading);
+            $('#orient-p').html(data.orient.pitch);
+            $('#orient-r').html(data.orient.roll);
+        },
+        dataType: "json",
+        complete: setTimeout(function() {poll()}, 500),
+        timeout: 200
+      })
+    })();
+    function formatDate(date) {
+    var d = new Date(date);
+    return d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
+    }
+  </script>
+  </body>
+</html>

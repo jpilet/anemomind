@@ -256,8 +256,19 @@ FilteredNavData::NoiseStdDev FilteredNavData::estimateNoise(Array<Nav> navs) con
       Velocity<double>::knots(aws.standardDeviation()));
 }
 
+
+Array<Duration<double> > FilteredNavData::timesSinceOffset() const {
+  int n = size();
+  Array<Duration<double> > durs(n);
+  for (int i = 0; i < n; i++) {
+    durs[i] = Duration<double>::seconds(indexToX()(i));
+  }
+  return durs;
+}
+
 Array<FilteredNavData::Indexed> FilteredNavData::makeIndexedInstrumentAbstractions() const {
   return Spani(0, size()).map<Indexed>([&](int i) {return makeIndexedInstrumentAbstraction(i);});
 }
+
 
 }

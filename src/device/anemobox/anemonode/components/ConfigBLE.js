@@ -18,8 +18,10 @@ var GetAnemoIdCharacteristic = function() {
 util.inherits(GetAnemoIdCharacteristic, BlenoCharacteristic);
 
 GetAnemoIdCharacteristic.prototype.onReadRequest = function(offset, callback) {
+  var me = this;
   anemoId.getAnemoId(function(id) {
-    callback(this.RESULT_SUCCESS, new Buffer(id));
+    console.log('Get box id: ' + id);
+    callback(me.RESULT_SUCCESS, new Buffer(id));
   });
 };
 
@@ -34,30 +36,34 @@ util.inherits(BoatIdCharacteristic, BlenoCharacteristic);
 
 BoatIdCharacteristic.prototype.onReadRequest = function(offset, callback) {
   console.log('read request boatId with offset: ' + offset);
+  var me = this;
   config.get(function(err, config) {
     if (config && config.boatId) {
       console.log('Sending boatId:' + config.boatId);
-      callback(this.RESULT_SUCCESS, new Buffer(config.boatId));
+      callback(me.RESULT_SUCCESS, new Buffer(config.boatId));
     } else {
-      callback(this.RESULT_UNLIKELY_ERROR);
+      callback(me.RESULT_UNLIKELY_ERROR);
     }
   });
 };
 
 BoatIdCharacteristic.prototype.onWriteRequest = 
     function(data, offset, withoutResponse, callback) {
+      console.log('write request to BoatId');
+  console.warn((new Error()).stack);
+  var me = this;
   if (offset) {
-    callback(this.RESULT_ATTR_NOT_LONG);
+    callback(me.RESULT_ATTR_NOT_LONG);
   } else if (data.length < 10) {
-    callback(this.RESULT_INVALID_ATTRIBUTE_LENGTH);
+    callback(me.RESULT_INVALID_ATTRIBUTE_LENGTH);
   } else {
     var boatId = data.toString('ascii');
     console.log('assigning boat id: ' + boatId);
     config.change({boatId: boatId}, function(err, cfg) {
       if (err) {
-        callback(this.RESULT_UNLIKELY_ERROR);
+        callback(me.RESULT_UNLIKELY_ERROR);
       } else {
-        callback(this.RESULT_SUCCESS);
+        callback(me.RESULT_SUCCESS);
       }
     });
   }
@@ -74,12 +80,13 @@ util.inherits(BoatNameCharacteristic, BlenoCharacteristic);
 
 BoatNameCharacteristic.prototype.onReadRequest = function(offset, callback) {
   console.log('boat name read request.');
+  var me = this;
   config.get(function(err, config) {
     if (config && config.boatName) {
       console.log('Sending boatName:' + config.boatName);
-      callback(this.RESULT_SUCCESS, new Buffer(config.boatName));
+      callback(me.RESULT_SUCCESS, new Buffer(config.boatName));
     } else {
-      callback(this.RESULT_UNLIKELY_ERROR);
+      callback(me.RESULT_UNLIKELY_ERROR);
     }
   });
 };

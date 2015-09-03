@@ -22,6 +22,6 @@ module.exports = {
   },
 
   uploadDir: '/var/uploads',
-  mailboxDir: '/var/mail2',
+  endpointDir: '/var/mail2',
   backupDestination: 'anemomind@vtiger.anemomind.com:userlogs'
 };

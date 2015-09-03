@@ -185,6 +185,7 @@ cxx_test(math_UniformSamplesTest
          UniformSamplesTest.cpp
          common_LineKM
          gtest_main
+         math_nonlinear_SignalUtils
         )
         
 
@@ -273,6 +274,13 @@ cxx_test(math_StabilityTest
          StabilityTest.cpp
          gtest_main
          math_Stability
+        )
+
+cxx_test(math_SignalCovarianceTest
+         SignalCovarianceTest.cpp
+         gtest_main
+         common_Progress
+         common_ScopedLog
         )
 
 add_subdirectory(geometry)

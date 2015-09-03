@@ -11,6 +11,7 @@
 
 #include <server/common/LineKM.h>
 #include <server/common/Array.h>
+#include <server/math/nonlinear/SignalUtils.h>
 
 namespace sail {
 
@@ -22,14 +23,16 @@ class UniformSamples {
 
   UniformSamples() {}
 
-  UniformSamples(LineKM sampling_, ArrayType samples_) :
+  UniformSamples(Sampling sampling_, ArrayType samples_) :
     _sampling(sampling_), _samples(samples_) {}
 
+  UniformSamples(LineKM sampling_, ArrayType samples_) :
+    _sampling(samples_.size(), sampling_),
+    _samples(samples_) {}
+
   T interpolateLinear(double x) const {
-    int I[2];
-    double W[2];
-    _sampling.makeInterpolationWeights(x, I, W);
-    return W[0]*_samples[I[0]] + W[1]*_samples[I[1]];
+    auto w = _sampling.represent(x);
+    return w.eval(_samples);
   }
 
   T interpolateLinearBounded(double x) const {
@@ -47,22 +50,24 @@ class UniformSamples {
   }
 
   T interpolateLinearDerivative(double x) const {
-    int I[2];
-    double W[2];
-    _sampling.makeInterpolationWeights(x, I, W);
-    return (1.0/_sampling.getK())*(_samples[I[1]] - _samples[I[0]]);
+    auto w = _sampling.represent(x);
+    return (1.0/_sampling.indexToX().getK())*(_samples[w.upperIndex()] - _samples[w.lowerIndex]);
   }
 
   ArrayType interpolateLinearDerivative(Arrayd X) const {
     return X.map<T>([&](double x) {return interpolateLinearDerivative(x);});
   }
 
-  const LineKM &sampling() const {
-    return _sampling;
+  const LineKM &indexToX() const {
+    return _sampling.indexToX();
   }
 
   const ArrayType &samples() const {
     return _samples;
+  }
+
+  const Sampling &sampling() const {
+    return _sampling;
   }
 
   int size() const {
@@ -75,7 +80,7 @@ class UniformSamples {
 
   Arrayd makeCenteredX() const {
     int sampleCount = _samples.size() - 1;
-    LineKM map(0, 1, _sampling(0.5), _sampling(1.5));
+    LineKM map(0, 1, indexToX()(0.5), indexToX()(1.5));
     Arrayd dst(sampleCount);
     for (int i = 0; i < sampleCount; i++) {
       dst[i] = map(i);
@@ -85,8 +90,7 @@ class UniformSamples {
 
   template <typename OtherElemType>
   bool sameSamplingAs(const UniformSamples<OtherElemType> &other) const {
-    return _sampling == other.sampling() &&
-        _samples.size() == other.samples().size();
+    return _sampling == other.sampling();
   }
 
   T get(int index) const {
@@ -107,15 +111,14 @@ class UniformSamples {
   }
 
   double low() const {
-    return _sampling(0);
+    return _sampling.indexToX()(0);
   }
 
   double high() const {
-    return _sampling(_samples.size() - 1);
+    return _sampling.indexToX()(_sampling.lastIndex());
   }
  private:
-  // Maps sample indices to time
-  LineKM _sampling;
+  Sampling _sampling;
 
   // The samples
   ArrayType _samples;

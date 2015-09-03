@@ -31,6 +31,14 @@ void print(const TimeStampDispatcher &timeStamp) {
   std::cout << timeStamp.lastValue().toString();
 }
 
+void print(const AbsoluteOrientationDispatcher &orientDisp) {
+  auto orient = orientDisp.lastValue();
+  std::cout << "Orient(heading=" << orient.heading
+    << ", roll=" << orient.roll
+    << ", pitch=" << orient.pitch
+    << ")";
+}
+
 template <class T>
 class PrintListener : public Listener<T> {
  public:
@@ -82,12 +90,21 @@ class PrintUpdates : public DispatchDataVisitor {
     value->dispatcher()->subscribe(valuePrinter.get());
     _timeStampPrinters.push_back(valuePrinter);
   }
+
+  virtual void run(DispatchAbsoluteOrientationData *value) {
+    std::shared_ptr<PrintListener<AbsoluteOrientation>> valuePrinter(
+        new PrintListener<AbsoluteOrientation>(value->description()));
+    value->dispatcher()->subscribe(valuePrinter.get());
+    _orientPrinters.push_back(valuePrinter);
+  }
+
  private:
   std::vector<std::shared_ptr<PrintListener<Angle<double>>>> _anglePrinters;
   std::vector<std::shared_ptr<PrintListener<Velocity<double>>>> _velocityPrinters;
   std::vector<std::shared_ptr<PrintListener<Length<double>>>> _lengthPrinters;
   std::vector<std::shared_ptr<PrintListener<GeographicPosition<double>>>> _geoPosPrinters;
   std::vector<std::shared_ptr<PrintListener<TimeStamp>>> _timeStampPrinters;
+  std::vector<std::shared_ptr<PrintListener<AbsoluteOrientation>>> _orientPrinters;
 };
 
 }  // namespace
