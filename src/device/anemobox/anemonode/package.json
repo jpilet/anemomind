@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "./build/Release/anemonode",
   "dependencies": {
+    "async": "^1.4.2",
     "bleno": "^0.2.0",
+    "bluetooth-hci-socket": "^0.3.3",
     "body-parser": "^1.13.3",
     "endpoint": "file:../../../../nodemodules/endpoint",
     "express": "^4.13.3",
@@ -11,6 +13,7 @@
     "mraa": "^0.7.0",
     "msgpack-js": "^0.3.0",
     "nan": "^1.7.0",
+    "noble": "^1.1.0",
     "q": "^1.4.1",
     "serialport": "^1.6.3"
   },

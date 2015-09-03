@@ -1,8 +1,6 @@
 var async = require('async');
 var noble = require('noble');
 
-var peripheralId = 'f9dcac3eb287';
-
 noble.on('stateChange', function(state) {
   console.log('State: ' + state);
   if (state === 'poweredOn') {
@@ -43,10 +41,10 @@ noble.on('discover', function(peripheral) {
 
     console.log();
 
-  if (peripheral.id === peripheralId) {
+  if (localName === "CUPS4.0.0") {
     noble.stopScanning();
 
-    console.log('peripheral with ID ' + peripheralId + ' found');
+    console.log('CUPS with ID ' + peripheral.id + ' found');
 
 
     connectToCUPS(peripheral);
@@ -75,7 +73,8 @@ function connectToCUPS(peripheral) {
   console.log('services and characteristics:');
 
   peripheral.on('disconnect', function() {
-    console.log('CUPS Disconnected');
+    console.log('CUPS Disconnected, scanning again');
+    noble.startScanning();
   });
 
   peripheral.connect(function(error) {
