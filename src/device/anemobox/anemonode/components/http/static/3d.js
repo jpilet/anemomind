@@ -4,6 +4,10 @@ var heading = 0;
 var roll = 0;
 var pitch = 0;
 
+function formatAngle(angle) {
+  return angle.toFixed(1) + "&deg;";
+}
+
 function webGLStart() {
 	var canvas = document.getElementById("Sample01-canvas");
 	initGL(canvas);
@@ -25,6 +29,9 @@ function webGLStart() {
           heading = orient.heading;
           roll = orient.roll;
           pitch = orient.pitch;
+          $('#heading').html(formatAngle(heading));
+          $('#pitch').html(formatAngle(pitch));
+          $('#roll').html(formatAngle(roll));
           drawScene();
         }
       }
