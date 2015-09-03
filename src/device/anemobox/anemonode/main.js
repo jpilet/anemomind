@@ -5,7 +5,7 @@ var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
 
 var withLocalEndpoint = true;
-var withLogger = false;
+var withLogger = true;
 var withGps = true;
 var withSetTime = true;
 var withBT = false;
