@@ -15,6 +15,7 @@ var logInternalGpsNmea = false;
 var logExternalNmea = true;
 var withHttp = true;
 var withIMU = true;
+var withCUPS = true;
 
 var config = require('./components/config');
 
@@ -60,6 +61,9 @@ dispatcher.setSourcePriority(nmea0183port.sourceName(), -1);
 
 // Lower internal GPS priority: external GPS is more relevant.
 dispatcher.setSourcePriority("Internal GPS", -2);
+
+// The CUPS sensor has less priority than NMEA.
+dispatcher.setSourcePriority("CUPS", -2);
 
 // Internal GPS with output to NMEA0183
 var gps = (withGps ?  require('./components/gps') : {readGps:function(){}});
@@ -132,3 +136,6 @@ if (withEstimator) {
   estimator.start();
 }
 
+if (withCUPS) {
+  require('./components/cups.js');
+}
