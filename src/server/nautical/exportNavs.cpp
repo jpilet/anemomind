@@ -59,7 +59,7 @@ std::string timeToLiteralHumanReadable(TimeStamp t, Format f) {
   if (f == MATLAB) { // Don't export text, only numbers.
     return "NAN";
   }
-  return t.toString("%m-%d-%Y %T");
+  return t.toString("%Y-%m-%d %T");
 }
 
 
