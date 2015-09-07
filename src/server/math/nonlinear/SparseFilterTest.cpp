@@ -23,7 +23,6 @@ TEST(SparseFilterTest, TestFilter) {
     // Some outliers
     if (i < 4) {
       y = 8*sin(234.432*i + 2342.34);
-      std::cout << EXPR_AND_VAL_AS_STRING(y) << std::endl;
     }
 
     input(i, 0) = index;
@@ -36,7 +35,12 @@ TEST(SparseFilterTest, TestFilter) {
   SparseFilter::Settings settings;
   auto results = SparseFilter::filter(sampling, observations, inlierCount, 1, settings);
 
-  if (true) {
+  for (int i = 0; i < 30; i++) {
+    EXPECT_NEAR(results(i, 0), i < 20? 0 : 1, 0.02);
+  }
+
+  constexpr bool visualize = false;
+  if (visualize) {
     MDArray2d filtered(30, 2);
     for (int i = 0; i < 30; i++) {
       filtered(i, 0) = i;

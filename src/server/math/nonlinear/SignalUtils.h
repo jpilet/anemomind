@@ -153,7 +153,7 @@ struct Observation {
     }
   }
 
-  Array<Observation<N> > filterValid(Sampling sampling, Array<Observation<N> > observations) {
+  static Array<Observation<N> > filterValid(Sampling sampling, Array<Observation<N> > observations) {
     return observations.slice([=](const Observation<N> &obs) {
       return sampling.valid(obs.weights);
     });

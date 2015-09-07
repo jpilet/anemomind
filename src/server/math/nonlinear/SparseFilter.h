@@ -22,6 +22,7 @@ struct Settings {
 template <int N>
 MDArray2d filter(Sampling sampling, Array<Observation<N> > observations,
   int inlierCount, int discontinuityCount, Settings settings) {
+  observations = Observation<N>::filterValid(sampling, observations);
   typedef Eigen::Triplet<double> Triplet;
   int signalDim = N*sampling.count();
   int dataDim = N*observations.size();
@@ -32,8 +33,6 @@ MDArray2d filter(Sampling sampling, Array<Observation<N> > observations,
 
   std::vector<Triplet> triplets;
 
-  //Eigen::VectorXd B = Eigen::VectorXd::Zero(rows);
-  std::cout << EXPR_AND_VAL_AS_STRING(rows) << std::endl;
   Eigen::VectorXd B = Eigen::VectorXd::Zero(rows);
 
   // Build the data part
