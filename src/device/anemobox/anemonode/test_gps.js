@@ -1,11 +1,15 @@
 var anemonode = require('./build/Release/anemonode');
 
 // Internal GPS with output to NMEA0183
-require('./components/gps').init(function(buffer) {
-  //console.log(buffer.toString('ascii'));
-});
+var gps = require('./components/gps');
+
+setInterval(function() {
+  gps.readGps(function(buffer) {
+    console.log(buffer.toString('ascii'));
+  });
+}, 50);
 
 require('./components/settime.js');
-anemonode.dispatcher.dateTime.subscribe(function(val) {
+anemonode.dispatcher.values.dateTime.subscribe(function(val) {
   console.log('Got time: ' + val);
 });

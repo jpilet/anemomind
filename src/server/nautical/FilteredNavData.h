@@ -62,12 +62,12 @@ class FilteredNavData {
     return _aws;
   }
 
-  const LineKM &sampling() const {
-    return _awa.sampling();
+  const LineKM &indexToX() const {
+    return _awa.indexToX();
   }
 
   double samplingPeriod() const {
-    return sampling().getK();
+    return indexToX().getK();
   }
 
   int size() const {

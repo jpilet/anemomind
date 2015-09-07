@@ -185,6 +185,7 @@ cxx_test(math_UniformSamplesTest
          UniformSamplesTest.cpp
          common_LineKM
          gtest_main
+         math_nonlinear_SignalUtils
         )
         
 

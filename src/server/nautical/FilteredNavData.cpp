@@ -261,7 +261,7 @@ Array<Duration<double> > FilteredNavData::timesSinceOffset() const {
   int n = size();
   Array<Duration<double> > durs(n);
   for (int i = 0; i < n; i++) {
-    durs[i] = Duration<double>::seconds(sampling()(i));
+    durs[i] = Duration<double>::seconds(indexToX()(i));
   }
   return durs;
 }

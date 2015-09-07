@@ -7,10 +7,10 @@
 #include <node.h>
 #include <nan.h>
 
-#include <device/anemobox/anemonode/JsDispatcher.h>
-#include <device/anemobox/anemonode/JsNmea0183Source.h>
-#include <device/anemobox/anemonode/JsEstimator.h>
-#include <device/anemobox/anemonode/JsLogger.h>
+#include <device/anemobox/anemonode/src/JsDispatcher.h>
+#include <device/anemobox/anemonode/src/JsNmea0183Source.h>
+#include <device/anemobox/anemonode/src/JsEstimator.h>
+#include <device/anemobox/anemonode/src/JsLogger.h>
 
 #include <iostream>
 #include <vector>

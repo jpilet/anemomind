@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>3D Anemobox View</title>
+<script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
+<script type="text/javascript" src="3d.js"></script>
+<script type="text/javascript" src="jquery.min.js"></script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+    #ifdef GL_ES
+    precision highp float;
+    #endif
+
+	varying vec4 vColor;
+
+    void main(void) {
+        gl_FragColor = vColor;
+    }
+</script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+	attribute vec4 aVertexColor;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+
+	varying vec4 vColor;
+
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+ 		vColor = aVertexColor;
+    }
+</script>
+</head>
+<body onload="webGLStart();">
+<canvas id="Sample01-canvas" style="border: none;" width="500" height="500"></canvas>
+<p>Heading: <span id="heading"></span></p>
+<p>Pitch: <span id="pitch"></span></p>
+<p>Roll: <span id="roll"></span></p>
+</body>
+</html>

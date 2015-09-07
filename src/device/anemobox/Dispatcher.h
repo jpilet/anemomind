@@ -33,7 +33,8 @@ enum DataCode {
   DATE_TIME = 12,
   TARGET_VMG = 13,
   VMG = 14,
-  NUM_DATA_CODE = 15
+  ORIENT = 15,
+  NUM_DATA_CODE = 16
 };
 
 template <DataCode Code> struct TypeForCode { };
@@ -52,6 +53,7 @@ template<> struct TypeForCode<GPS_POS> { typedef GeographicPosition<double> type
 template<> struct TypeForCode<DATE_TIME> { typedef TimeStamp type; };
 template<> struct TypeForCode<TARGET_VMG> { typedef Velocity<> type; };
 template<> struct TypeForCode<VMG> { typedef Velocity<> type; };
+template<> struct TypeForCode<ORIENT> { typedef AbsoluteOrientation type; };
 
 const char* descriptionForCode(DataCode code);
 const char* wordIdentifierForCode(DataCode code);
@@ -123,6 +125,7 @@ typedef TypedDispatchData<Velocity<double>> DispatchVelocityData;
 typedef TypedDispatchData<Length<double>> DispatchLengthData;
 typedef TypedDispatchData<GeographicPosition<double>> DispatchGeoPosData;
 typedef TypedDispatchData<TimeStamp> DispatchTimeStampData;
+typedef TypedDispatchData<AbsoluteOrientation> DispatchAbsoluteOrientationData;
 
 template <typename T>
 class DispatchDataProxy : public TypedDispatchData<T> {
@@ -157,6 +160,7 @@ class DispatchDataVisitor {
   virtual void run(DispatchLengthData *length) = 0;
   virtual void run(DispatchGeoPosData *pos) = 0;
   virtual void run(DispatchTimeStampData *timestamp) = 0;
+  virtual void run(DispatchAbsoluteOrientationData *orient) = 0;
   virtual ~DispatchDataVisitor() {}
 };
 
@@ -278,6 +282,10 @@ class SubscribeVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchTimeStampData *data) {
+    data->dispatcher()->subscribe(listener_);
+  }
+
+  virtual void run(DispatchAbsoluteOrientationData *data) {
     data->dispatcher()->subscribe(listener_);
   }
 

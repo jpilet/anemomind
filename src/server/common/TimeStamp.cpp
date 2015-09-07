@@ -114,6 +114,10 @@ std::string TimeStamp::toString() const {
   return toString(isofmt);
 }
 
+std::string TimeStamp::fullPrecisionString() const {
+  return toString() + stringFormat(".%03d", _time % TimeRes);
+}
+
 
 Duration<double> operator-(const TimeStamp &a, const TimeStamp &b) {
   return Duration<double>::seconds(TimeStamp::difSeconds(a, b));

@@ -1,7 +1,7 @@
-#include <device/anemobox/anemonode/JsDispatcher.h>
+#include <device/anemobox/anemonode/src/JsDispatcher.h>
 
 #include <device/anemobox/Dispatcher.h>
-#include <device/anemobox/anemonode/JsDispatchData.h>
+#include <device/anemobox/anemonode/src/JsDispatchData.h>
 
 using namespace sail;
 using namespace v8;
