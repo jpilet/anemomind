@@ -9,6 +9,8 @@
 #include <server/common/ArrayIO.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
+#include <server/math/nonlinear/SparseFilter.h>
+#include <server/plot/extra.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -20,7 +22,6 @@ void initializeLinearParameters(bool withOffset, double *dst2or4) {
     dst2or4[i] = 0.0;
   }
 }
-
 
 typedef Eigen::Triplet<double> Triplet;
 
@@ -36,20 +37,65 @@ CommonCalibrationSettings CommonCalibrationSettings::firstOrderSettings() {
   return s;
 }
 
-CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration, CommonCalibrationSettings settings) {
+
+void filterArr(int count, MDArray2d src, MDArray2d dst,
+    int inlierCount, int regOrder, int discontinuityCount,
+    SparsityConstrained::Settings spcstSettings) {
+  Array<Observation<2> > observations(count);
+  for (int i = 0; i < count; i++) {
+    int offset = 2*i;
+    observations[i] = Observation<2>{Sampling::Weights::atIndex(i),
+      {src[offset + 0], src[offset + 1]}};
+  }
+  Sampling sampling = Sampling::identity(count);
+  SparseFilter::Settings settings;
+  settings.spcstSettings = spcstSettings;
+  settings.regOrder = regOrder;
+  settings.outputTransposed = true;
+  SparseFilter::filter(sampling, observations, inlierCount, discontinuityCount, settings)
+    .getStorage().copyToSafe(dst.getStorage());
+}
+
+FlowMatrices filterColumns(FlowMatrices src, double inlierFrac,
+    int regOrder, int discontinuityCount,
+    SparsityConstrained::Settings spcstSettings) {
+  MDArray2d A = src.A.allocate();
+  MDArray2d B = src.B.allocate();
+  int n = src.A.rows()/2;
+  assert(2*n == src.A.rows());
+  int inlierCount = int(floor(inlierFrac*n));
+  for (int i = 0; i < src.A.cols(); i++) {
+    filterArr(n, src.A.sliceCol(i), A.sliceCol(i), inlierCount, regOrder, discontinuityCount,
+      spcstSettings);
+  }
+    filterArr(n, src.B, B, inlierCount, regOrder, discontinuityCount, spcstSettings);
+    //src.B.copyToSafe(B);
+
+  return FlowMatrices{A, B};
+}
+
+
+CommonResults calibrateSparse(FlowMatrices rawMats, Duration<double> totalDuration,
+    CommonCalibrationSettings settings) {
+  // How many non-zero regularization residuals that we allow for.
+  // Proportional to the total duration.
   ENTER_FUNCTION_SCOPE;
-  assert(mats.A.rows() == mats.B.rows());
-  assert(mats.B.cols() == 1);
-  int flowDim = mats.A.rows();
+  int flowDim = rawMats.A.rows();
   int flowCount = flowDim/2;
   assert(2*flowCount == flowDim);
-  int paramDim = mats.A.cols();
   int regCount = flowCount - settings.regOrder;
   int regDim = 2*regCount;
-  int dstCols = flowDim + paramDim + flowDim;
-  int dstRows = flowDim + regDim + flowDim;
-  int slackColOffset = flowDim + paramDim;
-  int slackRowOffset = flowDim + regDim;
+  int passiveCount = 1 + int(floor(totalDuration/settings.nonZeroPeriod));
+  int activeCount = std::max(regCount - passiveCount, 0);
+
+  auto mats = filterColumns(rawMats, settings.inlierFrac, settings.regOrder-1,
+      passiveCount, settings.spcst);
+
+  assert(mats.A.rows() == mats.B.rows());
+  assert(mats.B.cols() == 1);
+  int paramDim = mats.A.cols();
+  int dstCols = flowDim + paramDim;
+  int dstRows = flowDim + regDim;
   auto regCoefs = makeRegCoefs(settings.regOrder);
   auto localRegCols = 2*regCoefs.size();
 
@@ -68,21 +114,14 @@ CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
 
   std::vector<Triplet> Adst;
   Eigen::VectorXd Bdst = Eigen::VectorXd::Zero(dstRows);
-  Array<Spani> spans(regCount), slackSpans(flowCount);
+  Array<Spani> spans(regCount);
 
-  for (int i = 0; i < flowCount; i++) {
-    int offset = slackRowOffset + 2*i;
-    slackSpans[i] = Spani(offset, offset + 2);
-  }
 
   SCOPEDMESSAGE(INFO, stringFormat("Building flow equations... (%d)", flowDim));
   for (int i = 0; i < flowDim; i++) {
     // Build the upper-left part of Adst
     Adst.push_back(Triplet(i, i, 1.0));
 
-    // Add the slack for outliers
-    Adst.push_back(Triplet(i, i + slackColOffset, 1.0));
-    Adst.push_back(Triplet(i + slackRowOffset, i + slackColOffset, 1.0));
 
     // and fill the upper part of Bdst
     Bdst(i) = mats.B(i, 0);
@@ -116,15 +155,10 @@ CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
   SCOPEDMESSAGE(INFO, stringFormat("Number of nonzero elements: %d", Adst.size()));
   SCOPEDMESSAGE(INFO, stringFormat("Sparsity degree: %.3g", double(Adst.size())/totalElemCount));
 
-  // How many non-zero regularization residuals that we allow for.
-  // Proportional to the total duration.
-  int passiveCount = 1 + int(floor(totalDuration/settings.nonZeroPeriod));
-  int activeCount = std::max(regCount - passiveCount, 0);
 
   SparsityConstrained::ConstraintGroup group{spans, activeCount};
-  SparsityConstrained::ConstraintGroup slackGroup{slackSpans, int(ceil(settings.inlierFrac*flowCount))};
   auto flowAndParametersVector = SparsityConstrained::solve(AdstMat, Bdst,
-      Array<SparsityConstrained::ConstraintGroup>{group, slackGroup},
+      Array<SparsityConstrained::ConstraintGroup>{group},
       settings.spcst);
   if (flowAndParametersVector.size() == 0) {
     return CommonResults();

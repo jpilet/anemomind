@@ -9,6 +9,7 @@ target_link_libraries(nautical_calibration_LinearCalibration
                       common_ScopedLog
                       common_string
                       common_math
+                      math_nonlinear_SignalUtils
                      )
            
 cxx_test(nautical_calibration_LinearCalibrationTest

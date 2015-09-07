@@ -152,12 +152,6 @@ struct Observation {
       (*dstAtB)(weights.upperIndex(), i) += squaredWeight*weights.upperWeight*data[i];
     }
   }
-
-  static Array<Observation<N> > filterValid(Sampling sampling, Array<Observation<N> > observations) {
-    return observations.slice([=](const Observation<N> &obs) {
-      return sampling.valid(obs.weights);
-    });
-  }
 };
 
 

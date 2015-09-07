@@ -52,6 +52,7 @@ class MDArray {
     allocate(sizes);
   }
 
+
   static ThisType eye(int r, int c) {
     static_assert(dims == 2, "Eye matrix only for 2d arrays");
     ThisType result(r, c);

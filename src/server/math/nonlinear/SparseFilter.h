@@ -16,13 +16,13 @@ namespace SparseFilter {
 struct Settings {
   SparsityConstrained::Settings spcstSettings;
   int regOrder = 1;
+  bool outputTransposed = false;
 };
 
 
 template <int N>
 MDArray2d filter(Sampling sampling, Array<Observation<N> > observations,
   int inlierCount, int discontinuityCount, Settings settings) {
-  observations = Observation<N>::filterValid(sampling, observations);
   typedef Eigen::Triplet<double> Triplet;
   int signalDim = N*sampling.count();
   int dataDim = N*observations.size();
@@ -39,11 +39,16 @@ MDArray2d filter(Sampling sampling, Array<Observation<N> > observations,
   for (int i = 0; i < observations.size(); i++) {
     const Observation<N> &obs = observations[i];
     int row = N*i;
-    int li = N*obs.weights.lowerIndex;
-    int ui = N*obs.weights.upperIndex();
     for (int j = 0; j < N; j++) {
-      triplets.push_back(Triplet(row + j, li + j, obs.weights.lowerWeight));
-      triplets.push_back(Triplet(row + j, ui + j, obs.weights.upperWeight));
+      if (obs.weights.lowerIndex < sampling.count()) {
+        int li = N*obs.weights.lowerIndex + j;
+        triplets.push_back(Triplet(row + j, li, obs.weights.lowerWeight));
+      }
+      if (obs.weights.upperIndex() < sampling.count()) {
+
+        int ui = N*obs.weights.upperIndex() + j;
+        triplets.push_back(Triplet(row + j, ui, obs.weights.upperWeight));
+      }
       B(row + j) = obs.data[j];
     }
   }
@@ -90,15 +95,28 @@ MDArray2d filter(Sampling sampling, Array<Observation<N> > observations,
     Array<CstGroup>{slackCst, regCst}, settings.spcstSettings);
 
   int counter = 0;
-  MDArray2d out(sampling.count(), N);
-  for (int i = 0; i < sampling.count(); i++) {
-    for (int j = 0; j < N; j++) {
-      out(i, j) = result[counter];
-      counter++;
+
+  if (settings.outputTransposed) {
+    MDArray2d out = MDArray2d(N, sampling.count());
+    for (int i = 0; i < sampling.count(); i++) {
+      for (int j = 0; j < N; j++) {
+        out(j, i) = result[counter];
+        counter++;
+      }
     }
+    assert(counter + dataDim == result.size());
+    return out;
+  } else {
+    MDArray2d out = MDArray2d(sampling.count(), N);
+    for (int i = 0; i < sampling.count(); i++) {
+      for (int j = 0; j < N; j++) {
+        out(i, j) = result[counter];
+        counter++;
+      }
+    }
+    assert(counter + dataDim == result.size());
+    return out;
   }
-  assert(counter + dataDim == result.size());
-  return out;
 }
 
 }
