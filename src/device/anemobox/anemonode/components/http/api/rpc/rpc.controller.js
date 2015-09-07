@@ -1,10 +1,8 @@
-var fillTable = require('../../../RpcEndpoint.js').fillTable;
+
 var table = {};
 
-// TODO: This code is very similar to that in main.js.
-// We should make sure that all functions available over
-// the BT interface are also available over this interface.
-fillTable(table);
+require('../../../RpcEndpoint.js').register(table);
+require('../../../RpcAssignBoat.js').register(table);
 
 function handleCall(fun, req, res) {
   try {
