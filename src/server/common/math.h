@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cassert>
 #include <limits>
+#include <server/common/Array.h>
 
 namespace sail {
 
@@ -326,8 +327,8 @@ inline bool implies(bool a, bool b) {
   return !a || b;
 }
 
-Arrayd makeNextRefCoefs(const Arrayd &coefs);
-Arrayd makeRefCoefs(int order);
+Arrayd makeNextRegCoefs(const Arrayd &coefs);
+Arrayd makeRegCoefs(int order);
 
 } /* namespace sail */
 

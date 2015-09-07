@@ -16,7 +16,8 @@ void makeTriBasisVector(int N, int index, double *dst) {
   normalizeInPlace(N, dst);
 }
 
-Arrayd makeNextRefCoefs(const Arrayd &coefs) {
+
+Arrayd makeNextRegCoefs(const Arrayd &coefs) {
   int n = coefs.size();
   Arrayd next(n+1);
   next[n] = 0.0;
@@ -27,11 +28,11 @@ Arrayd makeNextRefCoefs(const Arrayd &coefs) {
   return next;
 }
 
-Arrayd makeRefCoefs(int order) {
+Arrayd makeRegCoefs(int order) {
   if (order == 0) {
     return Arrayd::args(1.0);
   } else {
-    return makeNextRefCoefs(makeRefCoefs(order - 1));
+    return makeNextRegCoefs(makeRegCoefs(order - 1));
   }
 }
 

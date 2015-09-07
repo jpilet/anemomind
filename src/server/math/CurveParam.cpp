@@ -47,7 +47,7 @@ namespace {
     _open(open) {
     _coefs = Arrayd::args(1.0);
     for (int i = 0; i < regDeg; i++) {
-      _coefs = BandMatInternal::makeNextCoefs(_coefs);
+      _coefs = makeNextRegCoefs(_coefs);
     }
     assert(_coefs.size() == 1 + regDeg);
   }

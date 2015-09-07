@@ -50,7 +50,7 @@ CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
   int dstRows = flowDim + regDim + flowDim;
   int slackColOffset = flowDim + paramDim;
   int slackRowOffset = flowDim + regDim;
-  auto regCoefs = BandMatInternal::makeCoefs(settings.regOrder);
+  auto regCoefs = makeRegCoefs(settings.regOrder);
   auto localRegCols = 2*regCoefs.size();
 
   SCOPEDMESSAGE(INFO, stringFormat("Number of regs: %d", regCount));

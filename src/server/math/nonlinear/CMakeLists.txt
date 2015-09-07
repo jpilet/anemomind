@@ -137,8 +137,8 @@ add_library(math_nonlinear_BandedSolver
             BandedSolver.cpp
            )
 target_link_libraries(math_nonlinear_BandedSolver
-                      math_BandMat
                       math_nonlinear_SignalUtils
+                      common_math
                      )              
   
 add_library(math_nonlinear_GeneralizedTV
@@ -203,6 +203,9 @@ add_library(math_nonlinear_SignalUtils
     SignalUtils.h
     SignalUtils.cpp
    )
+target_link_libraries(math_nonlinear_SignalUtils
+                      common_math
+                     )   
  
 cxx_test(math_nonlinear_BandedSolverTest
          BandedSolverTest.cpp

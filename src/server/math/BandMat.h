@@ -123,7 +123,7 @@ class BandMat {
     coefs[0] = Arrayd(1);
     coefs[0][0] = 1.0;
     for (int i = 0; i < maxOrder; i++) {
-      coefs[i+1] = BandMatInternal::makeNextCoefs(coefs[i]);
+      coefs[i+1] = makeNextRegCoefs(coefs[i]);
     }
 
     for (int i = 0; i < count; i++) {
