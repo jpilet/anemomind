@@ -162,9 +162,8 @@ arma::mat asMatrix(const Arrayd &x) {
 }
 
 CalibratedNav<double> LinearCorrector::operator()(const Nav &nav) const {
-  static MDArray2d Aw, Bw, Ac, Bc;
-  Aw.create(2, _flowSettings.windParamCount()); Bw.create(2, 1);
-  Ac.create(2, _flowSettings.currentParamCount()); Bc.create(2, 1);
+  MDArray2d Aw(2, _flowSettings.windParamCount()), Bw(2, 1);
+  MDArray2d Ac(2, _flowSettings.currentParamCount()), Bc(2, 1);
 
   makeTrueWindMatrixExpression(nav, _flowSettings, &Aw, &Bw);
   makeTrueCurrentMatrixExpression(nav, _flowSettings, &Ac, &Bc);

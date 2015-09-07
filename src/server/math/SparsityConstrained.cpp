@@ -167,13 +167,8 @@ DiagMat makeWeightMatrix(
 // Because directly computing Eigen::VectorXd result = A*X
 // doesn't seem to work in Eigen :-(
 Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &X) {
-  assert(A.cols() == X.size());
   Eigen::VectorXd Y = Eigen::VectorXd::Zero(A.rows());
-  for (int k = 0; k < A.outerSize(); ++k) {
-    for (Eigen::SparseMatrix<double>::InnerIterator it(A, k); it; ++it) {
-      Y(it.row()) += it.value()*X(it.col());
-    }
-  }
+  Y += A*X;
   return Y;
 }
 
