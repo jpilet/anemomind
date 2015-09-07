@@ -1,5 +1,4 @@
 var config = require('./config');
-//var rpcFuncTable = require('./rpcble').rpcFuncTable;
 var anemoId = require('./boxId');
 
 function register(rpcFuncTable) {
