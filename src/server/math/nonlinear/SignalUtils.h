@@ -68,6 +68,10 @@ class Sampling {
        dst[i] = X(upperIndex(), i) - X(lowerIndex, i);
      }
    }
+
+   static Weights atIndex(int i) {
+     return Weights{i, 1.0, 0.0};
+   }
   };
 
   bool valid(const Weights &w) const {
@@ -144,8 +148,13 @@ struct Observation {
       (*dstAtB)(weights.upperIndex(), i) += squaredWeight*weights.upperWeight*data[i];
     }
   }
-};
 
+  Array<Observation<N> > filterValid(Sampling sampling, Array<Observation<N> > observations) {
+    return observations.slice([=](const Observation<N> &obs) {
+      return sampling.valid(obs.weights);
+    });
+  }
+};
 
 
 /*
