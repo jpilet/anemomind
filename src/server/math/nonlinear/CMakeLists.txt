@@ -213,3 +213,11 @@ cxx_test(math_nonlinear_BandedSolverTest
          plot_gnuplot
          gtest_main
         )    
+        
+        
+cxx_test(math_nonlinear_SparseFilterTest
+         SparseFilterTest.cpp
+         gtest_main
+         math_SparsityConstrained
+         math_nonlinear_SignalUtils
+        )

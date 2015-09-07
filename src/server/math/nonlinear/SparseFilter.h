@@ -7,6 +7,8 @@
 #define SERVER_MATH_NONLINEAR_SPARSEFILTER_H_
 
 #include <server/math/SparsityConstrained.h>
+#include <server/common/MDArray.h>
+#include <server/math/nonlinear/SignalUtils.h>
 
 namespace sail {
 namespace SparseFilter {
@@ -36,7 +38,7 @@ MDArray2d filter(Sampling sampling, Array<Observation<N> > observations,
     const Observation<N> &obs = observations[i];
     int row = N*i;
     int li = N*obs.weights.lowerIndex;
-    int ui = N*obs.weights.upperIndex;
+    int ui = N*obs.weights.upperIndex();
     for (int j = 0; j < N; j++) {
       triplets.push_back(Triplet(row + j, li + j, obs.weights.lowerWeight));
       triplets.push_back(Triplet(row + j, ui + j, obs.weights.upperWeight));
@@ -68,7 +70,7 @@ MDArray2d filter(Sampling sampling, Array<Observation<N> > observations,
       double coef = coefs[k];
       int colOffset = N*(i + k);
       for (int j = 0; j < N; j++) {
-        triplets.push_back(Triplet(rowOffset + j, colOffset + j, coefs));
+        triplets.push_back(Triplet(rowOffset + j, colOffset + j, coef));
       }
     }
   }
@@ -83,6 +85,17 @@ MDArray2d filter(Sampling sampling, Array<Observation<N> > observations,
 
   auto result = SparsityConstrained::solve(A, B,
     Array<CstGroup>{slackCst, regCst}, settings.spcstSettings);
+
+  int counter = 0;
+  MDArray2d out(sampling.count(), N);
+  for (int i = 0; i < sampling.count(); i++) {
+    for (int j = 0; j < N; j++) {
+      out(i, j) = result[counter];
+      counter++;
+    }
+  }
+  assert(counter == result.size());
+  return out;
 }
 
 }

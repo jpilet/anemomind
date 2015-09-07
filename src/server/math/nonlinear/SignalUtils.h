@@ -34,6 +34,10 @@ class Sampling {
   Sampling(int count, double lower, double upper);
   Sampling(int count, LineKM indexToX);
 
+  static Sampling identity(int n) {
+    return Sampling(n, LineKM::identity());
+  }
+
   struct Weights {
    int lowerIndex;
    double lowerWeight, upperWeight;
