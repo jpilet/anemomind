@@ -9,20 +9,9 @@
 #include <algorithm>
 #include <server/common/MDArray.h>
 #include <server/common/invalidate.h>
+#include <server/common/math.h>
 
 namespace sail {
-
-namespace BandMatInternal {
-  // Used to produce regularization terms (used by addRegs)
-  // It maps a vector I to [I 0] - [0 I].
-  //
-  // For instance, it maps [1] to [1 -1]
-  //               it maps [1 -1] to [1 -2 1]
-  //               it maps [1 -2 1] to [1 -3 3 -1] etc.
-  Arrayd makeNextCoefs(Arrayd coefs);
-  Arrayd makeCoefs(int order);
-}
-
 
 template <typename T>
 class BandMat {

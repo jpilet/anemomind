@@ -193,7 +193,7 @@ class Array {
     _storage = storage;
   }
 
-  void copyToSafe(Array<T> dst) {
+  void copyToSafe(Array<T> dst) const {
     assert(dst.size() == _size);
     for (int i = 0; i < _size; i++) {
       dst[i] = _data[i];

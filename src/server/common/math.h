@@ -326,6 +326,9 @@ inline bool implies(bool a, bool b) {
   return !a || b;
 }
 
+Arrayd makeNextRefCoefs(const Arrayd &coefs);
+Arrayd makeRefCoefs(int order);
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */
