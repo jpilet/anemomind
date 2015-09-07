@@ -220,4 +220,5 @@ cxx_test(math_nonlinear_SparseFilterTest
          gtest_main
          math_SparsityConstrained
          math_nonlinear_SignalUtils
+         plot_gnuplot
         )

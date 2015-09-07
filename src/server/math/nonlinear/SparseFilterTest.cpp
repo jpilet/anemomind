@@ -5,30 +5,50 @@
 
 #include <gtest/gtest.h>
 #include <server/math/nonlinear/SparseFilter.h>
+#include <server/plot/extra.h>
 
 using namespace sail;
 
 TEST(SparseFilterTest, TestFilter) {
-  int count = 300;
-  Sampling sampling = Sampling::identity(300);
+  int count = 30;
+  Sampling sampling = Sampling::identity(30);
+
+  MDArray2d input(30, 2);
 
   Array<Observation<1> > observations(count);
-  for (int i = 0; i < 300; i++) {
-    int index = i*17 % 300;
-    double y = (index < 200? 0 : 1) + 0.1*sin(i) + 0.05*sin(34*i + 23443);
+  for (int i = 0; i < 30; i++) {
+    int index = (7 + i*17) % 30;
+    double y = (index < 20? 0 : 1) + 0.1*sin(i) + 0.05*sin(34*i + 23443);
 
     // Some outliers
-    if (i < 9) {
-      y = 30*sin(234432*i + 234234);
+    if (i < 4) {
+      y = 8*sin(234.432*i + 2342.34);
+      std::cout << EXPR_AND_VAL_AS_STRING(y) << std::endl;
     }
+
+    input(i, 0) = index;
+    input(i, 1) = y;
 
     observations[i] = Observation<1>{Sampling::Weights::atIndex(index), {y}};
   }
 
-  int inlierCount = 290;
+  int inlierCount = 24;
   SparseFilter::Settings settings;
   auto results = SparseFilter::filter(sampling, observations, inlierCount, 1, settings);
 
+  if (true) {
+    MDArray2d filtered(30, 2);
+    for (int i = 0; i < 30; i++) {
+      filtered(i, 0) = i;
+      filtered(i, 1) = results(i, 0);
+    }
+    GnuplotExtra plot;
+    plot.set_style("points");
+    plot.plot(input);
+    plot.set_style("lines");
+    plot.plot(filtered);
+    plot.show();
+  }
 }
 
 

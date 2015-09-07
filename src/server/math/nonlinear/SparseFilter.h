@@ -15,7 +15,7 @@ namespace SparseFilter {
 
 struct Settings {
   SparsityConstrained::Settings spcstSettings;
-  int regOrder;
+  int regOrder = 1;
 };
 
 
@@ -31,6 +31,9 @@ MDArray2d filter(Sampling sampling, Array<Observation<N> > observations,
   int rows = dataDim + dataDim + regDim;
 
   std::vector<Triplet> triplets;
+
+  //Eigen::VectorXd B = Eigen::VectorXd::Zero(rows);
+  std::cout << EXPR_AND_VAL_AS_STRING(rows) << std::endl;
   Eigen::VectorXd B = Eigen::VectorXd::Zero(rows);
 
   // Build the data part
@@ -75,6 +78,7 @@ MDArray2d filter(Sampling sampling, Array<Observation<N> > observations,
     }
   }
 
+
   Eigen::SparseMatrix<double> A(rows, cols);
   A.setFromTriplets(triplets.begin(), triplets.end());
 
@@ -94,7 +98,7 @@ MDArray2d filter(Sampling sampling, Array<Observation<N> > observations,
       counter++;
     }
   }
-  assert(counter == result.size());
+  assert(counter + dataDim == result.size());
   return out;
 }
 
