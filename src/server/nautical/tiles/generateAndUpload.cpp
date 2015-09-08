@@ -3,8 +3,14 @@
 #include <server/common/ArgMap.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/GpsFilter.h>
 
 using namespace sail;
+
+Array<Nav> filterNavs(Array<Nav> navs) {
+  GpsFilter::Settings settings;
+  return GpsFilter::filter(navs, settings).filteredNavs();
+}
 
 // Convenience method to extract the description of a tree.
 std::string treeDescription(const shared_ptr<HTree>& tree,
@@ -34,7 +40,7 @@ Array<Array<Nav>> extractAll(std::string description, Array<Nav> rawNavs,
     Array<Array<Nav>> fromChild = extractAll(description, rawNavs,
                                              grammar, child);
     for (auto navs : fromChild) {
-      result.add(navs);
+      result.add(filterNavs(navs));
     }
   }
   return result.get();
