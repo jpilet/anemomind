@@ -150,10 +150,10 @@ void initializeLinearParameters(bool withOffset, double *dst2or4);
  */
 struct CommonCalibrationSettings {
   CommonCalibrationSettings();
- double inlierFrac = 0.99;
+ double inlierFrac = 0.9;
  int regOrder = 3;
  SparsityConstrained::Settings spcst;
- Duration<double> nonZeroPeriod = Duration<double>::seconds(30);
+ Duration<double> nonZeroPeriod = Duration<double>::seconds(12);
 
  static CommonCalibrationSettings firstOrderSettings();
 };

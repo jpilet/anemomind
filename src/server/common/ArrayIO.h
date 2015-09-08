@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <server/common/string.h>
 
 namespace sail {
 template <typename T>
@@ -208,7 +209,7 @@ template <typename T>
 void outputMatrixFmt(std::ostream &out, T mat, std::string fmt) {
   for (int i = 0; i < mat.rows(); i++) {
     for (int j = 0; j < mat.cols(); j++) {
-      out << stringFormat(fmt, mat.get(i, j)) << " ";
+      out << stringFormat(fmt.c_str(), mat.get(i, j)) << " ";
     }
     out << "\n";
   }

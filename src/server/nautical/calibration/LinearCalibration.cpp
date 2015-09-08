@@ -10,7 +10,8 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
 #include <server/math/nonlinear/SparseFilter.h>
-#include <server/plot/extra.h>
+#include <server/common/ArrayIO.h>
+
 
 namespace sail {
 namespace LinearCalibration {
@@ -90,6 +91,15 @@ CommonResults calibrateSparse(FlowMatrices rawMats, Duration<double> totalDurati
 
   auto mats = filterColumns(rawMats, settings.inlierFrac, settings.regOrder-1,
       passiveCount, settings.spcst);
+
+  {
+    static int saveCounter = 0;
+    saveMatrixFmt(stringFormat("/tmp/Araw_%2d.txt", saveCounter), rawMats.A);
+    saveMatrixFmt(stringFormat("/tmp/Braw_%2d.txt", saveCounter), rawMats.B);
+    saveMatrixFmt(stringFormat("/tmp/A_%2d.txt", saveCounter), mats.A);
+    saveMatrixFmt(stringFormat("/tmp/B_%2d.txt", saveCounter), mats.B);
+    saveCounter++;
+  }
 
   assert(mats.A.rows() == mats.B.rows());
   assert(mats.B.cols() == 1);
