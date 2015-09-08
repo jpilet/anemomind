@@ -33,7 +33,7 @@ CommonCalibrationSettings::CommonCalibrationSettings() {
 CommonCalibrationSettings CommonCalibrationSettings::firstOrderSettings() {
   CommonCalibrationSettings s;
   s.regOrder = 1;
-  s.nonZeroPeriod = Duration<double>::seconds(6.0);
+  s.nonZeroPeriodFilter = Duration<double>::seconds(6.0);
   s.inlierFrac = 0.1;
   return s;
 }
@@ -76,6 +76,10 @@ FlowMatrices filterColumns(FlowMatrices src, double inlierFrac,
 }
 
 
+int calcPassiveCount(Duration<double> total, Duration<double> period) {
+  return 1 + int(floor(total/period));
+}
+
 CommonResults calibrateSparse(FlowMatrices rawMats, Duration<double> totalDuration,
     CommonCalibrationSettings settings) {
   // How many non-zero regularization residuals that we allow for.
@@ -86,11 +90,11 @@ CommonResults calibrateSparse(FlowMatrices rawMats, Duration<double> totalDurati
   assert(2*flowCount == flowDim);
   int regCount = flowCount - settings.regOrder;
   int regDim = 2*regCount;
-  int passiveCount = 1 + int(floor(totalDuration/settings.nonZeroPeriod));
+  int passiveCount = calcPassiveCount(totalDuration, settings.nonZeroPeriod);
   int activeCount = std::max(regCount - passiveCount, 0);
 
-  auto mats = filterColumns(rawMats, settings.inlierFrac, settings.regOrder-1,
-      passiveCount, settings.spcst);
+  auto mats = filterColumns(rawMats, settings.inlierFrac, settings.regOrder,
+      calcPassiveCount(totalDuration, settings.nonZeroPeriodFilter), settings.spcst);
 
   {
     static int saveCounter = 0;
