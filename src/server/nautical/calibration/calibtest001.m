@@ -11,7 +11,7 @@ params_2 = [0.0671674 0.0139468 2.44059 -0.854015]';
 add_calib_paths;
 
 raw = true;
-[A, B] = get_calib_ds(2, raw);
+[A, B] = get_calib_ds(1, raw);
 
 n = get_observation_count(A);
 X = boolean(kron(ones(n, 1), [1; 0]));
@@ -24,9 +24,12 @@ r = make_range(1, n);
 Ar = A(r, :);
 Br = B(r, :);
 
-Ap = A(:, 1:2);
+Ap = A(:, :);
 %params = optimize_trajectory_smoothness(Ap, B, 100, true);
 params = optimize_trajectory_smoothness2(Ap, B, 100, true);
+hold on
+params2 = optimize_trajectory_smoothness2(Ap(:, 1:2), B, 100, true);
+hold off
 %params = optimize_mean(A, B)
 %params = [1, 0, 0, 0];
 %params = [0, 0, 0, 0];
