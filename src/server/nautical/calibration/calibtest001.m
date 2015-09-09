@@ -10,7 +10,7 @@ params_2 = [0.0671674 0.0139468 2.44059 -0.854015]';
 
 add_calib_paths;
 
-raw = false;
+raw = true;
 [A, B] = get_calib_ds(2, raw);
 
 n = get_observation_count(A);
@@ -24,8 +24,11 @@ r = make_range(1, n);
 Ar = A(r, :);
 Br = B(r, :);
 
+Ap = A(:, 1:2);
+%params = optimize_trajectory_smoothness(Ap, B, 100, true);
+params = optimize_trajectory_smoothness2(Ap, B, 100, true);
 %params = optimize_mean(A, B)
-params = [1, 0, 0, 0];
+%params = [1, 0, 0, 0];
 %params = [0, 0, 0, 0];
 %params = params_2
 %params = params_4;
@@ -34,8 +37,12 @@ params = [1, 0, 0, 0];
 %params = decorr_calib_B(A, B, 500)
 
 %%
-trajectory = integrate_trajectory(get_array(A*params(:) + B, 2));
+trajectory = integrate_trajectory(get_array(Ap*params(:) + B, 2));
+trajectory_ref = integrate_trajectory(get_array(A*[1 0 0 0]' + B, 2));
 plotx(trajectory);
+hold on
+plotx(trajectory_ref, 'r');
+hold off
 
 %%
 disp_for_parameters(Ar, Br, params);
