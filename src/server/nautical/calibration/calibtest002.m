@@ -1,26 +1,12 @@
-X0 = [0 1];
-X1 = [2 3];
-X2 = [4 5];
-inds = X1;
+add_calib_paths;
 
-flip = false;
-if flip,
-    inds = inds([2 1]);
-end
+dataset = 0;
+raw = true;
 
+[Aw, Bw] = get_calib_ds(2*dataset + 0, raw);
+[Ac, Bc] = get_calib_ds(2*dataset + 1, raw);
 
-raw = false;
-[Aw, Bw] = get_calib_ds(inds(1), raw);
-[Ac, Bc] = get_calib_ds(inds(2), raw);
-
-assert(all(size(Aw) == size(Ac)));
-assert(all(size(Bw) == size(Bc)));
+assert(size(Aw, 1) == size(Ac, 1));
 
 %%
-params = decorr_calib(Aw, Bw, Ac, Bc, 500)
-
-%%
-params = [1, 0, 0, 0];
-
-%%
-disp_for_parameters(Aw, Bw, params);
+params = optimize_trajectory_smoothness_wind_and_current(Aw, Bw, Ac, Bc)

@@ -5,6 +5,8 @@
 % 4: Wind(synth)
 % 5: Current(synth)
 
+lambda = 160000;
+
 params_4 = [0.80673 -0.216292 -0.0438555 0.0241282]';
 params_2 = [0.0671674 0.0139468 2.44059 -0.854015]';
 
@@ -16,8 +18,35 @@ raw = true;
 n = get_observation_count(A);
 X = boolean(kron(ones(n, 1), [1; 0]));
 Y = boolean(kron(ones(n, 1), [0; 1]));
-%%
+%% Kontrollera abk
 
+abk = [1 2 3]';
+Jnum = jacobian_numeric(@map_abk, abk);
+[F, J] = map_abk(abk);
+J - Jnum
+
+%% Normering.
+f = @(X)(normalize_with_J_compact(X, eye(numel(X))));
+X = randn(4, 1);
+Jnum = jacobian_numeric(f, X);
+[F, J] = f(X);
+J - Jnum
+
+%% Målfunktion
+block_size = 2;
+lambda = 60000;
+
+if false,
+    X = [1 0.1 0.0]';
+    f = @(X)(smooth_trajectory_objf(A, B, lambda, block_size, X));
+    Jnum = jacobian_numeric(f, X);
+    [F, J, traj, traj_S] = f(X);
+    plotx(get_array(traj, 2)); axis equal;
+end    
+%%
+[params, traj, traj_S] = optimize_abk(A, B, block_size, lambda);
+
+%%
 %r = make_range(1, 8000);
 r = make_range(1, n);
 %r = make_range(400, 600);
@@ -26,7 +55,7 @@ Br = B(r, :);
 
 Ap = A(:, :);
 %params = optimize_trajectory_smoothness(Ap, B, 100, true);
-params = optimize_trajectory_smoothness2(Ap, B, 100, true);
+[params, rowsum] = optimize_trajectory_smoothness2(Ap, B, 100, true);
 hold on
 params2 = optimize_trajectory_smoothness2(Ap(:, 1:2), B, 100, true);
 hold off
@@ -38,7 +67,9 @@ hold off
 %params = minimize_total_length(A, B)
 %params = minmize_compactness(A, B)
 %params = decorr_calib_B(A, B, 500)
+%%
 
+disp_condition_numbers(rowsum);
 %%
 trajectory = integrate_trajectory(get_array(Ap*params(:) + B, 2));
 trajectory_ref = integrate_trajectory(get_array(A*[1 0 0 0]' + B, 2));
