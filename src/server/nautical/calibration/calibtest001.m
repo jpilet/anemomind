@@ -5,7 +5,6 @@
 % 4: Wind(synth)
 % 5: Current(synth)
 
-lambda = 160000;
 
 params_4 = [0.80673 -0.216292 -0.0438555 0.0241282]';
 params_2 = [0.0671674 0.0139468 2.44059 -0.854015]';
@@ -13,7 +12,7 @@ params_2 = [0.0671674 0.0139468 2.44059 -0.854015]';
 add_calib_paths;
 
 raw = true;
-[A, B] = get_calib_ds(1, raw);
+[A, B] = get_calib_ds(4, raw);
 
 n = get_observation_count(A);
 X = boolean(kron(ones(n, 1), [1; 0]));
@@ -33,7 +32,7 @@ Jnum = jacobian_numeric(f, X);
 J - Jnum
 
 %% Målfunktion
-block_size = 2;
+block_size = 1000;
 lambda = 60000;
 
 if false,
@@ -43,7 +42,7 @@ if false,
     [F, J, traj, traj_S] = f(X);
     plotx(get_array(traj, 2)); axis equal;
 end    
-%%
+
 [params, traj, traj_S] = optimize_abk(A, B, block_size, lambda);
 
 %%

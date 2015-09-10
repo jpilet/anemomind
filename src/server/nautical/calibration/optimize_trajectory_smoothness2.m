@@ -23,7 +23,11 @@ function [params, rowsum] = optimize_trajectory_smoothness2(A, B, block_size, vi
         if norm1,
             X = minimize_norm1_homogeneous(Q, 2);
         else
-            X = calc_smallest_eigvec(Q'*Q);
+            QtQ = Q'*Q;
+            [V, D] = eig(QtQ);
+            figure;
+            plot(diag(D));
+            X = calc_smallest_eigvec(QtQ);
         end
     else
         if norm1,
@@ -41,6 +45,7 @@ function [params, rowsum] = optimize_trajectory_smoothness2(A, B, block_size, vi
     default_coefs = (basis\default_flow);
     sX = (1/scale)*X;
     if visualize,
+        figure;
         params
         plotx(get_array(rowsum*default_coefs, 2), 'k');
         calibrated = get_array(rowsum*sX, 2);
