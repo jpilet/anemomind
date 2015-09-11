@@ -53,6 +53,13 @@ struct ConstraintGroup {
 Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
   Array<ConstraintGroup> cstGroups, Settings settings);
 
+
+
+/*
+ * Solve nonlinear problems with sparsity constraints
+ */
+Arrayd solveNonlinear(Array<ceres::CostFunction*> costFunctions);
+
 }
 }
 
