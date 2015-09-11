@@ -55,18 +55,17 @@ std::string velocityToLiteral(Velocity<double> x, Format f) {
   return doubleToString(x.knots(), f);
 }
 
-std::string timeToLiteralHumanReadable(TimeStamp t, Format f) {
-  if (f == MATLAB) { // Don't export text, only numbers.
-    return "NAN";
-  }
-  return t.toString("%Y-%m-%d %T");
-}
-
-
 std::string timeToLiteral(TimeStamp t) {
   std::stringstream ss;
   ss << t.toMilliSecondsSince1970();
   return ss.str();
+}
+
+std::string timeToLiteralHumanReadable(TimeStamp t, Format f) {
+  if (f == MATLAB) { // Don't export text, only numbers.
+    return timeToLiteral(t);
+  }
+  return t.toString("%Y-%m-%d %T");
 }
 
 Angle<double> twa(const Nav& nav) {
