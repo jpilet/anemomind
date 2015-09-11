@@ -1,11 +1,10 @@
 function [params, traj, traj_S] = optimize_abk(A, B, block_size, lambda)
     init = [1 0 0]';
-    
     counter = 0;
     settings = make_default_levmar_settings;
     settings.maxiter = 30;
     settings.drawfun = @visualize;
-    objf = @(X)(smooth_trajectory_objf(A, B, lambda, block_size, X));
+    objf = @(X)(smooth_trajectory_objf(A, B, lambda, block_size, init));
     
     [~, ~, traj_ref] = objf(init);
     params = run_levmar(objf, init, settings);

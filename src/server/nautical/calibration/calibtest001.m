@@ -12,7 +12,7 @@ params_2 = [0.0671674 0.0139468 2.44059 -0.854015]';
 add_calib_paths;
 
 raw = true;
-[A, B] = get_calib_ds(4, raw);
+[A, B] = get_calib_ds(1, raw);
 
 n = get_observation_count(A);
 X = boolean(kron(ones(n, 1), [1; 0]));
