@@ -1,6 +1,6 @@
 add_calib_paths;
 
-ds = 0;
+ds = 1;
 
 raw = true;
 [Aw, Bw] = get_calib_ds(2*ds + 0, raw);
