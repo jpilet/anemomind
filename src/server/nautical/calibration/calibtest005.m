@@ -10,7 +10,7 @@ plot(r, log(from_to_dur(r, 3)));
 %%
 [ranges, durs] = get_ranges(ds, 60)
 
-r = ranges(9, :)
+r = ranges(11, :)
 
 ds_sub = ds(r(1):r(2), :);
 gps_motions = get_gps_motion(ds_sub);
@@ -19,6 +19,9 @@ gps_traj = cumulative_row_sum(gps_motions, 1);
 plotx(gps_traj);
 
 for i = 1:size(ranges, 1),
-    summary = summarize_dataset(ds(ranges(i, :), :))
-    fprintf('%.3g seconds to next', durs(i));
+    range = ranges(i, :)
+    summary = summarize_dataset(ds(range, :))
+    if i <= numel(durs),
+        fprintf('%.3g seconds to next', durs(i));
+    end
 end

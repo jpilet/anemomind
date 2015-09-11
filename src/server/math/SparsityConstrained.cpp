@@ -11,6 +11,7 @@
 #include <Eigen/SparseCholesky>
 #include <server/common/string.h>
 #include <server/common/ScopedLog.h>
+#include <server/common/ArrayIO.h>
 
 namespace sail {
 namespace SparsityConstrained {
@@ -57,7 +58,7 @@ bool allPositive(Arrayd X) {
 
 // Minimize w.r.t. W: |diag(W)*sqrt(residuals)|^2 subject to average(W) = avgWeight.
 // All residuals must be positive.
-Arrayd distributeWeights(Arrayd residuals, double avgWeight) {
+Arrayd distributeWeights2(Arrayd residuals, double avgWeight) {
   assert(allPositive(residuals));
   int n = residuals.size();
   int m = n - 1;
@@ -86,6 +87,43 @@ Arrayd distributeWeights(Arrayd residuals, double avgWeight) {
     return weights;
   }
   return Arrayd();
+}
+
+
+double getSqrtResidual(const Arrayd &residuals, int index) {
+  double marg = 1.0e-12; // <- for well-posedness.
+  return sqrt(residuals[index] + marg);
+}
+
+typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > Decomp;
+
+
+Arrayd distributeWeights(Arrayd residuals, double avgWeight) {
+  int n = residuals.size();
+  int paramCount = n-1;
+  int elemCount = 2*paramCount;
+  Array<Triplet> triplets(elemCount);
+  for (int i = 0; i < paramCount; i++) {
+    int offset = 2*i;
+    double r0 = getSqrtResidual(residuals, i);
+    double r1 = getSqrtResidual(residuals, i+1);
+    triplets[offset + 0] = Triplet(i+0, i, r0);
+    triplets[offset + 1] = Triplet(i+1, i, -r1);
+  }
+  Eigen::VectorXd B(n);
+  for (int i = 0; i < n; i++) {
+    B[i] = -getSqrtResidual(residuals, i)*avgWeight;
+  }
+  Eigen::SparseMatrix<double> A(n, paramCount);
+  A.setFromTriplets(triplets.begin(), triplets.end());
+  Decomp decomp(A.transpose()*A);
+  Eigen::VectorXd result = decomp.solve(A.transpose()*B);
+  Arrayd weights = Arrayd::fill(n, avgWeight);
+  for (int i = 0; i < paramCount; i++) {
+    weights[i] += result[i];
+    weights[i+1] -= result[i];
+  }
+  return weights;
 }
 
 Arrayd threshold(Array<Residual> residuals, int activeCount, double minResidual) {
@@ -172,7 +210,6 @@ Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::Vecto
   return Y;
 }
 
-typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > Decomp;
 
 
 Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
