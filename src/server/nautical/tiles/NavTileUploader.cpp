@@ -75,22 +75,24 @@ BSONArray navsToBSON(const Array<Nav>& navs) {
 bool insertOrUpdateTile(const BSONObj& obj,
                         const TileGeneratorParameters& params,
                         DBClientConnection* db) {
-  // Clean old tiles.
-  try {
-    db->remove(params.tileTable,
-               QUERY("key" << obj["key"]
-                     << "boat" << obj["boat"]
-                     << "startTime" << GTE << obj["startTime"]
-                     << "endTime" << LTE << obj["endTime"]));
-    std::string err = db->getLastError();
-    if (err != "") {
-      LOG(WARNING) << "while cleaning up old tiles: mongoDB error: " << err;
+  if (!params.fullClean) {
+    // Clean old tiles.
+    try {
+      db->remove(params.tileTable,
+                 QUERY("key" << obj["key"]
+                       << "boat" << obj["boat"]
+                       << "startTime" << GTE << obj["startTime"]
+                       << "endTime" << LTE << obj["endTime"]));
+      std::string err = db->getLastError();
+      if (err != "") {
+        LOG(WARNING) << "while cleaning up old tiles: mongoDB error: " << err;
+      }
+    } catch(const DBException &e) {
+      LOG(WARNING) << "while cleaning up old tiles: mongoDB error: " << e.what();
     }
-  } catch(const DBException &e) {
-    LOG(WARNING) << "while cleaning up old tiles: mongoDB error: " << e.what();
   }
 
-  // Insert the one.
+  // Insert the new one.
   try {
     db->insert(params.tileTable, obj);
     std::string err = db->getLastError();
@@ -140,6 +142,11 @@ bool generateAndUploadTiles(std::string boatId,
   if (!db.connect(params.dbHost, err)) {
     LOG(ERROR) << "mongoDB connection failed: " << err;
     return false;
+  }
+
+  if (params.fullClean) {
+    db.remove(params.tileTable,
+               QUERY("boat" << OID(boatId)));
   }
 
   for (const Array<Nav>& curve : allNavs) {

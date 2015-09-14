@@ -50,6 +50,7 @@ for boatdir in "${LOG_DIR}/"*; do
 	--id ${boatid} \
 	--navpath "${boatprocessdir}" \
 	--table anemomind.tiles \
+        --clean \
 	--scale 20 ; then
 
         # If a boat.dat file has been generated, mail it to the anemobox.
