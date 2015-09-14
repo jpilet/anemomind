@@ -42,6 +42,7 @@ if (MongoDB_LIBRARIES)
                         nautical_NavNmeaScan
                         nautical_grammars_WindOrientedGrammar
                         ${MongoDB_LIBRARIES}
+                        nautical_GpsFilter
                         )
 
 endif (MongoDB_LIBRARIES)
