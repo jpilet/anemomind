@@ -12,12 +12,14 @@ struct TileGeneratorParameters {
   int maxScale;
   int maxNumNavsPerSubCurve;
   std::string tileTable;
+  bool fullClean;
 
   TileGeneratorParameters() {
     dbHost = "localhost";
     maxScale = 17;
     maxNumNavsPerSubCurve = 32;
     tileTable = "anemomind-dev.tiles";
+    fullClean = false;
   }
 };
 

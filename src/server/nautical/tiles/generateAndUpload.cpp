@@ -9,7 +9,14 @@ using namespace sail;
 
 Array<Nav> filterNavs(Array<Nav> navs) {
   GpsFilter::Settings settings;
-  return GpsFilter::filter(navs, settings).filteredNavs();
+
+  ArrayBuilder<Nav> withoutNulls;
+  withoutNulls.addIf(navs, [=](const Nav &nav) {
+    auto pos = nav.geographicPosition();
+    return abs(pos.lat().degrees()) > 0.01
+      && abs(pos.lon().degrees()) > 0.01;
+  });
+  return GpsFilter::filter(withoutNulls.get(), settings).filteredNavs();
 }
 
 // Convenience method to extract the description of a tree.
@@ -72,9 +79,13 @@ int main(int argc, const char** argv) {
   std::string polarDat;
   args.registerOption("--polarDat", "Path to polar.dat").store(&polarDat);
 
+  args.registerOption("--clean", "Clean all tiles for this boat before starting");
+
   if (args.parse(argc, argv) == ArgMap::Error) {
     return 1;
   }
+
+  params.fullClean = args.optionProvided("--clean");
 
   ScreenRecordingSimulator simulator;
   ScreenRecordingSimulator* simulatorPtr = 0;
