@@ -3,8 +3,11 @@
   <vectormap></vectormap>
 
   <div class="animationControls">
-    <div ng-hide="isPlaying" ng-click="togglePlayPause()">&#9658; play</div>
-    <div ng-show="isPlaying" ng-click="togglePlayPause()">&#10073;&#10073; pause</div>
+    <button type="button" class="btn btn-default btn-sm" ng-hide="isPlaying" ng-click="togglePlayPause()">&#9658; play</button>
+    <button type="button" class="btn btn-default btn-sm" ng-show="isPlaying" ng-click="togglePlayPause()">&#10073;&#10073; pause</button>
+    <button type="button" class="btn btn-default btn-sm" ng-click="slower()">-</button>
+    <span>{{ replaySpeed }}x</span>
+    <button type="button" class="btn btn-default btn-sm" ng-click="faster()">+</button>
   </div>
 
   <select id="dataSourceSelector" ng-model="plotField" ng-options="field as label for (field, label) in plotFieldLabels"></select>
