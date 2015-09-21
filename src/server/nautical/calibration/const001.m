@@ -10,10 +10,12 @@ raw = true;
 [A, B] = get_calib_ds(0, raw);
 n = get_observation_count(A);
 %%
-window_size = 1000;
+window_size = 100;
 r = make_ranges(n, window_size, 0.1);
 
-E = calc_flow_constancy_errors(A, B, r);
+
+settings = make_constancy_settings();
+E = calc_flow_constancy_errors(A, B, r, settings);
 
 %%
 visualize_flow_constancy_errors(E);
