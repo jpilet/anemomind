@@ -10,6 +10,7 @@
 #include <Eigen/SparseCore>
 #include <server/common/Array.h>
 #include <server/common/Span.h>
+#include <ceres/ceres.h>
 
 namespace sail {
 namespace SparsityConstrained {
@@ -53,12 +54,6 @@ struct ConstraintGroup {
 Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
   Array<ConstraintGroup> cstGroups, Settings settings);
 
-
-
-/*
- * Solve nonlinear problems with sparsity constraints
- */
-Arrayd solveNonlinear(Array<ceres::CostFunction*> costFunctions);
 
 }
 }
