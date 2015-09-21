@@ -8,20 +8,23 @@ function E = calc_flow_constancy_error(A, B)
     R0 = [(sp(1)+1):sp(2) (sp(3)+1):sp(4)];
     R1 = [(sp(2)+1):sp(3) (sp(4)+1):sp(5)];
     Rfull = (sp(1)+1):sp(5);
+    assert(Rfull(end) == n);
+    
     try
-        [tw0, aw0] = reconstruct_for_split(A, B, R0, Rfull);
-        [tw1, aw1] = reconstruct_for_split(A, B, R1, Rfull);
-        difs_aw = aw0 - aw1;
-        difs_tw = tw0 - tw1;
-        difs = difs_tw;
-        E = sqrt(norm(difs)^2/numel(Rfull));
-        assert(isscalar(E));
+        err0 = reconstruct_for_split(A, B, R0);
+        err1 = reconstruct_for_split(A, B, R1);
+        E = avg_error(err0 - err1);
     catch e,
-        E = nan;
+        E = nan*ones(1, 4);
     end
 end
 
-function [tw, aw] = reconstruct_for_split(Afull, Bfull, R, Rfull)
+function err_per_col = avg_error(difs)
+    n = get_observation_count(difs);
+    err_per_col = sqrt((1.0/n)*sum(difs.^2));
+end
+
+function E = reconstruct_for_split(Afull, Bfull, R)
     n = numel(R);
     R2 = range_to_higher_dim(R, 2);
     
@@ -42,20 +45,15 @@ function [tw, aw] = reconstruct_for_split(Afull, Bfull, R, Rfull)
     scale = scale_and_scaled_true_wind(1);
     params = (1/scale)*params0;
 
-    R2full = range_to_higher_dim(Rfull, 2);
-    
-    cumulative = false;
-    
-    if cumulative,
-        Ac = cumulative_row_sum(Afull(R2full, :), 2);
-        Bc = cumulative_row_sum(Bfull(R2full, :), 2);
-    else
-        Ac = Afull(R2full, :);
-        Bc = Bfull(R2full, :);
-    end
+    Ac = acc2(Afull);
+    Bc = acc2(Bfull);
     
     true_params = A\(Q*params);
-    aw = Ac*true_params;
-    tw = aw + Bc;
+    E = [Afull*true_params+Bfull Afull*true_params Ac*true_params+Bc Ac*true_params];
 end
 
+function Y = acc2(X)
+    Y = cumulative_row_sum(X, 2);
+    Y = Y(3:end, :);
+    assert(size(Y, 1) == size(X, 1));
+end
