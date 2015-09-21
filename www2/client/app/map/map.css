@@ -35,15 +35,15 @@ height: 100%;
   text-transform: uppercase;
 }
 
-.titleBox a:link, .titleBox a:visited { 
- color: white; 
- text-decoration: none; 
-} 
+.titleBox a:link, .titleBox a:visited {
+ color: white;
+ text-decoration: none;
+}
 
-.titleBox a:hover { 
- color: black; 
- text-decoration: none; 
-} 
+.titleBox a:hover {
+ color: black;
+ text-decoration: none;
+}
 
 perfplot {
 position: absolute;
@@ -60,10 +60,267 @@ bottom: 100px;
 display:inline-block;
 }
 
-.instrumentsView {
-position: absolute;
-right: 10px;
-top:10px;
-width: 200px;
-height: 400px;
+/*==================================================*/
+
+#topwheel {
+    display:block;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+#gaugetws {
+    display:block;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+#gaugesog {
+    display:block;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+/*==================================================*/
+
+
+
+#gaugetws2 {
+    display:block;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+#smallwheeltwa {
+    display:block;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+#smallwheelcog {
+    display:block;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+/*==================================================*/
+
+#heeling {
+    display:block;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+
+#gaugeperf {
+    display:block;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+
+
+#windarrow {
+    display:block;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
+/*==================================================*/
+
+#tabs {
+    width: 260px;
+    position: fixed;
+    margin-left: auto;
+    margin-right: auto;
+    top: 10px;
+    right: 0px;
+    z-index: 10;
+}
+
+.svgcontainer {
+    text-align: center;
+}
+
+.semitransp {
+    background: rgb(255, 255, 255); /* The Fallback */
+    background: rgba(255, 255, 255, 0.5);
+    color:#000;
+}
+
+.padding5px {
+    padding:5px
+}
+
+.nav-tabs > li > a {
+  border: medium none;
+}
+.nav-tabs > li > a:hover {
+  background-color: #ff0033 !important;
+    border: medium none;
+    border-radius: 1;
+    color:#fff;
+}
+
+.indicator-label, .indicator-value {
+  font-size: 40pt;
+}
+
+/* ========= bootstrap overrides ========= */
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+  color: #fff;
+  cursor: default;
+  background-color: #ff0033;
+  border: 1px solid #ddd;
+  border-bottom-color: transparent;
+}
+
+.nav-tabs > li > a {
+  margin-right: 0px;
+}
+
+/* ======== responsive behaviour =========== */
+
+/* ----------- Desktop ----------- */
+@media all and (max-height:665px) {
+  #wheel-small-svg-container {
+    display: none;
+  }
+}
+
+
+/* ----------- iPhone 6 ----------- */
+/* Portrait and Landscape */
+@media only screen 
+  and (min-device-width: 360px) 
+  and (max-device-width: 640px) 
+  and (-webkit-min-device-pixel-ratio: 2) { 
+    body {
+      font-size: 14px;
+    }
+    .titleBox {
+      padding: 2px;
+      top: 10px;
+    }
+    .nav > li > a.tab{
+      position: relative;
+      display: block;
+      padding: 2px 5px;
+      font-size: 8px;
+    }
+    .indicator-label, .indicator-value {
+      font-size: 20pt;
+    }
+}
+/* Portrait */
+@media only screen 
+  and (min-device-width: 360px) 
+  and (max-device-width: 640px) 
+  and (-webkit-min-device-pixel-ratio: 2)
+  and (orientation: portrait) { 
+    #tabs {
+      display: none;
+    }
+}
+/* Landscape */
+@media only screen 
+  and (min-device-width: 360px) 
+  and (max-device-width: 640px) 
+  and (-webkit-min-device-pixel-ratio: 2)
+  and (orientation: landscape) { 
+    body {
+      font-size: 12px;
+    }
+    #tabs {
+      width: 125px;
+    }
+    perfplot {
+      display: none;
+    }
+    #dataSourceSelector{
+      display: none;
+    }
+    .table-condensed > thead > tr > th, .table-condensed > tbody > tr > th, .table-condensed > tfoot > tr > th, .table-condensed > thead > tr > td, .table-condensed > tbody > tr > td, .table-condensed > tfoot > tr > td {
+      padding: 1px;
+    }
+    .animationControls {
+      position: absolute;
+      bottom: 20px;
+    }
+}
+/* ----------- iPad 3 and 4 ----------- */
+/* Portrait and Landscape */
+@media only screen 
+  and (min-device-width: 768px) 
+  and (max-device-width: 1024px) 
+  and (-webkit-min-device-pixel-ratio: 2) {
+    body {
+      font-size: 14px;
+    }
+    .titleBox {
+      padding: 2px;
+      top: 10px;
+    }
+    .nav > li > a.tab{
+      position: relative;
+      display: block;
+      padding: 2px 5px;
+      font-size: 10px;
+    }
+    .indicator-label, .indicator-value {
+      font-size: 20pt;
+    }
+}
+/* Portrait */
+@media only screen 
+  and (min-device-width: 768px) 
+  and (max-device-width: 1024px) 
+  and (orientation: portrait) 
+  and (-webkit-min-device-pixel-ratio: 2) {
+    .nav > li > a.tab{
+      font-size: 15px;
+    }
+    #tabs {
+      width: 200px;
+    }
+    .animationControls {
+      position: absolute;
+      bottom: 125px;
+    }
+}
+/* Landscape */
+@media only screen 
+  and (min-device-width: 768px) 
+  and (max-device-width: 1024px) 
+  and (orientation: landscape) 
+  and (-webkit-min-device-pixel-ratio: 2) {
+    body {
+      font-size: 12px;
+    }
+    #tabs {
+      width: 150px;
+    }
+    .table-condensed > thead > tr > th, .table-condensed > tbody > tr > th, .table-condensed > tfoot > tr > th, .table-condensed > thead > tr > td, .table-condensed > tbody > tr > td, .table-condensed > tfoot > tr > td {
+      padding: 1px;
+    }
 }

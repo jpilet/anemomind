@@ -1,16 +1,15 @@
 'use strict';
-
 var should = require('should');
 var assert = require('assert');
 var app = require('../../app');
 var request = require('supertest');
 var User = require('../user/user.model');
 var Boat = require('../boat/boat.model');
-var naming = require('mail/naming.js');
-var common = require('mail/common.js');
+var naming = require('endpoint/naming.js');
+var common = require('endpoint/common.js');
 var fs = require('fs');
-var file = require('mail/logfile.js');
-var coder = require('mail/json-coder.js');
+var file = require('endpoint/logfile.js');
+var coder = require('endpoint/json-coder.js');
 
 
 describe('/api/mailrpc', function() {
@@ -31,7 +30,7 @@ describe('/api/mailrpc', function() {
   var token;
   
   var id ="123456789012345678901234";
-  var remoteMailboxName = naming.makeMailboxNameFromBoatId(id);
+  var remoteEndpointName = naming.makeEndpointNameFromBoatId(id);
   
 
   it('should give the test user an auth token', function(done) {
@@ -47,9 +46,9 @@ describe('/api/mailrpc', function() {
       });
   });
 
-  it('should fail to reset the mailbox', function(done) {
+  it('should fail to reset the endpoint', function(done) {
     server
-      .get('/api/mailrpc/reset/' + remoteMailboxName)
+      .get('/api/mailrpc/reset/' + remoteEndpointName)
       .set('Authorization', 'Bearer ' + token)
       .expect(403)
       .end(function(err, res) {
@@ -59,7 +58,7 @@ describe('/api/mailrpc', function() {
   });
 
   // Copy/pasted from boat.spec.js:
-  // We need a boat in order to have a mailbox for that boat
+  // We need a boat in order to have a endpoint for that boat
 
   it('should add a TestBoat2 with a given _id', function(done) {
     request(app)
@@ -75,9 +74,9 @@ describe('/api/mailrpc', function() {
       });
   });
 
-  it('should successfully reset the mailbox', function(done) {
+  it('should successfully reset the endpoint', function(done) {
     server
-      .get('/api/mailrpc/reset/' + remoteMailboxName)
+      .get('/api/mailrpc/reset/' + remoteEndpointName)
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .end(function(err, res) {
@@ -88,7 +87,7 @@ describe('/api/mailrpc', function() {
   
   it('should get the number of packets', function(done) {
     server
-      .get('/api/mailrpc/getTotalPacketCount/' + remoteMailboxName)
+      .get('/api/mailrpc/getTotalPacketCount/' + remoteEndpointName)
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .end(function(err, res) {
@@ -98,9 +97,9 @@ describe('/api/mailrpc', function() {
       });
   });
 
-  it('should send a packet to another mailbox', function(done) {
+  it('should send a packet to another endpoint', function(done) {
     server
-      .post('/api/mailrpc/sendPacket/' + remoteMailboxName)
+      .post('/api/mailrpc/sendPacket/' + remoteEndpointName)
       .send({dst: 'ccc', label: 0, data: new Buffer(4)})
       .set('Authorization', 'Bearer ' + token)
       .end(function(err, res) {
@@ -111,7 +110,7 @@ describe('/api/mailrpc', function() {
 
   it('should get the number of packets', function(done) {
     server
-      .get('/api/mailrpc/getTotalPacketCount/' + remoteMailboxName)
+      .get('/api/mailrpc/getTotalPacketCount/' + remoteEndpointName)
       .set('Authorization', 'Bearer ' + token)
       .expect(200)
       .end(function(err, res) {
@@ -130,11 +129,11 @@ describe('/api/mailrpc', function() {
           
           var postdata = coder.encodeArgs(
             [{packet: 'any'}],
-            [{src: "thebox", dst: remoteMailboxName,
+            [{src: "thebox", dst: remoteEndpointName,
               label: common.logfile,
               data: filedata, seqNumber: "0000014e1ad6b2b2"}]);
           server
-            .post('/api/mailrpc/putPacket/' + remoteMailboxName)
+            .post('/api/mailrpc/putPacket/' + remoteEndpointName)
             .send(postdata)
             .set('Authorization', 'Bearer ' + token)
             .expect(200)
@@ -150,11 +149,11 @@ describe('/api/mailrpc', function() {
   it('Should read the updated number', function(done) {
     var lbData = coder.encodeArgs(
       [{pairs: 'any'}],
-      [[{src: 'thebox', dst: remoteMailboxName}]]
+      [[{src: 'thebox', dst: remoteEndpointName}]]
     );
     console.log('lbData:');
     console.log(lbData);
-    server.post('/api/mailrpc/updateLowerBounds/' + remoteMailboxName)
+    server.post('/api/mailrpc/updateLowerBounds/' + remoteEndpointName)
       .send(lbData)
       .set('Authorization', 'Bearer ' + token)
       .expect(200)

@@ -36,6 +36,14 @@ class ArrayBuilder {
     }
   }
 
+  void addIf(const Array<T> &X, std::function<bool(const T&)> condition) {
+    for (auto x : X) {
+      if (condition(x)) {
+        add(x);
+      }
+    }
+  }
+
   Array<T> get() {
     return Array<T>(ArrayStorage<T>(VectorPtr(new Vector(*_data))));
   }

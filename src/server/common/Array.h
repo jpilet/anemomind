@@ -305,7 +305,7 @@ class Array {
     return ThisType(_size);
   }
 
-  ThisType dup() {
+  ThisType dup() const {
     int count = size();
     ThisType dst(count);
     for (int i = 0; i < count; i++) {
@@ -450,15 +450,15 @@ class Array {
     return slice(from, _size);
   }
 
-  ThisType sliceTo(int to) {
+  ThisType sliceTo(int to) const {
     return slice(0, to);
   }
 
-  ThisType sliceLast(int n) {
+  ThisType sliceLast(int n) const {
     return sliceFrom(_size - n);
   }
 
-  ThisType sliceBut(int n) {
+  ThisType sliceBut(int n) const {
     return sliceTo(_size - n);
   }
 
@@ -519,6 +519,10 @@ class Array {
   }
   int middle() const {
     return _size/2;
+  }
+
+  int lastIndex() const {
+    return _size - 1;
   }
 
 
@@ -767,6 +771,23 @@ Arrayb neg(Arrayb X);
 bool all(Arrayb X);
 bool any(Arrayb X);
 Arrayi makeSparseInds(int arraySize, int sampleCount);
+
+template <typename T>
+Array<T> concat(Array<Array<T> > arrays) {
+  int totalCount = 0;
+  for (auto arr: arrays) {
+    totalCount += arr.size();
+  }
+  Array<T> dst(totalCount);
+  int from = 0;
+  for (int i = 0; i < arrays.size(); i++) {
+    int to = from + arrays[i].size();
+    arrays[i].copyToSafe(dst.slice(from, to));
+    from = to;
+  }
+  assert(from == totalCount);
+  return dst;
+}
 
 } /* namespace sail */
 #endif /* ARRAY_H_ */

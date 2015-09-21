@@ -42,15 +42,24 @@ BSONObj navToBSON(const Nav& nav) {
     result.append("externalTwa", nav.externalTwa().degrees());
     result.append("externalTws", nav.externalTws().knots());
   }
-  if (nav.hasTrueWind()) {
-    result.append("twdir", calcTwdir(nav.trueWind()).degrees());
-    result.append("tws", calcTws(nav.trueWind()).knots());
+  if (nav.hasTrueWindOverGround()) {
+    result.append("twdir", calcTwdir(nav.trueWindOverGround()).degrees());
+    result.append("tws", calcTws(nav.trueWindOverGround()).knots());
   }
 
+  // Old anemobox simulated data.
   if (nav.hasDeviceScreen()) {
     result.append("devicePerf", nav.deviceScreen().perf);
     result.append("deviceTwdir", nav.deviceScreen().twdir);
     result.append("deviceTws", nav.deviceScreen().tws);
+  }
+
+  // New anemobox logged data.
+  if (nav.hasDeviceVmg()) {
+    result.append("deviceVmg", nav.deviceVmg().knots());
+  }
+  if (nav.hasDeviceTargetVmg()) {
+    result.append("deviceTargetVmg", nav.deviceTargetVmg().knots());
   }
   return result.obj();
 }
@@ -66,22 +75,24 @@ BSONArray navsToBSON(const Array<Nav>& navs) {
 bool insertOrUpdateTile(const BSONObj& obj,
                         const TileGeneratorParameters& params,
                         DBClientConnection* db) {
-  // Clean old tiles.
-  try {
-    db->remove(params.tileTable,
-               QUERY("key" << obj["key"]
-                     << "boat" << obj["boat"]
-                     << "startTime" << GTE << obj["startTime"]
-                     << "endTime" << LTE << obj["endTime"]));
-    std::string err = db->getLastError();
-    if (err != "") {
-      LOG(WARNING) << "while cleaning up old tiles: mongoDB error: " << err;
+  if (!params.fullClean) {
+    // Clean old tiles.
+    try {
+      db->remove(params.tileTable,
+                 QUERY("key" << obj["key"]
+                       << "boat" << obj["boat"]
+                       << "startTime" << GTE << obj["startTime"]
+                       << "endTime" << LTE << obj["endTime"]));
+      std::string err = db->getLastError();
+      if (err != "") {
+        LOG(WARNING) << "while cleaning up old tiles: mongoDB error: " << err;
+      }
+    } catch(const DBException &e) {
+      LOG(WARNING) << "while cleaning up old tiles: mongoDB error: " << e.what();
     }
-  } catch(const DBException &e) {
-    LOG(WARNING) << "while cleaning up old tiles: mongoDB error: " << e.what();
   }
 
-  // Insert the one.
+  // Insert the new one.
   try {
     db->insert(params.tileTable, obj);
     std::string err = db->getLastError();
@@ -131,6 +142,11 @@ bool generateAndUploadTiles(std::string boatId,
   if (!db.connect(params.dbHost, err)) {
     LOG(ERROR) << "mongoDB connection failed: " << err;
     return false;
+  }
+
+  if (params.fullClean) {
+    db.remove(params.tileTable,
+               QUERY("boat" << OID(boatId)));
   }
 
   for (const Array<Nav>& curve : allNavs) {

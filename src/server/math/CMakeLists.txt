@@ -142,11 +142,6 @@ cxx_test(math_StatisticsTest
          gtest_main
         )
 
-cxx_test(math_DensityEstimatorTest
-         DensityEstimatorTest.cpp
-         gtest_main
-         math_ADFunction
-        )
 
 add_library(math_CurveParam
             CurveParam.h
@@ -190,6 +185,7 @@ cxx_test(math_UniformSamplesTest
          UniformSamplesTest.cpp
          common_LineKM
          gtest_main
+         math_nonlinear_SignalUtils
         )
         
 
@@ -238,6 +234,53 @@ cxx_test(math_QuadFormTest
          gtest_main
          common_LineKM
          math_LUImpl
+        )
+        
+
+add_library(math_nnls
+            nnls.c
+            nnls.cpp
+           )
+
+cxx_test(math_nnlsTest
+         nnlsTest.cpp
+         math_nnls
+         gtest_main
+        )       
+        
+cxx_test(math_GridSearchTest
+         GridSearchTest.cpp
+         gtest_main
+        )
+        
+
+
+cxx_test(math_PiecewisePolynomialsTest
+         PiecewisePolynomialsTest.cpp
+         gtest_main
+         math_LU
+        )
+
+add_library(math_Stability
+            Stability.h
+            Stability.cpp
+           )
+target_link_libraries(math_Stability
+                      common_Span
+                      math_LU
+                     )           
+
+cxx_test(math_StabilityTest
+         StabilityTest.cpp
+         gtest_main
+         math_Stability
+        )
+
+cxx_test(math_SignalCovarianceTest
+         SignalCovarianceTest.cpp
+         gtest_main
+         common_Progress
+         common_ScopedLog
         )
 
 add_subdirectory(geometry)

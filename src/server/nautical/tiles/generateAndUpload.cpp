@@ -3,8 +3,21 @@
 #include <server/common/ArgMap.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/GpsFilter.h>
 
 using namespace sail;
+
+Array<Nav> filterNavs(Array<Nav> navs) {
+  GpsFilter::Settings settings;
+
+  ArrayBuilder<Nav> withoutNulls;
+  withoutNulls.addIf(navs, [=](const Nav &nav) {
+    auto pos = nav.geographicPosition();
+    return abs(pos.lat().degrees()) > 0.01
+      && abs(pos.lon().degrees()) > 0.01;
+  });
+  return GpsFilter::filter(withoutNulls.get(), settings).filteredNavs();
+}
 
 // Convenience method to extract the description of a tree.
 std::string treeDescription(const shared_ptr<HTree>& tree,
@@ -34,7 +47,7 @@ Array<Array<Nav>> extractAll(std::string description, Array<Nav> rawNavs,
     Array<Array<Nav>> fromChild = extractAll(description, rawNavs,
                                              grammar, child);
     for (auto navs : fromChild) {
-      result.add(navs);
+      result.add(filterNavs(navs));
     }
   }
   return result.get();
@@ -66,9 +79,13 @@ int main(int argc, const char** argv) {
   std::string polarDat;
   args.registerOption("--polarDat", "Path to polar.dat").store(&polarDat);
 
-  if (!args.parseAndHelp(argc, argv)) {
+  args.registerOption("--clean", "Clean all tiles for this boat before starting");
+
+  if (args.parse(argc, argv) == ArgMap::Error) {
     return 1;
   }
+
+  params.fullClean = args.optionProvided("--clean");
 
   ScreenRecordingSimulator simulator;
   ScreenRecordingSimulator* simulatorPtr = 0;
@@ -77,7 +94,7 @@ int main(int argc, const char** argv) {
 	    simulatorPtr = &simulator;
     }
   }
-  Array<Nav> rawNavs = scanNmeaFolder(navPath, boatId, simulatorPtr);
+  Array<Nav> rawNavs = scanNmeaFolderWithSimulator(navPath, boatId, simulatorPtr);
 
   if (rawNavs.size() == 0) {
     LOG(FATAL) << "No NMEA data in " << navPath;

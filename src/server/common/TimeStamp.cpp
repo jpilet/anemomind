@@ -100,15 +100,25 @@ double TimeStamp::difSeconds(const TimeStamp &a, const TimeStamp &b) {
   return (1.0/TimeRes)*double(a._time - b._time);
 }
 
-std::string TimeStamp::toString() const {
+std::string TimeStamp::toString(const char *fmt) const {
   struct tm time = makeGMTimeStruct();
-  const char isofmt[] = "%FT%T";
   const int len = 255;
   char str[len];
   assert(time.tm_gmtoff == 0);
-  strftime(str, len, isofmt, &time);
+  strftime(str, len, fmt, &time);
   return std::string(str);
 }
+
+std::string TimeStamp::toString() const {
+  const char isofmt[] = "%FT%T";
+  return toString(isofmt);
+}
+
+std::string TimeStamp::fullPrecisionString() const {
+  return toString() + stringFormat(".%03d", _time % TimeRes);
+}
+
+
 Duration<double> operator-(const TimeStamp &a, const TimeStamp &b) {
   return Duration<double>::seconds(TimeStamp::difSeconds(a, b));
 }

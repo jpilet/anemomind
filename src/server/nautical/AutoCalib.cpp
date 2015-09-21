@@ -148,7 +148,7 @@ namespace {
 
 
     int calcLowerIndex(int timeIndex) const {
-      return int(floor(_data.sampling().inv(_times[timeIndex])));
+      return int(floor(_data.indexToX().inv(_times[timeIndex])));
     }
 
     double normGDeriv(int timeIndex) const;
@@ -161,8 +161,8 @@ namespace {
       CalibratedNav<T> a = corrector.correct(FilteredNavInstrumentAbstraction(_data, lowerIndex));
       CalibratedNav<T> b = corrector.correct(FilteredNavInstrumentAbstraction(_data, upperIndex));
 
-      HorizontalMotion<T> wdif = b.trueWind() - a.trueWind();
-      HorizontalMotion<T> cdif = b.trueCurrent() - a.trueCurrent();
+      HorizontalMotion<T> wdif = b.trueWindOverGround() - a.trueWindOverGround();
+      HorizontalMotion<T> cdif = b.trueCurrentOverGround() - a.trueCurrentOverGround();
       T factor = T(1.0/_data.samplingPeriod());
       return WindAndCurrentDifs<T>(factor*wdif, factor*cdif);
     }
@@ -215,7 +215,7 @@ namespace {
       return sqrt(sqr(dif[0].knots()) + sqr(dif[1].knots()))/_data.samplingPeriod();
     } else {
       return std::abs(_data.magHdg().interpolateLinearDerivative(
-          _data.sampling()(_times[timeIndex])).degrees());
+          _data.indexToX()(_times[timeIndex])).degrees());
     }
   }
 

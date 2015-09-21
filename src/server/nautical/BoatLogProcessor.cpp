@@ -21,6 +21,7 @@
 #include <server/nautical/Calibrator.h>
 #include <server/nautical/HTreeJson.h>
 #include <server/nautical/NavJson.h>
+#include <server/nautical/NavLoader.h>
 #include <server/nautical/NavNmea.h>
 #include <server/nautical/NavNmeaScan.h>
 #include <server/nautical/TargetSpeed.h>
@@ -205,7 +206,7 @@ void processBoatDataFullFolder(Nav::Id boatId, Poco::Path srcPath, Poco::Path ds
   ENTERSCOPE("processBoatData complete folder");
   SCOPEDMESSAGE(INFO, std::string("Loading data from boat with id " + boatId));
   SCOPEDMESSAGE(INFO, "Scan folder for NMEA data...");
-  Array<Nav> allnavs = scanNmeaFolder(srcPath, boatId);
+  Array<Nav> allnavs = scanNmeaFolderWithSimulator(srcPath, boatId);
   CHECK_LT(0, allnavs.size());
   SCOPEDMESSAGE(INFO, "done.")
   processBoatData(boatId, allnavs, dstPath, "all");
@@ -226,7 +227,7 @@ void processBoatDataSingleLogFile(Nav::Id boatId, Poco::Path srcPath, std::strin
   SCOPEDMESSAGE(INFO, std::string("Loading data from boat with id " + boatId));
   Poco::Path srcfile = PathBuilder::makeDirectory(srcPath).
         makeFile(logFilename).get();
-  Array<Nav> navs = loadNavsFromNmea(srcfile.toString(),
+  Array<Nav> navs = loadNavsFromFile(srcfile.toString(),
       boatId).navs();
   SCOPEDMESSAGE(INFO, "done.");
   std::sort(navs.begin(), navs.end());

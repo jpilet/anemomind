@@ -1,5 +1,23 @@
 'use strict';
 
+function perfAtPoint(d) {
+    var field = 'devicePerf';
+    if (field in d) {
+      return d[field];
+    } else if ('deviceVmg' in d
+               && 'deviceTargetVmg' in d) {
+      return Math.round(Math.abs(100 * d.deviceVmg / d.deviceTargetVmg));
+    }
+    return 0;
+}
+
+function vmgAtPoint(p) {
+  if ('deviceVmg' in p) {
+    return Math.abs(p.deviceVmg);
+  }
+  return undefined;
+}
+
 angular.module('www2App')
   .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
                                    $http, $interval, $state, $location) {
@@ -13,7 +31,7 @@ angular.module('www2App')
         var search = '';
         if ($scope.mapLocation) {
           var l = $scope.mapLocation;
-          search += 'l=' + l.x +',' + l.y + ',' + l.scale; 
+          search += 'l=' + l.x +',' + l.y + ',' + l.scale;
         }
         if ($scope.selectedCurve) {
           search += '&c=' + $scope.selectedCurve;
@@ -54,7 +72,9 @@ angular.module('www2App')
       'aws' : 'Apparent wind speed',
       'deviceTws' : 'True wind speed (Anemomind)',
       'externalTws' : 'True wind speed (onboard instruments)',
-      'watSpeed': 'Water speed'
+      'watSpeed': 'Water speed',
+      'deviceVmg': 'VMG',
+      'deviceTargetVmg': 'Target VMG'
       // those can't be displayed because they are angles:
       // awa deviceTwdir externalTwa gpsBearing magHdg
     };
@@ -122,8 +142,42 @@ angular.module('www2App')
       return $scope.plotData[bounds[s]];
     };
 
+    function getPointValue(keys) {
+      if ($scope.currentPoint == undefined) {
+        return undefined;
+      }
+      for (var i in keys) {
+        var key = keys[i];
+        if (key in $scope.currentPoint) {
+          return $scope.currentPoint[key];
+        }
+      }
+      return undefined;
+    }
+
+    function twdir() {
+      var twa = getPointValue(['twa', 'externalTwa']);
+      if (twa == undefined) {
+        return twa;
+      }
+      var bearing = getPointValue(['gpsBearing']);
+      return bearing + twa;
+    }
+
     $scope.currentPoint = pointAtTime($scope.currentTime);
     $scope.$watch('currentTime', function(time) {
       $scope.currentPoint = pointAtTime(time);
+
+      $scope.vmgPerf = perfAtPoint($scope.currentPoint);
+      $scope.twa = getPointValue(['twa', 'externalTwa']);
+      $scope.tws =  getPointValue(['twa', 'externalTws']);
+      $scope.gpsSpeed = getPointValue(['gpsSpeed']);
+      $scope.twdir = twdir();
+      $scope.gpsBearing = getPointValue(['gpsBearing']);
+      $scope.deviceVmg = getPointValue(['deviceVmg']);
+      if ($scope.deviceVmg) {
+        $scope.deviceVmg = Math.abs($scope.deviceVmg);
+      }
+      $scope.deviceTargetVmg = getPointValue(['deviceTargetVmg']);
     });
 });

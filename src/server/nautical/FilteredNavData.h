@@ -62,12 +62,12 @@ class FilteredNavData {
     return _aws;
   }
 
-  const LineKM &sampling() const {
-    return _awa.sampling();
+  const LineKM &indexToX() const {
+    return _awa.indexToX();
   }
 
   double samplingPeriod() const {
-    return sampling().getK();
+    return indexToX().getK();
   }
 
   int size() const {
@@ -113,6 +113,8 @@ class FilteredNavData {
   // the lifetime of this object.
   class Indexed {
    public:
+    Indexed() : _data(nullptr), _index(-1) {}
+
     Indexed(const FilteredNavData *data, int index) :
       _data(data), _index(index) {}
 
@@ -150,9 +152,13 @@ class FilteredNavData {
     return Indexed(this, sampleIndex);
   }
 
+  Array<FilteredNavData::Indexed> makeIndexedInstrumentAbstractions() const;
+
   TimeStamp timeOffset() const {
     return _timeOffset;
   }
+
+  Array<Duration<double> > timesSinceOffset() const;
  private:
   TimeStamp _timeOffset;
   UniformSamples<Angle<double> > _awa, _magHdg, _gpsBearing;

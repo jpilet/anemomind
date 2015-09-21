@@ -40,7 +40,9 @@ class QuadForm {
   // Ideally, this constructor
   // should be private, but it needs to
   // public if I want to allocate an array of QuadForms.
-  QuadForm() {}
+  QuadForm() {
+    setConstant(T(0));
+  }
 
   typedef QuadForm<lhsDims, rhsDims, T> ThisType;
   static constexpr int pDims = calcSymmetricMatrixStorageSize(lhsDims);
@@ -85,6 +87,16 @@ class QuadForm {
     return dst;
   }
 
+  // Create a quad form with a diagonal matrix,
+  // for regularization purposes to make problems well-posed.
+  static ThisType makeReg(T lambda) {
+    ThisType result(T(0));
+    for (int i = 0; i < lhsDims; i++) {
+      result.setP(i, i, lambda);
+    }
+    return result;
+  }
+
   /*
    * Create a constant squared form,
    * that is a squared form whose value
@@ -97,6 +109,10 @@ class QuadForm {
    * SomeUnknownTypeThatCouldBeAQuadFormOrASimplePrimitiveSuchAsDouble x = 0;
    */
   QuadForm(T x) {
+    setConstant(x);
+  }
+
+  void setConstant(T x) {
     for (int i = 0; i < pDims; i++) {
       _P[i] = T(0);
     }
@@ -161,6 +177,11 @@ class QuadForm {
     return ret;
   }
 
+  T minimize1x1() const {
+    static_assert(lhsDims == 1 && rhsDims == 1, "Only applicable to 1x1 quad forms");
+    return _Q[0]/_P[0];
+  }
+
   GenericLineKM<T> makeLine() const {
     T coefs[2];
     if (minimize2x1(coefs)) {
@@ -191,6 +212,17 @@ class QuadForm {
     T coefs[2];
     minimize2x1(coefs);
     return eval(coefs);
+  }
+
+  static ThisType fitPolynomial(T x, T y) {
+    static_assert(rhsDims == 1, "Only fitting to single values");
+    T a[lhsDims];
+    T prod = T(1);
+    for (int i = 0; i < lhsDims; i++) {
+      a[i] = prod;
+      prod *= x;
+    }
+    return ThisType::fit(a, &y);
   }
 
   // Used to fit a straight line between a value x and a corresponding value y.

@@ -78,7 +78,7 @@ int main(int argc, const char **argv) {
                    "./math_nonlinear_GeneralizedTVExample --order 1 --lambda 4\n"
                    "\n"
                    "The recovered signal will have a staircase like shape.\n");
-  if (amap.parseAndHelp(argc, argv)) {
+  if (amap.parse(argc, argv) != ArgMap::Error) {
     ScopedLog::setDepthLimit(verbosity);
     GeneralizedTV tv(iters);
     Arrayd Ygt = makeGT();

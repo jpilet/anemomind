@@ -1,4 +1,4 @@
-var file = require('mail/logfile.js');
+var file = require('endpoint/logfile.js');
 var path = require('path');
 var mkdirp = require('mkdirp');
 var fs = require('fs');
@@ -54,19 +54,19 @@ function saveLogFile(tgtDir, msg, cb) {
   });
 }
 
-function getTargetDirectory(mailbox) {
+function getTargetDirectory(endpoint) {
   // Is there a better place to put them?
-  return path.join(config.uploadDir, "anemologs", mailbox.name);
+  return path.join(config.uploadDir, "anemologs", endpoint.name);
 }  
 
 // Please list below all the callbacks that should be called,
 // sequentially, whenever a packet is received
-module.exports.add = function(endPoint) {
+module.exports.add = function(endpoint) {
   // To handle an incoming log file.
-  endPoint.addPacketHandler(function(endPoint, packet) {
+  endpoint.addPacketHandler(function(endpoint, packet) {
     if (file.isLogFilePacket(packet)) {
       var msg = file.unpackFileMessage(packet.data);
-      var tgtDir = getTargetDirectory(endPoint);
+      var tgtDir = getTargetDirectory(endpoint);
       saveLogFile(tgtDir, msg, function(err) {
         if (err) {
           console.log("Error when trying to save incoming log file:");
@@ -79,5 +79,5 @@ module.exports.add = function(endPoint) {
   });
 
   // To handle the incoming response of running a script
-  endPoint.addPacketHandler(makeScriptResponseHandler());
+  endpoint.addPacketHandler(makeScriptResponseHandler());
 };

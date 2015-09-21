@@ -4,6 +4,10 @@ var anemonode = require('./build/Release/anemonode');
 // Inspect the anemonode object
 console.warn(anemonode.dispatcher.values);
 
+for (var i in anemonode.dispatcher.values) {
+  console.log(i + ': \"' + anemonode.dispatcher.values[i].description + '\"');
+}
+
 var logger = new anemonode.Logger();
 var estimator = new anemonode.Estimator();
 
@@ -80,6 +84,7 @@ fs.readFile("../../../../datasets/tinylog.txt", function (err, data ) {
   printHistory('pos');
   printHistory('dateTime');
 
+
   logger.logText("test", "this text is logged from javascript");
 
   estimator.compute();
@@ -94,3 +99,7 @@ fs.readFile("../../../../datasets/tinylog.txt", function (err, data ) {
     }
   });
 });
+
+anemonode.dispatcher.values.orient.setValue("test", {heading: 128, roll: 12.2, pitch: -3.1});
+anemonode.dispatcher.values.orient.setValue("test", {heading: 120, roll: 10.2, pitch: -3.8});
+printHistory('orient');

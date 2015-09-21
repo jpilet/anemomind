@@ -21,8 +21,11 @@ class ArgMap {
  public:
   ArgMap();
 
-  bool parse(int argc, const char **argv);
-  bool parseAndHelp(int argc, const char **argv);
+
+  enum Status {Error = 0,    // parsing error or something.
+               Continue, // no error, continue with the rest of the program
+               Done};    // If the user displayed help, this is not an error, but the program should be done.
+  Status parse(int argc, const char **argv);
 
   class Arg {
    public:
@@ -40,7 +43,7 @@ class ArgMap {
     double parseDoubleOrDie();
 
     // Reads the value without leaving any trace, that would be settings _wasRead = true.
-    const std::string &valueUntraced() {
+    const std::string &valueUntraced() const {
       return _arg;
     }
 
@@ -64,7 +67,8 @@ class ArgMap {
     std::string _arg;
     int _index;
   };
- public:
+
+
 
   bool helpAsked();
 
@@ -247,6 +251,8 @@ class ArgMap {
 
   std::map<std::string, Option> _options;
   std::string _helpInfo;
+  bool parseSub(int argc, const char **argv);
+
 };
 
 }

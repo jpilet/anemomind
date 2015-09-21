@@ -5,7 +5,7 @@
   <div class="panel-body">
     <table class="table">
       <tr ng-repeat="session in sessions | orderBy:'-startTime' |startFrom:(currentPage-1)*pageSize |  limitTo:pageSize">
-        <td><a href="/map/{{boatId}}?c={{session.curves[0].curveId}}">{{session.startTime | date: short}}</a></td>
+        <td><a href="/map/{{boatId}}?c={{session.curves[0].curveId}}">{{session.startTime | date: 'd.M.yyyy (H:mm'}} - {{session.endTime | date: 'H:mm'}})</a></td>
       </tr>
     </table>
     <pagination

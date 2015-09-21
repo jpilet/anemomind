@@ -33,6 +33,24 @@ angular.module('www2App')
         $scope.$watch('plotField', function(newValue, oldValue) {
           graph.setData(newValue, $scope.plotData);
         });
+
+        // Watch for resize
+        $scope.$watch(
+          function () {
+            return {
+              w: element.width(),
+              h: element.height()
+            };
+          },
+          function (newValue, oldValue) {
+            if (newValue.w != oldValue.w || newValue.h != oldValue.h) {
+              graph.prepare();
+              graph.setData($scope.plotField, $scope.plotData);
+              graph.draw();
+            }
+          },
+          true // deep object compare
+        );
       }
     };
   });

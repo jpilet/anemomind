@@ -1,8 +1,11 @@
 #!/bin/bash
 set -e
 
-rm -fR node_modules/mail || true
+rm -fR node_modules/mail node_modules/endpoint || true
+export NODE_ENV=production
 npm install
+npm prune --production
+
 node-gyp configure
 node-gyp build
 
@@ -18,7 +21,8 @@ fi
 
 [ -e /anemonode ] || git clone git+ssh://anemobox@vtiger.anemomind.com/home/anemobox/anemobox.git /anemonode
 
-rsync -ar --exclude=id_rsa --exclude=install.sh . /anemonode
+rm -fR /anemonode/*
+rsync -ar --exclude="src/*" --exclude=id_rsa --exclude=install.sh . /anemonode
 
 git rev-parse HEAD > /anemonode/commit
 

@@ -181,6 +181,7 @@ Gnuplot& Gnuplot::set_smooth(const std::string &stylestr) {
 // sets terminal type to windows / x11
 //
 Gnuplot& Gnuplot::showonscreen() {
+  cmd("pause mouse keypress");
   cmd("set output");
   cmd("set terminal " + Gnuplot::terminal_std);
 

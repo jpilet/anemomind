@@ -14,6 +14,10 @@ angular.module('www2App')
             canvas: element.children()[0],
             url: function(scale, x, y) { 
               // The token corresponds to account anemojp on mapbox.
+	      /*
+              return "http://a.tiles.wmflabs.org/bw-mapnik/"
+                + scale + "/" + x + "/" + y + ".png";
+              */
               return "http://api.tiles.mapbox.com/v4/anemojp.d4524095/"
                 + scale + "/" + x + "/" + y
                 + ".png32?access_token="

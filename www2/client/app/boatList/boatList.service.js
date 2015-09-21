@@ -27,10 +27,27 @@ angular.module('www2App')
     function loadSessionsForBoat(boat) {
       $http.get('/api/tiles/raw/0/0/0/' + boat._id)
       .success(function(data, status, headers, config) {
+        sessionsForBoats[boat._id] = [];
+
+        // Very short sessions (less than 30 minutes)
+        // are probably only passive harbour episodes.
+        // Let's skip.
+        function longEnough(s) {
+          var delta = (new Date(s.endTime)).getTime() - (new Date(s.startTime)).getTime();
+          return delta > 30 * 60 * 1000;
+        }
+
+        // This object is used to de-duplicate sessions.
+        // sessions should not be duplicated on the server.
+        // However, if they are, duplicates should be ignored here.
+        var startTimes = {};
+
         for (var i in data) {
           var element = data[i];
-          if (!(element.boat in sessionsForBoats)) sessionsForBoats[element.boat] = [];
-          sessionsForBoats[element.boat].push(data[i]);
+          if (!(element.startTime in startTimes) && longEnough(element)) {
+            sessionsForBoats[element.boat].push(element);
+            startTimes[element.startTime] = true;
+          }
           for (var c in element.curves) {
             var curve = element.curves[c];
             if (curve.curveId in curves) {
@@ -63,10 +80,12 @@ angular.module('www2App')
         var element = curveElements[e];
         for (var i in element.points) {
           var p = element.points[i].pos;
-          minX = Math.min(p[0], minX);
-          minY = Math.min(p[1], minY);
-          maxX = Math.max(p[0], maxX);
-          maxY = Math.max(p[1], maxY);
+          if (p[0] && p[1] && Math.abs(p[0] - .5) > .001 && Math.abs(p[1] - .5) > .001) {
+            minX = Math.min(p[0], minX);
+            minY = Math.min(p[1], minY);
+            maxX = Math.max(p[0], maxX);
+            maxY = Math.max(p[1], maxY);
+          }
         }
       }
       return {

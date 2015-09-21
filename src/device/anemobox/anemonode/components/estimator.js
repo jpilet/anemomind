@@ -29,7 +29,7 @@ function start() {
     }
   }
   for (var i in triggeringFields) {
-    anemonode.dispatcher[triggeringFields[i]].subscribe(update);
+    anemonode.dispatcher.values[triggeringFields[i]].subscribe(update);
   }
 }
 

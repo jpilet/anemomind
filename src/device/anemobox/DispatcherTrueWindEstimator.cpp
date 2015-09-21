@@ -76,7 +76,12 @@ void DispatcherTrueWindEstimator::compute() const {
   
   if (_validTargetSpeedTable) {
     Velocity<> targetVmg = getVmgTarget(_targetSpeedTable, twa, tws);
-    _dispatcher->publishValue(TARGET_VMG, sourceName(), targetVmg);
+
+    // getVmgTarget returns -1 when the value is invalid. In this case,
+    // nothing should be published.
+    if (targetVmg.knots() >= 0) {
+      _dispatcher->publishValue(TARGET_VMG, sourceName(), targetVmg);
+    }
   }
 
   // TODO: When the TrueWindEstimator will handle current, use water speed
