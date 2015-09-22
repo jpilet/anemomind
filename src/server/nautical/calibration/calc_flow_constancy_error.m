@@ -10,7 +10,7 @@ function E = calc_flow_constancy_error(A, B, settings)
     Rfull = (sp(1)+1):sp(5);
     assert(Rfull(end) == n);
     
-    visualize = true;
+    visualize = false;
     E = nan*ones(1, 4);
     
     if settings.common_scale,
@@ -19,7 +19,9 @@ function E = calc_flow_constancy_error(A, B, settings)
         F0 = reconstruct_for_split(A, B, R0);
         F1 = reconstruct_for_split(A, B, R1);
     end
-    E = avg_error(F0 - F1);
+    speed_difs = F0(:, 1) - F1(:, 1);
+    alignment_difs = calc_alignment_errors(F0(:, 2), F1(:, 2));
+    E = avg_error([speed_difs, alignment_difs]);
 
     if visualize,
         plotx(get_array(F0(:, 2), 2));
@@ -29,6 +31,13 @@ function E = calc_flow_constancy_error(A, B, settings)
         drawnow;
         pause(0.5);
     end
+end
+
+function difs = calc_alignment_errors(A, B)
+    n = get_observation_count(A);
+    lhs = kron(ones(n, 1), eye(2, 2));
+    rhs = A - B;
+    difs = lhs*(lhs\rhs) - rhs;
 end
 
 function err_per_col = avg_error(difs)
