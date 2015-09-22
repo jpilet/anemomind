@@ -20,4 +20,4 @@ settings = make_locally_constant_settings();
 r_temp = [1 10; 11 20; 21 30];
 
 close all;
-calibrate_locally_constant(A, B, r_temp, settings);
+calibrate_locally_constant(A, B, r, settings);

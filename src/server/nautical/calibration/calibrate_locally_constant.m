@@ -53,6 +53,9 @@ function params = calibrate_locally_constant(A, B, R, settings)
     flowdifs = [zeros(2*range_count, 1) kron(speye(range_count, range_count), [speye(2, 2) -speye(2, 2)])];
     K = flowdifs*opt;
     
+    Ac = cumulative_row_sum(A, 2);
+    Bc = cumulative_row_sum(B, 2);
+    initial = Ac*[1 0 0 0]' + Bc;
     
     visualize = true;
     imshow(K, []);
@@ -69,21 +72,38 @@ function params = calibrate_locally_constant(A, B, R, settings)
             middle = floor(numel(residuals)/2);
             sorted_raw = sort(raw_residuals);
             sorted = sort(residuals);
+            
+            params = recover_params(params0);
+            
+            subplot(1, 2, 1);
             plot(sorted_raw(1:middle));
             hold on
             plot(sorted(1:middle), 'r');
             hold off
             drawnow;
+            subplot(1, 2, 2);
+            plotx(v2(initial), 'k');
+            hold on
+            plotx(v2(Ac*params + Bc));
+            hold off
+            axis equal
+            
             fprintf('Median flow error: %.3g knots', sorted_raw(middle));
+            fprintf('Recovered parameters:\n');
+            disp(params);
             pause(1);
         end
     end
-    params = recover_params(X);
+    params = recover_params(params0);
     
-     function p1 = recover_params(p0)
+    function p1 = recover_params(p0)
          lscale = scale_mat*p0;
          p1 = (1/lscale)*(QtA\p0);
-     end
+    end
+end
+
+function Y = v2(X)
+    Y = get_array(X, 2);
 end
 
 function [r, sorted_residuals] = get_frac_smallest_residual(residuals, frac)
