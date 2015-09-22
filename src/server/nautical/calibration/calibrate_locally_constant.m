@@ -8,6 +8,7 @@ function params = calibrate_locally_constant(A, B, R, settings)
     range_count = size(R, 1);
     
     Q = gram_schmidt(A);
+    QtA = Q'*A;
     
     apparent_flow_count = sum(R(:, 2) - (R(:, 1) - 1));
     rows = 2*apparent_flow_count;
@@ -16,9 +17,9 @@ function params = calibrate_locally_constant(A, B, R, settings)
     elements_per_flow = 4;
     elem_count = elements_per_flow*apparent_flow_count;
     
-    I = zeros(elem_count, 1);
-    J = zeros(elem_count, 1);
-    X = zeros(elem_count, 1);
+    I = zeros(1, elem_count);
+    J = zeros(1, elem_count);
+    X = zeros(1, elem_count);
 
     rhs = zeros(rows, 4);
     
@@ -31,6 +32,7 @@ function params = calibrate_locally_constant(A, B, R, settings)
         src_range2 = range_to_higher_dim(src_range, 2);
         flow_count = numel(src_range);
         dst_r = get_range(i, 4*flow_count);
+        
         [Ilocal, J(dst_r), X(dst_r)] = make_locally_constant_eqs(B(src_range2, :), i);
         I(dst_r) = Ilocal + row_offset;
         
@@ -47,6 +49,7 @@ function params = calibrate_locally_constant(A, B, R, settings)
     
     lhs = sparse(I, J, X, rows, cols);
     opt = lhs\rhs;
+    scale_mat = opt(1, :);
     flowdifs = [zeros(2*range_count, 1) kron(speye(range_count, range_count), [speye(2, 2) -speye(2, 2)])];
     K = flowdifs*opt;
     
@@ -57,8 +60,8 @@ function params = calibrate_locally_constant(A, B, R, settings)
     for i = 1:settings.iters,
         fprintf('Iteration %d of %d', i, settings.iters);
         wK = scale_rows(kron(weights, [1 1]'), K);
-        X = calc_smallest_eigvec(wK'*wK);
-        raw_residuals = calc_row_norms(get_array(K*X, 2));
+        params0 = calc_smallest_eigvec(wK'*wK);
+        raw_residuals = calc_row_norms(get_array(K*params0, 2));
         residuals = max(raw_residuals, get_frac_smallest_residual(raw_residuals, settings.good_frac));
         weights = distribute_weights(residuals);
         
@@ -71,10 +74,16 @@ function params = calibrate_locally_constant(A, B, R, settings)
             plot(sorted(1:middle), 'r');
             hold off
             drawnow;
+            fprintf('Median flow error: %.3g knots', sorted_raw(middle));
+            pause(1);
         end
     end
+    params = recover_params(X);
     
-    
+     function p1 = recover_params(p0)
+         lscale = scale_mat*p0;
+         p1 = (1/lscale)*(QtA\p0);
+     end
 end
 
 function [r, sorted_residuals] = get_frac_smallest_residual(residuals, frac)
