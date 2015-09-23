@@ -3,8 +3,8 @@ function make_consensus_plot(A_, B)
     n = get_observation_count(A);
     count = 30000;
     pts = zeros(count, 2);
-    valid = false(count, 1);
-    max_size = 50;
+    uncertainty = zeros(count, 1);
+    max_size = 100;
     for i = 1:count,
         if mod(i, 100) == 0,
             fprintf('Computing point %d of %d\n', i, count);
@@ -17,27 +17,39 @@ function make_consensus_plot(A_, B)
         from_to = [from to];
         
         r = range_to_higher_dim(make_range_from_endpoints(from_to), 2);
-        params = fit_params(A(r, :), B(r, :));
-        if ~isempty(params),
-            pts(i, :) = params;
-            valid(i) = true;
-        end
+        [pts(i, :), uncertainty(i)] = fit_params(A(r, :), B(r, :));
     end
-    plotx(pts(valid, :), '.k', 'MarkerSize', 12);
+    [~, order] = sort(uncertainty);
+    plotx(pts(order(1:floor(0.01*count)), :), '.k', 'MarkerSize', 12);
     axis equal;
 end
 
-function params = fit_params(A, B)
+function params = fit_params2(A, B)
+    n = get_observation_count(A);
+    all_p = [A kron(ones(n, 1), eye(2, 2))]\(-B);
+    params = all_p(1:2);
+end
+
+function [params, uncertainty] = fit_params(A, B)
     Q = gram_schmidt(A(:, 1:2));
     n = get_observation_count(A);
     R = Q'*A;
+    %coeff_count = 4;
+    %[K, opt] = make_fitness([-acc(B) kron(make_poly_mat(n+1, coeff_count), eye(2, 2))], acc(Q));
     [K, opt] = make_fitness([-B kron(ones(n, 1), eye(2, 2))], Q);
     try
-        p = calc_smallest_eigvec(K'*K);
+        KtK = K'*K;
+        p = calc_smallest_eigvec(KtK);
+        [V, D] = eig(KtK);
+        uncertainty = min(D(:))/max(D(:));
     catch e,
-        params = [];
+        uncertainty = 1;
         return
     end
     scale = opt(1, :)*p;
     params = (1/scale)*(R\p);
+end
+
+function Y = acc(X)
+    Y = cumulative_row_sum(X, 2);
 end
