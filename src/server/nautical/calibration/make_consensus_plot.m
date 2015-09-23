@@ -4,11 +4,18 @@ function make_consensus_plot(A_, B)
     count = 30000;
     pts = zeros(count, 2);
     valid = false(count, 1);
+    max_size = 50;
     for i = 1:count,
         if mod(i, 100) == 0,
             fprintf('Computing point %d of %d\n', i, count);
         end
-        from_to = sort(randi(n, 1, 2));
+        %from_to = sort(randi(n, 1, 2));
+        %size = randi(max_size, 1, 1);
+        size = max_size;
+        from = randi(n - size, 1, 1);
+        to = from + size;
+        from_to = [from to];
+        
         r = range_to_higher_dim(make_range_from_endpoints(from_to), 2);
         params = fit_params(A(r, :), B(r, :));
         if ~isempty(params),
@@ -22,8 +29,9 @@ end
 
 function params = fit_params(A, B)
     Q = gram_schmidt(A(:, 1:2));
+    n = get_observation_count(A);
     R = Q'*A;
-    [K, opt] = make_fitness(-B, Q);
+    [K, opt] = make_fitness([-B kron(ones(n, 1), eye(2, 2))], Q);
     try
         p = calc_smallest_eigvec(K'*K);
     catch e,
