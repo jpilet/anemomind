@@ -17,6 +17,7 @@ namespace Benchmark {
 
 // Results on synthetic data.
 struct SynthResults {
+  std::shared_ptr<CorrectorFunction> corrector;
   NavalSimulation::SimulatedCalibrationResults before, after;
 };
 

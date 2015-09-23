@@ -2,6 +2,7 @@ add_subdirectory("grammars")
 add_subdirectory("tgtspeed")
 add_subdirectory("synthtest")
 add_subdirectory("tiles")
+add_subdirectory("calibration")
 
 
 add_library(nautical_Ecef
@@ -423,6 +424,7 @@ target_link_libraries(nautical_EvalCalib
                       nautical_MinCovCalib
                       nautical_Calibrator
                       nautical_CalibrationBenchmark
+                      nautical_calibration_LinearCalibration
                       common_ArgMap
                      )              
 
