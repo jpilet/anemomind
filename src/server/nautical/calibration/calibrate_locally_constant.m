@@ -64,22 +64,25 @@ function params = calibrate_locally_constant(A, B, R, settings)
         fprintf('Iteration %d of %d', i, settings.iters);
         wK = scale_rows(kron(weights, [1 1]'), K);
         params0 = calc_smallest_eigvec(wK'*wK);
+        
         raw_residuals = calc_row_norms(get_array(K*params0, 2));
-        residuals = max(raw_residuals, get_frac_smallest_residual(raw_residuals, settings.good_frac));
-        weights = distribute_weights(residuals);
+        cutoff = get_frac_smallest_residual(raw_residuals, settings.good_frac);
+        
+        if strcmp(settings.weighting_strategy, 'thresholded'),
+            residuals = max(raw_residuals, cutoff);
+            weights = distribute_weights(residuals);
+        elseif strcmp(settings.weighting_strategy, 'best'),
+            weights = raw_residuals < cutoff;
+        end
         
         if visualize,
-            middle = floor(numel(residuals)/2);
+            middle = floor(numel(raw_residuals)/2);
             sorted_raw = sort(raw_residuals);
-            sorted = sort(residuals);
             
             params = recover_params(params0);
             
             subplot(1, 2, 1);
             plot(sorted_raw(1:middle));
-            hold on
-            plot(sorted(1:middle), 'r');
-            hold off
             drawnow;
             subplot(1, 2, 2);
             plotx(v2(initial), 'k');

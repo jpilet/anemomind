@@ -19,6 +19,8 @@ mean_inds = floor(mean(r, 2));
 
 settings = make_constancy_settings();
 settings.common_scale = true;
+settings.visualize = 2.0;
+settings.cumulative = false;
 E = calc_flow_constancy_errors(A, B, r, settings);
 
 %%

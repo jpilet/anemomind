@@ -10,26 +10,32 @@ function E = calc_flow_constancy_error(A, B, settings)
     Rfull = (sp(1)+1):sp(5);
     assert(Rfull(end) == n);
     
-    visualize = false;
     E = nan*ones(1, 4);
     
     if settings.common_scale,
-        [F0, F1] = reconstruct_for_splits(A, B, R0, R1);
+        [F0, F1] = reconstruct_for_splits(A, B, R0, R1, settings);
     else
         F0 = reconstruct_for_split(A, B, R0);
         F1 = reconstruct_for_split(A, B, R1);
     end
     speed_difs = F0(:, 1) - F1(:, 1);
+    avg_speed = norm(mean(get_array([F0(:, 1); F1(:, 1)], 2)));
     alignment_difs = calc_alignment_errors(F0(:, 2), F1(:, 2));
     E = avg_error([speed_difs, alignment_difs]);
 
-    if visualize,
+    if settings.visualize,
         plotx(get_array(F0(:, 2), 2));
         hold on
         plotx(get_array(F1(:, 2), 2), 'r');
         hold off
+        title(sprintf('Avg speed %.3g knots and error %.3g knots', avg_speed, E(1)), 'FontSize', 12);
         drawnow;
-        pause(0.5);
+        
+        delay = settings.visualize;
+        if islogical(delay),
+            delay = 0.5;
+        end
+        pause(delay);
     end
 end
 
@@ -46,12 +52,20 @@ function err_per_col = avg_error(difs)
 end
 
 
-function [F0, F1] = reconstruct_for_splits(A, B, R0, R1)
+function [F0, F1] = reconstruct_for_splits(A, B, R0, R1, settings)
     Q = gram_schmidt(A);
     R = Q'*A;
     n = get_observation_count(A);
-    lhs = cumulative_row_sum([-B make_subset_ones(n, R0) make_subset_ones(n, R1)], 2);
-    rhs = cumulative_row_sum(Q, 2);
+
+    raw_lhs = [-B make_subset_ones(n, R0) make_subset_ones(n, R1)];
+    raw_rhs = Q;
+    if settings.cumulative,
+        lhs = cumulative_row_sum(raw_lhs, 2);
+        rhs = cumulative_row_sum(raw_rhs, 2);
+    else
+        lhs = raw_lhs;
+        rhs = raw_rhs;
+    end
     opt = lhs\rhs;
     K = lhs*opt - rhs;
     try
