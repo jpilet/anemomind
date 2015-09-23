@@ -1,10 +1,10 @@
-function make_consensus_plot(A_, B)
+function angles = make_consensus_plot(A_, B)
     A = A_(:, 1:2);
     n = get_observation_count(A);
-    count = 30000;
+    count = 300000;
     pts = zeros(count, 2);
     uncertainty = zeros(count, 1);
-    max_size = 1000;
+    max_size = 100;
     for i = 1:count,
         if mod(i, 100) == 0,
             fprintf('Computing point %d of %d\n', i, count);
@@ -20,8 +20,14 @@ function make_consensus_plot(A_, B)
         [pts(i, :), uncertainty(i)] = fit_params(A(r, :), B(r, :));
     end
     [~, order] = sort(uncertainty);
-    plotx(pts(uncertainty < 0.5, :), '.k', 'MarkerSize', 12);
+    good = pts(uncertainty < 0.5, :);
+    subplot(1, 2, 1);
+    plotx(good, '.k', 'MarkerSize', 12);
     axis equal;
+    
+    subplot(1, 2, 2);
+    angles = atan2(good(:, 2), good(:, 1));
+    hist(angles, 30);
 end
 
 function params = fit_params2(A, B)

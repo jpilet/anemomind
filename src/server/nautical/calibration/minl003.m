@@ -5,7 +5,7 @@ raw = true;
 
 %%
 
-make_consensus_plot(A, B);
+angles = make_consensus_plot(A, B);
 
 
 %%
