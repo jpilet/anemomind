@@ -1,7 +1,7 @@
 var btle = require('./components/AnemoServiceBTLE');
 var anemonode = require('./build/Release/anemonode');
 var rpcble = require('./components/rpcble');
-require('./components/RpcAssignBoat');
+require('./components/RpcAssignBoat').register(rpcble.rpcFuncTable);
 
 btle.startBTLE();
 

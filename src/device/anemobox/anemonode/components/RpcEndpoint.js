@@ -1,4 +1,4 @@
-// This file exports a single function, fillTable, that can be used to fille the rpcFuncTable of
+// This file exports a single function, register, that can be used to fille the rpcFuncTable of
 // rpcble.js. It is used by RpcEndpoint.js. The reason for putting this code in its own file
 // is to facilitate unit testing.
 var schema = require('endpoint/endpoint-schema.js');
@@ -116,14 +116,14 @@ function makeRpcFuncName(methodName) {
 
 // Use this function to register all the available endpoint calls
 // that we serve
-function fillTable(dst) {
+function register(rpcFuncTable) {
   for (var methodName in schema.methods) {
     var rpcFuncName = makeRpcFuncName(methodName);
-    dst[rpcFuncName] = makeRpcFunction(
+    rpcFuncTable[rpcFuncName] = makeRpcFunction(
       methodName,
       schema.methods[methodName]
     );
   }
 }
 
-module.exports.fillTable = fillTable;
+module.exports.register = register;
