@@ -4,7 +4,7 @@ function make_consensus_plot(A_, B)
     count = 30000;
     pts = zeros(count, 2);
     uncertainty = zeros(count, 1);
-    max_size = 100;
+    max_size = 1000;
     for i = 1:count,
         if mod(i, 100) == 0,
             fprintf('Computing point %d of %d\n', i, count);
@@ -20,7 +20,7 @@ function make_consensus_plot(A_, B)
         [pts(i, :), uncertainty(i)] = fit_params(A(r, :), B(r, :));
     end
     [~, order] = sort(uncertainty);
-    plotx(pts(order(1:floor(0.01*count)), :), '.k', 'MarkerSize', 12);
+    plotx(pts(uncertainty < 0.5, :), '.k', 'MarkerSize', 12);
     axis equal;
 end
 
@@ -48,6 +48,7 @@ function [params, uncertainty] = fit_params(A, B)
     end
     scale = opt(1, :)*p;
     params = (1/scale)*(R\p);
+    params = normalize_vector(params);
 end
 
 function Y = acc(X)
