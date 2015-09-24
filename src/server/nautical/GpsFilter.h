@@ -19,6 +19,12 @@ struct Settings {
   double motionWeight;
   Duration<double> discontinuityPeriod;
   SparseCurveFit::Settings fitSettings;
+
+  /*
+   * TODO:
+   * It would be nice to have inequality constraints to constrain the reconstructed
+   * boat velocity within reasonable bounds (e.g. between -100 and 100 knots).
+   */
 };
 
 struct Results {
