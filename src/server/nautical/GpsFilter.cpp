@@ -6,7 +6,7 @@
 #include <server/nautical/GpsFilter.h>
 #include <server/nautical/GeographicReference.h>
 #include <server/common/Span.h>
-#include <server/math/nonlinear/BandedSolver.h>
+#include <server/math/nonlinear/SparseCurveFit.h>
 #include <algorithm>
 
 
@@ -15,9 +15,11 @@ namespace GpsFilter {
 
 Settings::Settings() :
     samplingPeriod(Duration<double>::seconds(1.0)),
+    discontinuityPeriod(Duration<double>::seconds(6.0)),
     motionWeight(1.0) {
-  filterSettings.iters = 4;
-  filterSettings.regOrder = 2;
+    fitSettings.inlierRate = 0.8;
+    fitSettings.regOrder = 3;
+    fitSettings.spcstSettings.iters = 30;
 }
 
 Duration<double> getLocalTime(TimeStamp timeRef, const Nav &nav) {
@@ -110,10 +112,12 @@ Results filter(Array<Nav> navs, Settings settings) {
   Sampling sampling(sampleCount, fromTime.seconds(), toTime.seconds());
   auto observations = getObservations(settings,
       timeRef, geoRef, navs, sampling);
-  MDArray2d X = BandedSolver::solve(AbsCost(), AbsCost(), sampling,
-      observations, settings.filterSettings);
+
+  int discontinuityCount = int(floor((toTime - fromTime)/settings.discontinuityPeriod));
+  auto results = SparseCurveFit::fit(sampling.count(), discontinuityCount, observations, settings.fitSettings);
+
   auto posObs = observations.sliceTo(navs.size());
-  return Results{navs, posObs, sampling, X, timeRef, geoRef};
+  return Results{navs, posObs, sampling, results.samples, timeRef, geoRef};
 }
 
 Array<Nav> Results::filteredNavs() const {

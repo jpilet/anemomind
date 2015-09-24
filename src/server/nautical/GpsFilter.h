@@ -7,7 +7,7 @@
 #define SERVER_NAUTICAL_GPSFILTER_H_
 
 #include <server/nautical/Nav.h>
-#include <server/math/nonlinear/BandedSolver.h>
+#include <server/math/nonlinear/SparseCurveFit.h>
 #include <server/nautical/GeographicReference.h>
 
 namespace sail {
@@ -17,7 +17,14 @@ struct Settings {
   Settings();
   Duration<double> samplingPeriod;
   double motionWeight;
-  BandedSolver::Settings filterSettings;
+  Duration<double> discontinuityPeriod;
+  SparseCurveFit::Settings fitSettings;
+
+  /*
+   * TODO:
+   * It would be nice to have inequality constraints to constrain the reconstructed
+   * boat velocity within reasonable bounds (e.g. between -100 and 100 knots).
+   */
 };
 
 struct Results {

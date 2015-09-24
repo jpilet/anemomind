@@ -16,4 +16,23 @@ void makeTriBasisVector(int N, int index, double *dst) {
   normalizeInPlace(N, dst);
 }
 
+Arrayd makeNextRegCoefs(Arrayd coefs) {
+  int n = coefs.size();
+  Arrayd next(n+1);
+  next[n] = 0.0;
+  coefs.copyToSafe(next.sliceTo(n));
+  for (int i = 0; i < n; i++) {
+    next[i+1] -= coefs[i];
+  }
+  return next;
+}
+
+Arrayd makeRegCoefs(int order) {
+  if (order == 0) {
+    return Arrayd::args(1.0);
+  } else {
+    return makeNextRegCoefs(makeRegCoefs(order - 1));
+  }
+}
+
 }
