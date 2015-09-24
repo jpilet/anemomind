@@ -38,3 +38,7 @@ TEST(SparseCurveFitTest, RegTest) {
 
   EXPECT_EQ(dst.size(), 12);
 }
+
+TEST(SparseCurveFitTest, DataTest) {
+  Array<Observation<2> > obs{Observation<2>{Sampling::Weights{0, 0.3, 0.7}, {119.3, 119.4}}};
+}

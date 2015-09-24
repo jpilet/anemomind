@@ -21,6 +21,51 @@ typedef Eigen::Triplet<double> Triplet;
 Array<Spani> makeReg(int order, int firstRowOffset, int firstColOffset,
     int dim, int count, std::vector<Triplet> *dst);
 
+template <int Dim>
+Array<Spani> makeDataFitness(int firstRowOffset, int firstColOffset,
+    Array<Observation<Dim> > observations, int sampleCount,
+    std::vector<Triplet> *dst, Eigen::VectorXd *rhs) {
+  int count = observations.size();
+  int totalDim = Dim*count;
+  int sampleDim = Dim*sampleCount;
+
+  for (int i = 0; i < count; i++) {
+    Observation<Dim> x = observations[i];
+    int colA = firstColOffset + Dim*x.weights.lowerIndex;
+    int colB = firstColOffset + Dim*x.weights.upperIndex();
+    int iDim = i*Dim;
+    int rowOffset = firstRowOffset + iDim;
+    for (int k = 0; k < Dim; i++) {
+      int row = rowOffset + k;
+
+      // Express a point on the curve as a linear combination of the samples.
+      dst->push_back(Triplet(row, colA + k, x.lowerWeight));
+      dst->push_back(Triplet(row, colB + k, x.upperWeight));
+
+      (*rhs)(row) = x.data[k];
+      int slackCol = firstColOffset + sampleDim + iDim + k;
+
+      // On the same row as the observation,
+      // there is also a slack variable. For inliers,
+      // this slack variable will be zero. For outliers,
+      // it can be anything that minimizes the datafit.
+      // The algorithm will automatically select the best
+      // choice of slack variables to be put to zero.
+      dst->push_back(Triplet(row, slackCol, 1.0));
+
+      // This row is part of the constraint, that
+      // forces some slack variables to zero.
+      dst->push_back(Triplet(row + totalDim, slackCol, 1.0));
+    }
+  }
+  return Spani(0, count).map<Spani>([&](int index) {
+    int offset = firstRowOffset + totalDim + Dim*index;
+    return Spani(offset, offset + Dim);
+  });
+}
+
+
+
 struct Settings {
   // These are the settings of the underlying algorithm used to solve the problem.
   SparsityConstrained::Settings settings;
