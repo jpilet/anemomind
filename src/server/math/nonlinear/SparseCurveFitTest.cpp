@@ -66,4 +66,15 @@ TEST(SparseCurveFitTest, DataTest) {
   EXPECT_EQ(rowRange.maxv() + 1, 3 + 2 + 2);
   EXPECT_EQ(rowRange.maxv() + 1, spans.last().maxv());
   EXPECT_EQ(spans[0], Spani(5, 7));
+  EXPECT_EQ(colRange.minv(), 1);
+  EXPECT_EQ(colRange.maxv() + 1, 1 + 2*4 + 2);
+
+  MDArray2d data(rowRange.maxv()+1, colRange.maxv()+1);
+  data.setAll(0.0);
+  for (auto t: triplets) {
+    data(t.row(), t.col()) = t.value();
+  }
+  EXPECT_EQ(data(4, 2), 0.3);
+  EXPECT_EQ(data(3, 3), 0.7);
+  EXPECT_EQ(data(3 + 2 + 1, 1 + 2*4 + 1), 1.0);
 }
