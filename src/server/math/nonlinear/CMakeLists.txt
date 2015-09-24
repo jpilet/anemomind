@@ -220,6 +220,9 @@ add_library(math_nonlinear_SparseCurveFit
 target_link_libraries(math_nonlinear_SparseCurveFit
                       math_SparsityConstrained
                       common_math
+                      common_ScopedLog
+                      common_logging
+                      math_nonlinear_SignalUtils
                      )           
         
 cxx_test(math_nonlinear_SparseCurveFitTest

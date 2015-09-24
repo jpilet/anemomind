@@ -7,7 +7,7 @@
 #define SERVER_NAUTICAL_GPSFILTER_H_
 
 #include <server/nautical/Nav.h>
-#include <server/math/nonlinear/BandedSolver.h>
+#include <server/math/nonlinear/SparseCurveFit.h>
 #include <server/nautical/GeographicReference.h>
 
 namespace sail {
@@ -17,7 +17,8 @@ struct Settings {
   Settings();
   Duration<double> samplingPeriod;
   double motionWeight;
-  BandedSolver::Settings filterSettings;
+  Duration<double> discontinuityPeriod;
+  SparseCurveFit::Settings fitSettings;
 };
 
 struct Results {

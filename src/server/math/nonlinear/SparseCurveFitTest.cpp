@@ -139,3 +139,39 @@ TEST(SparseCurveFit, NoisyStep) {
     EXPECT_NEAR(gtSignal(i), results.samples(i, 0), 0.02);
   }
 }
+
+TEST(SparseCurveFit, NoisyStepWithOutliers) {
+  int sampleCount = 30;
+  int outlierCount = 4;
+
+  Array<Observation<1> > observations(sampleCount-1);
+
+  auto gtSignal = [&](double index) {
+    return (2*index < sampleCount? -1 : 2);
+  };
+
+  for (int i = 0; i < sampleCount-1; i++) {
+    double noise = 0.1*sin(30*exp(i) + i*i);
+    double y = gtSignal(i) + noise;
+    observations[i] = Observation<1>{Sampling::Weights{i, 1.0, 0.0}, {y}};
+  }
+  observations[3].data[0] = 90;
+  observations[7].data[0] = -12;
+  observations[8].data[0] = -13;
+  observations[20].data[0] = 39;
+
+  Settings settings;
+  settings.regOrder = 1;
+  settings.inlierRate = 0.8;
+  auto results = fit(sampleCount, 1, observations, settings);
+
+  EXPECT_EQ(results.inliers.size(), observations.size());
+  EXPECT_EQ(results.samples.cols(), 1);
+  for (int i = 0; i < results.samples.rows(); i++) {
+    EXPECT_NEAR(gtSignal(i), results.samples(i, 0), 0.04);
+  }
+  EXPECT_FALSE(results.inliers[3]);
+  EXPECT_FALSE(results.inliers[7]);
+  EXPECT_FALSE(results.inliers[8]);
+  EXPECT_FALSE(results.inliers[20]);
+}
