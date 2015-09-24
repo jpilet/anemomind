@@ -139,6 +139,7 @@ add_library(math_nonlinear_BandedSolver
 target_link_libraries(math_nonlinear_BandedSolver
                       math_BandMat
                       math_nonlinear_SignalUtils
+                      common_math
                      )              
   
 add_library(math_nonlinear_GeneralizedTV

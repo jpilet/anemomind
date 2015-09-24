@@ -119,6 +119,7 @@ add_library(math_BandMat
            )
 target_link_libraries(math_BandMat
                        common_Array
+                       common_math
                       )                                    
 cxx_test(math_BandMatTest
          BandMatTest.cpp
@@ -143,21 +144,6 @@ cxx_test(math_StatisticsTest
         )
 
 
-add_library(math_CurveParam
-            CurveParam.h
-            CurveParam.cpp
-           )
-target_depends_on_armadillo(math_CurveParam)
-target_link_libraries(math_CurveParam
-                      math_BandMat
-                     )
-
-cxx_test(math_CurveParamTest
-         CurveParamTest.cpp
-         math_CurveParam
-         gtest_main
-        )
-
 add_library(math_CumulativeFunction
             CumulativeFunction.cpp
             CumulativeFunction.h
@@ -179,6 +165,7 @@ add_library(math_CleanNumArray
            )
 target_link_libraries(math_CleanNumArray
                       math_BandMat
+                      common_math
                      )   
 
 cxx_test(math_UniformSamplesTest
