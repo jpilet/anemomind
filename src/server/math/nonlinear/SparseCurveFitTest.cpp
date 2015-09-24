@@ -48,5 +48,7 @@ TEST(SparseCurveFitTest, DataTest) {
       obs, 4,
       &triplets, &rhs);
 
+  EXPECT_EQ(triplets.size(), 1/*number of obs*/*2/*dims*/*3/*data,slack,slack-cst*/);
+
 
 }
