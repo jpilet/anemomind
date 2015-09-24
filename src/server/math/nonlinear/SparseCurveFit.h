@@ -8,6 +8,8 @@
 
 #include <server/math/SparsityConstrained.h>
 #include <server/common/logging.h>
+#include <server/math/nonlinear/SignalUtils.h>
+#include <server/common/MDArray.h>
 
 namespace sail {
 namespace SparseCurveFit {
@@ -23,7 +25,7 @@ struct Settings {
   // the noise distribution, but we might not know it. The problem with choosing sigma is that
   // a value that is too low will make us overfit to a few samples, whereas a value which is too high
   // will also include outliers among the samples treated as inliers.
-  // On the other hand, when conservatively picking
+  // On the other hand, when picking
   // a fraction of all the measurements and use to perform the fit, we should be sure that the inlier
   // rate is not lower than that fraction, because then it is going to break. And we should not choose
   // the fraction too low, because then we are going to overfit to a few samples. In either case,
@@ -44,12 +46,16 @@ struct Settings {
   double discontinuityCount = -1;
 
   // For which derivative order we count the discontinuities.
+  // A regOrder of 1 would mean a constant piecewise curve.
+  // A regOrder of 2 means a continuous curve of piecewise straight line segments,
+  //   or its first derivative being piecewise constant.
+  // A regorder of 3 means that the second derivative of the curve is piecewise constant.
   int regOrder = 3;
 };
 
 template <int Dim>
 MDArray2d fit(const Settings &settings, int sampleCount, Array<Observation<Dim> > observations) {
-  CHECK_LE(0, settings.discontinuityCount);
+  CHECK(0 <= settings.discontinuityCount);
 }
 
 

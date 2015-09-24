@@ -210,3 +210,9 @@ cxx_test(math_nonlinear_BandedSolverTest
          plot_gnuplot
          gtest_main
         )    
+        
+cxx_test(math_nonlinear_SparseCurveFitTest
+         SparseCurveFitTest.cpp
+         gtest_main
+         math_SparsityConstrained
+        )
