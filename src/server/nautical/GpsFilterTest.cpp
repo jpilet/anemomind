@@ -40,7 +40,7 @@ Array<Nav> applyOutliers(Array<Nav> navs) {
   Array<Nav> dst = navs.dup();
   Angle<double> offset = Angle<double>::degrees(0.5/60); // half a minute.
   for (int i = 0; i < navs.size(); i++) {
-    if (i % 30 == 0) {
+    if (i % 10 == 0) {
       auto &x = dst[i];
       auto g = x.geographicPosition();
       auto g2 = GeographicPosition<double>(g.lon(), g.lat() + offset);
