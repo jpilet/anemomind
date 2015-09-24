@@ -5,6 +5,8 @@
 
 #include <gtest/gtest.h>
 #include <server/math/nonlinear/SparseCurveFit.h>
+#include <server/common/ArrayIO.h>
+#include <server/common/string.h>
 
 using namespace sail;
 using namespace SparseCurveFit;
@@ -106,4 +108,35 @@ TEST(SparseCurveFit, AssembeResultsTest) {
   EXPECT_EQ(results.samples(1, 1), 4.0);
 
   EXPECT_EQ(results.inliers, (Arrayb{false, true}));
+}
+
+TEST(SparseCurveFit, NoisyStep) {
+  int sampleCount = 30;
+
+  Array<Observation<1> > observations(sampleCount-1);
+
+  auto gtSignal = [&](double index) {
+    return (2*index < sampleCount? -1 : 2);
+  };
+
+  for (int i = 0; i < sampleCount-1; i++) {
+    double noise = 0.1*sin(30*exp(i) + i*i);
+    double y = gtSignal(i) + noise;
+    observations[i] = Observation<1>{Sampling::Weights{i, 1.0, 0.0}, {y}};
+  }
+
+  Settings settings;
+  settings.regOrder = 1;
+  settings.inlierRate = 1.0;
+  auto results = fit(sampleCount, 1, observations, settings);
+
+  for (auto x: results.inliers) {
+    EXPECT_TRUE(x);
+  }
+  EXPECT_EQ(results.inliers.size(), observations.size());
+  for (int i = 0; i < results.samples.rows(); i++) {
+
+  }
+
+
 }

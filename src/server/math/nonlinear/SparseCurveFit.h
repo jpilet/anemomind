@@ -87,16 +87,6 @@ struct Settings {
   // observations even for crappy gps devices.
   double inlierRate = 0.6;
 
-  // How many discontinuities in some derivative (of order regOrder) we expect. The more discontinuities
-  // we allow for, the more complex the fitted curve can be. These discontinuities are what makes
-  // the curve "sparse", because the discontinuities are sparse. At most places, there is no discontinuity.
-  // The discontinuity count can be tuned so that there is maybe one discontinuity every six seconds or
-  // so in a temporal signal. Discontinuities are used to model features in the underlying noise-free signal.
-  // I hope that this way of regularizing will be very robust to different amounts of noise in the
-  // measurements. And the algorithm will automatically select the locations for the discontinuities where
-  // they are most needed, e.g. at buoy turns.
-  double discontinuityCount = -1;
-
   // For which derivative order we count the discontinuities.
   // A regOrder of 1 would mean a constant piecewise curve.
   // A regOrder of 2 means a continuous curve of piecewise straight line segments,
@@ -120,9 +110,9 @@ Results assembleResults(int dim, int sampleCount, int inlierCount, const Eigen::
  *
  */
 template <int Dim>
-Results fit(const Settings &settings, int sampleCount,
-    Array<Observation<Dim> > observations) {
-  CHECK(0 <= settings.discontinuityCount);
+Results fit(int sampleCount, int discontinuityCount,
+    Array<Observation<Dim> > observations, const Settings &settings) {
+  CHECK(0 <= discontinuityCount);
   CHECK(observations.all([&](const Observation<Dim> &x) {
     return 0 <= x.weights.lowerIndex && x.weights.upperIndex() < sampleCount;
   }));
@@ -144,12 +134,13 @@ Results fit(const Settings &settings, int sampleCount,
   Array<Spani> regSpans = makeReg(settings.regOrder, dataRowCount, 0,
       Dim, regCount, &elements);
   CHECK(elements.back().col() <= Dim*sampleCount);
-  CHECK(regSpans.last().minv() == dataRowCount);
+  std::cout << EXPR_AND_VAL_AS_STRING(dataRowCount) << std::endl;
+  CHECK(regSpans.first().minv() == dataRowCount);
   CHECK(regSpans.last().maxv() == rowCount);
 
-  int inlierCount = int(floor(observations.size()*settings.inlierRate));
-  CHECK(0 <= settings.discontinuityCount);
-  int activeRegCount = regCount - settings.discontinuityCount;
+  int inlierCount = int(round(observations.size()*settings.inlierRate));
+  CHECK(0 <= discontinuityCount);
+  int activeRegCount = regCount - discontinuityCount;
 
   Array<SparsityConstrained::ConstraintGroup> groups{
     SparsityConstrained::ConstraintGroup{slackSpans, inlierCount},
