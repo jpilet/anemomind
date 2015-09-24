@@ -154,7 +154,7 @@ MDArray2d solve(
     DataCost dataCost, RegCost regCost,
     Sampling sampling, Array<Observation<Dim> > observations, Settings settings,
     MDArray2d initialX = MDArray2d()) {
-  Arrayd regCoefs = BandMatInternal::makeCoefs(settings.regOrder);
+  Arrayd regCoefs = makeRegCoefs(settings.regOrder);
   MDArray2d X = (initialX.empty()? initialize(sampling.count(), Dim) : initialX);
   for (int i = 0; i < settings.iters; i++) {
     auto nextX = iterate<Dim, DataCost, RegCost>(dataCost, regCost,
