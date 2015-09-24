@@ -31,7 +31,7 @@ Array<Nav> getPsarosTestData() {
     .pushDirectory("2014")
     .pushDirectory("20140821").get();
   auto navs = scanNmeaFolder(p, Nav::debuggingBoatId());
-  return navs.sliceFrom(3500);
+  return navs.sliceFrom(3000);
 }
 
 Array<Nav> applyOutliers(Array<Nav> navs) {
