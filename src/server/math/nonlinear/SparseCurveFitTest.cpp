@@ -78,3 +78,32 @@ TEST(SparseCurveFitTest, DataTest) {
   EXPECT_EQ(data(3, 3), 0.7);
   EXPECT_EQ(data(3 + 2 + 1, 1 + 2*4 + 1), 1.0);
 }
+
+TEST(SparseCurveFit, AssembeResultsTest) {
+  Eigen::VectorXd solution(4 + 4);
+
+  // Sample 1
+  solution(0) = 1;
+  solution(1) = 2;
+
+  // Sample 2
+  solution(2) = 3;
+  solution(3) = 4;
+
+  // Slack 1
+  solution(4) = 0.1;
+  solution(5) = 0.12;
+
+  // Slack 2 (inlier)
+  solution(6) = 0.00001;
+  solution(7) = 0.0012;
+
+  auto results = assembleResults(2, 2, 1,
+      solution);
+  EXPECT_EQ(results.samples(0, 0), 1.0);
+  EXPECT_EQ(results.samples(0, 1), 2.0);
+  EXPECT_EQ(results.samples(1, 0), 3.0);
+  EXPECT_EQ(results.samples(1, 1), 4.0);
+
+  EXPECT_EQ(results.inliers, (Arrayb{false, true}));
+}
