@@ -200,17 +200,11 @@ DiagMat makeWeightMatrix(
   return makeWeightMatrixSub(aRows, residualsPerGroup, weightsPerGroup);
 }
 
-
-
-// Because directly computing Eigen::VectorXd result = A*X
-// doesn't seem to work in Eigen :-(
 Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &X) {
   Eigen::VectorXd Y = Eigen::VectorXd::Zero(A.rows());
   Y += A*X;
   return Y;
 }
-
-
 
 Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
     Array<ConstraintGroup> cstGroups, Settings settings) {

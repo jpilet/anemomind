@@ -283,6 +283,22 @@ cxx_test(math_SignalCovarianceTest
          common_ScopedLog
         )
 
+add_library(math_SparsityConstrained
+            SparsityConstrained.cpp
+            SparsityConstrained.h
+           )
+           
+target_link_libraries(math_SparsityConstrained
+                      common_ScopedLog
+                      common_string
+                     )           
+
+cxx_test(math_SparsityConstrainedTest
+         SparsityConstrainedTest.cpp
+         math_SparsityConstrained
+         gtest_main
+        )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
