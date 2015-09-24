@@ -41,14 +41,19 @@ TEST(SparseCurveFitTest, RegTest) {
 
 TEST(SparseCurveFitTest, DataTest) {
   Array<Observation<2> > obs{Observation<2>{Sampling::Weights{0, 0.3, 0.7}, {119.3, 119.4}}};
-  Eigen::VectorXd rhs = Eigen::VectorXd::Zero(30);
 
+  Eigen::VectorXd rhs = Eigen::VectorXd::Zero(30);
   std::vector<Triplet> triplets;
   auto spans = makeDataFitness<2>(3, 1,
       obs, 4,
       &triplets, &rhs);
 
-  EXPECT_EQ(triplets.size(), 1/*number of obs*/*2/*dims*/*3/*data,slack,slack-cst*/);
+  EXPECT_EQ(triplets.size(), 8);
+  EXPECT_EQ(rhs(3), 119.3);
+  EXPECT_EQ(rhs(4), 119.4);
+  for (int i = 0; i < rhs.size(); i++) {
+    EXPECT_TRUE(rhs(i) == 0 || i == 3 || i == 4);
+  }
 
 
 }
