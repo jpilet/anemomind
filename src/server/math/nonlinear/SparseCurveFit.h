@@ -10,9 +10,14 @@
 #include <server/common/logging.h>
 #include <server/math/nonlinear/SignalUtils.h>
 #include <server/common/MDArray.h>
+#include <Eigen/Sparse>
 
 namespace sail {
 namespace SparseCurveFit {
+
+typedef Eigen::Triplet<double> Triplet;
+
+Arrayi<Spani> makeReg(int order, int rowOffset, int dim, int count, std::vector<Triplet> *dst);
 
 struct Settings {
   // These are the settings of the underlying algorithm used to solve the problem.
@@ -53,6 +58,13 @@ struct Settings {
   int regOrder = 3;
 };
 
+
+
+/*
+ *
+ * The main function to solve the problem.
+ *
+ */
 template <int Dim>
 MDArray2d fit(const Settings &settings, int sampleCount, Array<Observation<Dim> > observations) {
   CHECK(0 <= settings.discontinuityCount);
