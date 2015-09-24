@@ -1,26 +1,27 @@
-function angles = make_consensus_plot(A_, B)
+function good = make_consensus_plot(A_, B)
     A = A_(:, 1:2);
     n = get_observation_count(A);
-    count = 300000;
+    count = 3000000;
     pts = zeros(count, 2);
     uncertainty = zeros(count, 1);
-    max_size = 100;
+    max_size = 1000;
+    prog = make_progress_fun_time_left(count);
     for i = 1:count,
-        if mod(i, 100) == 0,
+        if mod(i, 500) == 0,
             fprintf('Computing point %d of %d\n', i, count);
         end
         %from_to = sort(randi(n, 1, 2));
-        %size = randi(max_size, 1, 1);
-        size = max_size;
+        size = randi(max_size, 1, 1);
+        %size = max_size;
         from = randi(n - size, 1, 1);
         to = from + size;
         from_to = [from to];
         
         r = range_to_higher_dim(make_range_from_endpoints(from_to), 2);
         [pts(i, :), uncertainty(i)] = fit_params(A(r, :), B(r, :));
+        prog('Computing angles');
     end
-    [~, order] = sort(uncertainty);
-    good = pts(uncertainty < 0.5, :);
+    good = pts(uncertainty < 1, :);
     subplot(1, 2, 1);
     plotx(good, '.k', 'MarkerSize', 12);
     axis equal;
@@ -49,7 +50,7 @@ function [params, uncertainty] = fit_params(A, B)
         [V, D] = eig(KtK);
         uncertainty = min(D(:))/max(D(:));
     catch e,
-        uncertainty = 1;
+        uncertainty = 2;
         return
     end
     scale = opt(1, :)*p;
