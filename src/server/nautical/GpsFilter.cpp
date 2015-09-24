@@ -16,7 +16,10 @@ namespace GpsFilter {
 Settings::Settings() :
     samplingPeriod(Duration<double>::seconds(1.0)),
     discontinuityPeriod(Duration<double>::seconds(12.0)),
-    motionWeight(1.0) {}
+    motionWeight(1.0) {
+    fitSettings.regOrder = 3;
+    fitSettings.spcstSettings.iters = 30;
+}
 
 Duration<double> getLocalTime(TimeStamp timeRef, const Nav &nav) {
   return nav.time() - timeRef;
