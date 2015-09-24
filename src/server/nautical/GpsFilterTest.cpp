@@ -57,7 +57,7 @@ TEST(GpsFilterTest, PsarosTest) {
     auto posDif = results.geoRef.map(a.geographicPosition()) -
         results.geoRef.map(b.geographicPosition());
     auto posDifNormMeters = sqrt(sqr(posDif[0].meters()) + sqr(posDif[1].meters()));
-    if (posDifNormMeters < 10) {
+    if (posDifNormMeters < 3) {
       reasonablePositionCount++;
     }
   }
@@ -65,7 +65,7 @@ TEST(GpsFilterTest, PsarosTest) {
   EXPECT_LT(minCount, reasonableMotionCount);
   EXPECT_LT(minCount, reasonablePositionCount);
 
-  bool visualize = false;
+  bool visualize = true;
   if (visualize) {
     GnuplotExtra plot;
     plot.set_style("lines");
