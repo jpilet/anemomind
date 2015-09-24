@@ -29,4 +29,11 @@ TEST(SparseCurveFitTest, RegTest) {
   EXPECT_TRUE(dst[4] == Triplet(10, 5, 1.0));
   EXPECT_TRUE(dst[5] == Triplet(11, 6, 1.0));
 
+  EXPECT_TRUE(dst[6] == Triplet(12, 3, 1.0));
+  EXPECT_TRUE(dst[7] == Triplet(13, 4, 1.0));
+  EXPECT_TRUE(dst[8] == Triplet(12, 5, -2.0));
+  EXPECT_TRUE(dst[9] == Triplet(13, 6, -2.0));
+  EXPECT_TRUE(dst[10] == Triplet(12, 7, 1.0));
+  EXPECT_TRUE(dst[11] == Triplet(13, 8, 1.0));
+
 }
