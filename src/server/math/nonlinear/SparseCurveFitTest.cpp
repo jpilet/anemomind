@@ -36,4 +36,5 @@ TEST(SparseCurveFitTest, RegTest) {
   EXPECT_TRUE(dst[10] == Triplet(12, 7, 1.0));
   EXPECT_TRUE(dst[11] == Triplet(13, 8, 1.0));
 
+  EXPECT_EQ(dst.size(), 12);
 }
