@@ -134,9 +134,8 @@ TEST(SparseCurveFit, NoisyStep) {
     EXPECT_TRUE(x);
   }
   EXPECT_EQ(results.inliers.size(), observations.size());
+  EXPECT_EQ(results.samples.cols(), 1);
   for (int i = 0; i < results.samples.rows(); i++) {
-
+    EXPECT_NEAR(gtSignal(i), results.samples(i, 0), 0.02);
   }
-
-
 }
