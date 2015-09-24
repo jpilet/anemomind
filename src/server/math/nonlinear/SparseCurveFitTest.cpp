@@ -48,6 +48,8 @@ TEST(SparseCurveFitTest, DataTest) {
       obs, 4,
       &triplets, &rhs);
 
+  EXPECT_EQ(spans.size(), 1);
+
   EXPECT_EQ(triplets.size(), 8);
   EXPECT_EQ(rhs(3), 119.3);
   EXPECT_EQ(rhs(4), 119.4);
@@ -55,5 +57,13 @@ TEST(SparseCurveFitTest, DataTest) {
     EXPECT_TRUE(rhs(i) == 0 || i == 3 || i == 4);
   }
 
-
+  Spani rowRange, colRange;
+  for (auto t: triplets) {
+    rowRange.extend(t.row());
+    colRange.extend(t.col());
+  }
+  EXPECT_EQ(rowRange.minv(), 3);
+  EXPECT_EQ(rowRange.maxv() + 1, 3 + 2 + 2);
+  EXPECT_EQ(rowRange.maxv() + 1, spans.last().maxv());
+  EXPECT_EQ(spans[0], Spani(5, 7));
 }
