@@ -23,10 +23,10 @@ TEST(SparseCurveFitTest, RegTest) {
   EXPECT_EQ(spans[1], Spani(12, 14));
 
   EXPECT_TRUE(dst[0] == Triplet(10, 1, 1.0));
-  /*EXPECT_EQ(dst[1], Triplet(11, 2, 1.0));
-  EXPECT_EQ(dst[0], Triplet(10, 3, -2.0));
-  EXPECT_EQ(dst[1], Triplet(11, 4, -2.0));
-  EXPECT_EQ(dst[0], Triplet(10, 5, 1.0));
-  EXPECT_EQ(dst[1], Triplet(11, 6, 1.0));*/
+  EXPECT_TRUE(dst[1] == Triplet(11, 2, 1.0));
+  EXPECT_TRUE(dst[2] == Triplet(10, 3, -2.0));
+  EXPECT_TRUE(dst[3] == Triplet(11, 4, -2.0));
+  EXPECT_TRUE(dst[4] == Triplet(10, 5, 1.0));
+  EXPECT_TRUE(dst[5] == Triplet(11, 6, 1.0));
 
 }
