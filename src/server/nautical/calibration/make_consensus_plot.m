@@ -1,22 +1,16 @@
 function good = make_consensus_plot(A_, B)
     A = A_(:, 1:2);
     n = get_observation_count(A);
-    count = 3000000;
+    count = 30000;
     pts = zeros(count, 2);
     uncertainty = zeros(count, 1);
-    max_size = 1000;
     prog = make_progress_fun_time_left(count);
+    max_size = 1000;
     for i = 1:count,
         if mod(i, 500) == 0,
             fprintf('Computing point %d of %d\n', i, count);
         end
-        %from_to = sort(randi(n, 1, 2));
-        size = randi(max_size, 1, 1);
-        %size = max_size;
-        from = randi(n - size, 1, 1);
-        to = from + size;
-        from_to = [from to];
-        
+        from_to = make_random_endpts(n, max_size);
         r = range_to_higher_dim(make_range_from_endpoints(from_to), 2);
         [pts(i, :), uncertainty(i)] = fit_params(A(r, :), B(r, :));
         prog('Computing angles');
