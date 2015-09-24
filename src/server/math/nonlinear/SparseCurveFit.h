@@ -35,12 +35,12 @@ Array<Spani> makeDataFitness(int firstRowOffset, int firstColOffset,
     int colB = firstColOffset + Dim*x.weights.upperIndex();
     int iDim = i*Dim;
     int rowOffset = firstRowOffset + iDim;
-    for (int k = 0; k < Dim; i++) {
+    for (int k = 0; k < Dim; k++) {
       int row = rowOffset + k;
 
       // Express a point on the curve as a linear combination of the samples.
-      dst->push_back(Triplet(row, colA + k, x.lowerWeight));
-      dst->push_back(Triplet(row, colB + k, x.upperWeight));
+      dst->push_back(Triplet(row, colA + k, x.weights.lowerWeight));
+      dst->push_back(Triplet(row, colB + k, x.weights.upperWeight));
 
       (*rhs)(row) = x.data[k];
       int slackCol = firstColOffset + sampleDim + iDim + k;

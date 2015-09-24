@@ -41,4 +41,12 @@ TEST(SparseCurveFitTest, RegTest) {
 
 TEST(SparseCurveFitTest, DataTest) {
   Array<Observation<2> > obs{Observation<2>{Sampling::Weights{0, 0.3, 0.7}, {119.3, 119.4}}};
+  Eigen::VectorXd rhs = Eigen::VectorXd::Zero(30);
+
+  std::vector<Triplet> triplets;
+  auto spans = makeDataFitness<2>(3, 1,
+      obs, 4,
+      &triplets, &rhs);
+
+
 }
