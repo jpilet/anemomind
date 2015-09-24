@@ -278,6 +278,7 @@ add_library(math_SparsityConstrained
 target_link_libraries(math_SparsityConstrained
                       common_ScopedLog
                       common_string
+                      common_Span
                      )           
 
 cxx_test(math_SparsityConstrainedTest

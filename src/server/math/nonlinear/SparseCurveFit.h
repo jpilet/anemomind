@@ -11,13 +11,15 @@
 #include <server/math/nonlinear/SignalUtils.h>
 #include <server/common/MDArray.h>
 #include <Eigen/Sparse>
+#include <vector>
 
 namespace sail {
 namespace SparseCurveFit {
 
 typedef Eigen::Triplet<double> Triplet;
 
-Arrayi<Spani> makeReg(int order, int rowOffset, int dim, int count, std::vector<Triplet> *dst);
+Array<Spani> makeReg(int order, int firstRowOffset, int firstColOffset,
+    int dim, int count, std::vector<Triplet> *dst);
 
 struct Settings {
   // These are the settings of the underlying algorithm used to solve the problem.
