@@ -68,7 +68,7 @@ Array<Spani> makeDataFitness(int firstRowOffset, int firstColOffset,
 
 struct Settings {
   // These are the settings of the underlying algorithm used to solve the problem.
-  SparsityConstrained::Settings settings;
+  SparsityConstrained::Settings spcstSettings;
 
   // Select this fraction of all observations to use as inliers, ignore the others.
   // An alternative to this would have been to have some inlier threshold, sigma, so that
@@ -107,14 +107,62 @@ struct Settings {
 
 
 
+struct Results {
+  Arrayb inliers;
+  MDArray2d samples; // One reconstructed sample per row.
+};
+
+Results assembleResults(int dim, int sampleCount, int inlierCount, const Eigen::VectorXd &solution);
+
 /*
  *
  * The main function to solve the problem.
  *
  */
 template <int Dim>
-MDArray2d fit(const Settings &settings, int sampleCount, Array<Observation<Dim> > observations) {
+Results fit(const Settings &settings, int sampleCount,
+    Array<Observation<Dim> > observations) {
   CHECK(0 <= settings.discontinuityCount);
+  CHECK(observations.all([&](const Observation<Dim> &x) {
+    return 0 <= x.weights.lowerIndex && x.weights.upperIndex() < sampleCount;
+  }));
+  int regCount = (sampleCount - settings.regOrder);
+  int coefsPerReg = (settings.regOrder + 1);
+  int regRowCount = Dim*regCount;
+  int regElemCount = coefsPerReg*regRowCount;
+  int dataElemCount = Dim*4*observations.size();
+  int dataRowCount = observations.size()*Dim*2;
+  int rowCount = dataRowCount + regRowCount;
+
+  Eigen::VectorXd rhs = Eigen::VectorXd::Zero(rowCount);
+  std::vector<Triplet> elements;
+  elements.reserve(dataElemCount + regElemCount);
+  Array<Spani> slackSpans = makeDataFitness(0, 0,
+      observations, sampleCount,
+      &elements, &rhs);
+  CHECK(slackSpans.last().maxv() == dataRowCount);
+  Array<Spani> regSpans = makeReg(settings.regOrder, dataRowCount, 0,
+      Dim, regCount, &elements);
+  CHECK(elements.back().col() <= Dim*sampleCount);
+  CHECK(regSpans.last().minv() == dataRowCount);
+  CHECK(regSpans.last().maxv() == rowCount);
+
+  int inlierCount = int(floor(observations.size()*settings.inlierRate));
+  CHECK(0 <= settings.discontinuityCount);
+  int activeRegCount = regCount - settings.discontinuityCount;
+
+  Array<SparsityConstrained::ConstraintGroup> groups{
+    SparsityConstrained::ConstraintGroup{slackSpans, inlierCount},
+    SparsityConstrained::ConstraintGroup{regSpans, activeRegCount}
+  };
+
+  int colCount = Dim*sampleCount + Dim*observations.size();
+  Eigen::SparseMatrix<double> lhs(rowCount, colCount);
+  lhs.setFromTriplets(elements.begin(), elements.end());
+  Eigen::VectorXd solution =
+      SparsityConstrained::solve(lhs, rhs, groups, settings.spcstSettings);
+  CHECK(solution.size() == colCount);
+  return assembleResults(Dim, sampleCount, inlierCount, solution);
 }
 
 

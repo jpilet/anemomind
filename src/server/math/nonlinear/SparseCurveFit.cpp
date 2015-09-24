@@ -31,8 +31,57 @@ Array<Spani> makeReg(int order, int firstRowOffset, int firstColOffset,
   return spans;
 }
 
+double calcSquaredResidual(const Arrayd &X) {
+  double sum2 = 0.0;
+  for (auto x: X) {
+    sum2 += x*x;
+  }
+  return sum2;
+}
+
+Arrayb getInliers(int dim, int inlierCount, Arrayd data) {
+  int count = data.size()/dim;
+  CHECK(count*dim == data.size());
+  Arrayd residuals(count);
+  for (int i = 0; i < count; i++) {
+    residuals[i] = calcSquaredResidual(data.sliceBlock(i, dim));
+  }
+  Arrayd sortedResiduals = residuals.dup();
+  std::sort(sortedResiduals.begin(), sortedResiduals.end());
+  double thresh = sortedResiduals[inlierCount-1];
+  return residuals.map<bool>([&](double x) {
+    return x <= thresh;
+  });
+}
+
+MDArray2d getSamples(int dim, Arrayd data) {
+  int count = data.size()/dim;
+  CHECK(count*dim == data.size());
+  MDArray2d dst(count, dim);
+  int counter = 0;
+  for (int i = 0; i < count; i++) {
+    for (int j = 0; j < dim; j++) {
+      dst(i, j) = data[counter];
+      counter++;
+    }
+  }
+  CHECK(counter == data.size());
+  return dst;
+}
+
+Results assembleResults(int dim, int sampleCount, int inlierCount,
+    const Eigen::VectorXd &solution) {
+  Arrayd data(solution.size(), solution.data());
+  int sampleDim = dim*sampleCount;
+  return Results{getInliers(dim, inlierCount, data.sliceFrom(sampleDim)),
+    getSamples(dim, data.sliceTo(sampleDim))
+  };
+}
+
+
+
+
+
 
 }
 }
-
-
