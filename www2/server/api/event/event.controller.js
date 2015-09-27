@@ -221,8 +221,4 @@ exports.postPhoto = multer({
   }
 });
 
-exports.getPhoto = function(req, res) {
-  // Access rights have been checked by boatReadAccess.
-  res.sendFile(photoUploadPath + '/' + req.params.boatId
-               + '/' + req.params.photo);
-}
+exports.photoUploadPath = photoUploadPath;
