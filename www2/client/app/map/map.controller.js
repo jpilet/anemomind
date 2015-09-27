@@ -26,6 +26,7 @@ angular.module('www2App')
 
     var setLocationTimeout;
     function setLocation() {
+      setSelectTime();
       function delayed() {
         setLocationTimeout = undefined;
         var search = '';
@@ -45,8 +46,14 @@ angular.module('www2App')
       setLocationTimeout = $timeout(delayed, 1000);
     }
 
+    function setSelectTime() {
+      $scope.startTime = curveStartTime($scope.selectedCurve);
+      $scope.endTime = curveEndTime($scope.selectedCurve);
+    }
+
     if ($stateParams.c) {
       $scope.selectedCurve = $stateParams.c;
+      setSelectTime();
     }
 
     if ($stateParams.l) {

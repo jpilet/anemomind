@@ -28,7 +28,7 @@ var canRead = function(req, event) {
     });
   }
 
-  // Otherwise, the user needs write access to the boat the note is
+  // Otherwise, the user needs read access to the boat the note is
   // attached to.
   return boatAccess.userCanReadBoatId(req.user.id, event.boat);
 }
@@ -51,9 +51,30 @@ exports.index = function(req, res) {
       return res.sendStatus(401);
     }
 
+    var query = { };
+
+    var handleDateParam = function(param, operator) {
+      if (req.query[param] && req.query[param] != "") {
+        var date = new Date(req.query[param]);
+        if (isNaN(date)) {
+          return res.sentStatus(400);
+        }
+        if (!query.when) {
+          query.when = { };
+        }
+        query.when[operator] = date;
+      }
+    }
+
+    handleDateParam('B', '$lte');
+    handleDateParam('A', '$gte');
+
     if (req.query.b) {
       boatAccess.userCanReadBoatId(req.user.id, req.query.b)
-      .then(function() { sendEventsWithQuery(res, { boat: req.query.b }); })
+      .then(function() {
+         query.boat = req.query.b;
+         sendEventsWithQuery(res, query);
+      })
       .catch(function(err) { res.sendStatus(403); });
     } else {
       boatAccess.readableBoats(req.user.id)
@@ -61,7 +82,8 @@ exports.index = function(req, res) {
           if (boats.length == 0) {
             return res.status(200).json([]);
           }
-          sendEventsWithQuery({ boat: { $in : _.map(boats, '_id') } });
+          query.boat = { $in : _.map(boats, '_id') };
+          sendEventsWithQuery(res, query);
         })
         .catch(function(err) { res.sendStatus(403); });
     }
