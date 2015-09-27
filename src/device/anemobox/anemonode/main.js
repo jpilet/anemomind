@@ -3,7 +3,7 @@ var dispatcher = require('./build/Release/anemonode').dispatcher;
 var nmea0183PortPath = '/dev/ttyMFD1';
 var logRoot = '/media/sdcard/logs/';
 var logInterval = 5 * 60 * 1000;  // create a log file every 5 minutes
-
+var btrpcFuncTable = require('./components/rpcble.js').rpcFuncTable;
 var withLocalEndpoint = true;
 var withLogger = true;
 var withGps = true;
@@ -120,12 +120,9 @@ if (withLogger) {
   });
 }
 
-require('./components/RpcAssignBoat');
-
+require('./components/RpcAssignBoat').register(btrpcFuncTable);
 if (withLocalEndpoint) {
-  var fillTable = require('./components/RpcEndpoint.js').fillTable;
-  var rpcFuncTable = require('./components/rpcble.js').rpcFuncTable;
-  fillTable(rpcFuncTable);
+  require('./components/RpcEndpoint.js').register(btrpcFuncTable);
 }
 
 // The estimator computes the true wind and the target speed.
