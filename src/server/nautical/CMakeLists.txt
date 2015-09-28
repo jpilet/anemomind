@@ -437,6 +437,15 @@ target_link_libraries(nautical_CalibrationBenchmark
                       nautical_NavNmeaScan
                      )
 
+add_library(nautical_NavCsv
+            NavCsv.h
+            NavCsv.cpp
+           )
+target_link_libraries(nautical_NavCsv
+                      nautical_nav
+                      common_CsvParser
+                     )           
+
 add_library(nautical_NavLoader
             NavLoader.h
             NavLoader.cpp
@@ -446,6 +455,7 @@ target_link_libraries(nautical_NavLoader
                       common_logging
                       common_string
                       nautical_NavNmea
+                      nautical_NavCsv
                      )
 target_depends_on_poco_foundation(nautical_NavLoader)                                                                    
 
