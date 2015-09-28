@@ -11,5 +11,5 @@ function [X, Y] = make_eig2d_plot(Q, n)
     X = make_linear_table(n, -pi, pi);
     mean_y = mean(d);
     amp = max(d) - mean_y;
-    Y = mean_y + amp*cos(X - angle);
+    Y = mean_y + amp*cos(2*(X - angle));
 end

@@ -16,13 +16,16 @@ function good = make_consensus_plot(A_, B)
         prog('Computing angles');
     end
     good = pts(uncertainty < 1, :);
-    subplot(1, 2, 1);
-    plotx(good, '.k', 'MarkerSize', 12);
-    axis equal;
+    %subplot(1, 2, 1);
+    %plotx(good, '.k', 'MarkerSize', 12);
+    %axis equal;
     
-    subplot(1, 2, 2);
     angles = atan2(good(:, 2), good(:, 1));
-    hist(angles, 30);
+    hist(rad2deg(angles), 30);
+    fs = 20;
+    xlabel('Estimated angle (degrees)', 'FontSize', fs);
+    ylabel('Number of samples', 'FontSize', fs);
+    set(gca, 'FontSize', fs);
 end
 
 function params = fit_params2(A, B)
@@ -32,9 +35,11 @@ function params = fit_params2(A, B)
 end
 
 function [params, uncertainty] = fit_params(A, B)
-    Q = gram_schmidt(A(:, 1:2));
+    %Q = gram_schmidt(A(:, 1:2));
+    Q = A(:, 1:2);
     n = get_observation_count(A);
-    R = Q'*A;
+    %R = Q'*A
+    R = eye(2, 2);
     %coeff_count = 4;
     %[K, opt] = make_fitness([-acc(B) kron(make_poly_mat(n+1, coeff_count), eye(2, 2))], acc(Q));
     [K, opt] = make_fitness([-B kron(ones(n, 1), eye(2, 2))], Q);
