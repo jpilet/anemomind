@@ -477,4 +477,5 @@ target_link_libraries(nautical_exportNavs
                       nautical_NavNmeaScan
                       common_logging
                       common_ArgMap
+                      nautical_Calibrator
                      )              

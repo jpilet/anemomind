@@ -9,6 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <server/common/TimeStamp.h>
+#include <server/nautical/Calibrator.h>
 #include <iostream>
 
 using namespace sail;
@@ -68,11 +69,21 @@ std::string timeToLiteralHumanReadable(TimeStamp t, Format f) {
   return t.toString("%Y-%m-%d %T");
 }
 
-Angle<double> twa(const Nav& nav) {
-  return (nav.hasTrueWindOverGround() ?
-          nav.trueWindOverGround().angle()
-          : nav.externalTwa());
+Angle<double> twa(const Nav& nav, bool ext) {
+  return (ext? nav.externalTwa()
+            : nav.trueWindOverGround().angle());
 }
+
+Angle<double> twdir(const Nav& nav, bool ext) {
+  return twa(nav, ext) + nav.gpsBearing();
+}
+
+Velocity<double> tws(const Nav& nav, bool ext) {
+  return (ext? nav.externalTws() : nav.trueWindOverGround().norm());
+}
+
+
+
 
 Array<NavField> getNavFields(std::string f) {
   auto format = (f == "csv"? CSV : (f == "json"? JSON : MATLAB));
@@ -86,17 +97,23 @@ Array<NavField> getNavFields(std::string f) {
     NavField{"AWS (knots)", [=](const Nav &x) {
       return velocityToLiteral(x.aws(), format);
     }},
-    NavField{"TWA (degrees)", [=](const Nav &x) {
-      return angleToLiteral(twa(x), format, 180);
+    NavField{"TWA from boat (degrees)", [=](const Nav &x) {
+      return angleToLiteral(twa(x, true), format, 180);
     }},
-    NavField{"TWS (knots)", [=](const Nav &x) {
-      auto speed = (x.hasTrueWindOverGround() ?
-                    x.trueWindOverGround().norm()
-                    : x.externalTws());
-      return velocityToLiteral(speed, format);
+    NavField{"TWS from boat (knots)", [=](const Nav &x) {
+      return velocityToLiteral(tws(x, true), format);
     }},
-    NavField{"TWDIR (degrees)", [=](const Nav &x) {
-      return angleToLiteral(twa(x) + x.gpsBearing(), format, 360);
+    NavField{"TWDIR from boat (degrees)", [=](const Nav &x) {
+      return angleToLiteral(twdir(x, true), format, 360);
+    }},
+    NavField{"TWA anemomind (degrees)", [=](const Nav &x) {
+      return angleToLiteral(twa(x, false), format, 180);
+    }},
+    NavField{"TWS anemomind (knots)", [=](const Nav &x) {
+      return velocityToLiteral(tws(x, false), format);
+    }},
+    NavField{"TWDIR anemomind (degrees)", [=](const Nav &x) {
+      return angleToLiteral(twdir(x, false), format, 360);
     }},
     NavField{"MagHdg (degrees)", [=](const Nav &x) {
       return angleToLiteral(x.magHdg(), format, 360);
@@ -181,6 +198,16 @@ int exportMatlab(bool withHeader, Array<NavField> fields,
   return 0;
 }
 
+void performCalibration(Array<Nav> *navs) {
+  WindOrientedGrammarSettings gs;
+  WindOrientedGrammar grammar(gs);
+  auto tree = grammar.parse(*navs);
+  std::shared_ptr<Calibrator> calib(new Calibrator(grammar));
+  calib->setVerbose();
+  calib->calibrate(*navs, tree, Nav::debuggingBoatId());
+  calib->simulate(navs);
+}
+
 int exportNavs(bool withHeader, Array<ArgMap::Arg*> args, std::string format, std::string output) {
   Array<Nav> navs = loadNavsFromArgs(args);
   Array<NavField> fields = getNavFields(format);
@@ -189,6 +216,7 @@ int exportNavs(bool withHeader, Array<ArgMap::Arg*> args, std::string format, st
     LOG(ERROR) << "No navs were loaded";
     return -1;
   }
+  performCalibration(&navs);
   LOG(INFO) << "Navs successfully loaded, export them to "
       << output << " with format " << format;
   std::ofstream file(output);
