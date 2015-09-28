@@ -46,6 +46,7 @@ class Nav {
   }
 
   const GeographicPosition<double> &geographicPosition() const {return _pos;}
+  GeographicPosition<double> &geographicPosition() {return _pos;}
   Angle<double> awa() const {return _awa;}
   Velocity<double> aws() const {return _aws;}
   bool hasApparentWind() const { return !isnan(_awa) && !isnan(_aws); }

@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <fstream>
 #include <stdarg.h>
+#include <server/common/ArrayBuilder.h>
+
 
 namespace sail {
 
@@ -202,6 +204,20 @@ std::string readFileToString(const std::string& filename) {
   result.assign(std::istreambuf_iterator<char>(file),
                 std::istreambuf_iterator<char>());
   return result;
+}
+
+Array<std::string> tokenize(std::string x, std::string delimiter) {
+  ArrayBuilder<std::string> builder;
+  while (true) {
+    int index = x.find(delimiter);
+    if (index == x.npos) {
+      builder.add(x);
+      return builder.get();
+    }
+    builder.add(x.substr(0, index));
+    int from = index + 1;
+    x = x.substr(from, x.length() - from);
+  }
 }
 
 } /* namespace sail */
