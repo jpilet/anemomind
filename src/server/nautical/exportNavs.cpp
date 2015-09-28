@@ -68,12 +68,6 @@ std::string timeToLiteralHumanReadable(TimeStamp t, Format f) {
   return t.toString("%Y-%m-%d %T");
 }
 
-Angle<double> twa(const Nav& nav) {
-  return (nav.hasTrueWindOverGround() ?
-          nav.trueWindOverGround().angle()
-          : nav.externalTwa());
-}
-
 Array<NavField> getNavFields(std::string f) {
   auto format = (f == "csv"? CSV : (f == "json"? JSON : MATLAB));
   return Array<NavField>{
@@ -86,17 +80,30 @@ Array<NavField> getNavFields(std::string f) {
     NavField{"AWS (knots)", [=](const Nav &x) {
       return velocityToLiteral(x.aws(), format);
     }},
-    NavField{"TWA (degrees)", [=](const Nav &x) {
-      return angleToLiteral(twa(x), format, 180);
+    NavField{"TWA Anemomind (degrees)", [=](const Nav &x) {
+      auto angle = (x.hasTrueWindOverGround() ?
+          x.trueWindOverGround().angle()
+          : Angle<double>());
+      return angleToLiteral(angle, format, 180);
     }},
-    NavField{"TWS (knots)", [=](const Nav &x) {
+    NavField{"TWS Anemomind (knots)", [=](const Nav &x) {
       auto speed = (x.hasTrueWindOverGround() ?
                     x.trueWindOverGround().norm()
-                    : x.externalTws());
+                    : Velocity<double>());
       return velocityToLiteral(speed, format);
     }},
-    NavField{"TWDIR (degrees)", [=](const Nav &x) {
-      return angleToLiteral(twa(x) + x.gpsBearing(), format, 360);
+    NavField{"TWDIR Anemomind (degrees)", [=](const Nav &x) {
+      return angleToLiteral(
+          x.trueWindOverGround().angle() + x.gpsBearing(), format, 360);
+    }},
+    NavField{"TWA NMEA (degrees)", [=](const Nav &x) {
+      return angleToLiteral(x.externalTwa(), format, 180);
+    }},
+    NavField{"TWS NMEA (knots)", [=](const Nav &x) {
+      return velocityToLiteral(x.externalTws(), format);
+    }},
+    NavField{"TWDIR NMEA (degrees)", [=](const Nav &x) {
+      return angleToLiteral(x.externalTwa() + x.gpsBearing(), format, 360);
     }},
     NavField{"MagHdg (degrees)", [=](const Nav &x) {
       return angleToLiteral(x.magHdg(), format, 360);
