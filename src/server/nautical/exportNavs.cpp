@@ -71,7 +71,7 @@ std::string timeToLiteralHumanReadable(TimeStamp t, Format f) {
 
 Angle<double> twa(const Nav& nav, bool ext) {
   return (ext? nav.externalTwa()
-            : nav.trueWindOverGround().angle());
+            : nav.trueWindOverGround().angle() - nav.gpsBearing());
 }
 
 Angle<double> twdir(const Nav& nav, bool ext) {
