@@ -94,7 +94,7 @@ Array<NavField> getNavFields(std::string f) {
     }},
     NavField{"TWDIR Anemomind (degrees)", [=](const Nav &x) {
       return angleToLiteral(
-          x.trueWindOverGround().angle() + x.gpsBearing(), format, 360);
+          x.trueWindOverGround().angle(), format, 360);
     }},
     NavField{"TWA NMEA (degrees)", [=](const Nav &x) {
       return angleToLiteral(x.externalTwa(), format, 180);
