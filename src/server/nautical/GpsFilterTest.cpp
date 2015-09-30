@@ -31,17 +31,36 @@ Array<Nav> getPsarosTestData() {
     .pushDirectory("2014")
     .pushDirectory("20140821").get();
   auto navs = scanNmeaFolder(p, Nav::debuggingBoatId());
-  return navs.sliceFrom(3500);
+  return navs.sliceFrom(3000);
 }
 
-// Check that the filtered signal is reasonbly close to the non-filtered one.
-TEST(GpsFilterTest, PsarosTest) {
-  auto navs = getPsarosTestData();
+Array<Nav> applyOutliers(Array<Nav> navs) {
+  int from = int(floor(navs.size()*0.05));
+  int to = int(floor(navs.size()*0.15));
+  Array<Nav> dst = navs.dup();
+  Angle<double> offset = Angle<double>::degrees(0.5/60); // half a minute.
+  for (int i = 0; i < navs.size(); i++) {
+    if (i % 10 == 0) {
+      auto &x = dst[i];
+      auto g = x.geographicPosition();
+      auto g2 = GeographicPosition<double>(g.lon(), g.lat() + offset);
+      x.setGeographicPosition(g2);
+    }
+  }
+  return dst;
+}
+
+
+
+void runPsarosTest(Array<Nav> navs, Array<Nav> navsToFilter) {
   GpsFilter::Settings settings;
-  auto results = GpsFilter::filter(navs, settings);
+  if (navsToFilter.empty()) {
+    navsToFilter = navs;
+  }
+
+  auto results = GpsFilter::filter(navsToFilter, settings);
   auto filtered = results.filteredNavs();
   EXPECT_EQ(filtered.size(), navs.size());
-
 
   auto reasonableMotionCount = 0;
   auto reasonablePositionCount = 0;
@@ -57,7 +76,7 @@ TEST(GpsFilterTest, PsarosTest) {
     auto posDif = results.geoRef.map(a.geographicPosition()) -
         results.geoRef.map(b.geographicPosition());
     auto posDifNormMeters = sqrt(sqr(posDif[0].meters()) + sqr(posDif[1].meters()));
-    if (posDifNormMeters < 10) {
+    if (posDifNormMeters < 3) {
       reasonablePositionCount++;
     }
   }
@@ -71,8 +90,16 @@ TEST(GpsFilterTest, PsarosTest) {
     plot.set_style("lines");
     plot.plot(results.Xmeters);
     plot.set_style("points");
-    plot.plot(getRawPositions(results, navs));
+    plot.plot(getRawPositions(results, navsToFilter));
     plot.show();
   }
+}
+
+// Check that the filtered signal is reasonbly close to the non-filtered one.
+TEST(GpsFilterTest, PsarosTest) {
+  auto navs = getPsarosTestData();
+
+  runPsarosTest(navs, Array<Nav>());
+  runPsarosTest(navs, applyOutliers(navs));
 
 }

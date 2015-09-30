@@ -139,6 +139,7 @@ add_library(math_nonlinear_BandedSolver
 target_link_libraries(math_nonlinear_BandedSolver
                       math_BandMat
                       math_nonlinear_SignalUtils
+                      common_math
                      )              
   
 add_library(math_nonlinear_GeneralizedTV
@@ -209,4 +210,23 @@ cxx_test(math_nonlinear_BandedSolverTest
          math_nonlinear_BandedSolver
          plot_gnuplot
          gtest_main
-        )    
+        )
+        
+add_library(math_nonlinear_SparseCurveFit
+            SparseCurveFit.h
+            SparseCurveFit.cpp
+           )
+           
+target_link_libraries(math_nonlinear_SparseCurveFit
+                      math_SparsityConstrained
+                      common_math
+                      common_ScopedLog
+                      common_logging
+                      math_nonlinear_SignalUtils
+                     )           
+        
+cxx_test(math_nonlinear_SparseCurveFitTest
+         SparseCurveFitTest.cpp
+         gtest_main
+         math_nonlinear_SparseCurveFit
+        )

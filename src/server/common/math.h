@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cassert>
 #include <limits>
+#include <server/common/Array.h>
 
 namespace sail {
 
@@ -325,6 +326,10 @@ bool genericIsNan(T x) {
 inline bool implies(bool a, bool b) {
   return !a || b;
 }
+
+Arrayd makeNextRegCoefs(Arrayd coefs);
+Arrayd makeRegCoefs(int order);
+
 
 } /* namespace sail */
 
