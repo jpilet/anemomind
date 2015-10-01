@@ -58,7 +58,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  for (int i = 1; i < argc; ++i) {
+  // Loop forever.
+  for (int i = 1; 1; i = (i + 1 == argc ? 1 : i + 1)) {
     FILE *f = fopen(argv[i], "r");
     if (!f) {
       perror(argv[i]);
