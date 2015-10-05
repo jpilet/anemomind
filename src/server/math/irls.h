@@ -64,7 +64,7 @@ class Weigher {
   DiagMat makeWeightMatrix() const;
  private:
   bool isWeighted(int index) const {
-    return _squaredWeights[index] >= 0;
+    return _squaredWeights[index] >= -0.5;
   }
   Arrayd _squaredWeights;
 };

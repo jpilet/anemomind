@@ -83,7 +83,7 @@ TEST(SparsityConstrained, SignalFit) {
   }
 
   // This will show the noisy signal and the denoised signal.
-  constexpr bool visualize = true;
+  constexpr bool visualize = false;
   if (visualize) {
     GnuplotExtra plot;
     plot.set_style("lines");

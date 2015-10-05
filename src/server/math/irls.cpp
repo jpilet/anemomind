@@ -141,9 +141,7 @@ DiagMat Weigher::makeWeightMatrix() const {
   auto &v = W.diagonal();
   for (int i = 0; i < n; i++) {
     v(i) = calcWeight(i);
-    std::cout << " w(" << i << ")^2 = " << _squaredWeights[i] << std::endl;
   }
-  std::cout << EXPR_AND_VAL_AS_STRING(v) << std::endl;
   return W;
 }
 
