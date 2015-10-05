@@ -143,8 +143,8 @@ Results fit(int sampleCount, int discontinuityCount,
   int activeRegCount = regCount - discontinuityCount;
 
   Array<SparsityConstrained::ConstraintGroup> groups{
-    SparsityConstrained::ConstraintGroup{slackSpans, inlierCount},
-    SparsityConstrained::ConstraintGroup{regSpans, activeRegCount}
+    SparsityConstrained::ConstraintGroup{slackSpans, inlierCount, true},
+    SparsityConstrained::ConstraintGroup{regSpans, activeRegCount, false}
   };
 
   int colCount = Dim*sampleCount + Dim*observations.size();

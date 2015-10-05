@@ -72,7 +72,7 @@ TEST(SparsityConstrained, SignalFit) {
   // Since we have a total of 29 constraints, and we allow
   // for two discontinuities (that will be passive constraints),
   // there remains 27 active constraints.
-  SparsityConstrained::ConstraintGroup group{cst, 27};
+  SparsityConstrained::ConstraintGroup group{cst, 27, true};
   auto X = SparsityConstrained::solve(A, B,
       Array<SparsityConstrained::ConstraintGroup>{group}, settings);
   for (int i = 0; i < 30; i++) {

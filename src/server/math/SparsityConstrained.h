@@ -30,6 +30,7 @@ struct Settings {
 struct ConstraintGroup {
  Array<Spani> spans;
  int activeCount;
+ bool graduated;
 };
 
 /*

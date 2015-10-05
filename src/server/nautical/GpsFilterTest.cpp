@@ -38,7 +38,7 @@ Array<Nav> applyOutliers(Array<Nav> navs) {
   int from = int(floor(navs.size()*0.05));
   int to = int(floor(navs.size()*0.15));
   Array<Nav> dst = navs.dup();
-  Angle<double> offset = Angle<double>::degrees(0.5/60); // half a minute.
+  Angle<double> offset = Angle<double>::degrees(120);
   for (int i = 0; i < navs.size(); i++) {
     if (i % 10 == 0) {
       auto &x = dst[i];
