@@ -105,6 +105,17 @@ class ConstraintGroup : public WeightingStrategy {
   double _minResidual;
 };
 
+class NonNegativeConstraints : public WeightingStrategy {
+ public:
+  NonNegativeConstraints(Arrayi inds, double reg) : _inds(inds), _reg(reg), _lb(1.0e-9) {}
+
+  void apply(double constraintWeight, Arrayd residuals, QuadCompiler *dst) const;
+ private:
+  double _reg;
+  Arrayi _inds;
+  double _lb;
+};
+
 Eigen::VectorXd solve(
     const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
     WeightingStrategies strategies,

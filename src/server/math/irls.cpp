@@ -175,6 +175,16 @@ void ConstraintGroup::apply(double constraintWeight, Arrayd residuals, QuadCompi
   }
 }
 
+void NonNegativeConstraints::apply(double constraintWeight,
+    Arrayd residuals, QuadCompiler *dst) const {
+  for (auto i: _inds) {
+    double r = residuals[i];
+    auto q = constraintWeight*(MajQuad::majorizeAbs(r, _lb) + MajQuad::linear(-1.0))
+        + MajQuad::linear(_reg);
+    dst->addQuad(i, q);
+  }
+}
+
 
 Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &X) {
   Eigen::VectorXd Y = Eigen::VectorXd::Zero(A.rows());
