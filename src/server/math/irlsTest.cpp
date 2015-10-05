@@ -99,19 +99,19 @@ TEST(IrlsTest, SignalFit) {
 TEST(IrlsTest, InequalityConstraint) {
   using namespace irls;
 
-  Array<Triplet> triplets{Triplet(0, 0, 1), Triplet(1, 0, 1)};
-  Eigen::VectorXd B(2);
-  Eigen::SparseMatrix<double> A(2, 1);
+  Array<Triplet> triplets{Triplet(0, 0, 1)};
+  Eigen::VectorXd B(1);
+  Eigen::SparseMatrix<double> A(1, 1);
   A.setFromTriplets(triplets.begin(), triplets.end());
   B(0) = 3;
-  B(1) = 3;
   WeightingStrategies strategies{
-    WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{0}, 0.0001)),
-    WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{1}, 0.0001))
+    WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{0}, 0.0001)) //,
+    //WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{1}, 0.0001))
   };
 
   Settings settings;
   settings.iters = 300;
   auto results = solve(A, B, strategies, settings);
-  EXPECT_NEAR(results(0), 4.0, 1.0-2);
+  double x = results(0);
+  EXPECT_NEAR(x, 3.0, 1.0e-2);
 }

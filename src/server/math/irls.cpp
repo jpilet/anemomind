@@ -224,7 +224,7 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
     auto wk = weigher.makeWeightAndOffset();
 
     Eigen::SparseMatrix<double> WA = wk.weights*A;
-    Eigen::VectorXd WB = wk.weights*B - wk.offset;
+    Eigen::VectorXd WB = wk.weights*B;
 
     X = Decomp(WA.transpose()*WA).solve(WA.transpose()*WB);
 
