@@ -181,8 +181,12 @@ void NonNegativeConstraints::apply(double constraintWeight,
     double r = residuals[i];
     /*auto q = constraintWeight*(MajQuad::majorizeAbs(r, _lb) + MajQuad::linear(-1.0))
         + MajQuad::linear(_reg);*/
-    auto q = constraintWeight*(MajQuad::majorizeAbs(r, _lb) + MajQuad::linear(1.0))
+    auto absQuad = MajQuad::majorizeAbs(r, _lb);
+    std::cout << EXPR_AND_VAL_AS_STRING(r) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(absQuad.evalDerivative(r)) << std::endl;
+    auto q = (absQuad + MajQuad::linear(-1.0))
         + MajQuad::linear(_reg);
+    std::cout << EXPR_AND_VAL_AS_STRING(q.factor()) << std::endl;
     dst->addQuad(i, q);
   }
 }
@@ -227,7 +231,10 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
     Eigen::SparseMatrix<double> WA = wk.weights*A;
     Eigen::VectorXd WB = wk.weights*B - wk.offset;
 
+
     std::cout << EXPR_AND_VAL_AS_STRING(wk.offset) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(WA.toDense()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(WB) << std::endl;
 
     X = Decomp(WA.transpose()*WA).solve(WA.transpose()*WB);
 

@@ -74,6 +74,10 @@ struct MajQuad {
  double eval(double x) const {
    return a*x*x + b*x;
  }
+
+ double evalDerivative(double x) const {
+   return 2.0*a*x + b;
+ }
 };
 
 inline MajQuad operator*(double s, const MajQuad &x) {

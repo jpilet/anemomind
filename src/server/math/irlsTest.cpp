@@ -29,7 +29,7 @@ TEST(IrlsTest, DistributeWeights) {
 typedef Eigen::Triplet<double> Triplet;
 
 
-TEST(IrlsTest, SignalFit) {
+/*TEST(IrlsTest, SignalFit) {
   // Fit a line to a signal subject to sparsity constraints.
   // We allow for exactly two discontinuities in the fitted signal.
 
@@ -93,7 +93,7 @@ TEST(IrlsTest, SignalFit) {
     plot.plot_xy(time, Arrayd(X.size(), X.data()));
     plot.show();
   }
-}
+}*/
 
 
 TEST(IrlsTest, InequalityConstraint) {
@@ -106,11 +106,10 @@ TEST(IrlsTest, InequalityConstraint) {
   B(0) = 3;
   WeightingStrategies strategies{
     WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{0}, 1.0)) //,
-    //WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{1}, 0.0001))
   };
 
   Settings settings;
-  settings.iters = 300;
+  settings.iters = 12;
   auto results = solve(A, B, strategies, settings);
   double x = results(0);
   EXPECT_NEAR(x, 3.0, 1.0e-2);
