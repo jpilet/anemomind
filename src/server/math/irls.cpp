@@ -179,8 +179,9 @@ void NonNegativeConstraints::apply(double constraintWeight,
     Arrayd residuals, QuadCompiler *dst) const {
   for (auto i: _inds) {
     double r = residuals[i];
-    auto q = constraintWeight*(MajQuad::majorizeAbs(r, _lb) + MajQuad::linear(-1.0))
-        + MajQuad::linear(_reg);
+    /*auto q = constraintWeight*(MajQuad::majorizeAbs(r, _lb) + MajQuad::linear(-1.0))
+        + MajQuad::linear(_reg);*/
+    auto q = MajQuad::majorizeAbs(r, _lb) + MajQuad::linear(-0.999999);
     dst->addQuad(i, q);
   }
 }
