@@ -61,13 +61,13 @@ struct MajQuad {
    return majorize(xp, f, fPrime, 0.0);
  }
 
- // Represent it as factor()^2, that is on the form (k*x - m)^2
+ // Represent it as factor()^2, that is on the form (k*x + m)^2
  LineKM factor() const {
    if (a == 0) {
      return LineKM(0, 0);
    }
    double w = sqrt(std::abs(a));
-   return LineKM(w, -0.5*b/w);
+   return LineKM(w, 0.5*b/w);
  }
 
  // Eval, ignoring the constant.

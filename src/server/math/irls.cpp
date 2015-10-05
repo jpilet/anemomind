@@ -179,11 +179,12 @@ void NonNegativeConstraints::apply(double constraintWeight,
     Arrayd residuals, QuadCompiler *dst) const {
   for (auto i: _inds) {
     double r = residuals[i];
-    /*auto q = constraintWeight*(MajQuad::majorizeAbs(r, _lb) + MajQuad::linear(-1.0))
-        + MajQuad::linear(_reg);*/
+    std::cout << EXPR_AND_VAL_AS_STRING(r) << std::endl;
     auto absQuad = MajQuad::majorizeAbs(r, _lb);
-    auto q = (absQuad + MajQuad::linear(-1.0))
+    auto q = constraintWeight*(absQuad + MajQuad::linear(-1.0))
         + MajQuad::linear(_reg);
+    auto line = q.factor();
+    std::cout << EXPR_AND_VAL_AS_STRING(line.solveWithEquality(0.0)) << std::endl;
     dst->addQuad(i, q);
   }
 }
@@ -215,8 +216,10 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
 
   for (int i = 0; i < settings.iters; i++) {
     double constraintWeight = exp(logWeights(i));
-    SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d with weight %.3g",
-        i+1, settings.iters, constraintWeight));
+
+    /*SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d with weight %.3g",
+        i+1, settings.iters, constraintWeight));*/
+
     QuadCompiler weigher(residuals.size());
     auto residualArray = toArray(residuals);
     for (auto strategy: strategies) {

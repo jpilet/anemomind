@@ -139,7 +139,7 @@ MajQuad BalancedCost::majorize(Velocity<double> surface, const Point &pt) const 
         double b2 = factored.getM();
         assert(!std::isnan(a2));
         assert(!std::isnan(b2));
-        B(i, 0) = b2;
+        B(i, 0) = -b2;
         for (int j = 0; j < 4; j++) {
           A(i, j) = a2*pt.loc.weights[j];
         }
