@@ -114,8 +114,8 @@ TEST(IrlsTest, InequalityConstraint) {
   };
 
   Settings settings;
-  settings.iters = 120; // <-- Inequality constraints require quite many iterations.
+  settings.iters = 200;
   auto results = solve(A, B, strategies, settings);
   double x = results(0);
-  EXPECT_NEAR(x, 3.0, 2.0e-2);
+  EXPECT_NEAR(x, 3.0, 1.0e-8);
 }
