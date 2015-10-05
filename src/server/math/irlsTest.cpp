@@ -109,8 +109,8 @@ TEST(IrlsTest, InequalityConstraint) {
   };
 
   Settings settings;
-  settings.iters = 1200;
+  settings.iters = 120;
   auto results = solve(A, B, strategies, settings);
   double x = results(0);
-  EXPECT_NEAR(x, 3.0, 1.0e-2);
+  EXPECT_NEAR(x, 3.0, 2.0e-2);
 }
