@@ -189,7 +189,7 @@ DiagMat makeWeightMatrix(
     auto thresholdedResiduals = threshold(residualsPerConstraint, group.activeCount, minResidual);
     Arrayd weights = distributeWeights(
         thresholdedResiduals,
-        (group.graduated? avgWeight : maxAvgWeight));
+        avgWeight);
 
     if (weights.empty()) {
       return DiagMat();
