@@ -173,7 +173,8 @@ DiagMat makeWeightMatrixSub(int aRows,
 DiagMat makeWeightMatrix(
     int aRows,
     Array<ConstraintGroup> cstGroups,
-  const Eigen::VectorXd &residualVector, double avgWeight, double minResidual) {
+  const Eigen::VectorXd &residualVector, double avgWeight, double maxAvgWeight,
+  double minResidual) {
 
   int groupCount = cstGroups.size();
 
@@ -188,7 +189,7 @@ DiagMat makeWeightMatrix(
     auto thresholdedResiduals = threshold(residualsPerConstraint, group.activeCount, minResidual);
     Arrayd weights = distributeWeights(
         thresholdedResiduals,
-        avgWeight);
+        (group.graduated? avgWeight : maxAvgWeight));
 
     if (weights.empty()) {
       return DiagMat();
@@ -219,7 +220,7 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorX
     SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d with weight %.3g",
         i+1, settings.iters, constraintWeight));
     auto W = makeWeightMatrix(A.rows(), cstGroups, residuals,
-        constraintWeight, settings.minResidual);
+        constraintWeight, settings.finalWeight, settings.minResidual);
     if (W.size() == 0) {
       return X;
     }
