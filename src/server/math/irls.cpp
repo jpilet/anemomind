@@ -182,11 +182,8 @@ void NonNegativeConstraints::apply(double constraintWeight,
     /*auto q = constraintWeight*(MajQuad::majorizeAbs(r, _lb) + MajQuad::linear(-1.0))
         + MajQuad::linear(_reg);*/
     auto absQuad = MajQuad::majorizeAbs(r, _lb);
-    std::cout << EXPR_AND_VAL_AS_STRING(r) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(absQuad.evalDerivative(r)) << std::endl;
     auto q = (absQuad + MajQuad::linear(-1.0))
         + MajQuad::linear(_reg);
-    std::cout << EXPR_AND_VAL_AS_STRING(q.factor()) << std::endl;
     dst->addQuad(i, q);
   }
 }
