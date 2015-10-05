@@ -99,13 +99,17 @@ typedef Eigen::Triplet<double> Triplet;
 TEST(IrlsTest, InequalityConstraint) {
   using namespace irls;
 
-  Array<Triplet> triplets{Triplet(0, 0, 1)};
-  Eigen::VectorXd B(1);
-  Eigen::SparseMatrix<double> A(1, 1);
+  Array<Triplet> triplets{
+    Triplet(0, 0, 1),
+    Triplet(1, 0, 1),
+    };
+  Eigen::VectorXd B(2);
+  Eigen::SparseMatrix<double> A(2, 1);
   A.setFromTriplets(triplets.begin(), triplets.end());
   B(0) = 3;
+  B(1) = 2;
   WeightingStrategies strategies{
-    WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{0}, 1.0)) //,
+    WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{0, 1}, 1.0)) //,
   };
 
   Settings settings;
