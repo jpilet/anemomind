@@ -9,6 +9,7 @@
 #include <server/common/PathBuilder.h>
 #include <server/nautical/NavNmeaScan.h>
 #include <server/plot/extra.h>
+#include <server/nautical/WGS84.h>
 
 
 using namespace sail;
@@ -96,10 +97,60 @@ void runPsarosTest(Array<Nav> navs, Array<Nav> navsToFilter) {
 }
 
 // Check that the filtered signal is reasonbly close to the non-filtered one.
-TEST(GpsFilterTest, PsarosTest) {
+/*TEST(GpsFilterTest, PsarosTest) {
   auto navs = getPsarosTestData();
 
   runPsarosTest(navs, Array<Nav>());
   runPsarosTest(navs, applyOutliers(navs));
+}*/
 
+Velocity<double> calcSpeedFromGpsPositions(const Nav &a, const Nav &b) {
+  Length<double> xyzA[3], xyzB[3];
+  WGS84<double>::toXYZ(a.geographicPosition(), xyzA);
+  WGS84<double>::toXYZ(b.geographicPosition(), xyzB);
+  double dif = 0;
+  for (int i = 0; i < 3; i++) {
+    dif += sqr((xyzA[i] - xyzB[i]).meters());
+  }
+  return Velocity<double>::metersPerSecond(sqrt(dif)/std::abs((a.time() - b.time()).seconds()));
+}
+
+Velocity<double> getMaxSpeedFromGpsPositions(Array<Nav> navs) {
+  Velocity<double> v = Velocity<double>::knots(0.0);
+  for (int i = 0; i < navs.size()-1; i++) {
+    v = std::max(v, calcSpeedFromGpsPositions(navs[i], navs[i+1]));
+  }
+  return v;
+}
+
+Array<Nav> getIreneTestData() {
+  auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
+    .pushDirectory("datasets")
+    .pushDirectory("Irene")
+    .pushDirectory("2013")
+    .pushDirectory("Flensburg2013")
+    .pushDirectory("entrainement 31.7").get();
+  auto navs = scanNmeaFolder(p, Nav::debuggingBoatId());
+  return splitNavsByDuration(navs, Duration<double>::hours(1.0))[1];
+}
+
+TEST(GpsFilterTest, Irene) {
+  auto navs = getIreneTestData();
+  std::cout << EXPR_AND_VAL_AS_STRING(navs.first().time()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(navs.last().time()) << std::endl;
+  GpsFilter::Settings settings;
+  auto results = GpsFilter::filter(navs, settings);
+
+  auto maxSpeed = getMaxSpeedFromGpsPositions(results.filteredNavs());
+  std::cout << EXPR_AND_VAL_AS_STRING(maxSpeed.knots()) << std::endl;
+
+  bool visualize = true;
+  if (visualize) {
+    GnuplotExtra plot;
+    plot.set_style("lines");
+    plot.plot(results.Xmeters);
+    plot.set_style("points");
+    plot.plot(getRawPositions(results, navs));
+    plot.show();
+  }
 }
