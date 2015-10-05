@@ -17,6 +17,13 @@ namespace sail {
 //
 // The constant term is ignored, because it is usually not needed.
 struct MajQuad {
+ MajQuad() : a(NAN), b(NAN) {}
+ MajQuad(double a_, double b_) : a(a_), b(b_) {}
+
+ bool defined() const {
+   return std::isfinite(a);
+ }
+
  double a, b;
 
  bool constant() const {
@@ -29,18 +36,22 @@ struct MajQuad {
 
  // the function (x - observation)^2
  static MajQuad fit(double observation) {
-   return MajQuad{1.0, -2*observation};
+   return MajQuad(1.0, -2*observation);
  }
 
  static MajQuad linear(double slope) {
-   return MajQuad{0.0, slope};
+   return MajQuad(0.0, slope);
+ }
+
+ static MajQuad square() {
+   return MajQuad(1.0, 0.0);
  }
 
  // Majorize a function at x, where the function evaluates to f and its derivative to
  // fPrime. The function is assumed to have minimum value a minX.
  static MajQuad majorize(double x, double f, double fPrime, double minX = 0.0) {
    double alpha = fPrime/(2.0*(x - minX));
-   return MajQuad{alpha, -2.0*alpha*minX};
+   return MajQuad(alpha, -2.0*alpha*minX);
  }
 
  // Represent it as factor()^2, that is on the form (k*x - m)^2
@@ -59,19 +70,19 @@ struct MajQuad {
 };
 
 inline MajQuad operator*(double s, const MajQuad &x) {
-  return MajQuad{s*x.a, s*x.b};
+  return MajQuad(s*x.a, s*x.b);
 }
 
 inline MajQuad operator+(const MajQuad &x, const MajQuad &y) {
-  return MajQuad{x.a + y.a, x.b + y.b};
+  return MajQuad(x.a + y.a, x.b + y.b);
 }
 
 inline MajQuad operator-(const MajQuad &x, const MajQuad &y) {
-  return MajQuad{x.a - y.a, x.b - y.b};
+  return MajQuad(x.a - y.a, x.b - y.b);
 }
 
 inline MajQuad operator-(const MajQuad &x) {
-  return MajQuad{-x.a, -x.b};
+  return MajQuad(-x.a, -x.b);
 }
 
 

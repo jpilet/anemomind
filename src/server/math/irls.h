@@ -20,6 +20,10 @@ namespace irls {
  * Performs Iteratively Reweighted Least Squares. This is the name of the practice
  * of solving least squares problems of type |W*(A*X - B)|^2, where W is a diagonal matrix
  * whose non-zero entries are updated for every iteration.
+ *
+ *
+ * By the way, here is the difference between the verbs 'weigh' and 'weight' explained:
+ * http://forum.wordreference.com/threads/weighing-versus-weighting.88753/
  */
 
 
@@ -36,9 +40,9 @@ struct Settings {
 typedef Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> DiagMat;
 
 // Manages weighting of several overlapping rows
-class Weigher {
+class Weighter {
  public:
-  Weigher(int dim) : _squaredWeights(Arrayd::fill(dim, -1.0)) {}
+  Weighter(int dim) : _squaredWeights(Arrayd::fill(dim, -1.0)) {}
 
   void setSquaredWeight(int index, double squaredWeight) {
     assert(0 <= squaredWeight);
@@ -73,7 +77,7 @@ class Weigher {
 class WeighingStrategy {
  public:
   virtual void apply(double constraintWeight,
-      Arrayd residuals, Weigher *dst) const = 0;
+      Arrayd residuals, Weighter *dst) const = 0;
   virtual ~WeighingStrategy() {}
 
   typedef std::shared_ptr<WeighingStrategy> Ptr;
@@ -89,13 +93,12 @@ class ConstraintGroup : public WeighingStrategy {
     _spans(spans), _activeCount(activeCount), _minResidual(1.0e-9) {}
 
   void apply(double constraintWeight,
-      Arrayd residuals, Weigher *dst) const;
+      Arrayd residuals, Weighter *dst) const;
  private:
   Array<Spani> _spans;
   int _activeCount;
   double _minResidual;
 };
-
 
 Eigen::VectorXd solve(
     const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,

@@ -134,7 +134,7 @@ DiagMat makeWeightMatrixSub(int aRows,
   return W;
 }
 
-DiagMat Weigher::makeWeightMatrix() const {
+DiagMat Weighter::makeWeightMatrix() const {
   int n = _squaredWeights.size();
   DiagMat W(n);
   W.setIdentity();
@@ -145,7 +145,7 @@ DiagMat Weigher::makeWeightMatrix() const {
   return W;
 }
 
-void ConstraintGroup::apply(double constraintWeight, Arrayd residuals, Weigher *dst) const {
+void ConstraintGroup::apply(double constraintWeight, Arrayd residuals, Weighter *dst) const {
   Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(_spans,
     residuals);
 
@@ -195,7 +195,7 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
     double constraintWeight = exp(logWeights(i));
     SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d with weight %.3g",
         i+1, settings.iters, constraintWeight));
-    Weigher weigher(residuals.size());
+    Weighter weigher(residuals.size());
     auto residualArray = toArray(residuals);
     for (auto strategy: strategies) {
       CHECK(bool(strategy));
