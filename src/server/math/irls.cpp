@@ -14,7 +14,7 @@
 #include <server/common/ArrayIO.h>
 
 namespace sail {
-namespace SparsityConstrained {
+namespace irls {
 
 typedef Eigen::Triplet<double> Triplet;
 
@@ -27,20 +27,20 @@ struct Residual {
  }
 };
 
-double calcResidualForSpan(Spani span, const Eigen::VectorXd &residualVector) {
+double calcResidualForSpan(Spani span, const Arrayd &residualVector) {
   if (span.width() == 1) {
-    return std::abs(residualVector(span.minv()));
+    return std::abs(residualVector[span.minv()]);
   } else {
     double sum = 0.0;
     for (auto i: span) {
-      sum += sqr(residualVector(i));
+      sum += sqr(residualVector[i]);
     }
     return (sum <= 0? 0 : sqrt(sum));
   }
 }
 
 Array<Residual> buildResidualsPerConstraint(Array<Spani> allConstraintGroups,
-  const Eigen::VectorXd &residualVector) {
+  const Arrayd &residualVector) {
   int n = allConstraintGroups.size();
   Array<Residual> dst(n);
   for (int i = 0; i < n; i++) {
@@ -54,39 +54,6 @@ Array<Residual> buildResidualsPerConstraint(Array<Spani> allConstraintGroups,
 
 bool allPositive(Arrayd X) {
   return X.all([](double x) {return x > 0;});
-}
-
-// Minimize w.r.t. W: |diag(W)*sqrt(residuals)|^2 subject to average(W) = avgWeight.
-// All residuals must be positive.
-Arrayd distributeWeights2(Arrayd residuals, double avgWeight) {
-  assert(allPositive(residuals));
-  int n = residuals.size();
-  int m = n - 1;
-  BandMat<double> AtA(m, m, 1, 1);
-  MDArray2d AtB(m, 1);
-  for (int i = 0; i < m; i++) {
-    auto a = residuals[i];
-    auto b = residuals[i+1];
-    AtA(i, i) = a + b;
-    AtB(i, 0) = -avgWeight*(a - b);
-  }
-  for (int i = 0; i < m-1; i++) {
-    int next = i+1;
-    auto r = residuals[next];
-    AtA(i, next) = -r;
-    AtA(next, i) = -r;
-  }
-  if (bandMatGaussElimDestructive(&AtA, &AtB)) {
-    auto lambda = AtB.getStorage();
-    Arrayd weights(n);
-    weights.first() = lambda.first() + avgWeight;
-    for (int i = 0; i < m-1; i++) {
-      weights[i+1] = -lambda[i] + lambda[i+1] + avgWeight;
-    }
-    weights.last() = -lambda.last() + avgWeight;
-    return weights;
-  }
-  return Arrayd();
 }
 
 
@@ -144,7 +111,6 @@ int countCoefs(Array<Residual> residuals) {
   return counter;
 }
 
-typedef Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> DiagMat;
 
 DiagMat makeWeightMatrixSub(int aRows,
     Array<Array<Residual> > residualsPerGroup, Array<Arrayd> weightsPerGroup) {
@@ -168,38 +134,40 @@ DiagMat makeWeightMatrixSub(int aRows,
   return W;
 }
 
-
-
-DiagMat makeWeightMatrix(
-    int aRows,
-    Array<ConstraintGroup> cstGroups,
-  const Eigen::VectorXd &residualVector, double avgWeight, double maxAvgWeight,
-  double minResidual) {
-
-  int groupCount = cstGroups.size();
-
-  Array<Array<Residual> > residualsPerGroup(groupCount);
-  Array<Arrayd> weightsPerGroup(groupCount);
-
-  for (int i = 0; i < groupCount; i++) {
-    auto group = cstGroups[i];
-    Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(group.spans,
-      residualVector);
-
-    auto thresholdedResiduals = threshold(residualsPerConstraint, group.activeCount, minResidual);
-    Arrayd weights = distributeWeights(
-        thresholdedResiduals,
-        avgWeight);
-
-    if (weights.empty()) {
-      return DiagMat();
-    }
-    assert(weights.size() == residualsPerConstraint.size());
-    weightsPerGroup[i] = weights;
-    residualsPerGroup[i] = residualsPerConstraint;
+DiagMat Weigher::makeWeightMatrix() const {
+  int n = _squaredWeights.size();
+  DiagMat W(n);
+  W.setIdentity();
+  auto &v = W.diagonal();
+  for (int i = 0; i < n; i++) {
+    v(i) = calcWeight(i);
+    std::cout << " w(" << i << ")^2 = " << _squaredWeights[i] << std::endl;
   }
-  return makeWeightMatrixSub(aRows, residualsPerGroup, weightsPerGroup);
+  std::cout << EXPR_AND_VAL_AS_STRING(v) << std::endl;
+  return W;
 }
+
+void ConstraintGroup::apply(double constraintWeight, Arrayd residuals, Weigher *dst) const {
+  Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(_spans,
+    residuals);
+
+  auto thresholdedResiduals = threshold(residualsPerConstraint, _activeCount, _minResidual);
+  Arrayd weights = distributeWeights(
+      thresholdedResiduals,
+      constraintWeight);
+
+  int n = weights.size();
+  assert(n == _spans.size());
+  assert(n == residualsPerConstraint.size());
+  for (int i = 0; i < n; i++) {
+    double w = weights[i];
+    const Spani &span = residualsPerConstraint[i].span;
+    for (auto j : span) {
+      dst->setWeight(j, w);
+    }
+  }
+}
+
 
 Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &X) {
   Eigen::VectorXd Y = Eigen::VectorXd::Zero(A.rows());
@@ -207,8 +175,14 @@ Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::Vecto
   return Y;
 }
 
-Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
-    Array<ConstraintGroup> cstGroups, Settings settings) {
+Arrayd toArray(Eigen::VectorXd &v) {
+  return Arrayd(v.size(), v.data());
+}
+
+Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
+    const Eigen::VectorXd &B,
+    Array<std::shared_ptr<WeighingStrategy> > strategies,
+    Settings settings) {
   ENTERSCOPE("SparsityConstrained::Solve");
   int rows = A.rows();
   assert(rows == B.rows());
@@ -219,18 +193,18 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorX
   LineKM logWeights(0, settings.iters-1,
       log(settings.initialWeight), log(settings.finalWeight));
 
-  //LineKM weights(0, settings.iters-1, settings.initialWeight, settings.finalWeight);
-
   for (int i = 0; i < settings.iters; i++) {
     double constraintWeight = exp(logWeights(i));
-    //double constraintWeight = weights(i);
     SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d with weight %.3g",
         i+1, settings.iters, constraintWeight));
-    auto W = makeWeightMatrix(A.rows(), cstGroups, residuals,
-        constraintWeight, settings.finalWeight, settings.minResidual);
-    if (W.size() == 0) {
-      return X;
+    Weigher weigher(residuals.size());
+    auto residualArray = toArray(residuals);
+    for (auto strategy: strategies) {
+      CHECK(bool(strategy));
+      strategy->apply(constraintWeight, residualArray, &weigher);
     }
+    auto W = weigher.makeWeightMatrix();
+
     Eigen::SparseMatrix<double> WA = W*A;
     Eigen::VectorXd WB = W*B;
 

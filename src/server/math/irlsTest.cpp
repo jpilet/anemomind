@@ -11,13 +11,13 @@ using namespace sail;
 
 TEST(SparsityConstrained, DistributeWeights) {
   Arrayd R0{1.0, 1.0e-9};
-  Arrayd W0 = SparsityConstrained::distributeWeights(R0, 9.9);
+  Arrayd W0 = irls::distributeWeights(R0, 9.9);
   EXPECT_EQ(W0.size(), 2);
   EXPECT_NEAR(W0[0], 0.0, 1.0e-5);
   EXPECT_NEAR(W0[1], 2.0*9.9, 1.0e-5);
 
   Arrayd R1{1.0, 2.0, 3.0};
-  Arrayd W1 = SparsityConstrained::distributeWeights(R1, 3.4);
+  Arrayd W1 = irls::distributeWeights(R1, 3.4);
   EXPECT_EQ(W1.size(), 3);
   EXPECT_NEAR(W1[0] + W1[1] + W1[2], 3*3.4, 1.0e-5);
 
@@ -66,21 +66,24 @@ TEST(SparsityConstrained, SignalFit) {
   }
   Eigen::SparseMatrix<double> A(rows, 30);
   A.setFromTriplets(triplets.begin(), triplets.end());
-  SparsityConstrained::Settings settings;
+  irls::Settings settings;
   settings.iters = 8;
 
   // Since we have a total of 29 constraints, and we allow
   // for two discontinuities (that will be passive constraints),
   // there remains 27 active constraints.
-  SparsityConstrained::ConstraintGroup group{cst, 27};
-  auto X = SparsityConstrained::solve(A, B,
-      Array<SparsityConstrained::ConstraintGroup>{group}, settings);
+  Array<std::shared_ptr<irls::WeighingStrategy> > strategies{
+    std::shared_ptr<irls::WeighingStrategy>(new irls::ConstraintGroup(cst, 27))
+  };
+
+  auto X = irls::solve(A, B,
+      strategies, settings);
   for (int i = 0; i < 30; i++) {
     EXPECT_NEAR(X(i), gt[i], 0.02);
   }
 
   // This will show the noisy signal and the denoised signal.
-  constexpr bool visualize = false;
+  constexpr bool visualize = true;
   if (visualize) {
     GnuplotExtra plot;
     plot.set_style("lines");

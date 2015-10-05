@@ -11,9 +11,16 @@
 #include <server/common/Array.h>
 #include <server/common/Span.h>
 #include <ceres/ceres.h>
+#include <server/common/math.h>
 
 namespace sail {
-namespace SparsityConstrained {
+namespace irls {
+
+/*
+ * Performs Iteratively Reweighted Least Squares. This is the name of the practice
+ * of solving least squares problems of type |W*(A*X - B)|^2, where W is a diagonal matrix
+ * whose non-zero entries are updated for every iteration.
+ */
 
 
 // Minimize w.r.t. W: |diag(W)*sqrt(residuals)|^2 subject to average(W) = avgWeight.
@@ -24,35 +31,75 @@ struct Settings {
  int iters = 30;
  double initialWeight = 0.1;
  double finalWeight = 10000;
- double minResidual = 1.0e-9;
 };
 
-struct ConstraintGroup {
- Array<Spani> spans; // = Array<Spani>();
- int activeCount; // = 0;
+typedef Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> DiagMat;
+
+// Manages weighting of several overlapping rows
+class Weigher {
+ public:
+  Weigher(int dim) : _squaredWeights(Arrayd::fill(dim, -1.0)) {}
+
+  void setSquaredWeight(int index, double squaredWeight) {
+    assert(0 <= squaredWeight);
+    if (isWeighted(index)) {
+      _squaredWeights[index] += squaredWeight;
+    } else { // Initialization:
+      _squaredWeights[index] = squaredWeight;
+    }
+  }
+
+  void setWeight(int index, double weight) {
+    setSquaredWeight(index, sqr(weight));
+  }
+
+  double calcWeight(int index) const {
+    auto w = _squaredWeights[index];
+    // Any weight that is never set is assumed to not
+    // be reweighted, and gets the weight 1.0.
+    // Otherwise, take the square root of the squared weight sum.
+    return (w < -0.5? 1.0 : sqrt(w));
+  }
+
+  DiagMat makeWeightMatrix() const;
+ private:
+  bool isWeighted(int index) const {
+    return _squaredWeights[index] >= 0;
+  }
+  Arrayd _squaredWeights;
 };
 
-/*
- * Solves a least squares problem with sparsity constraints.
- *
- * The matrix A has as many rows as the dimension of vector B.
- * So every row of A has a corresponding element in B.
- *
- * Every constraint group is a set of row spans of A and B among which activeCount
- * of them should be enforced as equality constraints. The remaining ones, that are passive,
- * neither constrain anything or affect the objective function. The set of contraints that
- * are active is optimized.
- *
- * Let A. and B. be the matrices formed by rows from A and B that are not part of
- * any constraint. This algorithm will minimize |A. X - B.|^2 subject to choosing
- * activeCount constraints from every constraint group.
- *
- * Applications: Sparsity constrained regularization, outlier detection, etc.
- *
- * To see an example, look at SparsityConstrainedTest.cpp and set the visualize flag to true.
- */
-Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
-  Array<ConstraintGroup> cstGroups, Settings settings);
+class WeighingStrategy {
+ public:
+  virtual void apply(double constraintWeight,
+      Arrayd residuals, Weigher *dst) const = 0;
+  virtual ~WeighingStrategy() {}
+
+  typedef std::shared_ptr<WeighingStrategy> Ptr;
+};
+
+typedef Array<WeighingStrategy::Ptr> WeighingStrategies;
+
+// Apply weights so that a subset of the rows in are treated as
+// hard equality constraints
+class ConstraintGroup : public WeighingStrategy {
+ public:
+  ConstraintGroup(Array<Spani> spans, int activeCount) :
+    _spans(spans), _activeCount(activeCount), _minResidual(1.0e-9) {}
+
+  void apply(double constraintWeight,
+      Arrayd residuals, Weigher *dst) const;
+ private:
+  Array<Spani> _spans;
+  int _activeCount;
+  double _minResidual;
+};
+
+
+Eigen::VectorXd solve(
+    const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
+    WeighingStrategies strategies,
+    Settings settings);
 
 
 }

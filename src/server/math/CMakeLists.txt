@@ -285,6 +285,7 @@ cxx_test(math_irlsTest
          irlsTest.cpp
          math_irls
          gtest_main
+         plot_gnuplot
         )
 
 add_subdirectory(geometry)

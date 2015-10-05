@@ -97,12 +97,12 @@ void runPsarosTest(Array<Nav> navs, Array<Nav> navsToFilter) {
 }
 
 // Check that the filtered signal is reasonbly close to the non-filtered one.
-/*TEST(GpsFilterTest, PsarosTest) {
+TEST(GpsFilterTest, PsarosTest) {
   auto navs = getPsarosTestData();
 
   runPsarosTest(navs, Array<Nav>());
   runPsarosTest(navs, applyOutliers(navs));
-}*/
+}
 
 Velocity<double> calcSpeedFromGpsPositions(const Nav &a, const Nav &b) {
   Length<double> xyzA[3], xyzB[3];
@@ -134,7 +134,7 @@ Array<Nav> getIreneTestData() {
   return splitNavsByDuration(navs, Duration<double>::hours(1.0))[1];
 }
 
-TEST(GpsFilterTest, Irene) {
+/*TEST(GpsFilterTest, Irene) {
   auto navs = getIreneTestData();
   std::cout << EXPR_AND_VAL_AS_STRING(navs.first().time()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(navs.last().time()) << std::endl;
@@ -153,4 +153,4 @@ TEST(GpsFilterTest, Irene) {
     plot.plot(getRawPositions(results, navs));
     plot.show();
   }
-}
+}*/

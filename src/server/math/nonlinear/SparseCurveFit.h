@@ -68,7 +68,7 @@ Array<Spani> makeDataFitness(int firstRowOffset, int firstColOffset,
 
 struct Settings {
   // These are the settings of the underlying algorithm used to solve the problem.
-  SparsityConstrained::Settings spcstSettings;
+  irls::Settings spcstSettings;
 
   // Select this fraction of all observations to use as inliers, ignore the others.
   // An alternative to this would have been to have some inlier threshold, sigma, so that
@@ -142,16 +142,16 @@ Results fit(int sampleCount, int discontinuityCount,
   CHECK(0 <= discontinuityCount);
   int activeRegCount = regCount - discontinuityCount;
 
-  Array<SparsityConstrained::ConstraintGroup> groups{
-    SparsityConstrained::ConstraintGroup{slackSpans, inlierCount},
-    SparsityConstrained::ConstraintGroup{regSpans, activeRegCount}
+  irls::WeighingStrategies strategies{
+    irls::WeighingStrategy::Ptr(new irls::ConstraintGroup(slackSpans, inlierCount)),
+    irls::WeighingStrategy::Ptr(new irls::ConstraintGroup(regSpans, activeRegCount))
   };
 
   int colCount = Dim*sampleCount + Dim*observations.size();
   Eigen::SparseMatrix<double> lhs(rowCount, colCount);
   lhs.setFromTriplets(elements.begin(), elements.end());
   Eigen::VectorXd solution =
-      SparsityConstrained::solve(lhs, rhs, groups, settings.spcstSettings);
+      irls::solve(lhs, rhs, strategies, settings.spcstSettings);
   CHECK(solution.size() == colCount);
   return assembleResults(Dim, sampleCount, inlierCount, solution);
 }
