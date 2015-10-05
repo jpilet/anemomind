@@ -105,7 +105,7 @@ TEST(IrlsTest, InequalityConstraint) {
   A.setFromTriplets(triplets.begin(), triplets.end());
   B(0) = 3;
   WeightingStrategies strategies{
-    WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{0}, 0.0001)) //,
+    WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{0}, 1.0)) //,
     //WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{1}, 0.0001))
   };
 
