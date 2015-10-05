@@ -181,7 +181,8 @@ void NonNegativeConstraints::apply(double constraintWeight,
     double r = residuals[i];
     /*auto q = constraintWeight*(MajQuad::majorizeAbs(r, _lb) + MajQuad::linear(-1.0))
         + MajQuad::linear(_reg);*/
-    auto q = MajQuad::majorizeAbs(r, _lb) + MajQuad::linear(-0.999999);
+    auto q = constraintWeight*(MajQuad::majorizeAbs(r, _lb) + MajQuad::linear(1.0))
+        + MajQuad::linear(_reg);
     dst->addQuad(i, q);
   }
 }
@@ -224,7 +225,9 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
     auto wk = weigher.makeWeightAndOffset();
 
     Eigen::SparseMatrix<double> WA = wk.weights*A;
-    Eigen::VectorXd WB = wk.weights*B;
+    Eigen::VectorXd WB = wk.weights*B - wk.offset;
+
+    std::cout << EXPR_AND_VAL_AS_STRING(wk.offset) << std::endl;
 
     X = Decomp(WA.transpose()*WA).solve(WA.transpose()*WB);
 
