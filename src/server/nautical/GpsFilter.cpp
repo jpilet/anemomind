@@ -15,11 +15,11 @@ namespace GpsFilter {
 
 Settings::Settings() :
     samplingPeriod(Duration<double>::seconds(1.0)),
-    discontinuityPeriod(Duration<double>::seconds(6.0)),
+    discontinuityPeriod(Duration<double>::seconds(3.0)),
     motionWeight(1.0) {
     fitSettings.inlierRate = 0.8;
     fitSettings.regOrder = 3;
-    fitSettings.spcstSettings.iters = 300;
+    fitSettings.spcstSettings.iters = 30;
     fitSettings.spcstSettings.initialWeight = 0.1;
 }
 
