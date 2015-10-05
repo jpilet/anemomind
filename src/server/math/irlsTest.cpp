@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/math/SparsityConstrained.h>
+#include <server/math/irls.h>
 #include <gtest/gtest.h>
 #include <server/plot/extra.h>
 

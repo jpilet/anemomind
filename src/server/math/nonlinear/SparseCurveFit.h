@@ -6,7 +6,7 @@
 #ifndef SERVER_MATH_NONLINEAR_SPARSECURVEFIT_H_
 #define SERVER_MATH_NONLINEAR_SPARSECURVEFIT_H_
 
-#include <server/math/SparsityConstrained.h>
+#include <server/math/irls.h>
 #include <server/common/logging.h>
 #include <server/math/nonlinear/SignalUtils.h>
 #include <server/common/MDArray.h>

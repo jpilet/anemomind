@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/math/SparsityConstrained.h>
+#include <server/math/irls.h>
 #include <cmath>
 #include <server/common/math.h>
 #include <server/math/BandMat.h>

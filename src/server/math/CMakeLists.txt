@@ -270,20 +270,20 @@ cxx_test(math_SignalCovarianceTest
          common_ScopedLog
         )
 
-add_library(math_SparsityConstrained
-            SparsityConstrained.cpp
-            SparsityConstrained.h
+add_library(math_irls
+            irls.cpp
+            irls.h
            )
            
-target_link_libraries(math_SparsityConstrained
+target_link_libraries(math_irls
                       common_ScopedLog
                       common_string
                       common_Span
                      )           
 
-cxx_test(math_SparsityConstrainedTest
-         SparsityConstrainedTest.cpp
-         math_SparsityConstrained
+cxx_test(math_irlsTest
+         irlsTest.cpp
+         math_irls
          gtest_main
         )
 

@@ -218,7 +218,7 @@ add_library(math_nonlinear_SparseCurveFit
            )
            
 target_link_libraries(math_nonlinear_SparseCurveFit
-                      math_SparsityConstrained
+                      math_irls
                       common_math
                       common_ScopedLog
                       common_logging
