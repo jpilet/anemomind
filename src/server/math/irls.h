@@ -69,6 +69,7 @@ class Weigher {
   Arrayd _squaredWeights;
 };
 
+// This is a strategy used to compute the weights of the rows.
 class WeighingStrategy {
  public:
   virtual void apply(double constraintWeight,
