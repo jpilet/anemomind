@@ -227,12 +227,6 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
 
     Eigen::SparseMatrix<double> WA = wk.weights*A;
     Eigen::VectorXd WB = wk.weights*B - wk.offset;
-
-
-    std::cout << EXPR_AND_VAL_AS_STRING(wk.offset) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(WA.toDense()) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(WB) << std::endl;
-
     X = Decomp(WA.transpose()*WA).solve(WA.transpose()*WB);
 
     residuals = product(A, X) - B;
