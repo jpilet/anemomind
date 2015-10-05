@@ -19,7 +19,8 @@ Settings::Settings() :
     motionWeight(1.0) {
     fitSettings.inlierRate = 0.8;
     fitSettings.regOrder = 3;
-    fitSettings.spcstSettings.iters = 30;
+    fitSettings.spcstSettings.iters = 300;
+    fitSettings.spcstSettings.initialWeight = 1000;
 }
 
 Duration<double> getLocalTime(TimeStamp timeRef, const Nav &nav) {
