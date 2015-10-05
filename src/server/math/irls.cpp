@@ -135,7 +135,7 @@ DiagMat makeWeightMatrixSub(int aRows,
 }
 
 DiagMat Weighter::makeWeightMatrix() const {
-  int n = _squaredWeights.size();
+  int n = _quads.size();
   DiagMat W(n);
   W.setIdentity();
   auto &v = W.diagonal();

@@ -12,6 +12,7 @@
 #include <server/common/Span.h>
 #include <ceres/ceres.h>
 #include <server/common/math.h>
+#include <server/math/Majorize.h>
 
 namespace sail {
 namespace irls {
@@ -42,35 +43,37 @@ typedef Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> DiagMat;
 // Manages weighting of several overlapping rows
 class Weighter {
  public:
-  Weighter(int dim) : _squaredWeights(Arrayd::fill(dim, -1.0)) {}
+  Weighter(int dim) : _quads(dim) {}
 
-  void setSquaredWeight(int index, double squaredWeight) {
-    assert(0 <= squaredWeight);
-    if (isWeighted(index)) {
-      _squaredWeights[index] += squaredWeight;
-    } else { // Initialization:
-      _squaredWeights[index] = squaredWeight;
+  void addQuad(int index, const MajQuad &q) {
+    MajQuad &dst = _quads[index];
+    if (dst.defined()) {
+      dst = dst + q;
+    } else {
+      dst = q;
     }
   }
 
   void setWeight(int index, double weight) {
-    setSquaredWeight(index, sqr(weight));
+    addQuad(index, MajQuad(sqr(weight), 0.0));
   }
 
   double calcWeight(int index) const {
-    auto w = _squaredWeights[index];
-    // Any weight that is never set is assumed to not
-    // be reweighted, and gets the weight 1.0.
-    // Otherwise, take the square root of the squared weight sum.
-    return (w < -0.5? 1.0 : sqrt(w));
+    auto w = _quads[index];
+    if (w.defined()) {
+      auto f = w.factor();
+      assert(std::abs(f.getM()) < 1.0e-6);
+      return f.getK();
+    }
+    return 1.0;
   }
 
   DiagMat makeWeightMatrix() const;
  private:
-  bool isWeighted(int index) const {
-    return _squaredWeights[index] >= -0.5;
+  bool isWqeighted(int index) const {
+    return _quads[index].defined();
   }
-  Arrayd _squaredWeights;
+  Array<MajQuad> _quads;
 };
 
 // This is a strategy used to compute the weights of the rows.
