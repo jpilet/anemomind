@@ -309,9 +309,9 @@ struct MatrixElement {
 };
 typedef MatrixElement<double> MatrixElementd;
 
-inline double absSaturate(double x, double lb) {
+inline double thresholdCloseTo0(double x, double lb) {
   if (x < 0) {
-    return -absSaturate(-x, lb);
+    return -thresholdCloseTo0(-x, lb);
   } else if (x < lb) {
     return lb;
   }

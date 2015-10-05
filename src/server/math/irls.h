@@ -40,10 +40,10 @@ struct Settings {
 
 typedef Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> DiagMat;
 
-// Manages weighting of several overlapping rows
-class Weighter {
+// Computes the right weights and right-hand-sides
+class QuadCompiler {
  public:
-  Weighter(int dim) : _quads(dim) {}
+  QuadCompiler(int dim) : _quads(dim) {}
 
   void addQuad(int index, const MajQuad &q) {
     MajQuad &dst = _quads[index];
@@ -68,35 +68,37 @@ class Weighter {
     return 1.0;
   }
 
-  DiagMat makeWeightMatrix() const;
+  struct WeightsAndOffset {
+    DiagMat weights;
+    Eigen::VectorXd offset;
+  };
+
+  WeightsAndOffset makeWeightAndOffset() const;
  private:
-  bool isWqeighted(int index) const {
-    return _quads[index].defined();
-  }
   Array<MajQuad> _quads;
 };
 
 // This is a strategy used to compute the weights of the rows.
-class WeighingStrategy {
+class WeightingStrategy {
  public:
   virtual void apply(double constraintWeight,
-      Arrayd residuals, Weighter *dst) const = 0;
-  virtual ~WeighingStrategy() {}
+      Arrayd residuals, QuadCompiler *dst) const = 0;
+  virtual ~WeightingStrategy() {}
 
-  typedef std::shared_ptr<WeighingStrategy> Ptr;
+  typedef std::shared_ptr<WeightingStrategy> Ptr;
 };
 
-typedef Array<WeighingStrategy::Ptr> WeighingStrategies;
+typedef Array<WeightingStrategy::Ptr> WeightingStrategies;
 
 // Apply weights so that a subset of the rows in are treated as
 // hard equality constraints
-class ConstraintGroup : public WeighingStrategy {
+class ConstraintGroup : public WeightingStrategy {
  public:
   ConstraintGroup(Array<Spani> spans, int activeCount) :
     _spans(spans), _activeCount(activeCount), _minResidual(1.0e-9) {}
 
   void apply(double constraintWeight,
-      Arrayd residuals, Weighter *dst) const;
+      Arrayd residuals, QuadCompiler *dst) const;
  private:
   Array<Spani> _spans;
   int _activeCount;
@@ -105,7 +107,7 @@ class ConstraintGroup : public WeighingStrategy {
 
 Eigen::VectorXd solve(
     const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
-    WeighingStrategies strategies,
+    WeightingStrategies strategies,
     Settings settings);
 
 

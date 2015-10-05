@@ -54,6 +54,13 @@ struct MajQuad {
    return MajQuad(alpha, -2.0*alpha*minX);
  }
 
+ static MajQuad majorizeAbs(double x, double lb) {
+   double xp = thresholdCloseTo0(x, lb);
+   double f = std::abs(xp);
+   double fPrime = (xp < 0? -1 : 1);
+   return majorize(xp, f, fPrime, 0.0);
+ }
+
  // Represent it as factor()^2, that is on the form (k*x - m)^2
  LineKM factor() const {
    if (a == 0) {

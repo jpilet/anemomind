@@ -72,8 +72,8 @@ TEST(SparsityConstrained, SignalFit) {
   // Since we have a total of 29 constraints, and we allow
   // for two discontinuities (that will be passive constraints),
   // there remains 27 active constraints.
-  Array<std::shared_ptr<irls::WeighingStrategy> > strategies{
-    std::shared_ptr<irls::WeighingStrategy>(new irls::ConstraintGroup(cst, 27))
+  Array<std::shared_ptr<irls::WeightingStrategy> > strategies{
+    std::shared_ptr<irls::WeightingStrategy>(new irls::ConstraintGroup(cst, 27))
   };
 
   auto X = irls::solve(A, B,

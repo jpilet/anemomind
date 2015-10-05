@@ -142,9 +142,9 @@ Results fit(int sampleCount, int discontinuityCount,
   CHECK(0 <= discontinuityCount);
   int activeRegCount = regCount - discontinuityCount;
 
-  irls::WeighingStrategies strategies{
-    irls::WeighingStrategy::Ptr(new irls::ConstraintGroup(slackSpans, inlierCount)),
-    irls::WeighingStrategy::Ptr(new irls::ConstraintGroup(regSpans, activeRegCount))
+  irls::WeightingStrategies strategies{
+    irls::WeightingStrategy::Ptr(new irls::ConstraintGroup(slackSpans, inlierCount)),
+    irls::WeightingStrategy::Ptr(new irls::ConstraintGroup(regSpans, activeRegCount))
   };
 
   int colCount = Dim*sampleCount + Dim*observations.size();

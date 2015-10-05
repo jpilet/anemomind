@@ -134,18 +134,27 @@ DiagMat makeWeightMatrixSub(int aRows,
   return W;
 }
 
-DiagMat Weighter::makeWeightMatrix() const {
+QuadCompiler::WeightsAndOffset QuadCompiler::makeWeightAndOffset() const {
   int n = _quads.size();
   DiagMat W(n);
+  Eigen::VectorXd offsets(n);
   W.setIdentity();
   auto &v = W.diagonal();
   for (int i = 0; i < n; i++) {
-    v(i) = calcWeight(i);
+    const MajQuad &q = _quads[i];
+    if (q.defined()) {
+      auto line = q.factor();
+      v(i) = line.getK();
+      offsets(i) = line.getM();
+    } else {
+      v(i) = 1.0;
+      offsets(i) = 0.0;
+    }
   }
-  return W;
+  return WeightsAndOffset{W, offsets};
 }
 
-void ConstraintGroup::apply(double constraintWeight, Arrayd residuals, Weighter *dst) const {
+void ConstraintGroup::apply(double constraintWeight, Arrayd residuals, QuadCompiler *dst) const {
   Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(_spans,
     residuals);
 
@@ -179,7 +188,7 @@ Arrayd toArray(Eigen::VectorXd &v) {
 
 Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
     const Eigen::VectorXd &B,
-    Array<std::shared_ptr<WeighingStrategy> > strategies,
+    Array<std::shared_ptr<WeightingStrategy> > strategies,
     Settings settings) {
   ENTERSCOPE("SparsityConstrained::Solve");
   int rows = A.rows();
@@ -195,16 +204,16 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
     double constraintWeight = exp(logWeights(i));
     SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d with weight %.3g",
         i+1, settings.iters, constraintWeight));
-    Weighter weigher(residuals.size());
+    QuadCompiler weigher(residuals.size());
     auto residualArray = toArray(residuals);
     for (auto strategy: strategies) {
       CHECK(bool(strategy));
       strategy->apply(constraintWeight, residualArray, &weigher);
     }
-    auto W = weigher.makeWeightMatrix();
+    auto wk = weigher.makeWeightAndOffset();
 
-    Eigen::SparseMatrix<double> WA = W*A;
-    Eigen::VectorXd WB = W*B;
+    Eigen::SparseMatrix<double> WA = wk.weights*A;
+    Eigen::VectorXd WB = wk.weights*B - wk.offset;
 
     X = Decomp(WA.transpose()*WA).solve(WA.transpose()*WB);
 
