@@ -78,7 +78,8 @@ class QuadCompiler {
   Array<MajQuad> _quads;
 };
 
-// This is a strategy used to compute the weights of the rows.
+// A WeightingStrategy defines how the least-squares problem should be tweaked in
+// each iteration to solve the problem at hand.
 class WeightingStrategy {
  public:
   virtual void apply(double constraintWeight,
@@ -90,8 +91,9 @@ class WeightingStrategy {
 
 typedef Array<WeightingStrategy::Ptr> WeightingStrategies;
 
-// Apply weights so that a subset of the rows in are treated as
-// hard equality constraints
+// A subset of the rows will be treated as hard constraints.
+// Each span is a span of rows that should simultaneously be either enforced or not.
+// activeCount determines how many spans should be enforced.
 class ConstraintGroup : public WeightingStrategy {
  public:
   ConstraintGroup(Array<Spani> spans, int activeCount) :
@@ -105,6 +107,10 @@ class ConstraintGroup : public WeightingStrategy {
   double _minResidual;
 };
 
+// Linear inequality constraints
+// 'inds' list the rows i, so that f_i(X) = A(i, :)*X - B(i, :) >= 0.
+// 'reg' adds an extra linear cost reg*f_i(X). It is mathematically convenient
+// to couple such a cost with the inequality constraint.
 class NonNegativeConstraints : public WeightingStrategy {
  public:
   NonNegativeConstraints(Arrayi inds, double reg) : _inds(inds), _reg(reg), _lb(1.0e-9) {}
@@ -115,6 +121,12 @@ class NonNegativeConstraints : public WeightingStrategy {
   Arrayi _inds;
   double _lb;
 };
+
+// BoundedNormConstraints
+// Constraint so that the norm of a vectors don't exceed certain values.
+
+// ConstantNormConstraints
+// suitable for inextensibility constraints in deformable surface reconstruction.
 
 Eigen::VectorXd solve(
     const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,

@@ -29,7 +29,7 @@ TEST(IrlsTest, DistributeWeights) {
 typedef Eigen::Triplet<double> Triplet;
 
 
-/*TEST(IrlsTest, SignalFit) {
+TEST(IrlsTest, SignalFit) {
   // Fit a line to a signal subject to sparsity constraints.
   // We allow for exactly two discontinuities in the fitted signal.
 
@@ -93,9 +93,10 @@ typedef Eigen::Triplet<double> Triplet;
     plot.plot_xy(time, Arrayd(X.size(), X.data()));
     plot.show();
   }
-}*/
+}
 
 
+// Minimize X + X subject to X >= 3 and X >= 2
 TEST(IrlsTest, InequalityConstraint) {
   using namespace irls;
 
