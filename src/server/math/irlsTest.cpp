@@ -9,7 +9,7 @@
 
 using namespace sail;
 
-TEST(SparsityConstrained, DistributeWeights) {
+TEST(IrlsTest, DistributeWeights) {
   Arrayd R0{1.0, 1.0e-9};
   Arrayd W0 = irls::distributeWeights(R0, 9.9);
   EXPECT_EQ(W0.size(), 2);
@@ -26,7 +26,10 @@ TEST(SparsityConstrained, DistributeWeights) {
   EXPECT_LT(W1[1], W1[0] + smallGap);
 }
 
-TEST(SparsityConstrained, SignalFit) {
+typedef Eigen::Triplet<double> Triplet;
+
+
+TEST(IrlsTest, SignalFit) {
   // Fit a line to a signal subject to sparsity constraints.
   // We allow for exactly two discontinuities in the fitted signal.
 
@@ -50,7 +53,6 @@ TEST(SparsityConstrained, SignalFit) {
   // two nonzero regularity equations.
   int rows = 30 + 29;
   Eigen::VectorXd B = Eigen::VectorXd::Zero(rows);
-  typedef Eigen::Triplet<double> Triplet;
   std::vector<Triplet> triplets;
   triplets.reserve(30 + 2*29);
   for (int i = 0; i < 30; i++) {
@@ -91,4 +93,25 @@ TEST(SparsityConstrained, SignalFit) {
     plot.plot_xy(time, Arrayd(X.size(), X.data()));
     plot.show();
   }
+}
+
+
+TEST(IrlsTest, InequalityConstraint) {
+  using namespace irls;
+
+  Array<Triplet> triplets{Triplet(0, 0, 1), Triplet(1, 0, 1)};
+  Eigen::VectorXd B(2);
+  Eigen::SparseMatrix<double> A(2, 1);
+  A.setFromTriplets(triplets.begin(), triplets.end());
+  B(0) = 3;
+  B(1) = 3;
+  WeightingStrategies strategies{
+    WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{0}, 0.0001)),
+    WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{1}, 0.0001))
+  };
+
+  Settings settings;
+  settings.iters = 300;
+  auto results = solve(A, B, strategies, settings);
+  EXPECT_NEAR(results(0), 4.0, 1.0-2);
 }
