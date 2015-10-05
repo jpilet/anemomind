@@ -20,7 +20,7 @@ Settings::Settings() :
     fitSettings.inlierRate = 0.8;
     fitSettings.regOrder = 3;
     fitSettings.spcstSettings.iters = 300;
-    fitSettings.spcstSettings.initialWeight = 1000;
+    fitSettings.spcstSettings.initialWeight = 0.1;
 }
 
 Duration<double> getLocalTime(TimeStamp timeRef, const Nav &nav) {

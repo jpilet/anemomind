@@ -219,11 +219,11 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A, const Eigen::VectorX
   LineKM logWeights(0, settings.iters-1,
       log(settings.initialWeight), log(settings.finalWeight));
 
-  LineKM weights(0, settings.iters-1, settings.initialWeight, settings.finalWeight);
+  //LineKM weights(0, settings.iters-1, settings.initialWeight, settings.finalWeight);
 
   for (int i = 0; i < settings.iters; i++) {
-    //double constraintWeight = exp(logWeights(i));
-    double constraintWeight = weights(i);
+    double constraintWeight = exp(logWeights(i));
+    //double constraintWeight = weights(i);
     SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d with weight %.3g",
         i+1, settings.iters, constraintWeight));
     auto W = makeWeightMatrix(A.rows(), cstGroups, residuals,
