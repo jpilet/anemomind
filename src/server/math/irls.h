@@ -89,6 +89,8 @@ class QuadCompiler {
 // each iteration to solve the problem at hand.
 class WeightingStrategy {
  public:
+  static constexpr double LB = 1.0e-9;
+
   virtual void apply(double constraintWeight,
       const Arrayd &residuals, QuadCompiler *dst) const = 0;
   virtual ~WeightingStrategy() {}
@@ -139,29 +141,33 @@ class ConstraintGroup : public WeightingStrategy {
 // convient to couple such a cost with the inequality constraint.
 class InequalityConstraint : public WeightingStrategy {
  public:
-  InequalityConstraint() : _index(-1), _reg(NAN), _lb(NAN) {}
-  InequalityConstraint(int index, double reg) : _index(index), _reg(reg), _lb(1.0e-9) {}
+  InequalityConstraint() : _index(-1), _reg(NAN) {}
+  InequalityConstraint(int index, double reg) : _index(index), _reg(reg) {}
 
   void apply(double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) const;
 
+  // Make multiple constraints with the same regularization
   static WeightingStrategy::Ptr make(Arrayi inds, double reg);
  private:
   double _reg;
   int _index;
-  double _lb;
 };
 
 
-// BoundedNormConstraints
-// Constraint so that the norm of a vectors don't exceed certain values.
-/*class BoundedNormConstraint : public WeightingStrategy {
+// Constraints on the form |A*X - B| <= bound
+class BoundedNormConstraint : public WeightingStrategy {
  public:
+  BoundedNormConstraint() : _bound(NAN) {}
+  BoundedNormConstraint(Spani span, double bound) : _span(span), _bound(bound) {}
 
-  BoundedNormConstraints(Array<Spani> spans, double bound);
-  void apply(double constraintWeight, Arrayd residuals, QuadCompiler *dst) const;
+  void apply(double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) const;
+
+  // Make multiple constraints with the same bound
+  static WeightingStrategy::Ptr make(Array<Spani> spans, double bound);
  private:
-  Array<BoundedNorm> _bnorms;
-};*/
+  Spani _span;
+  double _bound;
+};
 
 // ConstantNormConstraints
 // suitable for inextensibility constraints in deformable surface reconstruction.

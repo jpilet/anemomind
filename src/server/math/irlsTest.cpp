@@ -119,3 +119,34 @@ TEST(IrlsTest, InequalityConstraint) {
   double x = results(0);
   EXPECT_NEAR(x, 3.0, 1.0e-8);
 }
+
+// Minimize X - k subject to |X| < 1
+TEST(IrlsTest, BoundedNormConstraint) {
+  using namespace irls;
+  Array<Triplet> triplets{
+    Triplet(0, 0, 1.0),
+    Triplet(1, 0, 1.0)
+  };
+  Eigen::SparseMatrix<double> A(2, 1);
+  A.setFromTriplets(triplets.begin(), triplets.end());
+
+  double K[3] = {3.0, 0.7, -2.0};
+  double Xgt[3] = {1.0, 0.7, -1.0};
+
+  WeightingStrategies strategies{
+    BoundedNormConstraint::make(Array<Spani>{Spani(1, 2)}, 1.0)
+  };
+
+  for (int i = 0; i < 3; i++) {
+    Eigen::VectorXd B(2);
+    B(0) = K[i];
+    B(1) = 0.0;
+    Settings settings;
+    settings.iters = 200;
+
+    auto results = solve(A, B, strategies, settings);
+    double x = results(0);
+    EXPECT_NEAR(x, Xgt[i], 1.0e-4);
+  }
+
+}

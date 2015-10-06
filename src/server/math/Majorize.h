@@ -47,6 +47,11 @@ struct MajQuad {
    return MajQuad(1.0, 0.0);
  }
 
+ double optimimum() const {
+   // 2*a*x + b = 0 <=> x = -b/(2*a)
+   return -b/(2.0*a);
+ }
+
  // Majorize a function at x, where the function evaluates to f and its derivative to
  // fPrime. The function is assumed to have minimum value a minX.
  static MajQuad majorize(double x, double f, double fPrime, double minX = 0.0) {

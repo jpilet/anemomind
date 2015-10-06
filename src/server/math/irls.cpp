@@ -179,7 +179,7 @@ void InequalityConstraint::apply(double constraintWeight,
   const Arrayd &residuals, QuadCompiler *dst) const {
   assert(_index != -1);
   double r = residuals[_index];
-  auto absQuad = MajQuad::majorizeAbs(r, _lb);
+  auto absQuad = MajQuad::majorizeAbs(r, LB);
   auto q = constraintWeight*(absQuad + MajQuad::linear(-1.0))
       + MajQuad::linear(_reg);
   auto line = q.factor();
@@ -194,6 +194,32 @@ WeightingStrategy::Ptr InequalityConstraint::make(Arrayi inds, double reg) {
   })));
 }
 
+void BoundedNormConstraint::apply(double constraintWeight,
+    const Arrayd &residuals, QuadCompiler *dst) const {
+  double squaredNorm = 0.0;
+  for (auto i : _span) {
+    squaredNorm += sqr(residuals[i]);
+  }
+  double norm = (squaredNorm < 0? 0 : sqrt(squaredNorm));
+  auto shifted = norm - _bound;
+  auto qShifted = MajQuad::majorizeAbs(shifted, LB) + MajQuad::linear(1.0);
+  auto opt_ = qShifted.optimimum();
+  assert(opt_ <= 0);
+  double optimum = _bound + opt_;
+  double f = optimum/norm;
+  for (auto i : _span) {
+    dst->addQuad(i, constraintWeight*MajQuad::fit(f*residuals[i]));
+  }
+}
+
+// Make multiple constraints with the same bound
+WeightingStrategy::Ptr BoundedNormConstraint::make(Array<Spani> spans, double bound) {
+  return WeightingStrategy::Ptr(
+      new WeightingStrategyArray<BoundedNormConstraint>(
+          spans.map<BoundedNormConstraint>([&](Spani span) {
+            return BoundedNormConstraint(span, bound);
+          })));
+}
 
 
 
