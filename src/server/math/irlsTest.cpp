@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include <server/plot/extra.h>
 #include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 
 typedef Eigen::Triplet<double> Triplet;
 
@@ -224,7 +225,7 @@ TEST(IrlsTest, BoundConstrainedCurveFit) {
     int row = n + i;
     int offset = 2*i;
     difs[offset + 0] = Triplet(row, i, 1.0);
-    difs[offset + 1] = Triplet(row, i, -1.0);
+    difs[offset + 1] = Triplet(row, i+1, -1.0);
     B(row) = 0.0;
     boundedRowSpans[i] = Spani(row, row + 1);
     std::cout << EXPR_AND_VAL_AS_STRING(row) << std::endl;
@@ -241,16 +242,22 @@ TEST(IrlsTest, BoundConstrainedCurveFit) {
   Settings settings;
   settings.iters = 200;
 
-  auto results = solve(A, B, strategies, settings);
 
 
 
+  std::cout << EXPR_AND_VAL_AS_STRING(triplets.end() - triplets.begin()) << std::endl;
+
+  MDArray2d Atemp(rows, cols);
+  Atemp.setAll(0.0);
   for (auto triplet: triplets) {
     std::cout << "Triplet (" << triplet.row() << ", " << triplet.col() << ", "
         << triplet.value() << ")" << std::endl;
+    Atemp(triplet.row(), triplet.col()) = triplet.value();
   }
+  std::cout << EXPR_AND_VAL_AS_STRING(Atemp) << std::endl;
   std::cout << "A = \n" << A.toDense() << std::endl;
   std::cout << "B = \n" << B << std::endl;
 
+  auto results = solve(A, B, strategies, settings);
   std::cout << "Curve: " << results << std::endl;
 }
