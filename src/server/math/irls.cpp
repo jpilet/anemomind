@@ -134,7 +134,7 @@ DiagMat makeWeightMatrixSub(int aRows,
   return W;
 }
 
-QuadCompiler::WeightsAndOffset QuadCompiler::makeWeightAndOffset() const {
+QuadCompiler::WeightsAndOffset QuadCompiler::makeWeightsAndOffset() const {
   int n = _quads.size();
   DiagMat W(n);
   Eigen::VectorXd offsets(n);
@@ -154,7 +154,7 @@ QuadCompiler::WeightsAndOffset QuadCompiler::makeWeightAndOffset() const {
   return WeightsAndOffset{W, offsets};
 }
 
-void ConstraintGroup::apply(double constraintWeight, Arrayd residuals, QuadCompiler *dst) const {
+void ConstraintGroup::apply(double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) const {
   Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(_spans,
     residuals);
 
@@ -175,17 +175,26 @@ void ConstraintGroup::apply(double constraintWeight, Arrayd residuals, QuadCompi
   }
 }
 
-void NonNegativeConstraints::apply(double constraintWeight,
-    Arrayd residuals, QuadCompiler *dst) const {
-  for (auto i: _inds) {
-    double r = residuals[i];
-    auto absQuad = MajQuad::majorizeAbs(r, _lb);
-    auto q = constraintWeight*(absQuad + MajQuad::linear(-1.0))
-        + MajQuad::linear(_reg);
-    auto line = q.factor();
-    dst->addQuad(i, q);
-  }
+void InequalityConstraint::apply(double constraintWeight,
+  const Arrayd &residuals, QuadCompiler *dst) const {
+  assert(_index != -1);
+  double r = residuals[_index];
+  auto absQuad = MajQuad::majorizeAbs(r, _lb);
+  auto q = constraintWeight*(absQuad + MajQuad::linear(-1.0))
+      + MajQuad::linear(_reg);
+  auto line = q.factor();
+  dst->addQuad(_index, q);
 }
+
+WeightingStrategy::Ptr InequalityConstraint::make(Arrayi inds, double reg) {
+  return WeightingStrategy::Ptr(
+      new WeightingStrategyArray<InequalityConstraint>(
+          inds.map<InequalityConstraint>([&](int index) {
+    return InequalityConstraint(index, reg);
+  })));
+}
+
+
 
 
 Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &X) {
@@ -224,7 +233,7 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
       CHECK(bool(strategy));
       strategy->apply(constraintWeight, residualArray, &weigher);
     }
-    auto wk = weigher.makeWeightAndOffset();
+    auto wk = weigher.makeWeightsAndOffset();
 
     Eigen::SparseMatrix<double> WA = wk.weights*A;
     Eigen::VectorXd WB = wk.weights*B - wk.offset;

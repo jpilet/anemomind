@@ -110,7 +110,7 @@ TEST(IrlsTest, InequalityConstraint) {
   B(0) = 3;
   B(1) = 2;
   WeightingStrategies strategies{
-    WeightingStrategy::Ptr(new NonNegativeConstraints(Arrayi{0, 1}, 1.0)) //,
+    InequalityConstraint::make(Arrayi{0, 1}, 1.0)
   };
 
   Settings settings;

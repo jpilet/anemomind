@@ -20,8 +20,12 @@ namespace irls {
 /*
  * Performs Iteratively Reweighted Least Squares. This is the name of the practice
  * of solving least squares problems of type |W*(A*X - B)|^2, where W is a diagonal matrix
- * whose non-zero entries are updated for every iteration.
+ * whose non-zero entries are updated for every iteration. Actually, we tweaked it a bit
+ * by also introducing a vector K that varies in each iteration, so that we minimize
+ * |W*(A*X - B) + K|^2 which lets us do even cooler things.
  *
+ * Classes that inherit from WeightingStrategy specify how the weights and entries
+ * in K are computed.
  *
  * By the way, here is the difference between the verbs 'weigh' and 'weight' explained:
  * http://forum.wordreference.com/threads/weighing-versus-weighting.88753/
@@ -29,10 +33,13 @@ namespace irls {
 
 
 // Minimize w.r.t. W: |diag(W)*sqrt(residuals)|^2 subject to average(W) = avgWeight.
-// All residuals must be positive.
+// All residuals must be positive. Used by the class ConstraintGroup
 Arrayd distributeWeights(Arrayd residuals, double avgWeight);
 
 struct Settings {
+ // Some weighting strategies implement hard constraints. We approximate those
+ // constraints by applying a weight that grows towards infinity. It seems a bit
+ // dirty but works pretty well and is simple.
  int iters = 30;
  double initialWeight = 0.1;
  double finalWeight = 10000;
@@ -73,7 +80,7 @@ class QuadCompiler {
     Eigen::VectorXd offset;
   };
 
-  WeightsAndOffset makeWeightAndOffset() const;
+  WeightsAndOffset makeWeightsAndOffset() const;
  private:
   Array<MajQuad> _quads;
 };
@@ -83,7 +90,7 @@ class QuadCompiler {
 class WeightingStrategy {
  public:
   virtual void apply(double constraintWeight,
-      Arrayd residuals, QuadCompiler *dst) const = 0;
+      const Arrayd &residuals, QuadCompiler *dst) const = 0;
   virtual ~WeightingStrategy() {}
 
   typedef std::shared_ptr<WeightingStrategy> Ptr;
@@ -91,39 +98,70 @@ class WeightingStrategy {
 
 typedef Array<WeightingStrategy::Ptr> WeightingStrategies;
 
+// Groups several constraints of the same kind as a contiguous
+// array of values, in the hope of benefits in terms of cache locality.
+template <typename T>
+class WeightingStrategyArray : public WeightingStrategy {
+ public:
+  WeightingStrategyArray(Array<T> strategies) : _strategies(strategies) {}
+
+  void apply(double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) const {
+    for (const T &s: _strategies) {
+      s.apply(constraintWeight, residuals, dst);
+    }
+  }
+ private:
+  Array<T> _strategies;
+};
+
 // A subset of the rows will be treated as hard constraints.
 // Each span is a span of rows that should simultaneously be either enforced or not.
-// activeCount determines how many spans should be enforced.
+// activeCount determines how many spans should be enforced. This can for instance be used
+// to force a variable to be binary. We can create a constraint group with the constraints
+//  (i)  x = 0
+//  (ii) x = 1
+// and choose activeCount=1. Then either x = 0 or x = 1 must be true.
 class ConstraintGroup : public WeightingStrategy {
  public:
   ConstraintGroup(Array<Spani> spans, int activeCount) :
     _spans(spans), _activeCount(activeCount), _minResidual(1.0e-9) {}
 
   void apply(double constraintWeight,
-      Arrayd residuals, QuadCompiler *dst) const;
+      const Arrayd &residuals, QuadCompiler *dst) const;
  private:
   Array<Spani> _spans;
   int _activeCount;
   double _minResidual;
 };
 
-// Linear inequality constraints
-// 'inds' list the rows i, so that f_i(X) = A(i, :)*X - B(i, :) >= 0.
-// 'reg' adds an extra linear cost reg*f_i(X). It is mathematically convenient
-// to couple such a cost with the inequality constraint.
-class NonNegativeConstraints : public WeightingStrategy {
+// Inequality constraint on the form A*X - B >= 0
+// 'reg' adds an extra cost f(X) = reg*(A*X - B). It is
+// convient to couple such a cost with the inequality constraint.
+class InequalityConstraint : public WeightingStrategy {
  public:
-  NonNegativeConstraints(Arrayi inds, double reg) : _inds(inds), _reg(reg), _lb(1.0e-9) {}
+  InequalityConstraint() : _index(-1), _reg(NAN), _lb(NAN) {}
+  InequalityConstraint(int index, double reg) : _index(index), _reg(reg), _lb(1.0e-9) {}
 
-  void apply(double constraintWeight, Arrayd residuals, QuadCompiler *dst) const;
+  void apply(double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) const;
+
+  static WeightingStrategy::Ptr make(Arrayi inds, double reg);
  private:
   double _reg;
-  Arrayi _inds;
+  int _index;
   double _lb;
 };
 
+
 // BoundedNormConstraints
 // Constraint so that the norm of a vectors don't exceed certain values.
+/*class BoundedNormConstraint : public WeightingStrategy {
+ public:
+
+  BoundedNormConstraints(Array<Spani> spans, double bound);
+  void apply(double constraintWeight, Arrayd residuals, QuadCompiler *dst) const;
+ private:
+  Array<BoundedNorm> _bnorms;
+};*/
 
 // ConstantNormConstraints
 // suitable for inextensibility constraints in deformable surface reconstruction.
