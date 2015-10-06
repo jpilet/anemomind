@@ -7,6 +7,12 @@
 #include <gtest/gtest.h>
 #include <server/plot/extra.h>
 
+typedef Eigen::Triplet<double> Triplet;
+
+
+
+
+
 using namespace sail;
 
 TEST(IrlsTest, DistributeWeights) {
@@ -25,9 +31,6 @@ TEST(IrlsTest, DistributeWeights) {
   EXPECT_LT(W1[2], W1[1] + smallGap);
   EXPECT_LT(W1[1], W1[0] + smallGap);
 }
-
-typedef Eigen::Triplet<double> Triplet;
-
 
 TEST(IrlsTest, SignalFit) {
   // Fit a line to a signal subject to sparsity constraints.
@@ -150,5 +153,45 @@ TEST(IrlsTest, BoundedNormConstraint) {
   }
 }
 
+void constantNormConstraint(const double *target2, const double *gt2) {
+  using namespace irls;
+
+  Array<Triplet> triplets{
+    Triplet(0, 0, 1.0),
+    Triplet(1, 1, 1.0),
+    Triplet(2, 0, 1.0),
+    Triplet(3, 1, 1.0)
+  };
+  Eigen::SparseMatrix<double> A(4, 2);
+  A.setFromTriplets(triplets.begin(), triplets.end());
+
+  Eigen::VectorXd B = Eigen::VectorXd::Zero(4);
+  B(0) = target2[0];
+  B(1) = target2[1];
+
+  WeightingStrategies strategies{
+    ConstantNormConstraint::make(Array<Spani>{Spani(2, 4)}, 1.0)
+  };
+
+  Settings settings;
+  settings.iters = 200;
+  auto results = solve(A, B, strategies, settings);
+  EXPECT_NEAR(results(0), gt2[0], 1.0e-3);
+  EXPECT_NEAR(results(1), gt2[1], 1.0e-3);
+}
+
 // Constant norm constraint
-//TEST(IrlsTest, B)
+TEST(IrlsTest, ConstantNormConstraint) {
+  using namespace irls;
+
+  double oneOverSqrt2 = 1.0/sqrt(2.0);
+
+  double tgt0[2] = {2.0, 2.0};
+  double tgt1[2] = {-0.5, 0.5};
+
+  double gt0[2] = {oneOverSqrt2, oneOverSqrt2};
+  double gt1[2] = {-oneOverSqrt2, oneOverSqrt2};
+
+  constantNormConstraint(tgt0, gt0);
+  constantNormConstraint(tgt1, gt1);
+}
