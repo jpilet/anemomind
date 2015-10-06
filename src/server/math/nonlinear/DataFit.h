@@ -20,15 +20,17 @@ namespace DataFit {
 // Facilitates the computation of indices
 // in vectors and matrices storing coordinates
 class CoordIndexer {
- public:
+ private:
+  // Please use the Factory class to make instances
   CoordIndexer(int offset, int dim, int count) :
     _offset(offset), _dim(dim), _count(count) {}
 
+ public:
   class Factory {
    public:
     Factory() : _counter(0) {}
 
-    CoordIndexer make(int dim, int count) {
+    CoordIndexer make(int count, int dim) {
       int offset = _counter;
       _counter += dim*count;
       return CoordIndexer(offset, dim, count);

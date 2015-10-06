@@ -14,12 +14,13 @@ using namespace DataFit;
 
 TEST(DataFitTest, Indexer) {
   CoordIndexer::Factory rows;
-  auto positions = rows.make(12, 3);
+  CoordIndexer positions = rows.make(12, 3);
   EXPECT_EQ(rows.count(), 36);
   EXPECT_EQ(positions.from(), 0);
   EXPECT_EQ(positions.to(), 36);
   EXPECT_EQ(positions.numel(), 36);
-
+  EXPECT_EQ(positions.elementSpan(), Spani(0, 36));
+  EXPECT_EQ(positions.coordinateSpan(), Spani(0, 12));
 }
 
 bool operator== (Triplet a, Triplet b) {
