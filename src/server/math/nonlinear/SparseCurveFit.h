@@ -93,6 +93,11 @@ struct Settings {
   //   or its first derivative being piecewise constant.
   // A regorder of 3 means that the second derivative of the curve is piecewise constant.
   int regOrder = 3;
+
+
+  // Put a bound on the norm of the difference vector from one sample
+  // to the next. A negative bound means no bound.
+  double maxNorm = -1;
 };
 
 
@@ -116,13 +121,19 @@ Results fit(int sampleCount, int discontinuityCount,
   CHECK(observations.all([&](const Observation<Dim> &x) {
     return 0 <= x.weights.lowerIndex && x.weights.upperIndex() < sampleCount;
   }));
+
+  bool withBound = settings.maxNorm > 0;
+
+  int boundCount = (withBound? (sampleCount - 1) : 0);
+  int boundRowCount = Dim*boundCount;
+
   int regCount = (sampleCount - settings.regOrder);
   int coefsPerReg = (settings.regOrder + 1);
   int regRowCount = Dim*regCount;
   int regElemCount = coefsPerReg*regRowCount;
   int dataElemCount = Dim*4*observations.size();
   int dataRowCount = observations.size()*Dim*2;
-  int rowCount = dataRowCount + regRowCount;
+  int rowCount = dataRowCount + regRowCount + boundRowCount;
 
   Eigen::VectorXd rhs = Eigen::VectorXd::Zero(rowCount);
   std::vector<Triplet> elements;
@@ -136,7 +147,8 @@ Results fit(int sampleCount, int discontinuityCount,
   CHECK(elements.back().col() <= Dim*sampleCount);
   std::cout << EXPR_AND_VAL_AS_STRING(dataRowCount) << std::endl;
   CHECK(regSpans.first().minv() == dataRowCount);
-  CHECK(regSpans.last().maxv() == rowCount);
+  int dataAndRegRowCount = dataRowCount + regRowCount;
+  CHECK(regSpans.last().maxv() == dataAndRegRowCount);
 
   int inlierCount = int(round(observations.size()*settings.inlierRate));
   CHECK(0 <= discontinuityCount);

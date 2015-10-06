@@ -212,10 +212,10 @@ double expectedCurve(int x, int middle) {
   return 3;
 }
 
+// This type of constraint
+// is also used for GPS-filtering.
+// This test checks that it works in a simple scenario.
 TEST(IrlsTest, BoundConstrainedCurveFit) {
-  // This type of constraint
-  // is also used for GPS-filtering.
-
   using namespace irls;
   int n = 12;
   int middle = n/2;
@@ -231,11 +231,15 @@ TEST(IrlsTest, BoundConstrainedCurveFit) {
   auto fits = triplets.sliceTo(fitElemCount);
   auto difs = triplets.sliceFrom(fitElemCount);
   Arrayd X(n);
+
+  // Fitness to the data
   for (int i = 0; i < n; i++) {
     fits[i] = Triplet(i, i, 1.0);
     B(i) = (i < middle? 0 : 3);
     X[i] = i;
   }
+
+  // Constraints on the difference of contiguous samples.
   Array<Spani> boundedRowSpans(difCount);
   for (int i = 0; i < difCount; i++) {
     int row = n + i;
@@ -246,6 +250,7 @@ TEST(IrlsTest, BoundConstrainedCurveFit) {
     boundedRowSpans[i] = Spani(row, row + 1);
   }
 
+  // Weighting strategies for the constraints.
   WeightingStrategies strategies{
     BoundedNormConstraint::make(boundedRowSpans, 1.0)
   };
