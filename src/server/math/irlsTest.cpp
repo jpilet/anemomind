@@ -198,6 +198,20 @@ TEST(IrlsTest, ConstantNormConstraint) {
   constantNormConstraint(tgt1, gt1);
 }
 
+
+double expectedCurve(int x, int middle) {
+  if (x < middle) {
+    if (x == middle - 1) {
+      return 1;
+    }
+    return 0;
+  }
+  if (x == middle) {
+    return 2;
+  }
+  return 3;
+}
+
 TEST(IrlsTest, BoundConstrainedCurveFit) {
   // This type of constraint
   // is also used for GPS-filtering.
@@ -216,9 +230,11 @@ TEST(IrlsTest, BoundConstrainedCurveFit) {
 
   auto fits = triplets.sliceTo(fitElemCount);
   auto difs = triplets.sliceFrom(fitElemCount);
+  Arrayd X(n);
   for (int i = 0; i < n; i++) {
     fits[i] = Triplet(i, i, 1.0);
     B(i) = (i < middle? 0 : 3);
+    X[i] = i;
   }
   Array<Spani> boundedRowSpans(difCount);
   for (int i = 0; i < difCount; i++) {
@@ -228,8 +244,6 @@ TEST(IrlsTest, BoundConstrainedCurveFit) {
     difs[offset + 1] = Triplet(row, i+1, -1.0);
     B(row) = 0.0;
     boundedRowSpans[i] = Spani(row, row + 1);
-    std::cout << EXPR_AND_VAL_AS_STRING(row) << std::endl;
-
   }
 
   WeightingStrategies strategies{
@@ -240,24 +254,22 @@ TEST(IrlsTest, BoundConstrainedCurveFit) {
   A.setFromTriplets(triplets.begin(), triplets.end());
 
   Settings settings;
-  settings.iters = 200;
-
-
-
-
-  std::cout << EXPR_AND_VAL_AS_STRING(triplets.end() - triplets.begin()) << std::endl;
-
-  MDArray2d Atemp(rows, cols);
-  Atemp.setAll(0.0);
-  for (auto triplet: triplets) {
-    std::cout << "Triplet (" << triplet.row() << ", " << triplet.col() << ", "
-        << triplet.value() << ")" << std::endl;
-    Atemp(triplet.row(), triplet.col()) = triplet.value();
-  }
-  std::cout << EXPR_AND_VAL_AS_STRING(Atemp) << std::endl;
-  std::cout << "A = \n" << A.toDense() << std::endl;
-  std::cout << "B = \n" << B << std::endl;
-
+  settings.iters = 30;
   auto results = solve(A, B, strategies, settings);
-  std::cout << "Curve: " << results << std::endl;
+  EXPECT_EQ(results.size(), n);
+  for (int i = 0; i < n; i++) {
+    EXPECT_NEAR(results(i), expectedCurve(i, middle), 0.2);
+  }
+
+  bool visualize = false;
+  if (visualize) {
+    Arrayd Y(n, B.data());
+    Arrayd F(results.size(), results.data());
+    std::cout << EXPR_AND_VAL_AS_STRING(F) << std::endl;
+    GnuplotExtra plot;
+    plot.plot_xy(X, Y);
+    plot.set_style("lines");
+    plot.plot_xy(X, F);
+    plot.show();
+  }
 }
