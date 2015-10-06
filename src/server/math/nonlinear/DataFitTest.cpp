@@ -9,8 +9,18 @@
 #include <server/common/string.h>
 
 using namespace sail;
-using namespace SparseCurveFit;
+using namespace DataFit;
 
+
+TEST(DataFitTest, Indexer) {
+  CoordIndexer::Factory rows;
+  auto positions = rows.make(12, 3);
+  EXPECT_EQ(rows.count(), 36);
+  EXPECT_EQ(positions.from(), 0);
+  EXPECT_EQ(positions.to(), 36);
+  EXPECT_EQ(positions.numel(), 36);
+
+}
 
 bool operator== (Triplet a, Triplet b) {
   return a.row() == b.row() && a.col() == b.col() && a.value() == b.value();
@@ -81,7 +91,7 @@ TEST(SparseCurveFitTest, DataTest) {
   EXPECT_EQ(data(3 + 2 + 1, 1 + 2*4 + 1), 1.0);
 }
 
-TEST(SparseCurveFit, AssembeResultsTest) {
+TEST(DataFit, AssembeResultsTest) {
   Eigen::VectorXd solution(4 + 4);
 
   // Sample 1
@@ -110,7 +120,7 @@ TEST(SparseCurveFit, AssembeResultsTest) {
   EXPECT_EQ(results.inliers, (Arrayb{false, true}));
 }
 
-TEST(SparseCurveFit, NoisyStep) {
+TEST(DataFit, NoisyStep) {
   int sampleCount = 30;
 
   Array<Observation<1> > observations(sampleCount-1);
@@ -140,7 +150,7 @@ TEST(SparseCurveFit, NoisyStep) {
   }
 }
 
-TEST(SparseCurveFit, NoisyStepWithOutliers) {
+TEST(DataFit, NoisyStepWithOutliers) {
   int sampleCount = 30;
   int outlierCount = 4;
 

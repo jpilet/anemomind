@@ -14,7 +14,68 @@
 #include <vector>
 
 namespace sail {
-namespace SparseCurveFit {
+namespace DataFit {
+
+
+// Facilitates the computation of indices
+// in vectors and matrices storing coordinates
+class CoordIndexer {
+ public:
+  CoordIndexer(int offset, int dim, int count) :
+    _offset(offset), _dim(dim), _count(count) {}
+
+  class Factory {
+   public:
+    Factory() : _counter(0) {}
+
+    CoordIndexer make(int dim, int count) {
+      int offset = _counter;
+      _counter += dim*count;
+      return CoordIndexer(offset, dim, count);
+    }
+
+    int count() const {
+      return _counter;
+    }
+   private:
+    int _counter;
+  };
+
+  int from() const {
+    return _offset;
+  }
+
+  int from(int index) const {
+    return _offset + index*_dim;
+  }
+
+  int to(int index) const {
+    return from(index) + _dim;
+  }
+
+  int numel() const {
+    return _dim*_count;
+  }
+
+  int to() const {
+    return _offset + numel();
+  }
+
+  Spani elementSpan() const {
+    return Spani(from(), to());
+  }
+
+  Spani coordinateSpan() const {
+    return Spani(0, _count);
+  }
+
+  Spani span(int index) const {
+    int offset = _offset + index*_dim;
+    return Spani(offset, offset + _dim);
+  }
+ private:
+  int _offset, _dim, _count;
+};
 
 typedef Eigen::Triplet<double> Triplet;
 

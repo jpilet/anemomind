@@ -18,7 +18,7 @@ struct Settings {
   Duration<double> samplingPeriod;
   double motionWeight;
   Duration<double> discontinuityPeriod;
-  SparseCurveFit::Settings fitSettings;
+  DataFit::Settings fitSettings;
 
   Velocity<double> maxSpeed;
 

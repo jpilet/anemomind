@@ -118,7 +118,7 @@ Results filter(Array<Nav> navs, Settings settings) {
   //settings.fitSettings.maxNorm = sampling.period()*settings.maxSpeed.metersPerSecond();
 
   int discontinuityCount = int(floor((toTime - fromTime)/settings.discontinuityPeriod));
-  auto results = SparseCurveFit::fit(sampling.count(), discontinuityCount, observations, settings.fitSettings);
+  auto results = DataFit::fit(sampling.count(), discontinuityCount, observations, settings.fitSettings);
 
   auto posObs = observations.sliceTo(navs.size());
   return Results{navs, posObs, sampling, results.samples, timeRef, geoRef};

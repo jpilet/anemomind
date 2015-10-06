@@ -7,7 +7,7 @@
 #include <server/common/math.h>
 
 namespace sail {
-namespace SparseCurveFit {
+namespace DataFit {
 
 
 Array<Spani> makeReg(int order, int firstRowOffset, int firstColOffset,
