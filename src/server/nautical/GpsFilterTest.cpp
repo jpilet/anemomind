@@ -14,6 +14,7 @@
 
 using namespace sail;
 
+
 MDArray2d getRawPositions(GpsFilter::Results r, Array<Nav> navs) {
   int n = navs.size();
   MDArray2d X(n, 2);
@@ -24,6 +25,8 @@ MDArray2d getRawPositions(GpsFilter::Results r, Array<Nav> navs) {
   }
   return X;
 }
+
+
 
 Array<Nav> getPsarosTestData() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -85,7 +88,7 @@ void runPsarosTest(Array<Nav> navs, Array<Nav> navsToFilter) {
   EXPECT_LT(minCount, reasonableMotionCount);
   EXPECT_LT(minCount, reasonablePositionCount);
 
-  bool visualize = false;
+  bool visualize = true;
   if (visualize) {
     GnuplotExtra plot;
     plot.set_style("lines");
@@ -103,6 +106,7 @@ TEST(GpsFilterTest, PsarosTest) {
   runPsarosTest(navs, Array<Nav>());
   runPsarosTest(navs, applyOutliers(navs));
 }
+
 
 Velocity<double> calcSpeedFromGpsPositions(const Nav &a, const Nav &b) {
   Length<double> xyzA[3], xyzB[3];
@@ -134,7 +138,7 @@ Array<Nav> getIreneTestData() {
   return splitNavsByDuration(navs, Duration<double>::hours(1.0))[1];
 }
 
-/*TEST(GpsFilterTest, Irene) {
+TEST(GpsFilterTest, Irene) {
   auto navs = getIreneTestData();
   std::cout << EXPR_AND_VAL_AS_STRING(navs.first().time()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(navs.last().time()) << std::endl;
@@ -153,4 +157,4 @@ Array<Nav> getIreneTestData() {
     plot.plot(getRawPositions(results, navs));
     plot.show();
   }
-}*/
+}

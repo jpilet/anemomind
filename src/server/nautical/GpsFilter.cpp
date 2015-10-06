@@ -16,10 +16,11 @@ namespace GpsFilter {
 Settings::Settings() :
     samplingPeriod(Duration<double>::seconds(1.0)),
     discontinuityPeriod(Duration<double>::seconds(6.0)),
+    maxSpeed(Velocity<double>::knots(100)),
     motionWeight(1.0) {
     fitSettings.inlierRate = 0.8;
     fitSettings.regOrder = 3;
-    fitSettings.spcstSettings.iters = 30;
+    fitSettings.spcstSettings.iters = 90;
     fitSettings.spcstSettings.initialWeight = 0.1;
 }
 
@@ -113,6 +114,8 @@ Results filter(Array<Nav> navs, Settings settings) {
   Sampling sampling(sampleCount, fromTime.seconds(), toTime.seconds());
   auto observations = getObservations(settings,
       timeRef, geoRef, navs, sampling);
+
+  //settings.fitSettings.maxNorm = sampling.period()*settings.maxSpeed.metersPerSecond();
 
   int discontinuityCount = int(floor((toTime - fromTime)/settings.discontinuityPeriod));
   auto results = SparseCurveFit::fit(sampling.count(), discontinuityCount, observations, settings.fitSettings);

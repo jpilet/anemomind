@@ -20,6 +20,8 @@ struct Settings {
   Duration<double> discontinuityPeriod;
   SparseCurveFit::Settings fitSettings;
 
+  Velocity<double> maxSpeed;
+
   /*
    * TODO:
    * It would be nice to have inequality constraints to constrain the reconstructed
