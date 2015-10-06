@@ -149,6 +149,10 @@ Results fit(int sampleCount, int discontinuityCount,
   CHECK(regSpans.first().minv() == dataRowCount);
   int dataAndRegRowCount = dataRowCount + regRowCount;
   CHECK(regSpans.last().maxv() == dataAndRegRowCount);
+  Array<Spani> boundSpans(boundCount);
+  if (withBound) {
+    boundSpans = makeReg(1, dataAndRegRowCount, 0, Dim, boundCount, &elements);
+  }
 
   int inlierCount = int(round(observations.size()*settings.inlierRate));
   CHECK(0 <= discontinuityCount);
@@ -156,7 +160,8 @@ Results fit(int sampleCount, int discontinuityCount,
 
   irls::WeightingStrategies strategies{
     irls::WeightingStrategy::Ptr(new irls::ConstraintGroup(slackSpans, inlierCount)),
-    irls::WeightingStrategy::Ptr(new irls::ConstraintGroup(regSpans, activeRegCount))
+    irls::WeightingStrategy::Ptr(new irls::ConstraintGroup(regSpans, activeRegCount)),
+    irls::BoundedNormConstraint::make(boundSpans, settings.maxNorm)
   };
 
   int colCount = Dim*sampleCount + Dim*observations.size();
