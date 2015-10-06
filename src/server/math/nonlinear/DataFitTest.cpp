@@ -4,7 +4,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <server/math/nonlinear/SparseCurveFit.h>
+#include <server/math/nonlinear/DataFit.h>
 #include <server/common/ArrayIO.h>
 #include <server/common/string.h>
 

@@ -7,7 +7,7 @@
 #define SERVER_NAUTICAL_GPSFILTER_H_
 
 #include <server/nautical/Nav.h>
-#include <server/math/nonlinear/SparseCurveFit.h>
+#include <server/math/nonlinear/DataFit.h>
 #include <server/nautical/GeographicReference.h>
 
 namespace sail {

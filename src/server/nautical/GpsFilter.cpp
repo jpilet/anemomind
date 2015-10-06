@@ -6,7 +6,7 @@
 #include <server/nautical/GpsFilter.h>
 #include <server/nautical/GeographicReference.h>
 #include <server/common/Span.h>
-#include <server/math/nonlinear/SparseCurveFit.h>
+#include <server/math/nonlinear/DataFit.h>
 #include <algorithm>
 
 

@@ -212,12 +212,12 @@ cxx_test(math_nonlinear_BandedSolverTest
          gtest_main
         )
         
-add_library(math_nonlinear_SparseCurveFit
-            SparseCurveFit.h
-            SparseCurveFit.cpp
+add_library(math_nonlinear_DataFit
+            DataFit.h
+            DataFit.cpp
            )
            
-target_link_libraries(math_nonlinear_SparseCurveFit
+target_link_libraries(math_nonlinear_DataFit
                       math_irls
                       common_math
                       common_ScopedLog
@@ -225,8 +225,8 @@ target_link_libraries(math_nonlinear_SparseCurveFit
                       math_nonlinear_SignalUtils
                      )           
         
-cxx_test(math_nonlinear_SparseCurveFitTest
-         SparseCurveFitTest.cpp
+cxx_test(math_nonlinear_DataFitTest
+         DataFitTest.cpp
          gtest_main
-         math_nonlinear_SparseCurveFit
+         math_nonlinear_DataFit
         )

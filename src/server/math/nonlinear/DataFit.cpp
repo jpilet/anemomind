@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/math/nonlinear/SparseCurveFit.h>
+#include <server/math/nonlinear/DataFit.h>
 #include <server/common/math.h>
 
 namespace sail {
