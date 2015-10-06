@@ -194,21 +194,32 @@ WeightingStrategy::Ptr InequalityConstraint::make(Arrayi inds, double reg) {
   })));
 }
 
-void BoundedNormConstraint::apply(double constraintWeight,
-    const Arrayd &residuals, QuadCompiler *dst) const {
+double calcNorm(Spani span, const Arrayd &residuals) {
   double squaredNorm = 0.0;
-  for (auto i : _span) {
+  for (auto i : span) {
     squaredNorm += sqr(residuals[i]);
   }
-  double norm = (squaredNorm < 0? 0 : sqrt(squaredNorm));
+  return (squaredNorm < 0? 0 : sqrt(squaredNorm));
+}
+
+void BoundedNormConstraint::apply(double constraintWeight,
+    const Arrayd &residuals, QuadCompiler *dst) const {
+  double norm = calcNorm(_span, residuals);
   auto shifted = norm - _bound;
   auto qShifted = MajQuad::majorizeAbs(shifted, LB) + MajQuad::linear(1.0);
   auto opt_ = qShifted.optimimum();
   assert(opt_ <= 0);
   double optimum = _bound + opt_;
-  double f = optimum/norm;
-  for (auto i : _span) {
-    dst->addQuad(i, constraintWeight*MajQuad::fit(f*residuals[i]));
+  if (optimum >= 0) {
+    double f = optimum/(norm + LB);
+    for (auto i : _span) {
+      dst->addQuad(i, constraintWeight*MajQuad::fit(f*residuals[i]));
+    }
+  } else {
+    auto maj = 2.0*constraintWeight*MajQuad::majorizeAbs(norm, LB);
+    for (auto i : _span) {
+      dst->addQuad(i, maj);
+    }
   }
 }
 
@@ -221,6 +232,24 @@ WeightingStrategy::Ptr BoundedNormConstraint::make(Array<Spani> spans, double bo
           })));
 }
 
+
+void ConstantNormConstraint::apply(double constraintWeight,
+    const Arrayd &residuals, QuadCompiler *dst) const {
+  double norm = calcNorm(_span, residuals);
+  double f = _length/(norm + LB);
+  for (auto i : _span) {
+    dst->addQuad(i, constraintWeight*MajQuad::fit(f*residuals[i]));
+  }
+}
+
+// Make multiple constraints with the same length.
+WeightingStrategy::Ptr ConstantNormConstraint::make(Array<Spani> spans, double length) {
+  return WeightingStrategy::Ptr(
+        new WeightingStrategyArray<ConstantNormConstraint>(
+            spans.map<ConstantNormConstraint>([&](Spani span) {
+              return ConstantNormConstraint(span, length);
+            })));
+}
 
 
 Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &X) {

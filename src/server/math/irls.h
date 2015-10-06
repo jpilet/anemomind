@@ -39,19 +39,29 @@ Arrayd distributeWeights(Arrayd residuals, double avgWeight);
 struct Settings {
  // Some weighting strategies implement hard constraints. We approximate those
  // constraints by applying a weight that grows towards infinity. It seems a bit
- // dirty but works pretty well and is simple.
+ // dirty but works pretty well.
+
+ // More iterations will likely lead to more accurate results
+ // and better convergence.
  int iters = 30;
+
+ // You might want to tune this depending on the
+ // objective function, but try without tuning first.
  double initialWeight = 0.1;
+
+ // I guess this is a suitable final weight in most cases.
+ // Not much need to tune it.
  double finalWeight = 10000;
 };
 
 typedef Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> DiagMat;
 
-// Computes the right weights and right-hand-sides
+// Used to accumulate the weights and right-hand-sides in every iteration.
 class QuadCompiler {
  public:
   QuadCompiler(int dim) : _quads(dim) {}
 
+  // The main method used by the weighting strategies.
   void addQuad(int index, const MajQuad &q) {
     MajQuad &dst = _quads[index];
     if (dst.defined()) {
@@ -61,25 +71,21 @@ class QuadCompiler {
     }
   }
 
+  // Special case, when there is only a weight and
+  // no offset.
   void setWeight(int index, double weight) {
     addQuad(index, MajQuad(sqr(weight), 0.0));
   }
 
-  double calcWeight(int index) const {
-    auto w = _quads[index];
-    if (w.defined()) {
-      auto f = w.factor();
-      assert(std::abs(f.getM()) < 1.0e-6);
-      return f.getK();
-    }
-    return 1.0;
-  }
-
+  // Output of the method below.
   struct WeightsAndOffset {
     DiagMat weights;
     Eigen::VectorXd offset;
   };
 
+  // Once the iteration is done,
+  // this method will provide the matrices
+  // needed to tweak the problem.
   WeightsAndOffset makeWeightsAndOffset() const;
  private:
   Array<MajQuad> _quads;
@@ -154,7 +160,7 @@ class InequalityConstraint : public WeightingStrategy {
 };
 
 
-// Constraints on the form |A*X - B| <= bound
+// Constraint on the form |A*X - B| <= bound
 class BoundedNormConstraint : public WeightingStrategy {
  public:
   BoundedNormConstraint() : _bound(NAN) {}
@@ -169,8 +175,21 @@ class BoundedNormConstraint : public WeightingStrategy {
   double _bound;
 };
 
-// ConstantNormConstraints
-// suitable for inextensibility constraints in deformable surface reconstruction.
+// Constraint on the form |A*X - B| = length
+// Suitable for constraining the lengths of edges in a mesh.
+class ConstantNormConstraint : public WeightingStrategy {
+ public:
+  ConstantNormConstraint() : _length(NAN) {}
+  ConstantNormConstraint(Spani span, double length) : _span(span), _length(length) {}
+
+  void apply(double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) const;
+
+  // Make multiple constraints with the same length.
+  static WeightingStrategy::Ptr make(Array<Spani> spans, double length);
+ private:
+  Spani _span;
+  double _length;
+};
 
 Eigen::VectorXd solve(
     const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,

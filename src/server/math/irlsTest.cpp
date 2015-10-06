@@ -148,5 +148,7 @@ TEST(IrlsTest, BoundedNormConstraint) {
     double x = results(0);
     EXPECT_NEAR(x, Xgt[i], 1.0e-4);
   }
-
 }
+
+// Constant norm constraint
+//TEST(IrlsTest, B)
