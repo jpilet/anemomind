@@ -6,6 +6,7 @@
 #include <server/math/irls.h>
 #include <gtest/gtest.h>
 #include <server/plot/extra.h>
+#include <server/common/string.h>
 
 typedef Eigen::Triplet<double> Triplet;
 
@@ -194,4 +195,62 @@ TEST(IrlsTest, ConstantNormConstraint) {
 
   constantNormConstraint(tgt0, gt0);
   constantNormConstraint(tgt1, gt1);
+}
+
+TEST(IrlsTest, BoundConstrainedCurveFit) {
+  // This type of constraint
+  // is also used for GPS-filtering.
+
+  using namespace irls;
+  int n = 12;
+  int middle = n/2;
+  int difCount = n - 1;
+  int fitElemCount = n;
+  int difElemCount = 2*difCount;
+  int rows = n + difCount;
+  int cols = n;
+
+  Eigen::VectorXd B(rows);
+  Array<Triplet> triplets(fitElemCount + difElemCount);
+
+  auto fits = triplets.sliceTo(fitElemCount);
+  auto difs = triplets.sliceFrom(fitElemCount);
+  for (int i = 0; i < n; i++) {
+    fits[i] = Triplet(i, i, 1.0);
+    B(i) = (i < middle? 0 : 3);
+  }
+  Array<Spani> boundedRowSpans(difCount);
+  for (int i = 0; i < difCount; i++) {
+    int row = n + i;
+    int offset = 2*i;
+    difs[offset + 0] = Triplet(row, i, 1.0);
+    difs[offset + 1] = Triplet(row, i, -1.0);
+    B(row) = 0.0;
+    boundedRowSpans[i] = Spani(row, row + 1);
+    std::cout << EXPR_AND_VAL_AS_STRING(row) << std::endl;
+
+  }
+
+  WeightingStrategies strategies{
+    BoundedNormConstraint::make(boundedRowSpans, 1.0)
+  };
+
+  Eigen::SparseMatrix<double> A(rows, cols);
+  A.setFromTriplets(triplets.begin(), triplets.end());
+
+  Settings settings;
+  settings.iters = 200;
+
+  auto results = solve(A, B, strategies, settings);
+
+
+
+  for (auto triplet: triplets) {
+    std::cout << "Triplet (" << triplet.row() << ", " << triplet.col() << ", "
+        << triplet.value() << ")" << std::endl;
+  }
+  std::cout << "A = \n" << A.toDense() << std::endl;
+  std::cout << "B = \n" << B << std::endl;
+
+  std::cout << "Curve: " << results << std::endl;
 }
