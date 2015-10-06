@@ -21,6 +21,12 @@ TEST(DataFitTest, Indexer) {
   EXPECT_EQ(positions.numel(), 36);
   EXPECT_EQ(positions.elementSpan(), Spani(0, 36));
   EXPECT_EQ(positions.coordinateSpan(), Spani(0, 12));
+
+  CoordIndexer slack = rows.make(12, 1);
+  EXPECT_EQ(rows.count(), 48);
+  EXPECT_EQ(slack.elementSpan(), Spani(36, 48));
+  EXPECT_EQ(slack.coordinateSpan(), Spani(0, 12));
+
 }
 
 bool operator== (Triplet a, Triplet b) {
