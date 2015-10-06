@@ -26,3 +26,14 @@ cxx_test(anemobox_LogToNavTest LogToNavTest.cpp
          anemobox_Logger
          gtest_main
         )
+
+add_executable(anemobox_logToNmea LogToNmea.cpp)
+target_link_libraries(anemobox_logToNmea
+                      anemobox_LogToNav
+                      anemobox_Logger
+                      common_ArgMap
+                      common_logging
+                      device_NmeaParser
+                      nautical_NavToNmea
+                     )
+

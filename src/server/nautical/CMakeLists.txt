@@ -479,3 +479,15 @@ target_link_libraries(nautical_exportNavs
                       common_ArgMap
                       nautical_Calibrator
                      )              
+
+add_library(nautical_NavToNmea
+            NavToNmea.h
+            NavToNmea.cpp)
+target_link_libraries(nautical_NavToNmea
+                      common_string
+                      nautical_nav)
+cxx_test(nautical_NavToNmeaTest NavToNmeaTest.cpp
+         device_NmeaParser
+         nautical_NavToNmea
+         gtest_main
+         )
