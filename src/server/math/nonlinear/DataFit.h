@@ -77,6 +77,8 @@ class CoordIndexer {
   }
 
   Spani span(int index) const {
+    assert(0 <= index);
+    assert(index < _count);
     int offset = _offset + index*_dim;
     return Spani(offset, offset + _dim);
   }
@@ -113,6 +115,10 @@ void makeReg(double weight, int order,
     CoordIndexer rowIndexer, CoordIndexer colIndexer,
     std::vector<Triplet> *dst);
 
+
+// Makes the part of the problem related to
+// fitting to data that contains outliers.
+// A threshold is used to classify points as being outliers.
 template <int Dim>
 irls::WeightingStrategy::Ptr makeDataWithOutliers(double threshold,
     Array<Observation<Dim> > observations,
@@ -155,12 +161,12 @@ irls::WeightingStrategy::Ptr makeDataWithOutliers(double threshold,
     groups[i] = irls::ConstraintGroup(
         Array<Spani>{inlierSlackRows.span(i), outlierSlackRows.span(i)}, 1);
   }
-
-  // Outlier part
   makeEye(1.0, outlierPenaltyRows.elementSpan(), outlierCols.elementSpan(), aDst);
   makeEye(1.0, outlierSlackRows.elementSpan(), outlierCols.elementSpan(), aDst);
   return irls::WeightingStrategyArray<irls::ConstraintGroup>::make(groups);
 }
+
+
 
 
 
@@ -256,6 +262,55 @@ struct Results {
   Arrayb inliers;
   MDArray2d samples; // One reconstructed sample per row.
 };
+
+Results assembleResults(irls::Results solution, CoordIndexer data,
+    CoordIndexer samples, double inlierThreshold);
+
+
+/*
+ * Just very simple fit to data with quadratic regularization.
+ * Inlier data points are fitted quadratically, outlier ones are completely ignored.
+ * The inlierThreshold parameter controls the maximum distance between the fitted
+ * curve and the data.
+ */
+template <int Dim>
+Results quadraticFitWithInliers(
+    int sampleCount,
+    Array<Observation<Dim> > observations,
+    double inlierThreshold,
+    int regOrder, double regWeight, irls::Settings irlsSettings) {
+  int obsCount = observations.size();
+  CoordIndexer::Factory rows, cols;
+  auto dataRows = rows.make(obsCount, Dim);
+  auto sampleCols = cols.make(sampleCount, Dim);
+  auto inlierSlackRows = rows.make(obsCount, Dim);
+  auto outlierSlackRows = rows.make(obsCount, 1);
+  auto outlierPenaltyRows = rows.make(obsCount, 1);
+  auto regRows = rows.make(sampleCount - regOrder, Dim);
+  auto inlierCols = cols.make(obsCount, Dim);
+  auto outlierCols = cols.make(obsCount, 1);
+  std::vector<Triplet> triplets;
+  Eigen::VectorXd B(rows.count());
+  makeReg(regWeight, regOrder, regRows, sampleCols, &triplets);
+  std::cout << EXPR_AND_VAL_AS_STRING(regRows.to()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(rows.count()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(sampleCols.to()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(cols.count()) << std::endl;
+  auto last = triplets.back();
+  std::cout << EXPR_AND_VAL_AS_STRING(last.row()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(last.col()) << std::endl;
+
+  auto strategy = makeDataWithOutliers(inlierThreshold, observations,
+      dataRows, inlierSlackRows, outlierSlackRows,
+      outlierPenaltyRows, sampleCols, inlierCols,
+      outlierCols, &triplets, &B);
+  Eigen::SparseMatrix<double> A(rows.count(), cols.count());
+  A.setFromTriplets(triplets.begin(), triplets.end());
+  auto solution = irls::solveFull(A, B, irls::WeightingStrategies{strategy}, irlsSettings);
+  return assembleResults(solution, dataRows, sampleCols, inlierThreshold);
+}
+
+
 
 Results assembleResults(int dim, int sampleCount, int inlierCount, const Eigen::VectorXd &solution);
 

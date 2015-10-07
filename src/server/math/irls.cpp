@@ -262,7 +262,7 @@ Arrayd toArray(Eigen::VectorXd &v) {
   return Arrayd(v.size(), v.data());
 }
 
-Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
+Results solveFull(const Eigen::SparseMatrix<double> &A,
     const Eigen::VectorXd &B,
     Array<std::shared_ptr<WeightingStrategy> > strategies,
     Settings settings) {
@@ -296,7 +296,14 @@ Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
 
     residuals = product(A, X) - B;
   }
-  return X;
+  return Results{X, residuals};
+}
+
+Eigen::VectorXd solve(const Eigen::SparseMatrix<double> &A,
+    const Eigen::VectorXd &B,
+    Array<std::shared_ptr<WeightingStrategy> > strategies,
+    Settings settings) {
+    return solveFull(A, B, strategies, settings).X;
 }
 
 

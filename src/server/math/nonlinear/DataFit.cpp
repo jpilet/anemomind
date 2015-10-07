@@ -21,11 +21,13 @@ void makeReg(double weight, int order, CoordIndexer rowIndexer, CoordIndexer col
   assert(rowIndexer.dim() == colIndexer.dim());
   assert(rowIndexer.count() + order == colIndexer.count());
   Arrayd coefs = makeRegCoefs(order);
-  for (auto i: colIndexer.coordinateSpan()) {
+  for (auto i: rowIndexer.coordinateSpan()) {
     Spani rowSpan = rowIndexer.span(i);
+    std::cout << EXPR_AND_VAL_AS_STRING(rowSpan.maxv()) << std::endl;
     for (int j = 0; j < coefs.size(); j++) {
-      Spani colSpan = colIndexer.span(j);
-      makeEye(weight, rowSpan, colSpan, dst);
+      Spani colSpan = colIndexer.span(i + j);
+      makeEye(weight*coefs[j], rowSpan, colSpan, dst);
+      std::cout << EXPR_AND_VAL_AS_STRING(colSpan.maxv()) << std::endl;
     }
   }
 }
@@ -89,6 +91,29 @@ MDArray2d getSamples(int dim, Arrayd data) {
   CHECK(counter == data.size());
   return dst;
 }
+
+Results assembleResults(irls::Results solution, CoordIndexer data,
+    CoordIndexer samples, double inlierThreshold) {
+  auto t2 = sqr(inlierThreshold);
+  MDArray2d out(samples.count(), samples.dim());
+  for (int i = 0; i < samples.count(); i++) {
+    for (int j = 0; j < samples.dim(); j++) {
+      auto sp = samples.span(i);
+      out(i, j) = solution.X[sp[j]];
+    }
+  }
+  Arrayb inliers(data.count());
+  for (auto i: data.coordinateSpan()) {
+    auto sp = data.span(i);
+    double x = 0.0;
+    for (auto j: sp) {
+      x += sqr(solution.residuals(j));
+    }
+    inliers[i] = x < t2;
+  }
+  return Results{inliers, out};
+}
+
 
 Results assembleResults(int dim, int sampleCount, int inlierCount,
     const Eigen::VectorXd &solution) {

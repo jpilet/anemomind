@@ -11,7 +11,7 @@
 using namespace sail;
 using namespace DataFit;
 
-
+/*
 TEST(DataFitTest, Indexer) {
   CoordIndexer::Factory rows;
   CoordIndexer positions = rows.make(12, 3);
@@ -191,4 +191,24 @@ TEST(DataFit, NoisyStepWithOutliers) {
   EXPECT_FALSE(results.inliers[7]);
   EXPECT_FALSE(results.inliers[8]);
   EXPECT_FALSE(results.inliers[20]);
+}
+*/
+
+
+TEST(DataFit, QuadraticFit) {
+  int n = 30;
+  int dataCount = n - 1;
+  int k = 4;
+  Array<Observation<1> > observations(dataCount);
+  Arrayd X(dataCount), Y(dataCount), Ygt(dataCount);
+  for (int i = 0; i < dataCount; i++) {
+    double offset = (i < k? 30 : 0);
+    X[i] = i;
+    Ygt[i] = 0.3*i;
+    Y[i] = Ygt[i] + 0.01*sin(exp(3.0*i)) + offset;
+    observations[i] = Observation<1>{Sampling::Weights{i, 1.0, 0.0}, {Y[i]}};
+  }
+  irls::Settings settings;
+  auto results = DataFit::quadraticFitWithInliers(n, observations, 0.2, 2, 1.0, settings);
+
 }

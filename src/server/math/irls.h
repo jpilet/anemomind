@@ -135,6 +135,7 @@ class WeightingStrategyArray : public WeightingStrategy {
 // and choose activeCount=1. Then either x = 0 or x = 1 must be true.
 class ConstraintGroup : public WeightingStrategy {
  public:
+  ConstraintGroup() : _activeCount(0), _minResidual(NAN) {}
   ConstraintGroup(Array<Spani> spans, int activeCount) :
     _spans(spans), _activeCount(activeCount), _minResidual(1.0e-9) {}
 
@@ -145,6 +146,24 @@ class ConstraintGroup : public WeightingStrategy {
   int _activeCount;
   double _minResidual;
 };
+
+
+/*********************
+ *
+ *
+ *  TODO: For all inequality constraints,
+ *  increase the weight by doubling it whenever
+ *  it becomes infeasible. Decrease it a bit whenever
+ *  feasible.
+ *
+ *  Alternative: Maintain an integral of all past quadratics.
+ *
+ *
+ *
+ *
+ *
+ *
+ */
 
 // Inequality constraint on the form A*X - B >= 0
 // 'reg' adds an extra cost f(X) = reg*(A*X - B). It is
@@ -194,6 +213,16 @@ class ConstantNormConstraint : public WeightingStrategy {
   Spani _span;
   double _length;
 };
+
+struct Results {
+ Eigen::VectorXd X;
+ Eigen::VectorXd residuals;
+};
+
+Results solveFull(const Eigen::SparseMatrix<double> &A,
+    const Eigen::VectorXd &B,
+    Array<std::shared_ptr<WeightingStrategy> > strategies,
+    Settings settings);
 
 Eigen::VectorXd solve(
     const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &B,
