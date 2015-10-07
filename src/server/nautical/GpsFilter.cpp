@@ -20,7 +20,7 @@ Settings::Settings() :
     motionWeight(1.0) {
     fitSettings.inlierRate = 0.8;
     fitSettings.regOrder = 3;
-    fitSettings.spcstSettings.iters = 90;
+    fitSettings.spcstSettings.iters = 30;
     fitSettings.spcstSettings.initialWeight = 0.1;
 }
 

@@ -118,6 +118,10 @@ class WeightingStrategyArray : public WeightingStrategy {
       s.apply(constraintWeight, residuals, dst);
     }
   }
+
+  static WeightingStrategy::Ptr make(Array<T> strategies) {
+    return WeightingStrategy::Ptr(new WeightingStrategyArray<T>(strategies));
+  }
  private:
   Array<T> _strategies;
 };

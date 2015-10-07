@@ -88,7 +88,7 @@ void runPsarosTest(Array<Nav> navs, Array<Nav> navsToFilter) {
   EXPECT_LT(minCount, reasonableMotionCount);
   EXPECT_LT(minCount, reasonablePositionCount);
 
-  bool visualize = true;
+  bool visualize = false;
   if (visualize) {
     GnuplotExtra plot;
     plot.set_style("lines");
@@ -148,7 +148,7 @@ TEST(GpsFilterTest, Irene) {
   auto maxSpeed = getMaxSpeedFromGpsPositions(results.filteredNavs());
   std::cout << EXPR_AND_VAL_AS_STRING(maxSpeed.knots()) << std::endl;
 
-  bool visualize = true;
+  bool visualize = false;
   if (visualize) {
     GnuplotExtra plot;
     plot.set_style("lines");

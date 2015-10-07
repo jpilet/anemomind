@@ -171,6 +171,11 @@ class Span {
     }
     return dst;
   }
+
+  T operator[] (T index) const {
+    static_assert(std::is_integral<T>::is_integral, "Only integers");
+    return _minv + index;
+  }
  private:
   bool _initialized;
   T _minv, _maxv;

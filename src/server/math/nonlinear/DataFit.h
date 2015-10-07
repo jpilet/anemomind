@@ -10,12 +10,17 @@
 #include <server/common/logging.h>
 #include <server/math/nonlinear/SignalUtils.h>
 #include <server/common/MDArray.h>
+#include <server/common/Span.h>
 #include <Eigen/Sparse>
 #include <vector>
 
 namespace sail {
 namespace DataFit {
+typedef Eigen::Triplet<double> Triplet;
 
+
+
+void makeEye(double weight, Spani rowSpan, Spani colSpan, std::vector<Triplet> *dst);
 
 // Facilitates the computation of indices
 // in vectors and matrices storing coordinates
@@ -75,11 +80,93 @@ class CoordIndexer {
     int offset = _offset + index*_dim;
     return Spani(offset, offset + _dim);
   }
+
+  int dim() const {
+    return _dim;
+  }
+
+  int count() const {
+    return _count;
+  }
+
+  Array<Spani> makeSpans() const {
+    return coordinateSpan().map<Spani>([&](int index) {
+      return span(index);
+    });
+  }
+
+  bool sameSizeAs(CoordIndexer other) const {
+    return _dim == other._dim && _count == other._count;
+  }
+
+  int operator[] (int i) const {
+    assert(_dim == 1);
+    return _offset + i;
+  }
  private:
   int _offset, _dim, _count;
 };
 
-typedef Eigen::Triplet<double> Triplet;
+
+// Make regularization term
+void makeReg(double weight, int order,
+    CoordIndexer rowIndexer, CoordIndexer colIndexer,
+    std::vector<Triplet> *dst);
+
+template <int Dim>
+irls::WeightingStrategy::Ptr makeDataWithOutliers(double threshold,
+    Array<Observation<Dim> > observations,
+
+    CoordIndexer dataRows,
+    CoordIndexer inlierSlackRows,
+    CoordIndexer outlierSlackRows,
+    CoordIndexer outlierPenaltyRows,
+
+    CoordIndexer dataCols,
+    CoordIndexer inlierCols,
+    CoordIndexer outlierCols,
+
+    std::vector<Triplet> *aDst, Eigen::VectorXd *bDst) {
+  int count = observations.size();
+  assert(observations.size() == dataRows.count());
+  assert(dataRows.dim() == dataCols.dim());
+  assert(inlierSlackRows.sameSizeAs(dataRows));
+  assert(inlierSlackRows.sameSizeAs(inlierCols));
+  assert(outlierSlackRows.sameSizeAs(outlierCols));
+  assert(inlierSlackRows.count() == outlierSlackRows.count());
+  assert(outlierSlackRows.dim() == 1);
+  assert(outlierPenaltyRows.sameSizeAs(outlierSlackRows));
+
+  Array<irls::ConstraintGroup> groups(count);
+  for (int i = 0; i < count; i++) {
+    const Observation<Dim> &obs = observations[i];
+    auto rowSpan = dataRows.span(i);
+    auto inlierRowSpan = inlierSlackRows.span(i);
+    makeEye(obs.weights.lowerWeight, rowSpan, dataCols.span(obs.weights.lowerIndex), aDst);
+    makeEye(obs.weights.upperWeight, rowSpan, dataCols.span(obs.weights.upperIndex()), aDst);
+    for (int j = 0; j < Dim; j++) {
+      (*bDst)(rowSpan[j]) = obs.data[j];
+      (*bDst)(inlierRowSpan[j]) = 0.0;
+    }
+    makeEye(1.0, rowSpan, inlierCols.span(i), aDst);
+    makeEye(1.0, inlierSlackRows.span(i), inlierCols.span(i), aDst);
+    (*bDst)(outlierPenaltyRows[i]) = threshold;
+    (*bDst)(outlierSlackRows[i]) = 0;
+    groups[i] = irls::ConstraintGroup(
+        Array<Spani>{inlierSlackRows.span(i), outlierSlackRows.span(i)}, 1);
+  }
+
+  // Outlier part
+  makeEye(1.0, outlierPenaltyRows.elementSpan(), outlierCols.elementSpan(), aDst);
+  makeEye(1.0, outlierSlackRows.elementSpan(), outlierCols.elementSpan(), aDst);
+  return irls::WeightingStrategyArray<irls::ConstraintGroup>::make(groups);
+}
+
+
+
+
+
+
 
 Array<Spani> makeReg(int order, int firstRowOffset, int firstColOffset,
     int dim, int count, std::vector<Triplet> *dst);

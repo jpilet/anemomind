@@ -9,6 +9,27 @@
 namespace sail {
 namespace DataFit {
 
+void makeEye(double weight, Spani rowSpan, Spani colSpan, std::vector<Triplet> *dst) {
+  int n = std::min(rowSpan.width(), colSpan.width());
+  for (int i = 0; i < n; i++) {
+    dst->push_back(Triplet(rowSpan.minv() + i, colSpan.minv() + i, weight));
+  }
+}
+
+void makeReg(double weight, int order, CoordIndexer rowIndexer, CoordIndexer colIndexer,
+    std::vector<Triplet> *dst) {
+  assert(rowIndexer.dim() == colIndexer.dim());
+  assert(rowIndexer.count() + order == colIndexer.count());
+  Arrayd coefs = makeRegCoefs(order);
+  for (auto i: colIndexer.coordinateSpan()) {
+    Spani rowSpan = rowIndexer.span(i);
+    for (int j = 0; j < coefs.size(); j++) {
+      Spani colSpan = colIndexer.span(j);
+      makeEye(weight, rowSpan, colSpan, dst);
+    }
+  }
+}
+
 
 Array<Spani> makeReg(int order, int firstRowOffset, int firstColOffset,
     int dim, int count, std::vector<Triplet> *dst) {
