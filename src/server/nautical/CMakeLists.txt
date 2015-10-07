@@ -457,7 +457,7 @@ add_library(nautical_GpsFilter
 target_link_libraries(nautical_GpsFilter
                       nautical_nav
                       nautical_GeographicReference
-                      math_nonlinear_BandedSolver
+                      math_nonlinear_DataFit
                      )   
                      
 cxx_test(nautical_GpsFilterTest

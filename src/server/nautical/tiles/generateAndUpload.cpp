@@ -1,9 +1,10 @@
+#include <server/nautical/GpsFilter.h>
 #include <device/Arduino/NMEAStats/test/ScreenRecordingSimulator.h>
 #include <server/nautical/tiles/NavTileUploader.h>
 #include <server/common/ArgMap.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/nautical/NavNmeaScan.h>
-#include <server/nautical/GpsFilter.h>
+#include <server/common/logging.h>
 
 using namespace sail;
 
@@ -16,7 +17,8 @@ Array<Nav> filterNavs(Array<Nav> navs) {
     return abs(pos.lat().degrees()) > 0.01
       && abs(pos.lon().degrees()) > 0.01;
   });
-  return GpsFilter::filter(withoutNulls.get(), settings).filteredNavs();
+  auto results = GpsFilter::filter(withoutNulls.get(), settings);
+  return results.filteredNavs().slice(results.inlierMask());
 }
 
 // Convenience method to extract the description of a tree.
