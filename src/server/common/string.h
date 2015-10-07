@@ -41,7 +41,7 @@ std::string int64ToHex(int64_t x);
 void indent(std::ostream *s, int count);
 
 std::string readFileToString(const std::string& filename);
-Array<std::string> tokenize(std::string x, std::string delimiter);
+Array<std::string> split(std::string x, char delimiter);
 
 } /* namespace sail */
 #endif /* TEXT_H_ */
