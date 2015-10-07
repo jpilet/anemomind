@@ -292,13 +292,6 @@ Results quadraticFitWithInliers(
   std::vector<Triplet> triplets;
   Eigen::VectorXd B(rows.count());
   makeReg(regWeight, regOrder, regRows, sampleCols, &triplets);
-  std::cout << EXPR_AND_VAL_AS_STRING(regRows.to()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(rows.count()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(sampleCols.to()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(cols.count()) << std::endl;
-  auto last = triplets.back();
-  std::cout << EXPR_AND_VAL_AS_STRING(last.row()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(last.col()) << std::endl;
 
   auto strategy = makeDataWithOutliers(inlierThreshold, observations,
       dataRows, inlierSlackRows, outlierSlackRows,
@@ -350,7 +343,6 @@ Results fit(int sampleCount, int discontinuityCount,
   Array<Spani> regSpans = makeReg(settings.regOrder, dataRowCount, 0,
       Dim, regCount, &elements);
   CHECK(elements.back().col() <= Dim*sampleCount);
-  std::cout << EXPR_AND_VAL_AS_STRING(dataRowCount) << std::endl;
   CHECK(regSpans.first().minv() == dataRowCount);
   int dataAndRegRowCount = dataRowCount + regRowCount;
   CHECK(regSpans.last().maxv() == dataAndRegRowCount);

@@ -7,6 +7,7 @@
 #include <server/math/nonlinear/DataFit.h>
 #include <server/common/ArrayIO.h>
 #include <server/common/string.h>
+#include <server/plot/extra.h>
 
 using namespace sail;
 using namespace DataFit;
@@ -205,10 +206,17 @@ TEST(DataFit, QuadraticFit) {
     double offset = (i < k? 30 : 0);
     X[i] = i;
     Ygt[i] = 0.3*i;
-    Y[i] = Ygt[i] + 0.01*sin(exp(3.0*i)) + offset;
+    Y[i] = Ygt[i] + 0.1*sin(exp(3.0*i)) + offset;
     observations[i] = Observation<1>{Sampling::Weights{i, 1.0, 0.0}, {Y[i]}};
   }
   irls::Settings settings;
   auto results = DataFit::quadraticFitWithInliers(n, observations, 0.2, 2, 1.0, settings);
+
+  GnuplotExtra plot;
+  plot.set_style("lines");
+  plot.plot_xy(X, Ygt);
+  plot.plot_xy(X, Y);
+  plot.plot_xy(X, results.samples.getStorage().sliceBut(1));
+  plot.show();
 
 }

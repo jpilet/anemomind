@@ -23,11 +23,9 @@ void makeReg(double weight, int order, CoordIndexer rowIndexer, CoordIndexer col
   Arrayd coefs = makeRegCoefs(order);
   for (auto i: rowIndexer.coordinateSpan()) {
     Spani rowSpan = rowIndexer.span(i);
-    std::cout << EXPR_AND_VAL_AS_STRING(rowSpan.maxv()) << std::endl;
     for (int j = 0; j < coefs.size(); j++) {
       Spani colSpan = colIndexer.span(i + j);
       makeEye(weight*coefs[j], rowSpan, colSpan, dst);
-      std::cout << EXPR_AND_VAL_AS_STRING(colSpan.maxv()) << std::endl;
     }
   }
 }

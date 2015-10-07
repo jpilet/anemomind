@@ -223,6 +223,7 @@ target_link_libraries(math_nonlinear_DataFit
                       common_ScopedLog
                       common_logging
                       math_nonlinear_SignalUtils
+                      plot_gnuplot
                      )           
         
 cxx_test(math_nonlinear_DataFitTest
