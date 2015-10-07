@@ -196,10 +196,11 @@ TEST(DataFit, NoisyStepWithOutliers) {
 */
 
 
+// Simulate offset error in some positions.
 TEST(DataFit, QuadraticFit) {
   int n = 30;
   int dataCount = n - 1;
-  int k = 4;
+  int k = 9;
   Array<Observation<1> > observations(dataCount);
   Arrayd X(dataCount), Y(dataCount), Ygt(dataCount);
   for (int i = 0; i < dataCount; i++) {
@@ -210,13 +211,20 @@ TEST(DataFit, QuadraticFit) {
     observations[i] = Observation<1>{Sampling::Weights{i, 1.0, 0.0}, {Y[i]}};
   }
   irls::Settings settings;
+  settings.iters = 200;
   auto results = DataFit::quadraticFitWithInliers(n, observations, 0.2, 2, 1.0, settings);
 
-  GnuplotExtra plot;
-  plot.set_style("lines");
-  plot.plot_xy(X, Ygt);
-  plot.plot_xy(X, Y);
-  plot.plot_xy(X, results.samples.getStorage().sliceBut(1));
-  plot.show();
+  for (int i = 0; i < n; i++) {
+    EXPECT_NEAR(i*0.3, results.samples(i, 0), 0.4);
+  }
 
+  bool visualize = false;
+  if (visualize) {
+    GnuplotExtra plot;
+    plot.plot_xy(X, Y);
+    plot.set_style("lines");
+    plot.plot_xy(X, Ygt);
+    plot.plot_xy(X, results.samples.getStorage().sliceBut(1));
+    plot.show();
+  }
 }
