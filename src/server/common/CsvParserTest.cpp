@@ -8,12 +8,11 @@
 #include <sstream>
 
 using namespace sail;
-using namespace sail::CsvParser;
 
 TEST(CsvParserTest, NumbersAndStrings) {
   std::stringstream ss;
   ss << "a,b,c\n\n\n1,2,3\n";
-  MDArray<std::string, 2> results = parse(&ss);
+  MDArray<std::string, 2> results = parseCsv(&ss);
   EXPECT_EQ(results.cols(), 3);
   EXPECT_EQ(results.rows(), 2);
   EXPECT_EQ(results(0, 0), "a");

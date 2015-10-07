@@ -206,18 +206,16 @@ std::string readFileToString(const std::string& filename) {
   return result;
 }
 
-Array<std::string> tokenize(std::string x, std::string delimiter) {
+
+Array<std::string> split(std::string x, char delimiter) {
+
   ArrayBuilder<std::string> builder;
-  while (true) {
-    int index = x.find(delimiter);
-    if (index == x.npos) {
-      builder.add(x);
-      return builder.get();
-    }
-    builder.add(x.substr(0, index));
-    int from = index + 1;
-    x = x.substr(from, x.length() - from);
+  std::stringstream ss(x);
+  std::string item;
+  while (std::getline(ss, item, delimiter)) {
+    builder.add(item);
   }
+  return builder.get();
 }
 
 } /* namespace sail */

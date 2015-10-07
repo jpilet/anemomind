@@ -31,61 +31,12 @@ namespace {
   Velocity<double> knots = Velocity<double>::knots(1.0);
 }
 
-TimeStamp tryParseRowdyTime(std::string s) {
-  auto tokens = tokenize(s, " ");
-  if (tokens.size() == 3) {
-    auto date = tokens[0];
-    auto time = tokens[1];
-    auto ampm = tokens[2];
-    auto monthDayYear = tokenize(date, "/");
-    if (monthDayYear.size() == 3) {
-      auto hourMinuteSecond = tokenize(time, ":");
-      if (hourMinuteSecond.size() == 3) {
-        int mdy[3] = {0, 0, 0};
-        for (int i = 0; i < 3; i++) {
-          if (!tryParseInt(monthDayYear[i], mdy + i)) {
-            return TimeStamp();
-          }
-        }
 
-        int year = mdy[2];
-        int month = mdy[0];
-        int day = mdy[1];
 
-        int hour = 0, minute = 0;
-        double second = 0.0;
-        if (!tryParseInt(hourMinuteSecond[0], &hour)) {
-          return TimeStamp();
-        }
-        if (!tryParseInt(hourMinuteSecond[1], &minute)) {
-          return TimeStamp();
-        }
-        if (!tryParseDouble(hourMinuteSecond[2], &second)) {
-          return TimeStamp();
-        }
-        int offset = (ampm == "am"? 0 : 12);
-        auto ts = TimeStamp::UTC(year, month, day, hour + offset, minute, second);
-        return ts;
-      }
-    }
-  }
-  return TimeStamp();
-}
 
-TimeStamp parseTime(std::string s) {
-  TimeStamp ts = tryParseRowdyTime(s);
-  if (ts.defined()) {
-    return ts;
-  }
-
-  // TODO: Try something else.
-
-  LOG(WARNING) << "Failed to parse time " << s;
-  return TimeStamp();
-}
 
 void parseAndSetTime(std::string s, Nav *dst) {
-  dst->setTime(parseTime(s));
+  dst->setTime(TimeStamp::parse(s));
 }
 
 
@@ -128,31 +79,52 @@ std::map<std::string, ValueSetter> makeValueSetterMap() {
 }
 
 
+std::string addNonEmpty(std::string total, std::string toAdd) {
+  if (toAdd.empty()) {
+    return total;
+  } else if (total.empty()) {
+    return toAdd;
+  }
+  return total + ", " + toAdd;
+}
+
+
+
+std::string processColumn(std::map<std::string, ValueSetter> &m,
+    Array<Nav> *dst, MDArray<std::string, 2> col) {
+  auto h = Poco::trim(col(0, 0));
+  auto data = col.sliceRowsFrom(1);
+  if (m.find(h) != m.end()) {
+    auto setter = m[h];
+    for (int i = 0; i < data.rows(); i++) {
+      setter(data(i, 0), dst->ptr(i));
+    }
+    return "";
+  } else {
+    return h;
+  }
+}
+
 Array<Nav> parse(MDArray<std::string, 2> table) {
   auto m = makeValueSetterMap();
-  auto header = table.sliceRow(0);
   auto data = table.sliceRowsFrom(1);
   Array<Nav> dst(data.rows());
-  for (int j = 0; j < header.cols(); j++) {
-    auto h = Poco::trim(header[j]);
-    if (m.find(h) != m.end()) {
-      auto setter = m[h];
-      for (int i = 0; i < data.rows(); i++) {
-        setter(data(i, j), dst.ptr(i));
-      }
-    } else {
-      LOG(WARNING) << "The column " << h << " was ignored.";
-    }
+  std::string ignoredColumns = "";
+  for (int j = 0; j < table.cols(); j++) {
+    ignoredColumns = addNonEmpty(ignoredColumns, processColumn(m, &dst, table.sliceCol(j)));
+  }
+  if (!ignoredColumns.empty()) {
+    LOG(WARNING) << "The following columns were ignored: " << ignoredColumns;
   }
   return dst;
 }
 
 Array<Nav> parse(std::string filename) {
-  return parse(CsvParser::parse(filename));
+  return parse(parseCsv(filename));
 }
 
 Array<Nav> parse(std::istream *s) {
-  return parse(CsvParser::parse(s));
+  return parse(parseCsv(s));
 }
 
 

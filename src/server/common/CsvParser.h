@@ -10,13 +10,12 @@
 #include <server/common/string.h>
 
 namespace sail {
-namespace CsvParser {
 
-MDArray<std::string, 2> parse(std::istream *s);
 
-MDArray<std::string, 2> parse(std::string filename);
+
+MDArray<std::string, 2> parseCsv(std::istream *s);
+MDArray<std::string, 2> parseCsv(std::string filename);
 
 }
-};
 
 #endif /* SERVER_COMMON_CSVPARSER_H_ */
