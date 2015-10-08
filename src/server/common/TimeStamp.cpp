@@ -48,6 +48,11 @@ TimeStamp TimeStamp::date(int year_ad, unsigned int month_1to12, unsigned int da
   return TimeStamp::UTC(year_ad, month_1to12, day_1to31, 0, 0, 0);
 }
 
+TimeStamp TimeStamp::fromTM(const struct tm &tm) {
+  return TimeStamp::UTC(1900 + tm.tm_year, tm.tm_mon+1, tm.tm_mday,
+                        tm.tm_hour, tm.tm_min, tm.tm_sec);
+}
+
 struct tm TimeStamp::makeGMTimeStruct() const {
   time_t rawtime = time_t(_time/TimeRes);
   struct tm result;
@@ -82,6 +87,45 @@ TimeStamp TimeStamp::now() {
   int64_t t = int64_t(tv.tv_sec) * 1000 + int64_t(tv.tv_usec / 1000);
   return TimeStamp(t);
 }
+
+std::string removeFractionalParts(std::string s) {
+  int from = s.find('.');
+  if (from < s.npos) {
+    int to = from+1;
+    while (to < s.npos && isdigit(s[to])) {
+      to++;
+    }
+    return removeFractionalParts(s.substr(0, from) + s.substr(to, s.npos - to));
+  } else {
+    return s;
+  }
+}
+
+
+TimeStamp tryParseTime(const char *fmt, std::string s) {
+  struct tm tm;
+
+  // http://man7.org/linux/man-pages/man3/strptime.3.html
+  auto ret = strptime(s.c_str(), fmt, &tm);
+
+  if (ret == nullptr) {
+    return TimeStamp();
+  } else if (*ret == 0) {
+    return TimeStamp::fromTM(tm);
+  }
+  return TimeStamp();
+}
+
+#define TRY_PARSE_TIME(FMT, X) {auto res = tryParseTime(FMT, X); if (res.defined()) {return res;}}
+
+TimeStamp TimeStamp::parse(const std::string &x0) {
+  auto x = removeFractionalParts(x0);
+  TRY_PARSE_TIME("%D %T", x);
+  TRY_PARSE_TIME("%m/%d/%Y %r", x);
+  LOG(WARNING) << "Failed to parse time" << x0;
+  return TimeStamp();
+}
+
 
 TimeStamp TimeStamp::makeUndefined() {
   return TimeStamp(UndefinedTime);

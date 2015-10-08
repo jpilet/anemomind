@@ -3,6 +3,7 @@
 
 #include <string>
 #include <sstream>
+#include <server/common/Array.h>
 
 
 namespace sail {
@@ -40,6 +41,7 @@ std::string int64ToHex(int64_t x);
 void indent(std::ostream *s, int count);
 
 std::string readFileToString(const std::string& filename);
+Array<std::string> split(std::string x, char delimiter);
 
 } /* namespace sail */
 #endif /* TEXT_H_ */
