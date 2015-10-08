@@ -24,7 +24,7 @@ function refit = sample_parameter_refit(Q, B, R, n, minl, maxl, refit_count)
     refit = [];
     
     refit.A = Qr\avgQr;
-    refit.B = Q\(avgBr - Br);
+    refit.B = Qr\(avgBr - Br);
     refit.RAR = (R\refit.A)*R;
     refit.RB = (R\refit.B);
 end

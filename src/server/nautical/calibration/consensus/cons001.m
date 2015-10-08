@@ -8,8 +8,9 @@ settings = make_refit_settings();
 settings.min_length = 10;
 settings.max_length = 100;
 settings.count = 10000;
+settings.spans = 1;
 refits = make_parameter_refits(A(:, 1:4), B, settings);
 
 
 %%
-plot_refits(refits, [], [3 4]);
+plot_refits(refits, [1 0 0 0]', [1 2]);
