@@ -1,7 +1,7 @@
 add_calib_paths;
 
 raw = true;
-[A, B] = get_calib_ds(1, raw);
+[A, B] = get_calib_ds(2, raw);
 n = get_observation_count(A);
 %%
 settings = make_refit_settings();
