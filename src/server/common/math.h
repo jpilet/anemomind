@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cassert>
 #include <limits>
+#include <server/common/MDArray.h>
 
 namespace sail {
 
@@ -324,6 +325,52 @@ bool genericIsNan(T x) {
 
 inline bool implies(bool a, bool b) {
   return !a || b;
+}
+
+template <typename T, int dims>
+bool isFinite(MDArray<T, dims> X) {
+  for (int i = 0; i < X.numel(); i++) {
+    if (!std::isfinite(X[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <typename T>
+bool isFinite(Array<T> X) {
+  for (int i = 0; i < X.size(); i++) {
+    if (!std::isfinite(X[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/*
+ * A calculation is sane if, whenever
+ * the result of the calculation is non-finite,
+ * at least one argument was also non-finite. If all
+ * the arguments are finite but not the result, then something
+ * is probably wrong.
+ */
+template <typename T>
+bool saneCalculation(T result, Array<T> arguments) {
+  if (std::isfinite(result)) {
+    return true;
+  } else {
+    for (auto arg: arguments) {
+      if (!std::isfinite(arg)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+template <typename T>
+T toFinite(T x, T defaultValue) {
+  return (std::isfinite(x)? x : defaultValue);
 }
 
 } /* namespace sail */

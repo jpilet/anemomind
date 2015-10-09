@@ -19,6 +19,10 @@ namespace sail {
 struct MajQuad {
  double a, b;
 
+ bool isFinite() const {
+   return std::isfinite(a) && std::isfinite(b);
+ }
+
  bool constant() const {
    return a == 0 && b == 0;
  }

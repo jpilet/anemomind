@@ -157,7 +157,7 @@ class BandMat {
   }
 
 
-  MDArray<T, 2> getDataForDebug() {return _data;}
+  MDArray<T, 2> data() {return _data;}
  private:
   // Map (i, j) col index a col index of the underlying storage.
   // (The row index is the same)

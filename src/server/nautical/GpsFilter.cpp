@@ -85,6 +85,28 @@ Array<Observation<2> > getObservations(
     difWeights.lowerWeight = -difScale;
     difWeights.upperWeight = difScale;
 
+    for (int i = 0; i < 2; i++) {
+      auto sane = saneCalculation(localPos[i].meters(), Arrayd{
+              nav.geographicPosition().lon().degrees(),
+              nav.geographicPosition().lat().degrees(),
+            });
+      if (!sane) {
+        std::cout << EXPR_AND_VAL_AS_STRING(localPos[i].meters()) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(nav.geographicPosition().lon().degrees()) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(nav.geographicPosition().lat().degrees()) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(geoRef.pos().lon().degrees()) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(geoRef.pos().lat().degrees()) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(geoRef.dlat()) << std::endl;
+        std::cout << EXPR_AND_VAL_AS_STRING(geoRef.dlon()) << std::endl;
+      }
+      assert(sane);
+      assert(saneCalculation(geoDif[i].meters(), Arrayd{
+        nav.gpsMotion()[0].metersPerSecond(),
+        nav.gpsMotion()[1].metersPerSecond()
+      }));
+    }
+
+
     // Based on the position
     dst[i] = Observation<2>{weights,
       {localPos[0].meters(), localPos[1].meters()}};
