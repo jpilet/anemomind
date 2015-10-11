@@ -8,11 +8,18 @@ settings = make_indeparam_settings();
 
 Q = gram_schmidt(A);
 R = Q'*A;
-indeparam_optimizers = make_indeparam_optimizers(A, B, settings);
+indeparam_optimizers = make_indeparam_optimizers(Q, B, settings);
 
 
 
 %%
 close all;
-X = [1 0 -50 0]';
+
+X = R*[1 0 0 0]';
+
+%X(1) = 0;
+
+
 plot_indeparam_optimizers(indeparam_optimizers, X);
+
+Xtrue = R\X;
