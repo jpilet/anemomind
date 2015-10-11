@@ -1,5 +1,8 @@
 function out = make_indeparam_optimizer(A_, B_)
-    [A, B] = compress_AB(A_, B_);
+    %[A, B] = compress_AB(A_, B_);
+    A = A_;
+    B = B_;
+    
     out = @fun;
     function out = fun(X)
         out = zeros(size(X));
