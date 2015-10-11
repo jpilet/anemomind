@@ -1,4 +1,5 @@
-function indeparam = make_indeparam(Q, B)
+function indeparam = make_indeparam(Q, A, B, R)
+    avgA = apply_avg(A, 2);
     avgQ = apply_avg(Q, 2);
     avgB = apply_avg(B, 2);
     param_count = size(Q, 2);
@@ -14,4 +15,6 @@ function indeparam = make_indeparam(Q, B)
     indeparam = [];
     indeparam.A = outA;
     indeparam.B = outB;
+    
+    indeparam.inv_scale = -avgB\avgA;
 end

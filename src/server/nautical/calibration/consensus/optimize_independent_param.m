@@ -1,0 +1,1 @@
+function paraoptimize_independent_param(A, B, index)
