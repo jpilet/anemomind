@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .directive('events', function ($http, Auth) {
+  .directive('events', function ($http, Auth, userDB) {
     return {
       templateUrl: 'app/events/events.html',
       restrict: 'E',
@@ -13,6 +13,7 @@ angular.module('www2App')
       },
       link: function (scope, element, attrs) {
         scope.events = [];
+        scope.users = {};
         $http.get('/api/events', { params: {
             b: scope.boat,
             A: scope.after.toISOString(),
@@ -20,10 +21,15 @@ angular.module('www2App')
           }})
           .success(function(data, status, headers, config) {
             if (status == 200) {
-              // Parse date
               for (var i in data) {
                 var event = data[i];
+                // Parse date
                 event.when = new Date(event.when);
+
+                // Fetch user details
+                userDB.resolveUser(event.author, function(user) {
+                  scope.users[user._id] = user;
+                });
               }
               scope.events = data;
             }
