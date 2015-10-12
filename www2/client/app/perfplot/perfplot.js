@@ -21,7 +21,7 @@ Graph.prototype.prepare = function() {
   this.x = d3.time.scale().range([0, innerWidth]);
   var x = this.x;
 
-  this.y = d3.scale.linear().range([height - innerHeight, 0]);
+  this.y = d3.scale.linear().range([innerHeight, 0]);
   var y = this.y;
 
   this.xAxis = d3.svg.axis()

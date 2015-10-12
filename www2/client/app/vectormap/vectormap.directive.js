@@ -4,7 +4,7 @@ angular.module('www2App')
   .directive('vectormap', function ($timeout, $window, boatList) {
     return {
       template: '<canvas style="width:100%;height:100%"></canvas>',
-      restrict: 'E',
+      restrict: 'EA',
       link: function (scope, element, attrs) {
 
         var canvas;
@@ -134,7 +134,7 @@ angular.module('www2App')
             },
             function (newValue, oldValue) {
               if (newValue.w != oldValue.w || newValue.h != oldValue.h) {
-                canvas.resizeCanvas();
+                canvas.resizeCanvas(newValue.w, newValue.h);
               }
             },
             true // deep object compare
@@ -142,6 +142,7 @@ angular.module('www2App')
           angular.element($window).bind('resize', function () {
             scope.$apply();
           });
+          canvas.resizeCanvas(element.width(), element.height());
 
           scope.$watch('mapLocation', function(newValue, oldValue) {
             function near(x,y) {
