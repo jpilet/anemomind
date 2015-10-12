@@ -87,6 +87,11 @@ class GenericLineKM {
     weightsOut2[0] = 1.0 - lambda;
     weightsOut2[1] = lambda;
   }
+
+  // Solve k*x + m = y <=> x = (y - m)/k
+  T solveWithEquality(T y) {
+    return (y - _m)/_k;
+  }
  private:
   T _k, _m;
 };

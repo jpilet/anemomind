@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cassert>
 #include <limits>
+#include <server/common/Array.h>
 
 namespace sail {
 
@@ -308,9 +309,9 @@ struct MatrixElement {
 };
 typedef MatrixElement<double> MatrixElementd;
 
-inline double absSaturate(double x, double lb) {
+inline double thresholdCloseTo0(double x, double lb) {
   if (x < 0) {
-    return -absSaturate(-x, lb);
+    return -thresholdCloseTo0(-x, lb);
   } else if (x < lb) {
     return lb;
   }
@@ -325,6 +326,10 @@ bool genericIsNan(T x) {
 inline bool implies(bool a, bool b) {
   return !a || b;
 }
+
+Arrayd makeNextRegCoefs(Arrayd coefs);
+Arrayd makeRegCoefs(int order);
+
 
 } /* namespace sail */
 
