@@ -11,10 +11,10 @@ var makeQuery = function(boatId, s, x, y, startsAfter, endsBefore) {
   };
 
   if (startsAfter) {
-    search.startTime = { $gte: new Date(startsAfter) };
+    search.endTime  = { $gte: new Date(startsAfter) };
   }
   if (endsBefore) {
-    search.endTime = { $lte: new Date(endsBefore) };
+    search.startTime = { $lte: new Date(endsBefore) };
   }
 
   return search;

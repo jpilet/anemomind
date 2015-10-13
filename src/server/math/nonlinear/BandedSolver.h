@@ -42,18 +42,19 @@ struct Settings {
  double residualLowerBound = 0.0001;
 };
 
-
 MDArray2d initialize(int sampleCount, int dim);
 
 template <int Dim, typename DataCost>
 void accumulateData(DataCost dataCost, Array<Observation<Dim> > observations, MDArray2d X,
     BandMat<double> *AtA, MDArray2d *AtB, const Settings &settings) {
-    for (const Observation<Dim> &obs: observations) {
-      auto r = obs.calcResidual(X);
-      assert(!std::isnan(r));
-      auto q = majorizeCostFunction<DataCost>(dataCost, r, settings.residualLowerBound);
-      obs.accumulateNormalEqs(q.a, AtA, AtB);
-    }
+  assert(isFinite(X));
+  for (const Observation<Dim> &obs: observations) {
+    auto r = obs.calcResidual(X);
+    assert(!std::isnan(r));
+    auto q = majorizeCostFunction<DataCost>(dataCost, r, settings.residualLowerBound);
+    assert(q.isFinite());
+    obs.accumulateNormalEqs(q.a, AtA, AtB);
+  }
 }
 
 template <int Dim>
@@ -110,6 +111,7 @@ MDArray2d iterate(DataCost dataCost, RegCost regCost,
     AtB.setAll(0.0);
     accumulateData<Dim, DataCost>(dataCost, observations, X, &AtA, &AtB, settings);
     accumulateReg<Dim, RegCost>(regCost, regCoefs, X, settings, &AtA);
+    assert(isFinite(AtA.data()) && isFinite(AtB));
     if (bandMatGaussElimDestructive(&AtA, &AtB, settings.tol)) {
       return AtB;
     }
@@ -152,9 +154,18 @@ Array<Observation<Dim> > filterObservations(Sampling s,
 template <int Dim, typename DataCost, typename RegCost>
 MDArray2d solve(
     DataCost dataCost, RegCost regCost,
-    Sampling sampling, Array<Observation<Dim> > observations, Settings settings,
+    Sampling sampling, Array<Observation<Dim> > observations0, Settings settings,
     MDArray2d initialX = MDArray2d()) {
+<<<<<<< HEAD
   Arrayd regCoefs = makeRegCoefs(settings.regOrder);
+=======
+
+  auto observations = observations0.slice([](const Observation<Dim> &obs) {
+    return obs.isFinite();
+  });
+  Arrayd regCoefs = makeRegCoefs(settings.regOrder);
+
+>>>>>>> master
   MDArray2d X = (initialX.empty()? initialize(sampling.count(), Dim) : initialX);
   for (int i = 0; i < settings.iters; i++) {
     auto nextX = iterate<Dim, DataCost, RegCost>(dataCost, regCost,

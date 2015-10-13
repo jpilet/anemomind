@@ -439,6 +439,15 @@ target_link_libraries(nautical_CalibrationBenchmark
                       nautical_NavNmeaScan
                      )
 
+add_library(nautical_NavCsv
+            NavCsv.h
+            NavCsv.cpp
+           )
+target_link_libraries(nautical_NavCsv
+                      nautical_nav
+                      common_CsvParser
+                     )           
+
 add_library(nautical_NavLoader
             NavLoader.h
             NavLoader.cpp
@@ -448,6 +457,7 @@ target_link_libraries(nautical_NavLoader
                       common_logging
                       common_string
                       nautical_NavNmea
+                      nautical_NavCsv
                      )
 target_depends_on_poco_foundation(nautical_NavLoader)                                                                    
 
@@ -459,7 +469,7 @@ add_library(nautical_GpsFilter
 target_link_libraries(nautical_GpsFilter
                       nautical_nav
                       nautical_GeographicReference
-                      math_nonlinear_BandedSolver
+                      math_nonlinear_DataFit
                      )   
                      
 cxx_test(nautical_GpsFilterTest
@@ -479,4 +489,17 @@ target_link_libraries(nautical_exportNavs
                       nautical_NavNmeaScan
                       common_logging
                       common_ArgMap
+                      nautical_Calibrator
                      )              
+
+add_library(nautical_NavToNmea
+            NavToNmea.h
+            NavToNmea.cpp)
+target_link_libraries(nautical_NavToNmea
+                      common_string
+                      nautical_nav)
+cxx_test(nautical_NavToNmeaTest NavToNmeaTest.cpp
+         device_NmeaParser
+         nautical_NavToNmea
+         gtest_main
+         )

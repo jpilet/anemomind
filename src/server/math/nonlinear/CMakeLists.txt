@@ -214,11 +214,22 @@ cxx_test(math_nonlinear_BandedSolverTest
          gtest_main
         )    
         
+add_library(math_nonlinear_DataFit
+            DataFit.h
+            DataFit.cpp
+           )
+           
+target_link_libraries(math_nonlinear_DataFit
+                      math_irls
+                      common_math
+                      common_ScopedLog
+                      common_logging
+                      math_nonlinear_SignalUtils
+                      plot_gnuplot
+                     )           
         
-cxx_test(math_nonlinear_SparseFilterTest
-         SparseFilterTest.cpp
+cxx_test(math_nonlinear_DataFitTest
+         DataFitTest.cpp
          gtest_main
-         math_SparsityConstrained
-         math_nonlinear_SignalUtils
-         plot_gnuplot
+         math_nonlinear_DataFit
         )

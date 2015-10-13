@@ -11,7 +11,11 @@
 #include <cmath>
 #include <cassert>
 #include <limits>
+<<<<<<< HEAD
 #include <server/common/Array.h>
+=======
+#include <server/common/MDArray.h>
+>>>>>>> master
 
 namespace sail {
 
@@ -309,9 +313,9 @@ struct MatrixElement {
 };
 typedef MatrixElement<double> MatrixElementd;
 
-inline double absSaturate(double x, double lb) {
+inline double thresholdCloseTo0(double x, double lb) {
   if (x < 0) {
-    return -absSaturate(-x, lb);
+    return -thresholdCloseTo0(-x, lb);
   } else if (x < lb) {
     return lb;
   }
@@ -327,7 +331,52 @@ inline bool implies(bool a, bool b) {
   return !a || b;
 }
 
+<<<<<<< HEAD
 Arrayd makeNextRegCoefs(const Arrayd &coefs);
+=======
+template <typename T, int dims>
+bool isFinite(MDArray<T, dims> X) {
+  for (int i = 0; i < X.numel(); i++) {
+    if (!std::isfinite(X[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <typename T>
+bool isFinite(Array<T> X) {
+  for (int i = 0; i < X.size(); i++) {
+    if (!std::isfinite(X[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/*
+ * A calculation is sane if, whenever
+ * the result of the calculation is non-finite,
+ * at least one argument was also non-finite. If all
+ * the arguments are finite but not the result, then something
+ * is probably wrong.
+ */
+template <typename T>
+bool saneCalculation(T result, Array<T> arguments) {
+  if (std::isfinite(result)) {
+    return true;
+  } else {
+    return !isFinite(arguments);
+  }
+}
+
+template <typename T>
+T toFinite(T x, T defaultValue) {
+  return (std::isfinite(x)? x : defaultValue);
+}
+
+Arrayd makeNextRegCoefs(Arrayd coefs);
+>>>>>>> master
 Arrayd makeRegCoefs(int order);
 
 } /* namespace sail */

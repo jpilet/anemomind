@@ -6,6 +6,7 @@
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <server/nautical/NavNmea.h>
+#include <server/nautical/NavCsv.h>
 
 namespace sail {
 
@@ -16,6 +17,8 @@ ParsedNavs loadNavsFromFile(std::string file, Nav::Id boatId) {
     return loadNavsFromNmea(file, boatId);
   } else if (ext == "log") {
     return ParsedNavs(logFileToNavArray(file));
+  } else if (ext == "csv") {
+    return ParsedNavs(NavCsv::parse(file));
   } else {
     LOG(ERROR) << file << ": unknown extension.";
     return ParsedNavs();

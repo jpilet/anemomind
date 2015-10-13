@@ -17,6 +17,8 @@ ArgMap::ArgMap() {
   _optionPrefix = "-";
   registerOption("--help", "Displays information about available commands.").setMinArgCount(0).setMaxArgCount(0);
   registerOption("-h", "shortcut for --help").setMinArgCount(0).setMaxArgCount(0);
+  registerOption("--noinfo", "Mute loglevel INFO.").setArgCount(0).callback(
+      [=](const Array<Arg*>&) { SetLogLevelThreshold(LOGLEVEL_WARNING); });
   setHelpInfo("(no help or usage information specified)");
 }
 

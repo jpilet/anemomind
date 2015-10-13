@@ -25,8 +25,12 @@ class TimeStamp {
 
   TimeStamp(const TimeStamp &) = default;
 
+  static TimeStamp fromTM(const struct tm &tm);
+
   static TimeStamp now();
   static TimeStamp makeUndefined();
+
+  static TimeStamp parse(const std::string &x);
 
 
   bool operator<(const TimeStamp &x) const;

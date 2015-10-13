@@ -113,6 +113,17 @@ cxx_test(math_GridTest
          gtest_main
         )
 
+<<<<<<< HEAD
+=======
+add_library(math_BandMat
+            BandMat.h
+            BandMat.cpp
+           )
+target_link_libraries(math_BandMat
+                       common_Array
+                       common_math
+                      )                                    
+>>>>>>> master
 cxx_test(math_BandMatTest
          BandMatTest.cpp
          common_LineKM         
@@ -135,7 +146,10 @@ cxx_test(math_StatisticsTest
         )
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 add_library(math_CumulativeFunction
             CumulativeFunction.cpp
             CumulativeFunction.h
@@ -155,6 +169,13 @@ add_library(math_CleanNumArray
             CleanNumArray.cpp
             CleanNumArray.h
            )
+<<<<<<< HEAD
+=======
+target_link_libraries(math_CleanNumArray
+                      math_BandMat
+                      common_math
+                     )   
+>>>>>>> master
 
 cxx_test(math_UniformSamplesTest
          UniformSamplesTest.cpp
@@ -258,6 +279,7 @@ cxx_test(math_SignalCovarianceTest
          common_ScopedLog
         )
 
+<<<<<<< HEAD
 add_library(math_SparsityConstrained
             SparsityConstrained.h
             SparsityConstrained.cpp            
@@ -271,6 +293,23 @@ cxx_test(math_SparsityConstrainedTest
          SparsityConstrainedTest.cpp
          gtest_main
          math_SparsityConstrained
+=======
+add_library(math_irls
+            irls.cpp
+            irls.h
+           )
+           
+target_link_libraries(math_irls
+                      common_ScopedLog
+                      common_string
+                      common_Span
+                     )           
+
+cxx_test(math_irlsTest
+         irlsTest.cpp
+         math_irls
+         gtest_main
+>>>>>>> master
          plot_gnuplot
         )
 

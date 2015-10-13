@@ -73,8 +73,13 @@ class Sampling {
      }
    }
 
+
    static Weights atIndex(int i) {
      return Weights{i, 1.0, 0.0};
+   }
+
+   bool isFinite() const {
+     return std::isfinite(lowerWeight) && std::isfinite(upperWeight);
    }
   };
 
@@ -135,6 +140,18 @@ struct Observation {
   Sampling::Weights weights;
   double data[N];
 
+  bool isFinite() const {
+    if (weights.isFinite()) {
+      for (int i = 0; i < N; i++) {
+        if (!std::isfinite(data[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
   double calcResidual(const MDArray2d &X) const {
     double squaredDist = 0.0;
     for (int i = 0; i < N; i++) {
@@ -146,8 +163,10 @@ struct Observation {
 
   void accumulateNormalEqs(double squaredWeight,
       BandMat<double> *dstAtA, MDArray2d *dstAtB) const {
+    assert(std::isfinite(squaredWeight));
     weights.accumulateAtA(squaredWeight, dstAtA);
     for (int i = 0; i < N; i++) {
+      assert(std::isfinite(data[i]));
       (*dstAtB)(weights.lowerIndex, i) += squaredWeight*weights.lowerWeight*data[i];
       (*dstAtB)(weights.upperIndex(), i) += squaredWeight*weights.upperWeight*data[i];
     }
@@ -226,7 +245,7 @@ double evalDerivativeScaled(const CostFunction &f, double x, double scale) {
 template <typename CostFunction>
 MajQuad majorizeCostFunction(const CostFunction &f, double x0, double lb = 0.0001,
     double s = 1.0) {
-  double x = absSaturate(x0, lb);
+  double x = thresholdCloseTo0(x0, lb);
   return MajQuad::majorize(x, evalScaled(f, x, s), evalDerivativeScaled(f, x, s), 0.0);
 }
 

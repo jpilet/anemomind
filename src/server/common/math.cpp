@@ -16,8 +16,12 @@ void makeTriBasisVector(int N, int index, double *dst) {
   normalizeInPlace(N, dst);
 }
 
+<<<<<<< HEAD
 
 Arrayd makeNextRegCoefs(const Arrayd &coefs) {
+=======
+Arrayd makeNextRegCoefs(Arrayd coefs) {
+>>>>>>> master
   int n = coefs.size();
   Arrayd next(n+1);
   next[n] = 0.0;

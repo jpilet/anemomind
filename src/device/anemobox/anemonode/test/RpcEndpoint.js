@@ -10,7 +10,7 @@ var rpcTable = {};
 var config = require('../components/config.js');
 var Q = require('q');
 var msgpack = require('msgpack-js');
-builder.fillTable(rpcTable);
+builder.register(rpcTable);
 
 var endpointName = null;
 

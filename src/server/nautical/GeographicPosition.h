@@ -15,7 +15,9 @@ class GeographicPosition {
 public:
   typedef GeographicPosition<T> ThisType;
 
-  GeographicPosition() {}
+  GeographicPosition() :
+    _alt(Length<T>::meters(0)) // In our domain, we are almost always close to sea level.
+    {}
   GeographicPosition(Angle<T> longitude, Angle<T> latitude, Length<T> altitude = Length<T>::meters(0)) :
     _lon(longitude),
     _lat(latitude),
@@ -24,6 +26,9 @@ public:
   Angle<T> lon() const {return _lon;}
   Angle<T> lat() const {return _lat;}
   Length<T> alt() const {return _alt;}
+
+  void setLon(Angle<T> lon) {_lon = lon;}
+  void setLat(Angle<T> lat) {_lat = lat;}
 
   template <typename DstType>
   operator GeographicPosition<DstType>() const {

@@ -86,9 +86,12 @@ angular.module('www2App')
       $scope.isPlaying = !$scope.isPlaying;
     }
 
+    var lastPositionUpdate = new Date();
+
     $scope.$watch('isPlaying', function(newVal, oldVal) {
       if (newVal != oldVal) {
         if (newVal) {
+          lastPositionUpdate = new Date();
           animationTimer = $interval(updatePosition, 100);
         } else {
           $interval.cancel(animationTimer);
@@ -97,13 +100,18 @@ angular.module('www2App')
     });
 
     function updatePosition() {
+      var now = new Date();
       if(!$scope.currentTime){
         $scope.currentTime = new Date($scope.plotData[0]['time']);
+      } else {
+        var delta = (now.getTime() - lastPositionUpdate.getTime());
+        delta *= $scope.replaySpeed;
+        $scope.currentTime = new Date($scope.currentTime.getTime() + delta);
+        if ($scope.currentTime >= $scope.plotData[$scope.plotData.length - 1]['time']) {
+          $scope.currentTime = new Date($scope.plotData[0]['time']);
+        }
       }
-      $scope.currentTime = new Date($scope.currentTime.getTime()+1 * 1000);
-      if ($scope.currentTime >= $scope.plotData[$scope.plotData.length - 1]['time']) {
-        $scope.currentTime = new Date($scope.plotData[0]['time']);
-      }
+      lastPositionUpdate = now;
     }
 
     $scope.$watch('mapLocation', setLocation);
@@ -180,4 +188,9 @@ angular.module('www2App')
       }
       $scope.deviceTargetVmg = getPointValue(['deviceTargetVmg']);
     });
+
+    $scope.replaySpeed = 8;
+    $scope.slower = function() { $scope.replaySpeed /= 2; }
+    $scope.faster = function() { $scope.replaySpeed *= 2; }
+
 });
