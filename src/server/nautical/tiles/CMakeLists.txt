@@ -14,6 +14,7 @@ cxx_test(tiles_NavTileGeneratorTest
          NavTileGeneratorTest.cpp
          tiles_NavTileGenerator
          gtest_main
+         nautical_tiles_TileUtils
         )
 
 if (MongoDB_LIBRARIES)
@@ -35,6 +36,16 @@ if (MongoDB_LIBRARIES)
                  generateAndUpload.cpp
                 )
   target_link_libraries(tiles_generateAndUpload
+                        common_ArgMap
+                        common_logging
+                        nautical_tiles_TileUtils
+                       )
+
+  add_library(nautical_tiles_TileUtils
+              TileUtils.h
+              TileUtils.cpp
+             )
+  target_link_libraries(nautical_tiles_TileUtils
                         tiles_NavTileUploader
                         common_ArgMap
                         common_logging
@@ -43,6 +54,9 @@ if (MongoDB_LIBRARIES)
                         nautical_grammars_WindOrientedGrammar
                         ${MongoDB_LIBRARIES}
                         nautical_GpsFilter
-                        )
+                       )
+
 
 endif (MongoDB_LIBRARIES)
+
+           

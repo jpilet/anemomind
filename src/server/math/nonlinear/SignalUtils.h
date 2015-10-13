@@ -68,6 +68,10 @@ class Sampling {
        dst[i] = X(upperIndex(), i) - X(lowerIndex, i);
      }
    }
+
+   bool isFinite() const {
+     return std::isfinite(lowerWeight) && std::isfinite(upperWeight);
+   }
   };
 
   bool valid(const Weights &w) const {
@@ -127,6 +131,18 @@ struct Observation {
   Sampling::Weights weights;
   double data[N];
 
+  bool isFinite() const {
+    if (weights.isFinite()) {
+      for (int i = 0; i < N; i++) {
+        if (!std::isfinite(data[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
   double calcResidual(const MDArray2d &X) const {
     double squaredDist = 0.0;
     for (int i = 0; i < N; i++) {
@@ -138,8 +154,10 @@ struct Observation {
 
   void accumulateNormalEqs(double squaredWeight,
       BandMat<double> *dstAtA, MDArray2d *dstAtB) const {
+    assert(std::isfinite(squaredWeight));
     weights.accumulateAtA(squaredWeight, dstAtA);
     for (int i = 0; i < N; i++) {
+      assert(std::isfinite(data[i]));
       (*dstAtB)(weights.lowerIndex, i) += squaredWeight*weights.lowerWeight*data[i];
       (*dstAtB)(weights.upperIndex(), i) += squaredWeight*weights.upperWeight*data[i];
     }
