@@ -1,9 +1,25 @@
+/*
+ *
+ * Array<Nav> filterNavs(Array<Nav> navs) {
+  GpsFilter::Settings settings;
+
+  ArrayBuilder<Nav> withoutNulls;
+  withoutNulls.addIf(navs, [=](const Nav &nav) {
+    auto pos = nav.geographicPosition();
+    return abs(pos.lat().degrees()) > 0.01
+      && abs(pos.lon().degrees()) > 0.01;
+  });
+  auto results = GpsFilter::filter(withoutNulls.get(), settings);
+  return results.filteredNavs().slice(results.inlierMask());
+}
+ */
+
+
 #include <server/common/ArgMap.h>
 #include <server/nautical/tiles/TileUtils.h>
 #include <server/nautical/tiles/NavTileUploader.h>
 
 using namespace sail;
-
 int main(int argc, const char** argv) {
   ArgMap args;
   TileGeneratorParameters params;

@@ -42,7 +42,7 @@ for boatdir in "${LOG_DIR}/"*; do
     # directory.
     [ -L "${boatprocessdir}/logs" ] || ln -s "${boatdir}" "${boatprocessdir}/logs"
 
-    if "${BIN}"/processBoatLogs "${boatprocessdir}" ; then
+    if "${BIN}"/processBoatLogs noinfo "${boatprocessdir}" ; then
 
       # Upload the tiles to the database
       if "${BIN}"/tiles_generateAndUpload \
@@ -51,6 +51,7 @@ for boatdir in "${LOG_DIR}/"*; do
 	--navpath "${boatprocessdir}" \
 	--table anemomind.tiles \
         --clean \
+        --noinfo \
 	--scale 20 ; then
 
         # If a boat.dat file has been generated, mail it to the anemobox.

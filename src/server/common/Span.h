@@ -12,6 +12,7 @@
 #include <algorithm> // std::max
 #include <assert.h>
 #include <server/common/Array.h>
+#include <type_traits>
 
 namespace sail {
 
@@ -170,6 +171,11 @@ class Span {
       dst[i] = f(_minv + i);
     }
     return dst;
+  }
+
+  T operator[] (T index) const {
+    static_assert(std::is_integral<T>::value, "Only integers");
+    return _minv + index;
   }
  private:
   bool _initialized;

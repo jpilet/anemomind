@@ -309,9 +309,9 @@ struct MatrixElement {
 };
 typedef MatrixElement<double> MatrixElementd;
 
-inline double absSaturate(double x, double lb) {
+inline double thresholdCloseTo0(double x, double lb) {
   if (x < 0) {
-    return -absSaturate(-x, lb);
+    return -thresholdCloseTo0(-x, lb);
   } else if (x < lb) {
     return lb;
   }
@@ -359,12 +359,7 @@ bool saneCalculation(T result, Array<T> arguments) {
   if (std::isfinite(result)) {
     return true;
   } else {
-    for (auto arg: arguments) {
-      if (!std::isfinite(arg)) {
-        return true;
-      }
-    }
-    return false;
+    return !isFinite(arguments);
   }
 }
 
@@ -372,6 +367,9 @@ template <typename T>
 T toFinite(T x, T defaultValue) {
   return (std::isfinite(x)? x : defaultValue);
 }
+
+Arrayd makeNextRegCoefs(Arrayd coefs);
+Arrayd makeRegCoefs(int order);
 
 } /* namespace sail */
 

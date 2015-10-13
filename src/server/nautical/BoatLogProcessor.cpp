@@ -85,8 +85,16 @@ void dispHelp() {
 
 }
 
+int BoatLogProcessor::main(const std::vector<std::string>& allArgs) {
+  std::vector<std::string> args;
+  for (auto arg : allArgs) {
+    if (arg == "noinfo") {
+      SetLogLevelThreshold(LOGLEVEL_WARNING);
+    } else {
+      args.push_back(arg);
+    }
+  }
 
-int BoatLogProcessor::main(const std::vector<std::string>& args) {
   ENTERSCOPE("Anemomind boat log processor");
   if (args.empty()) {
     dispHelp();

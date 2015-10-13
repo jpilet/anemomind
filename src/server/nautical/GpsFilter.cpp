@@ -6,18 +6,22 @@
 #include <server/nautical/GpsFilter.h>
 #include <server/nautical/GeographicReference.h>
 #include <server/common/Span.h>
-#include <server/math/nonlinear/BandedSolver.h>
+#include <server/math/nonlinear/DataFit.h>
 #include <algorithm>
+#include <server/common/ArrayIO.h>
 
 
 namespace sail {
 namespace GpsFilter {
 
 Settings::Settings() :
-    samplingPeriod(Duration<double>::seconds(1.0)),
-    motionWeight(1.0) {
-  filterSettings.iters = 4;
-  filterSettings.regOrder = 2;
+      regWeight(12.0),
+      motionWeight(1.0),
+      samplingPeriod(Duration<double>::seconds(1.0)),
+      inlierThreshold(Length<double>::meters(12)) {
+  irlsSettings.logWeighting = true;
+  irlsSettings.initialWeight = 0.01;
+  irlsSettings.iters = 30;
 }
 
 Duration<double> getLocalTime(TimeStamp timeRef, const Nav &nav) {
@@ -86,26 +90,15 @@ Array<Observation<2> > getObservations(
     difWeights.upperWeight = difScale;
 
     for (int i = 0; i < 2; i++) {
-      auto sane = saneCalculation(localPos[i].meters(), Arrayd{
+      CHECK(saneCalculation(localPos[i].meters(), Arrayd{
               nav.geographicPosition().lon().degrees(),
               nav.geographicPosition().lat().degrees(),
-            });
-      if (!sane) {
-        std::cout << EXPR_AND_VAL_AS_STRING(localPos[i].meters()) << std::endl;
-        std::cout << EXPR_AND_VAL_AS_STRING(nav.geographicPosition().lon().degrees()) << std::endl;
-        std::cout << EXPR_AND_VAL_AS_STRING(nav.geographicPosition().lat().degrees()) << std::endl;
-        std::cout << EXPR_AND_VAL_AS_STRING(geoRef.pos().lon().degrees()) << std::endl;
-        std::cout << EXPR_AND_VAL_AS_STRING(geoRef.pos().lat().degrees()) << std::endl;
-        std::cout << EXPR_AND_VAL_AS_STRING(geoRef.dlat()) << std::endl;
-        std::cout << EXPR_AND_VAL_AS_STRING(geoRef.dlon()) << std::endl;
-      }
-      assert(sane);
-      assert(saneCalculation(geoDif[i].meters(), Arrayd{
+            }));
+      CHECK(saneCalculation(geoDif[i].meters(), Arrayd{
         nav.gpsMotion()[0].metersPerSecond(),
         nav.gpsMotion()[1].metersPerSecond()
       }));
     }
-
 
     // Based on the position
     dst[i] = Observation<2>{weights,
@@ -118,7 +111,24 @@ Array<Observation<2> > getObservations(
   return dst;
 }
 
+Spani getReliableSampleRange(Array<Observation<2> > observations_, Arrayb inliers_) {
+  assert(observations_.size() == inliers_.size());
+  int n = inliers_.size()/2;
+  assert(2*n == inliers_.size());
 
+  auto inliers = inliers_.sliceTo(n);
+  auto observations = observations_.sliceTo(n);
+
+  Spani range;
+  for (int i = 0; i < n; i++) {
+    if (inliers[i]) {
+      auto obs = observations[i];
+      range.extend(obs.weights.lowerIndex);
+      range.extend(obs.weights.upperIndex());
+    }
+  }
+  return range;
+}
 
 Results filter(Array<Nav> navs, Settings settings) {
   assert(std::is_sorted(navs.begin(), navs.end()));
@@ -132,11 +142,26 @@ Results filter(Array<Nav> navs, Settings settings) {
   Sampling sampling(sampleCount, fromTime.seconds(), toTime.seconds());
   auto observations = getObservations(settings,
       timeRef, geoRef, navs, sampling);
-  MDArray2d X = BandedSolver::solve(AbsCost(), AbsCost(), sampling,
-      observations, settings.filterSettings);
+
+  auto results = DataFit::quadraticFitWithInliers(sampleCount, observations,
+      settings.inlierThreshold.meters(), 2, settings.regWeight, settings.irlsSettings);
+
+  auto reliableRange = getReliableSampleRange(observations, results.inliers);
   auto posObs = observations.sliceTo(navs.size());
-  return Results{navs, posObs, sampling, X, timeRef, geoRef};
+  return Results{navs, posObs, sampling, results.samples, timeRef, geoRef, reliableRange};
 }
+
+bool isReliableW(Spani reliableSpan, const Sampling::Weights &w) {
+  return reliableSpan.contains(w.lowerIndex) && reliableSpan.contains(w.upperIndex());
+}
+
+Arrayb Results::inlierMask() {
+  assert(rawNavs.size() == positionObservations.size());
+  return positionObservations.map<bool>([&](const Observation<2> &obs) {
+    return isReliableW(reliableSampleRange, obs.weights);
+  });
+}
+
 
 Array<Nav> Results::filteredNavs() const {
   int n = rawNavs.size();

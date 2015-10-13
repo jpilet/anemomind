@@ -237,7 +237,7 @@ double evalDerivativeScaled(const CostFunction &f, double x, double scale) {
 template <typename CostFunction>
 MajQuad majorizeCostFunction(const CostFunction &f, double x0, double lb = 0.0001,
     double s = 1.0) {
-  double x = absSaturate(x0, lb);
+  double x = thresholdCloseTo0(x0, lb);
   return MajQuad::majorize(x, evalScaled(f, x, s), evalDerivativeScaled(f, x, s), 0.0);
 }
 

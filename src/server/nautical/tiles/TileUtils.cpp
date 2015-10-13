@@ -24,7 +24,8 @@ Array<Nav> filterNavs(Array<Nav> navs) {
     return abs(pos.lat().degrees()) > 0.01
       && abs(pos.lon().degrees()) > 0.01;
   });
-  return GpsFilter::filter(withoutNulls.get(), settings).filteredNavs();
+  auto results = GpsFilter::filter(withoutNulls.get(), settings);
+  return results.filteredNavs().slice(results.inlierMask());
 }
 
 // Convenience method to extract the description of a tree.
@@ -83,7 +84,6 @@ Array<Array<Nav> > computeNavsToUpload(const TileGeneratorParameters &params,
   std::shared_ptr<HTree> fulltree = grammar.parse(rawNavs);
   return extractAll("Sailing", rawNavs, grammar, fulltree);
 }
-
 
 void processTiles(const TileGeneratorParameters &params,
     std::string boatId, std::string navPath,
