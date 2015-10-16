@@ -2,9 +2,15 @@ body > div.ng-scope {
 height:100%;
 }
 
-#mapScreenContainer {
+.mapScreenContainer {
   width:100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mapAndGraphAndSidebar {
+  flex: 1;
   display: flex;
   flex-direction: row;
 }
@@ -59,14 +65,15 @@ height:100%;
 }
 
 .graph {
-  flex-basis: 140px;
+  flex-basis: 120px;
   position: relative;
+  flex-grow: .1;
 }
 
 perfplot {
   position: absolute;
   bottom: 0px;
-  height: 140px;
+  height: 100%;
   width:100%;
   display:block;
   background-color:rgba(255,255,255,0.5);
@@ -79,10 +86,17 @@ perfplot {
   z-index:10;
 }
 
-#mapScreenContainer sidebar {
+.mapScreenContainer sidebar {
   flex:.3;
-  height: 100%;
   overflow: auto;
+}
+
+.mapScreenContainer footer {
+  display: flex;
+  flex-direction: row;
+}
+.mapScreenContainer footer button {
+  flex: 1;
 }
 
 /*==================================================*/
@@ -99,6 +113,7 @@ perfplot {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
+    max-widht: 400p;
 }
 
 #gaugesog {
