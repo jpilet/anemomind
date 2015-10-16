@@ -4,14 +4,27 @@
  */
 function Graph(container) {
   this.container = container;
-  this.prepare();
   this.times = [];
+  this.hasData = false;
+  this.prepare();
+  this.data = undefined;
+}
+
+Graph.prototype.width = function() {
+  return angular.element(this.container).width();
+}
+
+Graph.prototype.height = function() {
+  return angular.element(this.container).height();
 }
 
 Graph.prototype.prepare = function() {
   var me = this;
-  var width = angular.element(this.container).width();
-  var height = angular.element(this.container).height();
+  var width = this.width();
+  var height = this.height();
+  this.preparedWidth = width;
+  this.preparedHeight = height;
+
   var horizontalMargin = 20;
   var verticalMargin = 20;
   var innerWidth = width - 2 * horizontalMargin;
@@ -21,7 +34,7 @@ Graph.prototype.prepare = function() {
   this.x = d3.time.scale().range([0, innerWidth]);
   var x = this.x;
 
-  this.y = d3.scale.linear().range([height - innerHeight, 0]);
+  this.y = d3.scale.linear().range([innerHeight, 0]);
   var y = this.y;
 
   this.xAxis = d3.svg.axis()
@@ -137,14 +150,19 @@ Graph.prototype.prepare = function() {
 
   var timeMarkWidth = 2;
   this.setTimeMarkAttributes = function(selection) {
+    var height = this.height();
     selection.attr("class","timeMark")
       .attr("x", function(t) {
             return x(t) - timeMarkWidth / 2;
             })
-    .attr("y", -100)
+    .attr("y", -height)
       .attr("width", timeMarkWidth)
-      .attr("height", 100);
+      .attr("height", height);
   };
+
+  if (this.field && this.data) {
+    this.setData(this.field, this.data);
+  }
 };
 
 Graph.prototype.setData = function(field, data) {
@@ -158,6 +176,7 @@ Graph.prototype.setData = function(field, data) {
   }
 
   this.field = field;
+  this.data = data;
 
   // Bind the data to our path elements.
   this.svg.select("path.area").data([data]);
@@ -181,7 +200,13 @@ Graph.prototype.setTimeMarks = function(times) {
 };
 
 Graph.prototype.draw = function() {
-  if (!this.field) {
+  if (!this.field || !this.data) {
+    return;
+  }
+
+  if (this.preparedWidth != this.width() || this.preparedHeight != this.height()) {
+    this.prepare();
+    // Prepare will call draw() again.
     return;
   }
   var svg = this.svg;

@@ -1,0 +1,11 @@
+<section class="eventlist">
+  <article ng-repeat="event in events | orderBy:'when'">
+    <div class="eventauthor">{{ users[event.author].name }}</div>
+    <div class="eventdate"><a href="" ng-click="onTimeSelect(event.when)">{{event.when | date:'HH:mm:ss'}}</a></div>
+    <div class="eventcontent">
+      <a ng-if="event.photo" target="_blank" ng-href="{{ photoUrl(event) }}"><img ng-src="{{ thumbnail(event) }}"></img></a>
+      <p ng-if="event.comment">{{event.comment}}</p>
+      <p ng-if="event.structuredMessage">{{ event.structuredMessage }}</p>
+    </div>
+  </article>
+</section>
