@@ -44,8 +44,6 @@ angular.module('www2App')
           },
           function (newValue, oldValue) {
             if (newValue.w != oldValue.w || newValue.h != oldValue.h) {
-              graph.prepare();
-              graph.setData($scope.plotField, $scope.plotData);
               graph.draw();
             }
           },
