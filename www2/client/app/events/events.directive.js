@@ -20,7 +20,9 @@ angular.module('www2App')
             B: scope.before.toISOString()
           }})
           .success(function(data, status, headers, config) {
+            scope.events = [];
             if (status == 200) {
+              var times= {};
               for (var i in data) {
                 var event = data[i];
                 // Parse date
@@ -30,8 +32,14 @@ angular.module('www2App')
                 userDB.resolveUser(event.author, function(user) {
                   scope.users[user._id] = user;
                 });
+
+                // Remove duplicates
+                var key = "" + event.when.getTime();
+                if (!(key in times)) {
+                  times[key] = 1;
+                  scope.events.push(event);
+                }
               }
-              scope.events = data;
             }
           });
         scope.photoUrl = function(event, size) {
