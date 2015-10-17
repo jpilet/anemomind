@@ -17,4 +17,15 @@ cxx_test(nautical_calibration_LinearCalibrationTest
          gtest_main
         )
         
+        
+add_library(nautical_calibration_LinearOptCalib
+            LinearOptCalib.h
+            LinearOptCalib.cpp
+           )        
+           
+target_link_libraries(nautical_calibration_LinearOptCalib
+                      nautical_calibration_LinearCalibration
+                      math_irls
+                     )
+        
 target_depends_on_armadillo(nautical_calibration_LinearCalibrationTest)        
