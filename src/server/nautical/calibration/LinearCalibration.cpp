@@ -25,17 +25,6 @@ void initializeLinearParameters(bool withOffset, double *dst2or4) {
 
 typedef Eigen::Triplet<double> Triplet;
 
-CommonCalibrationSettings::CommonCalibrationSettings() {
-  spcst.initialWeight = 0.01;
-}
-
-CommonCalibrationSettings CommonCalibrationSettings::firstOrderSettings() {
-  CommonCalibrationSettings s;
-  s.regOrder = 1;
-  s.nonZeroPeriodFilter = Duration<double>::seconds(6.0);
-  s.inlierFrac = 0.1;
-  return s;
-}
 
 
 
@@ -108,8 +97,9 @@ Results calibrate(CommonCalibrationSettings commonSettings,
       totalDuration, commonSettings);
   auto currentResults = calibrateSparse(makeTrueCurrentMatrices(navs, flowSettings),
       totalDuration, commonSettings);
-  LinearCorrector corrector(flowSettings, windResults.parameters, currentResults.parameters);
-  return Results{corrector, windResults.recoveredFlow, currentResults.recoveredFlow};
+  //LinearCorrector corrector(flowSettings, windResults.parameters, currentResults.parameters);
+  //return Results{corrector, windResults.recoveredFlow, currentResults.recoveredFlow};
+  return Results();
 }
 
 

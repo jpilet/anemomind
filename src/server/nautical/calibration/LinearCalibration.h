@@ -149,19 +149,9 @@ void initializeLinearParameters(bool withOffset, double *dst2or4);
  * Can be used on either wind or current.
  */
 struct CommonCalibrationSettings {
-  CommonCalibrationSettings();
- double inlierFrac = 0.9;
- int regOrder = 2;
- SparsityConstrained::Settings spcst;
- Duration<double> nonZeroPeriodFilter = Duration<double>::minutes(2);
- Duration<double> nonZeroPeriod = Duration<double>::minutes(10);
-
- static CommonCalibrationSettings firstOrderSettings();
 };
 
 struct CommonResults {
- Array<HorizontalMotion<double> > recoveredFlow;
- Arrayd parameters;
 };
 
 CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
@@ -179,6 +169,7 @@ CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
 // A class used to map a raw nav to a corrected one, using the parameters recovered.
 class LinearCorrector : public CorrectorFunction {
  public:
+  LinearCorrector() {}
   LinearCorrector(const FlowSettings &flowSettings, Arrayd windParams, Arrayd currentParams);
   Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const;
   CalibratedNav<double> operator()(const Nav &navs) const;
@@ -189,6 +180,7 @@ class LinearCorrector : public CorrectorFunction {
 };
 
 struct Results {
+  Results() {}
   LinearCorrector corrector;
   Array<HorizontalMotion<double> > windOverGround, currentOverGround;
 };

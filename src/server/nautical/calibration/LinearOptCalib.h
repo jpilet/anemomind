@@ -9,6 +9,7 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/math/irls.h>
 #include <server/nautical/calibration/LinearCalibration.h>
+#include <Eigen/Core>
 
 namespace sail {
 namespace LinearOptCalib {
@@ -23,7 +24,7 @@ struct Results {
 };
 
 Results optimize(
-    const LinearCalibration::FlowMatrices &flowMats,
+    const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
     Array<Spani> spans,
     const Settings &settings);
 

@@ -11,10 +11,12 @@ namespace LinearOptCalib {
 
 
 Results optimize(
-    const LinearCalibration::FlowMatrices &flowMats,
+    const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
+    Array<Spani> spans,
     const Settings &settings) {
 
 }
+
 
 }
 }
