@@ -5,7 +5,6 @@ add_library(nautical_calibration_LinearCalibration
 
 target_link_libraries(nautical_calibration_LinearCalibration
                       nautical_nav
-                      math_SparsityConstrained
                       common_ScopedLog
                       common_string
                       common_math

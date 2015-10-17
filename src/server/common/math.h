@@ -11,11 +11,7 @@
 #include <cmath>
 #include <cassert>
 #include <limits>
-<<<<<<< HEAD
-#include <server/common/Array.h>
-=======
 #include <server/common/MDArray.h>
->>>>>>> master
 
 namespace sail {
 
@@ -331,9 +327,7 @@ inline bool implies(bool a, bool b) {
   return !a || b;
 }
 
-<<<<<<< HEAD
-Arrayd makeNextRegCoefs(const Arrayd &coefs);
-=======
+
 template <typename T, int dims>
 bool isFinite(MDArray<T, dims> X) {
   for (int i = 0; i < X.numel(); i++) {
@@ -375,8 +369,7 @@ T toFinite(T x, T defaultValue) {
   return (std::isfinite(x)? x : defaultValue);
 }
 
-Arrayd makeNextRegCoefs(Arrayd coefs);
->>>>>>> master
+Arrayd makeNextRegCoefs(const Arrayd &coefs);
 Arrayd makeRegCoefs(int order);
 
 } /* namespace sail */

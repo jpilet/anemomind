@@ -156,16 +156,12 @@ MDArray2d solve(
     DataCost dataCost, RegCost regCost,
     Sampling sampling, Array<Observation<Dim> > observations0, Settings settings,
     MDArray2d initialX = MDArray2d()) {
-<<<<<<< HEAD
-  Arrayd regCoefs = makeRegCoefs(settings.regOrder);
-=======
 
   auto observations = observations0.slice([](const Observation<Dim> &obs) {
     return obs.isFinite();
   });
   Arrayd regCoefs = makeRegCoefs(settings.regOrder);
 
->>>>>>> master
   MDArray2d X = (initialX.empty()? initialize(sampling.count(), Dim) : initialX);
   for (int i = 0; i < settings.iters; i++) {
     auto nextX = iterate<Dim, DataCost, RegCost>(dataCost, regCost,
