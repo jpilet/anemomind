@@ -28,4 +28,10 @@ target_link_libraries(nautical_calibration_LinearOptCalib
                       math_irls
                      )
         
+cxx_test(nautical_calibration_LinearOptCalibTest
+         LinearOptCalibTest.cpp
+         nautical_calibration_LinearOptCalib
+         gtest_main
+        )        
+        
 target_depends_on_armadillo(nautical_calibration_LinearCalibrationTest)        

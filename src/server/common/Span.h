@@ -175,7 +175,14 @@ class Span {
 
   T operator[] (T index) const {
     static_assert(std::is_integral<T>::value, "Only integers");
+    assert(_initialized);
     return _minv + index;
+  }
+
+  Span<T> indices() const {
+    static_assert(std::is_integral<T>::value, "Only integers");
+    assert(_initialized);
+    return Span<T>(0, _maxv - _minv);
   }
  private:
   bool _initialized;
