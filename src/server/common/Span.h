@@ -188,6 +188,15 @@ typedef Span<int> Spani;
 std::ostream &operator<<(std::ostream &s, const Span<int> &x);
 std::ostream &operator<<(std::ostream &s, const Span<double> &x);
 
+template <typename T>
+Span<T> operator*(T x, const Span<T> &span) {
+  if (span.initialized()) {
+    return Span<T>(x*span.minv(), x*span.maxv());
+  } else {
+    return span;
+  }
+}
+
 template <typename T> class Length;
 typedef Span<Length<double> > LengthSpan;
 
