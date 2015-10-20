@@ -105,6 +105,55 @@ Eigen::SparseMatrix<double> makeRhs(const VectorXd &B, Array<Spani> spans) {
 }*/
 
 
+// Projection of a on b. b must have length 1.
+Eigen::SparseVector<double> subtractProjection(
+    Eigen::SparseVector<double> a,
+    Eigen::SparseVector<double> bNormalized) {
+  auto s = a.dot(bNormalized);
+  if (s == 0) { // Try to keep the result as sparse as possible.
+    return a;
+  }
+  return a - s*bNormalized;
+}
+
+/*
+ * Unfortunately, the SparseQR code of Eigen
+ * doesn't seem to let us omit the nullspace,
+ * which is going to be **lots** of nonzero elements.
+ * So let's just do our own Gram-Schmidt to get an
+ * orthonormal basis. Please reorder the sparse vectors
+ * so that those with the fewest elements come first which
+ * will give us the sparsest output.
+ */
+Array<Eigen::SparseVector<double> > gramSchmidt(
+    Array<Eigen::SparseVector<double> > vectors) {
+  int n = vectors.size();
+  Array<Eigen::SparseVector<double> > result(n);
+  for (int i = 0; i < n; i++) {
+    Eigen::SparseVector<double> y = vectors[i];
+    for (int j = 0; j < n; j++) {
+      y = subtractProjection(y, result[j]);
+    }
+    result[i] = (1.0/y.norm())*y;
+  }
+  return result;
+}
+
+//SparseMatrix<double> makeRhs();
+
+class SparseVec {
+ public:
+  struct Element {
+    int index;
+    double value;
+  };
+
+  SparseVec(int count, std::function<Element(int)> elemFun) : _elemFun(elemFun), _count(count) {}
+
+ private:
+  int _count;
+  std::function<Element(int)> _elemFun;
+};
 
 class ByWidth {
  public:
@@ -112,6 +161,8 @@ class ByWidth {
     return a.width() < b.width();
   }
 };
+
+
 
 Results optimize(
     const MatrixXd &A, const VectorXd &B,
