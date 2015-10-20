@@ -155,9 +155,29 @@ VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
   }
 };
 
+// If selectedCurve does not matches exactly the start and end times of a
+// recorded session, we still want to display part of it.
+// This function returns true if both curve times overlap.
+function curveOverlap(a, b) {
+  if (a == b) {
+    return true;
+  }
+
+  var AendTime = curveEndTime(a);
+  var AstartTime = curveStartTime(a);
+  var BendTime = curveEndTime(b);
+  var BstartTime = curveStartTime(b);
+
+  return ((BendTime > AstartTime) && (BstartTime < AendTime));
+}
+
 VectorTileLayer.prototype.drawVisibleCurves = function(context, pinchZoom) {
   if (this.selectedCurve) {
-    this.drawCurve(this.selectedCurve, context, pinchZoom);
+    for (var curveId in this.visibleCurves) {
+      if (curveOverlap(curveId, this.selectedCurve)) {
+        this.drawCurve(curveId, context, pinchZoom);
+      }
+    }
   } else {
     for (var curveId in this.visibleCurves) {
       this.drawCurve(curveId, context, pinchZoom);
@@ -169,11 +189,57 @@ function byTime(a, b) {
   return a.time - b.time;
 }
 
+/**
+ * Performs a binary search on the provided sorted list and returns the index
+ * of the item if found. If it can't be found it'll return -1.
+ * Inspired from https://github.com/Wolfy87/binary-search
+ *
+ * @param {*[]} list Items to search through.
+ * @param {*} item The item to look for.
+ * @return {Number} The index of the item if found, -1 if not.
+ */
+var binarySearch = function(list, item) {
+  var min = 0;
+  var max = list.length - 1;
+  var guess;
+
+  while ((max - min) > 1) {
+      guess = Math.floor((min + max) / 2);
+
+      if (list[guess].time < item) {
+          min = guess;
+      }
+      else {
+          max = guess;
+      }
+  }
+
+  return [min, max];
+};
+
+var selectByTime = function(points, start, end) {
+  if (end < points[0].time || start > points[points.length - 1].time) {
+    return [];
+  }
+  var startBounds = binarySearch(points, start);
+  var endBounds = binarySearch(points, end);
+  return points.slice(startBounds[0], endBounds[1]);
+};
+
 VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
   // Extract all points
   var curveElements = this.visibleCurves[curveId];
   if (!curveElements) {
-    return [];
+    // search for an overlaping curve.
+    for (var curve in this.visibleCurves) {
+      if (curveOverlap(curve, curveId)) {
+        curveElements = this.visibleCurves[curve];
+        break;
+      }
+    }
+    if (!curveElements) {
+      return [];
+    }
   }
 
   var len = curveElements.length;
@@ -187,7 +253,7 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
   for (var e in curveElements) {
     if (e != "length") {
       var element = curveElements[e];
-      if (element.curveId == curveId) {
+      if (curveOverlap(element.curveId, curveId)) {
         elementsAsArray.push(element.points);
       }
     }
@@ -197,6 +263,13 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
 
   // Sort by time
   points.sort(byTime);
+
+  if (this.selectedCurve != curveId) {
+    var start = curveStartTime(this.selectedCurve);
+    var end = curveEndTime(this.selectedCurve);
+    points = selectByTime(points, start, end);
+  }
+
   this.lastPointArray = points;
 
   this.curvesFlat[curveId] = { length: len, points: points };
@@ -256,34 +329,6 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
       this.currentTime > this.lastPointArray[this.lastPointArray.length - 1]) {
     return;
   }
-
-  /**
-   * Performs a binary search on the provided sorted list and returns the index
-   * of the item if found. If it can't be found it'll return -1.
-   * Inspired from https://github.com/Wolfy87/binary-search
-   *
-   * @param {*[]} list Items to search through.
-   * @param {*} item The item to look for.
-   * @return {Number} The index of the item if found, -1 if not.
-   */
-  var binarySearch = function(list, item) {
-    var min = 0;
-    var max = list.length - 1;
-    var guess;
-
-    while ((max - min) > 1) {
-        guess = Math.floor((min + max) / 2);
-
-        if (list[guess].time < item) {
-            min = guess;
-        }
-        else {
-            max = guess;
-        }
-    }
-
-    return [min, max];
-  };
 
   var pixelRatio = this.renderer.pixelRatio;
 
