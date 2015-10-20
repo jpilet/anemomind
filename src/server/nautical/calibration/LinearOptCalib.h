@@ -14,8 +14,10 @@
 namespace sail {
 namespace LinearOptCalib {
 
+Eigen::MatrixXd orthonormalBasis(const Eigen::MatrixXd &x);
 Eigen::MatrixXd makeLhs(const Eigen::MatrixXd &A, Array<Spani> spans);
 Eigen::SparseMatrix<double> makeRhs(const Eigen::VectorXd &B, Array<Spani> spans);
+
 
 
 struct Settings {
