@@ -18,7 +18,7 @@ angular.module('www2App')
               return "http://a.tiles.wmflabs.org/bw-mapnik/"
                 + scale + "/" + x + "/" + y + ".png";
               */
-              return "http://api.tiles.mapbox.com/v4/anemojp.d4524095/"
+              return "//api.tiles.mapbox.com/v4/anemojp.d4524095/"
                 + scale + "/" + x + "/" + y
                 + ".png32?access_token="
                 + "pk.eyJ1IjoiYW5lbW9qcCIsImEiOiJ3QjFnX00wIn0.M9AEKUTlyhDC-sMM9a0obQ";
