@@ -11,9 +11,38 @@
 #include <server/common/PathBuilder.h>
 #include <server/nautical/NavNmeaScan.h>
 #include <server/nautical/calibration/LinearCalibration.h>
+#include <Eigen/Eigenvalues>
 
 using namespace sail;
 using namespace LinearOptCalib;
+
+Eigen::MatrixXd projector(Eigen::MatrixXd A) {
+  Eigen::MatrixXd AtA = A.transpose()*A;
+  return A*AtA.inverse()*A.transpose();
+}
+
+
+double getMinValue(const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> &s) {
+  double value = std::numeric_limits<double>::infinity();
+  for (int i = 0; i < s.eigenvalues().size(); i++) {
+    auto x = s.eigenvalues()(i);
+    if (x < value) {
+      value = x;
+    }
+  }
+  return value;
+}
+
+// Distance between the orthonormal subspaces spanned by the columns
+// of A and B, respectively. A distance of 0 means the subspaces are the same.
+double subspaceDistance(Eigen::MatrixXd A, Eigen::MatrixXd B) {
+  auto aProj = projector(A);
+  auto bProj = projector(B);
+  auto dif = aProj - bProj;
+  auto K = dif.transpose()*dif;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> s(K, false);
+  return getMinValue(s);
+}
 
 Array<Nav> getPsarosTestData() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
