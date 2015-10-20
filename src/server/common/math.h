@@ -372,6 +372,12 @@ T toFinite(T x, T defaultValue) {
 Arrayd makeNextRegCoefs(const Arrayd &coefs);
 Arrayd makeRegCoefs(int order);
 
+inline bool isEven(int x) {
+  return x % 2 == 0;
+}
+
+
+
 } /* namespace sail */
 
 #endif /* COMMON_MATH_H_ */

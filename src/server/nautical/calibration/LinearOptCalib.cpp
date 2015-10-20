@@ -12,10 +12,6 @@ namespace LinearOptCalib {
 
 using namespace Eigen;
 
-bool isEven(int x) {
-  return x % 2 == 0;
-}
-
 template <typename T>
 bool hasEvenRows(const T &x) {
   return isEven(x.rows());

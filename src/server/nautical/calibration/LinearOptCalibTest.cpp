@@ -87,6 +87,10 @@ TEST(LinearOptCalib, OrthoDense) {
 
 TEST(LinearOptCalib, MatrixTest) {
   auto edata = toEData(getPsarosTestData());
+  EXPECT_EQ(edata.A.rows(), edata.B.size());
+  EXPECT_EQ(edata.A.cols(), 4);
+  EXPECT_LT(0, edata.A.rows());
+  EXPECT_TRUE(isEven(edata.A.rows()));
 }
 
 TEST(LinearOptCalib, OverlappingSpanTest) {
