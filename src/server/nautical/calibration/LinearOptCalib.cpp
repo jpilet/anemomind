@@ -28,7 +28,7 @@ int countFlowEqs(Array<Spani> spans) {
   return spans.reduce<int>(0, [](int x, Spani y) {return x + y.width();});
 }
 
-MatrixXd assembleSpans(const MatrixXd &A, Array<Spani> spans) {
+MatrixXd makeParameterizedApparentFlowMatrix(const MatrixXd &A, Array<Spani> spans) {
   int cols = A.cols();
   MatrixXd result(2*countFlowEqs(spans), cols);
   int from = 0;
@@ -41,11 +41,6 @@ MatrixXd assembleSpans(const MatrixXd &A, Array<Spani> spans) {
   }
   assert(from == result.rows());
   return result;
-}
-
-
-MatrixXd makeLhs(const MatrixXd &A, Array<Spani> spans) {
-  return orthonormalBasis(assembleSpans(A, spans));
 }
 
 Array<Spani> makeOverlappingSpans(int dataSize, int spanSize, double relativeStep) {

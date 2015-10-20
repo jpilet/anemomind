@@ -17,6 +17,7 @@ namespace LinearOptCalib {
 Eigen::MatrixXd orthonormalBasis(const Eigen::MatrixXd &x);
 Eigen::MatrixXd makeLhs(const Eigen::MatrixXd &A, Array<Spani> spans);
 Eigen::SparseMatrix<double> makeRhs(const Eigen::VectorXd &B, Array<Spani> spans);
+Eigen::MatrixXd makeParameterizedApparentFlowMatrix(const Eigen::MatrixXd &A, Array<Spani> spans);
 Array<Spani> makeOverlappingSpans(int dataSize, int spanSize, double relativeStep = 0.5);
 
 

@@ -47,12 +47,14 @@ Eigen::VectorXd arrayToVector(MDArray2d src) {
 struct EData {
   Eigen::MatrixXd A;
   Eigen::VectorXd B;
+  int n;
 };
 
 EData toEData(Array<Nav> navs) {
   LinearCalibration::FlowSettings settings;
   auto matrices = LinearCalibration::makeTrueWindMatrices(navs, settings);
-  return EData{arrayToMatrix(matrices.A), arrayToVector(matrices.B)};
+  assert(isEven(matrices.A.rows()));
+  return EData{arrayToMatrix(matrices.A), arrayToVector(matrices.B), matrices.A.rows()/2};
 }
 
 bool isOrthonormal(Eigen::MatrixXd X, double tol = 1.0e-6) {
@@ -91,6 +93,8 @@ TEST(LinearOptCalib, MatrixTest) {
   EXPECT_EQ(edata.A.cols(), 4);
   EXPECT_LT(0, edata.A.rows());
   EXPECT_TRUE(isEven(edata.A.rows()));
+  auto spans = makeOverlappingSpans(edata.n, 100, 0.5);
+  auto A = makeParameterizedApparentFlowMatrix(edata.A, spans);
 }
 
 TEST(LinearOptCalib, OverlappingSpanTest) {
