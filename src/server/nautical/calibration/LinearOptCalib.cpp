@@ -5,6 +5,7 @@
 
 #include "LinearOptCalib.h"
 #include <server/math/nonlinear/DataFit.h>
+#include <server/common/string.h>
 
 namespace sail {
 namespace LinearOptCalib {
@@ -49,6 +50,16 @@ MatrixXd assembleSpans(const MatrixXd &A, Array<Spani> spans) {
 
 MatrixXd makeLhs(const MatrixXd &A, Array<Spani> spans) {
   return orthonormalBasis(assembleSpans(A, spans));
+}
+
+Array<Spani> makeOverlappingSpans(int dataSize, int spanSize, double relativeStep) {
+  LineKM spanStart(0, 1, 0, relativeStep*spanSize);
+  auto lastSpanIndex = spanStart.solveWithEquality(dataSize - spanSize);
+  int spanCount = int(floor(lastSpanIndex)) + 1;
+  return Spani(0, spanCount).map<Spani>([&](int spanIndex) {
+    int from = int(round(spanStart(spanIndex)));
+    return Spani(from, from + spanSize);
+  });
 }
 
 void addSpanWithConstantFlow(Spani srcSpan, Spani dstSpan, int spanIndex, const VectorXd &B,

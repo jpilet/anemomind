@@ -31,6 +31,9 @@ target_link_libraries(nautical_calibration_LinearOptCalib
 cxx_test(nautical_calibration_LinearOptCalibTest
          LinearOptCalibTest.cpp
          nautical_calibration_LinearOptCalib
+         common_Env
+         common_PathBuilder
+         nautical_NavNmeaScan
          gtest_main
         )        
         
