@@ -24,6 +24,37 @@ Array<Nav> getPsarosTestData() {
   return scanNmeaFolder(p, Nav::debuggingBoatId());
 }
 
+Eigen::MatrixXd arrayToMatrix(MDArray2d src) {
+  Eigen::MatrixXd dst(src.rows(), src.cols());
+  for (int i = 0; i < src.rows(); i++) {
+    for (int j = 0; j < src.cols(); j++) {
+      dst(i, j) = src(i, j);
+    }
+  }
+  return dst;
+}
+
+Eigen::VectorXd arrayToVector(MDArray2d src) {
+  assert(src.cols() == 1);
+  int n = src.rows();
+  Eigen::VectorXd dst(n, 1);
+  for (int i = 0; i < n; i++) {
+    dst(i) = src(i, 0);
+  }
+  return dst;
+}
+
+struct EData {
+  Eigen::MatrixXd A;
+  Eigen::VectorXd B;
+};
+
+EData toEData(Array<Nav> navs) {
+  LinearCalibration::FlowSettings settings;
+  auto matrices = LinearCalibration::makeTrueWindMatrices(navs, settings);
+  return EData{arrayToMatrix(matrices.A), arrayToVector(matrices.B)};
+}
+
 bool isOrthonormal(Eigen::MatrixXd X, double tol = 1.0e-6) {
   Eigen::MatrixXd K = X.transpose()*X;
   if (K.rows() == K.cols()) {
@@ -54,14 +85,8 @@ TEST(LinearOptCalib, OrthoDense) {
   EXPECT_TRUE(isOrthonormal(B));
 }
 
-
-
 TEST(LinearOptCalib, MatrixTest) {
-  auto navs = getPsarosTestData();
-
-  LinearCalibration::FlowSettings settings;
-  auto matrices = LinearCalibration::makeTrueWindMatrices(navs, settings);
-
+  auto edata = toEData(getPsarosTestData());
 }
 
 TEST(LinearOptCalib, OverlappingSpanTest) {
