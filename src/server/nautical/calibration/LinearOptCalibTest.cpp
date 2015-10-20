@@ -95,6 +95,7 @@ TEST(LinearOptCalib, MatrixTest) {
   EXPECT_TRUE(isEven(edata.A.rows()));
   auto spans = makeOverlappingSpans(edata.n, 100, 0.5);
   auto A = makeParameterizedApparentFlowMatrix(edata.A, spans);
+  EXPECT_TRUE(isOrthonormal(orthonormalBasis(A)));
 }
 
 TEST(LinearOptCalib, OverlappingSpanTest) {
