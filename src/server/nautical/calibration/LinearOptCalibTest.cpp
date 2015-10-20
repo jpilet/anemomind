@@ -117,14 +117,16 @@ TEST(LinearOptCalib, OrthoDense) {
 }
 
 TEST(LinearOptCalib, MatrixTest) {
-  auto edata = toEData(getPsarosTestData());
+  auto edata = toEData(getPsarosTestData().sliceTo(100));
   EXPECT_EQ(edata.A.rows(), edata.B.size());
   EXPECT_EQ(edata.A.cols(), 4);
   EXPECT_LT(0, edata.A.rows());
   EXPECT_TRUE(isEven(edata.A.rows()));
   auto spans = makeOverlappingSpans(edata.n, 100, 0.5);
   auto A = makeParameterizedApparentFlowMatrix(edata.A, spans);
-  EXPECT_TRUE(isOrthonormal(orthonormalBasis(A)));
+  auto orthoA = orthonormalBasis(A);
+  EXPECT_TRUE(isOrthonormal(orthoA));
+  EXPECT_LE(subspaceDistance(A, orthoA), 1.0e-6);
 }
 
 TEST(LinearOptCalib, OverlappingSpanTest) {
