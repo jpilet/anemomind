@@ -106,6 +106,23 @@ angular.module('www2App')
       }
     });
 
+
+    function endTime() {
+      if ($scope.selectedCurve) {
+        return curveEndTime($scope.selectedCurve);
+      } else {
+        return $scope.plotData[$scope.plotData.length - 1]['time'];
+      }
+    }
+
+    function startTime() {
+      if ($scope.selectedCurve) {
+        return curveStartTime($scope.selectedCurve);
+      } else {
+        return $scope.plotData[0]['time'];
+      }
+    }
+
     function updatePosition() {
       var now = new Date();
       if(!$scope.currentTime){
@@ -114,8 +131,9 @@ angular.module('www2App')
         var delta = (now.getTime() - lastPositionUpdate.getTime());
         delta *= $scope.replaySpeed;
         $scope.currentTime = new Date($scope.currentTime.getTime() + delta);
-        if ($scope.currentTime >= $scope.plotData[$scope.plotData.length - 1]['time']) {
-          $scope.currentTime = new Date($scope.plotData[0]['time']);
+
+        if ($scope.currentTime >= endTime()) {
+          $scope.currentTime = startTime();
         }
       }
       lastPositionUpdate = now;

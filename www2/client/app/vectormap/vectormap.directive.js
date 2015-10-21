@@ -44,7 +44,9 @@ angular.module('www2App')
 
               // This is a threshold, in pixels, to select a point.
               if (dist < 20) {
-                scope.selectedCurve = point.curveId;
+                if (!scope.selectedCurve) {
+                  scope.selectedCurve = point.curveId;
+                }
                 scope.currentTime = point.point.time;
                 scope.currentPoint = point.point;
               }
