@@ -155,7 +155,7 @@ VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
   }
 };
 
-// If selectedCurve does not matches exactly the start and end times of a
+// If selectedCurve does not match exactly the start and end times of a
 // recorded session, we still want to display part of it.
 // This function returns true if both curve times overlap.
 function curveOverlap(a, b) {
