@@ -24,6 +24,66 @@ MatrixXd orthonormalBasis(const MatrixXd &x) {
             x.rows(), x.cols()));
 }
 
+SparseVector::SparseVector(int dim, Array<Entry> entries) : _dim(dim), _entries(entries) {
+  assert(std::is_sorted(entries.begin(), entries.end()));
+}
+
+SparseVector operator*(double factor, const SparseVector &x) {
+  return SparseVector(x.dim(), x.entries().map<SparseVector::Entry>(
+  [=](const SparseVector::Entry &e) {
+    return SparseVector::Entry{e.index, factor*e.value};
+  }));
+}
+
+double dot(const SparseVector &a, const SparseVector &b) {
+  int ai = 0;
+  int bi = 0;
+  auto ae = a.entries();
+  auto be = b.entries();
+  double s = 0.0;
+  std::cout << EXPR_AND_VAL_AS_STRING(ae.size()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(be.size()) << std::endl;
+  while (ai < ae.size() && bi < be.size()) {
+    auto aei = ae[ai].index;
+    auto bei = be[bi].index;
+    if (aei == bei) {
+      s += ae[ai].value*be[bi].value;
+      ai++;
+      bi++;
+    } else if (aei < bei) {
+      ai++;
+    } else {
+      bi++;
+    }
+  }
+  return s;
+}
+
+double squaredNorm(const SparseVector &x) {
+  double s = 0.0;
+  for (auto e: x.entries()) {
+    s += sqr(e.value);
+  }
+  return s;
+}
+
+double norm(const SparseVector &x) {
+  return sqrt(squaredNorm(x));
+}
+
+SparseVector normalize(const SparseVector &x) {
+  return (1.0/norm(x))*x;
+}
+
+SparseVector projectOnNormalized(const SparseVector &a, const SparseVector &bHat) {
+  return dot(a, bHat)*bHat;
+}
+
+SparseVector project(const SparseVector &a, const SparseVector &b) {
+  return projectOnNormalized(a, normalize(b));
+}
+
+
 int countFlowEqs(Array<Spani> spans) {
   return spans.reduce<int>(0, [](int x, Spani y) {return x + y.width();});
 }

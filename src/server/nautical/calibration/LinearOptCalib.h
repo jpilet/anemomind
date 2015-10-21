@@ -14,6 +14,42 @@
 namespace sail {
 namespace LinearOptCalib {
 
+
+// The Eigen::SparseVector class is unnecessarily complicated for our limited use.
+// In particular, initialization is awkward. So make our own stuff instead.
+class SparseVector {
+ public:
+  struct Entry {
+   int index;
+   double value;
+   bool operator<(const Entry &other) const {
+     return index < other.index;
+   }
+  };
+
+  SparseVector(int dim, Array<Entry> entries);
+
+  const Array<Entry> &entries() const {
+    return _entries;
+  }
+
+  int dim() const {
+    return _dim;
+  }
+ private:
+  int _dim;
+  Array<Entry> _entries;
+};
+
+SparseVector operator*(double factor, const SparseVector &x);
+double dot(const SparseVector &a, const SparseVector &b);
+double squaredNorm(const SparseVector &x);
+double norm(const SparseVector &x);
+SparseVector normalize(const SparseVector &x);
+SparseVector projectOnNormalized(const SparseVector &a, const SparseVector &bHat);
+SparseVector project(const SparseVector &a, const SparseVector &b);
+
+
 Eigen::MatrixXd orthonormalBasis(const Eigen::MatrixXd &x);
 Eigen::MatrixXd makeLhs(const Eigen::MatrixXd &A, Array<Spani> spans);
 Eigen::SparseMatrix<double> makeRhs(const Eigen::VectorXd &B, Array<Spani> spans);

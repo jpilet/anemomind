@@ -103,7 +103,19 @@ bool isOrthonormal(Eigen::MatrixXd X, double tol = 1.0e-6) {
   return false;
 }
 
-TEST(LinearOptCalib, OrthoDense) {
+Array<Eigen::VectorXd> splitCols(const Eigen::MatrixXd &x) {
+  Array<Eigen::VectorXd> y(x.cols());
+  for (int j = 0; j < x.cols(); j++) {
+    Eigen::VectorXd yj(x.rows());
+    for (int i = 0; i < x.rows(); i++) {
+      yj(j) = x(i, j);
+    }
+    y[j] = yj;
+  }
+  return y;
+}
+
+TEST(LinearOptCalib, OrthoDenseAndPerVector) {
   int m = 30;
   int n = 9;
   Eigen::MatrixXd A(m, n);
@@ -114,7 +126,22 @@ TEST(LinearOptCalib, OrthoDense) {
   }
   auto B = orthonormalBasis(A);
   EXPECT_TRUE(isOrthonormal(B));
+
+  auto vecs = splitCols(A);
 }
+
+TEST(LinearOptCalib, SparseVectorTest) {
+  SparseVector a(4, Array<SparseVector::Entry>{
+    SparseVector::Entry{0, 1.0},
+    SparseVector::Entry{1, 2.0}
+  });
+  SparseVector b(4, Array<SparseVector::Entry>{
+    SparseVector::Entry{2, 3.0},
+    SparseVector::Entry{3, 4.0}
+  });
+  EXPECT_EQ(dot(a, a), squaredNorm(a));
+}
+
 
 TEST(LinearOptCalib, MatrixTest) {
   auto edata = toEData(getPsarosTestData().sliceTo(100));
