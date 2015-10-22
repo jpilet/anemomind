@@ -217,18 +217,19 @@ namespace {
 
 
 
-  int mapToRawMinorState(double awaDegs) {
-    if (std::isnan(awaDegs)) {
+  int mapToRawMinorState(double twaDegs) {
+    if (std::isnan(twaDegs)) {
       return -1;
     }
-    double atMost360 = positiveMod(awaDegs, 360.0);
+    double atMost360 = positiveMod(twaDegs, 360.0);
     return int(atMost360/60);
   }
 
   int mapToRawMinorState(const Nav &nav) {
-    return mapToRawMinorState(nav.awa().degrees());
+    return mapToRawMinorState(
+        toFinite(nav.twaFromTrueWindOverGround().degrees(),
+            nav.externalTwa().degrees()));
   }
-
 }
 
 
