@@ -28,33 +28,136 @@ SparseVector::SparseVector(int dim, Array<Entry> entries) : _dim(dim), _entries(
   assert(std::is_sorted(entries.begin(), entries.end()));
 }
 
+SparseVector SparseVector::zeros(int dim) {
+  return SparseVector(dim, Array<Entry>());
+}
+
 SparseVector operator*(double factor, const SparseVector &x) {
+  if (factor == 0.0) {
+    return SparseVector::zeros(x.dim());
+  }
   return SparseVector(x.dim(), x.entries().map<SparseVector::Entry>(
   [=](const SparseVector::Entry &e) {
     return SparseVector::Entry{e.index, factor*e.value};
   }));
 }
 
-double dot(const SparseVector &a, const SparseVector &b) {
-  int ai = 0;
-  int bi = 0;
-  auto ae = a.entries();
-  auto be = b.entries();
-  double s = 0.0;
-  std::cout << EXPR_AND_VAL_AS_STRING(ae.size()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(be.size()) << std::endl;
-  while (ai < ae.size() && bi < be.size()) {
-    auto aei = ae[ai].index;
-    auto bei = be[bi].index;
-    if (aei == bei) {
-      s += ae[ai].value*be[bi].value;
-      ai++;
-      bi++;
-    } else if (aei < bei) {
-      ai++;
+class PairIterator {
+ public:
+  PairIterator(const SparseVector &a, const SparseVector &b) :
+    _ae(a.entries()), _be(b.entries()) {
+    assert(a.dim() == b.dim());
+    reset();
+  }
+
+  bool iterating() const {
+    return _ai < _ae.size() && _bi < _be.size();
+  }
+
+  int index() const {
+    return std::min(_aei, _bei);
+  }
+
+  double aValue() const {
+    return _ax;
+  }
+
+  double bValue() const {
+    return _bx;
+  }
+
+  void reset();
+  void step();
+ private:
+  const Array<SparseVector::Entry> &_ae, &_be;
+  int _ai, _bi;
+  int _aei, _bei;
+  double _ax, _bx;
+  void update();
+};
+
+void PairIterator::reset() {
+  _ai = 0;
+  _bi = 0;
+  update();
+}
+
+void PairIterator::update() {
+  if (iterating()) {
+    _aei = _ae[_ai].index;
+    _bei = _be[_bi].index;
+    if (_aei == _bei) {
+      _ax = _ae[_ai].value;
+      _bx = _be[_bi].value;
+    } else if (_aei < _bei) {
+      _ax = _ae[_ai].value;
+      _bx = 0;
     } else {
-      bi++;
+      _ax = 0;
+      _bx = _be[_bi].value;
     }
+  }
+}
+
+void PairIterator::step() {
+  assert(iterating());
+  if (_aei <= _bei) {
+    _ai++;
+  }
+  if (_bei <= _aei) {
+    _bi++;
+  }
+  if (iterating()) {
+    update();
+  }
+}
+
+int countNonZeros(PairIterator x) {
+  x.reset();
+  int counter = 0;
+  while (x.iterating()) {
+    counter++;
+  }
+  return counter;
+}
+
+SparseVector scaledAdd(
+    double aFactor, const SparseVector &a,
+    double bFactor, const SparseVector &b) {
+  PairIterator iter(a, b);
+  int nnz = countNonZeros(iter);
+  Array<SparseVector::Entry> result(nnz);
+  int i = 0;
+  while (iter.iterating()) {
+    double s = aFactor*iter.aValue() + bFactor*iter.bValue();
+    if (s != 0.0) {
+      result[i] = SparseVector::Entry{iter.index(), s};
+      i++;
+    }
+    iter.step();
+  }
+  return SparseVector(a.dim(), result.sliceTo(i));
+}
+
+
+SparseVector operator+(const SparseVector &a, const SparseVector &b) {
+  return scaledAdd(1.0, a, 1.0, b);
+}
+
+SparseVector operator-(const SparseVector &a, const SparseVector &b) {
+  return scaledAdd(1.0, a, -1.0, b);
+}
+
+SparseVector operator-(const SparseVector &a) {
+  return (-1.0)*a;
+}
+
+double dot(const SparseVector &a, const SparseVector &b) {
+  double s = 0.0;
+  PairIterator iter(a, b);
+  while (iter.iterating()) {
+    s += iter.aValue()*iter.bValue();
+    iter.step();
   }
   return s;
 }
@@ -186,17 +289,20 @@ Eigen::SparseVector<double> subtractProjection(
  * orthonormal basis. Please reorder the sparse vectors
  * so that those with the fewest elements come first which
  * will give us the sparsest output.
+ *
+ * https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process#Numerical_stability
  */
-Array<Eigen::SparseVector<double> > gramSchmidt(
-    Array<Eigen::SparseVector<double> > vectors) {
+Array<SparseVector> gramSchmidt(
+    Array<SparseVector> vectors) {
   int n = vectors.size();
-  Array<Eigen::SparseVector<double> > result(n);
+  Array<SparseVector > result(n);
   for (int i = 0; i < n; i++) {
-    Eigen::SparseVector<double> y = vectors[i];
-    for (int j = 0; j < n; j++) {
-      y = subtractProjection(y, result[j]);
+    SparseVector vk = vectors[i];
+    SparseVector uk;
+    for (int j = 0; j < i; j++) {
+      uk = uk - projectOnNormalized(vk, result[j]);
     }
-    result[i] = (1.0/y.norm())*y;
+    result[i] = normalize(uk);
   }
   return result;
 }

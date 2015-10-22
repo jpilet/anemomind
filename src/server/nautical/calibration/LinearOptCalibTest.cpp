@@ -140,6 +140,8 @@ TEST(LinearOptCalib, SparseVectorTest) {
     SparseVector::Entry{3, 4.0}
   });
   EXPECT_EQ(dot(a, a), squaredNorm(a));
+  EXPECT_EQ(dot(b, b), squaredNorm(b));
+  EXPECT_EQ(0, dot(a, b));
 }
 
 
@@ -163,3 +165,5 @@ TEST(LinearOptCalib, OverlappingSpanTest) {
   EXPECT_EQ(spans[1], Spani(1, 3));
   EXPECT_EQ(spans[2], Spani(2, 4));
 }
+
+

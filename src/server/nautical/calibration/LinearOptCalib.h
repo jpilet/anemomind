@@ -28,6 +28,9 @@ class SparseVector {
   };
 
   SparseVector(int dim, Array<Entry> entries);
+  SparseVector() : _dim(0) {}
+
+  static SparseVector zeros(int dim);
 
   const Array<Entry> &entries() const {
     return _entries;
@@ -36,11 +39,18 @@ class SparseVector {
   int dim() const {
     return _dim;
   }
+
+  int nnz() const {
+    return _entries.size();
+  }
  private:
   int _dim;
   Array<Entry> _entries;
 };
 
+SparseVector operator+(const SparseVector &a, const SparseVector &b);
+SparseVector operator-(const SparseVector &a, const SparseVector &b);
+SparseVector operator-(const SparseVector &a);
 SparseVector operator*(double factor, const SparseVector &x);
 double dot(const SparseVector &a, const SparseVector &b);
 double squaredNorm(const SparseVector &x);
