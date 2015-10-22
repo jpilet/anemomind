@@ -210,7 +210,6 @@ void makeBoatDatFile(
     calibrator.simulate(&navs);
   }
 
-  // I don't trust the grammar segmentation of "upwind legs" and "downwind legs"
   outputTargetSpeedTable(debug, fulltree, g.nodeInfo(), navs, &boatDatFile);
 }
 
