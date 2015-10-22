@@ -20,8 +20,22 @@ namespace LinearOptCalib {
 class SparseVector {
  public:
   struct Entry {
+   Entry() :
+     index(-1),
+     value(NAN) {}
+   Entry(int i, double v) : index(i), value(v) {}
+
+   bool valid() const {
+     return index != -1;
+   }
+
+   double valueOr0() const {
+     return (valid()? value : 0);
+   }
+
    int index;
    double value;
+
    bool operator<(const Entry &other) const {
      return index < other.index;
    }
@@ -47,6 +61,10 @@ class SparseVector {
   int _dim;
   Array<Entry> _entries;
 };
+
+typedef std::pair<SparseVector::Entry, SparseVector::Entry> EntryPair;
+Array<EntryPair>
+  listPairs(const SparseVector &a, const SparseVector &b);
 
 SparseVector operator+(const SparseVector &a, const SparseVector &b);
 SparseVector operator-(const SparseVector &a, const SparseVector &b);

@@ -6,6 +6,7 @@
 #include "LinearOptCalib.h"
 #include <server/math/nonlinear/DataFit.h>
 #include <server/common/string.h>
+#include <server/common/ArrayBuilder.h>
 
 namespace sail {
 namespace LinearOptCalib {
@@ -42,103 +43,59 @@ SparseVector operator*(double factor, const SparseVector &x) {
   }));
 }
 
-bool isActive(int index, const Array<SparseVector::Entry> &e) {
-  return 0 <= index && index < e.size();
-}
 
-double getActiveValue(int index, const Array<SparseVector::Entry> &e) {
-  return (isActive(index, e)? e[index].value : 0.0);
-}
-
-int getActiveIndex(int index, const Array<SparseVector::Entry> &e) {
-  return (isActive(index, e)? e[index].index : std::numeric_limits<int>::max());
-}
-
-class PairIterator {
- public:
-  PairIterator(const SparseVector &a, const SparseVector &b) :
-    _ae(a.entries()), _be(b.entries()) {
-    assert(a.dim() == b.dim());
-    reset();
-  }
-
-  bool iterating() const {
-    return isActive(_ai, _ae) || isActive(_bi, _be);
-  }
-
-  int index() const {
-    return std::min(_aei, _bei);
-  }
-
-  double aValue() const {
-    return (_aei <= _bei? getActiveValue(_ai, _ae) : 0);
-  }
-
-  double bValue() const {
-    return (_bei <= _aei? getActiveValue(_bi, _be) : 0);
-  }
-
-  void reset();
-  void step();
- private:
-  const Array<SparseVector::Entry> &_ae, &_be;
-  int _ai, _bi, _aei, _bei;
-};
-
-void PairIterator::reset() {
-  _ai = 0;
-  _bi = 0;
-  _aei = getActiveIndex(_ai, _ae);
-  _bei = getActiveIndex(_bi, _be);
-  std::cout << "Reset to aei=" << _aei << " and bei=" << _bei << std::endl;
-}
-
-void PairIterator::step() {
-  _aei = getActiveIndex(_ai, _ae);
-  _bei = getActiveIndex(_bi, _be);
-  if (_aei <= _bei) {
-    _ai++;
-    _aei = getActiveIndex(_ai, _ae);
-  }
-  if (_bei <= _aei) {
-    _bi++;
-    _bei = getActiveIndex(_bi, _be);
-  }
-  std::cout << "Step to aei=" << _aei << " and bei=" << _bei << std::endl;
-}
-
-int countNonZeros(PairIterator x) {
-  x.reset();
-  int counter = 0;
-  while (x.iterating()) {
-    counter++;
-    x.step();
-  }
-  return counter;
+int commonIndex(const EntryPair &p) {
+  return std::max(p.first.index, p.second.index);
 }
 
 SparseVector scaledAdd(
     double aFactor, const SparseVector &a,
     double bFactor, const SparseVector &b) {
-  PairIterator iter(a, b);
-  int nnz = countNonZeros(iter);
-  Array<SparseVector::Entry> result(nnz);
-  std::cout << "Scaled add of A:" << a;
-  std::cout << "Scaled add of B:" << b;
-  int i = 0;
-  while (iter.iterating()) {
-    auto aValue = iter.aValue();
-    auto bValue = iter.bValue();
-    std::cout << "  weighted add of " << aValue << " and " << bValue << std::endl;
-    double s = aFactor*aValue + bFactor*bValue;
-    if (s != 0.0) {
-      result[i] = SparseVector::Entry{iter.index(), s};
-      i++;
+  auto pairs = listPairs(a, b);
+  auto entries = pairs.map<SparseVector::Entry>([&](const EntryPair &p) {
+    return SparseVector::Entry(
+        commonIndex(p),
+        aFactor*p.first.valueOr0() + bFactor*p.second.valueOr0());
+  });
+  return SparseVector(a.dim(), entries);
+}
+
+SparseVector::Entry getEntry(const SparseVector &x, int i) {
+  return (i < x.entries().size()? x.entries()[i] : SparseVector::Entry());
+}
+
+Array<EntryPair>
+  listPairs(const SparseVector &a, const SparseVector &b) {
+  int ai = 0;
+  int bi = 0;
+  typedef SparseVector::Entry E;
+  ArrayBuilder<EntryPair> pairs;
+  while (true) {
+    auto ae = getEntry(a, ai);
+    auto be = getEntry(b, bi);
+    if (!ae.valid()) {
+      if (!be.valid()) {
+        return pairs.get();
+      }
+      pairs.add(EntryPair(E(), be));
+      bi++;
+    } else if (!be.valid()) {
+      pairs.add(EntryPair(ae, E()));
+      ai++;
+    } else {
+      if (ae.index == be.index) {
+        pairs.add(EntryPair(ae, be));
+        ai++;
+        bi++;
+      } else if (ae.index < be.index) {
+        pairs.add(EntryPair(ae, E()));
+        ai++;
+      } else {
+        pairs.add(EntryPair(E(), be));
+        bi++;
+      }
     }
-    iter.step();
   }
-  std::cout << "Done iterating" << std::endl;
-  return SparseVector(a.dim(), result.sliceTo(i));
 }
 
 
@@ -155,13 +112,19 @@ SparseVector operator-(const SparseVector &a) {
 }
 
 double dot(const SparseVector &a, const SparseVector &b) {
-  double s = 0.0;
-  PairIterator iter(a, b);
-  while (iter.iterating()) {
-    s += iter.aValue()*iter.bValue();
-    iter.step();
+  auto pairs = listPairs(a, b);
+  std::cout << "dot:\n";
+  std::cout << EXPR_AND_VAL_AS_STRING(a) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(b) << std::endl;
+  for (int i = 0; i < pairs.size(); i++) {
+    std::cout << EXPR_AND_VAL_AS_STRING(pairs[i]) << std::endl;
   }
-  return s;
+  std::function<double(double,EntryPair)> pairProd = [&](double v, const EntryPair &e) {
+      return v + e.first.valueOr0()*e.second.valueOr0();
+    };
+  auto result = pairs.reduce<double>(0.0, pairProd);
+  std::cout << EXPR_AND_VAL_AS_STRING(result) << std::endl;
+  return result;
 }
 
 double squaredNorm(const SparseVector &x) {
@@ -193,6 +156,16 @@ std::ostream &operator<<(std::ostream &s, const SparseVector &x) {
   for (auto e: x.entries()) {
     s << "  x[" << e.index << "] = " << e.value << "\n";
   }
+  return s;
+}
+
+std::ostream &operator<<(std::ostream &s, const SparseVector::Entry &e) {
+  s << "Entry(index=" << e.index << ", " << e.value << ")";
+  return s;
+}
+
+std::ostream &operator<<(std::ostream &s, const EntryPair &p) {
+  s << "Pair(" << p.first << ", " << p.second << ")";
   return s;
 }
 
