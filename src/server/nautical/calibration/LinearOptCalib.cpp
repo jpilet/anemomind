@@ -113,17 +113,10 @@ SparseVector operator-(const SparseVector &a) {
 
 double dot(const SparseVector &a, const SparseVector &b) {
   auto pairs = listPairs(a, b);
-  std::cout << "dot:\n";
-  std::cout << EXPR_AND_VAL_AS_STRING(a) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(b) << std::endl;
-  for (int i = 0; i < pairs.size(); i++) {
-    std::cout << EXPR_AND_VAL_AS_STRING(pairs[i]) << std::endl;
-  }
   std::function<double(double,EntryPair)> pairProd = [&](double v, const EntryPair &e) {
       return v + e.first.valueOr0()*e.second.valueOr0();
     };
   auto result = pairs.reduce<double>(0.0, pairProd);
-  std::cout << EXPR_AND_VAL_AS_STRING(result) << std::endl;
   return result;
 }
 
@@ -272,13 +265,9 @@ Array<SparseVector> gramSchmidt(
     SparseVector vk = vectors[i];
     SparseVector uk = vk;
     for (int j = 0; j < i; j++) {
-      std::cout << EXPR_AND_VAL_AS_STRING(uk) << std::endl;
-      std::cout << EXPR_AND_VAL_AS_STRING(result[j]) << std::endl;
       auto proj = projectOnNormalized(uk, result[j]);
-      std::cout << EXPR_AND_VAL_AS_STRING(proj) << std::endl;
       uk = uk - proj;
     }
-    std::cout << EXPR_AND_VAL_AS_STRING(uk) << std::endl;
     result[i] = normalize(uk);
   }
   return result;

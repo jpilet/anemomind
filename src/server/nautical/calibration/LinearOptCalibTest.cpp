@@ -129,6 +129,14 @@ TEST(LinearOptCalib, OrthoDenseAndPerVector) {
   EXPECT_TRUE(isOrthonormal(B));
 
   auto vecs = splitCols(A);
+  {
+    Eigen::MatrixXd a(2, 1), b(2, 1);
+    a(0, 0) = 1.0;
+    a(1, 0) = 0.0;
+    b(0, 0) = 0.0;
+    b(1, 0) = 1.0;
+    EXPECT_NEAR(subspaceDistance(a, b), 1.0, 1.0e-6);
+  }
 }
 
 TEST(LinearOptCalib, SparseVectorTest) {
@@ -177,12 +185,13 @@ Eigen::MatrixXd toDense(Array<SparseVector> vectors) {
 }
 
 TEST(LinearOptCalibTest, SparseGramSchmidtTest) {
-  /*auto testVectors = makeTestVectors();
-  EXPECT_FALSE(isOrthonormal(toDense(testVectors)));
+  auto testVectors = makeTestVectors();
+  auto denseTest = toDense(testVectors);
+  EXPECT_FALSE(isOrthonormal(denseTest));
   auto orthoVectors = gramSchmidt(testVectors);
-  EXPECT_TRUE(isOrthonormal(toDense(orthoVectors)));
-  std::cout << EXPR_AND_VAL_AS_STRING(toDense(testVectors)) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(toDense(orthoVectors)) << std::endl;*/
+  auto denseOrtho = toDense(orthoVectors);
+  EXPECT_TRUE(isOrthonormal(denseOrtho));
+  EXPECT_LE(subspaceDistance(denseTest, denseOrtho), 1.0e-6);
 }
 
 
