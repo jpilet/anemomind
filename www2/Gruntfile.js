@@ -247,7 +247,7 @@ module.exports = function (grunt) {
       options: {
         dest: '<%= yeoman.dist %>/public',
         flow: {
-          steps: { js: ['concat', 'uglify'], css: ['concat', 'cssmin'] },
+          steps: { js: ['concat', 'uglifyjs'], css: ['concat', 'cssmin'] },
           post: {
             css: [{
               name: 'cssmin',
