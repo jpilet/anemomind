@@ -6,12 +6,14 @@ function curveEndTimeStr(curveId) {
 function curveStartTimeStr(curveId) {
   return curveId.substr(curveId.length-19*2,19);
 }
+
 function curveEndTime(curveId) {
-  return new Date(curveEndTimeStr(curveId));
+  // Adding a Z sets the time zone to GMT.
+  return new Date(curveEndTimeStr(curveId) + "Z");
 }
 
 function curveStartTime(curveId) {
-  return new Date(curveStartTimeStr(curveId));
+  return new Date(curveStartTimeStr(curveId) + "Z");
 }
 
 function VectorTileLayer(params, renderer) {
@@ -588,6 +590,11 @@ VectorTileLayer.prototype.isHighlighted = function(curveId) {
 VectorTileLayer.prototype.findPointAt = function(x, y) {
   var p = {x: x, y: y};
 
+  if (this.selectedCurve) {
+    var selectedTimeStart = curveStartTime(this.selectedCurve);
+    var selectedTimeEnd = curveEndTime(this.selectedCurve);
+  }
+
   for (var scale = 20; scale >= 0; --scale) {
     var xAtScale = Math.floor(x * (1 << scale));
     var yAtScale = Math.floor(y * (1 << scale));
@@ -602,11 +609,16 @@ VectorTileLayer.prototype.findPointAt = function(x, y) {
       for (var curve in tile.data) {
         for (var c in tile.data[curve].curves) {
           var curveId = tile.data[curve].curves[c].curveId;
-          if (this.selectedCurve && this.selectedCurve != curveId) {
+          if (this.selectedCurve && !curveOverlap(this.selectedCurve, curveId)) {
             continue;
           }
-          var points = tile.data[curve].curves[c].points;
+            var points = tile.data[curve].curves[c].points;
           for (var i in points) {
+            if (this.selectedCurve
+                && (points[i].time < selectedTimeStart
+                    || points[i].time > selectedTimeEnd)) {
+              continue;
+            }
             var dist = Utils.distance(p, {x: points[i].pos[0], y: points[i].pos[1]});
             if (dist < bestDist) {
               bestDist = dist;
