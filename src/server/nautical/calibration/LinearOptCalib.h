@@ -58,7 +58,11 @@ double norm(const SparseVector &x);
 SparseVector normalize(const SparseVector &x);
 SparseVector projectOnNormalized(const SparseVector &a, const SparseVector &bHat);
 SparseVector project(const SparseVector &a, const SparseVector &b);
+std::ostream &operator<<(std::ostream &s, const SparseVector &x);
 
+
+Array<SparseVector> gramSchmidt(
+    Array<SparseVector> vectors);
 
 Eigen::MatrixXd orthonormalBasis(const Eigen::MatrixXd &x);
 Eigen::MatrixXd makeLhs(const Eigen::MatrixXd &A, Array<Spani> spans);

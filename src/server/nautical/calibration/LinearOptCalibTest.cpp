@@ -12,6 +12,7 @@
 #include <server/nautical/NavNmeaScan.h>
 #include <server/nautical/calibration/LinearCalibration.h>
 #include <Eigen/Eigenvalues>
+#include <server/common/ArrayIO.h>
 
 using namespace sail;
 using namespace LinearOptCalib;
@@ -142,6 +143,46 @@ TEST(LinearOptCalib, SparseVectorTest) {
   EXPECT_EQ(dot(a, a), squaredNorm(a));
   EXPECT_EQ(dot(b, b), squaredNorm(b));
   EXPECT_EQ(0, dot(a, b));
+  EXPECT_EQ((a + b).nnz(), 4);
+  EXPECT_EQ((a - b).nnz(), 4);
+}
+
+SparseVector makeTestVector(int index) {
+  int dim = 12;
+  Array<SparseVector::Entry> data(3);
+  int offset = 5*index;
+  for (int i = 0; i < 3; i++) {
+    data[i] = SparseVector::Entry{(offset + i) % dim, sin(324.324*offset + 43249.324*i + 234.324)};
+  }
+  std::sort(data.begin(), data.end());
+  return SparseVector(dim, data);
+}
+
+Array<SparseVector> makeTestVectors() {
+  return Spani(0, 9).map<SparseVector>([](int index) {
+    return makeTestVector(index);
+  });
+}
+
+Eigen::MatrixXd toDense(Array<SparseVector> vectors) {
+  int cols = vectors.size();
+  int rows = vectors.first().dim();
+  Eigen::MatrixXd dst = Eigen::MatrixXd::Zero(rows, cols);
+  for (int j = 0; j < vectors.size(); j++) {
+    for (auto e: vectors[j].entries()) {
+      dst(e.index, j) = e.value;
+    }
+  }
+  return dst;
+}
+
+TEST(LinearOptCalibTest, SparseGramSchmidtTest) {
+  /*auto testVectors = makeTestVectors();
+  EXPECT_FALSE(isOrthonormal(toDense(testVectors)));
+  auto orthoVectors = gramSchmidt(testVectors);
+  EXPECT_TRUE(isOrthonormal(toDense(orthoVectors)));
+  std::cout << EXPR_AND_VAL_AS_STRING(toDense(testVectors)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(toDense(orthoVectors)) << std::endl;*/
 }
 
 

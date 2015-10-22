@@ -42,6 +42,18 @@ SparseVector operator*(double factor, const SparseVector &x) {
   }));
 }
 
+bool isActive(int index, const Array<SparseVector::Entry> &e) {
+  return 0 <= index && index < e.size();
+}
+
+double getActiveValue(int index, const Array<SparseVector::Entry> &e) {
+  return (isActive(index, e)? e[index].value : 0.0);
+}
+
+int getActiveIndex(int index, const Array<SparseVector::Entry> &e) {
+  return (isActive(index, e)? e[index].index : std::numeric_limits<int>::max());
+}
+
 class PairIterator {
  public:
   PairIterator(const SparseVector &a, const SparseVector &b) :
@@ -51,7 +63,7 @@ class PairIterator {
   }
 
   bool iterating() const {
-    return _ai < _ae.size() && _bi < _be.size();
+    return isActive(_ai, _ae) || isActive(_bi, _be);
   }
 
   int index() const {
@@ -59,57 +71,40 @@ class PairIterator {
   }
 
   double aValue() const {
-    return _ax;
+    return (_aei <= _bei? getActiveValue(_ai, _ae) : 0);
   }
 
   double bValue() const {
-    return _bx;
+    return (_bei <= _aei? getActiveValue(_bi, _be) : 0);
   }
 
   void reset();
   void step();
  private:
   const Array<SparseVector::Entry> &_ae, &_be;
-  int _ai, _bi;
-  int _aei, _bei;
-  double _ax, _bx;
-  void update();
+  int _ai, _bi, _aei, _bei;
 };
 
 void PairIterator::reset() {
   _ai = 0;
   _bi = 0;
-  update();
-}
-
-void PairIterator::update() {
-  if (iterating()) {
-    _aei = _ae[_ai].index;
-    _bei = _be[_bi].index;
-    if (_aei == _bei) {
-      _ax = _ae[_ai].value;
-      _bx = _be[_bi].value;
-    } else if (_aei < _bei) {
-      _ax = _ae[_ai].value;
-      _bx = 0;
-    } else {
-      _ax = 0;
-      _bx = _be[_bi].value;
-    }
-  }
+  _aei = getActiveIndex(_ai, _ae);
+  _bei = getActiveIndex(_bi, _be);
+  std::cout << "Reset to aei=" << _aei << " and bei=" << _bei << std::endl;
 }
 
 void PairIterator::step() {
-  assert(iterating());
+  _aei = getActiveIndex(_ai, _ae);
+  _bei = getActiveIndex(_bi, _be);
   if (_aei <= _bei) {
     _ai++;
+    _aei = getActiveIndex(_ai, _ae);
   }
   if (_bei <= _aei) {
     _bi++;
+    _bei = getActiveIndex(_bi, _be);
   }
-  if (iterating()) {
-    update();
-  }
+  std::cout << "Step to aei=" << _aei << " and bei=" << _bei << std::endl;
 }
 
 int countNonZeros(PairIterator x) {
@@ -117,6 +112,7 @@ int countNonZeros(PairIterator x) {
   int counter = 0;
   while (x.iterating()) {
     counter++;
+    x.step();
   }
   return counter;
 }
@@ -127,15 +123,21 @@ SparseVector scaledAdd(
   PairIterator iter(a, b);
   int nnz = countNonZeros(iter);
   Array<SparseVector::Entry> result(nnz);
+  std::cout << "Scaled add of A:" << a;
+  std::cout << "Scaled add of B:" << b;
   int i = 0;
   while (iter.iterating()) {
-    double s = aFactor*iter.aValue() + bFactor*iter.bValue();
+    auto aValue = iter.aValue();
+    auto bValue = iter.bValue();
+    std::cout << "  weighted add of " << aValue << " and " << bValue << std::endl;
+    double s = aFactor*aValue + bFactor*bValue;
     if (s != 0.0) {
       result[i] = SparseVector::Entry{iter.index(), s};
       i++;
     }
     iter.step();
   }
+  std::cout << "Done iterating" << std::endl;
   return SparseVector(a.dim(), result.sliceTo(i));
 }
 
@@ -184,6 +186,14 @@ SparseVector projectOnNormalized(const SparseVector &a, const SparseVector &bHat
 
 SparseVector project(const SparseVector &a, const SparseVector &b) {
   return projectOnNormalized(a, normalize(b));
+}
+
+std::ostream &operator<<(std::ostream &s, const SparseVector &x) {
+  s << "SparseVector:\n";
+  for (auto e: x.entries()) {
+    s << "  x[" << e.index << "] = " << e.value << "\n";
+  }
+  return s;
 }
 
 
@@ -270,17 +280,6 @@ Eigen::SparseMatrix<double> makeRhs(const VectorXd &B, Array<Spani> spans) {
 }*/
 
 
-// Projection of a on b. b must have length 1.
-Eigen::SparseVector<double> subtractProjection(
-    Eigen::SparseVector<double> a,
-    Eigen::SparseVector<double> bNormalized) {
-  auto s = a.dot(bNormalized);
-  if (s == 0) { // Try to keep the result as sparse as possible.
-    return a;
-  }
-  return a - s*bNormalized;
-}
-
 /*
  * Unfortunately, the SparseQR code of Eigen
  * doesn't seem to let us omit the nullspace,
@@ -298,10 +297,15 @@ Array<SparseVector> gramSchmidt(
   Array<SparseVector > result(n);
   for (int i = 0; i < n; i++) {
     SparseVector vk = vectors[i];
-    SparseVector uk;
+    SparseVector uk = vk;
     for (int j = 0; j < i; j++) {
-      uk = uk - projectOnNormalized(vk, result[j]);
+      std::cout << EXPR_AND_VAL_AS_STRING(uk) << std::endl;
+      std::cout << EXPR_AND_VAL_AS_STRING(result[j]) << std::endl;
+      auto proj = projectOnNormalized(uk, result[j]);
+      std::cout << EXPR_AND_VAL_AS_STRING(proj) << std::endl;
+      uk = uk - proj;
     }
+    std::cout << EXPR_AND_VAL_AS_STRING(uk) << std::endl;
     result[i] = normalize(uk);
   }
   return result;
