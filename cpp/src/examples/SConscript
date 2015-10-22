@@ -1,5 +1,0 @@
-Import('env')
-
-objs = env.Object(Glob('*[!_].cpp'))
-
-Return('objs')
