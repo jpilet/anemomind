@@ -27,6 +27,7 @@ target_link_libraries(nautical_calibration_LinearOptCalib
                       nautical_calibration_LinearCalibration
                       math_irls
                       math_nonlinear_DataFit
+                      math_PowerMethod
                      )
         
 cxx_test(nautical_calibration_LinearOptCalibTest

@@ -287,6 +287,18 @@ cxx_test(math_irlsTest
          gtest_main
          plot_gnuplot
         )
+        
+        
+add_library(math_PowerMethod
+            PowerMethod.h
+            PowerMethod.cpp
+           )        
+           
+cxx_test(math_PowerMethodTest
+         PowerMethodTest.cpp
+         math_PowerMethod
+         gtest_main
+        )           
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
