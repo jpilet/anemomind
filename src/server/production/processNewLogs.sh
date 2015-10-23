@@ -42,7 +42,7 @@ for boatdir in "${LOG_DIR}/"*; do
     # directory.
     [ -L "${boatprocessdir}/logs" ] || ln -s "${boatdir}" "${boatprocessdir}/logs"
 
-    if "${BIN}"/processBoatLogs noinfo "${boatprocessdir}" ; then
+    if "${BIN}"/processBoatLogs --noinfo "${boatprocessdir}" ; then
 
       # Upload the tiles to the database
       if "${BIN}"/tiles_generateAndUpload \

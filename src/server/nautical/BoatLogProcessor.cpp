@@ -7,7 +7,6 @@
 
 #include <Poco/File.h>
 #include <Poco/JSON/Stringifier.h>
-#include <Poco/Util/Application.h>
 #include <device/Arduino/libraries/TargetSpeed/TargetSpeed.h>
 #include <fstream>
 #include <iostream>
@@ -27,6 +26,7 @@
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/plot/extra.h>
+#include <server/common/ArgMap.h>
 
 #include <server/common/Json.impl.h>
 
@@ -36,7 +36,6 @@ namespace sail {
 namespace {
 
 using namespace sail;
-using namespace Poco::Util;
 using namespace std;
 
 void dispTargetSpeedTable(const char *label, const TargetSpeedTable &table, FP8_8 *data) {
@@ -67,8 +66,13 @@ Nav::Id extractBoatId(Poco::Path path) {
   return path.directory(path.depth()-1);
 }
 
-void exampleUsage1Arg() {
-  std::cout << "     == Example usage one argument ==\n"
+
+
+
+
+
+void exampleUsage1Arg(std::stringstream *dst) {
+  *dst << "     == Example usage one argument ==\n"
                "     Arg 1: testlogs/\n"
                "     \n"
       "     The program will recursively scan for all files in\n"
@@ -78,8 +82,8 @@ void exampleUsage1Arg() {
       "     on the format all_*.js\n\n";
 }
 
-void exampleUsage2Args() {
-  std::cout << "     == Example usage two arguments ==\n"
+void exampleUsage2Args(std::stringstream *dst) {
+  *dst << "     == Example usage two arguments ==\n"
       "     Arg 1: testlogs/\n"
       "     Arg 2: IreneLog.txt\n"
                "\n"
@@ -89,8 +93,9 @@ void exampleUsage2Args() {
       "     on the format IreneLog_*.js\n\n";
 }
 
-void dispHelp() {
-  std::cout << "=== Anemomind Backend ===\n"
+std::string makeHelpMessage() {
+  std::stringstream ss;
+  ss << "=== Anemomind Backend ===\n"
                "\n"
                "  This is a command line application for\n"
                "  the Anemomind backend.:\n"
@@ -103,33 +108,22 @@ void dispHelp() {
                "Second argument (optional):\n"
                "  Name of log file to process. If omitted, all log files in the directory will be processed.\n";
                std::cout << std::endl;
-   exampleUsage1Arg();
-   exampleUsage2Args();
+   exampleUsage1Arg(&ss);
+   exampleUsage2Args(&ss);
+   return ss.str();
 }
 
 }
 
-int BoatLogProcessor::main(const std::vector<std::string>& allArgs) {
-  // TODO: I think our sail::ArgMap class is much nicer than the Poco approach.
-
-  std::vector<std::string> args;
-  bool debug = false;
-  for (auto arg : allArgs) {
-    if (arg == "noinfo") {
-      SetLogLevelThreshold(LOGLEVEL_WARNING);
-    } else if (arg == "debug") {
-      debug = true;
-    } else {
-      args.push_back(arg);
-    }
-  }
-
+int continueProcessBoatLogs(ArgMap &amap) {
+  auto args = amap.freeArgs();
+  bool debug = amap.optionProvided("--debug");
   ENTERSCOPE("Anemomind boat log processor");
   if (args.empty()) {
-    dispHelp();
-    return Application::EXIT_NOINPUT;
+    makeHelpMessage();
+    return 0; //
   } else {
-    std::string pathstr = args[0];
+    std::string pathstr = args[0]->value();
     ENTERSCOPE("Process boat logs in directory " + pathstr);
     Poco::Path path = PathBuilder::makeDirectory(pathstr).get();
     if (args.size() == 1) {
@@ -137,19 +131,37 @@ int BoatLogProcessor::main(const std::vector<std::string>& allArgs) {
       if (debug) {
         visualizeBoatDat(path);
       }
-      return Application::EXIT_OK;
+      return 0;
     } else if (args.size() == 2) {
-      std::string logFilename = args[1];
+      std::string logFilename = args[1]->value();
       processBoatDataSingleLogFile(debug, path, logFilename);
       if (debug) {
         visualizeBoatDat(path);
       }
-      return Application::EXIT_OK;
+      return 0;
     } else {
       LOG(FATAL) << "Too many arguments";
-      return Application::EXIT_IOERR;
+      return -1;
     }
   }
+
+}
+
+int mainProcessBoatLogs(int argc, const char **argv) {
+  ArgMap amap;
+  amap.registerOption("--debug", "Display debug information and visualization");
+  auto status = amap.parse(argc, argv);
+  switch (status) {
+   case ArgMap::Error:
+     return -1;
+   case ArgMap::Done:
+     return 0;
+   case ArgMap::Continue:
+     return continueProcessBoatLogs(amap);
+   default:
+     LOG(FATAL) << "Unhandled ParseStatus code";
+     return -1;
+  };
 }
 
 namespace {

@@ -6,20 +6,13 @@
 #ifndef BOATLOGPROCESSOR_H_
 #define BOATLOGPROCESSOR_H_
 
-#include <Poco/Util/Application.h>
 #include <server/nautical/Nav.h>
 #include <Poco/Path.h>
 
 namespace sail {
 
-// This class implements a command line interface.
-class BoatLogProcessor : public Poco::Util::Application {
- public:
-  BoatLogProcessor() : Application() {}
-  BoatLogProcessor(int argc, char **argv) : Application(argc, argv) {}
-  int main(const std::vector<std::string>& args);
- private:
-};
+
+int mainProcessBoatLogs(int argc, const char **argv);
 
 void processBoatDataFullFolder(bool debug, Poco::Path dataPath);
 

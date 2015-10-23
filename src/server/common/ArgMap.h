@@ -22,10 +22,14 @@ class ArgMap {
   ArgMap();
 
 
-  enum Status {Error = 0,    // parsing error or something.
+  enum ParseStatus {Error = 0,    // parsing error or something.
                Continue, // no error, continue with the rest of the program
                Done};    // If the user displayed help, this is not an error, but the program should be done.
-  Status parse(int argc, const char **argv);
+
+  ParseStatus parse(int argc, const char **argv);
+
+  // TODO: Maybe ArgMap could provide some predefined
+  // exit codes, such as: enum ExitCodes {OK = 0 /*when no error occurred*/, Failure = -1 /*Something went wrong*/};
 
   class Arg {
    public:

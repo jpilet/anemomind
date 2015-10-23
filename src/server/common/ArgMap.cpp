@@ -136,7 +136,7 @@ bool ArgMap::parseSub(int argc0, const char **argv0) {
 }
 
 
-ArgMap::Status ArgMap::parse(int argc, const char **argv) {
+ArgMap::ParseStatus ArgMap::parse(int argc, const char **argv) {
   bool success = parseSub(argc, argv);
   if (success) {
     if (helpAsked()) {
