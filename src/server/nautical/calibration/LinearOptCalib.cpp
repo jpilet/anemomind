@@ -36,11 +36,10 @@ Results computeMax(MatMul A, const Eigen::VectorXd &X, const Settings &settings)
 Results computeMin(MatMul A, const Eigen::VectorXd &X, const Settings &s) {
   auto maxData = computeMax(A, X, s);
   auto maxEig = maxData.X.norm();
-  std::cout << EXPR_AND_VAL_AS_STRING(maxEig) << std::endl;
   auto temp = computeMax([&](const Eigen::VectorXd &x) {
-    return A(x) - maxEig*x;
+    Eigen::VectorXd tmp = A(x);
+    return Eigen::VectorXd(tmp - maxEig*x);
   }, X, s);
-  std::cout << EXPR_AND_VAL_AS_STRING(temp.X) << std::endl;
   return Results{(maxEig - temp.X.norm())*(1.0/temp.X.norm())*temp.X, temp.iters};
 }
 

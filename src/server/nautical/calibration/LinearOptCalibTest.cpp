@@ -306,7 +306,6 @@ TEST(LinearOptCalib, PowerMethod) {
 
   Eigen::MatrixXd B = KtK - maxEigVal*Eigen::MatrixXd::Identity(2, 2);
 
-  std::cout << EXPR_AND_VAL_AS_STRING(maxEigVal) << std::endl;
 
   auto minVecData = PowerMethod::computeMax([&](Eigen::VectorXd x) {
     auto tmp = matMul(x);
@@ -315,13 +314,12 @@ TEST(LinearOptCalib, PowerMethod) {
     return Eigen::VectorXd(tmp - maxEigVal*x);
   }, Xinit, s);
 
-  std::cout << EXPR_AND_VAL_AS_STRING(minVecData.X) << std::endl;
-
   Eigen::VectorXd minVec = (1.0/minVecData.X.norm())*KtK*minVecData.X;
   EXPECT_NEAR(minVec.norm(), gtMinVal, 1.0e-6);
 
-  //auto minData2 = PowerMethod::computeMin(matMul, Xinit, s);
-  /*EXPECT_NEAR(minData2.X.norm(), gtMinVal, 1.0e-6);*/
+  auto minData2 = PowerMethod::computeMin(matMul, Xinit, s);
+  EXPECT_NEAR(minData2.X.norm(), gtMinVal, 1.0e-6);
+  EXPECT_LE(sinAngle(minData2.X, gtMinVec), 1.0e-5);
 }
 
 
