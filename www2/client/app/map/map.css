@@ -2,26 +2,33 @@ body > div.ng-scope {
 height:100%;
 }
 
-#mapContainer {
-position: relative;
-width:100%;
-height: 100%;
+.mapScreenContainer {
+  width:100%;
+  height: 100%;
+
+  /* The flex css property needs prefixing for old browsers.
+     Fortunately, autoprefixer can handle it for us.
+  */
+  display: flex;
+  flex-direction: column;
 }
 
-vectormap {
-position: absolute;
-width: 100%;
-height: 100%;
+.mapAndGraphAndSidebar {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
 }
 
-.animationControls {
-  position: absolute;
-  bottom:120px;
-  left:0px;
-  z-index: 10;
-  background:#ff0033;
-  color:white;
-  padding:5px;
+.mapAndGraph {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.map {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
 }
 
 .titleBox {
@@ -45,29 +52,64 @@ height: 100%;
  text-decoration: none;
 }
 
+.vectorMapContainer {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
+.animationControls {
+  position: absolute;
+  bottom: 0px;
+  left:0px;
+  z-index: 10;
+  background:#ff0033;
+  color:white;
+  padding:5px;
+}
+
+.graph {
+  flex-basis: 120px;
+  position: relative;
+  flex-grow: .1;
+}
+
 perfplot {
-position: absolute;
-bottom: 0px;
-height: 100px;
-width:100%;
-display:block;
-background-color:rgba(255,255,255,0.5);
+  position: absolute;
+  bottom: 0px;
+  height: 100%;
+  width:100%;
+  display:block;
+  background-color:rgba(255,255,255,0.5);
 }
 
 #dataSourceSelector {
-position: absolute;
-bottom: 100px;
-display:inline-block;
+  position: absolute;
+  top: 0px;
+  display:inline-block;
+  z-index:10;
+}
+
+.mapScreenContainer sidebar {
+  flex:.3;
+  overflow: auto;
+}
+
+.mapScreenContainer footer {
+  display: flex;
+  flex-direction: row;
+}
+.mapScreenContainer footer button {
+  flex: 1;
 }
 
 /*==================================================*/
 
 #topwheel {
-    display:block;
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-
+  display:block;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #gaugetws {
@@ -75,7 +117,7 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-
+    max-widht: 400p;
 }
 
 #gaugesog {
@@ -83,19 +125,15 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-
 }
 
 /*==================================================*/
-
-
 
 #gaugetws2 {
     display:block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-
 }
 
 #smallwheeltwa {
@@ -103,7 +141,6 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-
 }
 
 #smallwheelcog {
@@ -111,7 +148,6 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-
 }
 
 /*==================================================*/
@@ -121,52 +157,46 @@ display:inline-block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-
 }
-
 
 #gaugeperf {
     display:block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-
 }
-
-
 
 #windarrow {
     display:block;
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-
 }
 
 /*==================================================*/
 
 #tabs {
-    width: 260px;
-    position: fixed;
-    margin-left: auto;
-    margin-right: auto;
-    top: 10px;
-    right: 0px;
-    z-index: 10;
+  margin-left: auto;
+  margin-right: auto;
+  top: 10px;
+  right: 0px;
+  z-index: 10;
+  height: 100%;
+  overflow: auto;
 }
 
 .svgcontainer {
-    text-align: center;
+  text-align: center;
 }
 
 .semitransp {
-    background: rgb(255, 255, 255); /* The Fallback */
-    background: rgba(255, 255, 255, 0.5);
-    color:#000;
+  background: rgb(255, 255, 255); /* The Fallback */
+  background: rgba(255, 255, 255, 0.5);
+  color:#000;
 }
 
 .padding5px {
-    padding:5px
+  padding:5px
 }
 
 .nav-tabs > li > a {
@@ -199,128 +229,3 @@ display:inline-block;
   margin-right: 0px;
 }
 
-/* ======== responsive behaviour =========== */
-
-/* ----------- Desktop ----------- */
-@media all and (max-height:665px) {
-  #wheel-small-svg-container {
-    display: none;
-  }
-}
-
-
-/* ----------- iPhone 6 ----------- */
-/* Portrait and Landscape */
-@media only screen 
-  and (min-device-width: 360px) 
-  and (max-device-width: 640px) 
-  and (-webkit-min-device-pixel-ratio: 2) { 
-    body {
-      font-size: 14px;
-    }
-    .titleBox {
-      padding: 2px;
-      top: 10px;
-    }
-    .nav > li > a.tab{
-      position: relative;
-      display: block;
-      padding: 2px 5px;
-      font-size: 8px;
-    }
-    .indicator-label, .indicator-value {
-      font-size: 20pt;
-    }
-}
-/* Portrait */
-@media only screen 
-  and (min-device-width: 360px) 
-  and (max-device-width: 640px) 
-  and (-webkit-min-device-pixel-ratio: 2)
-  and (orientation: portrait) { 
-    #tabs {
-      display: none;
-    }
-}
-/* Landscape */
-@media only screen 
-  and (min-device-width: 360px) 
-  and (max-device-width: 640px) 
-  and (-webkit-min-device-pixel-ratio: 2)
-  and (orientation: landscape) { 
-    body {
-      font-size: 12px;
-    }
-    #tabs {
-      width: 125px;
-    }
-    perfplot {
-      display: none;
-    }
-    #dataSourceSelector{
-      display: none;
-    }
-    .table-condensed > thead > tr > th, .table-condensed > tbody > tr > th, .table-condensed > tfoot > tr > th, .table-condensed > thead > tr > td, .table-condensed > tbody > tr > td, .table-condensed > tfoot > tr > td {
-      padding: 1px;
-    }
-    .animationControls {
-      position: absolute;
-      bottom: 20px;
-    }
-}
-/* ----------- iPad 3 and 4 ----------- */
-/* Portrait and Landscape */
-@media only screen 
-  and (min-device-width: 768px) 
-  and (max-device-width: 1024px) 
-  and (-webkit-min-device-pixel-ratio: 2) {
-    body {
-      font-size: 14px;
-    }
-    .titleBox {
-      padding: 2px;
-      top: 10px;
-    }
-    .nav > li > a.tab{
-      position: relative;
-      display: block;
-      padding: 2px 5px;
-      font-size: 10px;
-    }
-    .indicator-label, .indicator-value {
-      font-size: 20pt;
-    }
-}
-/* Portrait */
-@media only screen 
-  and (min-device-width: 768px) 
-  and (max-device-width: 1024px) 
-  and (orientation: portrait) 
-  and (-webkit-min-device-pixel-ratio: 2) {
-    .nav > li > a.tab{
-      font-size: 15px;
-    }
-    #tabs {
-      width: 200px;
-    }
-    .animationControls {
-      position: absolute;
-      bottom: 125px;
-    }
-}
-/* Landscape */
-@media only screen 
-  and (min-device-width: 768px) 
-  and (max-device-width: 1024px) 
-  and (orientation: landscape) 
-  and (-webkit-min-device-pixel-ratio: 2) {
-    body {
-      font-size: 12px;
-    }
-    #tabs {
-      width: 150px;
-    }
-    .table-condensed > thead > tr > th, .table-condensed > tbody > tr > th, .table-condensed > tfoot > tr > th, .table-condensed > thead > tr > td, .table-condensed > tbody > tr > td, .table-condensed > tfoot > tr > td {
-      padding: 1px;
-    }
-}

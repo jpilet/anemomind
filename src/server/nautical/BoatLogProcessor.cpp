@@ -26,6 +26,7 @@
 #include <server/nautical/NavNmeaScan.h>
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
+#include <server/plot/extra.h>
 
 #include <server/common/Json.impl.h>
 
@@ -38,6 +39,29 @@ using namespace sail;
 using namespace Poco::Util;
 using namespace std;
 
+void dispTargetSpeedTable(const char *label, const TargetSpeedTable &table, FP8_8 *data) {
+  MDArray2d x(table.NUM_ENTRIES, 2);
+  for (int i = 0; i < table.NUM_ENTRIES; i++) {
+    x(i, 0) = double(table.binCenter(i));
+    x(i, 1) = double(data[i]);
+  }
+  GnuplotExtra plot;
+  plot.set_title(label);
+  plot.set_style("lines");
+  plot.plot(x);
+  plot.show();
+}
+
+// For debugging purposes
+void visualizeBoatDat(Poco::Path dataPath) {
+  auto boatDatPath = PathBuilder::makeDirectory(dataPath)
+    .pushDirectory("processed").makeFile("boat.dat").get().toString();
+  LOG(INFO) << "Load from " << boatDatPath;
+  TargetSpeedTable table;
+  CHECK(loadTargetSpeedTable(boatDatPath.c_str(), &table));
+  dispTargetSpeedTable("Downwind", table, table._downwind);
+  dispTargetSpeedTable("Upwind", table, table._upwind);
+}
 
 Nav::Id extractBoatId(Poco::Path path) {
   return path.directory(path.depth()-1);
@@ -86,10 +110,15 @@ void dispHelp() {
 }
 
 int BoatLogProcessor::main(const std::vector<std::string>& allArgs) {
+  // TODO: I think our sail::ArgMap class is much nicer than the Poco approach.
+
   std::vector<std::string> args;
+  bool debug = false;
   for (auto arg : allArgs) {
     if (arg == "noinfo") {
       SetLogLevelThreshold(LOGLEVEL_WARNING);
+    } else if (arg == "debug") {
+      debug = true;
     } else {
       args.push_back(arg);
     }
@@ -104,11 +133,17 @@ int BoatLogProcessor::main(const std::vector<std::string>& allArgs) {
     ENTERSCOPE("Process boat logs in directory " + pathstr);
     Poco::Path path = PathBuilder::makeDirectory(pathstr).get();
     if (args.size() == 1) {
-      processBoatDataFullFolder(path);
+      processBoatDataFullFolder(debug, path);
+      if (debug) {
+        visualizeBoatDat(path);
+      }
       return Application::EXIT_OK;
     } else if (args.size() == 2) {
       std::string logFilename = args[1];
-      processBoatDataSingleLogFile(path, logFilename);
+      processBoatDataSingleLogFile(debug, path, logFilename);
+      if (debug) {
+        visualizeBoatDat(path);
+      }
       return Application::EXIT_OK;
     } else {
       LOG(FATAL) << "Too many arguments";
@@ -137,23 +172,49 @@ namespace {
     const int binCount = TargetSpeedTable::NUM_ENTRIES;
     Velocity<double> minvel = Velocity<double>::knots(0);
     Velocity<double> maxvel = Velocity<double>::knots(TargetSpeedTable::NUM_ENTRIES-1);
-
     Array<Velocity<double> > bounds = makeBoundsFromBinCenters(TargetSpeedTable::NUM_ENTRIES, minvel, maxvel);
     return TargetSpeed(isUpwind, tws, vmg, bounds);
   }
 
-  void outputTargetSpeedTable(std::shared_ptr<HTree> tree,
-                              Array<HNode> nodeinfo,
-                              Array<Nav> navs,
-                              std::ofstream *file) {
+  void outputTargetSpeedTable(
+      bool debug,
+      std::shared_ptr<HTree> tree,
+      Array<HNode> nodeinfo,
+      Array<Nav> navs,
+      std::ofstream *file) {
     TargetSpeed uw = makeTargetSpeedTable(true, tree, nodeinfo, navs, "upwind-leg");
     TargetSpeed dw = makeTargetSpeedTable(false, tree, nodeinfo, navs, "downwind-leg");
+
+    if (debug) {
+      LOG(INFO) << "Upwind";
+      uw.plot();
+      LOG(INFO) << "Downwind";
+      dw.plot();
+    }
 
     saveTargetSpeedTableChunk(file, uw, dw);
   }
 }
 
-void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::string filenamePrefix) {
+
+void makeBoatDatFile(
+    bool debug,
+    PathBuilder outdir, Array<Nav> navs,
+    std::shared_ptr<HTree> fulltree, Nav::Id boatId, WindOrientedGrammar g) {
+  ENTERSCOPE("Output boat.dat with target speed data.");
+  std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
+
+  Calibrator calibrator(g);
+  if (calibrator.calibrate(navs, fulltree, boatId)) {
+    calibrator.saveCalibration(&boatDatFile);
+    calibrator.simulate(&navs);
+  }
+
+  outputTargetSpeedTable(debug, fulltree, g.nodeInfo(), navs, &boatDatFile);
+}
+
+
+void processBoatData(bool debug, Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::string filenamePrefix) {
   ENTERSCOPE("processBoatData");
   if (navs.size() == 0) {
     LOG(FATAL) << "No data to process.";
@@ -178,18 +239,7 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
   PathBuilder outdir = PathBuilder::makeDirectory(dstPath);
   std::string prefix = "all";
 
-  // Create the boat.dat file.
-  {
-    ENTERSCOPE("Output boat.dat with target speed data.");
-    std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
-
-    Calibrator calibrator(g);
-    if (calibrator.calibrate(navs, fulltree, boatId)) {
-      calibrator.saveCalibration(&boatDatFile);
-      calibrator.simulate(&navs);
-    }
-    outputTargetSpeedTable(fulltree, g.nodeInfo(), navs, &boatDatFile);
-  }
+  makeBoatDatFile(debug, outdir, navs, fulltree, boatId, g);
 
   {
     std::string path = outdir.makeFile(prefix + "_tree.js").get().toString();
@@ -210,27 +260,27 @@ void processBoatData(Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::s
 
 }
 
-void processBoatDataFullFolder(Nav::Id boatId, Poco::Path srcPath, Poco::Path dstPath) {
+void processBoatDataFullFolder(bool debug, Nav::Id boatId, Poco::Path srcPath, Poco::Path dstPath) {
   ENTERSCOPE("processBoatData complete folder");
   SCOPEDMESSAGE(INFO, std::string("Loading data from boat with id " + boatId));
   SCOPEDMESSAGE(INFO, "Scan folder for NMEA data...");
   Array<Nav> allnavs = scanNmeaFolderWithSimulator(srcPath, boatId);
   CHECK_LT(0, allnavs.size());
   SCOPEDMESSAGE(INFO, "done.")
-  processBoatData(boatId, allnavs, dstPath, "all");
+  processBoatData(debug, boatId, allnavs, dstPath, "all");
 }
 
 
 /*
  * Processes the data related to a single boat.
  */
-void processBoatDataFullFolder(Poco::Path dataPath) {
+void processBoatDataFullFolder(bool debug, Poco::Path dataPath) {
   Nav::Id boatId = extractBoatId(dataPath);
   Poco::Path dataBuildDir = PathBuilder::makeDirectory(dataPath).pushDirectory("processed").get();
-  processBoatDataFullFolder(boatId, dataPath, dataBuildDir);
+  processBoatDataFullFolder(debug, boatId, dataPath, dataBuildDir);
 }
 
-void processBoatDataSingleLogFile(Nav::Id boatId, Poco::Path srcPath, std::string logFilename, Poco::Path dstPath) {
+void processBoatDataSingleLogFile(bool debug, Nav::Id boatId, Poco::Path srcPath, std::string logFilename, Poco::Path dstPath) {
   ENTERSCOPE("processBoatData single log file");
   SCOPEDMESSAGE(INFO, std::string("Loading data from boat with id " + boatId));
   Poco::Path srcfile = PathBuilder::makeDirectory(srcPath).
@@ -239,14 +289,14 @@ void processBoatDataSingleLogFile(Nav::Id boatId, Poco::Path srcPath, std::strin
       boatId).navs();
   SCOPEDMESSAGE(INFO, "done.");
   std::sort(navs.begin(), navs.end());
-  processBoatData(boatId, navs, dstPath, srcfile.getBaseName());
+  processBoatData(debug, boatId, navs, dstPath, srcfile.getBaseName());
 }
 
 // See discussion: https://github.com/jpilet/anemomind-web/pull/9#discussion_r12632698
-void processBoatDataSingleLogFile(Poco::Path dataPath, std::string logFilename) {
+void processBoatDataSingleLogFile(bool debug, Poco::Path dataPath, std::string logFilename) {
   Nav::Id boatId = extractBoatId(dataPath);
   Poco::Path dataBuildDir = PathBuilder::makeDirectory(dataPath).pushDirectory("processed").get();
-  processBoatDataSingleLogFile(boatId, dataPath, logFilename, dataBuildDir);
+  processBoatDataSingleLogFile(debug, boatId, dataPath, logFilename, dataBuildDir);
 }
 
 

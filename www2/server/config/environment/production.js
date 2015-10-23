@@ -23,5 +23,12 @@ module.exports = {
 
   uploadDir: '/var/uploads',
   endpointDir: '/var/mail2',
-  backupDestination: 'anemomind@vtiger.anemomind.com:userlogs'
+  backupDestination: 'anemomind@vtiger.anemomind.com:userlogs',
+
+  ssl: {
+    key: '/etc/ssl/anemolab.com/anemolab.com.key',
+    cert: '/etc/ssl/anemolab.com/anemolab.com.cert',
+    ip: '0.0.0.0',
+    port: 443
+  }
 };

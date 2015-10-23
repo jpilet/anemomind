@@ -1,0 +1,12 @@
+.eventauthor, .eventdate {
+  font-size: 80%;
+  display: inline-block;
+}
+
+.eventcontent {
+  margin-left: 10px;
+}
+
+.eventlist img {
+  display:block;
+}

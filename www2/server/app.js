@@ -4,12 +4,15 @@
 
 'use strict';
 
+var fs = require('fs');
+
 // Set default node environment to development
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 var express = require('express');
 var mongoose = require('mongoose');
 var config = require('./config/environment');
+var https = require('https');
 
 // Connect to database
 mongoose.connect(config.mongo.uri, config.mongo.options);
@@ -21,7 +24,8 @@ var socketio = require('socket.io')(server, {
   serveClient: (config.env === 'production') ? false : true,
   path: '/socket.io-client'
 });
-require('./config/socketio')(socketio);
+var handleSocketIo = require('./config/socketio');
+handleSocketIo(socketio);
 require('./config/express')(app);
 require('./routes')(app);
 
@@ -29,6 +33,25 @@ require('./routes')(app);
 server.listen(config.port, config.ip, function () {
   console.log('Express server listening on %d, in %s mode', config.port, app.get('env'));
 });
+
+// Start SSL server
+if (config.ssl) {
+  var sslserver = https.createServer(
+    {
+      key: fs.readFileSync(config.ssl.key),
+      cert: fs.readFileSync(config.ssl.cert)
+    }, app);
+
+  var sslsocketio = require('socket.io')(sslserver, {
+    serveClient: (config.env === 'production') ? false : true,
+    path: '/socket.io-client'
+  });
+  handleSocketIo(sslsocketio);
+
+  sslserver.listen(config.ssl.port, config.ssl.ip, function() {
+    console.log('HTTPS server listening on %d, in %s mode', config.ssl.port, app.get('env'));
+  });
+}
 
 // Expose app
 exports = module.exports = app;

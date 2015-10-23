@@ -30,7 +30,7 @@ TEST(BoatLogProcessor, ProcessingTest) {
   Poco::Path srcpath = getTempDataPath();
   EXPECT_TRUE(Poco::File(srcpath).exists());
   EXPECT_TRUE(Poco::File(srcpath).isDirectory());
-  processBoatDataFullFolder(srcpath);
+  processBoatDataFullFolder(false, srcpath);
   PathBuilder output = PathBuilder::makeDirectory(srcpath).pushDirectory("processed");
 
   const int fileCount = 5;

@@ -4,7 +4,7 @@ angular.module('www2App')
   .directive('vectormap', function ($timeout, $window, boatList) {
     return {
       template: '<canvas style="width:100%;height:100%"></canvas>',
-      restrict: 'E',
+      restrict: 'EA',
       link: function (scope, element, attrs) {
 
         var canvas;
@@ -18,7 +18,7 @@ angular.module('www2App')
               return "http://a.tiles.wmflabs.org/bw-mapnik/"
                 + scale + "/" + x + "/" + y + ".png";
               */
-              return "http://api.tiles.mapbox.com/v4/anemojp.d4524095/"
+              return "//api.tiles.mapbox.com/v4/anemojp.d4524095/"
                 + scale + "/" + x + "/" + y
                 + ".png32?access_token="
                 + "pk.eyJ1IjoiYW5lbW9qcCIsImEiOiJ3QjFnX00wIn0.M9AEKUTlyhDC-sMM9a0obQ";
@@ -44,7 +44,9 @@ angular.module('www2App')
 
               // This is a threshold, in pixels, to select a point.
               if (dist < 20) {
-                scope.selectedCurve = point.curveId;
+                if (!scope.selectedCurve) {
+                  scope.selectedCurve = point.curveId;
+                }
                 scope.currentTime = point.point.time;
                 scope.currentPoint = point.point;
               }
@@ -134,7 +136,7 @@ angular.module('www2App')
             },
             function (newValue, oldValue) {
               if (newValue.w != oldValue.w || newValue.h != oldValue.h) {
-                canvas.resizeCanvas();
+                canvas.resizeCanvas(newValue.w, newValue.h);
               }
             },
             true // deep object compare
@@ -142,6 +144,7 @@ angular.module('www2App')
           angular.element($window).bind('resize', function () {
             scope.$apply();
           });
+          canvas.resizeCanvas(element.width(), element.height());
 
           scope.$watch('mapLocation', function(newValue, oldValue) {
             function near(x,y) {

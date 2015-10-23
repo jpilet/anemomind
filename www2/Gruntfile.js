@@ -170,13 +170,13 @@ module.exports = function (grunt) {
     // Add vendor prefixed styles
     autoprefixer: {
       options: {
-        browsers: ['last 1 version']
+        browsers: ['last 3 version']
       },
       dist: {
         files: [{
           expand: true,
-          cwd: '.tmp/',
-          src: '{,*/}*.css',
+          cwd: 'client/',
+          src: '**/*.css',
           dest: '.tmp/'
         }]
       }
@@ -245,7 +245,21 @@ module.exports = function (grunt) {
     useminPrepare: {
       html: ['<%= yeoman.client %>/index.html'],
       options: {
-        dest: '<%= yeoman.dist %>/public'
+        dest: '<%= yeoman.dist %>/public',
+        flow: {
+          steps: { js: ['concat', 'uglifyjs'], css: ['concat', 'cssmin'] },
+          post: {
+            css: [{
+              name: 'cssmin',
+              createConfig: function (context, block) {
+                var generated = context.options.generated;
+                generated.options = {
+                  aggressiveMerging: false
+                };
+              }
+            }]
+          }
+        }
       }
     },
 
@@ -533,7 +547,9 @@ module.exports = function (grunt) {
 
   grunt.registerTask('serve', function (target) {
     if (target === 'dist') {
-      return grunt.task.run(['shell', 'build', 'env:all', 'env:prod', 'express:prod', 'wait', 'open', 'express-keepalive']);
+      return grunt.task.run(['shell', 'build', 'env:all',
+        //'env:prod',
+        'express:prod', 'wait', 'open', 'express-keepalive']);
     }
 
     if (target === 'debug') {

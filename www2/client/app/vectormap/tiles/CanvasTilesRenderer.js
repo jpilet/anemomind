@@ -133,7 +133,7 @@ CanvasTilesRenderer.prototype.refresh = function() {
   window.requestAnimationFrame(function() { t.draw(t.canvas); });
 };
 
-CanvasTilesRenderer.prototype.resizeCanvas = function() {
+CanvasTilesRenderer.prototype.resizeCanvas = function(width, height) {
   if (this.disableResize) {
     return;
   }
@@ -154,8 +154,8 @@ CanvasTilesRenderer.prototype.resizeCanvas = function() {
   var initialClientHeight = canvas.clientHeight;
 
   // Is it Math.floor or Math.round ? Who knows...
-  var newWidth = Math.floor(canvas.clientWidth * factor);
-  var newHeight = Math.floor(canvas.clientHeight * factor);
+  var newWidth = width || Math.floor(canvas.clientWidth * factor);
+  var newHeight = height || Math.floor(canvas.clientHeight * factor);
 
   if (newWidth != 0 && newHeight != 0 && 
          (Math.abs(canvas.width - newWidth) > 3 ||
@@ -174,7 +174,9 @@ CanvasTilesRenderer.prototype.resizeCanvas = function() {
       this.setLocation(this.location);
   }  
   
-  if (initialClientWidth != canvas.clientWidth || initialClientHeight != canvas.clientHeight) {
+  if (width == undefined && height == undefined
+      && (initialClientWidth != canvas.clientWidth
+          || initialClientHeight != canvas.clientHeight)) {
      // Canvas size on page should be set by CSS, not by canvas.width and canvas.height.
      // It seems it is not the case. Let's forget about this devicePixelRatio stuff.
      this.disableResize = true;  
