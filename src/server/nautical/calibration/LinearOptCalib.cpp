@@ -208,6 +208,39 @@ Array<Spani> indexersToSpans(Array<CoordIndexer> indexers) {
     });
 }
 
+MatrixXd makeSlackFitnessDense() {
+  // M = [1 1; eye(2)];
+  // K =  M*(M\eye(3, 3)) - eye(3, 3)
+
+  Eigen::MatrixXd K(3, 3);
+  K(0, 0) = -0.333333333333333;
+  K(0, 1) = 0.333333333333333;
+  K(0, 2) = 0.333333333333334;
+  K(1, 0) = 0.333333333333333;
+  K(1, 1) = -0.333333333333334;
+  K(1, 2) = -0.333333333333333;
+  K(2, 0) = 0.333333333333333;
+  K(2, 1) = -0.333333333333333;
+  K(2, 2) = -0.333333333333333;
+  return K;
+}
+
+SparseMatrix<double> makeSlackFitness(int n) {
+  auto M = makeSlackFitnessDense();
+  assert(M.rows() == M.cols());
+  auto indexer = CoordIndexer::Factory().make(M.rows(), n);
+
+  std::vector<Triplet> triplets;
+  triplets.reserve(M.rows()*M.cols());
+  for (int i = 0; i < M.rows(); i++) {
+    for (int j = 0; j < M.cols(); j++) {
+
+    }
+  }
+
+  return sparseKronEye(makeSlackFitnessDense(), n);
+}
+
 Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
     Array<Spani> spans) {
   Problem problem;
