@@ -34,6 +34,18 @@ Eigen::VectorXd copyAndPasteTogetherVector(
 void insertVectorIntoSparseMatrix(double factor, const Eigen::VectorXd &src,
   Spani dstRowSpan, int dstCol, std::vector<DataFit::Triplet> *dst);
 
+struct Problem {
+  Eigen::MatrixXd A;
+  Array<Spani> rowSpansToFit;
+  Spani paramColSpan;
+  Spani gpsAndFlowColSpan;
+  Eigen::MatrixXd Rparam;
+  Eigen::SparseMatrix<double> fullProblemMatrix;
+  Eigen::SparseMatrix<double> orthoGpsAndFlowMatrix, nonOrthoGpsAndFlowMatrix;
+};
+
+Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
+    Array<Spani> spans);
 
 
 struct Settings {
@@ -47,7 +59,7 @@ struct Results {
 
 Results optimize(
     const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
-    Array<Spani> spans,
+        Array<Spani> spans,
     const Settings &settings);
 
 

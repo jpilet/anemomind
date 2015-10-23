@@ -33,31 +33,6 @@ class CoordIndexer {
  public:
   CoordIndexer() : _offset(0), _dim(0), _count(0) {}
 
-  class Factory {
-   public:
-    Factory() : _counter(0) {}
-
-    CoordIndexer make(int count, int dim) {
-      int offset = _counter;
-      _counter += dim*count;
-      return CoordIndexer(offset, dim, count);
-    }
-
-    int count() const {
-      return _counter;
-    }
-
-    Spani::Iterator begin() const {
-      return Spani::Iterator(0);
-    }
-
-    Spani::Iterator end() const {
-      return Spani::Iterator(_counter);
-    }
-   private:
-    int _counter;
-  };
-
   int from() const {
     return _offset;
   }
@@ -114,6 +89,35 @@ class CoordIndexer {
   int operator[] (int i) const {
     return _offset + i;
   }
+
+  class Factory {
+     public:
+      Factory() : _counter(0) {}
+
+      CoordIndexer make(int count, int dim) {
+        int offset = _counter;
+        _counter += dim*count;
+        return CoordIndexer(offset, dim, count);
+      }
+
+      CoordIndexer duplicate(const CoordIndexer &prototype) {
+        return make(prototype.count(), prototype.dim());
+      }
+
+      int count() const {
+        return _counter;
+      }
+
+      Spani::Iterator begin() const {
+        return Spani::Iterator(0);
+      }
+
+      Spani::Iterator end() const {
+        return Spani::Iterator(_counter);
+      }
+     private:
+      int _counter;
+    };
  private:
   int _offset, _dim, _count;
 };

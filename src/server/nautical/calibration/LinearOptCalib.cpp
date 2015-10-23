@@ -12,6 +12,7 @@ namespace sail {
 namespace LinearOptCalib {
 
 using namespace Eigen;
+using namespace DataFit;
 
 template <typename T>
 bool hasEvenRows(const T &x) {
@@ -56,7 +57,7 @@ Array<Spani> makeOverlappingSpans(int dataSize, int spanSize, double relativeSte
 }
 
 void addSpanWithConstantFlow(Spani srcSpan, Spani dstSpan, int spanIndex, const VectorXd &B,
-    std::vector<Triplet<double> > *dst) {
+    std::vector<Triplet> *dst) {
   assert(isEven(srcSpan.width()));
   assert(srcSpan.width() == dstSpan.width());
   int colOffset = 1 + 2*spanIndex;
@@ -99,19 +100,32 @@ void addFlowColumns(const DataFit::CoordIndexer &rows, Spani colBlock,
   }
 }
 
+
+Arrayi assembleIndexMap(int dstElemCount,
+    Array<DataFit::CoordIndexer> dstIndexers,
+  Array<Spani> srcSpans) {
+  Arrayi dst(dstElemCount);
+  for (auto i: Spani::indicesOf(dstIndexers)) {
+    auto di = dstIndexers[i];
+    auto dstInds = di.elementSpan();
+    auto srcInds = di.dim()*srcSpans[i];
+    assert(srcInds.width() == dstInds.width());
+    for (auto i: dstInds.indices()) {
+      dst[dstInds[i]] = srcInds[i];
+    }
+  }
+  return dst;
+}
+
 Eigen::VectorXd copyAndPasteTogetherVector(
     int dstElemCount,
     Array<DataFit::CoordIndexer> dstIndexers,
     Array<Spani> srcSpans,
     const Eigen::VectorXd &src) {
+  Arrayi indexMap = assembleIndexMap(dstElemCount, dstIndexers, srcSpans);
   Eigen::VectorXd dst(dstElemCount);
-  for (auto i: Spani::indicesOf(dstIndexers)) {
-    auto dstInds = dstIndexers[i].elementSpan();
-    auto srcInds = srcSpans[i];
-    assert(srcInds.width() == dstInds.width());
-    for (auto i: dstInds.indices()) {
-      dst[dstInds[i]] = src[srcInds[i]];
-    }
+  for (auto i: Spani::indicesOf(indexMap)) {
+    dst[i] = src[indexMap[i]];
   }
   return dst;
 }
@@ -121,6 +135,38 @@ void insertVectorIntoSparseMatrix(double factor, const Eigen::VectorXd &src,
   for (auto i: dstRowSpan.indices()) {
     dst->push_back(DataFit::Triplet(dstRowSpan[i], dstCol, factor*src[i]));
   }
+}
+
+/*
+struct Problem {
+  Array<Spani> rowSpansToFit;
+  Spani paramColSpan;
+  Spani gpsAndFlowColSpan;
+  Eigen::MatrixXd Rparam;
+  Eigen::SparseMatrix<double> fullProblemMatrix;
+  Eigen::SparseMatrix<double> orthoGpsAndFlowMatrix, nonOrthoGpsAndFlowMatrix;
+};
+*/
+
+Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
+    Array<Spani> spans) {
+  CoordIndexer::Factory rows;
+  CoordIndexer::Factory fullCols;
+  CoordIndexer::Factory reducedCols;
+  auto rowIndexers = spans.map2([&](Spani span) {
+    return rows.make(span.width(), 2);
+  });
+  auto fullParamCols = fullCols.make(4, 1);
+  auto fullGpsCols = fullCols.make(1, 1);
+  auto fullFlowCols = fullCols.make(spans.size(), 1);
+  auto reducedGpsCols = reducedCols.duplicate(fullGpsCols);
+  auto reducedFlowCols = reducedCols.duplicate(fullFlowCols);
+
+
+  //auto BAssembled = copyAndPasteTogetherVector(rows.count(), B, spans);
+
+  std::vector<Triplet> fullElements;
+  //addDenseMatrix(full);
 }
 
 
