@@ -14,6 +14,11 @@ DispatcherTrueWindEstimator::DispatcherTrueWindEstimator(Dispatcher* dispatcher)
 }
 
 bool DispatcherTrueWindEstimator::loadCalibration(const std::string& path) {
+  std::ifstream file(path, std::ios::in | std::ios::binary);
+  return loadCalibration(file);
+}
+
+bool DispatcherTrueWindEstimator::loadCalibration(std::istream& file) {
   TrueWindEstimator::Parameters<FP16_16> calibration;
   ChunkTarget targets[] = {
     makeChunkTarget(&calibration),
@@ -22,7 +27,6 @@ bool DispatcherTrueWindEstimator::loadCalibration(const std::string& path) {
 
   ChunkLoader loader(targets, sizeof(targets) / sizeof(targets[0]));
 
-  std::ifstream file(path, std::ios::in | std::ios::binary);
   if (!file.good()) {
     return false;
   }

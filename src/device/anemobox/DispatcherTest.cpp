@@ -21,6 +21,7 @@ TEST(DispatcherTest, PriorityTest) {
   EXPECT_EQ(10, dispatcher.sourcePriority("high"));
 
   dispatcher.publishValue(AWA, "low", Angle<>::degrees(1));
+
   EXPECT_EQ("low", dispatcher.get<AWA>()->source());
   dispatcher.publishValue(AWA, "high", Angle<>::degrees(2));
   EXPECT_EQ("high", dispatcher.get<AWA>()->source());
@@ -34,3 +35,11 @@ TEST(DispatcherTest, PriorityTest) {
   EXPECT_NEAR(6, dispatcher.val<AWA>().degrees(), 1e-6);
 }
 
+TEST(DispatcherTest, FreshTest) {
+  Dispatcher dispatcher;
+
+  dispatcher.publishValue(AWA, "low", Angle<>::degrees(1));
+  EXPECT_TRUE(dispatcher.get<AWA>()->isFresh(Duration<>::milliseconds(5)));
+  sleep(Duration<>::milliseconds(5));
+  EXPECT_FALSE(dispatcher.get<AWA>()->isFresh(Duration<>::milliseconds(5)));
+}

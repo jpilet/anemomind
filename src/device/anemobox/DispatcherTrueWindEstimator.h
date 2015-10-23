@@ -15,6 +15,7 @@ class DispatcherTrueWindEstimator {
   DispatcherTrueWindEstimator(Dispatcher *dispatcher);
 
   bool loadCalibration(const std::string& path);
+  bool loadCalibration(std::istream& file);
 
   void compute() const;
 

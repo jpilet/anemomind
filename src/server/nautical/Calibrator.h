@@ -30,7 +30,7 @@ class Calibrator  {
                    std::shared_ptr<HTree> tree,
                    Nav::Id boatId);
 
-    void saveCalibration(std::ofstream *file);
+    void saveCalibration(std::ostream *file) const;
 
     //! Print last calibration results.
     void print() const;
@@ -49,7 +49,7 @@ class Calibrator  {
     void setVerbose() { _verbose = true; }
 
     //! Use the calibration to compute true wind on the given navigation data.
-    void simulate(Array<Nav> *array) const;
+    bool simulate(Array<Nav> *array) const;
 
     //! Returns the number of maneuvers used to fit the data.
     int maneuverCount() const {
