@@ -45,7 +45,7 @@ struct Problem {
   Spani qaColSpan;
   Spani qbColSpan;
   Eigen::MatrixXd Rparam, orthoA;
-  Eigen::SparseMatrix<double> Qab, QabWithSlack;
+  Eigen::SparseMatrix<double> Qab, QabWithSlack, theMainMatrix;
   Eigen::SparseMatrix<double> nonOrthoGpsAndFlowMatrix;
 
   Eigen::VectorXd computeParametersFromSolutionVector(const Eigen::VectorXd &solution) const;

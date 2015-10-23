@@ -183,6 +183,10 @@ Spani spanOf(Array<CoordIndexer> indexers) {
   return Spani(indexers.first().from(), indexers.last().to());
 }
 
+Spani spanOf(Array<Spani> spans) {
+  return Spani(spans.first().minv(), spans.last().maxv());
+}
+
 
 
 void addOrthoGpsAndFlowData(Eigen::VectorXd assembledB,
@@ -209,19 +213,21 @@ Array<Spani> indexersToSpans(Array<CoordIndexer> indexers) {
 }
 
 MatrixXd makeSlackFitnessDense() {
-  // M = [1 1; eye(2)];
-  // K =  M*(M\eye(3, 3)) - eye(3, 3)
+  // M = kron([1 1]', eye(2));
+  // K = M*(M\eye(4, 4)) - eye(4, 4)
 
-  Eigen::MatrixXd K(3, 3);
-  K(0, 0) = -0.333333333333333;
-  K(0, 1) = 0.333333333333333;
-  K(0, 2) = 0.333333333333334;
-  K(1, 0) = 0.333333333333333;
-  K(1, 1) = -0.333333333333334;
-  K(1, 2) = -0.333333333333333;
-  K(2, 0) = 0.333333333333333;
-  K(2, 1) = -0.333333333333333;
-  K(2, 2) = -0.333333333333333;
+  Eigen::MatrixXd K(4, 4);
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      if (i == j) {
+        K(i, j) == -0.5;
+      } else if (i % 2 == j % 2) {
+        K(i, j) = 0.5;
+      } else {
+        K(i, j) = 0;
+      }
+    }
+  }
   return K;
 }
 
@@ -307,13 +313,18 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
   insertDenseMatrixIntoSparseMatrix(orthoA, spanOf(slack1Rows), fullParamCols.elementSpan(), &fullElements);
   addOrthoGpsAndFlowData(problem.assembledB, slack2Rows, fullFlowCols, &fullElements, fullGpsCols);
 
-  SparseMatrix<double> QabWithSlack(rows.count(), fullCols.count());
+  SparseMatrix<double> QabWithSlack(2*rows.count(), fullCols.count());
   QabWithSlack.setFromTriplets(fullElements.begin(), fullElements.end());
 
   problem.QabWithSlack = QabWithSlack;
 
   problem.slackARowSpans = indexersToSpans(slack1Rows);
   problem.slackBRowSpans = indexersToSpans(slack2Rows);
+
+  auto slackFit = makeSlackFitness(spanOf(problem.rowSpansToFit).width());
+  std::cout << EXPR_AND_VAL_AS_STRING(slackFit.cols()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(QabWithSlack.rows()) << std::endl;
+  //problem.theMainMatrix = slackFit*problem.QabWithSlack;
 
   return problem;
 }
