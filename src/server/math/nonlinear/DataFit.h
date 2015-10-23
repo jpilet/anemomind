@@ -115,6 +115,10 @@ class CoordIndexer {
       Spani::Iterator end() const {
         return Spani::Iterator(_counter);
       }
+
+      Spani span() const {
+        return Spani(0, _counter);
+      }
      private:
       int _counter;
     };

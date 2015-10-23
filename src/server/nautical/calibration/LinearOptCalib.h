@@ -25,23 +25,24 @@ Array<Spani> makeOverlappingSpans(int dataSize, int spanSize, double relativeSte
 void addFlowColumns(const DataFit::CoordIndexer &rows, Spani colBlock,
   std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt);
 
-Eigen::VectorXd copyAndPasteTogetherVector(
-    int dstElemCount,
+Arrayi assembleIndexMap(int dstElemCount,
     Array<DataFit::CoordIndexer> dstIndexers,
-    Array<Spani> srcSpans,
-    const Eigen::VectorXd &src);
+  Array<Spani> srcSpans);
+Eigen::VectorXd assembleVector(Arrayi indexMap, Eigen::VectorXd src);
+Eigen::MatrixXd assembleMatrix(Arrayi indexMap, Eigen::MatrixXd src);
 
-void insertVectorIntoSparseMatrix(double factor, const Eigen::VectorXd &src,
+void insertDenseVectorIntoSparseMatrix(double factor, const Eigen::VectorXd &src,
   Spani dstRowSpan, int dstCol, std::vector<DataFit::Triplet> *dst);
 
+
 struct Problem {
-  Eigen::MatrixXd A;
+  Eigen::MatrixXd assembledA, assembledB;
   Array<Spani> rowSpansToFit;
   Spani paramColSpan;
   Spani gpsAndFlowColSpan;
   Eigen::MatrixXd Rparam;
   Eigen::SparseMatrix<double> fullProblemMatrix;
-  Eigen::SparseMatrix<double> orthoGpsAndFlowMatrix, nonOrthoGpsAndFlowMatrix;
+  Eigen::SparseMatrix<double> nonOrthoGpsAndFlowMatrix;
 };
 
 Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,

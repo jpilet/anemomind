@@ -46,12 +46,17 @@ double subspaceDistance(Eigen::MatrixXd A, Eigen::MatrixXd B) {
 }
 
 Array<Nav> getPsarosTestData() {
-  auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
-    .pushDirectory("datasets")
-    .pushDirectory("psaros33_Banque_Sturdza")
-    .pushDirectory("2014")
-    .pushDirectory("20140821").get();
-  return scanNmeaFolder(p, Nav::debuggingBoatId());
+  static Array<Nav> data;
+  if (data.empty()) {
+    auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
+      .pushDirectory("datasets")
+      .pushDirectory("psaros33_Banque_Sturdza")
+      .pushDirectory("2014")
+      .pushDirectory("20140821").get();
+    data = scanNmeaFolder(p, Nav::debuggingBoatId());
+    return data;
+  }
+  return data;
 }
 
 Eigen::MatrixXd arrayToMatrix(MDArray2d src) {
@@ -204,8 +209,8 @@ TEST(LinearOptCalib, CopyAndPasteVectorThenInsert) {
   EXPECT_EQ(elements.count(), 4);
 
 
-  auto dst = copyAndPasteTogetherVector(elements.count(),
-      dstIndexers, srcSpans, src);
+  Arrayi indexMap = assembleIndexMap(elements.count(), dstIndexers, srcSpans);
+  auto dst = assembleVector(indexMap, src);
 
   EXPECT_EQ(dst.size(), 4);
   EXPECT_EQ(dst(0), 1);
@@ -214,7 +219,7 @@ TEST(LinearOptCalib, CopyAndPasteVectorThenInsert) {
   EXPECT_EQ(dst(3), 3);
 
   std::vector<DataFit::Triplet> triplets;
-  insertVectorIntoSparseMatrix(3.0, dst, Spani(9, 13), 3, &triplets);
+  insertDenseVectorIntoSparseMatrix(3.0, dst, Spani(9, 13), 3, &triplets);
   EXPECT_EQ(triplets.size(), 4);
   for (int i = 0; i < triplets.size(); i++) {
     auto t = triplets[i];
@@ -236,6 +241,25 @@ TEST(LinearOptCalib, MatrixTest) {
   auto orthoA = orthonormalBasis(A);
   EXPECT_TRUE(isOrthonormal(orthoA));
   EXPECT_LE(subspaceDistance(A, orthoA), 1.0e-6);
+}
+
+TEST(LinearOptCalib, ProblemTest) {
+  auto edata = toEData(getPsarosTestData().sliceTo(20));
+  auto spans = makeOverlappingSpans(edata.n, 10, 0.5);
+  auto problem = makeProblem(edata.A, edata.B, spans);
+  auto denseFull = problem.fullProblemMatrix.toDense();
+  EXPECT_EQ(denseFull.rows(), 60);
+  EXPECT_EQ(denseFull.cols(), 4 + 7);
+  EXPECT_EQ(Spani(0, 4), problem.paramColSpan);
+  EXPECT_EQ(Spani(4, 11), problem.gpsAndFlowColSpan);
+
+  Eigen::MatrixXd lhs = denseFull.block(0, 0, 60, 4);
+  Eigen::MatrixXd rhs = denseFull.block(0, 4, 60, 7);
+  EXPECT_TRUE(isOrthonormal(lhs));
+  EXPECT_TRUE(isOrthonormal(rhs));
+  EXPECT_FALSE(isOrthonormal(denseFull));
+  EXPECT_EQ(problem.Rparam.rows(), problem.Rparam.cols());
+  EXPECT_EQ(problem.Rparam.rows(), 4);
 }
 
 TEST(LinearOptCalib, OverlappingSpanTest) {

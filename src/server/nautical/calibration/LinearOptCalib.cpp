@@ -100,6 +100,13 @@ void addFlowColumns(const DataFit::CoordIndexer &rows, Spani colBlock,
   }
 }
 
+void addFlowColumns(Array<CoordIndexer> rowIndexers, CoordIndexer cols,
+  std::vector<Triplet> *dst, Eigen::VectorXd *Bopt) {
+  for (auto i: Spani::indicesOf(rowIndexers)) {
+    addFlowColumns(rowIndexers[i], cols.span(i), dst, Bopt);
+  }
+}
+
 
 Arrayi assembleIndexMap(int dstElemCount,
     Array<DataFit::CoordIndexer> dstIndexers,
@@ -117,23 +124,39 @@ Arrayi assembleIndexMap(int dstElemCount,
   return dst;
 }
 
-Eigen::VectorXd copyAndPasteTogetherVector(
-    int dstElemCount,
-    Array<DataFit::CoordIndexer> dstIndexers,
-    Array<Spani> srcSpans,
-    const Eigen::VectorXd &src) {
-  Arrayi indexMap = assembleIndexMap(dstElemCount, dstIndexers, srcSpans);
-  Eigen::VectorXd dst(dstElemCount);
+Eigen::VectorXd assembleVector(Arrayi indexMap, Eigen::VectorXd src) {
+  Eigen::VectorXd dst(indexMap.size());
   for (auto i: Spani::indicesOf(indexMap)) {
     dst[i] = src[indexMap[i]];
   }
   return dst;
 }
 
-void insertVectorIntoSparseMatrix(double factor, const Eigen::VectorXd &src,
+Eigen::MatrixXd assembleMatrix(Arrayi indexMap, Eigen::MatrixXd src) {
+  Eigen::MatrixXd dst(indexMap.size(), src.cols());
+  for (auto i: Spani::indicesOf(indexMap)) {
+    int srcRow = indexMap[i];
+    for (int j = 0; j < src.cols(); j++) {
+      dst(i, j) = src(srcRow, j);
+    }
+  }
+  return dst;
+}
+
+void insertDenseVectorIntoSparseMatrix(double factor, const Eigen::VectorXd &src,
   Spani dstRowSpan, int dstCol, std::vector<DataFit::Triplet> *dst) {
   for (auto i: dstRowSpan.indices()) {
     dst->push_back(DataFit::Triplet(dstRowSpan[i], dstCol, factor*src[i]));
+  }
+}
+
+void insertDenseMatrixIntoSparseMatrix(const Eigen::MatrixXd &src,
+  Spani dstRowSpan, Spani dstColSpan, std::vector<DataFit::Triplet> *dst) {
+  for (auto i: dstRowSpan.indices()) {
+    int dstRow = dstRowSpan[i];
+    for (auto j: dstColSpan.indices()) {
+      dst->push_back(DataFit::Triplet(dstRow, dstColSpan[j], src(i, j)));
+    }
   }
 }
 
@@ -150,23 +173,61 @@ struct Problem {
 
 Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
     Array<Spani> spans) {
+  Problem problem;
+
   CoordIndexer::Factory rows;
   CoordIndexer::Factory fullCols;
   CoordIndexer::Factory reducedCols;
   auto rowIndexers = spans.map2([&](Spani span) {
     return rows.make(span.width(), 2);
   });
-  auto fullParamCols = fullCols.make(4, 1);
+  auto fullParamCols = fullCols.make(A.cols(), 1);
   auto fullGpsCols = fullCols.make(1, 1);
-  auto fullFlowCols = fullCols.make(spans.size(), 1);
+  auto fullFlowCols = fullCols.make(spans.size(), 2);
   auto reducedGpsCols = reducedCols.duplicate(fullGpsCols);
   auto reducedFlowCols = reducedCols.duplicate(fullFlowCols);
 
+  auto indexMap = assembleIndexMap(rows.count(), rowIndexers, spans);
 
-  //auto BAssembled = copyAndPasteTogetherVector(rows.count(), B, spans);
+  problem.assembledA = assembleMatrix(indexMap, A);
+  problem.assembledB = assembleMatrix(indexMap, B);
 
-  std::vector<Triplet> fullElements;
-  //addDenseMatrix(full);
+
+  auto orthoA = orthonormalBasis(problem.assembledA);
+  std::vector<Triplet> fullElements, reducedElements;
+
+  // Insert the parameter part first.
+  insertDenseMatrixIntoSparseMatrix(orthoA, rows.span(), fullParamCols.elementSpan(), &fullElements);
+
+  // For the full matrix. Here we do insert the orthonormal basis for everything
+  Eigen::VectorXd tempB = -problem.assembledB;
+  addFlowColumns(rowIndexers, fullFlowCols,
+    &fullElements, &tempB);
+  insertDenseVectorIntoSparseMatrix((1.0/tempB.norm()), tempB,
+      rows.span(), fullGpsCols.from(), &fullElements);
+
+  // For the reduced matrix. Here we don't orthonormalize it.
+  // We need this matrix in order to recover the scale of the GPS column.
+  addFlowColumns(rowIndexers, reducedFlowCols, &reducedElements, nullptr);
+  insertDenseVectorIntoSparseMatrix(1.0, -problem.assembledB,
+      rows.span(), reducedGpsCols.from(), &reducedElements);
+
+
+  SparseMatrix<double> fullProblemMatrix(rows.count(), fullCols.count());
+  fullProblemMatrix.setFromTriplets(fullElements.begin(), fullElements.end());
+
+  SparseMatrix<double> nonOrthoGpsAndFlowMatrix(rows.count(), reducedCols.count());
+  nonOrthoGpsAndFlowMatrix.setFromTriplets(reducedElements.begin(), reducedElements.end());
+
+  problem.Rparam = orthoA.transpose()*problem.assembledA;
+  problem.paramColSpan = fullParamCols.elementSpan();
+  problem.fullProblemMatrix = fullProblemMatrix;
+  problem.gpsAndFlowColSpan = Spani(fullParamCols.to(), fullCols.count());
+  problem.nonOrthoGpsAndFlowMatrix = nonOrthoGpsAndFlowMatrix;
+  problem.rowSpansToFit = rowIndexers.map2([&](const CoordIndexer &indexer) {
+    return indexer.elementSpan();
+  });
+  return problem;
 }
 
 
