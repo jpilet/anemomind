@@ -183,9 +183,7 @@ TEST(LinearOptCalib, AddFlowColumnsTest) {
       }
     }
   }
-  std::cout << EXPR_AND_VAL_AS_STRING(D) << std::endl;
   Eigen::MatrixXd DtD = D.transpose()*D;
-  std::cout << EXPR_AND_VAL_AS_STRING(DtD) << std::endl;
   EXPECT_EQ(DtD.rows(), cols.count());
   EXPECT_EQ(DtD.cols(), cols.count());
   for (auto i: cols/*yes cols, not rows*/) {
@@ -274,10 +272,8 @@ TEST(LinearOptCalib, ProblemTest) {
   }, Eigen::VectorXd::Ones(problem.Qab.cols()), pms);
 
   auto parameters = problem.computeParametersFromSolutionVector(results.X);
-  std::cout << EXPR_AND_VAL_AS_STRING(parameters) << std::endl;
 
   auto QabWithSlackDense = problem.QabWithSlack.toDense();
-  std::cout << EXPR_AND_VAL_AS_STRING(QabWithSlackDense) << std::endl;
 
   //auto params = results.
 }

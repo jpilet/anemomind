@@ -96,10 +96,6 @@ void addFlowColumns(CoordIndexer rows, Spani colBlock,
   std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt, CoordIndexer bRows) {
   assert(rows.dim() == colBlock.width());
   assert(0 <= rows.from());
-  std::cout << EXPR_AND_VAL_AS_STRING(bRows.to()) << std::endl;
-  if (Bopt != nullptr) {
-    std::cout << EXPR_AND_VAL_AS_STRING(Bopt->size()) << std::endl;
-  }
   assert(Bopt == nullptr || bRows.to() <= Bopt->size());
   for (auto i: colBlock.indices()) {
     addFlowColumn(rows, colBlock, i, dst, Bopt, bRows);
@@ -234,17 +230,14 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
   // Insert the parameter part first.
   insertDenseMatrixIntoSparseMatrix(orthoA, rows.span(), fullParamCols.elementSpan(), &fullElements);
 
-  std::cout << "Add flow columns to the full problem." << std::endl;
   // For the full matrix. Here we do insert the orthonormal basis for everything
   addOrthoGpsAndFlowData(problem.assembledB, rowIndexers, fullFlowCols, &fullElements, fullGpsCols);
 
   // For the reduced matrix. Here we don't orthonormalize it.
   // We need this matrix in order to recover the scale of the GPS column.
-  std::cout << "Add flow columns to the reduced problem." << std::endl;
   addFlowColumns(rowIndexers, reducedFlowCols, &reducedElements, nullptr, rowIndexers);
   insertDenseVectorIntoSparseMatrix(1.0, -problem.assembledB,
       rows.span(), reducedGpsCols.from(), &reducedElements);
-  std::cout << "done adding the columns" << std::endl;
 
   SparseMatrix<double> fullProblemMatrix(rows.count(), fullCols.count());
   fullProblemMatrix.setFromTriplets(fullElements.begin(), fullElements.end());
@@ -264,7 +257,6 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
 
   /////// Add slack
 
-  std::cout << "The slack part------------------------------------------------" << std::endl;
   // Continue building QabWithSlack.
   auto slack1Rows = spans.map2([&](Spani span) {
     return rows.make(span.width(), 2);
