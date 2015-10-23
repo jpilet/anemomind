@@ -312,7 +312,7 @@ TEST(LinearOptCalib, PowerMethod) {
     auto tmp = matMul(x);
     /*Eigen::VectorXd results = tmp - maxEigVal*x;
     return results;*/
-    return tmp - maxEigVal*x;
+    return Eigen::VectorXd(tmp - maxEigVal*x);
   }, Xinit, s);
 
   std::cout << EXPR_AND_VAL_AS_STRING(minVecData.X) << std::endl;
