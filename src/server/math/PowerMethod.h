@@ -32,6 +32,9 @@ namespace PowerMethod {
  * of A'*A.
  * This algorithm lets us obtain that vector of A'*A
  * in an computationally inexpensive way.
+ *
+ * Read more here:
+ * http://math.stackexchange.com/questions/271864/power-iteration-smallest-eigenvalue
  */
 
 // Represents the multiplication with some matrix A:

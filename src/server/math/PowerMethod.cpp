@@ -35,7 +35,8 @@ Results computeMin(MatMul A, const Eigen::VectorXd &X, const Settings &s) {
     Eigen::VectorXd tmp = A(x);
     return Eigen::VectorXd(tmp - maxEig*x);
   }, X, s);
-  return Results{(maxEig - temp.X.norm())*(1.0/temp.X.norm())*temp.X, temp.iters};
+  double xNorm = temp.X.norm();
+  return Results{(maxEig - xNorm)*(1.0/xNorm)*temp.X, temp.iters};
 }
 
 }
