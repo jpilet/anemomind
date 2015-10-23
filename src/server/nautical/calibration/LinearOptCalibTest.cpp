@@ -247,11 +247,11 @@ TEST(LinearOptCalib, ProblemTest) {
   auto edata = toEData(getPsarosTestData().sliceTo(20));
   auto spans = makeOverlappingSpans(edata.n, 10, 0.5);
   auto problem = makeProblem(edata.A, edata.B, spans);
-  auto denseFull = problem.fullProblemMatrix.toDense();
+  auto denseFull = problem.Qab.toDense();
   EXPECT_EQ(denseFull.rows(), 60);
   EXPECT_EQ(denseFull.cols(), 4 + 7);
-  EXPECT_EQ(Spani(0, 4), problem.paramColSpan);
-  EXPECT_EQ(Spani(4, 11), problem.gpsAndFlowColSpan);
+  EXPECT_EQ(Spani(0, 4), problem.qaColSpan);
+  EXPECT_EQ(Spani(4, 11), problem.qbColSpan);
 
   Eigen::MatrixXd lhs = denseFull.block(0, 0, 60, 4);
   Eigen::MatrixXd rhs = denseFull.block(0, 4, 60, 7);

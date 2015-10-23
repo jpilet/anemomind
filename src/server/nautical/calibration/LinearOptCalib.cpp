@@ -220,13 +220,18 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
   nonOrthoGpsAndFlowMatrix.setFromTriplets(reducedElements.begin(), reducedElements.end());
 
   problem.Rparam = orthoA.transpose()*problem.assembledA;
-  problem.paramColSpan = fullParamCols.elementSpan();
-  problem.fullProblemMatrix = fullProblemMatrix;
-  problem.gpsAndFlowColSpan = Spani(fullParamCols.to(), fullCols.count());
+  problem.qaColSpan = fullParamCols.elementSpan();
+  problem.Qab = fullProblemMatrix;
+  problem.qbColSpan = Spani(fullParamCols.to(), fullCols.count());
   problem.nonOrthoGpsAndFlowMatrix = nonOrthoGpsAndFlowMatrix;
   problem.rowSpansToFit = rowIndexers.map2([&](const CoordIndexer &indexer) {
     return indexer.elementSpan();
   });
+
+  // Continue building L.
+  //CoordIndexer::Factory qRows = rows;
+  //auto
+
   return problem;
 }
 
