@@ -175,6 +175,14 @@ TEST(LinearOptCalib, AddFlowColumnsTest) {
       }
     }
   }
+  Eigen::MatrixXd DtD = D.transpose()*D;
+  EXPECT_EQ(DtD.rows(), cols.count());
+  EXPECT_EQ(DtD.cols(), cols.count());
+  for (auto i: cols) {
+    for (auto j: cols) {
+      EXPECT_EQ(i == j, 1.0e-6 < std::abs(DtD(i, j)));
+    }
+  }
 }
 
 
