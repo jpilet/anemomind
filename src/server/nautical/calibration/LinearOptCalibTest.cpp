@@ -272,9 +272,6 @@ TEST(LinearOptCalib, ProblemTest) {
 
   auto parameters = problem.computeParametersFromSolutionVector(results.X);
 
-  std::cout << EXPR_AND_VAL_AS_STRING(results.iters) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(results.X) << std::endl;
-
   //auto params = results.
 }
 
