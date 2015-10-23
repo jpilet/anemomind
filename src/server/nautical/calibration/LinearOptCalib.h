@@ -35,7 +35,12 @@ struct Results {
   int iters;
 };
 
+// Compute the eigenvector with the greatest eigenvalue.
+// The norm of the vector is the actual eigenvalue.
 Results computeMax(MatMul A, const Eigen::VectorXd &X, const Settings &s);
+
+// Compute the eigenvector with the smallest eigenvalue.
+// The norm of the vector is the actual eigenvalue.
 Results computeMin(MatMul A, const Eigen::VectorXd &X, const Settings &s);
 
 }

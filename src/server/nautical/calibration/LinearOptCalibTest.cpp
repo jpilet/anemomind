@@ -260,6 +260,17 @@ TEST(LinearOptCalib, ProblemTest) {
   EXPECT_FALSE(isOrthonormal(denseFull));
   EXPECT_EQ(problem.Rparam.rows(), problem.Rparam.cols());
   EXPECT_EQ(problem.Rparam.rows(), 4);
+
+  Eigen::SparseMatrix<double> Q = problem.Qab.transpose()*problem.Qab;
+
+
+  PowerMethod::Settings pms;
+  auto results = PowerMethod::computeMin([&](const Eigen::VectorXd &X) {
+    return Q*X;
+  }, Eigen::VectorXd::Ones(problem.Qab.cols()), pms);
+
+  std::cout << EXPR_AND_VAL_AS_STRING(results.iters) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(results.X) << std::endl;
 }
 
 TEST(LinearOptCalib, OverlappingSpanTest) {
