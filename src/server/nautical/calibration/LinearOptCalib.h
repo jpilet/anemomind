@@ -25,8 +25,8 @@ Eigen::SparseMatrix<double> makeRhs(const Eigen::VectorXd &B, Array<Spani> spans
 Eigen::MatrixXd makeParameterizedApparentFlowMatrix(const Eigen::MatrixXd &A, Array<Spani> spans);
 Array<Spani> makeOverlappingSpans(int dataSize, int spanSize, double relativeStep = 0.5);
 
-void addFlowColumns(const DataFit::CoordIndexer &rows, Spani colBlock,
-  std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt, Array<DataFit::CoordIndexer> bRows);
+void addFlowColumns(DataFit::CoordIndexer rows, Spani colBlock,
+  std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt, DataFit::CoordIndexer bRows);
 
 Arrayi assembleIndexMap(int dstElemCount,
     Array<DataFit::CoordIndexer> dstIndexers,

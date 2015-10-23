@@ -148,19 +148,21 @@ TEST(LinearOptCalib, OrthoDenseAndPerVector) {
 TEST(LinearOptCalib, AddFlowColumnsTest) {
   DataFit::CoordIndexer::Factory rows;
   DataFit::CoordIndexer::Factory cols;
-  auto rowIndexer = rows.make(3, 2);
+  Spani span(0, 3);
+  auto rowIndexer = rows.make(span.width(), 2);
+
   auto colIndexer = cols.make(1, 2);
   std::vector<DataFit::Triplet> triplets;
-  Eigen::VectorXd B(rowIndexer.numel());
-  for (int i = 0; i < rowIndexer.numel(); i++) {
+  Eigen::VectorXd B(rows.count());
+  for (int i = 0; i < rows.count(); i++) {
     B[i] = sin(exp(0.34*i));
   }
   addFlowColumns(rowIndexer, colIndexer.span(0),
     &triplets, &B, rowIndexer);
 
   auto bCol = cols.make(1, 1);
-  for (auto i: rowIndexer.elementSpan().indices()) {
-    triplets.push_back(DataFit::Triplet(rowIndexer[i], bCol[0], B[i]));
+  for (auto i: rows) {
+    triplets.push_back(DataFit::Triplet(i, bCol[0], B[i]));
   }
 
   Eigen::SparseMatrix<double> mat(rows.count(), cols.count());
@@ -181,7 +183,9 @@ TEST(LinearOptCalib, AddFlowColumnsTest) {
       }
     }
   }
+  std::cout << EXPR_AND_VAL_AS_STRING(D) << std::endl;
   Eigen::MatrixXd DtD = D.transpose()*D;
+  std::cout << EXPR_AND_VAL_AS_STRING(DtD) << std::endl;
   EXPECT_EQ(DtD.rows(), cols.count());
   EXPECT_EQ(DtD.cols(), cols.count());
   for (auto i: cols/*yes cols, not rows*/) {

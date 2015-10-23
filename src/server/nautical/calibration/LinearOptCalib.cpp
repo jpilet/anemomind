@@ -92,7 +92,7 @@ void addFlowColumn(const DataFit::CoordIndexer &rows, Spani colBlock,
   }
 }
 
-void addFlowColumns(const DataFit::CoordIndexer &rows, Spani colBlock,
+void addFlowColumns(CoordIndexer rows, Spani colBlock,
   std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt, CoordIndexer bRows) {
   assert(rows.dim() == colBlock.width());
   assert(0 <= rows.from());
