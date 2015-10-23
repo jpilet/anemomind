@@ -51,8 +51,8 @@ struct Problem {
   Eigen::VectorXd computeParametersFromSolutionVector(const Eigen::VectorXd &solution) const;
 };
 
-// Solve without outlier rejection. Just fit it and recover the parameters.
-//Eigen::VectorXd solveBasic(const Eigen::SparseMatrix &Qab);
+
+Eigen::SparseMatrix<double> makeSlackFitness(int n);
 
 Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
     Array<Spani> spans);

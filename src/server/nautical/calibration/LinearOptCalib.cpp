@@ -234,11 +234,13 @@ SparseMatrix<double> makeSlackFitness(int n) {
   triplets.reserve(M.rows()*M.cols());
   for (int i = 0; i < M.rows(); i++) {
     for (int j = 0; j < M.cols(); j++) {
-
+      DataFit::makeEye(M(i, j), indexer.span(i), indexer.span(j), &triplets);
     }
   }
 
-  return sparseKronEye(makeSlackFitnessDense(), n);
+  SparseMatrix<double> m(indexer.numel(), indexer.numel());
+  m.setFromTriplets(triplets.begin(), triplets.end());
+  return m;
 }
 
 Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
