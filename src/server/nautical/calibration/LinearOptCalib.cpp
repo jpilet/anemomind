@@ -260,18 +260,12 @@ Eigen::VectorXd setSpanToZero(Eigen::VectorXd X, Spani span) {
 Eigen::VectorXd Problem::computeParametersFromSolutionVector(const Eigen::VectorXd &X) const {
   auto orthoAParams = getSubVector(X, qaColSpan);
   auto orthoBParams = setSpanToZero(X, qbColSpan);
-  std::cout << EXPR_AND_VAL_AS_STRING(orthoAParams) << std::endl;
   ColPivHouseholderQR<MatrixXd> decomp(Rparam);
   auto scaledParams = decomp.solve(orthoAParams);
-
   Decomp Bd(nonOrthoGpsAndFlowMatrix.transpose()*nonOrthoGpsAndFlowMatrix);
   Eigen::VectorXd gpsAndFlowParams = Bd.solve(nonOrthoGpsAndFlowMatrix.transpose()*Qab*orthoBParams);
   double scale = gpsAndFlowParams(0);
-
   Eigen::VectorXd actualParams = (1.0/scale)*scaledParams;
-
-  std::cout << EXPR_AND_VAL_AS_STRING(actualParams) << std::endl;
-
   return actualParams;
 }
 
