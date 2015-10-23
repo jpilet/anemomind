@@ -120,8 +120,8 @@ int continueProcessBoatLogs(ArgMap &amap) {
   bool debug = amap.optionProvided("--debug");
   ENTERSCOPE("Anemomind boat log processor");
   if (args.empty()) {
-    makeHelpMessage();
-    return 0; //
+    amap.dispHelp(&std::cout);
+    return 0;
   } else {
     std::string pathstr = args[0]->value();
     ENTERSCOPE("Process boat logs in directory " + pathstr);
@@ -149,6 +149,7 @@ int continueProcessBoatLogs(ArgMap &amap) {
 
 int mainProcessBoatLogs(int argc, const char **argv) {
   ArgMap amap;
+  amap.setHelpInfo(makeHelpMessage());
   amap.registerOption("--debug", "Display debug information and visualization");
   auto status = amap.parse(argc, argv);
   switch (status) {
