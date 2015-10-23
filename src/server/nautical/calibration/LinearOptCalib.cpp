@@ -197,7 +197,7 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
   auto indexMap = assembleIndexMap(rows.count(), rowIndexers, spans);
 
   problem.assembledA = assembleMatrix(indexMap, A);
-  problem.assembledB = assembleMatrix(indexMap, B);
+  problem.assembledB = assembleVector(indexMap, B);
 
 
   auto orthoA = orthonormalBasis(problem.assembledA);
@@ -226,6 +226,7 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
   SparseMatrix<double> nonOrthoGpsAndFlowMatrix(rows.count(), reducedCols.count());
   nonOrthoGpsAndFlowMatrix.setFromTriplets(reducedElements.begin(), reducedElements.end());
 
+  problem.orthoA = orthoA;
   problem.Rparam = orthoA.transpose()*problem.assembledA;
   problem.qaColSpan = fullParamCols.elementSpan();
   problem.Qab = fullProblemMatrix;
@@ -240,6 +241,38 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
   //auto
 
   return problem;
+}
+
+
+auto getSubVector(const Eigen::VectorXd &x, Spani span) -> decltype(x.block(0, 0, 1, 1)) {
+  return x.block(span.minv(), 0, span.width(), 1);
+}
+
+Eigen::VectorXd setSpanToZero(Eigen::VectorXd X, Spani span) {
+  int n = X.size();
+  Eigen::VectorXd Y(n);
+  for (int i = 0; i < n; i++) {
+    Y[i] = (span.contains(i)? 0 : X[i]);
+  }
+  return Y;
+}
+
+Eigen::VectorXd Problem::computeParametersFromSolutionVector(const Eigen::VectorXd &X) const {
+  auto orthoAParams = getSubVector(X, qaColSpan);
+  auto orthoBParams = setSpanToZero(X, qbColSpan);
+  std::cout << EXPR_AND_VAL_AS_STRING(orthoAParams) << std::endl;
+  ColPivHouseholderQR<MatrixXd> decomp(Rparam);
+  auto scaledParams = decomp.solve(orthoAParams);
+
+  Decomp Bd(nonOrthoGpsAndFlowMatrix.transpose()*nonOrthoGpsAndFlowMatrix);
+  Eigen::VectorXd gpsAndFlowParams = Bd.solve(nonOrthoGpsAndFlowMatrix.transpose()*Qab*orthoBParams);
+  double scale = gpsAndFlowParams(0);
+
+  Eigen::VectorXd actualParams = (1.0/scale)*scaledParams;
+
+  std::cout << EXPR_AND_VAL_AS_STRING(actualParams) << std::endl;
+
+  return actualParams;
 }
 
 

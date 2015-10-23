@@ -11,10 +11,13 @@
 #include <server/nautical/calibration/LinearCalibration.h>
 #include <server/math/nonlinear/DataFit.h>
 #include <Eigen/Core>
+#include <Eigen/SparseCholesky>
 
 namespace sail {
 namespace LinearOptCalib {
 
+
+typedef Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > Decomp;
 
 Eigen::MatrixXd orthonormalBasis(const Eigen::MatrixXd &x);
 Eigen::MatrixXd makeLhs(const Eigen::MatrixXd &A, Array<Spani> spans);
@@ -36,13 +39,16 @@ void insertDenseVectorIntoSparseMatrix(double factor, const Eigen::VectorXd &src
 
 
 struct Problem {
-  Eigen::MatrixXd assembledA, assembledB;
+  Eigen::MatrixXd assembledA;
+  Eigen::VectorXd assembledB;
   Array<Spani> rowSpansToFit;
   Spani qaColSpan;
   Spani qbColSpan;
-  Eigen::MatrixXd Rparam;
+  Eigen::MatrixXd Rparam, orthoA;
   Eigen::SparseMatrix<double> Qab;
   Eigen::SparseMatrix<double> nonOrthoGpsAndFlowMatrix;
+
+  Eigen::VectorXd computeParametersFromSolutionVector(const Eigen::VectorXd &solution) const;
 };
 
 // Solve without outlier rejection. Just fit it and recover the parameters.
