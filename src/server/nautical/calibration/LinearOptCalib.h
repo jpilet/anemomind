@@ -41,7 +41,7 @@ void insertDenseVectorIntoSparseMatrix(double factor, const Eigen::VectorXd &src
 struct Problem {
   Eigen::MatrixXd assembledA;
   Eigen::VectorXd assembledB;
-  Array<Spani> rowSpansToFit;
+  Array<Spani> rowSpansToFit, slackARowSpans, slackBRowSpans;
   Spani qaColSpan;
   Spani qbColSpan;
   Eigen::MatrixXd Rparam, orthoA;

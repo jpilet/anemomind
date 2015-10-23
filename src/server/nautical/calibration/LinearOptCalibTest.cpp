@@ -246,6 +246,19 @@ TEST(LinearOptCalib, MatrixTest) {
   EXPECT_LE(subspaceDistance(A, orthoA), 1.0e-6);
 }
 
+bool equallySized(Array<Spani> A, Array<Spani> B) {
+  if (A.size() == B.size()) {
+    int n = A.size();
+    for (int i = 0; i < n; i++) {
+      if (A[i].width() != B[i].width()) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
 TEST(LinearOptCalib, ProblemTest) {
   auto edata = toEData(getPsarosTestData().sliceTo(20));
   auto spans = makeOverlappingSpans(edata.n, 10, 0.5);
@@ -274,6 +287,8 @@ TEST(LinearOptCalib, ProblemTest) {
   auto parameters = problem.computeParametersFromSolutionVector(results.X);
 
   auto QabWithSlackDense = problem.QabWithSlack.toDense();
+  EXPECT_TRUE(equallySized(problem.rowSpansToFit, problem.slackARowSpans));
+  EXPECT_TRUE(equallySized(problem.rowSpansToFit, problem.slackBRowSpans));
 
   //auto params = results.
 }

@@ -202,6 +202,12 @@ void addOrthoGpsAndFlowData(Eigen::VectorXd assembledB,
 
 }
 
+Array<Spani> indexersToSpans(Array<CoordIndexer> indexers) {
+  return indexers.map2([&](const CoordIndexer &indexer) {
+      return indexer.elementSpan();
+    });
+}
+
 Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
     Array<Spani> spans) {
   Problem problem;
@@ -251,9 +257,7 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
   problem.Qab = fullProblemMatrix;
   problem.qbColSpan = Spani(fullParamCols.to(), fullCols.count());
   problem.nonOrthoGpsAndFlowMatrix = nonOrthoGpsAndFlowMatrix;
-  problem.rowSpansToFit = rowIndexers.map2([&](const CoordIndexer &indexer) {
-    return indexer.elementSpan();
-  });
+  problem.rowSpansToFit = indexersToSpans(rowIndexers);
 
   /////// Add slack
 
@@ -272,6 +276,9 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
   QabWithSlack.setFromTriplets(fullElements.begin(), fullElements.end());
 
   problem.QabWithSlack = QabWithSlack;
+
+  problem.slackARowSpans = indexersToSpans(slack1Rows);
+  problem.slackBRowSpans = indexersToSpans(slack2Rows);
 
   return problem;
 }
