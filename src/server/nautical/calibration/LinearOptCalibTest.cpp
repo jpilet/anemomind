@@ -156,7 +156,7 @@ TEST(LinearOptCalib, AddFlowColumnsTest) {
     B[i] = sin(exp(0.34*i));
   }
   addFlowColumns(rowIndexer, colIndexer.span(0),
-    &triplets, &B);
+    &triplets, &B, rowIndexer);
 
   auto bCol = cols.make(1, 1);
   for (auto i: rowIndexer.elementSpan().indices()) {
@@ -264,13 +264,16 @@ TEST(LinearOptCalib, ProblemTest) {
 
   Eigen::SparseMatrix<double> Q = problem.Qab.transpose()*problem.Qab;
 
-
   PowerMethod::Settings pms;
   auto results = PowerMethod::computeMin([&](const Eigen::VectorXd &X) {
     return Q*X;
   }, Eigen::VectorXd::Ones(problem.Qab.cols()), pms);
 
   auto parameters = problem.computeParametersFromSolutionVector(results.X);
+  std::cout << EXPR_AND_VAL_AS_STRING(parameters) << std::endl;
+
+  auto QabWithSlackDense = problem.QabWithSlack.toDense();
+  std::cout << EXPR_AND_VAL_AS_STRING(QabWithSlackDense) << std::endl;
 
   //auto params = results.
 }

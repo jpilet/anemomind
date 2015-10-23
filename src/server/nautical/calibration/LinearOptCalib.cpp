@@ -71,7 +71,8 @@ void addSpanWithConstantFlow(Spani srcSpan, Spani dstSpan, int spanIndex, const 
 
 void addFlowColumn(const DataFit::CoordIndexer &rows, Spani colBlock,
     int i,
-    std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt) {
+    std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt,
+    CoordIndexer bRows) {
   double c = 1.0/sqrt(rows.count());
   double bdot = 0.0;
   auto col = colBlock[i];
@@ -80,31 +81,31 @@ void addFlowColumn(const DataFit::CoordIndexer &rows, Spani colBlock,
     auto row = rows.span(index)[i];
     dst->push_back(DataFit::Triplet(row, col, c));
     if (orthonormalize) {
-      bdot += c*(*Bopt)(row);
+      bdot += c*(*Bopt)(bRows.span(index)[i]);
     }
   }
   if (orthonormalize) {
     for (auto index: rows.coordinateSpan()) {
-      auto row = rows.span(index)[i];
+      auto row = bRows.span(index)[i];
       (*Bopt)(row) -= bdot*c;
     }
   }
 }
 
 void addFlowColumns(const DataFit::CoordIndexer &rows, Spani colBlock,
-  std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt) {
+  std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt, CoordIndexer bRows) {
   assert(rows.dim() == colBlock.width());
   assert(0 <= rows.from());
-  assert(Bopt == nullptr || rows.to() <= Bopt->size());
+  assert(Bopt == nullptr || bRows.to() <= Bopt->size());
   for (auto i: colBlock.indices()) {
-    addFlowColumn(rows, colBlock, i, dst, Bopt);
+    addFlowColumn(rows, colBlock, i, dst, Bopt, bRows);
   }
 }
 
 void addFlowColumns(Array<CoordIndexer> rowIndexers, CoordIndexer cols,
-  std::vector<Triplet> *dst, Eigen::VectorXd *Bopt) {
+  std::vector<Triplet> *dst, Eigen::VectorXd *Bopt, Array<CoordIndexer> bRows) {
   for (auto i: Spani::indicesOf(rowIndexers)) {
-    addFlowColumns(rowIndexers[i], cols.span(i), dst, Bopt);
+    addFlowColumns(rowIndexers[i], cols.span(i), dst, Bopt, bRows[i]);
   }
 }
 
@@ -178,6 +179,23 @@ struct Problem {
 };
 */
 
+void addOrthoGpsAndFlowData(Eigen::VectorXd assembledB,
+    Array<CoordIndexer> rowIndexers,
+    CoordIndexer fullFlowCols, std::vector<Triplet> *fullElements,
+    CoordIndexer::Factory rows,
+    CoordIndexer fullGpsCols) {
+  Eigen::VectorXd tempB = -assembledB;
+  addFlowColumns(rowIndexers, fullFlowCols,
+    fullElements, &tempB, rowIndexers);
+  insertDenseVectorIntoSparseMatrix((1.0/tempB.norm()), tempB,
+      rows.span(), fullGpsCols.from(), fullElements);
+
+}
+
+Spani spanOf(Array<CoordIndexer> indexers) {
+  return Spani(indexers.first().from(), indexers.last().to());
+}
+
 Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
     Array<Spani> spans) {
   Problem problem;
@@ -207,15 +225,11 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
   insertDenseMatrixIntoSparseMatrix(orthoA, rows.span(), fullParamCols.elementSpan(), &fullElements);
 
   // For the full matrix. Here we do insert the orthonormal basis for everything
-  Eigen::VectorXd tempB = -problem.assembledB;
-  addFlowColumns(rowIndexers, fullFlowCols,
-    &fullElements, &tempB);
-  insertDenseVectorIntoSparseMatrix((1.0/tempB.norm()), tempB,
-      rows.span(), fullGpsCols.from(), &fullElements);
+  addOrthoGpsAndFlowData(problem.assembledB, rowIndexers, fullFlowCols, &fullElements, rows, fullGpsCols);
 
   // For the reduced matrix. Here we don't orthonormalize it.
   // We need this matrix in order to recover the scale of the GPS column.
-  addFlowColumns(rowIndexers, reducedFlowCols, &reducedElements, nullptr);
+  addFlowColumns(rowIndexers, reducedFlowCols, &reducedElements, nullptr, rowIndexers);
   insertDenseVectorIntoSparseMatrix(1.0, -problem.assembledB,
       rows.span(), reducedGpsCols.from(), &reducedElements);
 
@@ -236,9 +250,23 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
     return indexer.elementSpan();
   });
 
-  // Continue building L.
-  //CoordIndexer::Factory qRows = rows;
-  //auto
+  /////// Add slack
+
+  // Continue building QabWithSlack.
+  auto slack1Rows = spans.map2([&](Spani span) {
+    return rows.make(span.width(), 2);
+  });
+  auto slack2Rows = spans.map2([&](Spani span) {
+    return rows.make(span.width(), 2);
+  });
+
+  insertDenseMatrixIntoSparseMatrix(orthoA, spanOf(slack1Rows), fullParamCols.elementSpan(), &fullElements);
+  addOrthoGpsAndFlowData(problem.assembledB, slack2Rows, fullFlowCols, &fullElements, rows, fullGpsCols);
+
+  SparseMatrix<double> QabWithSlack(rows.count(), fullCols.count());
+  QabWithSlack.setFromTriplets(fullElements.begin(), fullElements.end());
+
+  problem.QabWithSlack = QabWithSlack;
 
   return problem;
 }

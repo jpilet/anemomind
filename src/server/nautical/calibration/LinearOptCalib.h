@@ -26,7 +26,7 @@ Eigen::MatrixXd makeParameterizedApparentFlowMatrix(const Eigen::MatrixXd &A, Ar
 Array<Spani> makeOverlappingSpans(int dataSize, int spanSize, double relativeStep = 0.5);
 
 void addFlowColumns(const DataFit::CoordIndexer &rows, Spani colBlock,
-  std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt);
+  std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt, Array<DataFit::CoordIndexer> bRows);
 
 Arrayi assembleIndexMap(int dstElemCount,
     Array<DataFit::CoordIndexer> dstIndexers,
@@ -45,7 +45,7 @@ struct Problem {
   Spani qaColSpan;
   Spani qbColSpan;
   Eigen::MatrixXd Rparam, orthoA;
-  Eigen::SparseMatrix<double> Qab;
+  Eigen::SparseMatrix<double> Qab, QabWithSlack;
   Eigen::SparseMatrix<double> nonOrthoGpsAndFlowMatrix;
 
   Eigen::VectorXd computeParametersFromSolutionVector(const Eigen::VectorXd &solution) const;
