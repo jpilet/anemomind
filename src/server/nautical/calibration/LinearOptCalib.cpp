@@ -183,21 +183,27 @@ struct Problem {
 };
 */
 
+Spani spanOf(Array<CoordIndexer> indexers) {
+  return Spani(indexers.first().from(), indexers.last().to());
+}
+
+
+
 void addOrthoGpsAndFlowData(Eigen::VectorXd assembledB,
     Array<CoordIndexer> rowIndexers,
     CoordIndexer fullFlowCols, std::vector<Triplet> *fullElements,
-    CoordIndexer::Factory rows,
     CoordIndexer fullGpsCols) {
+  CoordIndexer::Factory bRows;
+  auto bRowIndexers = rowIndexers.map2([&](CoordIndexer c) {
+    return bRows.duplicate(c);
+  });
+
   Eigen::VectorXd tempB = -assembledB;
   addFlowColumns(rowIndexers, fullFlowCols,
-    fullElements, &tempB, rowIndexers);
+    fullElements, &tempB, bRowIndexers);
   insertDenseVectorIntoSparseMatrix((1.0/tempB.norm()), tempB,
-      rows.span(), fullGpsCols.from(), fullElements);
+      spanOf(rowIndexers), fullGpsCols.from(), fullElements);
 
-}
-
-Spani spanOf(Array<CoordIndexer> indexers) {
-  return Spani(indexers.first().from(), indexers.last().to());
 }
 
 Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
@@ -230,7 +236,7 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
 
   std::cout << "Add flow columns to the full problem." << std::endl;
   // For the full matrix. Here we do insert the orthonormal basis for everything
-  addOrthoGpsAndFlowData(problem.assembledB, rowIndexers, fullFlowCols, &fullElements, rows, fullGpsCols);
+  addOrthoGpsAndFlowData(problem.assembledB, rowIndexers, fullFlowCols, &fullElements, fullGpsCols);
 
   // For the reduced matrix. Here we don't orthonormalize it.
   // We need this matrix in order to recover the scale of the GPS column.
@@ -268,7 +274,7 @@ Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
   });
 
   insertDenseMatrixIntoSparseMatrix(orthoA, spanOf(slack1Rows), fullParamCols.elementSpan(), &fullElements);
-  addOrthoGpsAndFlowData(problem.assembledB, slack2Rows, fullFlowCols, &fullElements, rows, fullGpsCols);
+  addOrthoGpsAndFlowData(problem.assembledB, slack2Rows, fullFlowCols, &fullElements, fullGpsCols);
 
   SparseMatrix<double> QabWithSlack(rows.count(), fullCols.count());
   QabWithSlack.setFromTriplets(fullElements.begin(), fullElements.end());
