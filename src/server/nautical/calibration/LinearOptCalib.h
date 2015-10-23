@@ -13,6 +13,36 @@
 #include <Eigen/Core>
 
 namespace sail {
+
+namespace PowerMethod { // Suitable for computing the smallest or greatest eigenvector
+
+// Represents the multiplication with some matrix A:
+// Y = A*X
+typedef std::function<Eigen::VectorXd(Eigen::VectorXd)> MatMul;
+
+double sinAngle(const Eigen::VectorXd &a, const Eigen::VectorXd &b);
+
+struct Settings {
+ // Stop when either maxIters are reached, or
+ // the angle between the vector from one iteration
+ // to the next is less than tol.
+ int maxIters = 300;
+ Angle<double> tol = Angle<double>::radians(1.0e-4);
+};
+
+struct Results {
+  Eigen::VectorXd X;
+  int iters;
+};
+
+Results computeMax(MatMul A, const Eigen::VectorXd &X, const Settings &s);
+Results computeMin(MatMul A, const Eigen::VectorXd &X, const Settings &s);
+
+}
+
+
+
+
 namespace LinearOptCalib {
 
 
@@ -44,6 +74,9 @@ struct Problem {
   Eigen::SparseMatrix<double> Qab;
   Eigen::SparseMatrix<double> nonOrthoGpsAndFlowMatrix;
 };
+
+// Solve without outlier rejection. Just fit it and recover the parameters.
+//Eigen::VectorXd solveBasic(const Eigen::SparseMatrix &Qab);
 
 Problem makeProblem(const Eigen::MatrixXd &A, const Eigen::VectorXd &B,
     Array<Spani> spans);

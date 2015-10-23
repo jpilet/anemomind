@@ -9,7 +9,42 @@
 #include <server/common/ArrayBuilder.h>
 
 namespace sail {
-namespace LinearOptCalib {
+
+namespace PowerMethod {
+
+
+double sinAngle(const Eigen::VectorXd &a, const Eigen::VectorXd &b) {
+  double cosAngle = a.dot(b)/(a.norm()*b.norm());
+  double cos2Angle = cosAngle*cosAngle;
+  return sqrt(std::max(0.0, 1.0 - cos2Angle));
+}
+
+Results computeMax(MatMul A, const Eigen::VectorXd &X, const Settings &settings) {
+  double sinAngleTol = sin(settings.tol);
+  Eigen::VectorXd Y = X;
+  int i = 0;
+  for (i = 0; i < settings.maxIters; i++) {
+    Eigen::VectorXd Yprev = Y;
+    Y = (1.0/Y.norm())*A(Y);
+    if (sinAngle(Y, Yprev) < sinAngleTol) {
+      break;
+    }
+  }
+  return Results{Y, i};
+}
+
+Results computeMin(MatMul A, const Eigen::VectorXd &X, const Settings &s) {
+  auto maxData = computeMax(A, X, s);
+  auto maxEig = maxData.X.norm();
+  std::cout << EXPR_AND_VAL_AS_STRING(maxEig) << std::endl;
+  auto temp = computeMax([&](const Eigen::VectorXd &x) {
+    return A(x) - maxEig*x;
+  }, X, s);
+  std::cout << EXPR_AND_VAL_AS_STRING(temp.X) << std::endl;
+  return Results{(maxEig - temp.X.norm())*(1.0/temp.X.norm())*temp.X, temp.iters};
+}
+
+} namespace LinearOptCalib {
 
 using namespace Eigen;
 using namespace DataFit;
@@ -159,6 +194,12 @@ void insertDenseMatrixIntoSparseMatrix(const Eigen::MatrixXd &src,
     }
   }
 }
+
+
+/*Eigen::VectorXd solveBasic(const Eigen::SparseMatrix &Qab) {
+  Eigen::SparseMatrix<double> QtQ = Qab.transpose()*Qab;
+  Eigen::SelfAdjointEigenSolver<SparseMatrix<double> >
+}*/
 
 /*
 struct Problem {
