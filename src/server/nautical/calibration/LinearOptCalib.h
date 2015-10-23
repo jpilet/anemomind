@@ -31,6 +31,9 @@ Eigen::VectorXd copyAndPasteTogetherVector(
     Array<Spani> srcSpans,
     const Eigen::VectorXd &src);
 
+void insertVectorIntoSparseMatrix(double factor, const Eigen::VectorXd &src,
+  Spani dstRowSpan, int dstCol, std::vector<DataFit::Triplet> *dst);
+
 
 
 struct Settings {

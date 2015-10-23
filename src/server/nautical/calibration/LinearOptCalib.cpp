@@ -116,6 +116,14 @@ Eigen::VectorXd copyAndPasteTogetherVector(
   return dst;
 }
 
+void insertVectorIntoSparseMatrix(double factor, const Eigen::VectorXd &src,
+  Spani dstRowSpan, int dstCol, std::vector<DataFit::Triplet> *dst) {
+  for (auto i: dstRowSpan.indices()) {
+    dst->push_back(DataFit::Triplet(dstRowSpan[i], dstCol, factor*src[i]));
+  }
+}
+
+
 
 int calcIdealCols(int spanCount) {
   return  1 + 2*spanCount;

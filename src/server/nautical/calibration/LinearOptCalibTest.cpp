@@ -187,7 +187,7 @@ TEST(LinearOptCalib, AddFlowColumnsTest) {
   EXPECT_NEAR(DtD(1, 1), 1.0, 1.0e-6);
 }
 
-TEST(LinearOptCalib, CopyAndPasteVector) {
+TEST(LinearOptCalib, CopyAndPasteVectorThenInsert) {
   Eigen::VectorXd src(3);
   src[0] = 1;
   src[1] = 2;
@@ -212,6 +212,16 @@ TEST(LinearOptCalib, CopyAndPasteVector) {
   EXPECT_EQ(dst(1), 2);
   EXPECT_EQ(dst(2), 2);
   EXPECT_EQ(dst(3), 3);
+
+  std::vector<DataFit::Triplet> triplets;
+  insertVectorIntoSparseMatrix(3.0, dst, Spani(9, 13), 3, &triplets);
+  EXPECT_EQ(triplets.size(), 4);
+  for (int i = 0; i < triplets.size(); i++) {
+    auto t = triplets[i];
+    EXPECT_EQ(t.col(), 3);
+    EXPECT_EQ(t.row(), 9 + i);
+    EXPECT_NEAR(t.value(), 3.0*dst(i), 1.0e-6);
+  }
 }
 
 
