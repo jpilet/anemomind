@@ -44,6 +44,14 @@ class CoordIndexer {
     int count() const {
       return _counter;
     }
+
+    Spani::Iterator begin() const {
+      return Spani::Iterator(0);
+    }
+
+    Spani::Iterator end() const {
+      return Spani::Iterator(_counter);
+    }
    private:
     int _counter;
   };
@@ -102,7 +110,6 @@ class CoordIndexer {
   }
 
   int operator[] (int i) const {
-    assert(_dim == 1);
     return _offset + i;
   }
  private:

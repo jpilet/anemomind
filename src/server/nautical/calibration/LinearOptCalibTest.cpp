@@ -139,59 +139,42 @@ TEST(LinearOptCalib, OrthoDenseAndPerVector) {
   }
 }
 
-TEST(LinearOptCalib, SparseVectorTest) {
-  SparseVector a(4, Array<SparseVector::Entry>{
-    SparseVector::Entry{0, 1.0},
-    SparseVector::Entry{1, 2.0}
-  });
-  SparseVector b(4, Array<SparseVector::Entry>{
-    SparseVector::Entry{2, 3.0},
-    SparseVector::Entry{3, 4.0}
-  });
-  EXPECT_EQ(dot(a, a), squaredNorm(a));
-  EXPECT_EQ(dot(b, b), squaredNorm(b));
-  EXPECT_EQ(0, dot(a, b));
-  EXPECT_EQ((a + b).nnz(), 4);
-  EXPECT_EQ((a - b).nnz(), 4);
-}
-
-SparseVector makeTestVector(int index) {
-  int dim = 12;
-  Array<SparseVector::Entry> data(3);
-  int offset = 5*index;
-  for (int i = 0; i < 3; i++) {
-    data[i] = SparseVector::Entry{(offset + i) % dim, sin(324.324*offset + 43249.324*i + 234.324)};
+TEST(LinearOptCalib, AddFlowColumnsTest) {
+  DataFit::CoordIndexer::Factory rows;
+  DataFit::CoordIndexer::Factory cols;
+  auto rowIndexer = rows.make(3, 2);
+  auto colIndexer = cols.make(1, 2);
+  std::vector<DataFit::Triplet> triplets;
+  Eigen::VectorXd B(rowIndexer.numel());
+  for (int i = 0; i < rowIndexer.numel(); i++) {
+    B[i] = sin(exp(0.34*i));
   }
-  std::sort(data.begin(), data.end());
-  return SparseVector(dim, data);
-}
+  addFlowColumns(rowIndexer, colIndexer.span(0),
+    &triplets, &B);
 
-Array<SparseVector> makeTestVectors() {
-  return Spani(0, 9).map<SparseVector>([](int index) {
-    return makeTestVector(index);
-  });
-}
+  auto bCol = cols.make(1, 1);
+  for (auto i: rowIndexer.elementSpan().indices()) {
+    triplets.push_back(DataFit::Triplet(rowIndexer[i], bCol[0], B[i]));
+  }
 
-Eigen::MatrixXd toDense(Array<SparseVector> vectors) {
-  int cols = vectors.size();
-  int rows = vectors.first().dim();
-  Eigen::MatrixXd dst = Eigen::MatrixXd::Zero(rows, cols);
-  for (int j = 0; j < vectors.size(); j++) {
-    for (auto e: vectors[j].entries()) {
-      dst(e.index, j) = e.value;
+  Eigen::SparseMatrix<double> mat(rows.count(), cols.count());
+  mat.setFromTriplets(triplets.begin(), triplets.end());
+  Eigen::MatrixXd D = mat.toDense();
+  EXPECT_EQ(rows.count(), 6);
+  EXPECT_EQ(cols.count(), 3);
+  for (auto i: rows) {
+    for (auto j: cols) {
+      if (j < 2) {
+        if (i % 2 != j % 2) {
+          EXPECT_EQ(D(i, j), 0.0);
+        } else {
+          EXPECT_LE(0.001, std::abs(D(i, j)));
+        }
+      } else {
+        EXPECT_LE(0.001, std::abs(D(i, j)));
+      }
     }
   }
-  return dst;
-}
-
-TEST(LinearOptCalibTest, SparseGramSchmidtTest) {
-  auto testVectors = makeTestVectors();
-  auto denseTest = toDense(testVectors);
-  EXPECT_FALSE(isOrthonormal(denseTest));
-  auto orthoVectors = gramSchmidt(testVectors);
-  auto denseOrtho = toDense(orthoVectors);
-  EXPECT_TRUE(isOrthonormal(denseOrtho));
-  EXPECT_LE(subspaceDistance(denseTest, denseOrtho), 1.0e-6);
 }
 
 

@@ -9,84 +9,21 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/math/irls.h>
 #include <server/nautical/calibration/LinearCalibration.h>
+#include <server/math/nonlinear/DataFit.h>
 #include <Eigen/Core>
 
 namespace sail {
 namespace LinearOptCalib {
 
 
-// The Eigen::SparseVector class is unnecessarily complicated for our limited use.
-// In particular, initialization is awkward. So make our own stuff instead.
-class SparseVector {
- public:
-  struct Entry {
-   Entry() :
-     index(-1),
-     value(NAN) {}
-   Entry(int i, double v) : index(i), value(v) {}
-
-   bool valid() const {
-     return index != -1;
-   }
-
-   double valueOr0() const {
-     return (valid()? value : 0);
-   }
-
-   int index;
-   double value;
-
-   bool operator<(const Entry &other) const {
-     return index < other.index;
-   }
-  };
-
-  SparseVector(int dim, Array<Entry> entries);
-  SparseVector() : _dim(0) {}
-
-  static SparseVector zeros(int dim);
-
-  const Array<Entry> &entries() const {
-    return _entries;
-  }
-
-  int dim() const {
-    return _dim;
-  }
-
-  int nnz() const {
-    return _entries.size();
-  }
- private:
-  int _dim;
-  Array<Entry> _entries;
-};
-
-typedef std::pair<SparseVector::Entry, SparseVector::Entry> EntryPair;
-Array<EntryPair>
-  listPairs(const SparseVector &a, const SparseVector &b);
-
-SparseVector operator+(const SparseVector &a, const SparseVector &b);
-SparseVector operator-(const SparseVector &a, const SparseVector &b);
-SparseVector operator-(const SparseVector &a);
-SparseVector operator*(double factor, const SparseVector &x);
-double dot(const SparseVector &a, const SparseVector &b);
-double squaredNorm(const SparseVector &x);
-double norm(const SparseVector &x);
-SparseVector normalize(const SparseVector &x);
-SparseVector projectOnNormalized(const SparseVector &a, const SparseVector &bHat);
-SparseVector project(const SparseVector &a, const SparseVector &b);
-std::ostream &operator<<(std::ostream &s, const SparseVector &x);
-
-
-Array<SparseVector> gramSchmidt(
-    Array<SparseVector> vectors);
-
 Eigen::MatrixXd orthonormalBasis(const Eigen::MatrixXd &x);
 Eigen::MatrixXd makeLhs(const Eigen::MatrixXd &A, Array<Spani> spans);
 Eigen::SparseMatrix<double> makeRhs(const Eigen::VectorXd &B, Array<Spani> spans);
 Eigen::MatrixXd makeParameterizedApparentFlowMatrix(const Eigen::MatrixXd &A, Array<Spani> spans);
 Array<Spani> makeOverlappingSpans(int dataSize, int spanSize, double relativeStep = 0.5);
+
+void addFlowColumns(const DataFit::CoordIndexer &rows, Spani colBlock,
+  std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt);
 
 
 
