@@ -31,6 +31,8 @@ class CoordIndexer {
     _offset(offset), _dim(dim), _count(count) {}
 
  public:
+  CoordIndexer() : _offset(0), _dim(0), _count(0) {}
+
   class Factory {
    public:
     Factory() : _counter(0) {}

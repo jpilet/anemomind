@@ -187,6 +187,33 @@ TEST(LinearOptCalib, AddFlowColumnsTest) {
   EXPECT_NEAR(DtD(1, 1), 1.0, 1.0e-6);
 }
 
+TEST(LinearOptCalib, CopyAndPasteVector) {
+  Eigen::VectorXd src(3);
+  src[0] = 1;
+  src[1] = 2;
+  src[2] = 3;
+
+  auto srcSpans = Array<Spani>{Spani(0, 2), Spani(1, 3)};
+
+  DataFit::CoordIndexer::Factory elements;
+
+  auto dstIndexers = srcSpans.map2([&](Spani s) {
+    return elements.make(s.width(), 1);
+  });
+
+  EXPECT_EQ(elements.count(), 4);
+
+
+  auto dst = copyAndPasteTogetherVector(elements.count(),
+      dstIndexers, srcSpans, src);
+
+  EXPECT_EQ(dst.size(), 4);
+  EXPECT_EQ(dst(0), 1);
+  EXPECT_EQ(dst(1), 2);
+  EXPECT_EQ(dst(2), 2);
+  EXPECT_EQ(dst(3), 3);
+}
+
 
 TEST(LinearOptCalib, MatrixTest) {
   auto edata = toEData(getPsarosTestData().sliceTo(100));

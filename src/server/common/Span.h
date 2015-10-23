@@ -43,6 +43,11 @@ class Span {
     return dst;
   }
 
+  template <typename S>
+  static ThisType indicesOf(const Array<S> &arr) {
+    return ThisType(0, arr.size());
+  }
+
   Span(T value) : _minv(value), _maxv(value), _initialized(true) {}
   Span(Array<T> arr) {
     _initialized = false;

@@ -25,6 +25,12 @@ Array<Spani> makeOverlappingSpans(int dataSize, int spanSize, double relativeSte
 void addFlowColumns(const DataFit::CoordIndexer &rows, Spani colBlock,
   std::vector<DataFit::Triplet> *dst, Eigen::VectorXd *Bopt);
 
+Eigen::VectorXd copyAndPasteTogetherVector(
+    int dstElemCount,
+    Array<DataFit::CoordIndexer> dstIndexers,
+    Array<Spani> srcSpans,
+    const Eigen::VectorXd &src);
+
 
 
 struct Settings {

@@ -99,6 +99,23 @@ void addFlowColumns(const DataFit::CoordIndexer &rows, Spani colBlock,
   }
 }
 
+Eigen::VectorXd copyAndPasteTogetherVector(
+    int dstElemCount,
+    Array<DataFit::CoordIndexer> dstIndexers,
+    Array<Spani> srcSpans,
+    const Eigen::VectorXd &src) {
+  Eigen::VectorXd dst(dstElemCount);
+  for (auto i: Spani::indicesOf(dstIndexers)) {
+    auto dstInds = dstIndexers[i].elementSpan();
+    auto srcInds = srcSpans[i];
+    assert(srcInds.width() == dstInds.width());
+    for (auto i: dstInds.indices()) {
+      dst[dstInds[i]] = src[srcInds[i]];
+    }
+  }
+  return dst;
+}
+
 
 int calcIdealCols(int spanCount) {
   return  1 + 2*spanCount;

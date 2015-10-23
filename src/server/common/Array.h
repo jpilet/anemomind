@@ -3,12 +3,22 @@
 
 #include <functional>
 #include <server/common/ArrayStorage.h>
+#include <type_traits>
 
 namespace sail {
 
 #ifndef SAFEARRAY
 #define SAFEARRAY 1
 #endif
+
+// The type T needs a default constructor. That's all.
+// This template provides us with an arbitrary value
+// of that type at compile time.
+template <typename T>
+class Arbitrary {
+ public:
+  static T value;
+};
 
 typedef std::function<bool(int)> SliceFun;
 
@@ -597,9 +607,25 @@ class Array {
     return x;
   }
 
+
   template <typename S>
   Array<S> map(std::function<S(T)> mapper) const {
     Array<S> dst(_size);
+    for (int i = 0; i < _size; i++) {
+      dst[i] = mapper(_data[i]);
+    }
+    return dst;
+  }
+
+  // This method does the same as 'map', but doesn't require the template
+  // parameter to be provided explicitly, so it is much more user friendly.
+  // Also, it will work for objects that override the () operator.
+  // TODO: Remove 'map' above, compile, fix all calls to 'map' so that
+  //       they don't provide a template parameter, rename the function below
+  //       so that it is called 'map' instead of 'map2'.
+  template <typename Function>
+  auto map2(Function mapper) const -> Array<decltype(mapper(Arbitrary<T>::value))>{
+    Array<decltype(mapper(Arbitrary<T>::value))> dst(_size);
     for (int i = 0; i < _size; i++) {
       dst[i] = mapper(_data[i]);
     }
