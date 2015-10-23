@@ -39,7 +39,9 @@ TEST(DispatcherTest, FreshTest) {
   Dispatcher dispatcher;
 
   dispatcher.publishValue(AWA, "low", Angle<>::degrees(1));
-  EXPECT_TRUE(dispatcher.get<AWA>()->isFresh(Duration<>::milliseconds(5)));
-  sleep(Duration<>::milliseconds(5));
-  EXPECT_FALSE(dispatcher.get<AWA>()->isFresh(Duration<>::milliseconds(5)));
+
+  auto instant = Duration<>::milliseconds(5);
+  EXPECT_TRUE(dispatcher.get<AWA>()->isFresh(instant));
+  sleep(instant);
+  EXPECT_FALSE(dispatcher.get<AWA>()->isFresh(instant));
 }
