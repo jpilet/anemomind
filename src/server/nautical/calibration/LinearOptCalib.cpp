@@ -10,7 +10,7 @@
 
 namespace sail {
 
-namespace PowerMethod {
+namespace PowerMethod2 {
 
 
 double sinAngle(const Eigen::VectorXd &a, const Eigen::VectorXd &b) {

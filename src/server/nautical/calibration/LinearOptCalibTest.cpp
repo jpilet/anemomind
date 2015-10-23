@@ -264,8 +264,8 @@ TEST(LinearOptCalib, ProblemTest) {
   Eigen::SparseMatrix<double> Q = problem.Qab.transpose()*problem.Qab;
 
 
-  PowerMethod::Settings pms;
-  auto results = PowerMethod::computeMin([&](const Eigen::VectorXd &X) {
+  PowerMethod2::Settings pms;
+  auto results = PowerMethod2::computeMin([&](const Eigen::VectorXd &X) {
     return Q*X;
   }, Eigen::VectorXd::Ones(problem.Qab.cols()), pms);
 
@@ -283,8 +283,8 @@ TEST(LinearOptCalib, OverlappingSpanTest) {
   EXPECT_EQ(spans[2], Spani(2, 4));
 }
 
-TEST(LinearOptCalib, PowerMethod) {
-  using namespace PowerMethod;
+TEST(LinearOptCalib, PowerMethod2) {
+  using namespace PowerMethod2;
 
   Eigen::MatrixXd KtK(2, 2);
   KtK(0, 0) =   0.389749364074819;
@@ -309,8 +309,8 @@ TEST(LinearOptCalib, PowerMethod) {
       return KtK*x;
     };
 
-  PowerMethod::Settings s;
-  auto maxVecData = PowerMethod::computeMax(matMul, Xinit, s);
+  PowerMethod2::Settings s;
+  auto maxVecData = PowerMethod2::computeMax(matMul, Xinit, s);
 
   double maxEigVal = maxVecData.X.norm();
   EXPECT_NEAR(maxEigVal, gtMaxVal, 1.0e-6);
@@ -320,7 +320,7 @@ TEST(LinearOptCalib, PowerMethod) {
   Eigen::MatrixXd B = KtK - maxEigVal*Eigen::MatrixXd::Identity(2, 2);
 
 
-  auto minVecData = PowerMethod::computeMax([&](Eigen::VectorXd x) {
+  auto minVecData = PowerMethod2::computeMax([&](Eigen::VectorXd x) {
     auto tmp = matMul(x);
     /*Eigen::VectorXd results = tmp - maxEigVal*x;
     return results;*/
@@ -330,7 +330,7 @@ TEST(LinearOptCalib, PowerMethod) {
   Eigen::VectorXd minVec = (1.0/minVecData.X.norm())*KtK*minVecData.X;
   EXPECT_NEAR(minVec.norm(), gtMinVal, 1.0e-6);
 
-  auto minData2 = PowerMethod::computeMin(matMul, Xinit, s);
+  auto minData2 = PowerMethod2::computeMin(matMul, Xinit, s);
   EXPECT_NEAR(minData2.X.norm(), gtMinVal, 1.0e-6);
   EXPECT_LE(sinAngle(minData2.X, gtMinVec), 1.0e-5);
 }

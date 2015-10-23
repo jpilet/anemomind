@@ -14,7 +14,7 @@
 
 namespace sail {
 
-namespace PowerMethod { // Suitable for computing the smallest or greatest eigenvector
+namespace PowerMethod2 { // Suitable for computing the smallest or greatest eigenvector
 
 // Represents the multiplication with some matrix A:
 // Y = A*X
