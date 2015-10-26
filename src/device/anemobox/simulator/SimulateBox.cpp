@@ -1,8 +1,8 @@
 #include <device/anemobox/simulator/SimulateBox.h>
 
+#include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <device/anemobox/DispatcherTrueWindEstimator.h>
 #include <device/anemobox/simulator/ReplayDispatcher.h>
-
 #include <fstream>
 
 namespace sail {
@@ -49,8 +49,8 @@ bool SimulateBox(std::istream& boatDat, Array<Nav> *navs) {
     if (isFresh<TWDIR>(replay)) {
       nav.setDeviceTwdir(replay.val<TWDIR>());
       nav.setTrueWindOverGround(
-          HorizontalMotion<double>::polar(
-              replay.val<TWS>(), replay.val<TWDIR>() - Angle<>::degrees(180)));
+          windMotionFromTwdirAndTws(replay.val<TWDIR>(),
+                                    replay.val<TWS>()));
     }
   }
   return true;
