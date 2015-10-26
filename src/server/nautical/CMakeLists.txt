@@ -166,6 +166,7 @@ add_library(nautical_BoatLogProcessor
             BoatLogProcessor.h
            )
 target_link_libraries(nautical_BoatLogProcessor
+                      anemobox_SimulateBox
                       common_HierarchyJson
                       common_PathBuilder
                       common_logging

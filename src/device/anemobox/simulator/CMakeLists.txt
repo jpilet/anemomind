@@ -20,6 +20,7 @@ add_library(anemobox_SimulateBox
             SimulateBox.cpp
            )
 target_link_libraries(anemobox_SimulateBox
+                      anemobox_DispatcherTrueWindEstimator
                       anemobox_ReplayDispatcher
                       nautical_nav
                      )
