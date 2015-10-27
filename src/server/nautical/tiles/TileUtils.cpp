@@ -56,33 +56,10 @@ Array<Array<Nav>> extractAll(std::string description, Array<Nav> rawNavs,
     Array<Array<Nav>> fromChild = extractAll(description, rawNavs,
                                              grammar, child);
     for (auto navs : fromChild) {
-      result.add(filterNavs(navs));
+      result.add(navs);
     }
   }
   return result.get();
-}
-
-
-Array<Array<Nav> > computeNavsToUpload(const TileGeneratorParameters &params,
-    std::string boatId, std::string navPath,
-    std::string boatDat, std::string polarDat) {
-  ScreenRecordingSimulator simulator;
-  ScreenRecordingSimulator* simulatorPtr = 0;
-  if (boatDat.size() > 0 || polarDat.size() > 0) {
-   if (simulator.prepare(boatDat, polarDat)) {
-     simulatorPtr = &simulator;
-   }
-  }
-  Array<Nav> rawNavs = scanNmeaFolderWithSimulator(navPath, boatId, simulatorPtr);
-
-  if (rawNavs.size() == 0) {
-   LOG(FATAL) << "No NMEA data in " << navPath;
-  }
-
-  WindOrientedGrammarSettings settings;
-  WindOrientedGrammar grammar(settings);
-  std::shared_ptr<HTree> fulltree = grammar.parse(rawNavs);
-  return extractAll("Sailing", rawNavs, grammar, fulltree);
 }
 
 void processTiles(const TileGeneratorParameters &params,
@@ -105,8 +82,14 @@ void processTiles(const TileGeneratorParameters &params,
     WindOrientedGrammar grammar(settings);
     std::shared_ptr<HTree> fulltree = grammar.parse(rawNavs);
 
-    if (!generateAndUploadTiles(
-            boatId, extractAll("Sailing", rawNavs, grammar, fulltree), params)) {
+    Array<Array<Nav>> sessions =
+      extractAll("Sailing", rawNavs, grammar, fulltree);
+
+    for (auto session: sessions) {
+      filterNavs(session);
+    }
+
+    if (!generateAndUploadTiles(boatId, sessions, params)) {
       LOG(FATAL) << "When processing: " << navPath;
     }
 
