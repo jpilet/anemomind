@@ -133,7 +133,9 @@ int BoatLogProcessor::main(const std::vector<std::string>& allArgs) {
     ENTERSCOPE("Process boat logs in directory " + pathstr);
     Poco::Path path = PathBuilder::makeDirectory(pathstr).get();
     if (args.size() == 1) {
-      processBoatDataFullFolder(debug, path);
+      if (!processBoatDataFullFolder(debug, path)) {
+        return 1;
+      }
       if (debug) {
         visualizeBoatDat(path);
       }
@@ -141,6 +143,7 @@ int BoatLogProcessor::main(const std::vector<std::string>& allArgs) {
     } else if (args.size() == 2) {
       std::string logFilename = args[1];
       processBoatDataSingleLogFile(debug, path, logFilename);
+
       if (debug) {
         visualizeBoatDat(path);
       }
@@ -260,24 +263,29 @@ void processBoatData(bool debug, Nav::Id boatId, Array<Nav> navs, Poco::Path dst
 
 }
 
-void processBoatDataFullFolder(bool debug, Nav::Id boatId, Poco::Path srcPath, Poco::Path dstPath) {
+bool processBoatDataFullFolder(bool debug, Nav::Id boatId, Poco::Path srcPath, Poco::Path dstPath) {
   ENTERSCOPE("processBoatData complete folder");
   SCOPEDMESSAGE(INFO, std::string("Loading data from boat with id " + boatId));
   SCOPEDMESSAGE(INFO, "Scan folder for NMEA data...");
   Array<Nav> allnavs = scanNmeaFolderWithSimulator(srcPath, boatId);
-  CHECK_LT(0, allnavs.size());
+  if (allnavs.size() == 0) {
+    SCOPEDMESSAGE(INFO, "No data loaded.")
+    return false;
+  }
+
   SCOPEDMESSAGE(INFO, "done.")
   processBoatData(debug, boatId, allnavs, dstPath, "all");
+  return true;
 }
 
 
 /*
  * Processes the data related to a single boat.
  */
-void processBoatDataFullFolder(bool debug, Poco::Path dataPath) {
+bool processBoatDataFullFolder(bool debug, Poco::Path dataPath) {
   Nav::Id boatId = extractBoatId(dataPath);
   Poco::Path dataBuildDir = PathBuilder::makeDirectory(dataPath).pushDirectory("processed").get();
-  processBoatDataFullFolder(debug, boatId, dataPath, dataBuildDir);
+  return processBoatDataFullFolder(debug, boatId, dataPath, dataBuildDir);
 }
 
 void processBoatDataSingleLogFile(bool debug, Nav::Id boatId, Poco::Path srcPath, std::string logFilename, Poco::Path dstPath) {
