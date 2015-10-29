@@ -5,11 +5,13 @@
 
 #include "BoatLogProcessor.h"
 
-#include <Poco/File.h>
-#include <Poco/JSON/Stringifier.h>
+
 #include <device/Arduino/libraries/TargetSpeed/TargetSpeed.h>
 #include <fstream>
 #include <iostream>
+#include <Poco/File.h>
+#include <Poco/JSON/Stringifier.h>
+#include <server/common/ArgMap.h>
 #include <server/common/Env.h>
 #include <server/common/HierarchyJson.h>
 #include <server/common/Json.h>
@@ -26,9 +28,8 @@
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/plot/extra.h>
-#include <server/common/ArgMap.h>
 
-#include <server/common/Json.impl.h>
+#include <server/common/Json.impl.h> // This one should probably be the last one.
 
 namespace sail {
 
@@ -236,19 +237,19 @@ int mainProcessBoatLogs(int argc, const char **argv) {
   amap.setHelpInfo("Help for boat log processor");
 
   amap.registerOption("--debug", "Display debug information and visualization")
-    .setFlag();
+    .setArgCount(0);
 
   amap.registerOption("--boatid", "Id of the boat")
       .setArgCount(1);
 
   amap.registerOption("--file", "Files to process")
-      .setMinArgCount(1);
-  amap.alias("--file", "-f");
+      .setMinArgCount(1)
+      .alias("-f");
 
 
   amap.registerOption("--dir", "Directories to process")
-    .setMinArgCount(1);
-  amap.alias("--dir", "-d");
+    .setMinArgCount(1)
+    .alias("-d");
 
   amap.registerOption("--dst", "Destination directory path")
     .setArgCount(1);

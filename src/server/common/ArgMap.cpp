@@ -27,11 +27,11 @@ ArgMap::ArgMap() {
   _allowFreeArgs = true;
 
   registerOption("--help", "Displays information about available commands.")
-    .setFlag();
-  alias("--help", "-h");
+    .setArgCount(0)
+    .alias("-h");
 
   registerOption("--noinfo", "Mute loglevel INFO.")
-    .setFlag()
+    .setArgCount(0)
     .callback(
       [=](const Array<Arg*>&) { SetLogLevelThreshold(LOGLEVEL_WARNING); });
 
@@ -142,7 +142,16 @@ std::shared_ptr<ArgMap::Option> ArgMap::findOption(const std::string &key) {
   return findOptionInMap(_options, key);
 }
 
+void ArgMap::registerAliases() {
+  for (auto opt: _optionSet) {
+    for (auto a: opt->aliases()) {
+      _options[a] = opt;
+    }
+  }
+}
+
 bool ArgMap::parseSub(int argc0, const char **argv0) {
+  registerAliases();
   CHECK(!_successfullyParsed);
   Array<Arg*> args;
   fillArgs(argc0, argv0, &_argStorage, &args);
@@ -338,11 +347,5 @@ std::string ArgMap::helpMessage() {
   return ss.str();
 }
 
-void ArgMap::alias(std::string mainName, std::string alternativeName) {
-  auto opt = findOption(mainName);
-  CHECK(opt);
-  _options[alternativeName] = opt;
-  opt->addAlias(alternativeName);
-}
 
 }

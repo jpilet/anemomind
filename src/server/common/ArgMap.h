@@ -111,7 +111,7 @@ class ArgMap {
      Option() :  _unique(false), _required(false), _minArgs(0), _maxArgs(0) { }
      Option(std::string key, std::string helpString) :
        _unique(false), _required(false),
-       _key(key), _minArgs(0), _maxArgs(-1), _helpString(helpString) { }
+       _key(key), _minArgs(0), _maxArgs(1), _helpString(helpString) { }
 
      Array<Arg*> trim(Array<Arg*> optionAndArgs, const std::string &optPref) const;
      void dispHelp(std::ostream *out) const;
@@ -134,10 +134,6 @@ class ArgMap {
        _minArgs = ac;
        _maxArgs = ac;
        return *this;
-     }
-
-     Option &setFlag() {
-       return setArgCount(0);
      }
 
      Option &setUnique() {
@@ -204,12 +200,16 @@ class ArgMap {
 
      std::function<void(const Array<Arg*>&)> callback() { return _callback; }
 
-     void addAlias(const std::string &alias) {
+     void alias(const std::string &alias) {
        _aliases.push_back(alias);
      }
 
      const std::string &key() const {
        return _key;
+     }
+
+     const std::vector<std::string> &aliases() const {
+       return _aliases;
      }
     private:
      bool _unique, _required;
@@ -243,8 +243,6 @@ class ArgMap {
    void dispHelp(std::ostream *out);
    std::string helpMessage();
 
-   void alias(std::string mainName, std::string alternativeName);
-
    void disableFreeArgs() {
      _allowFreeArgs = false;
    }
@@ -277,11 +275,15 @@ class ArgMap {
   typedef std::map<std::string, TempArgs> TempArgMap;
   std::map<std::string, Array<ArgMap::Arg*> > buildMap(TempArgMap &src);
   bool hasAllRequiredArgs(TempArgMap &tempmap);
-
+  void registerAlias(std::string mainName, std::string alternativeName);
   bool parseSub(TempArgMap &tempmap, Array<Arg*> args);
   bool readOptionAndParseSub(TempArgMap &tempmap,
       std::shared_ptr<Option> info, Arg *opt, Array<Arg*> rest,
       ArrayBuilder<Arg*> &acc);
+  std::shared_ptr<Option> findOption(const std::string &key);
+  bool parseSub(int argc, const char **argv);
+  void registerAliases();
+  std::string mainKey(std::string alternativeKey);
 
 
   bool _successfullyParsed;
@@ -290,15 +292,10 @@ class ArgMap {
   //Array<Entry*> _args;
   std::map<std::string, Array<Arg*> > _map;
 
-  std::shared_ptr<Option> findOption(const std::string &key);
   OptionMap _options;
-
   std::set<std::shared_ptr<Option> > _optionSet;
 
   std::string _helpInfo;
-  bool parseSub(int argc, const char **argv);
-
-  std::string mainKey(std::string alternativeKey);
 
   bool _allowFreeArgs;
 };
