@@ -247,18 +247,8 @@ module.exports = function (grunt) {
       options: {
         dest: '<%= yeoman.dist %>/public',
         flow: {
-          steps: { js: ['concat', 'uglifyjs'], css: ['concat', 'cssmin'] },
-          post: {
-            css: [{
-              name: 'cssmin',
-              createConfig: function (context, block) {
-                var generated = context.options.generated;
-                generated.options = {
-                  aggressiveMerging: false
-                };
-              }
-            }]
-          }
+          steps: { js: ['concat', 'uglifyjs'], css: ['concat'] },
+          post: { }
         }
       }
     },
@@ -638,7 +628,6 @@ module.exports = function (grunt) {
     'ngAnnotate',
     'copy:dist',
     'cdnify',
-    'cssmin',
     'uglify',
     'rev',
     'usemin'
