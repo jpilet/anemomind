@@ -188,7 +188,6 @@ Array<Angle<double> > getMagHdg(Array<Nav> navs);
 Array<Velocity<double> > getAws(Array<Nav> navs);
 Array<Angle<double> > getAwa(Array<Nav> navs);
 
-
 Array<Nav> loadNavsFromText(std::string filename, bool sort = true);
 bool areSortedNavs(Array<Nav> navs);
 void plotNavTimeVsIndex(Array<Nav> navs);
@@ -202,6 +201,8 @@ int countNavs(Array<Array<Nav> > navs);
 
 std::ostream &operator<<(std::ostream &s, const Nav &x);
 
+Length<double> computeTrajectoryLength(Array<Nav> navs);
+Velocity<double> computeMaxSpeedOverGround(Array<Nav> navs);
 
 } /* namespace sail */
 

@@ -188,8 +188,19 @@ private:
       xyzDirUnitVectorOut[i] = northCoef*northAxis[i] + eastCoef*eastAxis[i];
     }
   }
-
 };
+
+template <typename T>
+Length<T> computeDistance(const GeographicPosition<T> &a, const GeographicPosition<T> &b) {
+  Length<T> aPos[3], bPos[3];
+  WGS84<T>::toXYZ(a, aPos);
+  WGS84<T>::toXYZ(b, bPos);
+  T dist = T(0.0);
+  for (int i = 0; i < 3; i++) {
+    dist = dist + sqr(aPos[i].meters() - bPos[i].meters());
+  }
+  return Length<T>::meters(sqrt(dist));
+}
 
 
 

@@ -12,6 +12,7 @@ module.exports = function(app) {
   app.use('/api/events', require('./api/event'));
   app.use('/api/boats', require('./api/boat'));
   app.use('/api/mailrpc', require('./api/mailrpc'));
+  app.use('/api/summary', require('./api/summary'));  
   app.use('/api/tiles', require('./api/tiles'));
   app.use('/api/upload', require('./api/upload'));
   app.use('/api/users', require('./api/user'));

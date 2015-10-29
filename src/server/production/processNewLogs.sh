@@ -49,7 +49,7 @@ for boatdir in "${LOG_DIR}/"*; do
 	--boatDat ${boatdat} \
 	--id ${boatid} \
 	--navpath "${boatprocessdir}" \
-	--table anemomind.tiles \
+	--db anemomind \
         --clean \
         --noinfo \
 	--scale 20 ; then

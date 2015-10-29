@@ -11,16 +11,27 @@ struct TileGeneratorParameters {
   std::string dbHost;
   int maxScale;
   int maxNumNavsPerSubCurve;
-  std::string tileTable;
+  std::string dbName;
   bool fullClean;
+
+  std::string tileTable() const {
+    return dbName + "." + _tileTable;
+  }
+
+  std::string summaryTable() const {
+    return dbName + "." + _summaryTable;
+  }
 
   TileGeneratorParameters() {
     dbHost = "localhost";
     maxScale = 17;
     maxNumNavsPerSubCurve = 32;
-    tileTable = "anemomind-dev.tiles";
+    _tileTable = "tiles";
+    _summaryTable = "summary";
     fullClean = false;
   }
+ private:
+  std::string _tileTable, _summaryTable;
 };
 
 bool generateAndUploadTiles(std::string boatId,

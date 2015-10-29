@@ -30,8 +30,6 @@ int main(int argc, const char** argv) {
   args.registerOption("--maxpoints",
                       "downsample curves if they have more than <maxpoints> points")
     .store(&params.maxNumNavsPerSubCurve);
-  args.registerOption("--table", "mongoDB table to put the tiles in.")
-    .store(&params.tileTable);
 
   std::string boatId;
   args.registerOption("--id", "boat id").setRequired().store(&boatId);
@@ -42,6 +40,10 @@ int main(int argc, const char** argv) {
 
   std::string boatDat;
   args.registerOption("--boatDat", "Path to boat.dat").store(&boatDat);
+
+  args.registerOption("--db", "Name of the db, such as 'anemomind' or 'anemomind-dev'")
+      .setArgCount(1)
+      .store(&params.dbName);
 
   std::string polarDat;
   args.registerOption("--polarDat", "Path to polar.dat").store(&polarDat);

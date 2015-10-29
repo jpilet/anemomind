@@ -72,38 +72,70 @@ BSONArray navsToBSON(const Array<Nav>& navs) {
   return result.arr();
 }
 
+bool safeMongoOps(std::string what,
+    DBClientConnection *db, std::function<void(DBClientConnection*)> f) {
+  try {
+    f(db);
+    std::string err = db->getLastError();
+    if (err != "") {
+      LOG(ERROR) << "error while " << what << ": " << err;
+      return false;
+    }
+  } catch (const DBException &e) {
+    LOG(ERROR) << "error while " << what << ": " << e.what();
+    return false;
+  }
+  return true;
+}
+
 bool insertOrUpdateTile(const BSONObj& obj,
-                        const TileGeneratorParameters& params,
+    const TileGeneratorParameters& params,
                         DBClientConnection* db) {
   if (!params.fullClean) {
-    // Clean old tiles.
-    try {
-      db->remove(params.tileTable,
+    safeMongoOps("cleaning old tiles",
+        db, [=](DBClientConnection *db) {
+      db->remove(params.tileTable(),
                  QUERY("key" << obj["key"]
                        << "boat" << obj["boat"]
                        << "startTime" << GTE << obj["startTime"]
                        << "endTime" << LTE << obj["endTime"]));
-      std::string err = db->getLastError();
-      if (err != "") {
-        LOG(WARNING) << "while cleaning up old tiles: mongoDB error: " << err;
-      }
-    } catch(const DBException &e) {
-      LOG(WARNING) << "while cleaning up old tiles: mongoDB error: " << e.what();
-    }
+    });
   }
+  return safeMongoOps("inserting a tile in mongoDB",
+      db, [=](DBClientConnection *db) {
+    db->insert(params.tileTable(), obj);
+  });
+}
 
-  // Insert the new one.
-  try {
-    db->insert(params.tileTable, obj);
-    std::string err = db->getLastError();
-    if (err != "") {
-      LOG(ERROR) << "error while inserting a tile in mongoDB: " << err;
-    }
-  } catch(const DBException &e) {
-    LOG(ERROR) << "mongoDB error while inserting tile: " << e.what();
-    return false;
-  }
-  return true;
+bool insertSummary(const BSONObj &obj,
+  const TileGeneratorParameters& params,
+  DBClientConnection *db) {
+  safeMongoOps("removing old summary", db,
+      [=](DBClientConnection *db) {
+      db->remove(params.summaryTable(),
+            QUERY("curveId" << obj["curveId"]));
+    });
+  return safeMongoOps("inserting a summary in mongoDB", db,
+      [=](DBClientConnection *db) {
+      db->insert(params.summaryTable(), obj);
+    });
+}
+
+BSONObj makeBsonSummary(
+    const std::string &curveId,
+    const std::string &boatId,
+    Array<Nav> navs) {
+
+  BSONObjBuilder summary;
+  summary.genOID();
+  summary.append("curveId", curveId);
+  summary.append("boat", OID(boatId));
+  summary.append("trajectoryLength",
+      computeTrajectoryLength(navs).nauticalMiles());
+  summary.append("maxSpeedOverGround",
+      computeMaxSpeedOverGround(navs).knots());
+  auto s = summary.obj();
+  return s;
 }
 
 BSONObj makeBsonTile(const TileKey& tileKey,
@@ -145,7 +177,7 @@ bool generateAndUploadTiles(std::string boatId,
   }
 
   if (params.fullClean) {
-    db.remove(params.tileTable,
+    db.remove(params.tileTable(),
                QUERY("boat" << OID(boatId)));
   }
 
@@ -168,6 +200,10 @@ bool generateAndUploadTiles(std::string boatId,
         // There is no point to continue if we can't write to the DB.
         return false;
       }
+    }
+    BSONObj summary = makeBsonSummary(curveId, boatId, curve);
+    if (!insertSummary(summary, params, &db)) {
+      return false;
     }
   }
   return true;
