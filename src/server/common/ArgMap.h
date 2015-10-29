@@ -14,6 +14,7 @@
 #include <server/common/logging.h>
 #include <limits>
 #include <server/common/ArrayBuilder.h>
+#include <set>
 
 namespace sail {
 
@@ -22,9 +23,11 @@ class ArgMap {
   ArgMap();
 
 
-  enum ParseStatus {Error = 0,    // parsing error or something.
-               Continue, // no error, continue with the rest of the program
-               Done};    // If the user displayed help, this is not an error, but the program should be done.
+  enum ParseStatus {
+    Error = 0,    // parsing error or something.
+    Continue, // no error, continue with the rest of the program
+    Done // If the user displayed help, this is not an error, but the program should be done.
+  };
 
   ParseStatus parse(int argc, const char **argv);
 
@@ -106,16 +109,18 @@ class ArgMap {
    class Option {
     public:
      Option() :  _unique(false), _required(false), _minArgs(0), _maxArgs(0) { }
-     Option(std::string option, std::string helpString) :
+     Option(std::string key, std::string helpString) :
        _unique(false), _required(false),
-       _option(option), _minArgs(0), _maxArgs(0), _helpString(helpString) { }
+       _key(key), _minArgs(0), _maxArgs(-1), _helpString(helpString) { }
 
      Array<Arg*> trim(Array<Arg*> optionAndArgs, const std::string &optPref) const;
      void dispHelp(std::ostream *out) const;
 
      Option &setMinArgCount(int ma) {
        _minArgs = ma;
-       _maxArgs = std::max(_minArgs, _maxArgs);
+       if (hasMaxArgCount()) {
+         _maxArgs = std::max(_minArgs, _maxArgs);
+       }
        return *this;
      }
 
@@ -129,6 +134,10 @@ class ArgMap {
        _minArgs = ac;
        _maxArgs = ac;
        return *this;
+     }
+
+     Option &setFlag() {
+       return setArgCount(0);
      }
 
      Option &setUnique() {
@@ -173,8 +182,16 @@ class ArgMap {
        return _minArgs;
      }
 
+     bool hasMaxArgCount() const {
+       return _maxArgs != -1;
+     }
+
      int maxArgCount() const {
-       return _maxArgs;
+       if (hasMaxArgCount()) {
+         return _maxArgs;
+       } else {
+         return std::numeric_limits<int>::max();
+       }
      }
 
      bool unique() const {
@@ -187,13 +204,26 @@ class ArgMap {
 
      std::function<void(const Array<Arg*>&)> callback() { return _callback; }
 
+     void addAlias(const std::string &alias) {
+       _aliases.push_back(alias);
+     }
+
+     const std::string &key() const {
+       return _key;
+     }
     private:
      bool _unique, _required;
-     std::string _option;
+     std::string _key;
      int _minArgs, _maxArgs;
      std::string _helpString;
      std::function<void(const Array<Arg*>&)> _callback;
+
+     // Other aliases for this option. For instance
+     // A --file option might have the alias "-f".
+     std::vector<std::string> _aliases;
    };
+   typedef std::map<std::string, std::shared_ptr<Option> > OptionMap;
+
    /*
     * Information about a option that can be given on the command line, e.g.
     *
@@ -212,6 +242,12 @@ class ArgMap {
 
    void dispHelp(std::ostream *out);
    std::string helpMessage();
+
+   void alias(std::string mainName, std::string alternativeName);
+
+   void disableFreeArgs() {
+     _allowFreeArgs = false;
+   }
  private:
   class TempArgs {
    public:
@@ -239,13 +275,14 @@ class ArgMap {
   };
 
   typedef std::map<std::string, TempArgs> TempArgMap;
-  static std::map<std::string, Array<ArgMap::Arg*> > buildMap(TempArgMap &src);
-  static bool hasAllRequiredArgs(std::map<std::string, Option> &options, TempArgMap &tempmap);
+  std::map<std::string, Array<ArgMap::Arg*> > buildMap(TempArgMap &src);
+  bool hasAllRequiredArgs(TempArgMap &tempmap);
 
   bool parseSub(TempArgMap &tempmap, Array<Arg*> args);
   bool readOptionAndParseSub(TempArgMap &tempmap,
-      Option info, Arg *opt, Array<Arg*> rest,
+      std::shared_ptr<Option> info, Arg *opt, Array<Arg*> rest,
       ArrayBuilder<Arg*> &acc);
+
 
   bool _successfullyParsed;
   std::string _optionPrefix;
@@ -253,10 +290,17 @@ class ArgMap {
   //Array<Entry*> _args;
   std::map<std::string, Array<Arg*> > _map;
 
-  std::map<std::string, Option> _options;
+  std::shared_ptr<Option> findOption(const std::string &key);
+  OptionMap _options;
+
+  std::set<std::shared_ptr<Option> > _optionSet;
+
   std::string _helpInfo;
   bool parseSub(int argc, const char **argv);
 
+  std::string mainKey(std::string alternativeKey);
+
+  bool _allowFreeArgs;
 };
 
 }

@@ -21,8 +21,8 @@ class PathBuilder {
   PathBuilder pushDirectory(std::string dir);
   const Poco::Path &get() const {return _path;}
   PathBuilder makeFile(std::string filename);
- private:
   PathBuilder(const Poco::Path &p) : _path(p) {}
+ private:
 
   Poco::Path _path;
 };
