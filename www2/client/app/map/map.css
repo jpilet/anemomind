@@ -95,11 +95,11 @@ perfplot {
   overflow: auto;
 }
 
-.mapScreenContainer footer {
+.responsiveNavButtons {
   display: flex;
   flex-direction: row;
 }
-.mapScreenContainer footer button {
+.flexOne {
   flex: 1;
 }
 
