@@ -166,6 +166,7 @@ add_library(nautical_BoatLogProcessor
             BoatLogProcessor.h
            )
 target_link_libraries(nautical_BoatLogProcessor
+                      anemobox_SimulateBox
                       common_HierarchyJson
                       common_PathBuilder
                       common_logging
@@ -195,12 +196,13 @@ add_library(nautical_Calibrator
             Calibrator.cpp
            )
 target_link_libraries(nautical_Calibrator
-                      nautical_grammars_WindOrientedGrammar
-                      nautical_NavNmeaScan
+                      anemobox_SimulateBox
                       common_Histogram
-                      plot_gnuplot
                       common_math
                       nautical_FlowErrors
+                      nautical_NavNmeaScan
+                      nautical_grammars_WindOrientedGrammar
+                      plot_gnuplot
                      )
 target_depends_on_ceres(nautical_Calibrator)
 
