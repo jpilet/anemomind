@@ -266,7 +266,7 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
   // Sort by time
   points.sort(byTime);
 
-  if (this.selectedCurve != curveId) {
+  if (this.selectedCurve && this.selectedCurve != curveId) {
     var start = curveStartTime(this.selectedCurve);
     var end = curveEndTime(this.selectedCurve);
     points = selectByTime(points, start, end);
