@@ -187,7 +187,11 @@ Graph.prototype.setData = function(field, data) {
   // Compute bounds
   if (data.length > 1) {
     this.x.domain([data[0].time, data[data.length - 1].time]);
-    this.y.domain([0, d3.max(data, function(d) { return me.fieldForPoint(d) })]);
+    if (field == 'devicePerf') {
+      this.y.domain([0, 150]);
+    } else {
+      this.y.domain([0, d3.max(data, function(d) { return me.fieldForPoint(d) })]);
+    }
     this.zoom.x(this.x);
   }
 

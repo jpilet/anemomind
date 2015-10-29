@@ -72,7 +72,7 @@ class DispatchData {
   // For example: awa, tws, watSpeed, etc.
   std::string wordIdentifier() const { return wordIdentifierForCode(_code); }
 
-  virtual bool isFresh() const = 0;
+  virtual bool isFresh(Duration<> maxAge = Duration<>::seconds(15)) const = 0;
 
   virtual void visit(DispatchDataVisitor *visitor) = 0;
   virtual ~DispatchData() {}
@@ -93,13 +93,13 @@ class TypedDispatchData : public DispatchData {
   virtual ValueDispatcher<T> *dispatcher() = 0;
   virtual const ValueDispatcher<T> *dispatcher() const = 0;
   virtual void setValue(T value) = 0;
-  virtual bool isFresh() const {
+  virtual bool isFresh(Duration<> maxAge = Duration<>::seconds(15)) const {
     auto d = dispatcher();
     if (d == nullptr || !d->hasValue() || !d->clock()) {
       return false;
     }
     Duration<> delta(d->clock()->currentTime() - d->lastTimeStamp()) ;
-    return delta < Duration<>::seconds(15);
+    return delta < maxAge;
   }
 };
 
@@ -187,14 +187,14 @@ class Dispatcher : public Clock {
 
   DispatchData *dispatchDataForSource(DataCode code, const std::string& source);
 
-  DispatchData* dispatchData(DataCode code) {
+  DispatchData* dispatchData(DataCode code) const {
     auto it = _currentSource.find(code);
     assert (it != _currentSource.end());
     return it->second.get();
   }
 
   template <DataCode Code>
-  TypedDispatchData<typename TypeForCode<Code>::type>* get() {
+  TypedDispatchData<typename TypeForCode<Code>::type>* get() const {
     return dynamic_cast<TypedDispatchData<typename TypeForCode<Code>::type>*>(
         dispatchData(Code));
   }

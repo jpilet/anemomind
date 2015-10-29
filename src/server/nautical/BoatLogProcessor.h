@@ -14,7 +14,7 @@ namespace sail {
 
 int mainProcessBoatLogs(int argc, const char **argv);
 
-void processBoatDataFullFolder(bool debug, Poco::Path dataPath);
+bool processBoatDataFullFolder(bool debug, Poco::Path dataPath);
 
 } /* namespace sail */
 

@@ -81,7 +81,7 @@ class ValueDispatcher {
 
   virtual const std::deque<TimedValue<T>>& values() const { return values_; }
 
-  Clock* clock() const { return clock_; }
+  virtual Clock* clock() const { return clock_; }
  protected:
   std::set<Listener<T> *> listeners_;
   std::deque<TimedValue<T>> values_;
@@ -153,7 +153,7 @@ class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {
     return _forward ? _forward->values() : emptyValues_;
   }
 
-  Clock* clock() const { return _forward ? _forward->clock() : 0; }
+  virtual Clock* clock() const { return _forward ? _forward->clock() : 0; }
 
   void proxy(ValueDispatcher<T> *dispatcher) {
     this->stopListening();

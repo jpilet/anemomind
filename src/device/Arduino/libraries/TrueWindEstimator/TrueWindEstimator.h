@@ -123,6 +123,12 @@ Velocity<T> calcTws(HorizontalMotion<T> calibratedTW) {
   return calibratedTW.norm();
 }
 
+template <typename T>
+HorizontalMotion<T> windMotionFromTwdirAndTws(Angle<T> twdir,
+                                              Velocity<T> tws) {
+  return HorizontalMotion<T>::polar(tws, twdir - Angle<>::degrees(180));
+}
+
 }  // namespace sail
 
 #endif // NAUTICAL_BOAT_MODEL_H

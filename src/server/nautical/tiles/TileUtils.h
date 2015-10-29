@@ -17,13 +17,6 @@ void processTiles(const TileGeneratorParameters &params,
    std::string boatId, std::string navPath,
    std::string boatDat, std::string polarDat);
 
-
-// For debugging.
-Array<Array<Nav> > computeNavsToUpload(const TileGeneratorParameters &params,
-    std::string boatId, std::string navPath,
-    std::string boatDat, std::string polarDat);
-
-
 }
 
 #endif

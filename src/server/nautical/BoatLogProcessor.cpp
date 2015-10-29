@@ -38,8 +38,6 @@ namespace {
 using namespace sail;
 using namespace std;
 
-
-
 namespace {
   TargetSpeed makeTargetSpeedTable(bool isUpwind,
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
@@ -99,11 +97,11 @@ namespace {
     outputTargetSpeedTable(debug, fulltree, g.nodeInfo(), navs, &boatDatFile);
   }
 
-  void processBoatData(bool debug, Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::string filenamePrefix) {
+  bool processBoatData(bool debug, Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::string filenamePrefix) {
     ENTERSCOPE("processBoatData");
     if (navs.size() == 0) {
-      LOG(FATAL) << "No data to process.";
-      return;
+      LOG(ERROR) << "No data to process.";
+      return false;
     }
     SCOPEDMESSAGE(INFO, stringFormat("Process %d navs ranging from %s to %s",
         navs.size(), navs.first().time().toString().c_str(),
@@ -142,6 +140,7 @@ namespace {
       ofstream file(path);
       Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
     }
+    return true;
   }
 }
 
@@ -223,11 +222,13 @@ int continueProcessBoatLogs(ArgMap &amap) {
   msg << "Process " << navs.size() << " navs with boatid=" <<
       id << " and save results to " << dstPath.toString();
   SCOPEDMESSAGE(INFO, msg.str());
-  processBoatData(debug, id, navs, dstPath, "all");
-  if (debug) {
-    visualizeBoatDat(dstPath);
+  if (processBoatData(debug, id, navs, dstPath, "all")) {
+    if (debug) {
+      visualizeBoatDat(dstPath);
+    }
+    return 0;
   }
-  return 0;
+  return -1;
 }
 
 int mainProcessBoatLogs(int argc, const char **argv) {
@@ -268,9 +269,9 @@ int mainProcessBoatLogs(int argc, const char **argv) {
   };
 }
 
-void processBoatDataFullFolder(bool debug, Poco::Path dataPath) {
+bool processBoatDataFullFolder(bool debug, Poco::Path dataPath) {
   auto boatId = Nav::debuggingBoatId();
-  processBoatData(debug, boatId, scanNmeaFolderWithSimulator(dataPath, boatId),
+  return processBoatData(debug, boatId, scanNmeaFolderWithSimulator(dataPath, boatId),
       PathBuilder(dataPath).pushDirectory("processed").get(), "all");
 }
 

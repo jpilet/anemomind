@@ -46,6 +46,7 @@ if (MongoDB_LIBRARIES)
               TileUtils.cpp
              )
   target_link_libraries(nautical_tiles_TileUtils
+                        anemobox_SimulateBox
                         tiles_NavTileUploader
                         common_ArgMap
                         common_logging
