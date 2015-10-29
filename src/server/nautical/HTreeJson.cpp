@@ -32,12 +32,13 @@ namespace {
     Poco::JSON::Object::Ptr obj(new Poco::JSON::Object());
     assert(x->left() < x->right());
     obj->set("code", h.info()[x->index()].code());
-    obj->set("left", h.navs()[x->left()].id());
+    obj->set("description", h.info()[x->index()].description());
+    obj->set("left", h.navs()[x->left()].time().toIso8601String());
 
     // Important: SUBTRACT ONE SO THAT WE INDEX A VALID ELEMENT.
     // In other words, indexing a subrange is like Matlab with both
     // endpoints included in the range.
-    obj->set("right", h.navs()[x->right() - 1].id());
+    obj->set("right", h.navs()[x->right() - 1].time().toIso8601String());
 
 
     Array<std::shared_ptr<HTree> > ch = x->children();

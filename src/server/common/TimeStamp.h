@@ -47,6 +47,8 @@ class TimeStamp {
   std::string toString() const;
   std::string fullPrecisionString() const;
 
+  std::string toIso8601String() const { return toString("%FT%TZ"); }
+
   // Used by the Json interface
   static TimeStamp fromMilliSecondsSince1970(int64_t x) {return TimeStamp(x);}
   int64_t toMilliSecondsSince1970() const {return _time;}
