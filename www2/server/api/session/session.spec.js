@@ -113,13 +113,6 @@ describe('Session', function() {
       if (err) {
         done(err);
       } else {
-        for (var i = 0; i < 30; i++) {
-          console.log("The boatId is " + boatId);
-        }
-        Session.find({}, function(err, data) {
-          console.log('DATA');
-          console.log(data);
-        });
         var addr = '/api/session/boat/' + boatId;
         request(app)
           .get(addr)
@@ -129,8 +122,6 @@ describe('Session', function() {
               done(err);
             } else {
               var body = res.body;
-              console.log('BODY:');
-              console.log(body);
               res.body.should.be.instanceof(Array);
               var session = res.body[0];
               session.should.have.property('maxSpeedOverGround');
