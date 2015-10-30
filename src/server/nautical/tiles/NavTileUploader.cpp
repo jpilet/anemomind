@@ -121,7 +121,7 @@ bool insertSummary(const BSONObj &obj,
     });
 }
 
-BSONObj makeBsonSummary(
+BSONObj makeBsonSession(
     const std::string &curveId,
     const std::string &boatId,
     Array<Nav> navs) {
@@ -201,7 +201,7 @@ bool generateAndUploadTiles(std::string boatId,
         return false;
       }
     }
-    BSONObj summary = makeBsonSummary(curveId, boatId, curve);
+    BSONObj summary = makeBsonSession(curveId, boatId, curve);
     if (!insertSummary(summary, params, &db)) {
       return false;
     }
