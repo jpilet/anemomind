@@ -138,7 +138,6 @@ describe('Session', function() {
             done(err);
           } else {
             var body = res.body;
-            console.log(body);
             res.body.should.be.instanceof(Array);
             var session = res.body[0];
             session.should.have.property('maxSpeedOverGround');
