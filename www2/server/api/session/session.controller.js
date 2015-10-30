@@ -18,8 +18,12 @@ module.exports.getSessionById = function(req, res, next) {
 };
 
 module.exports.getSessionsForBoat = function(req, res, next) {
+  console.log('GET_SESSIONS_FOR_BOAT called with %j', req.id);
+  for (var key in req) {
+    console.log('Value of %s is %j', key, req[key]);
+  }
   var search = {
-    boat: req.id
+    boat: req.params.id
   };
   Session.find(search, function(err, session) {
     if (err) {

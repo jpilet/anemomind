@@ -70,12 +70,15 @@ function prepareRecord(cb) {
           cb(err);
         } else {
           getFirstBoat(function(err, boat) {
+            var boatId = boat._id;
             Session.create({
-              boat: boat._id,
+              boat: boatId,
               _id: "s123",
               maxSpeedOverGround: 7.8,
               trajectoryLength: 8.9
-            }, cb);
+            }, function(err, sessionId) {
+              cb(err, sessionId, boatId);
+            });
           });
         }
       });
@@ -85,7 +88,7 @@ function prepareRecord(cb) {
 
 describe('Session', function() {
   it('GET /api/session', function(done) {
-    prepareRecord(function(err, id) {
+    prepareRecord(function(err, id, boatId) {
       if (err) {
         done(err);
       } else {
@@ -105,19 +108,29 @@ describe('Session', function() {
     });
   });
   
-  /*it('GET /api/session/boat', function(done) {
-    prepareRecord(function(err, id) {
+  it('GET /api/session/boat', function(done) {
+    prepareRecord(function(err, id, boatId) {
       if (err) {
         done(err);
       } else {
+        for (var i = 0; i < 30; i++) {
+          console.log("The boatId is " + boatId);
+        }
+        Session.find({}, function(err, data) {
+          console.log('DATA');
+          console.log(data);
+        });
+        var addr = '/api/session/boat/' + boatId;
         request(app)
-          .get('/api/session/boat/119')
+          .get(addr)
           .expect(200)
           .end(function(err, res) {
             if (err) {
               done(err);
             } else {
               var body = res.body;
+              console.log('BODY:');
+              console.log(body);
               res.body.should.be.instanceof(Array);
               var session = res.body[0];
               session.should.have.property('maxSpeedOverGround');
@@ -127,6 +140,6 @@ describe('Session', function() {
           });
       }
     });    
-  });*/
+  });
   
 });
