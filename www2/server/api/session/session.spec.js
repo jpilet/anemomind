@@ -50,18 +50,8 @@ function prepareBoat(cb) {
   });
 }
 
-function prepareUserAndBoat(cb) {
-  prepareUser(function(err) {
-    if (err) {
-      cb(err);
-    } else {
-      prepareBoat(cb);
-    }
-  });
-}
-
 function prepareRecord(cb) {
-  prepareUserAndBoat(function(err) {
+  prepareBoat(function(err) {
     if (err) {
       cb(err);
     } else {
@@ -86,14 +76,44 @@ function prepareRecord(cb) {
   });
 }
 
+
+function prepareUserAndBoat(cb) {
+  prepareUser(function(err) {
+    if (err) {
+      cb(err);
+    } else {
+      prepareBoat(cb);
+    }
+  });
+}
+
 describe('Session', function() {
-  it('GET /api/session', function(done) {
+  var server = request(app);
+  var token;
+
+  it('should give the test user an auth token', function(done) {
+    prepareUserAndBoat(function(err) {
+      server
+        .post('/auth/local')
+        .send({ email: 'test@anemomind.com', password: 'anemoTest' })
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .end(function (err, res) {
+          token = res.body.token;
+          if (err) return done(err);
+          return done();
+        });
+    });
+  });
+  
+  /*it('GET /api/session', function(done) {
     prepareRecord(function(err, id, boatId) {
       if (err) {
         done(err);
       } else {
         request(app)
           .get('/api/session/s123')
+          .set('Authorization', 'Bearer ' + token)
           .expect(200)
           .end(function(err, res) {
             if (err) {
@@ -106,7 +126,7 @@ describe('Session', function() {
           });
       }
     });
-  });
+  });*/
   
   it('GET /api/session/boat', function(done) {
     prepareRecord(function(err, id, boatId) {
@@ -134,3 +154,4 @@ describe('Session', function() {
   });
   
 });
+

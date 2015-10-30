@@ -2,6 +2,7 @@
 
 var Session = require('./session.model');
 var mongoose = require('mongoose');
+var boatAccess = require('../boat/access.js');
 
 module.exports.getSessionById = function(req, res, next) {
   var search = {
@@ -11,8 +12,12 @@ module.exports.getSessionById = function(req, res, next) {
     if (err) {
       next(err);
     } else {
-      res.contentType('application/json');
-      res.send(JSON.stringify(session));
+      boatAccess.userCanReadBoatId(req.user.id, session.boat)
+      .then(function() {
+        res.contentType('application/json');
+        res.send(JSON.stringify(session));
+      })
+      .catch(function(err) {next(err);});
     }
   });
 };
