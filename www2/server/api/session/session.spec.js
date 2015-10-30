@@ -10,8 +10,6 @@ var mongoose = require('mongoose');
 var assert = require('assert');
 var Schema = mongoose.Schema;
 
-var boatId = Schema.ObjectId(119);
-
 function prepareUser(cb) {
   User.remove().exec().then(function() {
     var testUser = new User({
