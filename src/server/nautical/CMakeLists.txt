@@ -178,6 +178,7 @@ target_link_libraries(nautical_BoatLogProcessor
                       nautical_NavNmeaScan
                       nautical_TargetSpeed
                       nautical_grammars_WindOrientedGrammar
+                      common_ArgMap
                       plot_gnuplot
                      )              
 target_depends_on_poco_util(nautical_BoatLogProcessor)

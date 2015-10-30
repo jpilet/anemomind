@@ -9,16 +9,32 @@
 #include <server/common/string.h>
 #include <server/common/ArrayBuilder.h>
 #include <sstream>
+#include <set>
 
 namespace sail {
+
+std::shared_ptr<ArgMap::Option> findOptionInMap(ArgMap::OptionMap &options, const std::string &key) {
+  if (options.find(key) != options.end()) {
+    return options[key];
+  }
+  return std::shared_ptr<ArgMap::Option>();
+}
+
 
 ArgMap::ArgMap() {
   _successfullyParsed = false;
   _optionPrefix = "-";
-  registerOption("--help", "Displays information about available commands.").setMinArgCount(0).setMaxArgCount(0);
-  registerOption("-h", "shortcut for --help").setMinArgCount(0).setMaxArgCount(0);
-  registerOption("--noinfo", "Mute loglevel INFO.").setArgCount(0).callback(
+  _allowFreeArgs = true;
+
+  registerOption("--help", "Displays information about available commands.")
+    .setArgCount(0)
+    .alias("-h");
+
+  registerOption("--noinfo", "Mute loglevel INFO.")
+    .setArgCount(0)
+    .callback(
       [=](const Array<Arg*>&) { SetLogLevelThreshold(LOGLEVEL_WARNING); });
+
   setHelpInfo("(no help or usage information specified)");
 }
 
@@ -37,24 +53,27 @@ namespace {
 }
 
 
-bool ArgMap::readOptionAndParseSub(TempArgMap &tempmap, Option info, Arg *opt, Array<Arg*> rest,
+bool ArgMap::readOptionAndParseSub(TempArgMap &tempmap, std::shared_ptr<Option> info,
+    Arg *opt, Array<Arg*> rest,
     ArrayBuilder<ArgMap::Arg*> &acc) {
   int count = acc.size()-1; // ignore first argument.
-  if (count >= info.maxArgCount()) { // Max number of arguments reached?
+  if (count >= info->maxArgCount()) { // Max number of arguments reached?
     return parseSub(tempmap, rest); // Continue parsing...
   } else if (rest.empty() || rest[0]->isOption(_optionPrefix)) { // nothing more to read
 
     // Check if there are not enough arguments for this option.
-    if (count < info.minArgCount()) {
+    if (count < info->minArgCount()) {
       LOG(ERROR) << "Too few values provided to the " << opt->valueUntraced() << " option.";
       LOG(ERROR) << "You provided " << count << " values, but "
-          << info.minArgCount() << " required.";
+          << info->minArgCount() << " required.";
       return false;
     }
 
     return parseSub(tempmap, rest);
   } else { // Still data to read and max number of arguments not reached.
-    acc.add(rest[0]);
+    auto x = rest[0];
+    x->setWasRead();
+    acc.add(x);
     return readOptionAndParseSub(tempmap, info, opt, rest.sliceFrom(1), acc);
   }
 }
@@ -68,18 +87,19 @@ bool ArgMap::parseSub(TempArgMap &tempmap, Array<Arg*> args) {
     Array<Arg*> rest = args.sliceFrom(1);
     if (first->isOption(_optionPrefix)) {
       const std::string &s = first->valueUntraced();
-      if (_options.find(s) == _options.end()) {
-        LOG(ERROR) << "Unknown option: " << s;
+      auto info = findOption(s);
+      if (info) {
+        TempArgs &targs = tempmap[s];
+        ArrayBuilder<Arg*> &acc = targs.getArgsForNewOption(first);
+        if (info->unique() && targs.optionCount() > 1) {
+          LOG(ERROR) << "You can provide the " << s << " option at most once.";
+          return false;
+        }
+        return readOptionAndParseSub(tempmap, info, first, rest, acc);
+      } else {
+        LOG(ERROR) << "No such option: " << s;
         return false;
       }
-      Option info = _options[s];
-      TempArgs &targs = tempmap[s];
-      ArrayBuilder<Arg*> &acc = targs.getArgsForNewOption(first);
-      if (info.unique() && targs.optionCount() > 1) {
-        LOG(ERROR) << "You can provide the " << s << " option at most once.";
-        return false;
-      }
-      return readOptionAndParseSub(tempmap, info, first, rest, acc);
     } else {
       return parseSub(tempmap, rest);
     }
@@ -91,18 +111,26 @@ std::map<std::string, Array<ArgMap::Arg*> > ArgMap::buildMap(TempArgMap &src) {
   std::map<std::string, Array<ArgMap::Arg*> > dst;
   for (TempArgMap::iterator
       i = src.begin(); i != src.end(); i++) {
-    dst[i->first] = i->second.get();
+    dst[mainKey(i->first)] = i->second.get();
   }
   return dst;
 }
 
 
-bool ArgMap::hasAllRequiredArgs(std::map<std::string, Option> &options, TempArgMap &tempmap) {
-  for (std::map<std::string, Option>::iterator i = options.begin();
-      i != options.end(); i++) {
-    if (i->second.required()) {
-      if (tempmap.find(i->first) == tempmap.end()) {
-        LOG(ERROR) << "Missing required option " << i->first;
+bool ArgMap::hasAllRequiredArgs(TempArgMap &tempmap) {
+  std::set<std::string> optionsProvided;
+  for (auto x: tempmap) {
+    auto y = findOptionInMap(_options, x.first);
+    if (y) {
+      optionsProvided.insert(y->key());
+    }
+  }
+
+  for (auto pair: _options) {
+    auto opt = pair.second;
+    if (opt->required()) {
+      if (optionsProvided.find(opt->key()) == optionsProvided.end()) {
+        LOG(ERROR) << "Missing required option " << opt->key();
         return false;
       }
     }
@@ -110,7 +138,20 @@ bool ArgMap::hasAllRequiredArgs(std::map<std::string, Option> &options, TempArgM
   return true;
 }
 
+std::shared_ptr<ArgMap::Option> ArgMap::findOption(const std::string &key) {
+  return findOptionInMap(_options, key);
+}
+
+void ArgMap::registerAliases() {
+  for (auto opt: _optionSet) {
+    for (auto a: opt->aliases()) {
+      _options[a] = opt;
+    }
+  }
+}
+
 bool ArgMap::parseSub(int argc0, const char **argv0) {
+  registerAliases();
   CHECK(!_successfullyParsed);
   Array<Arg*> args;
   fillArgs(argc0, argv0, &_argStorage, &args);
@@ -119,15 +160,26 @@ bool ArgMap::parseSub(int argc0, const char **argv0) {
     return false;
   }
 
-  if (!hasAllRequiredArgs(_options, tempmap)) {
+  if (!hasAllRequiredArgs(tempmap)) {
     return false;
   }
 
   _successfullyParsed = true;
   _map = buildMap(tempmap);
 
+  auto fargs = freeArgs();
+  if (!_allowFreeArgs && !fargs.empty()) {
+    std::stringstream ss;
+    ss << "Free arguments not allowed:";
+    for (auto arg: fargs) {
+      ss << " " << arg->value();
+    }
+    LOG(ERROR) << ss.str();
+    return false;
+  }
+
   for (auto opt: _map) {
-    auto callback = _options[opt.first].callback();
+    auto callback = _options[opt.first]->callback();
     if (callback) {
       callback(optionArgs(opt.first));
     }
@@ -135,8 +187,16 @@ bool ArgMap::parseSub(int argc0, const char **argv0) {
   return true;
 }
 
+std::string ArgMap::mainKey(std::string alternativeKey) {
+  auto opt = findOption(alternativeKey);
+  if (opt) {
+    return opt->key();
+  }
+  return "";
+}
 
-ArgMap::Status ArgMap::parse(int argc, const char **argv) {
+
+ArgMap::ParseStatus ArgMap::parse(int argc, const char **argv) {
   bool success = parseSub(argc, argv);
   if (success) {
     if (helpAsked()) {
@@ -164,7 +224,7 @@ int ArgMap::Arg::parseIntOrDie() {
 }
 
 bool ArgMap::helpAsked() {
-  return optionProvided("--help") || optionProvided("-h");
+  return optionProvided("--help");
 }
 
 double ArgMap::Arg::parseDoubleOrDie() {
@@ -178,7 +238,8 @@ bool ArgMap::hasRegisteredOption(const std::string &arg) {
   return _options.find(arg) != _options.end();
 }
 
-bool ArgMap::optionProvided(const std::string &arg) {
+bool ArgMap::optionProvided(const std::string &arg0) {
+  auto arg = mainKey(arg0);
   CHECK(_successfullyParsed);
   bool retval = !(_map.find(arg) == _map.end());
   if (retval) {
@@ -190,8 +251,11 @@ bool ArgMap::optionProvided(const std::string &arg) {
 
 Array<ArgMap::Arg*> ArgMap::optionArgs(const std::string &arg) {
   CHECK(_successfullyParsed);
-  assert(optionProvided(arg));
-  return _map[arg].sliceFrom(1);
+  if (optionProvided(arg)) {
+    return _map[mainKey(arg)].sliceFrom(1);
+  } else {
+    return Array<ArgMap::Arg*>();
+  }
 }
 
 Array<ArgMap::Arg*> ArgMap::freeArgs() {
@@ -214,13 +278,15 @@ ArgMap::Option &ArgMap::registerOption(std::string option, std::string helpStrin
   // We cannot register the same option twice.
   CHECK(_options.find(option) == _options.end());
 
-  _options[option] = Option(option, helpString);
-  return _options[option];
+  auto newOption = std::shared_ptr<Option>(new Option(option, helpString));
+  _options[option] = newOption;
+  _optionSet.insert(newOption);
+  return *(_options[option]);
 }
 
 Array<ArgMap::Arg*> ArgMap::Option::trim(Array<Arg*> optionAndArgs, const std::string &kwPref) const {
   Array<Arg*> args = optionAndArgs.sliceFrom(1);
-  int len = std::min(args.size(), _maxArgs);
+  int len = std::min(args.size(), maxArgCount());
   {
     for (int i = 0; i < len; i++) {
       if (args[i]->isOption(kwPref)) {
@@ -229,7 +295,7 @@ Array<ArgMap::Arg*> ArgMap::Option::trim(Array<Arg*> optionAndArgs, const std::s
       }
     }
     if (len < _minArgs) {
-      LOG(FATAL) << stringFormat("Less than %d arguments available to the option %s", _minArgs, _option.c_str());
+      LOG(FATAL) << stringFormat("Less than %d arguments available to the option %s", _minArgs, _key.c_str());
     }
   }
 
@@ -238,23 +304,31 @@ Array<ArgMap::Arg*> ArgMap::Option::trim(Array<Arg*> optionAndArgs, const std::s
 }
 
 void ArgMap::Option::dispHelp(std::ostream *out) const {
-  *out << "   " << _option << "  (expects ";
+  *out << "   " << _key;
+  for (auto alias: _aliases) {
+    *out << ", " << alias;
+  }
+  *out << " (expects ";
   if (_minArgs == 0) {
     if (_maxArgs == 0) {
       *out << "no arguments";
-    } else {
+    } else if (hasMaxArgCount()) {
       *out << "at most " << _maxArgs << " argument";
       if (_maxArgs > 1) {
         *out << "s";
       }
+    } else {
+      *out << "any number of arguments";
     }
   } else if (_minArgs == _maxArgs) {
     *out << "exactly " << _minArgs << " argument";
     if (_minArgs > 1) {
       *out << "s";
     }
-  } else {
+  } else if (hasMaxArgCount()) {
     *out << "from " << _minArgs << " to " << _maxArgs << " arguments";
+  } else {
+    *out << "at least " << _minArgs << " arguments";
   }
   *out << "):\n      " << _helpString << "\n" << std::endl;
 }
@@ -262,9 +336,8 @@ void ArgMap::Option::dispHelp(std::ostream *out) const {
 void ArgMap::dispHelp(std::ostream *out) {
   *out << _helpInfo << "\n" << std::endl;
   *out << "Available commands:\n";
-  typedef std::map<std::string, Option>::iterator I;
-  for (I i = _options.begin(); i != _options.end(); i++) {
-    i->second.dispHelp(out);
+  for (auto opt: _optionSet) {
+    opt->dispHelp(out);
   }
 }
 
@@ -273,5 +346,6 @@ std::string ArgMap::helpMessage() {
   dispHelp(&ss);
   return ss.str();
 }
+
 
 }
