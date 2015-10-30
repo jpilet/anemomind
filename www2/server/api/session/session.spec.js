@@ -106,7 +106,7 @@ describe('Session', function() {
     });
   });
   
-  /*it('GET /api/session', function(done) {
+  it('GET /api/session', function(done) {
     prepareRecord(function(err, id, boatId) {
       if (err) {
         done(err);
@@ -126,7 +126,7 @@ describe('Session', function() {
           });
       }
     });
-  });*/
+  });
   
   it('GET /api/session/boat', function(done) {
     prepareRecord(function(err, id, boatId) {
