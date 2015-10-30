@@ -107,17 +107,17 @@ bool insertOrUpdateTile(const BSONObj& obj,
   });
 }
 
-bool insertSummary(const BSONObj &obj,
+bool insertSession(const BSONObj &obj,
   const TileGeneratorParameters& params,
   DBClientConnection *db) {
-  safeMongoOps("removing old summary", db,
+  safeMongoOps("removing old session", db,
       [=](DBClientConnection *db) {
-      db->remove(params.summaryTable(),
-            QUERY("curveId" << obj["curveId"]));
+      db->remove(params.sessionTable(),
+            QUERY("_id" << obj["_id"]));
     });
-  return safeMongoOps("inserting a summary in mongoDB", db,
+  return safeMongoOps("inserting a session in mongoDB", db,
       [=](DBClientConnection *db) {
-      db->insert(params.summaryTable(), obj);
+      db->insert(params.sessionTable(), obj);
     });
 }
 
@@ -126,15 +126,17 @@ BSONObj makeBsonSession(
     const std::string &boatId,
     Array<Nav> navs) {
 
-  BSONObjBuilder summary;
-  summary.genOID();
-  summary.append("curveId", curveId);
-  summary.append("boat", OID(boatId));
-  summary.append("trajectoryLength",
+  BSONObjBuilder session;
+  //session.genOID();
+  session.append("_id", curveId);
+  session.append("boat", OID(boatId));
+  session.append("trajectoryLength",
       computeTrajectoryLength(navs).nauticalMiles());
-  summary.append("maxSpeedOverGround",
+  session.append("maxSpeedOverGround",
       computeMaxSpeedOverGround(navs).knots());
-  auto s = summary.obj();
+  append(session, "startTime", navs.first().time());
+  append(session, "endTime", navs.last().time());
+  auto s = session.obj();
   return s;
 }
 
@@ -201,8 +203,8 @@ bool generateAndUploadTiles(std::string boatId,
         return false;
       }
     }
-    BSONObj summary = makeBsonSession(curveId, boatId, curve);
-    if (!insertSummary(summary, params, &db)) {
+    BSONObj session = makeBsonSession(curveId, boatId, curve);
+    if (!insertSession(session, params, &db)) {
       return false;
     }
   }

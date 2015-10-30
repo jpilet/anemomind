@@ -18,20 +18,21 @@ struct TileGeneratorParameters {
     return dbName + "." + _tileTable;
   }
 
-  std::string summaryTable() const {
-    return dbName + "." + _summaryTable;
+  std::string sessionTable() const {
+    return dbName + "." + _sessionTable;
   }
 
   TileGeneratorParameters() {
+    dbName = "anemomind-dev";
     dbHost = "localhost";
     maxScale = 17;
     maxNumNavsPerSubCurve = 32;
     _tileTable = "tiles";
-    _summaryTable = "summary";
+    _sessionTable = "session";
     fullClean = false;
   }
  private:
-  std::string _tileTable, _summaryTable;
+  std::string _tileTable, _sessionTable;
 };
 
 bool generateAndUploadTiles(std::string boatId,
