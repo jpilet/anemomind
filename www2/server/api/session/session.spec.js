@@ -107,51 +107,40 @@ describe('Session', function() {
   });
   
   it('GET /api/session', function(done) {
-    prepareRecord(function(err, id, boatId) {
-      if (err) {
-        done(err);
-      } else {
-        request(app)
-          .get('/api/session/s123')
-          .set('Authorization', 'Bearer ' + token)
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              done(err);
-            } else {
-              res.body.should.have.property('maxSpeedOverGround');
-              res.body.maxSpeedOverGround.should.equal(7.8);
-              done();
-            }
-          });
-      }
-    });
+    server
+      .get('/api/session/s123')
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200)
+      .end(function(err, res) {
+        if (err) {
+          done(err);
+        } else {
+          res.body.should.have.property('maxSpeedOverGround');
+          res.body.maxSpeedOverGround.should.equal(7.8);
+          done();
+        }
+      });
   });
   
-  it('GET /api/session/boat', function(done) {
-    prepareRecord(function(err, id, boatId) {
-      if (err) {
-        done(err);
-      } else {
-        var addr = '/api/session/boat/' + boatId;
-        request(app)
-          .get(addr)
-          .expect(200)
-          .end(function(err, res) {
-            if (err) {
-              done(err);
-            } else {
-              var body = res.body;
-              res.body.should.be.instanceof(Array);
-              var session = res.body[0];
-              session.should.have.property('maxSpeedOverGround');
-              session.maxSpeedOverGround.should.equal(7.8);
-              done();
-            }
-          });
-      }
-    });    
-  });
+  /*it('GET /api/session/boat', function(done) {
+    var addr = '/api/session/boat/' + boatId;
+    server
+      .get(addr)
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200)
+      .end(function(err, res) {
+        if (err) {
+          done(err);
+        } else {
+          var body = res.body;
+          res.body.should.be.instanceof(Array);
+          var session = res.body[0];
+          session.should.have.property('maxSpeedOverGround');
+          session.maxSpeedOverGround.should.equal(7.8);
+          done();
+        }
+      });
+  });*/
   
 });
 

@@ -12,12 +12,12 @@ module.exports.getSessionById = function(req, res, next) {
     if (err) {
       next(err);
     } else {
-      boatAccess.userCanReadBoatId(req.user.id, session.boat)
-      .then(function() {
+      //boatAccess.userCanReadBoatId(req.user.id, session.boat)
+      //.then(function() {
         res.contentType('application/json');
         res.send(JSON.stringify(session));
-      })
-      .catch(function(err) {next(err);});
+      //})
+      //.catch(function(err) {next(err);});
     }
   });
 };
