@@ -7,6 +7,7 @@ var Session = require('./session.model.js');
 var User = require('../user/user.model.js');
 var Boat = require('../boat/boat.model.js');
 var mongoose = require('mongoose');
+var assert = require('assert');
 var Schema = mongoose.Schema;
 
 var boatId = Schema.ObjectId(119);
@@ -33,7 +34,11 @@ function getFirstBoat(cb) {
   Boat.findOne({}, cb);
 }
 
+var prepared = false;
+
 function prepareBoat(cb) {
+  assert(!prepared);
+  prepared = true;
   getFirstUser(function(err, user) {
     Boat.remove().exec().then(function() {
       var testBoat = new Boat({
@@ -51,38 +56,38 @@ function prepareBoat(cb) {
 }
 
 function prepareRecord(cb) {
-  prepareBoat(function(err) {
+  Session.remove({}, function(err) {
     if (err) {
       cb(err);
     } else {
-      Session.remove({}, function(err) {
-        if (err) {
-          cb(err);
-        } else {
-          getFirstBoat(function(err, boat) {
-            var boatId = boat._id;
-            Session.create({
-              boat: boatId,
-              _id: "s123",
-              maxSpeedOverGround: 7.8,
-              trajectoryLength: 8.9
-            }, function(err, sessionId) {
-              cb(err, sessionId, boatId);
-            });
-          });
-        }
+      getFirstBoat(function(err, boat) {
+        var boatId = boat._id;
+        Session.create({
+          boat: boatId,
+          _id: "s123",
+          maxSpeedOverGround: 7.8,
+          trajectoryLength: 8.9
+        }, function(err, sessionId) {
+          cb(err, sessionId, boatId);
+        });
       });
     }
   });
 }
 
 
-function prepareUserAndBoat(cb) {
+function prepareAll(cb) {
   prepareUser(function(err) {
     if (err) {
       cb(err);
     } else {
-      prepareBoat(cb);
+      prepareBoat(function(err) {
+        if (err) {
+          cb(err);
+        } else {
+          prepareRecord(cb);
+        }
+      });
     }
   });
 }
@@ -92,7 +97,7 @@ describe('Session', function() {
   var token;
 
   it('should give the test user an auth token', function(done) {
-    prepareUserAndBoat(function(err) {
+    prepareAll(function(err) {
       server
         .post('/auth/local')
         .send({ email: 'test@anemomind.com', password: 'anemoTest' })
@@ -122,25 +127,29 @@ describe('Session', function() {
       });
   });
   
-  /*it('GET /api/session/boat', function(done) {
-    var addr = '/api/session/boat/' + boatId;
-    server
-      .get(addr)
-      .set('Authorization', 'Bearer ' + token)
-      .expect(200)
-      .end(function(err, res) {
-        if (err) {
-          done(err);
-        } else {
-          var body = res.body;
-          res.body.should.be.instanceof(Array);
-          var session = res.body[0];
-          session.should.have.property('maxSpeedOverGround');
-          session.maxSpeedOverGround.should.equal(7.8);
-          done();
-        }
-      });
-  });*/
+  it('GET /api/session/boat', function(done) {
+    getFirstBoat(function(err, boat) {
+      var boatId = boat._id;
+      var addr = '/api/session/boat/' + boatId;
+      server
+        .get(addr)
+        .set('Authorization', 'Bearer ' + token)
+        .expect(200)
+        .end(function(err, res) {
+          if (err) {
+            done(err);
+          } else {
+            var body = res.body;
+            console.log(body);
+            res.body.should.be.instanceof(Array);
+            var session = res.body[0];
+            session.should.have.property('maxSpeedOverGround');
+            session.maxSpeedOverGround.should.equal(7.8);
+            done();
+          }
+        });
+    });
+  });
   
 });
 
