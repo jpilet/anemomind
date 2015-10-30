@@ -191,7 +191,7 @@ private:
 };
 
 template <typename T>
-Length<T> computeDistance(const GeographicPosition<T> &a, const GeographicPosition<T> &b) {
+Length<T> distance(const GeographicPosition<T> &a, const GeographicPosition<T> &b) {
   Length<T> aPos[3], bPos[3];
   WGS84<T>::toXYZ(a, aPos);
   WGS84<T>::toXYZ(b, bPos);

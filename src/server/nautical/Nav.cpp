@@ -389,7 +389,7 @@ Length<double> computeTrajectoryLength(Array<Nav> navs) {
   Length<double> dist = Length<double>::meters(0.0);
   int n = navs.size() - 1;
   for (int i = 0; i < n; i++) {
-    dist = dist + computeDistance(navs[i].geographicPosition(), navs[i+1].geographicPosition());
+    dist = dist + distance(navs[i].geographicPosition(), navs[i+1].geographicPosition());
   }
   return dist;
 }
