@@ -110,15 +110,14 @@ bool insertOrUpdateTile(const BSONObj& obj,
 bool insertSession(const BSONObj &obj,
   const TileGeneratorParameters& params,
   DBClientConnection *db) {
-  safeMongoOps("removing old session", db,
-      [=](DBClientConnection *db) {
-      db->remove(params.sessionTable(),
-            QUERY("_id" << obj["_id"]));
-    });
-  return safeMongoOps("inserting a session in mongoDB", db,
-      [=](DBClientConnection *db) {
-      db->insert(params.sessionTable(), obj);
-    });
+  return safeMongoOps("updating a session", db,
+    [=](DBClientConnection *db) {
+    db->update(params.sessionTable(),// <-- The collection
+        QUERY("_id" << obj["_id"]),  // <-- what to update
+        obj,                         // <-- the new data
+        true,                        // <-- upsert
+        false);                      // <-- multi
+  });
 }
 
 BSONObj makeBsonSession(
@@ -127,7 +126,6 @@ BSONObj makeBsonSession(
     Array<Nav> navs) {
 
   BSONObjBuilder session;
-  //session.genOID();
   session.append("_id", curveId);
   session.append("boat", OID(boatId));
   session.append("trajectoryLength",
@@ -136,8 +134,7 @@ BSONObj makeBsonSession(
       computeMaxSpeedOverGround(navs).knots());
   append(session, "startTime", navs.first().time());
   append(session, "endTime", navs.last().time());
-  auto s = session.obj();
-  return s;
+  return session.obj();
 }
 
 BSONObj makeBsonTile(const TileKey& tileKey,

@@ -30,12 +30,14 @@ module.exports.getSessionsForBoat = function(req, res, next) {
       };
       SailingSession.find(search, function(err, session) {
         if (err) {
-          next(err);
+          res.status(404).end();
         } else {
           res.contentType('application/json');
           res.send(JSON.stringify(session));
         }
       });
     })
-    .catch(function(err) {next(err);});
+    .catch(function(err) {
+      res.status(403).end();
+    });
 };
