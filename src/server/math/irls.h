@@ -102,7 +102,7 @@ class WeightingStrategy {
 
   virtual void apply(
       double constraintWeight,
-      const Arrayd &residuals, QuadCompiler *dst) const = 0;
+      const Arrayd &residuals, QuadCompiler *dst) = 0;
   virtual ~WeightingStrategy() {}
 
   typedef std::shared_ptr<WeightingStrategy> Ptr;
@@ -118,8 +118,8 @@ class WeightingStrategyArray : public WeightingStrategy {
   WeightingStrategyArray(Array<T> strategies) : _strategies(strategies) {}
 
   void apply(
-      double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) const {
-    for (const T &s: _strategies) {
+      double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) {
+    for (T &s: _strategies) {
       s.apply(constraintWeight, residuals, dst);
     }
   }
@@ -149,7 +149,7 @@ class ConstraintGroup : public WeightingStrategy {
 
   void apply(
       double constraintWeight,
-      const Arrayd &residuals, QuadCompiler *dst) const;
+      const Arrayd &residuals, QuadCompiler *dst);
  private:
   Array<Spani> _spans;
   int _activeCount;
@@ -158,21 +158,33 @@ class ConstraintGroup : public WeightingStrategy {
 
 class NonNegativeConstraint : public WeightingStrategy {
  public:
-  NonNegativeConstraint() : _index(-1) {}
-  NonNegativeConstraint(int index) : _index(index) {}
+  NonNegativeConstraint() : _index(-1), _lastWeight(0) {}
+  NonNegativeConstraint(int index) : _index(index), _lastWeight(0) {}
   void apply(
     double constraintWeight,
-    const Arrayd &residuals, QuadCompiler *dst) const {
-    // Using the penalty method:
+    const Arrayd &residuals, QuadCompiler *dst) {
+    // Modification of the penalty method:
     // See section A1:
     // https://www.me.utexas.edu/~jensen/ORMM/supplements/units/nlp_methods/const_opt.pdf
     auto r = residuals[_index];
-    dst->setWeight(_index, r < 0? constraintWeight : 0);
+    if (r < 0) {
+      _lastWeight = constraintWeight;
+      dst->setWeight(_index, constraintWeight);
+    } else {
+      // This is our tweak: Even for a feasible solution,
+      // apply some damping to avoid oscillations.
+      // Decrease this damping (by how much?) for every
+      // iteration that is feasible.
+      dst->addQuad(_index, sqr(_lastWeight)*MajQuad::fit(r));
+      _lastWeight *= 0.5;
+    }
+
   }
 
   static WeightingStrategy::Ptr make(int index);
   static WeightingStrategy::Ptr make(Arrayi inds);
  private:
+  double _lastWeight;
   int _index;
 };
 
@@ -183,7 +195,7 @@ class Constant : public WeightingStrategy {
 
   void apply(
     double constraintWeight,
-    const Arrayd &residuals, QuadCompiler *dst) const {
+    const Arrayd &residuals, QuadCompiler *dst) {
     dst->addQuad(_index, _quad);
   }
 

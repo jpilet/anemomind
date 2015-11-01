@@ -187,7 +187,7 @@ QuadCompiler::WeightsAndOffset QuadCompiler::makeWeightsAndOffset() const {
 }
 
 void ConstraintGroup::apply(
-    double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) const {
+    double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) {
   Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(_spans,
     residuals);
 
