@@ -477,7 +477,7 @@ void targetSpeedPrototype(bool visualize, int iters) {
 
 
 TEST(IrlsTest, TargetSpeedPrototype) {
-  bool visualize = true;
+  bool visualize = false;
   targetSpeedPrototype(visualize, 30);
 }
 
