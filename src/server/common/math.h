@@ -368,6 +368,16 @@ T toFinite(T x, T defaultValue) {
   return (std::isfinite(x)? x : defaultValue);
 }
 
+template <typename T>
+T clamp(T x, T lower, T upper) {
+  if (x < lower) {
+    return lower;
+  } else if (upper < x) {
+    return upper;
+  }
+  return x;
+}
+
 Arrayd makeNextRegCoefs(Arrayd coefs);
 Arrayd makeRegCoefs(int order);
 

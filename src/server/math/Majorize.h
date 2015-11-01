@@ -26,6 +26,10 @@ struct MajQuad {
 
  double a, b;
 
+ MajQuad mirror() const {
+   return MajQuad(a, -b);
+ }
+
  bool isFinite() const {
    return std::isfinite(a) && std::isfinite(b);
  }

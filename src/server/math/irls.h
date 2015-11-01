@@ -13,9 +13,30 @@
 #include <ceres/ceres.h>
 #include <server/common/math.h>
 #include <server/math/Majorize.h>
+#include <server/math/QuadForm.h>
 
 namespace sail {
 namespace irls {
+
+// Learn the quad that determines the optimum of a residual.
+class QuadCompensator {
+ public:
+  static constexpr int dims = 4;
+  static constexpr bool weightEquations = true;
+  QuadCompensator(double mu = 1.0e-1);
+
+  // Assuming that the residual is determined as the minimum
+  // of some unknown quad that we estimate (possibly depending on a weight w2),
+  // this method returns a quad that can be added to the unknown quad
+  // to neutralize it, so that the residual ends up at 0. In the case
+  // that the unknown quad that we estimate has a feasible minimum,
+  // we return 0.
+  MajQuad update(double currentResidual, double w2);
+ private:
+  MajQuad _lastCompensation;
+  double _lastWeight;
+  QuadForm<dims, 1> _system;
+};
 
 /*
  * Performs Iteratively Reweighted Least Squares. This is the name of the practice
@@ -99,8 +120,10 @@ class WeightingStrategy {
  public:
   static constexpr double LB = 1.0e-9;
 
-  virtual void apply(double constraintWeight,
-      const Arrayd &residuals, QuadCompiler *dst) const = 0;
+  virtual void apply(
+      const Settings &settings,
+      double constraintWeight,
+      const Arrayd &residuals, QuadCompiler *dst) = 0;
   virtual ~WeightingStrategy() {}
 
   typedef std::shared_ptr<WeightingStrategy> Ptr;
@@ -115,9 +138,10 @@ class WeightingStrategyArray : public WeightingStrategy {
  public:
   WeightingStrategyArray(Array<T> strategies) : _strategies(strategies) {}
 
-  void apply(double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) const {
-    for (const T &s: _strategies) {
-      s.apply(constraintWeight, residuals, dst);
+  void apply(const Settings &settings,
+      double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) {
+    for (T &s: _strategies) {
+      s.apply(settings, constraintWeight, residuals, dst);
     }
   }
 
@@ -138,17 +162,59 @@ class WeightingStrategyArray : public WeightingStrategy {
 class ConstraintGroup : public WeightingStrategy {
  public:
   ConstraintGroup() : _activeCount(0), _minResidual(NAN) {}
+
   ConstraintGroup(Array<Spani> spans, int activeCount) :
     _spans(spans), _activeCount(activeCount), _minResidual(1.0e-9) {}
 
-  void apply(double constraintWeight,
-      const Arrayd &residuals, QuadCompiler *dst) const;
+  static WeightingStrategy::Ptr make(Array<Spani> spans, int activeCount);
+
+  void apply(
+      const Settings &settings,
+      double constraintWeight,
+      const Arrayd &residuals, QuadCompiler *dst);
  private:
   Array<Spani> _spans;
   int _activeCount;
   double _minResidual;
 };
 
+class NonNegativeConstraint : public WeightingStrategy {
+ public:
+  NonNegativeConstraint() : _index(-1) {}
+  NonNegativeConstraint(int index) : _index(index) {}
+  void apply(
+    const Settings &settings,
+    double constraintWeight,
+    const Arrayd &residuals, QuadCompiler *dst) {
+    dst->addQuad(_index,
+        0.5*constraintWeight*(MajQuad::majorizeAbs(residuals[_index],
+            WeightingStrategy::LB) - MajQuad::linear(1.0)) + MajQuad(LB, 0.0));
+  }
+
+  static WeightingStrategy::Ptr make(int index);
+  static WeightingStrategy::Ptr make(Arrayi inds);
+ private:
+  int _index;
+};
+
+class Constant : public WeightingStrategy {
+ public:
+  Constant() : _index(-1) {}
+  Constant(int index, MajQuad quad) : _index(index), _quad(quad) {}
+
+  void apply(
+    const Settings &settings,
+    double constraintWeight,
+    const Arrayd &residuals, QuadCompiler *dst) {
+    dst->addQuad(_index, _quad);
+  }
+
+  static WeightingStrategy::Ptr make(Arrayi inds, MajQuad quad);
+  static WeightingStrategy::Ptr make(int index, MajQuad quad);
+ private:
+  int _index;
+  MajQuad _quad;
+};
 
 struct Results {
  Eigen::VectorXd X;
