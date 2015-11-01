@@ -475,10 +475,9 @@ void targetSpeedPrototype(bool visualize, int iters) {
 }
 
 
-//#define TARGET_SPEED_DEMO
-#ifdef TARGET_SPEED_DEMO // This test is slow
+
 TEST(IrlsTest, TargetSpeedPrototype) {
   bool visualize = true;
-  targetSpeedPrototype(visualize, 3000);
+  targetSpeedPrototype(visualize, 30);
 }
-#endif
+

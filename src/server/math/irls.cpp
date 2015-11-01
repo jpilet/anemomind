@@ -186,8 +186,8 @@ QuadCompiler::WeightsAndOffset QuadCompiler::makeWeightsAndOffset() const {
   return WeightsAndOffset{W, offsets};
 }
 
-void ConstraintGroup::apply(const Settings &settings,
-    double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) {
+void ConstraintGroup::apply(
+    double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) const {
   Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(_spans,
     residuals);
 
@@ -270,7 +270,7 @@ Results solveFull(const Eigen::SparseMatrix<double> &A,
     assert(isSane(residualArray));
     for (auto strategy: strategies) {
       CHECK(bool(strategy));
-      strategy->apply(settings, constraintWeight, residualArray, &weighter);
+      strategy->apply(constraintWeight, residualArray, &weighter);
     }
     auto wk = weighter.makeWeightsAndOffset();
 
