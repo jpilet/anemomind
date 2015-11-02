@@ -370,12 +370,7 @@ T toFinite(T x, T defaultValue) {
 
 template <typename T>
 T clamp(T x, T lower, T upper) {
-  if (x < lower) {
-    return lower;
-  } else if (upper < x) {
-    return upper;
-  }
-  return x;
+  return std::min(std::max(x, lower), upper);
 }
 
 Arrayd makeNextRegCoefs(Arrayd coefs);
