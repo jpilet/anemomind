@@ -168,6 +168,8 @@ BSONObj makeBsonTile(const TileKey& tileKey,
 bool generateAndUploadTiles(std::string boatId,
                             Array<Array<Nav>> allNavs,
                             const TileGeneratorParameters& params) {
+  mongo::client::initialize();
+
   DBClientConnection db;
   std::string err;
   if (!db.connect(params.dbHost, err)) {
