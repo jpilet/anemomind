@@ -17,6 +17,7 @@
 #include <server/nautical/WGS84.h>
 #include <server/common/string.h>
 #include <server/common/PhysicalQuantityIO.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -383,6 +384,32 @@ std::ostream &operator<<(std::ostream &s, const Nav &x) {
   s << "  gps speed: " << x.gpsSpeed() << "\n";
   return s;
 }
+
+Length<double> computeTrajectoryLength(Array<Nav> navs) {
+  Length<double> dist = Length<double>::meters(0.0);
+  int n = navs.size() - 1;
+  for (int i = 0; i < n; i++) {
+    dist = dist + distance(navs[i].geographicPosition(), navs[i+1].geographicPosition());
+  }
+  return dist;
+}
+
+Velocity<double> computeMaxSpeedOverGround(Array<Nav> navs) {
+  return navs.reduce<Velocity<double> >(
+      Velocity<double>::knots(0.0),
+      [=](Velocity<double> m, const Nav &n) {
+        auto k = n.gpsSpeed();
+        if (!k.isNaN()) {
+          return std::max(m, k);
+        } else {
+          LOG(WARNING) << "GPS speed is NAN";
+          return m;
+        }
+    }
+  );
+}
+
+
 
 
 } /* namespace sail */
