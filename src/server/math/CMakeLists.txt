@@ -279,6 +279,7 @@ target_link_libraries(math_irls
                       common_ScopedLog
                       common_string
                       common_Span
+                      math_LU
                      )           
 
 cxx_test(math_irlsTest

@@ -13,6 +13,7 @@
 #include <ceres/ceres.h>
 #include <server/common/math.h>
 #include <server/math/Majorize.h>
+#include <server/math/QuadForm.h>
 
 namespace sail {
 namespace irls {
@@ -99,8 +100,9 @@ class WeightingStrategy {
  public:
   static constexpr double LB = 1.0e-9;
 
-  virtual void apply(double constraintWeight,
-      const Arrayd &residuals, QuadCompiler *dst) const = 0;
+  virtual void apply(
+      double constraintWeight,
+      const Arrayd &residuals, QuadCompiler *dst) = 0;
   virtual ~WeightingStrategy() {}
 
   typedef std::shared_ptr<WeightingStrategy> Ptr;
@@ -115,8 +117,9 @@ class WeightingStrategyArray : public WeightingStrategy {
  public:
   WeightingStrategyArray(Array<T> strategies) : _strategies(strategies) {}
 
-  void apply(double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) const {
-    for (const T &s: _strategies) {
+  void apply(
+      double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) {
+    for (T &s: _strategies) {
       s.apply(constraintWeight, residuals, dst);
     }
   }
@@ -138,17 +141,70 @@ class WeightingStrategyArray : public WeightingStrategy {
 class ConstraintGroup : public WeightingStrategy {
  public:
   ConstraintGroup() : _activeCount(0), _minResidual(NAN) {}
+
   ConstraintGroup(Array<Spani> spans, int activeCount) :
     _spans(spans), _activeCount(activeCount), _minResidual(1.0e-9) {}
 
-  void apply(double constraintWeight,
-      const Arrayd &residuals, QuadCompiler *dst) const;
+  static WeightingStrategy::Ptr make(Array<Spani> spans, int activeCount);
+
+  void apply(
+      double constraintWeight,
+      const Arrayd &residuals, QuadCompiler *dst);
  private:
   Array<Spani> _spans;
   int _activeCount;
   double _minResidual;
 };
 
+class NonNegativeConstraint : public WeightingStrategy {
+ public:
+  NonNegativeConstraint() : _index(-1), _lastWeight(0) {}
+  NonNegativeConstraint(int index) : _index(index), _lastWeight(0) {}
+  void apply(
+    double constraintWeight,
+    const Arrayd &residuals, QuadCompiler *dst) {
+    // Modification of the penalty method:
+    // See section A1:
+    // https://www.me.utexas.edu/~jensen/ORMM/supplements/units/nlp_methods/const_opt.pdf
+    auto r = residuals[_index];
+    if (r < 0) {
+      _lastWeight = constraintWeight;
+      dst->setWeight(_index, constraintWeight);
+    } else {
+      // This is our tweak: Even for a feasible solution,
+      // apply some damping to avoid oscillations.
+      // Decrease this damping (by how much?) for every
+      // iteration that is feasible.
+      dst->addQuad(_index, sqr(_lastWeight)*MajQuad::fit(r));
+      _lastWeight *= 0.5;
+    }
+
+  }
+
+  static WeightingStrategy::Ptr make(int index);
+  static WeightingStrategy::Ptr make(Arrayi inds);
+ private:
+  double _lastWeight;
+  int _index;
+};
+
+class Constant : public WeightingStrategy {
+ public:
+  Constant() : _index(-1) {}
+  Constant(int index, MajQuad quad) : _index(index), _quad(quad) {}
+
+  void apply(
+    double constraintWeight,
+    const Arrayd &residuals, QuadCompiler *dst) {
+    dst->addQuad(_index, _quad);
+  }
+
+  static WeightingStrategy::Ptr make(Arrayi inds, MajQuad quad);
+  static WeightingStrategy::Ptr make(int index, MajQuad quad);
+ private:
+  int _index;
+  MajQuad _quad;
+};
 
 struct Results {
  Eigen::VectorXd X;
