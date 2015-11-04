@@ -2,6 +2,7 @@ add_subdirectory("grammars")
 add_subdirectory("tgtspeed")
 add_subdirectory("synthtest")
 add_subdirectory("tiles")
+add_subdirectory("calibration")
 
 
 add_library(nautical_Ecef
