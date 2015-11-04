@@ -7,12 +7,12 @@
 #define SERVER_NAUTICAL_CALIBRATION_LINEARCALIBRATION_H_
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
-#include <server/math/QuadForm.h>
-#include <server/math/SparsityConstrained.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
 
 namespace sail {
 namespace LinearCalibration {
+
+void initializeParameters(bool withOffset, double *dst);
 
 inline int flowParamCount(bool withOffset) {
   return (withOffset? 4 : 2);
@@ -140,28 +140,6 @@ void makeTrueCurrentMatrixExpression(const InstrumentAbstraction &nav,
   makeGpsOffset(getGpsMotion(nav), dstB, unit);
 }
 
-void initializeLinearParameters(bool withOffset, double *dst2or4);
-
-/*
- * Common part of the calibration:
- *
- * Linear calibration with sparsity constraints.
- * Can be used on either wind or current.
- */
-struct CommonCalibrationSettings {
-};
-
-struct CommonResults {
-};
-
-CommonResults calibrateSparse(FlowMatrices mats, Duration<double> totalDuration,
-    CommonCalibrationSettings settings);
-
-
-
-
-
-
 
 /*
  * Perform full calibration of wind and current.
@@ -184,10 +162,6 @@ struct Results {
   LinearCorrector corrector;
   Array<HorizontalMotion<double> > windOverGround, currentOverGround;
 };
-
-Results calibrate(CommonCalibrationSettings commonSettings,
-    FlowSettings flowSettings, Array<Nav> navs);
-
 
 
 }

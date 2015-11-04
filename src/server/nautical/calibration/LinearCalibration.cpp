@@ -15,26 +15,16 @@
 namespace sail {
 namespace LinearCalibration {
 
-void initializeLinearParameters(bool withOffset, double *dst2or4) {
-  dst2or4[0] = 1.0;
-  int n = (withOffset? 4 : 2);
-  for (int i = 1; i < n; i++) {
-    dst2or4[i] = 0.0;
+void initializeParameters(bool withOffset, double *dst) {
+  int n = flowParamCount(withOffset);
+  for (int i = 0; i < n; i++) {
+    dst[i] = 0.0;
   }
+  dst[0] = 1.0;
 }
-
-typedef Eigen::Triplet<double> Triplet;
-
-
-
 
 int calcPassiveCount(Duration<double> total, Duration<double> period) {
   return 1 + int(floor(total/period));
-}
-
-CommonResults calibrateSparse(FlowMatrices rawMats, Duration<double> totalDuration,
-    CommonCalibrationSettings settings) {
-    return CommonResults();
 }
 
 LinearCorrector::LinearCorrector(const FlowSettings &flowSettings,
@@ -86,20 +76,6 @@ std::string LinearCorrector::toString() const {
   std::stringstream ss;
   ss << "LinearCorrector(windParams="<< _windParams << ", currentParams=" << _currentParams << ")";
   return ss.str();
-}
-
-
-Results calibrate(CommonCalibrationSettings commonSettings,
-    FlowSettings flowSettings, Array<Nav> navs) {
-    assert(std::is_sorted(navs.begin(), navs.end()));
-  auto totalDuration = navs.last().time() - navs.first().time();
-  auto windResults = calibrateSparse(makeTrueWindMatrices(navs, flowSettings),
-      totalDuration, commonSettings);
-  auto currentResults = calibrateSparse(makeTrueCurrentMatrices(navs, flowSettings),
-      totalDuration, commonSettings);
-  //LinearCorrector corrector(flowSettings, windResults.parameters, currentResults.parameters);
-  //return Results{corrector, windResults.recoveredFlow, currentResults.recoveredFlow};
-  return Results();
 }
 
 

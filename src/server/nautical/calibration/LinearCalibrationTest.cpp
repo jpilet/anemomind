@@ -27,7 +27,7 @@ TEST(LinearCalibrationTest, TestWind) {
   Corrector<double> corr;
   auto cnav = corr.correct(nav);
   arma::mat X(4, 1);
-  LinearCalibration::initializeLinearParameters(true, X.memptr());
+  LinearCalibration::initializeParameters(true, X.memptr());
   LinearCalibration::FlowSettings s;
   {
     arma::mat A(2, 4);
