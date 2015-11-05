@@ -394,22 +394,17 @@ Length<double> computeTrajectoryLength(Array<Nav> navs) {
   return dist;
 }
 
-Velocity<double> computeMaxSpeedOverGround(Array<Nav> navs) {
-  return navs.reduce<Velocity<double> >(
-      Velocity<double>::knots(0.0),
-      [=](Velocity<double> m, const Nav &n) {
-        auto k = n.gpsSpeed();
-        if (!k.isNaN()) {
-          return std::max(m, k);
-        } else {
-          LOG(WARNING) << "GPS speed is NAN";
-          return m;
-        }
+int findMaxSpeedOverGround(Array<Nav> navs) {
+  int bestIndex = -1;
+  auto maxSOG = Velocity<double>::knots(-1.0);
+  for (int i = 0; i < navs.size(); ++i) {
+    Velocity<double> sog = navs[i].gpsSpeed();
+    if (!sog.isNaN() && maxSOG < sog) {
+      maxSOG = sog;
+      bestIndex = i;
     }
-  );
+  }
+  return bestIndex;
 }
-
-
-
 
 } /* namespace sail */

@@ -125,6 +125,46 @@ bool insertSession(const BSONObj &obj,
   });
 }
 
+template <typename T>
+Angle<T> average(const Angle<T>& a, const Angle<T>& b) {
+  HorizontalMotion<T> motion =
+    HorizontalMotion<T>::polar(Velocity<T>::knots(1), a);
+  motion = motion + HorizontalMotion<T>::polar(Velocity<T>::knots(1), b);
+  return motion.angle();
+}
+
+BSONObj locationForSession(const Array<Nav>& navs) {
+  if (navs.size() == 0) {
+    return BSONObj();
+  }
+
+  Angle<double> minLat(navs[0].geographicPosition().lat());
+  Angle<double> minLon(navs[0].geographicPosition().lon());
+  Angle<double> maxLat(navs[0].geographicPosition().lat());
+  Angle<double> maxLon(navs[0].geographicPosition().lon());
+  
+  for (auto nav: navs) {
+    minLat = std::min(minLat, nav.geographicPosition().lat());
+    maxLat = std::max(maxLat, nav.geographicPosition().lat());
+    minLon = std::min(minLon, nav.geographicPosition().lon());
+    maxLon = std::max(maxLon, nav.geographicPosition().lon());
+  }
+
+  GeographicPosition<double> center(
+      average(minLon, maxLon), average(minLat, maxLat));
+
+  GeographicPosition<double> minPos(minLon, minLat);
+  GeographicPosition<double> maxPos(maxLon, maxLat);
+
+  BSONObjBuilder location;
+  location.append("x", posToTileX(0, center));
+  location.append("y", posToTileY(0, center));
+  location.append("scale", 2 * std::max(
+          posToTileX(0, maxPos) - posToTileX(0, minPos),
+          posToTileY(0, maxPos) - posToTileY(0, minPos)));
+  return location.obj();
+}
+
 BSONObj makeBsonSession(
     const std::string &curveId,
     const std::string &boatId,
@@ -135,10 +175,15 @@ BSONObj makeBsonSession(
   session.append("boat", OID(boatId));
   session.append("trajectoryLength",
       computeTrajectoryLength(navs).nauticalMiles());
-  session.append("maxSpeedOverGround",
-      computeMaxSpeedOverGround(navs).knots());
+  int maxSpeedIndex = findMaxSpeedOverGround(navs);
+  if (maxSpeedIndex >= 0) {
+    session.append("maxSpeedOverGround", navs[maxSpeedIndex].gpsSpeed().knots());
+    append(session, "maxSpeedOverGroundTime", navs[maxSpeedIndex].time());
+  }
   append(session, "startTime", navs.first().time());
   append(session, "endTime", navs.last().time());
+  session.append("location", locationForSession(navs));
+
   return session.obj();
 }
 

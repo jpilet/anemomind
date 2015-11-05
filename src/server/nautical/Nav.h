@@ -202,7 +202,7 @@ int countNavs(Array<Array<Nav> > navs);
 std::ostream &operator<<(std::ostream &s, const Nav &x);
 
 Length<double> computeTrajectoryLength(Array<Nav> navs);
-Velocity<double> computeMaxSpeedOverGround(Array<Nav> navs);
+int findMaxSpeedOverGround(Array<Nav> navs);
 
 } /* namespace sail */
 
