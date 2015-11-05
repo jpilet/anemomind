@@ -35,6 +35,24 @@ TEST(IrlsTest, DistributeWeights) {
   EXPECT_LT(W1[1], W1[0] + smallGap);
 }
 
+TEST(IrlsTest, ConstraintGroup) {
+  Spani a(0, 2);
+  Spani b(2, 3);
+  Arrayd residuals{3, 4, 9.8};
+  double cstWeight = 15;
+  irls::ConstraintGroup generalGroup(Array<Spani>{a, b}, 1);
+  irls::BinaryConstraintGroup binaryGroup(a, b);
+  irls::QuadCompiler gComp(3), bComp(3);
+  generalGroup.apply(cstWeight, residuals, &gComp);
+  binaryGroup.apply(cstWeight, residuals, &bComp);
+  auto generalResults = gComp.makeWeightsAndOffset();
+  auto binaryResults = bComp.makeWeightsAndOffset();
+  for (int i = 0; i < 3; i++) {
+    EXPECT_NEAR(generalResults.weights.diagonal()(i), binaryResults.weights.diagonal()(i), 1.0e-9);
+
+  }
+}
+
 TEST(IrlsTest, SignalFit) {
   // Fit a line to a signal subject to sparsity constraints.
   // We allow for exactly two discontinuities in the fitted signal.

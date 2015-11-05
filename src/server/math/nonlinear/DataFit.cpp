@@ -55,7 +55,7 @@ irls::WeightingStrategy::Ptr makeThresholdedInlierFilter(double threshold,
   assert(outlierSlackRows.dim() == 1);
   assert(outlierPenaltyRows.sameSizeAs(outlierSlackRows));
 
-  Array<irls::ConstraintGroup> groups(count);
+  Array<irls::BinaryConstraintGroup> groups(count);
   for (int i = 0; i < count; i++) {
     auto rowSpan = dataRows.span(i);
     auto inlierRowSpan = inlierSlackRows.span(i);
@@ -66,12 +66,12 @@ irls::WeightingStrategy::Ptr makeThresholdedInlierFilter(double threshold,
     makeEye(1.0, inlierSlackRows.span(i), inlierCols.span(i), aDst);
     (*bDst)(outlierPenaltyRows[i]) = threshold;
     (*bDst)(outlierSlackRows[i]) = 0;
-    groups[i] = irls::ConstraintGroup(
-        Array<Spani>{inlierSlackRows.span(i), outlierSlackRows.span(i)}, 1);
+    groups[i] = irls::BinaryConstraintGroup(
+        inlierSlackRows.span(i), outlierSlackRows.span(i));
   }
   makeEye(1.0, outlierPenaltyRows.elementSpan(), outlierCols.elementSpan(), aDst);
   makeEye(1.0, outlierSlackRows.elementSpan(), outlierCols.elementSpan(), aDst);
-  return irls::WeightingStrategyArray<irls::ConstraintGroup>::make(groups);
+  return irls::WeightingStrategyArray<irls::BinaryConstraintGroup>::make(groups);
 }
 
 
