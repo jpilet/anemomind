@@ -195,7 +195,6 @@ void ConstraintGroup::apply(
   Arrayd weights = distributeWeights(
       thresholdedResiduals,
       constraintWeight);
-
   int n = weights.size();
   assert(n == _spans.size());
   assert(n == residualsPerConstraint.size());
@@ -205,6 +204,23 @@ void ConstraintGroup::apply(
     for (auto j : span) {
       dst->setWeight(j, w);
     }
+  }
+}
+
+void BinaryConstraintGroup::apply(double constraintWeight,
+    const Arrayd &residuals, QuadCompiler *dst) {
+  auto totalCstWeight = 2.0*constraintWeight;
+  auto ra = calcResidualForSpan(_a, residuals);
+  auto rb = calcResidualForSpan(_b, residuals);
+  auto aw = toFinite(rb/(ra + rb), 0.5);
+  auto bw = 1.0 - aw;
+  auto awc = totalCstWeight*aw;
+  auto bwc = totalCstWeight*bw;
+  for (auto i : _a) {
+    dst->setWeight(i, awc);
+  }
+  for (auto i : _b) {
+    dst->setWeight(i, bwc);
   }
 }
 

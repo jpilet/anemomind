@@ -148,12 +148,25 @@ class ConstraintGroup : public WeightingStrategy {
   static WeightingStrategy::Ptr make(Array<Spani> spans, int activeCount);
 
   void apply(
-      double constraintWeight,
-      const Arrayd &residuals, QuadCompiler *dst);
+        double constraintWeight,
+        const Arrayd &residuals, QuadCompiler *dst);
  private:
   Array<Spani> _spans;
   int _activeCount;
   double _minResidual;
+};
+
+// Like ConstraintGroup, but for the special case
+// of two spans among which one should be active.
+class BinaryConstraintGroup : public WeightingStrategy {
+ public:
+  BinaryConstraintGroup() {}
+  BinaryConstraintGroup(const Spani &a, const Spani &b) : _a(a), _b(b) {}
+
+  void apply(double constraintWeight,
+      const Arrayd &residuals, QuadCompiler *dst);
+ private:
+  Spani _a, _b;
 };
 
 class NonNegativeConstraint : public WeightingStrategy {
