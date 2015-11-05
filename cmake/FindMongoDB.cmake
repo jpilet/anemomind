@@ -37,7 +37,7 @@ if(WIN32)
     $ENV{SystemDrive}/Mongo/*/lib
     )
 else(WIN32)
-  find_library(MongoDB_LIBRARIES NAMES mongoclient
+  find_library(MongoDB_LIBRARIES NAMES libmongoclient.a mongoclient
     PATHS
     /usr/lib
     /usr/lib64
@@ -67,8 +67,9 @@ endif(MongoDB_INCLUDE_DIR AND MongoDB_LIBRARIES)
 
 if (UNIX)
   # MongoDB depends on boost system library.
-  find_package(Boost COMPONENTS filesystem thread system REQUIRED)
+  find_package(Boost COMPONENTS filesystem regex thread system REQUIRED)
   set(MongoDB_LIBRARIES ${MongoDB_LIBRARIES}
+                        ${Boost_REGEX_LIBRARY}
                         ${Boost_SYSTEM_LIBRARY}
                         ${Boost_THREAD_LIBRARY}
                         ${Boost_FILESYSTEM_LIBRARY}
@@ -76,13 +77,4 @@ if (UNIX)
 			ssl crypto)
 endif (UNIX)
 
-if (MAC)
-  # MongoDB depends on boost system library.
-  find_package(Boost COMPONENTS system REQUIRED)
-  set(MongoDB_LIBRARIES ${MongoDB_LIBRARIES}
-                        ${Boost_SYSTEM_LIBRARY}
-                        ${Boost_THREAD_LIBRARY}
-                        ${Boost_FILESYSTEM_LIBRARY}
-                        )
-endif (MAC)
 mark_as_advanced(MongoDB_INCLUDE_DIR MongoDB_LIBRARIES MongoDB_EXPOSE_MACROS)

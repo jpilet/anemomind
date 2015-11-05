@@ -2,12 +2,17 @@
 #include <server/nautical/tiles/NavTileUploader.h>
 
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
-#include <mongo/bson/bson.h>
 #include <mongo/client/dbclient.h>
+#include <mongo/bson/bson-inl.h>
 #include <server/common/logging.h>
 #include <server/nautical/tiles/NavTileGenerator.h>
 
 using namespace mongo;
+
+#if MONGOCLIENT_VERSION_MAJOR < 1
+#define MONGO_QUERY QUERY
+namespace mongo { namespace client { void initialize() { } } }
+#endif
 
 namespace sail {
 
@@ -95,7 +100,7 @@ bool insertOrUpdateTile(const BSONObj& obj,
     safeMongoOps("cleaning old tiles",
         db, [=](DBClientConnection *db) {
       db->remove(params.tileTable(),
-                 QUERY("key" << obj["key"]
+                 MONGO_QUERY("key" << obj["key"]
                        << "boat" << obj["boat"]
                        << "startTime" << GTE << obj["startTime"]
                        << "endTime" << LTE << obj["endTime"]));
@@ -113,7 +118,7 @@ bool insertSession(const BSONObj &obj,
   return safeMongoOps("updating a session", db,
     [=](DBClientConnection *db) {
     db->update(params.sessionTable(),// <-- The collection
-        QUERY("_id" << obj["_id"]),  // <-- what to update
+        MONGO_QUERY("_id" << obj["_id"]),  // <-- what to update
         obj,                         // <-- the new data
         true,                        // <-- upsert
         false);                      // <-- multi
@@ -168,6 +173,8 @@ BSONObj makeBsonTile(const TileKey& tileKey,
 bool generateAndUploadTiles(std::string boatId,
                             Array<Array<Nav>> allNavs,
                             const TileGeneratorParameters& params) {
+  mongo::client::initialize();
+
   DBClientConnection db;
   std::string err;
   if (!db.connect(params.dbHost, err)) {
@@ -177,7 +184,7 @@ bool generateAndUploadTiles(std::string boatId,
 
   if (params.fullClean) {
     db.remove(params.tileTable(),
-               QUERY("boat" << OID(boatId)));
+               MONGO_QUERY("boat" << OID(boatId)));
   }
 
   for (const Array<Nav>& curve : allNavs) {
