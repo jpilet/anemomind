@@ -13,52 +13,25 @@ angular.module('www2App')
              boats = data;
              socket.syncUpdates('boat', boats);
 
-             // Load sessions 
              for (var i in data) {
                var boat = data[i];
                boatDict[boat._id] = boat;
-               loadSessionsForBoat(boats[i]);
              }
 
              $rootScope.$broadcast('boatList:updated', boats);
           });
-    }
-
-    function loadSessionsForBoat(boat) {
-      $http.get('/api/tiles/raw/0/0/0/' + boat._id)
-      .success(function(data, status, headers, config) {
-        sessionsForBoats[boat._id] = [];
-
-        // Very short sessions (less than 30 minutes)
-        // are probably only passive harbour episodes.
-        // Let's skip.
-        function longEnough(s) {
-          var delta = (new Date(s.endTime)).getTime() - (new Date(s.startTime)).getTime();
-          return delta > 30 * 60 * 1000;
-        }
-
-        // This object is used to de-duplicate sessions.
-        // sessions should not be duplicated on the server.
-        // However, if they are, duplicates should be ignored here.
-        var startTimes = {};
-
-        for (var i in data) {
-          var element = data[i];
-          if (!(element.startTime in startTimes) && longEnough(element)) {
-            sessionsForBoats[element.boat].push(element);
-            startTimes[element.startTime] = true;
-          }
-          for (var c in element.curves) {
-            var curve = element.curves[c];
-            if (curve.curveId in curves) {
-              curves[curve.curveId].push(curve);
-            } else {
-              curves[curve.curveId] = [curve];
+        $http.get('/api/session')
+          .success(function(data, status, headers, config) {
+            for (var i in data) {
+              if (data[i].boat in sessionsForBoats) {
+                sessionsForBoats[data[i].boat].push(data[i]);
+              } else {
+                sessionsForBoats[data[i].boat] = [ data[i] ];
+              }
+              curves[data[i]._id] = data[i];
             }
-          }
-        }
-        $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
-      });
+            $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
+          });
     }
 
     update();
@@ -72,27 +45,8 @@ angular.module('www2App')
       if (!(curveId in curves)) {
         return undefined;
       }
-
-      var curveElements = curves[curveId];
-
-      var minX = 1000, minY = 1000, maxX = -1000, maxY = -1000;
-      for (var e in curveElements) {
-        var element = curveElements[e];
-        for (var i in element.points) {
-          var p = element.points[i].pos;
-          if (p[0] && p[1] && Math.abs(p[0] - .5) > .001 && Math.abs(p[1] - .5) > .001) {
-            minX = Math.min(p[0], minX);
-            minY = Math.min(p[1], minY);
-            maxX = Math.max(p[0], maxX);
-            maxY = Math.max(p[1], maxY);
-          }
-        }
-      }
-      return {
-        x: (minX + maxX) / 2,
-        y: (minY + maxY) / 2,
-        scale: 2*Math.max(maxX - minX, maxY - minY)
-      };
+      var c = curves[curveId];
+      return c.location;
     }
 
     return {

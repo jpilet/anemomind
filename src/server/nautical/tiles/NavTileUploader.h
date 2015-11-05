@@ -28,7 +28,7 @@ struct TileGeneratorParameters {
     maxScale = 17;
     maxNumNavsPerSubCurve = 32;
     _tileTable = "tiles";
-    _sessionTable = "session";
+    _sessionTable = "sailingsessions";
     fullClean = false;
   }
  private:
