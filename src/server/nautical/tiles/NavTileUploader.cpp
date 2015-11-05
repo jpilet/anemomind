@@ -9,6 +9,11 @@
 
 using namespace mongo;
 
+#if MONGOCLIENT_VERSION_MAJOR < 1
+#define MONGO_QUERY QUERY
+namespace mongo { namespace client { void initialize() { } } }
+#endif
+
 namespace sail {
 
 namespace {
