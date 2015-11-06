@@ -187,7 +187,10 @@ Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X);
 
 struct NormedData {
   Eigen::MatrixXd Q, B;
+  MDArray2d makePlotData(Eigen::VectorXd params, double scale = 1.0);
 };
+
+void plotTrajectories(Array<NormedData> data, Eigen::VectorXd params, double scale = 1.0);
 
 Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim);
 Array<NormedData> assembleNormedData(Eigen::MatrixXd Q, Eigen::MatrixXd B,

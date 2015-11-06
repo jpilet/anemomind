@@ -238,6 +238,14 @@ TEST(LinearCalibrationTest, RealData) {
     EXPECT_TRUE(isOrthonormal(Q));
     EXPECT_TRUE(spanTheSameSubspace(Q, Asub));
   }
+  auto splits = makeRandomSplit(flow.count(), 12);
+  auto normed = assembleNormedData(Aeigen, Beigen, splits);
+
+  Eigen::VectorXd X = Eigen::VectorXd::Zero(4, 1);
+  plotTrajectories(normed, X);
+
+  std::cout << EXPR_AND_VAL_AS_STRING(normed[0].Q) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(normed[0].B) << std::endl;
 }
 
 

@@ -136,20 +136,36 @@ Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim) {
     int srcOffset = i*dim;
     int dstOffset = srcOffset + dim;
     auto a = A.block(srcOffset, 0, dim, cols);
-    std::cout << "GOOD" << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(i) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(a) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(sum) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(B) << std::endl;
     sum += a;
     B.block(dstOffset, 0, dim, cols) = sum;
-    std::cout << EXPR_AND_VAL_AS_STRING(B) << std::endl;
   }
   return B;
 }
 
 Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X) {
   return subtractMean(integrate(X, 2), 2);
+}
+
+MDArray2d NormedData::makePlotData(Eigen::VectorXd params, double scale) {
+  Eigen::VectorXd Y = Q*params + scale*B;
+  int n = Y.rows()/2;
+  MDArray2d dst(n, 2);
+  for (int i = 0; i < n; i++) {
+    int offset = 2*i;
+    dst(i, 0) = Y[offset + 0];
+    dst(i, 1) = Y[offset + 1];
+  }
+  return dst;
+}
+
+void plotTrajectories(Array<NormedData> data,
+                      Eigen::VectorXd params, double scale) {
+  GnuplotExtra plot;
+  plot.set_style("lines");
+  for (auto d: data) {
+    plot.plot(d.makePlotData(params, scale));
+  }
+  plot.show();
 }
 
 Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim) {
