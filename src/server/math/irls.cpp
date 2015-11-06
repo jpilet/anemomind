@@ -50,6 +50,7 @@ Arrayd toArray(Eigen::VectorXd &v) {
 
 struct Residual {
  Spani span;
+ int index;
  double value;
 
  bool operator< (const Residual &other) const {
@@ -75,7 +76,7 @@ Array<Residual> buildResidualsPerConstraint(Array<Spani> allConstraintGroups,
   Array<Residual> dst(n);
   for (int i = 0; i < n; i++) {
     auto span = allConstraintGroups[i];
-    dst[i] = Residual{span, calcResidualForSpan(span, residualVector)};
+    dst[i] = Residual{span, i, calcResidualForSpan(span, residualVector)};
   }
   std::sort(dst.begin(), dst.end());
   return dst;
@@ -184,6 +185,14 @@ QuadCompiler::WeightsAndOffset QuadCompiler::makeWeightsAndOffset() const {
   assert(isSane(v));
   assert(isSane(offsets));
   return WeightsAndOffset{W, offsets};
+}
+
+Arrayi ConstraintGroup::computeActiveSpans(const Arrayd &residuals) {
+  Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(_spans,
+    residuals);
+  return residualsPerConstraint.sliceTo(_activeCount).map<int>([](const Residual &r) {
+    return r.index;
+  });
 }
 
 void ConstraintGroup::apply(

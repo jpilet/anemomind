@@ -150,6 +150,8 @@ class ConstraintGroup : public WeightingStrategy {
   void apply(
         double constraintWeight,
         const Arrayd &residuals, QuadCompiler *dst);
+
+  Arrayi computeActiveSpans(const Arrayd &residuals);
  private:
   Array<Spani> _spans;
   int _activeCount;
