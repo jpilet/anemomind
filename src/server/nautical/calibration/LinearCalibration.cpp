@@ -10,7 +10,7 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
-
+#include <server/math/nonlinear/DataFit.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -78,38 +78,133 @@ std::string LinearCorrector::toString() const {
   return ss.str();
 }
 
-MDArray2d removeMean(MDArray2d src, int dim = 2) {
-  MDArray2d dst(src.rows(), src.cols());
-  int count = src.rows()/dim;
-  assert(count*dim == src.rows());
-  int i = 0;
-  for (int j = 0; j < src.cols(); j++) {
-    Arrayd sums(dim);
-    sums.setTo(0.0);
-    for (int k = 0; k < count; k++) {
-      for (int l = 0; l < dim; l++) {
-        sums[l] +=
-        i++;
+namespace {
+  using namespace DataFit;
+
+  Eigen::MatrixXd makeAvgMat(int count, int dim) {
+    int rows = count*dim;
+    int cols = dim;
+    double f = 1.0/sqrt(count);
+    Eigen::MatrixXd dst = Eigen::MatrixXd::Zero(rows, cols);
+    for (int i = 0; i < count; i++) {
+      int rowOffset = i*dim;
+      for (int j = 0; j < dim; j++) {
+        dst(rowOffset + j, j) = f;
       }
     }
+    return dst;
   }
+
+  Eigen::MatrixXd removeMeanAndConvertToEigen(MDArray2d src, int dim = 2) {
+    assert(src.isContinuous());
+    auto srcEigen = Eigen::Map<Eigen::MatrixXd>(src.ptr(), src.rows(), src.cols());
+    int count = src.rows()/dim;
+    assert(count*dim == src.rows());
+    auto cst = makeAvgMat(count, dim);
+    Eigen::MatrixXd dst = srcEigen - cst*(cst.transpose()*srcEigen);
+    return dst;
+  }
+
+  Array<Spani> makeSpans(int n, int samplesPerSpan) {
+    int spanCount = n/samplesPerSpan;
+    return Spani(0, spanCount).map<Spani>([=](int i) {
+      int offset = i*samplesPerSpan;
+      return Spani(offset, offset + samplesPerSpan);
+    });
+  }
+
+  void makeSpanData(MDArray2d A,
+                    MDArray2d B,
+                    CoordIndexer spanRows,
+                    CoordIndexer slackConstraintRows,
+                    CoordIndexer apparentFlowCols,
+                    CoordIndexer slackCols,
+                    std::vector<Triplet> *triplets,
+                    Eigen::VectorXd *Bdst) {
+
+    // The assumption is that the true flow (true wind or current)
+    // is locally constant. So instead of trying to estimate it,
+    // subract it, whatever it is. This is a linear operation.
+    auto Aeigen = removeMeanAndConvertToEigen(A, 2);
+    Eigen::VectorXd Beigen = removeMeanAndConvertToEigen(B, 2);
+
+    // Normalize both the apparent flow and the GPS speed by the
+    // norm of the GPS speed. So if the GPS speed is constant,
+    // after subtracting its mean, it will be closed to 0.
+    // Now, normalizing the vector will boost noise, whereas
+    // if we perform a manoeuver, we would not boost noise, and
+    // instead have an informative piece of data to fit to.
+    auto bNorm = Beigen.norm();
+    double f = 1.0/(1.0e-12 + std::abs(bNorm));
+
+    // TrueFlow = ApparentFlow + GPS-speed
+    // When we remove the mean, we have
+    // removeMeanAndConvertToEigen(TrueFlow) = removeMeanAndConvertToEigen(ApparentFlow) + removeMeanAndConvertToEigen(GPS-speed)
+    // <=> [ removeMeanAndConvertToEigen(TrueFlow) = 0 since it is locally constant] <=>
+    // f*removeMeanAndConvertToEigen(ApparentFlow) = -f*removeMeanAndConvertToEigen(GPS-speed)
+    // where f is a normalization factor.
+    insertDense(f, Aeigen, spanRows.elementSpan(),
+                apparentFlowCols.elementSpan(), triplets);
+    Bdst->block(spanRows.from(), 0, spanRows.numel(), 1) = -f*Beigen;
+
+    // Since we only want to use a subset of the spans that yield the best
+    // fit, we also introducce slack variables. We have constraints that
+    // force some slack variables to be 0 for the spans that we choose to use.
+    // For the other spans, the slack variables can be anything that minimizes the
+    // objective function.
+    makeEye(1.0, spanRows.elementSpan(),
+            slackCols.elementSpan(), triplets);
+    makeEye(1.0, slackConstraintRows.elementSpan(),
+            slackCols.elementSpan(), triplets);
+  }
+
+  MDArray2d sliceRows(MDArray2d A, Spani span, int dim) {
+    Spani s = dim*span;
+    return A.sliceRows(s.minv(), s.maxv());
+  }
+
 }
 
-Array<Spani> makeSpans(int n, int samplesPerSpan) {
-  int spanCount = n/samplesPerSpan;
-  return Spani(0, spanCount).map<Spani>([=](int i) {
-    int offset = i*samplesPerSpan;
-    return Spani(offset, offset + samplesPerSpan);
-  });
-}
+
 
 Arrayd calibrate(FlowMatrices mats, const CalibrationSettings &s) {
+  using namespace DataFit;
   assert(mats.A.rows() == mats.B.rows());
   int n = mats.A.rows()/2;
   assert(2*n == mats.A.rows());
-  auto spans = makeSpans(n, s.samplesPerSpan);
-  std::cout << EXPR_AND_VAL_AS_STRING(spans.size()) << std::endl;
+  auto spans = makeSpans(n, s.samplesPerSpan).sliceTo(2);
   std::cout << EXPR_AND_VAL_AS_STRING(spans) << std::endl;
+
+  auto rows = CoordIndexer::Factory();
+  auto cols = CoordIndexer::Factory();
+
+  int expectedRows = 4*s.samplesPerSpan*spans.size();
+  Eigen::VectorXd B = Eigen::VectorXd::Zero(expectedRows);
+  auto apparentFlowCols = cols.make(mats.A.cols(), 1);
+  std::vector<Triplet> triplets;
+  Array<CoordIndexer> allSpanRows(n), allSlackRows(n), allSlackCols(n);
+  for (int i = 0; i < spans.size(); i++) {
+    auto spanRows = rows.make(s.samplesPerSpan, 2);
+    allSpanRows[i] = spanRows;
+
+    auto slackRows = rows.make(s.samplesPerSpan, 2);
+    allSlackRows[i] = slackRows;
+
+    auto slackCols = cols.make(s.samplesPerSpan, 2);
+    allSlackCols[i] = slackCols;
+
+    auto span = spans[i];
+
+    makeSpanData(sliceRows(mats.A, span, 2),
+        sliceRows(mats.B, span, 2),
+        spanRows, slackRows, apparentFlowCols, slackCols, &triplets, &B);
+  }
+  CHECK(expectedRows == rows.count());
+  Eigen::SparseMatrix<double> A(rows.count(), cols.count());
+  A.setFromTriplets(triplets.begin(), triplets.end());
+
+  std::cout << EXPR_AND_VAL_AS_STRING(A.toDense()) << std::endl;
+
   return Arrayd();
 }
 

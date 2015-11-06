@@ -182,6 +182,11 @@ class Span {
   T _minv, _maxv;
 };
 
+template <typename T>
+Span<T> operator*(T s, const Span<T> &x) {
+  return Span<T>(s*x.minv(), s*x.maxv());
+}
+
 typedef Span<double> Spand;
 typedef Span<int> Spani;
 

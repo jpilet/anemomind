@@ -35,6 +35,16 @@ void makeReg(double weight, int order, CoordIndexer rowIndexer, CoordIndexer col
   }
 }
 
+void insertDense(double scale, const Eigen::MatrixXd &src, Spani dstRows, Spani dstCols,
+  std::vector<Triplet> *dst) {
+  for (int i = 0; i < src.rows(); i++) {
+    for (int j = 0; j < src.cols(); j++) {
+      dst->push_back(Triplet(dstRows[i], dstCols[j], scale*src(i, j)));
+    }
+  }
+}
+
+
 irls::WeightingStrategy::Ptr makeThresholdedInlierFilter(double threshold,
     CoordIndexer dataRows,
     CoordIndexer inlierSlackRows,

@@ -31,6 +31,8 @@ class CoordIndexer {
     _offset(offset), _dim(dim), _count(count) {}
 
  public:
+  CoordIndexer() : _offset(0), _dim(0), _count(0) {}
+
   class Factory {
    public:
     Factory() : _counter(0) {}
@@ -110,12 +112,14 @@ class CoordIndexer {
 };
 
 
+
 // Make regularization term
 void makeReg(double weight, int order,
     CoordIndexer rowIndexer, CoordIndexer colIndexer,
     std::vector<Triplet> *dst);
 
-
+void insertDense(double scale, const Eigen::MatrixXd &src, Spani dstRows, Spani dstCols,
+  std::vector<Triplet> *dst);
 
 // Make left- and right-hands-sides for fitting of a signal to observations.
 template <int Dim>
