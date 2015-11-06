@@ -158,11 +158,6 @@ class LinearCorrector : public CorrectorFunction {
   Arrayd _windParams, _currentParams;
 };
 
-struct Results {
-  Results() {}
-  LinearCorrector corrector;
-  Array<HorizontalMotion<double> > windOverGround, currentOverGround;
-};
 
 struct CalibrationSettings {
   irls::Settings irlsSettings;
@@ -170,7 +165,14 @@ struct CalibrationSettings {
   double inlierFrac = 0.2;
 };
 
-Arrayd calibrate(FlowMatrices mats, const CalibrationSettings &s);
+struct Results {
+  Arrayd parameters;
+  Array<Spani> spans;
+  Arrayi inliers;
+};
+
+
+Results calibrate(FlowMatrices mats, const CalibrationSettings &s);
 
 }
 }

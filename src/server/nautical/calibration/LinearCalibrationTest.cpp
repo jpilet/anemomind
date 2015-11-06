@@ -15,6 +15,7 @@
 #include <server/common/string.h>
 #include <Eigen/SparseCore>
 #include <Eigen/SparseQR>
+#include <server/common/ArrayIO.h>
 
 using namespace sail;
 
@@ -95,7 +96,9 @@ TEST(LinearCalibrationTest, RealData) {
 
   CalibrationSettings cs;
   cs.samplesPerSpan = 60;
-  Arrayd windParameters = calibrate(trueWind, cs);
+  auto results = calibrate(trueWind, cs);
+  std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
+
 }
 
 

@@ -163,21 +163,21 @@ namespace {
     return A.sliceRows(s.minv(), s.maxv());
   }
 
-  irls::WeightingStrategy::Ptr makeInlierConstraints(double inlierFrac,
+  irls::ConstraintGroup *makeInlierConstraints(double inlierFrac,
     Array<CoordIndexer> slackIndexers) {
     int n = slackIndexers.size();
     int active = int(ceil(inlierFrac*n));
     Array<Spani> spans = slackIndexers.map<Spani>([](CoordIndexer c) {
           return c.elementSpan();
         });;
-    return irls::ConstraintGroup::make(spans, active);
+    return new irls::ConstraintGroup(spans, active);
   }
 
 }
 
 
 
-Arrayd calibrate(FlowMatrices mats, const CalibrationSettings &s) {
+Results calibrate(FlowMatrices mats, const CalibrationSettings &s) {
   using namespace DataFit;
   assert(mats.A.rows() == mats.B.rows());
   int n = mats.A.rows()/2;
@@ -212,10 +212,18 @@ Arrayd calibrate(FlowMatrices mats, const CalibrationSettings &s) {
   Eigen::SparseMatrix<double> A(rows.count(), cols.count());
   A.setFromTriplets(triplets.begin(), triplets.end());
 
-  auto cst = makeInlierConstraints(s.inlierFrac, allSlackRows);
+  auto rawCst = makeInlierConstraints(s.inlierFrac, allSlackRows);
+  irls::WeightingStrategy::Ptr cst(rawCst);
+  auto solution = irls::solveFull(A, B, irls::WeightingStrategies{cst}, s.irlsSettings);
 
-  auto solution = irls::solve(A, B, irls::WeightingStrategies{cst}, s.irlsSettings);
-  return Arrayd();
+  Arrayd X(solution.X.size(), solution.X.data());
+  Arrayd parameters = X.slice(apparentFlowCols.from(), apparentFlowCols.to()).dup();
+
+  return Results{
+    parameters,
+    spans,
+    rawCst->computeActiveSpans(solution.residuals)
+  };
 }
 
 

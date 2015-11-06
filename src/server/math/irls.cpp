@@ -187,9 +187,10 @@ QuadCompiler::WeightsAndOffset QuadCompiler::makeWeightsAndOffset() const {
   return WeightsAndOffset{W, offsets};
 }
 
-Arrayi ConstraintGroup::computeActiveSpans(const Arrayd &residuals) {
+Arrayi ConstraintGroup::computeActiveSpans(Eigen::VectorXd residuals) {
+  Arrayd residualArray = toArray(residuals);
   Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(_spans,
-    residuals);
+    residualArray);
   return residualsPerConstraint.sliceTo(_activeCount).map<int>([](const Residual &r) {
     return r.index;
   });

@@ -151,7 +151,7 @@ class ConstraintGroup : public WeightingStrategy {
         double constraintWeight,
         const Arrayd &residuals, QuadCompiler *dst);
 
-  Arrayi computeActiveSpans(const Arrayd &residuals);
+  Arrayi computeActiveSpans(Eigen::VectorXd residuals);
  private:
   Array<Spani> _spans;
   int _activeCount;
