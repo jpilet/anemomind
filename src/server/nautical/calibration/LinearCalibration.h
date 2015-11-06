@@ -167,6 +167,7 @@ struct CalibrationSettings {
 
 struct PlotData {
   MDArray2d Xflow, Yflow, Xgps, Ygps;
+  void show();
 };
 
 struct Results {
@@ -174,6 +175,7 @@ struct Results {
   Array<Spani> spans;
   Arrayi inliers;
   Arrayb inlierMask;
+  Array<PlotData> plotData;
 };
 
 

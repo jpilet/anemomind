@@ -11,6 +11,7 @@
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
 #include <server/math/nonlinear/DataFit.h>
+#include <server/plot/extra.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -76,6 +77,20 @@ std::string LinearCorrector::toString() const {
   std::stringstream ss;
   ss << "LinearCorrector(windParams="<< _windParams << ", currentParams=" << _currentParams << ")";
   return ss.str();
+}
+
+void showGraphPair(std::string label, MDArray2d A, MDArray2d B) {
+  GnuplotExtra plot;
+  plot.set_title(label);
+  plot.set_style("lines");
+  plot.plot(A, "Flow");
+  plot.plot(B, "GPS");
+  plot.show();
+}
+
+void PlotData::show() {
+  showGraphPair("X-fit", Xflow, Xgps);
+  showGraphPair("Y-fit", Yflow, Ygps);
 }
 
 namespace {
@@ -237,24 +252,44 @@ Results calibrate(FlowMatrices mats, const CalibrationSettings &s) {
   irls::WeightingStrategy::Ptr cst(rawCst);
   auto solution = irls::solveFull(A, B, irls::WeightingStrategies{cst}, s.irlsSettings);
 
+  Spani parameterSpan = apparentFlowCols.elementSpan();
+  std::cout << EXPR_AND_VAL_AS_STRING(parameterSpan) << std::endl;
   Arrayd X(solution.X.size(), solution.X.data());
-  Arrayd parameters = X.slice(apparentFlowCols.from(), apparentFlowCols.to()).dup();
+  for (int i = 0; i < X.size(); i++) {
+    if (!parameterSpan.contains(i)) {
+      X[i] = 0.0;
+    }
+  }
+  auto Xp = X.slice(parameterSpan.minv(), parameterSpan.maxv());
+
+  Xp.setTo(0);
+  Xp[0] = 1.0;
+
+  Arrayd parameters = Xp.dup();
 
   auto inliers = rawCst->computeActiveSpans(solution.residuals);
   std::cout << EXPR_AND_VAL_AS_STRING(inliers) << std::endl;
   Arrayb mask = Arrayb::fill(spanCount, false);
-  for (auto i : inliers) {
+  /*for (auto i : inliers) {
     CHECK(0 <= i && i < spanCount);
     mask[i] = true;
-  }
+  }*/
 
+  std::cout << EXPR_AND_VAL_AS_STRING(B) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(solution.X) << std::endl;
   auto AX = irls::product(A, solution.X);
+  std::cout << EXPR_AND_VAL_AS_STRING(AX) << std::endl;
 
+
+  std::function<PlotData(CoordIndexer)> toPlotData = [=](CoordIndexer indexer) {
+        return makePlotData(indexer, solution.X, B);
+      };
   return Results{
     parameters,
     spans,
     inliers,
-    mask
+    mask,
+    allSpanRows.map<PlotData>(toPlotData)
   };
 }
 

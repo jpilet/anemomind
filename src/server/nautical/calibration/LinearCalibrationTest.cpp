@@ -99,7 +99,9 @@ TEST(LinearCalibrationTest, RealData) {
   auto results = calibrate(trueWind, cs);
   std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(results.spans.size()) << std::endl;
-
+  for (auto i : results.inliers) {
+    results.plotData[i].show();
+  }
 }
 
 
