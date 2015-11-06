@@ -78,7 +78,16 @@ std::string LinearCorrector::toString() const {
   return ss.str();
 }
 
-
+MDArray2d removeMean(MDArray2d src, int dim = 2) {
+  MDArray2d dst(src.rows(), src.cols());
+  int count = src.rows()/dim;
+  assert(count*dim == src.rows());
+  for (int j = 0; j < src.cols(); j++) {
+    Arrayd sums(dim);
+    sums.setTo(0.0);
+    for
+  }
+}
 
 Array<Spani> makeSpans(int n, int samplesPerSpan) {
   int spanCount = n/samplesPerSpan;
@@ -94,6 +103,7 @@ Arrayd calibrate(FlowMatrices mats, const CalibrationSettings &s) {
   assert(2*n == mats.A.rows());
   auto spans = makeSpans(n, s.samplesPerSpan);
   std::cout << EXPR_AND_VAL_AS_STRING(spans.size()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(spans) << std::endl;
   return Arrayd();
 }
 
