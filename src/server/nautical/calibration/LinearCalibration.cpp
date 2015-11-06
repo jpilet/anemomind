@@ -80,5 +80,23 @@ std::string LinearCorrector::toString() const {
 
 
 
+Array<Spani> makeSpans(int n, int samplesPerSpan) {
+  int spanCount = n/samplesPerSpan;
+  return Spani(0, spanCount).map<Spani>([=](int i) {
+    int offset = i*samplesPerSpan;
+    return Spani(offset, offset + samplesPerSpan);
+  });
+}
+
+Arrayd calibrate(FlowMatrices mats, const CalibrationSettings &s) {
+  assert(mats.A.rows() == mats.B.rows());
+  int n = mats.A.rows()/2;
+  assert(2*n == mats.A.rows());
+  auto spans = makeSpans(n, s.samplesPerSpan);
+  std::cout << EXPR_AND_VAL_AS_STRING(spans.size()) << std::endl;
+  return Arrayd();
+}
+
+
 }
 }

@@ -7,14 +7,32 @@
 #include <server/nautical/calibration/LinearCalibration.h>
 #include <server/nautical/Nav.h>
 #include <device/Arduino/libraries/Corrector/Corrector.h>
+#include <server/common/Env.h>
+#include <server/common/PathBuilder.h>
+#include <server/nautical/NavNmeaScan.h>
+#include <server/common/logging.h>
 #include <armadillo>
-
+#include <server/common/string.h>
 #include <Eigen/SparseCore>
 #include <Eigen/SparseQR>
 
 using namespace sail;
 
-
+Array<Nav> getTestDataset() {
+  auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
+    .pushDirectory("datasets")
+    .pushDirectory("Irene")
+    .pushDirectory("2013").get();
+  auto allNavs = scanNmeaFolder(p, Nav::debuggingBoatId());
+  auto from = TimeStamp::UTC(2013, 8, 2, 10, 8, 0);
+  auto to = TimeStamp::UTC(2013, 8, 2, 13, 41, 44);
+  auto navs = allNavs.slice([=](const Nav &x) {
+    auto t = x.time();
+    return from < t && t < to;
+  });
+  LOG(INFO) << "Selected " << navs.size() << " navs";
+  return navs;
+}
 
 TEST(LinearCalibrationTest, TestWind) {
   Nav nav;
@@ -65,5 +83,18 @@ TEST(LinearCalibrationTest, Sparse) {
   EXPECT_NEAR(X(2, 0), 16.0, 1.0e-9);
 }
 
+using namespace LinearCalibration;
+
+TEST(LinearCalibrationTest, RealData) {
+  auto navs = getTestDataset();
+  Duration<double> dif = navs.last().time() - navs.first().time();
+
+  FlowSettings flowSettings;
+  auto trueWind = makeTrueWindMatrices(navs, flowSettings);
+  auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
+
+  CalibrationSettings cs;
+  Arrayd windParameters = calibrate(trueWind, cs);
+}
 
 

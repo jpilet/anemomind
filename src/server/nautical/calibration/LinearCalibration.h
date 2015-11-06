@@ -8,6 +8,7 @@
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
+#include <server/math/irls.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -163,6 +164,12 @@ struct Results {
   Array<HorizontalMotion<double> > windOverGround, currentOverGround;
 };
 
+struct CalibrationSettings {
+  irls::Settings irlsSettings;
+  int samplesPerSpan = 60;
+};
+
+Arrayd calibrate(FlowMatrices mats, const CalibrationSettings &s);
 
 }
 }
