@@ -82,10 +82,16 @@ MDArray2d removeMean(MDArray2d src, int dim = 2) {
   MDArray2d dst(src.rows(), src.cols());
   int count = src.rows()/dim;
   assert(count*dim == src.rows());
+  int i = 0;
   for (int j = 0; j < src.cols(); j++) {
     Arrayd sums(dim);
     sums.setTo(0.0);
-    for
+    for (int k = 0; k < count; k++) {
+      for (int l = 0; l < dim; l++) {
+        sums[l] +=
+        i++;
+      }
+    }
   }
 }
 
