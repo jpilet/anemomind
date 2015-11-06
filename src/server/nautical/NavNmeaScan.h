@@ -19,7 +19,10 @@ Array<Nav> scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
                           ParsedNavs::FieldMask mask = ParsedNavs::makeGpsWindMask());
 
 Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
-                          ParsedNavs::FieldMask mask = ParsedNavs::makeAllSensorsMask());
+    ParsedNavs::FieldMask mask = ParsedNavs::makeAllSensorsMask());
+
+Array<Nav> scanNmeaFolders(Array<Poco::Path> p, Nav::Id boatId,
+    ParsedNavs::FieldMask mask = ParsedNavs::makeAllSensorsMask());
 
 } /* namespace sail */
 
