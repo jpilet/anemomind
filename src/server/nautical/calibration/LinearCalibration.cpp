@@ -207,6 +207,34 @@ PlotData makePlotData(CoordIndexer indexer, Eigen::VectorXd flow, Eigen::VectorX
   return PlotData{Xflow, Yflow, Xgps, Ygps};
 }
 
+void dispMats(FlowMatrices mats, Spani span) {
+  auto A = sliceRows(mats.A, span, 2);
+  auto B = sliceRows(mats.B, span, 2);
+
+  int n = A.rows()/2;
+  assert(2*n == A.rows());
+  for (int j = 0; j < 2; j++) {
+    Arrayd X(n);
+    Arrayd Yflow(n);
+    Arrayd Ygps(n);
+
+    for (int i = 0; i < n; i++) {
+      X[i] = i;
+      Yflow[i] = A(2*i + j, 0);
+      Ygps[i] = B(2*i + j, 0);
+    }
+
+    {
+
+      GnuplotExtra plot;
+      plot.set_style("lines");
+      plot.plot_xy(X, Yflow, "Flow");
+      plot.plot_xy(X, Ygps, "Flow");
+      plot.show();
+    }
+  }
+}
+
 Results calibrate(FlowMatrices mats, const CalibrationSettings &s) {
   using namespace DataFit;
   assert(mats.A.rows() == mats.B.rows());
@@ -240,6 +268,7 @@ Results calibrate(FlowMatrices mats, const CalibrationSettings &s) {
     makeSpanData(sliceRows(mats.A, span, 2),
         sliceRows(mats.B, span, 2),
         spanRows, slackRows, apparentFlowCols, slackCols, &triplets, &B);
+    dispMats(mats, span);
   }
   CHECK(expectedRows == rows.count());
   Eigen::SparseMatrix<double> A(rows.count(), cols.count());
