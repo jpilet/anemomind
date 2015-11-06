@@ -224,7 +224,7 @@ TEST(LinearCalibrationTest, RealData) {
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-  auto flow = trueCurrent;
+  auto flow = trueWind;
 
   Eigen::MatrixXd Aeigen =
       Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
@@ -239,7 +239,7 @@ TEST(LinearCalibrationTest, RealData) {
     EXPECT_TRUE(spanTheSameSubspace(Q, Asub));
   }
 
-  int splitCount = 4;
+  int splitCount = 30;
 
   auto splits = makeRandomSplit(flow.count(), splitCount);
   std::cout << EXPR_AND_VAL_AS_STRING(splits.size()) << std::endl;
