@@ -183,6 +183,14 @@ MatrixType orthonormalBasis(MatrixType X) {
 
 Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim);
 Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim);
+Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X);
+
+struct NormedData {
+  Eigen::MatrixXd A, B;
+};
+
+Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim);
+Array<NormedData> assembleNormedData(FlowMatrices mats, Array<Arrayi> splits);
 
 Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount);
 

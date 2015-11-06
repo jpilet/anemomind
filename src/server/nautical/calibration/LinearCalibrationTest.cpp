@@ -179,6 +179,25 @@ TEST(LinearCalibrationTest, SubtractMean) {
   }
 }
 
+TEST(LinearCalibrationTest, ExtractRows) {
+  Eigen::MatrixXd A(6, 1);
+  for (int i = 0; i < 3; i++) {
+    int offset = 2*i;
+    for (int j = 0; j < 2; j++) {
+      A(offset + j, 0) = i+1;
+    }
+  }
+  auto e = extractRows(A, Arrayi{0, 2}, 2);
+  EXPECT_EQ(e.rows(), 4);
+  EXPECT_EQ(e.cols(), 1);
+  double expected[4] = {1, 1, 3, 3};
+  for (int i = 0; i < 4; i++) {
+    double a = e(i, 0);
+    double b = expected[i];
+    EXPECT_NEAR(a, b, 1.0e-6);
+  }
+}
+
 TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();

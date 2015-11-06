@@ -148,5 +148,28 @@ Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim) {
   return B;
 }
 
+Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X) {
+  return subtractMean(integrate(X, 2), 2);
+}
+
+Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim) {
+  int n = inds.size();
+  int dstRows = dim*n;
+  int cols = mat.cols();
+  Eigen::MatrixXd dst(dstRows, cols);
+  for (int i = 0; i < n; i++) {
+    int dstRowOffset = i*dim;
+    int srcRowOffset = inds[i]*dim;
+    dst.block(dstRowOffset, 0, dim, cols) = mat.block(srcRowOffset, 0, dim, cols);
+  }
+  return dst;
+}
+
+/*Array<NormedData> assembleNormedData(FlowMatrices mats, Array<Arrayi> splits) {
+
+}*/
+
+
+
 }
 }
