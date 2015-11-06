@@ -16,6 +16,7 @@
 #include <Eigen/SparseCore>
 #include <Eigen/SparseQR>
 #include <server/common/ArrayIO.h>
+#include <Eigen/Cholesky>
 
 using namespace sail;
 
@@ -86,14 +87,92 @@ TEST(LinearCalibrationTest, Sparse) {
 
 using namespace LinearCalibration;
 
+
+bool isOrthonormal(Eigen::MatrixXd Q) {
+  Eigen::MatrixXd QtQ = Q.transpose()*Q;
+  int n = QtQ.rows();
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < n; j++) {
+      auto expected = (i == j? 1.0 : 0.0);
+      if (std::abs(QtQ(i, j) - expected) > 1.0e-9) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+Eigen::MatrixXd projector(Eigen::MatrixXd A) {
+  //return A*((A.transpose()*A).inverse()*A.transpose());
+  Eigen::MatrixXd pInv = A.colPivHouseholderQr().solve(Eigen::MatrixXd::Identity(A.rows(), A.rows()));
+  return A*pInv;
+}
+
+bool spanTheSameSubspace(Eigen::MatrixXd A, Eigen::MatrixXd B) {
+  auto aProj = projector(A);
+  auto bProj = projector(B);
+  auto D = aProj - bProj;
+  for (int i = 0; i < D.rows(); i++) {
+    for (int j = 0; j < D.cols(); j++) {
+      if (D(i, j) > 1.0e-9) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+TEST(LinearCalibrationTest, SubtractMean) {
+  {
+    Eigen::MatrixXd test(4, 2);
+    int counter = 1;
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 2; j++) {
+        test(i, j) = counter;
+        counter++;
+      }
+    }
+    Eigen::MatrixXd test2 = subtractMean(test, 1);
+    double expected[4] = {-3, -1, 1, 3};
+    EXPECT_EQ(test2.rows(), 4);
+    EXPECT_EQ(test2.cols(), 2);
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 2; j++) {
+        double a = test2(i, j);
+        double b = expected[i];
+        EXPECT_NEAR(a, b, 1.0e-6);
+      }
+    }
+  }{
+    Eigen::MatrixXd K(4, 1);
+    K(0, 0) = 9;
+    K(1, 0) = 30;
+    K(2, 0) = 7;
+    K(3, 0) = 40;
+    auto B = subtractMean(K, 2);
+    double expected[4] = {1, -5, -1, 5};
+    for (int i = 0; i < 4; i++) {
+      EXPECT_NEAR(B(i, 0), (expected[i]), 1.0e-6);
+    }
+  }
+}
+
 TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
 
   FlowSettings flowSettings;
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
-  auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
+  //auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
+  auto flow = trueWind;
+
+  Eigen::MatrixXd Aeigen =
+      Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
+  Eigen::MatrixXd Asub = Aeigen.block(0, 0, 30, flow.A.cols());
+  Eigen::MatrixXd Q = orthonormalBasis<Eigen::MatrixXd>(Asub);
+  EXPECT_TRUE(isOrthonormal(Q));
+  EXPECT_TRUE(spanTheSameSubspace(Q, Asub));
   auto split = makeRandomSplit(30, 3);
 }
 

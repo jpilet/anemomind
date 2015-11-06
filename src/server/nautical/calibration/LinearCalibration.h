@@ -89,6 +89,15 @@ void makeTrueWindMatrixExpression(const InstrumentAbstraction &nav,
 
 struct FlowMatrices {
  MDArray2d A, B;
+
+ int rows() const {
+   assert(A.rows() == B.rows());
+   return A.rows();
+ }
+
+ int count() const {
+   return rows()/2;
+ }
 };
 
 template <typename InstrumentAbstraction>
@@ -164,6 +173,15 @@ struct CalibrationSettings {
   int samplesPerSpan = 60;
   double inlierFrac = 0.2;
 };
+
+template <typename MatrixType>
+MatrixType orthonormalBasis(MatrixType X) {
+  Eigen::HouseholderQR<Eigen::MatrixXd> qr(X);
+  auto selectSpanningSpace = Eigen::MatrixXd::Identity(X.rows(), X.cols());
+  return qr.householderQ()*selectSpanningSpace;
+}
+
+Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim);
 
 Arrayi makeRandomSplit(int sampleCount, int splitCount);
 

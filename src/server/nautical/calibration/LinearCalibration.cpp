@@ -89,5 +89,26 @@ Arrayi makeRandomSplit(int sampleCount, int splitCount) {
   return inds;
 }
 
+Eigen::MatrixXd makeMeanMatrix(int rows, int dim) {
+  Eigen::MatrixXd dst = Eigen::MatrixXd(rows, dim);
+  assert(rows % dim == 0);
+  double f = 1.0/sqrt(rows/dim);
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < dim; j++) {
+      auto local = i % dim;
+      dst(i, j) = (local == j? f : 0.0);
+    }
+  }
+  std::cout << EXPR_AND_VAL_AS_STRING(dst) << std::endl;
+  return dst;
+}
+
+Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim) {
+  auto mm = makeMeanMatrix(A.rows(), dim);
+  Eigen::MatrixXd K = mm.transpose()*A;
+  std::cout << EXPR_AND_VAL_AS_STRING(K) << std::endl;
+  return A - mm*(mm.transpose()*A);
+}
+
 }
 }
