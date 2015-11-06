@@ -167,6 +167,7 @@ struct Results {
 struct CalibrationSettings {
   irls::Settings irlsSettings;
   int samplesPerSpan = 60;
+  double inlierFrac = 0.2;
 };
 
 Arrayd calibrate(FlowMatrices mats, const CalibrationSettings &s);

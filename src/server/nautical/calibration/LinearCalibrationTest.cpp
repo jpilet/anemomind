@@ -94,7 +94,7 @@ TEST(LinearCalibrationTest, RealData) {
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
   CalibrationSettings cs;
-  cs.samplesPerSpan = 4;
+  cs.samplesPerSpan = 60;
   Arrayd windParameters = calibrate(trueWind, cs);
 }
 

@@ -163,6 +163,16 @@ namespace {
     return A.sliceRows(s.minv(), s.maxv());
   }
 
+  irls::WeightingStrategy::Ptr makeInlierConstraints(double inlierFrac,
+    Array<CoordIndexer> slackIndexers) {
+    int n = slackIndexers.size();
+    int active = int(ceil(inlierFrac*n));
+    Array<Spani> spans = slackIndexers.map<Spani>([](CoordIndexer c) {
+          return c.elementSpan();
+        });;
+    return irls::ConstraintGroup::make(spans, active);
+  }
+
 }
 
 
@@ -172,8 +182,7 @@ Arrayd calibrate(FlowMatrices mats, const CalibrationSettings &s) {
   assert(mats.A.rows() == mats.B.rows());
   int n = mats.A.rows()/2;
   assert(2*n == mats.A.rows());
-  auto spans = makeSpans(n, s.samplesPerSpan).sliceTo(2);
-  std::cout << EXPR_AND_VAL_AS_STRING(spans) << std::endl;
+  auto spans = makeSpans(n, s.samplesPerSpan);
 
   auto rows = CoordIndexer::Factory();
   auto cols = CoordIndexer::Factory();
@@ -203,8 +212,9 @@ Arrayd calibrate(FlowMatrices mats, const CalibrationSettings &s) {
   Eigen::SparseMatrix<double> A(rows.count(), cols.count());
   A.setFromTriplets(triplets.begin(), triplets.end());
 
-  std::cout << EXPR_AND_VAL_AS_STRING(A.toDense()) << std::endl;
+  auto cst = makeInlierConstraints(s.inlierFrac, allSlackRows);
 
+  auto solution = irls::solve(A, B, irls::WeightingStrategies{cst}, s.irlsSettings);
   return Arrayd();
 }
 
