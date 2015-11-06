@@ -8,23 +8,56 @@
 using namespace sail;
 using namespace std;
 
-TEST(TimedSampleCollection, Insert) {
-  TimedSampleCollection<int> samples;
+namespace {
 
-  std::array<int, 100> count;
-  for (int i = 0; i < count.size(); ++i) {
-    count[i] = i;
-  }
-  shuffle(count.begin(), count.end(), default_random_engine(7));
+void randomArray(vector<TimedValue<int>> *array, int offset = 0) {
+  static auto rng = default_random_engine(7);
 
   TimeStamp base = TimeStamp::now();
 
+  std::array<int, 100> count;
   for (int i = 0; i < count.size(); ++i) {
-    TimeStamp t = base + Duration<>::seconds(count[i]);
-    samples.insert(TimedValue<int>(t, count[i]));
+    count[i] = i + offset;
   }
+  shuffle(count.begin(), count.end(), rng);
 
   for (int i = 0; i < count.size(); ++i) {
+    TimeStamp t = base + Duration<>::seconds(count[i]);
+    array->push_back(TimedValue<int>(t, count[i]));
+  }
+}
+
+}  // namespace
+
+TEST(TimedSampleCollection, SingleInsert) {
+  vector<TimedValue<int>> random;
+  randomArray(&random);
+
+  TimedSampleCollection<int> samples;
+  for (int i = 0; i < random.size(); ++i) {
+    samples.insert(random[i]);
+  }
+
+  for (int i = 0; i < random.size(); ++i) {
+    EXPECT_EQ(i, samples.samples()[i].value);
+  }
+}
+
+TEST(TimedSampleCollection, BatchInsert) {
+  vector<TimedValue<int>> random1;
+  randomArray(&random1);
+
+  TimedSampleCollection<int> samples(random1);
+
+  for (int i = 0; i < random1.size(); ++i) {
+    EXPECT_EQ(i, samples.samples()[i].value);
+  }
+
+  vector<TimedValue<int>> random2;
+  randomArray(&random2, random1.size());
+  samples.insert(random2);
+
+  for (int i = 0; i < samples.samples().size(); ++i) {
     EXPECT_EQ(i, samples.samples()[i].value);
   }
 }

@@ -59,6 +59,10 @@ struct TimedValue {
 
   TimeStamp time;
   T value;
+
+  bool operator < (const TimedValue<T>& other) const {
+    return time < other.time;
+  }
 };
 
 template <typename T>

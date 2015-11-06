@@ -10,10 +10,15 @@ namespace sail {
 template<typename T>
 class TimedSampleCollection {
  public:
-
    typedef std::vector<TimedValue<T>> TimedVector;
 
+   TimedSampleCollection() { }
+   TimedSampleCollection(const TimedVector& entries) { insert(entries); }
+
+   // Warning: single insertion has complexity O(N) !
    void insert(const TimedValue<T>& x);
+   void insert(const TimedVector& entries);
+
    const TimedVector& samples() const { return _samples; }
 
    Optional<T> nearest(TimeStamp t);
@@ -26,6 +31,12 @@ void TimedSampleCollection<T>::insert(const TimedValue<T>& x) {
   _samples.insert(
       std::lower_bound(_samples.begin(), _samples.end(), x),
       x);
+}
+
+template <typename T>
+void TimedSampleCollection<T>::insert(const TimedVector& entries) {
+  _samples.insert(_samples.end(), entries.begin(), entries.end());
+  sort(_samples.begin(), _samples.end());
 }
 
 template <typename T>
