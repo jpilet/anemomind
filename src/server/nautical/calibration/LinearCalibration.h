@@ -190,7 +190,8 @@ struct NormedData {
 };
 
 Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim);
-Array<NormedData> assembleNormedData(FlowMatrices mats, Array<Arrayi> splits);
+Array<NormedData> assembleNormedData(Eigen::MatrixXd Q, Eigen::MatrixXd B,
+    Array<Arrayi> splits);
 
 Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount);
 
