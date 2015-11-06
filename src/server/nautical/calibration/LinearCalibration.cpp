@@ -175,14 +175,30 @@ namespace {
 
 }
 
-
+PlotData makePlotData(CoordIndexer indexer, Eigen::VectorXd flow, Eigen::VectorXd gps) {
+  int n = indexer.count();
+  MDArray2d Xflow(n, 2), Yflow(n, 2), Xgps(n, 2), Ygps(n, 2);
+  for (int i = 0; i < n; i++) {
+    Xflow(i, 0) = i;
+    Yflow(i, 0) = i;
+    Xgps(i, 0) = i;
+    Ygps(i, 0) = i;
+    auto span = indexer.span(i);
+    Xflow(i, 1) = flow(span[0]);
+    Yflow(i, 1) = flow(span[1]);
+    Xgps(i, 1) = gps(span[0]);
+    Ygps(i, 1) = gps(span[1]);
+  }
+  return PlotData{Xflow, Yflow, Xgps, Ygps};
+}
 
 Results calibrate(FlowMatrices mats, const CalibrationSettings &s) {
   using namespace DataFit;
   assert(mats.A.rows() == mats.B.rows());
-  int n = mats.A.rows()/2;
-  assert(2*n == mats.A.rows());
-  auto spans = makeSpans(n, s.samplesPerSpan);
+  int sampleCount = mats.A.rows()/2;
+  assert(2*sampleCount == mats.A.rows());
+  auto spans = makeSpans(sampleCount, s.samplesPerSpan);
+  int spanCount = spans.size();
 
   auto rows = CoordIndexer::Factory();
   auto cols = CoordIndexer::Factory();
@@ -191,8 +207,10 @@ Results calibrate(FlowMatrices mats, const CalibrationSettings &s) {
   Eigen::VectorXd B = Eigen::VectorXd::Zero(expectedRows);
   auto apparentFlowCols = cols.make(mats.A.cols(), 1);
   std::vector<Triplet> triplets;
-  Array<CoordIndexer> allSpanRows(n), allSlackRows(n), allSlackCols(n);
-  for (int i = 0; i < spans.size(); i++) {
+
+  Array<CoordIndexer> allSpanRows(spanCount),
+      allSlackRows(spanCount), allSlackCols(spanCount);
+  for (int i = 0; i < spanCount; i++) {
     auto spanRows = rows.make(s.samplesPerSpan, 2);
     allSpanRows[i] = spanRows;
 
@@ -212,6 +230,9 @@ Results calibrate(FlowMatrices mats, const CalibrationSettings &s) {
   Eigen::SparseMatrix<double> A(rows.count(), cols.count());
   A.setFromTriplets(triplets.begin(), triplets.end());
 
+  std::cout << EXPR_AND_VAL_AS_STRING(spanCount) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(allSlackRows.size()) << std::endl;
+
   auto rawCst = makeInlierConstraints(s.inlierFrac, allSlackRows);
   irls::WeightingStrategy::Ptr cst(rawCst);
   auto solution = irls::solveFull(A, B, irls::WeightingStrategies{cst}, s.irlsSettings);
@@ -219,10 +240,21 @@ Results calibrate(FlowMatrices mats, const CalibrationSettings &s) {
   Arrayd X(solution.X.size(), solution.X.data());
   Arrayd parameters = X.slice(apparentFlowCols.from(), apparentFlowCols.to()).dup();
 
+  auto inliers = rawCst->computeActiveSpans(solution.residuals);
+  std::cout << EXPR_AND_VAL_AS_STRING(inliers) << std::endl;
+  Arrayb mask = Arrayb::fill(spanCount, false);
+  for (auto i : inliers) {
+    CHECK(0 <= i && i < spanCount);
+    mask[i] = true;
+  }
+
+  auto AX = irls::product(A, solution.X);
+
   return Results{
     parameters,
     spans,
-    rawCst->computeActiveSpans(solution.residuals)
+    inliers,
+    mask
   };
 }
 

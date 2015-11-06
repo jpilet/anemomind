@@ -226,6 +226,8 @@ struct Results {
  Eigen::VectorXd residuals;
 };
 
+Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &X);
+
 Results solveFull(const Eigen::SparseMatrix<double> &A,
     const Eigen::VectorXd &B,
     Array<std::shared_ptr<WeightingStrategy> > strategies,

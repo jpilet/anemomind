@@ -191,6 +191,8 @@ Arrayi ConstraintGroup::computeActiveSpans(Eigen::VectorXd residuals) {
   Arrayd residualArray = toArray(residuals);
   Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(_spans,
     residualArray);
+  std::cout << EXPR_AND_VAL_AS_STRING(_activeCount) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(_spans.size()) << std::endl;
   return residualsPerConstraint.sliceTo(_activeCount).map<int>([](const Residual &r) {
     return r.index;
   });

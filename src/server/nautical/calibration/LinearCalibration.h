@@ -165,10 +165,15 @@ struct CalibrationSettings {
   double inlierFrac = 0.2;
 };
 
+struct PlotData {
+  MDArray2d Xflow, Yflow, Xgps, Ygps;
+};
+
 struct Results {
   Arrayd parameters;
   Array<Spani> spans;
   Arrayi inliers;
+  Arrayb inlierMask;
 };
 
 
