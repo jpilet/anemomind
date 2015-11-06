@@ -124,6 +124,17 @@ bool spanTheSameSubspace(Eigen::MatrixXd A, Eigen::MatrixXd B) {
 
 TEST(LinearCalibrationTest, SubtractMean) {
   {
+    Eigen::MatrixXd itggt = Eigen::MatrixXd::Zero(6, 2);
+    itggt(2, 0) = 1;
+    itggt(2, 1) = 2;
+    itggt(3, 0) = 3;
+    itggt(3, 1) = 4;
+    itggt(4, 0) = 6;
+    itggt(4, 1) = 8;
+    itggt(5, 0) = 10;
+    itggt(5, 1) = 12;
+
+
     Eigen::MatrixXd test(4, 2);
     int counter = 1;
     for (int i = 0; i < 4; i++) {
@@ -132,6 +143,19 @@ TEST(LinearCalibrationTest, SubtractMean) {
         counter++;
       }
     }
+
+    auto itg = integrate(test, 2);
+    EXPECT_EQ(itg.rows(), itggt.rows());
+    EXPECT_EQ(itg.cols(), itggt.cols());
+    std::cout << EXPR_AND_VAL_AS_STRING(itg) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(itggt) << std::endl;
+    for (int i = 0; i < 6; i++) {
+      for (int j = 0; j < 2; j++) {
+        EXPECT_NEAR(itg(i, j), itggt(i, j), 1.0e-6);
+      }
+    }
+
+
     Eigen::MatrixXd test2 = subtractMean(test, 1);
     double expected[4] = {-3, -1, 1, 3};
     EXPECT_EQ(test2.rows(), 4);

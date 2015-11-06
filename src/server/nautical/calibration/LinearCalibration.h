@@ -182,6 +182,7 @@ MatrixType orthonormalBasis(MatrixType X) {
 }
 
 Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim);
+Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim);
 
 Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount);
 

@@ -125,5 +125,28 @@ Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim) {
   return dst;
 }
 
+Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim) {
+  int rows = A.rows();
+  int cols = A.cols();
+  int count = rows/dim;
+  Eigen::MatrixXd sum = Eigen::MatrixXd::Zero(dim, cols);
+  Eigen::MatrixXd B((1 + count)*dim, cols);
+  B.block(0, 0, dim, cols) = sum;
+  for (int i = 0; i < count; i++) {
+    int srcOffset = i*dim;
+    int dstOffset = srcOffset + dim;
+    auto a = A.block(srcOffset, 0, dim, cols);
+    std::cout << "GOOD" << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(i) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(a) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(sum) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(B) << std::endl;
+    sum += a;
+    B.block(dstOffset, 0, dim, cols) = sum;
+    std::cout << EXPR_AND_VAL_AS_STRING(B) << std::endl;
+  }
+  return B;
+}
+
 }
 }
