@@ -9,6 +9,7 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/ArrayIO.h>
 #include <algorithm>
+#include <server/common/Span.h>
 #include <server/plot/gnuplot_i.hpp>
 #include <server/common/LineKM.h>
 #include <server/plot/extra.h>
@@ -395,11 +396,14 @@ Length<double> computeTrajectoryLength(Array<Nav> navs) {
 }
 
 int findMaxSpeedOverGround(Array<Nav> navs) {
+  auto marg = Duration<double>::minutes(2.0);
+  Span<TimeStamp> validTime(navs.first().time() + marg, navs.last().time() - marg);
   int bestIndex = -1;
   auto maxSOG = Velocity<double>::knots(-1.0);
   for (int i = 0; i < navs.size(); ++i) {
-    Velocity<double> sog = navs[i].gpsSpeed();
-    if (!sog.isNaN() && maxSOG < sog) {
+    const Nav &nav = navs[i];
+    Velocity<double> sog = nav.gpsSpeed();
+    if (!sog.isNaN() && maxSOG < sog && validTime.contains(nav.time())) {
       maxSOG = sog;
       bestIndex = i;
     }

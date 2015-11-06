@@ -177,6 +177,11 @@ class Span {
     static_assert(std::is_integral<T>::value, "Only integers");
     return _minv + index;
   }
+
+  Span<T> slice(Span<T> s) const {
+    static_assert(std::is_integral<T>::value, "Only integers");
+    return Span<T>(_minv + s.minv(), _minv + s.maxv());
+  }
  private:
   bool _initialized;
   T _minv, _maxv;

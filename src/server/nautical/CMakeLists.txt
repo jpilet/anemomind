@@ -280,17 +280,6 @@ target_link_libraries(nautical_ParametricHorizontalMotion
                       common_Uniform
                      )
 
-add_executable(nautical_Plot
-               Plot.cpp
-              )
-target_link_libraries(nautical_Plot
-                      common_string
-                      plot_gnuplot
-                      common_logging
-                      nautical_TestdataNavs
-                      nautical_GeographicReference
-                     )
-                     
 add_executable(nautical_SaveMatrix
                SaveMatrix.cpp
               )
@@ -506,3 +495,18 @@ cxx_test(nautical_NavToNmeaTest NavToNmeaTest.cpp
          nautical_NavToNmea
          gtest_main
          )
+
+         
+add_executable(nautical_exploreData
+               exploreData.cpp
+              )
+              
+target_link_libraries(nautical_exploreData
+                      common_ArgMap
+                      nautical_nav
+                      common_PathBuilder
+                      nautical_NavNmeaScan
+                      math_CleanNumArray
+                      common_Span
+                      nautical_GeographicReference
+                     )       
