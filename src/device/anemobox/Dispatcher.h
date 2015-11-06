@@ -15,26 +15,28 @@
 
 namespace sail {
 
-// List of channels used by Dispatcher and NavHistory.
-//
-// This macro provides an easy way to iterate over channels at compile time.
-//
-// To use this macro, define a macro that takes the following arguments:
-//  #define ENUM_ENTRY(handle, code, type, shortname, description)
-// 
-// For example, here's how to declare a switch for each entry:
-//
-// #define CASE_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-//     case handle : return shortname;
-// 
-//   FOREACH_CHANNEL(CASE_ENTRY)
-// #undef CASE_ENTRY
-//
-// Rules to follow for modifying this list:
-// - never remove any entry
-// - never change an existing shortname
-// - never change an existing code
-// otherwise this might break compatibility with recorded data.
+/*
+ List of channels used by Dispatcher and NavHistory.
+
+ This macro provides an easy way to iterate over channels at compile time.
+
+ To use this macro, define a macro that takes the following arguments:
+  #define ENUM_ENTRY(handle, code, type, shortname, description)
+ 
+ For example, here's how to declare a switch for each entry:
+
+ #define CASE_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+     case handle : return shortname;
+ 
+   FOREACH_CHANNEL(CASE_ENTRY)
+ #undef CASE_ENTRY
+
+ Rules to follow for modifying this list:
+ - never remove any entry
+ - never change an existing shortname
+ - never change an existing code
+ otherwise this might break compatibility with recorded data.
+*/
 #define FOREACH_CHANNEL(X) \
   X(AWA, 1, "awa", Angle<>, "apparent wind angle") \
   X(AWS, 2, "aws", Velocity<>, "apparent wind speed") \
