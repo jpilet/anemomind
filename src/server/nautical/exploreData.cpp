@@ -150,7 +150,6 @@ Duration<double> inputDuration(std::string ask) {
     std::string response;
     std::getline(std::cin, response);
     auto parts = split(response, ' ');
-    std::cout << EXPR_AND_VAL_AS_STRING(parts) << std::endl;
     if (parts.size() == 2) {
       double amount = 0;
       if (tryParseDouble(parts[0], &amount)) {
