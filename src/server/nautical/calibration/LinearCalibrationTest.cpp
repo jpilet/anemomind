@@ -173,7 +173,7 @@ TEST(LinearCalibrationTest, RealData) {
   Eigen::MatrixXd Q = orthonormalBasis<Eigen::MatrixXd>(Asub);
   EXPECT_TRUE(isOrthonormal(Q));
   EXPECT_TRUE(spanTheSameSubspace(Q, Asub));
-  auto split = makeRandomSplit(30, 3);
+  auto split = makeRandomSplit(12, 3);
 }
 
 

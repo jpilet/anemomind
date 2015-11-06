@@ -183,7 +183,7 @@ MatrixType orthonormalBasis(MatrixType X) {
 
 Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim);
 
-Arrayi makeRandomSplit(int sampleCount, int splitCount);
+Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount);
 
 }
 }
