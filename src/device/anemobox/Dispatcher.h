@@ -15,45 +15,59 @@
 
 namespace sail {
 
-// For compatibility: never re-use or change a number.
-// When adding fields, keep increasing.
-// When removing a field, never recycle its index value.
+/*
+ List of channels used by Dispatcher and NavHistory.
+
+ This macro provides an easy way to iterate over channels at compile time.
+
+ To use this macro, define a macro that takes the following arguments:
+  #define ENUM_ENTRY(handle, code, type, shortname, description)
+ 
+ For example, here's how to declare a switch for each entry:
+
+ #define CASE_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+     case handle : return shortname;
+ 
+   FOREACH_CHANNEL(CASE_ENTRY)
+ #undef CASE_ENTRY
+
+ Rules to follow for modifying this list:
+ - never remove any entry
+ - never change an existing shortname
+ - never change an existing code
+ otherwise this might break compatibility with recorded data.
+*/
+#define FOREACH_CHANNEL(X) \
+  X(AWA, 1, "awa", Angle<>, "apparent wind angle") \
+  X(AWS, 2, "aws", Velocity<>, "apparent wind speed") \
+  X(TWA, 3, "twa", Angle<>, "true wind angle") \
+  X(TWS, 4, "tws", Velocity<>, "true wind speed") \
+  X(TWDIR, 5, "twdir", Angle<>, "true wind direction") \
+  X(GPS_SPEED, 6, "gpsSpeed", Velocity<>, "GPS speed") \
+  X(GPS_BEARING, 7, "gpsBearing", Angle<>, "GPS bearing") \
+  X(MAG_HEADING, 8, "magHdg", Angle<>, "magnetic heading") \
+  X(WAT_SPEED, 9, "watSpeed", Velocity<>, "water speed") \
+  X(WAT_DIST, 10, "watDist", Length<>, "distance over water") \
+  X(GPS_POS, 11, "pos", GeographicPosition<double>, "GPS position") \
+  X(DATE_TIME, 12, "dateTime", TimeStamp, "GPS date and time (UTC)") \
+  X(TARGET_VMG, 13, "targetVmg", Velocity<>, "Target VMG") \
+  X(VMG, 14, "vmg", Velocity<>, "VMG") \
+  X(ORIENT, 15, "orient", AbsoluteOrientation, "Absolute anemobox orientation")
+
 enum DataCode {
-  AWA = 1,
-  AWS = 2,
-  TWA = 3,
-  TWS = 4,
-  TWDIR = 5,
-  GPS_SPEED = 6,
-  GPS_BEARING = 7,
-  MAG_HEADING = 8,
-  WAT_SPEED = 9,
-  WAT_DIST = 10,
-  GPS_POS = 11,
-  DATE_TIME = 12,
-  TARGET_VMG = 13,
-  VMG = 14,
-  ORIENT = 15,
-  NUM_DATA_CODE = 16
+#define ENUM_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  HANDLE = CODE,
+
+  FOREACH_CHANNEL(ENUM_ENTRY)
+#undef ENUM_ENTRY
 };
 
 template <DataCode Code> struct TypeForCode { };
 
-template<> struct TypeForCode<AWA> { typedef Angle<> type; };
-template<> struct TypeForCode<AWS> { typedef Velocity<> type; };
-template<> struct TypeForCode<TWA> { typedef Angle<> type; };
-template<> struct TypeForCode<TWS> { typedef Velocity<> type; };
-template<> struct TypeForCode<TWDIR> { typedef Angle<> type; };
-template<> struct TypeForCode<GPS_SPEED> { typedef Velocity<> type; };
-template<> struct TypeForCode<GPS_BEARING> { typedef Angle<> type; };
-template<> struct TypeForCode<MAG_HEADING> { typedef Angle<> type; }; 
-template<> struct TypeForCode<WAT_SPEED> { typedef Velocity<> type; };
-template<> struct TypeForCode<WAT_DIST> { typedef Length<> type; };
-template<> struct TypeForCode<GPS_POS> { typedef GeographicPosition<double> type; };
-template<> struct TypeForCode<DATE_TIME> { typedef TimeStamp type; };
-template<> struct TypeForCode<TARGET_VMG> { typedef Velocity<> type; };
-template<> struct TypeForCode<VMG> { typedef Velocity<> type; };
-template<> struct TypeForCode<ORIENT> { typedef AbsoluteOrientation type; };
+#define DECL_TYPE(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+template<> struct TypeForCode<HANDLE> { typedef TYPE type; };
+FOREACH_CHANNEL(DECL_TYPE)
+#undef DECL_TYPE
 
 const char* descriptionForCode(DataCode code);
 const char* wordIdentifierForCode(DataCode code);
@@ -248,8 +262,6 @@ class Dispatcher : public Clock {
   boost::signals2::signal<void(DispatchData*)> dataSwitchedSource;
 
  private:
-  template <DataCode Code> void registerCode();
-
   static Dispatcher *_globalInstance;
 
   std::map<DataCode, std::map<std::string, DispatchData*>> _data;

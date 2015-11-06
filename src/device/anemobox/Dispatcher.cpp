@@ -7,64 +7,32 @@ namespace sail {
 Dispatcher *Dispatcher::_globalInstance = 0;
 
 const char* descriptionForCode(DataCode code) {
-  assert(code > 0 && code < NUM_DATA_CODE);
   switch (code) {
-    case AWA: return "apparent wind angle";
-    case AWS: return "apparent wind speed";
-    case TWA: return "true wind angle";
-    case TWS: return "true wind speed";
-    case TWDIR: return "true wind direction";
-    case GPS_BEARING: return "GPS bearing";
-    case GPS_SPEED: return "GPS speed";
-    case MAG_HEADING: return "magnetic heading";
-    case WAT_SPEED: return "water speed";
-    case WAT_DIST: return "distance over water";
-    case GPS_POS: return "GPS position";
-    case DATE_TIME: return "GPS date and time (UTC)";
-    case TARGET_VMG: return "Target VMG";
-    case VMG: return "VMG";
-    case ORIENT: return "absolute orientation";
-    case NUM_DATA_CODE: return "INVALID CODE";
-    // No default: the compiler will tell us if an entry is missing.
+#define CASE_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+    case HANDLE : return DESCRIPTION;
+
+  FOREACH_CHANNEL(CASE_ENTRY)
+#undef CASE_ENTRY
   }
 }
 
 const char* wordIdentifierForCode(DataCode code) {
-  assert(code > 0 && code < NUM_DATA_CODE);
   switch (code) {
-    case AWA: return "awa";
-    case AWS: return "aws";
-    case TWA: return "twa";
-    case TWS: return "tws";
-    case TWDIR: return "twdir";
-    case GPS_BEARING: return "gpsBearing";
-    case GPS_SPEED: return "gpsSpeed";
-    case MAG_HEADING: return "magHdg";
-    case WAT_SPEED: return "watSpeed";
-    case WAT_DIST: return "watDist";
-    case GPS_POS: return "pos";
-    case DATE_TIME: return "dateTime";
-    case TARGET_VMG: return "targetVmg";
-    case VMG: return "vmg";
-    case ORIENT: return "orient";
-    case NUM_DATA_CODE: return "INVALID CODE";
-    // No default: the compiler will tell us if an entry is missing.
+#define CASE_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+    case HANDLE : return SHORTNAME;
+
+  FOREACH_CHANNEL(CASE_ENTRY)
+#undef CASE_ENTRY
   }
 }
 
-
-template <DataCode Code> void Dispatcher::registerCode() {
-  typedef typename TypeForCode<Code>::type CodeType;
-  _currentSource[Code] = std::shared_ptr<DispatchDataProxy<CodeType>>(
-      new DispatchDataProxy<CodeType>(Code));
-
-  registerCode<static_cast<DataCode>(Code + 1)>();
-}
-template <> void Dispatcher::registerCode<NUM_DATA_CODE>() { }
-
 Dispatcher::Dispatcher() {
-  // Instanciates a proxy for each code.
-  registerCode<AWA>();
+  // Instanciates a proxy for each channel.
+#define REGISTER_PROXY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  _currentSource[HANDLE] = std::shared_ptr<DispatchDataProxy<TYPE>>( \
+      new DispatchDataProxy<TYPE>(HANDLE));
+  FOREACH_CHANNEL(REGISTER_PROXY);
+#undef REGISTER_PROXY
 }
 
 Dispatcher *Dispatcher::global() {
