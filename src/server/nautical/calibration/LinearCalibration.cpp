@@ -98,22 +98,31 @@ Array<Arrayi> makeRandomSplit(int sampleCount0, int splitCount) {
   });
 }
 
-Eigen::MatrixXd makeMeanMatrix(int rows, int dim) {
-  Eigen::MatrixXd dst = Eigen::MatrixXd(rows, dim);
+Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim) {
+  int rows = A.rows();
+  int cols = A.cols();
+  Eigen::MatrixXd dst = Eigen::MatrixXd(rows, cols);
   assert(rows % dim == 0);
-  double f = 1.0/sqrt(rows/dim);
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < dim; j++) {
-      auto local = i % dim;
-      dst(i, j) = (local == j? f : 0.0);
+
+  int count = rows/dim;
+  assert(dim*count == rows);
+  Eigen::MatrixXd sum = Eigen::MatrixXd::Zero(dim, cols);
+  {
+    int offset = 0;
+    for (int i = 0; i < count; i++) {
+      sum += A.block(offset, 0, dim, cols);
+      offset += dim;
+    }
+  }
+  sum *= (1.0/count);
+  {
+    int offset = 0;
+    for (int i = 0; i < count; i++) {
+      dst.block(offset, 0, dim, cols) = A.block(offset, 0, dim, cols) - sum;
+      offset += dim;
     }
   }
   return dst;
-}
-
-Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim) {
-  auto mm = makeMeanMatrix(A.rows(), dim);
-  return A - mm*(mm.transpose()*A);
 }
 
 }

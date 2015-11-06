@@ -174,6 +174,21 @@ TEST(LinearCalibrationTest, RealData) {
   EXPECT_TRUE(isOrthonormal(Q));
   EXPECT_TRUE(spanTheSameSubspace(Q, Asub));
   auto split = makeRandomSplit(12, 3);
+  EXPECT_EQ(split.size(), 3);
+  for (auto s: split) {
+    EXPECT_EQ(s.size(), 4);
+  }
+  Spani indexSpan(0, 12);
+  auto marked = Arrayb::fill(12, false);
+  for (auto s: split) {
+    for (auto i: s) {
+      EXPECT_TRUE(indexSpan.contains(i));
+      EXPECT_FALSE(marked[i]);
+      marked[i] = true;
+    }
+  }
+
+
 }
 
 
