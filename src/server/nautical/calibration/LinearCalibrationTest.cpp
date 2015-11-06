@@ -95,9 +95,10 @@ TEST(LinearCalibrationTest, RealData) {
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
   CalibrationSettings cs;
-  cs.samplesPerSpan = 60;
+  cs.samplesPerSpan = 1000;
   auto results = calibrate(trueWind, cs);
   std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(results.spans.size()) << std::endl;
 
 }
 
