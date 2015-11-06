@@ -107,7 +107,7 @@ int selectFromAlternatives(Array<std::string> alternatives) {
   return x-1;
 }
 
-Duration<double> inputDuration(std::string ask) {
+Duration<double> inputFreeDuration(std::string ask) {
   std::cout << ask << std::endl;
   Duration<double> units[4] = {
       Duration<double>::seconds(1.0),
@@ -121,6 +121,29 @@ Duration<double> inputDuration(std::string ask) {
   double amount = 0;
   std::cin >> amount;
   return amount*units[index];
+}
+
+Duration<double> inputDuration(std::string ask) {
+  std::cout << ask << std::endl;
+  int choice = selectFromAlternatives(Array<std::string>{
+    "1 minute",
+    "1 hour",
+    "1 day",
+    "1 week",
+    "1 month",
+    "other duration"
+  });
+  Array<Duration<double> > durations{
+    Duration<double>::minutes(1.0),
+    Duration<double>::hours(1.0),
+    Duration<double>::days(1.0),
+    Duration<double>::weeks(1.0),
+    Duration<double>::days(30),
+  };
+  if (choice < 5) {
+    return durations[choice];
+  }
+  return inputFreeDuration(ask);
 }
 
 Array<Nav> slice(Array<Nav> navs, Spani span) {
