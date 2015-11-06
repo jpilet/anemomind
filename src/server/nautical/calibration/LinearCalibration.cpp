@@ -79,6 +79,15 @@ std::string LinearCorrector::toString() const {
   return ss.str();
 }
 
+Arrayi makeRandomSplit(int sampleCount, int splitCount) {
+  Arrayi inds(sampleCount);
+  LineKM map(0, sampleCount, 0, splitCount);
+  for (int i = 0; i < sampleCount; i++) {
+    inds[i] = int(floor(map(i)));
+  }
+  std::random_shuffle(inds.begin(), inds.end());
+  return inds;
+}
 
 }
 }

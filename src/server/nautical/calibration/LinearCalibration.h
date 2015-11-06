@@ -165,6 +165,8 @@ struct CalibrationSettings {
   double inlierFrac = 0.2;
 };
 
+Arrayi makeRandomSplit(int sampleCount, int splitCount);
+
 }
 }
 

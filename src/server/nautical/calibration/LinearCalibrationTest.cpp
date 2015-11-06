@@ -93,6 +93,8 @@ TEST(LinearCalibrationTest, RealData) {
   FlowSettings flowSettings;
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
+
+  auto split = makeRandomSplit(30, 3);
 }
 
 
