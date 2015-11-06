@@ -186,7 +186,7 @@ Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim);
 Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X);
 
 struct NormedData {
-  Eigen::MatrixXd A, B;
+  Eigen::MatrixXd Q, B;
 };
 
 Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim);

@@ -199,7 +199,7 @@ TEST(LinearCalibrationTest, ExtractRows) {
 }
 
 TEST(LinearCalibrationTest, Split) {
-  auto split = makeRandomSplit(12, 3);
+  auto split = makeRandomSplit(13, 3);
   EXPECT_EQ(split.size(), 3);
   for (auto s: split) {
     EXPECT_EQ(s.size(), 4);

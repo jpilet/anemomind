@@ -167,9 +167,11 @@ Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim) {
 
 Array<NormedData> assembleNormedData(Eigen::MatrixXd Q, Eigen::MatrixXd B,
     Array<Arrayi> splits) {
-  /*return splits.map<NormedData>([=](Arrayi split) {
-
-  });*/
+  return splits.map<NormedData>([=](Arrayi split) {
+    auto q = normalizeFlowData(extractRows(Q, split, 2));
+    auto b = normalizeFlowData(extractRows(B, split, 2));
+    return NormedData{q, b};
+  });
 }
 
 /*Array<NormedData> assembleNormedData(FlowMatrices mats, Array<Arrayi> splits) {
