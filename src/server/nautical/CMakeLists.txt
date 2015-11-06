@@ -508,4 +508,9 @@ target_link_libraries(nautical_exploreData
                       math_CleanNumArray
                       common_Span
                       nautical_GeographicReference
-                     )       
+                     )
+
+cxx_test(nautical_TimedSampleCollectionTest TimedSampleCollectionTest.cpp
+         common_TimeStamp
+         gtest_main
+         )
