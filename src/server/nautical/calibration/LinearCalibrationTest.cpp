@@ -147,8 +147,6 @@ TEST(LinearCalibrationTest, SubtractMean) {
     auto itg = integrate(test, 2);
     EXPECT_EQ(itg.rows(), itggt.rows());
     EXPECT_EQ(itg.cols(), itggt.cols());
-    std::cout << EXPR_AND_VAL_AS_STRING(itg) << std::endl;
-    std::cout << EXPR_AND_VAL_AS_STRING(itggt) << std::endl;
     for (int i = 0; i < 6; i++) {
       for (int j = 0; j < 2; j++) {
         EXPECT_NEAR(itg(i, j), itggt(i, j), 1.0e-6);
