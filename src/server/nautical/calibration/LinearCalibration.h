@@ -165,22 +165,6 @@ struct CalibrationSettings {
   double inlierFrac = 0.2;
 };
 
-struct PlotData {
-  MDArray2d Xflow, Yflow, Xgps, Ygps;
-  void show();
-};
-
-struct Results {
-  Arrayd parameters;
-  Array<Spani> spans;
-  Arrayi inliers;
-  Arrayb inlierMask;
-  Array<PlotData> plotData;
-};
-
-
-Results calibrate(FlowMatrices mats, const CalibrationSettings &s);
-
 }
 }
 

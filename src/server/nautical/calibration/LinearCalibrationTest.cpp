@@ -93,15 +93,6 @@ TEST(LinearCalibrationTest, RealData) {
   FlowSettings flowSettings;
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
-
-  CalibrationSettings cs;
-  cs.samplesPerSpan = 12;
-  auto results = calibrate(trueWind, cs);
-  std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(results.spans.size()) << std::endl;
-  for (auto i : results.inliers) {
-    results.plotData[i].show();
-  }
 }
 
 
