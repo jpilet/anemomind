@@ -15,6 +15,8 @@
 #include <server/common/string.h>
 #include <server/math/CleanNumArray.h>
 #include <server/nautical/GeographicReference.h>
+#include <server/common/string.h>
+#include <server/common/ArrayIO.h>
 
 using namespace sail;
 
@@ -107,43 +109,64 @@ int selectFromAlternatives(Array<std::string> alternatives) {
   return x-1;
 }
 
-Duration<double> inputFreeDuration(std::string ask) {
-  std::cout << ask << std::endl;
-  Duration<double> units[4] = {
-      Duration<double>::seconds(1.0),
-      Duration<double>::minutes(1.0),
-      Duration<double>::hours(1.0),
-      Duration<double>::days(1.0)
-  };
-  auto unitLabels = Array<std::string>{"seconds", "minutes", "hours", "days"};
-  int index = selectFromAlternatives(unitLabels);
-  std::cout << "How many " << unitLabels[index] << "? ";
-  double amount = 0;
-  std::cin >> amount;
-  return amount*units[index];
+std::map<std::string, Duration<double> > makeUnitMap(
+    Array<Array<std::string> > names,
+    Array<Duration<double> >  durations) {
+  std::map<std::string, Duration<double> > m;
+  assert(names.size() == durations.size());
+  int count = durations.size();
+  for (int i = 0; i < count; i++) {
+    auto namesSub = names[i];
+    auto dur = durations[i];
+    for (auto name: namesSub) {
+      m[name] = dur;
+    }
+  }
+  return m;
 }
 
 Duration<double> inputDuration(std::string ask) {
-  std::cout << ask << std::endl;
-  int choice = selectFromAlternatives(Array<std::string>{
-    "1 minute",
-    "1 hour",
-    "1 day",
-    "1 week",
-    "1 month",
-    "other duration"
-  });
-  Array<Duration<double> > durations{
-    Duration<double>::minutes(1.0),
-    Duration<double>::hours(1.0),
-    Duration<double>::days(1.0),
-    Duration<double>::weeks(1.0),
-    Duration<double>::days(30),
-  };
-  if (choice < 5) {
-    return durations[choice];
+  while (true) {
+    auto unitMap = makeUnitMap(
+        Array<Array<std::string> >{
+           Array<std::string>{"s", "seconds", "second", "sec", "secs"},
+           Array<std::string>{"min", "minutes", "minute"},
+           Array<std::string>{"h", "hour", "hours"},
+           Array<std::string>{"day", "days"},
+           Array<std::string>{"w", "week", "weeks"},
+           Array<std::string>{"month", "months"}
+        },
+        Array<Duration<double> >{
+          Duration<double>::seconds(1.0),
+          Duration<double>::minutes(1.0),
+          Duration<double>::hours(1.0),
+          Duration<double>::days(1.0),
+          Duration<double>::weeks(1.0),
+          Duration<double>::days(30.0)
+        }
+    );
+
+    std::cout << ask << std::endl;
+    std::string response;
+    std::getline(std::cin, response);
+    auto parts = split(response, ' ');
+    std::cout << EXPR_AND_VAL_AS_STRING(parts) << std::endl;
+    if (parts.size() == 2) {
+      double amount = 0;
+      if (tryParseDouble(parts[0], &amount)) {
+        auto unit = unitMap.find(parts[1]);
+        if (unit != unitMap.end()) {
+          return amount*unit->second;
+        } else {
+          std::cout << "No such unit: " << parts[1] << "\n";
+        }
+      } else {
+        std::cout << "Cannot parse as number: " << parts[0] << "\n";
+      }
+    } else {
+      std::cout << "Please provide the amount and the unit, separated by a space.\n";
+    }
   }
-  return inputFreeDuration(ask);
 }
 
 Array<Nav> slice(Array<Nav> navs, Spani span) {
