@@ -155,7 +155,8 @@ namespace {
     bool eval(const T *X,
         T *residuals) const {
       T AXsquaredNorm = matMulSquaredNorm(_A, X);
-      T factor = sqrt((AXsquaredNorm + _Bsquared)/(AXsquaredNorm*_Bsquared));
+      //T factor = sqrt((AXsquaredNorm + _Bsquared)/(AXsquaredNorm*_Bsquared));
+      T factor = T(1.0); //1.0/sqrt(AXsquaredNorm);
       matMulAdd(factor, _A, _B, X, residuals);
       return true;
     }
