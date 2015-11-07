@@ -110,7 +110,8 @@ void matMulAdd(T scale, const Eigen::MatrixXd &A,
     for (int j = 0; j < A.cols(); j++) {
       sum += A(i, j)*X[j];
     }
-    dst[i] = scale*sum;
+    T result = scale*sum;
+    dst[i] = result;
   }
 }
 
@@ -154,9 +155,9 @@ namespace {
     bool eval(const T *X,
         T *residuals) const {
       T AXsquaredNorm = matMulSquaredNorm(_A, X);
-      std::cout << EXPR_AND_VAL_AS_STRING(AXsquaredNorm) << std::endl;
       T factor = sqrt((AXsquaredNorm + _Bsquared)/(AXsquaredNorm*_Bsquared));
       matMulAdd(factor, _A, _B, X, residuals);
+      return true;
     }
   };
 
