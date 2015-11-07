@@ -235,6 +235,7 @@ struct NLResults {
 };
 
 NLResults optimizeNonlinear(FlowMatrices mats, Array<Arrayi> splits);
+NLResults optimizeNormalizedSmoothness(FlowMatrices flow, Array<Arrayi> splits);
 
 }
 }

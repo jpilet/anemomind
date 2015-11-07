@@ -302,10 +302,8 @@ void initialize(Arrayd *X) {
 void nonlinearTest(FlowMatrices flow) {
   int splitCount = 30;
   auto splits = makeRandomSplit(flow.count(), splitCount);
-  auto results = optimizeNonlinear(flow, splits);
+  auto results = optimizeNormalizedSmoothness(flow, splits);
   std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
-
-  initialize(&results.parameters);
 
   plotFlowFibers(results.fibers,
       Eigen::Map<Eigen::MatrixXd>(results.parameters.ptr(), 4, 1), 1.0);
