@@ -146,7 +146,7 @@ Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X) {
   return subtractMean(integrate(X, 2), 2);
 }
 
-MDArray2d NormedData::makePlotData(Eigen::VectorXd params, double scale) {
+MDArray2d FlowFiber::makePlotData(Eigen::VectorXd params, double scale) {
   Eigen::VectorXd Y = Q*params + scale*B;
   int n = Y.rows()/2;
   MDArray2d dst(n, 2);
@@ -158,7 +158,7 @@ MDArray2d NormedData::makePlotData(Eigen::VectorXd params, double scale) {
   return dst;
 }
 
-void plotTrajectories(Array<NormedData> data,
+void plotFlowFibers(Array<FlowFiber> data,
                       Eigen::VectorXd params, double scale) {
   GnuplotExtra plot;
   plot.set_style("lines");
@@ -181,13 +181,52 @@ Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim) {
   return dst;
 }
 
-Array<NormedData> assembleNormedData(Eigen::MatrixXd Q, Eigen::MatrixXd B,
+Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
     Array<Arrayi> splits) {
-  return splits.map<NormedData>([=](Arrayi split) {
+  return splits.map<FlowFiber>([=](Arrayi split) {
     auto q = normalizeFlowData(extractRows(Q, split, 2));
     auto b = normalizeFlowData(extractRows(B, split, 2));
-    return NormedData{q, b};
+    return FlowFiber{q, b};
   });
+}
+
+int getSameCount(Array<FlowFiber> fibers, std::function<int(FlowFiber)> f) {
+  if (fibers.empty()) {
+    return -1;
+  } else {
+    auto n = f(fibers[0]);
+    for (auto fiber: fibers) {
+      if (n != f(fiber)) {
+        return -1;
+      }
+    }
+    return n;
+  }
+}
+
+
+FlowFiber assembleFullProblem(Array<FlowFiber> fibers) {
+  using namespace DataFit;
+  auto rowsPerFiber = getSameCount(fibers, [](FlowFiber f) {return f.rows();});
+  auto parametersPerFiber = getSameCount(fibers, [](FlowFiber f) {
+    return f.parameterCount();
+  });
+  CHECK(rowsPerFiber != -1);
+  CHECK(parametersPerFiber != -1);
+  int fiberCount = fibers.size();
+  int rows = fiberCount*rowsPerFiber;
+  Eigen::MatrixXd Q(rows, parametersPerFiber);
+  Eigen::MatrixXd B(rows, 1);
+  auto idx = CoordIndexer::Factory().make(fiberCount, rowsPerFiber);
+  for (int i = 0; i < fiberCount; i++) {
+    auto s = idx.span(i);
+    sliceRows(Q, s) = sliceRows(fibers[i].Q, s);
+    sliceRows(B, s) = sliceRows(fibers[i].B, s);
+  }
+  return FlowFiber{
+    subtractMean(Q, rowsPerFiber),
+    subtractMean(B, rowsPerFiber)
+  };
 }
 
 /*Array<NormedData> assembleNormedData(FlowMatrices mats, Array<Arrayi> splits) {

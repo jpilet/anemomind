@@ -224,7 +224,7 @@ TEST(LinearCalibrationTest, RealData) {
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-  auto flow = trueWind;
+  auto flow = trueCurrent;
 
   Eigen::MatrixXd Aeigen =
       Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
@@ -243,11 +243,11 @@ TEST(LinearCalibrationTest, RealData) {
 
   auto splits = makeRandomSplit(flow.count(), splitCount);
   std::cout << EXPR_AND_VAL_AS_STRING(splits.size()) << std::endl;
-  auto normed = assembleNormedData(Aeigen, Beigen, splits);
+  auto normed = makeFlowFibers(Aeigen, Beigen, splits);
 
   Eigen::VectorXd X = Eigen::VectorXd::Zero(4, 1);
   X(0) = 1.0;
-  plotTrajectories(normed, X);
+  plotFlowFibers(normed, X, 1.0);
 }
 
 

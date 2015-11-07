@@ -185,16 +185,31 @@ Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim);
 Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim);
 Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X);
 
-struct NormedData {
+struct FlowFiber {
   Eigen::MatrixXd Q, B;
   MDArray2d makePlotData(Eigen::VectorXd params, double scale = 1.0);
+
+  int rows() const {
+    assert(Q.rows() == B.rows());
+    return Q.rows();
+  }
+
+  int observationCount() const {
+    assert(Q.rows() % 2 == 0);
+    return Q.rows()/2;
+  }
+
+  int parameterCount() const {
+    return Q.cols();
+  }
 };
 
-void plotTrajectories(Array<NormedData> data, Eigen::VectorXd params, double scale = 1.0);
+void plotFlowFibers(Array<FlowFiber> flowFibers, Eigen::VectorXd params, double scale = 1.0);
 
 Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim);
-Array<NormedData> assembleNormedData(Eigen::MatrixXd Q, Eigen::MatrixXd B,
+Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
     Array<Arrayi> splits);
+FlowFiber assembleFullProblem(Array<FlowFiber> fibers);
 
 Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount);
 

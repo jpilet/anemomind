@@ -111,6 +111,18 @@ class CoordIndexer {
   int _offset, _dim, _count;
 };
 
+template <typename T, int rows=Eigen::Dynamic, int cols=Eigen::Dynamic>
+auto sliceRows(Eigen::Matrix<T, rows, cols> &src, const Spani &c)
+  -> decltype(src.block(0, 0, 1, 1)) {
+  return src.block(c.minv(), 0, c.width(), src.cols());
+}
+
+template <typename T, int rows=Eigen::Dynamic, int cols=Eigen::Dynamic>
+auto sliceCols(Eigen::Matrix<T, rows, cols> &src, const Spani &c)
+  -> decltype(src.block(0, 0, 1, 1)) {
+  return src.block(0, c.minv(), src.rows(), c.width());
+}
+
 
 
 // Make regularization term
