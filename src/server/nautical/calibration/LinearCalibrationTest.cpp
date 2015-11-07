@@ -300,7 +300,7 @@ void initialize(Arrayd *X) {
 }
 
 void nonlinearTest(FlowMatrices flow) {
-  int splitCount = 30;
+  int splitCount = 60;
   auto splits = makeRandomSplit(flow.count(), splitCount);
   auto results = optimizeNormalizedSmoothness(flow, splits);
   std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
