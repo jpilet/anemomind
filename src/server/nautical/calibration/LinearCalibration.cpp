@@ -312,6 +312,16 @@ namespace {
     bool eval(const T *X,
         T *residuals) const {
       T len = computeTotalTrajectoryLength(X);
+      T f = T(1.0)/(abs(len) + T(1.0e-12));
+      int n = _fibers.observationCount();
+      for (int i = 0; i < n; i++) {
+        int rowOffset = 2*i;
+        for (int j = 0; j < 2; j++) {
+          int row = rowOffset + j;
+          residuals[row] = f*matmulAXB(row, _fibers.Q, _fibers.B, X);
+        }
+      }
+      return true;
     }
 
     template <typename T>
