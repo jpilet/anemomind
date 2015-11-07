@@ -347,6 +347,27 @@ FullProblem assembleFullProblem(Array<FlowFiber> fibers) {
   }
   auto Qfull = subtractMean(Q, rowsPerFiber);
   auto Bfull = subtractMean(B, rowsPerFiber);
+
+  {
+    Eigen::VectorXd K = Eigen::VectorXd::Zero(4);
+    K(0) = 1.0;
+    std::cout << EXPR_AND_VAL_AS_STRING(Qfull.mean.rows()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(Qfull.mean.cols()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(Bfull.mean.rows()) << std::endl;
+    std::cout << EXPR_AND_VAL_AS_STRING(Bfull.mean.cols()) << std::endl;
+    Eigen::MatrixXd X = (Qfull.mean*K + Bfull.mean).block(0, 0, 600, 1);
+    MDArray2d XY(X.rows()/2, 2);
+    for (int i = 0; i < X.rows()/2; i++) {
+      int offset = 2*i;
+      XY(i, 0) = X(offset + 0);
+      XY(i, 1) = X(offset + 1);
+    }
+    GnuplotExtra plot;
+    plot.set_style("lines");
+    plot.plot(XY);
+    plot.show();
+  }
+
   return FullProblem{
     Qfull.results, Bfull.results,
     Qfull.mean, Bfull.mean
