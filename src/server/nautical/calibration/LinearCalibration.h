@@ -219,6 +219,15 @@ Eigen::MatrixXd makeAB(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
 Eigen::MatrixXd makeABBasis(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
 Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount);
 
+/*
+ * Minimize |AX + B|^2/|AX|^2 + |AX + B|^2/|B|^2
+ *
+ * useful for our problems
+ */
+Arrayd solveNormalizedSmoothness(const Eigen::MatrixXd &A,
+    const Eigen::VectorXd &B, const Arrayd &X = Arrayd());
+
+
 struct NLResults {
   Eigen::MatrixXd A, B;
   Array<FlowFiber> fibers;

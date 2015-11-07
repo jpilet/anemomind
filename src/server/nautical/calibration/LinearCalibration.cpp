@@ -99,6 +99,97 @@ Array<Arrayi> makeRandomSplit(int sampleCount0, int splitCount) {
   });
 }
 
+// Inside the optimizer, where T is a ceres Jet.
+// Not sure how well it works with Eigen.
+template <typename T>
+void matMulAdd(T scale, const Eigen::MatrixXd &A,
+               const Eigen::VectorXd &B, const T *X, T *dst) {
+  CHECK(A.rows() == B.rows());
+  for (int i = 0; i < A.rows(); i++) {
+    T sum = T(B(i));
+    for (int j = 0; j < A.cols(); j++) {
+      sum += A(i, j)*X[j];
+    }
+    dst[i] = scale*sum;
+  }
+}
+
+template <typename T>
+T matMulSquaredNorm(const Eigen::MatrixXd &A, const T *X) {
+  T sumSquares = T(0.0);
+  for (int i = 0; i < A.rows(); i++) {
+    T sum = T(0.0);
+    for (int j = 0; j < A.cols(); j++) {
+      sum += A(i, j)*X[j];
+    }
+    sumSquares += sum*sum;
+  }
+  return sumSquares;
+}
+
+namespace {
+  class NormalizedSmoothnessObjf {
+   public:
+    NormalizedSmoothnessObjf(Eigen::MatrixXd A, Eigen::MatrixXd B) :
+      _A(A), _B(B), _Bsquared(B.squaredNorm()) {}
+
+    int outDims() const {
+      return _A.rows();
+    }
+
+    int inDims() const {
+      return _A.cols();
+    }
+
+    template<typename T>
+    bool operator()(T const* const* parameters, T* residuals) const {
+      const T *X = parameters[0];
+      return eval(X, residuals);
+    }
+   private:
+    Eigen::MatrixXd _A, _B;
+    double _Bsquared;
+
+    template <typename T>
+    bool eval(const T *X,
+        T *residuals) const {
+      T AXsquaredNorm = matMulSquaredNorm(_A, X);
+      T factor = sqrt((AXsquaredNorm + _Bsquared)/(AXsquaredNorm*_Bsquared));
+      matMulAdd(factor, _A, _B, X, residuals);
+    }
+  };
+
+}
+
+Arrayd initializeParameters(const Arrayd &Xprovided, int count) {
+  if (Xprovided.empty()) {
+    auto X = Arrayd::fill(count, 0.0);
+    X[0] = 1.0;
+    return X;
+  }
+  CHECK(Xprovided.size() == count);
+  return Xprovided;
+}
+
+Arrayd solveNormalizedSmoothness(const Eigen::MatrixXd &A,
+    const Eigen::VectorXd &B, const Arrayd &X) {
+  Arrayd parameters = initializeParameters(X, A.cols());
+  auto objf = new NormalizedSmoothnessObjf(A, B);
+  ceres::Problem problem;
+  auto cost = new ceres::DynamicAutoDiffCostFunction<NormalizedSmoothnessObjf>(objf);
+  cost->AddParameterBlock(parameters.size());
+  cost->SetNumResiduals(objf->outDims());
+  problem.AddResidualBlock(cost, NULL, parameters.ptr());
+  ceres::Solver::Options options;
+  options.minimizer_progress_to_stdout = true;
+  options.max_num_iterations = 60;
+  ceres::Solver::Summary summary;
+  Solve(options, &problem, &summary);
+  return parameters;
+}
+
+
+
 Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim) {
   int rows = A.rows();
   int cols = A.cols();
@@ -349,6 +440,20 @@ namespace {
     }
   };
 
+}
+
+NLResults optimizeNormalizedSmoothness(FlowMatrices flow, Array<Arrayi> splits) {
+  Eigen::MatrixXd Aeigen =
+      Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
+
+  Eigen::MatrixXd Beigen =
+      Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
+  auto fibers = makeFlowFibers(Aeigen, Beigen, splits);
+  auto full = assembleFullProblem(fibers);
+  return NLResults{
+    Aeigen, Beigen, fibers,
+    solveNormalizedSmoothness(full.Q, full.B)
+  };
 }
 
 
