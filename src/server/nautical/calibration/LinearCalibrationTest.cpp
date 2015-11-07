@@ -299,14 +299,33 @@ void initialize(Arrayd *X) {
   (*X)[0] = 1.0;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void nonlinearTest(FlowMatrices flow) {
-  int splitCount = 60;
+  int splitCount = 30;
   auto splits = makeRandomSplit(flow.count(), splitCount);
   auto results = optimizeNormalizedSmoothness(flow, splits);
   std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
 
+  Eigen::VectorXd defaultX = Eigen::VectorXd::Zero(4);
+  defaultX(0) = 1.0;
+
   plotFlowFibers(results.fibers,
-      Eigen::Map<Eigen::MatrixXd>(results.parameters.ptr(), 4, 1), 1.0);
+      Eigen::Map<Eigen::MatrixXd>(results.parameters.ptr(), 4, 1),
+      defaultX,
+      1.0);
 }
 
 TEST(LinearCalibrationTest, RealData) {

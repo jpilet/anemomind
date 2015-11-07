@@ -207,6 +207,9 @@ struct FlowFiber {
 };
 
 void plotFlowFibers(Array<FlowFiber> flowFibers, Eigen::VectorXd params, double scale = 1.0);
+void plotFlowFibers(Array<FlowFiber> data,
+    Eigen::VectorXd A, Eigen::VectorXd B, double scale = 1.0);
+
 
 Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim);
 Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,

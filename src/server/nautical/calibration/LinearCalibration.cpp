@@ -267,6 +267,17 @@ void plotFlowFibers(Array<FlowFiber> data,
   plot.show();
 }
 
+void plotFlowFibers(Array<FlowFiber> data,
+    Eigen::VectorXd A, Eigen::VectorXd B, double scale) {
+  GnuplotExtra plot;
+  plot.set_style("lines");
+  for (auto d: data) {
+    plot.plot(d.makePlotData(A, scale));
+    plot.plot(d.makePlotData(B, scale));
+  }
+  plot.show();
+}
+
 Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim) {
   int n = inds.size();
   int dstRows = dim*n;
