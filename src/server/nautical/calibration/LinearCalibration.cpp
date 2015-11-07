@@ -321,6 +321,7 @@ namespace {
           residuals[row] = f*matmulAXB(row, _fibers.Q, _fibers.B, X);
         }
       }
+      CHECK(2*n == outDims());
       return true;
     }
 
@@ -342,7 +343,7 @@ namespace {
         int offset = 2*i;
         auto x = matmulAXB(offset + 0, _A, _B, X);
         auto y = matmulAXB(offset + 1, _A, _B, X);
-        totalLength += sqrt(x*x + y*y);
+        totalLength += sqrt(abs(x*x + y*y) + 1.0e-12);
       }
       return totalLength;
     }
@@ -363,7 +364,7 @@ NLResults optimizeNonlinear(FlowMatrices flow, Array<Arrayi> splits) {
   Arrayd parameters = Arrayd::fill(full.parameterCount(), 0.0);
   parameters[0] = 1.0;
 
-  auto objf = new Objf(full, Aeigen, Beigen);
+  auto objf = new Objf(full, Aeigen, Eigen::MatrixXd());
   ceres::Problem problem;
   auto cost = new ceres::DynamicAutoDiffCostFunction<Objf>(objf);
   cost->AddParameterBlock(full.parameterCount());

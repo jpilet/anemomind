@@ -294,6 +294,23 @@ void separateOrthoTest(FlowMatrices flow, Eigen::MatrixXd Aeigen, Eigen::MatrixX
   plotFlowFibers(fibersAB, X, scale);
 }
 
+void initialize(Arrayd *X) {
+  X->setTo(0.0);
+  (*X)[0] = 1.0;
+}
+
+void nonlinearTest(FlowMatrices flow) {
+  int splitCount = 30;
+  auto splits = makeRandomSplit(flow.count(), splitCount);
+  auto results = optimizeNonlinear(flow, splits);
+  std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
+
+  initialize(&results.parameters);
+
+  plotFlowFibers(results.fibers,
+      Eigen::Map<Eigen::MatrixXd>(results.parameters.ptr(), 4, 1), 1.0);
+}
+
 TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
@@ -302,7 +319,7 @@ TEST(LinearCalibrationTest, RealData) {
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-  auto flow = trueCurrent;
+  auto flow = trueWind;
 
   Eigen::MatrixXd Aeigen =
       Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
@@ -310,9 +327,10 @@ TEST(LinearCalibrationTest, RealData) {
   Eigen::MatrixXd Beigen =
       Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
 
-  basicFiberTests(flow, Aeigen, Beigen);
+  //basicFiberTests(flow, Aeigen, Beigen);
   //fullABOrthoTest(flow, Aeigen, Beigen);
   //separateOrthoTest(flow, Aeigen, Beigen);
+  nonlinearTest(flow);
 }
 
 
