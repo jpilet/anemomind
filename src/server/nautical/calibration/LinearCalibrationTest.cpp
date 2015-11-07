@@ -155,7 +155,7 @@ TEST(LinearCalibrationTest, SubtractMean) {
     }
 
 
-    Eigen::MatrixXd test2 = subtractMean(test, 1);
+    Eigen::MatrixXd test2 = subtractMean(test, 1).results;
     double expected[4] = {-3, -1, 1, 3};
     EXPECT_EQ(test2.rows(), 4);
     EXPECT_EQ(test2.cols(), 2);
@@ -172,7 +172,7 @@ TEST(LinearCalibrationTest, SubtractMean) {
     K(1, 0) = 30;
     K(2, 0) = 7;
     K(3, 0) = 40;
-    auto B = subtractMean(K, 2);
+    auto B = subtractMean(K, 2).results;
     double expected[4] = {1, -5, -1, 5};
     for (int i = 0; i < 4; i++) {
       EXPECT_NEAR(B(i, 0), (expected[i]), 1.0e-6);
@@ -222,31 +222,22 @@ TEST(LinearCalibrationTest, Split) {
  */
 void basicFiberTests(FlowMatrices flow, Eigen::MatrixXd Aeigen, Eigen::MatrixXd Beigen) {
   {
-      Eigen::MatrixXd Asub = Aeigen.block(0, 0, 30, flow.A.cols());
-      Eigen::MatrixXd Q = orthonormalBasis<Eigen::MatrixXd>(Asub);
-      EXPECT_TRUE(isOrthonormal(Q));
-      EXPECT_TRUE(spanTheSameSubspace(Q, Asub));
-    }
+    Eigen::MatrixXd Asub = Aeigen.block(0, 0, 30, flow.A.cols());
+    Eigen::MatrixXd Q = orthonormalBasis<Eigen::MatrixXd>(Asub);
+    EXPECT_TRUE(isOrthonormal(Q));
+    EXPECT_TRUE(spanTheSameSubspace(Q, Asub));
+  }
 
-    int splitCount = 30;
+  int splitCount = 30;
 
-    auto splits = makeRandomSplit(flow.count(), splitCount);
-    std::cout << EXPR_AND_VAL_AS_STRING(splits.size()) << std::endl;
-    auto fibers = makeFlowFibers(Aeigen, Beigen, splits);
+  auto splits = makeRandomSplit(flow.count(), splitCount);
+  std::cout << EXPR_AND_VAL_AS_STRING(splits.size()) << std::endl;
+  auto fibers = makeFlowFibers(Aeigen, Beigen, splits);
 
-    Eigen::VectorXd X = Eigen::VectorXd::Zero(4, 1);
-    X(0) = 1.0;
-    double scale = 2.0;
-    auto full = assembleFullProblem(fibers);
-    {
-      int scaleSamples = 30;
-      LineKM map(0, scaleSamples-1, 0.0, 2.0);
-      for (int i = 0; i < scaleSamples; i++) {
-        double s = map(i);
-        double value = full.eval(X, s);
-        std::cout << "At scale " << s << " it evaluates to " << value << std::endl;
-      }
-    }
+  Eigen::VectorXd X = Eigen::VectorXd::Zero(4, 1);
+  X(0) = 1.0;
+  double scale = 2.0;
+  auto full = assembleFullProblem(fibers);
   plotFlowFibers(fibers, X, scale);
 }
 
@@ -328,6 +319,18 @@ void nonlinearTest(FlowMatrices flow) {
       1.0);
 }
 
+void visTest(FlowMatrices flow, Eigen::MatrixXd A, Eigen::MatrixXd B) {
+  int splitCount = 30;
+  auto splits = makeRandomSplit(flow.count(), splitCount);
+  Array<FlowFiber> fibers = makeFlowFibers(A, B, splits);
+  std::cout << EXPR_AND_VAL_AS_STRING(fibers.size()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(fibers[0].observationCount()) << std::endl;
+  auto problem = assembleFullProblem(fibers);
+  Eigen::VectorXd X = Eigen::VectorXd::Zero(4);
+  X(0) = 1.0;
+  plotFlowFibers(Array<FlowFiber>{fibers}, X);
+}
+
 TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
@@ -347,7 +350,8 @@ TEST(LinearCalibrationTest, RealData) {
   //basicFiberTests(flow, Aeigen, Beigen);
   //fullABOrthoTest(flow, Aeigen, Beigen);
   //separateOrthoTest(flow, Aeigen, Beigen);
-  nonlinearTest(flow);
+  //nonlinearTest(flow);
+  visTest(flow, Aeigen, Beigen);
 }
 
 

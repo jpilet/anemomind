@@ -181,7 +181,11 @@ MatrixType orthonormalBasis(MatrixType X) {
   return qr.householderQ()*selectSpanningSpace;
 }
 
-Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim);
+struct SubtractMeanResults {
+  Eigen::MatrixXd results;
+  Eigen::MatrixXd mean;
+};
+SubtractMeanResults subtractMean(Eigen::MatrixXd A, int dim);
 Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim);
 Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X);
 
@@ -215,7 +219,16 @@ Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim);
 Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
     Array<Arrayi> splits);
 Array<Eigen::MatrixXd> makeFlowFibers(Eigen::MatrixXd Q, Array<Arrayi> splits);
-FlowFiber assembleFullProblem(Array<FlowFiber> fibers);
+
+struct FullProblem {
+  Eigen::MatrixXd A, B;
+  Eigen::MatrixXd meanA, meanB;
+  int parameterCount() const {
+    return A.cols();
+  }
+};
+
+FullProblem assembleFullProblem(Array<FlowFiber> fibers);
 Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K);
 Eigen::MatrixXd assembleFullProblem(Array<Eigen::MatrixXd> fibers);
 Eigen::MatrixXd makeAB(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);

@@ -155,8 +155,7 @@ namespace {
     bool eval(const T *X,
         T *residuals) const {
       T AXsquaredNorm = matMulSquaredNorm(_A, X);
-      //T factor = sqrt((AXsquaredNorm + _Bsquared)/(AXsquaredNorm*_Bsquared));
-      T factor = T(1.0); //1.0/sqrt(AXsquaredNorm);
+      T factor = sqrt((AXsquaredNorm + _Bsquared)/(AXsquaredNorm*_Bsquared));
       matMulAdd(factor, _A, _B, X, residuals);
       return true;
     }
@@ -193,12 +192,11 @@ Arrayd solveNormalizedSmoothness(const Eigen::MatrixXd &A,
 
 
 
-Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim) {
+
+Eigen::MatrixXd computeMean(Eigen::MatrixXd A, int dim) {
   int rows = A.rows();
   int cols = A.cols();
-  Eigen::MatrixXd dst = Eigen::MatrixXd(rows, cols);
   assert(rows % dim == 0);
-
   int count = rows/dim;
   assert(dim*count == rows);
   Eigen::MatrixXd sum = Eigen::MatrixXd::Zero(dim, cols);
@@ -209,15 +207,22 @@ Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim) {
       offset += dim;
     }
   }
-  sum *= (1.0/count);
-  {
-    int offset = 0;
-    for (int i = 0; i < count; i++) {
-      dst.block(offset, 0, dim, cols) = A.block(offset, 0, dim, cols) - sum;
-      offset += dim;
-    }
+  return (1.0/count)*sum;
+}
+
+SubtractMeanResults subtractMean(Eigen::MatrixXd A, int dim) {
+  int rows = A.rows();
+  int cols = A.cols();
+  assert(rows % dim == 0);
+  int count = rows/dim;
+  auto mean = computeMean(A, dim);
+  Eigen::MatrixXd dst = Eigen::MatrixXd(rows, cols);
+  int offset = 0;
+  for (int i = 0; i < count; i++) {
+    dst.block(offset, 0, dim, cols) = A.block(offset, 0, dim, cols) - mean;
+    offset += dim;
   }
-  return dst;
+  return SubtractMeanResults{dst, mean};
 }
 
 Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim) {
@@ -238,7 +243,7 @@ Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim) {
 }
 
 Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X) {
-  return subtractMean(integrate(X, 2), 2);
+  return subtractMean(integrate(X, 2), 2).results;
 }
 
 MDArray2d FlowFiber::makePlotData(Eigen::VectorXd params, double scale) {
@@ -322,7 +327,7 @@ int getSameCount(Array<FlowFiber> fibers, std::function<int(FlowFiber)> f) {
 }
 
 
-FlowFiber assembleFullProblem(Array<FlowFiber> fibers) {
+FullProblem assembleFullProblem(Array<FlowFiber> fibers) {
   using namespace DataFit;
   auto rowsPerFiber = getSameCount(fibers, [](FlowFiber f) {return f.rows();});
   auto parametersPerFiber = getSameCount(fibers, [](FlowFiber f) {
@@ -340,9 +345,11 @@ FlowFiber assembleFullProblem(Array<FlowFiber> fibers) {
     sliceRows(Q, s) = sliceRows(fibers[i].Q, s);
     sliceRows(B, s) = sliceRows(fibers[i].B, s);
   }
-  return FlowFiber{
-    subtractMean(Q, rowsPerFiber),
-    subtractMean(B, rowsPerFiber)
+  auto Qfull = subtractMean(Q, rowsPerFiber);
+  auto Bfull = subtractMean(B, rowsPerFiber);
+  return FullProblem{
+    Qfull.results, Bfull.results,
+    Qfull.mean, Bfull.mean
   };
 }
 
@@ -371,7 +378,7 @@ Eigen::MatrixXd assembleFullProblem(Array<Eigen::MatrixXd> fibers) {
   for (int i = 0; i < fiberCount; i++) {
     sliceRows(Q, idx.span(i)) = fibers[i];
   }
-  return subtractMean(Q, rowsPerFiber);
+  return subtractMean(Q, rowsPerFiber).results;
 }
 
 Eigen::MatrixXd makeAB(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) {
@@ -388,74 +395,6 @@ Eigen::MatrixXd makeAB(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) {
   return AB;
 }
 
-
-namespace {
-
-  class Objf {
-   public:
-    Objf(FlowFiber fibers, Eigen::MatrixXd A, Eigen::MatrixXd B) :
-      _fibers(fibers), _A(A), _B(B) {}
-
-    int outDims() const {
-      return _fibers.rows();
-    }
-
-    int inDims() const {
-      return _fibers.parameterCount();
-    }
-
-    template<typename T>
-    bool operator()(T const* const* parameters, T* residuals) const {
-      const T *X = parameters[0];
-      return eval(X, residuals);
-    }
-   private:
-    FlowFiber _fibers;
-    Eigen::MatrixXd _A, _B;
-
-    template <typename T>
-    bool eval(const T *X,
-        T *residuals) const {
-      T len = computeTotalTrajectoryLength(X);
-      T f = T(1.0)/(abs(len) + T(1.0e-12));
-      int n = _fibers.observationCount();
-      for (int i = 0; i < n; i++) {
-        int rowOffset = 2*i;
-        for (int j = 0; j < 2; j++) {
-          int row = rowOffset + j;
-          residuals[row] = f*matmulAXB(row, _fibers.Q, _fibers.B, X);
-        }
-      }
-      CHECK(2*n == outDims());
-      return true;
-    }
-
-    template <typename T>
-    T matmulAXB(int rowIndex, const Eigen::MatrixXd &A,
-        const Eigen::MatrixXd &B, const T *X) const {
-      T sum = T(B.rows() > 0? B(rowIndex, 0) : 0.0);
-      for (int i = 0; i < A.cols(); i++) {
-        sum += A(rowIndex, i)*X[i];
-      }
-      return sum;
-    }
-
-    template <typename T>
-    T computeTotalTrajectoryLength(const T *X) const {
-      T totalLength(0.0);
-      int n = _fibers.observationCount();
-      for (int i = 0; i < n; i++) {
-        int offset = 2*i;
-        auto x = matmulAXB(offset + 0, _A, _B, X);
-        auto y = matmulAXB(offset + 1, _A, _B, X);
-        totalLength += sqrt(abs(x*x + y*y) + 1.0e-12);
-      }
-      return totalLength;
-    }
-  };
-
-}
-
 NLResults optimizeNormalizedSmoothness(FlowMatrices flow, Array<Arrayi> splits) {
   Eigen::MatrixXd Aeigen =
       Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
@@ -466,36 +405,7 @@ NLResults optimizeNormalizedSmoothness(FlowMatrices flow, Array<Arrayi> splits) 
   auto full = assembleFullProblem(fibers);
   return NLResults{
     Aeigen, Beigen, fibers,
-    solveNormalizedSmoothness(full.Q, full.B)
-  };
-}
-
-
-NLResults optimizeNonlinear(FlowMatrices flow, Array<Arrayi> splits) {
-  Eigen::MatrixXd Aeigen =
-      Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
-
-  Eigen::MatrixXd Beigen =
-      Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
-  auto fibers = makeFlowFibers(Aeigen, Beigen, splits);
-  auto full = assembleFullProblem(fibers);
-
-  Arrayd parameters = Arrayd::fill(full.parameterCount(), 0.0);
-  parameters[0] = 1.0;
-
-  auto objf = new Objf(full, Aeigen, Eigen::MatrixXd());
-  ceres::Problem problem;
-  auto cost = new ceres::DynamicAutoDiffCostFunction<Objf>(objf);
-  cost->AddParameterBlock(full.parameterCount());
-  cost->SetNumResiduals(objf->outDims());
-  problem.AddResidualBlock(cost, NULL, parameters.ptr());
-  ceres::Solver::Options options;
-  options.minimizer_progress_to_stdout = true;
-  options.max_num_iterations = 60;
-  ceres::Solver::Summary summary;
-  Solve(options, &problem, &summary);
-  return NLResults{
-    Aeigen, Beigen, fibers, parameters
+    solveNormalizedSmoothness(full.A, full.B)
   };
 }
 
