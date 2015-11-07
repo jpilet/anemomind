@@ -13,6 +13,7 @@
 #include <server/math/nonlinear/DataFit.h>
 #include <server/plot/extra.h>
 #include <server/common/ArrayBuilder.h>
+#include <ceres/ceres.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -158,6 +159,11 @@ MDArray2d FlowFiber::makePlotData(Eigen::VectorXd params, double scale) {
   return dst;
 }
 
+double FlowFiber::eval(Eigen::VectorXd params, double scale) {
+  Eigen::VectorXd result = Q*params + scale*B;
+  return result.norm();
+}
+
 void plotFlowFibers(Array<FlowFiber> data,
                       Eigen::VectorXd params, double scale) {
   GnuplotExtra plot;
@@ -187,6 +193,12 @@ Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
     auto q = normalizeFlowData(extractRows(Q, split, 2));
     auto b = normalizeFlowData(extractRows(B, split, 2));
     return FlowFiber{q, b};
+  });
+}
+
+Array<Eigen::MatrixXd> makeFlowFibers(Eigen::MatrixXd Q, Array<Arrayi> splits) {
+  return splits.map<Eigen::MatrixXd>([=](Arrayi split) {
+    return Eigen::MatrixXd(normalizeFlowData(extractRows(Q, split, 2)));
   });
 }
 
@@ -226,6 +238,134 @@ FlowFiber assembleFullProblem(Array<FlowFiber> fibers) {
   return FlowFiber{
     subtractMean(Q, rowsPerFiber),
     subtractMean(B, rowsPerFiber)
+  };
+}
+
+Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K) {
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(K);
+  double minValue = std::numeric_limits<double>::infinity();
+  int best = -1;
+  for (int i = 0; i < solver.eigenvalues().size(); i++) {
+    auto val = solver.eigenvalues()[i];
+    if (val < minValue) {
+      best = i;
+      minValue = val;
+    }
+  }
+  return solver.eigenvectors().block(0, best, K.rows(), 1);
+}
+
+Eigen::MatrixXd assembleFullProblem(Array<Eigen::MatrixXd> fibers) {
+  using namespace DataFit;
+  int rowsPerFiber = fibers[0].rows();
+  int cols = fibers[0].cols();
+  int fiberCount = fibers.size();
+  auto idx = CoordIndexer::Factory().make(fiberCount, rowsPerFiber);
+  int rows = fiberCount*rowsPerFiber;
+  Eigen::MatrixXd Q(rows, cols);
+  for (int i = 0; i < fiberCount; i++) {
+    sliceRows(Q, idx.span(i)) = fibers[i];
+  }
+  return subtractMean(Q, rowsPerFiber);
+}
+
+Eigen::MatrixXd makeAB(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) {
+  CHECK(A.rows() == B.rows());
+  int rows = A.rows();
+  CHECK(B.cols() == 1);
+  Eigen::MatrixXd AB(rows, A.cols() + 1);
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < A.cols(); j++) {
+      AB(i, j) = A(i, j);
+      AB(i, A.cols()) = B(i, 0);
+    }
+  }
+  return AB;
+}
+
+
+namespace {
+
+  class Objf {
+   public:
+    Objf(FlowFiber fibers, Eigen::MatrixXd A, Eigen::MatrixXd B) :
+      _fibers(fibers), _A(A), _B(B) {}
+
+    int outDims() const {
+      return _fibers.rows();
+    }
+
+    int inDims() const {
+      return _fibers.parameterCount();
+    }
+
+    template<typename T>
+    bool operator()(T const* const* parameters, T* residuals) const {
+      const T *X = parameters[0];
+      return eval(X, residuals);
+    }
+   private:
+    FlowFiber _fibers;
+    Eigen::MatrixXd _A, _B;
+
+    template <typename T>
+    bool eval(const T *X,
+        T *residuals) const {
+      T len = computeTotalTrajectoryLength(X);
+    }
+
+    template <typename T>
+    T matmulAXB(int rowIndex, const Eigen::MatrixXd &A,
+        const Eigen::MatrixXd &B, const T *X) const {
+      T sum = T(B.rows() > 0? B(rowIndex, 0) : 0.0);
+      for (int i = 0; i < A.cols(); i++) {
+        sum += A(rowIndex, i)*X[i];
+      }
+      return sum;
+    }
+
+    template <typename T>
+    T computeTotalTrajectoryLength(const T *X) const {
+      T totalLength(0.0);
+      int n = _fibers.observationCount();
+      for (int i = 0; i < n; i++) {
+        int offset = 2*i;
+        auto x = matmulAXB(offset + 0, _A, _B, X);
+        auto y = matmulAXB(offset + 1, _A, _B, X);
+        totalLength += sqrt(x*x + y*y);
+      }
+      return totalLength;
+    }
+  };
+
+}
+
+
+NLResults optimizeNonlinear(FlowMatrices flow, Array<Arrayi> splits) {
+  Eigen::MatrixXd Aeigen =
+      Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
+
+  Eigen::MatrixXd Beigen =
+      Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
+  auto fibers = makeFlowFibers(Aeigen, Beigen, splits);
+  auto full = assembleFullProblem(fibers);
+
+  Arrayd parameters = Arrayd::fill(full.parameterCount(), 0.0);
+  parameters[0] = 1.0;
+
+  auto objf = new Objf(full, Aeigen, Beigen);
+  ceres::Problem problem;
+  auto cost = new ceres::DynamicAutoDiffCostFunction<Objf>(objf);
+  cost->AddParameterBlock(full.parameterCount());
+  cost->SetNumResiduals(objf->outDims());
+  problem.AddResidualBlock(cost, NULL, parameters.ptr());
+  ceres::Solver::Options options;
+  options.minimizer_progress_to_stdout = true;
+  options.max_num_iterations = 60;
+  ceres::Solver::Summary summary;
+  Solve(options, &problem, &summary);
+  return NLResults{
+    Aeigen, Beigen, fibers, parameters
   };
 }
 

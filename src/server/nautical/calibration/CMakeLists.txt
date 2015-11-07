@@ -8,7 +8,8 @@ target_link_libraries(calibration_LinearCalibration
                     common_Span
                     math_nonlinear_DataFit
                    )
-                   
+
+target_depends_on_ceres(calibration_LinearCalibration)                   
 target_depends_on_armadillo(calibration_LinearCalibration)
 
 cxx_test(calibration_LinearCalibrationTest

@@ -187,7 +187,9 @@ Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X);
 
 struct FlowFiber {
   Eigen::MatrixXd Q, B;
+
   MDArray2d makePlotData(Eigen::VectorXd params, double scale = 1.0);
+  double eval(Eigen::VectorXd params, double scale = 1.0);
 
   int rows() const {
     assert(Q.rows() == B.rows());
@@ -209,9 +211,21 @@ void plotFlowFibers(Array<FlowFiber> flowFibers, Eigen::VectorXd params, double 
 Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim);
 Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
     Array<Arrayi> splits);
+Array<Eigen::MatrixXd> makeFlowFibers(Eigen::MatrixXd Q, Array<Arrayi> splits);
 FlowFiber assembleFullProblem(Array<FlowFiber> fibers);
-
+Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K);
+Eigen::MatrixXd assembleFullProblem(Array<Eigen::MatrixXd> fibers);
+Eigen::MatrixXd makeAB(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
+Eigen::MatrixXd makeABBasis(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
 Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount);
+
+struct NLResults {
+  Eigen::MatrixXd A, B;
+  Array<FlowFiber> fibers;
+  Arrayd parameters;
+};
+
+NLResults optimizeNonlinear(FlowMatrices mats, Array<Arrayi> splits);
 
 }
 }
