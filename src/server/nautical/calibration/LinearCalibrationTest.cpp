@@ -358,11 +358,11 @@ TEST(LinearCalibrationTest, RealData) {
   //fullABOrthoTest(flow, Aeigen, Beigen);
   //separateOrthoTest(flow, Aeigen, Beigen);
   //nonlinearTest(flow);
-  visTest(flow, Aeigen, Beigen);
+  //visTest(flow, Aeigen, Beigen);
 }
 
-Eigen::MatrixXd makeRandomMatrix(int rows, int cols) {
-  std::uniform_real_distribution<double> distrib(-1, 1);
+Eigen::MatrixXd makeRandomMatrix(int rows, int cols, double s) {
+  std::uniform_real_distribution<double> distrib(-s, s);
   Eigen::MatrixXd A(rows, cols);
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
@@ -373,9 +373,45 @@ Eigen::MatrixXd makeRandomMatrix(int rows, int cols) {
 }
 
 
+namespace {
+  double evalNormRatio(Eigen::MatrixXd A, Eigen::MatrixXd B, Eigen::VectorXd X) {
+    auto a = A*X;
+    auto b = B*X;
+    return a.squaredNorm()/b.squaredNorm();
+  }
+
+  double evalNormRatio(Eigen::MatrixXd A, Eigen::VectorXd B,
+                          Eigen::MatrixXd C, Eigen::VectorXd D, Eigen::VectorXd X) {
+    auto a = A*X + B;
+    auto b = C*X + D;
+    return a.squaredNorm()/b.squaredNorm();
+  }
+}
+
 TEST(LinearCalibrationTest, MinimizeNormFraction) {
-  auto A = makeRandomMatrix(9, 3);
-  auto B = makeRandomMatrix(4, 3);
-  auto X = minimizeNormFraction(A, B);
+  auto A = makeRandomMatrix(9, 3, 1.0);
+  auto B = makeRandomMatrix(4, 3, 1.0);
+  auto X = minimizeNormRatio(A, B);
+  EXPECT_EQ(X.rows(), 3);
+  EXPECT_EQ(X.cols(), 1);
+  auto val = evalNormRatio(A, B, X);
+  for (int i = 0; i < 12; i++) {
+    EXPECT_LE(val, evalNormRatio(A, B, X + makeRandomMatrix(3, 1, 0.01)));
+  }
+}
+
+
+TEST(LinearCalibrationTest, MinimizeNormFraction2) {
+  auto A = makeRandomMatrix(9, 3, 1.0);
+  auto B = makeRandomMatrix(9, 1, 1.0);
+  auto C = makeRandomMatrix(5, 3, 1.0);
+  auto D = makeRandomMatrix(5, 1, 1.0);
+  auto X = minimizeNormRatio(A, B, C, D);
+  EXPECT_EQ(X.rows(), 3);
+  EXPECT_EQ(X.cols(), 1);
+  auto val = evalNormRatio(A, B, C, D, X);
+  for (int i = 0; i < 12; i++) {
+    EXPECT_LE(val, evalNormRatio(A, B, C, D, X + makeRandomMatrix(3, 1, 0.01)));
+  }
 }
 

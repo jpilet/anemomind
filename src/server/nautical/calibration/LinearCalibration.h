@@ -241,9 +241,14 @@ Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount);
 // Minimize w.r.t. X: |A*X|^2/|B*X|^2
 // The scale of the solution is undefined.
 // This function just returns one solution that
-// can be scaled.
-Eigen::VectorXd minimizeNormFraction(Eigen::MatrixXd A,
+// can be scaled. The columns of B must be linearly independent,
+// and B should generally have more rows than columns.
+Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A,
                                      Eigen::MatrixXd B);
+
+// Minimize w.r.t. X: |A*X + B|^2/|C*X + D|^2
+Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A, Eigen::VectorXd B,
+                                     Eigen::MatrixXd C, Eigen::VectorXd D);
 
 /*
  * Minimize |AX + B|^2/|AX|^2 + |AX + B|^2/|B|^2

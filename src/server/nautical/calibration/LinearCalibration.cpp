@@ -102,7 +102,7 @@ Array<Arrayi> makeRandomSplit(int sampleCount0, int splitCount) {
 // Through a change of basis, we
 // make sure that the doniminator is constant w.r.t.
 // to X if |X| is constant.
-Eigen::VectorXd minimizeNormFraction(Eigen::MatrixXd A,
+Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A,
                                      Eigen::MatrixXd B) {
   Eigen::HouseholderQR<Eigen::MatrixXd> qr(B);
   Eigen::MatrixXd Q = qr.householderQ()*Eigen::MatrixXd::Identity(B.rows(), B.cols());
@@ -114,6 +114,26 @@ Eigen::VectorXd minimizeNormFraction(Eigen::MatrixXd A,
   Eigen::MatrixXd main = A*Rinv;
   Eigen::MatrixXd K = main.transpose()*main;
   return Rinv*smallestEigVec(K);
+}
+
+
+Eigen::MatrixXd hcat(const Eigen::MatrixXd &A, const Eigen::VectorXd &B) {
+  CHECK(A.rows() == B.rows());
+  Eigen::MatrixXd AB(A.rows(), A.cols() + 1);
+  AB << A, B;
+  return AB;
+}
+
+Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A, Eigen::VectorXd B,
+                                     Eigen::MatrixXd C, Eigen::VectorXd D) {
+  auto Xh = minimizeNormRatio(hcat(A, B), hcat(C, D));
+  int n = Xh.size() - 1;
+  auto f = 1.0/Xh(n);
+  Eigen::VectorXd X(n);
+  for (int i = 0; i < n; i++) {
+    X(i) = f*Xh(i);
+  }
+  return X;
 }
 
 
