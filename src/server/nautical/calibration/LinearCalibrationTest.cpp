@@ -208,11 +208,12 @@ TEST(LinearCalibrationTest, RealData) {
   auto fibers = makeFlowFibers(Aeigen, Beigen, splits);
   auto mean = computeMeanFiber(fibers);
 
+  auto fitness = buildFitnessFiber(fibers, mean);
+
   Eigen::VectorXd X = Eigen::VectorXd::Zero(4);
   X(0) = 1.0;
 
   plotFlowFibers(fibers, X);
-
   plotFlowFibers(Array<FlowFiber>{mean}, X);
 
   //basicFiberTests(flow, Aeigen, Beigen);

@@ -210,7 +210,7 @@ struct FlowFiber {
     return Q.cols();
   }
 
-  FlowFiber computeSegments() const;
+  FlowFiber differentiate() const;
 };
 
 void plotFlowFibers(Array<FlowFiber> flowFibers, Eigen::VectorXd params, double scale = 1.0);
@@ -223,6 +223,8 @@ Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
     Array<Arrayi> splits);
 
 FlowFiber computeMeanFiber(Array<FlowFiber> fibers);
+
+FlowFiber buildFitnessFiber(Array<FlowFiber> fibers, FlowFiber mean);
 
 Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K);
 Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount,
@@ -242,9 +244,6 @@ Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A,
 // from each other.
 Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A, Eigen::VectorXd B,
                                   Eigen::MatrixXd C, Eigen::VectorXd D);
-
-
-Eigen::VectorXd fitFlowFibers(Array<FlowFiber> fibers);
 
 
 

@@ -257,7 +257,7 @@ double FlowFiber::eval(Eigen::VectorXd params, double scale) {
   return result.norm();
 }
 
-FlowFiber FlowFiber::computeSegments() const {
+FlowFiber FlowFiber::differentiate() const {
   int cols = Q.cols();
   int dstRows = Q.rows() - 2;
   auto Q0 = Q.block(0, 0, dstRows, cols);
@@ -335,6 +335,21 @@ FlowFiber computeMeanFiber(Array<FlowFiber> fibers) {
   }
   double f = 1.0/fibers.size();
   return FlowFiber{f*Q, f*B};
+}
+
+FlowFiber buildFitnessFiber(Array<FlowFiber> fibers, FlowFiber mean) {
+  int cols = getSameCount(fibers, [](const FlowFiber &f) {return f.parameterCount();});
+  int rowsPerFiber = getSameCount(fibers, [](const FlowFiber &f) {return f.rows();});
+
+  auto n = fibers.size();
+  Eigen::MatrixXd Q(n*rowsPerFiber, cols);
+  Eigen::MatrixXd B(n*rowsPerFiber, 1);
+  for (int i = 0; i < n; i++) {
+    auto &fiber = fibers[i];
+    getRowBlock(Q, i, rowsPerFiber) = fiber.Q - mean.Q;
+    getRowBlock(B, i, rowsPerFiber) = fiber.B - mean.B;
+  }
+  return FlowFiber{Q, B};
 }
 
 
