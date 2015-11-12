@@ -177,15 +177,16 @@ Optional<HorizontalMotion<double>> averageWind(const Array<Nav>& navs) {
   for (auto nav: navs) {
     if (nav.hasTrueWindOverGround()) {
       auto tws = calcTws(nav.trueWindOverGround());
-      sumSpeed += tws;
-      num++;
-      sum += nav.trueWindOverGround().scaled(1.0 / tws.knots());
+      if (tws.knots() > 0) {
+        sumSpeed += tws;
+        num++;
+        sum += nav.trueWindOverGround().scaled(1.0 / tws.knots());
+      }
     }
     if (nav.hasExternalTrueWind()) {
       num++;
       sum += windMotionFromTwdirAndTws(
-          nav.externalTwa() + Angle<double>::degrees(180) + nav.gpsBearing(),
-          Velocity<double>::knots(1));
+          nav.externalTwdir(), Velocity<double>::knots(1));
       sumSpeed += nav.externalTws();
     }
   }
