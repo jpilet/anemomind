@@ -260,6 +260,10 @@ FlowFiber operator-(const FlowFiber &a, const FlowFiber &b) {
   return FlowFiber{a.Q - b.Q, a.B - b.B};
 }
 
+FlowFiber operator-(const FlowFiber &a) {
+  return (-1.0)*a;
+}
+
 FlowFiber operator*(double f, const FlowFiber &b) {
   return FlowFiber{f*b.Q, f*b.B};
 }

@@ -218,6 +218,7 @@ struct FlowFiber {
 
 FlowFiber operator+(const FlowFiber &a, const FlowFiber &b);
 FlowFiber operator-(const FlowFiber &a, const FlowFiber &b);
+FlowFiber operator-(const FlowFiber &a);
 FlowFiber operator*(double x, const FlowFiber &b);
 
 
