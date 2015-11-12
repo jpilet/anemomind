@@ -216,14 +216,12 @@ TEST(LinearCalibrationTest, RealData) {
   Eigen::VectorXd X = Eigen::VectorXd::Zero(4);
   X(0) = 1.0;
 
-  plotFlowFibers(fibers, X);
-  plotFlowFibers(Array<FlowFiber>{mean}, X);
+  auto Xopt = minimizeNormRatio(fitness.Q, fitness.B, edges.Q, edges.B);
 
-  //basicFiberTests(flow, Aeigen, Beigen);
-  //fullABOrthoTest(flow, Aeigen, Beigen);
-  //separateOrthoTest(flow, Aeigen, Beigen);
-  //nonlinearTest(flow);
-  //visTest(flow, Aeigen, Beigen);
+  std::cout << EXPR_AND_VAL_AS_STRING(Xopt) << std::endl;
+
+  //plotFlowFibers(fibers, X);
+  //plotFlowFibers(Array<FlowFiber>{mean}, X);
 }
 
 Eigen::MatrixXd makeRandomMatrix(int rows, int cols, double s) {
