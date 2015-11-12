@@ -220,8 +220,7 @@ TEST(LinearCalibrationTest, RealData) {
 
   std::cout << EXPR_AND_VAL_AS_STRING(Xopt) << std::endl;
 
-  //plotFlowFibers(fibers, X);
-  //plotFlowFibers(Array<FlowFiber>{mean}, X);
+  plotFlowFibers(fibers, X, Xopt);
 }
 
 Eigen::MatrixXd makeRandomMatrix(int rows, int cols, double s) {

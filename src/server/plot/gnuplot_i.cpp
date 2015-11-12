@@ -575,6 +575,10 @@ Gnuplot& Gnuplot::plotfile_xy(const std::string &filename,
   else
     cmdstr << " title \"" << title << "\" ";
 
+  if (current_user_defined_line_style != "") {
+    cmdstr << " ls " << current_user_defined_line_style << " ";
+  }
+
   if(smooth == "")
     cmdstr << "with " << pstyle;
   else

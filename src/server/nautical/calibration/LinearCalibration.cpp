@@ -281,8 +281,12 @@ void plotFlowFibers(Array<FlowFiber> data,
     Eigen::VectorXd A, Eigen::VectorXd B, double scale) {
   GnuplotExtra plot;
   plot.set_style("lines");
+  plot.cmd("set style line 1 lt rgb \"blue\" lw 1 pt 6");
+  plot.cmd("set style line 2 lt rgb \"green\" lw 1 pt 6");
   for (auto d: data) {
+    plot.set_current_line_style("1");
     plot.plot(d.makePlotData(A, scale));
+    plot.set_current_line_style("2");
     plot.plot(d.makePlotData(B, scale));
   }
   plot.show();

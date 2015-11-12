@@ -83,8 +83,10 @@ class Gnuplot
         std::string              pstyle;  
   	///\brief interpolate and approximate data in defined styles (e.g. spline)
         std::string              smooth;    
-  	///\brief list of created tmpfiles   
-        std::vector<std::string> tmpfile_list; 
+    ///\brief list of created tmpfiles
+        std::vector<std::string> tmpfile_list;
+    ///\brief User line style
+        std::string              current_user_defined_line_style;
 
     //----------------------------------------------------------------------------------
     // static data
@@ -233,7 +235,6 @@ class Gnuplot
     /// saves a gnuplot session to a postscript file, filename without extension
     Gnuplot& savetops(const std::string &filename = "gnuplot_output");
 
-
     //----------------------------------------------------------------------------------
     // set and unset
 
@@ -247,6 +248,12 @@ class Gnuplot
     /// (works only with plot_x, plot_xy, plotfile_x, plotfile_xy
     /// (if smooth is set, set_style has no effekt on data plotting)
     Gnuplot& set_smooth(const std::string &stylestr = "csplines");
+
+    /// sets the current line style. Read more here at the bottom of the page:
+    /// http://gnuplot.sourceforge.net/docs_4.2/node62.html
+    void set_current_line_style(const std::string ls) {
+      current_user_defined_line_style = ls;
+    }
 
     // ----------------------------------------------------------------------
     /// \brief unset smooth
