@@ -26,6 +26,18 @@ namespace {
   auto rng = makeRngForTests();
 }
 
+
+Eigen::MatrixXd makeRandomMatrix(int rows, int cols, double s) {
+  std::uniform_real_distribution<double> distrib(-s, s);
+  Eigen::MatrixXd A(rows, cols);
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      A(i, j) = distrib(rng);
+    }
+  }
+  return A;
+}
+
 Array<Nav> getTestDataset() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
@@ -186,7 +198,11 @@ TEST(LinearCalibrationTest, SubtractMean) {
   }
 }
 
-TEST(LinearCalibrationTest, RealData) {
+TEST(LinearCalibrationTest, IntegrateAndDifferentiateFlowFiber) {
+
+}
+
+/*TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
 
@@ -194,7 +210,7 @@ TEST(LinearCalibrationTest, RealData) {
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-  auto flow = trueWind;
+  auto flow = trueCurrent;
 
   Eigen::MatrixXd Aeigen =
       Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
@@ -202,10 +218,13 @@ TEST(LinearCalibrationTest, RealData) {
   Eigen::MatrixXd Beigen =
       Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
 
-  int splitCount = 30;
+  int splitCount = 120;
   auto splits = makeRandomSplit(navs.size(), splitCount, &rng);
 
   auto fibers = makeFlowFibers(Aeigen, Beigen, splits);
+  //auto fibers = computeFiberMeans(rawFibers, 12);
+
+
   auto mean = computeMeanFiber(fibers);
 
   auto edges = mean.differentiate();
@@ -221,18 +240,9 @@ TEST(LinearCalibrationTest, RealData) {
   std::cout << EXPR_AND_VAL_AS_STRING(Xopt) << std::endl;
 
   plotFlowFibers(fibers, X, Xopt);
-}
+}*/
 
-Eigen::MatrixXd makeRandomMatrix(int rows, int cols, double s) {
-  std::uniform_real_distribution<double> distrib(-s, s);
-  Eigen::MatrixXd A(rows, cols);
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < cols; j++) {
-      A(i, j) = distrib(rng);
-    }
-  }
-  return A;
-}
+
 
 
 namespace {

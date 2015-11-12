@@ -188,7 +188,7 @@ struct SubtractMeanResults {
 };
 Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim);
 Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim);
-Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X);
+Eigen::MatrixXd integrateFlowData(Eigen::MatrixXd X);
 
 struct FlowFiber {
   Eigen::MatrixXd Q, B;
@@ -211,6 +211,7 @@ struct FlowFiber {
   }
 
   FlowFiber differentiate() const;
+  FlowFiber integrate() const;
 };
 
 void plotFlowFibers(Array<FlowFiber> flowFibers, Eigen::VectorXd params, double scale = 1.0);
@@ -221,6 +222,8 @@ void plotFlowFibers(Array<FlowFiber> data,
 Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim);
 Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
     Array<Arrayi> splits);
+
+Array<FlowFiber> computeFiberMeans(Array<FlowFiber> rawFibers, int dstCount);
 
 FlowFiber computeMeanFiber(Array<FlowFiber> fibers);
 

@@ -236,7 +236,7 @@ Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim) {
   return B;
 }
 
-Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X) {
+Eigen::MatrixXd integrateFlowData(Eigen::MatrixXd X) {
   return subtractMean(integrate(X, 2), 2);
 }
 
@@ -308,11 +308,24 @@ Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim) {
 Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
     Array<Arrayi> splits) {
   return splits.map<FlowFiber>([=](Arrayi split) {
-    auto q = normalizeFlowData(extractRows(Q, split, 2));
-    auto b = normalizeFlowData(extractRows(B, split, 2));
+    auto q = integrateFlowData(extractRows(Q, split, 2));
+    auto b = integrateFlowData(extractRows(B, split, 2));
     return FlowFiber{q, b};
   });
 }
+
+Array<FlowFiber> computeFiberMeans(Array<FlowFiber> rawFibers, int dstCount) {
+  Array<FlowFiber> dst(dstCount);
+
+  LineKM m(0, dstCount, 0, rawFibers.size());
+  for (int i = 0; i < dstCount; i++) {
+    int from = int(floor(m(i)));
+    int to = int(floor(m(i + 1)));
+    dst[i] = computeMeanFiber(rawFibers.slice(from, to));
+  }
+  return dst;
+}
+
 
 int getSameCount(Array<FlowFiber> fibers, std::function<int(FlowFiber)> f) {
   if (fibers.empty()) {
