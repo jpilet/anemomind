@@ -74,6 +74,10 @@ class Nav {
   Angle<double> twdir() const {
     return Angle<double>::degrees(180) + trueWindOverGround().angle();
   }
+  
+  Angle<double> externalTwdir() const {
+    return externalTwa() + Angle<double>::degrees(180) + gpsBearing();
+  }
 
   Angle<double> twaFromTrueWindOverGround() const {
     return twdir() - gpsBearing();

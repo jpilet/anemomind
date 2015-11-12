@@ -4,6 +4,7 @@
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <mongo/client/dbclient.h>
 #include <mongo/bson/bson-inl.h>
+#include <server/common/Optional.h>
 #include <server/common/logging.h>
 #include <server/nautical/tiles/NavTileGenerator.h>
 
@@ -165,6 +166,59 @@ BSONObj locationForSession(const Array<Nav>& navs) {
   return location.obj();
 }
 
+// Returns average wind speed and average wind direction.
+Optional<HorizontalMotion<double>> averageWind(const Array<Nav>& navs) {
+  int num = 0;
+  HorizontalMotion<double> sum = HorizontalMotion<double>::zero();
+  Velocity<double> sumSpeed = Velocity<double>::knots(0);
+
+  // Arguably we compute true wind by averaging external true wind data and
+  // anemomind-calibrated true wind. If either is missing, we still have a result.
+  for (auto nav: navs) {
+    if (nav.hasTrueWindOverGround()) {
+      auto tws = calcTws(nav.trueWindOverGround());
+      if (tws.knots() > 0) {
+        sumSpeed += tws;
+        num++;
+        sum += nav.trueWindOverGround().scaled(1.0 / tws.knots());
+      }
+    }
+    if (nav.hasExternalTrueWind()) {
+      num++;
+      sum += windMotionFromTwdirAndTws(
+          nav.externalTwdir(), Velocity<double>::knots(1));
+      sumSpeed += nav.externalTws();
+    }
+  }
+
+  if (num > 0) {
+    return Optional<HorizontalMotion<double>>(
+        HorizontalMotion<double>::polar(sumSpeed.scaled(1.0 / num),
+                                        sum.angle()));
+  }
+  return Optional<HorizontalMotion<double>>();
+}
+
+// Returns the strongest wind and the corresponding nav index.
+// If no wind information is present, the returned index is -1.
+std::pair<Velocity<double>, int> indexOfStrongestWind(const Array<Nav>& navs) {
+  std::pair<Velocity<double>, int> result(Velocity<double>::knots(0), -1);
+
+  for (int i = 0; i < navs.size(); ++i) {
+    const Nav& nav = navs[i];
+
+    if (nav.hasTrueWindOverGround()) {
+      result =
+        std::max(result, make_pair(calcTws(nav.trueWindOverGround()), i));
+    }
+    if (nav.hasExternalTrueWind()) {
+      result =
+        std::max(result, make_pair(nav.externalTws(), i));
+    }
+  }
+  return result;
+}
+
 BSONObj makeBsonSession(
     const std::string &curveId,
     const std::string &boatId,
@@ -183,6 +237,18 @@ BSONObj makeBsonSession(
   append(session, "startTime", navs.first().time());
   append(session, "endTime", navs.last().time());
   session.append("location", locationForSession(navs));
+
+  auto wind = averageWind(navs);
+  if (wind.defined()) {
+    session.append("avgWindSpeed", calcTws(wind()).knots());
+    session.append("avgWindDir", calcTwdir(wind()).degrees());
+  }
+
+  std::pair<Velocity<double>, int> strongestWind = indexOfStrongestWind(navs);
+  if (strongestWind.second >= 0) {
+    session.append("strongestWindSpeed", strongestWind.first.knots());
+    append(session, "strongestWindTime", navs[strongestWind.second].time());
+  }
 
   return session.obj();
 }
