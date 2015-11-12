@@ -208,6 +208,9 @@ TEST(LinearCalibrationTest, RealData) {
   auto fibers = makeFlowFibers(Aeigen, Beigen, splits);
   auto mean = computeMeanFiber(fibers);
 
+  auto edges = mean.differentiate();
+  EXPECT_EQ(edges.observationCount() + 1, mean.observationCount());
+
   auto fitness = buildFitnessFiber(fibers, mean);
 
   Eigen::VectorXd X = Eigen::VectorXd::Zero(4);
