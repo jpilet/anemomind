@@ -128,63 +128,6 @@ bool spanTheSameSubspace(Eigen::MatrixXd A, Eigen::MatrixXd B) {
   return true;
 }
 
-TEST(LinearCalibrationTest, SubtractMean) {
-  {
-    Eigen::MatrixXd itggt = Eigen::MatrixXd::Zero(6, 2);
-    itggt(2, 0) = 1;
-    itggt(2, 1) = 2;
-    itggt(3, 0) = 3;
-    itggt(3, 1) = 4;
-    itggt(4, 0) = 6;
-    itggt(4, 1) = 8;
-    itggt(5, 0) = 10;
-    itggt(5, 1) = 12;
-
-
-    Eigen::MatrixXd test(4, 2);
-    int counter = 1;
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 2; j++) {
-        test(i, j) = counter;
-        counter++;
-      }
-    }
-
-    auto itg = integrate(test, 2);
-    EXPECT_EQ(itg.rows(), itggt.rows());
-    EXPECT_EQ(itg.cols(), itggt.cols());
-    for (int i = 0; i < 6; i++) {
-      for (int j = 0; j < 2; j++) {
-        EXPECT_NEAR(itg(i, j), itggt(i, j), 1.0e-6);
-      }
-    }
-
-
-    Eigen::MatrixXd test2 = subtractMean(test, 1).results;
-    double expected[4] = {-3, -1, 1, 3};
-    EXPECT_EQ(test2.rows(), 4);
-    EXPECT_EQ(test2.cols(), 2);
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 2; j++) {
-        double a = test2(i, j);
-        double b = expected[i];
-        EXPECT_NEAR(a, b, 1.0e-6);
-      }
-    }
-  }{
-    Eigen::MatrixXd K(4, 1);
-    K(0, 0) = 9;
-    K(1, 0) = 30;
-    K(2, 0) = 7;
-    K(3, 0) = 40;
-    auto B = subtractMean(K, 2).results;
-    double expected[4] = {1, -5, -1, 5};
-    for (int i = 0; i < 4; i++) {
-      EXPECT_NEAR(B(i, 0), (expected[i]), 1.0e-6);
-    }
-  }
-}
-
 TEST(LinearCalibrationTest, ExtractRows) {
   Eigen::MatrixXd A(6, 1);
   for (int i = 0; i < 3; i++) {
@@ -222,73 +165,7 @@ TEST(LinearCalibrationTest, Split) {
   }
 }
 
-/*
- * Given parameters, the optimal GPS scale is unreasonably low.
- */
-void basicFiberTests(FlowMatrices flow, Eigen::MatrixXd Aeigen, Eigen::MatrixXd Beigen) {
-  {
-    Eigen::MatrixXd Asub = Aeigen.block(0, 0, 30, flow.A.cols());
-    Eigen::MatrixXd Q = orthonormalBasis<Eigen::MatrixXd>(Asub);
-    EXPECT_TRUE(isOrthonormal(Q));
-    EXPECT_TRUE(spanTheSameSubspace(Q, Asub));
-  }
 
-  int splitCount = 30;
-
-  auto splits = makeRandomSplit(flow.count(), splitCount);
-  std::cout << EXPR_AND_VAL_AS_STRING(splits.size()) << std::endl;
-  auto fibers = makeFlowFibers(Aeigen, Beigen, splits);
-
-  Eigen::VectorXd X = Eigen::VectorXd::Zero(4, 1);
-  X(0) = 1.0;
-  double scale = 2.0;
-  auto full = assembleFullProblem(fibers);
-  plotFlowFibers(fibers, X, scale);
-}
-
-/*
- * Does not work on current. Completely wrong on current.
- */
-void fullABOrthoTest(FlowMatrices flow, Eigen::MatrixXd Aeigen, Eigen::MatrixXd Beigen) {
-  //variousTests(flow, Aeigen, Beigen);
-  int splitCount = 30;
-  auto splits = makeRandomSplit(flow.count(), splitCount);
-  auto fibersAB = makeFlowFibers(Aeigen, Beigen, splits);
-  Eigen::MatrixXd AB = makeAB(Aeigen, Beigen);
-  auto Q = orthonormalBasis(AB);
-  Eigen::MatrixXd R = Q.transpose()*AB;
-  auto fibers = makeFlowFibers(Q, splits);
-  auto full = assembleFullProblem(fibers);
-  Eigen::MatrixXd K = full.transpose()*full;
-  EXPECT_EQ(K.rows(), 5);
-  auto Xq = smallestEigVec(K);
-  Eigen::VectorXd Xh = R.lu().solve(Xq);
-  Eigen::VectorXd X = (1.0/Xh(4))*Xh.block(0, 0, 4, 1);
-
-  plotFlowFibers(fibersAB, X, 1.0);
-  std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
-}
-
-void separateOrthoTest(FlowMatrices flow, Eigen::MatrixXd Aeigen, Eigen::MatrixXd Beigen) {
-  //variousTests(flow, Aeigen, Beigen);
-  int splitCount = 30;
-  auto splits = makeRandomSplit(flow.count(), splitCount);
-  auto Q = orthonormalBasis(Aeigen);
-  auto Bhat = orthonormalBasis(Beigen);
-  Eigen::MatrixXd AB = makeAB(Q, Bhat);
-  Eigen::MatrixXd Ra = Q.transpose()*Aeigen;
-  Eigen::MatrixXd Rb = Bhat.transpose()*Beigen;
-  auto fibersAB = makeFlowFibers(Q, Bhat, splits);
-  auto fibers = makeFlowFibers(AB, splits);
-  auto full = assembleFullProblem(fibers);
-  Eigen::MatrixXd K = full.transpose()*full;
-  EXPECT_EQ(K.rows(), 5);
-  auto Xh = smallestEigVec(K);
-  Eigen::VectorXd X = Ra.lu().solve(Xh.block(0, 0, 4, 1));
-  double scale = Xh(4, 1)/Rb(0, 0);
-
-  plotFlowFibers(fibersAB, X, scale);
-}
 
 void initialize(Arrayd *X) {
   X->setTo(0.0);
@@ -306,37 +183,6 @@ void initialize(Arrayd *X) {
 
 
 
-
-
-
-void nonlinearTest(FlowMatrices flow) {
-  int splitCount = 30;
-  auto splits = makeRandomSplit(flow.count(), splitCount);
-  auto results = optimizeNormalizedSmoothness(flow, splits);
-  std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
-
-  Eigen::VectorXd defaultX = Eigen::VectorXd::Zero(4);
-  defaultX(0) = 1.0;
-
-  plotFlowFibers(results.fibers,
-      Eigen::Map<Eigen::MatrixXd>(results.parameters.ptr(), 4, 1),
-      defaultX,
-      1.0);
-}
-
-void visTest(FlowMatrices flow, Eigen::MatrixXd A, Eigen::MatrixXd B) {
-  int splitCount = 30;
-  auto splits = makeRandomSplit(flow.count(), splitCount);
-  Array<FlowFiber> fibers = makeFlowFibers(A, B, splits);
-  auto meanFiber = computeMeanFiber(fibers);
-  std::cout << EXPR_AND_VAL_AS_STRING(fibers.size()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(fibers[0].observationCount()) << std::endl;
-  auto problem = assembleFullProblem(fibers);
-  Eigen::VectorXd X = Eigen::VectorXd::Zero(4);
-  X(0) = 1.0;
-  plotFlowFibers(Array<FlowFiber>{meanFiber}, X);
-  plotFlowFibers(Array<FlowFiber>{fibers}, X);
-}
 
 TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();

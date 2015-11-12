@@ -185,7 +185,7 @@ struct SubtractMeanResults {
   Eigen::MatrixXd results;
   Eigen::MatrixXd mean;
 };
-SubtractMeanResults subtractMean(Eigen::MatrixXd A, int dim);
+Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim);
 Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim);
 Eigen::MatrixXd normalizeFlowData(Eigen::MatrixXd X);
 
@@ -220,23 +220,10 @@ void plotFlowFibers(Array<FlowFiber> data,
 Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim);
 Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
     Array<Arrayi> splits);
-Array<Eigen::MatrixXd> makeFlowFibers(Eigen::MatrixXd Q, Array<Arrayi> splits);
-
-struct FullProblem {
-  Eigen::MatrixXd A, B;
-  Eigen::MatrixXd meanA, meanB;
-  int parameterCount() const {
-    return A.cols();
-  }
-};
 
 FlowFiber computeMeanFiber(Array<FlowFiber> fibers);
 
-FullProblem assembleFullProblem(Array<FlowFiber> fibers);
 Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K);
-Eigen::MatrixXd assembleFullProblem(Array<Eigen::MatrixXd> fibers);
-Eigen::MatrixXd makeAB(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
-Eigen::MatrixXd makeABBasis(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
 Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount);
 
 
@@ -257,23 +244,8 @@ Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A, Eigen::VectorXd B,
 
 Eigen::VectorXd fitFlowFibers(Array<FlowFiber> fibers);
 
-/*
- * Minimize |AX + B|^2/|AX|^2 + |AX + B|^2/|B|^2
- *
- * useful for our problems
- */
-Arrayd solveNormalizedSmoothness(const Eigen::MatrixXd &A,
-    const Eigen::VectorXd &B, const Arrayd &X = Arrayd());
 
 
-struct NLResults {
-  Eigen::MatrixXd A, B;
-  Array<FlowFiber> fibers;
-  Arrayd parameters;
-};
-
-NLResults optimizeNonlinear(FlowMatrices mats, Array<Arrayi> splits);
-NLResults optimizeNormalizedSmoothness(FlowMatrices flow, Array<Arrayi> splits);
 
 }
 }
