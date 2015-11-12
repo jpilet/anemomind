@@ -11,7 +11,6 @@
 namespace sail {
 
 std::mt19937 makeRngForTests();
-
 }
 
 #endif /* SERVER_MATH_RANDOM_H_ */

@@ -17,9 +17,14 @@
 #include <Eigen/SparseQR>
 #include <server/common/ArrayIO.h>
 #include <Eigen/Cholesky>
+#include <server/math/Random.h>
 
 
 using namespace sail;
+
+namespace {
+  auto rng = makeRngForTests();
+}
 
 Array<Nav> getTestDataset() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -357,7 +362,6 @@ TEST(LinearCalibrationTest, RealData) {
 }
 
 Eigen::MatrixXd makeRandomMatrix(int rows, int cols) {
-  static std::mt19937 rng(0);
   std::uniform_real_distribution<double> distrib(-1, 1);
   Eigen::MatrixXd A(rows, cols);
   for (int i = 0; i < rows; i++) {
@@ -370,6 +374,8 @@ Eigen::MatrixXd makeRandomMatrix(int rows, int cols) {
 
 
 TEST(LinearCalibrationTest, MinimizeNormFraction) {
-
+  auto A = makeRandomMatrix(9, 3);
+  auto B = makeRandomMatrix(4, 3);
+  auto X = minimizeNormFraction(A, B);
 }
 
