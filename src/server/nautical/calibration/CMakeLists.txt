@@ -19,5 +19,6 @@ cxx_test(calibration_LinearCalibrationTest
          common_PathBuilder
          common_Env
          gtest_main
+         math_Random
         )           
         

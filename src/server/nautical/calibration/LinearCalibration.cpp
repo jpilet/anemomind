@@ -99,6 +99,25 @@ Array<Arrayi> makeRandomSplit(int sampleCount0, int splitCount) {
   });
 }
 
+// Through a change of basis, we
+// make sure that the doniminator is constant w.r.t.
+// to X if |X| is constant.
+Eigen::VectorXd minimizeNormFraction(Eigen::MatrixXd A,
+                                     Eigen::MatrixXd B) {
+  Eigen::HouseholderQR<Eigen::MatrixXd> qr(B);
+  Eigen::MatrixXd Q = qr.householderQ()*Eigen::MatrixXd::Identity(B.rows(), B.cols());
+  Eigen::MatrixXd R = Q.transpose()*B;
+  // People use to say it is a bad practice
+  // to invert matrices. Wonder if there is a better way.
+  // In matlab, I would do main = A/R
+  Eigen::MatrixXd Rinv = R.inverse();
+  Eigen::MatrixXd main = A*Rinv;
+  Eigen::MatrixXd K = main.transpose()*main;
+  return Rinv*smallestEigVec(K);
+}
+
+
+
 // Inside the optimizer, where T is a ceres Jet.
 // Not sure how well it works with Eigen.
 template <typename T>
@@ -203,6 +222,7 @@ Eigen::MatrixXd computeMean(Eigen::MatrixXd A, int dim) {
   {
     int offset = 0;
     for (int i = 0; i < count; i++) {
+      CHECK(offset+dim <= A.rows());
       sum += A.block(offset, 0, dim, cols);
       offset += dim;
     }
@@ -327,6 +347,18 @@ int getSameCount(Array<FlowFiber> fibers, std::function<int(FlowFiber)> f) {
 }
 
 
+FlowFiber computeMeanFiber(Array<FlowFiber> fibers) {
+  auto fiber0 = fibers[0].Q;
+  Eigen::MatrixXd Q(fiber0.rows(), fiber0.cols());
+  Eigen::VectorXd B(fiber0.rows());
+  for (auto f: fibers) {
+    Q += f.Q;
+    B += f.B;
+  }
+  double f = 1.0/fibers.size();
+  return FlowFiber{f*Q, f*B};
+}
+
 FullProblem assembleFullProblem(Array<FlowFiber> fibers) {
   using namespace DataFit;
   auto rowsPerFiber = getSameCount(fibers, [](FlowFiber f) {return f.rows();});
@@ -348,7 +380,7 @@ FullProblem assembleFullProblem(Array<FlowFiber> fibers) {
   auto Qfull = subtractMean(Q, rowsPerFiber);
   auto Bfull = subtractMean(B, rowsPerFiber);
 
-  {
+  /*{
     Eigen::VectorXd K = Eigen::VectorXd::Zero(4);
     K(0) = 1.0;
     std::cout << EXPR_AND_VAL_AS_STRING(Qfull.mean.rows()) << std::endl;
@@ -366,7 +398,7 @@ FullProblem assembleFullProblem(Array<FlowFiber> fibers) {
     plot.set_style("lines");
     plot.plot(XY);
     plot.show();
-  }
+  }*/
 
   return FullProblem{
     Qfull.results, Bfull.results,

@@ -323,11 +323,13 @@ void visTest(FlowMatrices flow, Eigen::MatrixXd A, Eigen::MatrixXd B) {
   int splitCount = 30;
   auto splits = makeRandomSplit(flow.count(), splitCount);
   Array<FlowFiber> fibers = makeFlowFibers(A, B, splits);
+  auto meanFiber = computeMeanFiber(fibers);
   std::cout << EXPR_AND_VAL_AS_STRING(fibers.size()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(fibers[0].observationCount()) << std::endl;
   auto problem = assembleFullProblem(fibers);
   Eigen::VectorXd X = Eigen::VectorXd::Zero(4);
   X(0) = 1.0;
+  plotFlowFibers(Array<FlowFiber>{meanFiber}, X);
   plotFlowFibers(Array<FlowFiber>{fibers}, X);
 }
 
@@ -354,4 +356,20 @@ TEST(LinearCalibrationTest, RealData) {
   visTest(flow, Aeigen, Beigen);
 }
 
+Eigen::MatrixXd makeRandomMatrix(int rows, int cols) {
+  static std::mt19937 rng(0);
+  std::uniform_real_distribution<double> distrib(-1, 1);
+  Eigen::MatrixXd A(rows, cols);
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      A(i, j) = distrib(rng);
+    }
+  }
+  return A;
+}
+
+
+TEST(LinearCalibrationTest, MinimizeNormFraction) {
+
+}
 

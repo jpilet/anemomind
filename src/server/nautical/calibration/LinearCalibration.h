@@ -228,12 +228,22 @@ struct FullProblem {
   }
 };
 
+FlowFiber computeMeanFiber(Array<FlowFiber> fibers);
+
 FullProblem assembleFullProblem(Array<FlowFiber> fibers);
 Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K);
 Eigen::MatrixXd assembleFullProblem(Array<Eigen::MatrixXd> fibers);
 Eigen::MatrixXd makeAB(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
 Eigen::MatrixXd makeABBasis(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
 Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount);
+
+
+// Minimize w.r.t. X: |A*X|^2/|B*X|^2
+// The scale of the solution is undefined.
+// This function just returns one solution that
+// can be scaled.
+Eigen::VectorXd minimizeNormFraction(Eigen::MatrixXd A,
+                                     Eigen::MatrixXd B);
 
 /*
  * Minimize |AX + B|^2/|AX|^2 + |AX + B|^2/|B|^2

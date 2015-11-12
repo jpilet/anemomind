@@ -288,6 +288,17 @@ cxx_test(math_irlsTest
          gtest_main
          plot_gnuplot
         )
+        
+        
+
+add_library(math_Random
+            Random.h
+            Random.cpp
+           )
+
+target_link_libraries(math_Random
+                      common_logging
+                     )                
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)
