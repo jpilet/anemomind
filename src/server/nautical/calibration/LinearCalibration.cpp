@@ -81,7 +81,7 @@ std::string LinearCorrector::toString() const {
   return ss.str();
 }
 
-Array<Arrayi> makeRandomSplit(int sampleCount0, int splitCount) {
+Array<Arrayi> makeRandomSplit(int sampleCount0, int splitCount, RandomEngine *rng) {
   int samplesPerSplit = sampleCount0/splitCount;
   int n = splitCount*samplesPerSplit;
   Arrayi inds(n);
@@ -89,7 +89,16 @@ Array<Arrayi> makeRandomSplit(int sampleCount0, int splitCount) {
   for (int i = 0; i < n; i++) {
     inds[i] = int(floor(map(i)));
   }
-  std::random_shuffle(inds.begin(), inds.end());
+
+  if (rng == nullptr) {
+    std::random_shuffle(inds.begin(), inds.end());
+  } else {
+    auto gen = [&](int index) {
+      return std::uniform_int_distribution<int>(0, index)(*rng);
+    };
+    std::random_shuffle(inds.begin(), inds.end(), gen);
+  }
+
   Array<ArrayBuilder<int> > splits(splitCount);
   for (int i = 0; i < n; i++) {
     splits[inds[i]].add(i);
@@ -207,7 +216,7 @@ Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim) {
   for (int i = 0; i < n; i++) {
     getRowBlock(dst, i, dim) = getRowBlock(A, i, dim) - mean;
   }
-  return mean;
+  return dst;
 }
 
 Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim) {

@@ -9,8 +9,8 @@
 
 namespace sail {
 
-std::mt19937 makeRngForTests() {
-  std::mt19937 rng(0);
+RandomEngine makeRngForTests() {
+  RandomEngine rng(0);
   // Check that the RNG always works the same when we do tests:
   CHECK(rng() == 2357136044);
   return rng;

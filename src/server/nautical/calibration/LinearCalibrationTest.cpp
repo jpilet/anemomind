@@ -172,17 +172,19 @@ void initialize(Arrayd *X) {
   (*X)[0] = 1.0;
 }
 
-
-
-
-
-
-
-
-
-
-
-
+TEST(LinearCalibrationTest, SubtractMean) {
+  Eigen::MatrixXd A(6, 2);
+  for (int i = 0; i < 6; i++) {
+    A(i, 0) = i;
+    A(i, 1) = i;
+  }
+  double expected[6] = {-2, -2, 0, 0, 2, 2};
+  Eigen::MatrixXd B = subtractMean(A, 2);
+  for (int i = 0; i < 6; i++) {
+    EXPECT_NEAR(B(i, 0), expected[i], 1.0e-6);
+    EXPECT_NEAR(B(i, 1), expected[i], 1.0e-6);
+  }
+}
 
 TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
@@ -199,6 +201,19 @@ TEST(LinearCalibrationTest, RealData) {
 
   Eigen::MatrixXd Beigen =
       Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
+
+  int splitCount = 30;
+  auto splits = makeRandomSplit(navs.size(), splitCount, &rng);
+
+  auto fibers = makeFlowFibers(Aeigen, Beigen, splits);
+  auto mean = computeMeanFiber(fibers);
+
+  Eigen::VectorXd X = Eigen::VectorXd::Zero(4);
+  X(0) = 1.0;
+
+  plotFlowFibers(fibers, X);
+
+  plotFlowFibers(Array<FlowFiber>{mean}, X);
 
   //basicFiberTests(flow, Aeigen, Beigen);
   //fullABOrthoTest(flow, Aeigen, Beigen);
@@ -260,4 +275,3 @@ TEST(LinearCalibrationTest, MinimizeNormFraction2) {
     EXPECT_LE(val, evalNormRatio(A, B, C, D, X + makeRandomMatrix(3, 1, 0.01)));
   }
 }
-

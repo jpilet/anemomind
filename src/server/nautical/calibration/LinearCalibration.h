@@ -9,6 +9,7 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
 #include <server/math/irls.h>
+#include <server/math/Random.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -224,7 +225,8 @@ Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
 FlowFiber computeMeanFiber(Array<FlowFiber> fibers);
 
 Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K);
-Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount);
+Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount,
+    RandomEngine *rng = nullptr);
 
 
 // Minimize w.r.t. X: |A*X|^2/|B*X|^2
