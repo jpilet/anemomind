@@ -342,6 +342,13 @@ class Vectorize : public FixedArray<T, N> {
         return true;
     }
 
+    Vectorize<T, N>& operator+= (const Vectorize<T, N>& other) {
+      for (int i = 0; i < N; ++i) {
+        (*this)[i] += other[i];
+      }
+      return *this;
+    }
+
     Vectorize() { }
   private:
 };
