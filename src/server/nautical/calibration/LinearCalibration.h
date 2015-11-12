@@ -208,6 +208,8 @@ struct FlowFiber {
   int parameterCount() const {
     return Q.cols();
   }
+
+  FlowFiber computeSegments() const;
 };
 
 void plotFlowFibers(Array<FlowFiber> flowFibers, Eigen::VectorXd params, double scale = 1.0);
@@ -244,11 +246,16 @@ Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount);
 // can be scaled. The columns of B must be linearly independent,
 // and B should generally have more rows than columns.
 Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A,
-                                     Eigen::MatrixXd B);
+                                  Eigen::MatrixXd B);
 
-// Minimize w.r.t. X: |A*X + B|^2/|C*X + D|^2
+// Minimize w.r.t. X: |A*X + B|^2/|C*X + D|^2.
+// The columns of C and D should all be linearly independent
+// from each other.
 Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A, Eigen::VectorXd B,
-                                     Eigen::MatrixXd C, Eigen::VectorXd D);
+                                  Eigen::MatrixXd C, Eigen::VectorXd D);
+
+
+Eigen::VectorXd fitFlowFibers(Array<FlowFiber> fibers);
 
 /*
  * Minimize |AX + B|^2/|AX|^2 + |AX + B|^2/|B|^2

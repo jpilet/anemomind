@@ -103,7 +103,7 @@ Array<Arrayi> makeRandomSplit(int sampleCount0, int splitCount) {
 // make sure that the doniminator is constant w.r.t.
 // to X if |X| is constant.
 Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A,
-                                     Eigen::MatrixXd B) {
+                                  Eigen::MatrixXd B) {
   Eigen::HouseholderQR<Eigen::MatrixXd> qr(B);
   Eigen::MatrixXd Q = qr.householderQ()*Eigen::MatrixXd::Identity(B.rows(), B.cols());
   Eigen::MatrixXd R = Q.transpose()*B;
@@ -125,7 +125,7 @@ Eigen::MatrixXd hcat(const Eigen::MatrixXd &A, const Eigen::VectorXd &B) {
 }
 
 Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A, Eigen::VectorXd B,
-                                     Eigen::MatrixXd C, Eigen::VectorXd D) {
+                                  Eigen::MatrixXd C, Eigen::VectorXd D) {
   auto Xh = minimizeNormRatio(hcat(A, B), hcat(C, D));
   int n = Xh.size() - 1;
   auto f = 1.0/Xh(n);
@@ -301,6 +301,16 @@ MDArray2d FlowFiber::makePlotData(Eigen::VectorXd params, double scale) {
 double FlowFiber::eval(Eigen::VectorXd params, double scale) {
   Eigen::VectorXd result = Q*params + scale*B;
   return result.norm();
+}
+
+FlowFiber FlowFiber::computeSegments() const {
+  int cols = Q.cols();
+  int dstRows = Q.rows() - 2;
+  auto Q0 = Q.block(0, 0, dstRows, cols);
+  auto Q1 = Q.block(2, 0, dstRows, cols);
+  auto B0 = B.block(0, 0, dstRows, 1);
+  auto B1 = B.block(2, 0, dstRows, 1);
+  return FlowFiber{Q1 - Q0, B1 - B0};
 }
 
 void plotFlowFibers(Array<FlowFiber> data,
