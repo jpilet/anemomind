@@ -21,22 +21,45 @@
 
 
 using namespace sail;
+using namespace LinearCalibration;
+
 
 namespace {
   auto rng = makeRngForTests();
-}
 
-
-Eigen::MatrixXd makeRandomMatrix(int rows, int cols, double s) {
-  std::uniform_real_distribution<double> distrib(-s, s);
-  Eigen::MatrixXd A(rows, cols);
-  for (int i = 0; i < rows; i++) {
-    for (int j = 0; j < cols; j++) {
-      A(i, j) = distrib(rng);
+  Eigen::MatrixXd makeRandomMatrix(int rows, int cols, double s = 1.0) {
+    std::uniform_real_distribution<double> distrib(-s, s);
+    Eigen::MatrixXd A(rows, cols);
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
+        A(i, j) = distrib(rng);
+      }
     }
+    return A;
   }
-  return A;
+
+  bool eq(const Eigen::MatrixXd &a, const Eigen::MatrixXd &b, double tol = 1.0e-6) {
+    int rows = a.rows();
+    int cols = b.cols();
+    if (rows == b.rows() && cols == b.cols()) {
+      for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+          if (std::abs(double(a(i, j)) - double(b(i, j))) > tol) {
+            return false;
+          }
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
 }
+
+bool eq(const FlowFiber &a, const FlowFiber &b, double tol = 1.0e-6) {
+  return eq(a.Q, b.Q, tol) && eq(a.B, b.B, tol);
+}
+
 
 Array<Nav> getTestDataset() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -102,8 +125,6 @@ TEST(LinearCalibrationTest, Sparse) {
   EXPECT_NEAR(X(1, 0), 4.0, 1.0e-9);
   EXPECT_NEAR(X(2, 0), 16.0, 1.0e-9);
 }
-
-using namespace LinearCalibration;
 
 
 bool isOrthonormal(Eigen::MatrixXd Q) {
@@ -198,8 +219,19 @@ TEST(LinearCalibrationTest, SubtractMean) {
   }
 }
 
-TEST(LinearCalibrationTest, IntegrateAndDifferentiateFlowFiber) {
-
+TEST(LinearCalibrationTest, FlowFiberOps) {
+  auto A = FlowFiber{makeRandomMatrix(10, 3), makeRandomMatrix(10, 1)};
+  auto Aitg = A.integrate();
+  EXPECT_FALSE(eq(A.Q, Aitg.Q));
+  EXPECT_FALSE(eq(A.B, Aitg.B));
+  auto A2 = Aitg.differentiate();
+  EXPECT_TRUE(eq(A.Q, A2.Q));
+  EXPECT_TRUE(eq(A.B, A2.B));
+  EXPECT_FALSE(eq(A, A.dropConstant()));
+  EXPECT_FALSE(eq(A, A.dropVariable()));
+  EXPECT_TRUE(eq(A, A.dropConstant() + A.dropVariable()));
+  EXPECT_TRUE(eq(A.dropConstant(), A - A.dropVariable()));
+  EXPECT_TRUE(eq(2.0*A, A + A));
 }
 
 /*TEST(LinearCalibrationTest, RealData) {

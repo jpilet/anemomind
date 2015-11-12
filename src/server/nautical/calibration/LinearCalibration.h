@@ -212,7 +212,16 @@ struct FlowFiber {
 
   FlowFiber differentiate() const;
   FlowFiber integrate() const;
+  FlowFiber dropConstant() const;
+  FlowFiber dropVariable() const;
 };
+
+FlowFiber operator+(const FlowFiber &a, const FlowFiber &b);
+FlowFiber operator-(const FlowFiber &a, const FlowFiber &b);
+FlowFiber operator*(double x, const FlowFiber &b);
+
+
+
 
 void plotFlowFibers(Array<FlowFiber> flowFibers, Eigen::VectorXd params, double scale = 1.0);
 void plotFlowFibers(Array<FlowFiber> data,

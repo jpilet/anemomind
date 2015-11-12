@@ -252,6 +252,19 @@ MDArray2d FlowFiber::makePlotData(Eigen::VectorXd params, double scale) {
   return dst;
 }
 
+FlowFiber operator+(const FlowFiber &a, const FlowFiber &b) {
+  return FlowFiber{a.Q + b.Q, a.B + b.B};
+}
+
+FlowFiber operator-(const FlowFiber &a, const FlowFiber &b) {
+  return FlowFiber{a.Q - b.Q, a.B - b.B};
+}
+
+FlowFiber operator*(double f, const FlowFiber &b) {
+  return FlowFiber{f*b.Q, f*b.B};
+}
+
+
 double FlowFiber::eval(Eigen::VectorXd params, double scale) {
   Eigen::VectorXd result = Q*params + scale*B;
   return result.norm();
@@ -265,6 +278,18 @@ FlowFiber FlowFiber::differentiate() const {
   auto B0 = B.block(0, 0, dstRows, 1);
   auto B1 = B.block(2, 0, dstRows, 1);
   return FlowFiber{Q1 - Q0, B1 - B0};
+}
+
+FlowFiber FlowFiber::integrate() const {
+  return FlowFiber{integrateFlowData(Q), integrateFlowData(B)};
+}
+
+FlowFiber FlowFiber::dropConstant() const {
+  return FlowFiber{Q, Eigen::MatrixXd::Zero(B.rows(), B.cols())};
+}
+
+FlowFiber FlowFiber::dropVariable() const {
+  return FlowFiber{Eigen::MatrixXd::Zero(Q.rows(), Q.cols()), B};
 }
 
 void plotFlowFibers(Array<FlowFiber> data,
