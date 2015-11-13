@@ -8,6 +8,7 @@ target_link_libraries(calibration_LinearCalibration
                     common_Span
                     math_nonlinear_DataFit
                     math_EigenUtils
+                    common_logging
                    )
 
 target_depends_on_ceres(calibration_LinearCalibration)                   

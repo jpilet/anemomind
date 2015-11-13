@@ -101,41 +101,6 @@ TEST(LinearCalibrationTest, Sparse) {
   EXPECT_NEAR(X(2, 0), 16.0, 1.0e-9);
 }
 
-
-bool isOrthonormal(Eigen::MatrixXd Q) {
-  Eigen::MatrixXd QtQ = Q.transpose()*Q;
-  int n = QtQ.rows();
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < n; j++) {
-      auto expected = (i == j? 1.0 : 0.0);
-      if (std::abs(QtQ(i, j) - expected) > 1.0e-9) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-Eigen::MatrixXd projector(Eigen::MatrixXd A) {
-  //return A*((A.transpose()*A).inverse()*A.transpose());
-  Eigen::MatrixXd pInv = A.colPivHouseholderQr().solve(Eigen::MatrixXd::Identity(A.rows(), A.rows()));
-  return A*pInv;
-}
-
-bool spanTheSameSubspace(Eigen::MatrixXd A, Eigen::MatrixXd B) {
-  auto aProj = projector(A);
-  auto bProj = projector(B);
-  auto D = aProj - bProj;
-  for (int i = 0; i < D.rows(); i++) {
-    for (int j = 0; j < D.cols(); j++) {
-      if (D(i, j) > 1.0e-9) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
 TEST(LinearCalibrationTest, ExtractRows) {
   Eigen::MatrixXd A(6, 1);
   for (int i = 0; i < 3; i++) {
@@ -261,49 +226,4 @@ TEST(LinearCalibrationTest, RealData) {
   std::cout << EXPR_AND_VAL_AS_STRING(Xopt) << std::endl;
 
   plotFlowFibers(trueFlows, X, Xopt);*/
-}
-
-
-
-
-namespace {
-  double evalNormRatio(Eigen::MatrixXd A, Eigen::MatrixXd B, Eigen::VectorXd X) {
-    auto a = A*X;
-    auto b = B*X;
-    return a.squaredNorm()/b.squaredNorm();
-  }
-
-  double evalNormRatio(Eigen::MatrixXd A, Eigen::VectorXd B,
-                          Eigen::MatrixXd C, Eigen::VectorXd D, Eigen::VectorXd X) {
-    auto a = A*X + B;
-    auto b = C*X + D;
-    return a.squaredNorm()/b.squaredNorm();
-  }
-}
-
-TEST(LinearCalibrationTest, MinimizeNormFraction) {
-  auto A = makeRandomMatrix(9, 3, &rng, 1.0);
-  auto B = makeRandomMatrix(4, 3, &rng, 1.0);
-  auto X = minimizeNormRatio(A, B);
-  EXPECT_EQ(X.rows(), 3);
-  EXPECT_EQ(X.cols(), 1);
-  auto val = evalNormRatio(A, B, X);
-  for (int i = 0; i < 12; i++) {
-    EXPECT_LE(val, evalNormRatio(A, B, X + makeRandomMatrix(3, 1, &rng, 0.01)));
-  }
-}
-
-
-TEST(LinearCalibrationTest, MinimizeNormFraction2) {
-  auto A = makeRandomMatrix(9, 3, &rng, 1.0);
-  auto B = makeRandomMatrix(9, 1, &rng, 1.0);
-  auto C = makeRandomMatrix(5, 3, &rng, 1.0);
-  auto D = makeRandomMatrix(5, 1, &rng, 1.0);
-  auto X = minimizeNormRatio(A, B, C, D);
-  EXPECT_EQ(X.rows(), 3);
-  EXPECT_EQ(X.cols(), 1);
-  auto val = evalNormRatio(A, B, C, D, X);
-  for (int i = 0; i < 12; i++) {
-    EXPECT_LE(val, evalNormRatio(A, B, C, D, X + makeRandomMatrix(3, 1, &rng, 0.01)));
-  }
 }
