@@ -314,6 +314,12 @@ target_link_libraries(math_Random
                       common_logging
                      )                
 
+cxx_test(math_NormConstrainedTest
+         NormConstrainedTest.cpp
+         gtest_main
+         math_EigenUtils
+        )
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)

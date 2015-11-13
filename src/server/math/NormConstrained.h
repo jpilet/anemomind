@@ -7,6 +7,9 @@
 #define SERVER_MATH_NORMCONSTRAINED_H_
 
 #include <server/common/LineKM.h>
+#include <server/common/string.h>
+#include <iostream>
+#include <Eigen/Dense>
 
 
 namespace sail {
@@ -31,12 +34,13 @@ MatType minimizeNormConstrained(MatType A, MatType B,
   LineKM map(0, settings.iters, settings.initialWeight, settings.finalWeight);
   for (int i = 0; i < settings.iters; i++) {
     auto w = map(i);
+    w *= w;
     MatType Xhat = (1.0/X.norm())*X;
     MatType AtA = AtAbase + settings.finalWeight*Xhat*Xhat.transpose()
         + w*MatType::Identity(n, n);
     MatType AtB = AtAbase + settings.finalWeight*Xhat + w*Xhat;
-    //Eigen::MatrixXd A;
-    X = AtA.ldlt().solve(AtB);
+    X = AtA.inverse()*AtB;
+    std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
   }
   return X;
 }
