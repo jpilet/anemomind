@@ -182,6 +182,10 @@ MatrixType orthonormalBasis(MatrixType X) {
   return qr.householderQ()*selectSpanningSpace;
 }
 
+struct Compressed {
+
+}
+
 struct SubtractMeanResults {
   Eigen::MatrixXd results;
   Eigen::MatrixXd mean;
