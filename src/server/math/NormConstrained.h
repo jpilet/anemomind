@@ -10,6 +10,7 @@
 #include <server/common/string.h>
 #include <iostream>
 #include <Eigen/Dense>
+#include <server/common/math.h>
 
 
 namespace sail {
@@ -31,14 +32,15 @@ MatType minimizeNormConstrained(MatType A, MatType B,
   MatType X = initX;
   MatType AtAbase = A.transpose()*A;
   MatType AtBbase = A.transpose()*B;
-  LineKM map(0, settings.iters, settings.initialWeight, settings.finalWeight);
+  LineKM map(0, settings.iters-1, log(settings.initialWeight), log(settings.finalWeight));
+  auto finalWeight = settings.finalWeight;
   for (int i = 0; i < settings.iters; i++) {
-    auto w = map(i);
-    w *= w;
+    auto w = exp(map(i));
+    std::cout << EXPR_AND_VAL_AS_STRING(w) << std::endl;
     MatType Xhat = (1.0/X.norm())*X;
-    MatType AtA = AtAbase + settings.finalWeight*Xhat*Xhat.transpose()
+    MatType AtA = AtAbase + finalWeight*Xhat*Xhat.transpose()
         + w*MatType::Identity(n, n);
-    MatType AtB = AtAbase + settings.finalWeight*Xhat + w*Xhat;
+    MatType AtB = AtAbase + finalWeight*Xhat + w*Xhat;
     X = AtA.inverse()*AtB;
     std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
   }
