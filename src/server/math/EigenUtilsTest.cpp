@@ -70,6 +70,16 @@ TEST(EigenUtilsTest, Nullspace) {
   }
 }
 
+TEST(EigenUtilsTest, Nullspace2) {
+  auto k = makeRandomMatrix(3, 1, &rng);
+  auto A = nullspace(k);
+  EXPECT_EQ(A.rows(), 3);
+  EXPECT_EQ(A.cols(), 2);
+  Eigen::MatrixXd Atk = A.transpose()*k;
+  EXPECT_TRUE(eq(Atk, Eigen::MatrixXd::Zero(2, 1)));
+  EXPECT_FALSE(eq(A, Eigen::MatrixXd::Zero(3, 2)));
+}
+
 
 TEST(EigenUtilsTest, MinimizeNormFraction2) {
   auto A = makeRandomMatrix(9, 3, &rng, 1.0);
