@@ -37,7 +37,8 @@ MatType minimizeNormConstrained(MatType A, MatType B,
   auto finalWeight = settings.finalWeight;
   for (int i = 0; i < settings.iters; i++) {
     auto w = exp(map(i));
-    MatType Xhat = (1.0/X.norm())*X;
+    typedef decltype(X.norm()) T;
+    MatType Xhat = T(T(1.0)/X.norm())*X;
     MatType AtAvar = w*MatType::Identity(n, n);
     MatType AtBvar = w*Xhat;
 
