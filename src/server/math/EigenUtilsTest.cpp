@@ -26,6 +26,18 @@ namespace {
   }
 }
 
+TEST(EigenUtilsTest, Compress) {
+  auto A = makeRandomMatrix(9, 3, &rng);
+  Eigen::VectorXd B = makeRandomMatrix(9, 1, &rng);
+  auto c = compress(ABPair{A, B});
+  Eigen::MatrixXd AtA = A.transpose()*A;
+  Eigen::MatrixXd AtB = A.transpose()*B;
+  Eigen::MatrixXd AtA2 = c.A.transpose()*c.A;
+  Eigen::MatrixXd AtB2 = c.A.transpose()*c.B;
+  EXPECT_TRUE(eq(AtA, AtA2));
+  EXPECT_TRUE(eq(AtB, AtB2));
+}
+
 TEST(EigenUtilsTest, OrthoBasis) {
   auto A = makeRandomMatrix(9, 3, &rng);
   auto B = makeRandomMatrix(9, 3, &rng);
