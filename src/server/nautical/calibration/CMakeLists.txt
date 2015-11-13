@@ -7,6 +7,7 @@ target_link_libraries(calibration_LinearCalibration
                     nautical_nav
                     common_Span
                     math_nonlinear_DataFit
+                    math_EigenUtils
                    )
 
 target_depends_on_ceres(calibration_LinearCalibration)                   

@@ -9,9 +9,13 @@
 #include <Eigen/Core>
 #include <Eigen/Householder>
 #include <Eigen/QR>
+#include <server/math/Random.h>
 
 namespace sail {
 namespace EigenUtils {
+
+Eigen::MatrixXd makeRandomMatrix(int rows, int cols, RandomEngine *rng, double s = 1.0);
+bool eq(const Eigen::MatrixXd &a, const Eigen::MatrixXd &b, double tol = 1.0e-6);
 
 template <typename MatrixType>
 MatrixType orthonormalBasis(MatrixType X) {

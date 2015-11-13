@@ -18,47 +18,22 @@
 #include <server/common/ArrayIO.h>
 #include <Eigen/Cholesky>
 #include <server/math/Random.h>
+#include <server/math/EigenUtils.h>
 
 
 using namespace sail;
 using namespace LinearCalibration;
+using namespace EigenUtils;
 
 
 namespace {
   auto rng = makeRngForTests();
 
-  Eigen::MatrixXd makeRandomMatrix(int rows, int cols, double s = 1.0) {
-    std::uniform_real_distribution<double> distrib(-s, s);
-    Eigen::MatrixXd A(rows, cols);
-    for (int i = 0; i < rows; i++) {
-      for (int j = 0; j < cols; j++) {
-        A(i, j) = distrib(rng);
-      }
-    }
-    return A;
+  bool eq(const FlowFiber &a, const FlowFiber &b, double tol = 1.0e-6) {
+    return EigenUtils::eq(a.Q, b.Q, tol) && EigenUtils::eq(a.B, b.B, tol);
   }
-
-  bool eq(const Eigen::MatrixXd &a, const Eigen::MatrixXd &b, double tol = 1.0e-6) {
-    int rows = a.rows();
-    int cols = b.cols();
-    if (rows == b.rows() && cols == b.cols()) {
-      for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-          if (std::abs(double(a(i, j)) - double(b(i, j))) > tol) {
-            return false;
-          }
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
 }
 
-bool eq(const FlowFiber &a, const FlowFiber &b, double tol = 1.0e-6) {
-  return eq(a.Q, b.Q, tol) && eq(a.B, b.B, tol);
-}
 
 
 Array<Nav> getTestDataset() {
@@ -220,7 +195,7 @@ TEST(LinearCalibrationTest, SubtractMean) {
 }
 
 TEST(LinearCalibrationTest, FlowFiberOps) {
-  auto A = FlowFiber{makeRandomMatrix(10, 3), makeRandomMatrix(10, 1)};
+  auto A = FlowFiber{makeRandomMatrix(10, 3, &rng), makeRandomMatrix(10, 1, &rng)};
   auto Aitg = A.integrate();
   EXPECT_FALSE(eq(A.Q, Aitg.Q));
   EXPECT_FALSE(eq(A.B, Aitg.B));
@@ -307,28 +282,28 @@ namespace {
 }
 
 TEST(LinearCalibrationTest, MinimizeNormFraction) {
-  auto A = makeRandomMatrix(9, 3, 1.0);
-  auto B = makeRandomMatrix(4, 3, 1.0);
+  auto A = makeRandomMatrix(9, 3, &rng, 1.0);
+  auto B = makeRandomMatrix(4, 3, &rng, 1.0);
   auto X = minimizeNormRatio(A, B);
   EXPECT_EQ(X.rows(), 3);
   EXPECT_EQ(X.cols(), 1);
   auto val = evalNormRatio(A, B, X);
   for (int i = 0; i < 12; i++) {
-    EXPECT_LE(val, evalNormRatio(A, B, X + makeRandomMatrix(3, 1, 0.01)));
+    EXPECT_LE(val, evalNormRatio(A, B, X + makeRandomMatrix(3, 1, &rng, 0.01)));
   }
 }
 
 
 TEST(LinearCalibrationTest, MinimizeNormFraction2) {
-  auto A = makeRandomMatrix(9, 3, 1.0);
-  auto B = makeRandomMatrix(9, 1, 1.0);
-  auto C = makeRandomMatrix(5, 3, 1.0);
-  auto D = makeRandomMatrix(5, 1, 1.0);
+  auto A = makeRandomMatrix(9, 3, &rng, 1.0);
+  auto B = makeRandomMatrix(9, 1, &rng, 1.0);
+  auto C = makeRandomMatrix(5, 3, &rng, 1.0);
+  auto D = makeRandomMatrix(5, 1, &rng, 1.0);
   auto X = minimizeNormRatio(A, B, C, D);
   EXPECT_EQ(X.rows(), 3);
   EXPECT_EQ(X.cols(), 1);
   auto val = evalNormRatio(A, B, C, D, X);
   for (int i = 0; i < 12; i++) {
-    EXPECT_LE(val, evalNormRatio(A, B, C, D, X + makeRandomMatrix(3, 1, 0.01)));
+    EXPECT_LE(val, evalNormRatio(A, B, C, D, X + makeRandomMatrix(3, 1, &rng, 0.01)));
   }
 }
