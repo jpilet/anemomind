@@ -184,37 +184,37 @@ TEST(LinearCalibrationTest, RealData) {
 
   auto flow = trueCurrent;
 
-  Eigen::MatrixXd Aeigen =
+  Eigen::MatrixXd AnotOrtho =
       Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
 
-  Eigen::MatrixXd Beigen =
+  auto Q = orthonormalBasis(AnotOrtho);
+  Eigen::MatrixXd R = Q.transpose()*AnotOrtho;
+
+  Eigen::MatrixXd B =
       Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
 
   int splitCount = 2;
   auto splits = makeRandomSplit(navs.size(), splitCount, &rng);
 
-  auto trueFlows = makeFlowFibers(Aeigen, Beigen, splits);
+  auto trueFlows = makeFlowFibers(Q, B, splits);
+  auto apparentFlows = trueFlows.map<FlowFiber>([](const FlowFiber &f) {
+    return f.dropConstant();
+  });
   auto meanTrueFlow = computeMeanFiber(trueFlows);
   auto meanGps = meanTrueFlow.dropVariable();
-  auto gpsTrajectories = trueFlows.map<FlowFiber>([=](const FlowFiber &trueFlow) {
-    return meanTrueFlow - trueFlow.dropConstant();
-  });
+
+  auto trueFlowFitness = buildFitnessFiber(trueFlows, meanTrueFlow);
+  auto apparentFlowFitness = trueFlowFitness.dropConstant().differentiate();
 
   Eigen::VectorXd Xinit = Eigen::VectorXd::Zero(4);
   Xinit(0) = 1.0;
+  Eigen::VectorXd Yinit = R*Xinit;
 
-  plotFlowFibers(gpsTrajectories, Xinit);
+  plotFlowFibers(apparentFlows, Yinit);
 
-  auto fitness = buildFitnessFiber(gpsTrajectories, meanGps);
-  std::cout << EXPR_AND_VAL_AS_STRING(fitness.Q.block(0, 0, 9, 4)) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(fitness.B.block(0, 0, 9, 1)) << std::endl;
-
-  auto Xopt = fitness.minimizeNorm();
-
-  std::cout << EXPR_AND_VAL_AS_STRING(Xopt) << std::endl;
-
-  plotFlowFibers(gpsTrajectories, Xopt);
-
+  auto Yfitted = trueFlowFitness.Q.colPivHouseholderQr().solve(-trueFlowFitness.B);
+  std::cout << EXPR_AND_VAL_AS_STRING(Yinit) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(Yfitted) << std::endl;
 
   /*auto edges = meanTrueFlow.differentiate();
   EXPECT_EQ(edges.observationCount() + 1, meanTrueFlow.observationCount());

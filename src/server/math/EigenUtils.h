@@ -58,6 +58,7 @@ Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A,
 Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A, Eigen::VectorXd B,
                                   Eigen::MatrixXd C, Eigen::VectorXd D);
 
+
 }
 }
 
