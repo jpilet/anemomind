@@ -182,7 +182,7 @@ TEST(LinearCalibrationTest, RealData) {
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-  auto flow = trueCurrent;
+  auto flow = trueWind;
 
   Eigen::MatrixXd AnotOrtho =
       Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
@@ -193,7 +193,7 @@ TEST(LinearCalibrationTest, RealData) {
   Eigen::MatrixXd B =
       Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
 
-  int splitCount = 2;
+  int splitCount = 40;
   auto splits = makeRandomSplit(navs.size(), splitCount, &rng);
 
   auto trueFlows = makeFlowFibers(Q, B, splits);
@@ -210,11 +210,14 @@ TEST(LinearCalibrationTest, RealData) {
   Xinit(0) = 1.0;
   Eigen::VectorXd Yinit = R*Xinit;
 
-  plotFlowFibers(apparentFlows, Yinit);
+  Eigen::MatrixXd QtQ = trueFlowFitness.Q.transpose()*trueFlowFitness.Q;
+  Eigen::MatrixXd QtB = trueFlowFitness.Q.transpose()*trueFlowFitness.B;
+  Eigen::MatrixXd Yfitted = QtQ.lu().solve(-QtB);
 
-  auto Yfitted = trueFlowFitness.Q.colPivHouseholderQr().solve(-trueFlowFitness.B);
   std::cout << EXPR_AND_VAL_AS_STRING(Yinit) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(Yfitted) << std::endl;
+
+  plotFlowFibers(trueFlows, Yinit, Yfitted);
 
   /*auto edges = meanTrueFlow.differentiate();
   EXPECT_EQ(edges.observationCount() + 1, meanTrueFlow.observationCount());
