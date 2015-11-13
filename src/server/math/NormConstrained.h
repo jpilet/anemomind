@@ -33,9 +33,9 @@ MatType minimizeNormConstrained(MatType A, MatType B,
   MatType AtAbase = A.transpose()*A;
   MatType AtBbase = A.transpose()*B;
   LineKM map(0, settings.iters-1, log(settings.initialWeight), log(settings.finalWeight));
-  auto finalWeight = settings.finalWeight;
+  auto finalWeight = sqr(settings.finalWeight);
   for (int i = 0; i < settings.iters; i++) {
-    auto w = exp(map(i));
+    auto w = sqr(exp(map(i)));
     std::cout << EXPR_AND_VAL_AS_STRING(w) << std::endl;
     MatType Xhat = (1.0/X.norm())*X;
     MatType AtA = AtAbase + finalWeight*Xhat*Xhat.transpose()
