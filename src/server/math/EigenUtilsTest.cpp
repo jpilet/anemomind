@@ -26,7 +26,17 @@ namespace {
   }
 }
 
-TEST(LinearCalibrationTest, MinimizeNormFraction) {
+TEST(EigenUtilsTest, OrthoBasis) {
+  auto A = makeRandomMatrix(9, 3, &rng);
+  auto B = makeRandomMatrix(9, 3, &rng);
+  auto Q = orthonormalBasis(A);
+  EXPECT_FALSE(isOrthonormal(A));
+  EXPECT_TRUE(isOrthonormal(Q));
+  EXPECT_TRUE(spanTheSameSubspace(A, Q));
+  EXPECT_FALSE(spanTheSameSubspace(A, B));
+}
+
+TEST(EigenUtilsTest, MinimizeNormFraction) {
   auto A = makeRandomMatrix(9, 3, &rng, 1.0);
   auto B = makeRandomMatrix(4, 3, &rng, 1.0);
   auto X = minimizeNormRatio(A, B);
@@ -39,7 +49,7 @@ TEST(LinearCalibrationTest, MinimizeNormFraction) {
 }
 
 
-TEST(LinearCalibrationTest, MinimizeNormFraction2) {
+TEST(EigenUtilsTest, MinimizeNormFraction2) {
   auto A = makeRandomMatrix(9, 3, &rng, 1.0);
   auto B = makeRandomMatrix(9, 1, &rng, 1.0);
   auto C = makeRandomMatrix(5, 3, &rng, 1.0);
