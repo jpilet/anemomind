@@ -189,6 +189,10 @@ angular.module('www2App')
     }
 
     function twdir() {
+      var result = getPointValue(['twdir']);
+      if (result != undefined) {
+        return result;
+      }
       var twa = getPointValue(['twa', 'externalTwa']);
       if (twa == undefined) {
         return twa;

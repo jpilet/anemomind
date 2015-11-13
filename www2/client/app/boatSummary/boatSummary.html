@@ -8,6 +8,9 @@
         <td><a href="/map/{{boatId}}?c={{session._id}}">{{session.startTime | date: 'd.M.yyyy (H:mm'}} - {{session.endTime | date: 'H:mm'}})</a>
         (<a href="/map/{{boatId}}?c={{session._id}}">max {{session.maxSpeedOverGround | number: 1}} kn</a>,
         distance: {{ session.trajectoryLength | number : 1 }} nm)
+        ({{ twdirToCardinal(session.avgWindDir) }}
+         {{ knotsToBeaufort(session.avgWindSpeed) }} bf, 
+         max: {{ session.strongestWindSpeed | number: 1 }} kn)
         </td>
       </tr>
     </table>
