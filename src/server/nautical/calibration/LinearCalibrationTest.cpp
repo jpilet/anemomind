@@ -234,7 +234,7 @@ TEST(LinearCalibrationTest, FlowFiberOps) {
   EXPECT_TRUE(eq(2.0*A, A + A));
 }
 
-/*TEST(LinearCalibrationTest, RealData) {
+TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
 
@@ -250,29 +250,43 @@ TEST(LinearCalibrationTest, FlowFiberOps) {
   Eigen::MatrixXd Beigen =
       Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
 
-  int splitCount = 120;
+  int splitCount = 2;
   auto splits = makeRandomSplit(navs.size(), splitCount, &rng);
 
-  auto fibers = makeFlowFibers(Aeigen, Beigen, splits);
-  //auto fibers = computeFiberMeans(rawFibers, 12);
+  auto trueFlows = makeFlowFibers(Aeigen, Beigen, splits);
+  auto meanTrueFlow = computeMeanFiber(trueFlows);
+  auto meanGps = meanTrueFlow.dropVariable();
+  auto gpsTrajectories = trueFlows.map<FlowFiber>([=](const FlowFiber &trueFlow) {
+    return meanTrueFlow - trueFlow.dropConstant();
+  });
+
+  Eigen::VectorXd Xinit = Eigen::VectorXd::Zero(4);
+  Xinit(0) = 1.0;
+
+  plotFlowFibers(gpsTrajectories, Xinit);
+
+  auto fitness = buildFitnessFiber(gpsTrajectories, meanGps);
+  std::cout << EXPR_AND_VAL_AS_STRING(fitness.Q.block(0, 0, 9, 4)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(fitness.B.block(0, 0, 9, 1)) << std::endl;
+
+  auto Xopt = fitness.minimizeNorm();
+
+  std::cout << EXPR_AND_VAL_AS_STRING(Xopt) << std::endl;
+
+  plotFlowFibers(gpsTrajectories, Xopt);
 
 
-  auto mean = computeMeanFiber(fibers);
+  /*auto edges = meanTrueFlow.differentiate();
+  EXPECT_EQ(edges.observationCount() + 1, meanTrueFlow.observationCount());
 
-  auto edges = mean.differentiate();
-  EXPECT_EQ(edges.observationCount() + 1, mean.observationCount());
 
-  auto fitness = buildFitnessFiber(fibers, mean);
-
-  Eigen::VectorXd X = Eigen::VectorXd::Zero(4);
-  X(0) = 1.0;
 
   auto Xopt = minimizeNormRatio(fitness.Q, fitness.B, edges.Q, edges.B);
 
   std::cout << EXPR_AND_VAL_AS_STRING(Xopt) << std::endl;
 
-  plotFlowFibers(fibers, X, Xopt);
-}*/
+  plotFlowFibers(trueFlows, X, Xopt);*/
+}
 
 
 

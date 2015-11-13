@@ -214,6 +214,8 @@ struct FlowFiber {
   FlowFiber integrate() const;
   FlowFiber dropConstant() const;
   FlowFiber dropVariable() const;
+  bool sameSizeAs(const FlowFiber &other) const;
+  Eigen::VectorXd minimizeNorm() const;
 };
 
 FlowFiber operator+(const FlowFiber &a, const FlowFiber &b);
@@ -237,6 +239,7 @@ Array<FlowFiber> computeFiberMeans(Array<FlowFiber> rawFibers, int dstCount);
 
 FlowFiber computeMeanFiber(Array<FlowFiber> fibers);
 
+// Build a fiber, whose norm |Q*X + B| should be as small as possible.
 FlowFiber buildFitnessFiber(Array<FlowFiber> fibers, FlowFiber mean);
 
 Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K);

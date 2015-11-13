@@ -253,10 +253,12 @@ MDArray2d FlowFiber::makePlotData(Eigen::VectorXd params, double scale) {
 }
 
 FlowFiber operator+(const FlowFiber &a, const FlowFiber &b) {
+  CHECK(a.sameSizeAs(b));
   return FlowFiber{a.Q + b.Q, a.B + b.B};
 }
 
 FlowFiber operator-(const FlowFiber &a, const FlowFiber &b) {
+  CHECK(a.sameSizeAs(b));
   return FlowFiber{a.Q - b.Q, a.B - b.B};
 }
 
@@ -294,6 +296,14 @@ FlowFiber FlowFiber::dropConstant() const {
 
 FlowFiber FlowFiber::dropVariable() const {
   return FlowFiber{Eigen::MatrixXd::Zero(Q.rows(), Q.cols()), B};
+}
+
+bool FlowFiber::sameSizeAs(const FlowFiber &other) const {
+  return rows() == other.rows() && parameterCount() == other.parameterCount();
+}
+
+Eigen::VectorXd FlowFiber::minimizeNorm() const {
+  return Q.colPivHouseholderQr().solve(B);
 }
 
 void plotFlowFibers(Array<FlowFiber> data,
@@ -383,7 +393,7 @@ FlowFiber computeMeanFiber(Array<FlowFiber> fibers) {
   return FlowFiber{f*Q, f*B};
 }
 
-FlowFiber buildFitnessFiber(Array<FlowFiber> fibers, FlowFiber mean) {
+FlowFiber buildFitnessFiber(Array<FlowFiber> fibers, FlowFiber dst) {
   int cols = getSameCount(fibers, [](const FlowFiber &f) {return f.parameterCount();});
   int rowsPerFiber = getSameCount(fibers, [](const FlowFiber &f) {return f.rows();});
 
@@ -392,8 +402,8 @@ FlowFiber buildFitnessFiber(Array<FlowFiber> fibers, FlowFiber mean) {
   Eigen::MatrixXd B(n*rowsPerFiber, 1);
   for (int i = 0; i < n; i++) {
     auto &fiber = fibers[i];
-    getRowBlock(Q, i, rowsPerFiber) = fiber.Q - mean.Q;
-    getRowBlock(B, i, rowsPerFiber) = fiber.B - mean.B;
+    getRowBlock(Q, i, rowsPerFiber) = fiber.Q - dst.Q;
+    getRowBlock(B, i, rowsPerFiber) = fiber.B - dst.B;
   }
   return FlowFiber{Q, B};
 }
