@@ -28,6 +28,14 @@ MatrixType orthonormalBasis(MatrixType X) {
   return qr.householderQ()*selectSpanningSpace;
 }
 
+template <typename MatrixType>
+MatrixType nullspace(MatrixType X) {
+  Eigen::HouseholderQR<Eigen::MatrixXd> qr(X);
+  auto selectNullspace = Eigen::MatrixXd::Identity(X.rows(), X.rows())
+    .block(0, X.cols(), X.rows(), X.rows() - X.cols());
+  return qr.householderQ()*selectNullspace;
+}
+
 struct ABPair {
   Eigen::MatrixXd A;
   Eigen::VectorXd B;

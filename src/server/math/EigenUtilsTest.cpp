@@ -60,6 +60,16 @@ TEST(EigenUtilsTest, MinimizeNormFraction) {
   }
 }
 
+TEST(EigenUtilsTest, Nullspace) {
+  Eigen::MatrixXd K = Eigen::MatrixXd::Identity(3, 2);
+  auto L = nullspace(K);
+  EXPECT_EQ(L.rows(), 3);
+  EXPECT_EQ(L.cols(), 1);
+  for (int i = 0; i < 3; i++) {
+    EXPECT_NEAR(L(i, 0), (i == 2? 1.0: 0.0), 1.0e-6);
+  }
+}
+
 
 TEST(EigenUtilsTest, MinimizeNormFraction2) {
   auto A = makeRandomMatrix(9, 3, &rng, 1.0);
