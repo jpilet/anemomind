@@ -289,7 +289,16 @@ cxx_test(math_irlsTest
          plot_gnuplot
         )
         
-        
+add_library(math_EigenUtils
+            EigenUtils.h
+            EigenUtils.cpp
+           )        
+           
+cxx_test(math_EigenUtilsTest
+         EigenUtilsTest.cpp
+         gtest_main
+         math_EigenUtils
+        )
 
 add_library(math_Random
             Random.h

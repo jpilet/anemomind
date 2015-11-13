@@ -6,14 +6,14 @@
 #include "EigenUtils.h"
 
 namespace sail {
+namespace EigenUtils {
 
-EigenUtils::EigenUtils() {
-  // TODO Auto-generated constructor stub
-
+ABPair compress(const ABPair &pair) {
+  auto Q = orthonormalBasis(pair.A);
+  Eigen::MatrixXd R = Q.transpose()*pair.A;
+  Eigen::VectorXd QtB = Q.transpose()*pair.B;
+  return ABPair{R, QtB};
 }
 
-EigenUtils::~EigenUtils() {
-  // TODO Auto-generated destructor stub
 }
-
 } /* namespace sail */

@@ -175,16 +175,6 @@ struct CalibrationSettings {
   double inlierFrac = 0.2;
 };
 
-template <typename MatrixType>
-MatrixType orthonormalBasis(MatrixType X) {
-  Eigen::HouseholderQR<Eigen::MatrixXd> qr(X);
-  auto selectSpanningSpace = Eigen::MatrixXd::Identity(X.rows(), X.cols());
-  return qr.householderQ()*selectSpanningSpace;
-}
-
-struct Compressed {
-
-}
 
 struct SubtractMeanResults {
   Eigen::MatrixXd results;
