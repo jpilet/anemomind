@@ -11,13 +11,14 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include <server/common/math.h>
+#include <server/common/logging.h>
 
 
 namespace sail {
 namespace NormConstrained {
 
 struct Settings {
-  double initialWeight = 0.1;
+  double initialWeight = 0.01;
   double finalWeight = 10000.0;
   int iters = 30;
 };
@@ -32,18 +33,22 @@ MatType minimizeNormConstrained(MatType A, MatType B,
   MatType X = initX;
   MatType AtAbase = A.transpose()*A;
   MatType AtBbase = A.transpose()*B;
+  std::cout << EXPR_AND_VAL_AS_STRING(AtAbase) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(AtBbase) << std::endl;
   LineKM map(0, settings.iters-1, log(settings.initialWeight), log(settings.finalWeight));
-  auto finalWeight = sqr(settings.finalWeight);
+  auto finalWeight = settings.finalWeight;
+  std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
   for (int i = 0; i < settings.iters; i++) {
-    auto w = sqr(exp(map(i)));
-    std::cout << EXPR_AND_VAL_AS_STRING(w) << std::endl;
+    auto w = exp(map(i));
     MatType Xhat = (1.0/X.norm())*X;
-    MatType AtA = AtAbase + finalWeight*Xhat*Xhat.transpose()
-        + w*MatType::Identity(n, n);
-    MatType AtB = AtAbase + finalWeight*Xhat + w*Xhat;
-    X = AtA.inverse()*AtB;
-    std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
+    MatType AtAvar = w*MatType::Identity(n, n);
+    MatType AtBvar = w*Xhat;
+
+    MatType AtA = AtAbase + AtAvar;
+    MatType AtB = AtAbase + AtBvar;
+    X = AtA.lu().solve(AtB);
   }
+  std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
   return X;
 }
 
