@@ -30,7 +30,7 @@ TEST(NormConstrainedTest, NormConstrained) {
   auto X = minimizeNormConstrained(A, B, Xinit, s);
   auto ref = eval(A, B, X);
   for (int i = 0; i < 30; i++) {
-    auto X0 = X + makeRandomMatrix(4, 1, &rng, 1.0e-3);
+    auto X0 = X + makeRandomMatrix(4, 1, &rng, 1.0e-2);
     EXPECT_LE(ref, eval(A, B, X0));
   }
 }

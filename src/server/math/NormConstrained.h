@@ -45,7 +45,7 @@ MatType minimizeNormConstrained(MatType A, MatType B,
     MatType AtBvar = w*Xhat;
 
     MatType AtA = AtAbase + AtAvar;
-    MatType AtB = AtAbase + AtBvar;
+    MatType AtB = AtBbase + AtBvar;
     X = AtA.lu().solve(AtB);
   }
   std::cout << EXPR_AND_VAL_AS_STRING(X) << std::endl;
