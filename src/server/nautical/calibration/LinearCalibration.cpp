@@ -160,6 +160,10 @@ namespace {
   using namespace DataFit;
 
   struct FitData {
+    Eigen::MatrixXd A;
+
+    Eigen::VectorXd B;
+
     irls::BinaryConstraintGroup cst;
 
     // So that we know what residuals to extract
@@ -203,7 +207,7 @@ namespace {
     auto outlierResidual = constantFitError;
     Bbuilder->add(outlierRows.elementSpan(), outlierResidual);
 
-    return FitData{irls::BinaryConstraintGroup(dataSlackRows.elementSpan(),
+    return FitData{Asub, Bsub, irls::BinaryConstraintGroup(dataSlackRows.elementSpan(),
         outlierSlackRows.elementSpan()), dataRows, dataSlackCols};
   }
 
