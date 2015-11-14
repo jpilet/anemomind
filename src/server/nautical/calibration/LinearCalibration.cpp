@@ -202,16 +202,24 @@ namespace {
     return irls::WeightingStrategyArray<irls::BinaryConstraintGroup>::make(constraints);
   }
 
+  void setTo0(CoordIndexer idx, Eigen::VectorXd *dst) {
+    for (auto i: idx.elementSpan()) {
+      (*dst)[i] = 0.0;
+    }
+  }
 
   LocallyConstantResults makeLocallyConstantResults(
+      Eigen::SparseMatrix<double >A,
       irls::Results results,
       Array<FitData> fitData,
       CoordIndexer paramCols) {
     int n = fitData.size();
     Arrayb inliers(n);
     for (int i = 0; i < n; i++) {
-      inliers[i] = fitData[i].cst.getBestFitIndex(results.residuals) == 0;
+      auto f = fitData[i];
+      inliers[i] = f.cst.getBestFitIndex(results.residuals) == 0;
     }
+
     Arrayd parameters = EigenUtils::vectorToArray(results.X)
       .slice(paramCols.from(), paramCols.to()).dup();
     Array<Eigen::VectorXd> segments;
@@ -251,9 +259,11 @@ LocallyConstantResults optimizeLocallyConstantFlows(
   auto cst = makeBinaryConstraints(data);
   auto A = makeSparseMatrix(rows.count(), cols.count(), triplets);
   auto B = Bbuilder.make(rows.count());
+  //std::cout << EXPR_AND_VAL_AS_STRING(A.toDense()) << std::endl;
+  //std::cout << EXPR_AND_VAL_AS_STRING(B) << std::endl;
   auto strategies = irls::WeightingStrategies{cst};
   irls::Results results = irls::solveFull(A, B, strategies, settings);
-  return makeLocallyConstantResults(results, data, paramCols);
+  return makeLocallyConstantResults(A, results, data, paramCols);
 }
 
 
