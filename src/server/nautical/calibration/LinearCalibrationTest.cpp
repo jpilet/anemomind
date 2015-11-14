@@ -224,7 +224,7 @@ TEST(LinearCalibrationTest, RealData) {
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-  auto flow = trueWind;
+  auto flow = trueCurrent;
 
   Eigen::MatrixXd Avelocities =
       Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
@@ -236,7 +236,7 @@ TEST(LinearCalibrationTest, RealData) {
   Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
   int n = getObservationCount(Atrajectory);
-  int splitSize = 50;
+  int splitSize = 100;
   Array<Spani> splits = makeOverlappingSpans(n, splitSize);
   std::cout << EXPR_AND_VAL_AS_STRING(splits) << std::endl;
 
