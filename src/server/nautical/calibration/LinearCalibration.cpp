@@ -187,7 +187,9 @@ namespace {
     makeEye(1.0, outlierSlackRows.elementSpan(), outlierSlackCols.elementSpan(), triplets);
 
     auto cstFlowFit = fitConstantFlow(Bsub);
-    auto outlierResidual = (cstFlowFit - Bsub).norm();
+    auto constantFitError = (cstFlowFit - Bsub).norm();
+    std::cout << EXPR_AND_VAL_AS_STRING(constantFitError) << std::endl;
+    auto outlierResidual = constantFitError;
     Bbuilder->add(outlierRows.elementSpan(), outlierResidual);
 
     return FitData{irls::BinaryConstraintGroup(dataSlackRows.elementSpan(),
@@ -223,6 +225,7 @@ namespace {
     Arrayd parameters = EigenUtils::vectorToArray(results.X)
       .slice(paramCols.from(), paramCols.to()).dup();
     Array<Eigen::VectorXd> segments;
+    std::cout << EXPR_AND_VAL_AS_STRING(parameters) << std::endl;
     return LocallyConstantResults{inliers, parameters, segments};
   }
 }
@@ -259,6 +262,7 @@ LocallyConstantResults optimizeLocallyConstantFlows(
   auto cst = makeBinaryConstraints(data);
   auto A = makeSparseMatrix(rows.count(), cols.count(), triplets);
   auto B = Bbuilder.make(rows.count());
+  std::cout << EXPR_AND_VAL_AS_STRING(Atrajectory.cols()) << std::endl;
   //std::cout << EXPR_AND_VAL_AS_STRING(A.toDense()) << std::endl;
   //std::cout << EXPR_AND_VAL_AS_STRING(B) << std::endl;
   auto strategies = irls::WeightingStrategies{cst};

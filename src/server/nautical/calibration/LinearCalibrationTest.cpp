@@ -232,7 +232,7 @@ TEST(LinearCalibrationTest, RealData) {
   Eigen::MatrixXd Bvelocities =
       Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
 
-  Eigen::MatrixXd Atrajectory = integrateFlowData(Bvelocities);
+  Eigen::MatrixXd Atrajectory = integrateFlowData(Avelocities);
   Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
   int n = getObservationCount(Atrajectory);
@@ -242,6 +242,7 @@ TEST(LinearCalibrationTest, RealData) {
 
   auto results = optimizeLocallyConstantFlows(
       Atrajectory, Btrajectory,
-      Array<Spani>{Spani(0, 2), Spani(2, 4)}, irls::Settings());
+      splits, irls::Settings());
   std::cout << EXPR_AND_VAL_AS_STRING(results.inliers) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
 }
