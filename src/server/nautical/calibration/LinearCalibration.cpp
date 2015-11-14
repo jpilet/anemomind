@@ -232,6 +232,7 @@ namespace {
 
   LocallyConstantResults makeLocallyConstantResults(
       Eigen::SparseMatrix<double >A,
+      Eigen::VectorXd Btrajectory,
       irls::Results results,
       Array<FitData> fitData,
       CoordIndexer paramCols) {
@@ -245,7 +246,7 @@ namespace {
       inliers[i] = f.cst.getBestFitIndex(results.residuals) == 0;
       segments[i] = fitDataToGps(f.A, f.B, parameters);
     }
-    return LocallyConstantResults{inliers, parameters, segments};
+    return LocallyConstantResults{inliers, parameters, segments, Btrajectory};
   }
 }
 
@@ -255,6 +256,15 @@ int LocallyConstantResults::inlierCount() const {
     sum += (x? 1 : 0);
   }
   return sum;
+}
+
+void LocallyConstantResults::plot() {
+  TrajectoryPlot p;
+  p.plot(B, 3, true);
+  for (int i = 0; i < inliers.size(); i++) {
+    p.plot(segments[i], (inliers[i]? 2 : 1), false);
+  }
+  p.show();
 }
 
 LocallyConstantResults optimizeLocallyConstantFlows(
@@ -290,7 +300,7 @@ LocallyConstantResults optimizeLocallyConstantFlows(
   auto B = Bbuilder.make(rows.count());
   auto strategies = irls::WeightingStrategies{cst};
   irls::Results results = irls::solveFull(A, B, strategies, settings);
-  return makeLocallyConstantResults(A, results, data, paramCols);
+  return makeLocallyConstantResults(A, Btrajectory, results, data, paramCols);
 }
 
 

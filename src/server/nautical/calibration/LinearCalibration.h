@@ -278,6 +278,7 @@ struct LocallyConstantResults {
   double inlierRate() const {
     return double(inlierCount())/inliers.size();
   }
+  void plot();
 };
 
 
