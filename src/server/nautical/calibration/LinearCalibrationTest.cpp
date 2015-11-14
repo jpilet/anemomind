@@ -236,8 +236,9 @@ TEST(LinearCalibrationTest, RealData) {
   Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
   int n = getObservationCount(Atrajectory);
-  int splitSize = 10;
-  Array<Spani> splits = makeContiguousSpans(n, splitSize);
+  int splitSize = 50;
+  Array<Spani> splits = makeOverlappingSpans(n, splitSize);
+  std::cout << EXPR_AND_VAL_AS_STRING(splits) << std::endl;
 
   auto results = optimizeLocallyConstantFlows(
       Atrajectory, Btrajectory,
