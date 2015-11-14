@@ -59,6 +59,13 @@ void sleepForever() {
   std::this_thread::sleep_for(std::chrono::seconds(30000));
 }
 
+void GnuplotExtra::setLineStyle(int index, std::string colorCode, int lineWidth) {
+  std::stringstream ss;
+  ss << "set style line " << index << " lt rgb \"" << colorCode << "\" lw 1";
+  cmd(ss.str());
+}
+
+
 
 
 } /* namespace sail */

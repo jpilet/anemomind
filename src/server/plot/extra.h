@@ -21,6 +21,8 @@ class GnuplotExtra : public Gnuplot {
   void plot(MDArray2d data, const std::string &title = "");
   void plot(int dim, double *from, double *to, const std::string &title = "");
   void show();
+
+  void setLineStyle(int index, std::string colorCode, int lineWidth);
  private:
   //std::string _rgbString;
 };

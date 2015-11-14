@@ -11,6 +11,7 @@
 #include <server/math/irls.h>
 #include <server/math/nonlinear/DataFit.h>
 #include <server/math/Random.h>
+#include <server/plot/extra.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -170,6 +171,13 @@ class LinearCorrector : public CorrectorFunction {
 };
 
 
+template <typename MatrixType>
+int getObservationCount(const MatrixType &X) {
+  int count = X.rows()/2;
+  CHECK(2*count == X.rows());
+  return count;
+}
+
 struct CalibrationSettings {
   irls::Settings irlsSettings;
   int samplesPerSpan = 60;
@@ -213,6 +221,15 @@ struct FlowFiber {
   Eigen::VectorXd minimizeNorm() const;
 };
 
+class TrajectoryPlotter {
+ public:
+  TrajectoryPlotter();
+  void plot(Eigen::VectorXd X, int lineType, bool thick);
+  void show() {_plot.show();}
+ private:
+  GnuplotExtra _plot;
+};
+
 
 // Makes a matrix used to parametrize the trajectory
 // of a constant flow: That is a straight line, typically in two dimensions.
@@ -249,7 +266,7 @@ Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount,
     RandomEngine *rng = nullptr);
 Array<Spani> makeContiguousSpans(int sampleCount, int splitSize);
 
-
+Eigen::VectorXd fitConstantFlow(const Eigen::VectorXd &dst);
 
 }
 }

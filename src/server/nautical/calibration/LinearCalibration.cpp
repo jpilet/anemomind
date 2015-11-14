@@ -118,6 +118,30 @@ Array<Spani> makeContiguousSpans(int sampleCount, int splitSize) {
 }
 
 
+Eigen::MatrixXd makeConstantFlowTrajectoryMatrix(int observationCount) {
+  using namespace DataFit;
+  auto rows = CoordIndexer::Factory();
+  auto cols = CoordIndexer::Factory();
+  std::vector<Triplet> triplets;
+  makeConstantFlowTrajectoryMatrix(rows.make(observationCount, 2), cols.make(2, 2),
+      &triplets);
+  Eigen::SparseMatrix<double> A(rows.count(), cols.count());
+  A.setFromTriplets(triplets.begin(), triplets.end());
+  return A.toDense();
+}
+
+// of a constant flow: That is a straight line, typically in two dimensions.
+void makeConstantFlowTrajectoryMatrix(DataFit::CoordIndexer rows,
+                                          DataFit::CoordIndexer cols,
+                                          std::vector<DataFit::Triplet> *dst);
+
+Eigen::VectorXd fitConstantFlow(const Eigen::VectorXd &dst) {
+  int n = getObservationCount(dst);
+  auto A = makeConstantFlowTrajectoryMatrix(n);
+  return A.householderQr().solve(dst);
+}
+
+
 
 // Inside the optimizer, where T is a ceres Jet.
 // Not sure how well it works with Eigen.
@@ -298,6 +322,30 @@ Eigen::VectorXd FlowFiber::minimizeNorm() const {
   return Q.colPivHouseholderQr().solve(B);
 }
 
+TrajectoryPlotter::TrajectoryPlotter() {
+  _plot.set_style("lines");
+  _plot.setLineStyle(1, "red", 1);
+  _plot.setLineStyle(2, "green", 1);
+  _plot.setLineStyle(3, "blue", 1);
+  _plot.setLineStyle(4, "red", 2);
+  _plot.setLineStyle(5, "green", 2);
+  _plot.setLineStyle(6, "blue", 2);
+}
+
+void TrajectoryPlotter::plot(Eigen::VectorXd X, int lineType, bool thick) {
+  CHECK(Spani(0, 3).contains(lineType-1));
+  int n = getObservationCount(X);
+  MDArray2d data(n, 2);
+  for (int i = 0; i < n; i++) {
+    int row = 2*i;
+    data(i, 0) = X(row + 0);
+    data(i, 1) = X(row + 1);
+  }
+  _plot.set_current_line_style(lineType + (thick? 3 : 0));
+  _plot.plot(data);
+}
+
+
 void plotFlowFibers(Array<FlowFiber> data,
                       Eigen::VectorXd params, double scale) {
   GnuplotExtra plot;
@@ -315,9 +363,9 @@ void plotFlowFibers(Array<FlowFiber> data,
   plot.cmd("set style line 1 lt rgb \"blue\" lw 1 pt 6");
   plot.cmd("set style line 2 lt rgb \"green\" lw 1 pt 6");
   for (auto d: data) {
-    plot.set_current_line_style("1");
+    plot.set_current_line_style(1);
     plot.plot(d.makePlotData(A, scale));
-    plot.set_current_line_style("2");
+    plot.set_current_line_style(2);
     plot.plot(d.makePlotData(B, scale));
   }
   plot.show();

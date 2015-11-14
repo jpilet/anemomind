@@ -251,8 +251,10 @@ class Gnuplot
 
     /// sets the current line style. Read more here at the bottom of the page:
     /// http://gnuplot.sourceforge.net/docs_4.2/node62.html
-    void set_current_line_style(const std::string ls) {
-      current_user_defined_line_style = ls;
+    void set_current_line_style(int ls) {
+      std::stringstream ss;
+      ss << ls;
+      current_user_defined_line_style = ss.str();
     }
 
     // ----------------------------------------------------------------------

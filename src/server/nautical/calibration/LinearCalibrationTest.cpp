@@ -200,6 +200,14 @@ TEST(LinearCalibrationTest, ConstantFlowTrajectory) {
   EXPECT_TRUE(eq(A.toDense(), A2));
 }
 
+void plotConstantFlows(Eigen::VectorXd B, int splitSize) {
+  int n = getObservationCount(B);
+  auto splits = makeContiguousSpans(n, splitSize);
+  TrajectoryPlotter plot;
+  plot.plot(B, 1, false);
+  plot.show();
+}
+
 TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
@@ -219,6 +227,7 @@ TEST(LinearCalibrationTest, RealData) {
   Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
   int n = navs.size();
-
-  Array<Spani> splits = makeContiguousSpans(n, 1000);
+  int splitSize = 1000;
+  Array<Spani> splits = makeContiguousSpans(n, splitSize);
+  plotConstantFlows(Btrajectory, splitSize);
 }
