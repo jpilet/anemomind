@@ -119,6 +119,18 @@ Array<Spani> makeContiguousSpans(int sampleCount, int splitSize) {
 }
 
 
+Array<Spani> makeOverlappingSpans(int sampleCount, int splitSize, double relStep) {
+  double step = relStep*splitSize;
+  int lastIndex = int(floor((sampleCount - splitSize)/step));
+  int count = lastIndex+1;
+  LineKM from(0, count-1, 0.0, sampleCount - splitSize);
+  LineKM to(0, count-1, splitSize, sampleCount);
+  return Spani(0, count).map<Spani>([=](int i) {
+    return Spani(int(round(from(i))), int(round(to(i))));
+  });
+}
+
+
 Eigen::MatrixXd makeConstantFlowTrajectoryMatrix(int observationCount) {
   using namespace DataFit;
   auto rows = CoordIndexer::Factory();

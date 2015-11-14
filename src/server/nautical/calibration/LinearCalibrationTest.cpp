@@ -236,7 +236,7 @@ TEST(LinearCalibrationTest, RealData) {
   Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
   int n = getObservationCount(Atrajectory);
-  int splitSize = 20;
+  int splitSize = 10;
   Array<Spani> splits = makeContiguousSpans(n, splitSize);
 
   auto results = optimizeLocallyConstantFlows(

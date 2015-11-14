@@ -264,7 +264,9 @@ FlowFiber buildFitnessFiber(Array<FlowFiber> fibers, FlowFiber mean);
 Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K);
 Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount,
     RandomEngine *rng = nullptr);
+
 Array<Spani> makeContiguousSpans(int sampleCount, int splitSize);
+Array<Spani> makeOverlappingSpans(int sampleCount, int splitSize, double step = 0.5);
 
 Eigen::VectorXd fitConstantFlow(const Eigen::VectorXd &dst);
 
