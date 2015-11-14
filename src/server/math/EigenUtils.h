@@ -17,8 +17,8 @@ namespace sail {
 namespace EigenUtils {
 
 template <typename T>
-Eigen::Map<T> arrayToEigen(Array<T> src) {
-  return Eigen::Map<T>(src.ptr(), src.size(), 1);
+Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > arrayToEigen(Array<T> src) {
+  return Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >(src.ptr(), src.size(), 1);
 }
 
 template <typename T>

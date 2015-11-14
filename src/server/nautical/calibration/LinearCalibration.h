@@ -279,6 +279,8 @@ struct LocallyConstantResults {
   }
 };
 
+
+// TODO: Autoselect the span count so that the number of inliers is maximized.
 LocallyConstantResults optimizeLocallyConstantFlows(
     Eigen::MatrixXd Atrajectory, Eigen::VectorXd Btrajectory,
     Array<Spani> spans, const irls::Settings &settings);

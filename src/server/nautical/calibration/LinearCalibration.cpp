@@ -145,6 +145,17 @@ Eigen::VectorXd fitConstantFlow(const Eigen::VectorXd &dst) {
   return A*X;
 }
 
+Eigen::VectorXd fitDataToGps(Eigen::MatrixXd A, Eigen::VectorXd B,
+  Arrayd X) {
+  Eigen::VectorXd Xe = EigenUtils::arrayToEigen(X);
+  int n = getObservationCount(A);
+  auto trueFlow = makeConstantFlowTrajectoryMatrix(n);
+  Eigen::MatrixXd K = (trueFlow.transpose()*trueFlow);
+  Eigen::VectorXd tw = B + A*Xe;
+  auto fitted = K.lu().solve(trueFlow.transpose()*tw);
+  return trueFlow*fitted - A*Xe;
+}
+
 namespace {
   using namespace DataFit;
 
@@ -269,9 +280,6 @@ LocallyConstantResults optimizeLocallyConstantFlows(
   auto cst = makeBinaryConstraints(data);
   auto A = makeSparseMatrix(rows.count(), cols.count(), triplets);
   auto B = Bbuilder.make(rows.count());
-  std::cout << EXPR_AND_VAL_AS_STRING(Atrajectory.cols()) << std::endl;
-  //std::cout << EXPR_AND_VAL_AS_STRING(A.toDense()) << std::endl;
-  //std::cout << EXPR_AND_VAL_AS_STRING(B) << std::endl;
   auto strategies = irls::WeightingStrategies{cst};
   irls::Results results = irls::solveFull(A, B, strategies, settings);
   return makeLocallyConstantResults(A, results, data, paramCols);
