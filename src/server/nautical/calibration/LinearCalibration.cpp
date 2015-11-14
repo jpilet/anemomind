@@ -14,6 +14,7 @@
 #include <server/plot/extra.h>
 #include <server/common/ArrayBuilder.h>
 #include <ceres/ceres.h>
+#include <server/math/EigenUtils.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -138,9 +139,11 @@ void makeConstantFlowTrajectoryMatrix(DataFit::CoordIndexer rows,
 Eigen::VectorXd fitConstantFlow(const Eigen::VectorXd &dst) {
   int n = getObservationCount(dst);
   auto A = makeConstantFlowTrajectoryMatrix(n);
-  return A.householderQr().solve(dst);
+  CHECK(A.rows() == dst.rows());
+  Eigen::MatrixXd AtA = A.transpose()*A;
+  Eigen::VectorXd X = AtA.lu().solve(A.transpose()*dst);
+  return A*X;
 }
-
 
 
 // Inside the optimizer, where T is a ceres Jet.
@@ -261,12 +264,13 @@ void makeConstantFlowTrajectoryMatrix(DataFit::CoordIndexer rows,
   CHECK(cols.count() == 2);
   auto variableColSpan = cols.span(0);
   auto constantColSpan = cols.span(1);
+  LineKM vals(0, rows.count()-1, 0.0, 2.0);
   for (int i = 0; i < rows.count(); i++) {
     auto rowSpan = rows.span(i);
     for (int j = 0; j < dim; j++) {
       using namespace DataFit;
       int row = rowSpan[j];
-      dst->push_back(Triplet(row, variableColSpan[j], i));
+      dst->push_back(Triplet(row, variableColSpan[j], vals(i)));
       dst->push_back(Triplet(row, constantColSpan[j], 1.0));
     }
   }

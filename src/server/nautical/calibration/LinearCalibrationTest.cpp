@@ -205,6 +205,14 @@ void plotConstantFlows(Eigen::VectorXd B, int splitSize) {
   auto splits = makeContiguousSpans(n, splitSize);
   TrajectoryPlotter plot;
   plot.plot(B, 1, false);
+
+  for (auto s1: splits) {
+    Spani s = 2*s1;
+    auto traj = sliceRows(B, s);
+    auto fitted = fitConstantFlow(traj);
+    plot.plot(fitted, 2, true);
+  }
+
   plot.show();
 }
 
