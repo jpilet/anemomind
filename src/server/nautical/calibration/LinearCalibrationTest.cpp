@@ -224,7 +224,7 @@ TEST(LinearCalibrationTest, RealData) {
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-  auto flow = trueWind;
+  auto flow = trueCurrent;
 
   Eigen::MatrixXd Avelocities =
       Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
@@ -236,9 +236,8 @@ TEST(LinearCalibrationTest, RealData) {
   Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
   int n = getObservationCount(Atrajectory);
-  int splitSize = 100;
+  int splitSize = 20;
   Array<Spani> splits = makeContiguousSpans(n, splitSize);
-  plotConstantFlows(Btrajectory, splitSize);
 
   auto results = optimizeLocallyConstantFlows(
       Atrajectory, Btrajectory,
