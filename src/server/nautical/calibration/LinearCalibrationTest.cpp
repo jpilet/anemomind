@@ -203,7 +203,7 @@ TEST(LinearCalibrationTest, ConstantFlowTrajectory) {
 void plotConstantFlows(Eigen::VectorXd B, int splitSize) {
   int n = getObservationCount(B);
   auto splits = makeContiguousSpans(n, splitSize);
-  TrajectoryPlotter plot;
+  TrajectoryPlot plot;
   plot.plot(B, 1, false);
 
   for (auto s1: splits) {

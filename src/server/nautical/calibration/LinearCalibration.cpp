@@ -152,7 +152,12 @@ Eigen::VectorXd fitDataToGps(Eigen::MatrixXd A, Eigen::VectorXd B,
   auto trueFlow = makeConstantFlowTrajectoryMatrix(n);
   Eigen::MatrixXd K = (trueFlow.transpose()*trueFlow);
   Eigen::VectorXd tw = B + A*Xe;
-  auto fitted = K.lu().solve(trueFlow.transpose()*tw);
+  Eigen::VectorXd fitted = K.lu().solve(trueFlow.transpose()*tw);
+  CHECK(trueFlow.rows() == A.rows());
+  CHECK(trueFlow.cols()*fitted.rows());
+  CHECK(fitted.cols() == 1);
+  CHECK(A.cols() == Xe.rows());
+  CHECK(Xe.cols() == 1);
   return trueFlow*fitted - A*Xe;
 }
 
@@ -232,15 +237,14 @@ namespace {
       CoordIndexer paramCols) {
     int n = fitData.size();
     Arrayb inliers(n);
+    Array<Eigen::VectorXd> segments(n);
+    Arrayd parameters = EigenUtils::vectorToArray(results.X)
+      .slice(paramCols.from(), paramCols.to()).dup();
     for (int i = 0; i < n; i++) {
       auto f = fitData[i];
       inliers[i] = f.cst.getBestFitIndex(results.residuals) == 0;
+      segments[i] = fitDataToGps(f.A, f.B, parameters);
     }
-
-    Arrayd parameters = EigenUtils::vectorToArray(results.X)
-      .slice(paramCols.from(), paramCols.to()).dup();
-    Array<Eigen::VectorXd> segments;
-    std::cout << EXPR_AND_VAL_AS_STRING(parameters) << std::endl;
     return LocallyConstantResults{inliers, parameters, segments};
   }
 }
@@ -470,7 +474,7 @@ Eigen::VectorXd FlowFiber::minimizeNorm() const {
   return Q.colPivHouseholderQr().solve(B);
 }
 
-TrajectoryPlotter::TrajectoryPlotter() {
+TrajectoryPlot::TrajectoryPlot() {
   _plot.set_style("lines");
   _plot.setLineStyle(1, "red", 1);
   _plot.setLineStyle(2, "green", 1);
@@ -480,7 +484,7 @@ TrajectoryPlotter::TrajectoryPlotter() {
   _plot.setLineStyle(6, "blue", 2);
 }
 
-void TrajectoryPlotter::plot(Eigen::VectorXd X, int lineType, bool thick) {
+void TrajectoryPlot::plot(Eigen::VectorXd X, int lineType, bool thick) {
   CHECK(Spani(0, 3).contains(lineType-1));
   int n = getObservationCount(X);
   MDArray2d data(n, 2);

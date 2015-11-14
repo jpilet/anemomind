@@ -221,9 +221,9 @@ struct FlowFiber {
   Eigen::VectorXd minimizeNorm() const;
 };
 
-class TrajectoryPlotter {
+class TrajectoryPlot {
  public:
-  TrajectoryPlotter();
+  TrajectoryPlot();
   void plot(Eigen::VectorXd X, int lineType, bool thick);
   void show() {_plot.show();}
  private:
@@ -272,6 +272,7 @@ struct LocallyConstantResults {
   Arrayb inliers;
   Arrayd parameters;
   Array<Eigen::VectorXd> segments;
+  Eigen::VectorXd B;
 
   int inlierCount() const;
   double inlierRate() const {
