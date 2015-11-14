@@ -218,6 +218,7 @@ TEST(LinearCalibrationTest, RealData) {
   std::cout << EXPR_AND_VAL_AS_STRING(Yfitted) << std::endl;
 
   plotFlowFibers(trueFlows, Yinit, Yfitted);
+  plotFlowFibers(apparentFlows, Yinit, Yfitted);
 
   /*auto edges = meanTrueFlow.differentiate();
   EXPECT_EQ(edges.observationCount() + 1, meanTrueFlow.observationCount());
