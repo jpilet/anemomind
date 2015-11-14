@@ -10,9 +10,30 @@
 #include <Eigen/Householder>
 #include <Eigen/QR>
 #include <server/math/Random.h>
+#include <server/common/Span.h>
 
 namespace sail {
 namespace EigenUtils {
+
+template <typename MatrixType>
+auto sliceRows(MatrixType &A, int from, int to) -> decltype(A.block(0, 0, 1, 1)) {
+  return A.block(from, 0, to-from, A.cols());
+}
+
+template <typename MatrixType>
+auto sliceCols(MatrixType &A, int from, int to) -> decltype(A.block(0, 0, 1, 1)) {
+  return A.block(0, from, A.rows(), to-from);
+}
+
+template <typename MatrixType>
+auto sliceRows(MatrixType &A, Spani s) -> decltype(sliceRows<MatrixType>(A, 0, 1)) {
+  return sliceRows(A, s.minv(), s.maxv());
+}
+
+template <typename MatrixType>
+auto sliceCols(MatrixType &A, Spani s) -> decltype(sliceCols<MatrixType>(A, 0, 1)) {
+  return sliceCols(A, s.minv(), s.maxv());
+}
 
 bool isOrthonormal(Eigen::MatrixXd Q, double tol = 1.0e-9);
 Eigen::MatrixXd projector(Eigen::MatrixXd A);
