@@ -174,6 +174,32 @@ TEST(LinearCalibrationTest, FlowFiberOps) {
   EXPECT_TRUE(eq(2.0*A, A + A));
 }
 
+TEST(LinearCalibrationTest, Spans) {
+  auto spans = makeContiguousSpans(9, 4);
+  EXPECT_EQ(spans.size(), 2);
+  EXPECT_EQ(spans, (Array<Spani>{Spani(0, 4), Spani(4, 8)}));
+}
+
+TEST(LinearCalibrationTest, ConstantFlowTrajectory) {
+  std::vector<DataFit::Triplet> triplets;
+  auto rows = DataFit::CoordIndexer::Factory();
+  auto cols = DataFit::CoordIndexer::Factory();
+  auto flowRows = rows.make(3, 2);
+  auto flowCols = cols.make(2, 2);
+  makeConstantFlowTrajectoryMatrix(flowRows, flowCols, &triplets);
+  Eigen::SparseMatrix<double> A(rows.count(), cols.count());
+  A.setFromTriplets(triplets.begin(), triplets.end());
+  Eigen::MatrixXd A2 = Eigen::MatrixXd::Zero(6, 4);
+  for (int i = 0; i < 3; i++) {
+    int row = 2*i;
+    A2(row + 0, 0) = i;
+    A2(row + 1, 1) = i;
+    A2(row + 2, 0) = 1.0;
+    A2(row + 3, 1) = 1.0;
+  }
+  EXPECT_TRUE(eq(A.toDense(), A2));
+}
+
 TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
@@ -184,50 +210,15 @@ TEST(LinearCalibrationTest, RealData) {
 
   auto flow = trueWind;
 
-  Eigen::MatrixXd AnotOrtho =
+  Eigen::MatrixXd A =
       Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
 
-  auto Q = orthonormalBasis(AnotOrtho);
-  Eigen::MatrixXd R = Q.transpose()*AnotOrtho;
-
-  Eigen::MatrixXd B =
+  Eigen::MatrixXd Bvelocities =
       Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
 
-  int splitCount = 40;
-  auto splits = makeRandomSplit(navs.size(), splitCount, &rng);
+  Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
-  auto trueFlows = makeFlowFibers(Q, B, splits);
-  auto apparentFlows = trueFlows.map<FlowFiber>([](const FlowFiber &f) {
-    return f.dropConstant();
-  });
-  auto meanTrueFlow = computeMeanFiber(trueFlows);
-  auto meanGps = meanTrueFlow.dropVariable();
+  int n = navs.size();
 
-  auto trueFlowFitness = buildFitnessFiber(trueFlows, meanTrueFlow);
-  auto apparentFlowFitness = trueFlowFitness.dropConstant().differentiate();
-
-  Eigen::VectorXd Xinit = Eigen::VectorXd::Zero(4);
-  Xinit(0) = 1.0;
-  Eigen::VectorXd Yinit = R*Xinit;
-
-  Eigen::MatrixXd QtQ = trueFlowFitness.Q.transpose()*trueFlowFitness.Q;
-  Eigen::MatrixXd QtB = trueFlowFitness.Q.transpose()*trueFlowFitness.B;
-  Eigen::MatrixXd Yfitted = QtQ.lu().solve(-QtB);
-
-  std::cout << EXPR_AND_VAL_AS_STRING(Yinit) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(Yfitted) << std::endl;
-
-  plotFlowFibers(trueFlows, Yinit, Yfitted);
-  plotFlowFibers(apparentFlows, Yinit, Yfitted);
-
-  /*auto edges = meanTrueFlow.differentiate();
-  EXPECT_EQ(edges.observationCount() + 1, meanTrueFlow.observationCount());
-
-
-
-  auto Xopt = minimizeNormRatio(fitness.Q, fitness.B, edges.Q, edges.B);
-
-  std::cout << EXPR_AND_VAL_AS_STRING(Xopt) << std::endl;
-
-  plotFlowFibers(trueFlows, X, Xopt);*/
+  Array<Spani> splits = makeContiguousSpans(n, 1000);
 }

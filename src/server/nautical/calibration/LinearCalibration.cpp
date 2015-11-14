@@ -108,6 +108,15 @@ Array<Arrayi> makeRandomSplit(int sampleCount0, int splitCount, RandomEngine *rn
   });
 }
 
+Array<Spani> makeContiguousSpans(int sampleCount, int splitSize) {
+  int splitCount = sampleCount/splitSize;
+  return Spani(0, splitCount).map<Spani>([&](int index) {
+    int from = index*splitSize;
+    int to = from + splitSize;
+    return Spani(from, to);
+  });
+}
+
 
 
 // Inside the optimizer, where T is a ceres Jet.
@@ -219,6 +228,26 @@ FlowFiber operator+(const FlowFiber &a, const FlowFiber &b) {
   CHECK(a.sameSizeAs(b));
   return FlowFiber{a.Q + b.Q, a.B + b.B};
 }
+
+void makeConstantFlowTrajectoryMatrix(DataFit::CoordIndexer rows,
+                                          DataFit::CoordIndexer cols,
+                                          std::vector<DataFit::Triplet> *dst) {
+  int dim = rows.dim();
+  CHECK(rows.dim() == cols.dim());
+  CHECK(cols.count() == 2);
+  auto variableColSpan = cols.span(0);
+  auto constantColSpan = cols.span(1);
+  for (int i = 0; i < rows.count(); i++) {
+    auto rowSpan = rows.span(i);
+    for (int j = 0; j < dim; j++) {
+      using namespace DataFit;
+      int row = rowSpan[j];
+      dst->push_back(Triplet(row, variableColSpan[j], i));
+      dst->push_back(Triplet(row, constantColSpan[j], 1.0));
+    }
+  }
+}
+
 
 FlowFiber operator-(const FlowFiber &a, const FlowFiber &b) {
   CHECK(a.sameSizeAs(b));

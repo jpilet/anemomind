@@ -9,6 +9,7 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
 #include <server/math/irls.h>
+#include <server/math/nonlinear/DataFit.h>
 #include <server/math/Random.h>
 
 namespace sail {
@@ -212,6 +213,13 @@ struct FlowFiber {
   Eigen::VectorXd minimizeNorm() const;
 };
 
+
+// Makes a matrix used to parametrize the trajectory
+// of a constant flow: That is a straight line, typically in two dimensions.
+void makeConstantFlowTrajectoryMatrix(DataFit::CoordIndexer rows,
+                                          DataFit::CoordIndexer cols,
+                                          std::vector<DataFit::Triplet> *dst);
+
 FlowFiber operator+(const FlowFiber &a, const FlowFiber &b);
 FlowFiber operator-(const FlowFiber &a, const FlowFiber &b);
 FlowFiber operator-(const FlowFiber &a);
@@ -239,6 +247,7 @@ FlowFiber buildFitnessFiber(Array<FlowFiber> fibers, FlowFiber mean);
 Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K);
 Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount,
     RandomEngine *rng = nullptr);
+Array<Spani> makeContiguousSpans(int sampleCount, int splitSize);
 
 
 
