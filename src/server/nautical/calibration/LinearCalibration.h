@@ -273,11 +273,10 @@ struct LocallyConstantResults {
   Arrayd parameters;
   Array<Eigen::VectorXd> segments;
 
-  /*
-   * Blue: Gps
-   * Green: Outlier
-   * Red: Inlier
-   */
+  int inlierCount() const;
+  double inlierRate() const {
+    return double(inlierCount())/inliers.size();
+  }
 };
 
 LocallyConstantResults optimizeLocallyConstantFlows(

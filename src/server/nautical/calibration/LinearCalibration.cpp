@@ -230,6 +230,13 @@ namespace {
   }
 }
 
+int LocallyConstantResults::inlierCount() const {
+  int sum = 0;
+  for (auto x: inliers) {
+    sum += (x? 1 : 0);
+  }
+  return sum;
+}
 
 LocallyConstantResults optimizeLocallyConstantFlows(
     Eigen::MatrixXd Atrajectory, Eigen::VectorXd Btrajectory,

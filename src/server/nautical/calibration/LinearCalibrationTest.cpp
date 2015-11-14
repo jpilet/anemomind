@@ -224,7 +224,7 @@ TEST(LinearCalibrationTest, RealData) {
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-  auto flow = trueWind;
+  auto flow = trueCurrent;
 
   Eigen::MatrixXd Avelocities =
       Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
@@ -245,4 +245,5 @@ TEST(LinearCalibrationTest, RealData) {
       splits, irls::Settings());
   std::cout << EXPR_AND_VAL_AS_STRING(results.inliers) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(results.inlierRate()) << std::endl;
 }
