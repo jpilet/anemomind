@@ -167,6 +167,8 @@ class BinaryConstraintGroup : public WeightingStrategy {
 
   void apply(double constraintWeight,
       const Arrayd &residuals, QuadCompiler *dst);
+  int getBestFitIndex(const Arrayd &residuals) const;
+  int getBestFitIndex(Eigen::VectorXd v) const;
  private:
   Spani _a, _b;
 };

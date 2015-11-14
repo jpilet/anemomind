@@ -236,6 +236,15 @@ void BinaryConstraintGroup::apply(double constraintWeight,
   }
 }
 
+int BinaryConstraintGroup::getBestFitIndex(Eigen::VectorXd v) const {
+  return getBestFitIndex(Arrayd(v.size(), v.data()));
+}
+
+int BinaryConstraintGroup::getBestFitIndex(const Arrayd &residuals) const {
+  return (calcResidualForSpan(_a, residuals)
+      < calcResidualForSpan(_b, residuals)? 0 : 1);
+}
+
 WeightingStrategy::Ptr ConstraintGroup::make(Array<Spani> spans, int activeCount) {
   return WeightingStrategy::Ptr(new ConstraintGroup(spans, activeCount));
 }

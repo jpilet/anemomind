@@ -182,6 +182,10 @@ class Span {
     static_assert(std::is_integral<T>::value, "Only integers");
     return Span<T>(_minv + s.minv(), _minv + s.maxv());
   }
+
+  Span<T> indices() const {
+    return Span<T>(T(0), width());
+  }
  private:
   bool _initialized;
   T _minv, _maxv;

@@ -133,6 +133,23 @@ void makeReg(double weight, int order,
 void insertDense(double scale, const Eigen::MatrixXd &src, Spani dstRows, Spani dstCols,
   std::vector<Triplet> *dst);
 
+Eigen::SparseMatrix<double> makeSparseMatrix(int rows, int cols,
+  const std::vector<Triplet> &triplets);
+
+class VectorBuilder {
+ public:
+  VectorBuilder() {}
+  void add(Spani dstSpan, const Eigen::VectorXd &data);
+  void add(Spani dstSpan, double value);
+  Eigen::VectorXd make(int rows) const;
+ private:
+  struct SubVector {
+    Spani span;
+    Eigen::VectorXd data;
+  };
+  std::vector<SubVector> _data;
+};
+
 // Make left- and right-hands-sides for fitting of a signal to observations.
 template <int Dim>
 void makeDataFromObservations(Array<Observation<Dim> > observations,

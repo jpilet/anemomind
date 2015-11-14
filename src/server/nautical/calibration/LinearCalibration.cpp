@@ -145,6 +145,117 @@ Eigen::VectorXd fitConstantFlow(const Eigen::VectorXd &dst) {
   return A*X;
 }
 
+namespace {
+  using namespace DataFit;
+
+  struct FitData {
+    irls::BinaryConstraintGroup cst;
+
+    // So that we know what residuals to extract
+    CoordIndexer flowRows;
+
+    // So that we know what to set to zero when we compute the fitted wind.
+    CoordIndexer dataSlackCols;
+  };
+
+  int countObservations(Array<Spani> spans) {
+    return spans.reduce<int>(0, [=](int sum, Spani s) {
+      return sum + s.width();
+    });
+  }
+
+  FitData makeConstantFlowFit(
+          const Eigen::MatrixXd &Asub, const Eigen::MatrixXd &Bsub,
+          CoordIndexer dataRows, CoordIndexer dataSlackRows,
+          CoordIndexer outlierRows, CoordIndexer outlierSlackRows,
+          CoordIndexer paramCols, CoordIndexer trueFlowCols, CoordIndexer dataSlackCols,
+          CoordIndexer outlierSlackCols, std::vector<Triplet> *triplets,
+          VectorBuilder *Bbuilder) {
+
+    ///////// Data related
+    // Left-hand-side
+    insertDense(-1.0, Asub, dataRows.elementSpan(), paramCols.elementSpan(), triplets);
+    makeConstantFlowTrajectoryMatrix(dataRows, trueFlowCols, triplets);
+    makeEye(1.0, dataRows.elementSpan(), dataSlackCols.elementSpan(), triplets);
+    makeEye(1.0, dataSlackRows.elementSpan(), dataSlackCols.elementSpan(), triplets);
+    // Right-hand-side
+    Bbuilder->add(dataRows.elementSpan(), Bsub);
+
+    ///////// Outlier related
+    // Related to outlier
+    makeEye(1.0, outlierRows.elementSpan(), outlierSlackCols.elementSpan(), triplets);
+    makeEye(1.0, outlierSlackRows.elementSpan(), outlierSlackCols.elementSpan(), triplets);
+
+    auto cstFlowFit = fitConstantFlow(Bsub);
+    auto outlierResidual = (cstFlowFit - Bsub).norm();
+    Bbuilder->add(outlierRows.elementSpan(), outlierResidual);
+
+    return FitData{irls::BinaryConstraintGroup(dataSlackRows.elementSpan(),
+        outlierSlackRows.elementSpan()), dataRows, dataSlackCols};
+  }
+
+  irls::WeightingStrategy::Ptr makeBinaryConstraints(Array<FitData> src) {
+    int n = src.size();
+    auto constraints = src.map<irls::BinaryConstraintGroup>([&](const FitData &x) {
+      return x.cst;
+    });
+    return irls::WeightingStrategyArray<irls::BinaryConstraintGroup>::make(constraints);
+  }
+
+
+  LocallyConstantResults makeLocallyConstantResults(
+      irls::Results results,
+      Array<FitData> fitData,
+      CoordIndexer paramCols) {
+    int n = fitData.size();
+    Arrayb inliers(n);
+    for (int i = 0; i < n; i++) {
+      inliers[i] = fitData[i].cst.getBestFitIndex(results.residuals) == 0;
+    }
+    Arrayd parameters = EigenUtils::vectorToArray(results.X)
+      .slice(paramCols.from(), paramCols.to()).dup();
+    Array<Eigen::VectorXd> segments;
+    return LocallyConstantResults{inliers, parameters, segments};
+  }
+}
+
+
+LocallyConstantResults optimizeLocallyConstantFlows(
+    Eigen::MatrixXd Atrajectory, Eigen::VectorXd Btrajectory,
+    Array<Spani> spans, const irls::Settings &settings) {
+  using namespace DataFit;
+  auto rows = CoordIndexer::Factory();
+  auto cols = CoordIndexer::Factory();
+  int observationCount = countObservations(spans);
+  int finalRows = 2*observationCount;
+  auto paramCols = cols.make(Atrajectory.cols(), 1);
+  std::vector<Triplet> triplets;
+  VectorBuilder Bbuilder;
+  Array<FitData> data = spans.map<FitData>([&](Spani span) {
+    Spani span2 = 2*span;
+    auto dataRows = rows.make(span.width(), 2);
+    auto dataSlackRows = rows.make(span.width(), 2);
+    auto outlierRows = rows.make(1, 1);
+    auto outlierSlackRows = rows.make(1, 1);
+    auto trueFlowCols = cols.make(2, 2);
+    auto dataSlackCols = cols.make(span.width(), 2);
+    auto outlierSlackCols = cols.make(1, 1);
+    auto Asub = sliceRows(Atrajectory, span2);
+    auto Bsub = sliceRows(Btrajectory, span2);
+    return makeConstantFlowFit(
+            Asub, Bsub,
+            dataRows, dataSlackRows, outlierRows, outlierSlackRows,
+            paramCols, trueFlowCols, dataSlackCols, outlierSlackCols,
+            &triplets, &Bbuilder);
+  });
+  auto cst = makeBinaryConstraints(data);
+  auto A = makeSparseMatrix(rows.count(), cols.count(), triplets);
+  auto B = Bbuilder.make(rows.count());
+  auto strategies = irls::WeightingStrategies{cst};
+  irls::Results results = irls::solveFull(A, B, strategies, settings);
+  return makeLocallyConstantResults(results, data, paramCols);
+}
+
 
 // Inside the optimizer, where T is a ceres Jet.
 // Not sure how well it works with Eigen.

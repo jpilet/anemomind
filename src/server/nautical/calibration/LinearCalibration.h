@@ -268,6 +268,22 @@ Array<Spani> makeContiguousSpans(int sampleCount, int splitSize);
 
 Eigen::VectorXd fitConstantFlow(const Eigen::VectorXd &dst);
 
+struct LocallyConstantResults {
+  Arrayb inliers;
+  Arrayd parameters;
+  Array<Eigen::VectorXd> segments;
+
+  /*
+   * Blue: Gps
+   * Green: Outlier
+   * Red: Inlier
+   */
+};
+
+LocallyConstantResults optimizeLocallyConstantFlows(
+    Eigen::MatrixXd Atrajectory, Eigen::VectorXd Btrajectory,
+    Array<Spani> spans, const irls::Settings &settings);
+
 }
 }
 

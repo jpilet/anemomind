@@ -11,9 +11,28 @@
 #include <Eigen/QR>
 #include <server/math/Random.h>
 #include <server/common/Span.h>
+#include <server/common/MDArray.h>
 
 namespace sail {
 namespace EigenUtils {
+
+template <typename T>
+Eigen::Map<T> arrayToEigen(Array<T> src) {
+  return Eigen::Map<T>(src.ptr(), src.size(), 1);
+}
+
+template <typename T>
+Eigen::Map<T> arrayToEigen(MDArray<T, 2> src) {
+  return Eigen::Map<T>(src.ptr(), src.rows(), src.cols());
+}
+
+template <typename VectorType>
+auto vectorToArray(VectorType x) -> Array<decltype(x.norm())> {
+  typedef decltype(x.norm()) T;
+  int size = x.size();
+  T *data = x.data();
+  return Array<T>(size, data);
+}
 
 template <typename MatrixType>
 auto sliceRows(MatrixType &A, int from, int to) -> decltype(A.block(0, 0, 1, 1)) {
