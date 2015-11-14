@@ -235,7 +235,7 @@ TEST(LinearCalibrationTest, RealData) {
   Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
   int n = navs.size();
-  int splitSize = 1000;
+  int splitSize = 100;
   Array<Spani> splits = makeContiguousSpans(n, splitSize);
   plotConstantFlows(Btrajectory, splitSize);
 }
