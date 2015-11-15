@@ -257,7 +257,8 @@ TEST(LinearCalibrationTest, OutlierSegmentData) {
   auto splineCoefCols = cols.make(4, 2);
   auto outlierSlackCols = cols.make(2, 1);
   std::vector<Triplet> triplets;
-  makeOutlierSegmentData(cstRows, splineCoefCols, outlierSlackCols, &triplets);
+  auto spans = makeOutlierSegmentData(cstRows, splineCoefCols, outlierSlackCols, &triplets);
+  EXPECT_EQ(spans, (Array<Spani>{Spani(0, 3), Spani(3, 6)}));
   auto A = makeSparseMatrix(rows.count(), cols.count(), triplets);
   auto Ad = A.toDense();
   EXPECT_EQ(Ad.rows(), 6);
