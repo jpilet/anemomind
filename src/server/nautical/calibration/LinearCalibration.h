@@ -297,6 +297,13 @@ Array<Spani> makeOutlierSegmentData(DataFit::CoordIndexer constraintRows,
                                     DataFit::CoordIndexer outlierSlackCols,
                                     std::vector<DataFit::Triplet> *dst);
 
+Array<Spani> makeOutlierPenalty(
+    DataFit::CoordIndexer srcDataSegments,
+    Eigen::VectorXd srcGpsData,
+    DataFit::CoordIndexer outlierPenaltyRows,
+    DataFit::CoordIndexer outlierSlackCols,
+    std::vector<DataFit::Triplet> *dst, DataFit::VectorBuilder *B, int dim = 2);
+
 }
 }
 

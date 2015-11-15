@@ -380,6 +380,35 @@ Array<Spani> makeOutlierSegmentData(DataFit::CoordIndexer constraintRows,
   return spans;
 }
 
+Array<Spani> makeOutlierPenalty(
+    DataFit::CoordIndexer srcDataSegments,
+    Eigen::VectorXd srcGpsData,
+    DataFit::CoordIndexer outlierPenaltyRows,
+    DataFit::CoordIndexer outlierSlackCols,
+    std::vector<DataFit::Triplet> *dst, VectorBuilder *B, int dim) {
+  CHECK(srcDataSegments.numel() % dim == 0);
+  CHECK(srcDataSegments.count() - 1 == outlierPenaltyRows.count());
+  CHECK(outlierPenaltyRows.count() == outlierSlackCols.count());
+  CHECK(outlierPenaltyRows.dim() == 1);
+  CHECK(outlierSlackCols.dim() == 1);
+  auto count = outlierPenaltyRows.count();
+  Array<Spani> spans(count);
+  for (int i = 0; i < count; i++) {
+    auto b = EigenUtils::sliceRows(
+        srcGpsData,
+        srcDataSegments.from(i),
+        srcDataSegments.to(i+1));
+    auto fitted = fitConstantFlow(b);
+    auto error = (b - fitted).norm();
+    auto dstSpan = outlierPenaltyRows.span(i);
+    spans[i] = dstSpan;
+    B->add(dstSpan, error);
+    dst->push_back(Triplet(outlierPenaltyRows[i], outlierSlackCols[i], 1.0));
+  }
+  return spans;
+}
+
+
 
 
 

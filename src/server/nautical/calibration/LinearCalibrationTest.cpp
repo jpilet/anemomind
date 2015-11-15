@@ -280,6 +280,37 @@ TEST(LinearCalibrationTest, OutlierSegmentData) {
   }
 }
 
+TEST(LinearCalibrationTest, OutlierPenaltyTest) {
+  using namespace DataFit;
+  CoordIndexer::Factory rows, cols;
+  Eigen::VectorXd srcData = Eigen::VectorXd::Zero(12);
+  for (int i = 0; i < 12; i++) {
+    srcData(i) = ((i/2) % 2 == 0? 0 : 1);
+  }
+  auto srcRows = CoordIndexer::Factory().make(3, 4);
+
+  auto outlierPenaltyRows = rows.make(2, 1);
+  auto outlierSlackCols = cols.make(2, 1);
+
+  std::vector<Triplet> triplets;
+  VectorBuilder Bbuilder;
+
+  Array<Spani> penaltySpans = makeOutlierPenalty(
+      srcRows,
+      srcData,
+      outlierPenaltyRows,
+      outlierSlackCols,
+      &triplets, &Bbuilder, 2);
+  auto A = makeSparseMatrix(rows.count(), cols.count(), triplets);
+  auto B = Bbuilder.make(rows.count());
+
+  EXPECT_TRUE(eq(Eigen::MatrixXd::Identity(2, 2), A.toDense()));
+  EXPECT_EQ(B.rows(), 2);
+  for (int i = 0; i < 2; i++) {
+    EXPECT_NEAR(B(i), 1.26491, 1.0e-3);
+  }
+}
+
 /*TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
