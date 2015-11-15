@@ -255,8 +255,16 @@ namespace {
       .slice(paramCols.from(), paramCols.to()).dup();
     for (int i = 0; i < n; i++) {
       auto f = fitData[i];
-      inliers[i] = f.cst.getBestFitIndex(results.residuals) == 0;
-      segments[i] = fitDataToGps(f.A, f.B, parameters);
+      auto inlier = f.cst.getBestFitIndex(results.residuals) == 0;
+      inliers[i] = inlier;
+      auto inlierSegment = fitDataToGps(f.A, f.B, parameters);
+      segments[i] = inlierSegment;
+      auto outlierSegment = fitConstantFlow(f.B);
+
+      auto s = (inlier? inlierSegment : outlierSegment);
+      auto dif = s - f.B;
+      auto squaredError = dif.squaredNorm()/sqr(dif.size());
+
     }
     return LocallyConstantResults{inliers, parameters, segments, Btrajectory};
   }
