@@ -323,6 +323,35 @@ LocallyConstantResults optimizeLocallyConstantFlows(
   return makeLocallyConstantResults(A, Btrajectory, results, data, paramCols);
 }
 
+void makeFirstOrderSplineCoefs(DataFit::CoordIndexer dataRows,
+                               DataFit::CoordIndexer splineCoefCols,
+                               std::vector<DataFit::Triplet> *dst) {
+  CHECK(dataRows.dim() == splineCoefCols.dim());
+  int dim = dataRows.dim();
+  int segmentCount = splineCoefCols.count() - 1;
+  int segmentSize = dataRows.count()/segmentCount;
+  CHECK(segmentCount*segmentSize == dataRows.count());
+  double from = -0.5;
+  double to = segmentSize-1 + 0.5;
+  LineKM Amap(from, to, 1, 0);
+  LineKM Bmap(from, to, 0, 1);
+  for (int i = 0; i < segmentCount; i++) {
+    Spani aSpan = splineCoefCols.span(i + 0);
+    Spani bSpan = splineCoefCols.span(i + 1);
+    int offset = i*segmentSize;
+    for (int j = 0; j < segmentSize; j++) {
+      auto a = Amap(j);
+      auto b = Bmap(j);
+      Spani rowSpan = dataRows.span(offset + j);
+      for (int k = 0; k < dim; k++) {
+        dst->push_back(Triplet(rowSpan[k], aSpan[k], a));
+        dst->push_back(Triplet(rowSpan[k], bSpan[k], b));
+      }
+    }
+  }
+}
+
+
 
 // Inside the optimizer, where T is a ceres Jet.
 // Not sure how well it works with Eigen.

@@ -283,11 +283,14 @@ struct LocallyConstantResults {
   void plot();
 };
 
-
 // TODO: Autoselect the span count so that the number of inliers is maximized.
 LocallyConstantResults optimizeLocallyConstantFlows(
     Eigen::MatrixXd Atrajectory, Eigen::VectorXd Btrajectory,
     Array<Spani> spans, const irls::Settings &settings);
+
+void makeFirstOrderSplineCoefs(DataFit::CoordIndexer segmentRows,
+                               DataFit::CoordIndexer splineCoefCols,
+                               std::vector<DataFit::Triplet> *dst);
 
 }
 }

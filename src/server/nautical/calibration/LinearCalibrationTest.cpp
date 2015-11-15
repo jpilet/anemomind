@@ -216,7 +216,41 @@ void plotConstantFlows(Eigen::VectorXd B, int splitSize) {
   plot.show();
 }
 
-TEST(LinearCalibrationTest, RealData) {
+TEST(LinearCalibrationTest, SplineTest) {
+  using namespace DataFit;
+  CoordIndexer::Factory rows, cols;
+  int splitSize = 4;
+  int segmentCount = 3;
+  int coefCount = segmentCount + 1;
+  auto dataRows = rows.make(splitSize*segmentCount, 2);
+  auto coefCols = cols.make(coefCount, 2);
+  std::vector<Triplet> triplets;
+  makeFirstOrderSplineCoefs(dataRows, coefCols, &triplets);
+  Eigen::SparseMatrix<double> A(rows.count(), cols.count());
+  A.setFromTriplets(triplets.begin(), triplets.end());
+  auto Ad = A.toDense();
+  Eigen::MatrixXd rowSum = Ad*Eigen::VectorXd::Ones(Ad.cols());
+  EXPECT_TRUE(eq(rowSum, Eigen::VectorXd::Ones(Ad.rows())));
+  EXPECT_EQ(Ad.rows(), 2*segmentCount*splitSize);
+  EXPECT_EQ(Ad.cols(), 2*coefCount);
+  for (int i = 0; i < Ad.rows(); i++) {
+    for (int j = 0; j < Ad.cols(); j++) {
+      auto iBlk = i/(2*splitSize);
+      auto jBlk = j/2;
+      if ((iBlk == jBlk) || (iBlk+1 == jBlk)) {
+        if (i % 2 == j % 2) {
+          EXPECT_LT(0.01, Ad(i, j));
+        } else {
+          EXPECT_EQ(Ad(i, j), 0);
+        }
+      } else {
+        EXPECT_EQ(Ad(i, j), 0);
+      }
+    }
+  }
+}
+
+/*TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
 
@@ -247,4 +281,4 @@ TEST(LinearCalibrationTest, RealData) {
   std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(results.inlierRate()) << std::endl;
   results.plot();
-}
+}*/
