@@ -222,7 +222,7 @@ TEST(LinearCalibrationTest, SplineTest) {
   int splitSize = 4;
   int segmentCount = 3;
   int coefCount = segmentCount + 1;
-  auto dataRows = rows.make(splitSize*segmentCount, 2);
+  auto dataRows = rows.make(segmentCount, 2*splitSize);
   auto coefCols = cols.make(coefCount, 2);
   std::vector<Triplet> triplets;
   makeFirstOrderSplineCoefs(dataRows, coefCols, &triplets);

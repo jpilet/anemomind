@@ -326,11 +326,12 @@ LocallyConstantResults optimizeLocallyConstantFlows(
 void makeFirstOrderSplineCoefs(DataFit::CoordIndexer dataRows,
                                DataFit::CoordIndexer splineCoefCols,
                                std::vector<DataFit::Triplet> *dst) {
-  CHECK(dataRows.dim() == splineCoefCols.dim());
-  int dim = dataRows.dim();
+  int dim = splineCoefCols.dim();
   int segmentCount = splineCoefCols.count() - 1;
-  int segmentSize = dataRows.count()/segmentCount;
-  CHECK(segmentCount*segmentSize == dataRows.count());
+  CHECK(dataRows.count() == segmentCount);
+  int segmentSize = dataRows.dim()/dim;
+  int segmentRows = dataRows.dim();
+
   double from = -0.5;
   double to = segmentSize-1 + 0.5;
   LineKM Amap(from, to, 1, 0);
@@ -338,11 +339,12 @@ void makeFirstOrderSplineCoefs(DataFit::CoordIndexer dataRows,
   for (int i = 0; i < segmentCount; i++) {
     Spani aSpan = splineCoefCols.span(i + 0);
     Spani bSpan = splineCoefCols.span(i + 1);
-    int offset = i*segmentSize;
+    int offset = i*segmentRows;
     for (int j = 0; j < segmentSize; j++) {
       auto a = Amap(j);
       auto b = Bmap(j);
-      Spani rowSpan = dataRows.span(offset + j);
+      int rowOffset = offset + j*dim;
+      Spani rowSpan(rowOffset, rowOffset + dim);
       for (int k = 0; k < dim; k++) {
         dst->push_back(Triplet(rowSpan[k], aSpan[k], a));
         dst->push_back(Triplet(rowSpan[k], bSpan[k], b));
