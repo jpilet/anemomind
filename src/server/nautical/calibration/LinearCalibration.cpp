@@ -351,6 +351,35 @@ void makeFirstOrderSplineCoefs(DataFit::CoordIndexer dataRows,
   }
 }
 
+Array<Spani> makeOutlierSegmentData(DataFit::CoordIndexer constraintRows,
+                                    DataFit::CoordIndexer splineCoefCols,
+                                    DataFit::CoordIndexer outlierSlackCols,
+                                    std::vector<DataFit::Triplet> *dst) {
+  CHECK(constraintRows.dim() == splineCoefCols.dim() + 1);
+  CHECK(outlierSlackCols.dim() == 1);
+  CHECK(constraintRows.count() + 2 == splineCoefCols.count());
+  CHECK(constraintRows.count() == outlierSlackCols.count());
+  int dim = splineCoefCols.dim();
+  int count = constraintRows.count();
+  Array<Spani> spans(count);
+  for (int i = 0; i < count; i++) {
+    auto rowSpan = constraintRows.span(i);
+    auto a = splineCoefCols.span(i + 0);
+    auto b = splineCoefCols.span(i + 1);
+    auto c = splineCoefCols.span(i + 2);
+    for (int j = 0; j < dim; j++) {
+      dst->push_back(Triplet(rowSpan[j], a[j],  1.0));
+      dst->push_back(Triplet(rowSpan[j], b[j], -2.0));
+      dst->push_back(Triplet(rowSpan[j], c[j],  1.0));
+    }
+    dst->push_back(Triplet(rowSpan[dim], outlierSlackCols[i], 1.0));
+    spans[i] = rowSpan;
+  }
+  return spans;
+}
+
+
+
 
 
 // Inside the optimizer, where T is a ceres Jet.

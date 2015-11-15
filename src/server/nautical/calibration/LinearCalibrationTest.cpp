@@ -250,6 +250,35 @@ TEST(LinearCalibrationTest, SplineTest) {
   }
 }
 
+TEST(LinearCalibrationTest, OutlierSegmentData) {
+  using namespace DataFit;
+  CoordIndexer::Factory rows, cols;
+  auto cstRows = rows.make(2, 3);
+  auto splineCoefCols = cols.make(4, 2);
+  auto outlierSlackCols = cols.make(2, 1);
+  std::vector<Triplet> triplets;
+  makeOutlierSegmentData(cstRows, splineCoefCols, outlierSlackCols, &triplets);
+  auto A = makeSparseMatrix(rows.count(), cols.count(), triplets);
+  auto Ad = A.toDense();
+  EXPECT_EQ(Ad.rows(), 6);
+  EXPECT_EQ(Ad.cols(), 8 + 2);
+  double expected[6*(4*2 + 2)] = {
+      1,  0, -2,  0,  1,  0,  0,  0,  0,  0,
+      0,  1,  0, -2,  0,  1,  0,  0,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  1,  0,
+      0,  0,  1,  0, -2,  0,  1,  0,  0,  0,
+      0,  0,  0,  1,  0, -2,  0,  1,  0,  0,
+      0,  0,  0,  0,  0,  0,  0,  0,  0,  1
+  };
+  int counter = 0;
+  for (int i = 0; i < rows.count(); i++) {
+    for (int j = 0; j < cols.count(); j++) {
+      EXPECT_EQ(expected[counter], Ad(i, j));
+      counter++;
+    }
+  }
+}
+
 /*TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();

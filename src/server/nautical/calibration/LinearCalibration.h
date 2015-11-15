@@ -292,6 +292,11 @@ void makeFirstOrderSplineCoefs(DataFit::CoordIndexer segmentRows,
                                DataFit::CoordIndexer splineCoefCols,
                                std::vector<DataFit::Triplet> *dst);
 
+Array<Spani> makeOutlierSegmentData(DataFit::CoordIndexer constraintRows,
+                                    DataFit::CoordIndexer splineCoefCols,
+                                    DataFit::CoordIndexer outlierSlackCols,
+                                    std::vector<DataFit::Triplet> *dst);
+
 }
 }
 
