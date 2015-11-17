@@ -170,13 +170,13 @@ module.exports = function (grunt) {
     // Add vendor prefixed styles
     autoprefixer: {
       options: {
-        browsers: ['last 1 version']
+        browsers: ['last 3 version']
       },
       dist: {
         files: [{
           expand: true,
-          cwd: '.tmp/',
-          src: '{,*/}*.css',
+          cwd: 'client/',
+          src: '**/*.css',
           dest: '.tmp/'
         }]
       }
@@ -245,7 +245,11 @@ module.exports = function (grunt) {
     useminPrepare: {
       html: ['<%= yeoman.client %>/index.html'],
       options: {
-        dest: '<%= yeoman.dist %>/public'
+        dest: '<%= yeoman.dist %>/public',
+        flow: {
+          steps: { js: ['concat', 'uglifyjs'], css: ['concat'] },
+          post: { }
+        }
       }
     },
 
@@ -281,6 +285,18 @@ module.exports = function (grunt) {
     },
 
     svgmin: {
+      options: {
+        plugins: [
+          { convertColors: false },
+          { convertPathData: false },
+          { moveGroupAttrsToElems: false },
+          { convertTransform: false },
+          { cleanupIDs : false },
+          { moveElemsAttrsToGroup: false },
+          { collapseGroups: false },
+          { mergePaths: false }
+        ]
+    },
       dist: {
         files: [{
           expand: true,
@@ -521,7 +537,9 @@ module.exports = function (grunt) {
 
   grunt.registerTask('serve', function (target) {
     if (target === 'dist') {
-      return grunt.task.run(['shell', 'build', 'env:all', 'env:prod', 'express:prod', 'wait', 'open', 'express-keepalive']);
+      return grunt.task.run(['shell', 'build', 'env:all',
+        //'env:prod',
+        'express:prod', 'wait', 'open', 'express-keepalive']);
     }
 
     if (target === 'debug') {
@@ -610,7 +628,6 @@ module.exports = function (grunt) {
     'ngAnnotate',
     'copy:dist',
     'cdnify',
-    'cssmin',
     'uglify',
     'rev',
     'usemin'

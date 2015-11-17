@@ -25,8 +25,12 @@ class TimeStamp {
 
   TimeStamp(const TimeStamp &) = default;
 
+  static TimeStamp fromTM(const struct tm &tm);
+
   static TimeStamp now();
   static TimeStamp makeUndefined();
+
+  static TimeStamp parse(const std::string &x);
 
 
   bool operator<(const TimeStamp &x) const;
@@ -39,7 +43,11 @@ class TimeStamp {
   bool defined() const;
   bool undefined() const {return !defined();}
 
+  std::string toString(const char *fmt) const;
   std::string toString() const;
+  std::string fullPrecisionString() const;
+
+  std::string toIso8601String() const { return toString("%FT%TZ"); }
 
   // Used by the Json interface
   static TimeStamp fromMilliSecondsSince1970(int64_t x) {return TimeStamp(x);}

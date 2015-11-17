@@ -6,12 +6,14 @@ function curveEndTimeStr(curveId) {
 function curveStartTimeStr(curveId) {
   return curveId.substr(curveId.length-19*2,19);
 }
+
 function curveEndTime(curveId) {
-  return new Date(curveEndTimeStr(curveId));
+  // Adding a Z sets the time zone to GMT.
+  return new Date(curveEndTimeStr(curveId) + "Z");
 }
 
 function curveStartTime(curveId) {
-  return new Date(curveStartTimeStr(curveId));
+  return new Date(curveStartTimeStr(curveId) + "Z");
 }
 
 function VectorTileLayer(params, renderer) {
@@ -155,9 +157,29 @@ VectorTileLayer.prototype.requestTile = function(scale, tileX, tileY,
   }
 };
 
+// If selectedCurve does not match exactly the start and end times of a
+// recorded session, we still want to display part of it.
+// This function returns true if both curve times overlap.
+function curveOverlap(a, b) {
+  if (a == b) {
+    return true;
+  }
+
+  var AendTime = curveEndTime(a);
+  var AstartTime = curveStartTime(a);
+  var BendTime = curveEndTime(b);
+  var BstartTime = curveStartTime(b);
+
+  return ((BendTime > AstartTime) && (BstartTime < AendTime));
+}
+
 VectorTileLayer.prototype.drawVisibleCurves = function(context, pinchZoom) {
   if (this.selectedCurve) {
-    this.drawCurve(this.selectedCurve, context, pinchZoom);
+    for (var curveId in this.visibleCurves) {
+      if (curveOverlap(curveId, this.selectedCurve)) {
+        this.drawCurve(curveId, context, pinchZoom);
+      }
+    }
   } else {
     for (var curveId in this.visibleCurves) {
       this.drawCurve(curveId, context, pinchZoom);
@@ -169,11 +191,57 @@ function byTime(a, b) {
   return a.time - b.time;
 }
 
+/**
+ * Performs a binary search on the provided sorted list and returns the index
+ * of the item if found. If it can't be found it'll return -1.
+ * Inspired from https://github.com/Wolfy87/binary-search
+ *
+ * @param {*[]} list Items to search through.
+ * @param {*} item The item to look for.
+ * @return {Number} The index of the item if found, -1 if not.
+ */
+var binarySearch = function(list, item) {
+  var min = 0;
+  var max = list.length - 1;
+  var guess;
+
+  while ((max - min) > 1) {
+      guess = Math.floor((min + max) / 2);
+
+      if (list[guess].time < item) {
+          min = guess;
+      }
+      else {
+          max = guess;
+      }
+  }
+
+  return [min, max];
+};
+
+var selectByTime = function(points, start, end) {
+  if (end < points[0].time || start > points[points.length - 1].time) {
+    return [];
+  }
+  var startBounds = binarySearch(points, start);
+  var endBounds = binarySearch(points, end);
+  return points.slice(startBounds[0], endBounds[1]);
+};
+
 VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
   // Extract all points
   var curveElements = this.visibleCurves[curveId];
   if (!curveElements) {
-    return [];
+    // search for an overlaping curve.
+    for (var curve in this.visibleCurves) {
+      if (curveOverlap(curve, curveId)) {
+        curveElements = this.visibleCurves[curve];
+        break;
+      }
+    }
+    if (!curveElements) {
+      return [];
+    }
   }
 
   var len = curveElements.length;
@@ -187,7 +255,7 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
   for (var e in curveElements) {
     if (e != "length") {
       var element = curveElements[e];
-      if (element.curveId == curveId) {
+      if (curveOverlap(element.curveId, curveId)) {
         elementsAsArray.push(element.points);
       }
     }
@@ -197,6 +265,13 @@ VectorTileLayer.prototype.getPointsForCurve = function(curveId) {
 
   // Sort by time
   points.sort(byTime);
+
+  if (this.selectedCurve && this.selectedCurve != curveId) {
+    var start = curveStartTime(this.selectedCurve);
+    var end = curveEndTime(this.selectedCurve);
+    points = selectByTime(points, start, end);
+  }
+
   this.lastPointArray = points;
 
   this.curvesFlat[curveId] = { length: len, points: points };
@@ -256,34 +331,6 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
       this.currentTime > this.lastPointArray[this.lastPointArray.length - 1]) {
     return;
   }
-
-  /**
-   * Performs a binary search on the provided sorted list and returns the index
-   * of the item if found. If it can't be found it'll return -1.
-   * Inspired from https://github.com/Wolfy87/binary-search
-   *
-   * @param {*[]} list Items to search through.
-   * @param {*} item The item to look for.
-   * @return {Number} The index of the item if found, -1 if not.
-   */
-  var binarySearch = function(list, item) {
-    var min = 0;
-    var max = list.length - 1;
-    var guess;
-
-    while ((max - min) > 1) {
-        guess = Math.floor((min + max) / 2);
-
-        if (list[guess].time < item) {
-            min = guess;
-        }
-        else {
-            max = guess;
-        }
-    }
-
-    return [min, max];
-  };
 
   var pixelRatio = this.renderer.pixelRatio;
 
@@ -543,6 +590,11 @@ VectorTileLayer.prototype.isHighlighted = function(curveId) {
 VectorTileLayer.prototype.findPointAt = function(x, y) {
   var p = {x: x, y: y};
 
+  if (this.selectedCurve) {
+    var selectedTimeStart = curveStartTime(this.selectedCurve);
+    var selectedTimeEnd = curveEndTime(this.selectedCurve);
+  }
+
   for (var scale = 20; scale >= 0; --scale) {
     var xAtScale = Math.floor(x * (1 << scale));
     var yAtScale = Math.floor(y * (1 << scale));
@@ -557,11 +609,16 @@ VectorTileLayer.prototype.findPointAt = function(x, y) {
       for (var curve in tile.data) {
         for (var c in tile.data[curve].curves) {
           var curveId = tile.data[curve].curves[c].curveId;
-          if (this.selectedCurve && this.selectedCurve != curveId) {
+          if (this.selectedCurve && !curveOverlap(this.selectedCurve, curveId)) {
             continue;
           }
-          var points = tile.data[curve].curves[c].points;
+            var points = tile.data[curve].curves[c].points;
           for (var i in points) {
+            if (this.selectedCurve
+                && (points[i].time < selectedTimeStart
+                    || points[i].time > selectedTimeEnd)) {
+              continue;
+            }
             var dist = Utils.distance(p, {x: points[i].pos[0], y: points[i].pos[1]});
             if (dist < bestDist) {
               bestDist = dist;

@@ -119,6 +119,7 @@ add_library(math_BandMat
            )
 target_link_libraries(math_BandMat
                        common_Array
+                       common_math
                       )                                    
 cxx_test(math_BandMatTest
          BandMatTest.cpp
@@ -143,21 +144,6 @@ cxx_test(math_StatisticsTest
         )
 
 
-add_library(math_CurveParam
-            CurveParam.h
-            CurveParam.cpp
-           )
-target_depends_on_armadillo(math_CurveParam)
-target_link_libraries(math_CurveParam
-                      math_BandMat
-                     )
-
-cxx_test(math_CurveParamTest
-         CurveParamTest.cpp
-         math_CurveParam
-         gtest_main
-        )
-
 add_library(math_CumulativeFunction
             CumulativeFunction.cpp
             CumulativeFunction.h
@@ -179,12 +165,14 @@ add_library(math_CleanNumArray
            )
 target_link_libraries(math_CleanNumArray
                       math_BandMat
+                      common_math
                      )   
 
 cxx_test(math_UniformSamplesTest
          UniformSamplesTest.cpp
          common_LineKM
          gtest_main
+         math_nonlinear_SignalUtils
         )
         
 
@@ -273,6 +261,32 @@ cxx_test(math_StabilityTest
          StabilityTest.cpp
          gtest_main
          math_Stability
+        )
+
+cxx_test(math_SignalCovarianceTest
+         SignalCovarianceTest.cpp
+         gtest_main
+         common_Progress
+         common_ScopedLog
+        )
+
+add_library(math_irls
+            irls.cpp
+            irls.h
+           )
+           
+target_link_libraries(math_irls
+                      common_ScopedLog
+                      common_string
+                      common_Span
+                      math_LU
+                     )           
+
+cxx_test(math_irlsTest
+         irlsTest.cpp
+         math_irls
+         gtest_main
+         plot_gnuplot
         )
 
 add_subdirectory(geometry)

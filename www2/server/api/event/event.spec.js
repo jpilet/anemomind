@@ -70,7 +70,11 @@ describe('GET /api/events', function() {
      server
       .post('/api/events')
       .set('Authorization', 'Bearer ' + token)
-      .send({author: userid, boat: boat1.id, comment: 'test note', when: new Date()})
+      .send({
+        author: userid,
+        boat: boat1.id,
+        comment: 'test note',
+        when: new Date("2015-01-01")})
       .expect(201)
       .end(function(err, res) {
         if (err) return done(err);
@@ -110,6 +114,20 @@ describe('GET /api/events', function() {
       });
   });
 
+  it('should not list the old test note', function(done) {
+     server
+      .get('/api/events?A=2015-02-01')
+      .set('Authorization', 'Bearer ' + token)
+      .expect(200)
+      .end(function(err, res) {
+        if (err) {
+           return done(err);
+        }
+        res.body.should.be.instanceof(Array);
+        res.body.should.have.length(0);
+        done();
+      });
+  });
 
   it('should refuse to add a note on an invalid boat', function(done) {
      server

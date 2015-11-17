@@ -26,6 +26,14 @@ class GeographicReference {
   const GeographicPosition<double> &pos() const {return _pos;}
 
   bool operator== (const GeographicReference &other) const;
+
+  double dlon() const {
+    return _dlon;
+  }
+
+  double dlat() const {
+    return _dlat;
+  }
  private:
   Length<double> mapXLon(Angle<double> lon) const;
   Length<double> mapYLat(Angle<double> lat) const;

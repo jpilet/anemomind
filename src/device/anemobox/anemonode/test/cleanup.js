@@ -1,9 +1,9 @@
-var mb = require('mail/mail2.sqlite.js');
-var lmb = require('../components/LocalMailbox.js');
+var mb = require('endpoint/endpoint.sqlite.js');
+var lmb = require('../components/LocalEndpoint.js');
 var config = require('../components/config.js');
 var ensureConfig = require('./EnsureConfig.js');
 var fs = require('fs');
-var sync = require('mail/sync2.js');
+var sync = require('endpoint/sync2.js');
 var assert = require('assert');
 
 function makeLogFilename(index) {
@@ -48,25 +48,25 @@ describe('Cleanup sent log files', function() {
   it('cleanup', function(done) {
     ensureConfig(function(err, cfg) {
       lmb.setRemoveLogFiles(true);
-      lmb.getServerSideMailboxName(function(err, mailboxName) {
+      lmb.getServerSideEndpointName(function(err, endpointName) {
         assert(!err);
         lmb.reset(function(err) {
-          createAndSendLogFiles(5, function(err, localMailbox) {
+          createAndSendLogFiles(5, function(err, localEndpoint) {
             assert(!err);
-            mb.tryMakeEndPoint('/tmp/serverbox.db', mailboxName, function(err, serverMailbox) {
-              serverMailbox.reset(function(err) {
-                serverMailbox.ackFrequency = 3;
+            mb.tryMakeEndpoint('/tmp/serverbox.db', endpointName, function(err, serverEndpoint) {
+              serverEndpoint.reset(function(err) {
+                serverEndpoint.ackFrequency = 3;
                 assert(!err);
                 
-                lmb.withLocalMailbox(function(anemoboxMailbox, doneMB) {
+                lmb.withLocalEndpoint(function(anemoboxEndpoint, doneMB) {
                   assert(!err);
-                  sync.synchronize(anemoboxMailbox, serverMailbox, function(err) {
+                  sync.synchronize(anemoboxEndpoint, serverEndpoint, function(err) {
                     assert(!err);
 
                     // Synchronize a second time, to make sure that any ack
                     // packets emitted on the
                     // server are moved back.
-                    sync.synchronize(anemoboxMailbox, serverMailbox, function(err) {
+                    sync.synchronize(anemoboxEndpoint, serverEndpoint, function(err) {
                       assert(!err);
                       countLogFiles(5, 0, function(err, remainingCount) {
                         assert(!err);

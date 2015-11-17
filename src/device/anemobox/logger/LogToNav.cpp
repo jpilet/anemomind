@@ -146,6 +146,21 @@ Array<Nav> logFileToNavArray(const LogFile& data) {
     fill(tws, tws->velocity(), &result, &Nav::setExternalTws);
   }
 
+  const ValueSet* devTwa = searchFor("twa", data, internalSources);
+  if (devTwa != 0 && devTwa->has_angles()) {
+    fill(devTwa, devTwa->angles(), &result, &Nav::setDeviceTwa);
+  }
+
+  const ValueSet* devTws = searchFor("tws", data, internalSources);
+  if (devTws != 0 && devTws->has_velocity()) {
+    fill(devTws, devTws->velocity(), &result, &Nav::setDeviceTws);
+  }
+
+  const ValueSet* twdir = searchFor("twdir", data, internalSources);
+  if (twdir != 0 && twdir->has_angles()) {
+    fill(twdir, twdir->angles(), &result, &Nav::setDeviceTwdir);
+  }
+
   const ValueSet* gpsBearing = searchFor("gpsBearing", data);
   if (gpsBearing  != 0 && gpsBearing->has_angles()) {
     fill(gpsBearing, gpsBearing->angles(), &result, &Nav::setGpsBearing);

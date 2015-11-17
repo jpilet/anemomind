@@ -3,6 +3,7 @@
 var express = require('express');
 var controller = require('./event.controller');
 var auth = require('../../auth/auth.service');
+var thumbnails = require('./expressThumbnail.js');
 
 var router = express.Router();
 
@@ -19,9 +20,11 @@ router.post('/photo/:boatId',
 // To view a photo from an img tag, the authorization token can be passed in
 // the parameter:
 // http://localhost:9000/api/events/photo/[boat]/[picture].jpg?access_token=[token]
+// to get a 120x120 thumbnail, simply use:
+// http://localhost:9000/api/events/photo/[boat]/[picture].jpg?s=120x120&access_token=[token]
 router.get('/photo/:boatId/:photo',
            auth.isAuthenticated(),
            controller.boatReadAccess,
-           controller.getPhoto);
+           thumbnails.register(controller.photoUploadPath));
 
 module.exports = router;

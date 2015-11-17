@@ -7,6 +7,7 @@
 #define GENARALIZEDTV_H_
 
 #include <server/math/UniformSamples.h>
+#include <server/math/nonlinear/BandedSolver.h>
 
 namespace sail {
 
@@ -71,12 +72,7 @@ class GeneralizedTV {
   static UniformSamplesd makeInitialSignal(Arrayd Y);
   static UniformSamplesd makeInitialSignal(Arrayd X, Arrayd Y, double sampleSpacing);
  private:
-  // Settings
-  int _iters;
-  double _minv, _gaussElimTol;
-
-  UniformSamplesd step(UniformSamplesd signal,
-      Arrayd X, Arrayd Y, Arrayd coefs, double regularization) const;
+  BandedSolver::Settings _settings;
 };
 
 

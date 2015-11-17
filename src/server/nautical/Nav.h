@@ -46,6 +46,7 @@ class Nav {
   }
 
   const GeographicPosition<double> &geographicPosition() const {return _pos;}
+  GeographicPosition<double> &geographicPosition() {return _pos;}
   Angle<double> awa() const {return _awa;}
   Velocity<double> aws() const {return _aws;}
   bool hasApparentWind() const { return !isnan(_awa) && !isnan(_aws); }
@@ -67,8 +68,20 @@ class Nav {
   HorizontalMotion<double> gpsMotion() const;
 
   // As computed by the calibrated model. Not always available.
-  HorizontalMotion<double> trueWind() const { return _trueWind; }
-  bool hasTrueWind() const { return !isnan(_trueWind[0]); }
+  HorizontalMotion<double> trueWindOverGround() const { return _trueWind; }
+  bool hasTrueWindOverGround() const { return !isnan(_trueWind[0]); }
+
+  Angle<double> twdir() const {
+    return Angle<double>::degrees(180) + trueWindOverGround().angle();
+  }
+  
+  Angle<double> externalTwdir() const {
+    return externalTwa() + Angle<double>::degrees(180) + gpsBearing();
+  }
+
+  Angle<double> twaFromTrueWindOverGround() const {
+    return twdir() - gpsBearing();
+  }
 
   void setAwa(Angle<double> awa_) {_awa = awa_;}
   void setAws(Velocity<double> aws_) {_aws = aws_;}
@@ -82,7 +95,7 @@ class Nav {
   void setExternalTwa(Angle<double> twa_) {_externalTwa = twa_;}
   void setExternalTws(Velocity<double> tws_) {_externalTws = tws_;}
 
-  void setTrueWind(const HorizontalMotion<double>& trueWind) { _trueWind = trueWind; }
+  void setTrueWindOverGround(const HorizontalMotion<double>& trueWind) { _trueWind = trueWind; }
 
   bool operator== (const Nav &other) const;
 
@@ -109,11 +122,26 @@ class Nav {
   Velocity<double> deviceVmg() const { return _deviceVmg; }
   void setDeviceVmg(Velocity<double> p) { _deviceVmg = p; _flags |= DEVICE_VMG; }
 
+  bool hasDeviceTws() const { return _flags & DEVICE_TWS; }
+  Velocity<double> deviceTws() const { return _deviceTws; }
+  void setDeviceTws(Velocity<double> p) { _deviceTws = p; _flags |= DEVICE_TWS; }
+
+  bool hasDeviceTwdir() const { return _flags & DEVICE_TWDIR; }
+  Angle<double> deviceTwdir() const { return _deviceTwdir; }
+  void setDeviceTwdir(Angle<double> p) { _deviceTwdir = p; _flags |= DEVICE_TWDIR; }
+
+  bool hasDeviceTwa() const { return _flags & DEVICE_TWA; }
+  Angle<double> deviceTwa() const { return _deviceTwa; }
+  void setDeviceTwa(Angle<double> p) { _deviceTwa = p; _flags |= DEVICE_TWA; }
+
  private:
   enum {
     DEVICE_SCREEN = 1,
     DEVICE_TARGET_VMG = 2,
     DEVICE_VMG = 4,
+    DEVICE_TWDIR = 8,
+    DEVICE_TWA = 16,
+    DEVICE_TWS = 32
   };
 
   // contains entried from the enum above "ored" together.
@@ -146,8 +174,12 @@ class Nav {
   HorizontalMotion<double> _trueWind;
   ScreenInfo _deviceScreen;
 
+  // Recorded information.
   Velocity<double> _deviceVmg;
   Velocity<double> _deviceTargetVmg;
+  Velocity<double> _deviceTws;
+  Angle<double> _deviceTwa;
+  Angle<double> _deviceTwdir;
 };
 
 
@@ -160,18 +192,21 @@ Array<Angle<double> > getMagHdg(Array<Nav> navs);
 Array<Velocity<double> > getAws(Array<Nav> navs);
 Array<Angle<double> > getAwa(Array<Nav> navs);
 
-
 Array<Nav> loadNavsFromText(std::string filename, bool sort = true);
 bool areSortedNavs(Array<Nav> navs);
 void plotNavTimeVsIndex(Array<Nav> navs);
 void dispNavTimeIntervals(Array<Nav> navs);
-Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds);
+Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, Duration<double> dur);
 MDArray2d calcNavsEcefTrajectory(Array<Nav> navs);
 Array<MDArray2d> calcNavsEcefTrajectories(Array<Array<Nav> > navs);
 void plotNavsEcefTrajectory(Array<Nav> navs);
 void plotNavsEcefTrajectories(Array<Array<Nav> > navs);
 int countNavs(Array<Array<Nav> > navs);
 
+std::ostream &operator<<(std::ostream &s, const Nav &x);
+
+Length<double> computeTrajectoryLength(Array<Nav> navs);
+int findMaxSpeedOverGround(Array<Nav> navs);
 
 } /* namespace sail */
 

@@ -100,3 +100,31 @@ TEST(LoggerTest, MultipleSources) {
   EXPECT_EQ("source3", loaded.stream(2).source());
 }
 
+TEST(LoggerTest, LogOrientation) {
+  Dispatcher dispatcher;
+  Logger logger(&dispatcher);
+
+  AbsoluteOrientation orient;
+  orient.heading = Angle<>::degrees(1);
+  orient.roll = Angle<>::degrees(2);
+  orient.pitch = Angle<>::degrees(3);
+  dispatcher.publishValue(ORIENT, "test", orient);
+
+  orient.heading = Angle<>::degrees(4);
+  orient.roll = Angle<>::degrees(5);
+  orient.pitch = Angle<>::degrees(6);
+  dispatcher.publishValue(ORIENT, "test", orient);
+
+  LogFile saved;
+  logger.flushTo(&saved);
+
+  std::vector<AbsoluteOrientation> unpacked;
+  Logger::unpack(saved.stream(0).orient(), &unpacked);
+  EXPECT_EQ(2, unpacked.size());
+  EXPECT_EQ(1, unpacked[0].heading.degrees());
+  EXPECT_EQ(2, unpacked[0].roll.degrees());
+  EXPECT_EQ(3, unpacked[0].pitch.degrees());
+  EXPECT_EQ(4, unpacked[1].heading.degrees());
+  EXPECT_EQ(5, unpacked[1].roll.degrees());
+  EXPECT_EQ(6, unpacked[1].pitch.degrees());
+}

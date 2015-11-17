@@ -15,6 +15,17 @@ namespace {
   }
 }
 
+TEST(NavTest, MaxSpeed) {
+  Nav a, b, c;
+  TimeStamp offset = TimeStamp::UTC(2015, 10, 6, 12, 9, 0);
+  a.setTime(offset);
+  a.setGpsSpeed(Velocity<double>::knots(3.0));
+  b.setTime(offset + Duration<double>::minutes(12));
+  b.setGpsSpeed(Velocity<double>::knots(2.1));
+  c.setTime(offset + Duration<double>::minutes(24));
+  c.setGpsSpeed(Velocity<double>::knots(30.1));
+  EXPECT_EQ(1, findMaxSpeedOverGround(Array<Nav>{a, b, c}));
+}
 
 TEST(NavTest, SortedTest) {
   Array<Nav> navs = loadNavsFromText(getAllNavsPath().toString());
@@ -28,7 +39,7 @@ TEST(NavTest, NavBBoxTest) {
   EXPECT_TRUE(navs.size() > 3);
 
   Array<Array<Nav> > splitNavs = splitNavsByDuration(navs,
-                                 Duration<double>::minutes(10).seconds());
+                                 Duration<double>::minutes(10));
   Array<NavBBox> boxes = calcNavBBoxes(splitNavs);
 
   int count = boxes.size();

@@ -5,6 +5,7 @@
 
 #ifdef ON_SERVER
 #include <string.h>
+#include <sstream>
 
 using namespace sail;
 #endif
@@ -247,6 +248,29 @@ void NmeaParser::putSentence(void (*_putc)(char)) {
   _putc(intToHexDigit(checksum & 0xF));
   _putc('\n');
 }
+
+#ifdef ON_SERVER
+std::string NmeaParser::sentence() const {
+  std::stringstream ss;
+
+  ss << '$';
+  for (int i = 0; i < argc_; ++i) {
+    if (i > 0) {
+      ss << ',';
+    }
+    for (char *p = argv_[i]; *p; ++p) {
+      ss << *p;
+    }
+  }
+  ss << '*';
+  char checksum = computeChecksum();
+  ss << intToHexDigit(checksum >> 4);
+  ss << intToHexDigit(checksum & 0xF);
+
+  return ss.str();
+}
+#endif
+
 
 namespace {
 void myputchar(char c) {
@@ -686,6 +710,14 @@ void GeoRef::project(const GeoPos &pos, double xy[2]) const {
 #include <sstream>
 using std::string;
 using std::stringstream;
+
+std::string NmeaParser::sentenceType() const {
+  if (argc_ > 0 && strlen(argv_[0]) > 2) {
+    return std::string(argv_[0] + 2);
+  }
+  return "";
+}
+
 
 namespace {
 

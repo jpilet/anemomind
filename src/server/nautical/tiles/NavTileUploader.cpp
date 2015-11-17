@@ -2,12 +2,18 @@
 #include <server/nautical/tiles/NavTileUploader.h>
 
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
-#include <mongo/bson/bson.h>
 #include <mongo/client/dbclient.h>
+#include <mongo/bson/bson-inl.h>
+#include <server/common/Optional.h>
 #include <server/common/logging.h>
 #include <server/nautical/tiles/NavTileGenerator.h>
 
 using namespace mongo;
+
+#if MONGOCLIENT_VERSION_MAJOR < 1
+#define MONGO_QUERY QUERY
+namespace mongo { namespace client { void initialize() { } } }
+#endif
 
 namespace sail {
 
@@ -42,9 +48,9 @@ BSONObj navToBSON(const Nav& nav) {
     result.append("externalTwa", nav.externalTwa().degrees());
     result.append("externalTws", nav.externalTws().knots());
   }
-  if (nav.hasTrueWind()) {
-    result.append("twdir", calcTwdir(nav.trueWind()).degrees());
-    result.append("tws", calcTws(nav.trueWind()).knots());
+  if (nav.hasTrueWindOverGround()) {
+    result.append("twdir", calcTwdir(nav.trueWindOverGround()).degrees());
+    result.append("tws", calcTws(nav.trueWindOverGround()).knots());
   }
 
   // Old anemobox simulated data.
@@ -72,36 +78,179 @@ BSONArray navsToBSON(const Array<Nav>& navs) {
   return result.arr();
 }
 
-bool insertOrUpdateTile(const BSONObj& obj,
-                        const TileGeneratorParameters& params,
-                        DBClientConnection* db) {
-  // Clean old tiles.
+bool safeMongoOps(std::string what,
+    DBClientConnection *db, std::function<void(DBClientConnection*)> f) {
   try {
-    db->remove(params.tileTable,
-               QUERY("key" << obj["key"]
-                     << "boat" << obj["boat"]
-                     << "startTime" << GTE << obj["startTime"]
-                     << "endTime" << LTE << obj["endTime"]));
+    f(db);
     std::string err = db->getLastError();
     if (err != "") {
-      LOG(WARNING) << "while cleaning up old tiles: mongoDB error: " << err;
+      LOG(ERROR) << "error while " << what << ": " << err;
+      return false;
     }
-  } catch(const DBException &e) {
-    LOG(WARNING) << "while cleaning up old tiles: mongoDB error: " << e.what();
-  }
-
-  // Insert the one.
-  try {
-    db->insert(params.tileTable, obj);
-    std::string err = db->getLastError();
-    if (err != "") {
-      LOG(ERROR) << "error while inserting a tile in mongoDB: " << err;
-    }
-  } catch(const DBException &e) {
-    LOG(ERROR) << "mongoDB error while inserting tile: " << e.what();
+  } catch (const DBException &e) {
+    LOG(ERROR) << "error while " << what << ": " << e.what();
     return false;
   }
   return true;
+}
+
+bool insertOrUpdateTile(const BSONObj& obj,
+    const TileGeneratorParameters& params,
+                        DBClientConnection* db) {
+  if (!params.fullClean) {
+    safeMongoOps("cleaning old tiles",
+        db, [=](DBClientConnection *db) {
+      db->remove(params.tileTable(),
+                 MONGO_QUERY("key" << obj["key"]
+                       << "boat" << obj["boat"]
+                       << "startTime" << GTE << obj["startTime"]
+                       << "endTime" << LTE << obj["endTime"]));
+    });
+  }
+  return safeMongoOps("inserting a tile in mongoDB",
+      db, [=](DBClientConnection *db) {
+    db->insert(params.tileTable(), obj);
+  });
+}
+
+bool insertSession(const BSONObj &obj,
+  const TileGeneratorParameters& params,
+  DBClientConnection *db) {
+  return safeMongoOps("updating a session", db,
+    [=](DBClientConnection *db) {
+    db->update(params.sessionTable(),// <-- The collection
+        MONGO_QUERY("_id" << obj["_id"]),  // <-- what to update
+        obj,                         // <-- the new data
+        true,                        // <-- upsert
+        false);                      // <-- multi
+  });
+}
+
+template <typename T>
+Angle<T> average(const Angle<T>& a, const Angle<T>& b) {
+  HorizontalMotion<T> motion =
+    HorizontalMotion<T>::polar(Velocity<T>::knots(1), a);
+  motion = motion + HorizontalMotion<T>::polar(Velocity<T>::knots(1), b);
+  return motion.angle();
+}
+
+BSONObj locationForSession(const Array<Nav>& navs) {
+  if (navs.size() == 0) {
+    return BSONObj();
+  }
+
+  Angle<double> minLat(navs[0].geographicPosition().lat());
+  Angle<double> minLon(navs[0].geographicPosition().lon());
+  Angle<double> maxLat(navs[0].geographicPosition().lat());
+  Angle<double> maxLon(navs[0].geographicPosition().lon());
+  
+  for (auto nav: navs) {
+    minLat = std::min(minLat, nav.geographicPosition().lat());
+    maxLat = std::max(maxLat, nav.geographicPosition().lat());
+    minLon = std::min(minLon, nav.geographicPosition().lon());
+    maxLon = std::max(maxLon, nav.geographicPosition().lon());
+  }
+
+  GeographicPosition<double> center(
+      average(minLon, maxLon), average(minLat, maxLat));
+
+  GeographicPosition<double> minPos(minLon, minLat);
+  GeographicPosition<double> maxPos(maxLon, maxLat);
+
+  BSONObjBuilder location;
+  location.append("x", posToTileX(0, center));
+  location.append("y", posToTileY(0, center));
+  location.append("scale", 2 * std::max(
+          posToTileX(0, maxPos) - posToTileX(0, minPos),
+          posToTileY(0, maxPos) - posToTileY(0, minPos)));
+  return location.obj();
+}
+
+// Returns average wind speed and average wind direction.
+Optional<HorizontalMotion<double>> averageWind(const Array<Nav>& navs) {
+  int num = 0;
+  HorizontalMotion<double> sum = HorizontalMotion<double>::zero();
+  Velocity<double> sumSpeed = Velocity<double>::knots(0);
+
+  // Arguably we compute true wind by averaging external true wind data and
+  // anemomind-calibrated true wind. If either is missing, we still have a result.
+  for (auto nav: navs) {
+    if (nav.hasTrueWindOverGround()) {
+      auto tws = calcTws(nav.trueWindOverGround());
+      if (tws.knots() > 0) {
+        sumSpeed += tws;
+        num++;
+        sum += nav.trueWindOverGround().scaled(1.0 / tws.knots());
+      }
+    }
+    if (nav.hasExternalTrueWind()) {
+      num++;
+      sum += windMotionFromTwdirAndTws(
+          nav.externalTwdir(), Velocity<double>::knots(1));
+      sumSpeed += nav.externalTws();
+    }
+  }
+
+  if (num > 0) {
+    return Optional<HorizontalMotion<double>>(
+        HorizontalMotion<double>::polar(sumSpeed.scaled(1.0 / num),
+                                        sum.angle()));
+  }
+  return Optional<HorizontalMotion<double>>();
+}
+
+// Returns the strongest wind and the corresponding nav index.
+// If no wind information is present, the returned index is -1.
+std::pair<Velocity<double>, int> indexOfStrongestWind(const Array<Nav>& navs) {
+  std::pair<Velocity<double>, int> result(Velocity<double>::knots(0), -1);
+
+  for (int i = 0; i < navs.size(); ++i) {
+    const Nav& nav = navs[i];
+
+    if (nav.hasTrueWindOverGround()) {
+      result =
+        std::max(result, make_pair(calcTws(nav.trueWindOverGround()), i));
+    }
+    if (nav.hasExternalTrueWind()) {
+      result =
+        std::max(result, make_pair(nav.externalTws(), i));
+    }
+  }
+  return result;
+}
+
+BSONObj makeBsonSession(
+    const std::string &curveId,
+    const std::string &boatId,
+    Array<Nav> navs) {
+
+  BSONObjBuilder session;
+  session.append("_id", curveId);
+  session.append("boat", OID(boatId));
+  session.append("trajectoryLength",
+      computeTrajectoryLength(navs).nauticalMiles());
+  int maxSpeedIndex = findMaxSpeedOverGround(navs);
+  if (maxSpeedIndex >= 0) {
+    session.append("maxSpeedOverGround", navs[maxSpeedIndex].gpsSpeed().knots());
+    append(session, "maxSpeedOverGroundTime", navs[maxSpeedIndex].time());
+  }
+  append(session, "startTime", navs.first().time());
+  append(session, "endTime", navs.last().time());
+  session.append("location", locationForSession(navs));
+
+  auto wind = averageWind(navs);
+  if (wind.defined()) {
+    session.append("avgWindSpeed", calcTws(wind()).knots());
+    session.append("avgWindDir", calcTwdir(wind()).degrees());
+  }
+
+  std::pair<Velocity<double>, int> strongestWind = indexOfStrongestWind(navs);
+  if (strongestWind.second >= 0) {
+    session.append("strongestWindSpeed", strongestWind.first.knots());
+    append(session, "strongestWindTime", navs[strongestWind.second].time());
+  }
+
+  return session.obj();
 }
 
 BSONObj makeBsonTile(const TileKey& tileKey,
@@ -135,11 +284,18 @@ BSONObj makeBsonTile(const TileKey& tileKey,
 bool generateAndUploadTiles(std::string boatId,
                             Array<Array<Nav>> allNavs,
                             const TileGeneratorParameters& params) {
+  mongo::client::initialize();
+
   DBClientConnection db;
   std::string err;
   if (!db.connect(params.dbHost, err)) {
     LOG(ERROR) << "mongoDB connection failed: " << err;
     return false;
+  }
+
+  if (params.fullClean) {
+    db.remove(params.tileTable(),
+               MONGO_QUERY("boat" << OID(boatId)));
   }
 
   for (const Array<Nav>& curve : allNavs) {
@@ -161,6 +317,10 @@ bool generateAndUploadTiles(std::string boatId,
         // There is no point to continue if we can't write to the DB.
         return false;
       }
+    }
+    BSONObj session = makeBsonSession(curveId, boatId, curve);
+    if (!insertSession(session, params, &db)) {
+      return false;
     }
   }
   return true;

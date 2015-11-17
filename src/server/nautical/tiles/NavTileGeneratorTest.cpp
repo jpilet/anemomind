@@ -1,5 +1,7 @@
 
 #include <server/nautical/tiles/NavTileGenerator.h>
+#include <server/nautical/tiles/TileUtils.h>
+#include <server/nautical/tiles/NavTileUploader.h>
 
 #include <gtest/gtest.h>
 

@@ -1,5 +1,23 @@
 'use strict';
 
+function perfAtPoint(d) {
+    var field = 'devicePerf';
+    if (field in d) {
+      return d[field];
+    } else if ('deviceVmg' in d
+               && 'deviceTargetVmg' in d) {
+      return Math.round(Math.abs(100 * d.deviceVmg / d.deviceTargetVmg));
+    }
+    return 0;
+}
+
+function vmgAtPoint(p) {
+  if ('deviceVmg' in p) {
+    return Math.abs(p.deviceVmg);
+  }
+  return undefined;
+}
+
 angular.module('www2App')
   .controller('MapCtrl', function ($scope, $stateParams, userDB, $timeout,
                                    $http, $interval, $state, $location) {
@@ -8,6 +26,7 @@ angular.module('www2App')
 
     var setLocationTimeout;
     function setLocation() {
+      setSelectTime();
       function delayed() {
         setLocationTimeout = undefined;
         var search = '';
@@ -27,8 +46,14 @@ angular.module('www2App')
       setLocationTimeout = $timeout(delayed, 1000);
     }
 
+    function setSelectTime() {
+      $scope.startTime = curveStartTime($scope.selectedCurve);
+      $scope.endTime = curveEndTime($scope.selectedCurve);
+    }
+
     if ($stateParams.c) {
       $scope.selectedCurve = $stateParams.c;
+      setSelectTime();
     }
 
     if ($stateParams.l) {
@@ -68,9 +93,12 @@ angular.module('www2App')
       $scope.isPlaying = !$scope.isPlaying;
     }
 
+    var lastPositionUpdate = new Date();
+
     $scope.$watch('isPlaying', function(newVal, oldVal) {
       if (newVal != oldVal) {
         if (newVal) {
+          lastPositionUpdate = new Date();
           animationTimer = $interval(updatePosition, 100);
         } else {
           $interval.cancel(animationTimer);
@@ -78,14 +106,37 @@ angular.module('www2App')
       }
     });
 
+
+    function endTime() {
+      if ($scope.selectedCurve) {
+        return curveEndTime($scope.selectedCurve);
+      } else {
+        return $scope.plotData[$scope.plotData.length - 1]['time'];
+      }
+    }
+
+    function startTime() {
+      if ($scope.selectedCurve) {
+        return curveStartTime($scope.selectedCurve);
+      } else {
+        return $scope.plotData[0]['time'];
+      }
+    }
+
     function updatePosition() {
+      var now = new Date();
       if(!$scope.currentTime){
         $scope.currentTime = new Date($scope.plotData[0]['time']);
+      } else {
+        var delta = (now.getTime() - lastPositionUpdate.getTime());
+        delta *= $scope.replaySpeed;
+        $scope.currentTime = new Date($scope.currentTime.getTime() + delta);
+
+        if ($scope.currentTime >= endTime()) {
+          $scope.currentTime = startTime();
+        }
       }
-      $scope.currentTime = new Date($scope.currentTime.getTime()+1 * 1000);
-      if ($scope.currentTime >= $scope.plotData[$scope.plotData.length - 1]['time']) {
-        $scope.currentTime = new Date($scope.plotData[0]['time']);
-      }
+      lastPositionUpdate = now;
     }
 
     $scope.$watch('mapLocation', setLocation);
@@ -150,11 +201,101 @@ angular.module('www2App')
     $scope.$watch('currentTime', function(time) {
       $scope.currentPoint = pointAtTime(time);
 
-      $scope.vmgPerf = getPointValue(['devicePerf']);
+      $scope.vmgPerf = perfAtPoint($scope.currentPoint);
       $scope.twa = getPointValue(['twa', 'externalTwa']);
       $scope.tws =  getPointValue(['twa', 'externalTws']);
       $scope.gpsSpeed = getPointValue(['gpsSpeed']);
       $scope.twdir = twdir();
       $scope.gpsBearing = getPointValue(['gpsBearing']);
+      $scope.deviceVmg = getPointValue(['deviceVmg']);
+      if ($scope.deviceVmg) {
+        $scope.deviceVmg = Math.abs($scope.deviceVmg);
+      }
+      $scope.deviceTargetVmg = getPointValue(['deviceTargetVmg']);
     });
+
+    $scope.replaySpeed = 8;
+    $scope.slower = function() { $scope.replaySpeed /= 2; }
+    $scope.faster = function() { $scope.replaySpeed *= 2; }
+
+    $scope.mapActive = true;
+    $scope.graphActive = true;
+    $scope.sideBarActive = true;
+
+    // The following code handles responsiveness for small screen,
+    // by hiding/showing the map, graph, and sidebar according to
+    // window size.
+    var verticalSizeThreshold = 600;
+    var horizontalThreshold = 800;
+
+    var mapScreenContainer = angular.element('.mapScreenContainer');
+    var width = function() {
+      return mapScreenContainer.width();
+    };
+    var height = function() {
+      return mapScreenContainer.height();
+    };
+
+    // Toggling the visibility of components change their size.
+    // However, in HTML, there is no way to bind to a div resize event.
+    // To avoid having to poll for size changes in a timer, when we
+    // do an action that may cause resizes, we also tell angular to
+    // watch for resizes after the effect of the resize change have been
+    // applied.
+    var delayedApply = function() {
+      setTimeout(function() { $scope.$apply(); }, 10);
+    };
+    $scope.activateMap = function() {
+      $scope.mapActive = true;
+      $scope.graphActive = (height() >= verticalSizeThreshold);
+      $scope.sideBarActive = (width() >= horizontalThreshold);
+      delayedApply();
+    };
+
+    $scope.activateGraph = function() {
+      $scope.graphActive = true;
+      $scope.mapActive = (height() >= verticalSizeThreshold);
+      $scope.sideBarActive = (width() >= horizontalThreshold);
+      delayedApply();
+    };
+
+    $scope.activateSideBar = function() {
+      $scope.sideBarActive = true;
+      if (width() < horizontalThreshold) {
+        $scope.mapActive = false;
+        $scope.graphActive = false;
+      }
+      delayedApply();
+    };
+
+    $scope.$watch(function(){
+       return { width: width(), height: height() };
+    }, function(value) {
+       if (value.width < horizontalThreshold) {
+         if ($scope.mapActive && $scope.sideBarActive) {
+           // If the screen becomes to small for both
+           // the side bar and the map/graph container,
+           // we hide the side bar.
+           $scope.sideBarActive = false;
+         }
+       } else {
+         // If the screen got large enough, show the sidebar,
+         // and make sure either the map or the graph is active.
+         // The vertical checks below might activate both.
+         $scope.sideBarActive = true;
+         if (!$scope.mapActive && !$scope.graphActive) {
+           $scope.mapActive = true;
+         }
+       }
+
+      if (value.height < verticalSizeThreshold) {
+        if ($scope.mapActive && $scope.graphActive) {
+          $scope.graphActive = false;
+        }
+      } else {
+        if ($scope.mapActive || $scope.graphActive) {
+          $scope.mapActive = $scope.graphActive = true;
+        }
+      }
+    }, true);
 });

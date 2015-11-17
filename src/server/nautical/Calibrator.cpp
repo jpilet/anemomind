@@ -8,21 +8,23 @@
 
 #include "Calibrator.h"
 
+
 #include <ceres/ceres.h>
 #include <cmath>
 #include <device/Arduino/libraries/ChunkFile/ChunkFile.h>
+#include <device/Arduino/libraries/Corrector/Corrector.h>
 #include <device/Arduino/libraries/FixedPoint/FixedPoint.h>
 #include <device/Arduino/libraries/TrueWindEstimator/InstrumentFilter.h>
+#include <device/anemobox/simulator/SimulateBox.h>
 #include <iostream>
+#include <server/common/ArrayBuilder.h>
+#include <server/common/Histogram.h>
 #include <server/common/math.h>
 #include <server/common/string.h>
-#include <server/nautical/NavNmeaScan.h>
-#include <string>
-#include <server/plot/extra.h>
-#include <server/common/Histogram.h>
-#include <server/common/ArrayBuilder.h>
-#include <device/Arduino/libraries/Corrector/Corrector.h>
 #include <server/nautical/FlowErrors.h>
+#include <server/nautical/NavNmeaScan.h>
+#include <server/plot/extra.h>
+#include <string>
 
 using ceres::AutoDiffCostFunction;
 using ceres::CostFunction;
@@ -332,7 +334,7 @@ bool Calibrator::calibrate(const Array<Nav>& navs,
   return true;
 }
 
-void Calibrator::saveCalibration(std::ofstream *file) {
+void Calibrator::saveCalibration(std::ostream *file) const {
   TrueWindEstimator::Parameters<FP16_16> calibration;
   for (int i = 0; i < TrueWindEstimator::NUM_PARAMS; ++i) {
     // Convert to fixed point.
@@ -444,16 +446,12 @@ void Calibrator::clear() {
   _maneuvers.clear();
 }
 
-void Calibrator::simulate(Array<Nav> *navs) const {
-  ServerFilter filter;
-  for (Nav& nav : *navs) {
-    filter.setAw(nav.awa(), nav.aws(), nav.time());
-    filter.setMagHdgWatSpeed(nav.magHdg(), nav.watSpeed(), nav.time());
-    filter.setGps(nav.gpsBearing(), nav.gpsSpeed(), nav.time());
+bool Calibrator::simulate(Array<Nav> *navs) const {
+  std::stringstream calibFile;
+  saveCalibration(&calibFile);
+  calibFile.seekg(0, std::ios::beg);
 
-    nav.setTrueWind(
-        TrueWindEstimator::computeTrueWind(_calibrationValues, filter));
-  }
+  return SimulateBox(calibFile, navs);
 }
 
 namespace {

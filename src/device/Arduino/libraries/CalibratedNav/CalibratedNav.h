@@ -9,6 +9,8 @@
 #include "../PhysicalQuantity/PhysicalQuantity.h"
 #include <server/common/Optional.h>
 #include <cassert>
+#include <functional>
+#include <server/nautical/Nav.h>
 
 namespace sail {
 
@@ -52,6 +54,18 @@ class CalibratedNav {
     rawAws(x.aws()), rawWatSpeed(x.watSpeed()),
     gpsMotion(HorizontalMotion<T>::polar(x.gpsSpeed(), x.gpsBearing())),
     driftAngle(Angle<T>::degrees(T(0))) {}
+
+  bool hasNan() const {
+    return rawAwa.isNan() ||
+        rawAws.isNan() ||
+        rawMagHdg.isNan() ||
+        rawWatSpeed.isNan() ||
+        driftAngle.isNan() ||
+        calibWatSpeed.isNan() ||
+        calibAws.isNan() ||
+        calibAwa.isNan() ||
+        boatOrientation.isNan();
+  }
 
   /*
    * Since all instance variables are encapsulated
@@ -111,6 +125,17 @@ class CalibratedNav {
     return trueWindOverGround - trueCurrentOverGround;
   }
 };
+
+// An abstract class used for evaluation of calibration algorithms.
+class CorrectorFunction {
+ public:
+  virtual Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const = 0;
+  virtual std::string toString() const = 0;
+  virtual ~CorrectorFunction() {}
+
+  typedef std::shared_ptr<CorrectorFunction> Ptr;
+};
+
 
 }
 

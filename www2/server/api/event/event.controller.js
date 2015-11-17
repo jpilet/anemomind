@@ -28,7 +28,7 @@ var canRead = function(req, event) {
     });
   }
 
-  // Otherwise, the user needs write access to the boat the note is
+  // Otherwise, the user needs read access to the boat the note is
   // attached to.
   return boatAccess.userCanReadBoatId(req.user.id, event.boat);
 }
@@ -37,22 +37,56 @@ var canWrite = function(req, event) {
   return boatAccess.userCanWriteBoatId(req.user.id, event.boat);
 }
 
+function sendEventsWithQuery(res, query) {
+  Event.find(query, function (err, events) {
+    if(err) { return handleError(res, err); }
+    return res.status(200).json(events);
+  });
+}
+
 // Get the latest readable events
 exports.index = function(req, res) {
   try {
-  if (!req.user) { return res.sendStatus(401); }
-  boatAccess.readableBoats(req.user.id)
-  .then(function(boats) {
-    if (boats.length == 0) {
-      return res.status(200).json([]);
+    if (!req.user) {
+      return res.sendStatus(401);
     }
-    var query = { boat: { $in : _.map(boats, '_id') } }
-    Event.find(query, function (err, events) {
-      if(err) { return handleError(res, err); }
-      return res.status(200).json(events);
-    });
-  })
-  .catch(function(err) { res.sendStatus(403); });
+
+    var query = { };
+
+    var handleDateParam = function(param, operator) {
+      if (req.query[param] && req.query[param] != "") {
+        var date = new Date(req.query[param]);
+        if (isNaN(date)) {
+          return res.sentStatus(400);
+        }
+        if (!query.when) {
+          query.when = { };
+        }
+        query.when[operator] = date;
+      }
+    }
+
+    handleDateParam('B', '$lte');
+    handleDateParam('A', '$gte');
+
+    if (req.query.b) {
+      boatAccess.userCanReadBoatId(req.user.id, req.query.b)
+      .then(function() {
+         query.boat = req.query.b;
+         sendEventsWithQuery(res, query);
+      })
+      .catch(function(err) { res.sendStatus(403); });
+    } else {
+      boatAccess.readableBoats(req.user.id)
+        .then(function(boats) {
+          if (boats.length == 0) {
+            return res.status(200).json([]);
+          }
+          query.boat = { $in : _.map(boats, '_id') };
+          sendEventsWithQuery(res, query);
+        })
+        .catch(function(err) { res.sendStatus(403); });
+    }
   } catch(err) {
     console.warn(err);
     console.warn(err.stack);
@@ -221,8 +255,4 @@ exports.postPhoto = multer({
   }
 });
 
-exports.getPhoto = function(req, res) {
-  // Access rights have been checked by boatReadAccess.
-  res.sendFile(photoUploadPath + '/' + req.params.boatId
-               + '/' + req.params.photo);
-}
+exports.photoUploadPath = photoUploadPath;

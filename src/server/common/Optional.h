@@ -7,6 +7,7 @@
 #define SERVER_COMMON_OPTIONAL_H_
 
 #include <cassert>
+#include <functional>
 
 template <typename T>
 class Optional {
@@ -69,6 +70,13 @@ class Optional {
       return *this;
     }
     return other;
+  }
+
+  bool isNan() const {
+    if (_defined) {
+      return genericIsNan(_value);
+    }
+    return true;
   }
  private:
   bool _defined;

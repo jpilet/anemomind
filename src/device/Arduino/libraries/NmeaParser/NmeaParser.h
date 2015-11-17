@@ -128,6 +128,9 @@ class NmeaParser {
   NmeaSentence processByte(Byte data);
   void printSentence();
   void putSentence(void (*_putc)(char));
+#ifdef ON_SERVER
+  std::string sentence() const;
+#endif
 
   DWord cumulativeWaterDistance() const {
     return cwd_;
@@ -184,6 +187,8 @@ class NmeaParser {
         year() + 2000, month(), day(),
         hour(), min(), sec());
   }
+
+  std::string sentenceType() const;
 #endif
 
   // Wind data

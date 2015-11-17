@@ -9,20 +9,9 @@
 #include <algorithm>
 #include <server/common/MDArray.h>
 #include <server/common/invalidate.h>
+#include <server/common/math.h>
 
 namespace sail {
-
-namespace BandMatInternal {
-  // Used to produce regularization terms (used by addRegs)
-  // It maps a vector I to [I 0] - [0 I].
-  //
-  // For instance, it maps [1] to [1 -1]
-  //               it maps [1 -1] to [1 -2 1]
-  //               it maps [1 -2 1] to [1 -3 3 -1] etc.
-  Arrayd makeNextCoefs(Arrayd coefs);
-  Arrayd makeCoefs(int order);
-}
-
 
 template <typename T>
 class BandMat {
@@ -134,7 +123,7 @@ class BandMat {
     coefs[0] = Arrayd(1);
     coefs[0][0] = 1.0;
     for (int i = 0; i < maxOrder; i++) {
-      coefs[i+1] = BandMatInternal::makeNextCoefs(coefs[i]);
+      coefs[i+1] = makeNextRegCoefs(coefs[i]);
     }
 
     for (int i = 0; i < count; i++) {
@@ -144,15 +133,20 @@ class BandMat {
     }
   }
 
-  void addNormalEq(int n, int *I, double *W) {
+  void addNormalEq(double w2, int n, int *I, double *W) {
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
-        at(I[i], I[j]) += W[i]*W[j];
+        at(I[i], I[j]) += w2*W[i]*W[j];
       }
     }
   }
 
-  MDArray<T, 2> getDataForDebug() {return _data;}
+  void addNormalEq(int n, int *I, double *W) {
+    addNormalEq(1.0, n, I, W);
+  }
+
+
+  MDArray<T, 2> data() {return _data;}
  private:
   // Map (i, j) col index a col index of the underlying storage.
   // (The row index is the same)

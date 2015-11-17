@@ -148,5 +148,7 @@ namespace internal {
 void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int line,
                                        const std::string& message));
 
+void SetLogLevelThreshold(LogLevel level);
+
 
 #endif  // _SERVER_COMMON_LOGGING_H

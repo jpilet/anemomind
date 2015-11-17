@@ -1,0 +1,16 @@
+{
+  "name": "sessioninfo",
+  "version": "1.0.0",
+  "description": "List sessions for a boat with details",
+  "main": "sessioninfo.js",
+  "dependencies": {
+    "minimist": "^1.2.0",
+    "q": "^1.4.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Julien Pilet",
+  "license": "ISC"
+}

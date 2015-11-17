@@ -8,6 +8,8 @@
 #include <server/common/Array.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/PhysicalQuantityIO.h>
+#include <device/Arduino/libraries/Corrector/Corrector.h>
+#include <server/nautical/Nav.h>
 
 #ifndef SERVER_NAUTICAL_FLOWERRORS_H_
 #define SERVER_NAUTICAL_FLOWERRORS_H_
@@ -101,6 +103,11 @@ struct WindCurrentErrors {
 };
 
 std::ostream &operator<< (std::ostream &s, const WindCurrentErrors &e);
+
+WindCurrentErrors compareCorrectors(
+    const CorrectorFunction &a,
+    const CorrectorFunction &b,
+    Array<Nav> navs);
 
 }
 

@@ -3,16 +3,24 @@
   "version": "1.0.0",
   "main": "./build/Release/anemonode",
   "dependencies": {
-    "bleno": "^0.1.12",
-    "mail": "file:../../../../nodemodules/mail",
+    "async": "^1.4.2",
+    "bleno": "^0.2.0",
+    "bluetooth-hci-socket": "^0.3.3",
+    "body-parser": "^1.13.3",
+    "debug": "^2.2.0",
+    "endpoint": "file:../../../../nodemodules/endpoint",
+    "express": "^4.13.3",
     "mkdirp": "^0.5.0",
-    "mraa": "^0.6.2",
+    "mraa": "^0.7.0",
     "msgpack-js": "^0.3.0",
     "nan": "^1.7.0",
+    "noble": "^1.1.0",
     "q": "^1.4.1",
     "serialport": "^1.6.3"
   },
   "devDependencies": {
-    "mocha": "^2.2.5"
+    "mocha": "^2.2.5",
+    "should": "^7.0.4",
+    "supertest": "^1.1.0"
   }
 }

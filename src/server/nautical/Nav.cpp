@@ -9,6 +9,7 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/ArrayIO.h>
 #include <algorithm>
+#include <server/common/Span.h>
 #include <server/plot/gnuplot_i.hpp>
 #include <server/common/LineKM.h>
 #include <server/plot/extra.h>
@@ -16,6 +17,8 @@
 #include <ctime>
 #include <server/nautical/WGS84.h>
 #include <server/common/string.h>
+#include <server/common/PhysicalQuantityIO.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -279,25 +282,27 @@ void dispNavTimeIntervals(Array<Nav> navs) {
   }
 }
 
-int countNavSplitsByDuration(Array<Nav> navs, double durSeconds) {
+int countNavSplitsByDuration(Array<Nav> navs, Duration<double> dur) {
   int count = navs.size();
   int counter = 0;
   for (int i = 0; i < count-1; i++) {
-    if ((navs[i+1].time() - navs[i].time()).seconds() > durSeconds) {
+    if ((navs[i+1].time() - navs[i].time()) > dur) {
       counter++;
     }
   }
   return counter;
 }
 
-Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds) {
-  int count = 1 + countNavSplitsByDuration(navs, durSeconds);
+
+
+Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, Duration<double> dur) {
+  int count = 1 + countNavSplitsByDuration(navs, dur);
   Array<Array<Nav> > dst(count);
   int navCount = navs.size();
   int from = 0;
   int counter = 0;
   for (int i = 0; i < navCount-1; i++) {
-    if ((navs[i+1].time() - navs[i].time()).seconds() > durSeconds) {
+    if ((navs[i+1].time() - navs[i].time()) > dur) {
       dst[counter] = navs.slice(from, i+1);
       counter++;
       from = i+1;
@@ -307,6 +312,10 @@ Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds) {
   assert(counter + 1 == count);
   return dst;
 }
+
+/*Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds) {
+  return splitNavsByDuration(navs, Duration<double>::seconds(durSeconds));
+}*/
 
 MDArray2d calcNavsEcefTrajectory(Array<Nav> navs) {
   int count = navs.size();
@@ -366,5 +375,40 @@ int countNavs(Array<Array<Nav> > navs) {
   return counter;
 }
 
+std::ostream &operator<<(std::ostream &s, const Nav &x) {
+  s << "Nav:\n";
+  s << "  maghdg: " << x.magHdg() << "\n";
+  s << "  aws: " << x.aws() << "\n";
+  s << "  awa: " << x.awa() << "\n";
+  s << "  watspeed: " << x.watSpeed() << "\n";
+  s << "  gps bearing: " << x.gpsBearing() << "\n";
+  s << "  gps speed: " << x.gpsSpeed() << "\n";
+  return s;
+}
+
+Length<double> computeTrajectoryLength(Array<Nav> navs) {
+  Length<double> dist = Length<double>::meters(0.0);
+  int n = navs.size() - 1;
+  for (int i = 0; i < n; i++) {
+    dist = dist + distance(navs[i].geographicPosition(), navs[i+1].geographicPosition());
+  }
+  return dist;
+}
+
+int findMaxSpeedOverGround(Array<Nav> navs) {
+  auto marg = Duration<double>::minutes(2.0);
+  Span<TimeStamp> validTime(navs.first().time() + marg, navs.last().time() - marg);
+  int bestIndex = -1;
+  auto maxSOG = Velocity<double>::knots(-1.0);
+  for (int i = 0; i < navs.size(); ++i) {
+    const Nav &nav = navs[i];
+    Velocity<double> sog = nav.gpsSpeed();
+    if (!sog.isNaN() && maxSOG < sog && validTime.contains(nav.time())) {
+      maxSOG = sog;
+      bestIndex = i;
+    }
+  }
+  return bestIndex;
+}
 
 } /* namespace sail */

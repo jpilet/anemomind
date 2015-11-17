@@ -1,15 +1,14 @@
-
 var path = require('path');
-var naming = require('mail/naming.js');
-var script = require('mail/script.js');
+var naming = require('endpoint/naming.js');
+var script = require('endpoint/script.js');
 var mongoose = require('mongoose');
 var exec = require('child_process').exec;
 var Boat = require('../server/api/boat/boat.model.js');
 var Q = require('q');
-var mb = require('mail/mail2.sqlite.js');
+var mb = require('endpoint/endpoint.sqlite.js');
 var fs = require('fs');
 var BoxExec = require('../server/api/boxexec/boxexec.model.js');
-var files = require('mail/files.js');
+var files = require('endpoint/files.js');
 var assert = require('assert');
 
 // Ensure NODE_ENV is defined.
@@ -26,8 +25,8 @@ function init() {
 }
 
 function extractBoatIdFromFilename(filename) {
-  var mailboxName = naming.getMailboxNameFromFilename(filename);
-  var parsed = naming.parseMailboxName(mailboxName);
+  var endpointName = naming.getEndpointNameFromFilename(filename);
+  var parsed = naming.parseEndpointName(endpointName);
   return parsed.id;
 }
 
@@ -56,18 +55,18 @@ function getBoxIdFromFilename(filename, cb) {
 
 function makeBoatDBFilename(boatId) {
   return path.join(
-    env.mailboxDir,
+    env.endpointDir,
     naming.makeDBFilenameFromBoatId(boatId))
 }
 
-function makeBoatEndPoint(boatId, cb) {
-  mb.tryMakeEndPoint(
+function makeBoatEndpoint(boatId, cb) {
+  mb.tryMakeEndpoint(
     makeBoatDBFilename(boatId),
-    naming.makeMailboxNameFromBoatId(boatId), cb);
+    naming.makeEndpointNameFromBoatId(boatId), cb);
 }
 
-function withBoatEndPoint(boatId, cbOperation, done) {
-  makeBoatEndPoint(boatId, function(err, ep) {
+function withBoatEndpoint(boatId, cbOperation, done) {
+  makeBoatEndpoint(boatId, function(err, ep) {
     if (err) {
       done(err);
     } else {
@@ -79,13 +78,13 @@ function withBoatEndPoint(boatId, cbOperation, done) {
 
 function sendScriptToBox(boatId, scriptType, scriptData, cb) {
   var code = null;
-  withBoatEndPoint(boatId, function(mailbox, cb) {
+  withBoatEndpoint(boatId, function(endpoint, cb) {
     assert(typeof cb == 'function');
     getBoxIdFromBoatId(boatId, function(err, boxId) {
       if (err) {
         cb(err);
       } else {
-        dst = naming.makeMailboxNameFromBoxId(boxId);
+        dst = naming.makeEndpointNameFromBoxId(boxId);
         BoxExec.create({
           timeSent: new Date,
           boatId: boatId,
@@ -98,7 +97,7 @@ function sendScriptToBox(boatId, scriptType, scriptData, cb) {
           } else {
             code = boxexec._id;
             script.runRemoteScript(
-              mailbox, dst,
+              endpoint, dst,
               scriptType, scriptData, '' + boxexec._id, cb);
           }
         });
@@ -139,10 +138,10 @@ function makeDstFilename(srcFilename, dstFilename) {
 }
 
 function sendBoatData(boatId, srcFilename, dstFilename, cb) {
-  withBoatEndPoint(boatId, function(ep, cb) {
+  withBoatEndpoint(boatId, function(ep, cb) {
     Q.nfcall(getBoxIdFromBoatId, boatId)
       .then(function(boxId) {
-        var dstName = naming.makeMailboxNameFromBoxId(boxId);
+        var dstName = naming.makeEndpointNameFromBoxId(boxId);
         return files.sendFiles(
           ep,
           dstName, [{

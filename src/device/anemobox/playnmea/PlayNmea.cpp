@@ -7,6 +7,7 @@
  *     playnmea log.txt > /dev/ttyMFD1
  */
 #include <device/Arduino/libraries/NmeaParser/NmeaParser.h>
+#include <stdio.h>
 
 using namespace sail;
 
@@ -41,6 +42,7 @@ void playNmea(FILE *f) {
         // We do not output anything before knowing the fake time.
         if (hasFakeStartTime) {
           parser.printSentence();
+          fflush(stdout);
         }
         break;
     }
@@ -56,7 +58,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  for (int i = 1; i < argc; ++i) {
+  // Loop forever.
+  for (int i = 1; 1; i = (i + 1 == argc ? 1 : i + 1)) {
     FILE *f = fopen(argv[i], "r");
     if (!f) {
       perror(argv[i]);

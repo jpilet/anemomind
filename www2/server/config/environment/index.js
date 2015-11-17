@@ -62,7 +62,7 @@ var all = {
 
   // Would it make sense to have absolute paths here to?
   uploadDir: 'uploads',
-  mailboxDir: '/tmp/mail2',
+  endpointDir: '/tmp/mail2',
   backupDestination: '/tmp/anemobackup'
 };
 

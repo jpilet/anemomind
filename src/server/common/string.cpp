@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <fstream>
 #include <stdarg.h>
+#include <server/common/ArrayBuilder.h>
+
 
 namespace sail {
 
@@ -202,6 +204,17 @@ std::string readFileToString(const std::string& filename) {
   result.assign(std::istreambuf_iterator<char>(file),
                 std::istreambuf_iterator<char>());
   return result;
+}
+
+Array<std::string> split(std::string x, char delimiter) {
+
+  ArrayBuilder<std::string> builder;
+  std::stringstream ss(x);
+  std::string item;
+  while (std::getline(ss, item, delimiter)) {
+    builder.add(item);
+  }
+  return builder.get();
 }
 
 } /* namespace sail */

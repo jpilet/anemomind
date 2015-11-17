@@ -344,5 +344,27 @@ cxx_test(common_ProportionateIndexerTest
          gtest_main
          common_ProportionateIndexer
         )
-       
-                 
+
+add_library(common_EnvUtil
+            EnvUtil.h
+            EnvUtil.cpp
+           )
+
+target_link_libraries(common_EnvUtil
+                      common_PathBuilder
+                      common_Env
+                     )    
+                     
+                     
+add_library(common_CsvParser
+            CsvParser.h
+            CsvParser.cpp
+           )           
+target_link_libraries(common_CsvParser
+                      common_string
+                     )             
+cxx_test(common_CsvParserTest
+         CsvParserTest.cpp
+         common_CsvParser
+         gtest_main
+        )                      

@@ -34,6 +34,13 @@ message GeoPosValueSet {
   repeated Pos pos = 1;
 }
 
+message AbsOrientValueSet {
+  required AngleValueSet heading = 1;
+  required AngleValueSet roll = 2;
+  required AngleValueSet pitch = 3;
+}
+
+
 message ValueSet {
   required string shortName = 1;
   optional string source = 8;
@@ -44,6 +51,7 @@ message ValueSet {
   optional VelocityValueSet velocity = 4;
   optional LengthValueSet length = 5;
   optional GeoPosValueSet pos = 6;
+  optional AbsOrientValueSet orient = 10;
   repeated string text = 7;
 }
 

@@ -64,7 +64,7 @@ TEST(NavJsonTest, ConvertToJson) {
   EXPECT_GE(len, 0);
   EXPECT_EQ(s[0], '[');
   EXPECT_EQ(s[len-1], ']');
-  const char expected[] = "[{\"time_ms_1970\":9223372036854775807}]";
+  const char expected[] = "[{\"alt_m\":0,\"time_ms_1970\":9223372036854775807}]";
   EXPECT_EQ(s, expected);
 }
 
@@ -111,7 +111,7 @@ TEST(NavJsonTest, BackwardCompatibilityTest) {
   base.setMagHdg(Angle<>::radians(-.301));
   base.setTime(TimeStamp::fromMilliSecondsSince1970(1396029819000));
   base.setWatSpeed(Velocity<>::metersPerSecond(.03));
-  base.setTrueWind(HorizontalMotion<double>::polar(
+  base.setTrueWindOverGround(HorizontalMotion<double>::polar(
           Velocity<>::metersPerSecond(8), Angle<>::radians(-.2)));
 
   std::stringstream ss;

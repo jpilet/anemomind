@@ -13,6 +13,8 @@
 
 namespace sail {
 
+
+
 NavalSimulation::FlowFun NavalSimulation::constantFlowFun(HorizontalMotion<double> m) {
   return [=](const ProjectedPosition &pos, Duration<double> dur) {
     return m;
@@ -57,18 +59,25 @@ NavalSimulation::NavalSimulation(std::default_random_engine &e,
 }
 
 NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluateFitness(
-    const Corrector<double> &corr) const {
+    const CorrectorFunction &corr) const {
   int count = _states.size();
   Array<HorizontalMotion<double> > estWind(count), estCurrent(count);
-  for (int i = 0; i < count; i++) {
-    auto s = _states[i];
-    CalibratedNav<double> c = corr.correct(s.nav());
-    estWind[i] = c.trueWindOverGround();
-    estCurrent[i] = c.trueCurrentOverGround();
+  Spani span(0, count);
+  auto navs = span.map<Nav>([&](int i) {return _states[i].nav();});
+  auto cnavs = corr(navs);
+  for (auto i: span) {
+    estWind[i] = cnavs[i].trueWindOverGround();
+    estCurrent[i] = cnavs[i].trueCurrentOverGround();
   }
   return SimulatedCalibrationResults(
           SimulatedMotionResults(trueWindOverGround(), estWind),
           SimulatedMotionResults(trueCurrentOverGround(), estCurrent));
+}
+
+
+NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluateNoCalibration() const {
+  auto corrFun = CorrectorObject(Corrector<double>());
+  return evaluateFitness(corrFun);
 }
 
 

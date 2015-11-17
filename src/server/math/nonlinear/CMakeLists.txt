@@ -30,44 +30,6 @@ cxx_test(math_nonlinear_LevmarTest
          gtest_main
         )
 
-add_library(math_nonlinear_GridFitter
-            GridFitter.cpp
-            GridFitter.h
-           )
-target_link_libraries(math_nonlinear_GridFitter
-                      common_Array
-                      common_ScopedLog
-                      common_Uniform
-                      common_string
-                      math_ADFunction
-                      math_armaadolc
-                      math_mathutils
-                      math_nonlinear_Levmar
-                      math_nonlinear_StepMinimizer
-                      math_pareto
-                      math_MatExpr
-                      common_DataSplits
-                     )
-target_depends_on_armadillo(math_nonlinear_GridFitter)
-
-add_library(math_nonlinear_GridFitterTestData
-            GridFitterTestData.cpp
-            GridFitterTestData.h
-           )
-target_link_libraries(math_nonlinear_GridFitterTestData
-                      common_Array
-                     )
-
-
-cxx_test(math_nonlinear_GridFitterTest
-         GridFitterTest.cpp
-         examples_SignalFitExamples
-         math_nonlinear_GridFitterTestData
-         gtest_main
-        )
-  
-
-
 add_library(math_nonlinear_NoisyStep
   NoisyStep.cpp
   NoisyStep.h)
@@ -77,32 +39,6 @@ target_link_libraries(math_nonlinear_NoisyStep
   
 
 
-#################################################################
-### SignalFitExamples
-#################################################################
-add_library(examples_SignalFitExamples
-  SignalFitExamples.h
-  SignalFitExamples.cpp)
-target_link_libraries(examples_SignalFitExamples
-  math_nonlinear_NoisyStep
-  plot_gnuplot
-  math_Grid
-  math_nonlinear_GridFitter
-  common_logging
-  common_Uniform)
-  
-add_executable(examples_SignalFitExampleFixedReg
-  SignalFitExampleFixedReg.cpp)
-target_link_libraries(examples_SignalFitExampleFixedReg
-  examples_SignalFitExamples)
-  
-add_executable(math_nonlinear_SignalFitExampleDivideAndConquer  
-               SignalFitExampleDivideAndConquer.cpp
-              )
-target_link_libraries(math_nonlinear_SignalFitExampleDivideAndConquer
-                      math_nonlinear_NoisyStep
-                      plot_gnuplot
-                     )   
 add_library(math_nonlinear_Multiplayer
             Multiplayer.h
             Multiplayer.cpp
@@ -121,25 +57,24 @@ cxx_test(math_nonlinear_MultiplayerTest
 
 target_depends_on_armadillo(math_nonlinear_MultiplayerTest)  
   
-add_executable(examples_SignalFitExampleAutoRegFirstOrder
-  SignalFitExampleAutoRegFirstOrder.cpp)
-target_link_libraries(examples_SignalFitExampleAutoRegFirstOrder
-  examples_SignalFitExamples)    
-  
-add_executable(examples_SignalFitExampleAutoReg1st2ndOrder
-  SignalFitExampleAutoReg1st2ndOrder.cpp)
-target_link_libraries(examples_SignalFitExampleAutoReg1st2ndOrder
-  examples_SignalFitExamples)  
+add_library(math_nonlinear_BandedSolver
+            BandedSolver.h
+            BandedSolver.cpp
+           )
+target_link_libraries(math_nonlinear_BandedSolver
+                      math_BandMat
+                      math_nonlinear_SignalUtils
+                      common_math
+                     )              
   
 add_library(math_nonlinear_GeneralizedTV
             GeneralizedTV.h
             GeneralizedTV.cpp
            )
 target_link_libraries(math_nonlinear_GeneralizedTV
-                      math_BandMat
-                      common_LineKM
                       common_Span
-                      common_ScopedLog
+                      common_logging
+                      math_nonlinear_BandedSolver
                      )
 
 add_library(math_nonlinear_GeneralizedTVAuto
@@ -150,6 +85,7 @@ target_link_libraries(math_nonlinear_GeneralizedTVAuto
                       math_nonlinear_GeneralizedTV
                       common_DataSplits
                       math_nonlinear_StepMinimizer
+                      common_ScopedLog
                      )
                      
 add_executable(math_nonlinear_GeneralizedTVExample
@@ -182,3 +118,41 @@ cxx_test(math_nonlinear_RungeKuttaTest
          math_nonlinear_RungeKutta
          gtest_main
         )    
+        
+        
+cxx_test(math_nonlinear_SignalUtilsTest
+         SignalUtilsTest.cpp
+         gtest_main
+        )       
+        
+add_library(math_nonlinear_SignalUtils
+    SignalUtils.h
+    SignalUtils.cpp
+   )
+ 
+cxx_test(math_nonlinear_BandedSolverTest
+         BandedSolverTest.cpp
+         math_nonlinear_BandedSolver
+         plot_gnuplot
+         gtest_main
+        )
+        
+add_library(math_nonlinear_DataFit
+            DataFit.h
+            DataFit.cpp
+           )
+           
+target_link_libraries(math_nonlinear_DataFit
+                      math_irls
+                      common_math
+                      common_ScopedLog
+                      common_logging
+                      math_nonlinear_SignalUtils
+                      plot_gnuplot
+                     )           
+        
+cxx_test(math_nonlinear_DataFitTest
+         DataFitTest.cpp
+         gtest_main
+         math_nonlinear_DataFit
+        )

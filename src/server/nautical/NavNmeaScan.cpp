@@ -9,6 +9,7 @@
 #include <server/common/filesystem.h>
 #include <server/common/logging.h>
 #include <server/nautical/NavLoader.h>
+#include <algorithm>
 
 namespace sail {
 
@@ -29,7 +30,7 @@ Array<Nav> scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
     }
   }
 
-  Array<std::string> nmeaExtensions = Array<std::string>::args("txt", "log");
+  Array<std::string> nmeaExtensions = Array<std::string>::args("txt", "log", "csv");
   Array<Poco::Path> files = listFilesRecursivelyByExtension(p, nmeaExtensions);
   int count = files.size();
   Array<ParsedNavs> parsedNavs(count);
@@ -67,6 +68,17 @@ Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
                           ParsedNavs::FieldMask mask) {
   return scanNmeaFolderWithSimulator(p, boatId, nullptr, mask);
 }
+
+Array<Nav> scanNmeaFolders(Array<Poco::Path> p, Nav::Id boatId,
+    ParsedNavs::FieldMask mask) {
+  auto scanResults = p.map<Array<Nav> >([=](const Poco::Path &p) {
+    return scanNmeaFolder(p, boatId, mask);
+  });
+  auto cat = concat(scanResults);
+  std::sort(cat.begin(), cat.end());
+  return cat;
+}
+
 
 
 } /* namespace sail */

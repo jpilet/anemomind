@@ -208,6 +208,13 @@ TEST(wgs84Test, MeaningOfDlonDlatTest) {
         // ..and an extra test here just to check that xyz
         // and xyz2 are the same (we tested this before too)
         EXPECT_NEAR((normdif<double, 3>(xyz, xyz2)), 0.0, 1.0e-4);
+
+
+        double xyz3[3], dlon3, dlat3;
+                WGS84<double>::toXYZLocal(lon, lat, NAN,
+                    xyz3, &dlon3, &dlat3);
+        EXPECT_TRUE(std::isfinite(dlon3));
+        EXPECT_TRUE(std::isfinite(dlat3));
       }
     }
   }

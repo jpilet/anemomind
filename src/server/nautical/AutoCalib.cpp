@@ -148,7 +148,7 @@ namespace {
 
 
     int calcLowerIndex(int timeIndex) const {
-      return int(floor(_data.sampling().inv(_times[timeIndex])));
+      return int(floor(_data.indexToX().inv(_times[timeIndex])));
     }
 
     double normGDeriv(int timeIndex) const;
@@ -215,7 +215,7 @@ namespace {
       return sqrt(sqr(dif[0].knots()) + sqr(dif[1].knots()))/_data.samplingPeriod();
     } else {
       return std::abs(_data.magHdg().interpolateLinearDerivative(
-          _data.sampling()(_times[timeIndex])).degrees());
+          _data.indexToX()(_times[timeIndex])).degrees());
     }
   }
 

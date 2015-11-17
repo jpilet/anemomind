@@ -10,32 +10,40 @@ var CAM_M8Q_REG_NB_BYTES_AVAIL_LOW=0xFE
 var CAM_M8Q_REG_DATA_STREAM=0xFF
 var CHECK_OUT_STREAM=0xFF
 
+var nmeaSource = new anemonode.Nmea0183Source("Internal GPS");
 
-function init(dataCb) {
-  console.log('Reading internal GPS');
+function readGps(dataCb) {
+  var data;
 
-  var nmeaSource = new anemonode.Nmea0183Source("Internal GPS");
+  i2c.address(CAM_M8Q_I2C_BASE_ADDR);
 
-  setInterval(function() {
-    i2c.address(CAM_M8Q_I2C_BASE_ADDR);
-    var data = [];
-    do {
-      var c = i2c.readReg(CAM_M8Q_REG_DATA_STREAM);
-      if (c != 255) {
-        data.push(c);
-      } else {
-        break;
-      }
-    } while(1);
-
-    if (data.length > 0) {
-      var buffer = new Buffer(data);
-      nmeaSource.process(buffer);
-      if (dataCb) {
-        dataCb(buffer);
-      }
+  // The first read is 1: quickly exit if there is no data to read.
+  var readSize = 1;
+  do {
+    var c = i2c.readBytesReg(CAM_M8Q_REG_DATA_STREAM, readSize);
+    if (data) {
+      data = Buffer.concat([data, c]);
+      // If there is more data to read, we should read more than
+      // 1 byte at a time.
+      readSize = 128;
+    } else {
+      data = c;
     }
-  }, 50);
+    if (data.length > 0 && data[data.length - 1] == 255) {
+      break;
+    }
+  } while(1);
+
+  if (data.length > 0 && data[0] != 255) {
+    // Trim padded '255'
+    for (var i = data.length - 1; data[i] == 255; --i) {
+      data = data.slice(0, i + 1);
+    }
+    nmeaSource.process(data);
+    if (dataCb) {
+      dataCb(data);
+    }
+  }
 }
 
-module.exports.init = init;
+module.exports.readGps = readGps;

@@ -7,6 +7,7 @@
 
 #include <server/common/TimeStamp.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/nautical/AbsoluteOrientation.h>
 #include <server/nautical/GeographicPosition.h>
 
 namespace sail {
@@ -58,6 +59,10 @@ struct TimedValue {
 
   TimeStamp time;
   T value;
+
+  bool operator < (const TimedValue<T>& other) const {
+    return time < other.time;
+  }
 };
 
 template <typename T>
@@ -80,7 +85,7 @@ class ValueDispatcher {
 
   virtual const std::deque<TimedValue<T>>& values() const { return values_; }
 
-  Clock* clock() const { return clock_; }
+  virtual Clock* clock() const { return clock_; }
  protected:
   std::set<Listener<T> *> listeners_;
   std::deque<TimedValue<T>> values_;
@@ -135,6 +140,7 @@ typedef ValueDispatcher<Velocity<double>> VelocityDispatcher;
 typedef ValueDispatcher<Length<double>> LengthDispatcher;
 typedef ValueDispatcher<GeographicPosition<double>> GeoPosDispatcher;
 typedef ValueDispatcher<TimeStamp> TimeStampDispatcher;
+typedef ValueDispatcher<AbsoluteOrientation> AbsoluteOrientationDispatcher;
 
 template <typename T>
 class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {
@@ -151,7 +157,7 @@ class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {
     return _forward ? _forward->values() : emptyValues_;
   }
 
-  Clock* clock() const { return _forward ? _forward->clock() : 0; }
+  virtual Clock* clock() const { return _forward ? _forward->clock() : 0; }
 
   void proxy(ValueDispatcher<T> *dispatcher) {
     this->stopListening();

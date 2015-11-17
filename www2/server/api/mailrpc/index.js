@@ -2,8 +2,9 @@
 
 var express = require('express');
 var router = express.Router();
-var rpc = require('./rpc.js');
+var rpc = require('endpoint/endpoint.httpserver.js');
 var auth = require('../../auth/auth.service');
+var ep = require('./endpoint.js');
 
 
 /*
@@ -13,32 +14,32 @@ var auth = require('../../auth/auth.service');
 
   ========= Essential calls ========
   Function name: putPacket
-  HTTP-call: POST /putPacket/:mailboxName
+  HTTP-call: POST /putPacket/:endpointName
 
   Function name: getPacket
-  HTTP-call: GET /getPacket/:mailboxName/:src/:dst/:seqNumber
+  HTTP-call: GET /getPacket/:endpointName/:src/:dst/:seqNumber
 
   Function name: getSrcDstPairs
-  HTTP-call: GET /getSrcDstPairs/:mailboxName
+  HTTP-call: GET /getSrcDstPairs/:endpointName
 
   Function name: setLowerBound
-  HTTP-call: GET /setLowerBound/:mailboxName/:src/:dst/:lowerBound
+  HTTP-call: GET /setLowerBound/:endpointName/:src/:dst/:lowerBound
 
   Function name: getLowerBounds
-  HTTP-call: POST /getLowerBounds/:mailboxName
+  HTTP-call: POST /getLowerBounds/:endpointName
 
   Function name: getUpperBounds
-  HTTP-call: POST /getUpperBounds/:mailboxName
+  HTTP-call: POST /getUpperBounds/:endpointName
 
   ========= To facilitate unit testing ========
   Function name: getTotalPacketCount
-  HTTP-call: GET /getTotalPacketCount/:mailboxName
+  HTTP-call: GET /getTotalPacketCount/:endpointName
 
   Function name: sendPacket
-  HTTP-call: POST /sendPacket/:mailboxName
+  HTTP-call: POST /sendPacket/:endpointName
 
   Function name: reset
-  HTTP-call: GET /reset/:mailboxName
+  HTTP-call: GET /reset/:endpointName
   
   All these functions will return JSON data in the body. On success, the
   HTTP status code is 200 and the body data is the result.
@@ -47,5 +48,5 @@ var auth = require('../../auth/auth.service');
   
 */
 
-rpc.bindMethodHandlers(router, auth.isAuthenticated());
+rpc.bindMethodHandlers(ep.withEndpoint, router, auth.isAuthenticated());
 module.exports = router;

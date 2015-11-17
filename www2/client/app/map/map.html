@@ -1,24 +1,92 @@
-<div id="mapContainer">
-  <div class="titleBox">{{boat.name}}&nbsp;&nbsp;<a href="javascript:history.back()">&#10006;</a></div>
-  <vectormap></vectormap>
+<div class="mapScreenContainer">
 
-  <div class="animationControls">
-    <div ng-hide="isPlaying" ng-click="togglePlayPause()">&#9658; play</div>
-    <div ng-show="isPlaying" ng-click="togglePlayPause()">&#10073;&#10073; pause</div>
+  <div class="mapAndGraphAndSidebar">
+    <div ng-show="mapActive || graphActive" class="mapAndGraph">
+      <div class="map" ng-show="mapActive">
+        <div class="titleBox">{{boat.name}}
+          <button type="button" class="btn btn-default btn-sm"
+            onclick="window.history.go(-1)"><i class="fa fa-times"></i></button>
+        </div>
+
+        <div class="animationControls">
+          <button type="button" class="btn btn-default btn-sm" ng-hide="isPlaying" ng-click="togglePlayPause()">&#9658; play</button>
+          <button type="button" class="btn btn-default btn-sm" ng-show="isPlaying" ng-click="togglePlayPause()">&#10073;&#10073; pause</button>
+          <button type="button" class="btn btn-default btn-sm" ng-click="slower()">-</button>
+          <span>{{ replaySpeed }}x</span>
+          <button type="button" class="btn btn-default btn-sm" ng-click="faster()">+</button>
+        </div>
+        <div class="vectorMapContainer" vectormap></div>
+      </div>
+
+      <div class="graph" ng-show="graphActive">
+        <select id="dataSourceSelector"
+          ng-model="plotField"
+          ng-options="field as label for (field, label) in plotFieldLabels"></select>
+
+        <perfplot
+          plot-data="plotData"
+          current-time="currentTime"
+          field="plotField"></perfplot>
+      </div>
+    </div>
+
+    <sidebar ng-show="sideBarActive">
+      <div id="tabs" class="semitransp padding5px">
+        <tabset>
+          <tab heading="Perf">
+            <gauge-indicator id="gaugetws" label="vmgPerf + '%'" value="vmgPerf" description="'VMG Performance'" min="0" max="200" ></gauge-indicator>
+          </tab>
+          <tab heading="Wind">
+            <wheel-indicator id="topwheel" label="'Degree'" arrow="twa | angle:180" north="-gpsBearing" description="''"></wheel-indicator>
+            <wheel-small-indicator id="smallwheelcog" label="'&deg;'" arrow="twdir | angle:360" boat="gpsBearing" north="0" description="'True Wind Direction'"></wheel-small-indicator>
+          </tab>
+          <tab heading="Speed">
+            <gauge-indicator
+              id="gaugeperf"
+              label="gpsSpeed | speed"
+              value="gpsSpeed"
+              description="'Speed over ground'" min="0" max="12" ></gauge-indicator>
+          </tab>
+          <tab heading="Raw">
+            <div class="instrumentsView">
+              <table class="table table-bordered table-condensed">
+                <tr data-ng-hide='vmgPerf == undefined'><td>VMG Perf</td><td>{{ vmgPerf }}%</td></tr>
+                <tr data-ng-hide='deviceVmg == undefined'><td>VMG</td><td>{{ deviceVmg | speed }}</td></tr>
+                <tr data-ng-hide='deviceTargetVmg == undefined'><td>Target VMG</td><td>{{ deviceTargetVmg | speed }}</td></tr>
+                <tr data-ng-hide='twa == undefined'><td>TWA</td><td>{{ twa | angle:180 }}</td></tr>
+                <tr data-ng-hide='tws == undefined'><td>TWS</td><td>{{ tws | speed }}</td></tr>
+                <tr><td>GPS speed</td><td>{{ gpsSpeed | speed }}</td></tr>
+                <tr><td></td><td></td></tr>
+                <tr data-ng-hide='twdir == undefined'><td>TWDIR</td><td>{{ twdir | angle:360 }}</td></tr>
+                <tr><td>GPS bearing</td><td>{{ gpsBearing | angle:360 }}</td></tr>
+                <tr><td></td><td></td></tr>
+                <tr><td>Date</td><td>{{ currentTime | date: 'shortDate' }}</td></tr>
+                <tr><td>Time</td><td>{{ currentTime | date: 'HH:mm:ss' }}</td></tr>
+              </table>
+            </div>
+          </tab>
+        </tabset>
+        <div id="eventsContainer">
+          <events boat="boat._id" before="endTime" after="startTime"
+            current-time="currentTime">
+          </events>
+        </div>
+      </div>
+    </sidebar>
   </div>
 
-  <select id="dataSourceSelector" ng-model="plotField" ng-options="field as label for (field, label) in plotFieldLabels"></select>
-
-  <div id="tabs">
-    <lztabset>
-      <lztab title="Perf" template-url="/app/map/tabcontent/perf.html"> </lztab>
-      <lztab title="Wind" template-url="/app/map/tabcontent/wind_data.html" ></lztab>
-      <lztab title="Speed" template-url="/app/map/tabcontent/speed_data.html" ></lztab>
-      <lztab title="Raw" template-url="/app/map/tabcontent/raw_data.html" ></lztab>
-    </lztabset>
-
-  </div>
-  <perfplot plot-data="plotData" current-time="currentTime" field="plotField"></perfplot>
+  <footer class="responsiveNavButtons"
+    ><button type="button" ng-hide="mapActive"
+        class="flexOne btn btn-default btn-sm"
+        ng-click="activateMap()"
+      ><i class="fa fa-map"></i></button
+    ><button type="button" ng-hide="graphActive"
+        class="flexOne btn btn-default btn-sm"
+        ng-click="activateGraph()"
+      ><i class="fa fa-area-chart"></i></button
+    ><button type="button" ng-hide="sideBarActive"
+        class="flexOne btn btn-default btn-sm"
+        ng-click="activateSideBar()"
+      ><i class="fa fa-tachometer"></i></button
+  ></footer>
 </div>
-
-

@@ -11,6 +11,7 @@
 #include <cmath>
 #include <cassert>
 #include <limits>
+#include <server/common/MDArray.h>
 
 namespace sail {
 
@@ -285,14 +286,95 @@ void mirror(int dims, T width, const T *x, T *y) {
 }
 
 template <typename T>
+T smoothNonNegAbs(T x, T thresh) {
+  if (x < T(0)) {
+    return smoothNonNegAbs(-x, thresh);
+  } else if (x < thresh) {
+    T a = 1.0/(2.0*thresh);
+    T b = 0.5*thresh;
+    return a*x*x + b;
+  }
+  return x;
+}
+
+template <typename T>
+T smoothNonNegAbs2(T x, T thresh) {
+  return sqrt(thresh + x*x);
+}
+
+template <typename T>
 struct MatrixElement {
  int i, j;
  T value;
 };
 typedef MatrixElement<double> MatrixElementd;
 
+inline double thresholdCloseTo0(double x, double lb) {
+  if (x < 0) {
+    return -thresholdCloseTo0(-x, lb);
+  } else if (x < lb) {
+    return lb;
+  }
+  return x;
+}
 
+template <typename T> // Should work for AD types too.
+bool genericIsNan(T x) {
+  return !(x == x);
+}
 
+inline bool implies(bool a, bool b) {
+  return !a || b;
+}
+
+template <typename T, int dims>
+bool isFinite(MDArray<T, dims> X) {
+  for (int i = 0; i < X.numel(); i++) {
+    if (!std::isfinite(X[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+template <typename T>
+bool isFinite(Array<T> X) {
+  for (int i = 0; i < X.size(); i++) {
+    if (!std::isfinite(X[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/*
+ * A calculation is sane if, whenever
+ * the result of the calculation is non-finite,
+ * at least one argument was also non-finite. If all
+ * the arguments are finite but not the result, then something
+ * is probably wrong.
+ */
+template <typename T>
+bool saneCalculation(T result, Array<T> arguments) {
+  if (std::isfinite(result)) {
+    return true;
+  } else {
+    return !isFinite(arguments);
+  }
+}
+
+template <typename T>
+T toFinite(T x, T defaultValue) {
+  return (std::isfinite(x)? x : defaultValue);
+}
+
+template <typename T>
+T clamp(T x, T lower, T upper) {
+  return std::min(std::max(x, lower), upper);
+}
+
+Arrayd makeNextRegCoefs(Arrayd coefs);
+Arrayd makeRegCoefs(int order);
 
 } /* namespace sail */
 

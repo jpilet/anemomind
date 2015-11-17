@@ -1,11 +1,9 @@
-var rpcble = require('./rpcble.js');
+var callrpc = require('./callrpc.js');
 
 // Will try to tell the iPhone that it should perform a
 // full sync with the server.
 function triggerSync(cb) {
-  // See https://github.com/jpilet/anemomind-ios/commit/071e5897be61e80563a2ea999c77421bd69babb3#diff-88087bfe37e7b54974e3e116ade952aaR265, in ANMBluetoothManager.
-  // There is an rpc command: "fullSync".
-  rpcble.call('fullSync', {data: null}, cb);
+  callrpc.call('fullSync', {data: null}, cb);
 }
 
 module.exports.triggerSync = triggerSync;

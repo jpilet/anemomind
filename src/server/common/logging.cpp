@@ -116,7 +116,7 @@ void DefaultLogHandler(LogLevel level, const char* filename, int line,
 
 void (*LogHandler)(LogLevel level, const char* filename, int line,
                    const std::string& message) = DefaultLogHandler;
-
+LogLevel LogLevelThreshold = LOGLEVEL_INFO;
 
 
 
@@ -125,7 +125,9 @@ LogMessage::LogMessage(LogLevel level, const char* filename, int line)
 LogMessage::~LogMessage() { }
 
 void LogMessage::Finish() {
-  LogHandler(level_, filename_, line_, message_);
+  if(level_ >= LogLevelThreshold) {
+    LogHandler(level_, filename_, line_, message_);
+  }
 
   if (level_ == LOGLEVEL_FATAL) {
     throw LogMessageException(level_, filename_, line_, message_);
@@ -143,4 +145,8 @@ void LogFinisher::operator=(LogMessage& other) {
 void SetLogHandler(void (*log_handler)(LogLevel level, const char* filename, int line,
                                        const std::string& message)) {
   internal::LogHandler = log_handler;
+}
+
+void SetLogLevelThreshold(LogLevel level) {
+  internal::LogLevelThreshold = level;
 }

@@ -28,4 +28,4 @@ www2/node_modules
 www2/uploads
 www2/client/assets/leman
 
-nodemodules/mail/node_modules
+nodemodules/*/node_modules

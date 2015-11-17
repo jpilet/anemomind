@@ -15,43 +15,59 @@
 
 namespace sail {
 
-// For compatibility: never re-use or change a number.
-// When adding fields, keep increasing.
-// When removing a field, never recycle its index value.
+/*
+ List of channels used by Dispatcher and NavHistory.
+
+ This macro provides an easy way to iterate over channels at compile time.
+
+ To use this macro, define a macro that takes the following arguments:
+  #define ENUM_ENTRY(handle, code, type, shortname, description)
+ 
+ For example, here's how to declare a switch for each entry:
+
+ #define CASE_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+     case handle : return shortname;
+ 
+   FOREACH_CHANNEL(CASE_ENTRY)
+ #undef CASE_ENTRY
+
+ Rules to follow for modifying this list:
+ - never remove any entry
+ - never change an existing shortname
+ - never change an existing code
+ otherwise this might break compatibility with recorded data.
+*/
+#define FOREACH_CHANNEL(X) \
+  X(AWA, 1, "awa", Angle<>, "apparent wind angle") \
+  X(AWS, 2, "aws", Velocity<>, "apparent wind speed") \
+  X(TWA, 3, "twa", Angle<>, "true wind angle") \
+  X(TWS, 4, "tws", Velocity<>, "true wind speed") \
+  X(TWDIR, 5, "twdir", Angle<>, "true wind direction") \
+  X(GPS_SPEED, 6, "gpsSpeed", Velocity<>, "GPS speed") \
+  X(GPS_BEARING, 7, "gpsBearing", Angle<>, "GPS bearing") \
+  X(MAG_HEADING, 8, "magHdg", Angle<>, "magnetic heading") \
+  X(WAT_SPEED, 9, "watSpeed", Velocity<>, "water speed") \
+  X(WAT_DIST, 10, "watDist", Length<>, "distance over water") \
+  X(GPS_POS, 11, "pos", GeographicPosition<double>, "GPS position") \
+  X(DATE_TIME, 12, "dateTime", TimeStamp, "GPS date and time (UTC)") \
+  X(TARGET_VMG, 13, "targetVmg", Velocity<>, "Target VMG") \
+  X(VMG, 14, "vmg", Velocity<>, "VMG") \
+  X(ORIENT, 15, "orient", AbsoluteOrientation, "Absolute anemobox orientation")
+
 enum DataCode {
-  AWA = 1,
-  AWS = 2,
-  TWA = 3,
-  TWS = 4,
-  TWDIR = 5,
-  GPS_SPEED = 6,
-  GPS_BEARING = 7,
-  MAG_HEADING = 8,
-  WAT_SPEED = 9,
-  WAT_DIST = 10,
-  GPS_POS = 11,
-  DATE_TIME = 12,
-  TARGET_VMG = 13,
-  VMG = 14,
-  NUM_DATA_CODE = 15
+#define ENUM_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  HANDLE = CODE,
+
+  FOREACH_CHANNEL(ENUM_ENTRY)
+#undef ENUM_ENTRY
 };
 
 template <DataCode Code> struct TypeForCode { };
 
-template<> struct TypeForCode<AWA> { typedef Angle<> type; };
-template<> struct TypeForCode<AWS> { typedef Velocity<> type; };
-template<> struct TypeForCode<TWA> { typedef Angle<> type; };
-template<> struct TypeForCode<TWS> { typedef Velocity<> type; };
-template<> struct TypeForCode<TWDIR> { typedef Angle<> type; };
-template<> struct TypeForCode<GPS_SPEED> { typedef Velocity<> type; };
-template<> struct TypeForCode<GPS_BEARING> { typedef Angle<> type; };
-template<> struct TypeForCode<MAG_HEADING> { typedef Angle<> type; }; 
-template<> struct TypeForCode<WAT_SPEED> { typedef Velocity<> type; };
-template<> struct TypeForCode<WAT_DIST> { typedef Length<> type; };
-template<> struct TypeForCode<GPS_POS> { typedef GeographicPosition<double> type; };
-template<> struct TypeForCode<DATE_TIME> { typedef TimeStamp type; };
-template<> struct TypeForCode<TARGET_VMG> { typedef Velocity<> type; };
-template<> struct TypeForCode<VMG> { typedef Velocity<> type; };
+#define DECL_TYPE(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+template<> struct TypeForCode<HANDLE> { typedef TYPE type; };
+FOREACH_CHANNEL(DECL_TYPE)
+#undef DECL_TYPE
 
 const char* descriptionForCode(DataCode code);
 const char* wordIdentifierForCode(DataCode code);
@@ -70,7 +86,7 @@ class DispatchData {
   // For example: awa, tws, watSpeed, etc.
   std::string wordIdentifier() const { return wordIdentifierForCode(_code); }
 
-  virtual bool isFresh() const = 0;
+  virtual bool isFresh(Duration<> maxAge = Duration<>::seconds(15)) const = 0;
 
   virtual void visit(DispatchDataVisitor *visitor) = 0;
   virtual ~DispatchData() {}
@@ -91,13 +107,13 @@ class TypedDispatchData : public DispatchData {
   virtual ValueDispatcher<T> *dispatcher() = 0;
   virtual const ValueDispatcher<T> *dispatcher() const = 0;
   virtual void setValue(T value) = 0;
-  virtual bool isFresh() const {
+  virtual bool isFresh(Duration<> maxAge = Duration<>::seconds(15)) const {
     auto d = dispatcher();
     if (d == nullptr || !d->hasValue() || !d->clock()) {
       return false;
     }
     Duration<> delta(d->clock()->currentTime() - d->lastTimeStamp()) ;
-    return delta < Duration<>::seconds(15);
+    return delta < maxAge;
   }
 };
 
@@ -123,6 +139,7 @@ typedef TypedDispatchData<Velocity<double>> DispatchVelocityData;
 typedef TypedDispatchData<Length<double>> DispatchLengthData;
 typedef TypedDispatchData<GeographicPosition<double>> DispatchGeoPosData;
 typedef TypedDispatchData<TimeStamp> DispatchTimeStampData;
+typedef TypedDispatchData<AbsoluteOrientation> DispatchAbsoluteOrientationData;
 
 template <typename T>
 class DispatchDataProxy : public TypedDispatchData<T> {
@@ -157,6 +174,7 @@ class DispatchDataVisitor {
   virtual void run(DispatchLengthData *length) = 0;
   virtual void run(DispatchGeoPosData *pos) = 0;
   virtual void run(DispatchTimeStampData *timestamp) = 0;
+  virtual void run(DispatchAbsoluteOrientationData *orient) = 0;
   virtual ~DispatchDataVisitor() {}
 };
 
@@ -183,14 +201,14 @@ class Dispatcher : public Clock {
 
   DispatchData *dispatchDataForSource(DataCode code, const std::string& source);
 
-  DispatchData* dispatchData(DataCode code) {
+  DispatchData* dispatchData(DataCode code) const {
     auto it = _currentSource.find(code);
     assert (it != _currentSource.end());
     return it->second.get();
   }
 
   template <DataCode Code>
-  TypedDispatchData<typename TypeForCode<Code>::type>* get() {
+  TypedDispatchData<typename TypeForCode<Code>::type>* get() const {
     return dynamic_cast<TypedDispatchData<typename TypeForCode<Code>::type>*>(
         dispatchData(Code));
   }
@@ -244,8 +262,6 @@ class Dispatcher : public Clock {
   boost::signals2::signal<void(DispatchData*)> dataSwitchedSource;
 
  private:
-  template <DataCode Code> void registerCode();
-
   static Dispatcher *_globalInstance;
 
   std::map<DataCode, std::map<std::string, DispatchData*>> _data;
@@ -278,6 +294,10 @@ class SubscribeVisitor : public DispatchDataVisitor {
   }
 
   virtual void run(DispatchTimeStampData *data) {
+    data->dispatcher()->subscribe(listener_);
+  }
+
+  virtual void run(DispatchAbsoluteOrientationData *data) {
     data->dispatcher()->subscribe(listener_);
   }
 

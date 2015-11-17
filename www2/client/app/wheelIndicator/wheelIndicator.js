@@ -18,7 +18,7 @@
 WheelPanel.prototype.init = function(){
     var panel = this.root[0];
     var panel_component=this;
-    d3.xml("app/wheelIndicator/wheel.svg", "image/svg+xml", function(xml) {
+    d3.xml("/assets/images/instruments/wheel.svg", "image/svg+xml", function(xml) {
         var importedNode = document.importNode(xml.documentElement, true);
         panel_component.wheel = d3.select(panel).selectAll("#wheel-svg-container").node().appendChild(importedNode);
         // The SVG just got loaded. Rotate the arrow to where it should.

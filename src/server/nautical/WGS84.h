@@ -8,6 +8,9 @@
 
 #include <server/common/math.h>
 #include <server/nautical/GeographicPosition.h>
+
+#include <iostream>
+#include <server/common/string.h>
 // Make sure functions exist for T by including <cmath> or <adolc/adouble.h>
 
 
@@ -110,8 +113,13 @@ class WGS84 {
   // Maps (lon, lat, altitude) to a 3D position xyz3.
   // Optionally outputs two scalars, dlon1 and dlat1, that are the derivatives of
   // the norm of the xyz position w.r.t. lon and lat.
-  static void toXYZLocal(T lonRadians, T latRadians, T altitudeMetres,
+  static void toXYZLocal(T lonRadians, T latRadians, T altitudeMeters0,
                          T *xyz3MetresOut, T *dlon1, T *dlat1) {
+
+    // altitudeMeters0 being nan means that it is undefined.
+    // Then it is natural to assume that we are at sea level.
+    T altitudeMeters = toFinite(altitudeMeters0, 0.0);
+
     T latRad = latRadians;
     T lonRad = lonRadians;
     T sinlat = sin(latRad);
@@ -126,7 +134,7 @@ class WGS84 {
     t5 = 1.0-t4;
     t6 = sqrt(t5);
     t8 = a/t6;
-    t9 = t8+altitudeMetres;
+    t9 = t8+altitudeMeters;
     t11 = t9*coslat;
     t13 = t11*sinlon;
     t16 = a/t6/t5;
@@ -136,10 +144,11 @@ class WGS84 {
     t23 = t9*sinlat;
     t26 = t11*coslon;
     t31 = 1.0-e2;
-    t36 = t8*t31+altitudeMetres;
+    t36 = t8*t31+altitudeMeters;
     t37 = t17*t19;
 
     if (dlon1) {
+      auto values = Array<T>{t3, t4, t5, t6, t8, t9, t11, t13, t16, t17, t18, t19, t23, t26, t31, t36, t37};
       *dlon1 = sqrt(t13*t13 + t26*t26);
     }
 
@@ -179,8 +188,19 @@ private:
       xyzDirUnitVectorOut[i] = northCoef*northAxis[i] + eastCoef*eastAxis[i];
     }
   }
-
 };
+
+template <typename T>
+Length<T> distance(const GeographicPosition<T> &a, const GeographicPosition<T> &b) {
+  Length<T> aPos[3], bPos[3];
+  WGS84<T>::toXYZ(a, aPos);
+  WGS84<T>::toXYZ(b, bPos);
+  T dist = T(0.0);
+  for (int i = 0; i < 3; i++) {
+    dist = dist + sqr(aPos[i].meters() - bPos[i].meters());
+  }
+  return Length<T>::meters(sqrt(dist));
+}
 
 
 
