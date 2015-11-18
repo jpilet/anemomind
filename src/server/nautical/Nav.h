@@ -63,7 +63,9 @@ class Nav {
   Angle<double> externalTwa() const {return _externalTwa;}
   Velocity<double> externalTws() const {return _externalTws;}
   bool hasExternalTrueWind() const {
-    return !isnan(_externalTwa) && !isnan(_externalTws); }
+    return !isnan(_externalTwa) && !isnan(_externalTws)
+      && _externalTws >= Velocity<double>::knots(0);
+  }
 
   HorizontalMotion<double> gpsMotion() const;
 
@@ -76,7 +78,7 @@ class Nav {
   }
   
   Angle<double> externalTwdir() const {
-    return externalTwa() + Angle<double>::degrees(180) + gpsBearing();
+    return externalTwa() + gpsBearing();
   }
 
   Angle<double> twaFromTrueWindOverGround() const {
