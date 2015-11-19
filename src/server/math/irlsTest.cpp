@@ -535,7 +535,6 @@ TEST(IrlsTest, FitNormQuadraticTest) {
   irls::WeightingStrategies strategies{
     std::shared_ptr<irls::FitNorm>(new irls::FitNorm(Spani(2, 4), 4, 2, false))
   };
-
   irls::Settings settings;
   auto solution = irls::solve(A, B, strategies, settings);
   auto expectedLength = 0.5*(1.0 + sqrt(2));
