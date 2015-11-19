@@ -498,7 +498,9 @@ TEST(IrlsTest, TargetSpeedPrototype) {
   targetSpeedPrototype(visualize, 30);
 }
 
-TEST(IrlsTest, FitNormTest1) {
+
+// Minimize |X - [1; 1]|^2 subject to constraint |X| = 1
+TEST(IrlsTest, FitNormConstrainedTest) {
   std::vector<Triplet> triplets;
   triplets.push_back(Triplet(0, 0, 1.0));
   triplets.push_back(Triplet(1, 1, 1.0));
@@ -518,5 +520,50 @@ TEST(IrlsTest, FitNormTest1) {
   for (int i = 0; i < 2; i++) {
     EXPECT_NEAR(expected, solution[i], 1.0e-6);
   }
+}
+
+// Minimize |X - [1; 1]|^2 + ||X| - 1|^2
+TEST(IrlsTest, FitNormQuadraticTest) {
+  std::vector<Triplet> triplets;
+  triplets.push_back(Triplet(0, 0, 1.0));
+  triplets.push_back(Triplet(1, 1, 1.0));
+  triplets.push_back(Triplet(2, 0, 1.0));
+  triplets.push_back(Triplet(3, 1, 1.0));
+  Eigen::VectorXd B(5);
+  B << 1, 1, 0, 0, -1;
+  auto A = makeSparseMatrix(5, 2, triplets);
+  irls::WeightingStrategies strategies{
+    std::shared_ptr<irls::FitNorm>(new irls::FitNorm(Spani(2, 4), 4, 2, false))
+  };
+
+  irls::Settings settings;
+  auto solution = irls::solve(A, B, strategies, settings);
+  auto expectedLength = 0.5*(1.0 + sqrt(2));
+  auto expected = expectedLength/sqrt(2.0);
+  EXPECT_EQ(solution.size(), 2);
+  for (int i = 0; i < 2; i++) {
+    EXPECT_NEAR(expected, solution[i], 1.0e-6);
+  }
+}
+
+// Minimize |X - [1; 1]|^2 + ||X| - 1|
+TEST(IrlsTest, FitNormAbsTest) {
+  std::vector<Triplet> triplets;
+  triplets.push_back(Triplet(0, 0, 1.0));
+  triplets.push_back(Triplet(1, 1, 1.0));
+  triplets.push_back(Triplet(2, 0, 1.0));
+  triplets.push_back(Triplet(3, 1, 1.0));
+  Eigen::VectorXd B(5);
+  B << 1, 1, 0, 0, -1;
+  auto A = makeSparseMatrix(5, 2, triplets);
+  irls::WeightingStrategies strategies{
+    std::shared_ptr<irls::FitNorm>(new irls::FitNorm(Spani(2, 4), 4, 1, false))
+  };
+
+  irls::Settings settings;
+  auto solution = irls::solve(A, B, strategies, settings);
+  auto expectedLength = 1.0;
+  EXPECT_EQ(solution.size(), 2);
+  EXPECT_NEAR(expectedLength, solution.norm(), 1.0e-2);
 }
 

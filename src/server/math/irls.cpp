@@ -279,20 +279,15 @@ void FitNorm::apply(
   const Arrayd &residuals, QuadCompiler *dst) {
   double currentNorm = calcResidualForSpan(_Xspan, residuals);
   double targetNorm = residuals[_aRow];
-
-  std::cout << EXPR_AND_VAL_AS_STRING(_Xspan) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(residuals) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(residuals.slice(_Xspan.minv(),
-      _Xspan.maxv())) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(currentNorm) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(targetNorm) << std::endl;
-
   double error = std::abs(currentNorm - targetNorm);
   double fError = std::pow(error, _n);
+  double deriv = _n*fError/(error + 1.0e-12);
+  std::cout << EXPR_AND_VAL_AS_STRING(error) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(fError) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(deriv) << std::endl;
   double c = (_constraint? sqr(constraintWeight) : 1.0);
-  /*auto w = 2.0*c*MajQuad::majorize(thresholdCloseTo0(error, 1.0e-6),
-      fError, _n*fError/error, 0.0).a;*/
-  auto w = c;
+  auto w = 2.0*c*MajQuad::majorize(thresholdCloseTo0(error, 1.0e-9),
+      fError, deriv, 0.0).a;
   double meanNorm = 0.5*(currentNorm + targetNorm);
   double factor = meanNorm/currentNorm;
   for (auto i: _Xspan) {
