@@ -512,9 +512,11 @@ TEST(IrlsTest, FitNormTest1) {
   };
 
   irls::Settings settings;
-  auto solution = irls::solveFull(A, B, strategies, settings);
-  std::cout << EXPR_AND_VAL_AS_STRING(solution.X) << std::endl;
-
-
+  auto solution = irls::solve(A, B, strategies, settings);
+  auto expected = 1.0/sqrt(2.0);
+  EXPECT_EQ(solution.size(), 2);
+  for (int i = 0; i < 2; i++) {
+    EXPECT_NEAR(expected, solution[i], 1.0e-6);
+  }
 }
 

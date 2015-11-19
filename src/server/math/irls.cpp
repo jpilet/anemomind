@@ -289,7 +289,7 @@ void FitNorm::apply(
 
   double error = std::abs(currentNorm - targetNorm);
   double fError = std::pow(error, _n);
-  double c = (_constraint? constraintWeight : 1.0);
+  double c = (_constraint? sqr(constraintWeight) : 1.0);
   /*auto w = 2.0*c*MajQuad::majorize(thresholdCloseTo0(error, 1.0e-6),
       fError, _n*fError/error, 0.0).a;*/
   auto w = c;
