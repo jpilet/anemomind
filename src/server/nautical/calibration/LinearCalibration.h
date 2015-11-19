@@ -288,6 +288,12 @@ LocallyConstantResults optimizeLocallyConstantFlows(
     Eigen::MatrixXd Atrajectory, Eigen::VectorXd Btrajectory,
     Array<Spani> spans, const irls::Settings &settings);
 
+
+
+
+////////////// Next version
+DataFit::CoordIndexer makeSrcIndexer(int observationCount, int segmentSize);
+
 void makeFirstOrderSplineCoefs(DataFit::CoordIndexer segmentRows,
                                DataFit::CoordIndexer splineCoefCols,
                                std::vector<DataFit::Triplet> *dst);

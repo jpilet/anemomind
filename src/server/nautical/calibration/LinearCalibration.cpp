@@ -323,6 +323,12 @@ LocallyConstantResults optimizeLocallyConstantFlows(
   return makeLocallyConstantResults(A, Btrajectory, results, data, paramCols);
 }
 
+DataFit::CoordIndexer makeSrcIndexer(int observationCount, int segmentSize) {
+  int count = observationCount/segmentSize;
+  int dim = 2;
+  return DataFit::CoordIndexer::Factory().make(count, dim*segmentSize);
+}
+
 void makeFirstOrderSplineCoefs(DataFit::CoordIndexer dataRows,
                                DataFit::CoordIndexer splineCoefCols,
                                std::vector<DataFit::Triplet> *dst) {

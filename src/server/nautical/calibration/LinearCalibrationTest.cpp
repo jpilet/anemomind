@@ -311,6 +311,12 @@ TEST(LinearCalibrationTest, OutlierPenaltyTest) {
   }
 }
 
+TEST(LinearCalibrationTest, SrcIndexerTest) {
+  auto indexer = makeSrcIndexer(9, 4);
+  EXPECT_EQ(indexer.count(), 2);
+  EXPECT_EQ(indexer.dim(), 2*4);
+}
+
 /*TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
