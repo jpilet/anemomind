@@ -332,7 +332,7 @@ TEST(LinearCalibrationTest, SecondOrderReg) {
   }
 }
 
-/*TEST(LinearCalibrationTest, RealData) {
+TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
 
@@ -363,4 +363,4 @@ TEST(LinearCalibrationTest, SecondOrderReg) {
   std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(results.inlierRate()) << std::endl;
   results.plot();
-}*/
+}
