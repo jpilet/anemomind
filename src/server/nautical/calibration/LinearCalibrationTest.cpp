@@ -317,7 +317,7 @@ TEST(LinearCalibrationTest, SrcIndexerTest) {
   EXPECT_EQ(indexer.dim(), 2*4);
 }
 
-/*TEST(LinearCalibrationTest, RealData) {
+TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
 
@@ -348,4 +348,4 @@ TEST(LinearCalibrationTest, SrcIndexerTest) {
   std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(results.inlierRate()) << std::endl;
   results.plot();
-}*/
+}
