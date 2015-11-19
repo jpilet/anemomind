@@ -43,6 +43,12 @@ class CoordIndexer {
       return CoordIndexer(offset, dim, count);
     }
 
+    CoordIndexer makeFromSize(int matrixSize, int dim) {
+      int count = matrixSize/dim;
+      CHECK(dim*count == matrixSize);
+      return make(count, dim);
+    }
+
     int count() const {
       return _counter;
     }

@@ -414,6 +414,23 @@ Array<Spani> makeOutlierPenalty(
   return spans;
 }
 
+Eigen::MatrixXd applySecondOrderReg(const Eigen::MatrixXd &A, int step, int dim) {
+  using namespace EigenUtils;
+  DataFit::CoordIndexer rows = DataFit::CoordIndexer::Factory().makeFromSize(A.rows(), dim);
+  int regCount = rows.count() - 2*step;
+  int cols = A.cols();
+  Eigen::MatrixXd dst(dim*regCount, cols);
+  for (int i = 0; i < regCount; i++) {
+    int a = i;
+    int b = i + step;
+    int c = b + step;
+    sliceRows(dst, rows.span(i)) = sliceRows(A, rows.span(a))
+        - 2.0*sliceRows(A, rows.span(b))
+        + sliceRows(A, rows.span(c));
+  }
+  return dst;
+}
+
 
 
 

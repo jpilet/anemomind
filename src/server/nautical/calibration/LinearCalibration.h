@@ -310,6 +310,9 @@ Array<Spani> makeOutlierPenalty(
     DataFit::CoordIndexer outlierSlackCols,
     std::vector<DataFit::Triplet> *dst, DataFit::VectorBuilder *B, int dim = 2);
 
+
+Eigen::MatrixXd applySecondOrderReg(const Eigen::MatrixXd &A, int step, int dim);
+
 }
 }
 

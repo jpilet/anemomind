@@ -317,7 +317,22 @@ TEST(LinearCalibrationTest, SrcIndexerTest) {
   EXPECT_EQ(indexer.dim(), 2*4);
 }
 
-TEST(LinearCalibrationTest, RealData) {
+TEST(LinearCalibrationTest, SecondOrderReg) {
+  Eigen::MatrixXd K(6, 1);
+  double k[6] = {1, 1, 4, 4, 9, 9};
+  for (int i = 0; i < 6; i++) {
+    K(i, 0) = k[i];
+  }
+  auto Kreg = applySecondOrderReg(K, 1, 2);
+  double expected[2] = {2, 2};
+  EXPECT_EQ(Kreg.rows(), 2);
+  EXPECT_EQ(Kreg.cols(), 1);
+  for (int i = 0; i < 2; i++) {
+    EXPECT_NEAR(Kreg(i, 0), expected[i], 1.0e-6);
+  }
+}
+
+/*TEST(LinearCalibrationTest, RealData) {
   auto navs = getTestDataset();
   Duration<double> dif = navs.last().time() - navs.first().time();
 
@@ -348,4 +363,4 @@ TEST(LinearCalibrationTest, RealData) {
   std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(results.inlierRate()) << std::endl;
   results.plot();
-}
+}*/
