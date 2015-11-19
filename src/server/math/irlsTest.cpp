@@ -9,6 +9,7 @@
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
 #include <server/math/nonlinear/DataFit.h>
+#include <server/math/EigenUtils.h>
 
 typedef Eigen::Triplet<double> Triplet;
 
@@ -492,10 +493,28 @@ void targetSpeedPrototype(bool visualize, int iters) {
   }
 }
 
-
-
 TEST(IrlsTest, TargetSpeedPrototype) {
   bool visualize = false;
   targetSpeedPrototype(visualize, 30);
+}
+
+TEST(IrlsTest, FitNormTest1) {
+  std::vector<Triplet> triplets;
+  triplets.push_back(Triplet(0, 0, 1.0));
+  triplets.push_back(Triplet(1, 1, 1.0));
+  triplets.push_back(Triplet(2, 0, 1.0));
+  triplets.push_back(Triplet(3, 1, 1.0));
+  Eigen::VectorXd B(5);
+  B << 1, 1, 0, 0, -1;
+  auto A = makeSparseMatrix(5, 2, triplets);
+  irls::WeightingStrategies strategies{
+    std::shared_ptr<irls::FitNorm>(new irls::FitNorm(Spani(2, 4), 4, 2, true))
+  };
+
+  irls::Settings settings;
+  auto solution = irls::solveFull(A, B, strategies, settings);
+  std::cout << EXPR_AND_VAL_AS_STRING(solution.X) << std::endl;
+
+
 }
 

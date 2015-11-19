@@ -286,6 +286,7 @@ cxx_test(math_irlsTest
          irlsTest.cpp
          math_irls
          gtest_main
+         math_nonlinear_DataFit
          plot_gnuplot
         )
 

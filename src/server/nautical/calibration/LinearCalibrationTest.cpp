@@ -333,34 +333,41 @@ TEST(LinearCalibrationTest, SecondOrderReg) {
 }
 
 TEST(LinearCalibrationTest, RealData) {
-  auto navs = getTestDataset();
-  Duration<double> dif = navs.last().time() - navs.first().time();
+  bool DO = false;
 
-  FlowSettings flowSettings;
-  auto trueWind = makeTrueWindMatrices(navs, flowSettings);
-  auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
+  if (DO) {
+    auto navs = getTestDataset();
+    Duration<double> dif = navs.last().time() - navs.first().time();
 
-  auto flow = trueCurrent;
+    FlowSettings flowSettings;
+    auto trueWind = makeTrueWindMatrices(navs, flowSettings);
+    auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-  Eigen::MatrixXd Avelocities =
-      Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
+    auto flow = trueWind;
 
-  Eigen::MatrixXd Bvelocities =
-      Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
+    Eigen::MatrixXd Avelocities =
+        Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
 
-  Eigen::MatrixXd Atrajectory = integrateFlowData(Avelocities);
-  Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
+    Eigen::MatrixXd Bvelocities =
+        Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
 
-  int n = getObservationCount(Atrajectory);
-  int splitSize = 100;
-  Array<Spani> splits = makeOverlappingSpans(n, splitSize);
-  std::cout << EXPR_AND_VAL_AS_STRING(splits) << std::endl;
+    Eigen::MatrixXd Atrajectory = integrateFlowData(Avelocities);
+    Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
-  auto results = optimizeLocallyConstantFlows(
-      Atrajectory, Btrajectory,
-      splits, irls::Settings());
-  std::cout << EXPR_AND_VAL_AS_STRING(results.inliers) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(results.parameters) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(results.inlierRate()) << std::endl;
-  results.plot();
+
+    auto step = 100;
+
+    auto Xinit = makeXinitEigen();
+    Xinit[0] = 0;
+    Xinit[1] = 0;
+    auto trueFlow = Atrajectory*Xinit + Btrajectory;
+
+    auto gpsReg = computeNorms(applySecondOrderReg(Btrajectory, step, 2), 2);
+    auto flowReg = computeNorms(applySecondOrderReg(trueFlow, step, 2), 2);
+
+    GnuplotExtra plot;
+    plot.cmd("set size ratio -1");
+    plot.plot_xy(flowReg, gpsReg);
+    plot.show();
+  }
 }

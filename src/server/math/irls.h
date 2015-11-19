@@ -223,6 +223,27 @@ class Constant : public WeightingStrategy {
   MajQuad _quad;
 };
 
+
+// A cost on the form
+//
+// | ||X|| - a |^n
+//
+// Can be a constraint, for instance to
+// implement inextensibility constraints in
+// deformable surface reconstruction.
+class FitNorm : public WeightingStrategy {
+ public:
+  FitNorm(Spani Xspan, int aRow, int n, bool constraint);
+  void apply(
+    double constraintWeight,
+    const Arrayd &residuals, QuadCompiler *dst);
+ private:
+  bool _constraint;
+  Spani _Xspan;
+  int _aRow;
+  int _n;
+};
+
 struct Results {
  Eigen::VectorXd X;
  Eigen::VectorXd residuals;

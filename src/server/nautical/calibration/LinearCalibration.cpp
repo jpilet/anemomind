@@ -27,6 +27,12 @@ void initializeParameters(bool withOffset, double *dst) {
   dst[0] = 1.0;
 }
 
+Eigen::VectorXd makeXinitEigen() {
+  Eigen::VectorXd dst = Eigen::VectorXd::Zero(4);
+  initializeParameters(true, dst.data());
+  return dst;
+}
+
 int calcPassiveCount(Duration<double> total, Duration<double> period) {
   return 1 + int(floor(total/period));
 }
@@ -429,6 +435,15 @@ Eigen::MatrixXd applySecondOrderReg(const Eigen::MatrixXd &A, int step, int dim)
         + sliceRows(A, rows.span(c));
   }
   return dst;
+}
+
+Arrayd computeNorms(const Eigen::VectorXd &X, int dim) {
+  auto rows = DataFit::CoordIndexer::Factory().makeFromSize(X.rows(), dim);
+  Arrayd Y(rows.count());
+  for (int i = 0; i < rows.count(); i++) {
+    Y[i] = EigenUtils::sliceRows(X, rows.span(i)).norm();
+  }
+  return Y;
 }
 
 

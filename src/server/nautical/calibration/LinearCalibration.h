@@ -17,6 +17,7 @@ namespace sail {
 namespace LinearCalibration {
 
 void initializeParameters(bool withOffset, double *dst);
+Eigen::VectorXd makeXinitEigen();
 
 inline int flowParamCount(bool withOffset) {
   return (withOffset? 4 : 2);
@@ -312,6 +313,8 @@ Array<Spani> makeOutlierPenalty(
 
 
 Eigen::MatrixXd applySecondOrderReg(const Eigen::MatrixXd &A, int step, int dim);
+
+Arrayd computeNorms(const Eigen::VectorXd &X, int dim);
 
 }
 }

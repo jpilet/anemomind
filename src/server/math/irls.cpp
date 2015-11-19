@@ -271,6 +271,36 @@ WeightingStrategy::Ptr Constant::make(int index, MajQuad quad) {
   return WeightingStrategy::Ptr(new Constant(index, quad));
 }
 
+FitNorm::FitNorm(Spani Xspan, int aRow, int n, bool constraint) :
+    _Xspan(Xspan), _aRow(aRow), _n(n), _constraint(constraint) {}
+
+void FitNorm::apply(
+  double constraintWeight,
+  const Arrayd &residuals, QuadCompiler *dst) {
+  double currentNorm = calcResidualForSpan(_Xspan, residuals);
+  double targetNorm = residuals[_aRow];
+
+  std::cout << EXPR_AND_VAL_AS_STRING(_Xspan) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(residuals) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(residuals.slice(_Xspan.minv(),
+      _Xspan.maxv())) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(currentNorm) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(targetNorm) << std::endl;
+
+  double error = std::abs(currentNorm - targetNorm);
+  double fError = std::pow(error, _n);
+  double c = (_constraint? constraintWeight : 1.0);
+  /*auto w = 2.0*c*MajQuad::majorize(thresholdCloseTo0(error, 1.0e-6),
+      fError, _n*fError/error, 0.0).a;*/
+  auto w = c;
+  double meanNorm = 0.5*(currentNorm + targetNorm);
+  double factor = meanNorm/currentNorm;
+  for (auto i: _Xspan) {
+    dst->addQuad(i, w*MajQuad::fit(factor*residuals[i]));
+  }
+  dst->addQuad(_aRow, w*MajQuad::fit(meanNorm));
+}
+
 
 Eigen::VectorXd product(const Eigen::SparseMatrix<double> &A, const Eigen::VectorXd &X) {
   Eigen::VectorXd Y = Eigen::VectorXd::Zero(A.rows());
