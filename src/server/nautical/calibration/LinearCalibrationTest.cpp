@@ -379,17 +379,7 @@ void solveCovariance(Eigen::MatrixXd Atrajectory,
       Btrajectory,
       settings);
 
-  auto gpsReg = computeNorms(results.B, 2);
-  auto flowReg = computeNorms(results.A*results.X + results.B, 2);
-
-  auto inliers = results.inlierMask;
-  auto outliers = sail::map([](bool x) {return !x;}, inliers).toArray();
-
-  GnuplotExtra plot;
-  plot.setEqualAxes();
-  plot.plot_xy(flowReg.slice(inliers), gpsReg.slice(inliers));
-  plot.plot_xy(flowReg.slice(outliers), gpsReg.slice(outliers));
-  plot.show();
+  results.plot();
 
   std::cout << EXPR_AND_VAL_AS_STRING(results.X) << std::endl;
 }
@@ -405,7 +395,7 @@ TEST(LinearCalibrationTest, RealData) {
     auto trueWind = makeTrueWindMatrices(navs, flowSettings);
     auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-    auto flow = trueWind;
+    auto flow = trueCurrent;
 
     Eigen::MatrixXd Avelocities =
         Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());

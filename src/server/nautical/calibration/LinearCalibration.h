@@ -327,6 +327,8 @@ struct CovResults {
   Eigen::MatrixXd B;
   Eigen::VectorXd X;
   Arrayb inlierMask;
+
+  void plot() const;
 };
 
 CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,

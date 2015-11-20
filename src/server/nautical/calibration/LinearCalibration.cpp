@@ -457,6 +457,20 @@ Arrayd computeWeightsFromGps(Eigen::MatrixXd B, int dim) {
   return map([&](double x) {return x - mean;}, norms).toArray();
 }
 
+void CovResults::plot() const {
+  auto gpsReg = computeNorms(B, 2);
+  auto flowReg = computeNorms(A*X + B, 2);
+
+  auto inliers = inlierMask;
+  auto outliers = sail::map([](bool x) {return !x;}, inliers).toArray();
+
+  GnuplotExtra plot;
+  plot.setEqualAxes();
+  plot.plot_xy(flowReg.slice(inliers), gpsReg.slice(inliers));
+  plot.plot_xy(flowReg.slice(outliers), gpsReg.slice(outliers));
+  plot.show();
+}
+
 CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
                                Eigen::MatrixXd Btrajectory,
                                CovSettings settings) {
