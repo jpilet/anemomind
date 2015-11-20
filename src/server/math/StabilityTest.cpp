@@ -8,6 +8,7 @@
 #include <server/common/LineKM.h>
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/Functional.h>
 
 using namespace sail;
 
@@ -30,9 +31,9 @@ double f2(double x) {
 }
 
 TEST(StabiliyTest, Test2) {
-  Arrayd X = Spani(0, 500).map<double>([&](int i) {return double(i);});
-  Arrayd Y1 = X.map<double>(f1);
-  Arrayd Y2 = X.map<double>(f2);
+  Arrayd X = toArray(map([&](int i) {return double(i);}, Spani(0, 500)));
+  Arrayd Y1 = toArray(map(f1, X));
+  Arrayd Y2 = toArray(map(f2, X));
 
   auto pair1 = std::pair<Arrayd, Arrayd>(X, Y1);
   auto pair2 = std::pair<Arrayd, Arrayd>(X, Y2);

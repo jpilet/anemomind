@@ -1,9 +1,12 @@
 
 #include <server/nautical/tiles/NavTileUploader.h>
 
+#include <algorithm>
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <mongo/client/dbclient.h>
 #include <mongo/bson/bson-inl.h>
+#include <server/common/Optional.h>
+#include <server/common/Span.h>
 #include <server/common/logging.h>
 #include <server/nautical/tiles/NavTileGenerator.h>
 
@@ -49,7 +52,7 @@ BSONObj navToBSON(const Nav& nav) {
   }
   if (nav.hasTrueWindOverGround()) {
     result.append("twdir", calcTwdir(nav.trueWindOverGround()).degrees());
-    result.append("tws", calcTws(nav.trueWindOverGround()).knots());
+    result.append("deviceTws", calcTws(nav.trueWindOverGround()).knots());
   }
 
   // Old anemobox simulated data.
@@ -165,6 +168,79 @@ BSONObj locationForSession(const Array<Nav>& navs) {
   return location.obj();
 }
 
+// Returns average wind speed and average wind direction.
+Optional<HorizontalMotion<double>> averageWind(const Array<Nav>& navs) {
+  int num = 0;
+  HorizontalMotion<double> sum = HorizontalMotion<double>::zero();
+  Velocity<double> sumSpeed = Velocity<double>::knots(0);
+
+  auto marg = Duration<double>::minutes(5.0);
+  Span<TimeStamp> validTime(navs.first().time() + marg, navs.last().time());
+
+  for (auto nav: navs) {
+    if (!validTime.contains(nav.time())) {
+      continue;
+    }
+
+    // We prefer Anemomind-calibrated wind over external instrument wind.
+    if (nav.hasTrueWindOverGround()) {
+      auto tws = calcTws(nav.trueWindOverGround());
+      if (tws.knots() > 0) {
+        sumSpeed += tws;
+        num++;
+        sum += nav.trueWindOverGround().scaled(1.0 / tws.knots());
+      }
+    } else if (nav.hasExternalTrueWind()) {
+      num++;
+      sum += windMotionFromTwdirAndTws(
+          nav.externalTwdir(), Velocity<double>::knots(1));
+      sumSpeed += nav.externalTws();
+    }
+  }
+
+  if (num > 0) {
+    return Optional<HorizontalMotion<double>>(
+        HorizontalMotion<double>::polar(sumSpeed.scaled(1.0 / num),
+                                        sum.angle()));
+  }
+  return Optional<HorizontalMotion<double>>();
+}
+
+// Returns the strongest wind and the corresponding nav index.
+// If no wind information is present, the returned index is -1.
+std::pair<Velocity<double>, int> indexOfStrongestWind(const Array<Nav>& navs) {
+  std::pair<Velocity<double>, int> result(Velocity<double>::knots(0), -1);
+
+  auto marg = Duration<double>::minutes(5.0);
+  Span<TimeStamp> validTime(navs.first().time() + marg, navs.last().time());
+
+  std::vector<std::pair<Velocity<double>, int>> speedArray;
+
+  for (int i = 0; i < navs.size(); ++i) {
+    const Nav& nav = navs[i];
+
+    // If the boat is not moving, the strongest wind is not so interesting.
+    // The following if avoids most outliers.
+    if (validTime.contains(nav.time())
+        && nav.gpsSpeed() > Velocity<double>::knots(1)) {
+
+      if (nav.hasTrueWindOverGround()) {
+        speedArray.push_back(make_pair(calcTws(nav.trueWindOverGround()), i));
+      } else if (nav.hasExternalTrueWind()) {
+        speedArray.push_back(make_pair(nav.externalTws(), i));
+      }
+    }
+  }
+
+  if (speedArray.size() > 0) {
+    // Take the 99% quantile to eliminate outliers.
+    auto it = speedArray.begin() + speedArray.size() * 99 / 100;
+    nth_element(speedArray.begin(), it, speedArray.end());
+    return *it;
+  }
+  return std::pair<Velocity<double>, int>(Velocity<double>::knots(0), -1);
+}
+
 BSONObj makeBsonSession(
     const std::string &curveId,
     const std::string &boatId,
@@ -183,6 +259,18 @@ BSONObj makeBsonSession(
   append(session, "startTime", navs.first().time());
   append(session, "endTime", navs.last().time());
   session.append("location", locationForSession(navs));
+
+  auto wind = averageWind(navs);
+  if (wind.defined()) {
+    session.append("avgWindSpeed", calcTws(wind()).knots());
+    session.append("avgWindDir", calcTwdir(wind()).degrees());
+  }
+
+  std::pair<Velocity<double>, int> strongestWind = indexOfStrongestWind(navs);
+  if (strongestWind.second >= 0) {
+    session.append("strongestWindSpeed", strongestWind.first.knots());
+    append(session, "strongestWindTime", navs[strongestWind.second].time());
+  }
 
   return session.obj();
 }

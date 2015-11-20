@@ -11,6 +11,7 @@
 #include <server/common/MDArray.h>
 #include <server/common/Span.h>
 #include <server/common/math.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -22,7 +23,7 @@ struct CastToDoubleFunctor {
 namespace HistogramInternal {
   template <typename T>
   Array<Array<T> > allocateGroups(Arrayi cpb) {
-    return cpb.map<Array<T> >([&](int i) {return Array<T>(i);});
+    return toArray(map([&](int i) {return Array<T>(i);}, cpb));
   }
 
   void drawBin(double left, double right, double height, MDArray2d dst);

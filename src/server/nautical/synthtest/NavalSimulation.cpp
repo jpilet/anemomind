@@ -10,6 +10,7 @@
 #include <server/common/PhysicalQuantityIO.h>
 #include <server/nautical/synthtest/FractalFlow.h>
 #include <server/common/logging.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -63,7 +64,7 @@ NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluate
   int count = _states.size();
   Array<HorizontalMotion<double> > estWind(count), estCurrent(count);
   Spani span(0, count);
-  auto navs = span.map<Nav>([&](int i) {return _states[i].nav();});
+  auto navs = toArray(map([&](int i) {return _states[i].nav();}, span));
   auto cnavs = corr(navs);
   for (auto i: span) {
     estWind[i] = cnavs[i].trueWindOverGround();
@@ -91,31 +92,31 @@ NavalSimulation::SimulatedCalibrationResults
 
 NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluateFitness(
     Array<CalibratedNav<double> > cnavs) const {
-    return evaluateFitness(cnavs.map<HorizontalMotion<double> >([&](const CalibratedNav<double> &x) {
+    return evaluateFitness(map([&](const CalibratedNav<double> &x) {
       return x.trueWindOverGround();
-    }), cnavs.map<HorizontalMotion<double> >([&] (const CalibratedNav<double> &x) {
+    }, cnavs).toArray(), map([&] (const CalibratedNav<double> &x) {
       return x.trueCurrentOverGround();
-    }));
+    }, cnavs).toArray());
 }
 
 
 
 Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueWindOverGround() const {
-  return _states.map<HorizontalMotion<double> >([=] (const CorruptedBoatState &s) {
+  return map([=] (const CorruptedBoatState &s) {
     return s.trueState().trueWind;
-  });
+  }, _states).toArray();
 }
 Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueCurrentOverGround() const {
-  return _states.map<HorizontalMotion<double> >([=] (const CorruptedBoatState &s) {
+  return map([=] (const CorruptedBoatState &s) {
     return s.trueState().trueCurrent;
-  });
+  }, _states).toArray();
 }
 
 void NavalSimulation::BoatData::plot() const {
   BoatSim::makePlots(
-      _states.map<BoatSim::FullState>([=](const CorruptedBoatState &x) {
+      map([=](const CorruptedBoatState &x) {
         return x.trueState();
-      }));
+      }, _states).toArray());
 }
 
 

@@ -10,6 +10,7 @@
 #include <server/common/logging.h>
 #include <server/nautical/NavLoader.h>
 #include <algorithm>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -71,9 +72,9 @@ Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
 
 Array<Nav> scanNmeaFolders(Array<Poco::Path> p, Nav::Id boatId,
     ParsedNavs::FieldMask mask) {
-  auto scanResults = p.map<Array<Nav> >([=](const Poco::Path &p) {
+  auto scanResults = toArray(map([=](const Poco::Path &p) {
     return scanNmeaFolder(p, boatId, mask);
-  });
+  }, p));
   auto cat = concat(scanResults);
   std::sort(cat.begin(), cat.end());
   return cat;

@@ -13,6 +13,7 @@
 #include <server/common/Span.h>
 #include <Eigen/Sparse>
 #include <vector>
+#include <server/common/Functional.h>
 
 namespace sail {
 namespace DataFit {
@@ -100,9 +101,9 @@ class CoordIndexer {
   }
 
   Array<Spani> makeSpans() const {
-    return coordinateSpan().map<Spani>([&](int index) {
+    return toArray(map([&](int index) {
       return span(index);
-    });
+    }, coordinateSpan()));
   }
 
   bool sameSizeAs(CoordIndexer other) const {

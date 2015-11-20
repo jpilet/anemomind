@@ -4,6 +4,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/string.h>
 #include <server/math/geometry/SimplifyCurve.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -62,10 +63,10 @@ std::string TileKey::stringKey() const {
 Array<Array<Nav>> generateTiles(TileKey tileKey,
                                 const Array<Nav>& navs,
                                 int maxNumNavs) {
-  Array<bool> inOrOut = navs.map<bool>(
+  Array<bool> inOrOut = toArray(map(
       [&] (const Nav& nav) -> bool {
           return tileKey.contains(nav.geographicPosition());
-      });
+      }, navs));
   ArrayBuilder<Array<Nav>> result;
 
   // The curve might enter and leave the tile multiple times.

@@ -4,6 +4,7 @@
  */
 
 #include <server/nautical/FlowErrors.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -65,10 +66,10 @@ WindCurrentErrors compareCorrectors(
   auto getWind = [&](const CalibratedNav<double> &x) {return x.trueWindOverGround();};
   auto getCurrent = [&](const CalibratedNav<double> &x) {return x.trueCurrentOverGround();};
   return WindCurrentErrors{
-    FlowErrors(aNavs.map<HorizontalMotion<double> >(getWind),
-               bNavs.map<HorizontalMotion<double> >(getWind)),
-    FlowErrors(aNavs.map<HorizontalMotion<double> >(getCurrent),
-               bNavs.map<HorizontalMotion<double> >(getCurrent)),
+    FlowErrors(toArray(map(getWind, aNavs)),
+               toArray(map(getWind, bNavs))),
+    FlowErrors(toArray(map(getCurrent, aNavs)),
+               toArray(map(getCurrent, bNavs))),
     navs.size()
   };
 }

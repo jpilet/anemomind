@@ -126,6 +126,13 @@ class Span {
     return _maxv - _minv;
   }
 
+  // So that this object can be treated like a sail::Array or std::vector,
+  // that also have size() methods.
+  T size() const {
+    static_assert(std::is_integral<T>::value, "Only integers");
+    return width();
+  }
+
   T middle() const {
     return (_minv + _maxv)/2;
   }
@@ -161,16 +168,6 @@ class Span {
   Iterator end() const {
     assert(_initialized);
     return Iterator(_maxv);
-  }
-
-  template <typename Dst>
-  Array<Dst> map(std::function<Dst(T)> f) const {
-    int n = int(_maxv - _minv);
-    Array<Dst> dst(n);
-    for (int i = 0; i < n; i++) {
-      dst[i] = f(_minv + i);
-    }
-    return dst;
   }
 
   T operator[] (T index) const {

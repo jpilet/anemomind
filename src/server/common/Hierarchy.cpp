@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <vector>
 #include <server/common/ArrayBuilder.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -123,9 +124,9 @@ Array<Arrayi> listChildren(Array<HNode> nodes) {
       children[node.parent()].add(node.index());
     }
   }
-  return children.map<Arrayi>([&](ArrayBuilder<int> builder) {
+  return toArray(map([&](ArrayBuilder<int> builder) {
     return builder.get();
-  });
+  }, children));
 }
 
 // Sub-routine to calcLevelPerNode.
@@ -152,9 +153,9 @@ Arrayi calcLevelPerNode(int rootNode, Array<Arrayi> children) {
 }
 
 Arrayb calcTerminals(Array<Arrayi> children) {
-  return children.map<bool>([&] (const Arrayi &c) {
+  return toArray(map([&] (const Arrayi &c) {
     return c.empty();
-  });
+  }, children));
 }
 
 int getMaxLevel(Arrayi levels) {

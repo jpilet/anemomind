@@ -13,6 +13,7 @@
 #include <server/common/string.h>
 #include <server/common/MeanAndVar.h>
 #include <server/common/Span.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -29,35 +30,35 @@ namespace {
   }
 
   Array<Duration<double> > getTimes(Array<Nav> navs, TimeStamp offset) {
-    return navs.map<Duration<double> >([=](const Nav &nav) {
+    return toArray(map([=](const Nav &nav) {
       return nav.time() - offset;
-    });
+    }, navs));
   }
 }
 
 namespace {
   Arrayd toDouble(Array<Angle<double> > X) {
-    return X.map<double>([&](Angle<double> x) {
+    return toArray(map([&](Angle<double> x) {
       return x.degrees();
-    });
+    }, X));
   }
 
   Arrayd toDouble(Array<Velocity<double> > X) {
-    return X.map<double>([&](Velocity<double> x) {
+    return toArray(map([&](Velocity<double> x) {
       return x.knots();
-    });
+    }, X));
   }
 
   Array<Angle<double> > toAngles(Arrayd X) {
-    return X.map<Angle<double> >([&](double x) {
+    return toArray(map([&](double x) {
       return Angle<double>::degrees(x);
-    });
+    }, X));
   }
 
   Array<Velocity<double> > toVelocities(Arrayd X) {
-    return X.map<Velocity<double> >([&](double x) {
+    return toArray(map([&](double x) {
       return Velocity<double>::knots(x);
-    });
+    }, X));
   }
 
   UniformSamples<Angle<double> > toAngles(UniformSamplesd X) {
@@ -111,10 +112,10 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
       SCOPEDMESSAGE(INFO, stringFormat("Number of navs: %d", navs.size()));
       _timeOffset = navs[0].time();
       Array<Duration<double> > times = getTimes(navs, _timeOffset);
-      Arrayd timesSeconds = times.map<double>(
+      Arrayd timesSeconds = toArray(map(
           [&](Duration<double> t) {
             return t.seconds();
-          });
+          }, times));
       SCOPEDMESSAGE(INFO, "Get the raw data");
       Array<Angle<double> > magHdg = cleanContinuousAngles(getMagHdg(navs));
       SCOPEDMESSAGE(INFO, "Done mag hdg");
@@ -267,7 +268,7 @@ Array<Duration<double> > FilteredNavData::timesSinceOffset() const {
 }
 
 Array<FilteredNavData::Indexed> FilteredNavData::makeIndexedInstrumentAbstractions() const {
-  return Spani(0, size()).map<Indexed>([&](int i) {return makeIndexedInstrumentAbstraction(i);});
+  return toArray(map([&](int i) {return makeIndexedInstrumentAbstraction(i);}, Spani(0, size())));
 }
 
 

@@ -12,6 +12,7 @@
 #include <server/common/string.h>
 #include <iostream>
 #include <random>
+#include <server/common/Functional.h>
 
 namespace sail {
 namespace MinCovCalib {
@@ -95,20 +96,20 @@ Array<Corrector<double> > makeCorruptCorrectors() {
   corrdata[27] = Arrayd{43.8195, -44.8508, 0.494755, -0.941289, 0.01, 0, 0.540904, 0.477917, 0.01, 0, 0.0328603, 0.122507};
   corrdata[28] = Arrayd{10.2713, -33.666, 0.839721, 0.908057, 0.01, 0, 0.430093, -0.481972, 0.01, 0, 0.132753, 0.897914};
   corrdata[29] = Arrayd{-4.33339, 14.8953, 0.551505, -0.580875, 0.01, 0, 0.437589, -0.648051, 0.01, 0, 0.145946, 0.687414};
-  return corrdata.map<Corrector<double> >([&](Arrayd x) {
+  return toArray(map([&](Arrayd x) {
     return *(Corrector<double>::fromArray(x));
-  });
+  }, corrdata));
 }
 
 
 template <typename T>
 Array<CalibratedNav<T> > correct(Corrector<T> corrector, FilteredNavData data) {
-  return Spani(0, data.size()).map<CalibratedNav<T> >([&](int index) {
+  return toArray(map([&](int index) {
     auto x = data.makeIndexedInstrumentAbstraction(index);
     auto cnav = corrector.correct(x);
     assert(!cnav.hasNan());
     return cnav;
-  });
+  }, Spani(0, data.size())));
 }
 
 template <typename T>
@@ -138,9 +139,9 @@ Array<T> getSpeedsKnots(Array<CalibratedNav<T> > cnavs, bool wind, int indexXY) 
 }
 
 Arrayd getTimes(FilteredNavData data) {
-  return data.timesSinceOffset().map<double>([&](Duration<double> x) {
+  return toArray(map([&](Duration<double> x) {
     return x.seconds();
-  });
+  }, data.timesSinceOffset()));
 }
 
 class ObjfOrientation {
@@ -305,9 +306,9 @@ class ObjfWindVsCurrent {
 
 ObjfWindVsCurrent::ObjfWindVsCurrent(FilteredNavData data, Settings settings) :
     _settings(settings), _data(data) {
-  _corruptData = settings.corruptors.map<Array<CalibratedNav<double> > >([&](Corrector<double> corr) {
+  _corruptData = map([&](Corrector<double> corr) {
     return correct(corr, data);
-  });
+  }, settings.corruptors).toArray();
   _residualCountPerPair = settings.covarianceSettings.calcResidualCount(data.size());
   _times = getTimes(data);
   std::cout << EXPR_AND_VAL_AS_STRING(outDims()) << std::endl;

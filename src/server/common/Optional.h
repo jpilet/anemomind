@@ -7,6 +7,7 @@
 #define SERVER_COMMON_OPTIONAL_H_
 
 #include <cassert>
+#include <functional>
 
 template <typename T>
 class Optional {

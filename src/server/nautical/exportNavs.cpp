@@ -11,6 +11,7 @@
 #include <server/common/TimeStamp.h>
 #include <server/nautical/Calibrator.h>
 #include <iostream>
+#include <server/common/Functional.h>
 
 using namespace sail;
 
@@ -24,11 +25,11 @@ struct ExportSettings {
 };
 
 Array<Nav> loadNavsFromArgs(Array<ArgMap::Arg*> args) {
-  auto allNavs = args.map<Array<Nav> >([&](ArgMap::Arg *arg) {
+  auto allNavs = sail::map([&](ArgMap::Arg *arg) {
     auto p = arg->value();
     LOG(INFO) << "Load navs from " << p;
     return scanNmeaFolder(p, Nav::debuggingBoatId());
-  });
+  }, args).toArray();
   return concat(allNavs);
 }
 

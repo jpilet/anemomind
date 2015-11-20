@@ -495,7 +495,6 @@ cxx_test(nautical_NavToNmeaTest NavToNmeaTest.cpp
          nautical_NavToNmea
          gtest_main
          )
-
          
 add_executable(nautical_exploreData
                exploreData.cpp
@@ -510,3 +509,8 @@ target_link_libraries(nautical_exploreData
                       common_Span
                       nautical_GeographicReference
                      )          
+
+cxx_test(nautical_TimedSampleCollectionTest TimedSampleCollectionTest.cpp
+         common_TimeStamp
+         gtest_main
+         )
