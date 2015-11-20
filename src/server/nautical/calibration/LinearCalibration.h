@@ -326,7 +326,7 @@ struct CovResults {
   Eigen::MatrixXd A;
   Eigen::MatrixXd B;
   Eigen::VectorXd X;
-  Arrayi inliers;
+  Arrayb inlierMask;
 };
 
 CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,

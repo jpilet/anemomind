@@ -502,11 +502,15 @@ CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
   auto results = irls::solveFull(makeSparseMatrix(rows.count(), cols.count(), Atriplets),
       Bbuilder.make(rows.count()), strategies, settings.irlsSettings);
   Arrayi inlierRegs = groupConstraints->computeActiveSpans(results.residuals);
+  auto inlierMask = Arrayb::fill(regCount, false);
+  for (auto i: inlierRegs) {
+    inlierMask[i] = true;
+  }
   return CovResults{
     Areg,
     Breg,
     EigenUtils::sliceRows(results.X, paramCols.elementSpan()),
-    inlierRegs
+    inlierMask
   };
 }
 
