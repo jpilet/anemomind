@@ -363,7 +363,7 @@ void plotTemporalFlowVsGpsScatter(Eigen::MatrixXd Atrajectory,
   auto gpsReg = computeNorms(applySecondOrderReg(Btrajectory, step, 2), 2);
   auto flowReg = computeNorms(applySecondOrderReg(trueFlow, step, 2), 2);
 
-  auto time = Spani(0, gpsReg.size()).map<int>([&](int i) {return i;});
+  auto time = sail::map([&](int i) {return i;}, Spani(0, gpsReg.size()));
 
   GnuplotExtra plot;
   plot.set_style("lines");

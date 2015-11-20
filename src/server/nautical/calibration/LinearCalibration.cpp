@@ -15,6 +15,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <ceres/ceres.h>
 #include <server/math/EigenUtils.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -42,9 +43,9 @@ LinearCorrector::LinearCorrector(const FlowSettings &flowSettings,
     _flowSettings(flowSettings), _windParams(windParams), _currentParams(currentParams) {}
 
 Array<CalibratedNav<double> > LinearCorrector::operator()(const Array<Nav> &navs) const {
-  return navs.map<CalibratedNav<double> >([&](const Nav &x) {
+  return map([&](const Nav &x) {
     return (*this)(x);
-  });
+  }, navs).toArray();
 }
 
 arma::mat asMatrix(const MDArray2d &x) {
@@ -92,9 +93,9 @@ Array<Arrayi> makeRandomSplit(int sampleCount0, int splitCount, RandomEngine *rn
   int samplesPerSplit = sampleCount0/splitCount;
   int n = splitCount*samplesPerSplit;
   Arrayi inds(n);
-  LineKM map(0, n, 0, splitCount);
+  LineKM m(0, n, 0, splitCount);
   for (int i = 0; i < n; i++) {
-    inds[i] = int(floor(map(i)));
+    inds[i] = int(floor(m(i)));
   }
 
   if (rng == nullptr) {
@@ -110,18 +111,18 @@ Array<Arrayi> makeRandomSplit(int sampleCount0, int splitCount, RandomEngine *rn
   for (int i = 0; i < n; i++) {
     splits[inds[i]].add(i);
   }
-  return splits.map<Arrayi>([=](ArrayBuilder<int> b) {
+  return map([=](ArrayBuilder<int> b) {
     return b.get();
-  });
+  }, splits).toArray();
 }
 
 Array<Spani> makeContiguousSpans(int sampleCount, int splitSize) {
   int splitCount = sampleCount/splitSize;
-  return Spani(0, splitCount).map<Spani>([&](int index) {
+  return map([&](int index) {
     int from = index*splitSize;
     int to = from + splitSize;
     return Spani(from, to);
-  });
+  }, Spani(0, splitCount)).toArray();
 }
 
 
@@ -131,9 +132,9 @@ Array<Spani> makeOverlappingSpans(int sampleCount, int splitSize, double relStep
   int count = lastIndex+1;
   LineKM from(0, count-1, 0.0, sampleCount - splitSize);
   LineKM to(0, count-1, splitSize, sampleCount);
-  return Spani(0, count).map<Spani>([=](int i) {
+  return map([=](int i) {
     return Spani(int(round(from(i))), int(round(to(i))));
-  });
+  }, Spani(0, count)).toArray();
 }
 
 
@@ -197,9 +198,8 @@ namespace {
   };
 
   int countObservations(Array<Spani> spans) {
-    return spans.reduce<int>(0, [=](int sum, Spani s) {
-      return sum + s.width();
-    });
+    return reduce([](int a, int b) {return a + b;},
+        map([](Spani x) {return x.width();}, spans));
   }
 
   FitData makeConstantFlowFit(
@@ -236,9 +236,9 @@ namespace {
 
   irls::WeightingStrategy::Ptr makeBinaryConstraints(Array<FitData> src) {
     int n = src.size();
-    auto constraints = src.map<irls::BinaryConstraintGroup>([&](const FitData &x) {
+    auto constraints = toArray(map([&](const FitData &x) {
       return x.cst;
-    });
+    }, src));
     return irls::WeightingStrategyArray<irls::BinaryConstraintGroup>::make(constraints);
   }
 
@@ -304,7 +304,7 @@ LocallyConstantResults optimizeLocallyConstantFlows(
   auto paramCols = cols.make(Atrajectory.cols(), 1);
   std::vector<Triplet> triplets;
   VectorBuilder Bbuilder;
-  Array<FitData> data = spans.map<FitData>([&](Spani span) {
+  Array<FitData> data = map([&](Spani span) {
     Spani span2 = 2*span;
     auto dataRows = rows.make(span.width(), 2);
     auto dataSlackRows = rows.make(span.width(), 2);
@@ -320,7 +320,7 @@ LocallyConstantResults optimizeLocallyConstantFlows(
             dataRows, dataSlackRows, outlierRows, outlierSlackRows,
             paramCols, trueFlowCols, dataSlackCols, outlierSlackCols,
             &triplets, &Bbuilder);
-  });
+  }, spans).toArray();
   auto cst = makeBinaryConstraints(data);
   auto A = makeSparseMatrix(rows.count(), cols.count(), triplets);
   auto B = Bbuilder.make(rows.count());
@@ -731,11 +731,11 @@ Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim) {
 
 Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
     Array<Arrayi> splits) {
-  return splits.map<FlowFiber>([=](Arrayi split) {
+  return map([=](Arrayi split) {
     auto q = integrateFlowData(extractRows(Q, split, 2));
     auto b = integrateFlowData(extractRows(B, split, 2));
     return FlowFiber{q, b};
-  });
+  }, splits).toArray();
 }
 
 Array<FlowFiber> computeFiberMeans(Array<FlowFiber> rawFibers, int dstCount) {
