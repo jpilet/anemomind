@@ -318,7 +318,7 @@ Arrayd computeNorms(const Eigen::VectorXd &X, int dim);
 
 struct CovSettings {
   int regStep = 119;
-  double inlierFraction = 0.9;
+  double inlierFraction = 0.99;
   irls::Settings irlsSettings;
 };
 
