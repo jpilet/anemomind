@@ -471,6 +471,23 @@ void CovResults::plot() const {
   plot.show();
 }
 
+Arrayd differentiate(Arrayd X) {
+  return map([](double a, double b) {return a - b;},
+      X.sliceFrom(1), X.sliceBut(1)).toArray();
+}
+
+
+void CovResults::plotDerivatives() const {
+  auto gpsReg = differentiate(computeNorms(B, 2));
+  auto flowReg = differentiate(computeNorms(A*X + B, 2));
+
+
+  GnuplotExtra plot;
+  plot.setEqualAxes();
+  plot.plot_xy(flowReg, gpsReg);
+  plot.show();
+}
+
 CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
                                Eigen::MatrixXd Btrajectory,
                                CovSettings settings) {

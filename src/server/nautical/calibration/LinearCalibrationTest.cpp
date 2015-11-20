@@ -379,7 +379,7 @@ void solveCovariance(Eigen::MatrixXd Atrajectory,
       Btrajectory,
       settings);
 
-  results.plot();
+  results.plotDerivatives();
 
   std::cout << EXPR_AND_VAL_AS_STRING(results.X) << std::endl;
 }
@@ -395,7 +395,7 @@ TEST(LinearCalibrationTest, RealData) {
     auto trueWind = makeTrueWindMatrices(navs, flowSettings);
     auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-    auto flow = trueCurrent;
+    auto flow = trueWind;
 
     Eigen::MatrixXd Avelocities =
         Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());

@@ -87,6 +87,10 @@ class Mapped2 {
   ResultType operator[] (int index) const {
     return _f(_A[index], _B[index]);
   }
+
+  Array<ResultType> toArray() const {
+    return sail::toArray(*this);
+  }
  private:
   Function _f;
   CollectionA _A;
