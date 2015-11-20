@@ -65,6 +65,11 @@ void GnuplotExtra::setLineStyle(int index, std::string colorCode, int lineWidth)
   cmd(ss.str());
 }
 
+void GnuplotExtra::setEqualAxes() {
+  cmd("set size ratio -1");
+}
+
+
 
 
 

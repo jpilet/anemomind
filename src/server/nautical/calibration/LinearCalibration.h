@@ -316,6 +316,21 @@ Eigen::MatrixXd applySecondOrderReg(const Eigen::MatrixXd &A, int step, int dim)
 
 Arrayd computeNorms(const Eigen::VectorXd &X, int dim);
 
+struct CovSettings {
+  int regStep = 119;
+  double inlierFraction = 0.9;
+};
+
+struct CovResults {
+  Eigen::VectorXd X;
+};
+
+CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
+                               Eigen::MatrixXd Btrajectory,
+                               CovSettings settings);
+
+
+
 }
 }
 

@@ -446,6 +446,42 @@ Arrayd computeNorms(const Eigen::VectorXd &X, int dim) {
   return Y;
 }
 
+Arrayd computeWeights(Eigen::MatrixXd B, int dim) {
+  auto norms = computeNorms(B, dim);
+  int n = norms.size();
+  double sum = 0.0;
+  for (auto x: norms) {
+    sum += x;
+  }
+  double mean = sum/n;
+  Arrayd Y(n);
+  for (int i = 0; i < n; i++) {
+    Y[i] = norms[i] - mean;
+  }
+  return Y;
+}
+
+CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
+                               Eigen::MatrixXd Btrajectory,
+                               CovSettings settings) {
+  auto Areg = applySecondOrderReg(Atrajectory, settings.regStep, 2);
+  auto Breg = applySecondOrderReg(Btrajectory, settings.regStep, 2);
+  auto weights = computeWeights(Breg, 2);
+  int regCount = Areg.rows()/2;
+  auto rows = DataFit::CoordIndexer::Factory();
+  auto cols = DataFit::CoordIndexer::Factory();
+  std::vector<DataFit::Triplet> Atriplets;
+  DataFit::VectorBuilder Bbuilder;
+  auto paramCols = cols.make(Areg.cols(), 1);
+  auto meanRegCols = cols.make(1, 1);
+  auto slackCols = cols.make(regCount, 1);
+  auto normRows = rows.make(regCount, 2);
+  auto expectedLengthRows = rows.make(regCount, 1);
+  auto slackRows = rows.make(regCount, 1);
+  for (int i = 0; i < regCount; i++) {
+
+  }
+}
 
 
 

@@ -23,6 +23,7 @@ class GnuplotExtra : public Gnuplot {
   void show();
 
   void setLineStyle(int index, std::string colorCode, int lineWidth);
+  void setEqualAxes();
  private:
   //std::string _rgbString;
 };

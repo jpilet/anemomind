@@ -156,6 +156,9 @@ class VectorBuilder {
   std::vector<SubVector> _data;
 };
 
+
+
+
 // Make left- and right-hands-sides for fitting of a signal to observations.
 template <int Dim>
 void makeDataFromObservations(Array<Observation<Dim> > observations,

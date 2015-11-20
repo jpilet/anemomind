@@ -332,8 +332,48 @@ TEST(LinearCalibrationTest, SecondOrderReg) {
   }
 }
 
+void plotFlowVsGpsScatter(Eigen::MatrixXd Atrajectory,
+                          Eigen::MatrixXd Btrajectory) {
+  auto step = 100;
+
+  auto Xinit = makeXinitEigen();
+  Xinit[0] = 1;
+  Xinit[1] = 0;
+  auto trueFlow = Atrajectory*Xinit + Btrajectory;
+
+  auto gpsReg = computeNorms(applySecondOrderReg(Btrajectory, step, 2), 2);
+  auto flowReg = computeNorms(applySecondOrderReg(trueFlow, step, 2), 2);
+
+  GnuplotExtra plot;
+  plot.setEqualAxes();
+  plot.plot_xy(flowReg, gpsReg);
+  plot.show();
+}
+
+void plotTemporalFlowVsGpsScatter(Eigen::MatrixXd Atrajectory,
+                                  Eigen::MatrixXd Btrajectory) {
+
+  auto step = 100;
+
+  auto Xinit = makeXinitEigen();
+  Xinit[0] = 1.0;
+  Xinit[1] = 0;
+  auto trueFlow = Atrajectory*Xinit + Btrajectory;
+
+  auto gpsReg = computeNorms(applySecondOrderReg(Btrajectory, step, 2), 2);
+  auto flowReg = computeNorms(applySecondOrderReg(trueFlow, step, 2), 2);
+
+  auto time = Spani(0, gpsReg.size()).map<int>([&](int i) {return i;});
+
+  GnuplotExtra plot;
+  plot.set_style("lines");
+  plot.plot_xy(time, gpsReg, "GPS");
+  plot.plot_xy(time, flowReg, "Flow");
+  plot.show();
+}
+
 TEST(LinearCalibrationTest, RealData) {
-  bool DO = false;
+  bool DO = true;
 
   if (DO) {
     auto navs = getTestDataset();
@@ -343,7 +383,7 @@ TEST(LinearCalibrationTest, RealData) {
     auto trueWind = makeTrueWindMatrices(navs, flowSettings);
     auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-    auto flow = trueWind;
+    auto flow = trueCurrent;
 
     Eigen::MatrixXd Avelocities =
         Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
@@ -354,20 +394,6 @@ TEST(LinearCalibrationTest, RealData) {
     Eigen::MatrixXd Atrajectory = integrateFlowData(Avelocities);
     Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
-
-    auto step = 100;
-
-    auto Xinit = makeXinitEigen();
-    Xinit[0] = 0;
-    Xinit[1] = 0;
-    auto trueFlow = Atrajectory*Xinit + Btrajectory;
-
-    auto gpsReg = computeNorms(applySecondOrderReg(Btrajectory, step, 2), 2);
-    auto flowReg = computeNorms(applySecondOrderReg(trueFlow, step, 2), 2);
-
-    GnuplotExtra plot;
-    plot.cmd("set size ratio -1");
-    plot.plot_xy(flowReg, gpsReg);
-    plot.show();
+    plotTemporalFlowVsGpsScatter(Atrajectory, Btrajectory);
   }
 }
