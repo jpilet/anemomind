@@ -446,19 +446,15 @@ Arrayd computeNorms(const Eigen::VectorXd &X, int dim) {
   return Y;
 }
 
-Arrayd computeWeights(Eigen::MatrixXd B, int dim) {
-  auto norms = computeNorms(B, dim);
-  int n = norms.size();
-  double sum = 0.0;
-  for (auto x: norms) {
-    sum += x;
-  }
-  double mean = sum/n;
-  Arrayd Y(n);
-  for (int i = 0; i < n; i++) {
-    Y[i] = norms[i] - mean;
-  }
-  return Y;
+Arrayd computeWeightsFromGps(Eigen::MatrixXd B, int dim) {
+  int n = B.rows()/dim;
+  CHECK(dim*n == B.rows());
+  auto norms = map([=](int index) {
+    int offset = dim*index;
+    return EigenUtils::sliceRows(B, offset, offset + dim).norm();
+  }, Spani(0, n));
+  double mean = (1.0/n)*reduce([](double a, double b) {return a + b;}, norms);
+  return map([&](double x) {return x - mean;}, norms).toArray();
 }
 
 CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
@@ -466,21 +462,52 @@ CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
                                CovSettings settings) {
   auto Areg = applySecondOrderReg(Atrajectory, settings.regStep, 2);
   auto Breg = applySecondOrderReg(Btrajectory, settings.regStep, 2);
-  auto weights = computeWeights(Breg, 2);
+  auto weights = computeWeightsFromGps(Breg, 2);
   int regCount = Areg.rows()/2;
+  CHECK(regCount == weights.size());
   auto rows = DataFit::CoordIndexer::Factory();
   auto cols = DataFit::CoordIndexer::Factory();
   std::vector<DataFit::Triplet> Atriplets;
   DataFit::VectorBuilder Bbuilder;
+  auto regRows = CoordIndexer::Factory().makeFromSize(Areg.rows(), 2);
   auto paramCols = cols.make(Areg.cols(), 1);
-  auto meanRegCols = cols.make(1, 1);
+  auto meanRegCol = cols.make(1, 1).from();
   auto slackCols = cols.make(regCount, 1);
   auto normRows = rows.make(regCount, 2);
   auto expectedLengthRows = rows.make(regCount, 1);
   auto slackRows = rows.make(regCount, 1);
+  Array<irls::FitNorm> fnorms(regCount);
+  Array<Spani> cstSpans(regCount);
   for (int i = 0; i < regCount; i++) {
-
+    double w = weights[i];
+    Spani xSpan = normRows.span(i);
+    auto srcRows = regRows.span(i);
+    insertDense(w, EigenUtils::sliceRows(Areg, srcRows), xSpan, paramCols.elementSpan(),
+      &Atriplets);
+    Bbuilder.add(xSpan, -w*EigenUtils::sliceRows(Breg, srcRows));
+    int aRow = expectedLengthRows[i];
+    int slackCol = slackCols[i];
+    Atriplets.push_back(Triplet(aRow, slackCol, 1.0));
+    Atriplets.push_back(Triplet(aRow, meanRegCol, 1.0));
+    Atriplets.push_back(Triplet(slackRows[i], slackCol, 1.0));
+    fnorms[i] = irls::FitNorm(xSpan, aRow, 2, false);
+    cstSpans[i] = slackRows.span(i);
   }
+  int activeCount = int(round(settings.inlierFraction*regCount));
+  auto groupConstraints = new irls::ConstraintGroup(cstSpans, activeCount);
+  irls::WeightingStrategies strategies{
+    irls::WeightingStrategy::Ptr(new irls::WeightingStrategyArray<irls::FitNorm>(fnorms)),
+    irls::WeightingStrategy::Ptr(groupConstraints)
+  };
+  auto results = irls::solveFull(makeSparseMatrix(rows.count(), cols.count(), Atriplets),
+      Bbuilder.make(rows.count()), strategies, settings.irlsSettings);
+  Arrayi inlierRegs = groupConstraints->computeActiveSpans(results.residuals);
+  return CovResults{
+    Areg,
+    Breg,
+    EigenUtils::sliceRows(results.X, paramCols.elementSpan()),
+    inlierRegs
+  };
 }
 
 

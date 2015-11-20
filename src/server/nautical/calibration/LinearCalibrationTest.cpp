@@ -363,13 +363,23 @@ void plotTemporalFlowVsGpsScatter(Eigen::MatrixXd Atrajectory,
   auto gpsReg = computeNorms(applySecondOrderReg(Btrajectory, step, 2), 2);
   auto flowReg = computeNorms(applySecondOrderReg(trueFlow, step, 2), 2);
 
-  auto time = sail::map([&](int i) {return i;}, Spani(0, gpsReg.size()));
+  auto time = toArray(Spani(0, gpsReg.size()));
 
   GnuplotExtra plot;
   plot.set_style("lines");
   plot.plot_xy(time, gpsReg, "GPS");
   plot.plot_xy(time, flowReg, "Flow");
   plot.show();
+}
+
+void solveCovariance(Eigen::MatrixXd Atrajectory,
+    Eigen::MatrixXd Btrajectory) {
+  CovSettings settings;
+  auto results = optimizeCovariances(Atrajectory,
+      Btrajectory,
+      settings);
+
+  std::cout << EXPR_AND_VAL_AS_STRING(results.X) << std::endl;
 }
 
 TEST(LinearCalibrationTest, RealData) {
@@ -394,6 +404,7 @@ TEST(LinearCalibrationTest, RealData) {
     Eigen::MatrixXd Atrajectory = integrateFlowData(Avelocities);
     Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
-    plotTemporalFlowVsGpsScatter(Atrajectory, Btrajectory);
+    //plotTemporalFlowVsGpsScatter(Atrajectory, Btrajectory);
+    solveCovariance(Atrajectory, Btrajectory);
   }
 }

@@ -233,6 +233,7 @@ class Constant : public WeightingStrategy {
 // deformable surface reconstruction.
 class FitNorm : public WeightingStrategy {
  public:
+  FitNorm() : _constraint(false), _aRow(-1), _n(0) {}
   FitNorm(Spani Xspan, int aRow, int n, bool constraint);
   void apply(
     double constraintWeight,

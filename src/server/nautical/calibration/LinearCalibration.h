@@ -319,10 +319,14 @@ Arrayd computeNorms(const Eigen::VectorXd &X, int dim);
 struct CovSettings {
   int regStep = 119;
   double inlierFraction = 0.9;
+  irls::Settings irlsSettings;
 };
 
 struct CovResults {
+  Eigen::MatrixXd A;
+  Eigen::MatrixXd B;
   Eigen::VectorXd X;
+  Arrayi inliers;
 };
 
 CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
