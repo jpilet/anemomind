@@ -328,9 +328,9 @@ class NavalSimulation {
     }
 
     Array<Nav> navs() const {
-      return _states.map<Nav>([&](const CorruptedBoatState &s) {
+      return toArray(map([&](const CorruptedBoatState &s) {
         return s.nav();
-      });
+      }, _states));
     }
 
     const BoatSimulationSpecs &specs() const {

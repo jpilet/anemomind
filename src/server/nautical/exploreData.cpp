@@ -17,6 +17,7 @@
 #include <server/nautical/GeographicReference.h>
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/Functional.h>
 
 using namespace sail;
 
@@ -28,9 +29,9 @@ Duration<double> getRawTime(const Nav &n) {
 }
 
 Arrayd getSeconds(Array<Nav> navs) {
-  return navs.map<double>([&](const Nav &x) {
+  return toArray(sail::map([&](const Nav &x) {
     return getRawTime(x).seconds();
-  });
+  }, navs));
 }
 
 namespace {
@@ -40,19 +41,18 @@ namespace {
   DataExtractor
     makeAngleExtractor(std::function<Angle<double>(Nav)> f) {
     return [=](Array<Nav> navs) {
-      return cleanContinuousAngles(navs.map<Angle<double> >(f)).map<double>(
-      [](Angle<double> x) {
+      return toArray(sail::map([](Angle<double> x) {
         return x.degrees();
-      });
+      }, cleanContinuousAngles(toArray(sail::map(f, navs)))));
     };
   }
 
   DataExtractor
     makeSpeedExtractor(std::function<Velocity<double>(Nav)> f) {
     return [=](Array<Nav> navs) {
-      return navs.map<double>([=](const Nav &x) {
+      return toArray(sail::map([=](const Nav &x) {
         return f(x).knots();
-      });
+      }, navs));
     };
   }
 
@@ -90,9 +90,9 @@ namespace {
 
 
 Array<Poco::Path> getPaths(ArgMap &amap) {
-  return amap.optionArgs("--dir").map<Poco::Path>([=](ArgMap::Arg* arg) {
+  return toArray(sail::map([=](ArgMap::Arg* arg) {
     return PathBuilder::makeDirectory(arg->value()).get();
-  });
+  }, amap.optionArgs("--dir")));
 }
 
 int selectFromAlternatives(Array<std::string> alternatives) {

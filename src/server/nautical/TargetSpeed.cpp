@@ -14,6 +14,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/string.h>
 #include <server/common/LineKM.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -65,7 +66,7 @@ namespace {
   }
 
   Arrayi lookUp(Array<Velocity<double> > bounds, Array<Velocity<double> > tws) {
-    return tws.map<int>([&](Velocity<double> x) {return lookUp(bounds, x);});
+    return toArray(map([&](Velocity<double> x) {return lookUp(bounds, x);}, tws));
   }
 
   Array<Array<Velocity<double> > > groupVmg(int binCount, Arrayi bins, Array<Velocity<double> > vmg) {
@@ -77,7 +78,8 @@ namespace {
         builders[bin].add(vmg[i]);
       }
     }
-    Array<Array<Velocity<double> > > groups = builders.map<Array<Velocity<double> > >([=](ArrayBuilder<Velocity<double> > x) {return x.get();});
+    Array<Array<Velocity<double> > > groups = toArray(
+        map([=](ArrayBuilder<Velocity<double> > x) {return x.get();}, builders));
     for (int i = 0; i < binCount; i++) {
       std::sort(groups[i].begin(), groups[i].end());
     }
@@ -138,7 +140,7 @@ void TargetSpeed::plot() {
   plot.set_title((isUpwind? "Upwind" : "Downwind"));
   auto mapper = [](Velocity<double> x) {return x.knots();};
   for (int i = 0; i < medianValues.size(); i++) {
-    plot.plot_xy(binCenters.map<double>(mapper), medianValues[i].map<double>(mapper), stringFormat("Quantile %.3g", quantiles[i]));
+    plot.plot_xy(map(mapper, binCenters), map(mapper, medianValues[i]), stringFormat("Quantile %.3g", quantiles[i]));
   }
   plot.show();
 }
@@ -165,18 +167,18 @@ Arrayd TargetSpeed::makeDefaultQuantiles() {
 
 Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
   int sign = (isUpwind? 1 : -1);
-  return navs.map<Velocity<double> >([&](const Nav &n) {
+  return toArray(map([&](const Nav &n) {
     double factor = sign*cos(estimateRawTwa(n));
     return n.gpsSpeed().scaled(factor);
-  });
+  }, navs));
 }
 
 Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind) {
   int sign = isUpwind? 1 : -1;
-  return navs.map<Velocity<double> >([&](const Nav &n) {
+  return toArray(map([&](const Nav &n) {
     double factor = sign*cos(n.externalTwa());
     return n.gpsSpeed().scaled(factor);
-  });
+  }, navs));
 }
 
 
@@ -189,11 +191,11 @@ Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs) {
 }
 
 Array<Velocity<double> > estimateTws(Array<Nav> navs) {
-  return navs.map<Velocity<double> >([&](const Nav &n) {return estimateRawTws(n);});
+  return toArray(map([&](const Nav &n) {return estimateRawTws(n);}, navs));
 }
 
 Array<Velocity<double> > estimateExternalTws(Array<Nav> navs) {
-  return navs.map<Velocity<double> >([&](const Nav &n) {return n.externalTws();});
+  return toArray(map([&](const Nav &n) {return n.externalTws();}, navs));
 }
 
 

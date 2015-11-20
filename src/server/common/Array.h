@@ -588,38 +588,6 @@ class Array {
     return dst;
   }
 
-  template <typename S>
-  S reduce(S init, std::function<S(S, T)> red) const {
-    S x = init;
-    for (int i = 0; i < _size; i++) {
-      x = red(x, _data[i]);
-    }
-    return x;
-  }
-
-  template <typename S>
-  Array<S> map(std::function<S(T)> mapper) const {
-    Array<S> dst(_size);
-    for (int i = 0; i < _size; i++) {
-      dst[i] = mapper(_data[i]);
-    }
-    return dst;
-  }
-
-  template <typename S>
-  Array<S> mapi(std::function<S(int, T)> mapper) {
-    Array<S> dst(_size);
-    for (int i = 0; i < _size; i++) {
-      dst[i] = mapper(i, _data[i]);
-    }
-    return dst;
-  }
-
-  template <typename S>
-  Array<S> mapElements(std::function<S(T)> mapper) { // In case of mixup with std::map
-    return map<S>(mapper);
-  }
-
   ThisType slice(std::function<bool(T)> fun) const {
     ThisType dst(_size);
     int counter = 0;

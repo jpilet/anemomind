@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -57,7 +58,7 @@ namespace {
 
 namespace {
   Arrayd mapStatesToX(Array<StepMinimizerState> states) {
-    return states.map<double>([&](StepMinimizerState x) {return x.getX();});
+    return toArray(map([&](StepMinimizerState x) {return x.getX();}, states));
   }
 }
 
@@ -100,7 +101,7 @@ Arrayd optimizeMultiplayer(const StepMinimizer &minimizerIn,
   }
   Array<StepMinimizerState> states = makeInitialStates(objfs, X, initStepSizes);
   optimizeMultiplayerSub(minimizer, objfs, &states);
-  return states.map<double>([&](StepMinimizerState x) {return x.getX();});
+  return toArray(map([&](StepMinimizerState x) {return x.getX();}, states));
 }
 
 } /* namespace sail */

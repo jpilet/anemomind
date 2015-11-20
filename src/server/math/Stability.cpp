@@ -8,6 +8,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/LineKM.h>
 #include <server/math/PiecewisePolynomials.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 namespace Stability {
@@ -59,8 +60,8 @@ Array<Segment> optimize(Array<std::pair<Arrayd, Arrayd> > xyPairs,
         sampleCount, sampleToX, segmentCount,
         &spans, &values);
   }
-  return SpanOverlap<Value>::compute(
-      spans.get(), values.get()).map<Segment>(makeSegmentFromOverlap);
+  return toArray(map(makeSegmentFromOverlap, SpanOverlap<Value>::compute(
+      spans.get(), values.get())));
 
 }
 

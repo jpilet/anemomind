@@ -26,6 +26,7 @@
 #include <server/common/ArgMap.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
+#include <server/common/Functional.h>
 
 using namespace sail;
 
@@ -46,10 +47,11 @@ namespace {
   }
 
   Array<TargetSpeedPoint> getPolarNavData(Corrector<double> corr, FilteredNavData fdata) {
-    return fdata.makeIndexedInstrumentAbstractions()
-        .map<TargetSpeedPoint>([&](const FilteredNavData::Indexed &x) {
+    return
+        filter([&](const TargetSpeedPoint &x) {return x.defined();},
+            sail::map([&](const FilteredNavData::Indexed &x) {
       return TargetSpeedPoint(corr.correct(x));
-    }).slice([&](const TargetSpeedPoint &x) {return x.defined();});
+    }, fdata.makeIndexedInstrumentAbstractions()));
   }
 
   struct Settings {
@@ -84,10 +86,10 @@ namespace {
       double lambda = 10;
 
       Corrector<double> corr;
-      auto pnavs = spans.map<Array<TargetSpeedPoint> >([&](Spani span) {
+      auto pnavs = toArray(sail::map([&](Spani span) {
         std::cout << "Processing span " << span << std::endl;
         return getPolarNavData(corr, FilteredNavData(navs.slice(span.minv(), span.maxv()), lambda, FilteredNavData::NONE));
-      });
+      }, spans));
       auto data2 = computeStabilities(concat(pnavs));
       saveRawArray(cacheFilename, data2);
       return data2;

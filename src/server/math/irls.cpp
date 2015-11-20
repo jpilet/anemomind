@@ -12,6 +12,7 @@
 #include <server/common/string.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/ArrayIO.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 namespace irls {
@@ -229,10 +230,10 @@ WeightingStrategy::Ptr ConstraintGroup::make(Array<Spani> spans, int activeCount
 }
 
 WeightingStrategy::Ptr Constant::make(Arrayi inds, MajQuad quad) {
-  return WeightingStrategyArray<Constant>::make(inds.map<Constant>(
+  return WeightingStrategyArray<Constant>::make(toArray(map(
       [=](int index) {
     return Constant(index, quad);
-  }));
+  }, inds)));
 }
 
 WeightingStrategy::Ptr NonNegativeConstraint::make(int index) {
@@ -240,10 +241,10 @@ WeightingStrategy::Ptr NonNegativeConstraint::make(int index) {
 }
 
 WeightingStrategy::Ptr NonNegativeConstraint::make(Arrayi inds) {
-  return WeightingStrategyArray<NonNegativeConstraint>::make(inds.map<NonNegativeConstraint>(
+  return WeightingStrategyArray<NonNegativeConstraint>::make(toArray(map(
       [=](int index) {
     return NonNegativeConstraint(index);
-  }));
+  }, inds)));
 }
 
 WeightingStrategy::Ptr Constant::make(int index, MajQuad quad) {

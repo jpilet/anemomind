@@ -6,6 +6,7 @@
 #include <cassert>
 #include <server/nautical/tgtspeed/TargetSpeedPoint.h>
 #include <server/common/Span.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -51,21 +52,18 @@ Array<ValueWithStability<T> > computeValuesWithStability(Array<T> values) {
 
 
 Array<Velocity<double> > getBoatSpeeds(Array<TargetSpeedPoint> x) {
-  return x.map<Velocity<double> >(
-          [&](const TargetSpeedPoint &x) {return x.boatSpeed();});
+  return toArray(map([&](const TargetSpeedPoint &x) {return x.boatSpeed();}, x));
 }
 Array<Velocity<double> > getWindSpeeds(Array<TargetSpeedPoint> x) {
-  return x.map<Velocity<double> >(
-          [&](const TargetSpeedPoint &x) {return x.windSpeed();});
+  return toArray(map([&](const TargetSpeedPoint &x) {return x.windSpeed();}, x));
 }
 
 Array<Angle<double> > getWindAngles(Array<TargetSpeedPoint> x) {
-  return x.map<Angle<double> >(
-      [&](const TargetSpeedPoint &x) {return x.windAngle();});
+  return toArray(map([&](const TargetSpeedPoint &x) {return x.windAngle();}, x));
 }
 
 Array<double> getStabilities(Array<TargetSpeedPoint> x) {
-  return x.map<double>([&] (const TargetSpeedPoint &x) {return x.stability()();});
+  return toArray(map([&] (const TargetSpeedPoint &x) {return x.stability()();}, x));
 }
 
 Array<TargetSpeedPoint> computeStabilities(Array<TargetSpeedPoint> src) {

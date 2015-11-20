@@ -5,6 +5,7 @@
 
 #include <server/nautical/tgtspeed/table.h>
 #include <server/common/string.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -14,10 +15,9 @@ Array<Angle<double> > getNorthSailsAngles() {
                        60, 70, 80, 90, 100,
                        110, 120, 135, 150,
                        160, 170, 180};
-  return Arrayd(count, anglesDeg)
-      .map<Angle<double> >([&](double x) {
+  return toArray(map([&](double x) {
       return Angle<double>::degrees(x);
-  });
+  }, Arrayd(count, anglesDeg)));
 }
 
 Array<Velocity<double> > getNorthSailsSpeeds() {
@@ -26,7 +26,7 @@ Array<Velocity<double> > getNorthSailsSpeeds() {
   auto toVel = [&](double x) {
         return Velocity<double>::knots(x);
       };
-  return Arrayd(count, speedsKnots).map<Velocity<double> >(toVel);
+  return toArray(map(toVel, Arrayd(count, speedsKnots)));
 }
 
 void outputValue(double x, std::ostream *dst) {

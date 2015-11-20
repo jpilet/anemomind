@@ -17,6 +17,7 @@
 
 #include <server/common/ExpLine.h>
 #include "../CalibratedNav/CalibratedNav.h"
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -198,7 +199,7 @@ class CorrectorObject : public CorrectorFunction {
   CorrectorObject(Corrector<double> c) : _c(c) {}
 
   Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const {
-    return navs.map<CalibratedNav<double> >([&](const Nav &x) {return _c.correct(x);});
+    return toArray(map([&](const Nav &x) {return _c.correct(x);}, navs));
   }
 
   std::string toString() const {

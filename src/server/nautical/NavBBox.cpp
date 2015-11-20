@@ -6,6 +6,7 @@
  */
 
 #include "NavBBox.h"
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -36,9 +37,9 @@ bool NavBBox::intersects(const NavBBox &other) const {
 }
 
 Array<NavBBox> calcNavBBoxes(Array<Array<Nav> > navs) {
-  return navs.map<NavBBox>([&] (Array<Nav> x) {
+  return toArray(map([&] (Array<Nav> x) {
     return NavBBox(x);
-  });
+  }, navs));
 }
 
 NavBBox::~NavBBox() {
