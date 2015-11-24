@@ -79,9 +79,8 @@ constexpr T copyOf(T x) {
 // Evaluate an abstract collection to an array
 template <typename Collection>
 auto toArray(const Collection &c) -> Array<decltype(c[0])> {
-  int n = c.size();
-  Array<decltype(c[0])> dst(n);
-  for (int i = 0; i < n; i++) {
+  Array<decltype(c[0])> dst(c.size());
+  for (int i = 0; i < c.size(); i++) {
     dst[i] = c[i];
   }
   return dst;
@@ -212,16 +211,14 @@ auto concat(ArrayOfArrays arrayOfArrays) -> Array<decltype(copyOf(AnyValue<Array
   for (auto array: arrayOfArrays) {
     elementCount += array.size();
   }
-  Array<ElementType> dst(elementCount);
-  int index = 0;
+  ArrayBuilder<ElementType> dst(elementCount);
   for (auto array: arrayOfArrays) {
     for (auto e: array) {
-      dst[index] = e;
-      index++;
+      dst.add(e);
     }
   }
-  assert(index == elementCount);
-  return dst;
+  assert(dst.size() == elementCount);
+  return dst.get();
 }
 
 }
