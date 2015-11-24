@@ -230,10 +230,10 @@ WeightingStrategy::Ptr ConstraintGroup::make(Array<Spani> spans, int activeCount
 }
 
 WeightingStrategy::Ptr Constant::make(Arrayi inds, MajQuad quad) {
-  return WeightingStrategyArray<Constant>::make(toArray(map(
+  return WeightingStrategyArray<Constant>::make(toArray(map(inds,
       [=](int index) {
     return Constant(index, quad);
-  }, inds)));
+  })));
 }
 
 WeightingStrategy::Ptr NonNegativeConstraint::make(int index) {
@@ -241,10 +241,10 @@ WeightingStrategy::Ptr NonNegativeConstraint::make(int index) {
 }
 
 WeightingStrategy::Ptr NonNegativeConstraint::make(Arrayi inds) {
-  return WeightingStrategyArray<NonNegativeConstraint>::make(toArray(map(
+  return WeightingStrategyArray<NonNegativeConstraint>::make(toArray(map(inds,
       [=](int index) {
     return NonNegativeConstraint(index);
-  }, inds)));
+  })));
 }
 
 WeightingStrategy::Ptr Constant::make(int index, MajQuad quad) {

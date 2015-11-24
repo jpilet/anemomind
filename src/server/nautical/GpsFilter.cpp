@@ -157,9 +157,9 @@ bool isReliableW(Spani reliableSpan, const Sampling::Weights &w) {
 
 Arrayb Results::inlierMask() {
   assert(rawNavs.size() == positionObservations.size());
-  return toArray(map([&](const Observation<2> &obs) {
+  return toArray(map(positionObservations, [&](const Observation<2> &obs) {
     return isReliableW(reliableSampleRange, obs.weights);
-  }, positionObservations));
+  }));
 }
 
 

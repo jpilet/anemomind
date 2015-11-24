@@ -84,7 +84,7 @@ void processTiles(const TileGeneratorParameters &params,
     std::shared_ptr<HTree> fulltree = grammar.parse(rawNavs);
 
     Array<Array<Nav>> sessions =
-      map(filterNavs, extractAll("Sailing", rawNavs, grammar, fulltree)).toArray();
+      map(extractAll("Sailing", rawNavs, grammar, fulltree), filterNavs).toArray();
 
     if (!generateAndUploadTiles(boatId, sessions, params)) {
       LOG(FATAL) << "When processing: " << navPath;

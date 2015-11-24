@@ -163,7 +163,7 @@ BoatSim::TwaFunction BoatSim::makePiecewiseTwaFunction(
     Array<Duration<double> > durs,
     Array<Angle<double> > twa) {
   int count = durs.size();
-  Arrayd dursSeconds = toArray(map([](Duration<double> x) {return x.seconds();}, durs));
+  Arrayd dursSeconds = toArray(map(durs, [](Duration<double> x) {return x.seconds();}));
   ProportionateIndexer indexer(dursSeconds);
   return [=](Duration<double> x) {
     return twa[indexer.get(x.seconds()).index];
@@ -172,9 +172,9 @@ BoatSim::TwaFunction BoatSim::makePiecewiseTwaFunction(
 
 namespace {
   Arrayd getTimes(Array<BoatSim::FullState> states) {
-    return toArray(map([=](BoatSim::FullState s) {
+    return toArray(map(states, [=](BoatSim::FullState s) {
       return s.time.seconds();
-    }, states));
+    }));
   }
 
 
@@ -184,7 +184,7 @@ namespace {
     plot.set_title(title);
     plot.set_style("lines");
     plot.plot_xy(getTimes(states),
-        toArray(map([&](Angle<double> x) {return x.degrees();}, map(fun, states))));
+        toArray(map(map(states, fun), [&](Angle<double> x) {return x.degrees();})));
     plot.show();
   }
 
@@ -194,8 +194,8 @@ namespace {
     plot.set_title(title);
     plot.set_style("lines");
     plot.plot_xy(getTimes(states),
-        toArray(map([&](Velocity<double> x)
-            {return x.knots();}, map(fun, states))));
+        toArray(map(map(states, fun), [&](Velocity<double> x)
+            {return x.knots();})));
     plot.show();
   }
 
@@ -204,8 +204,8 @@ namespace {
     plot.set_title("Trajectory (meters)");
     plot.set_style("lines");
     plot.plot_xy(
-        toArray(map([&](BoatSim::FullState x) {return x.pos[0].meters();}, states)),
-        toArray(map([&](BoatSim::FullState x) {return x.pos[1].meters();}, states))
+        toArray(map(states, [&](BoatSim::FullState x) {return x.pos[0].meters();})),
+        toArray(map(states, [&](BoatSim::FullState x) {return x.pos[1].meters();}))
     );
     plot.show();
   }

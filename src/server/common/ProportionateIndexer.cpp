@@ -40,11 +40,11 @@ ProportionateIndexer::ProportionateIndexer(int count,
 
 
 Arrayb ProportionateIndexer::selected() const {
-  return toArray(map([&](double x) {return x == 0;}, proportions()));
+  return toArray(map(proportions(), [&](double x) {return x == 0;}));
 }
 
 Arrayb ProportionateIndexer::remaining() const {
-  return toArray(map([&](double x) {return x != 0;}, proportions()));
+  return toArray(map(proportions(), [&](double x) {return x != 0;}));
 }
 
 

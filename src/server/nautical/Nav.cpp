@@ -160,42 +160,42 @@ bool Nav::hasId() const {
 
 
 Array<Velocity<double> > getExternalTws(Array<Nav> navs) {
-  return toArray(map([&](const Nav &n) {return n.externalTws();}, navs));
+  return toArray(map(navs, [&](const Nav &n) {return n.externalTws();}));
 }
 
 Array<Angle<double> > getExternalTwa(Array<Nav> navs) {
-  return toArray(map([&](const Nav &n) {return n.externalTwa();}, navs));
+  return toArray(map(navs, [&](const Nav &n) {return n.externalTwa();}));
 }
 
 Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
-  return toArray(map([&](const Nav &n) {return n.gpsSpeed();}, navs));
+  return toArray(map(navs, [&](const Nav &n) {return n.gpsSpeed();}));
 }
 
 Array<Velocity<double> > getWatSpeed(Array<Nav> navs) {
-  return toArray(map([&](const Nav &n) {return n.watSpeed();}, navs));
+  return toArray(map(navs, [&](const Nav &n) {return n.watSpeed();}));
 }
 
 Array<Angle<double> > getGpsBearing(Array<Nav> navs) {
-  return toArray(map([&](const Nav &nav) {
+  return toArray(map(navs, [&](const Nav &nav) {
     return nav.gpsBearing();
-  }, navs));
+  }));
 }
 Array<Angle<double> > getMagHdg(Array<Nav> navs) {
-  return toArray(map([&](const Nav &nav) {
+  return toArray(map(navs, [&](const Nav &nav) {
     return nav.magHdg();
-  }, navs));
+  }));
 }
 
 Array<Velocity<double> > getAws(Array<Nav> navs) {
-  return toArray(map([&](const Nav &nav) {
+  return toArray(map(navs, [&](const Nav &nav) {
     return nav.aws();
-  }, navs));
+  }));
 }
 
 Array<Angle<double> > getAwa(Array<Nav> navs) {
-  return toArray(map([&](const Nav &nav) {
+  return toArray(map(navs, [&](const Nav &nav) {
     return nav.awa();
-  }, navs));
+  }));
 }
 
 

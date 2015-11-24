@@ -86,9 +86,9 @@ RealDataResults evaluateForRealDataSplits(CalibrationAlgorithm algo,
   if (!subset.empty()) {
     navs = navs.slice(subset);
   }
-  auto splitResults = map([&](Array<Nav> navs) {
+  auto splitResults = map(navs, [&](Array<Nav> navs) {
     return evaluateForSplit(algo, navs);
-  }, navs).toArray();
+  }).toArray();
   return RealDataResults{dsPath, splitResults};
 }
 

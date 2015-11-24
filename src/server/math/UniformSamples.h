@@ -47,7 +47,7 @@ class UniformSamples {
   }
 
   ArrayType interpolateLinear(Arrayd X) const {
-    return toArray(map([&](double x) {return interpolateLinear(x);}, X));
+    return toArray(map(X, [&](double x) {return interpolateLinear(x);}));
   }
 
   T interpolateLinearDerivative(double x) const {
@@ -56,7 +56,7 @@ class UniformSamples {
   }
 
   ArrayType interpolateLinearDerivative(Arrayd X) const {
-    return toArray(map([&](double x) {return interpolateLinearDerivative(x);}, X));
+    return toArray(map(X, [&](double x) {return interpolateLinearDerivative(x);}));
   }
 
   const LineKM &indexToX() const {

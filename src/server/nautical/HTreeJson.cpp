@@ -57,7 +57,7 @@ Poco::Dynamic::Var serializeMapped(std::shared_ptr<HTree> x, Array<Nav> navs, Ar
 }
 
 Poco::Dynamic::Var serializeMapped(Array<std::shared_ptr<HTree> > x, Array<Nav> navs, Array<HNode> nodeInfo) {
-  return serialize(toArray(map([&](std::shared_ptr<HTree> h) {return HTreeWithData(h, navs, nodeInfo);}, x)));
+  return serialize(toArray(map(x, [&](std::shared_ptr<HTree> h) {return HTreeWithData(h, navs, nodeInfo);})));
 }
 
 }

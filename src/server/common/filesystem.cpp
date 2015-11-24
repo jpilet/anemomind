@@ -47,7 +47,7 @@ Array<Poco::Path> listFilesRecursively(Poco::Path rootPath, std::function<bool(P
 }
 
 Array<Poco::Path> listFilesRecursivelyByExtension(Poco::Path rootPath, Array<std::string> extensions) {
-  Array<std::string> extensionsLowerCase = toArray(map(&toLower, extensions));
+  Array<std::string> extensionsLowerCase = toArray(map(extensions, &toLower));
   return listFilesRecursively(rootPath, [&](Poco::Path p) {return hasExtension(p, extensionsLowerCase);});
 }
 

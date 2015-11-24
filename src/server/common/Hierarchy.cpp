@@ -124,9 +124,9 @@ Array<Arrayi> listChildren(Array<HNode> nodes) {
       children[node.parent()].add(node.index());
     }
   }
-  return toArray(map([&](ArrayBuilder<int> builder) {
+  return toArray(map(children, [&](ArrayBuilder<int> builder) {
     return builder.get();
-  }, children));
+  }));
 }
 
 // Sub-routine to calcLevelPerNode.
@@ -153,9 +153,9 @@ Arrayi calcLevelPerNode(int rootNode, Array<Arrayi> children) {
 }
 
 Arrayb calcTerminals(Array<Arrayi> children) {
-  return toArray(map([&] (const Arrayi &c) {
+  return toArray(map(children, [&] (const Arrayi &c) {
     return c.empty();
-  }, children));
+  }));
 }
 
 int getMaxLevel(Arrayi levels) {

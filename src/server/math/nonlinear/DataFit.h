@@ -93,9 +93,9 @@ class CoordIndexer {
   }
 
   Array<Spani> makeSpans() const {
-    return toArray(map([&](int index) {
+    return toArray(map(coordinateSpan(), [&](int index) {
       return span(index);
-    }, coordinateSpan()));
+    }));
   }
 
   bool sameSizeAs(CoordIndexer other) const {

@@ -88,11 +88,12 @@ namespace {
   Array<HorizontalMotion<double> > getGroundTruth(
       NavalSimulation::BoatData boatData, bool wind) {
     return sail::map(
+    boatData.states(),
     [=](const CorruptedBoatState &s) {
       return (wind?
               s.trueState().trueWind :
               s.trueState().trueCurrent);
-    }, boatData.states()).toArray();
+    }).toArray();
   }
 }
 

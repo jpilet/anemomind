@@ -20,9 +20,9 @@ namespace {
   }
 
   Arrayb getUpwind(Array<Nav> navs) {
-    return toArray(sail::map([=](const Nav &x) {
+    return toArray(sail::map(navs, [=](const Nav &x) {
       return isUpwindAwa(x.awa());
-    }, navs));
+    }));
   }
 
   bool isDownwindAwa(Angle<double> angle) {
@@ -31,15 +31,15 @@ namespace {
   }
 
   Arrayb getDownwind(Array<Nav> navs) {
-    return toArray(sail::map([=](const Nav &x) {
+    return toArray(sail::map(navs, [=](const Nav &x) {
       return isDownwindAwa(x.awa());
-    }, navs));
+    }));
   }
 
   Array<Velocity<double> > getTws(Array<Nav> navs) {
-    return toArray(sail::map([=](const Nav &x) {
+    return toArray(sail::map(navs, [=](const Nav &x) {
       return x.externalTws();
-    }, navs));
+    }));
   }
 
   Arrayd makeQuantiles() {

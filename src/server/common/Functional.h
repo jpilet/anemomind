@@ -14,6 +14,49 @@
 
 namespace sail {
 
+template <typename Array>
+class ArrayIterator {
+ private:
+  Array _array;
+  int _index;
+ public:
+  typedef decltype(_array[0]) ElementType;
+
+  ArrayIterator(Array array, int index) :
+    _array(array), _index(index) {}
+
+  ElementType operator*() const {
+    return _array[_index];
+  }
+
+  void operator++() {
+    _index++;
+  }
+
+  bool operator== (const ArrayIterator &other) const {
+    return _index == other._index;
+  }
+
+  bool operator!= (const ArrayIterator &other) const {
+    return !((*this) == other);
+  }
+};
+
+#define ADD_METHODS_FOR_MAPPED \
+    operator Array<ResultType>() const { \
+      return toArray(); \
+    } \
+    Array<ResultType> toArray() const { \
+      return sail::toArray(*this); \
+    } \
+    ArrayIterator<ThisType> begin() const { \
+      return ArrayIterator<ThisType>(*this, 0); \
+    } \
+    ArrayIterator<ThisType> end() const { \
+      return ArrayIterator<ThisType>(*this, 0); \
+    }
+
+
 template <typename T>
 struct AnyValue {
  static T x;
@@ -33,6 +76,7 @@ auto toArray(const Collection &c) -> Array<decltype(c[0])> {
 template <typename Function, typename Collection>
 class Mapped {
  public:
+  typedef Mapped<Function, Collection> ThisType;
   typedef decltype(AnyValue<Function>::x(AnyValue<Collection>::x[0])) ResultType;
 
   Mapped(Function f, const Collection &A) :
@@ -47,10 +91,10 @@ class Mapped {
     return _f(_A[index]);
   }
 
-  Array<ResultType> toArray() const {
-    return sail::toArray(*this);
-  }
+  ADD_METHODS_FOR_MAPPED
  private:
+
+
   Function _f;
   Collection _A;
 };
@@ -62,7 +106,7 @@ class Mapped {
 // just after calling map. If we want an Array, call
 // toArray implemented at the bottom of this file.
 template <typename Function, typename Collection>
-Mapped<Function, Collection> map(Function f, Collection X) {
+Mapped<Function, Collection> map(Collection X, Function f) {
   return Mapped<Function, Collection>(f, X);
 }
 
@@ -72,6 +116,7 @@ Mapped<Function, Collection> map(Function f, Collection X) {
 template <typename Function, typename CollectionA, typename CollectionB>
 class Mapped2 {
  public:
+  typedef Mapped2<Function, CollectionA, CollectionB> ThisType;
   typedef decltype(AnyValue<Function>::x(AnyValue<CollectionA>::x[0],
       AnyValue<CollectionB>::x[0])) ResultType;
 
@@ -87,6 +132,8 @@ class Mapped2 {
   ResultType operator[] (int index) const {
     return _f(_A[index], _B[index]);
   }
+
+  ADD_METHODS_FOR_MAPPED
  private:
   Function _f;
   CollectionA _A;
@@ -95,14 +142,14 @@ class Mapped2 {
 
 template <typename Function, typename CollectionA, typename CollectionB>
 Mapped2<Function, CollectionA, CollectionB> map(
-    Function f, const CollectionA &X, const CollectionB &Y) {
+    const CollectionA &X, const CollectionB &Y, Function f) {
   return Mapped2<Function, CollectionA, CollectionB>(f, X, Y);
 }
 
 
 // Filter
 template <typename Function, typename Collection>
-auto filter(Function f, Collection X) -> Array<decltype(X[0])> {
+auto filter(Collection X, Function f) -> Array<decltype(X[0])> {
   int n = X.size();
   int counter = 0;
   Array<decltype(X[0])> Y(n);
@@ -117,7 +164,7 @@ auto filter(Function f, Collection X) -> Array<decltype(X[0])> {
 
 // Reduce
 template <typename Function, typename Collection>
-auto reduce(Function f, Collection X) -> decltype(f(X[0], X[1])) {
+auto reduce(Collection X, Function f) -> decltype(f(X[0], X[1])) {
   int n = X.size();
   assert(0 < n);
   auto acc = X[0];
@@ -129,7 +176,7 @@ auto reduce(Function f, Collection X) -> decltype(f(X[0], X[1])) {
 
 // Reduce, given an initial value
 template <typename Function, typename Collection, typename Init>
-auto reduce(Function f, Collection X, Init init) -> decltype(f(init, X[0])) {
+auto reduce(Init init, Collection X, Function f) -> decltype(f(init, X[0])) {
   auto acc = init;
   int n = X.size();
   for (int i = 0; i < n; i++) {

@@ -199,7 +199,7 @@ class CorrectorObject : public CorrectorFunction {
   CorrectorObject(Corrector<double> c) : _c(c) {}
 
   Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const {
-    return toArray(map([&](const Nav &x) {return _c.correct(x);}, navs));
+    return toArray(map(navs, [&](const Nav &x) {return _c.correct(x);}));
   }
 
   std::string toString() const {

@@ -70,8 +70,7 @@ TEST(HistogramTest, Undefined) {
   const int count = 7;
   double anglesDeg[count] = {576.2019, 102.1582, 303.6681, 659.3296, 570.3893, 690.8345, 472.1333};
   Array<Angle<double> > angles = toArray(
-      map([&](double x) {return Angle<double>::degrees(x);},
-      Arrayd(count, anglesDeg)));
+      map(Arrayd(count, anglesDeg), [&](double x) {return Angle<double>::degrees(x);}));
 
   int bins[count] = {1, 0, 2, 2, 1, 2, 0};
   Arrayi estBins = hmap.assignBins(angles);
@@ -88,7 +87,8 @@ TEST(HistogramTest, Undefined) {
   EXPECT_EQ(hmap.periodicIndex(-1), 2);
   EXPECT_EQ(hmap.periodicIndex(-4), 2);
 
-  MDArray2d plotdata = hmap.makePolarPlotData(toArray(map([&](int x) {return double(x);}, hist)), true);
+  MDArray2d plotdata = hmap.makePolarPlotData(
+      toArray(map(hist, [&](int x) {return double(x);})), true);
   LineKM rowmap(0, 360, 0.0, plotdata.rows());
   MDArray2d A = plotdata.sliceRow(int(round(rowmap(60))));
   MDArray2d B = plotdata.sliceRow(int(round(rowmap(300))));

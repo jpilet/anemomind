@@ -57,7 +57,7 @@ MajQuad BalancedCost::majorize(Velocity<double> surface, const Point &pt) const 
             Point{loc, pt.boatSpeed(), getStability(withStability, pt)});
       }
     }
-    return toArray(map([&](ArrayBuilder<Point> builder) {return builder.get();}, dst));
+    return toArray(map(dst, [&](ArrayBuilder<Point> builder) {return builder.get();}));
   }
 
   arma::mat makeReg(TargetSpeedSolver::Settings settings, TargetSpeedParam p) {
@@ -321,10 +321,10 @@ Results optimize(TargetSpeedParam param,
   arma::mat PX = P*armat(X);
   Arrayd vertices = toArray(PX).dup();
   return Results{TargetSpeedFunction(param,
-      toArray(map(
+      toArray(map(vertices,
       [&](double x) {
         return Velocity<double>::knots(x);
-      }, vertices))), evaluateDataCost(settings, vertices, points),
+      }))), evaluateDataCost(settings, vertices, points),
       settings, vertices};
 }
 
@@ -338,9 +338,9 @@ Array<Array<TargetSpeedPoint> > splitPoints(TuneSettings settings, Array<TargetS
     int dstIndex = (i/settings.chunkSize) % settings.setCount;
     splits[dstIndex].add(pts[i]);
   }
-  return toArray(map([&](ArrayBuilder<TargetSpeedPoint> bd) {
+  return toArray(map(splits, [&](ArrayBuilder<TargetSpeedPoint> bd) {
     return bd.get();
-  }, splits));
+  }));
 }
 
 Settings makeSettingsAtGridPoint(TuneSettings tuneSettings, Settings settings, Arrayi inds) {
@@ -373,9 +373,9 @@ Settings optimizeParameters(TargetSpeedParam param,
     SCOPEDMESSAGE(INFO, stringFormat("   Radial reg: %.6g", settings.radialReg));
 
     // Optimize the parameters over different subsets of the data points.
-    auto splitResults = map([&](Array<TargetSpeedPoint> subset) {
+    auto splitResults = map(splits, [&](Array<TargetSpeedPoint> subset) {
       return optimize(param, subset, settings);
-    }, splits).toArray();
+    });
 
     // Now use the various parameters and see how
     // well they generalize, by computing the data cost

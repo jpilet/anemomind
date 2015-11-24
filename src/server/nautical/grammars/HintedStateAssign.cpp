@@ -40,13 +40,13 @@ HintedStateAssign::HintedStateAssign(std::shared_ptr<StateAssign> ref,
     CHECK(hints.same<int>([&](const LocalStateAssignPtr &h) {return h->getStateCount();}));
     CHECK(hints[0]->getStateCount() == _ref->getStateCount());
   }
-  Array<Spani> stateSpans = toArray(map([=] (const LocalStateAssignPtr &hint) {
+  Array<Spani> stateSpans = toArray(map(hints, [=] (const LocalStateAssignPtr &hint) {
     return Spani(hint->begin(), hint->end());
-  }, hints));
+  }));
 
-  Array<Spani> transitionSpans = toArray(map([=] (const LocalStateAssignPtr &hint) {
+  Array<Spani> transitionSpans = toArray(map(hints, [=] (const LocalStateAssignPtr &hint) {
     return makeTSpan(hint);
-  }, hints));
+  }));
 
   int len = ref->getLength();
   computeOverlapsAndTable(len, stateSpans, hints, &_stateOverlaps, &_stateTable);

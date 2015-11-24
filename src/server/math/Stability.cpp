@@ -60,8 +60,9 @@ Array<Segment> optimize(Array<std::pair<Arrayd, Arrayd> > xyPairs,
         sampleCount, sampleToX, segmentCount,
         &spans, &values);
   }
-  return toArray(map(makeSegmentFromOverlap, SpanOverlap<Value>::compute(
-      spans.get(), values.get())));
+  return toArray(map(
+      SpanOverlap<Value>::compute(
+          spans.get(), values.get()), makeSegmentFromOverlap));
 
 }
 
