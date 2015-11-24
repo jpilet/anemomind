@@ -11,6 +11,7 @@
 #define SERVER_COMMON_FUNCTIONAL_H_
 
 #include <server/common/Array.h>
+#include <server/common/ArrayBuilder.h>
 
 namespace sail {
 
@@ -54,13 +55,25 @@ class ArrayIterator {
     } \
     ArrayIterator<ThisType> end() const { \
       return ArrayIterator<ThisType>(*this, 0); \
+    } \
+    template <typename AnotherFunctionType> \
+    auto map(AnotherFunctionType f) -> decltype(sail::map(*this, f)) { \
+      return sail::map(*this, f); \
     }
 
 
+// So that we can get an instance of type T at compile time in order
+// to deduce the return type of a function-like call, using decltype.
 template <typename T>
 struct AnyValue {
  static T x;
 };
+
+// To make a reference into a value.
+template <typename T>
+constexpr T copyOf(T x) {
+  return x;
+}
 
 // Evaluate an abstract collection to an array
 template <typename Collection>
@@ -72,6 +85,13 @@ auto toArray(const Collection &c) -> Array<decltype(c[0])> {
   }
   return dst;
 }
+
+
+
+template <typename Function, typename Collection>
+class Mapped;
+template <typename Function, typename Collection>
+Mapped<Function, Collection> map(Collection X, Function f);
 
 template <typename Function, typename Collection>
 class Mapped {
@@ -152,14 +172,13 @@ template <typename Function, typename Collection>
 auto filter(Collection X, Function f) -> Array<decltype(X[0])> {
   int n = X.size();
   int counter = 0;
-  Array<decltype(X[0])> Y(n);
+  ArrayBuilder<decltype(X[0])> Y(n);
   for (int i = 0; i < n; i++) {
     if (f(X[i])) {
-      Y[counter] = X[i];
-      counter++;
+      Y.add(X[i]);
     }
   }
-  return Y.sliceTo(counter);
+  return Y.get();
 }
 
 // Reduce
@@ -185,6 +204,26 @@ auto reduce(Init init, Collection X, Function f) -> decltype(f(init, X[0])) {
   return acc;
 }
 
+template <typename ArrayOfArrays>
+auto concat(ArrayOfArrays arrayOfArrays) -> Array<decltype(copyOf(AnyValue<ArrayOfArrays>::x[0][0]))> {
+  typedef decltype(copyOf(AnyValue<ArrayOfArrays>::x[0][0])) ElementType;
+  int elementCount = 0;
+  for (auto array: arrayOfArrays) {
+    elementCount += array.size();
+  }
+  Array<ElementType> dst(elementCount);
+  int index = 0;
+  for (auto array: arrayOfArrays) {
+    for (auto e: array) {
+      dst[index] = e;
+      index++;
+    }
+  }
+  assert(index == elementCount);
+  return dst;
 }
 
+}
+
+#undef ADD_METHODS_FOR_MAPPED
 #endif /* SERVER_COMMON_FUNCTIONAL_H_ */
