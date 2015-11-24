@@ -43,6 +43,7 @@ class ArrayIterator {
   }
 };
 
+// TEMPORARY SOLUTION: Once we switch to variadic templates, we won't need this.
 #define ADD_METHODS_FOR_MAPPED \
     operator Array<ResultType>() const { \
       return toArray(); \
