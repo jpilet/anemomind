@@ -12,6 +12,7 @@
 
 #include <server/common/Array.h>
 #include <server/common/ArrayBuilder.h>
+#include <utility>
 
 namespace sail {
 
@@ -62,14 +63,6 @@ class ArrayIterator {
       return sail::map(*this, f); \
     }
 
-
-// So that we can get an instance of type T at compile time in order
-// to deduce the return type of a function-like call, using decltype.
-template <typename T>
-struct AnyValue {
- static T x;
-};
-
 // To make a reference into a value.
 template <typename T>
 constexpr T copyOf(T x) {
@@ -97,7 +90,7 @@ template <typename Function, typename Collection>
 class Mapped {
  public:
   typedef Mapped<Function, Collection> ThisType;
-  typedef decltype(AnyValue<Function>::x(AnyValue<Collection>::x[0])) ResultType;
+  typedef decltype(std::declval<Function>()(std::declval<Collection>()[0])) ResultType;
 
   Mapped(Function f, const Collection &A) :
     _f(f), _A(A) {
@@ -137,8 +130,8 @@ template <typename Function, typename CollectionA, typename CollectionB>
 class Mapped2 {
  public:
   typedef Mapped2<Function, CollectionA, CollectionB> ThisType;
-  typedef decltype(AnyValue<Function>::x(AnyValue<CollectionA>::x[0],
-      AnyValue<CollectionB>::x[0])) ResultType;
+  typedef decltype(std::declval<Function>()(std::declval<CollectionA>()[0],
+      std::declval<CollectionB>()[0])) ResultType;
 
   Mapped2(Function f, const CollectionA &A, const CollectionB &B) :
     _f(f), _A(A), _B(B) {
@@ -205,8 +198,8 @@ auto reduce(Init init, Collection X, Function f) -> decltype(f(init, X[0])) {
 }
 
 template <typename ArrayOfArrays>
-auto concat(ArrayOfArrays arrayOfArrays) -> Array<decltype(copyOf(AnyValue<ArrayOfArrays>::x[0][0]))> {
-  typedef decltype(copyOf(AnyValue<ArrayOfArrays>::x[0][0])) ElementType;
+auto concat(ArrayOfArrays arrayOfArrays) -> Array<decltype(copyOf(std::declval<ArrayOfArrays>()[0][0]))> {
+  typedef decltype(copyOf(std::declval<ArrayOfArrays>()[0][0])) ElementType;
   int elementCount = 0;
   for (auto array: arrayOfArrays) {
     elementCount += array.size();
