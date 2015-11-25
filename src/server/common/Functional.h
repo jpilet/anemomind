@@ -110,9 +110,6 @@ template <typename Function, typename Collection>
 class Mapped : public MappedBase<Mapped<Function, Collection>,
   typename UnaryMapping<Function, Collection>::ResultType> {
  public:
-  typedef Mapped<Function, Collection> ThisType;
-
-
   Mapped(Function f, const Collection &A) :
     _f(f), _A(A) {
   }
@@ -121,6 +118,9 @@ class Mapped : public MappedBase<Mapped<Function, Collection>,
     return _A.size();
   }
 
+  // The ResultType is also typedef'ed in
+  // MappedBase, but doesn't seem to be visible here
+  // for some reason.
   typename UnaryMapping<Function, Collection>::ResultType
     operator[] (int index) const {
     return _f(_A[index]);
@@ -154,8 +154,6 @@ template <typename Function, typename CollectionA, typename CollectionB>
 class Mapped2 : public MappedBase<Mapped2<Function, CollectionA, CollectionB>,
   typename BinaryMapping<Function, CollectionA, CollectionB>::ResultType> {
  public:
-  typedef Mapped2<Function, CollectionA, CollectionB> ThisType;
-
   Mapped2(Function f, const CollectionA &A, const CollectionB &B) :
     _f(f), _A(A), _B(B) {
     assert(A.size() == B.size());
@@ -165,7 +163,8 @@ class Mapped2 : public MappedBase<Mapped2<Function, CollectionA, CollectionB>,
     return _A.size();
   }
 
-  typename BinaryMapping<Function, CollectionA, CollectionB>::ResultType operator[] (int index) const {
+  typename BinaryMapping<Function, CollectionA, CollectionB>::ResultType
+    operator[] (int index) const {
     return _f(_A[index], _B[index]);
   }
  private:
