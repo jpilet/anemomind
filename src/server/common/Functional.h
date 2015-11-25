@@ -44,25 +44,6 @@ class ArrayIterator {
   }
 };
 
-// TEMPORARY SOLUTION: Once we switch to variadic templates, we won't need this.
-#define ADD_METHODS_FOR_MAPPED \
-    operator Array<ResultType>() const { \
-      return toArray(); \
-    } \
-    Array<ResultType> toArray() const { \
-      return sail::toArray(*this); \
-    } \
-    ArrayIterator<ThisType> begin() const { \
-      return ArrayIterator<ThisType>(*this, 0); \
-    } \
-    ArrayIterator<ThisType> end() const { \
-      return ArrayIterator<ThisType>(*this, 0); \
-    } \
-    template <typename AnotherFunctionType> \
-    auto map(AnotherFunctionType f) -> decltype(sail::map(*this, f)) { \
-      return sail::map(*this, f); \
-    }
-
 // To make a reference into a value.
 template <typename T>
 constexpr T copyOf(T x) {
@@ -79,18 +60,58 @@ auto toArray(const Collection &c) -> Array<decltype(c[0])> {
   return dst;
 }
 
-
-
 template <typename Function, typename Collection>
 class Mapped;
+
+
 template <typename Function, typename Collection>
 Mapped<Function, Collection> map(Collection X, Function f);
 
+
+template <typename TType, typename RType>
+class MappedBase {
+ public:
+  typedef TType ThisType;
+  typedef RType ResultType;
+
+  Array<ResultType> toArray() const {
+    return sail::toArray(*static_cast<const ThisType*>(this));
+  }
+
+  operator Array<ResultType>() const {
+    return toArray();
+  }
+
+  ArrayIterator<ThisType> begin() const {
+    return ArrayIterator<ThisType>(*static_cast<const ThisType*>(this), 0);
+  }
+
+  ArrayIterator<ThisType> end() const {
+    return ArrayIterator<ThisType>(*static_cast<const ThisType*>(this), 0);
+  }
+
+  ResultType operator[](int index) const {
+    return (*static_cast<const ThisType*>(this))[index];
+  }
+
+  template <typename AnotherFunctionType> \
+  auto map(AnotherFunctionType f) -> decltype(sail::map(*static_cast<const ThisType*>(this), f)) {
+    return sail::map(*static_cast<const ThisType*>(this), f);
+  }
+};
+
 template <typename Function, typename Collection>
-class Mapped {
+struct UnaryMapping {
+  typedef decltype(std::declval<Function>()(std::declval<Collection>()[0])) ResultType;
+};
+
+
+template <typename Function, typename Collection>
+class Mapped : public MappedBase<Mapped<Function, Collection>,
+  typename UnaryMapping<Function, Collection>::ResultType> {
  public:
   typedef Mapped<Function, Collection> ThisType;
-  typedef decltype(std::declval<Function>()(std::declval<Collection>()[0])) ResultType;
+
 
   Mapped(Function f, const Collection &A) :
     _f(f), _A(A) {
@@ -100,14 +121,11 @@ class Mapped {
     return _A.size();
   }
 
-  ResultType operator[] (int index) const {
+  typename UnaryMapping<Function, Collection>::ResultType
+    operator[] (int index) const {
     return _f(_A[index]);
   }
-
-  ADD_METHODS_FOR_MAPPED
  private:
-
-
   Function _f;
   Collection _A;
 };
@@ -123,15 +141,20 @@ Mapped<Function, Collection> map(Collection X, Function f) {
   return Mapped<Function, Collection>(f, X);
 }
 
+template <typename Function, typename CollectionA, typename CollectionB>
+struct BinaryMapping {
+  typedef decltype(std::declval<Function>()(std::declval<CollectionA>()[0],
+        std::declval<CollectionB>()[0])) ResultType;
+};
+
 // TODO: Use parameter packs (variadic templates) to support any number of collections.
 // But this feature doesn't seem to be completely implemented in some compilers :-(
 // See http://stackoverflow.com/a/22569362
 template <typename Function, typename CollectionA, typename CollectionB>
-class Mapped2 {
+class Mapped2 : public MappedBase<Mapped2<Function, CollectionA, CollectionB>,
+  typename BinaryMapping<Function, CollectionA, CollectionB>::ResultType> {
  public:
   typedef Mapped2<Function, CollectionA, CollectionB> ThisType;
-  typedef decltype(std::declval<Function>()(std::declval<CollectionA>()[0],
-      std::declval<CollectionB>()[0])) ResultType;
 
   Mapped2(Function f, const CollectionA &A, const CollectionB &B) :
     _f(f), _A(A), _B(B) {
@@ -142,11 +165,9 @@ class Mapped2 {
     return _A.size();
   }
 
-  ResultType operator[] (int index) const {
+  typename BinaryMapping<Function, CollectionA, CollectionB>::ResultType operator[] (int index) const {
     return _f(_A[index], _B[index]);
   }
-
-  ADD_METHODS_FOR_MAPPED
  private:
   Function _f;
   CollectionA _A;

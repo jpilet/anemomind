@@ -34,8 +34,9 @@ TEST(FunctionalTest, Map) {
   EXPECT_EQ(concat(Array<Arrayi>{Arrayi{0, 1, 2}, Arrayi{3, 4, 5}}),
       (Arrayi{0, 1, 2, 3, 4, 5}));
 
-  auto forthAndBack = map(Spani(0, 5), [](double x) {return x*x;})
-    .map([](double x) {return int(round(sqrt(x)));}).toArray();
+  auto k = map(Spani(0, 5), [](double x) {return x*x;})
+    .map([](double x) {return int(round(sqrt(x)));});
+  auto forthAndBack = k.toArray();
   EXPECT_EQ(forthAndBack, (Arrayi{0, 1, 2, 3, 4}));
 }
 
