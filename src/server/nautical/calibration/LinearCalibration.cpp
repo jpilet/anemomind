@@ -43,9 +43,9 @@ LinearCorrector::LinearCorrector(const FlowSettings &flowSettings,
     _flowSettings(flowSettings), _windParams(windParams), _currentParams(currentParams) {}
 
 Array<CalibratedNav<double> > LinearCorrector::operator()(const Array<Nav> &navs) const {
-  return map([&](const Nav &x) {
+  return map(navs, [&](const Nav &x) {
     return (*this)(x);
-  }, navs).toArray();
+  }).toArray();
 }
 
 arma::mat asMatrix(const MDArray2d &x) {
@@ -111,18 +111,18 @@ Array<Arrayi> makeRandomSplit(int sampleCount0, int splitCount, RandomEngine *rn
   for (int i = 0; i < n; i++) {
     splits[inds[i]].add(i);
   }
-  return map([=](ArrayBuilder<int> b) {
+  return map(splits, [=](ArrayBuilder<int> b) {
     return b.get();
-  }, splits).toArray();
+  }).toArray();
 }
 
 Array<Spani> makeContiguousSpans(int sampleCount, int splitSize) {
   int splitCount = sampleCount/splitSize;
-  return map([&](int index) {
+  return map(Spani(0, splitCount), [&](int index) {
     int from = index*splitSize;
     int to = from + splitSize;
     return Spani(from, to);
-  }, Spani(0, splitCount)).toArray();
+  }).toArray();
 }
 
 
@@ -132,9 +132,9 @@ Array<Spani> makeOverlappingSpans(int sampleCount, int splitSize, double relStep
   int count = lastIndex+1;
   LineKM from(0, count-1, 0.0, sampleCount - splitSize);
   LineKM to(0, count-1, splitSize, sampleCount);
-  return map([=](int i) {
+  return map(Spani(0, count), [=](int i) {
     return Spani(int(round(from(i))), int(round(to(i))));
-  }, Spani(0, count)).toArray();
+  }).toArray();
 }
 
 
@@ -198,8 +198,7 @@ namespace {
   };
 
   int countObservations(Array<Spani> spans) {
-    return reduce([](int a, int b) {return a + b;},
-        map([](Spani x) {return x.width();}, spans));
+    return reduce(map(spans, [](Spani x) {return x.width();}), [](int a, int b) {return a + b;});
   }
 
   FitData makeConstantFlowFit(
@@ -236,9 +235,9 @@ namespace {
 
   irls::WeightingStrategy::Ptr makeBinaryConstraints(Array<FitData> src) {
     int n = src.size();
-    auto constraints = toArray(map([&](const FitData &x) {
+    auto constraints = toArray(map(src, [&](const FitData &x) {
       return x.cst;
-    }, src));
+    }));
     return irls::WeightingStrategyArray<irls::BinaryConstraintGroup>::make(constraints);
   }
 
@@ -304,7 +303,7 @@ LocallyConstantResults optimizeLocallyConstantFlows(
   auto paramCols = cols.make(Atrajectory.cols(), 1);
   std::vector<Triplet> triplets;
   VectorBuilder Bbuilder;
-  Array<FitData> data = map([&](Spani span) {
+  Array<FitData> data = map(spans, [&](Spani span) {
     Spani span2 = 2*span;
     auto dataRows = rows.make(span.width(), 2);
     auto dataSlackRows = rows.make(span.width(), 2);
@@ -320,7 +319,7 @@ LocallyConstantResults optimizeLocallyConstantFlows(
             dataRows, dataSlackRows, outlierRows, outlierSlackRows,
             paramCols, trueFlowCols, dataSlackCols, outlierSlackCols,
             &triplets, &Bbuilder);
-  }, spans).toArray();
+  }).toArray();
   auto cst = makeBinaryConstraints(data);
   auto A = makeSparseMatrix(rows.count(), cols.count(), triplets);
   auto B = Bbuilder.make(rows.count());
@@ -449,12 +448,12 @@ Arrayd computeNorms(const Eigen::VectorXd &X, int dim) {
 Arrayd computeWeightsFromGps(Eigen::MatrixXd B, int dim) {
   int n = B.rows()/dim;
   CHECK(dim*n == B.rows());
-  auto norms = map([=](int index) {
+  auto norms = map(Spani(0, n), [=](int index) {
     int offset = dim*index;
     return EigenUtils::sliceRows(B, offset, offset + dim).norm();
-  }, Spani(0, n));
-  double mean = (1.0/n)*reduce([](double a, double b) {return a + b;}, norms);
-  return map([&](double x) {return x - mean;}, norms).toArray();
+  });
+  double mean = (1.0/n)*reduce(norms, [](double a, double b) {return a + b;});
+  return map(norms, [&](double x) {return x - mean;}).toArray();
 }
 
 void CovResults::plot() const {
@@ -462,7 +461,7 @@ void CovResults::plot() const {
   auto flowReg = computeNorms(A*X + B, 2);
 
   auto inliers = inlierMask;
-  auto outliers = sail::map([](bool x) {return !x;}, inliers).toArray();
+  auto outliers = sail::map(inliers, [](bool x) {return !x;}).toArray();
 
   GnuplotExtra plot;
   plot.setEqualAxes();
@@ -472,8 +471,7 @@ void CovResults::plot() const {
 }
 
 Arrayd differentiate(Arrayd X) {
-  return map([](double a, double b) {return a - b;},
-      X.sliceFrom(1), X.sliceBut(1)).toArray();
+  return map(X.sliceFrom(1), X.sliceBut(1), [](double a, double b) {return a - b;}).toArray();
 }
 
 
@@ -793,11 +791,11 @@ Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim) {
 
 Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
     Array<Arrayi> splits) {
-  return map([=](Arrayi split) {
+  return map(splits, [=](Arrayi split) {
     auto q = integrateFlowData(extractRows(Q, split, 2));
     auto b = integrateFlowData(extractRows(B, split, 2));
     return FlowFiber{q, b};
-  }, splits).toArray();
+  }).toArray();
 }
 
 Array<FlowFiber> computeFiberMeans(Array<FlowFiber> rawFibers, int dstCount) {

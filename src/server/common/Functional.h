@@ -125,10 +125,6 @@ class Mapped {
   operator Array<ResultType>() const {
     return toArray();
   }
-
-  Array<ResultType> toArray() const {
-    return sail::toArray(*this);
-  }
  private:
   int _size;
   std::function<ResultType(int)> _f;
