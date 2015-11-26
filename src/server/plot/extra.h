@@ -19,11 +19,13 @@ class GnuplotExtra : public Gnuplot {
   struct Settings {
     // http://gnuplot.sourceforge.net/docs_4.2/node237.html
     std::string color = "blue";
-    int lineWidth = 1;
 
     // http://stelweb.asu.cas.cz/~nemeth/work/stuff/gnuplot/gnuplot-line-and-point-types-bw.png
+    int lineType = 1;
     int pointType = 1;
 
+    // Size
+    int lineWidth = 1;
     int pointSize = 1;
   };
 
