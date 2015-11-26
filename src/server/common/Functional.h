@@ -118,7 +118,7 @@ class Mapped {
   }
 
   template <typename Function>
-  auto map(Function f) const -> decltype(sail::map(*this, f)) {
+  auto map(Function f) const -> Mapped<decltype(f(std::declval<ResultType>()))> {
     return sail::map(*this, f);
   }
 
