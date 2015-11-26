@@ -30,35 +30,35 @@ namespace {
   }
 
   Array<Duration<double> > getTimes(Array<Nav> navs, TimeStamp offset) {
-    return toArray(map([=](const Nav &nav) {
+    return toArray(map(navs, [=](const Nav &nav) {
       return nav.time() - offset;
-    }, navs));
+    }));
   }
 }
 
 namespace {
   Arrayd toDouble(Array<Angle<double> > X) {
-    return toArray(map([&](Angle<double> x) {
+    return toArray(map(X, [&](Angle<double> x) {
       return x.degrees();
-    }, X));
+    }));
   }
 
   Arrayd toDouble(Array<Velocity<double> > X) {
-    return toArray(map([&](Velocity<double> x) {
+    return toArray(map(X, [&](Velocity<double> x) {
       return x.knots();
-    }, X));
+    }));
   }
 
   Array<Angle<double> > toAngles(Arrayd X) {
-    return toArray(map([&](double x) {
+    return toArray(map(X, [&](double x) {
       return Angle<double>::degrees(x);
-    }, X));
+    }));
   }
 
   Array<Velocity<double> > toVelocities(Arrayd X) {
-    return toArray(map([&](double x) {
+    return toArray(map(X, [&](double x) {
       return Velocity<double>::knots(x);
-    }, X));
+    }));
   }
 
   UniformSamples<Angle<double> > toAngles(UniformSamplesd X) {
@@ -112,10 +112,10 @@ FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
       SCOPEDMESSAGE(INFO, stringFormat("Number of navs: %d", navs.size()));
       _timeOffset = navs[0].time();
       Array<Duration<double> > times = getTimes(navs, _timeOffset);
-      Arrayd timesSeconds = toArray(map(
+      Arrayd timesSeconds = toArray(map(times,
           [&](Duration<double> t) {
             return t.seconds();
-          }, times));
+          }));
       SCOPEDMESSAGE(INFO, "Get the raw data");
       Array<Angle<double> > magHdg = cleanContinuousAngles(getMagHdg(navs));
       SCOPEDMESSAGE(INFO, "Done mag hdg");
@@ -268,7 +268,8 @@ Array<Duration<double> > FilteredNavData::timesSinceOffset() const {
 }
 
 Array<FilteredNavData::Indexed> FilteredNavData::makeIndexedInstrumentAbstractions() const {
-  return toArray(map([&](int i) {return makeIndexedInstrumentAbstraction(i);}, Spani(0, size())));
+  return toArray(map(Spani(0, size()),
+      [&](int i) {return makeIndexedInstrumentAbstraction(i);}));
 }
 
 

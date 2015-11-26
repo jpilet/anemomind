@@ -29,9 +29,9 @@ Duration<double> getRawTime(const Nav &n) {
 }
 
 Arrayd getSeconds(Array<Nav> navs) {
-  return toArray(sail::map([&](const Nav &x) {
+  return toArray(sail::map(navs, [&](const Nav &x) {
     return getRawTime(x).seconds();
-  }, navs));
+  }));
 }
 
 namespace {
@@ -41,18 +41,19 @@ namespace {
   DataExtractor
     makeAngleExtractor(std::function<Angle<double>(Nav)> f) {
     return [=](Array<Nav> navs) {
-      return toArray(sail::map([](Angle<double> x) {
+      return toArray(sail::map(cleanContinuousAngles(toArray(sail::map(navs, f))),
+       [](Angle<double> x) {
         return x.degrees();
-      }, cleanContinuousAngles(toArray(sail::map(f, navs)))));
+      }));
     };
   }
 
   DataExtractor
     makeSpeedExtractor(std::function<Velocity<double>(Nav)> f) {
     return [=](Array<Nav> navs) {
-      return toArray(sail::map([=](const Nav &x) {
+      return toArray(sail::map(navs, [=](const Nav &x) {
         return f(x).knots();
-      }, navs));
+      }));
     };
   }
 
@@ -90,9 +91,9 @@ namespace {
 
 
 Array<Poco::Path> getPaths(ArgMap &amap) {
-  return toArray(sail::map([=](ArgMap::Arg* arg) {
+  return toArray(sail::map(amap.optionArgs("--dir"), [=](ArgMap::Arg* arg) {
     return PathBuilder::makeDirectory(arg->value()).get();
-  }, amap.optionArgs("--dir")));
+  }));
 }
 
 int selectFromAlternatives(Array<std::string> alternatives) {

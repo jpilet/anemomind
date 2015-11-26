@@ -14,18 +14,29 @@ TEST(FunctionalTest, Map) {
   Arrayd X{1, 2, 3, 4, 5};
   auto negate = [](double x) {return -x;};
   auto odd = [](int i) {return i % 2;};
-  auto Xneg = map(negate, X);
-  auto Xneg2 = map(negate, Spani(1, 6));
+  auto Xneg = map(X, negate);
+  auto Xneg2 = map(Spani(1, 6), negate);
   EXPECT_EQ(toArray(Xneg), (Arrayd{-1, -2, -3, -4, -5}));
   EXPECT_EQ(toArray(Xneg2), (Arrayd{-1, -2, -3, -4, -5}));
-  EXPECT_EQ(filter(odd, Spani(1, 6)), (Arrayi{1, 3, 5}));
-  auto sum = reduce([](int a, int b) {return a + b;}, (Arrayi{1, 2, 3, 4}));
+  EXPECT_EQ(filter(Spani(1, 6), odd), (Arrayi{1, 3, 5}));
+  auto sum = reduce((Arrayi{1, 2, 3, 4}), [](int a, int b) {return a + b;});
   EXPECT_EQ(sum, 10);
-  auto sum2 = reduce([](int a, int b) {return a + b;}, (Arrayi{1, 2, 3, 4}), 1000);
+  auto sum2 = reduce(1000, (Arrayi{1, 2, 3, 4}), [](int a, int b) {return a + b;});
   EXPECT_EQ(sum2, 1010);
 
-  auto result = map([](double a, double b) {return a + b;},
-      map([](double x) {return 1000*x;}, Spani(1, 6)), Spani(1, 6));
-  EXPECT_EQ(toArray(result), (Arrayd{1001, 2002, 3003, 4004, 5005}));
+  auto result = map(Spani(1, 6),
+                    map(Spani(1, 6),
+                        [](double x) {return 1000*x;}),
+                    [](double a, double b) {return a + b;});
+  Arrayd A = toArray(result);
+  Arrayd B{1001, 2002, 3003, 4004, 5005};
+  EXPECT_EQ(A, B);
+  EXPECT_EQ(concat(Array<Arrayi>{Arrayi{0, 1, 2}, Arrayi{3, 4, 5}}),
+      (Arrayi{0, 1, 2, 3, 4, 5}));
+
+  auto k = map(Spani(0, 5), [](double x) {return x*x;})
+    .map([](double x) {return int(round(sqrt(x)));});
+  auto forthAndBack = k.toArray();
+  EXPECT_EQ(forthAndBack, (Arrayi{0, 1, 2, 3, 4}));
 }
 

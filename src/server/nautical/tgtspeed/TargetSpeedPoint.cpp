@@ -52,18 +52,18 @@ Array<ValueWithStability<T> > computeValuesWithStability(Array<T> values) {
 
 
 Array<Velocity<double> > getBoatSpeeds(Array<TargetSpeedPoint> x) {
-  return toArray(map([&](const TargetSpeedPoint &x) {return x.boatSpeed();}, x));
+  return toArray(map(x, [&](const TargetSpeedPoint &x) {return x.boatSpeed();}));
 }
 Array<Velocity<double> > getWindSpeeds(Array<TargetSpeedPoint> x) {
-  return toArray(map([&](const TargetSpeedPoint &x) {return x.windSpeed();}, x));
+  return toArray(map(x, [&](const TargetSpeedPoint &x) {return x.windSpeed();}));
 }
 
 Array<Angle<double> > getWindAngles(Array<TargetSpeedPoint> x) {
-  return toArray(map([&](const TargetSpeedPoint &x) {return x.windAngle();}, x));
+  return toArray(map(x, [&](const TargetSpeedPoint &x) {return x.windAngle();}));
 }
 
 Array<double> getStabilities(Array<TargetSpeedPoint> x) {
-  return toArray(map([&] (const TargetSpeedPoint &x) {return x.stability()();}, x));
+  return toArray(map(x, [&] (const TargetSpeedPoint &x) {return x.stability()();}));
 }
 
 Array<TargetSpeedPoint> computeStabilities(Array<TargetSpeedPoint> src) {

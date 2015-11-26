@@ -57,11 +57,11 @@ Array<Angle<double> > cleanContinuousAngles(Array<Angle<double> > allAngles) {
     }
   }
   assert(counter == contAngles.size());
-  Arrayd degs = toArray(map([](Angle<double> x) {return x.degrees();}, clean));
+  Arrayd degs = toArray(map(clean, [](Angle<double> x) {return x.degrees();}));
   Arrayd cleaned = cleanNumArray(degs);
   assert(!degs.empty());
   assert(!cleaned.empty());
-  return toArray(map([=](double x) {return Angle<double>::degrees(x);}, cleaned));
+  return toArray(map(cleaned, [=](double x) {return Angle<double>::degrees(x);}));
 }
 
 }

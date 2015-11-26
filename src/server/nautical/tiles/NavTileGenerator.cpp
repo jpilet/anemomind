@@ -63,10 +63,10 @@ std::string TileKey::stringKey() const {
 Array<Array<Nav>> generateTiles(TileKey tileKey,
                                 const Array<Nav>& navs,
                                 int maxNumNavs) {
-  Array<bool> inOrOut = toArray(map(
+  Array<bool> inOrOut = toArray(map(navs,
       [&] (const Nav& nav) -> bool {
           return tileKey.contains(nav.geographicPosition());
-      }, navs));
+      }));
   ArrayBuilder<Array<Nav>> result;
 
   // The curve might enter and leave the tile multiple times.

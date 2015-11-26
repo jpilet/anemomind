@@ -25,11 +25,11 @@ struct ExportSettings {
 };
 
 Array<Nav> loadNavsFromArgs(Array<ArgMap::Arg*> args) {
-  auto allNavs = sail::map([&](ArgMap::Arg *arg) {
+  auto allNavs = sail::map(args, [&](ArgMap::Arg *arg) {
     auto p = arg->value();
     LOG(INFO) << "Load navs from " << p;
     return scanNmeaFolder(p, Nav::debuggingBoatId());
-  }, args).toArray();
+  });
   return concat(allNavs);
 }
 

@@ -67,7 +67,8 @@ namespace {
   }
 
   Angle<double> getMedianAbsValue(Array<Angle<double> > difs0) {
-    Array<Angle<double> > difs = toArray(sail::map([&](Angle<double> x) {return fabs(x);}, difs0));
+    Array<Angle<double> > difs = toArray(sail::map(difs0, [&](Angle<double> x) {
+      return fabs(x);}));
     std::sort(difs.begin(), difs.end());
     return difs[difs.size()/2];
   }

@@ -108,7 +108,7 @@ TargetSpeedParam::SubReg TargetSpeedParam::SubReg::nextOrder(int steps) const {
 
 
 Array<TargetSpeedParam::SubReg> TargetSpeedParam::makeRadialSubRegs() const {
-  return toArray(map(
+  return toArray(map(Spani(1, _totalAngleCount),
       [&](int angleIndex) {
     int difCount = _totalRadiusCount - 1;
     arma::mat A = arma::zeros(difCount, _totalRadiusCount);
@@ -118,26 +118,26 @@ Array<TargetSpeedParam::SubReg> TargetSpeedParam::makeRadialSubRegs() const {
       A(i, i+1) = -w;
     }
 
-    return SubReg{toArray(map([&](int radiusIndex) {
+    return SubReg{toArray(map(Spani(0, _totalRadiusCount), [&](int radiusIndex) {
       return calcVertexIndex(angleIndex, radiusIndex);
-    }, Spani(0, _totalRadiusCount))), A};
-  }, Spani(1, _totalAngleCount)));
+    })), A};
+  }));
 }
 
 
 
 Array<TargetSpeedParam::SubReg> TargetSpeedParam::makeAngularSubRegs() const {
-  return toArray(map([&](int radiusIndex) {
+  return toArray(map(Spani(1, _totalRadiusCount), [&](int radiusIndex) {
       double w = 1.0/radiusIndexToWindSpeed(double(radiusIndex)).knots();
       arma::mat A = arma::zeros(_totalAngleCount, _totalAngleCount+1);
       for (int i = 0; i < _totalAngleCount; i++) {
         A(i, i) = w;
         A(i, i+1) = -w;
       }
-      return SubReg{toArray(map([&](int angleIndex) {
+      return SubReg{toArray(map(Spani(0, _totalAngleCount+1), [&](int angleIndex) {
         return calcVertexIndex(angleIndex, radiusIndex);
-      }, Spani(0, _totalAngleCount+1))), A};
-  }, Spani(1, _totalRadiusCount)));
+      })), A};
+  }));
 }
 
 void accumulateReg(arma::mat *dstPtr, TargetSpeedParam::SubReg reg) {

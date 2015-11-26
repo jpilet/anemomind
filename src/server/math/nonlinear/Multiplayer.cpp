@@ -58,7 +58,7 @@ namespace {
 
 namespace {
   Arrayd mapStatesToX(Array<StepMinimizerState> states) {
-    return toArray(map([&](StepMinimizerState x) {return x.getX();}, states));
+    return toArray(map(states, [&](StepMinimizerState x) {return x.getX();}));
   }
 }
 
@@ -101,7 +101,7 @@ Arrayd optimizeMultiplayer(const StepMinimizer &minimizerIn,
   }
   Array<StepMinimizerState> states = makeInitialStates(objfs, X, initStepSizes);
   optimizeMultiplayerSub(minimizer, objfs, &states);
-  return toArray(map([&](StepMinimizerState x) {return x.getX();}, states));
+  return toArray(map(states, [&](StepMinimizerState x) {return x.getX();}));
 }
 
 } /* namespace sail */

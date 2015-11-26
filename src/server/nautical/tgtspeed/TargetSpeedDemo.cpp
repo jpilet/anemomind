@@ -48,10 +48,10 @@ namespace {
 
   Array<TargetSpeedPoint> getPolarNavData(Corrector<double> corr, FilteredNavData fdata) {
     return
-        filter([&](const TargetSpeedPoint &x) {return x.defined();},
-            sail::map([&](const FilteredNavData::Indexed &x) {
+        filter(
+            sail::map(fdata.makeIndexedInstrumentAbstractions(), [&](const FilteredNavData::Indexed &x) {
       return TargetSpeedPoint(corr.correct(x));
-    }, fdata.makeIndexedInstrumentAbstractions()));
+    }), [&](const TargetSpeedPoint &x) {return x.defined();});
   }
 
   struct Settings {
@@ -86,10 +86,10 @@ namespace {
       double lambda = 10;
 
       Corrector<double> corr;
-      auto pnavs = toArray(sail::map([&](Spani span) {
+      auto pnavs = toArray(sail::map(spans, [&](Spani span) {
         std::cout << "Processing span " << span << std::endl;
         return getPolarNavData(corr, FilteredNavData(navs.slice(span.minv(), span.maxv()), lambda, FilteredNavData::NONE));
-      }, spans));
+      }));
       auto data2 = computeStabilities(concat(pnavs));
       saveRawArray(cacheFilename, data2);
       return data2;

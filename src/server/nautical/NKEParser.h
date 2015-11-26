@@ -109,21 +109,21 @@ class NKEArray {
   }
 
   Array<Angle<double> > angles() const {
-    return toArray(map([&](const std::string &x) {
+    return toArray(map(_values, [&](const std::string &x) {
       return _unit->toAngle(x);
-    }, _values));
+    }));
   }
 
   Array<Velocity<double> > velocities() const {
-    return toArray(map([&](const std::string &x) {
+    return toArray(map(_values, [&](const std::string &x) {
       return _unit->toVelocity(x);
-    }, _values));
+    }));
   }
 
   Array<Duration<double> > durations() const {
-    return toArray(map([&](const std::string &x) {
+    return toArray(map(_values, [&](const std::string &x) {
       return _unit->toDuration(x);
-    }, _values));
+    }));
   }
 
   std::shared_ptr<NKEUnit> unit() const {

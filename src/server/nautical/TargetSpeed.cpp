@@ -66,7 +66,7 @@ namespace {
   }
 
   Arrayi lookUp(Array<Velocity<double> > bounds, Array<Velocity<double> > tws) {
-    return toArray(map([&](Velocity<double> x) {return lookUp(bounds, x);}, tws));
+    return toArray(map(tws, [&](Velocity<double> x) {return lookUp(bounds, x);}));
   }
 
   Array<Array<Velocity<double> > > groupVmg(int binCount, Arrayi bins, Array<Velocity<double> > vmg) {
@@ -79,7 +79,7 @@ namespace {
       }
     }
     Array<Array<Velocity<double> > > groups = toArray(
-        map([=](ArrayBuilder<Velocity<double> > x) {return x.get();}, builders));
+        map(builders, [=](ArrayBuilder<Velocity<double> > x) {return x.get();}));
     for (int i = 0; i < binCount; i++) {
       std::sort(groups[i].begin(), groups[i].end());
     }
@@ -140,7 +140,7 @@ void TargetSpeed::plot() {
   plot.set_title((isUpwind? "Upwind" : "Downwind"));
   auto mapper = [](Velocity<double> x) {return x.knots();};
   for (int i = 0; i < medianValues.size(); i++) {
-    plot.plot_xy(map(mapper, binCenters), map(mapper, medianValues[i]), stringFormat("Quantile %.3g", quantiles[i]));
+    plot.plot_xy(map(binCenters, mapper), map(medianValues[i], mapper), stringFormat("Quantile %.3g", quantiles[i]));
   }
   plot.show();
 }
@@ -167,18 +167,18 @@ Arrayd TargetSpeed::makeDefaultQuantiles() {
 
 Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
   int sign = (isUpwind? 1 : -1);
-  return toArray(map([&](const Nav &n) {
+  return toArray(map(navs, [&](const Nav &n) {
     double factor = sign*cos(estimateRawTwa(n));
     return n.gpsSpeed().scaled(factor);
-  }, navs));
+  }));
 }
 
 Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind) {
   int sign = isUpwind? 1 : -1;
-  return toArray(map([&](const Nav &n) {
+  return toArray(map(navs, [&](const Nav &n) {
     double factor = sign*cos(n.externalTwa());
     return n.gpsSpeed().scaled(factor);
-  }, navs));
+  }));
 }
 
 
@@ -191,11 +191,11 @@ Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs) {
 }
 
 Array<Velocity<double> > estimateTws(Array<Nav> navs) {
-  return toArray(map([&](const Nav &n) {return estimateRawTws(n);}, navs));
+  return toArray(map(navs, [&](const Nav &n) {return estimateRawTws(n);}));
 }
 
 Array<Velocity<double> > estimateExternalTws(Array<Nav> navs) {
-  return toArray(map([&](const Nav &n) {return n.externalTws();}, navs));
+  return toArray(map(navs, [&](const Nav &n) {return n.externalTws();}));
 }
 
 

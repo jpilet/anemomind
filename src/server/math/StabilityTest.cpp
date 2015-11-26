@@ -31,9 +31,9 @@ double f2(double x) {
 }
 
 TEST(StabiliyTest, Test2) {
-  Arrayd X = toArray(map([&](int i) {return double(i);}, Spani(0, 500)));
-  Arrayd Y1 = toArray(map(f1, X));
-  Arrayd Y2 = toArray(map(f2, X));
+  Arrayd X = toArray(map(Spani(0, 500), [&](int i) {return double(i);}));
+  Arrayd Y1 = toArray(map(X, f1));
+  Arrayd Y2 = toArray(map(X, f2));
 
   auto pair1 = std::pair<Arrayd, Arrayd>(X, Y1);
   auto pair2 = std::pair<Arrayd, Arrayd>(X, Y2);

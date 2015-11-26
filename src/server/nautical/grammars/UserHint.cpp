@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <map>
 #include <server/common/Array.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -17,7 +18,7 @@ namespace {
     table[UserHint::RACE_START] = "race-start";
     table[UserHint::RACE_END] = "race-end";
 
-    assert(all(table.map<bool>([&](const std::string &x) {
+    assert(all(sail::map(table, [&](const std::string &x) {
       return !x.empty();
     })));
     return table;

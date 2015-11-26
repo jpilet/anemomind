@@ -64,7 +64,7 @@ NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluate
   int count = _states.size();
   Array<HorizontalMotion<double> > estWind(count), estCurrent(count);
   Spani span(0, count);
-  auto navs = toArray(map([&](int i) {return _states[i].nav();}, span));
+  auto navs = toArray(map(span, [&](int i) {return _states[i].nav();}));
   auto cnavs = corr(navs);
   for (auto i: span) {
     estWind[i] = cnavs[i].trueWindOverGround();
@@ -92,31 +92,31 @@ NavalSimulation::SimulatedCalibrationResults
 
 NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluateFitness(
     Array<CalibratedNav<double> > cnavs) const {
-    return evaluateFitness(map([&](const CalibratedNav<double> &x) {
+    return evaluateFitness(map(cnavs, [&](const CalibratedNav<double> &x) {
       return x.trueWindOverGround();
-    }, cnavs).toArray(), map([&] (const CalibratedNav<double> &x) {
+    }), map(cnavs, [&] (const CalibratedNav<double> &x) {
       return x.trueCurrentOverGround();
-    }, cnavs).toArray());
+    }));
 }
 
 
 
 Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueWindOverGround() const {
-  return map([=] (const CorruptedBoatState &s) {
+  return map(_states, [=] (const CorruptedBoatState &s) {
     return s.trueState().trueWind;
-  }, _states).toArray();
+  });
 }
 Array<HorizontalMotion<double> > NavalSimulation::BoatData::trueCurrentOverGround() const {
-  return map([=] (const CorruptedBoatState &s) {
+  return map(_states, [=] (const CorruptedBoatState &s) {
     return s.trueState().trueCurrent;
-  }, _states).toArray();
+  });
 }
 
 void NavalSimulation::BoatData::plot() const {
   BoatSim::makePlots(
-      map([=](const CorruptedBoatState &x) {
+      map(_states, [=](const CorruptedBoatState &x) {
         return x.trueState();
-      }, _states).toArray());
+      }));
 }
 
 

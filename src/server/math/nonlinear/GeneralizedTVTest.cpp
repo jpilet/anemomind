@@ -32,7 +32,7 @@ namespace {
 
   Arrayd addNoise(Arrayd Y, double noise, std::default_random_engine &engine) {
     std::uniform_real_distribution<double> distrib(-noise, noise);
-    return toArray(map([&](double x) {return x + distrib(engine);}, Y));
+    return toArray(map(Y, [&](double x) {return x + distrib(engine);}));
   }
 }
 

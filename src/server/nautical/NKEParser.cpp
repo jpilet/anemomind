@@ -401,9 +401,9 @@ NKEData::NKEData(TimeStamp offset, Arrayi typeIndices, Array<NKEArray> values) :
 }
 
 Array<TimeStamp> NKEData::timeStamps() const {
-  return toArray(map([&](const Duration<double> &d) {
+  return toArray(map(_values[0].durations(), [&](const Duration<double> &d) {
     return d + _offset;
-  }, _values[0].durations()));
+  }));
 }
 
 bool NKEData::hasAllFields(std::initializer_list<NKEType> types) {
