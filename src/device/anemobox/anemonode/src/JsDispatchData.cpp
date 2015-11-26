@@ -21,7 +21,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     auto values = angle->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
-      auto val = values[index_];
+      auto val = values.back(index_);
       value_ = NanNew(val.value.degrees());
       timestamp_ = val.time;
     }
@@ -30,7 +30,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     auto values = velocity->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
-      auto val = values[index_];
+      auto val = values.back(index_);
       value_ = NanNew(val.value.knots());
       timestamp_ = val.time;
     }
@@ -39,7 +39,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     auto values = velocity->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
-      auto val = values[index_];
+      auto val = values.back(index_);
       value_ = NanNew(val.value.nauticalMiles());
       timestamp_ = val.time;
     }
@@ -49,7 +49,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     auto values = pos->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
-      auto val = values[index_];
+      auto val = values.back(index_);
       Local<Object> obj = NanNew<Object>();
       obj->Set(NanNew("lon"), NanNew(val.value.lon().degrees()));
       obj->Set(NanNew("lat"), NanNew(val.value.lat().degrees()));
@@ -62,7 +62,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     auto values = dateTime->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
-      auto val = values[index_];
+      auto val = values.back(index_);
       value_ = NanNew<Date>(double(val.value.toMilliSecondsSince1970()));
       timestamp_ = val.time;
     }
@@ -72,7 +72,7 @@ class GetValueVisitor : public DispatchDataVisitor {
     auto values = orient->dispatcher()->values();
     valid_ = values.size() > index_;
     if (valid_) {
-      auto val = values[index_];
+      auto val = values.back(index_);
       Local<Object> obj = NanNew<Object>();
       obj->Set(NanNew("heading"), NanNew(val.value.heading.degrees()));
       obj->Set(NanNew("roll"), NanNew(val.value.roll.degrees()));

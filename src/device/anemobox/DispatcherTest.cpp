@@ -45,3 +45,21 @@ TEST(DispatcherTest, FreshTest) {
   sleep(instant);
   EXPECT_FALSE(dispatcher.get<AWA>()->isFresh(instant));
 }
+
+TEST(DispatcherTest, InsertValues) {
+  Dispatcher dispatcher;
+
+  TimedSampleCollection<Angle<double>>::TimedVector values;
+  values.push_back(TimedValue<Angle<>>(TimeStamp::now(),
+                                       Angle<>::degrees(17)));
+  values.push_back(TimedValue<Angle<>>(TimeStamp::now() + Duration<>::seconds(1),
+                                       Angle<>::degrees(18)));
+  values.push_back(TimedValue<Angle<>>(TimeStamp::now() + Duration<>::seconds(2),
+                                       Angle<>::degrees(16)));
+
+  dispatcher.insertValues<Angle<double>>(AWA, "batch source", values);
+
+  EXPECT_EQ(3, dispatcher.get<AWA>()->dispatcher()->values().size());
+  EXPECT_NEAR(16, dispatcher.val<AWA>().degrees(), 1e-6);
+}
+
