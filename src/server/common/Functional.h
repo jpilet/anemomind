@@ -60,125 +60,64 @@ auto toArray(const Collection &c) -> Array<decltype(c[0])> {
   return dst;
 }
 
-template <typename Function, typename Collection>
+template <typename First, typename... Rest>
+int getFirstSize(First f, Rest... rest) {
+  return f.size();
+}
+
+
+template <typename ResultType>
 class Mapped;
-
-
+template <typename Function, typename... Collections>
+auto vmap(Function f, Collections... colls) -> Mapped<decltype(f((colls[0])...))>;
 template <typename Function, typename Collection>
-Mapped<Function, Collection> map(Collection X, Function f);
+auto map(Collection X, Function f) -> decltype(vmap(f, X));
 
-
-template <typename TType, typename RType>
-class MappedBase {
+template <typename ResultType>
+class Mapped {
  public:
-  typedef TType ThisType;
-  typedef RType ResultType;
-
-  Array<ResultType> toArray() const {
-    return sail::toArray(*static_cast<const ThisType*>(this));
-  }
-
-  operator Array<ResultType>() const {
-    return toArray();
-  }
-
-  ArrayIterator<ThisType> begin() const {
-    return ArrayIterator<ThisType>(*static_cast<const ThisType*>(this), 0);
-  }
-
-  ArrayIterator<ThisType> end() const {
-    return ArrayIterator<ThisType>(*static_cast<const ThisType*>(this), 0);
-  }
-
-  ResultType operator[](int index) const {
-    return (*static_cast<const ThisType*>(this))[index];
-  }
-
-  template <typename AnotherFunctionType> \
-  auto map(AnotherFunctionType f) -> decltype(sail::map(*static_cast<const ThisType*>(this), f)) {
-    return sail::map(*static_cast<const ThisType*>(this), f);
-  }
-};
-
-template <typename Function, typename Collection>
-struct UnaryMapping {
-  typedef decltype(std::declval<Function>()(std::declval<Collection>()[0])) ResultType;
-};
-
-
-template <typename Function, typename Collection>
-class Mapped : public MappedBase<Mapped<Function, Collection>,
-  typename UnaryMapping<Function, Collection>::ResultType> {
- public:
-  Mapped(Function f, const Collection &A) :
-    _f(f), _A(A) {
-  }
+  Mapped(std::function<ResultType(int)> f, int size) : _f(f), _size(size) {}
 
   int size() const {
-    return _A.size();
+    return _size;
   }
 
-  // The ResultType is also typedef'ed in
-  // MappedBase, but doesn't seem to be visible here
-  // for some reason.
-  typename UnaryMapping<Function, Collection>::ResultType
-    operator[] (int index) const {
-    return _f(_A[index]);
+  ResultType operator[] (int index) const {
+    return _f(index);
+  }
+
+  auto toArray() const -> decltype(sail::toArray(*this)) {
+    return sail::toArray(*this);
+  }
+
+  template <typename Function>
+  auto map(Function f) const -> decltype(sail::map(*this, f)) {
+    return sail::map(*this, f);
   }
  private:
-  Function _f;
-  Collection _A;
+  int _size;
+  std::function<ResultType(int)> _f;
 };
 
-// Map
-// Returns an array like object, but not an Array.
-// This is to avoid silly allocations of temporary arrays
-// if we chain multiple calls to map, or if we reduce
-// just after calling map. If we want an Array, call
-// toArray implemented at the bottom of this file.
+template <typename Function, typename... Collections>
+auto vmap(Function f, Collections... colls) -> Mapped<decltype(f((colls[0])...))> {
+  auto indexedResults = [=](int index) {
+    return f((colls[index])...);
+  };
+  typedef decltype(indexedResults(0)) ResultType;
+  return Mapped<ResultType>(indexedResults, getFirstSize(colls...));
+}
+
+
 template <typename Function, typename Collection>
-Mapped<Function, Collection> map(Collection X, Function f) {
-  return Mapped<Function, Collection>(f, X);
+auto map(Collection X, Function f) -> decltype(vmap(f, X)) {
+  return vmap(f, X);
 }
 
 template <typename Function, typename CollectionA, typename CollectionB>
-struct BinaryMapping {
-  typedef decltype(std::declval<Function>()(std::declval<CollectionA>()[0],
-        std::declval<CollectionB>()[0])) ResultType;
-};
-
-// TODO: Use parameter packs (variadic templates) to support any number of collections.
-// But this feature doesn't seem to be completely implemented in some compilers :-(
-// See http://stackoverflow.com/a/22569362
-template <typename Function, typename CollectionA, typename CollectionB>
-class Mapped2 : public MappedBase<Mapped2<Function, CollectionA, CollectionB>,
-  typename BinaryMapping<Function, CollectionA, CollectionB>::ResultType> {
- public:
-  Mapped2(Function f, const CollectionA &A, const CollectionB &B) :
-    _f(f), _A(A), _B(B) {
-    assert(A.size() == B.size());
-  }
-
-  int size() const {
-    return _A.size();
-  }
-
-  typename BinaryMapping<Function, CollectionA, CollectionB>::ResultType
-    operator[] (int index) const {
-    return _f(_A[index], _B[index]);
-  }
- private:
-  Function _f;
-  CollectionA _A;
-  CollectionB _B;
-};
-
-template <typename Function, typename CollectionA, typename CollectionB>
-Mapped2<Function, CollectionA, CollectionB> map(
-    const CollectionA &X, const CollectionB &Y, Function f) {
-  return Mapped2<Function, CollectionA, CollectionB>(f, X, Y);
+auto map(CollectionA X, CollectionB Y, Function f) -> decltype(vmap(f, X, Y)) {
+  return vmap(f, X, Y);
 }
-
 
 // Filter
 template <typename Function, typename Collection>
