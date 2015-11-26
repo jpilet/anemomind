@@ -180,26 +180,6 @@ TEST(LinearCalibrationTest, Spans) {
   EXPECT_EQ(spans, (Array<Spani>{Spani(0, 4), Spani(4, 8)}));
 }
 
-TEST(LinearCalibrationTest, ConstantFlowTrajectory) {
-  std::vector<DataFit::Triplet> triplets;
-  auto rows = DataFit::CoordIndexer::Factory();
-  auto cols = DataFit::CoordIndexer::Factory();
-  auto flowRows = rows.make(3, 2);
-  auto flowCols = cols.make(2, 2);
-  makeConstantFlowTrajectoryMatrix(flowRows, flowCols, &triplets);
-  Eigen::SparseMatrix<double> A(rows.count(), cols.count());
-  A.setFromTriplets(triplets.begin(), triplets.end());
-  Eigen::MatrixXd A2 = Eigen::MatrixXd::Zero(6, 4);
-  for (int i = 0; i < 3; i++) {
-    int row = 2*i;
-    A2(row + 0, 0) = i;
-    A2(row + 1, 1) = i;
-    A2(row + 2, 0) = 1.0;
-    A2(row + 3, 1) = 1.0;
-  }
-  EXPECT_TRUE(eq(A.toDense(), A2));
-}
-
 void plotConstantFlows(Eigen::VectorXd B, int splitSize) {
   int n = getObservationCount(B);
   auto splits = makeContiguousSpans(n, splitSize);
