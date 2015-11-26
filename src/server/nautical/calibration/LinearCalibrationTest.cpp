@@ -384,10 +384,10 @@ TEST(LinearCalibrationTest, RealData) {
 
   Eigen::MatrixXd Bvelocities =
       Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
-/*
+
   Eigen::MatrixXd Atrajectory = integrateFlowData(Avelocities);
   Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
   //plotTemporalFlowVsGpsScatter(Atrajectory, Btrajectory);
-  solveCovariance(Atrajectory, Btrajectory);*/
+  solveCovariance(Atrajectory, Btrajectory);
 }

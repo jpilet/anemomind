@@ -67,7 +67,7 @@ void GnuplotExtra::setLineStyle(int index, std::string colorCode, int lineWidth)
 
 void GnuplotExtra::setLineStyle(int index, const Settings &s) {
   std::stringstream ss;
-  ss << "set style line " << index << " lt \"" << s.color
+  ss << "set style line " << index << " lt rgb \"" << s.color
       << "\" lw " << s.lineWidth << " pt " << s.pointType << " ps " << s.pointSize;
   cmd(ss.str());
 }

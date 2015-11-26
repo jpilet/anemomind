@@ -436,7 +436,7 @@ Eigen::MatrixXd applySecondOrderReg(const Eigen::MatrixXd &A, int step, int dim)
   return dst;
 }
 
-Arrayd computeNorms(const Eigen::VectorXd &X, int dim) {
+Arrayd computeNorms(const Eigen::VectorXd &X, int dim = 2) {
   auto rows = DataFit::CoordIndexer::Factory().makeFromSize(X.rows(), dim);
   Arrayd Y(rows.count());
   for (int i = 0; i < rows.count(); i++) {
@@ -485,11 +485,13 @@ Arrayd differentiate(Arrayd X, int depth) {
 
 
 void CovResults::plotDerivatives() const {
-  auto gpsReg = differentiate(computeNorms(B, 2), 1);
-  auto flowReg = differentiate(computeNorms(A*X + B, 1), 1);
+  auto gpsReg = differentiate(computeNorms(B), 1);
+  auto flowReg = differentiate(computeNorms(A*X + B), 1);
+
+  CHECK(gpsReg.size() == flowReg.size());
 
   GnuplotExtra::Settings settings;
-  settings.pointType = 9;
+  settings.pointType = 0;
 
 
   GnuplotExtra plot;
