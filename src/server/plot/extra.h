@@ -16,6 +16,12 @@ namespace sail {
 
 class GnuplotExtra : public Gnuplot {
  public:
+  /*
+   * Switch between lines and points using:
+   *  set_style("lines")
+   *  set_style("points")
+   */
+
   struct Settings {
     // http://gnuplot.sourceforge.net/docs_4.2/node237.html
     std::string color = "blue";
@@ -35,8 +41,7 @@ class GnuplotExtra : public Gnuplot {
   void plot(int dim, double *from, double *to, const std::string &title = "");
   void show();
 
-  void setLineStyle(int index, std::string colorCode, int lineWidth);
-  void setLineStyle(int index, const Settings &s);
+  void defineStyle(int index, const Settings &s);
 
   void setEqualAxes();
  private:

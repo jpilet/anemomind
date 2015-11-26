@@ -495,7 +495,7 @@ void CovResults::plotDerivatives() const {
 
 
   GnuplotExtra plot;
-  plot.setLineStyle(1, settings);
+  plot.defineStyle(1, settings);
   plot.set_current_line_style(1);
   plot.setEqualAxes();
   plot.plot_xy(flowReg, gpsReg);
@@ -750,12 +750,13 @@ Eigen::VectorXd FlowFiber::minimizeNorm() const {
 
 TrajectoryPlot::TrajectoryPlot() {
   _plot.set_style("lines");
-  _plot.setLineStyle(1, "red", 1);
-  _plot.setLineStyle(2, "green", 1);
-  _plot.setLineStyle(3, "blue", 1);
-  _plot.setLineStyle(4, "red", 2);
-  _plot.setLineStyle(5, "green", 2);
-  _plot.setLineStyle(6, "blue", 2);
+  std::string colors[3];
+  for (int i = 0; i < 6; i++) {
+    GnuplotExtra::Settings s;
+    s.color = colors[i % 3];
+    s.lineWidth = i/3 + 1;
+    _plot.defineStyle(i+1, s);
+  }
 }
 
 void TrajectoryPlot::plot(Eigen::VectorXd X, int lineType, bool thick) {
