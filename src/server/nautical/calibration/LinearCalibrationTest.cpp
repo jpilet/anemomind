@@ -369,29 +369,25 @@ void solveCovariance(Eigen::MatrixXd Atrajectory,
   std::cout << EXPR_AND_VAL_AS_STRING(results.X) << std::endl;
 }
 
-/*TEST(LinearCalibrationTest, RealData) {
-  bool DO = true;
+TEST(LinearCalibrationTest, RealData) {
+  auto navs = getTestDataset();
+  Duration<double> dif = navs.last().time() - navs.first().time();
 
-  if (DO) {
-    auto navs = getTestDataset();
-    Duration<double> dif = navs.last().time() - navs.first().time();
+  FlowSettings flowSettings;
+  auto trueWind = makeTrueWindMatrices(navs, flowSettings);
+  auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-    FlowSettings flowSettings;
-    auto trueWind = makeTrueWindMatrices(navs, flowSettings);
-    auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
+  auto flow = trueWind;
 
-    auto flow = trueWind;
+  Eigen::MatrixXd Avelocities =
+      Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
 
-    Eigen::MatrixXd Avelocities =
-        Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());
+  Eigen::MatrixXd Bvelocities =
+      Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
+/*
+  Eigen::MatrixXd Atrajectory = integrateFlowData(Avelocities);
+  Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
 
-    Eigen::MatrixXd Bvelocities =
-        Eigen::Map<Eigen::MatrixXd>(flow.B.ptr(), flow.rows(), 1);
-
-    Eigen::MatrixXd Atrajectory = integrateFlowData(Avelocities);
-    Eigen::MatrixXd Btrajectory = integrateFlowData(Bvelocities);
-
-    //plotTemporalFlowVsGpsScatter(Atrajectory, Btrajectory);
-    solveCovariance(Atrajectory, Btrajectory);
-  }
-}*/
+  //plotTemporalFlowVsGpsScatter(Atrajectory, Btrajectory);
+  solveCovariance(Atrajectory, Btrajectory);*/
+}
