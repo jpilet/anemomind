@@ -492,7 +492,7 @@ void CovResults::plotDerivatives() const {
 
   GnuplotExtra::Settings settings;
   settings.pointType = 0;
-
+  settings.pointSize = 1;
 
   GnuplotExtra plot;
   plot.defineStyle(1, settings);

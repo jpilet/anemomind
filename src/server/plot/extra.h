@@ -32,7 +32,7 @@ class GnuplotExtra : public Gnuplot {
 
     // Size
     int lineWidth = 1;
-    int pointSize = 1;
+    double pointSize = 1;
   };
 
   GnuplotExtra();
