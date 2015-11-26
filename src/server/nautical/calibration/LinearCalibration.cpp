@@ -507,7 +507,7 @@ CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
                                CovSettings settings) {
   auto Areg = applySecondOrderReg(Atrajectory, settings.regStep, 2);
   auto Breg = applySecondOrderReg(Btrajectory, settings.regStep, 2);
-  /*auto weights = computeWeightsFromGps(Breg, 2);
+  auto weights = computeWeightsFromGps(Breg, 2);
   int regCount = Areg.rows()/2;
   CHECK(regCount == weights.size());
   auto rows = DataFit::CoordIndexer::Factory();
@@ -556,11 +556,6 @@ CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
     Breg,
     EigenUtils::sliceRows(results.X, paramCols.elementSpan()),
     inlierMask
-  };*/
-  Eigen::VectorXd X = Eigen::VectorXd::Zero(Areg.cols());
-  X(0) = 1.0;
-  return CovResults{
-    Areg, Breg, X, Arrayb()
   };
 }
 
