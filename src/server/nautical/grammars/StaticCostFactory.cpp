@@ -8,6 +8,7 @@
 #include <server/common/Hierarchy.h>
 #include <server/common/string.h>
 #include <iostream>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -35,7 +36,7 @@ StaticCostFactory::StaticCostFactory(const Hierarchy &h) {
     Arrayi allTerminals = Arrayi::fill(n, -1);
     _terminalsPerNode = Array<Arrayi>(n);
     terminalCount = listTerminalsPerNode(h.rootNode(), h, 0, _terminalsPerNode, allTerminals);
-    assert(all(_terminalsPerNode.map<bool>([&](const Arrayi &x) {
+    assert(all(sail::map(_terminalsPerNode, [&](const Arrayi &x) {
       return x.hasData();
     })));
   }
