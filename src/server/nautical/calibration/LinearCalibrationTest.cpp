@@ -369,7 +369,7 @@ void solveCovariance(Eigen::MatrixXd Atrajectory,
   std::cout << EXPR_AND_VAL_AS_STRING(results.X) << std::endl;
 }
 
-TEST(LinearCalibrationTest, RealData) {
+/*TEST(LinearCalibrationTest, RealData) {
   bool DO = true;
 
   if (DO) {
@@ -394,4 +394,4 @@ TEST(LinearCalibrationTest, RealData) {
     //plotTemporalFlowVsGpsScatter(Atrajectory, Btrajectory);
     solveCovariance(Atrajectory, Btrajectory);
   }
-}
+}*/

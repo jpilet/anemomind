@@ -61,7 +61,14 @@ void sleepForever() {
 
 void GnuplotExtra::setLineStyle(int index, std::string colorCode, int lineWidth) {
   std::stringstream ss;
-  ss << "set style line " << index << " lt rgb \"" << colorCode << "\" lw 1";
+  ss << "set style line " << index << " lt rgb \"" << colorCode << "\" lw " << lineWidth;
+  cmd(ss.str());
+}
+
+void GnuplotExtra::setLineStyle(int index, const Settings &s) {
+  std::stringstream ss;
+  ss << "set style line " << index << " lt \"" << s.color
+      << "\" lw " << s.lineWidth << " pt " << s.pointType << " ps " << s.pointSize;
   cmd(ss.str());
 }
 

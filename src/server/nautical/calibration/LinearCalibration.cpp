@@ -463,6 +463,7 @@ void CovResults::plot() const {
   auto inliers = inlierMask;
   auto outliers = sail::map(inliers, [](bool x) {return !x;}).toArray();
 
+
   GnuplotExtra plot;
   plot.setEqualAxes();
   plot.plot_xy(flowReg.slice(inliers), gpsReg.slice(inliers));
@@ -474,13 +475,26 @@ Arrayd differentiate(Arrayd X) {
   return map(X.sliceFrom(1), X.sliceBut(1), [](double a, double b) {return a - b;}).toArray();
 }
 
+Arrayd differentiate(Arrayd X, int depth) {
+  if (depth == 0) {
+    return X;
+  } else {
+    return differentiate(differentiate(X), depth-1);
+  }
+}
+
 
 void CovResults::plotDerivatives() const {
-  auto gpsReg = differentiate(computeNorms(B, 2));
-  auto flowReg = differentiate(computeNorms(A*X + B, 2));
+  auto gpsReg = differentiate(computeNorms(B, 2), 1);
+  auto flowReg = differentiate(computeNorms(A*X + B, 1), 1);
+
+  GnuplotExtra::Settings settings;
+  settings.pointType = 9;
 
 
   GnuplotExtra plot;
+  plot.setLineStyle(1, settings);
+  plot.set_current_line_style(1);
   plot.setEqualAxes();
   plot.plot_xy(flowReg, gpsReg);
   plot.show();
@@ -491,7 +505,7 @@ CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
                                CovSettings settings) {
   auto Areg = applySecondOrderReg(Atrajectory, settings.regStep, 2);
   auto Breg = applySecondOrderReg(Btrajectory, settings.regStep, 2);
-  auto weights = computeWeightsFromGps(Breg, 2);
+  /*auto weights = computeWeightsFromGps(Breg, 2);
   int regCount = Areg.rows()/2;
   CHECK(regCount == weights.size());
   auto rows = DataFit::CoordIndexer::Factory();
@@ -540,6 +554,11 @@ CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
     Breg,
     EigenUtils::sliceRows(results.X, paramCols.elementSpan()),
     inlierMask
+  };*/
+  Eigen::VectorXd X = Eigen::VectorXd::Zero(Areg.cols());
+  X(0) = 1.0;
+  return CovResults{
+    Areg, Breg, X, Arrayb()
   };
 }
 
