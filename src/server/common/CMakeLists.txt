@@ -368,3 +368,8 @@ cxx_test(common_CsvParserTest
          common_CsvParser
          gtest_main
         )                      
+        
+cxx_test(common_FunctionalTest
+         FunctionalTest.cpp
+         gtest_main
+        )

@@ -15,6 +15,7 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/Progress.h>
 #include <limits>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -162,7 +163,7 @@ BoatSim::TwaFunction BoatSim::makePiecewiseTwaFunction(
     Array<Duration<double> > durs,
     Array<Angle<double> > twa) {
   int count = durs.size();
-  Arrayd dursSeconds = durs.map<double>([](Duration<double> x) {return x.seconds();});
+  Arrayd dursSeconds = toArray(map(durs, [](Duration<double> x) {return x.seconds();}));
   ProportionateIndexer indexer(dursSeconds);
   return [=](Duration<double> x) {
     return twa[indexer.get(x.seconds()).index];
@@ -171,9 +172,9 @@ BoatSim::TwaFunction BoatSim::makePiecewiseTwaFunction(
 
 namespace {
   Arrayd getTimes(Array<BoatSim::FullState> states) {
-    return states.map<double>([=](BoatSim::FullState s) {
+    return toArray(map(states, [=](BoatSim::FullState s) {
       return s.time.seconds();
-    });
+    }));
   }
 
 
@@ -183,8 +184,7 @@ namespace {
     plot.set_title(title);
     plot.set_style("lines");
     plot.plot_xy(getTimes(states),
-        states.map<Angle<double> >(fun).map<double>([&](Angle<double> x)
-            {return x.degrees();}));
+        toArray(map(map(states, fun), [&](Angle<double> x) {return x.degrees();})));
     plot.show();
   }
 
@@ -194,8 +194,8 @@ namespace {
     plot.set_title(title);
     plot.set_style("lines");
     plot.plot_xy(getTimes(states),
-        states.map<Velocity<double> >(fun).map<double>([&](Velocity<double> x)
-            {return x.knots();}));
+        toArray(map(map(states, fun), [&](Velocity<double> x)
+            {return x.knots();})));
     plot.show();
   }
 
@@ -204,8 +204,8 @@ namespace {
     plot.set_title("Trajectory (meters)");
     plot.set_style("lines");
     plot.plot_xy(
-        states.map<double>([&](BoatSim::FullState x) {return x.pos[0].meters();}),
-        states.map<double>([&](BoatSim::FullState x) {return x.pos[1].meters();})
+        toArray(map(states, [&](BoatSim::FullState x) {return x.pos[0].meters();})),
+        toArray(map(states, [&](BoatSim::FullState x) {return x.pos[1].meters();}))
     );
     plot.show();
   }

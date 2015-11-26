@@ -588,38 +588,6 @@ class Array {
     return dst;
   }
 
-  template <typename S>
-  S reduce(S init, std::function<S(S, T)> red) const {
-    S x = init;
-    for (int i = 0; i < _size; i++) {
-      x = red(x, _data[i]);
-    }
-    return x;
-  }
-
-  template <typename S>
-  Array<S> map(std::function<S(T)> mapper) const {
-    Array<S> dst(_size);
-    for (int i = 0; i < _size; i++) {
-      dst[i] = mapper(_data[i]);
-    }
-    return dst;
-  }
-
-  template <typename S>
-  Array<S> mapi(std::function<S(int, T)> mapper) {
-    Array<S> dst(_size);
-    for (int i = 0; i < _size; i++) {
-      dst[i] = mapper(i, _data[i]);
-    }
-    return dst;
-  }
-
-  template <typename S>
-  Array<S> mapElements(std::function<S(T)> mapper) { // In case of mixup with std::map
-    return map<S>(mapper);
-  }
-
   ThisType slice(std::function<bool(T)> fun) const {
     ThisType dst(_size);
     int counter = 0;
@@ -771,23 +739,6 @@ Arrayb neg(Arrayb X);
 bool all(Arrayb X);
 bool any(Arrayb X);
 Arrayi makeSparseInds(int arraySize, int sampleCount);
-
-template <typename T>
-Array<T> concat(Array<Array<T> > arrays) {
-  int totalCount = 0;
-  for (auto arr: arrays) {
-    totalCount += arr.size();
-  }
-  Array<T> dst(totalCount);
-  int from = 0;
-  for (int i = 0; i < arrays.size(); i++) {
-    int to = from + arrays[i].size();
-    arrays[i].copyToSafe(dst.slice(from, to));
-    from = to;
-  }
-  assert(from == totalCount);
-  return dst;
-}
 
 } /* namespace sail */
 #endif /* ARRAY_H_ */

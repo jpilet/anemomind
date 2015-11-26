@@ -12,6 +12,7 @@
 #include <server/nautical/tgtspeed/table.h>
 #include <server/plot/extra.h>
 #include <server/common/PhysicalQuantityIO.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -107,7 +108,7 @@ TargetSpeedParam::SubReg TargetSpeedParam::SubReg::nextOrder(int steps) const {
 
 
 Array<TargetSpeedParam::SubReg> TargetSpeedParam::makeRadialSubRegs() const {
-  return Spani(1, _totalAngleCount).map<TargetSpeedParam::SubReg>(
+  return toArray(map(Spani(1, _totalAngleCount),
       [&](int angleIndex) {
     int difCount = _totalRadiusCount - 1;
     arma::mat A = arma::zeros(difCount, _totalRadiusCount);
@@ -116,27 +117,27 @@ Array<TargetSpeedParam::SubReg> TargetSpeedParam::makeRadialSubRegs() const {
       A(i, i) = w;
       A(i, i+1) = -w;
     }
-    return SubReg{Spani(0, _totalRadiusCount).map<int>([&](int radiusIndex) {
+
+    return SubReg{toArray(map(Spani(0, _totalRadiusCount), [&](int radiusIndex) {
       return calcVertexIndex(angleIndex, radiusIndex);
-    }), A};
-  });
+    })), A};
+  }));
 }
 
 
 
 Array<TargetSpeedParam::SubReg> TargetSpeedParam::makeAngularSubRegs() const {
-  return Spani(1, _totalRadiusCount).map<TargetSpeedParam::SubReg>(
-      [&](int radiusIndex) {
+  return toArray(map(Spani(1, _totalRadiusCount), [&](int radiusIndex) {
       double w = 1.0/radiusIndexToWindSpeed(double(radiusIndex)).knots();
       arma::mat A = arma::zeros(_totalAngleCount, _totalAngleCount+1);
       for (int i = 0; i < _totalAngleCount; i++) {
         A(i, i) = w;
         A(i, i+1) = -w;
       }
-      return SubReg{Spani(0, _totalAngleCount+1).map<int>([&](int angleIndex) {
+      return SubReg{toArray(map(Spani(0, _totalAngleCount+1), [&](int angleIndex) {
         return calcVertexIndex(angleIndex, radiusIndex);
-      }), A};
-  });
+      })), A};
+  }));
 }
 
 void accumulateReg(arma::mat *dstPtr, TargetSpeedParam::SubReg reg) {

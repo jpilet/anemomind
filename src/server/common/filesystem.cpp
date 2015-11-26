@@ -7,6 +7,7 @@
 #include <server/common/string.h>
 #include <Poco/DirectoryIterator.h>
 #include <assert.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -46,7 +47,7 @@ Array<Poco::Path> listFilesRecursively(Poco::Path rootPath, std::function<bool(P
 }
 
 Array<Poco::Path> listFilesRecursivelyByExtension(Poco::Path rootPath, Array<std::string> extensions) {
-  Array<std::string> extensionsLowerCase = extensions.map<std::string>(&toLower);
+  Array<std::string> extensionsLowerCase = toArray(map(extensions, &toLower));
   return listFilesRecursively(rootPath, [&](Poco::Path p) {return hasExtension(p, extensionsLowerCase);});
 }
 

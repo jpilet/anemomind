@@ -12,6 +12,7 @@
 #include <set>
 #include <server/common/TimeStamp.h>
 #include <server/nautical/Nav.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -108,21 +109,21 @@ class NKEArray {
   }
 
   Array<Angle<double> > angles() const {
-    return _values.map<Angle<double> >([&](const std::string &x) {
+    return toArray(map(_values, [&](const std::string &x) {
       return _unit->toAngle(x);
-    });
+    }));
   }
 
   Array<Velocity<double> > velocities() const {
-    return _values.map<Velocity<double> >([&](const std::string &x) {
+    return toArray(map(_values, [&](const std::string &x) {
       return _unit->toVelocity(x);
-    });
+    }));
   }
 
   Array<Duration<double> > durations() const {
-    return _values.map<Duration<double> >([&](const std::string &x) {
+    return toArray(map(_values, [&](const std::string &x) {
       return _unit->toDuration(x);
-    });
+    }));
   }
 
   std::shared_ptr<NKEUnit> unit() const {

@@ -6,7 +6,7 @@
 #include "HTreeJson.h"
 #include <assert.h>
 #include <server/common/Json.h>
-
+#include <server/common/Functional.h>
 #include <server/common/Json.impl.h>
 
 namespace sail {
@@ -57,7 +57,7 @@ Poco::Dynamic::Var serializeMapped(std::shared_ptr<HTree> x, Array<Nav> navs, Ar
 }
 
 Poco::Dynamic::Var serializeMapped(Array<std::shared_ptr<HTree> > x, Array<Nav> navs, Array<HNode> nodeInfo) {
-  return serialize(x.map<HTreeWithData>([&](std::shared_ptr<HTree> h) {return HTreeWithData(h, navs, nodeInfo);}));
+  return serialize(toArray(map(x, [&](std::shared_ptr<HTree> h) {return HTreeWithData(h, navs, nodeInfo);})));
 }
 
 }

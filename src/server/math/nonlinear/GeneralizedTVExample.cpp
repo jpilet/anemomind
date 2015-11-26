@@ -9,6 +9,7 @@
 #include <server/plot/extra.h>
 #include <server/common/ScopedLog.h>
 #include <server/common/string.h>
+#include <server/common/Functional.h>
 
 using namespace sail;
 
@@ -39,7 +40,7 @@ namespace {
 
   Arrayd addNoise(Arrayd Y, double noise, std::default_random_engine &engine) {
     std::uniform_real_distribution<double> distrib(-noise, noise);
-    return Y.map<double>([&](double x) {return x + distrib(engine);});
+    return toArray(sail::map(Y, [&](double x) {return x + distrib(engine);}));
   }
 }
 

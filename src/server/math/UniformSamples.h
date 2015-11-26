@@ -12,6 +12,7 @@
 #include <server/common/LineKM.h>
 #include <server/common/Array.h>
 #include <server/math/nonlinear/SignalUtils.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -46,7 +47,7 @@ class UniformSamples {
   }
 
   ArrayType interpolateLinear(Arrayd X) const {
-    return X.map<T>([&](double x) {return interpolateLinear(x);});
+    return toArray(map(X, [&](double x) {return interpolateLinear(x);}));
   }
 
   T interpolateLinearDerivative(double x) const {
@@ -55,7 +56,7 @@ class UniformSamples {
   }
 
   ArrayType interpolateLinearDerivative(Arrayd X) const {
-    return X.map<T>([&](double x) {return interpolateLinearDerivative(x);});
+    return toArray(map(X, [&](double x) {return interpolateLinearDerivative(x);}));
   }
 
   const LineKM &indexToX() const {

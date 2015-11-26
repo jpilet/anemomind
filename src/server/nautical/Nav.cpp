@@ -19,6 +19,7 @@
 #include <server/common/string.h>
 #include <server/common/PhysicalQuantityIO.h>
 #include <server/common/logging.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -159,42 +160,42 @@ bool Nav::hasId() const {
 
 
 Array<Velocity<double> > getExternalTws(Array<Nav> navs) {
-  return navs.map<Velocity<double> >([&](const Nav &n) {return n.externalTws();});
+  return toArray(map(navs, [&](const Nav &n) {return n.externalTws();}));
 }
 
 Array<Angle<double> > getExternalTwa(Array<Nav> navs) {
-  return navs.map<Angle<double> >([&](const Nav &n) {return n.externalTwa();});
+  return toArray(map(navs, [&](const Nav &n) {return n.externalTwa();}));
 }
 
 Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
-  return navs.map<Velocity<double> >([&](const Nav &n) {return n.gpsSpeed();});
+  return toArray(map(navs, [&](const Nav &n) {return n.gpsSpeed();}));
 }
 
 Array<Velocity<double> > getWatSpeed(Array<Nav> navs) {
-  return navs.map<Velocity<double> >([&](const Nav &n) {return n.watSpeed();});
+  return toArray(map(navs, [&](const Nav &n) {return n.watSpeed();}));
 }
 
 Array<Angle<double> > getGpsBearing(Array<Nav> navs) {
-  return navs.map<Angle<double> >([&](const Nav &nav) {
+  return toArray(map(navs, [&](const Nav &nav) {
     return nav.gpsBearing();
-  });
+  }));
 }
 Array<Angle<double> > getMagHdg(Array<Nav> navs) {
-  return navs.map<Angle<double> >([&](const Nav &nav) {
+  return toArray(map(navs, [&](const Nav &nav) {
     return nav.magHdg();
-  });
+  }));
 }
 
 Array<Velocity<double> > getAws(Array<Nav> navs) {
-  return navs.map<Velocity<double> >([&](const Nav &nav) {
+  return toArray(map(navs, [&](const Nav &nav) {
     return nav.aws();
-  });
+  }));
 }
 
 Array<Angle<double> > getAwa(Array<Nav> navs) {
-  return navs.map<Angle<double> >([&](const Nav &nav) {
+  return toArray(map(navs, [&](const Nav &nav) {
     return nav.awa();
-  });
+  }));
 }
 
 
