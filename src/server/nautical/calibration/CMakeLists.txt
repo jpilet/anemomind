@@ -8,6 +8,7 @@ target_link_libraries(calibration_LinearCalibration
                     common_Span
                     math_nonlinear_DataFit
                     math_EigenUtils
+                    math_Random
                     common_logging
                    )
 
@@ -33,7 +34,8 @@ target_depends_on_ceres(calibration_RegCov)
 target_link_libraries(calibration_RegCov
                       math_nonlinear_DataFit
                       common_logging
-         math_EigenUtils
+                      math_EigenUtils
+                      calibration_LinearCalibration
                      )
            
 cxx_test(calibration_RegCovTest
