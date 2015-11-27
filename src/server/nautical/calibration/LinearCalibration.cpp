@@ -28,6 +28,13 @@ void initializeParameters(bool withOffset, double *dst) {
   dst[0] = 1.0;
 }
 
+Arrayd makeXinit(bool withOffset) {
+  int n = flowParamCount(withOffset);
+  Arrayd dst(n);
+  initializeParameters(withOffset, dst.ptr());
+  return dst;
+}
+
 Eigen::VectorXd makeXinitEigen() {
   Eigen::VectorXd dst = Eigen::VectorXd::Zero(4);
   initializeParameters(true, dst.data());

@@ -50,8 +50,6 @@ T calcReg(Array<T> trajectory, int index, int step, double reg = 1.0e-9) {
   return sqrt(sum + reg);
 }
 
-
-
 template <typename T>
 Mapped<T> computeRegs(Array<T> src, int step) {
   auto acc = accumulateTrajectory(src);

@@ -17,6 +17,7 @@ namespace sail {
 namespace LinearCalibration {
 
 void initializeParameters(bool withOffset, double *dst);
+Arrayd makeXinit(bool withOffset = true);
 Eigen::VectorXd makeXinitEigen();
 
 inline int flowParamCount(bool withOffset) {
