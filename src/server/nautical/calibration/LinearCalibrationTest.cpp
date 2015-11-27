@@ -359,9 +359,9 @@ void solveCovariance(Eigen::MatrixXd Atrajectory,
       Btrajectory,
       settings);
 
-  /*results.X = Eigen::VectorXd::Zero(4);
+  results.X = Eigen::VectorXd::Zero(4);
   results.X[0] = 1.0;
-  results.X[1] = 0.0;*/
+  results.X[1] = 0.0;
 
   results.plotDerivatives();
 

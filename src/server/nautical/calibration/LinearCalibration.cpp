@@ -463,7 +463,6 @@ void CovResults::plot() const {
   auto inliers = inlierMask;
   auto outliers = sail::map(inliers, [](bool x) {return !x;}).toArray();
 
-
   GnuplotExtra plot;
   plot.setEqualAxes();
   plot.plot_xy(flowReg.slice(inliers), gpsReg.slice(inliers));
@@ -483,29 +482,61 @@ Arrayd differentiate(Arrayd X, int depth) {
   }
 }
 
-Arrayd centerValues(Arrayd X) {
-  double mean = (1.0/X.size())*reduce(X, [](double a, double b) {return a + b;});
-  return map(X, [=](double x) {return x - mean;});
+double computeMean(Arrayd X) {
+  return (1.0/X.size())*reduce(X, [](double a, double b) {
+    return a + b;
+  });
 }
 
-Eigen::VectorXd computePrincipalComponent(Arrayd X0, Arrayd Y0) {
-  Arrayd X = centerValues(X0);
-  Arrayd Y = centerValues(Y0);
-  int n = X.size();
-  assert(n == Y.size());
+Arrayd sub(Arrayd A, double b) {
+  return map(A, [=](double x) {return x - b;});
+}
+
+Eigen::VectorXd computePrincipalComponent(Arrayd Xc, Arrayd Yc) {
+  int n = Xc.size();
+  assert(n == Yc.size());
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(n, 2);
   for (int i = 0; i < n; i++) {
-    A(i, 0) = X[i];
-    A(i, 1) = Y[i];
+    A(i, 0) = Xc[i];
+    A(i, 1) = Yc[i];
   }
   Eigen::MatrixXd AtA = A.transpose()*A;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> decomp(AtA);
   Eigen::VectorXd v;
+  std::cout << EXPR_AND_VAL_AS_STRING(decomp.eigenvalues()) << std::endl;
   if (decomp.eigenvalues()(0) > decomp.eigenvalues()(1)) {
     return decomp.eigenvectors().col(0);
   } else {
     return decomp.eigenvectors().col(1);
   }
+}
+
+MDArray2d computePrinCompPlotData(Arrayd X, Arrayd Y) {
+  CHECK(X.size() == Y.size());
+  auto n = X.size();
+  auto xMean = computeMean(X);
+  auto yMean = computeMean(Y);
+  auto Xc = sub(X, xMean);
+  auto Yc = sub(Y, yMean);
+  auto radius = computeMean(map(Spani(0, n), [=](int i) {
+    return sqrt(sqr(Xc[i]) + sqr(Yc[i]));
+  }));
+
+  auto pc0 = computePrincipalComponent(Xc, Yc);
+  std::cout << EXPR_AND_VAL_AS_STRING(pc0) << std::endl;
+  Eigen::VectorXd pc = radius*pc0;
+
+  std::cout << EXPR_AND_VAL_AS_STRING(xMean) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(yMean) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(radius) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(pc) << std::endl;
+
+  MDArray2d pts(2, 2);
+  pts(0, 0) = xMean - pc[0];
+  pts(0, 1) = yMean - pc[1];
+  pts(1, 0) = xMean + pc[0];
+  pts(1, 1) = yMean + pc[1];
+  return pts;
 }
 
 
@@ -514,17 +545,28 @@ void CovResults::plotDerivatives() const {
   auto gpsReg = differentiate(computeNorms(B), 1);
   auto flowReg = differentiate(computeNorms(A*X + B), 1);
 
+  auto pc = computePrinCompPlotData(flowReg, gpsReg);
+  std::cout << EXPR_AND_VAL_AS_STRING(pc) << std::endl;
+
   CHECK(gpsReg.size() == flowReg.size());
 
-  GnuplotExtra::Settings settings;
-  settings.pointType = 0;
-  settings.pointSize = 1;
+  GnuplotExtra::Settings pointSettings;
+  pointSettings.pointType = 0;
+  pointSettings.pointSize = 1;
+
+  GnuplotExtra::Settings lineSettings;
+  lineSettings.lineWidth = 2;
+  lineSettings.color = "red";
 
   GnuplotExtra plot;
-  plot.defineStyle(1, settings);
+  plot.defineStyle(1, pointSettings);
   plot.set_current_line_style(1);
   plot.setEqualAxes();
   plot.plot_xy(flowReg, gpsReg);
+  plot.set_style("lines");
+  plot.defineStyle(2, lineSettings);
+  plot.set_current_line_style(2);
+  plot.plot(pc);
   plot.show();
 }
 
