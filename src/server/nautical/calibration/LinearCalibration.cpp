@@ -483,6 +483,32 @@ Arrayd differentiate(Arrayd X, int depth) {
   }
 }
 
+Arrayd centerValues(Arrayd X) {
+  double mean = (1.0/X.size())*reduce(X, [](double a, double b) {return a + b;});
+  return map(X, [=](double x) {return x - mean;});
+}
+
+Eigen::VectorXd computePrincipalComponent(Arrayd X0, Arrayd Y0) {
+  Arrayd X = centerValues(X0);
+  Arrayd Y = centerValues(Y0);
+  int n = X.size();
+  assert(n == Y.size());
+  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(n, 2);
+  for (int i = 0; i < n; i++) {
+    A(i, 0) = X[i];
+    A(i, 1) = Y[i];
+  }
+  Eigen::MatrixXd AtA = A.transpose()*A;
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> decomp(AtA);
+  Eigen::VectorXd v;
+  if (decomp.eigenvalues()(0) > decomp.eigenvalues()(1)) {
+    return decomp.eigenvectors().col(0);
+  } else {
+    return decomp.eigenvectors().col(1);
+  }
+}
+
+
 
 void CovResults::plotDerivatives() const {
   auto gpsReg = differentiate(computeNorms(B), 1);
@@ -502,9 +528,16 @@ void CovResults::plotDerivatives() const {
   plot.show();
 }
 
+/*
+ * This function operates with
+ * the regularization. But we
+ * want to work with the derivative of
+ * the regularization. Which is different.
+ */
 CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
                                Eigen::MatrixXd Btrajectory,
                                CovSettings settings) {
+  std::cout << "This function is obsolete. We want to use the derivative of the regularization\n";
   auto Areg = applySecondOrderReg(Atrajectory, settings.regStep, 2);
   auto Breg = applySecondOrderReg(Btrajectory, settings.regStep, 2);
   auto weights = computeWeightsFromGps(Breg, 2);
