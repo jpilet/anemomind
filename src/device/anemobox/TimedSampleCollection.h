@@ -5,6 +5,7 @@
 #include <deque>
 #include <server/common/Optional.h>
 #include <server/common/TimeStamp.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -68,7 +69,12 @@ class TimedSampleCollection {
 
 template <typename T>
 void TimedSampleCollection<T>::append(const TimedValue<T>& x) {
-  assert(_samples.size() == 0 || _samples.back().time <= x.time);
+  if (_samples.size() > 0 && _samples.back().time > x.time) {
+    LOG(WARNING)
+      << "appending sample "
+      << (_samples.back().time - x.time).milliseconds()
+      << " ms in the future";
+  }
   if (_maxBufferLength > 0 && _samples.size() >= size_t(_maxBufferLength)) {
     _samples.pop_front();
   }
