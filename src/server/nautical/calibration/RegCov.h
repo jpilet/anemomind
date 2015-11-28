@@ -90,15 +90,15 @@ Mapped<T> subtractMean(Mapped<T> X) {
   return map(X, [=](double x) {return x - mean;});
 }
 
-template <typename T>
+template <typename T> // Well, not really covariance. We don't divide by number of samples.
 T computeCovariance(Arrayd gpsDifs, Array<T> flowDifs, Arrayi split) {
   CHECK(gpsDifs.size() == flowDifs.size());
-  return reduce(map(subtractMean(subsetByIndex(gpsDifs, split)),
-                    subtractMean(subsetByIndex(flowDifs, split)),
-                    [](double x, double y) {
-                      return x*y;
-                    }),
-            [=](double x, double y) {return x + y;});
+  return map(subtractMean(subsetByIndex(gpsDifs, split)),
+             subtractMean(subsetByIndex(flowDifs, split)),
+             [](double x, double y) {
+               return x*y;
+             })
+         .reduce([=](double x, double y) {return x + y;});
 }
 
 
