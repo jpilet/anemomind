@@ -45,9 +45,9 @@ TEST(RegCovTest, RegTest) {
   EXPECT_EQ(Arrayd(difs), Arrayd(computeRegDifs(trajectory, step)));
   EXPECT_EQ(difs.size(), computeDifCount(getDataCount(trajectory.size()), step));
 
-  EXPECT_NEAR(computeCovariance(Arrayd{1.0, 1.0},
-                                Arrayd{0.0, 1.0},
-                                Arrayi{0, 1}),
+  EXPECT_NEAR(computeCovariance(Arrayd{0.0, 1.0, 0.0, 1.0},
+                                Arrayd{0.0, 0.0, 1.0, 1.0},
+                                Arrayi{0, 1, 2, 3}),
               0.0,
               1.0e-6);
 }
