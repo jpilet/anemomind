@@ -50,6 +50,11 @@ TEST(RegCovTest, RegTest) {
                                 Arrayi{0, 1, 2, 3}),
               0.0,
               1.0e-6);
+  EXPECT_NEAR(computeCovariance(Arrayd{0.0, 1.0},
+                                Arrayd{0.0, 1.0},
+                                Arrayi{0, 1}),
+              0.5,
+              1.0e-6);
 }
 
 Array<Nav> getTestDataset() {
