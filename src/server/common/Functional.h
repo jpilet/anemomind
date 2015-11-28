@@ -137,6 +137,12 @@ class Mapped {
   operator Array<ResultType>() const {
     return toArray();
   }
+
+  void putInArray(ResultType *dst) const {
+    for (int i = 0; i < _size; i++) {
+      dst[i] = _f(i);
+    }
+  }
  private:
   int _size;
   std::function<ResultType(int)> _f;

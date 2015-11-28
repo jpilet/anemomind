@@ -13,8 +13,10 @@
 #include <server/common/math.h>
 #include <iostream>
 #include <server/common/string.h>
+#include <server/math/CeresUtils.h>
 
 namespace sail {
+namespace RegCov {
 
 inline int getDataCount(int dim) {
   return dim/2;
@@ -92,7 +94,6 @@ Mapped<T> subtractMean(Mapped<T> X) {
 
 template <typename T> // Well, not really covariance. We don't divide by number of samples.
 T computeCovariance(Arrayd gpsDifs, Array<T> flowDifs, Arrayi split) {
-  CHECK(gpsDifs.size() == flowDifs.size());
   return map(subtractMean(subsetByIndex(gpsDifs, split)),
              subtractMean(subsetByIndex(flowDifs, split)),
              [](double x, double y) {
@@ -101,7 +102,80 @@ T computeCovariance(Arrayd gpsDifs, Array<T> flowDifs, Arrayi split) {
          .reduce([=](double x, double y) {return x + y;});
 }
 
+template <typename T>
+Mapped<T> computeCovariances(Arrayd gpsDifs, Array<T> flowDifs,
+    Array<Arrayi> splits) {
+  return map(splits, [=](Arrayi split) {
+    return computeCovariance(gpsDifs, flowDifs, split);
+  });
+}
 
+struct Settings {
+ int step = 100;
+ ceres::Solver::Options ceresOptions;
+};
+
+template <typename TrueFlowFunction>
+class Objf {
+ public:
+  Objf(TrueFlowFunction f, Arrayd gpsSpeeds, Array<Arrayi> splits,
+    Settings settings, int parameterCount)
+    : _trueFlow(f), _gpsDifs(computeRegDifs(gpsSpeeds, settings.step)),
+      _splits(splits), _settings(settings),
+      _parameterCount(parameterCount) {}
+
+  template <typename T>
+  bool eval(const T *parameters, T *residuals) {
+    auto flowDifs = computeRegDifs(_trueFlow(parameters), _settings.step);
+    CHECK(flowDifs.size() == _gpsDifs.size());
+    computeCovariances(_gpsDifs, flowDifs, _splits).putInArray(residuals);
+  }
+
+  int inDims() const {
+    return _parameterCount;
+  }
+
+  int outDims() const {
+    return _splits.size();
+  }
+ private:
+  TrueFlowFunction _trueFlow;
+  Arrayd _gpsDifs;
+  Array<Arrayi> _splits;
+  Settings _settings;
+  int _parameterCount;
+};
+
+
+/*
+ * TrueFlowFunction:
+ *
+ * A function-like object (using a class with the () operator )
+ * that accepts a
+ * pointer to an array of length initialParameters.size()
+ * with numbers of some type T.
+ *
+ * Should return array on the format of (x0, y0, x1, y1, .... )
+ * of corrected flows.
+ */
+template <typename TrueFlowFunction>
+Arrayd optimize(TrueFlowFunction flow,
+                Arrayd gpsSpeeds,
+                Array<Arrayi> splits,
+                Arrayd initialParameters,
+                Settings settings) {
+  auto objf = std::shared_ptr<Objf<TrueFlowFunction> >(
+      new Objf<TrueFlowFunction>(flow, gpsSpeeds, splits, settings, initialParameters.size()));
+  Arrayd X = initialParameters.dup();
+  ceres::Problem problem;
+  configureSingleObjfAndParameterBlock(
+      &problem, objf, X.ptr());
+  ceres::Solver::Summary summary;
+  Solve(settings.ceresOptions, &problem, &summary);
+  return X;
+}
+
+}
 }
 
 #endif /* SERVER_NAUTICAL_CALIBRATION_REGCOV_H_ */

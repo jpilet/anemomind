@@ -17,7 +17,7 @@
 using namespace sail;
 using namespace LinearCalibration;
 using namespace EigenUtils;
-
+using namespace RegCov;
 
 namespace {
   auto rng = makeRngForTests();
