@@ -147,6 +147,20 @@ class Objf {
   int _parameterCount;
 };
 
+struct Summary {
+  // Redundant data, used for plotting etc.
+  Settings settings;
+  Array<Arrayi> splits;
+  Arrayd gpsSpeed;
+  Arrayd initialFlow;
+  Arrayd finalFlow;
+  Arrayd initialX;
+
+  // The actual result
+  Arrayd finalX;
+
+  void plot() const;
+};
 
 /*
  * TrueFlowFunction:
@@ -160,7 +174,7 @@ class Objf {
  * of corrected flows.
  */
 template <typename TrueFlowFunction>
-Arrayd optimize(TrueFlowFunction flow,
+Summary optimize(TrueFlowFunction flow,
                 Arrayd gpsSpeeds,
                 Array<Arrayi> splits,
                 Arrayd initialParameters,
@@ -173,14 +187,22 @@ Arrayd optimize(TrueFlowFunction flow,
       &problem, objf, X.ptr());
   ceres::Solver::Summary summary;
   Solve(settings.ceresOptions, &problem, &summary);
-  return X;
+  return Summary{
+    settings,
+    splits,
+    gpsSpeeds,
+    flow(initialParameters.ptr()),
+    flow(X.ptr()),
+    initialParameters,
+    X
+  };
 }
 
-Arrayd optimizeLinear(Eigen::MatrixXd A,
-                      Eigen::VectorXd B,
-                      Array<Arrayi> splits,
-                      Arrayd initialParameters,
-                      Settings settings);
+Summary optimizeLinear(Eigen::MatrixXd A,
+                       Eigen::VectorXd B,
+                       Array<Arrayi> splits,
+                       Arrayd initialParameters,
+                       Settings settings);
 
 }
 }

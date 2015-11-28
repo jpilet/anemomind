@@ -376,7 +376,7 @@ TEST(LinearCalibrationTest, RealData) {
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
 
-  auto flow = trueWind;
+  auto flow = trueCurrent;
 
   Eigen::MatrixXd Avelocities =
       Eigen::Map<Eigen::MatrixXd>(flow.A.ptr(), flow.rows(), flow.A.cols());

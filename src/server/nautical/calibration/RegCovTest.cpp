@@ -97,9 +97,8 @@ TEST(RegCovTest, TestIntegration) {
   Eigen::MatrixXd A = EigenUtils::arrayToEigen(flow.A);
   Eigen::VectorXd B = EigenUtils::arrayToEigen(flow.B);
 
-  Arrayd Xopt = RegCov::optimizeLinear(
+  auto Xopt = RegCov::optimizeLinear(
       A, B,
       splits, Xinit, settings);
-  std::cout << EXPR_AND_VAL_AS_STRING(Xopt) << std::endl;
 }
 

@@ -4,6 +4,7 @@
  */
 
 #include "RegCov.h"
+#include <server/plot/extra.h>
 
 namespace sail {
 namespace RegCov {
@@ -50,7 +51,41 @@ int computeDifCount(int dataSize, int step) {
   return std::max(0, dataSize - 2*step);
 }
 
-Arrayd optimizeLinear(Eigen::MatrixXd A,
+GnuplotExtra::Settings makePtSettings(std::string c) {
+  GnuplotExtra::Settings s;
+  s.color = c;
+  s.pointType = 0;
+  s.pointSize = 1;
+  return s;
+}
+
+void Summary::plot() const {
+  Arrayd allGpsDifs = computeRegDifs(gpsSpeed, settings.step);
+  Arrayd allInitialFlowDifs = computeRegDifs(initialFlow, settings.step);
+  Arrayd allFinalFlowDifs = computeRegDifs(initialFlow, settings.step);
+
+  GnuplotExtra::Settings initialSettings = makePtSettings("red");
+  GnuplotExtra::Settings finalSettings = makePtSettings("green");
+
+  for (auto split: splits) {
+    Arrayd gpsDifs = subsetByIndex(allGpsDifs, split).toArray();
+    Arrayd initialFlowDifs = subsetByIndex(allInitialFlowDifs, split).toArray();
+    Arrayd finalFlowDifs = subsetByIndex(allFinalFlowDifs, split).toArray();
+
+    GnuplotExtra plot;
+    plot.defineStyle(1, initialSettings);
+    plot.set_current_line_style(1);
+    plot.setEqualAxes();
+    plot.plot_xy(gpsDifs, initialFlowDifs);
+    plot.set_style("lines");
+    plot.defineStyle(2, finalSettings);
+    plot.set_current_line_style(2);
+    plot.plot_xy(gpsDifs, finalFlowDifs);
+    plot.show();
+  }
+}
+
+Summary optimizeLinear(Eigen::MatrixXd A,
                       Eigen::VectorXd B,
                       Array<Arrayi> splits, Arrayd initialParameters,
                       Settings settings) {
