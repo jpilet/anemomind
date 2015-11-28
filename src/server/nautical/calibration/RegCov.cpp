@@ -54,34 +54,41 @@ int computeDifCount(int dataSize, int step) {
 GnuplotExtra::Settings makePtSettings(std::string c) {
   GnuplotExtra::Settings s;
   s.color = c;
-  s.pointType = 0;
+  s.pointType = 7;
   s.pointSize = 1;
   return s;
+}
+
+
+void plotInitialAndFinalDifs(Arrayd gpsDifs, Arrayd initialFlowDifs, Arrayd finalFlowDifs) {
+  GnuplotExtra::Settings initialSettings = makePtSettings("red");
+  GnuplotExtra::Settings finalSettings = makePtSettings("green");
+  GnuplotExtra plot;
+  plot.set_style("points");
+  plot.defineStyle(1, initialSettings);
+  plot.set_current_line_style(1);
+  plot.setEqualAxes();
+  plot.plot_xy(initialFlowDifs, gpsDifs);
+  plot.defineStyle(2, finalSettings);
+  plot.set_current_line_style(2);
+  plot.plot_xy(finalFlowDifs, gpsDifs);
+  //plot.setEqualAxes();
+  plot.show();
 }
 
 void Summary::plot() const {
   Arrayd allGpsDifs = computeRegDifs(gpsSpeed, settings.step);
   Arrayd allInitialFlowDifs = computeRegDifs(initialFlow, settings.step);
-  Arrayd allFinalFlowDifs = computeRegDifs(initialFlow, settings.step);
+  Arrayd allFinalFlowDifs = computeRegDifs(finalFlow, settings.step);
 
-  GnuplotExtra::Settings initialSettings = makePtSettings("red");
-  GnuplotExtra::Settings finalSettings = makePtSettings("green");
+  plotInitialAndFinalDifs(allGpsDifs, allInitialFlowDifs, allFinalFlowDifs);
 
   for (auto split: splits) {
     Arrayd gpsDifs = subsetByIndex(allGpsDifs, split).toArray();
     Arrayd initialFlowDifs = subsetByIndex(allInitialFlowDifs, split).toArray();
     Arrayd finalFlowDifs = subsetByIndex(allFinalFlowDifs, split).toArray();
 
-    GnuplotExtra plot;
-    plot.defineStyle(1, initialSettings);
-    plot.set_current_line_style(1);
-    plot.setEqualAxes();
-    plot.plot_xy(gpsDifs, initialFlowDifs);
-    plot.set_style("lines");
-    plot.defineStyle(2, finalSettings);
-    plot.set_current_line_style(2);
-    plot.plot_xy(gpsDifs, finalFlowDifs);
-    plot.show();
+    plotInitialAndFinalDifs(gpsDifs, initialFlowDifs, finalFlowDifs);
   }
 }
 

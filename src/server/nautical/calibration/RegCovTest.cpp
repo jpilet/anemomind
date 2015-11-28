@@ -74,11 +74,9 @@ Array<Nav> getTestDataset() {
 }
 
 TEST(RegCovTest, TestIntegration) {
-  int k = 25;
-
   RegCov::Settings settings;
-  settings.samplesPerSplit = k;
-  settings.step = k;
+  settings.samplesPerSplit = 1000;
+  settings.step = 100;
 
   auto navs = getTestDataset();
   int difCount = computeDifCount(navs.size(), settings.step);
@@ -100,5 +98,7 @@ TEST(RegCovTest, TestIntegration) {
   auto Xopt = RegCov::optimizeLinear(
       A, B,
       splits, Xinit, settings);
+  std::cout << EXPR_AND_VAL_AS_STRING(Xopt.finalX) << std::endl;
+  Xopt.plot();
 }
 
