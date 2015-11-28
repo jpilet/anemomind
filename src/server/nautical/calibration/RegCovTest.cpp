@@ -97,5 +97,6 @@ TEST(RegCovTest, TestIntegration) {
   Arrayd Xopt = RegCov::optimizeLinear(
       A, B,
       splits, Xinit, settings);
+  std::cout << EXPR_AND_VAL_AS_STRING(Xopt) << std::endl;
 }
 
