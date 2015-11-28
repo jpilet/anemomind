@@ -77,6 +77,30 @@ Mapped<T> computeRegDifs(Array<T> src, int step) {
   return computeDifs(computeRegs(src, step));
 }
 
+template <typename T>
+T computeMean(Mapped<T> x) {
+  return (1.0/x.size())*reduce(x, [](double x, double y) {
+    return x + y;
+  });
+}
+
+template <typename T>
+Mapped<T> subtractMean(Mapped<T> X) {
+  auto mean = computeMean(X);
+  return map(X, [=](double x) {return x - mean;});
+}
+
+template <typename T>
+T computeCovariance(Arrayd gpsDifs, Array<T> flowDifs, Arrayi split) {
+  CHECK(gpsDifs.size() == flowDifs.size());
+  return reduce(map(subtractMean(subsetByIndex(gpsDifs, split)),
+                    subtractMean(subsetByIndex(flowDifs, split)),
+                    [](double x, double y) {
+                      return x*y;
+                    }),
+            [=](double x, double y) {return x + y;});
+}
+
 
 }
 

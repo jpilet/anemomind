@@ -44,6 +44,12 @@ TEST(RegCovTest, RegTest) {
   auto difs = computeDifs(regs);
   EXPECT_EQ(Arrayd(difs), Arrayd(computeRegDifs(trajectory, step)));
   EXPECT_EQ(difs.size(), computeDifCount(getDataCount(trajectory.size()), step));
+
+  EXPECT_NEAR(computeCovariance(Arrayd{1.0, 1.0},
+                                Arrayd{0.0, 1.0},
+                                Arrayi{0, 1}),
+              0.0,
+              1.0e-6);
 }
 
 Array<Nav> getTestDataset() {
@@ -73,7 +79,5 @@ TEST(RegCovTest, TestIntegration) {
   Arrayd Xinit = makeXinit();
   EXPECT_EQ(Xinit.size(), 4);
   Array<Arrayi> splits = makeRandomSplit(difCount, splitCount, &rng);
-
-
 }
 

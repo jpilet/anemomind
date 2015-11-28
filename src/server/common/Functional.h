@@ -90,10 +90,17 @@ auto vmap(Function f, Collections... colls) -> Mapped<decltype(f((colls[0])...))
 template <typename Function, typename Collection>
 auto map(Collection X, Function f) -> decltype(vmap(f, X));
 
+template <typename Function, typename Collection>
+auto reduce(Collection X, Function f) -> decltype(f(X[0], X[1]));
+
 template <typename ResultType>
 class Mapped {
  public:
   typedef Mapped<ResultType> ThisType;
+
+  Mapped(Array<ResultType> src) : _size(src.size()) {
+    _f = [=](int i) {return src[i];};
+  }
 
   Mapped(std::function<ResultType(int)> f, int size) : _f(f), _size(size) {}
 
@@ -122,6 +129,11 @@ class Mapped {
     return sail::map(*this, f);
   }
 
+  template <typename Function>
+  auto reduce(Function f) const -> decltype(f((*this)[0], (*this)[1])) {
+    return sail::reduce(*this, f);
+  }
+
   operator Array<ResultType>() const {
     return toArray();
   }
@@ -148,6 +160,12 @@ auto map(Collection X, Function f) -> decltype(vmap(f, X)) {
 template <typename Function, typename CollectionA, typename CollectionB>
 auto map(CollectionA X, CollectionB Y, Function f) -> decltype(vmap(f, X, Y)) {
   return vmap(f, X, Y);
+}
+
+template <typename DataCollection, typename IndexCollection>
+auto subsetByIndex(DataCollection data, IndexCollection indices)
+    -> Mapped<decltype(copyOf(data[0]))> {
+  return map(indices, [=](int index) {return data[index]; });
 }
 
 // Filter
