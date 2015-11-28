@@ -74,12 +74,15 @@ Array<Nav> getTestDataset() {
 }
 
 TEST(RegCovTest, TestIntegration) {
+  int k = 25;
+
   RegCov::Settings settings;
-  int samplesPerSplit = 100;
+  settings.samplesPerSplit = k;
+  settings.step = k;
 
   auto navs = getTestDataset();
   int difCount = computeDifCount(navs.size(), settings.step);
-  int splitCount = difCount/samplesPerSplit;
+  int splitCount = difCount/settings.samplesPerSplit;
 
   Arrayd Xinit = makeXinit();
   EXPECT_EQ(Xinit.size(), 4);
@@ -89,7 +92,7 @@ TEST(RegCovTest, TestIntegration) {
   FlowSettings flowSettings;
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
-  auto flow = trueWind;
+  auto flow = trueCurrent;
 
   Eigen::MatrixXd A = EigenUtils::arrayToEigen(flow.A);
   Eigen::VectorXd B = EigenUtils::arrayToEigen(flow.B);

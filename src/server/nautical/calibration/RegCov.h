@@ -108,6 +108,7 @@ Mapped<T> computeCovariances(Arrayd gpsDifs, Array<T> flowDifs,
 
 struct Settings {
  int step = 100;
+ int samplesPerSplit = 100;
  ceres::Solver::Options ceresOptions;
 };
 
