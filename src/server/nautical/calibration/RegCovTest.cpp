@@ -74,15 +74,28 @@ Array<Nav> getTestDataset() {
 }
 
 TEST(RegCovTest, TestIntegration) {
-  int step = 100;
+  RegCov::Settings settings;
   int samplesPerSplit = 100;
 
-  auto ds = getTestDataset();
-  int difCount = computeDifCount(ds.size(), step);
+  auto navs = getTestDataset();
+  int difCount = computeDifCount(navs.size(), settings.step);
   int splitCount = difCount/samplesPerSplit;
 
   Arrayd Xinit = makeXinit();
   EXPECT_EQ(Xinit.size(), 4);
   Array<Arrayi> splits = makeRandomSplit(difCount, splitCount, &rng);
+
+  settings.ceresOptions.minimizer_progress_to_stdout = true;
+  FlowSettings flowSettings;
+  auto trueWind = makeTrueWindMatrices(navs, flowSettings);
+  auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
+  auto flow = trueWind;
+
+  Eigen::MatrixXd A = EigenUtils::arrayToEigen(flow.A);
+  Eigen::VectorXd B = EigenUtils::arrayToEigen(flow.B);
+
+  Arrayd Xopt = RegCov::optimizeLinear(
+      A, B,
+      splits, Xinit, settings);
 }
 

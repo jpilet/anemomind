@@ -18,9 +18,7 @@
 namespace sail {
 namespace RegCov {
 
-inline int getDataCount(int dim) {
-  return dim/2;
-}
+int getDataCount(int dim);
 
 template <typename T>
 Array<T> accumulateTrajectory(Array<T> src) {
@@ -63,9 +61,7 @@ Mapped<T> computeRegs(Array<T> src, int step) {
   });
 }
 
-int computeDifCount(int dataSize, int step) {
-  return std::max(0, dataSize - 2*step);
-}
+int computeDifCount(int dataSize, int step);
 
 template <typename T>
 Mapped<T> computeDifs(const Mapped<T> &src) {
@@ -81,7 +77,7 @@ Mapped<T> computeRegDifs(Array<T> src, int step) {
 
 template <typename T>
 T computeMean(Mapped<T> x) {
-  return (1.0/x.size())*reduce(x, [](double x, double y) {
+  return (1.0/x.size())*reduce(x, [](T x, T y) {
     return x + y;
   });
 }
@@ -89,17 +85,17 @@ T computeMean(Mapped<T> x) {
 template <typename T>
 Mapped<T> subtractMean(Mapped<T> X) {
   auto mean = computeMean(X);
-  return map(X, [=](double x) {return x - mean;});
+  return map(X, [=](T x) {return x - mean;});
 }
 
 template <typename T> // Well, not really covariance. We don't divide by number of samples.
 T computeCovariance(Arrayd gpsDifs, Array<T> flowDifs, Arrayi split) {
   return map(subtractMean(subsetByIndex(gpsDifs, split)),
              subtractMean(subsetByIndex(flowDifs, split)),
-             [](double x, double y) {
-               return x*y;
+             [](double x, T y) {
+               return T(x*y);
              })
-         .reduce([=](double x, double y) {return x + y;});
+         .reduce([=](T x, T y) {return x + y;});
 }
 
 template <typename T>
@@ -115,6 +111,8 @@ struct Settings {
  ceres::Solver::Options ceresOptions;
 };
 
+int getMaxIndex(Array<Arrayi> splits);
+
 template <typename TrueFlowFunction>
 class Objf {
  public:
@@ -122,11 +120,13 @@ class Objf {
     Settings settings, int parameterCount)
     : _trueFlow(f), _gpsDifs(computeRegDifs(gpsSpeeds, settings.step)),
       _splits(splits), _settings(settings),
-      _parameterCount(parameterCount) {}
+      _parameterCount(parameterCount) {
+    CHECK(getMaxIndex(splits) < _gpsDifs.size());
+  }
 
   template <typename T>
   bool eval(const T *parameters, T *residuals) {
-    auto flowDifs = computeRegDifs(_trueFlow(parameters), _settings.step);
+    auto flowDifs = computeRegDifs(_trueFlow(parameters), _settings.step).toArray();
     CHECK(flowDifs.size() == _gpsDifs.size());
     computeCovariances(_gpsDifs, flowDifs, _splits).putInArray(residuals);
   }
@@ -150,7 +150,7 @@ class Objf {
 /*
  * TrueFlowFunction:
  *
- * A function-like object (using a class with the () operator )
+ * A function-like object (instance of a class with the () operator for type T)
  * that accepts a
  * pointer to an array of length initialParameters.size()
  * with numbers of some type T.
@@ -168,12 +168,18 @@ Arrayd optimize(TrueFlowFunction flow,
       new Objf<TrueFlowFunction>(flow, gpsSpeeds, splits, settings, initialParameters.size()));
   Arrayd X = initialParameters.dup();
   ceres::Problem problem;
-  configureSingleObjfAndParameterBlock(
+  CeresUtils::configureSingleObjfAndParameterBlock(
       &problem, objf, X.ptr());
   ceres::Solver::Summary summary;
   Solve(settings.ceresOptions, &problem, &summary);
   return X;
 }
+
+Arrayd optimizeLinear(Eigen::MatrixXd A,
+                      Eigen::VectorXd B,
+                      Array<Arrayi> splits,
+                      Arrayd initialParameters,
+                      Settings settings);
 
 }
 }

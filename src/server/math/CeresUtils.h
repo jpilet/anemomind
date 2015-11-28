@@ -6,6 +6,8 @@
 #ifndef SERVER_MATH_CERESUTILS_H_
 #define SERVER_MATH_CERESUTILS_H_
 
+#include <ceres/ceres.h>
+
 namespace sail {
 namespace CeresUtils {
 
@@ -27,12 +29,8 @@ class SimpleObjf {
   bool operator()(T const* const* parameters, T* residuals) {
     return _objf->eval(parameters[0], residuals);
   }
-
-  virtual ~SimpleObjf() {
-    delete _objf;
-  }
  private:
-  std::shared_ptr<Objf> *_objf;
+  std::shared_ptr<Objf> _objf;
 };
 
 /*
@@ -50,7 +48,7 @@ void configureSingleObjfAndParameterBlock(
       new SimpleObjf<Objf>(objf));
   cost->AddParameterBlock(objf->inDims());
   cost->SetNumResiduals(objf->outDims());
-  problem->AddResidualBlock(cost, nullptr, objf->outDims());
+  problem->AddResidualBlock(cost, nullptr, parameters);
 }
 
 

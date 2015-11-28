@@ -22,8 +22,10 @@ Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > arrayToEigen(Array
 }
 
 template <typename T>
-Eigen::Map<T> arrayToEigen(MDArray<T, 2> src) {
-  return Eigen::Map<T>(src.ptr(), src.rows(), src.cols());
+Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > arrayToEigen(MDArray<T, 2> src) {
+  return Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >(
+      src.ptr(), src.rows(), src.cols()
+    );
 }
 
 template <typename VectorType>
