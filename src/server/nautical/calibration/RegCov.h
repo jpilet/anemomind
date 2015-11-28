@@ -123,6 +123,9 @@ class Objf {
       _splits(splits), _settings(settings),
       _parameterCount(parameterCount) {
     CHECK(getMaxIndex(splits) < _gpsDifs.size());
+    if (splits.size() < parameterCount) {
+      LOG(WARNING) << "The problem looks ill-posed: Fewer residuals than parameters.";
+    }
   }
 
   template <typename T>

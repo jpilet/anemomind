@@ -77,9 +77,14 @@ void plotInitialAndFinalDifs(Arrayd gpsDifs, Arrayd initialFlowDifs, Arrayd fina
 }
 
 void Summary::plot() const {
+  std::cout << EXPR_AND_VAL_AS_STRING(gpsSpeed) << std::endl;
   Arrayd allGpsDifs = computeRegDifs(gpsSpeed, settings.step);
   Arrayd allInitialFlowDifs = computeRegDifs(initialFlow, settings.step);
   Arrayd allFinalFlowDifs = computeRegDifs(finalFlow, settings.step);
+
+  std::cout << EXPR_AND_VAL_AS_STRING(allGpsDifs.sliceTo(30)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(allInitialFlowDifs.sliceTo(30)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(allFinalFlowDifs.sliceTo(30)) << std::endl;
 
   plotInitialAndFinalDifs(allGpsDifs, allInitialFlowDifs, allFinalFlowDifs);
 
@@ -97,7 +102,7 @@ Summary optimizeLinear(Eigen::MatrixXd A,
                       Array<Arrayi> splits, Arrayd initialParameters,
                       Settings settings) {
   CHECK(initialParameters.size() == A.cols());
-  Arrayd gpsData(B.size(), B.data());
+  Arrayd gpsData = Arrayd(B.size(), B.data()).dup();
   return optimize(LinearFlow(A, B), gpsData, splits, initialParameters, settings);
 }
 
