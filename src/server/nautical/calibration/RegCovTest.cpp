@@ -90,7 +90,7 @@ TEST(RegCovTest, TestIntegration) {
   FlowSettings flowSettings;
   auto trueWind = makeTrueWindMatrices(navs, flowSettings);
   auto trueCurrent = makeTrueCurrentMatrices(navs, flowSettings);
-  auto flow = trueCurrent;
+  auto flow = trueWind;
 
   Eigen::MatrixXd A = EigenUtils::arrayToEigen(flow.A);
   Eigen::VectorXd B = EigenUtils::arrayToEigen(flow.B);
