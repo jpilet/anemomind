@@ -9,7 +9,12 @@ In ```anemomind-ios```, you will find the code for iOS devices.
 # Quick dev setup guide
 To build the cpp code in release mode:
 ```
-mkdir build_release; cd build_release; cmake .. -DCMAKE_BUILD_TYPE=Release; make -j 4
+mkdir build_release
+cd build_release
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j 4
+```
+*If you get a compilation error*, you can try to call ```make -j 4``` again until everything builds with no errors.
 ```
 Then build the test database. Make sure mongo is runnning, then run:
 ```
