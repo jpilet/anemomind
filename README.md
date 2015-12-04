@@ -47,7 +47,7 @@ The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
   * POCO
   * ceres
 
-## Summary of steps to get started:
+## Summary of steps to get started
 The following steps cover building and testing all the code:
   1. Install dependencies
   2. Clone this repository
