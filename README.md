@@ -52,26 +52,26 @@ The following steps cover building and testing all the code:
   1. Install dependencies
   2. Clone this repository
   3. From the root directory,
-     mkdir build
-  4. cd build
-  5. cmake ../
-  6. make -j N
-     where N is the number of cores, e.g. 8
-  7. make test
-  8. cd ../www2
-  9. npm install
-  10. bower install
-  11. grunt test
-  12. mocha
-  13. cd ../nodemodules/endpoint
-  14. npm install
-  15. mocha
-  16. cd ../mangler
-  17. npm install
-  18. mocha
-  19. cd ../../src/device/anemobox/anemonode/
-  20. npm install
-  21. mocha
+     ```mkdir build```
+  4. ```cd build```
+  5. ```cmake ../```
+  6. ```make -j N```
+     where ```N``` is the number of cores, e.g. 8
+  7. ```make test```
+  8. ```cd ../www2```
+  9. ```npm install```
+  10. ```bower install```
+  11. ```grunt test```
+  12. ```mocha```
+  13. ```cd ../nodemodules/endpoint```
+  14. ```npm install```
+  15. ```mocha```
+  16. ```cd ../mangler```
+  17. ```npm install```
+  18. ```mocha```
+  19. ```cd ../../src/device/anemobox/anemonode/```
+  20. ```npm install```
+  21. ```mocha```
 
 ## Platform specific notes
 
