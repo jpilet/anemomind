@@ -30,6 +30,7 @@ grunt server:dev
 The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
 
 ## Required dependencies:
+  * Eigen 3
   * C++ compiler, such as GCC or LLVM/Clang
   * CMake build system.
   * Boost libraries: libboost-iostreams-dev, libboost-filesystem-dev, and probably other boost libraries.
