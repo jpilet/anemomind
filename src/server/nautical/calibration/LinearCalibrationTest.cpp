@@ -312,6 +312,7 @@ TEST(LinearCalibrationTest, SecondOrderReg) {
   }
 }
 
+/*
 void plotFlowVsGpsScatter(Eigen::MatrixXd Atrajectory,
                           Eigen::MatrixXd Btrajectory) {
   auto step = 100;
@@ -389,4 +390,4 @@ TEST(LinearCalibrationTest, RealData) {
 
   //plotTemporalFlowVsGpsScatter(Atrajectory, Btrajectory);
   solveCovariance(Atrajectory, Btrajectory);
-}
+}*/
