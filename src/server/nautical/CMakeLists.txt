@@ -514,3 +514,11 @@ cxx_test(nautical_TimedSampleCollectionTest TimedSampleCollectionTest.cpp
          common_TimeStamp
          gtest_main
          )
+
+add_executable(nautical_catTargetSpeed
+               catTargetSpeed.cpp
+              )
+target_link_libraries(nautical_catTargetSpeed
+                      device_TargetSpeed
+                      common_ArgMap
+                     )
