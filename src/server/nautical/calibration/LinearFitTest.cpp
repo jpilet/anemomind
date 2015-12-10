@@ -81,6 +81,9 @@ TEST(LinearFitTest, CoefMats) {
 }
 
 TEST(LinearFitTest, BasicTest) {
+  using namespace LinearCalibration;
+  using namespace LinearFit;
+  using namespace EigenUtils;
   NavalSimulation sim = getNavSimFractalWindOriented();
   auto boatData = sim.boatData(0);
 
@@ -90,7 +93,10 @@ TEST(LinearFitTest, BasicTest) {
   auto flow = LinearCalibration::makeTrueWindMatrices(navs, settings);
   auto Xeqs = LinearFit::makeNormalEqs(headings, flow, 0);
   auto Yeqs = LinearFit::makeNormalEqs(headings, flow, 1);
-
+  Eigen::MatrixXd mp = sliceRows(flow.A, 0, 4);
+  std::cout << EXPR_AND_VAL_AS_STRING(mp) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(Xeqs[0].A) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(Xeqs[0].B) << std::endl;
 }
 
 
