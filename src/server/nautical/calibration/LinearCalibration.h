@@ -102,7 +102,7 @@ EigenUtils::MatrixPair makeTrueFlowMatrices(
   auto rows = DataFit::CoordIndexer::Factory();
   auto spans = rows.make(n, 2);
   Eigen::MatrixXd A(rows.count(), paramCount);
-  Eigen::MatrixXd B(rows.count, 1);
+  Eigen::MatrixXd B(rows.count(), 1);
   for (int i = 0; i < n; i++) {
     auto a = EigenUtils::sliceRows(A, spans.span(i));
     auto b = EigenUtils::sliceRows(B, spans.span(i));

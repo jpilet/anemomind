@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <server/nautical/synthtest/NavalSimulationPrecomp.h>
 #include <server/nautical/calibration/LinearFit.h>
+#include <server/nautical/calibration/LinearCalibration.h>
 
 using namespace sail;
 
@@ -82,6 +83,14 @@ TEST(LinearFitTest, CoefMats) {
 TEST(LinearFitTest, BasicTest) {
   NavalSimulation sim = getNavSimFractalWindOriented();
   auto boatData = sim.boatData(0);
+
+  LinearCalibration::FlowSettings settings;
+  auto navs = boatData.navs();
+  auto headings = getMagHdg(navs);
+  auto flow = LinearCalibration::makeTrueWindMatrices(navs, settings);
+  auto Xeqs = LinearFit::makeNormalEqs(headings, flow, 0);
+  auto Yeqs = LinearFit::makeNormalEqs(headings, flow, 1);
+
 }
 
 
