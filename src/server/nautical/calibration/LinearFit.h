@@ -8,6 +8,8 @@
 
 #include <server/math/EigenUtils.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/nautical/CalibrationBenchmark.h>
+#include <server/nautical/calibration/LinearCalibration.h>
 
 namespace sail {
 namespace LinearFit {
@@ -35,6 +37,27 @@ Eigen::VectorXd minimizeLeastSquares(Array<EigenUtils::MatrixPair> coefMatrices)
 Eigen::VectorXd minimizeLeastSumOfNorms(Array<EigenUtils::MatrixPair> coefMatrices);
 
 Eigen::VectorXd minimizeCoefs(Array<EigenUtils::MatrixPair> coefMatrices, int exponent);
+
+struct Settings {
+ int exponent = 2;
+ double relativeStep = 0.5;
+ int spanSize = 100;
+};
+
+class LinearFitCorrectorFunction : public CorrectorFunction {
+ public:
+  LinearFitCorrectorFunction(const Settings &s,
+                             LinearCalibration::FlowSettings flowSettings) : _settings(s),
+                               _flowSettings(flowSettings) {}
+
+  Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const;
+  std::string toString() const {
+    return "[calibration/LinearFit]";
+  }
+ private:
+  Settings _settings;
+  LinearCalibration::FlowSettings _flowSettings;
+};
 
 }
 }

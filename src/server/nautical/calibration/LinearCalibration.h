@@ -17,6 +17,11 @@
 namespace sail {
 namespace LinearCalibration {
 
+inline Velocity<double> unit() {
+  return Velocity<double>::knots(1.0);
+}
+
+
 void initializeParameters(bool withOffset, double *dst);
 Arrayd makeXinit(bool withOffset = true);
 Eigen::VectorXd makeXinitEigen();
@@ -50,10 +55,10 @@ template <typename MatrixType>
 void makeCalibratedMotionMatrix(
     Angle<double> angle, Velocity<double> magnitude,
     bool withOffset,
-    MatrixType *dst, Velocity<double> unit) {
+    MatrixType *dst) {
   double cosPhi = cos(angle);
   double sinPhi = sin(angle);
-  double r = magnitude/unit;
+  double r = magnitude/unit();
   (*dst)(0, 0) = r*sinPhi; (*dst)(0, 1) = -r*cosPhi;
   (*dst)(1, 0) = r*cosPhi; (*dst)(1, 1) = r*sinPhi;
   if (withOffset) {
@@ -68,10 +73,9 @@ HorizontalMotion<double> getGpsMotion(const InstrumentAbstraction &nav) {
 }
 
 template <typename MatrixType>
-void makeGpsOffset(const HorizontalMotion<double> &m, MatrixType *dstB,
-    Velocity<double> unit) {
-  (*dstB)(0, 0) = m[0]/unit;
-  (*dstB)(1, 0) = m[1]/unit;
+void makeGpsOffset(const HorizontalMotion<double> &m, MatrixType *dstB) {
+  (*dstB)(0, 0) = m[0]/unit();
+  (*dstB)(1, 0) = m[1]/unit();
 }
 
 /*
@@ -85,11 +89,10 @@ void makeGpsOffset(const HorizontalMotion<double> &m, MatrixType *dstB,
 template <typename InstrumentAbstraction, typename MatrixType>
 void makeTrueWindMatrixExpression(const InstrumentAbstraction &nav,
   FlowSettings settings,
-  MatrixType *dstA, MatrixType *dstB,
-  Velocity<double> unit = Velocity<double>::knots(1.0)) {
+  MatrixType *dstA, MatrixType *dstB) {
   auto absoluteDirectionOfWind = nav.magHdg() + nav.awa() + Angle<double>::degrees(180);
-  makeCalibratedMotionMatrix(absoluteDirectionOfWind, nav.aws(), settings.windWithOffset, dstA, unit);
-  makeGpsOffset(getGpsMotion(nav), dstB, unit);
+  makeCalibratedMotionMatrix(absoluteDirectionOfWind, nav.aws(), settings.windWithOffset, dstA);
+  makeGpsOffset(getGpsMotion(nav), dstB);
 }
 
 
@@ -140,12 +143,11 @@ EigenUtils::MatrixPair makeTrueCurrentMatrices(Array<InstrumentAbstraction> navs
 template <typename InstrumentAbstraction, typename MatrixType>
 void makeTrueCurrentMatrixExpression(const InstrumentAbstraction &nav,
   const FlowSettings &s,
-  MatrixType *dstA, MatrixType *dstB,
-  Velocity<double> unit = Velocity<double>::knots(1.0)) {
+  MatrixType *dstA, MatrixType *dstB) {
   auto oppositeDirectionOfBoatOverWater = nav.magHdg() + Angle<double>::degrees(180);
   makeCalibratedMotionMatrix(oppositeDirectionOfBoatOverWater,
-      nav.watSpeed(), s.currentWithOffset, dstA, unit);
-  makeGpsOffset(getGpsMotion(nav), dstB, unit);
+      nav.watSpeed(), s.currentWithOffset, dstA);
+  makeGpsOffset(getGpsMotion(nav), dstB);
 }
 
 

@@ -140,5 +140,48 @@ Eigen::VectorXd minimizeCoefs(Array<EigenUtils::MatrixPair> coefMatrices, int ex
   return minimizeLeastSquares(coefMatrices);
 }
 
+namespace {
+  Array<HorizontalMotion<double> > calibrateFlow(Array<Angle<double> > hdg,
+                     Array<Nav> navs,
+                     Settings settings,
+                     LinearCalibration::FlowSettings flowSettings, bool wind) {
+    int n = navs.size();
+    assert(n == hdg.size());
+    auto mats = LinearCalibration::makeTrueFlowMatrices(navs, flowSettings, wind);
+    assert(mats.rows() == 2*n);
+    auto X = makeNormalEqs(hdg, mats, 0);
+    auto Y = makeNormalEqs(hdg, mats, 1);
+    auto spans = LinearCalibration::makeOverlappingSpans(
+        navs.size(), settings.spanSize, settings.relativeStep);
+    auto coefs = makeCoefMatrices(X, Y, spans);
+    auto params = minimizeCoefs(coefs, settings.exponent);
+    Eigen::VectorXd correctedFlow = mats.A*params + mats.B;
+    Array<HorizontalMotion<double> > results(n);
+    for (int i = 0; i < n; i++) {
+      int offset = 2*i;
+      double cx = correctedFlow(offset + 0);
+      double cy = correctedFlow(offset + 1);
+      results[i] = HorizontalMotion<double>(cx*LinearCalibration::unit(),
+                                            cy*LinearCalibration::unit());
+    }
+    return results;
+  }
+}
+
+Array<CalibratedNav<double> > LinearFitCorrectorFunction::operator()(const Array<Nav> &navs) const {
+  auto hdg = getMagHdg(navs);
+  int n = navs.size();
+  auto wind = calibrateFlow(hdg, navs, _settings, _flowSettings, true);
+  auto current = calibrateFlow(hdg, navs, _settings, _flowSettings, false);
+  assert(wind.size() == n);
+  assert(current.size() == n);
+  Array<CalibratedNav<double> > dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i].trueWindOverGround.set(wind[i]);
+    dst[i].trueCurrentOverGround.set(current[i]);
+  }
+  return dst;
+}
+
 }
 }
