@@ -124,7 +124,7 @@ namespace {
 }
 
 Eigen::VectorXd minimizeLeastSumOfNorms(Array<EigenUtils::MatrixPair> coefMatrices) {
-  auto X = minimizeLeastSquares(coefMatrices);
+  Eigen::VectorXd X = minimizeLeastSquares(coefMatrices);
   int iters = 30;
   for (int i = 0; i < iters; i++) {
     X = iterateLeastSumOfNorms(coefMatrices, X);
@@ -132,6 +132,13 @@ Eigen::VectorXd minimizeLeastSumOfNorms(Array<EigenUtils::MatrixPair> coefMatric
   return X;
 }
 
+Eigen::VectorXd minimizeCoefs(Array<EigenUtils::MatrixPair> coefMatrices, int exponent) {
+  assert(exponent == 1 || exponent == 2);
+  if (exponent == 1) {
+    return minimizeLeastSumOfNorms(coefMatrices);
+  }
+  return minimizeLeastSquares(coefMatrices);
+}
 
 }
 }

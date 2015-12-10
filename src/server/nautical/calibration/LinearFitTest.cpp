@@ -97,8 +97,7 @@ TEST(LinearFitTest, BasicTest) {
   auto spans = makeOverlappingSpans(n, 100, 0.5);
 
   auto coefs = makeCoefMatrices(Xeqs, Yeqs, spans);
-  //std::cout << EXPR_AND_VAL_AS_STRING(minimizeLeastSquares(coefs)) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(minimizeLeastSumOfNorms(coefs)) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(minimizeCoefs(coefs, 2)) << std::endl;
 
 }
 

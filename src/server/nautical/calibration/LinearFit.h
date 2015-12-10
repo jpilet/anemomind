@@ -34,6 +34,8 @@ Array<EigenUtils::MatrixPair> makeCoefMatrices(Array<EigenUtils::MatrixPair> X,
 Eigen::VectorXd minimizeLeastSquares(Array<EigenUtils::MatrixPair> coefMatrices);
 Eigen::VectorXd minimizeLeastSumOfNorms(Array<EigenUtils::MatrixPair> coefMatrices);
 
+Eigen::VectorXd minimizeCoefs(Array<EigenUtils::MatrixPair> coefMatrices, int exponent);
+
 }
 }
 
