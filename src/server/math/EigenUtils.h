@@ -82,6 +82,7 @@ MatrixType nullspace(MatrixType X) {
 // pairs, e.g. in least-squares problems,
 // it makes sense to have a struct for that.
 struct MatrixPair {
+  MatrixPair() {}
   MatrixPair(const Eigen::MatrixXd &a, const Eigen::MatrixXd &b) : A(a), B(b) {}
 
   // Constructor to make this data type compatible with templated algorithms,
@@ -98,7 +99,21 @@ struct MatrixPair {
   bool empty() const;
   MatrixPair operator+(const MatrixPair &other) const;
 
-  Eigen::MatrixXd solve() const;
+  bool sameRows() const {
+    return A.rows() == B.rows();
+  }
+
+  bool sameCols() const {
+    return A.cols() == B.cols();
+  }
+
+  int rows() const {
+    assert(sameRows());
+    return A.rows();
+  }
+
+  // Returns inv(A)*B
+  Eigen::MatrixXd luSolve() const;
 };
 
 MatrixPair operator*(double factor, const MatrixPair &X);
@@ -110,7 +125,7 @@ Eigen::MatrixXd hcat(const Eigen::MatrixXd &A, const Eigen::VectorXd &B);
 // a and b have exactly A.cols() rows. This is useful in order
 // to rewrite a least-squares problem to a smaller, but equivalent one,
 // because the normal equations of the problem Minimize_X ||A*X - B||^2 are the same
-// as for the problem Minimize_X ||a*X - B||^2
+// as for the problem Minimize_X ||a*X - b||^2
 MatrixPair compress(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
 
 // Returns (A'A, A'B). Useful when building least-squares problems incrementally, since

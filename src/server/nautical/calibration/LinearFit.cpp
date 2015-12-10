@@ -28,8 +28,8 @@ EigenUtils::MatrixPair buildNormalEqs(
 
 EigenUtils::MatrixPair makeXYCoefMatrices(EigenUtils::MatrixPair Xflow,
                                           EigenUtils::MatrixPair Yflow) {
-  auto Xcoefsh = Xflow.solve();
-  auto Ycoefsh = Yflow.solve();
+  auto Xcoefsh = Xflow.luSolve();
+  auto Ycoefsh = Yflow.luSolve();
   assert(Xcoefsh.rows() == 3);
   assert(Ycoefsh.rows() == 3);
   assert(Xcoefsh.cols() == Ycoefsh.cols());
@@ -49,6 +49,25 @@ EigenUtils::MatrixPair makeXYCoefMatrices(EigenUtils::MatrixPair Xflow,
     }
   }
   return EigenUtils::MatrixPair(A, B);
+}
+
+Array<EigenUtils::MatrixPair> makeNormalEqs(Array<Angle<double> > headings,
+                                            EigenUtils::MatrixPair flowEqs,
+                                            int dim) {
+  using namespace EigenUtils;
+  int n = headings.size();
+  assert(2*n == flowEqs.rows());
+  assert(dim == 0 || dim == 1);
+  Array<MatrixPair> dst(n);
+  for (int i = 0; i < n; i++) {
+    int offset = 2*i;
+    int from = offset + dim;
+    int to = from + 1;
+    dst[i] = buildNormalEqs(headings[i],
+                            sliceRows(flowEqs.A, from, to),
+                            sliceRows(flowEqs.B, from, to));
+  }
+  return dst;
 }
 
 

@@ -23,6 +23,10 @@ EigenUtils::MatrixPair buildNormalEqs(
 EigenUtils::MatrixPair makeXYCoefMatrices(EigenUtils::MatrixPair Xflow,
                                           EigenUtils::MatrixPair Yflow);
 
+Array<EigenUtils::MatrixPair> makeNormalEqs(Array<Angle<double> > headings,
+                                            EigenUtils::MatrixPair flowEqs,
+                                            int dim);
+
 }
 }
 

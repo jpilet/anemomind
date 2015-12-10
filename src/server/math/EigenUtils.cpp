@@ -117,7 +117,7 @@ MatrixPair MatrixPair::operator+(const MatrixPair &other) const {
                 addPossiblyEmpty(B, other.B));
 }
 
-Eigen::MatrixXd MatrixPair::solve() const {
+Eigen::MatrixXd MatrixPair::luSolve() const {
   return A.lu().solve(B);
 }
 

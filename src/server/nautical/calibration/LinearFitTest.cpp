@@ -29,7 +29,7 @@ TEST(LinearFitTest, BuildEqs) {
   auto b = LinearFit::buildNormalEqs(Angle<double>::degrees(45.0), scalarToMat(2.3));
   auto c = LinearFit::buildNormalEqs(Angle<double>::degrees(90.0), scalarToMat(4.6));
   auto abc = a + b + c;
-  auto P = abc.solve();
+  auto P = abc.luSolve();
 
   double expected[3] = {-2.3, 2.3, 2.3};
   for (int i = 0; i < 3; i++) {
@@ -42,7 +42,7 @@ TEST(LinearFitTest, BuildEqs2) {
   auto b = LinearFit::buildNormalEqs(Angle<double>::degrees(45.0), scalarToMat(-3.0));
   auto c = LinearFit::buildNormalEqs(Angle<double>::degrees(90.0), scalarToMat(-7.0));
   auto abc = a + b + c;
-  auto P = abc.solve();
+  auto P = abc.luSolve();
 
   double expected[3] = {4.0, -4.0, -3.0};
   for (int i = 0; i < 3; i++) {
