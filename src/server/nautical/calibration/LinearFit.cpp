@@ -7,6 +7,7 @@
 #include <server/math/Integral1d.h>
 #include <cassert>
 #include <server/common/Functional.h>
+#include <server/math/Majorize.h>
 
 namespace sail {
 namespace LinearFit {
@@ -100,6 +101,35 @@ Eigen::VectorXd minimizeLeastSquares(Array<EigenUtils::MatrixPair> coefMatrices)
                const EigenUtils::MatrixPair &b) {
     return a + b;
   }).luSolve();
+}
+
+namespace {
+  EigenUtils::MatrixPair computeWeightedNormalEqs(const EigenUtils::MatrixPair &p,
+                                                  const Eigen::VectorXd &X) {
+    auto Y = p.A*X + p.B;
+    double error = Y.norm();
+    auto maj = MajQuad::majorizeAbs(error, 1.0e-9);
+    return maj.a*coefMatricesToNormalEqs(p);
+  }
+
+  Eigen::VectorXd iterateLeastSumOfNorms(const Array<EigenUtils::MatrixPair> &coefMatrices,
+                                         const Eigen::VectorXd &X) {
+    EigenUtils::MatrixPair acc;
+    for (auto cm: coefMatrices) {
+      acc = computeWeightedNormalEqs(cm, X);
+    }
+    return acc.luSolve();
+  }
+
+}
+
+Eigen::VectorXd minimizeLeastSumOfNorms(Array<EigenUtils::MatrixPair> coefMatrices) {
+  auto X = minimizeLeastSquares(coefMatrices);
+  int iters = 30;
+  for (int i = 0; i < iters; i++) {
+    X = iterateLeastSumOfNorms(coefMatrices, X);
+  }
+  return X;
 }
 
 

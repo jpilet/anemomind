@@ -32,6 +32,7 @@ Array<EigenUtils::MatrixPair> makeCoefMatrices(Array<EigenUtils::MatrixPair> X,
                                                Array<Spani> spans);
 
 Eigen::VectorXd minimizeLeastSquares(Array<EigenUtils::MatrixPair> coefMatrices);
+Eigen::VectorXd minimizeLeastSumOfNorms(Array<EigenUtils::MatrixPair> coefMatrices);
 
 }
 }
