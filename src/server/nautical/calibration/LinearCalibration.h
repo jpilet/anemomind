@@ -8,10 +8,10 @@
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <device/Arduino/libraries/CalibratedNav/CalibratedNav.h>
-#include <server/math/irls.h>
 #include <server/math/nonlinear/DataFit.h>
 #include <server/math/Random.h>
 #include <server/plot/extra.h>
+#include <server/math/EigenUtils.h>
 
 namespace sail {
 namespace LinearCalibration {
@@ -92,47 +92,39 @@ void makeTrueWindMatrixExpression(const InstrumentAbstraction &nav,
 }
 
 
-struct FlowMatrices {
- MDArray2d A, B;
-
- int rows() const {
-   assert(A.rows() == B.rows());
-   return A.rows();
- }
-
- int count() const {
-   return rows()/2;
- }
-};
 
 template <typename InstrumentAbstraction>
-FlowMatrices makeTrueWindMatrices(Array<InstrumentAbstraction> navs, const FlowSettings &s) {
+EigenUtils::ABPair makeTrueFlowMatrices(
+    Array<InstrumentAbstraction> navs, const FlowSettings &s, bool wind) {
   int n = navs.size();
   int paramCount = s.windParamCount();
-  MDArray2d A(2*n, paramCount);
-  MDArray2d B(2*n, 1);
+  auto rows = DataFit::CoordIndexer::Factory();
+  auto spans = rows.make(n, 2);
+  Eigen::MatrixXd A(rows.count(), paramCount);
+  Eigen::MatrixXd B(rows.count, 1);
   for (int i = 0; i < n; i++) {
-    int offset = 2*i;
-    auto a = A.sliceRowBlock(i, 2);
-    auto b = B.sliceRowBlock(i, 2);
-    makeTrueWindMatrixExpression(navs[i], s, &a, &b);
+    auto a = EigenUtils::sliceRows(A, spans.span(i));
+    auto b = EigenUtils::sliceRows(B, spans.span(i));
+    if (wind) {
+      makeTrueWindMatrixExpression(navs[i], s, &a, &b);
+    } else {
+      makeTrueCurrentMatrixExpression(navs[i], s, &a, &b);
+    }
   }
-  return FlowMatrices{A, B};
+  return EigenUtils::ABPair(A, B);
 }
 
 template <typename InstrumentAbstraction>
-FlowMatrices makeTrueCurrentMatrices(Array<InstrumentAbstraction> navs, const FlowSettings &s) {
-  int n = navs.size();
-  int paramCount = s.currentParamCount();
-  MDArray2d A(2*n, paramCount);
-  MDArray2d B(2*n, 1);
-  for (int i = 0; i < n; i++) {
-    int offset = 2*i;
-    auto a = A.sliceRowBlock(i, 2);
-    auto b = B.sliceRowBlock(i, 2);
-    makeTrueCurrentMatrixExpression(navs[i], s, &a, &b);
-  }
-  return FlowMatrices{A, B};
+EigenUtils::ABPair makeTrueWindMatrices(Array<InstrumentAbstraction> navs,
+    const FlowSettings &s) {
+  return makeTrueFlowMatrices(navs, s, true);
+}
+
+
+template <typename InstrumentAbstraction>
+EigenUtils::ABPair makeTrueCurrentMatrices(Array<InstrumentAbstraction> navs,
+    const FlowSettings &s) {
+  return makeTrueFlowMatrices(navs, s, false);
 }
 
 
@@ -171,171 +163,6 @@ class LinearCorrector : public CorrectorFunction {
   FlowSettings _flowSettings;
   Arrayd _windParams, _currentParams;
 };
-
-
-template <typename MatrixType>
-int getObservationCount(const MatrixType &X) {
-  int count = X.rows()/2;
-  CHECK(2*count == X.rows());
-  return count;
-}
-
-struct CalibrationSettings {
-  irls::Settings irlsSettings;
-  int samplesPerSpan = 60;
-  double inlierFrac = 0.2;
-};
-
-
-struct SubtractMeanResults {
-  Eigen::MatrixXd results;
-  Eigen::MatrixXd mean;
-};
-Eigen::MatrixXd subtractMean(Eigen::MatrixXd A, int dim);
-Eigen::MatrixXd integrate(Eigen::MatrixXd A, int dim);
-Eigen::MatrixXd integrateFlowData(Eigen::MatrixXd X);
-
-struct FlowFiber {
-  Eigen::MatrixXd Q, B;
-
-  MDArray2d makePlotData(Eigen::VectorXd params, double scale = 1.0);
-  double eval(Eigen::VectorXd params, double scale = 1.0);
-
-  int rows() const {
-    assert(Q.rows() == B.rows());
-    return Q.rows();
-  }
-
-  int observationCount() const {
-    assert(Q.rows() % 2 == 0);
-    return Q.rows()/2;
-  }
-
-  int parameterCount() const {
-    return Q.cols();
-  }
-
-  FlowFiber differentiate() const;
-  FlowFiber integrate() const;
-  FlowFiber dropConstant() const;
-  FlowFiber dropVariable() const;
-  bool sameSizeAs(const FlowFiber &other) const;
-  Eigen::VectorXd minimizeNorm() const;
-};
-
-class TrajectoryPlot {
- public:
-  TrajectoryPlot();
-  void plot(Eigen::VectorXd X, int lineType, bool thick);
-  void show() {_plot.show();}
- private:
-  GnuplotExtra _plot;
-};
-
-
-// Makes a matrix used to parametrize the trajectory
-// of a constant flow: That is a straight line, typically in two dimensions.
-void makeConstantFlowTrajectoryMatrix(DataFit::CoordIndexer rows,
-                                          DataFit::CoordIndexer cols,
-                                          std::vector<DataFit::Triplet> *dst);
-
-FlowFiber operator+(const FlowFiber &a, const FlowFiber &b);
-FlowFiber operator-(const FlowFiber &a, const FlowFiber &b);
-FlowFiber operator-(const FlowFiber &a);
-FlowFiber operator*(double x, const FlowFiber &b);
-
-
-
-
-void plotFlowFibers(Array<FlowFiber> flowFibers, Eigen::VectorXd params, double scale = 1.0);
-void plotFlowFibers(Array<FlowFiber> data,
-    Eigen::VectorXd A, Eigen::VectorXd B, double scale = 1.0);
-
-
-Eigen::MatrixXd extractRows(Eigen::MatrixXd mat, Arrayi inds, int dim);
-Array<FlowFiber> makeFlowFibers(Eigen::MatrixXd Q, Eigen::MatrixXd B,
-    Array<Arrayi> splits);
-
-Array<FlowFiber> computeFiberMeans(Array<FlowFiber> rawFibers, int dstCount);
-
-FlowFiber computeMeanFiber(Array<FlowFiber> fibers);
-
-// Build a fiber, whose norm |Q*X + B| should be as small as possible.
-FlowFiber buildFitnessFiber(Array<FlowFiber> fibers, FlowFiber mean);
-
-Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K);
-Array<Arrayi> makeRandomSplit(int sampleCount, int splitCount,
-    RandomEngine *rng = nullptr);
-
-Array<Spani> makeContiguousSpans(int sampleCount, int splitSize);
-Array<Spani> makeOverlappingSpans(int sampleCount, int splitSize, double step = 0.5);
-
-Eigen::VectorXd fitConstantFlow(const Eigen::VectorXd &dst);
-
-struct LocallyConstantResults {
-  Arrayb inliers;
-  Arrayd parameters;
-  Array<Eigen::VectorXd> segments;
-  Eigen::VectorXd B;
-
-  int inlierCount() const;
-  double inlierRate() const {
-    return double(inlierCount())/inliers.size();
-  }
-  void plot();
-};
-
-// TODO: Autoselect the span count so that the number of inliers is maximized.
-LocallyConstantResults optimizeLocallyConstantFlows(
-    Eigen::MatrixXd Atrajectory, Eigen::VectorXd Btrajectory,
-    Array<Spani> spans, const irls::Settings &settings);
-
-
-
-
-////////////// Next version
-DataFit::CoordIndexer makeSrcIndexer(int observationCount, int segmentSize);
-
-void makeFirstOrderSplineCoefs(DataFit::CoordIndexer segmentRows,
-                               DataFit::CoordIndexer splineCoefCols,
-                               std::vector<DataFit::Triplet> *dst);
-
-Array<Spani> makeOutlierSegmentData(DataFit::CoordIndexer constraintRows,
-                                    DataFit::CoordIndexer splineCoefCols,
-                                    DataFit::CoordIndexer outlierSlackCols,
-                                    std::vector<DataFit::Triplet> *dst);
-
-Array<Spani> makeOutlierPenalty(
-    DataFit::CoordIndexer srcDataSegments,
-    Eigen::VectorXd srcGpsData,
-    DataFit::CoordIndexer outlierPenaltyRows,
-    DataFit::CoordIndexer outlierSlackCols,
-    std::vector<DataFit::Triplet> *dst, DataFit::VectorBuilder *B, int dim = 2);
-
-
-Eigen::MatrixXd applySecondOrderReg(const Eigen::MatrixXd &A, int step, int dim);
-
-Arrayd computeNorms(const Eigen::VectorXd &X, int dim);
-
-struct CovSettings {
-  int regStep = 119;
-  double inlierFraction = 0.99;
-  irls::Settings irlsSettings;
-};
-
-struct CovResults {
-  Eigen::MatrixXd A;
-  Eigen::MatrixXd B;
-  Eigen::VectorXd X;
-  Arrayb inlierMask;
-
-  void plot() const;
-  void plotDerivatives() const;
-};
-
-CovResults optimizeCovariances(Eigen::MatrixXd Atrajectory,
-                               Eigen::MatrixXd Btrajectory,
-                               CovSettings settings);
 
 
 
