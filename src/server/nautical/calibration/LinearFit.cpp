@@ -26,5 +26,31 @@ EigenUtils::MatrixPair buildNormalEqs(
   return EigenUtils::MatrixPair(K.transpose()*K, K.transpose()*AB1);
 }
 
+EigenUtils::MatrixPair makeXYCoefMatrices(EigenUtils::MatrixPair Xflow,
+                                          EigenUtils::MatrixPair Yflow) {
+  auto Xcoefsh = Xflow.solve();
+  auto Ycoefsh = Yflow.solve();
+  assert(Xcoefsh.rows() == 3);
+  assert(Ycoefsh.rows() == 3);
+  assert(Xcoefsh.cols() == Ycoefsh.cols());
+  int cols = Xcoefsh.cols();
+  int lastCol = cols-1;
+  assert(0 <= lastCol);
+  Eigen::MatrixXd A(4, lastCol);
+  Eigen::MatrixXd B(4, 1);
+  constexpr int x_ = 0;
+  constexpr int y_ = 2;
+  for (int i = 0; i < 2; i++) {
+    B(i + x_, 0) = Xcoefsh(i, lastCol);
+    B(i + y_, 0) = Ycoefsh(i, lastCol);
+    for (int j = 0; j < lastCol; j++) {
+      A(i + x_, j) = Xcoefsh(i, j);
+      A(i + y_, j) = Ycoefsh(i, j);
+    }
+  }
+  return EigenUtils::MatrixPair(A, B);
+}
+
+
 }
 }

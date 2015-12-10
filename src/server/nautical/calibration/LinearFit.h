@@ -20,6 +20,9 @@ EigenUtils::MatrixPair buildNormalEqs(
     Angle<double> heading,
     const Eigen::MatrixXd &AB1);
 
+EigenUtils::MatrixPair makeXYCoefMatrices(EigenUtils::MatrixPair Xflow,
+                                          EigenUtils::MatrixPair Yflow);
+
 }
 }
 
