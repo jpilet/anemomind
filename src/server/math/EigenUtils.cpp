@@ -103,13 +103,26 @@ bool MatrixPair::empty() const {
   return EigenUtils::empty(A) && EigenUtils::empty(B);
 }
 
+
+MatrixPair MatrixPair::fitToZero(int lhs, int rhs) {
+  return MatrixPair(Eigen::MatrixXd::Identity(lhs, lhs), Eigen::MatrixXd::Zero(lhs, rhs));
+}
+
+MatrixPair MatrixPair::makeRegularizer(int lhs, int rhs, double lambda) {
+  return lambda*fitToZero(lhs, rhs);
+}
+
 MatrixPair MatrixPair::operator+(const MatrixPair &other) const {
   return MatrixPair(addPossiblyEmpty(A, other.A),
                 addPossiblyEmpty(B, other.B));
 }
 
-MatrixPair MatrixPair::operator*(double factor) const {
-  return MatrixPair(factor*A, factor*B);
+Eigen::MatrixXd MatrixPair::solve() const {
+  return A.lu().solve(B);
+}
+
+MatrixPair operator*(double factor, const MatrixPair &X) {
+  return MatrixPair(factor*X.A, factor*X.B);
 }
 
 

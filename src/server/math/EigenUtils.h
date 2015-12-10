@@ -89,13 +89,21 @@ struct MatrixPair {
   // the integral sum with 0.
   MatrixPair(double x) {assert(x == 0.0);}
 
+  static MatrixPair fitToZero(int lhs, int rhs);
+  static MatrixPair makeRegularizer(int lhs, int rhs, double lambda);
+
   Eigen::MatrixXd A;
   Eigen::MatrixXd B;
 
   bool empty() const;
   MatrixPair operator+(const MatrixPair &other) const;
-  MatrixPair operator*(double factor) const;
+
+  Eigen::MatrixXd solve() const;
 };
+
+MatrixPair operator*(double factor, const MatrixPair &X);
+
+Eigen::MatrixXd hcat(const Eigen::MatrixXd &A, const Eigen::VectorXd &B);
 
 // Returns a pair of matrices (a, b), so that
 // a'*a = A'*A and b'*b = B'*B

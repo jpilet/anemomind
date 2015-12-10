@@ -7,10 +7,18 @@
 #define SERVER_NAUTICAL_CALIBRATION_LINEARFIT_H_
 
 #include <server/math/EigenUtils.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 namespace sail {
 namespace LinearFit {
 
+EigenUtils::MatrixPair buildNormalEqs(
+    Angle<double> heading,
+    const Eigen::MatrixXd &A1, const Eigen::MatrixXd &B1);
+
+EigenUtils::MatrixPair buildNormalEqs(
+    Angle<double> heading,
+    const Eigen::MatrixXd &AB1);
 
 }
 }
