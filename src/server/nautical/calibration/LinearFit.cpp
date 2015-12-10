@@ -6,6 +6,7 @@
 #include <server/nautical/calibration/LinearFit.h>
 #include <server/math/Integral1d.h>
 #include <cassert>
+#include <server/common/Functional.h>
 
 namespace sail {
 namespace LinearFit {
@@ -85,6 +86,20 @@ Array<EigenUtils::MatrixPair> makeCoefMatrices(Array<EigenUtils::MatrixPair> X,
     dst[i] = makeXYCoefMatrices(Xitg.integrate(s), Yitg.integrate(s));
   }
   return dst;
+}
+
+namespace {
+  EigenUtils::MatrixPair coefMatricesToNormalEqs(EigenUtils::MatrixPair p) {
+    return EigenUtils::makeNormalEqs(p.A, -p.B);
+  }
+}
+
+Eigen::VectorXd minimizeLeastSquares(Array<EigenUtils::MatrixPair> coefMatrices) {
+  return sail::map(coefMatrices, coefMatricesToNormalEqs)
+    .reduce([](const EigenUtils::MatrixPair &a,
+               const EigenUtils::MatrixPair &b) {
+    return a + b;
+  }).luSolve();
 }
 
 
