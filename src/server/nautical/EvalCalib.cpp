@@ -7,6 +7,7 @@
 #include <server/nautical/CalibrationBenchmark.h>
 #include <server/nautical/MinCovCalib.h>
 #include <server/nautical/Calibrator.h>
+#include <server/nautical/calibration/LinearFit.h>
 #include <server/common/ArgMap.h>
 
 using namespace sail;
@@ -69,6 +70,11 @@ std::shared_ptr<CorrectorFunction> calibrateMinCov(Array<Nav> navs) {
       new CorrectorObject(MinCovCalib::optimizeWindVsCurrent(data, MinCovCalib::Settings())));
 }
 
+std::shared_ptr<CorrectorFunction> calibrateLinearFit(Array<Nav> navs) {
+  return std::shared_ptr<CorrectorFunction>(
+      LinearFit::makeCorrectorFunction(navs));
+}
+
 
 
 
@@ -93,6 +99,7 @@ AlgoMap makeAlgoMap() {
   algoMap["manfull"] = calibrateManeuversFull;
   algoMap["manwind"] = calibrateManeuversWind;
   algoMap["mincov"] = calibrateMinCov;
+  algoMap["linearFit"] = calibrateLinearFit;
   return algoMap;
 }
 

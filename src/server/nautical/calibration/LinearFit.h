@@ -44,20 +44,8 @@ struct Settings {
  int spanSize = 100;
 };
 
-class LinearFitCorrectorFunction : public CorrectorFunction {
- public:
-  LinearFitCorrectorFunction(const Settings &s,
-                             LinearCalibration::FlowSettings flowSettings) : _settings(s),
-                               _flowSettings(flowSettings) {}
+LinearCalibration::LinearCorrector *makeCorrectorFunction(const Array<Nav> &navs);
 
-  Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const;
-  std::string toString() const {
-    return "[calibration/LinearFit]";
-  }
- private:
-  Settings _settings;
-  LinearCalibration::FlowSettings _flowSettings;
-};
 
 }
 }

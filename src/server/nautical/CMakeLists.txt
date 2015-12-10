@@ -417,6 +417,7 @@ target_link_libraries(nautical_EvalCalib
                       nautical_MinCovCalib
                       nautical_Calibrator
                       nautical_CalibrationBenchmark
+                      calibration_LinearFit
                       common_ArgMap
                      )              
 
