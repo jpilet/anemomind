@@ -28,7 +28,7 @@ bower install
 ```
 and run it:
 ```
-grunt server:dev
+grunt serve:dev
 ```
 
 ## Reference platform
