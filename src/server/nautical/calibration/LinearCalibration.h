@@ -12,6 +12,7 @@
 #include <server/math/Random.h>
 #include <server/plot/extra.h>
 #include <server/math/EigenUtils.h>
+#include <string>
 
 namespace sail {
 namespace LinearCalibration {
