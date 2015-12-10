@@ -7,7 +7,7 @@
 #define SERVER_NAUTICAL_CALIBRATIONBENCHMARK_H_
 
 #include <functional>
-#include <server/nautical/synthtest/NavalSimulation.h>
+#include <server/nautical/synthtest/NavalSimulationPrecomp.h>
 #include <memory>
 
 namespace sail {

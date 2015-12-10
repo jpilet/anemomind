@@ -41,4 +41,5 @@ cxx_test(calibration_LinearFitTest
          LinearFitTest.cpp
          calibration_LinearFit
          gtest_main
+         nautical_synthtest_NavalSimulationPrecomp
         )

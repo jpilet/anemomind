@@ -78,27 +78,41 @@ MatrixType nullspace(MatrixType X) {
   return qr.householderQ()*selectNullspace;
 }
 
+// Since matrices often appear as
+// pairs, e.g. in least-squares problems,
+// it makes sense to have a struct for that.
 struct ABPair {
+  ABPair(const Eigen::MatrixXd &a, const Eigen::MatrixXd &b) : A(a), B(b) {}
+
+  // Constructor to make this data type compatible with templated algorithms,
+  // such as integral images, where we would usually add up scalars, initializing
+  // the integral sum with 0.
+  ABPair(double x) {assert(x == 0.0);}
+
   Eigen::MatrixXd A;
-  Eigen::VectorXd B;
+  Eigen::MatrixXd B;
+
+  bool empty() const;
+  ABPair operator+(const ABPair &other) const;
+  ABPair operator*(double factor) const;
 };
 
-ABPair compress(const ABPair &pair);
+// Returns a pair of matrices (a, b), so that
+// a'*a = A'*A and b'*b = B'*B
+// a and b have exactly A.cols() rows. This is useful in order
+// to rewrite a least-squares problem to a smaller, but equivalent one,
+// because the normal equations of the problem Minimize_X ||A*X - B||^2 are the same
+// as for the problem Minimize_X ||a*X - B||^2
+ABPair compress(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
 
-
-// Minimize w.r.t. X: |A*X|^2/|B*X|^2
-// The scale of the solution is undefined.
-// This function just returns one solution that
-// can be scaled. The columns of B must be linearly independent,
-// and B should generally have more rows than columns.
-Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A,
-                                  Eigen::MatrixXd B);
-
-// Minimize w.r.t. X: |A*X + B|^2/|C*X + D|^2.
-// The columns of C and D should all be linearly independent
-// from each other.
-Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A, Eigen::VectorXd B,
-                                  Eigen::MatrixXd C, Eigen::VectorXd D);
+// Returns (A'A, A'B). Useful when building least-squares problems incrementally, since
+// if we let A = [A0; A1] and B = [B0; B1] and we
+// want to minimize || A*X - B ||^2, then we can compute
+// (A'A, A'B) = (A0'A0, A0'B0) + (A1'A1, A1'B1), that is,
+// we don't need to compute the A and B matrices explicitly in order to build
+// the normal equations. This can be combined with integral images in order
+// to efficiently build the normal equations for an arbitrary row-slice of A and B.
+ABPair makeNormalEqs(Eigen::MatrixXd A, Eigen::MatrixXd B);
 
 
 }

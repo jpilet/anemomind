@@ -26,6 +26,7 @@ TEST(NormConstrainedTest, NormConstrained) {
   auto B = makeRandomMatrix(9, 1, &rng);
   auto Xinit = makeRandomMatrix(dims, 1, &rng);
 
+  std::cout << "HERE" << std::endl;
   Settings s;
   auto X = minimizeNormConstrained(A, B, Xinit, s);
   auto ref = eval(A, B, X);

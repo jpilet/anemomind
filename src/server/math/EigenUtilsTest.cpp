@@ -29,7 +29,7 @@ namespace {
 TEST(EigenUtilsTest, Compress) {
   auto A = makeRandomMatrix(9, 3, &rng);
   Eigen::VectorXd B = makeRandomMatrix(9, 1, &rng);
-  auto c = compress(ABPair{A, B});
+  auto c = compress(A, B);
   Eigen::MatrixXd AtA = A.transpose()*A;
   Eigen::MatrixXd AtB = A.transpose()*B;
   Eigen::MatrixXd AtA2 = c.A.transpose()*c.A;
@@ -46,18 +46,6 @@ TEST(EigenUtilsTest, OrthoBasis) {
   EXPECT_TRUE(isOrthonormal(Q));
   EXPECT_TRUE(spanTheSameSubspace(A, Q));
   EXPECT_FALSE(spanTheSameSubspace(A, B));
-}
-
-TEST(EigenUtilsTest, MinimizeNormFraction) {
-  auto A = makeRandomMatrix(9, 3, &rng, 1.0);
-  auto B = makeRandomMatrix(4, 3, &rng, 1.0);
-  auto X = minimizeNormRatio(A, B);
-  EXPECT_EQ(X.rows(), 3);
-  EXPECT_EQ(X.cols(), 1);
-  auto val = evalNormRatio(A, B, X);
-  for (int i = 0; i < 12; i++) {
-    EXPECT_LE(val, evalNormRatio(A, B, X + makeRandomMatrix(3, 1, &rng, 0.01)));
-  }
 }
 
 TEST(EigenUtilsTest, Nullspace) {
@@ -78,19 +66,4 @@ TEST(EigenUtilsTest, Nullspace2) {
   Eigen::MatrixXd Atk = A.transpose()*k;
   EXPECT_TRUE(eq(Atk, Eigen::MatrixXd::Zero(2, 1)));
   EXPECT_FALSE(eq(A, Eigen::MatrixXd::Zero(3, 2)));
-}
-
-
-TEST(EigenUtilsTest, MinimizeNormFraction2) {
-  auto A = makeRandomMatrix(9, 3, &rng, 1.0);
-  auto B = makeRandomMatrix(9, 1, &rng, 1.0);
-  auto C = makeRandomMatrix(5, 3, &rng, 1.0);
-  auto D = makeRandomMatrix(5, 1, &rng, 1.0);
-  auto X = minimizeNormRatio(A, B, C, D);
-  EXPECT_EQ(X.rows(), 3);
-  EXPECT_EQ(X.cols(), 1);
-  auto val = evalNormRatio(A, B, C, D, X);
-  for (int i = 0; i < 12; i++) {
-    EXPECT_LE(val, evalNormRatio(A, B, C, D, X + makeRandomMatrix(3, 1, &rng, 0.01)));
-  }
 }

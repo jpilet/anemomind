@@ -75,12 +75,43 @@ bool eq(const Eigen::MatrixXd &a, const Eigen::MatrixXd &b, double tol) {
 }
 
 
-ABPair compress(const ABPair &pair) {
-  auto Q = orthonormalBasis(pair.A);
-  Eigen::MatrixXd R = Q.transpose()*pair.A;
-  Eigen::VectorXd QtB = Q.transpose()*pair.B;
-  return ABPair{R, QtB};
+ABPair compress(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) {
+  auto Q = orthonormalBasis(A);
+  Eigen::MatrixXd R = Q.transpose()*A;
+  Eigen::MatrixXd QtB = Q.transpose()*B;
+  return ABPair(R, QtB);
 }
+
+namespace {
+  bool empty(const Eigen::MatrixXd &A) {
+    return A.rows() == 0 && A.cols() == 0;
+  }
+
+  Eigen::MatrixXd addPossiblyEmpty(const Eigen::MatrixXd &A,
+                                   const Eigen::MatrixXd &B) {
+    if (empty(A)) {
+      return B;
+    } else if (empty(B)) {
+      return A;
+    } else {
+      return A + B;
+    }
+  }
+}
+
+bool ABPair::empty() const {
+  return EigenUtils::empty(A) && EigenUtils::empty(B);
+}
+
+ABPair ABPair::operator+(const ABPair &other) const {
+  return ABPair(addPossiblyEmpty(A, other.A),
+                addPossiblyEmpty(B, other.B));
+}
+
+ABPair ABPair::operator*(double factor) const {
+  return ABPair(factor*A, factor*B);
+}
+
 
 Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K) {
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(K);
@@ -96,24 +127,6 @@ Eigen::VectorXd smallestEigVec(const Eigen::MatrixXd &K) {
   return solver.eigenvectors().block(0, best, K.rows(), 1);
 }
 
-// Through a change of basis, we
-// make sure that the doniminator is constant w.r.t.
-// to X if |X| is constant.
-Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A,
-                                  Eigen::MatrixXd B) {
-  Eigen::HouseholderQR<Eigen::MatrixXd> qr(B);
-  Eigen::MatrixXd Q = qr.householderQ()*Eigen::MatrixXd::Identity(B.rows(), B.cols());
-  Eigen::MatrixXd R = Q.transpose()*B;
-  // People use to say it is a bad practice
-  // to invert matrices. Wonder if there is a better way.
-  // In matlab, I would do main = A/R
-  Eigen::MatrixXd Rinv = R.inverse();
-  Eigen::MatrixXd main = A*Rinv;
-  Eigen::MatrixXd K = main.transpose()*main;
-  return Rinv*smallestEigVec(K);
-}
-
-
 
 Eigen::MatrixXd hcat(const Eigen::MatrixXd &A, const Eigen::VectorXd &B) {
   CHECK(A.rows() == B.rows());
@@ -122,16 +135,8 @@ Eigen::MatrixXd hcat(const Eigen::MatrixXd &A, const Eigen::VectorXd &B) {
   return AB;
 }
 
-Eigen::VectorXd minimizeNormRatio(Eigen::MatrixXd A, Eigen::VectorXd B,
-                                  Eigen::MatrixXd C, Eigen::VectorXd D) {
-  auto Xh = minimizeNormRatio(hcat(A, B), hcat(C, D));
-  int n = Xh.size() - 1;
-  auto f = 1.0/Xh(n);
-  Eigen::VectorXd X(n);
-  for (int i = 0; i < n; i++) {
-    X(i) = f*Xh(i);
-  }
-  return X;
+ABPair makeNormalEqs(Eigen::MatrixXd A, Eigen::MatrixXd B) {
+  return ABPair(A.transpose()*A, A.transpose()*B);
 }
 
 }
