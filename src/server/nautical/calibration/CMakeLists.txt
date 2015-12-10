@@ -25,24 +25,20 @@ cxx_test(calibration_LinearCalibrationTest
          math_Random
         )           
         
-add_library(calibration_RegCov
-            RegCov.h
-            RegCov.cpp
+add_library(calibration_LinearFit
+            LinearFit.h
+            LinearFit.cpp
            )
            
-target_depends_on_ceres(calibration_RegCov)
-target_link_libraries(calibration_RegCov
+target_link_libraries(calibration_LinearFit
                       math_nonlinear_DataFit
                       common_logging
                       math_EigenUtils
                       calibration_LinearCalibration
                      )
            
-cxx_test(calibration_RegCovTest
-         RegCovTest.cpp
-         calibration_RegCov
+cxx_test(calibration_LinearFitTest
+         LinearFitTest.cpp
+         calibration_LinearFit
          gtest_main
-         nautical_NavNmeaScan
-         common_PathBuilder
-         common_Env
-        )                   
+        )
