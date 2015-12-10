@@ -98,6 +98,7 @@ struct MatrixPair {
 
   bool empty() const;
   MatrixPair operator+(const MatrixPair &other) const;
+  MatrixPair operator-(const MatrixPair &other) const;
 
   bool sameRows() const {
     return A.rows() == B.rows();

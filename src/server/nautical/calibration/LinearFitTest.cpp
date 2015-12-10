@@ -93,10 +93,13 @@ TEST(LinearFitTest, BasicTest) {
   auto flow = LinearCalibration::makeTrueWindMatrices(navs, settings);
   auto Xeqs = LinearFit::makeNormalEqs(headings, flow, 0);
   auto Yeqs = LinearFit::makeNormalEqs(headings, flow, 1);
-  Eigen::MatrixXd mp = sliceRows(flow.A, 0, 4);
-  std::cout << EXPR_AND_VAL_AS_STRING(mp) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(Xeqs[0].A) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(Xeqs[0].B) << std::endl;
+  int n = navs.size();
+  auto spans = makeOverlappingSpans(n, 100, 0.5);
+
+  auto coefs = makeCoefMatrices(Xeqs, Yeqs, spans);
+  std::cout << "Coefs count: " << coefs.size() << std::endl;
+  std::cout << "Coefs[0].A:  " << coefs[0].A << std::endl;
+  std::cout << "Coefs[0].B:  " << coefs[0].B << std::endl;
 }
 
 

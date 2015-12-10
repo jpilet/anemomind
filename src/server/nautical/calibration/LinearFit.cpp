@@ -4,6 +4,7 @@
  */
 
 #include <server/nautical/calibration/LinearFit.h>
+#include <server/math/Integral1d.h>
 #include <cassert>
 
 namespace sail {
@@ -66,6 +67,22 @@ Array<EigenUtils::MatrixPair> makeNormalEqs(Array<Angle<double> > headings,
     dst[i] = buildNormalEqs(headings[i],
                             sliceRows(flowEqs.A, from, to),
                             sliceRows(flowEqs.B, from, to));
+  }
+  return dst;
+}
+
+Array<EigenUtils::MatrixPair> makeCoefMatrices(Array<EigenUtils::MatrixPair> X,
+                                               Array<EigenUtils::MatrixPair> Y,
+                                               Array<Spani> spans) {
+  using namespace EigenUtils;
+  Integral1d<MatrixPair> Xitg(X);
+  Integral1d<MatrixPair> Yitg(Y);
+  assert(X.size() == Y.size());
+  int n = spans.size();
+  Array<MatrixPair> dst(n);
+  for (int i = 0; i < n; i++) {
+    auto s = spans[i];
+    dst[i] = makeXYCoefMatrices(Xitg.integrate(s), Yitg.integrate(s));
   }
   return dst;
 }

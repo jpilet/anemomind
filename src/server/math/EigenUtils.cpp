@@ -88,13 +88,13 @@ namespace {
   }
 
   Eigen::MatrixXd addPossiblyEmpty(const Eigen::MatrixXd &A,
-                                   const Eigen::MatrixXd &B) {
+                                   const Eigen::MatrixXd &B, double bFactor = 1.0) {
     if (empty(A)) {
-      return B;
+      return bFactor*B;
     } else if (empty(B)) {
       return A;
     } else {
-      return A + B;
+      return A + bFactor*B;
     }
   }
 }
@@ -114,8 +114,14 @@ MatrixPair MatrixPair::makeRegularizer(int lhs, int rhs, double lambda) {
 
 MatrixPair MatrixPair::operator+(const MatrixPair &other) const {
   return MatrixPair(addPossiblyEmpty(A, other.A),
-                addPossiblyEmpty(B, other.B));
+                    addPossiblyEmpty(B, other.B));
 }
+
+MatrixPair MatrixPair::operator-(const MatrixPair &other) const {
+  return MatrixPair(addPossiblyEmpty(A, other.A, -1),
+                    addPossiblyEmpty(B, other.B, -1));
+}
+
 
 Eigen::MatrixXd MatrixPair::luSolve() const {
   return A.lu().solve(B);

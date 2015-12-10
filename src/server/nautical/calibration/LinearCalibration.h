@@ -165,7 +165,7 @@ class LinearCorrector : public CorrectorFunction {
   Arrayd _windParams, _currentParams;
 };
 
-
+Array<Spani> makeOverlappingSpans(int sampleCount, int splitSize, double relStep);
 
 }
 }

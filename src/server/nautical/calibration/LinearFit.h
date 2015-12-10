@@ -27,6 +27,10 @@ Array<EigenUtils::MatrixPair> makeNormalEqs(Array<Angle<double> > headings,
                                             EigenUtils::MatrixPair flowEqs,
                                             int dim);
 
+Array<EigenUtils::MatrixPair> makeCoefMatrices(Array<EigenUtils::MatrixPair> X,
+                                               Array<EigenUtils::MatrixPair> Y,
+                                               Array<Spani> spans);
+
 }
 }
 

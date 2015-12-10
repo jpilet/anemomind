@@ -7,6 +7,7 @@
 #define INTEGRAL1D_H_
 
 #include <server/common/Array.h>
+#include <server/common/Span.h>
 
 namespace sail {
 
@@ -25,6 +26,10 @@ class Integral1d {
 
   T integrate(int from, int to) const {
     return _integral[to] - _integral[from];
+  }
+
+  T integrate(Spani span) const {
+    return integrate(span.minv(), span.maxv());
   }
 
   T average(int from, int to) const {
