@@ -75,11 +75,11 @@ bool eq(const Eigen::MatrixXd &a, const Eigen::MatrixXd &b, double tol) {
 }
 
 
-ABPair compress(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) {
+MatrixPair compress(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B) {
   auto Q = orthonormalBasis(A);
   Eigen::MatrixXd R = Q.transpose()*A;
   Eigen::MatrixXd QtB = Q.transpose()*B;
-  return ABPair(R, QtB);
+  return MatrixPair(R, QtB);
 }
 
 namespace {
@@ -99,17 +99,17 @@ namespace {
   }
 }
 
-bool ABPair::empty() const {
+bool MatrixPair::empty() const {
   return EigenUtils::empty(A) && EigenUtils::empty(B);
 }
 
-ABPair ABPair::operator+(const ABPair &other) const {
-  return ABPair(addPossiblyEmpty(A, other.A),
+MatrixPair MatrixPair::operator+(const MatrixPair &other) const {
+  return MatrixPair(addPossiblyEmpty(A, other.A),
                 addPossiblyEmpty(B, other.B));
 }
 
-ABPair ABPair::operator*(double factor) const {
-  return ABPair(factor*A, factor*B);
+MatrixPair MatrixPair::operator*(double factor) const {
+  return MatrixPair(factor*A, factor*B);
 }
 
 
@@ -135,8 +135,8 @@ Eigen::MatrixXd hcat(const Eigen::MatrixXd &A, const Eigen::VectorXd &B) {
   return AB;
 }
 
-ABPair makeNormalEqs(Eigen::MatrixXd A, Eigen::MatrixXd B) {
-  return ABPair(A.transpose()*A, A.transpose()*B);
+MatrixPair makeNormalEqs(Eigen::MatrixXd A, Eigen::MatrixXd B) {
+  return MatrixPair(A.transpose()*A, A.transpose()*B);
 }
 
 }

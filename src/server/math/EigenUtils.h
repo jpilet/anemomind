@@ -81,20 +81,20 @@ MatrixType nullspace(MatrixType X) {
 // Since matrices often appear as
 // pairs, e.g. in least-squares problems,
 // it makes sense to have a struct for that.
-struct ABPair {
-  ABPair(const Eigen::MatrixXd &a, const Eigen::MatrixXd &b) : A(a), B(b) {}
+struct MatrixPair {
+  MatrixPair(const Eigen::MatrixXd &a, const Eigen::MatrixXd &b) : A(a), B(b) {}
 
   // Constructor to make this data type compatible with templated algorithms,
   // such as integral images, where we would usually add up scalars, initializing
   // the integral sum with 0.
-  ABPair(double x) {assert(x == 0.0);}
+  MatrixPair(double x) {assert(x == 0.0);}
 
   Eigen::MatrixXd A;
   Eigen::MatrixXd B;
 
   bool empty() const;
-  ABPair operator+(const ABPair &other) const;
-  ABPair operator*(double factor) const;
+  MatrixPair operator+(const MatrixPair &other) const;
+  MatrixPair operator*(double factor) const;
 };
 
 // Returns a pair of matrices (a, b), so that
@@ -103,7 +103,7 @@ struct ABPair {
 // to rewrite a least-squares problem to a smaller, but equivalent one,
 // because the normal equations of the problem Minimize_X ||A*X - B||^2 are the same
 // as for the problem Minimize_X ||a*X - B||^2
-ABPair compress(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
+MatrixPair compress(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
 
 // Returns (A'A, A'B). Useful when building least-squares problems incrementally, since
 // if we let A = [A0; A1] and B = [B0; B1] and we
@@ -112,7 +112,7 @@ ABPair compress(const Eigen::MatrixXd &A, const Eigen::MatrixXd &B);
 // we don't need to compute the A and B matrices explicitly in order to build
 // the normal equations. This can be combined with integral images in order
 // to efficiently build the normal equations for an arbitrary row-slice of A and B.
-ABPair makeNormalEqs(Eigen::MatrixXd A, Eigen::MatrixXd B);
+MatrixPair makeNormalEqs(Eigen::MatrixXd A, Eigen::MatrixXd B);
 
 
 }

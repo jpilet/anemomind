@@ -95,7 +95,7 @@ void makeTrueWindMatrixExpression(const InstrumentAbstraction &nav,
 
 
 template <typename InstrumentAbstraction>
-EigenUtils::ABPair makeTrueFlowMatrices(
+EigenUtils::MatrixPair makeTrueFlowMatrices(
     Array<InstrumentAbstraction> navs, const FlowSettings &s, bool wind) {
   int n = navs.size();
   int paramCount = s.windParamCount();
@@ -112,18 +112,18 @@ EigenUtils::ABPair makeTrueFlowMatrices(
       makeTrueCurrentMatrixExpression(navs[i], s, &a, &b);
     }
   }
-  return EigenUtils::ABPair(A, B);
+  return EigenUtils::MatrixPair(A, B);
 }
 
 template <typename InstrumentAbstraction>
-EigenUtils::ABPair makeTrueWindMatrices(Array<InstrumentAbstraction> navs,
+EigenUtils::MatrixPair makeTrueWindMatrices(Array<InstrumentAbstraction> navs,
     const FlowSettings &s) {
   return makeTrueFlowMatrices(navs, s, true);
 }
 
 
 template <typename InstrumentAbstraction>
-EigenUtils::ABPair makeTrueCurrentMatrices(Array<InstrumentAbstraction> navs,
+EigenUtils::MatrixPair makeTrueCurrentMatrices(Array<InstrumentAbstraction> navs,
     const FlowSettings &s) {
   return makeTrueFlowMatrices(navs, s, false);
 }
