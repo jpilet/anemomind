@@ -15,7 +15,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j 4
 ```
 *If you get a compilation error*, you can try to call ```make -j 4``` again until everything builds with no errors.
-```
+
 Then build the test database. Make sure mongo is runnning, then run:
 ```
 build_release/src/server/nautical/tiles/generateDevDB.sh
@@ -27,8 +27,9 @@ npm install
 bower install
 ```
 and run it:
+
 ```
-grunt server:dev
+grunt serve:dev
 ```
 
 ## Reference platform
