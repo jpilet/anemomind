@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 #include <server/nautical/synthtest/NavalSimulation.h>
+#include <server/common/Functional.h>
 
 using namespace sail;
 
@@ -86,12 +87,13 @@ TEST(TestcaseTest, MakeTestcase) {
 namespace {
   Array<HorizontalMotion<double> > getGroundTruth(
       NavalSimulation::BoatData boatData, bool wind) {
-    return boatData.states().map<HorizontalMotion<double> >(
+    return sail::map(
+    boatData.states(),
     [=](const CorruptedBoatState &s) {
       return (wind?
               s.trueState().trueWind :
               s.trueState().trueCurrent);
-    });
+    }).toArray();
   }
 }
 

@@ -39,9 +39,13 @@ TEST(TimedSampleCollection, BatchInsert) {
     EXPECT_EQ(i, samples.samples()[i].value);
   }
 
+  EXPECT_EQ(samples.size(), random1.size());
+
   deque<TimedValue<int>> random2;
   randomArray(&random2, random1.size());
   samples.insert(random2);
+
+  EXPECT_EQ(samples.size(), random1.size() + random2.size());
 
   for (int i = 0; i < samples.samples().size(); ++i) {
     EXPECT_EQ(i, samples.samples()[i].value);

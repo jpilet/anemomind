@@ -8,6 +8,7 @@
 #include <sstream>
 #include <algorithm>
 #include <string>
+#include <server/common/Functional.h>
 
 using std::string;
 using namespace sail;
@@ -66,7 +67,8 @@ namespace {
   }
 
   Angle<double> getMedianAbsValue(Array<Angle<double> > difs0) {
-    Array<Angle<double> > difs = difs0.map<Angle<double> >([&](Angle<double> x) {return fabs(x);});
+    Array<Angle<double> > difs = toArray(sail::map(difs0, [&](Angle<double> x) {
+      return fabs(x);}));
     std::sort(difs.begin(), difs.end());
     return difs[difs.size()/2];
   }

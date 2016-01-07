@@ -8,6 +8,7 @@
 #include <server/common/math.h>
 #include <server/math/ContinuousAngles.h>
 #include <iostream>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -56,12 +57,11 @@ Array<Angle<double> > cleanContinuousAngles(Array<Angle<double> > allAngles) {
     }
   }
   assert(counter == contAngles.size());
-  Arrayd degs = clean.map<double>([](Angle<double> x) {return x.degrees();});
+  Arrayd degs = toArray(map(clean, [](Angle<double> x) {return x.degrees();}));
   Arrayd cleaned = cleanNumArray(degs);
   assert(!degs.empty());
   assert(!cleaned.empty());
-  return cleaned
-      .map<Angle<double> >([=](double x) {return Angle<double>::degrees(x);});
+  return toArray(map(cleaned, [=](double x) {return Angle<double>::degrees(x);}));
 }
 
 }

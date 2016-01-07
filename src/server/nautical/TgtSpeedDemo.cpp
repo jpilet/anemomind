@@ -10,6 +10,7 @@
 #include <server/common/string.h>
 #include <server/nautical/TargetSpeed.h>
 #include <algorithm>
+#include <server/common/Functional.h>
 
 namespace {
   using namespace sail;
@@ -19,9 +20,9 @@ namespace {
   }
 
   Arrayb getUpwind(Array<Nav> navs) {
-    return navs.map<bool>([=](const Nav &x) {
+    return toArray(sail::map(navs, [=](const Nav &x) {
       return isUpwindAwa(x.awa());
-    });
+    }));
   }
 
   bool isDownwindAwa(Angle<double> angle) {
@@ -30,15 +31,15 @@ namespace {
   }
 
   Arrayb getDownwind(Array<Nav> navs) {
-    return navs.map<bool>([=](const Nav &x) {
+    return toArray(sail::map(navs, [=](const Nav &x) {
       return isDownwindAwa(x.awa());
-    });
+    }));
   }
 
   Array<Velocity<double> > getTws(Array<Nav> navs) {
-    return navs.map<Velocity<double> >([=](const Nav &x) {
+    return toArray(sail::map(navs, [=](const Nav &x) {
       return x.externalTws();
-    });
+    }));
   }
 
   Arrayd makeQuantiles() {

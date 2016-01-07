@@ -510,3 +510,10 @@ target_link_libraries(nautical_exploreData
                       nautical_GeographicReference
                      )
 
+add_executable(nautical_catTargetSpeed
+               catTargetSpeed.cpp
+              )
+target_link_libraries(nautical_catTargetSpeed
+                      device_TargetSpeed
+                      common_ArgMap
+                     )

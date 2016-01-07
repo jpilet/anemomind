@@ -11,6 +11,7 @@
 #include <string>
 #include <algorithm>
 #include <server/nautical/TestdataNavs.h>
+#include <server/common/Functional.h>
 
 using std::string;
 using namespace sail;
@@ -46,12 +47,13 @@ namespace {
   }
 
   Arrayd toDouble(Array<Angle<double> > X) {
-    return X.map<double>([](Angle<double> x) {return x.degrees();});
+    return toArray(sail::map(X, [](Angle<double> x) {return x.degrees();}));
   }
 
 
   Angle<double> getMedianAbsValue(Array<Angle<double> > difs0) {
-    Array<Angle<double> > difs = difs0.map<Angle<double> >([&](Angle<double> x) {return fabs(x);});
+    Array<Angle<double> > difs = toArray(sail::map(difs0,
+        [&](Angle<double> x) {return fabs(x);}));
     std::sort(difs.begin(), difs.end());
     return difs[difs.size()/2];
   }

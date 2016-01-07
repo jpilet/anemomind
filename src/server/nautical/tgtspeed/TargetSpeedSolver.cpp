@@ -13,6 +13,7 @@
 #include <server/common/ArrayIO.h>
 #include <server/common/ArrayBuilder.h>
 #include <server/nautical/tgtspeed/TargetSpeedSolver.h>
+#include <server/common/Functional.h>
 
 
 namespace sail {
@@ -56,7 +57,7 @@ MajQuad BalancedCost::majorize(Velocity<double> surface, const Point &pt) const 
             Point{loc, pt.boatSpeed(), getStability(withStability, pt)});
       }
     }
-    return dst.map<Array<Point> >([&](ArrayBuilder<Point> builder) {return builder.get();});
+    return toArray(map(dst, [&](ArrayBuilder<Point> builder) {return builder.get();}));
   }
 
   arma::mat makeReg(TargetSpeedSolver::Settings settings, TargetSpeedParam p) {
@@ -319,11 +320,11 @@ Results optimize(TargetSpeedParam param,
   }
   arma::mat PX = P*armat(X);
   Arrayd vertices = toArray(PX).dup();
-  return Results{TargetSpeedFunction(param, vertices
-      .map<Velocity<double> >(
+  return Results{TargetSpeedFunction(param,
+      toArray(map(vertices,
       [&](double x) {
         return Velocity<double>::knots(x);
-      })), evaluateDataCost(settings, vertices, points),
+      }))), evaluateDataCost(settings, vertices, points),
       settings, vertices};
 }
 
@@ -337,9 +338,9 @@ Array<Array<TargetSpeedPoint> > splitPoints(TuneSettings settings, Array<TargetS
     int dstIndex = (i/settings.chunkSize) % settings.setCount;
     splits[dstIndex].add(pts[i]);
   }
-  return splits.map<Array<TargetSpeedPoint> >([&](ArrayBuilder<TargetSpeedPoint> bd) {
+  return toArray(map(splits, [&](ArrayBuilder<TargetSpeedPoint> bd) {
     return bd.get();
-  });
+  }));
 }
 
 Settings makeSettingsAtGridPoint(TuneSettings tuneSettings, Settings settings, Arrayi inds) {
@@ -372,7 +373,7 @@ Settings optimizeParameters(TargetSpeedParam param,
     SCOPEDMESSAGE(INFO, stringFormat("   Radial reg: %.6g", settings.radialReg));
 
     // Optimize the parameters over different subsets of the data points.
-    auto splitResults = splits.map<Results>([&](Array<TargetSpeedPoint> subset) {
+    auto splitResults = map(splits, [&](Array<TargetSpeedPoint> subset) {
       return optimize(param, subset, settings);
     });
 

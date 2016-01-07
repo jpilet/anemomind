@@ -29,7 +29,14 @@ class TimedSampleCollection {
    TimedSampleCollection(int maxBufferLength = 0)
      : _maxBufferLength(maxBufferLength) { }
 
-   TimedSampleCollection(const TimedVector& entries) : _maxBufferLength(0) {
+   TimedSampleCollection(const TimedVector& entries) :
+
+   /*
+    *  This limit is chosen so that the BatchInsert test passes. But a natural
+    *  choice might also be entries.size()
+    */
+     _maxBufferLength(std::numeric_limits<int>::max()) {
+
      insert(entries);
    }
 
