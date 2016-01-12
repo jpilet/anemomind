@@ -66,3 +66,7 @@ cxx_test(anemobox_DispatcherTrueWindEstimatorTest
          gtest_main
         )
 
+cxx_test(anemobox_TimedSampleCollectionTest TimedSampleCollectionTest.cpp
+         common_TimeStamp
+         gtest_main
+         )

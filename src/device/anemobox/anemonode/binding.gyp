@@ -33,6 +33,7 @@
         "src/JsEstimator.cpp",
         "../Dispatcher.cpp",
         "../Dispatcher.h",
+        "../TimedSampleCollection.h",
         "../DispatcherFilter.cpp",
         "../DispatcherFilter.h",
         "../DispatcherTrueWindEstimator.h",

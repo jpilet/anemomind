@@ -5,8 +5,8 @@
 #include <set>
 #include <vector>
 
-#include <server/common/TimeStamp.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <device/anemobox/TimedSampleCollection.h>
 #include <server/nautical/AbsoluteOrientation.h>
 #include <server/nautical/GeographicPosition.h>
 
@@ -54,22 +54,10 @@ class Listener {
 };
 
 template <typename T>
-struct TimedValue {
-  TimedValue(TimeStamp time, T value) : time(time), value(value) { }
-
-  TimeStamp time;
-  T value;
-
-  bool operator < (const TimedValue<T>& other) const {
-    return time < other.time;
-  }
-};
-
-template <typename T>
 class ValueDispatcher {
  public:
   ValueDispatcher(Clock* clock, int bufferLength)
-    : bufferLength_(bufferLength), clock_(clock) { }
+    : values_(bufferLength), clock_(clock) { }
 
   void subscribe(Listener<T> *listener) { 
     listeners_.insert(listener);
@@ -80,16 +68,19 @@ class ValueDispatcher {
   virtual void setValue(T value);
 
   virtual bool hasValue() const { return values_.size() > 0; }
-  virtual T lastValue() const { return values_.front().value; }
-  virtual TimeStamp lastTimeStamp() const { return values_.front().time; }
+  virtual T lastValue() const { return values_.lastValue(); }
+  virtual TimeStamp lastTimeStamp() const { return values_.lastTimeStamp(); }
 
-  virtual const std::deque<TimedValue<T>>& values() const { return values_; }
+  virtual const TimedSampleCollection<T>& values() const { return values_; }
+
+  void insert(const typename TimedSampleCollection<T>::TimedVector& values) {
+    values_.insert(values);
+  }
 
   virtual Clock* clock() const { return clock_; }
  protected:
   std::set<Listener<T> *> listeners_;
-  std::deque<TimedValue<T>> values_;
-  size_t bufferLength_;
+  TimedSampleCollection<T> values_;
   Clock* clock_;
 };
 
@@ -127,10 +118,7 @@ void Listener<T>::stopListening() {
 
 template <typename T>
 void ValueDispatcher<T>::setValue(T value) {
-  values_.push_front(TimedValue<T>(clock_->currentTime(), value));
-  while (values_.size() > bufferLength_) {
-    values_.pop_back();
-  }
+  values_.append(TimedValue<T>(clock_->currentTime(), value));
   Listener<T>::safelyNotifyListenerSet(listeners_, *this);
 }
 
@@ -153,7 +141,7 @@ class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {
   virtual T lastValue() const { return _forward ? _forward->lastValue() : T(); }
   virtual TimeStamp lastTimeStamp() const { return _forward->lastTimeStamp(); }
 
-  virtual const std::deque<TimedValue<T>>& values() const {
+  virtual const TimedSampleCollection<T>& values() const {
     return _forward ? _forward->values() : emptyValues_;
   }
 
@@ -176,7 +164,7 @@ class ValueDispatcherProxy : Listener<T>, public ValueDispatcher<T> {
   }
 
  private:
-  std::deque<TimedValue<T>> emptyValues_;
+  TimedSampleCollection<T> emptyValues_;
   ValueDispatcher<T> *_forward;
 };
 

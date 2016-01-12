@@ -510,11 +510,6 @@ target_link_libraries(nautical_exploreData
                       nautical_GeographicReference
                      )
 
-cxx_test(nautical_TimedSampleCollectionTest TimedSampleCollectionTest.cpp
-         common_TimeStamp
-         gtest_main
-         )
-
 add_executable(nautical_catTargetSpeed
                catTargetSpeed.cpp
               )

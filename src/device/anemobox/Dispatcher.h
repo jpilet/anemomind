@@ -199,7 +199,13 @@ class Dispatcher : public Clock {
     return _data;
   }
 
+  // Returns null if not exist
   DispatchData *dispatchDataForSource(DataCode code, const std::string& source);
+
+  // Return or create a DispatchData for the given source.
+  template <typename T>
+  TypedDispatchData<T>* createDispatchDataForSource(
+      DataCode code, const std::string& source);
 
   DispatchData* dispatchData(DataCode code) const {
     auto it = _currentSource.find(code);
@@ -222,23 +228,21 @@ class Dispatcher : public Clock {
   void removeNewSourceListener(int);
 
   template <typename T>
-    void publishValue(DataCode code, const std::string& source, T value) {
-      auto ptr = dispatchDataForSource(code, source);
+  void publishValue(DataCode code, const std::string& source, T value) {
+    TypedDispatchData<T>* dispatchData =
+      createDispatchDataForSource<T>(code, source);
 
-      TypedDispatchData<T>* dispatchData;
-      if (!ptr) {
-        _data[code][source] = dispatchData = 
-          new TypedDispatchDataReal<T>(code, source, this);
-        newDispatchData(dispatchData);
-      } else {
-        dispatchData = dynamic_cast<TypedDispatchData<T>*>(ptr);
-        // wrong type for this code.
-        assert(dispatchData);
-      }
+    dispatchData->setValue(value);
+  }
 
-      updateCurrentSource(code, dispatchData);
-      dispatchData->setValue(value);
-    }
+  template <typename T>
+  void insertValues(DataCode code, const std::string& source,
+                    const typename TimedSampleCollection<T>::TimedVector& values) {
+    TypedDispatchData<T>* dispatchData =
+      createDispatchDataForSource<T>(code, source);
+
+    dispatchData->dispatcher()->insert(values);
+  }
 
   template<class T>
   void updateCurrentSource(DataCode code, TypedDispatchData<T>* dispatchData) {
@@ -304,6 +308,27 @@ class SubscribeVisitor : public DispatchDataVisitor {
  private:
   Listener *listener_;
 };
+
+
+template <typename T>
+TypedDispatchData<T>* Dispatcher::createDispatchDataForSource(
+    DataCode code, const std::string& source) {
+  auto ptr = dispatchDataForSource(code, source);
+
+  TypedDispatchData<T>* dispatchData;
+  if (!ptr) {
+    _data[code][source] = dispatchData = 
+      new TypedDispatchDataReal<T>(code, source, this);
+    newDispatchData(dispatchData);
+  } else {
+    dispatchData = dynamic_cast<TypedDispatchData<T>*>(ptr);
+    // wrong type for this code.
+    assert(dispatchData);
+  }
+
+  updateCurrentSource(code, dispatchData);
+  return dispatchData;
+}
 
 
 }  // namespace sail

@@ -1,5 +1,5 @@
 
-#include <server/nautical/TimedSampleCollection.h>
+#include <device/anemobox/TimedSampleCollection.h>
 
 #include <array>
 #include <gtest/gtest.h>
@@ -10,7 +10,7 @@ using namespace std;
 
 namespace {
 
-void randomArray(vector<TimedValue<int>> *array, int offset = 0) {
+void randomArray(deque<TimedValue<int>> *array, int offset = 0) {
   static auto rng = default_random_engine(7);
 
   TimeStamp base = TimeStamp::now();
@@ -29,22 +29,8 @@ void randomArray(vector<TimedValue<int>> *array, int offset = 0) {
 
 }  // namespace
 
-TEST(TimedSampleCollection, SingleInsert) {
-  vector<TimedValue<int>> random;
-  randomArray(&random);
-
-  TimedSampleCollection<int> samples;
-  for (int i = 0; i < random.size(); ++i) {
-    samples.insert(random[i]);
-  }
-
-  for (int i = 0; i < random.size(); ++i) {
-    EXPECT_EQ(i, samples.samples()[i].value);
-  }
-}
-
 TEST(TimedSampleCollection, BatchInsert) {
-  vector<TimedValue<int>> random1;
+  deque<TimedValue<int>> random1;
   randomArray(&random1);
 
   TimedSampleCollection<int> samples(random1);
@@ -53,9 +39,13 @@ TEST(TimedSampleCollection, BatchInsert) {
     EXPECT_EQ(i, samples.samples()[i].value);
   }
 
-  vector<TimedValue<int>> random2;
+  EXPECT_EQ(samples.size(), random1.size());
+
+  deque<TimedValue<int>> random2;
   randomArray(&random2, random1.size());
   samples.insert(random2);
+
+  EXPECT_EQ(samples.size(), random1.size() + random2.size());
 
   for (int i = 0; i < samples.samples().size(); ++i) {
     EXPECT_EQ(i, samples.samples()[i].value);
@@ -65,9 +55,9 @@ TEST(TimedSampleCollection, BatchInsert) {
 TEST(TimedSampleCollection, Nearest) {
   TimedSampleCollection<int> samples;
   TimeStamp base = TimeStamp::now();
-  samples.insert(TimedValue<int>(base, 1));
-  samples.insert(TimedValue<int>(base + Duration<>::seconds(1), 2));
-  samples.insert(TimedValue<int>(base + Duration<>::seconds(2), 3));
+  samples.append(TimedValue<int>(base, 1));
+  samples.append(TimedValue<int>(base + Duration<>::seconds(1), 2));
+  samples.append(TimedValue<int>(base + Duration<>::seconds(2), 3));
 
   EXPECT_FALSE(samples.nearest(base - Duration<>::seconds(1)).defined());
   EXPECT_EQ(1, samples.nearest(base + Duration<>::seconds(.1))());
@@ -75,3 +65,18 @@ TEST(TimedSampleCollection, Nearest) {
   EXPECT_EQ(2, samples.nearest(base + Duration<>::seconds(1.1))());
   EXPECT_EQ(3, samples.nearest(base + Duration<>::seconds(1.6))());
 }
+
+TEST(TimedSampleCollection, MaxBufferLength) {
+  deque<TimedValue<int>> random1;
+  randomArray(&random1);
+
+  TimedSampleCollection<int> samples(20);
+  samples.insert(random1);
+
+  for (int i = 0; i < 20; ++i) { EXPECT_EQ(80 + i, samples.samples()[i].value); }
+
+  samples.append(TimedValue<int>(TimeStamp::now() + Duration<>::seconds(100), 100));
+
+  for (int i = 0; i < 20; ++i) { EXPECT_EQ(81 + i, samples.samples()[i].value); }
+}
+
