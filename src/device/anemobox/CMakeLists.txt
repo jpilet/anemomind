@@ -1,4 +1,5 @@
 add_subdirectory(logger)
+add_subdirectory(n2k)
 add_subdirectory(playnmea)
 add_subdirectory(simulator)
 
