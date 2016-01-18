@@ -29,17 +29,6 @@ TEST(BitStreamTest, Unsigned_2_and_3) {
     auto streamValue = stream.getUnsigned(bits);
     EXPECT_EQ(2, streamValue);
     EXPECT_EQ(63, BitStreamInternals::getMaxUnsignedValue(bits));
-
-    /* Corresponding call to canboat:
-    int startBit = 0;
-    Field field;
-    field.offset = 0;
-    field.hasSign = false;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxUnsignedValue(bits));*/
   }/*
     Read unsigned number 3 stored in 2 bits
   */{
@@ -48,17 +37,6 @@ TEST(BitStreamTest, Unsigned_2_and_3) {
     auto streamValue = stream.getUnsigned(bits);
     EXPECT_EQ(3, streamValue);
     EXPECT_EQ(3, BitStreamInternals::getMaxUnsignedValue(bits));
-
-    /* Corresponding call to canboat:
-    int startBit = 6;
-    Field field;
-    field.offset = 0;
-    field.hasSign = false;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxUnsignedValue(bits));*/
   }
 }
 
@@ -74,17 +52,6 @@ TEST(BitStreamTest, Unsigned_7_and_9) {
     auto streamValue = stream.getUnsigned(bits);
     EXPECT_EQ(7, streamValue);
     EXPECT_EQ(63, BitStreamInternals::getMaxUnsignedValue(bits));
-
-    /* Corresponding call to canboat:
-    int startBit = 0;
-    Field field;
-    field.offset = 0;
-    field.hasSign = false;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxUnsignedValue(bits));*/
   }/*
     Read unsigned number 9 stored in 6 bits
   */{
@@ -93,17 +60,6 @@ TEST(BitStreamTest, Unsigned_7_and_9) {
     auto streamValue = stream.getUnsigned(bits);
     EXPECT_EQ(9, streamValue);
     EXPECT_EQ(63, BitStreamInternals::getMaxUnsignedValue(bits));
-
-    /* Corresponding call to canboat:
-    int startBit = 6;
-    Field field;
-    field.offset = 0;
-    field.hasSign = false;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxUnsignedValue(bits));*/
   }
 }
 
@@ -120,17 +76,6 @@ TEST(BitStreamTest, Signed_positive_2_and_1) {
     auto streamValue = stream.getSigned(bits);
     EXPECT_EQ(2, streamValue);
     EXPECT_EQ(31, BitStreamInternals::getMaxSignedValueTwosComplement(bits));
-
-    /* Corresponding call to canboat:
-    int startBit = 0;
-    Field field;
-    field.offset = 0;
-    field.hasSign = true;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxSignedValueTwosComplement(bits));*/
   }/*
     Read unsigned number 1 stored in 2 bits
   */{
@@ -139,17 +84,6 @@ TEST(BitStreamTest, Signed_positive_2_and_1) {
     auto streamValue = stream.getSigned(bits);
     EXPECT_EQ(1, streamValue);
     EXPECT_EQ(1, BitStreamInternals::getMaxSignedValueTwosComplement(bits));
-
-    /* Corresponding call to canboat:
-    int startBit = 6;
-    Field field;
-    field.offset = 0;
-    field.hasSign = true;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxSignedValueTwosComplement(bits));*/
   }
 }
 
@@ -166,17 +100,6 @@ TEST(BitStreamTest, Signed_negative_2_and_1) {
     auto streamValue = stream.getSigned(bits);
     EXPECT_EQ(-2, streamValue);
     EXPECT_EQ(31, BitStreamInternals::getMaxSignedValueTwosComplement(bits));
-
-    /* Corresponding call to canboat:
-    int startBit = 0;
-    Field field;
-    field.offset = 0;
-    field.hasSign = true;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxSignedValueTwosComplement(bits));*/
   }/*
     Read unsigned number -1 stored in 2 bits
   */{
@@ -185,17 +108,6 @@ TEST(BitStreamTest, Signed_negative_2_and_1) {
     auto streamValue = stream.getSigned(bits);
     EXPECT_EQ(-1, streamValue);
     EXPECT_EQ(1, BitStreamInternals::getMaxSignedValueTwosComplement(bits));
-
-    /* Corresponding call to canboat:
-    int startBit = 6;
-    Field field;
-    field.offset = 0;
-    field.hasSign = true;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxSignedValueTwosComplement(bits));*/
   }
 }
 
@@ -212,17 +124,6 @@ TEST(BitStreamTest, Signed_7_and_9) {
     auto streamValue = stream.getSigned(bits);
     EXPECT_EQ(7, streamValue);
     EXPECT_EQ(31, BitStreamInternals::getMaxSignedValueTwosComplement(bits));
-
-    /* Corresponding call to canboat:
-    int startBit = 0;
-    Field field;
-    field.offset = 0;
-    field.hasSign = true;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxSignedValueTwosComplement(bits));*/
   }/*
     Read signed number 9 stored in 6 bits
   */{
@@ -231,17 +132,6 @@ TEST(BitStreamTest, Signed_7_and_9) {
     auto streamValue = stream.getSigned(bits);
     EXPECT_EQ(9, streamValue);
     EXPECT_EQ(31, BitStreamInternals::getMaxSignedValueTwosComplement(bits));
-
-    /* Corresponding call to canboat:
-    int startBit = 6;
-    Field field;
-    field.offset = 0;
-    field.hasSign = true;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxSignedValueTwosComplement(bits));*/
   }
 }
 
@@ -262,18 +152,6 @@ TEST(BitStreamTest, Signed_negative_7_and_9) {
     auto streamValue = stream.getSigned(bits);
     EXPECT_EQ(-7, streamValue);
     EXPECT_EQ(31, BitStreamInternals::getMaxSignedValueTwosComplement(bits));
-
-
-    /* Corresponding call to canboat:
-    int startBit = 0;
-    Field field;
-    field.offset = 0;
-    field.hasSign = true;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxSignedValueTwosComplement(bits));*/
   }/*
     Read signed number -9 stored in 6 bits
   */{
@@ -282,18 +160,6 @@ TEST(BitStreamTest, Signed_negative_7_and_9) {
     auto streamValue = stream.getSigned(bits);
     EXPECT_EQ(-9, streamValue);
     EXPECT_EQ(31, BitStreamInternals::getMaxSignedValueTwosComplement(bits));
-
-
-    /* Corresponding call to canboat:
-    int startBit = 6;
-    Field field;
-    field.offset = 0;
-    field.hasSign = true;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxSignedValueTwosComplement(bits));*/
   }
 }
 
@@ -310,17 +176,6 @@ TEST(BitStreamTest, Signed_negative_7_with_offset) {
 
     auto streamValue = stream.getSigned(bits, offset);
     EXPECT_EQ(-7, streamValue);
-
-    /* Corresponding call to canboat:
-    int startBit = 0;
-    Field field;
-    field.offset = offset;
-    field.hasSign = true;
-    int64_t value = 0;
-    int64_t maxValue;
-    extractNumber(&field, data, startBit, bits, &value, &maxValue);
-    EXPECT_EQ(value, streamValue);
-    EXPECT_EQ(maxValue, BitStreamInternals::getMaxSignedValueTwosComplement(bits));*/
   }
 }
 
