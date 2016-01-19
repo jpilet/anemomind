@@ -13,7 +13,7 @@ using namespace std;
 int main(int argc, const char **argv) {
   ArgMap args;
   string boatId;
-  string tableName = "vmgspeed";
+  string tableName = "boatstats";
   args.registerOption("--id", "Generate mongo script to store the table to the given boat id").store(&boatId);
   args.registerOption("--table", "Mongo table");
   args.parse(argc, argv);
@@ -29,7 +29,7 @@ int main(int argc, const char **argv) {
       if (!boatId.empty()) {
         cout << "db." << tableName << ".update({_id: ObjectId(\""
           << boatId << "\")},\n"
-          << "{_id: ObjectId(\"" << boatId << "\"), table:\n";
+          << "{_id: ObjectId(\"" << boatId << "\"), vmgspeed:\n";
       }
 
       printTargetSpeedAsJson(table);
