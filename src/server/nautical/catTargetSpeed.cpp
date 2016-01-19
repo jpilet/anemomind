@@ -29,7 +29,7 @@ int main(int argc, const char **argv) {
       if (!boatId.empty()) {
         cout << "db." << tableName << ".update({_id: ObjectId(\""
           << boatId << "\")},\n"
-          << "{_id: ObjectId(\"" << boatId << "\"), vmgspeed:\n";
+          << "{_id: ObjectId(\"" << boatId << "\"), vmgtable:\n";
       }
 
       printTargetSpeedAsJson(table);
