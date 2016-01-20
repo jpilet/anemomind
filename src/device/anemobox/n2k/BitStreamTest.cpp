@@ -1,5 +1,6 @@
 #include <device/anemobox/n2k/BitStream.h>
 #include <gtest/gtest.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 
 TEST(BitStreamTest, read4And8) {
@@ -185,4 +186,34 @@ TEST(BitStreamTest, Max_value_at_the_limit) {
   uint64_t expectedSignedMax = expectedUnsignedMax >> 1;
   EXPECT_EQ(expectedUnsignedMax, BitStreamInternals::getMaxUnsignedValue(limit));
   EXPECT_EQ(expectedSignedMax, BitStreamInternals::getMaxSignedValueTwosComplement(limit));
+}
+
+// Based on the Windows NK2 application connected to
+// the Alinghi device.
+TEST(BitStreamTest, ParseDemo) {
+  using namespace sail;
+  uint8_t data[] = {0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
+  BitStream stream(data, 8);
+
+  // PGN: 130306, Wind data
+
+  // Field 1
+  auto sid = stream.getUnsigned(8);
+
+  // Field 2
+  auto windSpeedUnit = Velocity<double>::metersPerSecond(0.01);
+  Velocity<double> windSpeed = double(stream.getSigned(16))*windSpeedUnit;
+
+  // Field 3
+  auto windAngleUnit = Angle<double>::radians(0.0001);
+  Angle<double> windAngle = double(stream.getSigned(16))*windAngleUnit;
+
+  // Field 4
+  auto reference = stream.getUnsigned(3);
+
+  EXPECT_NEAR(windSpeed.metersPerSecond(), 0.25, 0.01);
+  EXPECT_NEAR(windAngle.radians(), 3.0892, 0.0001);
+  EXPECT_EQ(reference, 2); // Apparent wind relative to vessel centerline
+
+
 }
