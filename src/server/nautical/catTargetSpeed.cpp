@@ -12,9 +12,13 @@ using namespace std;
 
 int main(int argc, const char **argv) {
   ArgMap args;
+  string boatId;
+  string tableName = "boatstats";
+  args.registerOption("--id", "Generate mongo script to store the table to the given boat id").store(&boatId);
+  args.registerOption("--table", "Mongo table");
   args.parse(argc, argv);
 
-  if (args.freeArgs().size() == 0) {
+  if (args.freeArgs().size() != 1) {
     cerr << "usage: " << argv[0] << " <boat.dat>\n";
     return 1;
   }
@@ -22,7 +26,18 @@ int main(int argc, const char **argv) {
   for (auto arg : args.freeArgs()) {
     TargetSpeedTable table;
     if (loadTargetSpeedTable(arg->value().c_str(), &table)) {
+      if (!boatId.empty()) {
+        cout << "db." << tableName << ".update({_id: ObjectId(\""
+          << boatId << "\")},\n"
+          << "{_id: ObjectId(\"" << boatId << "\"), vmgtable:\n";
+      }
+
       printTargetSpeedAsJson(table);
+
+      if (!boatId.empty()) {
+        cout << "}, { upsert: true });\n";
+      }
+
     } else {
       cerr << arg->value() << ": can't load speed table.\n";
       return 1;

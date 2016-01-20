@@ -15,6 +15,7 @@
     <!-- build:css(client) app/vendor.css -->
       <!-- bower:css -->
       <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+      <link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css" />
       <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css({.tmp,client}) app/app.css -->
@@ -31,6 +32,7 @@
       <link rel="stylesheet" href="app/main/main.css">
       <link rel="stylesheet" href="app/map/map.css">
       <link rel="stylesheet" href="app/perfplot/perfplot.css">
+      <link rel="stylesheet" href="app/vmgplot/vmgplot.css">
       <link rel="stylesheet" href="app/wheelIndicator/wheelIndicator.css">
       <link rel="stylesheet" href="app/wheelSmallIndicator/wheelSmallIndicator.css">
       <link rel="stylesheet" href="components/modal/modal.css">
@@ -75,7 +77,9 @@
       <script src="bower_components/ng-file-upload/angular-file-upload.js"></script>
       <script src="bower_components/ng-file-upload-shim/angular-file-upload-shim.js"></script>
       <script src="bower_components/d3/d3.js"></script>
+      <script src="bower_components/nvd3/build/nv.d3.js"></script>
       <!-- endbower -->
+      <script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
       <script src="socket.io-client/socket.io.js"></script>
     <!-- endbuild -->
 
@@ -118,6 +122,8 @@
           <script src="app/vectormap/tiles/timebar.js"></script>
           <script src="app/vectormap/tiles/utils.js"></script>
           <script src="app/vectormap/vectormap.directive.js"></script>
+          <script src="app/vmgplot/vmgplot.controller.js"></script>
+          <script src="app/vmgplot/vmgplot.js"></script>
           <script src="app/wheelIndicator/wheelIndicator.directive.js"></script>
           <script src="app/wheelIndicator/wheelIndicator.js"></script>
           <script src="app/wheelSmallIndicator/wheelSmallIndicator.directive.js"></script>

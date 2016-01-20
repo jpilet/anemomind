@@ -8,6 +8,7 @@ angular.module('www2App', [
   'ui.router',
   'ui.bootstrap',
   'angularFileUpload',
+  'nvd3'
 ])
   .config(function ($stateProvider, $urlRouterProvider, $locationProvider, $httpProvider) {
     $urlRouterProvider

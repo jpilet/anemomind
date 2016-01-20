@@ -1,6 +1,9 @@
 <div class="panel panel-default">
   <div class="panel-heading">
-    <h3 class="panel-title"><a ng-href="/boats/{{boat._id}}">{{boat.name}}</a></h3>
+    <h3 class="panel-title"><a ng-href="/boats/{{boat._id}}">{{boat.name}} [details]</a>
+    <a ng-href="/vmgplot/{{boat._id}}">[vmg]</a>
+    <a ng-href="/map/{{boat._id}}">[full map]</a>
+    </h3>
   </div>
   <div class="panel-body">
     <table class="table">
