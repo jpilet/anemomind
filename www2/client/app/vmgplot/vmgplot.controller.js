@@ -10,45 +10,58 @@ angular.module('www2App')
     });
 
     $scope.options = {
-chart: {
-                type: 'lineChart',
-                height: 450,
-                margin : {
-                    top: 20,
-                    right: 20,
-                    bottom: 40,
-                    left: 55
-                },
-                x: function(d){ return d.x; },
-                y: function(d){ return d.y; },
-                useInteractiveGuideline: true,
-                dispatch: {
-                    stateChange: function(e){ console.log("stateChange"); },
-                    changeState: function(e){ console.log("changeState"); },
-                    tooltipShow: function(e){ console.log("tooltipShow"); },
-                    tooltipHide: function(e){ console.log("tooltipHide"); }
-                },
-                xAxis: {
-                    axisLabel: 'Wind Speed (knots)'
-                },
-                yAxis: {
-                    axisLabel: 'Boat VMG (knots)',
-                    tickFormat: function(d){
-                        return d3.format('.02f')(d);
-                    },
-                    axisLabelDistance: -10
-                }
-            },
-            subtitle: {
-                enable: true,
-                text: 'Upwind and downwind VMG as a function of boat speed',
-                css: {
-                    'text-align': 'center',
-                    'margin': '10px 13px 0px 7px'
-                }
-            },
-        };
-    
+      chart: {
+        type: 'lineChart',
+        height: 450,
+        margin : {
+          top: 20,
+          right: 20,
+          bottom: 40,
+          left: 55
+        },
+        x: function(d){ return d.x; },
+        y: function(d){ return d.y; },
+        useInteractiveGuideline: true,
+        dispatch: {
+          stateChange: function(e){ console.log("stateChange"); },
+          changeState: function(e){ console.log("changeState"); },
+          tooltipShow: function(e){ console.log("tooltipShow"); },
+          tooltipHide: function(e){ console.log("tooltipHide"); }
+        },
+        xAxis: {
+          axisLabel: 'Wind Speed (knots)'
+        },
+        yAxis: {
+          axisLabel: 'Boat VMG (knots)',
+          tickFormat: function(d){
+            return d3.format('.02f')(d);
+          },
+          axisLabelDistance: -10
+        },
+        interactiveLayer: {
+          tooltip: {
+            contentGenerator: function(d) {
+              var html = '<p style="text-align:right">Wind: <b>'+d.value+" knots</b></p>";
+
+              d.series.forEach(function(elem){
+                html += '<p style="text-align:right"><span style="color:'+elem.color+'">'
+                    +elem.key+" VMG</span> : <b>"+elem.value+" knots</b></p>";
+              });
+      
+              return html;
+            }
+          }
+        }
+      },
+      subtitle: {
+        enable: true,
+        text: 'Upwind and downwind VMG as a function of boat speed',
+        css: {
+          'text-align': 'center',
+          'margin': '10px 13px 0px 7px'
+        }
+      },
+    };
 
     $http.get('/api/boatstats/' + $stateParams.boatId)
     .success(function(data, status, headers, config) {
