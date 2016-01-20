@@ -18,7 +18,8 @@
     "ng-file-upload": "~2.0.0",
     "ng-file-upload-shim": "~2.0.0",
     "d3": "~3.5.5",
-    "nvd3": "~1.8.1"
+    "nvd3": "~1.8.1",
+    "angular-nvd3": "~1.0.5"
   },
   "devDependencies": {
     "angular-mocks": ">=1.2.*",
