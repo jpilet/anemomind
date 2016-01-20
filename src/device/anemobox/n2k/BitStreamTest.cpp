@@ -202,11 +202,11 @@ TEST(BitStreamTest, ParseDemo) {
 
   // Field 2
   auto windSpeedUnit = Velocity<double>::metersPerSecond(0.01);
-  Velocity<double> windSpeed = double(stream.getSigned(16))*windSpeedUnit;
+  Velocity<double> windSpeed = double(stream.getUnsigned(16))*windSpeedUnit;
 
   // Field 3
   auto windAngleUnit = Angle<double>::radians(0.0001);
-  Angle<double> windAngle = double(stream.getSigned(16))*windAngleUnit;
+  Angle<double> windAngle = double(stream.getUnsigned(16))*windAngleUnit;
 
   // Field 4
   auto reference = stream.getUnsigned(3);
