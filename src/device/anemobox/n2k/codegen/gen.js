@@ -1,6 +1,7 @@
 var parseString = require('xml2js').parseString;
 var fs = require('fs');
 var assert = require('assert');
+var Path = require('path');
 
 function makeSet() {
   return {};
@@ -299,20 +300,31 @@ function makeInfoComment(inputPath, outputPrefix) {
 
 }
 
-function compileXmlToCpp(value, inputPath, outputPrefix, cb) {
+function outputData(outputPath, moduleName, interfaceData, implementationData, cb) {
+  console.log(interfaceData);
+  console.log(implementationData);
+
+  interfaceFilename = Path.join(outputPath, moduleName + ".h");
+  implementationFilename = Path.join(outputPath, moduleName + ".cpp");
+  fs.writeFile(interfaceFilename, interfaceData, function(err) {
+    if (err) {
+      cb(err);
+    } else {
+      fs.writeFile(implementationFilename, implementationData, cb);
+    }
+  });
+}
+
+function compileXmlToCpp(value, inputPath, outputPath, cb) {
   var moduleName = "PgnClasses";
   try {
     var pgns = getPgnArrayFromParsedXml(value);
     var dup = getDuplicateId(pgns);
     assert(dup == undefined, "Ids are not unique: " + dup);
-    cmt = makeInfoComment(inputPath, outputPrefix);
+    cmt = makeInfoComment(inputPath, outputPath);
     var interfaceData = cmt + makeInterfaceFileContents(moduleName, pgns);
     var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);
-    console.log("================Interface: ");
-    console.log(interfaceData);
-    console.log("================Implementation: ");
-    console.log(implementationData);
-    cb(null, 'Success');
+    outputData(outputPath, moduleName, interfaceData, implementationData, cb);
   } catch (e) {
     console.log('Caught exception while compiling C++');
     console.log(e);
