@@ -68,13 +68,38 @@ function makeClassDeclarationFromPgn(pgn, indent) {
     makePrivatePgnDeclarations(pgn));
 }
 
-function compileXmlToCpp(value, outputPrefix, cb) {
+
+function makeClassDeclarations(pgns) {
+  return "/* TODO */";
+}
+
+function wrapInclusionGuard(label, data) {
+  var fullLabel = "_" + label + "_HEADER_";
+  return "#ifndef " + fullLabel + "\n#define " + fullLabel + " 1\n\n" + data + "\n\n#endif";
+}
+
+
+function makeInterfaceFileContents(localFilename, pgns) {
+  return wrapInclusionGuard(localFilename.toUpperCase(), makeClassDeclarations(pgns));
+}
+
+function makeInfoComment(inputPath, outputPrefix) {
+  return "/** Generated on " + Date() + " using \n *\n" + 
+    " *  node codegen/index.js " + inputPath + " " + outputPrefix + "\n *\n */\n";
+
+}
+
+function compileXmlToCpp(value, inputPath, outputPrefix, cb) {
+  var localFilename = "PgnClasses";
   try {
     var pgns = getPgnArrayFromParsedXml(value);
     var dup = getDuplicateId(pgns);
     assert(dup == undefined, "Ids are not unique: " + dup);
-    var interfaceData = makeInterfaceFileContents(pgns);
-    var implementationData = makeImplementationFileContents(pgns);
+    cmt = makeInfoComment(inputPath, outputPrefix);
+    var interfaceData = cmt + makeInterfaceFileContents(localFilename, pgns);
+    //var implementationData = cmt + makeImplementationFileContents(localFilename, pgns);
+    console.log("Interface: ");
+    console.log(interfaceData);
     cb(null, 'Success');
   } catch (e) {
     console.log('Caught exception while compiling C++');
@@ -100,7 +125,7 @@ function generate(inputPath, outputPrefix, cb) {
     if (err) {
       cb(err);
     } else {
-      compileXmlToCpp(value, outputPrefix, cb);
+      compileXmlToCpp(value, inputPath, outputPrefix, cb);
     }
   });
 }
