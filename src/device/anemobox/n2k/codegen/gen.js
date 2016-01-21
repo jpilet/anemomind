@@ -132,7 +132,7 @@ function getBitLength(field) {
 
 function makeIntegerReadExpr(field, srcName) {
   var signed = isSigned(field);
-  var extractor = signed? "getSigned" : "getUnsigned";
+  var extractor = signed? "getOptionalSigned" : "getOptionalUnsigned";
   return srcName + "." + extractor + "(" + getBitLength(field) + ")";
 }
 
@@ -346,12 +346,16 @@ function makeFieldFromIntExpr(field, intExpr) {
   var unit = getUnits(field);
   if (isPhysicalQuantity(field)) {
     var info = getUnitInfo(field);
-    return "double(" 
+    return "("
       + (hasResolution(field)? field.Resolution + "*": "")
       + intExpr
       + ")*" + info.unit;
   }
-  return intExpr;
+  return null;
+}
+
+function getIntType(field) {
+  return isSigned(field)? "int64_t" : "uint64_t";
 }
 
 function skipField(field) {
@@ -362,17 +366,22 @@ function skipField(field) {
   return false;
 }
 
-function makeFieldAssignment(field) {
+function makeFieldAssignment(field, depth) {
   if (skipField(field)) {
-    return [
+    return indentLineArray(depth, [
       '// Skipping ' + getFieldId(field),
       'src.advanceBits(' + getBitLength(field) + ');'
-    ];
+    ]);
   } else {
-    return [ "{auto x = " + makeIntegerReadExpr(field, "src") + 
-             "; if (BitStream::isAvailable(x, " + getBitLength(field) + ")) {"
-             + getInstanceVariableName(field) + " = "
-             + makeFieldFromIntExpr(field, "x") + ";}}"];
+    var intExpr = makeIntegerReadExpr(field, "src");
+    var complexExpr = makeFieldFromIntExpr(field, "x");
+    if (complexExpr == null) {
+      return beginLine(depth) + getInstanceVariableName(field) + " = " + intExpr + ";";
+    } else {
+      return beginLine(depth) + intExpr + ".then([&](" + getIntType(field) + " x) {"
+        + beginLine(depth+1) + getInstanceVariableName(field) + " = " + complexExpr + ";"
+        + beginLine(depth) + "});";
+    }
   }
 }
 
@@ -393,7 +402,7 @@ function logIgnoringField(field, err) {
 function makeFieldAssignments(fields, depth) {
   var s = '';
   for (var i = 0; i < fields.length; i++) {
-      s += indentLineArray(depth, makeFieldAssignment(fields[i]));
+    s += makeFieldAssignment(fields[i], depth);
   }
   return s;
 }
@@ -403,7 +412,7 @@ function makeConstructorStatements(pgn, depth) {
   var fields = getFieldArray(pgn);
   var innerDepth = depth + 1;
   return beginLine(depth) + 
-    'if (' + getTotalBitLength(fields) + ' <= src.remainingBits()) {\n'
+    'if (' + getTotalBitLength(fields) + ' <= src.remainingBits()) {'
     + makeFieldAssignments(fields, innerDepth, false)
     + beginLine(innerDepth) + "_valid = true;"
     + beginLine(depth) + "} else {"

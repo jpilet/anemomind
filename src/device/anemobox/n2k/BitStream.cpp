@@ -9,16 +9,22 @@ bool BitStream::canRead(int numBits) const {
   return (bitPos_ + numBits) <= (lenBytes_ * 8);
 }
 
-bool BitStream::isAvailable(int64_t x, int numBits) {
-  assert(false);
-  auto maxv = static_cast<int64_t>(BitStreamInternals::getMaxSignedValueTwosComplement(numBits));
-  return x != maxv;
+Optional<int64_t> BitStream::getOptionalSigned(int numBits, int64_t offset) {
+  auto x = getSigned(numBits, offset);
+  if (x == BitStreamInternals::getMaxSignedValue(numBits, offset)) {
+    return Optional<int64_t>();
+  }
+  return Optional<int64_t>(x);
 }
 
-bool BitStream::isAvailable(uint64_t x, int numBits) {
-  auto maxv = BitStreamInternals::getMaxUnsignedValue(numBits);
-  return x != maxv;
+Optional<uint64_t> BitStream::getOptionalUnsigned(int numBits) {
+  auto x = getUnsigned(numBits);
+  if (x == BitStreamInternals::getMaxUnsignedValue(numBits)) {
+    return Optional<uint64_t>();
+  }
+  return Optional<uint64_t>(x);
 }
+
 
 uint64_t BitStream::getUnsigned(int numBits) {
   assert(numBits > 0 && numBits <= 64);
@@ -55,6 +61,13 @@ namespace BitStreamInternals {
   // not needed, but included for the sake of completeness.
   uint64_t getMaxSignedValueTwosComplement(int numBits) {
     return getMaxUnsignedValue(numBits) >> 1;
+  }
+
+  uint64_t getMaxSignedValue(int numBits, int64_t offset) {
+    if (offset == 0) {
+      return getMaxSignedValueTwosComplement(numBits);
+    }
+    return static_cast<int64_t>(getMaxUnsignedValue(numBits)) + offset;
   }
 }
 
