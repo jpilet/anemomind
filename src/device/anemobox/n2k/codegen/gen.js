@@ -32,6 +32,10 @@ function makeWhiteSpace(depth) {
   return s;
 }
 
+function beginLine(depth) {
+  return "\n" + makeWhitespace(depth);
+}
+
 function getDuplicateId(pgns) {
   var idSet = makeSet();
   for (var i = 0; i < pgns.length; i++) {
@@ -61,23 +65,37 @@ function getPgnArrayFromParsedXml(xml) {
   return filterPgnsOfInterest(all);
 }
 
-function makeClassDeclarationFromPgn(pgn, indent) {
-  makeClassBlock(
+function makeClassDeclarationFromPgn(pgn, depth) {
+  /*makeClassBlock(
     capitalizeFirstLetter(pgn.Id),
     makePublicPgnDeclarations(pgn),
-    makePrivatePgnDeclarations(pgn));
+    makePrivatePgnDeclarations(pgn));*/
+  return beginLine(depth) + "// Declaration for " + pgn.Id;
 }
 
 
-function makeClassDeclarations(pgns) {
-  return "/* TODO */";
+function wrapNamespace(label, data) {
+  return "namespace " + label + " {" + data + "\n}";
+}
+
+function makeClassDeclarationsSub(pgns) {
+  depth = 1;
+  var s = '';
+  for (var i = 0; i < pgns.length; i++) {
+      s += makeClassDeclarationFromPgn(pgn, depth);
+  }
+  return s;
+}
+
+function makeClassDeclarations(label, pgns) {
+  return wrapNamespace(
+    label, makeClassDeclarationsSub(pgns));
 }
 
 function wrapInclusionGuard(label, data) {
   var fullLabel = "_" + label + "_HEADER_";
   return "#ifndef " + fullLabel + "\n#define " + fullLabel + " 1\n\n" + data + "\n\n#endif";
 }
-
 
 function makeInterfaceFileContents(localFilename, pgns) {
   return wrapInclusionGuard(localFilename.toUpperCase(), makeClassDeclarations(pgns));
