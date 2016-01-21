@@ -1,4 +1,4 @@
-/** Generated on Thu Jan 21 2016 14:21:08 GMT+0100 (CET) using 
+/** Generated on Thu Jan 21 2016 16:27:49 GMT+0100 (CET) using 
  *
  *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *
@@ -14,12 +14,13 @@ namespace PgnClasses {
     reset();
   }
 
-  WindData::WindData(BitStream *src) {
-    if (43 <= src->remainingBits()) {
-      _sid = src->getSigned(8);
-      _windSpeed = double(src->getSigned(16)*0.01)*sail::Velocity<double>::metersPerSecond(1.0);
-      _windAngle = double(src->getSigned(16)*0.0001)*sail::Angle<double>::radians(1.0);
-      _reference = src->getSigned(3);
+  WindData::WindData(uint8_t *data, int lengthBytes) {
+    BitStream src(data, lengthBytes);
+    if (43 <= src.remainingBits()) {
+      {auto x = src.getUnsigned(8); if (BitStream::isAvailable(x, 8)) {_sid = x;}}
+      {auto x = src.getUnsigned(16); if (BitStream::isAvailable(x, 16)) {_windSpeed = double(0.01*x)*sail::Velocity<double>::metersPerSecond(1.0);}}
+      {auto x = src.getUnsigned(16); if (BitStream::isAvailable(x, 16)) {_windAngle = double(0.0001*x)*sail::Angle<double>::radians(1.0);}}
+      {auto x = src.getUnsigned(3); if (BitStream::isAvailable(x, 3)) {_reference = x;}}
       _valid = true;
     } else {
       reset();
@@ -28,9 +29,5 @@ namespace PgnClasses {
 
   void WindData::reset() {
     _valid = false;
-    _sid = 0;
-    _windSpeed = sail::Velocity<double>();
-    _windAngle = sail::Angle<double>();
-    _reference = 0;
   }
 }

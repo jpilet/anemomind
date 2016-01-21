@@ -1,11 +1,23 @@
 #include <device/anemobox/n2k/BitStream.h>
 #include <assert.h>
+#include <iostream>
 
 BitStream::BitStream(uint8_t* data, size_t len)
-  : data_(data), len_(len), bitPos_(0) { }
+  : data_(data), lenBytes_(len), bitPos_(0) { }
 
 bool BitStream::canRead(int numBits) const {
-  return (bitPos_ + numBits) <= (len_ * 8);
+  return (bitPos_ + numBits) <= (lenBytes_ * 8);
+}
+
+bool BitStream::isAvailable(int64_t x, int numBits) {
+  assert(false);
+  auto maxv = static_cast<int64_t>(BitStreamInternals::getMaxSignedValueTwosComplement(numBits));
+  return x != maxv;
+}
+
+bool BitStream::isAvailable(uint64_t x, int numBits) {
+  auto maxv = BitStreamInternals::getMaxUnsignedValue(numBits);
+  return x != maxv;
 }
 
 uint64_t BitStream::getUnsigned(int numBits) {

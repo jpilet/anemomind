@@ -58,10 +58,15 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+function getPgnCode(x) {
+  return parseInt(x.PGN);
+}
+
+
 function filterPgnsOfInterest(pgns) {
   return pgns.filter(function(x) {
-    pgn = '' + x.PGN;
-    return inSet(parseInt(pgn), pgnsOfInterest);
+    var pgn = getPgnCode(x);
+    return inSet(pgn, pgnsOfInterest);
   });
 }
 
@@ -112,7 +117,9 @@ function isPhysicalQuantity(field) {
 }
 
 function isSigned(field) {
-  return field.Signed;
+  var s = field["Signed"] + '';
+  assert(s == "true" || s == "false");
+  return s == "true";
 }
 
 function getBitLength(field) {
@@ -120,8 +127,9 @@ function getBitLength(field) {
 }
 
 function makeIntegerReadExpr(field, srcName) {
-  var extractor = isSigned(field)? "getSigned" : "getUnsigned";
-  return srcName + "->" + extractor + "(" + getBitLength(field) + ")";
+  var signed = isSigned(field);
+  var extractor = signed? "getSigned" : "getUnsigned";
+  return srcName + "." + extractor + "(" + getBitLength(field) + ")";
 }
 
 unitMap = {
@@ -152,12 +160,20 @@ function getFieldType(field) {
   }
 }
 
+function wrapOptionalType(x) {
+  return "Optional<" + x + " >";
+}
+
+function getOptionalFieldType(field) {
+  return wrapOptionalType(getFieldType(field));
+}
+
 function getAccessorName(field) {
   return getFieldId(field);
 }
 
 function makeFieldAccessor(field) {
-  return "const " + getFieldType(field) + " &" 
+  return "const " + getOptionalFieldType(field) + " &" 
     + getAccessorName(field) + "() const {assert(_valid); return "
     + getInstanceVariableName(field) + ";}";
 }
@@ -167,7 +183,9 @@ function makeAccessors(pgn, depth) {
   var s = beginLine(depth, 1) + "// Field access";
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
-    s += beginLine(depth) + makeFieldAccessor(field);
+    if (getFieldId(field) != "reserved") {
+      s += beginLine(depth) + makeFieldAccessor(field);
+    }
   }
   return s;
 }
@@ -197,19 +215,18 @@ function makeResetMethod(pgn, depth) {
   var innerDepth = depth + 1;
   return beginLine(depth, 1) + "void " + getClassName(pgn) + "::reset() {"
     + beginLine(innerDepth) + "_valid = false;"
-    + makeFieldAssignments(getFieldArray(pgn), innerDepth, true)
     + beginLine(depth) + "}";
 }
 
 function makeMethodsInClass(pgn, depth) {
-  return makeDefaultConstructorDecl(pgn, depth)
+  return "\n" + makeDefaultConstructorDecl(pgn, depth)
     + makeConstructorDecl(pgn, depth) 
     + makeCommonMethods(depth) 
     + makeAccessors(pgn, depth);
 }
 
 function makeConstructorSignature(pgn) {
-  return getClassName(pgn) + "(BitStream *src)";
+  return getClassName(pgn) + "(uint8_t *data, int lengthBytes)";
 }
 
 function makeInstanceVariableDecls(pgn, depth) {
@@ -219,7 +236,7 @@ function makeInstanceVariableDecls(pgn, depth) {
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
     s += beginLine(depth) 
-      + getFieldType(field) + " "
+      + getOptionalFieldType(field) + " "
       + getInstanceVariableName(field) + ";";
   }
   return s;
@@ -229,11 +246,16 @@ function makeConstructorDecl(pgn, depth) {
   return beginLine(depth) + makeConstructorSignature(pgn) + ";";
 }
 
+function makePgnStaticConst(pgn, depth) {
+  return beginLine(depth) + "static const int pgn = " + getPgnCode(pgn) + ";";
+}
+
 function makeClassDeclarationFromPgn(pgn, depth) {
   var innerDepth = depth + 1;
   return makeClassBlock(
     getClassName(pgn), 
-    makeMethodsInClass(pgn, innerDepth), 
+    makePgnStaticConst(pgn, innerDepth) 
+      + makeMethodsInClass(pgn, innerDepth),
     makeInstanceVariableDecls(pgn, innerDepth), 
     depth);
   return getClassName(pgn);
@@ -271,30 +293,23 @@ function hasResolution(field) {
   return field.Resolution != null;
 }
 
-function makeFieldFromStreamExpr(field) {
+function makeFieldFromIntExpr(field, intExpr) {
   var unit = getUnits(field);
-  var raw = makeIntegerReadExpr(field, "src");
   if (isPhysicalQuantity(field)) {
     var info = getUnitInfo(field);
-    return "double(" + raw + 
-      (hasResolution(field)? "*" + field.Resolution : "")
+    return "double(" 
+      + (hasResolution(field)? field.Resolution + "*": "")
+      + intExpr
       + ")*" + info.unit;
   }
-  return raw;
+  return intExpr;
 }
 
-function getDefaultValue(field) {
-  if (isPhysicalQuantity(field)) {
-    return getUnitInfo(field).type + "()";
-  }
-  return "0";
-}
-
-function makeFieldAssignment(field, withDefaultValue) {
-  return getInstanceVariableName(field) + " = " + 
-    (withDefaultValue? 
-     getDefaultValue(field) : 
-     makeFieldFromStreamExpr(field)) + ";";
+function makeFieldAssignment(field) {
+  return "{auto x = " + makeIntegerReadExpr(field, "src") + 
+    "; if (BitStream::isAvailable(x, " + getBitLength(field) + ")) {"
+    + getInstanceVariableName(field) + " = "
+    + makeFieldFromIntExpr(field, "x") + ";}}";
 }
 
 function getTotalBitLength(fields) {
@@ -307,10 +322,10 @@ function getTotalBitLength(fields) {
 }
 
 
-function makeFieldAssignments(fields, depth, withDefaultValue) {
+function makeFieldAssignments(fields, depth) {
   var s = '';
   for (var i = 0; i < fields.length; i++) {
-    s += beginLine(depth) + makeFieldAssignment(fields[i], withDefaultValue);
+    s += beginLine(depth) + makeFieldAssignment(fields[i]);
   }
   return s;
 }
@@ -320,7 +335,7 @@ function makeConstructorStatements(pgn, depth) {
   var fields = getFieldArray(pgn);
   var innerDepth = depth + 1;
   return beginLine(depth) + 
-    'if (' + getTotalBitLength(fields) + ' <= src->remainingBits()) {'
+    'if (' + getTotalBitLength(fields) + ' <= src.remainingBits()) {'
     + makeFieldAssignments(fields, innerDepth, false)
     + beginLine(innerDepth) + "_valid = true;"
     + beginLine(depth) + "} else {"
@@ -333,6 +348,7 @@ function makeConstructor(pgn, depth) {
   var innerDepth = depth + 1;
   return beginLine(depth, 1) + getClassName(pgn) + "::" + makeConstructorSignature(pgn) 
     + " {"
+    + beginLine(innerDepth) + "BitStream src(data, lengthBytes);"
     + makeConstructorStatements(pgn, innerDepth)
     + beginLine(depth) + "}";
 }
@@ -366,7 +382,7 @@ function makeImplementationFileContents(moduleName, pgns) {
 
 var publicInclusions = '#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>\n'
     +'#include <cassert>\n'
-    +'class BitStream;\n\n';
+    +'#include <server/common/Optional.h>\n\n';
 
 function makeInterfaceFileContents(moduleName, pgns) {
   return wrapInclusionGuard(
@@ -402,7 +418,7 @@ function compileXmlToCpp(argv, value, inputPath, outputPath, cb) {
     var pgns = getPgnArrayFromParsedXml(value);
     var dup = getDuplicateId(pgns);
     assert(dup == undefined, "Ids are not unique: " + dup);
-    cmt = makeInfoComment(argv, inputPath);
+    var cmt = makeInfoComment(argv, inputPath);
     var interfaceData = cmt + makeInterfaceFileContents(moduleName, pgns);
     var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);
     outputData(outputPath, moduleName, interfaceData, implementationData, cb);
