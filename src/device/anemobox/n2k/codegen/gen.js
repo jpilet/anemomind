@@ -1,15 +1,87 @@
 var parseString = require('xml2js').parseString;
 var fs = require('fs');
+var assert = require('assert');
+
+function makeSet() {
+  return {};
+}
+
+function insertIntoSet(x, X) {
+  X[x] = true; // Any dummy value that evaluates to true will do.
+}
+
+function makeSetFromArray(arr) {
+  var dst = makeSet();
+  for (var i = 0; i < arr.length; i++) {
+    insertIntoSet(arr[i], dst);
+  }
+  return dst;
+}
+
+var pgnsOfInterest = makeSetFromArray(require('./pgnlist.json'));
+
+function inSet(x, X) {
+  return X[x] != undefined;
+}
+
+function makeWhiteSpace(depth) {
+  var s = '';
+  for (var i = 0; i < depth; i++) {
+    s += '  ';
+  }
+  return s;
+}
+
+function getDuplicateId(pgns) {
+  var idSet = makeSet();
+  for (var i = 0; i < pgns.length; i++) {
+    id = pgns[i].Id + '';
+    if (inSet(id, idSet)) {
+      return id;
+    }
+    insertIntoSet(id, idSet);
+  }
+  return null;
+}
+
+// http://stackoverflow.com/a/1026087
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function filterPgnsOfInterest(pgns) {
+  return pgns.filter(function(x) {
+    pgn = '' + x.PGN;
+    return inSet(parseInt(pgn), pgnsOfInterest);
+  });
+}
 
 function getPgnArrayFromParsedXml(xml) {
-  return xml.PGNDefinitions.PGNs[0].PGNInfo;
+  var all = xml.PGNDefinitions.PGNs[0].PGNInfo;
+  return filterPgnsOfInterest(all);
+}
+
+function makeClassDeclarationFromPgn(pgn, indent) {
+  makeClassBlock(
+    capitalizeFirstLetter(pgn.Id),
+    makePublicPgnDeclarations(pgn),
+    makePrivatePgnDeclarations(pgn));
 }
 
 function compileXmlToCpp(value, outputPrefix, cb) {
-  var pgns = getPgnArrayFromParsedXml(value);
-  assert(pgns instanceof Array);
-  cb(null, 'Success!');
+  try {
+    var pgns = getPgnArrayFromParsedXml(value);
+    var dup = getDuplicateId(pgns);
+    assert(dup == undefined, "Ids are not unique: " + dup);
+    cb(null, 'Success!');
+  } catch (e) {
+    console.log('Caught exception while compiling C++');
+    console.log(e);
+    cb(e);
+  }
 }
+
+
 
 function loadXml(inputPath, cb) {
   fs.readFile(inputPath, 'utf-8', function(err, data) {
