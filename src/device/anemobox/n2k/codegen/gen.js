@@ -79,8 +79,10 @@ function makeClassBlock(name, publicDecls, privateDecls, depth) {
 }
 
 function makeInstanceVariableDecls(pgn, depth) {
-  for (var k in pgn.Fields[0].Field) {
+  X = pgn.Fields[0].Field;
+  for (var k in X) {
     console.log("  KEY: " + k);
+    console.log("  VALUE: " + X[k]);
   }
   return beginLine(depth) + "// Field data: " + pgn.Fields[0];
 }
