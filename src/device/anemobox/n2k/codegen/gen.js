@@ -270,8 +270,11 @@ function getDefaultValue(field) {
   return "0";
 }
 
-function makeFieldAssignment(field) {
-  return getInstanceVariableName(field) + " = " + makeFieldFromStreamExpr(field) + ";";
+function makeFieldAssignment(field, withDefaultValue) {
+  return getInstanceVariableName(field) + " = " + 
+    (withDefaultValue? 
+     getDefaultValue(field) : 
+     makeFieldFromStreamExpr(field)) + ";";
 }
 
 function getTotalBitLength(fields) {
@@ -283,27 +286,48 @@ function getTotalBitLength(fields) {
   return n;
 }
 
+
+function makeFieldAssignments(fields, depth, withDefaultValue) {
+  var s = '';
+  for (var i = 0; i < fields.length; i++) {
+    s += beginLine(depth) + makeFieldAssignment(fields[i], withDefaultValue);
+  }
+  return s;
+}
+
 function makeConstructorStatements(pgn, depth) {
   var fields = getFieldArray(pgn);
-  var s = beginLine(depth) + 
-      'if (' + getTotalBitLength(fields) + ' <= src->remainingBits()) {';
-  for (var i = 0; i < fields.length; i++) {
-    s += beginLine(depth+1) + makeFieldAssignment(fields[i]);
-  }
-  return s + beginLine(depth) + "}";;
+  var innerDepth = depth + 1;
+  return beginLine(depth) + 
+    'if (' + getTotalBitLength(fields) + ' <= src->remainingBits()) {'
+    + makeFieldAssignments(fields, innerDepth, false)
+    + beginLine(innerDepth) + "_valid = true;"
+    + beginLine(depth) + "} else {"
+    + makeFieldAssignments(fields, innerDepth, true)
+    + beginLine(innerDepth) + "_valid = false;"
+    + beginLine(depth) + "}";
 }
 
 
 function makeConstructor(pgn, depth) {
   var innerDepth = depth + 1;
-  return beginLine(depth) + getClassName(pgn) + "::" + makeConstructorSignature(pgn) 
-    + " : _valid(false) {"
+  return beginLine(depth, 1) + getClassName(pgn) + "::" + makeConstructorSignature(pgn) 
+    + " {"
     + makeConstructorStatements(pgn, innerDepth)
     + beginLine(depth) + "}";
 }
 
+function makeDefaultConstructor(pgn, depth) {
+  var innerDepth = depth + 1;
+  var fields = getFieldArray(pgn);
+  var className = getClassName(pgn);
+  return beginLine(depth, 1) + className + "::" + className + "() : _valid(false) {"
+    + makeFieldAssignments(fields, innerDepth, true)
+    + beginLine(depth) + "}";
+}
+
 function makeMethodsForPgn(pgn, depth) {
-  return makeConstructor(pgn, depth);
+  return makeDefaultConstructor(pgn, depth) + makeConstructor(pgn, depth);
 }
 
 var privateInclusions = '#include <device/anemobox/n2k/BitStream.h>\n\n'
