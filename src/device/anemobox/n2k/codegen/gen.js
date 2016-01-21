@@ -69,6 +69,14 @@ function getClassName(pgn) {
   return capitalizeFirstLetter(pgn.Id + '');
 }
 
+function getFieldArray(pgn) {
+  assert(pgn.Fields.length == 1);
+  var fields = pgn.Fields[0];
+  var arr = fields.Field;
+  assert(arr instanceof Array);
+  return arr;
+}
+
 function makeClassBlock(name, publicDecls, privateDecls, depth) {
   return beginLine(depth) + "class " + name + " {" 
     +beginLine(depth) + "public:"
@@ -78,13 +86,56 @@ function makeClassBlock(name, publicDecls, privateDecls, depth) {
     +beginLine(depth) + "};";
 }
 
-function makeInstanceVariableDecls(pgn, depth) {
-  X = pgn.Fields[0].Field;
-  for (var k in X) {
-    console.log("  KEY: " + k);
-    console.log("  VALUE: " + X[k]);
+function getFieldId(field) {
+  return '' + field.Id;
+}
+
+function makeInstanceVariableName(x) {
+  return "_" + x;
+}
+
+function getInstanceVariableName(field) {
+  return makeInstanceVariableName(getFieldId(field));
+}
+
+function getUnits(field) {
+  return '' + field.Units;
+}
+
+function isPhysicalQuantity(field) {
+  return field.Units != null;
+}
+
+unitMap = {
+  "m/s": {
+    type: "Velocity<double>",
+    unit: "Velocity<double>::metersPerSecond(1.0)"
+  }, 
+  "rad": {
+    type: "Angle<double>",
+    unit: "Angle<double>::radians(1.0)"
   }
-  return beginLine(depth) + "// Field data: " + pgn.Fields[0];
+};
+
+function getFieldType(field) {
+  if (isPhysicalQuantity(field)) {
+    var unit = getUnits(field);
+    assert(unit in unitMap, "Unit not recognized: " +  unit);
+    return unitMap[unit].type;
+  } 
+  return "int64_t";
+}
+
+function makeInstanceVariableDecls(pgn, depth) {
+  fields = getFieldArray(pgn);
+  var s = beginLine(depth) + "// Number of fields: " + fields.length;
+  for (var i = 0; i < fields.length; i++) {
+    var field = fields[i];
+    s += beginLine(depth) 
+      + getFieldType(field) + " "
+      + getInstanceVariableName(field) + ";";
+  }
+  return s;
 }
 
 function makeClassDeclarationFromPgn(pgn, depth) {
