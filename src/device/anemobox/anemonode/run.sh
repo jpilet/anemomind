@@ -7,6 +7,8 @@ RTC=/bin/rtc
 
 ./format.sh
 
+ps aux | grep -v grep | grep -q jacd || ./start_n2k.sh
+
 set -e
 export ANEMOBOX_CONFIG_PATH=/home/anemobox
 export BLENO_DEVICE_NAME="Anemobox"

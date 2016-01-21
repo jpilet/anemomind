@@ -16,6 +16,7 @@ var logExternalNmea = true;
 var withHttp = true;
 var withIMU = true;
 var withCUPS = true;
+var withNMEA2000 = true;
 
 var config = require('./components/config');
 
@@ -135,4 +136,8 @@ if (withEstimator) {
 
 if (withCUPS) {
   require('./components/cups.js');
+}
+
+if (withNMEA2000) {
+  require('./components/nmea2000.js');
 }
