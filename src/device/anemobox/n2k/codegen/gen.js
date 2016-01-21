@@ -154,7 +154,7 @@ function getFieldType(field) {
 }
 
 function getAccessorName(field) {
-  return "get" + capitalizeFirstLetter(getFieldId(field));
+  return getFieldId(field);
 }
 
 function makeFieldAccessor(field) {
