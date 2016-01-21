@@ -24,7 +24,7 @@ function inSet(x, X) {
   return X[x] != undefined;
 }
 
-function makeWhiteSpace(depth) {
+function makeWhitespace(depth) {
   var s = '';
   for (var i = 0; i < depth; i++) {
     s += '  ';
@@ -65,12 +65,33 @@ function getPgnArrayFromParsedXml(xml) {
   return filterPgnsOfInterest(all);
 }
 
+function getClassName(pgn) {
+  return capitalizeFirstLetter(pgn.Id + '');
+}
+
+function makeClassBlock(name, publicDecls, privateDecls, depth) {
+  return beginLine(depth) + "class " + name + " {" 
+    +beginLine(depth) + "public:"
+    +publicDecls
+    +beginLine(depth) + "private:"
+    +privateDecls
+    +beginLine(depth) + "};";
+}
+
+function makeInstanceVariableDecls(pgn, depth) {
+  for (var k in pgn.Fields[0].Field) {
+    console.log("  KEY: " + k);
+  }
+  return beginLine(depth) + "// Field data: " + pgn.Fields[0];
+}
+
 function makeClassDeclarationFromPgn(pgn, depth) {
-  /*makeClassBlock(
-    capitalizeFirstLetter(pgn.Id),
-    makePublicPgnDeclarations(pgn),
-    makePrivatePgnDeclarations(pgn));*/
-  return beginLine(depth) + "// Declaration for " + pgn.Id;
+  return makeClassBlock(
+    getClassName(pgn), 
+    "", 
+    makeInstanceVariableDecls(pgn, depth+1), 
+    depth);
+  return getClassName(pgn);
 }
 
 
@@ -82,7 +103,7 @@ function makeClassDeclarationsSub(pgns) {
   depth = 1;
   var s = '';
   for (var i = 0; i < pgns.length; i++) {
-      s += makeClassDeclarationFromPgn(pgn, depth);
+      s += makeClassDeclarationFromPgn(pgns[i], depth);
   }
   return s;
 }
@@ -97,8 +118,8 @@ function wrapInclusionGuard(label, data) {
   return "#ifndef " + fullLabel + "\n#define " + fullLabel + " 1\n\n" + data + "\n\n#endif";
 }
 
-function makeInterfaceFileContents(localFilename, pgns) {
-  return wrapInclusionGuard(localFilename.toUpperCase(), makeClassDeclarations(pgns));
+function makeInterfaceFileContents(moduleName, pgns) {
+  return wrapInclusionGuard(moduleName.toUpperCase(), makeClassDeclarations(moduleName, pgns));
 }
 
 function makeInfoComment(inputPath, outputPrefix) {
@@ -108,14 +129,14 @@ function makeInfoComment(inputPath, outputPrefix) {
 }
 
 function compileXmlToCpp(value, inputPath, outputPrefix, cb) {
-  var localFilename = "PgnClasses";
+  var moduleName = "PgnClasses";
   try {
     var pgns = getPgnArrayFromParsedXml(value);
     var dup = getDuplicateId(pgns);
     assert(dup == undefined, "Ids are not unique: " + dup);
     cmt = makeInfoComment(inputPath, outputPrefix);
-    var interfaceData = cmt + makeInterfaceFileContents(localFilename, pgns);
-    //var implementationData = cmt + makeImplementationFileContents(localFilename, pgns);
+    var interfaceData = cmt + makeInterfaceFileContents(moduleName, pgns);
+    //var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);
     console.log("Interface: ");
     console.log(interfaceData);
     cb(null, 'Success');
