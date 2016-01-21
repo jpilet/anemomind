@@ -1,7 +1,6 @@
-/** Generated on Thu Jan 21 2016 12:44:44 GMT+0100 (CET) using 
+/** Generated on Thu Jan 21 2016 14:14:50 GMT+0100 (CET) using 
  *
- *     node codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml /home/jonas/programmering/sailsmart/src/device/anemobox/n2k
- *
+ *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
 #include "PgnClasses.h"
@@ -10,11 +9,8 @@
 
 namespace PgnClasses {
 
-  WindData::WindData() : _valid(false) {
-    _sid = 0;
-    _windSpeed = sail::Velocity<double>();
-    _windAngle = sail::Angle<double>();
-    _reference = 0;
+  WindData::WindData() {
+    reset();
   }
 
   WindData::WindData(BitStream *src) {
@@ -25,11 +21,15 @@ namespace PgnClasses {
       _reference = src->getSigned(3);
       _valid = true;
     } else {
-      _sid = 0;
-      _windSpeed = sail::Velocity<double>();
-      _windAngle = sail::Angle<double>();
-      _reference = 0;
-      _valid = false;
+      reset();
     }
+  }
+
+  void WindData::reset() {
+    _valid = false;
+    _sid = 0;
+    _windSpeed = sail::Velocity<double>();
+    _windAngle = sail::Angle<double>();
+    _reference = 0;
   }
 }

@@ -1,7 +1,6 @@
-/** Generated on Thu Jan 21 2016 12:44:44 GMT+0100 (CET) using 
+/** Generated on Thu Jan 21 2016 14:14:50 GMT+0100 (CET) using 
  *
- *     node codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml /home/jonas/programmering/sailsmart/src/device/anemobox/n2k
- *
+ *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
 #ifndef _PGNCLASSES_HEADER_
@@ -18,6 +17,7 @@ namespace PgnClasses {
     WindData();
     WindData(BitStream *src);
     bool valid() const {return _valid;}
+    void reset();
 
     // Field access
     const int64_t &sid() const {assert(_valid); return _sid;}

@@ -173,12 +173,33 @@ function makeAccessors(pgn, depth) {
   return s;
 }
 
+var validMethod = "bool valid() const {return _valid;}";
+var resetDecl = "void reset();";
+
+var commonMethods = [
+  validMethod,
+  resetDecl
+];
+
+
 function makeCommonMethods(depth) {
-  return beginLine(depth) + "bool valid() const {return _valid;}";
+  return commonMethods
+    .map(function(x) {return beginLine(depth) + x;})
+    .reduce(function(a, b) {
+      return a + b
+    });
 }
 
 function makeDefaultConstructorDecl(pgn, depth) {
   return beginLine(depth) + getClassName(pgn) + "();";
+}
+
+function makeResetMethod(pgn, depth) {
+  var innerDepth = depth + 1;
+  return beginLine(depth, 1) + "void " + getClassName(pgn) + "::reset() {"
+    + beginLine(innerDepth) + "_valid = false;"
+    + makeFieldAssignments(getFieldArray(pgn), innerDepth, true)
+    + beginLine(depth) + "}";
 }
 
 function makeMethodsInClass(pgn, depth) {
@@ -295,6 +316,7 @@ function makeFieldAssignments(fields, depth, withDefaultValue) {
   return s;
 }
 
+
 function makeConstructorStatements(pgn, depth) {
   var fields = getFieldArray(pgn);
   var innerDepth = depth + 1;
@@ -303,8 +325,7 @@ function makeConstructorStatements(pgn, depth) {
     + makeFieldAssignments(fields, innerDepth, false)
     + beginLine(innerDepth) + "_valid = true;"
     + beginLine(depth) + "} else {"
-    + makeFieldAssignments(fields, innerDepth, true)
-    + beginLine(innerDepth) + "_valid = false;"
+    + beginLine(innerDepth) + "reset();"
     + beginLine(depth) + "}";
 }
 
@@ -317,17 +338,20 @@ function makeConstructor(pgn, depth) {
     + beginLine(depth) + "}";
 }
 
+
 function makeDefaultConstructor(pgn, depth) {
   var innerDepth = depth + 1;
   var fields = getFieldArray(pgn);
   var className = getClassName(pgn);
-  return beginLine(depth, 1) + className + "::" + className + "() : _valid(false) {"
-    + makeFieldAssignments(fields, innerDepth, true)
-    + beginLine(depth) + "}";
+  return beginLine(depth, 1) + className + "::" + className + "() {"
+    +beginLine(depth+1) + "reset();"
+    +beginLine(depth) + "}";
 }
 
 function makeMethodsForPgn(pgn, depth) {
-  return makeDefaultConstructor(pgn, depth) + makeConstructor(pgn, depth);
+  return makeDefaultConstructor(pgn, depth) 
+    + makeConstructor(pgn, depth)
+    + makeResetMethod(pgn, depth);
 }
 
 var privateInclusions = '#include <device/anemobox/n2k/BitStream.h>\n\n'
@@ -352,18 +376,15 @@ function makeInterfaceFileContents(moduleName, pgns) {
     makeClassDeclarations(moduleName, pgns));
 }
 
-function makeInfoComment(inputPath, outputPrefix) {
+function makeInfoComment(argv, inputPath) {
   return "/** Generated on " + Date() + " using \n *\n" + 
-    " *     node codegen/index.js " + inputPath + " " + outputPrefix + "\n *"
+    " *     " + argv[0] + " " + argv[1] + " " + inputPath
     + "\n *  WARNING: Modifications to this file will be overwritten when it is re-generated"
     + "\n */\n";
 
 }
 
 function outputData(outputPath, moduleName, interfaceData, implementationData, cb) {
-  console.log(interfaceData);
-  console.log(implementationData);
-
   interfaceFilename = Path.join(outputPath, moduleName + ".h");
   implementationFilename = Path.join(outputPath, moduleName + ".cpp");
   fs.writeFile(interfaceFilename, interfaceData, function(err) {
@@ -375,13 +396,13 @@ function outputData(outputPath, moduleName, interfaceData, implementationData, c
   });
 }
 
-function compileXmlToCpp(value, inputPath, outputPath, cb) {
+function compileXmlToCpp(argv, value, inputPath, outputPath, cb) {
   var moduleName = "PgnClasses";
   try {
     var pgns = getPgnArrayFromParsedXml(value);
     var dup = getDuplicateId(pgns);
     assert(dup == undefined, "Ids are not unique: " + dup);
-    cmt = makeInfoComment(inputPath, outputPath);
+    cmt = makeInfoComment(argv, inputPath);
     var interfaceData = cmt + makeInterfaceFileContents(moduleName, pgns);
     var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);
     outputData(outputPath, moduleName, interfaceData, implementationData, cb);
@@ -397,21 +418,52 @@ function compileXmlToCpp(value, inputPath, outputPath, cb) {
 function loadXml(inputPath, cb) {
   fs.readFile(inputPath, 'utf-8', function(err, data) {
     if (err) {
-      cb(err);
+      cb(new Error("Failed to read file " + inputPath));
     } else {
       parseString(data, cb);
     }
   });
 }
 
-function generate(inputPath, outputPrefix, cb) {
+function generate(argv, inputPath, outputPath, cb) {
   loadXml(inputPath, function(err, value) {
     if (err) {
       cb(err);
     } else {
-      compileXmlToCpp(value, inputPath, outputPrefix, cb);
+      compileXmlToCpp(argv, value, inputPath, outputPath, cb);
     }
   });
 }
 
-module.exports.generate = generate;
+defaultInputPath = '/home/jonas/programmering/cpp/canboat/analyzer/pgns.xml';
+
+function getOutputPath(javascriptFilename) {
+  dstLoc = "anemobox/n2k/"
+  var index = javascriptFilename.indexOf(dstLoc);
+  if (0 <= index) {
+    return javascriptFilename.slice(0, index + dstLoc.length);
+  }
+  return null;
+}
+
+function main(argv) {
+  inputPath = argv[2] || defaultInputPath;
+  console.log("Input XML filename: " + inputPath);
+  javascriptFilename = argv[1];
+  outputPath = getOutputPath(javascriptFilename);
+  if (outputPath == null) {
+    console.log("Unable to determine output path from " + javascriptFilename);
+  } else {
+    console.log("Output generated files to " + outputPath);
+    generate(argv, inputPath, outputPath, function(err, value) {
+      if (err) {
+        console.log("Failed to generate because ");
+        console.log(err);
+      } else {
+        console.log("Success!");
+      }
+    });
+  }
+}
+
+module.exports.main = main;
