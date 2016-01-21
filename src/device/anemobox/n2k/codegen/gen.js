@@ -354,7 +354,9 @@ function makeInterfaceFileContents(moduleName, pgns) {
 
 function makeInfoComment(inputPath, outputPrefix) {
   return "/** Generated on " + Date() + " using \n *\n" + 
-    " *  node codegen/index.js " + inputPath + " " + outputPrefix + "\n *\n */\n";
+    " *     node codegen/index.js " + inputPath + " " + outputPrefix + "\n *"
+    + "\n *  WARNING: Modifications to this file will be overwritten when it is re-generated"
+    + "\n */\n";
 
 }
 

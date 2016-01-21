@@ -1,7 +1,8 @@
-/** Generated on Thu Jan 21 2016 12:41:06 GMT+0100 (CET) using 
+/** Generated on Thu Jan 21 2016 12:44:44 GMT+0100 (CET) using 
  *
- *  node codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml /home/jonas/programmering/sailsmart/src/device/anemobox/n2k
+ *     node codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml /home/jonas/programmering/sailsmart/src/device/anemobox/n2k
  *
+ *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
 #ifndef _PGNCLASSES_HEADER_
 #define _PGNCLASSES_HEADER_ 1
