@@ -73,7 +73,9 @@ function compileXmlToCpp(value, outputPrefix, cb) {
     var pgns = getPgnArrayFromParsedXml(value);
     var dup = getDuplicateId(pgns);
     assert(dup == undefined, "Ids are not unique: " + dup);
-    cb(null, 'Success!');
+    var interfaceData = makeInterfaceFileContents(pgns);
+    var implementationData = makeImplementationFileContents(pgns);
+    cb(null, 'Success');
   } catch (e) {
     console.log('Caught exception while compiling C++');
     console.log(e);
