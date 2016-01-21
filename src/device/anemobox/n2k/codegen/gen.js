@@ -366,19 +366,13 @@ function makeFieldAssignment(field) {
   if (skipField(field)) {
     return [
       '// Skipping ' + getFieldId(field),
-      'advanceBits(' + getBitLength(field) + ');'
+      'src.advanceBits(' + getBitLength(field) + ');'
     ];
   } else {
-    if (isPhysicalQuantity(field)) {
-      return [ "{auto x = " + makeIntegerReadExpr(field, "src") + 
-        "; if (BitStream::isAvailable(x, " + getBitLength(field) + ")) {"
-        + getInstanceVariableName(field) + " = "
-        + makeFieldFromIntExpr(field, "x") + ";}}"];
-    } else {
-      return [
-        getInstanceVariableName(field) + " = "
-        + makeFieldFromIntExpr(field, makeIntegerReadExpr(field, "src")) + ";" ];
-    }
+    return [ "{auto x = " + makeIntegerReadExpr(field, "src") + 
+             "; if (BitStream::isAvailable(x, " + getBitLength(field) + ")) {"
+             + getInstanceVariableName(field) + " = "
+             + makeFieldFromIntExpr(field, "x") + ";}}"];
   }
 }
 

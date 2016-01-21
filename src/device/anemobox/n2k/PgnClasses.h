@@ -1,6 +1,6 @@
-/** Generated on Thu Jan 21 2016 18:18:34 GMT+0100 (CET) using 
+/** Generated on Thu Jan 21 2016 20:15:44 GMT+0100 (CET) using 
  *
- *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
+ *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
