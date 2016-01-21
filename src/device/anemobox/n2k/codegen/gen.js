@@ -32,8 +32,13 @@ function makeWhitespace(depth) {
   return s;
 }
 
-function beginLine(depth) {
-  return "\n" + makeWhitespace(depth);
+function beginLine(depth, n) {
+  if (n == null || n == 0) {
+    return "\n" + makeWhitespace(depth);
+  } else {
+    return "\n" + beginLine(depth, n-1);
+  }
+
 }
 
 function getDuplicateId(pgns) {
@@ -106,11 +111,24 @@ function isPhysicalQuantity(field) {
   return field.Units != null;
 }
 
+function isSigned(field) {
+  return field.Signed;
+}
+
+function getBitLength(field) {
+  return parseInt(field.BitLength + "");
+}
+
+function makeIntegerReadExpr(field, srcName) {
+  var extractor = isSigned(field)? "getSigned" : "getUnsigned";
+  return srcName + "." + extractor + "(" + getBigLength(field) + ")";
+}
+
 unitMap = {
   "m/s": {
     type: "Velocity<double>",
-    unit: "Velocity<double>::metersPerSecond(1.0)"
-  }, 
+    unit: "Velocity<double>::metersPerSecond(1.0)",
+  },
   "rad": {
     type: "Angle<double>",
     unit: "Angle<double>::radians(1.0)"
@@ -122,12 +140,39 @@ function getFieldType(field) {
     var unit = getUnits(field);
     assert(unit in unitMap, "Unit not recognized: " +  unit);
     return unitMap[unit].type;
-  } 
-  return "int64_t";
+  } else if (isSigned(field)) {
+    return "int64_t";
+  } else {
+    return "uint64_t";
+  }
+}
+
+function getAccessorName(field) {
+  return "get" + capitalizeFirstLetter(getFieldId(field));
+}
+
+function makeFieldAccessor(field) {
+  return "const " + getFieldType(field) + " &" 
+    + getAccessorName(field) + "() const {return "
+    + getInstanceVariableName(field) + ";}";
+}
+
+function makeAccessors(pgn, depth) {
+  var fields = getFieldArray(pgn);
+  var s = beginLine(depth, 1) + "// Field access";
+  for (var i = 0; i < fields.length; i++) {
+    var field = fields[i];
+    s += beginLine(depth) + makeFieldAccessor(field);
+  }
+  return s;
+}
+
+function makeConstructorSignature(pgn) {
+  return getClassName(pgn) + "(const BitStream &src)";
 }
 
 function makeInstanceVariableDecls(pgn, depth) {
-  fields = getFieldArray(pgn);
+  var fields = getFieldArray(pgn);
   var s = beginLine(depth) + "// Number of fields: " + fields.length;
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
@@ -138,11 +183,17 @@ function makeInstanceVariableDecls(pgn, depth) {
   return s;
 }
 
+function makeConstructorDecl(pgn, depth) {
+  return beginLine(depth) + makeConstructorSignature(pgn) + ";";
+}
+
 function makeClassDeclarationFromPgn(pgn, depth) {
+  var innerDepth = depth + 1;
   return makeClassBlock(
     getClassName(pgn), 
-    "", 
-    makeInstanceVariableDecls(pgn, depth+1), 
+    makeConstructorDecl(pgn, innerDepth) +
+    makeAccessors(pgn, innerDepth), 
+    makeInstanceVariableDecls(pgn, innerDepth), 
     depth);
   return getClassName(pgn);
 }
@@ -153,7 +204,7 @@ function wrapNamespace(label, data) {
 }
 
 function makeClassDeclarationsSub(pgns) {
-  depth = 1;
+  var depth = 1;
   var s = '';
   for (var i = 0; i < pgns.length; i++) {
       s += makeClassDeclarationFromPgn(pgns[i], depth);
@@ -171,8 +222,45 @@ function wrapInclusionGuard(label, data) {
   return "#ifndef " + fullLabel + "\n#define " + fullLabel + " 1\n\n" + data + "\n\n#endif";
 }
 
+function makeHeaderInclusion(moduleName) {
+  return '#include "' + moduleName + '.h"\n\n';
+}
+
+function makeConstructorStatements(pgn, depth) {
+  return "";
+}
+
+function makeConstructor(pgn, depth) {
+  var innerDepth = depth + 1;
+  return beginLine(depth) + getClassName(pgn) + "::" + makeConstructorSignature(pgn) 
+    + " {"
+    + makeConstructorStatements(pgn, innerDepth)
+    + beginLine(depth) + "}";
+}
+
+function makeMethodsForPgn(pgn, depth) {
+  return makeConstructor(pgn, depth);
+}
+
+var privateInclusions = '#include <device/anemobox/n2k/BitStream.h>\n\n'
+
+function makeImplementationFileContents(moduleName, pgns) {
+  var methods = '';
+  var depth = 1;
+  for (var i = 0; i < pgns.length; i++) {
+    methods += makeMethodsForPgn(pgns[i], depth);
+  }
+  return makeHeaderInclusion(moduleName) + privateInclusions + wrapNamespace(moduleName, methods);
+}
+
+var publicInclusions = '#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>\n'
+    +'class BitStream;\n\n';
+
 function makeInterfaceFileContents(moduleName, pgns) {
-  return wrapInclusionGuard(moduleName.toUpperCase(), makeClassDeclarations(moduleName, pgns));
+  return wrapInclusionGuard(
+    moduleName.toUpperCase(), 
+    publicInclusions + 
+    makeClassDeclarations(moduleName, pgns));
 }
 
 function makeInfoComment(inputPath, outputPrefix) {
@@ -189,9 +277,11 @@ function compileXmlToCpp(value, inputPath, outputPrefix, cb) {
     assert(dup == undefined, "Ids are not unique: " + dup);
     cmt = makeInfoComment(inputPath, outputPrefix);
     var interfaceData = cmt + makeInterfaceFileContents(moduleName, pgns);
-    //var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);
-    console.log("Interface: ");
+    var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);
+    console.log("================Interface: ");
     console.log(interfaceData);
+    console.log("================Implementation: ");
+    console.log(implementationData);
     cb(null, 'Success');
   } catch (e) {
     console.log('Caught exception while compiling C++');
