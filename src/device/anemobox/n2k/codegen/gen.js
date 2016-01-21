@@ -7,6 +7,7 @@ function getPgnArrayFromParsedXml(xml) {
 
 function compileXmlToCpp(value, outputPrefix, cb) {
   var pgns = getPgnArrayFromParsedXml(value);
+  assert(pgns instanceof Array);
   cb(null, 'Success!');
 }
 
