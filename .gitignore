@@ -23,6 +23,7 @@ anemionicApp/plugins/
 anemionicApp/www/lib
 
 src/device/anemobox/anemonode/node_modules
+src/device/anemobox/n2k/codegen/node_modules
 
 www2/node_modules
 www2/uploads

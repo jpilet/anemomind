@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <iostream>
 
-BitStream::BitStream(uint8_t* data, size_t len)
+BitStream::BitStream(const uint8_t* data, size_t len)
   : data_(data), lenBytes_(len), bitPos_(0) { }
 
 bool BitStream::canRead(int numBits) const {
