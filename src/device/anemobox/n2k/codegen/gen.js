@@ -41,6 +41,10 @@ function beginLine(depth, n) {
   }
 }
 
+function indentLineArray(depth, lines) {
+  return makeWhitespace(depth) + lines.join(beginLine(depth)) + '\n';
+}
+
 function getDuplicateId(pgns) {
   var idSet = makeSet();
   for (var i = 0; i < pgns.length; i++) {
@@ -160,6 +164,15 @@ function getFieldType(field) {
   }
 }
 
+function isTypeKnown(field) {
+  if (!isPhysicalQuantity(field)) { return true; }
+  if (!(getUnits(field) in unitMap)) {
+    console.log('Warning, unknown type: ' + getUnits(field));
+    return false;
+  }
+  return true;
+}
+
 function wrapOptionalType(x) {
   return "Optional<" + x + " >";
 }
@@ -183,7 +196,7 @@ function makeAccessors(pgn, depth) {
   var s = beginLine(depth, 1) + "// Field access";
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
-    if (getFieldId(field) != "reserved") {
+    if (!skipField(field)) {
       s += beginLine(depth) + makeFieldAccessor(field);
     }
   }
@@ -226,7 +239,7 @@ function makeMethodsInClass(pgn, depth) {
 }
 
 function makeConstructorSignature(pgn) {
-  return getClassName(pgn) + "(uint8_t *data, int lengthBytes)";
+  return getClassName(pgn) + "(const uint8_t *data, int lengthBytes)";
 }
 
 function makeInstanceVariableDecls(pgn, depth) {
@@ -235,9 +248,11 @@ function makeInstanceVariableDecls(pgn, depth) {
   var s = commonDecls + beginLine(depth) + "// Number of fields: " + fields.length;
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
-    s += beginLine(depth) 
-      + getOptionalFieldType(field) + " "
-      + getInstanceVariableName(field) + ";";
+    if (!skipField(field)) {
+      s += beginLine(depth) 
+        + getOptionalFieldType(field) + " "
+        + getInstanceVariableName(field) + ";";
+    }
   }
   return s;
 }
@@ -258,7 +273,6 @@ function makeClassDeclarationFromPgn(pgn, depth) {
       + makeMethodsInClass(pgn, innerDepth),
     makeInstanceVariableDecls(pgn, innerDepth), 
     depth);
-  return getClassName(pgn);
 }
 
 
@@ -270,14 +284,49 @@ function makeClassDeclarationsSub(pgns) {
   var depth = 1;
   var s = '';
   for (var i = 0; i < pgns.length; i++) {
-      s += makeClassDeclarationFromPgn(pgns[i], depth);
+    s += makeClassDeclarationFromPgn(pgns[i], depth);
   }
   return s;
 }
 
+function makeVisitorDeclaration(pgns) {
+  var s = [
+    '\n\nclass PgnVisitor {',
+    ' public:',
+    '  bool visit(int pgn, const uint8_t *data, int length);',
+    ' protected:'
+  ];
+  for (var i = 0; i < pgns.length; i++) {
+    s.push('  virtual bool apply'
+           + '(const ' + getClassName(pgns[i]) + '& packet) { return false; }');
+  }
+  s.push('};\n');
+  return s.join('\n');
+}
+
+function makeVisitorImplementation(pgns) {
+  var s = [
+    'bool PgnVisitor::visit(int pgn, const uint8_t *data, int length) {',
+    '  switch(pgn) {'
+  ];
+
+  for (var i = 0; i < pgns.length; i++) {
+    var pgn = pgns[i];
+    s.push('    case ' + getPgnCode(pgn) + ': '
+           + 'return apply(' + getClassName(pgn) + '(data, length));');
+  }
+  s.push('  }  // closes switch');
+  s.push('  return false;');
+  s.push('}\n');
+  return s.join('\n');
+}
+
+
 function makeClassDeclarations(label, pgns) {
   return wrapNamespace(
-    label, makeClassDeclarationsSub(pgns));
+    label,
+    makeClassDeclarationsSub(pgns)
+    + makeVisitorDeclaration(pgns));
 }
 
 function wrapInclusionGuard(label, data) {
@@ -305,11 +354,32 @@ function makeFieldFromIntExpr(field, intExpr) {
   return intExpr;
 }
 
+function skipField(field) {
+  if ((getFieldId(field) == 'reserved')
+      || !isTypeKnown(field)) {
+      return true;
+  }
+  return false;
+}
+
 function makeFieldAssignment(field) {
-  return "{auto x = " + makeIntegerReadExpr(field, "src") + 
-    "; if (BitStream::isAvailable(x, " + getBitLength(field) + ")) {"
-    + getInstanceVariableName(field) + " = "
-    + makeFieldFromIntExpr(field, "x") + ";}}";
+  if (skipField(field)) {
+    return [
+      '// Skipping ' + getFieldId(field),
+      'advanceBits(' + getBitLength(field) + ');'
+    ];
+  } else {
+    if (isPhysicalQuantity(field)) {
+      return [ "{auto x = " + makeIntegerReadExpr(field, "src") + 
+        "; if (BitStream::isAvailable(x, " + getBitLength(field) + ")) {"
+        + getInstanceVariableName(field) + " = "
+        + makeFieldFromIntExpr(field, "x") + ";}}"];
+    } else {
+      return [
+        getInstanceVariableName(field) + " = "
+        + makeFieldFromIntExpr(field, makeIntegerReadExpr(field, "src")) + ";" ];
+    }
+  }
 }
 
 function getTotalBitLength(fields) {
@@ -322,10 +392,14 @@ function getTotalBitLength(fields) {
 }
 
 
+function logIgnoringField(field, err) {
+  console.log('Ignoring field ' + getFieldId(field) + ': ' + err);
+}
+
 function makeFieldAssignments(fields, depth) {
   var s = '';
   for (var i = 0; i < fields.length; i++) {
-    s += beginLine(depth) + makeFieldAssignment(fields[i]);
+      s += indentLineArray(depth, makeFieldAssignment(fields[i]));
   }
   return s;
 }
@@ -335,7 +409,7 @@ function makeConstructorStatements(pgn, depth) {
   var fields = getFieldArray(pgn);
   var innerDepth = depth + 1;
   return beginLine(depth) + 
-    'if (' + getTotalBitLength(fields) + ' <= src.remainingBits()) {'
+    'if (' + getTotalBitLength(fields) + ' <= src.remainingBits()) {\n'
     + makeFieldAssignments(fields, innerDepth, false)
     + beginLine(innerDepth) + "_valid = true;"
     + beginLine(depth) + "} else {"
@@ -377,6 +451,7 @@ function makeImplementationFileContents(moduleName, pgns) {
   for (var i = 0; i < pgns.length; i++) {
     contents += makeMethodsForPgn(pgns[i], depth);
   }
+  contents += '\n' + makeVisitorImplementation(pgns);
   return makeHeaderInclusion(moduleName) + privateInclusions + wrapNamespace(moduleName, contents);
 }
 
@@ -475,6 +550,7 @@ function main(argv) {
       if (err) {
         console.log("Failed to generate because ");
         console.log(err);
+        console.log(err.stack);
       } else {
         console.log("Success!");
       }

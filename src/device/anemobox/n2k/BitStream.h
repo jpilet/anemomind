@@ -17,7 +17,7 @@
  */
 class BitStream {
  public:
-  BitStream(uint8_t* data, size_t len);
+  BitStream(const uint8_t* data, size_t len);
 
   uint64_t getUnsigned(int numBits);
   int64_t getSigned(int numBits, int64_t offset = 0);
@@ -25,6 +25,9 @@ class BitStream {
   bool canRead(int numBits) const; 
 
   int bitPos() const { return bitPos_; }
+
+  int advanceBits(int bits) { bitPos_ += bits; return bitPos_; }
+
   int bytePos() const { return bitPos_ / 8; }
   int bitOffset() const { return bitPos_ % 8; }
 
@@ -53,7 +56,7 @@ class BitStream {
     return actualNumBits;
   }
 
-  uint8_t* data_;
+  const uint8_t* data_;
   size_t lenBytes_;
   int bitPos_;
 };
