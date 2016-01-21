@@ -28,6 +28,9 @@ class BitStream {
   int bytePos() const { return bitPos_ / 8; }
   int bitOffset() const { return bitPos_ % 8; }
 
+  size_t remainingBits() const {
+    return 8*int(len_) - bitPos_;
+  }
  private:
   uint8_t readBitsInByte(int wantedNumBits, uint8_t*bits) {
     int remainingBitsInThisByte = 8 - bitOffset();
