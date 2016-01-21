@@ -1,4 +1,4 @@
-/** Generated on Thu Jan 21 2016 11:47:21 GMT+0100 (CET) using 
+/** Generated on Thu Jan 21 2016 12:13:55 GMT+0100 (CET) using 
  *
  *  node codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml /home/jonas/programmering/sailsmart/src/device/anemobox/n2k
  *
@@ -7,23 +7,28 @@
 #define _PGNCLASSES_HEADER_ 1
 
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <cassert>
 class BitStream;
 
 namespace PgnClasses {
+
   class WindData {
   public:
+    WindData();
     WindData(BitStream *src);
+    bool valid() const {return _valid;}
 
     // Field access
-    const int64_t &getSid() const {return _sid;}
-    const Velocity<double> &getWindSpeed() const {return _windSpeed;}
-    const Angle<double> &getWindAngle() const {return _windAngle;}
-    const int64_t &getReference() const {return _reference;}
+    const int64_t &getSid() const {assert(_valid); return _sid;}
+    const sail::Velocity<double> &getWindSpeed() const {assert(_valid); return _windSpeed;}
+    const sail::Angle<double> &getWindAngle() const {assert(_valid); return _windAngle;}
+    const int64_t &getReference() const {assert(_valid); return _reference;}
   private:
+    bool _valid;
     // Number of fields: 4
     int64_t _sid;
-    Velocity<double> _windSpeed;
-    Angle<double> _windAngle;
+    sail::Velocity<double> _windSpeed;
+    sail::Angle<double> _windAngle;
     int64_t _reference;
   };
 }

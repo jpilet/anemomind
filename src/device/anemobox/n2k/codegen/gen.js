@@ -84,7 +84,7 @@ function getFieldArray(pgn) {
 }
 
 function makeClassBlock(name, publicDecls, privateDecls, depth) {
-  return beginLine(depth) + "class " + name + " {" 
+  return beginLine(depth, 1) + "class " + name + " {" 
     +beginLine(depth) + "public:"
     +publicDecls
     +beginLine(depth) + "private:"
@@ -127,12 +127,12 @@ function makeIntegerReadExpr(field, srcName) {
 
 unitMap = {
   "m/s": {
-    type: "Velocity<double>",
-    unit: "Velocity<double>::metersPerSecond(1.0)",
+    type: "sail::Velocity<double>",
+    unit: "sail::Velocity<double>::metersPerSecond(1.0)",
   },
   "rad": {
-    type: "Angle<double>",
-    unit: "Angle<double>::radians(1.0)"
+    type: "sail::Angle<double>",
+    unit: "sail::Angle<double>::radians(1.0)"
   }
 };
 
@@ -159,7 +159,7 @@ function getAccessorName(field) {
 
 function makeFieldAccessor(field) {
   return "const " + getFieldType(field) + " &" 
-    + getAccessorName(field) + "() const {return "
+    + getAccessorName(field) + "() const {assert(_valid); return "
     + getInstanceVariableName(field) + ";}";
 }
 
@@ -173,13 +173,29 @@ function makeAccessors(pgn, depth) {
   return s;
 }
 
+function makeCommonMethods(depth) {
+  return beginLine(depth) + "bool valid() const {return _valid;}";
+}
+
+function makeDefaultConstructorDecl(pgn, depth) {
+  return beginLine(depth) + getClassName(pgn) + "();";
+}
+
+function makeMethodsInClass(pgn, depth) {
+  return makeDefaultConstructorDecl(pgn, depth)
+    + makeConstructorDecl(pgn, depth) 
+    + makeCommonMethods(depth) 
+    + makeAccessors(pgn, depth);
+}
+
 function makeConstructorSignature(pgn) {
   return getClassName(pgn) + "(BitStream *src)";
 }
 
 function makeInstanceVariableDecls(pgn, depth) {
   var fields = getFieldArray(pgn);
-  var s = beginLine(depth) + "// Number of fields: " + fields.length;
+  var commonDecls = beginLine(depth) + "bool _valid;";
+  var s = commonDecls + beginLine(depth) + "// Number of fields: " + fields.length;
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
     s += beginLine(depth) 
@@ -197,8 +213,7 @@ function makeClassDeclarationFromPgn(pgn, depth) {
   var innerDepth = depth + 1;
   return makeClassBlock(
     getClassName(pgn), 
-    makeConstructorDecl(pgn, innerDepth) +
-    makeAccessors(pgn, innerDepth), 
+    makeMethodsInClass(pgn, innerDepth), 
     makeInstanceVariableDecls(pgn, innerDepth), 
     depth);
   return getClassName(pgn);
@@ -248,23 +263,41 @@ function makeFieldFromStreamExpr(field) {
   return raw;
 }
 
+function getDefaultValue(field) {
+  if (isPhysicalQuantity(field)) {
+    return getUnitInfo(field).type + "()";
+  }
+  return "0";
+}
+
 function makeFieldAssignment(field) {
   return getInstanceVariableName(field) + " = " + makeFieldFromStreamExpr(field) + ";";
 }
 
-function makeConstructorStatements(pgn, depth) {
-  var s = '';
-  var fields = getFieldArray(pgn);
+function getTotalBitLength(fields) {
+  var n = 0;
   for (var i = 0; i < fields.length; i++) {
-    s += beginLine(depth) + makeFieldAssignment(fields[i]);
+    var field = fields[i];
+    n += parseInt(field.BitLength);
   }
-  return s;
+  return n;
 }
+
+function makeConstructorStatements(pgn, depth) {
+  var fields = getFieldArray(pgn);
+  var s = beginLine(depth) + 
+      'if (' + getTotalBitLength(fields) + ' <= src->remainingBits()) {';
+  for (var i = 0; i < fields.length; i++) {
+    s += beginLine(depth+1) + makeFieldAssignment(fields[i]);
+  }
+  return s + beginLine(depth) + "}";;
+}
+
 
 function makeConstructor(pgn, depth) {
   var innerDepth = depth + 1;
   return beginLine(depth) + getClassName(pgn) + "::" + makeConstructorSignature(pgn) 
-    + " {"
+    + " : _valid(false) {"
     + makeConstructorStatements(pgn, innerDepth)
     + beginLine(depth) + "}";
 }
@@ -276,15 +309,16 @@ function makeMethodsForPgn(pgn, depth) {
 var privateInclusions = '#include <device/anemobox/n2k/BitStream.h>\n\n'
 
 function makeImplementationFileContents(moduleName, pgns) {
-  var methods = '';
   var depth = 1;
+  var contents = "";
   for (var i = 0; i < pgns.length; i++) {
-    methods += makeMethodsForPgn(pgns[i], depth);
+    contents += makeMethodsForPgn(pgns[i], depth);
   }
-  return makeHeaderInclusion(moduleName) + privateInclusions + wrapNamespace(moduleName, methods);
+  return makeHeaderInclusion(moduleName) + privateInclusions + wrapNamespace(moduleName, contents);
 }
 
 var publicInclusions = '#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>\n'
+    +'#include <cassert>\n'
     +'class BitStream;\n\n';
 
 function makeInterfaceFileContents(moduleName, pgns) {
