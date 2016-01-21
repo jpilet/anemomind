@@ -10,6 +10,7 @@
     "debug": "^2.2.0",
     "endpoint": "file:../../../../nodemodules/endpoint",
     "express": "^4.13.3",
+    "j1939socket": "git+https://github.com/jpilet/j1939socket.git",
     "mkdirp": "^0.5.0",
     "mraa": "^0.7.0",
     "msgpack-js": "^0.3.0",
