@@ -9,6 +9,7 @@
 
 #include <device/anemobox/anemonode/src/JsDispatcher.h>
 #include <device/anemobox/anemonode/src/JsNmea0183Source.h>
+#include <device/anemobox/anemonode/src/JsNmea2000Source.h>
 #include <device/anemobox/anemonode/src/JsEstimator.h>
 #include <device/anemobox/anemonode/src/JsLogger.h>
 
@@ -56,6 +57,7 @@ NAN_METHOD(currentTime) {
 void RegisterModule(Handle<Object> target) {
   JsDispatcher::Init(Dispatcher::global(), target);
   JsNmea0183Source::Init(target);
+  JsNmea2000Source::Init(target);
   JsLogger::Init(target);
   JsEstimator::Init(target);
 
