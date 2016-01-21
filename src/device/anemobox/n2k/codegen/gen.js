@@ -121,7 +121,7 @@ function getBitLength(field) {
 
 function makeIntegerReadExpr(field, srcName) {
   var extractor = isSigned(field)? "getSigned" : "getUnsigned";
-  return srcName + "." + extractor + "(" + getBigLength(field) + ")";
+  return srcName + "->" + extractor + "(" + getBitLength(field) + ")";
 }
 
 unitMap = {
@@ -135,11 +135,16 @@ unitMap = {
   }
 };
 
+function getUnitInfo(field) {
+  var unit = getUnits(field);
+  assert(unit in unitMap, "Unit not recognized: " +  unit);
+  return unitMap[unit];
+}
+
+
 function getFieldType(field) {
   if (isPhysicalQuantity(field)) {
-    var unit = getUnits(field);
-    assert(unit in unitMap, "Unit not recognized: " +  unit);
-    return unitMap[unit].type;
+    return getUnitInfo(field).type;
   } else if (isSigned(field)) {
     return "int64_t";
   } else {
@@ -168,7 +173,7 @@ function makeAccessors(pgn, depth) {
 }
 
 function makeConstructorSignature(pgn) {
-  return getClassName(pgn) + "(const BitStream &src)";
+  return getClassName(pgn) + "(BitStream *src)";
 }
 
 function makeInstanceVariableDecls(pgn, depth) {
@@ -226,8 +231,33 @@ function makeHeaderInclusion(moduleName) {
   return '#include "' + moduleName + '.h"\n\n';
 }
 
+function hasResolution(field) {
+  return field.Resolution != null;
+}
+
+function makeFieldFromStreamExpr(field) {
+  var unit = getUnits(field);
+  var raw = makeIntegerReadExpr(field, "src");
+  if (isPhysicalQuantity(field)) {
+    var info = getUnitInfo(field);
+    return "double(" + raw + 
+      (hasResolution(field)? "*" + field.Resolution : "")
+      + ")*" + info.unit;
+  }
+  return raw;
+}
+
+function makeFieldAssignment(field) {
+  return getInstanceVariableName(field) + " = " + makeFieldFromStreamExpr(field) + ";";
+}
+
 function makeConstructorStatements(pgn, depth) {
-  return "";
+  var s = '';
+  var fields = getFieldArray(pgn);
+  for (var i = 0; i < fields.length; i++) {
+    s += beginLine(depth) + makeFieldAssignment(fields[i]);
+  }
+  return s;
 }
 
 function makeConstructor(pgn, depth) {
