@@ -176,6 +176,7 @@ TEST(BitStreamTest, Signed_negative_7_with_offset) {
     int bits = 6;
 
     auto streamValue = stream.getSigned(bits, offset);
+    EXPECT_EQ(63 + offset, BitStreamInternals::getMaxSignedValue(6, offset));
     EXPECT_EQ(-7, streamValue);
   }
 }
@@ -186,6 +187,8 @@ TEST(BitStreamTest, Max_value_at_the_limit) {
   uint64_t expectedSignedMax = expectedUnsignedMax >> 1;
   EXPECT_EQ(expectedUnsignedMax, BitStreamInternals::getMaxUnsignedValue(limit));
   EXPECT_EQ(expectedSignedMax, BitStreamInternals::getMaxSignedValueTwosComplement(limit));
+  EXPECT_EQ(expectedSignedMax, BitStreamInternals::getMaxSignedValue(limit, 0));
+  EXPECT_EQ(expectedUnsignedMax - 3, BitStreamInternals::getMaxSignedValue(limit, -3));
 }
 
 // Based on the Windows NK2 application connected to

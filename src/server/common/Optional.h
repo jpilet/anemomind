@@ -86,6 +86,12 @@ class Optional {
     }
     return true;
   }
+
+  void then(std::function<void(T)> todo) const {
+    if (_defined) {
+      todo(_value);
+    }
+  }
  private:
   bool _defined;
   T _value;

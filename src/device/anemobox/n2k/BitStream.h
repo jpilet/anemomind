@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <algorithm>
+#include <server/common/Optional.h>
 
 /* Read a packed stream of arbirarily sized ints, not necessarily aligned on
  * bytes.
@@ -43,9 +44,10 @@ class BitStream {
     return lengthBits() - bitPos_;
   }
 
-  static bool isAvailable(int64_t x, int numBits);
-  static bool isAvailable(uint64_t x, int numBits);
-
+  // If the raw integer read equals the maximum possible value
+  // of the encoding, it is assumed to be undefined.
+  Optional<int64_t> getOptionalSigned(int numBits, int64_t offset = 0);
+  Optional<uint64_t> getOptionalUnsigned(int numBits);
  private:
   uint8_t readBitsInByte(int wantedNumBits, uint8_t*bits) {
     int remainingBitsInThisByte = 8 - bitOffset();
@@ -70,6 +72,7 @@ namespace BitStreamInternals {
   // For example, if have 6 bits, this function should return 2^6-1, which is 63
   uint64_t getMaxUnsignedValue(int numBits);
   uint64_t getMaxSignedValueTwosComplement(int numBits);
+  uint64_t getMaxSignedValue(int numBits, int64_t offset);
 }
 
 #endif  // BITSTREAM_H
