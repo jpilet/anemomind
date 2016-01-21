@@ -27,4 +27,7 @@ TEST(PgnClassesTest, WindData) {
   PgnClasses::WindData windData(&stream);
   EXPECT_TRUE(windData.valid());
 
+  EXPECT_NEAR(windData.windSpeed().metersPerSecond(), 0.25, 0.01);
+  EXPECT_NEAR(windData.windAngle().radians(), 3.0892, 0.0001);
+  EXPECT_EQ(windData.reference(), 2);
 }
