@@ -47,7 +47,7 @@ function beginLine(depth, n) {
 }
 
 function indentLineArray(depth, lines) {
-  return makeWhitespace(depth) + lines.join(beginLine(depth)) + '\n';
+  return beginLine(depth) + lines.join(beginLine(depth));
 }
 
 function getDuplicateId(pgns) {
@@ -372,6 +372,7 @@ function makeVisitorDeclaration(pgns) {
     '\n\nclass PgnVisitor {',
     ' public:',
     '  bool visit(int pgn, const uint8_t *data, int length);',
+    '  virtual ~PgnVisitor() {}',
     ' protected:'
   ];
   for (var i = 0; i < pgns.length; i++) {
@@ -420,6 +421,20 @@ function hasResolution(field) {
   return field.Resolution != null;
 }
 
+function getResolution(field) {
+  if (field.Resolution == null) {
+    return "1.0";
+  }
+  return field.Resolution + '';
+}
+
+function getOffset(field) {
+  if (field.Offset == null) {
+    return "0";
+  }
+  return field.Offset + '';
+}
+
 function makeFieldFromIntExpr(field, intExpr) {
   var unit = getUnits(field);
   if (isPhysicalQuantity(field)) {
@@ -440,17 +455,33 @@ function skipField(field) {
   return false;
 }
 
-function makeFieldAssignment(field) {
+function boolToString(x) {
+  return x? "true" : "false";
+}
+
+function makeFieldAssignment(field, depth) {
   if (skipField(field)) {
-    return [
+    return indentLineArray(depth, [
       '// Skipping ' + getFieldId(field),
       'src.advanceBits(' + getBitLength(field) + ');'
-    ];
+    ]);
   } else {
-    return [ "{auto x = " + makeIntegerReadExpr(field, "src") + 
-             "; if (BitStream::isAvailable(x, " + getBitLength(field) + ")) {"
-             + getInstanceVariableName(field) + " = "
-             + makeFieldFromIntExpr(field, "x") + ";}}"];
+    var lhs = beginLine(depth) + getInstanceVariableName(field) + " = ";
+    var bits = getBitLength(field) + '';
+    var signed = isSigned(field);
+    var signedExpr = boolToString(signed);
+    var offset = getOffset(field);
+    if (isPhysicalQuantity(field)) {
+      var info = getUnitInfo(field);
+      return lhs + "src.getPhysicalQuantity(" 
+        + signedExpr + ", " + getResolution(field) 
+        + ", " + info.unit + ", " + bits + ", " + offset + ");"
+    } else { // Probably an enum. TODO: handle it more carefully here.
+      return lhs
+        + (signed? "src.getSigned(" : "src.getUnsigned(")
+        + bits + (signed? ", " + offset : "") 
+        + ", N2kField::Definedness::AlwaysDefined);";
+    }
   }
 }
 
@@ -471,7 +502,7 @@ function logIgnoringField(field, err) {
 function makeFieldAssignments(fields, depth) {
   var s = '';
   for (var i = 0; i < fields.length; i++) {
-      s += indentLineArray(depth, makeFieldAssignment(fields[i]));
+    s += makeFieldAssignment(fields[i], depth);
   }
   return s;
 }
@@ -481,7 +512,7 @@ function makeConstructorStatements(pgn, depth) {
   var fields = getFieldArray(pgn);
   var innerDepth = depth + 1;
   return beginLine(depth) + 
-    'if (' + getTotalBitLength(fields) + ' <= src.remainingBits()) {\n'
+    'if (' + getTotalBitLength(fields) + ' <= src.remainingBits()) {'
     + makeFieldAssignments(fields, innerDepth, false)
     + beginLine(innerDepth) + "_valid = true;"
     + beginLine(depth) + "} else {"
@@ -494,7 +525,7 @@ function makeConstructor(pgn, depth) {
   var innerDepth = depth + 1;
   return beginLine(depth, 1) + getClassName(pgn) + "::" + makeConstructorSignature(pgn) 
     + " {"
-    + beginLine(innerDepth) + "BitStream src(data, lengthBytes);"
+    + beginLine(innerDepth) + "N2kField::N2kFieldStream src(data, lengthBytes);"
     + makeConstructorStatements(pgn, innerDepth)
     + beginLine(depth) + "}";
 }
@@ -515,7 +546,7 @@ function makeMethodsForPgn(pgn, depth) {
     + makeResetMethod(pgn, depth);
 }
 
-var privateInclusions = '#include <device/anemobox/n2k/BitStream.h>\n\n'
+var privateInclusions = '#include <device/anemobox/n2k/N2kField.h>\n\n'
 
 function makeImplementationFileContents(moduleName, pgns) {
   var depth = 1;

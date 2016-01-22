@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 22 2016 12:09:43 GMT+0100 (CET) using 
+/** Generated on Fri Jan 22 2016 13:39:06 GMT+0100 (CET) using 
  *
  *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *
@@ -6,7 +6,7 @@
  */
 #include "PgnClasses.h"
 
-#include <device/anemobox/n2k/BitStream.h>
+#include <device/anemobox/n2k/N2kField.h>
 
 namespace PgnClasses {
 
@@ -15,14 +15,13 @@ namespace PgnClasses {
   }
 
   VesselHeading::VesselHeading(const uint8_t *data, int lengthBytes) {
-    BitStream src(data, lengthBytes);
+    N2kField::N2kFieldStream src(data, lengthBytes);
     if (58 <= src.remainingBits()) {
-      {auto x = src.getUnsigned(8); if (BitStream::isAvailable(x, 8)) {_sid = x;}}
-      {auto x = src.getUnsigned(16); if (BitStream::isAvailable(x, 16)) {_heading = double(0.0001*x)*sail::Angle<double>::radians(1.0);}}
-      {auto x = src.getSigned(16); if (BitStream::isAvailable(x, 16)) {_deviation = double(0.0001*x)*sail::Angle<double>::radians(1.0);}}
-      {auto x = src.getSigned(16); if (BitStream::isAvailable(x, 16)) {_variation = double(0.0001*x)*sail::Angle<double>::radians(1.0);}}
-      {auto x = src.getUnsigned(2); if (BitStream::isAvailable(x, 2)) {_reference = x;}}
-
+      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _heading = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      _deviation = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      _variation = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      _reference = src.getUnsigned(2, N2kField::Definedness::AlwaysDefined);
       _valid = true;
     } else {
       reset();
@@ -38,16 +37,15 @@ namespace PgnClasses {
   }
 
   Attitude::Attitude(const uint8_t *data, int lengthBytes) {
-    BitStream src(data, lengthBytes);
+    N2kField::N2kFieldStream src(data, lengthBytes);
     if (56 <= src.remainingBits()) {
-      {auto x = src.getUnsigned(8); if (BitStream::isAvailable(x, 8)) {_sid = x;}}
+      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       // Skipping yaw
       src.advanceBits(16);
       // Skipping pitch
       src.advanceBits(16);
       // Skipping roll
       src.advanceBits(16);
-
       _valid = true;
     } else {
       reset();
@@ -63,13 +61,12 @@ namespace PgnClasses {
   }
 
   Speed::Speed(const uint8_t *data, int lengthBytes) {
-    BitStream src(data, lengthBytes);
+    N2kField::N2kFieldStream src(data, lengthBytes);
     if (44 <= src.remainingBits()) {
-      {auto x = src.getUnsigned(8); if (BitStream::isAvailable(x, 8)) {_sid = x;}}
-      {auto x = src.getUnsigned(16); if (BitStream::isAvailable(x, 16)) {_speedWaterReferenced = double(0.01*x)*sail::Velocity<double>::metersPerSecond(1.0);}}
-      {auto x = src.getUnsigned(16); if (BitStream::isAvailable(x, 16)) {_speedGroundReferenced = double(0.01*x)*sail::Velocity<double>::metersPerSecond(1.0);}}
-      {auto x = src.getUnsigned(4); if (BitStream::isAvailable(x, 4)) {_speedWaterReferencedType = x;}}
-
+      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _speedWaterReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
+      _speedGroundReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
+      _speedWaterReferencedType = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);
       _valid = true;
     } else {
       reset();
@@ -85,13 +82,12 @@ namespace PgnClasses {
   }
 
   WindData::WindData(const uint8_t *data, int lengthBytes) {
-    BitStream src(data, lengthBytes);
+    N2kField::N2kFieldStream src(data, lengthBytes);
     if (43 <= src.remainingBits()) {
-      {auto x = src.getUnsigned(8); if (BitStream::isAvailable(x, 8)) {_sid = x;}}
-      {auto x = src.getUnsigned(16); if (BitStream::isAvailable(x, 16)) {_windSpeed = double(0.01*x)*sail::Velocity<double>::metersPerSecond(1.0);}}
-      {auto x = src.getUnsigned(16); if (BitStream::isAvailable(x, 16)) {_windAngle = double(0.0001*x)*sail::Angle<double>::radians(1.0);}}
-      {auto x = src.getUnsigned(3); if (BitStream::isAvailable(x, 3)) {_reference = x;}}
-
+      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _windSpeed = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
+      _windAngle = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      _reference = src.getUnsigned(3, N2kField::Definedness::AlwaysDefined);
       _valid = true;
     } else {
       reset();
