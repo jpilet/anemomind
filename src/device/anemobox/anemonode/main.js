@@ -18,7 +18,10 @@ var withIMU = true;
 var withCUPS = true;
 var withNMEA2000 = true;
 
+var spiBugDetected = false;
+
 var config = require('./components/config');
+var reboot = require('./components/reboot').reboot;
 
 if (withHttp) {
   var http = require('./components/http');
@@ -116,6 +119,9 @@ if (withLogger) {
           console.log('Posted this log file: ' + path + ". Triggering phone sync.");
           sync.triggerSync(function() {});
         }
+        if (spiBugDetected) {
+          reboot();
+        }
       });
     }
   });
@@ -139,5 +145,11 @@ if (withCUPS) {
 }
 
 if (withNMEA2000) {
-  require('./components/nmea2000.js');
+  require('./components/nmea2000.js').detectSPIBug(function() {
+    console.log('SPI BUG DETECTED!!');
+    spiBugDetected = true;
+    if (withLogger) {
+      logger.flush();
+    }
+  });
 }

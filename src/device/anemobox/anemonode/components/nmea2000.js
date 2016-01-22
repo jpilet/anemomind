@@ -1,6 +1,7 @@
 var j1939socket = require('j1939socket');
 var anemonode = require('../build/Release/anemonode');
 var nmea2000Source = new anemonode.Nmea2000Source();
+var exec = require('child_process').exec;
 
 function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr) {
   nmea2000Source.process(data, timestamp, srcName, pgn);
@@ -16,4 +17,19 @@ function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr) {
 }
 
 j1939socket.open(handlePacket);
+
+// HACK to reboot we hit SPI bug
+module.exports.detectSPIBug = function(callback) {
+  var timer = setInterval(function() {
+    exec("ps -A -o '%C/%c' | grep kworker | sort -n -r | head -2 | sed 's#/.*##' | awk '{s+=$1} END {print s < 140}'",
+         function(error, stdout, stderr) {
+            if (stdout.trim() != "1") {
+               clearInterval(timer);
+               callback();
+            }
+         }
+    );
+  }
+  , 10 * 1000);
+};
 
