@@ -24,14 +24,6 @@ enum class Definedness {
 uint64_t getMaxUnsignedValue(int numBits);
 uint64_t getMaxSignedValue(int numBits, int64_t offset);
 
-template <typename T>
-Optional<T> castIntegerToOptional(Optional<uint64_t> x) {
-  if (x.defined()) {
-    return Optional<T>(static_cast<T>(x()));
-  }
-  return Optional<T>();
-}
-
 class N2kFieldStream : public BitStream {
  public:
   N2kFieldStream(const uint8_t *data, int lengthBytes) : BitStream(data, lengthBytes) {}

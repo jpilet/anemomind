@@ -481,7 +481,9 @@ function makeFieldAssignment(field, depth) {
         + signedExpr + ", " + getResolution(field) 
         + ", " + info.unit + ", " + bits + ", " + offset + ");"
     } else if (isLookupTable(field)) {
-      return lhs + "N2kField::castIntegerToOptional<" + getFieldType(field) + ">(src.getUnsignedInSet(" + bits + ", " + getEnumValueSet(field) + "));";
+      return lhs + "src.getUnsignedInSet(" 
+        + bits + ", " + getEnumValueSet(field) + ").cast<" 
+        + getFieldType(field) + ">();";
     } else { // Something else.
       return lhs
         + (signed? "src.getSigned(" : "src.getUnsigned(")
