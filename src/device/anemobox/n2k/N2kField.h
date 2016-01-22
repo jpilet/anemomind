@@ -16,10 +16,6 @@ namespace N2kField {
 
 bool contains(const std::initializer_list<int> &set, int x);
 
-constexpr inline size_t size_t_Power(size_t a, size_t b) {
-  return (b <= size_t(0)? size_t(1) : a*size_t_Power(a, b - 1));
-}
-
 enum class Definedness {
   AlwaysDefined,
   UndefinedIfMax
