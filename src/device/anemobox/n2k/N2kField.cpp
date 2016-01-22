@@ -35,20 +35,20 @@ uint64_t getMaxSignedValue(int numBits, int64_t offset) {
 }
 
 
-Optional<uint64_t> Stream::getUnsigned(int bits, bool canBeUndefined) {
+Optional<uint64_t> N2kFieldStream::getUnsigned(int bits, Definedness d) {
   if (canRead(bits)) {
     auto x = BitStream::getUnsigned(bits);
-    if (!canBeUndefined || getMaxUnsignedValue(bits) != x) {
+    if (d == Definedness::AlwaysDefined || getMaxUnsignedValue(bits) != x) {
       return Optional<uint64_t>(x);
     }
   }
   return Optional<uint64_t>();
 }
 
-Optional<int64_t> Stream::getSigned(int bits, int64_t offset, bool canBeUndefined) {
+Optional<int64_t> N2kFieldStream::getSigned(int bits, int64_t offset, Definedness d) {
   if (canRead(bits)) {
     auto x = getSigned(bits, offset);
-    if (!canBeUndefined || getMaxSignedValue(bits, offset) != x) {
+    if (d == Definedness::AlwaysDefined || getMaxSignedValue(bits, offset) != x) {
       return Optional<int64_t>(x);
     }
   }
@@ -63,14 +63,14 @@ Optional<double> toDouble(Optional<T> x) {
   return Optional<double>();
 }
 
-Optional<double> Stream::getDouble(bool isSigned, int bits, int64_t offset, bool canBeUndefined) {
+Optional<double> N2kFieldStream::getDouble(bool isSigned, int bits, int64_t offset, Definedness d) {
   return isSigned?
-      toDouble(getSigned(bits, offset, canBeUndefined))
-      : toDouble(getUnsigned(bits, canBeUndefined));
+      toDouble(getSigned(bits, offset, d))
+      : toDouble(getUnsigned(bits, d));
 
 }
 
-int64_t Stream::getSigned(int numBits, int64_t offset) {
+int64_t N2kFieldStream::getSigned(int numBits, int64_t offset) {
   auto x = BitStream::getUnsigned(numBits);
   if (offset == 0) {
     if (isTwosComplementNegative(x, numBits)) {

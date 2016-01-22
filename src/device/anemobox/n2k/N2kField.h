@@ -17,20 +17,25 @@ constexpr inline size_t size_t_Power(size_t a, size_t b) {
   return (b <= size_t(0)? size_t(1) : a*size_t_Power(a, b - 1));
 }
 
+enum class Definedness {
+  AlwaysDefined,
+  UndefinedIfMax
+};
+
 uint64_t getMaxUnsignedValue(int numBits);
 uint64_t getMaxSignedValue(int numBits, int64_t offset);
 
-class Stream : public BitStream {
+class N2kFieldStream : public BitStream {
  public:
-  Stream(const uint8_t *data, int lengthBytes) : BitStream(data, lengthBytes) {}
+  N2kFieldStream(const uint8_t *data, int lengthBytes) : BitStream(data, lengthBytes) {}
 
-  Optional<uint64_t> getUnsigned(int bits, bool canBeUndefined);
-  Optional<int64_t> getSigned(int bits, int64_t offset, bool canBeUndefined);
-  Optional<double> getDouble(bool isSigned, int bits, int64_t offset, bool canBeUndefined);
+  Optional<uint64_t> getUnsigned(int bits, Definedness definedness);
+  Optional<int64_t> getSigned(int bits, int64_t offset, Definedness definedness);
+  Optional<double> getDouble(bool isSigned, int bits, int64_t offset, Definedness definedness);
 
   template <typename T>
   Optional<T> getPhysicalQuantity(bool isSigned, double resolution, T unit, int bits, int64_t offset) {
-    auto x = getDouble(isSigned, bits, offset, true);
+    auto x = getDouble(isSigned, bits, offset, Definedness::UndefinedIfMax);
     if (x.defined()) {
       return Optional<T>(x()*resolution*unit);
     }
@@ -43,7 +48,7 @@ class Stream : public BitStream {
   template <int NumBits>
   Optional<uint64_t> getUnsignedInSet(
       const std::bitset<size_t_Power(2, NumBits)> &set) {
-    auto x = getUnsigned(NumBits, false);
+    auto x = getUnsigned(NumBits, Definedness::AlwaysDefined);
     if (x.defined()) {
       if (set[x()]) {
         return x;

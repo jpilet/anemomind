@@ -393,7 +393,6 @@ function makeFieldAssignment(field, depth) {
     var signed = isSigned(field);
     var signedExpr = boolToString(signed);
     var offset = getOffset(field);
-    console.log("signedExpr = " + typeof signedExpr);
     if (isPhysicalQuantity(field)) {
       var info = getUnitInfo(field);
       return lhs + "src.getPhysicalQuantity(" 
@@ -402,7 +401,8 @@ function makeFieldAssignment(field, depth) {
     } else { // Probably an enum. TODO: handle it more carefully here.
       return lhs
         + (signed? "src.getSigned(" : "src.getUnsigned(")
-        + bits + (signed? ", " + offset : "") + ", false);";
+        + bits + (signed? ", " + offset : "") 
+        + ", N2kField::Definedness::AlwaysDefined);";
     }
   }
 }
@@ -447,7 +447,7 @@ function makeConstructor(pgn, depth) {
   var innerDepth = depth + 1;
   return beginLine(depth, 1) + getClassName(pgn) + "::" + makeConstructorSignature(pgn) 
     + " {"
-    + beginLine(innerDepth) + "N2kField::Stream src(data, lengthBytes);"
+    + beginLine(innerDepth) + "N2kField::N2kFieldStream src(data, lengthBytes);"
     + makeConstructorStatements(pgn, innerDepth)
     + beginLine(depth) + "}";
 }

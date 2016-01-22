@@ -34,6 +34,9 @@ TEST(PgnClassesTest, WindDataNotAvailable) {
   uint8_t data[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
   PgnClasses::WindData windData(data, 8);
+
+  // TODO: if the 'reference' is unavailable, valid should also be false.
+  // Fix this once we implement better support for enums.
   EXPECT_TRUE(windData.valid());
 
   EXPECT_FALSE(windData.windSpeed().defined());
