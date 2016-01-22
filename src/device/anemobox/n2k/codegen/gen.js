@@ -75,8 +75,7 @@ function filterPgnsOfInterest(pgns) {
 }
 
 function getPgnArrayFromParsedXml(xml) {
-  var all = xml.PGNDefinitions.PGNs[0].PGNInfo;
-  return filterPgnsOfInterest(all);
+  return xml.PGNDefinitions.PGNs[0].PGNInfo;
 }
 
 function getClassName(pgn) {
@@ -84,20 +83,25 @@ function getClassName(pgn) {
 }
 
 function getFieldArray(pgn) {
-  assert(pgn.Fields.length == 1);
-  var fields = pgn.Fields[0];
-  var arr = fields.Field;
-  assert(arr instanceof Array);
-  return arr;
+  if (pgn.Fields) {
+    assert(pgn.Fields.length == 1);
+    var fields = pgn.Fields[0];
+    var arr = fields.Field;
+    assert(arr instanceof Array);
+    return arr;
+  }
+  return [];
 }
 
-function makeClassBlock(name, publicDecls, privateDecls, depth) {
-  return beginLine(depth, 1) + "class " + name + " {" 
-    +beginLine(depth) + "public:"
+function makeClassBlock(classComment, name, publicDecls, privateDecls, depth) {
+  var indent = beginLine(depth);
+  return '\n' + indent + "// " + classComment
+    +indent + "class " + name + " {" 
+    +indent + "public:"
     +publicDecls
-    +beginLine(depth) + "private:"
+    +indent + "private:"
     +privateDecls
-    +beginLine(depth) + "};";
+    +indent + "};";
 }
 
 function getFieldId(field) {
@@ -330,6 +334,7 @@ function makeEnums(pgn, depth) {
 function makeClassDeclarationFromPgn(pgn, depth) {
   var innerDepth = depth + 1;
   return makeClassBlock(
+    pgn.Description + '',
     getClassName(pgn), 
     makePgnStaticConst(pgn, innerDepth) 
       + makeEnums(pgn, innerDepth)
@@ -589,28 +594,79 @@ function makeInfoComment(argv, inputPath) {
 
 }
 
-function outputData(outputPath, moduleName, interfaceData, implementationData, cb) {
+function outputData(outputPath, moduleName, interfaceData, implementationData, 
+                    summary, cb) {
   interfaceFilename = Path.join(outputPath, moduleName + ".h");
   implementationFilename = Path.join(outputPath, moduleName + ".cpp");
+  summaryFilename = Path.join(outputPath, "summary.html");
   fs.writeFile(interfaceFilename, interfaceData, function(err) {
     if (err) {
       cb(err);
     } else {
-      fs.writeFile(implementationFilename, implementationData, cb);
+      fs.writeFile(implementationFilename, implementationData, function(err) {
+        if (err) {
+          cb(err);
+        } else {
+          fs.writeFile(summaryFilename, summary, cb);
+        }
+      });
     }
   });
 }
 
-function compileXmlToCpp(argv, value, inputPath, outputPath, cb) {
+function getFieldSummary(field) {
+  return getFieldId(field) + "(" + field.Name + ")";
+}
+
+function getFieldSummaries(fields) {
+  return fields.map(getFieldSummary).join(", ");
+}
+
+function getPgnTableRow(pgn) {
+  var summaries = getFieldSummaries(getFieldArray(pgn));
+  return [pgn.PGN + '', pgn.Description + '', summaries];
+}
+
+function getPgnSummaries(pgns) {
+  return pgns.map(getPgnTableRow);
+}
+
+function makeHtmlTable(nestedArrays) {
+  return '<table>' + nestedArrays.map(function(arr) {
+    return '<tr>' + arr.map(function(element) {
+      return '<td>' + element + '</td>';
+    }).join("") + '</tr>';
+  }).join("") + '</table>';
+}
+
+var tableHeader = ["PGN", "Description", "Fields"];
+
+function renderInPage(title, contents) {
+  return '<html><head><title>' + title 
+    + '</title><style>table, th, td { border: 1px solid black; }</style></head><body>'
+    + contents + '</body></head>';
+}
+
+function makeSourceLink(src) {
+  return '<p>Source <a href="' + src + '">' + src + '</a><p/>';
+}
+
+function compileAllFiles(argv, value, inputPath, outputPath, cb) {
   var moduleName = "PgnClasses";
   try {
-    var pgns = getPgnArrayFromParsedXml(value);
+    var allPgns = getPgnArrayFromParsedXml(value);
+    var pgns = filterPgnsOfInterest(allPgns);
     var dup = getDuplicateId(pgns);
     assert(dup == undefined, "Ids are not unique: " + dup);
     var cmt = makeInfoComment(argv, inputPath);
     var interfaceData = cmt + makeInterfaceFileContents(moduleName, pgns);
     var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);
-    outputData(outputPath, moduleName, interfaceData, implementationData, cb);
+    var summary = makeSourceLink(inputPath) + renderInPage(
+      "PGN Summary", makeHtmlTable(
+        [tableHeader].concat(getPgnSummaries(allPgns))));
+    outputData(
+      outputPath, moduleName, 
+      interfaceData, implementationData, summary, cb);
   } catch (e) {
     console.log('Caught exception while compiling C++');
     console.log(e);
@@ -635,7 +691,7 @@ function generate(argv, inputPath, outputPath, cb) {
     if (err) {
       cb(err);
     } else {
-      compileXmlToCpp(argv, value, inputPath, outputPath, cb);
+      compileAllFiles(argv, value, inputPath, outputPath, cb);
     }
   });
 }
