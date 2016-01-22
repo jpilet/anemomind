@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 22 2016 14:30:19 GMT+0100 (CET) using 
+/** Generated on Fri Jan 22 2016 14:54:17 GMT+0100 (CET) using 
  *
  *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *
@@ -27,11 +27,11 @@ namespace PgnClasses {
     void reset();
 
     // Field access
-    const Optional<uint64_t > &sid() const {assert(_valid); return _sid;}
-    const Optional<sail::Angle<double> > &heading() const {assert(_valid); return _heading;}
-    const Optional<sail::Angle<double> > &deviation() const {assert(_valid); return _deviation;}
-    const Optional<sail::Angle<double> > &variation() const {assert(_valid); return _variation;}
-    const Optional<uint64_t > &reference() const {assert(_valid); return _reference;}
+    const Optional<uint64_t > &sid() const {return _sid;}
+    const Optional<sail::Angle<double> > &heading() const {return _heading;}
+    const Optional<sail::Angle<double> > &deviation() const {return _deviation;}
+    const Optional<sail::Angle<double> > &variation() const {return _variation;}
+    const Optional<Reference > &reference() const {return _reference;}
   private:
     bool _valid;
     // Number of fields: 5
@@ -39,7 +39,7 @@ namespace PgnClasses {
     Optional<sail::Angle<double> > _heading;
     Optional<sail::Angle<double> > _deviation;
     Optional<sail::Angle<double> > _variation;
-    Optional<uint64_t > _reference;
+    Optional<Reference > _reference;
   };
 
   class Attitude {
@@ -52,7 +52,7 @@ namespace PgnClasses {
     void reset();
 
     // Field access
-    const Optional<uint64_t > &sid() const {assert(_valid); return _sid;}
+    const Optional<uint64_t > &sid() const {return _sid;}
   private:
     bool _valid;
     // Number of fields: 4
@@ -76,17 +76,17 @@ namespace PgnClasses {
     void reset();
 
     // Field access
-    const Optional<uint64_t > &sid() const {assert(_valid); return _sid;}
-    const Optional<sail::Velocity<double> > &speedWaterReferenced() const {assert(_valid); return _speedWaterReferenced;}
-    const Optional<sail::Velocity<double> > &speedGroundReferenced() const {assert(_valid); return _speedGroundReferenced;}
-    const Optional<uint64_t > &speedWaterReferencedType() const {assert(_valid); return _speedWaterReferencedType;}
+    const Optional<uint64_t > &sid() const {return _sid;}
+    const Optional<sail::Velocity<double> > &speedWaterReferenced() const {return _speedWaterReferenced;}
+    const Optional<sail::Velocity<double> > &speedGroundReferenced() const {return _speedGroundReferenced;}
+    const Optional<SpeedWaterReferencedType > &speedWaterReferencedType() const {return _speedWaterReferencedType;}
   private:
     bool _valid;
     // Number of fields: 4
     Optional<uint64_t > _sid;
     Optional<sail::Velocity<double> > _speedWaterReferenced;
     Optional<sail::Velocity<double> > _speedGroundReferenced;
-    Optional<uint64_t > _speedWaterReferencedType;
+    Optional<SpeedWaterReferencedType > _speedWaterReferencedType;
   };
 
   class WindData {
@@ -106,17 +106,17 @@ namespace PgnClasses {
     void reset();
 
     // Field access
-    const Optional<uint64_t > &sid() const {assert(_valid); return _sid;}
-    const Optional<sail::Velocity<double> > &windSpeed() const {assert(_valid); return _windSpeed;}
-    const Optional<sail::Angle<double> > &windAngle() const {assert(_valid); return _windAngle;}
-    const Optional<uint64_t > &reference() const {assert(_valid); return _reference;}
+    const Optional<uint64_t > &sid() const {return _sid;}
+    const Optional<sail::Velocity<double> > &windSpeed() const {return _windSpeed;}
+    const Optional<sail::Angle<double> > &windAngle() const {return _windAngle;}
+    const Optional<Reference > &reference() const {return _reference;}
   private:
     bool _valid;
     // Number of fields: 4
     Optional<uint64_t > _sid;
     Optional<sail::Velocity<double> > _windSpeed;
     Optional<sail::Angle<double> > _windAngle;
-    Optional<uint64_t > _reference;
+    Optional<Reference > _reference;
   };
 
 class PgnVisitor {

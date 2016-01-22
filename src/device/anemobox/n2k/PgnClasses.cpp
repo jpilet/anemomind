@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 22 2016 14:30:19 GMT+0100 (CET) using 
+/** Generated on Fri Jan 22 2016 14:54:17 GMT+0100 (CET) using 
  *
  *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *
@@ -21,8 +21,8 @@ namespace PgnClasses {
       _heading = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
       _deviation = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
       _variation = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _reference = src.getUnsigned(2, N2kField::Definedness::AlwaysDefined);
-      _valid = true;
+      _reference = N2kField::castIntegerToOptional<Reference>(src.getUnsignedInSet(2, {0, 1}));
+      _valid = _reference.defined();
     } else {
       reset();
     }
@@ -66,8 +66,8 @@ namespace PgnClasses {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _speedWaterReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
       _speedGroundReferenced = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
-      _speedWaterReferencedType = src.getUnsigned(4, N2kField::Definedness::AlwaysDefined);
-      _valid = true;
+      _speedWaterReferencedType = N2kField::castIntegerToOptional<SpeedWaterReferencedType>(src.getUnsignedInSet(4, {0, 1, 2, 3, 4}));
+      _valid = _speedWaterReferencedType.defined();
     } else {
       reset();
     }
@@ -87,8 +87,8 @@ namespace PgnClasses {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _windSpeed = src.getPhysicalQuantity(false, 0.01, sail::Velocity<double>::metersPerSecond(1.0), 16, 0);
       _windAngle = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
-      _reference = src.getUnsigned(3, N2kField::Definedness::AlwaysDefined);
-      _valid = true;
+      _reference = N2kField::castIntegerToOptional<Reference>(src.getUnsignedInSet(3, {0, 1, 2, 3, 4}));
+      _valid = _reference.defined();
     } else {
       reset();
     }
