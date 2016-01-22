@@ -450,7 +450,10 @@ function boolToString(x) {
 }
 
 function getEnumValueSet(field) {
-  return "{" + getEnumPairs(field).map(function(x) {return x.value;}).join(", ") + "}";
+  return "{" + getEnumPairs(field)
+    .map(function(x) {return x.value;})
+    .sort() // <-- Because that is what N2kField::contains expects.
+    .join(", ") + "}";
 }
 
 function getEnumedFields(fields) {
