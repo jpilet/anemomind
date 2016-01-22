@@ -39,13 +39,9 @@ class BitStream {
     return 8*lenBytes_;
   }
 
-  size_t remainingBits() const {
+  int remainingBits() const {
     return lengthBits() - bitPos_;
   }
-
-  static bool isAvailable(int64_t x, int numBits);
-  static bool isAvailable(uint64_t x, int numBits);
-
  private:
   uint8_t readBitsInByte(int wantedNumBits, uint8_t*bits) {
     int remainingBitsInThisByte = 8 - bitOffset();
@@ -60,16 +56,5 @@ class BitStream {
   size_t lenBytes_;
   int bitPos_;
 };
-
-// Exposed for testability
-namespace BitStreamInternals {
-
-  // Check if a number that is assumged to be signed, is negative
-  bool isTwosComplementNegative(uint64_t value, int numBits);
-
-  // For example, if have 6 bits, this function should return 2^6-1, which is 63
-  uint64_t getMaxUnsignedValue(int numBits);
-  uint64_t getMaxSignedValueTwosComplement(int numBits);
-}
 
 #endif  // BITSTREAM_H
