@@ -223,14 +223,19 @@ TEST(N2kFieldTest, ParseDemo) {
   <EnumPair Value='2' Name='Apparent' />
   <EnumPair Value='3' Name='True (boat referenced)' />
   <EnumPair Value='4' Name='True (water referenced)' />*/
-  std::bitset<8> enumSet("11111");
-
-  // Field 4
-  auto reference = stream.getUnsignedInSet<3>(enumSet);
+  auto reference = stream.getUnsignedInSet(3, {0, 1, 2, 3, 4});
 
   EXPECT_NEAR(windSpeed().metersPerSecond(), 0.25, 0.01);
   EXPECT_NEAR(windAngle().radians(), 3.0892, 0.0001);
   EXPECT_EQ(reference(), 2);
 
 
+}
+
+TEST(N2kFieldTest, IntSet0) {
+  EXPECT_TRUE(contains({1, 2, 3}, 1));
+  EXPECT_TRUE(contains({1, 2, 3}, 2));
+  EXPECT_TRUE(contains({1, 2, 3}, 3));
+  EXPECT_FALSE(contains({1, 2, 3}, 0));
+  EXPECT_FALSE(contains({1, 2, 3}, 4));
 }
