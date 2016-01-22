@@ -279,29 +279,12 @@ function getEnumClassName(field) {
   return capitalizeFirstLetter(getFieldId(field));
 }
 
-
-function trimUnderscores(x) {
-  if (x[0] == '_') {
-    return trimUnderscores(x.slice(1));
-  } else {
-    var last = x.length-1;
-    if (x[last] == '_') {
-      return trimUnderscores(x.slice(0, last));
-    }
-    return x;
-  }
-}
-
-function removeDuplicateUnderscores(x) {
-  var y = x.replace('__', '_');
-  if (y == x) {
-    return y;
-  }
-  return removeDuplicateUnderscores(y);
+function removeUnnecessaryUnderscores(x) {
+  return x.replace(/^_+/, "").replace(/_+/g,"_").replace(/_+$/,"");
 }
 
 function makeSymbolFromDescription(desc) {
-  return trimUnderscores(removeDuplicateUnderscores(desc.replace(/\W/g, '_')));
+  return removeUnnecessaryUnderscores(desc.replace(/\W/g, '_'));
 }
 
 function getEnumPairs(field) {
