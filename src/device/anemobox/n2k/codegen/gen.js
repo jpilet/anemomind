@@ -7,6 +7,11 @@ function makeSet() {
   return {};
 }
 
+// http://stackoverflow.com/a/1026087
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 function insertIntoSet(x, X) {
   X[x] = true; // Any dummy value that evaluates to true will do.
 }
@@ -55,11 +60,6 @@ function getDuplicateId(pgns) {
     insertIntoSet(id, idSet);
   }
   return null;
-}
-
-// http://stackoverflow.com/a/1026087
-function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
 function getPgnCode(x) {
@@ -265,11 +265,72 @@ function makePgnStaticConst(pgn, depth) {
   return beginLine(depth) + "static const int pgn = " + getPgnCode(pgn) + ";";
 }
 
+function getType(field) {
+  return field.Type + '';
+}
+
+
+function isLookupTable(field) {
+  var t = getType(field);
+  return t == "Lookup table";
+}
+
+function getEnumClassName(field) {
+  return capitalizeFirstLetter(getFieldId(field));
+}
+
+function removeUnnecessaryUnderscores(x) {
+  return x.replace(/^_+/, "").replace(/_+/g,"_").replace(/_+$/,"");
+}
+
+function makeSymbolFromDescription(desc) {
+  return removeUnnecessaryUnderscores(desc.replace(/\W/g, '_'));
+}
+
+function getEnumPairs(field) {
+  return field.EnumValues[0].EnumPair.map(function(x) {
+    for (var i in x) {
+      var y = x[i];
+      var value = parseInt(y.Value);
+      var description = y.Name + '';
+      return {
+        value: value,
+        description: description,
+        symbol: makeSymbolFromDescription(description)
+      };
+    }
+  });
+}
+
+function makeEnum(field, depth) {
+  var outer = beginLine(depth);
+  var inner = beginLine(depth+1);
+  var pairs = getEnumPairs(field);
+  return outer + "enum class " + getEnumClassName(field) + " {"
+    + pairs.map(function(pair) {
+      return inner + pair.symbol + " = " + pair.value;
+    }).reduce(function(a, b) {return a + ", " + b;})
+    +outer + "};";
+}
+
+function makeEnums(pgn, depth) {
+  var enums = '';
+  var fields = getFieldArray(pgn);
+  for (var i = 0; i < fields.length; i++) {
+    var field = fields[i];
+    if (isLookupTable(field)) {
+      enums += makeEnum(field, depth);
+    }
+  }
+  return enums;
+}
+
 function makeClassDeclarationFromPgn(pgn, depth) {
   var innerDepth = depth + 1;
   return makeClassBlock(
     getClassName(pgn), 
     makePgnStaticConst(pgn, innerDepth) 
+      + makeEnums(pgn, innerDepth)
       + makeMethodsInClass(pgn, innerDepth),
     makeInstanceVariableDecls(pgn, innerDepth), 
     depth);

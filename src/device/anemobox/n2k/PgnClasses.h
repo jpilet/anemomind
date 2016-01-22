@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 22 2016 14:08:12 GMT+0100 (CET) using 
+/** Generated on Fri Jan 22 2016 14:30:19 GMT+0100 (CET) using 
  *
  *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *
@@ -16,6 +16,10 @@ namespace PgnClasses {
   class VesselHeading {
   public:
     static const int pgn = 127250;
+    enum class Reference {
+      True = 0, 
+      Magnetic = 1
+    };
 
     VesselHeading();
     VesselHeading(const uint8_t *data, int lengthBytes);
@@ -58,6 +62,13 @@ namespace PgnClasses {
   class Speed {
   public:
     static const int pgn = 128259;
+    enum class SpeedWaterReferencedType {
+      Paddle_wheel = 0, 
+      Pitot_tube = 1, 
+      Doppler = 2, 
+      Correlation_ultra_sound = 3, 
+      Electro_Magnetic = 4
+    };
 
     Speed();
     Speed(const uint8_t *data, int lengthBytes);
@@ -81,6 +92,13 @@ namespace PgnClasses {
   class WindData {
   public:
     static const int pgn = 130306;
+    enum class Reference {
+      True_ground_referenced_to_North = 0, 
+      Magnetic_ground_referenced_to_Magnetic_North = 1, 
+      Apparent = 2, 
+      True_boat_referenced = 3, 
+      True_water_referenced = 4
+    };
 
     WindData();
     WindData(const uint8_t *data, int lengthBytes);
