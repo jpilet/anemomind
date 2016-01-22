@@ -155,7 +155,9 @@ function getUnitInfo(field) {
 
 
 function getFieldType(field) {
-  if (isPhysicalQuantity(field)) {
+  if (isLookupTable(field)) {
+    return getEnumClassName(field);
+  } else if (isPhysicalQuantity(field)) {
     return getUnitInfo(field).type;
   } else if (isSigned(field)) {
     return "int64_t";
@@ -187,7 +189,7 @@ function getAccessorName(field) {
 
 function makeFieldAccessor(field) {
   return "const " + getOptionalFieldType(field) + " &" 
-    + getAccessorName(field) + "() const {assert(_valid); return "
+    + getAccessorName(field) + "() const {return "
     + getInstanceVariableName(field) + ";}";
 }
 
@@ -442,6 +444,25 @@ function boolToString(x) {
   return x? "true" : "false";
 }
 
+function getEnumValueSet(field) {
+  return "{" + getEnumPairs(field).map(function(x) {return x.value;}).join(", ") + "}";
+}
+
+function getEnumedFields(fields) {
+  return fields.filter(function(field) {return isLookupTable(field)});
+}
+
+function allEnumedFieldsDefined(fields) {
+  var enumed = getEnumedFields(fields);
+  if (enumed.length == 0) {
+    return "true";
+  } else {
+    return enumed.map(function(x) {
+      return getInstanceVariableName(x) + ".defined()";
+    }).join(" && ");
+  }
+}
+
 function makeFieldAssignment(field, depth) {
   if (skipField(field)) {
     return indentLineArray(depth, [
@@ -459,7 +480,11 @@ function makeFieldAssignment(field, depth) {
       return lhs + "src.getPhysicalQuantity(" 
         + signedExpr + ", " + getResolution(field) 
         + ", " + info.unit + ", " + bits + ", " + offset + ");"
-    } else { // Probably an enum. TODO: handle it more carefully here.
+    } else if (isLookupTable(field)) {
+      return lhs + "src.getUnsignedInSet(" 
+        + bits + ", " + getEnumValueSet(field) + ").cast<" 
+        + getFieldType(field) + ">();";
+    } else { // Something else.
       return lhs
         + (signed? "src.getSigned(" : "src.getUnsigned(")
         + bits + (signed? ", " + offset : "") 
@@ -497,7 +522,7 @@ function makeConstructorStatements(pgn, depth) {
   return beginLine(depth) + 
     'if (' + getTotalBitLength(fields) + ' <= src.remainingBits()) {'
     + makeFieldAssignments(fields, innerDepth, false)
-    + beginLine(innerDepth) + "_valid = true;"
+    + beginLine(innerDepth) + "_valid = " + allEnumedFieldsDefined(fields) + ";"
     + beginLine(depth) + "} else {"
     + beginLine(innerDepth) + "reset();"
     + beginLine(depth) + "}";

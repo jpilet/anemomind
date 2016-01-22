@@ -80,6 +80,14 @@ class Optional {
     return other;
   }
 
+  template <typename Other>
+  Optional<Other> cast() const {
+    if (_defined) {
+      return Optional<Other>(Other(get()));
+    }
+    return Optional<Other>();
+  }
+
   bool isNan() const {
     if (_defined) {
       return genericIsNan(_value);

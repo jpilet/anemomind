@@ -27,7 +27,7 @@ TEST(PgnClassesTest, WindData) {
 
   EXPECT_NEAR(windData.windSpeed().get().metersPerSecond(), 0.25, 0.01);
   EXPECT_NEAR(windData.windAngle().get().radians(), 3.0892, 0.0001);
-  EXPECT_EQ(windData.reference().get(), 2);
+  EXPECT_EQ(windData.reference().get(),  PgnClasses::WindData::Reference::Apparent);
 }
 
 TEST(PgnClassesTest, WindDataNotAvailable) {
@@ -35,19 +35,8 @@ TEST(PgnClassesTest, WindDataNotAvailable) {
 
   PgnClasses::WindData windData(data, 8);
 
-  // TODO: if the 'reference' is unavailable, valid should also be false.
-  // Fix this once we implement better support for enums.
-  EXPECT_TRUE(windData.valid());
-
-  EXPECT_FALSE(windData.windSpeed().defined());
-  EXPECT_FALSE(windData.windAngle().defined());
-
-  /*
-     TODO: We should only get a defined value here
-     if the parsed integer is in the set of enums.
-     Once fixed, we should have EXPECT_FALSE here.
-  */
-  EXPECT_TRUE(windData.reference().defined());
+  EXPECT_FALSE(windData.valid());
+  EXPECT_FALSE(windData.reference().defined());
 }
 
 class TestWindVisitor : public PgnClasses::PgnVisitor {
