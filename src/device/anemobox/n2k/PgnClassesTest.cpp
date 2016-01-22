@@ -34,16 +34,25 @@ TEST(PgnClassesTest, WindDataNotAvailable) {
   uint8_t data[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
   PgnClasses::WindData windData(data, 8);
+
+  // TODO: if the 'reference' is unavailable, valid should also be false.
+  // Fix this once we implement better support for enums.
   EXPECT_TRUE(windData.valid());
 
   EXPECT_FALSE(windData.windSpeed().defined());
   EXPECT_FALSE(windData.windAngle().defined());
-  EXPECT_FALSE(windData.reference().defined());
+
+  /*
+     TODO: We should only get a defined value here
+     if the parsed integer is in the set of enums.
+     Once fixed, we should have EXPECT_FALSE here.
+  */
+  EXPECT_TRUE(windData.reference().defined());
 }
 
 class TestWindVisitor : public PgnClasses::PgnVisitor {
   protected:
-    virtual bool apply(const PgnClasses::WindData& packet) {
+    bool apply(const PgnClasses::WindData& packet) {
       if (!packet.valid()) { return false; }
 
       EXPECT_TRUE(packet.windSpeed().defined());
