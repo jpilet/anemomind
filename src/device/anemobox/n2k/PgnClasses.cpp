@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 22 2016 16:16:18 GMT+0100 (CET) using 
+/** Generated on Fri Jan 22 2016 16:44:11 GMT+0100 (CET) using 
  *
  *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *

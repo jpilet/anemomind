@@ -93,13 +93,15 @@ function getFieldArray(pgn) {
   return [];
 }
 
-function makeClassBlock(name, publicDecls, privateDecls, depth) {
-  return beginLine(depth, 1) + "class " + name + " {" 
-    +beginLine(depth) + "public:"
+function makeClassBlock(classComment, name, publicDecls, privateDecls, depth) {
+  var indent = beginLine(depth);
+  return '\n' + indent + "// " + classComment
+    +indent + "class " + name + " {" 
+    +indent + "public:"
     +publicDecls
-    +beginLine(depth) + "private:"
+    +indent + "private:"
     +privateDecls
-    +beginLine(depth) + "};";
+    +indent + "};";
 }
 
 function getFieldId(field) {
@@ -332,6 +334,7 @@ function makeEnums(pgn, depth) {
 function makeClassDeclarationFromPgn(pgn, depth) {
   var innerDepth = depth + 1;
   return makeClassBlock(
+    pgn.Description + '',
     getClassName(pgn), 
     makePgnStaticConst(pgn, innerDepth) 
       + makeEnums(pgn, innerDepth)
@@ -645,7 +648,7 @@ function makeSourceLink(src) {
   return '<p>Source <a href="' + src + '">' + src + '</a><p/>';
 }
 
-function compileXmlToCpp(argv, value, inputPath, outputPath, cb) {
+function compileAllFiles(argv, value, inputPath, outputPath, cb) {
   var moduleName = "PgnClasses";
   try {
     var allPgns = getPgnArrayFromParsedXml(value);
@@ -658,7 +661,9 @@ function compileXmlToCpp(argv, value, inputPath, outputPath, cb) {
     var summary = makeSourceLink(inputPath) + renderInPage(
       "PGN Summary", makeHtmlTable(
         [tableHeader].concat(getPgnSummaries(allPgns))));
-    outputData(outputPath, moduleName, interfaceData, implementationData, summary, cb);
+    outputData(
+      outputPath, moduleName, 
+      interfaceData, implementationData, summary, cb);
   } catch (e) {
     console.log('Caught exception while compiling C++');
     console.log(e);
@@ -683,7 +688,7 @@ function generate(argv, inputPath, outputPath, cb) {
     if (err) {
       cb(err);
     } else {
-      compileXmlToCpp(argv, value, inputPath, outputPath, cb);
+      compileAllFiles(argv, value, inputPath, outputPath, cb);
     }
   });
 }
