@@ -162,6 +162,10 @@ std::string TimeStamp::fullPrecisionString() const {
   return toString() + stringFormat(".%03d", _time % TimeRes);
 }
 
+TimeStamp TimeStamp::offset1970() {
+  return TimeStamp::fromMilliSecondsSince1970(0);
+}
+
 
 Duration<double> operator-(const TimeStamp &a, const TimeStamp &b) {
   return Duration<double>::seconds(TimeStamp::difSeconds(a, b));
