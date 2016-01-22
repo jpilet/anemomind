@@ -272,7 +272,6 @@ function getType(field) {
 
 function isLookupTable(field) {
   var t = getType(field);
-  console.log("Type: " + t);
   return t == "Lookup table";
 }
 
@@ -298,11 +297,11 @@ function removeDuplicateUnderscores(x) {
   if (y == x) {
     return y;
   }
-  return trimUnderscores(removeDuplicateUnderscores(y));
+  return removeDuplicateUnderscores(y);
 }
 
 function makeSymbolFromDescription(desc) {
-  return removeDuplicateUnderscores(desc.replace(/\W/g, '_'));
+  return trimUnderscores(removeDuplicateUnderscores(desc.replace(/\W/g, '_')));
 }
 
 function getEnumPairs(field) {
