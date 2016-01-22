@@ -13,9 +13,8 @@
 
 namespace N2kField {
 
-constexpr inline size_t size_t_Power(size_t a, size_t b) {
-  return (b <= size_t(0)? size_t(1) : a*size_t_Power(a, b - 1));
-}
+
+bool contains(const std::initializer_list<int> &set, int x);
 
 enum class Definedness {
   AlwaysDefined,
@@ -45,17 +44,7 @@ class N2kFieldStream : public BitStream {
   // This function can serve as a base for reading
   // enum'ed values. The 'set' parameter defines what
   // integers that belong to the set of enum'ed values.
-  template <int NumBits>
-  Optional<uint64_t> getUnsignedInSet(
-      const std::bitset<size_t_Power(2, NumBits)> &set) {
-    auto x = getUnsigned(NumBits, Definedness::AlwaysDefined);
-    if (x.defined()) {
-      if (set[x()]) {
-        return x;
-      }
-    }
-    return Optional<uint64_t>();
-  }
+  Optional<uint64_t> getUnsignedInSet(int numBits, const std::initializer_list<int> &set);
  private:
   int64_t getSigned(int numBits, int64_t offset);
 };

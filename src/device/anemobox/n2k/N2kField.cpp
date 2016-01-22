@@ -34,6 +34,16 @@ uint64_t getMaxSignedValue(int numBits, int64_t offset) {
   return static_cast<int64_t>(getMaxUnsignedValue(numBits)) + offset;
 }
 
+bool contains(const std::initializer_list<int> &set, int x) {
+  assert(std::is_sorted(set.begin(), set.end()));
+  auto ptr = std::lower_bound(set.begin(), set.end(), x);
+  if (ptr == set.end()) {
+    return false;
+  } else {
+    return (*ptr) == x;
+  }
+}
+
 
 Optional<uint64_t> N2kFieldStream::getUnsigned(int bits, Definedness d) {
   if (canRead(bits)) {
@@ -69,6 +79,18 @@ Optional<double> N2kFieldStream::getDouble(bool isSigned, int bits, int64_t offs
       : toDouble(getUnsigned(bits, d));
 
 }
+
+Optional<uint64_t> N2kFieldStream::getUnsignedInSet(int numBits, const std::initializer_list<int> &set) {
+  auto x = getUnsigned(numBits, Definedness::AlwaysDefined);
+  if (x.defined()) {
+    if (contains(set, x())) {
+      return x;
+    }
+  }
+  return Optional<uint64_t>();
+}
+
+
 
 int64_t N2kFieldStream::getSigned(int numBits, int64_t offset) {
   auto x = BitStream::getUnsigned(numBits);
