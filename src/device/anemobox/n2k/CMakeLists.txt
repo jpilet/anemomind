@@ -12,7 +12,8 @@ add_library(n2k_N2kField
            
 target_link_libraries(n2k_N2kField
                       n2k_BitStream
-                     )           
+                      common_TimeStamp
+                     )
 
 cxx_test(n2k_N2kFieldTest
          N2kFieldTest.cpp

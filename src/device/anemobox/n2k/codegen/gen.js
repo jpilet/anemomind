@@ -46,8 +46,14 @@ function beginLine(depth, n) {
   }
 }
 
+// Indent lines stored in nested arrays
 function indentLineArray(depth, lines) {
-  return beginLine(depth) + lines.join(beginLine(depth));
+  if (lines instanceof Array) {
+    return lines.map(function(x) {
+      return indentLineArray(depth+1, x);
+    }).join("");
+  }
+  return beginLine(depth-1) + lines;
 }
 
 function getDuplicateId(pgns) {
@@ -148,6 +154,26 @@ unitMap = {
   "rad": {
     type: "sail::Angle<double>",
     unit: "sail::Angle<double>::radians(1.0)"
+  },
+  "deg": {
+    type: "sail::Angle<double>",
+    unit: "sail::Angle<double>::degrees(1.0)"
+  },
+  "m": {
+    type: "sail::Length<double>",
+    unit: "sail::Length<double>::meters(1.0)"
+  },
+  "s": {
+    type: "sail::Duration<double>",
+    unit: "sail::Duration<double>::seconds(1.0)"
+  },
+  "days": {
+    type: "sail::Duration<double>",
+    unit: "sail::Duration<double>::days(1.0)"
+  },
+  "minutes": {
+    type: "sail::Duration<double>",
+    unit: "sail::Duration<double>::minutes(1.0)"
   }
 };
 
@@ -241,23 +267,31 @@ function makeMethodsInClass(pgn, depth) {
   return "\n" + makeDefaultConstructorDecl(pgn, depth)
     + makeConstructorDecl(pgn, depth) 
     + makeCommonMethods(depth) 
-    + makeAccessors(pgn, depth);
+    + makeAccessors(pgn, depth)
+    + makeExtraMethodsInClass(pgn, depth);
 }
 
 function makeConstructorSignature(pgn) {
   return getClassName(pgn) + "(const uint8_t *data, int lengthBytes)";
 }
 
+function getFieldComment(field) {
+  var d = field.Description;
+  return (d? "// " + d : "");
+}
+
+
 function makeInstanceVariableDecls(pgn, depth) {
   var fields = getFieldArray(pgn);
   var commonDecls = beginLine(depth) + "bool _valid;";
-  var s = commonDecls + beginLine(depth) + "// Number of fields: " + fields.length;
+  var s = commonDecls;
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
     if (!skipField(field)) {
       s += beginLine(depth) 
         + getOptionalFieldType(field) + " "
-        + getInstanceVariableName(field) + ";";
+        + getInstanceVariableName(field) + "; "
+        + getFieldComment(field);
     }
   }
   return s;
@@ -556,6 +590,43 @@ function makeDefaultConstructor(pgn, depth) {
     +beginLine(depth) + "}";
 }
 
+function makeFieldMap(fields) {
+  var dst = {};
+  for (var i = 0; i < fields.length; i++) {
+    var f = fields[i];
+    dst[getFieldId(f)] = f;
+  }
+  return dst;
+}
+
+function getUniqueTimeStampName(fieldMap) {
+  var candidate = "timeStamp";
+  if (candidate in fieldMap) {
+    return "anemomindTimeStamp";
+  }
+  return candidate;
+}
+
+function tryMakeTimeStampAccessor(fieldMap, depth) {
+  if ("date" in fieldMap && "time" in fieldMap) {
+    var date = fieldMap["date"];
+    var time = fieldMap["time"];
+    var name = getUniqueTimeStampName(fieldMap);
+    return indentLineArray(
+      depth, 
+      ["sail::TimeStamp " + name + "() const {",
+       ["return N2kField::getTimeStamp(*this);"],
+       "}"]);
+  }
+  return "";
+}
+
+function makeExtraMethodsInClass(pgn, depth) {
+  var fields = getFieldArray(pgn);
+  var fieldMap = makeFieldMap(fields);
+  return tryMakeTimeStampAccessor(fieldMap, depth);
+}
+
 function makeMethodsForPgn(pgn, depth) {
   return makeDefaultConstructor(pgn, depth) 
     + makeConstructor(pgn, depth)
@@ -576,6 +647,7 @@ function makeImplementationFileContents(moduleName, pgns) {
 
 var publicInclusions = '#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>\n'
     +'#include <cassert>\n'
+    +'#include <device/anemobox/n2k/N2kField.h>\n'
     +'#include <server/common/Optional.h>\n\n';
 
 function makeInterfaceFileContents(moduleName, pgns) {

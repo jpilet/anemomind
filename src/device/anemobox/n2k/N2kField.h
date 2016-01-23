@@ -10,9 +10,17 @@
 #include <server/common/Optional.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <bitset>
+#include <server/common/TimeStamp.h>
 
 namespace N2kField {
 
+template <typename PgnClass>
+sail::TimeStamp getTimeStamp(const PgnClass &x) {
+  if (x.date().defined() && x.time().defined()) {
+    return sail::TimeStamp::offset1970() + x.date().get() + x.time().get();
+  }
+  return sail::TimeStamp();
+}
 
 bool contains(const std::initializer_list<int> &set, int x);
 
