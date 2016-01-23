@@ -21,7 +21,7 @@ j1939socket.open(handlePacket);
 // HACK to reboot we hit SPI bug
 module.exports.detectSPIBug = function(callback) {
   var timer = setInterval(function() {
-    exec("ps -A -o '%C/%c' | grep kworker | sort -n -r | head -2 | sed 's#/.*##' | awk '{s+=$1} END {print s < 140}'",
+    exec("ps -A -o '%C/%c' | grep kworker | sort -n -r | head -2 | sed 's#/.*##' | awk '{s+=$1} END {print s < 60}'",
          function(error, stdout, stderr) {
             if (stdout.trim() != "1") {
                clearInterval(timer);
