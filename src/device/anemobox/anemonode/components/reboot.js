@@ -3,7 +3,7 @@ var fs = require('fs');
 
 module.exports.reboot = function() {
   exec('sync', function() {
-    fs.writeFileSync('/sys/devices/virtual/misc/watchdog/disable', '1');
+    fs.writeFileSync('/sys/devices/virtual/misc/watchdog/disable', '0');
     exec('reboot', function() {});
   });
 };
