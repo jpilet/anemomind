@@ -29,6 +29,7 @@ if (withHttp) {
 
 if (withLogger) {
   var logger = require('./components/logger');
+  logger.logText("syslog", "Anemonode is starting");
 }
 
 if (withLocalEndpoint) {
@@ -146,9 +147,11 @@ if (withCUPS) {
 
 if (withNMEA2000) {
   require('./components/nmea2000.js').detectSPIBug(function() {
-    console.log('SPI BUG DETECTED!!');
+    var message = 'SPI bug detected, rebooting!';
+    console.log(message);
     spiBugDetected = true;
     if (withLogger) {
+      logger.logText("syslog", message);
       logger.flush();
     }
   });
