@@ -42,7 +42,12 @@ TEST(PgnClassesTest, WindDataNotAvailable) {
 class TestWindVisitor : public PgnClasses::PgnVisitor {
   protected:
     bool apply(const PgnClasses::WindData& packet) {
-      if (!packet.valid()) { return false; }
+      if (!packet.valid()) {
+        return false;
+      }
+      if (_currentSource != "MyWindsensor") {
+        return false;
+      }
 
       EXPECT_TRUE(packet.windSpeed().defined());
       EXPECT_NEAR(packet.windSpeed().get().metersPerSecond(), 0.25, 0.01);
@@ -55,6 +60,6 @@ class TestWindVisitor : public PgnClasses::PgnVisitor {
 TEST(PgnClassesTest, WindVisitor) {
   uint8_t data[] = {0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
   TestWindVisitor visitor;
-  EXPECT_TRUE(visitor.visit(PgnClasses::WindData::pgn, data, 8));
+  EXPECT_TRUE(visitor.visit("MyWindsensor", PgnClasses::WindData::ThisPgn, data, 8));
 }
 

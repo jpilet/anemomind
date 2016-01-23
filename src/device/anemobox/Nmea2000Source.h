@@ -28,8 +28,8 @@ class Nmea2000Source : public PgnClasses::PgnVisitor {
   bool apply(const PgnClasses::TimeDate& packet);
   bool apply(const PgnClasses::DirectionData& packet);
  private:
+  std::string getCurrentNmea2000Source() const {return "NMEA2000/" + _currentSource;}
   Dispatcher *_dispatcher;
-  std::string _currentMessageSource;
 };
 
 }  // namespace

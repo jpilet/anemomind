@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 22 2016 17:57:17 GMT+0100 (CET) using 
+/** Generated on Sat Jan 23 2016 20:31:57 GMT+0100 (CET) using 
  *
  *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *
@@ -9,6 +9,138 @@
 #include <device/anemobox/n2k/N2kField.h>
 
 namespace PgnClasses {
+
+  IsoTransportProtocolDataTransfer::IsoTransportProtocolDataTransfer() {
+    reset();
+  }
+
+  IsoTransportProtocolDataTransfer::IsoTransportProtocolDataTransfer(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (64 <= src.remainingBits()) {
+      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _data = src.getUnsigned(56, N2kField::Definedness::AlwaysDefined);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void IsoTransportProtocolDataTransfer::reset() {
+    _valid = false;
+  }
+
+  IsoTransportProtocolConnectionManagementRequestToSend::IsoTransportProtocolConnectionManagementRequestToSend() {
+    reset();
+  }
+
+  IsoTransportProtocolConnectionManagementRequestToSend::IsoTransportProtocolConnectionManagementRequestToSend(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (64 <= src.remainingBits()) {
+      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
+      _packets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _packetsReply = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void IsoTransportProtocolConnectionManagementRequestToSend::reset() {
+    _valid = false;
+  }
+
+  IsoTransportProtocolConnectionManagementClearToSend::IsoTransportProtocolConnectionManagementClearToSend() {
+    reset();
+  }
+
+  IsoTransportProtocolConnectionManagementClearToSend::IsoTransportProtocolConnectionManagementClearToSend(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (64 <= src.remainingBits()) {
+      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _maxPackets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _nextSid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      // Skipping reserved
+      src.advanceBits(16);
+      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void IsoTransportProtocolConnectionManagementClearToSend::reset() {
+    _valid = false;
+  }
+
+  IsoTransportProtocolConnectionManagementEndOfMessage::IsoTransportProtocolConnectionManagementEndOfMessage() {
+    reset();
+  }
+
+  IsoTransportProtocolConnectionManagementEndOfMessage::IsoTransportProtocolConnectionManagementEndOfMessage(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (64 <= src.remainingBits()) {
+      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _totalMessageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
+      _totalNumberOfPacketsReceived = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      // Skipping reserved
+      src.advanceBits(8);
+      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void IsoTransportProtocolConnectionManagementEndOfMessage::reset() {
+    _valid = false;
+  }
+
+  IsoTransportProtocolConnectionManagementBroadcastAnnounce::IsoTransportProtocolConnectionManagementBroadcastAnnounce() {
+    reset();
+  }
+
+  IsoTransportProtocolConnectionManagementBroadcastAnnounce::IsoTransportProtocolConnectionManagementBroadcastAnnounce(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (64 <= src.remainingBits()) {
+      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
+      _packets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      // Skipping reserved
+      src.advanceBits(8);
+      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void IsoTransportProtocolConnectionManagementBroadcastAnnounce::reset() {
+    _valid = false;
+  }
+
+  IsoTransportProtocolConnectionManagementAbort::IsoTransportProtocolConnectionManagementAbort() {
+    reset();
+  }
+
+  IsoTransportProtocolConnectionManagementAbort::IsoTransportProtocolConnectionManagementAbort(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (56 <= src.remainingBits()) {
+      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _reason = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      // Skipping reserved
+      src.advanceBits(16);
+      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void IsoTransportProtocolConnectionManagementAbort::reset() {
+    _valid = false;
+  }
 
   SystemTime::SystemTime() {
     reset();
@@ -249,8 +381,28 @@ namespace PgnClasses {
   void DirectionData::reset() {
     _valid = false;
   }
-bool PgnVisitor::visit(int pgn, const uint8_t *data, int length) {
+bool PgnVisitor::visit(const std::string& src, int pgn, const uint8_t *data, int length) {
+  _currentSource = src; // This feels a bit dirty ... but convenient :-) https://xkcd.com/292/
   switch(pgn) {
+    case 60160: return apply(IsoTransportProtocolDataTransfer(data, length));
+    case 60416: 
+    {
+      switch (getDispatchCodeFor60416(data, length)) {
+          case PgnVariant60416::TypeIsoTransportProtocolConnectionManagementRequestToSend: 
+            return apply(IsoTransportProtocolConnectionManagementRequestToSend(data, length));
+          case PgnVariant60416::TypeIsoTransportProtocolConnectionManagementClearToSend: 
+            return apply(IsoTransportProtocolConnectionManagementClearToSend(data, length));
+          case PgnVariant60416::TypeIsoTransportProtocolConnectionManagementEndOfMessage: 
+            return apply(IsoTransportProtocolConnectionManagementEndOfMessage(data, length));
+          case PgnVariant60416::TypeIsoTransportProtocolConnectionManagementBroadcastAnnounce: 
+            return apply(IsoTransportProtocolConnectionManagementBroadcastAnnounce(data, length));
+          case PgnVariant60416::TypeIsoTransportProtocolConnectionManagementAbort: 
+            return apply(IsoTransportProtocolConnectionManagementAbort(data, length));
+          case PgnVariant60416::Undefined: return false;
+          default: return false;
+      }
+      break;
+    };
     case 126992: return apply(SystemTime(data, length));
     case 127250: return apply(VesselHeading(data, length));
     case 127257: return apply(Attitude(data, length));

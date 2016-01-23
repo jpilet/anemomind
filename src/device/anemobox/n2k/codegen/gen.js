@@ -56,10 +56,11 @@ function indentLineArray(depth, lines) {
   return beginLine(depth-1) + lines;
 }
 
-function getDuplicateId(pgns) {
+function getDuplicate(pgns, f) {
+  assert(f);
   var idSet = makeSet();
   for (var i = 0; i < pgns.length; i++) {
-    id = pgns[i].Id + '';
+    id = f(pgns[i]);
     if (inSet(id, idSet)) {
       return id;
     }
@@ -302,7 +303,7 @@ function makeConstructorDecl(pgn, depth) {
 }
 
 function makePgnStaticConst(pgn, depth) {
-  return beginLine(depth) + "static const int pgn = " + getPgnCode(pgn) + ";";
+  return beginLine(depth) + "static const int ThisPgn = " + getPgnCode(pgn) + ";";
 }
 
 function getType(field) {
@@ -391,32 +392,138 @@ function makeClassDeclarationsSub(pgns) {
   return s;
 }
 
+function getCommonPgnCode(pgnDefs) {
+  assert(0 < pgnDefs.length);
+  var code = getPgnCode(pgnDefs[0]);
+  for (var i = 1; i < pgnDefs.length; i++) {
+    assert(code == getPgnCode(pgnDefs[i]));
+  }
+  return code;
+}
+
+function makePgnDispatcherName(code) {
+  return "getDispatchCodeFor" + code;
+}
+
+function makePgnVariantDispatchers(multiDefs) {
+  return indentLineArray(0, multiDefs.map(function(defs) {
+    var code = getCommonPgnCode(defs);
+    var tname = makePgnEnumTypeName(code);
+    return ["virtual " + tname + " " + makePgnDispatcherName(code) 
+            + "(const uint8_t *data, int length) {",
+            ["return " + tname + "::Undefined; // TODO in derived class"],
+            "}"];
+  }));
+}
+
 function makeVisitorDeclaration(pgns) {
+  var defMap = makeDefsPerPgn(pgns);
+  var multiDefs = getMultiDefs(defMap);
   var s = [
     '\n\nclass PgnVisitor {',
     ' public:',
-    '  bool visit(int pgn, const uint8_t *data, int length);',
+    '  bool visit(const std::string& src, int pgn, const uint8_t *data, int length);',
     '  virtual ~PgnVisitor() {}',
-    ' protected:'
+    ' protected:',
+    '  std::string _currentSource;'
   ];
   for (var i = 0; i < pgns.length; i++) {
     s.push('  virtual bool apply'
            + '(const ' + getClassName(pgns[i]) + '& packet) { return false; }');
   }
+  s.push(makePgnVariantDispatchers(multiDefs));
   s.push('};\n');
   return s.join('\n');
 }
 
-function makeVisitorImplementation(pgns) {
-  var s = [
-    'bool PgnVisitor::visit(int pgn, const uint8_t *data, int length) {',
-    '  switch(pgn) {'
-  ];
-
+function makeDefsPerPgn(pgns) {
+  var dst = {};
   for (var i = 0; i < pgns.length; i++) {
     var pgn = pgns[i];
-    s.push('    case ' + getPgnCode(pgn) + ': '
-           + 'return apply(' + getClassName(pgn) + '(data, length));');
+    var n = getPgnCode(pgn);
+    if (n in dst) {
+      dst[n].push(pgn);
+    } else {
+      dst[n] = [pgn];
+    }
+  }
+  return dst;
+}
+
+function getMultiDefs(defMap) {
+  return Object.keys(defMap).map(function(key) {
+    return defMap[key];
+  }).filter(function(arr) {
+    return 1 < arr.length;
+  });
+}
+
+function makePgnEnumValueName(pgn) {
+  return "Type" + getClassName(pgn);
+}
+
+function makePgnEnumTypeName(pgnCode) {
+  return "PgnVariant" + pgnCode;
+}
+
+function makePgnVariantCases(code, defs) {
+  var t = makePgnEnumTypeName(code);
+  var cases = defs.map(function(pgn) {
+    return ["case " + t + "::" + makePgnEnumValueName(pgn) + ": ", 
+            [callApplyMethod([pgn])]];
+  });
+  cases.push(["case " + t + "::Undefined: return false;"]);
+  cases.push(["default: return false;"]);
+  return cases;
+}
+
+function makePgnVariantSwitch(code, defs) {
+  return ["switch (" + makePgnDispatcherName(code) + "(data, length)) {",
+          makePgnVariantCases(code, defs), "}"];
+}
+
+function callVariantApplyMethod(pgnDefs) {
+  var code = getCommonPgnCode(pgnDefs);
+  return indentLineArray(
+    2, ["{", makePgnVariantSwitch(code, pgnDefs), ["break;"], "};"]);
+}
+
+function callApplyMethod(pgnDefs) {
+  if (pgnDefs.length == 1) {
+    return 'return apply(' + getClassName(pgnDefs[0]) + '(data, length));';
+  } else {
+    return callVariantApplyMethod(pgnDefs);
+  }
+}
+
+
+
+
+function makePgnEnum(pgnDefs) {
+  if (pgnDefs.length == 1) {
+    return null;
+  } else {
+    var code = getCommonPgnCode(pgnDefs);
+    var symbols = pgnDefs.map(function(pgn) {
+      return makePgnEnumValueName(pgn) + ",";
+    });
+    symbols.push("Undefined");
+    return indentLineArray(
+      1, ["enum class " + makePgnEnumTypeName(code) 
+          + " {", symbols, "};\n"]);
+  }
+}
+
+function makeVisitorImplementation(pgns) {
+  var s = [
+    'bool PgnVisitor::visit(const std::string& src, int pgn, const uint8_t *data, int length) {',
+    "  _currentSource = src; // This feels a bit dirty ... but convenient :-) https://xkcd.com/292/",
+    '  switch(pgn) {'
+  ];
+  var defMap = makeDefsPerPgn(pgns);
+  for (var key in defMap) {
+    var pgnDefs = defMap[key];
+    s.push('    case ' + key + ': ' + callApplyMethod(pgnDefs));
   }
   s.push('  }  // closes switch');
   s.push('  return false;');
@@ -425,10 +532,11 @@ function makeVisitorImplementation(pgns) {
 }
 
 
-function makeClassDeclarations(label, pgns) {
+function makeInterface(label, pgns) {
   return wrapNamespace(
     label,
-    makeClassDeclarationsSub(pgns)
+    makePgnEnums(pgns)
+    + makeClassDeclarationsSub(pgns)
     + makeVisitorDeclaration(pgns));
 }
 
@@ -650,11 +758,17 @@ var publicInclusions = '#include <device/Arduino/libraries/PhysicalQuantity/Phys
     +'#include <device/anemobox/n2k/N2kField.h>\n'
     +'#include <server/common/Optional.h>\n\n';
 
+
+function makePgnEnums(pgns) {
+  var defMap = makeDefsPerPgn(pgns);
+  return getMultiDefs(defMap).map(makePgnEnum).join("\n");
+}
+
 function makeInterfaceFileContents(moduleName, pgns) {
   return wrapInclusionGuard(
     moduleName.toUpperCase(), 
     publicInclusions + 
-    makeClassDeclarations(moduleName, pgns));
+    makeInterface(moduleName, pgns));
 }
 
 function makeInfoComment(argv, inputPath) {
@@ -723,13 +837,28 @@ function makeSourceLink(src) {
   return '<p>Source <a href="' + src + '">' + src + '</a><p/>';
 }
 
+function getPgnId(pgn) {
+  if (pgn.Id) {
+    return pgn.Id + '';
+  } else {
+    console.log("PGN " + pgn.PGN + " has no Id");
+    return null;
+  }
+}
+
+function checkPgns(pgns) {
+  var dup = getDuplicate(pgns, getPgnId);
+  assert(dup == undefined, "PGN Ids are not unique: '" + dup + '"');
+}
+
+
 function compileAllFiles(argv, value, inputPath, outputPath, cb) {
   var moduleName = "PgnClasses";
   try {
     var allPgns = getPgnArrayFromParsedXml(value);
     var pgns = filterPgnsOfInterest(allPgns);
-    var dup = getDuplicateId(pgns);
-    assert(dup == undefined, "Ids are not unique: " + dup);
+    
+    checkPgns(pgns);
     var cmt = makeInfoComment(argv, inputPath);
     var interfaceData = cmt + makeInterfaceFileContents(moduleName, pgns);
     var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);

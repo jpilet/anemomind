@@ -9,8 +9,7 @@ void Nmea2000Source::process(const std::string& srcName,
                              int pgn,
                              const unsigned char* buffer,
                              int length) {
-  _currentMessageSource = "NMEA2000/" + srcName;
-  visit(pgn, buffer, length);
+  visit(srcName, pgn, buffer, length);
 }
 
 bool Nmea2000Source::apply(const PgnClasses::VesselHeading& packet) {
@@ -20,7 +19,7 @@ bool Nmea2000Source::apply(const PgnClasses::VesselHeading& packet) {
   _dispatcher->publishValue(
       (packet.reference().get() == VesselHeading::Reference::Magnetic ?
         MAG_HEADING : GPS_BEARING),
-      _currentMessageSource, packet.heading().get());
+      getCurrentNmea2000Source(), packet.heading().get());
 
   return true;
 }
@@ -30,7 +29,7 @@ bool Nmea2000Source::apply(const PgnClasses::Speed& packet) {
 
 
   if (packet.speedWaterReferenced().defined()) {
-    _dispatcher->publishValue(WAT_SPEED, _currentMessageSource,
+    _dispatcher->publishValue(WAT_SPEED, getCurrentNmea2000Source(),
                               packet.speedWaterReferenced().get());
   }
   return true;
@@ -75,11 +74,11 @@ bool Nmea2000Source::apply(const PgnClasses::WindData& packet) {
   }
 
   if (packet.windAngle().defined()) {
-    _dispatcher->publishValue(angleChannel, _currentMessageSource,
+    _dispatcher->publishValue(angleChannel, getCurrentNmea2000Source(),
                               packet.windAngle().get());
   }
   if (packet.windSpeed().defined()) {
-    _dispatcher->publishValue(speedChannel, _currentMessageSource,
+    _dispatcher->publishValue(speedChannel, getCurrentNmea2000Source(),
                               packet.windSpeed().get());
   }
   return true;
