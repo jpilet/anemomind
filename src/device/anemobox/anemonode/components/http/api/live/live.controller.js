@@ -14,7 +14,10 @@ exports.index = function(req, res) {
   for (var i in anemonode.dispatcher.values) {
     if (anemonode.dispatcher.values[i].length() > 0
         && Math.abs(anemonode.dispatcher.values[i].time().getTime() - date) < 2000) {
-      response[i] = anemonode.dispatcher.values[i].value()
+      response[i] = {
+        v: anemonode.dispatcher.values[i].value(),
+        s: anemonode.dispatcher.values[i].source()
+      };
     }
   }
   if (pendingCallPackets.length > 0) {
