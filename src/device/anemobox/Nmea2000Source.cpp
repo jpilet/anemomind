@@ -127,7 +127,7 @@ bool Nmea2000Source::apply(const PgnClasses::DirectionData& packet) {
   if (packet.valid()) {
     if (packet.cog().defined()) {
       auto c = packet.cog().get();
-      if (packet.cogReference() == PgnClasses::DirectionData::CogReference::True) {
+      if (packet.cogReference().get() == PgnClasses::DirectionData::CogReference::True) {
         _dispatcher->publishValue(GPS_BEARING, _currentMessageSource, c);
       }
     }
