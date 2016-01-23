@@ -19,10 +19,14 @@ class Nmea2000Source : public PgnClasses::PgnVisitor {
                int length);
 
  protected:
-  virtual bool apply(const PgnClasses::VesselHeading& packet);
-  virtual bool apply(const PgnClasses::Speed& packet);
-  virtual bool apply(const PgnClasses::WindData& packet);
-
+  bool apply(const PgnClasses::VesselHeading& packet);
+  bool apply(const PgnClasses::Speed& packet);
+  bool apply(const PgnClasses::GnssPositionData& packet);
+  bool apply(const PgnClasses::WindData& packet);
+  bool apply(const PgnClasses::PositionRapidUpdate& packet);
+  bool apply(const PgnClasses::CogSogRapidUpdate& packet);
+  bool apply(const PgnClasses::TimeDate& packet);
+  bool apply(const PgnClasses::DirectionData& packet);
  private:
   Dispatcher *_dispatcher;
   std::string _currentMessageSource;
