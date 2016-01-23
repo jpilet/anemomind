@@ -104,10 +104,8 @@ bool Nmea2000Source::apply(const PgnClasses::CogSogRapidUpdate& packet) {
     if (packet.sog().defined()) {
       _dispatcher->publishValue(GPS_SPEED, _currentMessageSource, packet.sog().get());
     }
-    if (packet.cog().defined()) {
-      auto channel = packet.cogReference().get() == CogSogRapidUpdate::CogReference::Magnetic?
-          MAG_HEADING : GPS_BEARING;
-      _dispatcher->publishValue(channel, _currentMessageSource, packet.cog().get());
+    if (packet.cog().defined() && packet.cogReference().get() == CogSogRapidUpdate::CogReference::True) {
+      _dispatcher->publishValue(GPS_BEARING, _currentMessageSource, packet.cog().get());
     }
     return true;
   }
@@ -129,9 +127,7 @@ bool Nmea2000Source::apply(const PgnClasses::DirectionData& packet) {
   if (packet.valid()) {
     if (packet.cog().defined()) {
       auto c = packet.cog().get();
-      if (packet.cogReference() == PgnClasses::DirectionData::CogReference::Magnetic) {
-        _dispatcher->publishValue(MAG_HEADING, _currentMessageSource, c);
-      } else {
+      if (packet.cogReference() == PgnClasses::DirectionData::CogReference::True) {
         _dispatcher->publishValue(GPS_BEARING, _currentMessageSource, c);
       }
     }
