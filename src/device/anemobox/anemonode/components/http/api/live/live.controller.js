@@ -7,7 +7,7 @@ var pendingCallPackets = [];
 
 var lastFetch;
 
-// Get list of boats
+// Get list of values, only from the best source per channel
 exports.index = function(req, res) {
   var response = {};
   var date = (new Date()).getTime();
@@ -27,6 +27,26 @@ exports.index = function(req, res) {
   lastFetch = new Date()
   res.json(response);
 };
+
+exports.allSources = function(req, res) {
+  var response = {};
+  var sources = anemonode.dispatcher.allSources();
+
+  for (var channel in sources) {
+    var sourcesForChannel = { }
+    for (var source in sources[channel]) {
+      sourcesForChannel[source] = {
+        v: sources[channel][source].value(),
+        t: sources[channel][source].time(),
+        p: anemonode.dispatcher.sourcePriority(source)
+      };
+    }
+    response[channel] = sourcesForChannel;
+  }
+
+  res.json(response);
+}
+
 
 function handleError(res, err) {
   return res.status(500).send(err);

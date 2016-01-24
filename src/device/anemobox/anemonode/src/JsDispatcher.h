@@ -27,9 +27,11 @@ class JsDispatcher : public node::ObjectWrap {
   static NAN_METHOD(New);
   static NAN_METHOD(setSourcePriority);
   static NAN_METHOD(sourcePriority);
+  static NAN_METHOD(allSources);
 
  private:
   Dispatcher* _dispatcher;
+  v8::Persistent<v8::FunctionTemplate> persistentConstructor;
 };
 
 }  // namespace sail
