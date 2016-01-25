@@ -70,6 +70,9 @@ dispatcher.setSourcePriority("Internal GPS", -2);
 // The CUPS sensor has less priority than NMEA.
 dispatcher.setSourcePriority("CUPS", -2);
 
+// NMEA2000 unknown devices, with id=0, have a very low priority.
+dispatcher.setSourcePriority("NMEA2000/0", -10);
+
 // Internal GPS with output to NMEA0183
 var gps = (withGps ?  require('./components/gps') : {readGps:function(){}});
 function gpsData(data) {
