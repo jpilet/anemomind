@@ -35,3 +35,11 @@ cxx_test(n2k_PgnClassesTest
          n2k_PgnClasses
          gtest_main
         )
+
+cxx_test(n2k_CandumpTest
+         CandumpTest.cpp
+         gtest_main
+         n2k_PgnClasses
+         common_Env
+         common_PathBuilder
+        )

@@ -3,6 +3,10 @@ var fs = require('fs');
 var assert = require('assert');
 var Path = require('path');
 
+function concat(a, b) {
+  return a.concat(b);
+}
+
 function makeSet() {
   return {};
 }
@@ -56,10 +60,11 @@ function indentLineArray(depth, lines) {
   return beginLine(depth-1) + lines;
 }
 
-function getDuplicateId(pgns) {
+function getDuplicate(pgns, f) {
+  assert(f);
   var idSet = makeSet();
   for (var i = 0; i < pgns.length; i++) {
-    id = pgns[i].Id + '';
+    id = f(pgns[i]);
     if (inSet(id, idSet)) {
       return id;
     }
@@ -140,10 +145,19 @@ function getBitLength(field) {
   return parseInt(field.BitLength + "");
 }
 
+function getBitOffset(field) {
+  return parseInt(field.BitOffset + '');
+}
+
+
 function makeIntegerReadExpr(field, srcName) {
   var signed = isSigned(field);
   var extractor = signed? "getSigned" : "getUnsigned";
   return srcName + "." + extractor + "(" + getBitLength(field) + ")";
+}
+
+function isData(field) {
+  return getFieldId(field) == "data";
 }
 
 unitMap = {
@@ -183,7 +197,6 @@ function getUnitInfo(field) {
   return unitMap[unit];
 }
 
-
 function getFieldType(field) {
   if (isLookupTable(field)) {
     return getEnumClassName(field);
@@ -191,6 +204,8 @@ function getFieldType(field) {
     return getUnitInfo(field).type;
   } else if (isSigned(field)) {
     return "int64_t";
+  } else if (isData(field)) {
+    return "sail::Array<uint8_t>";
   } else {
     return "uint64_t";
   }
@@ -302,7 +317,7 @@ function makeConstructorDecl(pgn, depth) {
 }
 
 function makePgnStaticConst(pgn, depth) {
-  return beginLine(depth) + "static const int pgn = " + getPgnCode(pgn) + ";";
+  return beginLine(depth) + "static const int ThisPgn = " + getPgnCode(pgn) + ";";
 }
 
 function getType(field) {
@@ -312,7 +327,7 @@ function getType(field) {
 
 function isLookupTable(field) {
   var t = getType(field);
-  return t == "Lookup table";
+  return t == "Lookup table" && field.EnumValues != null;
 }
 
 function getEnumClassName(field) {
@@ -391,44 +406,355 @@ function makeClassDeclarationsSub(pgns) {
   return s;
 }
 
-function makeVisitorDeclaration(pgns) {
-  var s = [
-    '\n\nclass PgnVisitor {',
-    ' public:',
-    '  bool visit(int pgn, const uint8_t *data, int length);',
-    '  virtual ~PgnVisitor() {}',
-    ' protected:'
-  ];
-  for (var i = 0; i < pgns.length; i++) {
-    s.push('  virtual bool apply'
-           + '(const ' + getClassName(pgns[i]) + '& packet) { return false; }');
+function getCommonPgnCode(pgnDefs) {
+  assert(0 < pgnDefs.length);
+  var code = getPgnCode(pgnDefs[0]);
+  for (var i = 1; i < pgnDefs.length; i++) {
+    assert(code == getPgnCode(pgnDefs[i]));
   }
-  s.push('};\n');
-  return s.join('\n');
+  return code;
+}
+
+function concatReduce(x) {
+  assert(x instanceof Array);
+  if (x.length == 0) {
+    return x;
+  } else {
+    return x.reduce(concat);
+  }
+}
+
+function makePgnVariantDispatchers(multiDefs) {
+  return concatReduce(concatReduce(multiDefs.map(function(pgnDefs) {
+    var code = getCommonPgnCode(pgnDefs);
+    var dispatchFields = getDispatchFields(pgnDefs);
+    var tree = makeDispatchTree(pgnDefs, dispatchFields, makeIndexSet(pgnDefs.length));
+    var other = listOtherDispatchFunctions(code, tree, []);
+    var tname = makePgnEnumTypeName(code);
+    return other.map(function(name) {
+      return ["virtual " + tname + " " + name
+              + "(const CanPacket &packet) {",
+              ["return " + tname + "::Undefined; // TODO in derived class"],
+              "}"];
+    })
+  })));
+}
+
+var canPacket = indentLineArray(1, ['\n', 'struct CanPacket {', [
+  "std::string src;",
+  "int pgn;", 
+  "const uint8_t *data;", 
+  "int length;"], "};"]);
+
+function makeVisitorDeclaration(pgns) {
+  var defMap = makeDefsPerPgn(pgns);
+  var multiDefs = getMultiDefs(defMap);
+  var s = [
+    '\n\n',
+    'class PgnVisitor {',
+    ' public:',
+    ['bool visit(const CanPacket &packet);',
+     'virtual ~PgnVisitor() {}'],
+    ' protected:',
+    pgns.map(function(pgn) {
+      return 'virtual bool apply'
+        + '(const CanPacket& src, const ' + getClassName(pgn) + '& packet) { return false; }';
+    }),
+    makePgnVariantDispatchers(multiDefs),
+    "};"
+  ];
+  return indentLineArray(1, s);
+}
+
+function makeDefsPerPgn(pgns) {
+  var dst = {};
+  for (var i = 0; i < pgns.length; i++) {
+    var pgn = pgns[i];
+    var n = getPgnCode(pgn);
+    if (n in dst) {
+      dst[n].push(pgn);
+    } else {
+      dst[n] = [pgn];
+    }
+  }
+  return dst;
+}
+
+function getMultiDefs(defMap) {
+  return Object.keys(defMap).map(function(key) {
+    return defMap[key];
+  }).filter(function(arr) {
+    return 1 < arr.length;
+  });
+}
+
+function makePgnEnumValueName(pgn) {
+  return "Type" + getClassName(pgn);
+}
+
+function makePgnEnumTypeName(pgnCode) {
+  return "PgnVariant" + pgnCode;
+}
+
+function getFieldMatch(field) {
+  if (field.Match != null) {
+    return parseInt(field.Match + '');
+  }
+  return null;
+}
+
+
+function getFieldsMarkedMatch(fields) {
+  return fields.filter(function(f) {
+    return f.Match != null;
+  });
+}
+
+
+function addDispatchFieldEntries(defIndex, mf, occupied, dst) {
+  for (var i = 0; i < mf.length; i++) {
+    var field = mf[i];
+    var offset = getBitOffset(field);
+    var length = getBitLength(field);
+    for (var i = 0; i < length; i++) {
+      var index = offset + i;
+      assert(!occupied[index], "Overlapping dispatch fields");
+    }
+    var e = dst[offset];
+    var m = getFieldMatch(field);
+    if(!dst[offset]) {
+      dst[offset] = {
+        offset: offset,
+        length: length,
+        lookup: {}
+      };
+    }
+    e = dst[offset];
+    assert(e.offset == offset, "Inconsistency");
+    assert(e.length == length, "Inconsistency");
+    if (!e.lookup[m]) {
+      e.lookup[m] = makeSet();
+    }
+    insertIntoSet(defIndex, e.lookup[m]);
+  }
+  return dst;
+}
+
+function getSortedDispatchFields(m) {
+  var arr = [];
+  for (var key in m) {
+    arr.push(m[key]);
+  }
+  arr.sort(function(a, b) {
+    return a.offset < b.offset? -1 : 1;
+  });
+  return arr;
+}
+
+function getDispatchFields(pgnDefs) {
+  var dst = {};
+  var occupied = [];
+  for (var i = 0; i < pgnDefs.length; i++) {
+    var pgnDef = pgnDefs[i];
+    var mf = getFieldsMarkedMatch(getFieldArray(pgnDef));
+    addDispatchFieldEntries(i, mf, occupied, dst);
+  }
+  return getSortedDispatchFields(dst);
+}
+
+function makeDispatchVariableName(index) {
+  return "dispatchCode" + index;
+}
+
+function makeDispatchCodeAssignments(pgnDefs, sortedFields) {
+  var s = ["BitStream dispatchStream(packet.data, packet.length);"];
+  var at = 0;
+  for (var i = 0; i < sortedFields.length; i++) {
+    var f = sortedFields[i];
+    if (at < f.offset) {
+      s.push("dispatchStream.advanceBits(" + f.offset - at + ");");
+    }
+    s.push("auto " + makeDispatchVariableName(i) + " = dispatchStream.getUnsigned("
+           + f.length + ");");
+    at = f.offset + f.length;
+  }
+  return s;
+}
+
+function intersect(setA, setB) {
+  var dst = makeSet();
+  for (var i in setA) {
+    if (i in setB) {
+      insertIntoSet(i, dst);
+    }
+  }
+  return dst;
+}
+
+
+function makeIndexSet(n) {
+  var s = makeSet();
+  for (var i = 0; i < n; i++) {
+    insertIntoSet(i, s);
+  }
+  return s;
+}
+
+function setToIntArray(src) {
+  var dst = [];
+  for (var i in src) {
+    dst.push(parseInt(i));
+  }
+  return dst;
+}
+
+function makeDispatchTree(pgnDefs, sortedFields, subset) {
+  if (sortedFields.length == 0) {
+    return setToIntArray(subset).map(function(i) {
+      return pgnDefs[i];
+    });
+  } else {
+    var f = sortedFields[0];
+    var dst = {};
+    for (var key in f.lookup) {
+      var lu = f.lookup[key];
+      var subSubset = intersect(subset, lu);
+      dst[key] = makeDispatchTree(pgnDefs, sortedFields.slice(1), subSubset);
+    }
+    return dst;
+  }
+}
+
+function wrapCase(label, statements) {
+  if (statements instanceof Array) {
+    return [label + ": {", statements, ["break;"], "}"];
+  } else {
+    assert(typeof statements == "string");
+    return [label  + ": " + statements];
+  }
+}
+
+function makeSwitchStatement(map, switchExpression, defaultExpression, perCaseFunction) {
+  return ["switch(" + switchExpression + ") {",
+          Object.keys(map).map(function(key) {
+            return wrapCase("case "+ key, perCaseFunction(key, map[key]));
+          }).reduce(concat)
+          .concat(wrapCase("default", defaultExpression)),
+          "};"];
+}
+
+
+function makeVariantDispatchFunctionName(pgnCode, branches) {
+  return "getDispatchCodeFor" + pgnCode + branches.map(function(x) {
+    return "_" + x;
+  }).join("");
+}
+
+function makePgnVariantMap(code, arr) {
+  var dst = {};
+  var t = makePgnEnumTypeName(code);
+  for (var i = 0; i < arr.length; i++) {
+    var pgn = arr[i];
+    dst[t + "::" + makePgnEnumValueName(pgn)] = pgn;
+  }
+  return dst;
+}
+
+function makeOtherVariantDispatch(pgnCode, pgnDefs, branches) {
+  assert(pgnDefs instanceof Array);
+  return makeSwitchStatement(
+    makePgnVariantMap(pgnCode, pgnDefs), 
+    makeVariantDispatchFunctionName(pgnCode, branches) 
+      + "(packet)",
+    "return false;", function(key, pgnDef) {
+      return callApplyMethod([pgnDef]);
+    });
+}
+
+function makeVariantStatement(pgnCode, tree, branches) {
+  if (tree instanceof Array) {
+    if (tree.length == 1) {
+      return callApplyMethod(tree);
+    } else {
+      return makeOtherVariantDispatch(pgnCode, tree, branches);
+    }
+  } else {
+  return makeSwitchStatement(
+    tree, makeDispatchVariableName(branches.length),
+    "return false;",
+    function(key, tree) {
+      return makeVariantStatement(pgnCode, tree, branches.concat([key]));
+    });
+  }
+}
+
+function listOtherDispatchFunctions(pgnCode, tree, branches) {
+  if (tree instanceof Array) {
+    if (1 < tree.length) {
+      return [makeVariantDispatchFunctionName(pgnCode, branches)];
+    } else {
+      return [];
+    }
+  } else {
+    var result = [];
+    for (var key in tree) {
+      result = result.concat(listOtherDispatchFunctions(
+        pgnCode, tree[key], branches.concat([key])));
+    }
+    return result;
+  }
+}
+
+function callApplyMethod(pgnDefs) {
+  if (pgnDefs.length == 1) {
+    return 'return apply(packet, ' + getClassName(pgnDefs[0]) + '(packet.data, packet.length));';
+  } else {
+    var code = getCommonPgnCode(pgnDefs);
+    var dispatchFields = getDispatchFields(pgnDefs);
+    var tree = makeDispatchTree(pgnDefs, dispatchFields, makeIndexSet(pgnDefs.length));
+    var assignments = makeDispatchCodeAssignments(pgnDefs, dispatchFields);
+    var cases = makeVariantStatement(code, tree, []);
+    return assignments.concat(cases);
+  }
+}
+
+
+
+
+function makePgnEnum(pgnDefs) {
+  if (pgnDefs.length == 1) {
+    return null;
+  } else {
+    var code = getCommonPgnCode(pgnDefs);
+    var symbols = pgnDefs.map(function(pgn) {
+      return makePgnEnumValueName(pgn) + ",";
+    });
+    symbols.push("Undefined");
+    return indentLineArray(
+      1, ["enum class " + makePgnEnumTypeName(code) 
+          + " {", symbols, "};\n"]);
+  }
 }
 
 function makeVisitorImplementation(pgns) {
-  var s = [
-    'bool PgnVisitor::visit(int pgn, const uint8_t *data, int length) {',
-    '  switch(pgn) {'
-  ];
-
-  for (var i = 0; i < pgns.length; i++) {
-    var pgn = pgns[i];
-    s.push('    case ' + getPgnCode(pgn) + ': '
-           + 'return apply(' + getClassName(pgn) + '(data, length));');
-  }
-  s.push('  }  // closes switch');
-  s.push('  return false;');
-  s.push('}\n');
-  return s.join('\n');
+  return indentLineArray(0, [
+    'bool PgnVisitor::visit(const CanPacket &packet) {',
+    makeSwitchStatement(
+      makeDefsPerPgn(pgns), "packet.pgn", "return false;", 
+      function(key, pgnDefs) {
+        return callApplyMethod(pgnDefs);
+      }),
+    ['return false;'],
+    "}"]);
 }
 
 
-function makeClassDeclarations(label, pgns) {
+function makeInterface(label, pgns) {
   return wrapNamespace(
     label,
-    makeClassDeclarationsSub(pgns)
+    makePgnEnums(pgns)
+    + makeClassDeclarationsSub(pgns)
+    + canPacket
     + makeVisitorDeclaration(pgns));
 }
 
@@ -483,11 +809,36 @@ function boolToString(x) {
   return x? "true" : "false";
 }
 
+function sortedIntegers(x) {
+  for (var i = 0; i < x.length-1; i++) {
+    if (x[i] > x[i+1]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function getEnumValueSet(field) {
-  return "{" + getEnumPairs(field)
-    .map(function(x) {return x.value;})
-    .sort() // <-- Because that is what N2kField::contains expects.
-    .join(", ") + "}";
+  var intSet = getEnumPairs(field)
+    .map(function(x) {
+      return parseInt(x.value);
+    });
+
+  // Seems like the Javascript method
+  // 'sort' converts elements to strings
+  // before comparison. So integers are
+  // not sorted the way you would expect!
+  intSet.sort(function(a, b) {
+    if (a < b) {
+      return -1;
+    } else if (a == b) {
+      return 0;
+    } else {
+      return 1;
+    }
+  });
+  assert(sortedIntegers(intSet));
+  return "{" + intSet.join(", ") + "}";
 }
 
 function getEnumedFields(fields) {
@@ -526,6 +877,10 @@ function makeFieldAssignment(field, depth) {
       return lhs + "src.getUnsignedInSet(" 
         + bits + ", " + getEnumValueSet(field) + ").cast<" 
         + getFieldType(field) + ">();";
+    } else if (isData(field)) {
+      assert(bits % 8 == 0, 
+             "Cannot read bytes, because the number of bits is not a multiple of 8.");
+      return lhs + "src.readBytes(" + bits + ");"
     } else { // Something else.
       return lhs
         + (signed? "src.getSigned(" : "src.getUnsigned(")
@@ -650,11 +1005,17 @@ var publicInclusions = '#include <device/Arduino/libraries/PhysicalQuantity/Phys
     +'#include <device/anemobox/n2k/N2kField.h>\n'
     +'#include <server/common/Optional.h>\n\n';
 
+
+function makePgnEnums(pgns) {
+  var defMap = makeDefsPerPgn(pgns);
+  return getMultiDefs(defMap).map(makePgnEnum).join("\n");
+}
+
 function makeInterfaceFileContents(moduleName, pgns) {
   return wrapInclusionGuard(
     moduleName.toUpperCase(), 
     publicInclusions + 
-    makeClassDeclarations(moduleName, pgns));
+    makeInterface(moduleName, pgns));
 }
 
 function makeInfoComment(argv, inputPath) {
@@ -723,13 +1084,28 @@ function makeSourceLink(src) {
   return '<p>Source <a href="' + src + '">' + src + '</a><p/>';
 }
 
+function getPgnId(pgn) {
+  if (pgn.Id) {
+    return pgn.Id + '';
+  } else {
+    console.log("PGN " + pgn.PGN + " has no Id");
+    return null;
+  }
+}
+
+function checkPgns(pgns) {
+  var dup = getDuplicate(pgns, getPgnId);
+  assert(dup == undefined, "PGN Ids are not unique: '" + dup + '"');
+}
+
+
 function compileAllFiles(argv, value, inputPath, outputPath, cb) {
   var moduleName = "PgnClasses";
   try {
     var allPgns = getPgnArrayFromParsedXml(value);
     var pgns = filterPgnsOfInterest(allPgns);
-    var dup = getDuplicateId(pgns);
-    assert(dup == undefined, "Ids are not unique: " + dup);
+    
+    checkPgns(pgns);
     var cmt = makeInfoComment(argv, inputPath);
     var interfaceData = cmt + makeInterfaceFileContents(moduleName, pgns);
     var implementationData = cmt + makeImplementationFileContents(moduleName, pgns);

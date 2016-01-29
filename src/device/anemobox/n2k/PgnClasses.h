@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 22 2016 17:57:17 GMT+0100 (CET) using 
+/** Generated on Fri Jan 29 2016 16:24:24 GMT+0100 (CET) using 
  *
  *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *
@@ -13,11 +13,154 @@
 #include <server/common/Optional.h>
 
 namespace PgnClasses {
+  enum class PgnVariant60416 {
+    TypeIsoTransportProtocolConnectionManagementRequestToSend,
+    TypeIsoTransportProtocolConnectionManagementClearToSend,
+    TypeIsoTransportProtocolConnectionManagementEndOfMessage,
+    TypeIsoTransportProtocolConnectionManagementBroadcastAnnounce,
+    TypeIsoTransportProtocolConnectionManagementAbort,
+    Undefined
+  };
+
+
+  // ISO Transport Protocol, Data Transfer
+  class IsoTransportProtocolDataTransfer {
+  public:
+    static const int ThisPgn = 60160;
+
+    IsoTransportProtocolDataTransfer();
+    IsoTransportProtocolDataTransfer(const uint8_t *data, int lengthBytes);
+    bool valid() const {return _valid;}
+    void reset();
+
+    // Field access
+    const Optional<uint64_t > &sid() const {return _sid;}
+    const Optional<sail::Array<uint8_t> > &data() const {return _data;}
+  private:
+    bool _valid;
+    Optional<uint64_t > _sid; 
+    Optional<sail::Array<uint8_t> > _data; 
+  };
+
+  // ISO Transport Protocol, Connection Management - Request To Send
+  class IsoTransportProtocolConnectionManagementRequestToSend {
+  public:
+    static const int ThisPgn = 60416;
+
+    IsoTransportProtocolConnectionManagementRequestToSend();
+    IsoTransportProtocolConnectionManagementRequestToSend(const uint8_t *data, int lengthBytes);
+    bool valid() const {return _valid;}
+    void reset();
+
+    // Field access
+    const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
+    const Optional<uint64_t > &messageSize() const {return _messageSize;}
+    const Optional<uint64_t > &packets() const {return _packets;}
+    const Optional<uint64_t > &packetsReply() const {return _packetsReply;}
+    const Optional<uint64_t > &pgn() const {return _pgn;}
+  private:
+    bool _valid;
+    Optional<uint64_t > _groupFunctionCode; // RTS
+    Optional<uint64_t > _messageSize; // bytes
+    Optional<uint64_t > _packets; // packets
+    Optional<uint64_t > _packetsReply; // packets sent in response to CTS
+    Optional<uint64_t > _pgn; // PGN
+  };
+
+  // ISO Transport Protocol, Connection Management - Clear To Send
+  class IsoTransportProtocolConnectionManagementClearToSend {
+  public:
+    static const int ThisPgn = 60416;
+
+    IsoTransportProtocolConnectionManagementClearToSend();
+    IsoTransportProtocolConnectionManagementClearToSend(const uint8_t *data, int lengthBytes);
+    bool valid() const {return _valid;}
+    void reset();
+
+    // Field access
+    const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
+    const Optional<uint64_t > &maxPackets() const {return _maxPackets;}
+    const Optional<uint64_t > &nextSid() const {return _nextSid;}
+    const Optional<uint64_t > &pgn() const {return _pgn;}
+  private:
+    bool _valid;
+    Optional<uint64_t > _groupFunctionCode; // CTS
+    Optional<uint64_t > _maxPackets; // packets before waiting for next CTS
+    Optional<uint64_t > _nextSid; // packet
+    Optional<uint64_t > _pgn; // PGN
+  };
+
+  // ISO Transport Protocol, Connection Management - End Of Message
+  class IsoTransportProtocolConnectionManagementEndOfMessage {
+  public:
+    static const int ThisPgn = 60416;
+
+    IsoTransportProtocolConnectionManagementEndOfMessage();
+    IsoTransportProtocolConnectionManagementEndOfMessage(const uint8_t *data, int lengthBytes);
+    bool valid() const {return _valid;}
+    void reset();
+
+    // Field access
+    const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
+    const Optional<uint64_t > &totalMessageSize() const {return _totalMessageSize;}
+    const Optional<uint64_t > &totalNumberOfPacketsReceived() const {return _totalNumberOfPacketsReceived;}
+    const Optional<uint64_t > &pgn() const {return _pgn;}
+  private:
+    bool _valid;
+    Optional<uint64_t > _groupFunctionCode; // EOM
+    Optional<uint64_t > _totalMessageSize; // bytes
+    Optional<uint64_t > _totalNumberOfPacketsReceived; // packets
+    Optional<uint64_t > _pgn; // PGN
+  };
+
+  // ISO Transport Protocol, Connection Management - Broadcast Announce
+  class IsoTransportProtocolConnectionManagementBroadcastAnnounce {
+  public:
+    static const int ThisPgn = 60416;
+
+    IsoTransportProtocolConnectionManagementBroadcastAnnounce();
+    IsoTransportProtocolConnectionManagementBroadcastAnnounce(const uint8_t *data, int lengthBytes);
+    bool valid() const {return _valid;}
+    void reset();
+
+    // Field access
+    const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
+    const Optional<uint64_t > &messageSize() const {return _messageSize;}
+    const Optional<uint64_t > &packets() const {return _packets;}
+    const Optional<uint64_t > &pgn() const {return _pgn;}
+  private:
+    bool _valid;
+    Optional<uint64_t > _groupFunctionCode; // BAM
+    Optional<uint64_t > _messageSize; // bytes
+    Optional<uint64_t > _packets; // frames
+    Optional<uint64_t > _pgn; // PGN
+  };
+
+  // ISO Transport Protocol, Connection Management - Abort
+  class IsoTransportProtocolConnectionManagementAbort {
+  public:
+    static const int ThisPgn = 60416;
+
+    IsoTransportProtocolConnectionManagementAbort();
+    IsoTransportProtocolConnectionManagementAbort(const uint8_t *data, int lengthBytes);
+    bool valid() const {return _valid;}
+    void reset();
+
+    // Field access
+    const Optional<uint64_t > &groupFunctionCode() const {return _groupFunctionCode;}
+    const Optional<uint64_t > &reason() const {return _reason;}
+    const Optional<uint64_t > &pgn() const {return _pgn;}
+  private:
+    bool _valid;
+    Optional<uint64_t > _groupFunctionCode; // Abort
+    Optional<uint64_t > _reason; 
+    Optional<uint64_t > _pgn; // PGN
+  };
 
   // System Time
   class SystemTime {
   public:
-    static const int pgn = 126992;
+    static const int ThisPgn = 126992;
     enum class Source {
       GPS = 0, 
       GLONASS = 1, 
@@ -51,7 +194,7 @@ namespace PgnClasses {
   // Vessel Heading
   class VesselHeading {
   public:
-    static const int pgn = 127250;
+    static const int ThisPgn = 127250;
     enum class Reference {
       True = 0, 
       Magnetic = 1
@@ -80,7 +223,7 @@ namespace PgnClasses {
   // Attitude
   class Attitude {
   public:
-    static const int pgn = 127257;
+    static const int ThisPgn = 127257;
 
     Attitude();
     Attitude(const uint8_t *data, int lengthBytes);
@@ -97,7 +240,7 @@ namespace PgnClasses {
   // Speed
   class Speed {
   public:
-    static const int pgn = 128259;
+    static const int ThisPgn = 128259;
     enum class SpeedWaterReferencedType {
       Paddle_wheel = 0, 
       Pitot_tube = 1, 
@@ -127,7 +270,7 @@ namespace PgnClasses {
   // Position, Rapid Update
   class PositionRapidUpdate {
   public:
-    static const int pgn = 129025;
+    static const int ThisPgn = 129025;
 
     PositionRapidUpdate();
     PositionRapidUpdate(const uint8_t *data, int lengthBytes);
@@ -146,7 +289,7 @@ namespace PgnClasses {
   // COG & SOG, Rapid Update
   class CogSogRapidUpdate {
   public:
-    static const int pgn = 129026;
+    static const int ThisPgn = 129026;
     enum class CogReference {
       True = 0, 
       Magnetic = 1
@@ -173,7 +316,7 @@ namespace PgnClasses {
   // GNSS Position Data
   class GnssPositionData {
   public:
-    static const int pgn = 129029;
+    static const int ThisPgn = 129029;
     enum class GnssType {
       GPS = 0, 
       GLONASS = 1, 
@@ -261,7 +404,7 @@ namespace PgnClasses {
   // Time & Date
   class TimeDate {
   public:
-    static const int pgn = 129033;
+    static const int ThisPgn = 129033;
 
     TimeDate();
     TimeDate(const uint8_t *data, int lengthBytes);
@@ -285,7 +428,7 @@ namespace PgnClasses {
   // Wind Data
   class WindData {
   public:
-    static const int pgn = 130306;
+    static const int ThisPgn = 130306;
     enum class Reference {
       True_ground_referenced_to_North = 0, 
       Magnetic_ground_referenced_to_Magnetic_North = 1, 
@@ -315,7 +458,7 @@ namespace PgnClasses {
   // Direction Data
   class DirectionData {
   public:
-    static const int pgn = 130577;
+    static const int ThisPgn = 130577;
     enum class DataMode {
       Autonomous = 0, 
       Differential_enhanced = 1, 
@@ -355,24 +498,39 @@ namespace PgnClasses {
     Optional<sail::Angle<double> > _set; 
     Optional<sail::Velocity<double> > _drift; 
   };
+  
 
-class PgnVisitor {
- public:
-  bool visit(int pgn, const uint8_t *data, int length);
-  virtual ~PgnVisitor() {}
- protected:
-  virtual bool apply(const SystemTime& packet) { return false; }
-  virtual bool apply(const VesselHeading& packet) { return false; }
-  virtual bool apply(const Attitude& packet) { return false; }
-  virtual bool apply(const Speed& packet) { return false; }
-  virtual bool apply(const PositionRapidUpdate& packet) { return false; }
-  virtual bool apply(const CogSogRapidUpdate& packet) { return false; }
-  virtual bool apply(const GnssPositionData& packet) { return false; }
-  virtual bool apply(const TimeDate& packet) { return false; }
-  virtual bool apply(const WindData& packet) { return false; }
-  virtual bool apply(const DirectionData& packet) { return false; }
-};
+  struct CanPacket {
+    std::string src;
+    int pgn;
+    const uint8_t *data;
+    int length;
+  };
+  
 
+
+  class PgnVisitor {
+   public:
+    bool visit(const CanPacket &packet);
+    virtual ~PgnVisitor() {}
+   protected:
+    virtual bool apply(const CanPacket& src, const IsoTransportProtocolDataTransfer& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementRequestToSend& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementClearToSend& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementEndOfMessage& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementBroadcastAnnounce& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const IsoTransportProtocolConnectionManagementAbort& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const SystemTime& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const VesselHeading& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const Attitude& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const Speed& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const PositionRapidUpdate& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const CogSogRapidUpdate& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const GnssPositionData& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const TimeDate& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const WindData& packet) { return false; }
+    virtual bool apply(const CanPacket& src, const DirectionData& packet) { return false; }
+  };
 }
 
 #endif

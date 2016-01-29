@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 22 2016 17:57:17 GMT+0100 (CET) using 
+/** Generated on Fri Jan 29 2016 16:24:24 GMT+0100 (CET) using 
  *
  *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *
@@ -9,6 +9,138 @@
 #include <device/anemobox/n2k/N2kField.h>
 
 namespace PgnClasses {
+
+  IsoTransportProtocolDataTransfer::IsoTransportProtocolDataTransfer() {
+    reset();
+  }
+
+  IsoTransportProtocolDataTransfer::IsoTransportProtocolDataTransfer(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (64 <= src.remainingBits()) {
+      _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _data = src.readBytes(56);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void IsoTransportProtocolDataTransfer::reset() {
+    _valid = false;
+  }
+
+  IsoTransportProtocolConnectionManagementRequestToSend::IsoTransportProtocolConnectionManagementRequestToSend() {
+    reset();
+  }
+
+  IsoTransportProtocolConnectionManagementRequestToSend::IsoTransportProtocolConnectionManagementRequestToSend(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (64 <= src.remainingBits()) {
+      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
+      _packets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _packetsReply = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void IsoTransportProtocolConnectionManagementRequestToSend::reset() {
+    _valid = false;
+  }
+
+  IsoTransportProtocolConnectionManagementClearToSend::IsoTransportProtocolConnectionManagementClearToSend() {
+    reset();
+  }
+
+  IsoTransportProtocolConnectionManagementClearToSend::IsoTransportProtocolConnectionManagementClearToSend(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (64 <= src.remainingBits()) {
+      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _maxPackets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _nextSid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      // Skipping reserved
+      src.advanceBits(16);
+      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void IsoTransportProtocolConnectionManagementClearToSend::reset() {
+    _valid = false;
+  }
+
+  IsoTransportProtocolConnectionManagementEndOfMessage::IsoTransportProtocolConnectionManagementEndOfMessage() {
+    reset();
+  }
+
+  IsoTransportProtocolConnectionManagementEndOfMessage::IsoTransportProtocolConnectionManagementEndOfMessage(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (64 <= src.remainingBits()) {
+      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _totalMessageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
+      _totalNumberOfPacketsReceived = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      // Skipping reserved
+      src.advanceBits(8);
+      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void IsoTransportProtocolConnectionManagementEndOfMessage::reset() {
+    _valid = false;
+  }
+
+  IsoTransportProtocolConnectionManagementBroadcastAnnounce::IsoTransportProtocolConnectionManagementBroadcastAnnounce() {
+    reset();
+  }
+
+  IsoTransportProtocolConnectionManagementBroadcastAnnounce::IsoTransportProtocolConnectionManagementBroadcastAnnounce(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (64 <= src.remainingBits()) {
+      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
+      _packets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      // Skipping reserved
+      src.advanceBits(8);
+      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void IsoTransportProtocolConnectionManagementBroadcastAnnounce::reset() {
+    _valid = false;
+  }
+
+  IsoTransportProtocolConnectionManagementAbort::IsoTransportProtocolConnectionManagementAbort() {
+    reset();
+  }
+
+  IsoTransportProtocolConnectionManagementAbort::IsoTransportProtocolConnectionManagementAbort(const uint8_t *data, int lengthBytes) {
+    N2kField::N2kFieldStream src(data, lengthBytes);
+    if (56 <= src.remainingBits()) {
+      _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      _reason = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
+      // Skipping reserved
+      src.advanceBits(16);
+      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
+      _valid = true;
+    } else {
+      reset();
+    }
+  }
+
+  void IsoTransportProtocolConnectionManagementAbort::reset() {
+    _valid = false;
+  }
 
   SystemTime::SystemTime() {
     reset();
@@ -249,20 +381,35 @@ namespace PgnClasses {
   void DirectionData::reset() {
     _valid = false;
   }
-bool PgnVisitor::visit(int pgn, const uint8_t *data, int length) {
-  switch(pgn) {
-    case 126992: return apply(SystemTime(data, length));
-    case 127250: return apply(VesselHeading(data, length));
-    case 127257: return apply(Attitude(data, length));
-    case 128259: return apply(Speed(data, length));
-    case 129025: return apply(PositionRapidUpdate(data, length));
-    case 129026: return apply(CogSogRapidUpdate(data, length));
-    case 129029: return apply(GnssPositionData(data, length));
-    case 129033: return apply(TimeDate(data, length));
-    case 130306: return apply(WindData(data, length));
-    case 130577: return apply(DirectionData(data, length));
-  }  // closes switch
+
+bool PgnVisitor::visit(const CanPacket &packet) {
+  switch(packet.pgn) {
+    case 60160: return apply(packet, IsoTransportProtocolDataTransfer(packet.data, packet.length));
+    case 60416: {
+      BitStream dispatchStream(packet.data, packet.length);
+      auto dispatchCode0 = dispatchStream.getUnsigned(8);
+      switch(dispatchCode0) {
+        case 16: return apply(packet, IsoTransportProtocolConnectionManagementRequestToSend(packet.data, packet.length));
+        case 17: return apply(packet, IsoTransportProtocolConnectionManagementClearToSend(packet.data, packet.length));
+        case 19: return apply(packet, IsoTransportProtocolConnectionManagementEndOfMessage(packet.data, packet.length));
+        case 32: return apply(packet, IsoTransportProtocolConnectionManagementBroadcastAnnounce(packet.data, packet.length));
+        case 255: return apply(packet, IsoTransportProtocolConnectionManagementAbort(packet.data, packet.length));
+        default: return false;
+      };
+      break;
+    }
+    case 126992: return apply(packet, SystemTime(packet.data, packet.length));
+    case 127250: return apply(packet, VesselHeading(packet.data, packet.length));
+    case 127257: return apply(packet, Attitude(packet.data, packet.length));
+    case 128259: return apply(packet, Speed(packet.data, packet.length));
+    case 129025: return apply(packet, PositionRapidUpdate(packet.data, packet.length));
+    case 129026: return apply(packet, CogSogRapidUpdate(packet.data, packet.length));
+    case 129029: return apply(packet, GnssPositionData(packet.data, packet.length));
+    case 129033: return apply(packet, TimeDate(packet.data, packet.length));
+    case 130306: return apply(packet, WindData(packet.data, packet.length));
+    case 130577: return apply(packet, DirectionData(packet.data, packet.length));
+    default: return false;
+  };
   return false;
 }
-
 }

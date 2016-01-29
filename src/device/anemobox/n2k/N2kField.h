@@ -53,6 +53,8 @@ class N2kFieldStream : public BitStream {
   // enum'ed values. The 'set' parameter defines what
   // integers that belong to the set of enum'ed values.
   Optional<uint64_t> getUnsignedInSet(int numBits, const std::initializer_list<int> &set);
+
+  sail::Array<uint8_t> readBytes(int numBits);
  private:
   int64_t getSigned(int numBits, int64_t offset);
 };

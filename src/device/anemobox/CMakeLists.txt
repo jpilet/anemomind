@@ -32,6 +32,24 @@ target_link_libraries(anemobox_Nmea0183Source
                       device_NmeaParser
                      )
 
+
+
+# The Nmea2000Source is actually compiled using
+# the script anemobox/anemonode/install.sh, but
+# for the conveniency of catching compilation errors on
+# a regular basis when we perform a cmake build, compile it here too.
+# And probably, we will want to link a testcase to it later.
+add_library(anemobox_Nmea2000Source
+            Nmea2000Source.h
+            Nmea2000Source.cpp
+           )
+target_link_libraries(anemobox_Nmea2000Source
+                      n2k_PgnClasses
+                     )
+
+
+
+
 add_executable(anemobox main.cpp)
 target_link_libraries(anemobox
                anemobox_Dispatcher
