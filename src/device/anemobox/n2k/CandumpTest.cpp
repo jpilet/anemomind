@@ -8,6 +8,8 @@
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
 #include <fstream>
+#include <server/common/logging.h>
+#include <server/common/string.h>
 
 using namespace PgnClasses;
 
@@ -21,15 +23,6 @@ namespace {
     uint64_t pgn;
     Array<uint8_t> data;
   };
-
-  std::pair<std::string, std::string> split(const std::string &s, char c) {
-    int index = s.find(c);
-    if (index == s.npos) {
-      return std::pair<std::string, std::string>();
-    } else {
-      return std::pair<std::string, std::string>(s.substr(0, index), s.substr(index+1, s.length() - index - 1));
-    }
-  }
 
   std::string leftPart(const std::string &s, char c) {
     return s.substr(0, s.find(c));
@@ -51,50 +44,35 @@ namespace {
   }
 
 
-
-  int parseHexDigit(char c) {
-    if ('0' <= c && c <= '9') {
-      return c - '0';
-    }
-    if ('a' <= c && c <= 'f') {
-      return (c - 'a') + 10;
-    }
-    return -1;
-  }
-
   uint64_t parseInt(const std::string &s, int base) {
-    uint64_t result = 0;
-    for (auto x: s) {
-      result = parseHexDigit(x) + base*result;
-    }
-    return result;
-  }
-
-  uint8_t parseByte(const std::string &s) {
-    auto value = 16*parseHexDigit(s[0]) + parseHexDigit(s[1]);
-    return uint8_t(value);
+    std::stringstream ss;
+    assert(base == 10 || base == 16);
+    ss << (base == 10? std::dec : std::hex) << s;
+    unsigned int value;
+    ss >> value;
+    return value;
   }
 
 
   Array<uint8_t> parseDataFromHexaDecimal(const std::string &s) {
     int n = s.length()/2;
-    assert(n*2 == s.length());
+    CHECK(n*2 == s.length());
     Array<uint8_t> data(n);
     for (int i = 0; i < n; i++) {
-      data[i] = parseByte(s.substr(2*i, 2));
+      data[i] = static_cast<uint8_t>(parseInt(s.substr(2*i, 2), 16));
     }
     return data;
   }
 
 
   CandumpLine::CandumpLine(const std::string &s) {
-    auto headerAndData = split(s, '-');
-    auto addressAndPgn = split(headerAndData.first, ',');
-    auto sizeAndData = split(headerAndData.second, ']');
-    src = rightPart(addressAndPgn.first, ':');
-    pgn = parseInt(leftPart(addressAndPgn.second, ' '), 16);
-    auto size = parseInt(rightPart(sizeAndData.first, '['), 10);
-    data = parseDataFromHexaDecimal(removeSpaces(sizeAndData.second)).sliceTo(size);
+    auto headerAndData = sail::split(s, '-');
+    auto addressAndPgn = sail::split(headerAndData[0], ',');
+    auto sizeAndData = sail::split(headerAndData[1], ']');
+    src = rightPart(addressAndPgn[0], ':');
+    pgn = parseInt(leftPart(addressAndPgn[1], ' '), 16);
+    auto size = parseInt(rightPart(sizeAndData[0], '['), 10);
+    data = parseDataFromHexaDecimal(removeSpaces(sizeAndData[1])).sliceTo(size);
   }
 }
 

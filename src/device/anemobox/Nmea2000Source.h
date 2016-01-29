@@ -17,16 +17,15 @@ class Nmea2000Source : public PgnClasses::PgnVisitor {
                int pgn,
                const unsigned char* buffer,
                int length);
-  typedef PgnClasses::PgnVisitor::Context Context;
  protected:
-  bool apply(const Context &c, const PgnClasses::VesselHeading& packet) override;
-  bool apply(const Context &c, const PgnClasses::Speed& packet) override;
-  bool apply(const Context &c, const PgnClasses::GnssPositionData& packet) override;
-  bool apply(const Context &c, const PgnClasses::WindData& packet) override;
-  bool apply(const Context &c, const PgnClasses::PositionRapidUpdate& packet) override;
-  bool apply(const Context &c, const PgnClasses::CogSogRapidUpdate& packet) override;
-  bool apply(const Context &c, const PgnClasses::TimeDate& packet) override;
-  bool apply(const Context &c, const PgnClasses::DirectionData& packet) override;
+  bool apply(const PgnClasses::CanPacket &c, const PgnClasses::VesselHeading& packet) override;
+  bool apply(const PgnClasses::CanPacket &c, const PgnClasses::Speed& packet) override;
+  bool apply(const PgnClasses::CanPacket &c, const PgnClasses::GnssPositionData& packet) override;
+  bool apply(const PgnClasses::CanPacket &c, const PgnClasses::WindData& packet) override;
+  bool apply(const PgnClasses::CanPacket &c, const PgnClasses::PositionRapidUpdate& packet) override;
+  bool apply(const PgnClasses::CanPacket &c, const PgnClasses::CogSogRapidUpdate& packet) override;
+  bool apply(const PgnClasses::CanPacket &c, const PgnClasses::TimeDate& packet) override;
+  bool apply(const PgnClasses::CanPacket &c, const PgnClasses::DirectionData& packet) override;
  private:
   Dispatcher *_dispatcher;
 };

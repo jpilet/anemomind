@@ -41,11 +41,11 @@ TEST(PgnClassesTest, WindDataNotAvailable) {
 
 class TestWindVisitor : public PgnClasses::PgnVisitor {
   protected:
-    bool apply(const Context& c, const PgnClasses::WindData& packet) override {
+    bool apply(const PgnClasses::CanPacket& c, const PgnClasses::WindData& packet) override {
       if (!packet.valid()) {
         return false;
       }
-      if (c != "MyWindsensor") {
+      if (c.src != "MyWindsensor") {
         return false;
       }
 
@@ -60,6 +60,7 @@ class TestWindVisitor : public PgnClasses::PgnVisitor {
 TEST(PgnClassesTest, WindVisitor) {
   uint8_t data[] = {0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
   TestWindVisitor visitor;
-  EXPECT_TRUE(visitor.visit("MyWindsensor", PgnClasses::WindData::ThisPgn, data, 8));
+  EXPECT_TRUE(visitor.visit(PgnClasses::CanPacket{
+    "MyWindsensor", PgnClasses::WindData::ThisPgn, data, 8}));
 }
 

@@ -415,9 +415,17 @@ function getCommonPgnCode(pgnDefs) {
   return code;
 }
 
+function concatReduce(x) {
+  assert(x instanceof Array);
+  if (x.length == 0) {
+    return x;
+  } else {
+    return x.reduce(concat);
+  }
+}
 
 function makePgnVariantDispatchers(multiDefs) {
-  return multiDefs.map(function(pgnDefs) {
+  return concatReduce(concatReduce(multiDefs.map(function(pgnDefs) {
     var code = getCommonPgnCode(pgnDefs);
     var dispatchFields = getDispatchFields(pgnDefs);
     var tree = makeDispatchTree(pgnDefs, dispatchFields, makeIndexSet(pgnDefs.length));
@@ -425,12 +433,18 @@ function makePgnVariantDispatchers(multiDefs) {
     var tname = makePgnEnumTypeName(code);
     return other.map(function(name) {
       return ["virtual " + tname + " " + name
-              + "(const uint8_t *data, int length) {",
+              + "(const CanPacket &packet) {",
               ["return " + tname + "::Undefined; // TODO in derived class"],
               "}"];
     })
-  }).reduce(concat).reduce(concat);
+  })));
 }
+
+var canPacket = indentLineArray(1, ['\n', 'struct CanPacket {', [
+  "std::string src;",
+  "int pgn;", 
+  "const uint8_t *data;", 
+  "int length;"], "};"]);
 
 function makeVisitorDeclaration(pgns) {
   var defMap = makeDefsPerPgn(pgns);
@@ -439,14 +453,12 @@ function makeVisitorDeclaration(pgns) {
     '\n\n',
     'class PgnVisitor {',
     ' public:',
-    ['bool visit(const std::string& src, int pgn, const uint8_t *data, int length);',
-     'virtual ~PgnVisitor() {}',
-     'typedef std::string Context; '
-     +'// TODO: Extra data needed by the apply methods. Currently only a string'],
+    ['bool visit(const CanPacket &packet);',
+     'virtual ~PgnVisitor() {}'],
     ' protected:',
     pgns.map(function(pgn) {
       return 'virtual bool apply'
-        + '(const Context& src, const ' + getClassName(pgn) + '& packet) { return false; }';
+        + '(const CanPacket& src, const ' + getClassName(pgn) + '& packet) { return false; }';
     }),
     makePgnVariantDispatchers(multiDefs),
     "};"
@@ -555,7 +567,7 @@ function makeDispatchVariableName(index) {
 }
 
 function makeDispatchCodeAssignments(pgnDefs, sortedFields) {
-  var s = ["BitStream dispatchStream(data, length);"];
+  var s = ["BitStream dispatchStream(packet.data, packet.length);"];
   var at = 0;
   for (var i = 0; i < sortedFields.length; i++) {
     var f = sortedFields[i];
@@ -652,7 +664,8 @@ function makeOtherVariantDispatch(pgnCode, pgnDefs, branches) {
   assert(pgnDefs instanceof Array);
   return makeSwitchStatement(
     makePgnVariantMap(pgnCode, pgnDefs), 
-    makeVariantDispatchFunctionName(pgnCode, branches) + "(data, length)",
+    makeVariantDispatchFunctionName(pgnCode, branches) 
+      + "(packet)",
     "return false;", function(key, pgnDef) {
       return callApplyMethod([pgnDef]);
     });
@@ -694,7 +707,7 @@ function listOtherDispatchFunctions(pgnCode, tree, branches) {
 
 function callApplyMethod(pgnDefs) {
   if (pgnDefs.length == 1) {
-    return 'return apply(src, ' + getClassName(pgnDefs[0]) + '(data, length));';
+    return 'return apply(packet, ' + getClassName(pgnDefs[0]) + '(packet.data, packet.length));';
   } else {
     var code = getCommonPgnCode(pgnDefs);
     var dispatchFields = getDispatchFields(pgnDefs);
@@ -725,12 +738,13 @@ function makePgnEnum(pgnDefs) {
 
 function makeVisitorImplementation(pgns) {
   return indentLineArray(0, [
-    'bool PgnVisitor::visit(const std::string& src, int pgn, const uint8_t *data, int length) {',
+    'bool PgnVisitor::visit(const CanPacket &packet) {',
     makeSwitchStatement(
-      makeDefsPerPgn(pgns), "pgn", "return false;", 
+      makeDefsPerPgn(pgns), "packet.pgn", "return false;", 
       function(key, pgnDefs) {
         return callApplyMethod(pgnDefs);
       }),
+    ['return false;'],
     "}"]);
 }
 
@@ -740,6 +754,7 @@ function makeInterface(label, pgns) {
     label,
     makePgnEnums(pgns)
     + makeClassDeclarationsSub(pgns)
+    + canPacket
     + makeVisitorDeclaration(pgns));
 }
 

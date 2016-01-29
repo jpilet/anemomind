@@ -6,20 +6,19 @@ namespace sail {
 using namespace PgnClasses;
 
 namespace {
-  std::string getSrc(const Nmea2000Source::Context &c) const {
-    return "NMEA2000/" + c;
+  std::string getSrc(const PgnClasses::CanPacket &c) {
+    return "NMEA2000/" + c.src;
   }
 }
-
 
 void Nmea2000Source::process(const std::string& srcName,
                              int pgn,
                              const unsigned char* buffer,
                              int length) {
-  visit(srcName, pgn, buffer, length);
+  visit(PgnClasses::CanPacket{srcName, pgn, buffer, length});
 }
 
-bool Nmea2000Source::apply(const Context &c, const PgnClasses::VesselHeading& packet) {
+bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::VesselHeading& packet) {
   if (!packet.valid()
       || !packet.heading().defined()) { return false; }
 
@@ -31,7 +30,7 @@ bool Nmea2000Source::apply(const Context &c, const PgnClasses::VesselHeading& pa
   return true;
 }
 
-bool Nmea2000Source::apply(const Context &c, const PgnClasses::Speed& packet) {
+bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::Speed& packet) {
   if (!packet.valid()) { return false; }
 
 
@@ -42,7 +41,7 @@ bool Nmea2000Source::apply(const Context &c, const PgnClasses::Speed& packet) {
   return true;
 }
 
-bool Nmea2000Source::apply(const Context &c, const PgnClasses::GnssPositionData& packet) {
+bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::GnssPositionData& packet) {
   if (packet.valid()) {
     auto t = packet.timeStamp();
     if (t.defined()) {
@@ -62,7 +61,7 @@ bool Nmea2000Source::apply(const Context &c, const PgnClasses::GnssPositionData&
   return false;
 }
 
-bool Nmea2000Source::apply(const Context &c, const PgnClasses::WindData& packet) {
+bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::WindData& packet) {
   if (!packet.valid()) { return false; }
 
   DataCode angleChannel;
@@ -91,7 +90,7 @@ bool Nmea2000Source::apply(const Context &c, const PgnClasses::WindData& packet)
   return true;
 }
 
-bool Nmea2000Source::apply(const Context &c, const PgnClasses::PositionRapidUpdate& packet) {
+bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::PositionRapidUpdate& packet) {
   if (packet.valid()) {
     if (packet.longitude().defined() && packet.latitude().defined()) {
       _dispatcher->publishValue(
@@ -105,7 +104,7 @@ bool Nmea2000Source::apply(const Context &c, const PgnClasses::PositionRapidUpda
   return false;
 }
 
-bool Nmea2000Source::apply(const Context &c, const PgnClasses::CogSogRapidUpdate& packet) {
+bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::CogSogRapidUpdate& packet) {
   if (packet.valid()) {
     if (packet.sog().defined()) {
       _dispatcher->publishValue(GPS_SPEED, getSrc(c), packet.sog().get());
@@ -118,7 +117,7 @@ bool Nmea2000Source::apply(const Context &c, const PgnClasses::CogSogRapidUpdate
   return false;
 }
 
-bool Nmea2000Source::apply(const Context &c, const PgnClasses::TimeDate& packet) {
+bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::TimeDate& packet) {
   if (packet.valid()) {
     auto t = packet.timeStamp();
     if (t.defined()) {
@@ -129,7 +128,7 @@ bool Nmea2000Source::apply(const Context &c, const PgnClasses::TimeDate& packet)
   return false;
 }
 
-bool Nmea2000Source::apply(const Context &c, const PgnClasses::DirectionData& packet) {
+bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::DirectionData& packet) {
   if (packet.valid()) {
     if (packet.cog().defined()) {
       auto cog = packet.cog().get();
