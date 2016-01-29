@@ -3,6 +3,10 @@ var fs = require('fs');
 var assert = require('assert');
 var Path = require('path');
 
+function concat(a, b) {
+  return a.concat(b);
+}
+
 function makeSet() {
   return {};
 }
@@ -141,10 +145,19 @@ function getBitLength(field) {
   return parseInt(field.BitLength + "");
 }
 
+function getBitOffset(field) {
+  return parseInt(field.BitOffset + '');
+}
+
+
 function makeIntegerReadExpr(field, srcName) {
   var signed = isSigned(field);
   var extractor = signed? "getSigned" : "getUnsigned";
   return srcName + "." + extractor + "(" + getBitLength(field) + ")";
+}
+
+function isData(field) {
+  return getFieldId(field) == "data";
 }
 
 unitMap = {
@@ -184,7 +197,6 @@ function getUnitInfo(field) {
   return unitMap[unit];
 }
 
-
 function getFieldType(field) {
   if (isLookupTable(field)) {
     return getEnumClassName(field);
@@ -192,6 +204,8 @@ function getFieldType(field) {
     return getUnitInfo(field).type;
   } else if (isSigned(field)) {
     return "int64_t";
+  } else if (isData(field)) {
+    return "sail::Array<uint8_t>";
   } else {
     return "uint64_t";
   }
@@ -313,7 +327,7 @@ function getType(field) {
 
 function isLookupTable(field) {
   var t = getType(field);
-  return t == "Lookup table";
+  return t == "Lookup table" && field.EnumValues != null;
 }
 
 function getEnumClassName(field) {
@@ -401,39 +415,43 @@ function getCommonPgnCode(pgnDefs) {
   return code;
 }
 
-function makePgnDispatcherName(code) {
-  return "getDispatchCodeFor" + code;
-}
 
 function makePgnVariantDispatchers(multiDefs) {
-  return indentLineArray(0, multiDefs.map(function(defs) {
-    var code = getCommonPgnCode(defs);
+  return multiDefs.map(function(pgnDefs) {
+    var code = getCommonPgnCode(pgnDefs);
+    var dispatchFields = getDispatchFields(pgnDefs);
+    var tree = makeDispatchTree(pgnDefs, dispatchFields, makeIndexSet(pgnDefs.length));
+    var other = listOtherDispatchFunctions(code, tree, []);
     var tname = makePgnEnumTypeName(code);
-    return ["virtual " + tname + " " + makePgnDispatcherName(code) 
-            + "(const uint8_t *data, int length) {",
-            ["return " + tname + "::Undefined; // TODO in derived class"],
-            "}"];
-  }));
+    return other.map(function(name) {
+      return ["virtual " + tname + " " + name
+              + "(const uint8_t *data, int length) {",
+              ["return " + tname + "::Undefined; // TODO in derived class"],
+              "}"];
+    })
+  }).reduce(concat).reduce(concat);
 }
 
 function makeVisitorDeclaration(pgns) {
   var defMap = makeDefsPerPgn(pgns);
   var multiDefs = getMultiDefs(defMap);
   var s = [
-    '\n\nclass PgnVisitor {',
+    '\n\n',
+    'class PgnVisitor {',
     ' public:',
-    '  bool visit(const std::string& src, int pgn, const uint8_t *data, int length);',
-    '  virtual ~PgnVisitor() {}',
+    ['bool visit(const std::string& src, int pgn, const uint8_t *data, int length);',
+     'virtual ~PgnVisitor() {}',
+     'typedef std::string Context; '
+     +'// TODO: Extra data needed by the apply methods. Currently only a string'],
     ' protected:',
-    '  std::string _currentSource;'
+    pgns.map(function(pgn) {
+      return 'virtual bool apply'
+        + '(const Context& src, const ' + getClassName(pgn) + '& packet) { return false; }';
+    }),
+    makePgnVariantDispatchers(multiDefs),
+    "};"
   ];
-  for (var i = 0; i < pgns.length; i++) {
-    s.push('  virtual bool apply'
-           + '(const ' + getClassName(pgns[i]) + '& packet) { return false; }');
-  }
-  s.push(makePgnVariantDispatchers(multiDefs));
-  s.push('};\n');
-  return s.join('\n');
+  return indentLineArray(1, s);
 }
 
 function makeDefsPerPgn(pgns) {
@@ -466,33 +484,224 @@ function makePgnEnumTypeName(pgnCode) {
   return "PgnVariant" + pgnCode;
 }
 
-function makePgnVariantCases(code, defs) {
-  var t = makePgnEnumTypeName(code);
-  var cases = defs.map(function(pgn) {
-    return ["case " + t + "::" + makePgnEnumValueName(pgn) + ": ", 
-            [callApplyMethod([pgn])]];
+function getFieldMatch(field) {
+  if (field.Match != null) {
+    return parseInt(field.Match + '');
+  }
+  return null;
+}
+
+
+function getFieldsMarkedMatch(fields) {
+  return fields.filter(function(f) {
+    return f.Match != null;
   });
-  cases.push(["case " + t + "::Undefined: return false;"]);
-  cases.push(["default: return false;"]);
-  return cases;
 }
 
-function makePgnVariantSwitch(code, defs) {
-  return ["switch (" + makePgnDispatcherName(code) + "(data, length)) {",
-          makePgnVariantCases(code, defs), "}"];
+
+function addDispatchFieldEntries(defIndex, mf, occupied, dst) {
+  for (var i = 0; i < mf.length; i++) {
+    var field = mf[i];
+    var offset = getBitOffset(field);
+    var length = getBitLength(field);
+    for (var i = 0; i < length; i++) {
+      var index = offset + i;
+      assert(!occupied[index], "Overlapping dispatch fields");
+    }
+    var e = dst[offset];
+    var m = getFieldMatch(field);
+    if(!dst[offset]) {
+      dst[offset] = {
+        offset: offset,
+        length: length,
+        lookup: {}
+      };
+    }
+    e = dst[offset];
+    assert(e.offset == offset, "Inconsistency");
+    assert(e.length == length, "Inconsistency");
+    if (!e.lookup[m]) {
+      e.lookup[m] = makeSet();
+    }
+    insertIntoSet(defIndex, e.lookup[m]);
+  }
+  return dst;
 }
 
-function callVariantApplyMethod(pgnDefs) {
-  var code = getCommonPgnCode(pgnDefs);
-  return indentLineArray(
-    2, ["{", makePgnVariantSwitch(code, pgnDefs), ["break;"], "};"]);
+function getSortedDispatchFields(m) {
+  var arr = [];
+  for (var key in m) {
+    arr.push(m[key]);
+  }
+  arr.sort(function(a, b) {
+    return a.offset < b.offset? -1 : 1;
+  });
+  return arr;
+}
+
+function getDispatchFields(pgnDefs) {
+  var dst = {};
+  var occupied = [];
+  for (var i = 0; i < pgnDefs.length; i++) {
+    var pgnDef = pgnDefs[i];
+    var mf = getFieldsMarkedMatch(getFieldArray(pgnDef));
+    addDispatchFieldEntries(i, mf, occupied, dst);
+  }
+  return getSortedDispatchFields(dst);
+}
+
+function makeDispatchVariableName(index) {
+  return "dispatchCode" + index;
+}
+
+function makeDispatchCodeAssignments(pgnDefs, sortedFields) {
+  var s = ["BitStream dispatchStream(data, length);"];
+  var at = 0;
+  for (var i = 0; i < sortedFields.length; i++) {
+    var f = sortedFields[i];
+    if (at < f.offset) {
+      s.push("dispatchStream.advanceBits(" + f.offset - at + ");");
+    }
+    s.push("auto " + makeDispatchVariableName(i) + " = dispatchStream.getUnsigned("
+           + f.length + ");");
+    at = f.offset + f.length;
+  }
+  return s;
+}
+
+function intersect(setA, setB) {
+  var dst = makeSet();
+  for (var i in setA) {
+    if (i in setB) {
+      insertIntoSet(i, dst);
+    }
+  }
+  return dst;
+}
+
+
+function makeIndexSet(n) {
+  var s = makeSet();
+  for (var i = 0; i < n; i++) {
+    insertIntoSet(i, s);
+  }
+  return s;
+}
+
+function setToIntArray(src) {
+  var dst = [];
+  for (var i in src) {
+    dst.push(parseInt(i));
+  }
+  return dst;
+}
+
+function makeDispatchTree(pgnDefs, sortedFields, subset) {
+  if (sortedFields.length == 0) {
+    return setToIntArray(subset).map(function(i) {
+      return pgnDefs[i];
+    });
+  } else {
+    var f = sortedFields[0];
+    var dst = {};
+    for (var key in f.lookup) {
+      var lu = f.lookup[key];
+      var subSubset = intersect(subset, lu);
+      dst[key] = makeDispatchTree(pgnDefs, sortedFields.slice(1), subSubset);
+    }
+    return dst;
+  }
+}
+
+function wrapCase(label, statements) {
+  if (statements instanceof Array) {
+    return [label + ": {", statements, ["break;"], "}"];
+  } else {
+    assert(typeof statements == "string");
+    return [label  + ": " + statements];
+  }
+}
+
+function makeSwitchStatement(map, switchExpression, defaultExpression, perCaseFunction) {
+  return ["switch(" + switchExpression + ") {",
+          Object.keys(map).map(function(key) {
+            return wrapCase("case "+ key, perCaseFunction(key, map[key]));
+          }).reduce(concat)
+          .concat(wrapCase("default", defaultExpression)),
+          "};"];
+}
+
+
+function makeVariantDispatchFunctionName(pgnCode, branches) {
+  return "getDispatchCodeFor" + pgnCode + branches.map(function(x) {
+    return "_" + x;
+  }).join("");
+}
+
+function makePgnVariantMap(code, arr) {
+  var dst = {};
+  var t = makePgnEnumTypeName(code);
+  for (var i = 0; i < arr.length; i++) {
+    var pgn = arr[i];
+    dst[t + "::" + makePgnEnumValueName(pgn)] = pgn;
+  }
+  return dst;
+}
+
+function makeOtherVariantDispatch(pgnCode, pgnDefs, branches) {
+  assert(pgnDefs instanceof Array);
+  return makeSwitchStatement(
+    makePgnVariantMap(pgnCode, pgnDefs), 
+    makeVariantDispatchFunctionName(pgnCode, branches) + "(data, length)",
+    "return false;", function(key, pgnDef) {
+      return callApplyMethod([pgnDef]);
+    });
+}
+
+function makeVariantStatement(pgnCode, tree, branches) {
+  if (tree instanceof Array) {
+    if (tree.length == 1) {
+      return callApplyMethod(tree);
+    } else {
+      return makeOtherVariantDispatch(pgnCode, tree, branches);
+    }
+  } else {
+  return makeSwitchStatement(
+    tree, makeDispatchVariableName(branches.length),
+    "return false;",
+    function(key, tree) {
+      return makeVariantStatement(pgnCode, tree, branches.concat([key]));
+    });
+  }
+}
+
+function listOtherDispatchFunctions(pgnCode, tree, branches) {
+  if (tree instanceof Array) {
+    if (1 < tree.length) {
+      return [makeVariantDispatchFunctionName(pgnCode, branches)];
+    } else {
+      return [];
+    }
+  } else {
+    var result = [];
+    for (var key in tree) {
+      result = result.concat(listOtherDispatchFunctions(
+        pgnCode, tree[key], branches.concat([key])));
+    }
+    return result;
+  }
 }
 
 function callApplyMethod(pgnDefs) {
   if (pgnDefs.length == 1) {
-    return 'return apply(' + getClassName(pgnDefs[0]) + '(data, length));';
+    return 'return apply(src, ' + getClassName(pgnDefs[0]) + '(data, length));';
   } else {
-    return callVariantApplyMethod(pgnDefs);
+    var code = getCommonPgnCode(pgnDefs);
+    var dispatchFields = getDispatchFields(pgnDefs);
+    var tree = makeDispatchTree(pgnDefs, dispatchFields, makeIndexSet(pgnDefs.length));
+    var assignments = makeDispatchCodeAssignments(pgnDefs, dispatchFields);
+    var cases = makeVariantStatement(code, tree, []);
+    return assignments.concat(cases);
   }
 }
 
@@ -515,20 +724,14 @@ function makePgnEnum(pgnDefs) {
 }
 
 function makeVisitorImplementation(pgns) {
-  var s = [
+  return indentLineArray(0, [
     'bool PgnVisitor::visit(const std::string& src, int pgn, const uint8_t *data, int length) {',
-    "  _currentSource = src; // This feels a bit dirty ... but convenient :-) https://xkcd.com/292/",
-    '  switch(pgn) {'
-  ];
-  var defMap = makeDefsPerPgn(pgns);
-  for (var key in defMap) {
-    var pgnDefs = defMap[key];
-    s.push('    case ' + key + ': ' + callApplyMethod(pgnDefs));
-  }
-  s.push('  }  // closes switch');
-  s.push('  return false;');
-  s.push('}\n');
-  return s.join('\n');
+    makeSwitchStatement(
+      makeDefsPerPgn(pgns), "pgn", "return false;", 
+      function(key, pgnDefs) {
+        return callApplyMethod(pgnDefs);
+      }),
+    "}"]);
 }
 
 
@@ -634,6 +837,10 @@ function makeFieldAssignment(field, depth) {
       return lhs + "src.getUnsignedInSet(" 
         + bits + ", " + getEnumValueSet(field) + ").cast<" 
         + getFieldType(field) + ">();";
+    } else if (isData(field)) {
+      assert(bits % 8 == 0, 
+             "Cannot read bytes, because the number of bits is not a multiple of 8.");
+      return lhs + "src.readBytes(" + bits + ");"
     } else { // Something else.
       return lhs
         + (signed? "src.getSigned(" : "src.getUnsigned(")

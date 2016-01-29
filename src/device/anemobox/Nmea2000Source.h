@@ -17,18 +17,17 @@ class Nmea2000Source : public PgnClasses::PgnVisitor {
                int pgn,
                const unsigned char* buffer,
                int length);
-
+  typedef PgnClasses::PgnVisitor::Context Context;
  protected:
-  bool apply(const PgnClasses::VesselHeading& packet);
-  bool apply(const PgnClasses::Speed& packet);
-  bool apply(const PgnClasses::GnssPositionData& packet);
-  bool apply(const PgnClasses::WindData& packet);
-  bool apply(const PgnClasses::PositionRapidUpdate& packet);
-  bool apply(const PgnClasses::CogSogRapidUpdate& packet);
-  bool apply(const PgnClasses::TimeDate& packet);
-  bool apply(const PgnClasses::DirectionData& packet);
+  bool apply(const Context &c, const PgnClasses::VesselHeading& packet) override;
+  bool apply(const Context &c, const PgnClasses::Speed& packet) override;
+  bool apply(const Context &c, const PgnClasses::GnssPositionData& packet) override;
+  bool apply(const Context &c, const PgnClasses::WindData& packet) override;
+  bool apply(const Context &c, const PgnClasses::PositionRapidUpdate& packet) override;
+  bool apply(const Context &c, const PgnClasses::CogSogRapidUpdate& packet) override;
+  bool apply(const Context &c, const PgnClasses::TimeDate& packet) override;
+  bool apply(const Context &c, const PgnClasses::DirectionData& packet) override;
  private:
-  std::string getCurrentNmea2000Source() const {return "NMEA2000/" + _currentSource;}
   Dispatcher *_dispatcher;
 };
 

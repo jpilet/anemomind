@@ -20,7 +20,6 @@ class BitStream {
   BitStream(const uint8_t* data, size_t len);
 
   uint64_t getUnsigned(int numBits);
-  int64_t getSigned(int numBits, int64_t offset = 0);
   uint8_t getByte() { return uint8_t(getUnsigned(8)); }
   bool canRead(int numBits) const; 
 

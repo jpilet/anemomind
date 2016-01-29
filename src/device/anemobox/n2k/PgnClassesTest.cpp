@@ -41,11 +41,11 @@ TEST(PgnClassesTest, WindDataNotAvailable) {
 
 class TestWindVisitor : public PgnClasses::PgnVisitor {
   protected:
-    bool apply(const PgnClasses::WindData& packet) {
+    bool apply(const Context& c, const PgnClasses::WindData& packet) override {
       if (!packet.valid()) {
         return false;
       }
-      if (_currentSource != "MyWindsensor") {
+      if (c != "MyWindsensor") {
         return false;
       }
 

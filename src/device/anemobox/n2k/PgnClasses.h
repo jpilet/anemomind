@@ -1,4 +1,4 @@
-/** Generated on Sat Jan 23 2016 20:31:57 GMT+0100 (CET) using 
+/** Generated on Fri Jan 29 2016 12:19:28 GMT+0100 (CET) using 
  *
  *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *
@@ -23,6 +23,14 @@ namespace PgnClasses {
   };
 
 
+  enum class PgnVariant130850 {
+    TypeSimnetEventCommandApCommand,
+    TypeSimnetEventCommandAlarm,
+    TypeSimnetEventCommandUnknown,
+    Undefined
+  };
+
+
   // ISO Transport Protocol, Data Transfer
   class IsoTransportProtocolDataTransfer {
   public:
@@ -35,11 +43,11 @@ namespace PgnClasses {
 
     // Field access
     const Optional<uint64_t > &sid() const {return _sid;}
-    const Optional<uint64_t > &data() const {return _data;}
+    const Optional<sail::Array<uint8_t> > &data() const {return _data;}
   private:
     bool _valid;
     Optional<uint64_t > _sid; 
-    Optional<uint64_t > _data; 
+    Optional<sail::Array<uint8_t> > _data; 
   };
 
   // ISO Transport Protocol, Connection Management - Request To Send
@@ -499,34 +507,152 @@ namespace PgnClasses {
     Optional<sail::Velocity<double> > _drift; 
   };
 
-class PgnVisitor {
- public:
-  bool visit(const std::string& src, int pgn, const uint8_t *data, int length);
-  virtual ~PgnVisitor() {}
- protected:
-  std::string _currentSource;
-  virtual bool apply(const IsoTransportProtocolDataTransfer& packet) { return false; }
-  virtual bool apply(const IsoTransportProtocolConnectionManagementRequestToSend& packet) { return false; }
-  virtual bool apply(const IsoTransportProtocolConnectionManagementClearToSend& packet) { return false; }
-  virtual bool apply(const IsoTransportProtocolConnectionManagementEndOfMessage& packet) { return false; }
-  virtual bool apply(const IsoTransportProtocolConnectionManagementBroadcastAnnounce& packet) { return false; }
-  virtual bool apply(const IsoTransportProtocolConnectionManagementAbort& packet) { return false; }
-  virtual bool apply(const SystemTime& packet) { return false; }
-  virtual bool apply(const VesselHeading& packet) { return false; }
-  virtual bool apply(const Attitude& packet) { return false; }
-  virtual bool apply(const Speed& packet) { return false; }
-  virtual bool apply(const PositionRapidUpdate& packet) { return false; }
-  virtual bool apply(const CogSogRapidUpdate& packet) { return false; }
-  virtual bool apply(const GnssPositionData& packet) { return false; }
-  virtual bool apply(const TimeDate& packet) { return false; }
-  virtual bool apply(const WindData& packet) { return false; }
-  virtual bool apply(const DirectionData& packet) { return false; }
+  // Simnet: Event Command: AP command
+  class SimnetEventCommandApCommand {
+  public:
+    static const int ThisPgn = 130850;
+    enum class Event {
+      Standby = 6, 
+      Auto_mode = 9, 
+      Nav_mode = 10, 
+      Non_Follow_Up_mode = 13, 
+      Wind_mode = 15, 
+      Change_Course = 26
+    };
+    enum class Direction {
+      Port = 2, 
+      Starboard = 3, 
+      Left_rudder_port = 4, 
+      Right_rudder_starboard = 5
+    };
 
-  virtual PgnVariant60416 getDispatchCodeFor60416(const uint8_t *data, int length) {
-    return PgnVariant60416::Undefined; // TODO in derived class
-  }
-};
+    SimnetEventCommandApCommand();
+    SimnetEventCommandApCommand(const uint8_t *data, int lengthBytes);
+    bool valid() const {return _valid;}
+    void reset();
 
+    // Field access
+    const Optional<uint64_t > &manufacturerCode() const {return _manufacturerCode;}
+    const Optional<uint64_t > &industryCode() const {return _industryCode;}
+    const Optional<uint64_t > &proprietaryId() const {return _proprietaryId;}
+    const Optional<uint64_t > &b() const {return _b;}
+    const Optional<uint64_t > &controllingDevice() const {return _controllingDevice;}
+    const Optional<Event > &event() const {return _event;}
+    const Optional<Direction > &direction() const {return _direction;}
+    const Optional<sail::Angle<double> > &angle() const {return _angle;}
+    const Optional<uint64_t > &g() const {return _g;}
+  private:
+    bool _valid;
+    Optional<uint64_t > _manufacturerCode; // Simrad
+    Optional<uint64_t > _industryCode; // Marine Industry
+    Optional<uint64_t > _proprietaryId; // AP command
+    Optional<uint64_t > _b; 
+    Optional<uint64_t > _controllingDevice; 
+    Optional<Event > _event; 
+    Optional<Direction > _direction; 
+    Optional<sail::Angle<double> > _angle; 
+    Optional<uint64_t > _g; 
+  };
+
+  // Simnet: Event Command: Alarm?
+  class SimnetEventCommandAlarm {
+  public:
+    static const int ThisPgn = 130850;
+    enum class Alarm {
+      Raise = 57, 
+      Clear = 56
+    };
+
+    SimnetEventCommandAlarm();
+    SimnetEventCommandAlarm(const uint8_t *data, int lengthBytes);
+    bool valid() const {return _valid;}
+    void reset();
+
+    // Field access
+    const Optional<uint64_t > &manufacturerCode() const {return _manufacturerCode;}
+    const Optional<uint64_t > &industryCode() const {return _industryCode;}
+    const Optional<uint64_t > &a() const {return _a;}
+    const Optional<uint64_t > &proprietaryId() const {return _proprietaryId;}
+    const Optional<uint64_t > &c() const {return _c;}
+    const Optional<Alarm > &alarm() const {return _alarm;}
+    const Optional<uint64_t > &messageId() const {return _messageId;}
+    const Optional<uint64_t > &f() const {return _f;}
+    const Optional<uint64_t > &g() const {return _g;}
+  private:
+    bool _valid;
+    Optional<uint64_t > _manufacturerCode; // Simrad
+    Optional<uint64_t > _industryCode; // Marine Industry
+    Optional<uint64_t > _a; 
+    Optional<uint64_t > _proprietaryId; // Alarm command
+    Optional<uint64_t > _c; 
+    Optional<Alarm > _alarm; 
+    Optional<uint64_t > _messageId; 
+    Optional<uint64_t > _f; 
+    Optional<uint64_t > _g; 
+  };
+
+  // Simnet: Event Command: Unknown
+  class SimnetEventCommandUnknown {
+  public:
+    static const int ThisPgn = 130850;
+
+    SimnetEventCommandUnknown();
+    SimnetEventCommandUnknown(const uint8_t *data, int lengthBytes);
+    bool valid() const {return _valid;}
+    void reset();
+
+    // Field access
+    const Optional<uint64_t > &manufacturerCode() const {return _manufacturerCode;}
+    const Optional<uint64_t > &industryCode() const {return _industryCode;}
+    const Optional<uint64_t > &a() const {return _a;}
+    const Optional<uint64_t > &proprietaryId() const {return _proprietaryId;}
+    const Optional<uint64_t > &b() const {return _b;}
+    const Optional<uint64_t > &c() const {return _c;}
+    const Optional<uint64_t > &d() const {return _d;}
+    const Optional<uint64_t > &e() const {return _e;}
+  private:
+    bool _valid;
+    Optional<uint64_t > _manufacturerCode; // Simrad
+    Optional<uint64_t > _industryCode; // Marine Industry
+    Optional<uint64_t > _a; 
+    Optional<uint64_t > _proprietaryId; // Alarm command
+    Optional<uint64_t > _b; 
+    Optional<uint64_t > _c; 
+    Optional<uint64_t > _d; 
+    Optional<uint64_t > _e; 
+  };
+  
+
+
+  class PgnVisitor {
+   public:
+    bool visit(const std::string& src, int pgn, const uint8_t *data, int length);
+    virtual ~PgnVisitor() {}
+    typedef std::string Context; // TODO: Extra data needed by the apply methods. Currently only a string
+   protected:
+    virtual bool apply(const Context& src, const IsoTransportProtocolDataTransfer& packet) { return false; }
+    virtual bool apply(const Context& src, const IsoTransportProtocolConnectionManagementRequestToSend& packet) { return false; }
+    virtual bool apply(const Context& src, const IsoTransportProtocolConnectionManagementClearToSend& packet) { return false; }
+    virtual bool apply(const Context& src, const IsoTransportProtocolConnectionManagementEndOfMessage& packet) { return false; }
+    virtual bool apply(const Context& src, const IsoTransportProtocolConnectionManagementBroadcastAnnounce& packet) { return false; }
+    virtual bool apply(const Context& src, const IsoTransportProtocolConnectionManagementAbort& packet) { return false; }
+    virtual bool apply(const Context& src, const SystemTime& packet) { return false; }
+    virtual bool apply(const Context& src, const VesselHeading& packet) { return false; }
+    virtual bool apply(const Context& src, const Attitude& packet) { return false; }
+    virtual bool apply(const Context& src, const Speed& packet) { return false; }
+    virtual bool apply(const Context& src, const PositionRapidUpdate& packet) { return false; }
+    virtual bool apply(const Context& src, const CogSogRapidUpdate& packet) { return false; }
+    virtual bool apply(const Context& src, const GnssPositionData& packet) { return false; }
+    virtual bool apply(const Context& src, const TimeDate& packet) { return false; }
+    virtual bool apply(const Context& src, const WindData& packet) { return false; }
+    virtual bool apply(const Context& src, const DirectionData& packet) { return false; }
+    virtual bool apply(const Context& src, const SimnetEventCommandApCommand& packet) { return false; }
+    virtual bool apply(const Context& src, const SimnetEventCommandAlarm& packet) { return false; }
+    virtual bool apply(const Context& src, const SimnetEventCommandUnknown& packet) { return false; }
+    virtual PgnVariant130850 getDispatchCodeFor130850_1857(const uint8_t *data, int length) {
+      return PgnVariant130850::Undefined; // TODO in derived class
+    }
+  };
 }
 
 #endif

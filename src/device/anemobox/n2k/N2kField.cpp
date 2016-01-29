@@ -90,6 +90,21 @@ Optional<uint64_t> N2kFieldStream::getUnsignedInSet(int numBits, const std::init
   return Optional<uint64_t>();
 }
 
+sail::Array<uint8_t> N2kFieldStream::readBytes(int numBits) {
+  int byteCount = numBits/8;
+  if (numBits == byteCount*8) {
+    sail::Array<uint8_t> dst(byteCount);
+    for (int i = 0; i < byteCount; i++) {
+      dst[i] = getByte();
+    }
+    return dst;
+  } else {
+    // Only read whole bytes.
+    advanceBits(numBits);
+    return sail::Array<uint8_t>();
+  }
+}
+
 
 
 int64_t N2kFieldStream::getSigned(int numBits, int64_t offset) {
