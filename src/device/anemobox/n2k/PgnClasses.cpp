@@ -1,4 +1,4 @@
-/** Generated on Fri Jan 29 2016 12:19:28 GMT+0100 (CET) using 
+/** Generated on Fri Jan 29 2016 15:11:10 GMT+0100 (CET) using 
  *
  *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
  *
@@ -396,7 +396,7 @@ namespace PgnClasses {
       _proprietaryId = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _b = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
       _controllingDevice = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _event = src.getUnsignedInSet(16, {10, 13, 15, 26, 6, 9}).cast<Event>();
+      _event = src.getUnsignedInSet(16, {6, 9, 10, 13, 15, 26}).cast<Event>();
       _direction = src.getUnsignedInSet(8, {2, 3, 4, 5}).cast<Direction>();
       _angle = src.getPhysicalQuantity(false, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
       _g = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);

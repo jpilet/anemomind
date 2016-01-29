@@ -794,11 +794,36 @@ function boolToString(x) {
   return x? "true" : "false";
 }
 
+function sortedIntegers(x) {
+  for (var i = 0; i < x.length-1; i++) {
+    if (x[i] > x[i+1]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function getEnumValueSet(field) {
-  return "{" + getEnumPairs(field)
-    .map(function(x) {return x.value;})
-    .sort() // <-- Because that is what N2kField::contains expects.
-    .join(", ") + "}";
+  var intSet = getEnumPairs(field)
+    .map(function(x) {
+      return parseInt(x.value);
+    });
+
+  // Seems like the Javascript method
+  // 'sort' converts elements to strings
+  // before comparison. So integers are
+  // not sorted the way you would expect!
+  intSet.sort(function(a, b) {
+    if (a < b) {
+      return -1;
+    } else if (a == b) {
+      return 0;
+    } else {
+      return 1;
+    }
+  });
+  assert(sortedIntegers(intSet));
+  return "{" + intSet.join(", ") + "}";
 }
 
 function getEnumedFields(fields) {
