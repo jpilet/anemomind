@@ -20,10 +20,11 @@ target_link_libraries(anemobox_LogToNav
                       anemobox_Logger
                       nautical_nav
                      )
-cxx_test(anemobox_LogToNavTest LogToNavTest.cpp
+cxx_test(anemobox_LogLoaderTest LogLoaderTest.cpp
          anemobox_Dispatcher
          anemobox_LogToNav
          anemobox_Logger
+         anemobox_LogLoader
          gtest_main
         )
 
@@ -37,3 +38,10 @@ target_link_libraries(anemobox_logToNmea
                       nautical_NavToNmea
                      )
 
+add_library(anemobox_LogLoader
+            LogLoader.h
+            LogLoader.cpp
+           )
+target_link_libraries(anemobox_LogLoader
+                      anemobox_Logger
+                     )

@@ -68,7 +68,6 @@ class TimedSampleCollection {
    TimeStamp lastTimeStamp() const { return _samples.back().time; }
  private:
   void trim();
-
   TimedVector _samples;
 
   int _maxBufferLength;

@@ -186,6 +186,52 @@ class Logger {
   boost::signals2::scoped_connection _newDispatchDataListener;
 };
 
+template <typename T>
+struct ValueSetToTypedVector {
+};
+
+template <>
+struct ValueSetToTypedVector<Angle<double> > {
+  static const void extract(const ValueSet &x, std::vector<Angle<double> > *dst) {
+    Logger::unpack(x.angles(), dst);
+  }
+};
+
+template <>
+struct ValueSetToTypedVector<Velocity<double> > {
+  static const void extract(const ValueSet &x, std::vector<Velocity<double> > *dst) {
+    Logger::unpack(x.velocity(), dst);
+  }
+};
+
+template <>
+struct ValueSetToTypedVector<Length<double> > {
+  static const void extract(const ValueSet &x, std::vector<Length<double> > *dst) {
+    Logger::unpack(x.length(), dst);
+  }
+};
+
+template <>
+struct ValueSetToTypedVector<GeographicPosition<double> > {
+  static const void extract(const ValueSet &x, std::vector<GeographicPosition<double> > *dst) {
+    Logger::unpack(x.pos(), dst);
+  }
+};
+
+template <>
+struct ValueSetToTypedVector<AbsoluteOrientation> {
+  static const void extract(const ValueSet &x, std::vector<AbsoluteOrientation> *dst) {
+    Logger::unpack(x.orient(), dst);
+  }
+};
+
+template <>
+struct ValueSetToTypedVector<TimeStamp> {
+  static const void extract(const ValueSet &x, std::vector<TimeStamp> *dst) {
+    Logger::unpackTime(x, dst);
+  }
+};
+
 }  // namespace sail
 
 #endif   // ANEMOBOX_LOGGER_H
