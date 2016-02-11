@@ -25,7 +25,7 @@ class LogLoader {
   void load(const LogFile &data);
   void load(const std::string &filename);
 
-  std::shared_ptr<Dispatcher> make();
+  void addToDispatcher(std::shared_ptr<Dispatcher> dst);
  private:
 
 #define MAKE_SOURCE_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \

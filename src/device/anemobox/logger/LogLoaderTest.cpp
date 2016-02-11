@@ -53,7 +53,8 @@ TEST(LogToNavTest, ConvertToDispatcher) {
 
   LogLoader loader;
   loader.load(loggedData);
-  auto d = loader.make();
+  auto d = std::shared_ptr<Dispatcher>(new Dispatcher());
+  loader.addToDispatcher(d);
   auto awa = d->get<AWA>()->dispatcher();
   auto awaValues = awa->values();
   EXPECT_EQ(awaValues.size(), 10);

@@ -53,8 +53,7 @@ void insertValues(DataCode code,
   }
 }
 
-std::shared_ptr<Dispatcher> LogLoader::make() {
-  std::shared_ptr<Dispatcher> dst(new Dispatcher());
+void LogLoader::addToDispatcher(std::shared_ptr<Dispatcher> dst) {
 
 #define INSERT_VALUES(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
     insertValues<TYPE>(HANDLE, _##HANDLE##sources, dst.get());
@@ -64,7 +63,6 @@ std::shared_ptr<Dispatcher> LogLoader::make() {
   for (auto kv: _sourcePriority) {
     dst->setSourcePriority(kv.first, kv.second);
   }
-  return dst;
 }
 
 }
