@@ -10,9 +10,6 @@
 
 namespace sail {
 
-#define MAKE_SOURCE_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  std::map<std::string, TimedSampleCollection<TYPE>::TimedVector> _##HANDLE##sources;
-
 /*
  * Helper class to load a series of log files.
  *
@@ -28,11 +25,14 @@ class LogLoader {
 
   std::shared_ptr<Dispatcher> make();
  private:
+
+#define MAKE_SOURCE_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  std::map<std::string, TimedSampleCollection<TYPE>::TimedVector> _##HANDLE##sources;
   FOREACH_CHANNEL(MAKE_SOURCE_MAP)
+#undef  MAKE_SOURCE_MAP
+
   std::map<std::string, int> _sourcePriority;
 };
-
-#undef MAKE_MAP
 
 }
 
