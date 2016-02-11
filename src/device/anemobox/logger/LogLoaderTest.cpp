@@ -4,6 +4,7 @@
 #include <device/anemobox/logger/LogToNav.h>
 #include <device/anemobox/logger/Logger.h>
 #include <gtest/gtest.h>
+#include <device/anemobox/logger/LogLoader.h>
 
 using namespace sail;
 using std::string;
@@ -18,9 +19,7 @@ void sendFakeValue(int val, FakeClockDispatcher *dispatcher) {
   dispatcher->publishValue(AWS, "test", Velocity<double>::knots(val));
 }
 
-}  // namespace
-
-TEST(LogToNavTest, ConvertNmea) {
+void makeLogFile(LogFile *loggedData) {
   FakeClockDispatcher dispatcher;
   Logger logger(&dispatcher);
 
@@ -28,9 +27,15 @@ TEST(LogToNavTest, ConvertNmea) {
     sendFakeValue(i, &dispatcher);
     dispatcher.advance(Duration<>::seconds(1));
   }
+  logger.flushTo(loggedData);
+}
 
+
+}  // namespace
+
+TEST(LogToNavTest, ConvertNmea) {
   LogFile loggedData;
-  logger.flushTo(&loggedData);
+  makeLogFile(&loggedData);
 
   Array<Nav> converted = logFileToNavArray(loggedData);
   EXPECT_EQ(10, converted.size());
@@ -40,4 +45,23 @@ TEST(LogToNavTest, ConvertNmea) {
     EXPECT_EQ(i, converted[i].awa().degrees());
     EXPECT_EQ(i, converted[i].aws().knots());
   }
+}
+
+TEST(LogToNavTest, ConvertToDispatcher) {
+  LogFile loggedData;
+  makeLogFile(&loggedData);
+
+  LogLoader loader;
+  loader.load(loggedData);
+  auto d = std::shared_ptr<Dispatcher>(new Dispatcher());
+  loader.addToDispatcher(d.get());
+  auto awa = d->get<AWA>()->dispatcher();
+  auto awaValues = awa->values();
+  EXPECT_EQ(awaValues.size(), 10);
+  int counter = 0;
+  for (auto sample: awaValues.samples()) {
+    EXPECT_NEAR(counter, sample.value.degrees(), 1.0e-3);
+    counter++;
+  }
+
 }

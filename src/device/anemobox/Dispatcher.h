@@ -268,6 +268,8 @@ class Dispatcher : public Clock {
  private:
   static Dispatcher *_globalInstance;
 
+  // TODO: Do we delete the points to DispatchData anywhere?
+  // Should we wrap them inside std::shared_ptr?
   std::map<DataCode, std::map<std::string, DispatchData*>> _data;
 
   // _currentSource contains the proxies of different types.
