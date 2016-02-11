@@ -53,10 +53,10 @@ void insertValues(DataCode code,
   }
 }
 
-void LogLoader::addToDispatcher(std::shared_ptr<Dispatcher> dst) {
+void LogLoader::addToDispatcher(Dispatcher *dst) {
 
 #define INSERT_VALUES(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-    insertValues<TYPE>(HANDLE, _##HANDLE##sources, dst.get());
+    insertValues<TYPE>(HANDLE, _##HANDLE##sources, dst);
     FOREACH_CHANNEL(INSERT_VALUES);
 #undef  INSERT_VALUES
 
