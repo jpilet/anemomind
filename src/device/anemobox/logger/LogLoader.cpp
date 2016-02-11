@@ -3,7 +3,8 @@
  *      Author: Jonas Östlund <jonas@anemomind.com>
  */
 
-#include "LogLoader.h"
+#include <device/anemobox/logger/LogLoader.h>
+#include <device/anemobox/logger/Logger.h>
 
 namespace sail {
 

@@ -6,9 +6,11 @@
 #ifndef DEVICE_ANEMOBOX_LOGGER_LOGLOADER_H_
 #define DEVICE_ANEMOBOX_LOGGER_LOGLOADER_H_
 
-#include <device/anemobox/logger/Logger.h>
+#include <device/anemobox/Dispatcher.h>
 
 namespace sail {
+
+class LogFile;
 
 /*
  * Helper class to load a series of log files.
