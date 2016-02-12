@@ -19,7 +19,7 @@ namespace {
   };
 }
 
-std::string findTestDataPath(std::string localPath) {
+std::string findTestDataPath(const std::string &localPath) {
   return resolvePath(localPath, datasetPaths).toString();
 }
 
