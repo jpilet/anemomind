@@ -517,3 +517,21 @@ target_link_libraries(nautical_catTargetSpeed
                       device_TargetSpeed
                       common_ArgMap
                      )
+
+add_library(nautical_LogUtils
+            LogUtils.h
+            LogUtils.cpp
+           )
+           
+target_link_libraries(nautical_LogUtils
+                      anemobox_LogLoader
+                      common_filesystem
+                      common_PathBuilder
+                      common_Env
+                     )           
+           
+cxx_test(nautical_LogUtilsTest
+         LogUtilsTest.cpp
+         gtest_main
+         nautical_LogUtils
+        )           

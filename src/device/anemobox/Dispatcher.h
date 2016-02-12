@@ -219,6 +219,13 @@ class Dispatcher : public Clock {
         dispatchData(Code));
   }
 
+  // When the Dispatcher is used to hold a loaded dataset,
+  // use this method to access the samples.
+  template <DataCode Code>
+  const TimedSampleCollection<typename TypeForCode<Code>::type>& getSamples() const {
+    return get<Code>()->dispatcher()->values();
+  }
+
   template <DataCode Code>
   typename TypeForCode<Code>::type val() {
     return get<Code>()->dispatcher()->lastValue();

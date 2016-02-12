@@ -29,7 +29,7 @@ Arrayd makeNextRegCoefs(Arrayd coefs) {
 
 Arrayd makeRegCoefs(int order) {
   if (order == 0) {
-    return Arrayd::args(1.0);
+    return Arrayd{1.0};
   } else {
     return makeNextRegCoefs(makeRegCoefs(order - 1));
   }

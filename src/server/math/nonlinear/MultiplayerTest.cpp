@@ -39,8 +39,8 @@ namespace {
 }
 
 TEST(MultiplayerTest, Valleys) {
-  Valley a(Arrayd::args(1.0, 34.0), 0.8);
-  Valley b(Arrayd::args(-39.0, 0.89), -9);
+  Valley a(Arrayd{1.0, 34.0}, 0.8);
+  Valley b(Arrayd{-39.0, 0.89}, -9);
 
   arma::mat A(2, 2);
   arma::mat B(2, 1);

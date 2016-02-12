@@ -11,6 +11,20 @@
 
 namespace sail {
 
+Poco::Path resolvePath(Poco::Path localPath, const Array<Poco::Path> &candidateParentPaths) {
+  if (Poco::File(localPath).exists()) {
+    return localPath;
+  } else {
+    for (auto c: candidateParentPaths) {
+      c.append(localPath);
+      if (Poco::File(c).exists()) {
+        return c;
+      }
+    }
+  }
+  return Poco::Path();
+}
+
 bool hasExtension(Poco::Path p, Array<std::string> extensions) {
   assert(p.isFile());
   std::string ext = toLower(p.getExtension());
@@ -23,26 +37,36 @@ bool hasExtension(Poco::Path p, Array<std::string> extensions) {
   return false;
 }
 
-namespace {
-  void listFilesRecursivelySub(Poco::Path path, std::function<bool(Poco::Path it)> accept,
-    std::vector<Poco::Path> *paths) {
-    Poco::DirectoryIterator end;
-    for (Poco::DirectoryIterator it(path); it != end; ++it) {
-      if (accept(it->path())) {
-        paths->push_back(it->path());
-      }
-      if (it->isDirectory()) {
-        listFilesRecursivelySub(it->path(), accept, paths);
+
+void forEveryPath(Poco::Path path, std::function<void(Poco::Path)> todo,
+    const FileScanSettings &settings, int currentDepth) {
+  auto currentFile = Poco::File(path);
+  if (currentFile.isDirectory()) {
+    if (settings.visitDirectories) {
+      todo(path);
+    }
+    if (currentDepth < settings.maxDepth) {
+      Poco::DirectoryIterator end;
+      for (Poco::DirectoryIterator it(path); it != end; ++it) {
+        forEveryPath(it->path(), todo, settings, currentDepth + 1);
       }
     }
+  } else if (currentFile.isFile() && settings.visitFiles) {
+    todo(path);
   }
 }
-
 
 // See http://www.codeproject.com/Articles/254346/Learning-Poco-List-directories-recursively
 Array<Poco::Path> listFilesRecursively(Poco::Path rootPath, std::function<bool(Poco::Path)> accept) {
   std::vector<Poco::Path> dst;
-  listFilesRecursivelySub(rootPath, accept, &dst);
+  FileScanSettings settings;
+  settings.visitDirectories = false;
+  settings.visitFiles = true;
+  forEveryPath(rootPath, [&](const Poco::Path &p) {
+    if (accept(p)) {
+      dst.push_back(p);
+    }
+  }, settings);
   return Array<Poco::Path>::referToVector(dst).dup();
 }
 

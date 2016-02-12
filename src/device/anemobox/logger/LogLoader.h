@@ -22,8 +22,8 @@ class LogFile;
  */
 class LogLoader {
  public:
-  void load(const LogFile &data);
-  void load(const std::string &filename);
+  bool load(const LogFile &data);
+  bool load(const std::string &filename);
 
   void addToDispatcher(Dispatcher *dst);
  private:

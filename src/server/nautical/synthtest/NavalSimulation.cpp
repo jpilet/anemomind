@@ -314,7 +314,7 @@ Array<CorruptedBoatState::CorruptorSet> makeCorruptorSets001() {
       Angle<double>::degrees(-1));
   corruptorSet.aws = CorruptedBoatState::Corruptor<Velocity<double> >(1.2, Velocity<double>::knots(0.0));
   corruptorSet.watSpeed = CorruptedBoatState::Corruptor<Velocity<double> >(1.0, Velocity<double>::knots(-0.7));
-  return Array<CorruptedBoatState::CorruptorSet>::args(corruptorSet);
+  return Array<CorruptedBoatState::CorruptorSet>{corruptorSet};
 }
 
 
