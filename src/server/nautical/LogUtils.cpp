@@ -8,23 +8,13 @@
 #include <server/nautical/LogUtils.h>
 #include <server/common/logging.h>
 #include <server/common/PathBuilder.h>
-#include <server/common/Env.h>
 #include <iostream>
 #include <server/nautical/NavLoader.h>
 
 namespace sail {
 namespace LogUtils {
 
-namespace {
-  Array<Poco::Path> datasetPaths{
-    PathBuilder::makeDirectory(Env::SOURCE_DIR).pushDirectory("datasets").get(),
-    "/home/jonas/data/datasets"
-    // TODO: Add more paths...
-  };
-}
-
-LoadStatus loadAll(const Poco::Path &localPath, Dispatcher *dst) {
-  auto datasetPath = resolvePath(localPath, datasetPaths);
+LoadStatus loadAll(const Poco::Path &datasetPath, Dispatcher *dst) {
   Array<std::string> extensions{"log"};
   LogLoader loader;
   FileScanSettings settings;
@@ -47,8 +37,7 @@ LoadStatus loadAll(const Poco::Path &localPath, Dispatcher *dst) {
   }, settings);
   int failureCounter = attemptCounter - successCounter;
   loader.addToDispatcher(dst);
-  return LoadStatus{successCounter, failureCounter,
-    localPath.toString(), datasetPath.toString()};
+  return LoadStatus{successCounter, failureCounter};
 }
 
 LoadStatus loadAll(const std::string &path, Dispatcher *dst) {
@@ -56,8 +45,7 @@ LoadStatus loadAll(const std::string &path, Dispatcher *dst) {
 }
 
 std::ostream &operator<<(std::ostream &s, const LoadStatus &x) {
-  s << "\nsail::LoadStatus::loadDirectory results when loading from " << x.localPath << ": "
-    << "\n  resolved to " << x.resolvedPath
+  s << "\nsail::LogUtils::LoadStatus: "
     << "\n  successfully loaded " << x.successCount << " files"
     << "\n  failed to load      " << x.failureCount << " files";
   return s;

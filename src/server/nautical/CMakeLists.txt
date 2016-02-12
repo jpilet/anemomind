@@ -527,11 +527,22 @@ target_link_libraries(nautical_LogUtils
                       anemobox_LogLoader
                       common_filesystem
                       common_PathBuilder
-                      common_Env
                      )           
            
 cxx_test(nautical_LogUtilsTest
          LogUtilsTest.cpp
          gtest_main
          nautical_LogUtils
+         nautical_TestDataFinder
         )           
+        
+add_library(nautical_TestDataFinder
+            TestDataFinder.h
+            TestDataFinder.cpp
+           )
+
+target_link_libraries(nautical_TestDataFinder
+                      common_Env
+                      common_filesystem
+                      common_PathBuilder                      
+                     )

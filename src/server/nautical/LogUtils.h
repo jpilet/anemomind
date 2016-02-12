@@ -15,12 +15,10 @@ namespace LogUtils {
 struct LoadStatus {
   int successCount;
   int failureCount;
-  std::string localPath;
-  std::string resolvedPath;
 };
 std::ostream &operator<<(std::ostream &s, const LoadStatus &x);
 
-LoadStatus loadAll(const std::string &path, Dispatcher *dst);
+LoadStatus loadAll(const std::string &datasetPath, Dispatcher *dst);
 
 }
 }

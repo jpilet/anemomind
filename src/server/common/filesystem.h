@@ -21,6 +21,12 @@ Poco::Path resolvePath(Poco::Path localPath, const Array<Poco::Path> &candidates
 struct FileScanSettings {
   bool visitDirectories = false;
   bool visitFiles = true;
+
+  /*
+   * A maxDepth = 0 means "This path, and nothing else."
+   *     The function 'todo' will be called at most once.
+   * A maxDepth = 1 means "This path and, if it is a directory, its subpaths."
+   */
   int maxDepth = std::numeric_limits<int>::max();
 };
 
