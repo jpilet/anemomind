@@ -26,8 +26,8 @@ module.exports = function(app) {
   app.engine('html', require('ejs').renderFile);
   app.set('view engine', 'html');
   // app.use(compression());
-  app.use(bodyParser.urlencoded({ extended: false }));
-  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({limit: '2mb',  extended: false }));
+  app.use(bodyParser.json({ limit: '2mb' }));
   app.use(methodOverride());
   app.use(cookieParser());
   app.use(passport.initialize());
