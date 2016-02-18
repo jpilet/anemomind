@@ -9,7 +9,7 @@
 using namespace sail;
 
 TEST(UniformSamplesd, InterpolationTest) {
-  Arrayd samples = Arrayd::args(1.0, 1.5);
+  Arrayd samples = Arrayd{1.0, 1.5};
   LineKM sampling = LineKM::identity();
 
   UniformSamplesd x(sampling, samples);

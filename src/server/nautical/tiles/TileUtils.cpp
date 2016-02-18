@@ -48,7 +48,7 @@ Array<Array<Nav>> extractAll(std::string description, Array<Nav> rawNavs,
 
   if (description == treeDescription(tree, grammar)) {
     Array<Nav> navSpan = rawNavs.slice(tree->left(), tree->right());
-    return Array<Array<Nav>>::args(navSpan);
+    return Array<Array<Nav>>{navSpan};
   }
 
   ArrayBuilder<Array<Nav>> result;

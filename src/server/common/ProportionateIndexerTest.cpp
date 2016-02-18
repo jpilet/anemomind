@@ -52,7 +52,7 @@ TEST(PropTest, RoundOffError) {
   const double huge = 1.34332e30;
   const double tiny = 9.239e-12;
 
-  Arrayd arr = Arrayd::args(huge, tiny);
+  Arrayd arr = Arrayd{huge, tiny};
 
   ProportionateIndexer indexer(arr);
 
