@@ -46,7 +46,7 @@ SynthResults evaluateForSimulation(NavalSimulation::BoatData bd,
   };
 }
 
-SplitResults evaluateForSplit(CalibrationAlgorithm calib, Array<Nav> navs) {
+SplitResults evaluateForSplit(CalibrationAlgorithm calib, NavCollection navs) {
   int middle = navs.middle();
   return SplitResults(
     calib(navs.sliceTo(middle)),
@@ -71,12 +71,12 @@ std::ostream &operator<<(std::ostream &s, RealDataResults x) {
 }
 
 
-Array<Nav> loadAndFilterDataset(std::string datasetPath) {
+NavCollection loadAndFilterDataset(std::string datasetPath) {
   return scanNmeaFolder(datasetPath, Nav::debuggingBoatId())
           .slice(hasAllData);
 }
 
-Array<Array<Nav> > splitRealData(Array<Nav> navs) {
+Array<NavCollection> splitRealData(NavCollection navs) {
   return splitNavsByDuration(navs, Duration<double>::hours(1.0));
 }
 
@@ -86,7 +86,7 @@ RealDataResults evaluateForRealDataSplits(CalibrationAlgorithm algo,
   if (!subset.empty()) {
     navs = navs.slice(subset);
   }
-  auto splitResults = map(navs, [&](Array<Nav> navs) {
+  auto splitResults = map(navs, [&](NavCollection navs) {
     return evaluateForSplit(algo, navs);
   }).toArray();
   return RealDataResults{dsPath, splitResults};

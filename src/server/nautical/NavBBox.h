@@ -18,7 +18,7 @@ namespace sail {
 class NavBBox {
  public:
   NavBBox();
-  NavBBox(Array<Nav> nav);
+  NavBBox(NavCollection nav);
   virtual ~NavBBox();
 
   bool intersects(const NavBBox &other) const;
@@ -27,7 +27,7 @@ class NavBBox {
   Span<TimeStamp> _time;
 };
 
-Array<NavBBox> calcNavBBoxes(Array<Array<Nav> > navs);
+Array<NavBBox> calcNavBBoxes(Array<NavCollection> navs);
 
 } /* namespace sail */
 

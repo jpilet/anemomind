@@ -172,7 +172,7 @@ namespace {
 
 
   double getG001StateTransitionCost(const WindOrientedGrammarSettings &s,
-      int from, int to, int at, Array<Nav> navs) {
+      int from, int to, int at, NavCollection navs) {
     if (isOff(from) || isOff(to)) {
       return s.onOffCost*majorStateTransitionCost(from, to);
     } else {
@@ -235,7 +235,7 @@ namespace {
 
 class G001SA : public StateAssign {
  public:
-  G001SA(WindOrientedGrammarSettings s, Array<Nav> navs);
+  G001SA(WindOrientedGrammarSettings s, NavCollection navs);
 
   double getStateCost(int stateIndex, int timeIndex);
 
@@ -247,7 +247,7 @@ class G001SA : public StateAssign {
  private:
   Array<Arrayi> _preds;
   WindOrientedGrammarSettings _settings;
-  Array<Nav> _navs;
+  NavCollection _navs;
   Arrayd _minorStateCostFactors;
 };
 
@@ -326,7 +326,7 @@ namespace {
   }
 }
 
-G001SA::G001SA(WindOrientedGrammarSettings s, Array<Nav> navs) :
+G001SA::G001SA(WindOrientedGrammarSettings s, NavCollection navs) :
     _settings(s), _navs(navs), _minorStateCostFactors(makeCostFactors()),
     _preds(makePredecessorsPerState(makeConnections(s.switchOnOffDuringRace))) {
 }
@@ -335,7 +335,7 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
   return getG001StateTransitionCost(_settings, fromStateIndex, toStateIndex, fromTimeIndex, _navs);
 }
 
-std::shared_ptr<HTree> WindOrientedGrammar::parse(Array<Nav> navs,
+std::shared_ptr<HTree> WindOrientedGrammar::parse(NavCollection navs,
     Array<UserHint> hints) {
   if (navs.empty()) {
     return std::shared_ptr<HTree>();

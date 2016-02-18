@@ -17,8 +17,8 @@ class ManeuverbasedCorrectorFunction : public CorrectorFunction {
  public:
   ManeuverbasedCorrectorFunction(std::shared_ptr<Calibrator> calib) : _calib(calib) {}
 
-  Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const {
-    auto correctedNavs = navs.dup();
+  Array<CalibratedNav<double> > operator()(const NavCollection &navs) const {
+    auto correctedNavs = NavCollection(navs.dup());
     _calib->simulate(&correctedNavs);
     int n = navs.size();
     Array<CalibratedNav<double> > dst(n);
@@ -38,7 +38,7 @@ class ManeuverbasedCorrectorFunction : public CorrectorFunction {
   std::shared_ptr<Calibrator> _calib;
 };
 
-std::shared_ptr<CorrectorFunction> calibrateManeuvers(Array<Nav> navs, bool full) {
+std::shared_ptr<CorrectorFunction> calibrateManeuvers(NavCollection navs, bool full) {
   WindOrientedGrammarSettings gs;
   WindOrientedGrammar grammar(gs);
   auto tree = grammar.parse(navs);
@@ -55,15 +55,15 @@ std::shared_ptr<CorrectorFunction> calibrateManeuvers(Array<Nav> navs, bool full
   }
 }
 
-std::shared_ptr<CorrectorFunction> calibrateManeuversWind(Array<Nav> navs) {
+std::shared_ptr<CorrectorFunction> calibrateManeuversWind(NavCollection navs) {
   return calibrateManeuvers(navs, false);
 }
 
-std::shared_ptr<CorrectorFunction> calibrateManeuversFull(Array<Nav> navs) {
+std::shared_ptr<CorrectorFunction> calibrateManeuversFull(NavCollection navs) {
   return calibrateManeuvers(navs, true);
 }
 
-std::shared_ptr<CorrectorFunction> calibrateMinCov(Array<Nav> navs) {
+std::shared_ptr<CorrectorFunction> calibrateMinCov(NavCollection navs) {
   FilteredNavData data(navs, 0.5);
   return std::shared_ptr<CorrectorFunction>(
       new CorrectorObject(MinCovCalib::optimizeWindVsCurrent(data, MinCovCalib::Settings())));

@@ -43,7 +43,7 @@ namespace {
                         wind.norm().knots());
   }
 
-  Angle<double> externalTrueWindDirection(Array<Nav> nav) {
+  Angle<double> externalTrueWindDirection(NavCollection nav) {
     return nav.last().externalTwa() + nav.last().magHdg();
   }
 
@@ -55,7 +55,7 @@ namespace {
 
 class TackCost {
   public:
-    TackCost(Array<Nav> before, Array<Nav> after, double weight_)
+    TackCost(NavCollection before, NavCollection after, double weight_)
       : _before(makeFilter(before)), _after(makeFilter(after)),
       _beforeNav(before), _afterNav(after), _weight(weight_) { }
 
@@ -136,8 +136,8 @@ class TackCost {
     ServerFilter _after;
 
     // For debugging only.
-    Array<Nav> _beforeNav;
-    Array<Nav> _afterNav;
+    NavCollection _beforeNav;
+    NavCollection _afterNav;
     double _weight;
 };
 
@@ -150,9 +150,9 @@ void Calibrator::addTack(int pos, double weight) {
   }
 
   const int largeMargin = 500;
-  Array<Nav> before = _allnavs.slice(max(0, pos - delta - largeMargin),
+  NavCollection before = _allnavs.slice(max(0, pos - delta - largeMargin),
                                      pos - delta);
-  Array<Nav> after = _allnavs.slice(max(0, pos + delta - largeMargin),
+  NavCollection after = _allnavs.slice(max(0, pos + delta - largeMargin),
                                     pos + delta + length);
 
   Duration<double> deltaTime = after.first().time() - before.last().time();
@@ -248,7 +248,7 @@ string Calibrator::description(std::shared_ptr<HTree> tree) {
 
 bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
   // Load data.
-  Array<Nav> allnavs = scanNmeaFolderWithSimulator(dataPath, boatId);
+  NavCollection allnavs = scanNmeaFolderWithSimulator(dataPath, boatId);
   if (allnavs.size() == 0) {
     return false;
   }
@@ -258,7 +258,7 @@ bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
   return calibrate(allnavs, tree, boatId);
 }
 
-bool Calibrator::segment(const Array<Nav>& navs,
+bool Calibrator::segment(const NavCollection& navs,
     std::shared_ptr<HTree> tree) {
   clear();
   _tree = tree;
@@ -306,7 +306,7 @@ void Calibrator::finalizePlot(GnuplotExtra* gnuplot, const ceres::Solver::Summar
   delete gnuplot;
 }
 
-bool Calibrator::calibrate(const Array<Nav>& navs,
+bool Calibrator::calibrate(const NavCollection& navs,
                            std::shared_ptr<HTree> tree,
                            Nav::Id boatId) {
   if (!segment(navs, tree)) {
@@ -446,7 +446,7 @@ void Calibrator::clear() {
   _maneuvers.clear();
 }
 
-bool Calibrator::simulate(Array<Nav> *navs) const {
+bool Calibrator::simulate(NavCollection *navs) const {
   std::stringstream calibFile;
   saveCalibration(&calibFile);
   calibFile.seekg(0, std::ios::beg);
@@ -529,7 +529,7 @@ namespace {
 } // namespace
 
 Corrector<double> calibrateFull(Calibrator *calib0,
-    const Array<Nav>& navs,
+    const NavCollection& navs,
     std::shared_ptr<HTree> tree,
     Nav::Id boatId) {
 
@@ -565,7 +565,7 @@ Corrector<double> calibrateFull(Calibrator *calib0,
 }
 
 Corrector<double> calibrateFull(Calibrator *calib0,
-    const Array<Nav>& navs,
+    const NavCollection& navs,
     Nav::Id boatId) {
     return calibrateFull(calib0, navs, calib0->grammar().parse(navs), boatId);
 }

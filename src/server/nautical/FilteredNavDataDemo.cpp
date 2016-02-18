@@ -22,7 +22,7 @@ using namespace sail;
 namespace {
 
 
-  void dispFilteredNavData(Array<Nav> navs, Spani span, int modeType, double lambda) {
+  void dispFilteredNavData(NavCollection navs, Spani span, int modeType, double lambda) {
     auto selected = navs.slice(span.minv(), span.maxv()).sliceTo(30*60);
     FilteredNavData data(selected,
         lambda, (modeType == 2? FilteredNavData::DERIVATIVE : FilteredNavData::SIGNAL));
@@ -36,7 +36,7 @@ namespace {
   }
 
   void ex0(int mode, double lambda) {
-    Array<Nav> navs =
+    NavCollection navs =
         scanNmeaFolderWithSimulator(std::string(Env::SOURCE_DIR) + "/datasets/psaros33_Banque_Sturdza",
         Nav::debuggingBoatId());
     Array<Spani> spans = recursiveTemporalSplit(navs);
@@ -63,7 +63,7 @@ int main(int argc, const char **argv) {
     if (amap.optionProvided("--ex0")) {
       ex0(mode, lambda);
     } else {
-      Array<Nav> navs = getTestdataNavs(amap);
+      NavCollection navs = getTestdataNavs(amap);
       Array<Spani> spans = recursiveTemporalSplit(navs);
       if (amap.optionProvided("--overview")) {
         dispTemporalRaceOverview(spans, navs);

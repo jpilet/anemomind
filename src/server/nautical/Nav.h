@@ -184,31 +184,38 @@ class Nav {
   Angle<double> _deviceTwdir;
 };
 
+class NavCollection : public Array<Nav> {
+ public:
+  NavCollection() {}
+  NavCollection(const Array<Nav> &navs) : Array<Nav>(navs) {}
+  // TODO
+};
 
-Array<Velocity<double> > getExternalTws(Array<Nav> navs);
-Array<Angle<double> > getExternalTwa(Array<Nav> navs);
-Array<Velocity<double> > getGpsSpeed(Array<Nav> navs);
-Array<Angle<double> > getGpsBearing(Array<Nav> navs);
-Array<Velocity<double> > getWatSpeed(Array<Nav> navs);
-Array<Angle<double> > getMagHdg(Array<Nav> navs);
-Array<Velocity<double> > getAws(Array<Nav> navs);
-Array<Angle<double> > getAwa(Array<Nav> navs);
 
-Array<Nav> loadNavsFromText(std::string filename, bool sort = true);
-bool areSortedNavs(Array<Nav> navs);
-void plotNavTimeVsIndex(Array<Nav> navs);
-void dispNavTimeIntervals(Array<Nav> navs);
-Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, Duration<double> dur);
-MDArray2d calcNavsEcefTrajectory(Array<Nav> navs);
-Array<MDArray2d> calcNavsEcefTrajectories(Array<Array<Nav> > navs);
-void plotNavsEcefTrajectory(Array<Nav> navs);
-void plotNavsEcefTrajectories(Array<Array<Nav> > navs);
-int countNavs(Array<Array<Nav> > navs);
+Array<Velocity<double> > getExternalTws(NavCollection navs);
+Array<Angle<double> > getExternalTwa(NavCollection navs);
+Array<Velocity<double> > getGpsSpeed(NavCollection navs);
+Array<Angle<double> > getGpsBearing(NavCollection navs);
+Array<Velocity<double> > getWatSpeed(NavCollection navs);
+Array<Angle<double> > getMagHdg(NavCollection navs);
+Array<Velocity<double> > getAws(NavCollection navs);
+Array<Angle<double> > getAwa(NavCollection navs);
+
+NavCollection loadNavsFromText(std::string filename, bool sort = true);
+bool areSortedNavs(NavCollection navs);
+void plotNavTimeVsIndex(NavCollection navs);
+void dispNavTimeIntervals(NavCollection navs);
+Array<NavCollection> splitNavsByDuration(NavCollection navs, Duration<double> dur);
+MDArray2d calcNavsEcefTrajectory(NavCollection navs);
+Array<MDArray2d> calcNavsEcefTrajectories(Array<NavCollection > navs);
+void plotNavsEcefTrajectory(NavCollection navs);
+void plotNavsEcefTrajectories(Array<NavCollection> navs);
+int countNavs(Array<NavCollection> navs);
 
 std::ostream &operator<<(std::ostream &s, const Nav &x);
 
-Length<double> computeTrajectoryLength(Array<Nav> navs);
-int findMaxSpeedOverGround(Array<Nav> navs);
+Length<double> computeTrajectoryLength(NavCollection navs);
+int findMaxSpeedOverGround(NavCollection navs);
 
 } /* namespace sail */
 

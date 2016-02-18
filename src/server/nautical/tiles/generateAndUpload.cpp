@@ -1,6 +1,6 @@
 /*
  *
- * Array<Nav> filterNavs(Array<Nav> navs) {
+ * NavCollection filterNavs(NavCollection navs) {
   GpsFilter::Settings settings;
 
   ArrayBuilder<Nav> withoutNulls;

@@ -32,7 +32,7 @@ TimeStamp getGlobalTime(TimeStamp timeRef, Duration<double> localTime) {
   return timeRef + localTime;
 }
 
-Duration<double> getLocalTimeDif(const Array<Nav> &navs, int index) {
+Duration<double> getLocalTimeDif(const NavCollection &navs, int index) {
   auto li = navs.lastIndex();
   if (index == 0) {
     return (navs[1].time() - navs[0].time());
@@ -49,15 +49,15 @@ int navIndexToTimeIndex(int navIndex) {
   return 1 + 2*navIndex;
 }
 
-const Nav &middle(Array<Nav> navs) {
+const Nav &middle(NavCollection navs) {
   return navs[navs.middle()];
 }
 
-TimeStamp getTimeReference(Array<Nav> navs) {
+TimeStamp getTimeReference(NavCollection navs) {
   return middle(navs).time();
 }
 
-GeographicReference getGeographicReference(Array<Nav> navs) {
+GeographicReference getGeographicReference(NavCollection navs) {
   return GeographicReference(middle(navs).geographicPosition());
 }
 
@@ -73,7 +73,7 @@ GeographicReference::ProjectedPosition integrate(
 Array<Observation<2> > getObservations(
     Settings settings,
     TimeStamp timeRef,
-    GeographicReference geoRef, Array<Nav> navs, Sampling sampling) {
+    GeographicReference geoRef, NavCollection navs, Sampling sampling) {
   int n = navs.size();
   Array<Observation<2> > dst(2*n);
   for (int i = 0; i < n; i++) {
@@ -130,7 +130,7 @@ Spani getReliableSampleRange(Array<Observation<2> > observations_, Arrayb inlier
   return range;
 }
 
-Results filter(Array<Nav> navs, Settings settings) {
+Results filter(NavCollection navs, Settings settings) {
   assert(std::is_sorted(navs.begin(), navs.end()));
   auto timeRef = getTimeReference(navs);
   auto geoRef = getGeographicReference(navs);
@@ -163,9 +163,9 @@ Arrayb Results::inlierMask() {
 }
 
 
-Array<Nav> Results::filteredNavs() const {
+NavCollection Results::filteredNavs() const {
   int n = rawNavs.size();
-  Array<Nav> dst = rawNavs.dup();
+  NavCollection dst = rawNavs.dup();
   for (int i = 0; i < n; i++) {
     auto w = positionObservations[i].weights;
     auto &nav = dst[i];

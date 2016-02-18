@@ -14,20 +14,20 @@
 
 namespace sail {
 
-Array<Nav> scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
+NavCollection scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
                           ScreenRecordingSimulator *simulator, ParsedNavs::FieldMask mask) {
   { // Initial checks.
     Poco::File file(p);
     if (!file.exists()) {
-      return Array<Nav>();
+      return NavCollection();
     }
 
     if (!file.isDirectory()) {
-      return Array<Nav>();
+      return NavCollection();
     }
 
     if (boatId.empty()) {
-      return Array<Nav>();
+      return NavCollection();
     }
   }
 
@@ -44,7 +44,7 @@ Array<Nav> scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
       simulator->simulate(files[i].toString());
     }
   }
-  Array<Nav> result = flattenAndSort(parsedNavs, mask);
+  NavCollection result = flattenAndSort(parsedNavs, mask);
 
   if (simulator) {
     for (Nav& nav : result) {
@@ -65,19 +65,19 @@ Array<Nav> scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
   return result;
 }
 
-Array<Nav> scanNmeaFolder(Poco::Path p, Nav::Id boatId,
+NavCollection scanNmeaFolder(Poco::Path p, Nav::Id boatId,
                           ParsedNavs::FieldMask mask) {
   return scanNmeaFolderWithSimulator(p, boatId, nullptr, mask);
 }
 
-Array<Nav> scanNmeaFolders(Array<Poco::Path> p, Nav::Id boatId,
+NavCollection scanNmeaFolders(Array<Poco::Path> p, Nav::Id boatId,
     ParsedNavs::FieldMask mask) {
   auto scanResults = toArray(map(p, [=](const Poco::Path &p) {
     return scanNmeaFolder(p, boatId, mask);
   }));
   auto cat = concat(scanResults);
   std::sort(cat.begin(), cat.end());
-  return cat;
+  return NavCollection(cat);
 }
 
 

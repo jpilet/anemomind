@@ -72,7 +72,7 @@ BSONObj navToBSON(const Nav& nav) {
   return result.obj();
 }
 
-BSONArray navsToBSON(const Array<Nav>& navs) {
+BSONArray navsToBSON(const NavCollection& navs) {
   BSONArrayBuilder result;
   for (auto nav: navs) {
     result.append(navToBSON(nav));
@@ -136,7 +136,7 @@ Angle<T> average(const Angle<T>& a, const Angle<T>& b) {
   return motion.angle();
 }
 
-BSONObj locationForSession(const Array<Nav>& navs) {
+BSONObj locationForSession(const NavCollection& navs) {
   if (navs.size() == 0) {
     return BSONObj();
   }
@@ -169,7 +169,7 @@ BSONObj locationForSession(const Array<Nav>& navs) {
 }
 
 // Returns average wind speed and average wind direction.
-Optional<HorizontalMotion<double>> averageWind(const Array<Nav>& navs) {
+Optional<HorizontalMotion<double>> averageWind(const NavCollection& navs) {
   int num = 0;
   HorizontalMotion<double> sum = HorizontalMotion<double>::zero();
   Velocity<double> sumSpeed = Velocity<double>::knots(0);
@@ -208,7 +208,7 @@ Optional<HorizontalMotion<double>> averageWind(const Array<Nav>& navs) {
 
 // Returns the strongest wind and the corresponding nav index.
 // If no wind information is present, the returned index is -1.
-std::pair<Velocity<double>, int> indexOfStrongestWind(const Array<Nav>& navs) {
+std::pair<Velocity<double>, int> indexOfStrongestWind(const NavCollection& navs) {
   std::pair<Velocity<double>, int> result(Velocity<double>::knots(0), -1);
 
   auto marg = Duration<double>::minutes(5.0);
@@ -244,7 +244,7 @@ std::pair<Velocity<double>, int> indexOfStrongestWind(const Array<Nav>& navs) {
 BSONObj makeBsonSession(
     const std::string &curveId,
     const std::string &boatId,
-    Array<Nav> navs) {
+    NavCollection navs) {
 
   BSONObjBuilder session;
   session.append("_id", curveId);
@@ -276,7 +276,7 @@ BSONObj makeBsonSession(
 }
 
 BSONObj makeBsonTile(const TileKey& tileKey,
-                     const Array<Array<Nav>>& subCurvesInTile,
+                     const Array<NavCollection>& subCurvesInTile,
                      const std::string& boatId,
                      const std::string& curveId) {
   BSONObjBuilder tile;
@@ -304,7 +304,7 @@ BSONObj makeBsonTile(const TileKey& tileKey,
 }  // namespace
 
 bool generateAndUploadTiles(std::string boatId,
-                            Array<Array<Nav>> allNavs,
+                            Array<NavCollection> allNavs,
                             const TileGeneratorParameters& params) {
   mongo::client::initialize();
 
@@ -320,13 +320,13 @@ bool generateAndUploadTiles(std::string boatId,
                MONGO_QUERY("boat" << OID(boatId)));
   }
 
-  for (const Array<Nav>& curve : allNavs) {
+  for (const NavCollection& curve : allNavs) {
     std::string curveId = tileCurveId(boatId, curve);
 
     std::set<TileKey> tiles = tilesForNav(curve, params.maxScale);
 
     for (auto tileKey : tiles) {
-      Array<Array<Nav>> subCurvesInTile = generateTiles(
+      Array<NavCollection> subCurvesInTile = generateTiles(
           tileKey, curve, params.maxNumNavsPerSubCurve);
 
       if (subCurvesInTile.size() == 0) {

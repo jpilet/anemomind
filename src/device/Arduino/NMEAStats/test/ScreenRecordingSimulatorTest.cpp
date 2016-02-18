@@ -16,7 +16,7 @@ TEST(ScreenRecordingTest, screenAtTest) {
   simulator.prepare("", "");
   simulator.simulate(nmeaFile);
 
-  Array<Nav> navs = flattenAndSort(
+  NavCollection navs = flattenAndSort(
       Array<ParsedNavs>{loadNavsFromNmea(nmeaFile, "")},
       ParsedNavs::makeGpsWindMask());
 

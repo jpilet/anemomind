@@ -18,7 +18,7 @@
 namespace sail {
 
 namespace {
-  bool sameBoat(Array<Nav> navs) {
+  bool sameBoat(NavCollection navs) {
     Nav::Id boatId = navs[0].boatId();
     int count = navs.size();
     for (int i = 1; i < count; i++) {
@@ -29,7 +29,7 @@ namespace {
     return true;
   }
 
-  Array<Duration<double> > getTimes(Array<Nav> navs, TimeStamp offset) {
+  Array<Duration<double> > getTimes(NavCollection navs, TimeStamp offset) {
     return toArray(map(navs, [=](const Nav &nav) {
       return nav.time() - offset;
     }));
@@ -102,7 +102,7 @@ UniformSamplesd tryFilter(GeneralizedTV tv, Arrayd X, Arrayd Y, double spacing,
   return UniformSamplesd();
 }
 
-FilteredNavData::FilteredNavData(Array<Nav> navs, double lambda,
+FilteredNavData::FilteredNavData(NavCollection navs, double lambda,
   FilteredNavData::DebugPlotMode mode) {
   if (navs.hasData()) {
     std::sort(navs.begin(), navs.end());
@@ -231,7 +231,7 @@ HorizontalMotion<double> FilteredNavData::gpsMotionAtIndex(int index) const {
       _gpsBearing.get(index));
 }
 
-FilteredNavData::NoiseStdDev FilteredNavData::estimateNoise(Array<Nav> navs) const {
+FilteredNavData::NoiseStdDev FilteredNavData::estimateNoise(NavCollection navs) const {
   MeanAndVar awa;
   MeanAndVar magHdg;
   MeanAndVar gpsBearing;

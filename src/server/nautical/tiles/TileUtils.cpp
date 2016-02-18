@@ -15,7 +15,7 @@
 
 namespace sail {
 
-Array<Nav> filterNavs(Array<Nav> navs) {
+NavCollection filterNavs(NavCollection navs) {
   GpsFilter::Settings settings;
 
   ArrayBuilder<Nav> withoutNulls;
@@ -39,21 +39,21 @@ std::string treeDescription(const shared_ptr<HTree>& tree,
 
 // Recursively traverse the tree to find all sub-tree with a given
 // description. Extract the corresponding navs.
-Array<Array<Nav>> extractAll(std::string description, Array<Nav> rawNavs,
+Array<NavCollection> extractAll(std::string description, NavCollection rawNavs,
                              const WindOrientedGrammar& grammar,
                              const std::shared_ptr<HTree>& tree) {
   if (!tree) {
-    return Array<Array<Nav>>();
+    return Array<NavCollection>();
   }
 
   if (description == treeDescription(tree, grammar)) {
-    Array<Nav> navSpan = rawNavs.slice(tree->left(), tree->right());
-    return Array<Array<Nav>>{navSpan};
+    NavCollection navSpan = rawNavs.slice(tree->left(), tree->right());
+    return Array<NavCollection>{navSpan};
   }
 
-  ArrayBuilder<Array<Nav>> result;
+  ArrayBuilder<NavCollection> result;
   for (auto child : tree->children()) {
-    Array<Array<Nav>> fromChild = extractAll(description, rawNavs,
+    Array<NavCollection> fromChild = extractAll(description, rawNavs,
                                              grammar, child);
     for (auto navs : fromChild) {
       result.add(navs);
@@ -65,7 +65,7 @@ Array<Array<Nav>> extractAll(std::string description, Array<Nav> rawNavs,
 void processTiles(const TileGeneratorParameters &params,
     std::string boatId, std::string navPath,
     std::string boatDat, std::string polarDat) {
-    Array<Nav> rawNavs = scanNmeaFolder(navPath, boatId);
+    NavCollection rawNavs = scanNmeaFolder(navPath, boatId);
 
     if (boatDat != "") {
       if (SimulateBox(boatDat, &rawNavs)) {
@@ -83,7 +83,7 @@ void processTiles(const TileGeneratorParameters &params,
     WindOrientedGrammar grammar(settings);
     std::shared_ptr<HTree> fulltree = grammar.parse(rawNavs);
 
-    Array<Array<Nav>> sessions =
+    Array<NavCollection> sessions =
       map(extractAll("Sailing", rawNavs, grammar, fulltree), filterNavs).toArray();
 
     if (!generateAndUploadTiles(boatId, sessions, params)) {

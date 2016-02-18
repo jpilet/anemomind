@@ -129,7 +129,7 @@ class CalibratedNav {
 // An abstract class used for evaluation of calibration algorithms.
 class CorrectorFunction {
  public:
-  virtual Array<CalibratedNav<double> > operator()(const Array<Nav> &navs) const = 0;
+  virtual Array<CalibratedNav<double> > operator()(const NavCollection &navs) const = 0;
   virtual std::string toString() const = 0;
   virtual ~CorrectorFunction() {}
 

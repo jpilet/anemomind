@@ -42,22 +42,22 @@ Array<Velocity<double> > makeBoundsFromBinCenters(int binCount,
 
 
 // Function used by getUpwindVmg and getDownwindVmg.
-Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind);
+Array<Velocity<double> > calcVmg(NavCollection navs, bool isUpwind);
 
 // Using the TWA from file
-Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind);
+Array<Velocity<double> > calcExternalVmg(NavCollection navs, bool isUpwind);
 
 // All navs are collected from upwind legs
-Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs);
+Array<Velocity<double> > calcUpwindVmg(NavCollection navs);
 
 // All navs are collected from downwind legs
-Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs);
+Array<Velocity<double> > calcDownwindVmg(NavCollection navs);
 
 // Tws
-Array<Velocity<double> > estimateTws(Array<Nav> navs);
+Array<Velocity<double> > estimateTws(NavCollection navs);
 
 // Tws from file, reliable.
-Array<Velocity<double> > estimateExternalTws(Array<Nav> navs);
+Array<Velocity<double> > estimateExternalTws(NavCollection navs);
 
 void saveTargetSpeedTableChunk(
     ostream *stream,

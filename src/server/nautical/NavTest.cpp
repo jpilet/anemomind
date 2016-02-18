@@ -24,21 +24,21 @@ TEST(NavTest, MaxSpeed) {
   b.setGpsSpeed(Velocity<double>::knots(2.1));
   c.setTime(offset + Duration<double>::minutes(24));
   c.setGpsSpeed(Velocity<double>::knots(30.1));
-  EXPECT_EQ(1, findMaxSpeedOverGround(Array<Nav>{a, b, c}));
+  EXPECT_EQ(1, findMaxSpeedOverGround(NavCollection({a, b, c})));
 }
 
 TEST(NavTest, SortedTest) {
-  Array<Nav> navs = loadNavsFromText(getAllNavsPath().toString());
+  NavCollection navs = loadNavsFromText(getAllNavsPath().toString());
   EXPECT_TRUE(navs.size() > 3);
 
   EXPECT_TRUE(areSortedNavs(navs));
 }
 
 TEST(NavTest, NavBBoxTest) {
-  Array<Nav> navs = loadNavsFromText(getAllNavsPath().toString(), true);
+  NavCollection navs = loadNavsFromText(getAllNavsPath().toString(), true);
   EXPECT_TRUE(navs.size() > 3);
 
-  Array<Array<Nav> > splitNavs = splitNavsByDuration(navs,
+  Array<NavCollection> splitNavs = splitNavsByDuration(navs,
                                  Duration<double>::minutes(10));
   Array<NavBBox> boxes = calcNavBBoxes(splitNavs);
 

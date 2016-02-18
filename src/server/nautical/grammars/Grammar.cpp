@@ -31,7 +31,7 @@ namespace {
   }
 
   void markNodesRecursively(std::shared_ptr<HTree> tree,
-      Arrayi inds, Array<Nav> navs,
+      Arrayi inds, NavCollection navs,
       Arrayb dst) {
     if (inSet(tree->index(), inds)) {
       dst.slice(tree->left(), tree->right()).setTo(true);
@@ -45,7 +45,7 @@ namespace {
 }
 
 Arrayb markNavsByDesc(std::shared_ptr<HTree> tree,
-    Array<HNode> nodeInfo, Array<Nav> allnavs,
+    Array<HNode> nodeInfo, NavCollection allnavs,
     std::string label) {
 
     Arrayi inds = listNodeIndicesOfInterest(nodeInfo, label);

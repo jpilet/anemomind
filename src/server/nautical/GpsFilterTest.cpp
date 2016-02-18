@@ -16,7 +16,7 @@
 using namespace sail;
 
 
-MDArray2d getRawPositions(GpsFilter::Results r, Array<Nav> navs) {
+MDArray2d getRawPositions(GpsFilter::Results r, NavCollection navs) {
   int n = navs.size();
   MDArray2d X(n, 2);
   for (int i = 0; i < n; i++) {
@@ -34,7 +34,7 @@ MDArray2d getRawPositions(GpsFilter::Results r, Array<Nav> navs) {
 
 
 
-Array<Nav> getPsarosTestData() {
+NavCollection getPsarosTestData() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("psaros33_Banque_Sturdza")
@@ -44,10 +44,10 @@ Array<Nav> getPsarosTestData() {
   return navs.sliceFrom(3000);
 }
 
-Array<Nav> applyOutliers(Array<Nav> navs) {
+NavCollection applyOutliers(NavCollection navs) {
   int from = int(floor(navs.size()*0.05));
   int to = int(floor(navs.size()*0.15));
-  Array<Nav> dst = navs.dup();
+  NavCollection dst = navs.dup();
   Angle<double> offset = Angle<double>::degrees(1);
   for (int i = 0; i < navs.size(); i++) {
     if (i % 10 == 0) {
@@ -62,7 +62,7 @@ Array<Nav> applyOutliers(Array<Nav> navs) {
 
 
 
-void runPsarosTest(Array<Nav> navs, Array<Nav> navsToFilter) {
+void runPsarosTest(NavCollection navs, NavCollection navsToFilter) {
   GpsFilter::Settings settings;
   if (navsToFilter.empty()) {
     navsToFilter = navs;
@@ -109,7 +109,7 @@ void runPsarosTest(Array<Nav> navs, Array<Nav> navsToFilter) {
 TEST(GpsFilterTest, PsarosTest) {
   auto navs = getPsarosTestData();
 
-  runPsarosTest(navs, Array<Nav>());
+  runPsarosTest(navs, NavCollection());
   runPsarosTest(navs, applyOutliers(navs));
 }
 
@@ -136,7 +136,7 @@ Velocity<double> calcSpeedFromGpsPositions(const Nav &a, const Nav &b) {
   return Velocity<double>::metersPerSecond(sqrt(dif)/std::abs((a.time() - b.time()).seconds()));
 }
 
-Velocity<double> getMaxSpeedFromGpsPositions(Array<Nav> navs) {
+Velocity<double> getMaxSpeedFromGpsPositions(NavCollection navs) {
   Velocity<double> v = Velocity<double>::knots(0.0);
   for (int i = 0; i < navs.size()-1; i++) {
     v = std::max(v, calcSpeedFromGpsPositions(navs[i], navs[i+1]));
@@ -144,7 +144,7 @@ Velocity<double> getMaxSpeedFromGpsPositions(Array<Nav> navs) {
   return v;
 }
 
-Array<Nav> getIreneTestData() {
+NavCollection getIreneTestData() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("Irene")
@@ -155,7 +155,7 @@ Array<Nav> getIreneTestData() {
   return splitNavsByDuration(navs, Duration<double>::hours(1.0))[1];
 }
 
-Array<Array<Nav> > getAllIreneData() {
+Array<NavCollection> getAllIreneData() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("Irene").get();
@@ -164,7 +164,7 @@ Array<Array<Nav> > getAllIreneData() {
 }
 
 
-void filterAndDisplay(Array<Nav> navs) {
+void filterAndDisplay(NavCollection navs) {
 
   GpsFilter::Settings settings;
   auto results = GpsFilter::filter(navs, settings);

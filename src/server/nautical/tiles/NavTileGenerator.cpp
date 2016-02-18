@@ -10,8 +10,8 @@ namespace sail {
 
 namespace {
 
-Array<Nav> makeTileElement(TileKey tileKey,
-                           const Array<Nav>& navs,
+NavCollection makeTileElement(TileKey tileKey,
+                           const NavCollection& navs,
                            int maxNumNavs) {
   if (navs.size() <= maxNumNavs) {
     return navs;
@@ -60,14 +60,14 @@ std::string TileKey::stringKey() const {
   return stringFormat("s%dx%dy%d", _scale, _x, _y);
 }
 
-Array<Array<Nav>> generateTiles(TileKey tileKey,
-                                const Array<Nav>& navs,
+Array<NavCollection> generateTiles(TileKey tileKey,
+                                const NavCollection& navs,
                                 int maxNumNavs) {
   Array<bool> inOrOut = toArray(map(navs,
       [&] (const Nav& nav) -> bool {
           return tileKey.contains(nav.geographicPosition());
       }));
-  ArrayBuilder<Array<Nav>> result;
+  ArrayBuilder<NavCollection> result;
 
   // The curve might enter and leave the tile multiple times.
   // Group together consecutive points that are in the tile.
@@ -93,7 +93,7 @@ Array<Array<Nav>> generateTiles(TileKey tileKey,
   return result.get();
 }
 
-std::set<TileKey> tilesForNav(const Array<Nav>& navs, int maxScale) {
+std::set<TileKey> tilesForNav(const NavCollection& navs, int maxScale) {
   std::set<TileKey> result;
   for (const Nav& nav : navs) {
     for (int scale = 0; scale < maxScale; scale++) {
@@ -103,7 +103,7 @@ std::set<TileKey> tilesForNav(const Array<Nav>& navs, int maxScale) {
   return result;
 }
 
-std::string tileCurveId(std::string boatId, const Array<Nav>& navs) {
+std::string tileCurveId(std::string boatId, const NavCollection& navs) {
   // TODO: hash this string.
   return boatId + navs.first().time().toString() + navs.last().time().toString();
 }

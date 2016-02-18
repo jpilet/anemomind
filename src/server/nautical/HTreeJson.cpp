@@ -16,14 +16,14 @@ namespace {
   class HTreeWithData {
    public:
     HTreeWithData() {}
-    HTreeWithData(std::shared_ptr<HTree> t, Array<Nav> n, Array<HNode> nodeInfo) :
+    HTreeWithData(std::shared_ptr<HTree> t, NavCollection n, Array<HNode> nodeInfo) :
       _tree(t), _navs(n), _info(nodeInfo) {}
-    const Array<Nav> &navs() const {return _navs;}
+    const NavCollection &navs() const {return _navs;}
     std::shared_ptr<HTree> tree() const {return _tree;}
     Array<HNode> info() const {return _info;}
    private:
     std::shared_ptr<HTree> _tree;
-    Array<Nav> _navs;
+    NavCollection _navs;
     Array<HNode> _info;
   };
 
@@ -52,11 +52,11 @@ namespace {
   }
 }
 
-Poco::Dynamic::Var serializeMapped(std::shared_ptr<HTree> x, Array<Nav> navs, Array<HNode> nodeInfo) {
+Poco::Dynamic::Var serializeMapped(std::shared_ptr<HTree> x, NavCollection navs, Array<HNode> nodeInfo) {
   return serialize(HTreeWithData(x, navs, nodeInfo));
 }
 
-Poco::Dynamic::Var serializeMapped(Array<std::shared_ptr<HTree> > x, Array<Nav> navs, Array<HNode> nodeInfo) {
+Poco::Dynamic::Var serializeMapped(Array<std::shared_ptr<HTree> > x, NavCollection navs, Array<HNode> nodeInfo) {
   return serialize(toArray(map(x, [&](std::shared_ptr<HTree> h) {return HTreeWithData(h, navs, nodeInfo);})));
 }
 

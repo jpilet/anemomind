@@ -42,14 +42,14 @@ using namespace std;
 namespace {
   TargetSpeed makeTargetSpeedTable(bool isUpwind,
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
-      Array<Nav> allnavs,
+      NavCollection allnavs,
       std::string description) {
 
     // TODO: How to best select upwind/downwind navs? Is the grammar reliable for this?
     //   Maybe replace AWA by TWA in order to label states in Grammar001.
     Arrayb sel = markNavsByDesc(tree, nodeinfo, allnavs, description);
 
-    Array<Nav> navs = allnavs.slice(sel);
+    NavCollection navs = allnavs.slice(sel);
 
     Array<Velocity<double> > tws = estimateExternalTws(navs);
     Array<Velocity<double> > vmg = calcExternalVmg(navs, isUpwind);
@@ -67,7 +67,7 @@ namespace {
       bool debug,
       std::shared_ptr<HTree> tree,
       Array<HNode> nodeinfo,
-      Array<Nav> navs,
+      NavCollection navs,
       std::ofstream *file) {
     TargetSpeed uw = makeTargetSpeedTable(true, tree, nodeinfo, navs, "upwind-leg");
     TargetSpeed dw = makeTargetSpeedTable(false, tree, nodeinfo, navs, "downwind-leg");
@@ -84,7 +84,7 @@ namespace {
 
   void makeBoatDatFile(
       bool debug,
-      PathBuilder outdir, Array<Nav> navs,
+      PathBuilder outdir, NavCollection navs,
       std::shared_ptr<HTree> fulltree, Nav::Id boatId, WindOrientedGrammar g) {
     ENTERSCOPE("Output boat.dat with target speed data.");
     std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
@@ -98,7 +98,7 @@ namespace {
     outputTargetSpeedTable(debug, fulltree, g.nodeInfo(), navs, &boatDatFile);
   }
 
-  bool processBoatData(bool debug, Nav::Id boatId, Array<Nav> navs, Poco::Path dstPath, std::string filenamePrefix) {
+  bool processBoatData(bool debug, Nav::Id boatId, NavCollection navs, Poco::Path dstPath, std::string filenamePrefix) {
     ENTERSCOPE("processBoatData");
     if (navs.size() == 0) {
       LOG(ERROR) << "No data to process.";
@@ -180,13 +180,13 @@ Nav::Id extractBoatId(Poco::Path path) {
 
 }
 
-Array<Nav> loadNavs(ArgMap &amap, std::string boatId) {
-  ArrayBuilder<Array<Nav> > navs;
+NavCollection loadNavs(ArgMap &amap, std::string boatId) {
+  ArrayBuilder<NavCollection > navs;
   for (auto dirNameObj: amap.optionArgs("--dir")) {
     navs.add(scanNmeaFolderWithSimulator(dirNameObj->value(), boatId));
   }
   for (auto fileNameObj: amap.optionArgs("--file")) {
-    Array<Nav> navs = loadNavsFromFile(fileNameObj->value(),
+    NavCollection navs = loadNavsFromFile(fileNameObj->value(),
         boatId).navs();
   }
   auto allNavs = concat(navs.get());

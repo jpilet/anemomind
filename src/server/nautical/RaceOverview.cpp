@@ -22,7 +22,7 @@ int main(int argc, const char **argv) {
       .setArgCount(1).store(&relativeThresh);
 
   if (amap.parse(argc, argv) != ArgMap::Error) {
-    Array<Nav> navs = getTestdataNavs(amap);
+    NavCollection navs = getTestdataNavs(amap);
     Array<Spani> spans = recursiveTemporalSplit(navs,
         relativeThresh, Duration<double>::seconds(lowerThresh));
     dispTemporalRaceOverview(spans, navs);

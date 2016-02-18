@@ -43,10 +43,10 @@ class ParsedNavs {
   }
 
   ParsedNavs() {}
-  ParsedNavs(Array<Nav> navs, FieldMask fields) : _navs(navs), _fields(fields) {}
-  ParsedNavs(Array<Nav> navs) : _navs(navs), _fields(fieldsFromNavs(navs)) {}
+  ParsedNavs(NavCollection navs, FieldMask fields) : _navs(navs), _fields(fields) {}
+  ParsedNavs(NavCollection navs) : _navs(navs), _fields(fieldsFromNavs(navs)) {}
 
-  Array<Nav> navs() {return _navs;}
+  NavCollection navs() {return _navs;}
 
   bool hasFields(FieldMask mask);
   bool complete() { return _fields[TIME] && _fields[POS] && _fields[AWA]; }
@@ -54,10 +54,10 @@ class ParsedNavs {
   static FieldMask makeCompleteMask();
   static FieldMask makeGpsWindMask();
   static FieldMask makeAllSensorsMask();
-  static FieldMask fieldsFromNavs(const Array<Nav> &navs);
+  static FieldMask fieldsFromNavs(const NavCollection &navs);
 
  private:
-  Array<Nav> _navs;
+  NavCollection _navs;
 
   // Which fields of the Navs for which we read data. For instance,
   // if the magnetic compass was not connected, then we would expect
@@ -71,7 +71,7 @@ ParsedNavs loadNavsFromNmea(std::string filename, Nav::Id boatId);
 std::ostream &operator<<(std::ostream &s, ParsedNavs x);
 
 // Useful function when reading Nav's from several files.
-Array<Nav> flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask);
+NavCollection flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask);
 
 TimeStamp getTime(const NmeaParser &parser);
 

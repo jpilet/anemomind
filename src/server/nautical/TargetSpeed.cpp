@@ -165,7 +165,7 @@ Arrayd TargetSpeed::makeDefaultQuantiles() {
   return Arrayd(count, data);
 }
 
-Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
+Array<Velocity<double> > calcVmg(NavCollection navs, bool isUpwind) {
   int sign = (isUpwind? 1 : -1);
   return toArray(map(navs, [&](const Nav &n) {
     double factor = sign*cos(estimateRawTwa(n));
@@ -173,7 +173,7 @@ Array<Velocity<double> > calcVmg(Array<Nav> navs, bool isUpwind) {
   }));
 }
 
-Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind) {
+Array<Velocity<double> > calcExternalVmg(NavCollection navs, bool isUpwind) {
   int sign = isUpwind? 1 : -1;
   return toArray(map(navs, [&](const Nav &n) {
     double factor = sign*cos(n.externalTwa());
@@ -182,19 +182,19 @@ Array<Velocity<double> > calcExternalVmg(Array<Nav> navs, bool isUpwind) {
 }
 
 
-Array<Velocity<double> > calcUpwindVmg(Array<Nav> navs) {
+Array<Velocity<double> > calcUpwindVmg(NavCollection navs) {
   return calcVmg(navs, true);
 }
 
-Array<Velocity<double> > calcDownwindVmg(Array<Nav> navs) {
+Array<Velocity<double> > calcDownwindVmg(NavCollection navs) {
   return calcVmg(navs, false);
 }
 
-Array<Velocity<double> > estimateTws(Array<Nav> navs) {
+Array<Velocity<double> > estimateTws(NavCollection navs) {
   return toArray(map(navs, [&](const Nav &n) {return estimateRawTws(n);}));
 }
 
-Array<Velocity<double> > estimateExternalTws(Array<Nav> navs) {
+Array<Velocity<double> > estimateExternalTws(NavCollection navs) {
   return toArray(map(navs, [&](const Nav &n) {return n.externalTws();}));
 }
 

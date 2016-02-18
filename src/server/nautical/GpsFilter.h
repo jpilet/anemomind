@@ -25,7 +25,7 @@ struct Settings {
 
 struct Results {
   // Before filtering
-  Array<Nav> rawNavs;
+  NavCollection rawNavs;
   Array<Observation<2> > positionObservations;
 
   // Related to the optimization
@@ -36,13 +36,13 @@ struct Results {
   Spani reliableSampleRange;
 
   Arrayb inlierMask();
-  Array<Nav> filteredNavs() const;
+  NavCollection filteredNavs() const;
   Sampling::Weights calcWeights(TimeStamp t) const;
   HorizontalMotion<double> calcMotion(const Sampling::Weights &w) const;
   GeographicPosition<double> calcPosition(const Sampling::Weights &w) const;
 };
 
-Results filter(Array<Nav> navs, Settings settings);
+Results filter(NavCollection navs, Settings settings);
 
 }
 }

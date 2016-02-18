@@ -11,7 +11,7 @@
 namespace sail {
 
 HintedStateAssign makeHintedStateAssign(const Grammar &g, std::shared_ptr<StateAssign> ref,
-  Array<UserHint> hints, Array<Nav> navs) {
+  Array<UserHint> hints, NavCollection navs) {
   ArrayBuilder<std::shared_ptr<LocalStateAssign> > hintsLSA;
   for (auto h : hints) {
     std::shared_ptr<LocalStateAssign> t = TransitionHint::make(h, navs, g);

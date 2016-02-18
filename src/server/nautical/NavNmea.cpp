@@ -214,7 +214,7 @@ ParsedNavs loadNavsFromNmea(std::istream &file, Nav::Id boatId) {
     file.get(c);
     parseNmeaChar(c, &parser, &nav, &navAcc, &fields, boatId, &last);
   }
-  return ParsedNavs(navAcc.get(), fields);
+  return ParsedNavs(NavCollection(navAcc.get()), fields);
 }
 
 ParsedNavs loadNavsFromNmea(std::string filename, Nav::Id boatId) {
@@ -263,9 +263,9 @@ namespace {
     return counter;
   }
 
-  Array<Nav> flatten(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
+  NavCollection flatten(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
     int len = countNavsToInclude(allNavs, mask);
-    Array<Nav> dst(len);
+    NavCollection dst(len);
     int counter = 0;
     for (int i = 0; i < allNavs.size(); i++) {
       ParsedNavs &n = allNavs[i];
@@ -280,13 +280,13 @@ namespace {
   }
 }
 
-Array<Nav> flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
-  Array<Nav> flattened = flatten(allNavs, mask);
+NavCollection flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
+  NavCollection flattened = flatten(allNavs, mask);
   std::sort(flattened.begin(), flattened.end());
   return flattened;
 }
 
-ParsedNavs::FieldMask ParsedNavs::fieldsFromNavs(const Array<Nav> &navs) {
+ParsedNavs::FieldMask ParsedNavs::fieldsFromNavs(const NavCollection &navs) {
   FieldMask result;
   for (auto nav : navs) {
     if (nav.hasApparentWind()) {

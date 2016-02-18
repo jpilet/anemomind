@@ -67,7 +67,7 @@ namespace {
       prefix("/tmp/tgtspeed") {}
 
 
-  typedef std::function<Array<Nav>()> NavLoader;
+  typedef std::function<NavCollection()> NavLoader;
 
   Array<TargetSpeedPoint> getPolarNavDataFromRawNavs(std::string cacheFilename,
       NavLoader loader) {

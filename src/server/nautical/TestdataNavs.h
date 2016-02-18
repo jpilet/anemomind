@@ -14,7 +14,7 @@ namespace sail {
 /*
  * Returns the navs from the Irene dataset.
  */
-Array<Nav> getTestdataNavs();
+NavCollection getTestdataNavs();
 
 /*
  * Let's the user provide an optional path to
@@ -27,7 +27,7 @@ Array<Nav> getTestdataNavs();
  */
 
 void registerGetTestdataNavs(ArgMap &amap);
-Array<Nav> getTestdataNavs(ArgMap &amap);
+NavCollection getTestdataNavs(ArgMap &amap);
 
 } /* namespace sail */
 

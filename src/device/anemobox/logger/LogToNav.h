@@ -10,8 +10,8 @@ namespace sail {
 
 class LogFile;
 
-Array<Nav> logFileToNavArray(const LogFile& data);
-Array<Nav> logFileToNavArray(const std::string& filename);
+NavCollection logFileToNavArray(const LogFile& data);
+NavCollection logFileToNavArray(const std::string& filename);
 
 }  // namespace sail
 
