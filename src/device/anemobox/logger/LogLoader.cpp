@@ -24,7 +24,7 @@ void addToVector(const ValueSet &src, std::deque<TimedValue<T> > *dst) {
   }
 }
 
-void LogLoader::load(const LogFile &data) {
+bool LogLoader::load(const LogFile &data) {
   for (int i = 0; i < data.stream_size(); i++) {
     const auto &stream = data.stream(i);
     _sourcePriority[stream.source()] = stream.priority();
@@ -35,13 +35,15 @@ void LogLoader::load(const LogFile &data) {
 #undef  ADD_VALUES_TO_VECTOR
 
   }
+  return true;
 }
 
-void LogLoader::load(const std::string &filename) {
+bool LogLoader::load(const std::string &filename) {
   LogFile file;
   if (Logger::read(filename, &file)) {
-    load(file);
+    return load(file);
   }
+  return false;
 }
 
 template <typename T>

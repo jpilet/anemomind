@@ -42,81 +42,6 @@ class Array {
     return dst;
   }
 
-  static ThisType args(T a) {
-    ThisType dst(1);
-    dst[0] = a;
-    return dst;
-  }
-
-  static ThisType args(T a, T b) {
-    ThisType dst(2);
-    dst[0] = a;
-    dst[1] = b;
-    return dst;
-  }
-
-  static ThisType args(T a, T b, T c) {
-    ThisType dst(3);
-    dst[0] = a;
-    dst[1] = b;
-    dst[2] = c;
-    return dst;
-  }
-
-  static ThisType args(T a, T b, T c, T d) {
-    ThisType dst(4);
-    dst[0] = a;
-    dst[1] = b;
-    dst[2] = c;
-    dst[3] = d;
-    return dst;
-  }
-
-  static ThisType args(T a, T b, T c, T d, T e) {
-    ThisType dst(5);
-    dst[0] = a;
-    dst[1] = b;
-    dst[2] = c;
-    dst[3] = d;
-    dst[4] = e;
-    return dst;
-  }
-
-  static ThisType args(T a, T b, T c, T d, T e, T f) {
-    ThisType dst(6);
-    dst[0] = a;
-    dst[1] = b;
-    dst[2] = c;
-    dst[3] = d;
-    dst[4] = e;
-    dst[5] = f;
-    return dst;
-  }
-
-  void destructure(T &a) {
-    a = get(0);
-  }
-
-  void destructure(T &a, T &b) {
-    a = get(0);
-    b = get(1);
-  }
-
-  void destructure(T &a, T &b, T &c) {
-    a = get(0);
-    b = get(1);
-    c = get(2);
-  }
-
-  void destructure(T &a, T &b, T &c, T &d) {
-    a = get(0);
-    b = get(1);
-    c = get(2);
-    d = get(3);
-  }
-
-
-
   // Only if T is an array
   T join() {
     int elemCount = 0;
@@ -141,12 +66,6 @@ class Array {
     for (int i = 0; i < size; i++) {
       dst.set(i, value);
     }
-    return dst;
-  }
-
-  static ThisType single(T x) {
-    ThisType dst(1);
-    dst.set(0, x);
     return dst;
   }
 

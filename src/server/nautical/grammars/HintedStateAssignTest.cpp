@@ -104,14 +104,14 @@ TEST(HintedStateAssignTest, HintTest) {
 
   {
     HintedStateAssign hinted(makeSharedPtrToStack(ref),
-        Array<HintedStateAssign::LocalStateAssignPtr>::args(makeSharedPtrToStack(hint)));
+        Array<HintedStateAssign::LocalStateAssignPtr>{makeSharedPtrToStack(hint)});
     Arrayi hintedResult = hinted.solve();
     EXPECT_TRUE(hintedResult.sliceTo(16).all([=](int i) {return i == 0;}));
     EXPECT_TRUE(hintedResult.sliceFrom(16).all([=](int i) {return i == 1;}));
   }{
     HintedStateAssign hinted(makeSharedPtrToStack(ref),
         Array<HintedStateAssign::LocalStateAssignPtr>
-        ::args(makeSharedPtrToStack(hint), makeSharedPtrToStack(hint2)));
+        {makeSharedPtrToStack(hint), makeSharedPtrToStack(hint2)});
     Arrayi hintedResult = hinted.solve();
     EXPECT_TRUE(hintedResult.sliceTo(16).all([=](int i) {return i == 0;}));
     EXPECT_TRUE(hintedResult.slice(16, 20).all([=](int i) {return i == 1;}));

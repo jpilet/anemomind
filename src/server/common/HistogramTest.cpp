@@ -78,7 +78,7 @@ TEST(HistogramTest, Undefined) {
     EXPECT_EQ(bins[i], estBins[i]);
   }
 
-  Arrayi hist = Arrayi::args(2, 2, 3);
+  Arrayi hist = Arrayi{2, 2, 3};
   EXPECT_EQ(hist, hmap.countPerBin(angles));
 
   EXPECT_NEAR(hmap.binSpan(1).minv().degrees(), 120.0, 1.0e-6);
