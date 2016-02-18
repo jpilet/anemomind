@@ -42,6 +42,9 @@ TEST(Nmea2000SourceTest, SystemTime) {
   
   // The following data gets parser by canboat analyser as:
   // System Time:  SID = 0; Source = GPS; Date = 2015.03.06; Time = 04:56:12
+  //
+  // Command line in canboat:
+  // candump2analyzer  < samples/candumpSample2.txt | analyzer -raw
   const unsigned char data[] = { 0x00, 0xf0, 0x74, 0x40, 0xc0, 0xca, 0x97, 0x0a };
   source.process("test", 126992, data, sizeof(data));
 
