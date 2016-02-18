@@ -24,7 +24,7 @@ using namespace sail;
 namespace {
 
 NavCollection deserializeNavs(const char *dataToDecode) {
-  sail::NavCollection navs;
+  Array<Nav> navs;
   Poco::JSON::Parser parser;
   Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
 
@@ -36,7 +36,7 @@ NavCollection deserializeNavs(const char *dataToDecode) {
   }
   Poco::Dynamic::Var result = handler->asVar();
   json::deserialize(result, &navs);
-  return navs;
+  return NavCollection::fromNavs(navs);
 }
 
 void runJsonEncDecTest(const char *dataToDecode) {
@@ -44,7 +44,7 @@ void runJsonEncDecTest(const char *dataToDecode) {
   EXPECT_EQ(navs.size(), 1);
 
   std::stringstream ss;
-  Poco::JSON::Stringifier::stringify(json::serialize(navs), ss, 0, 0);
+  Poco::JSON::Stringifier::stringify(json::serialize(navs.makeArray()), ss, 0, 0);
 
   NavCollection navs2 = deserializeNavs(ss.str().c_str());
   EXPECT_EQ(navs2.size(), 1);
@@ -54,8 +54,8 @@ void runJsonEncDecTest(const char *dataToDecode) {
 }  // namespace
 
 TEST(NavJsonTest, ConvertToJson) {
-  NavCollection navs({Nav()});
-  Poco::Dynamic::Var data = json::serialize(navs);
+  auto navs = NavCollection::fromNavs({Nav()});
+  Poco::Dynamic::Var data = json::serialize(navs.makeArray());
   stringstream ss;
   Poco::JSON::Stringifier::stringify(data, ss, 0, 0);
   std::string s = ss.str();
@@ -122,9 +122,9 @@ TEST(NavJsonTest, BackwardCompatibilityTest) {
 }
 
 TEST(NavJsonTest, RealNav) {
-  sail::NavCollection navs = loadNavsFromNmea(
+  auto navs = loadNavsFromNmea(
       string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"),
-      Nav::Id("B0A10000")).navs();
+      Nav::Id("B0A10000")).navs().makeArray();
 
   std::stringstream ss;
   Poco::JSON::Stringifier::stringify(json::serialize(navs), ss, 0, 0);

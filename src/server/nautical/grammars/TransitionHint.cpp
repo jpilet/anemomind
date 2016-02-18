@@ -26,9 +26,9 @@ double TransitionHint::getTransitionCost(int fromStateIndex,
 namespace {
   std::shared_ptr<LocalStateAssign> makeNonEmpty(TimeStamp ts, MDArray2b table, NavCollection navs) {
     if (!table.empty()) {
-      NavCollection::Iterator start = navs.begin();
+      auto start = navs.begin();
       Nav x(ts);
-      NavCollection::Iterator upper = std::upper_bound(start, navs.end(), x);
+      auto upper = std::upper_bound(start, navs.end(), x);
       int timeIndex = (upper - start) - 1;
       if (upper != navs.end() && timeIndex >= 0) {
         return std::shared_ptr<LocalStateAssign>(new TransitionHint(table, timeIndex));

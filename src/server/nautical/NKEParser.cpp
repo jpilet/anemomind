@@ -599,7 +599,7 @@ NavCollection NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
 
 
   int count = data.rows();
-  NavCollection dst(count);
+  Array<Nav> dst(count);
   for (int i = 0; i < count; i++) {
     GeographicPosition<double> pos(longitude[i], latitude[i]);
 
@@ -613,7 +613,7 @@ NavCollection NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
     x.setGpsSpeed(gpsSpeed[i]);
     x.setGpsBearing(gpsBearing[i]);
   }
-  return dst;
+  return NavCollection::fromNavs(dst);
 }
 
 

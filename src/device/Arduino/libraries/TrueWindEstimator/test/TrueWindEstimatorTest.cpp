@@ -41,16 +41,19 @@ TEST(TrueWindEstimatorTest, ManuallyCheckedDataTest) {
     "$IIMWV,017,R,21.5,N,A*13"
     "$IIRMC,111039,A,4614.021,N,00610.335,E,05.8,196,110708,,,A*49";
   std::stringstream stream(nmeaData);
-  ParsedNavs navs = loadNavsFromNmea(stream, Nav::debuggingBoatId());
+  ParsedNavs pnavs = loadNavsFromNmea(stream, Nav::debuggingBoatId());
+  auto navs = pnavs.navs();
+  auto navs0 = navs.makeArray();
 
-  EXPECT_TRUE(navs.navs().hasData());
-  EXPECT_EQ(1, navs.navs().size());
+
+  EXPECT_TRUE(navs0.hasData());
+  EXPECT_EQ(1, navs.size());
 
   double parameters[TrueWindEstimator::NUM_PARAMS];
   TrueWindEstimator::initializeParameters(parameters);
 
   auto trueWind = TrueWindEstimator::computeTrueWind
-    <double, ServerFilter>(parameters, makeFilter(navs.navs()));
+    <double, ServerFilter>(parameters, makeFilter(navs));
 
   // Comparing TWDIR
   EXPECT_NEAR(22 + 198, calcTwdir(trueWind).degrees(), 5);

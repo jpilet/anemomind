@@ -49,7 +49,7 @@ int navIndexToTimeIndex(int navIndex) {
   return 1 + 2*navIndex;
 }
 
-const Nav &middle(NavCollection navs) {
+Nav middle(NavCollection navs) {
   return navs[navs.middle()];
 }
 
@@ -143,6 +143,8 @@ Results filter(NavCollection navs, Settings settings) {
   auto observations = getObservations(settings,
       timeRef, geoRef, navs, sampling);
 
+
+
   auto results = DataFit::quadraticFitWithInliers(sampleCount, observations,
       settings.inlierThreshold.meters(), 2, settings.regWeight, settings.irlsSettings);
 
@@ -165,7 +167,7 @@ Arrayb Results::inlierMask() {
 
 NavCollection Results::filteredNavs() const {
   int n = rawNavs.size();
-  NavCollection dst = rawNavs.dup();
+  Array<Nav> dst = rawNavs.makeArray().dup();
   for (int i = 0; i < n; i++) {
     auto w = positionObservations[i].weights;
     auto &nav = dst[i];
@@ -174,7 +176,7 @@ NavCollection Results::filteredNavs() const {
     nav.setGpsBearing(m.angle());
     nav.setGpsSpeed(m.norm());
   }
-  return dst;
+  return NavCollection::fromNavs(dst);
 }
 
 Sampling::Weights Results::calcWeights(TimeStamp t) const {

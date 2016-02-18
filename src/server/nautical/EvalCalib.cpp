@@ -18,7 +18,7 @@ class ManeuverbasedCorrectorFunction : public CorrectorFunction {
   ManeuverbasedCorrectorFunction(std::shared_ptr<Calibrator> calib) : _calib(calib) {}
 
   Array<CalibratedNav<double> > operator()(const NavCollection &navs) const {
-    auto correctedNavs = NavCollection(navs.dup());
+    auto correctedNavs = navs.makeArray().dup();
     _calib->simulate(&correctedNavs);
     int n = navs.size();
     Array<CalibratedNav<double> > dst(n);

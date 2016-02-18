@@ -72,8 +72,9 @@ std::ostream &operator<<(std::ostream &s, RealDataResults x) {
 
 
 NavCollection loadAndFilterDataset(std::string datasetPath) {
-  return scanNmeaFolder(datasetPath, Nav::debuggingBoatId())
-          .slice(hasAllData);
+  return NavCollection::fromNavs(scanNmeaFolder(datasetPath, Nav::debuggingBoatId())
+          .makeArray()
+          .slice(hasAllData));
 }
 
 Array<NavCollection> splitRealData(NavCollection navs) {

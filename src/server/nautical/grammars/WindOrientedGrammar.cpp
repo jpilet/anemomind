@@ -252,7 +252,7 @@ class G001SA : public StateAssign {
 };
 
 double G001SA::getStateCost(int stateIndex, int timeIndex) {
-  Nav &nav = _navs[timeIndex];
+  Nav nav = _navs[timeIndex];
   if (isOff(stateIndex)) {
     return _settings.majorStateCost;
   } else if (std::isnan(nav.awa().degrees())) {

@@ -31,7 +31,7 @@ NavCollection makeTileElement(TileKey tileKey,
       result.add(navs[i]);
     }
   }
-  return result.get();
+  return NavCollection::fromNavs(result.get());
 }
 
 } // namespace

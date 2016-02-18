@@ -44,7 +44,7 @@ NavCollection scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
       simulator->simulate(files[i].toString());
     }
   }
-  NavCollection result = flattenAndSort(parsedNavs, mask);
+  Array<Nav> result = flattenAndSort(parsedNavs, mask).makeArray();
 
   if (simulator) {
     for (Nav& nav : result) {
@@ -62,7 +62,7 @@ NavCollection scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
     }
   }
 
-  return result;
+  return NavCollection::fromNavs(result);
 }
 
 NavCollection scanNmeaFolder(Poco::Path p, Nav::Id boatId,
@@ -77,7 +77,7 @@ NavCollection scanNmeaFolders(Array<Poco::Path> p, Nav::Id boatId,
   }));
   auto cat = concat(scanResults);
   std::sort(cat.begin(), cat.end());
-  return NavCollection(cat);
+  return NavCollection::fromNavs(cat);
 }
 
 

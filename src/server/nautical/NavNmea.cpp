@@ -214,7 +214,7 @@ ParsedNavs loadNavsFromNmea(std::istream &file, Nav::Id boatId) {
     file.get(c);
     parseNmeaChar(c, &parser, &nav, &navAcc, &fields, boatId, &last);
   }
-  return ParsedNavs(NavCollection(navAcc.get()), fields);
+  return ParsedNavs(NavCollection::fromNavs(navAcc.get()), fields);
 }
 
 ParsedNavs loadNavsFromNmea(std::string filename, Nav::Id boatId) {
@@ -265,25 +265,29 @@ namespace {
 
   NavCollection flatten(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
     int len = countNavsToInclude(allNavs, mask);
-    NavCollection dst(len);
+    Array<Nav> dst(len);
     int counter = 0;
     for (int i = 0; i < allNavs.size(); i++) {
       ParsedNavs &n = allNavs[i];
       if (n.hasFields(mask)) {
         int next = counter + n.navs().size();
-        n.navs().copyToSafe(dst.slice(counter, next));
+        n.navs().makeArray().copyToSafe(dst.slice(counter, next));
         counter = next;
       }
     }
     assert(counter == dst.size());
-    return dst;
+    return NavCollection::fromNavs(dst);
   }
 }
 
 NavCollection flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
   NavCollection flattened = flatten(allNavs, mask);
-  std::sort(flattened.begin(), flattened.end());
-  return flattened;
+
+  LOG(WARNING) << "Take another look at this code.";
+  auto copy = flattened.makeArray();
+
+  std::sort(copy.begin(), copy.end());
+  return NavCollection::fromNavs(copy);
 }
 
 ParsedNavs::FieldMask ParsedNavs::fieldsFromNavs(const NavCollection &navs) {

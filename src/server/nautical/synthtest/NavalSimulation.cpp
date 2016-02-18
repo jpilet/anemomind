@@ -65,7 +65,7 @@ NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluate
   Array<HorizontalMotion<double> > estWind(count), estCurrent(count);
   Spani span(0, count);
   auto navs = toArray(map(span, [&](int i) {return _states[i].nav();}));
-  auto cnavs = corr(navs);
+  auto cnavs = corr(NavCollection::fromNavs(navs));
   for (auto i: span) {
     estWind[i] = cnavs[i].trueWindOverGround();
     estCurrent[i] = cnavs[i].trueCurrentOverGround();

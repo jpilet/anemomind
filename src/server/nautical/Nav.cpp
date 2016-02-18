@@ -159,40 +159,40 @@ bool Nav::hasId() const {
 
 
 
-Array<Velocity<double> > getExternalTws(NavCollection navs) {
+Array<Velocity<double> > getExternalTws(Array<Nav> navs) {
   return toArray(map(navs, [&](const Nav &n) {return n.externalTws();}));
 }
 
-Array<Angle<double> > getExternalTwa(NavCollection navs) {
+Array<Angle<double> > getExternalTwa(Array<Nav> navs) {
   return toArray(map(navs, [&](const Nav &n) {return n.externalTwa();}));
 }
 
-Array<Velocity<double> > getGpsSpeed(NavCollection navs) {
+Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
   return toArray(map(navs, [&](const Nav &n) {return n.gpsSpeed();}));
 }
 
-Array<Velocity<double> > getWatSpeed(NavCollection navs) {
+Array<Velocity<double> > getWatSpeed(Array<Nav> navs) {
   return toArray(map(navs, [&](const Nav &n) {return n.watSpeed();}));
 }
 
-Array<Angle<double> > getGpsBearing(NavCollection navs) {
+Array<Angle<double> > getGpsBearing(Array<Nav> navs) {
   return toArray(map(navs, [&](const Nav &nav) {
     return nav.gpsBearing();
   }));
 }
-Array<Angle<double> > getMagHdg(NavCollection navs) {
+Array<Angle<double> > getMagHdg(Array<Nav> navs) {
   return toArray(map(navs, [&](const Nav &nav) {
     return nav.magHdg();
   }));
 }
 
-Array<Velocity<double> > getAws(NavCollection navs) {
+Array<Velocity<double> > getAws(Array<Nav> navs) {
   return toArray(map(navs, [&](const Nav &nav) {
     return nav.aws();
   }));
 }
 
-Array<Angle<double> > getAwa(NavCollection navs) {
+Array<Angle<double> > getAwa(Array<Nav> navs) {
   return toArray(map(navs, [&](const Nav &nav) {
     return nav.awa();
   }));
@@ -214,7 +214,7 @@ NavCollection loadNavsFromText(std::string filename, bool sort) {
     std::sort(navs.begin(), navs.end());
   }
 
-  return NavCollection::referToVector(navs).dup();
+  return NavCollection::fromNavs(Array<Nav>::referToVector(navs).dup());
 }
 
 bool areSortedNavs(NavCollection navs) {
@@ -322,7 +322,7 @@ MDArray2d calcNavsEcefTrajectory(NavCollection navs) {
   int count = navs.size();
   MDArray2d data(count, 3);
   for (int i = 0; i < count; i++) {
-    Nav &nav = navs[i];
+    Nav nav = navs[i];
 
     Length<double> xyz[3];
     WGS84<double>::toXYZ(nav.geographicPosition(), xyz);

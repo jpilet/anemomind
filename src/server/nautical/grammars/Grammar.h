@@ -39,7 +39,7 @@ class Grammar {
 
 
 Arrayb markNavsByDesc(std::shared_ptr<HTree> tree,
-    Array<HNode> nodeInfo, NavCollection allnavs,
+    Array<HNode> nodeInfo, Array<Nav> allnavs,
     std::string label);
 
 } /* namespace sail */

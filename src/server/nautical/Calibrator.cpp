@@ -438,7 +438,7 @@ void Calibrator::plot(GnuplotExtra *gnuplot, const std::string &title, bool exte
 }
 
 void Calibrator::clear() {
-  _allnavs.clear();
+  _allnavs = NavCollection();
   _tree.reset();
 
   TrueWindEstimator::initializeParameters(_calibrationValues);
@@ -446,7 +446,7 @@ void Calibrator::clear() {
   _maneuvers.clear();
 }
 
-bool Calibrator::simulate(NavCollection *navs) const {
+bool Calibrator::simulate(Array<Nav> *navs) const {
   std::stringstream calibFile;
   saveCalibration(&calibFile);
   calibFile.seekg(0, std::ios::beg);

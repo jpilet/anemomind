@@ -42,18 +42,18 @@ using namespace std;
 namespace {
   TargetSpeed makeTargetSpeedTable(bool isUpwind,
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
-      NavCollection allnavs,
+      Array<Nav> allnavs,
       std::string description) {
 
     // TODO: How to best select upwind/downwind navs? Is the grammar reliable for this?
     //   Maybe replace AWA by TWA in order to label states in Grammar001.
     Arrayb sel = markNavsByDesc(tree, nodeinfo, allnavs, description);
 
-    NavCollection navs = allnavs.slice(sel);
+    NavCollection navs = NavCollection::fromNavs(allnavs.slice(sel));
 
     Array<Velocity<double> > tws = estimateExternalTws(navs);
     Array<Velocity<double> > vmg = calcExternalVmg(navs, isUpwind);
-    Array<Velocity<double> > gss = getGpsSpeed(navs);
+    Array<Velocity<double> > gss = getGpsSpeed(allnavs);
 
     // TODO: Adapt these values to the amount of recorded data.
     const int binCount = TargetSpeedTable::NUM_ENTRIES;
@@ -67,7 +67,7 @@ namespace {
       bool debug,
       std::shared_ptr<HTree> tree,
       Array<HNode> nodeinfo,
-      NavCollection navs,
+      Array<Nav> navs,
       std::ofstream *file) {
     TargetSpeed uw = makeTargetSpeedTable(true, tree, nodeinfo, navs, "upwind-leg");
     TargetSpeed dw = makeTargetSpeedTable(false, tree, nodeinfo, navs, "downwind-leg");
@@ -84,13 +84,14 @@ namespace {
 
   void makeBoatDatFile(
       bool debug,
-      PathBuilder outdir, NavCollection navs,
+      NavCollection coll,
+      PathBuilder outdir, Array<Nav> navs,
       std::shared_ptr<HTree> fulltree, Nav::Id boatId, WindOrientedGrammar g) {
     ENTERSCOPE("Output boat.dat with target speed data.");
     std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
 
     Calibrator calibrator(g);
-    if (calibrator.calibrate(navs, fulltree, boatId)) {
+    if (calibrator.calibrate(coll, fulltree, boatId)) {
       calibrator.saveCalibration(&boatDatFile);
       calibrator.simulate(&navs);
     }
@@ -123,7 +124,8 @@ namespace {
     PathBuilder outdir = PathBuilder::makeDirectory(dstPath);
     std::string prefix = "all";
 
-    makeBoatDatFile(debug, outdir, navs, fulltree, boatId, g);
+    auto navs0 = navs.makeArray();
+    makeBoatDatFile(debug, navs, outdir, navs0, fulltree, boatId, g);
 
     {
       std::string path = outdir.makeFile(prefix + "_tree.js").get().toString();
@@ -134,7 +136,7 @@ namespace {
       std::string path = outdir.makeFile(prefix + "_navs.js").get().toString();
       ENTERSCOPE("Output navs");
       ofstream file(path);
-      Poco::JSON::Stringifier::stringify(json::serialize(navs), file, 0, 0);
+      Poco::JSON::Stringifier::stringify(json::serialize(navs0), file, 0, 0);
     }{
       std::string path = outdir.makeFile(prefix + "_tree_node_info.js").get().toString();
       ENTERSCOPE("Output tree node info");
@@ -191,7 +193,7 @@ NavCollection loadNavs(ArgMap &amap, std::string boatId) {
   }
   auto allNavs = concat(navs.get());
   std::sort(allNavs.begin(), allNavs.end());
-  return allNavs;
+  return NavCollection::fromNavs(allNavs);
 }
 
 Nav::Id getBoatId(ArgMap &amap) {
