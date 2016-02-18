@@ -128,6 +128,17 @@ bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::Tim
   return false;
 }
 
+bool Nmea2000Source::apply(const CanPacket& src, const SystemTime& packet) {
+  if (packet.valid()) {
+    auto t = packet.timeStamp();
+    if (t.defined()) {
+      _dispatcher->publishValue(DATE_TIME, getSrc(src), t);
+      return true;
+    }
+  }
+  return false;
+}
+
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::DirectionData& packet) {
   if (packet.valid()) {
     if (packet.cog().defined()) {

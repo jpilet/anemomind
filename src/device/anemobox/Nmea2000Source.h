@@ -25,6 +25,7 @@ class Nmea2000Source : public PgnClasses::PgnVisitor {
   bool apply(const PgnClasses::CanPacket &c, const PgnClasses::PositionRapidUpdate& packet) override;
   bool apply(const PgnClasses::CanPacket &c, const PgnClasses::CogSogRapidUpdate& packet) override;
   bool apply(const PgnClasses::CanPacket &c, const PgnClasses::TimeDate& packet) override;
+  bool apply(const PgnClasses::CanPacket &c, const PgnClasses::SystemTime& packet) override;
   bool apply(const PgnClasses::CanPacket &c, const PgnClasses::DirectionData& packet) override;
  private:
   Dispatcher *_dispatcher;

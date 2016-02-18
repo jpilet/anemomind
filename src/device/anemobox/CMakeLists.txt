@@ -44,10 +44,14 @@ add_library(anemobox_Nmea2000Source
             Nmea2000Source.cpp
            )
 target_link_libraries(anemobox_Nmea2000Source
+                      anemobox_Dispatcher
                       n2k_PgnClasses
                      )
 
-
+cxx_test(anemobox_Nmea2000SourceTest
+         Nmea2000SourceTest
+         anemobox_Nmea2000Source
+         gtest_main)
 
 
 add_executable(anemobox main.cpp)
