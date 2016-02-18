@@ -159,40 +159,40 @@ bool Nav::hasId() const {
 
 
 
-Array<Velocity<double> > getExternalTws(Array<Nav> navs) {
+Array<Velocity<double> > getExternalTws(NavCollection navs) {
   return toArray(map(navs, [&](const Nav &n) {return n.externalTws();}));
 }
 
-Array<Angle<double> > getExternalTwa(Array<Nav> navs) {
+Array<Angle<double> > getExternalTwa(NavCollection navs) {
   return toArray(map(navs, [&](const Nav &n) {return n.externalTwa();}));
 }
 
-Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
+Array<Velocity<double> > getGpsSpeed(NavCollection navs) {
   return toArray(map(navs, [&](const Nav &n) {return n.gpsSpeed();}));
 }
 
-Array<Velocity<double> > getWatSpeed(Array<Nav> navs) {
+Array<Velocity<double> > getWatSpeed(NavCollection navs) {
   return toArray(map(navs, [&](const Nav &n) {return n.watSpeed();}));
 }
 
-Array<Angle<double> > getGpsBearing(Array<Nav> navs) {
+Array<Angle<double> > getGpsBearing(NavCollection navs) {
   return toArray(map(navs, [&](const Nav &nav) {
     return nav.gpsBearing();
   }));
 }
-Array<Angle<double> > getMagHdg(Array<Nav> navs) {
+Array<Angle<double> > getMagHdg(NavCollection navs) {
   return toArray(map(navs, [&](const Nav &nav) {
     return nav.magHdg();
   }));
 }
 
-Array<Velocity<double> > getAws(Array<Nav> navs) {
+Array<Velocity<double> > getAws(NavCollection navs) {
   return toArray(map(navs, [&](const Nav &nav) {
     return nav.aws();
   }));
 }
 
-Array<Angle<double> > getAwa(Array<Nav> navs) {
+Array<Angle<double> > getAwa(NavCollection navs) {
   return toArray(map(navs, [&](const Nav &nav) {
     return nav.awa();
   }));
@@ -201,7 +201,7 @@ Array<Angle<double> > getAwa(Array<Nav> navs) {
 
 
 
-Array<Nav> loadNavsFromText(std::string filename, bool sort) {
+NavCollection loadNavsFromText(std::string filename, bool sort) {
   MDArray2d data = loadMatrixText<double>(filename);
   int count = data.rows();
 
@@ -214,10 +214,10 @@ Array<Nav> loadNavsFromText(std::string filename, bool sort) {
     std::sort(navs.begin(), navs.end());
   }
 
-  return Array<Nav>::referToVector(navs).dup();
+  return NavCollection::referToVector(navs).dup();
 }
 
-bool areSortedNavs(Array<Nav> navs) {
+bool areSortedNavs(NavCollection navs) {
   int count = navs.size();
   for (int i = 0; i < count-1; i++) {
     if (navs[i].time() > navs[i+1].time()) {
@@ -227,7 +227,7 @@ bool areSortedNavs(Array<Nav> navs) {
   return true;
 }
 
-void plotNavTimeVsIndex(Array<Nav> navs) {
+void plotNavTimeVsIndex(NavCollection navs) {
   Gnuplot plot;
   int count = navs.size();
 
@@ -248,7 +248,7 @@ void plotNavTimeVsIndex(Array<Nav> navs) {
   sleepForever();
 }
 
-double getNavsMaxInterval(Array<Nav> navs) {
+double getNavsMaxInterval(NavCollection navs) {
   int count = navs.size();
   double m = 0.0;
   for (int i = 0; i < count-1; i++) {
@@ -257,7 +257,7 @@ double getNavsMaxInterval(Array<Nav> navs) {
   return m;
 }
 
-void dispNavTimeIntervals(Array<Nav> navs) {
+void dispNavTimeIntervals(NavCollection navs) {
   assert(areSortedNavs(navs));
   double mintime = 0.0;
   double maxtime = (navs[navs.size()-1].time() - navs[0].time()).seconds();
@@ -283,7 +283,7 @@ void dispNavTimeIntervals(Array<Nav> navs) {
   }
 }
 
-int countNavSplitsByDuration(Array<Nav> navs, Duration<double> dur) {
+int countNavSplitsByDuration(NavCollection navs, Duration<double> dur) {
   int count = navs.size();
   int counter = 0;
   for (int i = 0; i < count-1; i++) {
@@ -296,9 +296,9 @@ int countNavSplitsByDuration(Array<Nav> navs, Duration<double> dur) {
 
 
 
-Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, Duration<double> dur) {
+Array<NavCollection > splitNavsByDuration(NavCollection navs, Duration<double> dur) {
   int count = 1 + countNavSplitsByDuration(navs, dur);
-  Array<Array<Nav> > dst(count);
+  Array<NavCollection> dst(count);
   int navCount = navs.size();
   int from = 0;
   int counter = 0;
@@ -314,11 +314,11 @@ Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, Duration<double> dur) {
   return dst;
 }
 
-/*Array<Array<Nav> > splitNavsByDuration(Array<Nav> navs, double durSeconds) {
+/*Array<NavCollection > splitNavsByDuration(NavCollection navs, double durSeconds) {
   return splitNavsByDuration(navs, Duration<double>::seconds(durSeconds));
 }*/
 
-MDArray2d calcNavsEcefTrajectory(Array<Nav> navs) {
+MDArray2d calcNavsEcefTrajectory(NavCollection navs) {
   int count = navs.size();
   MDArray2d data(count, 3);
   for (int i = 0; i < count; i++) {
@@ -335,7 +335,7 @@ MDArray2d calcNavsEcefTrajectory(Array<Nav> navs) {
   return data;
 }
 
-Array<MDArray2d> calcNavsEcefTrajectories(Array<Array<Nav> > navs) {
+Array<MDArray2d> calcNavsEcefTrajectories(Array<NavCollection > navs) {
   int count = navs.size();
   Array<MDArray2d> dst(count);
   for (int i = 0; i < count; i++) {
@@ -344,7 +344,7 @@ Array<MDArray2d> calcNavsEcefTrajectories(Array<Array<Nav> > navs) {
   return dst;
 }
 
-void plotNavsEcefTrajectory(Array<Nav> navs) {
+void plotNavsEcefTrajectory(NavCollection navs) {
   assert(areSortedNavs(navs));
 
   GnuplotExtra plot;
@@ -354,7 +354,7 @@ void plotNavsEcefTrajectory(Array<Nav> navs) {
   plot.show();
 }
 
-void plotNavsEcefTrajectories(Array<Array<Nav> > navs) {
+void plotNavsEcefTrajectories(Array<NavCollection > navs) {
   int count = navs.size();
   LineKM hue(0, count, 0.0, 360.0);
 
@@ -367,7 +367,7 @@ void plotNavsEcefTrajectories(Array<Array<Nav> > navs) {
   plot.show();
 }
 
-int countNavs(Array<Array<Nav> > navs) {
+int countNavs(Array<NavCollection > navs) {
   int counter = 0;
   int count = navs.size();
   for (int i = 0; i < count; i++) {
@@ -387,7 +387,7 @@ std::ostream &operator<<(std::ostream &s, const Nav &x) {
   return s;
 }
 
-Length<double> computeTrajectoryLength(Array<Nav> navs) {
+Length<double> computeTrajectoryLength(NavCollection navs) {
   Length<double> dist = Length<double>::meters(0.0);
   int n = navs.size() - 1;
   for (int i = 0; i < n; i++) {
@@ -396,7 +396,7 @@ Length<double> computeTrajectoryLength(Array<Nav> navs) {
   return dist;
 }
 
-int findMaxSpeedOverGround(Array<Nav> navs) {
+int findMaxSpeedOverGround(NavCollection navs) {
   auto marg = Duration<double>::minutes(2.0);
   Span<TimeStamp> validTime(navs.first().time() + marg, navs.last().time() - marg);
   int bestIndex = -1;

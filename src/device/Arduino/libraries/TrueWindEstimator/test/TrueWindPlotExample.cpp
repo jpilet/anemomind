@@ -83,7 +83,7 @@ int main(int argc, const char **argv) {
         string("/datasets/psaros33_Banque_Sturdza/2014/20140627/NMEA0006.TXT") // GOOD
        };
 
-    Array<Nav> navs;
+    NavCollection navs;
     if (amap.optionProvided("--example-ds")) {
       int index = -1;
       if (amap.optionArgs("--example-ds")[0]->tryParseInt(&index)) {

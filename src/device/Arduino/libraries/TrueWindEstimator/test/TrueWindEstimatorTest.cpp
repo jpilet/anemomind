@@ -14,7 +14,7 @@ using std::string;
 using namespace sail;
 
 TEST(TrueWindEstimatorTest, SmokeTest) {
-  Array<Nav> navs = loadNavsFromNmea(
+  NavCollection navs = loadNavsFromNmea(
       string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"),
       Nav::Id("B0A10000")).navs();
 
@@ -80,7 +80,7 @@ TEST(TrueWindEstimatorTest, TWACompare) {
                              string("/datasets/psaros33_Banque_Sturdza/2014/20140627/NMEA0006.TXT")};
 
   for (int i = 0; i < dsCount; i++) {
-    Array<Nav> navs = loadNavsFromNmea(
+    NavCollection navs = loadNavsFromNmea(
         string(Env::SOURCE_DIR) +
         ds[i],
         Nav::debuggingBoatId()).navs();

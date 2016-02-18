@@ -82,7 +82,7 @@ void textFieldToNmeaSentences(const LogFile& data, const string& field,
 
 
 void exportRMC(const LogFile& data, vector<TimedString> *sentences) {
-  Array<Nav> navs = logFileToNavArray(data);
+  NavCollection navs = logFileToNavArray(data);
   if (navs.size() == 0) {
     LOG(WARNING) << "No GPS position found.";
     return;

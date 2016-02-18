@@ -16,7 +16,7 @@ bool isFresh(const Dispatcher& dispatcher) {
 
 } // namespace
 
-bool SimulateBox(const std::string& boatDat, Array<Nav> *navs) {
+bool SimulateBox(const std::string& boatDat, NavCollection *navs) {
   std::ifstream file(boatDat, std::ios::in | std::ios::binary);
 
   if (!file.good()) {
@@ -26,7 +26,7 @@ bool SimulateBox(const std::string& boatDat, Array<Nav> *navs) {
   return SimulateBox(file, navs);
 }
 
-bool SimulateBox(std::istream& boatDat, Array<Nav> *navs) {
+bool SimulateBox(std::istream& boatDat, NavCollection *navs) {
   ReplayDispatcher replay;
   DispatcherTrueWindEstimator estimator(&replay);
 

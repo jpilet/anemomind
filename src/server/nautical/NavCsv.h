@@ -11,9 +11,9 @@
 namespace sail {
 namespace NavCsv {
 
-Array<Nav> parse(MDArray<std::string, 2> table);
-Array<Nav> parse(std::string filename);
-Array<Nav> parse(std::istream *s);
+NavCollection parse(MDArray<std::string, 2> table);
+NavCollection parse(std::string filename);
+NavCollection parse(std::istream *s);
 
 }
 }

@@ -80,7 +80,7 @@ int main(int argc, const char **argv) {
   }
 
   if (amap.optionProvided("--navs")) {
-    Array<Nav> navs = parser.makeNavs(Nav::debuggingBoatId(), data);
+    NavCollection navs = parser.makeNavs(Nav::debuggingBoatId(), data);
     LOG(INFO) << "Produced " << navs.size() << " navs.";
   }
 

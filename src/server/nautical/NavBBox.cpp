@@ -15,7 +15,7 @@ NavBBox::NavBBox() {
 
 }
 
-NavBBox::NavBBox(Array<Nav> navs) {
+NavBBox::NavBBox(NavCollection navs) {
   int count = navs.size();
   Arrayd lon(count), lat(count);
   Array<TimeStamp> time(count);
@@ -36,8 +36,8 @@ bool NavBBox::intersects(const NavBBox &other) const {
   return _lon.intersects(other._lon) && _lat.intersects(other._lat) && _time.intersects(other._time);
 }
 
-Array<NavBBox> calcNavBBoxes(Array<Array<Nav> > navs) {
-  return toArray(map(navs, [&] (Array<Nav> x) {
+Array<NavBBox> calcNavBBoxes(Array<NavCollection> navs) {
+  return toArray(map(navs, [&] (NavCollection x) {
     return NavBBox(x);
   }));
 }

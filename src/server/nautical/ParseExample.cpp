@@ -32,8 +32,8 @@ namespace {
         pushDirectory("regate_1_dec_07").get();
 
 
-    Array<Nav> allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
-    Array<Array<Nav> > navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10));
+    NavCollection allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
+    Array<NavCollection> navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10));
   }
 
   void loadAndDispTree() {
@@ -43,7 +43,7 @@ namespace {
         pushDirectory("regate_1_dec_07").get();
 
     cout << "Load navs" << endl;
-    Array<Nav> allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
+    NavCollection allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
     cout << "loaded" << endl;
 
     WindOrientedGrammarSettings settings;
@@ -60,7 +60,7 @@ namespace {
     // Create a smaller tree with fewer children.
     std::shared_ptr<HTree> tree(new HInner(fulltree->index(), fulltree->child(0)));
 
-    Array<Nav> navs = allnavs.slice(tree->left(), tree->right());
+    NavCollection navs = allnavs.slice(tree->left(), tree->right());
 
     {
       ofstream file(prefix + "_tree.js");

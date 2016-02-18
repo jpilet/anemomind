@@ -24,11 +24,11 @@ double TransitionHint::getTransitionCost(int fromStateIndex,
 }
 
 namespace {
-  std::shared_ptr<LocalStateAssign> makeNonEmpty(TimeStamp ts, MDArray2b table, Array<Nav> navs) {
+  std::shared_ptr<LocalStateAssign> makeNonEmpty(TimeStamp ts, MDArray2b table, NavCollection navs) {
     if (!table.empty()) {
-      Array<Nav>::Iterator start = navs.begin();
+      NavCollection::Iterator start = navs.begin();
       Nav x(ts);
-      Array<Nav>::Iterator upper = std::upper_bound(start, navs.end(), x);
+      NavCollection::Iterator upper = std::upper_bound(start, navs.end(), x);
       int timeIndex = (upper - start) - 1;
       if (upper != navs.end() && timeIndex >= 0) {
         return std::shared_ptr<LocalStateAssign>(new TransitionHint(table, timeIndex));
@@ -42,7 +42,7 @@ namespace {
   }
 }
 
-std::shared_ptr<LocalStateAssign> TransitionHint::make(const UserHint &hint, Array<Nav> navs, const Grammar &dst) {
+std::shared_ptr<LocalStateAssign> TransitionHint::make(const UserHint &hint, NavCollection navs, const Grammar &dst) {
   switch (hint.type()) {
   case UserHint::RACE_START:
     return makeNonEmpty(hint.time(), dst.startOfRaceTransitions(), navs);

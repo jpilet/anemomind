@@ -13,7 +13,7 @@ int main(int argc, const char **argv) {
   ArgMap amap;
   registerGetTestdataNavs(amap);
   if (amap.parse(argc, argv) != ArgMap::Error) {
-    Array<Nav> navs = getTestdataNavs(amap);
+    NavCollection navs = getTestdataNavs(amap);
     CommonRaceGrammarSettings s;
     CommonRaceGrammar g(s);
     exploreTree(g.nodeInfo(), g.parse(navs));

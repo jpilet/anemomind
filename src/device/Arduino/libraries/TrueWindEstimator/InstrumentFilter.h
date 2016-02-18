@@ -11,7 +11,7 @@
 namespace sail {
 
 // This class is in charge of applying a temporal filter on measured data.
-// It also acts as a buffer between either a nmeaparser or a Array<Nav>.
+// It also acts as a buffer between either a nmeaparser or a NavCollection
 template <class T, class TimeStamp, class Duration>
 class InstrumentFilter {
  public:
@@ -95,7 +95,7 @@ namespace {
 typedef InstrumentFilter<double, sail::TimeStamp, Duration<double> > ServerFilter;
 
 ServerFilter makeFilter(
-    const Array<Nav>& navs) {
+    const NavCollection& navs) {
   ServerFilter filter;
 
   for (const Nav& nav : navs) {

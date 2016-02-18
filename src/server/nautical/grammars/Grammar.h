@@ -23,7 +23,7 @@ class Grammar {
    * Should parse 'navs' using the underlying grammar
    * and return a parse tree for the result.
    */
-  virtual std::shared_ptr<HTree> parse(Array<Nav> navs,
+  virtual std::shared_ptr<HTree> parse(NavCollection navs,
       Array<UserHint> hints = Array<UserHint>()) = 0;
 
   /*
@@ -39,7 +39,7 @@ class Grammar {
 
 
 Arrayb markNavsByDesc(std::shared_ptr<HTree> tree,
-    Array<HNode> nodeInfo, Array<Nav> allnavs,
+    Array<HNode> nodeInfo, NavCollection allnavs,
     std::string label);
 
 } /* namespace sail */

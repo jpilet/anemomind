@@ -14,15 +14,15 @@
 using namespace sail;
 
 namespace {
-  TimeStamp makeTS(Array<Nav> navs, int index) {
+  TimeStamp makeTS(NavCollection navs, int index) {
     return navs[index].time() + (navs[index+1].time() - navs[index].time()).scaled(0.5);
   }
 
-  UserHint makeStartHint(Array<Nav> navs, int index) {
+  UserHint makeStartHint(NavCollection navs, int index) {
     return UserHint(UserHint::RACE_START, makeTS(navs, index));
   }
 
-  UserHint makeEndHint(Array<Nav> navs, int index) {
+  UserHint makeEndHint(NavCollection navs, int index) {
     return UserHint(UserHint::RACE_END, makeTS(navs, index));
   }
 
@@ -59,7 +59,7 @@ namespace {
 
 TEST(WindOrientedGrammarTest, Hinting) {
   Poco::Path path = PathBuilder::makeDirectory(Env::SOURCE_DIR).pushDirectory("datasets").pushDirectory("Irene").pushDirectory("2007").pushDirectory("regate_1_dec_07").makeFile("IreneLog.txt").get();
-  Array<Nav> navs = loadNavsFromNmea(path.toString(), Nav::debuggingBoatId()).navs();
+  NavCollection navs = loadNavsFromNmea(path.toString(), Nav::debuggingBoatId()).navs();
 
   // Refers to a position in the seq, assuming it is indexed continuously from 0 to 1.
   double startFrac = 0.3;

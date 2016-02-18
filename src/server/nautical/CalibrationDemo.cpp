@@ -21,7 +21,7 @@ namespace {
   void psaros33FragmentDemo() {
     Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
       .pushDirectory("datasets/psaros33_Banque_Sturdza").get();
-    Array<Nav> navs = scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId()).slice(55895, 79143);
+    NavCollection navs = scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId()).slice(55895, 79143);
     FilteredNavData filtered(navs, 500);
     AutoCalib calib;
     AutoCalib::Results results = calib.calibrate(filtered);
@@ -34,7 +34,7 @@ namespace {
     auto boatData = sim.boatData(0);
     auto initialErrors = boatData.evaluateNoCalibration();
 
-    Array<Nav> navs = boatData.navs();
+    NavCollection navs = boatData.navs();
     FilteredNavData filtered(navs, 12.0);
     AutoCalib calib;
     AutoCalib::Results results = calib.calibrate(filtered);

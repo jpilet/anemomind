@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     p = argv[1];
   }
 
-  Array<Nav> navs = scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
+  NavCollection navs = scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
   std::shared_ptr<HTree> tree = g.parse(navs);
   assert(bool(tree));
   auto infoFun = [&] (std::shared_ptr<HTree> tree) {

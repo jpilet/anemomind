@@ -24,7 +24,7 @@ struct ExportSettings {
   bool withHeader;
 };
 
-Array<Nav> loadNavsFromArgs(Array<ArgMap::Arg*> args) {
+NavCollection loadNavsFromArgs(Array<ArgMap::Arg*> args) {
   auto allNavs = sail::map(args, [&](ArgMap::Arg *arg) {
     auto p = arg->value();
     LOG(INFO) << "Load navs from " << p;
@@ -179,7 +179,7 @@ std::string makeLiteralString(const Array<NavField> &fields,
 }
 
 int exportCsv(bool withHeader, Array<NavField> fields,
-    Array<Nav> navs, std::ostream *dst) {
+    NavCollection navs, std::ostream *dst) {
   if (withHeader) {
     *dst << makeHeader(fields, true) << "\n";
   }
@@ -189,7 +189,7 @@ int exportCsv(bool withHeader, Array<NavField> fields,
   return 0;
 }
 
-int exportJson(bool withHeader, Array<NavField> fields, Array<Nav> navs,
+int exportJson(bool withHeader, Array<NavField> fields, NavCollection navs,
     std::ostream *dst) {
   *dst << "[";
   if (withHeader) {
@@ -204,7 +204,7 @@ int exportJson(bool withHeader, Array<NavField> fields, Array<Nav> navs,
 }
 
 int exportMatlab(bool withHeader, Array<NavField> fields,
-    Array<Nav> navs, std::ostream *dst) {
+    NavCollection navs, std::ostream *dst) {
   if (withHeader) {
     *dst << "% Columns: " << makeHeader(fields, false) << "\n";
   }
@@ -214,7 +214,7 @@ int exportMatlab(bool withHeader, Array<NavField> fields,
   return 0;
 }
 
-void performCalibration(Array<Nav> *navs) {
+void performCalibration(NavCollection *navs) {
   WindOrientedGrammarSettings gs;
   WindOrientedGrammar grammar(gs);
   auto tree = grammar.parse(*navs);
@@ -225,7 +225,7 @@ void performCalibration(Array<Nav> *navs) {
 }
 
 int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::string output) {
-  Array<Nav> navs = loadNavsFromArgs(args);
+  NavCollection navs = loadNavsFromArgs(args);
   Array<NavField> fields = getNavFields(settings);
   std::sort(navs.begin(), navs.end());
   if (navs.empty()) {

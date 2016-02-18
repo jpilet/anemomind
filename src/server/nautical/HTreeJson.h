@@ -16,8 +16,8 @@
 namespace sail {
 namespace json {
 
-Poco::Dynamic::Var serializeMapped(std::shared_ptr<HTree> x, Array<Nav> navs, Array<HNode> nodeInfo);
-Poco::Dynamic::Var serializeMapped(Array<std::shared_ptr<HTree> > x, Array<Nav> navs, Array<HNode> nodeInfo);
+Poco::Dynamic::Var serializeMapped(std::shared_ptr<HTree> x, NavCollection navs, Array<HNode> nodeInfo);
+Poco::Dynamic::Var serializeMapped(Array<std::shared_ptr<HTree> > x, NavCollection navs, Array<HNode> nodeInfo);
 
 }
 } /* namespace sail */

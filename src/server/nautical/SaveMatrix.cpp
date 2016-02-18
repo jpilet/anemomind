@@ -60,7 +60,7 @@ namespace {
     return builder.get();
   }
 
-  MDArray2d extractValues(Array<ValueExtractor> extractors, Array<Nav> data) {
+  MDArray2d extractValues(Array<ValueExtractor> extractors, NavCollection data) {
     int rows = data.size();
     int cols = extractors.size();
     MDArray2d dst(rows, cols);
@@ -94,7 +94,7 @@ namespace {
     }
   }
 
-  int saveNavsToMatrix(Array<Nav> navs, std::string filename) {
+  int saveNavsToMatrix(NavCollection navs, std::string filename) {
     Array<ValueExtractor> extractors = makeExtractors();
     MDArray2d data = extractValues(extractors, navs);
 
@@ -118,7 +118,7 @@ int main(int argc, const char **argv) {
   amap.registerOption("--out", "A filename for the output. Defaults to outnavs.txt.").setArgCount(1);
   if (amap.parse(argc, argv) != ArgMap::Error) {
     std::cout << "Loading navs..." << std::endl;
-    sail::Array<sail::Nav> data = sail::getTestdataNavs(amap);
+    sail::NavCollection data = sail::getTestdataNavs(amap);
     if (data.empty()) {
       amap.dispHelp(&std::cout);
       return -1;

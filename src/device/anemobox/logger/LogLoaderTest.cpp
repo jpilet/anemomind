@@ -37,7 +37,7 @@ TEST(LogToNavTest, ConvertNmea) {
   LogFile loggedData;
   makeLogFile(&loggedData);
 
-  Array<Nav> converted = logFileToNavArray(loggedData);
+  NavCollection converted = logFileToNavArray(loggedData);
   EXPECT_EQ(10, converted.size());
 
   for (int i = 0; i < 10; ++i) {

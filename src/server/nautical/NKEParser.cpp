@@ -556,7 +556,7 @@ NKEData NKEParser::load(TimeStamp offset, std::istream &file) {
   return NKEData(offset, typeInds, values);
 }
 
-Array<Nav> NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
+NavCollection NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
   Array<TimeStamp> times = data.timeStamps();
 
   if (!data.hasAllFields({
@@ -569,7 +569,7 @@ Array<Nav> NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
       type("Latitude"),
       type("Longitude")
   })) {
-    return Array<Nav>();
+    return NavCollection();
   }
 
   Array<Velocity<double> > aws =
@@ -599,7 +599,7 @@ Array<Nav> NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
 
 
   int count = data.rows();
-  Array<Nav> dst(count);
+  NavCollection dst(count);
   for (int i = 0; i < count; i++) {
     GeographicPosition<double> pos(longitude[i], latitude[i]);
 

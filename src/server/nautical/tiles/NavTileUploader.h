@@ -36,7 +36,7 @@ struct TileGeneratorParameters {
 };
 
 bool generateAndUploadTiles(std::string boatId,
-                            Array<Array<Nav>> allNavs,
+                            Array<NavCollection> allNavs,
                             const TileGeneratorParameters& params);
 
 }  // namespace sail

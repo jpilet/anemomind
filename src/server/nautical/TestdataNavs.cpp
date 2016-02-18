@@ -15,7 +15,7 @@
 namespace sail {
 
 namespace {
-  Array<Nav> getNavsFromPath(Poco::Path p) {
+  NavCollection getNavsFromPath(Poco::Path p) {
     return scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
   }
 }
@@ -28,12 +28,12 @@ Poco::Path getDefaultNavPath() {
   return p;
 }
 
-Array<Nav> getTestdataNavs() {
+NavCollection getTestdataNavs() {
   return getNavsFromPath(getDefaultNavPath());
 }
 
 namespace {
-  Array<Nav> loadAllNavs(int argc, const char **argv) {
+  NavCollection loadAllNavs(int argc, const char **argv) {
     const char pathPrefix[] = "--navpath";
     for (int i = 1; i < argc; i++) {
       if (std::string(argv[i]) == pathPrefix) {
@@ -42,7 +42,7 @@ namespace {
         }
         else { // Obviously, the user provided --navpath at the end of the command line.
                // Maybe we should not return anything here.
-          return Array<Nav>();
+          return NavCollection();
         }
       }
     }
@@ -58,11 +58,11 @@ void registerGetTestdataNavs(ArgMap &amap) {
       .setArgCount(1).setUnique();
 }
 
-Array<Nav> getTestdataNavs(ArgMap &amap) {
+NavCollection getTestdataNavs(ArgMap &amap) {
   Poco::Path p = (amap.optionProvided("--navpath")?
       Poco::Path(amap.optionArgs("--navpath")[0]->value()).makeDirectory()
       : getDefaultNavPath());
-  Array<Nav> navs = getNavsFromPath(p);
+  NavCollection navs = getNavsFromPath(p);
   if (amap.optionProvided("--slice")) {
     Array<ArgMap::Arg*> args = amap.optionArgs("--slice");
     int from = -1;
@@ -73,11 +73,11 @@ Array<Nav> getTestdataNavs(ArgMap &amap) {
         return navs.slice(from, to);
       } else {
         std::cout << "Slice arguments should both be in range 0.." << navs.size() << std::endl;
-        return Array<Nav>();
+        return NavCollection();
       }
     } else {
       std::cout << "Failed to parse --slice arguments" << std::endl;
-      return Array<Nav>();
+      return NavCollection();
     }
   }
   return navs;

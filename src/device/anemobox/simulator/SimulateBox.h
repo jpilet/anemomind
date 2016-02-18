@@ -8,8 +8,8 @@
 
 namespace sail {
 
-bool SimulateBox(const std::string& boatDat, Array<Nav> *navs);
-bool SimulateBox(std::istream& boatDat, Array<Nav> *navs);
+bool SimulateBox(const std::string& boatDat, NavCollection *navs);
+bool SimulateBox(std::istream& boatDat, NavCollection *navs);
 
 }  // namespace sail
 

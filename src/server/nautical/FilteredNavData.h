@@ -17,7 +17,7 @@ class FilteredNavData {
   enum DebugPlotMode {NONE, SIGNAL, DERIVATIVE};
 
   FilteredNavData() {}
-  FilteredNavData(Array<Nav> navs, double lambda, DebugPlotMode mode = NONE);
+  FilteredNavData(NavCollection navs, double lambda, DebugPlotMode mode = NONE);
 
   FilteredNavData(
         TimeStamp timeOffset,
@@ -107,7 +107,7 @@ class FilteredNavData {
     Velocity<double> gpsSpeed;
     Velocity<double> aws;
   };
-  NoiseStdDev estimateNoise(Array<Nav> navs) const;
+  NoiseStdDev estimateNoise(NavCollection navs) const;
 
   // The lifetime of _data should completely overlap
   // the lifetime of this object.

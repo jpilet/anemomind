@@ -10,7 +10,7 @@
 namespace sail {
 
 namespace {
-  int countGaps(const Array<Nav> &sortedNavs,
+  int countGaps(const NavCollection &sortedNavs,
       Duration<double> thresh) {
     int count = sortedNavs.size() - 1;
     int counter = 0;
@@ -24,7 +24,7 @@ namespace {
     return counter;
   }
 
-  Array<Spani> temporalSplit(Array<Nav> sortedNavs, Duration<double> thresh, int offset = 0) {
+  Array<Spani> temporalSplit(NavCollection sortedNavs, Duration<double> thresh, int offset = 0) {
     CHECK_LT(0, sortedNavs.size());
     int gapCount = countGaps(sortedNavs, thresh);
     int from = 0;
@@ -46,7 +46,7 @@ namespace {
 }
 
 
-Array<Spani> temporalSplit(Array<Nav> sortedNavs,
+Array<Spani> temporalSplit(NavCollection sortedNavs,
     double relativeThresh, Duration<double> lowerThresh, int offset) {
     Duration<double> dif = sortedNavs.last().time() - sortedNavs.first().time();
     Duration<double> rel = relativeThresh*dif;
@@ -55,7 +55,7 @@ Array<Spani> temporalSplit(Array<Nav> sortedNavs,
 }
 
 namespace {
-  void recursiveTemporalSplitSub(Array<Nav> sortedNavs,
+  void recursiveTemporalSplitSub(NavCollection sortedNavs,
       double relativeThresh, Duration<double> lowerThresh,
       ArrayBuilder<Spani> *dst, int offset) {
     Array<Spani> splitted = temporalSplit(sortedNavs, relativeThresh, lowerThresh, 0);
@@ -71,18 +71,18 @@ namespace {
   }
 }
 
-Array<Spani> recursiveTemporalSplit(Array<Nav> sortedNavs,
+Array<Spani> recursiveTemporalSplit(NavCollection sortedNavs,
     double relativeThresh, Duration<double> lowerThresh) {
     ArrayBuilder<Spani> dst;
     recursiveTemporalSplitSub(sortedNavs, relativeThresh, lowerThresh, &dst, 0);
     return dst.get();
 }
 
-void dispTemporalRaceOverview(Array<Spani> spans, Array<Nav> navs, std::ostream *out) {
+void dispTemporalRaceOverview(Array<Spani> spans, NavCollection navs, std::ostream *out) {
   int spanCount = spans.size();
   for (int i = 0; i < spans.size(); i++) {
     Spani span = spans[i];
-    Array<Nav> sub = navs.slice(span.minv(), span.maxv());
+    NavCollection sub = navs.slice(span.minv(), span.maxv());
     *out << "[" << span.minv() << ", " << span.maxv() << "[" << std::endl;
     *out << "   from     " << sub.first().time().toString() << std::endl;
     *out << "   duration " << (sub.last().time() - sub.first().time()).str() << std::endl;

@@ -23,8 +23,8 @@ using namespace sail;
 
 namespace {
 
-Array<Nav> deserializeNavs(const char *dataToDecode) {
-  sail::Array<Nav> navs;
+NavCollection deserializeNavs(const char *dataToDecode) {
+  sail::NavCollection navs;
   Poco::JSON::Parser parser;
   Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
 
@@ -40,13 +40,13 @@ Array<Nav> deserializeNavs(const char *dataToDecode) {
 }
 
 void runJsonEncDecTest(const char *dataToDecode) {
-  sail::Array<Nav> navs = deserializeNavs(dataToDecode);
+  sail::NavCollection navs = deserializeNavs(dataToDecode);
   EXPECT_EQ(navs.size(), 1);
 
   std::stringstream ss;
   Poco::JSON::Stringifier::stringify(json::serialize(navs), ss, 0, 0);
 
-  Array<Nav> navs2 = deserializeNavs(ss.str().c_str());
+  NavCollection navs2 = deserializeNavs(ss.str().c_str());
   EXPECT_EQ(navs2.size(), 1);
   EXPECT_EQ(navs[0], navs2[0]);
 }
@@ -54,8 +54,7 @@ void runJsonEncDecTest(const char *dataToDecode) {
 }  // namespace
 
 TEST(NavJsonTest, ConvertToJson) {
-  Nav nav;
-  Array<Nav> navs(1, &nav);
+  NavCollection navs({Nav()});
   Poco::Dynamic::Var data = json::serialize(navs);
   stringstream ss;
   Poco::JSON::Stringifier::stringify(data, ss, 0, 0);
@@ -118,19 +117,19 @@ TEST(NavJsonTest, BackwardCompatibilityTest) {
   Poco::JSON::Stringifier::stringify(json::serialize(base), ss, 0, 0);
 
   // Both objects should be the same.
-  Array<Nav> deserialized = deserializeNavs(dataToDecode);
+  NavCollection deserialized = deserializeNavs(dataToDecode);
   EXPECT_EQ(deserialized[0], base) << dataToDecode << "\ndoes not match:\n" << ss.str();
 }
 
 TEST(NavJsonTest, RealNav) {
-  sail::Array<Nav> navs = loadNavsFromNmea(
+  sail::NavCollection navs = loadNavsFromNmea(
       string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"),
       Nav::Id("B0A10000")).navs();
 
   std::stringstream ss;
   Poco::JSON::Stringifier::stringify(json::serialize(navs), ss, 0, 0);
 
-  Array<Nav> navs2 = deserializeNavs(ss.str().c_str());
+  NavCollection navs2 = deserializeNavs(ss.str().c_str());
   EXPECT_EQ(navs2.size(), navs.size());
   for (int i = 0; i < navs.size(); ++i) {
     EXPECT_EQ(navs[i], navs2[i]) << "for nav[" << i << "]";
