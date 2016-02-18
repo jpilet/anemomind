@@ -31,7 +31,7 @@ Array<Nav> scanNmeaFolderWithSimulator(Poco::Path p, Nav::Id boatId,
     }
   }
 
-  Array<std::string> nmeaExtensions = Array<std::string>::args("txt", "log", "csv");
+  Array<std::string> nmeaExtensions = Array<std::string>{"txt", "log", "csv"};
   Array<Poco::Path> files = listFilesRecursivelyByExtension(p, nmeaExtensions);
   int count = files.size();
   Array<ParsedNavs> parsedNavs(count);

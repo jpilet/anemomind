@@ -22,7 +22,7 @@ TEST(MeanAndVarTest, SimpleTest) {
 }
 
 TEST(MeanAndVarTest, Array) {
-  Arrayd X = Arrayd::args(1, 2, 5);
+  Arrayd X = Arrayd{1, 2, 5};
   MeanAndVar x(X);
   EXPECT_NEAR(x.mean(), 2.667, 0.01);
   EXPECT_NEAR(x.variance(), 4.3333, 0.01);

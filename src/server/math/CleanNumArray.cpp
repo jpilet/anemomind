@@ -17,8 +17,8 @@ Arrayd cleanNumArray(Arrayd arr) {
   BandMatd A(count, count, 2, 2);
   MDArray2d B(count, 1);
   B.setAll(0);
-  Arrayi orders = Arrayi::args(2);
-  Arrayd weights = Arrayd::args(1.0e-2);
+  Arrayi orders = Arrayi{2};
+  Arrayd weights = Arrayd{1.0e-2};
   A.addRegs(orders, weights);
   int counter = 0;
   for (int i = 0; i < count; i++) {

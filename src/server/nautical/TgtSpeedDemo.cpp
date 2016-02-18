@@ -43,7 +43,7 @@ namespace {
   }
 
   Arrayd makeQuantiles() {
-    return Arrayd::args(0.9, 0.75, 0.50);
+    return Arrayd{0.9, 0.75, 0.50};
   }
 
   Array<Velocity<double> > makeBounds() {

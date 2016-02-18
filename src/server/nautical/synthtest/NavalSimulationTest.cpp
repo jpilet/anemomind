@@ -68,7 +68,7 @@ TEST(TestcaseTest, MakeTestcase) {
 
   std::default_random_engine e;
   NavalSimulation tc(e, georef, timeoffset, windfun, currentfun,
-    Array<BoatSimulationSpecs>::args(specs));
+    Array<BoatSimulationSpecs>{specs});
 
   auto t = tc.toLocalTime(timeoffset);
   EXPECT_NEAR(t.seconds(), 0.0, 1.0e-6);

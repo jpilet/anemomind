@@ -17,7 +17,7 @@ TEST(ScreenRecordingTest, screenAtTest) {
   simulator.simulate(nmeaFile);
 
   Array<Nav> navs = flattenAndSort(
-      Array<ParsedNavs>::args(loadNavsFromNmea(nmeaFile, "")),
+      Array<ParsedNavs>{loadNavsFromNmea(nmeaFile, "")},
       ParsedNavs::makeGpsWindMask());
 
   EXPECT_EQ(5, navs.size());
