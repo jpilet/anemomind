@@ -90,7 +90,7 @@ std::string addNonEmpty(std::string total, std::string toAdd) {
 
 
 std::string processColumn(std::map<std::string, ValueSetter> &m,
-    NavCollection *dst, MDArray<std::string, 2> col) {
+    Array<Nav> *dst, MDArray<std::string, 2> col) {
   auto h = Poco::trim(col(0, 0));
   auto data = col.sliceRowsFrom(1);
   if (m.find(h) != m.end()) {
@@ -107,7 +107,7 @@ std::string processColumn(std::map<std::string, ValueSetter> &m,
 NavCollection parse(MDArray<std::string, 2> table) {
   auto m = makeValueSetterMap();
   auto data = table.sliceRowsFrom(1);
-  NavCollection dst(data.rows());
+  Array<Nav> dst(data.rows());
   std::string ignoredColumns = "";
   for (int j = 0; j < table.cols(); j++) {
     ignoredColumns = addNonEmpty(ignoredColumns, processColumn(m, &dst, table.sliceCol(j)));
@@ -115,7 +115,7 @@ NavCollection parse(MDArray<std::string, 2> table) {
   if (!ignoredColumns.empty()) {
     LOG(WARNING) << "The following columns were ignored: " << ignoredColumns;
   }
-  return dst;
+  return NavCollection::fromNavs(dst);
 }
 
 NavCollection parse(std::string filename) {

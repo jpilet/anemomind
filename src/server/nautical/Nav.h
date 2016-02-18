@@ -184,22 +184,86 @@ class Nav {
   Angle<double> _deviceTwdir;
 };
 
-class NavCollection : public Array<Nav> {
+class NavCollection {
  public:
   NavCollection() {}
-  NavCollection(const Array<Nav> &navs) : Array<Nav>(navs) {}
-  // TODO
+
+  int size() const {
+    return _navs.size();
+  }
+
+  const Nav operator[] (int i) const {
+    return _navs[i];
+  }
+
+  NavCollection slice(int from, int to) const {
+    return _navs.slice(from, to);
+  }
+
+  NavCollection sliceFrom(int index) const {
+    return _navs.sliceFrom(index);
+  }
+
+  NavCollection sliceTo(int index) const {
+    return _navs.sliceTo(index);
+  }
+
+  const Nav last() const {
+    return _navs.last();
+  }
+
+  const Nav first() const {
+    return _navs.first();
+  }
+
+  const Nav *begin() const {
+    return _navs.begin();
+  }
+
+  const Nav *end() const {
+    return _navs.end();
+  }
+
+  int middle() const {
+    return _navs.middle();
+  }
+
+  int lastIndex() const {
+    return _navs.lastIndex();
+  }
+
+  bool empty() const {
+    return _navs.empty();
+  }
+
+
+/*
+ * TODO: We should really try
+ * to avoid using these two methods.
+ * Converting between different representations
+ * can potentially result in corruption of data
+ * and bugs. Ideally, we would like to have compile-time warnings
+ * whenever one of them is used.
+ */
+  Array<Nav> makeArray() const {
+    return _navs;
+  }
+  static NavCollection fromNavs(const Array<Nav> &navs) {return NavCollection(navs);}
+ private:
+  NavCollection(const Array<Nav> &navs) : _navs(navs) {}
+  Array<Nav> _navs;
 };
 
 
-Array<Velocity<double> > getExternalTws(NavCollection navs);
-Array<Angle<double> > getExternalTwa(NavCollection navs);
-Array<Velocity<double> > getGpsSpeed(NavCollection navs);
-Array<Angle<double> > getGpsBearing(NavCollection navs);
-Array<Velocity<double> > getWatSpeed(NavCollection navs);
-Array<Angle<double> > getMagHdg(NavCollection navs);
-Array<Velocity<double> > getAws(NavCollection navs);
-Array<Angle<double> > getAwa(NavCollection navs);
+
+Array<Velocity<double> > getExternalTws(Array<Nav> navs);
+Array<Angle<double> > getExternalTwa(Array<Nav> navs);
+Array<Velocity<double> > getGpsSpeed(Array<Nav> navs);
+Array<Angle<double> > getGpsBearing(Array<Nav> navs);
+Array<Velocity<double> > getWatSpeed(Array<Nav> navs);
+Array<Angle<double> > getMagHdg(Array<Nav> navs);
+Array<Velocity<double> > getAws(Array<Nav> navs);
+Array<Angle<double> > getAwa(Array<Nav> navs);
 
 NavCollection loadNavsFromText(std::string filename, bool sort = true);
 bool areSortedNavs(NavCollection navs);

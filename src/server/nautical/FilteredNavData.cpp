@@ -18,7 +18,7 @@
 namespace sail {
 
 namespace {
-  bool sameBoat(NavCollection navs) {
+  bool sameBoat(Array<Nav> navs) {
     Nav::Id boatId = navs[0].boatId();
     int count = navs.size();
     for (int i = 1; i < count; i++) {
@@ -29,7 +29,7 @@ namespace {
     return true;
   }
 
-  Array<Duration<double> > getTimes(NavCollection navs, TimeStamp offset) {
+  Array<Duration<double> > getTimes(Array<Nav> navs, TimeStamp offset) {
     return toArray(map(navs, [=](const Nav &nav) {
       return nav.time() - offset;
     }));
@@ -102,8 +102,9 @@ UniformSamplesd tryFilter(GeneralizedTV tv, Arrayd X, Arrayd Y, double spacing,
   return UniformSamplesd();
 }
 
-FilteredNavData::FilteredNavData(NavCollection navs, double lambda,
+FilteredNavData::FilteredNavData(NavCollection navs0, double lambda,
   FilteredNavData::DebugPlotMode mode) {
+  auto navs = navs0.makeArray();
   if (navs.hasData()) {
     std::sort(navs.begin(), navs.end());
     CHECK(sameBoat(navs));

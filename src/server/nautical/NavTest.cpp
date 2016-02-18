@@ -24,7 +24,7 @@ TEST(NavTest, MaxSpeed) {
   b.setGpsSpeed(Velocity<double>::knots(2.1));
   c.setTime(offset + Duration<double>::minutes(24));
   c.setGpsSpeed(Velocity<double>::knots(30.1));
-  EXPECT_EQ(1, findMaxSpeedOverGround(NavCollection({a, b, c})));
+  EXPECT_EQ(1, findMaxSpeedOverGround(NavCollection::fromNavs({a, b, c})));
 }
 
 TEST(NavTest, SortedTest) {

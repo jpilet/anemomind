@@ -67,7 +67,7 @@ namespace {
       Poco::JSON::Stringifier::stringify(json::serializeMapped(tree, navs, g.nodeInfo()), file, 0, 0);
     }{
       ofstream file(prefix + "_navs.js");
-      Poco::JSON::Stringifier::stringify(json::serialize(navs), file, 0, 0);
+      Poco::JSON::Stringifier::stringify(json::serialize(navs.makeArray()), file, 0, 0);
     }{
       ofstream file(prefix + "_tree_node_info.js");
       Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);

@@ -20,7 +20,7 @@ NavBBox::NavBBox(NavCollection navs) {
   Arrayd lon(count), lat(count);
   Array<TimeStamp> time(count);
   for (int i = 0; i < count; i++) {
-    Nav &nav = navs[i];
+    Nav nav = navs[i];
     const GeographicPosition<double> &pos = nav.geographicPosition();
 
     lon[i] = pos.lon().radians();

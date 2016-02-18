@@ -8,7 +8,7 @@
 namespace sail {
 
 TEST(NavTileGenerator, SmokeTest) {
-  NavCollection navs(100);
+  Array<Nav> navs(100);
 
   TimeStamp now = TimeStamp::now();
 
@@ -25,7 +25,7 @@ TEST(NavTileGenerator, SmokeTest) {
   TileKey tile(1, 1, 0);
   Array<NavCollection> result = generateTiles(
       tile, // A quarter of the world
-      navs, 5);
+      NavCollection::fromNavs(navs), 5);
 
   EXPECT_EQ(1, result.size());
   EXPECT_EQ(5, result[0].size());
@@ -45,7 +45,7 @@ TEST(NavTileGenerator, SmokeTest) {
 
 
 TEST(NavTileGenerator, SplitTest) {
-  NavCollection navs(32);
+  Array<Nav> navs(32);
   for (int i = 0; i < navs.size(); ++i) {
     navs[i].setGeographicPosition(
         GeographicPosition<double>(
@@ -63,7 +63,7 @@ TEST(NavTileGenerator, SplitTest) {
   TileKey tile(1, 1, 0);
   Array<NavCollection> result = generateTiles(
       tile, // A quarter of the world
-      navs, 5);
+      NavCollection::fromNavs(navs), 5);
 
   EXPECT_EQ(2, result.size());
   EXPECT_EQ(5, result[0].size());

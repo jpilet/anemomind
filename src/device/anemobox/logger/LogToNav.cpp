@@ -43,11 +43,11 @@ bool externalSources(const string& source) {
   return !internalSources(source);
 }
 
-NavCollection makePosArray(const LogFile& data) {
+Array<Nav> makePosArray(const LogFile& data) {
   const ValueSet* pos = searchFor("pos", data);
   if (pos == 0 || !pos->has_pos()) {
     LOG(ERROR) << "Log file has no 'pos' data";
-    return NavCollection();
+    return Array<Nav>();
   }
 
   vector<TimeStamp> timestamps;
@@ -59,7 +59,7 @@ NavCollection makePosArray(const LogFile& data) {
   if (timestamps.size() != values.size()) {
     LOG(ERROR) << "malformed log file: " << timestamps.size() << " times, "
       << values.size() << " pos";
-    return NavCollection();
+    return Array<Nav>();
   }
 
   ArrayBuilder<Nav> result;
@@ -107,7 +107,7 @@ int nearest(const TimeStamp& key, const vector<TimeStamp>& timestamps) {
 
 template<class T, class ValueSetType>
 void fill(const ValueSet* valueSet, const ValueSetType& packed, 
-          NavCollection* array, void (Nav::* set)(T)) {
+          Array<Nav>* array, void (Nav::* set)(T)) {
   vector<TimeStamp> timestamps;
   Logger::unpackTime(*valueSet, &timestamps);
   vector<T> unpacked;
@@ -124,7 +124,7 @@ void fill(const ValueSet* valueSet, const ValueSetType& packed,
 }  // namespace
 
 NavCollection logFileToNavArray(const LogFile& data) {
-  NavCollection result = makePosArray(data);
+  Array<Nav> result = makePosArray(data);
 
   const ValueSet* awa = searchFor("awa", data);
   if (awa != 0 && awa->has_angles()) {
@@ -191,7 +191,7 @@ NavCollection logFileToNavArray(const LogFile& data) {
     fill(valueSet, valueSet->velocity(), &result, &Nav::setDeviceVmg);
   }
 
-  return result;
+  return NavCollection::fromNavs(result);
 }
 
 NavCollection logFileToNavArray(const std::string& filename) {

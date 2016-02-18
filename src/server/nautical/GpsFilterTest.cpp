@@ -47,7 +47,7 @@ NavCollection getPsarosTestData() {
 NavCollection applyOutliers(NavCollection navs) {
   int from = int(floor(navs.size()*0.05));
   int to = int(floor(navs.size()*0.15));
-  NavCollection dst = navs.dup();
+  auto dst = navs.makeArray().dup();
   Angle<double> offset = Angle<double>::degrees(1);
   for (int i = 0; i < navs.size(); i++) {
     if (i % 10 == 0) {
@@ -57,7 +57,7 @@ NavCollection applyOutliers(NavCollection navs) {
       x.setGeographicPosition(g2);
     }
   }
-  return dst;
+  return NavCollection::fromNavs(dst);
 }
 
 
@@ -68,6 +68,7 @@ void runPsarosTest(NavCollection navs, NavCollection navsToFilter) {
     navsToFilter = navs;
   }
 
+  std::cout << "NUMBER OF NAVS TO FILTER: " << navsToFilter.size() << std::endl;
   auto results = GpsFilter::filter(navsToFilter, settings);
   auto filtered = results.filteredNavs();
   EXPECT_EQ(filtered.size(), navs.size());
@@ -192,13 +193,14 @@ TEST(GpsFilterTest, Irene) {
             //Only for visual inspection: testRunOnAllIreneData();
 
   auto navs = getIreneTestData();
+
+
   std::cout << EXPR_AND_VAL_AS_STRING(navs.first().time()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(navs.last().time()) << std::endl;
 
   GpsFilter::Settings settings;
   auto results = GpsFilter::filter(navs, settings);
   auto maxSpeed = getMaxSpeedFromGpsPositions(results.filteredNavs());
-
 
   // There is a certain risk of confusing indices to navs
   // with indices to samples in the recovered signal.

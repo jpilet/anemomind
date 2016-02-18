@@ -19,13 +19,14 @@ NavCollection filterNavs(NavCollection navs) {
   GpsFilter::Settings settings;
 
   ArrayBuilder<Nav> withoutNulls;
-  withoutNulls.addIf(navs, [=](const Nav &nav) {
+  withoutNulls.addIf(navs.makeArray(), [=](const Nav &nav) {
     auto pos = nav.geographicPosition();
     return abs(pos.lat().degrees()) > 0.01
       && abs(pos.lon().degrees()) > 0.01;
   });
-  auto results = GpsFilter::filter(withoutNulls.get(), settings);
-  return results.filteredNavs().slice(results.inlierMask());
+  auto results = GpsFilter::filter(NavCollection::fromNavs(withoutNulls.get()), settings);
+  return NavCollection::fromNavs(
+      results.filteredNavs().makeArray().slice(results.inlierMask()));
 }
 
 // Convenience method to extract the description of a tree.
@@ -65,7 +66,8 @@ Array<NavCollection> extractAll(std::string description, NavCollection rawNavs,
 void processTiles(const TileGeneratorParameters &params,
     std::string boatId, std::string navPath,
     std::string boatDat, std::string polarDat) {
-    NavCollection rawNavs = scanNmeaFolder(navPath, boatId);
+    auto rawNavs0 = scanNmeaFolder(navPath, boatId);
+    Array<Nav> rawNavs = rawNavs0.makeArray();
 
     if (boatDat != "") {
       if (SimulateBox(boatDat, &rawNavs)) {
@@ -81,10 +83,10 @@ void processTiles(const TileGeneratorParameters &params,
 
     WindOrientedGrammarSettings settings;
     WindOrientedGrammar grammar(settings);
-    std::shared_ptr<HTree> fulltree = grammar.parse(rawNavs);
+    std::shared_ptr<HTree> fulltree = grammar.parse(rawNavs0);
 
     Array<NavCollection> sessions =
-      map(extractAll("Sailing", rawNavs, grammar, fulltree), filterNavs).toArray();
+      map(extractAll("Sailing", rawNavs0, grammar, fulltree), filterNavs).toArray();
 
     if (!generateAndUploadTiles(boatId, sessions, params)) {
       LOG(FATAL) << "When processing: " << navPath;

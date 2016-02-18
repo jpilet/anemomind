@@ -18,7 +18,7 @@ namespace {
 TEST(NavNmeaTest, TestComplete) {
   ParsedNavs navs = loadNavsFromNmea(testfile001, Nav::debuggingBoatId());
   EXPECT_TRUE(navs.complete());
-  EXPECT_TRUE(navs.navs().hasData());
+  EXPECT_TRUE(navs.navs().makeArray().hasData());
   EXPECT_GE(navs.navs().size(), 0); // Number of times RMC occurs in the string to be parsed
 }
 

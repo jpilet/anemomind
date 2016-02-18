@@ -30,7 +30,7 @@ NavCollection loadNavsFromArgs(Array<ArgMap::Arg*> args) {
     LOG(INFO) << "Load navs from " << p;
     return scanNmeaFolder(p, Nav::debuggingBoatId());
   });
-  return concat(allNavs);
+  return NavCollection::fromNavs(concat(allNavs));
 }
 
 struct NavField {
@@ -179,7 +179,7 @@ std::string makeLiteralString(const Array<NavField> &fields,
 }
 
 int exportCsv(bool withHeader, Array<NavField> fields,
-    NavCollection navs, std::ostream *dst) {
+    Array<Nav> navs, std::ostream *dst) {
   if (withHeader) {
     *dst << makeHeader(fields, true) << "\n";
   }
@@ -189,7 +189,7 @@ int exportCsv(bool withHeader, Array<NavField> fields,
   return 0;
 }
 
-int exportJson(bool withHeader, Array<NavField> fields, NavCollection navs,
+int exportJson(bool withHeader, Array<NavField> fields, Array<Nav> navs,
     std::ostream *dst) {
   *dst << "[";
   if (withHeader) {
@@ -204,7 +204,7 @@ int exportJson(bool withHeader, Array<NavField> fields, NavCollection navs,
 }
 
 int exportMatlab(bool withHeader, Array<NavField> fields,
-    NavCollection navs, std::ostream *dst) {
+    Array<Nav> navs, std::ostream *dst) {
   if (withHeader) {
     *dst << "% Columns: " << makeHeader(fields, false) << "\n";
   }
@@ -214,18 +214,19 @@ int exportMatlab(bool withHeader, Array<NavField> fields,
   return 0;
 }
 
-void performCalibration(NavCollection *navs) {
+void performCalibration(NavCollection navs0, Array<Nav> *navs) {
   WindOrientedGrammarSettings gs;
   WindOrientedGrammar grammar(gs);
-  auto tree = grammar.parse(*navs);
+  auto tree = grammar.parse(navs0);
   std::shared_ptr<Calibrator> calib(new Calibrator(grammar));
   calib->setVerbose();
-  calib->calibrate(*navs, tree, Nav::debuggingBoatId());
+  calib->calibrate(navs0, tree, Nav::debuggingBoatId());
   calib->simulate(navs);
 }
 
 int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::string output) {
-  NavCollection navs = loadNavsFromArgs(args);
+  auto navs0 = loadNavsFromArgs(args);
+  Array<Nav> navs = navs0.makeArray();
   Array<NavField> fields = getNavFields(settings);
   std::sort(navs.begin(), navs.end());
   if (navs.empty()) {
@@ -233,7 +234,7 @@ int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::st
     return -1;
   }
   if (settings.simulatedTrueWindData) {
-    performCalibration(&navs);
+    performCalibration(navs0, &navs);
   }
   const std::string& format = settings.formatStr;
   LOG(INFO) << "Navs successfully loaded, export them to "
