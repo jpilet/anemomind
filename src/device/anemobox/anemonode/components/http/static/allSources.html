@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Live View</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="bootstrap.min.css" rel="stylesheet" media="screen">
+  </head>
+  <body>
+    <center><h3>Live Data</h3></center>
+    <table id="dataTable" class="table">
+    </table>
+
+    <p style="text-align:center;"><a href="3d.html">3D view</a></p>
+    <p style="text-align:center;"><a href="/">simple</a></p>
+
+    <script src="jquery.min.js"></script>
+    <script>
+    function getTitle(entry) {
+      var labels = {
+        aws: "apparent wind speed",
+        twa: "true wind angle",
+        tws: "true wind speed",
+        twdir: "true wind direction",
+        gpsSpeed: "GPS speed",
+        gpsBearing: "GPS bearing",
+        magHdg: "magnetic heading",
+        watSpeed: "water speed",
+        watDist: "distance over water",
+        pos: "GPS position",
+        dateTime: "GPS date and time (local time)",
+        targetVmg: "Target VMG",
+        vmg: "VMG",
+        orient: "anemobox orientation"
+      };
+      return (entry in labels ? labels[entry] : entry);
+    }
+
+    function formatAngle(value) {
+      return value.toFixed(1) + '&deg;';
+    }
+    function formatSpeed(value) {
+      return value.toFixed(1) + ' kn';
+    }
+    function formatLength(value) {
+      return value.toFixed(2) + ' nm';
+    }
+    function formatDate(date) {
+      var d = new Date(date);
+      return d.toLocaleString();
+    }
+
+    function getValue(channel, value) {
+      var fmt = {
+        awa: formatAngle,
+        aws: formatSpeed,
+        twa: formatAngle,
+        tws: formatSpeed,
+        twdir: formatAngle,
+        gpsSpeed: formatSpeed,
+        gpsBearing: formatAngle,
+        magHdg: formatAngle,
+        watSpeed: formatSpeed,
+        watDist: formatLength,
+        pos: JSON.stringify,
+        dateTime: formatDate,
+        targetVmg: formatSpeed,
+        vmg: formatSpeed,
+        orient: JSON.stringify
+      };
+      if (channel in fmt) {
+        return fmt[channel](value)
+      } else {
+        return JSON.stringify(value);
+      }
+    };
+
+    function timeDelta(time, base) {
+      var diff = base - (new Date(time));
+      return (diff / 1000.0).toFixed(2) + ' s ago';
+    }
+
+    (function poll() {
+      $.ajax({
+        url: "api/live/allSources",
+        type: "GET",
+        success: function(data) {
+          var table = $('#dataTable');
+          table.html('');
+          var now = new Date();
+          for (var channel in data) {
+            for (var source in data[channel]) {
+              var row = $('<tr></tr>');
+              row.append('<td style="width:30%">' + getTitle(channel) + '</td>');
+              row.append('<td>' + source + '</td>'); 
+              row.append('<td>' + getValue(channel, data[channel][source].v) 
+                         + '</td>');
+              row.append('<td>' + timeDelta(data[channel][source].t, now) + '</td>');
+              row.append('<td>' + data[channel][source].p + '</td>');
+              table.append(row);
+            }
+          }
+        },
+        dataType: "json",
+        complete: setTimeout(function() {poll()}, 500),
+        timeout: 200
+      })
+    })();
+  </script>
+  </body>
+</html>
