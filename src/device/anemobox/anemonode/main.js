@@ -15,7 +15,7 @@ var logInternalGpsNmea = false;
 var logExternalNmea = true;
 var withHttp = true;
 var withIMU = true;
-var withCUPS = true;
+var withCUPS = false;
 var withNMEA2000 = true;
 
 var spiBugDetected = false;
