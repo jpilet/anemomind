@@ -22,7 +22,8 @@ class FastPacketBuffer {
       std::bitset<32> framesReceived;
       uint8_t expectedLength;
 
-      ReceptionBuffer(const CanPacket& packet) : packet(packet) { }
+      ReceptionBuffer(const CanPacket& packet)
+        : packet(packet), expectedLength(0) { this->packet.data.clear(); }
 
       bool isComplete() const { 
         if (!framesReceived.test(0)) {

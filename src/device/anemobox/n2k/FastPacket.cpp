@@ -40,9 +40,8 @@ void FastPacketBuffer::add(const CanPacket& packet) {
 
     auto reception = _buffer.find(key);
     if (reception == _buffer.end()) {
-      reception = _buffer.insert(std::make_pair(key, packet)).first;
-      reception->second.packet.data.clear();
-      reception->second.expectedLength = 0;
+      reception =
+        _buffer.insert(std::make_pair(key, ReceptionBuffer(packet))).first;
     }
     int frameNo = packet.data[0] & FRAME_COUNTER_MASK;
     if (frameNo == 0) {
