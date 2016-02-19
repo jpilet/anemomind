@@ -6,6 +6,8 @@ namespace PgnClasses {
 
 const int FRAME_COUNTER_MASK = 0x1F; // 5 bits LSB
 const int SEQUENCE_COUNTER_MASK = 0xE0; // bits 7 to 5
+const int SEQUENCE_COUNTER_SHIFT = 5; // bits 7 to 5
+const int SEQUENCE_COUNTER_NUM_BITS = 3;
 
 // inspired from http://www.auelectronics.com/forum/index.php?PHPSESSID=ns0k786e6jvacog3re04jh6e50&topic=421.msg1185#msg1185
 //
@@ -15,7 +17,9 @@ const int SEQUENCE_COUNTER_MASK = 0xE0; // bits 7 to 5
 // first frame, b5 is the LSB of the counter. 
 FastPacketBuffer::ReceptionKey FastPacketBuffer::keyForPacket(
     const CanPacket& packet) {
-  return (((int(packet.shortSrc) << 3) + (packet.data[0] >> 5)))
+  return
+    (((int(packet.shortSrc) << SEQUENCE_COUNTER_NUM_BITS)
+    + ((packet.data[0] & SEQUENCE_COUNTER_MASK) >> SEQUENCE_COUNTER_SHIFT)))
     + (packet.pgn << 11);
 }
 
