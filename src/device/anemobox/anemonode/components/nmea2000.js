@@ -16,7 +16,11 @@ function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr) {
   }
 }
 
-j1939socket.open(handlePacket);
+try {
+  j1939socket.open(handlePacket);
+} catch (error) {
+  console.log("Error, NMEA2000 disabled.");
+}
 
 // HACK to reboot we hit SPI bug
 module.exports.detectSPIBug = function(callback) {
