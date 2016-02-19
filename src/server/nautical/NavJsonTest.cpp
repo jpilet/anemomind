@@ -23,7 +23,7 @@ using namespace sail;
 
 namespace {
 
-NavCollection deserializeNavs(const char *dataToDecode) {
+Array<Nav> deserializeNavs(const char *dataToDecode) {
   Array<Nav> navs;
   Poco::JSON::Parser parser;
   Poco::SharedPtr<Poco::JSON::ParseHandler> handler(new Poco::JSON::ParseHandler());
@@ -36,17 +36,17 @@ NavCollection deserializeNavs(const char *dataToDecode) {
   }
   Poco::Dynamic::Var result = handler->asVar();
   json::deserialize(result, &navs);
-  return NavCollection::fromNavs(navs);
+  return navs;
 }
 
 void runJsonEncDecTest(const char *dataToDecode) {
-  sail::NavCollection navs = deserializeNavs(dataToDecode);
+  auto navs = deserializeNavs(dataToDecode);
   EXPECT_EQ(navs.size(), 1);
 
   std::stringstream ss;
-  Poco::JSON::Stringifier::stringify(json::serialize(navs.makeArray()), ss, 0, 0);
+  Poco::JSON::Stringifier::stringify(json::serialize(navs), ss, 0, 0);
 
-  NavCollection navs2 = deserializeNavs(ss.str().c_str());
+  auto navs2 = deserializeNavs(ss.str().c_str());
   EXPECT_EQ(navs2.size(), 1);
   EXPECT_EQ(navs[0], navs2[0]);
 }
@@ -54,8 +54,8 @@ void runJsonEncDecTest(const char *dataToDecode) {
 }  // namespace
 
 TEST(NavJsonTest, ConvertToJson) {
-  auto navs = NavCollection::fromNavs({Nav()});
-  Poco::Dynamic::Var data = json::serialize(navs.makeArray());
+  auto navs = Array<Nav>(1);
+  Poco::Dynamic::Var data = json::serialize(navs);
   stringstream ss;
   Poco::JSON::Stringifier::stringify(data, ss, 0, 0);
   std::string s = ss.str();
@@ -117,7 +117,7 @@ TEST(NavJsonTest, BackwardCompatibilityTest) {
   Poco::JSON::Stringifier::stringify(json::serialize(base), ss, 0, 0);
 
   // Both objects should be the same.
-  NavCollection deserialized = deserializeNavs(dataToDecode);
+  auto deserialized = deserializeNavs(dataToDecode);
   EXPECT_EQ(deserialized[0], base) << dataToDecode << "\ndoes not match:\n" << ss.str();
 }
 
@@ -129,7 +129,7 @@ TEST(NavJsonTest, RealNav) {
   std::stringstream ss;
   Poco::JSON::Stringifier::stringify(json::serialize(navs), ss, 0, 0);
 
-  NavCollection navs2 = deserializeNavs(ss.str().c_str());
+  auto navs2 = deserializeNavs(ss.str().c_str());
   EXPECT_EQ(navs2.size(), navs.size());
   for (int i = 0; i < navs.size(); ++i) {
     EXPECT_EQ(navs[i], navs2[i]) << "for nav[" << i << "]";

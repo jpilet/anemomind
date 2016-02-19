@@ -14,8 +14,6 @@ target_link_libraries(nautical_Ecef common_math)
 add_library(nautical_nav
             Nav.h
             Nav.cpp
-            NavBBox.h
-            NavBBox.cpp
            )
         
 target_link_libraries(nautical_nav
@@ -25,6 +23,7 @@ target_link_libraries(nautical_nav
                       plot_gnuplot
                       nautical_Ecef
                       common_PeriodicSpan
+                      anemobox_Dispatcher
                      )
   
 add_library(nautical_NavNmea

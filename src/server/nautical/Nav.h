@@ -184,58 +184,52 @@ class Nav {
   Angle<double> _deviceTwdir;
 };
 
+class Dispatcher;
 class NavCollection {
  public:
   NavCollection() {}
+  NavCollection(const std::shared_ptr<Dispatcher> &dispatcher);
 
-  int size() const {
-    return _navs.size();
-  }
+  int size() const;
 
-  const Nav operator[] (int i) const {
-    return _navs[i];
-  }
+  const Nav operator[] (int i) const;
 
-  NavCollection slice(int from, int to) const {
-    return _navs.slice(from, to);
-  }
+  NavCollection slice(int from, int to) const;
+  NavCollection sliceFrom(int index) const;
+  NavCollection sliceTo(int index) const;
+  const Nav last() const;
+  const Nav first() const;
 
-  NavCollection sliceFrom(int index) const {
-    return _navs.sliceFrom(index);
-  }
+  class Iterator {
+   public:
+    Iterator(const std::shared_ptr<Dispatcher> &dispatcher, int index) :
+      _dispatcher(dispatcher), _index(index) {}
 
-  NavCollection sliceTo(int index) const {
-    return _navs.sliceTo(index);
-  }
+    const Nav operator*() const {
+      return NavCollection(_dispatcher)[_index];
+    }
 
-  const Nav last() const {
-    return _navs.last();
-  }
+    void operator++() {
+      _index++;
+    }
 
-  const Nav first() const {
-    return _navs.first();
-  }
+    bool operator==(const Iterator &other) const {
+      return _index == other._index;
+    }
 
-  const Nav *begin() const {
-    return _navs.begin();
-  }
+    bool operator!=(const Iterator &other) const {
+      return _index != other._index;
+    }
+   private:
+    int _index;
+    std::shared_ptr<Dispatcher> _dispatcher;
+  };
 
-  const Nav *end() const {
-    return _navs.end();
-  }
-
-  int middle() const {
-    return _navs.middle();
-  }
-
-  int lastIndex() const {
-    return _navs.lastIndex();
-  }
-
-  bool empty() const {
-    return _navs.empty();
-  }
-
+  Iterator begin() const {return Iterator(_dispatcher, 0);}
+  Iterator end() const {return Iterator(_dispatcher, size());}
+  int middle() const;
+  int lastIndex() const;
+  bool empty() const;
 
 /*
  * TODO: We should really try
@@ -245,13 +239,19 @@ class NavCollection {
  * and bugs. Ideally, we would like to have compile-time warnings
  * whenever one of them is used.
  */
-  Array<Nav> makeArray() const {
-    return _navs;
+  Array<Nav> makeArray() const;
+  static NavCollection fromNavs(const Array<Nav> &navs);
+
+  const std::shared_ptr<Dispatcher> &getDispatcher() const {
+    return _dispatcher;
   }
-  static NavCollection fromNavs(const Array<Nav> &navs) {return NavCollection(navs);}
+
+  void outputSummary(std::ostream *dst) const;
  private:
-  NavCollection(const Array<Nav> &navs) : _navs(navs) {}
-  Array<Nav> _navs;
+  bool isValidNavIndex(int i) const;
+  bool isValidNavBoundaryIndex(int i) const;
+
+  std::shared_ptr<Dispatcher> _dispatcher;
 };
 
 

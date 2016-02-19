@@ -41,7 +41,7 @@ class TransitionHint : public LocalStateAssign {
   double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex);
 
   static std::shared_ptr<LocalStateAssign> make(const UserHint &hint,
-      NavCollection navs, const Grammar &dst);
+      const Array<Nav> &navs, const Grammar &dst);
   private:
    MDArray2b _validTransitions;
    int _timeIndex;

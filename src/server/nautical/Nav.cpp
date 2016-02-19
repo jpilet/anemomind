@@ -20,6 +20,8 @@
 #include <server/common/PhysicalQuantityIO.h>
 #include <server/common/logging.h>
 #include <server/common/Functional.h>
+#include <device/anemobox/Dispatcher.h>
+
 
 namespace sail {
 
@@ -156,8 +158,351 @@ bool Nav::hasId() const {
 //days_data = datenum(unsorted_data(:,year) + 2000, unsorted_data(:,month), unsorted_data(:, dayOfTheMonth), unsorted_data(:,hour), unsorted_data(:,minute), unsorted_data(:,second));
 
 
+namespace {
+  template <typename T>
+  bool isDefined(const T &x) {
+    return !x.isNaN();
+  }
+
+  template <>
+  bool isDefined<GeographicPosition<double> >(const GeographicPosition<double> &x) {
+    return true;
+  }
+
+  template <typename T>
+  typename sail::TimedSampleCollection<T>::TimedVector getTimedVectorFromNavs(
+      const Array<Nav> &navs, std::function<T(const Nav &)> f) {
+    typename sail::TimedSampleCollection<T>::TimedVector dst;
+    for (const auto &x: navs) {
+      if (x.time().defined()) {
+        auto v = f(x);
+        if (isDefined(v)) {
+          dst.push_back(TimedValue<T>(x.time(), v));
+        }
+      }
+    }
+    return dst;
+  }
+
+  std::shared_ptr<Dispatcher> makeDispatcherFromNavs(const Array<Nav> &navs) {
+    const char srcOurs[] = "NavOurs";
+    const char srcExternal[] = "NavExternal";
+
+    auto dst = std::make_shared<Dispatcher>();
+
+    dst->insertValues<Angle<double> >(
+      AWA, srcOurs, getTimedVectorFromNavs<Angle<double> >(navs, [](const Nav &x) {
+      return x.awa();
+    }));
+
+    dst->insertValues<Velocity<double> >(
+      AWS, srcOurs, getTimedVectorFromNavs<Velocity<double> >(navs, [](const Nav &x) {
+      return x.aws();
+    }));
+
+    dst->insertValues<Angle<double> >(
+      TWA, srcExternal, getTimedVectorFromNavs<Angle<double> >(navs, [](const Nav &x) {
+      return x.externalTwa();
+    }));
+
+    dst->insertValues<Velocity<double> >(
+      TWS, srcExternal, getTimedVectorFromNavs<Velocity<double> >(navs, [](const Nav &x) {
+      return x.externalTws();
+    }));
+
+    dst->insertValues<Angle<double> >(
+      TWDIR, srcExternal, getTimedVectorFromNavs<Angle<double> >(navs, [](const Nav &x) {
+      return x.externalTwdir();
+    }));
+
+    dst->insertValues<Angle<double> >(
+      TWA, srcOurs, getTimedVectorFromNavs<Angle<double> >(navs, [](const Nav &x) {
+      return x.deviceTwa();
+    }));
+
+    dst->insertValues<Velocity<double> >(
+      TWS, srcOurs, getTimedVectorFromNavs<Velocity<double> >(navs, [](const Nav &x) {
+      return x.deviceTws();
+    }));
+
+    dst->insertValues<Angle<double> >(
+      TWDIR, srcOurs, getTimedVectorFromNavs<Angle<double> >(navs, [](const Nav &x) {
+      return x.deviceTwdir();
+    }));
+
+    dst->insertValues<Velocity<double> >(
+      GPS_SPEED, srcOurs, getTimedVectorFromNavs<Velocity<double> >(navs, [](const Nav &x) {
+      return x.gpsSpeed();
+    }));
+
+    dst->insertValues<Angle<double> >(
+      GPS_BEARING, srcOurs, getTimedVectorFromNavs<Angle<double> >(navs, [](const Nav &x) {
+      return x.gpsBearing();
+    }));
+
+    dst->insertValues<Angle<double> >(
+      MAG_HEADING, srcOurs, getTimedVectorFromNavs<Angle<double> >(navs, [](const Nav &x) {
+      return x.magHdg();
+    }));
+
+    dst->insertValues<Velocity<double> >(
+      WAT_SPEED, srcOurs, getTimedVectorFromNavs<Velocity<double> >(navs, [](const Nav &x) {
+      return x.watSpeed();
+    }));
+
+    dst->insertValues<GeographicPosition<double> >(
+      GPS_POS, srcOurs, getTimedVectorFromNavs<GeographicPosition<double> >(navs, [](const Nav &x) {
+      return x.geographicPosition();
+    }));
+
+    dst->insertValues<Velocity<double> >(
+      TARGET_VMG, srcOurs, getTimedVectorFromNavs<Velocity<double> >(navs, [](const Nav &x) {
+      return x.deviceTargetVmg();
+    }));
+
+    dst->insertValues<Velocity<double> >(
+      VMG, srcOurs, getTimedVectorFromNavs<Velocity<double> >(navs, [](const Nav &x) {
+      return x.deviceVmg();
+    }));
+
+    return dst;
+  }
+
+}
+
+NavCollection::NavCollection(const std::shared_ptr<Dispatcher> &dispatcher) :
+  _dispatcher(dispatcher) {}
+
+int NavCollection::size() const {
+  return bool(_dispatcher)? _dispatcher->getNonEmptyValues<GPS_POS>().size() : 0;
+}
+
+namespace {
 
 
+  class SummaryVisitor {
+   public:
+    SummaryVisitor(std::ostream *out) : _out(out) {}
+
+    template <DataCode Code, typename T>
+    void visit(const char *shortName, const std::string &sourceName,
+        const TimedSampleCollection<T> &coll) {
+      *_out << "  Channel of type " << shortName << " named " << sourceName << " with " << coll.size() << " samples\n";
+    }
+   private:
+    std::ostream *_out;
+  };
+
+  template <typename Mapper>
+  void visitChannels(const std::shared_ptr<Dispatcher> &dispatcher, Mapper m) {
+    for (const auto &codeAndSources: dispatcher->allSources()) {
+      auto c = codeAndSources.first;
+      for (const auto &kv: codeAndSources.second) {
+
+#define TRY_TO_MAP(handle, code, shortname, type, description) \
+    if (c == handle) {\
+      m.template visit<handle, type >(shortname, kv.first, \
+          toTypedDispatchData<handle>(kv.second)->dispatcher()->values());\
+    }\
+
+    FOREACH_CHANNEL(TRY_TO_MAP)
+
+#undef TRY_TO_MAP
+
+      }
+    }
+  }
+
+}
+
+
+void NavCollection::outputSummary(std::ostream *dst) const {
+  //visitChannels<SummaryVisitor>(_dispatcher, SummaryVisitor(dst));
+  visitChannels(_dispatcher, SummaryVisitor(dst));
+}
+
+bool NavCollection::isValidNavIndex(int i) const {
+  return 0 <= i && i < size();
+}
+
+bool NavCollection::isValidNavBoundaryIndex(int i) const {
+  return 0 <= i && i <= size();
+}
+
+namespace {
+  const auto maxGapSeconds = 12;
+
+  template <DataCode Code>
+  Optional<typename TypeForCode<Code>::type> getValue(
+      const std::shared_ptr<Dispatcher> &src, const TimeStamp &time) {
+    auto nearest = src->getNonEmptyValues<Code>().nearestTimedValue(time);
+    if (nearest.defined()) {
+      if (abs((nearest.get().time - time).seconds()) < maxGapSeconds) {
+        return Optional<typename TypeForCode<Code>::type>(nearest.get().value);
+      }
+    }
+    return Optional<typename TypeForCode<Code>::type>();
+  }
+}
+
+#define SET_NAV_VALUE_F(DATACODE, SET) \
+  {auto x = getValue<DATACODE>(_dispatcher, timeAndPos.time); if (x.defined()) {SET}}
+
+#define SET_NAV_VALUE(DATACODE, METHOD) SET_NAV_VALUE_F(DATACODE, dst.METHOD(x());)
+
+const Nav NavCollection::operator[] (int i) const {
+  assert(isValidNavIndex(i));
+  const auto &samples = _dispatcher->getNonEmptyValues<GPS_POS>().samples();
+  auto timeAndPos = samples[i];
+
+  Nav dst;
+  dst.setBoatId(Nav::debuggingBoatId());
+  dst.setTime(timeAndPos.time);
+  dst.setGeographicPosition(timeAndPos.value);
+  SET_NAV_VALUE(AWA, setAwa);
+  SET_NAV_VALUE(AWS, setAws);
+
+  // Well, it is not very clear how
+  // the different fields in the Nav map
+  // to different sources. Hope we
+  // can get rid of Nav altogether
+  // in the not so distant future.
+  SET_NAV_VALUE(TWA, setDeviceTwa);
+  SET_NAV_VALUE(TWA, setExternalTwa);
+  SET_NAV_VALUE(TWS, setDeviceTws);
+  SET_NAV_VALUE(TWS, setExternalTws);
+
+  SET_NAV_VALUE(GPS_SPEED, setGpsSpeed);
+  SET_NAV_VALUE(GPS_BEARING, setGpsBearing);
+  SET_NAV_VALUE(MAG_HEADING, setMagHdg);
+  SET_NAV_VALUE(WAT_SPEED, setWatSpeed);
+  SET_NAV_VALUE(TARGET_VMG, setDeviceTargetVmg);
+  SET_NAV_VALUE(VMG, setDeviceVmg);
+  return dst;
+}
+
+namespace {
+  class TimeSlicer {
+   public:
+    TimeSlicer(const TimeStamp &from, const TimeStamp &to) : _from(from), _to(to) {}
+
+    template <DataCode Code, typename T>
+    typename TimedSampleCollection<T>::TimedVector map(const TimedSampleCollection<T> &coll) {
+      typename TimedSampleCollection<T>::TimedVector dst;
+      for (auto x: coll.samples()) {
+        if (_from <= x.time && x.time <= _to) {
+          dst.push_back(x);
+        }
+      }
+      return dst;
+    }
+   private:
+    TimeStamp _from, _to;
+  };
+
+  template <typename Mapper>
+  std::shared_ptr<Dispatcher> mapDispatcherChannels(const std::shared_ptr<Dispatcher> &dispatcher, Mapper m) {
+    auto dst = std::make_shared<Dispatcher>();
+
+    // Setting the priorities should be done first!
+    for (const auto &codeAndSources: dispatcher->allSources()) {
+      auto c = codeAndSources.first;
+      for (const auto &kv: codeAndSources.second) {
+        dst->setSourcePriority(kv.first, dispatcher->sourcePriority(kv.first));
+      }
+    }
+
+    for (const auto &codeAndSources: dispatcher->allSources()) {
+      auto c = codeAndSources.first;
+      for (const auto &kv: codeAndSources.second) {
+
+#define TRY_TO_MAP(handle, code, description, type, shortname) \
+    if (c == handle) {\
+      auto y = m.template map<handle, type >(\
+          toTypedDispatchData<handle>(kv.second)->dispatcher()->values());\
+      dst->insertValues<type >(handle, kv.first, y);\
+    }\
+
+    FOREACH_CHANNEL(TRY_TO_MAP)
+
+#undef TRY_TO_MAP
+
+      }
+    }
+    return dst;
+  }
+
+}
+
+
+
+NavCollection NavCollection::slice(int from, int to) const {
+  assert(isValidNavBoundaryIndex(from));
+  assert(isValidNavBoundaryIndex(to));
+  assert(from <= to);
+  if (to == 0) {
+    return NavCollection();
+  }
+  auto samples = _dispatcher->getNonEmptyValues<GPS_POS>().samples();
+  auto leftTime = samples[from].time; // inclusive
+  auto rightTime = samples[to-1].time; // inclusive (because we take the time one index before).
+  auto f = [&](const TimeStamp &t) {
+    return leftTime <= t && t <= rightTime;
+  };
+
+  return NavCollection(mapDispatcherChannels(_dispatcher, TimeSlicer(leftTime, rightTime)));
+}
+
+NavCollection NavCollection::sliceFrom(int index) const {
+  return slice(index, size());
+}
+
+NavCollection NavCollection::sliceTo(int index) const {
+  return slice(0, index);
+}
+
+const Nav NavCollection::last() const {
+  return (*this)[lastIndex()];
+}
+
+const Nav NavCollection::first() const {
+  return (*this)[0];
+}
+
+/*ArrayIterator<NavCollection> NavCollection::begin() const {
+  return ArrayIterator<NavCollection>(*this, 0);
+}
+
+ArrayIterator<NavCollection> NavCollection::end() const {
+  return ArrayIterator<NavCollection>(*this, size());
+}*/
+
+int NavCollection::middle() const {
+  return size()/2;
+}
+
+int NavCollection::lastIndex() const {
+  return size() - 1;
+}
+
+bool NavCollection::empty() const {
+  return size() == 0;
+}
+
+Array<Nav> NavCollection::makeArray() const {
+  int n = size();
+  Array<Nav> dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = (*this)[i];
+  }
+  return dst;
+}
+
+NavCollection NavCollection::fromNavs(const Array<Nav> &navs) {
+  return NavCollection(makeDispatcherFromNavs(navs));
+}
+/*:
+    _dispatcher() {}*/
 
 Array<Velocity<double> > getExternalTws(Array<Nav> navs) {
   return toArray(map(navs, [&](const Nav &n) {return n.externalTws();}));

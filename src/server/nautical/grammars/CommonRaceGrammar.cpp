@@ -108,7 +108,7 @@ CommonRaceGrammar::CommonRaceGrammar(CommonRaceGrammarSettings settings) :
 namespace {
   class CommonRaceStateAssign : public StateAssign {
    public:
-    CommonRaceStateAssign(NavCollection navs, AngleCost &ac,
+    CommonRaceStateAssign(Array<Nav> navs, AngleCost &ac,
         MDArray2d staticTransitionCosts,
         Arrayd staticStateCosts, Array<Arrayi> preds, OnOffCost ooc) :
         _navs(navs), _angleCost(ac), _staticTransitionCosts(staticTransitionCosts),
@@ -135,7 +135,7 @@ namespace {
       return _predecessors[stateIndex];
     }
    private:
-    NavCollection _navs;
+    Array<Nav> _navs;
     AngleCost _angleCost;
     MDArray2d _staticTransitionCosts;
     Arrayd _staticStateCosts;
@@ -144,12 +144,14 @@ namespace {
   };
 }
 
-std::shared_ptr<HTree> CommonRaceGrammar::parse(NavCollection navs,
+std::shared_ptr<HTree> CommonRaceGrammar::parse(NavCollection navs0,
     Array<UserHint> hints) {
+  auto navs = navs0.makeArray();
   OnOffCost onOffCost(navs, 0, _settings.perSecondCost);
   CommonRaceStateAssign sa(navs, _angleCost, _staticTransitionCosts,
       _staticStateCosts, _preds, onOffCost);
-  return _h.parse(makeHintedStateAssign(*this, makeSharedPtrToStack(sa), hints, navs).solve());
+  auto inds = makeHintedStateAssign(*this, makeSharedPtrToStack(sa), hints, navs).solve();
+  return _h.parse(inds);
 }
 
 Array<HNode> CommonRaceGrammar::nodeInfo() const {

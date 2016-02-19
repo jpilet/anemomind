@@ -21,7 +21,7 @@ namespace sail {
  This macro provides an easy way to iterate over channels at compile time.
 
  To use this macro, define a macro that takes the following arguments:
-  #define ENUM_ENTRY(handle, code, type, shortname, description)
+  #define ENUM_ENTRY(handle, code, shortname, type, description)
  
  For example, here's how to declare a switch for each entry:
 
@@ -120,9 +120,10 @@ class TypedDispatchData : public DispatchData {
 template <typename T>
 class TypedDispatchDataReal : public TypedDispatchData<T> {
  public:
+  static const int defaultBufferLength = 1024;
   TypedDispatchDataReal(DataCode nature,
                         std::string source,
-                        Clock* clock, int bufferLength=1024)
+                        Clock* clock, int bufferLength = defaultBufferLength)
      : TypedDispatchData<T>(nature, source),
      _dispatcher(clock, bufferLength) { }
 
@@ -183,6 +184,11 @@ void TypedDispatchData<T>::visit(DispatchDataVisitor *visitor) {
   visitor->run(this);
 }
 
+template <DataCode Code>
+TypedDispatchData<typename TypeForCode<Code>::type>* toTypedDispatchData(DispatchData *data) {
+  return dynamic_cast<TypedDispatchData<typename TypeForCode<Code>::type>*>(data);
+}
+
 //! Dispatcher: the hub for all values processed by the anemobox.
 // the data() method allows enumeration of all components.
 class Dispatcher : public Clock {
@@ -205,7 +211,7 @@ class Dispatcher : public Clock {
   // Return or create a DispatchData for the given source.
   template <typename T>
   TypedDispatchData<T>* createDispatchDataForSource(
-      DataCode code, const std::string& source);
+      DataCode code, const std::string& source, int size = TypedDispatchDataReal<T>::defaultBufferLength);
 
   DispatchData* dispatchData(DataCode code) const {
     auto it = _currentSource.find(code);
@@ -215,8 +221,37 @@ class Dispatcher : public Clock {
 
   template <DataCode Code>
   TypedDispatchData<typename TypeForCode<Code>::type>* get() const {
-    return dynamic_cast<TypedDispatchData<typename TypeForCode<Code>::type>*>(
-        dispatchData(Code));
+    return toTypedDispatchData<Code>(dispatchData(Code));
+  }
+
+  template <DataCode Code>
+  const TimedSampleCollection<typename TypeForCode<Code>::type> &values() const {
+    return get<Code>()->dispatcher()->values();
+  }
+
+  // Temporary method when treating it as a dataset.
+  // First, try to get samples from the source with highest priority, if there is at least one sample.
+  // Otherwise, try to get samples from any other non-empty source.
+  // TODO: Do something more sophisticated than this, later.
+  template <DataCode Code>
+  const TimedSampleCollection<typename TypeForCode<Code>::type> &getNonEmptyValues() const {
+    const auto &v = values<Code>();
+
+    if (!v.empty()) {
+      return v;
+    }
+
+    auto sources = _data.find(Code);
+    if (sources != _data.end()) {
+      for (auto kv: sources->second) {
+        const auto &x = toTypedDispatchData<Code>(kv.second)->dispatcher()->values();
+        if (!x.empty()) {
+          return x;
+        }
+      }
+    }
+    // All were empty :-( Return v anyway.
+    return v;
   }
 
   template <DataCode Code>
@@ -239,7 +274,7 @@ class Dispatcher : public Clock {
   void insertValues(DataCode code, const std::string& source,
                     const typename TimedSampleCollection<T>::TimedVector& values) {
     TypedDispatchData<T>* dispatchData =
-      createDispatchDataForSource<T>(code, source);
+      createDispatchDataForSource<T>(code, source, values.size());
 
     dispatchData->dispatcher()->insert(values);
   }
@@ -274,6 +309,9 @@ class Dispatcher : public Clock {
 
   // _currentSource contains the proxies of different types.
   std::map<DataCode, std::shared_ptr<DispatchData>> _currentSource;
+
+  // TODO: Do we want to use an Enum of standardized sources,
+  // instead of a string?
   std::map<std::string, int> _sourcePriority;
 };
 
@@ -314,13 +352,13 @@ class SubscribeVisitor : public DispatchDataVisitor {
 
 template <typename T>
 TypedDispatchData<T>* Dispatcher::createDispatchDataForSource(
-    DataCode code, const std::string& source) {
+    DataCode code, const std::string& source, int size) {
   auto ptr = dispatchDataForSource(code, source);
 
   TypedDispatchData<T>* dispatchData;
   if (!ptr) {
     _data[code][source] = dispatchData = 
-      new TypedDispatchDataReal<T>(code, source, this);
+      new TypedDispatchDataReal<T>(code, source, this, size);
     newDispatchData(dispatchData);
   } else {
     dispatchData = dynamic_cast<TypedDispatchData<T>*>(ptr);

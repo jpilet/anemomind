@@ -13,7 +13,7 @@ namespace sail {
 
 
   HintedStateAssign makeHintedStateAssign(const Grammar &g, std::shared_ptr<StateAssign> ref,
-      Array<UserHint> hints, NavCollection navs);
+      Array<UserHint> hints, Array<Nav> navs);
 
 } /* namespace mmm */
 

@@ -4,6 +4,7 @@
 #include <server/nautical/tiles/NavTileUploader.h>
 
 #include <gtest/gtest.h>
+#include <iostream>
 
 namespace sail {
 
@@ -46,7 +47,9 @@ TEST(NavTileGenerator, SmokeTest) {
 
 TEST(NavTileGenerator, SplitTest) {
   Array<Nav> navs(32);
+  auto start = TimeStamp::UTC(2016, 02, 19, 16, 23, 0);
   for (int i = 0; i < navs.size(); ++i) {
+    navs[i].setTime(start + Duration<double>::seconds(i));
     navs[i].setGeographicPosition(
         GeographicPosition<double>(
             Angle<double>::degrees((i/32.0 * 10 + 1)),

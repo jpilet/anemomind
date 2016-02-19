@@ -89,8 +89,10 @@ TEST(TrueWindEstimatorTest, TWACompare) {
         Nav::debuggingBoatId()).navs();
 
     navs = navs.sliceTo(3000);
-    EXPECT_LE(1000, navs.size());
     int count = navs.size();
+
+
+    EXPECT_LE(1000, count);
     Angle<double> tol = Angle<double>::degrees(10.0);
     int counter = 0;
 
@@ -102,7 +104,6 @@ TEST(TrueWindEstimatorTest, TWACompare) {
       Angle<double> twa = calcTwa(trueWind, boatDir)
           + Angle<double>::degrees(360);
       Angle<double> etwa = nav.externalTwa();
-
       Angle<double> dif = (twa - etwa).normalizedAt0();
       difs[i] = dif;
 

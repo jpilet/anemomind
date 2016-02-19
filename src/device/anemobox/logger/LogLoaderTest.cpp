@@ -55,11 +55,10 @@ TEST(LogToNavTest, ConvertToDispatcher) {
   loader.load(loggedData);
   auto d = std::shared_ptr<Dispatcher>(new Dispatcher());
   loader.addToDispatcher(d.get());
-  auto awa = d->get<AWA>()->dispatcher();
-  auto awaValues = awa->values();
-  EXPECT_EQ(awaValues.size(), 10);
+  auto awa = d->values<AWA>();
+  EXPECT_EQ(awa.size(), 10);
   int counter = 0;
-  for (auto sample: awaValues.samples()) {
+  for (auto sample: awa.samples()) {
     EXPECT_NEAR(counter, sample.value.degrees(), 1.0e-3);
     counter++;
   }

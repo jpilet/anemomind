@@ -24,18 +24,28 @@ class ArrayIterator {
   Array _array;
   int _index;
  public:
+  typedef ArrayIterator<Array> ThisType;
   typedef decltype(_array[0]) ElementType;
 
   ArrayIterator(Array array, int index) :
     _array(array), _index(index) {}
 
-  ElementType operator*() const {
+  const ElementType operator*() const {
     return _array[_index];
   }
 
-  void operator++() {
+  const ElementType operator++() {
     _index++;
+    return *(*this);
   }
+
+  const ElementType operator++(int) {
+    auto x = *(*this);
+    _index++;
+    return x;
+  }
+
+
 
   bool operator== (const ArrayIterator &other) const {
     return _index == other._index;
@@ -43,6 +53,10 @@ class ArrayIterator {
 
   bool operator!= (const ArrayIterator &other) const {
     return !((*this) == other);
+  }
+
+  int operator-(const ThisType &other) const {
+    return _index - other._index;
   }
 };
 

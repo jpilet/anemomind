@@ -16,14 +16,14 @@ namespace sail {
 class OnOffCost {
  public:
   OnOffCost() : _offStateIndex(-1), _perSecondCost(NAN) {}
-  OnOffCost(NavCollection navs, int offStateIndex,
+  OnOffCost(Array<Nav> navs, int offStateIndex,
       double perSecondCost) : _navs(navs),
           _offStateIndex(offStateIndex),
           _perSecondCost(perSecondCost) {}
 
   double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex);
  private:
-  NavCollection _navs;
+  Array<Nav> _navs;
   int _offStateIndex;
   double _perSecondCost;
 };

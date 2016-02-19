@@ -11,6 +11,7 @@ namespace sail {
 
 template <typename T>
 struct TimedValue {
+  TimedValue() {}
   TimedValue(TimeStamp time, T value) : time(time), value(value) { }
 
   TimeStamp time;
@@ -53,7 +54,8 @@ class TimedSampleCollection {
      return _samples[_samples.size() - 1 - backIndex];
    }
 
-   Optional<T> nearest(TimeStamp t);
+   Optional<TimedValue<T> > nearestTimedValue(TimeStamp t) const;
+   Optional<T> nearest(TimeStamp t) const;
 
    // If 0: unlimited buffer.
    // Otherwise: after insert, only the most recent <_maxBufferLength> samples
@@ -64,6 +66,7 @@ class TimedSampleCollection {
    }
 
    size_t size() const { return _samples.size(); }
+   bool empty() const { return _samples.empty(); }
    T lastValue() const { return _samples.back().value; }
    TimeStamp lastTimeStamp() const { return _samples.back().time; }
  private:
@@ -95,13 +98,13 @@ void TimedSampleCollection<T>::insert(const TimedVector& entries) {
 }
 
 template <typename T>
-Optional<T> TimedSampleCollection<T>::nearest(TimeStamp t) {
+Optional<TimedValue<T> > TimedSampleCollection<T>::nearestTimedValue(TimeStamp t) const {
   const TimedValue<T> time(t, T());
   // Refuse to extrapolate.
   if (_samples.size() == 0
       || time < _samples.front()
       || t > _samples.back().time) {
-    return Optional<T>();
+    return Optional<TimedValue<T> >();
   }
 
   auto it = std::lower_bound(_samples.begin(), _samples.end(), time);
@@ -112,7 +115,17 @@ Optional<T> TimedSampleCollection<T>::nearest(TimeStamp t) {
       it = prev;
     }
   }
-  return Optional<T>(it->value);
+  return Optional<TimedValue<T> >(*it);
+}
+
+
+template <typename T>
+Optional<T> TimedSampleCollection<T>::nearest(TimeStamp t) const {
+  auto tv = nearestTimedValue(t);
+  if (tv.defined()) {
+    return Optional<T>(tv.get().value);
+  }
+  return Optional<T>();
 }
 
 template <typename T>
