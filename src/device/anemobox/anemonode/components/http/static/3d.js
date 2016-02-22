@@ -24,7 +24,7 @@ function webGLStart() {
       url: '/api/live', 
       success: function(data) {
         if (data && data.orient) {
-          var orient = data.orient;
+          var orient = data.orient.v;
 
           heading = orient.heading;
           roll = orient.roll;
