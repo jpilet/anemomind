@@ -2,8 +2,15 @@
 mkdir -p /home/anemobox
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
-RTC=/bin/rtc
-[ -e "${RTC}" ] && "${RTC}" --load
+if [ -f ~/.ssh/id_rsa ]; then
+  true
+else
+  echo "installing SSH Key"
+  mkdir -p ~/.ssh
+  cp id_rsa* ~/.ssh
+  chmod 600 ~/.ssh/id_rsa
+  cat known_hosts >> ~/.ssh/known_hosts
+fi
 
 ./format.sh
 
