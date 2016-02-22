@@ -184,11 +184,9 @@ namespace {
     return dst;
   }
 
-  std::shared_ptr<Dispatcher> makeDispatcherFromNavs(const Array<Nav> &navs) {
+  void  insertNavsIntoDispatcher(const Array<Nav> &navs, Dispatcher *dst) {
     const char srcOurs[] = "NavOurs";
     const char srcExternal[] = "NavExternal";
-
-    auto dst = std::make_shared<Dispatcher>();
 
     dst->insertValues<Angle<double> >(
       AWA, srcOurs, getTimedVectorFromNavs<Angle<double> >(navs, [](const Nav &x) {
@@ -264,7 +262,11 @@ namespace {
       VMG, srcOurs, getTimedVectorFromNavs<Velocity<double> >(navs, [](const Nav &x) {
       return x.deviceVmg();
     }));
+  }
 
+  std::shared_ptr<Dispatcher> makeDispatcherFromNavs(const Array<Nav> &navs) {
+    auto dst = std::make_shared<Dispatcher>();
+    insertNavsIntoDispatcher(navs, dst.get());
     return dst;
   }
 
