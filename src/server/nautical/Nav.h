@@ -202,11 +202,11 @@ class NavCollection {
 
   class Iterator {
    public:
-    Iterator(const std::shared_ptr<Dispatcher> &dispatcher, int index) :
-      _dispatcher(dispatcher), _index(index) {}
+    Iterator(const NavCollection *coll, int index) :
+      _coll(coll), _index(index) {}
 
     const Nav operator*() const {
-      return NavCollection(_dispatcher)[_index];
+      return (*_coll)[_index];
     }
 
     void operator++() {
@@ -214,7 +214,7 @@ class NavCollection {
     }
 
     bool operator==(const Iterator &other) const {
-      return _index == other._index;
+      return _index == other._index && _coll == other._coll;
     }
 
     bool operator!=(const Iterator &other) const {
@@ -222,11 +222,11 @@ class NavCollection {
     }
    private:
     int _index;
-    std::shared_ptr<Dispatcher> _dispatcher;
+    const NavCollection *_coll;
   };
 
-  Iterator begin() const {return Iterator(_dispatcher, 0);}
-  Iterator end() const {return Iterator(_dispatcher, size());}
+  Iterator begin() const {return Iterator(this, 0);}
+  Iterator end() const {return Iterator(this, size());}
   int middle() const;
   int lastIndex() const;
   bool empty() const;
