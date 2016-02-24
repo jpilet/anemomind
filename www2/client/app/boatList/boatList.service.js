@@ -22,6 +22,7 @@ angular.module('www2App')
           });
         $http.get('/api/session')
           .success(function(data, status, headers, config) {
+            sessionsForBoats = [];
             for (var i in data) {
               if (data[i].boat in sessionsForBoats) {
                 sessionsForBoats[data[i].boat].push(data[i]);
