@@ -275,6 +275,13 @@ namespace {
 NavCollection::NavCollection(const std::shared_ptr<Dispatcher> &dispatcher) :
   _dispatcher(dispatcher) {}
 
+namespace {
+  TimedSampleCollection<GeographicPosition<double> > getGpsPositions(
+      const std::shared_ptr<Dispatcher> &dispatcher) {
+    return dispatcher->getNonEmptyValues<GPS_POS>();
+  }
+}
+
 int NavCollection::size() const {
   return bool(_dispatcher)? _dispatcher->getNonEmptyValues<GPS_POS>().size() : 0;
 }
