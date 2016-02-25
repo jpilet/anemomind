@@ -396,11 +396,13 @@ namespace {
 
     template <DataCode Code, typename T>
     typename TimedSampleCollection<T>::TimedVector map(const TimedSampleCollection<T> &coll) {
-      typename TimedSampleCollection<T>::TimedVector dst;
-      for (auto x: coll.samples()) {
-        if (_from <= x.time && x.time <= _to) {
-          dst.push_back(x);
-        }
+      typedef typename TimedSampleCollection<T>::TimedVector TimedVector;
+      TimedVector dst;
+      const auto &samples = coll.samples();
+      auto fromIt = std::lower_bound(samples.begin(), samples.end(), _from);
+      auto toIt = std::upper_bound(samples.begin(), samples.end(), _to);
+      for (auto i = fromIt; i != toIt; i++) {
+        dst.push_back(*i);
       }
       return dst;
     }

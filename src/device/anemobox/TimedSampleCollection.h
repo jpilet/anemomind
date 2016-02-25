@@ -22,6 +22,16 @@ struct TimedValue {
   }
 };
 
+template <typename T>
+bool operator<(const TimedValue<T> &a, TimeStamp b) {
+  return a.time < b;
+}
+
+template <typename T>
+bool operator<(const TimeStamp &a, const TimedValue<T> &b) {
+  return a < b.time;
+}
+
 template<typename T>
 class TimedSampleCollection {
  public:
