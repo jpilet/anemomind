@@ -347,10 +347,12 @@ namespace {
   }
 }
 
-#define SET_NAV_VALUE_F(DATACODE, SET) \
-  {auto x = getValue<DATACODE>(_dispatcher, timeAndPos.time); if (x.defined()) {SET}}
 
-#define SET_NAV_VALUE(DATACODE, METHOD) SET_NAV_VALUE_F(DATACODE, dst.METHOD(x());)
+template<DataCode code, class T>
+void setNavValue(const std::shared_ptr<Dispatcher> &dispatcher, TimeStamp time, Nav *dst, void (Nav::* set)(T)) {
+    auto x = getValue<code>(dispatcher, time);
+    if (x.defined()) { ((*dst).*set)(x()); }
+}
 
 const Nav NavCollection::operator[] (int i) const {
   assert(isValidNavIndex(i));
@@ -361,25 +363,22 @@ const Nav NavCollection::operator[] (int i) const {
   dst.setBoatId(Nav::debuggingBoatId());
   dst.setTime(timeAndPos.time);
   dst.setGeographicPosition(timeAndPos.value);
-  SET_NAV_VALUE(AWA, setAwa);
-  SET_NAV_VALUE(AWS, setAws);
 
-  // Well, it is not very clear how
-  // the different fields in the Nav map
-  // to different sources. Hope we
-  // can get rid of Nav altogether
-  // in the not so distant future.
-  SET_NAV_VALUE(TWA, setDeviceTwa);
-  SET_NAV_VALUE(TWA, setExternalTwa);
-  SET_NAV_VALUE(TWS, setDeviceTws);
-  SET_NAV_VALUE(TWS, setExternalTws);
 
-  SET_NAV_VALUE(GPS_SPEED, setGpsSpeed);
-  SET_NAV_VALUE(GPS_BEARING, setGpsBearing);
-  SET_NAV_VALUE(MAG_HEADING, setMagHdg);
-  SET_NAV_VALUE(WAT_SPEED, setWatSpeed);
-  SET_NAV_VALUE(TARGET_VMG, setDeviceTargetVmg);
-  SET_NAV_VALUE(VMG, setDeviceVmg);
+  setNavValue<AWA>(_dispatcher, timeAndPos.time, &dst, &Nav::setAwa);
+  setNavValue<AWS>(_dispatcher, timeAndPos.time, &dst, &Nav::setAws);
+
+  setNavValue<TWA>(_dispatcher, timeAndPos.time, &dst, &Nav::setDeviceTwa);
+  setNavValue<TWA>(_dispatcher, timeAndPos.time, &dst, &Nav::setExternalTwa);
+  setNavValue<TWS>(_dispatcher, timeAndPos.time, &dst, &Nav::setDeviceTws);
+  setNavValue<TWS>(_dispatcher, timeAndPos.time, &dst, &Nav::setExternalTws);
+
+  setNavValue<GPS_SPEED>(_dispatcher, timeAndPos.time, &dst, &Nav::setGpsSpeed);
+  setNavValue<GPS_BEARING>(_dispatcher, timeAndPos.time, &dst, &Nav::setGpsBearing);
+  setNavValue<MAG_HEADING>(_dispatcher, timeAndPos.time, &dst, &Nav::setMagHdg);
+  setNavValue<WAT_SPEED>(_dispatcher, timeAndPos.time, &dst, &Nav::setWatSpeed);
+  setNavValue<VMG>(_dispatcher, timeAndPos.time, &dst, &Nav::setDeviceVmg);
+
   return dst;
 }
 
