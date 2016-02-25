@@ -276,14 +276,14 @@ NavCollection::NavCollection(const std::shared_ptr<Dispatcher> &dispatcher) :
   _dispatcher(dispatcher) {}
 
 namespace {
-  TimedSampleCollection<GeographicPosition<double> > getGpsPositions(
+  const TimedSampleCollection<GeographicPosition<double> > &getGpsPositions(
       const std::shared_ptr<Dispatcher> &dispatcher) {
     return dispatcher->getNonEmptyValues<GPS_POS>();
   }
 }
 
 int NavCollection::size() const {
-  return bool(_dispatcher)? _dispatcher->getNonEmptyValues<GPS_POS>().size() : 0;
+  return bool(_dispatcher)? getGpsPositions(_dispatcher).size() : 0;
 }
 
 namespace {
@@ -451,7 +451,7 @@ NavCollection NavCollection::slice(int from, int to) const {
   if (to == 0) {
     return NavCollection();
   }
-  auto samples = _dispatcher->getNonEmptyValues<GPS_POS>().samples();
+  auto samples = getGpsPositions(_dispatcher).samples();
   auto leftTime = samples[from].time; // inclusive
   auto rightTime = samples[to-1].time; // inclusive (because we take the time one index before).
   auto f = [&](const TimeStamp &t) {
