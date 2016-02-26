@@ -4,14 +4,14 @@
 #include "../PhysicalQuantity/PhysicalQuantity.h"
 
 #ifdef ON_SERVER
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 #include <server/common/TimeStamp.h>
 #endif
 
 namespace sail {
 
 // This class is in charge of applying a temporal filter on measured data.
-// It also acts as a buffer between either a nmeaparser or a NavCollection
+// It also acts as a buffer between either a nmeaparser or a NavDataset
 template <class T, class TimeStamp, class Duration>
 class InstrumentFilter {
  public:
@@ -95,10 +95,10 @@ namespace {
 typedef InstrumentFilter<double, sail::TimeStamp, Duration<double> > ServerFilter;
 
 ServerFilter makeFilter(
-    const NavCollection& navs) {
+    const NavDataset& navs) {
   ServerFilter filter;
 
-  for (const Nav& nav : navs) {
+  for (const Nav& nav : NavCompat::Range(navs)) {
     filter.setAw(nav.awa(), nav.aws(), nav.time());
     filter.setMagHdgWatSpeed(nav.magHdg(), nav.watSpeed(), nav.time());
     filter.setGps(nav.gpsBearing(), nav.gpsSpeed(), nav.time());

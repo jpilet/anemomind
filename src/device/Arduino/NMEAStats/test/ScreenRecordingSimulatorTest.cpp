@@ -7,6 +7,8 @@
 
 using namespace sail;
 
+using namespace sail::NavCompat;
+
 TEST(ScreenRecordingTest, screenAtTest) {
   ScreenRecordingSimulator simulator;
 
@@ -16,14 +18,15 @@ TEST(ScreenRecordingTest, screenAtTest) {
   simulator.prepare("", "");
   simulator.simulate(nmeaFile);
 
-  NavCollection navs = flattenAndSort(
+  NavDataset navs = flattenAndSort(
       Array<ParsedNavs>{loadNavsFromNmea(nmeaFile, "")},
       ParsedNavs::makeGpsWindMask());
 
-  EXPECT_EQ(5, navs.size());
-  for (int i = 0; i < navs.size(); ++i) {
+  int n = getNavSize(navs);
+  EXPECT_EQ(5, n);
+  for (int i = 0; i < n; ++i) {
     ScreenInfo info;
-    EXPECT_TRUE(simulator.screenAt(navs[i].time(), &info));
-    EXPECT_NEAR((info.time - navs[i].time()).seconds(), 0, 2);
+    EXPECT_TRUE(simulator.screenAt(getNav(navs, i).time(), &info));
+    EXPECT_NEAR((info.time - getNav(navs, i).time()).seconds(), 0, 2);
   }
 }

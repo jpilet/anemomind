@@ -20,6 +20,7 @@
 #include <server/common/Json.impl.h>
 
 using namespace sail;
+using namespace sail::NavCompat;
 
 namespace {
 
@@ -122,9 +123,9 @@ TEST(NavJsonTest, BackwardCompatibilityTest) {
 }
 
 TEST(NavJsonTest, RealNav) {
-  auto navs = loadNavsFromNmea(
+  auto navs = makeArray(loadNavsFromNmea(
       string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"),
-      Nav::Id("B0A10000")).navs().makeArray();
+      Nav::Id("B0A10000")).navs());
 
   std::stringstream ss;
   Poco::JSON::Stringifier::stringify(json::serialize(navs), ss, 0, 0);

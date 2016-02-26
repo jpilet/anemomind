@@ -15,6 +15,8 @@
 
 namespace sail {
 
+using namespace NavCompat;
+
 namespace {
   Angle<double> getGpsBearing(const NmeaParser &parser) {
     return Angle<double>(parser.gpsBearing());
@@ -214,7 +216,7 @@ ParsedNavs loadNavsFromNmea(std::istream &file, Nav::Id boatId) {
     file.get(c);
     parseNmeaChar(c, &parser, &nav, &navAcc, &fields, boatId, &last);
   }
-  return ParsedNavs(NavCollection::fromNavs(navAcc.get()), fields);
+  return ParsedNavs(fromNavs(navAcc.get()), fields);
 }
 
 ParsedNavs loadNavsFromNmea(std::string filename, Nav::Id boatId) {
@@ -243,7 +245,7 @@ std::string getFieldLabel(ParsedNavs::FieldId id) {
 } // namespace
 
 std::ostream &operator<<(std::ostream &s, ParsedNavs x) {
-  s << "ParsedNavs: " << x.navs().size() << std::endl;
+  s << "ParsedNavs: " << getNavSize(x.navs()) << std::endl;
   for (int i = 0; i < ParsedNavs::FIELD_COUNT; i++) {
     ParsedNavs::FieldId id = ParsedNavs::FieldId(i);
     s << "   " << getFieldLabel(id) << ": "
@@ -257,42 +259,42 @@ namespace {
     int counter = 0;
     for (int i = 0; i < allNavs.size(); i++) {
       if (allNavs[i].hasFields(mask)) {
-        counter += allNavs[i].navs().size();
+        counter += getNavSize(allNavs[i].navs());
       }
     }
     return counter;
   }
 
-  NavCollection flatten(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
+  NavDataset flatten(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
     int len = countNavsToInclude(allNavs, mask);
     Array<Nav> dst(len);
     int counter = 0;
     for (int i = 0; i < allNavs.size(); i++) {
       ParsedNavs &n = allNavs[i];
       if (n.hasFields(mask)) {
-        int next = counter + n.navs().size();
-        n.navs().makeArray().copyToSafe(dst.slice(counter, next));
+        int next = counter + getNavSize(n.navs());
+        makeArray(n.navs()).copyToSafe(dst.slice(counter, next));
         counter = next;
       }
     }
     assert(counter == dst.size());
-    return NavCollection::fromNavs(dst);
+    return fromNavs(dst);
   }
 }
 
-NavCollection flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
-  NavCollection flattened = flatten(allNavs, mask);
+NavDataset flattenAndSort(Array<ParsedNavs> allNavs, ParsedNavs::FieldMask mask) {
+  NavDataset flattened = flatten(allNavs, mask);
 
   LOG(WARNING) << "Take another look at this code.";
-  auto copy = flattened.makeArray();
+  auto copy = makeArray(flattened);
 
   std::sort(copy.begin(), copy.end());
-  return NavCollection::fromNavs(copy);
+  return fromNavs(copy);
 }
 
-ParsedNavs::FieldMask ParsedNavs::fieldsFromNavs(const NavCollection &navs) {
+ParsedNavs::FieldMask ParsedNavs::fieldsFromNavs(const NavDataset &navs) {
   FieldMask result;
-  for (auto nav : navs) {
+  for (auto nav : Range(navs)) {
     if (nav.hasApparentWind()) {
       result.set(FieldId::AWA);
       result.set(FieldId::AWS);
@@ -309,7 +311,7 @@ ParsedNavs::FieldMask ParsedNavs::fieldsFromNavs(const NavCollection &navs) {
     }
   }
   // Nav does not have hasGps(), we assume we do have time and pos.
-  if (navs.size() > 0) {
+  if (getNavSize(navs) > 0) {
     result.set(FieldId::TIME);  
     result.set(FieldId::POS);  
     result.set(FieldId::GPS_BEARING);  

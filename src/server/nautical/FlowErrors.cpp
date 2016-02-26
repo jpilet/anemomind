@@ -60,7 +60,7 @@ std::ostream &operator<< (std::ostream &s, const WindCurrentErrors &e) {
 
 WindCurrentErrors compareCorrectors(
     const CorrectorFunction &a, const CorrectorFunction &b,
-    NavCollection navs) {
+    NavDataset navs) {
   auto aNavs = a(navs);
   auto bNavs = b(navs);
   auto getWind = [&](const CalibratedNav<double> &x) {return x.trueWindOverGround();};
@@ -70,7 +70,7 @@ WindCurrentErrors compareCorrectors(
                toArray(map(bNavs, getWind))),
     FlowErrors(toArray(map(aNavs, getCurrent)),
                toArray(map(bNavs, getCurrent))),
-    navs.size()
+    NavCompat::getNavSize(navs)
   };
 }
 

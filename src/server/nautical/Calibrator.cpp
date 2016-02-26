@@ -35,6 +35,8 @@ using std::string;
 
 namespace sail {
 
+using namespace NavCompat;
+
 namespace {
   string showWind(const HorizontalMotion<double>& wind) {
     double degrees = wind.angle().degrees();
@@ -43,8 +45,8 @@ namespace {
                         wind.norm().knots());
   }
 
-  Angle<double> externalTrueWindDirection(NavCollection nav) {
-    return nav.last().externalTwa() + nav.last().magHdg();
+  Angle<double> externalTrueWindDirection(NavDataset nav) {
+    return getLast(nav).externalTwa() + getLast(nav).magHdg();
   }
 
   template <typename T, int N>
@@ -55,7 +57,7 @@ namespace {
 
 class TackCost {
   public:
-    TackCost(NavCollection before, NavCollection after, double weight_)
+    TackCost(NavDataset before, NavDataset after, double weight_)
       : _before(makeFilter(before)), _after(makeFilter(after)),
       _beforeNav(before), _afterNav(after), _weight(weight_) { }
 
@@ -114,7 +116,7 @@ class TackCost {
           externalTrueWindDirection(_beforeNav).directionDifference(
               externalTrueWindDirection(_afterNav)).degrees());
       *sumExternalKnots = std::fabs(
-          (_beforeNav.last().externalTws() - _afterNav.last().externalTws()).knots());
+          (getLast(_beforeNav).externalTws() - getLast(_afterNav).externalTws()).knots());
     }
 
 
@@ -136,34 +138,34 @@ class TackCost {
     ServerFilter _after;
 
     // For debugging only.
-    NavCollection _beforeNav;
-    NavCollection _afterNav;
+    NavDataset _beforeNav;
+    NavDataset _afterNav;
     double _weight;
 };
 
 void Calibrator::addTack(int pos, double weight) {
   const int length = 5;
   const int delta = 20;
-  if ((pos < length + delta) || (pos > _allnavs.size() - length - delta)) {
+  if ((pos < length + delta) || (pos > getNavSize(_allnavs) - length - delta)) {
     LOG(WARNING) << "Ignoring maneuver too close to beginning or end of recording";
     return;
   }
 
   const int largeMargin = 500;
-  NavCollection before = _allnavs.slice(max(0, pos - delta - largeMargin),
+  NavDataset before = slice(_allnavs, max(0, pos - delta - largeMargin),
                                      pos - delta);
-  NavCollection after = _allnavs.slice(max(0, pos + delta - largeMargin),
+  NavDataset after = slice(_allnavs, max(0, pos + delta - largeMargin),
                                     pos + delta + length);
 
-  Duration<double> deltaTime = after.first().time() - before.last().time();
+  Duration<double> deltaTime = getFirst(after).time() - getLast(before).time();
   if (deltaTime > Duration<>::minutes(3)) {
     LOG(WARNING) << "Ignoring maneuver with a long time gap.";
     return;
   }
 
   const Velocity<double> minWindSpeed = Velocity<double>::knots(2.0);
-  if (after.last().aws() < minWindSpeed ||
-      before.last().aws() < minWindSpeed) {
+  if (getLast(after).aws() < minWindSpeed ||
+      getLast(before).aws() < minWindSpeed) {
     // less than 2 knots of wind is not a useful measure.
     return;
   }
@@ -248,8 +250,8 @@ string Calibrator::description(std::shared_ptr<HTree> tree) {
 
 bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
   // Load data.
-  NavCollection allnavs = scanNmeaFolderWithSimulator(dataPath, boatId);
-  if (allnavs.size() == 0) {
+  NavDataset allnavs = scanNmeaFolderWithSimulator(dataPath, boatId);
+  if (getNavSize(allnavs) == 0) {
     return false;
   }
 
@@ -258,7 +260,7 @@ bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
   return calibrate(allnavs, tree, boatId);
 }
 
-bool Calibrator::segment(const NavCollection& navs,
+bool Calibrator::segment(const NavDataset& navs,
     std::shared_ptr<HTree> tree) {
   clear();
   _tree = tree;
@@ -306,7 +308,7 @@ void Calibrator::finalizePlot(GnuplotExtra* gnuplot, const ceres::Solver::Summar
   delete gnuplot;
 }
 
-bool Calibrator::calibrate(const NavCollection& navs,
+bool Calibrator::calibrate(const NavDataset& navs,
                            std::shared_ptr<HTree> tree,
                            Nav::Id boatId) {
   if (!segment(navs, tree)) {
@@ -438,7 +440,7 @@ void Calibrator::plot(GnuplotExtra *gnuplot, const std::string &title, bool exte
 }
 
 void Calibrator::clear() {
-  _allnavs = NavCollection();
+  _allnavs = NavDataset();
   _tree.reset();
 
   TrueWindEstimator::initializeParameters(_calibrationValues);
@@ -529,7 +531,7 @@ namespace {
 } // namespace
 
 Corrector<double> calibrateFull(Calibrator *calib0,
-    const NavCollection& navs,
+    const NavDataset& navs,
     std::shared_ptr<HTree> tree,
     Nav::Id boatId) {
 
@@ -565,7 +567,7 @@ Corrector<double> calibrateFull(Calibrator *calib0,
 }
 
 Corrector<double> calibrateFull(Calibrator *calib0,
-    const NavCollection& navs,
+    const NavDataset& navs,
     Nav::Id boatId) {
     return calibrateFull(calib0, navs, calib0->grammar().parse(navs), boatId);
 }

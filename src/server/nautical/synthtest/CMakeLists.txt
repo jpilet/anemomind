@@ -35,7 +35,7 @@ target_link_libraries(nautical_synthtest_NavalSimulation
                       common_ProportionateIndexer
                       common_TimeStamp
                       nautical_synthtest_BoatSim
-                      nautical_nav
+                      nautical_NavCompatibility
                       common_MeanAndVar
                       nautical_synthtest_Flow
                       nautical_synthtest_FractalFlow

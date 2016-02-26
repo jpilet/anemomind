@@ -18,12 +18,13 @@
 
 
 using namespace sail;
+using namespace sail::NavCompat;
 
 namespace {
 
 
-  void dispFilteredNavData(NavCollection navs, Spani span, int modeType, double lambda) {
-    auto selected = navs.slice(span.minv(), span.maxv()).sliceTo(30*60);
+  void dispFilteredNavData(NavDataset navs, Spani span, int modeType, double lambda) {
+    auto selected = sliceTo(slice(navs, span.minv(), span.maxv()), 30*60);
     FilteredNavData data(selected,
         lambda, (modeType == 2? FilteredNavData::DERIVATIVE : FilteredNavData::SIGNAL));
     FilteredNavData::NoiseStdDev stddev = data.estimateNoise(selected);
@@ -36,7 +37,7 @@ namespace {
   }
 
   void ex0(int mode, double lambda) {
-    NavCollection navs =
+    NavDataset navs =
         scanNmeaFolderWithSimulator(std::string(Env::SOURCE_DIR) + "/datasets/psaros33_Banque_Sturdza",
         Nav::debuggingBoatId());
     Array<Spani> spans = recursiveTemporalSplit(navs);
@@ -63,12 +64,12 @@ int main(int argc, const char **argv) {
     if (amap.optionProvided("--ex0")) {
       ex0(mode, lambda);
     } else {
-      NavCollection navs = getTestdataNavs(amap);
+      NavDataset navs = getTestdataNavs(amap);
       Array<Spani> spans = recursiveTemporalSplit(navs);
       if (amap.optionProvided("--overview")) {
         dispTemporalRaceOverview(spans, navs);
       } else {
-        dispFilteredNavData(navs, Spani(0, navs.size()), mode, lambda);
+        dispFilteredNavData(navs, Spani(0, getNavSize(navs)), mode, lambda);
       }
     }
   }

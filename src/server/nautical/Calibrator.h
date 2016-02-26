@@ -26,7 +26,7 @@ class Calibrator  {
     bool calibrate(Poco::Path dataPath, Nav::Id boatId);
 
     //! Run the minimizer on already loaded data. Clears previous results.
-    bool calibrate(const NavCollection& navs,
+    bool calibrate(const NavDataset& navs,
                    std::shared_ptr<HTree> tree,
                    Nav::Id boatId);
 
@@ -60,7 +60,7 @@ class Calibrator  {
       return _maneuvers;
     }
 
-    bool segment(const NavCollection& navs,
+    bool segment(const NavDataset& navs,
                  std::shared_ptr<HTree> tree);
 
     WindOrientedGrammar grammar() const;
@@ -72,7 +72,7 @@ class Calibrator  {
     GnuplotExtra* initializePlot();
     void finalizePlot(GnuplotExtra* gnuplot, const ceres::Solver::Summary &summary);
 
-    NavCollection _allnavs;
+    NavDataset _allnavs;
     WindOrientedGrammarSettings _settings;
     WindOrientedGrammar _grammar;
     std::shared_ptr<HTree> _tree;
@@ -88,13 +88,13 @@ class Calibrator  {
 // Calibrates a Corrector<double> by using a Calibrator.
 // This lets us recover both true wind and current.
 Corrector<double> calibrateFull(Calibrator *calib,
-    const NavCollection& navs,
+    const NavDataset& navs,
     std::shared_ptr<HTree> tree,
     Nav::Id boatId);
 
 
 Corrector<double> calibrateFull(Calibrator *calib,
-    const NavCollection& navs,
+    const NavDataset& navs,
     Nav::Id boatId);
 
 WindCurrentErrors computeErrors(Calibrator *calib, Corrector<double> corr);

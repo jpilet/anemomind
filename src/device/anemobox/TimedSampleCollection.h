@@ -5,7 +5,7 @@
 #include <deque>
 #include <server/common/Optional.h>
 #include <server/common/TimeStamp.h>
-#include <server/common/logging.h>
+#include <iostream>
 
 namespace sail {
 
@@ -89,7 +89,10 @@ class TimedSampleCollection {
 template <typename T>
 void TimedSampleCollection<T>::append(const TimedValue<T>& x) {
   if (_samples.size() > 0 && _samples.back().time > x.time) {
-    LOG(WARNING)
+    // TODO: Including <server/common/logging.h> causes
+    // compilation error when this header is included together
+    // with Ceres.
+    std::cout << "WARNING: "
       << "appending sample "
       << (_samples.back().time - x.time).milliseconds()
       << " ms in the future";
@@ -107,18 +110,18 @@ void TimedSampleCollection<T>::insert(const TimedVector& entries) {
   trim();
 }
 
-template <typename T>
-Optional<TimedValue<T> > TimedSampleCollection<T>::nearestTimedValue(TimeStamp t) const {
+template <typename T, typename Iterator>
+Optional<TimedValue<T> > findNearestTimedValue(Iterator begin, Iterator end, TimeStamp t) {
+  if (begin == end) {
+    return Optional<TimedValue<T> >();
+  }
   const TimedValue<T> time(t, T());
-  // Refuse to extrapolate.
-  if (_samples.size() == 0
-      || time < _samples.front()
-      || t > _samples.back().time) {
+  if (time < *(begin) || t > (*(end - 1)).time) {
     return Optional<TimedValue<T> >();
   }
 
-  auto it = std::lower_bound(_samples.begin(), _samples.end(), time);
-  if (it != _samples.begin()) {
+  auto it = std::lower_bound(begin, end, time);
+  if (it != begin) {
     auto prev = it;
     --prev;
     if ((prev->time - t).fabs() < (it->time - t).fabs()) {
@@ -126,6 +129,12 @@ Optional<TimedValue<T> > TimedSampleCollection<T>::nearestTimedValue(TimeStamp t
     }
   }
   return Optional<TimedValue<T> >(*it);
+}
+
+template <typename T>
+Optional<TimedValue<T> > TimedSampleCollection<T>::nearestTimedValue(TimeStamp t) const {
+  typedef typename TimedVector::const_iterator Iterator;
+  return findNearestTimedValue<T, Iterator>(_samples.begin(), _samples.end(), t);
 }
 
 

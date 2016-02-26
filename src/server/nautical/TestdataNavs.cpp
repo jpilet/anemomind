@@ -14,8 +14,10 @@
 
 namespace sail {
 
+using namespace sail::NavCompat;
+
 namespace {
-  NavCollection getNavsFromPath(Poco::Path p) {
+  NavDataset getNavsFromPath(Poco::Path p) {
     return scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
   }
 }
@@ -28,12 +30,12 @@ Poco::Path getDefaultNavPath() {
   return p;
 }
 
-NavCollection getTestdataNavs() {
+NavDataset getTestdataNavs() {
   return getNavsFromPath(getDefaultNavPath());
 }
 
 namespace {
-  NavCollection loadAllNavs(int argc, const char **argv) {
+  NavDataset loadAllNavs(int argc, const char **argv) {
     const char pathPrefix[] = "--navpath";
     for (int i = 1; i < argc; i++) {
       if (std::string(argv[i]) == pathPrefix) {
@@ -42,7 +44,7 @@ namespace {
         }
         else { // Obviously, the user provided --navpath at the end of the command line.
                // Maybe we should not return anything here.
-          return NavCollection();
+          return NavDataset();
         }
       }
     }
@@ -58,26 +60,26 @@ void registerGetTestdataNavs(ArgMap &amap) {
       .setArgCount(1).setUnique();
 }
 
-NavCollection getTestdataNavs(ArgMap &amap) {
+NavDataset getTestdataNavs(ArgMap &amap) {
   Poco::Path p = (amap.optionProvided("--navpath")?
       Poco::Path(amap.optionArgs("--navpath")[0]->value()).makeDirectory()
       : getDefaultNavPath());
-  NavCollection navs = getNavsFromPath(p);
+  NavDataset navs = getNavsFromPath(p);
   if (amap.optionProvided("--slice")) {
     Array<ArgMap::Arg*> args = amap.optionArgs("--slice");
     int from = -1;
     int to = -1;
     if (tryParseInt(args[0]->value(), &from)
         && tryParseInt(args[1]->value(), &to)) {
-      if (0 <= from && from <= to && to <= navs.size()) {
-        return navs.slice(from, to);
+      if (0 <= from && from <= to && to <= getNavSize(navs)) {
+        return slice(navs, from, to);
       } else {
-        std::cout << "Slice arguments should both be in range 0.." << navs.size() << std::endl;
-        return NavCollection();
+        std::cout << "Slice arguments should both be in range 0.." << getNavSize(navs) << std::endl;
+        return NavDataset();
       }
     } else {
       std::cout << "Failed to parse --slice arguments" << std::endl;
-      return NavCollection();
+      return NavDataset();
     }
   }
   return navs;

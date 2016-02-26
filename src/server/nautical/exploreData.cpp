@@ -20,6 +20,7 @@
 #include <server/common/Functional.h>
 
 using namespace sail;
+using namespace sail::NavCompat;
 
 /*
  * Code taken from Plot.cpp. Don't know why we need it.
@@ -28,20 +29,20 @@ Duration<double> getRawTime(const Nav &n) {
   return Duration<double>::seconds(double(n.time().toMilliSecondsSince1970()/int64_t(1000)));
 }
 
-Arrayd getSeconds(NavCollection navs) {
-  return toArray(sail::map(navs, [&](const Nav &x) {
+Arrayd getSeconds(NavDataset navs) {
+  return toArray(sail::map(Range(navs), [&](const Nav &x) {
     return getRawTime(x).seconds();
   }));
 }
 
 namespace {
 
-  typedef std::function<Arrayd(const NavCollection &x)> DataExtractor;
+  typedef std::function<Arrayd(const NavDataset &x)> DataExtractor;
 
   DataExtractor
     makeAngleExtractor(std::function<Angle<double>(Nav)> f) {
-    return [=](NavCollection navs) {
-      return toArray(sail::map(cleanContinuousAngles(toArray(sail::map(navs, f))),
+    return [=](NavDataset navs) {
+      return toArray(sail::map(cleanContinuousAngles(toArray(sail::map(Range(navs), f))),
        [](Angle<double> x) {
         return x.degrees();
       }));
@@ -50,8 +51,8 @@ namespace {
 
   DataExtractor
     makeSpeedExtractor(std::function<Velocity<double>(Nav)> f) {
-    return [=](NavCollection navs) {
-      return toArray(sail::map(navs, [=](const Nav &x) {
+    return [=](NavDataset navs) {
+      return toArray(sail::map(Range(navs), [=](const Nav &x) {
         return f(x).knots();
       }));
     };
@@ -74,8 +75,8 @@ namespace {
     plot.cmd("set xtics nomirror rotate by -45\n");
   }
 
-  void plotData(std::string label, std::function<Arrayd(NavCollection)> extractor,
-    NavCollection navs) {
+  void plotData(std::string label, std::function<Arrayd(NavDataset)> extractor,
+    NavDataset navs) {
     auto time = getSeconds(navs);
     auto values = extractor(navs);
     GnuplotExtra plot;
@@ -169,8 +170,8 @@ Duration<double> inputDuration(std::string ask) {
   }
 }
 
-NavCollection slice(NavCollection navs, Spani span) {
-  return navs.slice(span.minv(), span.maxv());
+NavDataset slice(NavDataset navs, Spani span) {
+  return slice(navs, span.minv(), span.maxv());
 }
 
 
@@ -179,16 +180,16 @@ bool goodSpan(Spani x) {
 }
 
 
-Array<Spani> getSplitSpans(NavCollection navs, Duration<double> dur) {
+Array<Spani> getSplitSpans(NavDataset navs, Duration<double> dur) {
   std::vector<int> endPoints;
   endPoints.push_back(0);
-  int n = navs.size();
+  int n = getNavSize(navs);
   for (int i = 0; i < n-1; i++) {
-    if (dur < navs[i+1].time() - navs[i].time()) {
+    if (dur < getNav(navs, i+1).time() - getNav(navs, i).time()) {
       endPoints.push_back(i+1);
     }
   }
-  endPoints.push_back(navs.size());
+  endPoints.push_back(getNavSize(navs));
   int spanCount = endPoints.size() - 1;
   Array<Spani> spans(spanCount);
   for (int i = 0; i < spanCount; i++) {
@@ -199,14 +200,14 @@ Array<Spani> getSplitSpans(NavCollection navs, Duration<double> dur) {
 }
 
 
-void dispSession(NavCollection navs) {
-  auto from = navs.first().time();
-  auto to = navs.last().time();
+void dispSession(NavDataset navs) {
+  auto from = getFirst(navs).time();
+  auto to = getLast(navs).time();
   CHECK(from <= to);
   std::cout << "  Navs from\n";
   std::cout << "    " << from << "\n";
   std::cout << "    to " << to << "\n";
-  std::cout << "    with a total duration of " << (navs.last().time() - navs.first().time()).str() << "\n";
+  std::cout << "    with a total duration of " << (getLast(navs).time() - getFirst(navs).time()).str() << "\n";
 }
 
 
@@ -214,18 +215,18 @@ bool ordered(Spani a, Spani b) {
   return a.maxv() <= b.minv();
 }
 
-void dispChoice(int i, NavCollection navs, Spani span) {
-  CHECK(std::is_sorted(navs.begin(), navs.end()));
+void dispChoice(int i, NavDataset navs, Spani span) {
+  CHECK(std::is_sorted(getBegin(navs), getEnd(navs)));
   CHECK(goodSpan(span));
   CHECK(0 <= span.minv());
-  CHECK(span.maxv() <= navs.size());
+  CHECK(span.maxv() <= getNavSize(navs));
   std::cout << "* Choice " << i+1 << ":\n";
   dispSession(slice(navs, span));
   std::cout << "\n";
 }
 
-Spani selectSpan(NavCollection navs, Array<Spani> spans) {
-  CHECK(std::is_sorted(navs.begin(), navs.end()));
+Spani selectSpan(NavDataset navs, Array<Spani> spans) {
+  CHECK(std::is_sorted(getBegin(navs), getEnd(navs)));
   for (int i = 0; i < spans.size()-1; i++) {
     CHECK(ordered(spans[i], spans[i+1]));
   }
@@ -237,7 +238,8 @@ Spani selectSpan(NavCollection navs, Array<Spani> spans) {
       auto current = spans[i];
       auto next = spans[i+1];
       dispChoice(i, navs, current);
-      std::cout << "  Gap of " << (navs[next.minv()].time() - navs[current.maxv()-1].time()).str() << "\n\n";
+      std::cout << "  Gap of " << (getNav(navs, next.minv()).time()
+      - getNav(navs, current.maxv()-1).time()).str() << "\n\n";
     }
     dispChoice(last, navs, spans.last());
     std::cout << "Select a session to look at:\n";
@@ -247,10 +249,10 @@ Spani selectSpan(NavCollection navs, Array<Spani> spans) {
   return spans[index];
 }
 
-bool exploreSlice(NavCollection allNavs, Spani span);
+bool exploreSlice(NavDataset allNavs, Spani span);
 
-bool splitData(NavCollection allNavs, Spani span) {
-  std::cout << "Split the data from " << 0 << " to " << allNavs.size() << "\n";
+bool splitData(NavDataset allNavs, Spani span) {
+  std::cout << "Split the data from " << 0 << " to " << getNavSize(allNavs) << "\n";
   std::cout << "  by a span " << span << "\n";
   auto navs = slice(allNavs, span);
   Duration<double> duration = inputDuration("Threshold duration for splitting?");
@@ -263,12 +265,12 @@ bool splitData(NavCollection allNavs, Spani span) {
   return exploreSlice(allNavs, span.slice(selected));
 }
 
-void plotTrajectory(NavCollection navs) {
-  GeographicReference geoRef(navs[navs.middle()].geographicPosition());
-  int n = navs.size();
+void plotTrajectory(NavDataset navs) {
+  GeographicReference geoRef(getNav(navs, getMiddleIndex(navs)).geographicPosition());
+  int n = getNavSize(navs);
   Arrayd X(n), Y(n);
   for (int i = 0; i < n; i++) {
-    auto p = geoRef.map(navs[i].geographicPosition());
+    auto p = geoRef.map(getNav(navs, i).geographicPosition());
     X[i] = p[0].meters();
     Y[i] = p[1].meters();
   }
@@ -277,7 +279,7 @@ void plotTrajectory(NavCollection navs) {
   plot.show();
 }
 
-bool plotData(NavCollection allNavs, Spani span) {
+bool plotData(NavDataset allNavs, Spani span) {
   Array<DataExtractor> extractors{
     awaExtractor,
     magHdgExtractor,
@@ -306,8 +308,8 @@ bool plotData(NavCollection allNavs, Spani span) {
   return true;
 }
 
-bool selectSpan(NavCollection allNavs, Spani span) {
-  Spani valid(0, allNavs.size());
+bool selectSpan(NavDataset allNavs, Spani span) {
+  Spani valid(0, getNavSize(allNavs));
   std::cout << "Span of all data: " << valid << "\n";
   std::cout << "Current span: " << span << "\n";
   std::cout << "New span?\n";
@@ -329,15 +331,15 @@ bool selectSpan(NavCollection allNavs, Spani span) {
   return false;
 }
 
-bool exploreSlice(NavCollection allNavs, Spani span) {
+bool exploreSlice(NavDataset allNavs, Spani span) {
   auto navs = slice(allNavs, span);
   while (true) {
-    std::cout << "\n\n\n\n\n\nThe data you look at is from " << navs.first().time().toString() << " to "
-        << navs.last().time().toString() << "\n";
+    std::cout << "\n\n\n\n\n\nThe data you look at is from " << getFirst(navs).time().toString() << " to "
+        << getLast(navs).time().toString() << "\n";
     std::cout << "Its span is indices from " << span.minv()
         << " to, but not including, " << span.maxv() << "\n";
-    Duration<double> totalDur = (navs.last().time() - navs.first().time());
-    std::cout << "The total duration is " << (navs.last().time() - navs.first().time()).str() << "\n\n";
+    Duration<double> totalDur = (getLast(navs).time() - getFirst(navs).time());
+    std::cout << "The total duration is " << (getLast(navs).time() - getFirst(navs).time()).str() << "\n\n";
 
     std::cout << "What do you want to do?\n";
     int choice = selectFromAlternatives(Array<std::string>{
@@ -371,12 +373,12 @@ bool exploreSlice(NavCollection allNavs, Spani span) {
 }
 
 int continueParsing(ArgMap &amap) {
-  NavCollection navs = scanNmeaFolders(getPaths(amap), Nav::debuggingBoatId());
-  if (navs.empty()) {
+  NavDataset navs = scanNmeaFolders(getPaths(amap), Nav::debuggingBoatId());
+  if (isEmpty(navs)) {
     LOG(WARNING) << "No navs loaded.";
     return 0;
   } else {
-    exploreSlice(navs, Spani(0, navs.size()));
+    exploreSlice(navs, Spani(0, getNavSize(navs)));
     return 0;
   }
 }

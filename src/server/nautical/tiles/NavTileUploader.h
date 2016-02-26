@@ -3,7 +3,7 @@
 
 #include <string>
 #include <server/common/Array.h>
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 
 namespace sail {
 
@@ -36,7 +36,7 @@ struct TileGeneratorParameters {
 };
 
 bool generateAndUploadTiles(std::string boatId,
-                            Array<NavCollection> allNavs,
+                            Array<NavDataset> allNavs,
                             const TileGeneratorParameters& params);
 
 }  // namespace sail

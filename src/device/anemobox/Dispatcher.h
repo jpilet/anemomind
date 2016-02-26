@@ -194,6 +194,7 @@ TypedDispatchData<typename TypeForCode<Code>::type>* toTypedDispatchData(Dispatc
 class Dispatcher : public Clock {
  public:
   Dispatcher();
+  static const int minPriority = std::numeric_limits<int>::min();
 
   //! Get a pointer to the default anemobox dispatcher.
   static Dispatcher *global();
@@ -217,6 +218,14 @@ class Dispatcher : public Clock {
     auto it = _currentSource.find(code);
     assert (it != _currentSource.end());
     return it->second.get();
+  }
+
+  bool has(DataCode c) const {
+    auto found = _data.find(c);
+    if (found == _data.end()) {
+      return false;
+    }
+    return !found->second.empty();
   }
 
   template <DataCode Code>
@@ -253,6 +262,27 @@ class Dispatcher : public Clock {
     // All were empty :-( Return v anyway.
     return v;
   }
+
+/* Not sure if needed.
+  template <DataCode Code>
+  const TimedSampleCollection<typename TypeForCode<Code>::type> &getTheBestValues() const {
+    struct Prioritized {
+     int priority;
+     const TimedSampleCollection<typename TypeForCode<Code>::type> *values;
+    };
+    Prioritized best{minPriority, &(values<Code>())};
+    auto sources = _data.find(Code);
+    if (sources != _data.end()) {
+      for (auto kv: sources->second) {
+        const auto &x = toTypedDispatchData<Code>(kv.second)->dispatcher()->values();
+        auto p = _sourcePriority.find(kv.first);
+        auto priority = (p == _sourcePriority.end()? minPriority : p->second);
+        best = std::min(best, Prioritized{priority, x});
+      }
+    }
+    // All were empty :-( Return v anyway.
+    return *(best.values);
+  }*/
 
   template <DataCode Code>
   typename TypeForCode<Code>::type val() {
@@ -303,7 +333,7 @@ class Dispatcher : public Clock {
  private:
   static Dispatcher *_globalInstance;
 
-  // TODO: Do we delete the points to DispatchData anywhere?
+  // TODO: Do we delete the pointers to DispatchData anywhere?
   // Should we wrap them inside std::shared_ptr?
   std::map<DataCode, std::map<std::string, DispatchData*>> _data;
 

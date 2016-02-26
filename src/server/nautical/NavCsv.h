@@ -6,14 +6,14 @@
 #ifndef SERVER_NAUTICAL_NAVCSV_H_
 #define SERVER_NAUTICAL_NAVCSV_H_
 
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 
 namespace sail {
 namespace NavCsv {
 
-NavCollection parse(MDArray<std::string, 2> table);
-NavCollection parse(std::string filename);
-NavCollection parse(std::istream *s);
+NavDataset parse(MDArray<std::string, 2> table);
+NavDataset parse(std::string filename);
+NavDataset parse(std::istream *s);
 
 }
 }

@@ -8,6 +8,8 @@
 
 namespace sail {
 
+using namespace NavCompat;
+
 TEST(NavTileGenerator, SmokeTest) {
   Array<Nav> navs(100);
 
@@ -24,21 +26,21 @@ TEST(NavTileGenerator, SmokeTest) {
   }
 
   TileKey tile(1, 1, 0);
-  Array<NavCollection> result = generateTiles(
+  Array<NavDataset> result = generateTiles(
       tile, // A quarter of the world
-      NavCollection::fromNavs(navs), 5);
+      fromNavs(navs), 5);
 
   EXPECT_EQ(1, result.size());
-  EXPECT_EQ(5, result[0].size());
+  EXPECT_EQ(5, getNavSize(result[0]));
 
   // Every point should be in the tile.
-  for (const Nav& nav : result[0]) {
+  for (const Nav& nav : Range(result[0])) {
     EXPECT_TRUE(tile.contains(nav.geographicPosition()));
   }
 
   for (const Nav& nav : navs) {
-    if (nav.time() < result[0].first().time()
-        || nav.time() > result[0].last().time()) {
+    if (nav.time() < getFirst(result[0]).time()
+        || nav.time() > getLast(result[0]).time()) {
       EXPECT_FALSE(tile.contains(nav.geographicPosition()));
     }
   }
@@ -64,13 +66,13 @@ TEST(NavTileGenerator, SplitTest) {
   }
 
   TileKey tile(1, 1, 0);
-  Array<NavCollection> result = generateTiles(
+  Array<NavDataset> result = generateTiles(
       tile, // A quarter of the world
-      NavCollection::fromNavs(navs), 5);
+      fromNavs(navs), 5);
 
   EXPECT_EQ(2, result.size());
-  EXPECT_EQ(5, result[0].size());
-  EXPECT_EQ(5, result[1].size());
+  EXPECT_EQ(5, getNavSize(result[0]));
+  EXPECT_EQ(5, getNavSize(result[1]));
 }
 
 TEST(NavTileGenerator, TileKeyTest) {

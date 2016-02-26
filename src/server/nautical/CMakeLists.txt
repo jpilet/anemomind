@@ -18,12 +18,6 @@ add_library(nautical_nav
         
 target_link_libraries(nautical_nav
                       common_Array
-                      common_LineKM
-                      common_TimeStamp
-                      plot_gnuplot
-                      nautical_Ecef
-                      common_PeriodicSpan
-                      anemobox_Dispatcher
                      )
   
 add_library(nautical_NavNmea
@@ -31,7 +25,7 @@ add_library(nautical_NavNmea
             NavNmea.cpp
            )
 target_link_libraries(nautical_NavNmea
-                      nautical_nav
+                      nautical_NavCompatibility
                       device_NmeaParser
                       common_ScopedLog
                      )
@@ -69,7 +63,7 @@ add_library(nautical_HTreeJson
             HTreeJson.cpp
            )
 target_link_libraries(nautical_HTreeJson
-                      nautical_nav
+                      nautical_NavCompatibility
                       common_Hierarchy
                      )
 target_depends_on_poco_foundation(nautical_HTreeJson)                                
@@ -151,7 +145,8 @@ cxx_test(nautical_NavTest
           NavTest.cpp
           common_Env
           common_PathBuilder
-          nautical_nav gtest_main)
+          nautical_NavCompatibility
+          gtest_main)
 
 cxx_test(nautical_WGS84Test
             WGS84Test.cpp
@@ -232,9 +227,10 @@ add_library(nautical_TargetSpeed
             TargetSpeed.cpp
            )
 target_link_libraries(nautical_TargetSpeed
-                      nautical_nav
+                      nautical_NavCompatibility
                       common_Histogram
                       device_ChunkFile
+                      common_logging
                      )  
 cxx_test(nautical_TargetSpeedTest
          TargetSpeedTest.cpp
@@ -373,7 +369,7 @@ target_link_libraries(nautical_NKEParser
                       common_string
                       common_MeanAndVar
                       common_TimeStamp
-                      nautical_nav
+                      nautical_NavCompatibility
                      )             
                      
 add_executable(nautical_NKEParserDemo
@@ -457,7 +453,7 @@ add_library(nautical_GpsFilter
             GpsFilter.cpp
            )
 target_link_libraries(nautical_GpsFilter
-                      nautical_nav
+                      nautical_NavCompatibility
                       nautical_GeographicReference
                       math_nonlinear_DataFit
                      )   
@@ -487,7 +483,7 @@ add_library(nautical_NavToNmea
             NavToNmea.cpp)
 target_link_libraries(nautical_NavToNmea
                       common_string
-                      nautical_nav)
+                      nautical_NavCompatibility)
 cxx_test(nautical_NavToNmeaTest NavToNmeaTest.cpp
          device_NmeaParser
          nautical_NavToNmea
@@ -516,3 +512,34 @@ target_link_libraries(nautical_catTargetSpeed
                       device_TargetSpeed
                       common_ArgMap
                      )
+                     
+add_library(nautical_NavDataset
+            NavDataset.h
+            NavDataset.cpp
+           )
+
+target_link_libraries(nautical_NavDataset
+                      anemobox_Dispatcher                      
+                     )           
+
+cxx_test(nautical_NavDatasetTest
+         NavDatasetTest.cpp
+         nautical_NavDataset
+         gtest_main
+        )
+
+add_library(nautical_NavCompatibility
+            NavCompatibility.h
+            NavCompatibility.cpp
+           )
+target_link_libraries(nautical_NavCompatibility
+                      nautical_nav
+                      nautical_NavDataset
+                      common_LineKM
+                      common_TimeStamp
+                      plot_gnuplot
+                      nautical_Ecef
+                      common_PeriodicSpan
+                      anemobox_Dispatcher                      
+                     )
+

@@ -15,18 +15,20 @@
 
 namespace sail {
 
-NavCollection filterNavs(NavCollection navs) {
+using namespace sail::NavCompat;
+
+NavDataset filterNavs(NavDataset navs) {
   GpsFilter::Settings settings;
 
   ArrayBuilder<Nav> withoutNulls;
-  withoutNulls.addIf(navs.makeArray(), [=](const Nav &nav) {
+  withoutNulls.addIf(makeArray(navs), [=](const Nav &nav) {
     auto pos = nav.geographicPosition();
     return abs(pos.lat().degrees()) > 0.01
       && abs(pos.lon().degrees()) > 0.01;
   });
-  auto results = GpsFilter::filter(NavCollection::fromNavs(withoutNulls.get()), settings);
-  return NavCollection::fromNavs(
-      results.filteredNavs().makeArray().slice(results.inlierMask()));
+  auto results = GpsFilter::filter(fromNavs(withoutNulls.get()), settings);
+  return fromNavs(
+      makeArray(results.filteredNavs()).slice(results.inlierMask()));
 }
 
 // Convenience method to extract the description of a tree.
@@ -40,21 +42,21 @@ std::string treeDescription(const shared_ptr<HTree>& tree,
 
 // Recursively traverse the tree to find all sub-tree with a given
 // description. Extract the corresponding navs.
-Array<NavCollection> extractAll(std::string description, NavCollection rawNavs,
+Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
                              const WindOrientedGrammar& grammar,
                              const std::shared_ptr<HTree>& tree) {
   if (!tree) {
-    return Array<NavCollection>();
+    return Array<NavDataset>();
   }
 
   if (description == treeDescription(tree, grammar)) {
-    NavCollection navSpan = rawNavs.slice(tree->left(), tree->right());
-    return Array<NavCollection>{navSpan};
+    NavDataset navSpan = slice(rawNavs, tree->left(), tree->right());
+    return Array<NavDataset>{navSpan};
   }
 
-  ArrayBuilder<NavCollection> result;
+  ArrayBuilder<NavDataset> result;
   for (auto child : tree->children()) {
-    Array<NavCollection> fromChild = extractAll(description, rawNavs,
+    Array<NavDataset> fromChild = extractAll(description, rawNavs,
                                              grammar, child);
     for (auto navs : fromChild) {
       result.add(navs);
@@ -67,7 +69,7 @@ void processTiles(const TileGeneratorParameters &params,
     std::string boatId, std::string navPath,
     std::string boatDat, std::string polarDat) {
     auto rawNavs0 = scanNmeaFolder(navPath, boatId);
-    Array<Nav> rawNavs = rawNavs0.makeArray();
+    Array<Nav> rawNavs = makeArray(rawNavs0);
 
     if (boatDat != "") {
       if (SimulateBox(boatDat, &rawNavs)) {
@@ -85,7 +87,7 @@ void processTiles(const TileGeneratorParameters &params,
     WindOrientedGrammar grammar(settings);
     std::shared_ptr<HTree> fulltree = grammar.parse(rawNavs0);
 
-    Array<NavCollection> sessions =
+    Array<NavDataset> sessions =
       map(extractAll("Sailing", rawNavs0, grammar, fulltree), filterNavs).toArray();
 
     if (!generateAndUploadTiles(boatId, sessions, params)) {

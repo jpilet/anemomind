@@ -11,6 +11,7 @@
 #include <memory>
 
 namespace sail {
+
 namespace Benchmark {
 
 
@@ -23,13 +24,13 @@ struct SynthResults {
 // Results from crossvalidation on real data. How consistent the calibration is.
 struct SplitResults {
   SplitResults(std::shared_ptr<CorrectorFunction> aCorr, std::shared_ptr<CorrectorFunction> bCorr,
-      NavCollection n) : a(aCorr), b(bCorr),
+      NavDataset n) : a(aCorr), b(bCorr),
       errors(compareCorrectors(*aCorr, *bCorr, n)),
       navs(n) {}
   SplitResults() {}
 
   std::shared_ptr<CorrectorFunction> a, b;
-  NavCollection navs;
+  NavDataset navs;
   WindCurrentErrors errors;
 };
 
@@ -50,7 +51,7 @@ struct CalibrationResults {
 // We want to benchmark a calibration algorithm. A calibration algorithm
 // should, given a bunch of Navs, produce a function that can map
 // a Nav to a CalibratedNav<double>
-typedef std::function<std::shared_ptr<CorrectorFunction>(NavCollection)> CalibrationAlgorithm;
+typedef std::function<std::shared_ptr<CorrectorFunction>(NavDataset)> CalibrationAlgorithm;
 
 
 

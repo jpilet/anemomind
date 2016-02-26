@@ -5,6 +5,7 @@
 
 #include <device/anemobox/logger/LogLoader.h>
 #include <device/anemobox/logger/Logger.h>
+#include <server/common/logging.h>
 
 namespace sail {
 

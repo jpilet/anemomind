@@ -13,13 +13,15 @@
 
 using namespace sail;
 
+using namespace sail::NavCompat;
+
 
 int main() {
   Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR).pushDirectory("datasets").pushDirectory("regates").get();
   std::cout << EXPR_AND_VAL_AS_STRING(p.toString()) << std::endl;
-  NavCollection allnavs = scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
-  std::cout << EXPR_AND_VAL_AS_STRING(allnavs.size()) << std::endl;
-  Array<NavCollection> navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10));
+  NavDataset allnavs = scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
+  std::cout << EXPR_AND_VAL_AS_STRING(getNavSize(allnavs)) << std::endl;
+  Array<NavDataset> navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10));
   std::cout << EXPR_AND_VAL_AS_STRING(navs.size()) << std::endl;
   dispNavTimeIntervals(allnavs);
   return 0;

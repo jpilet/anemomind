@@ -198,8 +198,8 @@ class CorrectorObject : public CorrectorFunction {
  public:
   CorrectorObject(Corrector<double> c) : _c(c) {}
 
-  Array<CalibratedNav<double> > operator()(const NavCollection &navs) const {
-    return toArray(map(navs, [&](const Nav &x) {return _c.correct(x);}));
+  Array<CalibratedNav<double> > operator()(const NavDataset &navs) const {
+    return toArray(map(NavCompat::Range(navs), [&](const Nav &x) {return _c.correct(x);}));
   }
 
   std::string toString() const {

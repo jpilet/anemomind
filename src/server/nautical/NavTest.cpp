@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
 #include <server/common/Duration.h>
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
 
 
 using namespace sail;
+using namespace NavCompat;
 
 namespace {
   Poco::Path getAllNavsPath() {
@@ -23,12 +24,12 @@ TEST(NavTest, MaxSpeed) {
   b.setGpsSpeed(Velocity<double>::knots(2.1));
   c.setTime(offset + Duration<double>::minutes(24));
   c.setGpsSpeed(Velocity<double>::knots(30.1));
-  EXPECT_EQ(1, findMaxSpeedOverGround(NavCollection::fromNavs({a, b, c})));
+  EXPECT_EQ(1, findMaxSpeedOverGround(fromNavs({a, b, c})));
 }
 
 TEST(NavTest, SortedTest) {
-  NavCollection navs = loadNavsFromText(getAllNavsPath().toString());
-  EXPECT_TRUE(navs.size() > 3);
+  NavDataset navs = loadNavsFromText(getAllNavsPath().toString());
+  EXPECT_TRUE(getNavSize(navs) > 3);
 
   EXPECT_TRUE(areSortedNavs(navs));
 }

@@ -9,6 +9,8 @@
 using namespace sail;
 using std::string;
 
+using namespace sail::NavCompat;
+
 namespace {
 
 void sendFakeValue(int val, FakeClockDispatcher *dispatcher) {
@@ -37,13 +39,13 @@ TEST(LogToNavTest, ConvertNmea) {
   LogFile loggedData;
   makeLogFile(&loggedData);
 
-  NavCollection converted = logFileToNavArray(loggedData);
-  EXPECT_EQ(10, converted.size());
+  NavDataset converted = logFileToNavArray(loggedData);
+  EXPECT_EQ(10, getNavSize(converted));
 
   for (int i = 0; i < 10; ++i) {
-    EXPECT_EQ(i, converted[i].geographicPosition().lon().degrees());
-    EXPECT_EQ(i, converted[i].awa().degrees());
-    EXPECT_EQ(i, converted[i].aws().knots());
+    EXPECT_EQ(i, getNav(converted, i).geographicPosition().lon().degrees());
+    EXPECT_EQ(i, getNav(converted, i).awa().degrees());
+    EXPECT_EQ(i, getNav(converted, i).aws().knots());
   }
 }
 

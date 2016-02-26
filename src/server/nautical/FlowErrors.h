@@ -107,7 +107,7 @@ std::ostream &operator<< (std::ostream &s, const WindCurrentErrors &e);
 WindCurrentErrors compareCorrectors(
     const CorrectorFunction &a,
     const CorrectorFunction &b,
-    NavCollection navs);
+    NavDataset navs);
 
 }
 

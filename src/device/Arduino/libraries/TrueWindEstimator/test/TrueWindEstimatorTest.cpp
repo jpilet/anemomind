@@ -13,12 +13,14 @@
 using std::string;
 using namespace sail;
 
+using namespace NavCompat;
+
 TEST(TrueWindEstimatorTest, SmokeTest) {
-  NavCollection navs = loadNavsFromNmea(
+  NavDataset navs = loadNavsFromNmea(
       string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"),
       Nav::Id("B0A10000")).navs();
 
-  CHECK_LT(0, navs.size());
+  CHECK_LT(0, getNavSize(navs));
 
   double parameters[TrueWindEstimator::NUM_PARAMS];
   TrueWindEstimator::initializeParameters(parameters);
@@ -43,11 +45,11 @@ TEST(TrueWindEstimatorTest, ManuallyCheckedDataTest) {
   std::stringstream stream(nmeaData);
   ParsedNavs pnavs = loadNavsFromNmea(stream, Nav::debuggingBoatId());
   auto navs = pnavs.navs();
-  auto navs0 = navs.makeArray();
+  auto navs0 = makeArray(navs);
 
 
   EXPECT_TRUE(navs0.hasData());
-  EXPECT_EQ(1, navs.size());
+  EXPECT_EQ(1, getNavSize(navs));
 
   double parameters[TrueWindEstimator::NUM_PARAMS];
   TrueWindEstimator::initializeParameters(parameters);
@@ -83,13 +85,13 @@ TEST(TrueWindEstimatorTest, TWACompare) {
                              string("/datasets/psaros33_Banque_Sturdza/2014/20140627/NMEA0006.TXT")};
 
   for (int i = 0; i < dsCount; i++) {
-    NavCollection navs = loadNavsFromNmea(
+    NavDataset navs = loadNavsFromNmea(
         string(Env::SOURCE_DIR) +
         ds[i],
         Nav::debuggingBoatId()).navs();
 
-    navs = navs.sliceTo(3000);
-    int count = navs.size();
+    navs = sliceTo(navs, 3000);
+    int count = getNavSize(navs);
 
 
     EXPECT_LE(1000, count);
@@ -98,7 +100,7 @@ TEST(TrueWindEstimatorTest, TWACompare) {
 
     Array<Angle<double> > difs(count);
     for (int i = 0; i < count; i++) {
-      Nav nav = navs[i];
+      Nav nav = getNav(navs, i);
       Angle<double> boatDir = nav.gpsBearing();
       HorizontalMotion<double> trueWind = estimateTrueWindUsingEstimator(nav);
       Angle<double> twa = calcTwa(trueWind, boatDir)

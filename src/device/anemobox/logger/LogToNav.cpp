@@ -123,7 +123,7 @@ void fill(const ValueSet* valueSet, const ValueSetType& packed,
 
 }  // namespace
 
-NavCollection logFileToNavArray(const LogFile& data) {
+NavDataset logFileToNavArray(const LogFile& data) {
   Array<Nav> result = makePosArray(data);
 
   const ValueSet* awa = searchFor("awa", data);
@@ -191,15 +191,15 @@ NavCollection logFileToNavArray(const LogFile& data) {
     fill(valueSet, valueSet->velocity(), &result, &Nav::setDeviceVmg);
   }
 
-  return NavCollection::fromNavs(result);
+  return NavCompat::fromNavs(result);
 }
 
-NavCollection logFileToNavArray(const std::string& filename) {
+NavDataset logFileToNavArray(const std::string& filename) {
   LogFile data;
   if (Logger::read(filename, &data)) {
     return logFileToNavArray(data);
   }
-  return NavCollection();
+  return NavDataset();
 }
 
 } // namespace sail

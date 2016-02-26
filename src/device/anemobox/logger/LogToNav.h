@@ -4,14 +4,14 @@
 #include <string>
 
 #include <server/common/Array.h>
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 
 namespace sail {
 
 class LogFile;
 
-NavCollection logFileToNavArray(const LogFile& data);
-NavCollection logFileToNavArray(const std::string& filename);
+NavDataset logFileToNavArray(const LogFile& data);
+NavDataset logFileToNavArray(const std::string& filename);
 
 }  // namespace sail
 

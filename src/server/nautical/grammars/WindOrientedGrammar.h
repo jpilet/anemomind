@@ -28,7 +28,7 @@ struct WindOrientedGrammarSettings {
 class WindOrientedGrammar : public Grammar {
  public:
   WindOrientedGrammar(WindOrientedGrammarSettings s);
-  std::shared_ptr<HTree> parse(NavCollection navs,
+  std::shared_ptr<HTree> parse(NavDataset navs,
       Array<UserHint> hints = Array<UserHint>()) ;
   Array<HNode> nodeInfo() const {return _hierarchy.nodes();}
   MDArray2b startOfRaceTransitions() const {return _startOfRaceTransitions;}

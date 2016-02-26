@@ -10,7 +10,7 @@
 #include <server/common/Optional.h>
 #include <cassert>
 #include <functional>
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 
 namespace sail {
 
@@ -129,7 +129,7 @@ class CalibratedNav {
 // An abstract class used for evaluation of calibration algorithms.
 class CorrectorFunction {
  public:
-  virtual Array<CalibratedNav<double> > operator()(const NavCollection &navs) const = 0;
+  virtual Array<CalibratedNav<double> > operator()(const NavDataset &navs) const = 0;
   virtual std::string toString() const = 0;
   virtual ~CorrectorFunction() {}
 

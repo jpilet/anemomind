@@ -18,7 +18,7 @@ add_library(anemobox_LogToNav LogToNav.h LogToNav.cpp)
 target_link_libraries(anemobox_LogToNav
                       anemobox_DispatcherTrueWindEstimator
                       anemobox_Logger
-                      nautical_nav
+                      nautical_NavCompatibility
                      )
 cxx_test(anemobox_LogLoaderTest LogLoaderTest.cpp
          anemobox_Dispatcher

@@ -14,8 +14,10 @@
 #include <server/nautical/grammars/HintedStateAssignFactory.h>
 #include <server/common/SharedPtrUtils.h>
 
-
 namespace sail {
+
+using namespace NavCompat;
+
 
 WindOrientedGrammarSettings::WindOrientedGrammarSettings() {
 /*
@@ -335,9 +337,9 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
   return getG001StateTransitionCost(_settings, fromStateIndex, toStateIndex, fromTimeIndex, _navs);
 }
 
-std::shared_ptr<HTree> WindOrientedGrammar::parse(NavCollection navs0,
+std::shared_ptr<HTree> WindOrientedGrammar::parse(NavDataset navs0,
     Array<UserHint> hints) {
-  auto navs = navs0.makeArray();
+  auto navs = makeArray(navs0);
   if (navs.empty()) {
     return std::shared_ptr<HTree>();
   }

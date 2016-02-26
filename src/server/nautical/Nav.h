@@ -184,78 +184,6 @@ class Nav {
   Angle<double> _deviceTwdir;
 };
 
-class Dispatcher;
-class NavCollection {
- public:
-  NavCollection() {}
-  NavCollection(const std::shared_ptr<Dispatcher> &dispatcher);
-
-  int size() const;
-
-  const Nav operator[] (int i) const;
-
-  NavCollection slice(int from, int to) const;
-  NavCollection sliceFrom(int index) const;
-  NavCollection sliceTo(int index) const;
-  const Nav last() const;
-  const Nav first() const;
-
-  class Iterator {
-   public:
-    Iterator(const NavCollection *coll, int index) :
-      _coll(coll), _index(index) {}
-
-    const Nav operator*() const {
-      return (*_coll)[_index];
-    }
-
-    void operator++() {
-      _index++;
-    }
-
-    bool operator==(const Iterator &other) const {
-      return _index == other._index && _coll == other._coll;
-    }
-
-    bool operator!=(const Iterator &other) const {
-      return _index != other._index;
-    }
-   private:
-    int _index;
-    const NavCollection *_coll;
-  };
-
-  Iterator begin() const {return Iterator(this, 0);}
-  Iterator end() const {return Iterator(this, size());}
-  int middle() const;
-  int lastIndex() const;
-  bool empty() const;
-
-/*
- * TODO: We should really try
- * to avoid using these two methods.
- * Converting between different representations
- * can potentially result in corruption of data
- * and bugs. Ideally, we would like to have compile-time warnings
- * whenever one of them is used.
- */
-  Array<Nav> makeArray() const;
-  static NavCollection fromNavs(const Array<Nav> &navs);
-
-  const std::shared_ptr<Dispatcher> &getDispatcher() const {
-    return _dispatcher;
-  }
-
-  void outputSummary(std::ostream *dst) const;
- private:
-  bool isValidNavIndex(int i) const;
-  bool isValidNavBoundaryIndex(int i) const;
-
-  std::shared_ptr<Dispatcher> _dispatcher;
-};
-
-
-
 Array<Velocity<double> > getExternalTws(Array<Nav> navs);
 Array<Angle<double> > getExternalTwa(Array<Nav> navs);
 Array<Velocity<double> > getGpsSpeed(Array<Nav> navs);
@@ -265,21 +193,8 @@ Array<Angle<double> > getMagHdg(Array<Nav> navs);
 Array<Velocity<double> > getAws(Array<Nav> navs);
 Array<Angle<double> > getAwa(Array<Nav> navs);
 
-NavCollection loadNavsFromText(std::string filename, bool sort = true);
-bool areSortedNavs(NavCollection navs);
-void plotNavTimeVsIndex(NavCollection navs);
-void dispNavTimeIntervals(NavCollection navs);
-Array<NavCollection> splitNavsByDuration(NavCollection navs, Duration<double> dur);
-MDArray2d calcNavsEcefTrajectory(NavCollection navs);
-Array<MDArray2d> calcNavsEcefTrajectories(Array<NavCollection > navs);
-void plotNavsEcefTrajectory(NavCollection navs);
-void plotNavsEcefTrajectories(Array<NavCollection> navs);
-int countNavs(Array<NavCollection> navs);
-
 std::ostream &operator<<(std::ostream &s, const Nav &x);
 
-Length<double> computeTrajectoryLength(NavCollection navs);
-int findMaxSpeedOverGround(NavCollection navs);
 
 } /* namespace sail */
 

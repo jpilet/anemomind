@@ -15,6 +15,8 @@
 namespace sail {
 namespace NavCsv {
 
+using namespace NavCompat;
+
 typedef std::function<void(std::string,Nav*)> ValueSetter;
 
 ValueSetter makeDoubleSetter(std::function<void(double, Nav*)> setter) {
@@ -104,7 +106,7 @@ std::string processColumn(std::map<std::string, ValueSetter> &m,
   }
 }
 
-NavCollection parse(MDArray<std::string, 2> table) {
+NavDataset parse(MDArray<std::string, 2> table) {
   auto m = makeValueSetterMap();
   auto data = table.sliceRowsFrom(1);
   Array<Nav> dst(data.rows());
@@ -115,14 +117,14 @@ NavCollection parse(MDArray<std::string, 2> table) {
   if (!ignoredColumns.empty()) {
     LOG(WARNING) << "The following columns were ignored: " << ignoredColumns;
   }
-  return NavCollection::fromNavs(dst);
+  return fromNavs(dst);
 }
 
-NavCollection parse(std::string filename) {
+NavDataset parse(std::string filename) {
   return parse(parseCsv(filename));
 }
 
-NavCollection parse(std::istream *s) {
+NavDataset parse(std::istream *s) {
   return parse(parseCsv(s));
 }
 

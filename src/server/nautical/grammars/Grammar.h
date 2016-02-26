@@ -7,7 +7,7 @@
 #define GRAMMAR_H_
 
 #include <server/common/Hierarchy.h>
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 #include <server/nautical/grammars/UserHint.h>
 #include <memory>
 
@@ -23,7 +23,7 @@ class Grammar {
    * Should parse 'navs' using the underlying grammar
    * and return a parse tree for the result.
    */
-  virtual std::shared_ptr<HTree> parse(NavCollection navs,
+  virtual std::shared_ptr<HTree> parse(NavDataset navs,
       Array<UserHint> hints = Array<UserHint>()) = 0;
 
   /*

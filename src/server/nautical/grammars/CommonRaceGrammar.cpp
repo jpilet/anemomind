@@ -12,6 +12,8 @@
 
 namespace sail {
 
+using namespace NavCompat;
+
 double OnOffCost::getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex) {
   if (fromStateIndex == _offStateIndex || toStateIndex == _offStateIndex) {
     return 0;
@@ -144,9 +146,9 @@ namespace {
   };
 }
 
-std::shared_ptr<HTree> CommonRaceGrammar::parse(NavCollection navs0,
+std::shared_ptr<HTree> CommonRaceGrammar::parse(NavDataset navs0,
     Array<UserHint> hints) {
-  auto navs = navs0.makeArray();
+  auto navs = makeArray(navs0);
   OnOffCost onOffCost(navs, 0, _settings.perSecondCost);
   CommonRaceStateAssign sa(navs, _angleCost, _staticTransitionCosts,
       _staticStateCosts, _preds, onOffCost);

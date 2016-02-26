@@ -12,6 +12,8 @@
 
 using namespace sail;
 
+using namespace NavCompat;
+
 namespace {
   void readIJ(ArgMap &amap, const std::string key, int *i, int *j) {
     auto args = amap.optionArgs(key);
@@ -80,8 +82,8 @@ int main(int argc, const char **argv) {
   }
 
   if (amap.optionProvided("--navs")) {
-    NavCollection navs = parser.makeNavs(Nav::debuggingBoatId(), data);
-    LOG(INFO) << "Produced " << navs.size() << " navs.";
+    NavDataset navs = parser.makeNavs(Nav::debuggingBoatId(), data);
+    LOG(INFO) << "Produced " << getNavSize(navs) << " navs.";
   }
 
   if (amap.optionProvided("--ncc")) {

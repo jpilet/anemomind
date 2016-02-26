@@ -14,6 +14,7 @@
 #include <server/common/Functional.h>
 
 using namespace sail;
+using namespace sail::NavCompat;
 
 enum Format  {CSV, MATLAB, JSON};
 
@@ -24,13 +25,13 @@ struct ExportSettings {
   bool withHeader;
 };
 
-NavCollection loadNavsFromArgs(Array<ArgMap::Arg*> args) {
+NavDataset loadNavsFromArgs(Array<ArgMap::Arg*> args) {
   auto allNavs = sail::map(args, [&](ArgMap::Arg *arg) {
     auto p = arg->value();
     LOG(INFO) << "Load navs from " << p;
-    return scanNmeaFolder(p, Nav::debuggingBoatId());
+    return makeArray(scanNmeaFolder(p, Nav::debuggingBoatId()));
   });
-  return NavCollection::fromNavs(concat(allNavs));
+  return fromNavs(concat(allNavs));
 }
 
 struct NavField {
@@ -214,7 +215,7 @@ int exportMatlab(bool withHeader, Array<NavField> fields,
   return 0;
 }
 
-void performCalibration(NavCollection navs0, Array<Nav> *navs) {
+void performCalibration(NavDataset navs0, Array<Nav> *navs) {
   WindOrientedGrammarSettings gs;
   WindOrientedGrammar grammar(gs);
   auto tree = grammar.parse(navs0);
@@ -226,7 +227,7 @@ void performCalibration(NavCollection navs0, Array<Nav> *navs) {
 
 int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::string output) {
   auto navs0 = loadNavsFromArgs(args);
-  Array<Nav> navs = navs0.makeArray();
+  Array<Nav> navs = makeArray(navs0);
   Array<NavField> fields = getNavFields(settings);
   std::sort(navs.begin(), navs.end());
   if (navs.empty()) {
