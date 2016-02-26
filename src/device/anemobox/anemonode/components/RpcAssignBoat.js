@@ -32,6 +32,20 @@ function register(rpcFuncTable) {
     });
   };
 
+  rpcFuncTable.changeConfig = function(data, cb) {
+    if ("boatId" in data) {
+      // we silently refuse to reset boat id
+      delete data.boatId;
+    }
+    config.change(data, function(err, cfg) {
+      if (err) {
+        cb({error: "can't save config"});
+      } else {
+        cb({result: "OK"});
+      }
+    });
+  };
+
   rpcFuncTable.identify = function(data, cb) {
     console.log('identify call');
     anemoId.getAnemoId(function(boxId) {
