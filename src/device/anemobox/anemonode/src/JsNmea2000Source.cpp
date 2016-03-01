@@ -44,8 +44,9 @@ NAN_METHOD(JsNmea2000Source::New) {
 NAN_METHOD(JsNmea2000Source::process) {
   NanScope();
 
-  if (args.Length() < 4) {
-    NanThrowTypeError("Usage: process(data, timestamp, srcName, pgn)");
+  if (args.Length() < 5) {
+    NanThrowTypeError(
+        "Usage: process(data, timestamp, srcName, pgn, srcAddr)");
     NanReturnUndefined();
   }
 
@@ -63,6 +64,11 @@ NAN_METHOD(JsNmea2000Source::process) {
     NanThrowTypeError("4th argument (pgn) must be a number");
     NanReturnUndefined();
   }
+
+  if(!args[4]->IsNumber()) {
+    NanThrowTypeError("5th argument (srcAddr) must be a number");
+    NanReturnUndefined();
+  }
   
   JsNmea2000Source* obj = ObjectWrap::Unwrap<JsNmea2000Source>(args.This());
   if (!obj) {
@@ -75,7 +81,12 @@ NAN_METHOD(JsNmea2000Source::process) {
   size_t bufferLength = node::Buffer::Length(buffer);
 
   v8::String::Utf8Value srcNameStr(args[2]->ToString());
-  obj->_nmea2000.process(*srcNameStr, args[3]->ToNumber()->Value(), bufferData, bufferLength);
+  obj->_nmea2000.process(
+      *srcNameStr,
+      args[3]->ToNumber()->Value(),
+      bufferData,
+      bufferLength,
+      args[4]->ToNumber()->Value());
   NanReturnUndefined();
 }
 

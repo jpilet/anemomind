@@ -451,15 +451,19 @@ function makeVisitorDeclaration(pgns) {
   var multiDefs = getMultiDefs(defMap);
   var s = [
     '\n\n',
-    'class PgnVisitor {',
+    'class PgnVisitor : FastPacketBuffer {',
     ' public:',
-    ['bool visit(const CanPacket &packet);',
+    [
+      '// Handle FastPacket protocol',
+      'void pushAndLinkPacket(const CanPacket& packet);',
+      'bool visit(const CanPacket &packet);',
      'virtual ~PgnVisitor() {}'],
     ' protected:',
     pgns.map(function(pgn) {
       return 'virtual bool apply'
         + '(const CanPacket& src, const ' + getClassName(pgn) + '& packet) { return false; }';
     }),
+    '  virtual void fullPacketReceived(const CanPacket& fullPacket);',
     makePgnVariantDispatchers(multiDefs),
     "};"
   ];
@@ -738,6 +742,18 @@ function makePgnEnum(pgnDefs) {
 
 function makeVisitorImplementation(pgns) {
   return indentLineArray(0, [
+    'void PgnVisitor::pushAndLinkPacket(const CanPacket& packet) {',
+    '  if (packet.length == 8 && pgnSize(packet.pgn) > 8) {',
+    '    add(packet);',
+    '  } else {',
+    '    visit(packet);',
+    '  }',
+    '}',
+    '',
+    'void PgnVisitor::fullPacketReceived(const CanPacket& fullPacket) {',
+    '  visit(fullPacket);',
+    '}',
+    '',
     'bool PgnVisitor::visit(const CanPacket &packet) {',
     makeSwitchStatement(
       makeDefsPerPgn(pgns), "packet.pgn", "return false;", 
@@ -747,6 +763,25 @@ function makeVisitorImplementation(pgns) {
     ['return false;'],
     "}"]);
 }
+
+function makePgnSizeImplementation(pgns) {
+  var code = [
+    'int pgnSize(int pgn) {',
+    '  switch(pgn) {'
+  ];
+
+  for (var i = 0; i < pgns.length; ++i) {
+    var len = pgns[i].Length;
+    if (len != 8) {
+    code.push('    case ' + pgns[i].PGN + ': return ' + len + ';');
+    }
+  }
+  code.push('    default: return 8;');
+  code.push('  }');
+  code.push('}');
+
+  return indentLineArray(0, code);
+};
 
 
 function makeInterface(label, pgns) {
@@ -996,6 +1031,7 @@ function makeImplementationFileContents(moduleName, pgns) {
   for (var i = 0; i < pgns.length; i++) {
     contents += makeMethodsForPgn(pgns[i], depth);
   }
+  contents += '\n' + makePgnSizeImplementation(pgns);
   contents += '\n' + makeVisitorImplementation(pgns);
   return makeHeaderInclusion(moduleName) + privateInclusions + wrapNamespace(moduleName, contents);
 }

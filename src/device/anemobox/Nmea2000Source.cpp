@@ -14,8 +14,11 @@ namespace {
 void Nmea2000Source::process(const std::string& srcName,
                              int pgn,
                              const unsigned char* buffer,
-                             int length) {
-  visit(PgnClasses::CanPacket{srcName, pgn, buffer, length});
+                             int length,
+                             int srcAddr) {
+  visit(PgnClasses::CanPacket{
+        srcName, uint8_t(srcAddr), pgn, buffer, length
+        });
 }
 
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::VesselHeading& packet) {
