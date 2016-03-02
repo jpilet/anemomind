@@ -31,6 +31,7 @@ add_library(n2k_PgnClasses
 
 target_link_libraries(n2k_PgnClasses
                       n2k_N2kField
+                      n2k_FastPacket
                      )
 
 cxx_test(n2k_PgnClassesTest

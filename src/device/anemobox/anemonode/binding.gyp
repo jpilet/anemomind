@@ -49,6 +49,8 @@
         "../logger/Logger.cpp",
         "../n2k/BitStream.cpp",
         "../n2k/BitStream.h",
+        "../n2k/FastPacket.cpp",
+        "../n2k/FastPacket.h",
         "../n2k/N2kField.cpp",
         "../n2k/N2kField.h",
         "../n2k/PgnClasses.cpp",

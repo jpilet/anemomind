@@ -16,7 +16,8 @@ class Nmea2000Source : public PgnClasses::PgnVisitor {
   void process(const std::string& srcName,
                int pgn,
                const unsigned char* buffer,
-               int length);
+               int length,
+               int srcAddr);
  protected:
   bool apply(const PgnClasses::CanPacket &c, const PgnClasses::VesselHeading& packet) override;
   bool apply(const PgnClasses::CanPacket &c, const PgnClasses::Speed& packet) override;
