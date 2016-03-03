@@ -9,7 +9,9 @@ target_link_libraries(logs_LogLoader
                       anemobox_Dispatcher
                       anemobox_Logger
                       nautical_NavDataset
-                      device_NmeaParser                      
+                      device_NmeaParser
+                      common_filesystem
+                      common_CsvParser
                      )
                      
 cxx_test(logs_LogLoaderTest 

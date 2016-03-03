@@ -6,7 +6,6 @@
 #ifndef DEVICE_ANEMOBOX_LOGGER_LOGLOADER_H_
 #define DEVICE_ANEMOBOX_LOGGER_LOGLOADER_H_
 
-#include <device/anemobox/Dispatcher.h>
 #include <server/nautical/NavDataset.h>
 
 namespace sail {
@@ -23,15 +22,13 @@ class LogFile;
  */
 class LogLoader {
  public:
-  void load(const LogFile &data);
-  void loadAnyFile(const std::string &filename);
+  // Load a file.
+  void loadFile(const std::string &filename);
 
-  // Given that all log files that we want to work with have
-  // been loaded into this object, call this method
-  // to sort the data once and put it inside a dispatcher
-  // named 'dst'
+  // Load a file, or all logfiles in a directory and its subdirectories.
+  void load(const std::string &name);
+
   void addToDispatcher(Dispatcher *dst) const;
-
   NavDataset makeNavDataset() const;
 
   // These methods are needed by the various parsers in order
@@ -42,6 +39,7 @@ class LogLoader {
   FOREACH_CHANNEL(MAKE_ACCESSORS)
 #undef MAKE_ACCESSORS
 
+  void load(const LogFile &data);
  private:
 #define MAKE_SOURCE_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   std::map<std::string, TimedSampleCollection<TYPE>::TimedVector> _##HANDLE##sources;
