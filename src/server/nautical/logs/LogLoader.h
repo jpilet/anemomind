@@ -25,6 +25,10 @@ class LogLoader {
   void load(const LogFile &data);
   void load(const std::string &filename);
 
+  // Given that all log files that we want to work with have
+  // been loaded into this object, call this method
+  // to sort the data once and put it inside a dispatcher
+  // named 'dst'
   void addToDispatcher(Dispatcher *dst);
  private:
 
