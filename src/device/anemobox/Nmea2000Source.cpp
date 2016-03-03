@@ -7,15 +7,24 @@ using namespace PgnClasses;
 
 namespace {
   std::string getSrc(const PgnClasses::CanPacket &c) {
-    return "NMEA2000/" + c.src;
+    return "NMEA2000/" + c.longSrc;
   }
 }
 
 void Nmea2000Source::process(const std::string& srcName,
                              int pgn,
                              const unsigned char* buffer,
-                             int length) {
-  visit(PgnClasses::CanPacket{srcName, pgn, buffer, length});
+                             int length,
+                             int srcAddr) {
+  PgnClasses::CanPacket packet;
+  packet.longSrc = srcName;
+  packet.shortSrc = srcAddr;
+  packet.pgn = pgn;
+  packet.data.resize(length);
+  for (int i = 0; i < length; ++i) {
+    packet.data[i] = buffer[i];
+  }
+  pushAndLinkPacket(packet);
 }
 
 bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::VesselHeading& packet) {

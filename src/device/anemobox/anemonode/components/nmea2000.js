@@ -3,8 +3,8 @@ var anemonode = require('../build/Release/anemonode');
 var nmea2000Source = new anemonode.Nmea2000Source();
 var exec = require('child_process').exec;
 
-function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr) {
-  nmea2000Source.process(data, timestamp, srcName, pgn);
+function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr, srcAddr) {
+  nmea2000Source.process(data, timestamp, srcName, pgn, srcAddr);
 
   if (false) {
     var str = "t:" + timestamp + " s:" + srcName + " pgn:" + pgn + " d:" + dstAddr;

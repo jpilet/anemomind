@@ -1,6 +1,6 @@
-/** Generated on Fri Jan 29 2016 16:24:24 GMT+0100 (CET) using 
+/** Generated on Wed Mar 02 2016 08:55:52 GMT+0100 (CET) using 
  *
- *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
+ *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -11,6 +11,8 @@
 #include <cassert>
 #include <device/anemobox/n2k/N2kField.h>
 #include <server/common/Optional.h>
+#include <device/anemobox/n2k/CanPacket.h>
+#include <device/anemobox/n2k/FastPacket.h>
 
 namespace PgnClasses {
   enum class PgnVariant60416 {
@@ -232,9 +234,15 @@ namespace PgnClasses {
 
     // Field access
     const Optional<uint64_t > &sid() const {return _sid;}
+    const Optional<sail::Angle<double> > &yaw() const {return _yaw;}
+    const Optional<sail::Angle<double> > &pitch() const {return _pitch;}
+    const Optional<sail::Angle<double> > &roll() const {return _roll;}
   private:
     bool _valid;
     Optional<uint64_t > _sid; 
+    Optional<sail::Angle<double> > _yaw; 
+    Optional<sail::Angle<double> > _pitch; 
+    Optional<sail::Angle<double> > _roll; 
   };
 
   // Speed
@@ -500,17 +508,11 @@ namespace PgnClasses {
   };
   
 
-  struct CanPacket {
-    std::string src;
-    int pgn;
-    const uint8_t *data;
-    int length;
-  };
-  
 
-
-  class PgnVisitor {
+  class PgnVisitor : FastPacketBuffer {
    public:
+    // Handle FastPacket protocol
+    void pushAndLinkPacket(const CanPacket& packet);
     bool visit(const CanPacket &packet);
     virtual ~PgnVisitor() {}
    protected:
@@ -530,6 +532,7 @@ namespace PgnClasses {
     virtual bool apply(const CanPacket& src, const TimeDate& packet) { return false; }
     virtual bool apply(const CanPacket& src, const WindData& packet) { return false; }
     virtual bool apply(const CanPacket& src, const DirectionData& packet) { return false; }
+    virtual void fullPacketReceived(const CanPacket& fullPacket);
   };
 }
 
