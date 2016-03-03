@@ -2,6 +2,8 @@
 
 set -e
 
+HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+BIN="${HERE}/bin"
 # See https://github.com/kurt-vd/test-can-j1939
 # and
 # http://elinux.org/J1939
@@ -17,18 +19,20 @@ ADDR="0xc0288c00${UNIQUE_ID}"
 
 modprobe can-j1939
 
+IP=${BIN}/ip
+
 # do we need to configure can0?
 if ! (ifconfig | grep -q can0) ; then
-  ip link set can0 type can bitrate 250000
-  while ! ip link set can0 up; do sleep 1; done
-  ip link set can0 j1939 on
-  ip addr add j1939 name $ADDR dev can0
+  $IP link set can0 type can bitrate 250000
+  while ! $IP link set can0 up; do sleep 1; done
+  $IP link set can0 j1939 on
+  $IP addr add j1939 name $ADDR dev can0
   echo "Interface can0 configured with addr: $ADDR"
 fi
 
 # do we need to run jacd?
 if ! (ps aux | grep -v grep | grep jacd -q) ; then
   echo "starting address claim daemon with addr: $ADDR"
-  jacd $ADDR &
+  ${BIN}/jacd $ADDR &
 fi
 

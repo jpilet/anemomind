@@ -42,7 +42,7 @@ namespace {
   }
 
   void  insertNavsIntoDispatcher(const Array<Nav> &navs, Dispatcher *dst) {
-    const char srcOurs[] = "NavOurs";
+    const char srcOurs[] = "NavDevice";
     const char srcExternal[] = "NavExternal";
 
     dst->insertValues<Angle<double> >(
@@ -155,6 +155,27 @@ namespace {
       if (x.defined()) { ((*dst).*set)(x()); }
   }
 
+
+  Array<std::string> orderedDeviceSources{"NavDevice"};
+  Array<std::string> orderedExternalSources{"NavExternal"};
+
+  std::map<std::string, int> devicePriorities{
+    {"NavDevice", 2},
+    {"NavExternal", 1}
+  };
+
+  template <DataCode code, class T>
+  void setNavValueMultiSource(
+      const Array<std::string> &orderedSources,
+      const NavDataset &data, TimeStamp time, Nav *dst, void (Nav::* set)(T)) {
+    auto sample = data.lookUpPrioritizedSample<code>(time, orderedSources);
+    if (sample.defined()) {
+      ((*dst).*set)(sample.get());
+    } else {
+      setNavValue<code, T>(data, time, dst, set);
+    }
+  }
+
 }
 
 
@@ -207,10 +228,10 @@ const Nav getNav(const NavDataset &ds, int i) {
   setNavValue<AWA>(ds, timeAndPos.time, &dst, &Nav::setAwa);
   setNavValue<AWS>(ds, timeAndPos.time, &dst, &Nav::setAws);
 
-  setNavValue<TWA>(ds, timeAndPos.time, &dst, &Nav::setDeviceTwa);
-  setNavValue<TWA>(ds, timeAndPos.time, &dst, &Nav::setExternalTwa);
-  setNavValue<TWS>(ds, timeAndPos.time, &dst, &Nav::setDeviceTws);
-  setNavValue<TWS>(ds, timeAndPos.time, &dst, &Nav::setExternalTws);
+  setNavValueMultiSource<TWA>(orderedDeviceSources, ds, timeAndPos.time, &dst, &Nav::setDeviceTwa);
+  setNavValueMultiSource<TWA>(orderedExternalSources, ds, timeAndPos.time, &dst, &Nav::setExternalTwa);
+  setNavValueMultiSource<TWS>(orderedDeviceSources, ds, timeAndPos.time, &dst, &Nav::setDeviceTws);
+  setNavValueMultiSource<TWS>(orderedExternalSources, ds, timeAndPos.time, &dst, &Nav::setExternalTws);
 
   setNavValue<GPS_SPEED>(ds, timeAndPos.time, &dst, &Nav::setGpsSpeed);
   setNavValue<GPS_BEARING>(ds, timeAndPos.time, &dst, &Nav::setGpsBearing);
@@ -454,7 +475,6 @@ MDArray2d calcNavsEcefTrajectory(NavDataset navs) {
 
     Length<double> xyz[3];
     WGS84<double>::toXYZ(nav.geographicPosition(), xyz);
-
 
     for (int j = 0; j < 3; j++) {
       data(i, i) = xyz[j].meters();

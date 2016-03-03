@@ -32,7 +32,7 @@ std::shared_ptr<Dispatcher> mapDispatcherChannels(const std::shared_ptr<Dispatch
 #define TRY_TO_MAP(handle, code, description, type, shortname) \
   if (c == handle) {\
     auto y = m->template apply<handle, type >(\
-        toTypedDispatchData<handle>(kv.second)->dispatcher()->values());\
+        toTypedDispatchData<handle>(kv.second.get())->dispatcher()->values());\
     dst->insertValues<type >(handle, kv.first, y);\
   }\
 
@@ -55,7 +55,7 @@ void visitDispatcherChannels(const std::shared_ptr<Dispatcher> &dispatcher, Mapp
 #define TRY_TO_MAP(handle, code, shortname, type, description) \
   if (c == handle) {\
     m->template visit<handle, type >(shortname, kv.first, \
-        toTypedDispatchData<handle>(kv.second)->dispatcher()->values());\
+        toTypedDispatchData<handle>(kv.second.get())->dispatcher()->values());\
   }\
 
   FOREACH_CHANNEL(TRY_TO_MAP)
@@ -66,53 +66,25 @@ void visitDispatcherChannels(const std::shared_ptr<Dispatcher> &dispatcher, Mapp
   }
 }
 
-template <typename T, DataCode Handle>
-std::map<std::string, typename TimedSampleCollection<T>::TimedVector> getTimedVectors(
-    const std::map<std::string, DispatchData*> src) {
-  std::map<std::string, typename TimedSampleCollection<T>::TimedVector> dst;
-  for (const auto &kv: src) {
-    dst[kv.first] = toTypedDispatchData<Handle>(kv.second)->dispatcher()->values();
-  }
-  return dst;
+// See also: toTypedDispatchData, which goes almost in opposite direction.
+template <DataCode Code>
+std::shared_ptr<DispatchData> makeDispatchDataFromSamples(
+    const std::string &srcName,
+    const typename TimedSampleCollection<typename TypeForCode<Code>::type >::TimedVector &values) {
+  static Clock theClock;
+  auto data = new TypedDispatchDataReal<typename TypeForCode<Code>::type >(
+      Code, srcName, &theClock, values.size());
+  data->dispatcher()->insert(values);
+  return std::shared_ptr<DispatchData>(data);
 }
 
-template <typename Mapper>
-std::shared_ptr<Dispatcher> mergeDispatcherChannels(
-    const std::shared_ptr<Dispatcher> &dispatcher, Mapper *m) {
-  auto dst = std::make_shared<Dispatcher>();
+static const double maxMergeDifSeconds = 12.0;
 
-  for (const auto &codeAndSources: dispatcher->allSources()) {
-    auto c = codeAndSources.first;
-    auto newSourceName = m->getSourceName(c);
-    dst->setSourcePriority(newSourceName, m->getPriority(c));
-
-#define TRY_TO_MERGE(handle, code, shortname, type, description) \
-    if (c == handle) { \
-      dst->insertValues(c, newSourceName, m->template merge<handle, type>(getTimedVectors<type, handle>(codeAndSources.second))); \
-    }
-
-    FOREACH_CHANNEL(TRY_TO_MERGE)
-
-#undef TRY_TO_MERGE
-
-  }
-  return dst;
-}
-
-/*
-
-TODO: Functions to simplify the Dispatcher
-
-For every code, it should pick the source with the highest priority
-std::shared_ptr<Dispatcher> keepBestSources(const std::shared_ptr<Dispatcher> &d);
-
-For every code, it should take the samples from all sources, but remove some samples
-so that a sample of lower priority is never closer than 'dur' to a sample of higher priority.
-std::shared_ptr<Dispatcher> combineSources(const std::shared_ptr<Dispatcher> &d, const Duration<double> &dur);
-
-*/
+std::shared_ptr<DispatchData> mergeChannels(DataCode code,
+    const std::string &srcName,
+    const std::map<std::string, int> &priorityMap,
+    const std::map<std::string, std::shared_ptr<DispatchData> > &dispatcherMap);
 
 }
-
 
 #endif /* DEVICE_ANEMOBOX_DISPATCHERUTILS_H_ */

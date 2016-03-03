@@ -16,8 +16,10 @@
 
 #include <memory>
 #include <device/anemobox/Dispatcher.h>
+#include <device/anemobox/DispatcherUtils.h>
 #include <server/common/TimeStamp.h>
 #include <device/anemobox/TimedSampleCollection.h>
+
 
 namespace sail {
 
@@ -94,11 +96,18 @@ class TimedSampleRange {
   Iterator _begin, _end;
 };
 
+const std::shared_ptr<DispatchData> &getMergedDispatchData(
+  DataCode code,
+  const std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData>>> &merged,
+  const std::shared_ptr<Dispatcher> &dispatcher);
+
 class Dispatcher;
 class NavDataset {
 public:
   NavDataset() {}
   NavDataset(const std::shared_ptr<Dispatcher> &dispatcher,
+      const std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData> > > &merged
+        = std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData> > >(),
       TimeStamp a = TimeStamp(), TimeStamp b = TimeStamp());
 
   NavDataset slice(TimeStamp a, TimeStamp b) const;
@@ -116,18 +125,41 @@ public:
 
   NavDataset fitBounds() const;
 
+  // Return a range of samples given the code.
   template <DataCode Code>
   TimedSampleRange<typename TypeForCode<Code>::type> samples() const {
-    if (bool(_dispatcher) && _dispatcher->has(Code)) {
-      const auto &v = getTheChannel<Code>().samples();
-      auto lower = (_lowerBound.defined()? std::lower_bound(v.begin(), v.end(), _lowerBound) : v.begin());
-      auto upper = (_upperBound.defined()? std::upper_bound(v.begin(), v.end(), _upperBound) : v.end());
-      return TimedSampleRange<typename TypeForCode<Code>::type>(lower, upper);
+    auto m = getMergedSamples<Code>();
+    if (m == nullptr) {
+      return TimedSampleRange<typename TypeForCode<Code>::type>();
     }
-    auto def = TimedSampleRange<typename TypeForCode<Code>::type>();
-    assert(def.empty());
-    assert(def.size() == 0);
-    return def;
+    const auto &v = m->samples();
+    auto lower = (_lowerBound.defined()? std::lower_bound(v.begin(), v.end(), _lowerBound) : v.begin());
+    auto upper = (_upperBound.defined()? std::upper_bound(v.begin(), v.end(), _upperBound) : v.end());
+    return TimedSampleRange<typename TypeForCode<Code>::type>(lower, upper);
+  }
+
+  template <DataCode Code>
+  Optional<typename TypeForCode<Code>::type> lookUpPrioritizedSample(
+      TimeStamp time, const Array<std::string> &orderedSources) const {
+    typedef typename TypeForCode<Code>::type T;
+    const auto &all = _dispatcher->allSources();
+    auto found = all.find(Code);
+    if (found != all.end()) {
+      const auto &sources = found->second;
+      for (auto srcName: orderedSources) {
+        auto found = sources.find(srcName);
+        if (found != sources.end()) {
+          const TimedSampleCollection<T> &data = toTypedDispatchData<Code>(found->second.get())->dispatcher()->values();
+          auto nearest = findNearestTimedValue<T>(data.samples().begin(), data.samples().end(), time);
+          if (nearest.defined()) {
+            if (std::abs((nearest.get().time - time).seconds()) < maxMergeDifSeconds) {
+              return Optional<T>(nearest.get().value);
+            }
+          }
+        }
+      }
+    }
+    return Optional<T>();
   }
 
   void outputSummary(std::ostream *dst) const;
@@ -137,25 +169,26 @@ public:
         && _upperBound == other._upperBound;
   }
 private:
-
-  // The idea is that the user of NavDataset should not have to care
-  // about the different sources. Therefore, there should be only one
-  // way of retrieving the samples. Currently, we take a channel that
-  // is non-empty.
-  //
-  // Before we construct NavDataset, we can prepare a dispatcher that
-  // only contains channels that we want to work with. Or we can have a method
-  // of NavDataset that merges all different channels of its internal dispatcher
-  // in a well-defined way, and we create a new NavDataset instance from this new dispatcher.
   template <DataCode Code>
-  const TimedSampleCollection<typename TypeForCode<Code>::type> &getTheChannel() const {
-    return _dispatcher->getNonEmptyValues<Code>();
+  const TimedSampleCollection<typename TypeForCode<Code>::type> *getMergedSamples() const {
+    if (!_merged) { // Only when we have a default-constructed, completely empty object.
+      assert(!_dispatcher);
+      return nullptr;
+    }
+    const auto &d = getMergedDispatchData(Code, _merged, _dispatcher);
+    if (d) {
+      auto dp = d.get();
+      return &(toTypedDispatchData<Code>(dp)->dispatcher()->values());
+    }
+    return nullptr;
   }
 
   // Undefined _lowerBound means negative infinity,
   // Undefined _upperBound means positive infinity.
   sail::TimeStamp _lowerBound, _upperBound;
   std::shared_ptr<Dispatcher> _dispatcher;
+
+  std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData>>> _merged;
 };
 
 } /* namespace sail */

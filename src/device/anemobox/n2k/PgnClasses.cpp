@@ -1,6 +1,6 @@
-/** Generated on Fri Jan 29 2016 16:24:24 GMT+0100 (CET) using 
+/** Generated on Wed Mar 02 2016 08:55:52 GMT+0100 (CET) using 
  *
- *     node /home/jonas/programmering/sailsmart/src/device/anemobox/n2k/codegen/index.js /home/jonas/programmering/cpp/canboat/analyzer/pgns.xml
+ *     /opt/local/bin/node /Users/leto/Documents/anemomind/anemomind/src/device/anemobox/n2k/codegen/index.js /Users/leto/Documents/anemomind/canboat/analyzer/pgns.xml
  *
  *  WARNING: Modifications to this file will be overwritten when it is re-generated
  */
@@ -16,9 +16,9 @@ namespace PgnClasses {
 
   IsoTransportProtocolDataTransfer::IsoTransportProtocolDataTransfer(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (64 <= src.remainingBits()) {
+    // Warning: PGN 60160 has 1 repeating fields that are not handled.
+    if (8 <= src.remainingBits()) {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _data = src.readBytes(56);
       _valid = true;
     } else {
       reset();
@@ -35,12 +35,12 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementRequestToSend::IsoTransportProtocolConnectionManagementRequestToSend(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (64 <= src.remainingBits()) {
+    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    if (40 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
       _packets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _packetsReply = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
       _valid = true;
     } else {
       reset();
@@ -57,13 +57,13 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementClearToSend::IsoTransportProtocolConnectionManagementClearToSend(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (64 <= src.remainingBits()) {
+    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    if (40 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _maxPackets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _nextSid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       // Skipping reserved
       src.advanceBits(16);
-      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
       _valid = true;
     } else {
       reset();
@@ -80,13 +80,13 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementEndOfMessage::IsoTransportProtocolConnectionManagementEndOfMessage(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (64 <= src.remainingBits()) {
+    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    if (40 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _totalMessageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
       _totalNumberOfPacketsReceived = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       // Skipping reserved
       src.advanceBits(8);
-      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
       _valid = true;
     } else {
       reset();
@@ -103,13 +103,13 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementBroadcastAnnounce::IsoTransportProtocolConnectionManagementBroadcastAnnounce(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (64 <= src.remainingBits()) {
+    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    if (40 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _messageSize = src.getUnsigned(16, N2kField::Definedness::AlwaysDefined);
       _packets = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       // Skipping reserved
       src.advanceBits(8);
-      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
       _valid = true;
     } else {
       reset();
@@ -126,12 +126,12 @@ namespace PgnClasses {
 
   IsoTransportProtocolConnectionManagementAbort::IsoTransportProtocolConnectionManagementAbort(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (56 <= src.remainingBits()) {
+    // Warning: PGN 60416 has 1 repeating fields that are not handled.
+    if (32 <= src.remainingBits()) {
       _groupFunctionCode = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _reason = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       // Skipping reserved
       src.advanceBits(16);
-      _pgn = src.getUnsigned(24, N2kField::Definedness::AlwaysDefined);
       _valid = true;
     } else {
       reset();
@@ -195,12 +195,9 @@ namespace PgnClasses {
     N2kField::N2kFieldStream src(data, lengthBytes);
     if (56 <= src.remainingBits()) {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      // Skipping yaw
-      src.advanceBits(16);
-      // Skipping pitch
-      src.advanceBits(16);
-      // Skipping roll
-      src.advanceBits(16);
+      _yaw = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      _pitch = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
+      _roll = src.getPhysicalQuantity(true, 0.0001, sail::Angle<double>::radians(1.0), 16, 0);
       _valid = true;
     } else {
       reset();
@@ -282,7 +279,8 @@ namespace PgnClasses {
 
   GnssPositionData::GnssPositionData(const uint8_t *data, int lengthBytes) {
     N2kField::N2kFieldStream src(data, lengthBytes);
-    if (360 <= src.remainingBits()) {
+    // Warning: PGN 129029 has 3 repeating fields that are not handled.
+    if (328 <= src.remainingBits()) {
       _sid = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
       _date = src.getPhysicalQuantity(false, 1, sail::Duration<double>::days(1.0), 16, 0);
       _time = src.getPhysicalQuantity(false, 0.0001, sail::Duration<double>::seconds(1.0), 32, 0);
@@ -299,11 +297,7 @@ namespace PgnClasses {
       _pdop = src.getSigned(16, 0, N2kField::Definedness::AlwaysDefined);
       _geoidalSeparation = src.getPhysicalQuantity(true, 0.01, sail::Length<double>::meters(1.0), 16, 0);
       _referenceStations = src.getUnsigned(8, N2kField::Definedness::AlwaysDefined);
-      _referenceStationType = src.getUnsignedInSet(4, {0, 1, 2, 3, 4, 5, 6, 7, 8}).cast<ReferenceStationType>();
-      // Skipping referenceStationId
-      src.advanceBits(12);
-      _ageOfDgnssCorrections = src.getPhysicalQuantity(false, 0.01, sail::Duration<double>::seconds(1.0), 16, 0);
-      _valid = _gnssType.defined() && _method.defined() && _integrity.defined() && _referenceStationType.defined();
+      _valid = _gnssType.defined() && _method.defined() && _integrity.defined();
     } else {
       reset();
     }
@@ -382,32 +376,55 @@ namespace PgnClasses {
     _valid = false;
   }
 
+int pgnSize(int pgn) {
+  switch(pgn) {
+    case 127257: return 7;
+    case 128259: return 6;
+    case 129029: return 51;
+    case 130306: return 6;
+    case 130577: return 14;
+    default: return 8;
+  }
+}
+
+void PgnVisitor::pushAndLinkPacket(const CanPacket& packet) {
+  if (packet.data.size() == 8 && pgnSize(packet.pgn) > 8) {
+    add(packet);
+  } else {
+    visit(packet);
+  }
+}
+
+void PgnVisitor::fullPacketReceived(const CanPacket& fullPacket) {
+  visit(fullPacket);
+}
+
 bool PgnVisitor::visit(const CanPacket &packet) {
   switch(packet.pgn) {
-    case 60160: return apply(packet, IsoTransportProtocolDataTransfer(packet.data, packet.length));
+    case 60160: return apply(packet, IsoTransportProtocolDataTransfer(&(packet.data[0]), packet.data.size()));
     case 60416: {
-      BitStream dispatchStream(packet.data, packet.length);
+      BitStream dispatchStream(&(packet.data)[0], packet.data.size());
       auto dispatchCode0 = dispatchStream.getUnsigned(8);
       switch(dispatchCode0) {
-        case 16: return apply(packet, IsoTransportProtocolConnectionManagementRequestToSend(packet.data, packet.length));
-        case 17: return apply(packet, IsoTransportProtocolConnectionManagementClearToSend(packet.data, packet.length));
-        case 19: return apply(packet, IsoTransportProtocolConnectionManagementEndOfMessage(packet.data, packet.length));
-        case 32: return apply(packet, IsoTransportProtocolConnectionManagementBroadcastAnnounce(packet.data, packet.length));
-        case 255: return apply(packet, IsoTransportProtocolConnectionManagementAbort(packet.data, packet.length));
+        case 16: return apply(packet, IsoTransportProtocolConnectionManagementRequestToSend(&(packet.data[0]), packet.data.size()));
+        case 17: return apply(packet, IsoTransportProtocolConnectionManagementClearToSend(&(packet.data[0]), packet.data.size()));
+        case 19: return apply(packet, IsoTransportProtocolConnectionManagementEndOfMessage(&(packet.data[0]), packet.data.size()));
+        case 32: return apply(packet, IsoTransportProtocolConnectionManagementBroadcastAnnounce(&(packet.data[0]), packet.data.size()));
+        case 255: return apply(packet, IsoTransportProtocolConnectionManagementAbort(&(packet.data[0]), packet.data.size()));
         default: return false;
       };
       break;
     }
-    case 126992: return apply(packet, SystemTime(packet.data, packet.length));
-    case 127250: return apply(packet, VesselHeading(packet.data, packet.length));
-    case 127257: return apply(packet, Attitude(packet.data, packet.length));
-    case 128259: return apply(packet, Speed(packet.data, packet.length));
-    case 129025: return apply(packet, PositionRapidUpdate(packet.data, packet.length));
-    case 129026: return apply(packet, CogSogRapidUpdate(packet.data, packet.length));
-    case 129029: return apply(packet, GnssPositionData(packet.data, packet.length));
-    case 129033: return apply(packet, TimeDate(packet.data, packet.length));
-    case 130306: return apply(packet, WindData(packet.data, packet.length));
-    case 130577: return apply(packet, DirectionData(packet.data, packet.length));
+    case 126992: return apply(packet, SystemTime(&(packet.data[0]), packet.data.size()));
+    case 127250: return apply(packet, VesselHeading(&(packet.data[0]), packet.data.size()));
+    case 127257: return apply(packet, Attitude(&(packet.data[0]), packet.data.size()));
+    case 128259: return apply(packet, Speed(&(packet.data[0]), packet.data.size()));
+    case 129025: return apply(packet, PositionRapidUpdate(&(packet.data[0]), packet.data.size()));
+    case 129026: return apply(packet, CogSogRapidUpdate(&(packet.data[0]), packet.data.size()));
+    case 129029: return apply(packet, GnssPositionData(&(packet.data[0]), packet.data.size()));
+    case 129033: return apply(packet, TimeDate(&(packet.data[0]), packet.data.size()));
+    case 130306: return apply(packet, WindData(&(packet.data[0]), packet.data.size()));
+    case 130577: return apply(packet, DirectionData(&(packet.data[0]), packet.data.size()));
     default: return false;
   };
   return false;

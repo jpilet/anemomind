@@ -1,5 +1,12 @@
 var fs = require('fs');
+var EventEmitter = require('events');
+var util = require('util');
 
+function ConfigEventEmitter() {
+    EventEmitter.call(this);
+}
+util.inherits(ConfigEventEmitter, EventEmitter);
+module.exports.events = new ConfigEventEmitter();
 
 function getConfigPath() {
   return process.env.ANEMOBOX_CONFIG_PATH || ".";
@@ -76,7 +83,10 @@ function change(changes, cb) {
         config[i] = changes[i];
         console.log('Changing config.' + i + ' to ' + changes[i]);
       }
-      write(config, cb);
+      write(config, function(err, config) {
+        cb(err, config);
+        module.exports.events.emit('change');
+      });
     }
   });
 }

@@ -42,11 +42,11 @@ Dispatcher *Dispatcher::global() {
   return _globalInstance;
 }
 
-  DispatchData *Dispatcher::dispatchDataForSource(DataCode code, const std::string& source) {
+  std::shared_ptr<DispatchData> Dispatcher::dispatchDataForSource(DataCode code, const std::string& source) {
     auto sourcesForCode = _data[code];
     auto sourceIt = sourcesForCode.find(source);
     if (sourceIt == sourcesForCode.end()) {
-      return nullptr;
+      return std::shared_ptr<DispatchData>();
     }
     return sourceIt->second;
   }
@@ -64,12 +64,16 @@ Dispatcher *Dispatcher::global() {
     return sourcePriority(a->source()) > sourcePriority(b->source());
   }
 
-  int Dispatcher::sourcePriority(const std::string& source) {
-    auto it = _sourcePriority.find(source);
-    if (it != _sourcePriority.end()) {
+  int getSourcePriority(const std::map<std::string, int> &sourcePriority, const std::string &source) {
+    auto it = sourcePriority.find(source);
+    if (it != sourcePriority.end()) {
       return it->second;
     }
     return 0;
+  }
+
+  int Dispatcher::sourcePriority(const std::string& source) {
+    return getSourcePriority(_sourcePriority, source);
   }
 
   void Dispatcher::setSourcePriority(const std::string& source, int priority) {

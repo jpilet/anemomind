@@ -3,10 +3,6 @@
 
 using namespace sail;
 
-#if 0
-   This test is currently disabled because long Pgns such as
-   GnssPositionData are not handled properly.
-
 TEST(Nmea2000SourceTest, GnssPositionData) {
   Dispatcher dispatcher;
   Nmea2000Source source(&dispatcher);
@@ -27,14 +23,27 @@ TEST(Nmea2000SourceTest, GnssPositionData) {
   //   Geoidal Separation = -33.59 m; Reference Stations = Unknown;
   //   Reference Station Type = Unknown; Reference Station ID = 15
   //
-127 255 129029 : 60 2b 00 74 40 c0 ca 97
-127 255 129029 : 61 0a 00 10 ff ed f5 21
-127 255 129029 : 62 e5 05 00 a9 f1 8f f6
-127 255 129029 : 63 88 16 f6 90 ba c5 03
-127 255 129029 : 64 00 00 00 00 12 fc 00
-127 255 129029 : 65 be 00 54 01 e1 f2 ff
+  uint8_t data[7][8] = {
+   { 0x60, 0x2b, 0x00, 0x74, 0x40, 0xc0, 0xca, 0x97 },
+   { 0x61, 0x0a, 0x00, 0x10, 0xff, 0xed, 0xf5, 0x21 },
+   { 0x62, 0xe5, 0x05, 0x00, 0xa9, 0xf1, 0x8f, 0xf6 },
+   { 0x63, 0x88, 0x16, 0xf6, 0x90, 0xba, 0xc5, 0x03 },
+   { 0x64, 0x00, 0x00, 0x00, 0x00, 0x12, 0xfc, 0x00 },
+   { 0x65, 0xbe, 0x00, 0x54, 0x01, 0xe1, 0xf2, 0xff },
+   { 0x66, 0xff, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff }
+  };
+
+  for (int i = 0; i < 7; ++i) {
+    source.process("test", 129029, data[i], 8, 83);
+  }
+
+  EXPECT_TRUE(dispatcher.get<DATE_TIME>()->dispatcher()->hasValue());
+  TimeStamp val = dispatcher.val<DATE_TIME>();
+  TimeStamp truth = TimeStamp::UTC(2015, 3, 6, 4, 56, 12);
+  EXPECT_NEAR((truth - val).seconds(), 0, 1e-2);
+
+  EXPECT_TRUE(dispatcher.get<GPS_POS>()->dispatcher()->hasValue());
 }
-#endif
 
 TEST(Nmea2000SourceTest, SystemTime) {
   Dispatcher dispatcher;
@@ -46,7 +55,7 @@ TEST(Nmea2000SourceTest, SystemTime) {
   // Command line in canboat:
   // candump2analyzer  < samples/candumpSample2.txt | analyzer -raw
   const unsigned char data[] = { 0x00, 0xf0, 0x74, 0x40, 0xc0, 0xca, 0x97, 0x0a };
-  source.process("test", 126992, data, sizeof(data));
+  source.process("test", 126992, data, sizeof(data), 82);
 
   EXPECT_TRUE(dispatcher.get<DATE_TIME>()->dispatcher()->hasValue());
   TimeStamp val = dispatcher.val<DATE_TIME>();

@@ -44,8 +44,13 @@ namespace {
   }
 }
 
-NavDataset::NavDataset(const std::shared_ptr<Dispatcher> &dispatcher, TimeStamp a, TimeStamp b) :
-  _dispatcher(dispatcher), _lowerBound(a), _upperBound(b) {
+NavDataset::NavDataset(const std::shared_ptr<Dispatcher> &dispatcher,
+    const std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData> > > &merged,
+    TimeStamp a, TimeStamp b) :
+  _dispatcher(dispatcher), _lowerBound(a), _upperBound(b),
+  _merged(merged) {
+  assert(merged);
+  assert(dispatcher);
   assert(beforeOrEqual(_lowerBound, _upperBound, true));
 }
 
@@ -53,7 +58,7 @@ NavDataset NavDataset::slice(TimeStamp a, TimeStamp b) const {
   assert(beforeOrEqual(a, b, true));
   assert(beforeOrEqual(_lowerBound, a, true));
   assert(beforeOrEqual(b, _upperBound, true));
-  return NavDataset(_dispatcher, a, b);
+  return NavDataset(_dispatcher, _merged, a, b);
 }
 
 NavDataset NavDataset::sliceFrom(TimeStamp ts) const {
@@ -129,25 +134,73 @@ namespace {
 NavDataset NavDataset::fitBounds() const {
   BoundVisitor visitor;
   visitDispatcherChannels(_dispatcher, &visitor);
-  return NavDataset(_dispatcher, visitor.lowerBound(), visitor.upperBound());
+  return NavDataset(_dispatcher, _merged, visitor.lowerBound(), visitor.upperBound());
+}
+
+namespace {
+
+  class SummaryVisitor {
+   public:
+    template <DataCode handle, typename T>
+    void visit(const char *shortname, const std::string &srcName,
+        const TimedSampleCollection<T> &data) {
+      std::cout << "\n  * Channel of type " << shortname << " from source "
+          << srcName << " with " << data.size() << " values";
+    }
+  };
+
 }
 
 void NavDataset::outputSummary(std::ostream *dst) const {
   std::stringstream ss;
   *dst << "\n\nNavDataset summary:";
+  *dst << "\nMerged channels:";
 #define DISP_CHANNEL(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   { \
-    auto x = getTheChannel<HANDLE>(); if (x.empty()) { \
+    auto x = getMergedSamples<HANDLE>(); if (x == nullptr) { \
       ss << #HANDLE << " "; \
     } else { \
-      *dst << "\n  * Channel " << #HANDLE << " (" << DESCRIPTION << ") with " << x.size() << " values"; \
+      *dst << "\n  * Channel " << #HANDLE << " (" << DESCRIPTION << ") with " << x->size() << " values"; \
     } \
   }
   FOREACH_CHANNEL(DISP_CHANNEL)
 #undef DISP_CHANNEL
 
+  SummaryVisitor summaryVisitor;
+  *dst << "\nOriginal channels: ";
+  visitDispatcherChannels(_dispatcher, &summaryVisitor);
+
   *dst << "\n\n  * The following channels are not part of this dataset: " << ss.str() << "\n" << std::endl;
 }
+
+const std::shared_ptr<DispatchData> &getMergedDispatchData(
+  DataCode code,
+  const std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData>>> &merged,
+  const std::shared_ptr<Dispatcher> &dispatcher) {
+  assert(bool(merged));
+  {
+    auto found = merged->find(code);
+    if (found != merged->end()) {
+      return found->second;
+    }
+  }
+
+  auto &dst = (*merged)[code];
+  if (!bool(dispatcher)) {
+    return dst;
+  }
+
+  const auto &allSources = dispatcher->allSources();
+  auto found = allSources.find(code);
+
+  if (found != allSources.end()) {
+    dst = mergeChannels(
+        code, "merged", dispatcher->sourcePriority(),
+        found->second);
+  }
+  return dst;
+}
+
 
 
 }

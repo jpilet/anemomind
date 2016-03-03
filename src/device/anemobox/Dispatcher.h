@@ -184,6 +184,10 @@ void TypedDispatchData<T>::visit(DispatchDataVisitor *visitor) {
   visitor->run(this);
 }
 
+// Warning: We just borrow the pointer
+// returned by this function. We are not
+// allowed to wrap inside a std::shared_ptr
+// or delete it.
 template <DataCode Code>
 TypedDispatchData<typename TypeForCode<Code>::type>* toTypedDispatchData(DispatchData *data) {
   return dynamic_cast<TypedDispatchData<typename TypeForCode<Code>::type>*>(data);
@@ -202,12 +206,12 @@ class Dispatcher : public Clock {
   const std::map<DataCode, std::shared_ptr<DispatchData>>& dispatchers()
     const { return _currentSource; }
 
-  const std::map<DataCode, std::map<std::string, DispatchData*>> allSources() {
+  const std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>> &allSources() {
     return _data;
   }
 
   // Returns null if not exist
-  DispatchData *dispatchDataForSource(DataCode code, const std::string& source);
+  std::shared_ptr<DispatchData> dispatchDataForSource(DataCode code, const std::string& source);
 
   // Return or create a DispatchData for the given source.
   template <typename T>
@@ -253,7 +257,7 @@ class Dispatcher : public Clock {
     auto sources = _data.find(Code);
     if (sources != _data.end()) {
       for (auto kv: sources->second) {
-        const auto &x = toTypedDispatchData<Code>(kv.second)->dispatcher()->values();
+        const auto &x = toTypedDispatchData<Code>(kv.second.get())->dispatcher()->values();
         if (!x.empty()) {
           return x;
         }
@@ -262,27 +266,6 @@ class Dispatcher : public Clock {
     // All were empty :-( Return v anyway.
     return v;
   }
-
-/* Not sure if needed.
-  template <DataCode Code>
-  const TimedSampleCollection<typename TypeForCode<Code>::type> &getTheBestValues() const {
-    struct Prioritized {
-     int priority;
-     const TimedSampleCollection<typename TypeForCode<Code>::type> *values;
-    };
-    Prioritized best{minPriority, &(values<Code>())};
-    auto sources = _data.find(Code);
-    if (sources != _data.end()) {
-      for (auto kv: sources->second) {
-        const auto &x = toTypedDispatchData<Code>(kv.second)->dispatcher()->values();
-        auto p = _sourcePriority.find(kv.first);
-        auto priority = (p == _sourcePriority.end()? minPriority : p->second);
-        best = std::min(best, Prioritized{priority, x});
-      }
-    }
-    // All were empty :-( Return v anyway.
-    return *(best.values);
-  }*/
 
   template <DataCode Code>
   typename TypeForCode<Code>::type val() {
@@ -325,6 +308,9 @@ class Dispatcher : public Clock {
 
   bool prefers(DispatchData* a, DispatchData* b);
   int sourcePriority(const std::string& source);
+  const std::map<std::string, int> &sourcePriority() const {
+    return _sourcePriority;
+  }
   void setSourcePriority(const std::string& source, int priority);
 
   boost::signals2::signal<void(DispatchData*)> newDispatchData;
@@ -333,16 +319,12 @@ class Dispatcher : public Clock {
  private:
   static Dispatcher *_globalInstance;
 
-  // TODO: Do we delete the pointers to DispatchData anywhere?
-  // Should we wrap them inside std::shared_ptr?
-  std::map<DataCode, std::map<std::string, DispatchData*>> _data;
+  std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>> _data;
 
   // _currentSource contains the proxies of different types.
   std::map<DataCode, std::shared_ptr<DispatchData>> _currentSource;
 
-  // TODO: Do we want to use an Enum of standardized sources,
-  // instead of a string?
-  std::map<std::string, int> _sourcePriority;
+std::map<std::string, int> _sourcePriority;
 };
 
 // A convenient visitor to subscribe to any dispatch data type.
@@ -387,11 +369,11 @@ TypedDispatchData<T>* Dispatcher::createDispatchDataForSource(
 
   TypedDispatchData<T>* dispatchData;
   if (!ptr) {
-    _data[code][source] = dispatchData = 
-      new TypedDispatchDataReal<T>(code, source, this, size);
+    dispatchData = new TypedDispatchDataReal<T>(code, source, this, size);
+    _data[code][source] = std::shared_ptr<DispatchData>(dispatchData);
     newDispatchData(dispatchData);
   } else {
-    dispatchData = dynamic_cast<TypedDispatchData<T>*>(ptr);
+    dispatchData = dynamic_cast<TypedDispatchData<T>*>(ptr.get());
     // wrong type for this code.
     assert(dispatchData);
   }
@@ -399,6 +381,8 @@ TypedDispatchData<T>* Dispatcher::createDispatchDataForSource(
   updateCurrentSource(code, dispatchData);
   return dispatchData;
 }
+
+int getSourcePriority(const std::map<std::string, int> &sourcePriority, const std::string &source);
 
 
 }  // namespace sail

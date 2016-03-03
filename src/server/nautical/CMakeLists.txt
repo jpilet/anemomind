@@ -519,7 +519,8 @@ add_library(nautical_NavDataset
            )
 
 target_link_libraries(nautical_NavDataset
-                      anemobox_Dispatcher                      
+                      anemobox_Dispatcher      
+                      anemobox_DispatcherUtils                
                      )           
 
 cxx_test(nautical_NavDatasetTest

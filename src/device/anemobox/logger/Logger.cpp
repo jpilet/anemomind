@@ -84,7 +84,7 @@ void Logger::subscribe() {
       continue;
     }
     for (auto sourceAndDispatcher : sourcesForCode.second) {
-      subscribeToDispatcher(sourceAndDispatcher.second);
+      subscribeToDispatcher(sourceAndDispatcher.second.get());
     }
   }
 }

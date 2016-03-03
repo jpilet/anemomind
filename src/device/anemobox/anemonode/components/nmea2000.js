@@ -3,8 +3,8 @@ var anemonode = require('../build/Release/anemonode');
 var nmea2000Source = new anemonode.Nmea2000Source();
 var exec = require('child_process').exec;
 
-function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr) {
-  nmea2000Source.process(data, timestamp, srcName, pgn);
+function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr, srcAddr) {
+  nmea2000Source.process(data, timestamp, srcName, pgn, srcAddr);
 
   if (false) {
     var str = "t:" + timestamp + " s:" + srcName + " pgn:" + pgn + " d:" + dstAddr;
@@ -16,7 +16,11 @@ function handlePacket(data, timestamp, srcName, pgn, priority, dstAddr) {
   }
 }
 
-j1939socket.open(handlePacket);
+try {
+  j1939socket.open(handlePacket);
+} catch (error) {
+  console.log("Error, NMEA2000 disabled.");
+}
 
 // HACK to reboot we hit SPI bug
 module.exports.detectSPIBug = function(callback) {

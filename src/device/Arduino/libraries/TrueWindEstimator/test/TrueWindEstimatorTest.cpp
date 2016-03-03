@@ -85,14 +85,16 @@ TEST(TrueWindEstimatorTest, TWACompare) {
                              string("/datasets/psaros33_Banque_Sturdza/2014/20140627/NMEA0006.TXT")};
 
   for (int i = 0; i < dsCount; i++) {
+    std::cout << " i = " << i << std::endl;
     NavDataset navs = loadNavsFromNmea(
         string(Env::SOURCE_DIR) +
         ds[i],
         Nav::debuggingBoatId()).navs();
 
+    navs.outputSummary(&(std::cout));
+
     navs = sliceTo(navs, 3000);
     int count = getNavSize(navs);
-
 
     EXPECT_LE(1000, count);
     Angle<double> tol = Angle<double>::degrees(10.0);

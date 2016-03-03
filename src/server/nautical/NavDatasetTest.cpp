@@ -57,7 +57,13 @@ TEST(NavDatasetTest, ConstructionAndSlicing) {
   }
 
   {
-    Optional<TimedValue<Velocity<double> > > x = bounded.samples<AWS>().nearest(offset + Duration<double>::seconds(13.0));
+    auto bs = bounded.samples<AWS>();
+    int i = 0;
+    for (auto x: bs) {
+      EXPECT_NEAR((x.time - offset).seconds(), i, 1.0e-6);
+      i++;
+    }
+    Optional<TimedValue<Velocity<double> > > x = bs.nearest(offset + Duration<double>::seconds(13.0));
     EXPECT_TRUE(x.defined());
     auto value = x.get();
     EXPECT_NEAR((value.time - offset).seconds(), 13.0, 1.0e-6);

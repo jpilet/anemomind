@@ -440,26 +440,24 @@ function makePgnVariantDispatchers(multiDefs) {
   })));
 }
 
-var canPacket = indentLineArray(1, ['\n', 'struct CanPacket {', [
-  "std::string src;",
-  "int pgn;", 
-  "const uint8_t *data;", 
-  "int length;"], "};"]);
-
 function makeVisitorDeclaration(pgns) {
   var defMap = makeDefsPerPgn(pgns);
   var multiDefs = getMultiDefs(defMap);
   var s = [
     '\n\n',
-    'class PgnVisitor {',
+    'class PgnVisitor : FastPacketBuffer {',
     ' public:',
-    ['bool visit(const CanPacket &packet);',
+    [
+      '// Handle FastPacket protocol',
+      'void pushAndLinkPacket(const CanPacket& packet);',
+      'bool visit(const CanPacket &packet);',
      'virtual ~PgnVisitor() {}'],
     ' protected:',
     pgns.map(function(pgn) {
       return 'virtual bool apply'
         + '(const CanPacket& src, const ' + getClassName(pgn) + '& packet) { return false; }';
     }),
+    '  virtual void fullPacketReceived(const CanPacket& fullPacket);',
     makePgnVariantDispatchers(multiDefs),
     "};"
   ];
@@ -567,7 +565,7 @@ function makeDispatchVariableName(index) {
 }
 
 function makeDispatchCodeAssignments(pgnDefs, sortedFields) {
-  var s = ["BitStream dispatchStream(packet.data, packet.length);"];
+  var s = ["BitStream dispatchStream(&(packet.data)[0], packet.data.size());"];
   var at = 0;
   for (var i = 0; i < sortedFields.length; i++) {
     var f = sortedFields[i];
@@ -707,7 +705,7 @@ function listOtherDispatchFunctions(pgnCode, tree, branches) {
 
 function callApplyMethod(pgnDefs) {
   if (pgnDefs.length == 1) {
-    return 'return apply(packet, ' + getClassName(pgnDefs[0]) + '(packet.data, packet.length));';
+    return 'return apply(packet, ' + getClassName(pgnDefs[0]) + '(&(packet.data[0]), packet.data.size()));';
   } else {
     var code = getCommonPgnCode(pgnDefs);
     var dispatchFields = getDispatchFields(pgnDefs);
@@ -738,6 +736,18 @@ function makePgnEnum(pgnDefs) {
 
 function makeVisitorImplementation(pgns) {
   return indentLineArray(0, [
+    'void PgnVisitor::pushAndLinkPacket(const CanPacket& packet) {',
+    '  if (packet.data.size() == 8 && pgnSize(packet.pgn) > 8) {',
+    '    add(packet);',
+    '  } else {',
+    '    visit(packet);',
+    '  }',
+    '}',
+    '',
+    'void PgnVisitor::fullPacketReceived(const CanPacket& fullPacket) {',
+    '  visit(fullPacket);',
+    '}',
+    '',
     'bool PgnVisitor::visit(const CanPacket &packet) {',
     makeSwitchStatement(
       makeDefsPerPgn(pgns), "packet.pgn", "return false;", 
@@ -748,13 +758,31 @@ function makeVisitorImplementation(pgns) {
     "}"]);
 }
 
+function makePgnSizeImplementation(pgns) {
+  var code = [
+    'int pgnSize(int pgn) {',
+    '  switch(pgn) {'
+  ];
+
+  for (var i = 0; i < pgns.length; ++i) {
+    var len = pgns[i].Length;
+    if (len != 8) {
+    code.push('    case ' + pgns[i].PGN + ': return ' + len + ';');
+    }
+  }
+  code.push('    default: return 8;');
+  code.push('  }');
+  code.push('}');
+
+  return indentLineArray(0, code);
+};
+
 
 function makeInterface(label, pgns) {
   return wrapNamespace(
     label,
     makePgnEnums(pgns)
     + makeClassDeclarationsSub(pgns)
-    + canPacket
     + makeVisitorDeclaration(pgns));
 }
 
@@ -899,7 +927,6 @@ function getTotalBitLength(fields) {
   return n;
 }
 
-
 function logIgnoringField(field, err) {
   console.log('Ignoring field ' + getFieldId(field) + ': ' + err);
 }
@@ -912,19 +939,28 @@ function makeFieldAssignments(fields, depth) {
   return s;
 }
 
-
 function makeConstructorStatements(pgn, depth) {
   var fields = getFieldArray(pgn);
   var innerDepth = depth + 1;
-  return beginLine(depth) + 
-    'if (' + getTotalBitLength(fields) + ' <= src.remainingBits()) {'
+  
+  var comment = '';
+  if (pgn.RepeatingFields > 0) {
+    var warn = 'Warning: PGN ' + pgn.PGN + ' has '
+      + pgn.RepeatingFields + ' repeating fields that are not handled.'
+    console.warn(warn);
+    fields = fields.slice(0, - pgn.RepeatingFields);
+    comment = beginLine(depth) + '// ' + warn;
+  }
+  return comment
+    + beginLine(depth)
+    + 'if (' + getTotalBitLength(fields) + ' <= src.remainingBits()) {'
     + makeFieldAssignments(fields, innerDepth, false)
     + beginLine(innerDepth) + "_valid = " + allEnumedFieldsDefined(fields) + ";"
     + beginLine(depth) + "} else {"
     + beginLine(innerDepth) + "reset();"
     + beginLine(depth) + "}";
-}
 
+}
 
 function makeConstructor(pgn, depth) {
   var innerDepth = depth + 1;
@@ -988,7 +1024,7 @@ function makeMethodsForPgn(pgn, depth) {
     + makeResetMethod(pgn, depth);
 }
 
-var privateInclusions = '#include <device/anemobox/n2k/N2kField.h>\n\n'
+var privateInclusions = '#include <device/anemobox/n2k/N2kField.h>\n\n';
 
 function makeImplementationFileContents(moduleName, pgns) {
   var depth = 1;
@@ -996,6 +1032,7 @@ function makeImplementationFileContents(moduleName, pgns) {
   for (var i = 0; i < pgns.length; i++) {
     contents += makeMethodsForPgn(pgns[i], depth);
   }
+  contents += '\n' + makePgnSizeImplementation(pgns);
   contents += '\n' + makeVisitorImplementation(pgns);
   return makeHeaderInclusion(moduleName) + privateInclusions + wrapNamespace(moduleName, contents);
 }
@@ -1003,7 +1040,9 @@ function makeImplementationFileContents(moduleName, pgns) {
 var publicInclusions = '#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>\n'
     +'#include <cassert>\n'
     +'#include <device/anemobox/n2k/N2kField.h>\n'
-    +'#include <server/common/Optional.h>\n\n';
+    +'#include <server/common/Optional.h>\n'
+    +'#include <device/anemobox/n2k/CanPacket.h>\n'
+    +'#include <device/anemobox/n2k/FastPacket.h>\n\n'
 
 
 function makePgnEnums(pgns) {
