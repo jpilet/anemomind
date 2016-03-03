@@ -17,7 +17,7 @@ namespace sail {
 namespace {
 template <typename T>
 typename TimedSampleCollection<T>::TimedVector
-  *allocateSourceIfNeeded(std::string &name, std::map<std::string, typename TimedSampleCollection<T>::TimedVector> *sources) {
+  *allocateSourceIfNeeded(const std::string &name, std::map<std::string, typename TimedSampleCollection<T>::TimedVector> *sources) {
   assert(sources != nullptr);
   auto found = sources->find(name);
   if (found == sources->end()) {
@@ -27,9 +27,9 @@ typename TimedSampleCollection<T>::TimedVector
   return &(found->second);
 }
 
-struct Nmea0183Sources {
-  Nmea0183Sources();
-  Nmea0183Sources(LogLoader *dst);
+struct SourcesToPopulate {
+  SourcesToPopulate();
+  SourcesToPopulate(const std::string &srcName, LogLoader *dst);
 
   TimeStamp lastTime;
 
@@ -44,14 +44,12 @@ struct Nmea0183Sources {
   TimedSampleCollection<Velocity<double> >::TimedVector *gpsSpeed;
 };
 
-Nmea0183Sources::Nmea0183Sources() :
+SourcesToPopulate::SourcesToPopulate() :
   awa(nullptr), aws(nullptr), externalTwa(nullptr),
   externalTws(nullptr), magHdg(nullptr), geoPos(nullptr),
   gpsBearing(nullptr), gpsSpeed(nullptr), watSpeed(nullptr) {}
 
-std::string nmea0183 = "NMEA0183";
-
-Nmea0183Sources::Nmea0183Sources(LogLoader *dst) :
+SourcesToPopulate::SourcesToPopulate(const std::string &nmea0183, LogLoader *dst) :
     awa(allocateSourceIfNeeded<Angle<double> >(nmea0183, dst->getAWAsources())),
     aws(allocateSourceIfNeeded<Velocity<double> >(nmea0183, dst->getAWSsources())),
     externalTwa(allocateSourceIfNeeded<Angle<double> >(nmea0183, dst->getTWAsources())),
@@ -87,7 +85,7 @@ GeographicPosition<double> getGeoPos(const NmeaParser &parser) {
   return GeographicPosition<double>(getLon(parser), getLat(parser));
 }
 
-void readNmeaTimePos(const NmeaParser &parser, Nmea0183Sources *toPopulate) {
+void readNmeaTimePos(const NmeaParser &parser, SourcesToPopulate *toPopulate) {
   toPopulate->lastTime = parser.timestamp();
   toPopulate->gpsBearing->push_back(TimedValue<Angle<double> >(
       toPopulate->lastTime, getGpsBearing(parser)));
@@ -108,12 +106,12 @@ Velocity<double> getAws(const NmeaParser &parser) {
 }
 
 
-void readNmeaAW(const NmeaParser &parser, Nmea0183Sources *toPopulate) {
+void readNmeaAW(const NmeaParser &parser, SourcesToPopulate *toPopulate) {
   toPopulate->awa->push_back(TimedValue<Angle<double> >(toPopulate->lastTime, getAwa(parser)));
   toPopulate->aws->push_back(TimedValue<Velocity<double> >(toPopulate->lastTime, getAws(parser)));
 }
 
-void readNmeaTW(const NmeaParser &parser, Nmea0183Sources *toPopulate) {
+void readNmeaTW(const NmeaParser &parser, SourcesToPopulate *toPopulate) {
   toPopulate->externalTwa->push_back(TimedValue<Angle<double> >(toPopulate->lastTime, parser.twa()));
   toPopulate->externalTws->push_back(TimedValue<Velocity<double> >(toPopulate->lastTime, parser.tws()));
 }
@@ -126,17 +124,17 @@ Angle<double> getMagHdg(const NmeaParser &parser) {
   return Angle<double>(parser.magHdg());
 }
 
-void readNmeaWatSpHdg(const NmeaParser &parser, Nmea0183Sources *toPopulate) {
+void readNmeaWatSpHdg(const NmeaParser &parser, SourcesToPopulate *toPopulate) {
   toPopulate->magHdg->push_back(TimedValue<Angle<double>>(toPopulate->lastTime, getMagHdg(parser)));
   toPopulate->watSpeed->push_back(TimedValue<Velocity<double>>(toPopulate->lastTime, getWatSpeed(parser)));
 }
 
-void readNmeaVLW(const NmeaParser &parser, Nmea0183Sources *toPopulate) {
+void readNmeaVLW(const NmeaParser &parser, SourcesToPopulate *toPopulate) {
   // Ignored
 }
 
 void readNmeaData(NmeaParser::NmeaSentence s,
-      const NmeaParser &parser, Nmea0183Sources *toPopulate) {
+      const NmeaParser &parser, SourcesToPopulate *toPopulate) {
   switch (s) {
    case NmeaParser::NMEA_TIME_POS:
      readNmeaTimePos(parser, toPopulate);
@@ -158,7 +156,7 @@ void readNmeaData(NmeaParser::NmeaSentence s,
   };
 }
 
-void parseNmea0183Char(char c, NmeaParser *parser, Nmea0183Sources *toPopulate) {
+void parseNmea0183Char(char c, NmeaParser *parser, SourcesToPopulate *toPopulate) {
   NmeaParser::NmeaSentence s = parser->processByte(c);
 
     const Duration<double> maxDurationBetweenTimeMeasures
@@ -176,7 +174,7 @@ void loadNmea0183File(const std::string &filename, LogLoader *dst) {
   std::ifstream file(filename);
   NmeaParser parser;
   parser.setIgnoreWrongChecksum(true);
-  Nmea0183Sources toPopulate(dst);
+  SourcesToPopulate toPopulate("NMEA0183", dst);
   while (file.good()) {
     char c;
     file.get(c);
@@ -184,13 +182,96 @@ void loadNmea0183File(const std::string &filename, LogLoader *dst) {
   }
 }
 
+Angle<double> degrees = Angle<double>::degrees(1.0);
+Velocity<double> knots = Velocity<double>::knots(1.0);
 
+template <typename T>
+std::function<void(std::string)> makeSetter(T unit, T *dst) {
+  return [=](const std::string &s) {
+    double x = 0;
+    if (tryParseDouble(s, &x)) {
+      *dst = x*unit;
+    }
+  };
+}
 
+std::function<void(std::string)> makeTimeSetter(TimeStamp *dst) {
+  return [=](const std::string &s) {
+    *dst = TimeStamp::parse(s);
+  };
+}
 
+class CsvRowProcessor {
+ public:
+  CsvRowProcessor(const MDArray<std::string, 2> &header);
+  void process(const MDArray<std::string, 2> &row, SourcesToPopulate *dst);
+ private:
+  // Prohibit copying since we have pointers pointing at this object... a bit dirty
+  CsvRowProcessor &operator=(const CsvRowProcessor &other) = delete;
+  CsvRowProcessor(const CsvRowProcessor &other) = delete;
 
+  std::vector<std::function<void(std::string)> > _setters;
+
+  Angle<double> _awa, _twa, _magHdg, _gpsBearing, _lon, _lat;
+  Velocity<double> _aws, _tws, _gpsSpeed, _watSpeed;
+  TimeStamp _time;
+
+  template <typename T>
+  void pushBack(const T &x, typename TimedSampleCollection<T>::TimedVector *dst) {
+    dst->push_back(TimedValue<T>(_time, x));
+  }
+};
+
+void doNothing(const std::string &s) {}
+
+CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
+  std::map<std::string, std::function<void(std::string)> > m;
+  m["DATE/TIME(UTC)"] = makeTimeSetter(&_time);
+  m["Lat."] = makeSetter(degrees, &_lat);
+  m["Long."] = makeSetter(degrees, &_lon);
+  m["COG"] = makeSetter(degrees, &_gpsBearing);
+  m["SOG"] = makeSetter(knots, &_gpsSpeed);
+  m["Heading"] = makeSetter(degrees, &_magHdg);
+  m["Speed Through Water"] = makeSetter(knots, &_watSpeed);
+  m["AWS"] = makeSetter(knots, &_aws);
+  m["TWS"] = makeSetter(knots, &_tws);
+  m["AWA"] = makeSetter(degrees, &_awa);
+  m["TWA"] = makeSetter(degrees, &_twa);
+  assert(header.rows() == 1);
+  int cols = header.cols();
+  for (int i = 0; i < cols; i++) {
+    auto found = m.find(header(0, i));
+    _setters.push_back(found == m.end()? doNothing : found->second);
+  }
+}
+
+void CsvRowProcessor::process(const MDArray<std::string, 2> &row, SourcesToPopulate *dst) {
+  assert(_setters.size() == row.cols());
+  for (int i = 0; i < _setters.size(); i++) {
+    _setters[i](row(0, i));
+  }
+  pushBack(_awa, dst->awa);
+  pushBack(_aws, dst->aws);
+  pushBack(_twa, dst->externalTwa);
+  pushBack(_tws, dst->externalTws);
+  pushBack(_magHdg, dst->magHdg);
+  pushBack(_watSpeed, dst->watSpeed);
+  pushBack(_gpsSpeed, dst->gpsSpeed);
+  pushBack(_gpsBearing, dst->gpsBearing);
+  pushBack(GeographicPosition<double>(_lon, _lat), dst->geoPos);
+}
+
+void loadCsv(const MDArray<std::string, 2> &table, LogLoader *dst) {
+  SourcesToPopulate toPopulate("CSV", dst);
+  CsvRowProcessor processor(table.sliceRow(0));
+  int n = table.rows();
+  for (int i = 1; i < n; i++) {
+    processor.process(table.sliceRow(i), &toPopulate);
+  }
+}
 
 void loadCsv(const std::string &filename, LogLoader *dst) {
-
+  loadCsv(parseCsv(filename), dst);
 }
 
 
