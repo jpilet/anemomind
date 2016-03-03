@@ -5,11 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap -->
     <link href="bootstrap.min.css" rel="stylesheet" media="screen">
+    <style>
+      .center-block {
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
+          max-width: 800px;
+          padding: 5px;
+      }
+    </style>
   </head>
   <body>
     <center><h3>Anemobox configuration</h3></center>
-    <table id="dataTable" class="table">
-    </table>
+
+
+    <div class="center-block">
+      <dl class="dl-horizontal">
+        <dt> NMEA0183 speed </dt>
+        <dd>
+          <select id="nmea0183Speed" class="form-control">
+            <option value="4800">4'800</option>
+            <option value="9600">9'600</option>
+            <option value="38400">38'400</option>
+            <option value="19200">19'200</option>
+            <option value="57600">57'600</option>
+            <option value="115200">115'200</option>
+          </select>
+        </dd>
+      </dl>
+
+      <dl id="dataTable" class="dl-horizontal">
+      </dl>
+    </div>
 
     <p style="text-align:center;"><a href="/">Input data</a></p>
     <p style="text-align:center;"><a href="/allSources.html">Detailed input data</a></p>
@@ -36,37 +63,71 @@
 
     var tableEntries = [
       { name: 'Boat name', keys: ['boxConfig', 'boatName'] },
-      { name: 'NMEA 0183 port speed', keys: ['boxConfig', 'nmea0183Speed'] },
+      //{ name: 'NMEA 0183 port speed', keys: ['boxConfig', 'nmea0183Speed'] },
       { name: 'IP Address', keys: ['networkInfo', 'address'] },
       { name: 'System time', keys: ['date'], format: formatDate },
     ];
-    function readConfig() {
-      $.ajax({
-        url: "api/config/",
-        type: "GET",
-        success: function(data) {
+
+    var loadedConfig;
+
+    function readConfig(data) {
+          loadedConfig = data;
+          $('#nmea0183Speed option[value=' + data.boxConfig.nmea0183Speed + ']').prop('selected', true);
+
           var table = $('#dataTable');
           table.html('');
 
           for (var i in tableEntries) {
             var entry = tableEntries[i];
           
-            var row = $('<tr></tr>');
-            row.append('<td style="width:30%">' + entry.name + '</td>');
+            var row = $('<dl></dl>');
+            row.append('<dt>' + entry.name + '</dt>');
             var value = resolve(data, entry.keys);
             if ('format' in entry) {
               value = entry.format(value);
             }
-            row.append('<td>' + (value || "") + '</td>'); 
+            row.append('<dd>' + (value || "") + '</dd>'); 
             table.append(row);
           }
-        },
+        }
+
+    function fetchConfig() {
+      $.ajax({
+        url: "api/config/",
+        type: "GET",
+        success: readConfig,
         dataType: "json",
         timeout: 200
       })
     };
 
-    readConfig();
+    function changeBoxConfig(key, value) {
+        if (value == loadedConfig.boxConfig[key]) {
+          // no need to change identical value
+          return;
+        }
+        var changeObject = {};
+        changeObject[key] = value;
+        $.ajax({
+          url: "/api/config/",
+          type: "PUT",
+          dataType: "json",
+          headers: { "Content-Type": "application/json"},
+          data: JSON.stringify(changeObject),
+          success: function(data) {
+            loadedConfig.boxConfig = data;
+            readConfig(loadedConfig);
+          }
+        });
+    }
+
+    $(document).ready(function(){   
+      fetchConfig();
+      $("#nmea0183Speed").change(function(e){
+        var newSpeed = $("#nmea0183Speed option:selected").val();
+        changeBoxConfig('nmea0183Speed', newSpeed);
+      });
+    });
   </script>
   </body>
 </html>

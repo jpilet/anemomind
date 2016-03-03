@@ -43,3 +43,13 @@ exports.index = function(req, res) {
   });
 };
 
+// Expects a key/value dictionary of what to change
+exports.changeConfig = function(req, res) {
+  config.change(req.body, function(err, result) {
+    if (err) {
+      res.status(500).send("changeConfig error: " + err);
+    } else {
+      res.status(200).json(result)
+    }
+  });
+};
