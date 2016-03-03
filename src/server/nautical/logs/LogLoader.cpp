@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <jonas@anemomind.com>
  */
 
-#include <device/anemobox/logger/LogLoader.h>
+#include <server/nautical/logs/LogLoader.h>
 #include <device/anemobox/logger/Logger.h>
 #include <server/common/logging.h>
 

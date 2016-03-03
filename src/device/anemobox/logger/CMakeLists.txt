@@ -20,13 +20,6 @@ target_link_libraries(anemobox_LogToNav
                       anemobox_Logger
                       nautical_NavCompatibility
                      )
-cxx_test(anemobox_LogLoaderTest LogLoaderTest.cpp
-         anemobox_Dispatcher
-         anemobox_LogToNav
-         anemobox_Logger
-         anemobox_LogLoader
-         gtest_main
-        )
 
 add_executable(anemobox_logToNmea LogToNmea.cpp)
 target_link_libraries(anemobox_logToNmea
@@ -36,12 +29,4 @@ target_link_libraries(anemobox_logToNmea
                       common_logging
                       device_NmeaParser
                       nautical_NavToNmea
-                     )
-
-add_library(anemobox_LogLoader
-            LogLoader.h
-            LogLoader.cpp
-           )
-target_link_libraries(anemobox_LogLoader
-                      anemobox_Logger
                      )
