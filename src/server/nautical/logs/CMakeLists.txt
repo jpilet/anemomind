@@ -6,13 +6,13 @@ add_library(logs_LogLoader
            )
 target_link_libraries(logs_LogLoader
                       anemobox_Logger
+                      anemobox_Dispatcher
+                      anemobox_Logger
+                      nautical_NavDataset
                      )
                      
 cxx_test(logs_LogLoaderTest 
          LogLoaderTest.cpp
-         anemobox_Dispatcher
-         anemobox_LogToNav
-         anemobox_Logger
          logs_LogLoader
          gtest_main
         )

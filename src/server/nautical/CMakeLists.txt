@@ -440,7 +440,6 @@ add_library(nautical_NavLoader
             NavLoader.cpp
            )
 target_link_libraries(nautical_NavLoader
-                      anemobox_LogToNav
                       common_logging
                       common_string
                       nautical_NavNmea

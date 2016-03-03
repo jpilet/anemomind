@@ -54,7 +54,7 @@ void insertValues(DataCode code,
   }
 }
 
-void LogLoader::addToDispatcher(Dispatcher *dst) {
+void LogLoader::addToDispatcher(Dispatcher *dst) const {
 
   // Set the priorities first!
   for (auto kv: _sourcePriority) {
@@ -65,6 +65,12 @@ void LogLoader::addToDispatcher(Dispatcher *dst) {
     insertValues<TYPE>(HANDLE, _##HANDLE##sources, dst);
     FOREACH_CHANNEL(INSERT_VALUES);
 #undef  INSERT_VALUES
+}
+
+NavDataset LogLoader::makeNavDataset() const {
+  auto d = std::make_shared<Dispatcher>();
+  addToDispatcher(d.get());
+  return NavDataset(d);
 }
 
 }

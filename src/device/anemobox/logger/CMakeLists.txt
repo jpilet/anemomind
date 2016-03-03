@@ -14,19 +14,12 @@ target_link_libraries(anemobox_logcat
                       common_ArgMap
                       common_logging)
 
-add_library(anemobox_LogToNav LogToNav.h LogToNav.cpp)
-target_link_libraries(anemobox_LogToNav
-                      anemobox_DispatcherTrueWindEstimator
-                      anemobox_Logger
-                      nautical_NavCompatibility
-                     )
-
 add_executable(anemobox_logToNmea LogToNmea.cpp)
 target_link_libraries(anemobox_logToNmea
-                      anemobox_LogToNav
                       anemobox_Logger
                       common_ArgMap
                       common_logging
                       device_NmeaParser
                       nautical_NavToNmea
+                      logs_LogLoader
                      )

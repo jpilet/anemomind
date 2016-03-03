@@ -5,11 +5,12 @@
 #include <device/anemobox/logger/Logger.h>
 
 #include <device/Arduino/libraries/NmeaParser/NmeaParser.h>
-#include <device/anemobox/logger/LogToNav.h>
+#include <server/nautical/logs/LogLoader.h>
 #include <logger.pb.h>
 #include <server/common/ArgMap.h>
 #include <server/common/logging.h>
 #include <server/nautical/NavToNmea.h>
+#include <server/nautical/NavCompatibility.h>
 
 #include <algorithm>
 #include <iomanip>
@@ -18,8 +19,8 @@
 
 using namespace sail;
 using namespace std;
-
 using namespace sail::NavCompat;
+
 
 namespace {
 
@@ -84,7 +85,9 @@ void textFieldToNmeaSentences(const LogFile& data, const string& field,
 
 
 void exportRMC(const LogFile& data, vector<TimedString> *sentences) {
-  NavDataset navs = logFileToNavArray(data);
+  LogLoader loader;
+  loader.load(data);
+  NavDataset navs = loader.makeNavDataset();
   if (getNavSize(navs) == 0) {
     LOG(WARNING) << "No GPS position found.";
     return;

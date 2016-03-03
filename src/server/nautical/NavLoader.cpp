@@ -2,7 +2,6 @@
 #include <server/nautical/NavLoader.h>
 
 #include <Poco/Path.h>
-#include <device/anemobox/logger/LogToNav.h>
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <server/nautical/NavNmea.h>
@@ -15,8 +14,6 @@ ParsedNavs loadNavsFromFile(std::string file, Nav::Id boatId) {
 
   if (ext == "txt") {
     return loadNavsFromNmea(file, boatId);
-  } else if (ext == "log") {
-    return ParsedNavs(logFileToNavArray(file));
   } else if (ext == "csv") {
     return ParsedNavs(NavCsv::parse(file));
   } else {

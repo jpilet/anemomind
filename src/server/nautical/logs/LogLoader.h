@@ -7,6 +7,7 @@
 #define DEVICE_ANEMOBOX_LOGGER_LOGLOADER_H_
 
 #include <device/anemobox/Dispatcher.h>
+#include <server/nautical/NavDataset.h>
 
 namespace sail {
 
@@ -29,7 +30,9 @@ class LogLoader {
   // been loaded into this object, call this method
   // to sort the data once and put it inside a dispatcher
   // named 'dst'
-  void addToDispatcher(Dispatcher *dst);
+  void addToDispatcher(Dispatcher *dst) const;
+
+  NavDataset makeNavDataset() const;
  private:
 
 #define MAKE_SOURCE_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
