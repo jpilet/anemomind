@@ -7,7 +7,7 @@ ExternalProject_Add(poco_ext
         INSTALL_DIR "${CMAKE_BINARY_DIR}/third-party/poco-install"
         CONFIGURE_COMMAND "${CMAKE_BINARY_DIR}/third-party/poco-build-src/configure"
             "--prefix=${CMAKE_BINARY_DIR}/third-party/poco-install"
-            "--omit=Data/MySQL,Data/ODBC"
+            "--omit=Data/MySQL,Data/ODBC,NetSSL_OpenSSL,Crypto"
             "--no-tests" "--no-samples"
         UPDATE_COMMAND ""
         INSTALL_COMMAND make install

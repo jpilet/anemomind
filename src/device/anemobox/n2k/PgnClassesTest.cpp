@@ -45,7 +45,7 @@ class TestWindVisitor : public PgnClasses::PgnVisitor {
       if (!packet.valid()) {
         return false;
       }
-      if (c.src != "MyWindsensor") {
+      if (c.longSrc != "MyWindsensor") {
         return false;
       }
 
@@ -58,9 +58,10 @@ class TestWindVisitor : public PgnClasses::PgnVisitor {
 };
 
 TEST(PgnClassesTest, WindVisitor) {
-  uint8_t data[] = {0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
+  std::vector<uint8_t> data{0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
   TestWindVisitor visitor;
+  uint8_t shortSrc = 119;
   EXPECT_TRUE(visitor.visit(PgnClasses::CanPacket{
-    "MyWindsensor", PgnClasses::WindData::ThisPgn, data, 8}));
+    "MyWindsensor", shortSrc, PgnClasses::WindData::ThisPgn, data}));
 }
 
