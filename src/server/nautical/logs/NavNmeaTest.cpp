@@ -5,8 +5,9 @@
 
 #include <gtest/gtest.h>
 #include <sstream>
-#include <server/nautical/NavNmea.h>
+#include <server/nautical/logs/LogLoader.h>
 #include <server/common/string.h>
+#include <server/nautical/NavCompatibility.h>
 
 using namespace sail;
 

@@ -51,6 +51,7 @@ target_link_libraries(nautical_ParseExample
                       nautical_HTreeJson
                       common_HierarchyJson
                       math_hmm_StateAssign
+                      logs_LogLoader
                      )
 target_depends_on_poco_foundation(nautical_ParseExample)                                                                    
                

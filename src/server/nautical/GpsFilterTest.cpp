@@ -7,7 +7,7 @@
 #include <server/nautical/GpsFilter.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logs/LogLoader.h>
 #include <server/plot/extra.h>
 #include <server/nautical/WGS84.h>
 #include <server/common/ArrayIO.h>
@@ -41,8 +41,9 @@ NavDataset getPsarosTestData() {
     .pushDirectory("psaros33_Banque_Sturdza")
     .pushDirectory("2014")
     .pushDirectory("20140821").get();
-  auto navs = scanNmeaFolder(p, Nav::debuggingBoatId());
-  return sliceFrom(navs, 3000);
+  LogLoader loader;
+  loader.load(p.toString());
+  return sliceFrom(loader.makeNavDataset(), 3000);
 }
 
 NavDataset applyOutliers(NavDataset navs) {
@@ -161,16 +162,20 @@ NavDataset getIreneTestData() {
     .pushDirectory("2013")
     .pushDirectory("Flensburg2013")
     .pushDirectory("entrainement 31.7").get();
-  auto navs = scanNmeaFolder(p, Nav::debuggingBoatId());
-  return splitNavsByDuration(navs, Duration<double>::hours(1.0))[1];
+  LogLoader loader;
+  loader.load(p.toString());
+  return splitNavsByDuration(loader.makeNavDataset(),
+      Duration<double>::hours(1.0))[1];
 }
 
 Array<NavDataset> getAllIreneData() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("Irene").get();
-  auto navs = scanNmeaFolder(p, Nav::debuggingBoatId());
-  return splitNavsByDuration(navs, Duration<double>::hours(1.0));
+  LogLoader loader;
+  loader.load(p.toString());
+  return splitNavsByDuration(loader.makeNavDataset(),
+      Duration<double>::hours(1.0));
 }
 
 

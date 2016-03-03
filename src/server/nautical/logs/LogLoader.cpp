@@ -167,19 +167,24 @@ void parseNmea0183Char(char c, NmeaParser *parser, SourcesToPopulate *toPopulate
     }
 }
 
+void loadNmea0183Stream(std::istream *stream, LogLoader *dst) {
+  NmeaParser parser;
+  parser.setIgnoreWrongChecksum(true);
+  SourcesToPopulate toPopulate("NMEA0183", dst);
+  while (stream->good()) {
+    char c;
+    stream->get(c);
+    parseNmea0183Char(c, &parser, &toPopulate);
+  }
+}
+
+
 /**
  * Loading NMEA0183 coded files
  */
 void loadNmea0183File(const std::string &filename, LogLoader *dst) {
   std::ifstream file(filename);
-  NmeaParser parser;
-  parser.setIgnoreWrongChecksum(true);
-  SourcesToPopulate toPopulate("NMEA0183", dst);
-  while (file.good()) {
-    char c;
-    file.get(c);
-    parseNmea0183Char(c, &parser, &toPopulate);
-  }
+  loadNmea0183Stream(&file, dst);
 }
 
 Angle<double> degrees = Angle<double>::degrees(1.0);
@@ -324,6 +329,10 @@ void LogLoader::loadFile(const std::string &filename) {
   } else {
     LOG(ERROR) << filename << ": unknown log file extension.";
   }
+}
+
+void LogLoader::loadNmea0183(std::istream *s) {
+  loadNmea0183Stream(s, this);
 }
 
 void LogLoader::load(const std::string &name) {

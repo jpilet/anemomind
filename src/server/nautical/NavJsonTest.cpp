@@ -12,7 +12,8 @@
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <server/nautical/NavJson.h>
-#include <server/nautical/NavNmea.h>
+#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/NavCompatibility.h>
 
 // For some reason, Json.h must be included after NavJson.h.
 #include <server/common/Json.h>
@@ -123,9 +124,10 @@ TEST(NavJsonTest, BackwardCompatibilityTest) {
 }
 
 TEST(NavJsonTest, RealNav) {
-  auto navs = makeArray(loadNavsFromNmea(
-      string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"),
-      Nav::Id("B0A10000")).navs());
+  LogLoader loader;
+  loader.load(string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"));
+
+  auto navs = loader.makeNavDataset();
 
   std::stringstream ss;
   Poco::JSON::Stringifier::stringify(json::serialize(navs), ss, 0, 0);

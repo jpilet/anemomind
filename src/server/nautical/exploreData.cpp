@@ -8,7 +8,7 @@
 #include <server/common/ArgMap.h>
 #include <server/common/logging.h>
 #include <server/common/PathBuilder.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logs/LogLoader.h>
 #include <iostream>
 #include <server/common/Span.h>
 #include <server/plot/extra.h>
@@ -18,6 +18,8 @@
 #include <server/common/string.h>
 #include <server/common/ArrayIO.h>
 #include <server/common/Functional.h>
+#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/NavCompatibility.h>
 
 using namespace sail;
 using namespace sail::NavCompat;
