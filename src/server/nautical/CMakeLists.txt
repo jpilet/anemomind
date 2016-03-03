@@ -21,21 +21,6 @@ target_link_libraries(nautical_nav
                       common_Array
                      )
   
-add_library(nautical_NavNmea
-            NavNmea.h  
-            NavNmea.cpp
-           )
-target_link_libraries(nautical_NavNmea
-                      nautical_NavCompatibility
-                      device_NmeaParser
-                      common_ScopedLog
-                     )
-
-cxx_test(nautical_NavNmeaTest
-         NavNmeaTest.cpp
-         nautical_NavNmea
-         gtest_main
-        )
 
 
 cxx_test(nautical_BoatLogProcessorTest
@@ -44,20 +29,6 @@ cxx_test(nautical_BoatLogProcessorTest
          common_Env
          gtest_main
         )
-
-
-            
-
-add_library(nautical_NavNmeaScan            
-            NavNmeaScan.h
-            NavNmeaScan.cpp
-           )
-target_link_libraries(nautical_NavNmeaScan
-                      device_ScreenRecordingSimulator
-                      nautical_NavNmea
-                      nautical_NavLoader
-                      common_filesystem
-                     )
 
 add_library(nautical_HTreeJson
             HTreeJson.h                     
@@ -75,7 +46,6 @@ add_executable(nautical_ParseExample
 target_link_libraries(nautical_ParseExample
                       common_Env
                       common_PathBuilder
-                      nautical_NavNmeaScan
                       nautical_grammars_WindOrientedGrammar
                       nautical_NavJson
                       nautical_HTreeJson
@@ -84,17 +54,7 @@ target_link_libraries(nautical_ParseExample
                      )
 target_depends_on_poco_foundation(nautical_ParseExample)                                                                    
                
-            
 
-add_executable(nautical_ScanNmeaExample
-               ScanNmeaExample.cpp
-              )
-target_link_libraries(nautical_ScanNmeaExample
-                       common_Env
-                       nautical_NavNmeaScan
-                       common_PathBuilder
-                      )
-  
 
 
 cxx_test(nautical_GeographicPositionTest
@@ -121,7 +81,6 @@ cxx_test(nautical_NavJsonTest
          common_Env
          common_logging
          nautical_NavJson
-         nautical_NavNmea
          gtest_main
         )
         
@@ -170,7 +129,6 @@ target_link_libraries(nautical_BoatLogProcessor
                       nautical_Calibrator
                       nautical_HTreeJson
                       nautical_NavJson
-                      nautical_NavNmeaScan
                       nautical_TargetSpeed
                       nautical_grammars_WindOrientedGrammar
                       common_ArgMap
@@ -196,7 +154,6 @@ target_link_libraries(nautical_Calibrator
                       common_Histogram
                       common_math
                       nautical_FlowErrors
-                      nautical_NavNmeaScan
                       nautical_grammars_WindOrientedGrammar
                       plot_gnuplot
                      )
@@ -244,7 +201,6 @@ add_library(nautical_TestdataNavs
             TestdataNavs.cpp
            )
 target_link_libraries(nautical_TestdataNavs
-                      nautical_NavNmeaScan
                       common_Env
                       common_PathBuilder
                       common_ArgMap
@@ -423,29 +379,7 @@ add_library(nautical_CalibrationBenchmark
 target_link_libraries(nautical_CalibrationBenchmark                         
                       nautical_synthtest_NavalSimulationPrecomp
                       common_EnvUtil
-                      nautical_NavNmeaScan
                      )
-
-add_library(nautical_NavCsv
-            NavCsv.h
-            NavCsv.cpp
-           )
-target_link_libraries(nautical_NavCsv
-                      nautical_nav
-                      common_CsvParser
-                     )           
-
-add_library(nautical_NavLoader
-            NavLoader.h
-            NavLoader.cpp
-           )
-target_link_libraries(nautical_NavLoader
-                      common_logging
-                      common_string
-                      nautical_NavNmea
-                      nautical_NavCsv
-                     )
-target_depends_on_poco_foundation(nautical_NavLoader)                                                                    
 
 
 add_library(nautical_GpsFilter
@@ -464,7 +398,6 @@ cxx_test(nautical_GpsFilterTest
          gtest_main
          common_Env
          common_PathBuilder
-         nautical_NavNmeaScan
          plot_gnuplot
         )                             
 add_executable(nautical_exportNavs
@@ -472,7 +405,6 @@ add_executable(nautical_exportNavs
               )
               
 target_link_libraries(nautical_exportNavs
-                      nautical_NavNmeaScan
                       common_logging
                       common_ArgMap
                       nautical_Calibrator
@@ -499,7 +431,6 @@ target_link_libraries(nautical_exploreData
                       common_ArgMap
                       nautical_nav
                       common_PathBuilder
-                      nautical_NavNmeaScan
                       math_CleanNumArray
                       common_Span
                       nautical_GeographicReference

@@ -20,3 +20,10 @@ cxx_test(logs_LogLoaderTest
          gtest_main
         )
                      
+                     
+cxx_test(nautical_NavNmeaTest
+         NavNmeaTest.cpp
+         logs_LogLoader
+         gtest_main
+        )
+                     
