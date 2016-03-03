@@ -171,7 +171,7 @@ cxx_test(nautical_grammars_WindOrientedGrammarTest
          WindOrientedGrammarTest.cpp
          gtest_main
          nautical_grammars_WindOrientedGrammar
-         nautical_LogLoader
+         logs_LogLoader
          nautical_grammars_TreeExplorer
          common_PathBuilder
          common_Env

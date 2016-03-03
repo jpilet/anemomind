@@ -82,6 +82,7 @@ cxx_test(nautical_NavJsonTest
          common_Env
          common_logging
          nautical_NavJson
+         logs_LogLoader
          gtest_main
         )
         
