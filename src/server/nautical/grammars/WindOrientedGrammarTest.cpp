@@ -6,7 +6,7 @@
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
-#include <server/nautical/NavNmea.h>
+#include <server/nautical/logs/LogLoader.h>
 #include <gtest/gtest.h>
 #include <server/nautical/grammars/TreeExplorer.h>
 #include <server/common/string.h>
@@ -59,8 +59,16 @@ namespace {
 }
 
 TEST(WindOrientedGrammarTest, Hinting) {
-  Poco::Path path = PathBuilder::makeDirectory(Env::SOURCE_DIR).pushDirectory("datasets").pushDirectory("Irene").pushDirectory("2007").pushDirectory("regate_1_dec_07").makeFile("IreneLog.txt").get();
-  NavDataset navs = loadNavsFromNmea(path.toString(), Nav::debuggingBoatId()).navs();
+  Poco::Path path = PathBuilder::makeDirectory(Env::SOURCE_DIR)
+    .pushDirectory("datasets")
+    .pushDirectory("Irene")
+    .pushDirectory("2007")
+    .pushDirectory("regate_1_dec_07")
+    .makeFile("IreneLog.txt").get();
+
+  LogLoader loader;
+  loader.load(path.toString());;
+  auto navs = loader.makeNavDataset();
 
   // Refers to a position in the seq, assuming it is indexed continuously from 0 to 1.
   double startFrac = 0.3;

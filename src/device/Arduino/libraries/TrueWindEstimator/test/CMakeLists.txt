@@ -3,7 +3,8 @@ cxx_test(device_TrueWindEstimatorTest
          common_Env
          common_logging
          nautical_nav
-         nautical_NavNmea
+         logs_LogLoader
+         nautical_NavCompatibility
          gtest_main)
 
 
@@ -15,8 +16,9 @@ target_link_libraries(device_TrueWindPlotExample
                       common_Env
                       common_logging
                       nautical_nav
-                      nautical_NavNmea
                       common_ArgMap
                       plot_gnuplot
+                      logs_LogLoader
                       nautical_TestdataNavs
+                      nautical_NavCompatibility
                      )

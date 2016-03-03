@@ -86,10 +86,10 @@ TEST(TrueWindEstimatorTest, TWACompare) {
 
   for (int i = 0; i < dsCount; i++) {
     std::cout << " i = " << i << std::endl;
-    NavDataset navs = loadNavsFromNmea(
-        string(Env::SOURCE_DIR) +
-        ds[i],
-        Nav::debuggingBoatId()).navs();
+
+    LogLoader loader;
+    loader.load(string(Env::SOURCE_DIR) + ds[i]);
+    auto navs = loader.makeNavDataset();
 
     navs.outputSummary(&(std::cout));
 

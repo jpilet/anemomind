@@ -400,6 +400,7 @@ cxx_test(nautical_GpsFilterTest
          common_Env
          common_PathBuilder
          plot_gnuplot
+         logs_LogLoader
         )                             
 add_executable(nautical_exportNavs
                exportNavs.cpp

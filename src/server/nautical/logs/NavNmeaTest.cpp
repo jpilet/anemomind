@@ -19,10 +19,11 @@ namespace {
 }
 
 TEST(NavNmeaTest, TestComplete) {
-  ParsedNavs navs = loadNavsFromNmea(testfile001, Nav::debuggingBoatId());
-  EXPECT_TRUE(navs.complete());
-  EXPECT_TRUE(makeArray(navs.navs()).hasData());
-  EXPECT_GE(getNavSize(navs.navs()), 0); // Number of times RMC occurs in the string to be parsed
+  LogLoader loader;
+  loader.loadNmea0183(&testfile001);
+  auto navs = loader.makeNavDataset();
+  EXPECT_TRUE(makeArray(navs).hasData());
+  EXPECT_GE(getNavSize(navs), 0); // Number of times RMC occurs in the string to be parsed
 }
 
 namespace {
@@ -31,9 +32,11 @@ namespace {
 }
 
 TEST(NavNmeaTest, TestComplete2) {
-  ParsedNavs navs = loadNavsFromNmea(testfile002, Nav::debuggingBoatId());
-  EXPECT_TRUE(navs.complete());
-  EXPECT_GE(getNavSize(navs.navs()), 0);
+  LogLoader loader;
+  loader.loadNmea0183(&testfile002);
+  auto navs = loader.makeNavDataset();
+  EXPECT_TRUE(navs);
+  EXPECT_GE(getNavSize(navs), 0);
 }
 
 
@@ -41,9 +44,12 @@ TEST(NavNmeaTest, TestIncomplete) {
   const char dataOneTimeStamp[] = "$IIMWV,248,T,05.8,N,A*16\n$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileOneTimeStamp(dataOneTimeStamp);
 
-  ParsedNavs navs = loadNavsFromNmea(testfileOneTimeStamp, Nav::debuggingBoatId());
-  EXPECT_FALSE(navs.complete());
-  EXPECT_EQ(getNavSize(navs.navs()), 0); // Because measurements preceding the first time stamp should be dropped: They could potentially be arbitrarily old.
+  LogLoader loader;
+  loader.loadNmea0183(&testfileOneTimeStamp);
+  auto navs = loader.makeNavDataset();
+  EXPECT_EQ(getNavSize(navs), 0); // Because measurements preceding the first
+                                  // time stamp should be dropped: They could
+                                  // potentially be arbitrarily old.
 }
 
 
@@ -61,9 +67,10 @@ TEST(NavNmeaTest, TestSkipDueToLongThreshold) {
                          "$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                          "$IIRMC,114104,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileWithALongGap(dataWithALongGap);
-  ParsedNavs navs = loadNavsFromNmea(testfileWithALongGap, Nav::debuggingBoatId());
-  EXPECT_FALSE(navs.complete());
-  EXPECT_EQ(getNavSize(navs.navs()), 1);
+  LogLoader loader;
+  loader.loadNmea0183(&testfileWithALongGap);
+  auto navs = loader.makeNavDataset();
+  EXPECT_EQ(getNavSize(navs), 1);
 }
 
 
@@ -80,9 +87,10 @@ TEST(NavNmeaTest, TestIncludeLastTwo) {
                                         "$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                                         "$IIRMC,113904,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileWithoutLongGap(dataWithoutLongGap);
-  ParsedNavs navs = loadNavsFromNmea(testfileWithoutLongGap, Nav::debuggingBoatId());
-  EXPECT_FALSE(navs.complete());
-  EXPECT_EQ(getNavSize(navs.navs()), 2);
+  LogLoader loader;
+  loader.loadNmea0183(&testfileWithoutLongGap);
+  auto navs = loader.makeNavDataset();
+  EXPECT_EQ(getNavSize(navs), 2);
 }
 
 
