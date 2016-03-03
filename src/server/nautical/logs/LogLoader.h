@@ -24,7 +24,7 @@ class LogFile;
 class LogLoader {
  public:
   void load(const LogFile &data);
-  void load(const std::string &filename);
+  void loadAnyFile(const std::string &filename);
 
   // Given that all log files that we want to work with have
   // been loaded into this object, call this method
@@ -33,8 +33,16 @@ class LogLoader {
   void addToDispatcher(Dispatcher *dst) const;
 
   NavDataset makeNavDataset() const;
- private:
 
+  // These methods are needed by the various parsers in order
+  // to populate this object with data.
+#define MAKE_ACCESSORS(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
+  std::map<std::string, TimedSampleCollection<TYPE>::TimedVector> *get##HANDLE##sources() { \
+    return &(_##HANDLE##sources); }
+  FOREACH_CHANNEL(MAKE_ACCESSORS)
+#undef MAKE_ACCESSORS
+
+ private:
 #define MAKE_SOURCE_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   std::map<std::string, TimedSampleCollection<TYPE>::TimedVector> _##HANDLE##sources;
   FOREACH_CHANNEL(MAKE_SOURCE_MAP)
