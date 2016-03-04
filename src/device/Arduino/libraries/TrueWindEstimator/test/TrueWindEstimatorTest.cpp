@@ -49,7 +49,9 @@ TEST(TrueWindEstimatorTest, ManuallyCheckedDataTest) {
   auto navs0 = makeArray(navs);
 
   EXPECT_TRUE(navs0.hasData());
-  EXPECT_EQ(1, getNavSize(navs));
+
+  // A nav is generated for every GPS position, so we will get two navs.
+  EXPECT_EQ(2, getNavSize(navs));
 
   double parameters[TrueWindEstimator::NUM_PARAMS];
   TrueWindEstimator::initializeParameters(parameters);
@@ -85,13 +87,10 @@ TEST(TrueWindEstimatorTest, TWACompare) {
                              string("/datasets/psaros33_Banque_Sturdza/2014/20140627/NMEA0006.TXT")};
 
   for (int i = 0; i < dsCount; i++) {
-    std::cout << " i = " << i << std::endl;
-
     LogLoader loader;
     loader.load(string(Env::SOURCE_DIR) + ds[i]);
     auto navs = loader.makeNavDataset();
 
-    navs.outputSummary(&(std::cout));
 
     navs = sliceTo(navs, 3000);
     int count = getNavSize(navs);
