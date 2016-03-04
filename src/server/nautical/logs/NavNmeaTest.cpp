@@ -49,9 +49,22 @@ TEST(NavNmeaTest, TestIncomplete) {
   LogLoader loader;
   loader.loadNmea0183(&testfileOneTimeStamp);
   auto navs = loader.makeNavDataset();
-  EXPECT_EQ(getNavSize(navs), 0); // Because measurements preceding the first
-                                  // time stamp should be dropped: They could
-                                  // potentially be arbitrarily old.
+  EXPECT_EQ(getNavSize(navs), 1);
+  auto nav = getNav(navs, 0);
+  EXPECT_TRUE(isFinite(nav.geographicPosition().lon()));
+  EXPECT_TRUE(isFinite(nav.geographicPosition().lat()));
+  EXPECT_TRUE(nav.time().defined());
+  EXPECT_TRUE(isFinite(nav.gpsBearing()));
+  EXPECT_TRUE(isFinite(nav.gpsSpeed()));
+
+  EXPECT_FALSE(isFinite(nav.magHdg()));
+  EXPECT_FALSE(isFinite(nav.watSpeed()));
+  EXPECT_FALSE(isFinite(nav.awa()));
+  EXPECT_FALSE(isFinite(nav.twaFromTrueWindOverGround()));
+  EXPECT_FALSE(isFinite(nav.externalTwa()));
+  EXPECT_FALSE(isFinite(nav.externalTws()));
+  EXPECT_FALSE(isFinite(nav.externalTwdir()));
+  EXPECT_FALSE(isFinite(nav.aws()));
 }
 
 
@@ -59,11 +72,18 @@ TEST(NavNmeaTest, TestSkipDueToLongThreshold) {
   /*
    * Nmea data with 3 time-pos sentences.
    *
-   * The first time-pos sentence should be dropped, because whatever
-   * data preceding it (none in this case) could be arbitrarily old.
    *
-   * The last time-pos sentence occurs more than 2 minutes after the time-pos sentence before.
-   * Therefore, the time of the data collected in between cannot be assigned a sufficiently accurate time.
+   * OBSOLETE: The first time-pos sentence should be dropped, because whatever
+   * OBSOLETE: data preceding it (none in this case) could be arbitrarily old.
+   *
+   * OBSOLETE: The last time-pos sentence occurs more than 2 minutes after the time-pos sentence before.
+   * OBSOLETE: Therefore, the time of the data collected in between cannot be assigned a sufficiently accurate time.
+   *
+   * Explanation: There will be as many navs as there are time-pos sequences.
+   * If a sample read from a log file is considered unreliable, it is simply
+   * not put in the channel of the dispatcher when the log file is loaded.
+   *
+   *
    */
   const char dataWithALongGap[] = "$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                          "$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
@@ -72,7 +92,7 @@ TEST(NavNmeaTest, TestSkipDueToLongThreshold) {
   LogLoader loader;
   loader.loadNmea0183(&testfileWithALongGap);
   auto navs = loader.makeNavDataset();
-  EXPECT_EQ(getNavSize(navs), 1);
+  EXPECT_EQ(getNavSize(navs), 3);
 }
 
 
@@ -80,10 +100,12 @@ TEST(NavNmeaTest, TestIncludeLastTwo) {
   /*
    * Nmea with 3 time-pos sentences.
    *
-   * The first sentence will be dropped, for the same reason as for 'dataWithALongGap'.
+   * OBSOLETE: The first sentence will be dropped, for the same reason as for 'dataWithALongGap'.
    *
-   * The last time-pos sentence however occurs close in time to the sentence before and therefore,
-   * the data associated with and the resulting Nav will not be dropped.
+   * OBSOLETE: The last time-pos sentence however occurs close in time to the sentence before and therefore,
+   * OBSOLETE: the data associated with and the resulting Nav will not be dropped.
+   *
+   * Same explanation as for TestSkipDueToLongThreshold
    */
   const char dataWithoutLongGap[] = "$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                                         "$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
@@ -92,7 +114,7 @@ TEST(NavNmeaTest, TestIncludeLastTwo) {
   LogLoader loader;
   loader.loadNmea0183(&testfileWithoutLongGap);
   auto navs = loader.makeNavDataset();
-  EXPECT_EQ(getNavSize(navs), 2);
+  EXPECT_EQ(getNavSize(navs), 3);
 }
 
 
