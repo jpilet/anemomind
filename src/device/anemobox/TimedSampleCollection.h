@@ -92,7 +92,7 @@ void TimedSampleCollection<T>::append(const TimedValue<T>& x) {
     // TODO: Including <server/common/logging.h> causes
     // compilation error when this header is included together
     // with Ceres.
-    std::cout << "WARNING: "
+    std::cerr << "WARNING: "
       << "appending sample "
       << (_samples.back().time - x.time).milliseconds()
       << " ms in the future";
