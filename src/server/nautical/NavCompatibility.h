@@ -14,39 +14,6 @@ namespace sail {
 
 namespace NavCompat {
 
-class LineCalls {
- public:
-  LineCalls(const char *label);
-
-  struct SrcId {
-   SrcId() : filename(nullptr), line(0) {}
-
-   SrcId(const char *f, int l) : filename(f), line(l) {}
-
-   const char *filename;
-   int line;
-
-   bool operator<(const SrcId &other) const {
-     if (line == other.line) {
-       int i = strcmp(filename, other.filename);
-       return i < 0;
-     }
-     return line < other.line;
-   }
-
-   bool operator==(const SrcId &other) const {
-     return !((*this) < other) && !(other < (*this));
-   }
-  };
-
-  void registerCall(const char *filename, int line);
-  void show() const;
- private:
-  const char *_label;
-  SrcId _last;
-  std::map<SrcId, int> _counters;
-};
-
 int getNavSize(const NavDataset &ds);
 bool isValidNavIndex(const NavDataset &ds, int i);
 bool isValidNavBoundaryIndex(const NavDataset &ds, int i);
