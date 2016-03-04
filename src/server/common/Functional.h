@@ -34,18 +34,16 @@ class ArrayIterator {
     return _array[_index];
   }
 
-  const ElementType operator++() {
+  ThisType &operator++() {
     _index++;
-    return *(*this);
+    return *this;
   }
 
-  const ElementType operator++(int) {
+  ThisType &operator++(int) {
     auto x = *(*this);
     _index++;
-    return x;
+    return *this;
   }
-
-
 
   bool operator== (const ArrayIterator &other) const {
     return _index == other._index;
