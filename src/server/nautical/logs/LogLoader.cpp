@@ -12,6 +12,7 @@
 #include <server/common/filesystem.h>
 #include <server/common/CsvParser.h>
 #include <server/common/math.h>
+#include <Poco/String.h>
 
 namespace sail {
 
@@ -255,7 +256,7 @@ CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
   assert(header.rows() == 1);
   int cols = header.cols();
   for (int i = 0; i < cols; i++) {
-    auto h = trim(header(0, i));
+    auto h = Poco::trim(header(0, i));
     auto found = m.find(h);
     bool wasFound = found != m.end();
     _setters.push_back(wasFound? found->second : doNothing);
