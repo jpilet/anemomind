@@ -3,15 +3,15 @@
  *      Author: Jonas Östlund <jonas@anemomind.com>
  */
 
-#include <server/nautical/NavCompatibility.h>
-#include <server/common/Functional.h>
 #include <device/anemobox/Dispatcher.h>
-#include <server/plot/extra.h>
-#include <server/common/LineKM.h>
-#include <server/common/ArrayIO.h>
-#include <server/nautical/WGS84.h>
-#include <server/common/Span.h>
 #include <device/anemobox/DispatcherUtils.h>
+#include <server/common/ArrayIO.h>
+#include <server/common/Functional.h>
+#include <server/common/LineKM.h>
+#include <server/common/Span.h>
+#include <server/nautical/NavCompatibility.h>
+#include <server/nautical/WGS84.h>
+#include <server/plot/extra.h>
 
 namespace sail {
 
