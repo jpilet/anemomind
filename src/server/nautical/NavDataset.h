@@ -152,35 +152,17 @@ public:
     return TimedSampleRange<typename TypeForCode<Code>::type>(lower, upper);
   }
 
-  template <DataCode Code>
-  Optional<typename TypeForCode<Code>::type> lookUpPrioritizedSample(
-      TimeStamp time, const Array<std::string> &orderedSources) const {
-    typedef typename TypeForCode<Code>::type T;
-    const auto &all = _dispatcher->allSources();
-    auto found = all.find(Code);
-    if (found != all.end()) {
-      const auto &sources = found->second;
-      for (auto srcName: orderedSources) {
-        auto found = sources.find(srcName);
-        if (found != sources.end()) {
-          const TimedSampleCollection<T> &data = toTypedDispatchData<Code>(found->second.get())->dispatcher()->values();
-          auto nearest = findNearestTimedValue<T>(data.samples().begin(), data.samples().end(), time);
-          if (nearest.defined()) {
-            if (std::abs((nearest.get().time - time).seconds()) < maxMergeDifSeconds) {
-              return Optional<T>(nearest.get().value);
-            }
-          }
-        }
-      }
-    }
-    return Optional<T>();
-  }
-
   void outputSummary(std::ostream *dst) const;
 
   bool operator== (const NavDataset &other) const {
     return _dispatcher == other._dispatcher && _lowerBound == other._lowerBound
         && _upperBound == other._upperBound;
+  }
+
+  // TODO: Use this method sparingly: Preferably use samples() whenever
+  // possible.
+  const std::shared_ptr<Dispatcher> &getDispatcher() const {
+    return _dispatcher;
   }
 private:
   template <DataCode Code>

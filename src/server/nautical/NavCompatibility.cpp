@@ -164,11 +164,37 @@ namespace {
     {"NavExternal", 1}
   };
 
+
+  template <DataCode Code>
+  Optional<typename TypeForCode<Code>::type> lookUpPrioritizedSample(
+      const std::shared_ptr<Dispatcher> &dispatcher,
+      TimeStamp time, const Array<std::string> &orderedSources) {
+    typedef typename TypeForCode<Code>::type T;
+    const auto &all = dispatcher->allSources();
+    auto found = all.find(Code);
+    if (found != all.end()) {
+      const auto &sources = found->second;
+      for (auto srcName: orderedSources) {
+        auto found = sources.find(srcName);
+        if (found != sources.end()) {
+          const TimedSampleCollection<T> &data = toTypedDispatchData<Code>(found->second.get())->dispatcher()->values();
+          auto nearest = findNearestTimedValue<T>(data.samples().begin(), data.samples().end(), time);
+          if (nearest.defined()) {
+            if (std::abs((nearest.get().time - time).seconds()) < maxMergeDifSeconds) {
+              return Optional<T>(nearest.get().value);
+            }
+          }
+        }
+      }
+    }
+    return Optional<T>();
+  }
+
   template <DataCode code, class T>
   void setNavValueMultiSource(
       const Array<std::string> &orderedSources,
       const NavDataset &data, TimeStamp time, Nav *dst, void (Nav::* set)(T)) {
-    auto sample = data.lookUpPrioritizedSample<code>(time, orderedSources);
+    auto sample = lookUpPrioritizedSample<code>(data.getDispatcher(), time, orderedSources);
     if (sample.defined()) {
       ((*dst).*set)(sample.get());
     } else {
