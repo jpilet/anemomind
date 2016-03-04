@@ -16,6 +16,7 @@
 #ifndef PHYSICALQUANTITY_H_
 #define PHYSICALQUANTITY_H_
 
+#include <server/common/numerics.h>
 #ifdef ON_SERVER
 #include <cmath>
 #include <limits>
@@ -26,6 +27,7 @@
 #include <math.h>
 #endif
 
+// TODO: Do we still need this?
 // workaround some arduino #define..
 #ifdef degrees
 #undef degrees
@@ -39,8 +41,6 @@
 #endif
 
 namespace sail {
-
-template<class T> inline bool isNaNOrFalse(T x) { return x!=x; }
 
 /*
  * These macros may not be in conformity with the
@@ -117,10 +117,11 @@ class PhysicalQuantity {
 
   Quantity fabs() const { return Quantity::makeFromX(::fabs(_x)); }
 
-  // isNaN returns isnan if Quantity is of type float or double. Otherwise,
-  // the function returns false.
-  bool isNaN() const { return isNaNOrFalse(_x); }
-  bool isFinite() const { return std::isfinite(_x); }
+  // Please use sail::isFinite defined in
+  // <server/common/numeric.h> to test if
+  // PhysicalQuantity is finite. Same goes for nan.
+  bool isNaNQuantity() const { return sail::isNaN(_x); }
+  bool isFiniteQuantity() const { return sail::isFinite(_x); }
 
   // Comparison --> bool
   bool operator < (ThisQuantity other) const {return _x < other.get();}
@@ -423,16 +424,17 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
     };
 };
 
+template <typename Q, typename V>
+bool isFinitePhysicalQuantity(const PhysicalQuantity<Q, V> &x) {
+  return x.isFiniteQuantity();
+}
+template <typename Q, typename V>
+bool isNaNPhysicalQuantity(const PhysicalQuantity<Q, V> &x) {
+  return x.isNaNQuantity();
+}
 
-template <typename T>
-struct IsFinite<T>;
-
-template <typename T> // In case T has .isFinite method, such as T = PhysicalQuantity<...>
-struct IsFinite<T, decltype((std::declval<T>()).isFinite())> {
-  static bool evaluate(const T &x) {
-    return x.isFinite();
-  }
-};
+SPECIALIZE_NUMERIC_TEMPLATE(IsFinite, isFinitePhysicalQuantity)
+SPECIALIZE_NUMERIC_TEMPLATE(IsNaN, isNaNPhysicalQuantity)
 
 }  // namespace sail
 
@@ -446,10 +448,6 @@ Quantity fabs(sail::PhysicalQuantity<Quantity, Value> x) {
   return x.fabs();
 }
 
-template <typename Quantity, typename Value>
-bool isnan(const sail::PhysicalQuantity<Quantity, Value>& x) {
-  return x.isNaN();
-}
 
 
 #endif /* PHYSICALQUANTITY_H_ */

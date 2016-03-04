@@ -8,6 +8,7 @@
 
 #include <cassert>
 #include <functional>
+#include <server/common/numerics.h>
 
 template <typename T>
 class Optional {
@@ -87,17 +88,22 @@ class Optional {
     }
     return Optional<Other>();
   }
-
-  bool isNan() const {
-    if (_defined) {
-      return genericIsNan(_value);
-    }
-    return true;
-  }
  private:
   bool _defined;
   T _value;
 };
+
+namespace sail {
+  template <typename T>
+  bool isNaNOptional(const Optional<T> &x) {
+    if (x.defined()) {
+      return isNaN(x.get());
+    }
+    return true;
+  }
+
+  SPECIALIZE_NUMERIC_TEMPLATE(IsNaN, isNaNOptional)
+}
 
 
 #endif /* SERVER_COMMON_OPTIONAL_H_ */

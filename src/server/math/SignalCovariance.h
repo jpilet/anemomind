@@ -28,16 +28,6 @@ bool isReasonable(T x) {
   return -maxv < x && x < maxv;
 }
 
-template <typename T>
-bool hasNan(Array<T> X) {
-  for (auto x: X) {
-    if (genericIsNan(x)) {
-      return true;
-    }
-  }
-  return false;
-}
-
 struct Settings {
   Settings() : windowSize(30), maxResidualCount(100), absThresh(1.0e-6) {}
   int windowSize;
@@ -140,7 +130,7 @@ struct SignalData {
  SignalData(Arrayd times, Array<T> signal, Settings s) :
    time(times), X(signal), itgX(signal), _variance(-1),
    _windowSize(s.windowSize) {
-   assert(!hasNan(X));
+   assert(!isNaN(X));
  }
 
  int sampleCount() const {
@@ -182,9 +172,9 @@ T calcLocalCovariance(SignalData<T> X, SignalData<T2> Y, Integral1d<T> itgXY,
   auto xy = itgXY.average(from, to);
   auto x = X.itgX.average(from, to);
   auto y = Y.itgX.average(from, to);
-  assert(!genericIsNan(xy));
-  assert(!genericIsNan(x));
-  assert(!genericIsNan(y));
+  assert(!isNaN(xy));
+  assert(!isNaN(x));
+  assert(!isNaN(y));
   return xy - x*y;
 }
 
@@ -214,18 +204,18 @@ void evaluateResiduals(T globalWeight, // The global weight can be 1.0/(sigmaX*s
     int from = i;
     int to = from + s.windowSize;
     T weight = T(calcSpanWeight(time, from, to));
-    assert(!genericIsNan(weight));
+    assert(!isNaN(weight));
     int index = int(floor(sampleToResidual(i)));
-    assert(!genericIsNan(weight));
+    assert(!isNaN(weight));
     auto cov = calcLocalCovariance(X, Y, itgXY, from, to);
-    assert(!genericIsNan(cov));
+    assert(!isNaN(cov));
     (*residuals)[index] += weight*s.abs(cov);
   }
   for (int i = 0; i < residualCount; i++) {
     T &r = (*residuals)[i];
-    assert(!genericIsNan(r));
+    assert(!isNaN(r));
     r = sqrt(globalWeight*r);
-    assert(!genericIsNan(r));
+    assert(!isNaN(r));
   }
 }
 

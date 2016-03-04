@@ -18,7 +18,7 @@ namespace sail {
 namespace {
   template <typename T>
   bool isDefined(const T &x) {
-    return !x.isNaN();
+    return isFinite(x);
   }
 
   template <>
@@ -507,7 +507,7 @@ int findMaxSpeedOverGround(NavDataset navs) {
   for (int i = 0; i < getNavSize(navs); ++i) {
     const Nav &nav = getNav(navs, i);
     Velocity<double> sog = nav.gpsSpeed();
-    if (!sog.isNaN() && maxSOG < sog && validTime.contains(nav.time())) {
+    if (!isNaN(sog) && maxSOG < sog && validTime.contains(nav.time())) {
       maxSOG = sog;
       bestIndex = i;
     }

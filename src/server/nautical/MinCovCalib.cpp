@@ -132,7 +132,7 @@ Array<T> getSpeedsKnots(Array<CalibratedNav<T> > cnavs, bool wind, int indexXY) 
   Array<T> dst(n);
   for (int i = 0; i < n; i++) {
     auto x = getSpeedKnots(cnavs[i]);
-    assert(!genericIsNan(x));
+    assert(!isNaN(x));
     dst[i] = x;
   }
   return dst;

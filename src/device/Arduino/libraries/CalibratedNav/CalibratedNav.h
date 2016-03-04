@@ -56,15 +56,15 @@ class CalibratedNav {
     driftAngle(Angle<T>::degrees(T(0))) {}
 
   bool hasNan() const {
-    return rawAwa.isNan() ||
-        rawAws.isNan() ||
-        rawMagHdg.isNan() ||
-        rawWatSpeed.isNan() ||
-        driftAngle.isNan() ||
-        calibWatSpeed.isNan() ||
-        calibAws.isNan() ||
-        calibAwa.isNan() ||
-        boatOrientation.isNan();
+    return isNaN(rawAwa) ||
+        isNaN(rawAws) ||
+        isNaN(rawMagHdg) ||
+        isNaN(rawWatSpeed) ||
+        isNaN(driftAngle) ||
+        isNaN(calibWatSpeed) ||
+        isNaN(calibAws) ||
+        isNaN(calibAwa) ||
+        isNaN(boatOrientation);
   }
 
   /*
