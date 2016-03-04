@@ -15,6 +15,9 @@
 
 namespace sail {
 
+template <typename T>
+bool isFinite(const T &x);
+
 template <int a, int b>
 class StaticPower {
  public:
@@ -328,19 +331,24 @@ inline bool implies(bool a, bool b) {
 }
 
 template <typename T, int dims>
-bool isFinite(MDArray<T, dims> X) {
-  for (int i = 0; i < X.numel(); i++) {
-    if (!std::isfinite(X[i])) {
-      return false;
+bool isFiniteMDArray(const MDArray<T, dims> &X) {
+  /*int rows = X.rows();
+  int cols = X.cols();
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      T x = X(i, j);
+      if (!isFinite(x)) {
+        return false;
+      }
     }
-  }
+  }*/
   return true;
 }
 
 template <typename T>
-bool isFinite(Array<T> X) {
+bool isFiniteArray(Array<T> X) {
   for (int i = 0; i < X.size(); i++) {
-    if (!std::isfinite(X[i])) {
+    if (!isFinite(X[i])) {
       return false;
     }
   }
@@ -371,6 +379,36 @@ T toFinite(T x, T defaultValue) {
 template <typename T>
 T clamp(T x, T lower, T upper) {
   return std::min(std::max(x, lower), upper);
+}
+
+// SFINAE: http://jguegant.github.io/blogs/tech/sfinae-introduction.html
+// So that we can have a single IsFinite<T>::evaluate(x) for any type T,
+// be it composite template type or a primitive, or anything else.
+template <typename T, typename=std::string>
+struct IsFinite {
+ static bool evaluate(const T &x) {
+   return std::isfinite(x);
+ }
+};
+
+template <typename T>
+struct IsFinite<T, decltype(isFiniteMDArray(std::declval<T>()))> {
+  static bool evaluate(const MDArray<T, 2> &array) {
+    return isFiniteMDArray(array);
+  }
+};
+
+template <typename T>
+struct IsFinite<T, decltype(isFiniteArray(std::declval<T>()))> {
+  static bool evaluate(const Array<T> &array) {
+    return isFiniteArray(array);
+  }
+};
+
+
+template <typename T>
+bool isFinite(const T &x) {
+  return IsFinite<T>::evaluate(x);
 }
 
 Arrayd makeNextRegCoefs(Arrayd coefs);

@@ -120,6 +120,7 @@ class PhysicalQuantity {
   // isNaN returns isnan if Quantity is of type float or double. Otherwise,
   // the function returns false.
   bool isNaN() const { return isNaNOrFalse(_x); }
+  bool isFinite() const { return std::isfinite(_x); }
 
   // Comparison --> bool
   bool operator < (ThisQuantity other) const {return _x < other.get();}
@@ -423,7 +424,15 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
 };
 
 
+template <typename T>
+struct IsFinite<T>;
 
+template <typename T> // In case T has .isFinite method, such as T = PhysicalQuantity<...>
+struct IsFinite<T, decltype((std::declval<T>()).isFinite())> {
+  static bool evaluate(const T &x) {
+    return x.isFinite();
+  }
+};
 
 }  // namespace sail
 
@@ -441,5 +450,6 @@ template <typename Quantity, typename Value>
 bool isnan(const sail::PhysicalQuantity<Quantity, Value>& x) {
   return x.isNaN();
 }
+
 
 #endif /* PHYSICALQUANTITY_H_ */
