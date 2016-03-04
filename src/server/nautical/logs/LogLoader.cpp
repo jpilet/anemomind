@@ -336,11 +336,15 @@ void LogLoader::loadNmea0183(std::istream *s) {
 }
 
 void LogLoader::load(const std::string &name) {
+  load(Poco::Path(name));
+}
+
+void LogLoader::load(const Poco::Path &name) {
   FileTraverseSettings settings;
   settings.visitDirectories = false;
   settings.visitFiles = true;
   traverseDirectory(
-      Poco::Path(name),
+      name,
       [&](const Poco::Path &path) {
     loadFile(path.toString());
   }, settings);

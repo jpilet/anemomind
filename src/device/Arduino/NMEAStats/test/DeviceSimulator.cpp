@@ -18,6 +18,9 @@ extern void setup();
 #include <server/common/logging.h>
 #include <server/nautical/logs/LogLoader.h>
 
+namespace sail {
+  TimeStamp getTime(const NmeaParser& parser);
+}
 
 DeviceSimulator *fakeArduino = 0;
 
@@ -60,6 +63,9 @@ sail::TimeStamp DeviceSimulator::getTimeStamp() const {
   return _referenceTime + Duration<>::milliseconds(
       _arduinoTimeMs - _referenceMillis);
 }
+
+
+
 
 void DeviceSimulator::sendData(const std::string& data) {
 

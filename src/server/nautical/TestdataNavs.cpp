@@ -18,7 +18,9 @@ using namespace sail::NavCompat;
 
 namespace {
   NavDataset getNavsFromPath(Poco::Path p) {
-    return scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
+    LogLoader loader;
+    loader.load(p.toString());
+    return loader.makeNavDataset();
   }
 }
 

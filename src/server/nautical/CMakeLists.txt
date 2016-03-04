@@ -83,6 +83,7 @@ cxx_test(nautical_NavJsonTest
          common_logging
          nautical_NavJson
          logs_LogLoader
+         nautical_NavCompatibility
          gtest_main
         )
         
@@ -206,6 +207,8 @@ target_link_libraries(nautical_TestdataNavs
                       common_Env
                       common_PathBuilder
                       common_ArgMap
+                      logs_LogLoader
+                      nautical_NavCompatibility
                      )
 
 
@@ -278,6 +281,7 @@ target_link_libraries(nautical_FilteredNavData
                       plot_gnuplot
                       math_nonlinear_GeneralizedTV
                       common_MeanAndVar
+                      common_ScopedLog
                      )
 
                      
@@ -437,6 +441,8 @@ target_link_libraries(nautical_exploreData
                       math_CleanNumArray
                       common_Span
                       nautical_GeographicReference
+                      nautical_NavCompatibility
+                      logs_LogLoader
                      )
 
 add_executable(nautical_catTargetSpeed

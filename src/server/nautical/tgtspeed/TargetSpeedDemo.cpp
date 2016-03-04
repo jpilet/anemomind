@@ -16,7 +16,7 @@
 #include <server/math/nonlinear/LevmarSettings.h>
 #include <server/common/ArrayIO.h>
 #include <server/nautical/TemporalSplit.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logs/LogLoader.h>
 #include <server/common/logging.h>
 #include <server/nautical/tgtspeed/TargetSpeedParam.h>
 #include <server/nautical/tgtspeed/TargetSpeedPoint.h>
@@ -154,9 +154,10 @@ namespace {
   void processFolder(Settings s, std::string path) {
     Poco::Path p(path);
     s.prefix = "/tmp/tgtspeed_" + p.getBaseName();
+    LogLoader loader;
+    loader.load(path);
     process(s, [&]() {
-        return scanNmeaFolder(
-            path, "unnamed");
+        return loader.makeNavDataset();
     });
   }
 }

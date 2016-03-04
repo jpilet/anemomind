@@ -6,7 +6,7 @@
 // The array is sorted.
 
 #include <device/Arduino/NMEAStats/test/ScreenRecordingSimulator.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logs/LogLoader.h>
 #include <stdio.h>
 
 using namespace sail;

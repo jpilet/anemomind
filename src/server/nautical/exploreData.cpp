@@ -375,7 +375,12 @@ bool exploreSlice(NavDataset allNavs, Spani span) {
 }
 
 int continueParsing(ArgMap &amap) {
-  NavDataset navs = scanNmeaFolders(getPaths(amap), Nav::debuggingBoatId());
+  LogLoader loader;
+  auto paths = getPaths(amap);
+  for (auto p: paths) {
+    loader.load(p);
+  }
+  NavDataset navs = loader.makeNavDataset();
   if (isEmpty(navs)) {
     LOG(WARNING) << "No navs loaded.";
     return 0;

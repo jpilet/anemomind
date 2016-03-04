@@ -8,6 +8,8 @@
 
 #include <server/nautical/NavDataset.h>
 
+namespace Poco {class Path;}
+
 namespace sail {
 
 class LogFile;
@@ -27,6 +29,7 @@ class LogLoader {
 
   // Load a file, or all logfiles in a directory and its subdirectories.
   void load(const std::string &name);
+  void load(const Poco::Path &name);
 
   void loadNmea0183(std::istream *s);
 

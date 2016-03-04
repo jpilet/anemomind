@@ -9,6 +9,7 @@ target_link_libraries(nautical_tgtspeed_TargetSpeedDemo
                       nautical_tgtspeed_TargetSpeedPoint
                       nautical_tgtspeed_TargetSpeedSolver
                       nautical_tgtspeed_table
+                      logs_LogLoader
                      )
                      
 add_library(nautical_tgtspeed_TargetSpeedParam
@@ -29,6 +30,7 @@ add_library(nautical_tgtspeed_TargetSpeedSolver
 target_link_libraries(nautical_tgtspeed_TargetSpeedSolver
                       nautical_tgtspeed_TargetSpeedParam
                       math_nnls
+                      common_ScopedLog
                      )           
               
                                    

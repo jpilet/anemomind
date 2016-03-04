@@ -3,7 +3,8 @@
 
 #include <device/Arduino/NMEAStats/test/ScreenRecordingSimulator.h>
 #include <server/common/Env.h>
-#include <server/nautical/NavNmea.h>
+#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/NavCompatibility.h>
 
 using namespace sail;
 

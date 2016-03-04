@@ -28,7 +28,8 @@ target_link_libraries(device_DeviceSimulator
          device_NmeaParser
          device_TargetSpeed
          device_PolarSpeedTable
-         nautical_NavNmea
+         logs_LogLoader
+         anemobox_Nmea0183Source
          )
 
 cxx_test(device_NmeaStatTest
@@ -50,7 +51,7 @@ cxx_test(device_ScreenRecordingSimulatorTest
          ScreenRecordingSimulatorTest.cpp
          device_ScreenRecordingSimulator
          common_Env
-         nautical_NavNmea
+         logs_LogLoader
          gmock_main
         )
 
