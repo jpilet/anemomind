@@ -212,6 +212,7 @@ std::function<void(std::string)> makeSetter(T unit, T *dst) {
 
 std::function<void(std::string)> makeTimeSetter(TimeStamp *dst) {
   return [=](const std::string &s) {
+    LOG(WARNING) << "When parsing CSV dates, fractional seconds are ignored.";
     *dst = TimeStamp::parse(s);
   };
 }

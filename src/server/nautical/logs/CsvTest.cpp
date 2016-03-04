@@ -26,6 +26,7 @@ TEST(CsvTest, Rowdy) {
   EXPECT_NEAR(data.samples<GPS_POS>()[2].value.lon().degrees(), 6.999021099999999, 1.0e-5);
 
   TimeStamp time = data.samples<WAT_SPEED>()[2].time;
-  auto expected = TimeStamp::UTC(2015, 21, 9, 1, 13, 23.80);
-  EXPECT_NEAR(time.toMilliSecondsSince1970(), expected.toMilliSecondsSince1970(), 120);
+  auto expected = TimeStamp::UTC(2015, 9, 21, 13, 13, 23.80);
+
+  EXPECT_NEAR(time.toMilliSecondsSince1970(), expected.toMilliSecondsSince1970(), 1001);
 }
