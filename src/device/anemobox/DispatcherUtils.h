@@ -11,40 +11,6 @@
 
 namespace sail {
 
-// Visit every channel of the dispatcher, apply the Mapper to it, and return a new
-// dispatcher with all channels mapped.
-template <typename Mapper>
-std::shared_ptr<Dispatcher> mapDispatcherChannels(const std::shared_ptr<Dispatcher> &dispatcher, Mapper *m) {
-  auto dst = std::make_shared<Dispatcher>();
-
-  // Setting the priorities should be done first!
-  for (const auto &codeAndSources: dispatcher->allSources()) {
-    auto c = codeAndSources.first;
-    for (const auto &kv: codeAndSources.second) {
-      dst->setSourcePriority(kv.first, dispatcher->sourcePriority(kv.first));
-    }
-  }
-
-  for (const auto &codeAndSources: dispatcher->allSources()) {
-    auto c = codeAndSources.first;
-    for (const auto &kv: codeAndSources.second) {
-
-#define TRY_TO_MAP(handle, code, description, type, shortname) \
-  if (c == handle) {\
-    auto y = m->template apply<handle, type >(\
-        toTypedDispatchData<handle>(kv.second.get())->dispatcher()->values());\
-    dst->insertValues<type >(handle, kv.first, y);\
-  }\
-
-  FOREACH_CHANNEL(TRY_TO_MAP)
-
-#undef TRY_TO_MAP
-
-    }
-  }
-  return dst;
-}
-
 // Visit every channel of a Dispatcher, for side effects.
 template <typename Mapper>
 void visitDispatcherChannels(const std::shared_ptr<Dispatcher> &dispatcher, Mapper *m) {
@@ -64,6 +30,43 @@ void visitDispatcherChannels(const std::shared_ptr<Dispatcher> &dispatcher, Mapp
 
     }
   }
+}
+
+
+template <typename Mapper>
+class MapperVisitor {
+ public:
+  MapperVisitor(Mapper *m, Dispatcher *dst) : _m(m), _dst(dst) {}
+
+  template <DataCode Code, typename T>
+  void visit(const char *shortname, const std::string &srcName,
+      const typename TimedSampleCollection<T>::TimedVector &data) {
+    auto y = _m->template apply<Code, T>(data);
+    _dst->insertValues<T>(Code, srcName, y);
+  }
+ private:
+  Dispatcher *_dst;
+  Mapper *_m;
+};
+
+// Visit every channel of the dispatcher, apply the Mapper to it, and return a new
+// dispatcher with all channels mapped.
+template <typename Mapper>
+std::shared_ptr<Dispatcher> mapDispatcherChannels(const std::shared_ptr<Dispatcher> &dispatcher,
+    Mapper *m) {
+  auto dst = std::make_shared<Dispatcher>();
+
+  // Setting the priorities should be done first!
+  for (const auto &codeAndSources: dispatcher->allSources()) {
+    auto c = codeAndSources.first;
+    for (const auto &kv: codeAndSources.second) {
+      dst->setSourcePriority(kv.first, dispatcher->sourcePriority(kv.first));
+    }
+  }
+
+  MapperVisitor<Mapper> visitor(dispatcher, m);
+  visitDispatcherChannels(dispatcher, &visitor);
+  return dst;
 }
 
 // See also: toTypedDispatchData, which goes almost in opposite direction.
