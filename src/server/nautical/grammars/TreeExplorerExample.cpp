@@ -13,6 +13,7 @@
 #include <iostream>
 
 using namespace sail;
+using namespace sail::NavCompat;
 
 int main(int argc, char *argv[]) {
   WindOrientedGrammarSettings s;
@@ -27,11 +28,11 @@ int main(int argc, char *argv[]) {
     p = argv[1];
   }
 
-  NavCollection navs = scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
+  NavDataset navs = scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
   std::shared_ptr<HTree> tree = g.parse(navs);
   assert(bool(tree));
   auto infoFun = [&] (std::shared_ptr<HTree> tree) {
-      return stringFormat("%.3g seconds", (navs[tree->right()-1].time() - navs[tree->left()].time()).seconds());
+      return stringFormat("%.3g seconds", (getNav(navs, tree->right()-1).time() - getNav(navs, tree->left()).time()).seconds());
     };
   exploreTree(g.nodeInfo(), tree, &std::cout, infoFun);
   return 0;

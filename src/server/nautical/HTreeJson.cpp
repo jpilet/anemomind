@@ -12,18 +12,20 @@
 namespace sail {
 namespace json {
 
+using namespace NavCompat;
+
 namespace {
   class HTreeWithData {
    public:
     HTreeWithData() {}
-    HTreeWithData(std::shared_ptr<HTree> t, NavCollection n, Array<HNode> nodeInfo) :
+    HTreeWithData(std::shared_ptr<HTree> t, NavDataset n, Array<HNode> nodeInfo) :
       _tree(t), _navs(n), _info(nodeInfo) {}
-    const NavCollection &navs() const {return _navs;}
+    const NavDataset &navs() const {return _navs;}
     std::shared_ptr<HTree> tree() const {return _tree;}
     Array<HNode> info() const {return _info;}
    private:
     std::shared_ptr<HTree> _tree;
-    NavCollection _navs;
+    NavDataset _navs;
     Array<HNode> _info;
   };
 
@@ -33,12 +35,12 @@ namespace {
     assert(x->left() < x->right());
     obj->set("code", h.info()[x->index()].code());
     obj->set("description", h.info()[x->index()].description());
-    obj->set("left", h.navs()[x->left()].time().toIso8601String());
+    obj->set("left", getNav(h.navs(), x->left()).time().toIso8601String());
 
     // Important: SUBTRACT ONE SO THAT WE INDEX A VALID ELEMENT.
     // In other words, indexing a subrange is like Matlab with both
     // endpoints included in the range.
-    obj->set("right", h.navs()[x->right() - 1].time().toIso8601String());
+    obj->set("right", getNav(h.navs(), x->right() - 1).time().toIso8601String());
 
 
     Array<std::shared_ptr<HTree> > ch = x->children();
@@ -52,11 +54,11 @@ namespace {
   }
 }
 
-Poco::Dynamic::Var serializeMapped(std::shared_ptr<HTree> x, NavCollection navs, Array<HNode> nodeInfo) {
+Poco::Dynamic::Var serializeMapped(std::shared_ptr<HTree> x, NavDataset navs, Array<HNode> nodeInfo) {
   return serialize(HTreeWithData(x, navs, nodeInfo));
 }
 
-Poco::Dynamic::Var serializeMapped(Array<std::shared_ptr<HTree> > x, NavCollection navs, Array<HNode> nodeInfo) {
+Poco::Dynamic::Var serializeMapped(Array<std::shared_ptr<HTree> > x, NavDataset navs, Array<HNode> nodeInfo) {
   return serialize(toArray(map(x, [&](std::shared_ptr<HTree> h) {return HTreeWithData(h, navs, nodeInfo);})));
 }
 

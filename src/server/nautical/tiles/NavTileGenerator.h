@@ -3,7 +3,7 @@
 
 #include <server/common/Array.h>
 #include <server/nautical/GeographicPosition.h>
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 #include <set>
 #include <tuple>
 
@@ -44,15 +44,15 @@ class TileKey {
 double posToTileX(int scale, const GeographicPosition<double>& pos);
 double posToTileY(int scale, const GeographicPosition<double>& pos);
 
-Array<NavCollection> generateTiles(TileKey tileKey,
-                                const NavCollection& nav,
+Array<NavDataset> generateTiles(TileKey tileKey,
+                                const NavDataset& nav,
                                 int maxNumNavs);
 
 // Return a set of tiles on which "navs" should appear.
-std::set<TileKey> tilesForNav(const NavCollection& navs, int maxScale);
+std::set<TileKey> tilesForNav(const NavDataset& navs, int maxScale);
 
 // Generate a unique identifier for this Nav curve.
-std::string tileCurveId(std::string boatId, const NavCollection& navs);
+std::string tileCurveId(std::string boatId, const NavDataset& navs);
 
 }  // namespace sail
 

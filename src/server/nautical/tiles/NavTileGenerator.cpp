@@ -8,17 +8,19 @@
 
 namespace sail {
 
+using namespace NavCompat;
+
 namespace {
 
-NavCollection makeTileElement(TileKey tileKey,
-                           const NavCollection& navs,
+NavDataset makeTileElement(TileKey tileKey,
+                           const NavDataset& navs,
                            int maxNumNavs) {
-  if (navs.size() <= maxNumNavs) {
+  if (getNavSize(navs) <= maxNumNavs) {
     return navs;
   }
 
   CurveSimplifier curve(false);
-  for (const Nav& nav : navs) {
+  for (const Nav& nav : Range(navs)) {
     curve.addPoint(
        posToTileX(0, nav.geographicPosition()), 
        posToTileY(0, nav.geographicPosition()));
@@ -26,12 +28,12 @@ NavCollection makeTileElement(TileKey tileKey,
   std::vector<int> priorities = curve.priorities();
 
   ArrayBuilder<Nav> result;
-  for (int i = 0; i < navs.size(); ++i) {
+  for (int i = 0; i < getNavSize(navs); ++i) {
     if (priorities[i] < maxNumNavs) {
-      result.add(navs[i]);
+      result.add(getNav(navs, i));
     }
   }
-  return NavCollection::fromNavs(result.get());
+  return fromNavs(result.get());
 }
 
 } // namespace
@@ -60,18 +62,19 @@ std::string TileKey::stringKey() const {
   return stringFormat("s%dx%dy%d", _scale, _x, _y);
 }
 
-Array<NavCollection> generateTiles(TileKey tileKey,
-                                const NavCollection& navs,
+Array<NavDataset> generateTiles(TileKey tileKey,
+                                const NavDataset& navs,
                                 int maxNumNavs) {
-  Array<bool> inOrOut = toArray(map(navs,
+  Array<bool> inOrOut = toArray(map(Range(navs),
       [&] (const Nav& nav) -> bool {
           return tileKey.contains(nav.geographicPosition());
       }));
-  ArrayBuilder<NavCollection> result;
+  ArrayBuilder<NavDataset> result;
 
   // The curve might enter and leave the tile multiple times.
   // Group together consecutive points that are in the tile.
-  for (int i = 0; i < navs.size(); ) {
+  int n = getNavSize(navs);
+  for (int i = 0; i < n; /*The missing inc here is not a bug!*/) {
     int first = inOrOut.sliceFrom(i).find(true);
     if (first == -1) {
       break;  // nothing more in this tile.
@@ -86,16 +89,16 @@ Array<NavCollection> generateTiles(TileKey tileKey,
     }
 
     if (end > first) {
-      result.add(makeTileElement(tileKey, navs.slice(first, end), maxNumNavs));
+      result.add(makeTileElement(tileKey, slice(navs, first, end), maxNumNavs));
     }
     i = end;
   }
   return result.get();
 }
 
-std::set<TileKey> tilesForNav(const NavCollection& navs, int maxScale) {
+std::set<TileKey> tilesForNav(const NavDataset& navs, int maxScale) {
   std::set<TileKey> result;
-  for (const Nav& nav : navs) {
+  for (const Nav& nav : Range(navs)) {
     for (int scale = 0; scale < maxScale; scale++) {
       result.insert(TileKey::fromPos(scale, nav.geographicPosition()));
     }
@@ -103,9 +106,9 @@ std::set<TileKey> tilesForNav(const NavCollection& navs, int maxScale) {
   return result;
 }
 
-std::string tileCurveId(std::string boatId, const NavCollection& navs) {
+std::string tileCurveId(std::string boatId, const NavDataset& navs) {
   // TODO: hash this string.
-  return boatId + navs.first().time().toString() + navs.last().time().toString();
+  return boatId + getFirst(navs).time().toString() + getLast(navs).time().toString();
 }
 
 }  // namespace sail

@@ -6,7 +6,7 @@
 #ifndef SERVER_NAUTICAL_GPSFILTER_H_
 #define SERVER_NAUTICAL_GPSFILTER_H_
 
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 #include <server/math/nonlinear/DataFit.h>
 #include <server/nautical/GeographicReference.h>
 
@@ -25,7 +25,7 @@ struct Settings {
 
 struct Results {
   // Before filtering
-  NavCollection rawNavs;
+  NavDataset rawNavs;
   Array<Observation<2> > positionObservations;
 
   // Related to the optimization
@@ -36,13 +36,13 @@ struct Results {
   Spani reliableSampleRange;
 
   Arrayb inlierMask();
-  NavCollection filteredNavs() const;
+  NavDataset filteredNavs() const;
   Sampling::Weights calcWeights(TimeStamp t) const;
   HorizontalMotion<double> calcMotion(const Sampling::Weights &w) const;
   GeographicPosition<double> calcPosition(const Sampling::Weights &w) const;
 };
 
-Results filter(NavCollection navs, Settings settings);
+Results filter(NavDataset navs, Settings settings);
 
 }
 }

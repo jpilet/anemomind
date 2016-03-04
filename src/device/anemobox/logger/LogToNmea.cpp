@@ -19,6 +19,8 @@
 using namespace sail;
 using namespace std;
 
+using namespace sail::NavCompat;
+
 namespace {
 
 struct TimedString {
@@ -82,13 +84,13 @@ void textFieldToNmeaSentences(const LogFile& data, const string& field,
 
 
 void exportRMC(const LogFile& data, vector<TimedString> *sentences) {
-  NavCollection navs = logFileToNavArray(data);
-  if (navs.size() == 0) {
+  NavDataset navs = logFileToNavArray(data);
+  if (getNavSize(navs) == 0) {
     LOG(WARNING) << "No GPS position found.";
     return;
   }
 
-  for (const Nav& nav : navs) {
+  for (const Nav& nav : Range(navs)) {
     if (!isGood(nav)) {
       continue;
     }

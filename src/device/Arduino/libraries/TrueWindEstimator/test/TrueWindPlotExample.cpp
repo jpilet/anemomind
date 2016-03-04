@@ -15,6 +15,7 @@
 
 using std::string;
 using namespace sail;
+using namespace sail::NavCompat;
 
 
 namespace {
@@ -83,7 +84,7 @@ int main(int argc, const char **argv) {
         string("/datasets/psaros33_Banque_Sturdza/2014/20140627/NMEA0006.TXT") // GOOD
        };
 
-    NavCollection navs;
+    NavDataset navs;
     if (amap.optionProvided("--example-ds")) {
       int index = -1;
       if (amap.optionArgs("--example-ds")[0]->tryParseInt(&index)) {
@@ -103,7 +104,7 @@ int main(int argc, const char **argv) {
     } else {
       navs = getTestdataNavs(amap);
     }
-    if (navs.empty()) {
+    if (isEmpty(navs)) {
       std::cout << "No navs loaded" << std::endl;
       return -1;
     }
@@ -111,7 +112,7 @@ int main(int argc, const char **argv) {
 
     bool useEstimator = true;
 
-    int count = navs.size();
+    int count = getNavSize(navs);
     Angle<double> tol = Angle<double>::degrees(5.0);
     int counter = 0;
 
@@ -125,7 +126,7 @@ int main(int argc, const char **argv) {
 
     Arrayd X(count);
     for (int i = 0; i < count; i++) {
-      Nav nav = navs[i];
+      Nav nav = getNav(navs, i);
       Angle<double> boatDir = nav.gpsBearing();
       X[i] = i;
 
@@ -162,7 +163,7 @@ int main(int argc, const char **argv) {
 
     std::cout << "Median absolute difference between twa and etwa is " << median << " degrees." << std::endl;
     std::cout << "Number of observations for which difference between twa and etwa is less than 5 degrees: " << counter << std::endl;
-    std::cout << "Total number of observations: " << navs.size() << std::endl;
+    std::cout << "Total number of observations: " << getNavSize(navs) << std::endl;
 
     GnuplotExtra plot;
     plot.set_style("lines");

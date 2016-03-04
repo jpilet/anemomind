@@ -9,6 +9,7 @@
 #include <iostream>
 
 using namespace sail;
+using namespace sail::NavCompat;
 
 int main(int argc, const char **argv) {
   double lowerThresh = 8;
@@ -22,7 +23,7 @@ int main(int argc, const char **argv) {
       .setArgCount(1).store(&relativeThresh);
 
   if (amap.parse(argc, argv) != ArgMap::Error) {
-    NavCollection navs = getTestdataNavs(amap);
+    NavDataset navs = getTestdataNavs(amap);
     Array<Spani> spans = recursiveTemporalSplit(navs,
         relativeThresh, Duration<double>::seconds(lowerThresh));
     dispTemporalRaceOverview(spans, navs);

@@ -12,17 +12,18 @@
 #include <server/common/string.h>
 
 using namespace sail;
+using namespace sail::NavCompat;
 
 namespace {
-  TimeStamp makeTS(NavCollection navs, int index) {
-    return navs[index].time() + (navs[index+1].time() - navs[index].time()).scaled(0.5);
+  TimeStamp makeTS(NavDataset navs, int index) {
+    return getNav(navs, index).time() + (getNav(navs, index+1).time() - getNav(navs, index).time()).scaled(0.5);
   }
 
-  UserHint makeStartHint(NavCollection navs, int index) {
+  UserHint makeStartHint(NavDataset navs, int index) {
     return UserHint(UserHint::RACE_START, makeTS(navs, index));
   }
 
-  UserHint makeEndHint(NavCollection navs, int index) {
+  UserHint makeEndHint(NavDataset navs, int index) {
     return UserHint(UserHint::RACE_END, makeTS(navs, index));
   }
 
@@ -59,7 +60,7 @@ namespace {
 
 TEST(WindOrientedGrammarTest, Hinting) {
   Poco::Path path = PathBuilder::makeDirectory(Env::SOURCE_DIR).pushDirectory("datasets").pushDirectory("Irene").pushDirectory("2007").pushDirectory("regate_1_dec_07").makeFile("IreneLog.txt").get();
-  NavCollection navs = loadNavsFromNmea(path.toString(), Nav::debuggingBoatId()).navs();
+  NavDataset navs = loadNavsFromNmea(path.toString(), Nav::debuggingBoatId()).navs();
 
   // Refers to a position in the seq, assuming it is indexed continuously from 0 to 1.
   double startFrac = 0.3;
@@ -67,8 +68,8 @@ TEST(WindOrientedGrammarTest, Hinting) {
 
   // For instance, a state with index 'startIndex' should not be in race,
   // and a state with index 'startIndex+1' should be in race.
-  int startIndex = startFrac*navs.size();
-  int endIndex = endFrac*navs.size();
+  int startIndex = startFrac*getNavSize(navs);
+  int endIndex = endFrac*getNavSize(navs);
 
   UserHint hints[2] = {makeStartHint(navs, startIndex), makeEndHint(navs, endIndex)};
 

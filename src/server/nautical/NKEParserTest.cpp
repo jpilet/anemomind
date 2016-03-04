@@ -61,6 +61,8 @@ const unsigned char testdata[] = {
 
 TEST(NKEParserTest, TestNavs) {
   using namespace sail;
+  using namespace sail::NavCompat;
+
   std::stringstream ss;
   std::string filename = "28_11_2014_15_00_00.csv";
   ss << testdata;
@@ -71,13 +73,13 @@ TEST(NKEParserTest, TestNavs) {
 
   EXPECT_EQ(3, data.rows());
 
-  NavCollection navs = parser.makeNavs(Nav::debuggingBoatId(), data);
-  EXPECT_EQ(navs.size(), 3);
+  NavDataset navs = parser.makeNavs(Nav::debuggingBoatId(), data);
+  EXPECT_EQ(getNavSize(navs), 3);
 
-  EXPECT_NEAR(327, navs.last().gpsBearing().degrees(), 2.0);
+  EXPECT_NEAR(327, getLast(navs).gpsBearing().degrees(), 2.0);
 
   TimeStamp time = TimeStamp::UTC(2014, 11, 28, 15, 0, 0);
-  Duration<double> dif = time - navs.first().time();
+  Duration<double> dif = time - getFirst(navs).time();
   EXPECT_NEAR(dif.seconds(), 0.0, 3.0);
 }
 

@@ -5,6 +5,7 @@
 
 #include <device/anemobox/logger/LogLoader.h>
 #include <device/anemobox/logger/Logger.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -55,14 +56,15 @@ void insertValues(DataCode code,
 
 void LogLoader::addToDispatcher(Dispatcher *dst) {
 
+  // Set the priorities first!
+  for (auto kv: _sourcePriority) {
+    dst->setSourcePriority(kv.first, kv.second);
+  }
+
 #define INSERT_VALUES(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
     insertValues<TYPE>(HANDLE, _##HANDLE##sources, dst);
     FOREACH_CHANNEL(INSERT_VALUES);
 #undef  INSERT_VALUES
-
-  for (auto kv: _sourcePriority) {
-    dst->setSourcePriority(kv.first, kv.second);
-  }
 }
 
 }

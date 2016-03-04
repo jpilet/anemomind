@@ -24,7 +24,7 @@ double TransitionHint::getTransitionCost(int fromStateIndex,
 }
 
 namespace {
-  std::shared_ptr<LocalStateAssign> makeNonEmpty(TimeStamp ts, MDArray2b table, NavCollection navs) {
+  std::shared_ptr<LocalStateAssign> makeNonEmpty(TimeStamp ts, MDArray2b table, const Array<Nav> &navs) {
     if (!table.empty()) {
       auto start = navs.begin();
       Nav x(ts);
@@ -42,7 +42,7 @@ namespace {
   }
 }
 
-std::shared_ptr<LocalStateAssign> TransitionHint::make(const UserHint &hint, NavCollection navs, const Grammar &dst) {
+std::shared_ptr<LocalStateAssign> TransitionHint::make(const UserHint &hint, const Array<Nav> &navs, const Grammar &dst) {
   switch (hint.type()) {
   case UserHint::RACE_START:
     return makeNonEmpty(hint.time(), dst.startOfRaceTransitions(), navs);

@@ -12,6 +12,9 @@
 #include <fstream>
 
 namespace sail {
+
+using namespace NavCompat;
+
 namespace Benchmark {
 
 bool hasAllData(const Nav &x) {
@@ -46,11 +49,11 @@ SynthResults evaluateForSimulation(NavalSimulation::BoatData bd,
   };
 }
 
-SplitResults evaluateForSplit(CalibrationAlgorithm calib, NavCollection navs) {
-  int middle = navs.middle();
+SplitResults evaluateForSplit(CalibrationAlgorithm calib, NavDataset navs) {
+  int middle = getMiddleIndex(navs);
   return SplitResults(
-    calib(navs.sliceTo(middle)),
-    calib(navs.sliceFrom(middle)),
+    calib(sliceTo(navs, middle)),
+    calib(sliceFrom(navs, middle)),
     navs
   );
 }
@@ -60,7 +63,7 @@ std::ostream &operator<<(std::ostream &s, RealDataResults x) {
   auto n = x.results.size();
   for (int i = 0; i < n; i++) {
     auto r = x.results[i];
-    s << "Result for subset " << i+1 << "/" << n << " of " << r.navs.size() << " navs.\n";
+    s << "Result for subset " << i+1 << "/" << n << " of " << getNavSize(r.navs) << " navs.\n";
     s << "Corrector for first  half: " << r.a->toString() << std::endl;
     s << "Corrector for second half: " << r.b->toString() << std::endl;
     s << "Cross validation errors:\n";
@@ -71,13 +74,13 @@ std::ostream &operator<<(std::ostream &s, RealDataResults x) {
 }
 
 
-NavCollection loadAndFilterDataset(std::string datasetPath) {
-  return NavCollection::fromNavs(scanNmeaFolder(datasetPath, Nav::debuggingBoatId())
-          .makeArray()
-          .slice(hasAllData));
+NavDataset loadAndFilterDataset(std::string datasetPath) {
+  return fromNavs(
+      makeArray(scanNmeaFolder(datasetPath, Nav::debuggingBoatId()))
+      .slice(hasAllData));
 }
 
-Array<NavCollection> splitRealData(NavCollection navs) {
+Array<NavDataset> splitRealData(NavDataset navs) {
   return splitNavsByDuration(navs, Duration<double>::hours(1.0));
 }
 
@@ -87,7 +90,7 @@ RealDataResults evaluateForRealDataSplits(CalibrationAlgorithm algo,
   if (!subset.empty()) {
     navs = navs.slice(subset);
   }
-  auto splitResults = map(navs, [&](NavCollection navs) {
+  auto splitResults = map(navs, [&](NavDataset navs) {
     return evaluateForSplit(algo, navs);
   }).toArray();
   return RealDataResults{dsPath, splitResults};

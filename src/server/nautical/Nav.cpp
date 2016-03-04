@@ -7,19 +7,15 @@
 
 #include "Nav.h"
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
-#include <server/common/ArrayIO.h>
 #include <algorithm>
-#include <server/common/Span.h>
-#include <server/plot/gnuplot_i.hpp>
-#include <server/common/LineKM.h>
-#include <server/plot/extra.h>
 #include <server/nautical/Ecef.h>
 #include <ctime>
-#include <server/nautical/WGS84.h>
 #include <server/common/string.h>
 #include <server/common/PhysicalQuantityIO.h>
 #include <server/common/logging.h>
 #include <server/common/Functional.h>
+
+
 
 namespace sail {
 
@@ -157,8 +153,6 @@ bool Nav::hasId() const {
 
 
 
-
-
 Array<Velocity<double> > getExternalTws(Array<Nav> navs) {
   return toArray(map(navs, [&](const Nav &n) {return n.externalTws();}));
 }
@@ -201,180 +195,6 @@ Array<Angle<double> > getAwa(Array<Nav> navs) {
 
 
 
-NavCollection loadNavsFromText(std::string filename, bool sort) {
-  MDArray2d data = loadMatrixText<double>(filename);
-  int count = data.rows();
-
-  std::vector<Nav> navs(count);
-  for (int i = 0; i < count; i++) {
-    navs[i] = Nav(data.sliceRow(i));
-  }
-
-  if (sort) {
-    std::sort(navs.begin(), navs.end());
-  }
-
-  return NavCollection::fromNavs(Array<Nav>::referToVector(navs).dup());
-}
-
-bool areSortedNavs(NavCollection navs) {
-  int count = navs.size();
-  for (int i = 0; i < count-1; i++) {
-    if (navs[i].time() > navs[i+1].time()) {
-      return false;
-    }
-  }
-  return true;
-}
-
-void plotNavTimeVsIndex(NavCollection navs) {
-  Gnuplot plot;
-  int count = navs.size();
-
-  std::vector<double> X(count), Y(count);
-  TimeStamp start = navs[0].time();
-  for (int i = 0; i < count; i++) {
-    X[i] = i;
-    Y[i] = (navs[i].time() - start).days();
-  }
-
-  plot.set_style("lines");
-  plot.plot_xy(X, Y);
-  plot.set_xautoscale();
-  plot.set_yautoscale();
-  plot.set_xlabel("Index");
-  plot.set_ylabel("Time");
-  plot.showonscreen();
-  sleepForever();
-}
-
-double getNavsMaxInterval(NavCollection navs) {
-  int count = navs.size();
-  double m = 0.0;
-  for (int i = 0; i < count-1; i++) {
-    m = std::max(m, (navs[i+1].time() - navs[i].time()).seconds());
-  }
-  return m;
-}
-
-void dispNavTimeIntervals(NavCollection navs) {
-  assert(areSortedNavs(navs));
-  double mintime = 0.0;
-  double maxtime = (navs[navs.size()-1].time() - navs[0].time()).seconds();
-
-  double m = getNavsMaxInterval(navs);
-  std::cout << "Max interval (seconds): " << m << std::endl;
-  std::cout << "Span (seconds): " << maxtime - mintime << std::endl;
-  int navCount = navs.size();
-  int binCount = 30;
-  LineKM line(log(2.0), log(m+1), 1, binCount);
-
-  Arrayi bins(binCount);
-  bins.setTo(0);
-  for (int i = 0; i < navCount-1; i++) {
-    double span = (navs[i+1].time() - navs[i].time()).seconds();
-    int index = std::max(0, int(floor(line(log(span)))));
-    bins[index]++;
-  }
-  for (int i = 0; i < binCount; i++) {
-    cout << "Bin " << i+1 << "/" << binCount << ": " << bins[i]
-      << " intervals longer than the previous but shorter than "
-      << Duration<double>::seconds(exp(line.inv(i+1))).str() << endl;
-  }
-}
-
-int countNavSplitsByDuration(NavCollection navs, Duration<double> dur) {
-  int count = navs.size();
-  int counter = 0;
-  for (int i = 0; i < count-1; i++) {
-    if ((navs[i+1].time() - navs[i].time()) > dur) {
-      counter++;
-    }
-  }
-  return counter;
-}
-
-
-
-Array<NavCollection > splitNavsByDuration(NavCollection navs, Duration<double> dur) {
-  int count = 1 + countNavSplitsByDuration(navs, dur);
-  Array<NavCollection> dst(count);
-  int navCount = navs.size();
-  int from = 0;
-  int counter = 0;
-  for (int i = 0; i < navCount-1; i++) {
-    if ((navs[i+1].time() - navs[i].time()) > dur) {
-      dst[counter] = navs.slice(from, i+1);
-      counter++;
-      from = i+1;
-    }
-  }
-  dst.last() = navs.sliceFrom(from);
-  assert(counter + 1 == count);
-  return dst;
-}
-
-/*Array<NavCollection > splitNavsByDuration(NavCollection navs, double durSeconds) {
-  return splitNavsByDuration(navs, Duration<double>::seconds(durSeconds));
-}*/
-
-MDArray2d calcNavsEcefTrajectory(NavCollection navs) {
-  int count = navs.size();
-  MDArray2d data(count, 3);
-  for (int i = 0; i < count; i++) {
-    Nav nav = navs[i];
-
-    Length<double> xyz[3];
-    WGS84<double>::toXYZ(nav.geographicPosition(), xyz);
-
-
-    for (int j = 0; j < 3; j++) {
-      data(i, i) = xyz[j].meters();
-    }
-  }
-  return data;
-}
-
-Array<MDArray2d> calcNavsEcefTrajectories(Array<NavCollection > navs) {
-  int count = navs.size();
-  Array<MDArray2d> dst(count);
-  for (int i = 0; i < count; i++) {
-    dst[i] = calcNavsEcefTrajectory(navs[i]);
-  }
-  return dst;
-}
-
-void plotNavsEcefTrajectory(NavCollection navs) {
-  assert(areSortedNavs(navs));
-
-  GnuplotExtra plot;
-  plot.set_style("lines");
-  plot.plot(calcNavsEcefTrajectory(navs));
-  //plot.cmd("set view equal xyz");
-  plot.show();
-}
-
-void plotNavsEcefTrajectories(Array<NavCollection > navs) {
-  int count = navs.size();
-  LineKM hue(0, count, 0.0, 360.0);
-
-  GnuplotExtra plot;
-  plot.set_style("lines");
-  for (int i = 0; i < count; i++) {
-    plot.plot(calcNavsEcefTrajectory(navs[i]));
-  }
-  plot.cmd("set view equal xyz");
-  plot.show();
-}
-
-int countNavs(Array<NavCollection > navs) {
-  int counter = 0;
-  int count = navs.size();
-  for (int i = 0; i < count; i++) {
-    counter += navs[i].size();
-  }
-  return counter;
-}
 
 std::ostream &operator<<(std::ostream &s, const Nav &x) {
   s << "Nav:\n";
@@ -385,31 +205,6 @@ std::ostream &operator<<(std::ostream &s, const Nav &x) {
   s << "  gps bearing: " << x.gpsBearing() << "\n";
   s << "  gps speed: " << x.gpsSpeed() << "\n";
   return s;
-}
-
-Length<double> computeTrajectoryLength(NavCollection navs) {
-  Length<double> dist = Length<double>::meters(0.0);
-  int n = navs.size() - 1;
-  for (int i = 0; i < n; i++) {
-    dist = dist + distance(navs[i].geographicPosition(), navs[i+1].geographicPosition());
-  }
-  return dist;
-}
-
-int findMaxSpeedOverGround(NavCollection navs) {
-  auto marg = Duration<double>::minutes(2.0);
-  Span<TimeStamp> validTime(navs.first().time() + marg, navs.last().time() - marg);
-  int bestIndex = -1;
-  auto maxSOG = Velocity<double>::knots(-1.0);
-  for (int i = 0; i < navs.size(); ++i) {
-    const Nav &nav = navs[i];
-    Velocity<double> sog = nav.gpsSpeed();
-    if (!sog.isNaN() && maxSOG < sog && validTime.contains(nav.time())) {
-      maxSOG = sog;
-      bestIndex = i;
-    }
-  }
-  return bestIndex;
 }
 
 } /* namespace sail */

@@ -14,6 +14,8 @@
 namespace sail {
 namespace GpsFilter {
 
+using namespace NavCompat;
+
 Settings::Settings() :
       regWeight(12.0),
       motionWeight(1.0),
@@ -32,15 +34,15 @@ TimeStamp getGlobalTime(TimeStamp timeRef, Duration<double> localTime) {
   return timeRef + localTime;
 }
 
-Duration<double> getLocalTimeDif(const NavCollection &navs, int index) {
-  auto li = navs.lastIndex();
+Duration<double> getLocalTimeDif(const NavDataset &navs, int index) {
+  auto li = getLastIndex(navs);
   if (index == 0) {
-    return (navs[1].time() - navs[0].time());
+    return (getNav(navs, 1).time() - getNav(navs, 0).time());
   } else if (index == li) {
-    return (navs[li].time() - navs[li-1].time());
+    return (getNav(navs, li).time() - getNav(navs, li-1).time());
   } else {
-    return std::min(navs[index+1].time() - navs[index].time(),
-                        navs[index].time() - navs[index-1].time());
+    return std::min(getNav(navs, index+1).time() - getNav(navs, index).time(),
+                        getNav(navs, index).time() - getNav(navs, index-1).time());
   }
 }
 
@@ -49,15 +51,15 @@ int navIndexToTimeIndex(int navIndex) {
   return 1 + 2*navIndex;
 }
 
-Nav middle(NavCollection navs) {
-  return navs[navs.middle()];
+Nav middle(NavDataset navs) {
+  return getNav(navs, getMiddleIndex(navs));
 }
 
-TimeStamp getTimeReference(NavCollection navs) {
+TimeStamp getTimeReference(NavDataset navs) {
   return middle(navs).time();
 }
 
-GeographicReference getGeographicReference(NavCollection navs) {
+GeographicReference getGeographicReference(NavDataset navs) {
   return GeographicReference(middle(navs).geographicPosition());
 }
 
@@ -73,11 +75,11 @@ GeographicReference::ProjectedPosition integrate(
 Array<Observation<2> > getObservations(
     Settings settings,
     TimeStamp timeRef,
-    GeographicReference geoRef, NavCollection navs, Sampling sampling) {
-  int n = navs.size();
+    GeographicReference geoRef, NavDataset navs, Sampling sampling) {
+  int n = getNavSize(navs);
   Array<Observation<2> > dst(2*n);
   for (int i = 0; i < n; i++) {
-    auto nav = navs[i];
+    auto nav = getNav(navs, i);
     auto localTime = getLocalTime(timeRef, nav);
     auto localTimeDif = getLocalTimeDif(navs, i);
     auto difScale = settings.motionWeight*localTimeDif.seconds()/sampling.period();
@@ -130,14 +132,14 @@ Spani getReliableSampleRange(Array<Observation<2> > observations_, Arrayb inlier
   return range;
 }
 
-Results filter(NavCollection navs, Settings settings) {
-  assert(std::is_sorted(navs.begin(), navs.end()));
+Results filter(NavDataset navs, Settings settings) {
+  assert(std::is_sorted(getBegin(navs), getEnd(navs)));
   auto timeRef = getTimeReference(navs);
   auto geoRef = getGeographicReference(navs);
 
   auto marg = Duration<double>::seconds(0.5);
-  auto fromTime = getLocalTime(timeRef, navs.first()) - marg;
-  auto toTime = getLocalTime(timeRef, navs.last()) + marg;
+  auto fromTime = getLocalTime(timeRef, getFirst(navs)) - marg;
+  auto toTime = getLocalTime(timeRef, getLast(navs)) + marg;
   int sampleCount = 2 + int(floor((toTime - fromTime)/settings.samplingPeriod));
   Sampling sampling(sampleCount, fromTime.seconds(), toTime.seconds());
   auto observations = getObservations(settings,
@@ -149,7 +151,7 @@ Results filter(NavCollection navs, Settings settings) {
       settings.inlierThreshold.meters(), 2, settings.regWeight, settings.irlsSettings);
 
   auto reliableRange = getReliableSampleRange(observations, results.inliers);
-  auto posObs = observations.sliceTo(navs.size());
+  auto posObs = observations.sliceTo(getNavSize(navs));
   return Results{navs, posObs, sampling, results.samples, timeRef, geoRef, reliableRange};
 }
 
@@ -158,16 +160,16 @@ bool isReliableW(Spani reliableSpan, const Sampling::Weights &w) {
 }
 
 Arrayb Results::inlierMask() {
-  assert(rawNavs.size() == positionObservations.size());
+  assert(getNavSize(rawNavs) == positionObservations.size());
   return toArray(map(positionObservations, [&](const Observation<2> &obs) {
     return isReliableW(reliableSampleRange, obs.weights);
   }));
 }
 
 
-NavCollection Results::filteredNavs() const {
-  int n = rawNavs.size();
-  Array<Nav> dst = rawNavs.makeArray().dup();
+NavDataset Results::filteredNavs() const {
+  int n = getNavSize(rawNavs);
+  Array<Nav> dst = makeArray(rawNavs).dup();
   for (int i = 0; i < n; i++) {
     auto w = positionObservations[i].weights;
     auto &nav = dst[i];
@@ -176,7 +178,7 @@ NavCollection Results::filteredNavs() const {
     nav.setGpsBearing(m.angle());
     nav.setGpsSpeed(m.norm());
   }
-  return NavCollection::fromNavs(dst);
+  return fromNavs(dst);
 }
 
 Sampling::Weights Results::calcWeights(TimeStamp t) const {

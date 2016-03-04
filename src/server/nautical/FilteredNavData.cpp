@@ -102,9 +102,11 @@ UniformSamplesd tryFilter(GeneralizedTV tv, Arrayd X, Arrayd Y, double spacing,
   return UniformSamplesd();
 }
 
-FilteredNavData::FilteredNavData(NavCollection navs0, double lambda,
+using namespace NavCompat;
+
+FilteredNavData::FilteredNavData(NavDataset navs0, double lambda,
   FilteredNavData::DebugPlotMode mode) {
-  auto navs = navs0.makeArray();
+  auto navs = makeArray(navs0);
   if (navs.hasData()) {
     std::sort(navs.begin(), navs.end());
     CHECK(sameBoat(navs));
@@ -232,15 +234,16 @@ HorizontalMotion<double> FilteredNavData::gpsMotionAtIndex(int index) const {
       _gpsBearing.get(index));
 }
 
-FilteredNavData::NoiseStdDev FilteredNavData::estimateNoise(NavCollection navs) const {
+FilteredNavData::NoiseStdDev FilteredNavData::estimateNoise(NavDataset navs) const {
   MeanAndVar awa;
   MeanAndVar magHdg;
   MeanAndVar gpsBearing;
   MeanAndVar watSpeed;
   MeanAndVar gpsSpeed;
   MeanAndVar aws;
-  for (int i = 0; i < navs.size(); i++) {
-    auto n = navs[i];
+  int n = getNavSize(navs);
+  for (int i = 0; i < n; i++) {
+    auto n = getNav(navs, i);
     auto to = n.time();
     double t = (to - _timeOffset).seconds();
     awa.add((n.awa() - _awa.interpolateLinear(t)).normalizedAt0().degrees());

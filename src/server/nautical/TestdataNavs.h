@@ -6,7 +6,7 @@
 #ifndef TESTDATANAVS_H_
 #define TESTDATANAVS_H_
 
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 #include <server/common/ArgMap.h>
 
 namespace sail {
@@ -14,7 +14,7 @@ namespace sail {
 /*
  * Returns the navs from the Irene dataset.
  */
-NavCollection getTestdataNavs();
+NavDataset getTestdataNavs();
 
 /*
  * Let's the user provide an optional path to
@@ -27,7 +27,7 @@ NavCollection getTestdataNavs();
  */
 
 void registerGetTestdataNavs(ArgMap &amap);
-NavCollection getTestdataNavs(ArgMap &amap);
+NavDataset getTestdataNavs(ArgMap &amap);
 
 } /* namespace sail */
 

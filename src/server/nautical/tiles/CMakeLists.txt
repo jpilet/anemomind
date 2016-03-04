@@ -6,7 +6,7 @@ add_library(tiles_NavTileGenerator
 
 target_link_libraries(tiles_NavTileGenerator
                       common_Array
-                      nautical_nav
+                      nautical_NavCompatibility
                       geometry_SimplifyCurve
                      )
 
@@ -27,7 +27,7 @@ if (MongoDB_LIBRARIES)
   target_link_libraries(tiles_NavTileUploader
                         tiles_NavTileGenerator
                         common_logging
-                        nautical_nav
+                        nautical_NavCompatibility
                         ${MongoDB_LIBRARIES}
 
                        )

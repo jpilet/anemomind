@@ -20,7 +20,7 @@
 #include <server/common/Json.impl.h>
 
 using namespace sail;
-
+using namespace sail::NavCompat;
 
 
 
@@ -32,8 +32,8 @@ namespace {
         pushDirectory("regate_1_dec_07").get();
 
 
-    NavCollection allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
-    Array<NavCollection> navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10));
+    NavDataset allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
+    Array<NavDataset> navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10));
   }
 
   void loadAndDispTree() {
@@ -43,7 +43,7 @@ namespace {
         pushDirectory("regate_1_dec_07").get();
 
     cout << "Load navs" << endl;
-    NavCollection allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
+    NavDataset allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
     cout << "loaded" << endl;
 
     WindOrientedGrammarSettings settings;
@@ -60,14 +60,14 @@ namespace {
     // Create a smaller tree with fewer children.
     std::shared_ptr<HTree> tree(new HInner(fulltree->index(), fulltree->child(0)));
 
-    NavCollection navs = allnavs.slice(tree->left(), tree->right());
+    NavDataset navs = slice(allnavs, tree->left(), tree->right());
 
     {
       ofstream file(prefix + "_tree.js");
       Poco::JSON::Stringifier::stringify(json::serializeMapped(tree, navs, g.nodeInfo()), file, 0, 0);
     }{
       ofstream file(prefix + "_navs.js");
-      Poco::JSON::Stringifier::stringify(json::serialize(navs.makeArray()), file, 0, 0);
+      Poco::JSON::Stringifier::stringify(json::serialize(makeArray(navs)), file, 0, 0);
     }{
       ofstream file(prefix + "_tree_node_info.js");
       Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);

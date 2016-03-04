@@ -15,12 +15,13 @@
 
 using namespace sail;
 
+using namespace sail::NavCompat;
 
-MDArray2d getRawPositions(GpsFilter::Results r, NavCollection navs) {
-  int n = navs.size();
+MDArray2d getRawPositions(GpsFilter::Results r, NavDataset navs) {
+  int n = getNavSize(navs);
   MDArray2d X(n, 2);
   for (int i = 0; i < n; i++) {
-    auto pos = r.geoRef.map(navs[i].geographicPosition());
+    auto pos = r.geoRef.map(getNav(navs, i).geographicPosition());
     X(i, 0) = pos[0].meters();
     X(i, 1) = pos[1].meters();
   }
@@ -34,22 +35,23 @@ MDArray2d getRawPositions(GpsFilter::Results r, NavCollection navs) {
 
 
 
-NavCollection getPsarosTestData() {
+NavDataset getPsarosTestData() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("psaros33_Banque_Sturdza")
     .pushDirectory("2014")
     .pushDirectory("20140821").get();
   auto navs = scanNmeaFolder(p, Nav::debuggingBoatId());
-  return navs.sliceFrom(3000);
+  return sliceFrom(navs, 3000);
 }
 
-NavCollection applyOutliers(NavCollection navs) {
-  int from = int(floor(navs.size()*0.05));
-  int to = int(floor(navs.size()*0.15));
-  auto dst = navs.makeArray().dup();
+NavDataset applyOutliers(NavDataset navs) {
+  int from = int(floor(getNavSize(navs)*0.05));
+  int to = int(floor(getNavSize(navs)*0.15));
+  auto dst = makeArray(navs).dup();
   Angle<double> offset = Angle<double>::degrees(1);
-  for (int i = 0; i < navs.size(); i++) {
+  int n = getNavSize(navs);
+  for (int i = 0; i < n; i++) {
     if (i % 10 == 0) {
       auto &x = dst[i];
       auto g = x.geographicPosition();
@@ -57,27 +59,32 @@ NavCollection applyOutliers(NavCollection navs) {
       x.setGeographicPosition(g2);
     }
   }
-  return NavCollection::fromNavs(dst);
+  return fromNavs(dst);
 }
 
 
 
-void runPsarosTest(NavCollection navs, NavCollection navsToFilter) {
+void runPsarosTest(NavDataset navs, NavDataset navsToFilter) {
   GpsFilter::Settings settings;
-  if (navsToFilter.empty()) {
+  if (isEmpty(navsToFilter)) {
+    std::cout << "Reassign!!!" << std::endl;
     navsToFilter = navs;
   }
-
-  std::cout << "NUMBER OF NAVS TO FILTER: " << navsToFilter.size() << std::endl;
+  EXPECT_FALSE(isEmpty(navsToFilter));
+  std::cout << "NUMBER OF NAVS TO FILTER: " << getNavSize(navsToFilter) << std::endl;
+  std::cout << "Do the filtering!" << std::endl;
   auto results = GpsFilter::filter(navsToFilter, settings);
   auto filtered = results.filteredNavs();
-  EXPECT_EQ(filtered.size(), navs.size());
+  std::cout << "Done" << std::endl;
+  EXPECT_EQ(getNavSize(filtered), getNavSize(navs));
 
+  std::cout << "Compare" << std::endl;
   auto reasonableMotionCount = 0;
   auto reasonablePositionCount = 0;
-  for (int i = 0; i < navs.size(); i++) {
-    auto a = filtered[i];
-    auto b = navs[i];
+  int n = getNavSize(navs);
+  for (int i = 0; i < n; i++) {
+    auto a = getNav(filtered, i);
+    auto b = getNav(navs, i);
     auto motionDif = a.gpsMotion() - b.gpsMotion();
     auto motionDifNormKnots = sqrt(sqr(motionDif[0].knots()) + sqr(motionDif[1].knots()));
     if (motionDifNormKnots < 4.0) {
@@ -91,9 +98,10 @@ void runPsarosTest(NavCollection navs, NavCollection navsToFilter) {
       reasonablePositionCount++;
     }
   }
-  auto minCount = 0.8*navs.size();
+  auto minCount = 0.8*getNavSize(navs);
   EXPECT_LT(minCount, reasonableMotionCount);
   EXPECT_LT(minCount, reasonablePositionCount);
+  std::cout << "Done" << std::endl;
 
   bool visualize = false;
   if (visualize) {
@@ -110,7 +118,7 @@ void runPsarosTest(NavCollection navs, NavCollection navsToFilter) {
 TEST(GpsFilterTest, PsarosTest) {
   auto navs = getPsarosTestData();
 
-  runPsarosTest(navs, NavCollection());
+  runPsarosTest(navs, NavDataset());
   runPsarosTest(navs, applyOutliers(navs));
 }
 
@@ -137,15 +145,16 @@ Velocity<double> calcSpeedFromGpsPositions(const Nav &a, const Nav &b) {
   return Velocity<double>::metersPerSecond(sqrt(dif)/std::abs((a.time() - b.time()).seconds()));
 }
 
-Velocity<double> getMaxSpeedFromGpsPositions(NavCollection navs) {
+Velocity<double> getMaxSpeedFromGpsPositions(NavDataset navs) {
   Velocity<double> v = Velocity<double>::knots(0.0);
-  for (int i = 0; i < navs.size()-1; i++) {
-    v = std::max(v, calcSpeedFromGpsPositions(navs[i], navs[i+1]));
+  int n = getNavSize(navs);
+  for (int i = 0; i < n-1; i++) {
+    v = std::max(v, calcSpeedFromGpsPositions(getNav(navs, i), getNav(navs, i+1)));
   }
   return v;
 }
 
-NavCollection getIreneTestData() {
+NavDataset getIreneTestData() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("Irene")
@@ -156,7 +165,7 @@ NavCollection getIreneTestData() {
   return splitNavsByDuration(navs, Duration<double>::hours(1.0))[1];
 }
 
-Array<NavCollection> getAllIreneData() {
+Array<NavDataset> getAllIreneData() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
     .pushDirectory("datasets")
     .pushDirectory("Irene").get();
@@ -165,7 +174,7 @@ Array<NavCollection> getAllIreneData() {
 }
 
 
-void filterAndDisplay(NavCollection navs) {
+void filterAndDisplay(NavDataset navs) {
 
   GpsFilter::Settings settings;
   auto results = GpsFilter::filter(navs, settings);
@@ -195,8 +204,8 @@ TEST(GpsFilterTest, Irene) {
   auto navs = getIreneTestData();
 
 
-  std::cout << EXPR_AND_VAL_AS_STRING(navs.first().time()) << std::endl;
-  std::cout << EXPR_AND_VAL_AS_STRING(navs.last().time()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(getFirst(navs).time()) << std::endl;
+  std::cout << EXPR_AND_VAL_AS_STRING(getLast(navs).time()) << std::endl;
 
   GpsFilter::Settings settings;
   auto results = GpsFilter::filter(navs, settings);
@@ -210,13 +219,13 @@ TEST(GpsFilterTest, Irene) {
   EXPECT_LE(reliableGT.minv(), reliable.minv());
   EXPECT_LE(reliable.maxv(), reliableGT.maxv());
   auto mask = results.inlierMask();
-  EXPECT_EQ(mask.size(), results.rawNavs.size());
+  EXPECT_EQ(mask.size(), getNavSize(results.rawNavs));
 
   int reliableCount = 0;
   for (int i = 0; i < mask.size(); i++) {
     reliableCount += (mask[i]? 1 : 0);
   }
-  EXPECT_LE(0.5*navs.size(), reliableCount);
+  EXPECT_LE(0.5*getNavSize(navs), reliableCount);
 
   bool visualize = false;
   if (visualize) {

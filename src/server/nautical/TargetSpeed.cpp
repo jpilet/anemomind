@@ -165,37 +165,37 @@ Arrayd TargetSpeed::makeDefaultQuantiles() {
   return Arrayd(count, data);
 }
 
-Array<Velocity<double> > calcVmg(NavCollection navs, bool isUpwind) {
+Array<Velocity<double> > calcVmg(NavDataset navs, bool isUpwind) {
   int sign = (isUpwind? 1 : -1);
-  return toArray(map(navs, [&](const Nav &n) {
+  return toArray(map(NavCompat::Range(navs), [&](const Nav &n) {
     double factor = sign*cos(estimateRawTwa(n));
     return n.gpsSpeed().scaled(factor);
   }));
 }
 
-Array<Velocity<double> > calcExternalVmg(NavCollection navs, bool isUpwind) {
+Array<Velocity<double> > calcExternalVmg(NavDataset navs, bool isUpwind) {
   int sign = isUpwind? 1 : -1;
-  return toArray(map(navs, [&](const Nav &n) {
+  return toArray(map(NavCompat::Range(navs), [&](const Nav &n) {
     double factor = sign*cos(n.externalTwa());
     return n.gpsSpeed().scaled(factor);
   }));
 }
 
 
-Array<Velocity<double> > calcUpwindVmg(NavCollection navs) {
+Array<Velocity<double> > calcUpwindVmg(NavDataset navs) {
   return calcVmg(navs, true);
 }
 
-Array<Velocity<double> > calcDownwindVmg(NavCollection navs) {
+Array<Velocity<double> > calcDownwindVmg(NavDataset navs) {
   return calcVmg(navs, false);
 }
 
-Array<Velocity<double> > estimateTws(NavCollection navs) {
-  return toArray(map(navs, [&](const Nav &n) {return estimateRawTws(n);}));
+Array<Velocity<double> > estimateTws(NavDataset navs) {
+  return toArray(map(NavCompat::Range(navs), [&](const Nav &n) {return estimateRawTws(n);}));
 }
 
-Array<Velocity<double> > estimateExternalTws(NavCollection navs) {
-  return toArray(map(navs, [&](const Nav &n) {return n.externalTws();}));
+Array<Velocity<double> > estimateExternalTws(NavDataset navs) {
+  return toArray(map(NavCompat::Range(navs), [&](const Nav &n) {return n.externalTws();}));
 }
 
 

@@ -556,7 +556,7 @@ NKEData NKEParser::load(TimeStamp offset, std::istream &file) {
   return NKEData(offset, typeInds, values);
 }
 
-NavCollection NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
+NavDataset NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
   Array<TimeStamp> times = data.timeStamps();
 
   if (!data.hasAllFields({
@@ -569,7 +569,7 @@ NavCollection NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
       type("Latitude"),
       type("Longitude")
   })) {
-    return NavCollection();
+    return NavDataset();
   }
 
   Array<Velocity<double> > aws =
@@ -613,7 +613,7 @@ NavCollection NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
     x.setGpsSpeed(gpsSpeed[i]);
     x.setGpsBearing(gpsBearing[i]);
   }
-  return NavCollection::fromNavs(dst);
+  return NavCompat::fromNavs(dst);
 }
 
 

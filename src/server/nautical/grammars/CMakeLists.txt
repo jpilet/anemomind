@@ -12,7 +12,7 @@ add_library(nautical_Grammar
             
 target_link_libraries(nautical_Grammar            
                       common_Hierarchy
-                      nautical_nav
+                      nautical_NavCompatibility
                       math_hmm_StateAssign
                      )
                      
@@ -156,7 +156,7 @@ add_library(nautical_grammars_TransitionHint
            )
 target_link_libraries(nautical_grammars_TransitionHint
                       nautical_grammars_HintedStateAssign
-                      nautical_nav
+                      nautical_NavCompatibility
                      )
                      
 add_library(nautical_grammars_HintedStateAssignFactory                     

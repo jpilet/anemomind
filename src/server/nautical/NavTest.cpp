@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 #include <server/common/Duration.h>
-#include "Nav.h"
-#include "NavBBox.h"
+#include <server/nautical/NavCompatibility.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
 
 
 using namespace sail;
+using namespace NavCompat;
 
 namespace {
   Poco::Path getAllNavsPath() {
@@ -24,29 +24,13 @@ TEST(NavTest, MaxSpeed) {
   b.setGpsSpeed(Velocity<double>::knots(2.1));
   c.setTime(offset + Duration<double>::minutes(24));
   c.setGpsSpeed(Velocity<double>::knots(30.1));
-  EXPECT_EQ(1, findMaxSpeedOverGround(NavCollection::fromNavs({a, b, c})));
+  EXPECT_EQ(1, findMaxSpeedOverGround(fromNavs({a, b, c})));
 }
 
 TEST(NavTest, SortedTest) {
-  NavCollection navs = loadNavsFromText(getAllNavsPath().toString());
-  EXPECT_TRUE(navs.size() > 3);
+  NavDataset navs = loadNavsFromText(getAllNavsPath().toString());
+  EXPECT_TRUE(getNavSize(navs) > 3);
 
   EXPECT_TRUE(areSortedNavs(navs));
-}
-
-TEST(NavTest, NavBBoxTest) {
-  NavCollection navs = loadNavsFromText(getAllNavsPath().toString(), true);
-  EXPECT_TRUE(navs.size() > 3);
-
-  Array<NavCollection> splitNavs = splitNavsByDuration(navs,
-                                 Duration<double>::minutes(10));
-  Array<NavBBox> boxes = calcNavBBoxes(splitNavs);
-
-  int count = boxes.size();
-  for (int i = 0; i < count; i++) {
-    for (int j = 0; j < count; j++) {
-      EXPECT_TRUE((i == j) == boxes[i].intersects(boxes[j]));
-    }
-  }
 }
 

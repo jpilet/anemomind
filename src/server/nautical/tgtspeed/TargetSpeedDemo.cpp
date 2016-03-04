@@ -30,6 +30,8 @@
 
 using namespace sail;
 
+using namespace sail::NavCompat;
+
 namespace {
 
 
@@ -67,7 +69,7 @@ namespace {
       prefix("/tmp/tgtspeed") {}
 
 
-  typedef std::function<NavCollection()> NavLoader;
+  typedef std::function<NavDataset()> NavLoader;
 
   Array<TargetSpeedPoint> getPolarNavDataFromRawNavs(std::string cacheFilename,
       NavLoader loader) {
@@ -88,7 +90,7 @@ namespace {
       Corrector<double> corr;
       auto pnavs = toArray(sail::map(spans, [&](Spani span) {
         std::cout << "Processing span " << span << std::endl;
-        return getPolarNavData(corr, FilteredNavData(navs.slice(span.minv(), span.maxv()), lambda, FilteredNavData::NONE));
+        return getPolarNavData(corr, FilteredNavData(slice(navs, span.minv(), span.maxv()), lambda, FilteredNavData::NONE));
       }));
       auto data2 = computeStabilities(concat(pnavs));
       saveRawArray(cacheFilename, data2);

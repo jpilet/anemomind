@@ -93,3 +93,19 @@ cxx_test(anemobox_TimedSampleCollectionTest TimedSampleCollectionTest.cpp
          common_TimeStamp
          gtest_main
          )
+
+
+add_library(anemobox_DispatcherUtils
+            DispatcherUtils.h
+            DispatcherUtils.cpp
+           )
+           
+target_link_libraries(anemobox_DispatcherUtils
+                      anemobox_Dispatcher
+                     )
+
+cxx_test(anemobox_DispatcherUtilsTest
+         DispatcherUtilsTest.cpp
+         anemobox_DispatcherUtils
+         gtest_main
+        )        

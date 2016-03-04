@@ -16,14 +16,14 @@ namespace sail {
 class OnOffCost {
  public:
   OnOffCost() : _offStateIndex(-1), _perSecondCost(NAN) {}
-  OnOffCost(NavCollection navs, int offStateIndex,
+  OnOffCost(Array<Nav> navs, int offStateIndex,
       double perSecondCost) : _navs(navs),
           _offStateIndex(offStateIndex),
           _perSecondCost(perSecondCost) {}
 
   double getTransitionCost(int fromStateIndex, int toStateIndex, int fromTimeIndex);
  private:
-  NavCollection _navs;
+  Array<Nav> _navs;
   int _offStateIndex;
   double _perSecondCost;
 };
@@ -46,7 +46,7 @@ class CommonRaceGrammar : public Grammar {
  public:
   CommonRaceGrammar(CommonRaceGrammarSettings settings);
 
-  std::shared_ptr<HTree> parse(NavCollection navs,
+  std::shared_ptr<HTree> parse(NavDataset navs,
       Array<UserHint> hints = Array<UserHint>());
   virtual Array<HNode> nodeInfo() const;
   MDArray2b startOfRaceTransitions() const {return _startOfRaceTransitions;}

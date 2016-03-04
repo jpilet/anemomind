@@ -19,6 +19,8 @@ namespace mongo { namespace client { void initialize() { } } }
 
 namespace sail {
 
+using namespace NavCompat;
+
 namespace {
 BSONObjBuilder& append(BSONObjBuilder& builder, const char* key,
                        const TimeStamp& value) {
@@ -72,9 +74,9 @@ BSONObj navToBSON(const Nav& nav) {
   return result.obj();
 }
 
-BSONArray navsToBSON(const NavCollection& navs) {
+BSONArray navsToBSON(const NavDataset& navs) {
   BSONArrayBuilder result;
-  for (auto nav: navs) {
+  for (auto nav: Range(navs)) {
     result.append(navToBSON(nav));
   }
   return result.arr();
@@ -136,17 +138,17 @@ Angle<T> average(const Angle<T>& a, const Angle<T>& b) {
   return motion.angle();
 }
 
-BSONObj locationForSession(const NavCollection& navs) {
-  if (navs.size() == 0) {
+BSONObj locationForSession(const NavDataset& navs) {
+  if (getNavSize(navs) == 0) {
     return BSONObj();
   }
 
-  Angle<double> minLat(navs[0].geographicPosition().lat());
-  Angle<double> minLon(navs[0].geographicPosition().lon());
-  Angle<double> maxLat(navs[0].geographicPosition().lat());
-  Angle<double> maxLon(navs[0].geographicPosition().lon());
+  Angle<double> minLat(getNav(navs, 0).geographicPosition().lat());
+  Angle<double> minLon(getNav(navs, 0).geographicPosition().lon());
+  Angle<double> maxLat(getNav(navs, 0).geographicPosition().lat());
+  Angle<double> maxLon(getNav(navs, 0).geographicPosition().lon());
   
-  for (auto nav: navs) {
+  for (auto nav: Range(navs)) {
     minLat = std::min(minLat, nav.geographicPosition().lat());
     maxLat = std::max(maxLat, nav.geographicPosition().lat());
     minLon = std::min(minLon, nav.geographicPosition().lon());
@@ -169,15 +171,15 @@ BSONObj locationForSession(const NavCollection& navs) {
 }
 
 // Returns average wind speed and average wind direction.
-Optional<HorizontalMotion<double>> averageWind(const NavCollection& navs) {
+Optional<HorizontalMotion<double>> averageWind(const NavDataset& navs) {
   int num = 0;
   HorizontalMotion<double> sum = HorizontalMotion<double>::zero();
   Velocity<double> sumSpeed = Velocity<double>::knots(0);
 
   auto marg = Duration<double>::minutes(5.0);
-  Span<TimeStamp> validTime(navs.first().time() + marg, navs.last().time());
+  Span<TimeStamp> validTime(getFirst(navs).time() + marg, getLast(navs).time());
 
-  for (auto nav: navs) {
+  for (auto nav: Range(navs)) {
     if (!validTime.contains(nav.time())) {
       continue;
     }
@@ -208,16 +210,17 @@ Optional<HorizontalMotion<double>> averageWind(const NavCollection& navs) {
 
 // Returns the strongest wind and the corresponding nav index.
 // If no wind information is present, the returned index is -1.
-std::pair<Velocity<double>, int> indexOfStrongestWind(const NavCollection& navs) {
+std::pair<Velocity<double>, int> indexOfStrongestWind(const NavDataset& navs) {
   std::pair<Velocity<double>, int> result(Velocity<double>::knots(0), -1);
 
   auto marg = Duration<double>::minutes(5.0);
-  Span<TimeStamp> validTime(navs.first().time() + marg, navs.last().time());
+  Span<TimeStamp> validTime(getFirst(navs).time() + marg, getLast(navs).time());
 
   std::vector<std::pair<Velocity<double>, int>> speedArray;
 
-  for (int i = 0; i < navs.size(); ++i) {
-    const Nav& nav = navs[i];
+  int n = getNavSize(navs);
+  for (int i = 0; i < n; ++i) {
+    const Nav& nav = getNav(navs, i);
 
     // If the boat is not moving, the strongest wind is not so interesting.
     // The following if avoids most outliers.
@@ -244,7 +247,7 @@ std::pair<Velocity<double>, int> indexOfStrongestWind(const NavCollection& navs)
 BSONObj makeBsonSession(
     const std::string &curveId,
     const std::string &boatId,
-    NavCollection navs) {
+    NavDataset navs) {
 
   BSONObjBuilder session;
   session.append("_id", curveId);
@@ -253,11 +256,11 @@ BSONObj makeBsonSession(
       computeTrajectoryLength(navs).nauticalMiles());
   int maxSpeedIndex = findMaxSpeedOverGround(navs);
   if (maxSpeedIndex >= 0) {
-    session.append("maxSpeedOverGround", navs[maxSpeedIndex].gpsSpeed().knots());
-    append(session, "maxSpeedOverGroundTime", navs[maxSpeedIndex].time());
+    session.append("maxSpeedOverGround", getNav(navs, maxSpeedIndex).gpsSpeed().knots());
+    append(session, "maxSpeedOverGroundTime", getNav(navs, maxSpeedIndex).time());
   }
-  append(session, "startTime", navs.first().time());
-  append(session, "endTime", navs.last().time());
+  append(session, "startTime", getFirst(navs).time());
+  append(session, "endTime", getLast(navs).time());
   session.append("location", locationForSession(navs));
 
   auto wind = averageWind(navs);
@@ -269,22 +272,22 @@ BSONObj makeBsonSession(
   std::pair<Velocity<double>, int> strongestWind = indexOfStrongestWind(navs);
   if (strongestWind.second >= 0) {
     session.append("strongestWindSpeed", strongestWind.first.knots());
-    append(session, "strongestWindTime", navs[strongestWind.second].time());
+    append(session, "strongestWindTime", getNav(navs, strongestWind.second).time());
   }
 
   return session.obj();
 }
 
 BSONObj makeBsonTile(const TileKey& tileKey,
-                     const Array<NavCollection>& subCurvesInTile,
+                     const Array<NavDataset>& subCurvesInTile,
                      const std::string& boatId,
                      const std::string& curveId) {
   BSONObjBuilder tile;
   tile.genOID();
   tile.append("key", tileKey.stringKey());
   tile.append("boat", OID(boatId));
-  append(tile, "startTime", subCurvesInTile.first().first().time());
-  append(tile, "endTime", subCurvesInTile.last().last().time());
+  append(tile, "startTime", getFirst(subCurvesInTile.first()).time());
+  append(tile, "endTime", getLast(subCurvesInTile.last()).time());
   append(tile, "created", TimeStamp::now());
 
   std::vector<BSONObj> curves;
@@ -304,7 +307,7 @@ BSONObj makeBsonTile(const TileKey& tileKey,
 }  // namespace
 
 bool generateAndUploadTiles(std::string boatId,
-                            Array<NavCollection> allNavs,
+                            Array<NavDataset> allNavs,
                             const TileGeneratorParameters& params) {
   mongo::client::initialize();
 
@@ -320,13 +323,13 @@ bool generateAndUploadTiles(std::string boatId,
                MONGO_QUERY("boat" << OID(boatId)));
   }
 
-  for (const NavCollection& curve : allNavs) {
+  for (const NavDataset& curve : allNavs) {
     std::string curveId = tileCurveId(boatId, curve);
 
     std::set<TileKey> tiles = tilesForNav(curve, params.maxScale);
 
     for (auto tileKey : tiles) {
-      Array<NavCollection> subCurvesInTile = generateTiles(
+      Array<NavDataset> subCurvesInTile = generateTiles(
           tileKey, curve, params.maxNumNavsPerSubCurve);
 
       if (subCurvesInTile.size() == 0) {

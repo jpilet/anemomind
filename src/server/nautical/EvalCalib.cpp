@@ -11,16 +11,17 @@
 
 using namespace sail;
 using namespace sail::Benchmark;
+using namespace sail::NavCompat;
 
 // This is a class to allow for testing of maneuverbased calibration.
 class ManeuverbasedCorrectorFunction : public CorrectorFunction {
  public:
   ManeuverbasedCorrectorFunction(std::shared_ptr<Calibrator> calib) : _calib(calib) {}
 
-  Array<CalibratedNav<double> > operator()(const NavCollection &navs) const {
-    auto correctedNavs = navs.makeArray().dup();
+  Array<CalibratedNav<double> > operator()(const NavDataset &navs) const {
+    auto correctedNavs = makeArray(navs).dup();
     _calib->simulate(&correctedNavs);
-    int n = navs.size();
+    int n = getNavSize(navs);
     Array<CalibratedNav<double> > dst(n);
     Corrector<double> corr;
     for (int i = 0; i < n; i++) {
@@ -38,7 +39,7 @@ class ManeuverbasedCorrectorFunction : public CorrectorFunction {
   std::shared_ptr<Calibrator> _calib;
 };
 
-std::shared_ptr<CorrectorFunction> calibrateManeuvers(NavCollection navs, bool full) {
+std::shared_ptr<CorrectorFunction> calibrateManeuvers(NavDataset navs, bool full) {
   WindOrientedGrammarSettings gs;
   WindOrientedGrammar grammar(gs);
   auto tree = grammar.parse(navs);
@@ -55,15 +56,15 @@ std::shared_ptr<CorrectorFunction> calibrateManeuvers(NavCollection navs, bool f
   }
 }
 
-std::shared_ptr<CorrectorFunction> calibrateManeuversWind(NavCollection navs) {
+std::shared_ptr<CorrectorFunction> calibrateManeuversWind(NavDataset navs) {
   return calibrateManeuvers(navs, false);
 }
 
-std::shared_ptr<CorrectorFunction> calibrateManeuversFull(NavCollection navs) {
+std::shared_ptr<CorrectorFunction> calibrateManeuversFull(NavDataset navs) {
   return calibrateManeuvers(navs, true);
 }
 
-std::shared_ptr<CorrectorFunction> calibrateMinCov(NavCollection navs) {
+std::shared_ptr<CorrectorFunction> calibrateMinCov(NavDataset navs) {
   FilteredNavData data(navs, 0.5);
   return std::shared_ptr<CorrectorFunction>(
       new CorrectorObject(MinCovCalib::optimizeWindVsCurrent(data, MinCovCalib::Settings())));

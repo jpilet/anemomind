@@ -11,7 +11,7 @@
 #include <map>
 #include <set>
 #include <server/common/TimeStamp.h>
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 #include <server/common/Functional.h>
 
 namespace sail {
@@ -232,7 +232,7 @@ class NKEParser {
   NKEData load(const std::string filename, std::istream &file);
   NKEData load(TimeStamp offset, std::istream &file);
 
-  NavCollection makeNavs(Nav::Id boatId, NKEData data);
+  NavDataset makeNavs(Nav::Id boatId, NKEData data);
  private:
   // Maps a name to an NKE type
   std::map<std::string, NKEType> _name2type;

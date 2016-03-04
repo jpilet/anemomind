@@ -14,7 +14,7 @@
 
 namespace sail {
 
-
+using namespace NavCompat;
 
 NavalSimulation::FlowFun NavalSimulation::constantFlowFun(HorizontalMotion<double> m) {
   return [=](const ProjectedPosition &pos, Duration<double> dur) {
@@ -65,7 +65,7 @@ NavalSimulation::SimulatedCalibrationResults NavalSimulation::BoatData::evaluate
   Array<HorizontalMotion<double> > estWind(count), estCurrent(count);
   Spani span(0, count);
   auto navs = toArray(map(span, [&](int i) {return _states[i].nav();}));
-  auto cnavs = corr(NavCollection::fromNavs(navs));
+  auto cnavs = corr(fromNavs(navs));
   for (auto i: span) {
     estWind[i] = cnavs[i].trueWindOverGround();
     estCurrent[i] = cnavs[i].trueCurrentOverGround();

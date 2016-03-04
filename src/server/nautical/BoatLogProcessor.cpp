@@ -33,6 +33,7 @@
 
 namespace sail {
 
+using namespace NavCompat;
 
 namespace {
 
@@ -49,7 +50,7 @@ namespace {
     //   Maybe replace AWA by TWA in order to label states in Grammar001.
     Arrayb sel = markNavsByDesc(tree, nodeinfo, allnavs, description);
 
-    NavCollection navs = NavCollection::fromNavs(allnavs.slice(sel));
+    NavDataset navs = fromNavs(allnavs.slice(sel));
 
     Array<Velocity<double> > tws = estimateExternalTws(navs);
     Array<Velocity<double> > vmg = calcExternalVmg(navs, isUpwind);
@@ -84,7 +85,7 @@ namespace {
 
   void makeBoatDatFile(
       bool debug,
-      NavCollection coll,
+      NavDataset coll,
       PathBuilder outdir, Array<Nav> navs,
       std::shared_ptr<HTree> fulltree, Nav::Id boatId, WindOrientedGrammar g) {
     ENTERSCOPE("Output boat.dat with target speed data.");
@@ -99,15 +100,15 @@ namespace {
     outputTargetSpeedTable(debug, fulltree, g.nodeInfo(), navs, &boatDatFile);
   }
 
-  bool processBoatData(bool debug, Nav::Id boatId, NavCollection navs, Poco::Path dstPath, std::string filenamePrefix) {
+  bool processBoatData(bool debug, Nav::Id boatId, NavDataset navs, Poco::Path dstPath, std::string filenamePrefix) {
     ENTERSCOPE("processBoatData");
-    if (navs.size() == 0) {
+    if (getNavSize(navs) == 0) {
       LOG(ERROR) << "No data to process.";
       return false;
     }
     SCOPEDMESSAGE(INFO, stringFormat("Process %d navs ranging from %s to %s",
-        navs.size(), navs.first().time().toString().c_str(),
-        navs.last().time().toString().c_str()));
+        getNavSize(navs), getFirst(navs).time().toString().c_str(),
+        getLast(navs).time().toString().c_str()));
 
     SCOPEDMESSAGE(INFO, "Parse data...");
     WindOrientedGrammarSettings settings;
@@ -124,7 +125,7 @@ namespace {
     PathBuilder outdir = PathBuilder::makeDirectory(dstPath);
     std::string prefix = "all";
 
-    auto navs0 = navs.makeArray();
+    auto navs0 = makeArray(navs);
     makeBoatDatFile(debug, navs, outdir, navs0, fulltree, boatId, g);
 
     {
@@ -182,18 +183,21 @@ Nav::Id extractBoatId(Poco::Path path) {
 
 }
 
-NavCollection loadNavs(ArgMap &amap, std::string boatId) {
-  ArrayBuilder<NavCollection > navs;
+NavDataset loadNavs(ArgMap &amap, std::string boatId) {
+  ArrayBuilder<Array<Nav> > navs;
   for (auto dirNameObj: amap.optionArgs("--dir")) {
-    navs.add(scanNmeaFolderWithSimulator(dirNameObj->value(), boatId));
+    navs.add(makeArray(scanNmeaFolderWithSimulator(dirNameObj->value(), boatId)));
   }
+
+
   for (auto fileNameObj: amap.optionArgs("--file")) {
-    NavCollection navs = loadNavsFromFile(fileNameObj->value(),
+    auto x = loadNavsFromFile(fileNameObj->value(),
         boatId).navs();
+    navs.add(makeArray(x));
   }
   auto allNavs = concat(navs.get());
   std::sort(allNavs.begin(), allNavs.end());
-  return NavCollection::fromNavs(allNavs);
+  return fromNavs(allNavs);
 }
 
 Nav::Id getBoatId(ArgMap &amap) {
@@ -222,7 +226,7 @@ int continueProcessBoatLogs(ArgMap &amap) {
   auto navs = loadNavs(amap, id);
   auto dstPath = getDstPath(amap);
   std::stringstream msg;
-  msg << "Process " << navs.size() << " navs with boatid=" <<
+  msg << "Process " << getNavSize(navs) << " navs with boatid=" <<
       id << " and save results to " << dstPath.toString();
   SCOPEDMESSAGE(INFO, msg.str());
   if (processBoatData(debug, id, navs, dstPath, "all")) {

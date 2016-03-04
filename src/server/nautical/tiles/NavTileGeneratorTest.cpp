@@ -4,8 +4,11 @@
 #include <server/nautical/tiles/NavTileUploader.h>
 
 #include <gtest/gtest.h>
+#include <iostream>
 
 namespace sail {
+
+using namespace NavCompat;
 
 TEST(NavTileGenerator, SmokeTest) {
   Array<Nav> navs(100);
@@ -23,21 +26,21 @@ TEST(NavTileGenerator, SmokeTest) {
   }
 
   TileKey tile(1, 1, 0);
-  Array<NavCollection> result = generateTiles(
+  Array<NavDataset> result = generateTiles(
       tile, // A quarter of the world
-      NavCollection::fromNavs(navs), 5);
+      fromNavs(navs), 5);
 
   EXPECT_EQ(1, result.size());
-  EXPECT_EQ(5, result[0].size());
+  EXPECT_EQ(5, getNavSize(result[0]));
 
   // Every point should be in the tile.
-  for (const Nav& nav : result[0]) {
+  for (const Nav& nav : Range(result[0])) {
     EXPECT_TRUE(tile.contains(nav.geographicPosition()));
   }
 
   for (const Nav& nav : navs) {
-    if (nav.time() < result[0].first().time()
-        || nav.time() > result[0].last().time()) {
+    if (nav.time() < getFirst(result[0]).time()
+        || nav.time() > getLast(result[0]).time()) {
       EXPECT_FALSE(tile.contains(nav.geographicPosition()));
     }
   }
@@ -46,7 +49,9 @@ TEST(NavTileGenerator, SmokeTest) {
 
 TEST(NavTileGenerator, SplitTest) {
   Array<Nav> navs(32);
+  auto start = TimeStamp::UTC(2016, 02, 19, 16, 23, 0);
   for (int i = 0; i < navs.size(); ++i) {
+    navs[i].setTime(start + Duration<double>::seconds(i));
     navs[i].setGeographicPosition(
         GeographicPosition<double>(
             Angle<double>::degrees((i/32.0 * 10 + 1)),
@@ -61,13 +66,13 @@ TEST(NavTileGenerator, SplitTest) {
   }
 
   TileKey tile(1, 1, 0);
-  Array<NavCollection> result = generateTiles(
+  Array<NavDataset> result = generateTiles(
       tile, // A quarter of the world
-      NavCollection::fromNavs(navs), 5);
+      fromNavs(navs), 5);
 
   EXPECT_EQ(2, result.size());
-  EXPECT_EQ(5, result[0].size());
-  EXPECT_EQ(5, result[1].size());
+  EXPECT_EQ(5, getNavSize(result[0]));
+  EXPECT_EQ(5, getNavSize(result[1]));
 }
 
 TEST(NavTileGenerator, TileKeyTest) {

@@ -8,7 +8,7 @@
 
 #include <server/common/TimeStamp.h>
 #include <server/math/UniformSamples.h>
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavCompatibility.h>
 
 namespace sail {
 
@@ -17,7 +17,7 @@ class FilteredNavData {
   enum DebugPlotMode {NONE, SIGNAL, DERIVATIVE};
 
   FilteredNavData() {}
-  FilteredNavData(NavCollection navs, double lambda, DebugPlotMode mode = NONE);
+  FilteredNavData(NavDataset navs, double lambda, DebugPlotMode mode = NONE);
 
   FilteredNavData(
         TimeStamp timeOffset,
@@ -107,7 +107,7 @@ class FilteredNavData {
     Velocity<double> gpsSpeed;
     Velocity<double> aws;
   };
-  NoiseStdDev estimateNoise(NavCollection navs) const;
+  NoiseStdDev estimateNoise(NavDataset navs) const;
 
   // The lifetime of _data should completely overlap
   // the lifetime of this object.
