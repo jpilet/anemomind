@@ -36,4 +36,10 @@ cxx_test(logs_CsvTest
          gtest_main
         )        
         
-                     
+cxx_test(logs_ProtobufLogTest
+         ProtobufLogTest.cpp
+         logs_LogLoader
+         common_Env
+         common_PathBuilder
+         gtest_main
+        )                            
