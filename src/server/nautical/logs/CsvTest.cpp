@@ -22,4 +22,6 @@ TEST(CsvTest, Rowdy) {
   EXPECT_EQ(data.samples<GPS_SPEED>().size(), 6);
   EXPECT_EQ(data.samples<GPS_BEARING>().size(), 6);
   EXPECT_EQ(data.samples<GPS_POS>().size(), 6);
+  EXPECT_NEAR(data.samples<AWA>().last().value.degrees(), 20.380108772803382, 1.0e-5);
+  EXPECT_NEAR(data.samples<GPS_POS>()[2].value.lon().degrees(), 6.999021099999999, 1.0e-5);
 }
