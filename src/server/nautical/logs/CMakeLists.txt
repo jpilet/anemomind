@@ -27,4 +27,11 @@ cxx_test(logs_Nmea0183Test
          gtest_main
          nautical_NavCompatibility
         )
+        
+cxx_test(logs_CsvTest
+         CsvTest.cpp
+         logs_LogLoader
+         gtest_main
+        )        
+        
                      
