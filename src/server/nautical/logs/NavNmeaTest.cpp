@@ -35,7 +35,6 @@ TEST(NavNmeaTest, TestComplete2) {
   LogLoader loader;
   loader.loadNmea0183(&testfile002);
   auto navs = loader.makeNavDataset();
-  EXPECT_TRUE(navs);
   EXPECT_GE(getNavSize(navs), 0);
 }
 

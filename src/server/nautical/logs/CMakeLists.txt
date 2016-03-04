@@ -25,5 +25,6 @@ cxx_test(nautical_NavNmeaTest
          NavNmeaTest.cpp
          logs_LogLoader
          gtest_main
+         nautical_NavCompatibility
         )
                      
