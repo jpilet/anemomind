@@ -31,6 +31,8 @@ cxx_test(logs_Nmea0183Test
 cxx_test(logs_CsvTest
          CsvTest.cpp
          logs_LogLoader
+         common_Env
+         common_PathBuilder
          gtest_main
         )        
         
