@@ -22,8 +22,8 @@ TEST(ScreenRecordingTest, screenAtTest) {
   NavDataset navs = LogLoader::loadNavDataset(nmeaFile);
 
   int n = getNavSize(navs);
-  EXPECT_EQ(5, n);
-  for (int i = 0; i < n; ++i) {
+  EXPECT_EQ(6, n);
+  for (int i = 1; i < 6; ++i) {
     ScreenInfo info;
     EXPECT_TRUE(simulator.screenAt(getNav(navs, i).time(), &info));
     EXPECT_NEAR((info.time - getNav(navs, i).time()).seconds(), 0, 2);
