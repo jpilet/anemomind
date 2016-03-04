@@ -68,7 +68,7 @@ Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
 void processTiles(const TileGeneratorParameters &params,
     std::string boatId, std::string navPath,
     std::string boatDat, std::string polarDat) {
-    auto rawNavs0 = scanNmeaFolder(navPath, boatId);
+    auto rawNavs0 = LogLoader::loadNavDataset(navPath);
     Array<Nav> rawNavs = makeArray(rawNavs0);
 
     if (boatDat != "") {

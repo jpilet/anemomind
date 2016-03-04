@@ -350,6 +350,19 @@ void LogLoader::load(const Poco::Path &name) {
   }, settings);
 }
 
+NavDataset LogLoader::loadNavDataset(const std::string &name) {
+  LogLoader loader;
+  loader.load(name);
+  return loader.makeNavDataset();
+}
+
+NavDataset LogLoader::loadNavDataset(const Poco::Path &name) {
+  LogLoader loader;
+  loader.load(name);
+  return loader.makeNavDataset();
+}
+
+
 template <typename T>
 void insertValues(DataCode code,
     const std::map<std::string, typename TimedSampleCollection<T>::TimedVector> &src,

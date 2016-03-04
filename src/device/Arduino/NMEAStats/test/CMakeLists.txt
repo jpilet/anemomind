@@ -46,6 +46,7 @@ add_library(device_ScreenRecordingSimulator
 target_link_libraries(device_ScreenRecordingSimulator
                       device_DeviceSimulator
                       common_string
+                      nautical_NavCompatibility
                      )
 cxx_test(device_ScreenRecordingSimulatorTest
          ScreenRecordingSimulatorTest.cpp

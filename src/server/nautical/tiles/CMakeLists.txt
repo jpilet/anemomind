@@ -51,7 +51,7 @@ if (MongoDB_LIBRARIES)
                         common_ArgMap
                         common_logging
                         math_hmm_StateAssign
-                        nautical_LogLoader
+                        logs_LogLoader
                         nautical_grammars_WindOrientedGrammar
                         ${MongoDB_LIBRARIES}
                         nautical_GpsFilter

@@ -136,6 +136,8 @@ target_link_libraries(nautical_BoatLogProcessor
                       nautical_grammars_WindOrientedGrammar
                       common_ArgMap
                       plot_gnuplot
+                      common_ScopedLog
+                      logs_LogLoader
                      )              
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)
@@ -167,7 +169,9 @@ add_executable(nautical_BasicCalibrate
 target_link_libraries(nautical_BasicCalibrate
                       common_Env
                       common_logging
-                      nautical_Calibrator)
+                      nautical_Calibrator
+                      logs_LogLoader
+                     )
 
 
 add_library(nautical_GeographicReference
@@ -385,6 +389,7 @@ add_library(nautical_CalibrationBenchmark
 target_link_libraries(nautical_CalibrationBenchmark                         
                       nautical_synthtest_NavalSimulationPrecomp
                       common_EnvUtil
+                      logs_LogLoader
                      )
 
 
@@ -415,6 +420,7 @@ target_link_libraries(nautical_exportNavs
                       common_logging
                       common_ArgMap
                       nautical_Calibrator
+                      logs_LogLoader
                      )              
 
 add_library(nautical_NavToNmea

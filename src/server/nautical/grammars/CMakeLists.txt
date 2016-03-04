@@ -44,7 +44,7 @@ add_executable(nautical_grammars_TreeExplorerExample
 target_link_libraries(nautical_grammars_TreeExplorerExample
                       nautical_grammars_TreeExplorer
                       common_PathBuilder
-                      nautical_LogLoader
+                      logs_LogLoader
                       nautical_grammars_WindOrientedGrammar
                       common_Env
                      )

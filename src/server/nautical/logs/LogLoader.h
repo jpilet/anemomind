@@ -31,6 +31,11 @@ class LogLoader {
   void load(const std::string &name);
   void load(const Poco::Path &name);
 
+  // Conveniency functions when there is just one thing
+  // to load.
+  static NavDataset loadNavDataset(const std::string &name);
+  static NavDataset loadNavDataset(const Poco::Path &name);
+
   void loadNmea0183(std::istream *s);
 
   void addToDispatcher(Dispatcher *dst) const;
