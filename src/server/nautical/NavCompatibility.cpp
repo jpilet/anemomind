@@ -181,25 +181,6 @@ namespace {
 
 namespace NavCompat {
 
-LineCalls::LineCalls(const char *label) : _label(label) {}
-
-void LineCalls::registerCall(const char *filename, int line) {
-  auto key = SrcId(filename, line);
-  _counters[key]++;
-  if (!(key == _last)) {
-    show();
-    _last = key;
-  }
-}
-
-void LineCalls::show() const {
-  std::cout << "\nCalls to " << _label << ":";
-  for (auto kv: _counters) {
-    std::cout << "  Calls in file " << kv.first.filename
-        << " on line " << kv.first.line << ": " << kv.second << std::endl;
-  }
-}
-
 int getNavSize(const NavDataset &ds) {
   return getGpsPositions(ds).size();
 }
