@@ -18,7 +18,7 @@ namespace {
   std::stringstream testfile001(data001);
 }
 
-TEST(NavNmeaTest, TestComplete) {
+TEST(Nmea0183Test, TestComplete) {
   LogLoader loader;
   loader.loadNmea0183(&testfile001);
   std::cout << "Make the dataset" << std::endl;
@@ -34,7 +34,7 @@ namespace {
   std::stringstream testfile002(data002);
 }
 
-TEST(NavNmeaTest, TestComplete2) {
+TEST(Nmea0183Test, TestComplete2) {
   LogLoader loader;
   loader.loadNmea0183(&testfile002);
   auto navs = loader.makeNavDataset();
@@ -42,7 +42,7 @@ TEST(NavNmeaTest, TestComplete2) {
 }
 
 
-TEST(NavNmeaTest, TestIncomplete) {
+TEST(Nmea0183Test, TestIncomplete) {
   const char dataOneTimeStamp[] = "$IIMWV,248,T,05.8,N,A*16\n$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileOneTimeStamp(dataOneTimeStamp);
 
@@ -68,7 +68,7 @@ TEST(NavNmeaTest, TestIncomplete) {
 }
 
 
-TEST(NavNmeaTest, TestSkipDueToLongThreshold) {
+TEST(Nmea0183Test, TestSkipDueToLongThreshold) {
   /*
    * Nmea data with 3 time-pos sentences.
    *
@@ -96,7 +96,7 @@ TEST(NavNmeaTest, TestSkipDueToLongThreshold) {
 }
 
 
-TEST(NavNmeaTest, TestIncludeLastTwo) {
+TEST(Nmea0183Test, TestIncludeLastTwo) {
   /*
    * Nmea with 3 time-pos sentences.
    *

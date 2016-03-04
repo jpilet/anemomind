@@ -21,8 +21,8 @@ cxx_test(logs_LogLoaderTest
         )
                      
                      
-cxx_test(nautical_NavNmeaTest
-         NavNmeaTest.cpp
+cxx_test(logs_Nmea0183Test
+         Nmea0183Test.cpp
          logs_LogLoader
          gtest_main
          nautical_NavCompatibility
