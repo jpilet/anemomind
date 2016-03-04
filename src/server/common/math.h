@@ -355,22 +355,6 @@ bool isFiniteArray(Array<T> X) {
   return true;
 }
 
-/*
- * A calculation is sane if, whenever
- * the result of the calculation is non-finite,
- * at least one argument was also non-finite. If all
- * the arguments are finite but not the result, then something
- * is probably wrong.
- */
-template <typename T>
-bool saneCalculation(T result, Array<T> arguments) {
-  if (std::isfinite(result)) {
-    return true;
-  } else {
-    return !isFinite(arguments);
-  }
-}
-
 template <typename T>
 T toFinite(T x, T defaultValue) {
   return (std::isfinite(x)? x : defaultValue);
@@ -384,8 +368,15 @@ T clamp(T x, T lower, T upper) {
 // SFINAE: http://jguegant.github.io/blogs/tech/sfinae-introduction.html
 // So that we can have a single IsFinite<T>::evaluate(x) for any type T,
 // be it composite template type or a primitive, or anything else.
-template <typename T, typename=void>
+template <typename T, typename X=void>
 struct IsFinite {
+ static bool evaluate(const T &x) {
+   return false;
+ }
+};
+
+template <typename T>
+struct IsFinite<T, decltype(std::isfinite(std::declval<T>()))> {
  static bool evaluate(const T &x) {
    return std::isfinite(x);
  }
@@ -409,6 +400,22 @@ struct IsFinite<T, decltype(isFiniteArray(std::declval<T>()))> {
 template <typename T>
 bool isFinite(const T &x) {
   return IsFinite<T>::evaluate(x);
+}
+
+/*
+ * A calculation is sane if, whenever
+ * the result of the calculation is non-finite,
+ * at least one argument was also non-finite. If all
+ * the arguments are finite but not the result, then something
+ * is probably wrong.
+ */
+template <typename T>
+bool saneCalculation(T result, Array<T> arguments) {
+  if (std::isfinite(result)) {
+    return true;
+  } else {
+    return !isFinite(arguments);
+  }
 }
 
 Arrayd makeNextRegCoefs(Arrayd coefs);

@@ -3,7 +3,6 @@
  *      Author: Jonas Östlund <jonas@anemomind.com>
  */
 
-#include <server/common/math.h>
 #include <server/nautical/logs/LogLoader.h>
 #include <device/anemobox/logger/Logger.h>
 #include <server/common/logging.h>
@@ -12,6 +11,7 @@
 #include <fstream>
 #include <server/common/filesystem.h>
 #include <server/common/CsvParser.h>
+#include <server/common/math.h>
 
 namespace sail {
 
