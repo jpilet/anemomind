@@ -384,7 +384,7 @@ T clamp(T x, T lower, T upper) {
 // SFINAE: http://jguegant.github.io/blogs/tech/sfinae-introduction.html
 // So that we can have a single IsFinite<T>::evaluate(x) for any type T,
 // be it composite template type or a primitive, or anything else.
-template <typename T, typename=std::string>
+template <typename T, typename=void>
 struct IsFinite {
  static bool evaluate(const T &x) {
    return std::isfinite(x);
