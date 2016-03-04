@@ -161,7 +161,7 @@ public:
 
   // TODO: Use this method sparingly: Preferably use samples() whenever
   // possible.
-  const std::shared_ptr<Dispatcher> &getDispatcher() const {
+  const std::shared_ptr<Dispatcher> &dispatcher() const {
     return _dispatcher;
   }
 private:

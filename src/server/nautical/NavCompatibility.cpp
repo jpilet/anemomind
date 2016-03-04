@@ -194,7 +194,7 @@ namespace {
   void setNavValueMultiSource(
       const Array<std::string> &orderedSources,
       const NavDataset &data, TimeStamp time, Nav *dst, void (Nav::* set)(T)) {
-    auto sample = lookUpPrioritizedSample<code>(data.getDispatcher(), time, orderedSources);
+    auto sample = lookUpPrioritizedSample<code>(data.dispatcher(), time, orderedSources);
     if (sample.defined()) {
       ((*dst).*set)(sample.get());
     } else {
