@@ -350,12 +350,15 @@ void LogLoader::load(const std::string &name) {
 }
 
 void LogLoader::load(const Poco::Path &name) {
+  std::cout << "Load called on " << name.toString() << std::endl;
   FileTraverseSettings settings;
   settings.visitDirectories = false;
   settings.visitFiles = true;
   traverseDirectory(
       name,
       [&](const Poco::Path &path) {
+    std::cout << "VISITING: " << path.toString() << std::endl;
+
     loadFile(path.toString());
   }, settings);
 }

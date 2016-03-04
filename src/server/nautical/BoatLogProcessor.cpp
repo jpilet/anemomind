@@ -182,19 +182,14 @@ Nav::Id extractBoatId(Poco::Path path) {
 }
 
 NavDataset loadNavs(ArgMap &amap, std::string boatId) {
-  ArrayBuilder<Array<Nav> > navs;
+  LogLoader loader;
   for (auto dirNameObj: amap.optionArgs("--dir")) {
-    navs.add(makeArray(LogLoader::loadNavDataset(dirNameObj->value())));
+    loader.load(dirNameObj->value());
   }
-
-
   for (auto fileNameObj: amap.optionArgs("--file")) {
-    auto x = LogLoader::loadNavDataset(fileNameObj->value());
-    navs.add(makeArray(x));
+    loader.load(fileNameObj->value());
   }
-  auto allNavs = concat(navs.get());
-  std::sort(allNavs.begin(), allNavs.end());
-  return fromNavs(allNavs);
+  return loader.makeNavDataset();
 }
 
 Nav::Id getBoatId(ArgMap &amap) {

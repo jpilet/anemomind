@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <server/common/Functional.h>
 #include <limits>
+#include <iostream>
 
 namespace sail {
 
@@ -33,10 +34,19 @@ bool hasExtension(Poco::Path p, Array<std::string> extensions) {
 
 void traverseDirectory(const Poco::Path &path, std::function<void(Poco::Path)> visitor,
     const FileTraverseSettings &settings, int currentDepth) {
+
   if (currentDepth > settings.maxDepth) {
     return;
   } else {
-    if (path.isDirectory()) {
+
+    /*
+     * Arghhh! There is also Poco::Path::isDirectory, but
+     * that function doesn't do what we want: it just checks
+     * if the filename part is empty!
+     */
+    auto fileOrDirectory = Poco::File(path);
+
+    if (fileOrDirectory.isDirectory()) {
       if (settings.visitDirectories) {
         visitor(path);
       }
@@ -45,7 +55,7 @@ void traverseDirectory(const Poco::Path &path, std::function<void(Poco::Path)> v
         for (Poco::DirectoryIterator it(path); it != end; ++it) {
           traverseDirectory(it->path(), visitor, settings, deeper);
         }
-    } else if (settings.visitFiles) {
+    } else if (fileOrDirectory.isFile() && settings.visitFiles) {
       visitor(path);
     }
   }
