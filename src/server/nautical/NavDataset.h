@@ -147,6 +147,9 @@ public:
       return TimedSampleRange<typename TypeForCode<Code>::type>();
     }
     const auto &v = m->samples();
+    if (v.empty()) {
+      return TimedSampleRange<typename TypeForCode<Code>::type>();
+    }
     auto lower = (_lowerBound.defined()? std::lower_bound(v.begin(), v.end(), _lowerBound) : v.begin());
     auto upper = (_upperBound.defined()? std::upper_bound(v.begin(), v.end(), _upperBound) : v.end());
     return TimedSampleRange<typename TypeForCode<Code>::type>(lower, upper);
