@@ -91,6 +91,20 @@ class TimedSampleRange {
   // default constructors (http://stackoverflow.com/a/3395263).
   // So in order to distinguish a TimedSampleRange that is
   // default constructed, from one that is not, use a _defined flag.
+
+/* Julien's response:
+It seems to me that there is no need for a default constructor. If we need
+something not initialized, we should use an Optional<>. However, our current
+implementation of Optional does not work with classes that can't be default
+constructed. We should use boost::optional, which supports it. They implement
+it with a tricky hack:
+
+https://github.com/boostorg/optional/blob/develop/include/boost/optional/detail/optional_aligned_storage.hpp#L35
+
+Let's keep that for another PR. Please add a TODO to replace Optional
+by boost::optional.
+ */
+
   bool _defined;
 
   Iterator _begin, _end;
