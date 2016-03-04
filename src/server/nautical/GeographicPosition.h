@@ -50,7 +50,7 @@ private:
 
 template <typename T>
 bool isFiniteGeoPos(const GeographicPosition<T> &x) {
-  return isFinite(x.lon()) && isFinite(x.lat()) && isFinite(x.alt());
+  return isFinite(x.lon()) && isFinite(x.lat());
 }
 SPECIALIZE_NUMERIC_TEMPLATE(IsFinite, isFiniteGeoPos)
 

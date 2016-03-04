@@ -255,8 +255,13 @@ CsvRowProcessor::CsvRowProcessor(const MDArray<std::string, 2> &header) {
   assert(header.rows() == 1);
   int cols = header.cols();
   for (int i = 0; i < cols; i++) {
-    auto found = m.find(header(0, i));
-    _setters.push_back(found == m.end()? doNothing : found->second);
+    auto h = trim(header(0, i));
+    auto found = m.find(h);
+    bool wasFound = found != m.end();
+    _setters.push_back(wasFound? found->second : doNothing);
+    if (!wasFound) {
+      LOG(INFO) << "CSV header ignored: '" << h << "'";
+    }
   }
 }
 
@@ -273,7 +278,12 @@ void CsvRowProcessor::process(const MDArray<std::string, 2> &row, SourcesToPopul
   _pushBack(_watSpeed, dst->watSpeed);
   _pushBack(_gpsSpeed, dst->gpsSpeed);
   _pushBack(_gpsBearing, dst->gpsBearing);
-  _pushBack(GeographicPosition<double>(_lon, _lat), dst->geoPos);
+  auto pos = GeographicPosition<double>(_lon, _lat);
+
+  std::cout << "Push back the geo pos: " << pos.lon().degrees()
+      << ", " << pos.lat().degrees() << std::endl;
+  _pushBack(pos, dst->geoPos);
+  std::cout << "Now the size is " << dst->geoPos->size() << std::endl;
 }
 
 void loadCsv(const MDArray<std::string, 2> &table, LogLoader *dst) {
