@@ -16,7 +16,7 @@
 #ifndef PHYSICALQUANTITY_H_
 #define PHYSICALQUANTITY_H_
 
-#include <server/common/numeric.h>
+#include <server/common/numerics.h>
 #ifdef ON_SERVER
 #include <cmath>
 #include <limits>

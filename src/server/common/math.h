@@ -12,7 +12,7 @@
 #include <cassert>
 #include <limits>
 #include <server/common/MDArray.h>
-#include <server/common/numeric.h>
+#include <server/common/numerics.h>
 
 namespace sail {
 

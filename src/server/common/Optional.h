@@ -8,7 +8,7 @@
 
 #include <cassert>
 #include <functional>
-#include <server/common/numeric.h>
+#include <server/common/numerics.h>
 
 template <typename T>
 class Optional {

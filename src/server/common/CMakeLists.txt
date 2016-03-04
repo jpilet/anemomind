@@ -374,7 +374,7 @@ cxx_test(common_FunctionalTest
          gtest_main
         )
         
-cxx_test(common_numericTest
-         numericTest.cpp
+cxx_test(common_numericsTest
+         numericsTest.cpp
          gtest_main
         )        

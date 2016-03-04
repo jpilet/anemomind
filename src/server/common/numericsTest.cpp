@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <jonas@anemomind.com>
  */
 
-#include <server/common/numeric.h>
+#include <server/common/numerics.h>
 #include <limits>
 #include <gtest/gtest.h>
 
