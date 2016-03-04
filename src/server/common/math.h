@@ -12,20 +12,13 @@
 #include <cassert>
 #include <limits>
 #include <server/common/MDArray.h>
+#include <server/common/numeric.h>
 
 namespace sail {
 
-template <int a, int b>
-class StaticPower {
- public:
-  static const int result = a*StaticPower<a, b-1>::result;
-};
-
-template <int a>
-class StaticPower<a, 0> {
- public:
-  static const int result = 1;
-};
+inline constexpr int staticPower(int a, int b) {
+  return (b == 0? 1 : a*staticPower(a, b - 1));
+}
 
 template <typename T>
 constexpr T sqr(T x) {
@@ -93,8 +86,8 @@ T normdif(T *a, T *b) {
 // Otherwise, nan == nan will evaluate to false.
 template <typename T>
 bool strictEquality(T a, T b) {
-  if (std::isnan(a)) {
-    return std::isnan(b);
+  if (isNaN(a)) {
+    return isNaN(b);
   } else if (std::isinf(a)) {
     if (std::isinf(b)) {
       return (a > 0) == (b > 0);
@@ -104,16 +97,6 @@ bool strictEquality(T a, T b) {
     return a == b;
   }
 }
-
-/*
- * Please see PhysicalQuantity.h
- * These functions may soon be deprecated.
- */
-#define MAKE_UNIT2OTHERUNIT_CONVERTER(fwdName, invName, factor) template <typename T> T fwdName(T x) {return (factor)*x;} template <typename T> T invName(T x) {return (1.0/(factor))*x;}
-MAKE_UNIT2OTHERUNIT_CONVERTER(deg2rad, rad2deg, M_PI/180.0);
-MAKE_UNIT2OTHERUNIT_CONVERTER(nm2m, m2nm, 1852.0);
-MAKE_UNIT2OTHERUNIT_CONVERTER(knots2MPS, MPS2knots, 1852.0/3600.0);
-#undef MAKE_UNIT2OTHERUNIT_CONVERTER
 
 // Always returns a number in [0, b[
 template <typename T>
@@ -158,8 +141,8 @@ bool near(T a, T b, T marg) {
 
 template <typename T>
 bool nearWithNan(T a, T b, T marg) {
-  if (std::isnan(a)) {
-    return std::isnan(b);
+  if (isNaN(a)) {
+    return isNaN(b);
   }
   return near(a, b, marg);
 }
@@ -318,34 +301,53 @@ inline double thresholdCloseTo0(double x, double lb) {
   return x;
 }
 
-template <typename T> // Should work for AD types too.
-bool genericIsNan(T x) {
-  return !(x == x);
-}
-
 inline bool implies(bool a, bool b) {
   return !a || b;
 }
 
+
+
 template <typename T, int dims>
-bool isFinite(MDArray<T, dims> X) {
+bool isFiniteMDArray(MDArray<T, dims> X) {
   for (int i = 0; i < X.numel(); i++) {
-    if (!std::isfinite(X[i])) {
+    if (!isFinite(X[i])) {
       return false;
     }
   }
   return true;
 }
+SPECIALIZE_NUMERIC_TEMPLATE(IsFinite, isFiniteMDArray)
+template <typename T, int dims>
+bool isNaNMDArray(MDArray<T, dims> X) {
+  for (int i = 0; i < X.numel(); i++) {
+    if (isNaN(X[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+SPECIALIZE_NUMERIC_TEMPLATE(IsNaN, isNaNMDArray)
 
 template <typename T>
-bool isFinite(Array<T> X) {
+bool isFiniteArray(Array<T> X) {
   for (int i = 0; i < X.size(); i++) {
-    if (!std::isfinite(X[i])) {
+    if (!isFinite(X[i])) {
       return false;
     }
   }
   return true;
 }
+SPECIALIZE_NUMERIC_TEMPLATE(IsFinite, isFiniteArray)
+template <typename T>
+bool isNaNArray(Array<T> X) {
+  for (int i = 0; i < X.size(); i++) {
+    if (isNaN(X[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+SPECIALIZE_NUMERIC_TEMPLATE(IsNaN, isNaNArray)
 
 /*
  * A calculation is sane if, whenever
@@ -356,7 +358,7 @@ bool isFinite(Array<T> X) {
  */
 template <typename T>
 bool saneCalculation(T result, Array<T> arguments) {
-  if (std::isfinite(result)) {
+  if (isFinite(result)) {
     return true;
   } else {
     return !isFinite(arguments);
@@ -365,7 +367,7 @@ bool saneCalculation(T result, Array<T> arguments) {
 
 template <typename T>
 T toFinite(T x, T defaultValue) {
-  return (std::isfinite(x)? x : defaultValue);
+  return (isFinite(x)? x : defaultValue);
 }
 
 template <typename T>

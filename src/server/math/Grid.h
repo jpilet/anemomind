@@ -72,7 +72,7 @@ class Grid {
 
 
   // Number of vertices in a linear combination
-  static const int WVL = StaticPower<2, N>::result;
+  static const int WVL = staticPower(2, N);
 
   // Expresses a point as a linear combination of the grid vertices
   void makeVertexLinearCombination(double *vecN, int *indsOut, double *weightsOut) const {

@@ -55,7 +55,7 @@ namespace {
   }
 
   int lookUp(Array<Velocity<double> > bounds, Velocity<double> tws) {
-    if (tws < bounds.first() || bounds.last() <= tws || tws.isNaN()) {
+    if (tws < bounds.first() || bounds.last() <= tws || isNaN(tws)) {
       return -1;
     }
     Array<Velocity<double> >::Iterator i = std::upper_bound(bounds.begin(), bounds.end(), tws);

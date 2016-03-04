@@ -373,3 +373,8 @@ cxx_test(common_FunctionalTest
          FunctionalTest.cpp
          gtest_main
         )
+        
+cxx_test(common_numericTest
+         numericTest.cpp
+         gtest_main
+        )        
