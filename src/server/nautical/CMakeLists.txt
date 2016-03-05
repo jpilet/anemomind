@@ -309,37 +309,7 @@ target_link_libraries(nautical_RaceOverview
                       nautical_TemporalSplit
                      )
                       
-                      
-
-
-add_library(nautical_NKEParser
-            NKEParser.h
-            NKEParser.cpp
-           )                  
-target_depends_on_poco_foundation(nautical_NKEParser)
-
-target_link_libraries(nautical_NKEParser
-                      common_logging
-                      common_string
-                      common_MeanAndVar
-                      common_TimeStamp
-                      nautical_NavCompatibility
-                     )             
-                     
-add_executable(nautical_NKEParserDemo
-               NKEParserDemo.cpp
-              )
-target_link_libraries(nautical_NKEParserDemo
-                      nautical_NKEParser
-                      common_ArgMap
-                     )
-                     
-cxx_test(nautical_NKEParserTest
-         NKEParserTest.cpp
-         gtest_main
-         nautical_NKEParser
-        )
-                     
+                                           
 add_library(nautical_FlowErrors
             FlowErrors.h
             FlowErrors.cpp

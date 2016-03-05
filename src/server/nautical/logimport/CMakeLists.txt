@@ -55,4 +55,33 @@ target_link_libraries(logimport_TestdataNavs
                       logimport_LogLoader
                       nautical_NavCompatibility
                      )
+
+
+add_library(logimport_NKEParser
+            NKEParser.h
+            NKEParser.cpp
+           )                  
+target_depends_on_poco_foundation(logimport_NKEParser)
+
+target_link_libraries(logimport_NKEParser
+                      common_logging
+                      common_string
+                      common_MeanAndVar
+                      common_TimeStamp
+                      nautical_NavCompatibility
+                     )             
+                     
+add_executable(logimport_NKEParserDemo
+               NKEParserDemo.cpp
+              )
+target_link_libraries(logimport_NKEParserDemo
+                      logimport_NKEParser
+                      common_ArgMap
+                     )
+                     
+cxx_test(logimport_NKEParserTest
+         NKEParserTest.cpp
+         gtest_main
+         logimport_NKEParser
+        )
                                

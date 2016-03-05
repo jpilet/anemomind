@@ -4,7 +4,7 @@
  */
 
 #include <server/common/ArgMap.h>
-#include <server/nautical/NKEParser.h>
+#include <server/nautical/logimport/NKEParser.h>
 #include <server/common/logging.h>
 #include <iostream>
 #include <server/common/PhysicalQuantityIO.h>
