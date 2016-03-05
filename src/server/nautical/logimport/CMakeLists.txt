@@ -84,4 +84,24 @@ cxx_test(logimport_NKEParserTest
          gtest_main
          logimport_NKEParser
         )
+        
+add_library(logimport_TrzParser
+            TrzParser.h
+            TrzParser.cpp
+           )
+target_link_libraries(logimport_TrzParser
+                      math_hmm_StateAssign
+                      common_Hierarchy
+                      common_string
+                      common_HNodeGroup
+                      common_logging
+                      nautical_grammars_StaticCostFactory
+                     )
+add_executable(logimport_TrzParserExample
+               TrzParserExample.cpp
+              )
+target_link_libraries(logimport_TrzParserExample
+                      logimport_TrzParser
+                     ) 
+        
                                
