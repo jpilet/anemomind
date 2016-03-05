@@ -37,8 +37,12 @@ bool isNaNMyType2(MyType2 x) {
   return std::isnan(x.getWrappedValue());
 }
 
-SPECIALIZE_NUMERIC_TEMPLATE(IsFinite, isFiniteMyType2)
-SPECIALIZE_NUMERIC_TEMPLATE(IsNaN, isNaNMyType2)
+
+
+WRAP_NUMERIC_FUNCTION_FOR_NON_TEMPLATE_TYPE(IsFinite, MyType, std::isfinite)
+WRAP_NUMERIC_FUNCTION_FOR_NON_TEMPLATE_TYPE(IsNaN, MyType, std::isnan)
+WRAP_NUMERIC_FUNCTION_FOR_NON_TEMPLATE_TYPE(IsFinite, MyType2, isFiniteMyType2)
+WRAP_NUMERIC_FUNCTION_FOR_NON_TEMPLATE_TYPE(IsNaN, MyType2, isNaNMyType2)
 
 }
 
