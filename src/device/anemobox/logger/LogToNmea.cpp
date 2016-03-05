@@ -88,6 +88,9 @@ void exportRMC(const LogFile& data, vector<TimedString> *sentences) {
   LogLoader loader;
   loader.load(data);
   NavDataset navs = loader.makeNavDataset();
+
+
+
   if (getNavSize(navs) == 0) {
     LOG(WARNING) << "No GPS position found.";
     return;

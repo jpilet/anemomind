@@ -91,9 +91,7 @@ int main(int argc, const char **argv) {
         if (1 <= index && index <= exdsCount) {
           auto p = string(Env::SOURCE_DIR) +
                        exds[index-1];
-          LogLoader loader;
-          loader.load(p);
-          navs = loader.makeNavDataset();
+          navs = LogLoader::loadNavDataset(p);
         } else {
           std::cout << "Argument --example-ds out of range" << std::endl;
           return -1;

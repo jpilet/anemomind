@@ -308,7 +308,7 @@ inline bool implies(bool a, bool b) {
 
 
 template <typename T, int dims>
-bool isFiniteMDArray(MDArray<T, dims> X) {
+bool IsFinite(MDArray<T, dims> X) {
   for (int i = 0; i < X.numel(); i++) {
     if (!isFinite(X[i])) {
       return false;
@@ -316,9 +316,8 @@ bool isFiniteMDArray(MDArray<T, dims> X) {
   }
   return true;
 }
-SPECIALIZE_NUMERIC_TEMPLATE(IsFinite, isFiniteMDArray)
 template <typename T, int dims>
-bool isNaNMDArray(MDArray<T, dims> X) {
+bool IsNaN(MDArray<T, dims> X) {
   for (int i = 0; i < X.numel(); i++) {
     if (isNaN(X[i])) {
       return true;
@@ -326,10 +325,9 @@ bool isNaNMDArray(MDArray<T, dims> X) {
   }
   return false;
 }
-SPECIALIZE_NUMERIC_TEMPLATE(IsNaN, isNaNMDArray)
 
 template <typename T>
-bool isFiniteArray(Array<T> X) {
+bool IsFinite(Array<T> X) {
   for (int i = 0; i < X.size(); i++) {
     if (!isFinite(X[i])) {
       return false;
@@ -337,9 +335,8 @@ bool isFiniteArray(Array<T> X) {
   }
   return true;
 }
-SPECIALIZE_NUMERIC_TEMPLATE(IsFinite, isFiniteArray)
 template <typename T>
-bool isNaNArray(Array<T> X) {
+bool IsNaN(Array<T> X) {
   for (int i = 0; i < X.size(); i++) {
     if (isNaN(X[i])) {
       return true;
@@ -347,7 +344,6 @@ bool isNaNArray(Array<T> X) {
   }
   return false;
 }
-SPECIALIZE_NUMERIC_TEMPLATE(IsNaN, isNaNArray)
 
 /*
  * A calculation is sane if, whenever

@@ -154,10 +154,9 @@ namespace {
   void processFolder(Settings s, std::string path) {
     Poco::Path p(path);
     s.prefix = "/tmp/tgtspeed_" + p.getBaseName();
-    LogLoader loader;
-    loader.load(path);
+    auto data = LogLoader::loadNavDataset(path);
     process(s, [&]() {
-        return loader.makeNavDataset();
+        return data;
     });
   }
 }

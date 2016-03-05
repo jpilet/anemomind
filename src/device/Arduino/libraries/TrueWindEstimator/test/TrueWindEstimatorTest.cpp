@@ -16,9 +16,8 @@ using namespace sail;
 using namespace NavCompat;
 
 TEST(TrueWindEstimatorTest, SmokeTest) {
-  LogLoader loader;
-  loader.load(string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"));
-  NavDataset navs = loader.makeNavDataset();
+  NavDataset navs = LogLoader::loadNavDataset(
+      string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"));
 
   CHECK_LT(0, getNavSize(navs));
 
@@ -87,10 +86,7 @@ TEST(TrueWindEstimatorTest, TWACompare) {
                              string("/datasets/psaros33_Banque_Sturdza/2014/20140627/NMEA0006.TXT")};
 
   for (int i = 0; i < dsCount; i++) {
-    LogLoader loader;
-    loader.load(string(Env::SOURCE_DIR) + ds[i]);
-    auto navs = loader.makeNavDataset();
-
+    auto navs = LogLoader::loadNavDataset(string(Env::SOURCE_DIR) + ds[i]);
 
     navs = sliceTo(navs, 3000);
     int count = getNavSize(navs);

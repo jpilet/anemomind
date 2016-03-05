@@ -425,16 +425,13 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
 };
 
 template <typename Q, typename V>
-bool isFinitePhysicalQuantity(const PhysicalQuantity<Q, V> &x) {
+bool IsFinite(const PhysicalQuantity<Q, V> &x) {
   return x.isFiniteQuantity();
 }
 template <typename Q, typename V>
-bool isNaNPhysicalQuantity(const PhysicalQuantity<Q, V> &x) {
+bool IsNaN(const PhysicalQuantity<Q, V> &x) {
   return x.isNaNQuantity();
 }
-
-SPECIALIZE_NUMERIC_TEMPLATE(IsFinite, isFinitePhysicalQuantity)
-SPECIALIZE_NUMERIC_TEMPLATE(IsNaN, isNaNPhysicalQuantity)
 
 }  // namespace sail
 
@@ -447,7 +444,5 @@ template <typename Quantity, typename Value>
 Quantity fabs(sail::PhysicalQuantity<Quantity, Value> x) {
   return x.fabs();
 }
-
-
 
 #endif /* PHYSICALQUANTITY_H_ */
