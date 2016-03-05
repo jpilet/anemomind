@@ -11,11 +11,12 @@ node-gyp configure
 node-gyp build
 
 npm prune --production
+npm dedupe
 
 ../canutils/compile-can-utils.sh
 ../canutils/compile-iproute2.sh
 
-EXCLUDE='--exclude="src" --exclude="*\.o" --exclude="binding.gyp" --exclude=README.md --exclude=install.sh --exclude=build/Release/obj'
+EXCLUDE='--exclude=".*.sw[po]" --exclude="src" --exclude="*\.o" --exclude="binding.gyp" --exclude=README.md --exclude=install.sh --exclude=build/Release/obj'
 
 git rev-parse HEAD > commit
 
