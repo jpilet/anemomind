@@ -7,7 +7,7 @@
 #include <server/nautical/GpsFilter.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/plot/extra.h>
 #include <server/nautical/WGS84.h>
 #include <server/common/ArrayIO.h>

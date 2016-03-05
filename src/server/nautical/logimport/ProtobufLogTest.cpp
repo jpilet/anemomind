@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 
 using namespace sail;
 

@@ -5,12 +5,12 @@
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <server/common/Env.h>
 #include <server/common/logging.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/plot/extra.h>
 #include <sstream>
 #include <string>
 #include <algorithm>
-#include <server/nautical/TestdataNavs.h>
+#include <server/nautical/logimport/TestdataNavs.h>
 #include <server/common/Functional.h>
 
 using std::string;

@@ -7,7 +7,7 @@
 #include <device/anemobox/simulator/SimulateBox.h>
 #include <server/nautical/tiles/NavTileUploader.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/GpsFilter.h>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/logging.h>

@@ -5,7 +5,7 @@
 #include <device/anemobox/logger/Logger.h>
 
 #include <device/Arduino/libraries/NmeaParser/NmeaParser.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <logger.pb.h>
 #include <server/common/ArgMap.h>
 #include <server/common/logging.h>

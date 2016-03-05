@@ -5,7 +5,7 @@
 
 #include <server/nautical/synthtest/NavalSimulationPrecomp.h>
 #include <server/common/EnvUtil.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/ArrayIO.h>
 #include <server/nautical/CalibrationBenchmark.h>
 #include <server/common/ScopedLog.h>

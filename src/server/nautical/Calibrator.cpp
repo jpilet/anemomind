@@ -22,7 +22,7 @@
 #include <server/common/math.h>
 #include <server/common/string.h>
 #include <server/nautical/FlowErrors.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/plot/extra.h>
 #include <string>
 

@@ -28,7 +28,7 @@ target_link_libraries(device_DeviceSimulator
          device_NmeaParser
          device_TargetSpeed
          device_PolarSpeedTable
-         logs_LogLoader
+         logimport_LogLoader
          anemobox_Nmea0183Source
          )
 
@@ -52,7 +52,7 @@ cxx_test(device_ScreenRecordingSimulatorTest
          ScreenRecordingSimulatorTest.cpp
          device_ScreenRecordingSimulator
          common_Env
-         logs_LogLoader
+         logimport_LogLoader
          gmock_main
         )
 

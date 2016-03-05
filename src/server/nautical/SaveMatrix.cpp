@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/TestdataNavs.h>
+#include <server/nautical/logimport/TestdataNavs.h>
 #include <server/common/ArrayBuilder.h>
 #include <iostream>
 #include <fstream>

@@ -4,7 +4,7 @@
  */
 
 #include <server/common/ArgMap.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <algorithm>
 #include <fstream>
 #include <sstream>

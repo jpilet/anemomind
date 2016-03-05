@@ -16,7 +16,7 @@ extern void setup();
 #include <device/Arduino/NMEAStats/test/MockArduino/SPI.h>
 #include <device/Arduino/libraries/NmeaParser/NmeaParser.h>
 #include <server/common/logging.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 
 namespace sail {
   TimeStamp getTime(const NmeaParser& parser);

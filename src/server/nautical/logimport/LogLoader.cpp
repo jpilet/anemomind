@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <jonas@anemomind.com>
  */
 
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <device/anemobox/logger/Logger.h>
 #include <server/common/logging.h>
 #include <device/Arduino/libraries/NmeaParser/NmeaParser.h>

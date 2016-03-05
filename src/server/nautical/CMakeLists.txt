@@ -2,7 +2,7 @@ add_subdirectory("grammars")
 add_subdirectory("tgtspeed")
 add_subdirectory("synthtest")
 add_subdirectory("tiles")
-add_subdirectory("logs")
+add_subdirectory("logimport")
 
 
 add_library(nautical_Ecef
@@ -51,7 +51,7 @@ target_link_libraries(nautical_ParseExample
                       nautical_HTreeJson
                       common_HierarchyJson
                       math_hmm_StateAssign
-                      logs_LogLoader
+                      logimport_LogLoader
                      )
 target_depends_on_poco_foundation(nautical_ParseExample)                                                                    
                
@@ -82,7 +82,7 @@ cxx_test(nautical_NavJsonTest
          common_Env
          common_logging
          nautical_NavJson
-         logs_LogLoader
+         logimport_LogLoader
          nautical_NavCompatibility
          gtest_main
         )
@@ -137,7 +137,7 @@ target_link_libraries(nautical_BoatLogProcessor
                       common_ArgMap
                       plot_gnuplot
                       common_ScopedLog
-                      logs_LogLoader
+                      logimport_LogLoader
                      )              
 target_depends_on_poco_util(nautical_BoatLogProcessor)
 target_depends_on_poco_foundation(nautical_BoatLogProcessor)
@@ -170,7 +170,7 @@ target_link_libraries(nautical_BasicCalibrate
                       common_Env
                       common_logging
                       nautical_Calibrator
-                      logs_LogLoader
+                      logimport_LogLoader
                      )
 
 
@@ -203,19 +203,6 @@ cxx_test(nautical_TargetSpeedTest
          gtest_main
         )                     
 
-add_library(nautical_TestdataNavs
-            TestdataNavs.h
-            TestdataNavs.cpp
-           )
-target_link_libraries(nautical_TestdataNavs
-                      common_Env
-                      common_PathBuilder
-                      common_ArgMap
-                      logs_LogLoader
-                      nautical_NavCompatibility
-                     )
-
-
 add_library(nautical_GeographicPositionJson
             GeographicPositionJson.h
             GeographicPositionJson.cpp
@@ -244,7 +231,7 @@ add_executable(nautical_SaveMatrix
                SaveMatrix.cpp
               )
 target_link_libraries(nautical_SaveMatrix
-                      nautical_TestdataNavs
+                      logimport_TestdataNavs
                      )
 add_executable(nautical_deviceOutput
                deviceOutput.cpp
@@ -260,7 +247,7 @@ add_executable(nautical_TgtSpeedDemo
 target_link_libraries(nautical_TgtSpeedDemo
                       nautical_nav
                       common_PathBuilder
-                      nautical_TestdataNavs
+                      logimport_TestdataNavs
                       nautical_TargetSpeed
                      )
 
@@ -293,7 +280,7 @@ add_executable(nautical_FilteredNavDataDemo
                FilteredNavDataDemo.cpp
               )
 target_link_libraries(nautical_FilteredNavDataDemo
-                      nautical_TestdataNavs
+                      logimport_TestdataNavs
                       common_ArgMap
                       plot_gnuplot
                       common_Span
@@ -318,7 +305,7 @@ add_executable(nautical_RaceOverview
                RaceOverview.cpp
               )
 target_link_libraries(nautical_RaceOverview
-                      nautical_TestdataNavs
+                      logimport_TestdataNavs
                       nautical_TemporalSplit
                      )
                       
@@ -389,7 +376,7 @@ add_library(nautical_CalibrationBenchmark
 target_link_libraries(nautical_CalibrationBenchmark                         
                       nautical_synthtest_NavalSimulationPrecomp
                       common_EnvUtil
-                      logs_LogLoader
+                      logimport_LogLoader
                      )
 
 
@@ -410,7 +397,7 @@ cxx_test(nautical_GpsFilterTest
          common_Env
          common_PathBuilder
          plot_gnuplot
-         logs_LogLoader
+         logimport_LogLoader
         )                             
 add_executable(nautical_exportNavs
                exportNavs.cpp
@@ -420,7 +407,7 @@ target_link_libraries(nautical_exportNavs
                       common_logging
                       common_ArgMap
                       nautical_Calibrator
-                      logs_LogLoader
+                      logimport_LogLoader
                      )              
 
 add_library(nautical_NavToNmea
@@ -448,7 +435,7 @@ target_link_libraries(nautical_exploreData
                       common_Span
                       nautical_GeographicReference
                       nautical_NavCompatibility
-                      logs_LogLoader
+                      logimport_LogLoader
                      )
 
 add_executable(nautical_catTargetSpeed

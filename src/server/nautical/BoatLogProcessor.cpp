@@ -22,7 +22,7 @@
 #include <server/nautical/Calibrator.h>
 #include <server/nautical/HTreeJson.h>
 #include <server/nautical/NavJson.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/plot/extra.h>

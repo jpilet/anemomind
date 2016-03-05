@@ -11,7 +11,7 @@
 #include <server/common/Env.h>
 #include <server/common/logging.h>
 #include <server/common/string.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/NavJson.h>
 #include <server/nautical/NavCompatibility.h>
 

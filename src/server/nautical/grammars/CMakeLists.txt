@@ -44,7 +44,7 @@ add_executable(nautical_grammars_TreeExplorerExample
 target_link_libraries(nautical_grammars_TreeExplorerExample
                       nautical_grammars_TreeExplorer
                       common_PathBuilder
-                      logs_LogLoader
+                      logimport_LogLoader
                       nautical_grammars_WindOrientedGrammar
                       common_Env
                      )
@@ -132,7 +132,7 @@ add_executable(nautical_grammars_CommonRaceGrammarExample
 target_link_libraries(nautical_grammars_CommonRaceGrammarExample
                       nautical_grammars_CommonRaceGrammar
                       nautical_grammars_TreeExplorer
-                      nautical_TestdataNavs
+                      logimport_TestdataNavs
                      )
 
 add_library(nautical_grammars_HintedStateAssign
@@ -171,7 +171,7 @@ cxx_test(nautical_grammars_WindOrientedGrammarTest
          WindOrientedGrammarTest.cpp
          gtest_main
          nautical_grammars_WindOrientedGrammar
-         logs_LogLoader
+         logimport_LogLoader
          nautical_grammars_TreeExplorer
          common_PathBuilder
          common_Env

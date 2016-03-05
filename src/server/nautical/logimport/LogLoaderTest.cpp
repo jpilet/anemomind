@@ -3,7 +3,7 @@
 
 #include <device/anemobox/logger/Logger.h>
 #include <gtest/gtest.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 
 using namespace sail;
 using std::string;

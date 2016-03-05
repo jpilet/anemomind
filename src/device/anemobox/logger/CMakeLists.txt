@@ -21,5 +21,5 @@ target_link_libraries(anemobox_logToNmea
                       common_logging
                       device_NmeaParser
                       nautical_NavToNmea
-                      logs_LogLoader
+                      logimport_LogLoader
                      )

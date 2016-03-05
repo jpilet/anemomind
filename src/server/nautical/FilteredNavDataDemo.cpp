@@ -3,8 +3,8 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/TestdataNavs.h>
-#include <server/nautical/logs/LogLoader.h>
+#include <server/nautical/logimport/TestdataNavs.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/Env.h>
 #include <server/nautical/TemporalSplit.h>
 #include <server/math/ContinuousAngles.h>
