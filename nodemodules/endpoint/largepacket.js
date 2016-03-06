@@ -237,37 +237,6 @@ function listParts(path, cb) {
   });
 }
 
-var promisedCons = Q.promised(function(a, b) {
-  return [a, b];
-});
-
-function computeBufferSize(tree) {
-  if (tree instanceof Array) {
-    assert(tree.length == 2);
-    return computeBufferSize(tree[0]) + computeBufferSize(tree[1]);
-  } else {
-    assert(tree instanceof Buffer);
-    return tree.length;
-  }
-}
-
-function makeBufferFromTree(tree, dst, pos) {
-  if (dst == null) {
-    dst = new Buffer(computeBufferSize(tree));
-    var n = makeBufferFromTree(tree, dst, 0);
-    assert(n == dst.length);
-    return dst;
-  } else {
-    if (tree instanceof Array) {
-      var i = makeBufferFromTree(tree[0], dst, pos)
-      return makeBufferFromTree(tree[1], dst, i);
-    } else {
-      tree.copy(dst, pos);
-      return pos + tree.length;
-    }
-  }
-}
-
 function assemblePacketData(path, partNames, cb) {
   dstFilename = path + "largepacket.dat";
   cmd = 'cat ' + 
