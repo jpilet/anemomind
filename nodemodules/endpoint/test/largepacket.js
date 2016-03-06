@@ -18,7 +18,7 @@ function makeLargePacket(n) {
 
 function sendLargePacket(src, dst, label, buf, settings, cb) {
   var splitCount = largepacket.splitBuffer(buf, settings.chunkSizeBytes).length;
-  var expectedCount = (splitCount <= 1? 1 : 1 + splitCount);
+  var expectedCount = 1 + splitCount;
   endpoint.tryMakeAndResetEndpoint(
     '/tmp/' + src + '.db', src, function(err, ep) {
       assert(!err);      
@@ -50,14 +50,18 @@ function testSendPacketWithData(src, dst, buf, done) {
     result.promise.then(function(packet) {
       assert(packet.dst == dst);
       assert(packet.label == label);
-      assert(packet.data.equals(buf));
+      var dataFilename = packet.data;
+      assert(typeof dataFilename == 'string'); // The filename of the saved data
       assert(packet.src == src);
       fs.readFile(Path.join(
         partsDir, 
         src + '_' + packet.seqNumber, 'first.dat'), function(err) {
           // We expect there to be an error reading a non-existing file:
           assert(err); 
-          done();
+          fs.readFile(dataFilename, function(err, theActualData) {
+            assert(theActualData.equals(buf));
+            done();
+          });
       });
     }).done();
 

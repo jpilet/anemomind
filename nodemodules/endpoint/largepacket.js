@@ -6,6 +6,7 @@ var Path = require('path');
 var fs = require('fs');
 var Q = require('q');
 var rmdir = require('rmdir');
+var exec = require('child_process').exec;
 
 /*
 
@@ -173,24 +174,20 @@ function sendPackets(dst, localEndpoint, label, packets, cb) {
 function sendPacket(dst, localEndpoint, label, data, settings, cb) {
   settings = settings || defaultSettings;
   if (validSendPacketData(dst, localEndpoint, label, data, settings, cb)) {
-    if (data.length <= settings.chunkSizeBytes) { // Small enough, no need to split it.
-      localEndpoint.sendPacket(dst, label, data, cb);
-    } else {
-      var packets = splitBuffer(data, settings.chunkSizeBytes);
-      sendPackets(dst, localEndpoint, label, packets, function(err, seqNumber) {
-        if (err) {
-          cb(err);
-        } else {
-          cb(null, { // Try to return the same stuff as would localEndpoint.sendPacket
-            src: localEndpoint.name,
-            dst: dst,
-            label: label,
-            seqNumber: seqNumber, // The first seqNumber assigned to the chain of packets.
-            data: data
-          });
-        }
-      });
-    }
+    var packets = splitBuffer(data, settings.chunkSizeBytes);
+    sendPackets(dst, localEndpoint, label, packets, function(err, seqNumber) {
+      if (err) {
+        cb(err);
+      } else {
+        cb(null, { // Try to return the same stuff as would localEndpoint.sendPacket
+          src: localEndpoint.name,
+          dst: dst,
+          label: label,
+          seqNumber: seqNumber, // The first seqNumber assigned to the chain of packets.
+          data: data
+        });
+      }
+    });
   } else if (typeof cb == 'function') {
     cb(new Error(["Invalid data to largepacket.sendPacket: ", 
                   [dst, localEndpoint, label, data, settings, cb]]));
@@ -200,7 +197,7 @@ function sendPacket(dst, localEndpoint, label, data, settings, cb) {
 }
 
 function preparePath(partsPath, src, seqNumber, cb) {
-  var p = Path.join(partsPath, seqNumber + '');
+  var p = Path.join(partsPath, src + '_' + seqNumber + '');
   mkdirp(p, function(err) {
     cb(err, p);
   });
@@ -272,16 +269,17 @@ function makeBufferFromTree(tree, dst, pos) {
 }
 
 function assemblePacketData(path, partNames, cb) {
-  partNames.map(function(filename) {
-    return Q.nfcall(fs.readFile, Path.join(path, filename));
-  }).reduce(promisedCons)
-    .then(function(tree) {
-      cb(null, makeBufferFromTree(tree));
-    })
-    .catch(function(err) {
-      console.log('Error: ' + err);
+  dstFilename = path + "largepacket.dat";
+  cmd = 'cat ' + 
+    partNames.map(function(name) {return Path.join(path, name);}).join(' ')
+    + ' > ' + dstFilename;
+  exec(cmd, function(err, stdout, stderr) {
+    if (err) {
       cb(err);
-    }).done();
+    } else {
+      cb(null, dstFilename);
+    }
+  });
 }
 
 function checkIfComplete(seqNumber, packet0, path, endpoint) {
