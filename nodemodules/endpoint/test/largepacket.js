@@ -52,9 +52,12 @@ function testSendPacketWithData(src, dst, buf, done) {
       assert(packet.label == label);
       assert(packet.data.equals(buf));
       assert(packet.src == src);
-      fs.readFile(Path.join(partsDir, packet.seqNumber, 'first.dat'), function(err) {
-        assert(err); // <-- We expect there to be an error reading a non-existing file.
-        done();
+      fs.readFile(Path.join(
+        partsDir, 
+        src + '_' + packet.seqNumber, 'first.dat'), function(err) {
+          // We expect there to be an error reading a non-existing file:
+          assert(err); 
+          done();
       });
     }).done();
 

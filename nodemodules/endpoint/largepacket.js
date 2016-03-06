@@ -7,6 +7,16 @@ var fs = require('fs');
 var Q = require('q');
 var rmdir = require('rmdir');
 
+/*
+
+  HOW TO USE
+  
+  On the sender side: Send large packets using largepacket.sendPacket
+
+  On the receiver side: call endpoint.addPacketHandler(largepacket.makeLargePacketHandler( ... ))
+
+*/
+
 var defaultSettings = {
   chuckSizeBytes: 100000
 };
@@ -22,7 +32,6 @@ function validSendPacketData(dst, localEndpoint, label, data, settings, cb) {
 // How many bytes the fields occupy
 var labelLength = 4;
 var countLength = 4;
-var seqNumberLength = 8;
 
 function splitBuffer(data, chunkSizeBytes) {
   assert(data instanceof Buffer);
@@ -92,13 +101,13 @@ function encodeRemainingPacket(seqNumber, data) {
 }
 
 function decodeRemainingPacket(data0) {
-  if (data0.length < seqNumberLength) {
-    return null;
-  } else {
+  try {
     var seqNumberAndOffset = readStringFromBuffer(data0, 0);
     var seqNumber = seqNumberAndOffset.s;
     var data = data0.slice(seqNumberAndOffset.end, data0.length);
     return {seqNumber: seqNumber, data: data};
+  } catch (e) {
+    return null;
   }
 }
 
@@ -190,7 +199,7 @@ function sendPacket(dst, localEndpoint, label, data, settings, cb) {
   }
 }
 
-function preparePath(partsPath, seqNumber, cb) {
+function preparePath(partsPath, src, seqNumber, cb) {
   var p = Path.join(partsPath, seqNumber + '');
   mkdirp(p, function(err) {
     cb(err, p);
@@ -200,7 +209,7 @@ function preparePath(partsPath, seqNumber, cb) {
 var firstBaseName = 'first.dat';
 
 function handleFirstPacket(partsPath, endpoint, packet) {
-  preparePath(partsPath, packet.seqNumber, function(err, path) {
+  preparePath(partsPath, packet.src, packet.seqNumber, function(err, path) {
     if (err) {
       console.log('ERROR in largepacket.handleFirstPacket: Failed to create ' + path);
     } else {
@@ -329,7 +338,7 @@ function handleRemainingPacket(partsPath, endpoint, packet) {
   if (decoded == null) {
     console.log('ERROR in largepacket.handleRemainingPacket: Failed to decode packet');
   } else {
-    preparePath(partsPath, decoded.seqNumber, function(err, path) {
+    preparePath(partsPath, packet.src, decoded.seqNumber, function(err, path) {
       if (err) {
         console.log('ERROR in largepacket.handleRemainingPacket: Failed to create ' + path);
       } else {
