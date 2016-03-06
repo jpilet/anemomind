@@ -29,18 +29,21 @@ class MyType2 {
   double _x;
 };
 
-bool isFiniteMyType2(MyType2 x) {
+bool IsFinite(MyType x) {
+  return std::isfinite(x);
+}
+
+bool IsNaN(MyType x) {
+  return std::isnan(x);
+}
+
+bool IsFinite(MyType2 x) {
   return std::isfinite(x.getWrappedValue());
 }
 
-bool isNaNMyType2(MyType2 x) {
+bool IsNaN(MyType2 x) {
   return std::isnan(x.getWrappedValue());
 }
-
-WRAP_NUMERIC_FUNCTION_FOR_NON_TEMPLATE_TYPE(IsFinite, MyType, std::isfinite)
-WRAP_NUMERIC_FUNCTION_FOR_NON_TEMPLATE_TYPE(IsNaN, MyType, std::isnan)
-WRAP_NUMERIC_FUNCTION_FOR_NON_TEMPLATE_TYPE(IsFinite, MyType2, isFiniteMyType2)
-WRAP_NUMERIC_FUNCTION_FOR_NON_TEMPLATE_TYPE(IsNaN, MyType2, isNaNMyType2)
 
 }
 
