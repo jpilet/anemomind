@@ -47,11 +47,11 @@ typename std::enable_if<std::is_floating_point<T>::value, bool>::type IsFinite(T
 
 // Because IsNaN must always be a template in order for resolution to
 // work well.
-#define WRAP_NUMERIC_FUNCTION_FOR_NON_TEMPLATE_TYPE(NAME, TYPE, FUNCTION_TO_WRAP) \
+/*#define WRAP_NUMERIC_FUNCTION_FOR_NON_TEMPLATE_TYPE(NAME, TYPE, FUNCTION_TO_WRAP) \
   template <typename T> \
   typename std::enable_if<std::is_same<T, TYPE>::value, bool>::type NAME(const T &x) { \
     return FUNCTION_TO_WRAP(x); \
-  }
+  }*/
 
 template <typename T, int N>
 bool IsNaN(const ceres::Jet<T, N> &x) {return std::isnan(x.a);}
