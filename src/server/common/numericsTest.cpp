@@ -29,20 +29,20 @@ class MyType2 {
   double _x;
 };
 
-bool IsFinite(MyType x) {
-  return std::isfinite(x);
+bool isFinite(MyType x) {
+  return isFinite(double(x));
 }
 
-bool IsNaN(MyType x) {
-  return std::isnan(x);
+bool isNaN(MyType x) {
+  return isNaN(double(x));
 }
 
-bool IsFinite(MyType2 x) {
-  return std::isfinite(x.getWrappedValue());
+bool isFinite(MyType2 x) {
+  return isFinite(x.getWrappedValue());
 }
 
-bool IsNaN(MyType2 x) {
-  return std::isnan(x.getWrappedValue());
+bool isNaN(MyType2 x) {
+  return isNaN(x.getWrappedValue());
 }
 
 }

@@ -29,7 +29,7 @@ bool isEmpty(const NavDataset &ds);
 Array<Nav> makeArray(const NavDataset &ds);
 NavDataset fromNavs(const Array<Nav> &navs);
 
-class Iterator {
+class Iterator : public std::iterator<random_access_iterator_tag, Nav> {
  public:
   Iterator(const NavDataset &coll, int index) :
     _coll(coll), _index(index) {}

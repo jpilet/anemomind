@@ -7,9 +7,10 @@
 #define CALIBRATEDNAV_H_
 
 #include "../PhysicalQuantity/PhysicalQuantity.h"
-#include <server/common/Optional.h>
 #include <cassert>
 #include <functional>
+#include <server/common/Optional.h>
+#include <server/common/numerics.h>
 #include <server/nautical/NavCompatibility.h>
 
 namespace sail {

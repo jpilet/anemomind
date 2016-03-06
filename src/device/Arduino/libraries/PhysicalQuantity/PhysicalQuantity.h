@@ -425,11 +425,11 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
 };
 
 template <typename Q, typename V>
-bool IsFinite(const PhysicalQuantity<Q, V> &x) {
+bool isFinite(const PhysicalQuantity<Q, V> &x) {
   return x.isFiniteQuantity();
 }
 template <typename Q, typename V>
-bool IsNaN(const PhysicalQuantity<Q, V> &x) {
+bool isNaN(const PhysicalQuantity<Q, V> &x) {
   return x.isNaNQuantity();
 }
 

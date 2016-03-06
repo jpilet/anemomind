@@ -308,7 +308,7 @@ inline bool implies(bool a, bool b) {
 
 
 template <typename T, int dims>
-bool IsFinite(MDArray<T, dims> X) {
+bool isFinite(MDArray<T, dims> X) {
   for (int i = 0; i < X.numel(); i++) {
     if (!isFinite(X[i])) {
       return false;
@@ -317,7 +317,7 @@ bool IsFinite(MDArray<T, dims> X) {
   return true;
 }
 template <typename T, int dims>
-bool IsNaN(MDArray<T, dims> X) {
+bool isNaN(MDArray<T, dims> X) {
   for (int i = 0; i < X.numel(); i++) {
     if (isNaN(X[i])) {
       return true;
@@ -327,7 +327,7 @@ bool IsNaN(MDArray<T, dims> X) {
 }
 
 template <typename T>
-bool IsFinite(Array<T> X) {
+bool isFinite(Array<T> X) {
   for (int i = 0; i < X.size(); i++) {
     if (!isFinite(X[i])) {
       return false;
@@ -336,7 +336,7 @@ bool IsFinite(Array<T> X) {
   return true;
 }
 template <typename T>
-bool IsNaN(Array<T> X) {
+bool isNaN(Array<T> X) {
   for (int i = 0; i < X.size(); i++) {
     if (isNaN(X[i])) {
       return true;
