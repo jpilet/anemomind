@@ -7,6 +7,7 @@ module.exports.logfile = 128;
 module.exports.scriptRequest = 129;
 module.exports.scriptResponse = 130;
 module.exports.files = 131;
+module.exports.bundle = 134;
 
 
 function ResultArray(n, cb) {
