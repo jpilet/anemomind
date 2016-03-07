@@ -92,7 +92,7 @@ NAN_METHOD(JsDispatcher::allSources) {
   Dispatcher* dispatcher = me->_dispatcher;
 
   Local<Object> sources = NanNew<Object>();
-  const auto sourceMap = dispatcher->allSources();
+  const auto& sourceMap = dispatcher->allSources();
 
   Local<FunctionTemplate> constructor = NanNew(me->persistentConstructor);
 
