@@ -217,7 +217,7 @@ class JsListener:
   public Listener<TimeStamp>,
   public Listener<AbsoluteOrientation> {
  public:
-  JsListener(DispatchData *dispatchData,
+  JsListener(std::shared_ptr<DispatchData> dispatchData,
              Local<Function> callback,
              Duration<> minInterval)
     : Listener<Angle<double>>(minInterval),
@@ -244,7 +244,7 @@ class JsListener:
   }
 
  private:
-  DispatchData *dispatchData_;
+  std::shared_ptr<DispatchData> dispatchData_;
   Persistent<Function> callback_;
 };
 
@@ -301,7 +301,8 @@ Local<FunctionTemplate> JsDispatchData::functionTemplate() {
 }
    
 void JsDispatchData::setDispatchData(
-    Handle<Object> object, DispatchData* data, Dispatcher* dispatcher) {
+    Handle<Object> object, std::shared_ptr<DispatchData> data,
+    Dispatcher* dispatcher) {
   JsDispatchData* zis = obj(object);
 
   zis->_dispatchData = data;
@@ -326,7 +327,7 @@ NAN_METHOD(JsDispatchData::New) {
 
 NAN_METHOD(JsDispatchData::length) {
   NanScope();
-  DispatchData* dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
 
   CountValuesVisitor countValues;
   dispatchData->visit(&countValues);
@@ -337,7 +338,7 @@ NAN_METHOD(JsDispatchData::length) {
 NAN_METHOD(JsDispatchData::value) {
   NanScope();
 
-  DispatchData* dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
 
   unsigned index = 0;
   if (args.Length() >= 1) {
@@ -361,7 +362,8 @@ NAN_METHOD(JsDispatchData::value) {
 NAN_METHOD(JsDispatchData::time) {
   NanScope();
 
-  DispatchData* dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
+
   unsigned index = 0;
   if (args.Length() >= 1) {
     if (!args[0]->IsNumber() || args[0]->ToInteger()->Value() < 0) {
@@ -385,7 +387,7 @@ NAN_METHOD(JsDispatchData::time) {
 NAN_METHOD(JsDispatchData::setValue) {
   NanScope();
   JsDispatchData* zis = obj(args.This());
-  DispatchData* dispatchData = zis->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = zis->_dispatchData;
 
   if (args.Length() != 2) {
     return NanThrowTypeError("setValue expects 2 argument: source name and value");
@@ -429,7 +431,8 @@ NAN_METHOD(JsDispatchData::unsubscribe) {
 NAN_METHOD(JsDispatchData::subscribe) {
   NanScope();
 
-  DispatchData* dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
+
   if (args.Length() < 1 || !args[0]->IsFunction()) {
     return NanThrowTypeError("First argument must be a function");
   }
@@ -453,7 +456,7 @@ NAN_METHOD(JsDispatchData::subscribe) {
 NAN_METHOD(JsDispatchData::source) {
   NanScope();
 
-  DispatchData* dispatchData = obj(args.This())->_dispatchData;
+  std::shared_ptr<DispatchData> dispatchData = obj(args.This())->_dispatchData;
   NanReturnValue(NanNew<String>(dispatchData->source()));
 }
 
