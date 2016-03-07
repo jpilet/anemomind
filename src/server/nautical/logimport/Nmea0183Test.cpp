@@ -5,8 +5,9 @@
 
 #include <gtest/gtest.h>
 #include <sstream>
-#include <server/nautical/NavNmea.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/string.h>
+#include <server/nautical/NavCompatibility.h>
 
 using namespace sail;
 
@@ -17,71 +18,103 @@ namespace {
   std::stringstream testfile001(data001);
 }
 
-TEST(NavNmeaTest, TestComplete) {
-  ParsedNavs navs = loadNavsFromNmea(testfile001, Nav::debuggingBoatId());
-  EXPECT_TRUE(navs.complete());
-  EXPECT_TRUE(makeArray(navs.navs()).hasData());
-  EXPECT_GE(getNavSize(navs.navs()), 0); // Number of times RMC occurs in the string to be parsed
-}
+TEST(Nmea0183Test, TestComplete) {
+  LogLoader loader;
+  loader.loadNmea0183(&testfile001);
+  std::cout << "Make the dataset" << std::endl;
+  auto navs = loader.makeNavDataset();
+  std::cout << "Checking the size..." << std::endl;
+  EXPECT_GE(getNavSize(navs), 0); // Number of times RMC occurs in the string to be parsed
+  std::cout << "Got the size: " << getNavSize(navs) << std::endl;
+EXPECT_TRUE(makeArray(navs).hasData());
+  }
 
 namespace {
   const char data002[] = "$IIMTW,+15.5,C*39\n$IIMWV,280,R,05.7,N,A*1B\n$IIMWV,248,T,05.9,N,A*17\n$IIVHW,,,153,M,03.3,N,,*63\n$IIVWR,080,L,05.7,N,,,,*75\n$IIDPT,007.4,-1.0,*43\n$IIHDG,153,,,,*50\n$IIMTW,+16.0,C*3F\n$IIMWV,281,R,05.7,N,A*1A\n$IIMWV,247,T,06.0,N,A*12\n$IIVHW,,,153,M,03.3,N,,*63\n$IIVWR,079,L,05.7,N,,,,*73\n$IIDPT,007.4,-1.0,*43\n$IIHDG,150,,,,*53\n$IIMTW,+16.0,C*3F\n$IIMWV,283,R,05.6,N,A*19\n$IIMWV,247,T,05.9,N,A*18\n$IIVHW,,,150,M,03.3,N,,*60\n$IIVWR,077,L,05.6,N,,,,*7C\n$IIDPT,007.4,-1.0,*43\n$IIGLL,4612.939,N,00610.108,E,113704,A,A*5C\n$IIHDG,147,,,,*55\n$IIMTW,+15.5,C*39\n$IIMWV,283,R,05.4,N,A*1B\n$IIMWV,248,T,05.8,N,A*16\n$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E\n$IIVHW,,,147,M,03.4,N,,*61\n$IIVWR,076,L,05.5,N,,,,*7E\n$IIDPT,007.4,-1.0,*43\n$IIGLL,4612.939,N,00610.108,E,113704,A,A*5C\n$IIHDG,146,,,,*54\n$IIMTW,+15.5,C*39\n$IIMWV,284,R,05.5,N,A*1D\n$IIMWV,246,T,05.6,N,A*16\n$IIRMB,A,0.00,L,,OUC ,,,,,025.57,047,-01.3,V,A*39\n$IIRMC,113706,A,4612.938,N,00610.112,E,03.7,145,100708,,,A*47\n$IIVHW,,,144,M,03.4,N,,*62\n$IIVWR,073,L,06.0,N,,,,*7D\n$IIDPT,007.4,-1.0,*43\n$IIGLL,4612.938,N,00610.112,E,113706,A,A*54\n$IIHDG,144,,,,*56\n$IIMTW,+15.5,C*39\n$IIMWV,287,R,06.0,N,A*18\n$IIMWV,253,T,05.9,N,A*1D\n$IIRMB,A,0.01,L,,OUC ,,,,,025.57,047,-00.8,V,A*32\n$IIRMC,113706,A,4612.938,N,00610.112,E,03.7,145,100708,,,A*47\n$IIVHW,,,142,M,03.4,N,,*64\n$IIVWR,071,L,05.8,N,,,,*74\n$IIDPT,007.4,-1.0,*43\n$IIGLL,4612.938,N,00610.112,E,113706,A,A*54\n$IIHDG,144,,,,*56\n$IIMTW,+15.5,C*39\n$IIMWV,289,R,05.9,N,A*1C\n$IIMWV,254,T,05.7,N,A*14\n$IIRMC,113708,A,4612.937,N,00610.114,E,03.7,145,100708,,,A*40\n$IIVHW,,,144,M,03.5,N,,*63\n$IIVWR,071,L,05.9,N,,,,*75\n$IIDPT,007.4,-1.0,*43\n$IIGLL,4612.937,N,00610.114,E,113708,A,A*53\n$IIHDG,146,,,,*54\n$IIMTW,+15.5,C*39\n$IIMWV,288,R,05.9,N,A*1D\n$IIMWV,254,T,05.8,N,A*1B\n$IIRMB,A,0.01,L,,OUC ,,,,,025.57,047,-00.4,V,A*3E\n$IIRMC,113708,A,4612.937,N,00610.114,E,03.7,145,100708,,,A*40\n$IIVHW,,,146,M,03.5,N,,*61\n$IIVWR,079,L,05.7,N,,,,*73\n$IIDPT,007.4,-1.0,*43\n$IIGLL,4612.932,N,00610.117,E,113712,A,A*5E\n$IIHDG,168,,,,*58\n$IIMTW,+16.0,C*3F\n$IIMWV,281,R,05.7,N,A*1A\n$IIMWV,247,T,05.9,N,A*18\n$IIRMB,A,0.01,L,,OUC ,,,,,025.57,047,-00.9,V,A*33\n$IIRMC,113712,A,4612.932,N,00610.117,E,04.0,173,100708,,,A*48\n$IIVHW,,,175,M,03.6,N,,*62\n$IIVWR,081,L,05.5,N,,,,*76\n$IIDPT,007.2,-1.0,*45\n$IIGLL,4612.932,N,00610.117,E,113712,A,A*5E\n$IIHDG,175,,,,*54\n$IIMTW,+16.0,C*3F\n$IIMWV,279,R,05.5,N,A*1F\n$IIMWV,242,T,06.1,N,A*16\n$IIRMB,A,0.01,L,,OUC ,,,,,025.57,047,-01.8,V,A*33\n$IIRMC,113714,A,4612.930,N,00610.117,E,04.0,178,100708,,,A*47\n$IIVHW,,,180,M,03.6,N,,*68\n$IIVWR,090,L,05.2,N,,,,*71\n$IIDPT,007.2,-1.0,*45";
   std::stringstream testfile002(data002);
 }
 
-TEST(NavNmeaTest, TestComplete2) {
-  ParsedNavs navs = loadNavsFromNmea(testfile002, Nav::debuggingBoatId());
-  EXPECT_TRUE(navs.complete());
-  EXPECT_GE(getNavSize(navs.navs()), 0);
+TEST(Nmea0183Test, TestComplete2) {
+  LogLoader loader;
+  loader.loadNmea0183(&testfile002);
+  auto navs = loader.makeNavDataset();
+  EXPECT_GE(getNavSize(navs), 0);
 }
 
 
-TEST(NavNmeaTest, TestIncomplete) {
+TEST(Nmea0183Test, TestIncomplete) {
   const char dataOneTimeStamp[] = "$IIMWV,248,T,05.8,N,A*16\n$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileOneTimeStamp(dataOneTimeStamp);
 
-  ParsedNavs navs = loadNavsFromNmea(testfileOneTimeStamp, Nav::debuggingBoatId());
-  EXPECT_FALSE(navs.complete());
-  EXPECT_EQ(getNavSize(navs.navs()), 0); // Because measurements preceding the first time stamp should be dropped: They could potentially be arbitrarily old.
+  LogLoader loader;
+  loader.loadNmea0183(&testfileOneTimeStamp);
+  auto navs = loader.makeNavDataset();
+  EXPECT_EQ(getNavSize(navs), 1);
+  auto nav = getNav(navs, 0);
+  EXPECT_TRUE(isFinite(nav.geographicPosition().lon()));
+  EXPECT_TRUE(isFinite(nav.geographicPosition().lat()));
+  EXPECT_TRUE(nav.time().defined());
+  EXPECT_TRUE(isFinite(nav.gpsBearing()));
+  EXPECT_TRUE(isFinite(nav.gpsSpeed()));
+
+  EXPECT_FALSE(isFinite(nav.magHdg()));
+  EXPECT_FALSE(isFinite(nav.watSpeed()));
+  EXPECT_FALSE(isFinite(nav.awa()));
+  EXPECT_FALSE(isFinite(nav.twaFromTrueWindOverGround()));
+  EXPECT_FALSE(isFinite(nav.externalTwa()));
+  EXPECT_FALSE(isFinite(nav.externalTws()));
+  EXPECT_FALSE(isFinite(nav.externalTwdir()));
+  EXPECT_FALSE(isFinite(nav.aws()));
 }
 
 
-TEST(NavNmeaTest, TestSkipDueToLongThreshold) {
+TEST(Nmea0183Test, TestSkipDueToLongThreshold) {
   /*
    * Nmea data with 3 time-pos sentences.
    *
-   * The first time-pos sentence should be dropped, because whatever
-   * data preceding it (none in this case) could be arbitrarily old.
    *
-   * The last time-pos sentence occurs more than 2 minutes after the time-pos sentence before.
-   * Therefore, the time of the data collected in between cannot be assigned a sufficiently accurate time.
+   * OBSOLETE: The first time-pos sentence should be dropped, because whatever
+   * OBSOLETE: data preceding it (none in this case) could be arbitrarily old.
+   *
+   * OBSOLETE: The last time-pos sentence occurs more than 2 minutes after the time-pos sentence before.
+   * OBSOLETE: Therefore, the time of the data collected in between cannot be assigned a sufficiently accurate time.
+   *
+   * Explanation: There will be as many navs as there are time-pos sequences.
+   * If a sample read from a log file is considered unreliable, it is simply
+   * not put in the channel of the dispatcher when the log file is loaded.
+   *
+   *
    */
   const char dataWithALongGap[] = "$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                          "$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                          "$IIRMC,114104,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileWithALongGap(dataWithALongGap);
-  ParsedNavs navs = loadNavsFromNmea(testfileWithALongGap, Nav::debuggingBoatId());
-  EXPECT_FALSE(navs.complete());
-  EXPECT_EQ(getNavSize(navs.navs()), 1);
+  LogLoader loader;
+  loader.loadNmea0183(&testfileWithALongGap);
+  auto navs = loader.makeNavDataset();
+  EXPECT_EQ(getNavSize(navs), 3);
 }
 
 
-TEST(NavNmeaTest, TestIncludeLastTwo) {
+TEST(Nmea0183Test, TestIncludeLastTwo) {
   /*
    * Nmea with 3 time-pos sentences.
    *
-   * The first sentence will be dropped, for the same reason as for 'dataWithALongGap'.
+   * OBSOLETE: The first sentence will be dropped, for the same reason as for 'dataWithALongGap'.
    *
-   * The last time-pos sentence however occurs close in time to the sentence before and therefore,
-   * the data associated with and the resulting Nav will not be dropped.
+   * OBSOLETE: The last time-pos sentence however occurs close in time to the sentence before and therefore,
+   * OBSOLETE: the data associated with and the resulting Nav will not be dropped.
+   *
+   * Same explanation as for TestSkipDueToLongThreshold
    */
   const char dataWithoutLongGap[] = "$IIRMC,113704,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                                         "$IIRMC,113804,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E"
                                         "$IIRMC,113904,A,4612.939,N,00610.108,E,03.5,157,100708,,,A*4E";
   std::stringstream testfileWithoutLongGap(dataWithoutLongGap);
-  ParsedNavs navs = loadNavsFromNmea(testfileWithoutLongGap, Nav::debuggingBoatId());
-  EXPECT_FALSE(navs.complete());
-  EXPECT_EQ(getNavSize(navs.navs()), 2);
+  LogLoader loader;
+  loader.loadNmea0183(&testfileWithoutLongGap);
+  auto navs = loader.makeNavDataset();
+  EXPECT_EQ(getNavSize(navs), 3);
 }
 
 

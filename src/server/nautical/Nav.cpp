@@ -204,6 +204,15 @@ std::ostream &operator<<(std::ostream &s, const Nav &x) {
   s << "  watspeed: " << x.watSpeed() << "\n";
   s << "  gps bearing: " << x.gpsBearing() << "\n";
   s << "  gps speed: " << x.gpsSpeed() << "\n";
+  s << "  ext twa: " << x.externalTwa() << "\n";
+  s << "  ext twdir: " << x.externalTwdir() << "\n";
+  s << "  ext tws: " << x.externalTws() << "\n";
+  s << "  twa: " << x.deviceTwa() << "\n";
+  s << "  twdir: " << x.deviceTwdir() << "\n";
+  s << "  tws: " << x.deviceTws() << "\n";
+  s << "  lat: " << x.geographicPosition().lat() << "\n";
+  s << "  lon: " << x.geographicPosition().lon() << "\n";
+  s << "  alt: " << x.geographicPosition().alt() << "\n";
   return s;
 }
 

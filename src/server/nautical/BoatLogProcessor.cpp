@@ -22,9 +22,7 @@
 #include <server/nautical/Calibrator.h>
 #include <server/nautical/HTreeJson.h>
 #include <server/nautical/NavJson.h>
-#include <server/nautical/NavLoader.h>
-#include <server/nautical/NavNmea.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/TargetSpeed.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/plot/extra.h>
@@ -184,20 +182,14 @@ Nav::Id extractBoatId(Poco::Path path) {
 }
 
 NavDataset loadNavs(ArgMap &amap, std::string boatId) {
-  ArrayBuilder<Array<Nav> > navs;
+  LogLoader loader;
   for (auto dirNameObj: amap.optionArgs("--dir")) {
-    navs.add(makeArray(scanNmeaFolderWithSimulator(dirNameObj->value(), boatId)));
+    loader.load(dirNameObj->value());
   }
-
-
   for (auto fileNameObj: amap.optionArgs("--file")) {
-    auto x = loadNavsFromFile(fileNameObj->value(),
-        boatId).navs();
-    navs.add(makeArray(x));
+    loader.load(fileNameObj->value());
   }
-  auto allNavs = concat(navs.get());
-  std::sort(allNavs.begin(), allNavs.end());
-  return fromNavs(allNavs);
+  return loader.makeNavDataset();
 }
 
 Nav::Id getBoatId(ArgMap &amap) {
@@ -278,7 +270,7 @@ int mainProcessBoatLogs(int argc, const char **argv) {
 
 bool processBoatDataFullFolder(bool debug, Poco::Path dataPath) {
   auto boatId = Nav::debuggingBoatId();
-  return processBoatData(debug, boatId, scanNmeaFolderWithSimulator(dataPath, boatId),
+  return processBoatData(debug, boatId, LogLoader::loadNavDataset(dataPath),
       PathBuilder(dataPath).pushDirectory("processed").get(), "all");
 }
 

@@ -4,7 +4,7 @@
  */
 
 #include <iostream>
-#include <server/nautical/grammars/TrzParser.h>
+#include <server/nautical/logimport/TrzParser.h>
 
 using namespace sail;
 

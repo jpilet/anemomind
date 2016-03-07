@@ -2,7 +2,7 @@
  *  Created on: 2015-07-31
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
-#include <server/nautical/TestdataNavs.h>
+#include <server/nautical/logimport/TestdataNavs.h>
 #include <server/plot/extra.h>
 #include <server/common/Span.h>
 #include <server/nautical/FilteredNavData.h>
@@ -16,7 +16,7 @@
 #include <server/math/nonlinear/LevmarSettings.h>
 #include <server/common/ArrayIO.h>
 #include <server/nautical/TemporalSplit.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/logging.h>
 #include <server/nautical/tgtspeed/TargetSpeedParam.h>
 #include <server/nautical/tgtspeed/TargetSpeedPoint.h>
@@ -154,9 +154,9 @@ namespace {
   void processFolder(Settings s, std::string path) {
     Poco::Path p(path);
     s.prefix = "/tmp/tgtspeed_" + p.getBaseName();
+    auto data = LogLoader::loadNavDataset(path);
     process(s, [&]() {
-        return scanNmeaFolder(
-            path, "unnamed");
+        return data;
     });
   }
 }

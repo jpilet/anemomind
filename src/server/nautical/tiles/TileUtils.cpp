@@ -7,7 +7,7 @@
 #include <device/anemobox/simulator/SimulateBox.h>
 #include <server/nautical/tiles/NavTileUploader.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/GpsFilter.h>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/logging.h>
@@ -68,7 +68,7 @@ Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
 void processTiles(const TileGeneratorParameters &params,
     std::string boatId, std::string navPath,
     std::string boatDat, std::string polarDat) {
-    auto rawNavs0 = scanNmeaFolder(navPath, boatId);
+    auto rawNavs0 = LogLoader::loadNavDataset(navPath);
     Array<Nav> rawNavs = makeArray(rawNavs0);
 
     if (boatDat != "") {

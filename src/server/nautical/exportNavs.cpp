@@ -4,7 +4,7 @@
  */
 
 #include <server/common/ArgMap.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -26,12 +26,13 @@ struct ExportSettings {
 };
 
 NavDataset loadNavsFromArgs(Array<ArgMap::Arg*> args) {
-  auto allNavs = sail::map(args, [&](ArgMap::Arg *arg) {
+  LogLoader loader;
+  for (auto arg: args) {
     auto p = arg->value();
     LOG(INFO) << "Load navs from " << p;
-    return makeArray(scanNmeaFolder(p, Nav::debuggingBoatId()));
-  });
-  return fromNavs(concat(allNavs));
+    loader.load(p);
+  }
+  return loader.makeNavDataset();
 }
 
 struct NavField {

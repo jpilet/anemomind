@@ -3,8 +3,8 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/TestdataNavs.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logimport/TestdataNavs.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/Env.h>
 #include <server/nautical/TemporalSplit.h>
 #include <server/math/ContinuousAngles.h>
@@ -37,10 +37,10 @@ namespace {
   }
 
   void ex0(int mode, double lambda) {
-    NavDataset navs =
-        scanNmeaFolderWithSimulator(std::string(Env::SOURCE_DIR) + "/datasets/psaros33_Banque_Sturdza",
-        Nav::debuggingBoatId());
-    Array<Spani> spans = recursiveTemporalSplit(navs);
+
+    auto navs = LogLoader::loadNavDataset(
+        std::string(Env::SOURCE_DIR) + "/datasets/psaros33_Banque_Sturdza");
+      Array<Spani> spans = recursiveTemporalSplit(navs);
     dispFilteredNavData(navs, spans[5], mode, lambda);
   }
 }

@@ -445,5 +445,4 @@ Quantity fabs(sail::PhysicalQuantity<Quantity, Value> x) {
   return x.fabs();
 }
 
-
 #endif /* PHYSICALQUANTITY_H_ */

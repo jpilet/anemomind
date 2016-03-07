@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include <server/common/Env.h>
 #include <server/common/logging.h>
-#include <server/nautical/NavNmea.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <sstream>
 #include <algorithm>
 #include <string>
@@ -16,9 +16,8 @@ using namespace sail;
 using namespace NavCompat;
 
 TEST(TrueWindEstimatorTest, SmokeTest) {
-  NavDataset navs = loadNavsFromNmea(
-      string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"),
-      Nav::Id("B0A10000")).navs();
+  NavDataset navs = LogLoader::loadNavDataset(
+      string(Env::SOURCE_DIR) + string("/datasets/tinylog.txt"));
 
   CHECK_LT(0, getNavSize(navs));
 
@@ -43,13 +42,15 @@ TEST(TrueWindEstimatorTest, ManuallyCheckedDataTest) {
     "$IIMWV,017,R,21.5,N,A*13"
     "$IIRMC,111039,A,4614.021,N,00610.335,E,05.8,196,110708,,,A*49";
   std::stringstream stream(nmeaData);
-  ParsedNavs pnavs = loadNavsFromNmea(stream, Nav::debuggingBoatId());
-  auto navs = pnavs.navs();
+  LogLoader loader;
+  loader.loadNmea0183(&stream);
+  auto navs = loader.makeNavDataset();
   auto navs0 = makeArray(navs);
 
-
   EXPECT_TRUE(navs0.hasData());
-  EXPECT_EQ(1, getNavSize(navs));
+
+  // A nav is generated for every GPS position, so we will get two navs.
+  EXPECT_EQ(2, getNavSize(navs));
 
   double parameters[TrueWindEstimator::NUM_PARAMS];
   TrueWindEstimator::initializeParameters(parameters);
@@ -85,13 +86,7 @@ TEST(TrueWindEstimatorTest, TWACompare) {
                              string("/datasets/psaros33_Banque_Sturdza/2014/20140627/NMEA0006.TXT")};
 
   for (int i = 0; i < dsCount; i++) {
-    std::cout << " i = " << i << std::endl;
-    NavDataset navs = loadNavsFromNmea(
-        string(Env::SOURCE_DIR) +
-        ds[i],
-        Nav::debuggingBoatId()).navs();
-
-    navs.outputSummary(&(std::cout));
+    auto navs = LogLoader::loadNavDataset(string(Env::SOURCE_DIR) + ds[i]);
 
     navs = sliceTo(navs, 3000);
     int count = getNavSize(navs);

@@ -6,7 +6,7 @@
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
-#include <server/nautical/NavNmea.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <gtest/gtest.h>
 #include <server/nautical/grammars/TreeExplorer.h>
 #include <server/common/string.h>
@@ -27,9 +27,15 @@ namespace {
     return UserHint(UserHint::RACE_END, makeTS(navs, index));
   }
 
+
+  // We cannot always expect it to behave perfectly like an array...
+  bool almostEquals(int a, int b) {
+    return std::abs(a - b) <= 1;
+  }
+
   bool hasNodeWithStart(std::shared_ptr<HTree> tree, int type, int start) {
     if (tree->index() == type) {
-      if (start == tree->left()) {
+      if (almostEquals(start, tree->left())) {
         return true;
       }
     }
@@ -44,7 +50,7 @@ namespace {
 
   bool hasNodeWithEnd(std::shared_ptr<HTree> tree, int type, int end) {
     if (tree->index() == type) {
-      if (end == tree->right()) {
+      if (almostEquals(end, tree->right())) {
         return true;
       }
     }
@@ -59,8 +65,14 @@ namespace {
 }
 
 TEST(WindOrientedGrammarTest, Hinting) {
-  Poco::Path path = PathBuilder::makeDirectory(Env::SOURCE_DIR).pushDirectory("datasets").pushDirectory("Irene").pushDirectory("2007").pushDirectory("regate_1_dec_07").makeFile("IreneLog.txt").get();
-  NavDataset navs = loadNavsFromNmea(path.toString(), Nav::debuggingBoatId()).navs();
+  Poco::Path path = PathBuilder::makeDirectory(Env::SOURCE_DIR)
+    .pushDirectory("datasets")
+    .pushDirectory("Irene")
+    .pushDirectory("2007")
+    .pushDirectory("regate_1_dec_07")
+    .makeFile("IreneLog.txt").get();
+
+  auto navs = LogLoader::loadNavDataset(path);
 
   // Refers to a position in the seq, assuming it is indexed continuously from 0 to 1.
   double startFrac = 0.3;

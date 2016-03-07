@@ -4,7 +4,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <server/nautical/NKEParser.h>
+#include <server/nautical/logimport/NKEParser.h>
 #include <iostream>
 
 const unsigned char testdata[] = {

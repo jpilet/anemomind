@@ -5,12 +5,12 @@
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <server/common/Env.h>
 #include <server/common/logging.h>
-#include <server/nautical/NavNmea.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/plot/extra.h>
 #include <sstream>
 #include <string>
 #include <algorithm>
-#include <server/nautical/TestdataNavs.h>
+#include <server/nautical/logimport/TestdataNavs.h>
 #include <server/common/Functional.h>
 
 using std::string;
@@ -89,10 +89,9 @@ int main(int argc, const char **argv) {
       int index = -1;
       if (amap.optionArgs("--example-ds")[0]->tryParseInt(&index)) {
         if (1 <= index && index <= exdsCount) {
-          navs = loadNavsFromNmea(
-             string(Env::SOURCE_DIR) +
-             exds[index-1],
-             Nav::debuggingBoatId()).navs();
+          auto p = string(Env::SOURCE_DIR) +
+                       exds[index-1];
+          navs = LogLoader::loadNavDataset(p);
         } else {
           std::cout << "Argument --example-ds out of range" << std::endl;
           return -1;

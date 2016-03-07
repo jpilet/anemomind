@@ -7,15 +7,11 @@
 
 namespace sail {
 
-namespace {
-
 // TODO: move this function to somewhere that makes sense.
 // and remove duplicate in NavNmea.cpp
 TimeStamp getTime(const NmeaParser& parser) {
   return parser.timestamp();
 }
-
-}  // namespace
 
 GeographicPosition<double> getPos(const NmeaParser& parser) {
   return GeographicPosition<double>(
