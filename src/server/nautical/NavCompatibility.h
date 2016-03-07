@@ -38,8 +38,9 @@ class Iterator : public std::iterator<random_access_iterator_tag, Nav> {
     return getNav(_coll, _index);
   }
 
-  void operator++() {
+  Iterator& operator++() {
     _index++;
+    return *this;
   }
 
   bool operator==(const Iterator &other) const {
