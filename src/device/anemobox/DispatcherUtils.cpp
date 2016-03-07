@@ -28,7 +28,7 @@ namespace {
       return _end - _begin;
     }
 
-    bool operator<(const PrioritizedDispatchData &other) {
+    bool operator<(const PrioritizedDispatchData &other) const {
       return _priority > other._priority;
     }
 

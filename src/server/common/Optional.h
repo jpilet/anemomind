@@ -87,17 +87,20 @@ class Optional {
     }
     return Optional<Other>();
   }
-
-  bool isNan() const {
-    if (_defined) {
-      return genericIsNan(_value);
-    }
-    return true;
-  }
  private:
   bool _defined;
   T _value;
 };
+
+namespace sail {
+  template <typename T>
+  bool isNaN(const Optional<T> &x) {
+    if (x.defined()) {
+      return isNaN(x.get());
+    }
+    return true;
+  }
+}
 
 
 #endif /* SERVER_COMMON_OPTIONAL_H_ */

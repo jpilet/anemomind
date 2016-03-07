@@ -49,21 +49,21 @@ class Nav {
   GeographicPosition<double> &geographicPosition() {return _pos;}
   Angle<double> awa() const {return _awa;}
   Velocity<double> aws() const {return _aws;}
-  bool hasApparentWind() const { return !isnan(_awa) && !isnan(_aws); }
+  bool hasApparentWind() const { return !isNaN(_awa) && !isNaN(_aws); }
 
   Angle<double> magHdg() const {return _magHdg;}
-  bool hasMagHdg() const { return !isnan(_magHdg); }
+  bool hasMagHdg() const { return !isNaN(_magHdg); }
 
   Angle<double> gpsBearing() const {return _gpsBearing;}
   Velocity<double> gpsSpeed() const {return _gpsSpeed;}
 
   Velocity<double> watSpeed() const {return _watSpeed;}
-  bool hasWatSpeed() const { return !isnan(_watSpeed); }
+  bool hasWatSpeed() const { return !isNaN(_watSpeed); }
 
   Angle<double> externalTwa() const {return _externalTwa;}
   Velocity<double> externalTws() const {return _externalTws;}
   bool hasExternalTrueWind() const {
-    return !isnan(_externalTwa) && !isnan(_externalTws)
+    return !isNaN(_externalTwa) && !isNaN(_externalTws)
       && _externalTws >= Velocity<double>::knots(0);
   }
 
@@ -71,7 +71,7 @@ class Nav {
 
   // As computed by the calibrated model. Not always available.
   HorizontalMotion<double> trueWindOverGround() const { return _trueWind; }
-  bool hasTrueWindOverGround() const { return !isnan(_trueWind[0]); }
+  bool hasTrueWindOverGround() const { return !isNaN(_trueWind[0]); }
 
   Angle<double> twdir() const {
     return Angle<double>::degrees(180) + trueWindOverGround().angle();
