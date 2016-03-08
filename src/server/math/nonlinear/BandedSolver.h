@@ -52,7 +52,7 @@ void accumulateData(DataCost dataCost, Array<Observation<Dim> > observations, MD
     auto r = obs.calcResidual(X);
     assert(!std::isnan(r));
     auto q = majorizeCostFunction<DataCost>(dataCost, r, settings.residualLowerBound);
-    assert(q.isFinite());
+    assert(isFinite(q.a));
     obs.accumulateNormalEqs(q.a, AtA, AtB);
   }
 }
