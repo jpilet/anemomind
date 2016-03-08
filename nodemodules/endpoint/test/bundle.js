@@ -4,6 +4,7 @@ var Q = require('q');
 var mkdirp = require('mkdirp');
 var exec = require('child_process').exec;
 var Path = require('path');
+var fs = require('fs');
 
 
 function makeDirName(name) {
@@ -14,15 +15,22 @@ function makeDirectory(name) {
   return Q.nfcall(mkdirp, makeDirName(name));
 }
 
+function execInDir(name, cmd) {
+  return Q.nfcall(exec, 'cd ' + makeDirName(name) + '; ' + cmd);
+}
+
 function gitInit(name) {
-  var x = makeDirName(name);
-  return Q.nfcall(exec, 'cd ' + x + '; git init');
+  return execInDir(name, 'git init');
+}
+
+function checkIsRepository(name) {
+  return Q.nfcall(fs.access, Path.join(makeDirName(name), '.git'), fs.F_OK);
 }
 
 function makeRepository(name) {
   return makeDirectory(name)
-    .then(gitInit(name));
-
+    .then(gitInit(name))
+    .then(checkIsRepository(name));
 }
 
 function prepareTestSetup() {
