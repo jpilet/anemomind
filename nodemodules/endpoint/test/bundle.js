@@ -24,7 +24,7 @@ function gitInit(name) {
 }
 
 function checkIsRepository(name) {
-  return Q.nfcall(fs.access, Path.join(makeDirName(name), '.git'), fs.F_OK);
+  return Q.nfcall(fs.access, Path.join(makeDirName(name), '.gitk'), fs.F_OK);
 }
 
 function makeRepository(name) {
