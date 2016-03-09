@@ -172,7 +172,6 @@ function sendPackets(dst, localEndpoint, label, packets, cb) {
 }
 
 function sendPacket(dst, localEndpoint, label, data, settings, cb) {
-  settings = settings || defaultSettings;
   if (validSendPacketData(dst, localEndpoint, label, data, settings, cb)) {
     var packets = splitBuffer(data, settings.chunkSizeBytes);
     sendPackets(dst, localEndpoint, label, packets, function(err, seqNumber) {
