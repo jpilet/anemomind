@@ -59,7 +59,8 @@ function checkIsRepository(name) {
 
 function makeRepository(name) {
   return makeDirectory(name)
-    .then(function() {return gitInit(name);})
+    .fcall(gitInit, name)
+//    .then(function() {return gitInit(name);})
     .then(function() {return checkIsRepository(name);});
 }
 
