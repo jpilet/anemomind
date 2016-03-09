@@ -59,13 +59,24 @@ function checkIsRepository(name) {
 
 function makeRepository(name) {
   return makeDirectory(name)
-    .fcall(gitInit, name)
-//    .then(function() {return gitInit(name);})
+    .then(function() {return gitInit(name);})
     .then(function() {return checkIsRepository(name);});
 }
 
+function commitChanges(name, msg) {
+  return execInDir(name, 'git add *; git commit -a -m "' + msg + '"');
+}
+
 function prepareTestSetup() {
-  return makeRepository('rulle');
+  var name = 'abc';
+  return makeRepository(name)
+    .then(function() {
+      return Q.nfcall(
+        fs.writeFile,
+        Path.join(makeDirName(name), "main.cpp"), 
+        '#include <iostream>\nint main() {\n  std::cout << "Anemomind!" << std::endl;\n}');
+    })
+    .then(function() {return commitChanges(name, "Initial commit");});
 }
 
 describe('bundle', function() {
