@@ -17,7 +17,7 @@ function makeLargePacket(n) {
 
 
 function sendLargePacket(src, dst, label, buf, settings, cb) {
-  var splitCount = largepacket.splitBuffer(buf, settings.chunkSizeBytes).length;
+  var splitCount = largepacket.splitBuffer(buf, settings.maxPacketSize).length;
   var expectedCount = 1 + splitCount;
   endpoint.tryMakeAndResetEndpoint(
     '/tmp/' + src + '.db', src, function(err, ep) {
@@ -43,7 +43,7 @@ function sendLargePacket(src, dst, label, buf, settings, cb) {
 
 function testSendPacketWithData(src, dst, buf, done) {
     var label = 23;
-    var settings = {chunkSizeBytes: 8};
+    var settings = {maxPacketSize: 8};
     var partsDir = '/tmp/packetparts/';
 
     var result = Q.defer(); // Will be resolved to the final large packet
@@ -103,8 +103,8 @@ describe('largepacket', function() {
       var label = 23;
       var data = makeLargePacket(60);
       var buf = msgpack.encode(data);
-      var settings = {chunkSizeBytes: 8};
-      var splitted = largepacket.splitBuffer(buf, settings.chunkSizeBytes);
+      var settings = {maxPacketSize: 8};
+      var splitted = largepacket.splitBuffer(buf, settings.maxPacketSize);
       assert(splitted instanceof Array);
       var summedSizes = splitted
           .map(function(x) {return x.length;})

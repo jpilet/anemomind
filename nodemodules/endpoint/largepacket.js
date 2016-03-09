@@ -34,13 +34,13 @@ function validSendPacketData(dst, localEndpoint, label, data, settings, cb) {
 var labelLength = 4;
 var countLength = 4;
 
-function splitBuffer(data, chunkSizeBytes) {
+function splitBuffer(data, maxPacketSize) {
   assert(data instanceof Buffer);
-  packetCount = Math.ceil(data.length/chunkSizeBytes);
+  packetCount = Math.ceil(data.length/maxPacketSize);
   var dst = new Array(packetCount);
   for (var i = 0; i < packetCount; i++) {
-    var fromIndex = i*chunkSizeBytes;
-    var toIndex = Math.min(fromIndex + chunkSizeBytes, data.length);
+    var fromIndex = i*maxPacketSize;
+    var toIndex = Math.min(fromIndex + maxPacketSize, data.length);
     dst[i] = data.slice(fromIndex, toIndex);
   }
   return dst;
@@ -173,7 +173,7 @@ function sendPackets(dst, localEndpoint, label, packets, cb) {
 
 function sendPacket(dst, localEndpoint, label, data, settings, cb) {
   if (validSendPacketData(dst, localEndpoint, label, data, settings, cb)) {
-    var packets = splitBuffer(data, settings.chunkSizeBytes);
+    var packets = splitBuffer(data, settings.maxPacketSize);
     sendPackets(dst, localEndpoint, label, packets, function(err, seqNumber) {
       if (err) {
         cb(err);
