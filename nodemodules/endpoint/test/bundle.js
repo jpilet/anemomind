@@ -11,7 +11,18 @@ function fn(expr) {
 }
 
 function makeDirName(name) {
-  return Path.join('/tmp/bundletest', name)
+  var base = '/tmp/bundletest';
+  if (name) {
+    return Path.join(base, name)
+  }
+  return base;
+}
+
+
+function cleanAll(cb) {
+  exec('rm ' + makeDirName() + ' -rf', function(err) {
+    cb(); // Ignore whatever error there may be.
+  });
 }
 
 function makeDirectory(name) {
@@ -68,15 +79,23 @@ function commitChanges(name, msg) {
 }
 
 function prepareTestSetup() {
-  var name = 'abc';
-  return makeRepository(name)
+  var name = 'src';
+
+  // Make the initial version of the repository
+  return Q.nfcall(cleanAll)
+    .then(function() {return   makeRepository(name);})
     .then(function() {
       return Q.nfcall(
         fs.writeFile,
         Path.join(makeDirName(name), "main.cpp"), 
         '#include <iostream>\nint main() {\n  std::cout << "Anemomind!" << std::endl;\n}');
     })
-    .then(function() {return commitChanges(name, "Initial commit");});
+    .then(function() {return commitChanges(name, "Initial commit");})
+
+  // // Make a copy of the initial repository and assume this copy is an outdated one on some boat.
+  //   .then(function() {
+  //     return Q.nfcall('cd ' + makeDirName() + '; cp src dstold');
+  //   });
 }
 
 describe('bundle', function() {
