@@ -240,7 +240,19 @@ function assemblePacketData(path, partNames, cb) {
     if (err) {
       cb(err);
     } else {
-      fs.readFile(dstFilename, cb);
+      fs.readFile(dstFilename, function(err, data) {
+        if (err) {
+          cb(err);
+        } else {
+          fs.unlink(dstFilename, function(err) {
+            if (err) {
+              cb(err);
+            } else {
+              cb(null, data);
+            }
+          });
+        }
+      });
     }
   });
 }
