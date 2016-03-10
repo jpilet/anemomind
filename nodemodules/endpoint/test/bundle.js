@@ -1,4 +1,5 @@
 var bundle = require('../bundle.js');
+var endpoint = require('../endpoint.sqlite.js');
 var assert = require('assert');
 var Q = require('q');
 var mkdirp = require('mkdirp');
@@ -141,6 +142,26 @@ function prepareTestSetup() {
       assert(values[0]);
       assert(values[1]);
     });
+}
+
+function makeEndpoint(name) {
+  return Q.nfcall(endpoint.tryMakeAndResetEndpoint, 
+                  '/tmp/bundletest/' + name + '.db', name);
+}
+
+function makeReceiver(name) {
+  return makeEndpoint(name)
+    .then(function(ep) {
+      ep.addPacketHandler(bundle.makeBundleHandler());
+    });
+}
+
+function makeEndpoints() {
+  return Q.all([
+    makeEndpoint('src'),
+    makeReceiver('dst0'),
+    makeReceiver('dst1')
+  ]);
 }
 
 describe('bundle', function() {
