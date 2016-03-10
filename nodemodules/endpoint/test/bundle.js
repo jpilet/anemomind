@@ -93,7 +93,7 @@ function makeEndpoint(name) {
 function makeReceiver(name) {
   return makeEndpoint(name)
     .then(function(ep) {
-      ep.addPacketHandler(bundle.makeBundleHandler('/tmp/bundletest/' + name));
+      ep.addPacketHandler(bundle.bundleHandler);
       return ep;
     });
 }

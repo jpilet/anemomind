@@ -22,9 +22,10 @@ endpoint.addPacketHandler(bundle.makeBundleHandler());
 var mkdirp = require('mkdirp');
 var Q = require('q');
 var Path = require('path');
-
 var bundlePath = '~/.tmp/bundles';
 var tmpFilename = Path.join(bundlePath, 'last.bundle');
+var exec = require('child_process').exec;
+var msgpack = require('msgpack-js');
 
 function writeBundleToTempFile(data) {
   return Q.nfcall(mkdirp, bundlePath)
@@ -37,36 +38,63 @@ function writeBundleToTempFile(data) {
 }
 
 
-function unpackBundle(endpoint, src, filename, reposPath) {
-  
+function execToMap(cmd, cb) {
+  exec(cmd, function(err, stdout, stderr) {
+    if (err) {
+      cb(err);
+    } else {
+      cb(null, {
+        stdout: stdout,
+        stderr: stderr
+      });
+    }
+  });
 }
 
-function makeBundleHandler(reposPath) {
-  return function(endpoint, packet) {
-    if (packet.label == common.bundle) {
-      var data = packet.data;
-      if (data instanceof Buffer) {
-        writeBundleToTempFile(data)
-          .then(function(filename) {
-            unpackBundle(endpoint, packet.src, filename, reposPath);
-          });
-      } else if (typeof data == 'string') {
-        unpackBundle(endpoint, packet.src, data, reposPath);
-      } else {
-        console.log('Failed to unpack bundle of type ' + typeof data);
-      }
+function unpackBundle(endpoint, src, bundleFilename, reposPath) {
+  return Q.nfcall(mkdirp, reposPath)
+    .then(function() {
+      Q.nfcall(common.exists, Path.join(reposPath, '.git'))
+    }).then(function(e) {
+      var cmd = 'cd ' + reposPath + 
+          (e? '; git pull ' + bundleFilename + ' master'
+           : 'cd ' + reposPath + '; git clone -b master ' + bundleFilename 
+           + ' .');
+      return Q.nfcall(execToMap, cmd);
+    });
+}
+
+function bundleHandler(endpoint, packet) {
+  if (packet.label == common.bundle) {
+    var data0 = packet.data;
+    var data = msgpack.decode(data0);
+    if (!(data.bundleData instanceof Buffer)) {
+      console.log('ERROR in bundle.js, bundleHandler: bundleData is not a Buffer, it is ' 
+                  + typeof data.bundleData);
+    } else if (typeof data.dstPath != 'string') {
+      console.log('ERROR in bundle.js, bundleHandler: The destination path is not a string, it is '
+                  + data.dstPath);
+    } else {
+      return writeBundleToTempFile(data)
+        .then(function(filename) {
+          assert(typeof filename == 'string');
+          return unpackBundle(
+            endpoint, packet.src, 
+            data.bundleData, data.dstPath, "/tmp/bundlelog.txt");
+        }).then()
+    } else {
+      console.log('Failed to unpack bundle of type ' + typeof data);
     }
   }
 }
 
-function sendBundle(endpoint, dst, bundleFilename) {
-  Q.nfcall(common.exists(bundleFilename))
-    .then(function(e) {
-      if (!e) {
-        throw new Error('No such bundle file: ' + bundleFilename);
-      }
-      assert(endpoint.sendPacket);
-      
+function sendBundle(endpoint, dst, bundleFilename, cb) {
+  Q.nfcall(fs.readFile, bundleFilename)
+    .then(function(bundleData) {
+      endpoint.sendPacket(dst, common.bundle, bundleData, cb);
+    })
+    .catch(function(err) {
+      cb(err);
     });
 }
 
