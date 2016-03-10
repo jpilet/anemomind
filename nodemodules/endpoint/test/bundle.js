@@ -40,13 +40,15 @@ function gitInit(name) {
 function exists(p, cb) {
   fs.access(p, fs.F_OK, function(err) {
     if (err) {
-      console.log("Doesn't exist");
-      cb(err);
+      cb(null, false);
     } else {
-      console.log("Exists");
-      cb();
+      cb(null, true);
     }
   });
+}
+
+function existsInDir(name, p, cb) {
+  return exists(Path.join(makeDirName(name), p), cb);
 }
 
 function disp(label, promise) {
@@ -65,7 +67,10 @@ function disp(label, promise) {
 
 function checkIsRepository(name) {
   var dst = Path.join(makeDirName(name), '.git');
-  return Q.nfcall(exists, dst);
+  return Q.nfcall(exists, dst)
+    .then(function(e) {
+      assert(e);
+    });
 }
 
 function makeRepository(name) {
@@ -122,6 +127,21 @@ function prepareTestSetup() {
   // Create the second bundle with the updates
     .then(function() {
       return createBundle(name, 'second.bundle', 'v1', 'v2');
+    })
+
+  // Check for existence of the bundles
+    .then(function() {
+      return Q.all([
+        Q.nfcall(existsInDir, name, 'first.bundle'),
+        Q.nfcall(existsInDir, name, 'second.bundle')
+      ]);
+    })
+    .then(function(values) {
+      console.log('GOT VALUES: ');
+      console.log(values);
+      assert(values.length == 2);
+      assert(values[0]);
+      assert(values[1]);
     });
 }
 
