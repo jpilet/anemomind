@@ -60,7 +60,14 @@ function makeBundleHandler(reposPath) {
 }
 
 function sendBundle(endpoint, dst, bundleFilename) {
-  
+  Q.nfcall(common.exists(bundleFilename))
+    .then(function(e) {
+      if (!e) {
+        throw new Error('No such bundle file: ' + bundleFilename);
+      }
+      assert(endpoint.sendPacket);
+      
+    });
 }
 
 
