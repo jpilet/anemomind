@@ -36,6 +36,11 @@ function writeBundleToTempFile(data) {
     });
 }
 
+
+function unpackBundle(endpoint, src, filename, reposPath) {
+  
+}
+
 function makeBundleHandler(reposPath) {
   return function(endpoint, packet) {
     if (packet.label == common.bundle) {
@@ -43,10 +48,10 @@ function makeBundleHandler(reposPath) {
       if (data instanceof Buffer) {
         writeBundleToTempFile(data)
           .then(function(filename) {
-            unpackBundle(filename, reposPath);
+            unpackBundle(endpoint, packet.src, filename, reposPath);
           });
       } else if (typeof data == 'string') {
-        unpackBundle(data, reposPath);
+        unpackBundle(endpoint, packet.src, data, reposPath);
       } else {
         console.log('Failed to unpack bundle of type ' + typeof data);
       }
