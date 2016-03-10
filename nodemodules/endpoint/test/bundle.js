@@ -78,6 +78,15 @@ function commitChanges(name, msg) {
   return execInDir(name, 'git add *; git commit -a -m "' + msg + '"');
 }
 
+function createBundle(srcName, outputName, fromTag, nowTag) {
+  var createTagCmd = 'git tag -f ' + nowTag + ' master';
+  return execInDir(
+    srcName, 'git bundle create ' 
+      + outputName + ' ' 
+      + (fromTag == null? "master; " : fromTag + "..master; ")
+      + createTagCmd);
+}
+
 function prepareTestSetup() {
   var name = 'src';
 
@@ -92,9 +101,9 @@ function prepareTestSetup() {
     })
     .then(function() {return commitChanges(name, "Initial commit");})
 
-  // Make a copy of the initial repository and assume this copy is an outdated one on some boat.
+  // Create the first bundle
     .then(function() {
-      return Q.nfcall(exec, 'cd ' + makeDirName() + '; cp src dstold -r');
+      return createBundle(name, 'first.bundle', null, 'v1');
     })
 
   // Update our source repository
@@ -108,6 +117,11 @@ function prepareTestSetup() {
     .then(function() {
       return commitChanges(
         name, "Add return statement to main function");
+    })
+
+  // Create the second bundle with the updates
+    .then(function() {
+      return createBundle(name, 'second.bundle', 'v1', 'v2');
     });
 }
 
