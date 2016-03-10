@@ -83,7 +83,7 @@ function prepareTestSetup() {
 
   // Make the initial version of the repository
   return Q.nfcall(cleanAll)
-    .then(function() {return   makeRepository(name);})
+    .then(function() {return makeRepository(name);})
     .then(function() {
       return Q.nfcall(
         fs.writeFile,
@@ -92,10 +92,23 @@ function prepareTestSetup() {
     })
     .then(function() {return commitChanges(name, "Initial commit");})
 
-  // // Make a copy of the initial repository and assume this copy is an outdated one on some boat.
-  //   .then(function() {
-  //     return Q.nfcall('cd ' + makeDirName() + '; cp src dstold');
-  //   });
+  // Make a copy of the initial repository and assume this copy is an outdated one on some boat.
+    .then(function() {
+      return Q.nfcall(exec, 'cd ' + makeDirName() + '; cp src dstold -r');
+    })
+
+  // Update our source repository
+    .then(function() {
+      return Q.nfcall(
+        fs.writeFile,
+        Path.join(makeDirName(name), "main.cpp"), 
+        '#include <iostream>\nint main() {\n  '
+          +'std::cout << "Anemomind!" << std::endl;\n  return 0;\n}');
+    })
+    .then(function() {
+      return commitChanges(
+        name, "Add return statement to main function");
+    });
 }
 
 describe('bundle', function() {
