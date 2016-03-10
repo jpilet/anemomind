@@ -103,6 +103,7 @@ function makeReceiver(name) {
   return makeEndpoint(name)
     .then(function(ep) {
       ep.addPacketHandler(bundle.bundleHandler);
+      return ep;
     });
 }
 
