@@ -6,6 +6,7 @@ var mkdirp = require('mkdirp');
 var exec = require('child_process').exec;
 var Path = require('path');
 var fs = require('fs');
+var common = require('../common.js');
 
 function fn(expr) {
   return function() {return eval(expr);}
@@ -38,18 +39,8 @@ function gitInit(name) {
   return execInDir(name, 'git init');
 }
 
-function exists(p, cb) {
-  fs.access(p, fs.F_OK, function(err) {
-    if (err) {
-      cb(null, false);
-    } else {
-      cb(null, true);
-    }
-  });
-}
-
 function existsInDir(name, p, cb) {
-  return exists(Path.join(makeDirName(name), p), cb);
+  return common.exists(Path.join(makeDirName(name), p), cb);
 }
 
 function disp(label, promise) {
@@ -68,7 +59,7 @@ function disp(label, promise) {
 
 function checkIsRepository(name) {
   var dst = Path.join(makeDirName(name), '.git');
-  return Q.nfcall(exists, dst)
+  return Q.nfcall(common.exists, dst)
     .then(function(e) {
       assert(e);
     });

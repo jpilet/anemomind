@@ -65,3 +65,4 @@ function sendBundle(endpoint, dst, bundleFilename) {
 
 
 module.exports.makeBundleHandler = makeBundleHandler;
+module.exports.sendBundle = sendBundle;
