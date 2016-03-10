@@ -137,8 +137,6 @@ function prepareTestSetup() {
       ]);
     })
     .then(function(values) {
-      console.log('GOT VALUES: ');
-      console.log(values);
       assert(values.length == 2);
       assert(values[0]);
       assert(values[1]);
