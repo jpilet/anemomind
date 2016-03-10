@@ -16,10 +16,11 @@ function makeLargePacket(n) {
 }
 
 
-function sendLargePacket(src, dst, label, buf, mtu, cb) {
+function sendLargePacket(hide, src, dst, label, buf, mtu, cb) {
   assert(typeof mtu == 'number');
   var splitCount = largepacket.splitBuffer(buf, mtu).length;
-  var expectedCount = 1 + splitCount;
+  var expectedCount0 = 1 + splitCount;
+  var expectedCount = (hide && splitCount == 1? 1 : expectedCount0);
   endpoint.tryMakeAndResetEndpoint(
     '/tmp/' + src + '.db', src, function(err, ep) {
       ep.settings.mtu = mtu;
@@ -28,9 +29,22 @@ function sendLargePacket(src, dst, label, buf, mtu, cb) {
       ep.getTotalPacketCount(function(err, n) {
         assert(!err);
         assert(n == 0);
-        largepacket.sendPacket(ep, dst, label, buf, ep.settings, function(err) {
+
+        var sendPacketMethod = (hide? function(cb0) {
+          assert(typeof cb0 == 'function');
+          ep.sendPacket(dst, label, buf, cb0);
+        } : function(cb0) {
+          assert(typeof cb0 == 'function');
+          largepacket.sendPacket(ep, dst, label, buf, ep.settings, cb0);
+        });
+
+        console.log('METHOD: ' + (hide? "ep.sendPacket" : "largepacket.sendPacket"));
+
+        sendPacketMethod(function(err) {
           assert(!err);
           ep.getTotalPacketCount(function(err, n) {
+
+            console.log('n = ' + n);
             assert(n == expectedCount);
 
             // At this stage, the large packet has been posted
@@ -43,13 +57,13 @@ function sendLargePacket(src, dst, label, buf, mtu, cb) {
     });
 }
 
-function testSendPacketWithData(src, dst, buf, done) {
+function testSendPacketWithData(hide, src, dst, buf, done) {
   var label = 23;
   var result = Q.defer(); // Will be resolved to the final large packet
 
   var partsPath = '';
 
-  sendLargePacket(src, dst, label, buf, 8, function(err, sender) {
+  sendLargePacket(hide, src, dst, label, buf, 8, function(err, sender) {
     assert(!err);
     assert(sender);
 
@@ -123,12 +137,24 @@ describe('largepacket', function() {
   it('Should send a large packet', function(done) {
     var data = makeLargePacket(4);
     var buf = msgpack.encode(data);
-    testSendPacketWithData('largesend', 'katt', buf, done);
+    testSendPacketWithData(false, 'largesend', 'katt', buf, done);
   });
 
   it('Should send a small packet', function(done) {
     var buf = new Buffer(1);
     buf[0] = 119;
-    testSendPacketWithData('smallsend', 'katt2', buf, done);
+    testSendPacketWithData(false, 'smallsend', 'katt2', buf, done);
+  });
+
+  it('Should send a large packet', function(done) {
+    var data = makeLargePacket(4);
+    var buf = msgpack.encode(data);
+    testSendPacketWithData(true, 'largesend', 'katt', buf, done);
+  });
+
+  it('Should send a small packet', function(done) {
+    var buf = new Buffer(1);
+    buf[0] = 119;
+    testSendPacketWithData(true, 'smallsend', 'katt2', buf, done);
   });
 });

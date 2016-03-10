@@ -419,7 +419,7 @@ Endpoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
     if (data.length <= this.settings.mtu) {
       this.sendSimplePacketAndReturn(dst, label, data, cb);
     } else {
-      largepacket.sendPacket(this, dst, label, data, cb);
+      largepacket.sendPacket(this, dst, label, data, this.settings, cb);
     }
   } else {
     cb(new Error('Expected a buffer'));
