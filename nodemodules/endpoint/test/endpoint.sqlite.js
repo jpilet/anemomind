@@ -176,9 +176,9 @@ describe('Endpoint', function() {
 
   it('Handler', function() {
     makeTestEP(function(err, ep) {
-      assert(ep.packetHandlers.length == 0);
-      ep.addPacketHandler(function(endpoint, packet) {console.log('Got this packet: %j', p);});
       assert(ep.packetHandlers.length == 1);
+      ep.addPacketHandler(function(endpoint, packet) {console.log('Got this packet: %j', p);});
+      assert(ep.packetHandlers.length == 2);
       assert(typeof ep.packetHandlers[0] == 'function');
     });
   });

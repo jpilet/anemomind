@@ -8,6 +8,8 @@ var assert = require('assert');
 var eq = require('deep-equal-ident');
 var schema = require('./endpoint-schema.js');
 var Q = require('q');
+var largepacket = require('./largepacket.js');
+var Path = require('path');
 
 function isSrcDstPair(x) {
   if (typeof x == 'object') {
@@ -191,8 +193,16 @@ function Endpoint(filename, name, db) {
   this.db = db;
   this.dbFilename = filename;
   this.name = name;
-  this.packetHandlers = [];
+  this.packetHandlers = [largepacket.largePacketHandler];
   this.isLeaf = true;
+  this.settings = {
+    tmp: '/tmp',
+    mtu: 100000 // in bytes
+  };
+}
+
+Endpoint.prototype.getPartsPath = function() {
+  return Path.join(this.settings.tmp, 'packetparts');
 }
 
 function tryMakeEndpoint(filename, name, cb) {
@@ -379,7 +389,7 @@ Endpoint.prototype.getNextSeqNumber = function(src, dst, cb) {
 }
 
 
-Endpoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
+Endpoint.prototype.sendSimplePacketAndReturn = function(dst, label, data, cb) {
   var self = this;
   var src = self.name;
   withTransaction(this.db, function(T, cb) {
@@ -403,7 +413,21 @@ Endpoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
   }, cb);
 }
 
+Endpoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
+  assert(this.settings);
+  if (data instanceof Buffer) {
+    if (data.length <= this.settings.mtu) {
+      this.sendSimplePacketAndReturn(dst, label, data, cb);
+    } else {
+      largepacket.sendPacket(this, dst, label, data, cb);
+    }
+  } else {
+    cb(new Error('Expected a buffer'));
+  }
+}
+
 Endpoint.prototype.sendPacket = function(dst, label, data, cb) {
+  assert(this.settings);
   this.sendPacketAndReturn(dst, label, data, function(err, p) {
     cb(err);
   });

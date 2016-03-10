@@ -16,17 +16,19 @@ function makeLargePacket(n) {
 }
 
 
-function sendLargePacket(src, dst, label, buf, settings, cb) {
-  var splitCount = largepacket.splitBuffer(buf, settings.maxPacketSize).length;
+function sendLargePacket(src, dst, label, buf, mtu, cb) {
+  assert(typeof mtu == 'number');
+  var splitCount = largepacket.splitBuffer(buf, mtu).length;
   var expectedCount = 1 + splitCount;
   endpoint.tryMakeAndResetEndpoint(
     '/tmp/' + src + '.db', src, function(err, ep) {
+      ep.settings.mtu = mtu;
       assert(!err);      
       assert(ep);
       ep.getTotalPacketCount(function(err, n) {
         assert(!err);
         assert(n == 0);
-        largepacket.sendPacket(dst, ep, label, buf, settings, function(err) {
+        largepacket.sendPacket(ep, dst, label, buf, ep.settings, function(err) {
           assert(!err);
           ep.getTotalPacketCount(function(err, n) {
             assert(n == expectedCount);
@@ -42,57 +44,44 @@ function sendLargePacket(src, dst, label, buf, settings, cb) {
 }
 
 function testSendPacketWithData(src, dst, buf, done) {
-    var label = 23;
-    var settings = {maxPacketSize: 8};
-    var partsDir = '/tmp/packetparts/';
+  var label = 23;
+  var result = Q.defer(); // Will be resolved to the final large packet
 
-    var result = Q.defer(); // Will be resolved to the final large packet
-    result.promise.then(function(packet) {
-      assert(packet.dst == dst);
-      assert(packet.label == label);
-      var dataFilename = packet.data;
-      assert(typeof dataFilename == 'string'); // The filename of the saved data
-      assert(packet.src == src);
-      fs.readFile(Path.join(
-        partsDir, 
-        src + '_' + packet.seqNumber, 'first.dat'), function(err) {
-          // We expect there to be an error reading a non-existing file:
-          assert(err); 
-          fs.readFile(dataFilename, function(err, theActualData) {
-            assert(theActualData.equals(buf));
-            done();
-          });
-      });
-    }).done();
+  var partsPath = '';
 
-    sendLargePacket(src, dst, label, buf, settings, function(err, sender) {
-      assert(!err);
-      assert(sender);
+  sendLargePacket(src, dst, label, buf, 8, function(err, sender) {
+    assert(!err);
+    assert(sender);
 
-      endpoint.tryMakeAndResetEndpoint(
-        '/tmp/largepacketreceiver', 
-        dst, function(err, receiver) {
+    endpoint.tryMakeAndResetEndpoint(
+      '/tmp/largepacketreceiver', 
+      dst, function(err, receiver) {
 
+        partsPath = receiver.getPartsPath();
 
-          // Packet handlers for large packets are added the same
-          // way as for small packets
-          receiver.addPacketHandler(function(endpoint, packet) {
-            if (packet.label == label) {
-              result.resolve(packet);
-            }
-          });
+        // Packet handlers for large packets are added the same
+        // way as for small packets
+        receiver.addPacketHandler(function(endpoint, packet) {
+          if (packet.label == label) {
+            result.resolve(packet);
+          }
+        });
 
-          // We have to remember to add this handler if the receiver should
-          // be able to receive large packets. partsDir is the location where
-          // the parts of packets are temporarily stored while it is being received.
-          receiver.addPacketHandler(largepacket.makeLargePacketHandler(partsDir));
+        sync2.synchronize(sender, receiver, function(err) {
+          result.reject('Failed to synchronize');
+        });
+      })
+  });
 
-          sync2.synchronize(sender, receiver, function(err) {
-            result.reject('Failed to synchronize');
-          });
-        })
-
-    });
+  result.promise.then(function(packet) {
+    assert(packet.dst == dst);
+    assert(packet.label == label);
+    var data = packet.data;
+    assert(data instanceof Buffer); // The filename of the saved data
+    assert(packet.src == src);
+    assert(data.equals(buf));
+    done();
+  }).done();
 }
 
 

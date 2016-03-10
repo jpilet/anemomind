@@ -18,13 +18,8 @@ var exec = require('child_process').exec;
 
 */
 
-var defaultSettings = {
-  chuckSizeBytes: 100000
-};
-
 function validSendPacketData(dst, localEndpoint, label, data, settings, cb) {
-  return localEndpoint.sendPacketAndReturn // To acquire sequence number
-    && localEndpoint.sendPacket
+  return localEndpoint.sendSimplePacketAndReturn // To acquire sequence number
     && (typeof label == 'number')
     && (data instanceof Buffer)
     && (typeof cb == 'function');
@@ -114,7 +109,7 @@ function decodeRemainingPacket(data0) {
 
 function sendRemainingPacket(dst, seqNumber, localEndpoint, data0, cb) {
   var data = encodeRemainingPacket(seqNumber, data0);
-  localEndpoint.sendPacket(dst, common.remainingPacket, data, cb);
+  localEndpoint.sendSimplePacketAndReturn(dst, common.remainingPacket, data, cb);
 }
 
 function sendRemainingPackets(dst, seqNumber, localEndpoint, packets, cb) {
@@ -133,11 +128,11 @@ function sendRemainingPackets(dst, seqNumber, localEndpoint, packets, cb) {
 
 function sendFirstPacket(n, dst, localEndpoint, label, cb) {
   var data = encodeFirstPacket(label, n);
-  localEndpoint.sendPacketAndReturn(dst, common.firstPacket, data, function(err, out) {
+  localEndpoint.sendSimplePacketAndReturn(dst, common.firstPacket, data, function(err, out) {
     if (err) {
       cb(err);
     } else if (out == null) {
-      cb(new Error('No map with data returned from sendPacket'));
+      cb(new Error('No map with data returned from sendSimplePacketAndReturn'));
     } else if (out.seqNumber == null) {
       cb(new Error('No sequence number obtained'));
     } else if (typeof out.seqNumber != 'string') {
@@ -171,9 +166,9 @@ function sendPackets(dst, localEndpoint, label, packets, cb) {
   }
 }
 
-function sendPacket(dst, localEndpoint, label, data, settings, cb) {
+function sendPacket(localEndpoint, dst, label, data, settings, cb) {
   if (validSendPacketData(dst, localEndpoint, label, data, settings, cb)) {
-    var packets = splitBuffer(data, settings.maxPacketSize);
+    var packets = splitBuffer(data, settings.mtu);
     sendPackets(dst, localEndpoint, label, packets, function(err, seqNumber) {
       if (err) {
         cb(err);
@@ -245,7 +240,7 @@ function assemblePacketData(path, partNames, cb) {
     if (err) {
       cb(err);
     } else {
-      cb(null, dstFilename);
+      fs.readFile(dstFilename, cb);
     }
   });
 }
@@ -321,13 +316,12 @@ function handleRemainingPacket(partsPath, endpoint, packet) {
   }
 }
 
-function makeLargePacketHandler(partsPath) {
-  return function(endpoint, packet) {
-    if (packet.label == common.firstPacket) {
-      handleFirstPacket(partsPath, endpoint, packet);
-    } else if (packet.label == common.remainingPacket) {
-      handleRemainingPacket(partsPath, endpoint, packet);
-    }
+function largePacketHandler(endpoint, packet) {
+  var partsPath = endpoint.getPartsPath();
+  if (packet.label == common.firstPacket) {
+    handleFirstPacket(partsPath, endpoint, packet);
+  } else if (packet.label == common.remainingPacket) {
+    handleRemainingPacket(partsPath, endpoint, packet);
   }
 }
 
@@ -337,4 +331,4 @@ module.exports.decodeFirstPacket = decodeFirstPacket;
 module.exports.encodeRemainingPacket = encodeRemainingPacket;
 module.exports.decodeRemainingPacket = decodeRemainingPacket;
 module.exports.sendPacket = sendPacket;
-module.exports.makeLargePacketHandler = makeLargePacketHandler;
+module.exports.largePacketHandler = largePacketHandler;
