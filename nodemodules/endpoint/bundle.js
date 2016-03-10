@@ -21,11 +21,19 @@ endpoint.addPacketHandler(bundle.makeBundleHandler());
 
 var mkdirp = require('mkdirp');
 var Q = require('q');
+var Path = require('path');
 
-
+var bundlePath = '~/.tmp/bundles';
+var tmpFilename = Path.join(bundlePath, 'last.bundle');
 
 function writeBundleToTempFile(data) {
-  
+  return Q.nfcall(mkdirp, bundlePath)
+    .then(function() {
+      return Q.nfcall(fs.writeFile, tmpFilename, data);
+    })
+    .then(function() {
+      return tmpFilename;
+    });
 }
 
 function makeBundleHandler(reposPath) {
