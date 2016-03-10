@@ -93,6 +93,28 @@ function createBundle(srcName, outputName, fromTag, nowTag) {
       + createTagCmd);
 }
 
+
+function makeEndpoint(name) {
+  return Q.nfcall(endpoint.tryMakeAndResetEndpoint, 
+                  '/tmp/bundletest/' + name + '.db', name);
+}
+
+function makeReceiver(name) {
+  return makeEndpoint(name)
+    .then(function(ep) {
+      ep.addPacketHandler(bundle.bundleHandler);
+    });
+}
+
+function makeEndpoints() {
+  return Q.all([
+    makeEndpoint('src'),
+    makeReceiver('dst0'),
+    makeReceiver('dst1')
+  ]);
+}
+
+
 function prepareTestSetup() {
   var name = 'src';
 
@@ -141,28 +163,12 @@ function prepareTestSetup() {
       assert(values.length == 2);
       assert(values[0]);
       assert(values[1]);
+    })
+    .then(function() {
+      return makeEndpoints();
     });
 }
 
-function makeEndpoint(name) {
-  return Q.nfcall(endpoint.tryMakeAndResetEndpoint, 
-                  '/tmp/bundletest/' + name + '.db', name);
-}
-
-function makeReceiver(name) {
-  return makeEndpoint(name)
-    .then(function(ep) {
-      ep.addPacketHandler(bundle.makeBundleHandler());
-    });
-}
-
-function makeEndpoints() {
-  return Q.all([
-    makeEndpoint('src'),
-    makeReceiver('dst0'),
-    makeReceiver('dst1')
-  ]);
-}
 
 describe('bundle', function() {
   it('Should prepare a setup where we can experiment', function(done) {

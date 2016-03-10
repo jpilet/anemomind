@@ -18,3 +18,9 @@ of the endpoint:
 endpoint.addPacketHandler(bundle.makeBundleHandler());
 
 */
+
+function bundleHandler(endpoint, packet) {
+  
+}
+
+module.exports.bundleHandler = bundleHandler;
