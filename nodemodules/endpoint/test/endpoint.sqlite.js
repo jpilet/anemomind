@@ -391,4 +391,20 @@ sqlite>
         });
     });
   });
+
+  it('should send a packet', function(done) {
+    endpoint.tryMakeAndResetEndpoint(
+      '/tmp/duma.db', 'duma', function(err, ep) {
+        assert(!err);
+        ep.sendPacket('ccc', 89, new Buffer(4), function(err, nothing) {
+          assert(nothing == null);
+          assert(!err);
+          ep.getTotalPacketCount(function(err, n) {
+            assert(!err);
+            assert(n == 1);
+            done();
+          });
+        });
+      });
+  });
 });
