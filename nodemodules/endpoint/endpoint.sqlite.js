@@ -474,7 +474,21 @@ Endpoint.prototype.sendSimplePacketAndReturn = function(dst, label, data, cb) {
 }
 
 
-Endpoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
+// Usually we always pass data to
+function tryToConvertToBuffer(x) {
+  if (x instanceof Buffer) {
+    return x;
+  }
+  try {
+    if (x.data && x.type == 'Buffer') {
+      return new Buffer(x.data);
+    }
+  } catch (e) {}
+  return x;
+}
+
+Endpoint.prototype.sendPacketAndReturn = function(dst, label, data0, cb) {
+  var data = tryToConvertToBuffer(data0);
   assert(this.settings);
   if (data instanceof Buffer) {
     if (data.length <= this.settings.mtu) {
@@ -483,7 +497,10 @@ Endpoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
       largepacket.sendPacket(this, dst, label, data, this.settings, cb);
     }
   } else {
-    cb(new Error('Expected a buffer'));
+    console.log('THIS IS NOT A BUFFER: %j', data);
+    console.log(data);
+    console.log('Is it a buffer? ' + (data instanceof Buffer? 'YES' : 'NO'));
+    cb(new Error('Expected a buffer, but got of type ' + typeof data + ': '  + data));
   }
 }
 
