@@ -383,31 +383,6 @@ Endpoint.prototype.getNextSeqNumber = function(src, dst, cb) {
   getNextSeqNumber(this.db, src, dst, cb);
 }
 
-
-Endpoint.prototype.sendSimplePacketAndReturn = function(dst, label, data, cb) {
-  var self = this;
-  var src = self.name;
-  withTransaction(this.db, function(T, cb) {
-    getNextSeqNumber(T, src, dst, function(err, seqNumber) {
-      T.run(
-        'INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
-        src, dst, seqNumber, label, data, function(err) {
-          if (err) {
-            cb(err);
-          } else {
-            cb(null, {
-              src: src,
-              dst: dst,
-              label: label,
-              seqNumber: seqNumber,
-              data: data
-            });
-          }
-        });
-    });
-  }, cb);
-}
-
 function storePacket(T, packet, cb) {
   T.run(
     'INSERT INTO packets VALUES (?, ?, ?, ?, ?)',
@@ -477,6 +452,27 @@ Endpoint.prototype.sendSimplePacketBatch = function(array, generator, cb) {
     sendSimplePacketBatch(T, self.name, [], array, generator, cb);
   }, cb);
 };
+
+Endpoint.prototype.sendSimplePacketAndReturn = function(dst, label, data, cb) {
+  this.sendSimplePacketBatch([null], function() {
+    return {
+      dst: dst,
+      label: label,
+      data: data
+    };
+  }, function(err, sent) {
+    if (err) {
+      cb(err);
+    } else if (!(sent instanceof Array)) {
+      cb(new Error('sent is not an array'));
+    } else if (sent.length != 1) {
+      cb(new Error('sent is not exactly one element'));
+    } else {
+      cb(null, sent[0]);
+    }
+  });
+}
+
 
 Endpoint.prototype.sendPacketAndReturn = function(dst, label, data, cb) {
   assert(this.settings);

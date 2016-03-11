@@ -1,11 +1,8 @@
 var ep = require('./endpoint.sqlite.js');
 var assert = require('assert');
 var common = require('./common.js');
-var mkdirp = require('mkdirp');
 var Path = require('path');
 var fs = require('fs');
-var Q = require('q');
-var rmdir = require('rmdir');
 var exec = require('child_process').exec;
 
 /*
@@ -157,14 +154,6 @@ function sendPacket(localEndpoint, dst, label, data, settings, cb) {
     console.log('Invalid callback passed to largepacket.sendPacket: ' + cb);
   }
 }
-
-function preparePath(partsPath, src, seqNumber, cb) {
-  var p = Path.join(partsPath, src + '_' + seqNumber + '');
-  mkdirp(p, function(err) {
-    cb(err, p);
-  });
-}
-
 
 function handleFirstPacket(endpoint, packet) {
   ep.withTransaction(endpoint.db, function(T, cb) {
