@@ -213,7 +213,7 @@ function isComplete(T, remainingPacket, cb) {
           if (err) {
             cb(err);
           } else if (n > decodedFirst.count) {
-            cb(null, new Error('Too many packets'));
+            cb(new Error('Too many packets'));
           } else if (n < decodedFirst.count) {
             cb();
           } else {
