@@ -5,6 +5,7 @@
 #include <nan.h>
 
 #include <map>
+#include <memory>
 
 namespace sail {
 
@@ -26,7 +27,7 @@ class JsDispatchData : public node::ObjectWrap {
   }
 
   static void setDispatchData(
-      v8::Handle<v8::Object> object, DispatchData* data, Dispatcher* dispatcher);
+      v8::Handle<v8::Object> object, std::shared_ptr<DispatchData> data, Dispatcher* dispatcher);
 
  protected:
   static NAN_METHOD(New);
@@ -39,7 +40,7 @@ class JsDispatchData : public node::ObjectWrap {
   static NAN_METHOD(source);
 
  private:
-  DispatchData* _dispatchData;
+  std::shared_ptr<DispatchData> _dispatchData;
   Dispatcher* _dispatcher;
 
   static std::map<int, JsListener *> registeredCallbacks;

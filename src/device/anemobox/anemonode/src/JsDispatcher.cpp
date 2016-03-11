@@ -42,7 +42,7 @@ void JsDispatcher::setDispatcher(Handle<Object> object, Dispatcher* dispatcher) 
   Handle<Object> entries = NanNew<Object>();
   for (auto entry : dispatcher->dispatchers()) {
     Handle<Object> jsentry = constructor->GetFunction()->NewInstance();
-    JsDispatchData::setDispatchData(jsentry, entry.second.get(), dispatcher);
+    JsDispatchData::setDispatchData(jsentry, entry.second, dispatcher);
 
     entries->Set(NanNew<String>(entry.second->wordIdentifier().c_str()), jsentry);
   }
@@ -92,8 +92,7 @@ NAN_METHOD(JsDispatcher::allSources) {
   Dispatcher* dispatcher = me->_dispatcher;
 
   Local<Object> sources = NanNew<Object>();
-  const std::map<DataCode, std::map<std::string, DispatchData*>> &sourceMap
-    = dispatcher->allSources();
+  const auto& sourceMap = dispatcher->allSources();
 
   Local<FunctionTemplate> constructor = NanNew(me->persistentConstructor);
 

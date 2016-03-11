@@ -33,7 +33,7 @@ namespace sail {
     AngleCorrector() : value(0) {}
     Angle<T> correct(Angle<T> raw) const {
       auto x = raw + Angle<T>::degrees(T(value));
-      assert(!genericIsNan(x));
+      assert(!isNaN(x));
       return x;
     }
   };
@@ -57,7 +57,7 @@ namespace sail {
 
     Velocity<T> correct(Velocity<T> raw) const {
       auto x = make().eval(raw);
-      assert(!genericIsNan(x));
+      assert(!isNaN(x));
       return x;
     }
   };
@@ -75,7 +75,7 @@ namespace sail {
 
     Angle<T> correct(const CalibratedNav<T> &c) const {
       T awa0rads = c.calibAwa().normalizedAt0().radians();
-      assert(!genericIsNan(awa0rads));
+      assert(!isNaN(awa0rads));
 
 
       //I am not sure we need 'ToDouble': bool upwind = 2.0*std::abs(ToDouble(awa0rads)) < M_PI;
@@ -85,7 +85,7 @@ namespace sail {
       // For awa angles closer to 0 than 90 degrees,
       // scale by sinus of that angle. Otherwise, just use 0.
       T awaFactor = amp*(upwind? T(sin(2.0*awa0rads)) : T(0));
-      assert(!genericIsNan(awaFactor));
+      assert(!isNaN(awaFactor));
 
       auto caws = c.calibAws().metersPerSecond();
       if (caws < T(0)) {
@@ -95,10 +95,10 @@ namespace sail {
       // Scale it in a way that decays exponentially as
       // aws increases. The decay is controlled by params[1].
       T awsFactor = exp(-expline(coef)*caws);
-      assert(!genericIsNan(awsFactor));
+      assert(!isNaN(awsFactor));
 
       auto v = Angle<T>::radians(awaFactor*awsFactor);
-      assert(!genericIsNan(v));
+      assert(!isNaN(v));
       return v;
     }
   };
