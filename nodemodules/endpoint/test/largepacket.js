@@ -44,7 +44,6 @@ function sendLargePacket(hide, src, dst, label, buf, mtu, cb) {
           assert(!err);
           ep.getTotalPacketCount(function(err, n) {
 
-            console.log('n = ' + n);
             assert(n == expectedCount);
 
             // At this stage, the large packet has been posted
@@ -61,8 +60,6 @@ function testSendPacketWithData(hide, src, dst, buf, done) {
   var label = 23;
   var result = Q.defer(); // Will be resolved to the final large packet
 
-  var partsPath = '';
-
   sendLargePacket(hide, src, dst, label, buf, 8, function(err, sender) {
     assert(!err);
     assert(sender);
@@ -70,8 +67,6 @@ function testSendPacketWithData(hide, src, dst, buf, done) {
     endpoint.tryMakeAndResetEndpoint(
       '/tmp/largepacketreceiver', 
       dst, function(err, receiver) {
-
-        partsPath = receiver.getPartsPath();
 
         // Packet handlers for large packets are added the same
         // way as for small packets
@@ -82,20 +77,29 @@ function testSendPacketWithData(hide, src, dst, buf, done) {
         });
 
         sync2.synchronize(sender, receiver, function(err) {
-          result.reject('Failed to synchronize');
+          if (err) {
+            result.reject(err);
+          }
         });
-      })
-  });
 
-  result.promise.then(function(packet) {
-    assert(packet.dst == dst);
-    assert(packet.label == label);
-    var data = packet.data;
-    assert(data instanceof Buffer); // The filename of the saved data
-    assert(packet.src == src);
-    assert(data.equals(buf));
-    done();
-  }).done();
+
+        result.promise.then(function(packet) {
+          receiver.getTotalPacketCount(function(err, n) {
+            assert(!err);
+            assert(n == 0);
+            assert(packet.dst == dst);
+            assert(packet.label == label);
+            var data = packet.data;
+            assert(data instanceof Buffer); // The filename of the saved data
+            assert(packet.src == src);
+            assert(data.length == buf.length);
+            assert(data.equals(buf));
+            done();
+          });
+        }).done();
+
+      });
+  });
 }
 
 

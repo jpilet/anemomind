@@ -107,81 +107,49 @@ function decodeRemainingPacket(data0) {
   }
 }
 
-function sendRemainingPacket(dst, seqNumber, localEndpoint, data0, cb) {
-  var data = encodeRemainingPacket(seqNumber, data0);
-  localEndpoint.sendSimplePacketAndReturn(dst, common.remainingPacket, data, cb);
-}
+function makeGenerator(dst, label, n) {
+  return function(sent, element) {
+    // The first element in the array over which we iterate is null.
+    assert((sent.length == 0) == (element == null));
 
-function sendRemainingPackets(dst, seqNumber, localEndpoint, packets, cb) {
-  if (packets.length == 0) {
-    cb();
-  } else {
-    sendRemainingPacket(dst, seqNumber, localEndpoint, packets[0], function(err) {
-      if (err) {
-        cb(err);
-      } else {
-        sendRemainingPackets(dst, seqNumber, localEndpoint, packets.slice(1), cb);
-      }
-    });
-  }
-}
-
-function sendFirstPacket(n, dst, localEndpoint, label, cb) {
-  var data = encodeFirstPacket(label, n);
-  localEndpoint.sendSimplePacketAndReturn(dst, common.firstPacket, data, function(err, out) {
-    if (err) {
-      cb(err);
-    } else if (out == null) {
-      cb(new Error('No map with data returned from sendSimplePacketAndReturn'));
-    } else if (out.seqNumber == null) {
-      cb(new Error('No sequence number obtained'));
-    } else if (typeof out.seqNumber != 'string') {
-      cb(new Error('Seq number is not a string'));
+    if (sent.length == 0) {
+      return { // Return the first packet in the sequence
+        dst: dst,
+        data: encodeFirstPacket(label, n),
+        label: common.firstPacket
+      };
     } else {
-      cb(null, out.seqNumber);
+      // Use the seqNumber of the first packet
+      // to group the packets
+      var seqNumber = sent[0].seqNumber; 
+      return {
+        dst: dst,
+        data: encodeRemainingPacket(seqNumber, element),
+        label: common.remainingPacket
+      };
     }
-  });
-}
-
-function sendPackets(dst, localEndpoint, label, packets, cb) {
-  if (packets.length == 0) {
-    cb();
-  } else {
-    sendFirstPacket(packets.length, dst, localEndpoint, 
-                    label, function(err, seqNumber) {
-      if (err) {
-        cb(err);
-      } else if (seqNumber == null) {
-        cb(new Error("Missing seqNumber passed from sendFirstPacket"));
-      } else {
-        sendRemainingPackets(dst, seqNumber, localEndpoint, packets, function(err) {
-          if (err) {
-            cb(err);
-          } else {
-            cb(null, seqNumber);
-          }
-        });
-      }
-    });
-  }
+  };
 }
 
 function sendPacket(localEndpoint, dst, label, data, settings, cb) {
   if (validSendPacketData(dst, localEndpoint, label, data, settings, cb)) {
     var packets = splitBuffer(data, settings.mtu);
-    sendPackets(dst, localEndpoint, label, packets, function(err, seqNumber) {
-      if (err) {
-        cb(err);
-      } else {
-        cb(null, { // Try to return the same stuff as would localEndpoint.sendPacket
-          src: localEndpoint.name,
-          dst: dst,
-          label: label,
-          seqNumber: seqNumber, // The first seqNumber assigned to the chain of packets.
-          data: data
-        });
-      }
-    });
+    var array = [null].concat(packets);
+    localEndpoint.sendSimplePacketBatch(
+      array, makeGenerator(dst, label, packets.length), 
+      function(err, sent) {
+        if (err) {
+          cb(err);
+        } else {
+          cb(null, {
+            src: localEndpoint.name,
+            dst: dst,
+            label: label,
+            seqNumber: sent[0].seqNumber,
+            data: data
+          });
+        }
+      });
   } else if (typeof cb == 'function') {
     cb(new Error(["Invalid data to largepacket.sendPacket: ", 
                   [dst, localEndpoint, label, data, settings, cb]]));
@@ -197,143 +165,165 @@ function preparePath(partsPath, src, seqNumber, cb) {
   });
 }
 
-var firstBaseName = 'first.dat';
 
-function handleFirstPacket(partsPath, endpoint, packet) {
-  preparePath(partsPath, packet.src, packet.seqNumber, function(err, path) {
+function handleFirstPacket(endpoint, packet) {
+  ep.withTransaction(endpoint.db, function(T, cb) {
+    ep.storePacket(T, packet, cb);
+  }, function(err) {
     if (err) {
-      console.log('ERROR in largepacket.handleFirstPacket: Failed to create ' + path);
-    } else {
-      var firstName = Path.join(path, firstBaseName);
-      fs.writeFile(firstName, packet.data, function(err) {
-        if (err) {
-          console.log('ERROR in largepacket.handleFirstPacket: Failed to write ' + firstName);
-        }
-      });
+      console.log('ERROR in handleFirstPacket:');
+      console.log(err);
     }
   });
 }
 
-function isPartName(s) {
-  if (s.length > 4) {
-    return s.slice(0, 4) == 'part';
+function getFirstPacket(T, remainingPacket, cb) {
+  var decodedPacket = decodeRemainingPacket(remainingPacket.data);
+  T.get(
+    'SELECT * FROM packets WHERE src = ? AND dst = ? AND seqNumber = ?', 
+    remainingPacket.src, remainingPacket.dst, decodedPacket.seqNumber, cb);
+}
+
+function countRemainingPacketsInRange(T, src, dst, fromSeq, toSeq, cb) {
+  T.get('SELECT count(*) FROM packets WHERE src = ? AND dst = ?'
+        + ' AND ? <= seqNumber AND seqNumber <= ? AND label = ?',
+        src, dst, fromSeq, toSeq, common.remainingPacket,
+        function(err, row) {
+          if (err) {
+            cb(err);
+          } else {
+            cb(null, row['count(*)']);
+          }
+        });
+}
+
+function isComplete(T, remainingPacket, cb) {
+  getFirstPacket(T, remainingPacket, function(err, first) {
+    if (err) {
+      cb(err);
+    } else {
+      var decodedFirst = decodeFirstPacket(first.data);
+      var src = remainingPacket.src;
+      var dst = remainingPacket.dst;
+      var fromSeq = first.seqNumber;
+      var toSeq = remainingPacket.seqNumber;
+      countRemainingPacketsInRange(
+        T, src, dst, fromSeq, toSeq,
+        function(err, n) {
+          if (err) {
+            cb(err);
+          } else if (n > decodedFirst.count) {
+            cb(null, new Error('Too many packets'));
+          } else if (n < decodedFirst.count) {
+            cb();
+          } else {
+            cb(null, decodedFirst, first);
+          }
+        });
+    }
+  });
+}
+
+function concatParts(packets) {
+  var unpacked = packets.map(function(p) {
+    return decodeRemainingPacket(p.data).data;
+  });
+
+  for (var i = 0; i < unpacked.length; i++) {
+    if (!(unpacked[i] instanceof Buffer)) {
+      return null;
+    }
   }
-  return false;
+
+  var totalSize = unpacked.map(function(p) {return p.length;})
+      .reduce(function(a, b) {return a + b;});
+
+  var data = new Buffer(totalSize);
+  var offset = 0;
+  for (var i = 0; i < unpacked.length; i++) {
+    var p = unpacked[i];
+    p.copy(data, offset);
+    offset += p.length;
+  }
+  assert(offset == totalSize);
+  return data;
 }
 
-function listParts(path, cb) {
-  fs.readdir(path, function(err, names) {
-    if (err) {
-      cb(err);
-    } else {
-      cb(null, names.filter(isPartName).sort());
-    }
-  });
+function assemblePacket(T, endpoint, first, decodedFirst, lastPacket, cb) {
+  var src = lastPacket.src;
+  var dst = lastPacket.dst;
+  T.all('SELECT * FROM packets WHERE src = ? AND dst = ? AND ? < seqNumber'
+        +' AND seqNumber <= ? AND label = ? ORDER BY seqNumber',
+        src, dst, first.seqNumber,
+        lastPacket.seqNumber, common.remainingPacket, function(err, packets) {
+          var data = concatParts(packets);
+          if (data == null) {
+            cb(new Error('Failed to concatenate parts'));
+          } else {
+            endpoint.callPacketHandlers({
+              src: src,
+              dst: dst,
+              data: data,
+              label: decodedFirst.label,
+              seqNumber: decodedFirst.seqNumber
+            });
+            cb();
+          }
+        });
 }
 
-function assemblePacketData(path, partNames, cb) {
-  dstFilename = path + "largepacket.dat";
-  cmd = 'cat ' + 
-    partNames.map(function(name) {return Path.join(path, name);}).join(' ')
-    + ' > ' + dstFilename;
-  exec(cmd, function(err, stdout, stderr) {
-    if (err) {
-      cb(err);
-    } else {
-      fs.readFile(dstFilename, function(err, data) {
+function removePacketsInRange(T, src, dst, fromIncl, toIncl, cb) {
+  T.run(
+    'DELETE FROM packets WHERE src = ? AND dst = ? AND ? <= seqNumber AND seqNumber <= ?',
+    src, dst, fromIncl, toIncl, cb);
+}
+
+function attemptToAssemblePacket(T, endpoint, lastPacket, cb) {
+  return isComplete(T, lastPacket, function(err, decodedFirst, first) {
+    if (decodedFirst) {
+      assemblePacket(T, endpoint, first, decodedFirst, lastPacket, function(err, finalPacket) {
         if (err) {
           cb(err);
         } else {
-          fs.unlink(dstFilename, function(err) {
-            if (err) {
-              cb(err);
-            } else {
-              cb(null, data);
-            }
-          });
+          removePacketsInRange(
+            T, lastPacket.src, lastPacket.dst, 
+            first.seqNumber, lastPacket.seqNumber, function(err) {
+              if (err) {
+                cb(err);
+              } else {
+                cb(null, finalPacket);
+              }
+            });
         }
       });
-    }
-  });
-}
-
-function checkIfComplete(seqNumber, packet0, path, endpoint) {
-  var firstName = Path.join(path, firstBaseName);
-  fs.readFile(firstName, function(err, data) {
-    if (err) {
-      console.log('ERROR in largepacket.checkIfComplete: Failed to read ' + firstName);
-    } else if (!(data instanceof Buffer)) {
-      console.log('ERROR in largepacket.checkIfComplete: The loaded data is not a buffer');
     } else {
-      var decoded = decodeFirstPacket(data);
-      if (decoded == null) {
-        console.log('ERROR in largepacket.checkIfComplete: Failed to decode the first packet');
-      } else {
-        listParts(path, function(err, partNames) {
-          if (partNames.length >= decoded.count) {
-            if (partNames.length > decoded.count) {
-              console.log('ERROR in largepacket.checkIfComplete: Too many parts received: '
-                          + partNames);
-            } else {
-              // src, dst, seqNumber, label, data
-              assemblePacketData(path, partNames, function(err, data) {
-                if (err) {
-                  console.log('ERROR in largepacket.checkIfComplete: '
-                              + 'Failed to assemble packet data from ' + partNames);
-                } else {
-                  rmdir(path, function(err) {
-                    if (err) {
-                      console.log('ERROR in largepacket.checkIfComplete: '
-                                  + 'Failed to rmdir ' + path + ': ' + err);
-                    } else {
-                      var packet = {
-                        src: packet0.src,
-                        dst: packet0.dst,
-                        label: decoded.label,
-                        seqNumber: seqNumber,
-                        data: data
-                      };
-                      endpoint.callPacketHandlers(packet);
-                    }
-                  });
-                }
-              });
-            }
-          }
-        });
-      }
+      cb();
     }
   });
 }
 
-function handleRemainingPacket(partsPath, endpoint, packet) {
-  var decoded = decodeRemainingPacket(packet.data);
-  if (decoded == null) {
-    console.log('ERROR in largepacket.handleRemainingPacket: Failed to decode packet');
-  } else {
-    preparePath(partsPath, packet.src, decoded.seqNumber, function(err, path) {
+function handleRemainingPacket(endpoint, packet) {
+  ep.withTransaction(endpoint.db, function(T, cb) {
+    ep.storePacket(T, packet, function(err) {
       if (err) {
-        console.log('ERROR in largepacket.handleRemainingPacket: Failed to create ' + path);
+        cb(err);
       } else {
-        var filename = Path.join(path, 'part' + packet.seqNumber + '.dat');
-        fs.writeFile(filename, decoded.data, function(err) {
-          if (err) {
-            console.log('ERROR in largepacket.handleRemainingPacket: Failed to write ' + filename);
-          } else {
-            checkIfComplete(decoded.seqNumber, packet, path, endpoint);
-          }
-        });
+        attemptToAssemblePacket(T, endpoint, packet, cb);
       }
     });
-  }
+  }, function(err) {
+    if (err) {
+      console.log('ERROR in handleRemainingPacket:');
+      console.log(err);
+    }
+  });
 }
 
 function largePacketHandler(endpoint, packet) {
-  var partsPath = endpoint.getPartsPath();
   if (packet.label == common.firstPacket) {
-    handleFirstPacket(partsPath, endpoint, packet);
+    handleFirstPacket(endpoint, packet);
   } else if (packet.label == common.remainingPacket) {
-    handleRemainingPacket(partsPath, endpoint, packet);
+    handleRemainingPacket(endpoint, packet);
   }
 }
 
