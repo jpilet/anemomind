@@ -11,14 +11,31 @@ target_link_libraries(logimport_LogLoader
                       nautical_NavDataset
                       device_NmeaParser
                       common_filesystem
-                      common_CsvParser
+                      logimport_CsvLoader
+                      anemobox_Nmea0183Source
                      )
-                     
+
 cxx_test(logimport_LogLoaderTest 
          LogLoaderTest.cpp
          logimport_LogLoader
          gtest_main
         )
+                     
+add_library(logimport_CsvLoader
+            CsvLoader.h
+            CsvLoader.cpp
+           )
+           
+target_link_libraries(logimport_CsvLoader
+                      common_CsvParser
+                      logimport_SourceGroup
+                     )           
+
+add_library(logimport_SourceGroup
+            SourceGroup.h
+            SourceGroup.cpp
+           )
+
                      
                      
 cxx_test(logs_Nmea0183Test

@@ -9,6 +9,7 @@
 #include <device/anemobox/TimedSampleCollection.h>
 #include <server/nautical/AbsoluteOrientation.h>
 #include <server/nautical/GeographicPosition.h>
+#include <iostream>
 
 namespace sail {
 
@@ -118,8 +119,13 @@ void Listener<T>::stopListening() {
 
 template <typename T>
 void ValueDispatcher<T>::setValue(T value) {
-  values_.append(TimedValue<T>(clock_->currentTime(), value));
-  Listener<T>::safelyNotifyListenerSet(listeners_, *this);
+  auto currentTime = clock_->currentTime();
+  if (currentTime.defined()) {
+    values_.append(TimedValue<T>(currentTime, value));
+    Listener<T>::safelyNotifyListenerSet(listeners_, *this);
+  } else {
+    std::cerr << "ValueDispatcher<T>::setValue: Dispatcher returned undefined time";
+  }
 }
 
 // Pre-define a few types

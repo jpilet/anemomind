@@ -17,6 +17,7 @@ class Nmea0183Source {
 
   void process(const unsigned char* buffer, int length);
 
+  NmeaParser *parser() {return &_parser;}
  private:
   Dispatcher *_dispatcher;
   NmeaParser _parser;

@@ -21,12 +21,9 @@ namespace {
 TEST(Nmea0183Test, TestComplete) {
   LogLoader loader;
   loader.loadNmea0183(&testfile001);
-  std::cout << "Make the dataset" << std::endl;
   auto navs = loader.makeNavDataset();
-  std::cout << "Checking the size..." << std::endl;
   EXPECT_GE(getNavSize(navs), 0); // Number of times RMC occurs in the string to be parsed
-  std::cout << "Got the size: " << getNavSize(navs) << std::endl;
-EXPECT_TRUE(makeArray(navs).hasData());
+  EXPECT_TRUE(makeArray(navs).hasData());
   }
 
 namespace {

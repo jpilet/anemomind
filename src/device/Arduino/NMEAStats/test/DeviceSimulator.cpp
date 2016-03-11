@@ -19,7 +19,11 @@ extern void setup();
 #include <server/nautical/logimport/LogLoader.h>
 
 namespace sail {
-  TimeStamp getTime(const NmeaParser& parser);
+  TimeStamp getTime(const NmeaParser &parser) {
+    return TimeStamp::UTC(
+        parser.year() + 2000, parser.month(), parser.day(),
+        parser.hour(), parser.min(), parser.sec());
+  }
 }
 
 DeviceSimulator *fakeArduino = 0;

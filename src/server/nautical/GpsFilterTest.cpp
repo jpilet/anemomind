@@ -218,7 +218,7 @@ TEST(GpsFilterTest, Irene) {
 
   // There is a certain risk of confusing indices to navs
   // with indices to samples in the recovered signal.
-  Spani reliableGT(167, 4347);
+  Spani reliableGT(50, 4347);
   auto reliable = results.reliableSampleRange;
   EXPECT_LE(reliable.maxv(), results.sampling.count());
   EXPECT_LE(reliableGT.minv(), reliable.minv());

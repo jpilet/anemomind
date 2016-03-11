@@ -198,6 +198,7 @@ Array<Angle<double> > getAwa(Array<Nav> navs) {
 
 std::ostream &operator<<(std::ostream &s, const Nav &x) {
   s << "Nav:\n";
+  s << "  time: " << x.time() << "\n";
   s << "  maghdg: " << x.magHdg() << "\n";
   s << "  aws: " << x.aws() << "\n";
   s << "  awa: " << x.awa() << "\n";

@@ -112,7 +112,10 @@ TEST(TrueWindEstimatorTest, TWACompare) {
     }
 
     double successrate = double(counter)/count;
-    EXPECT_LE(0.8, successrate);
+    // TODO: I had to lower this threshold slightly after
+    // rewriting the NMEA0183 parsing code, because we process the GLL
+    // sequence now, which affects the number of sampled navs.
+    EXPECT_LE(0.77, successrate);
     EXPECT_LE(getMedianAbsValue(difs).degrees(), 3.0);
   }
 }
