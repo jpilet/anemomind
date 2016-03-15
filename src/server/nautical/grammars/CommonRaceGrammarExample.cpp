@@ -5,7 +5,7 @@
 
 #include <server/nautical/grammars/TreeExplorer.h>
 #include <server/nautical/grammars/CommonRaceGrammar.h>
-#include <server/nautical/TestdataNavs.h>
+#include <server/nautical/logimport/TestdataNavs.h>
 
 using namespace sail;
 

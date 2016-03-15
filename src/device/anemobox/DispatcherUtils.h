@@ -13,7 +13,7 @@ namespace sail {
 
 // Visit every channel of a Dispatcher, for side effects.
 template <typename Mapper>
-void visitDispatcherChannels(const std::shared_ptr<Dispatcher> &dispatcher, Mapper *m) {
+void visitDispatcherChannels(Dispatcher *dispatcher, Mapper *m) {
   for (const auto &codeAndSources: dispatcher->allSources()) {
     auto c = codeAndSources.first;
     for (const auto &kv: codeAndSources.second) {

@@ -4,7 +4,7 @@
  */
 
 #include <server/nautical/grammars/TreeExplorer.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
@@ -28,7 +28,9 @@ int main(int argc, char *argv[]) {
     p = argv[1];
   }
 
-  NavDataset navs = scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
+  LogLoader loader;
+  loader.load(p.toString());
+  auto navs = loader.makeNavDataset();
   std::shared_ptr<HTree> tree = g.parse(navs);
   assert(bool(tree));
   auto infoFun = [&] (std::shared_ptr<HTree> tree) {

@@ -279,7 +279,6 @@ class Dispatcher : public Clock {
   void publishValue(DataCode code, const std::string& source, T value) {
     TypedDispatchData<T>* dispatchData =
       createDispatchDataForSource<T>(code, source);
-
     dispatchData->setValue(value);
   }
 

@@ -44,7 +44,7 @@ add_executable(nautical_grammars_TreeExplorerExample
 target_link_libraries(nautical_grammars_TreeExplorerExample
                       nautical_grammars_TreeExplorer
                       common_PathBuilder
-                      nautical_NavNmeaScan
+                      logimport_LogLoader
                       nautical_grammars_WindOrientedGrammar
                       common_Env
                      )
@@ -88,24 +88,6 @@ cxx_test(nautical_grammars_StaticCostFactoryTest
          gtest_main
         )
 
-add_library(nautical_grammars_TrzParser
-            TrzParser.h
-            TrzParser.cpp
-           )
-target_link_libraries(nautical_grammars_TrzParser
-                      math_hmm_StateAssign
-                      common_Hierarchy
-                      common_string
-                      common_HNodeGroup
-                      common_logging
-                      nautical_grammars_StaticCostFactory
-                     )
-add_executable(nautical_grammars_TrzParserExample
-               TrzParserExample.cpp
-              )
-target_link_libraries(nautical_grammars_TrzParserExample
-                      nautical_grammars_TrzParser
-                     ) 
 add_library(nautical_grammars_AngleCost
             AngleCost.h
             AngleCost.cpp
@@ -132,7 +114,7 @@ add_executable(nautical_grammars_CommonRaceGrammarExample
 target_link_libraries(nautical_grammars_CommonRaceGrammarExample
                       nautical_grammars_CommonRaceGrammar
                       nautical_grammars_TreeExplorer
-                      nautical_TestdataNavs
+                      logimport_TestdataNavs
                      )
 
 add_library(nautical_grammars_HintedStateAssign
@@ -171,7 +153,7 @@ cxx_test(nautical_grammars_WindOrientedGrammarTest
          WindOrientedGrammarTest.cpp
          gtest_main
          nautical_grammars_WindOrientedGrammar
-         nautical_NavNmea
+         logimport_LogLoader
          nautical_grammars_TreeExplorer
          common_PathBuilder
          common_Env

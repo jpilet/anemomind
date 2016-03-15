@@ -87,6 +87,8 @@ class Clock {
 
 void sleep(Duration<double> duration);
 
+bool isFinite(const TimeStamp &x);
+
 } /* namespace sail */
 
 #endif /* TIMESTAMP_H_ */

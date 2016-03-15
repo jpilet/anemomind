@@ -135,14 +135,12 @@ namespace {
     return ds.samples<GPS_POS>();
   }
 
-  const auto maxGapSeconds = 12;
-
   template <DataCode Code>
   Optional<typename TypeForCode<Code>::type> getValue(
       const NavDataset &src, const TimeStamp &time) {
     auto nearest = src.samples<Code>().nearest(time);
     if (nearest.defined()) {
-      if (abs((nearest.get().time - time).seconds()) < maxGapSeconds) {
+      if (abs((nearest.get().time - time).seconds()) < maxMergeDifSeconds) {
         return Optional<typename TypeForCode<Code>::type>(nearest.get().value);
       }
     }
@@ -158,12 +156,6 @@ namespace {
 
   Array<std::string> orderedDeviceSources{"NavDevice"};
   Array<std::string> orderedExternalSources{"NavExternal"};
-
-  std::map<std::string, int> devicePriorities{
-    {"NavDevice", 2},
-    {"NavExternal", 1}
-  };
-
 
   template <DataCode Code>
   Optional<typename TypeForCode<Code>::type> lookUpPrioritizedSample(
@@ -469,10 +461,6 @@ Array<NavDataset > splitNavsByDuration(NavDataset navs, Duration<double> dur) {
   assert(counter + 1 == count);
   return dst;
 }
-
-/*Array<NavDataset > splitNavsByDuration(NavDataset navs, double durSeconds) {
-  return splitNavsByDuration(navs, Duration<double>::seconds(durSeconds));
-}*/
 
 MDArray2d calcNavsEcefTrajectory(NavDataset navs) {
   int count = getNavSize(navs);

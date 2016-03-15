@@ -3,7 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/NKEParser.h>
+#include <server/nautical/logimport/NKEParser.h>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/logging.h>
 #include <Poco/String.h>

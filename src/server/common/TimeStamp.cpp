@@ -119,7 +119,11 @@ TimeStamp tryParseTime(const char *fmt, std::string s) {
 #define TRY_PARSE_TIME(FMT, X) {auto res = tryParseTime(FMT, X); if (res.defined()) {return res;}}
 
 TimeStamp TimeStamp::parse(const std::string &x0) {
+
+  // TODO: Rewrite this parsing, so that we can also
+  // parse fractions of seconds.
   auto x = removeFractionalParts(x0);
+
   TRY_PARSE_TIME("%D %T", x);
   TRY_PARSE_TIME("%m/%d/%Y %r", x);
   LOG(WARNING) << "Failed to parse time: " << x0;
@@ -133,6 +137,7 @@ TimeStamp TimeStamp::makeUndefined() {
 
 
 bool TimeStamp::operator<(const TimeStamp &x) const {
+  assert(x.defined());
   CHECK(defined());
   CHECK(x.defined());
   return _time < x._time;
@@ -145,6 +150,7 @@ double TimeStamp::difSeconds(const TimeStamp &a, const TimeStamp &b) {
 }
 
 std::string TimeStamp::toString(const char *fmt) const {
+  assert(defined());
   struct tm time = makeGMTimeStruct();
   const int len = 255;
   char str[len];
@@ -155,7 +161,10 @@ std::string TimeStamp::toString(const char *fmt) const {
 
 std::string TimeStamp::toString() const {
   const char isofmt[] = "%FT%T";
-  return toString(isofmt);
+  if (defined()) {
+    return toString(isofmt);
+  }
+  return "TimeStamp (undefined)";
 }
 
 std::string TimeStamp::fullPrecisionString() const {
@@ -193,6 +202,10 @@ std::ostream &operator<<(std::ostream &s, const TimeStamp &t) {
 
 void sleep(Duration<double> duration) {
   usleep(useconds_t(duration.seconds() * 1e6));
+}
+
+bool isFinite(const TimeStamp &x) {
+  return x.defined();
 }
 
 } /* namespace sail */
