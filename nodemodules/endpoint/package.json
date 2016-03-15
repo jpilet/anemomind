@@ -1,6 +1,6 @@
 {
   "name": "endpoint",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Endpoint handling",
   "main": "index.js",
   "scripts": {
@@ -18,6 +18,7 @@
     "path-is-absolute": "^1.0.0",
     "q": "^1.2.0",
     "request": "^2.54.0",
+    "rmdir": "^1.2.0",
     "sqlite3": "~3.0.5",
     "sqlite3-transactions": "0.0.5"
   },

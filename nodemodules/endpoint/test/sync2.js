@@ -36,7 +36,8 @@ describe('sync2', function() {
       assert(!err);
       a.addPacketHandler(function(endpoint, packet) {aPackets.push(packet);});
       b.addPacketHandler(function(endpoint, packet) {bPackets.push(packet);});
-      a.sendPacket('b', 119, new Buffer([0, 1, 2]), function(err) {
+      a.sendPacket('b', 119, new Buffer([0, 1, 2]), function(err, output) {
+        assert(output == null);
         assert(!err);
         sync2.synchronize(a, b, function(err) {
           assert(!err);
@@ -55,7 +56,8 @@ describe('sync2', function() {
       assert(!err);
       a.addPacketHandler(function(endpoint, packet) {aPackets.push(packet);});
       b.addPacketHandler(function(endpoint, packet) {bPackets.push(packet);});
-      b.sendPacket('a', 119, new Buffer([0, 1, 2]), function(err) {
+      b.sendPacket('a', 119, new Buffer([0, 1, 2]), function(err, output) {
+        assert(output == null);
         assert(!err);
         sync2.synchronize(a, b, function(err) {
           assert(!err);
