@@ -80,8 +80,12 @@ bool Nmea2000Source::apply(const PgnClasses::CanPacket &c, const PgnClasses::Win
       angleChannel = AWA;
       speedChannel = AWS;
       break;
-    case WindData::Reference::True_ground_referenced_to_North:
+    case WindData::Reference::True_boat_referenced:
       angleChannel = TWA;
+      speedChannel = TWS;
+      break;
+    case WindData::Reference::True_ground_referenced_to_North:
+      angleChannel = TWDIR;
       speedChannel = TWS;
       break;
     default:
