@@ -62,3 +62,15 @@ TEST(Nmea2000SourceTest, SystemTime) {
   TimeStamp truth = TimeStamp::UTC(2015, 3, 6, 4, 56, 12);
   EXPECT_NEAR((truth - val).seconds(), 0, 1e-2);
 }
+
+TEST(Nmea2000SourceTest, WindData) {
+  Dispatcher dispatcher;
+  Nmea2000Source source(&dispatcher);
+  
+  const unsigned char data[] = { 0x00, 0x34, 0x12, 0x50, 0x33, 0x03, 0x0, 0x0 };
+  source.process("test", 130306, data, sizeof(data), 82);
+
+  EXPECT_TRUE(dispatcher.get<TWA>()->dispatcher()->hasValue());
+  EXPECT_NEAR(dispatcher.val<TWA>().degrees(), 75.3, .1);
+}
+
