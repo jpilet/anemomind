@@ -120,7 +120,7 @@ namespace {
     checkRange<T>(path, label, b, e, dst);
   }
 
-  void checkForMergedProblems(const char *p, const NavDataset &ds,
+  void checkForDatasetSampleProblems(const char *p, const NavDataset &ds,
       std::vector<Problem> *dst) {
 #define CHECK_RANGE(handle, code, shortname, type, description) \
   checkRange2<type>(p, shortname, ds.samples<handle>(), dst);
@@ -130,7 +130,7 @@ namespace {
 
   void checkForDatasetProblems(const char *p, const NavDataset &ds, std::vector<Problem> *dst) {
     checkForDispatcherProblems(p, ds.dispatcher(), dst);
-    checkForMergedProblems(p, ds, dst);
+    checkForDatasetSampleProblems(p, ds, dst);
   }
 
   void checkSanity(const char *path, std::vector<Problem> *dst) {
