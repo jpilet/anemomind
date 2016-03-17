@@ -16,6 +16,13 @@
 namespace sail {
 
 namespace {
+
+  // TODO: move this function to some other file.
+  Angle<double> computeTwaFromTwdirAndHeading(const Angle<double> &twdir,
+      const Angle<double> &heading) {
+    return twdir - heading;
+  }
+
   template <typename T>
   bool isDefined(const T &x) {
     return isFinite(x);
@@ -226,6 +233,21 @@ const Nav getNav(const NavDataset &ds, int i) {
 
   setNavValue<AWA>(ds, timeAndPos.time, &dst, &Nav::setAwa);
   setNavValue<AWS>(ds, timeAndPos.time, &dst, &Nav::setAws);
+
+  auto twdir = getValue<TWDIR>(ds, timeAndPos.time);
+  auto tws = getValue<TWS>(ds, timeAndPos.time);
+  if (twdir.defined() && tws.defined()) {
+    dst.setTrueWindOverGround(HorizontalMotion<double>::polar(tws.get(), twdir.get()));
+    auto heading = getValue<GPS_BEARING>(ds, timeAndPos.time);
+    if (heading.defined()) {
+      // hack: because of the NMEA2000 bug swapping TWA and TWDIR [1], we have recording
+      // with TWDIR but without TWA. However, the grammar parser gets confused without
+      // TWA. So we artificially recompose TWA from TWDIR and GPS_BEARING here.
+      //
+      // [1] https://github.com/jpilet/anemomind/pull/615
+      dst.setExternalTwa(computeTwaFromTwdirAndHeading(twdir.get(), heading.get()));
+    }
+  }
 
   setNavValueMultiSource<TWA>(orderedDeviceSources, ds, timeAndPos.time, &dst, &Nav::setDeviceTwa);
   setNavValueMultiSource<TWA>(orderedExternalSources, ds, timeAndPos.time, &dst, &Nav::setExternalTwa);
