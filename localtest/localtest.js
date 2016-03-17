@@ -33,7 +33,7 @@ function silentExec(cmd, cb) {
 
 function spawnWithConsoleOutput(cmd, args, cb) {
   var processing = spawn(cmd, args);
-  console.log('Spawn ' + cmd + '...');
+  console.log('Spawn ' + cmd + ' ' + args.join(' '));
 
   processing.stdout.on('data', function(data) {
     console.log(cmd + ' OUTPUT: ' + data);
