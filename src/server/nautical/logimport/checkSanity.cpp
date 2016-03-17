@@ -12,9 +12,10 @@
  */
 
 #include <device/anemobox/DispatcherUtils.h>
-#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/logging.h>
 #include <server/common/string.h>
+#include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/NavCompatibility.h>
 
 using namespace sail;
 
@@ -128,9 +129,31 @@ namespace {
 #undef CHECK_RANGE
   }
 
+  void checkForNavProblems(int i, const char *p, const Nav &nav, std::vector<Problem> *dst) {
+    if (!isFinite(nav.geographicPosition())) {
+      dst->push_back(Problem{p,
+        stringFormat("Nav with index %d has non-finite GPS position", i)});
+    }
+    if (!nav.time().defined()) {
+      dst->push_back(Problem{p,
+        stringFormat("Nav with index %d has undefined time")
+      });
+    }
+  }
+
+  void checkForNavProblems(const char *p, const NavDataset &ds,
+      std::vector<Problem> *dst) {
+    int n = NavCompat::getNavSize(ds);
+    for (int i = 0; i < n; i++) {
+      auto nav = NavCompat::getNav(ds, i);
+      checkForNavProblems(i, p, nav, dst);
+    }
+  }
+
   void checkForDatasetProblems(const char *p, const NavDataset &ds, std::vector<Problem> *dst) {
     checkForDispatcherProblems(p, ds.dispatcher(), dst);
     checkForDatasetSampleProblems(p, ds, dst);
+    checkForNavProblems(p, ds, dst);
   }
 
   void checkSanity(const char *path, std::vector<Problem> *dst) {
