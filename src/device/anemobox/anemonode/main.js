@@ -1,4 +1,7 @@
 var dispatcher = require('./build/Release/anemonode').dispatcher;
+var version = require('./version');
+
+console.log('Anemobox firmware version ' + version.string);
 
 var nmea0183PortPath = '/dev/ttyMFD1';
 var logRoot = '/media/sdcard/logs/';
@@ -29,7 +32,6 @@ if (withHttp) {
 
 if (withLogger) {
   var logger = require('./components/logger');
-  logger.logText("syslog", "Anemonode is starting");
 }
 
 if (withLocalEndpoint) {
@@ -113,7 +115,7 @@ if (withSetTime) {
   require('./components/settime.js');
 }
 
-if (withLogger) {
+function startLogging() {
   logger.startLogging(logRoot, logInterval, function(path) {
     if (withLocalEndpoint) {
       localEndpoint.postLogFile(path, function(err, remaining) {
@@ -127,6 +129,16 @@ if (withLogger) {
           reboot();
         }
       });
+    }
+  });
+}
+
+if (withLogger) {
+  config.get(function(err, config) {
+    if (config && config.boatId) {
+      startLogging();
+    } else {
+      console.log('Not logging because the box is not assigned to any boat.');
     }
   });
 }

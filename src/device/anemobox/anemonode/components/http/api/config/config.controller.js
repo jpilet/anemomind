@@ -3,6 +3,7 @@
 var os = require('os');
 var anemonode = require('../../../../build/Release/anemonode');
 var config = require('../../../../components/config');
+var version = require('../../../../version');
 
 function getNetworkInfo() {
   var ifaces = os.networkInterfaces();
@@ -39,6 +40,8 @@ exports.index = function(req, res) {
     }
 
     response.networkInfo = getNetworkInfo();
+    response.version = version.string;
+
     res.json(response);
   });
 };
