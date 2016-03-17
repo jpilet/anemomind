@@ -16,6 +16,7 @@
 #include <server/common/string.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/NavCompatibility.h>
+#include <server/nautical/tiles/NavTileGenerator.h>
 
 using namespace sail;
 
@@ -142,11 +143,13 @@ namespace {
   }
 
   void checkForNavProblems(const char *p, const NavDataset &ds,
-      std::vector<Problem> *dst) {
-    int n = NavCompat::getNavSize(ds);
-    std::cout << "CHECK " << n << " NAVS FOR PROBLEMS!" << std::endl;
-    for (int i = 0; i < n; i++) {
-      auto nav = NavCompat::getNav(ds, i);
+        std::vector<Problem> *dst);
+
+  void checkForNavProblems(const char *p, const NavDataset &ds,
+        std::vector<Problem> *dst) {
+    auto navs = NavCompat::makeArray(ds);
+    for (int i = 0; i < navs.size(); i++) {
+      auto nav = navs[i];
       checkForNavProblems(i, p, nav, dst);
     }
   }
