@@ -127,4 +127,5 @@ add_executable(logimport_checkSanity
               
 target_link_libraries(logimport_checkSanity
                       logimport_LogLoader
+                      nautical_AbsoluteOrientation
                      )                                             

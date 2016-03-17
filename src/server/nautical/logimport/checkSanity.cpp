@@ -2,6 +2,13 @@
  *  Created on: 2016
  *      Author: Jonas Östlund <jonas@anemomind.com>
  *
+ *  NOTE: Currently, this code only load log files and make some basic checks.
+ *  But I would like to turn it into something that checks the whole processing
+ *  pipeline of our system (or at least the parts in C++), so that we can run
+ *  it on any dataset before a major change.
+ *
+ *  Since I expect this to take a lot of time to run, I think it is a bad idea
+ *  to implement this as unit tests.
  */
 
 #include <device/anemobox/DispatcherUtils.h>
@@ -39,39 +46,59 @@ namespace {
   }
 
 
+  template <typename T>
+  void checkRange(
+      const char *path,
+      const std::string &label,
+      typename TimedSampleCollection<T>::TimedVector::const_iterator begin,
+      typename TimedSampleCollection<T>::TimedVector::const_iterator end,
+      std::vector<Problem> *dst) {
+    int n = end - begin;
+    for (int i = 0; i < n; i++) {
+      TimedValue<T> sample = *(begin + i);
+      if (!sample.time.defined()) {
+        dst->push_back(Problem{
+          path,
+          stringFormat(
+              "[%s] Sample with index %d has undefined time",
+              label.c_str(), i)
+        });
+      } else if (i < n - 1) {
+        TimedValue<T> next = *(begin + i + 1);
+        if (next.time.defined() && sample.time > next.time) {
+          dst->push_back(Problem{
+            path,
+            stringFormat("[%s] Sample %d and %d are not ordered",
+               label.c_str(), i, i+1)
+          });
+        }
+      }
+
+      if (!isFinite(sample.value)) {
+        dst->push_back(Problem{
+          path,
+          stringFormat(
+              "[%s] Non-finite value at sample %d",
+              label.c_str(), i)
+        });
+      }
+    }
+  }
+
+
   class DispatcherProblemVisitor {
    public:
     DispatcherProblemVisitor(
         const char *p,
         std::vector<Problem> *dst) : _path(p), _dst(dst) {}
 
-
-
     template <DataCode Code, typename T>
     void visit(const char *shortName, const std::string &sourceName,
          const TimedSampleCollection<T> &coll) {
+      const auto &samples = coll.samples();
 
-      for (int i = 0; i < coll.size(); i++) {
-        auto sample = coll.samples()[i];
-        if (!sample.time.defined()) {
-          _dst->push_back(Problem{
-            _path,
-            stringFormat(
-                "Sample with index %d has undefined time in channel %s of type %s",
-                i, sourceName.c_str(), shortName)
-          });
-        }
-
-        if (!isFinite(sample.value)) {
-          _dst->push_back(Problem{
-            _path,
-            stringFormat(
-                "Non-finite value at sample %d in channel %s of type %s",
-                i, sourceName.c_str(), shortName)
-          });
-        }
-      }
-
+      auto label = stringFormat("Channel %s of type %s", sourceName.c_str(), shortName);
+      checkRange<T>(_path, label, samples.begin(), samples.end(), _dst);
     }
    private:
     const char *_path;
@@ -84,8 +111,26 @@ namespace {
     visitDispatcherChannels<DispatcherProblemVisitor>(d.get(), &v);
   }
 
+  template <typename T>
+  void checkRange2(const char *path, const char *shortname, const TimedSampleRange<T> &samples,
+    std::vector<Problem> *dst) {
+    auto label = stringFormat("Dataset samples %s", shortname);
+    const typename TimedSampleCollection<T>::TimedVector::const_iterator b = samples.begin();
+    const typename TimedSampleCollection<T>::TimedVector::const_iterator e = samples.end();
+    checkRange<T>(path, label, b, e, dst);
+  }
+
+  void checkForMergedProblems(const char *p, const NavDataset &ds,
+      std::vector<Problem> *dst) {
+#define CHECK_RANGE(handle, code, shortname, type, description) \
+  checkRange2<type>(p, shortname, ds.samples<handle>(), dst);
+    FOREACH_CHANNEL(CHECK_RANGE)
+#undef CHECK_RANGE
+  }
+
   void checkForDatasetProblems(const char *p, const NavDataset &ds, std::vector<Problem> *dst) {
     checkForDispatcherProblems(p, ds.dispatcher(), dst);
+    checkForMergedProblems(p, ds, dst);
   }
 
   void checkSanity(const char *path, std::vector<Problem> *dst) {
@@ -108,7 +153,7 @@ int main(int argc, const char **argv) {
       checkSanity(p, &problems);
     }
     if (problems.empty()) {
-      std::cout << "Congratulations, no problems detected!" << std::endl;
+      std::cout << "\n\n\nCongratulations, no problems detected!" << std::endl;
     } else {
       std::cout << "\n\n\nPROBLEM REPORT:\n";
       std::cout << problems.size() << " problems were detected:\n";

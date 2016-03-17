@@ -451,7 +451,3 @@ add_library(nautical_AbsoluteOrientation
             AbsoluteOrientation.h
             AbsoluteOrientation.cpp
            )
-
-target_link_libraries(nautical_AbsoluteOrientation
-                      common_numerics
-                     )           
