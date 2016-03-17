@@ -120,5 +120,11 @@ add_executable(logimport_TrzParserExample
 target_link_libraries(logimport_TrzParserExample
                       logimport_TrzParser
                      ) 
-        
-                               
+
+add_executable(logimport_checkSanity
+               checkSanity.cpp
+              )
+              
+target_link_libraries(logimport_checkSanity
+                      logimport_LogLoader
+                     )                                             
