@@ -23,3 +23,10 @@ target_link_libraries(anemobox_logToNmea
                       nautical_NavToNmea
                       logimport_LogLoader
                      )
+
+add_executable(anemobox_changeTwaToTwdir changeTwaToTwdir.cpp)
+target_link_libraries(anemobox_changeTwaToTwdir
+                      anemobox_Logger
+                      common_ArgMap
+                      common_logging)
+
