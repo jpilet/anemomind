@@ -156,7 +156,13 @@ void LogLoader::load(const Poco::Path &name) {
   traverseDirectory(
       name,
       [&](const Poco::Path &path) {
-    loadFile(path.toString());
+    std::string ext = toLower(path.getExtension());
+    if (ext == "txt" || ext == "csv" || ext == "log") {
+      loadFile(path.toString());
+    } else {
+      // Silently ignore files with unknown extensions while scanning
+      // the directory
+    }
   }, settings);
 }
 
