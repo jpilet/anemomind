@@ -4,9 +4,9 @@
  *
  */
 
+#include <device/anemobox/DispatcherUtils.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/common/logging.h>
-#include <device/anemobox/DispatcherUtils.h>
 #include <server/common/string.h>
 
 using namespace sail;
@@ -45,20 +45,33 @@ namespace {
         const char *p,
         std::vector<Problem> *dst) : _path(p), _dst(dst) {}
 
+
+
     template <DataCode Code, typename T>
-      void visit(const char *shortname, const std::string &srcName,
-          const typename TimedSampleCollection<T>::TimedVector &data) {
-      for (int i = 0; i < data.size(); i++) {
-        auto sample = data[i];
+    void visit(const char *shortName, const std::string &sourceName,
+         const TimedSampleCollection<T> &coll) {
+
+      for (int i = 0; i < coll.size(); i++) {
+        auto sample = coll.samples()[i];
         if (!sample.time.defined()) {
           _dst->push_back(Problem{
             _path,
             stringFormat(
                 "Sample with index %d has undefined time in channel %s of type %s",
-                i, srcName.c_str(), shortname)
+                i, sourceName.c_str(), shortName)
+          });
+        }
+
+        if (!isFinite(sample.value)) {
+          _dst->push_back(Problem{
+            _path,
+            stringFormat(
+                "Non-finite value at sample %d in channel %s of type %s",
+                i, sourceName.c_str(), shortName)
           });
         }
       }
+
     }
    private:
     const char *_path;
@@ -68,6 +81,7 @@ namespace {
   void checkForDispatcherProblems(const char *p, const std::shared_ptr<Dispatcher> &d,
     std::vector<Problem> *dst) {
     DispatcherProblemVisitor v(p, dst);
+    visitDispatcherChannels<DispatcherProblemVisitor>(d.get(), &v);
   }
 
   void checkForDatasetProblems(const char *p, const NavDataset &ds, std::vector<Problem> *dst) {
@@ -96,6 +110,7 @@ int main(int argc, const char **argv) {
     if (problems.empty()) {
       std::cout << "Congratulations, no problems detected!" << std::endl;
     } else {
+      std::cout << "\n\n\nPROBLEM REPORT:\n";
       std::cout << problems.size() << " problems were detected:\n";
       for (auto problem: problems) {
         problem.disp(&(std::cout));

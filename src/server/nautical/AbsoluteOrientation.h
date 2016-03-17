@@ -11,6 +11,8 @@ struct AbsoluteOrientation {
   Angle<double> pitch;
 };
 
+bool isFinite(const AbsoluteOrientation &orientation);
+
 }  // namespace sail
 
 #endif  // NAUTICAL_ABSOLUTE_ORIENTATION_H
