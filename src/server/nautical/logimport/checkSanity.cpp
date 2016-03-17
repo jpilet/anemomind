@@ -144,6 +144,7 @@ namespace {
   void checkForNavProblems(const char *p, const NavDataset &ds,
       std::vector<Problem> *dst) {
     int n = NavCompat::getNavSize(ds);
+    std::cout << "CHECK " << n << " NAVS FOR PROBLEMS!" << std::endl;
     for (int i = 0; i < n; i++) {
       auto nav = NavCompat::getNav(ds, i);
       checkForNavProblems(i, p, nav, dst);
