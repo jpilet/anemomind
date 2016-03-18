@@ -206,6 +206,7 @@ function tryMakeEndpoint(filename, name, cb) {
   } else {
     openDBWithFilename(filename, function(err, db) {
       if (err) {
+        console.log(filename + ': error: ' + err);
         cb(err);
       } else {
         cb(null, new Endpoint(filename, name, db));

@@ -1,4 +1,4 @@
-var common = require('./common.js');
+var common = require('../server/api/boxexec/remoteOps');
 
 common.init();
 
