@@ -8,6 +8,7 @@ angular.module('www2App')
     $scope.invitedAdmin = true;
     $scope.users = {};
     $scope.newSails = "";
+    $scope.isAdmin = Auth.isAdmin;
 
     var resolveUser = function(user) {
       userDB.resolveUser(user, function(user) {
