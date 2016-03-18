@@ -26,6 +26,9 @@ var bundlePath = '~/.tmp/bundles';
 var tmpFilename = Path.join(bundlePath, 'last.bundle');
 var exec = require('child_process').exec;
 var msgpack = require('msgpack-js');
+var fs = require('fs');
+var common = require('./common.js');
+var assert = require('assert');
 
 function writeBundleToTempFile(data) {
   return Q.nfcall(mkdirp, bundlePath)
@@ -98,7 +101,7 @@ function validateBundleData(x) {
 }
 
 function encodeBundle(dstPath, data) {
-  assert(bundle instanceof Buffer);
+  assert(data instanceof Buffer);
   return msgpack.encode({dstPath: dstPath, data: data});
 }
 
@@ -113,10 +116,10 @@ function sendBundle(endpoint, dst, bundleData, cb) {
     cb(err);
   } else {
     return Q.nfcall(fs.readFile, bundleData.bundleFilename)
-      .then(function(bundle) {
+      .then(function(data) {
         return Q.ninvoke(
           endpoint, "sendPacket",
-          (dst, common.bundle, bundleData, cb));
+          dst, common.bundle, encodeBundle(bundleData.dstPath, data));
       }).nodeify(cb);
   }
 }
