@@ -70,8 +70,8 @@ function unpackBundle(endpoint, src, bundleFilename, reposPath) {
 function bundleHandler(endpoint, packet) {
   if (packet.label == common.bundle) {
     var data0 = packet.data;
-    var data = decodeBundle(data0);
-    if (!(data.bundleData instanceof Buffer)) {
+    var x = decodeBundle(data0);
+    if (!(data.data instanceof Buffer)) {
       console.log('ERROR in bundle.js, bundleHandler: bundleData is not a Buffer, it is ' 
                   + typeof data.bundleData);
     } else if (typeof data.dstPath != 'string') {
