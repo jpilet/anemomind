@@ -89,9 +89,9 @@ function bundleHandler(endpoint, packet) {
   }
 }
 
-function validateBundleData(x) {
+function validateBundleSpec(x) {
   if (typeof x != 'object') {
-    return new Error('bundleData is not an object');
+    return new Error('bundleSpec is not an object');
   } else if (typeof x.bundleFilename != 'string') {
     return new Error('bundleFilename is not a string');
   } else if (typeof x.dstPath != 'string') {
@@ -110,16 +110,16 @@ function decodeBundle(b) {
   return msgpack.decode(b);
 }
 
-function sendBundle(endpoint, dst, bundleData, cb) {
-  var err = validateBundleData(bundleData);
+function sendBundle(endpoint, dst, bundleSpec, cb) {
+  var err = validateBundleSpec(bundleSpec);
   if (err) {
     cb(err);
   } else {
-    return Q.nfcall(fs.readFile, bundleData.bundleFilename)
+    return Q.nfcall(fs.readFile, bundleSpec.bundleFilename)
       .then(function(data) {
         return Q.ninvoke(
           endpoint, "sendPacket",
-          dst, common.bundle, encodeBundle(bundleData.dstPath, data));
+          dst, common.bundle, encodeBundle(bundleSpec.dstPath, data));
       }).nodeify(cb);
   }
 }
