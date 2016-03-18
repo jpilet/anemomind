@@ -1,0 +1,14 @@
+{
+  "name": "localtest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "localtest.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jonas Östlund <uppfinnarjonas@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "q": "^1.4.1"
+  }
+}
