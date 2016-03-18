@@ -161,16 +161,17 @@ function prepareTestSetup() {
     });
 }
 
+function basicSendAndReceive(endpoints) {
+  return true;
+}
 
 describe('bundle', function() {
   it('Should prepare a setup where we can experiment', function(done) {
     prepareTestSetup()      
       .then(function(value) {
-        console.log('It is OK: ' + value);
-        done();
-      }).catch(function(err) {
-        console.log('Failed: ' + err);
-        done(err);
-      }).done();
+        assert(value instanceof Array);
+        assert(value.length == 3);
+        return basicSendAndReceive(value);
+      }).nodeify(done);
   });
 });
