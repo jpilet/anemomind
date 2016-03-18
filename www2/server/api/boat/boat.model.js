@@ -16,7 +16,8 @@ var BoatSchema = new Schema({
     email: String,
     admin: Boolean
   }],
-  anemobox: String
+  anemobox: String,
+  firmwareVersion: String
 });
 
 module.exports = mongoose.model('Boat', BoatSchema);
