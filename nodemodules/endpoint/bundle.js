@@ -75,29 +75,53 @@ function bundleHandler(endpoint, packet) {
       console.log('ERROR in bundle.js, bundleHandler: The destination path is not a string, it is '
                   + data.dstPath);
     } else {
-      return writeBundleToTempFile(data)
-        .then(function(filename) {
-          assert(typeof filename == 'string');
-          return unpackBundle(
-            endpoint, packet.src, 
-            data.bundleData, data.dstPath, "/tmp/bundlelog.txt");
-        }).then()
-    } else {
-      console.log('Failed to unpack bundle of type ' + typeof data);
+      // return writeBundleToTempFile(data)
+      //   .then(function(filename) {
+      //     assert(typeof filename == 'string');
+      //     return unpackBundle(
+      //       endpoint, packet.src, 
+      //       data.bundleData, data.dstPath, "/tmp/bundlelog.txt");
+      //   }).then()
     }
   }
 }
 
-function sendBundle(endpoint, dst, bundleFilename, cb) {
-  Q.nfcall(fs.readFile, bundleFilename)
-    .then(function(bundleData) {
-      endpoint.sendPacket(dst, common.bundle, bundleData, cb);
-    })
-    .catch(function(err) {
-      cb(err);
-    });
+function validateBundleData(x) {
+  if (typeof x != 'object') {
+    return new Error('bundleData is not an object');
+  } else if (typeof x.bundleFilename != 'string') {
+    return new Error('bundleFilename is not a string');
+  } else if (typeof x.dstPath != 'string') {
+    return new Error('dstPath is not a string');
+  }
+  return null;
+}
+
+function encodeBundle(dstPath, data) {
+  assert(bundle instanceof Buffer);
+  return msgpack.encode({dstPath: dstPath, data: data});
+}
+
+function decodeBundle(b) {
+  assert(b instanceof Buffer);
+  return msgpack.decode(b);
+}
+
+function sendBundle(endpoint, dst, bundleData, cb) {
+  var err = validateBundleData(bundleData);
+  if (err) {
+    cb(err);
+  } else {
+    return Q.nfcall(fs.readFile, bundleData.bundleFilename)
+      .then(function(bundle) {
+        return Q.ninvoke(
+          endpoint, "sendPacket",
+          (dst, common.bundle, bundleData, cb));
+      }).nodeify(cb);
+  }
 }
 
 
-module.exports.makeBundleHandler = makeBundleHandler;
+module.exports.bundleHandler = bundleHandler;
 module.exports.sendBundle = sendBundle;
+module.exports.encodeBundle = encodeBundle;
