@@ -32,7 +32,8 @@
     <label for="remoteCommand">Remote command execution:</label>
     <textarea class="form-control" rows="5" id="remoteCommand" ng-model="remoteCommand"></textarea>
     
-    <button class="btn btn-default" ng-click="sendCommand()">Send command to selected boats</button>
+    <button class="btn btn-default" ng-click="sendCommand('sh')">Send shell command to selected boats</button>
+    <button class="btn btn-default" ng-click="sendCommand('js')">Run javascript on selected boats</button>
   </div>
 
 </div>

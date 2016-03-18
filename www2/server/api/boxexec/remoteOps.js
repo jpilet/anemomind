@@ -3,17 +3,17 @@ var naming = require('endpoint/naming.js');
 var script = require('endpoint/script.js');
 var mongoose = require('mongoose');
 var exec = require('child_process').exec;
-var Boat = require('../server/api/boat/boat.model.js');
+var Boat = require('../boat/boat.model.js');
 var Q = require('q');
 var mb = require('endpoint/endpoint.sqlite.js');
 var fs = require('fs');
-var BoxExec = require('../server/api/boxexec/boxexec.model.js');
+var BoxExec = require('./boxexec.model.js');
 var files = require('endpoint/files.js');
 var assert = require('assert');
 
 // Ensure NODE_ENV is defined.
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-var env = require('../server/config/environment');
+var env = require('../../config/environment');
 
 var inited = false;
 
@@ -54,6 +54,10 @@ function getBoxIdFromFilename(filename, cb) {
 }
 
 function makeBoatDBFilename(boatId) {
+  console.log('env.endpointDir: ' + env.endpointDir);
+
+  var mkdirp = require('mkdirp');
+  mkdirp(env.endpointDir);
   return path.join(
     env.endpointDir,
     naming.makeDBFilenameFromBoatId(boatId))
