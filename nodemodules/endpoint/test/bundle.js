@@ -162,7 +162,13 @@ function prepareTestSetup() {
 }
 
 function basicSendAndReceive(endpoints) {
-  return true;
+  var src = endpoints[0];
+  var dst0 = endpoints[1];
+  var dst1 = endpoints[2];
+  Q.nfcall(bundle.sendBundle, src, dst0.name, {
+    dstPath: makeDirName('dst0'),
+    bundleFilename: Path.join(makeDirName('src'), 'first.bundle')
+  })
 }
 
 describe('bundle', function() {
