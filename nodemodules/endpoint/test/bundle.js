@@ -174,6 +174,12 @@ function basicSendAndReceive(endpoints) {
         dstPath: makeDirName('dst0'),
         bundleFilename: Path.join(makeDirName('src'), 'first.bundle')
       })
+    })
+    .then(function() {
+      return Q.ninvoke(src, 'getTotalPacketCount');
+    })
+    .then(function(n) {
+      assert(n == 1);
     });
 }
 
