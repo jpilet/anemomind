@@ -1,17 +1,48 @@
 var q = require('q');
 var exec = require('child_process').exec;
 var path = require('path');
+var mkdirp = require('mkdirp');
+
+// Ensure NODE_ENV is defined.
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+var env = require('../../config/environment');
+
 
 // Common settings
-var serverAddress = 'vtiger.anemomind.com';
+var serverAddress = 'anemomind@vtiger.anemomind.com';
 var repositoryPath = '/home/anemobox/anemobox.git'
 
-// Specific settings
-var jonasSettings = {
-  localBundleFilename: '/tmp/tmp.bundle',
+// This is a template of the parameters 
+// for a bunde
+var settings = {
+  // You may want to give a unique name, in
+  // case 'makeBundle' is called concurrently on the server
+  // for different boats.
+  //
+  // This can be either an absolute path, or a path relative to 
+  // env.bundleDir. In either case, the path will be created if it does not exist.
+  bundleName: 'tmp.bundle',
+  
+  // For debugging, verbosity can be turned on.
   verbose: true,
-  version: 'master' // {from: 'v0'} // {from: 'v0', to: 'v1'}
+
+  // Here you can either pass a string, such as 'v3..master' or just 'master',
+  // or you can pass an argument map, such as {from: 'v3'} or {from: 'v3', to: 'master'}
+  version: 'master'
 };
+
+function ensureBundleLocation(filename) {
+  var p = path.dirname(filename);
+  return q.nfcall(mkdirp, p);
+}
+
+function getFullBundleFilename(bundleName) {
+  if (path.isAbsolute(bundleName)) {
+    return bundleName;
+  } else {
+    return path.join(env.bundleDir, bundleName);
+  }
+}
 
 // TODO: Add settings map for 'anemolab'
 
@@ -26,20 +57,6 @@ function exec2(cmd, verbose, cb) {
       cb(null, {stdout: stdout, stderr: stderr});
     }
   });
-}
-
-function getUsername(settings, cb) {
-  if (settings.user) {
-    cb(null, settings.user);
-  } else {
-    exec2('whoami', settings.verbose, function(err, x) {
-      cb(null, x.stdout.trim());
-    });
-  }
-}
-
-function makeRemoteAddress(username) {
-  return username + '@' + serverAddress;
 }
 
 // On the form {from: [tag]} or {from: [tag], to: [tag]}
@@ -68,35 +85,36 @@ function makeVersionString(version) {
   return 'master';
 }
 
-function makeSshCommand(username, cmd) {
-  return 'ssh ' + makeRemoteAddress(username) + ' "' + cmd + '"';
+function makeSshCommand(cmd) {
+  return 'ssh ' + serverAddress + ' "' + cmd + '"';
 }
 
 
 
-// Make a bundle that is saved to the file specified in
-// settings.localBundleFilename
+// Make a bundle that is saved to the file, with name
+// as in settings.bundleName. The location of the file
+// depends on env.bundleDir.
+// This function returns the final filename as a promise when done.
 function makeBundle(settings) {
-  return q.nfcall(getUsername, settings)
-    .then(function(username) {
-      var v = makeVersionString(settings.version);
-      var cmd = 'cd ' + repositoryPath + '; '
-          + 'git bundle create - ' 
-          + v + ' > /dev/stdout';
-      var fullCmd = makeSshCommand(username, cmd) + ' > '
-          + settings.localBundleFilename;
+  var v = makeVersionString(settings.version);
+  var cmd = 'cd ' + repositoryPath + '; '
+      + 'git bundle create - ' + v;
+  var bname = getFullBundleFilename(settings.bundleName);
+  var fullCmd = makeSshCommand(cmd) + ' > ' + bname;
+  return ensureBundleLocation(bname)
+    .then(function() {
       return q.nfcall(exec2, fullCmd, settings.verbose);
+    })
+    .then(function() {
+      return bname;
     });
 }
 
 // Get all the possible version tags
 function getTags(settings) {
-  return q.nfcall(getUsername, settings)
-    .then(function(username) {
-      var cmd = 'cd ' + repositoryPath + '; git tag';
-      var fullCmd = makeSshCommand(username, cmd);
-      return q.nfcall(exec2, fullCmd, settings.verbose);
-    })
+  var cmd = 'cd ' + repositoryPath + '; git tag';
+  var fullCmd = makeSshCommand(cmd);
+  return q.nfcall(exec2, fullCmd, settings.verbose)
     .then(function(x) {
       return x.stdout.split(/\s+/).filter(function(s) {
         return s.length > 0;
@@ -104,5 +122,11 @@ function getTags(settings) {
     });
 }
 
+
+// These two functions take a settings map as single argument
 module.exports.makeBundle = makeBundle;
 module.exports.getTags = getTags;
+
+// These are default settings that you can use as a template for
+// the arguments passed to the above functions
+module.exports.settings = settings;

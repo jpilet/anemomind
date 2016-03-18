@@ -24,6 +24,7 @@ module.exports = {
   uploadDir: '/var/uploads',
   endpointDir: '/var/mail2',
   backupDestination: 'anemomind@vtiger.anemomind.com:userlogs',
+  bundleDir: '/var/bundles',
 
   ssl: {
     key: '/etc/ssl/anemolab.com/anemolab.com.key',
