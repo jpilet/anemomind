@@ -16,8 +16,15 @@ extern void setup();
 #include <device/Arduino/NMEAStats/test/MockArduino/SPI.h>
 #include <device/Arduino/libraries/NmeaParser/NmeaParser.h>
 #include <server/common/logging.h>
-#include <server/nautical/NavNmea.h>
+#include <server/nautical/logimport/LogLoader.h>
 
+namespace sail {
+  TimeStamp getTime(const NmeaParser &parser) {
+    return TimeStamp::UTC(
+        parser.year() + 2000, parser.month(), parser.day(),
+        parser.hour(), parser.min(), parser.sec());
+  }
+}
 
 DeviceSimulator *fakeArduino = 0;
 
@@ -60,6 +67,9 @@ sail::TimeStamp DeviceSimulator::getTimeStamp() const {
   return _referenceTime + Duration<>::milliseconds(
       _arduinoTimeMs - _referenceMillis);
 }
+
+
+
 
 void DeviceSimulator::sendData(const std::string& data) {
 

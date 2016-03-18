@@ -3,8 +3,7 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/NavNmea.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/Env.h>
 #include <server/common/string.h>
 #include <server/common/HierarchyJson.h>
@@ -31,9 +30,10 @@ namespace {
         pushDirectory("regates").
         pushDirectory("regate_1_dec_07").get();
 
-
-    NavDataset allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
-    Array<NavDataset> navs = splitNavsByDuration(allnavs, Duration<double>::minutes(10));
+    LogLoader loader;
+    loader.load(dataFolder.toString());
+    Array<NavDataset> navs = splitNavsByDuration(loader.makeNavDataset(),
+        Duration<double>::minutes(10));
   }
 
   void loadAndDispTree() {
@@ -43,7 +43,9 @@ namespace {
         pushDirectory("regate_1_dec_07").get();
 
     cout << "Load navs" << endl;
-    NavDataset allnavs = scanNmeaFolderWithSimulator(dataFolder, Nav::debuggingBoatId());
+    LogLoader loader;
+    loader.load(dataFolder.toString());
+    NavDataset allnavs = loader.makeNavDataset();
     cout << "loaded" << endl;
 
     WindOrientedGrammarSettings settings;

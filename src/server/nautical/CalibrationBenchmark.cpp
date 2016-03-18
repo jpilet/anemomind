@@ -5,7 +5,7 @@
 
 #include <server/nautical/synthtest/NavalSimulationPrecomp.h>
 #include <server/common/EnvUtil.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/ArrayIO.h>
 #include <server/nautical/CalibrationBenchmark.h>
 #include <server/common/ScopedLog.h>
@@ -75,9 +75,7 @@ std::ostream &operator<<(std::ostream &s, RealDataResults x) {
 
 
 NavDataset loadAndFilterDataset(std::string datasetPath) {
-  return fromNavs(
-      makeArray(scanNmeaFolder(datasetPath, Nav::debuggingBoatId()))
-      .slice(hasAllData));
+  return LogLoader::loadNavDataset(datasetPath);
 }
 
 Array<NavDataset> splitRealData(NavDataset navs) {

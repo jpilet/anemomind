@@ -53,6 +53,10 @@ find_package(Boost REQUIRED COMPONENTS system iostreams filesystem)
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
+# For protocol-buffer generated .h files, we need to have build dir as include
+# path, too.
+include_directories(${CMAKE_BINARY_DIR}/src)
+
 add_definitions("-DON_SERVER")
 
 add_subdirectory(src)

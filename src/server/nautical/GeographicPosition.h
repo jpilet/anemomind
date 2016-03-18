@@ -48,6 +48,16 @@ private:
   Length<T> _alt; // E.g. 300 metres if we are sailing on Lac Léman
 };
 
+template <typename T>
+bool isFinite(const GeographicPosition<T> &x) {
+  return isFinite(x.lon()) && isFinite(x.lat());
+}
+
+template <typename T>
+bool isNaN(const GeographicPosition<T> &x) {
+  return isNaN(x.lon()) || isNaN(x.lat());
+}
+
 } /* namespace sail */
 
 #endif /* GEOGRAPHICPOSITION_H_ */

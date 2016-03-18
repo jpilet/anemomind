@@ -4,7 +4,7 @@
  */
 
 #include <device/anemobox/logger/Logger.h>
-#include <logger.pb.h>
+#include <device/anemobox/logger/logger.pb.h>
 #include <server/common/ArgMap.h>
 #include <server/common/logging.h>
 

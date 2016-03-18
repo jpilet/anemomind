@@ -4,7 +4,7 @@
  */
 
 #include <server/common/ArgMap.h>
-#include <server/nautical/TestdataNavs.h>
+#include <server/nautical/logimport/TestdataNavs.h>
 #include <server/nautical/TemporalSplit.h>
 #include <iostream>
 

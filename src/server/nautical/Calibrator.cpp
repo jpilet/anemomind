@@ -22,7 +22,7 @@
 #include <server/common/math.h>
 #include <server/common/string.h>
 #include <server/nautical/FlowErrors.h>
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/plot/extra.h>
 #include <string>
 
@@ -250,7 +250,7 @@ string Calibrator::description(std::shared_ptr<HTree> tree) {
 
 bool Calibrator::calibrate(Poco::Path dataPath, Nav::Id boatId) {
   // Load data.
-  NavDataset allnavs = scanNmeaFolderWithSimulator(dataPath, boatId);
+  NavDataset allnavs = LogLoader::loadNavDataset(dataPath);
   if (getNavSize(allnavs) == 0) {
     return false;
   }

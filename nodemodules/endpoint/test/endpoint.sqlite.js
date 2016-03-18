@@ -176,9 +176,9 @@ describe('Endpoint', function() {
 
   it('Handler', function() {
     makeTestEP(function(err, ep) {
-      assert(ep.packetHandlers.length == 0);
-      ep.addPacketHandler(function(endpoint, packet) {console.log('Got this packet: %j', p);});
       assert(ep.packetHandlers.length == 1);
+      ep.addPacketHandler(function(endpoint, packet) {console.log('Got this packet: %j', p);});
+      assert(ep.packetHandlers.length == 2);
       assert(typeof ep.packetHandlers[0] == 'function');
     });
   });
@@ -390,5 +390,21 @@ sqlite>
             });
         });
     });
+  });
+
+  it('should send a packet', function(done) {
+    endpoint.tryMakeAndResetEndpoint(
+      '/tmp/duma.db', 'duma', function(err, ep) {
+        assert(!err);
+        ep.sendPacket('ccc', 89, new Buffer(4), function(err, nothing) {
+          assert(nothing == null);
+          assert(!err);
+          ep.getTotalPacketCount(function(err, n) {
+            assert(!err);
+            assert(n == 1);
+            done();
+          });
+        });
+      });
   });
 });

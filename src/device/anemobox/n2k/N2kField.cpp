@@ -48,7 +48,9 @@ bool contains(const std::initializer_list<int> &set, int x) {
 Optional<uint64_t> N2kFieldStream::getUnsigned(int bits, Definedness d) {
   if (canRead(bits)) {
     auto x = BitStream::getUnsigned(bits);
-    if (d == Definedness::AlwaysDefined || getMaxUnsignedValue(bits) != x) {
+    auto invalid = getMaxUnsignedValue(bits);
+    if (d == Definedness::AlwaysDefined
+        || (invalid != x && (invalid - 1) != x && (invalid - 2) != x)) {
       return Optional<uint64_t>(x);
     }
   }

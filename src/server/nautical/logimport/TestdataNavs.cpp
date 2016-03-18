@@ -4,7 +4,7 @@
  */
 
 #include "TestdataNavs.h"
-#include <server/nautical/NavNmeaScan.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/Env.h>
 #include <server/common/PathBuilder.h>
 #include <server/common/Span.h>
@@ -16,12 +16,6 @@ namespace sail {
 
 using namespace sail::NavCompat;
 
-namespace {
-  NavDataset getNavsFromPath(Poco::Path p) {
-    return scanNmeaFolderWithSimulator(p, Nav::debuggingBoatId());
-  }
-}
-
 Poco::Path getDefaultNavPath() {
   Poco::Path p = PathBuilder::makeDirectory(Env::SOURCE_DIR).
          pushDirectory("datasets").
@@ -31,7 +25,7 @@ Poco::Path getDefaultNavPath() {
 }
 
 NavDataset getTestdataNavs() {
-  return getNavsFromPath(getDefaultNavPath());
+  return LogLoader::loadNavDataset(getDefaultNavPath());
 }
 
 namespace {
@@ -40,7 +34,7 @@ namespace {
     for (int i = 1; i < argc; i++) {
       if (std::string(argv[i]) == pathPrefix) {
         if (i < argc-1) {
-          return getNavsFromPath(Poco::Path(argv[i+1]));
+          return LogLoader::loadNavDataset(Poco::Path(argv[i+1]));
         }
         else { // Obviously, the user provided --navpath at the end of the command line.
                // Maybe we should not return anything here.
@@ -64,7 +58,7 @@ NavDataset getTestdataNavs(ArgMap &amap) {
   Poco::Path p = (amap.optionProvided("--navpath")?
       Poco::Path(amap.optionArgs("--navpath")[0]->value()).makeDirectory()
       : getDefaultNavPath());
-  NavDataset navs = getNavsFromPath(p);
+  NavDataset navs = LogLoader::loadNavDataset(p);
   if (amap.optionProvided("--slice")) {
     Array<ArgMap::Arg*> args = amap.optionArgs("--slice");
     int from = -1;

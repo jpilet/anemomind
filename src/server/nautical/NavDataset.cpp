@@ -133,7 +133,7 @@ namespace {
 
 NavDataset NavDataset::fitBounds() const {
   BoundVisitor visitor;
-  visitDispatcherChannels(_dispatcher, &visitor);
+  visitDispatcherChannels(_dispatcher.get(), &visitor);
   return NavDataset(_dispatcher, _merged, visitor.lowerBound(), visitor.upperBound());
 }
 
@@ -168,7 +168,7 @@ void NavDataset::outputSummary(std::ostream *dst) const {
 
   SummaryVisitor summaryVisitor;
   *dst << "\nOriginal channels: ";
-  visitDispatcherChannels(_dispatcher, &summaryVisitor);
+  visitDispatcherChannels(_dispatcher.get(), &summaryVisitor);
 
   *dst << "\n\n  * The following channels are not part of this dataset: " << ss.str() << "\n" << std::endl;
 }

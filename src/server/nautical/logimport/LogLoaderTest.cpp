@@ -1,15 +1,12 @@
 
 #include <device/anemobox/FakeClockDispatcher.h>
 
-#include <device/anemobox/logger/LogToNav.h>
 #include <device/anemobox/logger/Logger.h>
 #include <gtest/gtest.h>
-#include <device/anemobox/logger/LogLoader.h>
+#include <server/nautical/logimport/LogLoader.h>
 
 using namespace sail;
 using std::string;
-
-using namespace sail::NavCompat;
 
 namespace {
 
@@ -34,20 +31,6 @@ void makeLogFile(LogFile *loggedData) {
 
 
 }  // namespace
-
-TEST(LogToNavTest, ConvertNmea) {
-  LogFile loggedData;
-  makeLogFile(&loggedData);
-
-  NavDataset converted = logFileToNavArray(loggedData);
-  EXPECT_EQ(10, getNavSize(converted));
-
-  for (int i = 0; i < 10; ++i) {
-    EXPECT_EQ(i, getNav(converted, i).geographicPosition().lon().degrees());
-    EXPECT_EQ(i, getNav(converted, i).awa().degrees());
-    EXPECT_EQ(i, getNav(converted, i).aws().knots());
-  }
-}
 
 TEST(LogToNavTest, ConvertToDispatcher) {
   LogFile loggedData;

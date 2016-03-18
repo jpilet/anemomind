@@ -26,7 +26,7 @@ bool contains(const std::initializer_list<int> &set, int x);
 
 enum class Definedness {
   AlwaysDefined,
-  UndefinedIfMax
+  MaybeUndefined
 };
 
 uint64_t getMaxUnsignedValue(int numBits);
@@ -42,7 +42,7 @@ class N2kFieldStream : public BitStream {
 
   template <typename T>
   Optional<T> getPhysicalQuantity(bool isSigned, double resolution, T unit, int bits, int64_t offset) {
-    auto x = getDouble(isSigned, bits, offset, Definedness::UndefinedIfMax);
+    auto x = getDouble(isSigned, bits, offset, Definedness::MaybeUndefined);
     if (x.defined()) {
       return Optional<T>(x()*resolution*unit);
     }

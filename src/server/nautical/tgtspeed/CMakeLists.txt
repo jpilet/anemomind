@@ -3,12 +3,13 @@ add_executable(nautical_tgtspeed_TargetSpeedDemo
               )
 target_link_libraries(nautical_tgtspeed_TargetSpeedDemo
                       nautical_FilteredNavData
-                      nautical_TestdataNavs
+                      logimport_TestdataNavs
                       nautical_tgtspeed_TargetSpeedParam
                       nautical_TemporalSplit
                       nautical_tgtspeed_TargetSpeedPoint
                       nautical_tgtspeed_TargetSpeedSolver
                       nautical_tgtspeed_table
+                      logimport_LogLoader
                      )
                      
 add_library(nautical_tgtspeed_TargetSpeedParam
@@ -29,6 +30,7 @@ add_library(nautical_tgtspeed_TargetSpeedSolver
 target_link_libraries(nautical_tgtspeed_TargetSpeedSolver
                       nautical_tgtspeed_TargetSpeedParam
                       math_nnls
+                      common_ScopedLog
                      )           
               
                                    

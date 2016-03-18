@@ -10,7 +10,7 @@ using namespace N2kField;
 
 TEST(N2kFieldTest, Unsigned_2_and_3) {
   uint8_t data[] = { 0xC2 };
-  N2kFieldStream stream(data, 1);
+  N2kFieldStream stream(data, sizeof(data));
 
   /*
    * Read unsigned number 2 stored in 6 bits
@@ -18,7 +18,7 @@ TEST(N2kFieldTest, Unsigned_2_and_3) {
   {
     int bits = 6;
 
-    auto streamValue = stream.getUnsigned(bits, Definedness::UndefinedIfMax);
+    auto streamValue = stream.getUnsigned(bits, Definedness::MaybeUndefined);
     EXPECT_TRUE(streamValue.defined());
     EXPECT_EQ(2, streamValue());
     EXPECT_EQ(63, getMaxUnsignedValue(bits));
@@ -36,14 +36,14 @@ TEST(N2kFieldTest, Unsigned_2_and_3) {
 
 TEST(N2kFieldTest, Unsigned_7_and_9) {
   uint8_t data[] = { 0x47, 0xF2};
-  N2kFieldStream stream(data, 2);
+  N2kFieldStream stream(data, sizeof(data));
   /*
    * Read unsigned number 7 stored in 6 bits
    */
   {
     int bits = 6;
 
-    auto streamValue = stream.getUnsigned(bits, Definedness::UndefinedIfMax);
+    auto streamValue = stream.getUnsigned(bits, Definedness::MaybeUndefined);
     EXPECT_TRUE(streamValue.defined());
     EXPECT_EQ(7, streamValue());
     EXPECT_EQ(63, getMaxUnsignedValue(bits));
@@ -52,7 +52,7 @@ TEST(N2kFieldTest, Unsigned_7_and_9) {
   */{
     int bits = 6;
 
-    auto streamValue = stream.getUnsigned(bits, Definedness::UndefinedIfMax);
+    auto streamValue = stream.getUnsigned(bits, Definedness::MaybeUndefined);
     EXPECT_TRUE(streamValue.defined());
     EXPECT_EQ(9, streamValue());
     EXPECT_EQ(63, getMaxUnsignedValue(bits));
@@ -61,7 +61,7 @@ TEST(N2kFieldTest, Unsigned_7_and_9) {
 
 TEST(N2kFieldTest, Signed_positive_2_and_1) {
   uint8_t data[] = { 0x42 };
-  N2kFieldStream stream(data, 1);
+  N2kFieldStream stream(data, sizeof(data));
 
   /*
    * Read signed number 2 stored in 6 bits
@@ -70,7 +70,7 @@ TEST(N2kFieldTest, Signed_positive_2_and_1) {
     int bits = 6;
     int offset = 0;
 
-    auto streamValue = stream.getSigned(bits, offset, Definedness::UndefinedIfMax);
+    auto streamValue = stream.getSigned(bits, offset, Definedness::MaybeUndefined);
     EXPECT_TRUE(streamValue.defined());
     EXPECT_EQ(2, streamValue());
     EXPECT_EQ(31, getMaxSignedValue(bits, offset));
@@ -88,7 +88,7 @@ TEST(N2kFieldTest, Signed_positive_2_and_1) {
 
 TEST(N2kFieldTest, Signed_negative_2_and_1) {
   uint8_t data[] = { 0xFE };
-  N2kFieldStream stream(data, 1);
+  N2kFieldStream stream(data, sizeof(data));
 
   /*
    * Read signed number -2 stored in 6 bits
@@ -97,7 +97,7 @@ TEST(N2kFieldTest, Signed_negative_2_and_1) {
     int bits = 6;
     int offset = 0;
 
-    auto streamValue = stream.getSigned(bits, offset, Definedness::UndefinedIfMax);
+    auto streamValue = stream.getSigned(bits, offset, Definedness::MaybeUndefined);
     EXPECT_TRUE(streamValue.defined());
     EXPECT_EQ(-2, streamValue());
     EXPECT_EQ(31, getMaxSignedValue(bits, offset));
@@ -116,7 +116,7 @@ TEST(N2kFieldTest, Signed_negative_2_and_1) {
 
 TEST(N2kFieldTest, Signed_7_and_9) {
   uint8_t data[] = { 0x47, 0xF2};
-  N2kFieldStream stream(data, 2);
+  N2kFieldStream stream(data, sizeof(data));
   /*
    * Read signed number 7 stored in 6 bits
    */
@@ -124,7 +124,7 @@ TEST(N2kFieldTest, Signed_7_and_9) {
     int offset = 0;
     int bits = 6;
 
-    auto streamValue = stream.getSigned(bits, offset, Definedness::UndefinedIfMax);
+    auto streamValue = stream.getSigned(bits, offset, Definedness::MaybeUndefined);
     EXPECT_TRUE(streamValue.defined());
     EXPECT_EQ(7, streamValue());
     EXPECT_EQ(31, getMaxSignedValue(bits, offset));
@@ -133,7 +133,7 @@ TEST(N2kFieldTest, Signed_7_and_9) {
   */{
     int bits = 6;
     int offset = 0;
-    auto streamValue = stream.getSigned(bits, offset, Definedness::UndefinedIfMax);
+    auto streamValue = stream.getSigned(bits, offset, Definedness::MaybeUndefined);
     EXPECT_TRUE(streamValue.defined());
     EXPECT_EQ(9, streamValue());
     EXPECT_EQ(31, getMaxSignedValue(bits, offset));
@@ -147,7 +147,7 @@ TEST(N2kFieldTest, Signed_7_and_9) {
 
 TEST(N2kFieldTest, Signed_negative_7_and_9) {
   uint8_t data[] = { 0xF9, 0xFD};
-  N2kFieldStream stream(data, 2);
+  N2kFieldStream stream(data, sizeof(data));
   /*
    * Read signed number -7 stored in 6 bits
    */
@@ -155,7 +155,7 @@ TEST(N2kFieldTest, Signed_negative_7_and_9) {
     int bits = 6;
     int offset = 0;
 
-    auto streamValue = stream.getSigned(bits, offset, Definedness::UndefinedIfMax);
+    auto streamValue = stream.getSigned(bits, offset, Definedness::MaybeUndefined);
     EXPECT_TRUE(streamValue.defined());
     EXPECT_EQ(-7, streamValue());
     EXPECT_EQ(31, getMaxSignedValue(bits, offset));
@@ -165,7 +165,7 @@ TEST(N2kFieldTest, Signed_negative_7_and_9) {
     int bits = 6;
     int offset = 0;
 
-    auto streamValue = stream.getSigned(bits, offset, Definedness::UndefinedIfMax);
+    auto streamValue = stream.getSigned(bits, offset, Definedness::MaybeUndefined);
     EXPECT_TRUE(streamValue.defined());
     EXPECT_EQ(-9, streamValue());
     EXPECT_EQ(31, getMaxSignedValue(bits, offset));
@@ -176,7 +176,7 @@ TEST(N2kFieldTest, Signed_negative_7_with_offset) {
   uint8_t data[] = { 0x01};
 
   int64_t offset = -8;
-  N2kFieldStream stream(data, 1);
+  N2kFieldStream stream(data, sizeof(data));
   /*
    * Read signed number -7 = 1 + offset, with offset = -8
    */
@@ -203,12 +203,12 @@ TEST(N2kFieldTest, Max_value_at_the_limit) {
 // the Alinghi device.
 TEST(N2kFieldTest, ParseDemo) {
   uint8_t data[] = {0xFF, 0x19, 0x00, 0xAC, 0x78, 0xFA, 0xFF, 0xFF};
-  N2kFieldStream stream(data, 8);
+  N2kFieldStream stream(data, sizeof(data));
 
   // PGN: 130306, Wind data
 
   // Field 1
-  auto sid = stream.getUnsigned(8, Definedness::UndefinedIfMax);
+  auto sid = stream.getUnsigned(8, Definedness::MaybeUndefined);
 
   // Field 2
   auto windSpeed =
@@ -238,4 +238,19 @@ TEST(N2kFieldTest, IntSet0) {
   EXPECT_TRUE(contains({1, 2, 3}, 3));
   EXPECT_FALSE(contains({1, 2, 3}, 0));
   EXPECT_FALSE(contains({1, 2, 3}, 4));
+}
+
+TEST(N2kFieldTest, InvalidValues) {
+  uint8_t data[] = {
+    0xFD, // Reserved
+    0xFE, // Out of bounds
+    0xFF, // Not available
+    0x03  // Valid value
+  };
+  N2kFieldStream stream(data, sizeof(data));
+
+  EXPECT_FALSE(stream.getUnsigned(8, Definedness::MaybeUndefined).defined());
+  EXPECT_FALSE(stream.getUnsigned(8, Definedness::MaybeUndefined).defined());
+  EXPECT_FALSE(stream.getUnsigned(8, Definedness::MaybeUndefined).defined());
+  EXPECT_TRUE(stream.getUnsigned(8, Definedness::MaybeUndefined).defined());
 }
