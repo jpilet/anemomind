@@ -63,8 +63,7 @@ var all = {
   // Would it make sense to have absolute paths here to?
   uploadDir: 'uploads',
   endpointDir: '/tmp/mail2',
-  backupDestination: '/tmp/anemobackup',
-  bundleDir: '/tmp/bundles'
+  backupDestination: '/tmp/anemobackup'
 };
 
 // Export the config object based on the NODE_ENV
