@@ -70,7 +70,7 @@ function unpackBundle(endpoint, src, bundleFilename, reposPath) {
 function bundleHandler(endpoint, packet) {
   if (packet.label == common.bundle) {
     var data0 = packet.data;
-    var data = msgpack.decode(data0);
+    var data = decodeBundle(data0);
     if (!(data.bundleData instanceof Buffer)) {
       console.log('ERROR in bundle.js, bundleHandler: bundleData is not a Buffer, it is ' 
                   + typeof data.bundleData);
@@ -78,6 +78,7 @@ function bundleHandler(endpoint, packet) {
       console.log('ERROR in bundle.js, bundleHandler: The destination path is not a string, it is '
                   + data.dstPath);
     } else {
+      console.log('SUCCESSFULLY DECODED THE BUNDLE!!!');
       // return writeBundleToTempFile(data)
       //   .then(function(filename) {
       //     assert(typeof filename == 'string');

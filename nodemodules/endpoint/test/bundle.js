@@ -7,6 +7,7 @@ var exec = require('child_process').exec;
 var Path = require('path');
 var fs = require('fs');
 var common = require('../common.js');
+var sync2 = require('../sync2.js');
 
 function fn(expr) {
   return function() {return eval(expr);}
@@ -161,6 +162,10 @@ function prepareTestSetup() {
     });
 }
 
+function wait(time, cb) {
+  setTimeout(cb, time);
+}
+
 function basicSendAndReceive(endpoints) {
   var src = endpoints[0];
   var dst0 = endpoints[1];
@@ -180,7 +185,13 @@ function basicSendAndReceive(endpoints) {
     })
     .then(function(n) {
       assert(n == 1);
-    });
+    })
+    .then(function() {
+      return Q.nfcall(sync2.synchronize, src, dst0);
+    })
+    .then(function() {
+      return Q.nfcall(wait, 1000);
+    })
 }
 
 describe('bundle', function() {
