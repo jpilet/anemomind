@@ -1,0 +1,15 @@
+<div ng-include="'components/navbar/navbar.html'"></div>
+
+<div class="container">
+  <ul class="list-group">
+    <li class="list-group-item" ng-repeat="boxexec in boxexecs | orderBy:'-timeSent'">
+      <p>Sent on {{ boxexec.timeSent | date:'medium' }} to {{ boxexec.boatId }}</p>
+      <pre class="text-muted">{{boxexec.script}}</pre>
+      <div ng-show="boxexec.timeReceived">
+        <p>Response: {{ boxexec.timeReceived | date:'medium' }}<p>
+        <pre ng-show="boxexec.err">Error: {{boxexec.err}}</pre>
+        <pre ng-show="boxexec.stdout" class="text-muted">{{boxexec.stdout}}</pre>
+        <pre ng-show="boxexec.sterr" class="text-muted">{{boxexec.stderr}}</pre>
+      </div>
+  </ul>
+</div>
