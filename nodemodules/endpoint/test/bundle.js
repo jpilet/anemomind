@@ -203,7 +203,7 @@ function basicDeployment(endpoints) {
     })
     .then(function(value) {
       assert(typeof value == 'object');
-      assert(typeof value.currentVersion == 'string');
+      assert(typeof value.stdout == 'string');
     }).then(function(value) {
       return Q.all([
         Q.nfcall(existsInDir, test0, 'main.cpp'),

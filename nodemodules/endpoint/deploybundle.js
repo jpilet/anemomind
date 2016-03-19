@@ -45,7 +45,11 @@ function readCurrentSetupInfo(dstPath, cb) {
     if (err) {
       cb(err);
     } else {
-      cb(null, {currentVersion: out.stdout});
+
+      // TODO: What should the response format be? We must make sure
+      // that the server can handle it in server/api/boxexec/response-handler.js
+      cb(null, {stdout: out.stdout});
+
     }
   });
 }
@@ -167,7 +171,13 @@ function makeMainFunction(localBundleFilename, dstPath) {
     try {
 
       deploy(localBundleFilename, dstPath, function(err, output) {
-        cb(null, {err: err, output: output});
+
+        if (err) {
+          cb(null, {err: err});
+        } else {
+          cb(null, output);
+        }
+
       });
 
     } catch (e) {
