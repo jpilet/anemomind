@@ -110,6 +110,7 @@ namespace {
 
     template <DataCode Code, typename T>
         void visit(const char *shortName, const std::string &sourceName,
+            const std::shared_ptr<DispatchData> &raw,
             const TimedSampleCollection<T> &coll) {
       if (!coll.empty()) {
         auto lower = coll.samples().front().time;
@@ -143,6 +144,7 @@ namespace {
    public:
     template <DataCode handle, typename T>
     void visit(const char *shortname, const std::string &srcName,
+        const std::shared_ptr<DispatchData> &raw,
         const TimedSampleCollection<T> &data) {
       std::cout << "\n  * Channel of type " << shortname << " from source "
           << srcName << " with " << data.size() << " values";

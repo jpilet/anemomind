@@ -56,4 +56,40 @@ bool SimulateBox(std::istream& boatDat, Array<Nav> *navs) {
   return true;
 }
 
+NavDataset SimulateBox(std::istream& boatDat, const NavDataset &ds) {
+
+  // Drop any old channels
+  auto d0 = filterChannels(ds.dispatcher().get(),
+      [&] (DataCode c, const std::string &srcName) {
+    return srcName != DispatcherTrueWindEstimator::sourceName();
+  }, true);
+
+  auto period = Duration<double>::seconds(1.0);
+  std::unique_ptr<DispatcherTrueWindEstimator> estimator;
+
+  bool success = true;
+  auto d2 = replay(d0.get(), [&](
+      const std::shared_ptr<Dispatcher> &d,
+      DataCode c, const std::string &src) {
+    if (!estimator) {
+      estimator = std::unique_ptr<DispatcherTrueWindEstimator>(
+          new DispatcherTrueWindEstimator(d.get()));
+
+      // What if the data that we are replaying already
+      // constains a source with name with estimator->sourceName()?
+
+      if (!estimator->loadCalibration(boatDat)) {
+        success = false;
+      }
+    }
+    estimator->compute();
+  }, period);
+
+  if (success && d2) {
+    return NavDataset(d2);
+  } else {
+    return NavDataset();
+  }
+}
+
 }  // namespace sail
