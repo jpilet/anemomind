@@ -1,6 +1,7 @@
 var bigint = require('./bigint.js');
 var assert = require('assert');
 var Q = require('q');
+var fs = require('fs');
 
 module.exports.ack = 127;
 module.exports.logfile = 128;
@@ -9,6 +10,7 @@ module.exports.scriptResponse = 130;
 module.exports.files = 131;
 module.exports.firstPacket = 132;
 module.exports.remainingPacket = 133;
+module.exports.bundle = 134;
 
 function ResultArray(n, cb) {
   this.dst = new Array(n);
@@ -130,6 +132,16 @@ function pfwrap(x) {
   return Q.promised(fwrap(x));
 }
 
+function exists(p, cb) {
+  fs.access(p, fs.F_OK, function(err) {
+    if (err) {
+      cb(null, false);
+    } else {
+      cb(null, true);
+    }
+  });
+}
+
 module.exports.isCounter = isCounter; 
 module.exports.isIdentifier = isIdentifier;
 module.exports.isValidEndpointName = isValidEndpointName;
@@ -143,3 +155,4 @@ module.exports.argsToArray = argsToArray;
 module.exports.withException = withException;
 module.exports.fwrap = fwrap;
 module.exports.pfwrap = pfwrap;
+module.exports.exists = exists;

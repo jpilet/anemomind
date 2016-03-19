@@ -107,7 +107,10 @@ function executeAndRespondJS(reqCode, endpoint, script, packet, cb) {
     }
     var main = eval(script);
     if (!(typeof main == "function")) {
-      sendtheResponse({reqCode: reqCode, err: 'The script must return a functionto be evaluated'});
+      sendtheResponse({
+        reqCode: reqCode, 
+        err: 'The script must return a function to be evaluated'
+      });
     } else {
       main(function(err, result) {
         if (err) {
