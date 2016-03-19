@@ -134,7 +134,7 @@ function executeAndRespondSH(reqCode, endpoint, script, packet, cb) {
       function (error, stdout, stderr) {
         sendTheResponse({reqCode: reqCode, err:error, stdout: stdout, stderr: stderr});
       });
-  } catch (e) {p
+  } catch (e) {
     sendTheResponse({reqCode: reqCode, err: ('' + e)});
   }
 }

@@ -34,24 +34,19 @@ function makeLocalCopy(directory, suffix, cb) {
 }
 
 function move(src, dst, cb) {
-  exec2('mv ' + src + ' ' + dst, cb);
+  fs.rename(src, dst, function(err) {
+    if (err) {
+      cb('Failed to rename "' + src + '" to "' + dst + '"');
+    } else {
+      cb();
+    }
+  });
 }
 
 function readCurrentSetupInfo(dstPath, cb) {
 
   // TODO: What do we want to know?
-  exec2('cd ' + dstPath + '; git rev-parse HEAD', function(err, out) {
-
-    if (err) {
-      cb(err);
-    } else {
-
-      // TODO: What should the response format be? We must make sure
-      // that the server can handle it in server/api/boxexec/response-handler.js
-      cb(null, {stdout: out.stdout});
-
-    }
-  });
+  exec2('cd ' + dstPath + '; git rev-parse HEAD', cb);
 }
 
 function backupOriginalAndReplace(updatePath, dstPath, cb) {
@@ -84,32 +79,25 @@ function backupOriginalAndReplace(updatePath, dstPath, cb) {
           } else {
 
             // Seems like we succeeded with the update.
-            // Remains to remove the backup directory and report back 
-            // whatever information we might be interested in.
-            // TODO: we might want to reboot too, at some point time.
-            exec('rm ' + backup + ' -rf', function(errClean, value) {
-              readCurrentSetupInfo(dstPath, function(err, out) {
-                if (err) {
-                  cb(err + errClean);
-                } else {
-
-                  // If we failed to remove the backup directory,
-                  // we might be interested in the reason for that.
-                  if (errClean) {
-                    out.errClean = errClean;
-                  }
-
-                  cb(null, out);
-                }
-              });
-
+            // Remains to remove the backup directory. Removing the backup
+            // directory could fail, but at this stage, we have successfully deployed
+            // the new version, so if there is an error removing the backup directory, 
+            // we might not want to treat it as such, but nevertheless report it for 
+            // later analysis.
+            exec('rm ' + backup + ' -rf', function(err, value) {
+              cb(null, err);
             });
+
           }
         });
       }
     });
   });
 }
+
+
+
+
 
 function finalizeUpdate(updatePath, dstPath, err, cb) {
 
@@ -122,7 +110,22 @@ function finalizeUpdate(updatePath, dstPath, err, cb) {
   } else {
     // Now remains taking a backup of our initial directory,
     // and replace it by the updated one.
-    backupOriginalAndReplace(updatePath, dstPath, cb);
+    backupOriginalAndReplace(updatePath, dstPath, function(err, rmBackupError) {
+      if (err) {
+        cb(err);
+      } else {
+        readCurrentSetupInfo(dstPath, function(err, out) {
+          if (err) {
+            cb(err);
+          } else {
+            if (rmBackupError) {
+              out.stderr = '' + out.stderr + rmBackupError;
+            }
+            cb(null, out);
+          }
+        });
+      }
+    });
   }
 }
 
