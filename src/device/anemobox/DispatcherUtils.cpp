@@ -268,9 +268,7 @@ namespace {
    public:
     FilterVisitor(Dispatcher *src,
         DispatcherChannelFilterFunction f, bool includePrios) :
-        _src(src), _dst(new Dispatcher()), _f(f), _includePrios(includePrios) {
-      copyPriorities(src, _dst);
-    }
+        _src(src), _dst(new Dispatcher()), _f(f), _includePrios(includePrios) {}
 
     template <DataCode Code, typename T>
     void visit(const char *shortName, const std::string &sourceName,

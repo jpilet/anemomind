@@ -74,10 +74,6 @@ NavDataset SimulateBox(std::istream& boatDat, const NavDataset &ds) {
     if (!estimator) {
       estimator = std::unique_ptr<DispatcherTrueWindEstimator>(
           new DispatcherTrueWindEstimator(d.get()));
-
-      // What if the data that we are replaying already
-      // constains a source with name with estimator->sourceName()?
-
       if (!estimator->loadCalibration(boatDat)) {
         success = false;
       }
