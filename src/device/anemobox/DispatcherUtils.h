@@ -53,10 +53,36 @@ void visitDispatcherChannels(Dispatcher *dispatcher, Mapper *m) {
   }
 }
 
-int countChannels(Dispatcher *d);
 
-std::ostream &operator<<(std::ostream &s, Dispatcher &d);
-std::ostream &operator<<(std::ostream &s, Dispatcher *d);
+// Visit every channel of a Dispatcher, for side effects.
+// Const version.
+template <typename Mapper>
+void visitDispatcherChannelsConst(const Dispatcher *dispatcher, Mapper *m) {
+  for (const auto &codeAndSources: dispatcher->allSources()) {
+    auto c = codeAndSources.first;
+    for (const auto &kv: codeAndSources.second) {
+
+#define TRY_TO_MAP(handle, code, shortname, type, description) \
+  if (c == handle) {\
+    auto raw = kv.second;\
+    m->template visit<handle, type >(shortname, kv.first, \
+        raw, \
+        toTypedDispatchData<handle>(raw.get())->dispatcher()->values());\
+  }\
+
+  FOREACH_CHANNEL(TRY_TO_MAP)
+
+#undef TRY_TO_MAP
+
+    }
+  }
+}
+
+int countChannels(const Dispatcher *d);
+int countValues(const Dispatcher *d);
+
+std::ostream &operator<<(std::ostream &s, const Dispatcher &d);
+std::ostream &operator<<(std::ostream &s, const Dispatcher *d);
 std::ostream &operator<<(std::ostream &s, const std::shared_ptr<Dispatcher> &d);
 
 // See also: toTypedDispatchData, which goes almost in opposite direction.
@@ -88,17 +114,32 @@ std::shared_ptr<Dispatcher> filterChannels(Dispatcher *src,
   DispatcherChannelFilterFunction f, bool includePrios);
 std::shared_ptr<Dispatcher> shallowCopy(Dispatcher *src);
 
+void copyPriorities(Dispatcher *src, Dispatcher *dst);
+
 typedef std::function<void(const std::shared_ptr<Dispatcher> &,
         DataCode, const std::string &)> ReplayVisitor;
 
-// Populates a new dispatcher with the data of an existing
-// dispatcher, by adding one sample at a time. Whenever a new sample
-// is added and the visitor was called at least a 'period' ago,
-// the visitor is called (again).
-std::shared_ptr<Dispatcher> replay(
-    Dispatcher *src,
-    const ReplayVisitor &visitor,
-    Duration<double> period);
+
+class ReplayDispatcher2 : public Dispatcher {
+ public:
+   TimeStamp currentTime() override {
+     return _currentTime;
+   }
+
+   template <typename T>
+     void publishTimedValue(DataCode code, const std::string& source,
+                            TimedValue<T> value) {
+     _currentTime = value.time;
+     publishValue<T>(code, source, value.value);
+   }
+
+   void replay(const Dispatcher *other, 
+               const std::function<void(DataCode, const std::string &src)> &cb
+               = std::function<void(DataCode, const std::string &src)>());
+ private:
+   TimeStamp _currentTime;
+ };
+ 
 
 }
 

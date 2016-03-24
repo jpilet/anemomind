@@ -9,9 +9,9 @@ namespace sail {
 
 
 namespace {
-class Visitor {
+class DispVisitor {
  public:
-  Visitor(Dispatcher *d, std::ostream *dst) : _d(d), _dst(dst) {}
+  DispVisitor(const Dispatcher *d, std::ostream *dst) : _d(d), _dst(dst) {}
 
   template <DataCode Code, typename T>
   void visit(const char *shortName, const std::string &sourceName,
@@ -23,21 +23,21 @@ class Visitor {
 
   }
  private:
-  Dispatcher *_d;
+  const Dispatcher *_d;
   std::ostream *_dst;
 };
 
 }
 
 
-std::ostream &operator<<(std::ostream &s, Dispatcher *d) {
+std::ostream &operator<<(std::ostream &s, const Dispatcher *d) {
   s << "\nDispatcher:";
-  Visitor v(d, &s);
-  visitDispatcherChannels<Visitor>(d, &v);
+  DispVisitor v(d, &s);
+  visitDispatcherChannelsConst<DispVisitor>(d, &v);
   return s;
 }
 
-int countChannels(Dispatcher *d) {
+int countChannels(const Dispatcher *d) {
   if (d == nullptr) {
     return 0;
   }
@@ -48,7 +48,29 @@ int countChannels(Dispatcher *d) {
   return counter;
 }
 
-std::ostream &operator<<(std::ostream &s, Dispatcher &d) {
+namespace {
+  class ValueCounterVisitor {
+  public:
+    ValueCounterVisitor() : counter(0) {}
+
+    template <DataCode Code, typename T>
+    void visit(const char *shortName, const std::string &sourceName,
+               const std::shared_ptr<DispatchData> &raw,
+               const TimedSampleCollection<T> &coll) {
+      counter += coll.size();
+    }
+
+    int counter;
+  };
+}  
+
+int countValues(const Dispatcher *d) {
+  ValueCounterVisitor visitor;
+  visitDispatcherChannelsConst<ValueCounterVisitor>(d, &visitor);
+  return visitor.counter;
+}
+
+std::ostream &operator<<(std::ostream &s, const Dispatcher &d) {
   return (s << &d);
 }
 
@@ -305,23 +327,8 @@ std::shared_ptr<Dispatcher> shallowCopy(Dispatcher *src) {
   }, true);
 }
 
+
 namespace {
-  class FixedTimeDispatcher : public Dispatcher {
-   public:
-    TimeStamp currentTime() override {
-      return _currentTime;
-    }
-
-    template <typename T>
-    void publishTimedValue(DataCode code, const std::string& source,
-        TimedValue<T> value) {
-      _currentTime = value.time;
-      publishValue<T>(code, source, value.value);
-    }
-   private:
-    TimeStamp _currentTime;
-  };
-
   struct ChannelInfo {
    ChannelInfo(const std::string &n, DataCode c) : name(n), code(c) {}
 
@@ -334,7 +341,7 @@ namespace {
   class ValueToPublish {
    public:
     virtual TimeStamp time() = 0;
-    virtual void publish(FixedTimeDispatcher *dst) = 0;
+    virtual void publish(ReplayDispatcher2 *dst) = 0;
     virtual ~ValueToPublish() {}
 
     virtual const ChannelInfo::Ptr &info() const = 0;
@@ -355,7 +362,7 @@ namespace {
 
     TimeStamp time() override {return _x.time;}
 
-    void publish(FixedTimeDispatcher *dst) {
+    void publish(ReplayDispatcher2 *dst) {
       dst->publishTimedValue<T>(_info->code, _info->name, _x);
     }
 
@@ -384,46 +391,25 @@ namespace {
    private:
    std::vector<ValueToPublish::Ptr> *_dst;
   };
-
-  void stepSampleBySample(const std::vector<ValueToPublish::Ptr> &allValues,
-      std::shared_ptr<Dispatcher> sd,
-      FixedTimeDispatcher *d,
-      const ReplayVisitor &visitor,
-      Duration<double> period) {
-    TimeStamp nextTime;
-    for (int i = 0; i < allValues.size(); i++) {
-      ValueToPublish::Ptr x = allValues[i];
-      x->publish(d);
-      if (!nextTime.defined() || nextTime <= d->currentTime()) {
-        nextTime = d->currentTime() + period;
-        visitor(sd, x->info()->code, x->info()->name);
-      }
-    }
-  }
 }
 
-
-std::shared_ptr<Dispatcher> replay(
-    Dispatcher *src,
-    const ReplayVisitor &visitor,
-    Duration<double> period) {
-  if (src == nullptr) {
-    return nullptr;
+void ReplayDispatcher2::replay(const Dispatcher *other, 
+                               const std::function<void(DataCode, const std::string &src)> &cb) {
+  if (other == nullptr) {
+    return;
   }
 
   std::vector<ValueToPublish::Ptr> allValues;
   ValueCollector collector(&allValues);
-  visitDispatcherChannels(src, &collector);
+  visitDispatcherChannelsConst(other, &collector);
   std::sort(allValues.begin(), allValues.end(), before);
-
-  if (allValues.empty()) {
-    return nullptr;
+  for (auto x: allValues) {
+    x->publish(this);
+    if (cb) {
+      auto c = x->info();
+      cb(c->code, c->name);
+    }
   }
-
-  auto *d = new FixedTimeDispatcher();
-  std::shared_ptr<Dispatcher> sd(d);
-  stepSampleBySample(allValues, sd, d, visitor, period);
-  return sd;
 }
 
 

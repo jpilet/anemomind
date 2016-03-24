@@ -23,5 +23,12 @@ target_link_libraries(anemobox_SimulateBox
                       anemobox_DispatcherTrueWindEstimator
                       anemobox_ReplayDispatcher
                       nautical_nav
+                      nautical_NavDataset
                      )
 
+cxx_test(anemobox_SimulateBoxTest
+  SimulateBoxTest.cpp
+  gtest_main
+  anemobox_SimulateBox
+  anemobox_DispatcherUtils
+  )
