@@ -10,7 +10,6 @@ module.exports.scriptResponse = 130;
 module.exports.files = 131;
 module.exports.firstPacket = 132;
 module.exports.remainingPacket = 133;
-module.exports.bundle = 134;
 
 function ResultArray(n, cb) {
   this.dst = new Array(n);
