@@ -1,15 +1,15 @@
-var bundle = require('../bundle.js');
-var endpoint = require('../endpoint.sqlite.js');
+var bundle = require('../server/api/boxexec/bundle.js');
+var endpoint = require('endpoint/endpoint.sqlite.js');
 var assert = require('assert');
 var Q = require('q');
 var mkdirp = require('mkdirp');
 var exec = require('child_process').exec;
 var Path = require('path');
 var fs = require('fs');
-var common = require('../common.js');
-var sync2 = require('../sync2.js');
-var deploybundle = require('../deploybundle.js');
-var script = require('../script.js');
+var common = require('endpoint/common.js');
+var sync2 = require('endpoint/sync2.js');
+var deploybundle = require('../server/api/boxexec/deploybundle.js');
+var script = require('endpoint/script.js');
 
 function makeDirName(name) {
   var base = '/tmp/bundletest';
@@ -66,8 +66,12 @@ function checkIsRepository(name) {
 
 function makeRepository(name) {
   return makeDirectory(name)
-    .then(function() {return gitInit(name);})
-    .then(function() {return checkIsRepository(name);});
+    .then(function() {
+      return gitInit(name);
+    })
+    .then(function() {
+      return checkIsRepository(name);
+    });
 }
 
 function commitChanges(name, msg) {
@@ -109,17 +113,22 @@ function makeEndpoints(cb) {
 function prepareTestSetup(doneCB) {
   var name = 'src';
 
+
+
   // Make the initial version of the repository
   return Q.nfcall(cleanAll)
-    .then(function() {return makeRepository(name);})
+    .then(function() {
+      return makeRepository(name);
+    })
     .then(function() {
       return Q.nfcall(
         fs.writeFile,
         Path.join(makeDirName(name), "main.cpp"), 
         '#include <iostream>\nint main() {\n  std::cout << "Anemomind!" << std::endl;\n}');
     })
-    .then(function() {return commitChanges(name, "Initial commit");})
-
+    .then(function() {
+      return commitChanges(name, "Initial commit");
+    })
   // Create the first bundle
     .then(function() {
       return createBundle(name, 'first.bundle', null, 'v1');
@@ -280,6 +289,7 @@ describe('bundle', function() {
   it('Verify the deploy function', function(done) {
     prepareTestSetup()      
       .then(function(value) {
+        console.log('Now done');
         assert(value instanceof Array);
         assert(value.length == 3);
         return basicDeployment(value);
@@ -299,7 +309,8 @@ describe('bundle', function() {
       }).nodeify(done);
   });
 
-  it('Deploy a remote bundle', function(done) {
+  it('deploy', function(done) {
+    this.timeout(6000);
     var d = 'anemobox';
     var full = makeDirName(d);
     var first = Path.join(makeDirName('src'), 'first.bundle');

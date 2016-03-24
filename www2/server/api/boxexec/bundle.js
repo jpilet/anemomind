@@ -1,6 +1,6 @@
 var Q = require('q');
 var Path = require('path');
-var script = require('./script.js');
+var script = require('endpoint/script.js');
 var fs = require('fs');
 
 function compileBundleScript(remoteBundleFilename, remoteDstPath) {

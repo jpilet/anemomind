@@ -12,7 +12,12 @@ var branch = 'master';
 function exec2(cmd, cb) {
   exec(cmd, function(err, stdout, stderr) {
     if (err) {
-      cb('Failed to execute "' + cmd + '" because "' + stderr + '". ');
+      var commonErrorMessage = 'Failed to execute "' + cmd + '" because "';
+      if (stderr == null  || stderr.length == 0) {
+        cb(commonErrorMessage + err + '". ');
+      } else {
+        cb(commonErrorMessage + stderr + '". ');
+      }
     } else {
       cb(null, {stdout: stdout, stderr: stderr});
     }
@@ -46,7 +51,7 @@ function move(src, dst, cb) {
 function readCurrentSetupInfo(dstPath, cb) {
 
   // TODO: What do we want to know?
-  exec2('cd ' + dstPath + '; git rev-parse HEAD', cb);
+  exec2('git -C ' + dstPath + ' rev-parse HEAD', cb);
 }
 
 function backupOriginalAndReplace(updatePath, dstPath, cb) {
@@ -129,16 +134,10 @@ function finalizeUpdate(updatePath, dstPath, err, cb) {
   }
 }
 
-function performUpdate(bundlePath, updatePath, cb) {
-  exec2('cd ' + updatePath + '; git bundle verify ' + bundlePath, function(err, out) {
-    if (err) {
-      cb(err);
-    } else {
-      exec2('cd ' + updatePath 
-            + '; git checkout ' + branch 
-            + '; git pull ' + bundlePath + ' ' + branch, cb);
-    }
-  });
+function performUpdate(bp, up, cb) {
+  exec2('git -C ' + up + ' bundle verify ' + bp + ' && git -C ' 
+        + up + ' pull ' + bp 
+        + ' master && git -C ' + up + ' checkout master', cb);
 }
 
 function deploy(localBundleFilename, dstPath, cb) {
