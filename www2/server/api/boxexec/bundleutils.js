@@ -3,11 +3,6 @@ var exec = require('child_process').exec;
 var path = require('path');
 var mkdirp = require('mkdirp');
 
-// Ensure NODE_ENV is defined.
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-var env = require('../../config/environment');
-
-
 // Common settings
 var serverAddress = 'anemomind@vtiger.anemomind.com';
 var repositoryPath = '/home/anemobox/anemobox.git'
