@@ -131,14 +131,13 @@ function pfwrap(x) {
   return Q.promised(fwrap(x));
 }
 
-function exists(p, cb) {
-  fs.access(p, fs.F_OK, function(err) {
-    if (err) {
-      cb(null, false);
-    } else {
-      cb(null, true);
-    }
-  });
+function exists(p) {
+  return Q.nfcall(fs.access, p, fs.F_OK)
+    .then(function(x) {
+      return true;
+    }).catch(function(e) {
+      return false;
+    });
 }
 
 module.exports.isCounter = isCounter; 

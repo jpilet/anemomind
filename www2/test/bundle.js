@@ -38,8 +38,8 @@ function gitInit(name) {
   return execInDir(name, 'git init');
 }
 
-function existsInDir(name, p, cb) {
-  return common.exists(Path.join(makeDirName(name), p), cb);
+function existsInDir(name, p) {
+  return common.exists(Path.join(makeDirName(name), p));
 }
 
 function disp(label, promise) {
@@ -58,7 +58,7 @@ function disp(label, promise) {
 
 function checkIsRepository(name) {
   var dst = Path.join(makeDirName(name), '.git');
-  return Q.nfcall(common.exists, dst)
+  return Q.fcall(common.exists, dst)
     .then(function(e) {
       assert(e);
     });
@@ -155,8 +155,8 @@ function prepareTestSetup(doneCB) {
   // Check for existence of the bundles
     .then(function() {
       return Q.all([
-        Q.nfcall(existsInDir, name, 'first.bundle'),
-        Q.nfcall(existsInDir, name, 'second.bundle')
+        Q.fcall(existsInDir, name, 'first.bundle'),
+        Q.fcall(existsInDir, name, 'second.bundle')
       ]);
     })
     .then(function(values) {
@@ -200,7 +200,7 @@ function basicDeployment(endpoints) {
       return gitInit(test0);
     })
     .then(function() {
-      return Q.nfcall(existsInDir, test0, 'main.cpp');
+      return Q.fcall(existsInDir, test0, 'main.cpp');
     })
     .then(function(e) {
       assert(!e);
@@ -215,9 +215,9 @@ function basicDeployment(endpoints) {
       assert(typeof value.stdout == 'string');
     }).then(function(value) {
       return Q.all([
-        Q.nfcall(existsInDir, test0, 'main.cpp'),
-        Q.nfcall(existsInDir, test0 + '_updated', 'main.cpp'),
-        Q.nfcall(common.exists, makeDirName(test0) + '_backup')
+        Q.fcall(existsInDir, test0, 'main.cpp'),
+        Q.fcall(existsInDir, test0 + '_updated', 'main.cpp'),
+        Q.fcall(common.exists, makeDirName(test0) + '_backup')
       ]);
     })
     .then(function(arr) {
@@ -233,9 +233,9 @@ function basicDeployment(endpoints) {
     }).then(function(e) {
       // Great, an error was produced as expected. And check that we didnt make any garbage
       return Q.all([
-        Q.nfcall(common.exists, makeDirName(test1)),
-        Q.nfcall(common.exists, makeDirName(test1) + '_updated'),
-        Q.nfcall(common.exists, makeDirName(test1) + '_backup'),
+        Q.fcall(common.exists, makeDirName(test1)),
+        Q.fcall(common.exists, makeDirName(test1) + '_updated'),
+        Q.fcall(common.exists, makeDirName(test1) + '_backup'),
       ]);
     }).then(function(e) {
       for (var i in e) {
@@ -252,7 +252,7 @@ function basicDeployment(endpoints) {
       return gitInit(test2);
     })
     .then(function() {
-      return Q.nfcall(common.exists, makeDirName(test2));
+      return Q.fcall(common.exists, makeDirName(test2));
     })
     .then(function(e) {
       assert(e);
@@ -269,11 +269,11 @@ function basicDeployment(endpoints) {
       return Q.nfcall(expectError, deploybundle.deploy, [secondPath, test2]);
     }).then(function(e) {
       return Q.all([
-        Q.nfcall(common.exists, makeDirName(test2)),
-        Q.nfcall(common.exists, makeDirName(test2) + '_updated'),
-        Q.nfcall(common.exists, makeDirName(test2) + '_backup'),
-        Q.nfcall(existsInDir, test2, 'Makefile'),
-        Q.nfcall(existsInDir, test2, 'main.cpp')
+        Q.fcall(common.exists, makeDirName(test2)),
+        Q.fcall(common.exists, makeDirName(test2) + '_updated'),
+        Q.fcall(common.exists, makeDirName(test2) + '_backup'),
+        Q.fcall(existsInDir, test2, 'Makefile'),
+        Q.fcall(existsInDir, test2, 'main.cpp')
       ]);      
     })
     .then(function(e) {
@@ -321,7 +321,7 @@ describe('bundle', function() {
 
         makeRepository(d)
           .then(function() { // Check that we start clean.
-            return Q.nfcall(existsInDir, d, 'main.cpp');
+            return Q.fcall(existsInDir, d, 'main.cpp');
           })
           .then(function(e) {
             assert(!e);
@@ -347,7 +347,7 @@ describe('bundle', function() {
     function receivedScript() {
 
       // Check that the bundle was successfully deployed
-      return Q.nfcall(existsInDir, d, 'main.cpp')
+      return Q.fcall(existsInDir, d, 'main.cpp')
         .then(function(e) {
           assert(e);
         }).nodeify(done);
