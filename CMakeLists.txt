@@ -21,9 +21,11 @@ if (${FULL_BUILD})
   include("cmake/FindF2C.cmake")
 
   find_package(Armadillo REQUIRED)
+  add_definitions(-DARMA_DONT_USE_WRAPPER)
+  add_definitions(-DARMA_USE_LAPACK)
 
   function(target_depends_on_armadillo target)
-      target_link_libraries(${target} ${ARMADILLO_LIBRARY})
+      target_link_libraries(${target} ${ARMADILLO_LIBRARY} -llapack -lblas)
   endfunction()
 
   function(target_depends_on_f2c target)
