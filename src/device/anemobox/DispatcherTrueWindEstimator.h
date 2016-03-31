@@ -17,7 +17,11 @@ class DispatcherTrueWindEstimator {
   bool loadCalibration(const std::string& path);
   bool loadCalibration(std::istream& file);
 
+  // Compute and publish using the default source name
   void compute() const;
+
+  // Compute and publish using a specific source name
+  void compute(const std::string &srcName) const;
 
   static const char* sourceName() { return "Anemomind estimator"; }
 

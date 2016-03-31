@@ -7,6 +7,78 @@
 
 namespace sail {
 
+
+namespace {
+class DispVisitor {
+ public:
+  DispVisitor(const Dispatcher *d, std::ostream *dst) : _d(d), _dst(dst) {}
+
+  template <DataCode Code, typename T>
+  void visit(const char *shortName, const std::string &sourceName,
+    const std::shared_ptr<DispatchData> &raw,
+    const TimedSampleCollection<T> &coll) {
+
+    *_dst << "\n  Channel of type " << shortName << " named "
+        << sourceName << " with " << coll.size() << " samples.";
+
+  }
+ private:
+  const Dispatcher *_d;
+  std::ostream *_dst;
+};
+
+}
+
+
+std::ostream &operator<<(std::ostream &s, const Dispatcher *d) {
+  s << "\nDispatcher:";
+  DispVisitor v(d, &s);
+  visitDispatcherChannelsConst<DispVisitor>(d, &v);
+  return s;
+}
+
+int countChannels(const Dispatcher *d) {
+  if (d == nullptr) {
+    return 0;
+  }
+  int counter = 0;
+  for (const auto &c: d->allSources()) {
+    counter += c.second.size();
+  }
+  return counter;
+}
+
+namespace {
+  class ValueCounterVisitor {
+  public:
+    ValueCounterVisitor() : counter(0) {}
+
+    template <DataCode Code, typename T>
+    void visit(const char *shortName, const std::string &sourceName,
+               const std::shared_ptr<DispatchData> &raw,
+               const TimedSampleCollection<T> &coll) {
+      counter += coll.size();
+    }
+
+    int counter;
+  };
+}  
+
+int countValues(const Dispatcher *d) {
+  ValueCounterVisitor visitor;
+  visitDispatcherChannelsConst<ValueCounterVisitor>(d, &visitor);
+  return visitor.counter;
+}
+
+std::ostream &operator<<(std::ostream &s, const Dispatcher &d) {
+  return (s << &d);
+}
+
+std::ostream &operator<<(std::ostream &s, const std::shared_ptr<Dispatcher> &d) {
+  return (s << d.get());
+}
+
+
 namespace {
 
   template <typename T>
@@ -205,6 +277,141 @@ std::shared_ptr<DispatchData> mergeChannels(DataCode code,
   }
   return std::shared_ptr<DispatchData>();
 }
+
+
+void copyPriorities(Dispatcher *src, Dispatcher *dst) {
+  for (auto kv: src->sourcePriority()) {
+    dst->setSourcePriority(kv.first, kv.second);
+  }
+}
+
+namespace {
+  class FilterVisitor {
+   public:
+    FilterVisitor(Dispatcher *src,
+        DispatcherChannelFilterFunction f, bool includePrios) :
+        _src(src), _dst(new Dispatcher()), _f(f), _includePrios(includePrios) {}
+
+    template <DataCode Code, typename T>
+    void visit(const char *shortName, const std::string &sourceName,
+      const std::shared_ptr<DispatchData> &raw,
+      const TimedSampleCollection<T> &coll) {
+      bool x = _f(Code, sourceName);
+      if (x) {
+        _dst->set(Code, sourceName, raw);
+      }
+      if (x || _includePrios) {
+        _dst->setSourcePriority(sourceName, _src->sourcePriority(sourceName));
+      }
+    }
+
+    Dispatcher *get() {return _dst;}
+   private:
+    DispatcherChannelFilterFunction _f;
+    Dispatcher *_src, *_dst;
+    bool _includePrios;
+  };
+}
+
+
+std::shared_ptr<Dispatcher> filterChannels(Dispatcher *src,
+  DispatcherChannelFilterFunction f, bool includePrios) {
+  FilterVisitor v(src, f, includePrios);
+  visitDispatcherChannels(src, &v);
+  return std::shared_ptr<Dispatcher>(v.get());
+}
+
+std::shared_ptr<Dispatcher> shallowCopy(Dispatcher *src) {
+  return filterChannels(src, [&](DataCode c, const std::string &srcName) {
+    return true;
+  }, true);
+}
+
+
+namespace {
+  struct ChannelInfo {
+   ChannelInfo(const std::string &n, DataCode c) : name(n), code(c) {}
+
+   std::string name;
+   DataCode code;
+
+   typedef std::shared_ptr<ChannelInfo> Ptr;
+  };
+
+  class ValueToPublish {
+   public:
+    virtual TimeStamp time() = 0;
+    virtual void publish(ReplayDispatcher2 *dst) = 0;
+    virtual ~ValueToPublish() {}
+
+    virtual const ChannelInfo::Ptr &info() const = 0;
+
+    typedef std::shared_ptr<ValueToPublish> Ptr;
+  };
+
+  bool before(const ValueToPublish::Ptr &a, const ValueToPublish::Ptr &b) {
+    return a->time() < b->time();
+  }
+
+  template <typename T>
+  class ValueToPublishT : public ValueToPublish {
+   public:
+    ValueToPublishT(
+        const ChannelInfo::Ptr &info,
+        const TimedValue<T> &x) : _info(info), _x(x) {}
+
+    TimeStamp time() override {return _x.time;}
+
+    void publish(ReplayDispatcher2 *dst) {
+      dst->publishTimedValue<T>(_info->code, _info->name, _x);
+    }
+
+    const ChannelInfo::Ptr &info() const override {return _info;}
+   private:
+    ChannelInfo::Ptr _info;
+    TimedValue<T> _x;
+  };
+
+  class ValueCollector {
+   public:
+    ValueCollector(std::vector<ValueToPublish::Ptr> *dst) : _dst(dst) {}
+
+    template <DataCode Code, typename T>
+    void visit(const char *shortName, const std::string &sourceName,
+      const std::shared_ptr<DispatchData> &raw,
+      const TimedSampleCollection<T> &coll) {
+
+      auto info = std::make_shared<ChannelInfo>(sourceName, Code);
+
+      for (auto x: coll.samples()) {
+        _dst->push_back(std::make_shared<ValueToPublishT<T> >(info, x));
+      }
+    }
+
+   private:
+   std::vector<ValueToPublish::Ptr> *_dst;
+  };
+}
+
+void ReplayDispatcher2::replay(const Dispatcher *other, 
+                               const std::function<void(DataCode, const std::string &src)> &cb) {
+  if (other == nullptr) {
+    return;
+  }
+
+  std::vector<ValueToPublish::Ptr> allValues;
+  ValueCollector collector(&allValues);
+  visitDispatcherChannelsConst(other, &collector);
+  std::sort(allValues.begin(), allValues.end(), before);
+  for (auto x: allValues) {
+    x->publish(this);
+    if (cb) {
+      auto c = x->info();
+      cb(c->code, c->name);
+    }
+  }
+}
+
 
 
 }

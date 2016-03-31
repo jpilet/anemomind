@@ -11,6 +11,25 @@
 
 namespace sail {
 
+/*
+
+// TODO: Rename it
+
+class VisitorTemplate {
+ public:
+
+  template <DataCode Code, typename T>
+  void visit(const char *shortName, const std::string &sourceName,
+    const std::shared_ptr<DispatchData> &raw,
+    const TimedSampleCollection<T> &coll) {
+
+      // TODO: write your code here
+
+  }
+};
+
+*/
+
 // Visit every channel of a Dispatcher, for side effects.
 template <typename Mapper>
 void visitDispatcherChannels(Dispatcher *dispatcher, Mapper *m) {
@@ -20,8 +39,10 @@ void visitDispatcherChannels(Dispatcher *dispatcher, Mapper *m) {
 
 #define TRY_TO_MAP(handle, code, shortname, type, description) \
   if (c == handle) {\
+    auto raw = kv.second;\
     m->template visit<handle, type >(shortname, kv.first, \
-        toTypedDispatchData<handle>(kv.second.get())->dispatcher()->values());\
+        raw, \
+        toTypedDispatchData<handle>(raw.get())->dispatcher()->values());\
   }\
 
   FOREACH_CHANNEL(TRY_TO_MAP)
@@ -33,41 +54,36 @@ void visitDispatcherChannels(Dispatcher *dispatcher, Mapper *m) {
 }
 
 
+// Visit every channel of a Dispatcher, for side effects.
+// Const version.
 template <typename Mapper>
-class MapperVisitor {
- public:
-  MapperVisitor(Mapper *m, Dispatcher *dst) : _m(m), _dst(dst) {}
-
-  template <DataCode Code, typename T>
-  void visit(const char *shortname, const std::string &srcName,
-      const typename TimedSampleCollection<T>::TimedVector &data) {
-    auto y = _m->template apply<Code, T>(data);
-    _dst->insertValues<T>(Code, srcName, y);
-  }
- private:
-  Dispatcher *_dst;
-  Mapper *_m;
-};
-
-// Visit every channel of the dispatcher, apply the Mapper to it, and return a new
-// dispatcher with all channels mapped.
-template <typename Mapper>
-std::shared_ptr<Dispatcher> mapDispatcherChannels(const std::shared_ptr<Dispatcher> &dispatcher,
-    Mapper *m) {
-  auto dst = std::make_shared<Dispatcher>();
-
-  // Setting the priorities should be done first!
+void visitDispatcherChannelsConst(const Dispatcher *dispatcher, Mapper *m) {
   for (const auto &codeAndSources: dispatcher->allSources()) {
     auto c = codeAndSources.first;
     for (const auto &kv: codeAndSources.second) {
-      dst->setSourcePriority(kv.first, dispatcher->sourcePriority(kv.first));
+
+#define TRY_TO_MAP(handle, code, shortname, type, description) \
+  if (c == handle) {\
+    auto raw = kv.second;\
+    m->template visit<handle, type >(shortname, kv.first, \
+        raw, \
+        toTypedDispatchData<handle>(raw.get())->dispatcher()->values());\
+  }\
+
+  FOREACH_CHANNEL(TRY_TO_MAP)
+
+#undef TRY_TO_MAP
+
     }
   }
-
-  MapperVisitor<Mapper> visitor(dispatcher, m);
-  visitDispatcherChannels(dispatcher, &visitor);
-  return dst;
 }
+
+int countChannels(const Dispatcher *d);
+int countValues(const Dispatcher *d);
+
+std::ostream &operator<<(std::ostream &s, const Dispatcher &d);
+std::ostream &operator<<(std::ostream &s, const Dispatcher *d);
+std::ostream &operator<<(std::ostream &s, const std::shared_ptr<Dispatcher> &d);
 
 // See also: toTypedDispatchData, which goes almost in opposite direction.
 template <DataCode Code>
@@ -87,6 +103,43 @@ std::shared_ptr<DispatchData> mergeChannels(DataCode code,
     const std::string &srcName,
     const std::map<std::string, int> &priorityMap,
     const std::map<std::string, std::shared_ptr<DispatchData> > &dispatcherMap);
+
+Array<std::string> getSourceNames(const Dispatcher &d);
+
+
+typedef std::function<bool(DataCode, const std::string&)>
+  DispatcherChannelFilterFunction;
+
+std::shared_ptr<Dispatcher> filterChannels(Dispatcher *src,
+  DispatcherChannelFilterFunction f, bool includePrios);
+std::shared_ptr<Dispatcher> shallowCopy(Dispatcher *src);
+
+void copyPriorities(Dispatcher *src, Dispatcher *dst);
+
+typedef std::function<void(const std::shared_ptr<Dispatcher> &,
+        DataCode, const std::string &)> ReplayVisitor;
+
+
+class ReplayDispatcher2 : public Dispatcher {
+ public:
+   TimeStamp currentTime() override {
+     return _currentTime;
+   }
+
+   template <typename T>
+     void publishTimedValue(DataCode code, const std::string& source,
+                            TimedValue<T> value) {
+     _currentTime = value.time;
+     publishValue<T>(code, source, value.value);
+   }
+
+   void replay(const Dispatcher *other, 
+               const std::function<void(DataCode, const std::string &src)> &cb
+               = std::function<void(DataCode, const std::string &src)>());
+ private:
+   TimeStamp _currentTime;
+ };
+ 
 
 }
 

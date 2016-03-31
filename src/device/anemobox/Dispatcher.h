@@ -206,7 +206,7 @@ class Dispatcher : public Clock {
   const std::map<DataCode, std::shared_ptr<DispatchData>>& dispatchers()
     const { return _currentSource; }
 
-  const std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>> &allSources() {
+  const std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>> &allSources() const {
     return _data;
   }
 
@@ -315,6 +315,8 @@ class Dispatcher : public Clock {
   boost::signals2::signal<void(DispatchData*)> newDispatchData;
   boost::signals2::signal<void(DispatchData*)> dataSwitchedSource;
 
+  void set(DataCode code, const std::string &srcName,
+      const std::shared_ptr<DispatchData> &d);
  private:
   static Dispatcher *_globalInstance;
 
@@ -323,7 +325,7 @@ class Dispatcher : public Clock {
   // _currentSource contains the proxies of different types.
   std::map<DataCode, std::shared_ptr<DispatchData>> _currentSource;
 
-std::map<std::string, int> _sourcePriority;
+  std::map<std::string, int> _sourcePriority;
 };
 
 // A convenient visitor to subscribe to any dispatch data type.

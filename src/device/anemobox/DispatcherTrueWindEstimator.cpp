@@ -46,6 +46,10 @@ bool DispatcherTrueWindEstimator::loadCalibration(std::istream& file) {
 }
 
 void DispatcherTrueWindEstimator::compute() const {
+  compute(sourceName());
+}
+
+void DispatcherTrueWindEstimator::compute(const std::string &srcName) const {
   Angle<> twdir;
   Angle<> twa;
   Velocity<> tws;
@@ -63,12 +67,12 @@ void DispatcherTrueWindEstimator::compute() const {
     twdir = calcTwdir(wind);
     tws = wind.norm();
 
-    _dispatcher->publishValue(TWDIR, sourceName(), twdir);
-    _dispatcher->publishValue(TWS, sourceName(), tws);
+    _dispatcher->publishValue(TWDIR, srcName, twdir);
+    _dispatcher->publishValue(TWS, srcName, tws);
 
     // Todo: compute TWA with TrueWindEstimator.
     twa = (twdir - _filter.gpsBearing());
-    _dispatcher->publishValue(TWA, sourceName(), twa);
+    _dispatcher->publishValue(TWA, srcName, twa);
   } else {
     if (!_dispatcher->get<TWA>()->dispatcher()->hasValue()
         || !_dispatcher->get<TWS>()->dispatcher()->hasValue()) {
@@ -84,7 +88,7 @@ void DispatcherTrueWindEstimator::compute() const {
     // getVmgTarget returns -1 when the value is invalid. In this case,
     // nothing should be published.
     if (targetVmg.knots() >= 0) {
-      _dispatcher->publishValue(TARGET_VMG, sourceName(), targetVmg);
+      _dispatcher->publishValue(TARGET_VMG, srcName, targetVmg);
     }
   }
 
@@ -93,7 +97,7 @@ void DispatcherTrueWindEstimator::compute() const {
   Velocity<> boatSpeed = _filter.gpsSpeed();
 
   Velocity<> vmg = cos(twa) * boatSpeed;
-  _dispatcher->publishValue(VMG, sourceName(), vmg);
+  _dispatcher->publishValue(VMG, srcName, vmg);
 }
 
 }  // namespace sail
