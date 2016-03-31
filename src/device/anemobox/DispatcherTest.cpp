@@ -1,8 +1,13 @@
 #include <device/anemobox/Dispatcher.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gmock/gmock-matchers.h>
+#include <gmock/gmock-more-matchers.h>
 
 using namespace sail;
+
+using ::testing::ResultOf;
+using ::testing::DoubleEq;
 
 TEST(DispatcherTest, SingleValTest) {
   Dispatcher dispatcher;
@@ -63,3 +68,28 @@ TEST(DispatcherTest, InsertValues) {
   EXPECT_NEAR(16, dispatcher.val<AWA>().degrees(), 1e-6);
 }
 
+class MockListener : public Listener<Angle<>> {
+public:
+    MOCK_METHOD1(onNewValue, void(const ValueDispatcher<Angle<>> &));
+};
+
+double degrees(const ValueDispatcher<Angle<>>& d) {
+    EXPECT_TRUE(d.hasValue());
+    return d.lastValue().degrees();
+}
+
+TEST(DispatcherTest, Publish) {
+    Dispatcher dispatcher;
+    MockListener listener;
+    dispatcher.get<AWA>()->dispatcher()->subscribe(&listener);
+    
+    EXPECT_CALL(listener, onNewValue(ResultOf(degrees, DoubleEq(7))));
+    dispatcher.publishValue(AWA, "test", Angle<>::degrees(7));
+    
+    // Different channel, should not call onNewValue
+    dispatcher.publishValue(GPS_BEARING, "test", Angle<>::degrees(3));
+
+    // Second value on AWA channel, should call onNewValue
+    EXPECT_CALL(listener, onNewValue(ResultOf(degrees, DoubleEq(9))));
+    dispatcher.publishValue(AWA, "test", Angle<>::degrees(9));
+}

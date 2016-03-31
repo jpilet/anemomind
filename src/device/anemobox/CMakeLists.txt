@@ -21,6 +21,7 @@ target_link_libraries(anemobox_Dispatcher
 cxx_test(anemobox_DispatcherTest DispatcherTest.cpp
          anemobox_Dispatcher
          gtest_main
+         gmock
         )
 
 add_library(anemobox_Nmea0183Source
