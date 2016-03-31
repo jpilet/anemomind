@@ -24,7 +24,9 @@ namespace {
 // when we are doing a replay.
 TEST(SimulateBox, Replay) {
 
-  ReplayDispatcher2 d;
+  ReplayDispatcher2 d(
+      Duration<double>::seconds(0.1),
+      Duration<double>::milliseconds(20));
 
   /*    AWA, AWS, GPS_SPEED, GPS_BEARING,
       WAT_SPEED, MAG_HEADING*/
@@ -59,7 +61,8 @@ TEST(SimulateBox, Replay) {
   std::vector<int> expectedCounts{13, 12};
 
 
-  ReplayDispatcher2 d2;
+  ReplayDispatcher2 d2(Duration<double>::seconds(0.1),
+      Duration<double>::milliseconds(20));
   replayDispatcherTrueWindEstimator(&d, &d2, [&]() {
       EXPECT_FALSE(expectedCounts.empty());
 

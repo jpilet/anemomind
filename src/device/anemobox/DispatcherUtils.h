@@ -122,6 +122,9 @@ typedef std::function<void(const std::shared_ptr<Dispatcher> &,
 
 class ReplayDispatcher2 : public Dispatcher {
  public:
+  ReplayDispatcher2(const Duration<double> &notificationPeriod,
+      const Duration<double> &delayAfterPublish);
+
    TimeStamp currentTime() override {
      return _currentTime;
    }
@@ -130,14 +133,24 @@ class ReplayDispatcher2 : public Dispatcher {
      void publishTimedValue(DataCode code, const std::string& source,
                             TimedValue<T> value) {
      _currentTime = value.time;
+     notifyAllIfScheduled();
      publishValue<T>(code, source, value.value);
+     scheduleNextNotificationAfterPublishing();
    }
 
    void replay(const Dispatcher *other, 
                const std::function<void(DataCode, const std::string &src)> &cb
                = std::function<void(DataCode, const std::string &src)>());
+
+   void subscribe(const std::function<void(void)> &listener);
+   void unsubscribeLast();
  private:
-   TimeStamp _currentTime;
+   void notifyAllIfScheduled();
+   void notifyAll();
+   void scheduleNextNotificationAfterPublishing();
+   TimeStamp _currentTime, _scheduledNotificationTime;
+   Duration<double> _notificationPeriod, _delayAfterPublish;
+   std::vector<std::function<void()> > _listeners;
  };
  
 

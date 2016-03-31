@@ -393,6 +393,12 @@ namespace {
   };
 }
 
+ReplayDispatcher2::ReplayDispatcher2(
+    const Duration<double> &notificationPeriod,
+    const Duration<double> &delayAfterPublish) :
+      _notificationPeriod(notificationPeriod),
+      _delayAfterPublish(delayAfterPublish) {}
+
 void ReplayDispatcher2::replay(const Dispatcher *other, 
                                const std::function<void(DataCode, const std::string &src)> &cb) {
   if (other == nullptr) {
@@ -405,12 +411,40 @@ void ReplayDispatcher2::replay(const Dispatcher *other,
   std::sort(allValues.begin(), allValues.end(), before);
   for (auto x: allValues) {
     x->publish(this);
-    if (cb) {
-      auto c = x->info();
-      cb(c->code, c->name);
-    }
+  }
+  notifyAll();
+}
+
+void ReplayDispatcher2::subscribe(const std::function<void(void)> &listener) {
+  _listeners.push_back(listener);
+}
+
+void ReplayDispatcher2::unsubscribeLast() {
+  _listeners.pop_back();
+}
+
+void ReplayDispatcher2::notifyAllIfScheduled() {
+  if (_scheduledNotificationTime.defined()
+      && _currentTime.defined() &&
+      _scheduledNotificationTime <= _currentTime) {
+    notifyAll();
   }
 }
+
+void ReplayDispatcher2::notifyAll() {
+  for (auto x: _listeners) {
+    x();
+  }
+  _scheduledNotificationTime = _currentTime + _notificationPeriod;
+}
+
+
+void ReplayDispatcher2::scheduleNextNotificationAfterPublishing() {
+  auto next = _currentTime + _delayAfterPublish;
+  _scheduledNotificationTime = _scheduledNotificationTime.defined()?
+      std::max(_scheduledNotificationTime, next) : next;
+}
+
 
 
 
