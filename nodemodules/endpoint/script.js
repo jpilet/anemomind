@@ -3,6 +3,7 @@ var msgpack = require('msgpack-js');
 var bigint = require('./bigint.js');
 var fs = require('fs');
 var exec = require('child_process').exec;
+var assert = require('assert');
 
 function validScriptType(type) {
   return type == "sh" || type == "js";
@@ -99,15 +100,25 @@ function sendResponse(endpoint, dst, data, cb) {
   endpoint.sendPacket(dst, common.scriptResponse, packScriptResponse(data), cb);
 }
 
+//assert(typeof eval('module.exports.k = 9; function() {}') == 'function');
 
 function executeAndRespondJS(reqCode, endpoint, script, packet, cb) {
   try {
     var sendTheResponse = function(data) {
       sendResponse(endpoint, packet.src, data, cb);
     }
+
+    // 'main' is the last evaluated expression of all the code in 'script'
+    // TODO: This is really not safe. Any code in 'script' has access
+    // to the scope of this comment. So we should consider writing 'script'
+    // to a file and require it, then execute any exported symbols.
     var main = eval(script);
+
     if (!(typeof main == "function")) {
-      sendtheResponse({reqCode: reqCode, err: 'The script must return a functionto be evaluated'});
+      sendtheResponse({
+        reqCode: reqCode, 
+        err: 'The script must return a function to be evaluated'
+      });
     } else {
       main(function(err, result) {
         if (err) {
@@ -131,7 +142,7 @@ function executeAndRespondSH(reqCode, endpoint, script, packet, cb) {
       function (error, stdout, stderr) {
         sendTheResponse({reqCode: reqCode, err:error, stdout: stdout, stderr: stderr});
       });
-  } catch (e) {p
+  } catch (e) {
     sendTheResponse({reqCode: reqCode, err: ('' + e)});
   }
 }

@@ -1,6 +1,7 @@
 var bigint = require('./bigint.js');
 var assert = require('assert');
 var Q = require('q');
+var fs = require('fs');
 
 module.exports.ack = 127;
 module.exports.logfile = 128;
@@ -130,6 +131,15 @@ function pfwrap(x) {
   return Q.promised(fwrap(x));
 }
 
+function exists(p) {
+  return Q.nfcall(fs.access, p, fs.F_OK)
+    .then(function(x) {
+      return true;
+    }).catch(function(e) {
+      return false;
+    });
+}
+
 module.exports.isCounter = isCounter; 
 module.exports.isIdentifier = isIdentifier;
 module.exports.isValidEndpointName = isValidEndpointName;
@@ -143,3 +153,4 @@ module.exports.argsToArray = argsToArray;
 module.exports.withException = withException;
 module.exports.fwrap = fwrap;
 module.exports.pfwrap = pfwrap;
+module.exports.exists = exists;
