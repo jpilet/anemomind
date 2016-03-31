@@ -5,6 +5,7 @@ angular.module('www2App')
     $scope.isAdmin = Auth.isAdmin;
 
     $scope.remoteCommand = '';
+    $scope.ugradeVersion = undefined;
 
     $scope.boats = boatList.boats();
     $scope.$on('boatList:updated', function(event, boats) {
@@ -59,5 +60,8 @@ angular.module('www2App')
         }
       );
     };
+
+    $scope.updateBoats = function() {
+    }
 
   });

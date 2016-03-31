@@ -36,4 +36,10 @@
     <button class="btn btn-default" ng-click="sendCommand('js')">Run javascript on selected boats</button>
   </div>
 
+  <div class="form-group">
+    <input type="text" class="form-control" placeholder="firmware version" ng-model="upgradeVersion">
+    <button class="btn btn-default" ng-click="updateBoats()">Update selected boats to this version</button>
+
+  </div>
+
 </div>

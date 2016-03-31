@@ -8,6 +8,7 @@
 var BoxExec = require('./boxexec.model');
 var RemoteOps = require('./remoteOps');
 var BundleUtils = require('./bundleutils');
+var Boat = require('../boat/boat.model');
 
 // Gets a list of Boxexecs
 exports.index = function(req, res) {
@@ -58,48 +59,75 @@ function isFresh(file, maxAgeSeconds) {
   return deferred;
 }
 
+function removeIfExists(file) {
+  var deferred = $q.defer();
+  fs.unlink(file, function(err) {
+    deferred.resolve(file);
+  });
+  return deferred;
+}
+
 function createSendBundleFile(req, res) {
-  if (!req.body.boatId
-      || !req.body.bundleSettings
-      || !req.body.bundleSettings.version) {
+  if (!req.body.boatId) {
     res.status(400).send("Bad bundle settings");
   }
 
   var boatId = req.body.boatId;
 
-  var sendFile = function(file) {
-    RemoteOps.sendBoatData(boatId, file, '/tmp/bundle', function(err, result) {
-      if (err) {
-        res.status(500).send("sendBoatData failed: " + err);
-      } else {
-        res.status(200).send();
-      }
-    });
-  };
+  Boat.findById(boatId, function (err, boat) {
+    if (err) {
+      return res.status(404).send(err);
+    }
 
-  var file = '/tmp/bundle-'
-    + BundleUtils.makeVersionString(req.body.bundleSettings.version);
-  var inprogress = file + '-in-progress';
+    var installedVersion = boat.firmwareVersion;
 
-  // Is the file recent enough?
-  isFresh(file).then(
-     sendFile, // fresh
-     function() { // not fresh
-       BundleUtils.makeBundle({
-         localBundleFilename: inprogress,
-         version: req.body.bundleSettings.version})
-       .then(function() {
-           // bundle created, rename the file to ensure atomic creation
-           fs.rename(inprogress, file, function(err) {
-             sendFile(file);
-           });
-         },
-         function(err) {
-           res.status(500).send(err);
-         }
-       );
-     }
-   );
+    if (!installedVersion) {
+      return res.status(401).send(
+          "Do not know what is the firmware version installed on " + boat.name);
+    }
+
+    var sendFile = function(file) {
+      RemoteOps.sendBoatData(boatId, file, '/tmp/bundle', function(err, result) {
+        if (err) {
+          res.status(500).send("sendBoatData failed: " + err);
+        } else {
+          res.status(200).send();
+        }
+      });
+    };
+
+    var file = '/tmp/bundle-'
+      + BundleUtils.makeVersionString(req.body.bundleSettings.version);
+    var inprogress = file + '-in-progress';
+
+    // Is the file recent enough?
+    isFresh(file, 5 * 60).then(
+       sendFile, // fresh
+       function() { // not fresh
+         Q.all([
+           // clean old file
+           removeIfExists(file),
+           // compute the new one in parallel
+           BundleUtils.makeBundle(inprogress, { from: installedVersion })
+         ]).then(
+           function() {
+             // bundle created, rename the file to ensure atomic creation
+             fs.rename(inprogress, file, function(err) {
+               if (err) {
+                 res.status(500).send("Failed to rename " + inprogress
+                                      + " to " + file);
+               } else {
+                 sendFile(file);
+               }
+             });
+           },
+           function(err) {
+             res.status(500).send(err);
+           }
+         );
+       }
+     );
+  });
 }
 
 exports.create = function(req, res) {
