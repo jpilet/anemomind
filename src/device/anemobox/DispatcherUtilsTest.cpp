@@ -45,7 +45,73 @@ TEST(DispatcherUtilsTest, Merging) {
     EXPECT_NEAR((values[1].time - offset).seconds(), 1233.0, 1.0e-6);
     EXPECT_NEAR(values[1].value.knots(), 13.0, 1.0e-6);
   }
+}
 
+
+TEST(DispatcherUtilsTest, Replay) {
+  Dispatcher d;
+  auto offset = TimeStamp::UTC(2016, 3, 19, 14, 19, 0);
+  auto seconds = Duration<double>::seconds(1.0);
+  auto degrees = Angle<double>::degrees(1.0);
+
+  typedef Angle<double> T;
+
+  TimedSampleCollection<T>::TimedVector values;
+  for (int i = 0; i < 9; i++) {
+    double x = i;
+    values.push_back(TimedValue<T>(offset + x*seconds, x*degrees));
+  }
+
+  d.insertValues<T>(AWA, "src", values);
+
+  class AwaListener : public Listener<Angle<double> > {
+  public:
+    AwaListener(Dispatcher *src, Dispatcher *dst) : _src(src), _dst(dst), _counter(0) {}
+
+    void onNewValue(const ValueDispatcher<Angle<double> > &dispatcher) {
+      _counter++;
+      auto data = toTypedDispatchData<AWA>(_dst->allSources()
+                                           .find(AWA)->second.find("src")->second.get())
+        ->dispatcher()->values().samples();
+
+      EXPECT_EQ(_counter, data.size());
+      _dst->publishValue<T>(AWA, "dst", 3.0*data.back().value);
+    }
+
+    Dispatcher *_src, *_dst;
+    int _counter;
+  };
+
+  ReplayDispatcher2 d2;
+  AwaListener awaListener(&d, &d2);
+  d2.get<AWA>()->dispatcher()->subscribe(&awaListener);
+  d2.replay(&d);
+
+  EXPECT_EQ(9, awaListener._counter);
+
+  auto awaSrc = toTypedDispatchData<AWA>(
+      d2.allSources().find(AWA)->second.find("src")
+      ->second.get())->dispatcher()->values().samples();
+  auto awaDst = toTypedDispatchData<AWA>(
+      d2.allSources().find(AWA)->second.find("dst")
+      ->second.get())->dispatcher()->values().samples();
+
+  EXPECT_EQ(awaSrc.size(), awaDst.size());
+  for (int i = 0; i < awaSrc.size(); i++) {
+    auto x = awaSrc[i];
+    auto y = awaDst[i];
+    EXPECT_EQ(x.time, y.time);
+    EXPECT_NEAR(x.value.degrees()*3, y.value.degrees(), 0.001);
+  }
+
+  EXPECT_EQ(countChannels(&d2), 2);
+
+  auto d3 = filterChannels(&d2, [&](DataCode c, const std::string &src) {
+    return src == "src";
+    }, true);
+  
+  EXPECT_EQ(countChannels(&d2), 2);
+  EXPECT_EQ(countChannels(d3.get()), 1);
 
 }
 

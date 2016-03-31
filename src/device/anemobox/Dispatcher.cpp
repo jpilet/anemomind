@@ -83,4 +83,10 @@ Dispatcher *Dispatcher::global() {
       _sourcePriority[source] = priority;
     }
   }
+
+  void Dispatcher::set(DataCode code, const std::string &srcName,
+      const std::shared_ptr<DispatchData> &d) {
+    _data[code][srcName] = d;
+  }
+
 }  // namespace sail
