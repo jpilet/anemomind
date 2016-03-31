@@ -138,12 +138,12 @@ class ReplayDispatcher2 : public Dispatcher {
      scheduleNextNotificationAfterPublishing();
    }
 
-   void replay(const Dispatcher *other, 
-               const std::function<void(DataCode, const std::string &src)> &cb
-               = std::function<void(DataCode, const std::string &src)>());
-
+   void replay(const Dispatcher *src);
    void subscribe(const std::function<void(void)> &listener);
    void unsubscribeLast();
+
+   void replayWithSubscriber(const Dispatcher *src,
+       const std::function<void(void)> &listener);
  private:
    void notifyAllIfScheduled();
    void notifyAll();

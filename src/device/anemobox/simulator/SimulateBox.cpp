@@ -59,17 +59,6 @@ bool SimulateBox(std::istream& boatDat, Array<Nav> *navs) {
 }
 
 
-void replayDispatcherTrueWindEstimator(Dispatcher *src,
-                                       ReplayDispatcher2 *replay, 
-                                       std::function<void()> cb) {
-
-  int counter = 0;
-  replay->subscribe(cb);
-  replay->replay(src);
-  replay->unsubscribeLast();
-}
-
-
 NavDataset SimulateBox(std::istream& boatDat, const NavDataset &ds) {
   // This code is just a concept. To be unit tested in a subsequent PR.
   *((unsigned int*)nullptr) = 0xDEADBEEF;
@@ -83,8 +72,9 @@ NavDataset SimulateBox(std::istream& boatDat, const NavDataset &ds) {
   }
   auto srcName = std::string("Simulated ") + estimator.sourceName();
   auto src = ds.dispatcher().get();
-  replayDispatcherTrueWindEstimator(src, replay,
-                                    [&]() {estimator.compute(srcName);});
+
+  replay->replayWithSubscriber(src, [&]() {estimator.compute(srcName);});
+
   copyPriorities(src, replay);
   replay->setSourcePriority(srcName, replay->sourcePriority(estimator.sourceName()) + 1);
   return NavDataset(std::shared_ptr<Dispatcher>(replay));

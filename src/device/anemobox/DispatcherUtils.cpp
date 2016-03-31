@@ -399,15 +399,14 @@ ReplayDispatcher2::ReplayDispatcher2(
       _notificationPeriod(notificationPeriod),
       _delayAfterPublish(delayAfterPublish) {}
 
-void ReplayDispatcher2::replay(const Dispatcher *other, 
-                               const std::function<void(DataCode, const std::string &src)> &cb) {
-  if (other == nullptr) {
+void ReplayDispatcher2::replay(const Dispatcher *src) {
+  if (src == nullptr) {
     return;
   }
 
   std::vector<ValueToPublish::Ptr> allValues;
   ValueCollector collector(&allValues);
-  visitDispatcherChannelsConst(other, &collector);
+  visitDispatcherChannelsConst(src, &collector);
   std::sort(allValues.begin(), allValues.end(), before);
   for (auto x: allValues) {
     x->publish(this);
@@ -422,6 +421,14 @@ void ReplayDispatcher2::subscribe(const std::function<void(void)> &listener) {
 void ReplayDispatcher2::unsubscribeLast() {
   _listeners.pop_back();
 }
+
+void ReplayDispatcher2::replayWithSubscriber(const Dispatcher *src,
+    const std::function<void(void)> &listener) {
+  subscribe(listener);
+  replay(src);
+  unsubscribeLast();
+}
+
 
 void ReplayDispatcher2::notifyAllIfScheduled() {
   if (_scheduledNotificationTime.defined()
