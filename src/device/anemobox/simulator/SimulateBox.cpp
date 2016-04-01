@@ -100,46 +100,6 @@ namespace {
 
     std::function<void()> _cb;
   };
-
-
-  class AllocAndSubscribeVisitor {
-  public:
-    AllocAndSubscribeVisitor(Dispatcher *dst,
-        const std::set<DataCode> &codes,
-        EventListener *l) :
-          _dst(dst), _codes(codes),
-          _l(l) {}
-
-    template <DataCode Code, typename T>
-    void visit(const char *shortName, const std::string &sourceName,
-      const std::shared_ptr<DispatchData> &raw,
-      const TimedSampleCollection<T> &coll) {
-      _dst->get<Code>()->dispatcher()->subscribe(_l);
-    }
-  private:
-    Dispatcher *_dst;
-    const std::set<DataCode> &_codes;
-    EventListener *_l;
-  };
-
-
-  // Please keep a reference to the return
-  // value of this function as long as you want to listen.
-  std::shared_ptr<EventListener> subscribeToData(
-      Dispatcher *src,
-      Dispatcher *dst,
-      const std::set<DataCode> &codes,
-      std::function<void()> cb) {
-
-    auto l = std::make_shared<EventListener>(cb);
-
-    AllocAndSubscribeVisitor v(dst, codes, l.get());
-    visitDispatcherChannels(src, &v);
-
-    return l;
-  }
-
-
 }
 
 
