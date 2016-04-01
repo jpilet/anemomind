@@ -162,7 +162,6 @@ Array<BoatSim::FullState> BoatSim::simulate(Duration<double> simulationDuration,
 BoatSim::TwaFunction BoatSim::makePiecewiseTwaFunction(
     Array<Duration<double> > durs,
     Array<Angle<double> > twa) {
-  int count = durs.size();
   Arrayd dursSeconds = toArray(map(durs, [](Duration<double> x) {return x.seconds();}));
   ProportionateIndexer indexer(dursSeconds);
   return [=](Duration<double> x) {

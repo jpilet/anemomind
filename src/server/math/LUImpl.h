@@ -187,7 +187,6 @@ void backsubst(MDArray<T, 2> R, MDArray<T, 2> C, MDArray<T, 2> &X) {
 // Eldén, Numeriska Beräkningar, page 211
 template <typename T>
 void solveLinearSystemLU(MDArray<T, 2> A, MDArray<T, 2> b, MDArray<T, 2> *xOut) {
-  T *xinit = xOut->ptr();
   MDArray<T, 2> LR, y;
   Array<int> P;
   decomposeLU<T>(A, &LR, &P);

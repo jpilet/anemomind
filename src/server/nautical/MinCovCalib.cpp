@@ -146,7 +146,7 @@ Arrayd getTimes(FilteredNavData data) {
 
 class ObjfOrientation {
  public:
-  ObjfOrientation(FilteredNavData data, Settings s) : _data(data), _settings(s),
+  ObjfOrientation(FilteredNavData data, Settings s) : _settings(s), _data(data),
     _residualCountPerPair(s.covarianceSettings.calcResidualCount(data.size())),
     _times(getTimes(data)) {}
 
