@@ -4,6 +4,7 @@
  */
 
 #include <device/anemobox/DispatcherUtils.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -18,8 +19,16 @@ class DispVisitor {
     const std::shared_ptr<DispatchData> &raw,
     const TimedSampleCollection<T> &coll) {
 
+    auto x = toTypedDispatchData<Code>(raw.get())->dispatcher();
+
     *_dst << "\n  Channel of type " << shortName << " named "
-        << sourceName << " with " << coll.size() << " samples.";
+        << sourceName << " with " << coll.size() << " samples with "
+        << x->listeners().size() << " listeners (";
+    for (const auto &y: x->listeners()) {
+      *_dst << y << " ";
+    }
+
+     *_dst << ")";
 
   }
  private:
@@ -393,11 +402,7 @@ namespace {
   };
 }
 
-ReplayDispatcher2::ReplayDispatcher2(
-    const Duration<double> &notificationPeriod,
-    const Duration<double> &delayAfterPublish) :
-      _notificationPeriod(notificationPeriod),
-      _delayAfterPublish(delayAfterPublish) {}
+ReplayDispatcher2::ReplayDispatcher2() : _counter(0) {}
 
 void ReplayDispatcher2::replay(const Dispatcher *src) {
   if (src == nullptr) {
@@ -411,48 +416,38 @@ void ReplayDispatcher2::replay(const Dispatcher *src) {
   for (auto x: allValues) {
     x->publish(this);
   }
-  notifyAll();
+  finishTimeouts();
 }
 
-void ReplayDispatcher2::subscribe(const std::function<void(void)> &listener) {
-  _listeners.push_back(listener);
-}
-
-void ReplayDispatcher2::unsubscribeLast() {
-  _listeners.pop_back();
-}
-
-void ReplayDispatcher2::replayWithSubscriber(const Dispatcher *src,
-    const std::function<void(void)> &listener) {
-  subscribe(listener);
-  replay(src);
-  unsubscribeLast();
-}
-
-
-void ReplayDispatcher2::notifyAllIfScheduled() {
-  if (_scheduledNotificationTime.defined()
-      && _currentTime.defined() &&
-      _scheduledNotificationTime <= _currentTime) {
-    notifyAll();
+void ReplayDispatcher2::setTimeout(std::function<void()> cb, double delayMS) {
+  if (_currentTime.defined()) {
+    _counter++;
+    auto next = _currentTime + Duration<double>::milliseconds(delayMS);
+    _timeouts.insert(Timeout{_counter, next, cb});
   }
 }
 
-void ReplayDispatcher2::notifyAll() {
-  for (auto x: _listeners) {
-    x();
+void ReplayDispatcher2::finishTimeouts() {
+  for (auto to: _timeouts) {
+    to.cb();
   }
-  _scheduledNotificationTime = _currentTime + _notificationPeriod;
+  _timeouts = std::set<Timeout>();
 }
 
-
-void ReplayDispatcher2::scheduleNextNotificationAfterPublishing() {
-  auto next = _currentTime + _delayAfterPublish;
-  _scheduledNotificationTime = _scheduledNotificationTime.defined()?
-      std::max(_scheduledNotificationTime, next) : next;
+void ReplayDispatcher2::visitTimeouts() {
+  std::vector<Timeout> toRemove;
+  if (_currentTime.defined()) {
+    for (auto to: _timeouts) {
+      if (to.time <= _currentTime) {
+        to.cb();
+        toRemove.push_back(to);
+      }
+    }
+  }
+  for (auto to: toRemove) {
+    _timeouts.erase(to);
+  }
 }
-
-
 
 
 }

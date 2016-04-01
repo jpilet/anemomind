@@ -24,7 +24,6 @@ TEST(HistgramTest, BasicMapping) {
 }
 
 TEST(HistgramTest, Counting) {
-  const double marg = 1.0e-6;
   HistogramMap<double, false> h(2, 1.0, 3.0);
   const int xn = 3;
   double xdata[xn] = {1.2, 1.3, 2.9};

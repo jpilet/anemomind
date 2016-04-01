@@ -203,7 +203,6 @@ class AbsCost {
     return (x < 0? -1 : 1);
   }
  private:
-  double _tao;
 };
 
 class SquareCost {

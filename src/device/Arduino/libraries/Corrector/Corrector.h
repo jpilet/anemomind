@@ -41,7 +41,7 @@ namespace sail {
   template <typename T>
   class SpeedCorrector {
    public:
-    SpeedCorrector(T k_, T m_, T c_, T alpha_) : k(k_), c(c_), m(m_), alpha(alpha_) {}
+    SpeedCorrector(T k_, T m_, T c_, T alpha_) : k(k_), m(m_), c(c_), alpha(alpha_) {}
     T k, m, c, alpha;
 
     SpeedCorrector() :

@@ -261,8 +261,6 @@ namespace BMGE {
 template <typename T>
 bool bandMatGaussElimDestructive(BandMat<T> *Aio, MDArray<T, 2> *Bio, double tol = 1.0e-6) {
   using namespace BMGE;
-  BandMat<T> &A = *Aio;
-  MDArray<T, 2> &B = *Bio;
   if (!eliminateForward(Aio, Bio, tol)) {
     *Aio = BandMat<T>();
     *Bio = MDArray<T, 2>();

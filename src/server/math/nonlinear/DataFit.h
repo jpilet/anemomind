@@ -126,7 +126,6 @@ void makeDataFromObservations(Array<Observation<Dim> > observations,
   assert(observations.size() == dataRows.count());
   assert(dataRows.dim() == Dim);
   assert(sampleCols.dim() == Dim);
-  int count = observations.size();
   for (auto i: dataRows.coordinateSpan()) {
     const Observation<Dim> &obs = observations[i];
     auto rowSpan = dataRows.span(i);

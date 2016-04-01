@@ -66,7 +66,7 @@ TEST(DispatcherUtilsTest, Replay) {
 
   class AwaListener : public Listener<Angle<double> > {
   public:
-    AwaListener(Dispatcher *src, Dispatcher *dst) : _src(src), _dst(dst), _counter(0) {}
+    AwaListener(Dispatcher *dst) : _dst(dst), _counter(0) {}
 
     void onNewValue(const ValueDispatcher<Angle<double> > &dispatcher) {
       _counter++;
@@ -78,13 +78,12 @@ TEST(DispatcherUtilsTest, Replay) {
       _dst->publishValue<T>(AWA, "dst", 3.0*data.back().value);
     }
 
-    Dispatcher *_src, *_dst;
+    Dispatcher *_dst;
     int _counter;
   };
 
-  ReplayDispatcher2 d2(Duration<double>::seconds(0.1),
-      Duration<double>::milliseconds(20));
-  AwaListener awaListener(&d, &d2);
+  ReplayDispatcher2 d2;
+  AwaListener awaListener(&d2);
   d2.get<AWA>()->dispatcher()->subscribe(&awaListener);
   d2.replay(&d);
 

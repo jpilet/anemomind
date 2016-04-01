@@ -124,7 +124,7 @@ namespace INTERNAL {
           Joint() : _left(-1), _middle(-1), _right(-1), _increase(NAN) {}
 
           Joint(int left, int middle, int right, Integral1d<QuadForm<N, 1> > itg) :
-            _left(left), _middle(middle), _right(right), _itg(itg) {
+            _itg(itg), _left(left), _middle(middle), _right(right) {
             computeIncrease();
           }
 

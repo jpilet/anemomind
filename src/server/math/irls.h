@@ -171,8 +171,8 @@ class BinaryConstraintGroup : public WeightingStrategy {
 
 class NonNegativeConstraint : public WeightingStrategy {
  public:
-  NonNegativeConstraint() : _index(-1), _lastWeight(0) {}
-  NonNegativeConstraint(int index) : _index(index), _lastWeight(0) {}
+  NonNegativeConstraint() : _lastWeight(0), _index(-1) {}
+  NonNegativeConstraint(int index) :  _lastWeight(0), _index(index) {}
   void apply(
     double constraintWeight,
     const Arrayd &residuals, QuadCompiler *dst) {
