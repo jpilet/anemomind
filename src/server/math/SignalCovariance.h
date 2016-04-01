@@ -113,8 +113,6 @@ T slidingWindowVariance(Arrayd time, Integral1d<T> X, Integral1d<T> X2, int wind
   WeightedValue<T> sum{T(0), T(0)};
   int windowCount = time.size() - windowSize;
 
-  auto maxWeight = T(0);
-  auto maxWeightedValue = T(0);
   for (int i = 0; i < windowCount; i++) {
     int from = i;
     int to = from + windowSize;
@@ -128,8 +126,8 @@ T slidingWindowVariance(Arrayd time, Integral1d<T> X, Integral1d<T> X2, int wind
 template <typename T>
 struct SignalData {
  SignalData(Arrayd times, Array<T> signal, Settings s) :
-   time(times), X(signal), itgX(signal), _variance(-1),
-   _windowSize(s.windowSize) {
+   time(times), X(signal), itgX(signal),
+   _windowSize(s.windowSize), _variance(-1) {
    assert(!isNaN(X));
  }
 

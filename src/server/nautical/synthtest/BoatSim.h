@@ -154,8 +154,8 @@ class BoatCharacteristics {
     halfTargetSpeedTime(Duration<double>::seconds(3.0)),
     rudderCorrectionCoef(2.0),
     rudderMaxAngle(Angle<double>::degrees(15)),
-    correctionThreshold(Angle<double>::degrees(5)),
     rudderFineTune(Angle<double>::degrees(1)),
+    correctionThreshold(Angle<double>::degrees(5)),
     boatReactiveness(20.0)
     {}
 

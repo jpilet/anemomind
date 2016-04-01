@@ -22,7 +22,8 @@ bool HNode::operator== (const HNode &other) const {
       && _description == other._description && _code == other._code;
 }
 
-HNode::HNode(int index, int parent, std::string code, std::string label) : _index(index), _parent(parent), _code(code), _description(label) {
+HNode::HNode(int index, int parent, std::string code, std::string label)
+    : _index(index), _parent(parent), _description(label), _code(code) {
 }
 
 namespace {

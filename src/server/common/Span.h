@@ -46,7 +46,6 @@ class Span {
   Span(T value) : _minv(value), _maxv(value), _initialized(true) {}
   Span(Array<T> arr) {
     _initialized = false;
-    int count = arr.size();
     for (auto e: arr) {
       extend(e);
     }
