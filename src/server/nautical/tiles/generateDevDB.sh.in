@@ -6,6 +6,12 @@
 #  mkdir /tmp/anemodb
 #  mongod --dbpath /tmp/anemodb
 #
+# or by doing
+#
+# mkdir www/db
+# cd www2
+# grunt serve:dev
+#
 
 set -e
 

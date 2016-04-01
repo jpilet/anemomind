@@ -92,6 +92,13 @@ sudo killall mongod
 mkdir /tmp/anemotestdb
 mongod --dbpath /tmp/anemotestdb
 ```
+or by doing
+```
+mkdir www/db
+cd www2
+grunt serve:dev
+```
+
 Then perform a build of the C++ code in your build directory (e.g. ```build```),
 and run 
 ```
