@@ -101,9 +101,10 @@ an outdated version of GCC. Instead, it is better to do this:
 git clone https://github.com/mongodb/mongo-cxx-driver.git
 cd mongo-cxx-driver
 git checkout legacy
-scons -j 20 --cache LINKFLAGS=-fuse-ld=gold CCFLAGS="-Wno-unused-variable -Wno-maybe-uninitialized"
-sudo scons -j 20 --cache LINKFLAGS=-fuse-ld=gold CCFLAGS="-Wno-unused-variable -Wno-maybe-uninitialized" --prefix="/usr" install
+scons -j 20 --cache LINKFLAGS=-fuse-ld=gold --c++11=on CCFLAGS="-Wno-unused-variable -Wno-maybe-uninitialized"
+sudo scons -j 20 --cache LINKFLAGS=-fuse-ld=gold --c++11=on CCFLAGS="-Wno-unused-variable -Wno-maybe-uninitialized" --prefix="/usr" install
 ```
+More information here: https://github.com/mongodb/mongo-cxx-driver/wiki/Download-and-Compile-the-Legacy-Driver#scons-options-when-compiling-the-c-driver. Note in particular that even if our code builds with this driver, it may still crash (with a segfault at runtime), in particular if **the C++ standard** differes between the different compiled code, as explained under *Important note about C++11/C++14*.
 
 ### Mac OSX
 TODO
