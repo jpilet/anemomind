@@ -6,6 +6,7 @@
 #include <fstream>
 #include <server/common/Functional.h>
 #include <server/common/Span.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -59,83 +60,85 @@ bool SimulateBox(std::istream& boatDat, Array<Nav> *navs) {
 }
 
 namespace {
-  void listInterestingTimeStamps(Dispatcher *d,
-                                 const std::set<DataCode> &triggeringCodes,
-                                 std::vector<TimeStamp> *dst) {
-    ReplayDispatcher2 replay;
-    replay.replay(d, [&](DataCode c, const std::string &src) {
-        if (triggeringCodes.count(c) == 1) {
-          dst->push_back(replay.currentTime());
-        }
-    });
-  }
 
+  class EventListener:
+    public Listener<Angle<double>>,
+    public Listener<Velocity<double>>,
+    public Listener<Length<double>>,
+    public Listener<GeographicPosition<double>>,
+    public Listener<TimeStamp>,
+    public Listener<AbsoluteOrientation> {
+   public:
+    EventListener(const std::function<void()> &cb) : _cb(cb) {}
 
-  Array<bool> makeTriggerMaskMin(const std::vector<TimeStamp> &ts, 
-                              const Duration<double> &period) {
-    auto last = ts.size() - 1;
-    return sail::map(Spani(0, ts.size()), ts, [&](int i, TimeStamp t) {
-        if (i == last) {
-          return true;
-        } else {
-          return period < (ts[i + 1] - t);
-        }
-      }).toArray();
-  }
-
-  Array<bool> makeTriggerMask(const std::vector<TimeStamp> &ts, 
-                              const Duration<double> &minPeriod,
-                              const Duration<double> &maxPeriod) {
-
-    // First make a minimum triggering mask, that triggers whenever
-    // it is at least 'minPeriod' to the next sample
-    auto mask = makeTriggerMaskMin(ts, minPeriod);
-
-    assert(mask.size() == ts.size());
-
-    // Then trigger a few more times, so that the sampling is ensured to be dense enough.
-    TimeStamp lastTriggered;
-    for (int i = 0; i < mask.size(); i++) {
-      if (mask[i]) {
-        lastTriggered = ts[i];
-      } else {
-        if (lastTriggered.defined() && (maxPeriod < ts[i] - lastTriggered)) {
-          mask[i] = true;
-          lastTriggered = ts[i];
-        }
-      }
+    void onNewValue(const ValueDispatcher<Angle<double> > &dispatcher) {
+      _cb();
     }
-    return mask;
-  }
-}
 
+    void onNewValue(const ValueDispatcher<Velocity<double> > &dispatcher) {
+      _cb();
+    }
 
-void replayDispatcherTrueWindEstimator(Dispatcher *src,
-                                       ReplayDispatcher2 *replay, 
-                                       std::function<void()> cb) {
+    void onNewValue(const ValueDispatcher<Length<double> > &dispatcher) {
+      _cb();
+    }
 
-  std::set<DataCode> triggeringCodes{
-    AWA, AWS, GPS_SPEED, GPS_BEARING,
-      WAT_SPEED, MAG_HEADING
+    void onNewValue(const ValueDispatcher<GeographicPosition<double> > &dispatcher) {
+      _cb();
+    }
+
+    void onNewValue(const ValueDispatcher<TimeStamp> &dispatcher) {
+      _cb();
+    }
+
+    void onNewValue(const ValueDispatcher<AbsoluteOrientation> &dispatcher) {
+      _cb();
+    }
+
+   private:
+    EventListener(const EventListener &other) = delete;
+
+    std::function<void()> _cb;
   };
-  
-  std::vector<TimeStamp> ts;
-  listInterestingTimeStamps(src, triggeringCodes, &ts);
-  auto mask = makeTriggerMask(ts, Duration<double>::milliseconds(20),
-                              Duration<double>::seconds(1.0));
-
-  int counter = 0;
-  replay->replay(src, [&](DataCode c, const std::string &src) {
-      if (triggeringCodes.count(c) == 1) {
-        if (mask[counter]) {
-          cb();
-        }
-      }
-      counter++;
-    });
-  assert(counter == ts.size());
 }
 
+
+
+// Inspired by the function 'start' in anemonode/components/estimator.js
+void generateComputeCallbacks(Dispatcher *src,
+    ReplayDispatcher2 *replayDispatcher,
+    std::function<void()> cb) {
+
+  bool timer = false;
+  auto update = [&]() {
+    if (!timer) {
+      timer = true;
+      replayDispatcher->setTimeout([&]() {
+        timer = false;
+        cb();
+      }, 20);
+    }
+  };
+
+  TimeStamp offset;
+
+  // Because a listener can only listen to one thing at a time,
+  // (see how the 'listentingTo_' is used in Listener<T>::listen)
+  // we need one listener per thing we want to listen to.
+#define SUBSCRIBE_CALLBACK(TYPE) \
+  EventListener TYPE##listener(update); \
+  replayDispatcher->get<TYPE>()->dispatcher()->subscribe(&TYPE##listener);
+
+  SUBSCRIBE_CALLBACK(AWA);
+  SUBSCRIBE_CALLBACK(AWS);
+  SUBSCRIBE_CALLBACK(GPS_SPEED);
+  SUBSCRIBE_CALLBACK(GPS_BEARING);
+  SUBSCRIBE_CALLBACK(WAT_SPEED);
+  SUBSCRIBE_CALLBACK(MAG_HEADING);
+#undef SUBSCRIBE_CALLBACK
+
+  replayDispatcher->replay(src);
+}
 
 NavDataset SimulateBox(std::istream& boatDat, const NavDataset &ds) {
   // This code is just a concept. To be unit tested in a subsequent PR.
@@ -148,8 +151,11 @@ NavDataset SimulateBox(std::istream& boatDat, const NavDataset &ds) {
   }
   auto srcName = std::string("Simulated ") + estimator.sourceName();
   auto src = ds.dispatcher().get();
-  replayDispatcherTrueWindEstimator(src, replay, 
-                                    [&]() {estimator.compute(srcName);});
+
+  generateComputeCallbacks(src, replay, [&]() {
+    estimator.compute(srcName);
+  });
+
   copyPriorities(src, replay);
   replay->setSourcePriority(srcName, replay->sourcePriority(estimator.sourceName()) + 1);
   return NavDataset(std::shared_ptr<Dispatcher>(replay));

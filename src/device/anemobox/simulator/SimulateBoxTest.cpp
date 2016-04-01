@@ -60,14 +60,14 @@ TEST(SimulateBox, Replay) {
 
 
   ReplayDispatcher2 d2;
-  replayDispatcherTrueWindEstimator(&d, &d2, [&]() {
-      EXPECT_FALSE(expectedCounts.empty());
 
-      auto e = expectedCounts.back();
-      expectedCounts.pop_back();
-      
-      EXPECT_EQ(e, countValues(&d2));
-    });
+  generateComputeCallbacks(&d,
+      &d2, [&]() {
+    EXPECT_FALSE(expectedCounts.empty());
+    auto e = expectedCounts.back();
+    expectedCounts.pop_back();
+    EXPECT_EQ(e, countValues(&d2));
+  });
 
   EXPECT_TRUE(expectedCounts.empty());
 

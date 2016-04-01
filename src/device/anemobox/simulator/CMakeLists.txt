@@ -24,6 +24,7 @@ target_link_libraries(anemobox_SimulateBox
                       anemobox_ReplayDispatcher
                       nautical_nav
                       nautical_NavDataset
+                      anemobox_Dispatcher
                      )
 
 cxx_test(anemobox_SimulateBoxTest

@@ -18,8 +18,16 @@ class DispVisitor {
     const std::shared_ptr<DispatchData> &raw,
     const TimedSampleCollection<T> &coll) {
 
+    auto x = toTypedDispatchData<Code>(raw.get())->dispatcher();
+
     *_dst << "\n  Channel of type " << shortName << " named "
-        << sourceName << " with " << coll.size() << " samples.";
+        << sourceName << " with " << coll.size() << " samples with "
+        << x->listeners().size() << " listeners (";
+    for (const auto &y: x->listeners()) {
+      *_dst << y << " ";
+    }
+
+     *_dst << ")";
 
   }
  private:
@@ -393,25 +401,52 @@ namespace {
   };
 }
 
-void ReplayDispatcher2::replay(const Dispatcher *other, 
-                               const std::function<void(DataCode, const std::string &src)> &cb) {
-  if (other == nullptr) {
+ReplayDispatcher2::ReplayDispatcher2() : _counter(0) {}
+
+void ReplayDispatcher2::replay(const Dispatcher *src) {
+  if (src == nullptr) {
     return;
   }
 
   std::vector<ValueToPublish::Ptr> allValues;
   ValueCollector collector(&allValues);
-  visitDispatcherChannelsConst(other, &collector);
+  visitDispatcherChannelsConst(src, &collector);
   std::sort(allValues.begin(), allValues.end(), before);
   for (auto x: allValues) {
     x->publish(this);
-    if (cb) {
-      auto c = x->info();
-      cb(c->code, c->name);
-    }
+  }
+  finishTimeouts();
+}
+
+void ReplayDispatcher2::setTimeout(std::function<void()> cb, double delayMS) {
+  if (_currentTime.defined()) {
+    _counter++;
+    auto next = _currentTime + Duration<double>::milliseconds(delayMS);
+    _timeouts.insert(Timeout{_counter, next, cb});
   }
 }
 
+void ReplayDispatcher2::finishTimeouts() {
+  for (auto to: _timeouts) {
+    to.cb();
+  }
+  _timeouts = std::set<Timeout>();
+}
+
+void ReplayDispatcher2::visitTimeouts() {
+  std::vector<Timeout> toRemove;
+  if (_currentTime.defined()) {
+    for (auto to: _timeouts) {
+      if (to.time <= _currentTime) {
+        to.cb();
+        toRemove.push_back(to);
+      }
+    }
+  }
+  for (auto to: toRemove) {
+    _timeouts.erase(to);
+  }
+}
 
 
 }

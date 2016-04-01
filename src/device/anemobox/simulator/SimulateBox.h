@@ -21,6 +21,10 @@ void replayDispatcherTrueWindEstimator(Dispatcher *src,
                                        ReplayDispatcher2 *replay, 
                                        std::function<void()> cb);
 
+void generateComputeCallbacks(Dispatcher *src,
+    ReplayDispatcher2 *replay,
+    std::function<void()> cb);
+
 NavDataset SimulateBox(std::istream& boatDat, const NavDataset &ds);
 
 }  // namespace sail

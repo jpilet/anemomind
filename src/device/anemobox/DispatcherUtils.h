@@ -22,10 +22,9 @@ class VisitorTemplate {
   void visit(const char *shortName, const std::string &sourceName,
     const std::shared_ptr<DispatchData> &raw,
     const TimedSampleCollection<T> &coll) {
-
       // TODO: write your code here
-
   }
+
 };
 
 */
@@ -122,6 +121,19 @@ typedef std::function<void(const std::shared_ptr<Dispatcher> &,
 
 class ReplayDispatcher2 : public Dispatcher {
  public:
+
+  struct Timeout {
+    int64_t id;
+    TimeStamp time;
+    std::function<void()> cb;
+
+    bool operator<(const Timeout &other) const {
+      return id < other.id;
+    }
+  };
+
+  ReplayDispatcher2();
+
    TimeStamp currentTime() override {
      return _currentTime;
    }
@@ -129,14 +141,29 @@ class ReplayDispatcher2 : public Dispatcher {
    template <typename T>
      void publishTimedValue(DataCode code, const std::string& source,
                             TimedValue<T> value) {
+
+     // Time can only move forward.
+     assert(!_currentTime.defined() || _currentTime <= value.time);
+
+     // This is the only way to advance time of this dispatcher.
+     // Consequently, we only need to visit the timeouts here.
      _currentTime = value.time;
+     visitTimeouts();
      publishValue<T>(code, source, value.value);
    }
 
-   void replay(const Dispatcher *other, 
-               const std::function<void(DataCode, const std::string &src)> &cb
-               = std::function<void(DataCode, const std::string &src)>());
+   void replay(const Dispatcher *src);
+   void setTimeout(std::function<void()> cb, double delayMS);
+
+   void finishTimeouts();
+
+   const std::set<Timeout> &getTimeouts() const {
+     return _timeouts;
+   }
  private:
+   void visitTimeouts();
+   int64_t _counter;
+   std::set<Timeout> _timeouts;
    TimeStamp _currentTime;
  };
  
