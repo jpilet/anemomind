@@ -125,16 +125,16 @@ void generateComputeCallbacks(Dispatcher *src,
   // Because a listener can only listen to one thing at a time,
   // (see how the 'listentingTo_' is used in Listener<T>::listen)
   // we need one listener per thing we want to listen to.
-#define SUBSCRIBE_CALLBACK(TYPE, CB) \
-  EventListener TYPE##listener(CB); \
+#define SUBSCRIBE_CALLBACK(TYPE) \
+  EventListener TYPE##listener(update); \
   replayDispatcher->get<TYPE>()->dispatcher()->subscribe(&TYPE##listener);
 
-  SUBSCRIBE_CALLBACK(AWA, update);
-  SUBSCRIBE_CALLBACK(AWS, update);
-  SUBSCRIBE_CALLBACK(GPS_SPEED, update);
-  SUBSCRIBE_CALLBACK(GPS_BEARING, update);
-  SUBSCRIBE_CALLBACK(WAT_SPEED, update);
-  SUBSCRIBE_CALLBACK(MAG_HEADING, update);
+  SUBSCRIBE_CALLBACK(AWA);
+  SUBSCRIBE_CALLBACK(AWS);
+  SUBSCRIBE_CALLBACK(GPS_SPEED);
+  SUBSCRIBE_CALLBACK(GPS_BEARING);
+  SUBSCRIBE_CALLBACK(WAT_SPEED);
+  SUBSCRIBE_CALLBACK(MAG_HEADING);
 #undef SUBSCRIBE_CALLBACK
 
   replayDispatcher->replay(src);

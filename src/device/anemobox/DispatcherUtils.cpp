@@ -4,7 +4,6 @@
  */
 
 #include <device/anemobox/DispatcherUtils.h>
-#include <server/common/logging.h>
 
 namespace sail {
 

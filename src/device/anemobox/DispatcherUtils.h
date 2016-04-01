@@ -148,10 +148,8 @@ class ReplayDispatcher2 : public Dispatcher {
      // This is the only way to advance time of this dispatcher.
      // Consequently, we only need to visit the timeouts here.
      _currentTime = value.time;
-
      visitTimeouts();
      publishValue<T>(code, source, value.value);
-     visitTimeouts();
    }
 
    void replay(const Dispatcher *src);
