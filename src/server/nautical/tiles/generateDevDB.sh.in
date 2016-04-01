@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# Before calling this script, ensure that a mongo server is running, e.g. by calling
+#
+#  sudo killall mongod
+#  mkdir /tmp/anemodb
+#  mongod --dbpath /tmp/anemodb
+#
+# or by doing
+#
+# mkdir www/db
+# cd www2
+# grunt serve:dev
+#
+
 set -e
 
 SRC_DIR="@CMAKE_SOURCE_DIR@"
@@ -32,7 +45,7 @@ for i in ${boats}; do
   fi
 
   echo "Processing boat log for ${i} (id ${boatid})"
-  "${BIN_DIR}/src/server/nautical/nautical_processBoatLogs" "${datasetsDir}/$i"
+  "${BIN_DIR}/src/server/nautical/nautical_processBoatLogs" --dir "${datasetsDir}/$i"
 
   echo "Generating tiles for ${i}"
   "${BIN_DIR}/src/server/nautical/tiles/tiles_generateAndUpload" \

@@ -43,7 +43,7 @@ The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
     libboost-thread-dev, libboost-dev
   * The following packages, used by POCO:
     libssl-dev, ~~unixodbc-dev, libmysqlclient-dev,~~ libkrb5-dev
-  * The following pacakges, used by Ceres: libeigen3-dev libsuitesparse-dev libcsparse2.2.3 libcxsparse2.2.3
+  * The following packages, used by Ceres: libeigen3-dev libsuitesparse-dev libcsparse2.2.3 libcxsparse2.2.3
   * Used by Armadillo: liblapack-dev, libblas-dev, libatlas3-base. See this page for help setting it up:
     http://danielnouri.org/notes/2012/12/19/libblas-and-liblapack-issues-and-speed,-with-scipy-and-ubuntu/
   * Armadillo
@@ -82,6 +82,31 @@ The following steps cover building and testing all the code:
   19. ```cd ../../src/device/anemobox/anemonode/```
   20. ```npm install```
   21. ```mocha```
+
+## Additional tests
+Some things are difficult to test with unit tests. The pipeline that 
+processes logs and upload tiles can be run, by first ensuring a that
+a clean mongo server is running either
+```
+sudo killall mongod
+mkdir /tmp/anemotestdb
+mongod --dbpath /tmp/anemotestdb
+```
+or by doing from the project root
+```
+mkdir www/db
+cd www2
+grunt serve:dev
+```
+
+Then perform a build of the C++ code in your build directory (e.g. ```build```),
+and run 
+```
+build/src/server/nautical/tiles$ sh generateDevDB.sh
+```
+Although this will not perform any correctness checks in particular, a great deal of the pipeline will nevertheless be run and it can therefore be a conventient tool when searching for bugs.
+
+If you used the second example for starting mongodb indirectly using grunt ```grunt serve:dev```, the result will be visible on http://localhost:9000.
 
 ## Platform specific notes
 
