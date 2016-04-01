@@ -86,13 +86,13 @@ The following steps cover building and testing all the code:
 ## Additional tests
 Some things are difficult to test with unit tests. The pipeline that 
 processes logs and upload tiles can be run, by first ensuring a that
-a clean mongo server is running:
+a clean mongo server is running either
 ```
 sudo killall mongod
 mkdir /tmp/anemotestdb
 mongod --dbpath /tmp/anemotestdb
 ```
-or by doing
+or by doing from the project root
 ```
 mkdir www/db
 cd www2
@@ -105,6 +105,8 @@ and run
 build/src/server/nautical/tiles$ sh generateDevDB.sh
 ```
 Although this will not perform any correctness checks in particular, a great deal of the pipeline will nevertheless be run and it can therefore be a conventient tool when searching for bugs.
+
+If you used the second example for starting mongodb indirectly using grunt ```grunt serve:dev```, the result will be visible on http://localhost:9000.
 
 ## Platform specific notes
 
