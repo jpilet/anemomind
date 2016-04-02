@@ -133,7 +133,12 @@ Spani getReliableSampleRange(Array<Observation<2> > observations_, Arrayb inlier
 }
 
 Results filter(NavDataset navs, Settings settings) {
+  if (getNavSize(navs) == 0) {
+    LOG(WARNING) << "No Navs to filter";
+    return Results();
+  }
   assert(std::is_sorted(getBegin(navs), getEnd(navs)));
+
   auto timeRef = getTimeReference(navs);
   auto geoRef = getGeographicReference(navs);
 
@@ -142,10 +147,15 @@ Results filter(NavDataset navs, Settings settings) {
   auto toTime = getLocalTime(timeRef, getLast(navs)) + marg;
   int sampleCount = 2 + int(floor((toTime - fromTime)/settings.samplingPeriod));
   Sampling sampling(sampleCount, fromTime.seconds(), toTime.seconds());
-  auto observations = getObservations(settings,
-      timeRef, geoRef, navs, sampling);
+  Array<Observation<2> > observations = filter(getObservations(settings,
+      timeRef, geoRef, navs, sampling), [](const Observation<2> &x) {
+    return x.isFinite();
+  });
 
-
+  if (observations.empty()) {
+    LOG(WARNING) << "No valid observations";
+    return Results();
+  }
 
   auto results = DataFit::quadraticFitWithInliers(sampleCount, observations,
       settings.inlierThreshold.meters(), 2, settings.regWeight, settings.irlsSettings);
@@ -202,6 +212,11 @@ GeographicPosition<double> Results::calcPosition(const Sampling::Weights &w) con
     Length<double>::meters(pos[0]),
     Length<double>::meters(pos[1])});
 }
+
+bool Results::defined() const {
+  return !Xmeters.empty();
+}
+
 
 
 }

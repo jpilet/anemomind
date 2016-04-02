@@ -138,21 +138,6 @@ NavDataset NavDataset::fitBounds() const {
   return NavDataset(_dispatcher, _merged, visitor.lowerBound(), visitor.upperBound());
 }
 
-namespace {
-
-  class SummaryVisitor {
-   public:
-    template <DataCode handle, typename T>
-    void visit(const char *shortname, const std::string &srcName,
-        const std::shared_ptr<DispatchData> &raw,
-        const TimedSampleCollection<T> &data) {
-      std::cout << "\n  * Channel of type " << shortname << " from source "
-          << srcName << " with " << data.size() << " values";
-    }
-  };
-
-}
-
 void NavDataset::outputSummary(std::ostream *dst) const {
   std::stringstream ss;
   *dst << "\n\nNavDataset summary:";
@@ -168,11 +153,19 @@ void NavDataset::outputSummary(std::ostream *dst) const {
   FOREACH_CHANNEL(DISP_CHANNEL)
 #undef DISP_CHANNEL
 
-  SummaryVisitor summaryVisitor;
-  *dst << "\nOriginal channels: ";
-  visitDispatcherChannels(_dispatcher.get(), &summaryVisitor);
+  *dst << "\nNavDataset internal dispatcher: ";
+  *dst << _dispatcher;
 
   *dst << "\n\n  * The following channels are not part of this dataset: " << ss.str() << "\n" << std::endl;
+}
+
+bool NavDataset::isDefaultConstructed() const {
+  return !_dispatcher;
+}
+
+std::ostream &operator<<(std::ostream &s, const NavDataset &ds) {
+  ds.outputSummary(&s);
+  return s;
 }
 
 const std::shared_ptr<DispatchData> &getMergedDispatchData(

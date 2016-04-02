@@ -81,21 +81,25 @@ namespace {
     saveTargetSpeedTableChunk(file, uw, dw);
   }
 
-  void makeBoatDatFile(
+  Array<Nav> makeBoatDatFile(
       bool debug,
-      NavDataset coll,
-      PathBuilder outdir, Array<Nav> navs,
+      NavDataset src,
+      PathBuilder outdir,
       std::shared_ptr<HTree> fulltree, Nav::Id boatId, WindOrientedGrammar g) {
     ENTERSCOPE("Output boat.dat with target speed data.");
     std::ofstream boatDatFile(outdir.makeFile("boat.dat").get().toString());
 
     Calibrator calibrator(g);
-    if (calibrator.calibrate(coll, fulltree, boatId)) {
-      calibrator.saveCalibration(&boatDatFile);
-      calibrator.simulate(&navs);
-    }
 
-    outputTargetSpeedTable(debug, fulltree, g.nodeInfo(), navs, &boatDatFile);
+    NavDataset simulated = src;
+    if (calibrator.calibrate(src, fulltree, boatId)) {
+      calibrator.saveCalibration(&boatDatFile);
+      simulated = calibrator.simulate(src);
+    }
+    auto sampled = makeArray(simulated);
+
+    outputTargetSpeedTable(debug, fulltree, g.nodeInfo(), sampled, &boatDatFile);
+    return sampled;
   }
 
   bool processBoatData(bool debug, Nav::Id boatId, NavDataset navs, Poco::Path dstPath, std::string filenamePrefix) {
@@ -123,8 +127,7 @@ namespace {
     PathBuilder outdir = PathBuilder::makeDirectory(dstPath);
     std::string prefix = "all";
 
-    auto navs0 = makeArray(navs);
-    makeBoatDatFile(debug, navs, outdir, navs0, fulltree, boatId, g);
+    auto navs0 = makeBoatDatFile(debug, navs, outdir, fulltree, boatId, g);
 
     {
       std::string path = outdir.makeFile(prefix + "_tree.js").get().toString();

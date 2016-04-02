@@ -2,7 +2,6 @@
 
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <device/anemobox/DispatcherTrueWindEstimator.h>
-#include <device/anemobox/simulator/ReplayDispatcher.h>
 #include <fstream>
 #include <server/common/Functional.h>
 #include <server/common/Span.h>
@@ -18,46 +17,6 @@ bool isFresh(const Dispatcher& dispatcher) {
 }
 
 } // namespace
-
-bool SimulateBox(const std::string& boatDat, Array<Nav> *navs) {
-  std::ifstream file(boatDat, std::ios::in | std::ios::binary);
-
-  if (!file.good()) {
-    return false;
-  }
-
-  return SimulateBox(file, navs);
-}
-
-bool SimulateBox(std::istream& boatDat, Array<Nav> *navs) {
-  ReplayDispatcher replay;
-  DispatcherTrueWindEstimator estimator(&replay);
-
-  if (!estimator.loadCalibration(boatDat)) {
-    return false;
-  }
-
-  for (Nav& nav : *navs) {
-    replay.advanceTo(nav);
-    estimator.compute();
-
-    // save true wind from dispatcher to NAV
-    if (isFresh<TARGET_VMG>(replay)) {
-      nav.setDeviceTargetVmg(replay.val<TARGET_VMG>());
-    }
-    if (isFresh<VMG>(replay)) { nav.setDeviceVmg(replay.val<VMG>()); }
-    if (isFresh<TWS>(replay)) { nav.setDeviceTws(replay.val<TWS>()); }
-    if (isFresh<TWA>(replay)) { nav.setDeviceTwa(replay.val<TWA>()); }
-    if (isFresh<TWS>(replay)) { nav.setDeviceTws(replay.val<TWS>()); }
-    if (isFresh<TWDIR>(replay)) {
-      nav.setDeviceTwdir(replay.val<TWDIR>());
-      nav.setTrueWindOverGround(
-          windMotionFromTwdirAndTws(replay.val<TWDIR>(),
-                                    replay.val<TWS>()));
-    }
-  }
-  return true;
-}
 
 namespace {
 
@@ -106,7 +65,7 @@ namespace {
 
 // Inspired by the function 'start' in anemonode/components/estimator.js
 void generateComputeCallbacks(Dispatcher *src,
-    ReplayDispatcher2 *replayDispatcher,
+    ReplayDispatcher *replayDispatcher,
     std::function<void()> cb) {
 
   bool timer = false;
@@ -140,11 +99,13 @@ void generateComputeCallbacks(Dispatcher *src,
   replayDispatcher->replay(src);
 }
 
-NavDataset SimulateBox(std::istream& boatDat, const NavDataset &ds) {
-  // This code is just a concept. To be unit tested in a subsequent PR.
-  *((unsigned int*)nullptr) = 0xDEADBEEF;
+NavDataset SimulateBox(const std::string& boatDat, const NavDataset &ds) {
+  std::ifstream file(boatDat);
+  return SimulateBox(file, ds);
+}
 
-  auto replay = new ReplayDispatcher2();
+NavDataset SimulateBox(std::istream &boatDat, const NavDataset &ds) {
+  auto replay = new ReplayDispatcher();
   DispatcherTrueWindEstimator estimator(replay);
   if (!estimator.loadCalibration(boatDat)) {
     return NavDataset();

@@ -24,23 +24,13 @@ namespace {
   }
 
   template <typename T>
-  bool isDefined(const T &x) {
-    return isFinite(x);
-  }
-
-  template <>
-  bool isDefined<GeographicPosition<double> >(const GeographicPosition<double> &x) {
-    return true;
-  }
-
-  template <typename T>
   typename sail::TimedSampleCollection<T>::TimedVector getTimedVectorFromNavs(
       const Array<Nav> &navs, std::function<T(const Nav &)> f) {
     typename sail::TimedSampleCollection<T>::TimedVector dst;
     for (const auto &x: navs) {
       if (x.time().defined()) {
-        auto v = f(x);
-        if (isDefined(v)) {
+        T v = f(x);
+        if (isFinite(v)) {
           dst.push_back(TimedValue<T>(x.time(), v));
         }
       }
@@ -254,11 +244,15 @@ const Nav getNav(const NavDataset &ds, int i) {
   setNavValueMultiSource<TWS>(orderedDeviceSources, ds, timeAndPos.time, &dst, &Nav::setDeviceTws);
   setNavValueMultiSource<TWS>(orderedExternalSources, ds, timeAndPos.time, &dst, &Nav::setExternalTws);
 
+
   setNavValue<GPS_SPEED>(ds, timeAndPos.time, &dst, &Nav::setGpsSpeed);
   setNavValue<GPS_BEARING>(ds, timeAndPos.time, &dst, &Nav::setGpsBearing);
   setNavValue<MAG_HEADING>(ds, timeAndPos.time, &dst, &Nav::setMagHdg);
   setNavValue<WAT_SPEED>(ds, timeAndPos.time, &dst, &Nav::setWatSpeed);
   setNavValue<VMG>(ds, timeAndPos.time, &dst, &Nav::setDeviceVmg);
+  setNavValue<TARGET_VMG>(ds, timeAndPos.time, &dst, &Nav::setDeviceTargetVmg);
+  setNavValue<TWDIR>(ds, timeAndPos.time, &dst, &Nav::setDeviceTwdir);
+
 
   return dst;
 }
@@ -509,13 +503,18 @@ Length<double> computeTrajectoryLength(NavDataset navs) {
   return dist;
 }
 
+// TODO: Return a timestamp instead, it makes more sense with our
+// Dispatcher-based representation.
 int findMaxSpeedOverGround(NavDataset navs) {
+  if (getNavSize(navs) == 0) {
+    return -1;
+  }
   auto marg = Duration<double>::minutes(2.0);
   Span<TimeStamp> validTime(getFirst(navs).time() + marg, getLast(navs).time() - marg);
   int bestIndex = -1;
   auto maxSOG = Velocity<double>::knots(-1.0);
   for (int i = 0; i < getNavSize(navs); ++i) {
-    const Nav &nav = getNav(navs, i);
+    const Nav nav = getNav(navs, i);
     Velocity<double> sog = nav.gpsSpeed();
     if (!isNaN(sog) && maxSOG < sog && validTime.contains(nav.time())) {
       maxSOG = sog;

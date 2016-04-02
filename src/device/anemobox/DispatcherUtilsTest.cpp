@@ -82,7 +82,7 @@ TEST(DispatcherUtilsTest, Replay) {
     int _counter;
   };
 
-  ReplayDispatcher2 d2;
+  ReplayDispatcher d2;
   AwaListener awaListener(&d2);
   d2.get<AWA>()->dispatcher()->subscribe(&awaListener);
   d2.replay(&d);

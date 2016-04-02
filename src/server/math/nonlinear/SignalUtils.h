@@ -165,7 +165,6 @@ struct Observation {
 };
 
 
-
 /*
  * Cost functions to penalize the residuals.
  */

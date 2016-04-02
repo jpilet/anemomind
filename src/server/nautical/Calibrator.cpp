@@ -448,12 +448,12 @@ void Calibrator::clear() {
   _maneuvers.clear();
 }
 
-bool Calibrator::simulate(Array<Nav> *navs) const {
+NavDataset Calibrator::simulate(const NavDataset &src) const {
   std::stringstream calibFile;
   saveCalibration(&calibFile);
   calibFile.seekg(0, std::ios::beg);
 
-  return SimulateBox(calibFile, navs);
+  return SimulateBox(calibFile, src);
 }
 
 namespace {

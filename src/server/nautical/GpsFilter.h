@@ -40,6 +40,9 @@ struct Results {
   Sampling::Weights calcWeights(TimeStamp t) const;
   HorizontalMotion<double> calcMotion(const Sampling::Weights &w) const;
   GeographicPosition<double> calcPosition(const Sampling::Weights &w) const;
+
+  // Please check this first before consuming anything else.
+  bool defined() const;
 };
 
 Results filter(NavDataset navs, Settings settings);
