@@ -146,7 +146,7 @@ class ReplayDispatcher : public Dispatcher {
      return _currentTime;
    }
 
-   int minBufferLength() const override {
+   int maxBufferLength() const override {
      return std::numeric_limits<int>::max();
    }
 

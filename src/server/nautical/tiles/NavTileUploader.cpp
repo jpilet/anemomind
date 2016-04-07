@@ -9,7 +9,6 @@
 #include <server/common/Span.h>
 #include <server/common/logging.h>
 #include <server/nautical/tiles/NavTileGenerator.h>
-#include <server/common/LogStreamable.h>
 
 using namespace mongo;
 
@@ -251,7 +250,7 @@ BSONObj makeBsonSession(
     const std::string &boatId,
     NavDataset navs) {
   LOG(INFO) << "Make BSON session";
-  LOG_STREAMABLE(INFO, navs);
+  LOG(INFO) << navs;
 
   BSONObjBuilder session;
   session.append("_id", curveId);
@@ -264,7 +263,8 @@ BSONObj makeBsonSession(
     auto speedKnots = nav.gpsSpeed().knots();
     auto timeOfMax = nav.time();
     if (!isFinite(speedKnots)) {
-      LOG(WARNING) << "The max speed is not finite";
+      LOG(WARNING) << "The max speed is not finite for curve '"
+          << curveId << "' and boat '" << boatId << "'";
     }
     if (timeOfMax.undefined()) {
       LOG(WARNING) << "The time of max speed is undefined";
@@ -279,13 +279,13 @@ BSONObj makeBsonSession(
 
   auto startTime = getFirst(navs).time();
   if (startTime.undefined()) {
-    LOG(WARNING) << "Start time is undefined";
+    LOG(FATAL) << "Start time is undefined";
   }
   append(session, "startTime", startTime);
 
   auto endTime = getLast(navs).time();
   if (endTime.undefined()) {
-    LOG(WARNING) << "End time is undefined";
+    LOG(FATAL) << "End time is undefined";
   }
   append(session, "endTime", endTime);
   session.append("location", locationForSession(navs));

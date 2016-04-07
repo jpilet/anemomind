@@ -216,7 +216,7 @@ class Dispatcher : public Clock {
   // Returns null if not exist
   std::shared_ptr<DispatchData> dispatchDataForSource(DataCode code, const std::string& source);
 
-  virtual int minBufferLength() const {return defaultDispatcherBufferLength;}
+  virtual int maxBufferLength() const {return defaultDispatcherBufferLength;}
 
   // Return or create a DispatchData for the given source.
   template <typename T>
@@ -282,7 +282,7 @@ class Dispatcher : public Clock {
   template <typename T>
   void publishValue(DataCode code, const std::string& source, T value) {
     TypedDispatchData<T>* dispatchData =
-      createDispatchDataForSource<T>(code, source, minBufferLength());
+      createDispatchDataForSource<T>(code, source, maxBufferLength());
     dispatchData->setValue(value);
   }
 

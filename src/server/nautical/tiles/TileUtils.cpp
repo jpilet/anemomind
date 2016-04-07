@@ -11,8 +11,6 @@
 #include <server/nautical/GpsFilter.h>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/logging.h>
-#include <server/common/LogStreamable.h>
-
 
 namespace sail {
 
@@ -20,7 +18,7 @@ using namespace sail::NavCompat;
 
 NavDataset filterNavs(NavDataset navs) {
   if (!isValid(navs.dispatcher().get())) {
-    LOG(WARNING) << "Invalid dispatcher, please fix the code";
+    LOG(FATAL) << "Called with invalid dispatcher, please fix the code calling this function";
     return NavDataset();
   }
 
@@ -36,14 +34,14 @@ NavDataset filterNavs(NavDataset navs) {
   auto results = GpsFilter::filter(fromNavs(withoutNulls.get()), settings);
 
   if (!results.defined()) {
-    LOG(WARNING) << "Failed to apply GPS filter";
+    LOG(WARNING) << "Failed to apply GPS filter, returning empty result";
     return NavDataset();
   }
   auto d = fromNavs(
       makeArray(results.filteredNavs()).slice(results.inlierMask()));
 
   if (!isValid(d.dispatcher().get())) {
-    LOG(WARNING) << "The dataset constructed from navs is not valid";
+    LOG(WARNING) << "The dataset constructed from navs is not valid, returning empty result";
     return NavDataset();
   }
 
@@ -65,7 +63,7 @@ Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
                              const WindOrientedGrammar& grammar,
                              const std::shared_ptr<HTree>& tree) {
   if (!tree) {
-    LOG(WARNING) << "No tree";
+    LOG(FATAL) << "No tree";
     return Array<NavDataset>();
   }
 
@@ -90,13 +88,10 @@ void processTiles(const TileGeneratorParameters &params,
     std::string boatDat, std::string polarDat) {
     auto rawNavs0 = LogLoader::loadNavDataset(navPath);
 
-    if (!isValid(rawNavs0.dispatcher().get())) {
-      LOG(WARNING) << "The loaded data is invalid, please fix the code";
-      return;
-    }
+    CHECK(isValid(rawNavs0.dispatcher().get())) << "The loaded data is invalid, please fix the code";
 
     LOG(INFO) << "Raw navs";
-    LOG_STREAMABLE(INFO, rawNavs0);
+    LOG(INFO) << rawNavs0;
 
     auto simulated = SimulateBox(boatDat, rawNavs0);
     if (simulated.isDefaultConstructed()) {
@@ -105,8 +100,7 @@ void processTiles(const TileGeneratorParameters &params,
     }
 
     LOG(INFO) << "Filtered";
-    LOG_STREAMABLE(INFO, simulated);
-
+    LOG(INFO) << simulated;
 
     WindOrientedGrammarSettings settings;
     WindOrientedGrammar grammar(settings);
