@@ -54,8 +54,8 @@ for boatdir in "${LOG_DIR}/"*; do
         --noinfo \
 	--scale 20 ; then
 
-        # If a boat.dat file has been generated, mail it to the anemobox.
 	if [ -f "${boatdat}" ] ; then
+          # If a boat.dat file has been generated, mail it to the anemobox.
 	  cat "${boatdat}" | ssh anemomind@anemolab.com NODE_ENV=production \
             node /home/xa4/anemomind/www2/utilities/SendBoatData.js \
             "${boatid}" /dev/stdin /home/anemobox/boat.dat || true
@@ -73,3 +73,5 @@ for boatdir in "${LOG_DIR}/"*; do
 done
 
 kill $SSH_TUNNEL_PID
+
+"${BIN}"/uploadVmgTable.sh
