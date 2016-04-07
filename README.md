@@ -54,6 +54,7 @@ The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
   * gnuplot (only necessary if you want to plot)
   * libprotobuf-dev
   * protobuf-compiler
+
 ### For the web server
   * **node** and **npm**. Find packages here: ```https://nodejs.org/en/download/package-manager/```
   * **mocha**, for running unit tests: ```npm install -g mocha``` (possibly with ```sudo```)
