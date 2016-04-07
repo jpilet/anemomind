@@ -62,3 +62,12 @@ TEST(LoggingTest, MainTest) {
   EXPECT_NO_THROW(CHECK_NOTNULL(&a));
   EXPECT_THROW(CHECK_NOTNULL(nullptr), internal::LogMessageException);
 }
+
+struct TestStruct { };
+std::ostream& operator<<(std::ostream& stream, TestStruct a) {
+  return stream << "TestStruct";
+}
+
+TEST(LoggingTest, StreamableTest) {
+  LOG(INFO) << TestStruct();
+}
