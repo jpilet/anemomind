@@ -217,7 +217,7 @@ int exportMatlab(bool withHeader, Array<NavField> fields,
   return 0;
 }
 
-void performCalibration(NavDataset navs0, Array<Nav> *navs, const ExportSettings& settings) {
+NavDataset performCalibration(NavDataset navs0,const ExportSettings& settings) {
   WindOrientedGrammarSettings gs;
   WindOrientedGrammar grammar(gs);
   auto tree = grammar.parse(navs0);
@@ -226,31 +226,33 @@ void performCalibration(NavDataset navs0, Array<Nav> *navs, const ExportSettings
     calib->setVerbose();
   }
   calib->calibrate(navs0, tree, Nav::debuggingBoatId());
-  calib->simulate(navs);
+  auto result = calib->simulate(navs0);
+  if (result.isDefaultConstructed()) {
+    LOG(WARNING) << "Failed to simulate";
+    return navs0;
+  }
+  return result;
 }
 
 int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::string output) {
   auto navs0 = loadNavsFromArgs(args);
-  Array<Nav> navs = makeArray(navs0);
   Array<NavField> fields = getNavFields(settings);
-  std::sort(navs.begin(), navs.end());
-  if (navs.empty()) {
-    LOG(ERROR) << "No navs were loaded";
-    return -1;
-  }
+  NavDataset navs;
   if (settings.simulatedTrueWindData) {
-    performCalibration(navs0, &navs, settings);
+    auto navs = performCalibration(navs0, settings);
   }
   const std::string& format = settings.formatStr;
   LOG(INFO) << "Navs successfully loaded, export them to "
       << output << " with format " << format;
   std::ofstream file(output);
+
+  auto sampled = makeArray(navs);
   if (format == "csv") {
-    return exportCsv(settings.withHeader, fields, navs, &file);
+    return exportCsv(settings.withHeader, fields, sampled, &file);
   } else if (format == "json") {
-    return exportJson(settings.withHeader, fields, navs, &file);
+    return exportJson(settings.withHeader, fields, sampled, &file);
   } else if (format == "matlab") {
-    return exportMatlab(settings.withHeader, fields, navs, &file);
+    return exportMatlab(settings.withHeader, fields, sampled, &file);
   }
   LOG(ERROR) << ("Export format not recognized: " + format);
   return -1;

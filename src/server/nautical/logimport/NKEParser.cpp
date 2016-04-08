@@ -596,8 +596,6 @@ NavDataset NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
   Array<Angle<double> > longitude =
       data.getByType(type("Longitude")).angles();
 
-
-
   int count = data.rows();
   Array<Nav> dst(count);
   for (int i = 0; i < count; i++) {
@@ -612,6 +610,7 @@ NavDataset NKEParser::makeNavs(Nav::Id boatId, NKEData data) {
     x.setWatSpeed(watSpeed[i]);
     x.setGpsSpeed(gpsSpeed[i]);
     x.setGpsBearing(gpsBearing[i]);
+    x.setGeographicPosition(pos);
   }
   return NavCompat::fromNavs(dst);
 }

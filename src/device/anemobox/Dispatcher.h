@@ -117,13 +117,16 @@ class TypedDispatchData : public DispatchData {
   }
 };
 
+namespace {
+  static const int defaultDispatcherBufferLength = 1024;
+}
+
 template <typename T>
 class TypedDispatchDataReal : public TypedDispatchData<T> {
  public:
-  static const int defaultBufferLength = 1024;
   TypedDispatchDataReal(DataCode nature,
                         std::string source,
-                        Clock* clock, int bufferLength = defaultBufferLength)
+                        Clock* clock, int bufferLength)
      : TypedDispatchData<T>(nature, source),
      _dispatcher(clock, bufferLength) { }
 
@@ -213,10 +216,11 @@ class Dispatcher : public Clock {
   // Returns null if not exist
   std::shared_ptr<DispatchData> dispatchDataForSource(DataCode code, const std::string& source);
 
+  virtual int maxBufferLength() const {return defaultDispatcherBufferLength;}
+
   // Return or create a DispatchData for the given source.
   template <typename T>
-  TypedDispatchData<T>* createDispatchDataForSource(
-      DataCode code, const std::string& source, int size = TypedDispatchDataReal<T>::defaultBufferLength);
+  TypedDispatchData<T>* createDispatchDataForSource(DataCode code, const std::string& source, int size);
 
   DispatchData* dispatchData(DataCode code) const {
     auto it = _currentSource.find(code);
@@ -278,17 +282,19 @@ class Dispatcher : public Clock {
   template <typename T>
   void publishValue(DataCode code, const std::string& source, T value) {
     TypedDispatchData<T>* dispatchData =
-      createDispatchDataForSource<T>(code, source);
+      createDispatchDataForSource<T>(code, source, maxBufferLength());
     dispatchData->setValue(value);
   }
 
   template <typename T>
   void insertValues(DataCode code, const std::string& source,
                     const typename TimedSampleCollection<T>::TimedVector& values) {
-    TypedDispatchData<T>* dispatchData =
-      createDispatchDataForSource<T>(code, source, values.size());
+    if (!values.empty()) {
+      TypedDispatchData<T>* dispatchData =
+        createDispatchDataForSource<T>(code, source, values.size());
 
-    dispatchData->dispatcher()->insert(values);
+      dispatchData->dispatcher()->insert(values);
+    }
   }
 
   template<class T>

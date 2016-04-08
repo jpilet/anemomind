@@ -4,6 +4,8 @@
  */
 
 #include <device/anemobox/DispatcherUtils.h>
+#include <server/common/logging.h>
+#include <server/nautical/AbsoluteOrientation.h>
 
 namespace sail {
 
@@ -76,6 +78,64 @@ int countValues(const Dispatcher *d) {
   ValueCounterVisitor visitor;
   visitDispatcherChannelsConst<ValueCounterVisitor>(d, &visitor);
   return visitor.counter;
+}
+
+namespace {
+
+  template <typename T>
+  bool isValidColl(const TimedSampleCollection<T> &coll) {
+    const auto &samples = coll.samples();
+    int n = samples.size();
+    int last = n - 1;
+    for (int i = 0; i < n; i++) {
+      auto x = samples[i];
+      if (!isFinite(x.value)) {
+        LOG(WARNING) << "Sample " << i << " is not finite";
+        return false;
+      }
+      if (!x.time.defined()) {
+        LOG(WARNING) << "Sample " << i << " has undefined time";
+        return false;
+      }
+      if (i < last) {
+        auto y = samples[i + 1];
+        if (y.time.defined()) {
+          if (!(x.time <= y.time)) {
+            LOG(WARNING) << "Time stamp at time " << i << " ("
+                << x.time.toString() << ") does not precede that of its successor ("
+                << y.time.toString() << ")";
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  class ValidVisitor {
+  public:
+    template <DataCode Code, typename T>
+    void visit(const char *shortName, const std::string &sourceName,
+      const std::shared_ptr<DispatchData> &raw,
+      const TimedSampleCollection<T> &coll) {
+        auto v = isValidColl(coll);
+        if (!v) {
+          LOG(WARNING) << "Collection of type " << shortName << " from source "
+              << sourceName << " is not valid, see explanations above.";
+          LOG(WARNING) << "It has " << coll.size() << " samples";
+          valid = false;
+        }
+    }
+
+    bool valid = true;
+  private:
+  };
+}
+
+bool isValid(const Dispatcher *d) {
+  ValidVisitor v;
+  visitDispatcherChannelsConst<ValidVisitor>(d, &v);
+  return v.valid;
 }
 
 std::ostream &operator<<(std::ostream &s, const Dispatcher &d) {
@@ -349,7 +409,7 @@ namespace {
   class ValueToPublish {
    public:
     virtual TimeStamp time() = 0;
-    virtual void publish(ReplayDispatcher2 *dst) = 0;
+    virtual void publish(ReplayDispatcher *dst) = 0;
     virtual ~ValueToPublish() {}
 
     virtual const ChannelInfo::Ptr &info() const = 0;
@@ -370,7 +430,7 @@ namespace {
 
     TimeStamp time() override {return _x.time;}
 
-    void publish(ReplayDispatcher2 *dst) {
+    void publish(ReplayDispatcher *dst) {
       dst->publishTimedValue<T>(_info->code, _info->name, _x);
     }
 
@@ -401,9 +461,9 @@ namespace {
   };
 }
 
-ReplayDispatcher2::ReplayDispatcher2() : _counter(0) {}
+ReplayDispatcher::ReplayDispatcher() : _counter(0) {}
 
-void ReplayDispatcher2::replay(const Dispatcher *src) {
+void ReplayDispatcher::replay(const Dispatcher *src) {
   if (src == nullptr) {
     return;
   }
@@ -418,7 +478,7 @@ void ReplayDispatcher2::replay(const Dispatcher *src) {
   finishTimeouts();
 }
 
-void ReplayDispatcher2::setTimeout(std::function<void()> cb, double delayMS) {
+void ReplayDispatcher::setTimeout(std::function<void()> cb, double delayMS) {
   if (_currentTime.defined()) {
     _counter++;
     auto next = _currentTime + Duration<double>::milliseconds(delayMS);
@@ -426,14 +486,14 @@ void ReplayDispatcher2::setTimeout(std::function<void()> cb, double delayMS) {
   }
 }
 
-void ReplayDispatcher2::finishTimeouts() {
+void ReplayDispatcher::finishTimeouts() {
   for (auto to: _timeouts) {
     to.cb();
   }
   _timeouts = std::set<Timeout>();
 }
 
-void ReplayDispatcher2::visitTimeouts() {
+void ReplayDispatcher::visitTimeouts() {
   std::vector<Timeout> toRemove;
   if (_currentTime.defined()) {
     for (auto to: _timeouts) {

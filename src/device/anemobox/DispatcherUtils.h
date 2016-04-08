@@ -32,6 +32,9 @@ class VisitorTemplate {
 // Visit every channel of a Dispatcher, for side effects.
 template <typename Mapper>
 void visitDispatcherChannels(Dispatcher *dispatcher, Mapper *m) {
+  if (!dispatcher) {
+    return;
+  }
   for (const auto &codeAndSources: dispatcher->allSources()) {
     auto c = codeAndSources.first;
     for (const auto &kv: codeAndSources.second) {
@@ -57,6 +60,9 @@ void visitDispatcherChannels(Dispatcher *dispatcher, Mapper *m) {
 // Const version.
 template <typename Mapper>
 void visitDispatcherChannelsConst(const Dispatcher *dispatcher, Mapper *m) {
+  if (!dispatcher) {
+    return;
+  }
   for (const auto &codeAndSources: dispatcher->allSources()) {
     auto c = codeAndSources.first;
     for (const auto &kv: codeAndSources.second) {
@@ -83,6 +89,8 @@ int countValues(const Dispatcher *d);
 std::ostream &operator<<(std::ostream &s, const Dispatcher &d);
 std::ostream &operator<<(std::ostream &s, const Dispatcher *d);
 std::ostream &operator<<(std::ostream &s, const std::shared_ptr<Dispatcher> &d);
+
+bool isValid(const Dispatcher *d);
 
 // See also: toTypedDispatchData, which goes almost in opposite direction.
 template <DataCode Code>
@@ -119,7 +127,7 @@ typedef std::function<void(const std::shared_ptr<Dispatcher> &,
         DataCode, const std::string &)> ReplayVisitor;
 
 
-class ReplayDispatcher2 : public Dispatcher {
+class ReplayDispatcher : public Dispatcher {
  public:
 
   struct Timeout {
@@ -132,10 +140,14 @@ class ReplayDispatcher2 : public Dispatcher {
     }
   };
 
-  ReplayDispatcher2();
+  ReplayDispatcher();
 
    TimeStamp currentTime() override {
      return _currentTime;
+   }
+
+   int maxBufferLength() const override {
+     return std::numeric_limits<int>::max();
    }
 
    template <typename T>
@@ -154,6 +166,7 @@ class ReplayDispatcher2 : public Dispatcher {
 
    void replay(const Dispatcher *src);
    void setTimeout(std::function<void()> cb, double delayMS);
+
 
    void finishTimeouts();
 

@@ -24,7 +24,8 @@ using namespace NavCompat;
 namespace {
 BSONObjBuilder& append(BSONObjBuilder& builder, const char* key,
                        const TimeStamp& value) {
-  return builder.appendDate(key, Date_t(value.toMilliSecondsSince1970()));
+  return builder.appendDate(key,
+      value.defined()? Date_t(value.toMilliSecondsSince1970()) : Date_t());
 }
 
 BSONObj navToBSON(const Nav& nav) {
@@ -248,6 +249,8 @@ BSONObj makeBsonSession(
     const std::string &curveId,
     const std::string &boatId,
     NavDataset navs) {
+  LOG(INFO) << "Make BSON session";
+  LOG(INFO) << navs;
 
   BSONObjBuilder session;
   session.append("_id", curveId);
@@ -256,23 +259,51 @@ BSONObj makeBsonSession(
       computeTrajectoryLength(navs).nauticalMiles());
   int maxSpeedIndex = findMaxSpeedOverGround(navs);
   if (maxSpeedIndex >= 0) {
-    session.append("maxSpeedOverGround", getNav(navs, maxSpeedIndex).gpsSpeed().knots());
-    append(session, "maxSpeedOverGroundTime", getNav(navs, maxSpeedIndex).time());
+    auto nav = getNav(navs, maxSpeedIndex);
+    auto speedKnots = nav.gpsSpeed().knots();
+    auto timeOfMax = nav.time();
+    if (!isFinite(speedKnots)) {
+      LOG(WARNING) << "The max speed is not finite for curve '"
+          << curveId << "' and boat '" << boatId << "'";
+    }
+    if (timeOfMax.undefined()) {
+      LOG(WARNING) << "The time of max speed is undefined";
+    }
+
+    session.append("maxSpeedOverGround", speedKnots);
+    append(session, "maxSpeedOverGroundTime", timeOfMax);
+
+  } else {
+    LOG(WARNING) << "No max speed found";
   }
-  append(session, "startTime", getFirst(navs).time());
-  append(session, "endTime", getLast(navs).time());
+
+  auto startTime = getFirst(navs).time();
+  if (startTime.undefined()) {
+    LOG(FATAL) << "Start time is undefined";
+  }
+  append(session, "startTime", startTime);
+
+  auto endTime = getLast(navs).time();
+  if (endTime.undefined()) {
+    LOG(FATAL) << "End time is undefined";
+  }
+  append(session, "endTime", endTime);
   session.append("location", locationForSession(navs));
 
   auto wind = averageWind(navs);
   if (wind.defined()) {
     session.append("avgWindSpeed", calcTws(wind()).knots());
     session.append("avgWindDir", calcTwdir(wind()).degrees());
+  } else {
+    LOG(WARNING) << "No average wind";
   }
 
   std::pair<Velocity<double>, int> strongestWind = indexOfStrongestWind(navs);
   if (strongestWind.second >= 0) {
     session.append("strongestWindSpeed", strongestWind.first.knots());
     append(session, "strongestWindTime", getNav(navs, strongestWind.second).time());
+  } else {
+    LOG(WARNING) << "No strongest wind";
   }
 
   return session.obj();
@@ -309,6 +340,9 @@ BSONObj makeBsonTile(const TileKey& tileKey,
 bool generateAndUploadTiles(std::string boatId,
                             Array<NavDataset> allNavs,
                             const TileGeneratorParameters& params) {
+  // Can cause segfault
+  // if driver is compiled as C++03, see:
+  // https://groups.google.com/forum/#!topic/mongodb-user/-dkp8q9ZEGM
   mongo::client::initialize();
 
   DBClientConnection db;
@@ -332,7 +366,6 @@ bool generateAndUploadTiles(std::string boatId,
 
   for (const NavDataset& curve : allNavs) {
     std::string curveId = tileCurveId(boatId, curve);
-
     std::set<TileKey> tiles = tilesForNav(curve, params.maxScale);
 
     for (auto tileKey : tiles) {

@@ -340,6 +340,7 @@ double G001SA::getTransitionCost(int fromStateIndex, int toStateIndex, int fromT
 std::shared_ptr<HTree> WindOrientedGrammar::parse(NavDataset navs0,
     Array<UserHint> hints) {
   auto navs = makeArray(navs0);
+  LOG(INFO) << "Sampled " << navs.size() << " navs";
   if (navs.empty()) {
     return std::shared_ptr<HTree>();
   }

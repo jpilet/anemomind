@@ -49,7 +49,7 @@ class Calibrator  {
     void setVerbose() { _verbose = true; }
 
     //! Use the calibration to compute true wind on the given navigation data.
-    bool simulate(Array<Nav> *array) const;
+    NavDataset simulate(const NavDataset &array) const;
 
     //! Returns the number of maneuvers used to fit the data.
     int maneuverCount() const {

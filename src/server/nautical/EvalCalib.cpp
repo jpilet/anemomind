@@ -19,13 +19,12 @@ class ManeuverbasedCorrectorFunction : public CorrectorFunction {
   ManeuverbasedCorrectorFunction(std::shared_ptr<Calibrator> calib) : _calib(calib) {}
 
   Array<CalibratedNav<double> > operator()(const NavDataset &navs) const {
-    auto correctedNavs = makeArray(navs).dup();
-    _calib->simulate(&correctedNavs);
-    int n = getNavSize(navs);
+    auto correctedNavs = _calib->simulate(navs);
+    int n = getNavSize(correctedNavs);
     Array<CalibratedNav<double> > dst(n);
     Corrector<double> corr;
     for (int i = 0; i < n; i++) {
-      auto c = correctedNavs[i];
+      auto c = getNav(correctedNavs, i);
       dst[i] = corr.correct(c);
       dst[i].trueWindOverGround.set(c.trueWindOverGround());
     }

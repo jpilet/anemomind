@@ -167,6 +167,10 @@ public:
   const std::shared_ptr<Dispatcher> &dispatcher() const {
     return _dispatcher;
   }
+
+  // Can used to check whether some processing step failed. That processing
+  // step will then return 'NavDataset()', for which this method returns true.
+  bool isDefaultConstructed() const;
 private:
   template <DataCode Code>
   const TimedSampleCollection<typename TypeForCode<Code>::type> *getMergedSamples() const {
@@ -189,6 +193,8 @@ private:
 
   std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData>>> _merged;
 };
+
+std::ostream &operator<<(std::ostream &s, const NavDataset &ds);
 
 } /* namespace sail */
 

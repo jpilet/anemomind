@@ -17,13 +17,17 @@ namespace {
 
 TEST(NavTest, MaxSpeed) {
   Nav a, b, c;
+  auto pos = GeographicPosition<double>(Angle<double>::degrees(45), Angle<double>::degrees(45));
   TimeStamp offset = TimeStamp::UTC(2015, 10, 6, 12, 9, 0);
   a.setTime(offset);
   a.setGpsSpeed(Velocity<double>::knots(3.0));
+  a.setGeographicPosition(pos);
   b.setTime(offset + Duration<double>::minutes(12));
   b.setGpsSpeed(Velocity<double>::knots(2.1));
+  b.setGeographicPosition(pos);
   c.setTime(offset + Duration<double>::minutes(24));
   c.setGpsSpeed(Velocity<double>::knots(30.1));
+  c.setGeographicPosition(pos);
   EXPECT_EQ(1, findMaxSpeedOverGround(fromNavs({a, b, c})));
 }
 

@@ -103,6 +103,7 @@ add_library(anemobox_DispatcherUtils
            
 target_link_libraries(anemobox_DispatcherUtils
                       anemobox_Dispatcher
+                      nautical_AbsoluteOrientation
                      )
 
 cxx_test(anemobox_DispatcherUtilsTest
