@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <math.h>
-#include <iostream>
 
 #ifdef ON_SERVER
 #include <string.h>
