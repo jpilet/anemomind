@@ -122,6 +122,7 @@ class NmeaParser {
     NMEA_VTG,
     NMEA_ZDA,
     NMEA_TIME_POS = NMEA_RMC,
+    NMEA_RUDDER
   };
 
   NmeaParser();
@@ -259,6 +260,13 @@ class NmeaParser {
   std::string cwdAsString() const;
   std::string wdAsString() const;
 #endif
+
+ protected:
+  // XDR,A,-25.8,D,RUDDER
+  virtual void onXDRRudder(const char *senderAndSentence,
+                           bool valid,
+                           sail::Angle<double> angle,
+                           const char *whichRudder) { }
  private:
   enum NPState {
     NP_STATE_SOM, 	        // Search for start of message
@@ -313,6 +321,7 @@ class NmeaParser {
   NmeaSentence processGLL();
   NmeaSentence processZDA();
   NmeaSentence processVTG();
+  NmeaSentence processXDR();
 };
 
 double geoPosDist(GeoPos *a, GeoPos *b);
