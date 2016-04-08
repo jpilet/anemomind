@@ -136,6 +136,8 @@ class Nav {
   Angle<double> deviceTwa() const { return _deviceTwa; }
   void setDeviceTwa(Angle<double> p) { _deviceTwa = p; _flags |= DEVICE_TWA; }
 
+  Angle<double> rudderAngle() const {return _rudderAngle;}
+  void setRudderAngle(const Angle<double> &x) {_rudderAngle = x;}
  private:
   enum {
     DEVICE_SCREEN = 1,
@@ -182,6 +184,7 @@ class Nav {
   Velocity<double> _deviceTws;
   Angle<double> _deviceTwa;
   Angle<double> _deviceTwdir;
+  Angle<double> _rudderAngle;
 };
 
 Array<Velocity<double> > getExternalTws(Array<Nav> navs);

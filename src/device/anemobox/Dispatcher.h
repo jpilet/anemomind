@@ -52,7 +52,8 @@ namespace sail {
   X(DATE_TIME, 12, "dateTime", TimeStamp, "GPS date and time (UTC)") \
   X(TARGET_VMG, 13, "targetVmg", Velocity<>, "Target VMG") \
   X(VMG, 14, "vmg", Velocity<>, "VMG") \
-  X(ORIENT, 15, "orient", AbsoluteOrientation, "Absolute anemobox orientation")
+  X(ORIENT, 15, "orient", AbsoluteOrientation, "Absolute anemobox orientation") \
+  X(RUDDER_ANGLE, 16, "rudderAngle", Angle<>, "Rudder angle")
 
 enum DataCode {
 #define ENUM_ENTRY(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \

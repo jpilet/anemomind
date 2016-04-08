@@ -184,7 +184,7 @@ class NmeaParser {
 
 #ifdef ON_SERVER
   sail::TimeStamp timestamp() const {
-    return sail::TimeStamp::UTC(
+    return sail::TimeStamp::tryUTC(
         year() + 2000, month(), day(),
         hour(), min(), sec());
   }
@@ -261,6 +261,7 @@ class NmeaParser {
   std::string wdAsString() const;
 #endif
 
+  virtual ~NmeaParser() {}
  protected:
   // XDR,A,-25.8,D,RUDDER
   virtual void onXDRRudder(const char *senderAndSentence,

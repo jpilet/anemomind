@@ -347,6 +347,14 @@ std::shared_ptr<DispatchData> mergeChannels(DataCode code,
 }
 
 
+
+std::shared_ptr<Dispatcher> makeDispatcherFromTextChannel(
+    const Dispatcher *d,
+    const std::string &srcName) {
+  //d->allSources()[DataCode]
+}
+
+
 void copyPriorities(Dispatcher *src, Dispatcher *dst) {
   for (auto kv: src->sourcePriority()) {
     dst->setSourcePriority(kv.first, kv.second);
