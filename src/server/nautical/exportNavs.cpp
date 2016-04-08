@@ -23,6 +23,7 @@ struct ExportSettings {
   std::string formatStr;
   bool simulatedTrueWindData;
   bool withHeader;
+  bool verbose;
 };
 
 NavDataset loadNavsFromArgs(Array<ArgMap::Arg*> args) {
@@ -216,12 +217,14 @@ int exportMatlab(bool withHeader, Array<NavField> fields,
   return 0;
 }
 
-void performCalibration(NavDataset navs0, Array<Nav> *navs) {
+void performCalibration(NavDataset navs0, Array<Nav> *navs, const ExportSettings& settings) {
   WindOrientedGrammarSettings gs;
   WindOrientedGrammar grammar(gs);
   auto tree = grammar.parse(navs0);
   std::shared_ptr<Calibrator> calib(new Calibrator(grammar));
-  calib->setVerbose();
+  if (settings.verbose) {
+    calib->setVerbose();
+  }
   calib->calibrate(navs0, tree, Nav::debuggingBoatId());
   calib->simulate(navs);
 }
@@ -236,7 +239,7 @@ int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::st
     return -1;
   }
   if (settings.simulatedTrueWindData) {
-    performCalibration(navs0, &navs);
+    performCalibration(navs0, &navs, settings);
   }
   const std::string& format = settings.formatStr;
   LOG(INFO) << "Navs successfully loaded, export them to "
@@ -265,6 +268,7 @@ int main(int argc, const char **argv) {
     .store(&output);
   amap.registerOption("--no-header", "Omit header labels for data columns");
   amap.registerOption("--no-simulate", "Skip simulated true wind columns");
+  amap.registerOption("-v", "Verbose output");
   amap.setHelpInfo(
       std::string("") +
       "Exports nav data to other formats. In addition to the named arguments,\n" +
@@ -281,6 +285,7 @@ int main(int argc, const char **argv) {
         settings.format = (settings.formatStr == "csv"?
                            CSV : (settings.formatStr == "json"? JSON : MATLAB));
         settings.withHeader = !amap.optionProvided("--no-header");
+        settings.verbose = amap.optionProvided("-v");
         settings.simulatedTrueWindData = !amap.optionProvided("--no-simulate");
         return exportNavs(amap.freeArgs(), settings, output);
       }
