@@ -116,6 +116,12 @@ namespace {
       VMG, srcOurs, getTimedVectorFromNavs<Velocity<double> >(navs, [](const Nav &x) {
       return x.deviceVmg();
     }));
+
+    dst->insertValues<Angle<double> >(
+      RUDDER_ANGLE, srcExternal, getTimedVectorFromNavs<Angle<double> >(
+          navs, [](const Nav &x) {
+      return x.rudderAngle();
+    }));
   }
 
   std::shared_ptr<Dispatcher> makeDispatcherFromNavs(const Array<Nav> &navs) {
@@ -252,7 +258,7 @@ const Nav getNav(const NavDataset &ds, int i) {
   setNavValue<VMG>(ds, timeAndPos.time, &dst, &Nav::setDeviceVmg);
   setNavValue<TARGET_VMG>(ds, timeAndPos.time, &dst, &Nav::setDeviceTargetVmg);
   setNavValue<TWDIR>(ds, timeAndPos.time, &dst, &Nav::setDeviceTwdir);
-
+  setNavValue<RUDDER_ANGLE>(ds, timeAndPos.time, &dst, &Nav::setRudderAngle);
 
   return dst;
 }

@@ -131,6 +131,9 @@ Array<NavField> getNavFields(const ExportSettings& format) {
     }},
     NavField{"GPS bearing (degrees)", [=](const Nav &x) {
       return angleToLiteral(x.gpsBearing(), format, 360);
+    }},
+    NavField{"Rudder angle (degrees)", [=](const Nav &x) {
+      return angleToLiteral(x.rudderAngle(), format, 180);
     }}
   });
 
