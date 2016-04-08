@@ -21,5 +21,13 @@ TEST(ProtobufLogTest, LoadAFile) {
   EXPECT_LT(0, data.samples<GPS_BEARING>().size());
 }
 
+TEST(ProtobufLogTest, LoadRudderData) {
+  auto data = LogLoader::loadNavDataset(
+      PathBuilder::makeDirectory(Env::SOURCE_DIR)
+        .pushDirectory("datasets")
+        .pushDirectory("boat55dc89e6838caff0240960a9_rudder").get());
+  EXPECT_LT(12/*sufficiently large*/, data.samples<RUDDER_ANGLE>().size());
+}
+
 
 

@@ -111,6 +111,10 @@ std::shared_ptr<DispatchData> mergeChannels(DataCode code,
     const std::map<std::string, int> &priorityMap,
     const std::map<std::string, std::shared_ptr<DispatchData> > &dispatcherMap);
 
+std::shared_ptr<Dispatcher> makeDispatcherFromTextChannel(
+    const Dispatcher *d,
+    const std::string &srcName);
+
 Array<std::string> getSourceNames(const Dispatcher &d);
 
 
