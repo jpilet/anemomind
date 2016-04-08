@@ -4,8 +4,14 @@
 #include <stdio.h>
 #include <math.h>
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
+#include <gmock/gmock-matchers.h>
+#include <gmock/gmock-more-matchers.h>
 
 using namespace sail;
+using ::testing::ResultOf;
+using ::testing::DoubleEq;
+using ::testing::StrEq;
 
 double fabs(double a) {
   return (a< 0 ? -a : a);
@@ -273,4 +279,25 @@ TEST(NmeaParserTest, TestVWT) {
   EXPECT_EQ(int(18.9f * 256.0f), int(256.0f * (float) parser.tws().knots()));
 
   EXPECT_EQ(2, parser.numSentences());
+}
+
+class MockNmeaParser : public NmeaParser {
+  public:
+    MOCK_METHOD4(onXDRRudder, void(const char*, bool, Angle<double>, const char*));
+};
+
+double degrees(const Angle<double>& d) {
+    return d.degrees();
+}
+
+TEST(NmeaParserTest, TestRudder) {
+  MockNmeaParser parser;
+
+  EXPECT_CALL(parser, onXDRRudder(StrEq("IIXDR"), true, 
+                                  ResultOf(degrees, DoubleEq(-25.8)),
+                                  StrEq("D")));
+
+  EXPECT_EQ(NmeaParser::NMEA_RUDDER,
+           sendSentence("$IIXDR,A,-25.8,D,RUDDER*67", &parser));
+
 }

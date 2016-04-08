@@ -313,6 +313,8 @@ NmeaParser::NmeaSentence NmeaParser::processCommand() {
     return processZDA();
   } else if (strcmp(c, "VTG") == 0) {
     return processVTG();
+  } else if (strcmp(c, "XDR") == 0) {
+    return processXDR();
   }
 
   return NMEA_UNKNOWN;
@@ -561,6 +563,21 @@ NmeaParser::NmeaSentence NmeaParser::processVTG() {
   return NMEA_VTG;
 }
 
+NmeaParser::NmeaSentence NmeaParser::processXDR() {
+  if (argc_ < 5 || strcmp("RUDDER", argv_[4]) != 0) {
+    return NMEA_NONE;
+  }
+
+  double angle;
+  if (sscanf(argv_[2], "%lf", &angle) != 1) {
+    return NMEA_NONE;
+  }
+
+  onXDRRudder(argv_[0], argv_[1][0] == 'A',
+              Angle<double>::degrees(angle),
+              argv_[3]);
+  return NMEA_RUDDER;
+}
 
 void AccAngle::flip() {
   _angle = -_angle;
