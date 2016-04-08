@@ -15,4 +15,4 @@ for boatdir in "$PROCESSED_DIR/"*; do
     "${BIN}/catTargetSpeed" --id "${id}" "$file" >> $SCRIPT
 done
   
-cat $SCRIPT | ssh jpilet@anemolab.com mongo > /dev/null
+cat $SCRIPT | ssh jpilet@anemolab.com mongo -u anemomindprod -p asjdhse5sdas anemomind > /dev/null

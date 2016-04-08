@@ -45,6 +45,14 @@ int main(int argc, const char** argv) {
       .setArgCount(1)
       .store(&params.dbName);
 
+  args.registerOption("-u", "username for db connection")
+      .setArgCount(1)
+      .store(&params.user);
+
+  args.registerOption("-p", "password for db connection")
+      .setArgCount(1)
+      .store(&params.passwd);
+
   std::string polarDat;
   args.registerOption("--polarDat", "Path to polar.dat").store(&polarDat);
 
