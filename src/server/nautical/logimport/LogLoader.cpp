@@ -182,14 +182,19 @@ void LogLoader::loadTextData(const ValueSet &stream) {
 
 
 void LogLoader::load(const LogFile &data) {
+  // TODO: Define a set of standard priorities in a file somewhere
+  auto rawStreamPriority = -16;
+
+
   for (int i = 0; i < data.stream_size(); i++) {
     const auto &stream = data.stream(i);
     _sourcePriority[stream.source()] = stream.priority();
     loadValueSet(stream);
   }
+
   for (int i = 0; i < data.text_size(); i++) {
     const auto &stream = data.text(i);
-    _sourcePriority[stream.source()] = stream.priority();
+    _sourcePriority[stream.source()] = rawStreamPriority;
     loadValueSet(stream);
   }
 }
