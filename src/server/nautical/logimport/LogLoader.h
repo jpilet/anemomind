@@ -10,6 +10,8 @@
 
 namespace Poco {class Path;}
 
+class ValueSet;
+
 namespace sail {
 
 class LogFile;
@@ -52,6 +54,9 @@ class LogLoader {
   void load(const LogFile &data);
 
  private:
+  void loadValueSet(const ValueSet &set);
+  void loadTextData(const ValueSet &stream);
+
 #define MAKE_SOURCE_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   std::map<std::string, TimedSampleCollection<TYPE>::TimedVector> _##HANDLE##sources;
   FOREACH_CHANNEL(MAKE_SOURCE_MAP)
