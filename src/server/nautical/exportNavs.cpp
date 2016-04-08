@@ -235,11 +235,10 @@ NavDataset performCalibration(NavDataset navs0,const ExportSettings& settings) {
 }
 
 int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::string output) {
-  auto navs0 = loadNavsFromArgs(args);
+  auto navs = loadNavsFromArgs(args);
   Array<NavField> fields = getNavFields(settings);
-  NavDataset navs;
   if (settings.simulatedTrueWindData) {
-    navs = performCalibration(navs0, settings);
+    navs = performCalibration(navs, settings);
   }
   const std::string& format = settings.formatStr;
   LOG(INFO) << "Navs successfully loaded, export them to "
