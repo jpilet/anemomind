@@ -9,11 +9,8 @@
 #include <device/Arduino/libraries/Corrector/Corrector.h>
 #include <server/plot/extra.h>
 #include <fstream>
-#include <server/math/ADFunction.h>
 #include <server/math/armaadolc.h>
 #include <ceres/ceres.h>
-#include <server/math/nonlinear/Levmar.h>
-#include <server/math/nonlinear/LevmarSettings.h>
 #include <server/common/ArrayIO.h>
 #include <server/nautical/TemporalSplit.h>
 #include <server/nautical/logimport/LogLoader.h>

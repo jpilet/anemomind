@@ -9,54 +9,6 @@ cxx_test(math_nonlinear_StepMinimizerTest
          gtest_main
         )
 
-add_library(math_nonlinear_Levmar
-            Levmar.cpp
-            Levmar.h
-            LevmarSettings.cpp
-            LevmarSettings.h
-           )
-target_link_libraries(math_nonlinear_Levmar
-                      common_Array
-                      common_ScopedLog
-                      common_string
-                      math_ADFunction
-                      math_armaadolc
-                      math_mathutils
-                     )
-
-cxx_test(math_nonlinear_LevmarTest
-         LevmarTest.cpp
-         math_nonlinear_Levmar
-         gtest_main
-        )
-
-add_library(math_nonlinear_NoisyStep
-  NoisyStep.cpp
-  NoisyStep.h)
-target_link_libraries(math_nonlinear_NoisyStep
-  math_ADFunction
-  common_Uniform)
-  
-
-
-add_library(math_nonlinear_Multiplayer
-            Multiplayer.h
-            Multiplayer.cpp
-           )
-target_link_libraries(math_nonlinear_Multiplayer
-                      math_nonlinear_StepMinimizer
-                      common_Function
-                      math_pareto
-                      )                                 
-
-cxx_test(math_nonlinear_MultiplayerTest
-          MultiplayerTest.cpp
-          math_nonlinear_Multiplayer
-          gtest_main
-         )
-
-target_depends_on_armadillo(math_nonlinear_MultiplayerTest)  
-  
 add_library(math_nonlinear_BandedSolver
             BandedSolver.h
             BandedSolver.cpp
