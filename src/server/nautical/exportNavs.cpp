@@ -217,20 +217,19 @@ int exportMatlab(bool withHeader, Array<NavField> fields,
   return 0;
 }
 
-NavDataset performCalibration(NavDataset navs,
-    const ExportSettings& settings) {
+NavDataset performCalibration(NavDataset navs0,const ExportSettings& settings) {
   WindOrientedGrammarSettings gs;
   WindOrientedGrammar grammar(gs);
-  auto tree = grammar.parse(navs);
+  auto tree = grammar.parse(navs0);
   std::shared_ptr<Calibrator> calib(new Calibrator(grammar));
   if (settings.verbose) {
     calib->setVerbose();
   }
-  calib->calibrate(navs, tree, Nav::debuggingBoatId());
-  auto result = calib->simulate(navs);
+  calib->calibrate(navs0, tree, Nav::debuggingBoatId());
+  auto result = calib->simulate(navs0);
   if (result.isDefaultConstructed()) {
     LOG(WARNING) << "Failed to simulate";
-    return navs;
+    return navs0;
   }
   return result;
 }
