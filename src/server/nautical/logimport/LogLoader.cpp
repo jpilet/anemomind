@@ -109,9 +109,7 @@ namespace { // NMEA0183
   void streamToNmeaParser(std::istream *src, NmeaParser *dstParser,
       Nmea0183LogLoaderAdaptor *adaptor) {
     while (src->good()) {
-      std::string line;
-      std::getline(*src, line);
-      streamToNmeaParser(line, dstParser, adaptor);
+      Nmea0183ProcessByte(adaptor->sourceName(), src->get(), dstParser, adaptor);
     }
   }
 
