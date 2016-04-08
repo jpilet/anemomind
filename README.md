@@ -22,7 +22,9 @@ build_release/src/server/nautical/tiles/generateDevDB.sh
 ```
 Now prepare the web server:
 ```
-cd www2
+mkdir www/db
+cd ../www2
+mkdir uploads
 npm install
 bower install
 ```
@@ -36,6 +38,7 @@ grunt serve:dev
 The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
 
 ## Required dependencies:
+### For C++
   * Eigen 3
   * C++ compiler, such as GCC or LLVM/Clang
   * CMake build system.
@@ -50,6 +53,12 @@ The system compiles **at least** under Ubuntu 64-bit and Mac OSX 64-bit.
   * gnuplot (only necessary if you want to plot)
   * libprotobuf-dev
   * protobuf-compiler
+
+### For the web server
+  * **node** and **npm**. Find packages here: ```https://nodejs.org/en/download/package-manager/```
+  * **mocha**, for running unit tests: ```npm install -g mocha``` (possibly with ```sudo```)
+  * **bower**, install with ```npm install -g bower``` (possibly with ```sudo```)
+  * **grunt**, install with ```npm install -g grunt```, or should it be ```grunt-cli```? Try out yourself. (possibly with ```sudo```)
 
 ## Dependencies that are fetched automatically:
   * gtest
