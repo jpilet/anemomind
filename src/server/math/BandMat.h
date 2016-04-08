@@ -13,6 +13,8 @@
 
 namespace sail {
 
+// Can Eigen decompose banded matrices?
+// http://eigen.tuxfamily.org/dox/BandMatrix_8h_source.html
 template <typename T>
 class BandMat {
  public:

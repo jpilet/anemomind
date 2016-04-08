@@ -308,8 +308,7 @@ target_link_libraries(nautical_RaceOverview
                       logimport_TestdataNavs
                       nautical_TemporalSplit
                      )
-                      
-                                           
+
 add_library(nautical_FlowErrors
             FlowErrors.h
             FlowErrors.cpp
@@ -318,21 +317,10 @@ target_link_libraries(nautical_FlowErrors
                       common_MeanAndVar
                      )     
                      
-add_library(nautical_MinCovCalib
-            MinCovCalib.h
-            MinCovCalib.cpp
-           )
-target_depends_on_ceres(nautical_MinCovCalib)
-target_link_libraries(nautical_MinCovCalib
-                      common_Progress
-                      nautical_FilteredNavData
-                     )
-
 add_executable(nautical_EvalCalib
                EvalCalib.cpp
               )
 target_link_libraries(nautical_EvalCalib
-                      nautical_MinCovCalib
                       nautical_Calibrator
                       nautical_CalibrationBenchmark
                       common_ArgMap

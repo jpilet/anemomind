@@ -5,7 +5,6 @@
 
 
 #include <server/nautical/CalibrationBenchmark.h>
-#include <server/nautical/MinCovCalib.h>
 #include <server/nautical/Calibrator.h>
 #include <server/common/ArgMap.h>
 
@@ -63,12 +62,6 @@ std::shared_ptr<CorrectorFunction> calibrateManeuversFull(NavDataset navs) {
   return calibrateManeuvers(navs, true);
 }
 
-std::shared_ptr<CorrectorFunction> calibrateMinCov(NavDataset navs) {
-  FilteredNavData data(navs, 0.5);
-  return std::shared_ptr<CorrectorFunction>(
-      new CorrectorObject(MinCovCalib::optimizeWindVsCurrent(data, MinCovCalib::Settings())));
-}
-
 
 
 
@@ -92,7 +85,6 @@ AlgoMap makeAlgoMap() {
   AlgoMap algoMap;
   algoMap["manfull"] = calibrateManeuversFull;
   algoMap["manwind"] = calibrateManeuversWind;
-  algoMap["mincov"] = calibrateMinCov;
   return algoMap;
 }
 
@@ -162,23 +154,19 @@ int main(int argc, const char **argv) {
   auto testMap = makeTestMap();
 
   std::string testCode = "reduced";
-  std::string algo = "mincov";
   std::string filename = "";
   std::string folder = "";
+  std::string algo = "manfull";
 
   ArgMap amap;
   amap.setHelpInfo(
       std::string("") +
       "Evaluation of calibration algorithms on real and synthetic data\n" +
       "Example usages: \n" +
-      "  ./nautical_EvalCalib --test irene --algo manwind\n" +
-      "  ./nautical_EvalCalib --test reduced --algo mincov\n" +
-      "  ./nautical_EvalCalib --test reduced --algo mincov --output myspecialresults.txt\n\n"
+      "  ./nautical_EvalCalib --test irene --algo manwind\n"
   );
   amap.registerOption("--test", "What test to run (" + listKeysCommaSeparated(testMap) + ")")
     .store(&testCode);
-  amap.registerOption("--algo", "What algorithm to test (" + listKeysCommaSeparated(algoMap) + ")")
-    .store(&algo);
   amap.registerOption("--output", "Where the results should be saved")
     .store(&filename);
   amap.registerOption("--folder", "Instead of providing a test (using --test), read data from a folder")
