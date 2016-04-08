@@ -13,6 +13,8 @@ struct TileGeneratorParameters {
   int maxNumNavsPerSubCurve;
   std::string dbName;
   bool fullClean;
+  std::string user;
+  std::string passwd;
 
   std::string tileTable() const {
     return dbName + "." + _tileTable;

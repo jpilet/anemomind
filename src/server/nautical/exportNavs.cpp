@@ -23,6 +23,7 @@ struct ExportSettings {
   std::string formatStr;
   bool simulatedTrueWindData;
   bool withHeader;
+  bool verbose;
 };
 
 NavDataset loadNavsFromArgs(Array<ArgMap::Arg*> args) {
@@ -216,26 +217,30 @@ int exportMatlab(bool withHeader, Array<NavField> fields,
   return 0;
 }
 
-NavDataset performCalibration(NavDataset navs0) {
+NavDataset performCalibration(NavDataset navs,
+    const ExportSettings& settings) {
   WindOrientedGrammarSettings gs;
   WindOrientedGrammar grammar(gs);
-  auto tree = grammar.parse(navs0);
+  auto tree = grammar.parse(navs);
   std::shared_ptr<Calibrator> calib(new Calibrator(grammar));
-  calib->setVerbose();
-  calib->calibrate(navs0, tree, Nav::debuggingBoatId());
-  auto result = calib->simulate(navs0);
+  if (settings.verbose) {
+    calib->setVerbose();
+  }
+  calib->calibrate(navs, tree, Nav::debuggingBoatId());
+  auto result = calib->simulate(navs);
   if (result.isDefaultConstructed()) {
     LOG(WARNING) << "Failed to simulate";
-    return navs0;
+    return navs;
   }
   return result;
 }
 
 int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::string output) {
-  auto navs = loadNavsFromArgs(args);
+  auto navs0 = loadNavsFromArgs(args);
   Array<NavField> fields = getNavFields(settings);
+  NavDataset navs;
   if (settings.simulatedTrueWindData) {
-    navs = performCalibration(navs);
+    auto navs = performCalibration(navs0, settings);
   }
   const std::string& format = settings.formatStr;
   LOG(INFO) << "Navs successfully loaded, export them to "
@@ -266,6 +271,7 @@ int main(int argc, const char **argv) {
     .store(&output);
   amap.registerOption("--no-header", "Omit header labels for data columns");
   amap.registerOption("--no-simulate", "Skip simulated true wind columns");
+  amap.registerOption("-v", "Verbose output");
   amap.setHelpInfo(
       std::string("") +
       "Exports nav data to other formats. In addition to the named arguments,\n" +
@@ -282,6 +288,7 @@ int main(int argc, const char **argv) {
         settings.format = (settings.formatStr == "csv"?
                            CSV : (settings.formatStr == "json"? JSON : MATLAB));
         settings.withHeader = !amap.optionProvided("--no-header");
+        settings.verbose = amap.optionProvided("-v");
         settings.simulatedTrueWindData = !amap.optionProvided("--no-simulate");
         return exportNavs(amap.freeArgs(), settings, output);
       }

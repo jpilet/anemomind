@@ -50,6 +50,7 @@ for boatdir in "${LOG_DIR}/"*; do
 	--id ${boatid} \
 	--navpath "${boatprocessdir}" \
 	--db anemomind \
+        -u anemomindprod -p asjdhse5sdas \
         --clean \
         --noinfo \
 	--scale 20 ; then

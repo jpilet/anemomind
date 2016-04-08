@@ -352,6 +352,13 @@ bool generateAndUploadTiles(std::string boatId,
     return false;
   }
 
+  if (params.user.size() > 0) {
+    if (!db.auth(params.dbName, params.user, params.passwd, err)) {
+      LOG(ERROR) << "mongoDB authentication failed: " << err;
+      return false;
+    }
+  }
+
   if (params.fullClean) {
     db.remove(params.tileTable(),
                MONGO_QUERY("boat" << OID(boatId)));

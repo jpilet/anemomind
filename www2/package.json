@@ -71,7 +71,7 @@
     "grunt-mocha-test": "~0.10.2",
     "grunt-newer": "~1.1.1",
     "grunt-ng-annotate": "^0.2.3",
-    "grunt-node-inspector": "~0.1.5",
+    "grunt-node-inspector": ">=0.1.5",
     "grunt-nodemon": "~0.2.0",
     "grunt-open": "~0.2.3",
     "grunt-protractor-runner": "^1.1.0",
