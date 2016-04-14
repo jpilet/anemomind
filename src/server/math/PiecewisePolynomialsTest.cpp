@@ -18,7 +18,8 @@ TEST(PiecewisePolynomialsTest, Test0) {
     X[i] = x;
     Y[i] = (i < 200? -12 : 3) + 0.1*(sin(300*x) + cos(34*x + 34234));
   }
-  auto pieces = PiecewisePolynomials::optimizeForSegmentCount<1>(X, Y, count, sampleToX, 2);
+  auto pieces = PiecewisePolynomials::optimizeForSegmentCount<1>(
+      X, Y, count, sampleToX, 2);
   EXPECT_EQ(pieces.size(), 2);
   EXPECT_EQ(pieces[0].span.minv(), 0);
   EXPECT_NEAR(pieces[0].span.maxv(), 200, 3);
