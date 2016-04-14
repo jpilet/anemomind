@@ -4,6 +4,7 @@ add_subdirectory("synthtest")
 add_subdirectory("tiles")
 add_subdirectory("logimport")
 add_subdirectory("calib")
+add_subdirectory("filters")
 
 
 add_library(nautical_Ecef
