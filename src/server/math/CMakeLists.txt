@@ -74,15 +74,6 @@ cxx_test(math_BandMatTest
          gtest_main
         )
 
-add_library(math_Statistics
-            Statistics.h
-            Statistics.cpp
-           )
-cxx_test(math_StatisticsTest
-         StatisticsTest.cpp
-         math_Statistics
-         gtest_main
-        )
                      
 add_library(math_CleanNumArray
             CleanNumArray.cpp

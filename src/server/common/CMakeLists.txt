@@ -225,19 +225,6 @@ cxx_test(common_pocoTest
 target_depends_on_poco_json(common_pocoTest) 
 endif ()
 
-add_library(common_ConcatFunction
-            ConcatFunction.h
-            ConcatFunction.cpp
-           )
-target_link_libraries(common_ConcatFunction
-                      common_Function
-                     )                
-cxx_test(common_ConcatFunctionTest
-         ConcatFunctionTest.cpp
-         common_ConcatFunction
-         gtest_main
-        )
-
 add_library(common_Histogram
             Histogram.cpp
             Histogram.h
