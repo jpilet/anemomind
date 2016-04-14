@@ -9,7 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <server/common/TimeStamp.h>
-#include <server/nautical/Calibrator.h>
+#include <server/nautical/calib/Calibrator.h>
 #include <iostream>
 #include <server/common/Functional.h>
 
