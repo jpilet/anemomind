@@ -219,14 +219,6 @@ target_link_libraries(nautical_GeographicReferenceJson
                     nautical_GeographicPositionJson
                    )
 
-add_library(nautical_ParametricHorizontalMotion
-            ParametricHorizontalMotion.h
-            ParametricHorizontalMotion.cpp
-           )
-target_link_libraries(nautical_ParametricHorizontalMotion 
-                      common_Uniform
-                     )
-
 add_executable(nautical_SaveMatrix
                SaveMatrix.cpp
               )
