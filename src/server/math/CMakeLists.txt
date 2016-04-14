@@ -17,27 +17,6 @@ target_link_libraries(math_armaadolc
 target_depends_on_armadillo(math_armaadolc)
 target_depends_on_adolc(math_armaadolc)
 
-add_library(math_MatExpr
-            MatExpr.h
-            MatExpr.cpp
-            )
-target_depends_on_armadillo(math_MatExpr)
-
-cxx_test(math_MatExprTest
-         MatExprTest.cpp
-         math_MatExpr
-         gtest_main
-        )                   
-
-add_library(math_ADFunction
-            ADFunction.cpp
-            ADFunction.h
-           )
-target_link_libraries(math_ADFunction
-                      common_Function
-                      math_armaadolc
-                     )
-target_depends_on_adolc(math_ADFunction)
 
 add_library(math_LUImpl
             LUImpl.h
@@ -54,47 +33,14 @@ target_link_libraries(math_LU
 cxx_test(math_LUTest
          LUTest.cpp
          math_LU
-         math_ADFunction
          gtest_main
         )                           
-
-add_library(math_pareto
-            pareto.cpp
-            pareto.h
-           )
-target_link_libraries(math_pareto
-                      common_Array
-                     )
-
-cxx_test(math_paretoTest
-         paretoTest.cpp
-         math_pareto
-         gtest_main
-        )                   
 
 cxx_test(math_mathutilsTest
          mathutilsTest.cpp
          math_mathutils
          gtest_main
         )                   
-
-add_library(math_GemanMcClure
-            GemanMcClure.cpp
-            GemanMcClure.h
-           )
-target_link_libraries(math_GemanMcClure
-                      common_Array
-                      common_math
-                      common_Function
-                     )
-cxx_test(math_GemanMcClureTest
-         GemanMcClureTest.cpp
-         math_GemanMcClure
-         math_nonlinear_Levmar
-         common_Uniform
-         math_ADFunction
-         gtest_main
-        )           
 
 add_library(math_Grid
             Grid.cpp
@@ -128,36 +74,6 @@ cxx_test(math_BandMatTest
          gtest_main
         )
 
-add_executable(math_ceres_helloworld
-               ceres_helloworld.cpp
-              )
-target_depends_on_ceres(math_ceres_helloworld)
-
-add_library(math_Statistics
-            Statistics.h
-            Statistics.cpp
-           )
-cxx_test(math_StatisticsTest
-         StatisticsTest.cpp
-         math_Statistics
-         gtest_main
-        )
-
-
-add_library(math_CumulativeFunction
-            CumulativeFunction.cpp
-            CumulativeFunction.h
-           )
-target_link_libraries(math_CumulativeFunction
-                      math_armaadolc
-                      common_LineKM
-                     )
-
-cxx_test(math_CumulativeFunctionTest
-         CumulativeFunctionTest.cpp
-         gtest_main
-         math_CumulativeFunction
-        )                     
                      
 add_library(math_CleanNumArray
             CleanNumArray.cpp
@@ -261,13 +177,6 @@ cxx_test(math_StabilityTest
          StabilityTest.cpp
          gtest_main
          math_Stability
-        )
-
-cxx_test(math_SignalCovarianceTest
-         SignalCovarianceTest.cpp
-         gtest_main
-         common_Progress
-         common_ScopedLog
         )
 
 add_library(math_irls

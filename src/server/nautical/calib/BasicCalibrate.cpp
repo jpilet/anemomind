@@ -2,7 +2,7 @@
 
 #include <server/common/Env.h>
 #include <server/common/logging.h>
-#include <server/nautical/Calibrator.h>
+#include <server/nautical/calib/Calibrator.h>
 
 using namespace sail;
 

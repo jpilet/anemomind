@@ -41,6 +41,17 @@ bool TimeStamp::defined() const {
 
 TimeStamp TimeStamp::UTC(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
           unsigned int hour, unsigned int minute, double seconds) {
+  auto t = TimeStamp(year_ad, month_1to12, day_1to31, hour, minute, seconds);
+  if (t.undefined()) {
+    LOG(FATAL) << "Failed to create timestamp from year=" << year_ad << " month="
+        << month_1to12 << " day=" << day_1to31 << " hour=" << hour << " minute="
+        << minute << " seconds=" << seconds;
+  }
+  return t;
+}
+
+TimeStamp TimeStamp::tryUTC(int year_ad, unsigned int month_1to12, unsigned int day_1to31,
+          unsigned int hour, unsigned int minute, double seconds) {
   return TimeStamp(year_ad, month_1to12, day_1to31, hour, minute, seconds);
 }
 
@@ -61,12 +72,11 @@ struct tm TimeStamp::makeGMTimeStruct() const {
 }
 
 TimeStamp::TimeStamp(int year_ad, int month_1to12, int day_1to31,
-    int hour, int minute, double seconds) {
-  assert(inRange(month_1to12, 1, 12));
-  assert(inRange(day_1to31, 1, 31));
-  assert(inRange(hour, 0, 23));
-  assert(inRange(minute, 0, 59));
-  assert(seconds >= 0);
+    int hour, int minute, double seconds) : _time(UndefinedTime) {
+  if (!(inRange(month_1to12, 1, 12) && inRange(day_1to31, 1, 31)
+      && inRange(hour, 0, 23) && inRange(minute, 0, 59) && (seconds >= 0))) {
+    return;
+  }
 
   struct tm time;
   memset(&time, 0, sizeof(tm));
@@ -199,6 +209,25 @@ TimeStamp operator+(const Duration<double> &a, const TimeStamp &b) {
 std::ostream &operator<<(std::ostream &s, const TimeStamp &t) {
   return s << t.toString();
 }
+
+TimeStamp latest(const TimeStamp &a, const TimeStamp &b) {
+  if (a.undefined()) {
+    return b;
+  } else if (b.undefined()) {
+    return a;
+  }
+  return std::max(a, b);
+}
+
+TimeStamp earliest(const TimeStamp &a, const TimeStamp &b) {
+  if (a.undefined()) {
+    return b;
+  } else if (b.undefined()) {
+    return a;
+  }
+  return std::min(a, b);
+}
+
 
 void sleep(Duration<double> duration) {
   usleep(useconds_t(duration.seconds() * 1e6));

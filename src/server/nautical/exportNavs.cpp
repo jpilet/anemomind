@@ -9,7 +9,7 @@
 #include <fstream>
 #include <sstream>
 #include <server/common/TimeStamp.h>
-#include <server/nautical/Calibrator.h>
+#include <server/nautical/calib/Calibrator.h>
 #include <iostream>
 #include <server/common/Functional.h>
 
@@ -131,6 +131,9 @@ Array<NavField> getNavFields(const ExportSettings& format) {
     }},
     NavField{"GPS bearing (degrees)", [=](const Nav &x) {
       return angleToLiteral(x.gpsBearing(), format, 360);
+    }},
+    NavField{"Rudder angle (degrees)", [=](const Nav &x) {
+      return angleToLiteral(x.rudderAngle(), format, 180);
     }}
   });
 
@@ -235,11 +238,10 @@ NavDataset performCalibration(NavDataset navs0,const ExportSettings& settings) {
 }
 
 int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::string output) {
-  auto navs0 = loadNavsFromArgs(args);
+  auto navs = loadNavsFromArgs(args);
   Array<NavField> fields = getNavFields(settings);
-  NavDataset navs;
   if (settings.simulatedTrueWindData) {
-    auto navs = performCalibration(navs0, settings);
+    navs = performCalibration(navs, settings);
   }
   const std::string& format = settings.formatStr;
   LOG(INFO) << "Navs successfully loaded, export them to "
@@ -247,6 +249,7 @@ int exportNavs(Array<ArgMap::Arg*> args, const ExportSettings& settings, std::st
   std::ofstream file(output);
 
   auto sampled = makeArray(navs);
+  LOG(INFO) << "Number of navs to export: " << sampled.size();
   if (format == "csv") {
     return exportCsv(settings.withHeader, fields, sampled, &file);
   } else if (format == "json") {

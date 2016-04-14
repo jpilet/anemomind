@@ -40,8 +40,9 @@ namespace { // NMEA0183
 
   class Nmea0183LogLoaderAdaptor {
    public:
-    Nmea0183LogLoaderAdaptor(NmeaParser *parser, LogLoader *dst) :
-      _parser(parser), _dst(dst), _sourceName("NMEA0183") {}
+    Nmea0183LogLoaderAdaptor(NmeaParser *parser, LogLoader *dst,
+        const std::string &srcName) :
+      _parser(parser), _dst(dst), _sourceName(srcName) {}
 
     template <DataCode Code>
     void add(const std::string &sourceName, const typename TypeForCode<Code>::type &value) {
@@ -63,24 +64,66 @@ namespace { // NMEA0183
     LogLoader *_dst;
   };
 
-  void loadNmea0183Stream(std::istream *stream, LogLoader *dst) {
-    NmeaParser parser;
-    parser.setIgnoreWrongChecksum(true);
 
-    Nmea0183LogLoaderAdaptor adaptor(&parser, dst);
+  class LogLoaderNmea0183Parser : public NmeaParser {
+  public:
+    LogLoaderNmea0183Parser(LogLoader *dst,
+        const std::string &s) : _dst(dst), _sourceName(s) {
+      setIgnoreWrongChecksum(true);
+    }
 
-    std::string line;
-    while (stream->good()) {
-      std::getline(*stream, line);
-      for (auto c: line) {
-        Nmea0183ProcessByte(adaptor.sourceName(), c, &parser, &adaptor);
+    void setProtobufTime(const TimeStamp &time) {
+      _protobufTime = time;
+    }
+
+  protected:
+    // Well, the rudder angle is delivered by the NmeaParser
+    // differently w.r.t. how it delivers the other values. Not sure
+    // how to do this right.
+    virtual void onXDRRudder(const char *senderAndSentence,
+                             bool valid,
+                             sail::Angle<double> angle,
+                             const char *whichRudder) {
+      auto t = latest(timestamp(), _protobufTime);
+      if (valid && t.defined()) {
+        (*(_dst->getRUDDER_ANGLEsources()))[_sourceName].push_back(
+            TimedValue<Angle<double> >(t, angle));
       }
     }
+  private:
+    std::string _sourceName;
+    LogLoader *_dst;
+    TimeStamp _protobufTime;
+  };
+
+  std::string defaultNmea0183SourceName = "NMEA0183";
+
+  void streamToNmeaParser(const std::string &src,
+      NmeaParser *dstParser,
+      Nmea0183LogLoaderAdaptor *adaptor) {
+    for (auto c: src) {
+      Nmea0183ProcessByte(adaptor->sourceName(), c, dstParser, adaptor);
+    }
+  }
+
+  void streamToNmeaParser(std::istream *src, NmeaParser *dstParser,
+      Nmea0183LogLoaderAdaptor *adaptor) {
+    while (src->good()) {
+      Nmea0183ProcessByte(adaptor->sourceName(), src->get(), dstParser, adaptor);
+    }
+  }
+
+
+  void loadNmea0183Stream(std::istream *stream, LogLoader *dst,
+      const std::string &srcName) {
+    LogLoaderNmea0183Parser parser(dst, srcName);
+    Nmea0183LogLoaderAdaptor adaptor(&parser, dst, srcName);
+    streamToNmeaParser(stream, &parser, &adaptor);
   }
 
   void loadNmea0183File(const std::string &filename, LogLoader *dst) {
     std::ifstream file(filename);
-    loadNmea0183Stream(&file, dst);
+    loadNmea0183Stream(&file, dst, defaultNmea0183SourceName);
   }
 }
 
@@ -107,16 +150,52 @@ void addToVector(const ValueSet &src, std::deque<TimedValue<T> > *dst) {
   }
 }
 
-void LogLoader::load(const LogFile &data) {
-  for (int i = 0; i < data.stream_size(); i++) {
-    const auto &stream = data.stream(i);
-    _sourcePriority[stream.source()] = stream.priority();
-
+void LogLoader::loadValueSet(const ValueSet &stream) {
 #define ADD_VALUES_TO_VECTOR(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   if (stream.shortname() == SHORTNAME) {addToVector<TYPE>(stream, &(_##HANDLE##sources[stream.source()]));}
       FOREACH_CHANNEL(ADD_VALUES_TO_VECTOR)
 #undef  ADD_VALUES_TO_VECTOR
+  loadTextData(stream);
+}
 
+void LogLoader::loadTextData(const ValueSet &stream) {
+  vector<TimeStamp> times;
+  Logger::unpackTime(stream, &times);
+
+  auto n = stream.text_size();
+  if (n == 0) {
+    return;
+  } else if (n > times.size()) {
+    LOG(WARNING) << "Omitting text data, because incompatible sizes "
+        << n << " and " << times.size();
+  } else {
+    std::string originalSourceName = stream.source();
+    std::string dstSourceName = originalSourceName + " reparsed";
+    LogLoaderNmea0183Parser parser(this, dstSourceName);
+    Nmea0183LogLoaderAdaptor adaptor(&parser, this, dstSourceName);
+    for (int i = 0; i < n; i++) {
+      parser.setProtobufTime(times[i]);
+      streamToNmeaParser(stream.text(i), &parser, &adaptor);
+    }
+  }
+}
+
+
+void LogLoader::load(const LogFile &data) {
+  // TODO: Define a set of standard priorities in a file somewhere
+  auto rawStreamPriority = -16;
+
+
+  for (int i = 0; i < data.stream_size(); i++) {
+    const auto &stream = data.stream(i);
+    _sourcePriority[stream.source()] = stream.priority();
+    loadValueSet(stream);
+  }
+
+  for (int i = 0; i < data.text_size(); i++) {
+    const auto &stream = data.text(i);
+    _sourcePriority[stream.source()] = rawStreamPriority;
+    loadValueSet(stream);
   }
 }
 
@@ -142,7 +221,7 @@ bool LogLoader::loadFile(const std::string &filename) {
 }
 
 void LogLoader::loadNmea0183(std::istream *s) {
-  loadNmea0183Stream(s, this);
+  loadNmea0183Stream(s, this, defaultNmea0183SourceName);
 }
 
 void LogLoader::load(const std::string &name) {

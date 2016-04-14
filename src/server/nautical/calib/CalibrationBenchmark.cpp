@@ -7,7 +7,7 @@
 #include <server/common/EnvUtil.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/common/ArrayIO.h>
-#include <server/nautical/CalibrationBenchmark.h>
+#include <server/nautical/calib/CalibrationBenchmark.h>
 #include <server/common/ScopedLog.h>
 #include <fstream>
 
