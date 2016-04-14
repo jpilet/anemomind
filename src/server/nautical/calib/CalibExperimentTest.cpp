@@ -6,7 +6,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <server/nautical/experimental/Experimental.h>
+#include <server/nautical/calib/CalibExperiment.h>
 
 
 using namespace sail;

@@ -3,7 +3,6 @@ add_subdirectory("tgtspeed")
 add_subdirectory("synthtest")
 add_subdirectory("tiles")
 add_subdirectory("logimport")
-add_subdirectory("experimental")
 add_subdirectory("calib")
 
 add_library(nautical_Ecef
