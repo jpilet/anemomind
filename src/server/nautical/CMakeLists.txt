@@ -3,6 +3,7 @@ add_subdirectory("tgtspeed")
 add_subdirectory("synthtest")
 add_subdirectory("tiles")
 add_subdirectory("logimport")
+add_subdirectory("calib")
 
 
 add_library(nautical_Ecef
@@ -86,19 +87,7 @@ cxx_test(nautical_NavJsonTest
          nautical_NavCompatibility
          gtest_main
         )
-        
-        
-cxx_test(nautical_SpeedCalibTest
-         SpeedCalibTest.cpp
-         gtest_main
-        )        
-
-
-cxx_test(nautical_CorrectorTest
-         CorrectorTest.cpp
-         gtest_main
-         )
-
+               
 #################################################################
 ### CalibrationExamples
 #################################################################
@@ -129,7 +118,7 @@ target_link_libraries(nautical_BoatLogProcessor
                       common_logging
                       device_ChunkFile
                       math_hmm_StateAssign
-                      nautical_Calibrator
+                      calib_Calibrator
                       nautical_HTreeJson
                       nautical_NavJson
                       nautical_TargetSpeed
@@ -150,28 +139,6 @@ target_link_libraries(nautical_processBoatLogs
                      )              
 
 
-add_library(nautical_Calibrator
-            Calibrator.h
-            Calibrator.cpp
-           )
-target_link_libraries(nautical_Calibrator
-                      anemobox_SimulateBox
-                      common_Histogram
-                      common_math
-                      nautical_FlowErrors
-                      nautical_grammars_WindOrientedGrammar
-                      plot_gnuplot
-                     )
-target_depends_on_ceres(nautical_Calibrator)
-
-add_executable(nautical_BasicCalibrate
-               BasicCalibrate.cpp)
-target_link_libraries(nautical_BasicCalibrate
-                      common_Env
-                      common_logging
-                      nautical_Calibrator
-                      logimport_LogLoader
-                     )
 
 
 add_library(nautical_GeographicReference
@@ -317,25 +284,6 @@ target_link_libraries(nautical_FlowErrors
                       common_MeanAndVar
                      )     
                      
-add_executable(nautical_EvalCalib
-               EvalCalib.cpp
-              )
-target_link_libraries(nautical_EvalCalib
-                      nautical_Calibrator
-                      nautical_CalibrationBenchmark
-                      common_ArgMap
-                     )              
-
-add_library(nautical_CalibrationBenchmark 
-            CalibrationBenchmark.h
-            CalibrationBenchmark.cpp
-           )      
-           
-target_link_libraries(nautical_CalibrationBenchmark                         
-                      nautical_synthtest_NavalSimulationPrecomp
-                      common_EnvUtil
-                      logimport_LogLoader
-                     )
 
 
 add_library(nautical_GpsFilter
@@ -364,7 +312,7 @@ add_executable(nautical_exportNavs
 target_link_libraries(nautical_exportNavs
                       common_logging
                       common_ArgMap
-                      nautical_Calibrator
+                      calib_Calibrator
                       logimport_LogLoader
                      )              
 

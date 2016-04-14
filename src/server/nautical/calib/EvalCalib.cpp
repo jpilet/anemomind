@@ -4,8 +4,8 @@
  */
 
 
-#include <server/nautical/CalibrationBenchmark.h>
-#include <server/nautical/Calibrator.h>
+#include <server/nautical/calib/CalibrationBenchmark.h>
+#include <server/nautical/calib/Calibrator.h>
 #include <server/common/ArgMap.h>
 
 using namespace sail;

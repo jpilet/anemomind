@@ -19,7 +19,7 @@
 #include <server/common/ScopedLog.h>
 #include <server/common/logging.h>
 #include <server/common/string.h>
-#include <server/nautical/Calibrator.h>
+#include <server/nautical/calib/Calibrator.h>
 #include <server/nautical/HTreeJson.h>
 #include <server/nautical/NavJson.h>
 #include <server/nautical/logimport/LogLoader.h>
