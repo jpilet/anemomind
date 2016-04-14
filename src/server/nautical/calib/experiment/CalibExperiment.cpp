@@ -5,7 +5,7 @@
  *      Author: jonas
  */
 
-#include <server/nautical/calib/CalibExperiment.h>
+#include <server/nautical/calib/experiment/CalibExperiment.h>
 #include <server/common/Functional.h>
 #include <server/common/numerics.h>
 #include <server/plot/extra.h>

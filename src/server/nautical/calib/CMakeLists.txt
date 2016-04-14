@@ -1,3 +1,5 @@
+add_subdirectory("experiment")
+
 cxx_test(calib_SpeedCalibTest
          SpeedCalibTest.cpp
          gtest_main
@@ -50,33 +52,4 @@ target_link_libraries(calib_CalibrationBenchmark
                       common_EnvUtil
                       logimport_LogLoader
                      )
-         
-
-         
-         
-         
-add_library(calib_CalibExperiment
-	CalibExperiment.h
-	CalibExperiment.cpp
-	)
-
-target_link_libraries(calib_CalibExperiment
-	logimport_LogLoader
-	nautical_NavCompatibility
-	common_Env
-	common_PathBuilder
-	)
-	
-cxx_test(calib_CalibExperimentTest
-	CalibExperimentTest.cpp
-	calib_CalibExperiment
-	gtest_main
-	)
-	
-add_executable(calib_mainCalibExperiment
-	mainCalibExperiment.cpp
-	)
-	
-target_link_libraries(calib_mainCalibExperiment
-	calib_CalibExperiment
-    )
+                     
