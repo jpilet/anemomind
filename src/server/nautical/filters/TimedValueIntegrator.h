@@ -112,8 +112,6 @@ Array<T> buildCumulative(const Arrayd &bounds,
 template <typename T>
 class TimedValueIntegrator {
 public:
-  static Duration<double> unit() {return Duration<double>::seconds(1.0);}
-
   TimedValueIntegrator() {}
 
   static TimedValueIntegrator<T> makeFromArray(const Array<TimedValue<T> > &values) {
@@ -218,6 +216,8 @@ private:
   TimeStamp _offset;
   Arrayd _bounds, _sampleTimes;
   Array<T> _cumulative;
+
+  static Duration<double> unit() {return Duration<double>::seconds(1.0);}
 
   double fitToBounds(double localTime) const {
     return sail::clamp(localTime, _bounds.first(), _bounds.last());
