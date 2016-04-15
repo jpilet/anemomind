@@ -52,4 +52,11 @@ target_link_libraries(calib_CalibrationBenchmark
                       common_EnvUtil
                       logimport_LogLoader
                      )
-                     
+
+cxx_test(calib_CornerCalibTest
+   CornerCalibTest.cpp
+   gtest_main
+   common_logging
+  )
+
+target_depends_on_ceres(calib_CornerCalibTest)

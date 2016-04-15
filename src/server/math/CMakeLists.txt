@@ -197,6 +197,11 @@ cxx_test(math_irlsTest
          gtest_main
          plot_gnuplot
         )
+        
+cxx_test(math_PointQuadTest
+         PointQuadTest.cpp
+         gtest_main
+        )
 
 add_subdirectory(geometry)
 add_subdirectory(hmm)

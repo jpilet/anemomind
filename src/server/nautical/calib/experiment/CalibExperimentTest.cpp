@@ -12,18 +12,6 @@
 using namespace sail;
 using namespace sail::Experimental;
 
-TEST(ExperimentalTest, Gaussian) {
-  typedef Gaussian<double> Gd;
-
-  Eigen::Vector2d a(3, 1);
-  Eigen::Vector2d b(1, 3);
-
-  Gd ga(a);
-  Gd gb(b);
-  auto gc = ga + gb;
-  EXPECT_NEAR(gc.computeVariance(gc.computeMean()), 2.0, 1.0e-9);
-}
-
 TEST(ExperimentalTest, TestSomething) {
   Nav nav;
   nav.setWatSpeed(Velocity<double>::knots(4.3));

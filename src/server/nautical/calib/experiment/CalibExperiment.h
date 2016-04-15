@@ -12,6 +12,7 @@
 #include <server/math/Integral1d.h>
 #include <server/nautical/NavCompatibility.h>
 #include <server/common/Functional.h>
+#include <server/math/PointQuad.h>
 
 namespace sail {
 namespace Experimental {
@@ -51,49 +52,13 @@ Array<Eigen::Matrix<T, 2, 1> > computeFlows(const Array<FlowMats> &mats, const T
   });
 }
 
-template <typename T>
-class Gaussian {
-public:
-  typedef Eigen::Matrix<T, 2, 1> Vec;
 
-  Gaussian() : _n(0), _pt(T(0), T(0)), _sqSum(T(0)) {}
-  Gaussian(const Vec &v) : _n(1), _pt(v), _sqSum(v.squaredNorm()) {}
-  Gaussian(int n, const Vec &v, T s) : _n(n), _pt(v), _sqSum(s) {}
-
-  Gaussian operator+(const Gaussian &other) const {
-    return Gaussian(_n + other._n, _pt + other._pt, _sqSum + other._sqSum);
-  }
-
-  Gaussian operator-(const Gaussian &other) const {
-    return Gaussian(_n - other._n, _pt - other._pt, _sqSum - other._sqSum);
-  }
-
-  Vec computeMean() const {
-    return T(1.0/_n)*_pt;
-  }
-
-  T computeVariance(const Vec &mean) const {
-    return mean.squaredNorm() - (2.0/_n)*mean.dot(_pt) + (1.0/_n)*_sqSum;
-  }
-
-  T computeVariance() const {
-    return computeVariance(computeMean());
-  }
-
-  T computeStandardDeviation(const Vec &mean) const {
-    return sqrt(1.0e-12 + computeVariance(mean));
-  }
-private:
-  int _n;
-  Vec _pt;
-  T _sqSum;
-};
 
 template <typename T>
 Array<T> computeRelativeErrors(const Array<Eigen::Matrix<T, 2, 1> > &vecs, int size) {
-  Integral1d<Gaussian<T> > itg(sail::map(vecs, [&](const Eigen::Matrix<T, 2, 1> &v) {
-    return Gaussian<T>(v);
-  }), Gaussian<T>());
+  Integral1d<PointQuad<T, 2> > itg(sail::map(vecs, [&](const Eigen::Matrix<T, 2, 1> &v) {
+    return PointQuad<T, 2>(v);
+  }), PointQuad<T, 2>());
   int n = vecs.size() - size + 1;
   auto half = size/2;
   Array<T> result(n);
