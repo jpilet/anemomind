@@ -11,6 +11,7 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/common/TimedValue.h>
 #include <server/common/Optional.h>
+#include <server/common/Functional.h>
 #include <algorithm>
 
 namespace sail {
@@ -29,12 +30,54 @@ int computeIteratorRangeSize(Iter begin, Iter end) {
 }
 
 // Returns an interpolation factor in [0, 1]
-double computeLambda(TimeStamp left, TimeStamp right, TimeStamp t) {
+inline double computeLambda(double left, double right, double t) {
   assert(!(right < left));
   if (left == right) {
     return 0.5;
   }
   return (t - left)/(right - left);
+}
+
+template <typename T, typename Iterator>
+Array<TimedValue<T> > makeArrayFromRange(Iterator begin, Iterator end) {
+  int n = computeIteratorRangeSize(begin, end);
+  ArrayBuilder<TimedValue<T> > builder(n);
+  for (auto i = begin; i != end; i++) {
+    builder.add(*i);
+  }
+  return builder.get();
+}
+
+inline double toLocalTime(TimeStamp offset, TimeStamp x, const Duration<double> &unit) {
+  return (x - offset)/unit;
+}
+
+template <typename T>
+Arrayd toLocalTimes(const Array<TimedValue<T> > &values, const Duration<double> &unit) {
+  if (values.empty()) {
+    return Arrayd();
+  }
+  auto offset = values.first().time;
+  return sail::map(values, [&](const TimedValue<T> &x) {
+    return toLocalTime(offset, x.time, unit);
+  });
+}
+
+Arrayd computeBounds(const Arrayd &localTimes);
+
+int computeBin(const Arrayd &bounds, double x);
+
+template <typename T>
+Array<T> buildCumulative(const Arrayd &bounds,
+    const Array<TimedValue<T> > &values) {
+  int n = values.size();
+  Array<T> cumulative(n + 1);
+  cumulative[0] = values[0].value;
+  for (int i = 0; i < n; i++) {
+    auto width = bounds[i + 1] - bounds[i];
+    cumulative[i + 1] = cumulative[i] + width*values[i].value;
+  }
+  return cumulative;
 }
 
 /*
@@ -69,24 +112,31 @@ double computeLambda(TimeStamp left, TimeStamp right, TimeStamp t) {
 template <typename T>
 class TimedValueIntegrator {
 public:
-  template <typename Iterator>
-  static TimedValueIntegrator<T> make(Iterator begin, Iterator end) {
-    assert(std::is_sorted(begin, end));
+  static Duration<double> unit() {return Duration<double>::seconds(1.0);}
 
-    auto n = computeIteratorRangeSize(begin, end);
-    ArrayBuilder<TimeStamp> times(n);
-    ArrayBuilder<T> cumulative(n+1);
-    if (0 < n) {
-      auto x = begin->value;
-      cumulative.add(x);
-      for (auto iter = begin; iter != end; iter++) {
-        times.add(iter->time);
-        x = x + iter->value;
-        cumulative.add(x);
+  TimedValueIntegrator() {}
+
+  static TimedValueIntegrator<T> makeFromArray(const Array<TimedValue<T> > &values) {
+    assert(std::is_sorted(values.begin(), values.end()));
+    if (values.empty()) {
+      return TimedValueIntegrator();
+    } else {
+      auto times = toLocalTimes(values, unit());
+      auto bounds = computeBounds(times);
+      if (bounds.size() == 1) {
+        assert(values.size() == 1);
+        return TimedValueIntegrator<T>(values.first().time, bounds, times, Array<T>{values.first().value});
+      } else {
+        auto cumulative = buildCumulative(bounds, values);
+        return TimedValueIntegrator<T>(values.first().time, bounds, times, cumulative);
       }
     }
-    assert(times.size() + 1 == cumulative.size() || n == 0);
-    return TimedValueIntegrator<T>(times.get(), cumulative.get());
+  }
+
+  template <typename Iterator>
+  static TimedValueIntegrator<T> make(Iterator begin, Iterator end) {
+    Array<TimedValue<T> > array = makeArrayFromRange<T>(begin, end);
+    return makeFromArray(array);
   }
 
   struct Value {
@@ -102,127 +152,104 @@ public:
   };
 
   Optional<Value> computeAverage(TimeStamp from, TimeStamp to) const {
-    if (_cumulative.empty()) {
+    if (from == to) { // As the interval tends to zero, the average is the value at the point.
+      return interpolate(from);
+    } else if (to < from) { // Integrating from a high value to a low value means flipping the sign.
+      auto x = computeAverage(to, from);
+      if (x.defined()) {
+        Value v = x.get();
+        return Value{v.maxDuration, -v.value};
+      }
+      return x;
+    }
+    if (_bounds.empty()) {
       return Optional<Value>();
     }
 
-    Index fromX = computeIndex(from);
-    Index toX = computeIndex(to);
-    if (from == to || std::abs(fromX.index - toX.index) < 0.001) {
-      auto value = computeAtPoint(fromX.index);
-      return Value{fromX.closestDur, value};
-    } else {
-      auto fromValue = sumToIndex(fromX.index);
-      auto toValue = sumToIndex(toX.index);
-      double factor = (1.0/(toX.index - fromX.index));
+    auto from0 = toLocalTime(_offset, from, unit());
+    auto to0 = toLocalTime(_offset, to, unit());
+
+    if (_bounds.size() == 1) {
+      auto b = _bounds.first();
       return Value{
-          std::max(fromX.closestDur, toX.closestDur),
-          factor*(toValue - fromValue)};
+        unit()*std::max(std::abs(b - from0), std::abs(b - to0)),
+        _cumulative.first()
+      };
+    }
+
+    auto maxDur = std::max(computeMaxDur(from0), computeMaxDur(to0))*unit();
+
+    // General case
+    auto toF = fitToBounds(to0);
+    auto fromF = fitToBounds(from0);
+    auto timeDiff = toF - fromF;
+
+    // timeDiff being 0 can happen for two reasons:
+    // (i) both of the times are outside of the defined region and on the same side.
+    // (ii) They are close
+    if (timeDiff > 0) {
+      auto valueDiff = sumTo(toF) - sumTo(fromF);
+      auto value = (1.0/timeDiff)*valueDiff;
+      return Value{maxDur, value};
+    } else {
+      return interpolate(_offset + unit()*fromF);
     }
   }
 
   Optional<Value> interpolate(TimeStamp t) const {
-    if (_cumulative.empty()) {
+    if (_bounds.empty()) {
       return Optional<Value>();
     }
-    auto x = computeIndex(t);
-    auto value = computeAtPoint(x.index);
-    return Value{x.closestDur, value};
-  }
-private:
-  struct Index {
-    // Duration
-    Duration<double> closestDur;
-    double index;
-  };
-
-  Index computeIndex(const TimeStamp &t) const {
-    assert(!_times.empty()); // Checked by computeAverage
-    auto it = lowerBound(t);
-    if (it == _times.begin()) {
-      auto maxDur = _times.first() - t;
-      return Index{maxDur, 0.0};
-    } else if (it == _times.end()) {
-      auto maxDur = t - _times.last();
-      return Index{maxDur, width()};
-    } else {
-      auto a = *(it - 1);
-      auto b = *it;
-      auto prev = it - 1;
-      double lambda = computeLambda(a, b, t);
-      double index = (prev - _times.begin()) + lambda;
-      double itgIndex = index + 0.5;
-      return Index{std::min(t - a, b - t), index};
+    auto t0 = toLocalTime(_offset, t, unit());
+    if (_bounds.size() == 1) {
+      auto b = _bounds.first();
+      return Value{
+        unit()*std::abs(t0 - b),
+        _cumulative.first()
+      };
     }
-  }
-
-  struct ItgIndex {
-    ItgIndex(double index0) {
-      index = index0 + 0.5;
-      floored = floor(index);
-      i = int(floored);
-    }
-    double index;
-    double floored;
-    int i;
-  };
-
-  int getSide(int index) const {
-    if (index < 0) {
-      return -1;
-    } else if (_cumulative.size() - 1 <= index) {
-      return 1;
-    }
-    return 0;
-  }
-
-  T computeAtPoint(double index0) const {
-    ItgIndex at(index0);
-    switch (getSide(at.i)) {
-    case -1:
-      return _cumulative[1] - _cumulative[0];
-    case 1: {
-      auto n = _cumulative.size();
-      return _cumulative[n-1] - _cumulative[n-2];
-    }
-    default:
-      return _cumulative[at.i+1] - _cumulative[at.i];
+    int bin = computeClosestBin(t0);
+    return Value{
+      unit()*computeMaxDur(t0),
+      valueOfBin(bin)
     };
   }
-
-  T sumToIndex(double index0) const {
-    ItgIndex at(index0);
-    switch (getSide(at.i)) {
-    case -1:
-      return _cumulative.first();
-    case 1:
-      return _cumulative.last();
-    default:
-      double lambda = at.index - at.floored;
-      return (1.0 - lambda)*_cumulative[at.i] + lambda*_cumulative[at.i + 1];
-    }
-  }
-
-
-  TimedValueIntegrator(const Array<TimeStamp> &times,
-      const Array<T> &cumulative)
-    : _times(times), _cumulative(cumulative) {}
-
-
-  const TimeStamp *lowerBound(const TimeStamp &t) const {
-    return std::lower_bound(_times.begin(), _times.end(), t);
-  }
-
-  int sampleCount() const {
-    return _times.size();
-  }
-
-  double width() const {
-    return _times.size() - 1;
-  }
-
+private:
+  TimeStamp _offset;
+  Arrayd _bounds, _sampleTimes;
   Array<T> _cumulative;
-  Array<TimeStamp> _times;
+
+  double fitToBounds(double localTime) const {
+    return sail::clamp(localTime, _bounds.first(), _bounds.last());
+  }
+
+  TimedValueIntegrator(TimeStamp offset, Arrayd bounds, Arrayd times,
+      Array<T> cumulative) :
+        _offset(offset), _bounds(bounds),
+        _sampleTimes(times), _cumulative(cumulative) {}
+
+  int computeClosestBin(double t) const {
+    return clamp<int>(computeBin(_bounds, t), 0, _sampleTimes.size() - 1);
+  }
+
+  double computeMaxDur(double t) const {
+    return std::abs(_sampleTimes[computeClosestBin(t)] - t);
+  }
+
+  T valueOfBin(int i) const {
+    return (1.0/(_bounds[i+1] - _bounds[i]))*(_cumulative[i+1] - _cumulative[i]);
+  }
+
+  T sumTo(double t) const {
+    if (t <= _bounds.first()) {
+      return _cumulative.first();
+    } else if (_bounds.last() <= t) {
+      return _cumulative.last();
+    }
+    int bin = computeBin(_bounds, t);
+    double lambda = computeLambda(_bounds[bin], _bounds[bin+1], t);
+    return (1.0 - lambda)*_cumulative[bin] + lambda*_cumulative[bin+1];
+  }
 };
 
 
