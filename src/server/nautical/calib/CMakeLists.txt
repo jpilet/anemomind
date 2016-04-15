@@ -1,3 +1,5 @@
+add_subdirectory("experiment")
+
 cxx_test(calib_SpeedCalibTest
          SpeedCalibTest.cpp
          gtest_main
@@ -50,4 +52,4 @@ target_link_libraries(calib_CalibrationBenchmark
                       common_EnvUtil
                       logimport_LogLoader
                      )
-         
+                     
