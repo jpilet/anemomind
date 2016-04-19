@@ -143,7 +143,9 @@ TEST(CornerCalib, BasicTest) {
   auto params = optimizeCornerness<TestSample, TestFlowFun>(f, samples, settings);
 
   EXPECT_LE(2.6, computeAverageCurrentError(f, samples, defaultParams));
-  EXPECT_LE(computeAverageCurrentError(f, samples, params), 0.01);
+  auto e = computeAverageCurrentError(f, samples, params);
+  std::cout << "e : " << e << std::endl;
+  EXPECT_LE(e, 0.01);
 }
 
 

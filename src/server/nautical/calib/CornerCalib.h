@@ -22,7 +22,7 @@
 #include <server/math/PointQuad.h>
 #include <server/math/Integral1d.h>
 #include <server/common/Functional.h>
-#include <server/math/QuadForm.h>
+#include <server/common/math.h>
 
 namespace sail {
 namespace CornerCalib {
@@ -129,16 +129,13 @@ private:
     }
     auto flowSmoothness = computeCornerSmoothnesses<T>(quads, _settings.windowSize);
 
-    typedef QuadForm<2, 1, T> LineForm;
-    LineForm lineFit;
     T totalFlowSmoothness = T(0.0);
+    T sumSquaredErrors = T(0.0);
     for (int i = 0; i < _n; i++) {
-      lineFit += LineForm::fitLine(T(_refSmoothness[i]), flowSmoothness[i]);
+      sumSquaredErrors += sqr(flowSmoothness[i] - _refSmoothness[i]);
       totalFlowSmoothness += flowSmoothness[i];
     }
     T meanFlowSmoothness = T(1.0/_n)*totalFlowSmoothness;
-    T sumSquaredErrors = lineFit.evalOpt2x1();
-
 
     /*
      * Explanation: For an ill-calibrated system, we observed that the samples
