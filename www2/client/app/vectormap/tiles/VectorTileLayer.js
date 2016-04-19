@@ -492,7 +492,12 @@ VectorTileLayer.prototype.processQueue = function() {
             console.log('Failed to load: ' + query.url);
             t.processQueue();
           },
-          timeout: 2000
+          timeout: 2000,
+          beforeSend: function(xhr) {
+            if (t.params.token) {
+              xhr.setRequestHeader('Authorization','Bearer ' + t.params.token);
+            }
+          }
         });  
       })(this, query);
       

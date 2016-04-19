@@ -40,9 +40,20 @@ Sails:
   <div class="input-group-btn">
     <button type="submit" class="btn btn-primary" ng-click="saveBoat()">Save changes</button>
   </div>
-</p>
+
 <br />
 <h3>Team</h3>
+
+<div ng-show="boat.publicAccess">
+<span>Access for this boat is OPEN TO ANYONE.</span>
+<button type="submit" class="btn btn-primary" ng-click="changePublicAccess()">Make it PRIVATE</button>
+</div>
+
+<div ng-hide="boat.publicAccess">
+<span>Access for this boat is RESTRICTED to team members.</span>
+<button type="submit" class="btn btn-primary" ng-click="changePublicAccess()">Make it PUBLIC</button>
+</div>
+
 <div>
 <h4>Full team members:</h4>
 <ul class="nav nav-tabs nav-stacked" ng-repeat="admin in boat.admins">

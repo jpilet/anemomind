@@ -4,16 +4,17 @@ var express = require('express');
 var controller = require('./event.controller');
 var auth = require('../../auth/auth.service');
 var thumbnails = require('./expressThumbnail.js');
+var access = require('../boat/access');
 
 var router = express.Router();
 
-router.get('/', auth.isAuthenticated(), controller.index);
-router.get('/:id', auth.isAuthenticated(), controller.show);
+router.get('/', auth.maybeAuthenticated(), controller.index);
+router.get('/:id', auth.maybeAuthenticated(), controller.show);
 router.post('/', auth.isAuthenticated(), controller.create);
 
 router.post('/photo/:boatId',
             auth.isAuthenticated(),
-            controller.boatWriteAccess,
+            access.boatWriteAccess,
             controller.createUploadDirForBoat,
             controller.postPhoto);
 
@@ -24,7 +25,7 @@ router.post('/photo/:boatId',
 // http://localhost:9000/api/events/photo/[boat]/[picture].jpg?s=120x120&access_token=[token]
 router.get('/photo/:boatId/:photo',
            auth.isAuthenticated(),
-           controller.boatReadAccess,
+           access.boatReadAccess,
            thumbnails.register(controller.photoUploadPath));
 
 module.exports = router;

@@ -17,7 +17,11 @@ var BoatSchema = new Schema({
     admin: Boolean
   }],
   anemobox: String,
-  firmwareVersion: String
+  firmwareVersion: String,
+
+  // if set, no authentication is required to read this boat data.
+  // everybody is a reader.
+  publicAccess: Boolean
 });
 
 module.exports = mongoose.model('Boat', BoatSchema);

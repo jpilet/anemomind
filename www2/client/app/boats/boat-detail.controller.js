@@ -70,11 +70,18 @@ angular.module('www2App')
     $scope.removeSail = function(sail) {
       var index = $scope.boat.sails.indexOf(sail);
       $scope.boat.sails.splice(index, 1);
-    }
+    };
+
     $scope.addSail = function() {
       if ($scope.newSail) {
         $scope.boat.sails.push($scope.newSail);
         $scope.newSail = "";
       }
-    }
+    };
+
+    $scope.changePublicAccess = function() {
+      $scope.boat.publicAccess = ! $scope.boat.publicAccess;
+      $scope.saveBoat();
+    };
+
   });
