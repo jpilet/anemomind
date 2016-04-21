@@ -1,0 +1,29 @@
+{
+  "name": "anemolab-mockup",
+  "version": "1.4.1",
+  "main": "dist/js/vendor.js",
+  "directory": "bower",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components",
+    "bower"
+  ],
+  "dependencies": {
+    "angular": "1.4.x",
+    "angular-route": "1.4.x",
+    "angular-animate": "1.4.x",
+    "angular-cookies": "1.4.x",
+    "angular-flash-alert": "1.x",
+    "angular-loader": "1.4.x",
+    "angular-resource": "1.4.x",
+    "angular-sanitize": "1.4.x",
+    "angular-touch": "1.4.x",
+    "angular-translate": "2.x",
+    "bootstrap": "3.x",
+    "fastclick": "1.x",
+    "jquery": "2.x",
+    "underscore": "1.x",
+    "remarkable": "1.x"
+  }
+}

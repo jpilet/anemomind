@@ -1,0 +1,84 @@
+
+
+
+
+
+
+
+
+.footer {
+  float: left;
+  width: 100%;
+  clear: both;
+  bottom: 0;
+  margin-bottom: -20px;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  min-height: 250px;
+  color: #fff;
+  padding: 20px;
+  background-color: #333;
+  text-shadow:0 0 1px rgba(0,0,0,1);
+  background: linear-gradient( #222, #333);
+  padding-top: 40px;
+}
+
+.footer > .container {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+.footer .dropdown-header{
+  color: #aaa;
+  padding: 3px;
+  font-weight: 700;
+  font-size: 14px;  
+}
+
+.footer ul>li {
+  list-style:none;  
+}
+
+.footer ul>li>a {
+  color: #666;
+  text-decoration: none;
+  padding: 3px;
+  font-size: 13px;
+}
+
+
+.app-shop .footer{
+  display: none;
+}
+
+
+/* Desktop large
+------------------------- */
+@media (min-width: 1200px) {
+
+}
+
+/* Desktop
+------------------------- */
+@media (max-width: 980px) {
+}
+
+/* Tablet to desktop
+------------------------- */
+@media (min-width: 768px) and (max-width: 979px) {
+
+}
+
+/* Tablet
+------------------------- */
+@media (max-width: 767px) {
+
+}
+
+/* Landscape phones
+------------------------- */
+@media (max-width: 480px) {
+}
+
+
+
