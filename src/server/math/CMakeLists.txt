@@ -201,6 +201,7 @@ cxx_test(math_irlsTest
 cxx_test(math_PointQuadTest
          PointQuadTest.cpp
          gtest_main
+         common_logging
         )
 
 add_subdirectory(geometry)

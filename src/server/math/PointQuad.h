@@ -12,6 +12,7 @@
 #define SERVER_MATH_POINTQUAD_H_
 
 #include <Eigen/Core>
+#include <server/common/logging.h>
 
 template <typename T, int dims>
 class PointQuad {
@@ -31,6 +32,7 @@ public:
   }
 
   Vec computeMean() const {
+    CHECK_LT(0, _n);
     return T(1.0/_n)*_pt;
   }
 

@@ -97,9 +97,9 @@ Array<T> computeCornerSmoothnesses(
 }
 
 template <typename Sample, typename TrueFlowFunction>
-class Objf {
+class CornerObjf {
 public:
-  Objf(TrueFlowFunction f, const Array<Sample> &samples,
+  CornerObjf(TrueFlowFunction f, const Array<Sample> &samples,
       const Settings &s) : _f(f), _samples(samples),
       _settings(s), _n(samples.size() - s.windowSize + 1) {
     _refSmoothness = computeCornerSmoothnesses<double>(
@@ -178,7 +178,7 @@ Arrayd optimizeCornerness(TrueFlowFunction f,
 
   Arrayd params = f.initialParams();
   ceres::Problem problem;
-  typedef Objf<Sample, TrueFlowFunction> TObjf;
+  typedef CornerObjf<Sample, TrueFlowFunction> TObjf;
   auto objf = new TObjf(f, samples, settings);
   auto cost = new ceres::DynamicAutoDiffCostFunction<TObjf>(objf);
   cost->AddParameterBlock(params.size());
