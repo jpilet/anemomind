@@ -17,7 +17,7 @@ TEST(PointQuadTest, TestMeanAndVariance) {
   PQ2 ga(a);
   PQ2 gb(b);
   auto gc = ga + gb;
-  EXPECT_NEAR(gc.computeVariance(gc.computeMean()), 2.0, 1.0e-9);
+  EXPECT_NEAR(gc.computeVariance(), 2.0, 1.0e-9);
 }
 
 TEST(PointQuadTest, TestInc) {

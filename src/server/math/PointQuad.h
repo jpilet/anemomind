@@ -36,20 +36,24 @@ public:
     return T(1.0/_n)*_pt;
   }
 
-  T computeVariance(const Vec &mean) const {
-    return mean.squaredNorm() - (2.0/_n)*mean.dot(_pt) + (1.0/_n)*_sqSum;
+  struct MeanAndVariance {
+    Vec mean;
+    T variance;
+
+    T stddev() const {return sqrt(variance);}
+  };
+
+  MeanAndVariance computeMeanAndVariance() const {
+    auto mu = computeMean();
+    return MeanAndVariance{mu, computeVariance(mu)};
   }
 
   T computeVariance() const {
-    return computeVariance(computeMean());
-  }
-
-  T computeStandardDeviation(const Vec &mean) const {
-    return sqrt(1.0e-12 + computeVariance(mean));
+    return computeMeanAndVariance().variance;
   }
 
   T computeStandardDeviation() const {
-    return computeStandardDeviation(computeMean());
+    return computeMeanAndVariance().stddev();
   }
 
   PointQuad operator+=(const PointQuad &other) {
@@ -59,8 +63,11 @@ public:
     return *this;
   }
 
-
 private:
+  T computeVariance(const Vec &mean) const {
+    return mean.squaredNorm() - (2.0/_n)*mean.dot(_pt) + (1.0/_n)*_sqSum;
+  }
+
   int _n;
   Vec _pt;
   T _sqSum;
