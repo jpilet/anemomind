@@ -219,55 +219,6 @@ target_link_libraries(nautical_plotTargetSpeed
                       device_ChunkFile
                      )
 
-add_library(nautical_FilteredNavData
-            FilteredNavData.cpp
-            FilteredNavData.h
-           )
-
-target_link_libraries(nautical_FilteredNavData
-                      math_CleanNumArray
-                      common_logging
-                      nautical_nav
-                      plot_gnuplot
-                      math_nonlinear_GeneralizedTV
-                      common_MeanAndVar
-                      common_ScopedLog
-                     )
-
-                     
-add_executable(nautical_FilteredNavDataDemo
-               FilteredNavDataDemo.cpp
-              )
-target_link_libraries(nautical_FilteredNavDataDemo
-                      logimport_TestdataNavs
-                      common_ArgMap
-                      plot_gnuplot
-                      common_Span
-                      nautical_TemporalSplit
-                      math_CleanNumArray
-                      math_nonlinear_GeneralizedTVAuto
-                      nautical_FilteredNavData
-                     )     
-                     
-
-
-add_library(nautical_TemporalSplit
-            TemporalSplit.h
-            TemporalSplit.cpp
-           )
-target_link_libraries(nautical_TemporalSplit
-                      nautical_nav
-                      common_logging
-                     )           
-            
-add_executable(nautical_RaceOverview
-               RaceOverview.cpp
-              )
-target_link_libraries(nautical_RaceOverview
-                      logimport_TestdataNavs
-                      nautical_TemporalSplit
-                     )
-
 add_library(nautical_FlowErrors
             FlowErrors.h
             FlowErrors.cpp

@@ -84,13 +84,6 @@ target_link_libraries(math_CleanNumArray
                       common_math
                      )   
 
-cxx_test(math_UniformSamplesTest
-         UniformSamplesTest.cpp
-         common_LineKM
-         gtest_main
-         math_nonlinear_SignalUtils
-        )
-        
 
 add_library(math_PiecewiseFunction
             PiecewiseFunction.h
@@ -162,21 +155,6 @@ cxx_test(math_PiecewisePolynomialsTest
          PiecewisePolynomialsTest.cpp
          gtest_main
          math_LU
-        )
-
-add_library(math_Stability
-            Stability.h
-            Stability.cpp
-           )
-target_link_libraries(math_Stability
-                      common_Span
-                      math_LU
-                     )           
-
-cxx_test(math_StabilityTest
-         StabilityTest.cpp
-         gtest_main
-         math_Stability
         )
 
 add_library(math_irls
