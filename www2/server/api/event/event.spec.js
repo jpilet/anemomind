@@ -9,42 +9,46 @@ var Event = require('./event.model');
 var Q = require('q');
 var rmdir = require('rimraf');
 var config = require('../../config/environment');
-
-function addTestBoat(boat) {
-  return Q.Promise(function(resolve, reject) {
-    var testBoat = new Boat(boat);
-    testBoat.save(function(err, boat) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(boat);
-      }
-    });
-  });
-}
+var testUtils = require('../testUtils.spec');
 
 describe('GET /api/events', function() {
   var userid;
-  var boat1, boat2;
+  var boat1, boat2, publicBoat;
+  var publicEvent;
+  var testUser2;
+
   before(function(done) {
-    var testUser = new User({
-      "provider" : "local",
-      "name" : "test",
-      "email" : "test@anemomind.com",
-      "hashedPassword" : "bj0zHvlC/YIzEFOU7nKwr+OHEzSzfdFA9PMmsPGnWITGHp1zlL+29oa049o6FvuR2ofd8wOx2nBc5e2n2FIIsg==",
-      "salt" : "bGwuseqg/L/do6vLH2sPVA==",
-      "role" : "user"
-    });
-    testUser.save(function(err, user) {
-      userid = user.id;
-      Q.all([
-            addTestBoat({name: "test boat 1", admins: [ user.id ]}),
-            addTestBoat({name: "test boat 2", readers: [ user.id ]})
-      ]).spread(function (boat1_, boat2_) {
+    testUtils.addTestUser('test2')
+    .then(function(user2) { testUser2 = user2; })
+
+    .then(function() { return testUtils.addTestUser('test'); })
+    .then(function(user) {
+        userid = user.id;
+        return Q.all([
+              testUtils.addTestBoat({name: "test boat 1", admins: [ user.id ]}),
+              testUtils.addTestBoat({name: "test boat 2", readers: [ user.id ]}),
+              testUtils.addTestBoat({name: "test boat public", publicAccess: true})
+        ])
+      })
+    .spread(function (boat1_, boat2_, publicBoat_) {
          boat1 = boat1_;
          boat2 = boat2_;
-         done();
-      });
+         publicBoat = publicBoat_;
+         
+         (new Event({
+           author: testUser2.id,
+           boat: publicBoat,
+           comment: 'Public comment',
+           when: new Date()
+         })).save(function(err, e) {
+           if (err) { throw(new Error(err)); }
+           publicEvent = e;
+           done();
+         });
+      })
+    .catch(function (err) {
+      console.warn(err);
+      done(err);
     });
   });
 
@@ -54,7 +58,7 @@ describe('GET /api/events', function() {
   it('should give the test user an auth token', function(done) {
         server
             .post('/auth/local')
-            .send({ email: 'test@anemomind.com', password: 'anemoTest' })
+            .send({ email: 'test@test.anemomind.com', password: 'anemoTest' })
             .expect(200)
             .expect('Content-Type', /json/)
             .end(function (err, res) {
@@ -97,7 +101,19 @@ describe('GET /api/events', function() {
       });
   });
 
-  it('should list the test note', function(done) {
+  it('should retrieve a note from a public boat without auth', function(done) {
+     server
+      .get('/api/events/' + publicEvent._id)
+      .expect(200)
+      .end(function(err, res) {
+        if (err) return done(err);
+        res.body.should.have.property('comment');
+        res.body.comment.should.equal('Public comment');
+        done();
+      });
+  });
+
+  it('should list the test note and the public note', function(done) {
      server
       .get('/api/events')
       .set('Authorization', 'Bearer ' + token)
@@ -107,9 +123,10 @@ describe('GET /api/events', function() {
            return done(err);
         }
         res.body.should.be.instanceof(Array);
-        res.body.should.have.length(1);
+        res.body.should.have.length(2);
         res.body[0].should.have.property('comment');
-        res.body[0].comment.should.equal('test note');
+        res.body[1].should.have.property('comment');
+        res.body[0]._id.should.not.equal(res.body[1]._id);
         done();
       });
   });
@@ -124,7 +141,9 @@ describe('GET /api/events', function() {
            return done(err);
         }
         res.body.should.be.instanceof(Array);
-        res.body.should.have.length(0);
+        res.body.should.have.length(1);
+        res.body[0].should.have.property('comment');
+        res.body[0].comment.should.equal('Public comment');
         done();
       });
   });
@@ -139,11 +158,6 @@ describe('GET /api/events', function() {
         if (err) return done(err);
         done();
       });
-  });
-  after(function(done) {
-    Boat.remove({name: "test boat"}).exec();
-    User.remove({email: "test@anemomind.com"}).exec();
-    Event.remove({author: userid}, done);
   });
 
   it('should refuse to add a note on an observed boat', function(done) {
@@ -197,9 +211,7 @@ describe('GET /api/events', function() {
 
 
   after(function(done) {
-    Boat.remove({name: boat1.name}).exec();
-    Boat.remove({name: boat2.name}).exec();
-    User.remove({email: "test@anemomind.com"}).exec();
+    testUtils.cleanup();
     Event.remove({author: userid}, done);
 
     // cleanup the uploaded photo.

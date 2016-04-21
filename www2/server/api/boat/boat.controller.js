@@ -55,8 +55,7 @@ var sendInvitationEmail = function(email, boat, hasAnAccount) {
 
 // Get list of boats
 exports.index = function(req, res) {
-  if (!req.user) { return res.sendStatus(401); }
-  access.readableBoats(req.user.id)
+  access.readableBoats(req)
   .then(function (boats) {
     res.status(200).json(boats);
   })

@@ -9,30 +9,61 @@ var compose = require('composable-middleware');
 var User = require('../api/user/user.model');
 var validateJwt = expressJwt({ secret: config.secrets.session });
 
+function validateToken(req, res, next) {
+  // allow access_token to be passed through query parameter as well
+  if(req.query && req.query.hasOwnProperty('access_token')) {
+    req.headers.authorization = 'Bearer ' + req.query.access_token;
+  }
+  validateJwt(req, res, next);
+}
+
+function attachUserToRequest(req, res, next) {
+  User.findById(req.user._id, function (err, user) {
+    if (err) return next(err);
+    if (!user) return res.send(401);
+
+    req.user = user;
+    next();
+  });
+}
+
+function isAuthRequest(req) {
+  return (req.query && req.query.hasOwnProperty('access_token'))
+     || (req.headers && req.headers.hasOwnProperty('authorization'));
+}
+
+// For content that can be either public or protected, we need a way
+// to verify user identity if provided, or let through unauthorized queries.
+// Of course, we reject bad authentications.
+function maybeAuthenticated() {
+  return compose().use(function(req, res, next) {
+    if (isAuthRequest(req)) {
+      return validateToken(req, res, next);
+    } else {
+      next();
+    }
+  }).use(function(req, res, next) {
+    if (isAuthRequest(req)) {
+      attachUserToRequest(req, res, next);
+    } else {
+      // make sure 'user' is not defined.
+      if (req.user) {
+        delete req.user;
+      }
+      next();
+    }
+  });
+}
+
 /**
  * Attaches the user object to the request if authenticated
  * Otherwise returns 403
  */
 function isAuthenticated() {
   return compose()
-    // Validate jwt
-    .use(function(req, res, next) {
-      // allow access_token to be passed through query parameter as well
-      if(req.query && req.query.hasOwnProperty('access_token')) {
-        req.headers.authorization = 'Bearer ' + req.query.access_token;
-      }
-      validateJwt(req, res, next);
-    })
+    .use(validateToken)
     // Attach user to request
-    .use(function(req, res, next) {
-      User.findById(req.user._id, function (err, user) {
-        if (err) return next(err);
-        if (!user) return res.send(401);
-
-        req.user = user;
-        next();
-      });
-    });
+    .use(attachUserToRequest);
 }
 
 /**
@@ -70,6 +101,7 @@ function setTokenCookie(req, res) {
   res.redirect('/');
 }
 
+exports.maybeAuthenticated = maybeAuthenticated;
 exports.isAuthenticated = isAuthenticated;
 exports.hasRole = hasRole;
 exports.signToken = signToken;

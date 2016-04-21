@@ -30,7 +30,8 @@ var canRead = function(req, event) {
 
   // Otherwise, the user needs read access to the boat the note is
   // attached to.
-  return boatAccess.userCanReadBoatId(req.user.id, event.boat);
+  return boatAccess.userCanReadBoatId((req.user ? req.user.id : undefined),
+                                      event.boat);
 }
 
 var canWrite = function(req, event) {
@@ -47,10 +48,6 @@ function sendEventsWithQuery(res, query) {
 // Get the latest readable events
 exports.index = function(req, res) {
   try {
-    if (!req.user) {
-      return res.sendStatus(401);
-    }
-
     var query = { };
 
     var handleDateParam = function(param, operator) {
@@ -70,14 +67,15 @@ exports.index = function(req, res) {
     handleDateParam('A', '$gte');
 
     if (req.query.b) {
-      boatAccess.userCanReadBoatId(req.user.id, req.query.b)
+      boatAccess.userCanReadBoatId((req.user ? req.user.id : undefined),
+                                   req.query.b)
       .then(function() {
          query.boat = req.query.b;
          sendEventsWithQuery(res, query);
       })
       .catch(function(err) { res.sendStatus(403); });
     } else {
-      boatAccess.readableBoats(req.user.id)
+      boatAccess.readableBoats(req)
         .then(function(boats) {
           if (boats.length == 0) {
             return res.status(200).json([]);
@@ -172,29 +170,6 @@ function handleError(res, err) {
   return res.sendStatus(500, err);
 }
 
-var checkAccess = function(checkFunc, req, res, next) {
-  if (!req.user || !req.user.id) {
-    return res.sendStatus(401);
-  }
-
-  if (!req.params.boatId) {
-    return res.sendStatus(400);
-  }
-
-  checkFunc(req.user.id, req.params.boatId)
-    .then(next)
-    .catch(function() {
-      return res.sendStatus(403);
-    });
-};
-
-exports.boatWriteAccess = function(req, res, next) {
-  return checkAccess(boatAccess.userCanWriteBoatId, req, res, next);
-}
-
-exports.boatReadAccess = function(req, res, next) {
-  return checkAccess(boatAccess.userCanReadBoatId, req, res, next);
-};
 
 var photoUploadPath = fs.realpathSync(config.uploadDir) + '/photos/';
 console.log('Uploading photos to: ' + photoUploadPath);

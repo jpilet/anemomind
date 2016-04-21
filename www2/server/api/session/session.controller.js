@@ -44,9 +44,7 @@ module.exports.getSessionsForBoat = function(req, res, next) {
 };
 
 module.exports.listSessions = function(req, res, next) {
-  if (!req.user) { return res.sendStatus(401); }
-
-  boatAccess.readableBoats(req.user.id)
+  boatAccess.readableBoats(req)
   .then(function (boats) {
     var boatObjs = _.map(boats, '_id');
     console.warn(boatObjs);

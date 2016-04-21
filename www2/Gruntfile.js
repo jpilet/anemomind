@@ -34,7 +34,13 @@ module.exports = function (grunt) {
         options: {
           async: true
         }
-      }
+      },
+      waitForMongoStartup: {
+        command: 'sleep 1',
+        options: {
+          async: true
+        }
+      },
     },
     yeoman: {
       // configurable paths
@@ -579,6 +585,7 @@ module.exports = function (grunt) {
   grunt.registerTask('test', function(target) {
     if (target === 'server') {
       return grunt.task.run([
+        'shell',
         'env:all',
         'env:test',
         'mochaTest'
