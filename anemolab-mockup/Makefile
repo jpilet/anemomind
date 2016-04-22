@@ -2,6 +2,9 @@
 BRUNCH = ./node_modules/.bin/brunch
 DEST= user@server.ch:www/to/dist/
 
+install:
+	npm install && bower install
+
 clean:
 	rm -rf dist/* bower_components/  node_modules/
 
@@ -16,4 +19,4 @@ publish:
 	cd build && rsync -avu --delete -e 'ssh -p22' . $(DEST)
 
 
-.PHONY: sync clean publish
+.PHONY: install clean sync publish
