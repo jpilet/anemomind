@@ -9,7 +9,6 @@
     "components",
     "bower"
   ],
-
   "overrides": {
     "bootstrap": {
       "main": [
@@ -19,22 +18,20 @@
         "dist/fonts/glyphicons-halflings-regular.svg",
         "dist/fonts/glyphicons-halflings-regular.ttf",
         "dist/fonts/glyphicons-halflings-regular.woff",
-        "dist/fonts/glyphicons-halflings-regular.woff2" 
+        "dist/fonts/glyphicons-halflings-regular.woff2"
       ]
     },
-
     "components-font-awesome": {
       "main": [
-          "css/font-awesome.css",
-          "fonts/fontawesome-webfont.eot",
-          "fonts/fontawesome-webfont.woff",
-          "fonts/fontawesome-webfont.woff2",
-          "fonts/fontawesome-webfont.ttf",
-          "fonts/fontawesome-webfont.svg"
+        "css/font-awesome.css",
+        "fonts/fontawesome-webfont.eot",
+        "fonts/fontawesome-webfont.woff",
+        "fonts/fontawesome-webfont.woff2",
+        "fonts/fontawesome-webfont.ttf",
+        "fonts/fontawesome-webfont.svg"
       ]
     }
   },
-
   "dependencies": {
     "angular": "1.4.x",
     "angular-route": "1.4.x",
@@ -50,6 +47,7 @@
     "fastclick": "1.x",
     "jquery": "2.x",
     "underscore": "1.x",
-    "remarkable": "1.x"
+    "remarkable": "1.x",
+    "components-font-awesome": "^4.5.0"
   }
 }

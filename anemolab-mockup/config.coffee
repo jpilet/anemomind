@@ -57,6 +57,7 @@ exports.config =
   plugins:
     afterBrunch: [
       'cat bower_components/components-font-awesome/css/font-awesome.css >>dist/css/vendor.css'
+      'mkdir dist/fonts/',
       'cp bower_components/components-font-awesome/fonts/* dist/fonts/',
       'cp bower_components/bootstrap/dist/fonts/* dist/fonts/',
     ]  
