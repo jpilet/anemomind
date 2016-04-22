@@ -3,26 +3,17 @@ BRUNCH = ./node_modules/.bin/brunch
 DEST= user@server.ch:www/to/dist/
 
 clean:
-	rm -f build --production
+	rm -rf dist/* bower_components/  node_modules/
 
-syncprod:
-	cp app/assets/robots.txt.prod build/robots.txt
+sync:
+	cp app/assets/robots.txt.prod dist/robots.txt
 	cd build && rsync -avu --delete -e 'ssh -p22' . $(DEST)
 
-syncdev:
-	cp app/assets/robots.txt.devel build/robots.txt
-	cd build && rsync -avu --delete -e 'ssh -p22' . $(DEST)
 
-devel:
+publish:
 	$(BRUNCH) build --production
-	cp app/assets/robots.txt.devel build/robots.txt
-	cd build && rsync -avu --delete -e 'ssh -p22' . $(DEST)
-
-prod:
-	$(BRUNCH) build --production
-	cp app/assets/robots.txt.prod build/robots.txt
+	cp app/assets/robots.txt.devel dist/robots.txt
 	cd build && rsync -avu --delete -e 'ssh -p22' . $(DEST)
 
 
-
-.PHONY: docs clean publish
+.PHONY: sync clean publish

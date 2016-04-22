@@ -10,7 +10,6 @@ angular.module('app', [
   'ngAnimate',
   'pascalprecht.translate',
   'flash',
-  'angular.filter',
   'app.storage',
   'app.root'
 ])

@@ -11,6 +11,7 @@ exports.config =
     public: 'dist'
   sourceMaps:false
   files:
+
     javascripts:
       joinTo:
         'js/app.js': /^app/
@@ -35,8 +36,8 @@ exports.config =
         'css/app.css': /^app/
       order:
         before: [
-          'vendor/styles/font-awesome.css',
-          'vendor/styles/bootstrap.css'
+          'bower_components/components-font-awesome/css/font-awesome.css',
+          'bower_components/bootstrap/dist/css/bootstrap.css'
         ]
         after: [
         ]
@@ -54,10 +55,11 @@ exports.config =
 
 
   plugins:
-    sass:
-      mode: 'native'
-      options:
-        includePaths: ['bower_components/bootstrap-sass/assets/stylesheets']
+    afterBrunch: [
+      'cat bower_components/components-font-awesome/css/font-awesome.css >>dist/css/vendor.css'
+      'cp bower_components/components-font-awesome/fonts/* dist/fonts/',
+      'cp bower_components/bootstrap/dist/fonts/* dist/fonts/',
+    ]  
 
     angular_templates:
       module: 'app.templates'
