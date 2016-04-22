@@ -6,97 +6,15 @@
  */
 
 #include <server/nautical/calib/CornerCalib.h>
+#include <server/nautical/calib/CornerCalibTestData.h>
 #include <gtest/gtest.h>
+#include <server/nautical/common.h>
 
 namespace {
 
   using namespace sail;
+  using namespace CornerCalibTestData;
 
-  template <typename T>
-  Eigen::Matrix<T, 2, 1> rotate(T radians, const Eigen::Vector2d &v) {
-    T cosv = cos(radians);
-    T sinv = sin(radians);
-    return Eigen::Matrix<T, 2, 1>(cosv*v[0] - sinv*v[1], sinv*v[0] + cosv*v[1]);
-  }
-
-  template <typename T>
-  Eigen::Matrix<T, 2, 1> correctOrCorruptVector(const Eigen::Vector2d &w,
-      T bias, T speedOffset, T angleOffset) {
-    return bias*rotate(angleOffset, w)
-      + speedOffset*rotate(angleOffset, w.normalized());
-  }
-
-  Arrayd rng{-0.736924, -0.0826997, -0.562082, 0.357729, 0.869386,
-    0.0388327, -0.930856, 0.0594004, -0.984604, -0.866316, 0.373545,
-    0.860873, 0.0538576, 0.307838, 0.402381, 0.524396, -0.905071,
-    -0.343532, 0.512821, -0.269323, 0.965101, 0.506712, -0.854628,
-    0.769414, -0.127177, -0.0445365, -0.450186, -0.666986, 0.795313,
-    -0.878871, 0.00904579, -0.361934, -0.0120466, -0.818534, -0.852502,
-    -0.231716, 0.827635, -0.0711084, -0.899832, 0.540409, -0.749269,
-    0.376911, 0.259087, 0.450824, 0.777144, -0.387356, 0.0265474,
-    0.691963, 0.683021, -0.169211, -0.0641653, -0.643345, 0.14331,
-    -0.933892, -0.00303976, 0.496585, 0.781475, 0.684079, -0.574497,
-    -0.739145, -0.450824, -0.171413, 0.419639, -0.520178, -0.364921,
-    0.304117, 0.362692, -0.224549, -0.704934, 0.691151, 0.910818,
-    -0.703697, -0.182467, 0.129797, -0.0229709, 0.92219, -0.600486,
-    0.258538, 0.302507, 0.606146, -0.0471364, -0.593499, 0.803347,
-    -0.715958, -0.179374, 0.771297, -0.675603, -0.269322, -0.729781,
-    -0.0893854, -0.0953997, 0.863349, -0.569503, 0.817844, 0.72172,
-    0.0119118, 0.635123, -0.07551, 0.265477, 0.649395};
-
-  struct TestSample {
-    Eigen::Vector2d boatMotion;
-    Eigen::Vector2d groundTruthCurrentMotion;
-
-    double bias;
-    double speedOffset;
-    double angleOffset;
-
-    // currentMotion = gpsMotion - motionOverWater <=>
-    // motionOverWater = gpsMotion - currentMotion
-    Eigen::Vector2d groundTruthMotionOverWater() const {
-      return boatMotion - groundTruthCurrentMotion;
-    }
-
-    Eigen::Vector2d corrupedMotionOverWater() const {
-      return correctOrCorruptVector(groundTruthMotionOverWater(),
-          bias, speedOffset, angleOffset);
-    }
-
-    Eigen::Vector2d refMotion() const {
-      return boatMotion;
-    }
-  };
-
-  Eigen::Vector2d current(int i) {
-    double x = 0.2;
-    double y = -0.3;
-    return Eigen::Vector2d(
-        x + 0.01*rng[(i + 20) % rng.size()],
-        y + 0.01*rng[(i + 40) % rng.size()]);
-  }
-
-  Array<TestSample> makeTestSamples(
-      double bias, double speedOffset, double angleOffset) {
-
-    int n = 100;
-
-    double boatSpeed = 4.9;
-
-    Array<TestSample> samples(n);
-    for (int i = 0; i < n; i++) {
-
-      auto dir = (i/30) % 2;
-      auto angle = dir*0.5*M_PI + 0.1*rng[i % rng.size()];
-      double x = boatSpeed*cos(angle);
-      double y = boatSpeed*sin(angle);
-      samples[i] = TestSample{
-        Eigen::Vector2d(x, y),
-        current(i), bias, speedOffset, angleOffset
-      };
-    }
-    return samples;
-  }
 
   class TestFlowFun {
   public:
@@ -107,28 +25,30 @@ namespace {
     template <typename T>
     Eigen::Matrix<T, 2, 1> evalFlow(
         const TestSample &sample, const T *params) const {
-      return sample.boatMotion.cast<T>() - correctOrCorruptVector(
-          sample.corrupedMotionOverWater(),
-          params[0], params[1], params[2]);
+      return computeCurrentFromBoatMotion<Eigen::Matrix<T, 2, 1> >(
+          correctOrCorruptVector(
+              sample.corruptedMotionOverWaterVec(),
+              params[0], params[1], params[2]),
+              sample.boatMotionVec.cast<T>());
     }
   };
 
   double computeAverageCurrentError(
       TestFlowFun f,
       const Array<TestSample> &samples, Arrayd params) {
-    PointQuad<double, 2> quad;
+    double sum = 0.0;
     for (auto sample: samples) {
-      quad += PointQuad<double, 2>(f.evalFlow(sample, params.ptr()));
+      auto estCurrent = f.evalFlow(sample, params.ptr());
+      sum += (estCurrent - getTrueConstantCurrent()).norm();
     }
-    return quad.computeStandardDeviation();
+    return sum/samples.size();
   }
 }
 
 TEST(CornerCalib, BasicTest) {
-  double bias = 1.2;
-  double speedOffset = 0.8;
-  double angleOffset = 0.2*M_PI;
-  auto samples = makeTestSamples(bias, speedOffset, angleOffset);
+  auto corruptParams = sail::CornerCalibTestData::getDefaultCorruptParams();
+
+  auto samples = makeTestSamples(corruptParams);
 
   using namespace CornerCalib;
   using namespace sail::CornerCalib;
@@ -142,10 +62,12 @@ TEST(CornerCalib, BasicTest) {
   auto defaultParams = f.initialParams();
   auto params = optimizeCornerness<TestSample, TestFlowFun>(f, samples, settings);
 
-  EXPECT_LE(2.6, computeAverageCurrentError(f, samples, defaultParams));
-  auto e = computeAverageCurrentError(f, samples, params);
-  std::cout << "e : " << e << std::endl;
-  EXPECT_LE(e, 0.01);
+  auto initErr = computeAverageCurrentError(f, samples, defaultParams);
+  EXPECT_LE(2.6, initErr);
+  auto optErr = computeAverageCurrentError(f, samples, params);
+  EXPECT_LE(optErr, 0.07);
+  std::cout << "initErr: " << initErr << std::endl;
+  std::cout << "optErr: " << optErr << std::endl;
 }
 
 

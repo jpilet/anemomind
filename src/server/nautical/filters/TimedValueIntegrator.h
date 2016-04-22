@@ -186,8 +186,8 @@ public:
     // (i) both of the times are outside of the defined region and on the same side.
     // (ii) They are close
     if (timeDiff > 0) {
-      auto valueDiff = sumTo(toF) - sumTo(fromF);
-      auto value = (1.0/timeDiff)*valueDiff;
+      T valueDiff = sumTo(toF) - sumTo(fromF);
+      T value = (1.0/timeDiff)*valueDiff;
       return Value{maxDur, value};
     } else {
       return interpolate(_offset + unit()*fromF);
@@ -211,6 +211,10 @@ public:
       unit()*computeMaxDur(t0),
       valueOfBin(bin)
     };
+  }
+
+  bool empty() const {
+    return _sampleTimes.empty();
   }
 private:
   TimeStamp _offset;
@@ -252,6 +256,17 @@ private:
   }
 };
 
+
+template <typename T>
+struct TimedValueIntegratorType {
+  typedef TimedValueIntegrator<T> type;
+};
+
+class TimedAngleIntegrator;
+template <>
+struct TimedValueIntegratorType<Angle<double> > {
+  typedef TimedAngleIntegrator type;
+};
 
 }
 
