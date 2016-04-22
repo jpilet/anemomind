@@ -195,13 +195,13 @@ class QuadForm {
     static_assert(rhsDims == 1 || rhsDims == 0, "Bad rhsDims value");
     T temp[lhsDims];
     for (int i = 0; i < lhsDims; i++) {
-      T acc = (rhsDims == 0? 0 : -2.0*_Q[i]);
+      T acc = (rhsDims == 0? T(0) : T(-2.0)*_Q[i]);
       for (int j = 0; j < lhsDims; j++) {
         acc += _P[calcSymmetricMatrixIndex(i, j)]*x[j];
       }
       temp[i] = acc;
     }
-    T value = (rhsDims == 0? 0 : _R[0]);
+    T value = (rhsDims == 0? T(0) : T(_R[0]));
     for (int i = 0; i < lhsDims; i++) {
       value += x[i]*temp[i];
     }
