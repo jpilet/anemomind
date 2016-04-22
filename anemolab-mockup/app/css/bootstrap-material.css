@@ -144,6 +144,20 @@
   display: none;
 }
 
+.session-container .card.card-horizontal  .card-content .card-content-more{
+  position: absolute;
+  padding-top: 18%;
+  right: 0px;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(0, 0, 0, 0.38);
+  cursor: pointer;
+  z-index: 1;
+}
+
 .session-container .card.card-horizontal .card-image{
   float: left;
   width: 50%;
