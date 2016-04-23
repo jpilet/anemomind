@@ -273,7 +273,7 @@ class MDArray {
     return _data[_index.calcIndex(inds)];
   }
 
-  int calcIndex(int *inds) {
+  int calcIndex(int *inds) const {
     return _index.calcIndex(inds);
   }
 
@@ -502,12 +502,12 @@ class MDArray {
     return dst;
   }
 
-  int getStep() {
+  int getStep() const {
     static_assert(dims == 2, "Only applicable to 2d arrays");
     return _index[0];
   }
 
-  int getByteStep() {
+  int getByteStep() const {
     return sizeof(T)*getStep();
   }
 
@@ -515,7 +515,7 @@ class MDArray {
     _index.set(index, s);
   }
 
-  int getInternalSize(int index) {
+  int getInternalSize(int index) const {
     return _index[index];
   }
 

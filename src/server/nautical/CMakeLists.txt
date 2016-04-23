@@ -272,21 +272,6 @@ cxx_test(nautical_NavToNmeaTest NavToNmeaTest.cpp
          )
 
          
-add_executable(nautical_exploreData
-               exploreData.cpp
-              )
-              
-target_link_libraries(nautical_exploreData
-                      common_ArgMap
-                      nautical_nav
-                      common_PathBuilder
-                      math_CleanNumArray
-                      common_Span
-                      nautical_GeographicReference
-                      nautical_NavCompatibility
-                      logimport_LogLoader
-                     )
-
 add_executable(nautical_catTargetSpeed
                catTargetSpeed.cpp
               )
