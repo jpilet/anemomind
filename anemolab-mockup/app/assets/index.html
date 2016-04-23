@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr" ng-controller="AppCtrl" class=" app-loading" >
+  <head>
+
+<!--
+    _   _  _ ___ __  __  ___  __  __ ___ _  _ ___  
+   /_\ | \| | __|  \/  |/ _ \|  \/  |_ _| \| |   \ 
+  / _ \| .` | _|| |\/| | (_) | |\/| || || .` | |) |
+ /_/ \_\_|\_|___|_|  |_|\___/|_|  |_|___|_|\_|___/ 
+ Hello there! 
+-->          
+
+    <title ng-bind="title">ANEMOMIND </title>
+    <meta name="title" content="TITLE_CMS !">
+    <meta charset="utf-8">
+    <meta name="viewport"     content="width=device-width, initial-scale=1.0">
+    <meta name="description"  content="DESC_CMS">
+    <meta property="og:description" content="DESC_CMS" >
+    <meta name="author"       content="anemomind team">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="fragment"     content="!" />    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" user-scalable="no">
+    <link rel="icon" type="image/png" href="/img/a-small.png" />
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/img/a-small.png">
+    <meta property="og:title" content="anemomind">
+    <meta property="og:site_name" content="anemomind">
+    <meta property="og:url" content="http://anemomind.com/">
+    <meta name="twitter:site" content="@anemomind">
+    <meta name="keywords" content="">
+
+
+
+    <!--[if lt IE 9]>
+      <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!-- <link href="//fonts.googleapis.com/css?family=Raleway" type="text/css" media="all" rel="stylesheet" >     -->
+    <link href='//fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" >
+    <style type="text/css">
+      @font-face {
+        font-family: Boing;
+        src: url("//www.anemomind.com/fonts/Boing_Bold.otf") format("opentype");
+      }
+    </style>
+
+    <link defer rel="stylesheet" href="/css/vendor.css">
+    <link defer rel="stylesheet" href="/css/app.css">
+    <base  href="/" />
+
+    <!-- custom init here -->
+    <script type="text/javascript">
+    </script>
+
+    <!-- GG analytics -->
+    <script type="text/javascript">
+    </script>
+    
+  </head>
+
+   <body>
+    <!-- top layers -->
+    <div id="app-loading-wrapper" shown-when-loading=""> 
+      <div class="app-loading fa-spin fa fa fa-spinner"></div> 
+    </div>
+
+    <div id="flash" flash-message="5000" ></div>
+
+    <!-- nav -->
+    <nav class="navbar navbar-anemomind navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-anemolab" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">anemolab</a>
+        </div>
+        <div  class="collapse navbar-collapse" id="navbar-anemolab">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="#about">My sessions</a></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">My boats <span class="fa fa-caret-down"></span></a>
+              <ul class="dropdown-menu">
+                <li class="active"><a href="#">Irène</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="#"><i class="fa fa-plus-square-o "></i> Add  new boat </a></li>
+              </ul>
+            </li>
+
+            <li><a href="#contact">Settings</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li class=""><a href="#"><i class="fa fa-search fa-1x5 fa-flip-horizontal"></i>&nbsp; Search</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+
+  
+    <!-- Begin page content -->
+    <div class="main-view " >
+
+        <div class="container">
+
+            <!-- ONE CARD -->
+            <div class="card card-horizontal clearfix">
+                <!-- BOAT IMAGE -->
+                <div class="card-image ">
+                    <div class="img-responsive img"  style="background-image:url('/img/boat-sample.png');background-size: cover;height:100%" ></div>
+                </div>
+
+                <!-- BOAT INFO -->
+                <div class="card-content  card-content-thin">
+                    <h3>Your boat</h3>
+                    <div class="boat-info">
+                      <h1>Irène</h1>
+                      <p>Since 2014 with team1</p>
+                    </div>
+                    <div class="card-content-bottom">
+                      <h3>Recent activity</h3>
+                      <img class="img-responsive" src="/img/boat-perf.png" style="padding-right: 10px;max-width: 360px;width: 100%" />
+                    </div>
+                </div>
+
+                <!-- BOAT SESSION RESUME -->
+                <div class="card-content card-content-thin hidden-xs hidden-sm">
+                  <div class="card-block">
+                    <h3>Total distance</h3>
+                    <div class="boat-info small">
+                      <h1>756 nmi</h1>
+                      <p>On irène</p>
+                    </div>                    
+                  </div>
+                  <div class="card-block">
+                    <h3>Highest boat speed</h3>
+                    <div class="boat-info small">
+                      <h1>25 kts</h1>
+                      <p>On irène</p>
+                    </div>                    
+                  </div>
+                  <div class="card-block-bottom hidden-sm">
+                    <h3>Recent pictures</h3>
+                    <div>
+                      <img class="img-rounded"  src="//placehold.it/80x80" data-holder-rendered="true" >
+                      <img class="img-rounded"  src="//placehold.it/80x80" data-holder-rendered="true" >
+                      <img class="img-rounded"  src="//placehold.it/80x80" data-holder-rendered="true" >
+                      <img class="img-rounded"  src="//placehold.it/80x80" data-holder-rendered="true" >
+                    </div>
+                  </div>
+
+                </div>
+              
+
+            </div>
+
+
+            <!-- RECENT NAV -->
+            <h2>Recent navigation</h2>            
+
+            <div class="session-container">
+              <div class="card card-horizontal">
+                <div class="card-image">
+                  <div class="img-responsive img"  style="background-image:url('/img/boat-session.png');background-size: cover;height:100%" ></div>
+                </div>
+                <div class="card-content">
+                  <h3>23.04.2015</h3>
+                  <p>#tagada</p>                  
+                  <div class="card-content-bottom">
+                    <i class="fa fa-camera red"></i>
+                    <i class="fa fa-picture-o red"></i>
+                    <i class="fa fa-comment-o red"></i>
+                    <i class="fa fa-flag red"></i>
+                  </div>
+                  <div class="card-content-mobile">
+                    <i class="fa fa-angle-right fa-5x red" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card card-horizontal">
+                <div class="card-image">
+                  <div class="img-responsive img"  style="background-image:url('/img/boat-session.png');background-size: cover;height:100%" ></div>
+                </div>
+                <div class="card-content">
+                  <h3>23.04.2015</h3>
+                  <p>#tagada</p>
+                  <div class="card-content-bottom">
+                    <i class="fa fa-camera red"></i>
+                    <i class="fa fa-picture-o red"></i>
+                    <i class="fa fa-comment-o red"></i>
+                    <i class="fa fa-flag red"></i>
+                  </div>
+                  <div class="card-content-mobile">
+                    <i class="fa fa-angle-right fa-5x red" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card card-horizontal">
+                <div class="card-image">
+                  <div class="img-responsive img"  style="background-image:url('/img/boat-session.png');background-size: cover;height:100%" ></div>                  
+                </div>
+                <div class="card-content">
+                  <h3>23.04.2015</h3>
+                  <p>#tagada</p>
+                  <div class="card-content-bottom">
+                    <i class="fa icon-note"></i>
+                    <i class="fa icon-photo"></i>
+                  </div>
+                  <div class="card-content-mobile">
+                    <i class="fa fa-angle-right fa-5x red" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+
+              <!-- MORE SESSIONS -->
+              <div class="card card-horizontal ">
+                <div class="card-image">
+                  <div class="img-responsive img"  style="background-image:url('/img/boat-session.png');background-size: cover;height:100%" ></div>                  
+                </div>
+                <div class="card-content">
+                  <h3>Load more </h3>
+                  <div class="card-content-more">
+                    <i class="fa fa-chevron-circle-down fa-3x "></i>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+        </div>
+        <!-- END OF CONTAINER -->
+
+
+    </div>
+
+    <!-- footer -->
+    <footer class="footer ">
+      <div class="container">
+
+            <div class="col-xs-6 col-sm-4">
+              <ul>
+                <li class="dropdown-header">Keep in touch</li>
+                <li><a href="">menu1</a></li>
+              </ul>
+            </div>
+            <div class="col-xs-6 col-sm-4">
+              <ul>
+                <li class="dropdown-header">Latest news </li>
+                <li><a href="">menu1</a></li>
+              </ul>
+            </div>
+            <div class="col-xs-12 col-sm-4">
+              <ul>
+                <li class="dropdown-header">Anemomind Sàrl</li>
+                <li><a href="">menu1</a></li>
+                <li><a href="">menu2</a></li>
+              </ul>
+            </div>        
+      </div>
+
+    </footer>
+   </body>
+
+  <!-- Placed at the end of the document so the pages load faster &callback=initCall -->
+  <script defer src="/js/vendor.js?cache={!distRelease!}"></script>
+  <script defer src="/js/app.js?cache={!distRelease!}"></script>
+  <!-- 
+  <script defer src="/js/templates.js?cache={!distRelease!}"></script>
+  -->
+
+</html>
+
