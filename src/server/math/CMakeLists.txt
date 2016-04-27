@@ -59,32 +59,7 @@ cxx_test(math_GridTest
          gtest_main
         )
 
-add_library(math_BandMat
-            BandMat.h
-            BandMat.cpp
-           )
-target_link_libraries(math_BandMat
-                       common_Array
-                       common_math
-                      )                                    
-cxx_test(math_BandMatTest
-         BandMatTest.cpp
-         math_BandMat
-         common_LineKM         
-         gtest_main
-        )
-
                      
-add_library(math_CleanNumArray
-            CleanNumArray.cpp
-            CleanNumArray.h
-           )
-target_link_libraries(math_CleanNumArray
-                      math_BandMat
-                      common_math
-                     )   
-
-
 add_library(math_PiecewiseFunction
             PiecewiseFunction.h
             PiecewiseFunction.cpp
@@ -166,7 +141,7 @@ target_link_libraries(math_irls
                       common_ScopedLog
                       common_string
                       common_Span
-                      math_LU
+                      lapack_DgbsvWrapper
                      )           
 
 cxx_test(math_irlsTest
@@ -185,3 +160,4 @@ cxx_test(math_PointQuadTest
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
+add_subdirectory(lapack)
