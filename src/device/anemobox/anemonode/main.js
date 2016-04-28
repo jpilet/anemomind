@@ -134,13 +134,7 @@ function startLogging() {
 }
 
 if (withLogger) {
-  config.get(function(err, config) {
-    if (config && config.boatId) {
-      startLogging();
-    } else {
-      console.log('Not logging because the box is not assigned to any boat.');
-    }
-  });
+  startLogging();
 }
 
 require('./components/RpcAssignBoat').register(btrpcFuncTable);
