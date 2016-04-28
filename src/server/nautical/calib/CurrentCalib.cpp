@@ -24,35 +24,31 @@ namespace {
     Duration<double> maxDuration;
     HorizontalMotion<double> gpsMotion, rawBoatOverWater;
 
-    Eigen::Vector2d refMotion() const {
-      return Eigen::Vector2d(gpsMotion[0].knots(), gpsMotion[1].knots());
+    HorizontalMotion<double> refMotion() const {
+      return gpsMotion;
     }
   };
 
   template <typename T>
-  Eigen::Matrix<T, 2, 1> rotate(T rads, const Eigen::Matrix<T, 2, 1> &xy) {
+  HorizontalMotion<T> rotate(T rads, const HorizontalMotion<T> &xy) {
     auto c = cos(rads);
     auto s = sin(rads);
-    return Eigen::Matrix<T, 2, 1>(c*xy(0) - s*xy(1), s*xy(0) + c*xy(1));
+    return HorizontalMotion<T>(c*xy[0] - s*xy[1], s*xy[0] + c*xy[1]);
   }
 
   struct CurrentCorrector {
     template <typename T>
-    Eigen::Matrix<T, 2, 1> evalFlow(const CurrentDataSample &s, const T *params) const {
+    HorizontalMotion<T> evalFlow(const CurrentDataSample &s, const T *params) const {
       typedef Eigen::Matrix<T, 2, 1> Vec;
       T bias = params[0];
-      T speedOffset = params[1];
+      auto speedOffset = T(params[1])*CornerCalib::getUnit<T>();
       T angleOffset = params[2];
 
-      Vec g(T(s.gpsMotion[0].knots()),
-            T(s.gpsMotion[1].knots()));
-      Vec v(T(s.rawBoatOverWater[0].knots()),
-            T(s.rawBoatOverWater[1].knots()));
+      return computeCurrentFromBoatMotion<HorizontalMotion<T> >(
+          bias*rotate<T>(angleOffset, s.rawBoatOverWater.cast<T>() +
+              CornerCalib::setNorm<T>(s.rawBoatOverWater.cast<T>(),
+                  speedOffset)), s.gpsMotion.cast<T>());
 
-      Vec vHat = (T(1.0)/(T(1.0e-9) + v.norm()))*v;
-
-      return computeCurrentFromBoatMotion<Vec>(
-          bias*rotate(angleOffset, v) + speedOffset*rotate(angleOffset, vHat), g);
     }
 
     Arrayd initialParams() const {
@@ -62,18 +58,15 @@ namespace {
     HorizontalMotion<double> evalHorizontalMotion(const CurrentDataSample &s,
         const Arrayd &params) const {
       assert(!params.empty());
-      auto x = evalFlow<double>(s, params.ptr());
-      return HorizontalMotion<double>(
-          Velocity<double>::knots(x(0)),
-          Velocity<double>::knots(x(1)));
+      return evalFlow<double>(s, params.ptr());
     }
   };
 
   template <DataCode Code>
-  typename TimedValueIntegratorType<typename TypeForCode<Code>::type>::type makeIntegrator(
+  TimedValueIntegrator<typename TypeForCode<Code>::type> makeIntegrator(
       const NavDataset &ds) {
     auto samples = ds.samples<Code>();
-    return TimedValueIntegratorType<typename TypeForCode<Code>::type>::type::make(
+    return TimedValueIntegrator<typename TypeForCode<Code>::type>::make(
         samples.begin(), samples.end());
   }
 
@@ -129,8 +122,8 @@ if (varName.empty()) { \
             if (rawGpsSpeed0.defined()) {
               auto rawGpsSpeed = rawGpsSpeed0.get();
               auto maxDuration = std::max(
-                  std::max(rawGpsSpeed.maxDuration, rawGpsBearing.maxDuration),
-                  std::max(rawWatSpeed.maxDuration, rawMagHeading.maxDuration));
+                  std::max(rawGpsSpeed.duration, rawGpsBearing.duration),
+                  std::max(rawWatSpeed.duration, rawMagHeading.duration));
               auto middle = from + half;
               samples.add(CurrentDataSample{
                 middle,
@@ -159,8 +152,8 @@ Array<TimedValue<HorizontalMotion<double> > > computeCorrectedCurrent(
   CornerCalib::Settings cornerSettings;
   cornerSettings.windowSize = int(floor(s.windowSize/s.samplingPeriod));
 
-  auto params = CornerCalib::optimizeCornerness(CurrentCorrector(),
-      samples, cornerSettings);
+  auto params = CornerCalib::optimizeCornernessForGroups(CurrentCorrector(),
+      Array<Array<CurrentDataSample> >{samples}, cornerSettings);
 
   if (params.empty()) {
     LOG(ERROR) << "Calibration failed";

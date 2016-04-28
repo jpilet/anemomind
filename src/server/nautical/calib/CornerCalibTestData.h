@@ -10,42 +10,50 @@
 
 #include <Eigen/Dense>
 #include <server/common/Array.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 namespace sail {
 namespace CornerCalibTestData {
 
 template <typename T>
-Eigen::Matrix<T, 2, 1> rotate(T radians, const Eigen::Vector2d &v) {
+HorizontalMotion<T> rotate(T radians, const HorizontalMotion<T> &v) {
   T cosv = cos(radians);
   T sinv = sin(radians);
-  return Eigen::Matrix<T, 2, 1>(cosv*v[0] - sinv*v[1], sinv*v[0] + cosv*v[1]);
+  return HorizontalMotion<T>(
+      cosv*v[0] - sinv*v[1],
+      sinv*v[0] + cosv*v[1]);
 }
 
 template <typename T>
-Eigen::Matrix<T, 2, 1> correctOrCorruptVector(const Eigen::Vector2d &w,
+HorizontalMotion<T> correctOrCorruptVector(
+    const HorizontalMotion<double> &w,
     T bias, T speedOffset, T angleOffset) {
-  return bias*rotate(angleOffset, w)
-    + speedOffset*rotate(angleOffset, w.normalized());
+  Eigen::Vector2d wvec(w[0].knots(), w[1].knots());
+  Eigen::Vector2d what = wvec.normalized();
+  auto v = Velocity<T>::knots(speedOffset);
+  return bias*rotate(angleOffset, w.cast<T>())
+    + rotate(angleOffset,
+        HorizontalMotion<T>(T(what(0))*v, T(what(1))*v));
 }
 
 struct TestSample {
-  Eigen::Vector2d boatMotionVec;
-  Eigen::Vector2d groundTruthCurrentMotionVec;
+  HorizontalMotion<double> boatMotionVec;
+  HorizontalMotion<double> groundTruthCurrentMotionVec;
   Arrayd params;
 
   // currentMotion = gpsMotion - motionOverWater <=>
   // motionOverWater = gpsMotion - currentMotion
-  Eigen::Vector2d groundTruthMotionOverWaterVec() const {
+  HorizontalMotion<double> groundTruthMotionOverWaterVec() const {
     return boatMotionVec - groundTruthCurrentMotionVec;
   }
-  Eigen::Vector2d corruptedMotionOverWaterVec() const;
+  HorizontalMotion<double> corruptedMotionOverWaterVec() const;
 
-  Eigen::Vector2d refMotion() const {
+  HorizontalMotion<double> refMotion() const {
     return boatMotionVec;
   }
 };
 
-Eigen::Vector2d getTrueConstantCurrent();
+HorizontalMotion<double> getTrueConstantCurrent();
 
 Array<TestSample> makeTestSamples(Arrayd params);
 

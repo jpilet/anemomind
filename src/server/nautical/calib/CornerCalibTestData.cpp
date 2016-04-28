@@ -29,21 +29,23 @@ namespace CornerCalibTestData {
     0.0119118, 0.635123, -0.07551, 0.265477, 0.649395};
 
 
-  Eigen::Vector2d getTrueConstantCurrent() {
-    return Eigen::Vector2d(0.2, -0.3);
+  auto knots = Velocity<double>::knots(1.0);
+
+  HorizontalMotion<double> getTrueConstantCurrent() {
+    return HorizontalMotion<double>(0.2*knots, -0.3*knots);
   }
 
-  Eigen::Vector2d current(int i) {
+  HorizontalMotion<double> current(int i) {
     auto xy = getTrueConstantCurrent();
-    auto x = xy(0);
-    auto y = xy(1);
-    return Eigen::Vector2d(
-        x + 0.01*rng[(i + 20) % rng.size()],
-        y + 0.01*rng[(i + 40) % rng.size()]);
+    auto x = xy[0];
+    auto y = xy[1];
+    return HorizontalMotion<double>(
+        x + (0.01*rng[(i + 20) % rng.size()])*knots,
+        y + (0.01*rng[(i + 40) % rng.size()])*knots);
   }
 
 
-  Eigen::Vector2d TestSample::corruptedMotionOverWaterVec() const {
+  HorizontalMotion<double> TestSample::corruptedMotionOverWaterVec() const {
     return correctOrCorruptVector(groundTruthMotionOverWaterVec(),
         params[0], params[1], params[2]);
   }
@@ -60,10 +62,10 @@ namespace CornerCalibTestData {
 
       auto dir = (i/30) % 2;
       auto angle = dir*0.5*M_PI + 0.1*rng[i % rng.size()];
-      double x = boatSpeed*cos(angle);
-      double y = boatSpeed*sin(angle);
+      auto x = boatSpeed*cos(angle)*knots;
+      auto y = boatSpeed*sin(angle)*knots;
       samples[i] = TestSample{
-        Eigen::Vector2d(x, y),
+        HorizontalMotion<double>(x, y),
         current(i), params
       };
     }

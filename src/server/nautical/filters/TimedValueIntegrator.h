@@ -109,9 +109,27 @@ Array<T> buildCumulative(const Arrayd &bounds,
  * And if it is low, we just get nearest neighbour interpolation instead.
  *
  */
+
+
+
+template <typename T>
+struct ValueAndDurationToNearestSample {
+  // The maximum duration between one of the integration bounds
+  // and the closest sample.
+  // This is a measure of how useful the value is. The smaller the duration,
+  // the better the quality of the value. It is the responsibility of the user
+  // of this class to reject values with duration that is too high.
+  Duration<double> duration;
+
+  // The average value.
+  T value;
+};
+
 template <typename T>
 class TimedValueIntegrator {
 public:
+  typedef ValueAndDurationToNearestSample<T> Value;
+
   TimedValueIntegrator() {}
 
   static TimedValueIntegrator<T> makeFromArray(const Array<TimedValue<T> > &values) {
@@ -137,18 +155,6 @@ public:
     return makeFromArray(array);
   }
 
-  struct Value {
-    // The maximum duration between one of the integration bounds
-    // and the closest sample.
-    // This is a measure of how useful the value is. The smaller the duration,
-    // the better the quality of the value. It is the responsibility of the user
-    // of this class to reject values with duration that is too high.
-    Duration<double> maxDuration;
-
-    // The average value.
-    T value;
-  };
-
   Optional<Value> computeAverage(TimeStamp from, TimeStamp to) const {
     if (from == to) { // As the interval tends to zero, the average is the value at the point.
       return interpolate(from);
@@ -156,7 +162,7 @@ public:
       auto x = computeAverage(to, from);
       if (x.defined()) {
         Value v = x.get();
-        return Value{v.maxDuration, -v.value};
+        return Value{v.duration, -v.value};
       }
       return x;
     }
@@ -254,18 +260,6 @@ private:
     double lambda = computeLambda(_bounds[bin], _bounds[bin+1], t);
     return (1.0 - lambda)*_cumulative[bin] + lambda*_cumulative[bin+1];
   }
-};
-
-
-template <typename T>
-struct TimedValueIntegratorType {
-  typedef TimedValueIntegrator<T> type;
-};
-
-class TimedAngleIntegrator;
-template <>
-struct TimedValueIntegratorType<Angle<double> > {
-  typedef TimedAngleIntegrator type;
 };
 
 }

@@ -11,42 +11,42 @@
 
 namespace sail {
 
-TimedAngleIntegrator TimedAngleIntegrator::makeFromArray(
+TimedValueIntegrator<Angle<double> > TimedValueIntegrator<Angle<double> >::makeFromArray(
     const Array<TimedValue<Angle<double> > > &values) {
-  return TimedAngleIntegrator(
+  return TimedValueIntegrator<Angle<double> >(
       TimedValueIntegrator<Eigen::Vector2d>::makeFromArray(
           anglesToUnitVectorArray(values.begin(), values.end())));
 }
 
 namespace {
-  Optional<TimedAngleIntegrator::Value> vecToAngle(
+  Optional<TimedValueIntegrator<Angle<double> >::Value> vecToAngle(
       const TimedValueIntegrator<Eigen::Vector2d>::Value &v) {
     auto rads = atan2(double(v.value(1)), double(v.value(0)));
     if (std::isfinite(rads)) {
-      return Optional<TimedAngleIntegrator::Value>(
-        TimedAngleIntegrator::Value{
-        v.maxDuration,
+      return Optional<TimedValueIntegrator<Angle<double> >::Value>(
+        TimedValueIntegrator<Angle<double> >::Value{
+        v.duration,
         Angle<double>::radians(rads)
       });
     }
-    return Optional<TimedAngleIntegrator::Value>();
+    return Optional<TimedValueIntegrator<Angle<double> >::Value>();
   }
 
-  Optional<TimedAngleIntegrator::Value> optionalVecToAngle(
+  Optional<TimedValueIntegrator<Angle<double> >::Value> optionalVecToAngle(
       const Optional<TimedValueIntegrator<Eigen::Vector2d>::Value > &v) {
     if (v.defined()) {
       return vecToAngle(v.get());
     }
-    return Optional<TimedAngleIntegrator::Value>();
+    return Optional<TimedValueIntegrator<Angle<double> >::Value>();
   }
 }
 
-Optional<TimedAngleIntegrator::Value> TimedAngleIntegrator::computeAverage(
+Optional<TimedValueIntegrator<Angle<double> >::Value> TimedValueIntegrator<Angle<double> >::computeAverage(
     TimeStamp from, TimeStamp to) const {
   return optionalVecToAngle(_itg.computeAverage(from, to));
 }
 
-Optional<TimedAngleIntegrator::Value> TimedAngleIntegrator::interpolate(
+Optional<TimedValueIntegrator<Angle<double> >::Value> TimedValueIntegrator<Angle<double> >::interpolate(
     TimeStamp t) const {
   return optionalVecToAngle(_itg.interpolate(t));
 }

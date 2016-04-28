@@ -5,8 +5,8 @@
  *      Author: jonas
  */
 
-#ifndef SERVER_NAUTICAL_FILTERS_TIMEDANGLEINTEGRATOR_H_
-#define SERVER_NAUTICAL_FILTERS_TIMEDANGLEINTEGRATOR_H_
+#ifndef SERVER_NAUTICAL_FILTERS_TimedValueIntegrator<Angle<double> >_H_
+#define SERVER_NAUTICAL_FILTERS_TimedValueIntegrator<Angle<double> >_H_
 
 #include <server/nautical/filters/TimedValueIntegrator.h>
 #include <Eigen/Dense>
@@ -30,20 +30,21 @@ Array<TimedValue<Eigen::Vector2d> > anglesToUnitVectorArray(
 // Angles are special because they are cyclic. We need to treat them
 // differently. It tries to provide the same interface as the general
 // TimedValueIntegrator.
-class TimedAngleIntegrator {
+template <>
+class TimedValueIntegrator<Angle<double> > {
 public:
-  typedef TimedValueIntegrator<Angle<double> >::Value Value;
+  typedef ValueAndDurationToNearestSample<Angle<double> > Value;
 
-  TimedAngleIntegrator() {}
+  TimedValueIntegrator<Angle<double> >() {}
 
-  static TimedAngleIntegrator makeFromArray(
+  static TimedValueIntegrator<Angle<double> > makeFromArray(
       const Array<TimedValue<Angle<double> > > &values);
   Optional<Value> computeAverage(TimeStamp from, TimeStamp to) const;
   Optional<Value> interpolate(TimeStamp t) const;
 
   template <typename AngleIterator>
-  static TimedAngleIntegrator make(AngleIterator begin, AngleIterator end) {
-    return TimedAngleIntegrator(
+  static TimedValueIntegrator<Angle<double> > make(AngleIterator begin, AngleIterator end) {
+    return TimedValueIntegrator<Angle<double> >(
         TimedValueIntegrator<Eigen::Vector2d>::makeFromArray(
             anglesToUnitVectorArray(begin, end)));
   }
@@ -53,7 +54,7 @@ public:
   }
 private:
 
-  TimedAngleIntegrator(const TimedValueIntegrator<Eigen::Vector2d> &itg) :
+  TimedValueIntegrator<Angle<double> >(const TimedValueIntegrator<Eigen::Vector2d> &itg) :
     _itg(itg) {}
 
   TimedValueIntegrator<Eigen::Vector2d> _itg;
@@ -62,4 +63,4 @@ private:
 }
 
 
-#endif /* SERVER_NAUTICAL_FILTERS_TIMEDANGLEINTEGRATOR_H_ */
+#endif /* SERVER_NAUTICAL_FILTERS_TimedValueIntegrator<Angle<double> >_H_ */

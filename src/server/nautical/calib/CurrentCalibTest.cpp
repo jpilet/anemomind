@@ -33,8 +33,8 @@ namespace {
       TestSample x = samples[i];
       auto t = offset + double(i)*seconds;
 
-      auto watMotion = vecToMotion(x.corruptedMotionOverWaterVec());
-      auto gpsMotion = vecToMotion(x.boatMotionVec);
+      auto watMotion = x.corruptedMotionOverWaterVec();
+      auto gpsMotion = x.boatMotionVec;
 
       magHeading.push_back(TimedValue<Angle<double> >(t, watMotion.angle()));
       watSpeed.push_back(TimedValue<Velocity<double> >(t, watMotion.norm()));
@@ -62,7 +62,7 @@ TEST(CurrentCalib, BasicTest) {
   settings.windowSize = Duration<double>::seconds(16);
   settings.samplingPeriod = Duration<double>::seconds(1.0);
   auto current = CurrentCalib::computeCorrectedCurrent(ds, settings);
-  auto gt = vecToMotion(CornerCalibTestData::getTrueConstantCurrent());
+  auto gt = CornerCalibTestData::getTrueConstantCurrent();
   Velocity<double> sumDifs = Velocity<double>::knots(0.0);
   for (auto c: current) {
     HorizontalMotion<double> dif = gt - c.value;

@@ -23,9 +23,9 @@ namespace {
     }
 
     template <typename T>
-    Eigen::Matrix<T, 2, 1> evalFlow(
+    HorizontalMotion<T> evalFlow(
         const TestSample &sample, const T *params) const {
-      return computeCurrentFromBoatMotion<Eigen::Matrix<T, 2, 1> >(
+      return computeCurrentFromBoatMotion<HorizontalMotion<T> >(
           correctOrCorruptVector(
               sample.corruptedMotionOverWaterVec(),
               params[0], params[1], params[2]),
@@ -33,15 +33,15 @@ namespace {
     }
   };
 
-  double computeAverageCurrentError(
+  Velocity<double> computeAverageCurrentError(
       TestFlowFun f,
       const Array<TestSample> &samples, Arrayd params) {
-    double sum = 0.0;
+    auto sum = Velocity<double>::knots(0.0);
     for (auto sample: samples) {
       auto estCurrent = f.evalFlow(sample, params.ptr());
-      sum += (estCurrent - getTrueConstantCurrent()).norm();
+      sum += HorizontalMotion<double>(estCurrent - getTrueConstantCurrent()).norm();
     }
-    return sum/samples.size();
+    return (1.0/samples.size())*sum;
   }
 }
 
@@ -60,14 +60,15 @@ TEST(CornerCalib, BasicTest) {
 
   TestFlowFun f;
   auto defaultParams = f.initialParams();
-  auto params = optimizeCornerness<TestSample, TestFlowFun>(f, samples, settings);
+  auto params = optimizeCornernessForGroups<TestSample, TestFlowFun>(f,
+      Array<Array<TestSample> >{samples}, settings);
 
   auto initErr = computeAverageCurrentError(f, samples, defaultParams);
-  EXPECT_LE(2.6, initErr);
+  EXPECT_LE(2.6, initErr.knots());
   auto optErr = computeAverageCurrentError(f, samples, params);
-  EXPECT_LE(optErr, 0.07);
-  std::cout << "initErr: " << initErr << std::endl;
-  std::cout << "optErr: " << optErr << std::endl;
+  EXPECT_LE(optErr.knots(), 0.07);
+  std::cout << "initErr: " << initErr.knots() << std::endl;
+  std::cout << "optErr: " << optErr.knots() << std::endl;
 }
 
 
