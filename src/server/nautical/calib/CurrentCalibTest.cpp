@@ -61,7 +61,9 @@ TEST(CurrentCalib, BasicTest) {
   CurrentCalib::Settings settings;
   settings.windowSize = Duration<double>::seconds(16);
   settings.samplingPeriod = Duration<double>::seconds(1.0);
-  auto current = CurrentCalib::computeCorrectedCurrent(ds, settings);
+  auto currents = CurrentCalib::computeCorrectedCurrent(Array<NavDataset>{ds}, settings);
+  EXPECT_EQ(currents.size(), 1);
+  auto current = currents[0];
   auto gt = CornerCalibTestData::getTrueConstantCurrent();
   Velocity<double> sumDifs = Velocity<double>::knots(0.0);
   for (auto c: current) {

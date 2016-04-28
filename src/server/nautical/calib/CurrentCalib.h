@@ -25,8 +25,10 @@ struct Settings {
   bool debugShowScatter;
 };
 
-Array<TimedValue<HorizontalMotion<double> > > computeCorrectedCurrent(
-    const NavDataset &ds, const Settings &s);
+typedef Array<TimedValue<HorizontalMotion<double> > > MotionSamples;
+
+Array<MotionSamples> computeCorrectedCurrent(
+    const Array<NavDataset> &ds, const Settings &s);
 
 }
 }

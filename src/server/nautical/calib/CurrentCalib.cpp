@@ -138,36 +138,50 @@ if (varName.empty()) { \
     }
     return samples.get();
   }
+
+
+  Array<Array<CurrentDataSample> > makeSampleGroups(
+        const Array<NavDataset> &ds,
+        const Duration<double> &samplingPeriod) {
+    return sail::map(ds, [&](const NavDataset &ds) {
+      return makeSamples(ds, samplingPeriod);
+    });
+  }
+
+  MotionSamples applyCurrentCalibration(
+      const Arrayd &params, const Array<CurrentDataSample> &samples) {
+    int n = samples.size();
+    CurrentCorrector corr;
+    MotionSamples dst(n);
+    for (int i = 0; i < n; i++) {
+      auto sample = samples[i];
+      dst[i] = TimedValue<HorizontalMotion<double> >(
+          sample.time, corr.evalHorizontalMotion(sample, params));
+    }
+    return dst;
+  }
 }
 
-Array<TimedValue<HorizontalMotion<double> > > computeCorrectedCurrent(
-    const NavDataset &ds, const Settings &s) {
-  auto samples = makeSamples(ds, s.samplingPeriod);
-
-  if (samples.empty()) {
-    LOG(ERROR) << "No samples from which to compute current";
-    return Array<TimedValue<HorizontalMotion<double> > >();
-  }
+Array<MotionSamples> computeCorrectedCurrent(
+    const Array<NavDataset> &ds, const Settings &s) {
+  //auto samples = makeSamples(ds, s.samplingPeriod);
+  auto sampleGroups = makeSampleGroups(ds, s.samplingPeriod);
 
   CornerCalib::Settings cornerSettings;
   cornerSettings.windowSize = int(floor(s.windowSize/s.samplingPeriod));
 
   auto params = CornerCalib::optimizeCornernessForGroups(CurrentCorrector(),
-      Array<Array<CurrentDataSample> >{samples}, cornerSettings);
+      sampleGroups, cornerSettings);
 
   if (params.empty()) {
     LOG(ERROR) << "Calibration failed";
-    return Array<TimedValue<HorizontalMotion<double> > >();
+    return Array<MotionSamples>();
   }
-  int n = samples.size();
+  int n = sampleGroups.size();
 
-  Array<TimedValue<HorizontalMotion<double> > > dst(n);
-  auto corr = CurrentCorrector();
+  Array<MotionSamples> dst(n);
   for (int i = 0; i < n; i++) {
-    auto sample = samples[i];
-    dst[i] = TimedValue<HorizontalMotion<double> >(
-        sample.time,
-        corr.evalHorizontalMotion(sample, params));
+    dst[i] = applyCurrentCalibration(params, sampleGroups[i]);
   }
   return dst;
 }
