@@ -21,7 +21,6 @@ Settings::Settings() :
       motionWeight(1.0),
       samplingPeriod(Duration<double>::seconds(1.0)),
       inlierThreshold(Length<double>::meters(12)) {
-  irlsSettings.logWeighting = true;
   irlsSettings.initialWeight = 0.01;
   irlsSettings.iters = 30;
 }
