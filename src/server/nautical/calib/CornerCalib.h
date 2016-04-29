@@ -111,9 +111,48 @@ int computeTotalQuadCount(const Array<Array<Sample> > &sampleGroups, int windowS
   return n;
 }
 
+
+template <typename T>
+int makeCornernessResiduals(int offset,
+    const std::vector<double> &refSmoothness,
+    const std::vector<T> &flowSmoothness,
+    T *dst) {
+  int n = refSmoothness.size();
+  assert(n == flowSmoothness.size());
+
+  T totalFlowSmoothness = T(0.0);
+  T sumSquaredErrors = T(0.0);
+  for (int i = 0; i < n; i++) {
+    sumSquaredErrors += sqr(flowSmoothness[i] - refSmoothness[i]);
+    totalFlowSmoothness += flowSmoothness[i];
+  }
+  T meanFlowSmoothness = T(1.0/n)*totalFlowSmoothness;
+
+  /*
+   * Explanation: For an ill-calibrated system, we observed that the samples
+   * seem to align along a tilted line. So fitting a line to those samples will
+   * result in a small fitting error, which is 'sumSquaredErrors'.
+   *
+   * That in turn, will lead to a large factor, 'factor' below.
+   *
+   * Then we fit all samples to 'meanFlowSmoothness' which is a horizontal line,
+   * weighted by 'factor'. I believe this objective well reflects what we want to
+   * do.
+   */
+  T factor = T(1.0)/sqrt(1.0e-12 + sumSquaredErrors);
+
+  for (int i = 0; i < n; i++) {
+    dst[offset + i] = factor*(flowSmoothness[i] - meanFlowSmoothness);
+  }
+  return offset + n;
+}
+
+
 template <typename Sample, typename TrueFlowFunction>
 class CornerObjf {
 public:
+  static const int FlowCount = TrueFlowFunction::FlowCount;
+
   CornerObjf(TrueFlowFunction f, const Array<Array<Sample> > &sampleGroups,
       const Settings &s) : _f(f), _sampleGroups(sampleGroups),
       _settings(s), _n(computeTotalQuadCount(sampleGroups, s.windowSize)) {
@@ -121,14 +160,14 @@ public:
     for (auto samples: _sampleGroups) {
       auto quads = sail::map(samples,
           [&](const Sample &sample) {
-        return PointQuad<double, 2>(motionToVec(sample.refMotion()));
+        return PointQuad<double, 2>(motionToVec(f.getRefMotion(sample)));
       }).toArray();
       accumulateCornerSmoothnesses<double>(quads, s.windowSize, &_refSmoothness);
     }
   }
 
   int outDims() const {
-    return _n;
+    return _n*FlowCount;
   }
 
   template<typename T>
@@ -141,43 +180,38 @@ private:
     typedef Eigen::Matrix<T, 2, 1> Vec;
     typedef PointQuad<T, 2> PQ;
 
-    std::vector<T> flowSmoothnesses;
-    flowSmoothnesses.reserve(_n);
+    std::vector<T> flowSmoothnesses[FlowCount];
+    for (int i = 0; i < FlowCount; i++) {
+      flowSmoothnesses[i].reserve(_n);
+    }
+
     for (auto samples: _sampleGroups) {
       auto sampleCount = samples.size();
-      Array<PQ> quads(sampleCount);
-      for (int i = 0; i < sampleCount; i++) {
-        quads[i] = PQ(motionToVec(_f.template evalFlow<T>(samples[i], params)));
+      Array<PQ> quads[FlowCount];
+      for (int i = 0; i < FlowCount; i++) {
+        quads[i] = Array<PQ>(sampleCount);
       }
-      accumulateCornerSmoothnesses(quads, _settings.windowSize, &flowSmoothnesses);
+      for (int i = 0; i < sampleCount; i++) {
+
+        std::array<HorizontalMotion<T>, FlowCount> flows
+          = _f.template apply<T>(params, samples[i]);
+
+        for (int j = 0; j < FlowCount; j++) {
+          quads[j][i] = PQ(motionToVec(flows[j]));
+        }
+      }
+      for (int i = 0; i < FlowCount; i++) {
+        accumulateCornerSmoothnesses(quads[i],
+            _settings.windowSize, flowSmoothnesses + i);
+      }
     }
-    assert(_n == flowSmoothnesses.size());
-
-    T totalFlowSmoothness = T(0.0);
-    T sumSquaredErrors = T(0.0);
-    for (int i = 0; i < _n; i++) {
-      sumSquaredErrors += sqr(flowSmoothnesses[i] - _refSmoothness[i]);
-      totalFlowSmoothness += flowSmoothnesses[i];
+    int offset = 0;
+    for (int i = 0; i < FlowCount; i++) {
+      assert(_n == flowSmoothnesses[i].size());
+      offset = makeCornernessResiduals(offset,
+          _refSmoothness, flowSmoothnesses[i], residuals);
     }
-    T meanFlowSmoothness = T(1.0/_n)*totalFlowSmoothness;
-
-    /*
-     * Explanation: For an ill-calibrated system, we observed that the samples
-     * seem to align along a tilted line. So fitting a line to those samples will
-     * result in a small fitting error, which is 'sumSquaredErrors'.
-     *
-     * That in turn, will lead to a large factor, 'factor' below.
-     *
-     * Then we fit all samples to 'meanFlowSmoothness' which is a horizontal line,
-     * weighted by 'factor'. I believe this objective well reflects what we want to
-     * do.
-     */
-    T factor = T(1.0)/sqrt(1.0e-12 + sumSquaredErrors);
-
-    for (int i = 0; i < _n; i++) {
-      residuals[i] = factor*(flowSmoothnesses[i] - meanFlowSmoothness);
-    }
-
+    assert(offset == outDims());
     return true;
   }
 
@@ -189,18 +223,18 @@ private:
 };
 
 template <typename Sample, typename TrueFlowFunction>
-Arrayd optimizeCornernessForGroups(TrueFlowFunction f,
+typename TrueFlowFunction::InitialParamType optimizeCornernessForGroups(TrueFlowFunction f,
                           const Array<Array<Sample> > &sampleGroups,
                           const Settings &settings) {
 
-  Arrayd params = f.initialParams();
+  typename TrueFlowFunction::InitialParamType params;
   ceres::Problem problem;
   typedef CornerObjf<Sample, TrueFlowFunction> TObjf;
   auto objf = new TObjf(f, sampleGroups, settings);
   auto cost = new ceres::DynamicAutoDiffCostFunction<TObjf>(objf);
-  cost->AddParameterBlock(params.size());
+  cost->AddParameterBlock(params.dim);
   cost->SetNumResiduals(objf->outDims());
-  problem.AddResidualBlock(cost, nullptr, params.ptr());
+  problem.AddResidualBlock(cost, nullptr, reinterpret_cast<double *>(&params));
   ceres::Solver::Summary summary;
   ceres::Solve(settings.ceresOptions, &problem, &summary);
   return params;
