@@ -5,8 +5,8 @@
  *      Author: jonas
  */
 
-#ifndef SERVER_NAUTICAL_FILTERS_TimedValueIntegrator<Angle<double> >_H_
-#define SERVER_NAUTICAL_FILTERS_TimedValueIntegrator<Angle<double> >_H_
+#ifndef SERVER_NAUTICAL_FILTERS_TIMED_ANGLE_INTEGRATOR_H_
+#define SERVER_NAUTICAL_FILTERS_TIMED_ANGLE_INTEGRATOR_H_
 
 #include <server/nautical/filters/TimedValueIntegrator.h>
 #include <Eigen/Dense>
@@ -63,4 +63,4 @@ private:
 }
 
 
-#endif /* SERVER_NAUTICAL_FILTERS_TimedValueIntegrator<Angle<double> >_H_ */
+#endif /* SERVER_NAUTICAL_FILTERS_TIMED_ANGLE_INTEGRATOR_H_ */
