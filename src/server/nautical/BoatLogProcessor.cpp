@@ -129,6 +129,11 @@ namespace {
 
     auto navs0 = makeBoatDatFile(debug, navs, outdir, fulltree, boatId, g);
 
+
+    /*
+     * TODO: What of these exported things are we actually using? Can we remove something,
+     * thereby dropping JSON support for obsolete stuff?
+     */
     {
       std::string path = outdir.makeFile(prefix + "_tree.js").get().toString();
       ENTERSCOPE("Output tree (" + path + ")");
@@ -145,6 +150,8 @@ namespace {
       ofstream file(path);
       Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
     }
+
+
     return true;
   }
 }

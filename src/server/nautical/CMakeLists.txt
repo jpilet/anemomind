@@ -6,12 +6,6 @@ add_subdirectory("logimport")
 add_subdirectory("calib")
 add_subdirectory("filters")
 
-add_library(nautical_Ecef
-            Ecef.h
-            Ecef.cpp)
-
-target_link_libraries(nautical_Ecef common_math)
-
 
 add_library(nautical_nav
             Nav.h
@@ -102,7 +96,6 @@ cxx_test(nautical_NavTest
 
 cxx_test(nautical_WGS84Test
             WGS84Test.cpp
-            nautical_Ecef
             common_Function
             common_LineKM
             gtest_main)
@@ -306,7 +299,6 @@ target_link_libraries(nautical_NavCompatibility
                       common_LineKM
                       common_TimeStamp
                       plot_gnuplot
-                      nautical_Ecef
                       common_PeriodicSpan
                       anemobox_Dispatcher                      
                      )

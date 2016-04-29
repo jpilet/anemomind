@@ -3,7 +3,6 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include "Ecef.h"
 #include "WGS84.h"
 #include <cmath>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
@@ -35,40 +34,6 @@ TEST(wgs84Test, CheckItIsReasonableTest) {
   double tol = 0.1;
   EXPECT_LE((1.0 - tol)*radius, distFromCog);
   EXPECT_LE(distFromCog, (1.0 + tol)*radius);
-}
-
-// Test if this function does the same thing as the ECEF library. It should.
-// Also compare it to the implementation of the NmeaParser library.
-TEST(wgs84Test, CompareToECEFTest) {
-  double lonsAndLats[3] = {-0.2, 0.2, 0.5};
-  double altitudes[3] = {0, 12, 144};
-
-  for (int i = 0; i < 3; i++) {
-    double lon = lonsAndLats[i]*M_PI;
-    for (int j = 0; j < 3; j++) {
-      double lat = lonsAndLats[j]*M_PI;
-      for (int k = 0; k < 3; k++) {
-        double altitudeMetres = altitudes[k];
-        double xyz[3];
-        WGS84<double>::toXYZLocal(lon, lat,
-            altitudeMetres, xyz, nullptr, nullptr);
-
-        double ex, ey, ez;
-        lla2ecefJustForReference(lon, lat, altitudeMetres, ex, ey, ez);
-        EXPECT_NEAR(ex, xyz[0], 1.0e-5);
-        EXPECT_NEAR(ey, xyz[1], 1.0e-5);
-        EXPECT_NEAR(ez, xyz[2], 1.0e-5);
-
-        Length<double> xyz2[3];
-        WGS84<double>::toXYZ(GeographicPosition<double>(Angle<double>::radians(lon),
-                             Angle<double>::radians(lat),
-                             Length<double>::meters(altitudeMetres)), xyz2);
-        EXPECT_NEAR(ex, xyz2[0].meters(), 1.0e-5);
-        EXPECT_NEAR(ey, xyz2[1].meters(), 1.0e-5);
-        EXPECT_NEAR(ez, xyz2[2].meters(), 1.0e-5);
-      }
-    }
-  }
 }
 
 class WGS84TestFun : public Function {
