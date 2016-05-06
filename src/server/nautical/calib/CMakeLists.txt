@@ -89,18 +89,8 @@ cxx_test(calib_CurrentCalibTest
   
 target_depends_on_ceres(calib_CurrentCalibTest)
 
-add_library(calib_Correction
-  Correction.h
-  Correction.cpp
-  )
-  
-target_link_libraries(calib_Correction
-  common_TimeStamp
- )
-    
-
 cxx_test(calib_CorrectionTest
   CorrectionTest.cpp
   gtest_main
-  calib_Correction
+  common_TimeStamp
  )
