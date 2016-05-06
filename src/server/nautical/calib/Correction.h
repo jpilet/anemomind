@@ -6,8 +6,6 @@
  *
  * Two good papers on the topic of accurate measurements:
  *
-<<<<<<< HEAD
-=======
  * (i)
 @inproceedings{douguet:hal-00846250,
   TITLE = {{A New Real-Time Method for Sailboat Performance estimation based on Leeway Modeling}},
@@ -30,7 +28,6 @@
  * Paper to be presented at the Chesapeake Sailing Yacht Symposium, Annapolis, Maryland, January 17, 1981.
  * David R. Pedrick, Pedrick Yacht Designs, Newport, Rl.
  * RichardS. McCurdy, Consultant, Darien, CT.
->>>>>>> jo-generalized-curve-filter-bak2
  *
  */
 
