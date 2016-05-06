@@ -1,7 +1,7 @@
 'use strict';
 
 var app = angular.module('www2App')
-  .directive('boatSummary', function (boatList) {
+  .directive('boatSummary', function ($location, $interpolate, boatList, Auth) {
     return {
       templateUrl: 'app/boatSummary/boatSummary.html',
       restrict: 'E',
@@ -13,7 +13,7 @@ var app = angular.module('www2App')
         scope.currentPage = 1;
         scope.sessions = [];
         if (scope.pageSize == undefined) {
-          scope.pageSize = 10;
+          scope.pageSize = 2;
         }
         function updateSessions() {
           if (!scope.boatId) {
@@ -31,6 +31,65 @@ var app = angular.module('www2App')
 
         updateSessions();
 
+        //
+        // display more session
+        scope.showMoreSessions=function(){
+          scope.pageSize+=10;
+        }
+        //
+        // get main photo
+        scope.mainPhoto=function(boat) {
+          if(!boat.photos.length){
+
+          }
+        }
+
+        //
+        // get photo here
+        // TODO make this a directive or an API available on top controller
+        scope.photoUrl = function(bid,photo, size) {
+          return '/api/events/photo/' + bid + '/' + photo
+            + '?' + (size? 's=' + size + '&' : '') + 'access_token=' + Auth.getToken() ;
+        };
+
+        //
+        // get first session date
+        // TODO this could be a directive 
+        scope.sessionGetFirstDate=function(sessions) {
+          return sessions.length&&sessions[0].startTime;
+        }
+        //
+        // compute avg in current sessions for direction
+        // TODO this could be a directive 
+        scope.sessionAvgWind=function (sessions) {
+          var sum = sessions.reduce(function(prev, session) { 
+            return prev + session.avgWindDir; 
+          },0);
+          return (sum / sessions.length).toFixed(1);
+        };
+
+        //
+        // compute avg in current sessions for speed
+        // TODO this could be a directive 
+        scope.sessionAvgSpeed=function (sessions) {
+          var sum = sessions.reduce(function(prev, session) { 
+            return prev + session.avgWindSpeed; 
+          },0);
+          return (sum / sessions.length).toFixed(1);
+        }
+
+        //
+        // compute avg in current sessions for speed
+        // TODO this could be a directive 
+        scope.sessionMaxSpeed=function (sessions) {
+          return Math.max.apply(Math,sessions.map(function(session){
+            return session.strongestWindSpeed;
+          })).toFixed(2);
+        }
+
+
+
+
         scope.twdirToCardinal = function(twdir) {
           var index = Math.round(360 + twdir * 8 / 360) % 8;
           var windrose = [
@@ -38,7 +97,7 @@ var app = angular.module('www2App')
           return windrose[index];
         };
 
-        scope.knotsToBeaufort = function(knots) {
+        scope.boatNumber = function(knots) {
           if (knots < 1) { return 0; }
           if (knots < 3) { return 1; }
           if (knots < 6) { return 2; }
@@ -56,6 +115,42 @@ var app = angular.module('www2App')
       }
     };
   });
+
+
+app.directive('boatMainImage', ['$parse', function($parse) {
+  var style={
+    'background-image':'url("/assets/images/boat-sample.png")',
+    'background-size':'cover',
+    'background-color':'transparent',
+    'background-position': '50% 20%',
+    'height':'100%'
+  }, defaultImage="/assets/images/boat-sample.png";    
+
+  return {
+    restrict: 'A',
+    replace: false, 
+    scope:{
+      boatMainImage:'='
+    },
+    link: function(scope, element, attrs, ngModelCtrl) {
+      var self=this;
+
+
+      scope.$watch('boatMainImage', function (boatMainImage) {
+        if (scope['boatMainImage']) {
+          style['background-image']='url('+defaultImage+')';
+          if(boatMainImage.photos&&boatMainImage.photos.length){
+            var path=scope.$parent.photoUrl(boatMainImage._id,boatMainImage.photos[0].src,'300x400');
+            style['background-image']='url('+path+')';
+          }
+          element.css(style);
+        }
+      });
+    }
+  }
+}]);
+
+
 
 app.filter('startFrom', function() {
     return function(input, start) {

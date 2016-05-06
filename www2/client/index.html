@@ -2,19 +2,31 @@
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
 <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<!--[if gt IE 8]><!--> 
+<html class="no-js"> <!--<![endif]-->
   <head>
+<!--
+    _   _  _ ___ __  __  ___  __  __ ___ _  _ ___  
+   /_\ | \| | __|  \/  |/ _ \|  \/  |_ _| \| |   \ 
+  / _ \| .` | _|| |\/| | (_) | |\/| || || .` | |) |
+ /_/ \_\_|\_|___|_|  |_|\___/|_|  |_|___|_|\_|___/ 
+ Hello there! 
+-->            
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <base href="/">
-    <title></title>
+    <title>ANEMOLAB</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
+    <link href='//fonts.googleapis.com/css?family=Muli' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.css" />
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="assets/css/icon.css" />
+    <link rel="stylesheet" href="assets/css/util.css" />
+
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <!-- build:css(client) app/vendor.css -->
       <!-- bower:css -->
-      <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
       <link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css" />
       <!-- endbower -->
     <!-- endbuild -->
@@ -25,6 +37,7 @@
       <link rel="stylesheet" href="app/admin/admin.css">
       <link rel="stylesheet" href="app/app.css">
       <link rel="stylesheet" href="app/arrowIndicator/arrowIndicator.css">
+      <link rel="stylesheet" href="app/boatSummary/boatSummary.css">
       <link rel="stylesheet" href="app/boats/boats.css">
       <link rel="stylesheet" href="app/events/events.css">
       <link rel="stylesheet" href="app/gaugeIndicator/gaugeIndicator.css">
@@ -35,6 +48,7 @@
       <link rel="stylesheet" href="app/vmgplot/vmgplot.css">
       <link rel="stylesheet" href="app/wheelIndicator/wheelIndicator.css">
       <link rel="stylesheet" href="app/wheelSmallIndicator/wheelSmallIndicator.css">
+      <link rel="stylesheet" href="app/windplot/sessionplot.css">
       <link rel="stylesheet" href="components/modal/modal.css">
       <link rel="stylesheet" href="components/navbar/navbar.css">
       <!-- endinjector -->
@@ -45,8 +59,16 @@
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
 
+    <!-- top layers -->
+    <div id="app-loading-wrapper" shown-when-loading=""> 
+      <div class="app-loading fa-spin fa fa fa-spinner"></div> 
+    </div>
+
+    <div id="flash" flash-message="5000" ></div>
+
+
     <!-- Add your site or application content here -->
-    <div ui-view=""></div>
+    <div ui-view="" class="main-view"></div>
 
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
     <script>
@@ -133,6 +155,7 @@
           <script src="app/wheelIndicator/wheelIndicator.js"></script>
           <script src="app/wheelSmallIndicator/wheelSmallIndicator.directive.js"></script>
           <script src="app/wheelSmallIndicator/wheelSmallIndicator.js"></script>
+          <script src="app/windplot/sessionplot.directive.js"></script>
           <script src="components/auth/auth.service.js"></script>
           <script src="components/auth/user.service.js"></script>
           <script src="components/modal/modal.service.js"></script>
