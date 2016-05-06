@@ -6,6 +6,31 @@
  *
  * Two good papers on the topic of accurate measurements:
  *
+<<<<<<< HEAD
+=======
+ * (i)
+@inproceedings{douguet:hal-00846250,
+  TITLE = {{A New Real-Time Method for Sailboat Performance estimation based on Leeway Modeling}},
+  AUTHOR = {Douguet, Ronan and Diguet, Jean-Philippe and Laurent, Johann and Riou, Yann},
+  URL = {https://hal.archives-ouvertes.fr/hal-00846250},
+  BOOKTITLE = {{The 21st Chesapeake Sailing Yacht Symposium}},
+  ADDRESS = {Annapolis, United States},
+  PAGES = {A New Real-Time Method for Sailboat Performance estimation based on Leeway Modeling},
+  YEAR = {2013},
+  MONTH = Mar,
+  HAL_ID = {hal-00846250},
+  HAL_VERSION = {v1},
+}
+ *
+ *
+ * (ii)
+ * "Yacht Performance Analysis with Computers"
+ * THE SOCIETY OF NAVAL ARCHITECTS AND MARINE ENGINEERS
+ * One World Trade Center, Suite 1369, New York, N.Y. 10048
+ * Paper to be presented at the Chesapeake Sailing Yacht Symposium, Annapolis, Maryland, January 17, 1981.
+ * David R. Pedrick, Pedrick Yacht Designs, Newport, Rl.
+ * RichardS. McCurdy, Consultant, Darien, CT.
+>>>>>>> jo-generalized-curve-filter-bak2
  *
  */
 
@@ -46,7 +71,7 @@ namespace Correction {
  * This sample should be ***independent*** of the underlying correction model,
  * so that we can use the same RawSample with an improved correction model.
  */
-struct RawSample { // These are RAW values that we will correct
+struct RawNav { // These are RAW values that we will correct
 
   sail::TimeStamp time;
 
@@ -125,7 +150,7 @@ T twaDriftWeighting(Angle<T> twa0, T thresholdRadians
 
 
 template <typename T>
-Angle<T> getCorrectedMagHeadingOrSubstitute(const RawSample &sample,
+Angle<T> getCorrectedMagHeadingOrSubstitute(const RawNav &sample,
     const Angle<T> &offset) {
   return sample.magHeading.defined()?
           (sample.magHeading.get().cast<T>() + offset)
@@ -144,14 +169,14 @@ struct BasicFullCorrector { // Using SI units: angles in radians, velocities in 
   static const int FlowCount = 2;
 
   // Expected that this method is present by the calibration algorithm
-  HorizontalMotion<double> getRefMotion(const RawSample &sample) const {
+  HorizontalMotion<double> getRefMotion(const RawNav &sample) const {
     return sample.gpsMotion();
   }
 
   // Called by the optimization algorithm
   template <typename T>
   std::array<HorizontalMotion<T>, FlowCount> apply(
-      const T *params0, const RawSample &sample) const {
+      const T *params0, const RawNav &sample) const {
     const auto &p = *(reinterpret_cast<const BasicCorrectorParams<T> *>(params0));
 
     // We can only perform full calibration if these conditions are satisfied.
@@ -208,13 +233,13 @@ struct BasicCurrentCorrector {
   typedef BasicCorrectorParams<double> InitialParamType;
   static const int FlowCount = 1;
 
-  HorizontalMotion<double> getRefMotion(const RawSample &sample) const {
+  HorizontalMotion<double> getRefMotion(const RawNav &sample) const {
     return sample.gpsMotion();
   }
 
   template <typename T>
   std::array<HorizontalMotion<T>, FlowCount> apply(
-      const T *params0, const RawSample &sample) const {
+      const T *params0, const RawNav &sample) const {
     const auto &p = *(reinterpret_cast<const BasicCorrectorParams<T> *>(params0));
     assert(sample.hasCurrentData());
 

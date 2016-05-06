@@ -31,20 +31,20 @@ namespace {
         samples.begin(), samples.end());
   }
 
-  Array<RawSample> makeSamples(
+  Array<RawNav> makeSamples(
       const NavDataset &ds,
       const Duration<double> &samplingPeriod) {
     TimeStamp lower = ds.lowerBound();
     if (lower.undefined()) {
       LOG(ERROR) << "Failed to sample because lower time bound undefined";
-      return Array<RawSample>();
+      return Array<RawNav>();
     }
 
 
     TimeStamp upper = ds.upperBound();
     if (upper.undefined()) {
       LOG(ERROR) << "Failed to sample because upper time bound undefined";
-      return Array<RawSample>();
+      return Array<RawNav>();
     }
 
     assert(lower <= upper);
@@ -53,7 +53,7 @@ namespace {
 auto varName = makeIntegrator<code>(ds); \
 if (varName.empty()) { \
   LOG(ERROR) << "Failed to sample because " << #code << " is empty"; \
-  return Array<RawSample>(); \
+  return Array<RawNav>(); \
 }
     MAKE_NONEMPTY_INTEGRATOR(gpsBearing, GPS_BEARING)
     MAKE_NONEMPTY_INTEGRATOR(gpsSpeed, GPS_SPEED)
@@ -65,9 +65,9 @@ if (varName.empty()) { \
 
     auto half = 0.5*samplingPeriod;
 
-    ArrayBuilder<RawSample> samples(n);
+    ArrayBuilder<RawNav> samples(n);
     for (int i = 0; i < n; i++) {
-      RawSample sample;
+      RawNav sample;
 
       auto from = lower + double(i)*samplingPeriod;
       auto to = from + samplingPeriod;
@@ -97,7 +97,7 @@ if (varName.empty()) { \
   }
 
 
-  Array<Array<RawSample> > makeSampleGroups(
+  Array<Array<RawNav> > makeSampleGroups(
         const Array<NavDataset> &ds,
         const Duration<double> &samplingPeriod) {
     return sail::map(ds, [&](const NavDataset &ds) {
@@ -107,7 +107,7 @@ if (varName.empty()) { \
 
   MotionSamples applyCurrentCalibration(
       const BasicCorrectorParams<double> &params,
-      const Array<RawSample> &samples) {
+      const Array<RawNav> &samples) {
     int n = samples.size();
     BasicCurrentCorrector corr;
     MotionSamples dst(n);

@@ -42,11 +42,12 @@ namespace {
     std::array<HorizontalMotion<T>, 1> apply(
         const T *params0, const TestSample &sample) const {
       const auto &params = *(reinterpret_cast<const TestParams<T> *>(params0));
-      return std::array<HorizontalMotion<T>, 1>{computeCurrentFromBoatMotionOverWaterAndGround<HorizontalMotion<T> >(
-          correctOrCorruptVector(
-              sample.corruptedMotionOverWaterVec(),
-              params.speedBias, params.speedOffset, params.angleOffset),
-              sample.boatMotionVec.cast<T>())};
+      return std::array<HorizontalMotion<T>, 1>{
+          computeCurrentFromBoatMotionOverWaterAndGround<T>(
+              correctOrCorruptVector(
+                  sample.corruptedMotionOverWaterVec(),
+                  params.speedBias, params.speedOffset, params.angleOffset),
+                  sample.boatMotionVec.cast<T>())};
     }
   };
 

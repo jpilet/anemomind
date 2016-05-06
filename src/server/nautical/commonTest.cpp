@@ -10,22 +10,27 @@
 
 using namespace sail;
 
+namespace {
+  auto kt = Velocity<double>::knots(1.0);
+}
+
 TEST(NauticalCommon, Current) {
-  double boatMotionOverGround = 3.0;
-  double current = 2.0;
-  double boatMotionOverWater = 1.0;
-  EXPECT_NEAR(current,
+  auto boatMotionOverGround = HorizontalMotion<double>(3.0*kt, 0.0*kt);
+  auto current = HorizontalMotion<double>(2.0*kt, 0.0*kt);
+  auto boatMotionOverWater = HorizontalMotion<double>(1.0*kt, 0.0*kt);
+  EXPECT_NEAR(current[0].knots(),
       computeCurrentFromBoatMotionOverWaterAndGround(boatMotionOverWater,
-          boatMotionOverGround), 1.0e-6);
+          boatMotionOverGround)[0].knots(), 1.0e-6);
 }
 
 TEST(NauticalCommon, Wind) {
-  double windOverGround = 4.0;
-  double boatMotionOverGround = 3.4;
-  double apparentWind = 0.6;
+  auto windOverGround = HorizontalMotion<double>(4.0*kt, 0.0*kt);
+  auto boatMotionOverGround = HorizontalMotion<double>(3.4*kt, 0.0*kt);
+  auto apparentWind = HorizontalMotion<double>(0.6*kt, 0.0*kt);
 
-  EXPECT_NEAR(windOverGround, computeWindOverGroundFromApparentWindAndBoatMotion(
-      apparentWind, boatMotionOverGround), 1.0e-6);
+  EXPECT_NEAR(windOverGround[0].knots(),
+      computeWindOverGroundFromApparentWindAndBoatMotion(
+          apparentWind, boatMotionOverGround)[0].knots(), 1.0e-6);
 }
 
 TEST(NauticalCommon, Twdir) {

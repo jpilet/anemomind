@@ -68,7 +68,7 @@ TEST(CorrectionTest, FullBasicCorrectorOnlyGpsMotion) {
 
   BasicCorrectorParams<double> params;
 
-  RawSample sample;
+  RawNav sample;
   sample.gpsBearing = 119.0*deg;
   sample.gpsSpeed = 3.4*kt;
 
@@ -98,7 +98,7 @@ TEST(CorrectionTest, FullBasicCorrectorOnlyGpsMotion) {
 
 
 TEST(CorrectionTest, FullBasicCorrectorStationary) {
-  RawSample sample;
+  RawNav sample;
   sample.gpsBearing = 0.0*deg;
   sample.gpsSpeed = 0.0*kt;
 

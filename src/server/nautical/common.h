@@ -19,16 +19,16 @@ namespace sail {
  */
 
 template <typename T>
-T computeCurrentFromBoatMotionOverWaterAndGround(
-    const T &boatMotionOverWater,
-    const T &boatMotionOverGround) {
+HorizontalMotion<T> computeCurrentFromBoatMotionOverWaterAndGround(
+    const HorizontalMotion<T> &boatMotionOverWater,
+    const HorizontalMotion<T> &boatMotionOverGround) {
   return boatMotionOverGround - boatMotionOverWater;
 }
 
 template <typename T>
-T computeWindOverGroundFromApparentWindAndBoatMotion(
-    const T &apparentWind,
-    const T &boatMotionOverGround) {
+HorizontalMotion<T> computeWindOverGroundFromApparentWindAndBoatMotion(
+    const HorizontalMotion<T> &apparentWind,
+    const HorizontalMotion<T> &boatMotionOverGround) {
   return boatMotionOverGround + apparentWind;
 }
 
@@ -38,7 +38,7 @@ Angle<T> computeTwdirFromWindOverGround(const HorizontalMotion<T> &windOverGroun
 }
 
 template <typename T>
-T computeTwaFromTwdirAndHeading(T twdir, T heading) {
+Angle<T> computeTwaFromTwdirAndHeading(Angle<T> twdir, Angle<T> heading) {
   return twdir - heading;
 }
 
