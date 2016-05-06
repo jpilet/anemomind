@@ -97,27 +97,28 @@ struct RawNav { // These are RAW values that we will correct
 };
 
 namespace {
-  double defaultDriftThresholdRadians = 0.5*M_PI;
+  Angle<double> defaultDriftThreshold = Angle<double>::radians(0.5*M_PI);
 }
 
+
 template <typename T>
-T upwindTwaDriftWeighting(T twaRadians_normalizedAt0,
-    T thresholdRadians = T(defaultDriftThresholdRadians)) {
+T upwindTwaDriftWeighting(
+    T twa_at0,
+    T threshold) {
 
   // A fifth order polynomial with one root at 0 and dual roots
   // at +½pi and -½pi
-  return twaRadians_normalizedAt0
-    *sqr(twaRadians_normalizedAt0 - thresholdRadians)
-    *sqr(twaRadians_normalizedAt0 + thresholdRadians);
+  return twa_at0
+    *sqr(twa_at0 - threshold)
+    *sqr(twa_at0 + threshold);
 }
 
 template <typename T>
-T twaDriftWeighting(Angle<T> twa0, T thresholdRadians
-    = T(defaultDriftThresholdRadians)) {
+T twaDriftWeighting(Angle<T> twa0, Angle<T> threshold
+    = defaultDriftThreshold.cast<T>()) {
   auto twa = twa0.normalizedAt0();
-  auto twaRads = twa.radians();
-  if (abs(twaRads) < T(thresholdRadians)) {
-    return upwindTwaDriftWeighting(twaRads, thresholdRadians);
+  if (fabs(twa) < threshold) {
+    return upwindTwaDriftWeighting(twa.radians(), threshold.radians());
   }
   return T(0.0);
 }

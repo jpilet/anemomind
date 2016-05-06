@@ -18,23 +18,25 @@ namespace {
 }
 
 TEST(CorrectionTest, DriftUpwind) {
-  EXPECT_NEAR(upwindTwaDriftWeighting(-0.5*M_PI), 0.0, 1.0e-6);
-  EXPECT_NEAR(upwindTwaDriftWeighting(0.0*M_PI), 0.0, 1.0e-6);
-  EXPECT_NEAR(upwindTwaDriftWeighting(0.5*M_PI), 0.0, 1.0e-6);
+  auto t = 0.5*M_PI;
+
+  EXPECT_NEAR(upwindTwaDriftWeighting(-0.5*M_PI, t), 0.0, 1.0e-6);
+  EXPECT_NEAR(upwindTwaDriftWeighting(0.0*M_PI, t), 0.0, 1.0e-6);
+  EXPECT_NEAR(upwindTwaDriftWeighting(0.5*M_PI, t), 0.0, 1.0e-6);
 
 
   auto h = 1.0e-8;
   EXPECT_NEAR(
-      (0.5/h)*(upwindTwaDriftWeighting(0.5*M_PI + h)
-          - upwindTwaDriftWeighting(0.5*M_PI - h)),
+      (0.5/h)*(upwindTwaDriftWeighting(0.5*M_PI + h, t)
+          - upwindTwaDriftWeighting(0.5*M_PI - h, t)),
       0.0, 1.0e-6);
   EXPECT_NEAR(
-      (0.5/h)*(upwindTwaDriftWeighting(-0.5*M_PI + h)
-          - upwindTwaDriftWeighting(-0.5*M_PI - h)),
+      (0.5/h)*(upwindTwaDriftWeighting(-0.5*M_PI + h, t)
+          - upwindTwaDriftWeighting(-0.5*M_PI - h, t)),
       0.0, 1.0e-6);
 
-  auto middleSlope = (0.5/h)*(upwindTwaDriftWeighting(h)
-                            - upwindTwaDriftWeighting(-h));
+  auto middleSlope = (0.5/h)*(upwindTwaDriftWeighting(h, t)
+                            - upwindTwaDriftWeighting(-h, t));
 
 
   EXPECT_LT(0.01, middleSlope);
