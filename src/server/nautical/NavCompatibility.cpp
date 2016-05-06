@@ -3,6 +3,7 @@
  *      Author: Jonas Östlund <jonas@anemomind.com>
  */
 
+#include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/DispatcherUtils.h>
 #include <server/common/ArrayIO.h>
@@ -233,7 +234,8 @@ const Nav getNav(const NavDataset &ds, int i) {
   auto twdir = getValue<TWDIR>(ds, timeAndPos.time);
   auto tws = getValue<TWS>(ds, timeAndPos.time);
   if (twdir.defined() && tws.defined()) {
-    dst.setTrueWindOverGround(HorizontalMotion<double>::polar(tws.get(), twdir.get()));
+    
+    dst.setTrueWindOverGround(windMotionFromTwdirAndTws(twdir.get(), tws.get()));
     auto heading = getValue<GPS_BEARING>(ds, timeAndPos.time);
     if (heading.defined()) {
       // hack: because of the NMEA2000 bug swapping TWA and TWDIR [1], we have recording
