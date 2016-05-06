@@ -61,7 +61,7 @@ module.exports.readableBoats = function(req) {
       query = { publicAccess: true };
     }
 
-    Boat.find(query, function (err, boats) {
+    Boat.findWithPhotosAndComments(query, function (err, boats) {
       if(err) { reject(err); }
       resolve(boats);
     });
