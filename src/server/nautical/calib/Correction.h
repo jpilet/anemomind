@@ -91,7 +91,7 @@ struct RawNav { // These are RAW values that we will correct
     return awa.defined() && aws.defined();
   }
 
-  bool hasCurrentData() const {
+  bool hasWatSpeed() const {
     return watSpeed.defined();
   }
 };
@@ -137,7 +137,6 @@ T twaDriftWeighting(Angle<T> twa0, Angle<T> threshold
 
     T awaOffset = T(0.0);        // angle
     T awsBias = T(1.0);          // dimensionless
-    T awsOffset = T(0.0);        // velocity
     T magHeadingOffset = T(0.0); // angle
     T watSpeedOffset = T(0.0);   // velocity
     T watSpeedBias = T(1.0);     // dimensionless
@@ -178,7 +177,7 @@ struct BasicFullCorrector { // Using SI units: angles in radians, velocities in 
     const auto &p = *(reinterpret_cast<const BasicCorrectorParams<T> *>(params0));
 
     // We can only perform full calibration if these conditions are satisfied.
-    assert(sample.hasCurrentData());
+    assert(sample.hasWatSpeed());
     assert(sample.hasWindData());
 
     auto rad = Angle<T>::radians(T(1.0));
@@ -193,7 +192,7 @@ struct BasicFullCorrector { // Using SI units: angles in radians, velocities in 
         + sample.awa.get().cast<T>()
         + (p.awaOffset + T(M_PI))*rad;
 
-    auto awVectorNorm = p.awsBias*sample.aws.get().cast<T>() + p.awsOffset*mps;
+    auto awVectorNorm = p.awsBias*sample.aws.get().cast<T>();
 
     auto AW = HorizontalMotion<T>::polar(awVectorNorm, awVectorAngle);
 
@@ -239,7 +238,7 @@ struct BasicCurrentCorrector {
   std::array<HorizontalMotion<T>, FlowCount> apply(
       const T *params0, const RawNav &sample) const {
     const auto &p = *(reinterpret_cast<const BasicCorrectorParams<T> *>(params0));
-    assert(sample.hasCurrentData());
+    assert(sample.hasWatSpeed());
 
     auto rad = Angle<T>::radians(T(1.0));
     auto mps = Velocity<T>::metersPerSecond(T(1.0));
