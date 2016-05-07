@@ -211,6 +211,17 @@ TEST(NmeaParserTest, TestGLL) {
   EXPECT_EQ(46, parser.sec());
 
   EXPECT_EQ(1, parser.numSentences());
+
+  // This sentence does not have time, and it has an improved precision.
+  EXPECT_EQ(
+      NmeaParser::NMEA_GLL,
+      sendSentence("$IIGLL,3756.19988,N,02339.63541,E,,A,A*58",
+                   &parser));
+
+  EXPECT_NEAR(37 + (56.19988) / 60.0, parser.pos().lat.toDouble(), 1e-8);
+  EXPECT_NEAR(23 + (39.63541) / 60.0, parser.pos().lon.toDouble(), 1e-8);
+
+  EXPECT_EQ(2, parser.numSentences());
 }
 
 TEST(NmeaParserTest, TestZDA) {

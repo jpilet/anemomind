@@ -45,6 +45,10 @@ class AccAngle {
     _angle = double(deg) + ((double)min + (double)mc/1000.0) / 60.0;
   }
 
+  void set(Word deg, double min) {
+    _angle = double(deg) + min / 60.0;
+  }
+
   void flip();
 
   Word deg() const;
