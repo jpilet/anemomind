@@ -22,8 +22,11 @@ class DispVisitor {
 
     auto x = toTypedDispatchData<Code>(raw.get())->dispatcher();
 
+    int prio = _d->sourcePriority(sourceName);
+
     *_dst << "\n  Channel of type " << shortName << " named "
-        << sourceName << " with " << coll.size() << " samples with "
+        << sourceName << " (prio: " << prio << ")"
+        << " with " << coll.size() << " samples with "
         << x->listeners().size() << " listeners (";
     for (const auto &y: x->listeners()) {
       *_dst << y << " ";

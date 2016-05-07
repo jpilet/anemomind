@@ -72,7 +72,7 @@ Dispatcher *Dispatcher::global() {
     return 0;
   }
 
-  int Dispatcher::sourcePriority(const std::string& source) {
+  int Dispatcher::sourcePriority(const std::string& source) const {
     return getSourcePriority(_sourcePriority, source);
   }
 

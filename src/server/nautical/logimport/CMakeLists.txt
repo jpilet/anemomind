@@ -122,3 +122,12 @@ target_link_libraries(logimport_TrzParserExample
                      ) 
         
                                
+
+add_executable(logimport_summary
+               summary.cpp
+              )
+target_link_libraries(logimport_summary
+                      common_ArgMap
+                      logimport_LogLoader
+                      nautical_NavDataset
+                     )

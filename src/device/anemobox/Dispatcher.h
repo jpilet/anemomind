@@ -313,7 +313,7 @@ class Dispatcher : public Clock {
   }
 
   bool prefers(DispatchData* a, DispatchData* b);
-  int sourcePriority(const std::string& source);
+  int sourcePriority(const std::string& source) const;
   const std::map<std::string, int> &sourcePriority() const {
     return _sourcePriority;
   }
