@@ -36,13 +36,6 @@ var app = angular.module('www2App')
         scope.showMoreSessions=function(){
           scope.pageSize+=10;
         }
-        //
-        // get main photo
-        scope.mainPhoto=function(boat) {
-          if(!boat.photos.length){
-
-          }
-        }
 
         //
         // get photo here
@@ -53,11 +46,44 @@ var app = angular.module('www2App')
         };
 
         //
+        // check if this boat has a picture for this session
+        scope.hasPhoto=function(session){
+          if(!scope.boat.photos||!scope.boat.photos.length){
+            return false;
+          }
+          var start=new Date(session.startTime);
+          var end=new Date(session.endTime);
+
+          return (scope.boat.photos.filter(function(photo) {
+            var when=new Date(photo.when)
+            return start<=when&&end>=when;
+          }).length>0);
+
+        };
+
+        //
+        // check if this boat has a picture for this session
+        scope.hasComment=function(session){
+          if(!scope.boat.comments||!scope.boat.comments.length){
+            return false;
+          }
+          var start=new Date(session.startTime);
+          var end=new Date(session.endTime);
+
+          return (scope.boat.comments.filter(function(comment) {
+            var when=new Date(comment.when)
+            return start<=when&&end>=when;
+          }).length>0);
+
+        };
+
+
+        //
         // get first session date
         // TODO this could be a directive 
         scope.sessionGetFirstDate=function(sessions) {
           return sessions.length&&sessions[0].startTime;
-        }
+        };
         //
         // compute avg in current sessions for direction
         // TODO this could be a directive 
@@ -76,7 +102,7 @@ var app = angular.module('www2App')
             return prev + session.avgWindSpeed; 
           },0);
           return (sum / sessions.length).toFixed(1);
-        }
+        };
 
         //
         // compute avg in current sessions for speed
@@ -85,7 +111,7 @@ var app = angular.module('www2App')
           return Math.max.apply(Math,sessions.map(function(session){
             return session.strongestWindSpeed;
           })).toFixed(2);
-        }
+        };
 
 
 
@@ -137,9 +163,9 @@ app.directive('boatMainImage', ['$parse', function($parse) {
 
 
       scope.$watch('boatMainImage', function (boatMainImage) {
-        if (scope['boatMainImage']) {
+        if (boatMainImage) {
           style['background-image']='url('+defaultImage+')';
-          if(boatMainImage.photos&&boatMainImage.photos.length){
+          if(boatMainImage._id&&boatMainImage.photos&&boatMainImage.photos.length){
             var path=scope.$parent.photoUrl(boatMainImage._id,boatMainImage.photos[0].src,'300x400');
             style['background-image']='url('+path+')';
           }
