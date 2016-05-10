@@ -27,13 +27,12 @@ var BoatSchema = new Schema({
 
 
 //
-// load boat with photos and comments from events
+// load boat with resume, last photos and comments 
 BoatSchema.statics.findWithPhotosAndComments=function (query,callback) {
-  var Events=mongoose.model('Event'), 
-      promise=new mongoose.Promise, 
-      results=[],
-      singleBoat={},
-      filteredEvents=[];
+  var Events=mongoose.model('Event');
+  var promise=new mongoose.Promise;
+  var results=[];
+  var filteredEvents=[];
 
   if(callback){promise.addBack(callback);}
 
@@ -51,41 +50,44 @@ BoatSchema.statics.findWithPhotosAndComments=function (query,callback) {
       return b._id;
     });
 
-    //
-    // map all (comments & photos) with each boat
-    Events.find({boat:{$in:boats_id}},function (err,events) {
+    Events.collectSocialDataByBoat(boats_id,function(err,eventsByBoat) {
       if(err){
         return promise.reject(err);
       }
-
       boats.forEach(function(boat) {
+
         // get plain js object
-        singleBoat=boat.toObject();
+        var singleBoat=boat.toObject();
 
         //
-        // filter event for this boat
-        filteredEvents=events.filter(function(event) {
-          return event.boat.equals(boat._id);
+        // get social data for this boat 
+        var event=eventsByBoat.filter(function(event) {
+          return event._id.equals(boat._id);
+        })[0];
+
+        //
+        // if no data, 
+        if(!event){ return results.push(singleBoat);}
+
+        //
+        // clean photos (TODO this could be done by the aggregate, check mongoose version !!)
+        singleBoat.photos=event.photos.filter(function(photo) {
+          return photo.src;
         });
 
         //
-        // collect photos 
-        singleBoat.photos=filteredEvents.filter(function(e) {
-          return e.photo;
-        }).map(function(event) {
-          return {src:event.photo,when:event.when};
-        });
-
-        //
-        // collect comments
-        singleBoat.comments=filteredEvents.filter(function(e) {
-          return e.comment;
-        }).map(function(event) {
-          return {text:event.comment,when:event.when};
+        // clean comments (TODO this could be done by the aggregate, check mongoose version !!)
+        singleBoat.comments=event.comments.filter(function (comment) {
+          return comment.txt;
         });
         results.push(singleBoat);
-      })
+      });
 
+
+
+      // new API coldrun 10-20 ms hotrun 5-10ms
+      // old API coldrun 80-90 ms hotrun 60-80ms
+      // console.log('----------------- collect',(Date.now()-time)/1000);
       promise.resolve(null,results);
     });
 
