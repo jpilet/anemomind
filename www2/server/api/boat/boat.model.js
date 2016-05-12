@@ -27,7 +27,7 @@ var BoatSchema = new Schema({
 
 
 //
-// load boat with resume, last photos and comments 
+// load boat with photos and comments 
 BoatSchema.statics.findWithPhotosAndComments=function (query,callback) {
   var Events=mongoose.model('Event');
   var promise=new mongoose.Promise;
@@ -49,7 +49,7 @@ BoatSchema.statics.findWithPhotosAndComments=function (query,callback) {
     var boats_id=boats.map(function(b) {
       return b._id;
     });
-
+    var time=Date.now();
     Events.collectSocialDataByBoat(boats_id,function(err,eventsByBoat) {
       if(err){
         return promise.reject(err);
@@ -70,16 +70,12 @@ BoatSchema.statics.findWithPhotosAndComments=function (query,callback) {
         if(!event){ return results.push(singleBoat);}
 
         //
-        // clean photos (TODO this could be done by the aggregate, check mongoose version !!)
-        singleBoat.photos=event.photos.filter(function(photo) {
-          return photo.src;
-        });
+        // keep all photos to access from session widget
+        singleBoat.photos=event.photos;
 
         //
-        // clean comments (TODO this could be done by the aggregate, check mongoose version !!)
-        singleBoat.comments=event.comments.filter(function (comment) {
-          return comment.txt;
-        });
+        // keep all comments to access from session widget
+        singleBoat.comments=event.comments;
         results.push(singleBoat);
       });
 
