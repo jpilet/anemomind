@@ -17,15 +17,22 @@ var EventSchema = new Schema({
   longitude: Number
 });
 
+//
+// This API collect social content (photo and comment) that belongs to a boat
+//  - boatsId mondatory, define a list of boat as object id array
+//  - callback optional, you can choose on callback or promise
 EventSchema.statics.collectSocialDataByBoat=function (boatsId,callback) {
   var promise=new mongoose.Promise;
   if(callback){promise.addBack(callback);}
 
+  if(!boatsId||!boatsId.length){
+  	return promise.reject(new Error("boatsId should not be null or empty!"))
+  }
 	//
 	// filter relevants events
 	var select={
 	  boat:{
-	  	$in:boatsId||[]
+	  	$in:boatsId
 	  }, 
 	  $or:[
 	  	{'photo': {$exists:true}},{'comment':{$exists:true}}
@@ -35,7 +42,8 @@ EventSchema.statics.collectSocialDataByBoat=function (boatsId,callback) {
 	//
 	// group photo & comment by boats
 	// It seems that $cond is not working with mongoose <4.0 !
-	this.aggregate(
+	// TODO $addToSet & limit array size, use { $each: [$elem], $slice: -3 }
+	this.aggregate([
    {$match: select },
    {$project:{
        photo:1,
@@ -48,23 +56,28 @@ EventSchema.statics.collectSocialDataByBoat=function (boatsId,callback) {
        {
          _id:"$boat",
          photos:{
-          $addToSet:{
-            "$cond": [
-                { "$ne": [ "$photo", undefined ] },
-                {src:"$photo",when:"$when",who:"$author"},undefined
-            ]
-          }
+          $addToSet:{src:"$photo",when:"$when",who:"$author"}
          },
          comments:{
-          $addToSet:{
-            "$cond": [
-                { "$ne": [ "$comment", undefined ] },
-                {txt:"$comment",when:"$when",who:"$author"},undefined
-            ]
-          }
+          $addToSet:{txt:"$comment",when:"$when",who:"$author"}
          }
        }
-   },function(err,boats) {
+   },
+   {$unwind: '$photos' },
+   {$match:{'photos.src':{$exists:true}}},
+   {$unwind: '$comments' },
+   {$match:{'comments.txt':{$exists:true}}},
+   {$group:
+       {
+         _id:"$_id",
+         photos:{
+          $addToSet:"$photos"
+         },
+         comments:{
+          $addToSet:"$comments"
+         },
+       }
+   }],function(err,boats) {
    		if(err){
    			return promise.reject(err);
    		}
