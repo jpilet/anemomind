@@ -61,7 +61,7 @@ NavDataset NavDataset::dup() const {
   } else {
 
     // Quite shallow copies, I guess. I don't think we copy any big arrays here.
-    auto mergedCopy = _merged;
+    auto mergedCopy = std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData>>>(*_merged);
     auto dispatcherCopy = _dispatcher;
 
     return NavDataset(dispatcherCopy, mergedCopy, _lowerBound, _upperBound);

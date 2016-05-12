@@ -85,7 +85,6 @@ TEST(SmoothGpsFilterTest, TestIt) {
   EXPECT_EQ(originalPositions.size(), corruptedPositions.size());
   int n = originalPositions.size();
 
-
   auto corrupted = original.dup();
   EXPECT_FALSE(corrupted.isDefaultConstructed());
   corrupted.setMerged(GPS_POS, makeDispatchDataFromSamples<GPS_POS>("corrupted", corruptedPositions));
