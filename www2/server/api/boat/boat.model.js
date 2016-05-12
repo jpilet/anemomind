@@ -49,7 +49,7 @@ BoatSchema.statics.findWithPhotosAndComments=function (query,callback) {
     var boats_id=boats.map(function(b) {
       return b._id;
     });
-    var time=Date.now();
+
     Events.collectSocialDataByBoat(boats_id,function(err,eventsByBoat) {
       if(err){
         return promise.reject(err);
