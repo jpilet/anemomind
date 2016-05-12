@@ -67,6 +67,14 @@ Word parseNc(char *a, int n) {
   return r;
 }
 
+bool parseDouble(const char* str, double *result) {
+  char *endptr = 0;
+  *result = strtod(str, &endptr);
+  // man page says:
+  // If no conversion is performed, zero is returned and the value of nptr is
+  // stored in the location referenced by endptr.
+  return endptr != str;
+}
 
 DWord parseInt(char *s, int *n) {
   DWord r=0;
@@ -464,29 +472,33 @@ $--GLL,llll.ll,a,yyyyy.yy,a,hhmmss.ss,A*hh
 */
 NmeaParser::NmeaSentence NmeaParser::processGLL() {
   if (argc_<7) return NMEA_NONE;
-  if (strlen(argv_[5]) < 6) return NMEA_NONE;
   if (argv_[6][0] != 'A') return NMEA_NONE;
-  if (strlen(argv_[1]) != 8 || strlen(argv_[2]) != 1
-      || strlen(argv_[3]) != 9 || strlen(argv_[4]) != 1) {
+  if (strlen(argv_[1]) < 8 || strlen(argv_[2]) != 1
+      || strlen(argv_[3]) < 9 || strlen(argv_[4]) != 1) {
     return NMEA_NONE;
   }
 
-  hour_ = parse2c(argv_[5]);
-  min_ = parse2c(argv_[5]+2);
-  sec_ = parse2c(argv_[5]+4);
+  // Some funny systems do not send the time.
+  if (strlen(argv_[5]) == 6) {
+    hour_ = parse2c(argv_[5]);
+    min_ = parse2c(argv_[5]+2);
+    sec_ = parse2c(argv_[5]+4);
+  }
 
-  pos_.lat.set(
-    parse2c(argv_[1]),
-    parse2c(argv_[1]+2),
-    parseNc(argv_[1]+5,3));
+  double latMinutes;
+  if (!parseDouble(argv_[1] + 2, &latMinutes)) {
+    return NMEA_NONE;
+  }
+  pos_.lat.set(parse2c(argv_[1]), latMinutes);
   if (argv_[2][0] == 'S') {
     pos_.lat.flip();
   }
 
-  pos_.lon.set(
-    parseNc(argv_[3],3),
-    parse2c(argv_[3]+3),
-    parseNc(argv_[3]+6,3));
+  double lonMinutes;
+  if (!parseDouble(argv_[3] + 3, &lonMinutes)) {
+    return NMEA_NONE;
+  }
+  pos_.lon.set(parseNc(argv_[3],3), lonMinutes);
 
   if (argv_[4][0] == 'W') {
     pos_.lon.flip();
