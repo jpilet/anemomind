@@ -14,6 +14,9 @@
 // Make sure functions exist for T by including <cmath> or <adolc/adouble.h>
 
 
+// See the drawing here:
+// https://en.wikipedia.org/wiki/World_Geodetic_System#A_new_World_Geodetic_System:_WGS_84
+
 namespace sail {
 
 template <typename T>
@@ -26,7 +29,8 @@ class WGS84 {
 
   static void toXYZ(const GeographicPosition<T> &pos, Length<T> *xyzOut) {
     T xyzMetres[3];
-    toXYZ(pos.lon().radians(), pos.lat().radians(), pos.alt().meters(),
+    toXYZ(pos.lon().radians(), pos.lat().radians(),
+        toFinite<T>(pos.alt().meters(), T(0.0)),
       xyzMetres);
     for (int i = 0; i < 3; i++) {
       xyzOut[i] = Length<T>::meters(xyzMetres[i]);
@@ -49,8 +53,8 @@ class WGS84 {
                          T *xyz3MetresOut, T *J3x3ColMajorOut) {
     T theta = latRad;
     T phi = lonRad;
-    T E2 = sqr(ECEFE);
-    T Ndenom = sqrt(1 - E2*sqr(sin(theta)));
+    T E2 = T(sqr(ECEFE));
+    T Ndenom = sqrt(T(1.0) - E2*sqr(sin(theta)));
     T N = ECEFA/Ndenom;
     T cosTheta = cos(theta);
     T cosPhi = cos(phi);
@@ -58,7 +62,7 @@ class WGS84 {
     T sinTheta = sin(theta);
 
     T Nh = N + altitudeMetres;
-    T oneMinusE2 = (1 - E2);
+    T oneMinusE2 = (T(1.0) - E2);
 
     xyz3MetresOut[0] = Nh*cosTheta*cosPhi;
     xyz3MetresOut[1] = Nh*cosTheta*sinPhi;
@@ -70,7 +74,7 @@ class WGS84 {
       // dPhi
       T dXdPhi = -Nh*cosTheta*sinPhi;
       T dYdPhi = Nh*cosTheta*cosPhi;
-      T dZdPhi = 0.0;
+      T dZdPhi = T(0.0);
 
       // dTheta
       T dXdTheta = dNDTheta*cosTheta*cosPhi - Nh*sinTheta*cosPhi;
@@ -148,7 +152,6 @@ class WGS84 {
     t37 = t17*t19;
 
     if (dlon1) {
-      auto values = Array<T>{t3, t4, t5, t6, t8, t9, t11, t13, t16, t17, t18, t19, t23, t26, t31, t36, t37};
       *dlon1 = sqrt(t13*t13 + t26*t26);
     }
 

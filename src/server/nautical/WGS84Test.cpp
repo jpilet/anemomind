@@ -21,15 +21,20 @@ TEST(wgs84Test, CheckItIsReasonableTest) {
   Angle<double> lon = Angle<double>::radians(0.3*M_PI);
   Angle<double> lat = Angle<double>::radians(0.4*M_PI);
   Length<double> altitude = Length<double>::meters(0.0);
+  Length<double> altitude2 = Length<double>::meters(NAN);
 
   double circumferenceEarthMetres = 40*1.0e6; // 40 000 km
   double radius = circumferenceEarthMetres/(2.0*M_PI);
 
-  Length<double> xyzl[3];
+  Length<double> xyzl[3], xyzl2[3];
   WGS84<double>::toXYZ(GeographicPosition<double>(lon, lat, altitude), xyzl);
+  WGS84<double>::toXYZ(GeographicPosition<double>(lon, lat, altitude2), xyzl2);
+
   double xyz[3];
   for (int i = 0; i < 3; i++) {
     xyz[i] = xyzl[i].meters();
+
+    EXPECT_NEAR(xyzl[i].meters(), xyzl2[i].meters(), 1.0e-9);
   }
   double distFromCog = norm(3, xyz);
   double tol = 0.1;
