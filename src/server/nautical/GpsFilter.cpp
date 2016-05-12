@@ -21,7 +21,6 @@ Settings::Settings() :
       motionWeight(1.0),
       samplingPeriod(Duration<double>::seconds(1.0)),
       inlierThreshold(Length<double>::meters(12)) {
-  irlsSettings.logWeighting = true;
   irlsSettings.initialWeight = 0.01;
   irlsSettings.iters = 30;
 }
@@ -77,7 +76,8 @@ Array<Observation<2> > getObservations(
     TimeStamp timeRef,
     GeographicReference geoRef, NavDataset navs, Sampling sampling) {
   int n = getNavSize(navs);
-  Array<Observation<2> > dst(2*n);
+  std::vector<std::pair<Observation<2>, Observation<2> > > posAndVelPairs;
+  posAndVelPairs.reserve(2*n);
   for (int i = 0; i < n; i++) {
     auto nav = getNav(navs, i);
     auto localTime = getLocalTime(timeRef, nav);
@@ -102,15 +102,26 @@ Array<Observation<2> > getObservations(
       }));
     }
 
-    // Based on the position
-    dst[i] = Observation<2>{weights,
+    auto posObs = Observation<2>{weights,
       {localPos[0].meters(), localPos[1].meters()}};
+    if (posObs.isFinite()) {
+      auto velObs = Observation<2>{difWeights,
+        {geoDif[0].meters(), geoDif[1].meters()}};
+      if (velObs.isFinite()) {
+        posAndVelPairs.push_back(std::pair<Observation<2>, Observation<2> >(
+            posObs, velObs));
+      }
+    }
 
-    // Based on the speed
-    dst[n + i] = Observation<2>{difWeights,
-      {geoDif[0].meters(), geoDif[1].meters()}};
   }
-  return dst;
+  ArrayBuilder<Observation<2> > dst(2*posAndVelPairs.size());
+  for (auto pair: posAndVelPairs) {
+    dst.add(pair.first);
+  }
+  for (auto pair: posAndVelPairs) {
+    dst.add(pair.second);
+  }
+  return dst.get();
 }
 
 Spani getReliableSampleRange(Array<Observation<2> > observations_, Arrayb inliers_) {
@@ -147,10 +158,9 @@ Results filter(NavDataset navs, Settings settings) {
   auto toTime = getLocalTime(timeRef, getLast(navs)) + marg;
   int sampleCount = 2 + int(floor((toTime - fromTime)/settings.samplingPeriod));
   Sampling sampling(sampleCount, fromTime.seconds(), toTime.seconds());
-  Array<Observation<2> > observations = filter(getObservations(settings,
-      timeRef, geoRef, navs, sampling), [](const Observation<2> &x) {
-    return x.isFinite();
-  });
+  Array<Observation<2> > observations = getObservations(settings,
+      timeRef, geoRef, navs, sampling);
+  CHECK(observations.size() % 2 == 0);
 
   if (observations.empty()) {
     LOG(WARNING) << "No valid observations";

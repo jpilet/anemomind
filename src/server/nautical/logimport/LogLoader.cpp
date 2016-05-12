@@ -55,6 +55,10 @@ namespace { // NMEA0183
         dst->push_back(TimedValue<T>(_lastTime, value));
       }
     }
+      
+    void setTime(const TimeStamp& time) {
+      _lastTime = updateLastTime(_lastTime, time);
+    }
 
     const std::string &sourceName() const {return _sourceName;}
    private:
@@ -175,6 +179,7 @@ void LogLoader::loadTextData(const ValueSet &stream) {
     Nmea0183LogLoaderAdaptor adaptor(&parser, this, dstSourceName);
     for (int i = 0; i < n; i++) {
       parser.setProtobufTime(times[i]);
+      adaptor.setTime(times[i]);
       streamToNmeaParser(stream.text(i), &parser, &adaptor);
     }
   }

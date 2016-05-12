@@ -23,6 +23,7 @@
 #include <server/math/Integral1d.h>
 #include <server/common/Functional.h>
 #include <server/common/math.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 
 namespace sail {
 namespace CornerCalib {
@@ -33,7 +34,7 @@ namespace CornerCalib {
  *
  * It must have one method with signature
  *
- * Eigen::Vector2d refMotion() const;
+ * HorizontalMotion<double> refMotion() const;
  *
  * which gives some reference motion, typically the GPS motion.
  *
@@ -62,50 +63,68 @@ struct Settings {
   ceres::Solver::Options ceresOptions;
 };
 
+template <typename T>
+Velocity<T> getUnit() {return Velocity<T>::knots(T(1.0));}
 
 template <typename T>
-Array<T> computeCornerSmoothnesses(
-    const Array<PointQuad<T, 2> > &quads, int windowSize) {
+Eigen::Matrix<T, 2, 1> motionToVec(const HorizontalMotion<T> &v) {
+  return Eigen::Matrix<T, 2, 1>(v[0]/getUnit<T>(), v[1]/getUnit<T>());
+}
+
+template <typename T>
+HorizontalMotion<T> setNorm(
+    const HorizontalMotion<T> &motion,
+    Velocity<T> newNorm) {
+  Eigen::Matrix<T, 2, 1> v = motionToVec(motion).normalized();
+  return HorizontalMotion<T>(v(0)*newNorm, v(1)*newNorm);
+}
+
+template <typename T>
+void accumulateCornerSmoothnesses(const Array<PointQuad<T, 2> > &quads,
+    int windowSize, std::vector<T> *dst) {
   int sampleCount = quads.size();
   typedef PointQuad<T, 2> PQ;
   Integral1d<PQ> itg(quads, PQ());
   int n = sampleCount - windowSize + 1;
-  Array<T> dst(n);
   int half = windowSize/2;
   const double mu = 1.0e-12;
   for (int i = 0; i < n; i++) {
     int left = i;
     int middle = left + half;
     int right = left + windowSize;
-    dst[i] = 0.5*(itg.integrate(left, middle).computeVariance()
+    dst->push_back(0.5*(itg.integrate(left, middle).computeVariance()
         + itg.integrate(middle, right).computeVariance())
-        /(mu + itg.integrate(left, right).computeVariance());
+        /(mu + itg.integrate(left, right).computeVariance()));
   }
-  return dst;
 }
 
-template <typename T>
-Array<T> computeCornerSmoothnesses(
-    const Array<Eigen::Matrix<T, 2, 1> > flows, int windowSize) {
-  int sampleCount = flows.size();
-  typedef PointQuad<T, 2> PQ;
-  Array<PQ> quads(sampleCount);
-  for (int i = 0; i < sampleCount; i++) {
-    quads[i] = PQ(flows[i]);
+inline int computeQuadCountForGroup(int size, int windowSize) {
+  return std::max(size - windowSize + 1, 0);
+}
+
+template <typename Sample>
+int computeTotalQuadCount(const Array<Array<Sample> > &sampleGroups, int windowSize) {
+  int n = 0;
+  for (auto g: sampleGroups) {
+    n += computeQuadCountForGroup(g.size(), windowSize);
   }
-  return computeCornerSmoothnesses<T>(quads, windowSize);
+  return n;
 }
 
 template <typename Sample, typename TrueFlowFunction>
 class CornerObjf {
 public:
-  CornerObjf(TrueFlowFunction f, const Array<Sample> &samples,
-      const Settings &s) : _f(f), _samples(samples),
-      _settings(s), _n(samples.size() - s.windowSize + 1) {
-    _refSmoothness = computeCornerSmoothnesses<double>(
-        sail::map(samples, [&](const Sample &s) {
-      return s.refMotion();
-    }).toArray(), s.windowSize);
+  CornerObjf(TrueFlowFunction f, const Array<Array<Sample> > &sampleGroups,
+      const Settings &s) : _f(f), _sampleGroups(sampleGroups),
+      _settings(s), _n(computeTotalQuadCount(sampleGroups, s.windowSize)) {
+    _refSmoothness.reserve(_n);
+    for (auto samples: _sampleGroups) {
+      auto quads = sail::map(samples,
+          [&](const Sample &sample) {
+        return PointQuad<double, 2>(motionToVec(sample.refMotion()));
+      }).toArray();
+      accumulateCornerSmoothnesses<double>(quads, s.windowSize, &_refSmoothness);
+    }
   }
 
   int outDims() const {
@@ -122,18 +141,23 @@ private:
     typedef Eigen::Matrix<T, 2, 1> Vec;
     typedef PointQuad<T, 2> PQ;
 
-    int sampleCount = _samples.size();
-    Array<PQ> quads(sampleCount);
-    for (int i = 0; i < sampleCount; i++) {
-      quads[i] = PQ(_f.template evalFlow<T>(_samples[i], params));
+    std::vector<T> flowSmoothnesses;
+    flowSmoothnesses.reserve(_n);
+    for (auto samples: _sampleGroups) {
+      auto sampleCount = samples.size();
+      Array<PQ> quads(sampleCount);
+      for (int i = 0; i < sampleCount; i++) {
+        quads[i] = PQ(motionToVec(_f.template evalFlow<T>(samples[i], params)));
+      }
+      accumulateCornerSmoothnesses(quads, _settings.windowSize, &flowSmoothnesses);
     }
-    auto flowSmoothness = computeCornerSmoothnesses<T>(quads, _settings.windowSize);
+    assert(_n == flowSmoothnesses.size());
 
     T totalFlowSmoothness = T(0.0);
     T sumSquaredErrors = T(0.0);
     for (int i = 0; i < _n; i++) {
-      sumSquaredErrors += sqr(flowSmoothness[i] - _refSmoothness[i]);
-      totalFlowSmoothness += flowSmoothness[i];
+      sumSquaredErrors += sqr(flowSmoothnesses[i] - _refSmoothness[i]);
+      totalFlowSmoothness += flowSmoothnesses[i];
     }
     T meanFlowSmoothness = T(1.0/_n)*totalFlowSmoothness;
 
@@ -151,35 +175,28 @@ private:
     T factor = T(1.0)/sqrt(1.0e-12 + sumSquaredErrors);
 
     for (int i = 0; i < _n; i++) {
-      residuals[i] = factor*(flowSmoothness[i] - meanFlowSmoothness);
+      residuals[i] = factor*(flowSmoothnesses[i] - meanFlowSmoothness);
     }
 
     return true;
   }
 
   TrueFlowFunction _f;
-  Array<Sample> _samples;
+  Array<Array<Sample> > _sampleGroups;
   Settings _settings;
-  Arrayd _refSmoothness;
+  std::vector<double> _refSmoothness;
   int _n;
 };
 
 template <typename Sample, typename TrueFlowFunction>
-Arrayd optimizeCornerness(TrueFlowFunction f,
-                          const Array<Sample> &samples,
+Arrayd optimizeCornernessForGroups(TrueFlowFunction f,
+                          const Array<Array<Sample> > &sampleGroups,
                           const Settings &settings) {
-
-  if (samples.size() < 2*settings.windowSize) {
-    LOG(WARNING) << "Too few samples " << (samples.size()) << " w.r.t. window size " <<
-        settings.windowSize << " to do anything meaningful. Consider merging sessions"
-            " to get more samples.";
-    return Arrayd();
-  }
 
   Arrayd params = f.initialParams();
   ceres::Problem problem;
   typedef CornerObjf<Sample, TrueFlowFunction> TObjf;
-  auto objf = new TObjf(f, samples, settings);
+  auto objf = new TObjf(f, sampleGroups, settings);
   auto cost = new ceres::DynamicAutoDiffCostFunction<TObjf>(objf);
   cost->AddParameterBlock(params.size());
   cost->SetNumResiduals(objf->outDims());

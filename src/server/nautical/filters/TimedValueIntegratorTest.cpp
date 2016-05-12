@@ -144,35 +144,35 @@ TEST(TimedValueIntegrator, IntegratorTest) {
     EXPECT_TRUE(avg0.defined());
     auto avg = avg0.get();
     EXPECT_NEAR(avg.value.knots(), 3.0, 1.0e-5);
-    EXPECT_NEAR(avg.maxDuration.seconds(), 0, 0.02);
+    EXPECT_NEAR(avg.duration.seconds(), 0, 0.02);
   }{
     auto avg0 = itg.computeAverage(offset + (5.0 - h)*seconds,
                                    offset + (5.0 + h)*seconds);
     EXPECT_TRUE(avg0.defined());
     auto avg = avg0.get();
     EXPECT_NEAR(avg.value.knots(), 8.0, 1.0e-5);
-    EXPECT_NEAR(avg.maxDuration.seconds(), 0, 0.02);
+    EXPECT_NEAR(avg.duration.seconds(), 0, 0.02);
   }{
     auto avg0 = itg.computeAverage(offset + (7.0 - h)*seconds,
                                    offset + (7.0 + h)*seconds);
     EXPECT_TRUE(avg0.defined());
     auto avg = avg0.get();
     EXPECT_NEAR(avg.value.knots(), 5.0, 1.0e-5);
-    EXPECT_NEAR(avg.maxDuration.seconds(), 0, 0.02);
+    EXPECT_NEAR(avg.duration.seconds(), 0, 0.02);
   }{
     auto avg0 = itg.computeAverage(offset + (3.0 - h)*seconds,
                                    offset + (3.0 + h)*seconds);
     EXPECT_TRUE(avg0.defined());
     auto avg = avg0.get();
     EXPECT_NEAR(avg.value.knots(), 5.5, 1.0e-5);
-    EXPECT_NEAR(avg.maxDuration.seconds(), 2.0, 0.02);
+    EXPECT_NEAR(avg.duration.seconds(), 2.0, 0.02);
   }{ // Out of bounds, take the closest sample
     auto avg0 = itg.computeAverage(offset + (0.5 - h)*seconds,
                                    offset + (0.5 + h)*seconds);
     EXPECT_TRUE(avg0.defined());
     auto avg = avg0.get();
     EXPECT_NEAR(avg.value.knots(), 3.0, 1.0e-5);
-    EXPECT_NEAR(avg.maxDuration.seconds(), 0.5, 0.02);
+    EXPECT_NEAR(avg.duration.seconds(), 0.5, 0.02);
   }
 
   // Point wise
@@ -182,7 +182,7 @@ TEST(TimedValueIntegrator, IntegratorTest) {
     EXPECT_TRUE(avg0.defined());
     auto avg = avg0.get();
     EXPECT_NEAR(avg.value.knots(), 8.0, 1.0e-5);
-    EXPECT_NEAR(avg.maxDuration.seconds(), 0, 0.02);
+    EXPECT_NEAR(avg.duration.seconds(), 0, 0.02);
   }
 
   // Integrate larger spans... Look at the figure at the top of this file
@@ -219,6 +219,6 @@ TEST(TimedValueIntegrator, IntegratorTest) {
     EXPECT_TRUE(avg0.defined());
     auto avg = avg0.get();
     EXPECT_NEAR(avg.value.knots(), (4.0*3.0 + 3.0*8.0 + 2.0*5.0)/9.0, 1.0e-5);
-    EXPECT_NEAR(avg.maxDuration.seconds(), 2.0, 1.0e-5);
+    EXPECT_NEAR(avg.duration.seconds(), 2.0, 1.0e-5);
   }
 }
