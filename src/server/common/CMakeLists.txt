@@ -364,4 +364,9 @@ cxx_test(common_FunctionalTest
 cxx_test(common_numericsTest
          numericsTest.cpp
          gtest_main
-        )        
+        )
+
+cxx_test(common_AbstractArray
+         AbstractArrayTest.cpp
+         gtest_main
+        )
