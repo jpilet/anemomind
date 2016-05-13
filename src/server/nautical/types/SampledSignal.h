@@ -13,6 +13,7 @@
 
 namespace sail {
 
+// Represents a read-only sampled signal
 template <typename T>
 class SampledSignal : public AbstractArray<TimedValue<T> > {
 public:

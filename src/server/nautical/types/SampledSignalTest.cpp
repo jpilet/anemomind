@@ -20,7 +20,7 @@ namespace {
           Velocity<double>::knots(i));
     }
 
-    int size() const {
+    int size() const override {
       return 4;
     }
   private:
