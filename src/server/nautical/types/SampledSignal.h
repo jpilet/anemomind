@@ -14,10 +14,10 @@
 namespace sail {
 
 template <typename T>
-class DiscreteTimeSignal : public AbstractArray<TimedValue<T> > {
+class SampledSignal : public AbstractArray<TimedValue<T> > {
 public:
   typedef TimedValue<T> TimedType;
-  virtual ~DiscreteTimeSignal() {}
+  virtual ~SampledSignal() {}
 };
 
 }

@@ -5,14 +5,14 @@
  *      Author: jonas
  */
 
-#include <server/nautical/types/DiscreteTimeSignal.h>
+#include <server/nautical/types/SampledSignal.h>
 #include <gtest/gtest.h>
 
 using namespace sail;
 
 namespace {
 
-  class VelocitySignal : public DiscreteTimeSignal<Velocity<double> > {
+  class VelocitySignal : public SampledSignal<Velocity<double> > {
   public:
     TimedValue<Velocity<double> > operator[] (int i) const override {
       return TimedValue<Velocity<double> >(
@@ -26,8 +26,8 @@ namespace {
   private:
   };
 
-  std::shared_ptr<DiscreteTimeSignal<Velocity<double> > > makeTheSignal() {
-    return std::shared_ptr<DiscreteTimeSignal<Velocity<double> > >(new VelocitySignal());
+  std::shared_ptr<SampledSignal<Velocity<double> > > makeTheSignal() {
+    return std::shared_ptr<SampledSignal<Velocity<double> > >(new VelocitySignal());
   }
 }
 
