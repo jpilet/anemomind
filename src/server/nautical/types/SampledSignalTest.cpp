@@ -37,4 +37,5 @@ TEST(DTSignalTest, TestIt) {
   auto x = (*signal)[2];
   EXPECT_EQ(x.time, TimeStamp::UTC(2016, 5, 13, 13, 55, 2));
   EXPECT_NEAR(x.value.knots(), 2.0, 1.0e-6);
+  EXPECT_TRUE(signal->chronologicallyOrdered());
 }

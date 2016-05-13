@@ -18,6 +18,16 @@ class SampledSignal : public AbstractArray<TimedValue<T> > {
 public:
   typedef TimedValue<T> TimedType;
   virtual ~SampledSignal() {}
+
+  bool chronologicallyOrdered() const {
+    auto n = this->size() - 1;
+    for (int i = 0; i < n; i++) {
+      if ((*this)[i].time > (*this)[i + 1].time) {
+        return false;
+      }
+    }
+    return true;
+  }
 };
 
 template <typename T>
