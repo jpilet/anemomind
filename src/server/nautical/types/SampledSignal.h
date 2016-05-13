@@ -20,10 +20,14 @@ public:
   typedef TimedValue<T> TimedType;
   virtual ~SampledSignal() {}
 
+  TimedType sample(int i) const {
+    return (*this)[i];
+  }
+
   bool chronologicallyOrdered() const {
     auto n = this->size() - 1;
     for (int i = 0; i < n; i++) {
-      if ((*this)[i].time > (*this)[i + 1].time) {
+      if (sample(i).time > sample(i + 1).time) {
         return false;
       }
     }
