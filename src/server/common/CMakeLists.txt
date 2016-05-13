@@ -372,3 +372,8 @@ cxx_test(common_TimedValuePairsTest
          common_TimeStamp
          common_logging
         )
+
+cxx_test(common_AbstractArray
+         AbstractArrayTest.cpp
+         gtest_main
+        )

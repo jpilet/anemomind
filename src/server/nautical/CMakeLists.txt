@@ -5,6 +5,7 @@ add_subdirectory("tiles")
 add_subdirectory("logimport")
 add_subdirectory("calib")
 add_subdirectory("filters")
+add_subdirectory("types")
 
 add_library(nautical_Ecef
             Ecef.h
