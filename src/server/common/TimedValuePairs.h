@@ -20,18 +20,18 @@ namespace TimedValuePairs {
 
 // Returns 0 for first array, 1 for second array, and -1 if undefined.
 template <typename TVIterA, typename TVIterB>
-int selectRangeToReadNextValueFrom(TVIterA a0, TVIterA a1, TVIterB b0, TVIterB b1) {
-  if (a0 == a1) {
-    if (b0 == b1) {
+int selectRangeToReadNextValueFrom(TVIterA aBegin, TVIterA aEnd, TVIterB bBegin, TVIterB bEnd) {
+  if (aBegin == aEnd) {
+    if (bBegin == bEnd) {
       return -1;
     }
     return 1;
   }
-  if (b0 == b1) {
+  if (bBegin == bEnd) {
     return 0;
   }
-  auto tvA = (*a0);
-  auto tvB = (*b0);
+  auto tvA = (*aBegin);
+  auto tvB = (*bBegin);
   if (!tvA.time.defined() || !tvB.time.defined()) {
     LOG(FATAL) << "Undefined times are not permitted";
     return -1;
