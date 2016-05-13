@@ -34,8 +34,22 @@ namespace {
 TEST(DTSignalTest, TestIt) {
   auto signal = makeTheSignal();
   EXPECT_EQ(signal->size(), 4);
-  auto x = (*signal)[2];
-  EXPECT_EQ(x.time, TimeStamp::UTC(2016, 5, 13, 13, 55, 2));
-  EXPECT_NEAR(x.value.knots(), 2.0, 1.0e-6);
   EXPECT_TRUE(signal->chronologicallyOrdered());
+  {
+    auto x = (*signal)[2];
+    EXPECT_EQ(x.time, TimeStamp::UTC(2016, 5, 13, 13, 55, 2));
+    EXPECT_NEAR(x.value.knots(), 2.0, 1.0e-6);
+  }{
+    auto x0 = signal->evaluate(TimeStamp::UTC(2016, 5, 13, 13, 55, 2.3));
+    EXPECT_TRUE(x0.defined());
+    auto x = x0.get();
+    EXPECT_EQ(x.time, TimeStamp::UTC(2016, 5, 13, 13, 55, 2));
+    EXPECT_NEAR(x.value.knots(), 2.0, 1.0e-6);
+  }{
+    auto x0 = signal->evaluate(TimeStamp::UTC(2016, 5, 13, 13, 55, 2.7));
+    EXPECT_TRUE(x0.defined());
+    auto x = x0.get();
+    EXPECT_EQ(x.time, TimeStamp::UTC(2016, 5, 13, 13, 55, 3));
+    EXPECT_NEAR(x.value.knots(), 3.0, 1.0e-6);
+  }
 }

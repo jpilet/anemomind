@@ -10,6 +10,8 @@
 
 #include <server/common/AbstractArray.h>
 #include <server/common/TimedValue.h>
+#include <server/common/Optional.h>
+#include <algorithm>
 
 namespace sail {
 
@@ -32,6 +34,23 @@ public:
       }
     }
     return true;
+  }
+
+  Optional<TimedType> evaluate(TimeStamp t) const {
+    if (this->empty()) {
+      return Optional<TimedType>();
+    }
+    int lastIndex = this->size() - 1;
+    int binIndex = std::upper_bound(this->begin(), this->end() - 1, t)
+      - this->begin() - 1;
+    if (binIndex < 0) {
+      return sample(0);
+    } else if (lastIndex <= binIndex) {
+      return sample(lastIndex);
+    }
+    auto a = sample(binIndex);
+    auto b = sample(binIndex + 1);
+    return t - a.time < b.time - t? a : b;
   }
 };
 

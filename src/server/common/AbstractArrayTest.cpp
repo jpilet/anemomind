@@ -8,6 +8,7 @@
 #include <server/common/AbstractArray.h>
 #include <gtest/gtest.h>
 #include <memory>
+#include <algorithm>
 
 using namespace sail;
 
@@ -32,4 +33,27 @@ TEST(AbstractArrayTest, TestMyArray) {
   auto array = getArray();
   EXPECT_EQ((*array)[4], 16);
   EXPECT_EQ(array->size(), 7);
+}
+
+TEST(AbstractArrayTest, RangeLoop) {
+  int data[7];
+  int counter = 0;
+  for (auto x: MyArray()) {
+    EXPECT_EQ(counter*counter, x);
+    counter++;
+  }
+  EXPECT_EQ(counter, 7);
+}
+
+namespace {
+  int mySqrt(int i) {
+    MyArray arr;
+    int diff = std::lower_bound(arr.begin(), arr.end(), i) - arr.begin();
+    return diff;
+  }
+
+}
+
+TEST(AbstractArrayTest, Sqrt) {
+  EXPECT_EQ(mySqrt(9), 3);
 }
