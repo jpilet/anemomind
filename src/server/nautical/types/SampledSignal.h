@@ -20,6 +20,13 @@ public:
   virtual ~SampledSignal() {}
 };
 
+template <typename T>
+class UniformlySampledSignal : public SampledSignal<T> {
+public:
+  virtual Duration<double> samplingPeriod() const = 0;
+  virtual ~UniformlySampledSignal() {}
+};
+
 }
 
 #endif /* SERVER_NAUTICAL_TYPES_DISCRETETIMESIGNAL_H_ */
