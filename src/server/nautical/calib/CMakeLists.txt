@@ -88,3 +88,9 @@ cxx_test(calib_CurrentCalibTest
   )
   
 target_depends_on_ceres(calib_CurrentCalibTest)
+
+cxx_test(calib_CorrectionTest
+  CorrectionTest.cpp
+  gtest_main
+  common_TimeStamp
+ )

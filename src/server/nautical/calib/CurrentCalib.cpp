@@ -10,57 +10,18 @@
 #include <server/nautical/calib/CornerCalib.h>
 #include <server/nautical/filters/TimedAngleIntegrator.h>
 #include <server/nautical/common.h>
+#include <server/nautical/calib/Correction.h>
 
 namespace sail {
 namespace CurrentCalib {
+
+using namespace sail::Correction;
 
 Settings::Settings() : windowSize(Duration<double>::minutes(2.0)),
     samplingPeriod(Duration<double>::seconds(2.0)),
     debugShowScatter(false) {}
 
 namespace {
-  struct CurrentDataSample {
-    TimeStamp time;
-    Duration<double> maxDuration;
-    HorizontalMotion<double> gpsMotion, rawBoatOverWater;
-
-    HorizontalMotion<double> refMotion() const {
-      return gpsMotion;
-    }
-  };
-
-  template <typename T>
-  HorizontalMotion<T> rotate(T rads, const HorizontalMotion<T> &xy) {
-    auto c = cos(rads);
-    auto s = sin(rads);
-    return HorizontalMotion<T>(c*xy[0] - s*xy[1], s*xy[0] + c*xy[1]);
-  }
-
-  struct CurrentCorrector {
-    template <typename T>
-    HorizontalMotion<T> evalFlow(const CurrentDataSample &s, const T *params) const {
-      typedef Eigen::Matrix<T, 2, 1> Vec;
-      T bias = params[0];
-      auto speedOffset = T(params[1])*CornerCalib::getUnit<T>();
-      T angleOffset = params[2];
-
-      return computeCurrentFromBoatMotion<HorizontalMotion<T> >(
-          bias*rotate<T>(angleOffset, s.rawBoatOverWater.cast<T>() +
-              CornerCalib::setNorm<T>(s.rawBoatOverWater.cast<T>(),
-                  speedOffset)), s.gpsMotion.cast<T>());
-
-    }
-
-    Arrayd initialParams() const {
-      return Arrayd{1.0, 0.0, 0.0};
-    }
-
-    HorizontalMotion<double> evalHorizontalMotion(const CurrentDataSample &s,
-        const Arrayd &params) const {
-      assert(!params.empty());
-      return evalFlow<double>(s, params.ptr());
-    }
-  };
 
   template <DataCode Code>
   TimedValueIntegrator<typename TypeForCode<Code>::type> makeIntegrator(
@@ -70,20 +31,20 @@ namespace {
         samples.begin(), samples.end());
   }
 
-  Array<CurrentDataSample> makeSamples(
+  Array<RawNav> makeSamples(
       const NavDataset &ds,
       const Duration<double> &samplingPeriod) {
     TimeStamp lower = ds.lowerBound();
     if (lower.undefined()) {
       LOG(ERROR) << "Failed to sample because lower time bound undefined";
-      return Array<CurrentDataSample>();
+      return Array<RawNav>();
     }
 
 
     TimeStamp upper = ds.upperBound();
     if (upper.undefined()) {
       LOG(ERROR) << "Failed to sample because upper time bound undefined";
-      return Array<CurrentDataSample>();
+      return Array<RawNav>();
     }
 
     assert(lower <= upper);
@@ -92,7 +53,7 @@ namespace {
 auto varName = makeIntegrator<code>(ds); \
 if (varName.empty()) { \
   LOG(ERROR) << "Failed to sample because " << #code << " is empty"; \
-  return Array<CurrentDataSample>(); \
+  return Array<RawNav>(); \
 }
     MAKE_NONEMPTY_INTEGRATOR(gpsBearing, GPS_BEARING)
     MAKE_NONEMPTY_INTEGRATOR(gpsSpeed, GPS_SPEED)
@@ -104,33 +65,29 @@ if (varName.empty()) { \
 
     auto half = 0.5*samplingPeriod;
 
-    ArrayBuilder<CurrentDataSample> samples(n);
+    ArrayBuilder<RawNav> samples(n);
     for (int i = 0; i < n; i++) {
+      RawNav sample;
+
       auto from = lower + double(i)*samplingPeriod;
       auto to = from + samplingPeriod;
 
+      sample.time = from + half;
+
       auto rawWatSpeed0 = watSpeed.computeAverage(from, to);
       if (rawWatSpeed0.defined()) {
-        auto rawWatSpeed = rawWatSpeed0.get();
+        sample.watSpeed = rawWatSpeed0.get().value;
         auto rawMagHeading0 = magHeading.computeAverage(from, to);
         if (rawMagHeading0.defined()) {
-          auto rawMagHeading = rawMagHeading0.get();
+          sample.magHeading = rawMagHeading0.get().value;
           auto rawGpsBearing0 = gpsBearing.computeAverage(from, to);
           if (rawGpsBearing0.defined()) {
-            auto rawGpsBearing = rawGpsBearing0.get();
+            sample.gpsBearing = rawGpsBearing0.get().value;
             auto rawGpsSpeed0 = gpsSpeed.computeAverage(from, to);
             if (rawGpsSpeed0.defined()) {
-              auto rawGpsSpeed = rawGpsSpeed0.get();
-              auto maxDuration = std::max(
-                  std::max(rawGpsSpeed.duration, rawGpsBearing.duration),
-                  std::max(rawWatSpeed.duration, rawMagHeading.duration));
-              auto middle = from + half;
-              samples.add(CurrentDataSample{
-                middle,
-                maxDuration,
-                HorizontalMotion<double>::polar(rawGpsSpeed.value, rawGpsBearing.value),
-                HorizontalMotion<double>::polar(rawWatSpeed.value, rawMagHeading.value)
-              });
+              sample.gpsSpeed = rawGpsSpeed0.get().value;
+
+              samples.add(sample);
             }
           }
         }
@@ -140,7 +97,7 @@ if (varName.empty()) { \
   }
 
 
-  Array<Array<CurrentDataSample> > makeSampleGroups(
+  Array<Array<RawNav> > makeSampleGroups(
         const Array<NavDataset> &ds,
         const Duration<double> &samplingPeriod) {
     return sail::map(ds, [&](const NavDataset &ds) {
@@ -149,14 +106,17 @@ if (varName.empty()) { \
   }
 
   MotionSamples applyCurrentCalibration(
-      const Arrayd &params, const Array<CurrentDataSample> &samples) {
+      const BasicCorrectorParams<double> &params,
+      const Array<RawNav> &samples) {
     int n = samples.size();
-    CurrentCorrector corr;
+    BasicCurrentCorrector corr;
     MotionSamples dst(n);
     for (int i = 0; i < n; i++) {
       auto sample = samples[i];
-      dst[i] = TimedValue<HorizontalMotion<double> >(
-          sample.time, corr.evalHorizontalMotion(sample, params));
+      HorizontalMotion<double> v = corr.apply<double>(
+          reinterpret_cast<const double *>(&params), sample)[0];
+
+      dst[i] = TimedValue<HorizontalMotion<double> >(sample.time, v);
     }
     return dst;
   }
@@ -170,13 +130,9 @@ Array<MotionSamples> computeCorrectedCurrent(
   CornerCalib::Settings cornerSettings;
   cornerSettings.windowSize = int(floor(s.windowSize/s.samplingPeriod));
 
-  auto params = CornerCalib::optimizeCornernessForGroups(CurrentCorrector(),
+  auto params = CornerCalib::optimizeCornernessForGroups(BasicCurrentCorrector(),
       sampleGroups, cornerSettings);
 
-  if (params.empty()) {
-    LOG(ERROR) << "Calibration failed";
-    return Array<MotionSamples>();
-  }
   int n = sampleGroups.size();
 
   Array<MotionSamples> dst(n);
