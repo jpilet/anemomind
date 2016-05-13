@@ -11,11 +11,9 @@
 #include <server/nautical/NavDataset.h>
 
 namespace sail {
-namespace SmoothGpsFilter {
 
-NavDataset filter(const NavDataset &ds);
+std::shared_ptr<Dispatcher> filterGpsData(const NavDataset &ds);
 
-}
 }
 
 #endif /* SERVER_NAUTICAL_FILTERS_SMOOTHGPSFILTER_H_ */

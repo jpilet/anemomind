@@ -76,9 +76,9 @@ private:
 };
 
 template <int N>
-class Reg {
+class Regularization {
 public:
-  Reg(double weight, double balance) : _aw(weight*(1.0 - balance)),
+  Regularization(double weight, double balance) : _aw(weight*(1.0 - balance)),
     _bw(weight*balance), _weight(weight) {}
 
   template <typename T>
@@ -90,8 +90,8 @@ public:
   }
 
   static ceres::CostFunction* Create(double weight, double balance) {
-    return (new ceres::AutoDiffCostFunction<Reg<N>, N, N, N, N>
-            (new Reg<N>(weight, balance)));
+    return (new ceres::AutoDiffCostFunction<Regularization<N>, N, N, N, N>
+            (new Regularization<N>(weight, balance)));
   }
 private:
   double _weight, _aw, _bw;
@@ -140,9 +140,9 @@ Array<Eigen::Matrix<double, N, 1> > filter(
 
   // Observations
   LOG(INFO) << "Number of observations: " << observations.size();
+  auto loss = new ceres::HuberLoss(settings.huberThreshold);
   for (int i = 0; i < n; i++) {
     auto obs = observations[i];
-    auto loss = new ceres::HuberLoss(settings.huberThreshold);
     if (obs.order == 0) {
       problem.AddResidualBlock(Order0Fit<N>::Create(obs),
           loss,
@@ -173,7 +173,7 @@ Array<Eigen::Matrix<double, N, 1> > filter(
     double fullDiff = observations[i+1].time - observations[i-1].time;
     double partialDiff = observations[i].time - observations[i-1].time;
     double balance = (fullDiff <= 0.0? 0.5 : partialDiff/fullDiff);
-    problem.AddResidualBlock(Reg<N>::Create(settings.regWeight, balance), nullptr,
+    problem.AddResidualBlock(Regularization<N>::Create(settings.regWeight, balance), nullptr,
         X[i-1].data(), X[i].data(), X[i+1].data());
   }
 

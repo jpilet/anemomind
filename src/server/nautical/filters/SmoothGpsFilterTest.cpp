@@ -89,8 +89,12 @@ TEST(SmoothGpsFilterTest, TestIt) {
   EXPECT_FALSE(corrupted.isDefaultConstructed());
   corrupted.setMerged(GPS_POS, makeDispatchDataFromSamples<GPS_POS>("corrupted", corruptedPositions));
 
-  auto filtered = SmoothGpsFilter::filter(corrupted);
-  EXPECT_FALSE(filtered.isDefaultConstructed());
+  auto filtered0 = filterGpsData(corrupted);
+
+  std::cout << "Filtered it!!!" << std::endl;
+
+  EXPECT_TRUE(bool(filtered0));
+  auto filtered = NavDataset(filtered0);
 
   auto filteredPositions = filtered.samples<GPS_POS>();
 

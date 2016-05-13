@@ -12,7 +12,6 @@
 #include <server/common/ArrayBuilder.h>
 
 namespace sail {
-namespace SmoothGpsFilter {
 
 namespace {
   // All calculations in SI units.
@@ -79,17 +78,17 @@ namespace {
   }
 }
 
-NavDataset filter(const NavDataset &ds) {
+std::shared_ptr<Dispatcher> filterGpsData(const NavDataset &ds) {
   if (ds.isDefaultConstructed()) {
     LOG(WARNING) << "Nothing to filter";
-    return NavDataset();
+    return std::shared_ptr<Dispatcher>();
   }
 
   auto motions = GpsUtils::getGpsMotions(ds);
   auto positions = ds.samples<GPS_POS>();
   if (positions.empty()) {
     LOG(ERROR) << "No GPS positions in dataset, cannot filter";
-    return NavDataset();
+    return std::shared_ptr<Dispatcher>();
   }
   auto referencePosition = GpsUtils::getReferencePosition(positions);
   auto referenceTime = GpsUtils::getReferenceTime(positions);
@@ -113,7 +112,7 @@ NavDataset filter(const NavDataset &ds) {
       allObservations, settings, Array<Eigen::Vector2d>());
   if (filtered.empty()) {
     LOG(ERROR) << "Failed to filter GPS data";
-    return NavDataset();
+    return std::shared_ptr<Dispatcher>();
   }
   CHECK(filtered.size() == allObservations.size());
   auto filteredPositions = buildPositions(referenceTime, geoRef, allObservations, filtered);
@@ -125,16 +124,20 @@ NavDataset filter(const NavDataset &ds) {
   auto velocities = getVelocities(filteredMotions);
   auto angles = getAngles(filteredMotions);
 
-  std::string srcName = "SmoothGpsFilter";
+  const char *srcName = "SmoothGpsFilter";
 
-  // https://github.com/jpilet/anemomind/compare/jo-gps-filter-ceres-dev
+  auto dst = std::make_shared<Dispatcher>();
 
-  NavDataset result = ds.dup();
-  result.setMerged(GPS_POS, makeDispatchDataFromSamples<GPS_POS>(srcName, filteredPositions));
-  result.setMerged(GPS_SPEED, makeDispatchDataFromSamples<GPS_SPEED>(srcName, velocities));
-  result.setMerged(GPS_BEARING, makeDispatchDataFromSamples<GPS_BEARING>(srcName, angles));
-  return result;
+  dst->set(GPS_POS, srcName,
+      makeDispatchDataFromSamples<GPS_POS>(srcName, filteredPositions));
+
+  dst->set(GPS_BEARING, srcName,
+      makeDispatchDataFromSamples<GPS_BEARING>(srcName, angles));
+
+  dst->set(GPS_SPEED, srcName,
+      makeDispatchDataFromSamples<GPS_SPEED>(srcName, velocities));
+
+  return dst;
 }
 
-}
 }

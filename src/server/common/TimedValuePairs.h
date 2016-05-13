@@ -44,7 +44,7 @@ template <typename TVIterA, typename TVIterB>
 
 Array<std::pair<typename std::iterator_traits<TVIterA>::value_type,
                 typename std::iterator_traits<TVIterB>::value_type> >
-  make(TVIterA a0, TVIterA a1, TVIterB b0, TVIterB b1) {
+  makeTimedValuePairs(TVIterA a0, TVIterA a1, TVIterB b0, TVIterB b1) {
 
   assert(std::is_sorted(a0, a1));
   assert(std::is_sorted(b0, b1));

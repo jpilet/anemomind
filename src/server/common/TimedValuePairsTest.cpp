@@ -45,28 +45,28 @@ namespace {
 TEST(TVPTest, Empty) {
   Array<TimedValue<int> > A;
   Array<TimedValue<std::string> > B;
-  auto C = TimedValuePairs::make(A.begin(), A.end(), B.begin(), B.end());
+  auto C = TimedValuePairs::makeTimedValuePairs(A.begin(), A.end(), B.begin(), B.end());
   EXPECT_TRUE(C.empty());
 }
 
 TEST(TVPTest, OneValueInA) {
   Array<TimedValue<int> > A{tv(0.0, 119)};
   Array<TimedValue<std::string> > B;
-  auto C = TimedValuePairs::make(A.begin(), A.end(), B.begin(), B.end());
+  auto C = TimedValuePairs::makeTimedValuePairs(A.begin(), A.end(), B.begin(), B.end());
   EXPECT_TRUE(C.empty());
 }
 
 TEST(TVPTest, OneValueInB) {
   Array<TimedValue<int> > A;
   Array<TimedValue<std::string> > B{tv(0.0, "rulle")};
-  auto C = TimedValuePairs::make(A.begin(), A.end(), B.begin(), B.end());
+  auto C = TimedValuePairs::makeTimedValuePairs(A.begin(), A.end(), B.begin(), B.end());
   EXPECT_TRUE(C.empty());
 }
 
 TEST(TVPTest, OnePair) {
   Array<TimedValue<int> > A{tv(0.0, 119)};
   Array<TimedValue<std::string> > B{tv(0.0, "rulle")};
-  auto C = TimedValuePairs::make(A.begin(), A.end(), B.begin(), B.end());
+  auto C = TimedValuePairs::makeTimedValuePairs(A.begin(), A.end(), B.begin(), B.end());
   EXPECT_EQ(C.size(), 1);
   EXPECT_TRUE(Pair(C[0]) == (Pair{tv(0.0, 119), tv(0.0, "rulle")}));
 }
@@ -74,7 +74,7 @@ TEST(TVPTest, OnePair) {
 TEST(TVPTest, TwoPairs) {
   Array<TimedValue<int> > A{tv(0.0, 119), tv(1.0, 120)};
   Array<TimedValue<std::string> > B{tv(0.1, "rulle")};
-  auto C = TimedValuePairs::make(A.begin(), A.end(), B.begin(), B.end());
+  auto C = TimedValuePairs::makeTimedValuePairs(A.begin(), A.end(), B.begin(), B.end());
   EXPECT_EQ(C.size(), 2);
   EXPECT_TRUE(C == (Array<Pair>{
     Pair{tv(0.0, 119), tv(0.1, "rulle")},
@@ -85,7 +85,7 @@ TEST(TVPTest, TwoPairs) {
 TEST(TVPTest, TwoSeparatePairs) {
   Array<TimedValue<int> > A{tv(0.0, 119), tv(1.0, 120)};
   Array<TimedValue<std::string> > B{tv(0.1, "rulle"), tv(0.2, "bulle")};
-  auto C = TimedValuePairs::make(A.begin(), A.end(), B.begin(), B.end());
+  auto C = TimedValuePairs::makeTimedValuePairs(A.begin(), A.end(), B.begin(), B.end());
   EXPECT_EQ(C.size(), 2);
   EXPECT_TRUE(C == (Array<Pair>{
     Pair{tv(0.0, 119), tv(0.1, "rulle")},
@@ -96,7 +96,7 @@ TEST(TVPTest, TwoSeparatePairs) {
 TEST(TVPTest, TwoSeparatePairsAndOneUnusedSample) {
   Array<TimedValue<int> > A{tv(0.0, 119), tv(1.0, 120)};
   Array<TimedValue<std::string> > B{tv(0.1, "rulle"), tv(0.15, "unused"), tv(0.2, "bulle")};
-  auto C = TimedValuePairs::make(A.begin(), A.end(), B.begin(), B.end());
+  auto C = TimedValuePairs::makeTimedValuePairs(A.begin(), A.end(), B.begin(), B.end());
   EXPECT_EQ(C.size(), 2);
   EXPECT_TRUE(C == (Array<Pair>{
     Pair{tv(0.0, 119), tv(0.1, "rulle")},

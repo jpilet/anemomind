@@ -20,7 +20,8 @@ Array<TimedValue<HorizontalMotion<double> > > makeMotionsFromVelocityAnglePairs(
     TimedVelocityIterator velBegin, TimedVelocityIterator velEnd,
     TimedAngleIterator angleBegin, TimedAngleIterator angleEnd,
     Duration<double> maxGap) {
-  auto pairs = TimedValuePairs::make(velBegin, velEnd, angleBegin, angleEnd);
+  auto pairs = TimedValuePairs::makeTimedValuePairs(
+      velBegin, velEnd, angleBegin, angleEnd);
   int n = pairs.size();
   ArrayBuilder<TimedValue<HorizontalMotion<double> > > dst(n);
   for (auto p: pairs) {
