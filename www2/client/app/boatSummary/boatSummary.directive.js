@@ -47,6 +47,8 @@ var app = angular.module('www2App')
 
         //
         // check if this boat has a picture for this session
+        // Warning: complexity O(N)!
+        // TODO(olivier): cache results or refactor        
         scope.hasPhoto=function(session){
           if(!scope.boat.photos||!scope.boat.photos.length){
             return false;
@@ -63,6 +65,8 @@ var app = angular.module('www2App')
 
         //
         // check if this boat has a picture for this session
+        // Warning: complexity O(N)!
+        // TODO(olivier): cache results or refactor        
         scope.hasComment=function(session){
           if(!scope.boat.comments||!scope.boat.comments.length){
             return false;
@@ -145,7 +149,6 @@ var app = angular.module('www2App')
 
 app.directive('boatMainImage', ['$parse', function($parse) {
   var style={
-    'background-image':'url("/assets/images/boat-sample.png")',
     'background-size':'cover',
     'background-color':'transparent',
     'background-position': '50% 20%',
@@ -161,16 +164,19 @@ app.directive('boatMainImage', ['$parse', function($parse) {
     link: function(scope, element, attrs, ngModelCtrl) {
       var self=this;
 
-
       scope.$watch('boatMainImage', function (boatMainImage) {
-        if (boatMainImage) {
-          style['background-image']='url('+defaultImage+')';
-          if(boatMainImage._id&&boatMainImage.photos&&boatMainImage.photos.length){
-            var path=scope.$parent.photoUrl(boatMainImage._id,boatMainImage.photos[0].src,'300x400');
-            style['background-image']='url('+path+')';
-          }
-          element.css(style);
+        
+        //
+        // initial value
+        style['background-image']='url('+defaultImage+')';
+        if(boatMainImage&&
+           boatMainImage._id&&
+           boatMainImage.photos&&
+           boatMainImage.photos.length){
+          var path=scope.$parent.photoUrl(boatMainImage._id,boatMainImage.photos[0].src,'300x400');
+          style['background-image']='url('+path+')';
         }
+        element.css(style);
       });
     }
   }
