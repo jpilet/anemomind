@@ -14,6 +14,8 @@ namespace sail {
 
 template <typename T>
 struct TimedValue {
+  typedef T type;
+
   TimedValue() {}
   TimedValue(TimeStamp time, T value) : time(time), value(value) { }
 

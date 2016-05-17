@@ -7,6 +7,7 @@
 #include <server/nautical/NavDataset.h>
 #include <assert.h>
 #include <device/anemobox/DispatcherUtils.h>
+#include <server/common/logging.h>
 
 namespace sail {
 
@@ -52,6 +53,19 @@ NavDataset::NavDataset(const std::shared_ptr<Dispatcher> &dispatcher,
   assert(merged);
   assert(dispatcher);
   assert(beforeOrEqual(_lowerBound, _upperBound, true));
+}
+
+NavDataset NavDataset::dup() const {
+  if (isDefaultConstructed()) {
+    return NavDataset();
+  } else {
+
+    // Quite shallow copies, I guess. I don't think we copy any big arrays here.
+    auto mergedCopy = std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData>>>(*_merged);
+    auto dispatcherCopy = _dispatcher;
+
+    return NavDataset(dispatcherCopy, mergedCopy, _lowerBound, _upperBound);
+  }
 }
 
 NavDataset NavDataset::slice(TimeStamp a, TimeStamp b) const {
@@ -162,6 +176,13 @@ void NavDataset::outputSummary(std::ostream *dst) const {
 bool NavDataset::isDefaultConstructed() const {
   return !_dispatcher;
 }
+
+void NavDataset::setMerged(DataCode c, const std::shared_ptr<DispatchData> &data) {
+  CHECK(!isDefaultConstructed());
+  assert(_merged);
+  (*_merged)[c] = data;
+}
+
 
 std::ostream &operator<<(std::ostream &s, const NavDataset &ds) {
   ds.outputSummary(&s);

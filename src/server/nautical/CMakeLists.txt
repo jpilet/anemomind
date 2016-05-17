@@ -316,3 +316,16 @@ add_library(nautical_AbsoluteOrientation
   AbsoluteOrientation.h
   AbsoluteOrientation.cpp
   )
+
+add_library(nautical_InvWGS84
+            InvWGS84.h
+            InvWGS84.cpp
+           )
+
+target_depends_on_ceres(nautical_InvWGS84)
+
+cxx_test(nautical_InvWGS84Test
+         InvWGS84Test.cpp
+         gtest_main
+         nautical_InvWGS84
+        )

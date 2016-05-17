@@ -364,6 +364,13 @@ cxx_test(common_FunctionalTest
 cxx_test(common_numericsTest
          numericsTest.cpp
          gtest_main
+        )        
+
+cxx_test(common_TimedValuePairsTest
+         TimedValuePairsTest.cpp
+         gtest_main
+         common_TimeStamp
+         common_logging
         )
 
 cxx_test(common_AbstractArray
