@@ -156,7 +156,11 @@ public:
     return this->getScalar();
   }
 
-  PhysicalQuantity() : _x(NAN) {} // TODO: FIX THIS!!!
+#if ON_SERVER
+  PhysicalQuantity() : _x(T(std::numeric_limits<double>::signaling_NaN())) {} // TODO: FIX THIS!!!
+#else
+  PhysicalQuantity() : _x() {}
+#endif
 
   static constexpr bool isScalar = (TimeDim == 0 && LengthDim == 0 && AngleDim == 0 && MassDim == 0);
   static constexpr bool isTime = (TimeDim == 1 && LengthDim == 0 && AngleDim == 0 && MassDim == 0);
