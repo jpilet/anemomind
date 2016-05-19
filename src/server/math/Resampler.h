@@ -66,6 +66,13 @@ Array<T> makeNewSamplesFromEndpoints(const Array<Endpoint<T> > & eps, T period) 
   return newSamples.get();
 }
 
+template <typename T>
+Array<T> resample(const Array<T> &irregularSamples, T newSamplingPeriod) {
+  return makeNewSamplesFromEndpoints(
+      listEndpoints(irregularSamples, newSamplingPeriod),
+      newSamplingPeriod);
+}
+
 }
 }
 

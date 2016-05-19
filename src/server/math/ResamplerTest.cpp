@@ -38,5 +38,9 @@ TEST(ResamplerTest, TestEpsDense) {
     EXPECT_EQ(times[i], eps[i].pos);
   }
   auto newSamples = makeNewSamplesFromEndpoints(eps, period);
-  EXPECT_EQ(newSamples, (Arrayi{30, 32, 34, 36, 38, 40}));
+
+
+  auto expected = Arrayi{30, 32, 34, 36, 38, 40};
+  EXPECT_EQ(newSamples, expected);
+  EXPECT_EQ(resample(samples, period), expected);
 }
