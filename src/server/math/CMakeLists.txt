@@ -157,6 +157,11 @@ cxx_test(math_PointQuadTest
          common_logging
         )
 
+cxx_test(math_ResamplerTest
+  ResamplerTest.cpp
+  gtest_main
+  )        
+
 add_subdirectory(geometry)
 add_subdirectory(hmm)
 add_subdirectory(nonlinear)
