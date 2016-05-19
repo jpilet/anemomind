@@ -139,8 +139,10 @@ TEST(TimedValueIntegrator, IntegratorTest) {
 
   // Integration
   {
-    auto avg0 = itg.computeAverage(offset + (1.0 - h)*seconds,
-                                   offset + (1.0 + h)*seconds);
+    auto from = offset + (1.0 - h)*seconds;
+    auto to = offset + (1.0 + h)*seconds;
+    std::cout << "From " << from << " to " << to << std::endl;
+    auto avg0 = itg.computeAverage(from, to);
     EXPECT_TRUE(avg0.defined());
     auto avg = avg0.get();
     EXPECT_NEAR(avg.value.knots(), 3.0, 1.0e-5);

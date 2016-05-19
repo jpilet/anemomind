@@ -148,13 +148,6 @@ public:
 
   typedef T ValueType;
 
-  T getScalar() const {
-    return _x;
-  }
-
-  operator T () const {
-    return this->getScalar();
-  }
 
 #if ON_SERVER
   PhysicalQuantity() : _x(T(std::numeric_limits<double>::signaling_NaN())) {} // TODO: FIX THIS!!!
@@ -200,18 +193,6 @@ public:
     static_assert(System::mixable, "This unit system does not allow for mixing types");
     PhysicalQuantity<T, System, TimeDim + t, LengthDim + l,
     AngleDim + a, MassDim + m>::pleaseAvoidThisPrivateConstructor(_x*other._x);
-  }
-
-  template <int t, int l, int a, int m>
-  PhysicalQuantity<T, System, TimeDim - t, LengthDim - l, AngleDim - a, MassDim - m> operator/(
-      const PhysicalQuantity<T, System, t, l, a, m> &other) const {
-
-    static_assert(System::mixable ||
-        (TimeDim == t && LengthDim == l && AngleDim == a && MassDim == m),
-        "This unit system does not allow for mixing types");
-
-    PhysicalQuantity<T, System, TimeDim - t, LengthDim - l,
-    AngleDim - a, MassDim - m>::pleaseAvoidThisPrivateConstructor(_x/other._x);
   }
 
   ThisType operator*(T s) const {
@@ -315,6 +296,7 @@ public:
     *cosAngle = cos(rad);
   }
 
+  T getRaw() const {return _x;}
 #ifdef ON_SERVER
   std::string str() const {
     return physQuantToString(*this);
@@ -358,6 +340,26 @@ PhysicalQuantity<T, System, t, l, a, m> operator*(T s,
     const PhysicalQuantity<T, System, t, l, a, m> &x) {
   return x*s;
 }
+
+/*template <typename T, typename sys,
+  int t0, int l0, int a0, int m0,
+  int t1, int l1, int a1, int m1>
+PhysicalQuantity<T, sys, t0 - t1, l0 - l1, a0 - a1, m0 - m1> operator/(
+    const PhysicalQuantity<T, sys, t0, l0, a0, m0> &x,
+    const PhysicalQuantity<T, sys, t1, l1, a1, m1> &y) {
+  static_assert(sys::mixable, "This system does not support this");
+  return PhysicalQuantity<T, sys, t0 - t1, l0 - l1, a0 - a1, m0 - m1>(
+      x.getRaw()/y.getRaw());
+}*/
+
+template <typename T, typename sys,
+  int t, int l, int a, int m>
+T operator/(
+    const PhysicalQuantity<T, sys, t, l, a, m> &x,
+    const PhysicalQuantity<T, sys, t, l, a, m> &y) {
+  return x.getRaw()/y.getRaw();
+}
+
 
 #if ON_SERVER
 template <typename T, typename System>

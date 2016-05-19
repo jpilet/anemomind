@@ -13,6 +13,7 @@
 #include <server/common/Optional.h>
 #include <server/common/Functional.h>
 #include <algorithm>
+#include <iostream>
 
 namespace sail {
 
@@ -49,7 +50,7 @@ Array<TimedValue<T> > makeArrayFromRange(Iterator begin, Iterator end) {
 }
 
 inline double toLocalTime(TimeStamp offset, TimeStamp x, const Duration<double> &unit) {
-  return ((x - offset)/unit).getScalar();
+  return (x - offset)/unit;
 }
 
 template <typename T>
@@ -247,7 +248,9 @@ private:
   }
 
   T valueOfBin(int i) const {
-    return (1.0/(_bounds[i+1] - _bounds[i]))*(_cumulative[i+1] - _cumulative[i]);
+    auto dif = (_cumulative[i+1] - _cumulative[i]);
+    auto factor = (1.0/(_bounds[i+1] - _bounds[i]));
+    return factor*dif;
   }
 
   T sumTo(double t) const {

@@ -45,7 +45,7 @@ Flow::VelocityFunction Flow::spatiallyChangingVelocity(
     Angle<double> angle, Length<double> period, Angle<double> phase) {
     return [=](const ProjectedPosition &p, Duration<double> t) {
       Length<double> proj = cos(angle)*p[0] + sin(angle)*p[1];
-      double at = (proj/period).getScalar();
+      double at = (proj/period);
       double f = sin(2.0*M_PI*at + phase.radians());
       return f*amplitude;
     };
@@ -122,8 +122,8 @@ void Flow::plotForPosition(ProjectedPosition at,
 
 namespace {
   Spani calcIndexSpan(Span<Length<double> > lspan, Length<double> spacing) {
-    return Spani(int(floor((lspan.minv()/spacing).getScalar())),
-        int(ceil((lspan.maxv()/spacing).getScalar())));
+    return Spani(int(floor((lspan.minv()/spacing))),
+        int(ceil((lspan.maxv()/spacing))));
   }
 
   MDArray2d makeArrow(const arma::vec2 &src,
@@ -174,8 +174,8 @@ void Flow::plotVectorField(Duration<double> time, BBox<Length<double>, 2> area,
                       double(yi)*spacing};
       HorizontalMotion<double> motion = (*this)(pos, time);
       arma::vec2 gridpos{pos[0].nauticalMiles(), pos[1].nauticalMiles()};
-      arma::vec2 griddir{f*(motion[0]/maxvel).getScalar(),
-        f*(motion[1]/maxvel).getScalar()};
+      arma::vec2 griddir{f*(motion[0]/maxvel),
+        f*(motion[1]/maxvel)};
       plot.plot(makeArrow(gridpos - griddir, gridpos + griddir));
     }
   }
