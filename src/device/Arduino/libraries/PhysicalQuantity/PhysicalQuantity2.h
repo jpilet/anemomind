@@ -45,6 +45,8 @@ class PhysicalQuantity {
 public:
   PhysicalQuantity() : _x(T(NAN)) {}
 
+  typedef PhysicalQuantity<T, TimeDim, LengthDim, AngleDim, MassDim> ThisType;
+
   static PhysicalQuantity<T, 0, 0, 0, 0> scalar(T x) {return PhysicalQuantity<T, 0, 0, 0>(x);}
 
   MAKE_PHYSQUANT_TIME_CONVERTERS(milliseconds, 0.001)
@@ -57,6 +59,7 @@ public:
   MAKE_PHYSQUANT_VELOCITY_CONVERTERS(knots, 1852.0/3600.0)
   MAKE_PHYSQUANT_VELOCITY_CONVERTERS(metersPerSecond, 1.0);
   MAKE_PHYSQUANT_VELOCITY_CONVERTERS(kilometersPerHour, 1000.0/3600.0);
+  MAKE_PHYSQUANT_VELOCITY_CONVERTERS(milesPerHour, 1609.0/3600.0);
 
   MAKE_PHYSQUANT_MASS_CONVERTERS(kilograms, 1.0);
   MAKE_PHYSQUANT_MASS_CONVERTERS(skeppund, 170.0);
@@ -73,9 +76,29 @@ public:
     static_assert(MassDim == 0, "Only dimensionless units");
     return _x;
   }
+
+  static PhysicalQuantity<T, TimeDim, LengthDim, AngleDim, MassDim> wrap(T x) {
+    return PhysicalQuantity<T, TimeDim, LengthDim, AngleDim, MassDim>(x);
+  }
+
+
+
+  template <typename T, int t, int l, int a, int m>
+  PhysicalQuantity<T, TimeDim + t, LengthDim + l, AngleDim + a, MassDim + m> operator*(
+      const PhysicalQuantity<T, t, l, a, m> &other) {
+    PhysicalQuantity<T, TimeDim + t, LengthDim + l, AngleDim + a, MassDim + m>(_x*other._x);
+  }
+
+  ThisType operator*(T s) const {
+    return ThisType(s*_x);
+  }
+
+  ThisType operator+(const ThisType &other) const {
+    return ThisType(_x + other._x);
+  }
 private:
-  T _x;
   PhysicalQuantity(T x) : _x(x) {}
+  T _x;
 };
 
 
@@ -93,6 +116,11 @@ using Angle = PhysicalQuantity<T, 0, 0, 1, 0>;
 
 template <typename T>
 using Mass = PhysicalQuantity<T, 0, 0, 0, 1>;
+
+template <typename T, int t, int l, int a, int m>
+PhysicalQuantity<T, t, l, a, m> operator*(T s, const PhysicalQuantity<T, t, l, a, m> &x) {
+  return x*s;
+}
 
 }
 
