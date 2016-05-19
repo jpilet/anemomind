@@ -22,6 +22,12 @@ inline GeographicPosition<double> getPos(const NmeaParser& parser) {
       Angle<double>::degrees(parser.pos().lat.toDouble()));
 }
 
+
+
+Angle<double> angleToDouble(Angle<short> x) {
+  return Angle<double>::degrees(x.degrees());
+}
+
 template <typename Handler>
 void Nmea0183ProcessByte(const std::string &sourceName,
     unsigned char b, NmeaParser *parser, Handler *handler) {
@@ -31,24 +37,24 @@ void Nmea0183ProcessByte(const std::string &sourceName,
     case NmeaParser::NMEA_RMC:
       handler->template add<DATE_TIME>(sourceName, getTime(*parser));
       handler->template add<GPS_BEARING>(sourceName,
-                                static_cast<Angle<double>>(parser->gpsBearing()));
+          angleToDouble(parser->gpsBearing()));
       handler->template add<GPS_SPEED>(sourceName,
                                 static_cast<Velocity<double>>(parser->gpsSpeed()));
       handler->template add<GPS_POS>(sourceName, getPos(*parser));
       break;
     case NmeaParser::NMEA_AW:
-      handler->template add<AWA>(sourceName, static_cast<Angle<double>>(parser->awa()));
+      handler->template add<AWA>(sourceName, angleToDouble(parser->awa()));
       handler->template add<AWS>(sourceName, static_cast<Velocity<double>>(parser->aws()));
       break;
     case NmeaParser::NMEA_TW:
       handler->template add<TWA>(
-          sourceName, static_cast<Angle<double>>(parser->twa()));
+          sourceName, angleToDouble(parser->twa()));
       handler->template add<TWS>(
           sourceName, static_cast<Velocity<double>>(parser->tws()));
       break;
     case NmeaParser::NMEA_WAT_SP_HDG:
       handler->template add<MAG_HEADING>(
-          sourceName, static_cast<Angle<double>>(parser->magHdg()));
+          sourceName, angleToDouble(parser->magHdg()));
       handler->template add<WAT_SPEED>(
           sourceName, static_cast<Velocity<double>>(parser->watSpeed()));
       break;
@@ -60,7 +66,7 @@ void Nmea0183ProcessByte(const std::string &sourceName,
       break;
     case NmeaParser::NMEA_VTG:
       handler->template add<GPS_BEARING>(
-          sourceName, static_cast<Angle<double>>(parser->gpsBearing()));
+          sourceName, angleToDouble(parser->gpsBearing()));
       handler->template add<GPS_SPEED>(
           sourceName, static_cast<Velocity<double>>(parser->gpsSpeed()));
       break;

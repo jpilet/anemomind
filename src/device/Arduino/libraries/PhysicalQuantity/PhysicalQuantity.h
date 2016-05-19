@@ -42,6 +42,11 @@
 
 namespace sail {
 
+enum class UnitSystem {
+  SI,
+  AnemoOld
+};
+
 #define MAKE_PHYSQUANT_UNIT_CONVERTERS(t, l, a, m, name, fromFactor) \
     static PhysicalQuantity<T, t, l, a, m> name(T x) { \
       return PhysicalQuantity<T, t, l, a, m>(T(fromFactor)*x); \
@@ -73,13 +78,23 @@ namespace sail {
 template <typename T, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
 class PhysicalQuantity;
 
+#if ON_SERVER
 template <typename T>
 std::string physQuantToString(const PhysicalQuantity<T, 1, 0, 0, 0> &x);
+#endif
 
 template <typename T, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
 class PhysicalQuantity {
 public:
   typedef T ValueType;
+
+  T getScalar() const {
+    return _x;
+  }
+
+  operator T () const {
+    return this->getScalar();
+  }
 
   PhysicalQuantity() : _x(NAN) {}
 
@@ -125,16 +140,6 @@ public:
   static PhysicalQuantity<T, TimeDim, LengthDim, AngleDim, MassDim> wrap(T x) {
     return PhysicalQuantity<T, TimeDim, LengthDim, AngleDim, MassDim>(x);
   }
-
-  T getScalar() const {
-    static_assert(isScalar, "Only for dimensionless values");
-    return _x;
-  }
-
-  operator T () const {
-    return _x; //getScalar();
-  }
-
 
   template <int t, int l, int a, int m>
   PhysicalQuantity<T, TimeDim + t, LengthDim + l, AngleDim + a, MassDim + m> operator*(
@@ -270,6 +275,7 @@ private:
 };
 
 
+
 // http://en.cppreference.com/w/cpp/language/type_alias
 template <typename T=double>
 using Duration = PhysicalQuantity<T, 1, 0, 0, 0>;
@@ -291,13 +297,14 @@ PhysicalQuantity<T, t, l, a, m> operator*(T s, const PhysicalQuantity<T, t, l, a
   return x*s;
 }
 
+#if ON_SERVER
 template <typename T>
 std::string physQuantToString(const PhysicalQuantity<T, 1, 0, 0, 0> &x) {
    std::stringstream ss;
    Duration<T> remaining(x);
 #define FORMAT_DURATION_UNIT(unit) \
    if (remaining.unit() >= 1) { \
-     if (ss.str().size() > 0) ss << ", "; \
+     if (ss.str().size() > 0) {ss << ", ";} \
      ss << floor(remaining.unit()) << " " #unit ; \
      remaining -= Duration<T>::unit(floor(remaining.unit())); \
    }
@@ -309,7 +316,7 @@ std::string physQuantToString(const PhysicalQuantity<T, 1, 0, 0, 0> &x) {
 #undef FORMAT_DURATION_UNIT
    return ss.str();
 }
-
+#endif
 
 
 
