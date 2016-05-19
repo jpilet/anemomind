@@ -156,7 +156,7 @@ public:
     return this->getScalar();
   }
 
-  PhysicalQuantity() : _x(NAN) {}
+  PhysicalQuantity() : _x(NAN) {} // TODO: FIX THIS!!!
 
   static constexpr bool isScalar = (TimeDim == 0 && LengthDim == 0 && AngleDim == 0 && MassDim == 0);
   static constexpr bool isTime = (TimeDim == 1 && LengthDim == 0 && AngleDim == 0 && MassDim == 0);
