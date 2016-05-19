@@ -204,6 +204,14 @@ Optional<HorizontalMotion<double>> averageWind(const NavDataset& navs) {
       sum += windMotionFromTwdirAndTws(
           nav.externalTwdir(), Velocity<double>::knots(1));
       sumSpeed += nav.externalTws();
+    } else if (nav.hasApparentWind()) {
+      HorizontalMotion<double> trueWind = nav.estimateTrueWind();
+      auto tws = calcTws(trueWind);
+      if (tws.knots() > 0) {
+        sumSpeed += tws;
+        num++;
+        sum += trueWind.scaled(1.0 / tws.knots());
+      }
     }
   }
 
@@ -238,6 +246,8 @@ std::pair<Velocity<double>, int> indexOfStrongestWind(const NavDataset& navs) {
         speedArray.push_back(make_pair(calcTws(nav.trueWindOverGround()), i));
       } else if (nav.hasExternalTrueWind()) {
         speedArray.push_back(make_pair(nav.externalTws(), i));
+      } else if (nav.hasApparentWind()) {
+        speedArray.push_back(make_pair(calcTws(nav.estimateTrueWind()), i));
       }
     }
   }
