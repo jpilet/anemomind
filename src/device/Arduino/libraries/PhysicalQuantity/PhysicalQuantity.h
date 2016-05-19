@@ -16,37 +16,6 @@
 #ifndef PHYSICALQUANTITY_H_
 #define PHYSICALQUANTITY_H_
 
-/*
-
-
-////////////////////////////////////
-
-#ifdef ON_SERVER
-  // Special method returning true for the comparison nan == nan.
-  bool eqWithNan(ThisQuantity other) const {
-    return strictEquality(_x, other.get());
-  }
-
-  bool nearWithNan(ThisQuantity other, double marg) const {
-    return sail::nearWithNan(_x, other.get(), marg);
-  }
-#endif
-
-
-
-
-#ifdef ON_SERVER
-template <typename Quantity, typename Value>
-const Value PhysicalQuantity<Quantity, Value>::defaultValue =
-    Value(std::numeric_limits<double>::signaling_NaN());
-#endif
-
-
-
-
- */
-
-
 #include <server/common/numerics.h>
 #ifdef ON_SERVER
 #include <cmath>
@@ -104,14 +73,17 @@ namespace sail {
 template <typename T, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
 class PhysicalQuantity;
 
-template <typename T, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
-std::string toString(const PhysicalQuantity<T, TimeDim, LengthDim, AngleDim, MassDim> &x);
+template <typename T>
+std::string physQuantToString(const PhysicalQuantity<T, 1, 0, 0, 0> &x);
 
 template <typename T, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
 class PhysicalQuantity {
 public:
-  PhysicalQuantity() : _x(T(NAN)) {}
+  typedef T ValueType;
 
+  PhysicalQuantity() : _x(NAN) {}
+
+  static constexpr bool isScalar = (TimeDim == 0 && LengthDim == 0 && AngleDim == 0 && MassDim == 0);
   static constexpr bool isTime = (TimeDim == 1 && LengthDim == 0 && AngleDim == 0 && MassDim == 0);
   static constexpr bool isLength = (TimeDim == 0 && LengthDim == 1 && AngleDim == 0 && MassDim == 0);
   static constexpr bool isAngle = (TimeDim == 0 && LengthDim == 0 && AngleDim == 1 && MassDim == 0);
@@ -154,18 +126,28 @@ public:
     return PhysicalQuantity<T, TimeDim, LengthDim, AngleDim, MassDim>(x);
   }
 
+  T getScalar() const {
+    static_assert(isScalar, "Only for dimensionless values");
+    return _x;
+  }
+
+  operator T () const {
+    return _x; //getScalar();
+  }
 
 
   template <int t, int l, int a, int m>
   PhysicalQuantity<T, TimeDim + t, LengthDim + l, AngleDim + a, MassDim + m> operator*(
-      const PhysicalQuantity<T, t, l, a, m> &other) {
-    PhysicalQuantity<T, TimeDim + t, LengthDim + l, AngleDim + a, MassDim + m>(_x*other._x);
+      const PhysicalQuantity<T, t, l, a, m> &other) const {
+    PhysicalQuantity<T, TimeDim + t, LengthDim + l,
+    AngleDim + a, MassDim + m>::pleaseAvoidThisPrivateConstructor(_x*other._x);
   }
 
   template <int t, int l, int a, int m>
   PhysicalQuantity<T, TimeDim - t, LengthDim - l, AngleDim - a, MassDim - m> operator/(
-      const PhysicalQuantity<T, t, l, a, m> &other) {
-    PhysicalQuantity<T, TimeDim + t, LengthDim + l, AngleDim + a, MassDim + m>(_x/other._x);
+      const PhysicalQuantity<T, t, l, a, m> &other) const {
+    PhysicalQuantity<T, TimeDim - t, LengthDim - l,
+    AngleDim - a, MassDim - m>::pleaseAvoidThisPrivateConstructor(_x/other._x);
   }
 
   ThisType operator*(T s) const {
@@ -221,6 +203,11 @@ public:
         TimeDim, LengthDim, AngleDim, MassDim>::pleaseAvoidThisPrivateConstructor(static_cast<S>(_x));
   }
 
+  template <typename S>
+  operator PhysicalQuantity<S, TimeDim, LengthDim, AngleDim, MassDim>() const {
+    return cast<S>();
+  }
+
   ThisType directionDifference(const ThisType& other) const {
     static_assert(isAngle, "Only applicable to angles");
     return (*this - other).normalizedAt0();
@@ -264,8 +251,18 @@ public:
 
 #ifdef ON_SERVER
   std::string str() const {
-    return toString(*this);
+    return physQuantToString(*this);
   }
+
+  // Special method returning true for the comparison nan == nan.
+  bool eqWithNan(ThisType other) const {
+    return strictEquality(_x, other._x);
+  }
+
+  bool nearWithNan(ThisType other, double marg) const {
+    return sail::nearWithNan(_x, other._x, marg);
+  }
+
 #endif
 private:
   PhysicalQuantity(T x) : _x(x) {}
@@ -273,6 +270,7 @@ private:
 };
 
 
+// http://en.cppreference.com/w/cpp/language/type_alias
 template <typename T=double>
 using Duration = PhysicalQuantity<T, 1, 0, 0, 0>;
 
@@ -294,7 +292,7 @@ PhysicalQuantity<T, t, l, a, m> operator*(T s, const PhysicalQuantity<T, t, l, a
 }
 
 template <typename T>
-std::string toString(const PhysicalQuantity<T, 1, 0, 0, 0> &x) {
+std::string physQuantToString(const PhysicalQuantity<T, 1, 0, 0, 0> &x) {
    std::stringstream ss;
    Duration<T> remaining(x);
 #define FORMAT_DURATION_UNIT(unit) \
@@ -311,9 +309,6 @@ std::string toString(const PhysicalQuantity<T, 1, 0, 0, 0> &x) {
 #undef FORMAT_DURATION_UNIT
    return ss.str();
 }
-
-
-
 
 
 

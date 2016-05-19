@@ -68,7 +68,9 @@ Velocity<T> getUnit() {return Velocity<T>::knots(T(1.0));}
 
 template <typename T>
 Eigen::Matrix<T, 2, 1> motionToVec(const HorizontalMotion<T> &v) {
-  return Eigen::Matrix<T, 2, 1>(v[0]/getUnit<T>(), v[1]/getUnit<T>());
+  return Eigen::Matrix<T, 2, 1>(
+      T(v[0]/getUnit<T>()),
+      T(v[1]/getUnit<T>()));
 }
 
 template <typename T>

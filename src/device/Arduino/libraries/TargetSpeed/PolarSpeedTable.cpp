@@ -81,7 +81,7 @@ Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeedForTwsIndex(int t
   if (empty() || twsIndex == 0) {
     return Velocity<PolarSpeedTable::FixType>::knots(PolarSpeedTable::FixType(0));
   }
-  PolarSpeedTable::FixType twaRealIndex = twa.positiveMinAngle()/_twaStep;
+  PolarSpeedTable::FixType twaRealIndex = (twa.positiveMinAngle()/_twaStep).getScalar();
   int twaIndex = int(twaRealIndex);
 
   PolarSpeedTable::FixType lambda = twaRealIndex - PolarSpeedTable::FixType(twaIndex);
@@ -91,11 +91,11 @@ Velocity<PolarSpeedTable::FixType> PolarSpeedTable::targetSpeedForTwsIndex(int t
 }
 
 PolarSpeedTable::FixType PolarSpeedTable::calcTwaRealIndex(Angle<PolarSpeedTable::FixType> twa) const {
-  return twa.positiveMinAngle()/_twaStep;
+  return (twa.positiveMinAngle()/_twaStep).getScalar();
 }
 
 PolarSpeedTable::FixType PolarSpeedTable::calcTwsRealIndex(Velocity<PolarSpeedTable::FixType> tws) const {
-  return tws/_twsStep;
+  return (tws/_twsStep).getScalar();
 }
 
 int PolarSpeedTable::tableIndex(int twsIndex, int twaIndex) const {

@@ -49,7 +49,7 @@ Array<TimedValue<T> > makeArrayFromRange(Iterator begin, Iterator end) {
 }
 
 inline double toLocalTime(TimeStamp offset, TimeStamp x, const Duration<double> &unit) {
-  return (x - offset)/unit;
+  return ((x - offset)/unit).getScalar();
 }
 
 template <typename T>

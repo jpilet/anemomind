@@ -39,7 +39,7 @@ class TargetSpeedParam {
   template <typename T>
   T windSpeedToRadiusIndex(Velocity<T> windSpeed) const {
     if (0 <= windSpeed.knots() && windSpeed < _maxWindSpeed) {
-      return undistortRadius(windSpeed/_windFactor);
+      return undistortRadius(T(windSpeed/_windFactor));
     }
     return T(-1);
   }
