@@ -201,7 +201,11 @@ public:
   template <int t, int l, int a, int m>
   PhysicalQuantity<T, System, TimeDim - t, LengthDim - l, AngleDim - a, MassDim - m> operator/(
       const PhysicalQuantity<T, System, t, l, a, m> &other) const {
-    static_assert(System::mixable, "This unit system does not allow for mixing types");
+
+    static_assert(System::mixable ||
+        (TimeDim == t && LengthDim == l && AngleDim == a && MassDim == m),
+        "This unit system does not allow for mixing types");
+
     PhysicalQuantity<T, System, TimeDim - t, LengthDim - l,
     AngleDim - a, MassDim - m>::pleaseAvoidThisPrivateConstructor(_x/other._x);
   }
@@ -330,19 +334,19 @@ private:
 
 
 // http://en.cppreference.com/w/cpp/language/type_alias
-template <typename T=double, typename System=UnitSystem::SI>
+template <typename T=double, typename System=UnitSystem::AnemoOld>
 using Duration = PhysicalQuantity<T, System, 1, 0, 0, 0>;
 
-template <typename T=double, typename System=UnitSystem::SI>
+template <typename T=double, typename System=UnitSystem::AnemoOld>
 using Length = PhysicalQuantity<T, System, 0, 1, 0, 0>;
 
-template <typename T=double, typename System=UnitSystem::SI>
+template <typename T=double, typename System=UnitSystem::AnemoOld>
 using Velocity = PhysicalQuantity<T, System, -1, 1, 0, 0>;
 
-template <typename T=double, typename System=UnitSystem::SI>
+template <typename T=double, typename System=UnitSystem::AnemoOld>
 using Angle = PhysicalQuantity<T, System, 0, 0, 1, 0>;
 
-template <typename T=double, typename System=UnitSystem::SI>
+template <typename T=double, typename System=UnitSystem::AnemoOld>
 using Mass = PhysicalQuantity<T, System, 0, 0, 0, 1>;
 
 template <typename T=double>
