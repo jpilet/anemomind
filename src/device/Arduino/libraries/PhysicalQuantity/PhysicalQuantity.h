@@ -102,22 +102,6 @@ public:
   static T apply(T x) {return x;}
 };
 
-/*template <int TimeBase, int LengthBase, int VelocityBase, int AngleBase, int MassBase>
-struct GeneralUnitSystem {
-#define MAKE_WRAPPERS(base, )
-};*/
-
-/*namespace UnitSystem {
-
-  struct SI {
-    static const int timeBase = 1;
-    static const int lengthBase = 6;
-    static const int velocityBase = 11;
-    static const int
-  };
-
-};*/
-
 namespace UnitSystem {
   struct SI {
     static const bool mixable = true;
@@ -360,6 +344,21 @@ using Angle = PhysicalQuantity<T, System, 0, 0, 1, 0>;
 
 template <typename T=double, typename System=UnitSystem::SI>
 using Mass = PhysicalQuantity<T, System, 0, 0, 0, 1>;
+
+template <typename T=double>
+using OldDuration = PhysicalQuantity<T, UnitSystem::AnemoOld, 1, 0, 0, 0>;
+
+template <typename T=double>
+using OldLength = PhysicalQuantity<T, UnitSystem::AnemoOld, 0, 1, 0, 0>;
+
+template <typename T=double>
+using OldVelocity = PhysicalQuantity<T, UnitSystem::AnemoOld, -1, 1, 0, 0>;
+
+template <typename T=double>
+using OldAngle = PhysicalQuantity<T, UnitSystem::AnemoOld, 0, 0, 1, 0>;
+
+template <typename T=double>
+using OldMass = PhysicalQuantity<T, UnitSystem::AnemoOld, 0, 0, 0, 1>;
 
 template <typename T, typename System, int t, int l, int a, int m>
 PhysicalQuantity<T, System, t, l, a, m> operator*(T s,
