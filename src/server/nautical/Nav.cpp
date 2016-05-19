@@ -7,6 +7,7 @@
 
 #include "Nav.h"
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <algorithm>
 #include <server/nautical/Ecef.h>
 #include <ctime>
@@ -192,8 +193,22 @@ Array<Angle<double> > getAwa(Array<Nav> navs) {
   }));
 }
 
-
-
+Angle<double> Nav::bestTwaEstimate() const {
+  if (hasTrueWindOverGround()) {
+    return twaFromTrueWindOverGround();
+  }
+  if (hasExternalTrueWind()) {
+    return externalTwa();
+  }
+  if (hasApparentWind()) {
+    double defaultParams[TrueWindEstimator::NUM_PARAMS];
+    TrueWindEstimator::initializeParameters(defaultParams);
+    HorizontalMotion<double> trueWind =
+      TrueWindEstimator::computeTrueWind(defaultParams, *this);
+    return calcTwa(trueWind, gpsBearing());
+  }
+  return Angle<>();
+}
 
 
 std::ostream &operator<<(std::ostream &s, const Nav &x) {

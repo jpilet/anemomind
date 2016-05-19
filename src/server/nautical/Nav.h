@@ -138,6 +138,9 @@ class Nav {
 
   Angle<double> rudderAngle() const {return _rudderAngle;}
   void setRudderAngle(const Angle<double> &x) {_rudderAngle = x;}
+
+  Angle<double> bestTwaEstimate() const;
+
  private:
   enum {
     DEVICE_SCREEN = 1,
