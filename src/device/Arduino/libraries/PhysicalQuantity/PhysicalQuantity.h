@@ -83,7 +83,7 @@ struct IntToUnitFactor {};
 
 #define MAKE_INT_TO_UNIT_FACTOR(type, index, name, factor) \
   template<> struct IntToUnitFactor<index> { \
-  static double get() {return factor;} };
+  static constexpr double get() {return factor;} };
 FOREACH_UNIT(MAKE_INT_TO_UNIT_FACTOR)
 #undef MAKE_INT_TO_UNIT_FACTOR
 
