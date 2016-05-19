@@ -758,12 +758,12 @@ string toString(T a) {
 }
 
 template <>
-string toString(Velocity<FP8_8, sail::UnitSystem::AnemoOld> a) {
+string toString(Velocity<FP8_8> a) {
   return toString((double)a.knots()) + "[kn]";
 }
 
 template <>
-string toString(Angle<short, sail::UnitSystem::AnemoOld> a) {
+string toString(Angle<short> a) {
   return toString(a.degrees()) + "[deg]";
 }
 

@@ -164,8 +164,8 @@ class NmeaParser {
         // 1/256 knots
         FP8_8::rightShiftAndConstruct(gpsSpeed_,8));
   }
-  sail::Angle<short, sail::UnitSystem::AnemoOld> gpsBearing() const {
-    return sail::Angle<short, sail::UnitSystem::AnemoOld>::degrees(gpsBearing_);  // degrees
+  sail::Angle<short> gpsBearing() const {
+    return sail::Angle<short>::degrees(gpsBearing_);  // degrees
   }
   char hour() const {
     return hour_;
