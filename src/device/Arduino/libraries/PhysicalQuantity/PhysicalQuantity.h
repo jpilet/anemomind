@@ -91,7 +91,7 @@ template <typename T, int FromUnit, int ToUnit>
 struct ConvertUnit {
 public:
   static T apply(T x) {
-    constexpr double f = IntToUnitFactor<ToUnit>::get()/IntToUnitFactor<FromUnit>::get();
+    constexpr double f = IntToUnitFactor<FromUnit>::get()/IntToUnitFactor<ToUnit>::get();
     return T(f)*x;
   }
 };
@@ -179,16 +179,18 @@ public:
   static constexpr bool isLength = (TimeDim == 0 && LengthDim == 1 && AngleDim == 0 && MassDim == 0);
   static constexpr bool isAngle = (TimeDim == 0 && LengthDim == 0 && AngleDim == 1 && MassDim == 0);
   static constexpr bool isMass = (TimeDim == 0 && LengthDim == 0 && AngleDim == 0 && MassDim == 1);
-  static constexpr bool isVelocity = (TimeDim == -1 && LengthDim == 1 && AngleDim == 0 && MassDim == 1);
+  static constexpr bool isVelocity = (TimeDim == -1 && LengthDim == 1 && AngleDim == 0 && MassDim == 0);
 
   typedef PhysicalQuantity<T, System, TimeDim, LengthDim, AngleDim, MassDim> ThisType;
 
 
 #define MAKE_UNIT_CONVERTERS(type, index, name, factor) \
   static ThisType name(T x) { \
+    static_assert(is##type, "This unit does not work with this quantity"); \
     return ThisType(ConvertUnit<T, index, System::type>::apply(x)); \
   } \
   T name() const { \
+    static_assert(is##type, "This unit does not work with this quantity"); \
     return ConvertUnit<T, System::type, index>::apply(_x); \
   }
   FOREACH_UNIT(MAKE_UNIT_CONVERTERS)
