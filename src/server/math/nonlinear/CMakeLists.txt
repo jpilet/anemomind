@@ -61,8 +61,14 @@ cxx_test(nonlinear_SpatialMedianTest
          gtest_main
         )
 
+add_library(nonlinear_CeresTrajectoryFilter
+   CeresTrajectoryFilter.h
+   CeresTrajectoryFilter.cpp
+  )
+
 cxx_test(nonlinear_CeresTrajectoryFilterTest
          CeresTrajectoryFilterTest.cpp
+         nonlinear_CeresTrajectoryFilter
          gtest_main
         )
 

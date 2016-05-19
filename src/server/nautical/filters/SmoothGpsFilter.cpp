@@ -10,6 +10,7 @@
 #include <server/common/logging.h>
 #include <server/math/nonlinear/CeresTrajectoryFilter.h>
 #include <server/common/ArrayBuilder.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -104,11 +105,15 @@ std::shared_ptr<Dispatcher> filterGpsData(const NavDataset &ds) {
       localPositions.begin(), localPositions.end(), allObservations.begin());
   CHECK(endOfMerge == allObservations.end());
 
+  // TODO: use server/math/Resampler.h to generate samples.
+  Arrayd samplingTimes = GpsUtils::getSamplingTimes(allObservations);
+
   using namespace CeresTrajectoryFilter;
   Settings settings;
   settings.huberThreshold = 12.0; // Sort of inlier threshold on the distance in meters
   settings.regWeight = 1.0;
   auto filtered = CeresTrajectoryFilter::filter(
+      samplingTimes,
       allObservations, settings, Array<Eigen::Vector2d>());
   if (filtered.empty()) {
     LOG(ERROR) << "Failed to filter GPS data";
