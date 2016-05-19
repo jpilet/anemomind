@@ -44,32 +44,32 @@
 namespace sail {
 
 #define FOREACH_TIME_UNIT(OP) \
-    OP(time, 0, milliseconds, 0.001) \
-    OP(time, 1, seconds, 1.0) \
-    OP(time, 2, minutes, 60.0) \
-    OP(time, 3, hours, 3600.0) \
-    OP(time, 4, days, 24*3600.0) \
-    OP(time, 5, weeks, 7*24*3600.0)
+    OP(Time, 0, milliseconds, 0.001) \
+    OP(Time, 1, seconds, 1.0) \
+    OP(Time, 2, minutes, 60.0) \
+    OP(Time, 3, hours, 3600.0) \
+    OP(Time, 4, days, 24*3600.0) \
+    OP(Time, 5, weeks, 7*24*3600.0)
 
 #define FOREACH_LENGTH_UNIT(OP) \
-  OP(length, 6, meters, 1.0) \
-  OP(length, 7, kilometers, 1000.0) \
-  OP(length, 8, nauticalMiles, 1852.0) // 1 nautical mile = 1852.0 m
+  OP(Length, 6, meters, 1.0) \
+  OP(Length, 7, kilometers, 1000.0) \
+  OP(Length, 8, nauticalMiles, 1852.0) // 1 nautical mile = 1852.0 m
 
 #define FOREACH_ANGLE_UNIT(OP) \
-  OP(angle, 9, radians, 1.0) \
-  OP(angle, 10, degrees, M_PI/180.0) // 1 degree = M_PI/180 radians <=> 180 degrees = M_PI radians
+  OP(Angle, 9, radians, 1.0) \
+  OP(Angle, 10, degrees, M_PI/180.0) // 1 degree = M_PI/180 radians <=> 180 degrees = M_PI radians
 
 #define FOREACH_VELOCITY_UNIT(OP) \
-  OP(velocity, 11, metersPerSecond, 1.0) \
-  OP(velocity, 12, knots, 1852.0/3600.0) \
-  OP(velocity, 13, kilometersPerHour, 1000.0/3600.0) \
-  OP(velocity, 14, milesPerHour, 1609.0/3600.0)
+  OP(Velocity, 11, metersPerSecond, 1.0) \
+  OP(Velocity, 12, knots, 1852.0/3600.0) \
+  OP(Velocity, 13, kilometersPerHour, 1000.0/3600.0) \
+  OP(Velocity, 14, milesPerHour, 1609.0/3600.0)
 
 #define FOREACH_MASS_UNIT(OP) \
-  OP(mass, 15, kilograms, 1.0) \
-  OP(mass, 16, skeppund, 170.0) \
-  OP(mass, 17, lispund, 170.0/20)
+  OP(Mass, 15, kilograms, 1.0) \
+  OP(Mass, 16, skeppund, 170.0) \
+  OP(Mass, 17, lispund, 170.0/20)
 
 #define FOREACH_UNIT(OP) \
   FOREACH_TIME_UNIT(OP) \
@@ -87,6 +87,21 @@ struct IntToUnitFactor {};
 FOREACH_UNIT(MAKE_INT_TO_UNIT_FACTOR)
 #undef MAKE_INT_TO_UNIT_FACTOR
 
+template <typename T, int FromUnit, int ToUnit>
+struct ConvertUnit {
+public:
+  static T apply(T x) {
+    constexpr double f = IntToUnitFactor<ToUnit>::get()/IntToUnitFactor<FromUnit>::get();
+    return T(f)*x;
+  }
+};
+
+template <typename T, int Unit>
+struct ConvertUnit<T, Unit, Unit> {
+public:
+  static T apply(T x) {return x;}
+};
+
 /*template <int TimeBase, int LengthBase, int VelocityBase, int AngleBase, int MassBase>
 struct GeneralUnitSystem {
 #define MAKE_WRAPPERS(base, )
@@ -103,71 +118,49 @@ struct GeneralUnitSystem {
 
 };*/
 
-enum class UnitSystem {
-  // Units that play well together, works best with floating point numbers.
-  SI,
+namespace UnitSystem {
+  struct SI {
+    static const bool mixable = true;
+    static const int Time = 1;
+    static const int Length = 6;
+    static const int Angle = 9;
+    static const int Velocity = 11;
+    static const int Mass = 15;
+  };
 
-  // Units that are suitable for fixed-point and integer representations,
-  // but don't play well together.
-  AnemoOld
+  struct AnemoOld {
+    static const bool mixable = false;
+    static const int Time = 0;
+    static const int Length = 6;
+    static const int Angle = 10;
+    static const int Velocity = 12;
+    static const int Mass = 15;
+  };
+
+  template <typename T, typename System>
+  struct Compatible {
+    static const bool value = true;
+  };
+
+  template <typename T>
+  struct Compatible<T, SI> {
+    static const bool value = std::is_floating_point<T>::value;
+  };
 };
 
-
-
-#define MAKE_PHYSQUANT_UNIT_CONVERTERS(sys, t, l, a, m, name, fromFactor) \
-    static PhysicalQuantity<T, UnitSystem::sys, t, l, a, m> name(T x) { \
-      return PhysicalQuantity<T, UnitSystem::sys, t, l, a, m>(T(fromFactor)*x); \
-    } \
-  T name() const { \
-    static_assert(TimeDim == t, "Not applicable on this type"); \
-    static_assert(LengthDim == l, "Not applicable on this type"); \
-    static_assert(AngleDim == a, "Not applicable on this type"); \
-    static_assert(MassDim == m, "Not applicable on this type"); \
-    return (T(1.0) / T(fromFactor))*(this->_x); \
-  }
-
-#define MAKE_PHYSQUANT_BASE_CONVERTERS(sys, t, l, a, m, name) \
-    static PhysicalQuantity<T, UnitSystem::sys, t, l, a, m> name(T x) { \
-      return PhysicalQuantity<T, UnitSystem::sys, t, l, a, m>(x); \
-    } \
-    T name() const { \
-      static_assert(TimeDim == t, "Not applicable on this type"); \
-      static_assert(LengthDim == l, "Not applicable on this type"); \
-      static_assert(AngleDim == a, "Not applicable on this type"); \
-      static_assert(MassDim == m, "Not applicable on this type"); \
-      return (this->_x); \
-    }
-
-
-#define MAKE_PHYSQUANT_TIME_CONVERTERS(sys, name, fromFactor) \
-    MAKE_PHYSQUANT_UNIT_CONVERTERS(sys, 1, 0, 0, 0, name, fromFactor)
-
-#define MAKE_PHYSQUANT_LENGTH_CONVERTERS(sys, name, fromFactor) \
-    MAKE_PHYSQUANT_UNIT_CONVERTERS(sys, 0, 1, 0, 0, name, fromFactor)
-
-#define MAKE_PHYSQUANT_VELOCITY_CONVERTERS(sys, name, fromFactor) \
-    MAKE_PHYSQUANT_UNIT_CONVERTERS(sys, -1, 1, 0, 0, name, fromFactor)
-
-#define MAKE_PHYSQUANT_ANGLE_CONVERTERS(sys, name, fromFactor) \
-    MAKE_PHYSQUANT_UNIT_CONVERTERS(sys, 0, 0, 1, 0, name, fromFactor)
-
-#define MAKE_PHYSQUANT_MASS_CONVERTERS(sys, name, fromFactor) \
-    MAKE_PHYSQUANT_UNIT_CONVERTERS(sys, 0, 0, 0, 1, name, fromFactor)
-
-template <typename T, UnitSystem system, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
+template <typename T, typename system, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
 class PhysicalQuantity;
 
 #if ON_SERVER
-template <typename T, UnitSystem sys>
+template <typename T, typename sys>
 std::string physQuantToString(const PhysicalQuantity<T, sys, 1, 0, 0, 0> &x);
 #endif
 
-template <typename T, UnitSystem System, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
+template <typename T, typename System, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
 class PhysicalQuantity {
 public:
-  /*static_assert(std::is_floating_point<T>::value
-      || (System == UnitSystem::AnemoOld),
-      "Please only use floating point numbers with SI units");*/
+  static_assert(UnitSystem::Compatible<T, System>::value,
+      "The type T is incompatible with the unit system");
 
   typedef T ValueType;
 
@@ -190,41 +183,22 @@ public:
 
   typedef PhysicalQuantity<T, System, TimeDim, LengthDim, AngleDim, MassDim> ThisType;
 
+
+#define MAKE_UNIT_CONVERTERS(type, index, name, factor) \
+  static ThisType name(T x) { \
+    return ThisType(ConvertUnit<T, index, System::type>::apply(x)); \
+  } \
+  T name() const { \
+    return ConvertUnit<T, System::type, index>::apply(_x); \
+  }
+  FOREACH_UNIT(MAKE_UNIT_CONVERTERS)
+
   // Should not be used outside of this class/file.
   static ThisType pleaseAvoidThisPrivateConstructor(T x) {
     return ThisType(x);
   }
 
   static PhysicalQuantity<T, System, 0, 0, 0, 0> scalar(T x) {return PhysicalQuantity<T, System, 0, 0, 0, 0>(x);}
-
-  // SI units
-  MAKE_PHYSQUANT_TIME_CONVERTERS(SI, milliseconds, 0.001)
-  MAKE_PHYSQUANT_BASE_CONVERTERS(SI, 1, 0, 0, 0, seconds)
-  MAKE_PHYSQUANT_TIME_CONVERTERS(SI, minutes, 60.0) // Read as: One minute is 60 seconds
-  MAKE_PHYSQUANT_TIME_CONVERTERS(SI, hours, 3600.0)
-  MAKE_PHYSQUANT_TIME_CONVERTERS(SI, days, 24*3600.0)
-  MAKE_PHYSQUANT_TIME_CONVERTERS(SI, weeks, 7*24*3600.0)
-
-  MAKE_PHYSQUANT_BASE_CONVERTERS(SI, 0, 1, 0, 0, meters)
-  MAKE_PHYSQUANT_LENGTH_CONVERTERS(SI, kilometers, 1000.0)
-  MAKE_PHYSQUANT_LENGTH_CONVERTERS(SI, nauticalMiles, 1852.0)
-
-  MAKE_PHYSQUANT_BASE_CONVERTERS(SI, 0, 0, 1, 0, radians)
-  MAKE_PHYSQUANT_ANGLE_CONVERTERS(SI, degrees, M_PI/180.0)
-
-  MAKE_PHYSQUANT_VELOCITY_CONVERTERS(SI, knots, 1852.0/3600.0)
-  MAKE_PHYSQUANT_BASE_CONVERTERS(SI, -1, 1, 0, 0, metersPerSecond)
-  MAKE_PHYSQUANT_VELOCITY_CONVERTERS(SI, kilometersPerHour, 1000.0/3600.0)
-  MAKE_PHYSQUANT_VELOCITY_CONVERTERS(SI, milesPerHour, 1609.0/3600.0)
-
-  MAKE_PHYSQUANT_BASE_CONVERTERS(SI, 0, 0, 0, 1, kilograms)
-  MAKE_PHYSQUANT_MASS_CONVERTERS(SI, skeppund, 170.0)
-  MAKE_PHYSQUANT_MASS_CONVERTERS(SI, lispund, 170.0/20.0)
-
-
-
-
-
 
   static PhysicalQuantity<T, System, TimeDim, LengthDim, AngleDim, MassDim> wrap(T x) {
     return PhysicalQuantity<T, System, TimeDim, LengthDim, AngleDim, MassDim>(x);
@@ -368,29 +342,29 @@ private:
 
 
 // http://en.cppreference.com/w/cpp/language/type_alias
-template <typename T=double, UnitSystem System=UnitSystem::SI>
+template <typename T=double, typename System=UnitSystem::SI>
 using Duration = PhysicalQuantity<T, System, 1, 0, 0, 0>;
 
-template <typename T=double, UnitSystem System=UnitSystem::SI>
+template <typename T=double, typename System=UnitSystem::SI>
 using Length = PhysicalQuantity<T, System, 0, 1, 0, 0>;
 
-template <typename T=double, UnitSystem System=UnitSystem::SI>
+template <typename T=double, typename System=UnitSystem::SI>
 using Velocity = PhysicalQuantity<T, System, -1, 1, 0, 0>;
 
-template <typename T=double, UnitSystem System=UnitSystem::SI>
+template <typename T=double, typename System=UnitSystem::SI>
 using Angle = PhysicalQuantity<T, System, 0, 0, 1, 0>;
 
-template <typename T=double, UnitSystem System=UnitSystem::SI>
+template <typename T=double, typename System=UnitSystem::SI>
 using Mass = PhysicalQuantity<T, System, 0, 0, 0, 1>;
 
-template <typename T, UnitSystem System, int t, int l, int a, int m>
+template <typename T, typename System, int t, int l, int a, int m>
 PhysicalQuantity<T, System, t, l, a, m> operator*(T s,
     const PhysicalQuantity<T, System, t, l, a, m> &x) {
   return x*s;
 }
 
 #if ON_SERVER
-template <typename T, UnitSystem System>
+template <typename T, typename System>
 std::string physQuantToString(const PhysicalQuantity<T, System, 1, 0, 0, 0> &x) {
    std::stringstream ss;
    Duration<T> remaining(x);
@@ -577,11 +551,11 @@ class HorizontalMotion : public Vectorize<Velocity<T>, 2> {
     };
 };
 
-template <typename T, UnitSystem s, int t, int l, int a, int m>
+template <typename T, typename s, int t, int l, int a, int m>
 bool isFinite(const PhysicalQuantity<T, s, t, l, a, m> &x) {
   return x.isFiniteQuantity();
 }
-template <typename T, UnitSystem s, int t, int l, int a, int m>
+template <typename T, typename s, int t, int l, int a, int m>
 bool isNaN(const PhysicalQuantity<T, s, t, l, a, m> &x) {
   return x.isNaNQuantity();
 }
@@ -593,7 +567,7 @@ bool isNaN(const PhysicalQuantity<T, s, t, l, a, m> &x) {
 #undef MAKE_PHYSQUANT_UNIT_CONVERTERS
 #undef DECLARE_PHYSQUANT_CONSTRUCTORS
 
-template <typename T, sail::UnitSystem s, int t, int l, int a, int m>
+template <typename T, typename s, int t, int l, int a, int m>
 sail::PhysicalQuantity<T, s, t, l, a, m> fabs(sail::PhysicalQuantity<T, s, t, l, a, m> x) {
   return x.fabs();
 }
