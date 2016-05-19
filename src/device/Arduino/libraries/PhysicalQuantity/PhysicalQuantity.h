@@ -46,39 +46,6 @@
 ////////////////////////////////////
 
 
-  Angle directionDifference(const Angle<T>& other) const {
-    return (*this - other).normalizedAt0();
-  }
-
-  Angle<T> moveToInterval(Angle<T> lower, Angle<T> upper) const {
-    Angle<T> result(*this);
-    while (result < lower) {
-      result += Angle<T>::degrees(T(360));
-    }
-    while (result >= upper) {
-      result -= Angle<T>::degrees(T(360));
-    }
-    return result;
-  }
-
-  Angle<T> normalizedAt0() const {
-    return moveToInterval(Angle<T>::degrees(T(-180)),
-        Angle<T>::degrees(T(180)));
-  }
-
-  Angle<T> positiveMinAngle() const {
-    return moveToInterval(Angle<T>::degrees(T(0)),
-        Angle<T>::degrees(T(360)));
-  }
-
-  static Angle<T> degMinMc(T deg, T min, T mc) {
-      return Angle<T>::degrees(T(deg + (1.0/60)*(min + 0.001*mc)));
-  }
-  void sincos(T *sinAngle, T *cosAngle) const {
-    T rad = radians();
-    *sinAngle = sin(rad);
-    *cosAngle = cos(rad);
-  }
 
 
 
@@ -207,7 +174,18 @@ class PhysicalQuantity {
 public:
   PhysicalQuantity() : _x(T(NAN)) {}
 
+  static constexpr bool isTime = (TimeDim == 1 && LengthDim == 0 && AngleDim == 0 && MassDim == 0);
+  static constexpr bool isLength = (TimeDim == 0 && LengthDim == 1 && AngleDim == 0 && MassDim == 0);
+  static constexpr bool isAngle = (TimeDim == 0 && LengthDim == 0 && AngleDim == 1 && MassDim == 0);
+  static constexpr bool isMass = (TimeDim == 0 && LengthDim == 0 && AngleDim == 0 && MassDim == 1);
+  static constexpr bool isVelocity = (TimeDim == -1 && LengthDim == 1 && AngleDim == 0 && MassDim == 1);
+
   typedef PhysicalQuantity<T, TimeDim, LengthDim, AngleDim, MassDim> ThisType;
+
+  // Should not be used outside of this class/file.
+  static ThisType pleaseAvoidThisPrivateConstructor(T x) {
+    return ThisType(x);
+  }
 
   static PhysicalQuantity<T, 0, 0, 0, 0> scalar(T x) {return PhysicalQuantity<T, 0, 0, 0, 0>(x);}
 
@@ -233,14 +211,6 @@ public:
 
   MAKE_PHYSQUANT_ANGLE_CONVERTERS(radians, 1.0)
   MAKE_PHYSQUANT_ANGLE_CONVERTERS(degrees, M_PI/180.0);
-
-  /*operator T () const {
-    static_assert(TimeDim == 0, "Only dimensionless units");
-    static_assert(LengthDim == 0, "Only dimensionless units");
-    static_assert(AngleDim == 0, "Only dimensionless units");
-    static_assert(MassDim == 0, "Only dimensionless units");
-    return _x;
-  }*/
 
   static PhysicalQuantity<T, TimeDim, LengthDim, AngleDim, MassDim> wrap(T x) {
     return PhysicalQuantity<T, TimeDim, LengthDim, AngleDim, MassDim>(x);
@@ -286,12 +256,63 @@ public:
 
   bool isFiniteQuantity() const { return sail::isFinite(_x); }
 
+  ThisType operator-() const {
+    return ThisType(-_x);
+  }
+
   bool operator < (ThisType other) const {return _x < other._x;}
   bool operator <= (ThisType other) const {return _x <= other._x;}
   bool operator > (ThisType other) const {return _x > other._x;}
   bool operator >= (ThisType other) const {return _x >= other._x;}
   bool operator == (ThisType other) const {return _x == other._x;}
 
+
+  template <typename S>
+  PhysicalQuantity<S, TimeDim, LengthDim, AngleDim, MassDim> cast() const {
+    return PhysicalQuantity<S,
+        TimeDim, LengthDim, AngleDim, MassDim>::pleaseAvoidThisPrivateConstructor(static_cast<S>(_x));
+  }
+
+  ThisType directionDifference(const ThisType& other) const {
+    static_assert(isAngle, "Only applicable to angles");
+    return (*this - other).normalizedAt0();
+  }
+
+  ThisType moveToInterval(ThisType lower, ThisType upper) const {
+    static_assert(isAngle, "Only applicable to angles");
+    ThisType result(*this);
+    while (result < lower) {
+      result += ThisType::degrees(T(360));
+    }
+    while (result >= upper) {
+      result -= ThisType::degrees(T(360));
+    }
+    return result;
+  }
+
+  ThisType normalizedAt0() const {
+    static_assert(isAngle, "Only applicable to angles");
+    return moveToInterval(ThisType::degrees(T(-180)),
+        ThisType::degrees(T(180)));
+  }
+
+  ThisType positiveMinAngle() const {
+    static_assert(isAngle, "Only applicable to angles");
+    return moveToInterval(ThisType::degrees(T(0)),
+        ThisType::degrees(T(360)));
+  }
+
+  static ThisType degMinMc(T deg, T min, T mc) {
+    static_assert(isAngle, "Only applicable to angles");
+    return ThisType::degrees(T(deg + (1.0/60)*(min + 0.001*mc)));
+  }
+
+  void sincos(T *sinAngle, T *cosAngle) const {
+    static_assert(isAngle, "Only applicable to angles");
+    T rad = radians();
+    *sinAngle = sin(rad);
+    *cosAngle = cos(rad);
+  }
 
 #ifdef ON_SERVER
   std::string str() const {
@@ -324,14 +345,10 @@ PhysicalQuantity<T, t, l, a, m> operator*(T s, const PhysicalQuantity<T, t, l, a
   return x*s;
 }
 
-template <typename T, int TimeDim, int LengthDim, int AngleDim, int MassDim>
-std::string toString(const PhysicalQuantity<T, TimeDim, LengthDim, AngleDim, MassDim> &x) {
-  static_assert(TimeDim == 1, "Only for time");
-   static_assert(LengthDim == 0, "Only for time");
-   static_assert(AngleDim == 0, "Only for time");
-   static_assert(MassDim == 0, "Only for time");
+template <typename T>
+std::string toString(const PhysicalQuantity<T, 1, 0, 0, 0> &x) {
    std::stringstream ss;
-   Duration<T> remaining(*this);
+   Duration<T> remaining(x);
 #define FORMAT_DURATION_UNIT(unit) \
    if (remaining.unit() >= 1) { \
      if (ss.str().size() > 0) ss << ", "; \
