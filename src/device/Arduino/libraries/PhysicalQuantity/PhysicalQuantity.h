@@ -43,19 +43,65 @@
 
 namespace sail {
 
-#define FOREACH_UNIT(OP) \
-  OP(milliseconds, 0.001) \
-  OP(seconds, 1.0) \
-  OP(minutes, 60.0) \
-  OP(hours, 3600.0) \
-  OP(days, 24*3600.0) \
-  OP(weeks, 7*24*3600.0) \
-  OP(meters, 1.0) \
-  OP(nauticalMiles, 1852.0) \
-  OP(kilograms, 1.0) \
-  OP(radians, 1.0) \
-  OP(degrees, M_PI/180.0)
+#define FOREACH_TIME_UNIT(OP) \
+    OP(time, 0, milliseconds, 0.001) \
+    OP(time, 1, seconds, 1.0) \
+    OP(time, 2, minutes, 60.0) \
+    OP(time, 3, hours, 3600.0) \
+    OP(time, 4, days, 24*3600.0) \
+    OP(time, 5, weeks, 7*24*3600.0)
 
+#define FOREACH_LENGTH_UNIT(OP) \
+  OP(length, 6, meters, 1.0) \
+  OP(length, 7, kilometers, 1000.0) \
+  OP(length, 8, nauticalMiles, 1852.0) // 1 nautical mile = 1852.0 m
+
+#define FOREACH_ANGLE_UNIT(OP) \
+  OP(angle, 9, radians, 1.0) \
+  OP(angle, 10, degrees, M_PI/180.0) // 1 degree = M_PI/180 radians <=> 180 degrees = M_PI radians
+
+#define FOREACH_VELOCITY_UNIT(OP) \
+  OP(velocity, 11, metersPerSecond, 1.0) \
+  OP(velocity, 12, knots, 1852.0/3600.0) \
+  OP(velocity, 13, kilometersPerHour, 1000.0/3600.0) \
+  OP(velocity, 14, milesPerHour, 1609.0/3600.0)
+
+#define FOREACH_MASS_UNIT(OP) \
+  OP(mass, 15, kilograms, 1.0) \
+  OP(mass, 16, skeppund, 170.0) \
+  OP(mass, 17, lispund, 170.0/20)
+
+#define FOREACH_UNIT(OP) \
+  FOREACH_TIME_UNIT(OP) \
+  FOREACH_LENGTH_UNIT(OP) \
+  FOREACH_ANGLE_UNIT(OP) \
+  FOREACH_VELOCITY_UNIT(OP) \
+  FOREACH_MASS_UNIT(OP)
+
+template <int Index>
+struct IntToUnitFactor {};
+
+#define MAKE_INT_TO_UNIT_FACTOR(type, index, name, factor) \
+  template<> struct IntToUnitFactor<index> { \
+  static double get() {return factor;} };
+FOREACH_UNIT(MAKE_INT_TO_UNIT_FACTOR)
+#undef MAKE_INT_TO_UNIT_FACTOR
+
+/*template <int TimeBase, int LengthBase, int VelocityBase, int AngleBase, int MassBase>
+struct GeneralUnitSystem {
+#define MAKE_WRAPPERS(base, )
+};*/
+
+/*namespace UnitSystem {
+
+  struct SI {
+    static const int timeBase = 1;
+    static const int lengthBase = 6;
+    static const int velocityBase = 11;
+    static const int
+  };
+
+};*/
 
 enum class UnitSystem {
   // Units that play well together, works best with floating point numbers.
@@ -119,9 +165,9 @@ std::string physQuantToString(const PhysicalQuantity<T, sys, 1, 0, 0, 0> &x);
 template <typename T, UnitSystem System, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
 class PhysicalQuantity {
 public:
-  static_assert(std::is_floating_point<T>::value
+  /*static_assert(std::is_floating_point<T>::value
       || (System == UnitSystem::AnemoOld),
-      "Please only use floating point numbers with SI units");
+      "Please only use floating point numbers with SI units");*/
 
   typedef T ValueType;
 
