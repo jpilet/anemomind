@@ -66,10 +66,9 @@
         </div>
       </p>                  
       <div class="card-content-bottom">
-        <i class="fa fa-camera red"></i>
-        <i class="fa fa-picture-o red"></i>
-        <i class="fa fa-comment-o red"></i>
-        <i class="fa fa-flag red"></i>
+        <i class="fa fa-picture-o red" ng-show="hasPhoto(session)"></i>
+        <i class="fa fa-comment-o red" ng-show="hasComment(session)"></i>
+        <i class="fa fa-flag red hide"></i>
       </div>
       <div class="card-content-mobile">
         <i class="fa fa-angle-right fa-5x red" aria-hidden="true"></i>
