@@ -349,21 +349,6 @@ using Angle = PhysicalQuantity<T, System, 0, 0, 1, 0>;
 template <typename T=double, typename System=UnitSystem::AnemoOld>
 using Mass = PhysicalQuantity<T, System, 0, 0, 0, 1>;
 
-template <typename T=double>
-using OldDuration = PhysicalQuantity<T, UnitSystem::AnemoOld, 1, 0, 0, 0>;
-
-template <typename T=double>
-using OldLength = PhysicalQuantity<T, UnitSystem::AnemoOld, 0, 1, 0, 0>;
-
-template <typename T=double>
-using OldVelocity = PhysicalQuantity<T, UnitSystem::AnemoOld, -1, 1, 0, 0>;
-
-template <typename T=double>
-using OldAngle = PhysicalQuantity<T, UnitSystem::AnemoOld, 0, 0, 1, 0>;
-
-template <typename T=double>
-using OldMass = PhysicalQuantity<T, UnitSystem::AnemoOld, 0, 0, 0, 1>;
-
 template <typename T, typename System, int t, int l, int a, int m>
 PhysicalQuantity<T, System, t, l, a, m> operator*(T s,
     const PhysicalQuantity<T, System, t, l, a, m> &x) {
