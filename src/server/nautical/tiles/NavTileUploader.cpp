@@ -56,6 +56,12 @@ BSONObj navToBSON(const Nav& nav) {
   if (nav.hasTrueWindOverGround()) {
     result.append("twdir", calcTwdir(nav.trueWindOverGround()).degrees());
     result.append("deviceTws", calcTws(nav.trueWindOverGround()).knots());
+  } else {
+    HorizontalMotion<double> trueWind = nav.estimateTrueWind();
+    if (!isNaN(trueWind[0])) {
+      result.append("twdir", calcTwdir(trueWind).degrees());
+      result.append("deviceTws", calcTws(trueWind).knots());
+    }
   }
 
   // Old anemobox simulated data.
@@ -361,6 +367,8 @@ bool generateAndUploadTiles(std::string boatId,
 
   if (params.fullClean) {
     db.remove(params.tileTable(),
+               MONGO_QUERY("boat" << OID(boatId)));
+    db.remove(params.sessionTable(),
                MONGO_QUERY("boat" << OID(boatId)));
   }
 

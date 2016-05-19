@@ -139,6 +139,9 @@ class Nav {
   Angle<double> rudderAngle() const {return _rudderAngle;}
   void setRudderAngle(const Angle<double> &x) {_rudderAngle = x;}
 
+  // Estimate true wind without calibration. The result will probably not be
+  // very accurate.
+  HorizontalMotion<double> estimateTrueWind() const;
   Angle<double> bestTwaEstimate() const;
 
  private:

@@ -193,6 +193,12 @@ Array<Angle<double> > getAwa(Array<Nav> navs) {
   }));
 }
 
+HorizontalMotion<double> Nav::estimateTrueWind() const {
+    double defaultParams[TrueWindEstimator::NUM_PARAMS];
+    TrueWindEstimator::initializeParameters(defaultParams);
+    return TrueWindEstimator::computeTrueWind(defaultParams, *this);
+}
+
 Angle<double> Nav::bestTwaEstimate() const {
   if (hasTrueWindOverGround()) {
     return twaFromTrueWindOverGround();
@@ -201,15 +207,10 @@ Angle<double> Nav::bestTwaEstimate() const {
     return externalTwa();
   }
   if (hasApparentWind()) {
-    double defaultParams[TrueWindEstimator::NUM_PARAMS];
-    TrueWindEstimator::initializeParameters(defaultParams);
-    HorizontalMotion<double> trueWind =
-      TrueWindEstimator::computeTrueWind(defaultParams, *this);
-    return calcTwa(trueWind, gpsBearing());
+    return calcTwa(estimateTrueWind(), gpsBearing());
   }
   return Angle<>();
 }
-
 
 std::ostream &operator<<(std::ostream &s, const Nav &x) {
   s << "Nav:\n";
