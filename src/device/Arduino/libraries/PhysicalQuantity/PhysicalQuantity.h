@@ -22,37 +22,6 @@
 ////////////////////////////////////
 
 #ifdef ON_SERVER
-  std::string str() const {
-    std::stringstream ss;
-    Duration<T> remaining(*this);
-
-#define FORMAT_DURATION_UNIT(unit) \
-    if (remaining.unit() >= 1) { \
-      if (ss.str().size() > 0) ss << ", "; \
-      ss << floor(remaining.unit()) << " " #unit ; \
-      remaining -= unit(floor(remaining.unit())); \
-    }
-    FORMAT_DURATION_UNIT(weeks)
-    FORMAT_DURATION_UNIT(days)
-    FORMAT_DURATION_UNIT(hours)
-    FORMAT_DURATION_UNIT(minutes)
-    FORMAT_DURATION_UNIT(seconds)
-#undef FORMAT_DURATION_UNIT
-    return ss.str();
-  }
-#endif
-
-
-////////////////////////////////////
-
-
-
-
-
-
-////////////////////////////////////
-
-#ifdef ON_SERVER
   // Special method returning true for the comparison nan == nan.
   bool eqWithNan(ThisQuantity other) const {
     return strictEquality(_x, other.get());
@@ -73,37 +42,6 @@ const Value PhysicalQuantity<Quantity, Value>::defaultValue =
 #endif
 
 
-
-
-
-/////////////////////////////////////////////////////////////////////////
- *   // Additon/subtraction --> Quantity
-  Quantity operator+(ThisQuantity other) const {
-    return Quantity::makeFromX(_x + other.get());
-  }
-
-  ThisQuantity &operator += (ThisQuantity other) {
-    _x += other.get();
-    return *this;
-  }
-
-  Quantity operator-(ThisQuantity other) const {
-    return Quantity::makeFromX(_x - other.get());
-  }
-
-  Quantity operator-() const {
-    return Quantity::makeFromX(-_x);
-  }
-
-  ThisQuantity &operator -= (ThisQuantity other) {
-    _x -= other.get();
-    return *this;
-  }
-
-
-  Value operator/ (Quantity other) const {
-      return _x/other._x;
-    }
 
 
  */
@@ -250,6 +188,16 @@ public:
     return ThisType(_x - other._x);
   }
 
+  ThisType &operator+=(const ThisType &other) {
+    _x += other._x;
+    return *this;
+  }
+
+  ThisType &operator-=(const ThisType &other) {
+    _x -= other._x;
+    return *this;
+  }
+
   ThisType fabs() const { return ThisType(::fabs(_x)); }
 
   bool isNaNQuantity() const { return sail::isNaN(_x); }
@@ -353,7 +301,7 @@ std::string toString(const PhysicalQuantity<T, 1, 0, 0, 0> &x) {
    if (remaining.unit() >= 1) { \
      if (ss.str().size() > 0) ss << ", "; \
      ss << floor(remaining.unit()) << " " #unit ; \
-     remaining -= unit(floor(remaining.unit())); \
+     remaining -= Duration<T>::unit(floor(remaining.unit())); \
    }
    FORMAT_DURATION_UNIT(weeks)
    FORMAT_DURATION_UNIT(days)
