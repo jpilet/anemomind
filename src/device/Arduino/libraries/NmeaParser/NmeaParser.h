@@ -159,13 +159,13 @@ class NmeaParser {
   }
 
   // GPS data
-  sail::Velocity<FP8_8> gpsSpeed() const {
-    return sail::Velocity<FP8_8>::knots(
+  sail::Velocity<FP8_8, sail::UnitSystem::AnemoOld> gpsSpeed() const {
+    return sail::Velocity<FP8_8, sail::UnitSystem::AnemoOld>::knots(
         // 1/256 knots
         FP8_8::rightShiftAndConstruct(gpsSpeed_,8));
   }
-  sail::Angle<short> gpsBearing() const {
-    return sail::Angle<short>::degrees(gpsBearing_);  // degrees
+  sail::Angle<short, sail::UnitSystem::AnemoOld> gpsBearing() const {
+    return sail::Angle<short, sail::UnitSystem::AnemoOld>::degrees(gpsBearing_);  // degrees
   }
   char hour() const {
     return hour_;

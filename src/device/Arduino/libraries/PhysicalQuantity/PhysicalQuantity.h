@@ -209,6 +209,7 @@ public:
   template <int t, int l, int a, int m>
   PhysicalQuantity<T, System, TimeDim + t, LengthDim + l, AngleDim + a, MassDim + m> operator*(
       const PhysicalQuantity<T, System, t, l, a, m> &other) const {
+    static_assert(System::mixable, "This unit system does not allow for mixing types");
     PhysicalQuantity<T, System, TimeDim + t, LengthDim + l,
     AngleDim + a, MassDim + m>::pleaseAvoidThisPrivateConstructor(_x*other._x);
   }
@@ -216,6 +217,7 @@ public:
   template <int t, int l, int a, int m>
   PhysicalQuantity<T, System, TimeDim - t, LengthDim - l, AngleDim - a, MassDim - m> operator/(
       const PhysicalQuantity<T, System, t, l, a, m> &other) const {
+    static_assert(System::mixable, "This unit system does not allow for mixing types");
     PhysicalQuantity<T, System, TimeDim - t, LengthDim - l,
     AngleDim - a, MassDim - m>::pleaseAvoidThisPrivateConstructor(_x/other._x);
   }
