@@ -30,14 +30,26 @@ namespace {
 
   typedef std::pair<TimedValue<int>, TimedValue<std::string> > Pair;
 
-
   template <typename T>
-  bool operator==(const TimedValue<T> &a, const TimedValue<T> &b) {
+  bool equal(const TimedValue<T> &a, const TimedValue<T> &b) {
     return a.time == b.time && a.value == b.value;
   }
 
-  bool operator==(const Pair &a, const Pair &b) {
-    return a.first == b.first && a.second == b.second;
+  bool equal(const Pair &a, const Pair &b) {
+    return equal(a.first, b.first) && equal(a.second, b.second);
+  }
+
+  bool equalArrays(const Array<Pair> &a, const Array<Pair> &b) {
+    if (a.size() != b.size()) {
+      return false;
+    }
+    int n = a.size();
+    for (int i = 0; i < n; i++) {
+      if (!equal(a[i], b[i])) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 
@@ -68,7 +80,7 @@ TEST(TVPTest, OnePair) {
   Array<TimedValue<std::string> > B{tv(0.0, "rulle")};
   auto C = TimedValuePairs::makeTimedValuePairs(A.begin(), A.end(), B.begin(), B.end());
   EXPECT_EQ(C.size(), 1);
-  EXPECT_TRUE(Pair(C[0]) == (Pair{tv(0.0, 119), tv(0.0, "rulle")}));
+  EXPECT_TRUE(equal(Pair(C[0]), (Pair{tv(0.0, 119), tv(0.0, "rulle")})));
 }
 
 TEST(TVPTest, TwoPairs) {
@@ -76,10 +88,10 @@ TEST(TVPTest, TwoPairs) {
   Array<TimedValue<std::string> > B{tv(0.1, "rulle")};
   auto C = TimedValuePairs::makeTimedValuePairs(A.begin(), A.end(), B.begin(), B.end());
   EXPECT_EQ(C.size(), 2);
-  EXPECT_TRUE(C == (Array<Pair>{
+  EXPECT_TRUE(equalArrays(C, (Array<Pair>{
     Pair{tv(0.0, 119), tv(0.1, "rulle")},
     Pair{tv(1.0, 120), tv(0.1, "rulle")}
-  }));
+  })));
 }
 
 TEST(TVPTest, TwoSeparatePairs) {
@@ -87,10 +99,10 @@ TEST(TVPTest, TwoSeparatePairs) {
   Array<TimedValue<std::string> > B{tv(0.1, "rulle"), tv(0.2, "bulle")};
   auto C = TimedValuePairs::makeTimedValuePairs(A.begin(), A.end(), B.begin(), B.end());
   EXPECT_EQ(C.size(), 2);
-  EXPECT_TRUE(C == (Array<Pair>{
+  EXPECT_TRUE(equalArrays(C, (Array<Pair>{
     Pair{tv(0.0, 119), tv(0.1, "rulle")},
     Pair{tv(1.0, 120), tv(0.2, "bulle")}
-  }));
+  })));
 }
 
 TEST(TVPTest, TwoSeparatePairsAndOneUnusedSample) {
@@ -98,8 +110,8 @@ TEST(TVPTest, TwoSeparatePairsAndOneUnusedSample) {
   Array<TimedValue<std::string> > B{tv(0.1, "rulle"), tv(0.15, "unused"), tv(0.2, "bulle")};
   auto C = TimedValuePairs::makeTimedValuePairs(A.begin(), A.end(), B.begin(), B.end());
   EXPECT_EQ(C.size(), 2);
-  EXPECT_TRUE(C == (Array<Pair>{
+  EXPECT_TRUE(equalArrays(C, (Array<Pair>{
     Pair{tv(0.0, 119), tv(0.1, "rulle")},
     Pair{tv(1.0, 120), tv(0.2, "bulle")}
-  }));
+  })));
 }
