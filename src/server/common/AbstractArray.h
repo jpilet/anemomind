@@ -9,6 +9,7 @@
 #define SERVER_COMMON_ABSTRACTARRAY_H_
 
 #include <iterator>
+#include <assert.h>
 #include <server/common/traits.h>
 
 namespace sail {
@@ -36,10 +37,12 @@ public:
   AbstractArrayIterator<T> end() const;
 
   T first() const {
+    assert(!empty());
     return (*this)[0];
   }
 
   T last() const {
+    assert(!empty());
     return (*this)[size() - 1];
   }
 
