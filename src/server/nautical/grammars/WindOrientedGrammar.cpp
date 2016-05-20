@@ -228,9 +228,7 @@ namespace {
   }
 
   int mapToRawMinorState(const Nav &nav) {
-    return mapToRawMinorState(
-        toFinite(nav.twaFromTrueWindOverGround().degrees(),
-            nav.externalTwa().degrees()));
+    return mapToRawMinorState(nav.bestTwaEstimate().degrees());
   }
 }
 

@@ -207,11 +207,11 @@ angular.module('www2App')
 
       $scope.vmgPerf = perfAtPoint($scope.currentPoint);
       $scope.twa = getPointValue(['twa', 'externalTwa']);
-      $scope.tws =  getPointValue(['twa', 'externalTws']);
+      $scope.tws =  getPointValue(['tws', 'externalTws']);
       $scope.gpsSpeed = getPointValue(['gpsSpeed']);
       $scope.twdir = twdir();
       $scope.gpsBearing = getPointValue(['gpsBearing']);
-      $scope.deviceVmg = getPointValue(['deviceVmg']);
+      $scope.deviceVmg = getPointValue(['vmg', 'deviceVmg']);
       if ($scope.deviceVmg) {
         $scope.deviceVmg = Math.abs($scope.deviceVmg);
       }
