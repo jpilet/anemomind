@@ -33,6 +33,8 @@ Array<TimedObservation<2> > toLocalObservations(
 Array<TimedObservation<2> > toLocalObservations(TimeStamp timeReference,
     const Array<TimedValue<HorizontalMotion<double> > > &motions);
 
+Arrayd getSamplingTimes(const Array<TimedObservation<2> > &observations);
+
 }
 }
 

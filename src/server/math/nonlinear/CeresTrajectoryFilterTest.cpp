@@ -21,6 +21,20 @@ namespace {
 
 using namespace CeresTrajectoryFilter;
 
+TEST(FilterTest, MoveIntervalForwardTest) {
+
+  Arrayd samples{0, 4, 5, 7, 9};
+  Arrayd times{0.1, 0.2, 0.3, 4.5, 6, 6.1, 6.2};
+
+  int intervalIndex = 0;
+  std::vector<int> visitedIntervals;
+  for (auto t: times) {
+    intervalIndex = moveIntervalIndexForward(samples, intervalIndex, t);
+    visitedIntervals.push_back(intervalIndex);
+  }
+  EXPECT_EQ(visitedIntervals, (std::vector<int>{0, 0, 0, 1, 2, 2, 2}));
+}
+
 TEST(FilterTest, TestNoOutliersPositions) {
 
 
@@ -32,7 +46,7 @@ TEST(FilterTest, TestNoOutliersPositions) {
   Settings settings;
   settings.regWeight = 0.0;
   settings.ceresOptions.minimizer_progress_to_stdout = false;
-  auto Y = filter(observations, settings, Array<Obs1::Vec>());
+  auto Y = filter(Arrayd{0.0, 3.0}, observations, settings, Array<Obs1::Vec>());
 
   EXPECT_EQ(Y.size(), 2);
 
@@ -51,7 +65,7 @@ TEST(FilterTest, TestBoundaryFit) {
   Settings settings;
   settings.regWeight = 0.0;
   settings.ceresOptions.minimizer_progress_to_stdout = false;
-  auto Y = filter(observations, settings, Array<Obs1::Vec>());
+  auto Y = filter(Arrayd{1.0, 3.0}, observations, settings, Array<Obs1::Vec>());
 
   EXPECT_EQ(Y.size(), 2);
 
@@ -70,7 +84,7 @@ TEST(FilterTest, TestBoundaryFit2) {
   Settings settings;
   settings.regWeight = 0.0;
   settings.ceresOptions.minimizer_progress_to_stdout = false;
-  auto Y = filter(observations, settings, Array<Obs1::Vec>());
+  auto Y = filter(Arrayd{1.0, 3.0}, observations, settings, Array<Obs1::Vec>());
 
   EXPECT_EQ(Y.size(), 2);
 
@@ -81,15 +95,16 @@ TEST(FilterTest, TestBoundaryFit2) {
 TEST(FilterTest, TestInnerDerivativeFit) {
 
   Array<Obs1> observations{
-    obs(1, 1.0, 1.1), // 3.4 - 1.1*2 = 3.4 - 2.2 = 1.2
-    obs(1, 3.0, 1.1), // 5.6 - 1.1*2 = 5.6 - 2.2 = 3.4
+    obs(1, 2.0, 1.1),
+    obs(1, 4.0, 1.1),
     obs(0, 5.0, 5.6)
   };
 
   Settings settings;
   settings.regWeight = 0.0;
   settings.ceresOptions.minimizer_progress_to_stdout = false;
-  auto Y = filter(observations, settings, Array<Obs1::Vec>());
+  auto Y = filter(Arrayd{1.0, 3.0, 5.0},
+      observations, settings, Array<Obs1::Vec>());
 
   EXPECT_EQ(Y.size(), 3);
 
@@ -110,7 +125,8 @@ TEST(FilterTest, EffectOfRegularization) {
     Settings settings;
     settings.regWeight = 0.001;
     settings.ceresOptions.minimizer_progress_to_stdout = false;
-    auto Y = filter(observations, settings, Array<Obs1::Vec>());
+    auto Y = filter(Arrayd{1.0, 2.0, 4.0},
+        observations, settings, Array<Obs1::Vec>());
     EXPECT_NEAR(Y[0](0), 1.0, 0.01);
     EXPECT_LT(1.0, Y[0](0));
 
@@ -123,7 +139,8 @@ TEST(FilterTest, EffectOfRegularization) {
     Settings settings;
     settings.regWeight = 1.0e2;
     settings.ceresOptions.minimizer_progress_to_stdout = false;
-    auto Y = filter(observations, settings, Array<Obs1::Vec>());
+    auto Y = filter(Arrayd{1.0, 2.0, 4.0},
+        observations, settings, Array<Obs1::Vec>());
 
     EXPECT_NEAR(Y[0](0), 4.2857, 0.001);
     EXPECT_NEAR(Y[1](0), 4.0714, 0.001);
@@ -140,7 +157,8 @@ TEST(FilterTest, RegularizationAndNonUniformSampling) {
 
   Settings settings;
   settings.regWeight = 1.0e4;
-  auto Y = filter(observations, settings, Array<Obs1::Vec>());
+  auto Y = filter(Arrayd{1.0, 1.00001, 2.0},
+      observations, settings, Array<Obs1::Vec>());
 
   EXPECT_NEAR(0.5*(1 + 2), Y[0](0), 1.0e-4);
   EXPECT_NEAR(0.5*(1 + 2), Y[1](0), 1.0e-4);
