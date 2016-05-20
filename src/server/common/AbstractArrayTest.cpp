@@ -57,3 +57,21 @@ namespace {
 TEST(AbstractArrayTest, Sqrt) {
   EXPECT_EQ(mySqrt(9), 3);
 }
+
+TEST(AbstractArrayTest, WrapTest) {
+  std::vector<int> X{3, 4, 5};
+  {
+    IndexableWrap<std::vector<int>, TypeMode::Value> w0(X);
+    AbstractArray<int> &w = w0;
+
+    EXPECT_EQ(w.size(), 3);
+    EXPECT_EQ(w[1], 4);
+  }{
+    IndexableWrap<std::vector<int>, TypeMode::ConstRef> w0(X);
+    AbstractArray<int> &w = w0;
+
+    EXPECT_EQ(w.size(), 3);
+    EXPECT_EQ(w[1], 4);
+  }
+
+}

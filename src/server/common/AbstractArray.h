@@ -9,6 +9,7 @@
 #define SERVER_COMMON_ABSTRACTARRAY_H_
 
 #include <iterator>
+#include <server/common/traits.h>
 
 namespace sail {
 
@@ -23,6 +24,8 @@ class AbstractArray {
 public:
   virtual T operator[] (int i) const = 0;
   virtual int size() const = 0;
+
+
   bool empty() const {
     return size() <= 0;
   }
@@ -96,6 +99,29 @@ AbstractArrayIterator<T> AbstractArray<T>::begin() const {
 template <typename T>
 AbstractArrayIterator<T> AbstractArray<T>::end() const {
   return AbstractArrayIterator<T>(this, size());
+}
+
+template <typename Indexable, TypeMode mode>
+class IndexableWrap : public AbstractArray<typename IndexedType<Indexable>::type> {
+public:
+  typedef typename IndexedType<Indexable>::type T;
+
+  IndexableWrap(const Indexable &src) : _src(src) {}
+
+  T operator[] (int i) const {
+    return _src[i];
+  }
+
+  int size() const {
+    return _src.size();
+  }
+private:
+  typename ModifiedType<Indexable, mode>::type _src;
+};
+
+template <TypeMode mode, typename Indexable>
+IndexableWrap<Indexable, mode> wrapIndexable(const Indexable &src) {
+  return IndexableWrap<Indexable, mode>(src);
 }
 
 
