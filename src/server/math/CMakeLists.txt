@@ -157,8 +157,18 @@ cxx_test(math_PointQuadTest
          common_logging
         )
 
+add_library(math_Resampler
+  Resampler.h
+  Resampler.cpp
+  )
+
+target_link_libraries(math_Resampler
+  common_TimeStamp
+  )
+
 cxx_test(math_ResamplerTest
   ResamplerTest.cpp
+  math_Resampler
   gtest_main
   )        
 
