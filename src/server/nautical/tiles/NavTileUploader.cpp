@@ -53,15 +53,21 @@ BSONObj navToBSON(const Nav& nav) {
     result.append("externalTwa", nav.externalTwa().degrees());
     result.append("externalTws", nav.externalTws().knots());
   }
+
+  Optional<HorizontalMotion<double>> trueWind;
   if (nav.hasTrueWindOverGround()) {
-    result.append("twdir", calcTwdir(nav.trueWindOverGround()).degrees());
-    result.append("deviceTws", calcTws(nav.trueWindOverGround()).knots());
-  } else {
-    HorizontalMotion<double> trueWind = nav.estimateTrueWind();
-    if (!isNaN(trueWind[0])) {
-      result.append("twdir", calcTwdir(trueWind).degrees());
-      result.append("deviceTws", calcTws(trueWind).knots());
-    }
+    trueWind = nav.trueWindOverGround();
+  } else if (nav.hasApparentWind()) {
+    trueWind = nav.estimateTrueWind();
+  }
+
+  if (trueWind.defined()) {
+    // The following lines assume there is not water current.
+    result.append("twdir", calcTwdir(trueWind.get()).degrees());
+    result.append("tws", calcTws(trueWind.get()).knots());
+    Angle<> twa = calcTwa(trueWind.get(), nav.gpsBearing());
+    result.append("twa", twa.degrees());
+    result.append("vmg", calcVmg(twa, nav.gpsSpeed()).knots());
   }
 
   // Old anemobox simulated data.
