@@ -133,13 +133,13 @@ public:
 
 template <typename unitsys, int t, int l, int a, int m>
 struct QuantityInfo {
-  static double getFactor() {return 1.0;}
+  static constexpr double getFactor() {return 1.0;}
 };
 
 #define MAKE_QUANTITY_INFO(index, name, t, l, a, m) \
   template <typename unitsys> \
   struct QuantityInfo<unitsys, t, l, a, m> { \
-    static double getFactor() {return UnitFactor<unitsys::name>::get();} \
+    static constexpr double getFactor() {return UnitFactor<unitsys::name>::get();} \
   };
 
 namespace UnitSystem {
