@@ -52,11 +52,18 @@ module.exports.readableBoats = function(req) {
       query = {
         $or: [
           {admins: { $in: [user] } },
-          {readers: { $in: [user]}},
-          // In the future, we probably want to have a list of followed boats
-          // instead of including all public access boats.
-          {publicAccess: true}
+          {readers: { $in: [user]}}
         ]};
+
+      // By default, we do not list public boats.
+      // Otherwise, the app get the boat and tries to synchronize with it.
+      // this is a workaround to avoid the bug in the app.
+      if (req.query.public) {
+        // In the future, we probably want to have a list of followed boats
+        // instead of including all public access boats,
+        // or limit the number of public boats returned.
+        query.$or.push({publicAccess: true});
+      }
     } else {
       query = { publicAccess: true };
     }
