@@ -61,7 +61,7 @@ TEST(AbstractArrayTest, Sqrt) {
 TEST(AbstractArrayTest, WrapTest) {
   std::vector<int> X{3, 4, 5};
   {
-    IndexableWrap<std::vector<int>, TypeMode::None> w0(X);
+    IndexableWrap<std::vector<int>, TypeMode::Value> w0(X);
     AbstractArray<int> &w = w0;
 
     EXPECT_EQ(w.size(), 3);
