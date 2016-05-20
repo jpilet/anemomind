@@ -8,9 +8,9 @@
 #ifndef SERVER_NAUTICAL_FILTERS_SMOOTHGPSFILTER_H_
 #define SERVER_NAUTICAL_FILTERS_SMOOTHGPSFILTER_H_
 
-#include <server/nautical/NavDataset.h>
 #include <server/math/nonlinear/CeresTrajectoryFilter.h>
 #include <server/nautical/GeographicReference.h>
+#include <server/nautical/NavDataset.h>
 
 namespace sail {
 

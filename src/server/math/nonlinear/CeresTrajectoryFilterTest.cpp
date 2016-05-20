@@ -5,9 +5,9 @@
  *      Author: jonas
  */
 
-#include <server/math/nonlinear/CeresTrajectoryFilter.h>
 #include <gtest/gtest.h>
 #include <server/common/ArrayBuilder.h>
+#include <server/math/nonlinear/CeresTrajectoryFilter.h>
 
 // Used to represent observations in some optimization context
 template <int N, typename T = double>

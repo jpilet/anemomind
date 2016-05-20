@@ -10,11 +10,11 @@
 
 #include <ceres/ceres.h>
 #include <ceres/types.h>
-#include <server/common/TimedValue.h>
-#include <server/common/Array.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
-#include <server/common/IntervalUtils.h>
 #include <server/common/AbstractArray.h>
+#include <server/common/Array.h>
+#include <server/common/IntervalUtils.h>
+#include <server/common/TimedValue.h>
 
 
 namespace sail {

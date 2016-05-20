@@ -5,12 +5,12 @@
  *      Author: jonas
  */
 
-#include <server/nautical/filters/SmoothGpsFilter.h>
 #include <gtest/gtest.h>
 #include <server/common/Env.h>
-#include <server/common/PathBuilder.h>
-#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/logging.h>
+#include <server/common/PathBuilder.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/WGS84.h>
 
 

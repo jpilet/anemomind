@@ -9,8 +9,8 @@
 #define SERVER_NAUTICAL_FILTERS_GPSUTILS_H_
 
 #include <server/common/TimedValue.h>
-#include <server/nautical/NavDataset.h>
 #include <server/nautical/GeographicReference.h>
+#include <server/nautical/NavDataset.h>
 
 namespace sail {
 namespace GpsUtils {

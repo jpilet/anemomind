@@ -5,11 +5,11 @@
  *      Author: jonas
  */
 
+#include <server/math/nonlinear/SpatialMedian.h>
 #include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/filters/MotionsFromPairs.h>
-#include <server/nautical/WGS84.h>
-#include <server/math/nonlinear/SpatialMedian.h>
 #include <server/nautical/InvWGS84.h>
+#include <server/nautical/WGS84.h>
 
 namespace sail {
 namespace GpsUtils {

@@ -5,13 +5,13 @@
  *      Author: jonas
  */
 
-#include <server/nautical/filters/SmoothGpsFilter.h>
-#include <server/nautical/filters/GpsUtils.h>
-#include <server/common/logging.h>
-#include <server/math/nonlinear/CeresTrajectoryFilter.h>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/Functional.h>
+#include <server/common/logging.h>
+#include <server/math/nonlinear/CeresTrajectoryFilter.h>
 #include <server/math/Resampler.h>
+#include <server/nautical/filters/GpsUtils.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
 
 namespace sail {
 
