@@ -66,10 +66,14 @@ add_library(nonlinear_CeresTrajectoryFilter
    CeresTrajectoryFilter.cpp
   )
 
+target_link_libraries(nonlinear_CeresTrajectoryFilter
+  common_TimeStamp
+ )
+   
+target_depends_on_ceres(nonlinear_CeresTrajectoryFilter)
+
 cxx_test(nonlinear_CeresTrajectoryFilterTest
          CeresTrajectoryFilterTest.cpp
          nonlinear_CeresTrajectoryFilter
          gtest_main
         )
-
-target_depends_on_ceres(nonlinear_CeresTrajectoryFilterTest)

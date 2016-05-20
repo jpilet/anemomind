@@ -11,7 +11,6 @@
 #include <server/common/TimedValue.h>
 #include <server/nautical/NavDataset.h>
 #include <server/nautical/GeographicReference.h>
-#include <server/math/nonlinear/TimedObservation.h>
 
 namespace sail {
 namespace GpsUtils {
@@ -23,17 +22,6 @@ GeographicPosition<double> getReferencePosition(
 
 TimeStamp getReferenceTime(
     const TimedSampleRange<GeographicPosition<double> > &positions);
-
-
-// All numbers in SI units
-Array<TimedObservation<2> > toLocalObservations(
-    const GeographicReference &geoRef, TimeStamp timeReference,
-    const TimedSampleRange<GeographicPosition<double> > &positions);
-
-Array<TimedObservation<2> > toLocalObservations(TimeStamp timeReference,
-    const Array<TimedValue<HorizontalMotion<double> > > &motions);
-
-Arrayd getSamplingTimes(const Array<TimedObservation<2> > &observations);
 
 }
 }

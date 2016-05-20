@@ -10,33 +10,27 @@
 namespace sail {
 namespace CeresTrajectoryFilter {
 
-int getIntervalCount(int sampleCount) {
-  return sampleCount - 1;
-}
-
-double getRightmost(const Arrayd &samples, int intervalIndex) {
-  int intervalCount = getIntervalCount(samples.size()-1);
-  if (intervalIndex < 0) {
-    return samples.first();
-  } else if (intervalIndex < intervalCount) {
-    return samples[intervalIndex+1];
-  }
-  return samples.last();
-}
-
-int moveIntervalIndexForward(const Arrayd &samples, int intervalIndex, double t) {
-  assert(0 <= intervalIndex);
-  int intervalCount = getIntervalCount(samples.size());
-  int lastIntervalIndex = intervalCount - 1;
-  while (intervalIndex < lastIntervalIndex) {
-    if (getRightmost(samples, intervalIndex) < t) {
-      intervalIndex++;
+int findIntervalIndex2(const AbstractArray<TimeStamp> &times, TimeStamp t) {
+  Duration<double> maxdur = Duration<double>::seconds(1.0);
+  int intervalCount = times.size() - 1;
+  int i = findIntervalIndex(times.begin(), times.end(), t);
+  if (i < 0) {
+    if (times.first() - t < maxdur) {
+      return 0;
     } else {
-      return intervalIndex;
+      return -1;
     }
+  } else if (!(i <intervalCount)) {
+    if (t - times.last() < maxdur) {
+      return intervalCount-1;
+    } else {
+      return -1;
+    }
+  } else {
+    return i;
   }
-  return intervalIndex;
 }
+
 
 }
 }

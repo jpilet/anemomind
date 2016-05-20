@@ -25,6 +25,8 @@ public:
   virtual T operator[] (int i) const = 0;
   virtual int size() const = 0;
 
+  // Looks better if we are accessing it through a pointer.
+  T get(int i) const {return (*this)[i];}
 
   bool empty() const {
     return size() <= 0;
@@ -33,7 +35,22 @@ public:
   AbstractArrayIterator<T> begin() const;
   AbstractArrayIterator<T> end() const;
 
+  T first() const {
+    return (*this)[0];
+  }
+
+  T last() const {
+    return (*this)[size() - 1];
+  }
+
   virtual ~AbstractArray() {}
+};
+
+template <typename T>
+class EmptyArray : public AbstractArray<T> {
+public:
+  int size() const override {return 0;}
+  T operator[] (int i) const override {return T();}
 };
 
 

@@ -10,25 +10,46 @@
 
 #include <ceres/ceres.h>
 #include <ceres/types.h>
+#include <server/common/TimedValue.h>
 #include <server/common/Array.h>
-#include <server/math/nonlinear/TimedObservation.h>
+#include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
+#include <server/common/IntervalUtils.h>
+#include <server/common/AbstractArray.h>
+
 
 namespace sail {
 namespace CeresTrajectoryFilter {
 
-inline double computeLambda(double lower, double upper, double x) {
-  return lower < upper?
-    (x - lower)/(upper - lower) : 0.5;
+// This is the unit used for the residuals in the optimization
+inline Length<double> getLengthUnit() {
+  return Length<double>::meters(1.0);
 }
+
+
+template <int N>
+struct Types {
+
+  typedef Vectorize<Length<double>, N> LengthVector;
+  typedef LengthVector Position;
+  typedef Vectorize<Velocity<double>, N> Motion;
+
+  typedef Eigen::Matrix<double, N, 1> Vector;
+
+  typedef TimedValue<Position> TimedPosition;
+  typedef TimedValue<Motion> TimedMotion;
+
+  typedef Array<TimedPosition> TimedPositionArray;
+  typedef Array<TimedMotion> TimedMotionArray;
+};
 
 struct Settings {
   Settings() {
     ceresOptions.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
     regWeight = 1.0;
-    huberThreshold = 10.0;
+    huberThreshold = Length<double>::meters(10.0);
   }
   double regWeight;
-  double huberThreshold;
+  Length<double> huberThreshold;
   ceres::Solver::Options ceresOptions;
 };
 
@@ -61,29 +82,52 @@ private:
 };
 
 template <int N>
+typename Types<N>::Vector unwrap(const typename Types<N>::Position &x) {
+  typename Types<N>::Vector dst;
+  for (int i = 0; i < N; i++) {
+    dst(i) = x[i]/getLengthUnit();
+  }
+  return dst;
+}
+
+template <int N>
+ceres::CostFunction *makePositionCost(TimeStamp a, TimeStamp b,
+    typename Types<N>::TimedPosition &position) {
+  double lambda = computeLambda(a, b, position.time);
+  return Order0Fit<N>::Create(lambda, unwrap<N>(position.value));
+}
+
+template <int N>
 class Order1Fit {
 public:
-  Order1Fit(
-      double scale,
-      const Eigen::Matrix<double, N, 1> &obs) : _scale(scale), _diff(obs) {}
+  Order1Fit(const Eigen::Matrix<double, N, 1> &obs) : _diff(obs) {}
 
   template <typename T>
   bool operator()(const T* const a, const T* const b,
                   T* residuals) const {
     for (int i = 0; i < N; ++i) {
-      residuals[i] = _diff(i) - _scale*(b[i] - a[i]);
+      residuals[i] = _diff(i) - (b[i] - a[i]);
     }
     return true;
   }
 
-  static ceres::CostFunction* Create(double scale, const Eigen::Matrix<double, N, 1> &obs) {
+  static ceres::CostFunction* Create(const Eigen::Matrix<double, N, 1> &obs) {
     return (new ceres::AutoDiffCostFunction<Order1Fit<N>, N, N, N>
-            (new Order1Fit<N>(scale, obs)));
+            (new Order1Fit<N>(obs)));
   }
 private:
-  double _scale;
   Eigen::Matrix<double, N, 1> _diff;
 };
+
+template <int N>
+typename Types<N>::Vector mulAndUnwrap(
+    const Duration<double> &dur, const typename Types<N>::Motion &m) {
+  typename Types<N>::Vector dst;
+  for (int i = 0; i < N; i++) {
+    dst(i) = Length<double>::meters(dur.seconds()*m[i].metersPerSecond())/getLengthUnit();
+  }
+  return dst;
+}
 
 template <int N>
 class Regularization {
@@ -108,115 +152,115 @@ private:
 };
 
 template <int N>
-bool areGood(const Array<TimedObservation<N> > &observations) {
-  if (!std::is_sorted(observations.begin(), observations.end())) {
-    LOG(ERROR) << "Observations are not sorted";
-    return false;
-  }
-  bool hasOrder0 = false;
-  for (auto obs: observations) {
-    if (obs.order == 0) {
-      hasOrder0 = true;
-    }
-  }
-  if (!hasOrder0) {
-    LOG(ERROR) << "There are no position observations, so the problem is ill-posed";
-    return false;
-  }
-  return true;
+ceres::CostFunction* makeMotionCost(
+    Duration<double> dur, const typename Types<N>::TimedMotion &m) {
+  return Order1Fit<N>::Create(mulAndUnwrap<N>(dur, m.value));
 }
 
-
 template <int N>
-bool addObservation(
-    ceres::Problem *problem,
-    ceres::LossFunction *loss,
-    int intervalIndex,
-    const Arrayd &samples,
-    Array<Eigen::Matrix<double, N, 1> > &X,
-    const TimedObservation<N> &obs) {
-  double left = samples[intervalIndex];
-  double right = samples[intervalIndex+1];
-  double lambda = computeLambda(left, right, obs.time);
-  auto Xa = X[intervalIndex].data();
-  auto Xb = X[intervalIndex+1].data();
-
-  double marg = 1.0e-3;
-  if (lambda < 0.0 - marg || 1.0 + marg < lambda) {
-    return true; // Don't treat this as an error.
-  }
-
-  if (obs.order == 0) {
-    problem->AddResidualBlock(Order0Fit<N>::Create(lambda, obs.value),
-        loss, Xa, Xb);
-    return true;
-  } else if (obs.order == 1) {
-    auto t = right - left;
-    problem->AddResidualBlock(Order1Fit<N>::Create(1.0, t*obs.value),
-                  loss, Xa, Xb);
-    return true;
+Array<typename Types<N>::Vector> initializeX(
+    int sampleCount,
+    const AbstractArray<typename Types<N>::Position> &initialPositions) {
+  if (initialPositions.size() == 0) {
+    return Array<typename Types<N>::Vector>::fill(
+        sampleCount, Types<N>::Vector::Zero());
   } else {
-    LOG(ERROR) << "Don't know what to do with observation of order " << obs.order << std::endl;
-    return false;
+    Array<typename Types<N>::Vector> dst(sampleCount);
+    for (int i = 0; i < sampleCount; i++) {
+      auto &y = dst[i];
+      const auto &x = initialPositions[i];
+      for (int j = 0; j < N; j++) {
+        y[j] = x[j]/getLengthUnit();
+      }
+    }
+    return dst;
   }
 }
 
+template <int N>
+typename Types<N>::TimedPosition wrapResult(sail::TimeStamp t, const Eigen::Matrix<double, N, 1> &x) {
+  typename Types<N>::TimedPosition dst;
+  dst.time = t;
+  for (int j = 0; j < N; j++) {
+    dst.value[j] = x(j)*getLengthUnit();
+  }
+  return dst;
+}
 
 template <int N>
-Array<Eigen::Matrix<double, N, 1> > filter(
-    const Arrayd &samples,
-    const Array<TimedObservation<N> > &observations,
+typename Types<N>::TimedPositionArray wrapResult(
+    const AbstractArray<TimeStamp> &times, const Array<Eigen::Matrix<double, N, 1> > &X) {
+  int n = times.size();
+  if (n != X.size()) {
+    LOG(ERROR) << "Incompatible sizes";
+    return typename Types<N>::TimedPositionArray();
+  }
+  typename Types<N>::TimedPositionArray Y(n);
+  for (int i = 0; i < n; i++) {
+    Y[i] = wrapResult(times[i], X[i]);
+  }
+  return Y;
+}
+
+int findIntervalIndex2(const AbstractArray<TimeStamp> &times, TimeStamp t);
+
+template <int N>
+typename Types<N>::TimedPositionArray filter(
+    const AbstractArray<sail::TimeStamp> &samples,
+    const AbstractArray<typename Types<N>::TimedPosition> &positions,
+    const AbstractArray<typename Types<N>::TimedMotion> &motions,
     const Settings &settings,
-    Array<Eigen::Matrix<double, N, 1> > Xinit) {
+    const AbstractArray<typename Types<N>::Position> &initialPositions) {
+
+  typedef typename Types<N>::TimedPositionArray TimedPositionArray;
 
   if (!std::is_sorted(samples.begin(), samples.end())) {
     LOG(ERROR) << "Samples are not sorted";
-    return Array<Eigen::Matrix<double, N, 1> >();
+    return TimedPositionArray();
   }
 
   LOG(INFO) << "Perform CeresTrajectoryFilter";
-
-  if (!areGood(observations)) {
-    LOG(ERROR) << "The observations are bad";
-    return Array<Eigen::Matrix<double, N, 1> >();
+  if (positions.empty()) {
+    LOG(ERROR) << "At least one position is needed in order to perform the filtering";
+    return TimedPositionArray();
   }
 
   int sampleCount = samples.size();
 
   if (sampleCount < 2) {
     LOG(ERROR) << "Needs at least two samples in order to filter (so that there is at least one interval)";
-    return Array<Eigen::Matrix<double, N, 1> >();
+    return TimedPositionArray();
   }
 
-  int n = observations.size();
-
-
-  CHECK(Xinit.empty() || Xinit.size() == sampleCount);
-  Array<Eigen::Matrix<double, N, 1> > X = Xinit.empty()?
-      Array<Eigen::Matrix<double, N, 1> >::fill(
-          sampleCount, Eigen::Matrix<double, N, 1>::Zero())
-          : Xinit;
+  Array<typename Types<N>::Vector> X = initializeX<N>(
+      sampleCount, initialPositions);
 
   ceres::Problem problem;
 
-  int intervalIndex = 0;
+  ceres::LossFunction *loss = new ceres::HuberLoss(
+      settings.huberThreshold/getLengthUnit());
 
-  // Observations
-  LOG(INFO) << "Number of observations: " << observations.size();
-  auto loss = new ceres::HuberLoss(settings.huberThreshold);
-  for (int i = 0; i < n; i++) {
-    auto obs = observations[i];
-    intervalIndex = moveIntervalIndexForward(samples, intervalIndex, obs.time);
-    if (!addObservation(&problem, loss, intervalIndex, samples, X, obs)) {
-      LOG(ERROR) << "Bad observation";
-      return Array<Eigen::Matrix<double, N, 1> >();
+  for (auto position: positions) {
+    int intervalIndex = findIntervalIndex2(samples, position.time);
+    if (intervalIndex != -1) {
+      problem.AddResidualBlock(makePositionCost<N>(
+          samples[intervalIndex], samples[intervalIndex+1], position),
+          loss, X[intervalIndex].data(), X[intervalIndex+1].data());
+    }
+  }
+  for (auto motion: motions) {
+    int intervalIndex = findIntervalIndex2(samples, motion.time);
+    if (intervalIndex != -1) {
+      problem.AddResidualBlock(makeMotionCost<N>(
+          samples[intervalIndex+1] - samples[intervalIndex], motion),
+          loss, X[intervalIndex].data(), X[intervalIndex+1].data());
     }
   }
 
   // Regularization
-  LOG(INFO) << "Number of regularization terms: " << n - 2;
+  LOG(INFO) << "Number of regularization terms: " << sampleCount - 2;
   for (int i = 1; i < sampleCount-1; i++) {
-    double lambda = computeLambda(samples[i-1], samples[i+1], samples[i]);
+    double lambda = computeLambda<sail::TimeStamp>(samples[i-1], samples[i+1], samples[i]);
     problem.AddResidualBlock(Regularization<N>::Create(settings.regWeight, lambda), nullptr,
         X[i-1].data(), X[i].data(), X[i+1].data());
   }
@@ -235,10 +279,10 @@ Array<Eigen::Matrix<double, N, 1> > filter(
   if (badOutcomes.count(summary.termination_type) == 1) {
     LOG(ERROR) << "Ceres failed " << summary.FullReport();
 
-    return Array<Eigen::Matrix<double, N, 1> >();
+    return TimedPositionArray();
   }
   LOG(INFO) << "Successfully performed CeresTrajectoryFilter.";
-  return X;
+  return wrapResult<N>(samples, X);
 }
 
 }

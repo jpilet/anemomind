@@ -6,6 +6,7 @@
  */
 
 #include <server/nautical/filters/TimedValueIntegrator.h>
+#include <server/common/IntervalUtils.h>
 
 namespace sail {
 
@@ -34,10 +35,7 @@ Arrayd computeBounds(const Arrayd &localTimes) {
 }
 
 int computeBin(const Arrayd &bounds, double x) {
-  if (bounds.empty()) {
-    return -1;
-  }
-  return std::upper_bound(bounds.begin(), bounds.end(), x) - bounds.begin() - 1;
+  return findIntervalIndex(bounds.begin(), bounds.end(), x);
 }
 
 
