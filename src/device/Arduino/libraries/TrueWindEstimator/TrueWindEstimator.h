@@ -124,6 +124,11 @@ Velocity<T> calcTws(HorizontalMotion<T> calibratedTW) {
 }
 
 template <typename T>
+Velocity<T> calcVmg(Angle<> twa, Velocity<T> speed) {
+  return cos(twa) * speed;
+}
+
+template <typename T>
 HorizontalMotion<T> windMotionFromTwdirAndTws(Angle<T> twdir,
                                               Velocity<T> tws) {
   return HorizontalMotion<T>::polar(tws, twdir - Angle<>::degrees(180));

@@ -100,6 +100,18 @@ Array<TimedObservation<2> > toLocalObservations(TimeStamp timeReference,
   return dst;
 }
 
+Arrayd getSamplingTimes(const Array<TimedObservation<2> > &observations) {
+
+  // TODO: call 'resample' in server/math/Resampler.h here.
+
+  int n = observations.size();
+  Arrayd dst(n);
+  for (int i = 0; i < n; i++) {
+    dst[i] = observations[i].time;
+  }
+  return dst;
+}
+
 
 }
 }
