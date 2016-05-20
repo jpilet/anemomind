@@ -43,6 +43,7 @@
 
 namespace sail {
 
+// OP(type, index, name, factor)
 #define FOREACH_TIME_UNIT(OP) \
     OP(Time, 0, milliseconds, 0.001) \
     OP(Time, 1, seconds, 1.0) \
@@ -78,47 +79,86 @@ namespace sail {
   FOREACH_VELOCITY_UNIT(OP) \
   FOREACH_MASS_UNIT(OP)
 
-template <int Index>
-struct IntToUnitFactor {};
+#define FOREACH_QUANTITY(OP) \
+  OP(0, Time, 1, 0, 0, 0) \
+  OP(1, Length, 0, 1, 0, 0) \
+  OP(2, Angle, 0, 0, 1, 0) \
+  OP(3, Mass, 0, 0, 0, 1) \
+  OP(4, Velocity, -1, 1, 0, 0)
+
+enum class Quantity {
+#define MAKE_QUANTITY_ENUM(index, name, t, l, a, m) \
+    name = index,
+FOREACH_QUANTITY(MAKE_QUANTITY_ENUM)
+#undef MAKE_QUANTITY_ENUM
+};
+
+
+
+
+
+
+
+enum class Unit {
+#define MAKE_UNIT_ENUM(type, index, name, factor) \
+  name = index,
+FOREACH_UNIT(MAKE_UNIT_ENUM)
+#undef MAKE_UNIT_ENUM
+};
+
+template <Unit i>
+struct UnitFactor {};
 
 #define MAKE_INT_TO_UNIT_FACTOR(type, index, name, factor) \
-  template<> struct IntToUnitFactor<index> { \
+  template<> struct UnitFactor<Unit::name> { \
   static constexpr double get() {return factor;} };
 FOREACH_UNIT(MAKE_INT_TO_UNIT_FACTOR)
 #undef MAKE_INT_TO_UNIT_FACTOR
 
-template <typename T, int FromUnit, int ToUnit>
+template <typename T, Unit FromUnit, Unit ToUnit>
 struct ConvertUnit {
 public:
   static T apply(T x) {
-    constexpr double f = IntToUnitFactor<FromUnit>::get()/IntToUnitFactor<ToUnit>::get();
+    constexpr double f = UnitFactor<FromUnit>::get()/UnitFactor<ToUnit>::get();
     return T(f)*x;
   }
 };
 
-template <typename T, int Unit>
-struct ConvertUnit<T, Unit, Unit> {
+template <typename T, Unit u>
+struct ConvertUnit<T, u, u> {
 public:
   static T apply(T x) {return x;}
 };
 
+
+template <typename unitsys, int t, int l, int a, int m>
+struct QuantityInfo {
+  static double getFactor() {return 1.0;}
+};
+
+#define MAKE_QUANTITY_INFO(index, name, t, l, a, m) \
+  template <typename unitsys> \
+  struct QuantityInfo<unitsys, t, l, a, m> { \
+    static double getFactor() {return UnitFactor<unitsys::name>::get();} \
+  };
+
 namespace UnitSystem {
   struct SI {
     static const bool mixable = true;
-    static const int Time = 1;
-    static const int Length = 6;
-    static const int Angle = 9;
-    static const int Velocity = 11;
-    static const int Mass = 15;
+    static const Unit Time = Unit::seconds;
+    static const Unit Length = Unit::meters;
+    static const Unit Angle = Unit::radians;
+    static const Unit Velocity = Unit::metersPerSecond;
+    static const Unit Mass = Unit::kilograms;
   };
 
   struct AnemoOld {
     static const bool mixable = false;
-    static const int Time = 0;
-    static const int Length = 6;
-    static const int Angle = 10;
-    static const int Velocity = 12;
-    static const int Mass = 15;
+    static const Unit Time = Unit::milliseconds;
+    static const Unit Length = Unit::meters;
+    static const Unit Angle = Unit::degrees;
+    static const Unit Velocity = Unit::knots;
+    static const Unit Mass = Unit::kilograms;
   };
 
   template <typename T, typename System>
@@ -168,11 +208,11 @@ public:
 #define MAKE_UNIT_CONVERTERS(type, index, name, factor) \
   static ThisType name(T x) { \
     static_assert(is##type, "This unit does not work with this quantity"); \
-    return ThisType(ConvertUnit<T, index, System::type>::apply(x)); \
+    return ThisType(ConvertUnit<T, Unit::name, System::type>::apply(x)); \
   } \
   T name() const { \
     static_assert(is##type, "This unit does not work with this quantity"); \
-    return ConvertUnit<T, System::type, index>::apply(_x); \
+    return ConvertUnit<T, System::type, Unit::name>::apply(_x); \
   }
   FOREACH_UNIT(MAKE_UNIT_CONVERTERS)
 
