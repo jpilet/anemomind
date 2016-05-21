@@ -79,6 +79,7 @@ SSH_TUNNEL_PID=$!
 # wait for the tunnel to open.
 sleep 1
 
+export SHELL=/bin/bash
 parallel -j 3 processBoat ::: "${LOG_DIR}/"*
 
 kill $SSH_TUNNEL_PID
