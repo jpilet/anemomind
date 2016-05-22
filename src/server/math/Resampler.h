@@ -17,7 +17,7 @@ struct Endpoint {
   sail::TimeStamp pos;
   bool rising;
 
-  bool operator<(const Endpoint &other) {
+  bool operator<(const Endpoint &other) const {
     return pos < other.pos;
   }
 };

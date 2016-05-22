@@ -5,11 +5,11 @@
  *      Author: jonas
  */
 
+#include <server/math/nonlinear/SpatialMedian.h>
 #include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/filters/MotionsFromPairs.h>
-#include <server/nautical/WGS84.h>
-#include <server/math/nonlinear/SpatialMedian.h>
 #include <server/nautical/InvWGS84.h>
+#include <server/nautical/WGS84.h>
 
 namespace sail {
 namespace GpsUtils {
@@ -54,64 +54,6 @@ TimeStamp getReferenceTime(
   int middle = positions.size()/2;
   return positions[middle].time;
 }
-
-namespace {
-  TimedObservation<2> toLocalObservation(
-      const GeographicReference &geoRef, TimeStamp timeReference,
-      const TimedValue<GeographicPosition<double> > &geoPos) {
-    auto projected = geoRef.map(geoPos.value);
-    auto localTime = (geoPos.time - timeReference).seconds();
-    return TimedObservation<2>{
-      0, localTime,
-      (Eigen::Vector2d(projected[0].meters(), projected[1].meters()))
-    };
-  }
-
-  TimedObservation<2> toLocalObservation(
-      TimeStamp timeReference,
-      const TimedValue<HorizontalMotion<double> > &motion) {
-    return TimedObservation<2>{
-      1, (motion.time - timeReference).seconds(),
-      (Eigen::Vector2d(motion.value[0].metersPerSecond(),
-          motion.value[1].metersPerSecond()))
-    };
-  }
-}
-
-
-Array<TimedObservation<2> > toLocalObservations(
-      const GeographicReference &geoRef, TimeStamp timeReference,
-      const TimedSampleRange<GeographicPosition<double> > &positions) {
-  int n = positions.size();
-  Array<TimedObservation<2> > dst(n);
-  for (int i = 0; i < n; i++) {
-    dst[i] = toLocalObservation(geoRef, timeReference, positions[i]);
-  }
-  return dst;
-}
-
-Array<TimedObservation<2> > toLocalObservations(TimeStamp timeReference,
-    const Array<TimedValue<HorizontalMotion<double> > > &motions) {
-  int n = motions.size();
-  Array<TimedObservation<2> > dst(n);
-  for (int i = 0; i < n; i++) {
-    dst[i] = toLocalObservation(timeReference, motions[i]);
-  }
-  return dst;
-}
-
-Arrayd getSamplingTimes(const Array<TimedObservation<2> > &observations) {
-
-  // TODO: call 'resample' in server/math/Resampler.h here.
-
-  int n = observations.size();
-  Arrayd dst(n);
-  for (int i = 0; i < n; i++) {
-    dst[i] = observations[i].time;
-  }
-  return dst;
-}
-
 
 }
 }
