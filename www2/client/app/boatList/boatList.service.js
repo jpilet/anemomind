@@ -8,7 +8,9 @@ angular.module('www2App')
     var sessionsForBoats = {};
 
     function update() {
-        $http.get('/api/boats')
+        // Specifically ask for public boat, too.
+        // We could have a user option to hide public boats.
+        $http.get('/api/boats?public=1')
           .success(function(data, status, headers, config) {
              boats = data;
              socket.syncUpdates('boat', boats);
