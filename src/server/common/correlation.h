@@ -23,7 +23,7 @@ double normalizedCrossCorrelation(Array<T> X, Array<T> Y, T unit = T(1)) {
   double ymean = ystat.mean();
   double corr = 0.0;
   for (int i = 0; i < count; i++) {
-    corr += (X[i]/unit - xmean)*(Y[i]/unit - ymean);
+    corr += (double(X[i]/unit) - xmean)*(double(Y[i]/unit) - ymean);
   }
   return corr/(count*xstat.standardDeviation()*ystat.standardDeviation());
 }

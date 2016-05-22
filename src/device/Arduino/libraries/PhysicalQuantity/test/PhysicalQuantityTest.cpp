@@ -9,6 +9,33 @@
 
 using namespace sail;
 
+
+TEST(PhysQuantTest, ScalarTest) {
+  Scalar<double> x = Scalar<double>::scalar(34.4);
+  double y = x;
+  EXPECT_EQ(y, 34.4);
+}
+
+TEST(PhysQuantTest, MixingQuantities) {
+  Velocity<double> vel = Velocity<double>::knots(2.4);
+  // 2.4 knots = 1.23466667 meters per second
+
+  Duration<double> dur = Duration<double>::hours(3.4);
+  // 3.4 hours = 12240 seconds
+
+  Length<double> dist = Length<double>::nauticalMiles(8.16);
+  // 15112.3200408 meters
+
+  Length<double> computedDist = vel*dur;
+  EXPECT_NEAR(computedDist.meters(), 15112.3200408, 0.1);
+
+  Velocity<double> computedVelocity = dist/dur;
+  EXPECT_NEAR(computedVelocity.metersPerSecond(), 1.23466667, 0.001);
+
+  Duration<double> computedDuration = dist/vel;
+  EXPECT_NEAR(computedDuration.seconds(), 12240, 0.1);
+}
+
 TEST(PhysQuantTest, CircumferenceTest) {
   Length<double> circumference = Length<double>::meters(4.0e7);
   double minutes = 60.0*Angle<double>::radians(2.0*M_PI).degrees();
