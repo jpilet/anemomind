@@ -411,14 +411,47 @@ private:
 template <typename T, typename sys,
   int t0, int l0, int a0, int m0,
   int t1, int l1, int a1, int m1>
-static PhysicalQuantity<T, sys, t0 - t1, l0 - l1, a0 - a1, m0 - m1>
-  operator/(const PhysicalQuantity<T, sys, t0, l0, a0, m0> &a,
-            const PhysicalQuantity<T, sys, t1, l1, a1, m1> &b) {
-  T aValue = a.getSI();
-  T bValue = b.getSI();
-  typedef PhysicalQuantity<T, sys, t0 - t1, l0 - l1, a0 - a1, m0 - m1> DstType;
-  return DstType::makeSI(aValue/bValue);
+struct Division {
+  static PhysicalQuantity<T, sys, t0 - t1, l0 - l1, a0 - a1, m0 - m1>
+    apply(const PhysicalQuantity<T, sys, t0, l0, a0, m0> &a,
+          const PhysicalQuantity<T, sys, t1, l1, a1, m1> &b) {
+    T aValue = a.getSI();
+    T bValue = b.getSI();
+    typedef PhysicalQuantity<T, sys, t0 - t1, l0 - l1, a0 - a1, m0 - m1> DstType;
+    return DstType::makeSI(aValue/bValue);
+  }
+};
+
+template <typename T, typename sys,
+  int t, int l, int a, int m>
+struct Division<T, sys, t, l, a, m, t, l, a, m> {
+  static PhysicalQuantity<T, sys, 0, 0, 0, 0>
+    apply(const PhysicalQuantity<T, sys, t, l, a, m> &A,
+          const PhysicalQuantity<T, sys, t, l, a, m> &B) {
+    /*
+     *  We have some code out there that divides
+     *  two quantities like this, where T is fixed-point
+     *  or integer. So this specialization avoids the unnecessary
+     *  loss of precision due to first converting it to an SI unit.
+     */
+    static const Unit unit = PhysicalQuantity<T, sys, t, l, a, m>::UInfo::unit;
+    T aValue = A.template get<unit>();
+    T bValue = B.template get<unit>();
+    typedef PhysicalQuantity<T, sys, 0, 0, 0, 0> DstType;
+    return DstType::scalar(aValue/bValue);
+  }
+};
+
+template <typename T, typename sys,
+  int t0, int l0, int a0, int m0,
+  int t1, int l1, int a1, int m1>
+PhysicalQuantity<T, sys, t0 - t1, l0 - l1, a0 - a1, m0 - m1> operator/(
+    const PhysicalQuantity<T, sys, t0, l0, a0, m0> &a,
+    const PhysicalQuantity<T, sys, t1, l1, a1, m1> &b) {
+  return Division<T, sys, t0, l0, a0, m0, t1, l1, a1, m1>::apply(a, b);
 }
+
+
 
 template <typename T, typename sys,
   int t0, int l0, int a0, int m0,
