@@ -10,8 +10,8 @@
 using namespace sail;
 
 
-TEST(PhysQuantTest, ScalarTest) {
-  Scalar<double> x = Scalar<double>::scalar(34.4);
+TEST(PhysQuantTest, DimensionlessTest) {
+  Dimensionless<double> x = Dimensionless<double>::Dimensionless(34.4);
   double y = x;
   EXPECT_EQ(y, 34.4);
 }

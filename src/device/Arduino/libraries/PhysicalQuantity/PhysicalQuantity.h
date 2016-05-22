@@ -198,14 +198,14 @@ std::string physQuantToString(const PhysicalQuantity<T, sys, 1, 0, 0, 0> &x);
 struct NonsenseType {};
 
 template <typename T, typename System, int t, int l, int a, int m>
-struct ScalarTraits {
+struct DimensionlessTraits {
   typedef NonsenseType PublicType;
   typedef T PrivateType;
   static NonsenseType get(T x) {return NonsenseType{};}
 };
 
 template <typename T, typename System>
-struct ScalarTraits<T, System, 0, 0, 0, 0> {
+struct DimensionlessTraits<T, System, 0, 0, 0, 0> {
   typedef NonsenseType PrivateType;
   typedef T PublicType;
   static T get(T x) {return x;}
@@ -215,7 +215,7 @@ struct ScalarTraits<T, System, 0, 0, 0, 0> {
 template <typename T, typename System, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
 class PhysicalQuantity {
 public:
-  typedef ScalarTraits<T, System, TimeDim, LengthDim, AngleDim, MassDim> ScalarInfo;
+  typedef DimensionlessTraits<T, System, TimeDim, LengthDim, AngleDim, MassDim> DimensionlessInfo;
 
   typedef T ValueType;
 
@@ -229,7 +229,7 @@ public:
 
   typedef PhysicalQuantity<T, System, TimeDim, LengthDim, AngleDim, MassDim> ThisType;
 
-  static constexpr bool isScalar = TimeDim == 0 && LengthDim == 0
+  static constexpr bool isDimensionless = TimeDim == 0 && LengthDim == 0
       && AngleDim == 0 && MassDim == 0;
 
 #define MAKE_UNIT_CONVERTERS(type, index, name, factor) \
@@ -283,13 +283,13 @@ public:
     return ThisType(T(0.0));
   }
 
-  T scalar() const {
-    static_assert(isScalar, "Only applicable to scalars");
+  T Dimensionless() const {
+    static_assert(isDimensionless, "Only applicable to Dimensionlesss");
     return _x;
   }
 
-  static ThisType scalar(T x) {
-    static_assert(isScalar, "Only applicable to scalar types");
+  static ThisType Dimensionless(T x) {
+    static_assert(isDimensionless, "Only applicable to Dimensionless types");
     return ThisType(x);
   }
 
@@ -400,8 +400,8 @@ public:
 
 #endif
 
-  operator typename ScalarInfo::PublicType() const {
-    return ScalarInfo::get(_x);
+  operator typename DimensionlessInfo::PublicType() const {
+    return DimensionlessInfo::get(_x);
   }
 private:
   PhysicalQuantity(T x) : _x(x) {}
@@ -438,7 +438,7 @@ struct Division<T, sys, t, l, a, m, t, l, a, m> {
     T aValue = A.template get<unit>();
     T bValue = B.template get<unit>();
     typedef PhysicalQuantity<T, sys, 0, 0, 0, 0> DstType;
-    return DstType::scalar(aValue/bValue);
+    return DstType::Dimensionless(aValue/bValue);
   }
 };
 
@@ -467,7 +467,7 @@ static PhysicalQuantity<T, sys, t0 + t1, l0 + l1, a0 + a1, m0 + m1>
 
 // http://en.cppreference.com/w/cpp/language/type_alias
 template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
-using Scalar = PhysicalQuantity<T, System, 0, 0, 0, 0>;
+using Dimensionless = PhysicalQuantity<T, System, 0, 0, 0, 0>;
 
 template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
 using Duration = PhysicalQuantity<T, System, 1, 0, 0, 0>;
