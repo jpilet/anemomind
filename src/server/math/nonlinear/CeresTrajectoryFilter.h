@@ -202,7 +202,7 @@ typename Types<N>::TimedPositionArray wrapResult(
   return Y;
 }
 
-int findIntervalIndex2(const AbstractArray<TimeStamp> &times, TimeStamp t);
+int findIntervalWithTolerance(const AbstractArray<TimeStamp> &times, TimeStamp t);
 
 template <int N>
 typename Types<N>::TimedPositionArray filter(
@@ -241,7 +241,7 @@ typename Types<N>::TimedPositionArray filter(
       settings.huberThreshold/getLengthUnit());
 
   for (auto position: positions) {
-    int intervalIndex = findIntervalIndex2(samples, position.time);
+    int intervalIndex = findIntervalWithTolerance(samples, position.time);
     if (intervalIndex != -1) {
       problem.AddResidualBlock(makePositionCost<N>(
           samples[intervalIndex], samples[intervalIndex+1], position),
@@ -249,7 +249,7 @@ typename Types<N>::TimedPositionArray filter(
     }
   }
   for (auto motion: motions) {
-    int intervalIndex = findIntervalIndex2(samples, motion.time);
+    int intervalIndex = findIntervalWithTolerance(samples, motion.time);
     if (intervalIndex != -1) {
       problem.AddResidualBlock(makeMotionCost<N>(
           samples[intervalIndex+1] - samples[intervalIndex], motion),

@@ -10,7 +10,7 @@
 namespace sail {
 namespace CeresTrajectoryFilter {
 
-int findIntervalIndex2(const AbstractArray<TimeStamp> &times, TimeStamp t) {
+int findIntervalWithTolerance(const AbstractArray<TimeStamp> &times, TimeStamp t) {
   Duration<double> maxdur = Duration<double>::seconds(1.0);
   int intervalCount = times.size() - 1;
   int i = findIntervalIndex(times.begin(), times.end(), t);
