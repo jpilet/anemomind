@@ -143,7 +143,7 @@ exports.inviteUser = function(req, res) {
   if (req.body._id) { delete req.body._id; }
   if (!req.body.email) { return res.sendStatus(401); }
 
-  var invitedEmail = req.body.email;
+  var invitedEmail = req.body.email.toLowerCase();
   var invitedAdmin = (req.body.admin?true:false);
 
   if (invitedEmail == req.user.email) { return res.sendStatus(200); }
