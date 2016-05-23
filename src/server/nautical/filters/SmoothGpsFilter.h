@@ -8,11 +8,19 @@
 #ifndef SERVER_NAUTICAL_FILTERS_SMOOTHGPSFILTER_H_
 #define SERVER_NAUTICAL_FILTERS_SMOOTHGPSFILTER_H_
 
+#include <server/math/nonlinear/CeresTrajectoryFilter.h>
+#include <server/nautical/GeographicReference.h>
 #include <server/nautical/NavDataset.h>
 
 namespace sail {
 
-std::shared_ptr<Dispatcher> filterGpsData(const NavDataset &ds);
+struct Results {
+  GeographicReference geoRef;
+  Array<CeresTrajectoryFilter::Types<2>::TimedPosition> localPositions;
+  Array<TimedValue<GeographicPosition<double> > > getGlobalPositions() const;
+};
+
+Results filterGpsData(const NavDataset &ds);
 
 }
 

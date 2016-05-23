@@ -74,25 +74,4 @@ TEST(GpsUtilsTest, TestSomeFunctions) {
 
   auto refTime = GpsUtils::getReferenceTime(positions);
   EXPECT_NEAR((refTime - offset).seconds(), 1.0, 1.0e-6);
-
-  GeographicReference geoRef(refPos);
-
-  {
-    auto localPos = GpsUtils::toLocalObservations(geoRef, refTime, positions);
-    EXPECT_EQ(localPos.size(), 1);
-    auto x = localPos[0];
-    EXPECT_EQ(x.order, 0);
-    EXPECT_NEAR(x.time, 0.0, 1.0e-6);
-    EXPECT_NEAR(x.value(0), 0.0, 1.0e-6);
-    EXPECT_NEAR(x.value(1), 0.0, 1.0e-6);
-  }
-  {
-    auto localMotions = GpsUtils::toLocalObservations(refTime, motions);
-    EXPECT_EQ(localMotions.size(), 1);
-    auto x = localMotions[0];
-    EXPECT_EQ(x.order, 1);
-    EXPECT_NEAR(x.time, 33.5, 1.0e-6);
-    EXPECT_NEAR(x.value(0), em[0].metersPerSecond(), 1.0e-6);
-    EXPECT_NEAR(x.value(1), em[1].metersPerSecond(), 1.0e-6);
-  }
 }

@@ -5,12 +5,12 @@
  *      Author: jonas
  */
 
-#include <server/nautical/filters/SmoothGpsFilter.h>
 #include <gtest/gtest.h>
 #include <server/common/Env.h>
-#include <server/common/PathBuilder.h>
-#include <server/nautical/logimport/LogLoader.h>
 #include <server/common/logging.h>
+#include <server/common/PathBuilder.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
+#include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/WGS84.h>
 
 
@@ -91,14 +91,9 @@ TEST(SmoothGpsFilterTest, TestIt) {
 
   auto filtered0 = filterGpsData(corrupted);
 
-  std::cout << "Filtered it!!!" << std::endl;
+  EXPECT_FALSE(filtered0.localPositions.empty());
 
-  EXPECT_TRUE(bool(filtered0));
-  auto filtered = NavDataset(filtered0);
-
-  auto filteredPositions = filtered.samples<GPS_POS>();
-
-  EXPECT_LE(n, filteredPositions.size());
+  auto filteredPositions = filtered0.getGlobalPositions();
 
   int filteredCounter = 0;
   int corrCounter = 0;
