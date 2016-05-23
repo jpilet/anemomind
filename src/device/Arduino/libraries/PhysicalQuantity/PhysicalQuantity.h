@@ -57,9 +57,9 @@ namespace sail {
   OP(Length, kilometers, 1000.0) \
   OP(Length, nauticalMiles, 1852.0) // 1 nautical mile = 1852.0 m
 
-#define FOREACH_ANGLE_UNIT(OP) \
-  OP(Angle, radians, 1.0) \
-  OP(Angle, degrees, M_PI/180.0) // 1 degree = M_PI/180 radians <=> 180 degrees = M_PI radians
+#define FOREACH_DIMENSIONLESS_UNIT(OP) \
+  OP(Dimensionless, radians, 1.0) \
+  OP(Dimensionless, degrees, M_PI/180.0) // 1 degree = M_PI/180 radians <=> 180 degrees = M_PI radians
 
 #define FOREACH_VELOCITY_UNIT(OP) \
   OP(Velocity, metersPerSecond, 1.0) \
@@ -75,20 +75,20 @@ namespace sail {
 #define FOREACH_UNIT(OP) \
   FOREACH_TIME_UNIT(OP) \
   FOREACH_LENGTH_UNIT(OP) \
-  FOREACH_ANGLE_UNIT(OP) \
+  FOREACH_DIMENSIONLESS_UNIT(OP) \
   FOREACH_VELOCITY_UNIT(OP) \
   FOREACH_MASS_UNIT(OP)
 
 #define FOREACH_QUANTITY(OP) \
   OP(Time, seconds, 1, 0, 0, 0) \
   OP(Length, meters, 0, 1, 0, 0) \
-  OP(Angle, radians, 0, 0, 1, 0) \
   OP(Mass, kilograms, 0, 0, 0, 1) \
-  OP(Velocity, metersPerSecond, -1, 1, 0, 0)
+  OP(Velocity, metersPerSecond, -1, 1, 0, 0) \
+  OP(Dimensionless, SIUnit, 0, 0, 0, 0)
 
 enum class Quantity {
   // Any quantity that has not been declared maps to this one.
-  Undeclared = -1,
+  Undeclared,
 #define MAKE_QUANTITY_ENUM(name, siUnit, t, l, a, m) \
     name,
 FOREACH_QUANTITY(MAKE_QUANTITY_ENUM)
@@ -100,7 +100,7 @@ enum class Unit {
   // the SI unit of that quantity. So even if we are working
   // with volume and there are no volume quantities declared,
   // this unit will in that case represents cubic meter.
-  SIUnit = -1,
+  SIUnit,
 #define MAKE_UNIT_ENUM(type, name, factor) \
   name,
 FOREACH_UNIT(MAKE_UNIT_ENUM)
@@ -182,7 +182,7 @@ FOREACH_QUANTITY(MAKE_SI_UNIT)
   // Suitable for integer and fixed-point representation
   struct CustomAnemoUnits : public SI {
     static const Unit Time = Unit::milliseconds;
-    static const Unit Angle = Unit::degrees;
+    static const Unit Dimensionless = Unit::degrees;
     static const Unit Velocity = Unit::knots;
   };
 };
@@ -344,12 +344,12 @@ public:
   }
 
   ThisType directionDifference(const ThisType& other) const {
-    static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
+    static_assert(UInfo::quantity == Quantity::Dimensionless, "Only applicable to angles");
     return (*this - other).normalizedAt0();
   }
 
   ThisType moveToInterval(ThisType lower, ThisType upper) const {
-    static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
+    static_assert(UInfo::quantity == Quantity::Dimensionless, "Only applicable to angles");
     ThisType result(*this);
     while (result < lower) {
       result += ThisType::degrees(T(360));
@@ -361,24 +361,24 @@ public:
   }
 
   ThisType normalizedAt0() const {
-    static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
+    static_assert(UInfo::quantity == Quantity::Dimensionless, "Only applicable to angles");
     return moveToInterval(ThisType::degrees(T(-180)),
         ThisType::degrees(T(180)));
   }
 
   ThisType positiveMinAngle() const {
-    static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
+    static_assert(UInfo::quantity == Quantity::Dimensionless, "Only applicable to angles");
     return moveToInterval(ThisType::degrees(T(0)),
         ThisType::degrees(T(360)));
   }
 
   static ThisType degMinMc(T deg, T min, T mc) {
-    static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
+    static_assert(UInfo::quantity == Quantity::Dimensionless, "Only applicable to angles");
     return ThisType::degrees(T(deg + (1.0/60)*(min + 0.001*mc)));
   }
 
   void sincos(T *sinAngle, T *cosAngle) const {
-    static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
+    static_assert(UInfo::quantity == Quantity::Dimensionless, "Only applicable to angles");
     T rad = radians();
     *sinAngle = sin(rad);
     *cosAngle = cos(rad);
@@ -479,7 +479,7 @@ template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
 using Velocity = PhysicalQuantity<T, System, -1, 1, 0, 0>;
 
 template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
-using Angle = PhysicalQuantity<T, System, 0, 0, 1, 0>;
+using Angle = PhysicalQuantity<T, System, 0, 0, 0, 0>;
 
 template <typename T=double, typename System=UnitSystem::CustomAnemoUnits>
 using Mass = PhysicalQuantity<T, System, 0, 0, 0, 1>;

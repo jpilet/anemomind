@@ -9,6 +9,13 @@
 
 using namespace sail;
 
+TEST(PhysQuantTest, RatioTest) {
+  Length<double> radius = Length<double>::meters(2.3);
+  Length<double> circumference = 2.0*M_PI*radius;
+
+  double fraction = circumference/radius;
+  EXPECT_NEAR(fraction, 2.0*M_PI, 1.0e-6);
+}
 
 TEST(PhysQuantTest, DimensionlessTest) {
   Dimensionless<double> x = Dimensionless<double>::Dimensionless(34.4);
