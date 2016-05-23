@@ -212,7 +212,7 @@ struct DimensionlessTraits<T, System, 0, 0, 0, 0> {
 };
 
 
-template <typename T, typename System, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/*a*/, int MassDim/*m*/>
+template <typename T, typename System, int TimeDim/*t*/, int LengthDim/*l*/, int AngleDim/* TO BE REMOVED */, int MassDim/*m*/>
 class PhysicalQuantity {
 public:
   typedef DimensionlessTraits<T, System, TimeDim, LengthDim, AngleDim, MassDim> DimensionlessInfo;
