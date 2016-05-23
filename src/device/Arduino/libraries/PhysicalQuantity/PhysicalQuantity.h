@@ -43,34 +43,34 @@
 
 namespace sail {
 
-// OP(type, index, name, factor)
+// OP(type, name, factor)
 #define FOREACH_TIME_UNIT(OP) \
-    OP(Time, 0, milliseconds, 0.001) \
-    OP(Time, 1, seconds, 1.0) \
-    OP(Time, 2, minutes, 60.0) \
-    OP(Time, 3, hours, 3600.0) \
-    OP(Time, 4, days, 24*3600.0) \
-    OP(Time, 5, weeks, 7*24*3600.0)
+    OP(Time, milliseconds, 0.001) \
+    OP(Time, seconds, 1.0) \
+    OP(Time, minutes, 60.0) \
+    OP(Time, hours, 3600.0) \
+    OP(Time, days, 24*3600.0) \
+    OP(Time, weeks, 7*24*3600.0)
 
 #define FOREACH_LENGTH_UNIT(OP) \
-  OP(Length, 6, meters, 1.0) \
-  OP(Length, 7, kilometers, 1000.0) \
-  OP(Length, 8, nauticalMiles, 1852.0) // 1 nautical mile = 1852.0 m
+  OP(Length, meters, 1.0) \
+  OP(Length, kilometers, 1000.0) \
+  OP(Length, nauticalMiles, 1852.0) // 1 nautical mile = 1852.0 m
 
 #define FOREACH_ANGLE_UNIT(OP) \
-  OP(Angle, 9, radians, 1.0) \
-  OP(Angle, 10, degrees, M_PI/180.0) // 1 degree = M_PI/180 radians <=> 180 degrees = M_PI radians
+  OP(Angle, radians, 1.0) \
+  OP(Angle, degrees, M_PI/180.0) // 1 degree = M_PI/180 radians <=> 180 degrees = M_PI radians
 
 #define FOREACH_VELOCITY_UNIT(OP) \
-  OP(Velocity, 11, metersPerSecond, 1.0) \
-  OP(Velocity, 12, knots, 1852.0/3600.0) \
-  OP(Velocity, 13, kilometersPerHour, 1000.0/3600.0) \
-  OP(Velocity, 14, milesPerHour, 1609.0/3600.0)
+  OP(Velocity, metersPerSecond, 1.0) \
+  OP(Velocity, knots, 1852.0/3600.0) \
+  OP(Velocity, kilometersPerHour, 1000.0/3600.0) \
+  OP(Velocity, milesPerHour, 1609.0/3600.0)
 
 #define FOREACH_MASS_UNIT(OP) \
-  OP(Mass, 15, kilograms, 1.0) \
-  OP(Mass, 16, skeppund, 170.0) \
-  OP(Mass, 17, lispund, 170.0/20)
+  OP(Mass, kilograms, 1.0) \
+  OP(Mass, skeppund, 170.0) \
+  OP(Mass, lispund, 170.0/20)
 
 #define FOREACH_UNIT(OP) \
   FOREACH_TIME_UNIT(OP) \
@@ -80,17 +80,17 @@ namespace sail {
   FOREACH_MASS_UNIT(OP)
 
 #define FOREACH_QUANTITY(OP) \
-  OP(0, Time, seconds, 1, 0, 0, 0) \
-  OP(1, Length, meters, 0, 1, 0, 0) \
-  OP(2, Angle, radians, 0, 0, 1, 0) \
-  OP(3, Mass, kilograms, 0, 0, 0, 1) \
-  OP(4, Velocity, metersPerSecond, -1, 1, 0, 0)
+  OP(Time, seconds, 1, 0, 0, 0) \
+  OP(Length, meters, 0, 1, 0, 0) \
+  OP(Angle, radians, 0, 0, 1, 0) \
+  OP(Mass, kilograms, 0, 0, 0, 1) \
+  OP(Velocity, metersPerSecond, -1, 1, 0, 0)
 
 enum class Quantity {
   // Any quantity that has not been declared maps to this one.
   Undeclared = -1,
-#define MAKE_QUANTITY_ENUM(index, name, siUnit, t, l, a, m) \
-    name = index,
+#define MAKE_QUANTITY_ENUM(name, siUnit, t, l, a, m) \
+    name,
 FOREACH_QUANTITY(MAKE_QUANTITY_ENUM)
 #undef MAKE_QUANTITY_ENUM
 };
@@ -101,8 +101,8 @@ enum class Unit {
   // with volume and there are no volume quantities declared,
   // this unit will in that case represents cubic meter.
   SIUnit = -1,
-#define MAKE_UNIT_ENUM(type, index, name, factor) \
-  name = index,
+#define MAKE_UNIT_ENUM(type, name, factor) \
+  name,
 FOREACH_UNIT(MAKE_UNIT_ENUM)
 #undef MAKE_UNIT_ENUM
 };
@@ -120,7 +120,7 @@ struct UnitInfo {
 };
 
 // Here, the above template is being specialized for all declared units.
-#define MAKE_INT_TO_UNIT_FACTOR(type, index, name, factor) \
+#define MAKE_INT_TO_UNIT_FACTOR(type, name, factor) \
   template<> struct UnitInfo<Unit::name> { \
   static constexpr double getFactor() {return factor;} \
   static const Quantity quantity = Quantity::type; \
@@ -140,7 +140,7 @@ struct QuantityInfo {
   static const Unit unit = Unit::SIUnit;
 };
 
-#define MAKE_QUANTITY_INFO(index, name, siUnit, t, l, a, m) \
+#define MAKE_QUANTITY_INFO(name, siUnit, t, l, a, m) \
   template <typename unitsys> \
   struct QuantityInfo<unitsys, t, l, a, m> { \
     static const Unit unit = unitsys::name; \
@@ -173,7 +173,7 @@ public:
 
 namespace UnitSystem {
   struct SI {
-#define MAKE_SI_UNIT(index, name, siUnit, t, l, a, m) \
+#define MAKE_SI_UNIT(name, siUnit, t, l, a, m) \
   static const Unit name = Unit::siUnit;
 FOREACH_QUANTITY(MAKE_SI_UNIT)
 #undef MAKE_SI_UNIT
@@ -232,7 +232,7 @@ public:
   static constexpr bool isDimensionless = TimeDim == 0 && LengthDim == 0
       && AngleDim == 0 && MassDim == 0;
 
-#define MAKE_UNIT_CONVERTERS(type, index, name, factor) \
+#define MAKE_UNIT_CONVERTERS(type, name, factor) \
   static ThisType name(T x) { \
     static_assert(UnitInfo<Unit::name>::quantity == QInfo::quantity, "Incompatible unit and quantity"); \
     return ThisType(ConvertUnit<T, Unit::name, System::type>::apply(x)); \
