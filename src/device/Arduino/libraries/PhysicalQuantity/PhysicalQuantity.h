@@ -88,7 +88,7 @@ namespace sail {
 
 enum class Quantity {
   // Any quantity that has not been declared maps to this one.
-  Undeclared = -1,
+  Undeclared,
 #define MAKE_QUANTITY_ENUM(name, siUnit, t, l, a, m) \
     name,
 FOREACH_QUANTITY(MAKE_QUANTITY_ENUM)
@@ -100,7 +100,7 @@ enum class Unit {
   // the SI unit of that quantity. So even if we are working
   // with volume and there are no volume quantities declared,
   // this unit will in that case represents cubic meter.
-  SIUnit = -1,
+  SIUnit,
 #define MAKE_UNIT_ENUM(type, name, factor) \
   name,
 FOREACH_UNIT(MAKE_UNIT_ENUM)
@@ -251,7 +251,7 @@ public:
     return ThisType(ConvertUnit<T, unit, UInfo::unit>::apply(x));
   }
 
-  static ThisType makeSI(T x) {
+  static ThisType makeFromSI(T x) {
     return make<Unit::SIUnit>(x);
   }
 
@@ -283,14 +283,14 @@ public:
     return ThisType(T(0.0));
   }
 
-  T Dimensionless() const {
+  T dimensionless() const {
     static_assert(isDimensionless, "Only applicable to Dimensionlesss");
-    return _x;
+    return ConvertUnit<T, UInfo::unit, Unit::SIUnit>::apply(_x);
   }
 
-  static ThisType Dimensionless(T x) {
+  static ThisType dimensionless(T x) {
     static_assert(isDimensionless, "Only applicable to Dimensionless types");
-    return ThisType(x);
+    return ThisType(ConvertUnit<T, Unit::SIUnit, UInfo::unit>::apply(x));
   }
 
   ThisType operator+(const ThisType &other) const {
@@ -418,7 +418,7 @@ struct Division {
     T aValue = a.getSI();
     T bValue = b.getSI();
     typedef PhysicalQuantity<T, sys, t0 - t1, l0 - l1, a0 - a1, m0 - m1> DstType;
-    return DstType::makeSI(aValue/bValue);
+    return DstType::makeFromSI(aValue/bValue);
   }
 };
 
@@ -438,7 +438,7 @@ struct Division<T, sys, t, l, a, m, t, l, a, m> {
     T aValue = A.template get<unit>();
     T bValue = B.template get<unit>();
     typedef PhysicalQuantity<T, sys, 0, 0, 0, 0> DstType;
-    return DstType::Dimensionless(aValue/bValue);
+    return DstType::dimensionless(aValue/bValue);
   }
 };
 
@@ -462,7 +462,7 @@ static PhysicalQuantity<T, sys, t0 + t1, l0 + l1, a0 + a1, m0 + m1>
   T aValue = a.getSI();
   T bValue = b.getSI();
   typedef PhysicalQuantity<T, sys, t0 + t1, l0 + l1, a0 + a1, m0 + m1> DstType;
-  return DstType::makeSI(aValue*bValue);
+  return DstType::makeFromSI(aValue*bValue);
 }
 
 // http://en.cppreference.com/w/cpp/language/type_alias

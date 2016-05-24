@@ -10,21 +10,34 @@
 using namespace sail;
 
 
+TEST(PhysQuantTest, ScaleByDimensionless) {
+  Dimensionless<double> factor = Dimensionless<double>::dimensionless(2.0);
+  Angle<double> angle = Angle<double>::degrees(34.5);
+  Angle<double> product = factor*angle;
+  EXPECT_NEAR(product.degrees(), 69.0, 1.0e-6);
+
+  Angle<double> divided = product/factor;
+  EXPECT_NEAR(divided.degrees(), 34.5, 1.0e-6);
+}
+
 TEST(PhysQuantTest, DimensionlessTest) {
-  Dimensionless<double> x = Dimensionless<double>::Dimensionless(34.4);
+  Dimensionless<double> x = Dimensionless<double>::dimensionless(34.4);
   double y = x;
   EXPECT_EQ(y, 34.4);
 }
 
 TEST(PhysQuantTest, MixingQuantities) {
   Velocity<double> vel = Velocity<double>::knots(2.4);
+  EXPECT_NEAR(vel.metersPerSecond(), 1.2346666666666667, 1.0e-6);
   // 2.4 knots = 1.23466667 meters per second
 
   Duration<double> dur = Duration<double>::hours(3.4);
+  EXPECT_NEAR(dur.seconds(), 12240, 1.0e-6);
   // 3.4 hours = 12240 seconds
 
   Length<double> dist = Length<double>::nauticalMiles(8.16);
-  // 15112.3200408 meters
+  EXPECT_NEAR(dist.meters(), 15112.32, 1.0e-6);
+  // 15112.32 meters
 
   Length<double> computedDist = vel*dur;
   EXPECT_NEAR(computedDist.meters(), 15112.3200408, 0.1);
