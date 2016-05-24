@@ -55,3 +55,25 @@ cxx_test(math_nonlinear_DataFitTest
          gtest_main
          math_nonlinear_DataFit
         )
+
+cxx_test(nonlinear_SpatialMedianTest
+         SpatialMedianTest.cpp
+         gtest_main
+        )
+
+add_library(nonlinear_CeresTrajectoryFilter
+   CeresTrajectoryFilter.h
+   CeresTrajectoryFilter.cpp
+  )
+
+target_link_libraries(nonlinear_CeresTrajectoryFilter
+  common_TimeStamp
+ )
+   
+target_depends_on_ceres(nonlinear_CeresTrajectoryFilter)
+
+cxx_test(nonlinear_CeresTrajectoryFilterTest
+         CeresTrajectoryFilterTest.cpp
+         nonlinear_CeresTrajectoryFilter
+         gtest_main
+        )

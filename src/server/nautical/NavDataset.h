@@ -123,6 +123,7 @@ public:
       const std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData> > > &merged
         = std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData> > >(),
       TimeStamp a = TimeStamp(), TimeStamp b = TimeStamp());
+  NavDataset dup() const;
 
   NavDataset slice(TimeStamp a, TimeStamp b) const;
   NavDataset sliceFrom(TimeStamp ts) const;
@@ -171,6 +172,8 @@ public:
   // Can used to check whether some processing step failed. That processing
   // step will then return 'NavDataset()', for which this method returns true.
   bool isDefaultConstructed() const;
+
+  void setMerged(DataCode c, const std::shared_ptr<DispatchData> &data);
 private:
   template <DataCode Code>
   const TimedSampleCollection<typename TypeForCode<Code>::type> *getMergedSamples() const {

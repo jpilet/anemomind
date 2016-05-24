@@ -118,6 +118,7 @@ void runPsarosTest(NavDataset navs, NavDataset navsToFilter) {
 // Check that the filtered signal is reasonbly close to the non-filtered one.
 TEST(GpsFilterTest, PsarosTest) {
   auto navs = getPsarosTestData();
+  std::cout << "Starting from " << NavCompat::getNav(navs, 0).time() << std::endl;
 
   runPsarosTest(navs, NavDataset());
   runPsarosTest(navs, applyOutliers(navs));

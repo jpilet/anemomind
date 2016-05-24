@@ -12,6 +12,7 @@
 #include <server/common/TimedValue.h>
 #include <server/common/Optional.h>
 #include <server/common/Functional.h>
+#include <server/common/IntervalUtils.h>
 #include <algorithm>
 
 namespace sail {
@@ -27,15 +28,6 @@ int computeIteratorRangeSize(Iter begin, Iter end) {
     counter++;
   }
   return counter;
-}
-
-// Returns an interpolation factor in [0, 1]
-inline double computeLambda(double left, double right, double t) {
-  assert(!(right < left));
-  if (left == right) {
-    return 0.5;
-  }
-  return (t - left)/(right - left);
 }
 
 template <typename T, typename Iterator>
