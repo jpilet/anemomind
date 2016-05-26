@@ -91,11 +91,11 @@ var app = angular.module('www2App')
         //
         // compute avg in current sessions for direction
         // TODO this could be a directive 
-        scope.sessionAvgWind=function (sessions) {
+        scope.sessionTotalDistance=function (sessions) {
           var sum = sessions.reduce(function(prev, session) { 
-            return prev + session.avgWindDir; 
+            return prev + session.trajectoryLength; 
           },0);
-          return (sum / sessions.length).toFixed(1);
+          return sum.toFixed(1);
         };
 
         //
@@ -111,9 +111,9 @@ var app = angular.module('www2App')
         //
         // compute avg in current sessions for speed
         // TODO this could be a directive 
-        scope.sessionMaxSpeed=function (sessions) {
+        scope.sessionMaxBoatSpeed=function (sessions) {
           return Math.max.apply(Math,sessions.map(function(session){
-            return session.strongestWindSpeed;
+            return session.maxSpeedOverGround;
           })).toFixed(2);
         };
 
@@ -127,7 +127,7 @@ var app = angular.module('www2App')
           return windrose[index];
         };
 
-        scope.boatNumber = function(knots) {
+        scope.knotsToBeaufort = function(knots) {
           if (knots < 1) { return 0; }
           if (knots < 3) { return 1; }
           if (knots < 6) { return 2; }
