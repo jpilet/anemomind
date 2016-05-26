@@ -87,9 +87,9 @@ BSONObj navToBSON(const Nav& nav) {
   return result.obj();
 }
 
-BSONArray navsToBSON(const NavDataset& navs) {
+BSONArray navsToBSON(const Array<Nav>& navs) {
   BSONArrayBuilder result;
-  for (auto nav: Range(navs)) {
+  for (auto nav: navs) {
     result.append(navToBSON(nav));
   }
   return result.arr();
@@ -332,15 +332,15 @@ BSONObj makeBsonSession(
 }
 
 BSONObj makeBsonTile(const TileKey& tileKey,
-                     const Array<NavDataset>& subCurvesInTile,
+                     const Array<Array<Nav>>& subCurvesInTile,
                      const std::string& boatId,
                      const std::string& curveId) {
   BSONObjBuilder tile;
   tile.genOID();
   tile.append("key", tileKey.stringKey());
   tile.append("boat", OID(boatId));
-  append(tile, "startTime", getFirst(subCurvesInTile.first()).time());
-  append(tile, "endTime", getLast(subCurvesInTile.last()).time());
+  append(tile, "startTime", subCurvesInTile.first().first().time());
+  append(tile, "endTime", subCurvesInTile.last().last().time());
   append(tile, "created", TimeStamp::now());
 
   std::vector<BSONObj> curves;
@@ -389,12 +389,16 @@ bool generateAndUploadTiles(std::string boatId,
   }
 
   for (const NavDataset& curve : allNavs) {
+    Array<Nav> navs = makeArray(curve);
+
     std::string curveId = tileCurveId(boatId, curve);
-    std::set<TileKey> tiles = tilesForNav(curve, params.maxScale);
+
+    std::set<TileKey> tiles = tilesForNav(navs, params.maxScale);
+
 
     for (auto tileKey : tiles) {
-      Array<NavDataset> subCurvesInTile = generateTiles(
-          tileKey, curve, params.maxNumNavsPerSubCurve);
+      Array<Array<Nav>> subCurvesInTile = generateTiles(
+          tileKey, navs, params.maxNumNavsPerSubCurve);
 
       if (subCurvesInTile.size() == 0) {
         continue;
