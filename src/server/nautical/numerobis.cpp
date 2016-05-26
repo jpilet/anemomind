@@ -43,7 +43,7 @@ void showTimeSpans(const Array<Span<TimeStamp> > &spans) {
   }
 }
 
-void plotTheTrajectory(const NavDataset &ds) {
+void plotTheTrajectory(const NavDataset &ds, TimedValue<GeographicPosition<double> > lastPos) {
   std::cout << "GPS speed time stamps" << std::endl;
   showTimeSpans(listSpans(ds.samples<GPS_SPEED>()));
   std::cout << "GPS pos time stamps" << std::endl;
@@ -87,10 +87,12 @@ void plotTheTrajectory(const NavDataset &ds) {
   }
 
   {
-    auto lastPos = allgps.last();
+    //auto lastPos = allgps.last();
     plot.set_style("lines");
+
+    std::cout << "LAST GPS POS FROM WHATEVER SOURCE: " << lastPos.time << std::endl;
     auto xy = geoRef.map(lastPos.value);
-    auto k = 100;
+    auto k = 1000;
     MDArray2d A(2, 2), B(2, 2);
     A(0, 0) = xy[0].meters() - k;
     A(0, 1) = xy[1].meters() - k;
@@ -120,12 +122,22 @@ int main() {
   loader.load(dir);
 
   auto ds = loader.makeNavDataset().fitBounds();
-
   ds.outputSummary(&(std::cout));
+
+  auto ours = "Internal GPS";
+  auto theirs = "NMEA2000/c0f08242e7624aae";
+
+  auto data0 = ds.dispatcher()->dispatchDataForSource(GPS_POS, ours);
+  assert(data0);
+  auto data = toTypedDispatchData<GPS_POS>(data0.get());
+  assert(data);
+  auto values = data->dispatcher()->values();
+  auto lastValue = values.samples().back();
+
 
   std::cout << "Loaded logs from " << ds.lowerBound() << " to " << ds.upperBound() << std::endl;
 
-  plotTheTrajectory(ds);
+  plotTheTrajectory(ds, lastValue);
 
   return 0;
 }
