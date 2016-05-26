@@ -317,6 +317,16 @@ add_library(nautical_AbsoluteOrientation
   AbsoluteOrientation.cpp
   )
 
+add_executable(nautical_numerobis
+  numerobis.cpp
+  )
+
+target_link_libraries(nautical_numerobis
+  logimport_LogLoader
+  plot_gnuplot
+  nautical_GeographicReference
+  )
+  
 add_library(nautical_InvWGS84
             InvWGS84.h
             InvWGS84.cpp
