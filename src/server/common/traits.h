@@ -41,12 +41,6 @@ struct ModifiedType<T, TypeMode::Ref> {
   typedef T &type;
 };
 
-template <typename What, typename CoefType, int N>
-struct CouldBeCompactVector {
-  static const bool value = (sizeof(CoefType)*N) == sizeof(What);
-};
-
-
 }
 
 
