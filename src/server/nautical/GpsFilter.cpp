@@ -162,6 +162,12 @@ Results filter(NavDataset navs, Settings settings) {
       timeRef, geoRef, navs, sampling);
   CHECK(observations.size() % 2 == 0);
 
+  LOG(INFO) << "Filtering navs at " << getFirst(navs).time().toString()
+    << " over a period of " << (toTime - fromTime).hours() << " hours."
+    << " " << sampleCount << " samples.";
+  LOG(INFO) << "Lower: " << navs.lowerBound().toString() << ", upper: "
+    << navs.upperBound().toString();
+
   if (observations.empty()) {
     LOG(WARNING) << "No valid observations";
     return Results();
