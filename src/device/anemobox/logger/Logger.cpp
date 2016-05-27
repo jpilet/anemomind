@@ -80,9 +80,6 @@ void Logger::subscribe() {
   _listeners.clear();
 
   for (auto sourcesForCode : _dispatcher->allSources()) {
-    if (sourcesForCode.first == DATE_TIME) {
-      continue;
-    }
     for (auto sourceAndDispatcher : sourcesForCode.second) {
       subscribeToDispatcher(sourceAndDispatcher.second.get());
     }
@@ -90,10 +87,6 @@ void Logger::subscribe() {
 }
 
 void Logger::subscribeToDispatcher(DispatchData *d) {
-  if (d->dataCode() == DATE_TIME) {
-    return;
-  }
-
   LoggerValueListener* listener =
     new LoggerValueListener(d->wordIdentifier(), d->source());
   SubscribeVisitor<LoggerValueListener> subscriber(listener);
@@ -192,6 +185,18 @@ void Logger::unpack(const AbsOrientValueSet& values,
     entry->heading = heading[i];
     entry->pitch = pitch[i];
     entry->roll = roll[i];
+  }
+}
+
+void Logger::unpack(const google::protobuf::RepeatedField<long int> &times,
+                        std::vector<TimeStamp>* result) {
+  result->clear();
+  result->reserve(times.size());
+
+  int64_t time = 0;
+  for (int i = 0; i < times.size(); ++i) {
+    time += times.Get(i);
+    result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
   }
 }
 

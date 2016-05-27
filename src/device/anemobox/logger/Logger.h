@@ -104,7 +104,19 @@ public:
     pos->set_lon(v.lastValue().lon().degrees());
   }
 
-  virtual void onNewValue(const ValueDispatcher<TimeStamp> &) { }
+  virtual void onNewValue(const ValueDispatcher<TimeStamp> &v) {
+    addTimestamp(v.lastTimeStamp());
+    TimeStamp t = v.lastValue();
+
+    int64_t ts = t.toMilliSecondsSince1970();
+    int64_t value = ts;
+
+    if (_valueSet.exttimes_size() > 0) {
+      value -= extTimesBase;
+    }
+    extTimesBase = ts;
+    _valueSet.add_exttimes(value);
+  }
 
   virtual void onNewValue(const ValueDispatcher<AbsoluteOrientation> &v) {
     addTimestamp(v.lastTimeStamp());
@@ -131,6 +143,7 @@ private:
   int intBaseRoll;
   int intBasePitch;
   int64_t timestampBase;
+  int64_t extTimesBase;
   std::string _sourceName;
   std::string _shortName;
 };
@@ -169,6 +182,9 @@ class Logger {
 
   static void unpack(const AbsOrientValueSet& values,
                      std::vector<AbsoluteOrientation>* result);
+
+  static void unpack(const google::protobuf::RepeatedField<long int> &times,
+                      std::vector<TimeStamp>* result);
 
   static void unpackTime(const ValueSet& valueSet,
                          std::vector<TimeStamp>* result);
