@@ -128,3 +128,30 @@ TEST(LoggerTest, LogOrientation) {
   EXPECT_EQ(5, unpacked[1].roll.degrees());
   EXPECT_EQ(6, unpacked[1].pitch.degrees());
 }
+
+TEST(LoggerTest, LogTime) {
+  Dispatcher dispatcher;
+  Logger logger(&dispatcher);
+
+  auto today = TimeStamp::UTC(2016, 5, 27, 14, 6, 0);
+  auto stillToday = TimeStamp::UTC(2016, 5, 27, 14, 7, 0);
+
+  AbsoluteOrientation orient;
+  dispatcher.publishValue(DATE_TIME, "test", today);
+  dispatcher.publishValue(DATE_TIME, "test", stillToday);
+
+  LogFile saved;
+  logger.flushTo(&saved);
+
+  std::vector<TimeStamp> externalTimes;
+  Logger::unpack(saved.stream(0).exttimes(), &externalTimes);
+  EXPECT_EQ(2, externalTimes.size());
+  EXPECT_EQ(today, externalTimes[0]);
+  EXPECT_EQ(stillToday, externalTimes[1]);
+
+  std::vector<TimeStamp> systemTimes;
+  Logger::unpackTime(saved.stream(0), &systemTimes);
+  EXPECT_EQ(2, systemTimes.size());
+  EXPECT_TRUE(systemTimes[0].defined());
+  EXPECT_TRUE(systemTimes[1].defined());
+}
