@@ -16,10 +16,37 @@ function curveStartTime(curveId) {
   return new Date(curveStartTimeStr(curveId) + "Z");
 }
 
+function zeroPad2(nr){
+  var  len = (2 - String(nr).length)+1;
+  return len > 0? new Array(len).join('0')+nr : nr;
+}
+
+function encodeTime(time) {
+  return time.getUTCFullYear() + '-'
+    + zeroPad2(time.getUTCMonth() + 1) + '-'
+    + zeroPad2(time.getUTCDate())
+    + 'T' + zeroPad2(time.getUTCHours())
+    + ':' + zeroPad2(time.getUTCMinutes())
+    + ':' + zeroPad2(time.getUTCSeconds());
+}
+
+function makeCurveId(boat, startTime, endTime) {
+  var s = boat + encodeTime(startTime) + encodeTime(endTime);
+  console.log(s);
+  return s;
+}
+
 function VectorTileLayer(params, renderer) {
   this.params = params;
 
   this.renderer = renderer;
+
+  this.boatIcon = new Image();
+  this.boatIcon.src = '/assets/images/boat.svg';
+  this.trueWindIcon = new Image();
+  this.trueWindIcon.src = '/assets/images/truewind.svg';
+  this.appWindIcon = new Image();
+  this.appWindIcon.src = '/assets/images/appwind.svg';
 
   this.tiles = {};
   this.numLoading = 0;
