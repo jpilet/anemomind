@@ -202,7 +202,7 @@ TypedDispatchData<typename TypeForCode<Code>::type>* toTypedDispatchData(Dispatc
 class Dispatcher : public Clock {
  public:
   Dispatcher();
-  static const int minPriority = std::numeric_limits<int>::min();
+  static const int defaultPriority = 0;
 
   //! Get a pointer to the default anemobox dispatcher.
   static Dispatcher *global();
@@ -324,6 +324,9 @@ class Dispatcher : public Clock {
 
   void set(DataCode code, const std::string &srcName,
       const std::shared_ptr<DispatchData> &d);
+  std::shared_ptr<DispatchData> get(DataCode c, const std::string &src) const;
+
+  int maxPriority() const;
  private:
   static Dispatcher *_globalInstance;
 
