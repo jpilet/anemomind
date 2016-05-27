@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.1"
+   id="svg12391"
+   viewBox="0 0 17.424956 24.256604"
+   height="6.8457527mm"
+   width="4.9177098mm">
+  <defs
+     id="defs12393" />
+  <metadata
+     id="metadata12396">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-197.98762,-352.07679)"
+     id="layer1">
+    <path
+       d="m 214.39383,353.12538 -0.0304,15.57379 -7.82077,6.61551 -7.53629,-6.86818 0.0301,-15.35096 15.35733,0.0298 z"
+       style="fill:#ff0033;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       id="path672" />
+    <text
+       y="366.97052"
+       x="-211.50507"
+       transform="matrix(-0.99999808,-0.0019582,-0.0019582,0.99999808,0,0)"
+       style="font-variant:normal;font-weight:bold;font-size:13.24672222px;font-family:'Avenir Next';-inkscape-font-specification:AvenirNext-Bold;writing-mode:lr-tb;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       id="text674">
+      <tspan
+         x="-211.50507"
+         y="366.97052"
+         id="tspan676">T</tspan>
+    </text>
+    <g
+       transform="matrix(-1.2134606,0.30002229,0.30002229,1.2134606,214.39383,353.12538)"
+       id="g678">
+      <path
+         d="M 0,0 3.014,12.089 10.358,15.725 14.892,8.944 11.921,-2.972 0,0 Z"
+         style="fill:none;stroke:#ff0033;stroke-width:1.63;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+         id="path680" />
+    </g>
+  </g>
+</svg>

@@ -333,6 +333,21 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
   }
 
   var pixelRatio = this.renderer.pixelRatio;
+  var circleRadius = 45 * pixelRatio;
+
+  var rotateAndDrawIcon = function(angle, icon) {
+    if (angle == undefined) {
+      return;
+    }
+    context.save();
+    context.rotate(angle * toRadians);
+
+    var d = circleRadius;
+    var l = icon.height * pixelRatio;
+    var w = icon.width * pixelRatio;
+    context.drawImage(icon, -w/2, - d - l/2, w, l);
+    context.restore();
+  }
 
   var windArrow = function(angle, color) {
     if (angle == undefined) {
@@ -372,21 +387,56 @@ VectorTileLayer.prototype.drawTimeSelection = function(context, pinchZoom) {
   context.save();
   context.translate(pos.x, pos.y);
 
-  windArrow(getTwdir(p), '#7744ff');
-
+  
+  context.save();
   context.rotate(p.gpsBearing * toRadians);
 
-  var l = 30 * pixelRatio;
-  var w = 8 * pixelRatio;
-  context.beginPath();
-  context.moveTo(0, -l/2);
-  context.lineTo(w/2, l/2);
-  context.lineTo(-w/2, l/2);
-  context.closePath();
-  context.fillStyle = '#662200';
-  context.fill();
+  if (this.boatIcon.complete) {
+    var r = circleRadius * 1.1;
+    var n = 32;
+    context.beginPath();
+    for (var i = 0; i < n; ++i) {
+      var angle = (i / n) * 2 * Math.PI;
+      var t = ((i % 4) == 0 ? 10 : 6) * pixelRatio;
+      var cos = Math.cos(angle);
+      var sin = Math.sin(angle);
+      context.moveTo(cos * r, sin * r);
+      context.lineTo(cos * (r - t), sin * (r - t));
+    }
+    context.strokeStyle = '#ff0033';
+    context.stroke();
 
-  windArrow(p.awa, '#774400');
+    var l = 38 * pixelRatio;
+    var w = 25 * pixelRatio;
+    context.drawImage(this.boatIcon,
+                      - w/2,
+                      - l/2,
+                      w, l);
+  } else {
+    // Icon not loaded yet. Fall back on a rough triangle.
+    context.beginPath();
+    context.moveTo(0, -l/2);
+    context.lineTo(w/2, l/2);
+    context.lineTo(-w/2, l/2);
+    context.closePath();
+    context.fillStyle = '#662200';
+    context.fill();
+  }
+
+  if (this.appWindIcon.complete) {
+    rotateAndDrawIcon(p.awa, this.appWindIcon);
+  } else {
+    windArrow(p.awa, '#774400');
+  }
+
+  context.restore();
+
+  var twdir = getTwdir(p);
+  if (this.trueWindIcon.complete) {
+    rotateAndDrawIcon(twdir, this.trueWindIcon);
+  } else {
+    windArrow(twdir, '#7744ff');
+  }
 
   context.restore();
 
