@@ -154,4 +154,5 @@ TEST(LoggerTest, LogTime) {
   EXPECT_EQ(2, systemTimes.size());
   EXPECT_TRUE(systemTimes[0].defined());
   EXPECT_TRUE(systemTimes[1].defined());
+  EXPECT_EQ(saved.stream(0).shortname(), "dateTime");
 }
