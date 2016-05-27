@@ -37,12 +37,6 @@ bool operator<(const TimeStamp &a, const TimedValue<T> &b) {
   return a < b.time;
 }
 
-template <typename TimedValueType>
-struct WrappedTimedValueType {
-public:
-  typedef decltype((std::declval<TimedValueType>()).value) type;
-};
-
 }
 
 

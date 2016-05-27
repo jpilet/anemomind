@@ -19,6 +19,7 @@ struct Results {
   GeographicReference geoRef;
   Array<CeresTrajectoryFilter::Types<2>::TimedPosition> localPositions;
   Array<TimedValue<GeographicPosition<double> > > getGlobalPositions() const;
+  //std::shared_ptr<AbstractArray<GeographicPosition<double> > > getGlobalPostions() const;
 };
 
 CeresTrajectoryFilter::Settings makeDefaultSettings();

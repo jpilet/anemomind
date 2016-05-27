@@ -56,7 +56,7 @@ public:
 
 template <typename Indexable, TypeMode mode>
 class SampledWrap : public SampledSignal<
-  typename WrappedTimedValueType<typename IndexedType<Indexable>::type >::type > {
+  typename IndexedType<Indexable>::type::type> {
 public:
   typedef typename IndexedType<Indexable>::type T;
 
