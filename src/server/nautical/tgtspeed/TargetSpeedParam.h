@@ -56,10 +56,10 @@ class TargetSpeedParam {
   template <typename T>
   T windAngleToAngleIndex(Angle<T> windAngle) const {
     auto frac = windAngle/_angleFactor;
-    if (std::isnan(frac)) {
-      return frac;
+    if (isNaN(frac)) {
+      return frac.dimensionless();
     }
-    return positiveMod<T>(frac, _totalAngleCount);
+    return positiveMod<T>(frac.dimensionless(), _totalAngleCount);
   }
 
   template <typename T>
