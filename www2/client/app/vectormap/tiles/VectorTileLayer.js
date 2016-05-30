@@ -31,9 +31,7 @@ function encodeTime(time) {
 }
 
 function makeCurveId(boat, startTime, endTime) {
-  var s = boat + encodeTime(startTime) + encodeTime(endTime);
-  console.log(s);
-  return s;
+  return boat + encodeTime(startTime) + encodeTime(endTime);
 }
 
 function VectorTileLayer(params, renderer) {
