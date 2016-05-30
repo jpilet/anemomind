@@ -22,50 +22,52 @@ describe('Directive: wheelIndicator', function () {
 
     // wheel-indicator loads an svg asynchronously. Let's wait for the loading
     // and the animation to finish.
+    var wheel;
     waitsFor(function() {
       var array = $(element).find('#red');
       if (array.length != 1) {
         return false;
       }
-      expect(array.length).toBe(1);
-      var wheel = array[0];
-
+      wheel = array[0];
+      return true;
+    }, 'looking for the wheel with #red tag', 1000);
+    waitsFor(function() {
       // Wait for the animation to finish
       if (wheel.transform.baseVal.numberOfItems == 0
-          || wheel.transform.baseVal.getItem(0).angle != 63) {
+          || wheel.transform.baseVal.getItem(0).angle < 63) {
         return false;
       }
+      return true;
+    }, 'wheel animation to finish', 1000);
 
+    var north;
+    runs(function() {
       //Now test the north indicator rotation
-      var array1 = $(element).find('#north');
-      if (array1.length != 1) {
-        return false;
-      }
+      var array1 = $(element).find('#letter');
       expect(array1.length).toBe(1);
-      var wheel1 = array1[0];
+      north = array1[0];
+    });
 
+    waitsFor(function() {
       // Wait for the animation to finish
-      if (wheel1.transform.baseVal.numberOfItems == 0
-          || wheel1.transform.baseVal.getItem(0).angle != 89) {
+      expect(north.transform.baseVal.numberOfItems).not.toBe(0);
+      if (north.transform.baseVal.numberOfItems == 0) {
         return false;
       }
+      if (north.transform.baseVal.getItem(0).angle != -89) {
+        return false;
+      }
+      return true;
+    }, 'north animation to finish', 1000);
 
+    runs(function() {
       //Now test the north text rotation
       var array2 = $(element).find('#northtext');
-      if (array2.length != 1) {
-        return false;
-      }
       expect(array2.length).toBe(1);
       var wheel2 = array2[0];
 
-      // Wait for the animation to finish
-      if (wheel2.transform.baseVal.numberOfItems == 0
-          || wheel2.transform.baseVal.getItem(0).angle != 89) {
-        return false;
-      }
-
-      // Good. The SVG has been loaded and the angle is correct.
-      return true;
-    }, "The wheel can't be found or is not rotated properly", 1000);
+      expect(wheel2.transform.baseVal.numberOfItems).not.toBeLessThan(1);
+      expect(wheel2.transform.baseVal.getItem(0).angle).toBe(89);
+    });
   }));
 });

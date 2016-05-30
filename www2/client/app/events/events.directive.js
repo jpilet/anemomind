@@ -16,8 +16,8 @@ angular.module('www2App')
         scope.users = {};
         $http.get('/api/events', { params: {
             b: scope.boat,
-            A: scope.after.toISOString(),
-            B: scope.before.toISOString()
+            A: (scope.after ? scope.after.toISOString() : undefined),
+            B: (scope.before ? scope.before.toISOString() : undefined)
           }})
           .success(function(data, status, headers, config) {
             scope.events = [];
