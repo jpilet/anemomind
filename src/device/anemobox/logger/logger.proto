@@ -48,7 +48,7 @@ message ValueSet {
   // Time associated with every value
   repeated int64 timestamps = 2 [packed = true];
   
-  // Exactly on of the following
+  // Exactly one of the following
   optional AngleValueSet angles = 3;
   optional VelocityValueSet velocity = 4;
   optional LengthValueSet length = 5;
