@@ -99,12 +99,11 @@ void streamCat(const ValueSet& valueSet, vector<TimedString>* entries) {
     vector<AbsoluteOrientation> values;
     Logger::unpack(valueSet.orient(), &values);
     formatValues(times, values, prefix, entries);
-  }{
+  }
+  if (valueSet.exttimes_size() > 0) {
     vector<TimeStamp> extTimes;
-    if (!extTimes.empty()) {
-      Logger::unpack(valueSet.exttimes(), &extTimes);
-      formatValues(times, extTimes, prefix, entries);
-    }
+    Logger::unpack(valueSet.exttimes(), &extTimes);
+    formatValues(times, extTimes, prefix, entries);
   }
 
   for (int i = 0; i < valueSet.text_size(); ++i) {
