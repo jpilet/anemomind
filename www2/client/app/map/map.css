@@ -11,6 +11,11 @@ height:100%;
   */
   display: flex;
   flex-direction: column;
+
+  /* Display the map screen without navbar.
+   * We restore the reserved navbar margin.  
+   */
+  margin-top: -60px;
 }
 
 .mapAndGraphAndSidebar {
