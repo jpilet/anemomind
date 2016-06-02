@@ -81,6 +81,14 @@
   font-size: 13px;  
 }
 
+.card .card-content div.boat-info-actions{
+  position: absolute;
+  right: 5px;
+  top: 40px;
+  width: 40px;
+}
+
+
 .card.card-horizontal .card-image{
   float: left;
   width: 20%;  
@@ -100,6 +108,7 @@
   padding-right: 5px;
   float: left;
   width: 40%;
+  position: relative;
 }
 
 .card.card-horizontal .card-block{
