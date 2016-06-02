@@ -21,6 +21,8 @@ enum SourceOrigin {
         
 SourceOrigin classify(const std::string& source);
 
+std::string makeSourceName(SourceOrigin origin, const std::string& name);
+
 // Returns true iif Anemomind has the responsibility of the source 
 bool sourceIsInternal(const std::string& source);
 
