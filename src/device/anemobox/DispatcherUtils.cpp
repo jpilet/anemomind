@@ -283,7 +283,7 @@ namespace {
   void addSample(std::vector<PrioritizedSample<T> > *dst, const PrioritizedSample<T> &x) {
     while (!dst->empty()) {
       auto &b = dst->back();
-      bool closeToEachOther = std::abs((b.data.time - x.data.time).seconds()) < maxMergeDifSeconds;
+      bool closeToEachOther = fabs(b.data.time - x.data.time) < maxMergeDif;
       if (closeToEachOther) {
         if (x.priority == b.priority) {
           break;

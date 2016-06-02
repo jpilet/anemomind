@@ -117,7 +117,7 @@ TEST(NavDatasetTest, TestAddChannels) {
   EXPECT_FALSE(bool(ds.dispatcher()));
   EXPECT_TRUE(bool(ds2.dispatcher()));
   EXPECT_EQ(ds2.dispatcher()->maxPriority(), Dispatcher::defaultPriority + 1);
-  EXPECT_EQ(ds2.dispatcher()->get(Code, "A"), a);
+  EXPECT_EQ(ds2.dispatcher()->dispatchDataForSource(Code, "A"), a);
   EXPECT_EQ(ds2.samples<Code>().size(), 3);
   EXPECT_NEAR(ds2.samples<Code>()[1].value.knots(), 4.0, 1.0e-6);
 

@@ -150,18 +150,18 @@ TEST(DisaptcherUtilsTest, TestSomeMore) {
 
   EXPECT_EQ(0, d0->allSources().size());
   EXPECT_EQ(2, countChannels(d1.get()));
-  EXPECT_EQ(a, d1->get(Code, "A"));
-  EXPECT_EQ(b, d1->get(Code, "B"));
+  EXPECT_EQ(a, d1->dispatchDataForSource(Code, "A"));
+  EXPECT_EQ(b, d1->dispatchDataForSource(Code, "B"));
   std::shared_ptr<Dispatcher> d2 = mergeDispatcherWithDispatchDataMap(d1.get(), {
        {Code, {{"A", a2}}},
     });
   EXPECT_EQ(d2->sourcePriority("A"), 119);
 
-  EXPECT_EQ(a, d1->get(Code, "A"));
-  EXPECT_EQ(b, d1->get(Code, "B"));
+  EXPECT_EQ(a, d1->dispatchDataForSource(Code, "A"));
+  EXPECT_EQ(b, d1->dispatchDataForSource(Code, "B"));
 
-  EXPECT_EQ(a2, d2->get(Code, "A"));
-  EXPECT_EQ(b, d1->get(Code, "B"));
+  EXPECT_EQ(a2, d2->dispatchDataForSource(Code, "A"));
+  EXPECT_EQ(b, d1->dispatchDataForSource(Code, "B"));
 }
 
 TEST(DispatcherUtilsTest, Replay) {

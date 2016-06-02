@@ -42,10 +42,14 @@ Dispatcher *Dispatcher::global() {
   return _globalInstance;
 }
 
-  std::shared_ptr<DispatchData> Dispatcher::dispatchDataForSource(DataCode code, const std::string& source) {
-    auto sourcesForCode = _data[code];
-    auto sourceIt = sourcesForCode.find(source);
-    if (sourceIt == sourcesForCode.end()) {
+  std::shared_ptr<DispatchData> Dispatcher::dispatchDataForSource(DataCode code, const std::string& source) const {
+    auto sourcesForCode = _data.find(code);
+    if (sourcesForCode == _data.end()) {
+      return std::shared_ptr<DispatchData>();
+    }
+
+    auto sourceIt = sourcesForCode->second.find(source);
+    if (sourceIt == sourcesForCode->second.end()) {
       return std::shared_ptr<DispatchData>();
     }
     return sourceIt->second;
@@ -87,18 +91,6 @@ Dispatcher *Dispatcher::global() {
   void Dispatcher::set(DataCode code, const std::string &srcName,
       const std::shared_ptr<DispatchData> &d) {
     _data[code][srcName] = d;
-  }
-
-  std::shared_ptr<DispatchData> Dispatcher::get(
-      DataCode c, const std::string &src) const {
-    auto x = _data.find(c);
-    if (x != _data.end()) {
-      auto y = x->second.find(src);
-      if (y != x->second.end()) {
-        return y->second;
-      }
-    }
-    return std::shared_ptr<DispatchData>();
   }
 
   int Dispatcher::maxPriority() const {

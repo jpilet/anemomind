@@ -302,14 +302,15 @@ add_library(nautical_NavCompatibility
             NavCompatibility.cpp
            )
 target_link_libraries(nautical_NavCompatibility
-                      nautical_nav
-                      nautical_NavDataset
-                      common_LineKM
-                      common_TimeStamp
-                      plot_gnuplot
-                      nautical_Ecef
-                      common_PeriodicSpan
                       anemobox_Dispatcher                      
+                      anemobox_Sources
+                      common_LineKM
+                      common_PeriodicSpan
+                      common_TimeStamp
+                      nautical_Ecef
+                      nautical_NavDataset
+                      nautical_nav
+                      plot_gnuplot
                      )
 
 add_library(nautical_AbsoluteOrientation

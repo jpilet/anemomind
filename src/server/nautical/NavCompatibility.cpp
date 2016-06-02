@@ -6,6 +6,7 @@
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/DispatcherUtils.h>
+#include <device/anemobox/Sources.h>
 #include <server/common/ArrayIO.h>
 #include <server/common/Functional.h>
 #include <server/common/LineKM.h>
@@ -40,8 +41,8 @@ namespace {
   }
 
   void  insertNavsIntoDispatcher(const Array<Nav> &navs, Dispatcher *dst) {
-    const char srcOurs[] = "NavDevice";
-    const char srcExternal[] = "NavExternal";
+    std::string srcOurs("NavDevice");
+    std::string srcExternal("NavExternal");
 
     dst->insertValues<Angle<double> >(
       AWA, srcOurs, getTimedVectorFromNavs<Angle<double> >(navs, [](const Nav &x) {
@@ -144,7 +145,7 @@ namespace {
       const NavDataset &src, const TimeStamp &time) {
     auto nearest = src.samples<Code>().nearest(time);
     if (nearest.defined()) {
-      if (abs((nearest.get().time - time).seconds()) < maxMergeDifSeconds) {
+      if (fabs(nearest.get().time - time) < maxMergeDif) {
         return Optional<typename TypeForCode<Code>::type>(nearest.get().value);
       }
     }
@@ -157,44 +158,43 @@ namespace {
       if (x.defined()) { ((*dst).*set)(x()); }
   }
 
-
-  Array<std::string> orderedDeviceSources{"NavDevice"};
-  Array<std::string> orderedExternalSources{"NavExternal"};
-
   template <DataCode Code>
-  Optional<typename TypeForCode<Code>::type> lookUpPrioritizedSample(
-      const std::shared_ptr<Dispatcher> &dispatcher,
-      TimeStamp time, const Array<std::string> &orderedSources) {
+  Optional<typename TypeForCode<Code>::type> lookUpFilteredSources(
+      const Dispatcher &dispatcher,
+      TimeStamp time,
+      bool (*sourceFilter)(const std::string&)) {
     typedef typename TypeForCode<Code>::type T;
-    const auto &all = dispatcher->allSources();
+    const auto &all = dispatcher.allSources();
     auto found = all.find(Code);
+    Optional<T> result;
     if (found != all.end()) {
       const auto &sources = found->second;
-      for (auto srcName: orderedSources) {
-        auto found = sources.find(srcName);
-        if (found != sources.end()) {
-          const TimedSampleCollection<T> &data = toTypedDispatchData<Code>(found->second.get())->dispatcher()->values();
-          auto nearest = findNearestTimedValue<T>(data.samples().begin(), data.samples().end(), time);
-          if (nearest.defined()) {
-            if (std::abs((nearest.get().time - time).seconds()) < maxMergeDifSeconds) {
-              return Optional<T>(nearest.get().value);
-            }
+      int bestPrio;
+
+      for (auto srcName: sources) {
+        if (sourceFilter(srcName.first)) {
+          int prio = dispatcher.sourcePriority(srcName.first);
+          if (result.undefined() || prio > bestPrio) {
+            bestPrio = prio;
+            result = dispatcher.valueFromSourceAt<Code>(srcName.first, time,
+                                                        maxMergeDif);
           }
         }
       }
     }
-    return Optional<T>();
+    return result;
   }
 
   template <DataCode code, class T>
-  void setNavValueMultiSource(
-      const Array<std::string> &orderedSources,
+  bool setNavValueFilteredSources(
+      bool (*sourceFilter)(const std::string&),
       const NavDataset &data, TimeStamp time, Nav *dst, void (Nav::* set)(T)) {
-    auto sample = lookUpPrioritizedSample<code>(data.dispatcher(), time, orderedSources);
+    auto sample = lookUpFilteredSources<code>(*data.dispatcher(), time, sourceFilter);
     if (sample.defined()) {
       ((*dst).*set)(sample.get());
+      return true;
     } else {
-      setNavValue<code, T>(data, time, dst, set);
+      return false;
     }
   }
 
@@ -233,8 +233,8 @@ const Nav getNav(const NavDataset &ds, int i) {
 
   auto twdir = getValue<TWDIR>(ds, timeAndPos.time);
   auto tws = getValue<TWS>(ds, timeAndPos.time);
+
   if (twdir.defined() && tws.defined()) {
-    
     dst.setTrueWindOverGround(windMotionFromTwdirAndTws(twdir.get(), tws.get()));
     auto heading = getValue<GPS_BEARING>(ds, timeAndPos.time);
     if (heading.defined()) {
@@ -247,10 +247,10 @@ const Nav getNav(const NavDataset &ds, int i) {
     }
   }
 
-  setNavValueMultiSource<TWA>(orderedDeviceSources, ds, timeAndPos.time, &dst, &Nav::setDeviceTwa);
-  setNavValueMultiSource<TWA>(orderedExternalSources, ds, timeAndPos.time, &dst, &Nav::setExternalTwa);
-  setNavValueMultiSource<TWS>(orderedDeviceSources, ds, timeAndPos.time, &dst, &Nav::setDeviceTws);
-  setNavValueMultiSource<TWS>(orderedExternalSources, ds, timeAndPos.time, &dst, &Nav::setExternalTws);
+  setNavValueFilteredSources<TWA>(sourceIsInternal, ds, timeAndPos.time, &dst, &Nav::setDeviceTwa);
+  setNavValueFilteredSources<TWA>(sourceIsExternal, ds, timeAndPos.time, &dst, &Nav::setExternalTwa);
+  setNavValueFilteredSources<TWS>(sourceIsInternal, ds, timeAndPos.time, &dst, &Nav::setDeviceTws);
+  setNavValueFilteredSources<TWS>(sourceIsExternal, ds, timeAndPos.time, &dst, &Nav::setExternalTws);
 
 
   setNavValue<GPS_SPEED>(ds, timeAndPos.time, &dst, &Nav::setGpsSpeed);
