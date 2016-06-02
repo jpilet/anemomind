@@ -7,9 +7,8 @@ angular.module('www2App')
       'link': '/'
     }];
 
-    $scope.boats = boatList.boats();
-    $scope.$on('boatList:updated', function(event,data) {
-      $scope.boats = data;
+    boatList.boats().then(function(boats) {
+      $scope.boats = boats;
     });
 
     $scope.isCollapsed = true;
