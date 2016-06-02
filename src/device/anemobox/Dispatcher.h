@@ -324,9 +324,32 @@ class Dispatcher : public Clock {
 
   void set(DataCode code, const std::string &srcName,
       const std::shared_ptr<DispatchData> &d);
+
+  template<DataCode Code>
+  Optional<typename TypeForCode<Code>::type> valueFromSourceAt(
+      const std::string& source, TimeStamp time,
+      Duration<> maxDelta) {
+    typedef typename TypeForCode<Code>::type T;
+    TypedDispatchData<T>* tdd =
+      toTypedDispatchData<Code>(dispatchDataForSource(Code, source).get());
+    if (tdd == nullptr) {
+      return Optional<T>();
+    }
+    const TimedSampleCollection<T>& data = tdd->dispatcher()->values();
+    auto nearest = findNearestTimedValue<T>(
+        data.samples().begin(), data.samples().end(), time);
+    if (nearest.defined()
+        && fabs(nearest.get().time - time) < maxDelta) {
+      return Optional<T>(nearest.get().value);
+    } else {
+      return Optional<T>();
+    }
+  }
+
   std::shared_ptr<DispatchData> get(DataCode c, const std::string &src) const;
 
   int maxPriority() const;
+
  private:
   static Dispatcher *_globalInstance;
 

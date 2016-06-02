@@ -93,3 +93,41 @@ TEST(DispatcherTest, Publish) {
     EXPECT_CALL(listener, onNewValue(ResultOf(degrees, DoubleEq(9))));
     dispatcher.publishValue(AWA, "test", Angle<>::degrees(9));
 }
+
+TEST(DispatcherTest, TestValueFromSourceAt) {
+  Dispatcher dispatcher;
+
+  TimeStamp base = TimeStamp::now();
+  TimedSampleCollection<Angle<double>>::TimedVector values;
+
+  values.push_back(TimedValue<Angle<>>(
+          base + Duration<>::seconds(0), Angle<>::degrees(17)));
+  values.push_back(TimedValue<Angle<>>(
+          base + Duration<>::seconds(1), Angle<>::degrees(18)));
+  values.push_back(TimedValue<Angle<>>(
+          base + Duration<>::seconds(2), Angle<>::degrees(19)));
+
+  // 98 sec Gap
+  values.push_back(TimedValue<Angle<>>(
+          base + Duration<>::seconds(100), Angle<>::degrees(3)));
+  values.push_back(TimedValue<Angle<>>(
+          base + Duration<>::seconds(101), Angle<>::degrees(2)));
+                                       
+  dispatcher.insertValues<Angle<double>>(AWA, "source", values);
+
+  Duration<> limit = Duration<>::seconds(2);
+  Optional<Angle<>> r =
+    dispatcher.valueFromSourceAt<AWA>("source", base + Duration<>::seconds(1.3), limit);
+  EXPECT_TRUE(r.defined());
+  EXPECT_NEAR(r.get().degrees(), 18, 1e-5);
+
+  // try to lookup within the gap
+  r = dispatcher.valueFromSourceAt<AWA>("source", base + Duration<>::seconds(60), limit);
+  EXPECT_FALSE(r.defined());
+
+  // lookup after the gap
+  r = dispatcher.valueFromSourceAt<AWA>("source", base + Duration<>::seconds(100), limit);
+  EXPECT_TRUE(r.defined());
+  EXPECT_NEAR(r.get().degrees(), 3, 1e-5);
+}
+
