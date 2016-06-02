@@ -125,6 +125,25 @@ std::shared_ptr<Dispatcher> filterChannels(Dispatcher *src,
   DispatcherChannelFilterFunction f, bool includePrios);
 std::shared_ptr<Dispatcher> shallowCopy(Dispatcher *src);
 
+
+std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>>
+  mergeDispatchDataMaps(
+      const std::map<DataCode, std::map<std::string,
+        std::shared_ptr<DispatchData>>> &a,
+      const std::map<DataCode, std::map<std::string,
+        std::shared_ptr<DispatchData>>> &b);
+
+std::shared_ptr<Dispatcher> mergeDispatcherWithDispatchDataMap(
+    Dispatcher *src,
+    const std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> &toAdd);
+
+std::set<DataCode> listDataCodesWithDifferences(
+    const std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> &A,
+    const std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> &B);
+
 void copyPriorities(Dispatcher *src, Dispatcher *dst);
 
 typedef std::function<void(const std::shared_ptr<Dispatcher> &,

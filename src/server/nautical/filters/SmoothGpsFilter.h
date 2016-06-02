@@ -18,8 +18,9 @@ namespace sail {
 struct Results {
   GeographicReference geoRef;
   Array<CeresTrajectoryFilter::Types<2>::TimedPosition> localPositions;
+
+  // TODO(jonas): The return type should be a RandomlySampledSignal<GeographicPosition<double>>
   Array<TimedValue<GeographicPosition<double> > > getGlobalPositions() const;
-  //std::shared_ptr<AbstractArray<GeographicPosition<double> > > getGlobalPostions() const;
 };
 
 CeresTrajectoryFilter::Settings makeDefaultSettings();

@@ -14,6 +14,14 @@
           <button type="button" class="btn btn-default btn-sm" ng-click="slower()">-</button>
           <span>{{ replaySpeed }}x</span>
           <button type="button" class="btn btn-default btn-sm" ng-click="faster()">+</button>
+          <button type="button" class="btn btn-default btn-sm" ng-click="cutBefore()">
+            <i class="fa fa-scissors" aria-hidden="true"></i>
+            <i class="fa fa-step-backward" aria-hidden="true"></i>
+           </button>
+          <button type="button" class="btn btn-default btn-sm" ng-click="cutAfter()">
+            <i class="fa fa-step-forward" aria-hidden="true"></i>
+            <i class="fa fa-scissors" aria-hidden="true"></i>
+          </button>
         </div>
         <div class="vectorMapContainer" vectormap></div>
       </div>

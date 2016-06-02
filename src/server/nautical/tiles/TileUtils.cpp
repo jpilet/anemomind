@@ -108,8 +108,14 @@ void processTiles(const TileGeneratorParameters &params,
     std::shared_ptr<HTree> fulltree = grammar.parse(simulated);
     auto extracted = extractAll("Sailing", simulated, grammar, fulltree);
 
+    for (const NavDataset& session : extracted) {
+      LOG(INFO) << "Session: "
+        << getFirst(session).time().toString()
+        << ", until " << getLast(session).time().toString();
+    }
+
     Array<NavDataset> sessions =
-      filter(map(extracted, filterNavs),
+      filter(map(extracted, filterNavs).toArray(),
           [](NavDataset ds) {
       if (getNavSize(ds) == 0) {
         LOG(WARNING) << "Omitting dataset with 0 navs";
