@@ -12,6 +12,13 @@
       <div class="boat-info">
         <h1>{{::boat.name}}</h1>
         <p>Since {{sessionGetFirstDate(sessions)|date:'yyyy'}} </p>
+
+        <div class="boat-info-actions">
+          <a ng-href="/boats/{{::boat._id}}/edit" class="btn btn-action btn-sm btn-block"><i class="fa fa-cogs"></i></a>
+          <a ng-href="/vmgplot/{{::boat._id}}" class="btn btn-action btn-sm btn-block"><i class="fa fa-area-chart"></i></a>
+        </div>
+
+
       </div>
       <div class="card-content-bottom">
         <h3>Recent activity</h3>
@@ -55,7 +62,8 @@
        ng-repeat="session in sessions | orderBy:'-startTime' |startFrom:(currentPage-1)*pageSize |limitTo:pageSize" >
     <a ng-href="/map/{{boatId}}?c={{session._id}}">
     <div class="card-image">
-      <div class="img-responsive img"  style="background-image:url('/assets/images/boat-session.png');background-size: cover;height:100%" ></div>
+      <div class="img-responsive img"  
+           style="background-image:url('/assets/images/boat-session.png');background-size: cover;height:100%" ></div>
     </div>
     <div class="card-content" >
       <h3>{{session.startTime | date: 'd.M.yyyy'}}</h3>
