@@ -333,7 +333,7 @@ class Dispatcher : public Clock {
     typedef typename TypeForCode<Code>::type T;
     TypedDispatchData<T>* tdd =
       toTypedDispatchData<Code>(dispatchDataForSource(Code, source).get());
-    if (tdd == 0) {
+    if (tdd == nullptr) {
       return Optional<T>();
     }
     const TimedSampleCollection<T>& data = tdd->dispatcher()->values();
