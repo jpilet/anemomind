@@ -21,37 +21,36 @@ const char externalRegex[] =
   "|(^CUPS$)"
   ;
 
-enum SourceOrigin { INTERNAL, EXTERNAL, UNKNOWN };
+}  // namespace
 
 SourceOrigin classify(const std::string& source) {
   static std::regex internal(internalRegex);
   static std::regex external(externalRegex);
 
   if (regex_match(source, internal)) {
-    return INTERNAL;
+    return ANEMOBOX;
   }
 
   if (regex_match(source, external)) {
     return EXTERNAL;
   }
 
+  // TODO: add regexp matching for server-produced sources
+
   LOG(WARNING)
-    << "Can't classify source as ext. or internal: "
+    << "Can't classify source: "
     << source;
 
-  // Unknown sources default to EXTERNAL
-  return SourceOrigin::EXTERNAL;
+  return SourceOrigin::UNKNOWN;
 }
 
-
-}  // namespace
-
 bool sourceIsInternal(const std::string& source) {
-  return classify(source) == SourceOrigin::INTERNAL;
+  SourceOrigin origin = classify(source);
+  return origin == SourceOrigin::ANEMOBOX || origin == SourceOrigin::POST_PROCESS;
 }
 
 bool sourceIsExternal(const std::string& source) {
-  return classify(source) == SourceOrigin::EXTERNAL;
+  return !sourceIsInternal(source);
 }
 
 }  // namespace sail

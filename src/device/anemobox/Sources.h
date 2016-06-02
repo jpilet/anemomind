@@ -5,7 +5,26 @@
 
 namespace sail {
 
+enum SourceOrigin {
+  // sensors inside the anemobox and calculations done inside the anemobox
+  ANEMOBOX,
+
+  // Post-processing on anemolab
+  POST_PROCESS,
+
+  // External instruments
+  EXTERNAL,
+
+  // Uknown origin.
+  UNKNOWN
+};
+        
+SourceOrigin classify(const std::string& source);
+
+// Returns true iif Anemomind has the responsibility of the source 
 bool sourceIsInternal(const std::string& source);
+
+// Return true iif Anemomind does not have the responsibility of the source
 bool sourceIsExternal(const std::string& source);
 
 }  // namespace sail
