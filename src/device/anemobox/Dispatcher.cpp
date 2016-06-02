@@ -69,7 +69,7 @@ Dispatcher *Dispatcher::global() {
     if (it != sourcePriority.end()) {
       return it->second;
     }
-    return 0;
+    return Dispatcher::defaultPriority;
   }
 
   int Dispatcher::sourcePriority(const std::string& source) const {
@@ -87,6 +87,26 @@ Dispatcher *Dispatcher::global() {
   void Dispatcher::set(DataCode code, const std::string &srcName,
       const std::shared_ptr<DispatchData> &d) {
     _data[code][srcName] = d;
+  }
+
+  std::shared_ptr<DispatchData> Dispatcher::get(
+      DataCode c, const std::string &src) const {
+    auto x = _data.find(c);
+    if (x != _data.end()) {
+      auto y = x->second.find(src);
+      if (y != x->second.end()) {
+        return y->second;
+      }
+    }
+    return std::shared_ptr<DispatchData>();
+  }
+
+  int Dispatcher::maxPriority() const {
+    int m = Dispatcher::defaultPriority;
+    for (auto kv: _sourcePriority) {
+      m = std::max(m, kv.second);
+    }
+    return m;
   }
 
 }  // namespace sail

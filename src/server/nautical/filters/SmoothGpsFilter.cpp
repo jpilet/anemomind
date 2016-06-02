@@ -63,8 +63,29 @@ Array<TimedValue<GeographicPosition<double> > >
   return dst;
 }
 
+typedef CeresTrajectoryFilter::Types<2> FTypes;
 
-Results filterGpsData(const NavDataset &ds) {
+Array<FTypes::TimedMotion> toLocalMotions(
+    const Array<TimedValue<HorizontalMotion<double>>> &motions) {
+  int n = motions.size();
+  Array<FTypes::TimedMotion> dst(n);
+  for (int i = 0; i < n; i++) {
+    const auto &m = motions[i];
+    dst[i] = FTypes::TimedMotion(
+        m.time, FTypes::Motion{m.value[0], m.value[1]});
+  }
+  return dst;
+}
+
+CeresTrajectoryFilter::Settings makeDefaultSettings() {
+  CeresTrajectoryFilter::Settings settings;
+  settings.huberThreshold = Length<double>::meters(12.0); // Sort of inlier threshold on the distance in meters
+  settings.regWeight = 10.0;
+  return settings;
+}
+
+Results filterGpsData(const NavDataset &ds,
+    const CeresTrajectoryFilter::Settings &settings) {
   if (ds.isDefaultConstructed()) {
     LOG(WARNING) << "Nothing to filter";
     return Results();
@@ -89,27 +110,33 @@ Results filterGpsData(const NavDataset &ds) {
   auto samplingTimes = buildSampleTimes(positionTimes, motionTimes,
       samplingPeriod);
 
-  typedef CeresTrajectoryFilter::Types<2> Types;
 
-
-  auto times = wrapIndexable<TypeMode::ConstRef>(samplingTimes);
-  auto localPositions = wrapIndexable<TypeMode::ConstRef>(getLocalPositions(geoRef, positions));
-  auto localMotions = wrapIndexable<TypeMode::ConstRef>(motions);
+  IndexableWrap<Array<TimeStamp>, TypeMode::ConstRef> times =
+      wrapIndexable<TypeMode::ConstRef>(samplingTimes);
+  IndexableWrap<Array<FTypes::TimedPosition>, TypeMode::Value> localPositions
+    = wrapIndexable<TypeMode::Value>(getLocalPositions(geoRef, positions));
+  IndexableWrap<Array<FTypes::TimedMotion>, TypeMode::Value> localMotions
+    = wrapIndexable<TypeMode::Value>(toLocalMotions(motions));
 
   using namespace CeresTrajectoryFilter;
-  Settings settings;
-  settings.huberThreshold = Length<double>::meters(12.0); // Sort of inlier threshold on the distance in meters
-  settings.regWeight = 1.0;
 
-  auto filtered = CeresTrajectoryFilter::filter<2>(
-      (const AbstractArray<TimeStamp> &)times,
-      (const AbstractArray<Types::TimedPosition> &)localPositions,
-      (const AbstractArray<Types::TimedMotion> &)localMotions,
-      settings, EmptyArray<Types::Position>());
+  typedef FTypes::TimedPosition TimedPosition;
+  typedef FTypes::TimedMotion TimedMotion;
+
+  const AbstractArray<TimeStamp> &t = times;
+  const AbstractArray<TimedPosition> &p = localPositions;
+  const AbstractArray<TimedMotion> &m = localMotions;
+
+  auto e = EmptyArray<FTypes::Position>();
+
+  Types<2>::TimedPositionArray filtered = CeresTrajectoryFilter::filter<2>(
+      t, p, m,
+      settings, e);
   if (filtered.empty()) {
     LOG(ERROR) << "Failed to filter GPS data";
     return Results();
   }
+
   return Results{geoRef, filtered};
 }
 
