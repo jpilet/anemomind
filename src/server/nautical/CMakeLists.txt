@@ -6,6 +6,7 @@ add_subdirectory("logimport")
 add_subdirectory("calib")
 add_subdirectory("filters")
 add_subdirectory("types")
+add_subdirectory("segment")
 
 add_library(nautical_Ecef
             Ecef.h
@@ -337,4 +338,4 @@ add_library(nautical_Visualize
 
 target_link_libraries(nautical_Visualize
   plot_Plot
-  )        
+  )
