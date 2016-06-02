@@ -398,6 +398,134 @@ std::shared_ptr<Dispatcher> shallowCopy(Dispatcher *src) {
   }, true);
 }
 
+std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>>
+  mergeDispatchDataMaps(
+      const std::map<DataCode, std::map<std::string,
+        std::shared_ptr<DispatchData>>> &a,
+      const std::map<DataCode, std::map<std::string,
+        std::shared_ptr<DispatchData>>> &b) {
+  std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>>
+    dst = a;
+  for (const auto &codeAndSourceMap: b) {
+    auto code = codeAndSourceMap.first;
+
+    auto &dstAtCode = dst[code];
+    for (const auto &sourceAndData: codeAndSourceMap.second) {
+      dstAtCode[sourceAndData.first] = sourceAndData.second;
+    }
+  }
+  return dst;
+}
+
+
+namespace {
+  class PriorityVisitor {
+   public:
+    PriorityVisitor(Dispatcher *src, Dispatcher *dst) :
+        _src(src), _dst(dst) {}
+
+    template <DataCode Code, typename T>
+    void visit(const char *shortName, const std::string &sourceName,
+      const std::shared_ptr<DispatchData> &raw,
+      const TimedSampleCollection<T> &coll) {
+      _dst->setSourcePriority(sourceName, _src->sourcePriority(sourceName));
+    }
+   private:
+    Dispatcher *_src, *_dst;
+  };
+}
+
+std::shared_ptr<Dispatcher> mergeDispatcherWithDispatchDataMap(
+    Dispatcher *srcDispatcher,
+    const std::map<DataCode, std::map<std::string,
+      std::shared_ptr<DispatchData>>> &toAdd) {
+  auto merged = mergeDispatchDataMaps(srcDispatcher->allSources(), toAdd);
+
+  auto dst = std::make_shared<Dispatcher>();
+  for (const auto &codeAndSources: merged) {
+    auto code = codeAndSources.first;
+    for (const auto &sourceAndData: codeAndSources.second) {
+      dst->set(code, sourceAndData.first, sourceAndData.second);
+    }
+  }
+
+  // Copy the priorities from the source dispatcher
+  PriorityVisitor visitor(srcDispatcher, dst.get());
+  visitDispatcherChannels(srcDispatcher, &visitor);
+
+  return dst;
+}
+
+
+namespace {
+  const std::map<std::string,
+        std::shared_ptr<DispatchData>> *lookUpMap(
+            const std::map<DataCode, std::map<std::string,
+              std::shared_ptr<DispatchData>>> &A, DataCode c) {
+    auto f = A.find(c);
+    if (f == A.end()) {
+      return nullptr;
+    }
+    return &(f->second);
+  }
+
+  std::shared_ptr<DispatchData> getChannel(
+      const std::map<std::string,
+        std::shared_ptr<DispatchData>> *a, const std::string &x) {
+    auto f = a->find(x);
+    if (f == a->end()) {
+      return std::shared_ptr<DispatchData>();
+    }
+    return f->second;
+  }
+
+  bool equalSourceMaps(
+      const std::map<std::string,
+              std::shared_ptr<DispatchData>> *a,
+      const std::map<std::string,
+        std::shared_ptr<DispatchData>> *b) {
+    if (a == nullptr) {
+      return b == nullptr;
+    } else if (b == nullptr) {
+      return false;
+    }
+    std::set<std::string> allSources;
+    for (auto kv: *a) {
+      allSources.insert(kv.first);
+    }
+    for (auto kv: *b) {
+      allSources.insert(kv.first);
+    }
+    for (auto src: allSources) {
+      if (getChannel(a, src) != getChannel(b, src)) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+std::set<DataCode> listDataCodesWithDifferences(
+    const std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> &A,
+    const std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> &B) {
+  std::set<DataCode> allDataCodes;
+  for (auto kv: A) {
+    allDataCodes.insert(kv.first);
+  }
+  for (auto kv: B) {
+    allDataCodes.insert(kv.first);
+  }
+  std::set<DataCode> difs;
+  for (auto code: allDataCodes) {
+    if (!equalSourceMaps(lookUpMap(A, code), lookUpMap(B, code))) {
+      difs.insert(code);
+    }
+  }
+  return difs;
+}
+
 
 namespace {
   struct ChannelInfo {

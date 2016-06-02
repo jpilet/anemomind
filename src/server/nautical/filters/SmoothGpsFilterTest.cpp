@@ -85,10 +85,15 @@ TEST(SmoothGpsFilterTest, TestIt) {
   EXPECT_EQ(originalPositions.size(), corruptedPositions.size());
   int n = originalPositions.size();
 
-  auto corrupted = original.dup();
-  EXPECT_FALSE(corrupted.isDefaultConstructed());
-  corrupted.setMerged(GPS_POS, makeDispatchDataFromSamples<GPS_POS>("corrupted", corruptedPositions));
+  auto srcName = "Corrupted";
 
+  auto corrupted = original.overrideChannels(
+      "Corrupted",
+      {{GPS_POS, makeDispatchDataFromSamples<GPS_POS>(
+          srcName, corruptedPositions)}});
+
+  // This test case is broken. An assertion is fired in debug mode.
+  // It is fixed by https://github.com/jpilet/anemomind/pull/698
   auto filtered0 = filterGpsData(corrupted);
 
   EXPECT_FALSE(filtered0.localPositions.empty());
