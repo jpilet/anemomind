@@ -21,6 +21,7 @@ add_library(nautical_nav
         
 target_link_libraries(nautical_nav
                       common_Array
+                      common_TimeStamp
                      )
   
 
