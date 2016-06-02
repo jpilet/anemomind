@@ -1,7 +1,7 @@
 'use strict';
 
 var app = angular.module('www2App')
-  .directive('boatSummary', function ($location, $interpolate, boatList, Auth) {
+  .directive('boatSummary', function ($rootScope, $location, $interpolate, boatList, Auth) {
     return {
       templateUrl: 'app/boatSummary/boatSummary.html',
       restrict: 'E',
@@ -10,26 +10,28 @@ var app = angular.module('www2App')
         pageSize: "=?"
       },
       link: function (scope, element, attrs) {
+
         scope.currentPage = 1;
         scope.sessions = [];
         if (scope.pageSize == undefined) {
           scope.pageSize = 2;
         }
         function updateSessions() {
-          if (!scope.boatId) {
-            return;
-          }
+          if(!scope.boatId) return;
           scope.boat = boatList.boat(scope.boatId);
           scope.sessions = boatList.sessionsForBoat(scope.boatId);
           if (scope.sessions == undefined) {
             scope.sessions = [];
           }
         }
+
+
+
+
         scope.$on('boatList:updated', updateSessions);
         scope.$on('boatList:sessionsUpdated', updateSessions);
         scope.$watch('boatId', updateSessions);
 
-        updateSessions();
 
         //
         // display more session
