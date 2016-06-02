@@ -1,9 +1,9 @@
 #ifndef ANEMOBOX_LOGGER_H
 #define ANEMOBOX_LOGGER_H
 
+#include <stdint.h>
 #include <device/anemobox/Dispatcher.h>
 #include <logger.pb.h>
-
 #include <boost/signals2/connection.hpp>
 #include <map>
 #include <memory>
@@ -13,6 +13,11 @@
 namespace sail {
 
 class Logger;
+
+void addTimeStampToRepeatedFields(
+    int64_t *base,
+    google::protobuf::RepeatedField<int64_t> *dst,
+    TimeStamp);
 
 // Listen and save a single stream of values.
 class LoggerValueListener:
@@ -47,14 +52,8 @@ public:
   }
 
   void addTimestamp(const TimeStamp& timestamp) {
-    int64_t ts = timestamp.toMilliSecondsSince1970();
-    int64_t value = ts;
-
-    if (_valueSet.timestamps_size() > 0) {
-      value -= timestampBase;
-    }
-    timestampBase = ts;
-    _valueSet.add_timestamps(value);
+    addTimeStampToRepeatedFields(&timestampBase,
+        _valueSet.mutable_timestamps(), timestamp);
   }
 
   static void accumulateAngle(const Angle<> &angle, int *base, AngleValueSet* set) {
@@ -107,15 +106,7 @@ public:
   virtual void onNewValue(const ValueDispatcher<TimeStamp> &v) {
     addTimestamp(v.lastTimeStamp());
     TimeStamp t = v.lastValue();
-
-    int64_t ts = t.toMilliSecondsSince1970();
-    int64_t value = ts;
-
-    if (_valueSet.exttimes_size() > 0) {
-      value -= extTimesBase;
-    }
-    extTimesBase = ts;
-    _valueSet.add_exttimes(value);
+    addTimeStampToRepeatedFields(&extTimesBase, _valueSet.mutable_exttimes(), t);
   }
 
   virtual void onNewValue(const ValueDispatcher<AbsoluteOrientation> &v) {
@@ -183,7 +174,7 @@ class Logger {
   static void unpack(const AbsOrientValueSet& values,
                      std::vector<AbsoluteOrientation>* result);
 
-  static void unpack(const google::protobuf::RepeatedField<long int> &times,
+  static void unpack(const google::protobuf::RepeatedField<int64_t> &times,
                       std::vector<TimeStamp>* result);
 
   static void unpackTime(const ValueSet& valueSet,

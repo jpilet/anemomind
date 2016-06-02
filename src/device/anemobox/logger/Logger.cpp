@@ -18,6 +18,21 @@ using namespace std;
 
 namespace sail {
 
+void addTimeStampToRepeatedFields(
+    long int *base,
+    google::protobuf::RepeatedField<long int> *dst,
+    TimeStamp timestamp) {
+  int64_t ts = timestamp.toMilliSecondsSince1970();
+  int64_t value = ts;
+
+  if (dst->size() > 0) {
+    value -= *base;
+  }
+  *base = ts;
+  dst->Add(value);
+}
+
+
 Logger::Logger(Dispatcher* dispatcher) :
     _dispatcher(dispatcher) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
