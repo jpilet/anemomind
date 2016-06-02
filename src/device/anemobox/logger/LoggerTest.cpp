@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
+#include <device/anemobox/FakeClockDispatcher.h>
 
 using namespace sail;
 
@@ -130,14 +131,20 @@ TEST(LoggerTest, LogOrientation) {
 }
 
 TEST(LoggerTest, LogTime) {
-  Dispatcher dispatcher;
+  FakeClockDispatcher dispatcher;
   Logger logger(&dispatcher);
+
+  auto laterInTheMorning = TimeStamp::UTC(2016, 5, 27, 8, 15, 0);
+  auto inTheMorning = TimeStamp::UTC(2016, 5, 27, 8, 0, 0);
+
+  dispatcher.setTime(inTheMorning);
 
   auto today = TimeStamp::UTC(2016, 5, 27, 14, 6, 0);
   auto stillToday = TimeStamp::UTC(2016, 5, 27, 14, 7, 0);
 
   AbsoluteOrientation orient;
   dispatcher.publishValue(DATE_TIME, "test", today);
+  dispatcher.setTime(laterInTheMorning);
   dispatcher.publishValue(DATE_TIME, "test", stillToday);
 
   LogFile saved;
@@ -153,6 +160,8 @@ TEST(LoggerTest, LogTime) {
   Logger::unpackTime(saved.stream(0), &systemTimes);
   EXPECT_EQ(2, systemTimes.size());
   EXPECT_TRUE(systemTimes[0].defined());
+  EXPECT_EQ(systemTimes[0], inTheMorning);
   EXPECT_TRUE(systemTimes[1].defined());
+  EXPECT_EQ(systemTimes[1], laterInTheMorning);
   EXPECT_EQ(saved.stream(0).shortname(), "dateTime");
 }
