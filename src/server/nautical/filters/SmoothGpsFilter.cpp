@@ -50,7 +50,7 @@ namespace {
 }
 
 
-Array<TimedValue<GeographicPosition<double> > >
+NonuniformlySampledSignal<GeographicPosition<double> >
   Results::getGlobalPositions() const {
   int n = localPositions.size();
   Array<TimedValue<GeographicPosition<double> > > dst(n);
@@ -60,7 +60,7 @@ Array<TimedValue<GeographicPosition<double> > >
     y.time = x.time;
     y.value = geoRef.unmap(x.value);
   }
-  return dst;
+  return NonuniformlySampledSignal<GeographicPosition<double> >(dst);
 }
 
 typedef CeresTrajectoryFilter::Types<2> FTypes;

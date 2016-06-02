@@ -12,6 +12,7 @@
 #include <server/nautical/GeographicReference.h>
 #include <server/nautical/NavDataset.h>
 #include <server/nautical/GeographicReference.h>
+#include <server/nautical/types/NonuniformlySampledSignal.h>
 
 namespace sail {
 
@@ -19,8 +20,7 @@ struct Results {
   GeographicReference geoRef;
   Array<CeresTrajectoryFilter::Types<2>::TimedPosition> localPositions;
 
-  // TODO(jonas): The return type should be a RandomlySampledSignal<GeographicPosition<double>>
-  Array<TimedValue<GeographicPosition<double> > > getGlobalPositions() const;
+  NonuniformlySampledSignal<GeographicPosition<double> > getGlobalPositions() const;
 };
 
 CeresTrajectoryFilter::Settings makeDefaultSettings();
