@@ -15,7 +15,7 @@
 
 namespace sail {
 
-class LogLoader;
+class LogAccumulator;
 
 template <typename T>
 typename TimedSampleCollection<T>::TimedVector
@@ -38,7 +38,7 @@ void pushBack(TimeStamp time, const T &x, typename TimedSampleCollection<T>::Tim
 
 struct SourceGroup {
   SourceGroup();
-  SourceGroup(const std::string &srcName, LogLoader *dst);
+  SourceGroup(const std::string &srcName, LogAccumulator *dst);
 
   TimeStamp lastTime;
 
