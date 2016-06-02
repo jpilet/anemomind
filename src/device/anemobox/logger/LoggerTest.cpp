@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
+#include <device/anemobox/FakeClockDispatcher.h>
 
 using namespace sail;
 
@@ -127,4 +128,40 @@ TEST(LoggerTest, LogOrientation) {
   EXPECT_EQ(4, unpacked[1].heading.degrees());
   EXPECT_EQ(5, unpacked[1].roll.degrees());
   EXPECT_EQ(6, unpacked[1].pitch.degrees());
+}
+
+TEST(LoggerTest, LogTime) {
+  FakeClockDispatcher dispatcher;
+  Logger logger(&dispatcher);
+
+  auto laterInTheMorning = TimeStamp::UTC(2016, 5, 27, 8, 15, 0);
+  auto inTheMorning = TimeStamp::UTC(2016, 5, 27, 8, 0, 0);
+
+  dispatcher.setTime(inTheMorning);
+
+  auto today = TimeStamp::UTC(2016, 5, 27, 14, 6, 0);
+  auto stillToday = TimeStamp::UTC(2016, 5, 27, 14, 7, 0);
+
+  AbsoluteOrientation orient;
+  dispatcher.publishValue(DATE_TIME, "test", today);
+  dispatcher.setTime(laterInTheMorning);
+  dispatcher.publishValue(DATE_TIME, "test", stillToday);
+
+  LogFile saved;
+  logger.flushTo(&saved);
+
+  std::vector<TimeStamp> externalTimes;
+  Logger::unpack(saved.stream(0).exttimes(), &externalTimes);
+  EXPECT_EQ(2, externalTimes.size());
+  EXPECT_EQ(today, externalTimes[0]);
+  EXPECT_EQ(stillToday, externalTimes[1]);
+
+  std::vector<TimeStamp> systemTimes;
+  Logger::unpackTime(saved.stream(0), &systemTimes);
+  EXPECT_EQ(2, systemTimes.size());
+  EXPECT_TRUE(systemTimes[0].defined());
+  EXPECT_EQ(systemTimes[0], inTheMorning);
+  EXPECT_TRUE(systemTimes[1].defined());
+  EXPECT_EQ(systemTimes[1], laterInTheMorning);
+  EXPECT_EQ(saved.stream(0).shortname(), "dateTime");
 }
