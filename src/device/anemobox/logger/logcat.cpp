@@ -100,6 +100,10 @@ void streamCat(const ValueSet& valueSet, vector<TimedString>* entries) {
     Logger::unpack(valueSet.orient(), &values);
     formatValues(times, values, prefix, entries);
   }
+  /*if (valueSet.has_exttimes()) {
+    vector<TimeStamp> extTimes;
+    Logger::unpackTime(extTimes, &times);
+  }*/
 
   for (int i = 0; i < valueSet.text_size(); ++i) {
     entries->push_back(TimedString(times[i], prefix + ": " + valueSet.text(i)));

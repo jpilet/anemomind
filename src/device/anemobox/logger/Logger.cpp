@@ -188,28 +188,28 @@ void Logger::unpack(const AbsOrientValueSet& values,
   }
 }
 
-void Logger::unpack(const google::protobuf::RepeatedField<long int> &times,
-                        std::vector<TimeStamp>* result) {
-  result->clear();
-  result->reserve(times.size());
+namespace {
+  void unpackTimeSub(const google::protobuf::RepeatedField<long int> &times,
+                     std::vector<TimeStamp>* result) {
+    result->clear();
+    result->reserve(times.size());
 
-  int64_t time = 0;
-  for (int i = 0; i < times.size(); ++i) {
-    time += times.Get(i);
-    result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
+    int64_t time = 0;
+    for (int i = 0; i < times.size(); ++i) {
+      time += times.Get(i);
+      result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
+    }
   }
+}
+
+void Logger::unpack(const google::protobuf::RepeatedField<long int> &times,
+                    std::vector<TimeStamp>* result) {
+  unpackTimeSub(times, result);
 }
 
 void Logger::unpackTime(const ValueSet& valueSet,
                         std::vector<TimeStamp>* result) {
-  result->clear();
-  result->reserve(valueSet.timestamps_size());
-
-  int64_t time = 0;
-  for (int i = 0; i < valueSet.timestamps_size(); ++i) {
-    time += valueSet.timestamps(i);
-    result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
-  }
+  unpackTimeSub(valueSet.timestamps(), result);
 }
 
 
