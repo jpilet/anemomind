@@ -9,6 +9,7 @@ angular.module('www2App')
     $scope.users = {};
     $scope.newSails = "";
     $scope.isAdmin = Auth.isAdmin;
+    $scope.boatId=$stateParams.boatId;
 
     var resolveUser = function(user) {
       userDB.resolveUser(user, function(user) {

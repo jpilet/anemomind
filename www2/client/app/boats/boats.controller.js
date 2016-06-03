@@ -10,28 +10,25 @@ angular.module('www2App')
 
     
 
-    //
-    // TODO (OLIVIER) depending the user scenario, the boats can be empty
-    // that should take care about Auth
     boatList.boats().then(function(boats) {
       $scope.boats = boats;
 
 
       //
       // display selected boat
-      if($stateParams.boatId){
-        $scope.boatId=$stateParams.boatId;
-        return;
+      $scope.boatId=$stateParams.boatId;
+      if(!$scope.boatId){
+        //
+        // display default boat
+        $scope.boatId=boatList.getDefaultBoat()._id;        
       }
 
-      //
-      // display default boat
-      $scope.boatId=boatList.getDefaultBoat()._id;
 
     });
 
+
     $scope.addBoat = function() {
-      if($scope.newBoat === '') {
+      if(!$scope.newBoat||$scope.newBoat === '') {
         return;
       }
       $http.post('/api/boats', { name: $scope.newBoat });

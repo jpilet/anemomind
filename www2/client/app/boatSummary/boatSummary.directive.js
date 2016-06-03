@@ -17,19 +17,26 @@ var app = angular.module('www2App')
           scope.pageSize = 2;
         }
         function updateSessions() {
+
           if(!scope.boatId) return;
-          scope.boat = boatList.boat(scope.boatId);
-          scope.sessions = boatList.sessionsForBoat(scope.boatId);
-          if (scope.sessions == undefined) {
-            scope.sessions = [];
-          }
+          //
+          // be sure that boats are ready
+          boatList.boats().then(function (boats) {
+            scope.boat = boatList.boat(scope.boatId);
+            scope.sessions = boatList.sessionsForBoat(scope.boatId);
+
+            //
+            // ensure that sessions is not empty
+            scope.sessions=scope.sessions||[];
+          });
+
         }
 
 
 
-
-        scope.$on('boatList:updated', updateSessions);
-        scope.$on('boatList:sessionsUpdated', updateSessions);
+        // Why those listeners?
+        // scope.$on('boatList:updated', updateSessions);
+        // scope.$on('boatList:sessionsUpdated', updateSessions);
         scope.$watch('boatId', updateSessions);
 
 

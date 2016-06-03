@@ -7,10 +7,10 @@ angular.module('www2App')
     var curves = { };
     var sessionsForBoats = {};
 
-    var deferred = $q.defer();
     //
-    // return promise on this.boats();
-    var promise;
+    // promise for boats methods;
+    var deferred = $q.defer();
+    var promise=deferred.promise;
 
 
     //
@@ -25,46 +25,49 @@ angular.module('www2App')
     }
 
     function update() {
-        promise = deferred.promise;
-        // Specifically ask for public boat, too.
-        // We could have a user option to hide public boats.
-        $http.get('/api/boats?public=1')
-          .success(function(data, status, headers, config) {
-             boats = data;
-             socket.syncUpdates('boat', boats);
+      //
+      // if this promise is already deferred
+      if(promise.$$state.status){
+        deferred = $q.defer();  
+        promise=deferred.promise;      
+      }
 
-             for (var i in data) {
-               var boat = data[i];
-               boatDict[boat._id] = boat;
-             }
-             //
-             // resolve
-             deferred.resolve(boats);
-             $rootScope.$broadcast('boatList:updated', boats);
-          });
-        $http.get('/api/session')
-          .success(function(data, status, headers, config) {
-            sessionsForBoats = [];
-            for (var i in data) {
-              if (data[i].boat in sessionsForBoats) {
-                sessionsForBoats[data[i].boat].push(data[i]);
-              } else {
-                sessionsForBoats[data[i].boat] = [ data[i] ];
-              }
-              curves[data[i]._id] = data[i];
+      // Specifically ask for public boat, too.
+      // We could have a user option to hide public boats.
+      $http.get('/api/boats?public=1')
+        .then(function(payload) {
+          boats = payload.data;
+          socket.syncUpdates('boat', boats);
+
+          for (var i in payload.data) {
+            var boat = payload.data[i];
+            boatDict[boat._id] = boat;
+          }
+          $rootScope.$broadcast('boatList:updated', boats);
+
+          //
+          // chain session loading
+          return $http.get('/api/session');
+        })
+        .then(function(payload) {
+          sessionsForBoats = [];
+          for (var i in payload.data) {
+            if (payload.data[i].boat in sessionsForBoats) {
+              sessionsForBoats[payload.data[i].boat].push(payload.data[i]);
+            } else {
+              sessionsForBoats[payload.data[i].boat] = [ payload.data[i] ];
             }
-            $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
-          });
+            curves[payload.data[i]._id] = payload.data[i];
+          }
+          //
+          // time to resolve promise
+          $rootScope.$broadcast('boatList:sessionsUpdated', sessionsForBoats);
+          deferred.resolve(boats);            
+        });
+
+      return promise;
     }
 
-    update();
-    //
-    // TODO you can replace this watch by a broadcast/listen event 
-    $rootScope.$watch(Auth.isLoggedIn, function(newVal, oldVal) {
-      if (newVal && newVal != oldVal) {
-        update();
-      }
-    });
 
     function locationForCurve(curveId) {
       if (!(curveId in curves)) {
@@ -74,6 +77,17 @@ angular.module('www2App')
       return c.location;
     }
 
+    //
+    // init
+    update();
+    $rootScope.$watch(Auth.isLoggedIn, function(newVal, oldVal) {
+      if (newVal && newVal != oldVal) {
+        update();    
+      }
+    });
+
+    //
+    // service result
     return {
       boat: function(id) { return boatDict[id]; },
       boats: function() { return promise; },
