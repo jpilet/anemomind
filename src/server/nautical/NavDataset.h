@@ -19,6 +19,7 @@
 #include <device/anemobox/DispatcherUtils.h>
 #include <server/common/TimeStamp.h>
 #include <device/anemobox/TimedSampleCollection.h>
+#include <server/nautical/types/SampledSignal.h>
 
 
 namespace sail {
@@ -26,7 +27,7 @@ namespace sail {
 // In order to view a slice
 // of a TimedSampleCollection<T>::TimedVector
 template <typename T>
-class TimedSampleRange {
+class TimedSampleRange : public SampledSignal<T> {
  public:
   typedef typename sail::TimedSampleCollection<T>::TimedVector TimedVector;
   typedef typename TimedVector::const_iterator Iterator;
@@ -41,7 +42,7 @@ class TimedSampleRange {
   Iterator begin() const {return _begin;}
   Iterator end() const {return _end;}
 
-  int size() const {return _defined? _end - _begin : 0;}
+  size_t size() const override {return _defined? _end - _begin : 0;}
 
   bool empty() const {return (_defined? _begin == _end : true);}
 
@@ -68,7 +69,7 @@ class TimedSampleRange {
     }
   }
 
-  const TimedValue<T> &operator[] (int i) const {
+  TimedValue<T> operator[] (int i) const override {
     assert(0 <= i && i < size());
     return *(_begin + i);
   }

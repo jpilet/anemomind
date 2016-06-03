@@ -50,17 +50,18 @@ namespace {
 }
 
 
-Array<TimedValue<GeographicPosition<double> > >
+TimedSampleCollection<GeographicPosition<double> >
   Results::getGlobalPositions() const {
   int n = localPositions.size();
-  Array<TimedValue<GeographicPosition<double> > > dst(n);
+  TimedSampleCollection<GeographicPosition<double> >::TimedVector dst;
+  dst.resize(n);
   for (int i = 0; i < n; i++) {
     const auto &x = localPositions[i];
     auto &y = dst[i];
     y.time = x.time;
     y.value = geoRef.unmap(x.value);
   }
-  return dst;
+  return TimedSampleCollection<GeographicPosition<double> >(dst);
 }
 
 typedef CeresTrajectoryFilter::Types<2> FTypes;

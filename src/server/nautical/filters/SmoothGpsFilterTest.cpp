@@ -110,10 +110,10 @@ TEST(SmoothGpsFilterTest, TestIt) {
     GnuPlotModel model(2);
 
     makeTrajectoryPlot(filtered0.geoRef,
-        wrapSampled<TypeMode::ConstRef>(filteredPositions))->render(&model);
+        filteredPositions)->render(&model);
 
     makeTrajectoryPlot(filtered0.geoRef,
-            wrapSampled<TypeMode::ConstRef>(originalPositions))->render(&model);
+            originalPositions)->render(&model);
 
     model.show();
   }
