@@ -18,8 +18,8 @@ namespace sail {
 // x = (1.0 - lambda)*lower + lambda*upper
 // Useful when doing linear interpolation
 template <typename T>
-auto computeLambda(T lower, T upper, T x) -> decltype((x - lower)/(upper - lower)) {
-  typedef decltype((x - lower)/(upper - lower)) ResultType;
+auto computeLambda(T lower, T upper, T x) -> decltype(0.0 + (x - lower)/(upper - lower)) {
+  typedef decltype(0.0 + (x - lower)/(upper - lower)) ResultType;
 
   return lower < upper?
     ResultType((x - lower)/(upper - lower)) : ResultType(0.5);
