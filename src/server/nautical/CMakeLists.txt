@@ -21,6 +21,7 @@ add_library(nautical_nav
         
 target_link_libraries(nautical_nav
                       common_Array
+                      common_TimeStamp
                      )
   
 
@@ -330,3 +331,12 @@ cxx_test(nautical_InvWGS84Test
          gtest_main
          nautical_InvWGS84
         )
+
+add_library(nautical_Visualize
+  Visualize.h
+  Visualize.cpp
+  )
+
+target_link_libraries(nautical_Visualize
+  plot_Plot
+  )

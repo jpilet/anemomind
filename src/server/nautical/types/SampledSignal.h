@@ -54,6 +54,30 @@ public:
   }
 };
 
+template <typename Indexable, TypeMode mode>
+class SampledWrap : public SampledSignal<
+  typename IndexedType<Indexable>::type::type> {
+public:
+  typedef typename IndexedType<Indexable>::type T;
+
+  SampledWrap(const Indexable &src) : _src(src) {}
+
+  T operator[] (int i) const {
+    return _src[i];
+  }
+
+  int size() const {
+    return _src.size();
+  }
+private:
+  typename ModifiedType<Indexable, mode>::type _src;
+};
+
+template <TypeMode mode, typename Indexable>
+SampledWrap<Indexable, mode> wrapSampled(const Indexable &src) {
+  return SampledWrap<Indexable, mode>(src);
+}
+
 template <typename T>
 class UniformlySampledSignal : public SampledSignal<T> {
 public:
