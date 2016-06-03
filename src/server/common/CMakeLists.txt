@@ -377,3 +377,19 @@ cxx_test(common_AbstractArray
          AbstractArrayTest.cpp
          gtest_main
         )
+
+add_library(common_StoredTime
+  StoredTime.h
+  StoredTime.cpp
+  )
+
+target_link_libraries(common_StoredTime
+  common_logging
+  common_TimeStamp
+  )
+  
+cxx_test(common_StoredTimeTest
+  StoredTimeTest.cpp
+  gtest_main
+  common_StoredTime
+  )
