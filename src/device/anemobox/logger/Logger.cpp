@@ -19,11 +19,11 @@ using namespace std;
 namespace sail {
 
 void addTimeStampToRepeatedFields(
-    long int *base,
-    google::protobuf::RepeatedField<long int> *dst,
+    std::int64_t *base,
+    google::protobuf::RepeatedField<std::int64_t> *dst,
     TimeStamp timestamp) {
-  int64_t ts = timestamp.toMilliSecondsSince1970();
-  int64_t value = ts;
+  std::int64_t ts = timestamp.toMilliSecondsSince1970();
+  std::int64_t value = ts;
 
   if (dst->size() > 0) {
     value -= *base;
@@ -204,12 +204,12 @@ void Logger::unpack(const AbsOrientValueSet& values,
 }
 
 namespace {
-  void unpackTimeSub(const google::protobuf::RepeatedField<long int> &times,
+  void unpackTimeSub(const google::protobuf::RepeatedField<std::int64_t> &times,
                      std::vector<TimeStamp>* result) {
     result->clear();
     result->reserve(times.size());
 
-    int64_t time = 0;
+    std::int64_t time = 0;
     for (int i = 0; i < times.size(); ++i) {
       time += times.Get(i);
       result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
@@ -217,7 +217,7 @@ namespace {
   }
 }
 
-void Logger::unpack(const google::protobuf::RepeatedField<long int> &times,
+void Logger::unpack(const google::protobuf::RepeatedField<std::int64_t> &times,
                     std::vector<TimeStamp>* result) {
   unpackTimeSub(times, result);
 }
