@@ -9,6 +9,7 @@
 #include <server/nautical/logimport/LogAccumulator.h>
 #include <server/nautical/logimport/Nmea0183Loader.h>
 #include <server/common/logging.h>
+#include <vector>
 
 namespace sail {
 namespace ProtobufLogLoader {
@@ -68,29 +69,38 @@ void loadValueSet(const ValueSet &stream, LogAccumulator *dst,
 }
 
 namespace {
-  Duration<double> computeTimeOffset(const LogFile &data) {
+  Optional<Duration<double> > computeTimeOffset(const ValueSet &stream) {
     std::vector<Duration<double> > diffs;
-    for (int i = 0; i < data.stream_size(); i++) {
-      const auto &stream = data.stream(i);
-      std::vector<TimeStamp> extTimes;
-      Logger::unpack(stream.exttimes(), &extTimes);
-      if (!extTimes.empty()) {
-        std::vector<TimeStamp> times;
-        Logger::unpackTime(stream, &times);
-        if (times.size() == extTimes.size()) {
-          int n = times.size();
-          for (int j = 0; j < n; j++) {
-            diffs.push_back(extTimes[j] - times[j]);
-          }
-        } else {
-          LOG(WARNING) << "Inconsistent size of times and exttimes for stream " << i;
+    std::vector<TimeStamp> extTimes;
+    Logger::unpack(stream.exttimes(), &extTimes);
+    if (!extTimes.empty()) {
+      std::vector<TimeStamp> times;
+      Logger::unpackTime(stream, &times);
+      if (times.size() == extTimes.size()) {
+        int n = times.size();
+        for (int j = 0; j < n; j++) {
+          diffs.push_back(extTimes[j] - times[j]);
         }
+      } else {
+        LOG(WARNING) << "Inconsistent size of times and exttimes for stream";
       }
     }
+    auto n = diffs.size();
+    if (n > 30) { // Sufficiently many?
+      auto at = diffs.begin() + n/2;
+      std::nth_element(diffs.begin(), at, diffs.end());
+      return *at;
+    }
+    return Duration<double>::seconds(0.0);
+  }
 
-    if (diffs.size() > 30) { // Sufficiently many?
-      std::sort(diffs.begin(), diffs.end());
-      return diffs[diffs.size()/2];
+
+  Duration<double> computeTimeOffset(const LogFile &data) {
+    for (int i = 0; i < data.stream_size(); i++) {
+      auto offset = computeTimeOffset(data.stream(i));
+      if (offset.defined()) {
+        return offset.get();
+      }
     }
     return Duration<double>::seconds(0.0);
   }
