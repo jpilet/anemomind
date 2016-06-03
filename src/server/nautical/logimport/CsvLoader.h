@@ -10,9 +10,9 @@
 
 namespace sail {
 
-class LogLoader;
+class LogAccumulator;
 
-void loadCsv(const std::string &filename, LogLoader *dst);
+void loadCsv(const std::string &filename, LogAccumulator *dst);
 
 }
 
