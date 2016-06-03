@@ -8,13 +8,31 @@
 #include <server/common/StoredTime.h>
 #include <server/common/logging.h>
 #include <fstream>
+#include <cstdio>
 
 namespace sail {
 
 bool saveTimeStampToFile(const std::string &filename, TimeStamp time) {
   try {
-    std::ofstream file(filename);
-    file << time.toMilliSecondsSince1970();
+    std::string tmpFilename = filename + "_tmp";
+    {
+      std::ofstream file(tmpFilename);
+      file << time.toMilliSecondsSince1970();
+    }
+    if (std::rename(tmpFilename.c_str(), filename.c_str()) == 0) {
+      return true;
+    } else {
+      // Try again, this time making sure that there is no file with name 'filename'
+      std::remove(filename.c_str());
+      if (std::rename(tmpFilename.c_str(), filename.c_str()) == 0) {
+        return true;
+      } else {
+        LOG(ERROR) << "Failed to rename the saved timestamp file from "
+            << tmpFilename << " to " << filename;
+        return false;
+      }
+    }
+
   } catch (const std::exception &e) {
     LOG(ERROR) << "Failed to save timestamp to " << filename;
     return false;
