@@ -69,7 +69,24 @@ void loadValueSet(const ValueSet &stream, LogAccumulator *dst,
 }
 
 namespace {
-  Optional<Duration<double> > computeTimeOffset(const ValueSet &stream) {
+  struct OffsetWithFitnessError {
+    OffsetWithFitnessError() {
+      offset = Duration<double>::seconds(0.0);
+      averageErrorFromMedian = std::numeric_limits<double>::infinity();
+    }
+
+    OffsetWithFitnessError(Duration<double> dur, double e) :
+      offset(dur), averageErrorFromMedian(e) {}
+
+    Duration<double> offset;
+    double averageErrorFromMedian;
+
+    bool operator<(const OffsetWithFitnessError &e) const {
+      return averageErrorFromMedian < e.averageErrorFromMedian;
+    }
+  };
+
+  OffsetWithFitnessError computeTimeOffset(const ValueSet &stream) {
     std::vector<Duration<double> > diffs;
     std::vector<TimeStamp> extTimes;
     Logger::unpack(stream.exttimes(), &extTimes);
@@ -89,20 +106,24 @@ namespace {
     if (n > 30) { // Sufficiently many?
       auto at = diffs.begin() + n/2;
       std::nth_element(diffs.begin(), at, diffs.end());
-      return *at;
+
+      auto median = *at;
+      double totalError = 0.0;
+      for (auto x: diffs) {
+        totalError += std::abs((x - median).seconds());
+      }
+      return OffsetWithFitnessError(median, totalError/n);
     }
-    return Duration<double>::seconds(0.0);
+    return OffsetWithFitnessError();
   }
 
 
   Duration<double> computeTimeOffset(const LogFile &data) {
+    OffsetWithFitnessError offset;
     for (int i = 0; i < data.stream_size(); i++) {
-      auto offset = computeTimeOffset(data.stream(i));
-      if (offset.defined()) {
-        return offset.get();
-      }
+      offset = std::min(offset, computeTimeOffset(data.stream(i)));
     }
-    return Duration<double>::seconds(0.0);
+    return offset.offset;
   }
 }
 
