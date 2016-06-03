@@ -35,23 +35,20 @@ double computeDurationCost(Duration<double> x, const Settings &s) {
   return double(x/s.cuttingThreshold) - 1.0;
 }
 
-bool allGoodOrDie(const AbstractArray<TimeStamp> &timeStamps) {
+void allGoodOrDie(const AbstractArray<TimeStamp> &timeStamps) {
   {
     for (int i = 0; i < timeStamps.size(); i++) {
       if (!timeStamps[i].defined()) {
-        LOG(ERROR) << "Undefined time stamp at " << i;
-        return false;
+        LOG(FATAL) << "Undefined time stamp at " << i;
       }
     }
   }{
     int n = timeStamps.size() - 1;
     for (int i = 0; i < n; i++) {
       if (timeStamps[i] > timeStamps[i+1]) {
-        LOG(ERROR) << "Time stamps not ordered at " << i;
-        return false;
+        LOG(FATAL) << "Time stamps not ordered at " << i;
       }
     }
-    return true;
   }
 }
 
@@ -126,10 +123,7 @@ Array<Span<TimeStamp> > listSpans(
 
 Array<Span<TimeStamp> > cutSessions(
     const AbstractArray<TimeStamp> &timeStamps, const Settings &settings) {
-  if (!allGoodOrDie(timeStamps)) {
-    LOG(FATAL) << "Bad input";
-    return Array<Span<TimeStamp> >();
-  }
+  allGoodOrDie(timeStamps);
   auto states = SessionStateAssign(timeStamps, settings).solve();
   return listSpans(states, timeStamps);
 }
