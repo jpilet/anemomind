@@ -15,10 +15,15 @@ namespace sail {
 namespace SessionCut {
 
 Settings::Settings() :
-  cuttingThreshold(Duration<double>::seconds(6.0)),
-  regularization(12.0) {}
+  cuttingThreshold(Duration<double>::seconds(5.0)),
+  regularization(0.0) {}
 
 namespace {
+
+  enum {
+    TURNED_OFF = 0,
+    TURNED_ON = 1
+  };
 
 /*
  * At duration x = 0, the cost is -1 (that is a reward)
@@ -60,10 +65,10 @@ class SessionStateAssign : public StateAssign {
       const Settings &settings) :
         _timeStamps(timeStamps),
         _settings(settings),
-        _preceding({0, 1}) {}
+        _preceding({TURNED_OFF, TURNED_ON}) {}
 
   double getStateCost(int stateIndex, int timeIndex) override {
-    if (stateIndex == 1) {
+    if (stateIndex == TURNED_ON) {
       return computeDurationCost(
           _timeStamps[timeIndex+1] - _timeStamps[timeIndex],
           _settings);
@@ -96,13 +101,13 @@ class SessionStateAssign : public StateAssign {
 Array<Span<TimeStamp> > listSpans(
     const Arrayi &states,
     const AbstractArray<TimeStamp> &times) {
-  int lastState = 0;
+  int lastState = TURNED_OFF;
   TimeStamp from;
   ArrayBuilder<Span<TimeStamp> > dst;
   for (int i = 0; i < states.size(); i++) {
     auto state = states[i];
     if (state != lastState) {
-      if (state == 1) {
+      if (state == TURNED_ON) {
         from = times[i];
       } else {
         dst.add(Span<TimeStamp>(from, times[i]));
@@ -110,7 +115,7 @@ Array<Span<TimeStamp> > listSpans(
     }
     lastState = state;
   }
-  if (lastState == 1) {
+  if (lastState == TURNED_ON) {
     dst.add(Span<TimeStamp>(from, times.last()));
   }
   return dst.get();
