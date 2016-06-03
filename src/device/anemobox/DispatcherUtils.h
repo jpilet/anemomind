@@ -104,7 +104,7 @@ std::shared_ptr<DispatchData> makeDispatchDataFromSamples(
   return std::shared_ptr<DispatchData>(data);
 }
 
-static const double maxMergeDifSeconds = 12.0;
+static const Duration<double> maxMergeDif = Duration<>::seconds(12.0);
 
 std::shared_ptr<DispatchData> mergeChannels(DataCode code,
     const std::string &srcName,

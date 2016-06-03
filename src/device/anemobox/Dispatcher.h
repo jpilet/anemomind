@@ -215,7 +215,7 @@ class Dispatcher : public Clock {
   }
 
   // Returns null if not exist
-  std::shared_ptr<DispatchData> dispatchDataForSource(DataCode code, const std::string& source);
+  std::shared_ptr<DispatchData> dispatchDataForSource(DataCode code, const std::string& source) const;
 
   virtual int maxBufferLength() const {return defaultDispatcherBufferLength;}
 
@@ -328,7 +328,7 @@ class Dispatcher : public Clock {
   template<DataCode Code>
   Optional<typename TypeForCode<Code>::type> valueFromSourceAt(
       const std::string& source, TimeStamp time,
-      Duration<> maxDelta) {
+      Duration<> maxDelta) const {
     typedef typename TypeForCode<Code>::type T;
     TypedDispatchData<T>* tdd =
       toTypedDispatchData<Code>(dispatchDataForSource(Code, source).get());
@@ -345,8 +345,6 @@ class Dispatcher : public Clock {
       return Optional<T>();
     }
   }
-
-  std::shared_ptr<DispatchData> get(DataCode c, const std::string &src) const;
 
   int maxPriority() const;
 
