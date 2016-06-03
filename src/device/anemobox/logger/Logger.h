@@ -1,7 +1,7 @@
 #ifndef ANEMOBOX_LOGGER_H
 #define ANEMOBOX_LOGGER_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <device/anemobox/Dispatcher.h>
 #include <logger.pb.h>
 #include <boost/signals2/connection.hpp>
@@ -15,8 +15,8 @@ namespace sail {
 class Logger;
 
 void addTimeStampToRepeatedFields(
-    int64_t *base,
-    google::protobuf::RepeatedField<int64_t> *dst,
+    std::int64_t *base,
+    google::protobuf::RepeatedField<std::int64_t> *dst,
     TimeStamp);
 
 // Listen and save a single stream of values.
@@ -133,8 +133,8 @@ private:
   int intBase;
   int intBaseRoll;
   int intBasePitch;
-  int64_t timestampBase;
-  int64_t extTimesBase;
+  std::int64_t timestampBase;
+  std::int64_t extTimesBase;
   std::string _sourceName;
   std::string _shortName;
 };
@@ -174,7 +174,7 @@ class Logger {
   static void unpack(const AbsOrientValueSet& values,
                      std::vector<AbsoluteOrientation>* result);
 
-  static void unpack(const google::protobuf::RepeatedField<int64_t> &times,
+  static void unpack(const google::protobuf::RepeatedField<std::int64_t> &times,
                       std::vector<TimeStamp>* result);
 
   static void unpackTime(const ValueSet& valueSet,
