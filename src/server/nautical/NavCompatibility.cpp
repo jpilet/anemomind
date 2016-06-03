@@ -7,6 +7,7 @@
 #include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/DispatcherUtils.h>
 #include <device/anemobox/Sources.h>
+#include <limits>
 #include <server/common/ArrayIO.h>
 #include <server/common/Functional.h>
 #include <server/common/LineKM.h>
@@ -169,7 +170,7 @@ namespace {
     Optional<T> result;
     if (found != all.end()) {
       const auto &sources = found->second;
-      int bestPrio;
+      int bestPrio = std::numeric_limits<int>::min();
 
       for (auto srcName: sources) {
         if (sourceFilter(srcName.first)) {
