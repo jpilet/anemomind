@@ -20,14 +20,19 @@ Settings::Settings() :
 
 namespace {
 
+/*
+ * At duration x = 0, the cost is -1 (that is a reward)
+ * At duration x = cuttingThreshold, the cost is 0.
+ * Those to points belong to a straight line that defines all costs.
+ * So, for instance, at x = 2*cuttingThreshold, the cost will be 1.
+ */
 double computeDurationCost(Duration<double> x, const Settings &s) {
   return double(x/s.cuttingThreshold) - 1.0;
 }
 
 bool areGood(const AbstractArray<TimeStamp> &timeStamps) {
   {
-    int n = timeStamps.size();
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < timeStamps.size(); i++) {
       if (!timeStamps[i].defined()) {
         LOG(ERROR) << "Undefined time stamp at " << i;
         return false;
@@ -48,7 +53,8 @@ bool areGood(const AbstractArray<TimeStamp> &timeStamps) {
 class SessionStateAssign : public StateAssign {
  public:
 
-  // TODO: Adding extra costs to encourage
+  // TODO: Adding extra costs based on what a user might have defined
+  // as being a session, or not.
 
   SessionStateAssign(const AbstractArray<TimeStamp> &timeStamps,
       const Settings &settings) :
