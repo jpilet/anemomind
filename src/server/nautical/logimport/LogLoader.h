@@ -7,6 +7,7 @@
 #define DEVICE_ANEMOBOX_LOGGER_LOGLOADER_H_
 
 #include <server/nautical/NavDataset.h>
+#include <server/nautical/logimport/LogAccumulator.h>
 
 namespace Poco {class Path;}
 
@@ -15,6 +16,7 @@ class ValueSet;
 namespace sail {
 
 class LogFile;
+
 
 /*
  * Helper class to load a series of log files.
@@ -43,41 +45,16 @@ class LogLoader {
 
   // These methods are needed by the various parsers in order
   // to populate this object with data.
-#define MAKE_ACCESSORS(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-    std::map<std::string, TimedSampleCollection<TYPE>::TimedVector> \
-    *get##HANDLE##sources() { \
-      return &(_##HANDLE##sources); }
-  FOREACH_CHANNEL(MAKE_ACCESSORS)
-#undef MAKE_ACCESSORS
+
 
   void loadNmea0183(std::istream *s);
   void load(const LogFile &data);
 
  private:
+  LogAccumulator _acc;
   void loadValueSet(const ValueSet &set);
   void loadTextData(const ValueSet &stream);
-
-#define MAKE_SOURCE_MAP(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  std::map<std::string, TimedSampleCollection<TYPE>::TimedVector> _##HANDLE##sources;
-  FOREACH_CHANNEL(MAKE_SOURCE_MAP)
-#undef  MAKE_SOURCE_MAP
-
-  std::map<std::string, int> _sourcePriority;
 };
-
-template <DataCode Code>
-typename std::map<std::string, typename TimedSampleCollection<typename TypeForCode<Code>::type >::TimedVector>
-  *getChannels(LogLoader *loader) {return nullptr;}
-
-
-#define MAKE_DATACODE_GETTER(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
-  template <> \
-  inline typename std::map<std::string, TimedSampleCollection<TYPE>::TimedVector> \
-    *getChannels<HANDLE>(LogLoader *loader) { \
-    return loader->get##HANDLE##sources(); \
-  }
-FOREACH_CHANNEL(MAKE_DATACODE_GETTER)
-#undef MAKE_DATACODE_GETTER
 
 
 
