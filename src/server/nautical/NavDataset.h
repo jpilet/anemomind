@@ -42,7 +42,7 @@ class TimedSampleRange : public SampledSignal<T> {
   Iterator begin() const {return _begin;}
   Iterator end() const {return _end;}
 
-  int size() const override {return _defined? _end - _begin : 0;}
+  size_t size() const override {return _defined? _end - _begin : 0;}
 
   bool empty() const {return (_defined? _begin == _end : true);}
 

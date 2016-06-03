@@ -31,7 +31,7 @@ void PlottablePoints::render(PlotModel *dst) {
       return _src[i];
     }
 
-    int size() const override {
+    size_t size() const override {
       return _src.size();
     }
   private:
