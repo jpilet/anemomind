@@ -30,7 +30,7 @@ double computeDurationCost(Duration<double> x, const Settings &s) {
   return double(x/s.cuttingThreshold) - 1.0;
 }
 
-bool areGood(const AbstractArray<TimeStamp> &timeStamps) {
+bool allGoodOrDie(const AbstractArray<TimeStamp> &timeStamps) {
   {
     for (int i = 0; i < timeStamps.size(); i++) {
       if (!timeStamps[i].defined()) {
@@ -121,8 +121,8 @@ Array<Span<TimeStamp> > listSpans(
 
 Array<Span<TimeStamp> > cutSessions(
     const AbstractArray<TimeStamp> &timeStamps, const Settings &settings) {
-  if (!areGood(timeStamps)) {
-    LOG(ERROR) << "Bad input";
+  if (!allGoodOrDie(timeStamps)) {
+    LOG(FATAL) << "Bad input";
     return Array<Span<TimeStamp> >();
   }
   auto states = SessionStateAssign(timeStamps, settings).solve();
