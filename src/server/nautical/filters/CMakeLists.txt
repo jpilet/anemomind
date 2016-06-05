@@ -72,4 +72,6 @@ cxx_test(filters_SmoothGpsFilterTest
          common_PathBuilder
          logimport_LogLoader
          common_Env
+         plot_GnuPlotModel
+         nautical_Visualize
         )

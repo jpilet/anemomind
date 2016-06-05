@@ -12,6 +12,8 @@
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/nautical/WGS84.h>
+#include <server/plot/GnuPlotModel.h>
+#include <server/nautical/Visualize.h>
 
 
 using namespace sail;
@@ -85,19 +87,40 @@ TEST(SmoothGpsFilterTest, TestIt) {
   EXPECT_EQ(originalPositions.size(), corruptedPositions.size());
   int n = originalPositions.size();
 
-  auto corrupted = original.dup();
-  EXPECT_FALSE(corrupted.isDefaultConstructed());
-  corrupted.setMerged(GPS_POS, makeDispatchDataFromSamples<GPS_POS>("corrupted", corruptedPositions));
 
+  auto srcName = "Corrupted";
+
+  auto corrupted = original.overrideChannels(
+      "Corrupted",
+      {{GPS_POS, makeDispatchDataFromSamples<GPS_POS>(
+          srcName, corruptedPositions)}});
+
+  // This test case is broken. An assertion is fired in debug mode.
+  // It is fixed by https://github.com/jpilet/anemomind/pull/698
   auto filtered0 = filterGpsData(corrupted);
 
   EXPECT_FALSE(filtered0.localPositions.empty());
 
   auto filteredPositions = filtered0.getGlobalPositions();
 
+
+
+  bool visualize = false;
+  if (visualize) {
+    GnuPlotModel model(2);
+
+    makeTrajectoryPlot(filtered0.geoRef,
+        filteredPositions)->render(&model);
+
+    makeTrajectoryPlot(filtered0.geoRef,
+            originalPositions)->render(&model);
+
+    model.show();
+  }
+
+
   int filteredCounter = 0;
   int corrCounter = 0;
-  double maxDistance = 0.0;
   int marg = 3;
   for (int i = 0; i < n; i++) {
     if (i % 10 == 0) {
@@ -107,17 +130,20 @@ TEST(SmoothGpsFilterTest, TestIt) {
 
       // Step to the next filtered sample that is close to our good/bad ones.
       while (filteredCounter < filteredPositions.size() &&
-          t < filteredPositions[filteredCounter].time) {
+          filteredPositions[filteredCounter].time < t) {
         filteredCounter++;
       }
 
       for (int j = std::max(0, filteredCounter - marg);
-          j <= std::min(filteredPositions.size()-1, filteredCounter + marg); j++) {
+          j <= std::min<int>(filteredPositions.size()-1, filteredCounter + marg); j++) {
         auto x = filteredPositions[j];
+
         auto distToGood = distance(x.value, good.value);
         auto distToBad = distance(x.value, bad.value);
         corrCounter++;
         EXPECT_LT(distToGood, distToBad); // TODO: Actually quite weak test, but better than nothing.
+
+        EXPECT_LT(distToGood.meters(), 30);
       }
 
       if (filteredCounter == filteredPositions.size()) {

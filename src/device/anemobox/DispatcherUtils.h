@@ -104,7 +104,7 @@ std::shared_ptr<DispatchData> makeDispatchDataFromSamples(
   return std::shared_ptr<DispatchData>(data);
 }
 
-static const double maxMergeDifSeconds = 12.0;
+static const Duration<double> maxMergeDif = Duration<>::seconds(12.0);
 
 std::shared_ptr<DispatchData> mergeChannels(DataCode code,
     const std::string &srcName,
@@ -124,6 +124,25 @@ typedef std::function<bool(DataCode, const std::string&)>
 std::shared_ptr<Dispatcher> filterChannels(Dispatcher *src,
   DispatcherChannelFilterFunction f, bool includePrios);
 std::shared_ptr<Dispatcher> shallowCopy(Dispatcher *src);
+
+
+std::map<DataCode, std::map<std::string, std::shared_ptr<DispatchData>>>
+  mergeDispatchDataMaps(
+      const std::map<DataCode, std::map<std::string,
+        std::shared_ptr<DispatchData>>> &a,
+      const std::map<DataCode, std::map<std::string,
+        std::shared_ptr<DispatchData>>> &b);
+
+std::shared_ptr<Dispatcher> mergeDispatcherWithDispatchDataMap(
+    Dispatcher *src,
+    const std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> &toAdd);
+
+std::set<DataCode> listDataCodesWithDifferences(
+    const std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> &A,
+    const std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> &B);
 
 void copyPriorities(Dispatcher *src, Dispatcher *dst);
 

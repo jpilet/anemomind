@@ -85,3 +85,44 @@ TEST(NavDatasetTest, EmptyTest) {
   NavDataset coll;
   EXPECT_TRUE(coll.samples<AWA>().empty());
 }
+
+namespace {
+  auto s = Duration<double>::seconds(1.0);
+  auto kn = Velocity<double>::knots(1.0);
+}
+
+TEST(NavDatasetTest, TestAddChannels) {
+  const DataCode Code = AWS;
+  typedef TypeForCode<Code>::type T;
+  typedef TimedSampleCollection<T>::TimedVector TimedVector;
+
+
+  TimedVector A{
+    {offset + 0.3*s,    3.0*kn},
+    {offset + 0.6*s,    4.0*kn},
+    {offset + 1233.0*s, 13.0*kn}
+  };
+  auto a = makeDispatchDataFromSamples<Code>("A", A);
+
+  TimedVector A2{
+    {offset + 0.4*s,    17.0*kn}
+  };
+  auto a2 = makeDispatchDataFromSamples<Code>("A", A2);
+
+  NavDataset ds;
+  auto ds2 = ds.overrideChannels(std::map<DataCode,
+      std::map<std::string, std::shared_ptr<DispatchData>>>{
+    {Code, {{"A", a}}}
+  });
+  EXPECT_FALSE(bool(ds.dispatcher()));
+  EXPECT_TRUE(bool(ds2.dispatcher()));
+  EXPECT_EQ(ds2.dispatcher()->maxPriority(), Dispatcher::defaultPriority + 1);
+  EXPECT_EQ(ds2.dispatcher()->dispatchDataForSource(Code, "A"), a);
+  EXPECT_EQ(ds2.samples<Code>().size(), 3);
+  EXPECT_NEAR(ds2.samples<Code>()[1].value.knots(), 4.0, 1.0e-6);
+
+  auto ds3 = ds2.overrideChannels("A", {{Code, a}});
+  EXPECT_TRUE(bool(ds3.dispatcher()));
+  EXPECT_EQ(ds3.dispatcher()->sourcePriority("A"),
+      Dispatcher::defaultPriority + 2);
+}

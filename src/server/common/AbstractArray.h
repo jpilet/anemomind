@@ -24,7 +24,7 @@ template <typename T>
 class AbstractArray {
 public:
   virtual T operator[] (int i) const = 0;
-  virtual int size() const = 0;
+  virtual size_t size() const = 0;
 
   // Looks better if we are accessing it through a pointer.
   T get(int i) const {return (*this)[i];}
@@ -52,7 +52,7 @@ public:
 template <typename T>
 class EmptyArray : public AbstractArray<T> {
 public:
-  int size() const override {return 0;}
+  size_t size() const override {return 0;}
   T operator[] (int i) const override {return T();}
 };
 
@@ -132,7 +132,7 @@ public:
     return _src[i];
   }
 
-  int size() const {
+  size_t size() const {
     return _src.size();
   }
 private:

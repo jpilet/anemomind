@@ -11,16 +11,21 @@
 #include <server/math/nonlinear/CeresTrajectoryFilter.h>
 #include <server/nautical/GeographicReference.h>
 #include <server/nautical/NavDataset.h>
+#include <server/nautical/GeographicReference.h>
 
 namespace sail {
 
 struct Results {
   GeographicReference geoRef;
   Array<CeresTrajectoryFilter::Types<2>::TimedPosition> localPositions;
-  Array<TimedValue<GeographicPosition<double> > > getGlobalPositions() const;
+
+  TimedSampleCollection<GeographicPosition<double> > getGlobalPositions() const;
 };
 
-Results filterGpsData(const NavDataset &ds);
+CeresTrajectoryFilter::Settings makeDefaultSettings();
+
+Results filterGpsData(const NavDataset &ds,
+    const CeresTrajectoryFilter::Settings &settings = makeDefaultSettings());
 
 }
 
