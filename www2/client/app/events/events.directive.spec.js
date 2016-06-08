@@ -7,15 +7,25 @@ describe('Directive: events', function () {
   beforeEach(module('app/events/events.html'));
 
   var element, scope;
+  var httpBackend;
 
-  beforeEach(inject(function ($rootScope) {
+  beforeEach(inject(function ($rootScope, $httpBackend) {
+     // Set up the mock http service responses
+     httpBackend = $httpBackend;
+
     scope = $rootScope.$new();
   }));
 
+  afterEach(function() {
+     httpBackend.verifyNoOutstandingExpectation();
+     httpBackend.verifyNoOutstandingRequest();
+  });
+
   it('should make hidden element visible', inject(function ($compile) {
-    element = angular.element('<events></events>');
+    httpBackend.expectGET('/api/events?b=testBoat').respond(200, []);
+    element = angular.element('<events boat="\'testBoat\'"></events>');
     element = $compile(element)(scope);
     scope.$apply();
-    expect(element.text()).toBe('this is the events directive');
+    httpBackend.flush();
   }));
 });
