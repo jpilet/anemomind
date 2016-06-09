@@ -16,22 +16,36 @@ namespace sail {
 
 using namespace sail::NavCompat;
 
+namespace {
+
 NavDataset filterNavs(NavDataset navs) {
   if (!isValid(navs.dispatcher().get())) {
     LOG(FATAL) << "Called with invalid dispatcher, please fix the code calling this function";
     return NavDataset();
   }
 
-  GpsFilter::Settings settings;
+  GpsFilterSettings settings;
 
-  ArrayBuilder<Nav> withoutNulls;
-  withoutNulls.addIf(makeArray(navs), [=](const Nav &nav) {
-    auto pos = nav.geographicPosition();
-    return abs(pos.lat().degrees()) > 0.01
-      && abs(pos.lon().degrees()) > 0.01;
-  });
+  // Remove nulls positions from GPS streams
+  const TimedSampleRange<GeographicPosition<double>>& gpsPos =
+    navs.samples<GPS_POS>();
+  TimedSampleCollection<GeographicPosition<double>> filteredGpsPos;
 
-  auto results = GpsFilter::filter(fromNavs(withoutNulls.get()), settings);
+  for (int i = 0; i < gpsPos.size(); ++i) {
+    auto pos = gpsPos[i];
+    if (abs(pos.value.lat().degrees()) > 0.01
+        && abs(pos.value.lon().degrees()) > 0.01) {
+      filteredGpsPos.append(pos);
+    }
+  }
+
+  NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double>>(
+      GPS_POS,
+      navs.dispatcher()->get<GPS_POS>()->source() + " merged+filtered",
+      filteredGpsPos.samples()
+      );
+
+  auto results = GpsFilter::filter(cleanGps, settings);
 
   if (!results.defined()) {
     LOG(WARNING) << "Failed to apply GPS filter, returning empty result";
@@ -47,6 +61,8 @@ NavDataset filterNavs(NavDataset navs) {
 
   return d;
 }
+
+}  // namespace
 
 // Convenience method to extract the description of a tree.
 std::string treeDescription(const shared_ptr<HTree>& tree,
@@ -112,6 +128,7 @@ void processTiles(const TileGeneratorParameters &params,
       LOG(INFO) << "Session: "
         << getFirst(session).time().toString()
         << ", until " << getLast(session).time().toString();
+      LOG(INFO) << session;
     }
 
     Array<NavDataset> sessions =
