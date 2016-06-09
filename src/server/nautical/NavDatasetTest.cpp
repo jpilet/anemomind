@@ -22,7 +22,7 @@ namespace {
     EXPECT_EQ(samples.size(), 60);
 
     auto d = std::make_shared<Dispatcher>();
-    d->insertValues<Velocity<double> >(AWS, "MastAnemometer", samples);
+    d->insertValues<Velocity<double> >(AWS, "NMEA0183: test", samples);
 
     return d;
   }
@@ -102,27 +102,56 @@ TEST(NavDatasetTest, TestAddChannels) {
     {offset + 0.6*s,    4.0*kn},
     {offset + 1233.0*s, 13.0*kn}
   };
-  auto a = makeDispatchDataFromSamples<Code>("A", A);
+  auto a = makeDispatchDataFromSamples<Code>("NMEA0183: A", A);
 
   TimedVector A2{
     {offset + 0.4*s,    17.0*kn}
   };
-  auto a2 = makeDispatchDataFromSamples<Code>("A", A2);
+  auto a2 = makeDispatchDataFromSamples<Code>("NMEA0183: A", A2);
 
   NavDataset ds;
   auto ds2 = ds.overrideChannels(std::map<DataCode,
       std::map<std::string, std::shared_ptr<DispatchData>>>{
-    {Code, {{"A", a}}}
+    {Code, {{"NMEA0183: A", a}}}
   });
   EXPECT_FALSE(bool(ds.dispatcher()));
   EXPECT_TRUE(bool(ds2.dispatcher()));
   EXPECT_EQ(ds2.dispatcher()->maxPriority(), Dispatcher::defaultPriority + 1);
-  EXPECT_EQ(ds2.dispatcher()->dispatchDataForSource(Code, "A"), a);
+  EXPECT_EQ(ds2.dispatcher()->dispatchDataForSource(Code, "NMEA0183: A"), a);
   EXPECT_EQ(ds2.samples<Code>().size(), 3);
   EXPECT_NEAR(ds2.samples<Code>()[1].value.knots(), 4.0, 1.0e-6);
 
-  auto ds3 = ds2.overrideChannels("A", {{Code, a}});
+  auto ds3 = ds2.overrideChannels("NMEA0183: A", {{Code, a}});
   EXPECT_TRUE(bool(ds3.dispatcher()));
-  EXPECT_EQ(ds3.dispatcher()->sourcePriority("A"),
+  EXPECT_EQ(ds3.dispatcher()->sourcePriority("NMEA0183: A"),
       Dispatcher::defaultPriority + 2);
 }
+
+TEST(NavDatasetTest, TestReplaceChannel) {
+  TimedSampleCollection<Velocity<>> aws;
+  aws.append(TimedValue<Velocity<>>(offset + 0.0 * s, 13.0 * kn));
+  aws.append(TimedValue<Velocity<>>(offset + 1.0 * s, 13.1 * kn));
+  aws.append(TimedValue<Velocity<>>(offset + 2.0 * s, 13.2 * kn));
+  aws.append(TimedValue<Velocity<>>(offset + 3.0 * s, 13.3 * kn));
+
+  std::shared_ptr<Dispatcher> dispatcher = makeTestDispatcher();
+  NavDataset navs(dispatcher);
+
+  NavDataset modified = navs.replaceChannel<Velocity<>>(
+      AWS, "NMEA0183: replaced", aws.samples());
+
+  EXPECT_EQ("NMEA0183: test", navs.dispatcher()->dispatchData(AWS)->source());
+  EXPECT_EQ("NMEA0183: replaced", modified.dispatcher()->dispatchData(AWS)->source());
+  EXPECT_EQ(13.3, modified.dispatcher()->val<AWS>().knots());
+}
+
+TEST(NavDatasetTest, StripChannel) {
+  NavDataset navs(makeTestDispatcher());
+
+  EXPECT_EQ("NMEA0183: test", navs.dispatcher()->dispatchData(AWS)->source());
+  EXPECT_LT(0, navs.dispatcher()->values<AWS>().size());
+
+  NavDataset stripped(navs.stripChannel(AWS));
+  EXPECT_EQ(0, stripped.dispatcher()->values<AWS>().size());
+}
+

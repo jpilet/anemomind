@@ -77,3 +77,10 @@ cxx_test(nonlinear_CeresTrajectoryFilterTest
          nonlinear_CeresTrajectoryFilter
          gtest_main
         )
+
+cxx_test(nonlinear_IrlsTrajectoryFilterTest
+         IrlsTrajectoryFilterTest.cpp
+         nonlinear_CeresTrajectoryFilter
+         gtest_main
+         math_irls
+        )

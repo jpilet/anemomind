@@ -42,7 +42,7 @@ namespace {
       gpsSpeed.push_back(TimedValue<Velocity<double> >(t, gpsMotion.norm()));
     }
 
-    auto src = "testsample";
+    auto src = "Test sample";
 
     auto d = std::make_shared<Dispatcher>();
     d->insertValues<Angle<double> >(MAG_HEADING, src, magHeading);

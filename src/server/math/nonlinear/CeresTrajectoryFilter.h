@@ -63,8 +63,6 @@ struct Settings {
   double maxSpeedPenalty;
 };
 
-int moveIntervalIndexForward(const Arrayd &samples, int intervalIndex, double t);
-
 template <int N>
 class Order0Fit {
 public:

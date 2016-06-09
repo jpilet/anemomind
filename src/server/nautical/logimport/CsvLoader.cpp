@@ -104,7 +104,7 @@ void CsvRowProcessor::process(const MDArray<std::string, 2> &row, SourceGroup *d
 }
 
 void loadCsv(const MDArray<std::string, 2> &table, LogAccumulator *dst) {
-  SourceGroup toPopulate("CSV", dst);
+  SourceGroup toPopulate("CSV imported", dst);
   CsvRowProcessor processor(table.sliceRow(0));
   int n = table.rows();
   for (int i = 1; i < n; i++) {

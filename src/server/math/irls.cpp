@@ -187,6 +187,23 @@ QuadCompiler::WeightsAndOffset QuadCompiler::makeWeightsAndOffset() const {
   return WeightsAndOffset{W, offsets};
 }
 
+void Norm1Strategy::initialize(const Settings &s, QuadCompiler *dst) {
+  for (auto i: _span) {
+    dst->setWeight(i, s.initialWeight);
+  }
+}
+
+void Norm1Strategy::apply(double constraintWeight,
+    const Arrayd &residuals,
+    QuadCompiler *dst) {
+  double r = calcResidualForSpan(_span, residuals);
+  auto q = MajQuad::majorizeAbs(_w*r, _threshold);
+  for (auto i: _span) {
+    dst->addQuad(i, q);
+  }
+}
+
+
 void ConstraintGroup::apply(
     double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) {
   Array<Residual> residualsPerConstraint = buildResidualsPerConstraint(_spans,
@@ -208,6 +225,14 @@ void ConstraintGroup::apply(
   }
 }
 
+void ConstraintGroup::initialize(const Settings &s, QuadCompiler *dst) {
+  for (auto sp: _spans) {
+    for (auto j: sp) {
+      dst->setWeight(j, s.initialWeight);
+    }
+  }
+}
+
 void BinaryConstraintGroup::apply(double constraintWeight,
     const Arrayd &residuals, QuadCompiler *dst) {
   auto totalCstWeight = 2.0*constraintWeight;
@@ -222,6 +247,15 @@ void BinaryConstraintGroup::apply(double constraintWeight,
   }
   for (auto i : _b) {
     dst->setWeight(i, bwc);
+  }
+}
+
+void BinaryConstraintGroup::initialize(const Settings &s, QuadCompiler *dst) {
+  for (auto i: _a) {
+    dst->setWeight(i, s.initialWeight);
+  }
+  for (auto i: _b) {
+    dst->setWeight(i, s.initialWeight);
   }
 }
 
@@ -284,6 +318,18 @@ namespace {
     return weighter;
   }
 
+  QuadCompiler initializeQuadCompiler(
+      int residualCount,
+      const Settings &settings,
+      const Array<WeightingStrategy::Ptr> &strategies) {
+    QuadCompiler weighter(residualCount);
+    for (auto strategy: strategies) {
+      strategy->initialize(settings, &weighter);
+    }
+    return weighter;
+  }
+
+
   Eigen::VectorXd initializeResiduals(int rows) {
     return Eigen::VectorXd::Constant(rows, 1.0);
   }
@@ -301,14 +347,15 @@ Results solve(const Eigen::SparseMatrix<double> &A,
   Eigen::VectorXd X;
   auto iterWeighter = makeIterationWeighter(settings);
 
+  auto qc = initializeQuadCompiler(rows, settings, strategies);
+
   for (int i = 0; i < settings.iters; i++) {
     double constraintWeight = iterWeighter(i);
 
     SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d with weight %.3g",
         i+1, settings.iters, constraintWeight));
 
-    auto weighter = fillQuadCompiler(constraintWeight, residuals, strategies);
-    auto wk = weighter.makeWeightsAndOffset();
+    auto wk = qc.makeWeightsAndOffset();
     Eigen::SparseMatrix<double> WA = wk.weights*A;
     Eigen::VectorXd WB = wk.weights*B - wk.offset;
     assert(isSane(wk.offset));
@@ -318,6 +365,7 @@ Results solve(const Eigen::SparseMatrix<double> &A,
     assert(isSane(X));
     residuals = product(A, X) - B;
     assert(isSane(residuals));
+    qc = fillQuadCompiler(constraintWeight, residuals, strategies);
   }
   return Results{X, residuals};
 }
@@ -409,6 +457,9 @@ namespace {
     BandMatrix<double> AtA(cols, cols, params.diagWidth, params.diagWidth);
     MDArray2d AtB(cols, params.Xcols);
     Eigen::MatrixXd X;
+
+    auto qc = initializeQuadCompiler(rows, settings, strategies);
+
     for (int i = 0; i < settings.iters; i++) {
       AtA.setAll(0.0);
       AtB.setAll(0.0);
@@ -418,8 +469,8 @@ namespace {
       SCOPEDMESSAGE(INFO, stringFormat("  Iteration %d/%d with weight %.3g",
           i+1, settings.iters, constraintWeight));
 
-      auto weighter = fillQuadCompiler(constraintWeight, residuals, strategies);
-      auto wk = weighter.makeWeightsAndOffset();
+
+      auto wk = qc.makeWeightsAndOffset();
       if (!validOffset(params.Xcols, wk.offset)) {
         LOG(ERROR) << "Invalid offset";
         return ResultsMat();
@@ -442,6 +493,7 @@ namespace {
         block->eval(X, &residuals);
       }
       assert(isSane(residuals));
+      qc = fillQuadCompiler(constraintWeight, residuals, strategies);
     }
     return ResultsMat{X, residuals};
   }
