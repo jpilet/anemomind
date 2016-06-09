@@ -53,8 +53,6 @@ struct Settings {
   ceres::Solver::Options ceresOptions;
 };
 
-int moveIntervalIndexForward(const Arrayd &samples, int intervalIndex, double t);
-
 template <int N>
 class Order0Fit {
 public:
