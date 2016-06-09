@@ -44,7 +44,7 @@ struct Types {
 
 struct Settings {
   Settings() {
-    regWeight = 0.01;
+    regWeight = 10.0;
     inlierThreshold = Length<double>::meters(12.0);
   }
   double regWeight;
