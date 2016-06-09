@@ -5,7 +5,7 @@
  *      Author: jonas
  */
 
-#include <server/nautical/nonlinear/IrlsTrajectoryFilter.h>
+#include <server/math/nonlinear/IrlsTrajectoryFilter.h>
 
 using namespace sail;
-using namespace sail::IrlsTrajectoryFilter;
+//using namespace sail::IrlsTrajectoryFilter;
