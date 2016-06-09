@@ -15,6 +15,7 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/TimedValue.h>
 #include <server/common/IntervalUtils.h>
+#include <server/math/nonlinear/CeresTrajectoryFilter.h>
 
 namespace sail {
 namespace IrlsTrajectoryFilter {
@@ -43,7 +44,7 @@ struct Types {
 
 struct Settings {
   Settings() {
-    regWeight = 1.0;
+    regWeight = 0.01;
   }
   double regWeight;
   irls::Settings irlsSettings;
@@ -57,7 +58,7 @@ struct Settings {
   return true;
  */
 template <int N>
-irls::FixedDenseBlock<1, 2, N> *makeOrder0Block(
+irls::DenseBlock::Ptr makeOrder0Block(
     int row, int col,
     double lambda, const Eigen::Matrix<double, N, 1> &obs) {
   typedef irls::FixedDenseBlock<1, 2, N> DstType;
@@ -65,7 +66,7 @@ irls::FixedDenseBlock<1, 2, N> *makeOrder0Block(
   A(0, 0) = 1.0 - lambda;
   A(0, 1) = lambda;
   typename DstType::BType B = obs.transpose();
-  return new DstType(A, B, row, col);
+  return irls::DenseBlock::Ptr(new DstType(A, B, row, col));
 }
 
 
@@ -75,14 +76,14 @@ irls::FixedDenseBlock<1, 2, N> *makeOrder0Block(
     }
  */
 template <int N>
-irls::FixedDenseBlock<1, 2, N> *makeOrder1Block(
+irls::DenseBlock::Ptr makeOrder1Block(
     int row, int col, const Eigen::Matrix<double, N, 1> &obs) {
   typedef irls::FixedDenseBlock<1, 2, N> DstType;
   typename DstType::AType A;
   A(0, 0) = -1.0;
   A(0, 1) = 1.0;
   typename DstType::BType B = obs.transpose();
-  return new DstType(A, B, row, col);
+  return irls::DenseBlock::Ptr(new DstType(A, B, row, col));
 }
 
 
@@ -99,7 +100,7 @@ irls::FixedDenseBlock<1, 2, N> *makeOrder1Block(
   }
  */
 template <int N>
-irls::FixedDenseBlock<1, 3, N> *makeRegularization(int row, int col,
+irls::DenseBlock::Ptr makeRegularization(int row, int col,
     double weight, double balance) {
   typedef irls::FixedDenseBlock<1, 3, N> DstType;
   double aw = weight*(1.0 - balance);
@@ -108,7 +109,9 @@ irls::FixedDenseBlock<1, 3, N> *makeRegularization(int row, int col,
   A(0, 0) = aw;
   A(0, 1) = weight;
   A(0, 2) = bw;
-  return new DstType(A, typename DstType::BType::Zero(), row, col);
+  return irls::DenseBlock::Ptr(
+      new DstType(A,
+          Eigen::Matrix<double, 1, N>::Zero(), row, col));
 }
 
 template <int N>
@@ -165,7 +168,7 @@ typename Types<N>::TimedPositionArray filter(
 
   // Position fitness
   for (auto position: positions) {
-    int intervalIndex = findIntervalWithTolerance(samples, position.time);
+    int intervalIndex = CeresTrajectoryFilter::findIntervalWithTolerance(samples, position.time);
     if (intervalIndex != -1) {
       auto t0 = samples[intervalIndex];
       auto t1 = samples[intervalIndex+1];
@@ -179,7 +182,7 @@ typename Types<N>::TimedPositionArray filter(
 
   // Motion fitness
   for (auto motion: motions) {
-    int intervalIndex = findIntervalWithTolerance(samples, motion.time);
+    int intervalIndex = CeresTrajectoryFilter::findIntervalWithTolerance(samples, motion.time);
     if (intervalIndex != -1) {
       auto dur = samples[intervalIndex+1] - samples[intervalIndex];
       auto vec = mulAndUnwrap<N>(dur, motion.value);
@@ -214,6 +217,7 @@ typename Types<N>::TimedPositionArray filter(
     for (int j = 0; j < N; j++) {
       p.value[j] = results.X(i, j)*getLengthUnit();
     }
+    dst[i] = p;
   }
   return dst;
 }

@@ -105,7 +105,7 @@ TEST(SmoothGpsFilterTest, TestIt) {
 
 
 
-  bool visualize = false;
+  bool visualize = true;
   if (visualize) {
     GnuPlotModel model(2);
 

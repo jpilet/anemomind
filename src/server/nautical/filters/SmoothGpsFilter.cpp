@@ -9,6 +9,7 @@
 #include <server/common/Functional.h>
 #include <server/common/logging.h>
 #include <server/math/nonlinear/CeresTrajectoryFilter.h>
+#include <server/math/nonlinear/IrlsTrajectoryFilter.h>
 #include <server/math/Resampler.h>
 #include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
@@ -130,9 +131,13 @@ Results filterGpsData(const NavDataset &ds,
 
   auto e = EmptyArray<FTypes::Position>();
 
-  Types<2>::TimedPositionArray filtered = CeresTrajectoryFilter::filter<2>(
+  /*Types<2>::TimedPositionArray filtered = CeresTrajectoryFilter::filter<2>(
       t, p, m,
-      settings, e);
+      settings, e);*/
+  Types<2>::TimedPositionArray filtered = IrlsTrajectoryFilter::filter<2>(
+      t, p, m,
+      IrlsTrajectoryFilter::Settings());
+
   if (filtered.empty()) {
     LOG(ERROR) << "Failed to filter GPS data";
     return Results();
