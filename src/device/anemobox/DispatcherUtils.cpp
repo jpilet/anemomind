@@ -456,6 +456,24 @@ std::shared_ptr<Dispatcher> mergeDispatcherWithDispatchDataMap(
   return dst;
 }
 
+std::shared_ptr<Dispatcher> cloneAndfilterDispatcher(
+    Dispatcher *srcDispatcher,
+    std::function<bool(DataCode, const std::string&)> filter) {
+
+  std::shared_ptr<Dispatcher> dst = std::make_shared<Dispatcher>();
+  for (const auto &codeAndSources: srcDispatcher->allSources()) {
+    auto code = codeAndSources.first;
+    for (const auto &sourceAndData: codeAndSources.second) {
+      if (filter(code, sourceAndData.first)) {
+        dst->set(code, sourceAndData.first, sourceAndData.second);
+      }
+    }
+  }
+
+  copyPriorities(srcDispatcher, dst.get());
+
+  return dst;
+}
 
 namespace {
   const std::map<std::string,
@@ -561,7 +579,7 @@ namespace {
 
     TimeStamp time() override {return _x.time;}
 
-    void publish(ReplayDispatcher *dst) {
+    virtual void publish(ReplayDispatcher *dst) override {
       dst->publishTimedValue<T>(_info->code, _info->name, _x);
     }
 

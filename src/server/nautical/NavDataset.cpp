@@ -258,6 +258,19 @@ const std::shared_ptr<DispatchData> &getMergedDispatchData(
   return dst;
 }
 
+NavDataset NavDataset::stripChannel(DataCode code) const {
+  if (_dispatcher == nullptr) {
+    return NavDataset();
+  }
 
+  return NavDataset(
+      cloneAndfilterDispatcher(
+          _dispatcher.get(),
+          [code](DataCode testedCode, const std::string&) { return testedCode != code; }
+          ),
+      std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData> > >(),
+      _lowerBound,
+      _upperBound);
+}
 
 }
