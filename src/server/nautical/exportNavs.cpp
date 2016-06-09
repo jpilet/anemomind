@@ -60,7 +60,7 @@ std::string angleToLiteral(Angle<double> x, const ExportSettings& settings,
                            double maxValDegrees) {
   Angle<double> maxVal = Angle<double>::degrees(maxValDegrees);
   return doubleToString(
-      x.moveToInterval(maxVal - Angle<double>::degrees(360), maxVal).degrees(),
+      x.lowerBoundAt(maxVal - Angle<double>::degrees(360)).degrees(),
       settings);
 }
 

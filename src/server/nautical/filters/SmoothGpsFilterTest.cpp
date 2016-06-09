@@ -99,7 +99,7 @@ TEST(SmoothGpsFilterTest, TestIt) {
   // It is fixed by https://github.com/jpilet/anemomind/pull/698
   auto filtered0 = filterGpsData(corrupted);
 
-  EXPECT_FALSE(filtered0.localPositions.empty());
+  EXPECT_FALSE(filtered0.filteredLocalPositions.empty());
 
   auto filteredPositions = filtered0.getGlobalPositions();
 
