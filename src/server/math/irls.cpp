@@ -187,11 +187,17 @@ QuadCompiler::WeightsAndOffset QuadCompiler::makeWeightsAndOffset() const {
   return WeightsAndOffset{W, offsets};
 }
 
+void Norm1Strategy::initialize(const Settings &s, QuadCompiler *dst) {
+  for (auto i: _span) {
+    dst->setWeight(i, s.initialWeight);
+  }
+}
+
 void Norm1Strategy::apply(double constraintWeight,
     const Arrayd &residuals,
     QuadCompiler *dst) {
   double r = calcResidualForSpan(_span, residuals);
-  auto q = MajQuad::majorizeAbs(r, _threshold);
+  auto q = MajQuad::majorizeAbs(_w*r, _threshold);
   for (auto i: _span) {
     dst->addQuad(i, q);
   }

@@ -109,7 +109,7 @@ irls::DenseBlock::Ptr makeRegularization(int row, int col,
   double bw = weight*balance;
   typename DstType::AType A;
   A(0, 0) = aw;
-  A(0, 1) = weight;
+  A(0, 1) = -weight;
   A(0, 2) = bw;
   return irls::DenseBlock::Ptr(
       new DstType(A,

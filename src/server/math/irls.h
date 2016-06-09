@@ -114,6 +114,8 @@ public:
   Norm1Strategy(Spani span, double w = 1.0, double threshold = LB) : _span(span), _w(w),
     _threshold(LB) {}
 
+  void initialize(const Settings &s, QuadCompiler *dst);
+
   void apply(double constraintWeight,
       const Arrayd &residuals,
       QuadCompiler *dst);
