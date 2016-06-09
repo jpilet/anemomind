@@ -45,10 +45,12 @@ struct Types {
 struct Settings {
   Settings() {
     regWeight = 0.01;
+    inlierThreshold = Length<double>::meters(12.0);
   }
   double regWeight;
   irls::Settings irlsSettings;
   Velocity<double> maxSpeed;
+  Length<double> inlierThreshold;
 };
 
 /*
@@ -144,6 +146,8 @@ typename Types<N>::TimedPositionArray filter(
   typedef typename Types<N>::TimedPositionArray TimedPositionArray;
   typedef typename Types<N>::TimedPosition TimedPosition;
 
+  double tau = settings.inlierThreshold/getLengthUnit();
+
   if (!std::is_sorted(samples.begin(), samples.end())) {
     LOG(ERROR) << "Samples are not sorted";
     return TimedPositionArray();
@@ -176,7 +180,7 @@ typename Types<N>::TimedPositionArray filter(
       int row = blocks.size();
       blocks.add(makeOrder0Block<N>(row, intervalIndex,
           lambda, unwrap<N>(position.value)));
-      strategies.add(WeightingStrategy::Ptr(new Norm1Strategy(Spani(row, row+1))));
+      strategies.add(WeightingStrategy::Ptr(new Norm1Strategy(Spani(row, row+1), 1.0, tau)));
     }
   }
 
@@ -188,7 +192,7 @@ typename Types<N>::TimedPositionArray filter(
       auto vec = mulAndUnwrap<N>(dur, motion.value);
       int row = blocks.size();
       blocks.add(makeOrder1Block<N>(row, intervalIndex, vec));
-      strategies.add(WeightingStrategy::Ptr(new Norm1Strategy(Spani(row, row+1))));
+      strategies.add(WeightingStrategy::Ptr(new Norm1Strategy(Spani(row, row+1), 1.0, tau)));
     }
   }
 

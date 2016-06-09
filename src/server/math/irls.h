@@ -109,14 +109,15 @@ class WeightingStrategy {
 
 class Norm1Strategy : public WeightingStrategy {
 public:
-  Norm1Strategy(Spani span, double w = 1.0) : _span(span), _w(w) {}
+  Norm1Strategy(Spani span, double w = 1.0, double threshold = LB) : _span(span), _w(w),
+    _threshold(LB) {}
 
   void apply(double constraintWeight,
       const Arrayd &residuals,
       QuadCompiler *dst);
 private:
   Spani _span;
-  double _w;
+  double _w, _threshold;
 };
 
 typedef Array<WeightingStrategy::Ptr> WeightingStrategies;

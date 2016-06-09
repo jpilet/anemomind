@@ -191,7 +191,7 @@ void Norm1Strategy::apply(double constraintWeight,
     const Arrayd &residuals,
     QuadCompiler *dst) {
   double r = calcResidualForSpan(_span, residuals);
-  auto q = MajQuad::majorizeAbs(r, LB);
+  auto q = MajQuad::majorizeAbs(r, _threshold);
   for (auto i: _span) {
     dst->addQuad(i, q);
   }
