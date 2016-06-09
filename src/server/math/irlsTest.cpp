@@ -758,6 +758,10 @@ namespace {
         const Arrayd &residuals, irls::QuadCompiler *dst) {
       dst->setWeight(_index, 0.0);
     }
+
+    void initialize(const irls::Settings &s, irls::QuadCompiler *dst) {
+      dst->setWeight(_index, 0.0);
+    }
   private:
     int _index;
   };
