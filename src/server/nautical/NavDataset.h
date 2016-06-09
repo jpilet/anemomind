@@ -117,6 +117,20 @@ const std::shared_ptr<DispatchData> &getMergedDispatchData(
   const std::shared_ptr<Dispatcher> &dispatcher);
 
 class Dispatcher;
+
+
+/*
+ * The NavDataset class is essentially a reference to a dispatcher.
+ * A Dispatcher is essentially "append only": it is possible to append samples,
+ * but not to alter them. NavDataset provides a way to have a view on a dispatcher,
+ * potentially modified, or restricted to some particular period.
+ *
+ * No methods modify the object itself. Instead, methods return a new NavDataset
+ * containing references to existing data. Duplication is done only when necessary.
+ * For example, the following line produces a new NavDataset that points to the same
+ * data, except that there will be no GPS_POS channel:
+ * NavDataset stripped = navDataset.stripChannel<GPS_POS>();
+ */
 class NavDataset {
 public:
   NavDataset() {}
@@ -140,6 +154,17 @@ public:
         const std::map<DataCode,
         std::shared_ptr<DispatchData>> &toAdd) const;
 
+  template<typename T>
+  NavDataset replaceChannel(
+      DataCode code,
+      const std::string& source,
+      const typename TimedSampleCollection<T>::TimedVector& values) const {
+    NavDataset result = stripChannel(code);
+    result.dispatcher()->insertValues<T>(code, source, values);
+    return result;
+  }
+
+  NavDataset stripChannel(DataCode code) const;
 
   bool hasLowerBound() const;
   bool hasUpperBound() const;
@@ -207,6 +232,6 @@ private:
 
 std::ostream &operator<<(std::ostream &s, const NavDataset &ds);
 
-} /* namespace sail */
+} // namespace sail
 
 #endif /* SERVER_NAUTICAL_NAVDATASET_H_ */

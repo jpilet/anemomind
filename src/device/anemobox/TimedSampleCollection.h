@@ -56,7 +56,7 @@ class TimedSampleCollection : public SampledSignal<T> {
 
    size_t size() const override { return _samples.size(); }
 
-   TimedValue<T> operator[](int i) const {
+   TimedValue<T> operator[](int i) const override {
      return _samples[i];
    }
 
