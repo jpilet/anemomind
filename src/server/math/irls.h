@@ -10,7 +10,6 @@
 #include <Eigen/SparseCore>
 #include <server/common/Array.h>
 #include <server/common/Span.h>
-#include <ceres/ceres.h>
 #include <server/common/math.h>
 #include <server/math/Majorize.h>
 #include <server/math/QuadForm.h>
@@ -102,6 +101,9 @@ class WeightingStrategy {
   virtual void apply(
       double constraintWeight,
       const Arrayd &residuals, QuadCompiler *dst) = 0;
+
+  virtual void initialize(const Settings &s, QuadCompiler *dst) = 0;
+
   virtual ~WeightingStrategy() {}
 
   typedef std::shared_ptr<WeightingStrategy> Ptr;
@@ -136,6 +138,12 @@ class WeightingStrategyArray : public WeightingStrategy {
     }
   }
 
+  void initialize(const Settings &s, QuadCompiler *dst) {
+    for (T &x: _strategies) {
+      x.initialize(s, dst);
+    }
+  }
+
   static WeightingStrategy::Ptr make(Array<T> strategies) {
     return WeightingStrategy::Ptr(new WeightingStrategyArray<T>(strategies));
   }
@@ -162,6 +170,8 @@ class ConstraintGroup : public WeightingStrategy {
   void apply(
         double constraintWeight,
         const Arrayd &residuals, QuadCompiler *dst);
+
+  void initialize(const Settings &s, QuadCompiler *dst);
  private:
   Array<Spani> _spans;
   int _activeCount;
@@ -177,6 +187,8 @@ class BinaryConstraintGroup : public WeightingStrategy {
 
   void apply(double constraintWeight,
       const Arrayd &residuals, QuadCompiler *dst);
+
+  void initialize(const Settings &s, QuadCompiler *dst);
  private:
   Spani _a, _b;
 };
@@ -206,6 +218,10 @@ class NonNegativeConstraint : public WeightingStrategy {
 
   }
 
+  void initialize(const Settings &s, QuadCompiler *dst) {
+    dst->setWeight(_index, s.initialWeight);
+  }
+
   static WeightingStrategy::Ptr make(int index);
   static WeightingStrategy::Ptr make(Arrayi inds);
  private:
@@ -222,6 +238,10 @@ class Constant : public WeightingStrategy {
     double constraintWeight,
     const Arrayd &residuals, QuadCompiler *dst) {
     dst->addQuad(_index, _quad);
+  }
+
+  void initialize(const Settings &s, QuadCompiler *dst) {
+    dst->setWeight(_index, s.finalWeight);
   }
 
   static WeightingStrategy::Ptr make(Arrayi inds, MajQuad quad);
