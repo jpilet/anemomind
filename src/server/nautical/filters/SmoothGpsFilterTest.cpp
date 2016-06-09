@@ -34,7 +34,7 @@ NavDataset getPsarosTestData() {
 }
 
 NavDataset applyOutliersAsBefore(NavDataset navs) {
-  *((unsigned long *)nullptr) = 0xDEADBEEF;
+  LOG(FATAL) << "TODO: Adapt this code for the dispatcher";
 
 
   // TODO: Adapt this code for the dispatcher
@@ -88,10 +88,10 @@ TEST(SmoothGpsFilterTest, TestIt) {
   int n = originalPositions.size();
 
 
-  auto srcName = "Corrupted";
+  auto srcName = "Test corrupted";
 
   auto corrupted = original.overrideChannels(
-      "Corrupted",
+      srcName,
       {{GPS_POS, makeDispatchDataFromSamples<GPS_POS>(
           srcName, corruptedPositions)}});
 

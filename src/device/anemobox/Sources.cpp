@@ -12,13 +12,19 @@ const char internalRegex[] =
   "(^NavDevice$)"
   "|(^Internal.*)"
   "|(^IMU$)"
+  "|(^Anemomind estimator$)"
+  "|(^Simulated Anemomind estimator$)"
+  "|(^Test.*)"
   ;
 
 const char externalRegex[] =
   "(^NavExternal$)"
   "|(^NMEA2000/.*)"
   "|(^NMEA0183: .*)"
+  "|(^NMEA0183$)"
+  "|(^NMEA0183 input reparsed$)"
   "|(^CUPS$)"
+  "|(^CSV imported$)"
   ;
 
 }  // namespace
@@ -39,7 +45,7 @@ SourceOrigin classify(const std::string& source) {
 
   LOG(WARNING)
     << "Can't classify source: "
-    << source;
+    << "'" + source + "'";
 
   return SourceOrigin::UNKNOWN;
 }

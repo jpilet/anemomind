@@ -12,7 +12,7 @@
 using namespace sail;
 
 namespace {
-  std::string src = "testsrc";
+  std::string src = "Test source";
   auto offset = TimeStamp::UTC(2015, 5, 12, 13, 45, 0);
   auto degrees = Angle<double>::degrees(1.0);
   auto meters = Length<double>::meters(1.0);

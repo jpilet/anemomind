@@ -56,7 +56,7 @@ class Nmea0183LogLoaderAdaptor {
  public:
   Nmea0183LogLoaderAdaptor(NmeaParser *parser, LogAccumulator *dst,
       const std::string &srcName) :
-    _parser(parser), _dst(dst), _sourceName(srcName) {}
+    _parser(parser), _sourceName(srcName), _dst(dst) {}
 
   template <DataCode Code>
   void add(const std::string &sourceName, const typename TypeForCode<Code>::type &value) {
