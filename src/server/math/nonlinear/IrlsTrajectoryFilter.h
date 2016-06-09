@@ -14,6 +14,7 @@
 #include <server/math/irlsFixedDenseBlock.h>
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <server/common/TimedValue.h>
+#include <server/common/IntervalUtils.h>
 
 namespace sail {
 namespace IrlsTrajectoryFilter {
@@ -120,6 +121,17 @@ typename Types<N>::Vector unwrap(const typename Types<N>::Position &x) {
 }
 
 template <int N>
+typename Types<N>::Vector mulAndUnwrap(
+    const Duration<double> &dur, const typename Types<N>::Motion &m) {
+  typename Types<N>::Vector dst;
+  for (int i = 0; i < N; i++) {
+    dst(i) = (dur*m[i])/getLengthUnit();
+  }
+  return dst;
+}
+
+
+template <int N>
 typename Types<N>::TimedPositionArray filter(
     const AbstractArray<sail::TimeStamp> &samples,
     const AbstractArray<typename Types<N>::TimedPosition> &positions,
@@ -127,6 +139,7 @@ typename Types<N>::TimedPositionArray filter(
     const Settings &settings) {
 
   typedef typename Types<N>::TimedPositionArray TimedPositionArray;
+  typedef typename Types<N>::TimedPosition TimedPosition;
 
   if (!std::is_sorted(samples.begin(), samples.end())) {
     LOG(ERROR) << "Samples are not sorted";
@@ -148,22 +161,31 @@ typename Types<N>::TimedPositionArray filter(
 
   using namespace irls;
   ArrayBuilder<DenseBlock::Ptr> blocks;
+  ArrayBuilder<WeightingStrategy::Ptr> strategies;
+
+  // Position fitness
   for (auto position: positions) {
     int intervalIndex = findIntervalWithTolerance(samples, position.time);
     if (intervalIndex != -1) {
       auto t0 = samples[intervalIndex];
       auto t1 = samples[intervalIndex+1];
       double lambda = computeLambda(t0, t1, position.time);
-      blocks.add(makeOrder0Block<N>(blocks.size(), intervalIndex,
+      int row = blocks.size();
+      blocks.add(makeOrder0Block<N>(row, intervalIndex,
           lambda, unwrap<N>(position.value)));
+      strategies.add(WeightingStrategy::Ptr(new Norm1Strategy(Spani(row, row+1))));
     }
   }
+
+  // Motion fitness
   for (auto motion: motions) {
     int intervalIndex = findIntervalWithTolerance(samples, motion.time);
     if (intervalIndex != -1) {
-      problem.AddResidualBlock(makeMotionCost<N>(
-          samples[intervalIndex+1] - samples[intervalIndex], motion),
-          loss, X[intervalIndex].data(), X[intervalIndex+1].data());
+      auto dur = samples[intervalIndex+1] - samples[intervalIndex];
+      auto vec = mulAndUnwrap<N>(dur, motion.value);
+      int row = blocks.size();
+      blocks.add(makeOrder1Block<N>(row, intervalIndex, vec));
+      strategies.add(WeightingStrategy::Ptr(new Norm1Strategy(Spani(row, row+1))));
     }
   }
 
@@ -171,28 +193,29 @@ typename Types<N>::TimedPositionArray filter(
   LOG(INFO) << "Number of regularization terms: " << sampleCount - 2;
   for (int i = 1; i < sampleCount-1; i++) {
     double lambda = computeLambda<sail::TimeStamp>(samples[i-1], samples[i+1], samples[i]);
-    problem.AddResidualBlock(Regularization<N>::Create(settings.regWeight, lambda), nullptr,
-        X[i-1].data(), X[i].data(), X[i+1].data());
+    blocks.add(makeRegularization<N>(blocks.size(), i-1, settings.regWeight, lambda));
   }
 
-  ceres::Solver::Summary summary;
-  LOG(INFO) << "Optimizing...";
-  ceres::Solve(settings.ceresOptions, &problem, &summary);
-  LOG(INFO) << "Done optimizing";
+  auto allBlocks = blocks.get();
 
-  // I don't consider reaching the maximum number of iterations (that is NO_CONVERGENCE)
-  // a bad outcome. This is perfectly possible, and we probably want to use that result.
-  std::set<ceres::TerminationType> badOutcomes{
-    ceres::FAILURE, ceres::USER_FAILURE
-  };
 
-  if (badOutcomes.count(summary.termination_type) == 1) {
-    LOG(ERROR) << "Ceres failed " << summary.FullReport();
+  auto results = irls::solveBanded(
+      allBlocks.last()->requiredRows(),
+      sampleCount, // TODO: Consider changing it later to N*sampleCount
+      allBlocks, strategies.get(), settings.irlsSettings);
 
-    return TimedPositionArray();
+  if (results.X.rows() != sampleCount) {
+    TimedPositionArray();
   }
-  LOG(INFO) << "Successfully performed CeresTrajectoryFilter.";
-  return wrapResult<N>(samples, X);
+  TimedPositionArray dst(sampleCount);
+  for (int i = 0; i < sampleCount; i++) {
+    TimedPosition p;
+    p.time = samples[i];
+    for (int j = 0; j < N; j++) {
+      p.value[j] = results.X(i, j)*getLengthUnit();
+    }
+  }
+  return dst;
 }
 
 

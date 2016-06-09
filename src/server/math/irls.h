@@ -107,6 +107,18 @@ class WeightingStrategy {
   typedef std::shared_ptr<WeightingStrategy> Ptr;
 };
 
+class Norm1Strategy : public WeightingStrategy {
+public:
+  Norm1Strategy(Spani span, double w = 1.0) : _span(span), _w(w) {}
+
+  void apply(double constraintWeight,
+      const Arrayd &residuals,
+      QuadCompiler *dst);
+private:
+  Spani _span;
+  double _w;
+};
+
 typedef Array<WeightingStrategy::Ptr> WeightingStrategies;
 
 // Groups several constraints of the same kind as a contiguous
