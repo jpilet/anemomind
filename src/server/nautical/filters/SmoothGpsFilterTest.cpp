@@ -76,7 +76,46 @@ TimedSampleCollection<GeographicPosition<double> >::TimedVector applyOutliers(
   return corruptPositions;
 }
 
+TimeStamp timeStamp(double x) {
+  auto offset = TimeStamp::UTC(2016, 6, 8, 13, 52, 0);
+  return offset + Duration<double>::seconds(x);
 }
+
+
+CeresTrajectoryFilter::Types<2>::TimedPosition timedPos(double t, double x, double y) {
+  return CeresTrajectoryFilter::Types<2>::TimedPosition(timeStamp(t),
+      Vectorize<Length<double>, 2>{Length<double>::meters(x), Length<double>::meters(y)});
+}
+
+}
+
+TEST(SmoothGpsFilterTest, TestComputedMotions) {
+  auto deg = Angle<double>::degrees(1.0);
+
+  Array<CeresTrajectoryFilter::Types<2>::TimedPosition> raw{
+      timedPos(0, 3, 4),
+      timedPos(1, 3, -1)
+    };
+
+  Array<CeresTrajectoryFilter::Types<2>::TimedPosition> filtered{
+      timedPos(2, 3, 4),
+      timedPos(6, 7, 2)
+    };
+
+  GpsFilterResults results{
+    GeographicReference(GeographicPosition<double>(34.4*deg, 344.3*deg)),
+    raw, filtered
+  };
+
+  auto motions = results.getGpsMotions();
+  EXPECT_EQ(motions.size(), 1);
+  auto m = motions[0];
+
+  EXPECT_NEAR((m.time - timeStamp(4.0)).seconds(), 0.0, 1.0e-6);
+  EXPECT_NEAR(m.value[0].metersPerSecond(), 1.0, 1.0e-6);
+  EXPECT_NEAR(m.value[1].metersPerSecond(), -0.5, 1.0e-6);
+}
+
 
 TEST(SmoothGpsFilterTest, TestIt) {
   auto original = getPsarosTestData();

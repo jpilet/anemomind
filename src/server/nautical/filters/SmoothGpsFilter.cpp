@@ -81,7 +81,7 @@ namespace {
   }
 }
 
-TimedSampleCollection<HorizontalMotion<double> >::TimedVector GpsFilterResults::getGpsSpeeds() const {
+TimedSampleCollection<HorizontalMotion<double> >::TimedVector GpsFilterResults::getGpsMotions() const {
   int n = filteredLocalPositions.size() - 1;
   TimedSampleCollection<HorizontalMotion<double> >::TimedVector samples;
   for (int i = 0; i < n; i++) {

@@ -22,7 +22,7 @@ struct GpsFilterResults {
     filteredLocalPositions;
 
   TimedSampleCollection<GeographicPosition<double> >::TimedVector getGlobalPositions() const;
-  TimedSampleCollection<HorizontalMotion<double> >::TimedVector getGpsSpeeds() const;
+  TimedSampleCollection<HorizontalMotion<double> >::TimedVector getGpsMotions() const;
 };
 
 CeresTrajectoryFilter::Settings makeDefaultSettings();
