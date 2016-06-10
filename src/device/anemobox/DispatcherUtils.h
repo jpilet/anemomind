@@ -149,6 +149,9 @@ void copyPriorities(Dispatcher *src, Dispatcher *dst);
 typedef std::function<void(const std::shared_ptr<Dispatcher> &,
         DataCode, const std::string &)> ReplayVisitor;
 
+std::shared_ptr<Dispatcher> cloneAndfilterDispatcher(
+    Dispatcher *srcDispatcher,
+    std::function<bool(DataCode, const std::string&)> filter);
 
 class ReplayDispatcher : public Dispatcher {
  public:

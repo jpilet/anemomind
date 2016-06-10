@@ -19,7 +19,7 @@ namespace {
       return i*i;
     }
 
-    int size() const override {
+    size_t size() const override {
       return 7;
     }
   };

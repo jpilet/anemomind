@@ -34,7 +34,7 @@ NavDataset getPsarosTestData() {
 }
 
 NavDataset applyOutliersAsBefore(NavDataset navs) {
-  *((unsigned long *)nullptr) = 0xDEADBEEF;
+  LOG(FATAL) << "TODO: Adapt this code for the dispatcher";
 
 
   // TODO: Adapt this code for the dispatcher
@@ -88,10 +88,10 @@ TEST(SmoothGpsFilterTest, TestIt) {
   int n = originalPositions.size();
 
 
-  auto srcName = "Corrupted";
+  auto srcName = "Test corrupted";
 
   auto corrupted = original.overrideChannels(
-      "Corrupted",
+      srcName,
       {{GPS_POS, makeDispatchDataFromSamples<GPS_POS>(
           srcName, corruptedPositions)}});
 
@@ -99,7 +99,7 @@ TEST(SmoothGpsFilterTest, TestIt) {
   // It is fixed by https://github.com/jpilet/anemomind/pull/698
   auto filtered0 = filterGpsData(corrupted);
 
-  EXPECT_FALSE(filtered0.localPositions.empty());
+  EXPECT_FALSE(filtered0.filteredLocalPositions.empty());
 
   auto filteredPositions = filtered0.getGlobalPositions();
 
@@ -110,10 +110,10 @@ TEST(SmoothGpsFilterTest, TestIt) {
     GnuPlotModel model(2);
 
     makeTrajectoryPlot(filtered0.geoRef,
-        wrapSampled<TypeMode::ConstRef>(filteredPositions))->render(&model);
+        filteredPositions)->render(&model);
 
     makeTrajectoryPlot(filtered0.geoRef,
-            wrapSampled<TypeMode::ConstRef>(originalPositions))->render(&model);
+            originalPositions)->render(&model);
 
     model.show();
   }

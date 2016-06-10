@@ -6,12 +6,13 @@
 #include <server/common/Optional.h>
 #include <server/common/TimeStamp.h>
 #include <server/common/TimedValue.h>
+#include <server/nautical/types/SampledSignal.h>
 #include <iostream>
 
 namespace sail {
 
 template<typename T>
-class TimedSampleCollection {
+class TimedSampleCollection : public SampledSignal<T> {
  public:
    typedef std::deque<TimedValue<T>> TimedVector;
 
@@ -53,7 +54,12 @@ class TimedSampleCollection {
      trim();
    }
 
-   size_t size() const { return _samples.size(); }
+   size_t size() const override { return _samples.size(); }
+
+   TimedValue<T> operator[](int i) const override {
+     return _samples[i];
+   }
+
    bool empty() const { return _samples.empty(); }
    T lastValue() const { return _samples.back().value; }
    TimeStamp lastTimeStamp() const { return _samples.back().time; }

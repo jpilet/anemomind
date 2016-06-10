@@ -393,3 +393,8 @@ cxx_test(common_StoredTimeTest
   gtest_main
   common_StoredTime
   )
+
+cxx_test(common_PositiveModTest
+         PositiveModTest.cpp
+         gtest_main
+        )

@@ -74,7 +74,8 @@ Eigen::Vector2d getGpsVector(const Nav &x) {
 }
 
 Eigen::Vector2d getBoatThroughWaterMotion(const Nav &x) {
-  auto m = HorizontalMotion<double>::polar(x.watSpeed(), x.magHdg());
+  HorizontalMotion<double> m =
+    HorizontalMotion<double>::polar(x.watSpeed(), x.magHdg());
   return Eigen::Vector2d(m[0].knots(), m[1].knots());
 }
 
@@ -90,22 +91,22 @@ bool isFiniteMat(const Eigen::MatrixXd &X) {
 }
 
 FlowMats makeCurrentMatrix(const Nav &x) {
-  Eigen::Vector2d a = -getBoatThroughWaterMotion(x);
+  Eigen::Vector2d a = getBoatThroughWaterMotion(x);
 
-  auto aHat = a.normalized();
+  Eigen::Vector2d aHat = a.normalized();
 
   Eigen::Vector2d b = getGpsVector(x);
   FlowMats dst;
 
-  dst.A(0, 0) = a(0);
-  dst.A(0, 1) = -a(1);
-  dst.A(1, 0) = a(1);
-  dst.A(1, 1) = a(0);
+  dst.A(0, 0) = -a(0);
+  dst.A(0, 1) = a(1);
+  dst.A(1, 0) = -a(1);
+  dst.A(1, 1) = -a(0);
 
-  dst.A(0, 2) = aHat(0);
-  dst.A(0, 3) = -aHat(1);
-  dst.A(1, 2) = aHat(1);
-  dst.A(1, 3) = aHat(0);
+  dst.A(0, 2) = -aHat(0);
+  dst.A(0, 3) = aHat(1);
+  dst.A(1, 2) = -aHat(1);
+  dst.A(1, 3) = -aHat(0);
 
   dst.B(0) = b(0);
   dst.B(1) = b(1);
