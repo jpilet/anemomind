@@ -152,7 +152,10 @@ GpsFilterResults filterGpsData(const NavDataset &ds,
   // Since the geographic reference is located at the spatial median, where most of the points
   // are, we can reject point whose local coordinates are too far away from that. This will
   // probably work in most cases.
-  auto filteredRawPositions = removePositionsFarAway(rawLocalPositions, dur*settings.maxSpeed);
+  //auto filteredRawPositions = removePositionsFarAway(rawLocalPositions, dur*settings.maxSpeed);
+
+  // With proper constraints on the max speed of the boat, we don't really need the above line.
+  auto filteredRawPositions = rawLocalPositions;
 
   IndexableWrap<Array<FTypes::TimedPosition>, TypeMode::Value> localPositions
     = wrapIndexable<TypeMode::Value>(filteredRawPositions);
