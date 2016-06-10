@@ -14,6 +14,7 @@
 #include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/common/Progress.h>
+#include <server/common/TimedTypedefs.h>
 
 namespace sail {
 
@@ -89,14 +90,6 @@ CeresTrajectoryFilter::Settings makeDefaultSettings() {
   CeresTrajectoryFilter::Settings settings;
   settings.huberThreshold = Length<double>::meters(12.0); // Sort of inlier threshold on the distance in meters
   settings.regWeight = 10.0;
-
-
-  // Ceres can only solve smooth unconstrained problems.
-  // I tried to implement inequality constraints by
-  // putting a big penalty on speeds that are too high, but it doesn't really work...
-  settings.maxSpeedPenalty = 0.0;
-
-
   return settings;
 }
 
@@ -112,7 +105,6 @@ Array<CeresTrajectoryFilter::Types<2>::TimedPosition> removePositionsFarAway(
   }
   return dst.get();
 }
-
 
 GpsFilterResults filterGpsData(const NavDataset &ds,
     const CeresTrajectoryFilter::Settings &settings) {
@@ -139,23 +131,26 @@ GpsFilterResults filterGpsData(const NavDataset &ds,
   auto samplingTimes = buildSampleTimes(positionTimes, motionTimes,
       samplingPeriod);
 
+  if (samplingTimes.size() < 2) {
+    LOG(ERROR) << "Too few sampling times";
+    return GpsFilterResults();
+  }
+
   IndexableWrap<Array<TimeStamp>, TypeMode::ConstRef> times =
       wrapIndexable<TypeMode::ConstRef>(samplingTimes);
 
   auto rawLocalPositions = getLocalPositions(geoRef, positions);
 
 
-  Duration<double> dur =
-      samplingTimes.size() >= 2? samplingTimes.last() - samplingTimes.first() :
-          Duration<double>::seconds(1.0);
+  Duration<double> dur = samplingTimes.last() - samplingTimes.first();
+
+
+  auto maxSpeed = Velocity<double>::knots(200.0);
 
   // Since the geographic reference is located at the spatial median, where most of the points
   // are, we can reject point whose local coordinates are too far away from that. This will
   // probably work in most cases.
-  //auto filteredRawPositions = removePositionsFarAway(rawLocalPositions, dur*settings.maxSpeed);
-
-  // With proper constraints on the max speed of the boat, we don't really need the above line.
-  auto filteredRawPositions = rawLocalPositions;
+  auto filteredRawPositions = removePositionsFarAway(rawLocalPositions, dur*maxSpeed);
 
   IndexableWrap<Array<FTypes::TimedPosition>, TypeMode::Value> localPositions
     = wrapIndexable<TypeMode::Value>(filteredRawPositions);
@@ -186,7 +181,9 @@ GpsFilterResults filterGpsData(const NavDataset &ds,
     return GpsFilterResults();
   }
 
-  return GpsFilterResults{geoRef, rawLocalPositions, filtered};
+  return GpsFilterResults{geoRef,
+    rawLocalPositions,
+    filtered};
 }
 
 }

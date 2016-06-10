@@ -43,7 +43,7 @@ T reduceCyclically(T a, T b) {
  */
 template <typename T>
 T positiveMod(T a, T b) {
-  T zero = b - b;
+  T zero = b - b; // Because T(0) constructor does not exist for all types T.
   if (a < zero) {
     return positiveMod(makePositiveCyclic(a, b), b);
   }
