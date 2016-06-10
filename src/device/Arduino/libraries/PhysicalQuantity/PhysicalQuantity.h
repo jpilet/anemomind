@@ -349,7 +349,7 @@ public:
     return (*this - other).normalizedAt0();
   }
 
-  ThisType lowerBoundAt(ThisType lower) const {
+  ThisType minimizeCyclicallyButNotLessThan(ThisType lower) const {
     static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
     return positiveMod<ThisType>(*this - lower,
         ThisType::degrees(T(360))) + lower;
@@ -357,12 +357,12 @@ public:
 
   ThisType normalizedAt0() const {
     static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
-    return lowerBoundAt(ThisType::degrees(T(-180)));
+    return minimizeCyclicallyButNotLessThan(ThisType::degrees(T(-180)));
   }
 
   ThisType positiveMinAngle() const {
     static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
-    return lowerBoundAt(ThisType::degrees(T(0)));
+    return minimizeCyclicallyButNotLessThan(ThisType::degrees(T(0)));
   }
 
   static ThisType degMinMc(T deg, T min, T mc) {
