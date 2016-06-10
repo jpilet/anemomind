@@ -11,7 +11,8 @@
 namespace sail {
 
 template <typename T>
-T makePositiveCyclic(T a, T b0, T zero = T(0)) {
+T makePositiveCyclic(T a, T b0) {
+  T zero = b0 - b0;
   T b = b0;
   T c = a + b;
   while (c < zero) {
@@ -41,9 +42,10 @@ T reduceCyclically(T a, T b) {
  *
  */
 template <typename T>
-T positiveMod(T a, T b, T zero = T(0)) {
+T positiveMod(T a, T b) {
+  T zero = b - b; // Because T(0) constructor does not exist for all types T.
   if (a < zero) {
-    return positiveMod(makePositiveCyclic(a, b, zero), b, zero);
+    return positiveMod(makePositiveCyclic(a, b), b);
   }
   T c = a;
   while (!(c < b)) {

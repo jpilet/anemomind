@@ -352,7 +352,7 @@ public:
   ThisType lowerBoundAt(ThisType lower) const {
     static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
     return positiveMod<ThisType>(*this - lower,
-        ThisType::degrees(T(360)), ThisType(T(0.0))) + lower;
+        ThisType::degrees(T(360))) + lower;
   }
 
   ThisType normalizedAt0() const {
