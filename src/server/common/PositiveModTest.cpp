@@ -77,6 +77,10 @@ namespace {
   private:
     int _x;
   };
+
+  bool isFinite(MinimalistNumber x) {
+    return isFinite(x.unwrap());
+  }
 }
 
 TEST(PositiveModTest, WithSpecialType) {
