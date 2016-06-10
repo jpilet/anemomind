@@ -8,8 +8,6 @@
 #ifndef SERVER_COMMON_POSITIVEMOD_H_
 #define SERVER_COMMON_POSITIVEMOD_H_
 
-#include <server/common/numerics.h>
-
 namespace sail {
 
 template <typename T>
