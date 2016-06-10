@@ -13,6 +13,7 @@
 #include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/common/Progress.h>
+#include <server/common/TimedTypedefs.h>
 
 namespace sail {
 
@@ -111,7 +112,6 @@ Array<CeresTrajectoryFilter::Types<2>::TimedPosition> removePositionsFarAway(
   return dst.get();
 }
 
-
 GpsFilterResults filterGpsData(const NavDataset &ds,
     const CeresTrajectoryFilter::Settings &settings) {
 
@@ -183,7 +183,9 @@ GpsFilterResults filterGpsData(const NavDataset &ds,
     return GpsFilterResults();
   }
 
-  return GpsFilterResults{geoRef, rawLocalPositions, filtered};
+  return GpsFilterResults{geoRef,
+    rawLocalPositions,
+    filtered};
 }
 
 }
