@@ -8,9 +8,10 @@
 #include <server/nautical/tiles/NavTileUploader.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/nautical/logimport/LogLoader.h>
-#include <server/nautical/GpsFilter.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/logging.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
@@ -24,42 +25,13 @@ NavDataset filterNavs(NavDataset navs) {
     return NavDataset();
   }
 
-  GpsFilterSettings settings;
-
-  // Remove nulls positions from GPS streams
-  const TimedSampleRange<GeographicPosition<double>>& gpsPos =
-    navs.samples<GPS_POS>();
-  TimedSampleCollection<GeographicPosition<double>> filteredGpsPos;
-
-  for (int i = 0; i < gpsPos.size(); ++i) {
-    auto pos = gpsPos[i];
-    if (abs(pos.value.lat().degrees()) > 0.01
-        && abs(pos.value.lon().degrees()) > 0.01) {
-      filteredGpsPos.append(pos);
-    }
-  }
-
-  NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double>>(
+  auto results = filterGpsData(navs);
+  NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double> >(
       GPS_POS,
       navs.dispatcher()->get<GPS_POS>()->source() + " merged+filtered",
-      filteredGpsPos.samples()
-      );
+      results.getGlobalPositions());
 
-  auto results = GpsFilter::filter(cleanGps, settings);
-
-  if (!results.defined()) {
-    LOG(WARNING) << "Failed to apply GPS filter, returning empty result";
-    return NavDataset();
-  }
-  auto d = fromNavs(
-      makeArray(results.filteredNavs()).slice(results.inlierMask()));
-
-  if (!isValid(d.dispatcher().get())) {
-    LOG(WARNING) << "The dataset constructed from navs is not valid, returning empty result";
-    return NavDataset();
-  }
-
-  return d;
+  return cleanGps;
 }
 
 }  // namespace
@@ -132,7 +104,7 @@ void processTiles(const TileGeneratorParameters &params,
     }
 
     Array<NavDataset> sessions =
-      filter(map(extracted, filterNavs).toArray(),
+      filter(sail::map(extracted, filterNavs).toArray(),
           [](NavDataset ds) {
       if (getNavSize(ds) == 0) {
         LOG(WARNING) << "Omitting dataset with 0 navs";
