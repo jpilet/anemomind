@@ -13,6 +13,7 @@
 #include <limits>
 #include <server/common/MDArray.h>
 #include <server/common/numerics.h>
+#include <server/common/PositiveMod.h>
 
 namespace sail {
 
@@ -95,20 +96,6 @@ bool strictEquality(T a, T b) {
     return false;
   } else {
     return a == b;
-  }
-}
-
-// Always returns a number in [0, b[
-template <typename T>
-T positiveMod(T a, T b) {
-  assert(b > T(0));
-  T aOverB = std::floor(a/b);
-  if (a >= T(0)) {
-    return a - aOverB*b;
-  } else {
-    T a2 = a - (aOverB - 1)*b;
-    assert(a2 >= T(0));
-    return a2 - std::floor(a2/b)*b;
   }
 }
 

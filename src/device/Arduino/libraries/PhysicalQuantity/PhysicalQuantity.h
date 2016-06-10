@@ -18,6 +18,7 @@
 
 #include <server/common/numerics.h>
 #include <type_traits>
+#include <server/common/PositiveMod.h>
 #ifdef ON_SERVER
 #include <cmath>
 #include <limits>
@@ -348,28 +349,20 @@ public:
     return (*this - other).normalizedAt0();
   }
 
-  ThisType moveToInterval(ThisType lower, ThisType upper) const {
+  ThisType minimizeCyclicallyButNotLessThan(ThisType lower) const {
     static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
-    ThisType result(*this);
-    while (result < lower) {
-      result += ThisType::degrees(T(360));
-    }
-    while (result >= upper) {
-      result -= ThisType::degrees(T(360));
-    }
-    return result;
+    return positiveMod<ThisType>(*this - lower,
+        ThisType::degrees(T(360))) + lower;
   }
 
   ThisType normalizedAt0() const {
     static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
-    return moveToInterval(ThisType::degrees(T(-180)),
-        ThisType::degrees(T(180)));
+    return minimizeCyclicallyButNotLessThan(ThisType::degrees(T(-180)));
   }
 
   ThisType positiveMinAngle() const {
     static_assert(UInfo::quantity == Quantity::Angle, "Only applicable to angles");
-    return moveToInterval(ThisType::degrees(T(0)),
-        ThisType::degrees(T(360)));
+    return minimizeCyclicallyButNotLessThan(ThisType::degrees(T(0)));
   }
 
   static ThisType degMinMc(T deg, T min, T mc) {
