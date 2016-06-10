@@ -803,5 +803,34 @@ TEST(IrlsTest, MiniSolveTest2) {
   EXPECT_NEAR(solution.X(2, 1), 1.0/3, 1.0e-6);
 }
 
+TEST(IrlsTest, BoundedNorm) {
+  using namespace irls;
+  int rows = 4;
+  int cols = 2;
+  Array<Triplet> triplets{
+    Triplet(0, 0, 1.0), Triplet(1, 1, 1.0),
+    Triplet(2, 0, 1.0), Triplet(3, 1, 1.0)
+  };
+  Eigen::VectorXd B = Eigen::VectorXd::Zero(4);
+  B(0) = 1.0;
+  B(1) = 0.0;
+  B(2) = 2.0;
+  B(3) = 1.0;
 
+  Eigen::SparseMatrix<double> A(rows, cols);
+  A.setFromTriplets(triplets.begin(), triplets.end());
+
+  double radius = 0.5;
+  double expectedX = 2.0 - radius/sqrt(2.0);
+  double expectedY = 1.0 - radius/sqrt(2.0);
+
+  Array<WeightingStrategy::Ptr> strategies{
+    WeightingStrategy::Ptr(new BoundedNormConstraint(Spani(2, 4), radius))
+  };
+  Settings settings;
+  auto results = irls::solve(A, B, strategies, settings);
+  EXPECT_EQ(results.X.rows(), 2);
+  EXPECT_NEAR(results.X(0), expectedX, 1.0e-5);
+  EXPECT_NEAR(results.X(1), expectedY, 1.0e-5);
+}
 

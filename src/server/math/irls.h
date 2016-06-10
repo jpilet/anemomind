@@ -231,6 +231,19 @@ class NonNegativeConstraint : public WeightingStrategy {
   int _index;
 };
 
+class BoundedNormConstraint : public WeightingStrategy {
+public:
+  BoundedNormConstraint() : _lastWeight(0), _maxNorm(0) {}
+  BoundedNormConstraint(Spani span, double maxNorm) : _lastWeight(0), _span(span),
+      _maxNorm(maxNorm) {}
+
+  void apply(double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) override;
+  void initialize(const Settings &s, QuadCompiler *dst);
+private:
+  Spani _span;
+  double _lastWeight, _maxNorm;
+};
+
 class Constant : public WeightingStrategy {
  public:
   Constant() : _index(-1) {}

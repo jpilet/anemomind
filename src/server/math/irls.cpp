@@ -281,6 +281,30 @@ WeightingStrategy::Ptr NonNegativeConstraint::make(Arrayi inds) {
   })));
 }
 
+void BoundedNormConstraint::apply(double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) {
+  double r = calcResidualForSpan(_span, residuals);
+  double factor = _maxNorm/r;
+
+  double w = _lastWeight;
+  if (r < _maxNorm) {
+    _lastWeight *= 0.5;
+  } else {
+    _lastWeight = constraintWeight;
+    w = constraintWeight;
+  }
+  for (auto i: _span) {
+    auto y = factor*residuals[i];
+    dst->addQuad(i, sqr(w)*MajQuad::fit(y));
+  }
+}
+
+void BoundedNormConstraint::initialize(const Settings &s, QuadCompiler *dst) {
+  for (auto i: _span) {
+    dst->setWeight(i, s.initialWeight);
+  }
+}
+
+
 WeightingStrategy::Ptr Constant::make(int index, MajQuad quad) {
   return WeightingStrategy::Ptr(new Constant(index, quad));
 }
