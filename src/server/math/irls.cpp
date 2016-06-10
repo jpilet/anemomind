@@ -284,10 +284,10 @@ WeightingStrategy::Ptr NonNegativeConstraint::make(Arrayi inds) {
 void BoundedNormConstraint::apply(double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) {
   double r = calcResidualForSpan(_span, residuals);
   double factor = _maxNorm/r;
-
   double w = _lastWeight;
   if (r < _maxNorm) {
     _lastWeight *= 0.5;
+    factor = 1.0;
   } else {
     _lastWeight = constraintWeight;
     w = constraintWeight;
