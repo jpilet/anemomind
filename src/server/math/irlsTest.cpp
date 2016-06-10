@@ -805,7 +805,7 @@ TEST(IrlsTest, MiniSolveTest2) {
 
 /*
  * Given the constraint that we should be inside a circle located at (2, 1) with radius 0.5,
- * minimize the distance to the point at (1, 0)
+ * minimize the distance to the point at (1, 0). In that case, the constraint will be ACTIVE.
  */
 TEST(IrlsTest, BoundedNorm) {
   using namespace irls;
@@ -840,7 +840,7 @@ TEST(IrlsTest, BoundedNorm) {
 
 /*
  * Given the constraint that we should be inside a circle located at (2, 1) with radius 0.5,
- * minimize the distance to the point at (2.1, 1.2)
+ * minimize the distance to the point at (2.1, 1.2). In that case, the constraint will be PASSIVE.
  */
 TEST(IrlsTest, BoundedNorm2) {
   using namespace irls;
