@@ -231,26 +231,6 @@ target_link_libraries(nautical_FlowErrors
                      )     
                      
 
-
-add_library(nautical_GpsFilter
-            GpsFilter.h
-            GpsFilter.cpp
-           )
-target_link_libraries(nautical_GpsFilter
-                      nautical_NavCompatibility
-                      nautical_GeographicReference
-                      math_nonlinear_DataFit
-                     )   
-                     
-cxx_test(nautical_GpsFilterTest
-         GpsFilterTest.cpp
-         nautical_GpsFilter
-         gtest_main
-         common_Env
-         common_PathBuilder
-         plot_gnuplot
-         logimport_LogLoader
-        )                             
 add_executable(nautical_exportNavs
                exportNavs.cpp
               )
