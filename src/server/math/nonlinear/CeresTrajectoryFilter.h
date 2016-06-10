@@ -52,15 +52,11 @@ struct Settings {
     ceresOptions.logging_type = ceres::LoggingType::SILENT;
     regWeight = 1.0;
     huberThreshold = Length<double>::meters(10.0);
-    maxSpeed = Velocity<double>::knots(200.0);
-    maxSpeedPenalty = 0.0;
   }
 
   double regWeight;
   Length<double> huberThreshold;
   ceres::Solver::Options ceresOptions;
-  Velocity<double> maxSpeed;
-  double maxSpeedPenalty;
 };
 
 int moveIntervalIndexForward(const Arrayd &samples, int intervalIndex, double t);
@@ -159,35 +155,6 @@ public:
   }
 private:
   double _weight, _aw, _bw;
-};
-
-template <int N>
-class SpeedPenalty {
-public:
-  SpeedPenalty(Duration<double> dur,
-      Velocity<double> maxVel,
-      double w) : _maxStep(dur*maxVel), _w(w) {}
-
-  template <typename T>
-  bool operator()(const T* const a, const T* const b, T* residuals) const {
-    T sum = T(0.0);
-    for (int i = 0; i < N; i++) {
-      sum += sqr(a[i] - b[i]);
-    }
-    T dif = sqrt(sum) - T(_maxStep/getLengthUnit());
-    residuals[0] = (dif < T(0.0)? T(0.0) : _w*dif);
-    return true;
-  }
-
-  static ceres::CostFunction* Create(Duration<double> dur,
-      Velocity<double> maxVel,
-      double w) {
-    return (new ceres::AutoDiffCostFunction<SpeedPenalty<N>, 1, N, N>
-            (new SpeedPenalty<N>(dur, maxVel, w)));
-  }
-private:
-  Length<double> _maxStep;
-  double _w;
 };
 
 template <int N>
@@ -303,16 +270,6 @@ typename Types<N>::TimedPositionArray filter(
     problem.AddResidualBlock(Regularization<N>::Create(settings.regWeight, lambda), nullptr,
         X[i-1].data(), X[i].data(), X[i+1].data());
   }
-
-  if (0 < settings.maxSpeedPenalty) {
-    for (int i = 0; i < sampleCount-1; i++) {
-      Duration<double> dur = samples[i+1] - samples[i];
-      problem.AddResidualBlock(SpeedPenalty<N>::Create(
-          dur, settings.maxSpeed, settings.maxSpeedPenalty), nullptr,
-          X[i].data(), X[i+1].data());
-    }
-  }
-
 
   ceres::Solver::Summary summary;
   LOG(INFO) << "Optimizing...";
