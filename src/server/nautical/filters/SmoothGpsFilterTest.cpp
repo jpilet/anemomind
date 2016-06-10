@@ -110,7 +110,7 @@ TEST(SmoothGpsFilterTest, TestIt) {
     GnuPlotModel model(2);
 
     makeTrajectoryPlot(filtered0.geoRef,
-        filteredPositions)->render(&model);
+        TimedSampleCollection<GeographicPosition<double>>(filteredPositions))->render(&model);
 
     makeTrajectoryPlot(filtered0.geoRef,
             originalPositions)->render(&model);

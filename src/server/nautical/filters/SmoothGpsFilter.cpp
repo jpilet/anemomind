@@ -57,7 +57,7 @@ namespace {
 }
 
 
-TimedSampleCollection<GeographicPosition<double> >
+TimedSampleCollection<GeographicPosition<double> >::TimedVector
   GpsFilterResults::getGlobalPositions() const {
   int n = filteredLocalPositions.size();
   TimedSampleCollection<GeographicPosition<double> >::TimedVector dst;
@@ -68,7 +68,31 @@ TimedSampleCollection<GeographicPosition<double> >
     y.time = x.time;
     y.value = geoRef.unmap(x.value);
   }
-  return TimedSampleCollection<GeographicPosition<double> >(dst);
+  return dst;
+}
+
+namespace {
+  HorizontalMotion<double> computeHorizontalMotion(
+      const Vectorize<Length<double>, 2> &left,
+      const Vectorize<Length<double>, 2> &right,
+      Duration<double> dur) {
+    return HorizontalMotion<double>((right[0] - left[0])/dur,
+                                    (right[1] - left[1])/dur);
+  }
+}
+
+TimedSampleCollection<HorizontalMotion<double> >::TimedVector GpsFilterResults::getGpsSpeeds() const {
+  int n = filteredLocalPositions.size() - 1;
+  TimedSampleCollection<HorizontalMotion<double> >::TimedVector samples;
+  for (int i = 0; i < n; i++) {
+    const auto &left = filteredLocalPositions[i];
+    const auto &right = filteredLocalPositions[i+1];
+    Duration<double> timeDiff = right.time - left.time;
+    TimeStamp middleTime = left.time + 0.5*timeDiff;
+    HorizontalMotion<double> motion = computeHorizontalMotion(left.value, right.value, timeDiff);
+    samples.push_back(TimedValue<HorizontalMotion<double> >(middleTime, motion));
+  }
+  return samples;
 }
 
 typedef CeresTrajectoryFilter::Types<2> FTypes;

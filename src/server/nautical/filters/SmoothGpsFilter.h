@@ -21,7 +21,8 @@ struct GpsFilterResults {
     rawLocalPositions,
     filteredLocalPositions;
 
-  TimedSampleCollection<GeographicPosition<double> > getGlobalPositions() const;
+  TimedSampleCollection<GeographicPosition<double> >::TimedVector getGlobalPositions() const;
+  TimedSampleCollection<HorizontalMotion<double> >::TimedVector getGpsSpeeds() const;
 };
 
 CeresTrajectoryFilter::Settings makeDefaultSettings();
