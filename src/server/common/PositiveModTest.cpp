@@ -88,3 +88,12 @@ TEST(PositiveModTest, WithCeres) {
   EXPECT_EQ(3.0, positiveMod(AD(-1.0), AD(4.0)).a);
 }
 
+TEST(PositiveModTest, NaNValue) {
+  EXPECT_TRUE(std::isnan(positiveMod(std::numeric_limits<double>::quiet_NaN(), 2.0)));
+}
+
+TEST(PositiveModTest, InfValue) {
+  EXPECT_TRUE(std::isinf(positiveMod(std::numeric_limits<double>::infinity(), 2.0)));
+  EXPECT_TRUE(std::isinf(positiveMod(-std::numeric_limits<double>::infinity(), 2.0)));
+}
+
