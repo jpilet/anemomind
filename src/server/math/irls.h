@@ -235,7 +235,7 @@ class BoundedNormConstraint : public WeightingStrategy {
 public:
   BoundedNormConstraint() : _lastWeight(0), _maxNorm(0) {}
   BoundedNormConstraint(Spani span, double maxNorm) : _lastWeight(0), _span(span),
-      _maxNorm(maxNorm) {}
+      _maxNorm(maxNorm) {assert(0 < maxNorm);}
 
   void apply(double constraintWeight, const Arrayd &residuals, QuadCompiler *dst) override;
   void initialize(const Settings &s, QuadCompiler *dst);

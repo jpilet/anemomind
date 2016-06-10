@@ -46,6 +46,7 @@ struct Settings {
   Settings() {
     regWeight = 10.0;
     inlierThreshold = Length<double>::meters(12.0);
+    maxSpeed = Velocity<double>::knots(100.0);
   }
   double regWeight;
   irls::Settings irlsSettings;
@@ -120,6 +121,12 @@ irls::DenseBlock::Ptr makeRegularization(int row, int col,
   return irls::DenseBlock::Ptr(
       new DstType(A,
           Eigen::Matrix<double, N, 1>::Zero(), row, col));
+}
+
+template <int N>
+irls::DenseBlock::Ptr makeStepSizeBlock(
+    int row, int col) {
+  return makeOrder1Block<N>(row, col, Eigen::Matrix<double, N, 1>::Zero());
 }
 
 template <int N>
@@ -211,6 +218,17 @@ typename Types<N>::TimedPositionArray filter(
   for (int i = 1; i < sampleCount-1; i++) {
     double lambda = computeLambda<sail::TimeStamp>(samples[i-1], samples[i+1], samples[i]);
     blocks.add(makeRegularization<N>(currentRow(), N*(i-1), settings.regWeight, lambda));
+  }
+
+  // Step size
+  LOG(INFO) << "Bounded steps";
+  for (int i = 0; i < sampleCount-1; i++) {
+    auto dur = samples[i+1] - samples[i];
+    Length<double> maxStep = dur*settings.maxSpeed;
+    int row = currentRow();
+    blocks.add(makeStepSizeBlock<N>(row, N*i));
+    strategies.add(WeightingStrategy::Ptr(new BoundedNormConstraint(Spani(row, row + N),
+        maxStep/getLengthUnit())));
   }
 
   auto allBlocks = blocks.get();
