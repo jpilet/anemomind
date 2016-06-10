@@ -63,12 +63,15 @@ template <int N>
 irls::DenseBlock::Ptr makeOrder0Block(
     int row, int col,
     double lambda, const Eigen::Matrix<double, N, 1> &obs) {
-  typedef irls::FixedDenseBlock<1, 2, N> DstType;
-  typename DstType::AType A;
-  A(0, 0) = 1.0 - lambda;
-  A(0, 1) = lambda;
-  typename DstType::BType B = obs.transpose();
-  return irls::DenseBlock::Ptr(new DstType(A, B, row, col));
+  typedef irls::FixedDenseBlock<N, 2*N, 1> DstType;
+  typename DstType::AType A = Eigen::Matrix<double, N, 2*N>::Zero();
+  double a = 1.0 - lambda;
+  double b = lambda;
+  for (int i = 0; i < N; i++) {
+    A(i, i) = a;
+    A(i, i + N) = b;
+  }
+  return irls::DenseBlock::Ptr(new DstType(A, obs, row, col));
 }
 
 
@@ -80,12 +83,13 @@ irls::DenseBlock::Ptr makeOrder0Block(
 template <int N>
 irls::DenseBlock::Ptr makeOrder1Block(
     int row, int col, const Eigen::Matrix<double, N, 1> &obs) {
-  typedef irls::FixedDenseBlock<1, 2, N> DstType;
-  typename DstType::AType A;
-  A(0, 0) = -1.0;
-  A(0, 1) = 1.0;
-  typename DstType::BType B = obs.transpose();
-  return irls::DenseBlock::Ptr(new DstType(A, B, row, col));
+  typedef irls::FixedDenseBlock<N, 2*N, 1> DstType;
+  typename DstType::AType A = Eigen::Matrix<double, N, 2*N>::Zero();
+  for (int i = 0; i < N; i++) {
+    A(i, i) = -1.0;
+    A(i, i + N) = 1.0;
+  }
+  return irls::DenseBlock::Ptr(new DstType(A, obs, row, col));
 }
 
 
@@ -104,16 +108,18 @@ irls::DenseBlock::Ptr makeOrder1Block(
 template <int N>
 irls::DenseBlock::Ptr makeRegularization(int row, int col,
     double weight, double balance) {
-  typedef irls::FixedDenseBlock<1, 3, N> DstType;
+  typedef irls::FixedDenseBlock<N, 3*N, 1> DstType;
   double aw = weight*(1.0 - balance);
   double bw = weight*balance;
-  typename DstType::AType A;
-  A(0, 0) = aw;
-  A(0, 1) = -weight;
-  A(0, 2) = bw;
+  typename DstType::AType A = Eigen::Matrix<double, N, 3*N>::Zero();
+  for (int i = 0; i < N; i++) {
+    A(i, i) = aw;
+    A(i, N + i) = -weight;
+    A(i, 2*N + i) = bw;
+  }
   return irls::DenseBlock::Ptr(
       new DstType(A,
-          Eigen::Matrix<double, 1, N>::Zero(), row, col));
+          Eigen::Matrix<double, N, 1>::Zero(), row, col));
 }
 
 template <int N>
@@ -170,6 +176,10 @@ typename Types<N>::TimedPositionArray filter(
   ArrayBuilder<DenseBlock::Ptr> blocks;
   ArrayBuilder<WeightingStrategy::Ptr> strategies;
 
+  auto currentRow = [&]() {
+    return N*blocks.size();
+  };
+
   // Position fitness
   for (auto position: positions) {
     int intervalIndex = CeresTrajectoryFilter::findIntervalWithTolerance(samples, position.time);
@@ -177,10 +187,10 @@ typename Types<N>::TimedPositionArray filter(
       auto t0 = samples[intervalIndex];
       auto t1 = samples[intervalIndex+1];
       double lambda = computeLambda(t0, t1, position.time);
-      int row = blocks.size();
-      blocks.add(makeOrder0Block<N>(row, intervalIndex,
+      int row = currentRow();
+      blocks.add(makeOrder0Block<N>(row, N*intervalIndex,
           lambda, unwrap<N>(position.value)));
-      strategies.add(WeightingStrategy::Ptr(new Norm1Strategy(Spani(row, row+1), 1.0, tau)));
+      strategies.add(WeightingStrategy::Ptr(new Norm1Strategy(Spani(row, row+N), 1.0, tau)));
     }
   }
 
@@ -190,9 +200,9 @@ typename Types<N>::TimedPositionArray filter(
     if (intervalIndex != -1) {
       auto dur = samples[intervalIndex+1] - samples[intervalIndex];
       auto vec = mulAndUnwrap<N>(dur, motion.value);
-      int row = blocks.size();
-      blocks.add(makeOrder1Block<N>(row, intervalIndex, vec));
-      strategies.add(WeightingStrategy::Ptr(new Norm1Strategy(Spani(row, row+1), 1.0, tau)));
+      int row = currentRow();
+      blocks.add(makeOrder1Block<N>(row, N*intervalIndex, vec));
+      strategies.add(WeightingStrategy::Ptr(new Norm1Strategy(Spani(row, row+N), 1.0, tau)));
     }
   }
 
@@ -200,26 +210,28 @@ typename Types<N>::TimedPositionArray filter(
   LOG(INFO) << "Number of regularization terms: " << sampleCount - 2;
   for (int i = 1; i < sampleCount-1; i++) {
     double lambda = computeLambda<sail::TimeStamp>(samples[i-1], samples[i+1], samples[i]);
-    blocks.add(makeRegularization<N>(blocks.size(), i-1, settings.regWeight, lambda));
+    blocks.add(makeRegularization<N>(currentRow(), N*(i-1), settings.regWeight, lambda));
   }
 
   auto allBlocks = blocks.get();
 
-
+  int rowCount = allBlocks.last()->requiredRows();
+  assert(rowCount == currentRow());
   auto results = irls::solveBanded(
-      allBlocks.last()->requiredRows(),
-      sampleCount, // TODO: Consider changing it later to N*sampleCount
+      rowCount,
+      N*sampleCount,
       allBlocks, strategies.get(), settings.irlsSettings);
 
-  if (results.X.rows() != sampleCount) {
+  if (results.X.rows() != N*sampleCount) {
     TimedPositionArray();
   }
   TimedPositionArray dst(sampleCount);
   for (int i = 0; i < sampleCount; i++) {
+    int offset = N*i;
     TimedPosition p;
     p.time = samples[i];
     for (int j = 0; j < N; j++) {
-      p.value[j] = results.X(i, j)*getLengthUnit();
+      p.value[j] = results.X(offset + j)*getLengthUnit();
     }
     dst[i] = p;
   }
