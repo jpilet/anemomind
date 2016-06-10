@@ -9,7 +9,6 @@
 #include <device/Arduino/libraries/PhysicalQuantity/PhysicalQuantity.h>
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <algorithm>
-#include <server/nautical/Ecef.h>
 #include <ctime>
 #include <server/common/string.h>
 #include <server/common/PhysicalQuantityIO.h>
