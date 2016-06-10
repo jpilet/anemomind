@@ -24,10 +24,19 @@ struct GpsFilterResults {
   TimedSampleCollection<GeographicPosition<double> > getGlobalPositions() const;
 };
 
-CeresTrajectoryFilter::Settings makeDefaultSettings();
+CeresTrajectoryFilter::Settings makeDefaultCeresGpsFilterSettings();
+
+struct GpsFilterSettings {
+  enum Backend {
+    Ceres, Irls
+  };
+
+  CeresTrajectoryFilter::Settings ceresSettings = makeDefaultCeresGpsFilterSettings();
+  Backend backend = Irls;
+};
 
 GpsFilterResults filterGpsData(const NavDataset &ds,
-    const CeresTrajectoryFilter::Settings &settings = makeDefaultSettings());
+    const GpsFilterSettings &settings = GpsFilterSettings());
 
 }
 

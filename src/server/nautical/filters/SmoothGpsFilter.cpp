@@ -86,7 +86,7 @@ Array<FTypes::TimedMotion> toLocalMotions(
   return dst;
 }
 
-CeresTrajectoryFilter::Settings makeDefaultSettings() {
+CeresTrajectoryFilter::Settings makeDefaultCeresGpsFilterSettings() {
   CeresTrajectoryFilter::Settings settings;
   settings.huberThreshold = Length<double>::meters(12.0); // Sort of inlier threshold on the distance in meters
   settings.regWeight = 10.0;
@@ -107,7 +107,7 @@ Array<CeresTrajectoryFilter::Types<2>::TimedPosition> removePositionsFarAway(
 }
 
 GpsFilterResults filterGpsData(const NavDataset &ds,
-    const CeresTrajectoryFilter::Settings &settings) {
+    const GpsFilterSettings &settings) {
 
   if (ds.isDefaultConstructed()) {
     LOG(WARNING) << "Nothing to filter";
@@ -169,12 +169,16 @@ GpsFilterResults filterGpsData(const NavDataset &ds,
 
   auto e = EmptyArray<FTypes::Position>();
 
-  /*Types<2>::TimedPositionArray filtered = CeresTrajectoryFilter::filter<2>(
-      t, p, m,
-      settings, e);*/
-  Types<2>::TimedPositionArray filtered = IrlsTrajectoryFilter::filter<2>(
-      t, p, m,
-      IrlsTrajectoryFilter::Settings());
+  Types<2>::TimedPositionArray filtered;
+  if (settings.backend == GpsFilterSettings::Ceres) {
+    filtered = CeresTrajectoryFilter::filter<2>(
+          t, p, m,
+          settings.ceresSettings, e);
+  } else {
+    filtered = IrlsTrajectoryFilter::filter<2>(
+        t, p, m,
+        IrlsTrajectoryFilter::Settings());
+  }
 
   if (filtered.empty()) {
     LOG(ERROR) << "Failed to filter GPS data";

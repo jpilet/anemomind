@@ -90,3 +90,16 @@ target_link_libraries(filters_tryNewGpsFilter
   filters_SmoothGpsFilter
   logimport_LogLoader
   )
+
+add_executable(filters_compareFilters
+  compareFilters.cpp
+  )
+
+target_link_libraries(filters_compareFilters
+  filters_SmoothGpsFilter
+  logimport_LogLoader
+  common_TimeStamp
+  common_ArgMap
+  common_PathBuilder
+  common_Env
+  )

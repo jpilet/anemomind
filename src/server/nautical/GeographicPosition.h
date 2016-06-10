@@ -29,6 +29,7 @@ public:
 
   void setLon(Angle<T> lon) {_lon = lon;}
   void setLat(Angle<T> lat) {_lat = lat;}
+  void setAlt(Length<T> alt) {_alt = alt;}
 
   template <typename DstType>
   operator GeographicPosition<DstType>() const {
