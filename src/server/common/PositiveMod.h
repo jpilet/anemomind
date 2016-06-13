@@ -44,14 +44,19 @@ T reduceCyclically(T a, T b) {
 template <typename T>
 T positiveMod(T a, T b) {
   T zero = b - b; // Because T(0) constructor does not exist for all types T.
-  if (a < zero) {
-    return positiveMod(makePositiveCyclic(a, b), b);
+  T a2 = a + a;
+  if (a < a2 || a2 < a) { // a is non-zero and finite
+    if (a < zero) {
+      return positiveMod(makePositiveCyclic(a, b), b);
+    }
+    T c = a;
+    while (!(c < b)) {
+      c = reduceCyclically(c, b);
+    }
+    return c;
+  } else { // a is zero or non-finite
+    return a;
   }
-  T c = a;
-  while (!(c < b)) {
-    c = reduceCyclically(c, b);
-  }
-  return c;
 }
 
 
