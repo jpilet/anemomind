@@ -25,68 +25,6 @@ Nav::Nav() : _time(TimeStamp::makeUndefined()) {
   _wd = -1;
 }
 
-
-//tm_sec	int	seconds after the minute	0-60*
-//tm_min	int	minutes after the hour	0-59
-//tm_hour	int	hours since midnight	0-23
-//tm_mday	int	day of the month	1-31
-//tm_mon	int	months since January	0-11
-//tm_year	int	years since 1900
-//tm_wday	int	days since Sunday	0-6
-//tm_yday	int	days since January 1	0-365
-//tm_isdst	int	Daylight Saving Time flag
-
-
-namespace NavDataConversion {
-  TimeStamp makeTimeNmeaFromYMDhms(double yearSince2000, double
-      month, double day, double hour,
-      double minute, double second) {
-
-    return TimeStamp::UTC(int(yearSince2000 + 2000), int(month), int(day),
-              int(hour), int(minute), second);
-  }
-}
-
-
-
-Nav::Nav(MDArray2d row) {
-  _flags = 0;
-
-  assert(row.rows() == 1);
-  assert(row.cols() == 23 || row.cols() == 22);
-
-  _gpsSpeed = Velocity<double>::knots(row(0, 6));
-  _awa = Angle<double>::degrees(row(0, 7));
-  _aws = Velocity<double>::knots(row(0, 8));
-
-  _externalTwa = Angle<double>::degrees(row(0, 9));
-  _externalTws = Velocity<double>::knots(row(0, 10));
-
-  _magHdg = Angle<double>::degrees(row(0, 11));
-  _watSpeed = Velocity<double>::knots(row(0, 12));
-  _gpsBearing = Angle<double>::degrees(row(0, 13));
-
-
-  Angle<double> lat = Angle<double>::degMinMc(row(0, 14), row(0, 15), row(0, 16));
-  Angle<double> lon = Angle<double>::degMinMc(row(0, 17), row(0, 18), row(0, 19));
-  _pos = GeographicPosition<double>(lon, lat);
-
-  _cwd = row(0, 20); // week day
-  _wd = row(0, 21);
-
-  double year = row(0, 0);
-  double month = row(0, 1);
-  double dayOfTheMonth = row(0, 2);
-  double hour = row(0, 3);
-  double minute = row(0, 4);
-  double second = row(0, 5);
-  _time = NavDataConversion::makeTimeNmeaFromYMDhms(year, month, dayOfTheMonth, hour, minute, second);
-}
-
-Nav::~Nav() {
-  // TODO Auto-generated destructor stub
-}
-
 bool Nav::operator== (const Nav &other) const {
   constexpr double marg = 1.0e-12; // Set to 0 if we don't tolerate any deviation.
 
@@ -125,71 +63,9 @@ bool Nav::hasId() const {
   return hasBoatId() && _time.defined();
 }
 
-// From load_data.m
-//year = 1;
-//month = 2;
-//dayOfTheMonth = 3;
-//hour = 4;
-//minute = 5;
-//second = 6;
-//gpsSpeed = 7;
-//awa = 8;
-//aws = 9;
-//twa = 10;
-//tws = 11;
-//magHdg = 12;
-//watSpeed = 13;
-//gpsBearing = 14;
-//pos_lat_deg = 15;
-//pos_lat_min = 16;
-//pos_lat_mc = 17;
-//pos_lon_deg = 18;
-//pos_lon_min = 19;
-//pos_lon_mc = 20;
-//cwd = 21;
-//wd = 22;
-//days = 23;
-//days_data = datenum(unsorted_data(:,year) + 2000, unsorted_data(:,month), unsorted_data(:, dayOfTheMonth), unsorted_data(:,hour), unsorted_data(:,minute), unsorted_data(:,second));
-
-
-
-Array<Velocity<double> > getExternalTws(Array<Nav> navs) {
-  return toArray(map(navs, [&](const Nav &n) {return n.externalTws();}));
-}
-
-Array<Angle<double> > getExternalTwa(Array<Nav> navs) {
-  return toArray(map(navs, [&](const Nav &n) {return n.externalTwa();}));
-}
 
 Array<Velocity<double> > getGpsSpeed(Array<Nav> navs) {
   return toArray(map(navs, [&](const Nav &n) {return n.gpsSpeed();}));
-}
-
-Array<Velocity<double> > getWatSpeed(Array<Nav> navs) {
-  return toArray(map(navs, [&](const Nav &n) {return n.watSpeed();}));
-}
-
-Array<Angle<double> > getGpsBearing(Array<Nav> navs) {
-  return toArray(map(navs, [&](const Nav &nav) {
-    return nav.gpsBearing();
-  }));
-}
-Array<Angle<double> > getMagHdg(Array<Nav> navs) {
-  return toArray(map(navs, [&](const Nav &nav) {
-    return nav.magHdg();
-  }));
-}
-
-Array<Velocity<double> > getAws(Array<Nav> navs) {
-  return toArray(map(navs, [&](const Nav &nav) {
-    return nav.aws();
-  }));
-}
-
-Array<Angle<double> > getAwa(Array<Nav> navs) {
-  return toArray(map(navs, [&](const Nav &nav) {
-    return nav.awa();
-  }));
 }
 
 HorizontalMotion<double> Nav::estimateTrueWind() const {
