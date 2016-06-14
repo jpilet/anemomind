@@ -2,6 +2,9 @@
 mkdir -p /home/anemobox
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
+[ -f  /home/anemobox/bootcount ] || echo 0 > /home/anemobox/bootcount
+echo $[$(</home/anemobox/bootcount)+1] > /home/anemobox/bootcount
+
 if [ -f ~/.ssh/id_rsa ]; then
   true
 else

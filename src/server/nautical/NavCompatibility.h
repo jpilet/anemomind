@@ -88,7 +88,6 @@ class Range {
 
 }
 
-NavDataset loadNavsFromText(std::string filename, bool sort = true);
 bool areSortedNavs(NavDataset navs);
 void plotNavTimeVsIndex(NavDataset navs);
 void dispNavTimeIntervals(NavDataset navs);

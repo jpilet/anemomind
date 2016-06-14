@@ -18,12 +18,6 @@
 
 namespace sail {
 
-// Helper functions to convert from the format of
-// NmeaParser
-namespace NavDataConversion {
-  TimeStamp makeTimeNmeaFromYMDhms(double yearSince2000, double month, double day, double hour, double minute, double second);
-}
-
 // Represents a single recording of data from the devices onboard.
 class Nav {
  public:
@@ -33,8 +27,6 @@ class Nav {
 
   Nav();
   Nav(TimeStamp ts) : _flags(0), _cwd(-1), _wd(-1), _time(ts) { }
-  Nav(MDArray2d row);
-  virtual ~Nav();
 
   // For sorting
   bool operator< (const Nav &other) const {
@@ -193,14 +185,7 @@ class Nav {
   Angle<double> _rudderAngle;
 };
 
-Array<Velocity<double> > getExternalTws(Array<Nav> navs);
-Array<Angle<double> > getExternalTwa(Array<Nav> navs);
 Array<Velocity<double> > getGpsSpeed(Array<Nav> navs);
-Array<Angle<double> > getGpsBearing(Array<Nav> navs);
-Array<Velocity<double> > getWatSpeed(Array<Nav> navs);
-Array<Angle<double> > getMagHdg(Array<Nav> navs);
-Array<Velocity<double> > getAws(Array<Nav> navs);
-Array<Angle<double> > getAwa(Array<Nav> navs);
 
 std::ostream &operator<<(std::ostream &s, const Nav &x);
 
