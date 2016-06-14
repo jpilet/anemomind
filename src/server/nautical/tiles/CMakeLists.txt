@@ -54,7 +54,7 @@ if (MongoDB_LIBRARIES)
                         logimport_LogLoader
                         nautical_grammars_WindOrientedGrammar
                         ${MongoDB_LIBRARIES}
-                        nautical_GpsFilter
+                        filters_SmoothGpsFilter
                        )
 
 
