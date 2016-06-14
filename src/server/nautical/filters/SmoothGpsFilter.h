@@ -21,6 +21,7 @@ struct GpsFilterResults {
     rawLocalPositions,
     filteredLocalPositions;
 
+  bool empty() const {return filteredLocalPositions.empty();}
   TimedSampleCollection<GeographicPosition<double> >::TimedVector getGlobalPositions() const;
   TimedSampleCollection<HorizontalMotion<double> >::TimedVector getGpsMotions() const;
 };

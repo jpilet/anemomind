@@ -26,6 +26,11 @@ NavDataset filterNavs(NavDataset navs) {
   }
 
   auto results = filterGpsData(navs);
+  if (results.empty()) {
+    LOG(ERROR) << "GPS filtering failed";
+    return NavDataset();
+  }
+
   NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double> >(
       GPS_POS,
       navs.dispatcher()->get<GPS_POS>()->source() + " merged+filtered",
