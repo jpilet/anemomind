@@ -24,7 +24,7 @@ router.post('/photo/:boatId',
 // to get a 120x120 thumbnail, simply use:
 // http://localhost:9000/api/events/photo/[boat]/[picture].jpg?s=120x120&access_token=[token]
 router.get('/photo/:boatId/:photo',
-           auth.isAuthenticated(),
+           auth.maybeAuthenticated(),
            access.boatReadAccess,
            thumbnails.register(controller.photoUploadPath));
 
