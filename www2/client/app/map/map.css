@@ -4,18 +4,13 @@ height:100%;
 
 .mapScreenContainer {
   width:100%;
-  height: 100%;
+  height: 99%;
 
   /* The flex css property needs prefixing for old browsers.
      Fortunately, autoprefixer can handle it for us.
   */
   display: flex;
   flex-direction: column;
-
-  /* Display the map screen without navbar.
-   * We restore the reserved navbar margin.  
-   */
-  margin-top: -60px;
 }
 
 .mapAndGraphAndSidebar {

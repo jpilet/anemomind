@@ -57,7 +57,6 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
   background-color: #fff;
   font-size: 16px;
   height: 100%;
@@ -101,7 +100,8 @@ html.app-loading #app-loading-wrapper {
 -------------------------------------------------- */
 /* Not required for template or sticky footer method. */
 
-body >div> .container {
+body>div>div.container {
+  margin-top: 60px;
   padding: 0px 15px 0;
 }
 
@@ -119,13 +119,10 @@ p {
 
 
 .main-view{
-  margin-top: 60px;
-  float: left;
   width: 100%;
   clear: both;
   min-height: 700px;
   background-color: #fff;
-  padding-bottom: 40px;
 }
 
 /* moving main.css here 
