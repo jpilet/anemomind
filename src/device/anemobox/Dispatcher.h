@@ -202,7 +202,7 @@ TypedDispatchData<typename TypeForCode<Code>::type>* toTypedDispatchData(Dispatc
 class Dispatcher : public Clock {
  public:
   Dispatcher();
-  static const int minPriority = std::numeric_limits<int>::min();
+  static const int defaultPriority = 0;
 
   //! Get a pointer to the default anemobox dispatcher.
   static Dispatcher *global();
@@ -215,7 +215,7 @@ class Dispatcher : public Clock {
   }
 
   // Returns null if not exist
-  std::shared_ptr<DispatchData> dispatchDataForSource(DataCode code, const std::string& source);
+  std::shared_ptr<DispatchData> dispatchDataForSource(DataCode code, const std::string& source) const;
 
   virtual int maxBufferLength() const {return defaultDispatcherBufferLength;}
 
@@ -243,8 +243,21 @@ class Dispatcher : public Clock {
   }
 
   template <DataCode Code>
+  TypedDispatchData<typename TypeForCode<Code>::type>* get(
+      const std::string& source) const {
+    return toTypedDispatchData<Code>(dispatchDataForSource(Code, source));
+  }
+
+
+  template <DataCode Code>
   const TimedSampleCollection<typename TypeForCode<Code>::type> &values() const {
     return get<Code>()->dispatcher()->values();
+  }
+
+  template <DataCode Code>
+  const TimedSampleCollection<typename TypeForCode<Code>::type> &values(
+      const std::string& source) const {
+    return get<Code>(source)->dispatcher()->values();
   }
 
   // Temporary method when treating it as a dataset.
@@ -324,6 +337,30 @@ class Dispatcher : public Clock {
 
   void set(DataCode code, const std::string &srcName,
       const std::shared_ptr<DispatchData> &d);
+
+  template<DataCode Code>
+  Optional<typename TypeForCode<Code>::type> valueFromSourceAt(
+      const std::string& source, TimeStamp time,
+      Duration<> maxDelta) const {
+    typedef typename TypeForCode<Code>::type T;
+    TypedDispatchData<T>* tdd =
+      toTypedDispatchData<Code>(dispatchDataForSource(Code, source).get());
+    if (tdd == nullptr) {
+      return Optional<T>();
+    }
+    const TimedSampleCollection<T>& data = tdd->dispatcher()->values();
+    auto nearest = findNearestTimedValue<T>(
+        data.samples().begin(), data.samples().end(), time);
+    if (nearest.defined()
+        && fabs(nearest.get().time - time) < maxDelta) {
+      return Optional<T>(nearest.get().value);
+    } else {
+      return Optional<T>();
+    }
+  }
+
+  int maxPriority() const;
+
  private:
   static Dispatcher *_globalInstance;
 

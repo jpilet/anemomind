@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .directive('events', function ($http, Auth, userDB) {
+  .directive('events', function ($http, Auth, userDB, $httpParamSerializer) {
     return {
       templateUrl: 'app/events/events.html',
       restrict: 'E',
@@ -16,8 +16,8 @@ angular.module('www2App')
         scope.users = {};
         $http.get('/api/events', { params: {
             b: scope.boat,
-            A: scope.after.toISOString(),
-            B: scope.before.toISOString()
+            A: (scope.after ? scope.after.toISOString() : undefined),
+            B: (scope.before ? scope.before.toISOString() : undefined)
           }})
           .success(function(data, status, headers, config) {
             scope.events = [];
@@ -43,8 +43,11 @@ angular.module('www2App')
             }
           });
         scope.photoUrl = function(event, size) {
-          return '/api/events/photo/' + event.boat + '/' + event.photo
-            + '?' + (size? 's=' + size + '&' : '') + 'access_token=' + Auth.getToken() ;
+          var url = [
+            '/api/events/photo/' + event.boat + '/' + event.photo,
+            $httpParamSerializer({s : size, access_token: Auth.getToken()})
+          ];
+          return url.join('?');
         };
         scope.thumbnail = function (event) {
           return scope.photoUrl(event, '120x120');

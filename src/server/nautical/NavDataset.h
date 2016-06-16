@@ -19,6 +19,7 @@
 #include <device/anemobox/DispatcherUtils.h>
 #include <server/common/TimeStamp.h>
 #include <device/anemobox/TimedSampleCollection.h>
+#include <server/nautical/types/SampledSignal.h>
 
 
 namespace sail {
@@ -26,7 +27,7 @@ namespace sail {
 // In order to view a slice
 // of a TimedSampleCollection<T>::TimedVector
 template <typename T>
-class TimedSampleRange {
+class TimedSampleRange : public SampledSignal<T> {
  public:
   typedef typename sail::TimedSampleCollection<T>::TimedVector TimedVector;
   typedef typename TimedVector::const_iterator Iterator;
@@ -41,7 +42,7 @@ class TimedSampleRange {
   Iterator begin() const {return _begin;}
   Iterator end() const {return _end;}
 
-  int size() const {return _defined? _end - _begin : 0;}
+  size_t size() const override {return _defined? _end - _begin : 0;}
 
   bool empty() const {return (_defined? _begin == _end : true);}
 
@@ -68,7 +69,7 @@ class TimedSampleRange {
     }
   }
 
-  const TimedValue<T> &operator[] (int i) const {
+  TimedValue<T> operator[] (int i) const override {
     assert(0 <= i && i < size());
     return *(_begin + i);
   }
@@ -116,6 +117,20 @@ const std::shared_ptr<DispatchData> &getMergedDispatchData(
   const std::shared_ptr<Dispatcher> &dispatcher);
 
 class Dispatcher;
+
+
+/*
+ * The NavDataset class is essentially a reference to a dispatcher.
+ * A Dispatcher is essentially "append only": it is possible to append samples,
+ * but not to alter them. NavDataset provides a way to have a view on a dispatcher,
+ * potentially modified, or restricted to some particular period.
+ *
+ * No methods modify the object itself. Instead, methods return a new NavDataset
+ * containing references to existing data. Duplication is done only when necessary.
+ * For example, the following line produces a new NavDataset that points to the same
+ * data, except that there will be no GPS_POS channel:
+ * NavDataset stripped = navDataset.stripChannel<GPS_POS>();
+ */
 class NavDataset {
 public:
   NavDataset() {}
@@ -123,13 +138,33 @@ public:
       const std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData> > > &merged
         = std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData> > >(),
       TimeStamp a = TimeStamp(), TimeStamp b = TimeStamp());
-  NavDataset dup() const;
 
   NavDataset slice(TimeStamp a, TimeStamp b) const;
   NavDataset sliceFrom(TimeStamp ts) const;
   NavDataset sliceTo(TimeStamp ts) const;
   NavDataset sliceFirst(const Duration<double> &dur) const;
   NavDataset sliceLast(const Duration<double> &dur) const;
+
+  NavDataset overrideChannels(
+        const std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> &toAdd) const;
+
+  NavDataset overrideChannels(
+      const std::string &srcName,
+        const std::map<DataCode,
+        std::shared_ptr<DispatchData>> &toAdd) const;
+
+  template<typename T>
+  NavDataset replaceChannel(
+      DataCode code,
+      const std::string& source,
+      const typename TimedSampleCollection<T>::TimedVector& values) const {
+    NavDataset result = stripChannel(code);
+    result.dispatcher()->insertValues<T>(code, source, values);
+    return result;
+  }
+
+  NavDataset stripChannel(DataCode code) const;
 
   bool hasLowerBound() const;
   bool hasUpperBound() const;
@@ -172,8 +207,6 @@ public:
   // Can used to check whether some processing step failed. That processing
   // step will then return 'NavDataset()', for which this method returns true.
   bool isDefaultConstructed() const;
-
-  void setMerged(DataCode c, const std::shared_ptr<DispatchData> &data);
 private:
   template <DataCode Code>
   const TimedSampleCollection<typename TypeForCode<Code>::type> *getMergedSamples() const {
@@ -199,6 +232,6 @@ private:
 
 std::ostream &operator<<(std::ostream &s, const NavDataset &ds);
 
-} /* namespace sail */
+} // namespace sail
 
 #endif /* SERVER_NAUTICAL_NAVDATASET_H_ */

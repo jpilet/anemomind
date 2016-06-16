@@ -38,7 +38,7 @@ GeographicPosition<double> getReferencePosition(
     pos3d[i] = Eigen::Vector3d(xyz[0]/unit, xyz[1]/unit, xyz[2]/unit);
   }
   SpatialMedian::Settings settings;
-  settings.iters = 4;
+  settings.iters = 8;
   auto median = SpatialMedian::compute(pos3d, settings);
   Length<double> xyz[3] = {median(0)*unit, median(1)*unit, median(2)*unit};
   return computeGeographicPositionFromXYZ(xyz);

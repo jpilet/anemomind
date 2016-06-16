@@ -25,6 +25,10 @@ inline Length<double> getLengthUnit() {
   return Length<double>::meters(1.0);
 }
 
+inline Duration<double> getTimeUnit() {
+  return Duration<double>::seconds(1.0);
+}
+
 
 template <int N>
 struct Types {
@@ -45,9 +49,11 @@ struct Types {
 struct Settings {
   Settings() {
     ceresOptions.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
+    ceresOptions.logging_type = ceres::LoggingType::SILENT;
     regWeight = 1.0;
     huberThreshold = Length<double>::meters(10.0);
   }
+
   double regWeight;
   Length<double> huberThreshold;
   ceres::Solver::Options ceresOptions;

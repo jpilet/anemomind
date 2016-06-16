@@ -6,12 +6,7 @@ add_subdirectory("logimport")
 add_subdirectory("calib")
 add_subdirectory("filters")
 add_subdirectory("types")
-
-add_library(nautical_Ecef
-            Ecef.h
-            Ecef.cpp)
-
-target_link_libraries(nautical_Ecef common_math)
+add_subdirectory("segment")
 
 
 add_library(nautical_nav
@@ -21,6 +16,7 @@ add_library(nautical_nav
         
 target_link_libraries(nautical_nav
                       common_Array
+                      common_TimeStamp
                      )
   
 
@@ -103,7 +99,6 @@ cxx_test(nautical_NavTest
 
 cxx_test(nautical_WGS84Test
             WGS84Test.cpp
-            nautical_Ecef
             common_Function
             common_LineKM
             gtest_main)
@@ -289,6 +284,7 @@ add_library(nautical_NavDataset
 target_link_libraries(nautical_NavDataset
                       anemobox_Dispatcher      
                       anemobox_DispatcherUtils                
+                      anemobox_Sources
                      )           
 
 cxx_test(nautical_NavDatasetTest
@@ -302,14 +298,14 @@ add_library(nautical_NavCompatibility
             NavCompatibility.cpp
            )
 target_link_libraries(nautical_NavCompatibility
-                      nautical_nav
-                      nautical_NavDataset
-                      common_LineKM
-                      common_TimeStamp
-                      plot_gnuplot
-                      nautical_Ecef
-                      common_PeriodicSpan
                       anemobox_Dispatcher                      
+                      anemobox_Sources
+                      common_LineKM
+                      common_PeriodicSpan
+                      common_TimeStamp
+                      nautical_NavDataset
+                      nautical_nav
+                      plot_gnuplot
                      )
 
 add_library(nautical_AbsoluteOrientation
@@ -329,3 +325,12 @@ cxx_test(nautical_InvWGS84Test
          gtest_main
          nautical_InvWGS84
         )
+
+add_library(nautical_Visualize
+  Visualize.h
+  Visualize.cpp
+  )
+
+target_link_libraries(nautical_Visualize
+  plot_Plot
+  )

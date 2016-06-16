@@ -18,7 +18,7 @@ TEST(ExperimentalTest, TestSomething) {
   nav.setMagHdg(Angle<double>::degrees(30.0));
   nav.setGpsSpeed(Velocity<double>::knots(9.4));
   nav.setGpsBearing(Angle<double>::degrees(74.4));
-  auto x = makeCurrentMatrix(nav);
+  FlowMats x = makeCurrentMatrix(nav);
   EXPECT_EQ(x.A(0, 0), x.A(1, 1));
   EXPECT_EQ(x.A(0, 1), -x.A(1, 0));
   EXPECT_EQ(x.A(0, 2), x.A(1, 3));

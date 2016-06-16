@@ -3,11 +3,12 @@
  *      Author: Jonas Östlund <jonas@anemomind.com>
  */
 
-#include <device/anemobox/Dispatcher.h>
-#include <server/nautical/NavDataset.h>
 #include <assert.h>
+#include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/DispatcherUtils.h>
+#include <device/anemobox/Sources.h>
 #include <server/common/logging.h>
+#include <server/nautical/NavDataset.h>
 
 namespace sail {
 
@@ -53,18 +54,11 @@ NavDataset::NavDataset(const std::shared_ptr<Dispatcher> &dispatcher,
   assert(merged);
   assert(dispatcher);
   assert(beforeOrEqual(_lowerBound, _upperBound, true));
-}
 
-NavDataset NavDataset::dup() const {
-  if (isDefaultConstructed()) {
-    return NavDataset();
-  } else {
-
-    // Quite shallow copies, I guess. I don't think we copy any big arrays here.
-    auto mergedCopy = std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData>>>(*_merged);
-    auto dispatcherCopy = _dispatcher;
-
-    return NavDataset(dispatcherCopy, mergedCopy, _lowerBound, _upperBound);
+  for (auto channel : dispatcher->allSources()) {
+    for (auto source : channel.second) {
+      assert(classify(source.first) != SourceOrigin::UNKNOWN);
+    }
   }
 }
 
@@ -91,6 +85,67 @@ NavDataset NavDataset::sliceFirst(const Duration<double> &dur) const {
 NavDataset NavDataset::sliceLast(const Duration<double> &dur) const {
   assert(_upperBound.defined());
   return slice(_upperBound - dur, _upperBound);
+}
+
+namespace {
+  std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData>>>
+    resetMergedChannels(
+        const std::shared_ptr<std::map<DataCode, std::shared_ptr<DispatchData>>> &src,
+        const std::set<DataCode> &toReset) {
+    if (!bool(src)) {
+      return std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData>>>();
+    }
+
+    if (toReset.empty()) {
+      return src;
+    }
+
+    auto copy = std::make_shared<std::map<DataCode,
+        std::shared_ptr<DispatchData>>>(*src);
+
+    for (auto x: toReset) {
+      copy->erase(x);
+    }
+    return copy;
+  }
+
+  void setSuperiorPriorities(std::shared_ptr<Dispatcher> d,
+      const std::map<DataCode, std::map<std::string,
+          std::shared_ptr<DispatchData>>> &toAdd) {
+    auto m = d->maxPriority() + 1;
+    for (auto codeAndSrcMap: toAdd) {
+      for (auto srcAndData: codeAndSrcMap.second) {
+        d->setSourcePriority(srcAndData.first, m);
+      }
+    }
+  }
+}
+
+NavDataset NavDataset::overrideChannels(const std::map<DataCode, std::map<std::string,
+    std::shared_ptr<DispatchData>>> &toAdd) const {
+  auto init = isDefaultConstructed()?
+      std::make_shared<Dispatcher>()
+             : _dispatcher;
+
+  auto d1 = mergeDispatcherWithDispatchDataMap(
+        init.get(), toAdd);
+
+  setSuperiorPriorities(d1, toAdd);
+
+  auto dirty = listDataCodesWithDifferences(init->allSources(), d1->allSources());
+  return NavDataset(d1, resetMergedChannels(_merged, dirty), _lowerBound, _upperBound);
+}
+
+NavDataset NavDataset::overrideChannels(
+    const std::string &srcName,
+      const std::map<DataCode,
+      std::shared_ptr<DispatchData>> &toAdd) const {
+  std::map<DataCode, std::map<std::string,
+      std::shared_ptr<DispatchData>>> toAdd2;
+  for (auto kv: toAdd) {
+    toAdd2[kv.first][srcName] = kv.second;
+  }
+  return overrideChannels(toAdd2);
 }
 
 bool NavDataset::hasLowerBound() const {
@@ -177,13 +232,6 @@ bool NavDataset::isDefaultConstructed() const {
   return !_dispatcher;
 }
 
-void NavDataset::setMerged(DataCode c, const std::shared_ptr<DispatchData> &data) {
-  CHECK(!isDefaultConstructed());
-  assert(_merged);
-  (*_merged)[c] = data;
-}
-
-
 std::ostream &operator<<(std::ostream &s, const NavDataset &ds) {
   ds.outputSummary(&s);
   return s;
@@ -217,6 +265,19 @@ const std::shared_ptr<DispatchData> &getMergedDispatchData(
   return dst;
 }
 
+NavDataset NavDataset::stripChannel(DataCode code) const {
+  if (_dispatcher == nullptr) {
+    return NavDataset();
+  }
 
+  return NavDataset(
+      cloneAndfilterDispatcher(
+          _dispatcher.get(),
+          [code](DataCode testedCode, const std::string&) { return testedCode != code; }
+          ),
+      std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData> > >(),
+      _lowerBound,
+      _upperBound);
+}
 
 }

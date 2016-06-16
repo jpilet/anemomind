@@ -111,3 +111,18 @@ cxx_test(anemobox_DispatcherUtilsTest
          anemobox_DispatcherUtils
          gtest_main
         )        
+
+add_library(anemobox_Sources
+            Sources.h
+            Sources.cpp
+           )
+target_link_libraries(anemobox_Sources
+                      common_logging
+                     )
+
+cxx_test(anemobox_SourcesTest
+         SourcesTest.cpp
+         anemobox_Sources
+         gtest_main
+        )
+
