@@ -12,11 +12,10 @@
 
 
 namespace sail {
-namespace GpsFilter {
 
 using namespace NavCompat;
 
-Settings::Settings() :
+GpsFilterSettings::GpsFilterSettings() :
       regWeight(12.0),
       motionWeight(1.0),
       samplingPeriod(Duration<double>::seconds(1.0)),
@@ -72,7 +71,7 @@ GeographicReference::ProjectedPosition integrate(
 
 
 Array<Observation<2> > getObservations(
-    Settings settings,
+    GpsFilterSettings settings,
     TimeStamp timeRef,
     GeographicReference geoRef, NavDataset navs, Sampling sampling) {
   int n = getNavSize(navs);
@@ -143,10 +142,10 @@ Spani getReliableSampleRange(Array<Observation<2> > observations_, Arrayb inlier
   return range;
 }
 
-Results filter(NavDataset navs, Settings settings) {
+GpsFilter GpsFilter::filter(NavDataset navs, GpsFilterSettings settings) {
   if (getNavSize(navs) == 0) {
     LOG(WARNING) << "No Navs to filter";
-    return Results();
+    return GpsFilter();
   }
   assert(std::is_sorted(getBegin(navs), getEnd(navs)));
 
@@ -162,9 +161,15 @@ Results filter(NavDataset navs, Settings settings) {
       timeRef, geoRef, navs, sampling);
   CHECK(observations.size() % 2 == 0);
 
+  LOG(INFO) << "Filtering navs at " << getFirst(navs).time().toString()
+    << " over a period of " << (toTime - fromTime).hours() << " hours."
+    << " " << sampleCount << " samples.";
+  LOG(INFO) << "Lower: " << navs.lowerBound().toString() << ", upper: "
+    << navs.upperBound().toString();
+
   if (observations.empty()) {
     LOG(WARNING) << "No valid observations";
-    return Results();
+    return GpsFilter();
   }
 
   auto results = DataFit::quadraticFitWithInliers(sampleCount, observations,
@@ -172,14 +177,14 @@ Results filter(NavDataset navs, Settings settings) {
 
   auto reliableRange = getReliableSampleRange(observations, results.inliers);
   auto posObs = observations.sliceTo(getNavSize(navs));
-  return Results{navs, posObs, sampling, results.samples, timeRef, geoRef, reliableRange};
+  return GpsFilter{navs, posObs, sampling, results.samples, timeRef, geoRef, reliableRange};
 }
 
 bool isReliableW(Spani reliableSpan, const Sampling::Weights &w) {
   return reliableSpan.contains(w.lowerIndex) && reliableSpan.contains(w.upperIndex());
 }
 
-Arrayb Results::inlierMask() {
+Arrayb GpsFilter::inlierMask() {
   assert(getNavSize(rawNavs) == positionObservations.size());
   return toArray(map(positionObservations, [&](const Observation<2> &obs) {
     return isReliableW(reliableSampleRange, obs.weights);
@@ -187,7 +192,7 @@ Arrayb Results::inlierMask() {
 }
 
 
-NavDataset Results::filteredNavs() const {
+NavDataset GpsFilter::filteredNavs() const {
   int n = getNavSize(rawNavs);
   Array<Nav> dst = makeArray(rawNavs).dup();
   for (int i = 0; i < n; i++) {
@@ -201,11 +206,11 @@ NavDataset Results::filteredNavs() const {
   return fromNavs(dst);
 }
 
-Sampling::Weights Results::calcWeights(TimeStamp t) const {
+Sampling::Weights GpsFilter::calcWeights(TimeStamp t) const {
   return sampling.represent((t - timeRef).seconds());
 }
 
-HorizontalMotion<double> Results::calcMotion(const Sampling::Weights &w) const {
+HorizontalMotion<double> GpsFilter::calcMotion(const Sampling::Weights &w) const {
   double deriv[2];
   double f = 1.0/sampling.period();
   w.evalDerivative(Xmeters, deriv);
@@ -215,7 +220,7 @@ HorizontalMotion<double> Results::calcMotion(const Sampling::Weights &w) const {
   };
 }
 
-GeographicPosition<double> Results::calcPosition(const Sampling::Weights &w) const {
+GeographicPosition<double> GpsFilter::calcPosition(const Sampling::Weights &w) const {
   double pos[2];
   w.eval(Xmeters, pos);
   return geoRef.unmap(GeographicReference::ProjectedPosition{
@@ -223,11 +228,9 @@ GeographicPosition<double> Results::calcPosition(const Sampling::Weights &w) con
     Length<double>::meters(pos[1])});
 }
 
-bool Results::defined() const {
+bool GpsFilter::defined() const {
   return !Xmeters.empty();
 }
 
 
-
-}
-}
+}  // namespace sail

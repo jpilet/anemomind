@@ -17,7 +17,7 @@ using namespace sail;
 
 using namespace sail::NavCompat;
 
-MDArray2d getRawPositions(GpsFilter::Results r, NavDataset navs) {
+MDArray2d getRawPositions(GpsFilter r, NavDataset navs) {
   int n = getNavSize(navs);
   MDArray2d X(n, 2);
   for (int i = 0; i < n; i++) {
@@ -27,13 +27,6 @@ MDArray2d getRawPositions(GpsFilter::Results r, NavDataset navs) {
   }
   return X;
 }
-
-
-
-
-
-
-
 
 NavDataset getPsarosTestData() {
   auto p = PathBuilder::makeDirectory(Env::SOURCE_DIR)
@@ -63,10 +56,8 @@ NavDataset applyOutliers(NavDataset navs) {
   return fromNavs(dst);
 }
 
-
-
 void runPsarosTest(NavDataset navs, NavDataset navsToFilter) {
-  GpsFilter::Settings settings;
+  GpsFilterSettings settings;
   if (isEmpty(navsToFilter)) {
     std::cout << "Reassign!!!" << std::endl;
     navsToFilter = navs;
@@ -182,7 +173,7 @@ Array<NavDataset> getAllIreneData() {
 
 void filterAndDisplay(NavDataset navs) {
 
-  GpsFilter::Settings settings;
+  GpsFilterSettings settings;
   auto results = GpsFilter::filter(navs, settings);
 
     GnuplotExtra plot;
@@ -213,7 +204,7 @@ TEST(GpsFilterTest, Irene) {
   std::cout << EXPR_AND_VAL_AS_STRING(getFirst(navs).time()) << std::endl;
   std::cout << EXPR_AND_VAL_AS_STRING(getLast(navs).time()) << std::endl;
 
-  GpsFilter::Settings settings;
+  GpsFilterSettings settings;
   auto results = GpsFilter::filter(navs, settings);
   auto maxSpeed = getMaxSpeedFromGpsPositions(results.filteredNavs());
 

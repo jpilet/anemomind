@@ -1,18 +1,36 @@
 include_directories(${CMAKE_BINARY_DIR}/src/device/anemobox/logger)
 
+
+add_library(logimport_ProtobufLogLoader
+  ProtobufLogLoader.h
+  ProtobufLogLoader.cpp
+  )
+
+target_link_libraries(logimport_ProtobufLogLoader
+                      anemobox_Logger
+                      anemobox_Dispatcher
+                     )  
+
+add_library(logimport_Nmea0183Loader
+            Nmea0183Loader.h
+            Nmea0183Loader.cpp
+           )
+
+target_link_libraries(logimport_Nmea0183Loader
+                      device_NmeaParser
+                      anemobox_Nmea0183Source                      
+                     )
+
 add_library(logimport_LogLoader
             LogLoader.h
             LogLoader.cpp
            )
 target_link_libraries(logimport_LogLoader
-                      anemobox_Logger
-                      anemobox_Dispatcher
-                      anemobox_Logger
                       nautical_NavDataset
-                      device_NmeaParser
                       common_filesystem
                       logimport_CsvLoader
-                      anemobox_Nmea0183Source
+                      logimport_ProtobufLogLoader
+                      logimport_Nmea0183Loader
                      )
 
 cxx_test(logimport_LogLoaderTest 

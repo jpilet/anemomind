@@ -103,8 +103,8 @@ void CsvRowProcessor::process(const MDArray<std::string, 2> &row, SourceGroup *d
   std::cout << "Now the size is " << dst->geoPos->size() << std::endl;
 }
 
-void loadCsv(const MDArray<std::string, 2> &table, LogLoader *dst) {
-  SourceGroup toPopulate("CSV", dst);
+void loadCsv(const MDArray<std::string, 2> &table, LogAccumulator *dst) {
+  SourceGroup toPopulate("CSV imported", dst);
   CsvRowProcessor processor(table.sliceRow(0));
   int n = table.rows();
   for (int i = 1; i < n; i++) {
@@ -112,7 +112,7 @@ void loadCsv(const MDArray<std::string, 2> &table, LogLoader *dst) {
   }
 }
 
-void loadCsv(const std::string &filename, LogLoader *dst) {
+void loadCsv(const std::string &filename, LogAccumulator *dst) {
   loadCsv(parseCsv(filename), dst);
 }
 

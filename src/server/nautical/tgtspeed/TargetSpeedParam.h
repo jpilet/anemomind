@@ -39,7 +39,7 @@ class TargetSpeedParam {
   template <typename T>
   T windSpeedToRadiusIndex(Velocity<T> windSpeed) const {
     if (0 <= windSpeed.knots() && windSpeed < _maxWindSpeed) {
-      return undistortRadius(windSpeed/_windFactor);
+      return undistortRadius<T>(windSpeed/_windFactor);
     }
     return T(-1);
   }
@@ -56,10 +56,10 @@ class TargetSpeedParam {
   template <typename T>
   T windAngleToAngleIndex(Angle<T> windAngle) const {
     auto frac = windAngle/_angleFactor;
-    if (std::isnan(frac)) {
-      return frac;
+    if (isNaN(frac)) {
+      return frac.dimensionless();
     }
-    return positiveMod<T>(frac, _totalAngleCount);
+    return positiveMod<T>(frac.dimensionless(), _totalAngleCount);
   }
 
   template <typename T>
@@ -69,7 +69,7 @@ class TargetSpeedParam {
 
   template <typename T>
   T undistortRadius(T x) const {
-    return (_squaredRadius? sqrt(x) : x);
+    return (_squaredRadius? T(sqrt(x)) : T(x));
   }
 
   int angleCellCount() const {

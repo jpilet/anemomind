@@ -11,10 +11,9 @@
 #include <server/nautical/GeographicReference.h>
 
 namespace sail {
-namespace GpsFilter {
 
-struct Settings {
-  Settings();
+struct GpsFilterSettings {
+  GpsFilterSettings();
 
   double motionWeight;
   Duration<double> samplingPeriod;
@@ -23,7 +22,7 @@ struct Settings {
   irls::Settings irlsSettings;
 };
 
-struct Results {
+struct GpsFilter {
   // Before filtering
   NavDataset rawNavs;
   Array<Observation<2> > positionObservations;
@@ -43,11 +42,11 @@ struct Results {
 
   // Please check this first before consuming anything else.
   bool defined() const;
+
+  static GpsFilter filter(NavDataset navs, GpsFilterSettings settings);
 };
 
-Results filter(NavDataset navs, Settings settings);
 
-}
-}
+}  // namespace sail
 
 #endif /* SERVER_NAUTICAL_GPSFILTER_H_ */

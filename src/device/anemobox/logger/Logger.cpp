@@ -18,6 +18,21 @@ using namespace std;
 
 namespace sail {
 
+void addTimeStampToRepeatedFields(
+    std::int64_t *base,
+    google::protobuf::RepeatedField<std::int64_t> *dst,
+    TimeStamp timestamp) {
+  std::int64_t ts = timestamp.toMilliSecondsSince1970();
+  std::int64_t value = ts;
+
+  if (dst->size() > 0) {
+    value -= *base;
+  }
+  *base = ts;
+  dst->Add(value);
+}
+
+
 Logger::Logger(Dispatcher* dispatcher) :
     _dispatcher(dispatcher) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -80,9 +95,6 @@ void Logger::subscribe() {
   _listeners.clear();
 
   for (auto sourcesForCode : _dispatcher->allSources()) {
-    if (sourcesForCode.first == DATE_TIME) {
-      continue;
-    }
     for (auto sourceAndDispatcher : sourcesForCode.second) {
       subscribeToDispatcher(sourceAndDispatcher.second.get());
     }
@@ -90,10 +102,6 @@ void Logger::subscribe() {
 }
 
 void Logger::subscribeToDispatcher(DispatchData *d) {
-  if (d->dataCode() == DATE_TIME) {
-    return;
-  }
-
   LoggerValueListener* listener =
     new LoggerValueListener(d->wordIdentifier(), d->source());
   SubscribeVisitor<LoggerValueListener> subscriber(listener);
@@ -195,16 +203,28 @@ void Logger::unpack(const AbsOrientValueSet& values,
   }
 }
 
+namespace {
+  void unpackTimeSub(const google::protobuf::RepeatedField<std::int64_t> &times,
+                     std::vector<TimeStamp>* result) {
+    result->clear();
+    result->reserve(times.size());
+
+    std::int64_t time = 0;
+    for (int i = 0; i < times.size(); ++i) {
+      time += times.Get(i);
+      result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
+    }
+  }
+}
+
+void Logger::unpack(const google::protobuf::RepeatedField<std::int64_t> &times,
+                    std::vector<TimeStamp>* result) {
+  unpackTimeSub(times, result);
+}
+
 void Logger::unpackTime(const ValueSet& valueSet,
                         std::vector<TimeStamp>* result) {
-  result->clear();
-  result->reserve(valueSet.timestamps_size());
-
-  int64_t time = 0;
-  for (int i = 0; i < valueSet.timestamps_size(); ++i) {
-    time += valueSet.timestamps(i);
-    result->push_back(TimeStamp::fromMilliSecondsSince1970(time));
-  }
+  unpackTimeSub(valueSet.timestamps(), result);
 }
 
 

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.1"
+   id="svg13034"
+   viewBox="0 0 17.400402 24.244795"
+   height="6.8424201mm"
+   width="4.91078mm">
+  <defs
+     id="defs13036" />
+  <metadata
+     id="metadata13039">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-138.77044,-264.72822)"
+     id="layer1">
+    <g
+       id="g13013"
+       transform="matrix(-0.95784577,-0.80313855,-0.80313855,0.95784577,842.66145,389.2175)">
+      <path
+         id="path682"
+         style="fill:#ff0033;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         d="m 484.9266,277.6989 -8.009,9.544 1.376,8.079 8.15,-0.318 7.894,-9.408 -9.411,-7.897 z" />
+      <text
+         id="text684"
+         style="font-variant:normal;font-weight:bold;font-size:10.59728909px;font-family:'Avenir Next';-inkscape-font-specification:AvenirNext-Bold;writing-mode:lr-tb;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
+         transform="matrix(0.76604495,0.64278701,-0.64278701,0.76604495,0,0)"
+         x="552.0246"
+         y="-87.562172">
+        <tspan
+           id="tspan686"
+           y="-87.562172"
+           x="552.0246">A</tspan>
+      </text>
+      <g
+         id="g688"
+         transform="translate(484.9266,277.6989)">
+        <path
+           id="path690"
+           style="fill:none;stroke:#ff0033;stroke-width:1.63;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+           d="m 0,0 -8.009,9.544 1.376,8.079 8.15,-0.318 L 9.411,7.897 0,0 Z" />
+      </g>
+    </g>
+  </g>
+</svg>

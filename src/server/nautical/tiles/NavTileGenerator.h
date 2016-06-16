@@ -44,12 +44,12 @@ class TileKey {
 double posToTileX(int scale, const GeographicPosition<double>& pos);
 double posToTileY(int scale, const GeographicPosition<double>& pos);
 
-Array<NavDataset> generateTiles(TileKey tileKey,
-                                const NavDataset& nav,
+Array<Array<Nav>> generateTiles(TileKey tileKey,
+                                const Array<Nav>& navs,
                                 int maxNumNavs);
 
 // Return a set of tiles on which "navs" should appear.
-std::set<TileKey> tilesForNav(const NavDataset& navs, int maxScale);
+std::set<TileKey> tilesForNav(const Array<Nav>& navs, int maxScale);
 
 // Generate a unique identifier for this Nav curve.
 std::string tileCurveId(std::string boatId, const NavDataset& navs);

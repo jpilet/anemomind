@@ -58,9 +58,9 @@ bool genericEasyDgbsvInPlace(BandMatrix<T> *lhs, MDArray<T, 2> *rhs) {
     LOG(ERROR) << "The argument '" << argNames[(-info)-1] << "' had an illegal value";
     return false;
   } else {
-    LOG(ERROR) << "U(" << info << ", " << info << ") is exactly zero.  The factorization"
-          "has been completed, but the factor U is exactly"
-          "singular, and the solution has not been computed.";
+    LOG(ERROR) << "U(" << info << ", " << info << ") is exactly zero.  The factorization\n"
+          "has been completed, but the factor U is exactly \n"
+          "singular, and the solution has not been computed.\n";
     return false;
   }
 }

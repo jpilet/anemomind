@@ -377,3 +377,8 @@ cxx_test(common_AbstractArray
          AbstractArrayTest.cpp
          gtest_main
         )
+
+cxx_test(common_PositiveModTest
+         PositiveModTest.cpp
+         gtest_main
+        )

@@ -204,10 +204,9 @@ exports.postPhoto = multer({
         console.log('photoHandler: accepting file: ' + file.originalname);
         return true;
       } else {
-        console.log('photoHandler: rejecting existing photo: '
+        console.log('photoHandler: replacing existing photo: '
                     + file.originalname);
-        res.sendStatus(403);
-        return false;
+        return true;
       }
     }
     console.log('photoHandler: rejecting bad filename: '

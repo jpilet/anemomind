@@ -4,7 +4,7 @@
  */
 
 #include <server/nautical/logimport/SourceGroup.h>
-#include <server/nautical/logimport/LogLoader.h>
+#include <server/nautical/logimport/LogAccumulator.h>
 
 namespace sail {
 
@@ -13,7 +13,7 @@ SourceGroup::SourceGroup() :
   tws(nullptr), magHdg(nullptr), geoPos(nullptr),
   gpsBearing(nullptr), gpsSpeed(nullptr), watSpeed(nullptr) {}
 
-SourceGroup::SourceGroup(const std::string &srcName, LogLoader *dst) :
+SourceGroup::SourceGroup(const std::string &srcName, LogAccumulator *dst) :
     awa(allocateSourceIfNeeded<Angle<double> >(srcName, dst->getAWAsources())),
     aws(allocateSourceIfNeeded<Velocity<double> >(srcName, dst->getAWSsources())),
     twa(allocateSourceIfNeeded<Angle<double> >(srcName, dst->getTWAsources())),
