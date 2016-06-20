@@ -109,6 +109,7 @@
   float: left;
   width: 40%;
   position: relative;
+  overflow: hidden;
 }
 
 .card.card-horizontal .card-block{

@@ -7,10 +7,10 @@
   </div>
 
   <!-- BOAT INFO -->
-  <div class="card-content  card-content-thin">
+  <div class="card-content  card-content-thin" boat-fix-title-size>
       <h3>Your boat</h3>
       <div class="boat-info">
-        <h1>{{::boat.name}}</h1>
+        <h1 class="fixed-size">{{::boat.name}}</h1>
         <p>Since {{sessionGetFirstDate(sessions)|date:'yyyy'}} </p>
 
         <div class="boat-info-actions">

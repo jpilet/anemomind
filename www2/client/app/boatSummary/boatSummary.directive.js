@@ -144,6 +144,33 @@ var app = angular.module('www2App')
   });
 
 
+//
+// adapt text size depending on container space
+app.directive('boatFixTitleSize',['$timeout',function($timeout) {
+  return {
+    restrict:'A',
+    replace:false,
+    link:function(scope,element,attrs) {
+      //
+      // simple way with $timeout 
+      // in case of trouble use,             
+      // attrs.$observe('boatFixTitleSize', function(name) {
+      $timeout(function() {
+        var marginLeft=40;
+        var ourText = element.find('.fixed-size');
+        var fontSize = parseInt(window.getComputedStyle(ourText[0], null).getPropertyValue('font-size'));
+        var maxWidth = element.width();
+        var textWidth= ourText.width();
+        while ((textWidth > (maxWidth-marginLeft)) && fontSize > 12){
+            ourText.css('font-size', --fontSize);
+            textWidth = ourText.width();
+        };
+      },500);
+
+    }
+  };
+}]);
+
 app.directive('boatMainImage', ['$parse', function($parse) {
   var style={
     'background-size':'cover',
