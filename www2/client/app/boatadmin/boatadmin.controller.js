@@ -6,8 +6,8 @@ angular.module('www2App')
 
     $scope.remoteCommand = '';
 
-    $scope.boats = boatList.boats();
-    $scope.$on('boatList:updated', function(event, boats) {
+    // $scope.boats = boatList.boats();
+    boatList.boats().then(function(boats) {
        $scope.boats = boats;
     });
 

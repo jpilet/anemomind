@@ -1,11 +1,13 @@
 <div ng-include="'components/navbar/navbar.html'"></div>
 
+<!-- DISPLAY ONE BOAT BY ACTIVITY -->
 <div ng-if="isLoggedIn" class="container">
-  <div class="col-xs-12 nopadding" ng-repeat="boat in boats | orderBy:boatFreshness:true">
-        <boat-summary boat-id="boat._id" class="boat-summary"></boat-summary>
-  </div>
+    <boat-summary boat-id="boatId" 
+    							class="boat-summary">    							
+		</boat-summary>
 </div>
 
+<!-- IF ANONYMOUS -->
 <div ng-if="!isLoggedIn" class="container">
 <p>Please <a href="/login">login</a></p>
 </div>

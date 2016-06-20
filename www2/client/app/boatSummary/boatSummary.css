@@ -76,10 +76,18 @@
 }
 
 .card .card-content div.boat-info p{
-  margin-top: -5px;
+  margin-top: 0px;
   font-weight: 100;
   font-size: 13px;  
 }
+
+.card .card-content div.boat-info-actions{
+  position: absolute;
+  right: 5px;
+  top: 40px;
+  width: 40px;
+}
+
 
 .card.card-horizontal .card-image{
   float: left;
@@ -100,6 +108,8 @@
   padding-right: 5px;
   float: left;
   width: 40%;
+  position: relative;
+  overflow: hidden;
 }
 
 .card.card-horizontal .card-block{

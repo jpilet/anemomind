@@ -1,7 +1,9 @@
 'use strict';
 
 var app = angular.module('www2App')
-  .directive('boatSummary', function ($location, $interpolate, boatList, Auth) {
+  .directive('boatSummary', function ($rootScope, $location, $interpolate, boatList, Auth) {
+    var storedPageSize={};
+
     return {
       templateUrl: 'app/boatSummary/boatSummary.html',
       restrict: 'E',
@@ -10,31 +12,45 @@ var app = angular.module('www2App')
         pageSize: "=?"
       },
       link: function (scope, element, attrs) {
+
         scope.currentPage = 1;
         scope.sessions = [];
-        if (scope.pageSize == undefined) {
-          scope.pageSize = 2;
-        }
+
         function updateSessions() {
-          if (!scope.boatId) {
-            return;
-          }
-          scope.boat = boatList.boat(scope.boatId);
-          scope.sessions = boatList.sessionsForBoat(scope.boatId);
-          if (scope.sessions == undefined) {
-            scope.sessions = [];
-          }
+
+          if(!scope.boatId) return;
+
+          scope.pageSize=storedPageSize[scope.boatId]||2;
+          //
+          // be sure that boats are ready
+          boatList.boats().then(function (boats) {
+            scope.boat = boatList.boat(scope.boatId);
+            scope.sessions = boatList.sessionsForBoat(scope.boatId);
+
+            //
+            // ensure that sessions is not empty
+            scope.sessions=scope.sessions||[];
+            scope.sessions.forEach(function(session) {
+              session.hasPhoto=scope.hasSocialActivity(session,'photos');
+              session.hasComment=scope.hasSocialActivity(session,'comments');
+            })
+          });
+
         }
-        scope.$on('boatList:updated', updateSessions);
-        scope.$on('boatList:sessionsUpdated', updateSessions);
+
+
+
+        // Why those listeners?
+        // scope.$on('boatList:updated', updateSessions);
+        // scope.$on('boatList:sessionsUpdated', updateSessions);
         scope.$watch('boatId', updateSessions);
 
-        updateSessions();
 
         //
         // display more session
         scope.showMoreSessions=function(){
           scope.pageSize+=10;
+          storedPageSize[scope.boatId]=scope.pageSize;
         }
 
         //
@@ -46,40 +62,21 @@ var app = angular.module('www2App')
         };
 
         //
-        // check if this boat has a picture for this session
-        // Warning: complexity O(N)!
-        // TODO(olivier): cache results or refactor        
-        scope.hasPhoto=function(session){
-          if(!scope.boat.photos||!scope.boat.photos.length){
+        // Used when loading new sessions
+        scope.hasSocialActivity=function(session,field){
+          if(!scope.boat[field]||!scope.boat[field].length){
             return false;
           }
           var start=new Date(session.startTime);
           var end=new Date(session.endTime);
 
-          return (scope.boat.photos.filter(function(photo) {
-            var when=new Date(photo.when)
+          return (scope.boat[field].filter(function(elem) {
+            var when=new Date(elem.when)
             return start<=when&&end>=when;
           }).length>0);
 
         };
 
-        //
-        // check if this boat has a picture for this session
-        // Warning: complexity O(N)!
-        // TODO(olivier): cache results or refactor        
-        scope.hasComment=function(session){
-          if(!scope.boat.comments||!scope.boat.comments.length){
-            return false;
-          }
-          var start=new Date(session.startTime);
-          var end=new Date(session.endTime);
-
-          return (scope.boat.comments.filter(function(comment) {
-            var when=new Date(comment.when)
-            return start<=when&&end>=when;
-          }).length>0);
-
-        };
 
 
         //
@@ -91,11 +88,11 @@ var app = angular.module('www2App')
         //
         // compute avg in current sessions for direction
         // TODO this could be a directive 
-        scope.sessionAvgWind=function (sessions) {
+        scope.sessionTotalDistance=function (sessions) {
           var sum = sessions.reduce(function(prev, session) { 
-            return prev + session.avgWindDir; 
+            return prev + session.trajectoryLength; 
           },0);
-          return (sum / sessions.length).toFixed(1);
+          return sum.toFixed(1);
         };
 
         //
@@ -111,9 +108,9 @@ var app = angular.module('www2App')
         //
         // compute avg in current sessions for speed
         // TODO this could be a directive 
-        scope.sessionMaxSpeed=function (sessions) {
+        scope.sessionMaxBoatSpeed=function (sessions) {
           return Math.max.apply(Math,sessions.map(function(session){
-            return session.strongestWindSpeed;
+            return session.maxSpeedOverGround;
           })).toFixed(2);
         };
 
@@ -127,7 +124,7 @@ var app = angular.module('www2App')
           return windrose[index];
         };
 
-        scope.boatNumber = function(knots) {
+        scope.knotsToBeaufort = function(knots) {
           if (knots < 1) { return 0; }
           if (knots < 3) { return 1; }
           if (knots < 6) { return 2; }
@@ -146,6 +143,33 @@ var app = angular.module('www2App')
     };
   });
 
+
+//
+// adapt text size depending on container space
+app.directive('boatFixTitleSize',['$timeout',function($timeout) {
+  return {
+    restrict:'A',
+    replace:false,
+    link:function(scope,element,attrs) {
+      //
+      // simple way with $timeout 
+      // in case of trouble use,             
+      // attrs.$observe('boatFixTitleSize', function(name) {
+      $timeout(function() {
+        var marginLeft=40;
+        var ourText = element.find('.fixed-size');
+        var fontSize = parseInt(window.getComputedStyle(ourText[0], null).getPropertyValue('font-size'));
+        var maxWidth = element.width();
+        var textWidth= ourText.width();
+        while ((textWidth > (maxWidth-marginLeft)) && fontSize > 12){
+            ourText.css('font-size', --fontSize);
+            textWidth = ourText.width();
+        };
+      },500);
+
+    }
+  };
+}]);
 
 app.directive('boatMainImage', ['$parse', function($parse) {
   var style={

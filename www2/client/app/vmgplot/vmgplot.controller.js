@@ -3,11 +3,15 @@
 angular.module('www2App')
   .controller('VmgplotCtrl', function ($scope, $stateParams, $http, boatList) {
     $scope.message = 'Loading...';
-    $scope.boat = boatList.boat($stateParams.boatId);
+    $scope.boatId=$stateParams.boatId;
+    $scope.boat = {};
 
-    $scope.$on('boatList:updated', function(event, boats) {
+    boatList.boats().then(function(boats) {
       $scope.boat = boatList.boat($stateParams.boatId);
     });
+    // $scope.$on('boatList:updated', function(event, boats) {
+    //   $scope.boat = boatList.boat($stateParams.boatId);
+    // });
 
     $scope.options = {
       chart: {
