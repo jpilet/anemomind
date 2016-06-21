@@ -5,40 +5,43 @@
 
   <ol class="breadcrumb">
     <li><a href="/boats">Boats</a></li>
-    <li><a href="/boats/{{::boatId}}">{{ ::boat.name }}</a></li>
+    <li><a href="/boats/{{::boatId}}">{{ boat.name }}</a></li>
     <li class="active">Edit</li>
   </ol>
 
 
   <!-- PROFILE -->
   <h3>Boat profile</h3>
-  <ul class="list-group ">
-    <li class="list-group-item">
-      <input type="text" class="form-control form-control-inline" placeholder="Boat name" ng-model="boat.name">
-    </li>
-    <li class="list-group-item">
-      <input type="text" class="form-control form-control-inline" placeholder="Boat type" ng-model="boat.type">
-    </li>
-    <li class="list-group-item">
-      <input type="text" class="form-control form-control-inline" placeholder="Sail number" ng-model="boat.sailNumber">
-    </li>
-    <li class="list-group-item">
-      <input type="text"  pattern="\d*\.?\d*" class="form-control form-control-inline" placeholder="Length" ng-model="boat.length">
-    </li>
-    <li class="list-group-item">
+  <form ng-submit="saveBoat()">
+    <ul class="list-group ">
+      <li class="list-group-item">
+        <input type="text" class="form-control form-control-inline" placeholder="Boat name" ng-model="boat.name">
+      </li>
+      <li class="list-group-item">
+        <input type="text" class="form-control form-control-inline" placeholder="Boat type" ng-model="boat.type">
+      </li>
+      <li class="list-group-item">
+        <input type="text" class="form-control form-control-inline" placeholder="Sail number" ng-model="boat.sailNumber">
+      </li>
+      <li class="list-group-item">
+        <input type="text"  pattern="\d*\.?\d*" class="form-control form-control-inline" placeholder="Length" ng-model="boat.length">
+      </li>
+      <li class="list-group-item">
+        <label>
+          <input type="radio" ng-model="boat.lengthUnit" value="meter" class="">
+          meter
+        </label>
       <label>
-        <input type="radio" ng-model="boat.lengthUnit" value="meter" class="">
-        meter
+        <input type="radio" ng-model="boat.lengthUnit" value="feet" class="">
+        feet
       </label>
-    <label>
-      <input type="radio" ng-model="boat.lengthUnit" value="feet" class="">
-      feet
-    </label>
-    </li>
-    <li class="list-group-item">
-      <input ng-show="isAdmin()" type="text" class="form-control form-control-inline" placeholder="Firmware version" ng-model="boat.firmwareVersion">
-    </li>
-  </ul>
+      </li>
+      <li class="list-group-item">
+        <input ng-show="isAdmin()" type="text" class="form-control form-control-inline" placeholder="Firmware version" ng-model="boat.firmwareVersion">
+      </li>
+    </ul>
+    <input type="submit" class="hide">
+  </form>
 
   <!-- EDIT SAIL -->
   <h3>Sails</h3>

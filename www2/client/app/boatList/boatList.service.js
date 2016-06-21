@@ -69,6 +69,36 @@ angular.module('www2App')
     }
 
 
+    function save(id,boat) {
+      var promise=$http.put('/api/boats/' + id, boat);
+      //
+      // update local boat instance
+      promise.success(function(boat) { 
+        boatDict[boat._id] = boat;
+        for (var i = boats.length - 1; i >= 0; i--) {
+          if(boats[i]._id===boat._id){
+            return boats[i]=boat;
+          }
+        }
+      });
+      return promise;
+      
+    }
+
+    function addMember(id,invitation) {
+      var promise=$http.put('/api/boats/' + id + '/invite', invitation);
+      promise.success(function(data) { 
+        boatDict[data.boat._id] = data.boat;
+        for (var i = boats.length - 1; i >= 0; i--) {
+          if(boats[i]._id===data.boat._id){
+            return boats[i]=data.boat;
+          }
+        }
+      });
+      return promise;
+    }
+
+
     function locationForCurve(curveId) {
       if (!(curveId in curves)) {
         return undefined;
@@ -90,6 +120,8 @@ angular.module('www2App')
     // service result
     return {
       boat: function(id) { return boatDict[id]; },
+      save: save,
+      addMember:addMember,
       boats: function() { return promise; },
       sessions: function() { return $.extend({}, sessionsForBoats); },
       sessionsForBoat: function(boatId) { return sessionsForBoats[boatId]; },
