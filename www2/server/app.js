@@ -13,12 +13,15 @@ var express = require('express');
 var mongoose = require('mongoose');
 var config = require('./config/environment');
 var https = require('https');
+var morgan = require('morgan');
 
 // Connect to database
 mongoose.connect(config.mongo.uri, config.mongo.options);
 
 // Setup server
 var app = express();
+app.use(morgan());
+
 var server = require('http').createServer(app);
 var socketio = require('socket.io')(server, {
   serveClient: (config.env === 'production') ? false : true,

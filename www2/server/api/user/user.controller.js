@@ -71,7 +71,16 @@ exports.show = function (req, res, next) {
   User.findById(userId, function (err, user) {
     if (err) return next(err);
     if (!user) return res.sendStatus(401);
-    res.json(user.profile);
+    if (!req.user) {
+      // client not authenticated, serving a restricted object for
+      // a public page.
+      res.json({
+               '_id': user.profile._id,
+               'name': user.profile.name
+               });
+    } else {
+      res.json(user.profile);
+    }
   });
 };
 
