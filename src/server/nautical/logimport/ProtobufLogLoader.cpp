@@ -115,7 +115,6 @@ namespace {
     if (n > 30) { // Sufficiently many?
       auto at = diffs.begin() + n/2;
       std::nth_element(diffs.begin(), at, diffs.end());
-
       auto median = *at;
       double totalError = 0.0;
       for (auto x: diffs) {

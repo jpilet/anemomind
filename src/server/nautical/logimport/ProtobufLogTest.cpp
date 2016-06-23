@@ -59,8 +59,8 @@ TEST(LoggerTest, LogTime) {
   const int n = 60;
   for (int i = 0; i < n; i++) {
     dispatcher.setTime(sysTime(i));
-    dispatcher.publishValue(DATE_TIME, "test", gpsTimeWithOutliers(i));
-    dispatcher.publishValue(AWS, "test", Velocity<double>::metersPerSecond(0.4*i));
+    dispatcher.publishValue(DATE_TIME, "Test", gpsTimeWithOutliers(i));
+    dispatcher.publishValue(AWS, "Test", Velocity<double>::metersPerSecond(0.4*i));
   }
 
   LogFile saved;
