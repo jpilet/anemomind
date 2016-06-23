@@ -73,16 +73,25 @@ namespace {
     OffsetWithFitnessError() {
       offset = Duration<double>::seconds(0.0);
       averageErrorFromMedian = std::numeric_limits<double>::infinity();
+      priority = (-std::numeric_limits<int>::max());
     }
 
-    OffsetWithFitnessError(Duration<double> dur, double e) :
-      offset(dur), averageErrorFromMedian(e) {}
+    OffsetWithFitnessError(Duration<double> dur, double e, int p) :
+      offset(dur), averageErrorFromMedian(e), priority(p) {
+    }
 
+    int priority;
     Duration<double> offset;
     double averageErrorFromMedian;
 
+    std::pair<int, double> makePairToMinimize() const {
+      // First, try to minimize the **negated** priority (which is the same as maximizing the priority)
+      // Second, try to minimize the error
+      return std::make_pair(-priority, averageErrorFromMedian);
+    }
+
     bool operator<(const OffsetWithFitnessError &e) const {
-      return averageErrorFromMedian < e.averageErrorFromMedian;
+      return makePairToMinimize() < e.makePairToMinimize();
     }
   };
 
@@ -112,16 +121,16 @@ namespace {
       for (auto x: diffs) {
         totalError += std::abs((x - median).seconds());
       }
-      return OffsetWithFitnessError(median, totalError/n);
+      return OffsetWithFitnessError(median, totalError/n, stream.priority());
     }
     return OffsetWithFitnessError();
   }
 
-
   Duration<double> computeTimeOffset(const LogFile &data) {
     OffsetWithFitnessError offset;
     for (int i = 0; i < data.stream_size(); i++) {
-      offset = std::min(offset, computeTimeOffset(data.stream(i)));
+      auto c = computeTimeOffset(data.stream(i));
+      offset = std::min(offset, c);
     }
     return offset.offset;
   }
