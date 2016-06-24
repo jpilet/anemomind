@@ -18,6 +18,8 @@ namespace sail {
 class LogFile;
 
 
+bool loadFileToAcc(const std::string &filename, LogAccumulator *acc);
+
 /*
  * Helper class to load a series of log files.
  *
