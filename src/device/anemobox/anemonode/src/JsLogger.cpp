@@ -8,15 +8,14 @@ namespace {
 
 class FlushWorker : public NanAsyncWorker {
  public:
-  FlushWorker(NanCallback *callback, std::string folder)
+  FlushWorker(NanCallback *callback, std::string filename)
     : NanAsyncWorker(callback),
-      _folder(folder),
+      _filename(filename),
       _result(false) { }
 
   LogFile* dataContainer() { return &_data; }
 
   void Execute () {
-    _filename = Logger::nextFilename(_folder);
     _result = Logger::save(_filename, _data);
   }
 
@@ -35,7 +34,6 @@ class FlushWorker : public NanAsyncWorker {
   }
 
  private:
-  std::string _folder;
   LogFile _data;
   bool _result;
   std::string _filename;
@@ -88,9 +86,9 @@ NAN_METHOD(JsLogger::flush) {
     NanReturnUndefined();
   }
 
-  v8::String::Utf8Value folder(args[0]->ToString());
+  v8::String::Utf8Value filename(args[0]->ToString());
   NanCallback *callback = new NanCallback(args[1].As<Function>());
-  FlushWorker* worker = new FlushWorker(callback, *folder);
+  FlushWorker* worker = new FlushWorker(callback, *filename);
   obj->_logger.flushTo(worker->dataContainer());
 
   NanAsyncQueueWorker(worker);
