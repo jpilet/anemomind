@@ -10,6 +10,8 @@
 #include <server/nautical/tiles/NavTileGenerator.h>
 #include <fstream>
 #include <server/nautical/common.h>
+#include <server/math/nonlinear/SpatialMedian.h>
+#include <server/common/ArrayBuilder.h>
 
 using namespace mongo;
 
@@ -42,16 +44,48 @@ namespace sail {
     OP(rudderAngle) \
     OP(bestTwaEstimate)
 
+std::string padded(const std::string &s, int l) {
+  int k = l - s.length();
+  std::stringstream ss;
+  ss << s;
+  for (int i = 0; i < k; i++) {
+    ss << " ";
+  }
+  return ss.str();
+}
+
+template <typename T>
+T computeMedian(std::vector<T> *vec) {
+  std::sort(vec->begin(), vec->end());
+  return (*vec)[vec->size()/2];
+}
+
+template <>
+Angle<double> computeMedian<Angle<double> >(std::vector<Angle<double> > *angles) {
+  ArrayBuilder<Eigen::Vector2d> vectors;
+  for (auto angle: *angles) {
+    if (isFinite(angle)) {
+      vectors.add(Eigen::Vector2d(cos(angle), sin(angle)));
+    }
+  }
+  SpatialMedian::Settings settings;
+  Eigen::Vector2d med = SpatialMedian::compute(vectors.get(), settings);
+  CHECK(isFinite(med(0)));
+  CHECK(isFinite(med(1)));
+  if (med.norm() < 1.0e-6) {
+    return Angle<double>();
+  }
+  return Angle<double>::radians(atan2(med(1), med(0)));
+}
+
 #define SHOW_MEDIAN(x, unit) \
-  std::sort(x.begin(), x.end()); \
-  std::cout << "Median error of " << #x << ": " << x[x.size()/2].unit() << " " \
+  *file << "Median error of " << padded(#x, 17) << ": " << computeMedian(&x).unit() << " " \
     << #unit << std::endl;
 
 void analyzeNavsWithNaiveTrueWind(const Array<Nav> &navs, std::ostream *file,
     const std::function<Angle<double>(Nav)> &getHeading) {
   std::vector<Velocity<double> > externalTws, tws;
   std::vector<Angle<double> > externalTwdir, twdir, externalTwa, twa;
-
 
   for (auto nav: navs) {
     auto hdg = getHeading(nav);
@@ -69,6 +103,11 @@ void analyzeNavsWithNaiveTrueWind(const Array<Nav> &navs, std::ostream *file,
     twa.push_back((estTwa - nav.twaFromTrueWindOverGround()).normalizedAt0());
   }
   SHOW_MEDIAN(externalTws, knots)
+  SHOW_MEDIAN(tws, knots)
+  SHOW_MEDIAN(externalTwdir, degrees)
+  SHOW_MEDIAN(twdir, degrees)
+  SHOW_MEDIAN(externalTwa, degrees)
+  SHOW_MEDIAN(twa, degrees)
 }
 
 void analyzeNavArray(const Array<Nav> &navs, std::ostream *file) {
@@ -100,6 +139,15 @@ FOREACH_NAV_PH_FIELD(LIST_IT)
   analyzeNavsWithNaiveTrueWind(navs, file, [](const Nav &nav) {
     return nav.gpsBearing();
   });
+
+  *file << "----------- Difference between mag hdg and gps bearing";
+  {
+    std::vector<Angle<double> > headings;
+    for (auto nav: navs) {
+      headings.push_back(nav.magHdg() - nav.gpsBearing());
+    }
+    SHOW_MEDIAN(headings, degrees)
+  }
 
 }
 
