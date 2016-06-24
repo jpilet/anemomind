@@ -140,7 +140,7 @@ FOREACH_NAV_PH_FIELD(LIST_IT)
     return nav.gpsBearing();
   });
 
-  *file << "----------- Difference between mag hdg and gps bearing";
+  *file << "----------- Difference between mag hdg and gps bearing\n";
   {
     std::vector<Angle<double> > headings;
     for (auto nav: navs) {
