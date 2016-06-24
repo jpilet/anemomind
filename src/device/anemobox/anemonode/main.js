@@ -10,6 +10,7 @@ var btrpcFuncTable = require('./components/rpcble.js').rpcFuncTable;
 var withLocalEndpoint = true;
 var withLogger = true;
 var withGps = true;
+var withTimeEstimator = true;
 var withSetTime = false;
 var withBT = false;
 var echoGpsOnNmea = false;
@@ -116,8 +117,11 @@ if (withSetTime) {
   require('./components/settime.js');
 }
 
+var getCurrentTime = withTimeEstimator? 
+    require('./components/timeest.js') : function() {return new Date();};
+
 function startLogging() {
-  logger.startLogging(logRoot, logInterval, function(path) {
+  logger.startLogging(logRoot, logInterval, getCurrentTime, function(path) {
     if (withLocalEndpoint) {
       localEndpoint.postLogFile(path, function(err, remaining) {
         if (err) {

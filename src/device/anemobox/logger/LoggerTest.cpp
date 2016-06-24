@@ -19,7 +19,7 @@ TEST(LoggerTest, SmokeTest) {
     dispatcher.publishValue(AWA, "test", Angle<double>::degrees(values[i]));
   }
   std::string filename;
-  EXPECT_TRUE(logger.flushAndSave("./", &filename));
+  EXPECT_TRUE(logger.flushAndSave("./00000000576A5F3F.log", &filename));
 
   LogFile loaded;
   EXPECT_TRUE(Logger::read(filename, &loaded));
@@ -171,8 +171,8 @@ TEST(LoggerTest, LogTime) {
 TEST(LoggerTest, ReadInteger0) {
   const char filename[] = "/tmp/this_file_should_not_exist.txt";
   std::remove(filename);
-  int64_t value = readIntegerFromTextFile(filename);
-  EXPECT_EQ(value, 0);
+  auto value = readIntegerFromTextFile(filename);
+  EXPECT_FALSE(value.defined());
 }
 
 TEST(LoggerTest, ReadInteger1) {
@@ -182,8 +182,9 @@ TEST(LoggerTest, ReadInteger1) {
     std::ofstream file(filename);
     file << 119;
   }
-  int64_t value = readIntegerFromTextFile(filename);
-  EXPECT_EQ(value, 119);
+  auto value = readIntegerFromTextFile(filename);
+  EXPECT_TRUE(value.defined());
+  EXPECT_EQ(value.get(), 119);
 }
 
 TEST(LoggerTest, ReadInteger2) {
@@ -193,7 +194,8 @@ TEST(LoggerTest, ReadInteger2) {
     std::ofstream file(filename);
     file << "  " << 119 << "\n ";
   }
-  int64_t value = readIntegerFromTextFile(filename);
-  EXPECT_EQ(value, 119);
+  auto value = readIntegerFromTextFile(filename);
+  EXPECT_TRUE(value.defined());
+  EXPECT_EQ(value.get(), 119);
 }
 
