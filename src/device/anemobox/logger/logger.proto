@@ -72,4 +72,6 @@ message LogFile {
   // those streams do not directly come from the dispatcher.
   // They can contain raw nmea or text logs.
   repeated ValueSet text = 5;
+  
+  optional int64 bootcount = 6;
 }

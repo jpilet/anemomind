@@ -19,6 +19,36 @@ using namespace std;
 
 namespace sail {
 
+Optional<int64_t> readIntegerFromTextFile(const std::string &filename) {
+  std::ifstream file(filename);
+  try {
+    int64_t value = -1;
+    file >> value;
+
+    if (value >= 0) { // We cannot have negative boot count, right?
+      // Everything went well
+      return value;
+    }
+
+  } catch (const std::exception &e) {}
+
+  // Whenever there is no valid value available.
+  return Optional<int64_t>();
+}
+
+namespace {
+  Optional<int64_t> getBootCount() {
+    return readIntegerFromTextFile("/home/anemobox/bootcount"); // <-- see anemonode/run.sh
+  }
+
+ std::string getBootCountString() {
+    auto value = getBootCount();
+    return value.defined()?
+        int64ToHex(value.get()) : "";
+  }
+}
+
+
 void addTimeStampToRepeatedFields(
     std::int64_t *base,
     google::protobuf::RepeatedField<std::int64_t> *dst,
@@ -60,6 +90,13 @@ namespace {
 void Logger::flushTo(LogFile* container) {
   // Clear content.
   *container = LogFile();
+
+  {
+    auto bc = getBootCount();
+    if (bc.defined()) {
+      container->set_bootcount(bc.get());
+    }
+  }
  
   for (auto ptr : _listeners) {
     if (hasTimeStamps(ptr->valueSet())) {
@@ -80,34 +117,8 @@ void Logger::flushTo(LogFile* container) {
   }
 }
 
-Optional<int64_t> readIntegerFromTextFile(const std::string &filename) {
-  std::ifstream file(filename);
-  try {
-    int64_t value = -1;
-    file >> value;
-
-    if (value >= 0) { // We cannot have negative boot count, right?
-      // Everything went well
-      return value;
-    }
-
-  } catch (const std::exception &e) {}
-
-  // Whenever there is no valid value available.
-  return Optional<int64_t>();
-}
-
-namespace {
-  std::string getBootCountString(const std::string &filename) {
-    auto value = readIntegerFromTextFile(filename);
-    return value.defined()?
-        int64ToHex(value.get()) : "";
-  }
-}
-
 std::string Logger::nextFilename(const std::string& folder) {
-  const char filename[] = "/home/anemobox/bootcount"; // <-- see anemonode/run.sh
-  return folder + getBootCountString(filename)
+  return folder + getBootCountString()
       + int64ToHex(TimeStamp::now().toSecondsSince1970()) + ".log";
 }
 
