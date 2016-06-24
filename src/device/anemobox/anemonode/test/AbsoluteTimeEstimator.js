@@ -8,7 +8,7 @@ describe('AbsoluteTimeEstimator', function() {
     var trueTime = systemTime.map(function(x) {
       return x + offset;
     });
-    var timeWithOutliers = trueTime.map(function(index, x) {
+    var timeWithOutliers = trueTime.map(function(x, index) {
       if (index == 3) {
         return 1234343;
       } else if (index == 4) {
@@ -17,19 +17,22 @@ describe('AbsoluteTimeEstimator', function() {
       return x;
     });
 
+    console.log("Time with outliers: ");
+    console.log(timeWithOutliers);
+
     var est = new AbsoluteTimeEstimator(30);
     for (var i = 0; i < 7; i++) {
       est.addTimePair(new Date(systemTime[i]), new Date(timeWithOutliers[i]));
     }
     
-    var estimatedTimes = systemTimes.map(function(x) {
-      return est.estimateCurrentTime(new Date(x));
+    var estimatedTime = systemTime.map(function(x) {
+      return est.estimateCurrentTime(new Date(x)).getTime();
     });
 
     console.log("True times");
-    console.log(trueTimes);
+    console.log(trueTime);
     console.log("Estimated times");
-    console.log(estimatedTimes);
+    console.log(estimatedTime);
   });
 });
 
