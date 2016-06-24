@@ -41,6 +41,12 @@ namespace sail {
     OP(rudderAngle) \
     OP(bestTwaEstimate)
 
+void analyzeNavsWithNaiveTrueWind(const Array<Nav> &navs, std::ostream *file,
+    const std::function<Angle<double>(Nav)> &getHeading) {
+
+  //std::vector<Angle<double> >
+}
+
 void analyzeNavArray(const Array<Nav> &navs, std::ostream *file) {
   #define DECLARE_HAS(g) \
     bool has_##g = false;
@@ -60,6 +66,17 @@ FOREACH_NAV_PH_FIELD(UPDATE_HAS)
   *file << "has " << std::string(#g) << "? " << std::string(has_##g? "YES" : "NO") << std::endl;
 FOREACH_NAV_PH_FIELD(LIST_IT)
 #undef LIST_IT
+
+  *file << "----------- Using the mag hdg as heading\n";
+  analyzeNavsWithNaiveTrueWind(navs, file, [](const Nav &nav) {
+    return nav.magHdg();
+  });
+
+  *file << "----------- Using the gps bearing as heading\n";
+  analyzeNavsWithNaiveTrueWind(navs, file, [](const Nav &nav) {
+    return nav.gpsBearing();
+  });
+
 }
 
 void analyzeNavDataset(const std::string &dstFilename, const Array<Nav> &navs) {
