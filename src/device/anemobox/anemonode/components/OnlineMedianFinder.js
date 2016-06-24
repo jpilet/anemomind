@@ -58,5 +58,8 @@ OnlineMedianFinder.prototype.addElement = function(x) {
   this.initialized = true;
 }
 
+OnlineMedianFinder.prototype.size = function() {
+  return this.smallElements.size() + this.bigElements.size();
+}
 
 module.exports = OnlineMedianFinder;

@@ -46,6 +46,7 @@ describe('OnlineMedianFinder', function() {
         var actualMedian = soFar[Math.floor(soFar.length/2)];
         assert.equal(actualMedian, finder.currentMedian);
       }
+      assert.equal(finder.size(), i+1);
     }
   });
 });
