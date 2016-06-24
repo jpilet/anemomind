@@ -22,7 +22,7 @@ AbsoluteTimeEstimator.prototype.addTimePair = function(systemTime, externalTime)
 
 AbsoluteTimeEstimator.prototype.estimateCurrentTime = function(systemTime) {
   return this.median == null?
-    null : return new Date(systemTime.getTime() + this.median);
+    null : new Date(systemTime.getTime() + this.median);
 }
 
 
