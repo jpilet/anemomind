@@ -27,7 +27,7 @@ describe('AbsoluteTimeEstimator', function() {
     });
 
     for (var i = 0; i < 7; i++) {
-      assert.equal(systemTime[i], estimatedTime[i]);
+      assert.equal(trueTime[i], estimatedTime[i]);
     }
   });
 });
