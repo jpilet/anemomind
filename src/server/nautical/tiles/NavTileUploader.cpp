@@ -44,7 +44,8 @@ namespace sail {
 
 #define SHOW_MEDIAN(x, unit) \
   std::sort(x.begin(), x.end()); \
-  std::cout << "Median error of " << #x << ": " << x[x.size()/2].unit() << std::endl;
+  std::cout << "Median error of " << #x << ": " << x[x.size()/2].unit() << " " \
+    << #unit << std::endl;
 
 void analyzeNavsWithNaiveTrueWind(const Array<Nav> &navs, std::ostream *file,
     const std::function<Angle<double>(Nav)> &getHeading) {
@@ -63,7 +64,11 @@ void analyzeNavsWithNaiveTrueWind(const Array<Nav> &navs, std::ostream *file,
     externalTws.push_back(estTws - nav.externalTws());
     tws.push_back(estTws - nav.trueWindOverGround().norm());
     externalTwdir.push_back((estTwdir - nav.externalTwdir()).normalizedAt0());
+    twdir.push_back((estTwdir - nav.twdir()).normalizedAt0());
+    externalTwa.push_back((estTwa - nav.externalTwa()).normalizedAt0());
+    twa.push_back((estTwa - nav.twaFromTrueWindOverGround()).normalizedAt0());
   }
+  SHOW_MEDIAN(externalTws, knots)
 }
 
 void analyzeNavArray(const Array<Nav> &navs, std::ostream *file) {
