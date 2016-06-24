@@ -21,22 +21,24 @@
 
 namespace sail {
 
-
-
-bool LogLoader::loadFile(const std::string &filename) {
+bool loadFileToAcc(const std::string &filename, LogAccumulator *acc) {
   std::string ext = toLower(Poco::Path(filename).getExtension());
   if (ext == "txt") {
-    Nmea0183Loader::loadNmea0183File(filename, &_acc);
+    Nmea0183Loader::loadNmea0183File(filename, acc);
     return true;
   } else if (ext == "csv") {
-    loadCsv(filename, &_acc);
+    loadCsv(filename, acc);
     return true;
   } else if (ext == "log") {
-    return ProtobufLogLoader::load(filename, &_acc);
+    return ProtobufLogLoader::load(filename, acc);
   } else {
     LOG(ERROR) << filename << ": unknown log file extension.";
     return false;
   }
+}
+
+bool LogLoader::loadFile(const std::string &filename) {
+  return loadFileToAcc(filename, &_acc);
 }
 
 void LogLoader::loadNmea0183(std::istream *s) {
