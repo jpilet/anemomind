@@ -27,6 +27,8 @@ function OnlineMedianFinder(cmp) {
 }
 
 OnlineMedianFinder.prototype.addElement = function(x) {
+  console.log("iteration-------------------------------------");
+  console.log('balance = ' + this.balance);
   switch (this.balance) {
   case 0:
     if (!this.initialized || lessThan(this.cmp, x, this.currentMedian)) {
@@ -41,12 +43,15 @@ OnlineMedianFinder.prototype.addElement = function(x) {
     break;
   case 1:
     if (lessThanOrEqual(this.cmp, x, this.currentMedian)) {
+      console.log("Push to small");
       this.smallElements.push(x);
     } else {
+      console.log("Push to big");
       this.bigElements.push(x);
       this.smallElements.push(this.bigElements.pop());
     }
     this.balance = 0;
+    break;
   case -1:
     if (lessThanOrEqual(this.cmp, x, this.currentMedian)) {
       this.smallElements.push(x);
@@ -55,7 +60,12 @@ OnlineMedianFinder.prototype.addElement = function(x) {
       this.bigElements.push(x);
     }
     this.balance = 0;
+    break;
   };
+
+  console.log("New balance: %d", this.balance);
+  console.log("Small elements size: ", this.smallElements.size());
+  console.log("Big elements size: ", this.bigElements.size());
 
   assert(!(this.balance == 0) || 
          this.smallElements.size() == this.bigElements.size());

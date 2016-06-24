@@ -37,9 +37,9 @@ describe('OnlineMedianFinder', function() {
     var finder = new OnlineMedianFinder(function(a, b) {return a - b;});
 
     for (var i = 0; i < values.length; i++) {
+      console.log("Compute median for %d", i);
       finder.addElement(values[i]);
       if (i % 2 == 0) {
-        console.log("Compute median for %d", i);
       }
     }
   });
