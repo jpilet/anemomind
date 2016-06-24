@@ -49,6 +49,8 @@ TEST(LoggerTest, LogText) {
   LogFile data;
   logger.flushTo(&data);
 
+  EXPECT_FALSE(data.has_bootcount());
+
   EXPECT_EQ(2, data.text_size());
 
   for (int i = 0; i < 2; ++i) {
