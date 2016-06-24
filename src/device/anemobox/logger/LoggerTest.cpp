@@ -18,8 +18,8 @@ TEST(LoggerTest, SmokeTest) {
   for (int i = 0; i < num_values; ++i) {
     dispatcher.publishValue(AWA, "test", Angle<double>::degrees(values[i]));
   }
-  std::string filename;
-  EXPECT_TRUE(logger.flushAndSave("./00000000576A5F3F.log", &filename));
+  const char filename[] = "./00000000576A5F3F.log";
+  EXPECT_TRUE(logger.flushAndSave(filename));
 
   LogFile loaded;
   EXPECT_TRUE(Logger::read(filename, &loaded));

@@ -119,8 +119,7 @@ bool isValidLogFilename(const std::string &s) {
 }
 
 
-bool Logger::flushAndSave(const std::string& filename,
-                          std::string *savedFilename) {
+bool Logger::flushAndSave(const std::string& filename) {
   if (!isValidLogFilename(filename)) {
     LOG(ERROR) << "Invalid log filename: " << filename;
     return false;
@@ -138,9 +137,6 @@ bool Logger::flushAndSave(const std::string& filename,
   if (!save(filename, container)) {
     LOG(ERROR) << "Failed to save log file.";
     return false;
-  }
-  if (savedFilename) {
-    *savedFilename = filename;
   }
   return true;
 }

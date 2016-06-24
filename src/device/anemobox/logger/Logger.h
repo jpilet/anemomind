@@ -152,10 +152,7 @@ class Logger {
   void flushTo(LogFile* container);
 
   // Convenience function to call flushTo, nextFilename and save.
-  bool flushAndSave(const std::string& folder, std::string *savedFilename = 0);
-
-  // Generate a new filename to save the next logfile to.
-  static std::string nextFilename(const std::string& folder);
+  bool flushAndSave(const std::string& filename);
 
   void logText(const std::string& streamName, const std::string& content);
 
