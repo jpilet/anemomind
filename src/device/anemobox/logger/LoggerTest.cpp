@@ -199,3 +199,8 @@ TEST(LoggerTest, ReadInteger2) {
   EXPECT_EQ(value.get(), 119);
 }
 
+TEST(LoggerTest, LogFilenames) {
+  EXPECT_TRUE(isValidLogFilename("0000000000000000.log"));
+  EXPECT_FALSE(isValidLogFilename("boatlog"));
+  EXPECT_FALSE(isValidLogFilename("boatlog.txt"));
+}
