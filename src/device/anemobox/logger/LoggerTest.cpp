@@ -3,6 +3,8 @@
 #include <gtest/gtest.h>
 #include <boost/filesystem.hpp>
 #include <device/anemobox/FakeClockDispatcher.h>
+#include <cstdio>
+#include <fstream>
 
 using namespace sail;
 
@@ -23,7 +25,7 @@ TEST(LoggerTest, SmokeTest) {
   EXPECT_TRUE(Logger::read(filename, &loaded));
   EXPECT_EQ(1, loaded.stream_size());
 
-  EXPECT_EQ(num_values, loaded.stream(0).timestamps_size());
+  EXPECT_EQ(num_values, loaded.stream(0).timestampssinceboot_size());
   EXPECT_EQ(num_values, loaded.stream(0).angles().deltaangle_size());
 
   std::vector<Angle<double>> angles;
@@ -53,13 +55,13 @@ TEST(LoggerTest, LogText) {
     auto stream = data.text(i);
     if (stream.source() == "source A") {
       EXPECT_EQ(2, stream.text_size());
-      EXPECT_EQ(2, stream.timestamps_size());
+      EXPECT_EQ(2, stream.timestampssinceboot_size());
       EXPECT_EQ("sentence A1", stream.text(0));
       EXPECT_EQ("sentence A2", stream.text(1));
     } else {
       EXPECT_EQ("source B", stream.source());
       EXPECT_EQ(1, stream.text_size());
-      EXPECT_EQ(1, stream.timestamps_size());
+      EXPECT_EQ(1, stream.timestampssinceboot_size());
       EXPECT_EQ("sentence B1", stream.text(0));
     }
   }
@@ -165,3 +167,33 @@ TEST(LoggerTest, LogTime) {
   EXPECT_EQ(systemTimes[1], laterInTheMorning);
   EXPECT_EQ(saved.stream(0).shortname(), "dateTime");
 }
+
+TEST(LoggerTest, ReadInteger0) {
+  const char filename[] = "/tmp/this_file_should_not_exist.txt";
+  std::remove(filename);
+  int64_t value = readIntegerFromTextFile(filename);
+  EXPECT_EQ(value, 0);
+}
+
+TEST(LoggerTest, ReadInteger1) {
+  const char filename[] = "/tmp/here_there_is_an_integer_i_hope.txt";
+  std::remove(filename);
+  {
+    std::ofstream file(filename);
+    file << 119;
+  }
+  int64_t value = readIntegerFromTextFile(filename);
+  EXPECT_EQ(value, 119);
+}
+
+TEST(LoggerTest, ReadInteger2) {
+  const char filename[] = "/tmp/here_there_is_an_integer_i_hope_with_whitespace.txt";
+  std::remove(filename);
+  {
+    std::ofstream file(filename);
+    file << "  " << 119 << "\n ";
+  }
+  int64_t value = readIntegerFromTextFile(filename);
+  EXPECT_EQ(value, 119);
+}
+

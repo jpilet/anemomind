@@ -46,7 +46,11 @@ message ValueSet {
   optional int32 priority = 9;
 
   // Time associated with every value
+  
+  // Deprecated, will be empty:
   repeated int64 timestamps = 2 [packed = true];
+  
+  repeated int64 timestampssinceboot = 12 [packed = true];
   
   // Exactly one of the following
   optional AngleValueSet angles = 3;

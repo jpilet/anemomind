@@ -41,12 +41,27 @@ Logger::Logger(Dispatcher* dispatcher) :
   subscribe();
 }
 
+namespace {
+
+  const google::protobuf::RepeatedField<std::int64_t> &getBestKnownTimeStamps(
+      const ValueSet &x) {
+    return x.timestamps().size() > x.timestampssinceboot().size()?
+      x.timestamps()
+      : x.timestampssinceboot();
+  }
+
+  bool hasTimeStamps(const ValueSet &x) {
+    return getBestKnownTimeStamps(x).size() > 0;
+  }
+}
+
+
 void Logger::flushTo(LogFile* container) {
   // Clear content.
   *container = LogFile();
  
   for (auto ptr : _listeners) {
-    if (ptr->valueSet().timestamps_size() > 0) {
+    if (hasTimeStamps(ptr->valueSet())) {
       // the priority is set every time flushTo is called, since the 
       // priority in the dispatcher can change.
       // We do not log exactly when the priority changed, though.
@@ -57,15 +72,34 @@ void Logger::flushTo(LogFile* container) {
     ptr->clear();
   }
   for (auto it = _textLoggers.begin();  it != _textLoggers.end(); ++it) {
-    if (it->second.valueSet().timestamps_size() > 0) {
+    if (hasTimeStamps(it->second.valueSet())) {
       container->add_text()->Swap(it->second.mutable_valueSet());
     }
     it->second.clear();
   }
 }
 
+int64_t readIntegerFromTextFile(const std::string &filename) {
+  std::ifstream file(filename);
+  try {
+    int64_t value = -1;
+    file >> value;
+
+    if (value >= 0) { // We cannot have negative boot count, right?
+      // Everything went well
+      return value;
+    }
+
+  } catch (const std::exception &e) {}
+
+  // Whenever there is no valid value available.
+  return 0;
+}
+
 std::string Logger::nextFilename(const std::string& folder) {
-  return folder + int64ToHex(TimeStamp::now().toSecondsSince1970()) + ".log";
+  const char filename[] = "/home/anemobox/bootcount"; // <-- see anemonode/run.sh
+  return folder + int64ToHex(readIntegerFromTextFile(filename))
+      + int64ToHex(TimeStamp::now().toSecondsSince1970()) + ".log";
 }
 
 bool Logger::flushAndSave(const std::string& folder,
@@ -224,7 +258,7 @@ void Logger::unpack(const google::protobuf::RepeatedField<std::int64_t> &times,
 
 void Logger::unpackTime(const ValueSet& valueSet,
                         std::vector<TimeStamp>* result) {
-  unpackTimeSub(valueSet.timestamps(), result);
+  unpackTimeSub(getBestKnownTimeStamps(valueSet), result);
 }
 
 
