@@ -18,7 +18,8 @@
     "noble": "^1.1.0",
     "node-pre-gyp": "^0.6.0",
     "q": "^1.4.1",
-    "serialport": "^1.6.3"
+    "serialport": "^1.6.3",
+    "heap": "^0.2.6"
   },
   "devDependencies": {
     "mocha": "^2.2.5",
