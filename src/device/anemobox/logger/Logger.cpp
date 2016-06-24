@@ -10,6 +10,7 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <google/protobuf/io/gzip_stream.h>
+#include <server/common/Optional.h>
 
 using namespace google::protobuf::io;
 using namespace boost::iostreams;
@@ -79,7 +80,7 @@ void Logger::flushTo(LogFile* container) {
   }
 }
 
-int64_t readIntegerFromTextFile(const std::string &filename) {
+Optional<int64_t> readIntegerFromTextFile(const std::string &filename) {
   std::ifstream file(filename);
   try {
     int64_t value = -1;
@@ -93,12 +94,20 @@ int64_t readIntegerFromTextFile(const std::string &filename) {
   } catch (const std::exception &e) {}
 
   // Whenever there is no valid value available.
-  return 0;
+  return Optional<int64_t>();
+}
+
+namespace {
+  std::string getBootCountString(const std::string &filename) {
+    auto value = readIntegerFromTextFile(filename);
+    return value.defined()?
+        int64ToHex(value.get()) : "";
+  }
 }
 
 std::string Logger::nextFilename(const std::string& folder) {
   const char filename[] = "/home/anemobox/bootcount"; // <-- see anemonode/run.sh
-  return folder + int64ToHex(readIntegerFromTextFile(filename))
+  return folder + getBootCountString(filename)
       + int64ToHex(TimeStamp::now().toSecondsSince1970()) + ".log";
 }
 

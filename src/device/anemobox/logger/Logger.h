@@ -19,7 +19,7 @@ void addTimeStampToRepeatedFields(
     google::protobuf::RepeatedField<std::int64_t> *dst,
     TimeStamp);
 
-int64_t readIntegerFromTextFile(const std::string &filename);
+Optional<int64_t> readIntegerFromTextFile(const std::string &filename);
 
 // Listen and save a single stream of values.
 class LoggerValueListener:
