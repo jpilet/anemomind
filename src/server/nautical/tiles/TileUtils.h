@@ -12,6 +12,10 @@
 
 namespace sail {
 
+class NavDataset;
+
+void analyzeNavDataset(const std::string &dstFilename, const NavDataset &ds);
+
 class TileGeneratorParameters;
 void processTiles(const TileGeneratorParameters &params,
    std::string boatId, std::string navPath,

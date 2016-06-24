@@ -1,6 +1,5 @@
 
 #include <server/nautical/tiles/NavTileUploader.h>
-
 #include <algorithm>
 #include <device/Arduino/libraries/TrueWindEstimator/TrueWindEstimator.h>
 #include <mongo/client/dbclient.h>
@@ -9,6 +8,7 @@
 #include <server/common/Span.h>
 #include <server/common/logging.h>
 #include <server/nautical/tiles/NavTileGenerator.h>
+#include <fstream>
 
 using namespace mongo;
 
@@ -18,6 +18,66 @@ namespace mongo { namespace client { void initialize() { } } }
 #endif
 
 namespace sail {
+
+
+
+#define FOREACH_NAV_PH_FIELD(OP) \
+    OP(awa) \
+    OP(aws) \
+    OP(magHdg) \
+    OP(gpsBearing) \
+    OP(gpsSpeed) \
+    OP(watSpeed) \
+    OP(externalTwa) \
+    OP(externalTws) \
+    OP(twdir) \
+    OP(externalTwdir) \
+    OP(twaFromTrueWindOverGround) \
+    OP(deviceTargetVmg) \
+    OP(deviceVmg) \
+    OP(deviceTws) \
+    OP(deviceTwdir) \
+    OP(deviceTwa) \
+    OP(rudderAngle) \
+    OP(bestTwaEstimate)
+
+void analyzeNavArray(const Array<Nav> &navs, std::ostream *file) {
+  #define DECLARE_HAS(g) \
+    bool has_##g = false;
+  FOREACH_NAV_PH_FIELD(DECLARE_HAS)
+  #undef DECLARE_HAS
+
+  for (auto nav: navs) {
+#define UPDATE_HAS(g) \
+  has_##g |= isFinite(nav.g());
+FOREACH_NAV_PH_FIELD(UPDATE_HAS)
+#undef UPDATE_HAS
+  }
+
+  *file << "\n\n------------------ Available nav fields\n";
+
+#define LIST_IT(g) \
+  *file << "has " << std::string(#g) << "? " << std::string(has_##g? "YES" : "NO") << std::endl;
+FOREACH_NAV_PH_FIELD(LIST_IT)
+#undef LIST_IT
+}
+
+void analyzeNavDataset(const std::string &dstFilename, const Array<Nav> &navs) {
+  std::ofstream file(dstFilename);
+  analyzeNavArray(navs, &file);
+}
+
+
+void analyzeNavDataset(const std::string &dstFilename, const NavDataset &ds) {
+  std::ofstream file(dstFilename);
+  file << "------------- Dataset summary\n";
+  ds.outputSummary(&file);
+
+  auto navs = NavCompat::makeArray(ds);
+  analyzeNavArray(navs, &file);
+}
+
+
 
 using namespace NavCompat;
 
@@ -344,7 +404,10 @@ BSONObj makeBsonTile(const TileKey& tileKey,
   append(tile, "created", TimeStamp::now());
 
   std::vector<BSONObj> curves;
+  int counter = 0;
   for (auto subCurve: subCurvesInTile) {
+    analyzeNavDataset(stringFormat("/tmp/tilestep3_subcurve%03d.txt", counter),
+        subCurve);
     BSONObjBuilder subCurveBuilder;
 
     subCurveBuilder
@@ -352,6 +415,7 @@ BSONObj makeBsonTile(const TileKey& tileKey,
       .append("points", navsToBSON(subCurve));
 
     curves.push_back(subCurveBuilder.obj());
+    counter++;
   }
   tile.append("curves", curves);
   return tile.obj();

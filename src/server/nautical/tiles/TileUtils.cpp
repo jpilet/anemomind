@@ -81,6 +81,8 @@ void processTiles(const TileGeneratorParameters &params,
     std::string boatDat, std::string polarDat) {
     auto rawNavs0 = LogLoader::loadNavDataset(navPath);
 
+    analyzeNavDataset("/tmp/tilestep0_rawNavs0.txt", rawNavs0);
+
     CHECK(isValid(rawNavs0.dispatcher().get())) << "The loaded data is invalid, please fix the code";
 
     LOG(INFO) << "Raw navs";
@@ -91,6 +93,8 @@ void processTiles(const TileGeneratorParameters &params,
       LOG(WARNING) << "Simulation failed";
       return;
     }
+
+    analyzeNavDataset("/tmp/tilestep1_simulated.txt", simulated);
 
     LOG(INFO) << "Filtered";
     LOG(INFO) << simulated;
@@ -125,6 +129,12 @@ void processTiles(const TileGeneratorParameters &params,
       LOG(WARNING) << "No sessions";
     }
 
+    {
+      for (int i = 0; i < sessions.size(); i++) {
+        analyzeNavDataset(stringFormat("/tmp/tilestep2_filtered%03d.txt", i),
+            sessions[i]);
+      }
+    }
 
     if (!generateAndUploadTiles(boatId, sessions, params)) {
       LOG(FATAL) << "When processing: " << navPath;

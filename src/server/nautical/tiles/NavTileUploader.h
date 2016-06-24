@@ -37,6 +37,8 @@ struct TileGeneratorParameters {
   std::string _tileTable, _sessionTable;
 };
 
+void analyzeNavDataset(const std::string &dstFilename, const NavDataset &ds);
+
 bool generateAndUploadTiles(std::string boatId,
                             Array<NavDataset> allNavs,
                             const TileGeneratorParameters& params);

@@ -108,6 +108,7 @@ NavDataset SimulateBox(std::istream &boatDat, const NavDataset &ds) {
   auto replay = new ReplayDispatcher();
   DispatcherTrueWindEstimator estimator(replay);
   if (!estimator.loadCalibration(boatDat)) {
+    LOG(ERROR) << "Failed to load calibration";
     return NavDataset();
   }
   auto srcName = std::string("Simulated ") + estimator.sourceName();
