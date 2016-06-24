@@ -9,6 +9,7 @@
 #include <server/common/logging.h>
 #include <server/nautical/tiles/NavTileGenerator.h>
 #include <fstream>
+#include <server/nautical/common.h>
 
 using namespace mongo;
 
@@ -41,10 +42,28 @@ namespace sail {
     OP(rudderAngle) \
     OP(bestTwaEstimate)
 
+#define SHOW_MEDIAN(x, unit) \
+  std::sort(x.begin(), x.end()); \
+  std::cout << "Median error of " << #x << ": " << x[x.size()/2].unit() << std::endl;
+
 void analyzeNavsWithNaiveTrueWind(const Array<Nav> &navs, std::ostream *file,
     const std::function<Angle<double>(Nav)> &getHeading) {
+  std::vector<Velocity<double> > externalTws, tws;
+  std::vector<Angle<double> > externalTwdir, twdir, externalTwa, twa;
 
-  //std::vector<Angle<double> >
+
+  for (auto nav: navs) {
+    auto hdg = getHeading(nav);
+    auto aw = computeApparentWind<double>(hdg, nav.awa(), nav.aws());
+    auto tw = computeTrueFlowFromBoatMotionAndApparentFlow(nav.gpsMotion(), aw);
+    auto estTwdir = computeTwdirFromTrueWind(tw);
+    auto estTwa = computeTwaFromTrueWind(hdg, tw);
+    auto estTws= tw.norm();
+
+    externalTws.push_back(estTws - nav.externalTws());
+    tws.push_back(estTws - nav.trueWindOverGround().norm());
+    externalTwdir.push_back((estTwdir - nav.externalTwdir()).normalizedAt0());
+  }
 }
 
 void analyzeNavArray(const Array<Nav> &navs, std::ostream *file) {
