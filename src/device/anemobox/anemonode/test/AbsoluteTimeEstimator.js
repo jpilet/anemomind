@@ -17,9 +17,6 @@ describe('AbsoluteTimeEstimator', function() {
       return x;
     });
 
-    console.log("Time with outliers: ");
-    console.log(timeWithOutliers);
-
     var est = new AbsoluteTimeEstimator(30);
     for (var i = 0; i < 7; i++) {
       est.addTimePair(new Date(systemTime[i]), new Date(timeWithOutliers[i]));
@@ -29,10 +26,9 @@ describe('AbsoluteTimeEstimator', function() {
       return est.estimateCurrentTime(new Date(x)).getTime();
     });
 
-    console.log("True times");
-    console.log(trueTime);
-    console.log("Estimated times");
-    console.log(estimatedTime);
+    for (var i = 0; i < 7; i++) {
+      assert.equal(systemTime[i], estimatedTime[i]);
+    }
   });
 });
 

@@ -13,10 +13,8 @@ AbsoluteTimeEstimator.prototype.addTimePair = function(systemTime, externalTime)
     assert(systemTime instanceof Date);
     assert(externalTime instanceof Date);
     var dif = externalTime.getTime() - systemTime.getTime();
-    console.log("Time dif: " + dif);
     this.omf.addElement(dif);
     this.median = this.omf.currentMedian;
-    console.log("Median: " + this.median);
   }
   if (this.omf.size() >= this.maxCount) {
     this.omf = null;    
