@@ -1,4 +1,3 @@
-var DelayedCall = require('../components/DelayedCall.js');
 var assert = require('assert');
 var OnlineMedianFinder = require('../components/OnlineMedianFinder.js');
 
