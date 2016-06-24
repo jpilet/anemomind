@@ -37,11 +37,12 @@ describe('OnlineMedianFinder', function() {
     var finder = new OnlineMedianFinder(function(a, b) {return a - b;});
 
     for (var i = 0; i < values.length; i++) {
-      console.log("Compute median for %d", i);
       finder.addElement(values[i]);
-      int soFar = values.slice(0, i+1);
-      if (soFar.length % 2 == 1) {
-        console.log("###Try it now");
+      if (i % 2 == 0) {
+        var soFar = values.slice(0, i+1);
+        soFar.sort();
+        var actualMedian = soFar[Math.floor(soFar.length/2)];
+        assert.equal(actualMedian, finder.currentMedian);
       }
     }
   });
