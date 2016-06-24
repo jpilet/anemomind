@@ -15,9 +15,9 @@ AbsoluteTimeEstimator.prototype.addTimePair = function(systemTime, externalTime)
     var dif = externalTime.getTime() - systemTime.getTime();
     this.omf.addElement(dif);
     this.median = this.omf.currentMedian;
-  }
-  if (this.omf.size() >= this.maxCount) {
-    this.omf = null;    
+    if (this.omf.size() >= this.maxCount) {
+      this.omf = null;    
+    }
   }
 }
 
