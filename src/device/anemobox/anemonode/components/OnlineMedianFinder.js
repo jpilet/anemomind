@@ -9,7 +9,8 @@ function lessThanOrEqual(cmp, a, b) {
   return cmp(a, b) <= 0;
 }
 
-// http://denenberg.com/omf.pdf, Figure 1
+
+// Implements http://denenberg.com/omf.pdf, Figure 1
 function OnlineMedianFinder(cmp) {
   this.initialized = false;
   this.cmp = cmp;
