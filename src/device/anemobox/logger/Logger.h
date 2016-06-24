@@ -20,6 +20,8 @@ void addTimeStampToRepeatedFields(
     TimeStamp);
 
 Optional<int64_t> readIntegerFromTextFile(const std::string &filename);
+bool isValidLogFilename(const std::string &s);
+
 
 // Listen and save a single stream of values.
 class LoggerValueListener:

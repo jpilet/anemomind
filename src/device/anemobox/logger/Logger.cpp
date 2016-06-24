@@ -11,6 +11,7 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <google/protobuf/io/gzip_stream.h>
 #include <server/common/Optional.h>
+#include <regex>
 
 using namespace google::protobuf::io;
 using namespace boost::iostreams;
@@ -39,12 +40,6 @@ Optional<int64_t> readIntegerFromTextFile(const std::string &filename) {
 namespace {
   Optional<int64_t> getBootCount() {
     return readIntegerFromTextFile("/home/anemobox/bootcount"); // <-- see anemonode/run.sh
-  }
-
- std::string getBootCountString() {
-    auto value = getBootCount();
-    return value.defined()?
-        int64ToHex(value.get()) : "";
   }
 }
 
@@ -117,13 +112,20 @@ void Logger::flushTo(LogFile* container) {
   }
 }
 
-std::string Logger::nextFilename(const std::string& folder) {
-  return folder + getBootCountString()
-      + int64ToHex(TimeStamp::now().toSecondsSince1970()) + ".log";
+
+bool isValidLogFilename(const std::string &s) {
+  static std::regex pattern("(^.*\\.log$)");
+  return std::regex_match(s, pattern);
 }
 
-bool Logger::flushAndSave(const std::string& folder,
+
+bool Logger::flushAndSave(const std::string& filename,
                           std::string *savedFilename) {
+  if (!isValidLogFilename(filename)) {
+    LOG(ERROR) << "Invalid log filename: " << filename;
+    return false;
+  }
+
   LogFile container;
 
   flushTo(&container);
@@ -132,8 +134,6 @@ bool Logger::flushAndSave(const std::string& folder,
     // nothing to save.
     return false;
   }
-
-  std::string filename = nextFilename(folder);
 
   if (!save(filename, container)) {
     LOG(ERROR) << "Failed to save log file.";
