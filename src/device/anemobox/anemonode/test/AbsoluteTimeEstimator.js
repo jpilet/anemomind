@@ -18,6 +18,8 @@ describe('AbsoluteTimeEstimator', function() {
         return 1234343;
       } else if (index == 4) {
         return 55005550;
+      } else if (index > 15) {
+        return Math.random();
       }
       return x;
     });
