@@ -3,7 +3,12 @@ var AbsoluteTimeEstimator = require('../components/AbsoluteTimeEstimator.js');
 
 describe('AbsoluteTimeEstimator', function() {
   it('ate', function() {
-    var systemTime = [0, 1000, 2000, 4000, 9000, 12000, 13000];
+    var n = 30;
+    var systemTime = [];
+    for (var i = 0; i < n; i++) {
+      systemTime.push(i*1000);
+    }
+    
     var offset = 60000;
     var trueTime = systemTime.map(function(x) {
       return x + offset;
@@ -17,8 +22,8 @@ describe('AbsoluteTimeEstimator', function() {
       return x;
     });
 
-    var est = new AbsoluteTimeEstimator(30);
-    for (var i = 0; i < 7; i++) {
+    var est = new AbsoluteTimeEstimator(7);
+    for (var i = 0; i < n; i++) {
       est.addTimePair(new Date(systemTime[i]), new Date(timeWithOutliers[i]));
     }
     
@@ -26,7 +31,7 @@ describe('AbsoluteTimeEstimator', function() {
       return est.estimateCurrentTime(new Date(x)).getTime();
     });
 
-    for (var i = 0; i < 7; i++) {
+    for (var i = 0; i < n; i++) {
       assert.equal(trueTime[i], estimatedTime[i]);
     }
   });
