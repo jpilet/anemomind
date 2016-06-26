@@ -9,6 +9,13 @@
   border-radius: 25px;  
 }
 
+.btn-action-inv{
+  color: #fff;
+  background-color: #ff0033;
+  border-color: #ccc;
+  border-radius: 25px;  
+}
+
 .form-control-inline {
     border: none;
     box-shadow: none;

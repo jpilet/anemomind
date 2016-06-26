@@ -14,6 +14,19 @@ angular.module('www2App')
 
 
     //
+    // update local dict and array of boats
+    function updateBoatRepo(boat) {
+      boatDict[boat._id] = boat;
+      for (var i in boats) {
+        if (boats[i]._id == boat._id) {
+          boats[i] = boat;
+          return;
+         }
+      }
+      boats.push(boat);
+    }    
+
+    //
     // return the default boat to display at home
     function getDefaultBoat() {
       if(!boats.length){
@@ -69,6 +82,20 @@ angular.module('www2App')
     }
 
 
+    function save(id,boat) {
+      var promise=$http.put('/api/boats/' + id, boat);
+      promise.success(updateBoatRepo);
+      return promise;
+      
+    }
+
+    function addMember(id,invitation) {
+      var promise=$http.put('/api/boats/' + id + '/invite', invitation);
+      promise.success(updateBoatRepo);
+      return promise;
+    }
+
+
     function locationForCurve(curveId) {
       if (!(curveId in curves)) {
         return undefined;
@@ -90,6 +117,8 @@ angular.module('www2App')
     // service result
     return {
       boat: function(id) { return boatDict[id]; },
+      save: save,
+      addMember:addMember,
       boats: function() { return promise; },
       sessions: function() { return $.extend({}, sessionsForBoats); },
       sessionsForBoat: function(boatId) { return sessionsForBoats[boatId]; },

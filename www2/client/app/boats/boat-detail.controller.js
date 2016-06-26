@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('www2App')
-  .controller('BoatDetailCtrl', function ($scope, $stateParams, Auth, $http, userDB) {
+  .controller('BoatDetailCtrl', function ($scope, $stateParams, Auth, $http, userDB, boatList) {
     $scope.boat = { sails: [] };
     $scope.invitationMessage = "";
     $scope.invitedEMail = "";
@@ -17,20 +17,18 @@ angular.module('www2App')
       });
     };
 
-    $http.get('/api/boats/' + $stateParams.boatId)
-    .success(function(data, status, headers, config) {
-      $scope.boat = data;
-      for (var i in data.admins) {
-        resolveUser(data.admins[i]);
-      }
-      for (var i in data.readers) {
-        resolveUser(data.readers[i]);
-      }
+    boatList.boats().then(function (boats) {
+      var boat=$scope.boat=boatList.boat($stateParams.boatId);
+      boat.admins.forEach(resolveUser);
+      boat.readers.forEach(resolveUser);
     });
 
+
     $scope.saveBoat = function() {
-      $http.put('/api/boats/' + $stateParams.boatId, $scope.boat)
-      .success(function(data) { $scope.boat = data; });
+      boatList.save($stateParams.boatId, $scope.boat)
+        .success(function(boat) { 
+          $scope.boat = boat; 
+        });
     }
 
     $scope.addMember = function() {
@@ -39,7 +37,7 @@ angular.module('www2App')
         admin: $scope.invitedAdmin
       };
 
-      $http.put('/api/boats/' + $stateParams.boatId + '/invite', invitation)
+      boatList.addMember($stateParams.boatId,invitation)
       .success(function(data, status, header, config) {
         if (data.message) {
           $scope.invitationMessage = data.message;
