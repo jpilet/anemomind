@@ -16,11 +16,21 @@ int main(int argc, const char **argv) {
   string tableName = "boatstats";
   args.registerOption("--id", "Generate mongo script to store the table to the given boat id").store(&boatId);
   args.registerOption("--table", "Mongo table");
+
+  string format = "json";
+  args.registerOption("--format", "destination format (csv or json)")
+    .store(&format);
+
   args.parse(argc, argv);
 
   if (args.freeArgs().size() != 1) {
     cerr << "usage: " << argv[0] << " <boat.dat>\n";
     return 1;
+  }
+
+  if (format != "json" && format != "csv") {
+    cerr << format << ": unknown format. only json and csv are supported.";
+    return 2;
   }
 
   for (auto arg : args.freeArgs()) {
@@ -32,7 +42,11 @@ int main(int argc, const char **argv) {
           << "{_id: ObjectId(\"" << boatId << "\"), vmgtable:\n";
       }
 
-      printTargetSpeedAsJson(table);
+      if (format == "json") {
+        printTargetSpeedAsJson(table);
+      } else if (format == "csv") {
+        printTargetSpeedAsCsv(table);
+      }
 
       if (!boatId.empty()) {
         cout << "}, { upsert: true });\n";
