@@ -13,11 +13,8 @@ function sourceName() { return source; }
 config.events.on('change', function() { module.exports.reset(); });
 
 function init(nmea0183PortPath, dataCb) {
-  // Let flow control make the port work.
-  fs.writeFile('/sys/kernel/debug/gpio_debug/gpio129/current_pinmux',
-               'mode0', function() {});
-  fs.writeFile('/sys/kernel/debug/gpio_debug/gpio129/current_value',
-               'high', function() {});
+
+  require('./pinconfig').activateNmea0183();
 
   config.get(function(err, config) {
     var port;
