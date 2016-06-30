@@ -9,6 +9,7 @@
 #include <server/common/logging.h>
 #include <server/nautical/tiles/NavTileGenerator.h>
 #include <fstream>
+#include <vector>
 #include <server/nautical/common.h>
 #include <server/math/nonlinear/SpatialMedian.h>
 #include <server/common/ArrayBuilder.h>
@@ -245,31 +246,49 @@ void analyzeFullDataset(
     std::string filename,
     NavDataset ds) {
   auto dispatcher = ds.dispatcher();
+  std::vector<TWAValues> twaChannels;
+  accumulateTWAValues("loadedData_", dispatcher, &twaChannels);
+  accumulateTWAValues("groundTruth_", getGroundTruth().dispatcher(), &twaChannels);
   {
     std::ofstream file(filename + ".txt");
-    std::vector<TWAValues> twaChannels;
-    accumulateTWAValues("loadedData_", dispatcher, &twaChannels);
-    accumulateTWAValues("groundTruth_", getGroundTruth().dispatcher(), &twaChannels);
     comparePairwiseChannels(twaChannels, &file);
   }{
+
+    auto subDS = ds;
+
     using namespace GpsUtils;
 
-    GpsFilterResults filtered = filterGpsData(ds);
+    GpsFilterResults filtered = filterGpsData(subDS);
 
     std::ofstream file(filename + "_matrix.txt");
-    file <<  "% Columns: Time (seconds), X (meters), Y (meters)\n";
+    file <<  "% Columns: Time (seconds), X (meters), Y (meters), ";
+    for (auto ch: twaChannels) {
+      file << "[" << ch.first << "] ";
+    }
+    file << std::endl;
 
     auto positions = filtered.getGlobalPositions();
 
 
-    TimeStamp refTime = positions[positions.size()/2].time;
+    auto refTime = TimeStamp::UTC(2016, 6, 22, 15, 27, 0);
 
     GeographicReference ref = filtered.geoRef;
 
 
     for (auto pos: positions) {
       auto xy = ref.map(pos.value);
-      file << (pos.time - refTime).seconds() << " " << xy[0].meters() << " " << xy[1].meters() << std::endl;
+      file << (pos.time - refTime).seconds() << " " << xy[0].meters() << " " << xy[1].meters();
+      for (auto ch: twaChannels) {
+        TimedSampleRange<Angle<double> > samples(ch.second.begin(), ch.second.end());
+        Optional<TimedValue<Angle<double> > > x = samples.nearest(pos.time);
+        file << " ";
+        if (x.defined()) {
+          file << x.get().value.degrees();
+        } else {
+          file << "NAN";
+        }
+      }
+      file << std::endl;
     }
   }
 }
