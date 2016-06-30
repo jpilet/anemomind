@@ -1,5 +1,12 @@
-data = load('/tmp/tilestep0_dispatcher_matrix.txt');
-
+data = load('/tmp/tilestep1_dispatcher_matrix.txt');
+labels = {'Time (seconds)', 'X (meters)', 'Y (meters)', ...
+          '[loadedData_Anemomind estimator]', ...
+          '[loadedData_NMEA2000/c078be002fb00000]',...
+          '[loadedData_Simulated Anemomind estimator]',...
+          '[groundTruth_CSV imported]'};
+          
+assert(numel(labels) == size(data, 2));        
+          
 total_data_size = size(data, 1)
 
 if 0,
@@ -21,15 +28,21 @@ data = data(inds, :);
 
 fprintf("For %.3g seconds\n", data(end, 1) - data(1, 1));
 
+
+
 time = data(:, 1);
 X = data(:, 2);
 Y = data(:, 3);
 
-twa0 = make_continuous(data(:, 4));
-twa1 = make_continuous(data(:, 5));
-twa2 = make_continuous(data(:, 6));
+[~, index] = min(abs(time));
 
-if false,
+values_at_ref = data(index, :);
+fprintf("At reference time, we have:\n");
+for i = 1:numel(labels),
+  fprintf('   - %s: %8.6f\n', labels{i}, values_at_ref(i));
+end
+
+if true,
   k = 10000;
   good = abs(X) < k & abs(Y) < k;
 
@@ -38,11 +51,14 @@ if false,
 end
 
 if true,
-  plot(time, twa0, 'b');
-  hold on
-  plot(time, twa1, 'r');
-  plot(time, twa2, 'k');
+  c = 'rgbk'
+  figure;
+  k = 1;
+  for i = 4:size(data, 2),
+    plot(time, make_continuous(data(:, i)), c(k));
+    hold on
+    k = k + 1;
+  end
   hold off
-  
-  legend('Our', 'NMEA2000', 'Ground truth CSV');
+  legend('[loadedData_Anemomind estimator]', '[loadedData_NMEA2000/c078be002fb00000]', '[loadedData_Simulated Anemomind estimator]', '[groundTruth_CSV imported]');
 end
