@@ -12,6 +12,7 @@
 #include <server/nautical/common.h>
 #include <server/math/nonlinear/SpatialMedian.h>
 #include <server/common/ArrayBuilder.h>
+#include <server/nautical/logimport/LogLoader.h>
 
 using namespace mongo;
 
@@ -22,6 +23,20 @@ namespace mongo { namespace client { void initialize() { } } }
 
 namespace sail {
 
+
+
+NavDataset loadGroundTruth() {
+  std::string filename = "/home/jonas/prog/anemomind/datasets/AlinghiGC32/2016-22-06cardifftrainday.csv";
+  LogLoader loader;
+  loader.load(filename);
+  auto ds = loader.makeNavDataset();
+  CHECK(!ds.isDefaultConstructed());
+
+  LOG(INFO) << "LOADED THE ORACLE";
+  return ds;
+}
+
+static NavDataset groundTruth = loadGroundTruth();
 
 
 #define FOREACH_NAV_PH_FIELD(OP) \
@@ -62,6 +77,11 @@ T computeMedian(std::vector<T> *vec) {
 
 template <>
 Angle<double> computeMedian<Angle<double> >(std::vector<Angle<double> > *angles) {
+  if (angles->size() == 0) {
+    LOG(WARNING) << "NO angles";
+    return Angle<double>();
+  }
+
   ArrayBuilder<Eigen::Vector2d> vectors;
   for (auto angle: *angles) {
     if (isFinite(angle)) {
@@ -80,14 +100,22 @@ Angle<double> computeMedian<Angle<double> >(std::vector<Angle<double> > *angles)
 
 #define SHOW_MEDIAN(x, unit) \
   *file << "Median error of " << padded(#x, 17) << ": " << computeMedian(&x).unit() << " " \
-    << #unit << std::endl;
+    << #unit << " (of " << x.size() << " values)" << std::endl;
 
 void analyzeNavsWithNaiveTrueWind(const Array<Nav> &navs, std::ostream *file,
     const std::function<Angle<double>(Nav)> &getHeading) {
-  std::vector<Velocity<double> > externalTws, tws;
-  std::vector<Angle<double> > externalTwdir, twdir, externalTwa, twa;
+
+  std::vector<Velocity<double> > twsExternalAndDebug, twsOursAndDebug;
+  std::vector<Angle<double> > twdirExternalAndDebug, twdirOursAndDebug, twaExternalAndDebug, twa;
+  std::vector<Angle<double> > twaOursAndGT, twaExternalAndGT, twaDebugAndGT;
+
+  auto gtTwaSamples = groundTruth.samples<TWA>();
+  if (gtTwaSamples.empty()) {
+    LOG(FATAL) << "No ground truth data!";
+  }
 
   for (auto nav: navs) {
+
     auto hdg = getHeading(nav);
     auto aw = computeApparentWind<double>(hdg, nav.awa(), nav.aws());
     auto tw = computeTrueFlowFromBoatMotionAndApparentFlow(nav.gpsMotion(), aw);
@@ -95,19 +123,31 @@ void analyzeNavsWithNaiveTrueWind(const Array<Nav> &navs, std::ostream *file,
     auto estTwa = computeTwaFromTrueWind(hdg, tw);
     auto estTws= tw.norm();
 
-    externalTws.push_back(estTws - nav.externalTws());
-    tws.push_back(estTws - nav.trueWindOverGround().norm());
-    externalTwdir.push_back((estTwdir - nav.externalTwdir()).normalizedAt0());
-    twdir.push_back((estTwdir - nav.twdir()).normalizedAt0());
-    externalTwa.push_back((estTwa - nav.externalTwa()).normalizedAt0());
+    twsExternalAndDebug.push_back(estTws - nav.externalTws());
+    twsOursAndDebug.push_back(estTws - nav.trueWindOverGround().norm());
+    twdirExternalAndDebug.push_back((estTwdir - nav.externalTwdir()).normalizedAt0());
+    twdirOursAndDebug.push_back((estTwdir - nav.twdir()).normalizedAt0());
+    twaExternalAndDebug.push_back((estTwa - nav.externalTwa()).normalizedAt0());
     twa.push_back((estTwa - nav.twaFromTrueWindOverGround()).normalizedAt0());
+
+    auto gtTwa0 = gtTwaSamples.nearest(nav.time());
+    if (gtTwa0.defined()) {
+      Angle<double> gtTwa = gtTwa0.get().value;
+      twaOursAndGT.push_back((gtTwa - nav.twaFromTrueWindOverGround()));
+      twaExternalAndGT.push_back((gtTwa - nav.externalTwa()));
+      twaDebugAndGT.push_back((gtTwa - estTwa));
+    }
   }
-  SHOW_MEDIAN(externalTws, knots)
-  SHOW_MEDIAN(tws, knots)
-  SHOW_MEDIAN(externalTwdir, degrees)
-  SHOW_MEDIAN(twdir, degrees)
-  SHOW_MEDIAN(externalTwa, degrees)
+  SHOW_MEDIAN(twsExternalAndDebug, knots)
+  SHOW_MEDIAN(twsOursAndDebug, knots)
+  SHOW_MEDIAN(twdirExternalAndDebug, degrees)
+  SHOW_MEDIAN(twdirOursAndDebug, degrees)
+  SHOW_MEDIAN(twaExternalAndDebug, degrees)
   SHOW_MEDIAN(twa, degrees)
+
+  SHOW_MEDIAN(twaOursAndGT, degrees)
+  SHOW_MEDIAN(twaExternalAndGT, degrees)
+  SHOW_MEDIAN(twaDebugAndGT, degrees)
 }
 
 void analyzeNavArray(const Array<Nav> &navs, std::ostream *file) {
@@ -159,7 +199,7 @@ void analyzeNavDataset(const std::string &dstFilename, const Array<Nav> &navs) {
 
 void analyzeNavDataset(const std::string &dstFilename, const NavDataset &ds) {
   std::ofstream file(dstFilename);
-  file << "------------- Dataset summary\n";
+
   ds.outputSummary(&file);
 
   auto navs = NavCompat::makeArray(ds);

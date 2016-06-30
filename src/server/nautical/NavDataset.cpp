@@ -201,15 +201,23 @@ namespace {
   };
 }
 
-NavDataset NavDataset::fitBounds() const {
+Span<TimeStamp> NavDataset::computeBounds() const {
   BoundVisitor visitor;
   visitDispatcherChannels(_dispatcher.get(), &visitor);
-  return NavDataset(_dispatcher, _merged, visitor.lowerBound(), visitor.upperBound());
+  return Span<TimeStamp>(visitor.lowerBound(), visitor.upperBound());
+}
+
+NavDataset NavDataset::fitBounds() const {
+  auto span = computeBounds();
+  return NavDataset(_dispatcher, _merged, span.minv(), span.maxv());
 }
 
 void NavDataset::outputSummary(std::ostream *dst) const {
+  auto bounds = computeBounds();
   std::stringstream ss;
   *dst << "\n\nNavDataset summary:";
+  *dst << "  from time " << bounds.minv().toString() << std::endl;
+  *dst << "  to time   " << bounds.maxv().toString() << std::endl;
   *dst << "\nMerged channels:";
 #define DISP_CHANNEL(HANDLE, CODE, SHORTNAME, TYPE, DESCRIPTION) \
   { \
