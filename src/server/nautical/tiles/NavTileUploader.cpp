@@ -13,6 +13,7 @@
 #include <server/math/nonlinear/SpatialMedian.h>
 #include <server/common/ArrayBuilder.h>
 #include <server/nautical/logimport/LogLoader.h>
+#include <server/common/TimedValuePairs.h>
 
 using namespace mongo;
 
@@ -106,7 +107,7 @@ void analyzeNavsWithNaiveTrueWind(const Array<Nav> &navs, std::ostream *file,
     const std::function<Angle<double>(Nav)> &getHeading) {
 
   std::vector<Velocity<double> > twsExternalAndDebug, twsOursAndDebug;
-  std::vector<Angle<double> > twdirExternalAndDebug, twdirOursAndDebug, twaExternalAndDebug, twa;
+  std::vector<Angle<double> > twdirExternalAndDebug, twdirOursAndDebug, twaExternalAndDebug, twaOursAndDebug;
   std::vector<Angle<double> > twaOursAndGT, twaExternalAndGT, twaDebugAndGT;
 
   auto gtTwaSamples = groundTruth.samples<TWA>();
@@ -128,7 +129,7 @@ void analyzeNavsWithNaiveTrueWind(const Array<Nav> &navs, std::ostream *file,
     twdirExternalAndDebug.push_back((estTwdir - nav.externalTwdir()).normalizedAt0());
     twdirOursAndDebug.push_back((estTwdir - nav.twdir()).normalizedAt0());
     twaExternalAndDebug.push_back((estTwa - nav.externalTwa()).normalizedAt0());
-    twa.push_back((estTwa - nav.twaFromTrueWindOverGround()).normalizedAt0());
+    twaOursAndDebug.push_back((estTwa - nav.twaFromTrueWindOverGround()).normalizedAt0());
 
     auto gtTwa0 = gtTwaSamples.nearest(nav.time());
     if (gtTwa0.defined()) {
@@ -143,7 +144,7 @@ void analyzeNavsWithNaiveTrueWind(const Array<Nav> &navs, std::ostream *file,
   SHOW_MEDIAN(twdirExternalAndDebug, degrees)
   SHOW_MEDIAN(twdirOursAndDebug, degrees)
   SHOW_MEDIAN(twaExternalAndDebug, degrees)
-  SHOW_MEDIAN(twa, degrees)
+  SHOW_MEDIAN(twaOursAndDebug, degrees)
 
   SHOW_MEDIAN(twaOursAndGT, degrees)
   SHOW_MEDIAN(twaExternalAndGT, degrees)
@@ -191,6 +192,66 @@ FOREACH_NAV_PH_FIELD(LIST_IT)
 
 }
 
+
+typedef std::pair<std::string,
+    TimedSampleCollection<Angle<double> >::TimedVector> TWAValues;
+
+void accumulateTWAValues(
+    std::string prefix,
+    const std::shared_ptr<Dispatcher> &d,
+    std::vector<TWAValues> *acc) {
+  const auto &all = d->allSources();
+  auto src = all.find(TWA);
+  if (src != all.end()) {
+    for (auto kv: src->second) {
+      acc->push_back(TWAValues(std::string(prefix + kv.first),
+        toTypedDispatchData<TWA>(kv.second.get())->dispatcher()->values().samples()));
+    }
+  }
+}
+
+void compareChannelPairs(const TWAValues &a, const TWAValues &b,
+    std::ostream *file) {
+  auto pairs = TimedValuePairs::makeTimedValuePairs(
+      a.second.begin(), a.second.end(),
+      b.second.begin(), b.second.end());
+
+  Duration<double> thresh = Duration<double>::seconds(12);
+  std::vector<Angle<double> > difs;
+  for (auto pair: pairs) {
+    if (fabs(pair.first.time - pair.second.time) < thresh) {
+      difs.push_back(pair.first.value - pair.second.value);
+    }
+  }
+  *file << "The median error between [" << a.first << "] and [" << b.first << "] is "
+      << computeMedian(&difs).degrees() << " degrees" << std::endl;
+}
+
+void comparePairwiseChannels(const std::vector<TWAValues> &ch,
+    std::ostream *file) {
+  int n = ch.size();
+  for (int i = 0; i < n; i++) {
+    for (int j = i+1; j < n; j++) {
+      compareChannelPairs(ch[i], ch[j], file);
+    }
+  }
+}
+
+void analyzeFullDataset(
+    std::string filename,
+    NavDataset ds) {
+  auto dispatcher = ds.dispatcher();
+  {
+    std::ofstream file(filename + ".txt");
+    std::vector<TWAValues> twaChannels;
+    accumulateTWAValues("loadedData_", dispatcher, &twaChannels);
+    accumulateTWAValues("groundTruth_", groundTruth.dispatcher(), &twaChannels);
+    comparePairwiseChannels(twaChannels, &file);
+  }{
+
+  }
+}
+
 void analyzeNavDataset(const std::string &dstFilename, const Array<Nav> &navs) {
   std::ofstream file(dstFilename);
   analyzeNavArray(navs, &file);
@@ -200,10 +261,10 @@ void analyzeNavDataset(const std::string &dstFilename, const Array<Nav> &navs) {
 void analyzeNavDataset(const std::string &dstFilename, const NavDataset &ds) {
   std::ofstream file(dstFilename);
 
-  ds.outputSummary(&file);
-
   auto navs = NavCompat::makeArray(ds);
   analyzeNavArray(navs, &file);
+
+  ds.outputSummary(&file);
 }
 
 

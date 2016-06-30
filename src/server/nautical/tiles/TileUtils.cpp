@@ -82,6 +82,7 @@ void processTiles(const TileGeneratorParameters &params,
     auto rawNavs0 = LogLoader::loadNavDataset(navPath);
 
     analyzeNavDataset("/tmp/tilestep0_rawNavs0.txt", rawNavs0);
+    analyzeFullDataset("/tmp/tilestep0_dispatcher", rawNavs0);
 
     CHECK(isValid(rawNavs0.dispatcher().get())) << "The loaded data is invalid, please fix the code";
 
@@ -95,6 +96,7 @@ void processTiles(const TileGeneratorParameters &params,
     }
 
     analyzeNavDataset("/tmp/tilestep1_simulated.txt", simulated);
+    analyzeFullDataset("/tmp/tilestep1_dispatcher", simulated);
 
     LOG(INFO) << "Filtered";
     LOG(INFO) << simulated;
