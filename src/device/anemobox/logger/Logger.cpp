@@ -39,7 +39,13 @@ Optional<int64_t> readIntegerFromTextFile(const std::string &filename) {
 
 namespace {
   Optional<int64_t> getBootCount() {
-    return readIntegerFromTextFile("/home/anemobox/bootcount"); // <-- see anemonode/run.sh
+    // See anemonode/run.sh:
+    const char bootCountFilename[] = "/home/anemobox/bootcount";
+
+    static Optional<int64_t> value =
+        readIntegerFromTextFile(bootCountFilename);
+
+    return value;
   }
 }
 

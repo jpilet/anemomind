@@ -19,7 +19,7 @@ function startLogging(logRoot, logInterval, getCurrentTime, cb) {
     logger = new anemonode.Logger();
 
     module.exports.flush = function() {
-      var filename = logRoot + timeToHexString(getCurrentTime()) + ".log";
+      var filename = logRoot + '/' + timeToHexString(getCurrentTime()) + ".log";
       logger.flush(filename, function(path, err) {
 	if (err) {
 	  console.log(err);
