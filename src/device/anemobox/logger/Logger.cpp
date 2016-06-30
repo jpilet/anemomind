@@ -119,18 +119,7 @@ void Logger::flushTo(LogFile* container) {
 }
 
 
-bool isValidLogFilename(const std::string &s) {
-  static std::regex pattern("(^.*\\.log$)");
-  return std::regex_match(s, pattern);
-}
-
-
-bool Logger::flushAndSave(const std::string& filename) {
-  if (!isValidLogFilename(filename)) {
-    LOG(ERROR) << "Invalid log filename: " << filename;
-    return false;
-  }
-
+bool Logger::flushAndSaveToFile(const std::string& filename) {
   LogFile container;
 
   flushTo(&container);

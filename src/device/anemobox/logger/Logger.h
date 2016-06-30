@@ -20,7 +20,6 @@ void addTimeStampToRepeatedFields(
     TimeStamp);
 
 Optional<int64_t> readIntegerFromTextFile(const std::string &filename);
-bool isValidLogFilename(const std::string &s);
 
 
 // Listen and save a single stream of values.
@@ -152,7 +151,7 @@ class Logger {
   void flushTo(LogFile* container);
 
   // Convenience function to call flushTo, nextFilename and save.
-  bool flushAndSave(const std::string& filename);
+  bool flushAndSaveToFile(const std::string& filename);
 
   void logText(const std::string& streamName, const std::string& content);
 

@@ -19,7 +19,7 @@ TEST(LoggerTest, SmokeTest) {
     dispatcher.publishValue(AWA, "test", Angle<double>::degrees(values[i]));
   }
   const char filename[] = "./00000000576A5F3F.log";
-  EXPECT_TRUE(logger.flushAndSave(filename));
+  EXPECT_TRUE(logger.flushAndSaveToFile(filename));
 
   LogFile loaded;
   EXPECT_TRUE(Logger::read(filename, &loaded));
@@ -199,10 +199,4 @@ TEST(LoggerTest, ReadInteger2) {
   auto value = readIntegerFromTextFile(filename);
   EXPECT_TRUE(value.defined());
   EXPECT_EQ(value.get(), 119);
-}
-
-TEST(LoggerTest, LogFilenames) {
-  EXPECT_TRUE(isValidLogFilename("0000000000000000.log"));
-  EXPECT_FALSE(isValidLogFilename("boatlog"));
-  EXPECT_FALSE(isValidLogFilename("boatlog.txt"));
 }
