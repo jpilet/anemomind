@@ -28,18 +28,20 @@ namespace sail {
 
 
 
-NavDataset loadGroundTruth() {
-  std::string filename = "/home/jonas/prog/anemomind/datasets/AlinghiGC32/2016-22-06cardifftrainday.csv";
-  LogLoader loader;
-  loader.load(filename);
-  auto ds = loader.makeNavDataset();
-  CHECK(!ds.isDefaultConstructed());
+NavDataset getGroundTruth() {
+  static NavDataset ds;
+  if (ds.isDefaultConstructed()) {
+    std::string filename = "/home/jonas/prog/anemomind/datasets/AlinghiGC32/2016-22-06cardifftrainday.csv";
+    LogLoader loader;
+    loader.load(filename);
+    ds = loader.makeNavDataset();
+    CHECK(!ds.isDefaultConstructed());
 
-  LOG(INFO) << "LOADED THE ORACLE";
+    LOG(INFO) << "LOADED THE ORACLE";
+  }
   return ds;
 }
 
-static NavDataset groundTruth = loadGroundTruth();
 
 
 #define FOREACH_NAV_PH_FIELD(OP) \
@@ -112,7 +114,7 @@ void analyzeNavsWithNaiveTrueWind(const Array<Nav> &navs, std::ostream *file,
   std::vector<Angle<double> > twdirExternalAndDebug, twdirOursAndDebug, twaExternalAndDebug, twaOursAndDebug;
   std::vector<Angle<double> > twaOursAndGT, twaExternalAndGT, twaDebugAndGT;
 
-  auto gtTwaSamples = groundTruth.samples<TWA>();
+  auto gtTwaSamples = getGroundTruth().samples<TWA>();
   if (gtTwaSamples.empty()) {
     LOG(FATAL) << "No ground truth data!";
   }
@@ -247,7 +249,7 @@ void analyzeFullDataset(
     std::ofstream file(filename + ".txt");
     std::vector<TWAValues> twaChannels;
     accumulateTWAValues("loadedData_", dispatcher, &twaChannels);
-    accumulateTWAValues("groundTruth_", groundTruth.dispatcher(), &twaChannels);
+    accumulateTWAValues("groundTruth_", getGroundTruth().dispatcher(), &twaChannels);
     comparePairwiseChannels(twaChannels, &file);
   }{
     using namespace GpsUtils;
