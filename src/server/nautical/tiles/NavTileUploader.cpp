@@ -14,6 +14,8 @@
 #include <server/common/ArrayBuilder.h>
 #include <server/nautical/logimport/LogLoader.h>
 #include <server/common/TimedValuePairs.h>
+#include <server/nautical/filters/GpsUtils.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
 
 using namespace mongo;
 
@@ -248,7 +250,25 @@ void analyzeFullDataset(
     accumulateTWAValues("groundTruth_", groundTruth.dispatcher(), &twaChannels);
     comparePairwiseChannels(twaChannels, &file);
   }{
+    using namespace GpsUtils;
 
+    GpsFilterResults filtered = filterGpsData(ds);
+
+    std::ofstream file(filename + "_matrix.txt");
+    file <<  "% Columns: Time (seconds), X (meters), Y (meters)\n";
+
+    auto positions = filtered.getGlobalPositions();
+
+
+    TimeStamp refTime = positions[positions.size()/2].time;
+
+    GeographicReference ref = filtered.geoRef;
+
+
+    for (auto pos: positions) {
+      auto xy = ref.map(pos.value);
+      file << (pos.time - refTime).seconds() << " " << xy[0].meters() << " " << xy[1].meters() << std::endl;
+    }
   }
 }
 
