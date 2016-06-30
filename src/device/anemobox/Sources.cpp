@@ -1,8 +1,9 @@
 
 #include <device/anemobox/Sources.h>
 
-#include <server/common/logging.h>
 #include <regex>
+#include <server/common/logging.h>
+#include <set>
 
 namespace sail {
 
@@ -12,13 +13,19 @@ const char internalRegex[] =
   "(^NavDevice$)"
   "|(^Internal.*)"
   "|(^IMU$)"
+  "|(^Anemomind estimator$)"
+  "|(^Simulated Anemomind estimator$)"
+  "|(^Test.*)"
   ;
 
 const char externalRegex[] =
   "(^NavExternal$)"
   "|(^NMEA2000/.*)"
   "|(^NMEA0183: .*)"
+  "|(^NMEA0183$)"
+  "|(^NMEA0183 input reparsed$)"
   "|(^CUPS$)"
+  "|(^CSV imported$)"
   ;
 
 }  // namespace
@@ -37,9 +44,14 @@ SourceOrigin classify(const std::string& source) {
 
   // TODO: add regexp matching for server-produced sources
 
-  LOG(WARNING)
-    << "Can't classify source: "
-    << source;
+  static std::set<std::string> warned;
+
+  if (warned.find(source) == warned.end()) {
+    LOG(WARNING)
+      << "Can't classify source: "
+      << "'" + source + "'";
+    warned.insert(source);
+  }
 
   return SourceOrigin::UNKNOWN;
 }

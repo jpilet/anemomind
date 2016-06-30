@@ -3,11 +3,12 @@
  *      Author: Jonas Östlund <jonas@anemomind.com>
  */
 
-#include <device/anemobox/Dispatcher.h>
-#include <server/nautical/NavDataset.h>
 #include <assert.h>
+#include <device/anemobox/Dispatcher.h>
 #include <device/anemobox/DispatcherUtils.h>
+#include <device/anemobox/Sources.h>
 #include <server/common/logging.h>
+#include <server/nautical/NavDataset.h>
 
 namespace sail {
 
@@ -53,6 +54,12 @@ NavDataset::NavDataset(const std::shared_ptr<Dispatcher> &dispatcher,
   assert(merged);
   assert(dispatcher);
   assert(beforeOrEqual(_lowerBound, _upperBound, true));
+
+  for (auto channel : dispatcher->allSources()) {
+    for (auto source : channel.second) {
+      assert(classify(source.first) != SourceOrigin::UNKNOWN);
+    }
+  }
 }
 
 NavDataset NavDataset::slice(TimeStamp a, TimeStamp b) const {
@@ -258,6 +265,19 @@ const std::shared_ptr<DispatchData> &getMergedDispatchData(
   return dst;
 }
 
+NavDataset NavDataset::stripChannel(DataCode code) const {
+  if (_dispatcher == nullptr) {
+    return NavDataset();
+  }
 
+  return NavDataset(
+      cloneAndfilterDispatcher(
+          _dispatcher.get(),
+          [code](DataCode testedCode, const std::string&) { return testedCode != code; }
+          ),
+      std::make_shared<std::map<DataCode, std::shared_ptr<DispatchData> > >(),
+      _lowerBound,
+      _upperBound);
+}
 
 }

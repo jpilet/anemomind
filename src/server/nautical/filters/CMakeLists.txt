@@ -63,6 +63,7 @@ target_link_libraries(filters_SmoothGpsFilter
                       filters_GpsUtils
                       nonlinear_CeresTrajectoryFilter
                       math_Resampler
+                      common_Progress
                      )
 
 cxx_test(filters_SmoothGpsFilterTest
@@ -75,3 +76,16 @@ cxx_test(filters_SmoothGpsFilterTest
          plot_GnuPlotModel
          nautical_Visualize
         )
+
+add_executable(filters_tryNewGpsFilter
+  tryNewGpsFilter.cpp
+  )
+
+target_link_libraries(filters_tryNewGpsFilter
+  common_TimeStamp
+  segment_SessionCut
+  common_ArgMap
+  common_PathBuilder
+  filters_SmoothGpsFilter
+  logimport_LogLoader
+  )

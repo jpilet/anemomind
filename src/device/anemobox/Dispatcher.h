@@ -243,8 +243,21 @@ class Dispatcher : public Clock {
   }
 
   template <DataCode Code>
+  TypedDispatchData<typename TypeForCode<Code>::type>* get(
+      const std::string& source) const {
+    return toTypedDispatchData<Code>(dispatchDataForSource(Code, source));
+  }
+
+
+  template <DataCode Code>
   const TimedSampleCollection<typename TypeForCode<Code>::type> &values() const {
     return get<Code>()->dispatcher()->values();
+  }
+
+  template <DataCode Code>
+  const TimedSampleCollection<typename TypeForCode<Code>::type> &values(
+      const std::string& source) const {
+    return get<Code>(source)->dispatcher()->values();
   }
 
   // Temporary method when treating it as a dataset.

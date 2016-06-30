@@ -8,12 +8,6 @@ add_subdirectory("filters")
 add_subdirectory("types")
 add_subdirectory("segment")
 
-add_library(nautical_Ecef
-            Ecef.h
-            Ecef.cpp)
-
-target_link_libraries(nautical_Ecef common_math)
-
 
 add_library(nautical_nav
             Nav.h
@@ -105,7 +99,6 @@ cxx_test(nautical_NavTest
 
 cxx_test(nautical_WGS84Test
             WGS84Test.cpp
-            nautical_Ecef
             common_Function
             common_LineKM
             gtest_main)
@@ -231,26 +224,6 @@ target_link_libraries(nautical_FlowErrors
                      )     
                      
 
-
-add_library(nautical_GpsFilter
-            GpsFilter.h
-            GpsFilter.cpp
-           )
-target_link_libraries(nautical_GpsFilter
-                      nautical_NavCompatibility
-                      nautical_GeographicReference
-                      math_nonlinear_DataFit
-                     )   
-                     
-cxx_test(nautical_GpsFilterTest
-         GpsFilterTest.cpp
-         nautical_GpsFilter
-         gtest_main
-         common_Env
-         common_PathBuilder
-         plot_gnuplot
-         logimport_LogLoader
-        )                             
 add_executable(nautical_exportNavs
                exportNavs.cpp
               )
@@ -291,6 +264,7 @@ add_library(nautical_NavDataset
 target_link_libraries(nautical_NavDataset
                       anemobox_Dispatcher      
                       anemobox_DispatcherUtils                
+                      anemobox_Sources
                      )           
 
 cxx_test(nautical_NavDatasetTest
@@ -309,7 +283,6 @@ target_link_libraries(nautical_NavCompatibility
                       common_LineKM
                       common_PeriodicSpan
                       common_TimeStamp
-                      nautical_Ecef
                       nautical_NavDataset
                       nautical_nav
                       plot_gnuplot

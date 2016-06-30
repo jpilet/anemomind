@@ -15,16 +15,20 @@
 
 namespace sail {
 
-struct Results {
+struct GpsFilterResults {
   GeographicReference geoRef;
-  Array<CeresTrajectoryFilter::Types<2>::TimedPosition> localPositions;
+  Array<CeresTrajectoryFilter::Types<2>::TimedPosition>
+    rawLocalPositions,
+    filteredLocalPositions;
 
-  TimedSampleCollection<GeographicPosition<double> > getGlobalPositions() const;
+  bool empty() const {return filteredLocalPositions.empty();}
+  TimedSampleCollection<GeographicPosition<double> >::TimedVector getGlobalPositions() const;
+  TimedSampleCollection<HorizontalMotion<double> >::TimedVector getGpsMotions() const;
 };
 
 CeresTrajectoryFilter::Settings makeDefaultSettings();
 
-Results filterGpsData(const NavDataset &ds,
+GpsFilterResults filterGpsData(const NavDataset &ds,
     const CeresTrajectoryFilter::Settings &settings = makeDefaultSettings());
 
 }

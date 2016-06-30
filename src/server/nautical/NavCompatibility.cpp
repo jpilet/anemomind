@@ -374,22 +374,6 @@ int countNavs(Array<NavDataset > navs) {
   return counter;
 }
 
-NavDataset loadNavsFromText(std::string filename, bool sort) {
-  MDArray2d data = loadMatrixText<double>(filename);
-  int count = data.rows();
-
-  std::vector<Nav> navs(count);
-  for (int i = 0; i < count; i++) {
-    navs[i] = Nav(data.sliceRow(i));
-  }
-
-  if (sort) {
-    std::sort(navs.begin(), navs.end());
-  }
-
-  return NavCompat::fromNavs(Array<Nav>::referToVector(navs).dup());
-}
-
 bool areSortedNavs(NavDataset navs) {
   int count = NavCompat::getNavSize(navs);
   for (int i = 0; i < count-1; i++) {

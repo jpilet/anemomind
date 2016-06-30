@@ -30,11 +30,3 @@ TEST(NavTest, MaxSpeed) {
   c.setGeographicPosition(pos);
   EXPECT_EQ(1, findMaxSpeedOverGround(fromNavs({a, b, c})));
 }
-
-TEST(NavTest, SortedTest) {
-  NavDataset navs = loadNavsFromText(getAllNavsPath().toString());
-  EXPECT_TRUE(getNavSize(navs) > 3);
-
-  EXPECT_TRUE(areSortedNavs(navs));
-}
-

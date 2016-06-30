@@ -12,6 +12,8 @@
 #include <server/math/Resampler.h>
 #include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
+#include <server/common/Progress.h>
+#include <server/common/TimedTypedefs.h>
 
 namespace sail {
 
@@ -39,29 +41,58 @@ namespace {
       const TimedSampleRange<GeographicPosition<double> > &positions) {
     int n = positions.size();
     Array<CeresTrajectoryFilter::Types<2>::TimedPosition> dst(n);
+    Progress prog(n);
+
     for (int i = 0; i < n; i++) {
       auto &y = dst[i];
       auto x = positions[i];
       y.time = x.time;
       y.value = geoRef.map(x.value);
+      if (prog.endOfIteration()) {
+        LOG(INFO) << prog.iterationMessage();
+      }
     }
     return dst;
   }
 }
 
 
-TimedSampleCollection<GeographicPosition<double> >
-  Results::getGlobalPositions() const {
-  int n = localPositions.size();
+TimedSampleCollection<GeographicPosition<double> >::TimedVector
+  GpsFilterResults::getGlobalPositions() const {
+  int n = filteredLocalPositions.size();
   TimedSampleCollection<GeographicPosition<double> >::TimedVector dst;
   dst.resize(n);
   for (int i = 0; i < n; i++) {
-    const auto &x = localPositions[i];
+    const auto &x = filteredLocalPositions[i];
     auto &y = dst[i];
     y.time = x.time;
     y.value = geoRef.unmap(x.value);
   }
-  return TimedSampleCollection<GeographicPosition<double> >(dst);
+  return dst;
+}
+
+namespace {
+  HorizontalMotion<double> computeHorizontalMotion(
+      const Vectorize<Length<double>, 2> &left,
+      const Vectorize<Length<double>, 2> &right,
+      Duration<double> dur) {
+    return HorizontalMotion<double>((right[0] - left[0])/dur,
+                                    (right[1] - left[1])/dur);
+  }
+}
+
+TimedSampleCollection<HorizontalMotion<double> >::TimedVector GpsFilterResults::getGpsMotions() const {
+  int n = filteredLocalPositions.size() - 1;
+  TimedSampleCollection<HorizontalMotion<double> >::TimedVector samples;
+  for (int i = 0; i < n; i++) {
+    const auto &left = filteredLocalPositions[i];
+    const auto &right = filteredLocalPositions[i+1];
+    Duration<double> timeDiff = right.time - left.time;
+    TimeStamp middleTime = left.time + 0.5*timeDiff;
+    HorizontalMotion<double> motion = computeHorizontalMotion(left.value, right.value, timeDiff);
+    samples.push_back(TimedValue<HorizontalMotion<double> >(middleTime, motion));
+  }
+  return samples;
 }
 
 typedef CeresTrajectoryFilter::Types<2> FTypes;
@@ -82,14 +113,35 @@ CeresTrajectoryFilter::Settings makeDefaultSettings() {
   CeresTrajectoryFilter::Settings settings;
   settings.huberThreshold = Length<double>::meters(12.0); // Sort of inlier threshold on the distance in meters
   settings.regWeight = 10.0;
+
+
+  // Ceres can only solve smooth unconstrained problems.
+  // I tried to implement inequality constraints by
+  // putting a big penalty on speeds that are too high, but it doesn't really work...
+
+
   return settings;
 }
 
-Results filterGpsData(const NavDataset &ds,
+Array<CeresTrajectoryFilter::Types<2>::TimedPosition> removePositionsFarAway(
+    const Array<CeresTrajectoryFilter::Types<2>::TimedPosition> &src,
+    Length<double> maxLen) {
+  ArrayBuilder<CeresTrajectoryFilter::Types<2>::TimedPosition> dst;
+  for (auto x: src) {
+    auto p = x.value;
+    if (sqr(double(p[0]/maxLen)) + sqr(double(p[1]/maxLen)) < 1.0) {
+      dst.add(x);
+    }
+  }
+  return dst.get();
+}
+
+GpsFilterResults filterGpsData(const NavDataset &ds,
     const CeresTrajectoryFilter::Settings &settings) {
+
   if (ds.isDefaultConstructed()) {
     LOG(WARNING) << "Nothing to filter";
-    return Results();
+    return GpsFilterResults();
   }
 
   Duration<double> samplingPeriod = Duration<double>::seconds(1.0);
@@ -98,12 +150,10 @@ Results filterGpsData(const NavDataset &ds,
   auto positions = ds.samples<GPS_POS>();
   if (positions.empty()) {
     LOG(ERROR) << "No GPS positions in dataset, cannot filter";
-    return Results();
+    return GpsFilterResults();
   }
   auto referencePosition = GpsUtils::getReferencePosition(positions);
   GeographicReference geoRef(referencePosition);
-
-
 
   auto positionTimes = getTimeStamps(positions);
   auto motionTimes = getTimeStamps(motions);
@@ -111,11 +161,30 @@ Results filterGpsData(const NavDataset &ds,
   auto samplingTimes = buildSampleTimes(positionTimes, motionTimes,
       samplingPeriod);
 
+  if (samplingTimes.size() < 2) {
+    LOG(ERROR) << "Too few sampling times";
+    return GpsFilterResults();
+  }
 
   IndexableWrap<Array<TimeStamp>, TypeMode::ConstRef> times =
       wrapIndexable<TypeMode::ConstRef>(samplingTimes);
+
+  auto rawLocalPositions = getLocalPositions(geoRef, positions);
+
+
+  Duration<double> dur = samplingTimes.last() - samplingTimes.first();
+
+
+  auto maxSpeed = Velocity<double>::knots(200.0);
+
+  // Since the geographic reference is located at the spatial median, where most of the points
+  // are, we can reject point whose local coordinates are too far away from that. This will
+  // probably work in most cases.
+  auto filteredRawPositions = removePositionsFarAway(rawLocalPositions, dur*maxSpeed);
+
   IndexableWrap<Array<FTypes::TimedPosition>, TypeMode::Value> localPositions
-    = wrapIndexable<TypeMode::Value>(getLocalPositions(geoRef, positions));
+    = wrapIndexable<TypeMode::Value>(filteredRawPositions);
+
   IndexableWrap<Array<FTypes::TimedMotion>, TypeMode::Value> localMotions
     = wrapIndexable<TypeMode::Value>(toLocalMotions(motions));
 
@@ -135,10 +204,12 @@ Results filterGpsData(const NavDataset &ds,
       settings, e);
   if (filtered.empty()) {
     LOG(ERROR) << "Failed to filter GPS data";
-    return Results();
+    return GpsFilterResults();
   }
 
-  return Results{geoRef, filtered};
+  return GpsFilterResults{geoRef,
+    rawLocalPositions,
+    filtered};
 }
 
 }

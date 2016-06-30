@@ -8,13 +8,16 @@
 #include <server/nautical/tiles/NavTileUploader.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/nautical/logimport/LogLoader.h>
-#include <server/nautical/GpsFilter.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/common/ArrayBuilder.h>
 #include <server/common/logging.h>
+#include <server/common/Functional.h>
 
 namespace sail {
 
 using namespace sail::NavCompat;
+
+namespace {
 
 NavDataset filterNavs(NavDataset navs) {
   if (!isValid(navs.dispatcher().get())) {
@@ -22,31 +25,21 @@ NavDataset filterNavs(NavDataset navs) {
     return NavDataset();
   }
 
-  GpsFilter::Settings settings;
-
-  ArrayBuilder<Nav> withoutNulls;
-  withoutNulls.addIf(makeArray(navs), [=](const Nav &nav) {
-    auto pos = nav.geographicPosition();
-    return abs(pos.lat().degrees()) > 0.01
-      && abs(pos.lon().degrees()) > 0.01;
-  });
-
-  auto results = GpsFilter::filter(fromNavs(withoutNulls.get()), settings);
-
-  if (!results.defined()) {
-    LOG(WARNING) << "Failed to apply GPS filter, returning empty result";
-    return NavDataset();
-  }
-  auto d = fromNavs(
-      makeArray(results.filteredNavs()).slice(results.inlierMask()));
-
-  if (!isValid(d.dispatcher().get())) {
-    LOG(WARNING) << "The dataset constructed from navs is not valid, returning empty result";
+  auto results = filterGpsData(navs);
+  if (results.empty()) {
+    LOG(ERROR) << "GPS filtering failed";
     return NavDataset();
   }
 
-  return d;
+  NavDataset cleanGps = navs.replaceChannel<GeographicPosition<double> >(
+      GPS_POS,
+      navs.dispatcher()->get<GPS_POS>()->source() + " merged+filtered",
+      results.getGlobalPositions());
+
+  return cleanGps;
 }
+
+}  // namespace
 
 // Convenience method to extract the description of a tree.
 std::string treeDescription(const shared_ptr<HTree>& tree,
@@ -112,10 +105,11 @@ void processTiles(const TileGeneratorParameters &params,
       LOG(INFO) << "Session: "
         << getFirst(session).time().toString()
         << ", until " << getLast(session).time().toString();
+      LOG(INFO) << session;
     }
 
     Array<NavDataset> sessions =
-      filter(map(extracted, filterNavs).toArray(),
+      filter(sail::map(extracted, filterNavs).toArray(),
           [](NavDataset ds) {
       if (getNavSize(ds) == 0) {
         LOG(WARNING) << "Omitting dataset with 0 navs";
