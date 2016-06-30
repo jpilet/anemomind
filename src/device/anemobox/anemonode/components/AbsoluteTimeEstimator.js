@@ -26,14 +26,4 @@ AbsoluteTimeEstimator.prototype.estimateCurrentTime = function(systemTime) {
     null : new Date(systemTime.getTime() + this.median);
 }
 
-
-// Now-methods
-AbsoluteTimeEstimator.prototype.addExternalTimeNow = function(externalTime) {
-  this.addTimePair(new Date(), externalTime);
-}
-
-AbsoluteTimeEstimator.prototype.estimateCurrentTimeNow = function() {
-  return this.estimateCurrentTime(new Date());
-}
-
 module.exports = AbsoluteTimeEstimator;
