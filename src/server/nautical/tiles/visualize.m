@@ -50,12 +50,14 @@ if true,
   axis xy equal
 end
 
+offsets = [0 0 -360 0]
+
 if true,
   c = 'rgbk'
   figure;
   k = 1;
   for i = 4:size(data, 2),
-    plot(time, make_continuous(data(:, i)), c(k));
+    plot(time, make_continuous(data(:, i) + offsets(k)), c(k));
     hold on
     k = k + 1;
   end

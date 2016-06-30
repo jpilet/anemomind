@@ -32,7 +32,7 @@ std::function<void(std::string)> makeTimeSetter(TimeStamp *dst) {
       LOG(WARNING) << "When parsing CSV dates, fractional seconds are ignored.";
     }
     shown = true;
-    *dst = TimeStamp::parse(s);
+    *dst = TimeStamp::parse(s) - Duration<double>::hours(2.0) /* << TODO: REMOVE THIS!!!!!! */;
   };
 }
 

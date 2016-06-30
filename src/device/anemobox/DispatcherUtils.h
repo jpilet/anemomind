@@ -153,6 +153,8 @@ std::shared_ptr<Dispatcher> cloneAndfilterDispatcher(
     Dispatcher *srcDispatcher,
     std::function<bool(DataCode, const std::string&)> filter);
 
+std::shared_ptr<Dispatcher> addDuration(Dispatcher *dispatcher, Duration<double> d);
+
 class ReplayDispatcher : public Dispatcher {
  public:
 

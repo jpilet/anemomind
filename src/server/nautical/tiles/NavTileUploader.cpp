@@ -17,6 +17,7 @@
 #include <server/common/TimedValuePairs.h>
 #include <server/nautical/filters/GpsUtils.h>
 #include <server/nautical/filters/SmoothGpsFilter.h>
+#include <device/anemobox/DispatcherUtils.h>
 
 using namespace mongo;
 
@@ -35,7 +36,7 @@ NavDataset getGroundTruth() {
     std::string filename = "/home/jonas/prog/anemomind/datasets/AlinghiGC32/2016-22-06cardifftrainday.csv";
     LogLoader loader;
     loader.load(filename);
-    ds = loader.makeNavDataset();
+    ds = NavDataset(loader.makeDispatcher());
     CHECK(!ds.isDefaultConstructed());
 
     LOG(INFO) << "LOADED THE ORACLE";

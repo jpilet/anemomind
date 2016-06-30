@@ -475,6 +475,39 @@ std::shared_ptr<Dispatcher> cloneAndfilterDispatcher(
   return dst;
 }
 
+
+namespace {
+  class ShiftVisitor {
+   public:
+    ShiftVisitor(Dispatcher *src, Dispatcher *dst, Duration<double> dur) :
+        _src(src), _dst(dst), _dur(dur) {}
+
+    template <DataCode Code, typename T>
+    void visit(const char *shortName, const std::string &sourceName,
+      const std::shared_ptr<DispatchData> &raw,
+      const TimedSampleCollection<T> &coll) {
+      _dst->setSourcePriority(sourceName, _src->sourcePriority(sourceName));
+      TimedSampleCollection<T> dst;
+      for (auto x: coll.samples()) {
+        dst.append(TimedValue<T>(x.time + _dur, x.value));
+      }
+      _dst->insertValues<T>(Code, sourceName, dst.samples());
+    }
+   private:
+    Dispatcher *_src, *_dst;
+    Duration<double> _dur;
+  };
+}
+
+std::shared_ptr<Dispatcher> addDuration(Dispatcher *dispatcher, Duration<double> d) {
+  std::shared_ptr<Dispatcher> dst = std::make_shared<Dispatcher>();
+
+  ShiftVisitor v(dispatcher, dst.get(), d);
+  visitDispatcherChannels(dispatcher, &v);
+  copyPriorities(dispatcher, dst.get());
+  return dst;
+}
+
 namespace {
   const std::map<std::string,
         std::shared_ptr<DispatchData>> *lookUpMap(
