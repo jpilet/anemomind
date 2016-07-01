@@ -15,7 +15,7 @@ var validationError = function(res, err) {
 };
 
 function canonicalizeEmail(email) {
-  return ('' + email).toLowerCase();
+  return ('' + email).trim().toLowerCase();
 }
 
 var checkForInvite = function(user) {
@@ -175,3 +175,4 @@ exports.me = function(req, res, next) {
 exports.authCallback = function(req, res, next) {
   res.redirect('/');
 };
+exports.canonicalizeEmail = canonicalizeEmail;
