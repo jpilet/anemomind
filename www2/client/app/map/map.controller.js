@@ -83,7 +83,7 @@ angular.module('www2App')
       'gpsSpeed' : 'Speed over ground (GPS)',
       'devicePerf' : 'VMG performance',
       'aws' : 'Apparent wind speed',
-      'deviceTws' : 'True wind speed (Anemomind)',
+      'tws' : 'True wind speed (Anemomind)',
       'externalTws' : 'True wind speed (onboard instruments)',
       'watSpeed': 'Water speed',
       'deviceVmg': 'VMG',
