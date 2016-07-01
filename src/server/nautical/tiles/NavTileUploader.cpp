@@ -274,7 +274,7 @@ void analyzeFullDataset(
   accumulateValues<TWA>("groundTruth_", getGroundTruth().dispatcher(), &twaChannels);
 
   accumulateHeadings("tilegen_", dispatcher, &headingChannels);
-  accumulateHeadings("groundTruth_", dispatcher, &headingChannels);
+  accumulateHeadings("groundTruth_", getGroundTruth().dispatcher(), &headingChannels);
 
   {
     std::ofstream file(filename + ".txt");
