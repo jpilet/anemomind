@@ -1,9 +1,9 @@
-data = load('/tmp/tilestep1_dispatcher_matrix.txt');
-labels = {'Time (seconds)', 'X (meters)', 'Y (meters)', ...
-          '[loadedData_Anemomind estimator]', ...
-          '[loadedData_NMEA2000/c078be002fb00000]',...
-          '[loadedData_Simulated Anemomind estimator]',...
-          '[groundTruth_CSV imported]'};
+data0 = load('/tmp/tilestep1_dispatcher_matrix.txt');
+codes = data0(1, :);
+data = data0(2:end, :);
+
+labels = {'Time (seconds)', 'X (meters)', 'Y (meters)', '[tilegen_Anemomind estimator]', '[tilegen_NMEA2000/c078be002fb00000]', '[tilegen_Simulated Anemomind estimator]', '[groundTruth_CSV imported]', '[tilegen__gpsBearing_Internal GPS]', '[tilegen__gpsBearing_NMEA2000/c07891002fb3645a]', '[tilegen__magHeading_NMEA2000/c050a0012fb3245a]', '[groundTruth__gpsBearing_Internal GPS]', '[groundTruth__gpsBearing_NMEA2000/c07891002fb3645a]', '[groundTruth__magHeading_NMEA2000/c050a0012fb3245a]'};
+
           
 assert(numel(labels) == size(data, 2));        
           
@@ -52,11 +52,13 @@ end
 
 offsets = [0 0 -360 0]
 
+
+twa_inds = find(codes == 3);
 if true,
   c = 'rgbk'
   figure;
   k = 1;
-  for i = 4:size(data, 2),
+  for i = twa_inds,
     plot(time, make_continuous(data(:, i) + offsets(k)), c(k));
     hold on
     k = k + 1;

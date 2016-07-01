@@ -200,23 +200,24 @@ FOREACH_NAV_PH_FIELD(LIST_IT)
 
 
 typedef std::pair<std::string,
-    TimedSampleCollection<Angle<double> >::TimedVector> TWAValues;
+    TimedSampleCollection<Angle<double> >::TimedVector> LabeledAngleVector;
 
-void accumulateTWAValues(
+template <DataCode code>
+void accumulateValues(
     std::string prefix,
     const std::shared_ptr<Dispatcher> &d,
-    std::vector<TWAValues> *acc) {
+        std::vector<LabeledAngleVector> *acc) {
   const auto &all = d->allSources();
-  auto src = all.find(TWA);
+  auto src = all.find(code);
   if (src != all.end()) {
     for (auto kv: src->second) {
-      acc->push_back(TWAValues(std::string(prefix + kv.first),
-        toTypedDispatchData<TWA>(kv.second.get())->dispatcher()->values().samples()));
+      acc->push_back(LabeledAngleVector(std::string(prefix + kv.first),
+        toTypedDispatchData<code>(kv.second.get())->dispatcher()->values().samples()));
     }
   }
 }
 
-void compareChannelPairs(const TWAValues &a, const TWAValues &b,
+void compareChannelPairs(const LabeledAngleVector &a, const LabeledAngleVector &b,
     std::ostream *file) {
   auto pairs = TimedValuePairs::makeTimedValuePairs(
       a.second.begin(), a.second.end(),
@@ -233,7 +234,7 @@ void compareChannelPairs(const TWAValues &a, const TWAValues &b,
       << computeMedian(&difs).degrees() << " degrees" << std::endl;
 }
 
-void comparePairwiseChannels(const std::vector<TWAValues> &ch,
+void comparePairwiseChannels(const std::vector<LabeledAngleVector> &ch,
     std::ostream *file) {
   int n = ch.size();
   for (int i = 0; i < n; i++) {
@@ -243,13 +244,38 @@ void comparePairwiseChannels(const std::vector<TWAValues> &ch,
   }
 }
 
+void accumulateHeadings(const std::string &prefix,
+    const std::shared_ptr<Dispatcher> &d,
+    std::vector<LabeledAngleVector> *acc) {
+  accumulateValues<GPS_BEARING>(prefix + "_gpsBearing_", d, acc);
+  accumulateValues<MAG_HEADING>(prefix + "_magHeading_", d, acc);
+}
+
+void outputChannelValue(const LabeledAngleVector &ch, TimeStamp t, std::ostream *file) {
+  TimedSampleRange<Angle<double> > samples(ch.second.begin(), ch.second.end());
+  Optional<TimedValue<Angle<double> > > x = samples.nearest(t);
+  *file << " ";
+  if (x.defined()) {
+    *file << x.get().value.degrees();
+  } else {
+    *file << "NAN";
+  }
+}
+
+
 void analyzeFullDataset(
     std::string filename,
     NavDataset ds) {
   auto dispatcher = ds.dispatcher();
-  std::vector<TWAValues> twaChannels;
-  accumulateTWAValues("loadedData_", dispatcher, &twaChannels);
-  accumulateTWAValues("groundTruth_", getGroundTruth().dispatcher(), &twaChannels);
+
+  std::vector<LabeledAngleVector> twaChannels, headingChannels;
+
+  accumulateValues<TWA>("tilegen_", dispatcher, &twaChannels);
+  accumulateValues<TWA>("groundTruth_", getGroundTruth().dispatcher(), &twaChannels);
+
+  accumulateHeadings("tilegen_", dispatcher, &headingChannels);
+  accumulateHeadings("groundTruth_", dispatcher, &headingChannels);
+
   {
     std::ofstream file(filename + ".txt");
     comparePairwiseChannels(twaChannels, &file);
@@ -266,6 +292,18 @@ void analyzeFullDataset(
     for (auto ch: twaChannels) {
       file << "[" << ch.first << "] ";
     }
+    for (auto ch: headingChannels) {
+      file << "[" << ch.first << "] ";
+    }
+    file << std::endl;
+
+    file << "0 1 2 ";
+    for (auto ch: twaChannels) {
+      file << "3 ";
+    }
+    for (auto ch: headingChannels) {
+      file << "4 ";
+    }
     file << std::endl;
 
     auto positions = filtered.getGlobalPositions();
@@ -280,14 +318,10 @@ void analyzeFullDataset(
       auto xy = ref.map(pos.value);
       file << (pos.time - refTime).seconds() << " " << xy[0].meters() << " " << xy[1].meters();
       for (auto ch: twaChannels) {
-        TimedSampleRange<Angle<double> > samples(ch.second.begin(), ch.second.end());
-        Optional<TimedValue<Angle<double> > > x = samples.nearest(pos.time);
-        file << " ";
-        if (x.defined()) {
-          file << x.get().value.degrees();
-        } else {
-          file << "NAN";
-        }
+        outputChannelValue(ch, pos.time, &file);
+      }
+      for (auto ch: headingChannels) {
+        outputChannelValue(ch, pos.time, &file);
       }
       file << std::endl;
     }
