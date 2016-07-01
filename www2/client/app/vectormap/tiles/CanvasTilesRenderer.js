@@ -61,7 +61,9 @@ function CanvasTilesRenderer(params) {
     t.refresh();
   },
   this.params.width,
-  this.params.height);
+  this.params.height, true);
+
+
   this.pinchZoom.minScale = this.params.minScale;
 
   // We are ready, let's allow drawing.  

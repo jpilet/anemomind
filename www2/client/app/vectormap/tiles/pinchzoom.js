@@ -2,7 +2,7 @@
  * @author Julien Pilet
  */
 
-function PinchZoom(element, transformChanged, width, height) {
+function PinchZoom(element, transformChanged, width, height, disabledZoom) {
   this.ongoingTouches = {};
   this.transform = new AffineTransform();
   this.transformChanged = transformChanged;
@@ -16,18 +16,20 @@ function PinchZoom(element, transformChanged, width, height) {
   
   var t = this;
   var e = element;
-  e.addEventListener("touchstart", function(event) { t.handleStart(event); }, false);
-  e.addEventListener("touchend", function(event) { t.handleEnd(event); }, false);
-  e.addEventListener("touchcancel", function(event) { t.handleEnd(event); }, false);
-  e.addEventListener("touchmove", function(event) { t.handleMove(event); }, false);
-  e.addEventListener("mousedown", function(event) { t.handleMouseDown(event); }, false);
-  e.addEventListener("mousemove", function(event) { t.handleMouseMove(event); }, false);
-  e.addEventListener("mouseup", function(event) { t.handleMouseUp(event); }, false);
-  addWheelListener(element, function(event) { t.handleMouseWheel(event); });
-  
+  if(!disabledZoom){
+    e.addEventListener("touchstart", function(event) { t.handleStart(event); }, false);
+    e.addEventListener("touchend", function(event) { t.handleEnd(event); }, false);
+    e.addEventListener("touchcancel", function(event) { t.handleEnd(event); }, false);
+    e.addEventListener("touchmove", function(event) { t.handleMove(event); }, false);
+    e.addEventListener("mousedown", function(event) { t.handleMouseDown(event); }, false);
+    e.addEventListener("mousemove", function(event) { t.handleMouseMove(event); }, false);
+    e.addEventListener("mouseup", function(event) { t.handleMouseUp(event); }, false);
+    addWheelListener(element, function(event) { t.handleMouseWheel(event); });
+  }  
   element.pinchZoomInstance = this;
   this.element = element;
 }
+
 
 PinchZoom.prototype.eventElement = function(event) {
   if (event.srcElement) { return event.srcElement; }
