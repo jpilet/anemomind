@@ -212,6 +212,8 @@ angular.module('www2App')
       $scope.currentPoint = pointAtTime(time);
 
       $scope.vmgPerf = perfAtPoint($scope.currentPoint);
+      $scope.awa = getPointValue(['awa']);
+      $scope.aws =  getPointValue(['aws']);
       $scope.twa = getPointValue(['twa', 'externalTwa']);
       $scope.tws =  getPointValue(['tws', 'externalTws']);
       $scope.gpsSpeed = getPointValue(['gpsSpeed']);
