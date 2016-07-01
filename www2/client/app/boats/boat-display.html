@@ -8,8 +8,15 @@
 </div>
 
 <!-- IF ANONYMOUS -->
-<div ng-if="!isLoggedIn" class="container">
-<p>Please <a href="/login">login</a></p>
+<div ng-if="!isLoggedIn" class="welcome-boat" >
+	<div class="container">
+			<h1>Welcome! </h1>
+			<h2>
+				<a href="/login" class="btn btn-welcome btn-lg"> 
+					<i class="fa fa-sign-in"></i>
+					&nbsp;Please login anemolab</a>
+			</h2>
+	</div>
 </div>
 
 <footer class="footer">
