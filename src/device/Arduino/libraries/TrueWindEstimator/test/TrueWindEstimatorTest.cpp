@@ -119,3 +119,19 @@ TEST(TrueWindEstimatorTest, TWACompare) {
     EXPECT_LE(getMedianAbsValue(difs).degrees(), 3.0);
   }
 }
+
+TEST(TrueWindEstimatorTest, AwaCloserThanTwa) {
+  Nav nav;
+  // Extracted from Numerobis on 2016-05-19T17:15:02
+  nav.setGeographicPosition(GeographicPosition<double>(
+          Angle<>::degrees(43.2842467),
+          Angle<>::degrees(6.6292179)));
+  nav.setAwa(Angle<>::degrees(316.93));
+  nav.setAws(Velocity<>::knots(29.99));
+  nav.setGpsBearing(Angle<>::degrees(-1.8883066209577453));
+  nav.setGpsSpeed(Velocity<>::knots(7.7642256013904705));
+
+  EXPECT_EQ(nav.awa().degrees(),
+            nav.bestTwaEstimate().degrees());
+  LOG(INFO) << "TWDIR: " << calcTwdir(nav.estimateTrueWind()).degrees();
+}
