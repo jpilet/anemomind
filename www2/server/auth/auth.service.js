@@ -11,7 +11,9 @@ var validateJwt = expressJwt({ secret: config.secrets.session });
 
 function validateToken(req, res, next) {
   // allow access_token to be passed through query parameter as well
-  if(req.query && req.query.hasOwnProperty('access_token')) {
+  if(req.query
+     && req.query.hasOwnProperty('access_token')
+     && req.query.access_token != "undefined") {
     req.headers.authorization = 'Bearer ' + req.query.access_token;
   }
   validateJwt(req, res, next);
@@ -28,7 +30,9 @@ function attachUserToRequest(req, res, next) {
 }
 
 function isAuthRequest(req) {
-  return (req.query && req.query.hasOwnProperty('access_token'))
+  return (req.query
+          && req.query.hasOwnProperty('access_token')
+          && req.query.access_token != "undefined")
      || (req.headers && req.headers.hasOwnProperty('authorization'));
 }
 
