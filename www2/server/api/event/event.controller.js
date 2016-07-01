@@ -46,6 +46,11 @@ function sendEventsWithQuery(res, query) {
 }
 
 // Get the latest readable events
+//
+// Because there might be a large number of public events,
+// listing them all would be too much.
+// Only events attached to boats associated with a user are listed
+// We should add a way for users to "subscribe" to public boats.
 exports.index = function(req, res) {
   try {
     var query = { };
