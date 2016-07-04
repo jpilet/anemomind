@@ -45,10 +45,12 @@ for i in ${boats}; do
   fi
 
   echo "Processing boat log for ${i} (id ${boatid})"
-  "${BIN_DIR}/src/server/nautical/nautical_processBoatLogs" --dir "${datasetsDir}/$i"
+  "${BIN_DIR}/src/server/nautical/nautical_processBoatLogs" --dir "${datasetsDir}/$i" || true
+
+  "${BIN_DIR}/src/server/nautical/nautical_catTargetSpeed" --id "${boatid}" "${datasetsDir}/$i/processed/boat.dat" | mongo anemomind-dev
 
   echo "Generating tiles for ${i}"
   "${BIN_DIR}/src/server/nautical/tiles/tiles_generateAndUpload" \
     --boatDat "${datasetsDir}/$i/processed/boat.dat" \
-    --id "${boatid}" --navpath "${datasetsDir}/$i"
+    --id "${boatid}" --navpath "${datasetsDir}/$i" || true
 done
