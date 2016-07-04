@@ -20,6 +20,7 @@
 #include <server/common/logging.h>
 #include <server/common/string.h>
 #include <server/nautical/calib/Calibrator.h>
+#include <server/nautical/DownsampleGps.h>
 #include <server/nautical/HTreeJson.h>
 #include <server/nautical/NavJson.h>
 #include <server/nautical/logimport/LogLoader.h>
@@ -41,32 +42,46 @@ using namespace std;
 namespace {
   TargetSpeed makeTargetSpeedTable(bool isUpwind,
       std::shared_ptr<HTree> tree, Array<HNode> nodeinfo,
-      Array<Nav> allnavs,
+      const NavDataset& allnavs,
       std::string description) {
 
     // TODO: How to best select upwind/downwind navs? Is the grammar reliable for this?
     //   Maybe replace AWA by TWA in order to label states in Grammar001.
-    Arrayb sel = markNavsByDesc(tree, nodeinfo, allnavs, description);
+    Array<std::pair<TimeStamp, TimeStamp>> sel =
+      markNavsByDesc(tree, nodeinfo, allnavs, description);
 
-    NavDataset navs = fromNavs(allnavs.slice(sel));
+    ArrayBuilder<Velocity<double>> twsArray;
+    ArrayBuilder<Velocity<double>> vmgArray;
 
-    Array<Velocity<double> > tws = estimateExternalTws(navs);
-    Array<Velocity<double> > vmg = calcExternalVmg(navs, isUpwind);
-    Array<Velocity<double> > gss = getGpsSpeed(allnavs);
+    for (const std::pair<TimeStamp, TimeStamp>& it : sel) {
+      NavDataset leg = allnavs.slice(it.first, it.second);
+
+      TimedSampleRange<Velocity<double>> twsLeg = leg.samples<TWS>();
+      TimedSampleRange<Velocity<double>> vmgLeg = leg.samples<VMG>();
+
+      for (TimeStamp time(it.first); time < it.second; time += Duration<>::seconds(1)) {
+        Optional<TimedValue<Velocity<>>> tws = twsLeg.evaluate(time);
+        Optional<TimedValue<Velocity<>>> vmg = vmgLeg.evaluate(time);
+        if (tws.defined() && vmg.defined()) {
+          twsArray.add(tws.get().value);
+          vmgArray.add(vmg.get().value);
+        }
+      }
+    }
 
     // TODO: Adapt these values to the amount of recorded data.
     const int binCount = TargetSpeedTable::NUM_ENTRIES;
     Velocity<double> minvel = Velocity<double>::knots(0);
     Velocity<double> maxvel = Velocity<double>::knots(TargetSpeedTable::NUM_ENTRIES-1);
     Array<Velocity<double> > bounds = makeBoundsFromBinCenters(TargetSpeedTable::NUM_ENTRIES, minvel, maxvel);
-    return TargetSpeed(isUpwind, tws, vmg, bounds);
+    return TargetSpeed(isUpwind, twsArray.get(), vmgArray.get(), bounds);
   }
 
   void outputTargetSpeedTable(
       bool debug,
       std::shared_ptr<HTree> tree,
       Array<HNode> nodeinfo,
-      Array<Nav> navs,
+      NavDataset navs,
       std::ofstream *file) {
     TargetSpeed uw = makeTargetSpeedTable(true, tree, nodeinfo, navs, "upwind-leg");
     TargetSpeed dw = makeTargetSpeedTable(false, tree, nodeinfo, navs, "downwind-leg");
@@ -81,7 +96,7 @@ namespace {
     saveTargetSpeedTableChunk(file, uw, dw);
   }
 
-  Array<Nav> makeBoatDatFile(
+  void makeBoatDatFile(
       bool debug,
       NavDataset src,
       PathBuilder outdir,
@@ -96,10 +111,9 @@ namespace {
       calibrator.saveCalibration(&boatDatFile);
       simulated = calibrator.simulate(src);
     }
-    auto sampled = makeArray(simulated);
+    assert(getNavSize(simulated) == getNavSize(src));
 
-    outputTargetSpeedTable(debug, fulltree, g.nodeInfo(), sampled, &boatDatFile);
-    return sampled;
+    outputTargetSpeedTable(debug, fulltree, g.nodeInfo(), simulated, &boatDatFile);
   }
 
   bool processBoatData(bool debug, Nav::Id boatId, NavDataset navs, Poco::Path dstPath, std::string filenamePrefix) {
@@ -127,24 +141,8 @@ namespace {
     PathBuilder outdir = PathBuilder::makeDirectory(dstPath);
     std::string prefix = "all";
 
-    auto navs0 = makeBoatDatFile(debug, navs, outdir, fulltree, boatId, g);
+    makeBoatDatFile(debug, navs, outdir, fulltree, boatId, g);
 
-    {
-      std::string path = outdir.makeFile(prefix + "_tree.js").get().toString();
-      ENTERSCOPE("Output tree (" + path + ")");
-      ofstream file(path);
-      Poco::JSON::Stringifier::stringify(json::serializeMapped(fulltree, navs, g.nodeInfo()), file, 0, 0);
-    }{
-      std::string path = outdir.makeFile(prefix + "_navs.js").get().toString();
-      ENTERSCOPE("Output navs");
-      ofstream file(path);
-      Poco::JSON::Stringifier::stringify(json::serialize(navs0), file, 0, 0);
-    }{
-      std::string path = outdir.makeFile(prefix + "_tree_node_info.js").get().toString();
-      ENTERSCOPE("Output tree node info");
-      ofstream file(path);
-      Poco::JSON::Stringifier::stringify(json::serialize(g.nodeInfo()), file, 0, 0);
-    }
     return true;
   }
 }
@@ -176,13 +174,7 @@ Nav::Id extractBoatId(Poco::Path path) {
   return path.directory(path.depth()-1);
 }
 
-
-
-
-
-
-
-}
+}  // namespace
 
 NavDataset loadNavs(ArgMap &amap, std::string boatId) {
   LogLoader loader;
@@ -218,7 +210,7 @@ int continueProcessBoatLogs(ArgMap &amap) {
   ENTERSCOPE("Anemomind boat log processor");
   bool debug = amap.optionProvided("--debug");
   Nav::Id id = getBoatId(amap);
-  auto navs = loadNavs(amap, id);
+  auto navs = downSampleGpsTo1Hz(loadNavs(amap, id));
   auto dstPath = getDstPath(amap);
   std::stringstream msg;
   msg << "Process " << getNavSize(navs) << " navs with boatid=" <<

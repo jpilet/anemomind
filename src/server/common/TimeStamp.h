@@ -41,6 +41,7 @@ class TimeStamp {
   bool operator>(const TimeStamp &x) const {return x < (*this);}
   bool operator<=(const TimeStamp &x) const {return !(x < (*this));}
   bool operator>=(const TimeStamp &x) const {return !((*this) < x);}
+  TimeStamp& operator += (Duration<> delta) { return *this = *this + delta; }
 
   TimeStamp(); // Default contructor of an object with defined() returning false.
 
@@ -95,6 +96,9 @@ class Clock {
 void sleep(Duration<double> duration);
 
 bool isFinite(const TimeStamp &x);
+
+TimeStamp minDefined(TimeStamp a, TimeStamp b);
+TimeStamp maxDefined(TimeStamp a, TimeStamp b);
 
 } /* namespace sail */
 

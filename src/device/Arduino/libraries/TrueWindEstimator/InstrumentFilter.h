@@ -39,7 +39,7 @@ class InstrumentFilter {
   }
 
   TimeStamp oldestUpdate() const {
-    return min(_appWind._time, min(_magWater._time, _gps._time));
+    return minDefined(_appWind._time, minDefined(_magWater._time, _gps._time));
   }
 
  private:

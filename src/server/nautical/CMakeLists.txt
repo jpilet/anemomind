@@ -118,6 +118,7 @@ target_link_libraries(nautical_BoatLogProcessor
                       nautical_HTreeJson
                       nautical_NavJson
                       nautical_TargetSpeed
+                      nautical_downsamplegps
                       nautical_grammars_WindOrientedGrammar
                       common_ArgMap
                       plot_gnuplot
@@ -314,3 +315,11 @@ add_library(nautical_Visualize
 target_link_libraries(nautical_Visualize
   plot_Plot
   )
+
+add_library(nautical_downsamplegps
+            DownsampleGps.h
+            DownsampleGps.cpp
+           )
+target_link_libraries(nautical_downsamplegps
+                      nautical_NavDataset
+                      )

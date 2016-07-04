@@ -3,15 +3,16 @@
  *      Author: Jonas Östlund <uppfinnarjonas@gmail.com>
  */
 
-#include <server/nautical/tiles/TileUtils.h>
 #include <device/anemobox/simulator/SimulateBox.h>
-#include <server/nautical/tiles/NavTileUploader.h>
+#include <server/common/ArrayBuilder.h>
+#include <server/common/Functional.h>
+#include <server/common/logging.h>
+#include <server/nautical/DownsampleGps.h>
+#include <server/nautical/filters/SmoothGpsFilter.h>
 #include <server/nautical/grammars/WindOrientedGrammar.h>
 #include <server/nautical/logimport/LogLoader.h>
-#include <server/nautical/filters/SmoothGpsFilter.h>
-#include <server/common/ArrayBuilder.h>
-#include <server/common/logging.h>
-#include <server/common/Functional.h>
+#include <server/nautical/tiles/NavTileUploader.h>
+#include <server/nautical/tiles/TileUtils.h>
 
 namespace sail {
 
@@ -79,7 +80,12 @@ Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
 void processTiles(const TileGeneratorParameters &params,
     std::string boatId, std::string navPath,
     std::string boatDat, std::string polarDat) {
-    auto rawNavs0 = LogLoader::loadNavDataset(navPath);
+
+    // Downsampling GPS should be avoided. However, the navCompat stuff still uses
+    // GPS sampling to iterate, and we need to have a bound on the frequency.
+    // TODO: Stop using makeArray(), getNav and other indexed access
+    // TODO: Stop downsampling GPS.
+    auto rawNavs0 = downSampleGpsTo1Hz(LogLoader::loadNavDataset(navPath));
 
     CHECK(isValid(rawNavs0.dispatcher().get())) << "The loaded data is invalid, please fix the code";
 

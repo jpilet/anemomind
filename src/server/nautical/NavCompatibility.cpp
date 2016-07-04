@@ -42,6 +42,8 @@ namespace {
   }
 
   void  insertNavsIntoDispatcher(const Array<Nav> &navs, Dispatcher *dst) {
+    LOG(FATAL) << __FUNCTION__ << ": should not be called!";
+
     std::string srcOurs("NavDevice");
     std::string srcExternal("NavExternal");
 
@@ -237,15 +239,6 @@ const Nav getNav(const NavDataset &ds, int i) {
 
   if (twdir.defined() && tws.defined()) {
     dst.setTrueWindOverGround(windMotionFromTwdirAndTws(twdir.get(), tws.get()));
-    auto heading = getValue<GPS_BEARING>(ds, timeAndPos.time);
-    if (heading.defined()) {
-      // hack: because of the NMEA2000 bug swapping TWA and TWDIR [1], we have recording
-      // with TWDIR but without TWA. However, the grammar parser gets confused without
-      // TWA. So we artificially recompose TWA from TWDIR and GPS_BEARING here.
-      //
-      // [1] https://github.com/jpilet/anemomind/pull/615
-      dst.setExternalTwa(computeTwaFromTwdirAndHeading(twdir.get(), heading.get()));
-    }
   }
 
   setNavValueFilteredSources<TWA>(sourceIsInternal, ds, timeAndPos.time, &dst, &Nav::setDeviceTwa);
@@ -327,6 +320,11 @@ Iterator getBegin(const NavDataset &ds) {
 
 Iterator getEnd(const NavDataset &ds) {
   return Iterator(ds, getNavSize(ds));
+}
+
+TimeStamp timeAt(const NavDataset& navs, int i) {
+  auto samples = getGpsPositions(navs);
+  return samples[i].time;
 }
 
 }

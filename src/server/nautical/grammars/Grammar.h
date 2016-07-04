@@ -7,7 +7,7 @@
 #define GRAMMAR_H_
 
 #include <server/common/Hierarchy.h>
-#include <server/nautical/NavCompatibility.h>
+#include <server/nautical/NavDataset.h>
 #include <server/nautical/grammars/UserHint.h>
 #include <memory>
 
@@ -38,8 +38,8 @@ class Grammar {
 };
 
 
-Arrayb markNavsByDesc(std::shared_ptr<HTree> tree,
-    Array<HNode> nodeInfo, Array<Nav> allnavs,
+Array<std::pair<TimeStamp, TimeStamp>> markNavsByDesc(std::shared_ptr<HTree> tree,
+    Array<HNode> nodeInfo, const NavDataset& navs,
     std::string label);
 
 } /* namespace sail */

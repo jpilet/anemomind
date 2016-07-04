@@ -237,4 +237,28 @@ bool isFinite(const TimeStamp &x) {
   return x.defined();
 }
 
+TimeStamp minDefined(TimeStamp a, TimeStamp b) {
+  if (a.defined()) {
+    if (b.defined()) {
+      return std::min(a, b);
+    } else {
+      return a;
+    }
+  } else {
+    return b;
+  }
+}
+
+TimeStamp maxDefined(TimeStamp a, TimeStamp b) {
+  if (a.defined()) {
+    if (b.defined()) {
+      return std::max(a, b);
+    } else {
+      return a;
+    }
+  } else {
+    return b;
+  }
+}
+
 } /* namespace sail */
