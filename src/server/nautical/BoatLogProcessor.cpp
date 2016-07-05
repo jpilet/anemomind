@@ -64,17 +64,25 @@ namespace {
         Optional<TimedValue<Velocity<>>> vmg = vmgLeg.evaluate(time);
         if (tws.defined() && vmg.defined()) {
           twsArray.add(tws.get().value);
-          vmgArray.add(vmg.get().value);
+          // vmg is negative for downwind sailing, but the TargetSpeed logic
+          // only handles positive values. Therefore, take the abs value.
+          vmgArray.add(fabs(vmg.get().value));
         }
       }
     }
 
+    Array<Velocity<>> twsArr = twsArray.get();
+    Array<Velocity<>> vmgArr = vmgArray.get();
+
+    LOG(INFO) << "makeTargetSpeedTable: " << (isUpwind ? "upwind" : "downwind")
+      << " " << description << ": " << sel.size() << " legs "
+      << twsArr.size() << " measures";
+
     // TODO: Adapt these values to the amount of recorded data.
-    const int binCount = TargetSpeedTable::NUM_ENTRIES;
     Velocity<double> minvel = Velocity<double>::knots(0);
     Velocity<double> maxvel = Velocity<double>::knots(TargetSpeedTable::NUM_ENTRIES-1);
     Array<Velocity<double> > bounds = makeBoundsFromBinCenters(TargetSpeedTable::NUM_ENTRIES, minvel, maxvel);
-    return TargetSpeed(isUpwind, twsArray.get(), vmgArray.get(), bounds);
+    return TargetSpeed(isUpwind, twsArr, vmgArr, bounds);
   }
 
   void outputTargetSpeedTable(
@@ -110,6 +118,10 @@ namespace {
     if (calibrator.calibrate(src, fulltree, boatId)) {
       calibrator.saveCalibration(&boatDatFile);
       simulated = calibrator.simulate(src);
+    } else {
+        LOG(WARNING) << "Calibration failed. Using default calib values.";
+        calibrator.clear();
+        simulated = calibrator.simulate(src);
     }
     assert(getNavSize(simulated) == getNavSize(src));
 
@@ -139,7 +151,6 @@ namespace {
     buildDir.createDirectory();
 
     PathBuilder outdir = PathBuilder::makeDirectory(dstPath);
-    std::string prefix = "all";
 
     makeBoatDatFile(debug, navs, outdir, fulltree, boatId, g);
 
