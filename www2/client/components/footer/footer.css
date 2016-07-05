@@ -1,0 +1,70 @@
+
+
+.footer {
+  float: left;
+  width: 100%;
+  clear: both;
+  bottom: 0;
+  margin-bottom: -20px;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  min-height: 250px;
+  color: #fff;
+  padding: 20px;
+  background-color: #333;
+  text-shadow:0 0 1px rgba(0,0,0,1);
+  background: linear-gradient( #222, #333);
+  padding-top: 40px;
+}
+
+.footer > .container {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+
+.footer .dropdown-header{
+  color: #aaa;
+  padding: 3px;
+  font-weight: 700;
+  font-size: 14px;  
+}
+
+.footer .text{
+  color: #aaa;
+  padding: 3px;
+  font-weight: 300;
+  margin-top: 5px;
+}
+
+.footer input[type='text'],
+.footer input[type='email'],
+.footer input[type='button'],
+.footer input[type='submit'],
+.footer input[type='search']{
+  border-color: #444444;
+  background-color: #333333;
+  color: #919191;  
+}
+
+.footer label{
+  font-size: 12px;
+  padding: 4px;
+  color: #bbb;  
+}
+
+.footer ul {
+  padding-left: 0px;
+}
+
+.footer ul>li {
+  list-style:none;  
+  margin-bottom: 10px;
+}
+
+.footer ul>li>a {
+  color: #666;
+  text-decoration: none;
+  padding: 3px;
+  font-size: 13px;
+}
