@@ -24,6 +24,7 @@ target_link_libraries(nautical_nav
 cxx_test(nautical_BoatLogProcessorTest
          BoatLogProcessorTest.cpp
          nautical_BoatLogProcessor
+         device_TargetSpeed
          common_Env
          gtest_main
         )
