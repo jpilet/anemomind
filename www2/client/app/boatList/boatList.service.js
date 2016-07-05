@@ -109,6 +109,10 @@ angular.module('www2App')
     update();
     $rootScope.$watch(Auth.isLoggedIn, function(newVal, oldVal) {
       if (newVal && newVal != oldVal) {
+        //
+        // force update boats
+        deferred = $q.defer();  
+        promise=deferred.promise;      
         update();    
       }
     });
