@@ -6,9 +6,10 @@
 #ifndef SERVER_NAUTICAL_TILES_TILEUTILS_H_
 #define SERVER_NAUTICAL_TILES_TILEUTILS_H_
 
-#include <string>
 #include <server/common/Array.h>
-#include <server/nautical/Nav.h>
+#include <server/nautical/NavDataset.h>
+#include <server/nautical/grammars/WindOrientedGrammar.h>
+#include <string>
 
 namespace sail {
 
@@ -17,6 +18,12 @@ void processTiles(const TileGeneratorParameters &params,
    std::string boatId, std::string navPath,
    std::string boatDat, std::string polarDat);
 
-}
+Array<NavDataset> filterSessions(const Array<NavDataset>& sessions);
+
+Array<NavDataset> extractAll(std::string description, NavDataset rawNavs,
+                             const WindOrientedGrammar& grammar,
+                             const std::shared_ptr<HTree>& tree);
+
+}  // namespace sail
 
 #endif

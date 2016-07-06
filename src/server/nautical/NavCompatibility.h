@@ -99,7 +99,7 @@ void plotNavsEcefTrajectory(NavDataset navs);
 void plotNavsEcefTrajectories(Array<NavDataset> navs);
 int countNavs(Array<NavDataset> navs);
 Length<double> computeTrajectoryLength(NavDataset navs);
-int findMaxSpeedOverGround(NavDataset navs);
+int findMaxSpeedOverGround(const Array<Nav>& navs);
 
 }
 

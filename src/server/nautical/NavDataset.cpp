@@ -57,7 +57,8 @@ NavDataset::NavDataset(const std::shared_ptr<Dispatcher> &dispatcher,
 
   for (auto channel : dispatcher->allSources()) {
     for (auto source : channel.second) {
-      LOG_IF(WARNING, classify(source.first) == SourceOrigin::UNKNOWN) << "Working with unknown source: " << source.first;
+      classify(source.first);
+      //LOG_IF(WARNING, classify(source.first) == SourceOrigin::UNKNOWN) << "Working with unknown source: " << source.first;
     }
   }
 }

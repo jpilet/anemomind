@@ -121,6 +121,7 @@ target_link_libraries(nautical_BoatLogProcessor
                       nautical_TargetSpeed
                       nautical_downsamplegps
                       nautical_grammars_WindOrientedGrammar
+                      nautical_tiles_TileUtils
                       common_ArgMap
                       plot_gnuplot
                       common_ScopedLog
