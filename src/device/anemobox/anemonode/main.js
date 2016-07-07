@@ -118,7 +118,8 @@ if (withSetTime) {
 }
 
 var getCurrentTime = withTimeEstimator? 
-    require('./components/timeest.js') : function() {return new Date();};
+    require('./components/timeest.js').estimateTimeFromDispatcher 
+    : function() {return new Date();};
 
 function startLogging() {
   logger.startLogging(logRoot, logInterval, getCurrentTime, function(path) {

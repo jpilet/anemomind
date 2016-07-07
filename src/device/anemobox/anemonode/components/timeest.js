@@ -1,17 +1,48 @@
-var AbsoluteTimeEstimator = require('./AbsoluteTimeEstimator');
-var anemonode = require('../build/Release/anemonode');
+var assert = require('assert');
 
-var estimator = new AbsoluteTimeEstimator(300);
+//var anemonode = require('../build/Release/anemonode');
 
-function updateEstimatorFromDispatcher() {
-  var sysTime = anemonode.dispatcher.values.dateTime.time(0);
-  var gpsTime = anemonode.dispatcher.values.dateTime.value(0);
-  if (!sysTime || !gpsTime) {
-    console.log('time undefined');
-    return;
+function medianDeltaTime(src, hlen) {
+  assert(src.length);
+  assert(src.value);
+  assert(src.time);n
+  assert(hlen);
+  var n = Math.min(hlen, src.length());
+  var deltas = [];
+  for (var i = 0 ; i < n; ++i) {
+    var sysTime = src.time(i);
+    var gpsTime = src.value(i);
+    if (sysTime && gpsTime) {
+      deltas.push(gpsTime - sysTime);
+    }
   }
-  estimator.addTimePair(sysTime, gpsTime);
+  if (deltas.length > 0) {
+    deltas.sort();
+    return deltas[Math.floor(deltas.length / 2)];
+  }
+  return undefined;
 }
-anemonode.dispatcher.values.dateTime.subscribe(updateEstimatorFromDispatcher);
 
-module.exports = function() {return estimator.estimateCurrentTimeNow() || new Date();}
+function estimateTime(src, hlen) {
+  if (src.length() == 0) {
+    return new Date();
+  } else {
+    var offset = medianDeltaTime(src, hlen);
+    var sys = src.time(0);
+
+    console.log('Offset = ' + offset);
+    console.log('Sys = ' + sys);
+
+    return new Date(sys.getTime() + offset);
+  }
+}
+
+var historyLength = 60;
+
+function estimateTimeFromDispatcher() {
+  return estimateTime(anemonode.dispatcher.value.dateTime, historyLength);
+}
+
+module.exports.estimateTimeFromDispatcher = estimateTimeFromDispatcher;
+module.exports.medianDeltaTime = medianDeltaTime;
+module.exports.estimateTime = estimateTime;
